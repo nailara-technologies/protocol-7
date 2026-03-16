@@ -1,5 +1,14 @@
 # Completed Work Sessions
 
+## signature oscillation Variant A fix (Mar 16 2026) — commit `2bf1b3d46`
+state=7/6 encoding fix in source.create_harmonic_footer (0-newline bodies → state=7,
+empty files → state=6); "remove exactly N" restore semantics in
+source.restore_payload_endline_state (was "strip all + add N"); 109 files resigned.
+New tool: sourcecode.console.report-endline-state (3-bit state from footer first line).
+test.0/1/2/3/empty created; verification YAML at data/yaml/coding-tasks/signature-endline-state-verification.yaml.
+Variant B (double-footer on never-signed non-empty files) remains open.
+Archive: data/yaml/archive/completed-fix-tasks/signature-oscillation-variant-a.yaml
+
 ## non-blocking socket read fix (Mar 7 2026) — commit `0c590de22`
 Three bugs: (1) `io.unix.socket.input.connect` missing `blocking(0)` after accept() — TCP/SSL
 had it from `2d64177a3` but unix was missed; (2) `net.read_linewise_estimated` returning `TRUE`
@@ -41,8 +50,8 @@ saves via `yaml_save`
 - switch-model: auto backend (gpu first, cpu fallback); kill old server before VRAM check;
   0.3s wait for GPU driver VRAM release; use provided model_path directly in spawn_smart
 
-#,,,.,...,,,,,.,.,,..,...,,,.,,.,,..,,...,,,.,..,,...,..,,,..,...,,,.,,.,,,..,
-#VCKUTFJR7CSRHU45AO67KBLNQYAKA6EGHGENEHMC5B74CUIVUZZZIC47TAAZG25VMPW2X5UGEAZUU
-#\\\|GW3DENE6BJPTMMEAG4WUNKHE4LPFCATHCC4ZCGYQ7VUOPJJQCTA \ / AMOS7 \ YOURUM ::
-#\[7]33QXP4XYFIDNXCTWDFYTCGCGRTAMNZID64PD7XHMXEK4JW3DIABA 7  DATA SIGNATURE ::
+#,,,.,,,.,,,.,,..,,,,,,.,,,,,,,..,...,,.,,...,..,,...,...,,..,.,.,...,.,.,,.,,
+#L2HCZ77IEGZMZXCBQDR6P7KPQWVFVAR22LL2ZIXFY3QD7KNNALMVU33LRZGPRQBMSZIJKRFKNGKPO
+#\\\|H3YROGNEKG3QTNOJ5C4ON7MBLUYBLNQFHYPSIGGU2KS4PRMHAT2 \ / AMOS7 \ YOURUM ::
+#\[7]NNTUK5ILUBTDB4MVKZBRMHTDKYMNZZUJOKDGVA6ZSGE6FSLABMBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

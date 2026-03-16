@@ -1,0 +1,83 @@
+---
+task_id: signature-oscillation-reopen
+archived_from: data/yaml/coding-tasks/signature-oscillation-reopen.yaml
+date_archived: 2026-03-16
+status: resolved
+commit: 2bf1b3d46
+
+title: |
+  Signature oscillation Variant A — state encoding fix for 0-newline and empty bodies
+
+resolution_summary: |
+  Variant A resolved by correcting the endline state encoding in
+  source.create_harmonic_footer and fixing the restore semantics in
+  source.restore_payload_endline_state. 109 files resigned to correct state.
+
+  Variant B (double-footer on never-signed files) remains open.
+  See: data/yaml/coding-tasks/signature-oscillation-variant-b.yaml (if created)
+  or the preserved fixtures at: data/asc/test-fixtures/signature-oscillation-2026-03-15/
+
+root_cause: |
+  source.create_harmonic_footer was assigning state=4 for files with 0 trailing
+  newlines (non-empty bodies). Correct state is 7 (delta=+2, two newlines added:
+  one content + one separator). Empty files (content_size==0) were also getting
+  state=7; correct is state=6 (delta=+1, only the separator \n is added).
+
+  source.restore_payload_endline_state was using "strip all trailing \n, then add N"
+  semantics. Correct is "remove exactly N trailing \n" (s/\n{N}$//s). The old logic
+  corrupted bodies that had > N trailing newlines before signing.
+
+fix_applied:
+  source.create_harmonic_footer:
+    - capture $content_size and $orig_nl_count BEFORE body modification
+    - state assignment block:
+        content_size==0  → state=6  (empty file: separator \n added, remove 1)
+        orig_nl_count==0 → state=7  (no trailing \n: 2 added, remove 2)
+        orig_nl_count==1 → state=6  (1 trailing \n: 1 added, remove 1)
+        else             → state=5  (canonical ≥2 trailing \n: no modification)
+
+  source.restore_payload_endline_state:
+    - delta = state - 5
+    - if delta > 0: s/\n{delta}$//s   (remove exactly N)
+    - if delta < 0: payload .= "\n" x abs(delta)  (add back N)
+    - states < 5 confirmed correct by code inspection (add-only harmonize never generates them)
+
+test_files_created:
+  - modules/test.0   (0 trailing \n → expected state=7)
+  - modules/test.1   (1 trailing \n → expected state=6)
+  - modules/test.2   (2 trailing \n → expected state=5)
+  - modules/test.3   (3 trailing \n → expected state=5, harmonize no-op)
+  - modules/test.empty  (0 bytes → expected state=6)
+
+verification_task: data/yaml/coding-tasks/signature-endline-state-verification.yaml
+
+new_tooling:
+  - modules/sourcecode.console.report-endline-state
+      reads 3-bit state from footer first line via amos7.decode_octal_bit_header
+      usage: sourcecode report-endline-state <file-pattern>
+  - bin/dev/tests/timing/test-oscillation-sequence
+      fixed: was mixing temp-key sign with real-key update-signatures
+      now: all-temp-key, diff step2 vs step4 verify for automatic pass/fail
+
+known_remaining_issues:
+  - encountered-error propagation gap in extract_sig_body flexible section
+      lines 283-290 and 398-407 set was-present=1 without setting encountered-error
+      causes "unspecified error in footer structure" fallback in source.cmd.get-code-signed
+      pre-existing, not introduced by this session
+  - sourcecode.console.read-sig-footer-state has wrong state=4 description
+      currently '4:no-mod' should be '4:delta=-1 [ 1 removed ]'
+
+original_task:
+  date_created: 2026-03-15
+  two_variants: |
+    VARIANT A (resolved here): touch empty file, sign — requires two passes to stabilize.
+    VARIANT B (open): sign a file never signed before (non-empty) — "checksum correct but
+    signature not valid", double-footer appended. Preserved fixtures at
+    data/asc/test-fixtures/signature-oscillation-2026-03-15/
+---
+
+#,,,.,.,.,.,,,,,,,,.,,,,.,,,.,..,,...,,,.,,..,..,,...,...,..,,..,,,..,..,,...,
+#SEGZUB2WO2IULS3Z6S3NKMEDNVA5Y3IEQ4E33XJ22RT3UXVSC4LMI32FJRVT6IZLGVVEAQQC7LCXW
+#\\\|YAL4C7M7MFA6QQESYEXH4SH43DB6F7O3SPC5CKLJNA7SKJGVDOB \ / AMOS7 \ YOURUM ::
+#\[7]JTX24QIQ2CH5AXQ6JHSMK6TGKKG363A7O2YDMN4WO4D3H4BHFUAY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

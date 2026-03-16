@@ -111,10 +111,12 @@ extbin_exit_code:
 
   desired_behavior:
     - when external program exits with non-zero code:
-      - log exit code at level 1 (visible, not debug)
+      - log exit code at level 0 [ always visible, any verbosity setting ]
       - call zenka.change_status -> 'error' for that instance
-      - do NOT auto-restart on error exit (or make configurable)
-      - zero exit -> normal offline/stopped status as currently
+      - set status 'error' so existing restart configuration applies
+    - when external program exits with code 0:
+      - log at level 1 [ confirmation trace, not noise ]
+      - normal offline/stopped status as currently
 
   implementation_notes:
     - v7.handler.sig_chld already receives exit code, passes to
@@ -144,8 +146,8 @@ verification:
     - pull-git success shows normal completed/offline status
     - no regression in other exec-external zenki (namesrv etc.)
 
-#,,.,,.,.,.,,,.,.,.,,,,,.,..,,..,,,,,,,,,,,..,..,,...,...,.,.,..,,,,.,.,,,...,
-#SNXDW7FHUO5GQPQ2AQIL2WPEXWKVCZVYDZ2SQXOP6DMFSAFEVLMUBOGSBZWLDEDWR5MUTN6KA5QT4
-#\\\|C5JK7UD4KOB2POVPH2M7EA65G6CYR44IDDM6IM3ZH455L2PQSWU \ / AMOS7 \ YOURUM ::
-#\[7]ACZKDJV6HUA7PG67TPVGRD3HYKKOOZUBWYD5HGJ27IN3SZPZP6DY 7  DATA SIGNATURE ::
+#,,.,,,,,,..,,,,,,...,.,.,..,,,.,,.,,,...,..,,..,,...,..,,,.,,,,.,,,,,,,.,...,
+#2CFCIYHCCRLX7J54D36HDN5XMYBP6WGOZNHTSOZC2RR2X2D3AJUEXA77TAZTHGVHFPXL2XYUQPT56
+#\\\|UUKTK2ASJZHJUUKSLK7XTVSI3YVQE3OEYZIWST27MK5PK53WSCV \ / AMOS7 \ YOURUM ::
+#\[7]XZCQTK6CPBJCWXNZ2IU7Q4QJ5IGJZX3WTQSQX2PVQUIHDEUKSKAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
