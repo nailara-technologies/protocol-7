@@ -99,3 +99,9 @@ Once Phase 6 validates locally:
 - Check logs: `p7c system.log.tail:100`
 - Monitor: `p7c list sessions` for active connections
 - Key location: `~/.n/user-keys/remote.*.public`
+
+#,,,.,,..,.,.,,,.,,,,,.,,,,..,,.,,,,.,...,,..,..,,...,...,.,.,.,,,,,.,,,.,,,.,
+#MBI3CVSXAUVEIVFVSDSQRUDSGH7SYKUKYG6C7LNICXFK56JSN7KK3F5K3VRCVY3TANCFLCZ7ELNAY
+#\\\|IYWUFOYV65XB5G3IBDZ3K2SB2S27QXUUAZ46HCA75JHHIWOEQ3X \ / AMOS7 \ YOURUM ::
+#\[7]OA4D4F4NASZJURSPIZBHYAIW6IYGWT3EOMQRSVZHUGM4S2L6QADI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
