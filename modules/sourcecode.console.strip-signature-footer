@@ -95,12 +95,11 @@ foreach my $source_path (@source_paths) {
     # The payload in $src_str has now been restored to pre-signature state
     # using the endline-state-encoded information
 
-# Handle broken state: footer concatenated directly to last code line (no endlines)
-# This happens when signing failed to add separator endlines
-    if ( $src_str !~ /\n$/s ) {
-        <[base.log]>->(
-            1, ': : fixing broken state - last line had no endline'
-        ) if $strip_verbosity >= 1;
+    ## repair case only : separator was absent and restore was skipped ##
+    ## for correctly signed files restore() handles endline state precisely ##
+    if ( $footer_data->{'needs_separator_endline'} and $src_str !~ /\n$/s ) {
+        <[base.log]>->( 1, ': : repair : adding missing last-line endline' )
+            if $strip_verbosity >= 1;
         $src_str .= "\n";
     }
 
@@ -165,8 +164,8 @@ if ( $files_error > 0 ) {
 
 return FALSE;
 
-#,,,.,.,,,.,,,,.,,.,.,.,.,...,,,.,,..,,,.,.,.,..,,...,...,..,,,.,,,,,,.,.,,,.,
-#X33SCLG5S4S5KIDP5Z6P7JCRP3MZB3BTFYHZ5PWOWJVQM3UKOEHVGH6VH3D6DKAKHYNYXQFBOKBNO
-#\\\|LGRZSWDPLUVKRFD5VT66OAPVB75X3C6VZXPAAC5V6DKPFX6WK2P \ / AMOS7 \ YOURUM ::
-#\[7]F7JLGBO3MCXH4T3R6N5L3YWDLFEOOEU6JU2UC7TQJCFETFUWTSAY 7  DATA SIGNATURE ::
+#,,,.,.,,,,,,,,,,,...,.,.,.,,,.,.,..,,.,.,.,.,..,,...,...,.,,,.,,,.,.,...,...,
+#XE64HER6JSSQ3HNNTCWM5Q5CY2ULUWKLGHKMZSF3SZPYPOAOZGSX6K4TDKNYOLKXGZGJ2GNJFKK4K
+#\\\|CAKAEFUPYT2NN52EULTORC5VTP7SXOB6LMGDWFYK2YF36P6IOJ6 \ / AMOS7 \ YOURUM ::
+#\[7]X7HSACHNBWVSCVOR2D4LXBKXRUPNJBARESJE6LPWHQI2YZQGW2DA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
