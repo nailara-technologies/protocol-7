@@ -174,3 +174,9 @@ Look for:
 - "key derivation completed" (should appear without delay)
 - "encryption wrappers installed" (confirms state 2→3 transition)
 - "AMOS7::13::key_32 WARNING" (should not appear with SCALAR refs)
+
+#,,,,,,,,,...,,,.,.,,,,,.,,,,,.,.,.,.,,,.,,,.,..,,...,.,.,,,,,...,,.,,,..,,.,,
+#GMB4PDODLSIDFZII2L27T7A2ZUYUJLZTJYD6DNE5DNJZWKUPCWLVWCSEIQOREZUT7BSAECYZIJXQI
+#\\\|QVE3CLKQTBAQ7MJH3DYTKH54ZDAYRXSEYVQLJQ4THT2XFLJMKDR \ / AMOS7 \ YOURUM ::
+#\[7]ML3Y6CJNIM2T365W3VUQSGAU7MCFLMYCTGBDIE4GFXAT2NTU7WCA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
