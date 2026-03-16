@@ -1,5 +1,8 @@
 # Protocol-7 Development Memory
 ## Topic Files (details live here)
+- `topic-migration.md` — Windows 11 host instability, KVM/Debian migration priority, avoid /tmp/
+- `topic-self-contained-zenka.md` — self-contained zenka vision: __DATA__ registry, file.* abstraction,
+  zenka serialization/dump, coderef P7REF transfer, STDIO transport, roaming zenki, empty bootstrap
 - `topic-tls-acme.md` — SNI/SSL internals, ACME/letsencr details, cert discovery
 - `topic-patterns.md` — event handler, fork-child, standalone zenka, pipe-open, inference server
 - `topic-completed.md` — session summaries with details
@@ -148,8 +151,8 @@
 - Pattern: `my @non_num = grep { defined $data_ref->{$ARG}->{$key} and not looks_like_number(...) } keys $data_ref->%*`
 - Global `$SIG{__WARN__}` exists — if wrapping warn handler, capture `$prev_warn = $SIG{__WARN__}` first and call through
 
-#,,,.,,,.,.,.,,..,,..,,,,,,..,..,,,,.,,,,,,,.,..,,...,..,,...,,.,,...,.,,,,..,
-#RH7GFLFNSERQC36KM7CUMW6255F335X4XKSZT4KZ6YJA2MBQ7FETHK7KYI7Z7FQBIBSQXS3SXL3YW
-#\\\|WG6DVGVQJJXBMMYSAWG5GC52ZQ42GFZRDQCHTCSGCFMOLWK3XTV \ / AMOS7 \ YOURUM ::
-#\[7]CKCIFSZSQ6XMZ5LYXJY5NJ5RDKXTRIJILA6OGHJNMFAPOKBZI2DA 7  DATA SIGNATURE ::
+#,,,.,.,.,.,.,,,.,.,,,...,.,.,..,,,,,,,,,,...,..,,...,...,..,,,,,,...,,..,..,,
+#FIFQK37CKTPUJUDNKEH4PI2KAFO2YUIFI2G4NLTIAEI4NNGPP6U7NENNJM5VQLPJO4T5BS4G4BPC2
+#\\\|GVQ27JXVSUDXQUYTV5R72T4LXGCM4LWY6BR7RLNMPVKHPYGUULS \ / AMOS7 \ YOURUM ::
+#\[7]5SP5RM2E7FJ7DRNYHMSYWX3M3OIE7VWZANX2UGY3Q4N3YLOZIMAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
