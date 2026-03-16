@@ -31,3 +31,9 @@ P7_ROOT=$(find_protocol_7_root) || exit 1
 #\\\|4FTK4PYFNU7AT7CPAZVAUJMQJOC6M3ZAWQZA4OAB34ZAKACYHQD \ / AMOS7 \ YOURUM ::
 #\[7]3RBX4JVP6YB6NHDGRT4ADEKAAJBFQLVDPP24XQMH5VQOTBPE74AA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+
+#,,.,,,,.,,.,,,,.,,.,,..,,.,,,,.,,,.,,.,.,.,,,..,,...,...,..,,,,.,...,,,.,.,.,
+#D2NEHEFCBYP7XCAEWC67564T7MLTTMMEHQGA6RT6HB7Z5NBRAEIYVSLMQ6C2CPD37FU757YP7GLE6
+#\\\|P3GW5ABEKNKDQEEZFUTD73BA2FXN5UFXFGUTGBFR6G2F65MOBQ7 \ / AMOS7 \ YOURUM ::
+#\[7]6VRA2GMBP2FUDMTWVB5ZJI6Y3UQFPJEGLO7OU6LHYED7XJNOAOCY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

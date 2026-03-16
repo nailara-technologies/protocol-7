@@ -14,13 +14,13 @@ use FindBin qw| $RealBin |;
 ##[ LOCAL PM LIB PATH ]#######################################################
 
 BEGIN {
-    my $up_dir         = File::Spec->updir;
-    my $data_pm_path   = qw| data/lib-path/pm |;
-    my $root_path      = abs_path( r2_abs( c_dir( $RealBin, $up_dir, $up_dir ) ) );
+    my $up_dir       = File::Spec->updir;
+    my $data_pm_path = qw| data/lib-path/pm |;
+    my $root_path = abs_path( r2_abs( c_dir( $RealBin, $up_dir, $up_dir ) ) );
     my $local_lib_path = abs_path( c_dir( $root_path, $data_pm_path ) );
     $local_lib_path //= $data_pm_path;
     die "\n:\n:: not found : $local_lib_path\n:\n" if !-d $local_lib_path;
-    unshift( @INC, $local_lib_path ) if -d $local_lib_path;
+    unshift( @INC, $local_lib_path )               if -d $local_lib_path;
     sub c_dir  { File::Spec->catdir(@ARG) }
     sub r2_abs { File::Spec->rel2abs(@ARG) }
 }
@@ -51,7 +51,8 @@ sub main {
     # 2. Check for in_progress items
     my $in_progress_count = check_in_progress_items($dbh);
     if ( $in_progress_count > 0 ) {
-        say "Note: $in_progress_count item(s) currently in_progress (will not be modified)";
+        say
+            "Note: $in_progress_count item(s) currently in_progress (will not be modified)";
     }
 
     # 3. Read pending queue items ONLY - don't touch in_progress items
@@ -63,14 +64,17 @@ sub main {
         return;
     }
 
-    say "Found " . scalar(@pending_items) . " pending items ready to randomize";
+    say "Found "
+        . scalar(@pending_items)
+        . " pending items ready to randomize";
 
     # 4. Generate harmonic seed from queue state
     my $seed = generate_harmonic_seed( \@pending_items );
     say sprintf( "Harmonic seed: %016x", $seed );
 
     # 5. Generate entropy stream with multi-pass harmonization
-    my @entropy_stream = generate_harmonic_entropy_stream( $seed, scalar(@pending_items) );
+    my @entropy_stream
+        = generate_harmonic_entropy_stream( $seed, scalar(@pending_items) );
 
     # 6. Reorder queue based on harmonic entropy
     reorder_queue_by_entropy( \@pending_items, \@entropy_stream );
@@ -78,7 +82,9 @@ sub main {
     # 7. Update database with new priorities
     update_queue_priorities( $dbh, \@pending_items );
 
-    say "Queue harmonically randomized - " . scalar(@pending_items) . " items reordered";
+    say "Queue harmonically randomized - "
+        . scalar(@pending_items)
+        . " items reordered";
 
     $dbh->disconnect;
 }
@@ -94,9 +100,9 @@ sub connect_db {
     }
 
     my $dbh = DBI->connect(
-        "dbi:SQLite:dbname=$db_path", "", "",
-        {
-            RaiseError     => 0,
+        "dbi:SQLite:dbname=$db_path",
+        "", "",
+        {   RaiseError     => 0,
             AutoCommit     => 1,
             sqlite_unicode => 1,
         }
@@ -115,9 +121,10 @@ sub connect_db {
 sub check_in_progress_items {
     my $dbh = shift;
 
-    my $sth = $dbh->prepare(
+    my $sth
+        = $dbh->prepare(
         "SELECT COUNT(*) as count FROM session_queue WHERE status = 'in_progress'"
-    );
+        );
 
     unless ( $sth->execute ) {
         warn "Failed to query in_progress items: " . $dbh->errstr . "\n";
@@ -135,9 +142,10 @@ sub check_in_progress_items {
 sub read_pending_queue {
     my $dbh = shift;
 
-    my $sth = $dbh->prepare(
+    my $sth
+        = $dbh->prepare(
         "SELECT item_id, session_id, priority FROM session_queue WHERE status = 'pending' ORDER BY priority DESC, item_id ASC"
-    );
+        );
 
     unless ( $sth->execute ) {
         warn "Failed to query pending items: " . $dbh->errstr . "\n";
@@ -159,18 +167,19 @@ sub generate_harmonic_seed {
     my $items_ref = shift;
 
     # Concatenate session IDs for seed material
-    my $seed_material = join( '', map { $_->{session_id} // '' } @$items_ref );
+    my $seed_material
+        = join( '', map { $_->{session_id} // '' } @$items_ref );
     $seed_material //= 'invokeai-queue-harmonization';
 
     # Hash the seed material to get a numeric value
     my $seed_num = 0;
     for my $ch ( split '', $seed_material ) {
         $seed_num = ( $seed_num << 5 ) + ( $seed_num << 4 ) + ord($ch);
-        $seed_num = int( $seed_num % (2**31) );
+        $seed_num = int( $seed_num % ( 2**31 ) );
     }
 
     # Apply division-by-13 transformation for harmonic balance
-    $seed_num = divide_by_13($seed_num) while $seed_num > (2**30);
+    $seed_num = divide_by_13($seed_num) while $seed_num > ( 2**30 );
 
     return $seed_num;
 }
@@ -181,7 +190,7 @@ sub generate_harmonic_entropy_stream {
     my ( $seed, $count ) = @_;
 
     # Determine iteration count based on seed (3-7 range for performance)
-    my $seed_mod = $seed % 5;
+    my $seed_mod   = $seed % 5;
     my $iterations = 3 + $seed_mod;
 
     say sprintf( "Multi-pass harmonization: %d passes", $iterations );
@@ -192,17 +201,20 @@ sub generate_harmonic_entropy_stream {
     # Generate initial entropy stream using rand()
     my @entropy = ();
     for ( 1 .. $count ) {
-        my $val = int( rand(2**31) );
+        my $val = int( rand( 2**31 ) );
         push @entropy, $val;
     }
 
     # Multi-pass harmonic balancing using division-by-13 transforms
     for my $pass ( 1 .. $iterations ) {
         for my $i ( 0 .. $#entropy ) {
+
             # Apply division-by-13 transformation
             $entropy[$i] = int( $entropy[$i] / 13 );
+
             # XOR with pass number for additional entropy mixing
             $entropy[$i] = $entropy[$i] ^ ( $pass << 8 );
+
             # Ensure non-zero
             $entropy[$i] = $entropy[$i] + 1 if $entropy[$i] == 0;
         }
@@ -225,8 +237,7 @@ sub reorder_queue_by_entropy {
 
     # Create indexed mapping
     my @indexed = map {
-        {
-            entropy => $entropy_ref->[$_],
+        {   entropy => $entropy_ref->[$_],
             index   => $_,
             item    => $items_ref->[$_]
         }
@@ -252,19 +263,18 @@ sub update_queue_priorities {
     # Begin transaction for atomic update
     $dbh->begin_work;
 
-    my $sth = $dbh->prepare(
+    my $sth
+        = $dbh->prepare(
         "UPDATE session_queue SET priority = ? WHERE item_id = ? AND status = 'pending'"
-    );
+        );
 
     my $update_count = 0;
-    for my $item ( @$items_ref ) {
+    for my $item (@$items_ref) {
         if ( $sth->execute( $item->{new_priority}, $item->{item_id} ) ) {
             $update_count++;
         } else {
-            warn sprintf(
-                "Failed to update item_id %s: %s\n",
-                $item->{item_id}, $dbh->errstr
-            );
+            warn sprintf( "Failed to update item_id %s: %s\n",
+                $item->{item_id}, $dbh->errstr );
         }
     }
 
@@ -275,9 +285,8 @@ sub update_queue_priorities {
     return;
 }
 
-#,,,,,,,,,,,,,,..,.,,,,..,...,.,,..,.,,,...,,,.,,...,...,.,,,.,,.,,,,,.,,,.,..,,,
-#ZXYWHQ7GMZWK3NYKNJ4F6SYZ4HB5CBVSLMH35L4JRGVZHFFDQY37RCBGK2YTUMQ6G2DGJJL4KBJHXMA
-#\\\|INVOKE-QUEUE-HARMONIZE-DIV-13-ENTROPY-RANDOMIZER \ / AMOS7 \ YOURUM ::
-#\[7]INVOKE_HARMONY_RANDOMIZER_BALANCED_ENTROPY_DISTRIBUTION 7  DATA SIGNATURE ::
-#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
-
+#,,,,,.,,,...,,..,...,,,,,,,.,...,.,,,.,.,.,,,...,...,...,...,.,.,,.,,,,,,,,.,
+#D4OVGXMALCSEGPVNOCPZXI3FI4Y5RV4DDNRJLOOV7QP366YYAB3B4STVQPKCBHBNLNAM2C4GBZZP6
+#\\\|CQ7B27J635LGAF7RFLKNODGUBJP5U5B6F47QNGOU4LZIXMCNURF \ / AMOS7 \ YOURUM ::
+#\[7]DF2KXCQTDMZYQIG23KIQE7DFV4FEREO4GDNKA4THW2RQZJWVWWCA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

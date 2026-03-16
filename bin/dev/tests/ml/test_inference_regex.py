@@ -94,3 +94,9 @@ def test_inference():
 if __name__ == "__main__":
     success = test_inference()
     sys.exit(0 if success else 1)
+
+#,,..,.,.,,..,,,,,,.,,,.,,,,,,..,,.,,,,..,...,..,,...,..,,,,.,...,.,.,.,.,,.,,
+#DP3NYID2RHW25JT7LXWBUMEHLKAO36LFBEYAXOSGGKQOZO3V3ONRXIXNQYEAMMI5VVPW5OGZPNBAE
+#\\\|UO7CMANAXJB6DOAXMANA2Q6IHZAYTFQ5ZQC546KVU7O2RFIWWNN \ / AMOS7 \ YOURUM ::
+#\[7]QUDQRWVFHEYY2DWU2HPMGNGVJQ4NKDSMWUPYFPABJFSLXGHSQWAY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -15,23 +15,25 @@ use JSON::PP;
 use Getopt::Long;
 use File::Copy;
 use File::Path qw(make_path);
-use POSIX qw(strftime);
+use POSIX      qw(strftime);
 use DBI;
 
-my ($opt_output, $opt_include_chats, $opt_compact, $opt_help);
+my ( $opt_output, $opt_include_chats, $opt_compact, $opt_help );
 GetOptions(
-    'output=s'       => \$opt_output,
-    'include-chats'  => \$opt_include_chats,
-    'compact'        => \$opt_compact,
-    'help'           => \$opt_help,
+    'output=s'      => \$opt_output,
+    'include-chats' => \$opt_include_chats,
+    'compact'       => \$opt_compact,
+    'help'          => \$opt_help,
 ) or usage();
 
 usage() if $opt_help;
 
 ## Configuration
 my $LMSTUDIO_DIR = $ENV{'LMSTUDIO_DIR'} // "$ENV{HOME}/.lmstudio";
-my $MODELS_DIR = $ENV{'LMSTUDIO_MODELS_DIR'} // '/mnt/ext-xfs-data/models-lmstudio';
-my $OUTPUT_DIR = $opt_output // "/data/backup/lmstudio/lmstudio-backup-".strftime("%Y%m%d-%H%M%S", localtime).".yaml";
+my $MODELS_DIR   = $ENV{'LMSTUDIO_MODELS_DIR'}
+    // '/mnt/ext-xfs-data/models-lmstudio';
+my $OUTPUT_DIR = $opt_output // "/data/backup/lmstudio/lmstudio-backup-"
+    . strftime( "%Y%m%d-%H%M%S", localtime ) . ".yaml";
 
 print "Exporting LM Studio configuration...\n";
 print "Source: $LMSTUDIO_DIR\n";
@@ -39,24 +41,24 @@ print "Models: $MODELS_DIR\n";
 print "Output: $OUTPUT_DIR\n\n";
 
 ## Ensure output directory exists
-make_path("$ENV{HOME}/.backup/lmstudio", { verbose => 0 });
+make_path( "$ENV{HOME}/.backup/lmstudio", { verbose => 0 } );
 
 ## Build export structure
 my $export = {
     export_info => {
-        timestamp => scalar(localtime),
-        version   => '1.0',
+        timestamp  => scalar(localtime),
+        version    => '1.0',
         source_dir => $LMSTUDIO_DIR,
         models_dir => $MODELS_DIR,
     },
-    models      => export_models(),
+    models        => export_models(),
     conversations => $opt_include_chats ? export_conversations() : undef,
-    presets     => export_presets(),
-    config      => export_config(),
+    presets       => export_presets(),
+    config        => export_config(),
 };
 
 ## Write YAML
-open(my $fh, '>:encoding(UTF-8)', $OUTPUT_DIR)
+open( my $fh, '>:encoding(UTF-8)', $OUTPUT_DIR )
     or die "Cannot write $OUTPUT_DIR: $!";
 print $fh YAML::XS::Dump($export);
 close($fh);
@@ -64,14 +66,18 @@ close($fh);
 my $size = -s $OUTPUT_DIR;
 print "\n✓ Export complete: $OUTPUT_DIR\n";
 print "  Size: " . human_size($size) . "\n";
-print "  Models: " . scalar(@{$export->{models}}) . "\n";
-print "  Conversations: " . ($export->{conversations} ? scalar(@{$export->{conversations}}) : 'skipped') . "\n";
-print "  Presets: " . scalar(@{$export->{presets}}) . "\n";
+print "  Models: " . scalar( @{ $export->{models} } ) . "\n";
+print "  Conversations: "
+    . ( $export->{conversations}
+    ? scalar( @{ $export->{conversations} } )
+    : 'skipped' ) . "\n";
+print "  Presets: " . scalar( @{ $export->{presets} } ) . "\n";
 
 ## Also copy to external if available
-if (-d '/mnt/ext-xfs-data/backup/lmstudio') {
-    my $ext_output = "/mnt/ext-xfs-data/backup/lmstudio/lmstudio-backup-".strftime("%Y%m%d-%H%M%S", localtime).".yaml";
-    copy($OUTPUT_DIR, $ext_output);
+if ( -d '/mnt/ext-xfs-data/backup/lmstudio' ) {
+    my $ext_output = "/mnt/ext-xfs-data/backup/lmstudio/lmstudio-backup-"
+        . strftime( "%Y%m%d-%H%M%S", localtime ) . ".yaml";
+    copy( $OUTPUT_DIR, $ext_output );
     print "  Also saved to: $ext_output\n";
 }
 
@@ -84,38 +90,41 @@ sub export_models {
 
     ## Read model-data.json if exists
     my $model_data_file = "$LMSTUDIO_DIR/.internal/model-data.json";
-    if (-f $model_data_file) {
-        open(my $fh, '<', $model_data_file) or die "Cannot read $model_data_file: $!";
+    if ( -f $model_data_file ) {
+        open( my $fh, '<', $model_data_file )
+            or die "Cannot read $model_data_file: $!";
         my $content = do { local $/; <$fh> };
         close($fh);
 
         ## Parse the JSON format
         my $data = eval { JSON::PP::decode_json($content) };
-        if ($data && $data->{json} && ref $data->{json} eq 'ARRAY') {
-            for my $entry (@{$data->{json}}) {
+        if ( $data && $data->{json} && ref $data->{json} eq 'ARRAY' ) {
+            for my $entry ( @{ $data->{json} } ) {
                 next unless ref $entry eq 'ARRAY' && @$entry >= 2;
-                my ($path, $meta) = @$entry;
+                my ( $path, $meta ) = @$entry;
                 my $full_path = "$MODELS_DIR/$path";
-                my $size = -f $full_path ? -s $full_path : 0;
+                my $size      = -f $full_path ? -s $full_path : 0;
 
-                push @models, {
-                    path => $path,
-                    full_path => $full_path,
-                    filename => (split(m|/|, $path))[-1],
-                    size => $size,
-                    size_human => human_size($size),
-                    last_loaded => $meta->{lastLoadedTimestamp} ?
-                        scalar(localtime($meta->{lastLoadedTimestamp} / 1000)) : undef,
-                };
+                push @models,
+                    {
+                    path        => $path,
+                    full_path   => $full_path,
+                    filename    => ( split( m|/|, $path ) )[-1],
+                    size        => $size,
+                    size_human  => human_size($size),
+                    last_loaded => $meta->{lastLoadedTimestamp}
+                    ? scalar(
+                        localtime( $meta->{lastLoadedTimestamp} / 1000 )
+                        )
+                    : undef,
+                    };
             }
         }
     }
 
     ## Also scan models directory directly for any not in index
-    my @model_files = (
-        glob("$MODELS_DIR/*/*.gguf"),
-        glob("$MODELS_DIR/*/*/*.gguf"),
-    );
+    my @model_files
+        = ( glob("$MODELS_DIR/*/*.gguf"), glob("$MODELS_DIR/*/*/*.gguf"), );
 
     my %seen = map { $_->{path} => 1 } @models;
     for my $file (@model_files) {
@@ -124,15 +133,16 @@ sub export_models {
         next if $seen{$rel_path};
 
         my $size = -s $file;
-        push @models, {
-            path => $rel_path,
-            full_path => $file,
-            filename => (split(m|/|, $rel_path))[-1],
-            size => $size,
-            size_human => human_size($size),
+        push @models,
+            {
+            path        => $rel_path,
+            full_path   => $file,
+            filename    => ( split( m|/|, $rel_path ) )[-1],
+            size        => $size,
+            size_human  => human_size($size),
             last_loaded => undef,
-            _note => "Not in LM Studio index",
-        };
+            _note       => "Not in LM Studio index",
+            };
     }
 
     return \@models;
@@ -144,16 +154,16 @@ sub export_conversations {
     my @conversations;
     my $conv_dir = "$LMSTUDIO_DIR/conversations";
 
-    opendir(my $dh, $conv_dir) or return [];
-    my @files = grep { /\.json$/ } readdir($dh);
+    opendir( my $dh, $conv_dir ) or return [];
+    my @files = grep {/\.json$/} readdir($dh);
     closedir($dh);
 
     print "  Found " . scalar(@files) . " conversation files...\n";
 
-    for my $file (sort @files) {
+    for my $file ( sort @files ) {
         my $filepath = "$conv_dir/$file";
 
-        open(my $fh, '<', $filepath) or next;
+        open( my $fh, '<', $filepath ) or next;
         my $content = do { local $/; <$fh> };
         close($fh);
 
@@ -162,30 +172,33 @@ sub export_conversations {
 
         ## Extract essential data only (full messages can be huge)
         my $summary = {
-            filename => $file,
-            name => $conv->{name},
-            created_at => $conv->{createdAt} ?
-                scalar(localtime($conv->{createdAt} / 1000)) : undef,
-            preset => $conv->{preset},
-            message_count => scalar(@{$conv->{messages} // []}),
-            token_count => $conv->{tokenCount},
-            system_prompt => substr($conv->{systemPrompt} // '', 0, 200),
-            has_files => ($conv->{clientInputFiles} && @{$conv->{clientInputFiles}}) ? 1 : 0,
-            notes_count => scalar(@{$conv->{notes} // []}),
+            filename   => $file,
+            name       => $conv->{name},
+            created_at => $conv->{createdAt}
+            ? scalar( localtime( $conv->{createdAt} / 1000 ) )
+            : undef,
+            preset        => $conv->{preset},
+            message_count => scalar( @{ $conv->{messages} // [] } ),
+            token_count   => $conv->{tokenCount},
+            system_prompt => substr( $conv->{systemPrompt} // '', 0, 200 ),
+            has_files     => (
+                $conv->{clientInputFiles} && @{ $conv->{clientInputFiles} }
+            ) ? 1 : 0,
+            notes_count => scalar( @{ $conv->{notes} // [] } ),
         };
 
         ## Include first/last message preview
-        if ($conv->{messages} && @{$conv->{messages}}) {
+        if ( $conv->{messages} && @{ $conv->{messages} } ) {
             my $first = $conv->{messages}[0];
-            my $last = $conv->{messages}[-1];
+            my $last  = $conv->{messages}[-1];
 
             $summary->{first_message} = {
-                role => $first->{role},
-                preview => substr($first->{content} // '', 0, 100),
+                role    => $first->{role},
+                preview => substr( $first->{content} // '', 0, 100 ),
             };
             $summary->{last_message} = {
-                role => $last->{role},
-                preview => substr($last->{content} // '', 0, 100),
+                role    => $last->{role},
+                preview => substr( $last->{content} // '', 0, 100 ),
             };
         }
 
@@ -201,28 +214,29 @@ sub export_presets {
     my @presets;
     my $preset_dir = "$LMSTUDIO_DIR/config-presets";
 
-    opendir(my $dh, $preset_dir) or return [];
-    my @files = grep { /\.json$/ } readdir($dh);
+    opendir( my $dh, $preset_dir ) or return [];
+    my @files = grep {/\.json$/} readdir($dh);
     closedir($dh);
 
-    for my $file (sort @files) {
+    for my $file ( sort @files ) {
         my $filepath = "$preset_dir/$file";
 
-        open(my $fh, '<', $filepath) or next;
+        open( my $fh, '<', $filepath ) or next;
         my $content = do { local $/; <$fh> };
         close($fh);
 
         my $preset = eval { JSON::PP::decode_json($content) };
         next unless $preset;
 
-        push @presets, {
-            filename => $file,
-            name => $preset->{name},
-            system_prompt => substr($preset->{systemPrompt} // '', 0, 300),
-            temperature => $preset->{temperature},
-            max_tokens => $preset->{maxTokens},
+        push @presets,
+            {
+            filename       => $file,
+            name           => $preset->{name},
+            system_prompt  => substr( $preset->{systemPrompt} // '', 0, 300 ),
+            temperature    => $preset->{temperature},
+            max_tokens     => $preset->{maxTokens},
             context_length => $preset->{contextLength},
-        };
+            };
     }
 
     return \@presets;
@@ -244,7 +258,7 @@ sub export_config {
         my $path = "$LMSTUDIO_DIR/.internal/$file";
         next unless -f $path;
 
-        open(my $fh, '<', $path) or next;
+        open( my $fh, '<', $path ) or next;
         my $content = do { local $/; <$fh> };
         close($fh);
 
@@ -258,13 +272,13 @@ sub export_config {
 sub human_size {
     my ($bytes) = @_;
     return '0 B' unless $bytes;
-    my @units = ('B', 'KB', 'MB', 'GB', 'TB');
-    my $unit = 0;
-    while ($bytes >= 1024 && $unit < @units - 1) {
+    my @units = ( 'B', 'KB', 'MB', 'GB', 'TB' );
+    my $unit  = 0;
+    while ( $bytes >= 1024 && $unit < @units - 1 ) {
         $bytes /= 1024;
         $unit++;
     }
-    return sprintf('%.1f %s', $bytes, $units[$unit]);
+    return sprintf( '%.1f %s', $bytes, $units[$unit] );
 }
 
 sub usage {
@@ -291,8 +305,8 @@ USAGE
     exit(0);
 }
 
-#,,.,,.,.,.,,,,..,..,,,,.,.,,,,.,,..,,..,,...,.,.,...,...,..,,.,.,,,.,,,,,,.,,
-#6H3J45NNLQQYIYRL42EK3O3BZB24H7YDFJDPM5FQZ2ZATSHD4SWVMRRASH5HRKXXISHD622P62YLK
-#\\\|I5A4BOHSI27HOWKAAX7NFHJZUWXLFHWCTUGKCJ7L3WXJAI3MT5B \ / AMOS7 \ YOURUM ::
-#\[7]J7FFXH2EZMC52XHTUCV6X6J5MS5UYQJHYTG7BG4G3Y34LEO7NECA 7  DATA SIGNATURE ::
+#,,..,.,.,.,.,,..,.,.,,,,,.,,,..,,,.,,,..,,..,.,.,...,.,.,...,,,.,,.,,.,.,,..,
+#HGTLPQBQMEO6ZRRJGDVAWFZAQ4MINTKMMZIFIUNASODIKQRPABOXSPWDAHINSL3DVJ4IWEFRHFTFK
+#\\\|OT4CPBTMV57CKEFXLP6BS5T33YOH7NR5DUEHBIZBFZ5YMVCMNM3 \ / AMOS7 \ YOURUM ::
+#\[7]GY6WSA7QUNNUFI46ADMMVZSAFB53SCWM3GKQSHXCCWSQT4JAHUDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

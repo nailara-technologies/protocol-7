@@ -69,3 +69,9 @@ find_protocol_7_root() {
 
 # Export function so it can be used in sourced scripts
 export -f find_protocol_7_root
+
+#,,..,,.,,...,,.,,,..,.,.,.,,,.,,,,,.,...,.,,,..,,...,..,,,,,,.,,,,,,,...,.,,,
+#FNFPG4MTVKFATZORHKJPQS5LMQG2IG5YOYONQ5D3K7EA2WRC6YOM7E2DNFWQRWR6JLDDXCMBQMNLI
+#\\\|A25Q3LUFB7U62MBGKHL6HFUDTE4QJPAYB4KH7Y6AF4U33YSAMFO \ / AMOS7 \ YOURUM ::
+#\[7]WQ2K5OVUG3DYOZQHN2IJF3UT27AIS3MNMIHJ4XA4RKYMU742GYAQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

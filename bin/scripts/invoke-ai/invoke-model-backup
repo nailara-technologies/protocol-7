@@ -17,20 +17,20 @@ use File::Copy;
 use File::Path qw(make_path);
 use Getopt::Long;
 
-my ($opt_export, $opt_import, $opt_restore, $opt_help);
+my ( $opt_export, $opt_import, $opt_restore, $opt_help );
 GetOptions(
-    'export'   => \$opt_export,
-    'import'   => \$opt_import,
-    'restore'  => \$opt_restore,
-    'help'     => \$opt_help,
+    'export'  => \$opt_export,
+    'import'  => \$opt_import,
+    'restore' => \$opt_restore,
+    'help'    => \$opt_help,
 ) or usage();
 
 usage() if $opt_help;
 
-my $INVOKE_DIR    = $ENV{'INVOKE_DIR'} // '/home/taeki/invokeai';
-my $MODELS_DIR    = "$INVOKE_DIR/models";
-my $DB_FILE       = "$INVOKE_DIR/databases/invokeai.db";
-my $BACKUP_FILE   = shift // "$INVOKE_DIR/models-backup.yaml";
+my $INVOKE_DIR  = $ENV{'INVOKE_DIR'} // '/home/taeki/invokeai';
+my $MODELS_DIR  = "$INVOKE_DIR/models";
+my $DB_FILE     = "$INVOKE_DIR/databases/invokeai.db";
+my $BACKUP_FILE = shift // "$INVOKE_DIR/models-backup.yaml";
 
 if ($opt_export) {
     export_models();
@@ -53,35 +53,32 @@ sub export_models {
 
     ## Scan for actual model files
     my @model_files = (
-        glob("$MODELS_DIR/*.safetensors"),
-        glob("$MODELS_DIR/*.ckpt"),
-        glob("$MODELS_DIR/*/*.safetensors"),
-        glob("$MODELS_DIR/*/*.ckpt"),
+        glob("$MODELS_DIR/*.safetensors"),   glob("$MODELS_DIR/*.ckpt"),
+        glob("$MODELS_DIR/*/*.safetensors"), glob("$MODELS_DIR/*/*.ckpt"),
     );
 
     for my $file (@model_files) {
         next unless -f $file;
 
-        my $size = -s $file;
-        my $mtime = (stat($file))[9];
+        my $size  = -s $file;
+        my $mtime = ( stat($file) )[9];
 
-        push @{$backup->{models}}, {
-            filename    => $file,
-            basename    => (split(m|/|, $file))[-1],
-            size        => $size,
-            size_human  => human_size($size),
-            modified    => scalar(localtime($mtime)),
+        push @{ $backup->{models} }, {
+            filename   => $file,
+            basename   => ( split( m|/|, $file ) )[-1],
+            size       => $size,
+            size_human => human_size($size),
+            modified   => scalar( localtime($mtime) ),
             ## TODO: Calculate hash for verification
         };
     }
 
-    $backup->{total_models} = scalar(@{$backup->{models}});
-    $backup->{total_size} = human_size(
-        sum(map { $_->{size} } @{$backup->{models}})
-    );
+    $backup->{total_models} = scalar( @{ $backup->{models} } );
+    $backup->{total_size}
+        = human_size( sum( map { $_->{size} } @{ $backup->{models} } ) );
 
     ## Write YAML
-    open(my $fh, '>:encoding(UTF-8)', $BACKUP_FILE)
+    open( my $fh, '>:encoding(UTF-8)', $BACKUP_FILE )
         or die "Cannot write $BACKUP_FILE: $!";
     print $fh YAML::XS::Dump($backup);
     close($fh);
@@ -100,12 +97,12 @@ sub import_models {
     print "Total size: $backup->{total_size}\n\n";
 
     ## Check which exist
-    my ($found, $missing) = (0, 0);
-    for my $model (@{$backup->{models}}) {
+    my ( $found, $missing ) = ( 0, 0 );
+    for my $model ( @{ $backup->{models} } ) {
         my $basename = $model->{basename};
-        my $path = "$MODELS_DIR/$basename";
+        my $path     = "$MODELS_DIR/$basename";
 
-        if (-f $path) {
+        if ( -f $path ) {
             print "✓ $basename\n";
             $found++;
         } else {
@@ -118,9 +115,9 @@ sub import_models {
 }
 
 sub restore_models {
-    die "Not implemented - manual restore recommended:\n" .
-        "1. Copy from Windows: cp -r /mnt/windows-disk/user/Invoke/models/* $MODELS_DIR/\n" .
-        "2. Re-download missing from Civitai/HuggingFace\n";
+    die "Not implemented - manual restore recommended:\n"
+        . "1. Copy from Windows: cp -r /mnt/windows-disk/user/Invoke/models/* $MODELS_DIR/\n"
+        . "2. Re-download missing from Civitai/HuggingFace\n";
 }
 
 sub usage {
@@ -146,13 +143,13 @@ USAGE
 sub human_size {
     my ($bytes) = @_;
     return '0 B' unless $bytes;
-    my @units = ('B', 'KB', 'MB', 'GB', 'TB');
-    my $unit = 0;
-    while ($bytes >= 1024 && $unit < @units - 1) {
+    my @units = ( 'B', 'KB', 'MB', 'GB', 'TB' );
+    my $unit  = 0;
+    while ( $bytes >= 1024 && $unit < @units - 1 ) {
         $bytes /= 1024;
         $unit++;
     }
-    return sprintf('%.1f %s', $bytes, $units[$unit]);
+    return sprintf( '%.1f %s', $bytes, $units[$unit] );
 }
 
 sub sum {
@@ -161,8 +158,8 @@ sub sum {
     return $total;
 }
 
-#,,.,,.,.,...,..,,,,,,.,.,..,,.,,,,,.,,,.,,,.,.,.,...,...,.,,,.,,,.,,,...,,.,,
-#ND7MAF2QPB67TMNKORODW2RHVSGO5UWZEDYC5BKFOGOXLSYO6MUN7P34OLLKPNZ7WCL5JD3W5DFWQ
-#\\\|S7FRWAAIFBPNKNCNZZETS7EANEP4JJJB25GBHBQKNGT6ZNES7NL \ / AMOS7 \ YOURUM ::
-#\[7]VJU5BUSE5HPQWBPWIRJWDSZMHXL3H3KPM4AQUAAM6B546NSQMIAI 7  DATA SIGNATURE ::
+#,,..,..,,,,,,,,.,,,,,,,.,..,,,.,,,.,,,,,,,,,,.,.,...,...,...,.,,,,,,,,..,,,,,
+#URALL2WAAWGD3VSNOV3OCBE4SDDUX2WJEO7BRXPWDGQBUL5I767737W5TNJBNX6GOIXXLXQFBRXZC
+#\\\|LUUEYDLSA4AFT2W3VM4T53ZE7E7BE76M4OZJXKMSDBRJL5QPL6F \ / AMOS7 \ YOURUM ::
+#\[7]SQDSA4C2P27LJI3PO56UJFVULBDPIWUICEGXRP67ZVQX3PTBESBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

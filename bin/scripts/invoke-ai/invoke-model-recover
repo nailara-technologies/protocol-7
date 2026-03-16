@@ -16,7 +16,7 @@ use LWP::UserAgent;
 use File::Path qw(make_path);
 use File::Basename;
 
-my ($opt_dry_run, $opt_download, $opt_list, $opt_help);
+my ( $opt_dry_run, $opt_download, $opt_list, $opt_help );
 GetOptions(
     'dry-run'  => \$opt_dry_run,
     'download' => \$opt_download,
@@ -26,9 +26,11 @@ GetOptions(
 
 usage() if $opt_help;
 
-my $DB_FILE = $ENV{'INVOKE_DB'} // "$ENV{HOME}/.invokeai/db/invokeai.db";
-my $OUTPUT_DIR = $ENV{'INVOKE_MODELS_DIR'} // '/mnt/ext-xfs-data/models-invoke';
-my $HF_TOKEN = $ENV{'HF_TOKEN'} // read_hf_token_from_invoke() // read_hf_token_from_lmstudio();
+my $DB_FILE    = $ENV{'INVOKE_DB'} // "$ENV{HOME}/.invokeai/db/invokeai.db";
+my $OUTPUT_DIR = $ENV{'INVOKE_MODELS_DIR'}
+    // '/mnt/ext-xfs-data/models-invoke';
+my $HF_TOKEN = $ENV{'HF_TOKEN'} // read_hf_token_from_invoke()
+    // read_hf_token_from_lmstudio();
 
 ## Query database for lost models
 my $models = query_database();
@@ -41,7 +43,7 @@ if ($opt_list) {
 ## Filter by name if specified
 if (@ARGV) {
     my %wanted = map { $_ => 1 } @ARGV;
-    $models = [grep { $wanted{$_->{name}} } @$models];
+    $models = [ grep { $wanted{ $_->{name} } } @$models ];
 }
 
 if ($opt_dry_run) {
@@ -55,12 +57,13 @@ if ($opt_dry_run) {
 ##===========================================================================##
 
 sub query_database {
-    my $cmd = qq{sqlite3 "$DB_FILE" ".mode json" "SELECT name, source, source_type, json_extract(config, '\$.description') as description, json_extract(config, '\$.file_size') as size FROM models WHERE type='main' ORDER BY name;" 2>/dev/null};
+    my $cmd
+        = qq{sqlite3 "$DB_FILE" ".mode json" "SELECT name, source, source_type, json_extract(config, '\$.description') as description, json_extract(config, '\$.file_size') as size FROM models WHERE type='main' ORDER BY name;" 2>/dev/null};
 
     my $json = `$cmd`;
     unless ($json) {
-        die "Cannot query database: $DB_FILE\n" .
-            "Make sure Invoke.ai database exists.\n";
+        die "Cannot query database: $DB_FILE\n"
+            . "Make sure Invoke.ai database exists.\n";
     }
 
     my $models = eval { JSON::PP::decode_json($json) };
@@ -81,21 +84,22 @@ sub list_models {
     print "-" x 80 . "\n";
 
     for my $m (@$models) {
-        my $size = human_size($m->{size} // 0);
-        $total_size += ($m->{size} // 0);
+        my $size = human_size( $m->{size} // 0 );
+        $total_size += ( $m->{size} // 0 );
         printf "%-40s %10s %s\n",
-            substr($m->{name}, 0, 38),
+            substr( $m->{name}, 0, 38 ),
             $size,
             $m->{source_type};
     }
 
     print "=" x 80 . "\n";
-    printf "Total: %d models, %s\n", scalar(@$models), human_size($total_size);
+    printf "Total: %d models, %s\n", scalar(@$models),
+        human_size($total_size);
 }
 
 sub dry_run {
     my ($models) = @_;
-    my ($total, $have, $missing) = (0, 0, 0);
+    my ( $total, $have, $missing ) = ( 0, 0, 0 );
     my $total_size = 0;
 
     print "DRY RUN - Checking what needs recovery:\n";
@@ -105,19 +109,23 @@ sub dry_run {
         $total++;
         my $filename = get_filename($m);
         my $filepath = "$OUTPUT_DIR/$filename";
-        $total_size += ($m->{size} // 0);
+        $total_size += ( $m->{size} // 0 );
 
-        if (-f $filepath) {
+        if ( -f $filepath ) {
             my $size = -s $filepath;
-            if ($size >= ($m->{size} // 0) * 0.99) {
-                print "✓ $m->{name} (already have: " . human_size($size) . ")\n";
+            if ( $size >= ( $m->{size} // 0 ) * 0.99 ) {
+                print "✓ $m->{name} (already have: "
+                    . human_size($size) . ")\n";
                 $have++;
             } else {
-                print "~ $m->{name} (partial: " . human_size($size) . "/" . human_size($m->{size}) . ")\n";
+                print "~ $m->{name} (partial: "
+                    . human_size($size) . "/"
+                    . human_size( $m->{size} ) . ")\n";
                 $missing++;
             }
         } else {
-            print "✗ $m->{name} (MISSING: " . human_size($m->{size}) . ")\n";
+            print "✗ $m->{name} (MISSING: "
+                . human_size( $m->{size} ) . ")\n";
             print "  Source: $m->{source}\n";
             $missing++;
         }
@@ -138,25 +146,25 @@ sub download_models {
 
     ## Add HF auth if available
     if ($HF_TOKEN) {
-        $ua->default_header('Authorization' => "Bearer $HF_TOKEN");
+        $ua->default_header( 'Authorization' => "Bearer $HF_TOKEN" );
         print "Using HuggingFace token for authenticated downloads\n";
     } else {
         print "Warning: No HF_TOKEN found - some models may fail\n";
     }
 
-    make_path($OUTPUT_DIR, { verbose => 0 });
+    make_path( $OUTPUT_DIR, { verbose => 0 } );
 
     print "Downloading models to: $OUTPUT_DIR\n";
     print "=" x 80 . "\n";
 
-    my ($downloaded, $skipped, $failed) = (0, 0, 0);
+    my ( $downloaded, $skipped, $failed ) = ( 0, 0, 0 );
 
     for my $m (@$models) {
         my $filename = get_filename($m);
         my $filepath = "$OUTPUT_DIR/$filename";
 
         ## Check if already exists
-        if (-f $filepath && -s $filepath >= ($m->{size} // 0) * 0.99) {
+        if ( -f $filepath && -s $filepath >= ( $m->{size} // 0 ) * 0.99 ) {
             print "• $m->{name} (already have)\n";
             $skipped++;
             next;
@@ -170,17 +178,18 @@ sub download_models {
             next;
         }
 
-        print "↓ $m->{name} (" . human_size($m->{size}) . ")\n";
+        print "↓ $m->{name} (" . human_size( $m->{size} ) . ")\n";
 
         ## Handle different source types
         my $success;
-        if (ref $url_info eq 'HASH' && $url_info->{type} eq 'hf_repo') {
+        if ( ref $url_info eq 'HASH' && $url_info->{type} eq 'hf_repo' ) {
             ## HuggingFace repo - need to find model file
-            $success = download_from_hf_repo($ua, $url_info, $filepath, $m->{size});
+            $success = download_from_hf_repo( $ua, $url_info, $filepath,
+                $m->{size} );
         } else {
             ## Direct URL
             print "  From: $url_info\n";
-            $success = download_file($ua, $url_info, $filepath, $m->{size});
+            $success = download_file( $ua, $url_info, $filepath, $m->{size} );
         }
 
         if ($success) {
@@ -191,24 +200,23 @@ sub download_models {
     }
 
     print "=" x 80 . "\n";
-    print "Complete: $downloaded downloaded, $skipped skipped, $failed failed\n";
+    print
+        "Complete: $downloaded downloaded, $skipped skipped, $failed failed\n";
 }
 
 sub download_from_hf_repo {
-    my ($ua, $url_info, $filepath, $expected_size) = @_;
-    my $repo = $url_info->{repo};
+    my ( $ua, $url_info, $filepath, $expected_size ) = @_;
+    my $repo       = $url_info->{repo};
     my $model_name = $url_info->{model_name};
 
     ## Try to construct download URL for common model filenames
     my @filenames_to_try = (
-        "$model_name.safetensors",
-        "model.safetensors",
-        "diffusion_pytorch_model.safetensors",
-        "pytorch_model.safetensors",
+        "$model_name.safetensors",             "model.safetensors",
+        "diffusion_pytorch_model.safetensors", "pytorch_model.safetensors",
     );
 
     ## If model name looks like it has version, try variations
-    if ($model_name =~ /^(.*?)_v?\d+/) {
+    if ( $model_name =~ /^(.*?)_v?\d+/ ) {
         my $base = $1;
         push @filenames_to_try, "$base.safetensors";
     }
@@ -217,7 +225,7 @@ sub download_from_hf_repo {
         my $url = "https://huggingface.co/$repo/resolve/main/$filename";
         print "  Trying: $url\n";
 
-        my $success = download_file($ua, $url, $filepath, $expected_size);
+        my $success = download_file( $ua, $url, $filepath, $expected_size );
         return 1 if $success;
     }
 
@@ -229,10 +237,10 @@ sub get_filename {
     my ($m) = @_;
 
     ## Extract filename from source
-    if ($m->{source} =~ m|/([^/]+\.safetensors)$|) {
+    if ( $m->{source} =~ m|/([^/]+\.safetensors)$| ) {
         return $1;
     }
-    if ($m->{source} =~ m|/([^/]+\.ckpt)$|) {
+    if ( $m->{source} =~ m|/([^/]+\.ckpt)$| ) {
         return $1;
     }
 
@@ -243,18 +251,18 @@ sub get_filename {
 sub read_hf_token_from_lmstudio {
     ## Try to read HF token from LM Studio config
     my $lmstudio_config = "$ENV{HOME}/.cache/lm-studio/config.json";
-    if (-f $lmstudio_config) {
-        open(my $fh, '<', $lmstudio_config) or return undef;
+    if ( -f $lmstudio_config ) {
+        open( my $fh, '<', $lmstudio_config ) or return undef;
         my $content = do { local $/; <$fh> };
         close($fh);
-        if ($content =~ /"hfToken"\s*:\s*"([^"]+)"/) {
+        if ( $content =~ /"hfToken"\s*:\s*"([^"]+)"/ ) {
             return $1;
         }
     }
     ## Try environment file
     my $env_file = "$ENV{HOME}/.config/lmstudio/.env";
-    if (-f $env_file) {
-        open(my $fh, '<', $env_file) or return undef;
+    if ( -f $env_file ) {
+        open( my $fh, '<', $env_file ) or return undef;
         while (<$fh>) {
             if (/HF_TOKEN[=:](.+)/) {
                 close($fh);
@@ -270,28 +278,29 @@ sub read_hf_token_from_invoke {
     ## Try to read HF token from Invoke.ai config locations
     ## Check invokeai.yaml for remote_api_tokens section
     my $invoke_yaml = "$ENV{HOME}/invokeai/invokeai.yaml";
-    if (-f $invoke_yaml) {
-        open(my $fh, '<', $invoke_yaml) or return undef;
+    if ( -f $invoke_yaml ) {
+        open( my $fh, '<', $invoke_yaml ) or return undef;
         my $content = do { local $/; <$fh> };
         close($fh);
         ## Look for huggingface token in various formats
-        if ($content =~ /huggingface[:\s]+["']?([hf_][a-zA-Z0-9_-]+)/i) {
+        if ( $content =~ /huggingface[:\s]+["']?([hf_][a-zA-Z0-9_-]+)/i ) {
             return $1;
         }
     }
 
     ## Check database for stored credentials
     my $db_file = "$ENV{HOME}/.invokeai/db/invokeai.db";
-    if (-f $db_file) {
-        my $token = `sqlite3 "$db_file" "SELECT value FROM client_state WHERE key LIKE '%huggingface%' OR key LIKE '%hf_token%' LIMIT 1;" 2>/dev/null`;
+    if ( -f $db_file ) {
+        my $token
+            = `sqlite3 "$db_file" "SELECT value FROM client_state WHERE key LIKE '%huggingface%' OR key LIKE '%hf_token%' LIMIT 1;" 2>/dev/null`;
         chomp($token);
         return $token if $token && length($token) > 10;
     }
 
     ## Check systemd service environment
     my $systemd_env = "/etc/systemd/system/invokeai.service";
-    if (-f $systemd_env) {
-        open(my $fh, '<', $systemd_env) or return undef;
+    if ( -f $systemd_env ) {
+        open( my $fh, '<', $systemd_env ) or return undef;
         while (<$fh>) {
             if (/Environment="?HF_TOKEN=(.+?)"?\s*$/i) {
                 close($fh);
@@ -312,12 +321,12 @@ sub get_download_url {
     my ($m) = @_;
 
     ## Direct URL
-    if ($m->{source_type} eq 'url') {
+    if ( $m->{source_type} eq 'url' ) {
         return $m->{source};
     }
 
     ## HuggingFace repo ID - construct download URL for main model file
-    if ($m->{source_type} eq 'hf_repo_id') {
+    if ( $m->{source_type} eq 'hf_repo_id' ) {
         my $repo = $m->{source};
         ## Try common model file patterns
         ## Return repo info - actual file discovery happens in download
@@ -328,21 +337,24 @@ sub get_download_url {
 }
 
 sub download_file {
-    my ($ua, $url, $filepath, $expected_size) = @_;
+    my ( $ua, $url, $filepath, $expected_size ) = @_;
     my $tmpfile = "$filepath.tmp";
 
-    my $response = $ua->get($url, ':content_file' => $tmpfile);
+    my $response = $ua->get( $url, ':content_file' => $tmpfile );
 
-    if ($response->is_success) {
+    if ( $response->is_success ) {
         my $size = -s $tmpfile;
 
         ## Verify size (within 1% tolerance)
-        if ($expected_size && abs($size - $expected_size) > $expected_size * 0.01) {
-            print "    Warning: Size mismatch (got " . human_size($size)
-                . ", expected " . human_size($expected_size) . ")\n";
+        if ( $expected_size
+            && abs( $size - $expected_size ) > $expected_size * 0.01 ) {
+            print "    Warning: Size mismatch (got "
+                . human_size($size)
+                . ", expected "
+                . human_size($expected_size) . ")\n";
         }
 
-        rename($tmpfile, $filepath) or die "Cannot rename: $!";
+        rename( $tmpfile, $filepath ) or die "Cannot rename: $!";
         print "    ✓ Complete (" . human_size($size) . ")\n";
         return 1;
     } else {
@@ -355,13 +367,13 @@ sub download_file {
 sub human_size {
     my ($bytes) = @_;
     return '0 B' unless $bytes;
-    my @units = ('B', 'KB', 'MB', 'GB', 'TB');
-    my $unit = 0;
-    while ($bytes >= 1024 && $unit < @units - 1) {
+    my @units = ( 'B', 'KB', 'MB', 'GB', 'TB' );
+    my $unit  = 0;
+    while ( $bytes >= 1024 && $unit < @units - 1 ) {
         $bytes /= 1024;
         $unit++;
     }
-    return sprintf('%.1f %s', $bytes, $units[$unit]);
+    return sprintf( '%.1f %s', $bytes, $units[$unit] );
 }
 
 sub usage {
@@ -389,8 +401,8 @@ USAGE
     exit(0);
 }
 
-#,,..,.,,,.,,,,,.,,..,,,.,,,.,.,,,.,.,..,,.,,,.,.,...,...,,..,,..,...,,,.,.,,,
-#PHRIEKKZLJPRIIV45YZMPE32VVDBKB5YQTM7GJ6QKGP4V5DLGQOE6USZND52KIKZCE3FMQC62SQ3M
-#\\\|XEWHCTZL7NA4KFGXI2LJ63ROUG2GKIYU2MGN5SH6D6KVJMOMMOL \ / AMOS7 \ YOURUM ::
-#\[7]4MLKIBKHHKZTIOLRYTKVBNZ3XMEW5FWGL5CATKMJMP3XCRHQSIBY 7  DATA SIGNATURE ::
+#,,..,.,,,..,,,,.,,,.,,,.,,..,,.,,,,.,,,.,..,,.,.,...,...,...,,,.,,.,,,,,,,,,,
+#J54ALSXHKIWOGUDIJ4DV7S65ZTR3ODL7FC3UGL3DZLGVVYDEG7IRQG3QYM74SAFC54B4DN4J2BUKE
+#\\\|OXX6TUIPLXJ3KQ374WPHKDDTKCLKMVMFVQ5QNAZLGRKK6JIJCDS \ / AMOS7 \ YOURUM ::
+#\[7]UCRQEFCY755C5CJPQCIRWURU2NMBEYSNFWNTEN5WDY6TRUZZ7UCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

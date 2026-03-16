@@ -83,8 +83,8 @@ echo "  3. Grep for state: p7 cube.show-buffer zenka | grep state"
 echo "  4. Check errors: p7 cube.show-buffer zenka | grep -i error"
 echo ""
 
-#,,,,,,,.,..,,...,...,.,,,,,,,,..,,.,,,,.,...,..,,...,...,,..,,.,,.,,,...,,,.,
-#4GAA4WHUON4JAADBC7L5LKE3YMZ4ZCZXDPLQ3YGX2BRDPUGF4I24TGZ3NOV46GN3Q7GTNVG7CMHXW
-#\\\|FRDKNAXNWL6GI2ZTCHJA7ADEPLXTRXD6VGPZZ4MEDRTDL5QT5QS \ / AMOS7 \ YOURUM ::
-#\[7]YN5HGNXHXJYWH2YRHXJYCCOP7SXLJFLDC7PF533VHQJWSWBMWOCQ 7  DATA SIGNATURE ::
+#,,.,,,,.,.,,,.,,,.,.,..,,,.,,,.,,...,...,...,..,,...,...,.,,,.,.,,,,,.,.,,,.,
+#BJQZYOMXIP5KJQJCSQS2HWTHAIZ6S5GLATEC4RS75NOTF4QAUYMH2NRAJXOFHC2TNTTLFBPYAJ27E
+#\\\|SGWEJK6ZTZCIG4MEX2LBNYVEPPKCAJBOPHX4WMP7OLZYGEHLSFA \ / AMOS7 \ YOURUM ::
+#\[7]4BM7YGH4MIXYQHMZJJFEOZZTIF3G6YTTYY2U5ME6IPUAPQNG4AAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

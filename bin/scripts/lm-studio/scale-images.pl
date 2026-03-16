@@ -97,8 +97,7 @@ File::Find::find(
             my $saved     = $original_size - $new_size;
             my $reduction = int( 100 * $saved / $original_size );
 
-            printf
-                ": SCALED : %-60s | %4dx%-4d -> %4dx%-4d "
+            printf ": SCALED : %-60s | %4dx%-4d -> %4dx%-4d "
                 . "| %8d -> %8d bytes [-$reduction%%]\n",
                 $path,
                 $width,         $height,
@@ -130,8 +129,8 @@ if ( $total_saved > 0 ) {
 
 print "Done!\n";
 
-#,,.,,,.,,.,.,.,,,,.,,,.,,...,,.,,,..,...,.,.,..,,...,...,.,.,,,.,,,,,,,,,,,,,
-#NRG5CLSTLOJJHXRV3KFNTOLHDQKOJF5D2AHDN75QPEWEMURIOPJIMHHAIT7XZPTNHTNKEFRYRRZTQ
-#\\\|VSESY4FXPBEBTKW3LNLGETBA63WX4T6LDRPELZSUV6XDTCNVWE4 \ / AMOS7 \ YOURUM ::
-#\[7]ED65QTDPEMJESGFTBSHJABB2ILP6JG3L7T2XFVHSCL4VWT2UPUCQ 7  DATA SIGNATURE ::
+#,,,,,,..,,.,,.,,,.,,,.,,,..,,.,,,,.,,...,,,,,..,,...,...,..,,,..,.,.,...,,,,,
+#IFNH6MRXM56W5P77AHJP6YFU7BW2WEIHU237PW77ONQAXW6AWX7JJTGMDNEYGDS35JJOZRUUUCIMA
+#\\\|HULSR4OIFQKJ6ULMEQ2HK5XXSMR6I5Z2BUE3NCSAI76NN2L5REO \ / AMOS7 \ YOURUM ::
+#\[7]AEPWFSZAOAAWZOEW2W7MMI3DIDURR6AFINI3BDMEJGSQYKFBM6CQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
