@@ -544,8 +544,8 @@ while (1) {
 
 *Shell zenka with game engine buffers: where Unix tradition meets Protocol-7 futures, and text editors become game engines.*
 
-#,,,.,..,,..,,,,.,,.,,.,,,...,,,,,,,,,...,,..,..,,...,...,.,.,,..,...,,,.,..,,
-#PLACEHOLDER-AMOS-SIGNATURE-1
-#\\\|PLACEHOLDER-AMOS-SIGNATURE-2 \ / AMOS7 \ YOURUM ::
-#\[7]PLACEHOLDER-AMOS-SIGNATURE-3 7  DATA SIGNATURE ::
+#,,,.,..,,,.,,,.,,,,.,,.,,.,.,,..,,.,,,..,,..,..,,...,..,,,..,..,,,.,,,,,,..,,
+#7PPUWFDE4XNIHGMU732JQSV46GNCEQW3EORZDSUKPKEIJHOWYRUWYIZLMEASLJD336XYQWNL5HICU
+#\\\|OAABJOFZJVVP2XSEZCA5DRCTQ3DCF2LJBDM2BNQTRM77UNDJOQW \ / AMOS7 \ YOURUM ::
+#\[7]JKLO4YMQIYZ6KNS7MPDOODTTVHHZW25ODQIWX5GWAIDNGE3FFECA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

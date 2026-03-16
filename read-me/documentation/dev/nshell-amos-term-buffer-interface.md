@@ -506,3 +506,8 @@ User sees output from both shells
 On exit, bash detaches, nshell continues
 ```
 
+#,,,.,..,,...,.,.,..,,,.,,,,,,.,,,..,,,,.,,,,,..,,...,...,,,.,.,,,,,.,.,,,,,.,
+#GYZL6IM3P2K2X45ZDU6YGCBCXYRP6BJA3MDBXS6XDP3VGRKMXQRWDKTG7UVPAO73MS6C75KJH4TI2
+#\\\|KKKQS2ZDFLOV6WCE6NW5N5LZDRXPBS3GEWXSCS5SLRZGHWY6NJS \ / AMOS7 \ YOURUM ::
+#\[7]CERYCVSBSENOHVW2WNAJTENRQK23JIYGGICNYMDHWD7DPXI5KICI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
