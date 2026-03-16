@@ -173,3 +173,9 @@ For immediate testing without GPU:
 - Compilation uses all available CPU cores (`-j $(nproc)`)
 - Original binary is always backed up before replacement
 - Build takes ~10 minutes on typical hardware
+
+#,,,,,...,,..,...,,..,.,,,,..,,,.,..,,,,.,,.,,..,,...,...,.,.,.,,,...,,,.,,.,,
+#D24JRM6IYKX3VZ2IAUWPRFE5STMIYIL5TGPBROMTZZTTPGMMNDDT3EK7JCQ6DO74HTWSIFWPXSHDM
+#\\\|MYXGPU227VU4OLR4PKH7XJOEMNJD6FERVJDQTQGGX3UQKROJU2A \ / AMOS7 \ YOURUM ::
+#\[7]PFXGDIF4LNAJSED2CAKIECWJSRJP3JX7ANO4UNHXHZ7R3ASWI6DA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

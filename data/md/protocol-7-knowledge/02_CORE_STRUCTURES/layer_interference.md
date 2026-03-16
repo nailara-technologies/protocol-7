@@ -783,3 +783,9 @@ void main() {
 *Computation through physics*
 *Geometry as processor architecture*
 *Interference patterns = results*
+
+#,,..,...,.,.,.,.,.,.,,..,,.,,,..,.,.,,.,,...,..,,...,...,..,,,,.,,,,,,.,,,..,
+#WN4VFBY35HHRSYMMBXIWLK52ETJMWAXT5LUJBA2P6J35K5OE65URUVR3IYPDUODH2QUCP3JXUJHXU
+#\\\|BNWPX4XJFXNMDX4AQR6TOPHABVBPSMMFZ2SV2ANO63JK62YDLJE \ / AMOS7 \ YOURUM ::
+#\[7]5QLRBC4HOHB6E5TBVUA3S2H2XG35TW2BJZ77CTC24EZB4IWYEKCI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

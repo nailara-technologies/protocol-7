@@ -141,3 +141,9 @@ p7c v7.cfg.bin_p7r_has_symlink
 # List all modules
 p7c base.list.subroutines | grep -E "(tofu|remote|keypair)"
 ```
+
+#,,.,,.,.,.,.,..,,.,.,.,,,...,,,.,,.,,,..,.,,,..,,...,...,,,.,.,,,.,.,..,,...,
+#27OYOB5YTFEGUZSTSIROIQP7OBOTZ2XTBGHLOGTMFJFJN5GARDF2FP2UDATOR2HA4QACZFELCIHR4
+#\\\|KBDW5DTGINYXJCDCA5UIXF63QTPSMZIZT3ZTC4MT3BZA2M7FUGM \ / AMOS7 \ YOURUM ::
+#\[7]ON5Y7QGPFBNX3OJUQ5UUGDOCQGUCIPYGAPOFFMM2RZ6DWNA25WBI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

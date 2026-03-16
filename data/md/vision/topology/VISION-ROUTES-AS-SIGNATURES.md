@@ -203,3 +203,9 @@ The topology is built by use. The habitat builds itself as it gets inhabited.
 - `data/md/CONCEPT-SELF-MOVING-REFERENCES-VISUAL-HABITAT.md` — visual habitat dynamics
 - `data/md/data-zenka/DATA_ZENKA_HOLOGRAPHIC_TOPOLOGY.md` — implementation details
 - `data/md/vision/habitat/VISION-NOMADIC-ZENKI-HABITAT.md` — sessions as routes in practice
+
+#,,,,,,,,,..,,.,.,.,.,,..,,..,.,.,.,,,.,,,,,,,..,,...,...,...,...,.,.,,.,,..,,
+#AWOUX3LMOGWCIOIOAYTRROANLBGDTNF7N4HND7Q5IBEGJKFXFJB7LXIHPK7MUOBBFXNUPL7FCBPHS
+#\\\|TSCHURHLLH5LH7NX5CKGT3L23GP2B5UV3SPACG7MYCTSSSG6I4U \ / AMOS7 \ YOURUM ::
+#\[7]CO4XOAFI42MXI3UNNL5FCJD4KX5NQVK3KKJO3O3X6WM6JHYLA2CI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

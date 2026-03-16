@@ -931,3 +931,9 @@ my %crystal = (
 *The crystal desktop: where observation parameters create reality*
 *Space itself IS the interface*
 *Position = address = identity*
+
+#,,..,,,,,,.,,,,.,,,,,,,.,,,.,.,.,...,.,.,,,.,..,,...,...,.,.,.,.,,..,.,.,.,.,
+#NIL37WIORF3VLLGB254FJ4DSNBMBDH6NU5TEAPFIV7RX5NGIE4SXR6DHUQZMDWO65PDSGOIMVLFVS
+#\\\|A4DIW7G5LHWAT7J7TIFNGP3PSJ7YVJ6K4FWIE5IOS4A4BMW67KU \ / AMOS7 \ YOURUM ::
+#\[7]LSERL7Z7DOGDYA5O467SQDTSX3IMZXNFV4CKKCU7TMPLLQEYKSDA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

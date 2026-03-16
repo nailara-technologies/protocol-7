@@ -393,3 +393,8 @@ When implemented:
 3. Return to p7.c integration with gained knowledge
 4. Consider whether simplified or full bidirectional implementation is needed
 
+#,,,,,,,,,,,.,,.,,...,.,.,..,,,,,,..,,,,,,,,,,..,,...,...,,.,,,..,,..,.,,,...,
+#L2PMKU6ZGIYWFRCC5P4SORBI7VSZDIILGZVZOXIYKVG43DX4FB3E25LMHMN3ZOQU7WCEILD3HKNLG
+#\\\|2RYXIKWT6KIR7QOYVGYILG3U6HNO5TEJ4YHLPXTSGTYXLWW5LJI \ / AMOS7 \ YOURUM ::
+#\[7]S3MPYH6OBGSOHW2MS4Q62CORMV4DMWO5MM5RGTXOEJERJUFJ6GAQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

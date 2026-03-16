@@ -284,3 +284,8 @@ if (strcmp(cmd_str, "link-upgrade") == 0) {
 **Estimated Total Time**: 8-12 hours concentrated work
 **v7 Auto-Update**: Will automatically reload p7 binary on recompile
 
+#,,,.,,..,.,,,..,,..,,...,,,,,,,.,..,,,.,,,,.,.,.,...,...,.,,,,..,.,,,..,,,,.,
+#MGNH3B7JSX63HYYPLPA5YJ6IXGXOKU3KFRIKARDPW6RRRV3XAJMBNXBDKXUY6OS47RWBS3KCLQJLC
+#\\\|SY653LGV3UBMRRBUGARYZZ57UH7YKWBP3QICCOR7JNXQ5TRJJRX \ / AMOS7 \ YOURUM ::
+#\[7]5CS2PHXPJPJN7RF4XWPSIP5W2Z2GZ7BQIZ4TQFTMQ6HB5CBNTMAQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

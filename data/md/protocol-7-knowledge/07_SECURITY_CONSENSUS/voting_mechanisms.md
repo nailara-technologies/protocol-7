@@ -837,3 +837,9 @@ Disrupts network or formations
 *Democracy through geometry*
 *Alignment IS the ballot*
 *Formation strength = consensus measure*
+
+#,,,.,.,.,,..,.,,,...,...,.,,,.,.,..,,..,,.,.,..,,...,..,,,.,,,.,,,,,,..,,.,,,
+#EHYBDWITTAOPWQQYNRAQLVDMGOFJGLADMDBJGL57USXWKN2GK57FEYJ6SY5Y5OL5RCF35MLIB3ZKA
+#\\\|P4N4EDCLOAVEHIS2MLVGF6UYROOHH4M4KONXO637WTRTNMXKH23 \ / AMOS7 \ YOURUM ::
+#\[7]L7NFTW5QXEK6PAZBAZTUSZ5M3YAQBIWSY75UOVRYWQVQ3TFB7ADQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

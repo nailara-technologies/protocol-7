@@ -323,3 +323,8 @@ After completion:
 - Foundation for distributed development workflow
 - Ready to test letsencrypt zenka and httpsd online
 
+#,,..,,,,,,.,,,,,,.,.,,.,,,,,,..,,.,,,..,,,.,,..,,...,...,..,,,,.,,..,..,,...,
+#NZEQDCCIAYJZD22EY7JKVD6WOG5R7AVW4E44FK5MED75PAWI522E46YPGAAAWBPJYEG5YVYNYHATU
+#\\\|PVOZ47IPXQJNUBJTA66G7KI6NUWTCOQH3UHPFHNW5C2C5FWW56V \ / AMOS7 \ YOURUM ::
+#\[7]2IDDGU5RBRKNAFIYRACPVPN3WJ42HIFD6ZT45GVJKHEHIAYQBCCI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -246,3 +246,9 @@ its next coordinate. The habitat and the inhabitant develop each other.
 - `data/md/vision/habitat/VISION-NETWORK-DESKTOP-UX.md` — how identity appears in the UI
 - `data/md/vision/topology/VISION-ROUTES-AS-SIGNATURES.md` — routes as identity foundation
 - `data/md/CONCEPT-SELF-MOVING-REFERENCES-VISUAL-HABITAT.md` — visual profile as coordinate
+
+#,,,.,.,,,,,.,.,.,,,,,.,.,,,.,,,,,.,,,.,.,,.,,..,,...,...,...,,.,,..,,...,..,,
+#U45HLNWFEC4LGIUDAAMCBAKRQXQFUI67GTNNEKL6KTZKDOQFZLIAPBCK46B2DRRWYGGZXRE34VHWI
+#\\\|7BKP66FPR2UPJMRE3LB7MIVHR3U754EZVBAJILLZZ3KJPYNWK7Q \ / AMOS7 \ YOURUM ::
+#\[7]RJLJP6S4MRGV42PYAGFUULV45W63SVFYGZ5TRI53NWQ3FGXTEQCA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
