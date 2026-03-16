@@ -1,5 +1,5 @@
 #!/usr/bin/perl
-#..::..::..::..::..::..::..::..::..::..::..::..::..::..::..::..::..::..::..::..
+#..::..::..::..::..::..::..::..::..::..::..::..::..::..::..::..::..::..::..:.
 #:..:..:..:..:..:..:..:..:..:..:..:..:..:..:..:..:..:..:..:..:..:..:..:..:..:
 
 use v5.24;
@@ -7,6 +7,8 @@ use strict;
 use English;
 use warnings;
 use Getopt::Long;
+use IO::Compress::Xz qw| xz $XzError |;
+use Crypt::Misc      qw| encode_b32r |;
 
 ###           ###
 ##  dep-graph  ##                                #:..:..:..:..:..:..:..:..:..:
@@ -38,7 +40,7 @@ BEGIN {
 use AMOS7::Graph;    ##  graph_to_adjacency, adjacency_to_graph  ##
 
 ##::..::..::..::..::..::..::..::..::..::..::..::..::..::..::..::..::..::..::..
-##[ COMMAND LINE OPTIONS ]#####################################################
+##[ COMMAND LINE OPTIONS ]####################################################
 
 my %opt = (
     qw| text         | => 0,
@@ -99,7 +101,7 @@ die ":: -list-subs requires -zenka=NAME\n"
     if $opt{'list-subs'} && !defined $opt{zenka};
 
 ##::..::..::..::..::..::..::..::..::..::..::..::..::..::..::..::..::..::..::..
-##[ CONFIGURATION ]############################################################
+##[ CONFIGURATION ]###########################################################
 
 our $root_path;    ##  from BEGIN block  ##
 my $modules_dir = c_dir( $root_path, qw| modules | );
@@ -113,7 +115,7 @@ my $dot_output_path = c_dir( $output_dir, qw| module-dependency-graph.dot | );
 my $txz_output_path = c_dir( $output_dir, qw| module-dependency-graph.txz | );
 
 ##::..::..::..::..::..::..::..::..::..::..::..::..::..::..::..::..::..::..::..
-##[ MAIN ]#####################################################################
+##[ MAIN ]####################################################################
 
 ##  handle list flags [ no dep-graph scan needed ]  ##
 if ($any_list) {
@@ -203,13 +205,24 @@ if ( $opt{dot} ) {
     } else {
         write_file( $dot_output_path, $dot_output );
         say ":: written to $dot_output_path";
+        my $xz_data;
+        xz( \$dot_output, \$xz_data, Preset => 9 )
+            or die ":: xz compression failed: $XzError\n";
+        my $b32 = encode_b32r($xz_data);
+        open( my $txz_fh, qw| > |, $txz_output_path )
+            or die ":: cannot write $txz_output_path: $OS_ERROR\n";
+        while ( length $b32 ) {
+            say $txz_fh substr( $b32, 0, 78, '' );
+        }
+        close $txz_fh;
+        say ":: written to $txz_output_path";
     }
 }
 
 exit 0;
 
 ##::..::..::..::..::..::..::..::..::..::..::..::..::..::..::..::..::..::..::..
-##[ SUBROUTINES ]##############################################################
+##[ SUBROUTINES ]#############################################################
 
 sub scan_modules {
     ##  scan modules directory and build dependency graph  ##
@@ -233,8 +246,8 @@ sub scan_modules {
     my %known     = map { $module_names{$ARG} => 1 } keys %module_names;
     my %swap_from = extract_swap_pairs( \@files );    ##  short -> base  ##
 
-    ##  seed graph with all known modules [ leaf nodes have no outgoing edges ]  ##
-    ##  without this, resolve_command_to_module misses leaf nodes entirely      ##
+ #  seed graph with all known modules [ leaf nodes have no outgoing edges ]  #
+ #  without this, resolve_command_to_module misses leaf nodes entirely      #
     $graph{$ARG} //= {} for values %module_names;
 
     ##  second pass: scan for call patterns  ##
@@ -378,28 +391,26 @@ sub extract_calls {
             push @calls, $1;
         }
 
-        ##  event callback / handler string refs [ registered, called later ]  ##
-        ##  key forms : handler  'handler'  qw| handler |                      ##
-        ##  val forms : => qw| name |  => 'name'  => "name"                   ##
-        while ( $line
-            =~ m/(?:qw\|\s*)?['"]?(?:handler|callback)['"]?(?:\s*\|)?\s*=>\s*(?:qw\|\s*|['"])([a-zA-Z0-9._-]+)/g
-        ) {
+       #  event callback / handler string refs [ registered, called later ]  #
+       #  key forms : handler  'handler'  qw| handler |                      #
+       #  val forms : => qw| name |  => 'name'  => "name"                   #
+        my $cb_re  = qr/(?:qw\|\s*)?['"]?(?:handler|callback)/;
+        my $val_re = qr/(?:qw\|\s*|['"])([a-zA-Z0-9._-]+)/;
+        while ( $line =~ m/$cb_re['"]?(?:\s*\|)?\s*=>\s*$val_re/g ) {
             push @calls, $1;
         }
 
-        ##  handler|callback key with value on next line [ multiline split ]  ##
+        #  handler|callback key with value on next line [ multiline split ]  #
         if (    $i < $end_idx
-            and $line
-            =~ m/(?:qw\|\s*)?['"]?(?:handler|callback)['"]?(?:\s*\|)?\s*=>\s*$/
-        ) {
+            and $line =~ m/$cb_re['"]?(?:\s*\|)?\s*=>\s*$/ ) {
             my $next = $lines[ $i + 1 ] // '';
             if ( $next =~ m/^\s*(?:qw\|\s*|['"])([a-zA-Z0-9._-]+)/ ) {
                 push @calls, $1;
             }
         }
 
-        ##  data-variable assigned sub name [ filter_hooks and similar ]       ##
-        ##  pattern : <data.variable> = qw| sub.name |                         ##
+        #  data-variable assigned sub name [ filter_hooks and similar ]      #
+        #  pattern : <data.variable> = qw| sub.name |                        #
         if ( $line =~ m/=\s*qw\|\s*([a-zA-Z][\w.-]+)\s*\|/ ) {
             push @calls, $1;
         }
@@ -465,7 +476,8 @@ sub reverse_graph {
 }
 
 sub sort_by_length {
-    ##  sort by length ascending, ties broken by reverse-alpha [ base.sort ] ##
+
+    #  sort by length ascending, ties broken by reverse-alpha [ base.sort ] #
     return sort { length $a <=> length $b } reverse sort grep {defined} @ARG;
 }
 
@@ -499,16 +511,40 @@ sub _append_tree_deps {
     }
 }
 
+sub ns_colors {
+    ##  return [ fill, font ] for a module name by namespace  ##
+    state %colors = (
+        'base'       => [ '#0d2137', '#4a9eff' ],
+        'file'       => [ '#0d1a1f', '#4aeebb' ],
+        'coding'     => [ '#0d1f10', '#4aee7a' ],
+        'httpd'      => [ '#1f100d', '#ee7a4a' ],
+        'cube'       => [ '#180d1f', '#b44aee' ],
+        'v7'         => [ '#1f1a0d', '#eebb4a' ],
+        'p7'         => [ '#1a1f0d', '#aadd44' ],
+        'source'     => [ '#1f0d18', '#ee4ab4' ],
+        'sourcecode' => [ '#1f0d18', '#ee4ab4' ],
+        'log'        => [ '#1a0d0d', '#dd6644' ],
+        'crypt'      => [ '#0d1a0d', '#44ee88' ],
+        'work'       => [ '#1a180d', '#ddcc44' ],
+        'weather'    => [ '#0d1818', '#44ddcc' ],
+        'data'       => [ '#0d0d1f', '#6688ee' ],
+        'system'     => [ '#1a0d1a', '#cc44cc' ],
+        'devmod'     => [ '#141414', '#888888' ],
+    );
+    my ($ns) = shift =~ m|^([^.]+)|;
+    return $colors{$ns} // [ '#111122', '#7788aa' ];
+}
+
 sub generate_dot_output {
     ##  generate graphviz digraph format  ##
     my $graph = shift;
 
     my @lines = (
         'digraph protocol7_modules {',
+        '    bgcolor="#080810";',
         '    rankdir=LR;',
-        '    node [shape=box, style=filled,'
-            . 'fillcolor="#1a1a2e", fontcolor="#eaeaea"];',
-        '    edge [color="#444466"];',
+        '    node [shape=box, style=filled, fontname="monospace"];',
+        '    edge [fontcolor="#556677", fontsize=9];',
         '',
     );
 
@@ -521,27 +557,37 @@ sub generate_dot_output {
         }
     }
 
-    ##  declare nodes  ##
+    ##  declare nodes with namespace-based colors  ##
     for my $node ( sort keys %nodes ) {
         my $escaped = escape_dot_id($node);
-        push @lines, qq|    "$escaped";|;
+        my ( $fill, $font ) = @{ ns_colors($node) };
+        push @lines,
+            qq|    "$escaped" | . qq|[fillcolor="$fill", fontcolor="$font"];|;
     }
 
-    push @lines, qw|  |;
+    push @lines, '';
 
-    ##  declare edges with weights  ##
+    ##  declare edges — weight drives penwidth; cross-ns edges brighter  ##
     for my $caller ( sort keys %{$graph} ) {
         my $caller_escaped = escape_dot_id($caller);
+        my ($caller_ns) = $caller =~ m|^([^.]+)|;
         for my $callee ( sort keys %{ $graph->{$caller} } ) {
             my $callee_escaped = escape_dot_id($callee);
+            my ($callee_ns)    = $callee =~ m|^([^.]+)|;
             my $weight         = $graph->{$caller}{$callee};
+            my $penwidth
+                = $weight > 4 ? 2.5
+                : $weight > 1 ? 1.5
+                :               1.0;
+            my $color = $caller_ns ne $callee_ns ? '#7766aa' : '#2a3a55';
             push @lines,
-                qq|    "$caller_escaped" -> |
-                . qq|"$callee_escaped" [label="$weight"];|;
+                  qq|    "$caller_escaped" -> "$callee_escaped"|
+                . qq| [label="$weight",|
+                . qq| color="$color", penwidth=$penwidth];|;
         }
     }
 
-    push @lines, qw| } |;
+    push @lines, '}';
 
     return join( "\n", @lines ) . "\n";
 }
@@ -594,24 +640,25 @@ sub analyze_zenka_reachability {
         push @entry_modules, $module if defined $module;
     }
 
-    ##  seed bootstrap modules [ always loaded by bin/Protocol-7 regardless   ##
-    ##  of whitelist ] so their dependencies are included in the reachable set ##
+    #  seed bootstrap modules [ always loaded by bin/Protocol-7 regardless  #
+    #  of whitelist ] so their dependencies are included in the reachable   #
+    #  set                                                                   #
     for my $bootstrap (qw| base.init base.sig_int base.init_code |) {
         push @entry_modules, $bootstrap if exists $graph->{$bootstrap};
     }
 
-    ##  all base.sig_* handlers are registered dynamically via sprintf in      ##
-    ##  base.init_zenka.install_signal_handlers — dep-graph cannot trace them  ##
+    #  all base.sig_* handlers are registered dynamically via sprintf in     #
+    #  base.init_zenka.install_signal_handlers — dep-graph cannot trace them #
     push @entry_modules, grep { exists $graph->{$ARG} }
         grep {m|^base\.sig_|} keys %{$graph};
 
-    ##  deferred compile handler installed as stub by bin/Protocol-7 loader     ##
-    ##  for non-whitelisted modules — reference not traceable by dep-graph      ##
+    #  deferred compile handler installed as stub by bin/Protocol-7 loader  #
+    #  for non-whitelisted modules — not traceable by dep-graph             #
     push @entry_modules, 'base.handler.deferred_compile'
         if exists $graph->{'base.handler.deferred_compile'};
 
-    ##  include subroutines called from zenka-startup.v7 zenka-init section  ##
-    ##  these lines are injected over stdin by v7 at startup and eval'd       ##
+    #  include subroutines called from zenka-startup.v7 zenka-init section  #
+    #  these lines are injected over stdin by v7 at startup and eval'd       #
     if ( defined $zenka_name and $zenka_name ne 'stdin' ) {
         my $startup_file = c_dir(
             $root_path,  qw| configuration zenki |,
@@ -694,8 +741,8 @@ sub analyze_zenka_reachability {
             }
         }
 
-        ##  include all cmd and console subs — only when net module is loaded  ##
-        ##  without net, zenka cannot accept connections or dispatch commands  ##
+        #  include all cmd and console subs — only when net is loaded       #
+        #  without net, zenka cannot accept connections or dispatch commands #
         if ( exists $loaded_set->{'net'} ) {
             for my $ns ( qw| base |, keys %{$loaded_set} ) {
                 for my $node (
@@ -709,9 +756,9 @@ sub analyze_zenka_reachability {
             }
         }
 
-        ##  include all console subs when base.call.console_command is reachable  ##
-        ##  applies to standalone zenki using console dispatch without net module  ##
-        ##  cmd subs are not included — those require network dispatch via net    ##
+        #  include all console subs when base.call.console_command reachable #
+        #  applies to standalone zenki using console dispatch without net    #
+        #  cmd subs not included — those require network dispatch via net    #
         if ( not exists $loaded_set->{'net'}
             and exists $reachable{'base.call.console_command'} ) {
             for my $ns ( qw| base |, keys %{$loaded_set} ) {
@@ -724,8 +771,8 @@ sub analyze_zenka_reachability {
             }
         }
 
-        ##  include all plugin.* modules [ dynamically dispatched at runtime ]  ##
-        ##  auth plugins selected by client, cannot be statically determined    ##
+       #  include all plugin.* modules [ dynamically dispatched at runtime ] #
+       #  auth plugins selected by client, cannot be statically determined   #
         if ( exists $loaded_set->{'net'} ) {
             for my $node ( grep {m/^plugin\./} keys %{$graph} ) {
                 next if $reachable{$node};
@@ -734,13 +781,13 @@ sub analyze_zenka_reachability {
             }
         }
 
-        ##  include lifecycle subs [ pre_init init_code post_init ] for all  ##
-        ##  namespaces present in the reachable set, at every prefix depth   ##
-        ##  catches base.file.pre_init [ swap_subs ] and base.init_code      ##
-        ##  [ compile-time Const::Fast ] which are never called by name      ##
-        ##  seed 'base' explicitly since it is always loaded by bin/P7       ##
-        ##  repeat until no new additions [ new subs may introduce new namespaces  ##
-        ##  that need their own lifecycle subs — frozen for-list misses them ]     ##
+        #  include lifecycle subs [ pre_init init_code post_init ] for all  #
+        #  namespaces present in the reachable set, at every prefix depth   #
+        #  catches base.file.pre_init [ swap_subs ] and base.init_code      #
+        #  [ compile-time Const::Fast ] which are never called by name      #
+        #  seed 'base' explicitly since it is always loaded by bin/P7       #
+        #  repeat until no new additions [ new subs may introduce new      #
+        #  namespaces that need lifecycle subs — frozen for-list misses ]   #
         my %ns_seen;
         my $prev_count = 0;
         while ( scalar( keys %reachable ) != $prev_count ) {
@@ -847,7 +894,8 @@ sub parse_zenka_start_file {
 }
 
 sub parse_start_lines {
-    ##  parse start file lines to extract loaded modules and entry commands  ##
+
+    #  parse start file lines to extract loaded modules and entry commands  #
     my $lines_ref = shift;
 
     ##  join continuation lines [ending with \]  ##
@@ -934,7 +982,9 @@ sub resolve_command_to_module {
 }
 
 sub walk_reachable {
-    ##  transitively walk dep-graph from entry points to find all reachable modules  ##
+
+    #  transitively walk dep-graph from entry points to find all reachable  #
+    #  modules                                                               #
     my ( $graph, $entry_modules ) = @ARG;
 
     my %reachable;
@@ -1005,7 +1055,7 @@ sub find_variable_dispatch {
                         = classify_dispatch_confidence( \@lines, $i,
                         $var_name );
 
-                    ##  phase 3: try rule resolution before marking ambiguous  ##
+                   #  phase 3: try rule resolution before marking ambiguous  #
                     my $start_scan = $i - 15;
                     $start_scan = 0 if $start_scan < 0;
                     my $end_scan = $i + 5;
@@ -1047,7 +1097,7 @@ sub find_variable_dispatch {
     return ( \@ambiguous, \@resolved );
 }
 
-##[ PHASE 3: RULE PLUGIN INTERFACE ]###########################################
+##[ PHASE 3: RULE PLUGIN INTERFACE ]##########################################
 
 sub load_rules {
     ##  load dispatch resolution rules from configuration/dep-graph/rules/  ##
@@ -1157,7 +1207,7 @@ sub backtrack_variable_origin {
         my $line_num = $i + 1;
 
         ##  phase 2: check for handover: $var = $other_var  ##
-        ##  captures: $var = $other; $var = $other->(); $var = $other->{key}  ##
+        #  captures: $var = $other; $var = $other->(); $var = $other->{key}  #
         if ( $line =~ m/^\s*\$\Q$var_name\E\s*=\s*\$(\w+)/ ) {
             my $source_var = $1;
 
@@ -1210,8 +1260,8 @@ sub backtrack_variable_origin {
             return $result;
         }
 
-        ##  check for list-context my declaration: my ( ..., $var, ... ) = ...  ##
-        ##  covers: my ( $a, $b ) = @$ref  and  ( my $var, ... ) = split ...   ##
+       #  check for list-context my declaration: my ( ..., $var, ... ) = ... #
+       #  covers: my ( $a, $b ) = @$ref  and  ( my $var, ... ) = split ...  #
         if ( $line =~ m/my\s*\(?\s*[^)]*\$\Q$var_name\E[^)]*\)?\s*=/ ) {
             $result->{start_line}  = $line_num;
             $result->{origin_line} = $line_num;
@@ -1315,8 +1365,8 @@ sub classify_dispatch_confidence {
     return 'open';
 }
 
-#,,..,.,.,.,.,,.,,,,.,,..,,..,.,.,,,,,,,.,,,,,.,.,...,...,.,.,.,,,,,,,..,,..,,
-#M5ZREEIXGRUBH4WTC724JIII4ZEHZLRAB63LXA4ZZ2AIOLLNBVWDYDRLOEBLLA7MGR4INZE2TVC4U
-#\\\|ITRRYFIS4LWPQXJOBBMTDCAIHDB2Y4MOKJYWZNYKJUDVFLJEYDW \ / AMOS7 \ YOURUM ::
-#\[7]AK32JVZRSQD7G3ZVEYJVZMVGD34YF3YKGTPY4RCQ2UA2B2JR62CA 7  DATA SIGNATURE ::
+#,,,,,.,.,..,,.,.,,,,,,..,.,.,,..,,,,,,,,,,,,,.,.,...,...,.,.,..,,...,,..,.,,,
+#PAAK472OKO62OISA2J6252KZHAKHR3N75PAEPQ53APMX7ARO3DECJIHYTCZXHMUS3GQ4ITXHXNDHM
+#\\\|YU7RZIRBTWC2ODPQJKEWOLY6JSVQM67R7I6WAJ3XL33B5YN6COI \ / AMOS7 \ YOURUM ::
+#\[7]3HUUDMDV3C3W2O5JO4HGPPJJ7C7SR2ODZOG46JADTRJH47QLMABY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
