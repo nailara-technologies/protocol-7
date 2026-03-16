@@ -1,0 +1,104 @@
+---
+task_id: coding-intake-inline-sub-extraction
+date_created: 2026-03-16
+status: pending
+priority: medium
+
+title: |
+  Extract inline subroutines from coding.task.intake into stub modules
+
+description: |
+  modules/coding.task.intake contains four inline anonymous subs assigned to
+  lexical variables, which violates the one-module-one-function convention.
+  Empty stub module files already exist for all four. The task is to populate
+  them and replace coding.task.intake with a clean dispatcher.
+
+  A December 2025 Kimi session created the stub files but never filled them,
+  leaving 12 empty signed modules. The coding.queue.* set is a duplicate
+  wrong-namespace attempt at the same goal and should simply be deleted,
+  as coding.task.queue_* already has the real queue implementations.
+
+source_module: modules/coding.task.intake
+
+inline_subs_to_extract:
+
+  parse_command_string:
+    target: modules/coding.intake.parse_command_string
+    lines: 8-36
+    notes: |
+      Parses "type: description | constraints" CLI-style strings.
+      Fallback: treat whole string as description with type=analysis.
+      Remove the lexical $parse_command_string = sub { ... } wrapper —
+      the module file IS the subroutine body.
+
+  validate_task:
+    target: modules/coding.intake.validate_task
+    lines: 38-52
+    notes: |
+      Validates that task has request.description and type fields.
+      Returns { valid => bool, errors => [] }.
+
+  normalize_task:
+    target: modules/coding.intake.normalize_task
+    lines: 54-69
+    notes: |
+      Lowercases type, sets priority from request.priority (default: normal),
+      sets execution.status = pending. Normalizes invalid priority values to normal.
+
+  intake_work:
+    target: modules/coding.intake.work
+    lines: 71-151
+    notes: |
+      Main intake logic. Accepts hashref or string. Calls parse_command_string
+      for strings. Calls coding.helper.task_id_generator for missing ids.
+      Replace lexical $parse_command_string->() calls with
+      <[coding.intake.parse_command_string]>->().
+
+  intake_orchestrator:
+    target: modules/coding.intake.process
+    lines: 153-180
+    notes: |
+      The bottom block (currently bare code with { }) calls intake_work,
+      then validate_task, then normalize_task. This becomes coding.intake.process.
+      Replace all lexical sub refs with <[coding.intake.*]>->() calls.
+
+new_coding_task_intake: |
+  After extraction, coding.task.intake becomes a one-line dispatcher:
+    return <[coding.intake.process]>->(@ARG);
+  Preserving the same external interface.
+
+delete_these_empty_stubs: |
+  The following 7 modules are empty and use the wrong namespace.
+  coding.task.queue_* already provides the real implementations.
+  coding.task.queue already dispatches to coding.task.queue_*.
+  Simply delete:
+    modules/coding.queue.clear_completed
+    modules/coding.queue.complete_task
+    modules/coding.queue.dequeue_next
+    modules/coding.queue.enqueue_task
+    modules/coding.queue.fail_task
+    modules/coding.queue.get_queue_stats
+    modules/coding.queue.get_task_status
+
+  Also remove modules/another.test if still present (was a test file
+  for signature oscillation reproduction).
+
+verification: |
+  After changes:
+  - modules/coding.task.intake contains only the dispatcher line
+  - modules/coding.intake.{parse_command_string,validate_task,normalize_task,work,process}
+    each contain the extracted logic with no anonymous sub wrappers
+  - modules/coding.queue.* files are gone
+  - grep -r '\$parse_command_string\|\$validate_task\|\$normalize_task\|\$intake_work'
+    modules/coding.* returns nothing
+  - Sign all modified/new files; commit
+
+related:
+  - data/yaml/coding-tasks/modules-subdir-pm-extraction.yaml
+---
+
+#,,,,,,..,..,,.,.,...,.,,,.,,,...,..,,.,.,.,.,..,,...,.,.,..,,,,,,,..,.,.,,,.,
+#7EAQXXXAXZLZD36GR6T6QMYBA2OTMSYOGAYVWT32BTAATDPO6QURLINLPY6XCJHAXBTCGRMISCNAI
+#\\\|O2GIB3SXJPOGY4GA2ZMMEUXACSL2UEIQL4YQ5J3S4LP26NN35LA \ / AMOS7 \ YOURUM ::
+#\[7]36Q6ES7YWNHGWJVALCJQLUZ3UKKS7HUAOJGOAUCRHAGCZZXMLMCA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
