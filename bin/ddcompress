@@ -616,7 +616,8 @@ if ( $output_for_ratio > 0 ) {
                 $theoretical_buffer .= $dir_line . "\n";
             }
             ## Add approximate document/index size ##
-            $theoretical_buffer .= "X" x ( $theoretical_output_bytes - length($theoretical_buffer) );
+            $theoretical_buffer .= "X"
+                x ( $theoretical_output_bytes - length($theoretical_buffer) );
         }
 
         ## Strip ANSI codes and compress to calculate theoretical size ##
@@ -630,8 +631,9 @@ if ( $output_for_ratio > 0 ) {
             my ( $lzma, $status ) = Compress::Raw::Lzma::EasyEncoder->new();
             if ( $status == $LZMA_OK ) {
                 my $compressed = '';
-                $status = $lzma->code( \$plain, \$compressed );
-                $theoretical_xz_bytes = length($compressed) if $status == $LZMA_OK;
+                $status               = $lzma->code( \$plain, \$compressed );
+                $theoretical_xz_bytes = length($compressed)
+                    if $status == $LZMA_OK;
             }
         };
     }
@@ -639,12 +641,19 @@ if ( $output_for_ratio > 0 ) {
 
 ## Display XZ compression ratio ##
 if ( $theoretical_xz_bytes > 0 && $total_input_bytes > 0 ) {
-    my $base_bytes = $use_xz && $mode eq 'compress' ? $pre_xz_output_bytes : length($output_buffer) || $theoretical_output_bytes;
-    my $xz_ratio = $base_bytes > 0 ? int( ( $theoretical_xz_bytes / $base_bytes ) * 10000 ) : 0;
+    my $base_bytes
+        = $use_xz
+        && $mode eq 'compress' ? $pre_xz_output_bytes : length($output_buffer)
+        || $theoretical_output_bytes;
+    my $xz_ratio
+        = $base_bytes > 0
+        ? int( ( $theoretical_xz_bytes / $base_bytes ) * 10000 )
+        : 0;
     my $xz_ratio_str = sprintf( "i%04d", $xz_ratio );
     my $xz_savings_pct
         = $base_bytes > 0
-        ? int( ( 1 - ( $theoretical_xz_bytes / $base_bytes ) ) * 10000 ) / 100
+        ? int( ( 1 - ( $theoretical_xz_bytes / $base_bytes ) ) * 10000 )
+        / 100
         : 0;
     say {$stats_fh} "::[$NEON_green_yellow xz compression $blacklight]:. "
         . "${TRUE_color}$base_bytes bytes$blacklight → "
@@ -1008,8 +1017,8 @@ sub unpack_mode {
     die "Unpack mode coming soon!\n";
 }
 
-#,,,.,,.,,.,,,..,,.,,,.,,,,.,,.,.,...,.,.,..,,...,...,...,.,,,..,,,.,,,,,,.,,,
-#JF5CFXEMIROQAYEOKZWLTLWOMVV2JWW6N6LPGNY5LGM5IJXUL5J3BXOI24VVSPH3DY35PCC4UY6RQ
-#\\\|FG77HJRKMHQGA5I5LPB5YVQKFK5OUHOSQOXL4W7ZKWES5RO2DEC \ / AMOS7 \ YOURUM ::
-#\[7]PO4MX7X5XQE2BOZU4KGGQZEU4E2KTWGVLL2TWOLA6GKA6VB522BY 7  DATA SIGNATURE ::
+#,,,.,,..,...,,..,,,,,,,,,,,.,.,,,.,.,,,,,..,,..,,...,...,..,,,,.,.,.,,,,,,,,,
+#YCGSYN26ITSTPXVE27KZ652QXV2VDDSNLS3XPPUYSUL5UCZXAMTZHMRJEVYQE2QEROIBD2EENHGCQ
+#\\\|P4B3UXLXODKPF7OW3T47356F3AWVJVP47GIIHNND2HEZMV76RPV \ / AMOS7 \ YOURUM ::
+#\[7]G2NBNKOS4CUK7HDG6PBHJ32JVB34CWAWWA2W4U22BU6IE46GL6AQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
