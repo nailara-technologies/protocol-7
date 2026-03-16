@@ -328,8 +328,8 @@ This upgrade serves multiple purposes:
 
 *Amos-term as the bridge: from styled desktop terminal to holographic protocol visualization, safely and incrementally.*
 
-#,,,.,..,,..,,,,.,,.,,.,,,...,,,,,,,,,...,,..,..,,...,...,.,.,,..,...,,,.,..,,
-#PLACEHOLDER-AMOS-SIGNATURE
-#\\\|PLACEHOLDER-AMOS-SIGNATURE \ / AMOS7 \ YOURUM ::
-#\[7]PLACEHOLDER-AMOS-SIGNATURE 7  DATA SIGNATURE ::
+#,,,.,.,.,,,,,..,,.,.,,..,,,,,..,,,,.,.,,,,.,,..,,...,...,.,.,.,,,,..,..,,...,
+#7N7VE6OPU76QFO35655O66P34H6TBWA5AZNNL4IY367C7N5AVQRI4RUGVNNDLPE2PQ4FUIZ5T45NW
+#\\\|4CMMTY3ORXYK3M36P4YZ6RIQCMQMCZUNOUXXRPJB3U2KRK2E5ST \ / AMOS7 \ YOURUM ::
+#\[7]KKNE2WKKVB4PWLMYVX36LAEIHACGPHBGTLO65P4HWQX32YTHEGBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -706,8 +706,8 @@ When buffer updates:
 
 *Terminal as a Byzantine consensus service: where translucency becomes proof, perfect overlap becomes validation, and synchronization becomes cryptographic joining.*
 
-#,,,.,..,,..,,,,.,,.,,.,,,...,,,,,,,,,...,,..,..,,...,...,.,.,,..,...,,,.,..,,
-#PLACEHOLDER-AMOS-SIGNATURE-1
-#\\\|PLACEHOLDER-AMOS-SIGNATURE-2 \ / AMOS7 \ YOURUM ::
-#\[7]PLACEHOLDER-AMOS-SIGNATURE-3 7  DATA SIGNATURE ::
+#,,.,,,..,..,,,..,,.,,..,,,,,,,,.,,,,,...,..,,..,,...,...,,,.,,..,.,.,..,,..,,
+#HHUQ43RQ4RJKHBVRS4JLFZ7OPCCY5ES3PSFDBSJMPWCD474K3SKDRBQWU7ZSXNR5A6C2LKQ2TCC5E
+#\\\|BUFKLIOGIOVW3YRVCFT37GAUIRQL5LRVADSLMLCJVJ35EUVVDMH \ / AMOS7 \ YOURUM ::
+#\[7]SSQOFY76ZDS746LC5A2N6PWMZRAJRN43A4F5CYM2R7HXXWEGMOCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

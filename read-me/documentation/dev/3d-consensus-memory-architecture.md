@@ -559,8 +559,8 @@ Byzantine queries (check consensus) by addressing
 
 *The 3D cube: where terminal becomes memory, computation becomes consensus, and visualization becomes cryptographic proof. Complexity now, simplicity forever.*
 
-#,,,.,..,,..,,,,.,,.,,.,,,...,,,,,,,,,...,,..,..,,...,...,.,.,,..,...,,,.,..,,
-#PLACEHOLDER-AMOS-SIGNATURE-1
-#\\\|PLACEHOLDER-AMOS-SIGNATURE-2 \ / AMOS7 \ YOURUM ::
-#\[7]PLACEHOLDER-AMOS-SIGNATURE-3 7  DATA SIGNATURE ::
+#,,,,,,,,,.,,,,,.,.,.,.,,,,,.,.,,,,,,,,,.,..,,..,,...,...,,..,.,.,,.,,.,,,,..,
+#HBVD43Y26PYJXRJVEARS5AMCWLCQ2CZYFARA3SVRBOMKFNPYT2SL2UJO4XD24G5B22WCH7GDTPAWO
+#\\\|22A52IFBRJHOX5SDTH4J2KWJUV2EXEJ3CE4IVD3R36BYKNSWRFB \ / AMOS7 \ YOURUM ::
+#\[7]7LDSK5VKS6AVHVTSFFE5GZRAQMGA5DZT2WBRMLZ5CS7MRUM65UDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -637,8 +637,8 @@ Don't hope for correctness. Instead, **make it cryptographically visible**.
 
 *Terminal architecture evolved from display device to cryptographically-validated, semantically-rich, context-aware information visualization system. ANSI didn't die. It found its proper place: confined, translated, and enhanced by a layer of correctness.*
 
-#,,,.,..,,..,,,,.,,.,,.,,,...,,,,,,,,,...,,..,..,,...,...,.,.,,..,...,,,.,..,,
-#PLACEHOLDER-AMOS-SIGNATURE-1
-#\\\|PLACEHOLDER-AMOS-SIGNATURE-2 \ / AMOS7 \ YOURUM ::
-#\[7]PLACEHOLDER-AMOS-SIGNATURE-3 7  DATA SIGNATURE ::
+#,,,.,.,,,.,.,...,...,,,.,...,,,.,.,,,,.,,,..,..,,...,...,...,,.,,.,,,.,.,,,.,
+#DSKL4POGWQQQ6J5XWB3IGHI7MHDHCQZBVAIR7LU53EOV6SLE7DEL2E7YDMAFJ2GETFM4MTHWO4JB4
+#\\\|4MCWO3UMCKBJX37Y2BTGWAUEGLEB6Q5IVUBP7MFU62CYRSBKRRY \ / AMOS7 \ YOURUM ::
+#\[7]SJVNNHQNKYUQQ6VRDTYJJUAIRQ2XSDUVUGOIVA2PAQ3CRWYPHMBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
