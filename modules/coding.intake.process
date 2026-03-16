@@ -1,6 +1,37 @@
+## [:< ##
 
-#,,..,.,.,,..,.,.,.,.,,,,,,.,,..,,,,.,.,.,..,,..,,...,...,..,,,,.,,,,,,,,,.,,,
-#74AFPVEGD364ZDJNH4CRKVOGL2CGIU2XCJKXAUC676MDVXXMKA462QOWHNT3EA5IXMWJCFKWVOSHY
-#\\\|JERQYM7XJ5UH64NNN6J7NW4BSJAQQ4E5D7KY5SROULZEFYKE7NX \ / AMOS7 \ YOURUM ::
-#\[7]HQ4OQKU35SG57XMV6OQ4FMTNAXG6RYTHDH7Q6IERTMFIKRODGGCQ 7  DATA SIGNATURE ::
+# name = coding.intake.process
+# descr = intake orchestrator - validates and normalizes tasks
+# purpose = Main entry point for task intake workflow
+
+my $result = <[coding.intake.work]>->(@ARG);
+
+if ( $result->{'success'} && $result->{'task'} ) {
+
+    # Validate the structured task
+    my $validation = <[coding.intake.validate_task]>->( $result->{'task'} );
+    if ( !$validation->{'valid'} ) {
+        return {
+            success => FALSE,
+            error   => sprintf( "Task validation failed: %s",
+                join( ", ", $validation->{'errors'}->@* ) )
+        };
+    }
+
+    # Normalize the task
+    my $normalized = <[coding.intake.normalize_task]>->( $result->{'task'} );
+
+    return {
+        success => TRUE,
+        task    => $normalized,
+        message => $result->{'message'}
+    };
+}
+
+return $result;
+
+#,,.,,...,,..,.,,,,,,,..,,..,,,,.,,,,,...,,..,..,,...,..,,..,,,,,,,,,,.,,,...,
+#7WSBB63IYYZDXX5TEHJNVOVWASRJKVTK5DHZNYNHEUFKEINLAS7QXXX4US2LZVFRTZPBYHBKHJW7C
+#\\\|3EPEIWF7AOM67LYQGSLZIDXQ4YALSLCWOKJDAXLMKTSI2HOGEDI \ / AMOS7 \ YOURUM ::
+#\[7]2XQYENREQYNRM5KY5FUFMP55NOYTNOVFIUFOQKYA77VOBRQVXUAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
