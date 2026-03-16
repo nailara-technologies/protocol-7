@@ -415,8 +415,8 @@ Protocol-7 unified buffer:
 
 *All shells unified through the 3D buffer: from bash to nshell to custom languages, all Byzantine-validated, all synchronized, all simple to implement. No special cases, just different zenka writing to the same substrate.*
 
-#,,,.,..,,..,,,,.,,.,,.,,,...,,,,,,,,,...,,..,..,,...,...,.,.,,..,...,,,.,..,,
-#PLACEHOLDER-AMOS-SIGNATURE-1
-#\\\|PLACEHOLDER-AMOS-SIGNATURE-2 \ / AMOS7 \ YOURUM ::
-#\[7]PLACEHOLDER-AMOS-SIGNATURE-3 7  DATA SIGNATURE ::
+#,,.,,,..,...,...,.,.,..,,...,,,.,,,,,..,,,,,,..,,...,...,,,.,.,,,..,,,,,,.,.,
+#PSWYHZPPYF2MR6IONIAARKROJJHGHFJLKYROUMUHJS4LBRVH2MRZL5VDFK6HTCHPU5CYJ4QABZMWM
+#\\\|S7SULHG5BS7SYB7KJ7A4O2W2DT5VH6ADAR5ZPCLMO3OJT7623EI \ / AMOS7 \ YOURUM ::
+#\[7]IDWCO4B5LMNXMBCIKNM5KLHC7BPSMBUJXJHVPASIWDOWET25BSDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
