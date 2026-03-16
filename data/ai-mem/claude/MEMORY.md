@@ -43,6 +43,10 @@
   DTM 6×7×13 CCW shift register, 15-bit `#:::::` footer encoding, binary sunburst
   zoom promotion (0110/1001), multi-speed lanes, lens effect on distance, PYTAURAZA;
   see `data/md/documentation/harmonic-transit-vision-architecture.md`
+- **signature oscillation Variant A** (Mar 16 2026): resolved ✅ — state=7/6 encoding fix,
+  remove-N restore semantics, empty file state=6; commit `2bf1b3d46`; 109 files resigned.
+  Variant B (double-footer on never-signed non-empty files) still open — fixtures at
+  `data/asc/test-fixtures/signature-oscillation-2026-03-15/`
 - **config double-load bug**: pre-existing duplicate config key warnings on startup/reload — needs "already loaded" guard in config parser; see `bug-config-double-load.md`
 
 ## Key Technical Insights
@@ -151,8 +155,8 @@
 - Pattern: `my @non_num = grep { defined $data_ref->{$ARG}->{$key} and not looks_like_number(...) } keys $data_ref->%*`
 - Global `$SIG{__WARN__}` exists — if wrapping warn handler, capture `$prev_warn = $SIG{__WARN__}` first and call through
 
-#,,,.,.,.,.,.,,,.,.,,,...,.,.,..,,,,,,,,,,...,..,,...,...,..,,,,,,...,,..,..,,
-#FIFQK37CKTPUJUDNKEH4PI2KAFO2YUIFI2G4NLTIAEI4NNGPP6U7NENNJM5VQLPJO4T5BS4G4BPC2
-#\\\|GVQ27JXVSUDXQUYTV5R72T4LXGCM4LWY6BR7RLNMPVKHPYGUULS \ / AMOS7 \ YOURUM ::
-#\[7]5SP5RM2E7FJ7DRNYHMSYWX3M3OIE7VWZANX2UGY3Q4N3YLOZIMAI 7  DATA SIGNATURE ::
+#,,..,..,,,..,,.,,...,...,,,,,,..,..,,...,.,.,..,,...,...,,,,,,.,,,..,,,,,.,,,
+#5724G43V6KXTTYUDTWKHT2X4O3IDC5QOT22PZJVO6442DXTF6S3G6KHZ5WM7TWIJDET2BJ4I7HFKS
+#\\\|SLJ3Z5TPJWFDM7RZDCZQNFWQVM64P6V7EQFIAPUVDAG7SAD4CD6 \ / AMOS7 \ YOURUM ::
+#\[7]TZEIINLRLQKV6MTASS3KFB7APQAQFOGGIIFNIMLHY727YUEHCQDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
