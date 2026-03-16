@@ -2,7 +2,7 @@
 
 # name = base.file.all_files
 
-my ( $path, $result_aref, $resolved ) = @ARG;
+my ( $path, $result_aref, $resolved, $_recursive ) = @ARG;
 
 if ( not defined $path or not length $path ) {
     warn 'path param missing or undefined <{C1}>';
@@ -21,7 +21,9 @@ if ( not defined $result_aref ) {
     $result_aref = [];
     $recursive   = TRUE;    ## true ##
 } else {
-    $recursion_entered = TRUE;    ## true ##
+    ## preserve recursive flag from parent call ##
+    $recursion_entered = TRUE;
+    $recursive         = $_recursive // FALSE;
 }
 
 if ( not -d $path ) {
@@ -51,15 +53,16 @@ if ( not -d $path ) {
         my $result_path
             = $resolved ? abs_path($path_abs) : canonpath($path_abs);
         push $result_aref->@*, $result_path if -f $path_abs;
-        <[file.all_files]>->( $result_path, $result_aref, $resolved )
-            if -d $path_abs and $recursive;
+        <[file.all_files]>->(
+            $result_path, $result_aref, $resolved, $recursive
+        ) if -d $path_abs and $recursive;
     }
 }
 
 return $result_aref if not $recursion_entered;
 
-#,,.,,,.,,...,,,,,,..,..,,..,,,,.,,,.,...,,..,..,,...,...,.,,,.,.,,..,,..,..,,
-#SL3QI6CTO6GLH2U56DXKO5B2NNJIUQKT45DIJQ5RVL5EFI44TKOOHXJKHLAKAWXSMYTWI5TUMUSBE
-#\\\|QTHAJNDXQIBZFWKJV6LZVNREXJKNM73PX4U63NR4YNEK4TSAW44 \ / AMOS7 \ YOURUM ::
-#\[7]STDD4ZBR5ATQFQQXJPX66D2KIVRGCYCTBLTJYHICDPZSY3QFIGCY 7  DATA SIGNATURE ::
+#,,.,,...,,.,,,..,,,.,,,.,..,,,,,,...,,..,.,.,..,,...,...,.,.,.,.,..,,..,,,.,,
+#RFUDVZFSM3QQ6K7XUH5DCRFLBLJVJC2FP2TXTQP3ZI7VU2LVAGANX3XLT3V7QSWT5BAAOSNXMUI3S
+#\\\|CJMCYB7H2WUGZJKRRRFP6UTXPBAJL7JOVIX3OPDCRSPVMXLDVJU \ / AMOS7 \ YOURUM ::
+#\[7]F3MESZIFOU3HFL63OMQ7Y3XT5TVVCJVNQIIPZKMLL2C6VUBUCYDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
