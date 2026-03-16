@@ -698,8 +698,25 @@ sub analyze_zenka_reachability {
         ##  without net, zenka cannot accept connections or dispatch commands  ##
         if ( exists $loaded_set->{'net'} ) {
             for my $ns ( qw| base |, keys %{$loaded_set} ) {
-                for my $node ( grep {m/^\Q$ns\E\.(?:cmd|console)\./}
-                    keys %{$graph} ) {
+                for my $node (
+                    grep {m/^\Q$ns\E\.(?:cmd|console)\./}
+                    keys %{$graph}
+                ) {
+                    next if $reachable{$node};
+                    my %new = walk_reachable( $graph, [$node] );
+                    %reachable = ( %reachable, %new );
+                }
+            }
+        }
+
+        ##  include all console subs when base.call.console_command is reachable  ##
+        ##  applies to standalone zenki using console dispatch without net module  ##
+        ##  cmd subs are not included — those require network dispatch via net    ##
+        if ( not exists $loaded_set->{'net'}
+            and exists $reachable{'base.call.console_command'} ) {
+            for my $ns ( qw| base |, keys %{$loaded_set} ) {
+                for my $node ( grep {m/^\Q$ns\E\.console\./} keys %{$graph} )
+                {
                     next if $reachable{$node};
                     my %new = walk_reachable( $graph, [$node] );
                     %reachable = ( %reachable, %new );
@@ -1298,8 +1315,8 @@ sub classify_dispatch_confidence {
     return 'open';
 }
 
-#,,..,..,,,..,.,.,.,,,,,.,,..,..,,...,,.,,,..,.,.,...,...,.,,,,.,,,.,,,..,,,,,
-#5RUTDQYXKGE67ADF3ZW4OCXOWREGCMET7SD3ZDCQV3ACPFSO6N454IPPVSJ7FNELODJ2X6252AXMA
-#\\\|YHAGYSRCIXZ7ORNZL6ZFIBSAIZOW3EEQQDH22TT2AA4G635YQPO \ / AMOS7 \ YOURUM ::
-#\[7]GK6F43TT5B5R6M62TTYAAAYD5275FFMRJHAVVPLLMK3HFNG3GSAI 7  DATA SIGNATURE ::
+#,,..,.,.,.,.,,.,,,,.,,..,,..,.,.,,,,,,,.,,,,,.,.,...,...,.,.,.,,,,,,,..,,..,,
+#M5ZREEIXGRUBH4WTC724JIII4ZEHZLRAB63LXA4ZZ2AIOLLNBVWDYDRLOEBLLA7MGR4INZE2TVC4U
+#\\\|ITRRYFIS4LWPQXJOBBMTDCAIHDB2Y4MOKJYWZNYKJUDVFLJEYDW \ / AMOS7 \ YOURUM ::
+#\[7]AK32JVZRSQD7G3ZVEYJVZMVGD34YF3YKGTPY4RCQ2UA2B2JR62CA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
