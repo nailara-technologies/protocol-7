@@ -19,10 +19,10 @@ my $rd  = "\e[38;2;220;20;60m";    # crimson
 
 my $skip_backup_files = 1;         # ignores *~ filenames
 
-## Check for -no-verify flag to allow bypass
+## Check for --no-verify flag to allow bypass
 my $allow_unsigned = 0;
 for my $arg (@ARGV) {
-    $allow_unsigned = 1 if $arg eq '-no-verify' || $arg eq qw| -n |;
+    $allow_unsigned = 1 if $arg eq '--no-verify' || $arg eq qw| -n |;
 }
 
 my $skip_version_check   = $ENV{'SKIP_VERSION_CHECK'}   // 0;
@@ -112,7 +112,7 @@ unless ($skip_descr_check) {
             . " shorten to 55 chars or less\n";
         print STDERR "${fg}::\n";
         print STDERR "${fg}:: to override this check: ${bl}git commit "
-            . "-no-verify$rst or ${bl}SKIP_DESCR_CHECK=1 git commit$rst\n";
+            . "--no-verify$rst or ${bl}SKIP_DESCR_CHECK=1 git commit$rst\n";
         print STDERR "${fg}::\n$rst";
         exit 1;
     }
@@ -166,7 +166,7 @@ unless ($skip_version_check) {
             . "commits are properly tracked\n";
         print STDERR "${fg}::\n";
         print STDERR "${fg}:: to override this check: ${bl}git commit "
-            . "-no-verify$rst or ${bl}SKIP_VERSION_CHECK=1 git commit$rst\n";
+            . "--no-verify$rst or ${bl}SKIP_VERSION_CHECK=1 git commit$rst\n";
         print STDERR "${fg}::\n$rst";
         exit 1 unless $allow_unsigned;
     }
@@ -242,7 +242,7 @@ unless ($skip_signature_check) {
             . "update-signatures$rst$fg to sign\n";
         print STDERR "${fg}::\n";
         print STDERR "${fg}:: to override this check: "
-            . "${bl}git commit -no-verify$rst or ${bl}SKIP_SIGNATURE_CHECK=1 "
+            . "${bl}git commit --no-verify$rst or ${bl}SKIP_SIGNATURE_CHECK=1 "
             . "git commit$rst\n";
         print STDERR "${fg}::\n$rst";
         exit 1 unless $allow_unsigned;
@@ -254,8 +254,8 @@ unless ($skip_signature_check) {
 print ":\n: done.\n:\n";
 exit 0;
 
-#,,..,..,,,,.,,,.,...,.,.,,..,...,,,,,,,.,...,..,,...,...,.,.,,,,,...,..,,,,,,
-#JIX66BNDTFROJG3XAOWY3QXMKI3RC27ODC3ZTEUNK7OEIHDA4AG3CODVQEB5253F5B472ENLHVPBA
-#\\\|ZTIKXT6LSRGVBC2WMTXCFWN2QUGRUCEUF7SG7IXX5UC2ELHTWCY \ / AMOS7 \ YOURUM ::
-#\[7]7YBEDE5HSSANWNVRF6NSD77WA7KJWLURBX6V27IBKKV4XORZJUBI 7  DATA SIGNATURE ::
+#,,,.,.,.,,.,,..,,..,,,.,,.,.,,,,,,.,,,,,,,,,,..,,...,...,..,,.,.,...,,,,,...,
+#LNL3HOBI5IZ7CXIOQ4NBOK7WZRUFKSJJPGMXMXZBIMTCJOO3ZA4YX3YIY5THYI6W2OUAPNHGMXLIS
+#\\\|K4LHAWLEMF7BCCH7YRVBKUME4ZHRGJ3G5LLUSKIPPJCLIQBZFL4 \ / AMOS7 \ YOURUM ::
+#\[7]R6FPKBJHWY7Y2RHADW5ILSQSZ2LFSE6XVZOKAFJIJ4GCFNEHXQBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

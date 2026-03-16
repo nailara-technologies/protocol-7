@@ -30,18 +30,19 @@ use Digest::SHA qw(sha256_hex);
 ## Configuration
 ## IMPORTANT: Use a SEPARATE directory from Invoke.ai's model directory!
 ## This prevents accidental deletion of your single-file models.
-my $CACHE_DIR     = $ENV{'INVOKE_CACHE_DIR'} // '/var/cache/invoke-ai/huggingface';
-my $HF_ENDPOINT   = 'https://huggingface.co';
-my $HF_API        = 'https://huggingface.co/api';
-my $TIMEOUT       = 300;
-my $MAX_RETRIES   = 3;
+my $CACHE_DIR = $ENV{'INVOKE_CACHE_DIR'}
+    // '/var/cache/invoke-ai/huggingface';
+my $HF_ENDPOINT = 'https://huggingface.co';
+my $HF_API      = 'https://huggingface.co/api';
+my $TIMEOUT     = 300;
+my $MAX_RETRIES = 3;
 
 ## Model registry - maps Invoke.ai model names to HuggingFace repos
 my $MODEL_REGISTRY = {
     ## Base models - public
     'sd-xl-base' => {
-        'repo_id'   => 'stabilityai/stable-diffusion-xl-base-1.0',
-        'files'     => [
+        'repo_id' => 'stabilityai/stable-diffusion-xl-base-1.0',
+        'files'   => [
             'model_index.json',
             'scheduler/scheduler_config.json',
             'text_encoder/config.json',
@@ -60,14 +61,11 @@ my $MODEL_REGISTRY = {
         'description' => 'Stable Diffusion XL Base 1.0',
     },
     'sd-1.5' => {
-        'repo_id'   => 'runwayml/stable-diffusion-v1-5',
-        'files'     => [
-            'model_index.json',
-            'scheduler/scheduler_config.json',
-            'text_encoder/config.json',
-            'tokenizer/merges.txt',
-            'tokenizer/vocab.json',
-            'unet/config.json',
+        'repo_id' => 'runwayml/stable-diffusion-v1-5',
+        'files'   => [
+            'model_index.json',         'scheduler/scheduler_config.json',
+            'text_encoder/config.json', 'tokenizer/merges.txt',
+            'tokenizer/vocab.json',     'unet/config.json',
             'vae/config.json',
         ],
         'description' => 'Stable Diffusion 1.5',
@@ -75,23 +73,25 @@ my $MODEL_REGISTRY = {
 
     ## Models requiring HuggingFace authentication
     'sd-2.1' => {
-        'repo_id'     => 'stabilityai/stable-diffusion-2-1',
-        'files'       => ['model_index.json', 'scheduler/scheduler_config.json'],
-        'description' => 'Stable Diffusion 2.1 [REQUIRES HF_TOKEN]',
+        'repo_id' => 'stabilityai/stable-diffusion-2-1',
+        'files' => [ 'model_index.json', 'scheduler/scheduler_config.json' ],
+        'description'   => 'Stable Diffusion 2.1 [REQUIRES HF_TOKEN]',
         'requires_auth' => 1,
     },
 
     ## Placeholder for user-provided LoRAs
     'cute-style' => {
-        'repo_id'     => 'USER_PROVIDED',
-        'files'       => ['pytorch_lora_weights.safetensors'],
-        'description' => 'Cute style LoRA [USER PROVIDED - not downloaded]',
+        'repo_id'       => 'USER_PROVIDED',
+        'files'         => ['pytorch_lora_weights.safetensors'],
+        'description'   => 'Cute style LoRA [USER PROVIDED - not downloaded]',
         'user_provided' => 1,
     },
 };
 
 ## Parse arguments
-my ($opt_check, $opt_download, $opt_list, $opt_cache_dir, $opt_verbose, $opt_help);
+my ($opt_check,     $opt_download, $opt_list,
+    $opt_cache_dir, $opt_verbose,  $opt_help
+);
 GetOptions(
     'check'       => \$opt_check,
     'download'    => \$opt_download,
@@ -116,7 +116,7 @@ my @models = @ARGV;
 
 if ($opt_check) {
     my $missing = check_models(@models);
-    exit($missing ? 1 : 0);
+    exit( $missing ? 1 : 0 );
 }
 
 if ($opt_download) {
@@ -162,8 +162,8 @@ USAGE
 sub list_models {
     print "Available models:\n";
     print "=" x 60 . "\n";
-    for my $id (sort keys %$MODEL_REGISTRY) {
-        my $model = $MODEL_REGISTRY->{$id};
+    for my $id ( sort keys %$MODEL_REGISTRY ) {
+        my $model    = $MODEL_REGISTRY->{$id};
         my $optional = $model->{'optional'} ? ' [optional]' : '';
         printf "  %-20s %s%s\n", $id, $model->{'description'}, $optional;
         printf "    Repo: %s\n", $model->{'repo_id'};
@@ -178,24 +178,25 @@ sub check_models {
     print "=" x 60 . "\n";
 
     for my $model_id (@models) {
-        unless (exists $MODEL_REGISTRY->{$model_id}) {
+        unless ( exists $MODEL_REGISTRY->{$model_id} ) {
             warn "Unknown model: $model_id\n";
             $missing++;
             next;
         }
 
-        my $model = $MODEL_REGISTRY->{$model_id};
-        my $model_dir = File::Spec->catdir($CACHE_DIR, $model_id);
+        my $model     = $MODEL_REGISTRY->{$model_id};
+        my $model_dir = File::Spec->catdir( $CACHE_DIR, $model_id );
 
         print "\n[$model_id] $model->{'description'}\n";
         print "  Location: $model_dir\n";
 
         my $model_missing = 0;
-        for my $file (@{$model->{'files'}}) {
-            my $filepath = File::Spec->catfile($model_dir, $file);
-            if (-f $filepath) {
+        for my $file ( @{ $model->{'files'} } ) {
+            my $filepath = File::Spec->catfile( $model_dir, $file );
+            if ( -f $filepath ) {
                 my $size = -s $filepath;
-                printf "  ✓ %-50s (%s)\n", $file, human_size($size) if $opt_verbose;
+                printf "  ✓ %-50s (%s)\n", $file, human_size($size)
+                    if $opt_verbose;
             } else {
                 printf "  ✗ %-50s MISSING\n", $file;
                 $model_missing++;
@@ -203,7 +204,7 @@ sub check_models {
             }
         }
 
-        if ($model_missing == 0) {
+        if ( $model_missing == 0 ) {
             print "  Status: ✓ Complete\n";
         } else {
             print "  Status: ✗ $model_missing files missing\n";
@@ -230,29 +231,29 @@ sub download_models {
     print "Downloading models to: $CACHE_DIR\n";
     print "=" x 60 . "\n";
 
-    my ($downloaded, $failed, $skipped) = (0, 0, 0);
+    my ( $downloaded, $failed, $skipped ) = ( 0, 0, 0 );
 
     for my $model_id (@models) {
-        unless (exists $MODEL_REGISTRY->{$model_id}) {
+        unless ( exists $MODEL_REGISTRY->{$model_id} ) {
             warn "Skipping unknown model: $model_id\n";
             $failed++;
             next;
         }
 
-        my $model = $MODEL_REGISTRY->{$model_id};
-        my $model_dir = File::Spec->catdir($CACHE_DIR, $model_id);
+        my $model     = $MODEL_REGISTRY->{$model_id};
+        my $model_dir = File::Spec->catdir( $CACHE_DIR, $model_id );
 
         print "\n[$model_id] $model->{'description'}\n";
 
         ## Handle special cases
-        if ($model->{'user_provided'}) {
+        if ( $model->{'user_provided'} ) {
             print "  ⊘ User must provide: $model->{'files'}[0]\n";
             print "    Place in: $model_dir/\n";
             $skipped++;
             next;
         }
 
-        if ($model->{'requires_auth'} && !$ENV{'HF_TOKEN'}) {
+        if ( $model->{'requires_auth'} && !$ENV{'HF_TOKEN'} ) {
             print "  ⚠ Requires HF_TOKEN environment variable\n";
             print "    Set with: export HF_TOKEN=your_token\n";
             $failed++;
@@ -260,27 +261,32 @@ sub download_models {
         }
 
         ## Create directory
-        make_path($model_dir, { verbose => 0 });
+        make_path( $model_dir, { verbose => 0 } );
 
-        for my $file (@{$model->{'files'}}) {
-            my $filepath = File::Spec->catfile($model_dir, $file);
+        for my $file ( @{ $model->{'files'} } ) {
+            my $filepath = File::Spec->catfile( $model_dir, $file );
 
             ## Skip if already exists
-            if (-f $filepath) {
+            if ( -f $filepath ) {
                 print "  • $file (cached)\n" if $opt_verbose;
                 $skipped++;
                 next;
             }
 
             ## Create subdirectory if needed
-            my ($volume, $dir, $filename) = File::Spec->splitpath($filepath);
-            make_path(File::Spec->catpath($volume, $dir, ''), { verbose => 0 });
+            my ( $volume, $dir, $filename )
+                = File::Spec->splitpath($filepath);
+            make_path( File::Spec->catpath( $volume, $dir, '' ),
+                { verbose => 0 } );
 
             ## Download
-            my $url = "$HF_ENDPOINT/" . $model->{'repo_id'} . "/resolve/main/$file";
+            my $url
+                = "$HF_ENDPOINT/"
+                . $model->{'repo_id'}
+                . "/resolve/main/$file";
             print "  ↓ $file\n";
 
-            my $success = download_file($ua, $url, $filepath);
+            my $success = download_file( $ua, $url, $filepath );
             if ($success) {
                 $downloaded++;
             } else {
@@ -296,44 +302,49 @@ sub download_models {
     print "  Skipped (cached): $skipped\n";
     print "  Failed: $failed\n";
 
-    exit($failed ? 1 : 0);
+    exit( $failed ? 1 : 0 );
 }
 
 sub download_file {
-    my ($ua, $url, $filepath) = @_;
+    my ( $ua, $url, $filepath ) = @_;
     my $tmpfile = "$filepath.tmp";
 
-    for my $try (1 .. $MAX_RETRIES) {
-        my $response = $ua->get($url, ':content_file' => $tmpfile);
+    for my $try ( 1 .. $MAX_RETRIES ) {
+        my $response = $ua->get( $url, ':content_file' => $tmpfile );
 
-        if ($response->is_success) {
+        if ( $response->is_success ) {
             ## Verify it's not an error page
             my $size = -s $tmpfile;
-            if ($size < 100) {
+            if ( $size < 100 ) {
                 ## Might be a redirect or error
-                open(my $fh, '<', $tmpfile) or die "Cannot read $tmpfile: $!";
+                open( my $fh, '<', $tmpfile )
+                    or die "Cannot read $tmpfile: $!";
                 my $content = do { local $/; <$fh> };
                 close($fh);
-                if ($content =~ /error|not found|redirect|401|403/i) {
-                    print "    Error: " . substr($content, 0, 80) . "\n" if $opt_verbose;
+                if ( $content =~ /error|not found|redirect|401|403/i ) {
+                    print "    Error: " . substr( $content, 0, 80 ) . "\n"
+                        if $opt_verbose;
                     unlink($tmpfile);
-                    sleep(2 ** $try);  ## Exponential backoff
+                    sleep( 2**$try );    ## Exponential backoff
                     next;
                 }
             }
 
-            rename($tmpfile, $filepath) or die "Cannot rename $tmpfile: $!";
+            rename( $tmpfile, $filepath ) or die "Cannot rename $tmpfile: $!";
             return 1;
         }
 
         ## Report actual error
-        if ($opt_verbose || $try == $MAX_RETRIES) {
-            print "    HTTP " . $response->code . ": " . $response->message . "\n";
+        if ( $opt_verbose || $try == $MAX_RETRIES ) {
+            print "    HTTP "
+                . $response->code . ": "
+                . $response->message . "\n";
         }
 
-        if ($try < $MAX_RETRIES) {
-            my $delay = 2 ** $try;
-            print "    Retry $try/$MAX_RETRIES after ${delay}s...\n" if $opt_verbose;
+        if ( $try < $MAX_RETRIES ) {
+            my $delay = 2**$try;
+            print "    Retry $try/$MAX_RETRIES after ${delay}s...\n"
+                if $opt_verbose;
             sleep($delay);
         }
     }
@@ -346,19 +357,19 @@ sub human_size {
     my ($bytes) = @_;
     return '0 B' unless $bytes;
 
-    my @units = ('B', 'KB', 'MB', 'GB', 'TB');
-    my $unit = 0;
+    my @units = ( 'B', 'KB', 'MB', 'GB', 'TB' );
+    my $unit  = 0;
 
-    while ($bytes >= 1024 && $unit < @units - 1) {
+    while ( $bytes >= 1024 && $unit < @units - 1 ) {
         $bytes /= 1024;
         $unit++;
     }
 
-    return sprintf('%.1f %s', $bytes, $units[$unit]);
+    return sprintf( '%.1f %s', $bytes, $units[$unit] );
 }
 
-#,,..,...,,.,,..,,,,.,...,,,.,,.,,..,,,,,,,,,,.,.,...,...,...,,,,,.,,,,..,,..,
-#JEBQ6JAKRVN5ZEF7NRQKGYYOMXBZ46MCJ7NN2RUD7NGEJ3GXW4OYDAYBM4XPV3ERUUS7SR4YAUATG
-#\\\|WOQ7SYLB26F3YWJBWEKJ3I5LP7Q5KUG455GOF37X4AF4UWUXQHS \ / AMOS7 \ YOURUM ::
-#\[7]32GKNGJN33LWZB46QRM4RWZZ5PLS2XF7T3CLDHH5735PHMWHC2DQ 7  DATA SIGNATURE ::
+#,,,.,,.,,,,.,.,,,.,.,,.,,.,.,,..,..,,.,,,,,,,.,.,...,..,,,,.,.,,,..,,.,,,.,.,
+#G3AAYOABATYIJOQVL5QUGSFAO6AQI35WMF65HAWOZ3N2532AHOEXBBU234PWF57BPPE2ITMAN5OMQ
+#\\\|7U6IOGNY6TX5S5C46KMVEBMN7DFM4562FTAKGOY5J6O434BRI7I \ / AMOS7 \ YOURUM ::
+#\[7]54SDQZHYO2VVRXWUPGGCQOCSMPNFDCHHIW36VFP2666FKAWNP6AA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
