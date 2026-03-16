@@ -1,6 +1,24 @@
+## [:< ##
 
-#,,..,.,.,,..,.,.,.,.,,,,,,.,,..,,,,.,.,.,..,,..,,...,...,..,,,,.,,,,,,,,,.,,,
-#74AFPVEGD364ZDJNH4CRKVOGL2CGIU2XCJKXAUC676MDVXXMKA462QOWHNT3EA5IXMWJCFKWVOSHY
-#\\\|JERQYM7XJ5UH64NNN6J7NW4BSJAQQ4E5D7KY5SROULZEFYKE7NX \ / AMOS7 \ YOURUM ::
-#\[7]HQ4OQKU35SG57XMV6OQ4FMTNAXG6RYTHDH7Q6IERTMFIKRODGGCQ 7  DATA SIGNATURE ::
+# name = coding.intake.validate_task
+# descr = validates task has required fields
+# purpose = Ensure task structure is valid before processing
+
+my ($task) = @ARG;
+
+my @errors = ();
+
+push @errors, "Missing task.request.description"
+    unless $task->{request}->{description};
+push @errors, "Missing task.type" unless $task->{type};
+
+return {
+    valid  => scalar(@errors) == 0,
+    errors => \@errors
+};
+
+#,,,,,.,.,,.,,,,,,,.,,,,,,..,,,,,,,,.,..,,,..,..,,...,.,.,.,,,.,.,,,.,.,.,..,,
+#TXZO3HGUKW2EJ2FBHWPDPNL2EMLKUOFHSYK5IPEIXUAQSAA4A2DP2MP2ODEVMA44AAOVX7GLQ5WPQ
+#\\\|O5BEVB5HKCH6QZ6F5S2CVQVBXBBZDAJDPEVSOO5EQHBGMBPFGZD \ / AMOS7 \ YOURUM ::
+#\[7]6SIXZDKMZFTQGOLXFXXHCTCWG3JYJJCCOHCBSI4JPVAUS43WHECY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
