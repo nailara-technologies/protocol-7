@@ -41,7 +41,7 @@ sub new () {
         -border   => 1,
         -question => '',    # The question to show
         -answer   => '',    # a default answer
-        -ipad     => 1,
+        -ipad     =>  1,
         -fg       => -1,
         -bg       => -1,
 
@@ -343,8 +343,8 @@ This package is free software and is provided "as is" without express
 or implied warranty. It may be used, redistributed and/or modified
 under the same terms as perl itself.
 
-#,,,,,,.,,...,...,..,,,..,.,.,..,,,,,,...,,.,,.,.,...,...,,.,,.,,,,,,,..,,.,.,
-#XIC346GDRFGKBYR7JM5CV2C4H6MSO5PJYUWQGVTVFUG2FUKLXMZ64J2CNJ4KMFI5P4VTTZXZINJZQ
-#\\\|BBYQXKOOK5VNBANPDDKTVMXDDO6DAM6OV5M43NQFLNJUS6NJAPW \ / AMOS7 \ YOURUM ::
-#\[7]TN5XKRTGAOSAJ5UGNVP6XG32MKDVIDUQ76XYBREXU4C76GREMMCA 7  DATA SIGNATURE ::
+#,,..,,,.,..,,,..,,.,,.,,,,..,...,..,,,,.,,..,.,.,...,.,.,,..,...,,,,,.,.,.,,,
+#F357ZIQGLYUV6DNASZPAQ43IHXUYMWEQZHHC5MQQH6CI32E7Q5LTFK3KKUBSZCZQE4QP773X4RXBM
+#\\\|DMYDKW2IDOPFPYYN7L5DE7ZI5TRH6HPIDS4XJ6XMS7PNHJNDGOW \ / AMOS7 \ YOURUM ::
+#\[7]AQDIDLW7REJOPUG4UUJFMEVZZ234V45AGN5BIXPTBWJIPVJWHWAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

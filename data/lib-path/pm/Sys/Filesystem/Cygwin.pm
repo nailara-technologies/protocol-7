@@ -27,7 +27,7 @@ use 5.008001;
 
 use strict;
 use warnings;
-use vars qw($VERSION);
+use vars   qw($VERSION);
 use parent qw(Sys::Filesystem::Unix);
 
 use Carp qw(croak);
@@ -152,3 +152,9 @@ This software is licensed under The Apache Software License, Version 2.0.
 L<http://www.apache.org/licenses/LICENSE-2.0>
 
 =cut
+
+#,,..,,,,,.,.,,,.,,..,...,...,..,,...,..,,...,..,,...,..,,..,,...,,,,,,,,,.,.,
+#3JSC7UINRBYNLVQLQEVV73GHAYR5KBQSN6KJZSIQEYKYOBWMZNCP6UJMU2JRHDPVIVSDKS2L4CJ2I
+#\\\|GWHTJG4RADDYN3YZCYAMP5T4ZU4PGTOIHGLMY4DADJBVG63OSWP \ / AMOS7 \ YOURUM ::
+#\[7]UAJFRUZC5XXL4POHKJ5BRBTJTXZMOI2L76B3JPQBIA66VAAU5QCQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

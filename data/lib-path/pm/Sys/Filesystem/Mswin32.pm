@@ -164,3 +164,9 @@ This software is licensed under The Apache Software License, Version 2.0.
 L<http://www.apache.org/licenses/LICENSE-2.0>
 
 =cut
+
+#,,,,,,,.,.,,,,..,.,.,,,,,.,,,,,,,,,,,.,,,,,,,..,,...,...,...,.,.,,,,,..,,,.,,
+#ROAE3YX5FWZZIMRPCWKGM7SP4R7LZSSBJ63OUOBW6HKFCEXLNXKLJLP3HZQPFCJUBURC6M7SFRNNM
+#\\\|DUNL5UG7JS4LSNRIART5UJX4WKX55DPHLK4RJDY5DSWRTUESKYG \ / AMOS7 \ YOURUM ::
+#\[7]27MCOOQLDAYAVI6ZOY6U6D2N7JYJ6AHKGWCTE6Q7UY4RVIR2W2DQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
