@@ -9,17 +9,30 @@
 my @copy_sources = qw [
 
     modules
-    bin/**
+    bin
+    bin/admin/**
+    bin/build-scripts/**
+    bin/dependencies/**
+    bin/dev/**
+    bin/install-scripts/**
+    bin/scripts/**
+    bin/test-scripts/**
     read-me/**
     data/md/**
     data/yaml/**
     data/ai-mem/**
-    configuration/**
+    configuration
+    configuration/zenki/*
     configuration/zenki/*/*
     data/lib-path/pm/**
 
+    !test-fixtures
     !.xml
+    !.log
     !c_src
+    !.html
+    !dev/lib
+    !read-me/documentation/dev/reminders
     !llama-compiled
 
 ];
@@ -33,8 +46,8 @@ if ( not chdir(<system.root_path>) ) {
     return <[base.source.collect_file_list]>->( \@copy_sources );
 }
 
-#,,..,,,.,,..,,.,,.,,,,,.,..,,.,.,...,,,.,..,,..,,...,..,,,,.,,.,,,.,,.,,,,,.,
-#JBQQ5O727MYJS2L5X23ZVC2TIYIBYU2FF7FUJYEGDBFZE5B46DLW5ICRQ2G2YIT6WZDDRSYYXDFSY
-#\\\|GSBL7XL4WZ24M7B3CUAXWDJFGDNSNMYDLW36ZZXBJL7NNIFTTJ4 \ / AMOS7 \ YOURUM ::
-#\[7]4GKJ7DUYHJ4R2UODZV5R53VBNMLK2YILQOJTPP7BLSSMKYH4XSAY 7  DATA SIGNATURE ::
+#,,..,.,,,,..,,,,,,,.,,,.,,,,,,,.,.,.,..,,..,,..,,...,...,.,,,,,,,,..,.,.,,,,,
+#FU6P3ZGJHV7SXK5RKFXJ34MRLOPUOQIVEI6YHHJ7NC3IJ4GOADACUCSRONHFAXSNJYV7FLE5K67DO
+#\\\|7VVK5C4TUH6DIJWHIRQSWHJEFG5PT5S3KJDQBNYLY5ZIDC5U2F7 \ / AMOS7 \ YOURUM ::
+#\[7]2OE4PVLYKXBHE7IO7SI2J47UUTOMZWIEWOKP5TQ34FXMI5UAOSAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
