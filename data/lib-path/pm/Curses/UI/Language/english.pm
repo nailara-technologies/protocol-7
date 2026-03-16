@@ -76,8 +76,8 @@ Do you really want to overwrite the file "
 [file_err_opendir_post] "
 [file_err_nofileselected] You have not selected a file!
 
-#,,,,,.,,,,..,...,.,,,..,,,.,,,,,,.,.,.,,,,,,,.,.,...,...,.,,,,,,,,,.,,,.,..,,
-#6PSFBMRINQPYJ4D6C7R3S447V3TLUEDT2E2LRCNGEWMR44NXSA2F5EMDNHQTN7LTLQN7TIQC63SQQ
-#\\\|CG45GQPFO6J4CBMF3IUFISGJWXHLFC2MTY2UTZXL3FWGWAEWLMC \ / AMOS7 \ YOURUM ::
-#\[7]CBXDTRROCTQFORNASKO6KXK2SSWVWWCURPUHYMJWVBAXPJRGB4BY 7  DATA SIGNATURE ::
+#,,,,,.,,,,..,...,.,,,..,,,.,,,,,,.,.,.,,,,,,,.,.,...,...,.,,,,,,,..,,..,,,.,,
+#ZIV6UZBT4HEUKD2Q6SQBTBIXWXQXGSCG2BEBZQG7ZORHBHI5WH3LQX4UGADDO5QTWVWKUCW3ENZL4
+#\\\|7OQ3BTNCOZZ6KSM5SVVMW64WZUTZAXE4M3OFN6IGF5DUOUPMNFR \ / AMOS7 \ YOURUM ::
+#\[7]KARROIWSFZC3J5IJDMMOLPIHPP4EZCBA2LWKFRTSCMPCE7QDNYDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

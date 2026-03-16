@@ -73,8 +73,8 @@ Weet u zeker dat u het bestand "
 [file_err_opendir_post] " niet openen
 [file_err_nofileselected] U heeft nog geen bestand geselecteerd!
 
-#,,.,,.,.,,,,,.,,,,,,,,,,,,,,,,,.,...,,.,,..,,..,,...,..,,,..,...,,,,,..,,..,,
-#QJBKFI4VRB35E6JJ7VG7O4TQRNZZ3EBQTYMZGF4LGASOXXCWF3BV4XINTOVLJREVS3OKYBSNSKAHG
-#\\\|B3WSKX42C5BCKANHLHFMY6QBRCCA7LQUSX2IQ5H7RGD2VMT5ZDJ \ / AMOS7 \ YOURUM ::
-#\[7]SMTUBL44H6GSU76XUMZ43GBW4IX7LY6O7RP2CG6TIZ4SGBISMCDQ 7  DATA SIGNATURE ::
+#,,.,,.,.,,,,,.,,,,,,,,,,,,,,,,,.,...,,.,,..,,..,,...,.,.,,.,,,,,,.,.,,,.,...,
+#UEQCO75XQ6AYO32GDQB3V3WAUL7YTKVIO2I2W426MFROO74V4WC23OK6FI4MN75OV7W6LQYXX7IGW
+#\\\|GINVMOHXINMJ347AMJFSU7KNWRDL7VMOPPBWVK3Q4OZDYGHQ3KN \ / AMOS7 \ YOURUM ::
+#\[7]BVBSEFQTZGQCGUHMVBNH5FQJIJH672T4SBZEDMFNZULXEXPQNYAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

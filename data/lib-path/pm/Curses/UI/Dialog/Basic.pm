@@ -38,7 +38,7 @@ sub new () {
     my %args = (
         -border  => 1,
         -message => '',    # The message to show
-        -ipad    => 1,
+        -ipad    =>  1,
         -fg      => -1,
         -bg      => -1,
 
@@ -325,8 +325,8 @@ This package is free software and is provided "as is" without express
 or implied warranty. It may be used, redistributed and/or modified
 under the same terms as perl itself.
 
-#,,,,,,,,,,,,,.,.,.,,,,.,,,,.,,..,...,..,,.,.,.,.,...,..,,,,,,,.,,,,,,,,,,,..,
-#FQDLIVM53GERKLF3EJCBE6AYA2E55W2JJRYWQ4MK25RFMKQ3FJVM4BFIT3LVHKTBXGPPHQSYZYK3S
-#\\\|NQTCSALCZPS7QA3XSW2WD7XT4CG6HVEL5VT3Z4HL4JRZRPE5HWJ \ / AMOS7 \ YOURUM ::
-#\[7]URR5JZMP5REMIYPSNPDJGWGOQTYRAWKZSWEBFKDJ3SR54LYDHCDQ 7  DATA SIGNATURE ::
+#,,,,,...,,..,.,.,,,,,,,.,...,...,..,,.,,,,..,.,.,...,...,,..,,,.,...,..,,...,
+#2YMBDO46HVPF7KBZZ7CFLJAN4WC42E7ONJ6OTVK4ZOKGBZIYRO2DUUOPOHCSCRAWZLGNETHDWYPLU
+#\\\|HPP2UPQVNM32HYGPYTJYYZDYR2FMMWA2AGQMMWQPJ2K63OAP3RT \ / AMOS7 \ YOURUM ::
+#\[7]ZHDMAG2ITODML5BPJNHRRD3DF4MKLJAJLH56I5DV6SHSOXDO3QBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

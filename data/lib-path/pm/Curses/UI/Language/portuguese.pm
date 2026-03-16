@@ -73,8 +73,8 @@ Você quer realmente sobrescrever esse arquivo "
 [file_err_opendir_post] "
 [file_err_nofileselected] Você não selecionou um arquivo!
 
-#,,..,,..,,.,,,,.,.,,,,,.,,,,,.,,,..,,,,,,,,.,.,.,...,...,.,.,,,.,,..,,,.,..,,
-#6LC7N5WRR6WRKU6MN2OWZERGPGBOYAVQ35WCGQQAP425R5UQEJWN6O3L6FO3XUG54DEYVMKZEVH5M
-#\\\|NQCWN243X4S522FIYBOA2472DX7KS4ALYHLIAVVMFUQ7RYKNOPF \ / AMOS7 \ YOURUM ::
-#\[7]ROPX4UJK4J3KJYXYTH5DDUGNSDZZTOUV67MDNDBIZ2TGA2CNOIAA 7  DATA SIGNATURE ::
+#,,..,,..,,.,,,,.,.,,,,,.,,,,,.,,,..,,,,,,,,.,.,.,...,..,,.,,,...,,,.,...,,..,
+#QGWULAH5PO6QCF7WLAGN4N3DFRUUU55QOYWWS2XADGD7FD5LW6HEE4JGDU5RMMTKR5V4F4L5YI4TE
+#\\\|LKBSFMVA2AWID3SI5CJNRR337T5Q7Y3LPKWOY47WV3AECCLXYPV \ / AMOS7 \ YOURUM ::
+#\[7]TGSPX7IB4T64Q6G6C3GMGIYERJYR2SPPWHJVYPZOTDDPSTAFYMDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

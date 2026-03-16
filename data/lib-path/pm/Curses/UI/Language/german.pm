@@ -76,8 +76,8 @@ Datei wirklich Überschreiben "
 [file_err_opendir_post] "
 [file_err_nofileselected] Keine Datei ausgewählt!
 
-#,,.,,.,.,...,.,.,,,.,...,..,,.,,,,,.,,.,,,,.,.,.,...,..,,.,.,,,.,..,,,.,,.,,,
-#M23HYBRMUTYUL3SWPCIF74JNCC2CA3TAXZIQ7OEP6AFPDG3ECRXRQOC2B5M6YJG3XGWJP3JBDV3CU
-#\\\|RKRCGE36JDSNIXBNVFY47ONRVV6JAHOTM4SBTKBVLEE3NSAE4T5 \ / AMOS7 \ YOURUM ::
-#\[7]HXE2VJ7TWPKTBKUKDBR5QSMHTWON5AUXPB7BBL3WE5N5WBW4PMCI 7  DATA SIGNATURE ::
+#,,.,,.,.,...,.,.,,,.,...,..,,.,,,,,.,,.,,,,.,.,.,...,...,..,,...,...,,,.,,..,
+#7ZM4VXNEXFF5P7SZZ5WLI663ZGTYDCPXHGX6TJXAADAMHUBYMW77DWASXA3DCVRTFTXCLL3RVRXV2
+#\\\|KFGF6NZINBWBY6UKIW3Y4MZA6TLSNQLAH7RFX5OAZICN2GDCGKL \ / AMOS7 \ YOURUM ::
+#\[7]B4AG2KZBHZ5W4PFUOLDL3PG6T7KIF3LKLZYUD5ROAJQKO4D6KCAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -34,8 +34,8 @@ sub new () {
     keys_to_lowercase( \%userargs );
 
     my %args = (
-        -undolevels => 20,    # number of undolevels. 0 = infinite
-        -homeonblur => 1,     # cursor to homepos on blur?
+        -undolevels =>  20,   # number of undolevels. 0 = infinite
+        -homeonblur =>  1,    # cursor to homepos on blur?
         -fg         => -1,
         -bg         => -1,
 
@@ -117,8 +117,8 @@ This package is free software and is provided "as is" without express
 or implied warranty. It may be used, redistributed and/or modified
 under the same terms as perl itself.
 
-#,,..,,,.,,.,,.,.,,..,,,,,.,,,,,,,...,,..,,,,,.,.,...,..,,...,.,.,,,.,.,.,.,.,
-#75K4ZW23CKSAGT5IZZ6B4QOGBGF6AGVAX6OTJAGTMSQMSPVM3RQ4ZLQ7DKDS3H6UJSTPJWF7635H6
-#\\\|LT473TQPYCDH3Q4MQIRF3UYPVTLYOVHCQJFLODJK3E356X3R26V \ / AMOS7 \ YOURUM ::
-#\[7]GZ54Z3ZWBQSB43H5EQRZTQNGPECGEYTGFZJUG4THCR5X2MNO3WCA 7  DATA SIGNATURE ::
+#,,,.,.,.,.,.,,,.,,,,,,,.,,,,,,,,,..,,,,,,,..,.,.,...,...,,,.,,.,,..,,,,.,,,,,
+#YXTGTXU6CHRVYZXYERZQI2LMN7J4Q6FUSUD3SDGDW44I7UTP5SNLK5UOKRUP32FZWKKRU6WILXRQQ
+#\\\|NZ6FMAG5NKJFOFZNBT3IVJOFN7DNCBBW3AITSFILATEOWGZVKJS \ / AMOS7 \ YOURUM ::
+#\[7]6QYEUHNWA4GCS36BGD7POSOUZI3DZHBMYDY2MS5VAFY7DIQNSODY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

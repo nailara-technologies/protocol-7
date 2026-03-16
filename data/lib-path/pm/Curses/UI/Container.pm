@@ -734,8 +734,8 @@ This package is free software and is provided "as is" without express
 or implied warranty. It may be used, redistributed and/or modified
 under the same terms as perl itself.
 
-#,,,,,,..,,..,..,,,,.,.,.,..,,.,,,,,.,.,.,,..,.,.,...,...,,,,,.,,,...,,,.,,.,,
-#OWGP7SIPBDSE3D56ENL4T7AILMEHKFG4OUY6HLNWTTZYJBQLIJSLTSGSCFTIK6LXZ6GXY3HE46IMC
-#\\\|TWE4P3HSCYI4DIPCQ2OHK4Q2FYP6ALQTUCVI3VUP7SNXPWUU56B \ / AMOS7 \ YOURUM ::
-#\[7]VEDV7NCHOCQXIA6FCIVWMNYFK7MNRJ76BTQIVSR2ZZKQ5OQIDSAQ 7  DATA SIGNATURE ::
+#,,,,,,..,,..,..,,,,.,.,.,..,,.,,,,,.,.,.,,..,.,.,...,..,,..,,,..,.,.,,,.,,.,,
+#5OFAJ23UHSCPQ66A522IICRTIZOLVHJTFCSIH7Z6CJOSJ6TXAZDMH3GGYL52J5V3XF7B344XL57GM
+#\\\|26RUMW5E6OWCO3JYB4FWUWXDRNGO6RWXISYD7QWUQQ4G3NULC6P \ / AMOS7 \ YOURUM ::
+#\[7]JCQDGMFF6HCDNTFWMI4LZYJVO3QBWILMIBYJRJU5OXAL23QAH6BA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -99,8 +99,8 @@ sub new () {
         -buttonalignment => undef,         # left / middle / right
         -selected        => 0,             # which selected
         -width           => undef,         # the width of the buttons widget
-        -x               => 0,             # the horizontal pos rel. to parent
-        -y               => 0,             # the vertical pos rel. to parent
+        -x               =>  0,            # the horizontal pos rel. to parent
+        -y               =>  0,            # the vertical pos rel. to parent
         -bg              => -1,
         -fg              => -1,
 
@@ -712,8 +712,8 @@ This package is free software and is provided "as is" without express
 or implied warranty. It may be used, redistributed and/or modified
 under the same terms as perl itself.
 
-#,,..,,..,,,,,..,,,,,,..,,,,.,,,.,.,,,,.,,,.,,.,.,...,...,.,,,.,.,.,.,..,,..,,
-#2LLRHOJYNY52J3H4GULUC7MTBT5MQ2MBZWESRJLGSJ4R4C5Z7OVX5VSFCOWOHRRFN4BK4ECWFZMVA
-#\\\|HXPUNQPIPOZM33L3VD7AX3HORADX4C63J2DK2TCF74EIVFD6TZG \ / AMOS7 \ YOURUM ::
-#\[7]5N7IPNKRSMHI72KWFY2E5H3HW57AN4BP3ET7LQQ3PKGFYPGJWYCY 7  DATA SIGNATURE ::
+#,,..,,,,,...,..,,,.,,,..,.,.,,.,,,,,,,..,,..,.,.,...,...,,..,,..,,,,,,,,,.,,,
+#CRUIOSQINXSUIKQ2AO4CHLQKYCBGVFQYHFG6DFDFDRUTRDAAK5X7HRHPSARXAV4HLKDA2XXQ4YWMY
+#\\\|7DQSB2IWCIPCLM3DAZBDRK3ZCXTI6MDVAM6TTETWQFU5LL6J6EG \ / AMOS7 \ YOURUM ::
+#\[7]T4YVO43BREWQDBCFPM4LKJVJJVD6POOMCKKOMVHOYBKGOWU5Y4DY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

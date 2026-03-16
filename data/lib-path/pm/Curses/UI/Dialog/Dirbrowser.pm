@@ -69,7 +69,7 @@ sub new () {
     my $buttons = $this->add(
         'buttons', 'Buttonbox',
         -y               => -1,
-        -x               => 0,
+        -x               =>  0,
         -width           => undef,
         -buttonalignment => 'middle',
         -buttons         => [ 'ok', 'cancel' ],
@@ -453,8 +453,8 @@ This package is free software and is provided "as is" without express
 or implied warranty. It may be used, redistributed and/or modified
 under the same terms as perl itself.
 
-#,,.,,,..,...,.,,,,,,,,..,,,,,,.,,,,.,...,.,.,.,.,...,...,...,.,,,.,,,,,.,..,,
-#K7H7P2UWDCPMCKOKJNYNPK222XXK7UDMZJI3VS54OA4L3CKKAB5V6ESCSG5AZMHP5GQSEGEILKJ4S
-#\\\|LIZQXJZQBGRUMJBFRAD23OXVKLPDQEIIV44TXJPQHMYZS3PSR23 \ / AMOS7 \ YOURUM ::
-#\[7]OF256DTIOUZGEYS34QQJXQZ52VOQ3MONHHXDGHMRJY43YVC3MIBQ 7  DATA SIGNATURE ::
+#,,..,,,.,,.,,..,,,,.,,.,,.,,,..,,...,,.,,.,,,.,.,...,...,,..,..,,..,,,,,,,,,,
+#BULQM37EIG3YSCXGMQLODWHRS2PG22MAPZCIRQBYRKCWTWDCGKFCGP6P3S2TFTW5YBSCQCHSVA4AS
+#\\\|VYZRGHWAECBKLHA4ZTJYQXWJX7A6DLDR2EEF6UK36ZBV5OJLRQY \ / AMOS7 \ YOURUM ::
+#\[7]LCX5BQMGD2GQRVIW6IZZXQMLQN5RM6UVFTYPWVO2XOLVBBSSG4BI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

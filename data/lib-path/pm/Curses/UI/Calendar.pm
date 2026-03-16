@@ -94,7 +94,7 @@ sub new () {
         -onchange => undef,    # Event handler
         -fg       => -1,
         -bg       => -1,
-        -drawline => 1,        # Draw a line under the widget?
+        -drawline =>  1,       # Draw a line under the widget?
 
         %userargs,
 
@@ -851,8 +851,8 @@ This package is free software and is provided "as is" without express
 or implied warranty. It may be used, redistributed and/or modified
 under the same terms as perl itself.
 
-#,,,.,,,.,...,,,.,.,.,,,.,..,,,,.,,..,.,.,,.,,.,.,...,...,...,.,,,..,,,,,,.,,,
-#T5BDJH3ZDSB7KZAVP5TDUK6HSGTQ2TGW34KHKZCOBNYFWVSQ4NRA6D3PWCTW5YHSYINHIJDXQNK7C
-#\\\|YIAU2SSQVX77L7YUCH62F6CEC4UACXJ6YHHMKNTW4WDR3SBBFI7 \ / AMOS7 \ YOURUM ::
-#\[7]2OUFJF3R2TQ62BY4VTO727J6YSKC5JVCIP5S5GJ3BOP5CLLZUCAY 7  DATA SIGNATURE ::
+#,,.,,,,.,,.,,,.,,,.,,,,,,,,,,,,.,..,,.,,,,..,.,.,...,..,,..,,.,,,.,,,,..,.,,,
+#4CWTO2Y2QW2SH4C2XJSYIAWUREVKUCTQCGPIQSYTIWOQKEDWBUV3LU2YUFIEFWCO72PEQAYYULAYE
+#\\\|MAUPAFJKQOOSSDOZBGFPNUBFTZMS2OFAT6BGJZ6CKWMIAZXO5S4 \ / AMOS7 \ YOURUM ::
+#\[7]7KLJ536MDMJFRAYIAM2PUD4JJFI2UFQKM7XF46VR6Y7Z3ZOCYSBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

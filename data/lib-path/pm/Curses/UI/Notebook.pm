@@ -926,8 +926,8 @@ Copyright (c) 2004, George A. Theall. All rights reserved.
 This script is free software; you can redistribute it and/or modify
 it under the same terms as Perl itself.
 
-#,,.,,.,.,...,,,,,...,,,,,..,,.,.,,..,.,.,.,,,..,,...,...,,..,,..,,,,,..,,,,,,
-#L3R7ZAVY6J52N2QQM4GQWTXV3VAYDTBFGDVUO6SRYMIE7EE7NYVX22UY42RFGMHOFX3BXI7XSLNLU
-#\\\|SR3U4OZQ52GSAAQ3RLN3F7K7DQKIEWHCPKVKLMYYUSBHBNBXZUR \ / AMOS7 \ YOURUM ::
-#\[7]ICHDBB6KV6OGDGJ4T6LNNANU7BONPBT2SM5UZZ276KAVPUFWK6CI 7  DATA SIGNATURE ::
+#,,.,,.,.,...,,,,,...,,,,,..,,.,.,,..,.,.,.,,,..,,...,...,.,,,.,.,.,,,.,,,...,
+#5LAX7Y4OLPH2Y52KD76PMLEEPLH5RF6TBDDRK6M4GCRMQYJC6RLRSMTZIEAHJV2Y5QNQGGETM5ACO
+#\\\|UZFWLH3BA2NE3FBVOOSOFTKAUX42MTX3IKN5WWPWPAFV7Y7LPSA \ / AMOS7 \ YOURUM ::
+#\[7]VS4QWBRTKUQZVL5JDKBODSDU3RD5THSL45H2V7EX75EEJWNNKWDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
