@@ -586,9 +586,10 @@ sub p7_init_exec {    ##  main variable initialization  ##
             $data{'system'}{'zenka'}{'name'} = $LAST_PAREN_MATCH;
         } elsif ( $stdin_mode
             and $data{'system'}{'zenka'}{'name'} eq qw| <init> | ) {
-            ##  only set <stdin> when no name was determined from PROGRAM_NAME  ##
-            ##  prevents symlink-named zenki [ Protocol-7.work ] from having   ##
-            ##  their name overwritten when flag-only args are present          ##
+
+            #  only set <stdin> when no name determined from PROGRAM_NAME    #
+            #  prevents symlink-named zenki [ Protocol-7.work ] from having  #
+            #  their name overwritten when flag-only args are present        #
             $data{'system'}{'zenka'}{'name'} = qw| <stdin> |;
         }
         if ( $arg =~ m|^-lpw=(\d{1,2})$| ) {    # <-- used by 'p7' zenka
@@ -1509,14 +1510,61 @@ sub p7_load_code {
                 if (    defined $wl
                     and $data{'base'}{'loader'}{'sub_whitelist_enabled'}
                     and not exists $wl->{$file_name} ) {
-                    ##  lifecycle hooks are optional-by-convention : skip silently  ##
-                    ##  only install deferred stubs for regular runtime subs        ##
+
+                    #  lifecycle hooks [ pre/post_init, end_code ] are  #
+                    #  optional-by-convention : skip silently           #
+                    #  only install deferred stubs for runtime subs     #
                     if ( $file_name
                         !~ m{\.(pre_init|init_code|post_init|end_code)$} ) {
                         $code{$file_name}
                             //= eval( "sub {\n# line 1 \"$file_name\"\n"
-                                . q|$code{'base.handler.deferred_compile'}->(@_)|
+                                . q|$code{'base.handler.|
+                                . q|deferred_compile'}->(@_)|
                                 . "\n}" );
+
+                        #  register cmd/console dispatch entry so the stub  #
+                        #  is reachable — else registry lookup fails first   #
+                        #  before the stub can fire                          #
+                        if ( $file_name =~ m{\.(cmd|console)\.(.+)$} ) {
+                            my ( $sec, $cmd )
+                                = ( ${^CAPTURE}[0], ${^CAPTURE}[1] );
+                            $data{'base'}{$sec}{$cmd} //= $file_name;
+
+                            #  parse header metadata for cmd listings    #
+                            #  before the stub is compiled at runtime     #
+                            if ( defined $src_abs_path and -r $src_abs_path )
+                            {
+                                my $header = '';
+                                if (open(
+                                        my $hfh,
+                                        qw| <:encoding(UTF-8) |,
+                                        $src_abs_path
+                                    )
+                                ) {
+                                    while ( my $line = <$hfh> ) {
+                                        last if $line =~ m|^\s*$|;
+                                        $header .= $line;
+                                    }
+                                    close $hfh;
+                                }
+                                if ( $header =~ m|#\s*param\s*=\s*(\S.*)| ) {
+                                    my $pv = ${^CAPTURE}[0];
+                                    $pv =~ s|\s+$||;
+                                    $data{'base'}{'commands'}{$sec}{$cmd}
+                                        {'param'} = $pv
+                                        if length $pv;
+                                }
+                                if ( $header =~ m|#\s*descr\s*=\s*(\S.*)| ) {
+                                    ( my $dv = ${^CAPTURE}[0] ) =~ s|\s+$||;
+                                    $data{'base'}{'commands'}{$sec}{$cmd}
+                                        {'descr'} = $dv
+                                        if length $dv;
+                                } else {
+                                    $data{'base'}{'commands'}{$sec}{$cmd}
+                                        {'descr'} = qq|<< missing 'descr' >>|;
+                                }
+                            }
+                        }
                     }
                     next;
                 }
@@ -1829,8 +1877,9 @@ sub p7_load_code {
         if ($compilation_success) {    ##  compile into staging hash  ##
             eval { $staging->{$sub_name} = $sub_cref };
             $compilation_success = FALSE if length $EVAL_ERROR;
-            ##  first load: also populate %code immediately so compile-loop  ##
-            ##  calls [ base.sort, log.*, etc ] resolve within the same pass  ##
+
+            #  first load: also populate %code immediately so compile-loop  #
+            #  calls [ base.sort, log.*, etc ] resolve within the same pass  #
             $code{$sub_name} = $sub_cref
                 if $compilation_success and not defined $active_version;
         }
@@ -1907,7 +1956,7 @@ sub p7_load_code {
 
             $data{'base'}{'p7_mod'}{'errors'}->{$module_name}++;
 
-            ##  on reload: prior version stays live — stub on first load only  ##
+           #  on reload: prior version stays live — stub on first load only  #
             if ( not defined $active_version ) {
                 $code{$sub_name} = sub {
                     my $caller_str = $code{'base.caller'}->(1);
@@ -2113,7 +2162,8 @@ sub p7_load_code {
             if ( defined $data{'base'}{'loader'}{'rollback_watcher'}
                 and $data{'base'}{'loader'}{'rollback_watcher'}->is_active ) {
                 $data{'base'}{'loader'}{'rollback_watcher'}->cancel;
-                ##  prior window was still open : free the older archived ver  ##
+
+               #  prior window was still open : free the older archived ver  #
                 delete $CODE{
                     delete $data{'base'}{'loader'}{'rollback_version'}
                         // '' };
@@ -2130,11 +2180,13 @@ sub p7_load_code {
 
             if ( exists $code{'event.add_timer'}
                 and defined $data{'watcher'}{'io'}{'transfer'} ) {
-                ##  event ready and loop initialized : install watcher inline  ##
+
+               #  event ready and loop initialized : install watcher inline  #
                 $code{'base.callback.setup_rollback_timer'}->()
                     if exists $code{'base.callback.setup_rollback_timer'};
             }
-            ##  else : event not yet initialized : defer to base.event.post_init  ##
+
+            #  else : event loop not ready : defer to base.event.post_init  #
         }
 
     }   ##  else : staging discarded, %code unchanged, old code stays live  ##
@@ -5535,8 +5587,8 @@ __DATA__
 :
 :.
 
-#,,.,,.,.,,..,..,,..,,..,,.,.,,.,,,,.,,.,,,,,,...,...,...,...,,,,,,..,...,...,
-#5BKL5UJLFBPC35NGNDTBN3QAMYQQZWOYC6BKGYJ67JTMAG6ZXXLSGUXJK3QA2AMHWOPATCIA27EYC
-#\\\|PUVOPLPT3YAHZS77CHO3LDQNG42H6TULN7BFMPUJWY4SS6LHNBX \ / AMOS7 \ YOURUM ::
-#\[7]ZM7PIMDJN34QRDLMCORFMLHW5S4SP2XDRKJRXPPOLUKU3WXEKIAA 7  DATA SIGNATURE ::
+#,,,,,,,,,..,,,..,,.,,.,.,,,.,...,.,,,...,,,.,...,...,...,,,.,,..,...,,.,,.,,,
+#EK7ENUED4P3XFBSYFFWLXTOXKC4RWKOFCTL3BGY37N5A6MY5PG3VXSKMYUV5KP4BLXP4JG6B5U2CY
+#\\\|R46T3LSNROFZ7VKEGSXY4C5OAGA2G3XBOEFAD3QRAM43FMWECYN \ / AMOS7 \ YOURUM ::
+#\[7]4UGTWKIBS2WF7WIVF5VTREARHMPFGE2YHCMQVOFTOYLRBSXBUGAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
