@@ -13,7 +13,7 @@ use warnings;
 BEGIN {
     use English;
     use File::Spec;
-    use Cwd qw| abs_path |;
+    use Cwd     qw| abs_path |;
     use FindBin qw| $RealBin |;
     our $Bin    = $RealBin;
     our $up_dir = File::Spec->updir;
@@ -134,28 +134,28 @@ sub decoded_bits_5x7 {    ## [ octal 0 .. 77 ] ##
         52 => qw| + |,    ## add color ##
         53 => qw| - |,    ## subtract color ##
 
-        54 => => qq|0001 0001 0001 0000|,    ##  foreground -+ 1 unit ##
-        55 => => qq|3D70 3D70 3D70 0000|,    ##  foreground  -+  24 % ##
+        54 => qq|0001 0001 0001 0000|,    ##  foreground -+ 1 unit ##
+        55 => qq|3D70 3D70 3D70 0000|,    ##  foreground  -+  24 % ##
 
-        56 => => qq|0000 0000 0001 0000|,    ##  blue -+ 1 unit ##
-        57 => => qq|0000 0000 3D70 0000|,    ##  blue  -+  24 % ##
+        56 => qq|0000 0000 0001 0000|,    ##  blue -+ 1 unit ##
+        57 => qq|0000 0000 3D70 0000|,    ##  blue  -+  24 % ##
 
-        58 => => qq|0000 0001 0000 0000|,    ##  green -+ 1 unit ##
-        59 => => qq|0000 3D70 0000 0000|,    ##  green  -+  24 % ##
+        58 => qq|0000 0001 0000 0000|,    ##  green -+ 1 unit ##
+        59 => qq|0000 3D70 0000 0000|,    ##  green  -+  24 % ##
 
-        60 => => qq|0001 0000 0000 0000|,    ##  red -+ 1 unit ##
-        61 => => qq|3D70 0000 0000 0000|,    ##  red  -+   24 % ##
+        60 => qq|0001 0000 0000 0000|,    ##  red -+ 1 unit ##
+        61 => qq|3D70 0000 0000 0000|,    ##  red  -+   24 % ##
 
-        62 => => qq|0000 0000 0000 0001|,    ## alpha -+ 1 unit ##
-        63 => => qq|0000 0000 0000 3D70|     ## alpha  -+  24 % ##
+        62 => qq|0000 0000 0000 0001|,    ## alpha -+ 1 unit ##
+        63 => qq|0000 0000 0000 3D70|     ## alpha  -+  24 % ##
 
     };
     return $table->{$result} if defined $table->{$result};  ## color change ##
     return sprintf qw| %02o |, $result;    ##  <-- 5x7 matrix position  ##
 }
 
-#,,,.,.,.,,.,,.,,,.,.,.,,,,,.,,,.,,,,,,..,,,.,...,...,...,,,.,..,,,..,,,.,..,,
-#QO2SDM6GXMC4G47X733XIC53E6IJ34JGRAXUXW5J5SICS7GGCFDA53Q63XYS3WBQX7FKQYH7WNZT6
-#\\\|QWBGLCEHELVIXQSJWH2HAL6NIT7HCWC7VO6EMGB2CQ57Q763NZH \ / AMOS7 \ YOURUM ::
-#\[7]M5VOHC4KJQTZ37AGQTW2J46J6IO2JMXW34UESNATEON2H32LHMDQ 7  DATA SIGNATURE ::
+#,,,.,,,.,,.,,,..,,,,,.,,,,,.,.,.,,..,,,.,.,,,..,,...,...,...,..,,.,.,...,.,.,
+#O4DT77AMEUAEFJR23Z2ALFHC3NWOW4I7KDLTH74DUFFVLW7FTWTSG4KXWD4VPEENUMGZSAXWKI6PA
+#\\\|4ZZ3TUEGB6QY6HGICLWL3KBNVKJWMZIPFQOR3GG3ULQBHTUCVIG \ / AMOS7 \ YOURUM ::
+#\[7]DHMMMAGCOH6PA3TMONP7OVGIPLXSIE3YWCBP77PCUREILIGVSADA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

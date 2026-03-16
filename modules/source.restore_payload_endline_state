@@ -24,33 +24,23 @@ return FALSE if $endline_state_oct == 5;
 
 my $previous_payload_length = length $payload_sref->$*;
 
-# Fix #5: Correctly reverse the harmonization based on recorded state
-# The state tells us how many newlines were ADDED during harmonization
-# We must reverse that by removing the same number of newlines
-# State 5 = no change (already handled by early return above)
-# State 6 = 1 newline was added  → remove 1 newline
-# State 7 = 2 newlines were added → remove 2 newlines
-# State 4,3,2,1,0 = newlines were removed → we can't add them back, keep as-is
+## state 5 = no modification (handled by early return above)                      ##
+## state > 5 : N newlines were added during signing → remove exactly N from end   ##
+## state < 5 : N newlines were removed during signing → add exactly N back        ##
 
-# First remove ALL trailing newlines to get to the base
-$payload_sref->$* =~ s|\n+$||s;
+my $delta = $endline_state_oct - 5;
 
-# Now add back the appropriate number based on the state
-# State 6: was missing separator, had 1 endline added
-# State 7: was incomplete (no endline), had 2 endlines added
-if ( $endline_state_oct == 6 ) {
-    $payload_sref->$* .= "\n";    # Add back the 1 newline
-} elsif ( $endline_state_oct == 7 ) {
-    $payload_sref->$* .= "\n\n";  # Add back the 2 newlines
+if ( $delta > 0 ) {
+    $payload_sref->$* =~ s/\n{$delta}$//s;    ## remove N trailing newlines ##
+} else {
+    $payload_sref->$* .= "\n" x abs($delta);  ## restore N removed newlines ##
 }
-# For states 0-4: newlines were removed, can't restore those
-# Keep file as-is (no trailing newlines)
 
 ##  return length difference [ representing change in trailing endlines ]  ##
 return length( $payload_sref->$* ) - $previous_payload_length;
 
-#,,,.,.,.,,.,,.,.,.,,,,..,,..,,,.,,,,,...,,,,,..,,...,...,..,,.,.,,..,,,.,.,.,
-#AMCZ2HSZRNKANIHZFETIRWB4IG32KTTX7T2CMSRHQM2BZSWEMM2HJCYT6EVFTIUVN5JVO3CY67R3I
-#\\\|CHSYY5E7LEYM6OEJZPERU2QFZWWJGGH3GZKCE7BAXZ7TVPAZI34 \ / AMOS7 \ YOURUM ::
-#\[7]NSPLZOPSZBDM4NDYXMLHY3MOOYI7NDP2F7ULCSMJSSU2V3STQSCI 7  DATA SIGNATURE ::
+#,,.,,,,,,,,,,,,,,...,,.,,..,,,,,,,..,.,.,...,..,,...,...,,..,,,.,.,.,...,...,
+#VDPZE5BCDR5AVFKCDGBXP2A4R7L7SIHJUXWLQ3DMVZUAA7RVRAKCAOYPO36JYVFZ7VQLKUOZYQROY
+#\\\|GZJ4KGI6AWWXBXLU7TLZKYOHTDVR57O2QSCJGIBOBCQYR4XG7U6 \ / AMOS7 \ YOURUM ::
+#\[7]SMLH6YH2O7KXMRB3Y66FH2XQ73E4RTJPBXLUEFIGATHBJ5MHUCBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

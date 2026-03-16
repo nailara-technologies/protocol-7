@@ -1,0 +1,108 @@
+---
+task_id: signature-endline-state-verification
+date_created: 2026-03-16
+status: in-progress
+priority: medium
+
+title: |
+  Endline state encoding — per-state test coverage and results
+
+description: |
+  Documents the endline state encoding used in AMOS7 signature footers,
+  the expected restore behavior for each state, and verification results
+  from controlled test files.
+
+  State encoding: value stored in footer first-line octal bit-header.
+  Semantics: state = 5 + delta, where delta = newlines added during signing.
+
+  Restore semantics (source.restore_payload_endline_state):
+    delta = state - 5
+    if delta > 0 : remove exactly delta trailing \n  (s/\n{delta}$//s)
+    if delta < 0 : append abs(delta) \n back
+    if delta = 0 : no-op (state 5)
+
+states:
+
+  state_5:
+    delta: 0
+    meaning: no modification — content already ended with \n\n or more
+    signing_adds: nothing
+    restore_op: no-op
+    test_file: modules/test.2
+    test_file_content: content ending with \n\n (canonical form)
+    verification: pending
+
+  state_6:
+    delta: +1
+    meaning: one \n was added — content ended with exactly one \n, or file was empty
+    signing_adds: one separator \n
+    restore_op: "s/\\n$//"
+    test_files:
+      - modules/test.1   # content ending with \n
+      - modules/test.empty  # 0-byte file — separator \n added, state=6
+    verification: pending
+
+  state_7:
+    delta: +2
+    meaning: two \n were added — content had no trailing \n (harmonize adds \n\n)
+    signing_adds: two newlines (separator + harmonize canonical)
+    restore_op: "s/\\n\\n$//"
+    test_file: modules/test.0
+    test_file_content: content with no trailing newline
+    verification: pending
+
+  states_0_to_4:
+    delta: -1 to -5
+    meaning: |
+      newlines were removed during signing (legacy / theoretical).
+      current signing code (harmonize is add-only) never generates these.
+      restore adds abs(delta) newlines back — no failure mode.
+    restore_op: "payload .= '\\n' x abs(delta)"
+    generated_by_current_code: false
+    verification: confirmed correct by code inspection (2026-03-16)
+    note: |
+      A dedicated test with a hand-crafted state=4 footer would be the
+      thorough confirmation; deferred — risk is low given add-only harmonize.
+
+test_files:
+  - path: modules/test.0
+    trailing_newlines: 0
+    expected_state: 7
+  - path: modules/test.1
+    trailing_newlines: 1
+    expected_state: 6
+  - path: modules/test.2
+    trailing_newlines: 2
+    expected_state: 5
+  - path: modules/test.empty
+    trailing_newlines: 0
+    size_bytes: 0
+    expected_state: 6
+    note: empty file special-cased in create_harmonic_footer — adds \n, state=6
+
+related:
+  - data/yaml/coding-tasks/signature-oscillation-reopen.yaml
+  - modules/source.create_harmonic_footer
+  - modules/source.restore_payload_endline_state
+  - bin/dev/tests/timing/test-oscillation-simple
+  - bin/dev/tests/timing/test-oscillation-sequence
+
+history:
+  - date: 2026-03-16
+    note: |
+      Variant A oscillation fix applied in this session:
+        - source.create_harmonic_footer: state=7 for orig_nl_count==0 (non-empty),
+          state=6 for content_size==0 (empty file, adds \n separator)
+        - source.restore_payload_endline_state: changed from strip-all+add-N
+          to remove-exactly-N semantics (s/\n{delta}$//s)
+        - sourcecode.console.strip-signature-footer: needs_separator_endline
+          guard prevents spurious \n addition for correctly-signed empty files
+      States < 5 confirmed correct by code inspection.
+      States 5-7 test files created; verification runs pending.
+---
+
+#,,,,,.,.,.,.,,.,,.,,,..,,,,.,..,,...,...,,..,..,,...,...,..,,.,,,.,,,,,.,..,,
+#LB67OMPOZCNMTJ64I4O4ALSVSGQQUSR7OQZQFLPYFBKPD2WMZSYMHJAJXRB465UEFAQDQ5BMOX5TS
+#\\\|34A5HNYINDAKNY3AKT7IMXSSTYICZD2VHLIJA6FJQQSINSNCXDX \ / AMOS7 \ YOURUM ::
+#\[7]ETA6XSC7H7QXHAGMVVZ3SY5DDRHPOHKMGHU65DRG5NMJUY33NSCY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

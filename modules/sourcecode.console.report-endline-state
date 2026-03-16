@@ -1,0 +1,86 @@
+## [:< ##
+
+# name  = sourcecode.console.report-endline-state
+# descr = report endline state encoded in signature footer first line
+
+my $command_params = shift // '';
+
+$command_params =~ s,^ *| *$,,g;
+
+## strip vim-style line number suffix ##
+$command_params =~ s|:\d+$||;
+
+unless ( length $command_params ) {
+    <[base.log]>->(
+        0, ': usage: sourcecode report-endline-state <file-pattern>'
+    );
+    <[base.exit]>->(qw| 0110 |);
+}
+
+my @source_paths = <[base.source.collect_file_list]>->($command_params);
+
+unless (@source_paths) {
+    <[base.logs]>->( 0, ': no files found for pattern: %s', $command_params );
+    <[base.exit]>->(qw| 0110 |);
+}
+
+<[base.log]>->( 1, ':' );
+<[base.log]>->( 1, ':::[ endline state report ]::' );
+<[base.log]>->( 1, ':' );
+
+my $footer_start_regex = qr|#[\.,]{70,85}|;
+
+## state descriptions : 5 + delta ##
+my %state_desc = (
+    0 => 'delta -5 [ 5 removed ]',
+    1 => 'delta -4 [ 4 removed ]',
+    2 => 'delta -3 [ 3 removed ]',
+    3 => 'delta -2 [ 2 removed ]',
+    4 => 'delta -1 [ 1 removed ]',
+    5 => 'delta  0 [ no change ]',
+    6 => 'delta +1 [ 1 added : separator ]',
+    7 => 'delta +2 [ 2 added : content + separator ]',
+);
+
+foreach my $source_path (@source_paths) {
+    next unless -f $source_path;
+
+    ( my $path_rel = $source_path ) =~ s|^/data/projects/protocol-7/?||;
+
+    my $src_str;
+    if ( not <[file.slurp]>->( $source_path, \$src_str, qw| :raw | ) ) {
+        <[base.logs]>->( 0, ':E: unable to read: %s', $path_rel );
+        next;
+    }
+
+    ## find footer first line directly ##
+    my ($footer_first_line) = $src_str =~ m|($footer_start_regex)\n|;
+
+    unless ( defined $footer_first_line ) {
+        <[base.logs]>->( 1, ': %s : no footer', $path_rel );
+        next;
+    }
+
+    ## decode 3-bit endline state from AMOS7 octal bit-header ##
+    my $header = <[amos7.decode_octal_bit_header]>->($footer_first_line);
+
+    unless ( defined $header and $header->{'structure-was-valid'} ) {
+        <[base.logs]>->( 1, ': %s : header decode failed', $path_rel );
+        next;
+    }
+
+    my $state = $header->{'endline-state-encoded'};
+    my $desc  = $state_desc{$state} // 'unknown';
+
+    <[base.logs]>->( 1, ': %s : state %d : %s', $path_rel, $state, $desc );
+}
+
+<[base.log]>->( 1, ':' );
+
+return FALSE;
+
+#,,,,,.,,,.,,,,..,,.,,...,,.,,,.,,.,.,,..,,,.,..,,...,..,,,,.,,..,,,,,..,,..,,
+#B4OI37DUVBJV7MMVL62YNBXP5DTDON7U22JFWDXXL47KITAC6Z77OCRMXJAY765W6J5AIGSXLYYVO
+#\\\|DCFQ5J456VGA5K5V6DML6CCVI5BMAON7JUADIGU6VN2IWO2OWY6 \ / AMOS7 \ YOURUM ::
+#\[7]RYYJFHWS7SKETU77JCCSJFJ7ZYMSSFWGRKFP4YTZD6PUX4C5C6AQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

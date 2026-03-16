@@ -79,6 +79,10 @@ my $data_pos     = 0;                     ##  at start of file  ##
 my $read_length  = 4282;
 my $content_size = length $src_ref->$*;
 
+## trailing newline count of on-disk body — restore(state) must reproduce this exactly ##
+my ($orig_trailing_nl) = $$src_ref =~ /(\n+)$/;
+my $orig_nl_count = defined $orig_trailing_nl ? length($orig_trailing_nl) : 0;
+
 ##  array refs [ <chksum_name>, [chksum_param[s]] ],
 ##
 my $chksum_parameters = [];
@@ -145,17 +149,11 @@ if ($check_enbedded_file_syntax) {
 
 ##  prepare payload endlines for signature-footer  ##
 
-## Use footer_data passed from caller instead of re-extracting
-## The caller (source.cmd.get-code-signed) already extracted and stripped the signature,
-## so re-extracting here would find nothing and give wrong endline state information.
-## This was causing double-signing because wrong endline state created different footers.
-my $sign_params_base = $footer_data;
+my $sign_params_base
+    = $footer_data;    ## footer_data already extracted by caller ##
 
-# Determine endline state based on detected conditions from extracted footer
 my $endline_modification_state;
 
-# DEBUG: Log extraction results (level 3 = verbose only)
-<[base.log]>->( 3, ': using footer_data from caller:' );
 <[base.logs]>->(
     3,
     ':   needs_separator_endline: %s',
@@ -172,102 +170,52 @@ my $endline_modification_state;
     $sign_params_base->{'endline-state-encoded'} // 'UNDEF'
 );
 
-# Check for special cases that need endline adjustments
+## determine initial endline state from extracted footer conditions ##
 if (   $sign_params_base->{'needs_separator_endline'}
     && $sign_params_base->{'last_line_incomplete'} ) {
 
-    # State 7: Add 2 endlines (complete line + separator)
-    # Fix: Check for any newline, not double - file had incomplete line, we add 2
+    ## state 7 : add 2 endlines — complete incomplete line + separator ##
     $$src_ref .= "\n\n" if $$src_ref !~ /\n$/;
     $endline_modification_state = 7;
-    <[base.log]>->( 3, ': : using endline state 7 (add 2 endlines)' );
+    <[base.log]>->( 3, ': : endline state 7 (add 2 endlines)' );
+
 } elsif ( $sign_params_base->{'needs_separator_endline'} ) {
 
-    # State 6: Add 1 endline (separator only)
-    # Fix: Check for single newline, not double - file had 0 endlines, we add 1
+    ## state 6 : add 1 separator endline ##
     $$src_ref .= "\n" if $$src_ref !~ /\n$/;
     $endline_modification_state = 6;
-    <[base.log]>->( 3, ': : using endline state 6 (add separator endline)' );
+    <[base.log]>->( 3, ': : endline state 6 (add separator endline)' );
+
 } else {
 
-    # Use existing state, but preserve 6 or 7 if they were set
-    # (prevents stripping separator endlines from previously stabilized files)
     my $previous_state = $sign_params_base->{'endline-state-encoded'} // 5;
-    if ( $previous_state >= 6 ) {
-
-        # File previously had separator endline requirement, preserve it
-        $endline_modification_state = $previous_state;
-        <[base.log]>->(
-            3,
-            ': : preserving endline state '
-                . $previous_state
-                . ' (separator endline)'
-        );
-    } else {
-        $endline_modification_state = $previous_state;
-        <[base.logs]>->(
-            3, ': : using extracted endline state: %d',
-            $endline_modification_state
-        );
-    }
+    $endline_modification_state = $previous_state;
+    <[base.logs]>->(
+        3, ': : endline state from footer: %d',
+        $endline_modification_state
+    );
 }
 
-# Call the harmonize function with our determined state
-# For state 6/7, harmonize will return early but that's ok since we already added separator above
-# For other states, let harmonize normalize the content
-my $locked_state             = ( $endline_modification_state >= 6 ) ? 1 : 0;
-my $content_before_harmonize = $$src_ref;
-my $harmonized_state         = <[source.harmonize_payload_line_feed]>->(
+## harmonize trailing endlines ##
+<[source.harmonize_payload_line_feed]>->(
     $src_ref, $endline_modification_state
 );
 
-# Fix #4: Sync state encoding with actual modifications
-# Recalculate state based on ACTUAL modifications made by harmonize
-my $content_after_harmonize  = $$src_ref;
-my $size_before              = length($content_before_harmonize);
-my $size_after               = length($content_after_harmonize);
-my $actual_size_delta        = $size_after - $size_before;
-
-# Only accept harmonize's state if we didn't explicitly require separator endline (6 or 7)
-if ( !$locked_state ) {
-    # For non-locked states, verify harmonize's return matches actual modifications
-    # and use the actual delta to encode the correct state
-    if ( $actual_size_delta != 0 ) {
-        # Recalculate state based on actual modifications
-        $endline_modification_state = 5 + $actual_size_delta;
-        <[base.log]>->(
-            3, ': recalculated state based on actual delta: %d',
-            $endline_modification_state
-        );
-    } else {
-        $endline_modification_state = $harmonized_state;
-    }
-} else {
-    # For locked states (6 or 7), use what we explicitly set
-    $endline_modification_state = $endline_modification_state;
-}
-
-# DEBUG: Log the final state that will be encoded (level 3 = verbose only)
-<[base.logs]>->(
-    3, ': FINAL state to encode in signature: %d (locked: %s)',
-    $endline_modification_state, $locked_state ? 'YES' : 'NO'
-);
-
-# DEBUG: Check if harmonize modified the content (level 3 = verbose only)
-if ( $content_before_harmonize ne $content_after_harmonize ) {
-    <[base.log]>->(
-        3, ': harmonize MODIFIED content (added/removed endlines)'
-    );
-    <[base.logs]>->(
-        3,
-        ': size before: %d, after: %d (delta: %d)',
-        $size_before,
-        $size_after,
-        $actual_size_delta
-    );
-} else {
-    <[base.log]>->( 3, ': harmonize did NOT modify content' );
-}
+## state encodes the trailing newline count of the on-disk body (before any additions) ##
+## restore(state) must reproduce exactly that body for checksum verification            ##
+if ( $content_size == 0 ) {
+    $$src_ref .= "\n";
+    $endline_modification_state = 6;
+}    ## empty file → add separator \n → remove 1  ##
+elsif ( $orig_nl_count == 0 ) {
+    $endline_modification_state = 7;
+}    ## no trailing \n → 2 added → remove 2 ##
+elsif ( $orig_nl_count == 1 ) {
+    $endline_modification_state = 6;
+}    ## 1 trailing \n → 1 added → remove 1  ##
+else {
+    $endline_modification_state = 5;
+}    ## canonical already → no modification  ##
 
 ### override for import encoding [ requires command line parameter ] ###
 ## $endline_modification_state = 6;
@@ -485,8 +433,8 @@ if ( not $iterations_left ) {    ## warn about failed harmonization ##
 
 return $calc_result_href;        ##  return harmonized result data href  ##
 
-#,,,,,.,.,..,,.,,,,,,,,,,,.,,,,..,,..,,..,,..,...,...,..,,..,,.,.,,,.,..,,..,,
-#BYVMK7C2GLHT2UGL62UPPJ346EMUM3PXSQJKT6ATQGLJWWT536ZQ7RYENXJ2XS4M4CSZX4MDGWJIU
-#\\\|6TX6WWLBRHRS2AISNCWI7UFLNY663DRPZ7VLF5SY4CBMBB7B3KI \ / AMOS7 \ YOURUM ::
-#\[7]M24FTRNMXHJ65II226PCDYRDFYSUKGOBGJC4IHPPTR7AVGJTPSDQ 7  DATA SIGNATURE ::
+#,,,,,.,,,.,,,.,.,,..,..,,,.,,,,.,.,,,.,.,,,,,.,.,...,...,,.,,,,,,,,,,,,,,,..,
+#AFOYU7GUQGA3ZZJUY2UK4JQDZ6APWLN5TKSH3WSQALYK4LUBMNZPR5USWKIF64G4ZVTGBDZH3KJ3Y
+#\\\|U26SQ2XBDK2ZYDNOSEBIPZI6SEQQ52BA5X5WYU3FCHDJM7YWYJO \ / AMOS7 \ YOURUM ::
+#\[7]YWKSVJ5KL5WLEWFOLRGBQAVYQHNDKTDD7N3WAN3EUXXFHFIQ6WAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
