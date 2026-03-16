@@ -1,0 +1,141 @@
+---
+task_id: signature-oscillation-reopen
+date_created: 2026-03-15
+status: pending
+priority: high
+
+title: |
+  Signature oscillation still present — double-footer on newly-signed files
+
+description: |
+  The signature oscillation bug was archived as resolved, but is demonstrably
+  still present. Surfaced 2026-03-15 when the file.all_files recursion fix
+  brought previously-unreachable files into signing scope for the first time.
+
+  These files had never been signed, so their first signing pass is the
+  reproducible trigger.
+
+symptom: |
+  "checksum correct but signature not valid" — the signer writes a footer,
+  then verification of that same footer fails. On closer inspection, the
+  signer is APPENDING a second footer rather than replacing the existing one.
+
+  git diff shows it clearly for bin/dev/tests/math/test-13.sh:
+  - File already had a valid 4-line footer ending with #:::::
+  - Signer added a blank line after #::::: then appended a complete second footer
+  - Now the file has two footers; verification fails because the body checksum
+    covers content up to the FIRST footer, not the second
+
+root_cause: |
+  The harmonizer adds a trailing newline after the #::::: separator line.
+  This breaks footer detection on the next pass — the extractor uses #:::::
+  as the EOF marker, so a trailing newline after it causes the extractor to
+  not recognize the existing footer, treating the file as unsigned.
+  Result: signer appends a new footer rather than updating the existing one.
+
+  This is the same endline harmonization issue from the archived tasks, just
+  in a slightly different form: not state=0, but trailing-newline-after-separator.
+
+secondary_issue: |
+  bin/dev/lib/ is a symlink to data/lib-path/pm/. With bin/dev/** recursive
+  scanning, files under that path were being found TWICE (once via the symlink,
+  once via data/lib-path/pm/**). The !dev/lib exclusion now prevents this.
+  data/lib-path/pm/Curses/UI/*.pm and data/lib-path/pm/Devel/REPL/Error.pm
+  were modified by the signer as a result of the double-signing attempt.
+
+reproducible_state: |
+  The triggering files are currently in an uncommitted modified state in the
+  working tree (git status shows them as M). The git diff for each shows
+  exactly what the signer wrote. Preserve this state for test environment
+  setup.
+
+  Key files to inspect (git diff HEAD -- <file>):
+    bin/dev/tests/math/test-13.sh        — double footer appended
+    bin/dev/tests/find-protocol-7-root.sh — likely same
+    bin/dev/tools/invoke-queue-harmonize  — likely same
+    bin/dev/tests/FindProtocol7Root.pm    — likely same
+    bin/build-scripts/llama-cpp/build-cuda-docker.sh — likely same
+    bin/admin/vc-changed-files            — likely same
+    bin/scripts/invoke-ai/invoke-export-config — likely same
+
+  To restore clean state for testing:
+    git checkout -- <file>   (restores original pre-signer content)
+  Then trigger a fresh signing pass to reproduce.
+
+modules_to_investigate:
+  - modules/source.extract_sig_body
+      look for: footer detection regex that fails when trailing newline
+      follows the #::::: separator line
+  - modules/source.harmonize_payload_line_feed
+      look for: where the trailing newline after #::::: is added
+  - modules/source.cmd.get-code-signed
+      look for: condition that decides file is unsigned when footer exists
+
+test_environment_plan: |
+  1. Take a clean copy of bin/dev/tests/math/test-13.sh (git checkout)
+  2. Run: bin/Protocol-7 sourcecode update-signatures bin/dev/tests/math/test-13.sh
+  3. Observe: does the signer recognize the existing footer or add a second one?
+  4. If second footer added: the extract_sig_body detection failed
+  5. Add logging to source.extract_sig_body around footer detection
+  6. Re-run and capture the extracted footer vs what the file actually contains
+
+related_archived_tasks:
+  - data/yaml/archive/completed-coding-tasks/signature-oscillation-fix-plan.yaml
+  - data/yaml/archive/completed-coding-tasks/signature-endline-oscillation-investigation.yaml
+  - data/yaml/archive/deferred-tasks/signature-oscillation-on-new-files.yaml
+
+preserved_states: |
+  Before-sign and after-first-sign states archived at:
+    data/asc/test-fixtures/signature-oscillation-2026-03-15/
+
+  Files (excluded from signing via !test-fixtures in source_path_set_up):
+    test-13.sh.before-sign              — HEAD content, valid footer, no trailing blank
+    test-13.sh.after-first-sign         — after signer ran: double footer appended
+    invoke-queue-harmonize.before-sign
+    invoke-queue-harmonize.after-first-sign
+    find-protocol-7-root.before-sign
+    find-protocol-7-root.after-first-sign
+
+  To use for testing: copy the .before-sign file to a temp location outside
+  the project, run the signer against it, compare with .after-first-sign.
+  The double-footer in the .after-first-sign file is the bug made visible.
+
+  To reproduce from scratch: git show HEAD:<file> gives the pre-sign state.
+
+two_variants: |
+  There are two distinct manifestations of the oscillation:
+
+  VARIANT A — silent (no error message):
+    Reproducer: touch an empty file and sign it.
+      touch modules/another.test
+      bin/Protocol-7 sourcecode update-signatures modules/another.test
+    Observation: update-signatures wants to sign it a second time before
+    it is considered stable. No error emitted — just requires two passes.
+    Confirmed 2026-03-16 with empty file.
+
+  VARIANT B — with error ("checksum correct but signature not valid"):
+    Reproducer: sign a file that has never been signed before (non-empty).
+    Triggered by the file.all_files recursion fix bringing previously-
+    unreachable files into scope. Error message is emitted on the first pass;
+    second pass may or may not stabilize.
+    Preserved fixtures: data/asc/test-fixtures/signature-oscillation-2026-03-15/
+
+  Both variants share the same root cause (trailing newline after #:::::
+  breaks footer detection on the next pass) but present differently.
+  Variant A is the cleanest test environment — isolates footer mechanics
+  with no body content. Use it for initial debugging.
+
+  Clean up after testing: rm modules/another.test
+
+workaround: |
+  Sign affected files multiple times until the footer stabilizes.
+  The !dev/lib exclusion in sourcecode.source_path_set_up prevents the
+  symlink double-signing issue going forward.
+
+---
+
+#,,,.,,.,,...,.,.,..,,,.,,.,,,.,.,,.,,.,.,..,,..,,...,...,...,,,,,,,,,,.,,.,,,
+#E3LFXE5LVXJL6IEVTTU75U4OEG36MY5WMB7IG25XFYVRUDNII22Y7X4VOXX34VIKDDPZ5EDUI366G
+#\\\|MQE5GNGMDD6WXB4VTHK7W55AIZSA45OQNXWHASLKUD3PAH6IT3J \ / AMOS7 \ YOURUM ::
+#\[7]DDMAUAR5QE7AOG4F33XFYR5EAG2AA7I3FQTEZTV74GOYXSYXS4BY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
