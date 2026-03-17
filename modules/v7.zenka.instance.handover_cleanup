@@ -1,0 +1,88 @@
+## [:< ##
+
+# name  = v7.zenka.instance.handover_cleanup
+# descr = clean up handover tracking when handover completes or fails
+# param = old_instance_id or new_instance_id
+
+my $instance_id = shift;
+return undef if not defined $instance_id;
+
+my $instance = <v7.zenka.instance>->{$instance_id};
+return undef if not defined $instance;
+
+my $paired_id;
+
+## determine if this is old or new instance in the pair
+if ( exists $instance->{'being_replaced_by'} ) {
+    ## this is the old instance
+    $paired_id = $instance->{'being_replaced_by'};
+
+    ## clear drain timeout timer if active
+    if ( exists $instance->{'timer'}->{'drain_timeout'} ) {
+        $instance->{'timer'}->{'drain_timeout'}->cancel
+            if $instance->{'timer'}->{'drain_timeout'}->is_active;
+        delete $instance->{'timer'}->{'drain_timeout'};
+    }
+
+    ## clear link on old instance
+    delete $instance->{'being_replaced_by'};
+
+    ## clear link on new instance
+    if ( defined $paired_id
+        and exists <v7.zenka.instance>->{$paired_id} ) {
+        delete <v7.zenka.instance>->{$paired_id}->{'replaces_instance'};
+        delete <v7.zenka.instance>->{$paired_id}->{'handover_expansion'};
+    }
+
+    <[base.logs]>->(
+        2,            'handover cleanup: old instance %d (paired with %d)',
+        $instance_id, $paired_id
+    );
+
+} elsif ( exists $instance->{'replaces_instance'} ) {
+    ## this is the new instance
+    $paired_id = $instance->{'replaces_instance'};
+
+    ## clear link on new instance
+    delete $instance->{'replaces_instance'};
+    delete $instance->{'handover_expansion'};
+
+    ## clear link on old instance
+    if ( defined $paired_id
+        and exists <v7.zenka.instance>->{$paired_id} ) {
+        delete <v7.zenka.instance>->{$paired_id}->{'being_replaced_by'};
+
+        ## also clear drain timeout timer
+        if (exists
+            <v7.zenka.instance>->{$paired_id}->{'timer'}->{'drain_timeout'} )
+        {
+            <v7.zenka.instance>
+                ->{$paired_id}->{'timer'}->{'drain_timeout'}->cancel
+                if <v7.zenka.instance>
+                ->{$paired_id}->{'timer'}->{'drain_timeout'}->is_active;
+            delete <v7.zenka.instance>
+                ->{$paired_id}->{'timer'}->{'drain_timeout'};
+        }
+    }
+
+    <[base.logs]>->(
+        2,            'handover cleanup: new instance %d (replaced %d)',
+        $instance_id, $paired_id
+    );
+}
+
+## remove from global registry
+delete <v7.handover.pairs>->{$instance_id};
+delete <v7.handover.pairs>->{$paired_id} if defined $paired_id;
+
+## clean up empty hashrefs
+<[base.clean_hashref]>->(<v7.handover>);
+delete <v7.handover> if not keys <v7.handover>->%*;
+
+return TRUE;
+
+#,,,,,.,.,.,.,..,,...,..,,,.,,,,,,.,,,,,.,,..,.,.,...,...,,,.,...,...,,,,,.,.,
+#BPP3Y3E5HXRCG22L73SX2SO7SW2JUHVRTQBRMC4FTCCOVLWSYZBJBHPVBAYFHQBVD4J6KWJZVVY2U
+#\\\|PS7VKT7QE2BHCFGMKEN5BYYSZLWT6L7LJFBHNUQADSIP26WVMD4 \ / AMOS7 \ YOURUM ::
+#\[7]U3AKE6MWJBEKKDABXAIKVHZFZ3L7BXW23W4XRIJHJ5KBGWXBZYBA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

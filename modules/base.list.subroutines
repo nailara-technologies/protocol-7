@@ -52,6 +52,7 @@ return [ qw[
         kimi.connect
         fs.init_code
         fs.cmd.mount
+        event.del_io
         context.file
         calc.cmd.val
         base.waitpid
@@ -246,6 +247,7 @@ return [ qw[
         jobqueue.add_job
         httpsd.post_init
         httpsd.init_code
+        httpsd.cmd.drain
         httpd.serve_file
         httpd.new_header
         httpd.cmd.vhosts
@@ -1214,6 +1216,7 @@ return [ qw[
         weather.parent.cmd.humid
         v7.zenka.cmd.status-time
         v7.set_up_ondemand_zenki
+        v7.handler.drain_timeout
         v7.handler.children_left
         v7.cmd.forced-mod-reload
         v7.callback.object.zenka
@@ -1417,6 +1420,7 @@ return [ qw[
         io.unix.socket.input.open
         impressive.process_subcfg
         image2html.base.init_code
+        httpsd.cmd.self_terminate
         httpd.system.memory_stats
         httpd.base.size.normalize
         graphics-matrix.init_code
@@ -1565,6 +1569,7 @@ return [ qw[
         image2html.child.init_code
         httpsd.reload_certificates
         httpsd.load-cipher-profile
+        httpsd.handler.drain_check
         httpd.handler.acme_request
         events.set-up.import_rules
         decoder.cmd.show-indexcube
@@ -1643,6 +1648,7 @@ return [ qw[
         v7.zenka.cmd.register_child
         v7.zenka.cmd.pause-instance
         v7.zenka.cmd.notify_offline
+        v7.zenka.cmd.drain-instance
         v7.sub-process.get_children
         v7.parser.dependency_status
         v7.parent.attach_zenka_logs
@@ -2169,6 +2175,7 @@ return [ qw[
         vterm.compositor.blend.additive
         vision-batch.parent.execute_job
         vision-batch.parent.cmd.process
+        v7.zenka.cmd.restart_concurrent
         v7.callback.object.root.session
         universal.handler.cur-pid_reply
         tile-groups.set-up.import_rules
@@ -2258,6 +2265,7 @@ return [ qw[
         weather.child.cmd.get-station-id
         vterm.consensus.cell_fingerprint
         vterm.compositor.blend.consensus
+        v7.zenka.instance.track_handover
         v7.zenka.end-handler.web-browser
         v7.handler.set_initialized_reply
         v7.handler.instance_verification
@@ -2430,6 +2438,7 @@ return [ qw[
         weather.parent.write_updating_page
         weather.parent.cache.read_forecast
         vision-batch.parent.load_yaml_spec
+        v7.zenka.instance.handover_cleanup
         v7.sub-process.retrieve_cached_iid
         v7.handler.verify_instance_timeout
         v7.callback.cleanup_instance_cache
@@ -2880,8 +2889,8 @@ return [ qw[
     ]
 ];
 
-#,,,,,,.,,.,.,.,,,..,,.,,,..,,...,,,,,...,,,,,.,.,...,...,...,...,.,,,,.,,.,.,
-#3LL5POT7TDRT2AB3XZZLEQ4G6FRAJBRNGQNUQVZ67I7ZJF4TVWBLK4WNBLL7PPOZ4CPUPHPCQE5MU
-#\\\|EVKGZMY6NQ47ZKXSTVBEIEDK26SDR6UGLHSRHJGCIPIS7HTE5IR \ / AMOS7 \ YOURUM ::
-#\[7]O6NIIKZ7E5Q53ZWZAV7BIBNDFFRJBPEOJR6XEHAFOAMSDS23JMDQ 7  DATA SIGNATURE ::
+#,,.,,,..,..,,.,,,,,,,.,.,,.,,,..,,..,,..,,.,,.,.,...,...,...,,..,,..,..,,,,.,
+#PWVWENNPRMBZPZBAYBZUEFGFNXRPBKZN44NZGPFR2ALBMMEN5DX767WRB3433EEUDHROYG276GFTK
+#\\\|27OS6MJRW2OSJD6KHCMLYJQR5YQG35TIM4Y4TMOAVVHVBCVBD3F \ / AMOS7 \ YOURUM ::
+#\[7]Y3INR75X57GOS6PZSPOTALCXVDBC6OWJHXU3XAFIMMOKKK2PS6DA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

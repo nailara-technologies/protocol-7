@@ -21,6 +21,7 @@ base.gen_id
 v7.post_init
 v7.init_code
 v7.child.add
+event.del_io
 base.waitpid
 base.tmp_dir
 base.sig_int
@@ -100,6 +101,7 @@ p7-log.init_code
 jobqueue.add_job
 httpsd.post_init
 httpsd.init_code
+httpsd.cmd.drain
 httpd.serve_file
 httpd.new_header
 httpd.cmd.vhosts
@@ -367,6 +369,7 @@ base.auth.set_zenka_key
 auth.zenka.authenticate
 web.assets.load_registry
 v7.set_up_ondemand_zenki
+v7.handler.drain_timeout
 v7.handler.children_left
 protocol.https.init_code
 plugin.auth.auth-keypair
@@ -405,6 +408,7 @@ v7.bin_p7c_chksum_current
 jobqueue.priorities_table
 jobqueue.joblist_template
 io.unix.socket.input.open
+httpsd.cmd.self_terminate
 httpd.system.memory_stats
 httpd.base.size.normalize
 crypt.C25519.load_keypair
@@ -433,6 +437,7 @@ io.unix.socket.output.open
 io.unix.socket.input.close
 httpsd.reload_certificates
 httpsd.load-cipher-profile
+httpsd.handler.drain_check
 httpd.handler.acme_request
 crypt.C25519.encrypted_key
 base.session.check.flushed
@@ -446,6 +451,7 @@ base.event.io_idle_restart
 base.dependency.add_object
 base.check_dependency_dirs
 auth.zenka.cmd.session-key
+v7.zenka.cmd.drain-instance
 v7.sub-process.get_children
 v7.init_match_name_patterns
 net.read_linewise_estimated
@@ -567,6 +573,7 @@ base.parser.center_ellipse_string
 base.file.matching_path_linknames
 base.dependency.install_callbacks
 base.callback.expire_code_version
+v7.zenka.instance.handover_cleanup
 v7.sub-process.retrieve_cached_iid
 v7.callback.cleanup_instance_cache
 protocol.sftp.server.start-process
@@ -657,8 +664,8 @@ protocol.protocol-7.protocol-version-path-set-up
 base.log.send-buffer.reply-handler.notify-online
 debian.parent.callback.register_binary_dependency
 
-#,,.,,.,.,...,,.,,,..,,,,,..,,.,,,.,.,.,.,..,,..,,...,...,...,,,,,,,.,...,,.,,
-#UM6BLJBJEECQ43PFGUXGOYWL5YPCM2VJ67R3FTSWJXJHVJQ4NE7QPC2CZRXTWBWGVUPO7ZTRMBH6Q
-#\\\|5DZNOO3E2SOSIKKGV7RBSSIAOJVAZNBXBWPTLRVEYEB63ZXEQ2I \ / AMOS7 \ YOURUM ::
-#\[7]3XHGSLMCLIG3IN3HQNCJ4WI2R6CQGVVOMXQLDDPDAIVE56DPSIDI 7  DATA SIGNATURE ::
+#,,.,,,,.,...,,,,,,,,,,..,,,,,.,.,,,,,,,.,,,,,..,,...,...,,,,,...,,,.,,,.,,,,,
+#RLHSBBVEISLGZ7VQWO5DIWHI7TBV3CHGTWRFVOS44VJFTATTFKZFQPB2IE2HTRE5VISJOJC6RB53Q
+#\\\|VSJE2FDPSAZZZDPMEAEWF3INN4FV3TZFPHHKYXOZJRJEK6VVTMB \ / AMOS7 \ YOURUM ::
+#\[7]W4WUK3ZIJ6LOKDGCOB7LZKTZJJLHAOTXTBNZE6RLZW3AM6TDLKCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

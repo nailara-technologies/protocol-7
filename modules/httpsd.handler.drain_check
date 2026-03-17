@@ -1,0 +1,36 @@
+## [:< ##
+
+# name  = httpsd.handler.drain_check
+# descr = check if all sessions closed, self-terminate when done
+
+my $remaining = 0;
+if ( exists <base.session.ids> ) {
+    $remaining = scalar keys <base.session.ids>->%*;
+}
+
+if ( $remaining == 0 ) {
+    <[base.log]>->('httpsd drain: all sessions closed, self-terminating');
+
+    ## cancel drain check timer
+    if ( exists <httpsd.drain_check_timer> ) {
+        <httpsd.drain_check_timer>->cancel
+            if <httpsd.drain_check_timer>->is_active;
+        delete <httpsd.drain_check_timer>;
+    }
+
+    ## self-terminate
+    <[httpsd.cmd.self_terminate]>->();
+
+} else {
+    <[base.logs]>
+        ->( 2, 'httpsd drain: %d sessions still active', $remaining );
+    ## timer continues, will check again
+}
+
+return TRUE;
+
+#,,..,.,,,,,.,..,,..,,...,,,.,...,,,.,,.,,,.,,.,.,...,...,,,,,.,,,,..,...,...,
+#TFIIWJRSX5TJRXRWGLVLXFHUWQVVVLWOAGGN6P4DB6UVSWRIRFBNHS6UM42JM4EGUYPQVMZKVIKOC
+#\\\|QGBDYOMGIT4KNC4G345MMZOKLYFDSYTOUG4XR6CDCVN4P65OUBG \ / AMOS7 \ YOURUM ::
+#\[7]4PIRHUDYSYNFZA63MIWAZIKSR233BEBF6S6AQ6KJC7ZXUFZLNEBQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

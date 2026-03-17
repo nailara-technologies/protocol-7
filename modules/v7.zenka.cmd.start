@@ -98,15 +98,35 @@ return {
     and <[v7.start_count]>->( $zenka_name . "[$zenka_subname]" )
     or not defined $zenka_subname and <[v7.start_count]>->($zenka_name) );
 
-return {
-    'mode' => qw| false |,
-    'data' =>
-        sprintf( "reached configured maximum concurrency for zenka '%s'",
-        $zenka_name )
-    }
-    if exists $zenka_config->{'max_concurrency'}
+## check max concurrency (with exception for concurrent handover)
+if ( exists $zenka_config->{'max_concurrency'}
     and <[v7.start_count]>->($zenka_name)
-    >= $zenka_config->{'max_concurrency'};
+    >= $zenka_config->{'max_concurrency'} ) {
+    ## allow one expansion slot for concurrent handover mode
+    my $is_handover = $call->{'mode'} eq qw| concurrent-handover |;
+    my $at_exact_limit
+        = <[v7.start_count]>->($zenka_name)
+        == $zenka_config->{'max_concurrency'};
+    my $handover_already_active
+        = grep { exists <v7.zenka.instance>->{$ARG}->{'handover_expansion'} }
+        <[zenka.instance.get_ids]>->($zenka_id)->@*;
+
+    if ( $is_handover and $at_exact_limit and not $handover_already_active ) {
+        <[base.logs]>->(
+            2,           'allowing handover expansion slot for %s (max=%d)',
+            $zenka_name, $zenka_config->{'max_concurrency'}
+        );
+        ## proceed with expansion slot
+    } else {
+        return {
+            'mode' => qw| false |,
+            'data' =>
+                sprintf(
+                "reached configured maximum concurrency for zenka '%s'",
+                $zenka_name )
+        };
+    }
+}
 
 if ( defined $zenka_subname
     and exists $zenka_config->{'max_subname_concurrency'} ) {
@@ -206,8 +226,8 @@ return {
     'data' => sprintf( "job queued [ID=%d]", $job_id )
     }
 
-#,,,.,..,,..,,..,,.,,,,,,,.,.,,.,,,,,,..,,,..,..,,...,...,,..,.,,,...,...,.,.,
-#27Q6KYKVT47PR2IBVHC4LFWVT7JMJYRIGIRET37GSKMJ47PQMO47GWIMP4OBEKAEVT3KCJHADDU3W
-#\\\|3AK3XKL2C7YOV5EE5DZ6RGYUFCVCYLAT6X5AEVBMB7PAUVOSBWL \ / AMOS7 \ YOURUM ::
-#\[7]Y7EPRDTJIHSSDHSRNBW5IIGDHQE5POESNAFYKKZETW5RWX222UCI 7  DATA SIGNATURE ::
+#,,.,,..,,,.,,,,,,,..,...,.,,,,,.,.,,,,..,..,,..,,...,...,.,.,..,,..,,,,.,,,,,
+#DGY44DCSQN2BUWJSHHJTR7BIAEFJLV6FROUJGGCXG7UVQ2X23CARHVIJYTLHZQWPTNK45K6MY5IJW
+#\\\|JF5MKOLBITIWZWGICI467IW4BMW7OUSBWCAX6YEIGEPISRIWDWY \ / AMOS7 \ YOURUM ::
+#\[7]RNAYIIEIJFYDAV6GL5S6YIATPNSHBFN5IUA2T53UVXVG637RLOBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

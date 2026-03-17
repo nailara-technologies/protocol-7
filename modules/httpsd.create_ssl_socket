@@ -94,12 +94,13 @@ $SIG{'PIPE'} = qw| IGNORE |;    ### do not crash when client already gone ###
 
 $ssl_socket = eval {
     IO::Socket::SSL->new(
-        LocalAddr              => $addr,
-        LocalPort              => $port,
-        Listen                 => <max.connections> // 1024,
-        ReuseAddr              => 1,
-        Timeout                => <httpsd.timeout> // 23,
-        SSL_server             => 1,
+        LocalAddr  => $addr,
+        LocalPort  => $port,
+        Listen     => <max.connections> // 1024,
+        ReuseAddr  => 1,
+        ReusePort  => 1,                     ## <-- concurrent restart support
+        Timeout    => <httpsd.timeout> // 23,
+        SSL_server => 1,
         SSL_cert_file          => $cert_file,
         SSL_key_file           => $key_file,
         SSL_version            => $tls_version,
@@ -120,6 +121,7 @@ if ( !$ssl_socket and $addr =~ m|^[0:]+$| ) {
             LocalPort              => $port,
             Listen                 => <max.connections> // 1024,
             ReuseAddr              => 1,
+            ReusePort              => 1,    ## <-- concurrent restart support
             Timeout                => <httpsd.timeout> // 23,
             SSL_server             => 1,
             SSL_cert_file          => $cert_file,
@@ -243,8 +245,8 @@ return $ssl_socket;
 
 0;
 
-#,,..,.,,,,..,,..,..,,,,.,,,,,,,,,.,.,,,.,.,.,..,,...,...,.,.,.,.,.,,,,,.,,.,,
-#TSZ266WUGL4GXEV3CGBDOXREX2ZWFFBIQDYIZGXZ64J4FHBGMZSCHDVQH5OC5Z672WHROGUKLVHWG
-#\\\|Q7X7NYEVTIE2OIJSQ4QXOF6EQDSGUYSYP5DY4WYTTDLHDWWWDUM \ / AMOS7 \ YOURUM ::
-#\[7]KIFYLA7DKFXF4Z45RTFOM5VV3OTLWCE7FE2QCCR6A6SGUJLBPEAY 7  DATA SIGNATURE ::
+#,,,.,.,.,.,.,..,,,,,,,.,,,..,...,.,.,,,.,..,,..,,...,...,,.,,,.,,,..,.,,,,,.,
+#T3Q2YJBGWVPUJV4FJ6EIPN6M5ECXSPUX6O7TYBSAZS77HGYGM2KE3KIOQYAL5W4UNKAMTJNGLDL52
+#\\\|Q2L2NEAUA7LAQNZLJ5AUTYXUS77Q4D4HPWCGDZFQFFNFLXLZ7NF \ / AMOS7 \ YOURUM ::
+#\[7]MOKKATN2RLS2S5JD5GL7RO3XC7OWIMYATLWOH7MYSSY2VA6ZJABI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
