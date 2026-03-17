@@ -1,0 +1,155 @@
+---
+title: implement 'task' zenka [ state-machine + coordination interface ]
+priority: high
+status: open
+type: implementation
+depends_on: llm-coordination-zenka.yaml
+
+description: |
+  build the 'task' zenka as described in task-zenka.yaml design document.
+  implements a hybrid state-machine and network interface over the existing
+  data/yaml/coding-tasks/ task file collection.
+
+  seed dataset: all existing yaml files in data/yaml/coding-tasks/ are loaded
+  on startup and become the initial live task state.
+
+steps:
+
+  1_zenka_scaffold:
+    title: basic zenka scaffold
+    status: open
+    executable_without_input: true
+    description: |
+      create configuration/zenki/task/ with start, zenka-startup.v7,
+      and access files. task.init_code loads yaml task files from
+      data/yaml/coding-tasks/ into %data on startup.
+    acceptance: |
+      - task zenka starts and connects to cube
+      - data/yaml/coding-tasks/*.yaml files loaded into memory
+      - task.list returns list of loaded task titles with status
+
+  2_state_machine:
+    title: state transitions + persistence
+    status: open
+    executable_without_input: true
+    description: |
+      implement state transitions: open → assigned → in_progress →
+      blocked → review → completed → archived.
+      each transition logged with timestamp and actor.
+      state changes persisted back to the yaml file.
+    acceptance: |
+      - task.start <id> transitions open → in_progress, updates yaml
+      - task.complete <id> transitions → completed, updates yaml
+      - task.block <id> <reason> records blocked state with reason
+      - history section appended to yaml on each transition
+
+  3_query_interface:
+    title: network query commands
+    status: open
+    executable_without_input: true
+    description: |
+      implement core query commands as task.cmd.* modules:
+        task.list [filter]    — by status, priority, assignee
+        task.status <id>      — full state view
+        task.assign <id> <actor>
+        task.start <id>
+        task.complete <id>
+        task.block <id> <reason>
+    acceptance: |
+      - all commands accessible via nshell and p7 binary
+      - task.list open returns all open tasks sorted by priority
+      - task.status shows current state, assignee, history
+
+  4_task_next:
+    title: task.next — autonomous work routing
+    status: open
+    executable_without_input: true
+    description: |
+      implement task.next [assignee] — returns highest priority task
+      that is independently executable without user input:
+        - status open or unblocked
+        - dependencies met
+        - no 'requires_input' flag set
+        - has acceptance criteria defined
+      this is the key command for autonomous llm operation.
+    acceptance: |
+      - task.next returns a task with full context
+      - tasks flagged requires_input: true are skipped
+      - returns 'nothing executable' when queue is empty or all blocked
+      - optional assignee filter: task.next kimi, task.next claude
+
+  5_file_watcher:
+    title: watch task directory for changes
+    status: open
+    executable_without_input: true
+    description: |
+      watch data/yaml/coding-tasks/ for new or modified files.
+      reload affected task records on change.
+      allows external tools (editors, llm session output) to update
+      task state by writing yaml files directly.
+    acceptance: |
+      - editing a yaml file updates live state within a few seconds
+      - new yaml file in directory appears in task.list without restart
+      - invalid yaml logged as warning, does not crash zenka
+
+  6_handover_command:
+    title: task.handover — session context packaging
+    status: open
+    executable_without_input: true
+    description: |
+      implement task.handover [id|all] — packages current task state
+      into a handover document suitable for llm session pickup:
+        - current in_progress tasks with full context
+        - blocked tasks with blocking reason
+        - next executable tasks
+        - open decisions requiring user input
+    acceptance: |
+      - task.handover produces a structured markdown summary
+      - another llm session can resume from the handover document
+      - matches the existing AI-COLLABORATION-GUIDE.md handover pattern
+
+verification:
+  - start task zenka, verify all existing coding-tasks yaml files load
+  - run task.list — all tasks visible with correct status
+  - run task.next — returns highest priority open task
+  - complete a task, verify yaml updated and task.list reflects change
+  - modify a yaml file externally, verify live state updates
+  - run task.handover, verify output is usable as llm session context
+
+reuse_from_work_zenka: |
+  the work zenka already implements the yaml scanning and parsing foundation.
+  adopt these modules directly rather than reimplementing:
+    work.scan_yaml_tasks        — scan task directory, build task list
+    work.extract_yaml_todos     — parse yaml task structure
+    work.load_todos_index       — load index of tasks
+    work.generate_todos_index   — regenerate index from files
+    work.aggregate_todos        — aggregate across multiple sources
+
+  migration path: work zenka's console.todo-list and console.bug-list
+  later delegate to task.list for the live authoritative state instead
+  of scanning files directly. work zenka becomes a consumer of task zenka.
+
+parallel_session_relay: |
+  the task zenka is the natural coordination point between parallel coding
+  sessions (e.g. claude code + kimi working simultaneously):
+    - both sessions query task.next independently — no overlap
+    - task.assign prevents two sessions picking up the same work unit
+    - task.block surfaces blockers immediately to both sessions
+    - task.handover packages state for clean session-to-session transfer
+
+  neither session needs to know about the other directly — task zenka
+  holds the shared state and routes accordingly. conflicts are impossible
+  by design: task.start is atomic, a task in_progress belongs to one actor.
+
+notes: |
+  task-zenka.yaml contains the full design rationale and architecture.
+  this file is the implementation checklist.
+
+  the task zenka's own task file is the first entry in its seed dataset —
+  a fitting starting point. =)
+
+#,,,,,.,,,.,.,.,,,..,,..,,,..,,,.,,..,,,,,..,,..,,...,...,...,,,.,,,.,,..,,,,,
+#747H3SP6FCQVDSIID63Q23ZVVQYNK752SF25BZPC6R35JODUCKKFECZD3KRCGIABHK4XBSQLMUUQK
+#\\\|I4VIVAI7VT7K3Q7FN4TUHWIRZQDLN4DFUKBEQCKULH3U47ZRHV4 \ / AMOS7 \ YOURUM ::
+#\[7]5OYCVEKKI6LP2V6TJRYXMJ2F4OANYOEL66PXNRKGDBE4HBT3T6AY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
