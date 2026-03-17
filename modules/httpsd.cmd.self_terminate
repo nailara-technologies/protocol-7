@@ -1,0 +1,36 @@
+## [:< ##
+
+# name  = httpsd.cmd.self_terminate
+# descr = cleanly terminate httpsd zenka instance
+# note  = closes all sessions and exits
+
+<[base.logs]>->( 'httpsd self-terminating [PID %d]', $$ );
+
+## mark all sessions for closure
+if ( exists <base.session.ids> ) {
+    my $session_count = scalar keys <base.session.ids>->%*;
+    <[base.logs]>->( 2, 'closing %d active sessions', $session_count );
+
+    foreach my $sid ( keys <base.session.ids>->%* ) {
+        <base.session.ids>->{$sid}->{'close'} = 1;
+    }
+}
+
+## clean up listen socket
+if ( exists <httpsd.listen_socket> and defined <httpsd.listen_socket> ) {
+    close(<httpsd.listen_socket>);
+    delete <httpsd.listen_socket>;
+}
+
+## signal v7 that we're shutting down gracefully
+## this is done by simply exiting - v7.handler.sig_chld will handle cleanup
+
+<[base.log]>->( 2, 'httpsd: exit(0)' );
+
+exit(0);
+
+#,,.,,..,,,,.,,.,,..,,...,.,.,.,.,...,,,,,,,,,.,.,...,...,...,.,,,..,,,,,,.,,,
+#5WCOSKGXGOIZWKTB56YBTMO4D3Y2TV3U5PSXEX5GBXL2OPXOPRPB3LUEO4QOHORX2UYWPDT243ADO
+#\\\|ASO53EKMA7ADQLDYGPINLCC7A7EDLYJGM7DCDRKZEVVGS7GLXXM \ / AMOS7 \ YOURUM ::
+#\[7]FWPYQ37ADFAKDX2Q2ASO4EC6I4LOFYRIMGE3LS3SGURPHA6EVWCQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

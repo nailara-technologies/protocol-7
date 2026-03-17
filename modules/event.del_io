@@ -1,0 +1,35 @@
+## [:< ##
+
+# name  = event.del_io
+# descr = remove an I/O watcher from the event loop
+# param = watcher reference (returned by event.add_io)
+# note  = cancels the Event watcher; safe to call with undef
+
+my $watcher = shift;
+
+return undef if not defined $watcher;
+
+## check if it's an Event watcher object with cancel method
+if ( ref($watcher) and $watcher->can('cancel') ) {
+    $watcher->cancel;
+    return TRUE;
+}
+
+## check if stored in handle hash (legacy pattern)
+if ( ref($watcher) eq 'GLOB' or ref($watcher) eq 'IO::Handle' ) {
+    my $fd = fileno($watcher);
+    if ( defined $fd and exists <event.io.watchers>->{$fd} ) {
+        my $stored_watcher = <event.io.watchers>->{$fd};
+        $stored_watcher->cancel if $stored_watcher->can('cancel');
+        delete <event.io.watchers>->{$fd};
+        return TRUE;
+    }
+}
+
+return undef;
+
+#,,.,,..,,,,.,,..,...,.,.,.,.,,.,,,.,,.,.,,,,,.,.,...,...,.,.,.,,,,,.,,,.,,..,
+#TO5GNZAMIDBGEOUBZPO7JG32UFRSASL4EHLN66TAE3AU7HMELBYE2ZLP37FSAZUS6DEN36OQLAJUO
+#\\\|NWDFWH5AYYLYAUYSLM2BSNYA4ROH2BUFLI2RUZGOAGAA245NJG7 \ / AMOS7 \ YOURUM ::
+#\[7]SOGP7TYBHY7PNGQWLFEX4WHKMX7OSRG2TZBDOORZMCRHAOI67ADQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

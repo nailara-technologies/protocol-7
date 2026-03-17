@@ -835,17 +835,16 @@ sub p7_init_exec {    ##  main variable initialization  ##
             }
 
             # Special case for testing the export format feature
-            if ( $sub_name eq 'test-export-format' ) {
+            if ( $sub_name eq qw| test-export-format | ) {
 
                 # Create a simple test subroutine
-                my $test_source
-                    = 'sub test_function { return "Hello, World!"; }';
+                my $test_source = 'sub test_function { return "[[ [:< ]]" }';
 
                 # Store it with original_encoded data for testing
                 $data{'base'}{'inline_subs'}{'source'}{'base.test.function'}
                     = $test_source;
                 $data{'base'}{'inline_subs'}{'compression'}
-                    {'base.test.function'} = 'xz';
+                    {'base.test.function'} = qw| xz |;
 
                 # Create fake original encoding
                 p7_load_B32_routines() if not defined &encode_b32r;
@@ -858,7 +857,7 @@ sub p7_init_exec {    ##  main variable initialization  ##
                     = { 'loaded' => time() };
 
                 # Create an actual function reference
-                $code{'base.test.function'} = sub { return "Hello, World!"; };
+                $code{'base.test.function'} = sub { return "[ [:< ]" };
 
                 # Output confirmation
                 print "Test function 'base.test.function' created"
@@ -870,10 +869,10 @@ sub p7_init_exec {    ##  main variable initialization  ##
                 exit(0);
             }
 
-            # Check for compression type option
-            my $compression_type = 'xz';    # Default
-            if ( $sub_name =~ s/\s+(xz|gzip)$// ) {
-                $compression_type = $1;
+            # checking for compression type option
+            my $compression_type = qw| xz |;    # default
+            if ( $sub_name =~ s{\s+(xz|gzip)$}{} ) {
+                $compression_type = $LAST_PAREN_MATCH;
             }
 
             # Encode and output the subroutine
@@ -1505,6 +1504,48 @@ sub p7_load_code {
                 and $code{'base.source_path_valid'}->($src_rel) ) {
                 $code_count++;
 
+                #  register cmd/console dispatch + header metadata for all  #
+                #  cmd/console modules — whitelisted and deferred alike     #
+                if ( $file_name =~ m{\.(cmd|console)\.(.+)$} ) {
+                    my ( $sec, $cmd )
+                        = ( ${^CAPTURE}[0], ${^CAPTURE}[1] );
+                    $data{'base'}{$sec}{$cmd} //= $file_name;
+
+                    #  parse header metadata for cmd listings  #
+                    if ( defined $src_abs_path and -r $src_abs_path ) {
+                        my $header = '';
+                        if (open(
+                                my $hfh,
+                                qw| <:encoding(UTF-8) |,
+                                $src_abs_path
+                            )
+                        ) {
+                            while ( my $line = <$hfh> ) {
+                                ## stop at actual code lines [ not # or blank ]
+                                last if $line !~ m|^\s*(?:#.*)?$|;
+                                $header .= $line;
+                            }
+                            close $hfh;
+                        }
+                        if ( $header =~ m|#\s*param\s*=\s*(\S.*)| ) {
+                            my $pv = ${^CAPTURE}[0];
+                            $pv =~ s|\s+$||;
+                            $data{'base'}{'commands'}{$sec}{$cmd}{'param'}
+                                = $pv
+                                if length $pv;
+                        }
+                        if ( $header =~ m|#\s*descr\s*=\s*(\S.*)| ) {
+                            ( my $dv = ${^CAPTURE}[0] ) =~ s|\s+$||;
+                            $data{'base'}{'commands'}{$sec}{$cmd}{'descr'}
+                                //= $dv
+                                if length $dv;
+                        } else {
+                            $data{'base'}{'commands'}{$sec}{$cmd}{'descr'}
+                                //= qq|<< missing 'descr' >>|;
+                        }
+                    }
+                }
+
                 ##  skip subs not in whitelist [ when active and enabled ]  ##
                 my $wl = $data{'base'}{'loader'}{'sub_whitelist'};
                 if (    defined $wl
@@ -1521,50 +1562,6 @@ sub p7_load_code {
                                 . q|$code{'base.handler.|
                                 . q|deferred_compile'}->(@_)|
                                 . "\n}" );
-
-                        #  register cmd/console dispatch entry so the stub  #
-                        #  is reachable — else registry lookup fails first   #
-                        #  before the stub can fire                          #
-                        if ( $file_name =~ m{\.(cmd|console)\.(.+)$} ) {
-                            my ( $sec, $cmd )
-                                = ( ${^CAPTURE}[0], ${^CAPTURE}[1] );
-                            $data{'base'}{$sec}{$cmd} //= $file_name;
-
-                            #  parse header metadata for cmd listings    #
-                            #  before the stub is compiled at runtime     #
-                            if ( defined $src_abs_path and -r $src_abs_path )
-                            {
-                                my $header = '';
-                                if (open(
-                                        my $hfh,
-                                        qw| <:encoding(UTF-8) |,
-                                        $src_abs_path
-                                    )
-                                ) {
-                                    while ( my $line = <$hfh> ) {
-                                        last if $line =~ m|^\s*$|;
-                                        $header .= $line;
-                                    }
-                                    close $hfh;
-                                }
-                                if ( $header =~ m|#\s*param\s*=\s*(\S.*)| ) {
-                                    my $pv = ${^CAPTURE}[0];
-                                    $pv =~ s|\s+$||;
-                                    $data{'base'}{'commands'}{$sec}{$cmd}
-                                        {'param'} = $pv
-                                        if length $pv;
-                                }
-                                if ( $header =~ m|#\s*descr\s*=\s*(\S.*)| ) {
-                                    ( my $dv = ${^CAPTURE}[0] ) =~ s|\s+$||;
-                                    $data{'base'}{'commands'}{$sec}{$cmd}
-                                        {'descr'} = $dv
-                                        if length $dv;
-                                } else {
-                                    $data{'base'}{'commands'}{$sec}{$cmd}
-                                        {'descr'} = qq|<< missing 'descr' >>|;
-                                }
-                            }
-                        }
                     }
                     next;
                 }
@@ -5587,8 +5584,8 @@ __DATA__
 :
 :.
 
-#,,,.,,..,,,.,.,.,,..,..,,,,.,,,.,,,.,...,,,.,..,,...,...,.,.,,..,,.,,,..,.,.,
-#AOERZDO3GN6IGQ7N2SDOWP4TICPRN2ANLBP24GYUALUUQ2ZYJU3DWBJCZKREOIKPVUVJNQQNTAYLK
-#\\\|E5FMNLYLQTT2IHWDRJK62RSR4XNPHIUB4SDCUGXJYSWH6DFX55A \ / AMOS7 \ YOURUM ::
-#\[7]4KZLSLGTXAY4JNATHPJM2XSV2FWLK5HDW3IJ4UY56VAGTDR3XWCI 7  DATA SIGNATURE ::
+#,,..,,..,.,,,,..,,,.,,,,,.,.,.,,,,,.,,,,,...,..,,...,...,,..,,,,,,,.,...,,,,,
+#YRG2PZQ2RJ2JB736DYO6S3QZKLBQNEFQAZEFPKEX7WVSAOLXW6FCMLGIMEOFULU6Y2L3OAHT5GJLW
+#\\\|NUE67WKME5WBRWJ3FMUO7RCTIPR6MOFG7ODLQHJ6CI6KK4GDGOS \ / AMOS7 \ YOURUM ::
+#\[7]2B52P6EVBEQAC3ZDTUC7D2RFXOER6L5RNUUUKXSWSFINRQ6CTOBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

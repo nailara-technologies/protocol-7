@@ -225,6 +225,18 @@ if (    $old_status ne qw| online |
     }
 }
 
+## cleanup handover tracking if instance goes offline/error (handover failed)
+if ( $status eq qw| offline | or $status eq qw| error | ) {
+    if (   exists $instance->{'being_replaced_by'}
+        or exists $instance->{'replaces_instance'} ) {
+        <[base.logs]>->(
+            1,            'handover cleanup for instance %d [status=%s]',
+            $instance_id, $status
+        );
+        <[v7.zenka.instance.handover_cleanup]>->($instance_id);
+    }
+}
+
 if (   $status eq qw| offline |
     or $status eq qw| error |
     and defined $zenka_config->{'restart'}->{'disabled'}
@@ -373,6 +385,13 @@ if (    $status ne qw| online |
 if ( $status eq qw| shutdown |
     or exists <zenka.instance.shutdown>->{$instance_id} ) {
     $status = qw| shutdown | if $status ne qw| shutdown |;
+
+    ## cleanup handover tracking if this instance was part of a handover pair
+    if (   exists $instance->{'being_replaced_by'}
+        or exists $instance->{'replaces_instance'} ) {
+        <[v7.zenka.instance.handover_cleanup]>->($instance_id);
+    }
+
     delete <v7.zenka.instance>->{$instance_id};
     delete <zenka.instance.shutdown>->{$instance_id};
     <[base.logs]>->( 2, "instance %s terminated ['shutdown']", $instance_id );
@@ -448,14 +467,24 @@ if ( $old_status ne qw| online | and $status eq qw| online | ) { # LLL extbin?
         <[jobqueue.exec_job]>->($j_id);
         last;
     }
+
+    # trigger drain on old instance if this is a concurrent handover
+    if ( exists $instance->{'replaces_instance'} ) {
+        my $old_instance_id = $instance->{'replaces_instance'};
+        <[base.logs]>->(
+            1, 'new instance %d online, triggering drain on old instance %d',
+            $instance_id, $old_instance_id
+        );
+        <[zenka.cmd.drain-instance]>->($old_instance_id);
+    }
 }
 
 <[v7.stop_heartbeat_timer]>->($instance_id) if $status ne qw| online |;
 
 <[jobqueue.check_dependencies]>;
 
-#,,,,,...,..,,,.,,,.,,,,,,..,,.,,,,.,,.,.,...,..,,...,...,.,.,,,.,..,,,.,,...,
-#FF35KTPVDGOAM7RQJLJ5CHKNRLKDZ2SSONUXYHKLNNVOO72ERHYVSUYEON7NA3YLMSQA2ZNC2VXHC
-#\\\|3VM5XATDSKBP6RKIBUBHQFYLWONHSVJMLCHJESQGFZMW6PR7MGO \ / AMOS7 \ YOURUM ::
-#\[7]KFT2AX2PSYHM7YSRVYFNBLANXOZM3WE6B4XB5TKQXUHF7G3WIADI 7  DATA SIGNATURE ::
+#,,,,,...,,.,,,.,,.,,,,,,,..,,,.,,.,.,.,.,,,,,..,,...,...,...,,,.,,.,,,.,,,..,
+#4ZS4HLIAUBJRTUF5MWSF2TVO7EHCSZMTRA4XLX6KU2EBNMCJPOSULVQPE6TDIJVJWMG37NOSDJ6JY
+#\\\|5I4IXYPZPF2WVJ2CMEJRFP7QAU2QGTYJNH7FBSCUKPTG577RL7J \ / AMOS7 \ YOURUM ::
+#\[7]K3QNIGQ3P42YRV6BKXOG4XDNV3ALEYZXQFRKJMSZTNKZF27ACOAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
