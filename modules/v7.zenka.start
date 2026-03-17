@@ -41,10 +41,21 @@ my $starting = 0;    # check status of zenki with same name ..,
 map { $starting++ if $instances->{$ARG}->{'status'} eq qw| starting | }
     <[zenka.instance.get_ids]>->($zenka_id)->@*;
 
-if ($starting) {    # delay zenka start-up until previous one is online ..,
-    <[base.logs]>->( 'delaying next %s zenka instance ..,', $zenka_name );
-    <[zenka.change_status]>->( $instance_id, qw| delayed | );
-    return;
+## skip starting delay for handover expansion instances
+if ($starting) {
+    if ( $instance->{'handover_expansion'} ) {
+        <[base.logs]>->(
+            2,
+            'handover instance %d starting alongside existing [concurrent mode]',
+            $instance_id
+        );
+        ## proceed without delay - this is a concurrent restart
+    } else {
+        ## normal delay for non-handover instances
+        <[base.logs]>->( 'delaying next %s zenka instance ..,', $zenka_name );
+        <[zenka.change_status]>->( $instance_id, qw| delayed | );
+        return;
+    }
 }
 
 # initialize zenka instance start-up ..,
@@ -333,8 +344,8 @@ close($in_fh);    ## <-- no further use for zenka stdin handle [ for now ] ##
 
 <[base.logs]>->( '%s zenka started [ pid : %d ]', $zenka_sn_str, $pid );
 
-#,,,.,..,,.,.,.,,,,.,,,.,,,.,,,,.,,.,,...,,.,,..,,...,...,,..,.,,,.,,,,.,,,,,,
-#7ZNEK6WPQ3T6C5WCEH4TWLYT3OOYZR7RNMKA25M53EGMFCFUIJLLAMAZ6MKYV623OBYXADJUXRUM6
-#\\\|JNHPNJNTGYZPWFDZMGS3I3YA6GTQ4J4TAR44JJ2QIVRC2JWDNBG \ / AMOS7 \ YOURUM ::
-#\[7]IL4WRWPOXBAODPKKZIBOS5JQ6HWM35EK22V334K5ZP4CILAAHWDQ 7  DATA SIGNATURE ::
+#,,.,,,..,..,,...,..,,.,,,..,,,,,,,..,,.,,,..,..,,...,...,,,,,,,.,..,,.,.,,.,,
+#FDMJJTRTSI3YOTXASQ2JHNNPQEEJSLALDM2F4MGGRETLMI2BYGZQR5DZKBSETKOWXBUWIYUPMVYPW
+#\\\|NRMWCDGNCFQUGSX4KQ346NZMFII3F6PEEA5KXVQQG47DBWJQB52 \ / AMOS7 \ YOURUM ::
+#\[7]YLNPCYEIYT3WLVFHJTUEZXSCUNAU7JJNUXJMZOVQDGCWGB3OAYBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
