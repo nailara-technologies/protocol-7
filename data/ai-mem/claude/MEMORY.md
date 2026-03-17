@@ -9,6 +9,8 @@
 - `topic-harmonic-mathematics.md` — generator 076923, quadratic residues, cube geometry,
   spiral topology, 4-crossing consent protocol, CCW matrix routing, heartbeat encoding
 - `topic-vterm.md` — vterm module system: cell format, consensus algorithm, review findings
+- `topic-self-improving-system.md` — LLM coordination as foundation for self-improving P7 network;
+  user as coding zenka; tasks decomposed for autonomous execution between sessions
 
 ## File Creation Notes (CRITICAL)
 - **Never add** the single-line `#,,.,,,...` stub at end of new files
@@ -155,8 +157,8 @@
 - Pattern: `my @non_num = grep { defined $data_ref->{$ARG}->{$key} and not looks_like_number(...) } keys $data_ref->%*`
 - Global `$SIG{__WARN__}` exists — if wrapping warn handler, capture `$prev_warn = $SIG{__WARN__}` first and call through
 
-#,,..,..,,,..,,.,,...,...,,,,,,..,..,,...,.,.,..,,...,...,,,,,,.,,,..,,,,,.,,,
-#5724G43V6KXTTYUDTWKHT2X4O3IDC5QOT22PZJVO6442DXTF6S3G6KHZ5WM7TWIJDET2BJ4I7HFKS
-#\\\|SLJ3Z5TPJWFDM7RZDCZQNFWQVM64P6V7EQFIAPUVDAG7SAD4CD6 \ / AMOS7 \ YOURUM ::
-#\[7]TZEIINLRLQKV6MTASS3KFB7APQAQFOGGIIFNIMLHY727YUEHCQDA 7  DATA SIGNATURE ::
+#,,..,,,,,,,,,...,,,.,.,.,...,,,.,,..,,,,,..,,..,,...,...,...,...,,,.,...,,.,,
+#HB5DZWDZOVS33S4PVIMKD2GM77XRDTFJ6HOQBZ3MJLADA2HV254CBN2F4HTPVNNLPBQEB73MMRY42
+#\\\|65WU3W3IYI4V4PXO667BBD4YDRRSQROYMXG5M5NJRXCF2WSFZHT \ / AMOS7 \ YOURUM ::
+#\[7]3UVJYV73US5ZTZL7CIXJBH5QHXEJR4QEKVC2HBPLDMH2X7WDOWBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
