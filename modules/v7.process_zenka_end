@@ -5,8 +5,10 @@
 my $instance_id = shift;
 my $process_id  = shift;
 my $exit_sig    = shift;
+my $exit_val    = shift;    ##  exit code from external binary ##
+##                                 [ extbin \ exec-external ]  ##
 
-my $log_level = 2;    ##[  decrease when searching errors  ]##
+my $log_level = 2;          ##[  decrease when searching errors  ]##
 
 return <[base.logs]>->(
     0,
@@ -78,21 +80,20 @@ if (    defined $instance_id
         ? qw|  error  |
         : qw| offline |;
 
-    # check exit code for external binaries [ exec-external zenki ]
-    if ($instance->{'external'}
-        and defined $ARG[3]    # exit_val passed
-        and $ARG[3] != 0
-        ) {                    # non-zero exit
+    ##  check exit code for external binaries [ exec-external zenki ]  ##
+    if (    $instance->{'external'}
+        and defined $exit_val
+        and $exit_val != 0 ) {
         $next_status = qw| error |;
         <[base.logs]>->(
-            0, "external binary '%s' exited with code %d, status --> error..",
-            $zenka_name, $ARG[3]
+            0, "[terminated] : external binary : '%s' : [ exit : %d ]",
+            $zenka_name, $exit_val
         );
     } elsif ( $instance->{'external'}
-        and defined $ARG[3]
-        and $ARG[3] == 0 ) {
+        and defined $exit_val
+        and $exit_val == 0 ) {
         <[base.logs]>->(
-            1, "[ exit 0 ] external binary '%s' completed successfully.",
+            1, ": [ exit 0 ] : external binary : '%s' : completed =).",
             $zenka_name
         );
     }
@@ -135,8 +136,8 @@ if (    defined $instance_id
 
 return TRUE;
 
-#,,,.,,..,,,,,...,..,,.,.,.,.,,.,,,,,,,..,.,,,..,,...,...,.,.,,..,,,.,,,,,,,,,
-#FMD7QR46LDMNBNTFDEQP5SUXDMFZ7XUQYZPWOYM5LVOJSWZZFELJPDKNYCGYIXZI4WHGOSTWUYRG6
-#\\\|GPLLKIO2PK5IDMM6AQ5IO7DV3JCXFE5VLY3TWZZQPKFSE2244GJ \ / AMOS7 \ YOURUM ::
-#\[7]PHMFUAZRJURB4YMBMYUIGUPKKZQD2S5HXONQEGCUTQAHD5FQF6CA 7  DATA SIGNATURE ::
+#,,,.,,..,,,.,,.,,.,,,.,,,...,,,,,,..,,,,,.,,,..,,...,...,..,,..,,,..,..,,,..,
+#DDG36NVIG6BZXJRRDCZKVNNKEKN2XNAYM6LCRBRASJ5UJ27RJK6GJDKROZ7BQ6S3CYNJCOTPOMXEO
+#\\\|AEVE36TY5R2HXQVH7SMZWXCDUSW5DZZPHRISCCYIH35MTIM646R \ / AMOS7 \ YOURUM ::
+#\[7]DKZD2X2J3JUZVLASLCRUYEGYZB5LSWII2FFTCUUAAOT5SLWOHUCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
