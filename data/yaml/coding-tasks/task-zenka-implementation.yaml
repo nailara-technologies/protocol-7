@@ -15,10 +15,42 @@ description: |
 
 steps:
 
-  1_zenka_scaffold:
-    title: basic zenka scaffold
+  1_startup_modes:
+    title: hybrid startup modes [ connect / standalone / console ]
     status: open
     executable_without_input: true
+    description: |
+      establish correct startup mode handling before any task-specific code.
+      the task zenka must correctly determine its operating mode from context:
+
+        v7-managed    : started by v7, connects to cube, registers as network
+                        zenka, v7 monitors lifecycle — standard managed zenka
+        console-only  : invoked directly with console command args, executes
+                        and exits — no cube connection, no event loop
+        hybrid        : connects to cube AND accepts console commands —
+                        useful for interactive admin while also network-accessible
+        standalone    : runs without connecting [ e.g. offline task inspection ]
+
+      study existing zenki that handle multiple modes correctly as reference:
+        work zenka    : has console.* commands + parent process pattern
+        coding zenka  : v7-managed with deferred spawning
+        sourcecode    : standalone without cube connection
+        keys zenka    : standalone
+
+      the start file and zenka-startup.v7 must encode the mode selection
+      cleanly. mode must be determinable at startup without ambiguity.
+    acceptance: |
+      - v7 can start and manage task zenka [ heartbeat, restart, status ]
+      - direct invocation with console command executes and exits cleanly
+      - no cube connection attempted in standalone/console-only mode
+      - hybrid mode connects then processes console command if supplied
+      - no ambiguous startup state possible
+
+  2_zenka_scaffold:
+    title: basic zenka scaffold + yaml load
+    status: open
+    executable_without_input: false
+    depends_on: 1_startup_modes
     description: |
       create configuration/zenki/task/ with start, zenka-startup.v7,
       and access files. task.init_code loads yaml task files from
@@ -28,10 +60,11 @@ steps:
       - data/yaml/coding-tasks/*.yaml files loaded into memory
       - task.list returns list of loaded task titles with status
 
-  2_state_machine:
+  3_state_machine:
     title: state transitions + persistence
     status: open
     executable_without_input: true
+    depends_on: 2_zenka_scaffold
     description: |
       implement state transitions: open → assigned → in_progress →
       blocked → review → completed → archived.
@@ -43,10 +76,11 @@ steps:
       - task.block <id> <reason> records blocked state with reason
       - history section appended to yaml on each transition
 
-  3_query_interface:
+  4_query_interface:
     title: network query commands
     status: open
     executable_without_input: true
+    depends_on: 3_state_machine
     description: |
       implement core query commands as task.cmd.* modules:
         task.list [filter]    — by status, priority, assignee
@@ -60,10 +94,11 @@ steps:
       - task.list open returns all open tasks sorted by priority
       - task.status shows current state, assignee, history
 
-  4_task_next:
+  5_task_next:
     title: task.next — autonomous work routing
     status: open
     executable_without_input: true
+    depends_on: 4_query_interface
     description: |
       implement task.next [assignee] — returns highest priority task
       that is independently executable without user input:
@@ -78,10 +113,11 @@ steps:
       - returns 'nothing executable' when queue is empty or all blocked
       - optional assignee filter: task.next kimi, task.next claude
 
-  5_file_watcher:
+  6_file_watcher:
     title: watch task directory for changes
     status: open
     executable_without_input: true
+    depends_on: 2_zenka_scaffold
     description: |
       watch data/yaml/coding-tasks/ for new or modified files.
       reload affected task records on change.
@@ -92,10 +128,11 @@ steps:
       - new yaml file in directory appears in task.list without restart
       - invalid yaml logged as warning, does not crash zenka
 
-  6_handover_command:
+  7_handover_command:
     title: task.handover — session context packaging
     status: open
     executable_without_input: true
+    depends_on: 5_task_next
     description: |
       implement task.handover [id|all] — packages current task state
       into a handover document suitable for llm session pickup:
@@ -148,8 +185,8 @@ notes: |
   the task zenka's own task file is the first entry in its seed dataset —
   a fitting starting point. =)
 
-#,,,,,.,,,.,.,.,,,..,,..,,,..,,,.,,..,,,,,..,,..,,...,...,...,,,.,,,.,,..,,,,,
-#747H3SP6FCQVDSIID63Q23ZVVQYNK752SF25BZPC6R35JODUCKKFECZD3KRCGIABHK4XBSQLMUUQK
-#\\\|I4VIVAI7VT7K3Q7FN4TUHWIRZQDLN4DFUKBEQCKULH3U47ZRHV4 \ / AMOS7 \ YOURUM ::
-#\[7]5OYCVEKKI6LP2V6TJRYXMJ2F4OANYOEL66PXNRKGDBE4HBT3T6AY 7  DATA SIGNATURE ::
+#,,.,,,..,..,,..,,,.,,,,,,..,,,.,,,..,.,,,,,.,..,,...,...,..,,,..,,.,,.,.,,..,
+#WDTGANGWYWIH3GSQI7NK6T3AP6DYI3O443V236PMTOPQWVVUYTOQ4SIAKU3AAZIQC7VDPUIGBLZA6
+#\\\|IX36FF6FCYYX6SKUC5VK4VEOCKVEYX3XTSZSQU2SKXGE4PDBWKJ \ / AMOS7 \ YOURUM ::
+#\[7]DAXHRQFEOPLFIQG3OZTGDFLHWU2SJKINIDVSCK4A7PA7OTTGRCCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
