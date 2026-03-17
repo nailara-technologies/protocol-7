@@ -1,0 +1,101 @@
+## [:< ##
+
+# name  = task.init_code
+# descr = initialize task zenka — load yaml task files into memory
+
+## load yaml parser — prefer YAML::XS, fall back to YAML
+##
+my $yaml_loader;
+eval {
+    <[base.perlmod.autoload]>->('YAML::XS');
+    $yaml_loader = \&YAML::XS::LoadFile;
+};
+unless ( defined $yaml_loader ) {
+    eval {
+        <[base.perlmod.autoload]>->('YAML');
+        $yaml_loader = \&YAML::LoadFile;
+    };
+}
+return <[base.logs]>->(
+    0, 'no yaml parser available [ YAML::XS or YAML required ]'
+) unless defined $yaml_loader;
+
+## initialize task data structures
+##
+<task.registry>    //= {};
+<task.by_status>   //= {};
+<task.by_priority> //= [];
+
+## configuration paths
+##
+my $root_path = <system.root_path>;
+<task.cfg.yaml_dir>     //= "$root_path/data/yaml";
+<task.cfg.coding_tasks> //= <task.cfg.yaml_dir> . '/coding-tasks';
+( my $task_dir_rel = <task.cfg.coding_tasks> ) =~ s{^$root_path/?}{};
+
+## scan and load yaml task files
+##
+<[base.log]>->( 1, 'loading yaml task files..,' );
+<[base.logs]>->( 1, '[ %s ]', $task_dir_rel );
+
+my %tasks;
+foreach my $dir ( <task.cfg.coding_tasks>,
+    <task.cfg.yaml_dir> . '/deferred-tasks' ) {
+    next unless -d $dir;
+    opendir( my $dh, $dir ) or next;
+    while ( my $file = readdir($dh) ) {
+        next unless $file =~ m|\.yaml$|;
+        my $abs_path = "$dir/$file";
+        eval {
+            my $task_data = $yaml_loader->($abs_path);
+            $tasks{$file} = {
+                'path' => <[base.path.to_keywords]>->($abs_path),
+                'data' => $task_data,
+                'type' => $dir =~ m|deferred|
+                ? 'deferred-task'
+                : 'coding-task',
+            };
+        };
+        if ($EVAL_ERROR) {
+            <[base.logs]>->( 2, 'skipped [ yaml parse error ] : %s', $file );
+        }
+    }
+    closedir $dh;
+}
+
+## process into registry
+##
+foreach my $filename ( sort keys %tasks ) {
+    my $task_data = $tasks{$filename}{'data'} // {};
+
+    ( my $task_id = $filename ) =~ s|\.yaml$||i;
+
+    <task.registry>->{$task_id} = {
+        'id'       => $task_id,
+        'filename' => $filename,
+        'path'     => $tasks{$filename}{'path'},
+        'type'     => $tasks{$filename}{'type'},
+        'title'    => $task_data->{'title'}
+            // $task_data->{'task_metadata'}{'title'} // $task_id,
+        'status' => $task_data->{'status'}
+            // $task_data->{'task_metadata'}{'status'} // 'unknown',
+        'priority' => $task_data->{'priority'}
+            // $task_data->{'task_metadata'}{'priority'} // 'medium',
+        'data'        => $task_data,
+        'assigned_to' => undef,
+        'history'     => $task_data->{'history'} // [],
+    };
+
+    my $status = <task.registry>->{$task_id}->{'status'};
+    <task.by_status>->{$status} //= [];
+    push @{ <task.by_status>->{$status} }, $task_id;
+}
+
+my $loaded_count = scalar keys %{<task.registry>};
+<[base.logs]>->( 1, ': loaded %d task files =).', $loaded_count );
+
+#,,.,,..,,,,.,.,,,...,.,,,,..,,,.,...,,.,,,,.,..,,...,..,,,.,,.,,,.,,,,,.,,,,,
+#ZXSVP5OAI4XGWPGO3RYG6U4BZT62ZYTOVOVJWG52IJT6Y5T3OFW2X7OUQ4RQTXWLWHDGO67RTCOGQ
+#\\\|SVNZ7PNFWIDOSJJCJQGWVSNZFNWTC6YLCLIQFWKRFJUEYJL55K2 \ / AMOS7 \ YOURUM ::
+#\[7]OQ6DDDWNDUCCX2EJB5YP63K2JS7T5V24GEB4QOKJP4CFM7E4CMDQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

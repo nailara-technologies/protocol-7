@@ -186,12 +186,26 @@
                                      models.record_invocation models.statistics \
                                      models.substitute_template models.conversation_create \
                                      models.conversation_add_turn models.find_alternative \
-                                     models.conversation_get_context v7.register_child
+                                     models.conversation_get_context v7.register_child \
+                                     task.list task.status task.next \
+                                     task.assign task.start task.complete \
+                                     task.block task.handover
 
            access.cmd.usr.models  =  v7.register_child coding.ask-reply \
-                                     kimi.ask-reply
+                                     kimi.ask-reply \
+                                     task.list task.status task.next
 
-             access.cmd.usr.kimi  =  v7.register_child
+             access.cmd.usr.kimi  =  v7.register_child \
+                                     task.list task.status task.next \
+                                     task.assign task.start task.complete \
+                                     task.block task.handover
+
+             access.cmd.usr.task  =  v7.register_child \
+                                     v7.notify_online v7.restart_concurrent
+
+             access.cmd.usr.work  =  task.list task.status task.next \
+                                     task.handover
+
 
             access.cmd.usr.zulum  =  decoder.receive-entropy *.receive-entropy
 
@@ -218,8 +232,8 @@
                                      tile-groups.get_subconfig \
                                      rss-ticker.resend_update
 
-#,,..,,,,,...,...,.,.,.,,,,,,,,,,,.,,,,..,...,..,,...,...,,.,,,.,,..,,,..,,,,,
-#QRNFUWYZPATYJZZ5LLA4IHCI2NHVGQAVZHFSKMST4YDL5DMR52ZIST5RFGO3WJC5RYZERJVY3CT7Y
-#\\\|ARQCQNMDYANIMDBJIAE3JHC56X5DXEW7273LDXHDRSF2YURREN5 \ / AMOS7 \ YOURUM ::
-#\[7]XHGNGE6WNXHBDKZWU3QFBUPMWY3SAOLYMAQ63GDUH2YXMHVLTKCQ 7  DATA SIGNATURE ::
+#,,,,,..,,.,,,...,,,.,,.,,,,.,...,..,,,.,,,,,,..,,...,...,...,.,.,.,.,,.,,...,
+#CYH42EEU75N3AFXEYMMS7I2KQM72EWEVUWWSRDXNUYXPEZ3B3FPCNQJ33ZNGSXBJKVADSD3F42Q5U
+#\\\|BXETPA6FRJ2PSEXR6VJ4US6PGUTWSKHJFTV2TP3HIBFUTKVA76W \ / AMOS7 \ YOURUM ::
+#\[7]QD6BKFWJUOAI5OSGVEQFVR6UAH4NABWRQLIWRNHXULCHEKBNM6CY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
