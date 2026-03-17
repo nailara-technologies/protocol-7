@@ -1,0 +1,95 @@
+---
+title: llm coordination zenka — token-aware session-distributed work scheduling
+priority: medium
+status: open
+type: new-feature
+
+description: |
+  treat the llms in the development team (kimi, claude, etc.) as coding zenki
+  with resource constraints: weekly token budgets, per-session context windows,
+  reset schedules. a coordination zenka manages work distribution across them
+  the same way v7 manages zenki — aware of capacity, routing tasks to who has
+  room, avoiding exhaustion.
+
+  the user is treated as another coding zenka in the team — contributing at
+  natural pace, receiving questions when the llm needs input rather than
+  blocking on output, handing off and picking up work fluidly.
+
+motivation: |
+  the problem is not burning through tokens too fast — it is tokens expiring
+  *unused* because work was blocked waiting for user input at session boundaries.
+  when the user sleeps, work sits idle. when the weekly budget resets, that
+  unused capacity is simply gone.
+
+  if tasks are decomposed into independently testable, self-contained steps
+  with enough context, other llms can continue working autonomously through
+  the gap — testing, validating, committing — and only surface genuine decision
+  points for when the user returns. the coordination value is in keeping
+  available capacity actually productive rather than idle at boundaries.
+
+  clean handover between llms (kimi → claude or reverse) is also a gain:
+  rather than context loss at session boundary, the coordination layer
+  packages handover state explicitly — the same way v7 handles concurrent
+  restart handover.
+
+core_concepts:
+  token_budget_as_resource: |
+    each llm zenka has:
+      weekly_tokens: total budget for the week
+      session_tokens: per-session context limit
+      reset_schedule: when weekly budget refills
+      current_used: tokens consumed so far this week
+      session_used: tokens used in current session
+
+    target rate: spread work to consume ~(weekly_tokens / 7) per day on average.
+    leave slack for user interaction — llm output is not the only valuable work.
+
+  session_awareness: |
+    as a session approaches its context limit, the llm should:
+      - summarize in-progress work into handover state
+      - flag open questions that need user input before next session
+      - package task state for clean pickup by next session or other llm
+
+    this is the same pattern as the v7 handover arc — retire cleanly,
+    don't push through degraded state.
+
+  user_as_zenka: |
+    the user is a peer contributor with their own availability window,
+    not just an input source. coordination should:
+      - route questions and decisions to the user at natural breakpoints
+      - not block progress on user input when work can continue independently
+      - respect that the user also has sessions, sleep cycles, and attention limits
+      - treat user feedback with the same weight as llm output
+
+  work_routing: |
+    tasks have affinity by type and context:
+      kimi:   long sustained implementation, large context carry
+      claude: design review, architecture, focused implementation passes
+      user:   decisions, direction, testing, validation, domain knowledge
+
+    the coordination zenka routes based on current capacity and affinity,
+    not just whoever is available.
+
+implementation_sketch: |
+  - coordination.zenka: tracks llm resource state, task queue, routing
+  - coordination.cmd.assign: route task to llm with capacity + affinity
+  - coordination.cmd.handover: package session state for clean transfer
+  - coordination.cmd.report_budget: llm reports current token consumption
+  - per-llm config in zenka-startup.v7 or equivalent:
+      llm.weekly_budget  = 1000000
+      llm.reset_schedule = monday 00:00 utc
+      llm.session_limit  = 200000
+      llm.affinity       = implementation
+
+notes: |
+  first noted 2026-03-17 after kimi weekly reset — lost >50% of weekly
+  budget due to no schedule awareness, coordination should prevent this.
+  the v7 handover design work this week is a good model for how the
+  coordination layer itself should be built: small clean steps, each
+  committable independently.
+
+#,,.,,,..,,.,,...,..,,,..,,.,,.,.,,,.,...,,..,..,,...,...,..,,,,.,.,.,.,.,...,
+#NLBIDEPTOKRAJYGLTQPNHKW54KJDA6BQZTX23SBZGZBQTDFVL72LP3RBQKH5L22MVXTUGKJIUAJSO
+#\\\|NQIP3R4S4PEKNMY3E3PHNKWT27VZAHEY2YXN76JPECDZXFY2HEQ \ / AMOS7 \ YOURUM ::
+#\[7]K6EPRQBNFTMYF4PRUO4Y7Y5XIZINALVIOMYYV4WOV7NQI6IXNSCI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

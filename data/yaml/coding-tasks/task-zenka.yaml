@@ -1,0 +1,132 @@
+---
+title: task zenka — hybrid state-machine and coordination interface
+priority: high
+status: open
+type: new-zenka
+
+description: |
+  a zenka called 'task' that acts as both a state machine for development
+  tasks and the network interface to it. it understands the task directory
+  (data/yaml/coding-tasks/ and similar), yaml and markdown task files natively,
+  and normalizes any input form into managed coordination state.
+
+  it is the live bridge between static task files and the active P7 network —
+  any zenka, llm, or user queries and updates it the same way via network
+  commands. the yaml files remain the persistent human-readable backing format;
+  the zenka holds the live view with state transitions, assignments, and history.
+
+hybrid_nature: |
+  store  : loads and tracks task files, maintains current state for each task,
+           persists state transitions back to yaml/markdown
+  interface : queryable and commandable over the P7 network like any zenka —
+           task.list, task.next, task.assign, task.complete, task.status, etc.
+
+  any input form arrives and gets normalized into managed state:
+    - yaml task files (existing data/yaml/coding-tasks/ format)
+    - markdown task descriptions
+    - natural language from llm session output
+    - network commands from other zenki or llms
+    - user commands via nshell or p7 binary
+
+state_machine: |
+  task states:
+    open          — defined, not yet started
+    assigned      — routed to a zenka/llm/user, not yet in progress
+    in_progress   — actively being worked
+    blocked       — waiting for input, dependency, or decision
+    review        — work complete, awaiting verification
+    completed     — verified and done
+    archived      — moved to archive directory
+
+  transitions are logged with timestamp, actor (which zenka/llm/user),
+  and optional context note. history is preserved in the task file.
+
+coordination_interface: |
+  task.list [filter]         — list tasks by status, priority, assignee
+  task.next [assignee]       — return highest priority executable next task
+                               (no blocking questions, independently runnable)
+  task.assign <id> <actor>   — assign task to zenka/llm/user
+  task.start <id>            — transition to in_progress
+  task.block <id> <reason>   — mark blocked with reason
+  task.complete <id>         — transition to completed, archive if confirmed
+  task.status <id>           — full state view of a task
+  task.handover <id>         — package task state for llm session handover
+
+dependency_enforcement: |
+  dependencies are enforced structurally — task.next never returns a task
+  whose dependencies are not in 'completed' state. no discipline required
+  from the executing llm; the state machine prevents rushing ahead.
+
+  this catches the common llm pattern of assuming a step is done because
+  the code looks right. 'completed' requires an explicit transition with
+  verified acceptance criteria — not implied by the work having been written.
+
+  logical ordering is therefore guaranteed across parallel sessions too:
+  two llms working simultaneously cannot circumvent dependencies by racing —
+  each step must be explicitly completed before dependent steps become
+  available to either session.
+
+executable_next: |
+  task.next is the key command for autonomous coordination — it returns
+  the next task that can be started without requiring user input:
+    - status is open or blocked-on-dependency-resolved
+    - all dependencies are met
+    - has enough context to execute independently
+    - acceptance criteria are defined and verifiable
+
+  this is what allows llms to work autonomously through session gaps —
+  they call task.next, get a self-contained work unit, execute and verify,
+  then call task.next again. user input is only required for tasks explicitly
+  flagged as needing a decision.
+
+input_normalization: |
+  the zenka understands multiple input forms and converts all to internal
+  state:
+    yaml files   : native format, load on startup and watch for changes
+    markdown     : parse task sections (## title, status:, priority: etc.)
+    llm output   : extract task updates, completions, new tasks from session
+                   summaries and handover documents
+    free text    : best-effort parse for task references and state changes
+
+  arrival path: any form → normalized task record → state machine → yaml
+
+existing_infrastructure: |
+  use existing base modules rather than reimplementing — these are already
+  proven in v7 and coding zenka contexts:
+
+    base.dependency   — dependency graph tracking, resolution, callbacks
+                        already handles add_object, get_missing, install_callbacks
+                        task dependency enforcement built on top of this directly
+
+    jobqueue          — prioritized ordered job execution with callbacks
+                        already handles priorities_table, add_job, remove_job,
+                        find_jobs, joblist_template
+                        task.next is essentially a jobqueue.next_job view
+                        filtered by dependency resolution and assignee affinity
+
+  any refinements or expansions needed for task zenka go into these base
+  modules generically — all consumers (v7, coding, task) benefit simultaneously.
+  this is the right expansion path rather than task-specific reimplementation.
+
+integration: |
+  - watches data/yaml/coding-tasks/ for file changes (inotify or poll)
+  - publishes task state changes as P7 events (other zenki can subscribe)
+  - interfaces with llm-coordination-zenka for assignment and routing
+  - interfaces with v7 for zenka-level task execution (spawn coding zenka
+    with task context, monitor completion, update state on exit)
+  - user accessible via nshell: 'task.next', 'task.list open' etc.
+
+notes: |
+  noted 2026-03-17 as the natural coordination layer between static task
+  files and the autonomous llm work distribution system. the hybrid
+  store+interface design means it is both the source of truth and the
+  active coordination point — no separate registry needed.
+
+  existing data/yaml/coding-tasks/ files are the seed dataset and remain
+  the persistent format throughout.
+
+#,,,,,,.,,.,.,..,,,,,,,,.,..,,,,,,,,,,.,,,,,.,..,,...,...,...,,..,,..,,,.,,..,
+#7FVDL437F6L74I2SKNR4EZ7HTW233XQWJEFF2QX6IULO5NDXXFQNIRKR4GCXZP42AQ5TRUR5HJ674
+#\\\|OPBRL34WYEAQ7H6Q3VOQBEDLYRRSGXCHSEJBEICXOM46NHQ7UY7 \ / AMOS7 \ YOURUM ::
+#\[7]ROG7PYFE3F7FPX23XIJR4FE4W354DN2KMBE4QVAAPOKKWNX35UCI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
