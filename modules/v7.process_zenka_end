@@ -78,6 +78,25 @@ if (    defined $instance_id
         ? qw|  error  |
         : qw| offline |;
 
+    # check exit code for external binaries [ exec-external zenki ]
+    if ($instance->{'external'}
+        and defined $ARG[3]    # exit_val passed
+        and $ARG[3] != 0
+        ) {                    # non-zero exit
+        $next_status = qw| error |;
+        <[base.logs]>->(
+            0, "external binary '%s' exited with code %d, status --> error..",
+            $zenka_name, $ARG[3]
+        );
+    } elsif ( $instance->{'external'}
+        and defined $ARG[3]
+        and $ARG[3] == 0 ) {
+        <[base.logs]>->(
+            1, "[ exit 0 ] external binary '%s' completed successfully.",
+            $zenka_name
+        );
+    }
+
     $next_status = qw| restart | if $current_status eq qw| restart |;
 
     if ( $current_status eq qw| online | and defined <v7.ondemand_zenki> ) {
@@ -116,8 +135,8 @@ if (    defined $instance_id
 
 return TRUE;
 
-#,,,,,,..,..,,,.,,.,,,,,,,,,.,.,.,,..,..,,,.,,..,,...,...,,,.,,.,,..,,,,,,.,,,
-#3QAI3STT7Q5LYKXXFDZ4MYAROWPNRXXAWRTHBUFL6HLEQ2PHDC5M45YZT4ZQ7PGWSLGI3DKLE5ST4
-#\\\|DDZVXBBHVEX3ROP22LDJYNWLBXZGA3FD3CCHA5BHM5NLVOF7TC2 \ / AMOS7 \ YOURUM ::
-#\[7]OJJQSSTNOG5D3OTORFGZ425KPDCZHQZ3X6FNXEPFWXRBTM3322BY 7  DATA SIGNATURE ::
+#,,,.,,..,,,,,...,..,,.,.,.,.,,.,,,,,,,..,.,,,..,,...,...,.,.,,..,,,.,,,,,,,,,
+#FMD7QR46LDMNBNTFDEQP5SUXDMFZ7XUQYZPWOYM5LVOJSWZZFELJPDKNYCGYIXZI4WHGOSTWUYRG6
+#\\\|GPLLKIO2PK5IDMM6AQ5IO7DV3JCXFE5VLY3TWZZQPKFSE2244GJ \ / AMOS7 \ YOURUM ::
+#\[7]PHMFUAZRJURB4YMBMYUIGUPKKZQD2S5HXONQEGCUTQAHD5FQF6CA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
