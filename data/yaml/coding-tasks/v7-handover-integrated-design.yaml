@@ -1,0 +1,143 @@
+---
+title: v7 integrated handover — first-class concurrent restart design
+priority: medium
+status: open
+type: design+implementation
+
+description: |
+  the concurrent restart draft (committed 2026-03-17, cce0bfb5e) proves the
+  concept works but implements handover as a collection of patches across v7
+  and httpsd rather than as a proper v7-owned lifecycle. this risks a series
+  of hacks that destabilize both systems and forces each new zenka wanting
+  concurrent restart to re-implement the same pieces independently.
+
+  handover needs to be a first-class v7 concept with v7 owning the full arc.
+
+current_draft_problems:
+  - httpsd.cmd.self_terminate calls exit(0) directly, circumventing the event
+    loop — v7 sees it as unexpected termination regardless of exit code
+  - httpsd.handler.drain_check runs a timer inside httpsd to poll session count
+    — drain completion monitoring belongs in v7, not the zenka
+  - no clean "drain complete" signal path from zenka back to v7
+  - v7.stop is wrong for handover [ marks zenka manually stopped, disables
+    restart — new instance would never be restarted ]
+  - drain state is set on the instance but sig_chld does not check it, so
+    a draining instance that exits cleanly still triggers error/restart logic
+  - httpsd-side modules (drain, drain_check, self_terminate) would need to be
+    duplicated in every zenka that wants concurrent restart support
+
+desired_design:
+  v7_owns_the_arc: |
+    v7 drives the entire handover lifecycle. the zenka only needs to:
+      1. call v7.restart_concurrent [ initiates handover ]
+      2. call v7.drain_complete [ when it has finished serving connections ]
+    everything else — drain signal, monitoring, old instance termination,
+    state transitions, logging, error handling — lives in v7.
+
+  instance_states: |
+    extend instance state machine with handover-specific states:
+      running       → normal operation
+      draining      → drain signaled, stop accepting, finish existing sessions
+      drain_complete → zenka reported zero sessions, ready for termination
+      retiring      → v7 is terminating the old instance gracefully
+      retired       → old instance cleanly replaced [ not error, not stopped ]
+
+    'retired' is distinct from 'error' and 'stopped' — it does not trigger
+    restart policy and does not mark the zenka as manually stopped.
+
+  drain_complete_command: |
+    new v7 command: v7.drain_complete [ source_zenka_sid injected by cube ]
+    - zenka calls it via route-send when session count reaches zero
+    - v7 identifies the calling instance via injected SID
+    - v7 cancels the drain_timeout timer
+    - v7 sends SIGTERM to old instance [ or base.exit equivalent ]
+    - v7 transitions instance to 'retiring' → 'retired'
+    - v7 logs the clean handover completion
+
+  sig_chld_awareness: |
+    v7.handler.sig_chld checks draining/retiring flag on exiting instance:
+    - if instance was in draining/retiring state → treat as clean retirement
+    - no error status, no restart trigger, remove instance from tracking
+    - log at level 1 [ clean handover trace ]
+
+  zenka_side_thin: |
+    the zenka only needs a minimal drain hook:
+    - httpsd.cmd.drain : close listen socket, set draining flag
+    - when session count hits zero: call v7.drain_complete via route-send
+    - no self_terminate, no drain_check timer, no exit() calls
+    - the same thin interface works for any zenka, no duplication
+
+  error_handling: |
+    - new instance fails to start: v7 cancels handover, old instance continues
+    - drain timeout exceeded: v7 force-terminates old instance [ existing
+      v7.handler.drain_timeout covers this ]
+    - drain_complete called but new instance already gone: v7 logs and recovers
+    - handover interrupted (v7 restart): old instance left running, new attempt
+
+zenka_startup_registration: |
+  zenki opt in to handover via zenka-startup.v7 parameters. v7 checks these
+  before attempting concurrent restart — falls back to kill+restart if absent.
+
+  handover.capable  = 1         # opts in to concurrent restart / drain protocol
+  handover.drain_timeout = 120  # per-zenka drain window in seconds
+
+  default drain_timeout should be relaxed enough that normal request/response
+  cycles always complete naturally under load, but tight enough that a slow
+  drain does not indefinitely block system-level updates. long-running zenki
+  (streaming, large transfers, batch jobs) declare their own longer window.
+
+  examples:
+    httpsd  : 60s  [ typical https request/response well within this ]
+    httpd   : 30s  [ default, suitable for short-lived http ]
+    ffmpeg  : 600s [ long encode may be in flight during restart ]
+    models  : 300s [ inference request could run for minutes ]
+
+  v7 reads these at handover initiation time, not at startup — so changing
+  the value takes effect on the next restart without restarting v7 itself.
+
+httpd_first_approach: |
+  test and validate the full handover arc on httpd [ non-ssl, local port ]
+  before upgrading httpsd. httpd is easier to hammer with concurrent connections,
+  no TLS complexity, runs on unprivileged port. once drain→v7.drain_complete→
+  retiring→retired is clean on httpd, httpsd gets identical treatment.
+
+approach: |
+  v7 zenka management is foundational — everything in the system depends on it
+  and it carries a high established trust level. the concurrent restart draft
+  showed what happens when changes are bolted on in one large pass: cleanup
+  is needed before the feature is truly reliable.
+
+  this time: smaller steps, each one clean and self-contained before the next
+  begins. no partial states left in v7's instance tracking, no side-effects
+  that need later fixing. a slower pace here protects the trust level that
+  makes the rest of the system possible to reason about.
+
+  each step should be committable independently and leave v7 in a known-good
+  state — not "works but needs follow-up."
+
+implementation_order:
+  1. design instance state machine extension [ retired, drain_complete states ]
+  2. add v7.drain_complete command with source_zenka_sid alias
+  3. update v7.handler.sig_chld to handle retiring/draining exit cleanly
+  4. replace httpsd.cmd.self_terminate with route-send to v7.drain_complete
+  5. remove drain_check timer from httpsd [ v7 handles it via drain_complete ]
+  6. update httpsd.cmd.drain to only close listen socket + set local flag
+  7. verify end-to-end: httpsd restart under load, zero failed connections
+
+notes: |
+  current draft modules to revise:
+    httpsd.cmd.self_terminate  — remove entirely
+    httpsd.handler.drain_check — simplify to just call v7.drain_complete
+    httpsd.cmd.drain           — keep but simplify [ only closes listen socket ]
+  current draft modules that are correctly placed:
+    v7.zenka.cmd.restart_concurrent     — keep, is the initiation point
+    v7.zenka.instance.track_handover    — keep, core tracking
+    v7.zenka.instance.handover_cleanup  — keep, error path cleanup
+    v7.handler.drain_timeout            — keep, force-terminate fallback
+    v7.zenka.cmd.drain-instance         — keep, drain signal to zenka
+
+#,,..,.,.,,..,.,,,,..,.,.,..,,.,.,,,,,,.,,..,,..,,...,...,...,...,.,,,,.,,,,,,
+#FFUQ27YHPJ43MJC3JEM64PDD3RT3EO3A2F4KV7HNSM5XGKCOL2ZFCPZVXAUW3OKYLKC5JN6TTKNNC
+#\\\|K7H7NV73EPUZKN53XVRI4O5EURY3K7YRP7XESY46EEZTB6HI532 \ / AMOS7 \ YOURUM ::
+#\[7]STNBHUYN2T42PKTN5HLC3AU23OFHOUDJT2MPGNU6H7MEWHQCEMAA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
