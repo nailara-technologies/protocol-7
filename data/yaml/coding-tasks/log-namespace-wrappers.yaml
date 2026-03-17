@@ -1,0 +1,84 @@
+---
+task_id: log-namespace-wrappers
+date_created: 2026-03-17
+status: pending
+priority: low
+
+title: |
+  Add log.string and log.fmt core subs as wrappers for base.log / base.logs
+
+description: |
+  base.log (plain string) and base.logs (sprintf format) are the two general
+  logging entry points used throughout the codebase. their names are
+  one-character apart, which causes confusion especially in LLM-assisted
+  sessions. the planned replacement names are:
+
+    log.string  →  plain string, replaces base.log
+    log.fmt     →  sprintf format + args, replaces base.logs
+
+  both names validated harmonically (elf modes 4 and 7):
+    log.fmt     TRUE  [ mode 4: technical/data truth, mode 7: love/intent truth ]
+    log.string  TRUE  [ both modes ]
+    log.format  FALSE [ elf mode 7 failed — hint about namespace fit ]
+    log.str     FALSE [ mode 4 only — ambiguous in other namespaces ]
+    log.msg     FALSE [ both modes — most ambiguous candidate ]
+
+  base.logt is NOT renamed — it is a distinct mechanism (template-indexed
+  protocol message dispatch) that happens to emit to the log. it already has
+  a harmonically true name and lives correctly in base.* namespace.
+
+implementation: |
+  add two new core subs in bin/Protocol-7 following the exact same two-phase
+  pattern as log.noerr / log.error / log.devmod:
+
+  phase 1 [ before log.base_log_complete ]:
+    - direct console output
+    - accumulate in early start-up buffer
+
+  phase 2 [ after log.base_log_complete ]:
+    - delegate to base.log (log.string) or base.logs (log.fmt)
+
+  function naming convention:
+    p7__log__string  →  installed as  log.string
+    p7__log__fmt     →  installed as  log.fmt
+
+  transition strategy:
+    - new code uses log.string / log.fmt immediately
+    - existing base.log / base.logs call sites migrated gradually
+    - no flag-day rename required — both names coexist until migration complete
+    - base.log / base.logs remain as the real implementations throughout
+
+wrapper sketches: |
+
+  sub p7__log__string {
+      ## plain string wrapper — delegates to base.log after init ##
+      if ( $code{'log.base_log_complete'}->() ) {
+          $code{'base.log'}->(@ARG);
+      } else {
+          ## early path: same as log.noerr but with level support ##
+          ...
+      }
+  }
+
+  sub p7__log__fmt {
+      ## sprintf format wrapper — delegates to base.logs after init ##
+      if ( $code{'log.base_log_complete'}->() ) {
+          $code{'base.logs'}->(@ARG);
+      } else {
+          ## early path: sprintf then early-buffer + console output ##
+          ...
+      }
+  }
+
+related:
+  - data/md/documentation/logging-subsystem.md
+  - bin/Protocol-7  (p7__log__noerr, p7__log__error, p7__log__devmod as reference)
+  - modules/base.log
+  - modules/base.logs
+---
+
+#,,..,,.,,,..,,..,...,,..,,.,,.,,,,..,,.,,..,,..,,...,...,.,.,,.,,..,,..,,.,,,
+#XN6CDHF6HCG473EZCXV7DTESLR4Z7RN3V3YP2MR4X75VTZYUXCSG3W6TIX7EHLDK4QYBMRMHMLENM
+#\\\|UOPP7QWDN24NC4MJX5KWQ4NHM4PXBLQ3P43IWBQ4RQPACKULCJQ \ / AMOS7 \ YOURUM ::
+#\[7]YIDC3YVVRSTMX5C5ZHEC7Z3QEYBWTFJTY4F3T3PYAWK5GW2HP2CQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
