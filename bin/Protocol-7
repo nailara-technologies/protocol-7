@@ -2310,8 +2310,9 @@ sub p7_devmod_sub {
 
     ##LLL## requiring switch or confguration parameter., ##
     ##
-    my $skip_hiding   = FALSE;
-    my $quote_content = TRUE;
+    my $skip_hiding    = FALSE;
+    my $quote_content  = TRUE;
+    my $hide_log_write = TRUE;
 
     ## hiding plain text passwords in devmod output [not including conf files]
 
@@ -2340,6 +2341,15 @@ sub p7_devmod_sub {
             }
         } elsif ( $sub_name eq qw| base.net.send_to_socket | ) {
             $_p[1] =~ s|^(auth [^\ ]+) [^\ ]+\n$|$LAST_PAREN_MATCH *****\n|;
+        }
+        ## hiding long [redundant] log messages mixed with ansi sequences ##
+        elsif ( $data{'system'}{'zenka'}{'name'} eq qw| v7 |
+            and $sub_name eq qw| v7.stdout_log.write |
+            and $hide_log_write ) {
+            @_p = (qw| <..log_msg..> |);
+        } elsif ( $sub_name eq qw| base.log.format_entry |
+            and $hide_log_write ) {
+            @_p = ( qw| <..log_msg..> |, qw| <.colors.> | );
         } else {
             $quote_content = TRUE;
         }
@@ -2364,8 +2374,8 @@ sub p7_devmod_sub {
     $param_list =~ s|\0|\\0|g;
 
     ## replacing perl objects ##
-    eval { use Crypt::Misc qw| encode_b32r | }
-        if not defined &{'encode_base32'};
+    p7_load_B32_routines()         if not defined &encode_b32r;
+    eval { require Digest::JHash } if not defined &Digest::JHash::jhash;
     $param_list =~ s{=(CODE|SCALAR|GLOB|HASH|ARRAY)}
                         {' : '.lc($LAST_PAREN_MATCH)}ige;
     $param_list =~ s{(CODE|SCALAR|GLOB|HASH|ARRAY)}
@@ -5614,8 +5624,8 @@ __DATA__
 :
 :.
 
-#,,,,,,,.,,..,,,.,...,,,.,.,.,...,,,.,...,,,,,..,,...,...,...,.,.,...,.,,,,,.,
-#XQYDACFDKKU3F35W6CWBXJZUWYFGWILI2TY34MQP2TZT7HOCVF6JEGQWII6LDUWYWR7GSTADHF6UO
-#\\\|HU2DMA5T5FMGG4CIRIC27SVIDWKJYEJIXQIDU6YEWH5S6O5UYKO \ / AMOS7 \ YOURUM ::
-#\[7]BXZGZGITNSLY4RGOXSPWYMPQS2GKBTGX4XGPEDJT33OWRZ2XW2AA 7  DATA SIGNATURE ::
+#,,,,,.,,,,.,,,,.,,,,,,.,,.,.,,,,,,.,,,,.,.,.,..,,...,..,,,.,,..,,,.,,.,,,.,.,
+#4F4GNHERBBT67IJKSZZ5AJ5ZWKKKD5JOLWQBUL5HUUQUO6EVD4RLLSZOZKPEW5FMXJNTYDXJAYNNC
+#\\\|MK4Z66G7M3Z2EI33GZHPY2EYVWRDFZSH6IPVLKSFCWHDBWO6AO4 \ / AMOS7 \ YOURUM ::
+#\[7]YWITNN3CKGG5GJC6PSRUQY5G7TMHHPKB654NQGXIWEDSZXZXCMAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
