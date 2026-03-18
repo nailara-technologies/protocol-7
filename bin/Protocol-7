@@ -1552,17 +1552,24 @@ sub p7_load_code {
                     and $data{'base'}{'loader'}{'sub_whitelist_enabled'}
                     and not exists $wl->{$file_name} ) {
 
-                    #  lifecycle hooks [ pre/post_init, end_code ] are  #
-                    #  optional-by-convention : skip silently           #
-                    #  only install deferred stubs for runtime subs     #
+                    #  direct lifecycle hooks of the current namespace get a #
+                    #  deferred stub so base.init_modules can call them      #
+                    #  all other lifecycle hooks skip silently               #
                     if ( $file_name
-                        !~ m{\.(pre_init|init_code|post_init|end_code)$} ) {
-                        $code{$file_name}
-                            //= eval( "sub {\n# line 1 \"$file_name\"\n"
-                                . q|$code{'base.handler.|
-                                . q|deferred_compile'}->(@_)|
-                                . "\n}" );
+                        =~ m{\.(pre_init|init_code|post_init|end_code)$}
+                        and $file_name
+                        !~ m{^\Q$code_name\E\.(pre_init|init_code|post_init|end_code)$}
+                    ) {
+                        next;
                     }
+
+                   #  deferred stub for runtime subs and current-namespace   #
+                   #  lifecycle hooks [ so base.init_modules can call them ] #
+                    $code{$file_name}
+                        //= eval( "sub {\n# line 1 \"$file_name\"\n"
+                            . q|$code{'base.handler.|
+                            . q|deferred_compile'}->(@_)|
+                            . "\n}" );
                     next;
                 }
 
@@ -1875,7 +1882,7 @@ sub p7_load_code {
             eval { $staging->{$sub_name} = $sub_cref };
             $compilation_success = FALSE if length $EVAL_ERROR;
 
-            #  first load: also populate %code immediately so compile-loop  #
+            #  first load: also populate %code immediately so compile-loop   #
             #  calls [ base.sort, log.*, etc ] resolve within the same pass  #
             $code{$sub_name} = $sub_cref
                 if $compilation_success and not defined $active_version;
@@ -5584,8 +5591,8 @@ __DATA__
 :
 :.
 
-#,,..,,..,.,,,,..,,,.,,,,,.,.,.,,,,,.,,,,,...,..,,...,...,,..,,,,,,,.,...,,,,,
-#YRG2PZQ2RJ2JB736DYO6S3QZKLBQNEFQAZEFPKEX7WVSAOLXW6FCMLGIMEOFULU6Y2L3OAHT5GJLW
-#\\\|NUE67WKME5WBRWJ3FMUO7RCTIPR6MOFG7ODLQHJ6CI6KK4GDGOS \ / AMOS7 \ YOURUM ::
-#\[7]2B52P6EVBEQAC3ZDTUC7D2RFXOER6L5RNUUUKXSWSFINRQ6CTOBQ 7  DATA SIGNATURE ::
+#,,,,,,..,,,.,...,,..,.,.,,,.,...,,,.,..,,,.,,..,,...,...,,,,,,..,,,.,.,,,,,,,
+#TW4IYUQ3KCFN6HR4OGK2IQ4EX5WX2E26Y3QMEXWO6FNSFUZP5LJYF5CZJSTXTIFTMXXIH2BYR6YGQ
+#\\\|FGKIH3WT4EQPQEFBE3LNTOFCZINSMJJSU54OZ4GXZFCE2S3JERV \ / AMOS7 \ YOURUM ::
+#\[7]MTXMOKOAQINBA52KV2TO7XPDSCAPPLT6RN6CTY6MRAMM5K32LSCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
