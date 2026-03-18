@@ -1,0 +1,50 @@
+## [:< ##
+
+# name  = format.yaml.dump_str
+# descr = serialize data structure to yaml string
+
+my ( $yaml_data, $opts ) = @ARG;
+
+return wantarray ? ( '', 'no data to serialize' ) : ''
+    unless defined $yaml_data;
+
+if ( not defined <format.yaml.dump_str_fn> ) {
+    my $err = 'no yaml dumper loaded [ format.yaml.pre_init required ]';
+    <[base.logs]>->( 0, $err );
+    return wantarray ? ( '', $err ) : '';
+}
+
+my ( $yaml_str, $err_summary );
+
+eval { $yaml_str = <format.yaml.dump_str_fn>->($yaml_data) };
+
+if ($EVAL_ERROR) {
+    $err_summary = <[base.str.eval_error]>;
+
+    <buffer.yaml-errors.max_size> //= 42 * 1024;
+    <[base.buffer.add_line]>->( qw| yaml-errors |, '' );
+    <[base.buffer.add_line]>->(
+        qw| yaml-errors |,
+        '[ yaml dump error ] <string>'
+    );
+    <[base.buffer.add_line]>->( qw| yaml-errors |, $err_summary );
+    <[base.buffer.add_line]>->( qw| yaml-errors |, '' );
+
+    return wantarray ? ( '', $err_summary ) : '';
+}
+
+$yaml_str //= '';
+
+## strip leading document marker [ omit_marker => 1 option ] ##
+##
+if ( ref $opts eq 'HASH' and $opts->{'omit_marker'} ) {
+    $yaml_str =~ s|^---\n||;
+}
+
+return wantarray ? ( $yaml_str, undef ) : $yaml_str;
+
+#,,..,,..,...,...,,,,,.,,,.,.,,..,...,.,.,,..,..,,...,...,..,,,.,,...,,..,.,.,
+#TMF4MF7YOX7HWOOY7ZVV6V7I4ASIQ7JVMLTRBBEHC6B3HLL3VYROTQGVE5FQFTYZO324WBFCJG4UC
+#\\\|V73FE3DMC4TFKIJGW5ZKBDIBBUD4I7CVRX6CC7TR2MMZGBS2BWX \ / AMOS7 \ YOURUM ::
+#\[7]4YG6YCZWUQQK2HLN253IUZNX3HN3V55F4OOCQ4YGP7KFB5IVWUAI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
