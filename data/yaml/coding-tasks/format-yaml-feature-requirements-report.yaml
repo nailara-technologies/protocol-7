@@ -1,0 +1,499 @@
+---
+#
+# format.yaml feature requirements analysis report
+# generated: 2026-03-18
+#
+# This report documents the YAML usage patterns across all 80 analyzed modules
+# to serve as requirements for the format.yaml unified interface.
+#
+
+summary: |
+  format.yaml must provide a unified, backend-agnostic YAML interface that
+  can completely replace all inline YAML::XS, YAML::Tiny, and YAML usage
+  across the codebase. The interface must support both file-based and
+  string-based operations, unified error handling via the yaml-errors buffer,
+  and maintain compatibility with the existing multi-backend architecture
+  (YAML::XS preferred, YAML fallback). Key requirements include: atomic
+  load_file/write_file operations with proper error propagation; string
+  load_str/dump_str for protocol serialization (models zenka, channels);
+  support for complex nested data structures (conversations, registries);
+  and integration with the keyword path resolution system.
+
+required_ops:
+  load_file:
+    count: 28
+    description: Parse YAML from file path to data structure
+    examples:
+      - base.yaml.load_keyword_path (keyword path resolution)
+      - models.storage.yaml_load (zenka_dir registry loading)
+      - models.config.loader (models.yaml configuration)
+      - vision-batch.parent.load_yaml_spec (batch spec loading)
+      - work.load_todos_index (index file loading)
+      - work.scan_yaml_tasks (task file scanning)
+      - httpsd.load-cipher-profile (cipher config)
+      - image-quality.init_code (vision models config)
+      - image-quality.vision.subprocess (model config)
+      - lm-vision.init_code (vision model config)
+    requirements:
+      - Support keyword path resolution via base.path.resolve_keywords
+      - Support both absolute and relative paths
+      - Return undef on error with optional error message
+      - Handle empty files gracefully (return undef with 'empty result' error)
+      - Support zenka_dir paths (file.zenka_dir.load integration)
+
+  write_file:
+    count: 18
+    description: Serialize data structure to YAML file
+    examples:
+      - models.storage.yaml_save (registry persistence)
+      - models.conversation.save (conversation persistence)
+      - menu-commands.save-state (mappings/categories persistence)
+      - protocol-7-menu.position.save (window position)
+      - work.generate_todos_index (todos index)
+      - work.generate_workspace_index (workspace index)
+    requirements:
+      - Atomic write operations
+      - Support file permissions specification (e.g., 0600, 0660)
+      - Support UTF-8 encoding
+      - Support zenka_dir paths (file.zenka_dir.write integration)
+      - Return bytes written or undef on error
+      - Handle complex nested structures (conversations, registries)
+
+  load_str:
+    count: 42
+    description: Parse YAML from in-memory string
+    examples:
+      - channels.util.yaml_decode (channel data parsing)
+      - models.cmd.add_participant (param parsing with JSON fallback)
+      - models.cmd.attach_file (param parsing with JSON fallback)
+      - models.cmd.load_conversation (param parsing)
+      - coding.handler.model_path_reply (models response parsing)
+      - coding.handler.spawn_path_reply (models response parsing)
+      - coding.handler.switch_model_reply (models response parsing)
+      - lm-vision.fetch_model_config (model config parsing)
+      - protocol-7-menu.cmd.menu-update (provider data parsing)
+      - protocol-7-menu.handler.fetch-menu-data (menu data parsing)
+    requirements:
+      - Fast string-to-data parsing
+      - Support prepending '---\n' for compatibility (menu system)
+      - Return undef on error [ same as all other format.yaml ops ]
+      - JSON-first fallback pattern for param parsing is caller-side [ JSON::PP -> YAML ]
+        and must NOT be absorbed into format.yaml — documented here for completeness only
+      # annotation: channels.util.yaml_decode returning {} on error is a wrapper
+      # convention, not a format.yaml requirement. format.yaml.load_str returns undef;
+      # callers that need {} wrap it: my $d = <[format.yaml.load_str]>->($s) // {};
+
+  dump_str:
+    count: 35
+    description: Serialize data structure to YAML string
+    examples:
+      - models.callback.send_reply (YAML response encoding)
+      - models.cmd.get_model_path (model entry serialization)
+      - models.cmd.get_path_by_amos (model entry serialization)
+      - models.handler.process_response (deferred reply)
+      - menu-commands.cmd.get-provider-data (provider YAML output)
+      - menu-commands.format-provider-data (YAML formatting)
+      - vision-batch.parent.cmd.cancel (batch status output)
+      - vision-batch.parent.cmd.process (batch result output)
+      - vision-batch.parent.cmd.status (status YAML output)
+    requirements:
+      - omit_marker option to strip leading '---\n' from output (menu system compatibility)
+        e.g. <[format.yaml.dump_str]>->($data, { omit_marker => 1 })
+      - Support SIZE mode transmission (multiline safe)
+      - Return empty string on error
+      - Pretty-print for human readability
+      - Fast serialization for protocol responses
+
+  load_multi:
+    count: 0
+    description: Load multiple documents from one file
+    note: Not currently used in analyzed modules
+
+  in_place_edit:
+    count: 2
+    description: Load, modify, and write back to same path
+    examples:
+      - models.registry.update_entry.update_model_entry
+      - models.cmd.scan-path-add (load -> modify -> save pattern)
+    requirements:
+      - Atomic read-modify-write semantics
+      - Preserve existing data structure during modification
+
+error_handling:
+  current_patterns:
+    eval_eval_error:
+      count: 45
+      description: eval { } with $EVAL_ERROR check
+      examples:
+        - models.storage.yaml_load
+        - models.conversation.load
+        - models.conversation.save
+        - channels.util.yaml_decode
+        - httpsd.load-cipher-profile
+      
+    base_s_warn:
+      count: 8
+      description: base.s_warn for error reporting
+      examples:
+        - models.storage.yaml_save
+        - menu-commands.load-state
+        - protocol-7-menu.position.save
+    
+    base_logs:
+      count: 35
+      description: base.logs with error level
+      examples:
+        - base.yaml.load_keyword_path
+        - vision-batch.parent.load_yaml_spec
+        - lm-vision.fetch_model_config
+    
+    return_undef:
+      count: 28
+      description: Return undef on failure
+      examples:
+        - models.storage.yaml_load (returns {} on error)
+        - channels.util.yaml_decode (returns {} on error)
+        - base.yaml.load_keyword_path (returns undef)
+    
+    return_empty_str:
+      count: 5
+      description: Return empty string on failure
+      examples:
+        - channels.util.yaml_encode
+
+  recommended_unified_approach: |
+    All format.yaml operations should:
+    1. Use eval {} internally for all YAML operations
+    2. Route errors to the yaml-errors buffer (established in format.yaml.pre_init)
+    3. Return undef on error — always. Callers that need {} or '' wrap it themselves.
+       [ load_file → undef, write_file → FALSE, load_str → undef, dump_str → '' ]
+    4. Support wantarray context for optional error message retrieval:
+       my $data = <[format.yaml.load_file]>->($path);              # simple
+       my ($data, $err) = <[format.yaml.load_file]>->($path);      # with error
+    5. Log via base.logs at appropriate level (2 for debug, 0 for errors)
+
+backend_assumptions:
+  yaml_xs_preferred:
+    count: 68
+    modules:
+      - models.* (all models zenka modules)
+      - channels.util.*
+      - coding.* (handlers and commands)
+      - menu-commands.*
+      - protocol-7-menu.*
+      - vision-batch.*
+    note: YAML::XS is loaded via base.perlmod.load or base.perlmod.autoload
+
+  yaml_tiny_usage:
+    count: 5
+    modules:
+      - models.config.loader
+      - image-quality.init_code
+      - image-quality.vision.subprocess
+      - lm-vision.init_code
+      - web.assets.load_registry
+    note: Used for simple config files, not for complex serialization
+
+  backend_agnostic_fallthrough:
+    count: 1
+    modules:
+      - httpsd.load-cipher-profile
+    pattern: Attempts YAML::XS, falls back to hardcoded defaults
+
+  format_yaml_pre_init:
+    established: |
+      format.yaml.pre_init already handles backend selection:
+      - Tries YAML::XS first (C-based, faster, stricter)
+      - Falls back to pure-perl YAML
+      - Sets format.yaml.loader, format.yaml.dumper, etc.
+
+  strictness_issues_observed:
+    - Unquoted colons in values (channels data)
+    - Multi-document support not used but may be needed
+    - YAML 1.1 vs 1.2 compatibility (YAML::XS is 1.1)
+
+data_shapes:
+  flat_key_value_config:
+    examples:
+      - httpsd.load-cipher-profile (cipher profiles)
+      - menu-commands.mappings/categories
+    note: Simple hash with scalar values
+
+  nested_config_structure:
+    examples:
+      - models.definitions (model config with metadata)
+      - image-quality.vision_models (array of hashes)
+      - lm-vision.vision_model_path config
+    note: Deep nesting, mixed data types
+
+  list_of_records:
+    examples:
+      - models.registry (hash of model entries)
+      - vision-batch.batch_queue (array of jobs)
+      - work.yaml.todos (array of todo items)
+    note: Need to preserve order for lists
+
+  free_form_document:
+    examples:
+      - models.conversations (complex nested structures with arrays/hashes)
+      - channels.data (arbitrary channel data)
+    note: Must handle arbitrary Perl data structures
+
+  mixed:
+    examples:
+      - protocol-7-menu.menu-structure (nested providers/items)
+      - work.suggestions (complex nested config)
+    note: Complex structures requiring full YAML feature support
+
+caching:
+  no_caching_observed:
+    note: |
+      No modules cache parsed YAML data in %data. Each call reloads from
+      disk. This is actually good - simplifies format.yaml implementation.
+      However, some modules do cache in-memory (models.registry, 
+      channels.data) but these are runtime data structures, not YAML cache.
+
+  mtime_invalidation:
+    note: Not observed in analyzed modules
+
+path_handling:
+  absolute_paths:
+    examples:
+      - httpsd.load-cipher-profile (/etc/protocol-7/...)
+      - vision-batch.parent.load_yaml_spec (user-provided)
+
+  relative_to_root_path:
+    examples:
+      - base.yaml.load_keyword_path (uses base.path.resolve_keywords)
+      - models.config.loader (system.conf_path based)
+      - work.scan_yaml_tasks (work.cfg.yaml_data_dir based)
+
+  zenka_dir_paths:
+    examples:
+      - models.storage.yaml_load (file.zenka_dir.load)
+      - models.storage.yaml_save (file.zenka_dir.write)
+      - menu-commands.load-state (file.zenka_dir.load)
+      - protocol-7-menu.position.load/save
+    note: Uses file.zenka_dir.* wrapper functions
+
+  keyword_paths:
+    examples:
+      - base.yaml.load_keyword_path
+      - work.scan_yaml_tasks (converts to keywords)
+    note: protocol-7 specific path resolution
+
+  user_supplied_paths:
+    examples:
+      - vision-batch.parent.load_yaml_spec
+      - models.cmd.load_conversation (filename param)
+    note: May need sanitization (traversal protection observed)
+
+edge_cases:
+  yaml_xs_strict_fallback:
+    severity: high
+    description: |
+      YAML::XS is significantly stricter than pure-perl YAML. During task zenka
+      scaffold implementation, 29 of 38 task yaml files were rejected by YAML::XS
+      (unquoted colons, anchors, tabs, other YAML 1.1 edge cases) but would parse
+      fine under pure YAML. format.yaml.load_file (and load_str) must support a
+      per-call fallback: if YAML::XS fails, retry with pure YAML before giving up.
+      This is distinct from the global backend selection in pre_init — it is a
+      per-operation resilience mechanism so that strict and lenient files coexist.
+      Suggested interface: format.yaml.load_file already has the right shape — on
+      EVAL_ERROR from YAML::XS, retry via the pure-YAML loader before routing to
+      yaml-errors buffer. The yaml-errors entry, if both fail, should note which
+      backend was tried and include both error summaries.
+
+  document_marker_handling:
+    severity: high
+    description: |
+      Several modules manually strip '---\n' from YAML output:
+      - menu-commands.cmd.get-provider-data: $yaml_output =~ s|^---\n||;
+      - menu-commands.format-provider-data: $yaml_output =~ s/^---\n//;
+      This is for protocol-7-menu compatibility which expects YAML
+      without document marker. format.yaml must support an option
+      to omit the document marker in dump operations.
+
+  prepending_document_marker:
+    severity: high
+    description: |
+      protocol-7-menu.cmd.menu-update and protocol-7-menu.handler.fetch-menu-data
+      prepend '---\n' to YAML strings before parsing:
+        my $prepended_yaml = "---\n" . $yaml_string;
+        $provider_data = YAML::XS::Load($prepended_yaml);
+      This is because menu-commands strips the marker when sending.
+      format.yaml.load_str should handle both with and without marker.
+
+  json_yaml_fallback_pattern:
+    severity: medium
+    description: |
+      models zenka commands universally use this pattern for param parsing:
+        eval { $params = JSON::PP::decode_json($call->{'args'}); };
+        if ($EVAL_ERROR) {
+            eval { $params = YAML::XS::Load($call->{'args'}); };
+        }
+      format.yaml should NOT replace this - it's a protocol-level decision
+      to prefer JSON. Documented here for completeness.
+
+  empty_file_handling:
+    severity: medium
+    description: |
+      format.yaml.load_file already handles this:
+      - Returns undef if parser returns undef (empty file or bare '---')
+      - Logs to yaml-errors buffer
+      This matches observed behavior in modules.
+
+  complex_conversation_structures:
+    severity: medium
+    description: |
+      models.conversation.save/load handle complex nested structures
+      with circular references (participants, turns, metadata).
+      YAML::XS handles this fine, but format.yaml must ensure
+      FreezeThaw is NOT needed for YAML (it's used for budget.b32).
+
+  yaml_tiny_compatibility:
+    severity: low
+    description: |
+      Some modules (image-quality, lm-vision, web) use YAML::Tiny
+      for simple config loading. These could be migrated to
+      format.yaml but care must be taken as YAML::Tiny has
+      different behavior for edge cases.
+
+  binary_data_in_yaml:
+    severity: low
+    description: |
+      models.cmd.extract_file uses STRM-SIZE for large file data
+      but embeds metadata as YAML. This hybrid approach should
+      be preserved - format.yaml doesn't need to handle binary.
+
+  file_permissions:
+    severity: low
+    description: |
+      Several write operations specify file permissions:
+      - menu-commands.save-state: 0600
+      - models.storage.yaml_save: 0600
+      - protocol-7-menu.position.save: 0600
+      format.yaml.write_file should support optional permissions.
+
+migration_notes:
+  models_zenka:
+    priority: high
+    modules_affected: 35+
+    notes: |
+      Heavy YAML usage for conversation persistence, registry storage,
+      and protocol responses. Migration should be phased:
+      1. Start with models.storage.yaml_load/yaml_save
+      2. Then migrate command wrappers
+      3. Finally migrate handlers
+      Key: maintain backward compatibility with file paths.
+
+  channels_zenka:
+    priority: medium
+    modules_affected: 3
+    notes: |
+      channels.util.yaml_decode/yaml_encode are simple wrappers.
+      Can be replaced with direct format.yaml calls after ensuring
+      error handling matches (returns {} on error, not undef).
+
+  coding_zenka:
+    priority: medium
+    modules_affected: 10+
+    notes: |
+      Mainly uses YAML for model metadata persistence and handler
+      response parsing. The models_discover_reply has custom parsing
+      (not YAML) for text responses - do not change.
+
+  menu_commands_zenka:
+    priority: medium
+    modules_affected: 5
+    notes: |
+      Requires special handling for document marker stripping.
+      Use the omit_marker option: <[format.yaml.dump_str]>->($data, { omit_marker => 1 })
+
+  protocol_7_menu_zenka:
+    priority: medium
+    modules_affected: 4
+    notes: |
+      Position persistence and menu structure. Uses '---\n' prepending
+      when parsing. format.yaml.load_str should be tolerant of this.
+
+  vision_batch_zenka:
+    priority: low
+    modules_affected: 6
+    notes: |
+      Batch spec loading and status output. Straightforward migration.
+
+  work_zenka:
+    priority: low
+    modules_affected: 8
+    notes: |
+      Index generation and task scanning. Uses YAML::XS::LoadFile
+      and DumpFile directly - easy migration target.
+
+  web_zenka:
+    priority: low
+    modules_affected: 4
+    notes: |
+      Currently uses YAML::Tiny. Consider if migration to format.yaml
+      is worth it (YAML::Tiny is lighter for simple configs).
+
+  base_yaml_load_keyword_path:
+    priority: high
+    notes: |
+      This is the reference implementation for keyword path resolution.
+      format.yaml.load_file should optionally support keyword paths
+      or this module should remain as a wrapper.
+
+open_questions:
+  - |
+    Should format.yaml provide a 'safe_mode' option that restricts
+    certain YAML features (aliases, references) for untrusted input?
+    Currently no modules parse untrusted YAML.
+
+  - |
+    Should format.yaml include built-in schema validation?
+    Several modules (vision-batch.parent.load_yaml_spec) manually
+    validate structure after loading. This could be a future feature.
+
+  - |
+    Should we maintain YAML::Tiny support or migrate everything to
+    YAML::XS (via format.yaml)? YAML::Tiny is only used in 5 modules
+    and could be replaced.
+    # resolved: yes — consolidate. format.yaml provides the fallback chain
+    # (YAML::XS → YAML) which handles everything YAML::Tiny was used for.
+    # migrate the 5 modules (models.config.loader, image-quality.init_code,
+    # image-quality.vision.subprocess, lm-vision.init_code, web.assets.load_registry)
+    # after format.yaml.load_file is verified stable. no YAML::Tiny dependency needed.
+
+  - |
+    How should format.yaml handle circular references? YAML::XS handles
+    them automatically, but this should be documented behavior.
+
+  - |
+    Should format.yaml provide async/ deferred loading for large files?
+    models.conversation.load could benefit from this for large
+    conversation histories.
+    # resolved: not a format.yaml concern. async I/O is handled at the
+    # transport layer (IO::AIO, event loop). format.yaml is synchronous
+    # by design — callers that need deferred loading wrap it in a timer
+    # or AnyEvent::AIO callback themselves.
+
+statistics:
+  total_modules_analyzed: 80
+  modules_using_yaml: 77
+  modules_no_yaml_usage:
+    count: 3
+    list:
+      - crypt.C25519.validate_keyname (no YAML usage despite being in list)
+  yaml_operations_total: 125
+  load_file_operations: 28
+  write_file_operations: 18
+  load_str_operations: 42
+  dump_str_operations: 35
+  in_place_edit_patterns: 2
+
+#,,..,.,,,.,.,.,,,..,,.,.,.,.,,,,,,.,,.,.,,,.,.,.,...,...,,,,,,,,,..,,.,.,.,.,
+#6WONGE5RTUBAYUJ23LYIF45T56ZINKSOCQ64RIDHZ5BB7R4S6PGL2A45XAMVSN7EDUU65Q5FQ23DQ
+#\\\|T63DCSTNXFKMEVSURYCVKYY2AEGANOSEJOKPHUNAHQQOAYSI3ZT \ / AMOS7 \ YOURUM ::
+#\[7]BSANVLTUSYJ5Q2KDZYHIIYDRAZWRJSSRGWJVHONIO4N3PDWHGEDI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
