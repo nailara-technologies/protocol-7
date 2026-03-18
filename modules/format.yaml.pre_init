@@ -1,0 +1,48 @@
+## [:< ##
+
+# name  = format.yaml.pre_init
+# descr = load yaml parser module — prefer YAML::XS, fall back to YAML
+
+## initialize yaml-errors log buffer
+##
+<buffer.yaml-errors.max_size> //= 42 * 1024;
+
+## try YAML::XS first [ faster, stricter C-based parser ]
+##
+<format.yaml.loader> = undef;
+
+eval { <[base.perlmod.autoload]>->('YAML::XS') };
+if ( not $EVAL_ERROR ) {
+    <format.yaml.loader>      = \&YAML::XS::LoadFile;
+    <format.yaml.dumper>      = \&YAML::XS::DumpFile;
+    <format.yaml.load_str_fn> = \&YAML::XS::Load;
+    <format.yaml.dump_str_fn> = \&YAML::XS::Dump;
+    <format.yaml.backend>     = 'YAML::XS';
+}
+
+## fall back to pure-perl YAML
+##
+if ( not defined <format.yaml.loader> ) {
+    eval { <[base.perlmod.autoload]>->('YAML') };
+    if ( not $EVAL_ERROR ) {
+        <format.yaml.loader>      = \&YAML::LoadFile;
+        <format.yaml.dumper>      = \&YAML::DumpFile;
+        <format.yaml.load_str_fn> = \&YAML::Load;
+        <format.yaml.dump_str_fn> = \&YAML::Dump;
+        <format.yaml.backend>     = 'YAML';
+    }
+}
+
+if ( not defined <format.yaml.loader> ) {
+    <[base.logs]>->(
+        0, 'no yaml parser available [ YAML::XS or YAML required ]'
+    );
+} else {
+    <[base.logs]>->( 1, ': yaml backend : %s', <format.yaml.backend> );
+}
+
+#,,,,,...,.,.,...,.,.,..,,,..,,,,,.,.,.,.,,,,,..,,...,...,.,,,..,,.,,,,.,,,,.,
+#3OEI6YF53N735QKFDRBTJUNMLMDXHDKNYP26LX6CJJGHLHNFWQOR5K2EKMJSIFPC22OSLISMJXXMU
+#\\\|4Z27G5EKODGJDD7DMENSU4HRSYBHLQVUA7VY2VDCMHPKHJ2DSJL \ / AMOS7 \ YOURUM ::
+#\[7]UCTNGHA2WXLB7GV5HTMQPDKSQ6TG23BMLLMWIRBOD5OJWBRO2ACA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
