@@ -1,11 +1,12 @@
 ## [:< ##
 
-# name  = format.yaml.load_file
-# descr = load and parse a yaml file — errors routed to yaml-errors buffer
+# name  = format.yaml.load_str
+# descr = parse yaml from string
+#         - yaml::xs strict failures fall back to pure yaml
 
-my $path = shift // return undef;
+my $str = shift // return undef;
 
-if ( not defined <format.yaml.loader> ) {
+if ( not defined <format.yaml.load_str_fn> ) {
     my $err = 'no yaml parser loaded [ format.yaml.pre_init required ]';
     <[base.logs]>->( 0, $err );
     return wantarray ? ( undef, $err ) : undef;
@@ -13,7 +14,7 @@ if ( not defined <format.yaml.loader> ) {
 
 my ( $yaml_data, $err_summary );
 
-eval { $yaml_data = <format.yaml.loader>->($path) };
+eval { $yaml_data = <format.yaml.load_str_fn>->($str) };
 
 ## yaml::xs strict parsing failed — attempt pure-yaml fallback ##
 ##
@@ -23,15 +24,15 @@ if (    $EVAL_ERROR
 
     my $xs_err = <[base.str.eval_error]>;
 
-    ## lazily load and cache the pure-yaml file loader ##
+    ## lazily load and cache the pure-yaml string parser ##
     ##
-    <format.yaml.load_file_fallback> //= do {
+    <format.yaml.load_str_fallback> //= do {
         eval { <[base.perlmod.autoload]>->('YAML') };
-        defined &YAML::LoadFile ? \&YAML::LoadFile : undef;
+        defined &YAML::Load ? \&YAML::Load : undef;
     };
 
-    if ( defined <format.yaml.load_file_fallback> ) {
-        eval { $yaml_data = <format.yaml.load_file_fallback>->($path) };
+    if ( defined <format.yaml.load_str_fallback> ) {
+        eval { $yaml_data = <format.yaml.load_str_fallback>->($str) };
         if ($EVAL_ERROR) {
             $err_summary
                 = sprintf 'YAML::XS: %s; YAML: %s',
@@ -51,15 +52,14 @@ if ( defined $err_summary ) {
     <[base.buffer.add_line]>->( qw| yaml-errors |, '' );
     <[base.buffer.add_line]>->(
         qw| yaml-errors |,
-        sprintf '[ yaml parse error ] %s', $path
+        '[ yaml parse error ] <string>'
     );
     <[base.buffer.add_line]>->( qw| yaml-errors |, $err_summary );
     <[base.buffer.add_line]>->( qw| yaml-errors |, '' );
-
     return wantarray ? ( undef, $err_summary ) : undef;
 }
 
-## parser returned undef without error [ empty file or bare '---' ] ##
+## parser returned undef without error [ empty or bare '---' ] ##
 ##
 if ( not defined $yaml_data ) {
     $err_summary = 'yaml parsed as empty [ no data returned ]';
@@ -67,7 +67,7 @@ if ( not defined $yaml_data ) {
     <[base.buffer.add_line]>->( qw| yaml-errors |, '' );
     <[base.buffer.add_line]>->(
         qw| yaml-errors |,
-        sprintf '[ yaml empty result ] %s', $path
+        '[ yaml empty result ] <string>'
     );
     <[base.buffer.add_line]>->( qw| yaml-errors |, '' );
     return wantarray ? ( undef, $err_summary ) : undef;
@@ -75,8 +75,8 @@ if ( not defined $yaml_data ) {
 
 return wantarray ? ( $yaml_data, undef ) : $yaml_data;
 
-#,,.,,..,,,..,...,...,,,,,,..,,,.,.,.,,,,,.,,,..,,...,...,..,,.,,,,,,,,.,,,,,,
-#O6HMSO33LDWRJ3MMTIFHBBRQ3FSKUVAWVMWG5FSN656KXO5CWFVYLF7MHPNRHDAOKYVZ3ZTV6LIU2
-#\\\|GFG7EX5CLRO3ISEIQPFCUBVP35OUNAYOYA6FUSR3HW7QNRAF5HS \ / AMOS7 \ YOURUM ::
-#\[7]6342YVKDZYQOIXZTNOPNJOE54EJJFB2TATZRI2AAIKLCLZLI46AI 7  DATA SIGNATURE ::
+#,,,.,,,,,.,,,.,,,,,,,.,.,.,.,...,.,.,,..,,.,,..,,...,...,,.,,.,,,,,,,,.,,,,.,
+#YG5HE4Z7JBPPA3M2N7TODWMK3V67GWHHRIJEAH3KCS4VZ5IMOZBQ6GG7MGMHG3CQMBAU6CONRMMQA
+#\\\|HPXQCCUFHDDLNU3F637X37TOQZV3DR55MMWFA4TMLJ3LYR4CUJ3 \ / AMOS7 \ YOURUM ::
+#\[7]OKYOUX4OUBRZAR4ZF3ZC454OT7KRAPEHKQVY67GVHSGJIT3774AQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

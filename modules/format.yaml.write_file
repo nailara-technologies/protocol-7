@@ -24,20 +24,21 @@ if ($EVAL_ERROR) {
     $err_summary =~ s|\s+$||;
 
     <buffer.yaml-errors.max_size> //= 42 * 1024;
-    <[base.buffer.add_line]>->( 'yaml-errors', '' );
+    <[base.buffer.add_line]>->( qw| yaml-errors |, '' );
     <[base.buffer.add_line]>->(
-        'yaml-errors', sprintf '[ yaml write error ] %s', $path
+        qw| yaml-errors |,
+        sprintf '[ yaml write error ] %s', $path
     );
-    <[base.buffer.add_line]>->( 'yaml-errors', $err_summary );
-    <[base.buffer.add_line]>->( 'yaml-errors', '' );
+    <[base.buffer.add_line]>->( qw| yaml-errors |, $err_summary );
+    <[base.buffer.add_line]>->( qw| yaml-errors |, '' );
 
     return wantarray ? ( FALSE, $err_summary ) : FALSE;
 }
 
 return wantarray ? ( TRUE, undef ) : TRUE;
 
-#,,.,,.,.,.,,,...,,,,,...,,.,,,..,.,.,.,,,,,,,..,,...,...,..,,.,,,.,.,.,.,,.,,
-#GVNTUG5I3PLXOSXB5RECUPWYBCA33V4CSPZWVINFIY5ZZCEI2L2U22G6KAJ4W3P7QUCAEI3JR5MOM
-#\\\|OMY3PFTQUHG7NNOASGTXJI4BWOJ5MJTLEMMLIT7LMEU4CJPAVUU \ / AMOS7 \ YOURUM ::
-#\[7]5M6ZOHEW52J6FXODG6KNHFAYJNHYGZPKH5JMFYWS5ZTE6BSHEQCY 7  DATA SIGNATURE ::
+#,,,,,..,,,,.,.,,,,,.,,,.,..,,,..,..,,,,.,,,,,..,,...,...,.,,,,,,,,,,,...,..,,
+#2SCTGQ7F5QK5WSEQH2VFAFZ6ZXK3VVM5OW2KSWRSKKQHHMU3UEBNJESKUWQPST7SPGUG6C2ABDIXK
+#\\\|DVGOI7DVREADPMAHWTE2YHDV3RZPSDISFG75UW7H2HL4L6CYSD2 \ / AMOS7 \ YOURUM ::
+#\[7]CM4EQBIAJE5CFTXF72MIRDJLPBZVCUJXTYU5AML3YMB26KTLA4CI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
