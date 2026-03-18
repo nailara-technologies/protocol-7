@@ -3,23 +3,6 @@
 # name  = task.init_code
 # descr = initialize task zenka — load yaml task files into memory
 
-## load yaml parser — prefer YAML::XS, fall back to YAML
-##
-my $yaml_loader;
-eval {
-    <[base.perlmod.autoload]>->('YAML::XS');
-    $yaml_loader = \&YAML::XS::LoadFile;
-};
-unless ( defined $yaml_loader ) {
-    eval {
-        <[base.perlmod.autoload]>->('YAML');
-        $yaml_loader = \&YAML::LoadFile;
-    };
-}
-return <[base.logs]>->(
-    0, 'no yaml parser available [ YAML::XS or YAML required ]'
-) unless defined $yaml_loader;
-
 ## initialize task data structures
 ##
 <task.registry>    //= {};
@@ -46,19 +29,16 @@ foreach my $dir ( <task.cfg.coding_tasks>,
     while ( my $file = readdir($dh) ) {
         next unless $file =~ m|\.yaml$|;
         my $abs_path = "$dir/$file";
-        eval {
-            my $task_data = $yaml_loader->($abs_path);
-            $tasks{$file} = {
-                'path' => <[base.path.to_keywords]>->($abs_path),
-                'data' => $task_data,
-                'type' => $dir =~ m|deferred|
-                ? 'deferred-task'
-                : 'coding-task',
-            };
-        };
-        if ($EVAL_ERROR) {
-            <[base.logs]>->( 2, 'skipped [ yaml parse error ] : %s', $file );
+        my ( $yaml_data, $err ) = <[format.yaml.load_file]>->($abs_path);
+        if ( not defined $yaml_data ) {
+            <[base.logs]>->( 2, 'skipped %s : %s', $file, $err );
+            next;
         }
+        $tasks{$file} = {
+            'path' => <[base.path.to_keywords]>->($abs_path),
+            'data' => $yaml_data,
+            'type' => $dir =~ m|deferred| ? 'deferred-task' : 'coding-task',
+        };
     }
     closedir $dh;
 }
@@ -94,8 +74,8 @@ foreach my $filename ( sort keys %tasks ) {
 my $loaded_count = scalar keys %{<task.registry>};
 <[base.logs]>->( 1, ': loaded %d task files =).', $loaded_count );
 
-#,,.,,..,,,,.,.,,,...,.,,,,..,,,.,...,,.,,,,.,..,,...,..,,,.,,.,,,.,,,,,.,,,,,
-#ZXSVP5OAI4XGWPGO3RYG6U4BZT62ZYTOVOVJWG52IJT6Y5T3OFW2X7OUQ4RQTXWLWHDGO67RTCOGQ
-#\\\|SVNZ7PNFWIDOSJJCJQGWVSNZFNWTC6YLCLIQFWKRFJUEYJL55K2 \ / AMOS7 \ YOURUM ::
-#\[7]OQ6DDDWNDUCCX2EJB5YP63K2JS7T5V24GEB4QOKJP4CFM7E4CMDQ 7  DATA SIGNATURE ::
+#,,.,,,,.,..,,.,,,.,,,,,,,...,,,.,,,.,,.,,,..,..,,...,...,,.,,.,.,,.,,,,,,.,.,
+#UTBESNXWCRSHXZSGKFBPKSHDK5G4AZDNZ663MRXIB4252IJBK2N6FA2GIU5RJHZXRAD5ER3ZMM4FC
+#\\\|XJ2HQBYIXC5J2GRKOHZFRWDVEUOUOHJUGXMFGYUPKYQ6TCH5D7Z \ / AMOS7 \ YOURUM ::
+#\[7]5IEMB46PGT3PEXDUV5A4QNZNNRY7G4JPZDQSUU4LY7FFYUV3LWCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,0 +1,53 @@
+## [:< ##
+
+# name  = format.yaml.load_file
+# descr = load and parse a yaml file — errors routed to yaml-errors buffer
+
+my $path = shift // return undef;
+
+if ( not defined <format.yaml.loader> ) {
+    my $err = 'no yaml parser loaded [ format.yaml.pre_init required ]';
+    <[base.logs]>->( 0, $err );
+    return wantarray ? ( undef, $err ) : undef;
+}
+
+my $yaml_data;
+my $err_summary;
+
+eval { $yaml_data = <format.yaml.loader>->($path) };
+
+if ($EVAL_ERROR) {
+    ( $err_summary = $EVAL_ERROR ) =~ s|\s*\n.*||s;    ## first line only ##
+    $err_summary =~ s|\s+$||;
+
+    <buffer.yaml-errors.max_size> //= 42 * 1024;
+    <[base.buffer.add_line]>->( 'yaml-errors', '' );
+    <[base.buffer.add_line]>->(
+        'yaml-errors', sprintf '[ yaml parse error ] %s', $path
+    );
+    <[base.buffer.add_line]>->( 'yaml-errors', $err_summary );
+    <[base.buffer.add_line]>->( 'yaml-errors', '' );
+
+    return wantarray ? ( undef, $err_summary ) : undef;
+}
+
+## parser returned undef without error [ empty file or bare '---' ]
+##
+if ( not defined $yaml_data ) {
+    $err_summary = 'yaml parsed as empty [ no data returned ]';
+    <buffer.yaml-errors.max_size> //= 42 * 1024;
+    <[base.buffer.add_line]>->( 'yaml-errors', '' );
+    <[base.buffer.add_line]>->(
+        'yaml-errors', sprintf '[ yaml empty result ] %s', $path
+    );
+    <[base.buffer.add_line]>->( 'yaml-errors', '' );
+    return wantarray ? ( undef, $err_summary ) : undef;
+}
+
+return wantarray ? ( $yaml_data, undef ) : $yaml_data;
+
+#,,,.,,..,...,..,,.,,,.,,,.,,,,,.,,,.,,.,,...,..,,...,..,,..,,,..,...,.,.,,..,
+#6JTDKX3COSDAJSNPH334EKWJS6JA3S4WTNOXDMLLOC4II5ISSY7AXUJHODCHOXN7WBQ5HNTLQOQRC
+#\\\|M7OAZZFC4OXFXBYLDTPBUYT77PFDGPL3HD5H5UGT3NZGEL6WXEZ \ / AMOS7 \ YOURUM ::
+#\[7]N6LYDSJF5M2E6SI5LRQ44UPGS6GKC3YYW7DJCEFLDIRF3FYJOCDQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

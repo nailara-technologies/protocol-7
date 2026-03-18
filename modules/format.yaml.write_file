@@ -1,0 +1,43 @@
+## [:< ##
+
+# name  = format.yaml.write_file
+# descr = serialize data structure to yaml and write to file
+
+my ( $path, $yaml_data ) = @ARG;
+
+return <[base.logs]>->( 0, 'write_file : path not specified' )
+    unless defined $path;
+
+return <[base.logs]>->( 0, 'write_file : no data to write [ %s ]', $path )
+    unless defined $yaml_data;
+
+return <[base.logs]>->(
+    0, 'no yaml parser loaded [ format.yaml.pre_init required ]'
+) unless defined <format.yaml.dumper>;
+
+my $err_summary;
+
+eval { <format.yaml.dumper>->( $path, $yaml_data ) };
+
+if ($EVAL_ERROR) {
+    ( $err_summary = $EVAL_ERROR ) =~ s|\s*\n.*||s;    ## first line only ##
+    $err_summary =~ s|\s+$||;
+
+    <buffer.yaml-errors.max_size> //= 42 * 1024;
+    <[base.buffer.add_line]>->( 'yaml-errors', '' );
+    <[base.buffer.add_line]>->(
+        'yaml-errors', sprintf '[ yaml write error ] %s', $path
+    );
+    <[base.buffer.add_line]>->( 'yaml-errors', $err_summary );
+    <[base.buffer.add_line]>->( 'yaml-errors', '' );
+
+    return wantarray ? ( FALSE, $err_summary ) : FALSE;
+}
+
+return wantarray ? ( TRUE, undef ) : TRUE;
+
+#,,.,,.,.,.,,,...,,,,,...,,.,,,..,.,.,.,,,,,,,..,,...,...,..,,.,,,.,.,.,.,,.,,
+#GVNTUG5I3PLXOSXB5RECUPWYBCA33V4CSPZWVINFIY5ZZCEI2L2U22G6KAJ4W3P7QUCAEI3JR5MOM
+#\\\|OMY3PFTQUHG7NNOASGTXJI4BWOJ5MJTLEMMLIT7LMEU4CJPAVUU \ / AMOS7 \ YOURUM ::
+#\[7]5M6ZOHEW52J6FXODG6KNHFAYJNHYGZPKH5JMFYWS5ZTE6BSHEQCY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
