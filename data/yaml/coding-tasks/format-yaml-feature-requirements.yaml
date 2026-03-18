@@ -1,9 +1,12 @@
 ---
 title: 'format.yaml : feature requirements analysis [ no implementation ]'
 priority: high
-status: open
+status: completed
 type: analysis
 assigned_to: kimi
+completed_by: kimi
+reviewed_by: claude
+reviewed_date: 2026-03-18
 executable_without_input: true
 
 description: |
@@ -183,8 +186,22 @@ acceptance: |
   - report is self-contained and reviewable without re-reading the source modules
   - no implementation code written anywhere
 
-#,,,,,.,.,,..,,,,,,,.,..,,,,.,..,,,.,,,.,,..,,..,,...,...,.,.,,,.,.,.,,,.,.,,,
-#XNQI3DRAGAZTAI6UU5X7LGDH3BTEH2XOO7D3MTPYMKWGOZU3HOAC4GDSD2KATZQLGNRNS5IW7HZTE
-#\\\|R63CJEFIGNAB6OBNZMCWW4TAMOOLCSCTMMEMRMEATJNZWBOS6ZV \ / AMOS7 \ YOURUM ::
-#\[7]4H3BOPB7ZRV3EI66IZTJFOXY2J2NMK4OUKFJQJAP2BEW4T2IA6DQ 7  DATA SIGNATURE ::
+completed_notes: |
+  kimi produced comprehensive 80-module analysis. report reviewed and annotated
+  inline by claude (2026-03-18). key annotations applied to report:
+  1. load_str error return: format.yaml returns undef always [ not {} ] —
+     {} is caller-side wrapping convention, not format.yaml responsibility
+  2. recommended_unified_approach step 3 corrected to match actual impl
+  3. added yaml_xs_strict_fallback edge case [ severity: high ] — YAML::XS
+     rejects 29/38 task yaml files; per-call fallback to pure YAML required
+  4. dump_str option named 'omit_marker' [ was vague 'strip marker option' ]
+  5. yaml::tiny open question resolved: yes consolidate, 5 modules to migrate
+  6. async loading open question resolved: non-requirement [ IO::AIO layer ]
+  7. fixed yaml formatting bug in statistics.modules_no_yaml_usage section
+  report is now ready to drive format.yaml.load_str and dump_str implementation.
+
+#,,,,,,,,,.,.,.,,,.,.,,..,,..,,.,,..,,.,,,,,,,..,,...,..,,,.,,,,.,,..,.,,,,,,,
+#XPZPP4A2SQ4HKLHIYY5FXSFEZ5SVZQXYZALATLNUPIQGLESBAARYRKEIFR73DEUZFZVOLIQKXJ2I4
+#\\\|TYEBVU3OCNPDPYONZXQ6YB5SXMXF6XCMDZZKX76OCT25JYN6G3H \ / AMOS7 \ YOURUM ::
+#\[7]W3DGMXTGMYY3VXS5EMU6TAASO2CE4A6WXLNPCHTYOMULMG6WWSCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
