@@ -1,0 +1,190 @@
+---
+title: 'format.yaml : feature requirements analysis [ no implementation ]'
+priority: high
+status: open
+type: analysis
+assigned_to: kimi
+executable_without_input: true
+
+description: |
+  analyze all modules in the codebase that currently use YAML directly
+  and produce a feature requirements report for format.yaml — documenting
+  what the module needs to implement to serve as a complete, drop-in
+  replacement for all inline yaml usage across the system.
+
+  this is an analysis and documentation task only.
+  do not write any implementation code.
+  output: a structured feature requirements report saved as a yaml file
+  at data/yaml/coding-tasks/format-yaml-feature-requirements-report.yaml
+
+  the existing format.yaml module set so far:
+    modules/format.yaml.pre_init    — backend resolution [ YAML::XS / YAML ]
+    modules/format.yaml.load_file   — load + parse from file path
+    modules/format.yaml.write_file  — serialize + write to file path
+  these are the reference implementations for style and error-handling conventions.
+
+modules_to_analyze:
+  - modules/base.yaml.load_keyword_path
+  - modules/channels.cmd.update
+  - modules/channels.util.yaml_decode
+  - modules/channels.util.yaml_encode
+  - modules/coding.cmd.clear-registry
+  - modules/coding.handler.model_path_reply
+  - modules/coding.handler.models_discover_reply
+  - modules/coding.handler.spawn_path_reply
+  - modules/coding.handler.spawn_smart_path_reply
+  - modules/coding.handler.switch_model_reply
+  - modules/coding.init_code
+  - modules/coding.state.save
+  - modules/coding.vision-parser.extraction.workflow
+  - modules/coding.vision-parser.handler.vision_reply
+  - modules/crypt.C25519.validate_keyname
+  - modules/httpsd.load-cipher-profile
+  - modules/image-quality.init_code
+  - modules/image-quality.vision.subprocess
+  - modules/lm-vision.fetch_model_config
+  - modules/lm-vision.init_code
+  - modules/menu-commands.cmd.get-provider-data
+  - modules/menu-commands.format-provider-data
+  - modules/menu-commands.init_code
+  - modules/menu-commands.load-state
+  - modules/menu-commands.save-state
+  - modules/menu-commands.update-menu
+  - modules/models.callback.send_reply
+  - modules/models.cmd.add_participant
+  - modules/models.cmd.analytics_conversation
+  - modules/models.cmd.attach_file
+  - modules/models.cmd.compact_conversation
+  - modules/models.cmd.consensus_vote
+  - modules/models.cmd.extract_file
+  - modules/models.cmd.get_inference_endpoint
+  - modules/models.cmd.get_model_path
+  - modules/models.cmd.get_path_by_amos
+  - modules/models.cmd.invoke_participant
+  - modules/models.cmd.list_attachments
+  - modules/models.cmd.list_conversations
+  - modules/models.cmd.load_conversation
+  - modules/models.cmd.local_discover
+  - modules/models.cmd.local_server
+  - modules/models.cmd.route_by_role
+  - modules/models.cmd.save_conversation
+  - modules/models.cmd.scan-path-add
+  - modules/models.cmd.task_chain
+  - modules/models.cmd.test_api_fallback
+  - modules/models.cmd.test_api_limit
+  - modules/models.cmd.test_end_to_end_local
+  - modules/models.config.loader
+  - modules/models.conversation.list_saved
+  - modules/models.conversation.load
+  - modules/models.conversation.save
+  - modules/models.handler.process_response
+  - modules/models.init_code
+  - modules/models.registry.init_from_definitions
+  - modules/models.registry.update_entry.update_model_entry
+  - modules/models.storage.yaml_load
+  - modules/models.storage.yaml_save
+  - modules/protocol-7-menu.cmd.menu-update
+  - modules/protocol-7-menu.handler.fetch-menu-data
+  - modules/protocol-7-menu.init_code
+  - modules/protocol-7-menu.position.load
+  - modules/protocol-7-menu.position.save
+  - modules/vision-batch.parent.cmd.cancel
+  - modules/vision-batch.parent.cmd.process
+  - modules/vision-batch.parent.cmd.status
+  - modules/vision-batch.parent.init_code
+  - modules/vision-batch.parent.load_yaml_spec
+  - modules/vision-batch.parent.process
+  - modules/web.assets.load_registry
+  - modules/web.init_code
+  - modules/web.menu_generator
+  - modules/web.skin_resolver
+  - modules/work.console.search
+  - modules/work.generate_todos_index
+  - modules/work.generate_workspace_index
+  - modules/work.init_code
+  - modules/work.load_suggestions
+  - modules/work.load_todos_index
+  - modules/work.load_workspace_index
+  - modules/work.scan_yaml_tasks
+
+analysis_dimensions:
+  operations:
+    description: |
+      for each module, identify which yaml operations are performed:
+        load_file     — parse yaml from a file path → data structure
+        write_file    — serialize data structure → yaml file
+        load_str      — parse yaml from an in-memory string
+        dump_str      — serialize data structure → yaml string [ in-memory ]
+        load_multi    — load multiple documents from one file [ YAML multi-doc ]
+        in_place_edit — load → modify → write back to same path
+
+  error_handling:
+    description: |
+      how does each module handle yaml errors currently?
+        eval + EVAL_ERROR check
+        die / warn propagation
+        return undef on failure
+        error logged and skipped
+        error logged and fatal
+      note patterns that would benefit from the yaml-errors buffer approach.
+
+  backend_assumptions:
+    description: |
+      does the module assume YAML::XS, pure YAML, or is it backend-agnostic?
+      does it load the module itself inline or expect it to be pre-loaded?
+      any strictness issues observed [ unquoted colons, aliases, multi-doc ]?
+
+  data_shapes:
+    description: |
+      what does the parsed yaml typically look like?
+        flat key-value config
+        nested config structure
+        list of records
+        free-form document
+        mixed
+      are there any unusual structures that format.yaml must handle correctly?
+
+  caching:
+    description: |
+      does the module cache loaded yaml data in %data?
+      does it re-read the file on each call or load once?
+      any mtime / invalidation logic?
+
+  path_handling:
+    description: |
+      how are file paths constructed?
+        absolute paths
+        paths relative to system.root_path
+        paths via base.path.to_keywords or similar helpers
+        user-supplied paths [ need sanitization? ]
+
+output_format:
+  description: |
+    write the report as a yaml file:
+    data/yaml/coding-tasks/format-yaml-feature-requirements-report.yaml
+
+    structure the report with sections:
+      summary         — one paragraph: what format.yaml needs to be
+      required_ops    — list of operations with usage count + representative examples
+      error_handling  — recommended unified approach based on observed patterns
+      edge_cases      — unusual patterns that need special handling
+      migration_notes — per-zenka notes on what changes when migrating [ no code ]
+      open_questions  — anything that needs user/architect input before implementing
+
+    be specific. cite actual module names as examples.
+    flag any module that has unusual requirements or does something unexpected.
+    the report will be reviewed and annotated before any implementation begins.
+
+acceptance: |
+  - report file written to data/yaml/coding-tasks/format-yaml-feature-requirements-report.yaml
+  - all 80 modules listed above analyzed [ at least cursorily ]
+  - required_ops section covers all distinct operation types found
+  - edge_cases section identifies at minimum 3 non-obvious patterns
+  - report is self-contained and reviewable without re-reading the source modules
+  - no implementation code written anywhere
+
+#,,,,,.,.,,..,,,,,,,.,..,,,,.,..,,,.,,,.,,..,,..,,...,...,.,.,,,.,.,.,,,.,.,,,
+#XNQI3DRAGAZTAI6UU5X7LGDH3BTEH2XOO7D3MTPYMKWGOZU3HOAC4GDSD2KATZQLGNRNS5IW7HZTE
+#\\\|R63CJEFIGNAB6OBNZMCWW4TAMOOLCSCTMMEMRMEATJNZWBOS6ZV \ / AMOS7 \ YOURUM ::
+#\[7]4H3BOPB7ZRV3EI66IZTJFOXY2J2NMK4OUKFJQJAP2BEW4T2IA6DQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

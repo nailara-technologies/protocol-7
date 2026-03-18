@@ -48,7 +48,8 @@ steps:
 
   2_zenka_scaffold:
     title: basic zenka scaffold + yaml load
-    status: open
+    status: completed
+    completed_commit: 410bb5105
     executable_without_input: false
     depends_on: 1_startup_modes
     description: |
@@ -59,6 +60,19 @@ steps:
       - task zenka starts and connects to cube
       - data/yaml/coding-tasks/*.yaml files loaded into memory
       - task.list returns list of loaded task titles with status
+    completed_notes: |
+      configuration/zenki/task/ created with start, zenka-startup.v7,
+      auth + access wiring in cube/auth.zenki + cube/access.zenki.
+      task.init_code delegates yaml loading to format.yaml.load_file.
+      format.yaml module set introduced [ pre_init, load_file, write_file ]
+      with YAML::XS / YAML fallback and dedicated yaml-errors log buffer.
+      bin/Protocol-7 whitelist fix: lifecycle hooks of explicitly-loaded
+      namespaces now get deferred stubs so base.init_modules can call them.
+      base.zenka.load_sub_list case-sensitivity fix: uppercase sub name
+      segments [ e.g. crypt.C25519.* ] were silently stripped from whitelist.
+      142 subs compiled upfront, no deferred loading during init.
+      9/38 yaml task files load [ YAML::XS strict parsing rejects remainder —
+      tracked separately in format-yaml-feature-requirements.yaml ].
 
   3_state_machine:
     title: state transitions + persistence
@@ -185,8 +199,8 @@ notes: |
   the task zenka's own task file is the first entry in its seed dataset —
   a fitting starting point. =)
 
-#,,.,,,..,..,,..,,,.,,,,,,..,,,.,,,..,.,,,,,.,..,,...,...,..,,,..,,.,,.,.,,..,
-#WDTGANGWYWIH3GSQI7NK6T3AP6DYI3O443V236PMTOPQWVVUYTOQ4SIAKU3AAZIQC7VDPUIGBLZA6
-#\\\|IX36FF6FCYYX6SKUC5VK4VEOCKVEYX3XTSZSQU2SKXGE4PDBWKJ \ / AMOS7 \ YOURUM ::
-#\[7]DAXHRQFEOPLFIQG3OZTGDFLHWU2SJKINIDVSCK4A7PA7OTTGRCCI 7  DATA SIGNATURE ::
+#,,..,,.,,,,.,.,,,..,,..,,,..,.,.,...,,.,,.,,,..,,...,...,..,,.,.,..,,,.,,.,,,
+#A5IGFF36QJVYJMXVMDRVMYYFZDK2M3OVSRJFN23XQLT2Q36CPALQDOOR46YK3T4VKDWVZTG77JHXC
+#\\\|UP3P6LLDK44SRLTYX623LMPHWLENCWIGIIJJ4GVSTLATSDFKNB2 \ / AMOS7 \ YOURUM ::
+#\[7]3P4CT2YMLKE6YNP5ZRJVXID3IOH7D3JVCRY3ZHE3OMMROLERTOBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
