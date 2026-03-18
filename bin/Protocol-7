@@ -1706,8 +1706,24 @@ sub p7_load_code {
     $code{'log.devmod'}->(': compiling ..,');
 
     state $load_seq = 0;
-    my $new_version = sprintf '_v%d_', ++$load_seq;    ##  staging key  ##
+    my $new_version = sprintf qw| _v%d_ |, ++$load_seq;    ##  staging key  ##
     my $staging     = {%code};    ##  seed with pre-imported subs  ##
+
+    ##  detect reload batch : any module previously compiled successfully  ##
+    ##  reload  : staging-only, swap aborted on error [ old code stays ]   ##
+    ##  initial : install directly so one error doesn't strand other subs  ##
+    ##            compiled successfully but unreachable without a swap     ##
+    my $is_reload_batch = FALSE;
+    if ( defined $active_version ) {
+        for my $sub (@compile_order) {
+            my $prev_status = $data{'code'}{$sub}{'status'} // '';
+            if ( $prev_status eq qw|no-error| or $prev_status eq qw|warned| )
+            {
+                $is_reload_batch = TRUE;
+                last;
+            }
+        }
+    }
 
     my ( $ok_count, $err_count, $warn_count, $warn_count_total )
         = ( 0, 0, 0, 0 );
@@ -1749,29 +1765,28 @@ sub p7_load_code {
 
             if ( exists $data{'base'}{$cmd_type}{$cmd_name} ) {
                 my $old_sub = $data{'base'}{$cmd_type}{$cmd_name};
-                if (not
-                    exists $data{'base'}{'overwritten'}{$cmd_type}{$cmd_name}
-                ) {
-                    if ( $sub_name ne $old_sub ) {
+                if ( $sub_name ne $old_sub ) {
+                    ##  different file claiming the same cmd — log + track  ##
+                    if (not exists $data{'base'}{'overwritten'}{$cmd_type}
+                        {$cmd_name} ) {
                         $code{'log.devmod'}->(
                             sprintf( ':: %s :. %s', $sub_name, $old_sub ) );
+                        $data{'base'}{'overwritten'}{$cmd_type}{$cmd_name}
+                            = {
+                            qw| old | => $old_sub,
+                            qw| new | => $sub_name
+                            };
                     } else {
-                        $code{'log.devmod'}->(
-                            sprintf( '<< replacing sub %s >>', $sub_name ) );
+                        push $data{'base'}{'overwritten'}
+                            {$cmd_type}{$cmd_name}{'conflicts'}->@*,
+                            $sub_name;
+                        $data{'base'}{'modules'}{'load_errors'}++;
+                        $code{'log.error'}->(
+                            sprintf( '<<< conflict : %s >>>', $sub_name ) );
+                        $sub_conflict = TRUE;    ## true ##
                     }
-                    $data{'base'}{'overwritten'}{$cmd_type}{$cmd_name} = {
-                        qw| old | => $old_sub,
-                        qw| new | => $sub_name
-                    };
-                } else {
-                    push $data{'base'}{'overwritten'}
-                        {$cmd_type}{$cmd_name}{'conflicts'}->@*,
-                        $sub_name;
-                    $data{'base'}{'modules'}{'load_errors'}++;
-                    $code{'log.error'}
-                        ->( sprintf( '<<< conflict : %s >>>', $sub_name ) );
-                    $sub_conflict = TRUE;    ## true ##
                 }
+                ##  else: same file [ scan pre-reg or reload ] — skip  ##
             }
 
             $data{'base'}{$cmd_type}{$cmd_name} = $sub_name
@@ -1882,10 +1897,12 @@ sub p7_load_code {
             eval { $staging->{$sub_name} = $sub_cref };
             $compilation_success = FALSE if length $EVAL_ERROR;
 
-            #  first load: also populate %code immediately so compile-loop   #
-            #  calls [ base.sort, log.*, etc ] resolve within the same pass  #
+            #  base first load + initial namespace load : install directly  #
+            #  so compile-loop calls [ base.sort, log.*, etc ] resolve,     #
+            #  and so errors in one sub don't strand others without a swap  #
             $code{$sub_name} = $sub_cref
-                if $compilation_success and not defined $active_version;
+                if $compilation_success
+                and ( not defined $active_version or not $is_reload_batch );
         }
 
         my $err_str = $EVAL_ERROR;
@@ -2143,9 +2160,9 @@ sub p7_load_code {
     }
 
     ##  staged hash swap  ##
-    ##  on reload: abort if any errors [ old code stays live ]  ##
-    ##  on first load: swap regardless [ no prior version to fall back to ]  ##
-    if ( not $err_count or not defined $active_version ) {
+    ##  reload : atomic swap + rollback window                           ##
+    ##  initial load : subs already installed directly — no swap needed  ##
+    if ( $is_reload_batch and not $err_count ) {
 
         ##  archive prior version under its load-seq key  ##
         ##  using seq key avoids collision when same src-ver reloaded  ##
@@ -2192,6 +2209,12 @@ sub p7_load_code {
 
             #  else : event loop not ready : defer to base.event.post_init  #
         }
+
+    } elsif ( not defined $active_version ) {
+
+        ##  base first load : mark version without swapping  ##
+        ##  [ subs already in %code via direct install above ]  ##
+        $active_version = $new_version;
 
     }   ##  else : staging discarded, %code unchanged, old code stays live  ##
 
@@ -5591,8 +5614,8 @@ __DATA__
 :
 :.
 
-#,,,,,,..,,,.,...,,..,.,.,,,.,...,,,.,..,,,.,,..,,...,...,,,,,,..,,,.,.,,,,,,,
-#TW4IYUQ3KCFN6HR4OGK2IQ4EX5WX2E26Y3QMEXWO6FNSFUZP5LJYF5CZJSTXTIFTMXXIH2BYR6YGQ
-#\\\|FGKIH3WT4EQPQEFBE3LNTOFCZINSMJJSU54OZ4GXZFCE2S3JERV \ / AMOS7 \ YOURUM ::
-#\[7]MTXMOKOAQINBA52KV2TO7XPDSCAPPLT6RN6CTY6MRAMM5K32LSCY 7  DATA SIGNATURE ::
+#,,,,,,,.,,..,,,.,...,,,.,.,.,...,,,.,...,,,,,..,,...,...,...,.,.,...,.,,,,,.,
+#XQYDACFDKKU3F35W6CWBXJZUWYFGWILI2TY34MQP2TZT7HOCVF6JEGQWII6LDUWYWR7GSTADHF6UO
+#\\\|HU2DMA5T5FMGG4CIRIC27SVIDWKJYEJIXQIDU6YEWH5S6O5UYKO \ / AMOS7 \ YOURUM ::
+#\[7]BXZGZGITNSLY4RGOXSPWYMPQS2GKBTGX4XGPEDJT33OWRZ2XW2AA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

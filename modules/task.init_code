@@ -22,16 +22,19 @@ my $root_path = <system.root_path>;
 <[base.logs]>->( 1, '[ %s ]', $task_dir_rel );
 
 my %tasks;
+my ( $scanned, $skipped ) = ( 0, 0 );
 foreach my $dir ( <task.cfg.coding_tasks>,
     <task.cfg.yaml_dir> . '/deferred-tasks' ) {
     next unless -d $dir;
     opendir( my $dh, $dir ) or next;
     while ( my $file = readdir($dh) ) {
         next unless $file =~ m|\.yaml$|;
-        my $abs_path = "$dir/$file";
+        $scanned++;
+        my $abs_path = catfile( $dir, $file );
         my ( $yaml_data, $err ) = <[format.yaml.load_file]>->($abs_path);
         if ( not defined $yaml_data ) {
             <[base.logs]>->( 2, 'skipped %s : %s', $file, $err );
+            $skipped++;
             next;
         }
         $tasks{$file} = {
@@ -72,10 +75,21 @@ foreach my $filename ( sort keys %tasks ) {
 }
 
 my $loaded_count = scalar keys %{<task.registry>};
-<[base.logs]>->( 1, ': loaded %d task files =).', $loaded_count );
+if ( not $skipped ) {
+    <[base.logs]>->( 1, ': loaded %d task files =).', $loaded_count );
+} else {
+    <[base.logs]>->(
+        1, ': loaded %d of %d task file%s =).',
+        $loaded_count, $scanned, <[base.cnt_s]>->($loaded_count)
+    );
+    <[base.logs]>->(
+        1,        ":. %d parsing error%s : see 'yaml-errors'-buffer",
+        $skipped, <[base.cnt_s]>->($skipped)
+    );
+}
 
-#,,.,,,,.,..,,.,,,.,,,,,,,...,,,.,,,.,,.,,,..,..,,...,...,,.,,.,.,,.,,,,,,.,.,
-#UTBESNXWCRSHXZSGKFBPKSHDK5G4AZDNZ663MRXIB4252IJBK2N6FA2GIU5RJHZXRAD5ER3ZMM4FC
-#\\\|XJ2HQBYIXC5J2GRKOHZFRWDVEUOUOHJUGXMFGYUPKYQ6TCH5D7Z \ / AMOS7 \ YOURUM ::
-#\[7]5IEMB46PGT3PEXDUV5A4QNZNNRY7G4JPZDQSUU4LY7FFYUV3LWCY 7  DATA SIGNATURE ::
+#,,..,...,..,,,,.,,,.,...,.,,,.,,,,..,,..,,..,..,,...,...,...,,..,,,,,.,.,,..,
+#GFE3REY2MCB2KD2VKGFA3DX5VZSIX6OC75R53ST6HHX25AX7G7KLCLX37QAFQF3F7JM5KOXF2D5EK
+#\\\|UNIW3SXAHWETWQBEOFDFIRM4EJB3QEX7URG5VIBHCVXZYFBIY2K \ / AMOS7 \ YOURUM ::
+#\[7]CDRAV3XRCWG4TCODAEB6X7Q2DOJ3D26HH5GYFV5XCLXE2IRIA2DY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
