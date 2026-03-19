@@ -61,13 +61,15 @@ if ($strip) {    ##  NOTE :  also matches\strips old type \ multiple  ##
        # Match blank line separator: just a newline before the signature start
        # This represents the blank line between content and signature
 
-# CRITICAL: Strip all PLACEHOLDER stub footers FIRST - they cause oscillation
-# Stubs look like real footers but contain PLACEHOLDER text instead of signatures
-# By removing them upfront, we prevent them from being matched before real signatures
+    # CRITICAL: Strip all PLACEHOLDER stub footers FIRST - they cause
+    # oscillation Stubs look like real footers but contain PLACEHOLDER text
+    # instead of signatures By removing them upfront, we prevent them from
+    # being matched before real signatures
+    my $pl_str = qw| PLACEHOLDER |;
     if ( $src_ref->$*
-        =~ s|\n?#[\.,]{70,85}\n(?:#[^\n]*PLACEHOLDER[^\n]*\n)+#[:]{70,80}\n?||sg
-    ) {
-        <[base.logs]>->( 3, ': stripped PLACEHOLDER stub footers from file' );
+        =~ s|\n?#[\.,]{70,85}\n(?:#[^\n]*$pl_str[^\n]*\n)+#[:]{70,80}\n?||sg )
+    {
+        <[base.logs]>->( 3, ': stripped %s stub footers from file', $pl_str );
     }
 
     # Define signature patterns for standard extraction
@@ -87,10 +89,12 @@ if ($strip) {    ##  NOTE :  also matches\strips old type \ multiple  ##
     foreach my $sig_pattern (@signature_line_patterns) {
         <[base.logs]>->( 3, ': trying standard pattern: %s', $sig_pattern );
 
-# Match from footer start marker through all content lines to the colon line (end marker)
-# This ensures we capture the complete signature block regardless of line count
-# The pattern captures: (separator)(start marker) then (all body lines including colon with final newline)
-# The separator is a blank line: optional newline before the footer start
+        # Match from footer start marker through all content lines to the
+        # colon line (end marker) This ensures we capture the complete
+        # signature block regardless of line count The pattern captures:
+        # (separator)(start marker) then (all body lines including colon
+        # with final newline) The separator is a blank line: optional
+        # newline before the footer start
         my $pattern
             = qr/(\n)?(# _{78}|$footer_start_regex)\n((?:#[^\n]+\n)+)$/s;
 
@@ -177,26 +181,36 @@ if ($strip) {    ##  NOTE :  also matches\strips old type \ multiple  ##
                 $signature_marker
             );
 
-    # Try different patterns - from specific to more general
-    # These patterns use concrete regex anchors without variable interpolation
-    # Using {} delimiter to avoid conflicts with | in file content
+            # Try different patterns - from specific to more general These
+            # patterns use concrete regex anchors without variable
+            # interpolation Using {} delimiter to avoid conflicts with | in
+            # file content
             my @extraction_patterns = (
 
-    # Pattern 1: Require separator + AMOS7 keyword + data/signature indicators
-    # Most specific: needs newline separator, AMOS7 presence, and colon footer
-                qr{(.*?)(\n#[\.,]{70,80}\n(?:#[^\n]*AMOS7[^\n]*\n)*?(?:#[^\n]*SIGNATURE[^\n]*\n)*?#[:]{70,80}\n?)$}s,
+                ## pattern 1 : separator + AMOS7 keyword + signature markers ##
+                qr{(.*?)
+                   (\n\#[\.,]{70,80}\n
+                    (?:\#[^\n]*AMOS7[^\n]*\n)*?
+                    (?:\#[^\n]*SIGNATURE[^\n]*\n)*?
+                    \#[:]{70,80}\n?)$}sx,
 
-          # Pattern 2: With separator, require either AMOS7 or YOURUM marker
-          # Requires exact marker structure: separator + dot/comma start + end
-                qr{(.*?)(\n#[\.,]{70,80}\n(?:#[^\n]*(?:AMOS7|YOURUM)[^\n]*\n)*?#[:]{70,80}[\s\n]*?)$}s,
+                ## pattern 2 : separator + AMOS7 or YOURUM marker ##
+                qr{(.*?)
+                   (\n\#[\.,]{70,80}\n
+                    (?:\#[^\n]*(?:AMOS7|YOURUM)[^\n]*\n)*?
+                    \#[:]{70,80}[\s\n]*?)$}sx,
 
-     # Pattern 3: No separator required, but require clear signature markers
-     # Fallback when separator missing: require YOURUM or SIGNATURE in content
-                qr{(.*?)(#[\.,]{70,80}\n(?:#[^\n]*(?:AMOS7|YOURUM|SIGNATURE)[^\n]*\n)*?#[:]{70,80}[\s\n]*)$}s,
+                ## pattern 3 : no separator, clear signature markers ##
+                qr{(.*?)
+                   (\#[\.,]{70,80}\n
+                    (?:\#[^\n]*(?:AMOS7|YOURUM|SIGNATURE)[^\n]*\n)*?
+                    \#[:]{70,80}[\s\n]*)$}sx,
 
-         # Pattern 4: Most lenient but strict on markers
-         # Last resort: just need recognizable footer markers and some content
-                qr{(.*?)(#[\.,\s\.]{70,80}\n(?:#[^\n]+\n)*?#[:]{65,}[\s\n]*)$}s
+                ## pattern 4 : most lenient, footer markers + some content ##
+                qr{(.*?)
+                   (\#[\.,\s\.]{70,80}\n
+                    (?:\#[^\n]+\n)*?
+                    \#[:]{65,}[\s\n]*)$}sx
             );
 
             foreach my $pattern (@extraction_patterns) {
@@ -227,7 +241,8 @@ if ($strip) {    ##  NOTE :  also matches\strips old type \ multiple  ##
 
                         <[base.logs]>->(
                             0,
-                            ': successfully extracted signature for repair with marker: %s',
+                            ': successfully extracted signature'
+                                . ' for repair with marker: %s',
                             $signature_marker
                         );
                         $found_signature = 1;
@@ -270,13 +285,15 @@ if ($strip) {    ##  NOTE :  also matches\strips old type \ multiple  ##
                 <[base.logs]>->( 3, ':     | %s', $line );
             }
 
-     # CRITICAL FIX: When flexible extraction fails BUT the original file
-     # contains signature markers, we should NOT treat this as "no signature"
-     # Instead, return with recovery flags so verification phase can handle it
+            # CRITICAL FIX: When flexible extraction fails BUT the original
+            # file contains signature markers, we should NOT treat this as
+            # "no signature" Instead, return with recovery flags so
+            # verification phase can handle it
             if ( $has_signature eq 'YES' ) {
                 <[base.logs]>->(
                     2,
-                    ': signature markers found but flexible extraction failed - returning for recovery'
+                    ': signature markers found but flexible'
+                        . ' extraction failed - returning for recovery'
                 );
                 <[base.logs]>->( 2, ': :. proceeding with recovery mode' );
 
@@ -285,8 +302,9 @@ if ($strip) {    ##  NOTE :  also matches\strips old type \ multiple  ##
                 $footer_data->{'flexible_extraction_failed'}     = TRUE;
                 $footer_data->{'was-present'}                    = 1;
 
-                # Return early so verification phase can attempt BMW recovery
-                # This prevents treating the file as first-time signing
+                # Return early so verification phase can attempt BMW
+                # recovery This prevents treating the file as first-time
+                # signing
                 return $footer_data;
             }
         }
@@ -315,10 +333,11 @@ if ($strip) {    ##  NOTE :  also matches\strips old type \ multiple  ##
     foreach my $sig_pattern (@signature_line_patterns) {
         <[base.logs]>->( 3, ': non-strip trying pattern: %s', $sig_pattern );
 
-# Match from separator+start marker through all content lines to the colon line (end marker)
-# This ensures we detect the complete signature block regardless of line count
-# Captures all body lines (including colon line) with their trailing newlines
-# The separator is a blank line: optional newline before the footer start
+        # Match from separator+start marker through all content lines to the
+        # colon line (end marker) This ensures we detect the complete
+        # signature block regardless of line count Captures all body lines
+        # (including colon line) with their trailing newlines The separator
+        # is a blank line: optional newline before the footer start
         my $pattern = qr/(\n)?($footer_start_regex)\n((?:#[^\n]+\n)+)$/s;
 
         <[base.logs]>->(
@@ -329,10 +348,11 @@ if ($strip) {    ##  NOTE :  also matches\strips old type \ multiple  ##
 
             # Capture groups immediately while they're valid
             $capture_separator = $1 // '';    # Separator endline (optional)
-            $footer_start      = $2 // ''
-                ; # Start marker (capture group 2, since group 1 is separator)
-            $footer_body = $3 // ''
-                ;   # All content lines including colon line (capture group 3)
+                # Start marker (capture group 2, since group 1 is separator)
+            $footer_start = $2 // '';
+
+            # All content lines including colon line (capture group 3)
+            $footer_body            = $3 // '';
             $found_signature        = 1;
             $matched_signature_type = $sig_pattern;
             <[base.logs]>->(
@@ -364,19 +384,22 @@ $footer_data->{'data-chksum'}    ## adding first footer line to BMW-chksum ##
 
 ####
 
-# If NO signature was found at all, we're doing first signing
-# In that case, ensure separator endline will be added
-if ( not defined $footer_body ) {
+## if no signature was found at all, we're doing first signing ##
+## [ $footer_body //= '' in non-strip path makes it defined —
+##                                       check $footer_start ] ##
+if ( not defined $footer_start ) {
 
-# Before claiming "no signature present", verify the content doesn't have markers
-# This check must happen REGARDLESS OF MODE to correctly detect existing signatures
+    # Before claiming "no signature present", verify the content doesn't have
+    # markers This check must happen REGARDLESS OF MODE to correctly detect
+    # existing signatures
     my $content_has_markers
         = $$src_ref =~ /SIGNATURE|YOURUM|AMOS7|DATA[-\s]SIGNATURE/;
 
     if ($content_has_markers) {
 
-# Check if file has signature marker but missing separator endline before it
-# This happens when signature exists but is directly at end without blank line
+        # Check if file has signature marker but missing separator endline
+        # before it This happens when signature exists but is directly at
+        # end without blank line
         my $has_separator_issue
             = (    $$src_ref =~ /#[\.,]{70,80}\n(?:#[^\n]+\n)+#[:]{70,80}/
                 && $$src_ref !~ /\n#[\.,]{70,80}\n/ );
@@ -396,13 +419,14 @@ if ( not defined $footer_body ) {
         }
 
         # File contains signature markers but extraction failed
-        # Set recovery flags so verification can handle it (in all modes)
+        # Set recovery flags so verification can handle it [in all modes]
         $footer_data->{'extraction_failed_with_markers'} = TRUE;
         $footer_data->{'flexible_extraction_failed'}     = TRUE;
         $footer_data->{'was-present'}                    = 1;
         <[base.logs]>->(
             2,
-            ': [ existing signature but extraction failed - marking for recovery ]'
+            ': [ existing signature but extraction'
+                . ' failed - marking for recovery ]'
         );
         return $footer_data;
     }
@@ -642,16 +666,15 @@ if (   defined $EVAL_ERROR && length($EVAL_ERROR)
     }
 } else {
 
- # Decoding was successful
- # Fix #2: Correct inverted restoration condition
- # Skip restoration ONLY if separator is ABSENT (file wasn't canonical before)
- # Otherwise, do restore to reverse the endline modifications
+    # Decoding was successful Fix #2: Correct inverted restoration condition
+    # Skip restoration ONLY if separator is ABSENT (file wasn't canonical
+    # before) Otherwise, do restore to reverse the endline modifications
     my $state = $amos7_header->{'endline-state-encoded'};
 
     if ($seperator_endline_absent) {
 
- # Separator was absent before - skip restoration, keep file as-is
- # This prevents modifying content in opposite directions on successive cycles
+      # Separator was absent before - skip restoration, keep file as-is This
+      # prevents modifying content in opposite directions on successive cycles
     } else {
 
         # Separator was present - file was canonical, restore endline state
@@ -686,7 +709,8 @@ if (@err_loc) {    ## [E: alien characters ]
         # In repair mode, log but continue
         <[base.logs]>->(
             2,
-            ': signature contains invalid characters but continuing in repair mode'
+            ': signature contains invalid characters'
+                . ' but continuing in repair mode'
         );
         $footer_data->{'invalid_characters'} = TRUE;
 
@@ -696,7 +720,7 @@ if (@err_loc) {    ## [E: alien characters ]
     }
 }
 
-$footer_data->{'structure-was-valid'} = 1;
+$footer_data->{'structure-was-valid'} = TRUE;
 
 $footer_data->{'checksum-type'}  = qw| BMW-384-B32 |;  # only ones implemented
 $footer_data->{'signature-type'} = qw| C25519-B32 |; # <-- ###################
@@ -704,7 +728,7 @@ $footer_data->{'bmw-chksum'}     = $signed_chksum;
 $footer_data->{'signature'}      = $signature_B32;
 
 # In repair mode, store the template for signature reconstruction
-if ( $mode eq 'repair' ) {
+if ( $mode eq qw| repair | ) {
     $footer_data->{'template'} = <source.sign_template>;
     $footer_data->{'original_separator_endline_absent'}
         = $seperator_endline_absent;
@@ -722,8 +746,8 @@ if ( $mode eq 'repair' ) {
 
 return $footer_data;
 
-#,,,,,...,.,.,.,,,,,,,,,,,,,.,,..,,.,,..,,...,..,,...,...,.,.,,..,,..,..,,,..,
-#HID6D4JVBS2IA4DGQOPY6RM63DKEE5EWUJOYFKWDLWDEKY3NYSDNADPJHNUQGJXIMKMPJ2XYYEYG2
-#\\\|GOSEFFSORLSIFFV3KXJT4JSPGYQYI6YYSE7JMPTWBOFOP3CWLAW \ / AMOS7 \ YOURUM ::
-#\[7]WUCNG53QTOWDISLTJZTIVM3EFTQZXAQZ33GPIREUVGXYZREJTACA 7  DATA SIGNATURE ::
+#,,,,,,,.,.,,,..,,..,,,,.,.,.,,,.,..,,,.,,...,..,,...,...,.,.,.,,,.,,,..,,,,,,
+#BADSK7OZSORZZ5MXYWTOTD4HV5CY7K22UHXWSATQ3ILLIHSB275TJV3A3NUT4WFP5TRSKGSALY7K2
+#\\\|WYPDQ55ZPYUARCMG2QRI4M4TPJDHT6WQJNEZJIQDY5R47BF5HQZ \ / AMOS7 \ YOURUM ::
+#\[7]ZV3KIC2VLTKTFFW67Z4FWYEIA6QUIQVWMITPRCFYU3A2S333BSCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
