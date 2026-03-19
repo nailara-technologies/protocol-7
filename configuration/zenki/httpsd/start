@@ -28,6 +28,9 @@ httpsd.cfg.hsts_include_subdomains  = 1
 ## disable once crash is identified and fixed [ re-enable if it recurs ]
 httpsd.cfg.request_capture = yes
 
+## forward crash capture buffer to disk via p7-log
+buffer.httpsd-crash-log.log_cmd  =  p7-log.append
+
 ## graceful startup: certificate provisioning with exponential backoff
 ## when certificate missing, retry periodically with increasing delays
 httpsd.cfg.startup_timeout          = 30        ## seconds to wait for certificate provisioning
@@ -74,8 +77,8 @@ httpsd.timeout      =  14
 
 [zenka.loop]
 
-#,,,.,,..,,.,,...,,,.,,,.,,.,,,.,,...,,,,,.,,,..,,...,...,..,,..,,.,.,.,.,..,,
-#NFNAEN5EKBMSTXBNZZDSVMKMDZV2FG2JRQ6TTQCI2ZQXOJC6M7A73J653EZZITKZBR457YQ357JG4
-#\\\|HUT6ZKXCTT65JR7XRGHKHHDSURBZOIJHZX5YICEUWU6INGPXGI2 \ / AMOS7 \ YOURUM ::
-#\[7]H6OVNKKTVFS5DSUX37NKFPYMC5WJUAR4BI75IPMFYUNZYJGS22CQ 7  DATA SIGNATURE ::
+#,,,.,.,,,,..,,..,,..,,..,,,.,...,,..,.,,,,.,,..,,...,...,,.,,..,,...,...,..,,
+#Z2QWM54CBVGYV6O3CLLBALZD2GTIZMPINKYFUJT65BXPLZGJQCCM2YTOEGP6QIPX62R2GGRQQUIQI
+#\\\|F5NPMEBSMPJAWWI47NPEZ7BWVRCPHWSBEWO5OYHUI7BHYLKNFHJ \ / AMOS7 \ YOURUM ::
+#\[7]7Q3OTFU3GOZ6DGTFP2YLM6NLZTRPNPP6INHB3ELIBFCKFQH5JKDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
