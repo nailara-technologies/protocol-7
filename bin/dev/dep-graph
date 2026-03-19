@@ -247,7 +247,7 @@ sub scan_modules {
     my %swap_from = extract_swap_pairs( \@files );    ##  short -> base  ##
 
  #  seed graph with all known modules [ leaf nodes have no outgoing edges ]  #
- #  without this, resolve_command_to_module misses leaf nodes entirely      #
+ #  without this, resolve_command_to_module misses leaf nodes entirely       #
     $graph{$ARG} //= {} for values %module_names;
 
     ##  second pass: scan for call patterns  ##
@@ -393,7 +393,7 @@ sub extract_calls {
 
        #  event callback / handler string refs [ registered, called later ]  #
        #  key forms : handler  'handler'  qw| handler |                      #
-       #  val forms : => qw| name |  => 'name'  => "name"                   #
+       #  val forms : => qw| name |  => 'name'  => "name"                    #
         my $cb_re  = qr/(?:qw\|\s*)?['"]?(?:handler|callback)/;
         my $val_re = qr/(?:qw\|\s*|['"])([a-zA-Z0-9._-]+)/;
         while ( $line =~ m/$cb_re['"]?(?:\s*\|)?\s*=>\s*$val_re/g ) {
@@ -411,7 +411,8 @@ sub extract_calls {
 
         #  data-variable assigned sub name [ filter_hooks and similar ]      #
         #  pattern : <data.variable> = qw| sub.name |                        #
-        if ( $line =~ m/=\s*qw\|\s*([a-zA-Z][\w.-]+)\s*\|/ ) {
+        #  pattern : 'key' => qw| sub.name |  [ filters hash entries ]       #
+        if ( $line =~ m/=>?\s*qw\|\s*([a-zA-Z][\w.-]+)\s*\|/ ) {
             push @calls, $1;
         }
     }
@@ -642,7 +643,7 @@ sub analyze_zenka_reachability {
 
     #  seed bootstrap modules [ always loaded by bin/Protocol-7 regardless  #
     #  of whitelist ] so their dependencies are included in the reachable   #
-    #  set                                                                   #
+    #  set                                                                  #
     for my $bootstrap (qw| base.init base.sig_int base.init_code |) {
         push @entry_modules, $bootstrap if exists $graph->{$bootstrap};
     }
@@ -658,7 +659,7 @@ sub analyze_zenka_reachability {
         if exists $graph->{'base.handler.deferred_compile'};
 
     #  include subroutines called from zenka-startup.v7 zenka-init section  #
-    #  these lines are injected over stdin by v7 at startup and eval'd       #
+    #  these lines are injected over stdin by v7 at startup and eval'd      #
     if ( defined $zenka_name and $zenka_name ne 'stdin' ) {
         my $startup_file = c_dir(
             $root_path,  qw| configuration zenki |,
@@ -741,7 +742,7 @@ sub analyze_zenka_reachability {
             }
         }
 
-        #  include all cmd and console subs — only when net is loaded       #
+        #  include all cmd and console subs — only when net is loaded        #
         #  without net, zenka cannot accept connections or dispatch commands #
         if ( exists $loaded_set->{'net'} ) {
             for my $ns ( qw| base |, keys %{$loaded_set} ) {
@@ -771,28 +772,42 @@ sub analyze_zenka_reachability {
             }
         }
 
-       #  include all plugin.* modules [ dynamically dispatched at runtime ] #
-       #  auth plugins selected by client, cannot be statically determined   #
+       #  include plugin.* modules scoped to loaded namespaces only          #
+       #  plugin.auth.* only when auth loaded, plugin.web.* when web loaded  #
         if ( exists $loaded_set->{'net'} ) {
+            my %loaded_ns
+                = map { ( split m|\.| )[0] => 1 } keys %{$loaded_set};
             for my $node ( grep {m/^plugin\./} keys %{$graph} ) {
                 next if $reachable{$node};
+                my ($plugin_ns) = $node =~ m|^plugin\.([^.]+)|;
+                next if defined $plugin_ns and not $loaded_ns{$plugin_ns};
                 my %new = walk_reachable( $graph, [$node] );
                 %reachable = ( %reachable, %new );
             }
         }
 
-        #  include lifecycle subs [ pre_init init_code post_init ] for all  #
-        #  namespaces present in the reachable set, at every prefix depth   #
-        #  catches base.file.pre_init [ swap_subs ] and base.init_code      #
-        #  [ compile-time Const::Fast ] which are never called by name      #
-        #  seed 'base' explicitly since it is always loaded by bin/P7       #
+        #  include lifecycle subs [ pre_init init_code post_init ] for     #
+        #  explicitly loaded namespaces only — not for the full reachable  #
+        #  set, which may contain false-positive modules from other zenki  #
+        #  catches base.file.pre_init [ swap_subs ] and base.init_code     #
+        #  [ compile-time Const::Fast ] which are never called by name     #
+        #  seed 'base' explicitly since it is always loaded by bin/P7      #
         #  repeat until no new additions [ new subs may introduce new      #
-        #  namespaces that need lifecycle subs — frozen for-list misses ]   #
+        #  namespaces that need lifecycle subs — frozen for-list misses ]  #
+        ##  top-level namespace set: base always included,                 #
+        ##                             plus loaded modules                ##
+        my %loaded_ns
+            = map { ( split m|\.| )[0] => 1 } keys %{$loaded_set};
+        $loaded_ns{'base'} = 1;
+
         my %ns_seen;
         my $prev_count = 0;
         while ( scalar( keys %reachable ) != $prev_count ) {
             $prev_count = scalar keys %reachable;
-            for my $mod ( qw| base |, keys %reachable ) {
+            for my $mod (
+                grep { my ($ns) = m|^([^.]+)|; $loaded_ns{$ns} }
+                keys %reachable
+            ) {
                 my @parts = split m|\.|, $mod;
                 for my $len ( 1 .. scalar @parts ) {
                     my $ns = join '.', @parts[ 0 .. $len - 1 ];
@@ -895,7 +910,7 @@ sub parse_zenka_start_file {
 
 sub parse_start_lines {
 
-    #  parse start file lines to extract loaded modules and entry commands  #
+    # parse start file lines to extract loaded modules and entry commands #
     my $lines_ref = shift;
 
     ##  join continuation lines [ending with \]  ##
@@ -984,7 +999,7 @@ sub resolve_command_to_module {
 sub walk_reachable {
 
     #  transitively walk dep-graph from entry points to find all reachable  #
-    #  modules                                                               #
+    #  modules                                                              #
     my ( $graph, $entry_modules ) = @ARG;
 
     my %reachable;
@@ -1261,7 +1276,7 @@ sub backtrack_variable_origin {
         }
 
        #  check for list-context my declaration: my ( ..., $var, ... ) = ... #
-       #  covers: my ( $a, $b ) = @$ref  and  ( my $var, ... ) = split ...  #
+       #  covers: my ( $a, $b ) = @$ref  and  ( my $var, ... ) = split ...   #
         if ( $line =~ m/my\s*\(?\s*[^)]*\$\Q$var_name\E[^)]*\)?\s*=/ ) {
             $result->{start_line}  = $line_num;
             $result->{origin_line} = $line_num;
@@ -1365,8 +1380,8 @@ sub classify_dispatch_confidence {
     return 'open';
 }
 
-#,,,,,.,.,..,,.,.,,,,,,..,.,.,,..,,,,,,,,,,,,,.,.,...,...,.,.,..,,...,,..,.,,,
-#PAAK472OKO62OISA2J6252KZHAKHR3N75PAEPQ53APMX7ARO3DECJIHYTCZXHMUS3GQ4ITXHXNDHM
-#\\\|YU7RZIRBTWC2ODPQJKEWOLY6JSVQM67R7I6WAJ3XL33B5YN6COI \ / AMOS7 \ YOURUM ::
-#\[7]3HUUDMDV3C3W2O5JO4HGPPJJ7C7SR2ODZOG46JADTRJH47QLMABY 7  DATA SIGNATURE ::
+#,,..,,..,...,...,,.,,,,,,.,,,..,,,,,,,,,,,.,,.,.,...,...,..,,.,.,,..,,,.,..,,
+#BOQF3BWWSXXRJ77MBN463ULXPAIG2YK5QAFMJE3GBPKV5QCZ4QS35IJUGN5GHXJ2ECFQUF2UC6G7G
+#\\\|UJUDFQ3WKPCQVOWAQ6KNZW6HQJGVACC46EDD53GAJ32GDXJBDKL \ / AMOS7 \ YOURUM ::
+#\[7]YCH4XRIRGFWMD3H24KPP2HMM5UIM62UFRN5RBCS5RRFMV5DEPKAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

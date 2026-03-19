@@ -29,7 +29,6 @@ base.sig_hup
 base.s_write
 base.max-len
 base.del_key
-web.init_code
 net.init_code
 net.calc_port
 base.timezone
@@ -50,7 +49,6 @@ base.cfg_bool
 v7.zenka.start
 v7.start_count
 jobqueue.count
-httpd.pre_init
 base.wrap_text
 base.swap_subs
 base.ssl.write
@@ -75,8 +73,6 @@ v7.cmd.teardown
 plugin.auth.pwd
 p7-log.add_line
 net.read_binary
-httpd.init_code
-devmod.pre_init
 crypt.init_code
 base.zenka.loop
 base.str.os_err
@@ -91,13 +87,8 @@ base.event.loop
 base.diff_array
 base.cmd.whoami
 base.cmd.reload
-set-up.init_code
 plugin.auth.unix
-p7-log.init_code
 jobqueue.add_job
-httpd.new_header
-devmod.post_init
-devmod.init_code
 base.resolve_key
 base.prng.reseed
 base.path_owners
@@ -111,7 +102,6 @@ base.cmd.rel-ver
 base.cmd.ptl-ver
 base.cmd.present
 base.cmd.cur-pid
-base.chk-sum.elf
 base.call_filter
 auth.pwd.success
 auth.auth_select
@@ -144,7 +134,6 @@ base.cmd.epoch_v7
 base.cmd.cpu-time
 base.cmd.commands
 base.chk-sum.amos
-web.scan_directory
 v7.zenka.setup.add
 v7.zenka.cmd.start
 v7.parser.children
@@ -155,8 +144,6 @@ v7.available_zenki
 v7.autostart_zenki
 jobqueue.init_code
 jobqueue.find_jobs
-httpd.status_codes
-channels.init_code
 base.reload_values
 base.reload_config
 base.parser.config
@@ -186,8 +173,6 @@ v7.handler.sig_chld
 plugin.auth.twofish
 jobqueue.remove_job
 io.ip.tcp.init_code
-httpd.send_raw_html
-httpd.scan_site_dir
 channels.cmd.update
 base.utf8.clean_str
 base.str.eval_error
@@ -212,7 +197,6 @@ v7.zenka.cmd.restart
 v7.terminate_process
 v7.process_zenka_end
 v7.parser.process_id
-plugin.web.menu.tree
 io.ip.tcp.input.open
 io.ip.ssl.input.open
 base.route.init_code
@@ -221,6 +205,7 @@ base.read_proc_times
 base.prng.chars-anum
 base.prng.characters
 base.perlmod.install
+base.parser.size_str
 base.parser.duration
 base.parse_ncfg_code
 base.ntime.epoch_dec
@@ -249,14 +234,11 @@ v7.extract_short_desc
 v7.cmd.reboot-warning
 v7.cleanup_temp_paths
 v7.cleanup_temp_files
-set-up.json.init_code
 jobqueue.get_next_job
 jobqueue.get_job_data
 io.ip.tcp.output.open
 io.ip.tcp.input.close
 io.ip.ssl.input.close
-httpd.send_error_page
-httpd.request_handler
 crypt.C25519.pre_init
 crypt.C25519.keyfiles
 crypt.C25519.key_vars
@@ -322,7 +304,6 @@ jobqueue.queue_template
 io.unix.socket.end_code
 io.ip.tcp.input.connect
 io.ip.ssl.input.connect
-debian.parent.init_code
 crypt.C25519.write_keys
 crypt.C25519.unload_key
 crypt.C25519.sig_fnames
@@ -347,14 +328,12 @@ base.cmd.loaded-configs
 base.chk-sum.elf.inline
 base.callback.cmd_reply
 auth.zenka.authenticate
-web.assets.load_registry
 v7.zenka.cmd.status-time
 v7.set_up_ondemand_zenki
 v7.handler.drain_timeout
 v7.handler.children_left
 v7.cmd.forced-mod-reload
 v7.callback.object.zenka
-session.parent.init_code
 protocol.https.init_code
 plugin.auth.auth-keypair
 p7-log.handler.close_log
@@ -399,6 +378,7 @@ channels.util.yaml_decode
 base.session.cancel_route
 base.register_p7_mod_load
 base.parser.list_filtered
+base.parser.element_count
 base.ntime.epoch_to_ntime
 base.log.send-buffer.init
 base.load_runtime_modules
@@ -421,7 +401,6 @@ v7.load_zenka_startup_cfgs
 v7.handler.restart-timeout
 v7.handler.heartbeat_timer
 protocol.sftp.read_ssh_env
-plugin.web.content.dirlist
 io.unix.socket.output.open
 io.unix.socket.input.close
 crypt.C25519.key_checksums
@@ -464,13 +443,13 @@ crypt.C25519.compute_shared
 base.templates.register_add
 base.session.calc_cmd_stats
 base.root.check_system_user
+base.parser.ondemand_status
 base.ntime.harmonized_epoch
 base.handler.warn_nak_reply
 base.file.gen_path_linkname
 base.dependency.get_reverse
 base.debian.install_package
 base.cmd.buffer-erase-level
-base.chk-sum.elf.vax-BASE32
 base.chk-sum.amos.init_code
 v7.zenka.cmd.resume-instance
 v7.tmp-paths.global.register
@@ -482,6 +461,7 @@ v7.handler.cube_session_auth
 v7.callback.instance.restart
 protocol.protocol-7.pre_init
 io.unix.socket.input.connect
+httpsd.request_capture.write
 crypt.C25519.keystr_is_valid
 crypt.C25519.compare_keypair
 channels.handler.data_change
@@ -489,6 +469,7 @@ base.validate.composite_name
 base.session.check_remaining
 base.process-into-background
 base.parser.protocol-version
+base.parser.ondemand_session
 base.handler.hooks.has_hooks
 base.handler.heart_ack_reply
 base.chk-sum.bmw.str-b32.L13
@@ -503,7 +484,6 @@ v7.handler.cube_session_close
 v7.callback.stdout_log_rotate
 v7.callback.register_ondemand
 protocol.protocol-7.init_code
-plugin.image-resize.init_code
 debian.parent.check_installed
 crypt.C25519.validate_keyname
 crypt.C25519.store_remote_key
@@ -668,8 +648,8 @@ protocol.protocol-7.protocol-version-path-set-up
 base.log.send-buffer.reply-handler.notify-online
 debian.parent.callback.register_binary_dependency
 
-#,,,.,..,,,.,,.,,,,,.,,,.,...,,.,,...,,,.,.,.,..,,...,...,..,,...,,,,,.,,,,.,,
-#HOSWZXSG5I6N6SWWLTW7L4AAGFC7DXJOJMIIWUCTPYKHVBLRXP5EXTJXU4Q6JFFFY2WD7GWBVRPKW
-#\\\|RV6SJP2RM4VEODLPDJVBNQXCEDOMKTSHYXLZWQWDNZ2L3FADEYW \ / AMOS7 \ YOURUM ::
-#\[7]XUJTA4M7LF5PUSPQIZAB2IWG62V2LIKN6JK45YXIHLS4UIRGUEDY 7  DATA SIGNATURE ::
+#,,,,,,,,,.,.,,,.,..,,...,.,,,,,.,,,,,.,.,,,.,..,,...,...,,,.,...,,..,..,,...,
+#OSNZUR6KPIQSPDNFYM2V253TUKSNM4QAPGUOQ7D3F3XJ5GRJXNXU2HDQWLT7SHCIGJNEY4XNWOCDK
+#\\\|PNBAPDGJZFCZAEKDCFYCPY2EFZYJW7V3UFM6JMSPYWAJZGBHDAA \ / AMOS7 \ YOURUM ::
+#\[7]ST52Z664MXK7STVBJZLZ7PLTXRYEWXV6DS3WJ4QZDCKLFT3MOICI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
