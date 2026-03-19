@@ -106,7 +106,8 @@ if ( defined <https.handler.get> ) {
 
 <[base.logs]>->(
     2,
-    "[protocol-7] configured https protocol state with httpsd.request_handler"
+    "[protocol-7] configured https protocol"
+        . " state with httpsd.request_handler"
 );
 
 # critical fix: register SSL socket type and HTTPS protocol handlers
@@ -162,14 +163,23 @@ $data{'protocol'}{'https'} = {
     avg_handshake_time    => 0,
 };
 
+## crash-capture buffer : initialize or clean up depending on feature state ##
+if ( <[base.cfg_bool]>->( <httpsd.cfg.request_capture> // 1 ) ) {
+    $data{'buffer'}{'httpsd-crash-log'}{'max_size'} //= 64 * 1024;
+    $data{'buffer'}{'httpsd-crash-log'}{'data'}     //= [];
+    $data{'buffer'}{'httpsd-crash-log'}{'size'}     //= 0;
+} else {    ## remove ghost config entry ##
+    delete $data{'buffer'}{'httpsd-crash-log'};
+}
+
 <[base.logs]>->( 2, 'HTTPSD initialization complete' );
 <[base.logs]>->( 2, "  TLS Version : %s", <httpsd.cfg.tls_version> );
 <[base.logs]>->( 2, "  Certificate : %s", <httpsd.cfg.certificate_path> );
 
 0;
 
-#,,..,,,,,.,,,..,,,..,,,.,,,,,..,,..,,,,,,.,.,..,,...,...,..,,,.,,.,.,...,..,,
-#IILDZYP6VOWHSB7GPFGMC3QZG6VB3MM246OLGUFVFLBISKGN4W4PBONLSHGVWEVOYWGXGBSWBWDEG
-#\\\|XTL7RO6WBDMXX64EJCKJVYR6MIAVWPE2EPKIGBQ36II543HMNUK \ / AMOS7 \ YOURUM ::
-#\[7]PSXDKPSNAIWWLE7WSDUTCROZVQ4MGGF6HDSW3OD4LGK5D6F2D4AI 7  DATA SIGNATURE ::
+#,,,,,.,,,...,...,..,,,..,,..,,..,,,,,.,,,,,.,..,,...,...,,.,,,..,.,,,.,.,...,
+#JZNGDMG74XTONVZK76KNR5TO5GNMEC3GTC4YX2MD7VTC3LPNLLH757RB5QG7GBWWCV77L25YLW4TK
+#\\\|FHFFATQNPFYGRPS52XVVBL57BAMFBNIX24QK2R3Q62LT36C4YQQ \ / AMOS7 \ YOURUM ::
+#\[7]LHAYTTWXQPWYNOS5F6V43ANY2IGTGTZGVRIYIOGIRRUAJJFH7OBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
