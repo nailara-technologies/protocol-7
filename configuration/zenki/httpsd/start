@@ -4,11 +4,12 @@
 [load_config_file:'shared-params']
 
 ## Enable verbose logging for HTTPS debugging [ level 2 = more details ]
-system.verbosity.zenka_buffer = 2
+system.verbosity.zenka_buffer  = 2
 system.verbosity.zenka_logfile = 2
 
 ## Load httpd modules + httpsd wrappers
-modules.load         =  auth net protocol io.unix io.ip format.json httpd httpsd   ## devmod
+modules.load         =  auth net protocol io.unix io.ip format.json \
+                        httpd httpsd httpsd.request_capture ## devmod
 
 net.https.addr       =  0:0:0:0:0:0:0:0
 net.https.port       =  443
@@ -23,6 +24,10 @@ httpsd.cfg.cipher_suite             = ECDHE-RSA-AES256-GCM-SHA384:ECDHE-RSA-AES1
 httpsd.cfg.hsts_max_age             = 31536000
 httpsd.cfg.hsts_include_subdomains  = 1
 
+## crash capture : write last request to /dev/shm before each request
+## disable once crash is identified and fixed [ re-enable if it recurs ]
+httpsd.cfg.request_capture = yes
+
 ## graceful startup: certificate provisioning with exponential backoff
 ## when certificate missing, retry periodically with increasing delays
 httpsd.cfg.startup_timeout          = 30        ## seconds to wait for certificate provisioning
@@ -36,14 +41,14 @@ https.handler.post    =  httpd.http_post
 https.handler.options =  httpd.http_options
 
 ## Shared settings with httpd [ site content ]
-httpsd.site_dir    = '/var/httpd/'
-httpsd.upload_dir  = '/var/protocol-7/httpd/uploads'
+httpsd.site_dir     =    /var/httpd/
+httpsd.upload_dir   =    /var/protocol-7/httpd/uploads
 
 httpsd.cfg.default_site_name = default
 
-httpsd.cfg.external_sitedirs = 1
-httpsd.cfg.uploads_enabled   = 1
-httpsd.cfg.allow_range_overlap = 1
+httpsd.cfg.uploads_enabled      =  1
+httpsd.cfg.external_sitedirs    =  1
+httpsd.cfg.allow_range_overlap  =  1
 
 access.cmd.usr.cube  =  *
 
@@ -69,8 +74,8 @@ httpsd.timeout      =  14
 
 [zenka.loop]
 
-#,,..,.,.,,,,,,,.,,,,,,..,,..,,,.,..,,,.,,,.,,..,,...,...,,,.,,..,,,,,,,,,..,,
-#2PFZV2ESN644XNSMWTZ2URAI5UKRYZIOTQQHH6NTRSNDJ6HF47CKGTSAMT34J4YDWKKVZZTZVTYA2
-#\\\|UFLU7CUHP326KGAA6BZSWDX46SJUWTJCPKUTFZMEKSM7XULZPIY \ / AMOS7 \ YOURUM ::
-#\[7]PQ4R5UVXWA26KDBAHWIFWACK4BFYQDKEERTPFWOPORDZCTGYPQCA 7  DATA SIGNATURE ::
+#,,,.,,..,,.,,...,,,.,,,.,,.,,,.,,...,,,,,.,,,..,,...,...,..,,..,,.,.,.,.,..,,
+#NFNAEN5EKBMSTXBNZZDSVMKMDZV2FG2JRQ6TTQCI2ZQXOJC6M7A73J653EZZITKZBR457YQ357JG4
+#\\\|HUT6ZKXCTT65JR7XRGHKHHDSURBZOIJHZX5YICEUWU6INGPXGI2 \ / AMOS7 \ YOURUM ::
+#\[7]H6OVNKKTVFS5DSUX37NKFPYMC5WJUAR4BI75IPMFYUNZYJGS22CQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

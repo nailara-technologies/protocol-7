@@ -52,6 +52,15 @@ my $h_req = HTTP::Request->parse( $session->{'http'}->{'request'}->{'data'} );
 
 $h_req->decode;
 
+## crash capture hook [ httpsd only — no-op in plain httpd ] ##
+$code{'httpsd.request_capture.write'}->(
+    {   'event'     => 'request-start',
+        'client_ip' => $request->{'client'}{'addr'},
+        'method'    => $h_req->method // '',
+        'uri'       => $h_req->uri    // '',
+    }
+) if exists $code{'httpsd.request_capture.write'};
+
 my $r_key;
 if    ( not defined $h_req->method ) { $r_key = qw| METHOD | }
 elsif ( not defined $h_req->uri
@@ -151,8 +160,8 @@ if ( defined <http.handler>->{ lc $request->{'method'} } ) {
 
 return 2;        ## <-- disconnecting client ##
 
-#,,.,,.,,,..,,,..,...,.,,,.,,,,,.,,..,..,,.,.,..,,...,..,,,.,,,,,,..,,,,.,,,,,
-#SMHDP7GLUYCT6UAYEWMV5XIJMFC5G6KDL55HYUIA34PXYMLADEN4TGGCBV3KYRUEI6AWGYYQVRJ3K
-#\\\|Q2AOH7LNLEQNIP3KUL5LIPJ6XJDVEUXMHACKIQM4BYAGDZWB7LL \ / AMOS7 \ YOURUM ::
-#\[7]2H57ZPJMXGENYDCKC7S6SPCK7VQTJPD3ESJ2YGPZ2BEVSQBHC4AQ 7  DATA SIGNATURE ::
+#,,,.,,..,...,,,,,..,,...,...,...,...,,.,,,,.,..,,...,.,.,,.,,,,.,,,.,,,.,,..,
+#YI345W6N4RWEWBGPBPFJZVUI6KVJNZRM6DFDUJ7ISAMSAAJ2HSGHR6WJTISFT5MAOSIDSVQYIMYUG
+#\\\|U2MEEZTS77RBRBQ6V32LCGDF4BKYQJEHIC6AVXG3PBTZOOFAKBG \ / AMOS7 \ YOURUM ::
+#\[7]KNVCN4HEKNIKL4TUYXDJJ46QKZIBDVBAOSFUV5JC5BRQPN4MGAAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
