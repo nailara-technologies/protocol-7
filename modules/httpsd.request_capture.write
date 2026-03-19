@@ -6,39 +6,27 @@
 #         [ pure tmpfs write — no disk I/O, survives process crash ]
 
 return if not <[base.cfg_bool]>->( <httpsd.cfg.request_capture> // 1 );
+<httpsd.path.request_capture> //= qw| /dev/shm/httpsd-last-request |;
 
 my $info = shift // {};
 
+my $path   = <httpsd.path.request_capture>;
 my $ntime  = <[base.ntime.b32]>->(3);
-my $event  = $info->{'event'}     // 'unknown';
-my $ip     = $info->{'client_ip'} // 'unknown';
+my $event  = $info->{'event'}     // qw| unknown |;
+my $ip     = $info->{'client_ip'} // qw| unknown |;
 my $method = $info->{'method'}    // '';
 my $uri    = $info->{'uri'}       // '';
 my $tls    = $info->{'tls'}       // '';
 
-my $content
-    = "ntime     : $ntime\n" . "event     : $event\n" . "client_ip : $ip\n";
+my $content = "ntime     : $ntime\nevent     : $event\nclient_ip : $ip\n";
 $content .= "method    : $method\n" if length $method;
 $content .= "uri       : $uri\n"    if length $uri;
 $content .= "tls       : $tls\n"    if length $tls;
 
-my $path = '/dev/shm/httpsd-last-request';
+<[file.put]>->( $path, \$content ) or warn ': request-capture : write failed';
 
-my $fh;
-if ( not open( $fh, '>', $path ) ) {
-    <[base.logs]>->(
-        2,     'request_capture: cannot write to %s [ %s ]',
-        $path, <[base.str.os_err]>
-    );
-    return undef;
-}
-print {$fh} $content;
-close $fh;
-
-#,,..
-
-#,,..,,.,,..,,.,.,.,.,.,.,,..,,..,..,,,,.,.,.,..,,...,...,...,,..,..,,,,.,,,.,
-#FKNDQ7CVACIF4PAIPOHPFMDDLFKW2YXEAXTWCTHBVH7SXFMO4LXCB7573S7R3YJYA7JNGFOXNM7L4
-#\\\|7BS5LFYOV6DUPRMOPSI6FIRSE3AEAU7RPFGCE244G32GHKC3HVT \ / AMOS7 \ YOURUM ::
-#\[7]ILAG5CTQVDJD5Q2Q6JBNV23GM2QXEA5VCAZEH4TDGH2CJFISDMDI 7  DATA SIGNATURE ::
+#,,..,.,,,,..,,..,...,.,,,,..,..,,,.,,.,,,..,,..,,...,...,,..,.,.,,,,,,.,,,,.,
+#ISPLKEGYCFD2VCFRHIV2H4ND5AGFZ2QP7BQDFL4DK46CK3TUWTDL4R4AFEF6EYIVQTWX72U7WUMBW
+#\\\|4G6KFIYUCJI5PNK32ACAFLHFQBSKFS7OTSTRA6BRCSIGI7GV2GN \ / AMOS7 \ YOURUM ::
+#\[7]EFXN6M7AWZD7WP4GO66RAXSKX6DWFQL6D4XX7UG6C2BFWIVWWWDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
