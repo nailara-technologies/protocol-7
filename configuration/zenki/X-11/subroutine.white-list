@@ -22,6 +22,7 @@ base.waitpid
 base.tmp_dir
 base.sig_int
 base.sig_hup
+base.set_key
 base.s_write
 base.max-len
 base.del_key
@@ -43,6 +44,9 @@ base.cmd.list
 base.cmd.exit
 base.cfg_bool
 X-11.grab_key
+devmod.cmd.set
+devmod.cmd.get
+devmod.cmd.del
 base.wrap_text
 base.swap_subs
 base.ssl.write
@@ -58,6 +62,7 @@ base.init-done
 base.hide_list
 base.file.open
 base.dump_data
+base.conf-wrap
 base.cmd.heart
 base.cmd.clear
 auth.auth_list
@@ -69,6 +74,10 @@ v7.instance_ids
 plugin.auth.pwd
 p7-log.add_line
 net.read_binary
+devmod.pre_init
+devmod.cmd.true
+devmod.cmd.echo
+devmod.cmd.dump
 base.zenka.loop
 base.str.os_err
 base.prng.bytes
@@ -83,12 +92,17 @@ base.cmd.whoami
 base.cmd.reload
 X-11.ungrab_key
 plugin.auth.unix
+devmod.post_init
+devmod.init_code
+devmod.cmd.sleep
+devmod.cmd.since
 base.resolve_key
 base.prng.reseed
 base.path_owners
 base.parser.list
 base.net.connect
 base.log-delayed
+base.load_config
 base.get_homedir
 base.cmd.subname
 base.cmd.src-ver
@@ -97,6 +111,7 @@ base.cmd.rel-ver
 base.cmd.ptl-ver
 base.cmd.present
 base.cmd.cur-pid
+base.chk-sum.elf
 base.change_prio
 base.call_filter
 auth.pwd.success
@@ -116,6 +131,7 @@ base.list_matches
 base.init_modules
 base.handler.read
 base.handler.auth
+base.get_warnings
 base.file.put_bin
 base.file.content
 base.event.add_io
@@ -131,6 +147,12 @@ X-11.cmd.gpu_load
 X-11.cmd.get_mode
 X-11.cmd.fade_out
 X-11.cmd.bg_color
+devmod.cmd.elf-num
+devmod.cmd.elf-b32
+devmod.cmd.eat-mem
+devmod.cmd.del-env
+devmod.cmd.b32-elf
+devmod.cmd.add-env
 base.utf8.sanitize
 base.reload_values
 base.reload_config
@@ -141,6 +163,7 @@ base.handler.hooks
 base.handler.heart
 base.get_file.aref
 base.file.pre_init
+base.file.line_map
 base.event.add_var
 base.cmd.verbosity
 base.cmd.ntime-dec
@@ -154,6 +177,11 @@ X-11.start_gpu_top
 v7.stdout_log.write
 plugin.auth.twofish
 io.ip.tcp.init_code
+devmod.console-dump
+devmod.cmd.true-int
+devmod.cmd.free-mem
+devmod.cmd.exec-sub
+devmod.cmd.dump-env
 channels.cmd.update
 base.utf8.clean_str
 base.str.eval_error
@@ -171,6 +199,7 @@ base.file.all_links
 base.file.all_files
 base.extract_values
 base.event.pre_init
+base.diff.hash_keys
 base.calc_unix_path
 X-11.get_window_ids
 X-11.fade_in_bg_col
@@ -180,6 +209,10 @@ X-11.cmd.get_params
 X-11.cmd.get_driver
 io.ip.tcp.input.open
 io.ip.ssl.input.open
+devmod.cmd.test-strm
+devmod.cmd.list-subs
+devmod.cmd.eval-code
+devmod.cmd.core-subs
 base.route.init_code
 base.root.drop_privs
 base.read_proc_times
@@ -249,6 +282,7 @@ X-11.cmd.get_geometry
 X-11.cmd.dpms-disable
 v7.instance_child_pids
 io.ip.tcp.output.close
+devmod.cmd.switch-user
 base.session.init_code
 base.required_bin_path
 base.register_src_deps
@@ -271,8 +305,10 @@ protocol.sftp.init_code
 io.unix.socket.end_code
 io.ip.tcp.input.connect
 io.ip.ssl.input.connect
+devmod.cmd.deparse-code
 crypt.C25519.key_exists
 base.templates.pre_init
+base.strip_chksum_lines
 base.start.unlink_child
 base.session.init_state
 base.perlmods.init_code
@@ -305,6 +341,10 @@ protocol.https.init_code
 plugin.auth.auth-keypair
 p7-log.handler.close_log
 io.unix.socket.init_code
+devmod.cmd.unload-unsafe
+devmod.cmd.unload-devmod
+devmod.cmd.mem-allocated
+devmod.cmd.current-umask
 base.zenka.is_v7_started
 base.templates.init_code
 base.session.check.close
@@ -327,7 +367,9 @@ X-11.cmd.get_orientation
 X-11.chk.early-priv-drop
 io.unix.socket.input.open
 httpd.base.size.normalize
+devmod.cmd.test-strm-size
 channels.util.yaml_decode
+base.sourcecode.init_code
 base.session.cancel_route
 base.register_p7_mod_load
 base.parser.list_filtered
@@ -358,6 +400,7 @@ v7.sub-process.orphan_pids
 protocol.sftp.read_ssh_env
 io.unix.socket.output.open
 io.unix.socket.input.close
+base.warnings.from_bitmask
 base.session.check.flushed
 base.reverse-sort.key-name
 base.perlmod.install_cpanm
@@ -377,6 +420,8 @@ v7.sub-process.get_children
 net.read_linewise_estimated
 io.unix.socket.output.close
 httpd.update_download_count
+devmod.cmd.permission-setup
+devmod.cmd.extract-line-map
 base.zenki.report_child_pid
 base.templates.register_add
 base.session.calc_cmd_stats
@@ -386,6 +431,7 @@ base.ntime.harmonized_epoch
 base.file.gen_path_linkname
 base.debian.install_package
 base.cmd.buffer-erase-level
+base.chk-sum.elf.vax-BASE32
 base.chk-sum.amos.init_code
 X-11.handler.poll_size_list
 X-11.handler.global_hotkeys
@@ -393,7 +439,7 @@ X-11.cmd.screen_size_ranges
 v7.tmp-paths.global.clean-up
 protocol.protocol-7.pre_init
 io.unix.socket.input.connect
-httpsd.request_capture.write
+devmod.cmd.receive-multiline
 channels.handler.data_change
 base.validate.composite_name
 base.session.check_remaining
@@ -408,6 +454,8 @@ X-11.bg-image.clean-up-cache
 v7.zenka.cmd.get-instance-ids
 v7.report_collected_child_pid
 protocol.protocol-7.init_code
+devmod.cmd.keep-devmod-loaded
+devmod.cmd.inline-subroutines
 crypt.C25519.get_usr_keys_dir
 base.validate.data_key_syntax
 base.source.collect_file_list
@@ -428,6 +476,7 @@ X-11.bg-image.cached-path.add
 v7.tmp-paths.global.unregister
 protocol.sftp.connect_callback
 protocol.amos-chksum.init_code
+devmod.cmd.decode-harmonic-ref
 base.zenki.ondemand_registered
 base.session.send_init_reports
 base.p7refs.get_refaddr_prefix
@@ -438,7 +487,9 @@ X-11.start-up.show-screen-size
 X-11.handler.protocol-warnings
 X-11.cmd.dpms-blanking-disable
 X-11.background.next-rnd-index
+devmod.cmd.change-log-verbosity
 crypt.C25519.cmd.get-public-key
+base.warnings.compact_statehash
 base.p7refs.gen_template_chksum
 base.inotify.install_io_watcher
 base.buffer.local_logfile_write
@@ -454,6 +505,7 @@ base.config.load_proto_7_version
 X-11.handler.display_power_state
 protocol.amos-chksum.ext-cmd.exit
 plugin.auth.zenka.no-keys-defined
+base.sourcecode.in-mem.sub-source
 base.perlmod.init_install_buffers
 base.parser.center_ellipse_string
 base.file.matching_path_linknames
@@ -491,7 +543,10 @@ base.event.callback.io-idle-restart
 base.callback.reset_strm_size_timer
 protocol.amos-chksum.ext-cmd.version
 protocol.amos-chksum.command-handler
+base.warnings.compact_diff_to_pragma
+base.warnings.compact_diff_from_bits
 base.perlmod.manual_reload_blacklist
+base.parser.decode_harmonized_refstr
 base.handler.read.encryption-wrapper
 base.callback.clean_data_source_hash
 protocol.sftp.handler.write_to_server
@@ -531,8 +586,8 @@ auth.callback.cap-neg.declare-strm-size-support
 protocol.protocol-7.protocol-version-path-set-up
 base.log.send-buffer.reply-handler.notify-online
 
-#,,,.,,..,..,,...,,..,...,...,.,.,,,.,,,,,,..,..,,...,...,...,...,,..,...,,,.,
-#DDJ64XWENACFLVIZVYCRYVPBIKYQEP6PCBAT42FKNMCSFIP6GDGXXZJS7GK3IPOGHOUCVBYYDX2I6
-#\\\|LF7XNXWRGIK35JZAE6JKYTCDAJJIXLGQ2ZF3ZNC2PCG6WXLNESJ \ / AMOS7 \ YOURUM ::
-#\[7]IVOSB3FJWC45FODNOAOXZB3ZV56XOZJO62X3FSAGSEHOCLAHCYDI 7  DATA SIGNATURE ::
+#,,..,,,.,..,,...,,,,,...,.,,,,,,,,..,,,.,..,,..,,...,...,,,,,.,,,,,.,.,.,,,.,
+#6ZCPCOPCQSWX3JSFF5FONNPGCFQLANZAM4T5ZCFTEBHBDKOA6KVRBQGKHNA74P32ET26FJ4V5IG2Y
+#\\\|WONMGHLLZ3NCXOO56KGR6CURGXTJ4VWYMZ3WHT7WOYMPJT2PXCD \ / AMOS7 \ YOURUM ::
+#\[7]U7EY6O4KK6XWYRYZL6XJ5C5J6SVT62UHUVOMBXYWCYFMFECT2MDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

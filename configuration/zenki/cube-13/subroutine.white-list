@@ -22,6 +22,7 @@ base.waitpid
 base.tmp_dir
 base.sig_int
 base.sig_hup
+base.set_key
 base.s_write
 base.max-len
 base.del_key
@@ -42,6 +43,9 @@ base.cmd.name
 base.cmd.list
 base.cmd.exit
 base.cfg_bool
+devmod.cmd.set
+devmod.cmd.get
+devmod.cmd.del
 cube.post_init
 cube.init_code
 cube.cmd.close
@@ -60,6 +64,7 @@ base.init-done
 base.hide_list
 base.file.open
 base.dump_data
+base.conf-wrap
 base.cmd.heart
 base.cmd.clear
 auth.auth_list
@@ -68,6 +73,10 @@ v7.instance_ids
 plugin.auth.pwd
 p7-log.add_line
 net.read_binary
+devmod.pre_init
+devmod.cmd.true
+devmod.cmd.echo
+devmod.cmd.dump
 cube.cmd.select
 crypt.init_code
 base.zenka.loop
@@ -83,6 +92,10 @@ base.event.loop
 base.cmd.whoami
 base.cmd.reload
 plugin.auth.unix
+devmod.post_init
+devmod.init_code
+devmod.cmd.sleep
+devmod.cmd.since
 cube-13.cmd.jump
 base.resolve_key
 base.prng.reseed
@@ -90,6 +103,7 @@ base.path_owners
 base.parser.list
 base.net.connect
 base.log-delayed
+base.load_config
 base.get_homedir
 base.cmd.subname
 base.cmd.src-ver
@@ -118,6 +132,7 @@ base.list_matches
 base.init_modules
 base.handler.read
 base.handler.auth
+base.get_warnings
 base.file.content
 base.event.add_io
 base.context.list
@@ -127,6 +142,12 @@ base.cmd.epoch_v7
 base.cmd.cpu-time
 base.cmd.commands
 base.chk-sum.amos
+devmod.cmd.elf-num
+devmod.cmd.elf-b32
+devmod.cmd.eat-mem
+devmod.cmd.del-env
+devmod.cmd.b32-elf
+devmod.cmd.add-env
 cube.cmd.unix-path
 cube.cmd.b32-ntime
 base.reload_values
@@ -139,6 +160,7 @@ base.handler.hooks
 base.handler.heart
 base.get_file.aref
 base.file.pre_init
+base.file.line_map
 base.event.add_var
 base.cmd.verbosity
 base.cmd.ntime-dec
@@ -150,6 +172,11 @@ base.clean_hashref
 v7.stdout_log.write
 plugin.auth.twofish
 io.ip.tcp.init_code
+devmod.console-dump
+devmod.cmd.true-int
+devmod.cmd.free-mem
+devmod.cmd.exec-sub
+devmod.cmd.dump-env
 cube.cmd.clear-cons
 channels.cmd.update
 base.utf8.clean_str
@@ -168,9 +195,14 @@ base.file.all_links
 base.file.all_files
 base.extract_values
 base.event.pre_init
+base.diff.hash_keys
 base.calc_unix_path
 io.ip.tcp.input.open
 io.ip.ssl.input.open
+devmod.cmd.test-strm
+devmod.cmd.list-subs
+devmod.cmd.eval-code
+devmod.cmd.core-subs
 base.route.init_code
 base.root.drop_privs
 base.read_proc_times
@@ -223,6 +255,7 @@ base.cmd.buffer-erase
 base.balanced-average
 v7.instance_child_pids
 io.ip.tcp.output.close
+devmod.cmd.switch-user
 crypt.C25519.sign_keys
 crypt.C25519.sign_data
 crypt.C25519.post_init
@@ -241,6 +274,7 @@ protocol.sftp.init_code
 io.unix.socket.end_code
 io.ip.tcp.input.connect
 io.ip.ssl.input.connect
+devmod.cmd.deparse-code
 cube.cmd.set-capability
 cube.cmd.present-p7-log
 cube-13.zenka.init_code
@@ -249,6 +283,7 @@ crypt.C25519.unload_key
 crypt.C25519.sig_fnames
 crypt.C25519.key_exists
 base.templates.pre_init
+base.strip_chksum_lines
 base.start.unlink_child
 base.session.init_state
 base.perlmods.init_code
@@ -271,6 +306,10 @@ protocol.https.init_code
 plugin.auth.auth-keypair
 p7-log.handler.close_log
 io.unix.socket.init_code
+devmod.cmd.unload-unsafe
+devmod.cmd.unload-devmod
+devmod.cmd.mem-allocated
+devmod.cmd.current-umask
 cube.set-up.import_rules
 cube.set-up.export_rules
 cube.cmd.set-initialized
@@ -291,10 +330,12 @@ base.chk-sum.bmw.L13-str
 base.check_cfg_cmd_alias
 io.unix.socket.input.open
 httpd.base.size.normalize
+devmod.cmd.test-strm-size
 cube.cmd.select-strm-mode
 cube-13.cmd.stream-status
 crypt.C25519.load_keypair
 channels.util.yaml_decode
+base.sourcecode.init_code
 base.session.cancel_route
 base.register_p7_mod_load
 base.parser.list_filtered
@@ -318,6 +359,7 @@ crypt.C25519.encrypted_key
 crypt.C25519.clear_chksums
 crypt.C25519.cached_chksum
 crypt.C25519.all_key_names
+base.warnings.from_bitmask
 base.session.check.flushed
 base.reverse-sort.key-name
 base.protocol-7.route-send
@@ -333,6 +375,8 @@ v7.sub-process.get_children
 net.read_linewise_estimated
 io.unix.socket.output.close
 httpd.update_download_count
+devmod.cmd.permission-setup
+devmod.cmd.extract-line-map
 cube.chk-sum.cmd.elf-chksum
 cube-13.cmd.receive-entropy
 crypt.C25519.sign_file_list
@@ -348,11 +392,12 @@ base.ntime.harmonized_epoch
 base.file.gen_path_linkname
 base.debian.install_package
 base.cmd.buffer-erase-level
+base.chk-sum.elf.vax-BASE32
 base.chk-sum.amos.init_code
 v7.tmp-paths.global.clean-up
 protocol.protocol-7.pre_init
 io.unix.socket.input.connect
-httpsd.request_capture.write
+devmod.cmd.receive-multiline
 cube.cmd.reply-encoding-mode
 crypt.C25519.keystr_is_valid
 crypt.C25519.compare_keypair
@@ -369,6 +414,8 @@ base.access.special-user-map
 v7.zenka.cmd.get-instance-ids
 v7.report_collected_child_pid
 protocol.protocol-7.init_code
+devmod.cmd.keep-devmod-loaded
+devmod.cmd.inline-subroutines
 crypt.C25519.validate_keyname
 crypt.C25519.store_remote_key
 crypt.C25519.signature_exists
@@ -392,6 +439,7 @@ auth.zenka.process_auth_reply
 v7.tmp-paths.global.unregister
 protocol.sftp.connect_callback
 protocol.amos-chksum.init_code
+devmod.cmd.decode-harmonic-ref
 crypt.C25519.keys.version_info
 crypt.C25519.key_name_and_type
 crypt.C25519.key_bin_checksums
@@ -402,10 +450,12 @@ base.p7refs.get_refaddr_prefix
 base.number-cache.true_upwards
 base.log.send-buffer.add-queue
 base.cache.refaddr-prefix.init
+devmod.cmd.change-log-verbosity
 crypt.C25519.keys.annotate_type
 crypt.C25519.decrypt_secret_key
 crypt.C25519.cmd.set-client-key
 crypt.C25519.cmd.get-public-key
+base.warnings.compact_statehash
 base.p7refs.gen_template_chksum
 base.buffer.local_logfile_write
 crypt.C25519.name_from_skey_name
@@ -427,6 +477,7 @@ base.config.load_proto_7_version
 protocol.amos-chksum.ext-cmd.exit
 plugin.auth.zenka.no-keys-defined
 crypt.C25519.verify_key_signature
+base.sourcecode.in-mem.sub-source
 base.perlmod.init_install_buffers
 base.parser.center_ellipse_string
 base.file.matching_path_linknames
@@ -461,7 +512,10 @@ base.callback.reset_strm_size_timer
 protocol.amos-chksum.ext-cmd.version
 protocol.amos-chksum.command-handler
 crypt.C25519.cmd.register-master-key
+base.warnings.compact_diff_to_pragma
+base.warnings.compact_diff_from_bits
 base.perlmod.manual_reload_blacklist
+base.parser.decode_harmonized_refstr
 base.handler.read.encryption-wrapper
 base.callback.clean_data_source_hash
 protocol.sftp.handler.write_to_server
@@ -503,8 +557,8 @@ auth.callback.cap-neg.declare-strm-size-support
 protocol.protocol-7.protocol-version-path-set-up
 base.log.send-buffer.reply-handler.notify-online
 
-#,,..,,.,,,.,,,,,,,..,..,,,,,,..,,,,,,.,,,,..,..,,...,...,,..,,,,,.,,,,,,,...,
-#74C7DGVRARDBP5GMM2735YVLDSQCIQ72FMGTIA6X7GCYEJY4NBE2FMQHQAX5SNS5YK6JGI6KJZ3EO
-#\\\|TSP4DVGK3TUMAE4X5O4UUPSKKE4UBQPVBD2OF6RIKHR67OXNDOZ \ / AMOS7 \ YOURUM ::
-#\[7]3IW6KKVUNIDOVD46F2GFZU2A3QXFGCBRYZSSTZXXIDS6GTB2S4BQ 7  DATA SIGNATURE ::
+#,,,,,.,,,..,,,..,,,.,,,,,,..,...,..,,.,.,..,,..,,...,..,,...,,.,,,,,,.,.,..,,
+#CV6OTG6WU4F2VSXZGHI2LFUMXXXBRUUUTWAZHA2C66ICGDI6JCPY5JFJ5YYSPF2YFEX5QVRZQAUGY
+#\\\|4MKNJKYJYYQ26GOKTAPVB2AFAUC6GJL4LM5ZISJUHH6FHAIFIZI \ / AMOS7 \ YOURUM ::
+#\[7]3OBNUL6CCH565BYFJZRRA7VA6QS5W6CK2KM7WXOXVEP33YZ3FICY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

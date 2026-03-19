@@ -32,6 +32,7 @@ base.waitpid
 base.tmp_dir
 base.sig_int
 base.sig_hup
+base.set_key
 base.set_env
 base.s_write
 base.max-len
@@ -57,6 +58,9 @@ base.cmd.exit
 base.cfg_bool
 mpv.cmd.resume
 mpv.cmd.append
+devmod.cmd.set
+devmod.cmd.get
+devmod.cmd.del
 base.wrap_text
 base.swap_subs
 base.ssl.write
@@ -72,6 +76,7 @@ base.init-done
 base.hide_list
 base.file.open
 base.dump_data
+base.conf-wrap
 base.cmd.heart
 base.cmd.clear
 auth.auth_list
@@ -88,6 +93,10 @@ mpv.cmd.is_idle
 mpv.cmd.command
 mpv.cmd.align-y
 mpv.cmd.align-x
+devmod.pre_init
+devmod.cmd.true
+devmod.cmd.echo
+devmod.cmd.dump
 chk-sum.md5.hex
 chk-sum.crc.b32
 base.zenka.loop
@@ -109,6 +118,10 @@ mpv.send_command
 mpv.json.command
 mpv.get_playlist
 mpv.cmd.add_file
+devmod.post_init
+devmod.init_code
+devmod.cmd.sleep
+devmod.cmd.since
 chk-sum.md5.b64u
 base.resolve_key
 base.prng.reseed
@@ -116,6 +129,7 @@ base.path_owners
 base.parser.list
 base.net.connect
 base.log-delayed
+base.load_config
 base.get_homedir
 base.cmd.subname
 base.cmd.src-ver
@@ -124,6 +138,7 @@ base.cmd.rel-ver
 base.cmd.ptl-ver
 base.cmd.present
 base.cmd.cur-pid
+base.chk-sum.elf
 base.call_filter
 auth.pwd.success
 auth.auth_select
@@ -143,6 +158,7 @@ base.list_matches
 base.init_modules
 base.handler.read
 base.handler.auth
+base.get_warnings
 base.file.content
 base.event.add_io
 base.context.list
@@ -158,6 +174,12 @@ mpv.cmd.set_volume
 mpv.cmd.get_volume
 mpv.cmd.current-vo
 mpv.cmd.current-ao
+devmod.cmd.elf-num
+devmod.cmd.elf-b32
+devmod.cmd.eat-mem
+devmod.cmd.del-env
+devmod.cmd.b32-elf
+devmod.cmd.add-env
 base.reload_values
 base.reload_config
 base.parser.config
@@ -167,6 +189,7 @@ base.handler.hooks
 base.handler.heart
 base.get_file.aref
 base.file.pre_init
+base.file.line_map
 base.file.all_dirs
 base.event.add_var
 base.cmd.verbosity
@@ -180,6 +203,11 @@ base.X-11.get_mode
 v7.stdout_log.write
 plugin.auth.twofish
 io.ip.tcp.init_code
+devmod.console-dump
+devmod.cmd.true-int
+devmod.cmd.free-mem
+devmod.cmd.exec-sub
+devmod.cmd.dump-env
 channels.cmd.update
 base.utf8.clean_str
 base.str.eval_error
@@ -197,6 +225,7 @@ base.file.all_links
 base.file.all_files
 base.extract_values
 base.event.pre_init
+base.diff.hash_keys
 base.calc_unix_path
 mpv.volume.calc_incr
 mpv.loop_plist_param
@@ -207,6 +236,10 @@ mpv.cmd.current-file
 mpv.callback.fade_in
 io.ip.tcp.input.open
 io.ip.ssl.input.open
+devmod.cmd.test-strm
+devmod.cmd.list-subs
+devmod.cmd.eval-code
+devmod.cmd.core-subs
 base.route.init_code
 base.root.drop_privs
 base.read_proc_times
@@ -272,6 +305,7 @@ mpv.cmd.change_subname
 mpv.check_rescale_path
 mpv.callback.play_next
 io.ip.tcp.output.close
+devmod.cmd.switch-user
 base.session.init_code
 base.required_bin_path
 base.register_src_deps
@@ -294,9 +328,11 @@ mpv.cmd.playlist_update
 io.unix.socket.end_code
 io.ip.tcp.input.connect
 io.ip.ssl.input.connect
+devmod.cmd.deparse-code
 crypt.C25519.key_exists
 chk-sum.skein.init_code
 base.templates.pre_init
+base.strip_chksum_lines
 base.start.unlink_child
 base.session.init_state
 base.perlmods.init_code
@@ -326,6 +362,10 @@ mpv.handler.error_output
 mpv.cmd.shuffle-playlist
 mpv.callback.init_volume
 io.unix.socket.init_code
+devmod.cmd.unload-unsafe
+devmod.cmd.unload-devmod
+devmod.cmd.mem-allocated
+devmod.cmd.current-umask
 base.zenka.is_v7_started
 base.templates.init_code
 base.session.check.close
@@ -344,7 +384,9 @@ mpv.cmd.autoskip_interval
 mpv.await_window_presence
 io.unix.socket.input.open
 httpd.base.size.normalize
+devmod.cmd.test-strm-size
 channels.util.yaml_decode
+base.sourcecode.init_code
 base.session.cancel_route
 base.register_p7_mod_load
 base.parser.list_filtered
@@ -369,6 +411,7 @@ mpv.handler.cmd_prop.pause
 mpv.callback.abort_startup
 io.unix.socket.output.open
 io.unix.socket.input.close
+base.warnings.from_bitmask
 base.session.check.flushed
 base.reverse-sort.key-name
 base.protocol-7.route-send
@@ -385,6 +428,8 @@ net.read_linewise_estimated
 mpv.callback.reenc_finished
 io.unix.socket.output.close
 httpd.update_download_count
+devmod.cmd.permission-setup
+devmod.cmd.extract-line-map
 base.zenki.report_child_pid
 base.templates.register_add
 base.session.calc_cmd_stats
@@ -394,6 +439,7 @@ base.ntime.harmonized_epoch
 base.file.gen_path_linkname
 base.debian.install_package
 base.cmd.buffer-erase-level
+base.chk-sum.elf.vax-BASE32
 base.chk-sum.amos.init_code
 v7.tmp-paths.global.clean-up
 protocol.protocol-7.pre_init
@@ -401,7 +447,7 @@ mpv.handler.pipe.val_percent
 mpv.handler.pipe.single_line
 mpv.callback.start_reenc_msg
 io.unix.socket.input.connect
-httpsd.request_capture.write
+devmod.cmd.receive-multiline
 channels.handler.data_change
 base.validate.composite_name
 base.session.check_remaining
@@ -416,6 +462,8 @@ v7.zenka.cmd.get-instance-ids
 v7.report_collected_child_pid
 protocol.protocol-7.init_code
 mpv.handler.event.file-loaded
+devmod.cmd.keep-devmod-loaded
+devmod.cmd.inline-subroutines
 crypt.C25519.get_usr_keys_dir
 base.validate.data_key_syntax
 base.source.collect_file_list
@@ -437,6 +485,7 @@ protocol.amos-chksum.init_code
 mpv.handler.scan_encoded_timer
 mpv.handler.reenc_notify_reply
 mpv.callback.check_parent_dirs
+devmod.cmd.decode-harmonic-ref
 base.zenki.ondemand_registered
 base.session.send_init_reports
 base.p7refs.get_refaddr_prefix
@@ -444,7 +493,9 @@ base.number-cache.true_upwards
 base.log.send-buffer.add-queue
 base.cache.refaddr-prefix.init
 mpv.handler.rescale_video_reply
+devmod.cmd.change-log-verbosity
 crypt.C25519.cmd.get-public-key
+base.warnings.compact_statehash
 base.p7refs.gen_template_chksum
 base.buffer.local_logfile_write
 set-up.json.cmd.get-config-names
@@ -459,6 +510,7 @@ protocol.amos-chksum.ext-cmd.exit
 plugin.auth.zenka.no-keys-defined
 mpv.initialize.observe_properties
 mpv.handler.event.property-change
+base.sourcecode.in-mem.sub-source
 base.perlmod.init_install_buffers
 base.parser.center_ellipse_string
 base.file.matching_path_linknames
@@ -489,7 +541,10 @@ base.event.callback.io-idle-restart
 base.callback.reset_strm_size_timer
 protocol.amos-chksum.ext-cmd.version
 protocol.amos-chksum.command-handler
+base.warnings.compact_diff_to_pragma
+base.warnings.compact_diff_from_bits
 base.perlmod.manual_reload_blacklist
+base.parser.decode_harmonized_refstr
 base.handler.read.encryption-wrapper
 base.callback.clean_data_source_hash
 protocol.sftp.handler.write_to_server
@@ -533,8 +588,8 @@ protocol.protocol-7.protocol-version-path-set-up
 base.log.send-buffer.reply-handler.notify-online
 mpv.handler.event.property-change.video-aspect-override
 
-#,,,.,,,.,,,,,.,,,,,,,,.,,.,,,.,,,,,,,,.,,,..,..,,...,...,,..,,.,,.,.,,..,.,.,
-#4HMRAL5FRFBDVMVMHQVFIIOHSPH3XGL3A6JC6LQFUT4JU6HANKVJDNWDLZAS2YG5GYSSAKREJ5GRA
-#\\\|YPRGXYHW3LUNYBOXSWI7KSYXJ57P4RG5575SL2YAMKCKR2IVYEW \ / AMOS7 \ YOURUM ::
-#\[7]DGHBIGLHHGK5GH5CCQNR4DK57GNC6FDPOMZ4VVBIBYNZ226SG4BY 7  DATA SIGNATURE ::
+#,,..,...,,.,,,,,,.,,,,..,...,.,,,..,,,.,,,..,..,,...,...,.,.,.,.,...,.,,,,,.,
+#WX7NATYEEYCTIMECL5Q3VRZU7F4KPPGJHL42I23JMN6REVBA5GTVIMEAVJCBNUAN42Y3GJHGKOJ4G
+#\\\|HOLMPISRZNWEJIYFRARFZQAJSNKZDRKGFG5VKS5RSSI2WZQWLNW \ / AMOS7 \ YOURUM ::
+#\[7]4MVJ7CEUHIMYJYGRNW6V2ZLG6II7OYASIIKU4R6QJKP7LB6G2KBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

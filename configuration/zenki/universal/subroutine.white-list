@@ -22,6 +22,7 @@ base.waitpid
 base.tmp_dir
 base.sig_int
 base.sig_hup
+base.set_key
 base.s_write
 base.max-len
 base.del_key
@@ -42,6 +43,9 @@ base.cmd.name
 base.cmd.list
 base.cmd.exit
 base.cfg_bool
+devmod.cmd.set
+devmod.cmd.get
+devmod.cmd.del
 base.wrap_text
 base.swap_subs
 base.ssl.write
@@ -57,6 +61,7 @@ base.init-done
 base.hide_list
 base.file.open
 base.dump_data
+base.conf-wrap
 base.cmd.heart
 base.cmd.clear
 auth.auth_list
@@ -65,6 +70,10 @@ v7.instance_ids
 plugin.auth.pwd
 p7-log.add_line
 net.read_binary
+devmod.pre_init
+devmod.cmd.true
+devmod.cmd.echo
+devmod.cmd.dump
 chk-sum.md5.hex
 chk-sum.crc.b32
 base.zenka.loop
@@ -80,6 +89,10 @@ base.event.loop
 base.cmd.whoami
 base.cmd.reload
 plugin.auth.unix
+devmod.post_init
+devmod.init_code
+devmod.cmd.sleep
+devmod.cmd.since
 chk-sum.md5.b64u
 base.resolve_key
 base.prng.reseed
@@ -87,6 +100,7 @@ base.path_owners
 base.parser.list
 base.net.connect
 base.log-delayed
+base.load_config
 base.get_homedir
 base.cmd.subname
 base.cmd.src-ver
@@ -113,6 +127,7 @@ base.list_matches
 base.init_modules
 base.handler.read
 base.handler.auth
+base.get_warnings
 base.file.content
 base.event.add_io
 base.context.list
@@ -123,6 +138,12 @@ base.cmd.cpu-time
 base.cmd.commands
 base.chk-sum.amos
 universal.pre_init
+devmod.cmd.elf-num
+devmod.cmd.elf-b32
+devmod.cmd.eat-mem
+devmod.cmd.del-env
+devmod.cmd.b32-elf
+devmod.cmd.add-env
 base.reload_values
 base.reload_config
 base.protocol.bind
@@ -133,6 +154,7 @@ base.handler.hooks
 base.handler.heart
 base.get_file.aref
 base.file.pre_init
+base.file.line_map
 base.event.add_var
 base.cmd.verbosity
 base.cmd.ntime-dec
@@ -144,6 +166,11 @@ base.clean_hashref
 v7.stdout_log.write
 universal.init_code
 plugin.auth.twofish
+devmod.console-dump
+devmod.cmd.true-int
+devmod.cmd.free-mem
+devmod.cmd.exec-sub
+devmod.cmd.dump-env
 channels.cmd.update
 base.utf8.clean_str
 base.str.eval_error
@@ -160,7 +187,12 @@ base.file.all_links
 base.file.all_files
 base.extract_values
 base.event.pre_init
+base.diff.hash_keys
 base.calc_unix_path
+devmod.cmd.test-strm
+devmod.cmd.list-subs
+devmod.cmd.eval-code
+devmod.cmd.core-subs
 base.route.init_code
 base.root.drop_privs
 base.read_proc_times
@@ -215,6 +247,7 @@ universal.self_restart
 universal.lower_except
 universal.get_playlist
 universal.cmd.get_list
+devmod.cmd.switch-user
 base.session.init_code
 base.required_bin_path
 base.register_src_deps
@@ -230,9 +263,11 @@ auth.unix.authenticate
 universal.cmd.slow_down
 protocol.sftp.init_code
 io.unix.socket.end_code
+devmod.cmd.deparse-code
 crypt.C25519.key_exists
 chk-sum.skein.init_code
 base.templates.pre_init
+base.strip_chksum_lines
 base.start.unlink_child
 base.session.init_state
 base.perlmods.init_code
@@ -257,6 +292,10 @@ protocol.https.init_code
 plugin.auth.auth-keypair
 p7-log.handler.close_log
 io.unix.socket.init_code
+devmod.cmd.unload-unsafe
+devmod.cmd.unload-devmod
+devmod.cmd.mem-allocated
+devmod.cmd.current-umask
 base.zenka.is_v7_started
 base.templates.init_code
 base.session.check.close
@@ -270,7 +309,9 @@ base.check_cfg_cmd_alias
 universal.stop_start-anim
 io.unix.socket.input.open
 httpd.base.size.normalize
+devmod.cmd.test-strm-size
 channels.util.yaml_decode
+base.sourcecode.init_code
 base.session.cancel_route
 base.register_p7_mod_load
 base.parser.list_filtered
@@ -295,6 +336,7 @@ universal.cmd.get_geometry
 protocol.sftp.read_ssh_env
 io.unix.socket.output.open
 io.unix.socket.input.close
+base.warnings.from_bitmask
 base.session.check.flushed
 base.reverse-sort.key-name
 base.protocol-7.route-send
@@ -314,6 +356,8 @@ universal.cmd.report_paused
 net.read_linewise_estimated
 io.unix.socket.output.close
 httpd.update_download_count
+devmod.cmd.permission-setup
+devmod.cmd.extract-line-map
 base.zenki.report_child_pid
 base.templates.register_add
 base.session.calc_cmd_stats
@@ -330,6 +374,7 @@ universal.get_unix_sock_path
 universal.cmd.get_list_types
 protocol.protocol-7.pre_init
 io.unix.socket.input.connect
+devmod.cmd.receive-multiline
 channels.handler.data_change
 base.validate.composite_name
 base.session.check_remaining
@@ -345,6 +390,8 @@ universal.handler.switch_fade
 universal.cmd.playlist_update
 universal.cmd.get_coordinates
 protocol.protocol-7.init_code
+devmod.cmd.keep-devmod-loaded
+devmod.cmd.inline-subroutines
 crypt.C25519.get_usr_keys_dir
 base.validate.data_key_syntax
 base.source.collect_file_list
@@ -366,6 +413,7 @@ universal.handler.resume_reply
 universal.collect_video_frames
 protocol.sftp.connect_callback
 protocol.amos-chksum.init_code
+devmod.cmd.decode-harmonic-ref
 base.zenki.ondemand_registered
 base.session.send_init_reports
 base.p7refs.get_refaddr_prefix
@@ -373,7 +421,9 @@ base.number-cache.true_upwards
 base.log.send-buffer.add-queue
 base.cache.refaddr-prefix.init
 universal.handler.cur-pid_reply
+devmod.cmd.change-log-verbosity
 crypt.C25519.cmd.get-public-key
+base.warnings.compact_statehash
 base.p7refs.gen_template_chksum
 base.buffer.local_logfile_write
 universal.handler.switch_timeout
@@ -389,6 +439,7 @@ base.config.load_proto_7_version
 universal.callback.mpv_idle_check
 protocol.amos-chksum.ext-cmd.exit
 plugin.auth.zenka.no-keys-defined
+base.sourcecode.in-mem.sub-source
 base.perlmod.init_install_buffers
 base.parser.center_ellipse_string
 base.file.matching_path_linknames
@@ -422,7 +473,10 @@ universal.handler.start-anim_timeout
 universal.handler.start-anim_started
 protocol.amos-chksum.ext-cmd.version
 protocol.amos-chksum.command-handler
+base.warnings.compact_diff_to_pragma
+base.warnings.compact_diff_from_bits
 base.perlmod.manual_reload_blacklist
+base.parser.decode_harmonized_refstr
 base.handler.read.encryption-wrapper
 base.callback.clean_data_source_hash
 universal.handler.extract_frame_reply
@@ -461,8 +515,8 @@ auth.callback.cap-neg.declare-strm-size-support
 protocol.protocol-7.protocol-version-path-set-up
 base.log.send-buffer.reply-handler.notify-online
 
-#,,,.,,..,.,,,,,.,,,.,,,.,.,.,.,.,...,.,,,,.,,..,,...,..,,,.,,,,.,.,.,,,.,..,,
-#5UVI6YUQ57RATG2HYLUIMRK27POFULM4SOGYYHLLYYWR7AFUH2WQLH544M6677KXARA3JIRRHNR4W
-#\\\|ZKGQDBK7LUFDRREGQ27QPJS4Q776PDNJ4DWMI2FE5EQ3Y4RQULR \ / AMOS7 \ YOURUM ::
-#\[7]DEO4NL446WCXDPKDNGWQMH4ESGAL7J5JB3O4RROCZ6VAHKCEWYBY 7  DATA SIGNATURE ::
+#,,,,,,..,..,,.,.,.,.,,.,,..,,,..,,,.,,..,...,..,,...,...,,..,,,.,,,.,,,,,...,
+#ICKRILIMM4NGX55YMONBY52FXYF7DW3A7KKBW6J4SALOUYB5BVSRBCLXJ2ZD6HYGVIOMKR4X2KIYU
+#\\\|AF753JQS63E4B32FQB6UYU244PV3RWI7NJT7VY7AYMDF7YPGOVQ \ / AMOS7 \ YOURUM ::
+#\[7]K6KBLGJTMYEUYWB4QK2N5IYFT5PAHUPEVGMGZD6NFT7EI5Z7IKCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -194,6 +194,7 @@ base.diff.hash_keys
 base.calc_unix_path
 io.ip.tcp.input.open
 io.ip.ssl.input.open
+image-quality.status
 devmod.cmd.test-strm
 devmod.cmd.list-subs
 devmod.cmd.eval-code
@@ -227,6 +228,7 @@ jobqueue.get_job_data
 io.ip.tcp.output.open
 io.ip.tcp.input.close
 io.ip.ssl.input.close
+image-quality.analyze
 crypt.C25519.pre_init
 crypt.C25519.keyfiles
 crypt.C25519.key_vars
@@ -267,11 +269,13 @@ base.file.get-non-dirs
 base.comp-int.is_valid
 base.call_online_hooks
 auth.unix.authenticate
+vision-batch.child.loop
 protocol.sftp.init_code
 jobqueue.queue_template
 io.unix.socket.end_code
 io.ip.tcp.input.connect
 io.ip.ssl.input.connect
+image-quality.init_code
 devmod.cmd.deparse-code
 crypt.C25519.write_keys
 crypt.C25519.unload_key
@@ -316,11 +320,13 @@ base.session.check.close
 base.protocol-7.pre_init
 base.parser.command_list
 base.file.zulum_tmp_file
+base.file.zenka_dir.load
 base.file.strip_path_str
 base.dependency.pre_init
 base.cmd.verify-instance
 base.chk-sum.bmw.L13-str
 base.check_cfg_cmd_alias
+vision-batch.parent.pause
 jobqueue.priorities_table
 jobqueue.joblist_template
 io.unix.socket.input.open
@@ -339,11 +345,15 @@ base.load_runtime_modules
 base.is_defined_recursive
 base.handler.whoami_reply
 base.handler.link-upgrade
+base.file.zenka_dir.write
 base.erase_buffer_content
 base.chk-sum.elf.pre_init
 base.chk-sum.bmw.pre_init
 base.callback.delayed-log
 base.async.get_session_id
+vision-batch.parent.status
+vision-batch.parent.resume
+vision-batch.parent.cancel
 v7.zenka-instances.get-ids
 v7.sub-process.orphan_pids
 protocol.sftp.read_ssh_env
@@ -365,6 +375,8 @@ base.handler.session_error
 base.event.io_idle_restart
 base.check_dependency_dirs
 auth.zenka.cmd.session-key
+vision-batch.parent.process
+vision-batch.parent.persist
 v7.sub-process.get_children
 net.read_linewise_estimated
 jobqueue.check_dependencies
@@ -388,10 +400,11 @@ base.debian.install_package
 base.cmd.buffer-erase-level
 base.chk-sum.elf.vax-BASE32
 base.chk-sum.amos.init_code
+vision-batch.parent.shutdown
+vision-batch.child.init_code
 v7.tmp-paths.global.clean-up
 protocol.protocol-7.pre_init
 io.unix.socket.input.connect
-httpsd.request_capture.write
 devmod.cmd.receive-multiline
 crypt.C25519.keystr_is_valid
 crypt.C25519.compare_keypair
@@ -406,9 +419,11 @@ base.handler.heart_ack_reply
 base.chk-sum.bmw.str-b32.L13
 base.access.special-user-map
 vision-batch.parent.init_code
+vision-batch.parent.cmd.pause
 v7.zenka.cmd.get-instance-ids
 v7.report_collected_child_pid
 protocol.protocol-7.init_code
+image-quality.vision.http_api
 devmod.cmd.keep-devmod-loaded
 devmod.cmd.inline-subroutines
 crypt.C25519.validate_keyname
@@ -433,6 +448,10 @@ base.chk-sum.bmw.B-32-56.TRUE
 base.callback.report_children
 auth.zenka.process_auth_reply
 vision-batch.parent.fork_child
+vision-batch.parent.cmd.status
+vision-batch.parent.cmd.resume
+vision-batch.parent.cmd.cancel
+vision-batch.child.analyze_job
 v7.tmp-paths.global.unregister
 protocol.sftp.connect_callback
 protocol.amos-chksum.init_code
@@ -448,6 +467,9 @@ base.p7refs.get_refaddr_prefix
 base.number-cache.true_upwards
 base.log.send-buffer.add-queue
 base.cache.refaddr-prefix.init
+vision-batch.parent.execute_job
+vision-batch.parent.cmd.process
+image-quality.vision.subprocess
 devmod.cmd.change-log-verbosity
 crypt.C25519.keys.annotate_type
 crypt.C25519.decrypt_secret_key
@@ -473,14 +495,18 @@ base.net.send_to_all_initialized
 base.file.last_existing_dir_path
 base.file.get_swapped_subs_pairs
 base.config.load_proto_7_version
+vision-batch.parent.calculate_eta
 protocol.amos-chksum.ext-cmd.exit
 plugin.auth.zenka.no-keys-defined
+image-quality.vision.select_model
+image-quality.vision.encode_image
 crypt.C25519.verify_key_signature
 base.sourcecode.in-mem.sub-source
 base.perlmod.init_install_buffers
 base.parser.center_ellipse_string
 base.file.matching_path_linknames
 base.callback.expire_code_version
+vision-batch.parent.load_yaml_spec
 protocol.sftp.server.start-process
 protocol.sftp.callback.kill_server
 protocol.amos-chksum.ext-cmd.reset
@@ -499,9 +525,11 @@ base.handler.read.encoding-wrapper
 base.handler.link-upgrade.response
 base.chk-sum.bmw.calculate_L13_sum
 base.callback.setup_rollback_timer
+vision-batch.parent.collect_results
 protocol.sftp.handler.session_close
 protocol.protocol-7.encryption.init
 protocol.amos-chksum.ext-cmd.select
+image-quality.vision.parse_response
 base.perlmod.register_loaded_module
 base.number-cache.is_valid_template
 base.handler.write.encoding-wrapper
@@ -509,6 +537,8 @@ base.handler.strm_size_idle_timeout
 base.handler.counter_overflow_reset
 base.event.callback.io-idle-restart
 base.callback.reset_strm_size_timer
+vision-batch.parent.handle_job_reply
+vision-batch.child.cmd.analyze_image
 protocol.amos-chksum.ext-cmd.version
 protocol.amos-chksum.command-handler
 crypt.C25519.cmd.register-master-key
@@ -518,6 +548,8 @@ base.perlmod.manual_reload_blacklist
 base.parser.decode_harmonized_refstr
 base.handler.read.encryption-wrapper
 base.callback.clean_data_source_hash
+vision-batch.parent.handle_child_exit
+vision-batch.parent.generate_batch_id
 protocol.sftp.handler.write_to_server
 protocol.protocol-7.message-templates
 protocol.protocol-7.link-upgrade.init
@@ -557,8 +589,8 @@ auth.callback.cap-neg.declare-strm-size-support
 protocol.protocol-7.protocol-version-path-set-up
 base.log.send-buffer.reply-handler.notify-online
 
-#,,..,.,,,.,.,,..,.,,,,,.,,,,,,.,,,.,,,.,,..,,..,,...,...,.,.,.,,,...,.,.,...,
-#HUTN4CQAKVPPF4V6SFE4MCQVU77HZOOKOI2R6OJV23TZNMDTDWOBA3M3R5UXHLHHH7XBT4DB7JIAM
-#\\\|VCKCNQ3FDPCU7R7WTFB7DIHFR5LXM4WYXVYGQSQZYODQRGLZBJV \ / AMOS7 \ YOURUM ::
-#\[7]V2E7OEAENPQHOFGSFW5MNY2KRS2URS7IIBFC3QRM3B7KV2TNASCA 7  DATA SIGNATURE ::
+#,,..,,..,.,,,,,,,...,,,,,,,,,...,.,,,,.,,...,..,,...,...,...,,,,,,,,,.,.,,..,
+#4QY3BNAHYZGHZMKUD3M3NXJIMS7QJ62V2OQXZPFQ5UZBTTXJ6GVHN5I3T2RW5JPS3QEJOTOA6QTCC
+#\\\|DSGFV3IWDYEOZMBYGJ43FAIK3NG3OBX7MPQUR2KBOHMFIFWDXOJ \ / AMOS7 \ YOURUM ::
+#\[7]6AMLXQKQ6J6OXYQW7XM434WIH6CXSOOBOEIUG5U53ITIIP5BVACQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

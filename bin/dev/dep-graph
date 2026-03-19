@@ -6,6 +6,7 @@ use v5.24;
 use strict;
 use English;
 use warnings;
+use List::Util qw| min |;
 use Getopt::Long;
 use IO::Compress::Xz qw| xz $XzError |;
 use Crypt::Misc      qw| encode_b32r |;
@@ -339,6 +340,9 @@ sub get_module_files {
 
     for my $entry (@entries) {
         next if $entry eq qw| . | || $entry eq qw| .. |;
+        next
+            if $entry
+            =~ m{(?<![^\w/])(DEADJOE|.+~)$};    ## editor backup files ##
         my $path = c_dir( $dir, $entry );
         if ( -d $path ) {
             push @files, get_module_files($path);
@@ -387,8 +391,15 @@ sub extract_calls {
         }
 
         ##  runtime dispatch: $code{'module.name'} or $code{"module.name"}  ##
+        ##  skip guarded optional calls : if (exists|defined) $code{'X'}    ##
+        ##  [ soft dep — only present in specific zenki, not a hard edge ]  ##
         while ( $line =~ m/\$code\{['"]([a-zA-Z0-9._-]+)['"]\}/g ) {
-            push @calls, $1;
+            my $mod       = $1;
+            my $lookahead = join '', @lines[ $i .. min( $i + 2, $end_idx ) ];
+            my $guard_re
+                = qr/if\s+(?:exists|defined)\s+\$code\{['"]\Q$mod\E['"]\}/;
+            next if $lookahead =~ $guard_re;
+            push @calls, $mod;
         }
 
        #  event callback / handler string refs [ registered, called later ]  #
@@ -739,6 +750,41 @@ sub analyze_zenka_reachability {
             for my $node ( grep {m/^\Q$loaded\E(?:\.|$)/} keys %{$graph} ) {
                 my %new = walk_reachable( $graph, [$node] );
                 %reachable = ( %reachable, %new );
+            }
+        }
+
+       #  detect runtime namespace loads from reachable module source files  #
+       #  pattern : <[base.load_runtime_modules]>->('prefix')                #
+       #  pattern : <[base.init_modules]>->('prefix')                        #
+       #  these fork-child patterns load sub-namespaces that static          #
+       #  call analysis cannot reach [ letsencr.child, letsencr.parent ...]  #
+        {
+            my %runtime_ns_seen;
+            my @to_scan = keys %reachable;
+            while (@to_scan) {
+                my $mod  = shift @to_scan;
+                my $file = c_dir( $root_path, qw| modules |, $mod );
+                next unless -f $file;
+                open my $fh, '<', $file or next;
+                while ( my $line = <$fh> ) {
+                    while (
+                        $line =~ m{<\[base\.(?:load_runtime_modules
+                                              |init_modules)\]>
+                                   \s*->\s*\(\s*['"]([a-zA-Z0-9._-]+)['"]}xg
+                    ) {
+                        my $ns = $1;
+                        next if $runtime_ns_seen{$ns}++;
+                        $loaded_set->{$ns} = 1;
+                        for my $node ( grep {m/^\Q$ns\E(?:\.|$)/}
+                            keys %{$graph} ) {
+                            next if $reachable{$node};
+                            my %new = walk_reachable( $graph, [$node] );
+                            %reachable = ( %reachable, %new );
+                            push @to_scan, keys %new;
+                        }
+                    }
+                }
+                close $fh;
             }
         }
 
@@ -1345,7 +1391,7 @@ sub classify_dispatch_confidence {
         }
 
         ##  check for conditional guarding the dispatch  ##
-        ##  if ( $var =~ /.../ ) { ... $code{$var}->()  ##
+        ##  if ( $var =~ /.../ ) { ... $code{$var}->()   ##
         if ( $i < $usage_idx && $line =~ m/\b(if|unless|while)\s*\(/ ) {
             ##  check if condition involves our variable  ##
             my $cond_line = $line;
@@ -1380,8 +1426,8 @@ sub classify_dispatch_confidence {
     return 'open';
 }
 
-#,,..,,..,...,...,,.,,,,,,.,,,..,,,,,,,,,,,.,,.,.,...,...,..,,.,.,,..,,,.,..,,
-#BOQF3BWWSXXRJ77MBN463ULXPAIG2YK5QAFMJE3GBPKV5QCZ4QS35IJUGN5GHXJ2ECFQUF2UC6G7G
-#\\\|UJUDFQ3WKPCQVOWAQ6KNZW6HQJGVACC46EDD53GAJ32GDXJBDKL \ / AMOS7 \ YOURUM ::
-#\[7]YCH4XRIRGFWMD3H24KPP2HMM5UIM62UFRN5RBCS5RRFMV5DEPKAA 7  DATA SIGNATURE ::
+#,,.,,..,,..,,...,.,,,,..,...,,..,,,.,.,,,,..,.,.,...,.,.,,,,,.,.,,.,,,..,,.,,
+#DQCBZHJLVPNKH632F4HZYLCGJRH5V45JFT2BUSD6VBJ33KXTELCAVFGFWIAG5NFEAMBVMAJX6MDEE
+#\\\|VDHBFYJ4PK6M43S6XTYEYK3PFUQ5GKQCK67VXMGCO4TI33FZBB3 \ / AMOS7 \ YOURUM ::
+#\[7]ESKDTTMQIE2DVQMTXD2ISDJGXFHMAXUZRAIY4J4TMREQJVXBB2AY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
