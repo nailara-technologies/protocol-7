@@ -16,6 +16,7 @@ base.gen_id
 base.waitpid
 base.sig_int
 base.sig_hup
+base.set_key
 base.del_key
 base.timezone
 base.sprint_t
@@ -28,6 +29,9 @@ base.n2u_time
 base.get_file
 base.file.put
 base.cfg_bool
+devmod.cmd.set
+devmod.cmd.get
+devmod.cmd.del
 base.wrap_text
 base.swap_subs
 base.sig_NUM55
@@ -41,8 +45,13 @@ base.init_code
 base.hide_list
 base.file.open
 base.dump_data
+base.conf-wrap
 v7.instance_ids
 p7-log.add_line
+devmod.pre_init
+devmod.cmd.true
+devmod.cmd.echo
+devmod.cmd.dump
 crypt.init_code
 base.str.os_err
 base.prng.bytes
@@ -54,10 +63,15 @@ base.event.once
 amos7.init_code
 source.sign_data
 source.init_code
+devmod.post_init
+devmod.init_code
+devmod.cmd.sleep
+devmod.cmd.since
 base.resolve_key
 base.prng.reseed
 base.path_owners
 base.log-delayed
+base.load_config
 base.get_homedir
 base.chk-sum.elf
 base.reverse-sort
@@ -66,22 +80,35 @@ base.perlmod.load
 base.load_modules
 base.list_matches
 base.init_modules
+base.get_warnings
 base.file.put_bin
 base.file.content
 base.context.list
 base.chk-sum.amos
+devmod.cmd.elf-num
+devmod.cmd.elf-b32
+devmod.cmd.eat-mem
+devmod.cmd.del-env
+devmod.cmd.b32-elf
+devmod.cmd.add-env
 base.reload_values
 base.reload_config
 base.parser.config
 base.handler.heart
 base.get_file.aref
 base.file.pre_init
+base.file.line_map
 base.event.add_var
 base.clean_unicode
 base.clean_hashref
 v7.stdout_log.write
 sourcecode.pre_init
 source.cmd.get-code
+devmod.console-dump
+devmod.cmd.true-int
+devmod.cmd.free-mem
+devmod.cmd.exec-sub
+devmod.cmd.dump-env
 base.utf8.clean_str
 base.str.eval_error
 base.round_truncate
@@ -95,8 +122,13 @@ base.file.all_links
 base.file.all_files
 base.extract_values
 base.event.pre_init
+base.diff.hash_keys
 sourcecode.post_init
 sourcecode.init_code
+devmod.cmd.test-strm
+devmod.cmd.list-subs
+devmod.cmd.eval-code
+devmod.cmd.core-subs
 base.route.init_code
 base.prng.characters
 base.perlmod.install
@@ -132,6 +164,7 @@ base.console.commands
 base.balanced-average
 v7.instance_child_pids
 source.signature_valid
+devmod.cmd.switch-user
 crypt.C25519.sign_keys
 crypt.C25519.sign_data
 crypt.C25519.post_init
@@ -144,11 +177,14 @@ base.perlmod.init_code
 base.path.resolved_abs
 base.file.get-non-dirs
 base.file.broken_links
+base.comp-int.is_valid
 source.extract_sig_body
+devmod.cmd.deparse-code
 crypt.C25519.write_keys
 crypt.C25519.unload_key
 crypt.C25519.sig_fnames
 crypt.C25519.key_exists
+base.strip_chksum_lines
 base.perlmods.init_code
 base.parser.access_conf
 base.known_dependencies
@@ -161,6 +197,10 @@ base.chk-sum.elf.inline
 base.chk-sum.bmw.strsum
 source.acquire_checksums
 p7-log.handler.close_log
+devmod.cmd.unload-unsafe
+devmod.cmd.unload-devmod
+devmod.cmd.mem-allocated
+devmod.cmd.current-umask
 crypt.C25519.verify_sign
 crypt.C25519.single_file
 crypt.C25519.load_single
@@ -176,7 +216,9 @@ base.chk-sum.bmw.filesum
 base.chk-sum.bmw.L13-str
 base.check_cfg_cmd_alias
 source.load_signature_key
+devmod.cmd.test-strm-size
 crypt.C25519.load_keypair
+base.sourcecode.init_code
 base.register_p7_mod_load
 base.parser.element_count
 base.log.send-buffer.init
@@ -198,6 +240,7 @@ crypt.C25519.encrypted_key
 crypt.C25519.clear_chksums
 crypt.C25519.cached_chksum
 crypt.C25519.all_key_names
+base.warnings.from_bitmask
 base.perlmod.install_cpanm
 base.parser.data_hkey_tree
 base.ntime.epoch_timestamp
@@ -206,6 +249,8 @@ base.check_dependency_dirs
 v7.sub-process.get_children
 source.fill_source_template
 source.cmd.update-src-links
+devmod.cmd.permission-setup
+devmod.cmd.extract-line-map
 crypt.C25519.sign_file_list
 crypt.C25519.key_is_virtual
 crypt.C25519.get_remote_key
@@ -216,9 +261,11 @@ base.root.check_system_user
 base.parser.ondemand_status
 base.file.gen_path_linkname
 base.debian.install_package
+base.chk-sum.elf.vax-BASE32
 base.chk-sum.amos.init_code
 v7.tmp-paths.global.clean-up
 source.cmd.update-to-current
+devmod.cmd.receive-multiline
 crypt.C25519.keystr_is_valid
 crypt.C25519.compare_keypair
 base.process-into-background
@@ -230,6 +277,8 @@ v7.report_collected_child_pid
 sourcecode.source_path_set_up
 sourcecode.console.test-cycle
 source.create_harmonic_footer
+devmod.cmd.keep-devmod-loaded
+devmod.cmd.inline-subroutines
 crypt.C25519.validate_keyname
 crypt.C25519.store_remote_key
 crypt.C25519.signature_exists
@@ -246,6 +295,7 @@ base.config.show_strack_trace
 base.chk-sum.bmw.template_L13
 amos7.decode_octal_bit_header
 v7.tmp-paths.global.unregister
+devmod.cmd.decode-harmonic-ref
 crypt.C25519.keys.version_info
 crypt.C25519.key_name_and_type
 crypt.C25519.key_bin_checksums
@@ -256,10 +306,12 @@ base.number-cache.true_upwards
 base.log.send-buffer.add-queue
 base.chk-sum.bmw.encode_digest
 base.cache.refaddr-prefix.init
+devmod.cmd.change-log-verbosity
 crypt.C25519.keys.annotate_type
 crypt.C25519.decrypt_secret_key
 crypt.C25519.cmd.set-client-key
 crypt.C25519.cmd.get-public-key
+base.warnings.compact_statehash
 base.p7refs.gen_template_chksum
 base.buffer.local_logfile_write
 sourcecode.test-endline-handling
@@ -280,6 +332,7 @@ base.parser.harmonized_reference
 base.net.send_to_all_initialized
 base.file.last_existing_dir_path
 crypt.C25519.verify_key_signature
+base.sourcecode.in-mem.sub-source
 base.perlmod.init_install_buffers
 base.parser.center_ellipse_string
 base.file.matching_path_linknames
@@ -300,7 +353,10 @@ base.event.callback.io-idle-restart
 sourcecode.console.update-signatures
 source.restore_payload_endline_state
 crypt.C25519.cmd.register-master-key
+base.warnings.compact_diff_to_pragma
+base.warnings.compact_diff_from_bits
 base.perlmod.manual_reload_blacklist
+base.parser.decode_harmonized_refstr
 crypt.C25519.list_key_signature_names
 crypt.C25519.generate_session_keypair
 crypt.C25519.create_signature_request
@@ -327,8 +383,8 @@ sourcecode.console.test-verify-with-temp-key
 base.log.send-buffer.reply-handler.send-reply
 base.log.send-buffer.reply-handler.notify-online
 
-#,,.,,,,.,.,,,,,.,,..,.,,,.,.,.,,,,.,,,,,,.,.,..,,...,...,..,,..,,.,.,,.,,,,.,
-#7XOYEDGJK4AT7TR4IDHRFQBWQPF4ILKYCHY5GQX7AOZR2PRZP5OGE5XEWNUCNOYGEM2LMLNESRV2K
-#\\\|4LODS7N5SB3KVTYRDWQRM4TLXOUYZCX4G2B7B6HLE6ZVGUGOFUD \ / AMOS7 \ YOURUM ::
-#\[7]AUFNJZ6JPJX6Z4YOKPYZCULDLMKM2RMNB6T6MCU36RZRY6NDMWCY 7  DATA SIGNATURE ::
+#,,,,,...,,,,,..,,,.,,..,,..,,,,,,,..,...,..,,..,,...,..,,...,..,,..,,.,.,,,,,
+#SG7YGXXS7RTEUGTMVPTH2AYUUXS27D36RHVWA67UJMWYFHGNCXVO2SCMT5LQXGNEVLM52EGQTCLZY
+#\\\|FJ34ZURR2CK72VRCJXSFREVCTUFQ6NQ4CTXBXWMIWOYYQ5C63V7 \ / AMOS7 \ YOURUM ::
+#\[7]MIRDHYXBXZPUPGXCIXUUBVB6LDCUKKEJUHFI377YHBCWKJFHROAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
