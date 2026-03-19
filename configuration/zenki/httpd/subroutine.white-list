@@ -22,6 +22,7 @@ base.waitpid
 base.tmp_dir
 base.sig_int
 base.sig_hup
+base.set_key
 base.s_write
 base.max-len
 base.del_key
@@ -45,6 +46,9 @@ base.cmd.exit
 base.cfg_bool
 httpd.pre_init
 httpd.http_get
+devmod.cmd.set
+devmod.cmd.get
+devmod.cmd.del
 base.wrap_text
 base.swap_subs
 base.ssl.write
@@ -60,6 +64,7 @@ base.init-done
 base.hide_list
 base.file.open
 base.dump_data
+base.conf-wrap
 base.cmd.heart
 base.cmd.clear
 auth.auth_list
@@ -72,6 +77,10 @@ httpd.path_info
 httpd.init_code
 httpd.http_post
 httpd.http_head
+devmod.pre_init
+devmod.cmd.true
+devmod.cmd.echo
+devmod.cmd.dump
 base.zenka.loop
 base.str.os_err
 base.prng.bytes
@@ -88,12 +97,17 @@ plugin.auth.unix
 httpd.serve_file
 httpd.new_header
 httpd.cmd.vhosts
+devmod.post_init
+devmod.init_code
+devmod.cmd.sleep
+devmod.cmd.since
 base.resolve_key
 base.prng.reseed
 base.path_owners
 base.parser.list
 base.net.connect
 base.log-delayed
+base.load_config
 base.get_homedir
 base.cmd.subname
 base.cmd.src-ver
@@ -120,6 +134,7 @@ base.list_matches
 base.init_modules
 base.handler.read
 base.handler.auth
+base.get_warnings
 base.file.put_bin
 base.file.content
 base.event.add_io
@@ -135,6 +150,12 @@ httpd.serve_static
 httpd.http_options
 format.json.encode
 format.json.decode
+devmod.cmd.elf-num
+devmod.cmd.elf-b32
+devmod.cmd.eat-mem
+devmod.cmd.del-env
+devmod.cmd.b32-elf
+devmod.cmd.add-env
 base.reload_values
 base.reload_config
 base.protocol.bind
@@ -145,6 +166,7 @@ base.handler.hooks
 base.handler.heart
 base.get_file.aref
 base.file.pre_init
+base.file.line_map
 base.file.all_dirs
 base.event.add_var
 base.cmd.verbosity
@@ -163,6 +185,11 @@ httpd.get_mime_type
 httpd.download_init
 httpd.cmd.del-vhost
 httpd.cmd.add-vhost
+devmod.console-dump
+devmod.cmd.true-int
+devmod.cmd.free-mem
+devmod.cmd.exec-sub
+devmod.cmd.dump-env
 channels.cmd.update
 base.utf8.clean_str
 base.str.eval_error
@@ -181,6 +208,7 @@ base.file.all_links
 base.file.all_files
 base.extract_values
 base.event.pre_init
+base.diff.hash_keys
 base.calc_unix_path
 io.ip.tcp.input.open
 io.ip.ssl.input.open
@@ -188,6 +216,10 @@ httpd.json.init_code
 httpd.determine_host
 httpd.cmd.vhost-list
 httpd.benchmark.init
+devmod.cmd.test-strm
+devmod.cmd.list-subs
+devmod.cmd.eval-code
+devmod.cmd.core-subs
 base.route.init_code
 base.root.drop_privs
 base.read_proc_times
@@ -247,6 +279,7 @@ httpd.system.cpu_usage
 httpd.route_dispatcher
 httpd.process_template
 httpd.benchmark.report
+devmod.cmd.switch-user
 base.session.init_code
 base.required_bin_path
 base.register_src_deps
@@ -263,8 +296,10 @@ io.ip.tcp.input.connect
 io.ip.ssl.input.connect
 httpd.system.network_io
 httpd.diagnostic.report
+devmod.cmd.deparse-code
 crypt.C25519.key_exists
 base.templates.pre_init
+base.strip_chksum_lines
 base.start.unlink_child
 base.session.init_state
 base.perlmods.init_code
@@ -290,6 +325,10 @@ io.unix.socket.init_code
 httpd.system.memory_free
 httpd.parse_range_header
 httpd.event.remove_timer
+devmod.cmd.unload-unsafe
+devmod.cmd.unload-devmod
+devmod.cmd.mem-allocated
+devmod.cmd.current-umask
 base.zenka.is_v7_started
 base.templates.init_code
 base.session.check.close
@@ -302,7 +341,9 @@ base.check_cfg_cmd_alias
 io.unix.socket.input.open
 httpd.system.memory_stats
 httpd.base.size.normalize
+devmod.cmd.test-strm-size
 channels.util.yaml_decode
+base.sourcecode.init_code
 base.session.cancel_route
 base.register_p7_mod_load
 base.parser.list_filtered
@@ -322,6 +363,7 @@ protocol.sftp.read_ssh_env
 io.unix.socket.output.open
 io.unix.socket.input.close
 httpd.handler.acme_request
+base.warnings.from_bitmask
 base.session.check.flushed
 base.reverse-sort.key-name
 base.perlmod.install_cpanm
@@ -340,6 +382,8 @@ httpd.path.remove_vhost_dir
 httpd.path.create_vhost_dir
 httpd.benchmark.end_request
 httpd.base.file.nonblocking
+devmod.cmd.permission-setup
+devmod.cmd.extract-line-map
 base.templates.register_add
 base.session.calc_cmd_stats
 base.root.check_system_user
@@ -356,6 +400,7 @@ io.unix.socket.input.connect
 httpsd.request_capture.write
 httpd.handler.template_reply
 httpd.handler.acme_challenge
+devmod.cmd.receive-multiline
 channels.handler.data_change
 base.validate.composite_name
 base.session.check_remaining
@@ -370,6 +415,8 @@ v7.report_collected_child_pid
 protocol.protocol-7.init_code
 httpd.vhost_template_resolver
 httpd.benchmark.start_request
+devmod.cmd.keep-devmod-loaded
+devmod.cmd.inline-subroutines
 crypt.C25519.get_usr_keys_dir
 base.validate.data_key_syntax
 base.source.collect_file_list
@@ -389,6 +436,7 @@ protocol.sftp.connect_callback
 protocol.amos-chksum.init_code
 httpd.diagnostic.end_operation
 httpd.cmd.setup-acme-challenge
+devmod.cmd.decode-harmonic-ref
 base.zenki.ondemand_registered
 base.session.send_init_reports
 base.p7refs.get_refaddr_prefix
@@ -399,7 +447,9 @@ httpd.path.create_default_index
 httpd.handler.download_transfer
 httpd.cmd.remove-acme-challenge
 httpd.benchmark.collect_metrics
+devmod.cmd.change-log-verbosity
 crypt.C25519.cmd.get-public-key
+base.warnings.compact_statehash
 base.p7refs.gen_template_chksum
 base.buffer.local_logfile_write
 httpd.handler.web_template_reply
@@ -414,6 +464,7 @@ base.file.get_swapped_subs_pairs
 base.config.load_proto_7_version
 protocol.amos-chksum.ext-cmd.exit
 plugin.auth.zenka.no-keys-defined
+base.sourcecode.in-mem.sub-source
 base.perlmod.init_install_buffers
 base.parser.center_ellipse_string
 base.file.matching_path_linknames
@@ -447,7 +498,10 @@ base.callback.reset_strm_size_timer
 protocol.amos-chksum.ext-cmd.version
 protocol.amos-chksum.command-handler
 httpd.handler.download_transfer.test
+base.warnings.compact_diff_to_pragma
+base.warnings.compact_diff_from_bits
 base.perlmod.manual_reload_blacklist
+base.parser.decode_harmonized_refstr
 base.handler.read.encryption-wrapper
 base.callback.clean_data_source_hash
 protocol.sftp.handler.write_to_server
@@ -489,8 +543,8 @@ auth.callback.cap-neg.declare-strm-size-support
 protocol.protocol-7.protocol-version-path-set-up
 base.log.send-buffer.reply-handler.notify-online
 
-#,,,.,,,,,.,.,...,,.,,,.,,,,,,.,.,.,.,,..,,,,,..,,...,...,,,.,,..,.,.,.,.,,,,,
-#A2PZKB6VAPUCHOTOZZAH4LYISTURD7AEIHDGP63PUEFJGYEPC5NLOZ6P4CK6QIDI6KTOMLTVI2RWW
-#\\\|4KFGPR5PRKBNPOJD7RKWR2FTFQOAQQ46W6X5UVVW6VRDCSKDW6B \ / AMOS7 \ YOURUM ::
-#\[7]3UVLJJX65JOPIDKYCFGM45SPXFX4FU4O3EIGLQ6WTNA5RPCTWOBQ 7  DATA SIGNATURE ::
+#,,,.,,..,.,,,,..,.,,,,,.,,,,,..,,,,,,,,.,...,..,,...,...,.,.,..,,.,,,,..,..,,
+#ZSV4OGLRUEIAXBNXTDJ4UOHBC5CFN6QT5L4ABHR4NIDQ7XNCKSN2PGRO6KCA26ULVOG6EH7GIUQVM
+#\\\|CDDEVNKW2DVSPHHKETMURWO37THIL57INXUZYFUIG75JWQ7MOGR \ / AMOS7 \ YOURUM ::
+#\[7]YVS2GIYEQHVP2KZER7RV2ZHZZH2K4TIK3JAL5ZE3TQ4UR7IAZYAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
