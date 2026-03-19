@@ -1,0 +1,59 @@
+## [:< ##
+
+# name  = httpsd.request_capture.collect
+# descr = on startup, collect any surviving /dev/shm crash-capture file
+#         and route to named log buffer + delete
+#         [ called from httpsd.post_init before socket creation ]
+#         [ always collects regardless of httpsd.cfg.request_capture state ]
+
+my $path = '/dev/shm/httpsd-last-request';
+
+return if not -f $path;
+
+my $fh;
+if ( not open( $fh, '<', $path ) ) {
+    <[base.logs]>->(
+        1,     'request_capture: cannot read %s [ %s ]',
+        $path, <[base.str.os_err]>
+    );
+    return undef;
+}
+my $content = do { local $/; <$fh> };
+close $fh;
+
+unlink $path
+    or <[base.logs]>->(
+    1,     'request_capture: unlink %s failed [ %s ]',
+    $path, <[base.str.os_err]>
+    );
+
+my $collected_at = <[base.ntime.b32]>->(3);
+
+<[base.log]>->(
+    0, ':[ httpsd crash capture — restarted at %s ]:',
+    $collected_at
+);
+
+<buffer.httpsd-crash-log.max_size> //= 64 * 1024;
+
+<[base.buffer.add_line]>->( qw| httpsd-crash-log |, '' );
+<[base.buffer.add_line]>->(
+    qw| httpsd-crash-log |,
+    sprintf '[ crash capture — restarted at %s ]',
+    $collected_at
+);
+
+for my $line ( split /\n/, $content ) {
+    <[base.log]>->( 0, ':  %s', $line );
+    <[base.buffer.add_line]>->( qw| httpsd-crash-log |, $line );
+}
+
+<[base.buffer.add_line]>->( qw| httpsd-crash-log |, '' );
+
+#,,..
+
+#,,,,,...,,,.,.,,,,,,,,.,,.,.,.,.,...,..,,,..,..,,...,...,.,,,,,,,,..,,,.,,,.,
+#BVWJWQG6PPBSASSGEXMNPGBJWXFQNH3HHKTFE7ZVFF7BKRJT55OJB3KX4RCF7TKAAN6KUDG4LBFLO
+#\\\|SFWYLB7NNFQ7CSDUVTB3Q2WZFQLZXXKGP2NTBO25EY4YZ5BHAMA \ / AMOS7 \ YOURUM ::
+#\[7]WYQTZY22NVBF7E4ZNEIUMRV2R4V5SRKGGZDJBPVD6X5V56F2MIBI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

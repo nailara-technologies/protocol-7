@@ -96,6 +96,11 @@ if ( ref($fd) eq qw| IO::Socket::SSL | and -S $fd ) {
         $id, $client_fd
     );
 
+    ## crash capture hook [ httpsd only — no-op in other ssl zenki ] ##
+    $code{'httpsd.request_capture.write'}
+        ->( { 'event' => 'ssl-handshake-start', 'client_ip' => $p_host } )
+        if exists $code{'httpsd.request_capture.write'};
+
     return $client_sock_fd;    ## <-- success \ returning client socket ##
 
 } else {
@@ -106,8 +111,8 @@ if ( ref($fd) eq qw| IO::Socket::SSL | and -S $fd ) {
     return undef;              ## <-- connection closed \ error connecting ##
 }
 
-#,,..,,,,,,,,,,..,...,,,,,,..,.,,,,,.,..,,,..,..,,...,..,,,,.,.,,,,,,,.,.,,,,,
-#Z7MMBLQ7NSUD5N53IPUIQFTU6QWNCR2UU776OBDJ25XOSVIVBHXLIFKB4U7FH5OSLVU5SG3RJTI52
-#\\\|6OG76B4WCVPYCUCN34BGSBIPXPYTSNYGFDTGGAW3C2G6Y6J6LO3 \ / AMOS7 \ YOURUM ::
-#\[7]E2CSY3ED5HEW4F653SGPF764PYHQE5C2LOWLHPNDS5XW4A7RL6DQ 7  DATA SIGNATURE ::
+#,,.,,.,.,.,,,,.,,,,,,,,,,,.,,.,,,.,,,...,.,,,..,,...,...,.,.,.,,,...,,,,,,.,,
+#INUS26NL5RSDFXXYJ6CJWWLT55U3CU2YXHOV43AHIMLGRP2MDK4X6NEBNMAWXTR7IX63W5BHVK2LE
+#\\\|UCBH3GMRVKBPYIOO6NANATYOGZS3DSQLXTRZZSIWLE7THZJIXIQ \ / AMOS7 \ YOURUM ::
+#\[7]WMMZREGJ4I4VCKRLAPGLTKZWP7WOLTHCLY6XH4UJDCM4NMPVDIAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
