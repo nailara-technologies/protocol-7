@@ -168,6 +168,16 @@ if ( <[base.cfg_bool]>->( <httpsd.cfg.request_capture> // 1 ) ) {
     $data{'buffer'}{'httpsd-crash-log'}{'max_size'} //= 64 * 1024;
     $data{'buffer'}{'httpsd-crash-log'}{'data'}     //= [];
     $data{'buffer'}{'httpsd-crash-log'}{'size'}     //= 0;
+
+    <httpsd.path.request_capture> //= qw| /dev/shm/httpsd-last-request |;
+
+    ## register end_code callback once — guards against re-init double-push ##
+    if ( not <httpsd.request_capture.cb_registered> ) {
+        push <callbacks.end_code>->@*, qw| httpsd.callback.reset-capture |;
+        <httpsd.request_capture.cb_registered> = TRUE;
+        <[base.log]>->( 1, '::[ crash mitigation ]:.' );
+        <[base.log]>->( 1, ': request capture registerd..' );
+    }
 } else {    ## remove ghost config entry ##
     delete $data{'buffer'}{'httpsd-crash-log'};
 }
@@ -178,8 +188,8 @@ if ( <[base.cfg_bool]>->( <httpsd.cfg.request_capture> // 1 ) ) {
 
 0;
 
-#,,,,,.,,,...,...,..,,,..,,..,,..,,,,,.,,,,,.,..,,...,...,,.,,,..,.,,,.,.,...,
-#JZNGDMG74XTONVZK76KNR5TO5GNMEC3GTC4YX2MD7VTC3LPNLLH757RB5QG7GBWWCV77L25YLW4TK
-#\\\|FHFFATQNPFYGRPS52XVVBL57BAMFBNIX24QK2R3Q62LT36C4YQQ \ / AMOS7 \ YOURUM ::
-#\[7]LHAYTTWXQPWYNOS5F6V43ANY2IGTGTZGVRIYIOGIRRUAJJFH7OBI 7  DATA SIGNATURE ::
+#,,..,,,,,,,.,,,.,...,,..,..,,...,,,,,...,..,,..,,...,...,,.,,,,,,.,.,,,.,...,
+#6S66GFPML7GUCJQCRWAL2TDFM5ALGTWEW2U2JY6TBO52UYA3MV4VWVTLHPWVKKZEND6FT54NJTHYU
+#\\\|KMRMZ6PAUG7NVIEEJQSKNILVSVBLUZXMUH6A3FPBJN2W3FUUMEW \ / AMOS7 \ YOURUM ::
+#\[7]DRFNJVE2D447SL7V3LAAI2KKOHOWJKYLNDU7IUBQDZFKP522BABY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

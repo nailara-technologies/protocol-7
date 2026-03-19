@@ -1,0 +1,21 @@
+## [:< ##
+
+# name  = httpsd.callback.reset-capture
+# descr = clean up /dev/shm crash-capture file on graceful shutdown
+#         [ prevents false crash report on next startup ]
+#         [ no-op when file absent — resilient to feature being disabled ]
+
+my $path = <httpsd.path.request_capture>;
+return warn 'request_capture path not set' if not defined $path;
+
+unlink $path
+    or <[base.logs]>->(
+    1,     'request_capture : unlink %s failed [ %s ]',
+    $path, <[base.str.os_err]>
+    ) if -f $path;
+
+#,,..,,.,,,..,.,.,,..,,.,,...,,..,,.,,,,,,.,,,..,,...,...,.,.,,,.,,..,.,.,...,
+#EICJ4ICDKHI4T4Q6UXU22AA4TVF6FRPSGRDCVH5FPB2CXMNATAPNCP545S2XCJNRJWXEWCAS66W6M
+#\\\|LSUFZCNKEM3RMMU3P5D63QQ4CDSDHD6L46RDQ2LAM4FS7L24PEE \ / AMOS7 \ YOURUM ::
+#\[7]42ZJCIPVOLRFGPIBZVBJGB7RKW32EJAZX2QOUHLBKECQEH5OJ6DA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
