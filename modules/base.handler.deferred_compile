@@ -16,10 +16,21 @@ my $sub_name = [<[base.caller]>]->[0];    ##  own name via filename hint  ##
 goto &{ $code{$sub_name} }    ##  transparent hand-off on first call  ##
     if ref $code{$sub_name} eq qw| CODE |;
 
+##  install broken stub — prevents retry loop, clears itself on reload  ##
+$data{'code'}{$sub_name}{'status'} = 'error';    ##
+$code{$sub_name} = eval(                         ##
+    "sub { if ( ( \$data{'code'}{'$sub_name'}{'status'} // '' )"       ##
+        . " ne 'error' ) {"                                            ##
+        . " goto &{ \$code{'$sub_name'} } }"                           ##
+        . " \$code{'base.log'}->(0,"                                   ##
+        . "'..: broken sub called [ $sub_name ] — compile failed')"    ##
+        . " }"
+);                                                                     ##
+
 <[base.log]>->( 0, sprintf '..: deferred compile failed [ %s ]', $sub_name );
 
-#,,,.,.,,,...,.,.,,,.,..,,,,.,,.,,,..,..,,.,.,..,,...,..,,..,,..,,,.,,..,,,,.,
-#4EC7DK35L2NLPV2EEH76TONH2OKC2MDPZYJINZAK662GT7WM457TZQJYPPROMVOOXRVPTRBNDGIBO
-#\\\|RCIM2WXJHKZVF5YEOICL56ADA4FLT7QTOFFE3TIFPPB7JOXLETC \ / AMOS7 \ YOURUM ::
-#\[7]EHXKUTABNSZI6GRH7V5FYGQTCS5R5Z2D7OUGME4UHEFYK7DEZADQ 7  DATA SIGNATURE ::
+#,,..,.,,,,,.,,.,,...,...,,..,,,.,,,.,..,,..,,..,,...,...,,.,,,..,.,,,.,,,.,,,
+#5DNPFPOKVBIA7QC3SWUT6T2JYSP54QO656CQ3F34F7LC7ITKURSP7CU4WX2FJ64N2DJXYDL6AEZWS
+#\\\|JOMBHN4JRGXC6QBL6OI4NSFIGZVUZ7JZ66OL36UXZ5367ELM7VH \ / AMOS7 \ YOURUM ::
+#\[7]WJNFCXSK3ZU7DPW4HNHT7NOAKHF3G6S4MZ2SCI3OJWEXWRMB62BA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

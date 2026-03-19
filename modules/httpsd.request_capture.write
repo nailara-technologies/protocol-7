@@ -1,0 +1,44 @@
+## [:< ##
+
+# name  = httpsd.request_capture.write
+# param = \%info  ## event, client_ip, method [opt], uri [opt], tls [opt]
+# descr = overwrite /dev/shm capture file with current request context
+#         [ pure tmpfs write — no disk I/O, survives process crash ]
+
+return if not <[base.cfg_bool]>->( <httpsd.cfg.request_capture> // 1 );
+
+my $info = shift // {};
+
+my $ntime  = <[base.ntime.b32]>->(3);
+my $event  = $info->{'event'}     // 'unknown';
+my $ip     = $info->{'client_ip'} // 'unknown';
+my $method = $info->{'method'}    // '';
+my $uri    = $info->{'uri'}       // '';
+my $tls    = $info->{'tls'}       // '';
+
+my $content
+    = "ntime     : $ntime\n" . "event     : $event\n" . "client_ip : $ip\n";
+$content .= "method    : $method\n" if length $method;
+$content .= "uri       : $uri\n"    if length $uri;
+$content .= "tls       : $tls\n"    if length $tls;
+
+my $path = '/dev/shm/httpsd-last-request';
+
+my $fh;
+if ( not open( $fh, '>', $path ) ) {
+    <[base.logs]>->(
+        2,     'request_capture: cannot write to %s [ %s ]',
+        $path, <[base.str.os_err]>
+    );
+    return undef;
+}
+print {$fh} $content;
+close $fh;
+
+#,,..
+
+#,,..,,.,,..,,.,.,.,.,.,.,,..,,..,..,,,,.,.,.,..,,...,...,...,,..,..,,,,.,,,.,
+#FKNDQ7CVACIF4PAIPOHPFMDDLFKW2YXEAXTWCTHBVH7SXFMO4LXCB7573S7R3YJYA7JNGFOXNM7L4
+#\\\|7BS5LFYOV6DUPRMOPSI6FIRSE3AEAU7RPFGCE244G32GHKC3HVT \ / AMOS7 \ YOURUM ::
+#\[7]ILAG5CTQVDJD5Q2Q6JBNV23GM2QXEA5VCAZEH4TDGH2CJFISDMDI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
