@@ -1,0 +1,524 @@
+#!/usr/bin/env -S perl -C31
+
+use utf8;
+use strict;
+use v5.10.0;
+use English;
+use warnings;
+
+use JSON;
+use IO::Socket::UNIX;
+
+## mcp-server-p7 — model context protocol server for protocol-7 network
+##
+## stdio-based MCP server exposing protocol-7 zenka commands as tool calls
+## connects to cube via unix socket, authenticates as unix-$USER
+
+use constant TRUE  => 5;
+use constant FALSE => 0;
+
+##[ configuration ]##
+
+my $socket_path = $ENV{'PROTOCOL_7_UNIX_PATH'} // eval {
+    chomp( my $p = qx| p7c unix-path 2>/dev/null | );
+    length $p ? $p : undef;
+} // '/var/run/.7/UNIX/NIW7OAQ';
+
+my $auth_user = sprintf 'unix-%s',
+    ( $ENV{'PROTOCOL_7_BIN_P7_USER'} // $ENV{'USER'} // $ENV{'LOGNAME'}
+        // 'root' );
+
+##[ global state ]##
+
+my $cube_sock;    ## persistent connection to cube
+my $json = JSON->new->utf8->canonical;
+
+##[ stdio setup ]##
+
+binmode( STDIN,  ':raw' );
+binmode( STDOUT, ':raw' );
+binmode( STDERR, ':encoding(UTF-8)' );
+
+$OUTPUT_AUTOFLUSH = TRUE;
+
+##[ tool definitions ]##
+
+my @tools = (
+    {   'name'        => 'p7_command',
+        'description' => 'send any command to the protocol-7 zenka network '
+            . 'and return the response. use dot notation for zenka routing '
+            . '[ e.g. "weather.desc", "v7.start weather", "task.queue" ]',
+        'inputSchema' => {
+            'type'       => 'object',
+            'properties' => {
+                'command' => {
+                    'type'        => 'string',
+                    'description' =>
+                        'the full command string to send to cube '
+                        . '[ e.g. "task.queue status=pending" ]'
+                }
+            },
+            'required'             => ['command'],
+            'additionalProperties' => \0
+        }
+    },
+    {   'name'        => 'p7_task_create',
+        'description' => 'create a new task in the protocol-7 task queue. '
+            . 'returns the task id on success.',
+        'inputSchema' => {
+            'type'       => 'object',
+            'properties' => {
+                'description' => {
+                    'type'        => 'string',
+                    'description' => 'task description text'
+                },
+                'context' => {
+                    'type'        => 'string',
+                    'description' =>
+                        'optional context or additional details for the task'
+                }
+            },
+            'required'             => ['description'],
+            'additionalProperties' => \0
+        }
+    },
+    {   'name'        => 'p7_task_show',
+        'description' => 'show details of a specific task by its 7-char id',
+        'inputSchema' => {
+            'type'       => 'object',
+            'properties' => {
+                'task_id' => {
+                    'type'        => 'string',
+                    'description' => '7-character task identifier'
+                }
+            },
+            'required'             => ['task_id'],
+            'additionalProperties' => \0
+        }
+    },
+    {   'name'        => 'p7_task_queue',
+        'description' => 'list tasks from the task queue, '
+            . 'optionally filtered by status '
+            . '[ pending, claimed, completed, failed ]',
+        'inputSchema' => {
+            'type'       => 'object',
+            'properties' => {
+                'status' => {
+                    'type'        => 'string',
+                    'description' =>
+                        'optional status filter [ pending | claimed '
+                        . '| completed | failed ]'
+                }
+            },
+            'additionalProperties' => \0
+        }
+    },
+    {   'name'        => 'p7_task_complete',
+        'description' => 'mark a task as completed with a result string',
+        'inputSchema' => {
+            'type'       => 'object',
+            'properties' => {
+                'task_id' => {
+                    'type'        => 'string',
+                    'description' => '7-character task identifier'
+                },
+                'result' => {
+                    'type'        => 'string',
+                    'description' => 'completion result text'
+                }
+            },
+            'required'             => [ 'task_id', 'result' ],
+            'additionalProperties' => \0
+        }
+    },
+);
+
+##[ main loop ]##
+
+log_msg( 'mcp-server-p7 starting [ auth=%s socket=%s ]',
+    $auth_user, $socket_path );
+
+while ( my $line = <STDIN> ) {
+    chomp $line;
+    next unless length $line;
+
+    my $msg = eval { $json->decode($line) };
+    if ($EVAL_ERROR) {
+        send_error( undef, -32700, 'parse error' );
+        next;
+    }
+
+    my $id     = $msg->{'id'};
+    my $method = $msg->{'method'} // '';
+    my $params = $msg->{'params'} // {};
+
+    ## notifications [ no id ] — absorb silently
+    if ( not defined $id ) {
+        log_msg( 'notification: %s', $method );
+        next;
+    }
+
+    if ( $method eq 'initialize' ) {
+        handle_initialize( $id, $params );
+    } elsif ( $method eq 'tools/list' ) {
+        handle_tools_list( $id, $params );
+    } elsif ( $method eq 'tools/call' ) {
+        handle_tools_call( $id, $params );
+    } elsif ( $method eq 'ping' ) {
+        send_result( $id, {} );
+    } else {
+        send_error( $id, -32601, "method not found: $method" );
+    }
+}
+
+log_msg('stdin closed, exiting');
+cube_disconnect();
+exit(0);
+
+## =========================================================================
+## mcp protocol handlers
+## =========================================================================
+
+sub handle_initialize {
+    my ( $id, $params ) = @ARG;
+
+    log_msg('initialize request received');
+
+    send_result(
+        $id,
+        {   'protocolVersion' => '2025-11-25',
+            'capabilities'    => { 'tools' => {} },
+            'serverInfo'      => {
+                'name'    => 'mcp-server-p7',
+                'version' => '0.1.0',
+            }
+        }
+    );
+}
+
+sub handle_tools_list {
+    my ( $id, $params ) = @ARG;
+    send_result( $id, { 'tools' => \@tools } );
+}
+
+sub handle_tools_call {
+    my ( $id, $params ) = @ARG;
+
+    my $name = $params->{'name'}      // '';
+    my $args = $params->{'arguments'} // {};
+
+    log_msg( 'tools/call: %s', $name );
+
+    if ( $name eq 'p7_command' ) {
+        tool_p7_command( $id, $args );
+    } elsif ( $name eq 'p7_task_create' ) {
+        tool_task_create( $id, $args );
+    } elsif ( $name eq 'p7_task_show' ) {
+        tool_task_show( $id, $args );
+    } elsif ( $name eq 'p7_task_queue' ) {
+        tool_task_queue( $id, $args );
+    } elsif ( $name eq 'p7_task_complete' ) {
+        tool_task_complete( $id, $args );
+    } else {
+        send_error( $id, -32602, "unknown tool: $name" );
+    }
+}
+
+## =========================================================================
+## tool implementations
+## =========================================================================
+
+sub tool_p7_command {
+    my ( $id, $args ) = @ARG;
+
+    my $command = $args->{'command'} // '';
+    if ( not length $command ) {
+        return send_tool_result( $id, 'command is required', 1 );
+    }
+
+    my ( $ok, $response ) = cube_command($command);
+    send_tool_result( $id, $response, $ok ? 0 : 1 );
+}
+
+sub tool_task_create {
+    my ( $id, $args ) = @ARG;
+
+    my $desc    = $args->{'description'} // '';
+    my $context = $args->{'context'}     // '';
+
+    if ( not length $desc ) {
+        return send_tool_result( $id, 'description is required', 1 );
+    }
+
+    ## collapse newlines for single-line IPC
+    ( my $safe_desc = $desc ) =~ s{\n}{ }g;
+    my $cmd = "task.create description=$safe_desc";
+
+    if ( length $context ) {
+        ( my $safe_ctx = $context ) =~ s{\n}{ }g;
+        $cmd .= " context=$safe_ctx";
+    }
+
+    my ( $ok, $response ) = cube_command($cmd);
+    send_tool_result( $id, $response, $ok ? 0 : 1 );
+}
+
+sub tool_task_show {
+    my ( $id, $args ) = @ARG;
+
+    my $task_id = $args->{'task_id'} // '';
+    if ( not length $task_id ) {
+        return send_tool_result( $id, 'task_id is required', 1 );
+    }
+
+    my ( $ok, $response ) = cube_command("task.show $task_id");
+    send_tool_result( $id, $response, $ok ? 0 : 1 );
+}
+
+sub tool_task_queue {
+    my ( $id, $args ) = @ARG;
+
+    my $status = $args->{'status'} // '';
+    my $cmd    = 'task.queue';
+    $cmd .= " status=$status" if length $status;
+
+    my ( $ok, $response ) = cube_command($cmd);
+    send_tool_result( $id, $response, $ok ? 0 : 1 );
+}
+
+sub tool_task_complete {
+    my ( $id, $args ) = @ARG;
+
+    my $task_id = $args->{'task_id'} // '';
+    my $result  = $args->{'result'}  // '';
+
+    if ( not length $task_id or not length $result ) {
+        return send_tool_result( $id, 'task_id and result are required', 1 );
+    }
+
+    ## collapse newlines for single-line IPC
+    ( my $safe_result = $result ) =~ s{\n}{ }g;
+
+    my ( $ok, $response )
+        = cube_command("task.complete $task_id $safe_result");
+    send_tool_result( $id, $response, $ok ? 0 : 1 );
+}
+
+## =========================================================================
+## cube socket communication [ unbuffered sysread/syswrite throughout ]
+## =========================================================================
+
+## read a single line from socket via sysread [ byte-by-byte, no buffering ]
+sub sock_readline {
+    my $sock = shift;
+    my $line = '';
+    my $byte;
+    while (1) {
+        my $n = sysread( $sock, $byte, 1 );
+        return undef if not defined $n or $n == 0;
+        $line .= $byte;
+        last if $byte eq "\n";
+    }
+    chomp $line;
+    return $line;
+}
+
+## write string to socket via syswrite
+sub sock_write {
+    my ( $sock, $data ) = @ARG;
+    my $offset = 0;
+    my $len    = length $data;
+    while ( $offset < $len ) {
+        my $n = syswrite( $sock, $data, $len - $offset, $offset );
+        return undef if not defined $n;
+        $offset += $n;
+    }
+    return $offset;
+}
+
+## read exactly N bytes from socket via sysread
+sub sock_read_bytes {
+    my ( $sock, $count ) = @ARG;
+    my $data      = '';
+    my $remaining = $count;
+    while ( $remaining > 0 ) {
+        my $chunk;
+        my $n = sysread( $sock, $chunk, $remaining );
+        return undef if not defined $n or $n == 0;
+        $data .= $chunk;
+        $remaining -= $n;
+    }
+    return $data;
+}
+
+sub cube_connect {
+    return $cube_sock if defined $cube_sock and $cube_sock->connected;
+
+    log_msg( 'connecting to cube [ %s ]', $socket_path );
+
+    $cube_sock = IO::Socket::UNIX->new(
+        Type => SOCK_STREAM(),
+        Peer => $socket_path,
+    );
+
+    if ( not defined $cube_sock ) {
+        log_msg( 'connection failed: %s', $OS_ERROR );
+        return undef;
+    }
+
+    ## read banner
+    my $banner = sock_readline($cube_sock);
+    if ( not defined $banner
+        or $banner !~ m{^\\\\PROTOCOL-7-VERSION\\\\} ) {
+        log_msg( 'protocol mismatch: %s', $banner // 'no banner' );
+        close($cube_sock);
+        $cube_sock = undef;
+        return undef;
+    }
+
+    ## authenticate via unix method
+    sock_write( $cube_sock, "select unix\n" );
+    my $sel_reply = sock_readline($cube_sock);
+    if ( not defined $sel_reply or $sel_reply !~ m{^TRUE} ) {
+        log_msg( 'unix auth not available: %s', $sel_reply // 'no reply' );
+        close($cube_sock);
+        $cube_sock = undef;
+        return undef;
+    }
+
+    sock_write( $cube_sock, "auth $auth_user\n" );
+    my $auth_reply = sock_readline($cube_sock);
+    if ( not defined $auth_reply or $auth_reply !~ m{^AUTH_TRUE} ) {
+        log_msg( 'authentication failed: %s', $auth_reply // 'no reply' );
+        close($cube_sock);
+        $cube_sock = undef;
+        return undef;
+    }
+
+    log_msg('connected and authenticated');
+    return $cube_sock;
+}
+
+sub cube_disconnect {
+    if ( defined $cube_sock ) {
+        sock_write( $cube_sock, "exit\n" ) if $cube_sock->connected;
+        close($cube_sock);
+        $cube_sock = undef;
+    }
+}
+
+sub cube_command {
+    my $command = shift;
+
+    my $sock = cube_connect();
+    if ( not defined $sock ) {
+        return ( 0, 'not connected to protocol-7 network' );
+    }
+
+    log_msg( 'sending: %s', $command );
+
+    ## send command
+    sock_write( $sock, "$command\n" );
+
+    ## read first response line [ unbuffered ]
+    my $first_line = sock_readline($sock);
+    if ( not defined $first_line ) {
+        log_msg('connection lost during read');
+        cube_disconnect();
+        return ( 0, 'connection lost' );
+    }
+
+    ## parse reply type
+    my ( $reply_type, $reply_data ) = split( /\s+/, $first_line, 2 );
+    $reply_type //= '';
+    $reply_data //= '';
+
+    log_msg( 'reply type: %s', $reply_type );
+
+    if ( $reply_type eq 'TRUE' ) {
+        return ( 1, $reply_data );
+    }
+
+    if ( $reply_type eq 'FALSE' ) {
+        return ( 0, $reply_data );
+    }
+
+    if ( $reply_type eq 'SIZE' ) {
+        ## SIZE <byte_count> — next N bytes are payload
+        my $byte_count = $reply_data + 0;
+        my $data       = sock_read_bytes( $sock, $byte_count );
+
+        if ( not defined $data ) {
+            log_msg('connection lost during SIZE read');
+            cube_disconnect();
+            return ( 0, 'connection lost during read' );
+        }
+
+        ## trim trailing newline from sized payload
+        $data =~ s{\n\z}{};
+
+        return ( 1, $data );
+    }
+
+    if ( $reply_type eq 'NACK' ) {
+        return ( 0, "command not acknowledged: $reply_data" );
+    }
+
+    ## unknown reply type — return raw
+    return ( 1, $first_line );
+}
+
+## =========================================================================
+## json-rpc helpers
+## =========================================================================
+
+sub send_result {
+    my ( $id, $result ) = @ARG;
+
+    my $msg = $json->encode(
+        {   'jsonrpc' => '2.0',
+            'id'      => $id,
+            'result'  => $result
+        }
+    );
+    print STDOUT "$msg\n";
+}
+
+sub send_error {
+    my ( $id, $code, $message ) = @ARG;
+
+    my $msg = $json->encode(
+        {   'jsonrpc' => '2.0',
+            'id'      => $id,
+            'error'   => { 'code' => $code, 'message' => $message }
+        }
+    );
+    print STDOUT "$msg\n";
+}
+
+sub send_tool_result {
+    my ( $id, $text, $is_error ) = @ARG;
+
+    send_result(
+        $id,
+        {   'content' => [ { 'type' => 'text', 'text' => $text } ],
+            'isError' => $is_error ? \1 : \0
+        }
+    );
+}
+
+## =========================================================================
+## logging [ stderr only — stdout is mcp protocol ]
+## =========================================================================
+
+sub log_msg {
+    my $fmt = shift;
+    my $msg = sprintf $fmt, @ARG;
+    printf STDERR "[mcp-server-p7] %s\n", $msg;
+}
+
+#,,.,,..,,,.,,..,,.,,,.,,,.,.,..,,,,,,.,.,..,,..,,...,...,...,...,,.,,,,,,...,
+#IUV5F6HXQ4R3CAWGFVA37EL4VGK36H7GAEKWFCZRF53Z4VY6GW7U3GJFDUV2A7BI5AWGOHSWXDSDK
+#\\\|YWNL2KJHJTAOULQJTPYJW2W6E5PDPUOREJEXKPB4UTUCOJQECXQ \ / AMOS7 \ YOURUM ::
+#\[7]33NDRFBTCMKWACNXBK5U5P6BG6WKNKGKWMAPZ6EJMJBXZAZNM2AY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
