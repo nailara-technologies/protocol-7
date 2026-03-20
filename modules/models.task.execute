@@ -1,0 +1,79 @@
+## [:< ##
+
+# name  = models.task.execute
+# descr = jobqueue callback : dispatch task to backend
+
+<[base.perlmod.load]>->('Crypt::Misc');
+
+my $callback = shift;
+my $job_id   = $callback->{'job_id'};
+my $params   = $callback->{'params'} // {};
+
+my $task_id    = $params->{'task_id'}    // '';
+my $model      = $params->{'model'}      // '';
+my $prompt     = $params->{'prompt'}     // '';
+my $target_cmd = $params->{'target_cmd'} // '';
+
+<[base.logs]>->(
+    1, ': executing task %s via %s [ job %s ]',
+    $task_id, $target_cmd, $job_id
+);
+
+## set active dispatch guard ##
+<models.task.active_id>  = $task_id;
+<models.task.active_job> = $job_id;
+
+## base32r encode prompt for safe ipc ##
+my $encoded = eval { Crypt::Misc::encode_b32r($prompt) };
+if ( $@ or not defined $encoded or not length $encoded ) {
+    <[base.logs]>->( 0, ': task %s: base32r encode failed', $task_id );
+    <[protocol-7.route-send]>->(
+        {   'command'   => 'task.fail',
+            'call_args' => { 'args' => "$task_id encode error" }
+        }
+    );
+    <models.task.active_id>  = undef;
+    <models.task.active_job> = undef;
+    <[jobqueue.move_job]>->( $job_id, qw| error | );
+    return FALSE;
+}
+
+## dispatch to backend ##
+my $sent = <[protocol-7.route-send]>->(
+    {   'command'   => $target_cmd,
+        'call_args' => { 'args' => $encoded },
+        'reply'     => {
+            'handler' => 'models.handler.task-result',
+            'params'  => {
+                'task_id' => $task_id,
+                'model'   => $model,
+                'job_id'  => $job_id
+            }
+        }
+    }
+);
+
+if ( $sent <= 0 ) {
+    <[base.logs]>->(
+        0, ': task %s: %s not reachable [ job %s ]',
+        $task_id, $target_cmd, $job_id
+    );
+    <[protocol-7.route-send]>->(
+        {   'command'   => 'task.fail',
+            'call_args' =>
+                { 'args' => "$task_id backend $target_cmd not reachable" }
+        }
+    );
+    <models.task.active_id>  = undef;
+    <models.task.active_job> = undef;
+    <[jobqueue.move_job]>->( $job_id, qw| error | );
+    return FALSE;
+}
+
+return TRUE;
+
+#,,,.,,,,,,,,,.,,,,.,,,,,,,..,,,,,,,.,,,.,.,.,.,.,...,...,.,.,.,.,...,,,.,.,.,
+#FT7IZGML56JF2ZPWWFC7HHBZ526DHHMURJLIDSYKXLLXWQQ4GM2FCY4LAEVVWUYJ2J63TGWKEWCSO
+#\\\|XRDXLMRRWQUXNECMNJRIPJNTP3KPWYGV6ZUJ4PA75RDXD4G4ZJL \ / AMOS7 \ YOURUM ::
+#\[7]EOMR7YJJJRNMB5GMSXZXM5RG6CAUVFA3L5CZZSP5T6FXYJZPVECA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

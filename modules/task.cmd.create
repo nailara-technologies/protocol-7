@@ -62,17 +62,22 @@ push @{<task.queue.order>}, $task_id;
 
 <[base.logs]>->( 1, ':. task created [ %s ]', $task_id );
 
-## notify models zenka that a new task is available [ event-driven, no polling ]
-<[protocol-7.route-send]>->(
+## notify models zenka that a new task is available [event-driven, no polling]
+my $sent = <[protocol-7.route-send]>->(
     {   'command'   => 'models.task-notify',
         'call_args' => { 'args' => $task_id }
     }
 );
+<[base.logs]>->(
+    $sent ? 1 : 0,
+    ':. task-notify sent to models [ %s ] : %s',
+    $task_id, $sent ? 'success' : 'not delivered'
+);
 
 return { 'mode' => 'size', 'data' => $task_id };
 
-#,,,.,.,,,,..,...,.,,,...,...,...,.,.,,.,,,.,,..,,...,...,...,...,.,.,,,.,.,.,
-#5TREABU2SYMUQP2AER24XJJIKLUQ2HWGHCNXN6LL7I2VO725LCG2R5Z4RSPVBGV2FJQ2Q7HDLGGZQ
-#\\\|O7J4UUDU6RLMK2KDGMFWJY3GJZ4KNMBOIOTL3VKNVTDZ2Y5MCRN \ / AMOS7 \ YOURUM ::
-#\[7]R5WJU4Y3JW5EICU4LZOCU5ODAQ7KU4PO4JL3DOXDFXCWXLSVGICQ 7  DATA SIGNATURE ::
+#,,.,,,,,,,,,,.,,,...,,,.,,.,,.,.,,,,,,.,,,..,..,,...,...,.,.,,..,.,,,,..,..,,
+#ZLWLRLJLYACFJO64WPFH6TIDECC23PCLNDLFPUE4SLC5HHE2TMATUQEZ4NJ44ZPQIMD2LXB4SAJAO
+#\\\|WSCPDYCA53Q3W76BIR6XOHCAJEQEUD4P7QFXUIHJ7GBPJ2CCPI5 \ / AMOS7 \ YOURUM ::
+#\[7]IL37JOBZUW7NL3VXTTUZ6SPBN4DWM5MCKFBJG7HETGVZV3U2L6CI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

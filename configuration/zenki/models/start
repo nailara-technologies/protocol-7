@@ -14,15 +14,15 @@ system.verbosity.zenka_buffer   = 3 ## debugging log-level : remove later ##
 system.verbosity.zenka_logfile  = 2
 system.verbosity.zenka_console  = 3
 #
-modules.load = auth net protocol io.unix models devmod ## <-- developement.,
+modules.load = auth net protocol io.unix jobqueue models devmod ## <-- dev.,
 
 ## Access Control - Commands This Zenka Exposes
 #
-access.cmd.usr.cube = heart verify-instance commands reload show-buffer \
-                      list get_model find_models recommend record_invocation \
-                      statistics cost_analysis discover discover_files \
-                      test_discover status maintenance get_model_path \
-                      get_path_by_amos chat request memory \
+access.cmd.usr.cube = heart verify-instance commands reload show-access \
+                      show-buffer list get_model find_models recommend \
+                      record_invocation statistics cost_analysis discover \
+                      discover_files test_discover status maintenance \
+                      get_model_path get_path_by_amos chat request memory \
                       get find rec record stats cost metrics get_path \
                       conversation_create conversation_add_turn \
                       conversation_get_context add_participant extract_file \
@@ -31,12 +31,11 @@ access.cmd.usr.cube = heart verify-instance commands reload show-buffer \
                       list_conversations compact_conversation \
                       analytics_conversation consensus_vote task_chain \
                       test_api_limit test_api_fallback test_end_to_end_local \
-                      local_server local_discover substitute_template core-subs \
-                      get set dump eval-code exec-sub inline-subroutines \
-                      list-subs permission-setup since unload-unsafe unload-devmod \
-                      get_inference_endpoint scan-path-add scan-path-del \
-                      clear-registry
-
+                      local_server local_discover substitute_template \
+                      core-subs get set dump eval-code exec-sub \
+                      list-subs permission-setup since unload-unsafe \
+                      unload-devmod get_inference_endpoint scan-path-add \
+                      scan-path-del clear-registry task-notify
 
 ## Module Initialization
 #
@@ -60,8 +59,8 @@ access.cmd.usr.cube = heart verify-instance commands reload show-buffer \
 #
 [zenka.loop]
 
-#,,,,,...,,,.,,.,,.,,,...,.,,,,,.,,,.,.,.,...,..,,...,...,,..,,..,,..,...,,,.,
-#ND5D7WSJNRJ4QWLL7KFVQWLXBTUNKLSZUKQJ3MBVWKNRCOIVWIVL2TJD6PX663WHEWCOIG7AGABOK
-#\\\|G7R4GWVJZXESGJWXFSQZNQHVKNH5L5S6QAAJZENKJ4JK6YXRBT5 \ / AMOS7 \ YOURUM ::
-#\[7]KATVXV5MUPTLPPSFGXSKSKVVYU22G675TL624APJURGRQHPAECCY 7  DATA SIGNATURE ::
+#,,,,,.,,,,..,,,,,,,,,..,,.,.,,.,,,,,,,.,,,..,..,,...,...,...,,..,,..,.,.,,,.,
+#X3AHVLPP4M3XQ6XZ56R6HMRL3TL5G6CYE4X3KBZ4SVL4ASUMLALD5VJKXFFL4GKQTFI5XPEN5I7YW
+#\\\|KDRBMTJU6FCZLKN3MYJVNGPMM3LC2OEQEWFJ4RKVL66OGUXQX5W \ / AMOS7 \ YOURUM ::
+#\[7]3MBRVH6OJRPPXDKV7J2LE4CDMPBE36L6FTBPVJAARWYZK7XFD4AQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

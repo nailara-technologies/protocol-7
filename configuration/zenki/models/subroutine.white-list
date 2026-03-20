@@ -39,6 +39,7 @@ base.n2u_time
 base.get_file
 base.cmd.list
 base.cfg_bool
+jobqueue.count
 base.wrap_text
 base.swap_subs
 base.ssl.write
@@ -76,6 +77,7 @@ base.event.loop
 base.cmd.reload
 plugin.auth.unix
 models.init_code
+jobqueue.add_job
 base.resolve_key
 base.prng.reseed
 base.path_owners
@@ -94,6 +96,9 @@ models.memory.del
 models.memory.add
 models.cmd.status
 models.cmd.memory
+jobqueue.pre_init
+jobqueue.move_job
+jobqueue.exec_job
 base.session.init
 base.reverse-sort
 base.resolve_hash
@@ -115,6 +120,8 @@ models.memory.name
 models.cmd.request
 models.chat.append
 models.attach_file
+jobqueue.init_code
+jobqueue.find_jobs
 format.json.decode
 base.reload_values
 base.reload_config
@@ -127,15 +134,19 @@ base.get_file.aref
 base.file.pre_init
 base.file.line_map
 base.event.add_var
+base.dependency.ok
 base.clear_p7_mods
 base.clean_unicode
 base.clean_hashref
 v7.stdout_log.write
 plugin.auth.twofish
+models.task.execute
+models.task.enqueue
 models.storage.init
 models.extract_file
 models.conversation
 models.cmd.discover
+jobqueue.remove_job
 base.utf8.clean_str
 base.str.eval_error
 base.round_truncate
@@ -188,6 +199,7 @@ base.eval.comp_regex
 base.disable_command
 base.devmod.dump_var
 base.cmd.show-buffer
+base.cmd.show-access
 base.chk-sum.bmw.ctx
 base.buffer.add_line
 auth.zenka.init_code
@@ -196,6 +208,8 @@ models.parser.size_gb
 models.local_discover
 models.cmd.task_chain
 models.cmd.statistics
+jobqueue.get_next_job
+jobqueue.get_job_data
 crypt.C25519.key_vars
 crypt.C25519.gen_keys
 base.session.shutdown
@@ -209,10 +223,12 @@ base.load_config_file
 base.list.element.add
 base.file.match_files
 base.event.add_signal
+base.dependency.setup
 base.console.commands
 base.balanced-average
 v7.instance_child_pids
 models.registry.lookup
+models.cmd.task-notify
 models.cmd.maintenance
 models.cmd.find_models
 models.cmd.attach_file
@@ -235,6 +251,7 @@ models.cmd.local_server
 models.cmd.extract_file
 models.chat.expand_refs
 models.backend.kimi_web
+jobqueue.queue_template
 io.unix.socket.end_code
 crypt.C25519.key_exists
 base.templates.pre_init
@@ -261,7 +278,6 @@ p7-log.handler.close_log
 models.storage.yaml_save
 models.storage.yaml_load
 models.registry.list_all
-models.handler.task-poll
 models.conversation.save
 models.conversation.load
 models.cmd.test_discover
@@ -279,6 +295,7 @@ base.protocol-7.pre_init
 base.parser.command_list
 base.file.zulum_tmp_file
 base.file.zenka_dir.load
+base.dependency.pre_init
 base.cmd.verify-instance
 base.chk-sum.bmw.L13-str
 base.check_cfg_cmd_alias
@@ -297,6 +314,8 @@ models.checksum.from_path
 models.chat.format_buffer
 models.chat.auto_announce
 models.backend.api.invoke
+jobqueue.priorities_table
+jobqueue.joblist_template
 io.unix.socket.input.open
 httpd.base.size.normalize
 channels.util.yaml_decode
@@ -341,6 +360,7 @@ base.ntime.epoch_timestamp
 base.max-len.val-hash-keys
 base.handler.session_error
 base.event.io_idle_restart
+base.dependency.add_object
 base.check_dependency_dirs
 v7.sub-process.get_children
 net.read_linewise_estimated
@@ -354,6 +374,7 @@ models.cmd.get_path_by_amos
 models.cfg.chat_buffer_size
 models.backend.local.vision
 models.backend.local.invoke
+jobqueue.check_dependencies
 io.unix.socket.output.close
 httpd.update_download_count
 base.templates.register_add
@@ -431,6 +452,7 @@ models.cmd.substitute_template
 models.cmd.conversation_create
 models.checksum.calculate_amos
 models.chat.messages_to_prompt
+jobqueue.handler.queue_counter
 base.zenki.ondemand_registered
 base.session.send_init_reports
 base.p7refs.get_refaddr_prefix
@@ -489,6 +511,7 @@ models.registry.populate_from_yaml
 models.conversation.consensus_vote
 models.cfg.auto_announce_threshold
 models.callback.inference_endpoint
+jobqueue.event.register_job_queues
 base.protocol-7.command.send.local
 base.path-set-up.zenka-directories
 base.path-set-up.check-zenka-paths
@@ -519,6 +542,7 @@ protocol.amos-chksum.ext-cmd.version
 protocol.amos-chksum.command-handler
 models.handler.coding_result_forward
 models.checksum.calculate_bmw_base32
+models.callback.object_dispatch_slot
 base.warnings.compact_diff_to_pragma
 base.warnings.compact_diff_from_bits
 base.perlmod.manual_reload_blacklist
@@ -597,8 +621,8 @@ models.decision.recommendation_base.calculate_composite_score
 models.decision.recommendation_engine.get_model_recommendations
 models.statistics.invocation_tracking.calculate_margin_vs_alternative
 
-#,,,.,,..,,,,,,..,,,.,.,,,.,,,,..,,..,...,...,..,,...,...,.,.,,,,,.,.,.,.,.,.,
-#3VKYSCETCDXJLMWGPA64KGKS2O52GCPYTH3EYXXQO2ESXK72HSK4UOIKRUNBSV5UXPCYLCB5MT64Q
-#\\\|CR5UB6DWJAMHUHYJM6NNPC5A3GSEJOOLUGBGREG4IFJQS4MWSON \ / AMOS7 \ YOURUM ::
-#\[7]QGUU4WRWFCJOFEP5NW3DKYYKCJY27NDSSJKNEWGQMAO5UYY3YIDI 7  DATA SIGNATURE ::
+#,,,,,.,.,.,.,.,,,,,,,.,.,,,.,...,,,.,.,,,.,,,..,,...,...,,,,,,..,,,,,...,...,
+#2MO44ZE6CWR23XS6CIN3LDSNLAD4O2BC26C346UA6JKVRUGQEORA6AVCDO3QTMCGS3ODOQHCDGSGY
+#\\\|NLVOPGFNOHXNSPUEM6JIXO5FHWDAKVGGRIL7FBYFLFH5LZTAUYK \ / AMOS7 \ YOURUM ::
+#\[7]B2MCWW3IGYNO7S7H3FVXTUX4QBSN2ZISQTYWZN6NO62JHNJRGEDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

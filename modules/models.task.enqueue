@@ -1,0 +1,43 @@
+## [:< ##
+
+# name  = models.task.enqueue
+# descr = enqueue task for jobqueue-managed execution
+
+my $params = shift;
+return warn 'expected hashref parameter <{C1}>' if ref $params ne qw|HASH|;
+
+my $task_id    = $params->{'task_id'}    // '';
+my $model      = $params->{'model'}      // '';
+my $prompt     = $params->{'prompt'}     // '';
+my $target_cmd = $params->{'target_cmd'} // '';
+
+return warn 'task_id required <{C1}>'    unless length $task_id;
+return warn 'target_cmd required <{C1}>' unless length $target_cmd;
+
+my $job_id = <[jobqueue.add_job]>->(
+    {   'name'            => "task-$task_id",
+        'object_id'       => <models.dep.dispatch_slot>,
+        'job_callback'    => 'models.task.execute',
+        'callback_params' => {
+            'task_id'    => $task_id,
+            'model'      => $model,
+            'prompt'     => $prompt,
+            'target_cmd' => $target_cmd
+        }
+    }
+);
+
+<models.task.jobs>->{$job_id} = $task_id;
+
+<[base.logs]>->(
+    2, ': enqueued task %s as job %s [ %s ]',
+    $task_id, $job_id, $target_cmd
+);
+
+return $job_id;
+
+#,,,,,,,.,...,..,,.,,,,.,,...,...,,.,,...,,..,.,.,...,...,...,.,,,.,.,,,.,...,
+#X6RCX64GH2YTR2S7XSHZJR4FSCLTMTVDRHYGVROC736HQVSHZRP6HXDX4IYKIU2B3IFHE5P54TEEO
+#\\\|XPJYH6IX67P325CZ35WDIVC3O6U4XLUJKVRFSD6ROIRITY76RXV \ / AMOS7 \ YOURUM ::
+#\[7]EZLMGQOB6AFEXDMCLVDNEZLPH3BZ55L6ZSYSNWUXWSZFJ4Z25MCA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
