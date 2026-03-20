@@ -1,0 +1,109 @@
+## [:< ##
+
+# name  = task.cmd.continue
+# param = <task_id> <follow-up message>
+# descr = continue a completed task with a follow-up
+
+my ( $task_id, $message ) = ( '', '' );
+
+## parse params
+if ( defined $call->{'param'} and ref $call->{'param'} eq 'HASH' ) {
+    $task_id = $call->{'param'}->{'id'}      // '';
+    $message = $call->{'param'}->{'message'} // '';
+} else {
+    my $args = $call->{'args'} // '';
+    if ( $args =~ m{^(\S+)\s+(.+)$}s ) {
+        $task_id = $1;
+        $message = $2;
+    } else {
+        $task_id = $args;
+    }
+}
+
+$task_id = uc( substr( $task_id, 0, 7 ) );
+
+return { 'mode' => 'false', 'data' => 'task id required' }
+    unless length $task_id;
+
+return { 'mode' => 'false', 'data' => 'follow-up message required' }
+    unless length $message;
+
+my $task = <task.queue>->{$task_id};
+
+return {
+    'mode' => 'false',
+    'data' => sprintf( 'task %s not found', $task_id )
+    }
+    unless defined $task;
+
+## allow continuation of done or failed tasks
+if ( $task->{'status'} ne 'done' and $task->{'status'} ne 'failed' ) {
+    return {
+        'mode' => 'false',
+        'data' => sprintf(
+            'task %s is %s [ expected done or failed ]',
+            $task_id, $task->{'status'}
+        )
+    };
+}
+
+## preserve previous result in history
+$task->{'history'} //= [];
+if ( defined $task->{'result'} and length $task->{'result'} ) {
+    push $task->{'history'}->@*,
+        {
+        'turn'   => scalar( $task->{'history'}->@* ) + 1,
+        'prompt' => $task->{'description'},
+        'result' => $task->{'result'}
+        };
+}
+
+## extract model prefix from original description for re-routing
+my $original_desc
+    = @{ $task->{'history'} }
+    ? $task->{'history'}->[0]->{'prompt'} // ''
+    : $task->{'description'} // '';
+
+my $model_prefix = '';
+if ( $original_desc =~ m{^(:[a-z0-9\-]+:\s*)}i ) {
+    $model_prefix = $1;
+} elsif ( $original_desc =~ m{^(\@\S+\s*)} ) {
+    $model_prefix = $1;
+}
+
+## update task for new turn
+my $ntime_b32 = <[base.ntime.b32]>;
+
+$task->{'status'}      = 'pending';
+$task->{'description'} = $model_prefix . $message;
+$task->{'result'}      = undef;
+$task->{'agent'}       = undef;
+$task->{'updated_at'}  = $ntime_b32;
+
+## persist to disk
+<[task.persist.save]>;
+
+<[base.logs]>->(
+    1,        ':. task %s continued [ turn %d ]',
+    $task_id, scalar( $task->{'history'}->@* ) + 1
+);
+
+## notify models zenka [ event-driven ]
+my $sent = <[protocol-7.route-send]>->(
+    {   'command'   => 'models.task-notify',
+        'call_args' => { 'args' => $task_id }
+    }
+);
+<[base.logs]>->(
+    $sent ? 1 : 0,
+    ':. task-notify sent to models [ %s ] : %s',
+    $task_id, $sent ? 'ok' : 'not delivered'
+);
+
+return { 'mode' => 'true', 'data' => "continued $task_id" };
+
+#,,,.,,,,,.,.,...,,..,.,,,,..,,,,,.,,,,..,...,.,.,...,...,,,,,...,.,,,,..,.,,,
+#PMYVDU4GAROL6LGHIXHKT76WVIGIK4LDVQJXUIA4VX2YIJR6RWHQJFDLU7OSIWHP6QPCYWAFJXLO2
+#\\\|ETS3UFBRQPHCRUXNVFOYIIPTBMUWCPAHON7ZHLOMUAS4ZWBKPLI \ / AMOS7 \ YOURUM ::
+#\[7]3GMYOH5PFI2Q4RWTCFPWWC5DKNCSRKXHRY7AQ7MEIL6BPFWTHWCA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

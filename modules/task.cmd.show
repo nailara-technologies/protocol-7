@@ -38,6 +38,8 @@ if ( defined $task->{'result'} ) {
     $result_str =~ s{\r}{}g;
 }
 
+my $turns = $task->{'history'} // [];
+
 my $output = sprintf(
     "id          : %s\n"
         . "status      : %s\n"
@@ -46,6 +48,7 @@ my $output = sprintf(
         . "description : %s\n"
         . "context     : %s\n"
         . "agent       : %s\n"
+        . "turns       : %d\n"
         . "result      : %s\n",
     $task->{'id'},
     $task->{'status'},
@@ -54,13 +57,28 @@ my $output = sprintf(
     $task->{'description'} // '',
     $task->{'context'}     // '',
     $task->{'agent'}       // '(none)',
+    scalar(@$turns) + 1,
     $result_str || '(none)'
 );
 
+## append turn history if present
+if (@$turns) {
+    $output .= "--- history ---\n";
+    foreach my $turn (@$turns) {
+        my $t_result = $turn->{'result'} // '';
+        if ( length $t_result > 200 ) {
+            $t_result = substr( $t_result, 0, 197 ) . '...';
+        }
+        $t_result =~ s{\n}{\\n}g;
+        $output .= sprintf( "turn %d      : %s\n  result    : %s\n",
+            $turn->{'turn'}, $turn->{'prompt'} // '', $t_result );
+    }
+}
+
 return { 'mode' => 'size', 'data' => $output };
 
-#,,..,,,,,,..,,,,,...,.,,,.,.,,.,,,,,,.,,,.,,,..,,...,...,.,,,..,,.,.,...,.,,,
-#56LC5MNC6HMNLBEILA57BJ4WZJA377PYIIRLLQCGN2JFJ7TFXSD5FHZM6UIXFWVHQZ64EHFVXRFGA
-#\\\|JHD5NHY5N3I4YIMGCV2RCTSLQDGRVPAXZAMC35ZATKADDHF26ID \ / AMOS7 \ YOURUM ::
-#\[7]YSOAWNCXK4VZSQDBC5T762W6TQIZPFIE22AVSXMYZJ3BA3LMKQDA 7  DATA SIGNATURE ::
+#,,.,,..,,.,,,,.,,...,.,.,,,.,...,,.,,,.,,..,,..,,...,.,.,,..,,..,..,,...,.,.,
+#RDJC6FGNMFCQVRAPEJJ7EW6HTZFGYUM2Q3EDHUREBUG2FGIBSL7G4VCTLTFZYIWOHHRH3FD5LZBJG
+#\\\|JMYFRNW6Z2PSQFX5PKCVRX76473MO6Z3IW4IBCY5D32VI4U66DW \ / AMOS7 \ YOURUM ::
+#\[7]ZCZC7QLO5XEZMLOT6DIVFK5ZRYTC4YY26TYOFOJBYMOP5NETOCDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
