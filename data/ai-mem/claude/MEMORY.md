@@ -54,6 +54,7 @@
 - **models task polling** (Mar 20 2026): completed ✅ — async callback chain (task-poll → task-poll-step → task-result), @model prefix routing to kimi/coding backends
 - **kimi task-poll async fix** (Mar 20 2026): completed ✅ — rewrote broken sync assumption, param→call_args fix in ws_message
 - **repo var/ cleanup needed**: `var/httpd/` tracked from Nov 2025 AI error — should be removed, template relocated to `data/html/templates/`
+- **dep-graph lifecycle hook gap**: `*.init_code`, `*.pre_init`, `*.post_init`, `*.end_code` must always be whitelisted for loaded namespaces — see `feedback-devmod-whitelist.md`
 
 ## Key Technical Insights
 
@@ -166,8 +167,8 @@
 - Pattern: `my @non_num = grep { defined $data_ref->{$ARG}->{$key} and not looks_like_number(...) } keys $data_ref->%*`
 - Global `$SIG{__WARN__}` exists — if wrapping warn handler, capture `$prev_warn = $SIG{__WARN__}` first and call through
 
-#,,,.,.,.,..,,,..,,.,,..,,,.,,...,,.,,.,.,...,..,,...,...,,.,,,.,,,,,,.,.,,,.,
-#Z7R5Y6LBA2AFQTHV6XCC6IZGJQO2MUKZE4NXLOXKQ7QNU5Z4BMMID7IBJBS24QDFJWH3YWZQGX2BU
-#\\\|7DDVOGSAJ3CSSCI5QK3NMHP2FPSEFQB5LOQ3Z2RYQNEBOHSY6GE \ / AMOS7 \ YOURUM ::
-#\[7]AGNWCHFWPQ3WEFOOWI4JYSN5245BGDQPV7NSK6OMBA7N45RQYSCI 7  DATA SIGNATURE ::
+#,,.,,,,,,.,.,.,,,,..,,.,,,.,,,,,,,.,,.,.,...,..,,...,...,..,,.,.,..,,...,,,.,
+#CB7K7S2NNMFKDMQJSVCCV3AJ7TTAQSM5W7FJ3JWEYSKMLGHEWOXRVEVUTKOHLLTECSYVM7BFV4UKQ
+#\\\|WY2GBEFTVMF45PEXTMIT7UD2LG7JTV2XRLQFB2L44I3V7Z3YGS4 \ / AMOS7 \ YOURUM ::
+#\[7]7N4MFGD4WJSIS2A3Z66ZBFF2XAAAZ24W2XCJUILPXLR5R5PXIUDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

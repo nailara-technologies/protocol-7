@@ -187,24 +187,23 @@
                                      models.substitute_template models.conversation_create \
                                      models.conversation_add_turn models.find_alternative \
                                      models.conversation_get_context v7.register_child \
-                                     task.list task.status task.next \
-                                     task.assign task.start task.complete \
-                                     task.block task.handover
+                                     task.queue task.show task.claim \
+                                     task.complete task.fail task.reset
 
            access.cmd.usr.models  =  v7.register_child coding.ask-reply \
                                      kimi.ask-reply \
-                                     task.list task.status task.next
+                                     task.queue task.show task.claim \
+                                     task.complete task.fail
 
              access.cmd.usr.kimi  =  v7.register_child \
-                                     task.list task.status task.next \
-                                     task.assign task.start task.complete \
-                                     task.block task.handover
+                                     task.queue task.show task.claim \
+                                     task.complete task.fail task.reset
 
              access.cmd.usr.task  =  v7.register_child \
                                      v7.notify_online v7.restart_concurrent
 
-             access.cmd.usr.work  =  task.list task.status task.next \
-                                     task.handover
+             access.cmd.usr.work  =  task.queue task.show task.claim \
+                                     task.complete task.fail task.reset
 
 
             access.cmd.usr.zulum  =  decoder.receive-entropy *.receive-entropy
@@ -232,8 +231,8 @@
                                      tile-groups.get_subconfig \
                                      rss-ticker.resend_update
 
-#,,,,,..,,.,,,...,,,.,,.,,,,.,...,..,,,.,,,,,,..,,...,...,...,.,.,.,.,,.,,...,
-#CYH42EEU75N3AFXEYMMS7I2KQM72EWEVUWWSRDXNUYXPEZ3B3FPCNQJ33ZNGSXBJKVADSD3F42Q5U
-#\\\|BXETPA6FRJ2PSEXR6VJ4US6PGUTWSKHJFTV2TP3HIBFUTKVA76W \ / AMOS7 \ YOURUM ::
-#\[7]QD6BKFWJUOAI5OSGVEQFVR6UAH4NABWRQLIWRNHXULCHEKBNM6CY 7  DATA SIGNATURE ::
+#,,.,,,..,...,.,,,.,.,,.,,,,,,.,,,,..,..,,...,..,,...,..,,..,,.,.,.,.,,,,,.,,,
+#O4PKVE7OQFNS27SE5N2FBPPL3V74ALDM4RTABBSJVZ4GVH2TMR2TKBY2ZYNDVX5F3CK5T5PYIBNP2
+#\\\|ZKDWCSET4KDKKWVOBYBXU3DYT3WCVRWLYHDVSNFY3ALJDRTD5NT \ / AMOS7 \ YOURUM ::
+#\[7]PTGMQZZ2CSR7DVW5URR7ZGB7SE4JMHHNT3UBD5CC5ATTXLOCAMCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
