@@ -42,12 +42,12 @@ my $addr_b32 = substr( $amos_chksum->($addr_input), 0, 6 );
 ## Assemble P7REF: TYPE:CHKSUM7:ADDR_B32 ##
 my $p7ref = sprintf( "%s:%s:%s", $type, $chksum7, $addr_b32 );
 
-<[base.log]>->( 2, "[p7ref.self] %s -> %s", $zenka_name, $p7ref );
+<[base.logs]>->( 2, "[p7ref.self] %s -> %s", $zenka_name, $p7ref );
 
 return $p7ref;
 
-#,,,,,.,.,...,,..,,,.,..,,...,,,.,.,,,.,,,.,.,.,.,...,...,.,,,,,,,,,.,..,,,,.,
-#MJ2ELVP6WCGJPU7OGDIZCXVLIKX75MBNWXHHUYFT6QXOKPTCURE4OP3AI3ZRM3WUUMP2LXFXFAGDU
-#\\\|XKE3MY4ZE2HDJQ4RTUIFP6P6PMW5G72HRO3WE76XHULF6RB6TJ3 \ / AMOS7 \ YOURUM ::
-#\[7]QNJATH7PEWPSQ4T54EX656HTHCJXAQRJMUG5D5ZHHIJFITPYOODQ 7  DATA SIGNATURE ::
+#,,.,,,.,,.,,,,,,,,,.,..,,,.,,..,,.,,,..,,...,.,.,...,...,,,,,,,.,.,.,,,.,..,,
+#YLWH7PG5VHD7JLHNJX7QLHDDBY727CMQ2KEX236XGQC4Z6UM7R3FIVNCSRW4R6NE4I3NJMI2XBJ5U
+#\\\|P5F4RCOAPZRSI4YOBTRIYPI5FSK55EN46LBXJPUJCOFL7MB4YKH \ / AMOS7 \ YOURUM ::
+#\[7]ERZFP2PSVNWLE2DL344L55MN5POEX4RVXHCJ7APMEDGDQEHEQMCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
