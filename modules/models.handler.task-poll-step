@@ -1,9 +1,7 @@
 ## [:< ##
 
 # name  = models.handler.task-poll-step
-# descr = async callback chain for task claim and dispatch to backend
-
-<[base.perlmod.load]>->('Crypt::Misc');
+# descr = async callback chain for task claim and dispatch
 
 my $reply  = shift;
 my $cmd    = $reply->{'cmd'}       // '';
@@ -14,54 +12,6 @@ my $params = $reply->{'params'}    // {};
 my $step = $params->{'step'} // '';
 
 ## ======================================================================
-## step: list — parse task.queue response, claim first pending task
-## ======================================================================
-
-if ( $step eq 'list' ) {
-
-    ## extract response text
-    my $list_text = '';
-    if ( $cmd eq 'SIZE' ) {
-        $list_text = $rdata;
-    } elsif ( $cmd eq 'TRUE' ) {
-        $list_text = $args->{'args'} // '';
-    }
-
-    return if not length $list_text;
-    return if $list_text =~ m{^no tasks found}i;
-
-    ## parse first pending task id [ first 7 chars of first non-empty line ]
-    my $task_id = '';
-    foreach my $line ( split( /\n/, $list_text ) ) {
-        next if $line =~ m{^\s*$};
-        $task_id = substr( $line, 0, 7 );
-        $task_id =~ s{\s}{}g;
-        last;
-    }
-
-    return unless length($task_id) == 7;
-
-    ## guard: set active before claiming
-    <models.task.active_id> = $task_id;
-
-    <[base.logs]>->( 2, ': task poll: claiming %s', $task_id );
-
-    <[protocol-7.route-send]>->(
-        {   'command'   => 'task.claim',
-            'call_args' => { 'args' => "$task_id models" },
-            'reply'     => {
-                'handler' => 'models.handler.task-poll-step',
-                'params'  => {
-                    'step'    => 'claimed',
-                    'task_id' => $task_id
-                }
-            }
-        }
-    );
-    return;
-}
-
-## ======================================================================
 ## step: claimed — verify claim result, fetch task details
 ## ======================================================================
 
@@ -70,14 +20,11 @@ if ( $step eq 'claimed' ) {
     my $task_id = $params->{'task_id'} // '';
 
     if ( $cmd ne 'TRUE' ) {
-        <[base.logs]>->( 2, ': task poll: claim failed for %s', $task_id );
-        <models.task.active_id> = undef;
+        <[base.logs]>->( 2, ': task claim failed for %s', $task_id );
         return;
     }
 
-    <[base.logs]>->(
-        2, ': task poll: claimed %s, fetching details', $task_id
-    );
+    <[base.logs]>->( 2, ': claimed %s, fetching details', $task_id );
 
     <[protocol-7.route-send]>->(
         {   'command'   => 'task.show',
@@ -95,7 +42,7 @@ if ( $step eq 'claimed' ) {
 }
 
 ## ======================================================================
-## step: show — parse details, determine model, invoke backend
+## step: show — parse details, determine model, enqueue via jobqueue
 ## ======================================================================
 
 if ( $step eq 'show' ) {
@@ -111,8 +58,12 @@ if ( $step eq 'show' ) {
     }
 
     if ( not length $details ) {
-        <[base.logs]>->( 0, ': task poll: empty details for %s', $task_id );
-        <models.task.active_id> = undef;
+        <[base.logs]>->( 0, ': empty task details for %s', $task_id );
+        <[protocol-7.route-send]>->(
+            {   'command'   => 'task.fail',
+                'call_args' => { 'args' => "$task_id empty task details" }
+            }
+        );
         return;
     }
 
@@ -138,11 +89,6 @@ if ( $step eq 'show' ) {
     my $prompt = sprintf "[task %s]\n%s", $task_id, $description;
     $prompt .= "\n\n$context" if length $context;
 
-    <[base.logs]>->(
-        1,        ': task %s dispatching to %s backend',
-        $task_id, $model
-    );
-
     ## model to backend command mapping
     my %backend_cmd = (
         'kimi'      => 'kimi.ask-reply',
@@ -155,7 +101,7 @@ if ( $step eq 'show' ) {
 
     if ( not defined $target_cmd ) {
         <[base.logs]>->(
-            0,      ': task poll: no backend for model %s [ task %s ]',
+            0,      ': no backend for model %s [ task %s ]',
             $model, $task_id
         );
         <[protocol-7.route-send]>->(
@@ -164,53 +110,22 @@ if ( $step eq 'show' ) {
                     { 'args' => "$task_id no backend for model $model" }
             }
         );
-        <models.task.active_id> = undef;
         return;
     }
 
-    ## base32r encode prompt for safe ipc
-    my $encoded = eval { Crypt::Misc::encode_b32r($prompt) };
-    if ( $@ or not defined $encoded or not length $encoded ) {
-        <[base.logs]>->(
-            0, ': task poll: base32r encode failed for %s', $task_id
-        );
-        <[protocol-7.route-send]>->(
-            {   'command'   => 'task.fail',
-                'call_args' => { 'args' => "$task_id encode error" }
-            }
-        );
-        <models.task.active_id> = undef;
-        return;
-    }
-
-    ## send to backend with task-result reply handler
-    my $sent = <[protocol-7.route-send]>->(
-        {   'command'   => $target_cmd,
-            'call_args' => { 'args' => $encoded },
-            'reply'     => {
-                'handler' => 'models.handler.task-result',
-                'params'  => {
-                    'task_id' => $task_id,
-                    'model'   => $model
-                }
-            }
-        }
+    <[base.logs]>->(
+        1,        ': task %s enqueueing for %s backend',
+        $task_id, $model
     );
 
-    if ( $sent <= 0 ) {
-        <[base.logs]>->(
-            0,           ': task poll: %s not reachable [ task %s ]',
-            $target_cmd, $task_id
-        );
-        <[protocol-7.route-send]>->(
-            {   'command'   => 'task.fail',
-                'call_args' => {
-                    'args' => "$task_id backend $target_cmd not reachable"
-                }
-            }
-        );
-        <models.task.active_id> = undef;
-    }
+    ## enqueue for jobqueue-managed execution ##
+    <[models.task.enqueue]>->(
+        {   'task_id'    => $task_id,
+            'model'      => $model,
+            'prompt'     => $prompt,
+            'target_cmd' => $target_cmd
+        }
+    );
 
     return;
 }
@@ -218,8 +133,8 @@ if ( $step eq 'show' ) {
 <[base.logs]>->( 0, ': task-poll-step: unknown step [ %s ]', $step );
 return;
 
-#,,.,,,..,,..,.,,,,..,.,.,.,,,,.,,,,.,,,.,,..,.,.,...,...,..,,.,.,,,.,,,.,...,
-#2BRFVBLITR4O2PIQGH3I3L6WRIQGSGSMXL7I3KYN7YVUK7WRUJ4YGMPF77GRLQL55VMY5CHQYBI4M
-#\\\|NNLOH45FUXBKZELFJE2GK3EE57C43DAW2FXGG3NQIDQNQU75IUA \ / AMOS7 \ YOURUM ::
-#\[7]DSZEAKORETAVRG7K5VP7UD44NFWKVJXRIDNN4R45F36DXSUMICBQ 7  DATA SIGNATURE ::
+#,,,,,.,.,,,,,..,,...,...,.,.,,.,,...,,.,,.,.,.,.,...,...,.,.,,..,,..,.,,,..,,
+#33BPK4CUKSRIXOF2XLFTO6Y33D4XBMN6ODPLSWO7TZ73SBIIKJAWUEQUVMSE2VQBKYJCBJRTARNDS
+#\\\|3QYDLH67V4MZRJIGJCSGK7OPKJTM7L7OVXM54X6VGTHOHEH3NXV \ / AMOS7 \ YOURUM ::
+#\[7]H26G4UCDSIIZ2QC4TAHWHTZPPOY4WP47UVS6CCDRLI6G54CIU4CA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

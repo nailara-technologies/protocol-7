@@ -213,17 +213,38 @@ unless ( exists <models.registry> ) {
 }
 
 # =============================================================================
-# TASK DISPATCH - Event-driven via task-notify from task zenka [ no polling ]
+# TASK DISPATCH - Jobqueue-managed, event-driven via task-notify [ no polling ]
 # =============================================================================
 
 ## task dispatch state
 <models.task.active_id>     //= undef;
+<models.task.active_job>    //= undef;
 <models.task.default_model> //= 'kimi';
+<models.task.jobs>          //= {};       ## job_id to task_id mapping
 
-return 0;    # Module initialization successful
+## register dispatch_slot dependency type for sequential task execution ##
+## [ callback returns TRUE when no task is actively being dispatched ] ##
+<[dependency.setup]>->(
+    'dispatch_slot',
+    { 'callback' => $code{'models.callback.object_dispatch_slot'} }
+);
 
-#,,..,,,,,,,.,,..,.,.,...,,,.,.,.,,,.,,.,,,,.,..,,...,...,..,,.,.,,.,,..,,..,,
-#LIZUEQWHBTKARR4PZFMHDID5JZEYE435PEU7TE2GIG4QJKVABXSTOBS27T5AJNXP5FT6B6YRXKPV6
-#\\\|5MPUTWRCH6L4Y2MWVGSGBVMBZSKEY4F6XO5MPQH4R3NKN3IWSUL \ / AMOS7 \ YOURUM ::
-#\[7]JDPPVWNAI5N4LI6TOSTG6HUGZPYIRC3QRTRECHY55XDV3IANGUDA 7  DATA SIGNATURE ::
+## register dependency object for task dispatch concurrency slot ##
+<models.dep.dispatch_slot> = <[dependency.add_object]>->(
+    {   'type'        => 'dispatch_slot',
+        'description' => 'task dispatch concurrency slot'
+    }
+);
+
+<[base.logs]>->(
+    2, ': dispatch slot dependency registered [ object %s ]',
+    <models.dep.dispatch_slot>
+);
+
+return 0;    ## module initialization successful
+
+#,,..,,,.,...,,.,,,,.,,,,,..,,.,.,,.,,.,,,.,,,..,,...,..,,..,,.,,,...,..,,..,,
+#CI3NK2C7NIRVRJFRPLPT4WQ2CL6INGNA7ZBWF534JDB54NNNMLZH2ET243PZIEIYL7AP2RCLLAM5O
+#\\\|YA5ZUPRFI2NXVRVAT6DFQDKXK4ZWCAIMI4JJWT3J5GTCYB2IX3E \ / AMOS7 \ YOURUM ::
+#\[7]HIUTVG65CIO3DXPAQQOMSE3JG4E2UHKES32LVBBPE7TGV2SZRMBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -12,13 +12,17 @@ my $params = $reply->{'params'}    // {};
 
 my $task_id = $params->{'task_id'} // '';
 my $model   = $params->{'model'}   // '';
+my $job_id  = $params->{'job_id'}  // <models.task.active_job>;
 
 <[base.logs]>->(
-    2, ': task result: %s cmd=%s model=%s', $task_id, $cmd, $model
+    2, ': task result: %s cmd=%s model=%s job=%s',
+    $task_id, $cmd, $model, $job_id // 'n/a'
 );
 
 ## extract response based on reply type
-my $response = '';
+my $response    = '';
+my $job_outcome = qw| completed |;
+
 if ( $cmd eq 'TRUE' ) {
     $response = $args->{'args'} // '';
 } elsif ( $cmd eq 'SIZE' ) {
@@ -26,7 +30,8 @@ if ( $cmd eq 'TRUE' ) {
 } elsif ( $cmd eq 'FALSE' ) {
     my $error = $args->{'args'} // 'unknown error';
     ( my $safe_error = $error ) =~ s{\n}{ }g;
-    <[base.logs]>->( 0, ': task %s backend error: %s', $task_id, $safe_error );
+    <[base.logs]>
+        ->( 0, ': task %s backend error: %s', $task_id, $safe_error );
 
     ## fail the task
     if ( length $task_id ) {
@@ -36,36 +41,47 @@ if ( $cmd eq 'TRUE' ) {
             }
         );
     }
-    <models.task.active_id> = undef;
-    return;
+    $job_outcome = qw| error |;
 }
 
-## complete the task with response
-if ( length $task_id and length $response ) {
-    ## collapse newlines to prevent protocol framing corruption
-    ( my $safe_response = $response ) =~ s{\n}{ }g;
-    <[protocol-7.route-send]>->(
-        {   'command'   => 'task.complete',
-            'call_args' => { 'args' => "$task_id $safe_response" }
-        }
-    );
-    <[base.logs]>->( 1, ': task %s completed via %s', $task_id, $model );
-} elsif ( length $task_id ) {
-    <[protocol-7.route-send]>->(
-        {   'command'   => 'task.fail',
-            'call_args' => { 'args' => "$task_id empty response" }
-        }
-    );
-    <[base.logs]>->( 0, ': task %s: empty response from %s', $task_id, $model );
+## complete the task with response [ when not already failed above ]
+if ( $job_outcome ne qw| error | ) {
+    if ( length $task_id and length $response ) {
+        ## collapse newlines to prevent protocol framing corruption
+        ( my $safe_response = $response ) =~ s{\n}{ }g;
+        <[protocol-7.route-send]>->(
+            {   'command'   => 'task.complete',
+                'call_args' => { 'args' => "$task_id $safe_response" }
+            }
+        );
+        <[base.logs]>->( 1, ': task %s completed via %s', $task_id, $model );
+    } elsif ( length $task_id ) {
+        <[protocol-7.route-send]>->(
+            {   'command'   => 'task.fail',
+                'call_args' => { 'args' => "$task_id empty response" }
+            }
+        );
+        <[base.logs]>->(
+            0,        ': task %s: empty response from %s',
+            $task_id, $model
+        );
+        $job_outcome = qw| error |;
+    }
 }
 
-## clear active task guard
+## clear active dispatch guard and move job in jobqueue ##
 <models.task.active_id> = undef;
+
+if ( defined $job_id ) {
+    <[jobqueue.move_job]>->( $job_id, $job_outcome );
+    delete <models.task.jobs>->{$job_id};
+}
+<models.task.active_job> = undef;
 
 return;
 
-#,,..,,,.,,..,.,,,,,.,.,,,.,.,,,.,,,,,.,.,,,,,.,.,...,...,...,...,...,..,,..,,
-#YUKFLKAGQK4D3NLTPAU5NFWLWF7UOHPEEVXT6QR7ZPKJVBXWB3ZKEMHFK7V633XBRWETMS7LIZPKE
-#\\\|PWNPWYG3HJ4ARWDL2NOTV556M7HGCQ4AW7STWYK2ZGIM4XUELHX \ / AMOS7 \ YOURUM ::
-#\[7]7NPPNBPESBBWGBWA4FVKJRWNMSIZY7MSCSD46JB3KP4CTDWDKCAQ 7  DATA SIGNATURE ::
+#,,,.,,..,..,,,,.,.,.,..,,,..,,..,,,.,,.,,,.,,.,.,...,...,...,.,,,,.,,...,..,,
+#IBSKMPAHSOQ57WUWOIXERTBIRTAV2BV6KH45LOP5VTGI52BTW4WIZQ3HY23ZTLSE56SC2VNCRPRQW
+#\\\|VBJOXG5KT7EEMSMY2SWR7R4MXZOHDS7NQ3IVZFBRFSWUOXSP43L \ / AMOS7 \ YOURUM ::
+#\[7]LD54NVUTX52XS3QJUKL4OOJIYDYFKH33I2LR2KLO2C7IDVLLHABA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

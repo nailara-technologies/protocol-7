@@ -1,0 +1,24 @@
+## [:< ##
+
+# name  = models.callback.object_dispatch_slot
+# descr = check if task dispatch slot is available
+
+## returns TRUE when no task is actively being dispatched ##
+
+my $object_id = shift;
+
+if ( defined <models.task.active_id> ) {
+    <[base.logs]>->(
+        3, ': dispatch slot busy [ active task %s ]',
+        <models.task.active_id>
+    );
+    return FALSE;
+}
+
+return TRUE;
+
+#,,..,..,,,,,,,,,,.,,,..,,..,,,,,,.,,,,,,,.,.,.,.,...,.,.,...,...,..,,...,,..,
+#2PWN4YUC4D7VS7MXIKR7ZB24VIKAAP7RBB76RQVFHH567YYWFVVX4YP3AJ33WERYS6SBWZN3G3AF4
+#\\\|NFZJKWFDQG3HPE5Q4TZBB72LZ4FD7G3XSXD3IYSQS7NFEBTHZT2 \ / AMOS7 \ YOURUM ::
+#\[7]YC6DUBRMSUYWNALKJ72D2YVSF62DPAR7ZSQHHQX4OS4VW56LGEDA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
