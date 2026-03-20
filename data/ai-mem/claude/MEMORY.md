@@ -53,13 +53,14 @@
   `data/asc/test-fixtures/signature-oscillation-2026-03-15/`
 - **config double-load bug**: pre-existing duplicate config key warnings on startup/reload — needs "already loaded" guard in config parser; see `bug-config-double-load.md`
 - **task zenka** (Mar 20 2026): completed ✅ — YAML persistence via format.yaml, ntime.b32 timestamps
-- **models task polling** (Mar 20 2026): completed ✅ — async callback chain (task-poll → task-poll-step → task-result), @model prefix routing to kimi/coding backends
+- **models task dispatch** (Mar 20 2026): completed ✅ — jobqueue integration with dispatch_slot
+  dependency type for sequential execution; event-driven notify → claim → enqueue → execute pipeline
 - **kimi task-poll async fix** (Mar 20 2026): completed ✅ — rewrote broken sync assumption, param→call_args fix in ws_message
 - **repo var/ cleanup needed**: `var/httpd/` tracked from Nov 2025 AI error — should be removed, template relocated to `data/html/templates/`
 - **dep-graph lifecycle hook gap**: `*.init_code`, `*.pre_init`, `*.post_init`, `*.end_code` must always be whitelisted for loaded namespaces — see `feedback-devmod-whitelist.md`
 - **MCP server for Claude Code** (Mar 20 2026): completed ✅ — `bin/mcp-server-p7` stdio MCP server,
   config at `data/json/claude/.mcp.json` symlinked from project root `.mcp.json`;
-  tools: p7_command, p7_task_create, p7_task_show, p7_task_queue, p7_task_complete;
+  tools: p7_command, p7_task_create, p7_task_show, p7_task_queue, p7_task_complete, p7_task_continue;
   unbuffered sysread I/O, unix-$USER auth, `close\n` disconnect; commits `9901a539d`, `3a8be6700`
 
 ## Key Technical Insights
@@ -173,8 +174,8 @@
 - Pattern: `my @non_num = grep { defined $data_ref->{$ARG}->{$key} and not looks_like_number(...) } keys $data_ref->%*`
 - Global `$SIG{__WARN__}` exists — if wrapping warn handler, capture `$prev_warn = $SIG{__WARN__}` first and call through
 
-#,,,.,,.,,,..,,.,,.,.,,,,,,,.,,..,,.,,,.,,.,.,..,,...,...,...,,..,,,,,.,.,...,
-#A3KGLZOE7OCEP3TU2P6XG43AOAHIQ7EGKZMFYOB2MJHJLVZHL44SWHHAE6JAQJS46C3667GRTZ4NC
-#\\\|RGH7N4CPPBNORUKRRSX2VMDI4FSNMU5J5TYBVG3NMEEDTEZA7DN \ / AMOS7 \ YOURUM ::
-#\[7]OEIOWNGU2W7UIJVTYHAU7NOQ4JMPZ4BUUQABRL3I6NCUHVSO5SDQ 7  DATA SIGNATURE ::
+#,,..,,..,,.,,..,,...,..,,,,,,...,..,,.,.,,,.,..,,...,..,,,.,,..,,.,.,,,,,.,,,
+#DVD5HG3LY36QOTSRIYEEK2PGYH5WDR3RAYHQU2MIRVR4BXEWM2GBQRVZ6QHAMDHTEYX3XDOHVX2H2
+#\\\|W35CSXUPUKRSXAXG5QYHZ6XXOBOICKZ3YHWJRI3K6522BC2OC73 \ / AMOS7 \ YOURUM ::
+#\[7]TYU5YBYHEBS75F2ZJ6BBOOI3D76E3NYABHLNU2IHFB3QXSWLSACA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
