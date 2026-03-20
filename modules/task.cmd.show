@@ -1,0 +1,66 @@
+## [:< ##
+
+# name  = task.cmd.show
+# param = <task_id>
+# descr = get full details of a specific task
+
+my $task_id = '';
+
+## parse params
+if ( defined $call->{'param'} and ref $call->{'param'} eq 'HASH' ) {
+    $task_id = $call->{'param'}->{'id'} // '';
+} else {
+    $task_id = $call->{'args'} // '';
+}
+
+$task_id = uc( substr( $task_id, 0, 7 ) );
+
+return { 'mode' => 'false', 'data' => 'task id required' }
+    unless length $task_id;
+
+my $task = <task.queue>->{$task_id};
+
+return {
+    'mode' => 'false',
+    'data' => sprintf( 'task %s not found', $task_id )
+    }
+    unless defined $task;
+
+my $result_str = '';
+if ( defined $task->{'result'} ) {
+    $result_str = $task->{'result'};
+    ## truncate long results for display
+    if ( length $result_str > 500 ) {
+        $result_str = substr( $result_str, 0, 497 ) . '...';
+    }
+    ## escape newlines for clean display
+    $result_str =~ s{\n}{\\n}g;
+    $result_str =~ s{\r}{}g;
+}
+
+my $output = sprintf(
+    "id          : %s\n"
+        . "status      : %s\n"
+        . "created_at  : %s\n"
+        . "updated_at  : %s\n"
+        . "description : %s\n"
+        . "context     : %s\n"
+        . "agent       : %s\n"
+        . "result      : %s\n",
+    $task->{'id'},
+    $task->{'status'},
+    $task->{'created_at'}  // 'N/A',
+    $task->{'updated_at'}  // 'N/A',
+    $task->{'description'} // '',
+    $task->{'context'}     // '',
+    $task->{'agent'}       // '(none)',
+    $result_str || '(none)'
+);
+
+return { 'mode' => 'size', 'data' => $output };
+
+#,,..,,,,,,..,,,,,...,.,,,.,.,,.,,,,,,.,,,.,,,..,,...,...,.,,,..,,.,.,...,.,,,
+#56LC5MNC6HMNLBEILA57BJ4WZJA377PYIIRLLQCGN2JFJ7TFXSD5FHZM6UIXFWVHQZ64EHFVXRFGA
+#\\\|JHD5NHY5N3I4YIMGCV2RCTSLQDGRVPAXZAMC35ZATKADDHF26ID \ / AMOS7 \ YOURUM ::
+#\[7]YSOAWNCXK4VZSQDBC5T762W6TQIZPFIE22AVSXMYZJ3BA3LMKQDA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

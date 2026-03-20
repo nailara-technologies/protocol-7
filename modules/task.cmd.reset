@@ -1,0 +1,56 @@
+## [:< ##
+
+# name  = task.cmd.reset
+# param = <task_id>
+# descr = reset a task back to pending state for retry
+
+my $task_id = '';
+
+## parse params
+if ( defined $call->{'param'} and ref $call->{'param'} eq 'HASH' ) {
+    $task_id = $call->{'param'}->{'id'} // '';
+} else {
+    $task_id = $call->{'args'} // '';
+}
+
+$task_id = uc( substr( $task_id, 0, 7 ) );
+
+return { 'mode' => 'false', 'data' => 'task id required' }
+    unless length $task_id;
+
+my $task = <task.queue>->{$task_id};
+
+return {
+    'mode' => 'false',
+    'data' => sprintf( 'task %s not found', $task_id )
+    }
+    unless defined $task;
+
+## can reset from claimed, done, or failed
+if ( $task->{'status'} eq 'pending' ) {
+    return {
+        'mode' => 'false',
+        'data' => sprintf( 'task %s is already pending', $task_id )
+    };
+}
+
+## update task
+my $ntime_b32 = <[base.ntime.b32]>;
+
+$task->{'status'}     = 'pending';
+$task->{'agent'}      = undef;
+$task->{'updated_at'} = $ntime_b32;
+## keep result for reference but mark as stale
+
+## persist to disk
+<[task.persist.save]>;
+
+<[base.logs]>->( 1, ':. task %s reset to pending', $task_id );
+
+return { 'mode' => 'true' };
+
+#,,,,,.,.,,,.,,..,,,,,.,.,..,,.,,,.,.,.,,,.,.,..,,...,...,...,,,,,.,,,,,.,,.,,
+#HPEUZEODCDXB6XM223RT2KLDJ5B5C3PPRNKXJOPCF4AJZWQEHASPIAPMZDZBWGQMESHQVV3GAAVQ4
+#\\\|7VQGF2GNWWESJMGGBVFYHV26ABJUI24XOHG5PYRDRDFNTNUWNZK \ / AMOS7 \ YOURUM ::
+#\[7]K77X6HVAX5N35YFUQAYKWTWVTB25ZQ5MDHPI6ZAGLKW4VRAZXSDI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

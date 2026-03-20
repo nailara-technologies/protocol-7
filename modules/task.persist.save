@@ -1,0 +1,29 @@
+## [:< ##
+
+# name  = task.persist.save
+# descr = save task queue to disk as yaml
+
+<[format.yaml.pre_init]>;
+
+my $path = <task.cfg.persist_path>;
+
+my $data = {
+    'queue'       => <task.queue>,
+    'queue_order' => <task.queue.order>,
+    'saved_at'    => <[base.time]>->(3)
+};
+
+my ( $ok, $err ) = <[format.yaml.write_file]>->( $path, $data );
+
+if ( not $ok ) {
+    <[base.s_warn]>->( 'task.persist.save: failed to write [ %s ]', $path );
+    return FALSE;
+}
+
+return TRUE;
+
+#,,,.,.,.,,,,,,,,,,.,,...,.,.,..,,,,.,.,,,,.,,.,.,...,...,.,,,.,.,,..,,,,,,.,,
+#AIRVFBZEHVHV4XPJAPI2QQP2MRQHDALEZNCGL6A3IAPJN2THBQ5EILGSZN3BGB2D3FNDHKETZDDTM
+#\\\|GKQV75VT5444ASJK33DW6A7AKDXHEIMSL6DC2NNC2DAZEMDJVFG \ / AMOS7 \ YOURUM ::
+#\[7]IG7JWQMOQVPU5VWSSDYC2GNNNXELULZB4UBRORYU3MJSM6RYQCCY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

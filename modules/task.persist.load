@@ -1,0 +1,35 @@
+## [:< ##
+
+# name  = task.persist.load
+# descr = load task queue from disk yaml
+
+my $path = <task.cfg.persist_path>;
+
+if ( not -f $path ) {
+    <[base.logs]>->( 2, ': task queue file not found, starting fresh' );
+    return FALSE;
+}
+
+<[format.yaml.pre_init]>;
+
+my $data = <[format.yaml.load_file]>->($path);
+
+if ( not defined $data or ref($data) ne 'HASH' ) {
+    <[base.s_warn]>->( 'task.persist.load: failed to parse [ %s ]', $path );
+    return FALSE;
+}
+
+<task.queue>       = $data->{'queue'}       // {};
+<task.queue.order> = $data->{'queue_order'} // [];
+<[base.logs]>->(
+    2,
+    ': task queue loaded [ %d tasks ]',
+    scalar( @{<task.queue.order>} )
+);
+return TRUE;
+
+#,,,,,,,,,,,,,,,,,,.,,...,.,,,,,.,..,,,.,,,,,,.,.,...,...,.,.,,,.,.,,,.,,,,,.,
+#RR5FSHZUEWNCXLBHHX4TOQ3WO2NBK44D7N6VS27CZFLQAJA56A36IUK5CMEK6VII33OYPIYUKWXW4
+#\\\|XW7IL3QLI6OMSM25V5EIPDBGWVHYYSNNOVDZFSGKCISDWGZNW2N \ / AMOS7 \ YOURUM ::
+#\[7]LXAF3DB5JOQAZMVJCUV6QWZPVVC6ZA5OHAGLBRQID7SGQ563O2AQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

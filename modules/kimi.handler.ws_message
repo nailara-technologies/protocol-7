@@ -20,6 +20,20 @@ if ( not defined $text ) {
             if <kimi.ws.io_watcher>->is_active;
         <kimi.ws.io_watcher> = undef;
     }
+    ## reset active task if any [ reverts to pending ]
+    if ( defined <kimi.task.active_id> ) {
+        my $task_id = <kimi.task.active_id>;
+        <[base.logs]>->(
+            1, ': kimi disconnected mid-task %s, resetting to pending',
+            $task_id
+        );
+        <[protocol-7.route-send]>->(
+            {   'command' => 'task.reset',
+                'param'   => { 'id' => $task_id }
+            }
+        );
+        <kimi.task.active_id> = undef;
+    }
     ## fail any pending reply so caller does not hang
     foreach my $pend_id ( keys %{<kimi.wire.pending>} ) {
         my $pend = delete <kimi.wire.pending>->{$pend_id};
@@ -98,6 +112,23 @@ if ( $method eq qw| event | ) {
             <kimi.wire.accumulator> = '';
             <kimi.ws.status>        = qw| ready |;
 
+            ## check if this was a task submission
+            my $task_id = $pend->{'task_id'} // '';
+            if ( length($task_id) and defined <kimi.task.active_id> ) {
+                ## complete the task
+                <[protocol-7.route-send]>->(
+                    {   'command' => 'task.complete',
+                        'param' => { 'id' => $task_id, 'result' => $response }
+                    }
+                );
+                <[base.logs]>->(
+                    1,        ': task %s completed [ %d bytes result ]',
+                    $task_id, length($response)
+                );
+                <kimi.task.active_id> = undef;
+            }
+
+            ## fire original reply handler if set
             if ( length($reply_id) ) {
                 <[base.callback.cmd_reply]>->(
                     $reply_id, { 'mode' => 'size', 'data' => $response }
@@ -170,8 +201,8 @@ if ( not length($method) and length($msg_id) ) {
     }
 }
 
-#,,,.,..,,...,..,,,,,,,,,,,,.,,,,,.,.,,,.,,,.,..,,...,...,...,.,,,.,.,,,,,,..,
-#IWTYAYPTERVY3VT2JIISTPIKL5P7PR5STAJJ7PY6A53W7CUFBZEZ7BFIFTLPYATKONB7MIZXV3NGA
-#\\\|LDOL42QOYBZLO5JFJS5QSZOZ5K5TTIFBZLD344T2XANA4SFEN7J \ / AMOS7 \ YOURUM ::
-#\[7]2TDKKMSPTHKZMDR3UA22NJ23CZINQILFZCW2B4YYWHIW2ZQ2O2CA 7  DATA SIGNATURE ::
+#,,,,,,,.,,..,,..,..,,.,,,,.,,.,,,,,.,..,,.,,,..,,...,...,..,,,..,..,,,..,,.,,
+#3HG47U7KX32PGFRZ37IAFRNOOEHXRDJV6LTIW5XV6ZIEHB77LESTU25YOEIWYJYZ67QY7F6XM2YP4
+#\\\|VWTS2ZSB2SR7BRG3HI27STG4A7WWO3U74JQS2KM6ZJCTMPPDE7Y \ / AMOS7 \ YOURUM ::
+#\[7]7YCP5ORPSLGCM5OWQBUGN7PWPZHEIAFNN7PBZSTFJC64Z7N3AMDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

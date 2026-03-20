@@ -1,0 +1,114 @@
+## [:< ##
+
+# name  = kimi.handler.task-poll
+# descr = poll task queue for pending tasks and auto-submit to kimi
+
+## guard: only one task in flight at a time
+return if defined <kimi.task.active_id>;
+
+## guard: must be connected and ready
+return unless <kimi.ws.connected>;
+return unless <kimi.ws.status> eq qw| ready |;
+
+## 1. send task.queue with status filter pending
+my $list_result = <[protocol-7.route-send]>->(
+    {   'command' => 'task.queue',
+        'args'    => 'status=pending'
+    }
+);
+
+## check if empty response or no pending tasks
+return unless defined $list_result;
+return if $list_result eq '';
+return if $list_result =~ m{^no tasks found}i;
+
+## 2. parse first pending task from list output
+## format: "ID      STATUS   description..."
+my @lines      = split( /\n/, $list_result );
+my $first_line = '';
+foreach my $line (@lines) {
+    next if $line =~ m{^\s*$};    ## skip empty
+    $first_line = $line;
+    last;
+}
+
+return unless length $first_line;
+
+## extract task id [ first 7 chars ]
+my $task_id = substr( $first_line, 0, 7 );
+$task_id =~ s{\s}{}g;
+
+return unless length $task_id == 7;
+
+<[base.logs]>->( 2, ': task poll: found pending task %s', $task_id );
+
+## 3. claim the task with agent=kimi
+my $claim_result = <[protocol-7.route-send]>->(
+    {   'command' => 'task.claim',
+        'param'   => { 'id' => $task_id, 'agent' => 'kimi' }
+    }
+);
+
+## check claim success
+if ( not defined $claim_result or $claim_result ne '5' ) {
+    <[base.logs]>->( 2, ': task poll: failed to claim %s', $task_id );
+    return;
+}
+
+## 4. set active flag
+<kimi.task.active_id> = $task_id;
+
+<[base.logs]>->( 1, ': task claimed %s, submitting to kimi..,', $task_id );
+
+## 5. fetch full task details
+my $task_details = <[protocol-7.route-send]>->(
+    {   'command' => 'task.show',
+        'param'   => { 'id' => $task_id }
+    }
+);
+
+if ( not defined $task_details or not length $task_details ) {
+    <[base.logs]>->(
+        0, ': task poll: failed to get task %s details', $task_id
+    );
+    <kimi.task.active_id> = undef;
+    return;
+}
+
+## 6. parse description and context from task details
+my ( $description, $context ) = ( '', '' );
+foreach my $line ( split( /\n/, $task_details ) ) {
+    if ( $line =~ m{^description\s*:\s*(.*)$}i ) {
+        $description = $1;
+    } elsif ( $line =~ m{^context\s*:\s*(.*)$}i ) {
+        $context = $1;
+    }
+}
+
+## 7. build prompt
+my $prompt = sprintf( "[task %s]\n%s", $task_id, $description );
+if ( length $context ) {
+    $prompt .= "\n\n$context";
+}
+
+## 8. submit to kimi via ask-reply with our reply handler
+my $msg_id = <[kimi.wire.prompt]>->( $prompt, 'kimi.task.reply_handler' );
+
+if ( not defined $msg_id ) {
+    <[base.logs]>->(
+        0, ': task poll: failed to submit prompt for %s', $task_id
+    );
+    <kimi.task.active_id> = undef;
+    return;
+}
+
+## store task id in pending for reply handler
+<kimi.wire.pending>->{$msg_id}->{'task_id'} = $task_id;
+
+return;
+
+#,,,,,..,,...,,.,,,.,,,.,,...,,,,,,,,,,,,,,..,.,.,...,.,.,..,,,,,,,..,.,.,..,,
+#32P4ISJFYYFY5Y25VI2BJRXGVZLMODFFAIST4K674XYE4DOD2OR2ASISUCXJOCXOD2YC5NLGJDERM
+#\\\|URSHNCAB3E4QMSTM7N5ET23M5MKSHO6I3ZHNUNSVNZOF7MJPXZ6 \ / AMOS7 \ YOURUM ::
+#\[7]SJJRJOQUVUN2RCKDZ4DATRGS6JOUKRZEYXNF3JB4FRHU3IUHA6AA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
