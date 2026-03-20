@@ -401,7 +401,7 @@ sub cube_connect {
 
 sub cube_disconnect {
     if ( defined $cube_sock ) {
-        sock_write( $cube_sock, "exit\n" ) if $cube_sock->connected;
+        sock_write( $cube_sock, "close\n" ) if $cube_sock->connected;
         close($cube_sock);
         $cube_sock = undef;
     }
@@ -517,8 +517,8 @@ sub log_msg {
     printf STDERR "[mcp-server-p7] %s\n", $msg;
 }
 
-#,,.,,..,,,.,,..,,.,,,.,,,.,.,..,,,,,,.,.,..,,..,,...,...,...,...,,.,,,,,,...,
-#IUV5F6HXQ4R3CAWGFVA37EL4VGK36H7GAEKWFCZRF53Z4VY6GW7U3GJFDUV2A7BI5AWGOHSWXDSDK
-#\\\|YWNL2KJHJTAOULQJTPYJW2W6E5PDPUOREJEXKPB4UTUCOJQECXQ \ / AMOS7 \ YOURUM ::
-#\[7]33NDRFBTCMKWACNXBK5U5P6BG6WKNKGKWMAPZ6EJMJBXZAZNM2AY 7  DATA SIGNATURE ::
+#,,..,..,,..,,,.,,...,,.,,.,,,.,.,,,,,,,,,...,..,,...,..,,.,.,,,,,.,.,...,,,,,
+#NZ267JHPLTOHUFGT5PUC7WLUFMUOPXS6SPKIHZQALL2B26OG3GUZ6SV5NCKF267EQX6LJJI57JCUW
+#\\\|O6VLUB3OYU64DUMP6VTERCJGB7XHIYFE625Y7UO5GS5PVE5HISZ \ / AMOS7 \ YOURUM ::
+#\[7]7OZSBGL75RG4QB5E3Q6DDPICWTBEPEKMIFFPZCEENEJWXZQT5KAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
