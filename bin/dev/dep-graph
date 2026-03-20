@@ -645,6 +645,15 @@ sub analyze_zenka_reachability {
     say ":: zenka : $zenka_name";
     say ":: loaded   : " . scalar( keys %{$loaded_set} ) . " modules";
 
+    ##  parse access.cmd.* configuration for command filtering  ##
+    my $access_config = {};
+    if ( defined $zenka_name && $zenka_name ne 'stdin' ) {
+        $access_config = parse_access_cmd_config($zenka_name);
+        my $total_targets = scalar keys %{$access_config};
+        say ":: access   : $total_targets cmd targets"
+            if $total_targets > 0;
+    }
+
     ##  resolve entry commands to module names  ##
     my @entry_modules;
     for my $cmd ( @{$entry_commands} ) {
@@ -775,8 +784,10 @@ sub analyze_zenka_reachability {
                         my $ns = $1;
                         next if $runtime_ns_seen{$ns}++;
                         $loaded_set->{$ns} = 1;
-                        for my $node ( grep {m/^\Q$ns\E(?:\.|$)/}
-                            keys %{$graph} ) {
+                        for my $node (
+                            grep {m/^\Q$ns\E(?:\.|$)/}
+                            keys %{$graph}
+                        ) {
                             next if $reachable{$node};
                             my %new = walk_reachable( $graph, [$node] );
                             %reachable = ( %reachable, %new );
@@ -867,6 +878,40 @@ sub analyze_zenka_reachability {
                         }
                     }
                 }
+            }
+        }
+
+        ##  filter reachable subs based on access.cmd.* configuration  ##
+        ##  this implements Phase A (cmd access filtering) and         ##
+        ##  Phase B option c (access-config-gated devmod filtering)    ##
+        if ( defined $zenka_name && $zenka_name ne 'stdin' ) {
+            ##  $access_config already parsed above, use it  ##
+            ##  only filter when the zenka has access.cmd.* entries  ##
+            if ( keys %{$access_config} ) {
+                my @filtered;
+                for my $sub ( keys %reachable ) {
+
+                    ##  non-cmd / non-devmod subs are never filtered  ##
+                    if (   $sub !~ m/\.(?:cmd|console)\./
+                        && $sub !~ m/^devmod\./ ) {
+                        push @filtered, $sub;
+                        next;
+                    }
+
+                    ##  cmd and devmod subs : keep if command name matches  ##
+                    ##  mirrors base.has_access regex check at runtime       ##
+                    if ( $sub =~ m/\.(?:cmd|console)\.(.+)$|^devmod\.(.+)$/ )
+                    {
+                        my $cmd_name = $1 // $2;
+                        push @filtered, $sub
+                            if command_allowed( $cmd_name, $access_config );
+                        next;
+                    }
+
+                    ##  default: keep  ##
+                    push @filtered, $sub;
+                }
+                %reachable = map { $_ => 1 } @filtered;
             }
         }
 
@@ -1025,6 +1070,106 @@ sub parse_start_lines {
         \%loaded_set,   \@entry_commands,
         \@config_files, \@config_ambiguous
     );
+}
+
+sub parse_access_cmd_config {
+    ##  parse access.cmd.* entries from a zenka's start file and includes  ##
+    ##  compiles patterns to regexes — mirrors base.parser.access_conf     ##
+    ##  returns hashref: { target => qr/compiled_regex/ }                  ##
+    my $zenka_name = shift;
+
+    my $start_file = c_dir( $root_path, qw| configuration zenki |,
+        $zenka_name, qw| start | );
+    return {} if !-f $start_file;
+
+    my %raw_patterns;    ##  { target => [ raw pattern strings ] }  ##
+    my @config_stack = ($start_file);
+    my %seen_files;
+
+    while (@config_stack) {
+        my $file = pop @config_stack;
+        next if $seen_files{$file}++;
+        next if !-f $file;
+
+        open my $fh, qw| < |, $file or next;
+        my @lines = <$fh>;
+        close $fh;
+
+        ##  join continuation lines [ ending with \ ]  ##
+        my @joined_lines;
+        my $current = '';
+        for my $line (@lines) {
+            chomp $line;
+            if ( $line =~ m/\\\s*$/ ) {
+                $line =~ s/\\\s*$//;
+                $current .= $line . ' ';
+            } else {
+                $current .= $line;
+                push @joined_lines, $current if $current =~ m/\S/;
+                $current = '';
+            }
+        }
+        push @joined_lines, $current if $current =~ m/\S/;
+
+        ##  extract access.cmd.* entries  ##
+        for my $line (@joined_lines) {
+            if ( $line =~ m/^\s*access\.cmd\.\S+\.([^\s=]+)\s*=\s*(.+)/ ) {
+                my ( $target, $value ) = ( $1, $2 );
+                $value =~ s/\s*##.*$//;     ##  strip ## comments  ##
+                $value =~ s/\s+#\s.*$//;    ##  strip #  comments  ##
+                for my $pat ( split /\s+/, $value ) {
+                    push @{ $raw_patterns{$target} }, $pat if $pat =~ m/\S/;
+                }
+            }
+        }
+
+        ##  follow load_config_file includes  ##
+        for my $line (@joined_lines) {
+            if ( $line
+                =~ m/^\s*\[(?:base\.)?load_config_file\s*:\s*['"]?([^\]'"]+)['"]?\]/
+            ) {
+                my $arg = $1;
+                $arg =~ s/^\s+|\s+$//g;
+                my $cfg
+                    = $arg =~ m|^/|
+                    ? $arg
+                    : c_dir( $root_path, qw| configuration |, $arg );
+                push @config_stack, $cfg if -f $cfg;
+            }
+        }
+    }
+
+    ##  compile raw patterns to regexes — exact base.parser.access_conf logic  ##
+    my %access_regex;
+    for my $target ( keys %raw_patterns ) {
+        my @parts;
+        for my $pat ( @{ $raw_patterns{$target} } ) {
+            my $re = $pat;
+            $re =~ s|[\[\]]|\\$&|g;    ##  escape brackets  ##
+            $re =~ s|\.|\\\.|g;        ##  escape dots       ##
+            $re =~ s|\^|\\^|g;         ##  escape caret      ##
+            $re =~ s|\*\*|.+|g;        ##  ** → any chars    ##
+            $re =~ s|\*|[^\\.]+|g;     ##  * → no-dot chars  ##
+            push @parts, sprintf '^%s$', $re;
+        }
+        my $joined = join '|', @parts;
+        $access_regex{$target} = qr/$joined/ if length $joined;
+    }
+
+    return \%access_regex;
+}
+
+sub command_allowed {
+    ##  mirrors base.has_access : match cmd against compiled access regexes  ##
+    my ( $cmd, $regex_per_target ) = @ARG;
+
+    return 0 if !defined $regex_per_target || !keys %{$regex_per_target};
+
+    for my $target ( keys %{$regex_per_target} ) {
+        my $re = $regex_per_target->{$target};
+        return 1 if defined $re and $cmd =~ $re;
+    }
+    return 0;
 }
 
 sub resolve_command_to_module {
@@ -1426,8 +1571,8 @@ sub classify_dispatch_confidence {
     return 'open';
 }
 
-#,,.,,..,,..,,...,.,,,,..,...,,..,,,.,.,,,,..,.,.,...,.,.,,,,,.,.,,.,,,..,,.,,
-#DQCBZHJLVPNKH632F4HZYLCGJRH5V45JFT2BUSD6VBJ33KXTELCAVFGFWIAG5NFEAMBVMAJX6MDEE
-#\\\|VDHBFYJ4PK6M43S6XTYEYK3PFUQ5GKQCK67VXMGCO4TI33FZBB3 \ / AMOS7 \ YOURUM ::
-#\[7]ESKDTTMQIE2DVQMTXD2ISDJGXFHMAXUZRAIY4J4TMREQJVXBB2AY 7  DATA SIGNATURE ::
+#,,..,.,.,.,,,.,.,.,.,,,,,,,.,.,,,.,.,,.,,.,,,.,.,...,...,...,.,,,.,,,,.,,.,.,
+#GK2FDH3JC7L2ATU6XSRDPGMSWK7T2PQGQNZGZLIILXUWSBDNCVW3TBRIY2O2TTFXG6IWXOJ2TF7BU
+#\\\|7XHCQYG7EBP72OBLRC6BQGQZPLEQHQH3525FSVJUTZO6RE36JAU \ / AMOS7 \ YOURUM ::
+#\[7]DR3SPLMDSMDD2EYWLMJBDBWJI4BSBVAD5IWNQYK2S43S2M4YFWDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
