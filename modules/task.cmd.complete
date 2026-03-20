@@ -1,0 +1,66 @@
+## [:< ##
+
+# name  = task.cmd.complete
+# param = <task_id> [result]
+# descr = mark a claimed task as done with result
+
+my ( $task_id, $result ) = ( '', '' );
+
+## parse params
+if ( defined $call->{'param'} and ref $call->{'param'} eq 'HASH' ) {
+    $task_id = $call->{'param'}->{'id'}     // '';
+    $result  = $call->{'param'}->{'result'} // '';
+} else {
+    my $args = $call->{'args'} // '';
+    ## try to split on first whitespace
+    if ( $args =~ m{^(\S+)\s+(.*)$}s ) {
+        $task_id = $1;
+        $result  = $2;
+    } else {
+        $task_id = $args;
+    }
+}
+
+$task_id = uc( substr( $task_id, 0, 7 ) );
+
+return { 'mode' => 'false', 'data' => 'task id required' }
+    unless length $task_id;
+
+my $task = <task.queue>->{$task_id};
+
+return {
+    'mode' => 'false',
+    'data' => sprintf( 'task %s not found', $task_id )
+    }
+    unless defined $task;
+
+## only claimed tasks can be completed
+if ( $task->{'status'} ne 'claimed' ) {
+    return {
+        'mode' => 'false',
+        'data' => sprintf(
+            'task %s is %s, not claimed',
+            $task_id, $task->{'status'}
+        )
+    };
+}
+
+## update task
+my $ntime_b32 = <[base.ntime.b32]>;
+
+$task->{'status'}     = 'done';
+$task->{'result'}     = $result;
+$task->{'updated_at'} = $ntime_b32;
+
+## persist to disk
+<[task.persist.save]>;
+
+<[base.logs]>->( 1, ':. task %s completed', $task_id );
+
+return { 'mode' => 'true' };
+
+#,,,.,...,,..,,.,,,,,,,..,.,,,..,,.,,,..,,...,..,,...,...,..,,...,,,.,,..,.,,,
+#BHMUGNJ25B5ZPEIQOABPAM3ZXNJ7IYBTEPOWSTGPPWBBKSSUCZL7WDJAMM4TFBPSN5ZQTERMUTO2M
+#\\\|VVQS5HBCP77BHSMXIK2AGN7MBNLGFZXTLT52NAJCHZK536JYOV7 \ / AMOS7 \ YOURUM ::
+#\[7]6RSNB6UT34DYWOMVYIE637QRQYPDKLTLBCCHTEKH37OO7QOYMQAI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

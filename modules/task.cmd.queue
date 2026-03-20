@@ -1,0 +1,55 @@
+## [:< ##
+
+# name  = task.cmd.queue
+# param = [status=<pending|claimed|done|failed>]
+# descr = list tasks in insertion order, filtered by status
+
+my $filter_status = '';
+
+## parse params
+if ( defined $call->{'param'} and ref $call->{'param'} eq 'HASH' ) {
+    $filter_status = $call->{'param'}->{'status'} // '';
+} elsif ( defined $call->{'args'} and length $call->{'args'} ) {
+    ## parse "status=value" from args
+    my $args = $call->{'args'};
+    if ( $args =~ m{status\s*=\s*(\S+)}i ) {
+        $filter_status = $1;
+    }
+}
+
+my @lines;
+
+## iterate in insertion order
+foreach my $task_id ( @{<task.queue.order>} ) {
+    my $task = <task.queue>->{$task_id};
+    next unless defined $task;    ## skip if deleted somehow
+
+    ## apply status filter if specified
+    if ( length $filter_status ) {
+        next unless $task->{'status'} eq $filter_status;
+    }
+
+    my $desc = $task->{'description'} // '';
+    ## truncate to 60 chars
+    if ( length $desc > 60 ) {
+        $desc = substr( $desc, 0, 57 ) . '...';
+    }
+
+    push @lines,
+        sprintf( '%-7s %-8s %s', $task_id, $task->{'status'}, $desc );
+}
+
+my $output;
+if (@lines) {
+    $output = join( "\n", @lines ) . "\n";
+} else {
+    $output = "no tasks found\n";
+}
+
+return { 'mode' => 'size', 'data' => $output };
+
+#,,.,,.,.,.,.,..,,.,.,...,.,,,,,,,.,.,.,.,.,,,..,,...,.,.,.,.,.,.,...,,,.,,,,,
+#D53VRWVOQAY53I4XLT3FJY2RVLGKUDALGGINMCWCIOUDMLQVZFMMZT35HFDWB6LPDSWJQKUQNAZ7Y
+#\\\|J2RT2QEQ5JLFDMTL276LK7U7CTMOGOMEWFENJSB4WI5TP7KQJ23 \ / AMOS7 \ YOURUM ::
+#\[7]EHBPFMTL74TMSVMZFXZ2ECSBFSXK4O3A672BY3GWAGNJVOBAXIDQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

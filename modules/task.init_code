@@ -1,95 +1,35 @@
 ## [:< ##
 
 # name  = task.init_code
-# descr = initialize task zenka — load yaml task files into memory
+# descr = initialize task zenka — load task queue from disk
 
-## initialize task data structures
-##
-<task.registry>    //= {};
-<task.by_status>   //= {};
-<task.by_priority> //= [];
+## task queue data structures
+<task.queue>       //= {};    ## { task_id => task_record }
+<task.queue.order> //= [];    ## [ task_id, ... ] preserves insertion order
 
-## configuration paths
-##
-my $root_path = <system.root_path>;
-<task.cfg.yaml_dir>     //= "$root_path/data/yaml";
-<task.cfg.coding_tasks> //= <task.cfg.yaml_dir> . '/coding-tasks';
-( my $task_dir_rel = <task.cfg.coding_tasks> ) =~ s{^$root_path/?}{};
+## configuration
+<task.cfg.persist_path>
+    //= <system.root_path> . '/var/protocol-7/task/queue.yaml';
+<task.cfg.persist_dir> //= <system.root_path> . '/var/protocol-7/task';
 
-## scan and load yaml task files
-##
-<[base.log]>->( 1, 'loading yaml task files..,' );
-<[base.logs]>->( 1, '[ %s ]', $task_dir_rel );
-
-my %tasks;
-my ( $scanned, $skipped ) = ( 0, 0 );
-foreach my $dir ( <task.cfg.coding_tasks>,
-    <task.cfg.yaml_dir> . '/deferred-tasks' ) {
-    next unless -d $dir;
-    opendir( my $dh, $dir ) or next;
-    while ( my $file = readdir($dh) ) {
-        next unless $file =~ m|\.yaml$|;
-        $scanned++;
-        my $abs_path = catfile( $dir, $file );
-        my ( $yaml_data, $err ) = <[format.yaml.load_file]>->($abs_path);
-        if ( not defined $yaml_data ) {
-            <[base.logs]>->( 2, 'skipped %s : %s', $file, $err );
-            $skipped++;
-            next;
-        }
-        $tasks{$file} = {
-            'path' => <[base.path.to_keywords]>->($abs_path),
-            'data' => $yaml_data,
-            'type' => $dir =~ m|deferred| ? 'deferred-task' : 'coding-task',
-        };
-    }
-    closedir $dh;
+## ensure persist directory exists
+if ( not -d <task.cfg.persist_dir> ) {
+    <[base.file.make_path]>->( <task.cfg.persist_dir>, 0750 );
 }
 
-## process into registry
-##
-foreach my $filename ( sort keys %tasks ) {
-    my $task_data = $tasks{$filename}{'data'} // {};
+## load existing queue from disk
+<[task.persist.load]>;
 
-    ( my $task_id = $filename ) =~ s|\.yaml$||i;
+<[base.logs]>->(
+    1,
+    ': task zenka initialized [ %d tasks in queue ]',
+    scalar( keys %{<task.queue>} )
+);
 
-    <task.registry>->{$task_id} = {
-        'id'       => $task_id,
-        'filename' => $filename,
-        'path'     => $tasks{$filename}{'path'},
-        'type'     => $tasks{$filename}{'type'},
-        'title'    => $task_data->{'title'}
-            // $task_data->{'task_metadata'}{'title'} // $task_id,
-        'status' => $task_data->{'status'}
-            // $task_data->{'task_metadata'}{'status'} // 'unknown',
-        'priority' => $task_data->{'priority'}
-            // $task_data->{'task_metadata'}{'priority'} // 'medium',
-        'data'        => $task_data,
-        'assigned_to' => undef,
-        'history'     => $task_data->{'history'} // [],
-    };
+return TRUE;
 
-    my $status = <task.registry>->{$task_id}->{'status'};
-    <task.by_status>->{$status} //= [];
-    push @{ <task.by_status>->{$status} }, $task_id;
-}
-
-my $loaded_count = scalar keys %{<task.registry>};
-if ( not $skipped ) {
-    <[base.logs]>->( 1, ': loaded %d task files =).', $loaded_count );
-} else {
-    <[base.logs]>->(
-        1, ': loaded %d of %d task file%s =).',
-        $loaded_count, $scanned, <[base.cnt_s]>->($loaded_count)
-    );
-    <[base.logs]>->(
-        1,        ":. %d parsing error%s : see 'yaml-errors'-buffer",
-        $skipped, <[base.cnt_s]>->($skipped)
-    );
-}
-
-#,,..,...,..,,,,.,,,.,...,.,,,.,,,,..,,..,,..,..,,...,...,...,,..,,,,,.,.,,..,
-#GFE3REY2MCB2KD2VKGFA3DX5VZSIX6OC75R53ST6HHX25AX7G7KLCLX37QAFQF3F7JM5KOXF2D5EK
-#\\\|UNIW3SXAHWETWQBEOFDFIRM4EJB3QEX7URG5VIBHCVXZYFBIY2K \ / AMOS7 \ YOURUM ::
-#\[7]CDRAV3XRCWG4TCODAEB6X7Q2DOJ3D26HH5GYFV5XCLXE2IRIA2DY 7  DATA SIGNATURE ::
+#,,..,,..,..,,..,,,.,,.,,,...,.,,,,.,,.,,,..,,..,,...,...,,.,,..,,.,,,...,,,.,
+#TWRTTQNRTN54NGQY3GO2VESFICL5WA3W3UJMGJ7C5MZKYM4PL3Z46WL3IQEHB6ENTA3JS4A6BYPUO
+#\\\|GPOQ7EGNDBJPVS2PQNVQB4A7Q2ZZEPOLAYIRNYDB2RGB4RLV2TD \ / AMOS7 \ YOURUM ::
+#\[7]GSG3YHSFOWRMACR6ENWJR4AQJDA2FMIROOO4LS5NVU5JYJ5W2QAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

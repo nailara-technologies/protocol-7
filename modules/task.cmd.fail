@@ -1,0 +1,66 @@
+## [:< ##
+
+# name  = task.cmd.fail
+# param = <task_id> [error_message]
+# descr = mark a claimed task as failed with optional error
+
+my ( $task_id, $error ) = ( '', '' );
+
+## parse params
+if ( defined $call->{'param'} and ref $call->{'param'} eq 'HASH' ) {
+    $task_id = $call->{'param'}->{'id'}    // '';
+    $error   = $call->{'param'}->{'error'} // '';
+} else {
+    my $args = $call->{'args'} // '';
+    ## try to split on first whitespace
+    if ( $args =~ m{^(\S+)\s+(.*)$}s ) {
+        $task_id = $1;
+        $error   = $2;
+    } else {
+        $task_id = $args;
+    }
+}
+
+$task_id = uc( substr( $task_id, 0, 7 ) );
+
+return { 'mode' => 'false', 'data' => 'task id required' }
+    unless length $task_id;
+
+my $task = <task.queue>->{$task_id};
+
+return {
+    'mode' => 'false',
+    'data' => sprintf( 'task %s not found', $task_id )
+    }
+    unless defined $task;
+
+## only claimed or pending tasks can be failed
+if ( $task->{'status'} ne 'claimed' and $task->{'status'} ne 'pending' ) {
+    return {
+        'mode' => 'false',
+        'data' => sprintf(
+            'task %s is %s, cannot fail',
+            $task_id, $task->{'status'}
+        )
+    };
+}
+
+## update task
+my $ntime_b32 = <[base.ntime.b32]>;
+
+$task->{'status'}     = 'failed';
+$task->{'result'}     = $error || 'failed';
+$task->{'updated_at'} = $ntime_b32;
+
+## persist to disk
+<[task.persist.save]>;
+
+<[base.logs]>->( 1, ':. task %s failed: %s', $task_id, $error || 'no error' );
+
+return { 'mode' => 'true' };
+
+#,,,,,,,.,.,.,...,.,.,,,.,..,,..,,.,,,,..,.,,,..,,...,...,..,,,,.,,.,,.,.,...,
+#2W3XO2V2AE4C5I33PH3APNBVRSYVWAFTTKYA7QN2ALR6IZGXU3AIMNODC5QAQ7Q4L3JHHQQD4G2WW
+#\\\|TY5KFGF2SBIOVXM6255MHNR7Q3DAPPQDA7HWKFZAZCYTDMSU57D \ / AMOS7 \ YOURUM ::
+#\[7]HYCRX6EWDQ7B2F4ZIZTNNTPUH3WDGOKKZZ3IQUFOARLOT6HBOGBI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

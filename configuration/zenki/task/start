@@ -1,33 +1,34 @@
 
- .:[ protocol-7 task coordination zenka ]:.
+.:[ task zenka — general-purpose task queue ]:.
 
 [load_config_file:'shared-params']
-[zenka.load_sub_list]
 
-access.cmd.usr.cube = commands heart verify-instance \
-                     reload src-age src-ver rel-ver \
-                     list show-buffer buffer-erase buffer-erase-level \
-                     session-key ondemand-zenka set-initialized \
-                     task.list task.status task.next \
-                     task.assign task.start task.complete \
-                     task.block task.handover
+buffer.session.log_cmd  = p7-log.append
+buffer.session.max_size = 795648
 
-crypt.C25519.auto_load_keys      = no
-crypt.C25519.autocreate-user-key = no
+system.verbosity.zenka_buffer = 1
 
-modules.load = auth net protocol io.unix jobqueue crypt.C25519 format.yaml task
+system.zenka.name = task
 
+access.cmd.usr.cube = heart subname name commands reload verify-instance \
+                      list src-age src-ver show-buffer \
+                      buffer-erase buffer-erase-level \
+                      create queue show claim complete fail reset
+
+modules.load = auth net protocol io.unix calc task
 [load_modules:<modules.load>]
 [init_modules]
 
+[root.drop_privs:<system.amos-zenka-user>]
+
 [base.net.connect:'unix']
 
-[get_session_id]
+[base.get_session_id]
 
 [zenka.loop]
 
-#,,..,.,,,.,.,.,,,...,.,.,,..,...,.,,,.,,,.,.,..,,...,...,,..,..,,,.,,,..,,,.,
-#5G4GIQTMY42XST6JT47S2AUXRVZAN5QOH76KKEJOFDUJJ34IDCFUCRCGMKPZHPHZJLUSDK6QWFZG2
-#\\\|OGND5UZEAMBDYISQSYSS7U6UXNFD2BHINNJZMGI4UHYR6JQHJJF \ / AMOS7 \ YOURUM ::
-#\[7]LSNNR2H67Z6KVETIUMP2VJJ5OISU6PEUNFISQ5OZ5EDHNR7KCCCY 7  DATA SIGNATURE ::
+#,,..,...,..,,.,.,...,...,.,,,,,,,.,,,,,.,...,..,,...,...,..,,.,,,,..,,..,.,.,
+#6AUD3GTLJ3XSZQC64LREFDQLOCRYBJGOAEH27DT3FBDW5PPYQ53JNH2IHQTDQYYK7GSLH5VPGLSUM
+#\\\|47F2MP4LVCWRYX5PRGHVDNTSWKTEL42U7QI3LXOPE4WMUYDSPY4 \ / AMOS7 \ YOURUM ::
+#\[7]E6EPNYEW635YS6HJBAL2T7RIKOFCU7P67WNJ2VYPBTR5DPUY5EDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
