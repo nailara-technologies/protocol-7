@@ -28,8 +28,8 @@ if ( not defined $text ) {
             $task_id
         );
         <[protocol-7.route-send]>->(
-            {   'command' => 'task.reset',
-                'param'   => { 'id' => $task_id }
+            {   'command'   => 'task.reset',
+                'call_args' => { 'args' => $task_id }
             }
         );
         <kimi.task.active_id> = undef;
@@ -115,10 +115,11 @@ if ( $method eq qw| event | ) {
             ## check if this was a task submission
             my $task_id = $pend->{'task_id'} // '';
             if ( length($task_id) and defined <kimi.task.active_id> ) {
-                ## complete the task
+                ## complete the task [ collapse newlines for single-line ipc ]
+                ( my $safe_response = $response ) =~ s{\n}{ }g;
                 <[protocol-7.route-send]>->(
-                    {   'command' => 'task.complete',
-                        'param' => { 'id' => $task_id, 'result' => $response }
+                    {   'command'   => 'task.complete',
+                        'call_args' => { 'args' => "$task_id $safe_response" }
                     }
                 );
                 <[base.logs]>->(
@@ -201,8 +202,8 @@ if ( not length($method) and length($msg_id) ) {
     }
 }
 
-#,,,,,,,.,,..,,..,..,,.,,,,.,,.,,,,,.,..,,.,,,..,,...,...,..,,,..,..,,,..,,.,,
-#3HG47U7KX32PGFRZ37IAFRNOOEHXRDJV6LTIW5XV6ZIEHB77LESTU25YOEIWYJYZ67QY7F6XM2YP4
-#\\\|VWTS2ZSB2SR7BRG3HI27STG4A7WWO3U74JQS2KM6ZJCTMPPDE7Y \ / AMOS7 \ YOURUM ::
-#\[7]7YCP5ORPSLGCM5OWQBUGN7PWPZHEIAFNN7PBZSTFJC64Z7N3AMDQ 7  DATA SIGNATURE ::
+#,,,.,,..,.,,,,..,,..,,,.,,,.,.,,,,,,,.,.,,.,,..,,...,..,,..,,,,.,.,,,...,,,,,
+#IXTHXSEZUTQIMKIF5PVEPWJAK3LBSZ3KYKLGZKVEXVIXB7UAQHWE7ZQ25NJEFWAOQLFNCAYWYG75E
+#\\\|FBQHESZNONUJUTNVU6D6CMXDUELLOUEGJBN6QFOEYCRK4GX6UYI \ / AMOS7 \ YOURUM ::
+#\[7]ROLA6FATPDBLEXSJNNOBNETWS5OWZNJRCIJP7QM42RUUT64VS2BA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
