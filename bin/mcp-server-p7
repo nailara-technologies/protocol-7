@@ -131,6 +131,26 @@ my @tools = (
             'additionalProperties' => \0
         }
     },
+    {   'name'        => 'p7_task_continue',
+        'description' =>
+            'continue a completed task with a follow-up message. '
+            . 'reuses the existing backend session for multi-turn interaction.',
+        'inputSchema' => {
+            'type'       => 'object',
+            'properties' => {
+                'task_id' => {
+                    'type'        => 'string',
+                    'description' => '7-character task identifier'
+                },
+                'message' => {
+                    'type'        => 'string',
+                    'description' => 'follow-up message for the task'
+                }
+            },
+            'required'             => [ 'task_id', 'message' ],
+            'additionalProperties' => \0
+        }
+    },
 );
 
 ##[ main loop ]##
@@ -219,6 +239,8 @@ sub handle_tools_call {
         tool_task_queue( $id, $args );
     } elsif ( $name eq 'p7_task_complete' ) {
         tool_task_complete( $id, $args );
+    } elsif ( $name eq 'p7_task_continue' ) {
+        tool_task_continue( $id, $args );
     } else {
         send_error( $id, -32602, "unknown tool: $name" );
     }
@@ -296,6 +318,23 @@ sub tool_task_complete {
 
     my ( $ok, $response )
         = cube_command("task.complete $task_id $safe_result");
+    send_tool_result( $id, $response, $ok ? 0 : 1 );
+}
+
+sub tool_task_continue {
+    my ( $id, $args ) = @ARG;
+
+    my $task_id = $args->{'task_id'} // '';
+    my $message = $args->{'message'} // '';
+
+    if ( not length $task_id or not length $message ) {
+        return send_tool_result( $id, 'task_id and message are required', 1 );
+    }
+
+    ## collapse newlines for single-line IPC
+    ( my $safe_msg = $message ) =~ s{\n}{ }g;
+
+    my ( $ok, $response ) = cube_command("task.continue $task_id $safe_msg");
     send_tool_result( $id, $response, $ok ? 0 : 1 );
 }
 
@@ -512,8 +551,8 @@ sub log_msg {
     printf STDERR "[mcp-server-p7] %s\n", $msg;
 }
 
-#,,,,,,,,,,.,,.,.,.,,,...,.,,,..,,...,,,,,..,,..,,...,...,.,,,,..,,,,,,,.,..,,
-#SA3BORZQXVSZMWIIYBBIQ3EGWDP4XBK22IAPB5SVPMSGJKJIGQS6XTOZL7ZRLE43GMLQDS3M6W7UK
-#\\\|OCUBNCHPNSJNPSM3CPAOV5TAA46HK4AJK6SPSINKQ5JAAKPFXAF \ / AMOS7 \ YOURUM ::
-#\[7]D3M3T3UVMMOP774AWDUVC6HZN762AXZZIWAFRI6O2EKB3ANZMUBI 7  DATA SIGNATURE ::
+#,,,.,,,,,..,,...,,,,,.,.,,.,,..,,,,.,,..,,,.,..,,...,...,...,..,,,.,,,,,,,..,
+#YIMGE3UJWUANORVW76L2WV3CZILXF32UGYKLOI5DAC5RC66DXS7EPBIC3BFPVIZDBPE6JM3VYFLKO
+#\\\|PCBACFS4F23QY7YFMGL7XHJ6AMT2I5BYNFWNSK4KJOSCQTXHFIO \ / AMOS7 \ YOURUM ::
+#\[7]O4FJ3V5LV7NPIJNQXG7KFABEQADD4LPHYZWWFLWDH75IRRAOLOCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

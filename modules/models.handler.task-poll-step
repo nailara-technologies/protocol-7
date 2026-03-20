@@ -67,9 +67,27 @@ if ( $step eq 'show' ) {
         return;
     }
 
-    ## parse description and context from task details
+    ## parse description, context, and history from task details
     my ( $description, $context ) = ( '', '' );
+    my @history_turns;
+    my $in_history = FALSE;
+    my $current_turn;
+
     foreach my $line ( split( /\n/, $details ) ) {
+        if ( $line =~ m{^---\s*history\s*---}i ) {
+            $in_history = TRUE;
+            next;
+        }
+        if ($in_history) {
+            if ( $line =~ m{^turn\s+\d+\s*:\s*(.*)$}i ) {
+                $current_turn = { 'prompt' => $1, 'result' => '' };
+                push @history_turns, $current_turn;
+            } elsif ( $line =~ m{^\s+result\s*:\s*(.*)$}i
+                and defined $current_turn ) {
+                $current_turn->{'result'} = $1;
+            }
+            next;
+        }
         if ( $line =~ m{^description\s*:\s*(.*)$}i ) {
             $description = $1;
         } elsif ( $line =~ m{^context\s*:\s*(.*)$}i ) {
@@ -85,8 +103,25 @@ if ( $step eq 'show' ) {
         $model = $1;
     }
 
-    ## build prompt
-    my $prompt = sprintf "[task %s]\n%s", $task_id, $description;
+    ## build prompt with conversation history for multi-turn tasks
+    my $prompt = '';
+
+    if (@history_turns) {
+        $prompt .= sprintf "[task %s] [continuation turn %d]\n",
+            $task_id, scalar(@history_turns) + 1;
+        foreach my $turn (@history_turns) {
+            my $t_prompt = $turn->{'prompt'} // '';
+            ## strip model prefix from history prompts
+            $t_prompt =~ s{^:[a-z0-9\-]+:\s*}{}i;
+            $t_prompt =~ s{^\@\S+\s*}{};
+            $prompt .= sprintf "user: %s\nassistant: %s\n\n",
+                $t_prompt, $turn->{'result'} // '';
+        }
+        $prompt .= sprintf "user: %s", $description;
+    } else {
+        $prompt = sprintf "[task %s]\n%s", $task_id, $description;
+    }
+
     $prompt .= "\n\n$context" if length $context;
 
     ## model to backend command mapping
@@ -133,8 +168,8 @@ if ( $step eq 'show' ) {
 <[base.logs]>->( 0, ': task-poll-step: unknown step [ %s ]', $step );
 return;
 
-#,,,,,.,.,,,,,..,,...,...,.,.,,.,,...,,.,,.,.,.,.,...,...,.,.,,..,,..,.,,,..,,
-#33BPK4CUKSRIXOF2XLFTO6Y33D4XBMN6ODPLSWO7TZ73SBIIKJAWUEQUVMSE2VQBKYJCBJRTARNDS
-#\\\|3QYDLH67V4MZRJIGJCSGK7OPKJTM7L7OVXM54X6VGTHOHEH3NXV \ / AMOS7 \ YOURUM ::
-#\[7]H26G4UCDSIIZ2QC4TAHWHTZPPOY4WP47UVS6CCDRLI6G54CIU4CA 7  DATA SIGNATURE ::
+#,,.,,.,.,...,,..,,,,,,,,,.,,,,,.,.,.,,..,.,.,.,.,...,...,.,.,.,,,.,.,,.,,,..,
+#UTBXOCACHTKMDX4QHHFJX5YABBRVDOJ34R25BXDUBWRU5OMC4PWM2HVTXZ65TXEGBMZ3557NB3GUI
+#\\\|JCDIBPI4GCRSO3SZABZFFVKJFQPBLHOHXBPM5TG3YGDT3AE34UC \ / AMOS7 \ YOURUM ::
+#\[7]PJJPBUID7R2KQFDQEGUVACPDFLI5J6VHOPW4KBFBMUL3TECJUWAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
