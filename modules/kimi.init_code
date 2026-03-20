@@ -20,6 +20,18 @@ map { <[base.perlmod.load]>->($_) }
 <kimi.ws.status>    //= qw| disconnected |;
 <kimi.session_id>   //= undef;
 
+## restore persisted session id from previous run
+if ( not defined <kimi.session_id> ) {
+    my $sref = <[file.zenka_dir.load]>->('session_id');
+    if ( defined $sref and length $$sref ) {
+        ( my $saved_id = $$sref ) =~ s{\s+$}{};
+        if ( length $saved_id ) {
+            <kimi.session_id> = $saved_id;
+            <[base.logs]>->( 2, ': restored session id [ %s ]', $saved_id );
+        }
+    }
+}
+
 ## wire protocol state
 <kimi.wire.seq>     //= 0;
 <kimi.wire.pending> //= {};    ## { $msg_id => { type, reply_id, params } }
@@ -55,8 +67,8 @@ map { <[base.perlmod.load]>->($_) }
 
 return TRUE;
 
-#,,,,,,.,,,..,..,,...,,..,.,,,,.,,...,,,.,,..,..,,...,...,.,.,,,.,.,,,,..,,,,,
-#C2N4DXJO4NGJFLQYDGTMWW7YRYHFAG4VKW6BGMC4J52J3DL24X7OYHV5FK7ZUDZYA55PCMBWLERTM
-#\\\|UNUKUTRNUGEU3ZDR22D3IOOQYN6QXQZYIHGKQ333ITAONVSNXFO \ / AMOS7 \ YOURUM ::
-#\[7]OPNMELDRS3J3NFKTKMZJI4KS5Z2QOEG4N6EJEHJJIG4HNVXB6EDY 7  DATA SIGNATURE ::
+#,,,,,...,.,,,,..,,,.,,.,,.,.,,..,.,.,,.,,,.,,..,,...,...,...,,.,,.,.,.,.,.,.,
+#IR7E6YPAT73ONYN7DB5Z6R4SDCSY4BQA5AXVDY3E3EEL5H4E2QSYK3DPC2ZFDBB5EIKQEU2QA3AXO
+#\\\|FI7CQ3GGHDMAU4WNQRMYUMEAALFS3JOLSZH2J6TCOJNW53VEDRP \ / AMOS7 \ YOURUM ::
+#\[7]VHIWJLEDYS2WI2YE2DUAQ4KC25UQO2YDZUYT2Q42YFKCQ74EJ6CQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

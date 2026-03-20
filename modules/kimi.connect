@@ -61,6 +61,10 @@ if ( not defined <kimi.session_id> ) {
         2, 'kimi.connect: session created [ %s ]',
         <kimi.session_id>
     );
+
+    ## persist session id for resume after restart
+    my $sid_str = <kimi.session_id> . "\n";
+    <[file.zenka_dir.write]>->( 'session_id', \$sid_str );
 }
 
 ## websocket connect
@@ -74,7 +78,7 @@ if ( not defined $sock ) {
         0, 'kimi.connect: websocket connect failed [ %s ]', $ws_url
     );
     <kimi.ws.status>  = qw| disconnected |;
-    <kimi.session_id> = undef;  ## clear so next attempt creates fresh session
+    <kimi.session_id> = undef;    ## clear so next retry creates fresh session
     <[kimi.connect.schedule_retry]>;
     return;
 }
@@ -102,8 +106,8 @@ if ( not defined $sock ) {
 
 <[base.logs]>->( 2, 'kimi.connect: websocket connected [ %s ]', $ws_url );
 
-#,,,,,.,,,,..,,,.,.,.,,,.,,..,,..,.,.,.,.,,,,,..,,...,...,...,.,.,..,,,,.,..,,
-#36TTJYZC4UNOUJB2ADGXCIOBTZVH5GK6VFTUC7QPP4O7CBZZ6A4WIUO6LU2T6W2MXJMNRG5KC6XW2
-#\\\|5BKCABFWPDIVEDU677O6CQOWRN3YPF47THNDVHQFYE6YZNTYHV6 \ / AMOS7 \ YOURUM ::
-#\[7]VYKWXKJGVJMUVKLVMHLKQVEZPTQXPDCAREUQAGZEWCF3JWJMFSCI 7  DATA SIGNATURE ::
+#,,.,,..,,,..,.,.,,,.,.,.,...,.,.,..,,,,.,.,,,..,,...,...,..,,...,.,.,,..,..,,
+#QBFFSFR2BRQDVSVZCUHN33YDVMH6UVV7LJ5EV47IQVMQOVCH6VOAB2WM4VZ65H3SWJVU2DGLJJUJW
+#\\\|FXDUW3CPTI2V4UOY3Q5HSRSDHJ3NRVIMX5GNCFZ2IUETZS65WLH \ / AMOS7 \ YOURUM ::
+#\[7]CEQ7SHZVGEPPFPFQNC4LYDHUGAQMQZHCRWUMD6URKD4VMB7FBWAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
