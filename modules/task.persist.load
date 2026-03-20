@@ -3,19 +3,21 @@
 # name  = task.persist.load
 # descr = load task queue from disk yaml
 
-my $path = <task.cfg.persist_path>;
+my $queue_file = 'queue.yaml';
 
-if ( not -f $path ) {
+my $content_sref = <[file.zenka_dir.load]>->($queue_file);
+
+if ( not defined $content_sref ) {
     <[base.logs]>->( 2, ': task queue file not found, starting fresh' );
     return FALSE;
 }
 
 <[format.yaml.pre_init]>;
 
-my $data = <[format.yaml.load_file]>->($path);
+my $data = <[format.yaml.load_str]>->( $content_sref->$* );
 
-if ( not defined $data or ref($data) ne 'HASH' ) {
-    <[base.s_warn]>->( 'task.persist.load: failed to parse [ %s ]', $path );
+if ( not defined $data or ref $data ne 'HASH' ) {
+    <[base.s_warn]>->('task.persist.load: failed to parse queue file');
     return FALSE;
 }
 
@@ -28,8 +30,8 @@ if ( not defined $data or ref($data) ne 'HASH' ) {
 );
 return TRUE;
 
-#,,,,,,,,,,,,,,,,,,.,,...,.,,,,,.,..,,,.,,,,,,.,.,...,...,.,.,,,.,.,,,.,,,,,.,
-#RR5FSHZUEWNCXLBHHX4TOQ3WO2NBK44D7N6VS27CZFLQAJA56A36IUK5CMEK6VII33OYPIYUKWXW4
-#\\\|XW7IL3QLI6OMSM25V5EIPDBGWVHYYSNNOVDZFSGKCISDWGZNW2N \ / AMOS7 \ YOURUM ::
-#\[7]LXAF3DB5JOQAZMVJCUV6QWZPVVC6ZA5OHAGLBRQID7SGQ563O2AQ 7  DATA SIGNATURE ::
+#,,.,,.,.,.,.,,,,,.,.,,,.,,..,.,,,..,,...,.,,,.,.,...,...,.,,,,.,,.,,,...,.,,,
+#HVSH3O6RVE7WXI6VIHVGRPKRLSBVAJDJ26S55T7F7AMQ5SDNZ52TE6M2G2EDHRRSS7AH56S6K4OWC
+#\\\|HK4CFXYQTF3KHCTVKK5QOTKJIDP7ZGDI5YDSRP2GKKTGSMSTFWR \ / AMOS7 \ YOURUM ::
+#\[7]2BE6BR7N2AKQMPPUPBOKBNYOIRT4B6LJYM2WLWGFB3OC3WQRNEAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

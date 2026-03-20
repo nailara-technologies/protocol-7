@@ -252,12 +252,7 @@ sub tool_task_create {
 
     ## collapse newlines for single-line IPC
     ( my $safe_desc = $desc ) =~ s{\n}{ }g;
-    my $cmd = "task.create description=$safe_desc";
-
-    if ( length $context ) {
-        ( my $safe_ctx = $context ) =~ s{\n}{ }g;
-        $cmd .= " context=$safe_ctx";
-    }
+    my $cmd = "task.create $safe_desc";
 
     my ( $ok, $response ) = cube_command($cmd);
     send_tool_result( $id, $response, $ok ? 0 : 1 );
@@ -517,8 +512,8 @@ sub log_msg {
     printf STDERR "[mcp-server-p7] %s\n", $msg;
 }
 
-#,,..,..,,..,,,.,,...,,.,,.,,,.,.,,,,,,,,,...,..,,...,..,,.,.,,,,,.,.,...,,,,,
-#NZ267JHPLTOHUFGT5PUC7WLUFMUOPXS6SPKIHZQALL2B26OG3GUZ6SV5NCKF267EQX6LJJI57JCUW
-#\\\|O6VLUB3OYU64DUMP6VTERCJGB7XHIYFE625Y7UO5GS5PVE5HISZ \ / AMOS7 \ YOURUM ::
-#\[7]7OZSBGL75RG4QB5E3Q6DDPICWTBEPEKMIFFPZCEENEJWXZQT5KAQ 7  DATA SIGNATURE ::
+#,,,,,,,,,,.,,.,.,.,,,...,.,,,..,,...,,,,,..,,..,,...,...,.,,,,..,,,,,,,.,..,,
+#SA3BORZQXVSZMWIIYBBIQ3EGWDP4XBK22IAPB5SVPMSGJKJIGQS6XTOZL7ZRLE43GMLQDS3M6W7UK
+#\\\|OCUBNCHPNSJNPSM3CPAOV5TAA46HK4AJK6SPSINKQ5JAAKPFXAF \ / AMOS7 \ YOURUM ::
+#\[7]D3M3T3UVMMOP774AWDUVC6HZN762AXZZIWAFRI6O2EKB3ANZMUBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -5,7 +5,7 @@
 
 <[format.yaml.pre_init]>;
 
-my $path = <task.cfg.persist_path>;
+my $queue_file = 'queue.yaml';
 
 my $data = {
     'queue'       => <task.queue>,
@@ -13,17 +13,24 @@ my $data = {
     'saved_at'    => <[base.time]>->(3)
 };
 
-my ( $ok, $err ) = <[format.yaml.write_file]>->( $path, $data );
+my $yaml_str = <[format.yaml.dump_str]>->($data);
 
-if ( not $ok ) {
-    <[base.s_warn]>->( 'task.persist.save: failed to write [ %s ]', $path );
+if ( not defined $yaml_str or not length $yaml_str ) {
+    <[base.s_warn]>->('task.persist.save: yaml serialization failed');
+    return FALSE;
+}
+
+my $written = <[file.zenka_dir.write]>->( $queue_file, \$yaml_str );
+
+if ( not defined $written ) {
+    <[base.s_warn]>->('task.persist.save: failed to write queue file');
     return FALSE;
 }
 
 return TRUE;
 
-#,,,.,.,.,,,,,,,,,,.,,...,.,.,..,,,,.,.,,,,.,,.,.,...,...,.,,,.,.,,..,,,,,,.,,
-#AIRVFBZEHVHV4XPJAPI2QQP2MRQHDALEZNCGL6A3IAPJN2THBQ5EILGSZN3BGB2D3FNDHKETZDDTM
-#\\\|GKQV75VT5444ASJK33DW6A7AKDXHEIMSL6DC2NNC2DAZEMDJVFG \ / AMOS7 \ YOURUM ::
-#\[7]IG7JWQMOQVPU5VWSSDYC2GNNNXELULZB4UBRORYU3MJSM6RYQCCY 7  DATA SIGNATURE ::
+#,,,.,.,,,..,,,,.,,.,,...,...,..,,,.,,,,,,,,.,.,.,...,...,,.,,,..,..,,.,.,,..,
+#D3AVBA3UCCXSB3PZTDXVP45WRDGY5QC5G37YMFMLQDAH5SX3CCM5NCMSVVW4LQ2EM3V5ERZT2V7B4
+#\\\|DW25L5TZ5BBPRLKUWNGJUHHAHQ36DQL5P6DZK7KXAL3SUJ2JQSJ \ / AMOS7 \ YOURUM ::
+#\[7]YTJKXSZH4I7OCLKWCVUX6BOEJN5L3WHPZKDCKCSGPIE5SZJRHYCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

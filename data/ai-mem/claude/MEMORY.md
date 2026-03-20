@@ -11,6 +11,8 @@
 - `topic-vterm.md` — vterm module system: cell format, consensus algorithm, review findings
 - `topic-self-improving-system.md` — LLM coordination as foundation for self-improving P7 network;
   user as coding zenka; tasks decomposed for autonomous execution between sessions
+- `topic-distributed-consensus.md` — channels zenka, multi-model group chat, consensus groups,
+  distributed P7 nodes with ik_llama.cpp on remote servers
 
 ## File Creation Notes (CRITICAL)
 - **Never add** the single-line `#,,.,,,...` stub at end of new files
@@ -55,6 +57,10 @@
 - **kimi task-poll async fix** (Mar 20 2026): completed ✅ — rewrote broken sync assumption, param→call_args fix in ws_message
 - **repo var/ cleanup needed**: `var/httpd/` tracked from Nov 2025 AI error — should be removed, template relocated to `data/html/templates/`
 - **dep-graph lifecycle hook gap**: `*.init_code`, `*.pre_init`, `*.post_init`, `*.end_code` must always be whitelisted for loaded namespaces — see `feedback-devmod-whitelist.md`
+- **MCP server for Claude Code** (Mar 20 2026): completed ✅ — `bin/mcp-server-p7` stdio MCP server,
+  config at `data/json/claude/.mcp.json` symlinked from project root `.mcp.json`;
+  tools: p7_command, p7_task_create, p7_task_show, p7_task_queue, p7_task_complete;
+  unbuffered sysread I/O, unix-$USER auth, `close\n` disconnect; commits `9901a539d`, `3a8be6700`
 
 ## Key Technical Insights
 
@@ -167,8 +173,8 @@
 - Pattern: `my @non_num = grep { defined $data_ref->{$ARG}->{$key} and not looks_like_number(...) } keys $data_ref->%*`
 - Global `$SIG{__WARN__}` exists — if wrapping warn handler, capture `$prev_warn = $SIG{__WARN__}` first and call through
 
-#,,.,,,,,,.,.,.,,,,..,,.,,,.,,,,,,,.,,.,.,...,..,,...,...,..,,.,.,..,,...,,,.,
-#CB7K7S2NNMFKDMQJSVCCV3AJ7TTAQSM5W7FJ3JWEYSKMLGHEWOXRVEVUTKOHLLTECSYVM7BFV4UKQ
-#\\\|WY2GBEFTVMF45PEXTMIT7UD2LG7JTV2XRLQFB2L44I3V7Z3YGS4 \ / AMOS7 \ YOURUM ::
-#\[7]7N4MFGD4WJSIS2A3Z66ZBFF2XAAAZ24W2XCJUILPXLR5R5PXIUDI 7  DATA SIGNATURE ::
+#,,,.,,.,,,..,,.,,.,.,,,,,,,.,,..,,.,,,.,,.,.,..,,...,...,...,,..,,,,,.,.,...,
+#A3KGLZOE7OCEP3TU2P6XG43AOAHIQ7EGKZMFYOB2MJHJLVZHL44SWHHAE6JAQJS46C3667GRTZ4NC
+#\\\|RGH7N4CPPBNORUKRRSX2VMDI4FSNMU5J5TYBVG3NMEEDTEZA7DN \ / AMOS7 \ YOURUM ::
+#\[7]OEIOWNGU2W7UIJVTYHAU7NOQ4JMPZ4BUUQABRL3I6NCUHVSO5SDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
