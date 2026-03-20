@@ -50,6 +50,10 @@
   Variant B (double-footer on never-signed non-empty files) still open — fixtures at
   `data/asc/test-fixtures/signature-oscillation-2026-03-15/`
 - **config double-load bug**: pre-existing duplicate config key warnings on startup/reload — needs "already loaded" guard in config parser; see `bug-config-double-load.md`
+- **task zenka** (Mar 20 2026): completed ✅ — YAML persistence via format.yaml, ntime.b32 timestamps
+- **models task polling** (Mar 20 2026): completed ✅ — async callback chain (task-poll → task-poll-step → task-result), @model prefix routing to kimi/coding backends
+- **kimi task-poll async fix** (Mar 20 2026): completed ✅ — rewrote broken sync assumption, param→call_args fix in ws_message
+- **repo var/ cleanup needed**: `var/httpd/` tracked from Nov 2025 AI error — should be removed, template relocated to `data/html/templates/`
 
 ## Key Technical Insights
 
@@ -60,11 +64,16 @@
 - P7 start file values are scalars — `work.git.remotes = hub ext-bundle` sets string, not arrayref
 - Fix in init_code: `if defined and not ref → split m|\s+|, $val into arrayref`
 
-### protocol-7.route-send
+### protocol-7.route-send (CRITICAL)
 - Wraps `send.local`, auto-prepends `<protocol-7.network.parent_route>`
+- **Returns count of sent commands (0 or 1), NOT the reply data**
+- Replies arrive asynchronously via the `reply.handler` callback
+- Use `call_args => { args => $string }` — NOT `param => { hashref }`
+  (`param` hashref is never transmitted; only `call_args.args` string is sent)
+- For async chains: pass state via `reply.params`, dispatch in handler
 - Use for cube-routed commands (`v7.*`, `httpd.*`, `p7-log.*`, etc.)
 - Do NOT use for `child.*` commands (local socketpair aliases)
-- ✅ `<[protocol-7.route-send]>->( { 'command' => 'v7.notify_online', ... } )`
+- Multiline args corrupt protocol framing — base32r encode or collapse newlines
 
 ### Event Timers (CRITICAL)
 - Repeating timers require BOTH `'interval' => N` AND `'repeat' => TRUE`
@@ -157,8 +166,8 @@
 - Pattern: `my @non_num = grep { defined $data_ref->{$ARG}->{$key} and not looks_like_number(...) } keys $data_ref->%*`
 - Global `$SIG{__WARN__}` exists — if wrapping warn handler, capture `$prev_warn = $SIG{__WARN__}` first and call through
 
-#,,..,,,,,,,,,...,,,.,.,.,...,,,.,,..,,,,,..,,..,,...,...,...,...,,,.,...,,.,,
-#HB5DZWDZOVS33S4PVIMKD2GM77XRDTFJ6HOQBZ3MJLADA2HV254CBN2F4HTPVNNLPBQEB73MMRY42
-#\\\|65WU3W3IYI4V4PXO667BBD4YDRRSQROYMXG5M5NJRXCF2WSFZHT \ / AMOS7 \ YOURUM ::
-#\[7]3UVJYV73US5ZTZL7CIXJBH5QHXEJR4QEKVC2HBPLDMH2X7WDOWBI 7  DATA SIGNATURE ::
+#,,,.,.,.,..,,,..,,.,,..,,,.,,...,,.,,.,.,...,..,,...,...,,.,,,.,,,,,,.,.,,,.,
+#Z7R5Y6LBA2AFQTHV6XCC6IZGJQO2MUKZE4NXLOXKQ7QNU5Z4BMMID7IBJBS24QDFJWH3YWZQGX2BU
+#\\\|7DDVOGSAJ3CSSCI5QK3NMHP2FPSEFQB5LOQ3Z2RYQNEBOHSY6GE \ / AMOS7 \ YOURUM ::
+#\[7]AGNWCHFWPQ3WEFOOWI4JYSN5245BGDQPV7NSK6OMBA7N45RQYSCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
