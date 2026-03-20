@@ -17,11 +17,20 @@ if (<kimi.ws.connected>) {
 
 ## create new kimi-web session via rest api (once per lifetime)
 if ( not defined <kimi.session_id> ) {
-    my $ua   = LWP::UserAgent->new( timeout => 10 );
+    my $ua       = LWP::UserAgent->new( timeout => 10 );
+    my $work_dir = <kimi.web.work_dir> // '';
+    my $api_url  = sprintf( '%s/api/sessions/', <kimi.web.base_url> );
+
+    ## pass project work_dir in json post body
+    my $body
+        = length $work_dir
+        ? JSON::encode_json( { 'work_dir' => $work_dir } )
+        : '{}';
+
     my $resp = $ua->post(
-        sprintf( '%s/api/sessions/', <kimi.web.base_url> ),
+        $api_url,
         'Content-Type' => 'application/json',
-        'Content'      => '{}'
+        'Content'      => $body
     );
 
     if ( not $resp->is_success ) {
@@ -93,8 +102,8 @@ if ( not defined $sock ) {
 
 <[base.logs]>->( 2, 'kimi.connect: websocket connected [ %s ]', $ws_url );
 
-#,,.,,,,,,,,,,,..,,..,,.,,...,..,,,.,,,..,,,.,..,,...,...,.,,,,,,,,..,...,,,.,
-#T7YLEGCFKPVR2BHYFZESLI4RGUETTANUR2N56UUGVHA5LPSHSYEKIIFSQ7WJS3KVKVZCEO37LB5F2
-#\\\|EZITOEVCUANR4EPHEYH5CVDSEJIRXDANAIBDDRTAQ3PB34YAVJY \ / AMOS7 \ YOURUM ::
-#\[7]BIAE5BLFNJY4O7G2WYAGUGHOT37TTXBRNGCH25IABBIIT76ZT6CA 7  DATA SIGNATURE ::
+#,,,,,.,,,,..,,,.,.,.,,,.,,..,,..,.,.,.,.,,,,,..,,...,...,...,.,.,..,,,,.,..,,
+#36TTJYZC4UNOUJB2ADGXCIOBTZVH5GK6VFTUC7QPP4O7CBZZ6A4WIUO6LU2T6W2MXJMNRG5KC6XW2
+#\\\|5BKCABFWPDIVEDU677O6CQOWRN3YPF47THNDVHQFYE6YZNTYHV6 \ / AMOS7 \ YOURUM ::
+#\[7]VYKWXKJGVJMUVKLVMHLKQVEZPTQXPDCAREUQAGZEWCF3JWJMFSCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
