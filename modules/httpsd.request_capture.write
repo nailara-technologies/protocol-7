@@ -18,15 +18,15 @@ my $method = $info->{'method'}    // '';
 my $uri    = $info->{'uri'}       // '';
 my $tls    = $info->{'tls'}       // '';
 
-my $content = "ntime     : $ntime\nevent     : $event\nclient_ip : $ip\n";
-$content .= "method    : $method\n" if length $method;
-$content .= "uri       : $uri\n"    if length $uri;
-$content .= "tls       : $tls\n"    if length $tls;
+my $content = " ntime     : $ntime\n event     : $event\n client_ip : $ip\n";
+$content .= " method    : $method\n" if length $method;
+$content .= " uri       : $uri\n"    if length $uri;
+$content .= " tls       : $tls\n"    if length $tls;
 
 <[file.put]>->( $path, \$content ) or warn ': request-capture : write failed';
 
-#,,..,.,,,,..,,..,...,.,,,,..,..,,,.,,.,,,..,,..,,...,...,,..,.,.,,,,,,.,,,,.,
-#ISPLKEGYCFD2VCFRHIV2H4ND5AGFZ2QP7BQDFL4DK46CK3TUWTDL4R4AFEF6EYIVQTWX72U7WUMBW
-#\\\|4G6KFIYUCJI5PNK32ACAFLHFQBSKFS7OTSTRA6BRCSIGI7GV2GN \ / AMOS7 \ YOURUM ::
-#\[7]EFXN6M7AWZD7WP4GO66RAXSKX6DWFQL6D4XX7UG6C2BFWIVWWWDA 7  DATA SIGNATURE ::
+#,,,,,..,,..,,.,,,...,,,,,.,.,,..,.,,,,.,,...,..,,...,..,,,,.,,..,,,,,,..,,,.,
+#DLKRMSRAS3SDPVHGOHXIMPTOGKUHAOH3KMKKKHS3O3KMCV2VWMPKG5TZLOM5BYUANSC4ZSQPPPAMY
+#\\\|BIWT2JJARKYIIHFEH23FRCZI6BVTGM7VUVTHZPV7O7J7FPRGBAO \ / AMOS7 \ YOURUM ::
+#\[7]MFBM65K63V5ARQOKOB2HNT4YRT3G24UUK3PP3BHTBW75ZJKBLQAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
