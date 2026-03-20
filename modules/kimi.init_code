@@ -29,9 +29,8 @@ map { <[base.perlmod.load]>->($_) }
 <kimi.session.acquired>
     //= FALSE;    ## true after first successful get_session_id
 
-## task auto-pickup state
+## task state [ models zenka dispatches via kimi.ask-reply, no polling needed ]
 <kimi.task.active_id> //= undef;    ## task id currently being processed
-<kimi.task.timer>     //= undef;    ## polling timer reference
 
 ## reconnect configuration [ exponential backoff ]
 <kimi.connect.retry_delay> //= 60;      ## max retry delay cap [ seconds ]
@@ -46,22 +45,12 @@ map { <[base.perlmod.load]>->($_) }
     }
 );
 
-## schedule task polling timer [ starts after connection established ]
-<kimi.task.timer> = <[event.add_timer]>->(
-    {   'after'    => 10.0,    ## initial delay after init ##
-        'interval' => 30.0,    ## poll every 30 seconds ##
-        'repeat'   => TRUE,
-        'handler'  => qw| kimi.handler.task-poll |,
-        'desc'     => 'task queue polling for pending tasks'
-    }
-);
-
 <[base.logs]>->( 2, ': kimi-web client initialized :..' );
 
 return TRUE;
 
-#,,.,,,,,,,,,,,,,,..,,,..,...,,.,,,..,.,.,..,,..,,...,...,..,,.,,,,.,,..,,.,.,
-#4T3LVCC4M6NHG7TIZXEUYOAGJDCYRKWE4URJ4JS44SVHBN7ITCWEYDUNXHULTHTFSLJG4MFCEHO32
-#\\\|TP4VT3O4SCULSAPYKLZ2S6LDN6ANBRBLL4Q4DZ5ZVIHB64WI4GB \ / AMOS7 \ YOURUM ::
-#\[7]UJGY4HUN7CWJ4VTYLRL6EOPLKK7CHWVLJ7NOUF2YSL4UUSOKZSBA 7  DATA SIGNATURE ::
+#,,..,,..,.,,,,,,,,..,,..,,.,,,,.,.,,,..,,,,.,..,,...,...,..,,.,.,..,,,,,,..,,
+#5I3YSVFDCN2P2IN3IGB3B74XRV63TCZDS6ACTNMJJOOI5WQ2SNKO6AXH6JSKOBOUL5YO7MC4QVAJY
+#\\\|JYZSI2GMRMOAOZPS3ZI3H7RIELC653DRHMSHT7QZ7RLP2OXBTDO \ / AMOS7 \ YOURUM ::
+#\[7]WG54RBSLLQ23ZVAAGVOAJX2AYOF4OWPIIRZ337KRVDKPLJMTEADI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
