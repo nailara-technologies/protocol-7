@@ -1,0 +1,68 @@
+## [:< ##
+
+# name  = models.handler.task-result
+# descr = receive backend response and complete or fail the task
+
+my $reply = shift;
+
+my $cmd    = $reply->{'cmd'}       // '';
+my $args   = $reply->{'call_args'} // {};
+my $rdata  = $reply->{'data'}      // '';
+my $params = $reply->{'params'}    // {};
+
+my $task_id = $params->{'task_id'} // '';
+my $model   = $params->{'model'}   // '';
+
+<[base.logs]>->(
+    2, ': task result: %s cmd=%s model=%s', $task_id, $cmd, $model
+);
+
+## extract response based on reply type
+my $response = '';
+if ( $cmd eq 'TRUE' ) {
+    $response = $args->{'args'} // '';
+} elsif ( $cmd eq 'SIZE' ) {
+    $response = $rdata;
+} elsif ( $cmd eq 'FALSE' ) {
+    my $error = $args->{'args'} // 'unknown error';
+    <[base.logs]>->( 0, ': task %s backend error: %s', $task_id, $error );
+
+    ## fail the task
+    if ( length $task_id ) {
+        <[protocol-7.route-send]>->(
+            {   'command'   => 'task.fail',
+                'call_args' => { 'args' => "$task_id $error" }
+            }
+        );
+    }
+    <models.task.active_id> = undef;
+    return;
+}
+
+## complete the task with response
+if ( length $task_id and length $response ) {
+    <[protocol-7.route-send]>->(
+        {   'command'   => 'task.complete',
+            'call_args' => { 'args' => "$task_id $response" }
+        }
+    );
+    <[base.logs]>->( 1, ': task %s completed via %s', $task_id, $model );
+} elsif ( length $task_id ) {
+    <[protocol-7.route-send]>->(
+        {   'command'   => 'task.fail',
+            'call_args' => { 'args' => "$task_id empty response" }
+        }
+    );
+    <[base.logs]>->( 0, ': task %s: empty response from %s', $task_id, $model );
+}
+
+## clear active task guard
+<models.task.active_id> = undef;
+
+return;
+
+#,,,,,,.,,.,,,,,.,,.,,,..,...,.,,,...,,,.,,..,.,.,...,...,,..,,,,,,.,,,..,.,,,
+#ET77VKMO6WTEDHZFHFYQNO5HRQWZ2PZLFRPP2OMXBWPMYOLFWZOZC3E7D5P7CBFU7K2J4KJOOLQYO
+#\\\|LY32KXGL5PACVQODHBS2MMR7NMV6XC5USSDQGP6HJQFBOL7NQF6 \ / AMOS7 \ YOURUM ::
+#\[7]Z2Y3BU5GAGKVORN3MRG6NZN75O4JQTBTGNHZWJZUFSIRB7HEFIDQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -212,10 +212,28 @@ unless ( exists <models.registry> ) {
     <[models.registry.init_from_definitions]>;
 }
 
+# =============================================================================
+# TASK POLLING - Auto-pickup pending tasks and route to model backends
+# =============================================================================
+
+## task polling state
+<models.task.active_id>     //= undef;
+<models.task.default_model> //= 'kimi';
+
+## task polling timer: check for pending tasks every 45 seconds
+<models.task.timer> = <[event.add_timer]>->(
+    {   'after'    => 15.0,                        ## initial delay after init
+        'interval' => 45.0,                        ## poll every 45 seconds
+        'repeat'   => TRUE,
+        'handler'  => 'models.handler.task-poll',
+        'desc'     => 'task queue polling for pending tasks'
+    }
+);
+
 return 0;    # Module initialization successful
 
-#,,,,,.,.,...,,..,.,,,,.,,..,,,..,,.,,,,,,,..,..,,...,...,.,,,,..,.,,,,,.,..,,
-#VQ3VOINM4TAUUW7OSDCQQV65DU6DQMO5N4VKFCDOVFUMHK2GT3KD3E3RQBHKWL3KSA5WTEXKKVJNY
-#\\\|DWBMKLDYMMSZ7FP5GF7PJMKQ7F6P27UO2G2JDNS4NW56MFUV7UH \ / AMOS7 \ YOURUM ::
-#\[7]CLENT7U2Q67DHGQ6AYK4NGQ5WUX2WQYWE4IVFNPUMCGAYW33GKCI 7  DATA SIGNATURE ::
+#,,,.,..,,,,.,,,,,..,,,,.,,,.,...,.,.,.,.,,..,..,,...,...,.,.,,,,,..,,,..,..,,
+#V2CSYINJOUFDGNQBY6NU5L6O7CVZEHSECDD667TOORJ7VBB56YDSG66TA66NHFE7EQ7VCK6JKXTUO
+#\\\|MJ6T6GCUM644OPEMCOOV4UFI47AUOVTLJACQVMX3HPSEPD2E6II \ / AMOS7 \ YOURUM ::
+#\[7]JAYO2NYR2YY4MUDMBZTOR3OR7ORTD6ULOALDHEEQSNYJEZXUI6AA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
