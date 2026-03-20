@@ -1,0 +1,63 @@
+## [:< ##
+
+# name  = task.cmd.claim
+# param = <task_id> <agent>
+# descr = claim a pending task for an agent
+
+my ( $task_id, $agent ) = ( '', '' );
+
+## parse params
+if ( defined $call->{'param'} and ref $call->{'param'} eq 'HASH' ) {
+    $task_id = $call->{'param'}->{'id'}    // '';
+    $agent   = $call->{'param'}->{'agent'} // '';
+} else {
+    my $args = $call->{'args'} // '';
+    ( $task_id, $agent ) = split( /\s+/, $args, 2 );
+}
+
+$task_id = uc( substr( $task_id, 0, 7 ) );
+
+return { 'mode' => 'false', 'data' => 'task id required' }
+    unless length $task_id;
+
+return { 'mode' => 'false', 'data' => 'agent required' }
+    unless length $agent;
+
+my $task = <task.queue>->{$task_id};
+
+return {
+    'mode' => 'false',
+    'data' => sprintf( 'task %s not found', $task_id )
+    }
+    unless defined $task;
+
+## only pending tasks can be claimed
+if ( $task->{'status'} ne 'pending' ) {
+    return {
+        'mode' => 'false',
+        'data' => sprintf(
+            'task %s is %s, not pending',
+            $task_id, $task->{'status'}
+        )
+    };
+}
+
+## update task
+my $ntime_b32 = <[base.ntime.b32]>;
+
+$task->{'status'}     = 'claimed';
+$task->{'agent'}      = $agent;
+$task->{'updated_at'} = $ntime_b32;
+
+## persist to disk
+<[task.persist.save]>;
+
+<[base.logs]>->( 1, ':. task %s claimed by %s', $task_id, $agent );
+
+return { 'mode' => 'true' };
+
+#,,.,,,.,,.,.,...,.,,,,,.,.,,,.,.,..,,.,.,,..,..,,...,...,...,,..,,.,,.,.,.,.,
+#AXQY4N5DQXZRLKPN5AEC4XJSW46Y6QHWYJAJKSYXROWF5L72HDHFWSG7REFIOPER664SVKTO4FXYK
+#\\\|7NPFWMNSBQHUSGNPSI2YZQ67S4YB6TW6WYJ5I2N6SB4PQDONC3Q \ / AMOS7 \ YOURUM ::
+#\[7]E7KU55R2LAITULLHBTGEVVRVLEDXEJEJR2L2WWKNKBDM3IYMFIBY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

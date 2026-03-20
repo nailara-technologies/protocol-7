@@ -1,0 +1,72 @@
+## [:< ##
+
+# name  = task.cmd.create
+# param = ['multiline'] description [context]
+# descr = create a new task and return its id
+
+my $description = '';
+my $context     = '';
+
+## parse params
+if ( defined $call->{'param'} and ref $call->{'param'} eq 'HASH' ) {
+    $description = $call->{'param'}->{'description'} // '';
+    $context     = $call->{'param'}->{'context'}     // '';
+} else {
+    ## fallback to args parsing
+    my $args = $call->{'args'} // '';
+    ( $description, $context ) = split( /\s+/, $args, 2 );
+}
+
+return { 'mode' => 'false', 'data' => 'description required' }
+    unless length $description;
+
+## get current ntime for timestamp and id generation
+my $ntime_b32 = <[base.ntime.b32]>;
+
+## generate 7-char task id from amos checksum of "ntime:description"
+my $chk_input = sprintf( '%s:%s', $ntime_b32, $description );
+
+## use swap-boundary safe dispatch [ see CLAUDE.md ]
+my $amos_chksum = $code{'chk-sum.amos'} // $code{'base.chk-sum.amos'};
+my $full_chksum = $amos_chksum->($chk_input);
+
+## take first 7 chars for readable id
+my $task_id = substr( $full_chksum, 0, 7 );
+
+## ensure uniqueness — if collision, append counter
+my $counter     = 0;
+my $original_id = $task_id;
+while ( exists <task.queue>->{$task_id} ) {
+    $counter++;
+    $task_id
+        = substr( $original_id, 0, 6 ) . sprintf( '%01X', $counter % 16 );
+}
+
+## create task record
+my $task = {
+    'id'          => $task_id,
+    'status'      => 'pending',
+    'created_at'  => $ntime_b32,
+    'updated_at'  => $ntime_b32,
+    'description' => $description,
+    'context'     => $context,
+    'result'      => undef,
+    'agent'       => undef,
+};
+
+## store in queue
+<task.queue>->{$task_id} = $task;
+push @{<task.queue.order>}, $task_id;
+
+## persist to disk
+<[task.persist.save]>;
+
+<[base.logs]>->( 1, ':. task created [ %s ]', $task_id );
+
+return { 'mode' => 'size', 'data' => $task_id };
+
+#,,,.,...,.,,,,,,,...,,,,,,..,...,,..,,.,,...,..,,...,...,...,,..,.,,,...,,.,,
+#X2CHT25HUKAYI5E2YIENYFZSPXBVGCNYWLNGYI2SDQNHPSZBWDGVYRLMTMBLOSDB4QEYU5H2AEOK6
+#\\\|IMNHCZU5VH5UATRK2AOFSLRMHGN6V7YFVHP2CWVEMBG3JJYNNJ5 \ / AMOS7 \ YOURUM ::
+#\[7]LADD2GZ2GLBULJYEDN32HLCUHJQRAFTZTAE7BEDMCEVW4HKEX2AY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
