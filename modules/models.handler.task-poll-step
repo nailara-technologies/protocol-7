@@ -126,9 +126,11 @@ if ( $step eq 'show' ) {
         }
     }
 
-    ## determine model from @prefix in description
+    ## determine model from :name: prefix in description [ @name fallback ]
     my $model = <models.task.default_model> // 'kimi';
-    if ( $description =~ s{^\@(\S+)\s*}{} ) {
+    if ( $description =~ s{^:([a-z0-9\-]+):\s*}{}i ) {
+        $model = $1;
+    } elsif ( $description =~ s{^\@(\S+)\s*}{} ) {
         $model = $1;
     }
 
@@ -137,7 +139,8 @@ if ( $step eq 'show' ) {
     $prompt .= "\n\n$context" if length $context;
 
     <[base.logs]>->(
-        1, ': task %s dispatching to %s backend', $task_id, $model
+        1,        ': task %s dispatching to %s backend',
+        $task_id, $model
     );
 
     ## model to backend command mapping
@@ -152,14 +155,13 @@ if ( $step eq 'show' ) {
 
     if ( not defined $target_cmd ) {
         <[base.logs]>->(
-            0, ': task poll: no backend for model %s [ task %s ]',
+            0,      ': task poll: no backend for model %s [ task %s ]',
             $model, $task_id
         );
         <[protocol-7.route-send]>->(
             {   'command'   => 'task.fail',
-                'call_args' => {
-                    'args' => "$task_id no backend for model $model"
-                }
+                'call_args' =>
+                    { 'args' => "$task_id no backend for model $model" }
             }
         );
         <models.task.active_id> = undef;
@@ -197,7 +199,7 @@ if ( $step eq 'show' ) {
 
     if ( $sent <= 0 ) {
         <[base.logs]>->(
-            0, ': task poll: %s not reachable [ task %s ]',
+            0,           ': task poll: %s not reachable [ task %s ]',
             $target_cmd, $task_id
         );
         <[protocol-7.route-send]>->(
@@ -216,8 +218,8 @@ if ( $step eq 'show' ) {
 <[base.logs]>->( 0, ': task-poll-step: unknown step [ %s ]', $step );
 return;
 
-#,,..,..,,.,.,,,.,,..,..,,,.,,.,.,...,,,.,,,,,.,.,...,...,,..,,,.,,.,,,..,..,,
-#RJMXI5PRXBVLOEEDZ3E5VNNVJ6HY4OJ6PLWI2CF3Q6YFKO63L7LM6UN6RZTK6D6LEM6CJEX7SZKUE
-#\\\|M6PI6LIHPPZQMEISSQXX4Q3OR5TEEIR23BG3IKRO4LEUFXUW7FY \ / AMOS7 \ YOURUM ::
-#\[7]H3IGWC4C5DLLEBHOUHC3REARHO2PQZO5M7U6MJYNHPTCFMRGTUDY 7  DATA SIGNATURE ::
+#,,.,,,..,,..,.,,,,..,.,.,.,,,,.,,,,.,,,.,,..,.,.,...,...,..,,.,.,,,.,,,.,...,
+#2BRFVBLITR4O2PIQGH3I3L6WRIQGSGSMXL7I3KYN7YVUK7WRUJ4YGMPF77GRLQL55VMY5CHQYBI4M
+#\\\|NNLOH45FUXBKZELFJE2GK3EE57C43DAW2FXGG3NQIDQNQU75IUA \ / AMOS7 \ YOURUM ::
+#\[7]DSZEAKORETAVRG7K5VP7UD44NFWKVJXRIDNN4R45F36DXSUMICBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

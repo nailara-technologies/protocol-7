@@ -7,17 +7,7 @@
 <task.queue>       //= {};    ## { task_id => task_record }
 <task.queue.order> //= [];    ## [ task_id, ... ] preserves insertion order
 
-## configuration
-<task.cfg.persist_path>
-    //= <system.root_path> . '/var/protocol-7/task/queue.yaml';
-<task.cfg.persist_dir> //= <system.root_path> . '/var/protocol-7/task';
-
-## ensure persist directory exists
-if ( not -d <task.cfg.persist_dir> ) {
-    <[file.make_path]>->( <task.cfg.persist_dir>, 0750 );
-}
-
-## load existing queue from disk
+## load existing queue from disk [ zenka_dir handles /var/protocol-7/task/ ]
 <[task.persist.load]>;
 
 <[base.logs]>->(
@@ -28,8 +18,8 @@ if ( not -d <task.cfg.persist_dir> ) {
 
 return TRUE;
 
-#,,.,,,.,,,..,..,,,,,,.,.,,,,,...,...,,,.,,,,,..,,...,...,.,.,..,,,,,,,,,,.,.,
-#7LMGVKNPYP5Z2TYUPFOSFURK6XCPMWFQABIYQTTJ7LWJMDETESL6MWZX2EBTG646YKV2L5GFU6K7G
-#\\\|S3C74OHZ6G6PCLSRYBNFXSW7AG5JTHW2E5YXZ4I6PBX5NWGWAXH \ / AMOS7 \ YOURUM ::
-#\[7]H6G43YLCCR37T5Y5X666UQQGB4Y6545CQE4UNZSCLJACNUVHNOAY 7  DATA SIGNATURE ::
+#,,..,,,,,,..,,.,,.,.,..,,.,.,..,,.,,,,,.,..,,..,,...,...,,..,..,,..,,,.,,,..,
+#KSRUUL3KZLQYGZP4FIEAC3I7UIV65LARZIPIQUOWXTJLLP2CLXWFS25JSN7FCQSDEBPZ4KGF6WV4Y
+#\\\|3BLJZRQ27KS3MKYNCKGNX3HB3JIHQF35JGKN7N3XKNKECWMBQHW \ / AMOS7 \ YOURUM ::
+#\[7]YELX2IFJCQ6OS2MQ5PCVRTERDY4RH4QS4QZQVGQ373CSN6STCYDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

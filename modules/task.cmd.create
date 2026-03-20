@@ -12,9 +12,8 @@ if ( defined $call->{'param'} and ref $call->{'param'} eq 'HASH' ) {
     $description = $call->{'param'}->{'description'} // '';
     $context     = $call->{'param'}->{'context'}     // '';
 } else {
-    ## fallback to args parsing
-    my $args = $call->{'args'} // '';
-    ( $description, $context ) = split( /\s+/, $args, 2 );
+    ## args is the full description string
+    $description = $call->{'args'} // '';
 }
 
 return { 'mode' => 'false', 'data' => 'description required' }
@@ -65,8 +64,8 @@ push @{<task.queue.order>}, $task_id;
 
 return { 'mode' => 'size', 'data' => $task_id };
 
-#,,,.,...,.,,,,,,,...,,,,,,..,...,,..,,.,,...,..,,...,...,...,,..,.,,,...,,.,,
-#X2CHT25HUKAYI5E2YIENYFZSPXBVGCNYWLNGYI2SDQNHPSZBWDGVYRLMTMBLOSDB4QEYU5H2AEOK6
-#\\\|IMNHCZU5VH5UATRK2AOFSLRMHGN6V7YFVHP2CWVEMBG3JJYNNJ5 \ / AMOS7 \ YOURUM ::
-#\[7]LADD2GZ2GLBULJYEDN32HLCUHJQRAFTZTAE7BEDMCEVW4HKEX2AY 7  DATA SIGNATURE ::
+#,,,,,,.,,..,,,,,,,,,,..,,,,.,...,,,,,..,,,,,,..,,...,...,..,,.,,,,,,,...,,.,,
+#7SHJZCYXYSIT42HH4WAMOH452GK7CY3VDGUWM5PLSXN3RH7CWBUEGCH6QF2M5TL7VHTZMCXJ7HYY2
+#\\\|XN7V4RVKDUVBBNERVVKV5RJDV54YLUKHEDV6CYZPF2WDS6X66DN \ / AMOS7 \ YOURUM ::
+#\[7]MNOE2MNPIOWK4HW67L4J4HAOPV2T4V72QVZCX23EUKU26R7LBCAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
