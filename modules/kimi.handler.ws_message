@@ -148,10 +148,35 @@ if ( $method eq qw| event | ) {
 }
 
 if ( $method eq qw| request | ) {
-    ## kimi requests us to invoke an external tool — not yet implemented
+    ## tool approval or execution request from kimi-web
+    my $type    = $params->{'type'}    // '';
+    my $payload = $params->{'payload'} // {};
+
+    if ( $type eq qw| ApprovalRequest | ) {
+        <[kimi.handler.approval_request]>->( $msg_id, $payload );
+        return;
+    }
+
+    if ( $type eq qw| ToolCallRequest | ) {
+        ## external tool execution — not yet implemented
+        <[base.logs]>->(
+            1,       ': tool call request [ %s ] name=%s — not handled',
+            $msg_id, $payload->{'name'} // '?'
+        );
+        return;
+    }
+
+    if ( $type eq qw| QuestionRequest | ) {
+        ## structured question — not yet implemented
+        <[base.logs]>->(
+            1, ': question request [ %s ] — not handled', $msg_id
+        );
+        return;
+    }
+
     <[base.logs]>->(
-        2, 'kimi.handler.ws_message: tool request [ id=%s ] — not handled',
-        $msg_id
+        2,     ': unknown request type [ %s ] id=%s',
+        $type, $msg_id
     );
     return;
 }
@@ -202,8 +227,8 @@ if ( not length($method) and length($msg_id) ) {
     }
 }
 
-#,,,.,,..,.,,,,..,,..,,,.,,,.,.,,,,,,,.,.,,.,,..,,...,..,,..,,,,.,.,,,...,,,,,
-#IXTHXSEZUTQIMKIF5PVEPWJAK3LBSZ3KYKLGZKVEXVIXB7UAQHWE7ZQ25NJEFWAOQLFNCAYWYG75E
-#\\\|FBQHESZNONUJUTNVU6D6CMXDUELLOUEGJBN6QFOEYCRK4GX6UYI \ / AMOS7 \ YOURUM ::
-#\[7]ROLA6FATPDBLEXSJNNOBNETWS5OWZNJRCIJP7QM42RUUT64VS2BA 7  DATA SIGNATURE ::
+#,,,.,..,,,..,,,,,.,,,,.,,,.,,..,,.,.,,.,,...,..,,...,...,..,,.,,,,.,,,,,,,.,,
+#FDM4YQR4WS4X7LQI2L3GLSRTWH7KPMTV4K6WDXXWOITBCXCNH4E36ID47UEY3VN3CHZOE3BEMIEMW
+#\\\|4YVLORO45UWM3KXLUTVI2L3NLUKAZT26KVWKEORSPIKA2UQU4KU \ / AMOS7 \ YOURUM ::
+#\[7]HI6RLK6JVGSKH76BNJX5UWH6Q2ND3BRDFTRRT77PE7VNNC7LW2AQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

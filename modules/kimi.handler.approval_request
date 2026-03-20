@@ -1,0 +1,65 @@
+## [:< ##
+
+# name  = kimi.handler.approval_request
+# descr = handle incoming tool approval requests from kimi-web
+
+my $msg_id  = shift // '';
+my $payload = shift // {};
+
+my $request_id  = $payload->{'id'}           // $msg_id;
+my $tool_call   = $payload->{'tool_call_id'} // '';
+my $sender      = $payload->{'sender'}       // '';
+my $action      = $payload->{'action'}       // '';
+my $description = $payload->{'description'}  // '';
+
+<[base.logs]>->(
+    1, ': approval request [ %s ] action=%s : %s',
+    $request_id, $action, $description
+);
+
+## store in pending approvals for manual approve/reject commands
+<kimi.approval.pending>->{$request_id} = {
+    'request_id'  => $request_id,
+    'tool_call'   => $tool_call,
+    'sender'      => $sender,
+    'action'      => $action,
+    'description' => $description,
+    'received_at' => <[base.time]>->(3)
+};
+
+## auto-approve mode: respond immediately
+if (<kimi.approval.auto_approve>) {
+    <[base.logs]>->(
+        1, ': auto-approving [ %s ] %s : %s',
+        $request_id, $action, $description
+    );
+    delete <kimi.approval.pending>->{$request_id};
+    <[kimi.wire.approval_respond]>->( $request_id, 'approve' );
+    return;
+}
+
+## policy-based auto-allow for safe read-only actions
+my $auto_allow = <kimi.approval.auto_allow> // {};
+if ( defined $auto_allow->{$action} ) {
+    <[base.logs]>->(
+        1, ': policy-approved [ %s ] %s : %s',
+        $request_id, $action, $description
+    );
+    delete <kimi.approval.pending>->{$request_id};
+    <[kimi.wire.approval_respond]>->( $request_id, 'approve' );
+    return;
+}
+
+## otherwise leave pending — user must approve/reject via kimi.approve/reject
+<[base.logs]>->(
+    1, ': awaiting manual approval [ %s ] %s : %s',
+    $request_id, $action, $description
+);
+
+return;
+
+#,,,.,.,.,,,,,..,,.,,,.,,,,.,,,.,,,.,,...,,,.,..,,...,...,,..,...,,.,,,.,,.,,,
+#BVM2CAYBS3ADQFSM4F4W5RKLUEMB3UKWU6VKOUVTIEQRE4UH7NXYWZSDY2SKKBB6HELALO353NWUO
+#\\\|UA6KEVMJ5FLXXPCUYM32MKYP36IIHUWQZRIFFMLTJLCSLFAVO47 \ / AMOS7 \ YOURUM ::
+#\[7]TRFZ4Y4A6L2MSGHAXAJANQAB6DUS5IR2QXIYBIKIJARVWY4CTOBQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

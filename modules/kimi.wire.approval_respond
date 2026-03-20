@@ -1,0 +1,45 @@
+## [:< ##
+
+# name  = kimi.wire.approval_respond
+# descr = send approval response for a pending tool request
+
+my $request_id = shift // return undef;
+my $response   = shift // 'approve'; ## approve | approve_for_session | reject
+
+## build json-rpc 2.0 success response with ApprovalResponse result
+## note: cannot use kimi.wire.send here — it builds method-based messages
+##       but approval responses are id-based with 'result' field
+<[base.perlmod.load]>->(qw| JSON |);
+
+unless ( <kimi.ws.connected> and defined <kimi.ws.socket> ) {
+    <[base.logs]>->( 0, 'kimi.wire.approval_respond: not connected' );
+    return undef;
+}
+
+my %msg = (
+    'jsonrpc' => '2.0',
+    'id'      => $request_id,
+    'result'  => {
+        'request_id' => $request_id,
+        'response'   => $response
+    }
+);
+
+my $json = eval { JSON::encode_json( \%msg ) };
+if ($@) {
+    <[base.logs]>->( 0, 'kimi.wire.approval_respond: encode error : %s', $@ );
+    return undef;
+}
+
+<[base.logs]>->(
+    2,           ': approval response [ %s ] -> %s',
+    $request_id, $response
+);
+
+return <[websocket.send]>->( <kimi.ws.socket>, $json );
+
+#,,,,,.,.,,,,,...,.,.,,.,,..,,..,,,..,,.,,,.,,..,,...,...,..,,,,,,,.,,,.,,..,,
+#3PEQIC2LTQFVYUNIAWRWK3OMFQBGHTZJEHY44P3JNP7B5YFXX7OVXCSRYJLRHI3JXMEB55ZLYMLKO
+#\\\|MLSWRGWH6VE5NJNVAMUN4F3JLDFLF3BTSXD4T7ZUO4TBSFYSSMV \ / AMOS7 \ YOURUM ::
+#\[7]WTMW5GM7PI4XFQEJUBMLGA77CC55LLGDLJFNMYALEY6DXQBBOSDQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

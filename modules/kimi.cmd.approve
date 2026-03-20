@@ -1,0 +1,44 @@
+## [:< ##
+
+# name  = kimi.cmd.approve
+# descr = approve a pending tool call request
+
+my $request_id = $$call{'args'} // '';
+
+## approve all pending if no id given
+if ( not length $request_id ) {
+    my @pending = keys %{<kimi.approval.pending>};
+    if ( not @pending ) {
+        return { 'mode' => 'false', 'data' => 'no pending approvals' };
+    }
+    foreach my $rid (@pending) {
+        delete <kimi.approval.pending>->{$rid};
+        <[kimi.wire.approval_respond]>->( $rid, 'approve' );
+    }
+    return {
+        'mode' => 'true',
+        'data' => sprintf( 'approved %d pending requests', scalar @pending )
+    };
+}
+
+my $pend = delete <kimi.approval.pending>->{$request_id};
+if ( not defined $pend ) {
+    return {
+        'mode' => 'false',
+        'data' => "no pending approval for $request_id"
+    };
+}
+
+<[kimi.wire.approval_respond]>->( $request_id, 'approve' );
+
+return {
+    'mode' => 'true',
+    'data' =>
+        sprintf( 'approved %s [ %s ]', $request_id, $pend->{'action'} // '' )
+};
+
+#,,,,,.,,,.,.,.,,,.,.,.,,,..,,..,,...,..,,,.,,..,,...,..,,..,,,,,,,.,,..,,.,.,
+#5ML3XEV2DKMK4Q32KWEPEHWYSMNSJRDSQNFOEIGL76C3YBGN7U3P2NMA7HJUET343HWR2JJEZN642
+#\\\|DTOP6NVI7MZ3KSP6REQPHOLCYR3OFLAN5BUHI62BWUREBG5CGHF \ / AMOS7 \ YOURUM ::
+#\[7]EF5O2QO4JVDEFWOMKWOQZ2LM2AJD2YAJR7TCQTVP7345OT3PGUDQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
