@@ -213,27 +213,17 @@ unless ( exists <models.registry> ) {
 }
 
 # =============================================================================
-# TASK POLLING - Auto-pickup pending tasks and route to model backends
+# TASK DISPATCH - Event-driven via task-notify from task zenka [ no polling ]
 # =============================================================================
 
-## task polling state
+## task dispatch state
 <models.task.active_id>     //= undef;
 <models.task.default_model> //= 'kimi';
 
-## task polling timer: check for pending tasks every 45 seconds
-<models.task.timer> = <[event.add_timer]>->(
-    {   'after'    => 15.0,                        ## initial delay after init
-        'interval' => 45.0,                        ## poll every 45 seconds
-        'repeat'   => TRUE,
-        'handler'  => 'models.handler.task-poll',
-        'desc'     => 'task queue polling for pending tasks'
-    }
-);
-
 return 0;    # Module initialization successful
 
-#,,,.,..,,,,.,,,,,..,,,,.,,,.,...,.,.,.,.,,..,..,,...,...,.,.,,,,,..,,,..,..,,
-#V2CSYINJOUFDGNQBY6NU5L6O7CVZEHSECDD667TOORJ7VBB56YDSG66TA66NHFE7EQ7VCK6JKXTUO
-#\\\|MJ6T6GCUM644OPEMCOOV4UFI47AUOVTLJACQVMX3HPSEPD2E6II \ / AMOS7 \ YOURUM ::
-#\[7]JAYO2NYR2YY4MUDMBZTOR3OR7ORTD6ULOALDHEEQSNYJEZXUI6AA 7  DATA SIGNATURE ::
+#,,..,,,,,,,.,,..,.,.,...,,,.,.,.,,,.,,.,,,,.,..,,...,...,..,,.,.,,.,,..,,..,,
+#LIZUEQWHBTKARR4PZFMHDID5JZEYE435PEU7TE2GIG4QJKVABXSTOBS27T5AJNXP5FT6B6YRXKPV6
+#\\\|5MPUTWRCH6L4Y2MWVGSGBVMBZSKEY4F6XO5MPQH4R3NKN3IWSUL \ / AMOS7 \ YOURUM ::
+#\[7]JDPPVWNAI5N4LI6TOSTG6HUGZPYIRC3QRTRECHY55XDV3IANGUDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
