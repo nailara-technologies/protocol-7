@@ -1,0 +1,27 @@
+## [:< ##
+
+# name  = kimi.cmd.approvals
+# descr = list pending tool call approval requests
+
+my @pending = sort keys %{<kimi.approval.pending>};
+
+if ( not @pending ) {
+    return { 'mode' => 'false', 'data' => 'no pending approvals' };
+}
+
+my $output = '';
+foreach my $rid (@pending) {
+    my $p = <kimi.approval.pending>->{$rid};
+    $output .= sprintf "%s  %s  %s\n",
+        $rid,
+        $p->{'action'}      // '?',
+        $p->{'description'} // '';
+}
+
+return { 'mode' => 'data', 'data' => $output };
+
+#,,,.,.,.,..,,..,,.,,,,,,,,,.,...,,,,,...,..,,..,,...,..,,..,,,.,,,,.,,..,,,,,
+#MTMPGMZTAS4A3BU6SVRVLIH5NVYTGRVUVKTK4MQMUHPWNUCJYCKQMVZ4RZ3VC7METP6PHIMRX3J5U
+#\\\|YQFKOOGP7IQKVXYKF7BFORH6NZPMUXJZGU54B6OIL4G4QD5EOEO \ / AMOS7 \ YOURUM ::
+#\[7]D2NFH2DW25GKHQI7LMSHE5QENG5VWYCYDOJLCECZTTL3MEMSMQBQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

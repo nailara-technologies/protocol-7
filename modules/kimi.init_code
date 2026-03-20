@@ -33,9 +33,14 @@ map { <[base.perlmod.load]>->($_) }
 ## task state [ models zenka dispatches via kimi.ask-reply, no polling needed ]
 <kimi.task.active_id> //= undef;    ## task id currently being processed
 
+## tool approval state
+<kimi.approval.pending>      //= {};     ## { $request_id => { action, ... } }
+<kimi.approval.auto_approve> //= TRUE;   ## auto-approve all [ task mode ]
+<kimi.approval.auto_allow>   //= {};     ## policy allowlist { action => 1 }
+
 ## reconnect configuration [ exponential backoff ]
-<kimi.connect.retry_delay> //= 60;      ## max retry delay cap [ seconds ]
-<kimi.connect.retry_cur>   //= 2;       ## current delay [ reset on connect ]
+<kimi.connect.retry_delay> //= 60;       ## max retry delay cap [ seconds ]
+<kimi.connect.retry_cur>   //= 2;        ## current delay [ reset on connect ]
 <kimi.connect.retrying>    //= FALSE;
 
 ## schedule initial connection attempt after init completes
@@ -50,8 +55,8 @@ map { <[base.perlmod.load]>->($_) }
 
 return TRUE;
 
-#,,,,,.,,,...,,..,...,,.,,..,,.,,,,..,...,...,..,,...,...,..,,,..,.,.,.,.,,.,,
-#6HTHKMJ65CTKJL45WZ6SIVESMCU24QLOPTTTOW4SFHTUOKLJJIO2E6IZKYUFV4HPFLGLXQAHTHAGI
-#\\\|STO4IRA57WTXEMJQWYCZ75OIPIQE2WBG3I6GHBGYHONWRJYF72Y \ / AMOS7 \ YOURUM ::
-#\[7]ULF2LFQLXHKQHSCYXBPGC2UMZEWJGWQXYBELZHFKKLCLF4BJE6CA 7  DATA SIGNATURE ::
+#,,,,,,.,,,..,..,,...,,..,.,,,,.,,...,,,.,,..,..,,...,...,.,.,,,.,.,,,,..,,,,,
+#C2N4DXJO4NGJFLQYDGTMWW7YRYHFAG4VKW6BGMC4J52J3DL24X7OYHV5FK7ZUDZYA55PCMBWLERTM
+#\\\|UNUKUTRNUGEU3ZDR22D3IOOQYN6QXQZYIHGKQ333ITAONVSNXFO \ / AMOS7 \ YOURUM ::
+#\[7]OPNMELDRS3J3NFKTKMZJI4KS5Z2QOEG4N6EJEHJJIG4HNVXB6EDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

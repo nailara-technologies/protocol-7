@@ -1,0 +1,32 @@
+## [:< ##
+
+# name  = kimi.cmd.reject
+# descr = reject a pending tool call request
+
+my $request_id = $$call{'args'} // '';
+
+if ( not length $request_id ) {
+    return { 'mode' => 'false', 'data' => 'request id required' };
+}
+
+my $pend = delete <kimi.approval.pending>->{$request_id};
+if ( not defined $pend ) {
+    return {
+        'mode' => 'false',
+        'data' => "no pending approval for $request_id"
+    };
+}
+
+<[kimi.wire.approval_respond]>->( $request_id, 'reject' );
+
+return {
+    'mode' => 'true',
+    'data' =>
+        sprintf( 'rejected %s [ %s ]', $request_id, $pend->{'action'} // '' )
+};
+
+#,,,.,.,,,,,,,.,,,.,,,.,.,,.,,..,,..,,,.,,,,.,..,,...,...,...,,,.,,,.,,..,,.,,
+#CIYFU37AOJ26DD6HBMKJJIR5EBFN4ULSHJ4U6VZFK5QCL6I6AK5BVV6DQIKDV3JFUIMY7QX7MWYF4
+#\\\|ACAJ5B6R3FYKHSN4XBVHV5SWPUYUAXOFDWDP6LPMDYOJT2URMWF \ / AMOS7 \ YOURUM ::
+#\[7]IMSOITSWMY4SZI37XXNLD3B2OYVLCM4P54KKQ5TITSMM23YU7IAY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
