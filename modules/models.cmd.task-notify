@@ -1,0 +1,42 @@
+## [:< ##
+
+# name  = models.cmd.task-notify
+# descr = handle task notification from task zenka
+
+my $task_id = $call->{'args'} // '';
+
+unless ( length $task_id ) {
+    return { 'mode' => 'false', 'data' => 'task id required' };
+}
+
+<[base.logs]>->( 2, ': task-notify: new task %s', $task_id );
+
+## skip if already processing a task
+if ( defined <models.task.active_id> ) {
+    <[base.logs]>->(
+        2, ': task-notify: busy with %s, skipping %s',
+        <models.task.active_id>, $task_id
+    );
+    return { 'mode' => 'true', 'data' => 'busy' };
+}
+
+## claim the task immediately
+<models.task.active_id> = $task_id;
+
+<[protocol-7.route-send]>->(
+    {   'command'   => 'task.claim',
+        'call_args' => { 'args' => "$task_id models" },
+        'reply'     => {
+            'handler' => 'models.handler.task-poll-step',
+            'params'  => { 'step' => 'claimed', 'task_id' => $task_id }
+        }
+    }
+);
+
+return { 'mode' => 'true', 'data' => "processing $task_id" };
+
+#,,,,,,,.,,,,,.,.,..,,.,.,.,,,,..,.,,,,.,,.,,,..,,...,..,,..,,,,.,,.,,,,,,,,.,
+#VPUGB5B76J2EBTUIWPDNRN33ONKQBM6IPQCSFXEJLUSQNTO7ACNIJJQ6DMNWOEDE4YHCCXM3RVSWK
+#\\\|ACUB6BBLUM2JKG6V2MVLJFLVAYZTDMWJPBOKDGQ5LCIQS3ODWGB \ / AMOS7 \ YOURUM ::
+#\[7]KZ6VO3BLROJXWXWCL5KHDDFBHG6ERWXJ3ZZ5NQF6CIPWFD2MF2CY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
