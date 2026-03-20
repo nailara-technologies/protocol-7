@@ -42,21 +42,21 @@ if ( $is_vision && !-f $mmproj_path ) {
 }
 
 unless ( -f $model_path ) {
-    <[base.log]>->( 0, '[lm-vision] model file not found: %s', $model_path );
+    <[base.logs]>->( 0, '[lm-vision] model file not found: %s', $model_path );
     return 0;
 }
 
 <lm-vision.vision_model_path>  = $model_path;
 <lm-vision.vision_mmproj_path> = $mmproj_path;
 
-<[base.log]>->( 1, '[lm-vision] vision model loaded: %s', $model_path );
-<[base.log]>->( 1, '[lm-vision] multimodal proj: %s',     $mmproj_path )
+<[base.logs]>->( 1, '[lm-vision] vision model loaded: %s', $model_path );
+<[base.logs]>->( 1, '[lm-vision] multimodal proj: %s',     $mmproj_path )
     if length $mmproj_path;
 
 return 1;
 
-#,,.,,,..,...,...,.,,,.,,,.,.,...,.,,,..,,,,,,..,,...,...,.,,,..,,,,,,.,.,,..,
-#7MJSJUP25VX7NHYAQXQRHYZN4T7YP5GGAUDM376TAPMKE4HNCEZP7SU7DG6HZG6AV6T3ZVRT3XZAG
-#\\\|FSVM3K24XTTEEFXL7J5XRPEBWYAGRQALZHJ7GEW3QYG54NJJ75I \ / AMOS7 \ YOURUM ::
-#\[7]26M5KHTD44NOG4DW6QPJNERQ3DE444W6EDH7P3W4CTQVKAS7KEAI 7  DATA SIGNATURE ::
+#,,..,,,,,...,..,,...,...,,.,,.,,,,.,,,,,,,..,..,,...,...,.,,,...,...,,..,,..,
+#TSZJZAVPS7QYDBX5447CJVDT5CFJVK767HUYUX5RED6UKVOSQ56I7ULGAMY5KA43OVURKGR2DHQGO
+#\\\|FOCTJNPZSXDJYTWBBTE7TGQP6WWOUNYPIY4KUOLILVPLANBAXCU \ / AMOS7 \ YOURUM ::
+#\[7]CGU5LI36OPGONPX6V2T34V553FAP5LNW3MWVAREKJJN7FM7MKMDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -8,7 +8,7 @@
 
 my $sub_name = [<[base.caller]>]->[0];    ##  own name via filename hint  ##
 
-<[base.log]>->( 2, sprintf '..: deferred compile : %s ..,', $sub_name );
+<[base.logs]>->( 2, '..: deferred compile : %s ..,', $sub_name );
 
 ##  bypass whitelist — deferred stubs are for non-whitelisted modules  ##
 <[base.load_runtime_modules]>->($sub_name);
@@ -27,10 +27,10 @@ $code{$sub_name} = eval(                         ##
         . " }"
 );                                                                     ##
 
-<[base.log]>->( 0, sprintf '..: deferred compile failed [ %s ]', $sub_name );
+<[base.logs]>->( 0, '..: deferred compile failed [ %s ]', $sub_name );
 
-#,,..,.,,,,,.,,.,,...,...,,..,,,.,,,.,..,,..,,..,,...,...,,.,,,..,.,,,.,,,.,,,
-#5DNPFPOKVBIA7QC3SWUT6T2JYSP54QO656CQ3F34F7LC7ITKURSP7CU4WX2FJ64N2DJXYDL6AEZWS
-#\\\|JOMBHN4JRGXC6QBL6OI4NSFIGZVUZ7JZ66OL36UXZ5367ELM7VH \ / AMOS7 \ YOURUM ::
-#\[7]WJNFCXSK3ZU7DPW4HNHT7NOAKHF3G6S4MZ2SCI3OJWEXWRMB62BA 7  DATA SIGNATURE ::
+#,,..,.,,,,..,..,,..,,,.,,,..,.,,,..,,,..,.,,,..,,...,...,,.,,,.,,.,,,.,.,..,,
+#NFJJHUKPTJX7FBX7DFZIX6JHVHDCBXA3J4FEZE7O27UOMGS3QFUSYFZBN2TQ5BNVRBNIT6OS6AQWO
+#\\\|INEHQKDZNCMXEKKEN2V55ZZCRF3F4YMKDKM7FCODKAY4456N2QC \ / AMOS7 \ YOURUM ::
+#\[7]3I4FFEYMMJOMYHNMIAVAURSQV6ZBDHR7GV44T4TLGOOE4DKZB6CQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
