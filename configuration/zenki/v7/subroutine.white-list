@@ -50,9 +50,6 @@ base.cfg_bool
 v7.zenka.start
 v7.start_count
 jobqueue.count
-devmod.cmd.set
-devmod.cmd.get
-devmod.cmd.del
 base.wrap_text
 base.swap_subs
 base.ssl.write
@@ -79,9 +76,6 @@ plugin.auth.pwd
 p7-log.add_line
 net.read_binary
 devmod.pre_init
-devmod.cmd.true
-devmod.cmd.echo
-devmod.cmd.dump
 crypt.init_code
 base.zenka.loop
 base.str.os_err
@@ -100,8 +94,6 @@ plugin.auth.unix
 jobqueue.add_job
 devmod.post_init
 devmod.init_code
-devmod.cmd.sleep
-devmod.cmd.since
 base.resolve_key
 base.prng.reseed
 base.path_owners
@@ -160,12 +152,6 @@ v7.available_zenki
 v7.autostart_zenki
 jobqueue.init_code
 jobqueue.find_jobs
-devmod.cmd.elf-num
-devmod.cmd.elf-b32
-devmod.cmd.eat-mem
-devmod.cmd.del-env
-devmod.cmd.b32-elf
-devmod.cmd.add-env
 base.reload_values
 base.reload_config
 base.parser.config
@@ -197,10 +183,6 @@ plugin.auth.twofish
 jobqueue.remove_job
 io.ip.tcp.init_code
 devmod.console-dump
-devmod.cmd.true-int
-devmod.cmd.free-mem
-devmod.cmd.exec-sub
-devmod.cmd.dump-env
 channels.cmd.update
 base.utf8.clean_str
 base.str.eval_error
@@ -228,10 +210,6 @@ v7.process_zenka_end
 v7.parser.process_id
 io.ip.tcp.input.open
 io.ip.ssl.input.open
-devmod.cmd.test-strm
-devmod.cmd.list-subs
-devmod.cmd.eval-code
-devmod.cmd.core-subs
 base.route.init_code
 base.root.drop_privs
 base.read_proc_times
@@ -309,7 +287,6 @@ v7.calc_prefix_lengths
 v7.bin_p7r_comp_chksum
 v7.bin_p7c_comp_chksum
 io.ip.tcp.output.close
-devmod.cmd.switch-user
 crypt.C25519.sign_keys
 crypt.C25519.sign_data
 crypt.C25519.post_init
@@ -338,7 +315,6 @@ jobqueue.queue_template
 io.unix.socket.end_code
 io.ip.tcp.input.connect
 io.ip.ssl.input.connect
-devmod.cmd.deparse-code
 crypt.C25519.write_keys
 crypt.C25519.unload_key
 crypt.C25519.sig_fnames
@@ -374,10 +350,6 @@ protocol.https.init_code
 plugin.auth.auth-keypair
 p7-log.handler.close_log
 io.unix.socket.init_code
-devmod.cmd.unload-unsafe
-devmod.cmd.unload-devmod
-devmod.cmd.mem-allocated
-devmod.cmd.current-umask
 crypt.C25519.verify_sign
 crypt.C25519.single_file
 crypt.C25519.load_single
@@ -413,7 +385,6 @@ jobqueue.priorities_table
 jobqueue.joblist_template
 io.unix.socket.input.open
 httpd.base.size.normalize
-devmod.cmd.test-strm-size
 crypt.C25519.load_keypair
 channels.util.yaml_decode
 base.sourcecode.init_code
@@ -478,8 +449,6 @@ net.read_linewise_estimated
 jobqueue.check_dependencies
 io.unix.socket.output.close
 httpd.update_download_count
-devmod.cmd.permission-setup
-devmod.cmd.extract-line-map
 crypt.C25519.sign_file_list
 crypt.C25519.key_is_virtual
 crypt.C25519.get_remote_key
@@ -507,7 +476,6 @@ v7.handler.cube_session_auth
 v7.callback.instance.restart
 protocol.protocol-7.pre_init
 io.unix.socket.input.connect
-devmod.cmd.receive-multiline
 crypt.C25519.keystr_is_valid
 crypt.C25519.compare_keypair
 channels.handler.data_change
@@ -530,8 +498,6 @@ v7.handler.cube_session_close
 v7.callback.stdout_log_rotate
 v7.callback.register_ondemand
 protocol.protocol-7.init_code
-devmod.cmd.keep-devmod-loaded
-devmod.cmd.inline-subroutines
 debian.parent.check_installed
 crypt.C25519.validate_keyname
 crypt.C25519.store_remote_key
@@ -562,7 +528,6 @@ v7.callback.xorg-error-handler
 protocol.sftp.connect_callback
 protocol.amos-chksum.init_code
 jobqueue.handler.queue_counter
-devmod.cmd.decode-harmonic-ref
 crypt.C25519.keys.version_info
 crypt.C25519.key_name_and_type
 crypt.C25519.key_bin_checksums
@@ -574,7 +539,6 @@ base.log.send-buffer.add-queue
 base.cache.refaddr-prefix.init
 v7.zenka.cmd.restart_concurrent
 v7.callback.object.root.session
-devmod.cmd.change-log-verbosity
 crypt.C25519.keys.annotate_type
 crypt.C25519.decrypt_secret_key
 crypt.C25519.cmd.set-client-key
@@ -703,8 +667,8 @@ protocol.protocol-7.protocol-version-path-set-up
 base.log.send-buffer.reply-handler.notify-online
 debian.parent.callback.register_binary_dependency
 
-#,,,,,,,,,...,,..,..,,.,.,.,,,,.,,,..,,,,,,,,,..,,...,...,.,.,,,,,...,,,,,...,
-#7KQ6HU3YGDFG2D5UXIR67LM3RENPR33LX56VIKNESNZF7ZXL5OJ3AF7XXSSWCJYRUJKNOZQOQEVJE
-#\\\|O645HZW2LKNJSVRHJNBPGNPSPGTWJX7ENSW5SUXPEPGERVJCHU7 \ / AMOS7 \ YOURUM ::
-#\[7]QGVSVUCJTOZZ2COJWN3KLMLLIY2MYHPSWQ3JGERF7ZNZR6DABEBY 7  DATA SIGNATURE ::
+#,,,.,,.,,,,,,,..,,..,.,.,.,,,.,,,,,,,,,.,,..,..,,...,...,..,,.,.,..,,,.,,.,,,
+#SGI6ZWOPVBN6KM5BZTXLUKDHMF6HLVAWEKPWXFELEUYBCOHLXRXIKOCB355NT4MWKSSIUMOWO6LD4
+#\\\|DBCEQK73KCK5XUYWOMRGQU3IGJDTDNWKLWM5TK2YACQWGQK4FVF \ / AMOS7 \ YOURUM ::
+#\[7]AWEHCENJ2SRDREYMYOGEXYGKDKTKHIKSEWGUDOCQUX7IYIYDSYAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

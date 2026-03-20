@@ -104,6 +104,12 @@ Option (c) is the simplest and most consistent with Phase A.
 - `configuration/zenki/*/start` — modules.load + access.cmd entries
 - `modules/base.sig_NUM53` — devmod on-demand loader via SIGNUM53
 - `modules/base.init_zenka.install_signal_handlers` — signal registration loop
+- `modules/base.parser.access_conf` — **reference for glob-to-regex translation**:
+  lines 78–97 show the correct pattern for converting `access.cmd.*` glob patterns
+  to anchored regexes. key substitutions (applied after dot-escaping):
+  `**` → `.+`, `*` → `[^\\.]+`. dep-graph must replicate this logic when
+  checking whether a command name matches an access pattern — do NOT use a
+  naive `m/^\$re\$/` or simple string glob.
 
 ## Notes
 
@@ -114,8 +120,8 @@ Option (c) is the simplest and most consistent with Phase A.
 - Implementing Phase A will surface zenki using overly broad wildcard access,
   creating a natural audit trail for tightening permissions.
 
-#,,..,..,,,.,,,,.,,,,,,,.,,,,,,.,,,,,,,.,,.,.,..,,...,...,...,,,.,,..,,.,,.,,,
-#DN6N7ZOTL4AV5FCFSSCP4XF5MTWY3IAVG3TDCQJAB3DIF2F7DVT3EGMRLELNEZVKTYSUCBW6YZAQA
-#\\\|AP7LJTSUY7NEE7OP643IFDGDCPESVO4OY7H2U4RKI7KEQDOYAFY \ / AMOS7 \ YOURUM ::
-#\[7]5LBGJU3SQPMITCYPQRKGUUJ3GHKQ6JEOXIX3XHW5O43I33UGYABA 7  DATA SIGNATURE ::
+#,,,,,..,,.,,,...,,.,,,..,,.,,,..,,.,,,,.,.,,,..,,...,...,...,,.,,.,.,,,,,.,,,
+#MGXR3XUE5AXJI4GEKZGAKOD763LOJL4CGWCPHKOIUXBYBMW2E4AYFFLT2NRWHF7ONDZA7JSIX3J6S
+#\\\|Z66I5MZ3X32ZPDL2FCJIXUUCUVWJU5RJGHNRYJHCR62WKJEYYTS \ / AMOS7 \ YOURUM ::
+#\[7]PQFCSCORBKR72R246OC5ZMG6RGFSZVQXU4VO54WXA3I7T2KLOAAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
