@@ -6,6 +6,14 @@
 my $msg_id  = shift // '';
 my $payload = shift // {};
 
+## skip replayed approvals during session history catchup
+if ( not <kimi.session.acquired> ) {
+    <[base.logs]>->(
+        2, ': dropping replayed approval [ %s ] — session not ready', $msg_id
+    );
+    return;
+}
+
 my $request_id  = $payload->{'id'}           // $msg_id;
 my $tool_call   = $payload->{'tool_call_id'} // '';
 my $sender      = $payload->{'sender'}       // '';
@@ -58,8 +66,8 @@ if ( defined $auto_allow->{$action} ) {
 
 return;
 
-#,,,.,.,.,,,,,..,,.,,,.,,,,.,,,.,,,.,,...,,,.,..,,...,...,,..,...,,.,,,.,,.,,,
-#BVM2CAYBS3ADQFSM4F4W5RKLUEMB3UKWU6VKOUVTIEQRE4UH7NXYWZSDY2SKKBB6HELALO353NWUO
-#\\\|UA6KEVMJ5FLXXPCUYM32MKYP36IIHUWQZRIFFMLTJLCSLFAVO47 \ / AMOS7 \ YOURUM ::
-#\[7]TRFZ4Y4A6L2MSGHAXAJANQAB6DUS5IR2QXIYBIKIJARVWY4CTOBQ 7  DATA SIGNATURE ::
+#,,..,,.,,..,,,..,.,,,,..,...,,..,,,.,...,.,,,..,,...,...,..,,,..,,..,..,,.,,,
+#LWO656C4X3OBZ36NPKYV3FDJ3OAP63AUXXZKY43RUYH6NW7JSKFV7DOBXO34UR34SRAXYHFP23AYM
+#\\\|2UYXHXL5TTMJXCHO7R6L37IWJQ3HQBRJUQISNL56WMUIXBOQZ7P \ / AMOS7 \ YOURUM ::
+#\[7]LTXIHSPH7LIHCNZH73UQVAYSEGFDICEDR3MFM2UL4WZSZZFR3CBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
