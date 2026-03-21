@@ -49,13 +49,18 @@ if ( not defined $text ) {
 }
 
 ## parse json-rpc frame
-my $msg = eval { JSON::decode_json($text) };
+my $msg = eval { JSON::from_json($text) };
 if ($@) {
     my $preview = substr( $text, 0, 120 );
     $preview =~ s{\n}{ }g;
     <[base.logs]>->(
         0,  'kimi.handler.ws_message: json parse error : %s [ %s ]',
         $@, $preview
+    );
+    <buffer.json-errors.max_size> //= 42 * 1024;
+    <[base.buffer.add_line]>->(
+        qw| json-errors |,
+        sprintf( '[ ws json error ] %s  %s', $@, $preview )
     );
     return;
 }
@@ -231,8 +236,8 @@ if ( not length($method) and length($msg_id) ) {
     }
 }
 
-#,,..,...,,.,,.,,,...,,,,,...,..,,.,.,...,,,,,..,,...,...,,..,,..,...,...,.,,,
-#UD2MMOXIK6RQSLBMZMRITPQER2DW2MGEJUZHV6IUIXHNELYZOIVKPZBKEPBWGXYHI6VRV547D55SW
-#\\\|QGE7X7PW5M32METPVNDC4AEJ5CS2XMKRBL7I3I6T6ZYLO4S4BPB \ / AMOS7 \ YOURUM ::
-#\[7]3EEPRIZOWPRAWW7WM2WQAVYOXNTTOKKOFK7EWNRDK7GPUOFUBYCA 7  DATA SIGNATURE ::
+#,,,.,..,,...,...,,,,,..,,.,.,,..,..,,..,,,,.,..,,...,...,,.,,,..,.,.,,..,..,,
+#WAWHWWGTEBCGQXSBD4UQS3FXN55T7SXHTEAIZRHIZNLADBJBIOZVTDSYQ2SCVZ7H3UVMW4WMPULYI
+#\\\|G67PAZZEA5WPDB6IP562EIGNC6GR2LI7B2BX4LJHHDU5WZMFSON \ / AMOS7 \ YOURUM ::
+#\[7]PCTBNKPL7ZKDTCH5HHHWSCACTINFSM4LU5BHIRKQFWFKIAUDOQDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
