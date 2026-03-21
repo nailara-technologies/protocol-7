@@ -1,0 +1,40 @@
+---
+task: httpsd cert path architecture cleanup
+status: planned
+priority: low
+depends_on:
+  - nameserv zenka implementation
+  - letsencr DNS-01 challenge support
+
+context: |
+  the current httpsd cert path handling is historical clutter that was bent
+  to work with auto-discovery added later. while functional, the flow is
+  fragile and should be redesigned alongside letsencr and nameserv upgrades.
+
+current_state: |
+  - pre_init sets default path to /etc/protocol-7/certs/default.pem
+  - post_init runs discover_active_certificate which overwrites the path
+  - between pre_init and post_init the path points to a nonexistent file
+  - letsencr self-signed installer has its own fallback path
+  - SNI callback handles per-domain cert selection independently
+  - no 'default' cert concept aligned with content dir convention yet
+
+design_questions: |
+  - should httpsd create a default.pem symlink to the primary cert?
+  - how should httpsd behave with content dirs but no matching certs?
+  - how should it behave with no default cert at all?
+  - wildcard cert support via DNS-01 covers most cases
+  - letsencrypt does not issue certs for bare IP addresses
+  - who creates the default symlink: letsencr or httpsd?
+
+cleanup_items:
+  - unify cert path initialization [ remove redundant //= in init_code ]
+  - align cert naming convention with content dir naming
+  - define clear fallback behavior for missing certs
+  - review letsencr.child.cmd.inst-self-signed path handling
+
+#,,.,,.,,,.,,,,..,,,,,..,,...,,,.,,,,,.,.,,.,,..,,...,...,..,,,.,,,.,,..,,.,.,
+#GHRMUXFSP6A6B7BYV7IFO6BUJOGWLACJPLACQEQBKUKSJLDFGONH4VDIGL7DIPBEEMHTG2XJSKE7A
+#\\\|EATTZELDQFC6RTKRB6G7EUWMHJMA4CHLLVMNHSK6RIIG4KAOMTJ \ / AMOS7 \ YOURUM ::
+#\[7]FGDAK2TRP4QHAD2HF7WVM5EGSOWFTASKXXEFRN3TMLYPB4VJKSCY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
