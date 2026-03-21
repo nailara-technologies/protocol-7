@@ -7,8 +7,8 @@
 
 # Certificate paths from httpsd config
 my $cert_dir  = qw| /etc/protocol-7/certs |;
-my $cert_path = <httpsd.cfg.certificate_path> // "$cert_dir/current.pem";
-my $key_path  = <httpsd.cfg.key_path>         // "$cert_dir/current.key";
+my $cert_path = <httpsd.cfg.certificate_path> // "$cert_dir/default.pem";
+my $key_path  = <httpsd.cfg.key_path>         // "$cert_dir/default.key";
 
 ## Check if certificates already exist
 if ( -f $cert_path && -f $key_path ) {
@@ -142,8 +142,8 @@ return {
     'data' => $reply_string
 };
 
-#,,,.,.,.,.,.,,,,,.,.,.,.,,.,,,,,,,.,,.,.,,..,..,,...,...,.,.,..,,.,,,,.,,.,.,
-#EF2BM44SY77PDOXDRNRVCH5I6LURFQY6QLIMOMNALKLXHBAF7J7K55AIVM2CAGHAVQGNH6WLQMZK6
-#\\\|3UFDZMYAQPZAPRCTYZT4IWFKPJGDOXQZKAACWYXH7DYVAP7RDBP \ / AMOS7 \ YOURUM ::
-#\[7]M36SXCFBYOKJK3ESLNUN7EOML77UIWMRKEB7AAESJTRSXGMUAWCI 7  DATA SIGNATURE ::
+#,,,.,..,,,.,,.,,,,,.,..,,.,.,..,,,,.,.,,,,,,,..,,...,...,...,,..,.,,,,.,,...,
+#STTXCT77NTXUR3JTX4MASWTTURQY2SEQ47OSQEEFSBVIZQB6WS5Z6PRAZKRYHCGXE2YVMBZNTAKZI
+#\\\|SSB525WP6J6DEYHEZ4KPEF4724LG4HZ4QBVLJWHHXWZPK5EQQ54 \ / AMOS7 \ YOURUM ::
+#\[7]ZPH3NQK4CFYJF62GH2YCUTWSO3WTFOZVLX4ZNQEYRRU43662B4BQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
