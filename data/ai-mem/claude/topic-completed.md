@@ -1,5 +1,30 @@
 # Completed Work Sessions
 
+## kimi zenka upgrades (Mar 21-22 2026) — commits `8452304ae` through `772e7e964`
+JSON parse root cause: `decode_json` expects UTF-8 bytes but websocket frame parser returns
+decoded Perl strings; multibyte chars (box-drawing `┌─│└`) caused silent parse failures with
+empty `$@`. Fix: `from_json`. Approval replay dedup: kimi-web re-sends pending approvals on
+reconnect; `responded` hashset persisted to `/var/protocol-7/kimi/approval_responded` (one UUID
+per line); `session.acquired` guard drops approvals during history catchup; dedup drops re-sends
+after initialize. New commands: `new-session` (clear+reconnect), `session-info` (state dump).
+Added devmod, format.json modules to kimi start. Websocket eval wrapper for frame parse errors.
+
+## httpsd crash capture fixes (Mar 21-22 2026) — commits `785b51751` through `a7763b0da`
+(1) `file.slurp` returns scalar ref — `split("\n", $content)` stringified to `SCALAR(0x...)`;
+fix: `->$*` dereference. (2) Buffer init moved from init_code to collect module (on-demand);
+`buffer.httpsd-crash-log.log_cmd` config line replaced with `httpsd.cfg.request_capture_send`
+flag, buffer+log_cmd set in collect on first use. (3) Reload false-positive: `post_init` re-runs
+on reload, collecting normal operation capture file as crash; guard: `return if
+<system.zenka.initialized>`. (4) Cert path renamed `current.pem` → `default.pem` aligning
+with content dir convention; premature file-existence warning removed from pre_init; discovery
+overwrites path in post_init anyway. Task file for deeper cert architecture cleanup created.
+
+## httpsd SSL handshake hang (Mar 22 2026) — investigation, not yet fixed
+Crash capture (now working) shows `ssl-handshake-start` event from AWS EC2 IPs. V7 console
+shows rapid "connection was closed" + SNI callbacks then zenka becomes unresponsive to heartbeat.
+V7 TERM→KILL→restart cycle. Root cause: likely blocking IO::Socket::SSL accept when client sends
+partial ClientHello then goes silent. Needs non-blocking SSL accept with timeout.
+
 ## signature oscillation Variant A fix (Mar 16 2026) — commit `2bf1b3d46`
 state=7/6 encoding fix in source.create_harmonic_footer (0-newline bodies → state=7,
 empty files → state=6); "remove exactly N" restore semantics in
@@ -50,8 +75,8 @@ saves via `yaml_save`
 - switch-model: auto backend (gpu first, cpu fallback); kill old server before VRAM check;
   0.3s wait for GPU driver VRAM release; use provided model_path directly in spawn_smart
 
-#,,,.,,,.,,,.,,..,,,,,,.,,,,,,,..,...,,.,,...,..,,...,...,,..,.,.,...,.,.,,.,,
-#L2HCZ77IEGZMZXCBQDR6P7KPQWVFVAR22LL2ZIXFY3QD7KNNALMVU33LRZGPRQBMSZIJKRFKNGKPO
-#\\\|H3YROGNEKG3QTNOJ5C4ON7MBLUYBLNQFHYPSIGGU2KS4PRMHAT2 \ / AMOS7 \ YOURUM ::
-#\[7]NNTUK5ILUBTDB4MVKZBRMHTDKYMNZZUJOKDGVA6ZSGE6FSLABMBI 7  DATA SIGNATURE ::
+#,,.,,...,,,.,,,.,,..,..,,,,.,...,...,,,,,...,..,,...,...,..,,,..,...,..,,,,.,
+#JYELDBTYIGNATQJKFPRRP7HP4EX3BTX5AMY4Y6P6KVVBRNQHL5WJ4YLFJHYZRYXFQPX7ZH3KQAM72
+#\\\|E3WLVFIMQ7VPNJVHYQ5HQD3TJWNDIUHYSMFXFSNWKUIPQFEYFQR \ / AMOS7 \ YOURUM ::
+#\[7]MCSL3IVL5Z4TOFBLWEYOHYZE2T5QW7THBP3KWYF3J4ZCUESFBGBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

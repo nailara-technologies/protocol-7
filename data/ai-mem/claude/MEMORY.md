@@ -62,6 +62,26 @@
   config at `data/json/claude/.mcp.json` symlinked from project root `.mcp.json`;
   tools: p7_command, p7_task_create, p7_task_show, p7_task_queue, p7_task_complete, p7_task_continue;
   unbuffered sysread I/O, unix-$USER auth, `close\n` disconnect; commits `9901a539d`, `3a8be6700`
+- **kimi zenka upgrades** (Mar 21-22 2026): completed ✅ — see `topic-completed.md`
+  - JSON parse fix: `decode_json` → `from_json` for UTF-8 websocket text frames
+  - approval replay dedup: `responded` set persisted to zenka_dir across restarts
+  - session management: `new-session`, `session-info` commands; devmod + format.json modules
+  - websocket frame: eval wrapper in handler.read, 16MB max_payload_size
+- **httpsd crash capture fixes** (Mar 21-22 2026): completed ✅
+  - `file.slurp` returns scalar ref — was stringifying to `SCALAR(0x...)` in crash log
+  - on-demand buffer init: moved from init_code to collect module, config flag for log forwarding
+  - reload guard: skip collect when `system.zenka.initialized` (not a real crash)
+  - cert path: `current.pem` → `default.pem`, removed premature warning from pre_init
+  - task file: `data/yaml/coding-tasks/httpsd-cert-architecture-cleanup.yaml`
+- **httpsd SSL handshake hang** (Mar 22 2026): identified, not yet fixed — AWS bots send partial
+  ClientHello then go silent, blocking SSL accept indefinitely; v7 heartbeat timeout kills+restarts;
+  crash capture now shows `ssl-handshake-start` event with client IP; needs non-blocking accept
+- **kimi-web session data loss** (Mar 21 2026): hundreds of real sessions lost from `~/.kimi/sessions/`,
+  likely caused by kimi zenka API interactions rewriting `kimi.json` (birth=Mar 21 03:22);
+  35 sessions remain on disk with content intact; full backup at
+  `/data/backup/kimi/kimi-sessions.full_dir.0000.tar.xz` (105M)
+- **httpd favicon.ico binary read bug**: `file.slurp` applies UTF-8 decode to binary .ico files,
+  `\xAB` fails → HTTP 500; needs `:raw` binmode for binary content types
 
 ## Key Technical Insights
 
@@ -139,6 +159,24 @@
 
 ### Protocol::WebSocket::Frame Constructor (CRITICAL)
 - ✅ Always: `Frame->new( buffer => $text, type => 'text', masked => 1 )`
+- Set `max_payload_size => 16 * 1024 * 1024` for large messages (tool results)
+- `->next` DIES on oversized frames — wrap in eval
+
+### JSON decode_json vs from_json (CRITICAL)
+- `JSON::decode_json($text)` expects raw UTF-8 **bytes** (octets)
+- `JSON::from_json($text)` accepts decoded Perl **character strings**
+- `Protocol::WebSocket::Frame->next` returns decoded strings with UTF-8 flag set
+- ✅ Use `from_json` for websocket text frames, `decode_json` for raw I/O
+
+### file.slurp Returns Scalar Ref (CRITICAL)
+- `<[file.slurp]>->($path)` returns `\$content`, NOT `$content`
+- Dereference: `->$*` or `$$ref` — otherwise stringifies to `SCALAR(0x...)`
+- Pattern: `my $content = <[file.slurp]>->($path)->$*;`
+
+### system.zenka.initialized Flag
+- FALSE during initial startup, TRUE after zenka goes online
+- Stays TRUE during reload (end_code does not run on reload)
+- Use to distinguish real restart from reload in post_init
 
 ### Deferred Zenka Online (`base.async.get_session_id`)
 - Remove `[get_session_id]` from start file; call from within event loop when ready
@@ -174,8 +212,8 @@
 - Pattern: `my @non_num = grep { defined $data_ref->{$ARG}->{$key} and not looks_like_number(...) } keys $data_ref->%*`
 - Global `$SIG{__WARN__}` exists — if wrapping warn handler, capture `$prev_warn = $SIG{__WARN__}` first and call through
 
-#,,..,,..,,.,,..,,...,..,,,,,,...,..,,.,.,,,.,..,,...,..,,,.,,..,,.,.,,,,,.,,,
-#DVD5HG3LY36QOTSRIYEEK2PGYH5WDR3RAYHQU2MIRVR4BXEWM2GBQRVZ6QHAMDHTEYX3XDOHVX2H2
-#\\\|W35CSXUPUKRSXAXG5QYHZ6XXOBOICKZ3YHWJRI3K6522BC2OC73 \ / AMOS7 \ YOURUM ::
-#\[7]TYU5YBYHEBS75F2ZJ6BBOOI3D76E3NYABHLNU2IHFB3QXSWLSACA 7  DATA SIGNATURE ::
+#,,,.,,,.,..,,,.,,,,,,...,..,,,.,,,,.,...,,,.,..,,...,...,,.,,.,,,,,.,,,.,,..,
+#C3X3DAENEI6L7CHFGO63QKCM7RSIZSVQCJL6XZY5NZJGOAXQ5YL7MHYYOU2KOCALRD4UJ5YVJU4IU
+#\\\|TOLEDR3PS7ZAT4CNQBPBQ5ROWX7VN5YPG2YGWQJG4CPIS7M5KHQ \ / AMOS7 \ YOURUM ::
+#\[7]3FXNSD37Z6G33NUYGVVGZA53KE2JZ3LTGK44DDIHD234LTLNGGCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
