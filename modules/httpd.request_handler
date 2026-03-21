@@ -55,9 +55,9 @@ $h_req->decode;
 ## crash capture hook [ httpsd only — no-op in plain httpd ] ##
 ## gather TLS info from SSL socket if available ##
 my $tls_info = '';
-if ( ref( $session->{'handle'} ) eq qw| IO::Socket::SSL | ) {
-    my $ssl_version = $session->{'handle'}->get_sslversion() // '';
-    my $cipher      = $session->{'handle'}->get_cipher()     // '';
+if ( ref $peer_fh and $peer_fh->isa('IO::Socket::SSL') ) {
+    my $ssl_version = $peer_fh->get_sslversion() // '';
+    my $cipher      = $peer_fh->get_cipher()     // '';
     $tls_info = sprintf '%s/%s', $ssl_version, $cipher
         if length $ssl_version and length $cipher;
 }
@@ -170,8 +170,8 @@ if ( defined <http.handler>->{ lc $request->{'method'} } ) {
 
 return 2;        ## <-- disconnecting client ##
 
-#,,.,,,,,,.,.,.,.,..,,,,.,...,,.,,,,,,,,,,.,.,..,,...,...,.,,,.,,,..,,,,.,,.,,
-#QTBVRQ2D5PR5L3GRKVPM2DT63T6DUHRNUPZ7UQ5BSU5KUZI3RDYN37S43SVDWDPOSSY6UCVPDQLR4
-#\\\|5B7ST6DUXLMJV2GT6KF2IUUELQAYUAFTE4GWNKCBWZWLXDL3OMR \ / AMOS7 \ YOURUM ::
-#\[7]UIWZBCJBABYR5FKXMXMV4U3NKHSITAQJOZZ52NLI4RDLIWYYNSBI 7  DATA SIGNATURE ::
+#,,,.,,,.,,..,,,.,.,.,.,.,,..,,,,,,,,,,,,,...,..,,...,..,,,,.,,.,,...,,,.,.,.,
+#76Z4ZIG7NT2XHQS4J77HMX4AJGVDKIEWIYCGF725QOTPGFCTU4ZSXUB2RBCX6E3AZW26ARUGZNMVW
+#\\\|UWMNFTGGWDYIW6L7DT6WDWEZI77VK622E4XZ3GNWRXYEYOF7N5A \ / AMOS7 \ YOURUM ::
+#\[7]IF6ZRZUGMDYX3N33CIQJDDFJ7VLP64G2AC36SWILP5BTNJFMMWAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
