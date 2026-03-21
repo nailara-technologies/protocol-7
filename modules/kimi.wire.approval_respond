@@ -36,10 +36,18 @@ if ($@) {
     $request_id, $response
 );
 
+## track responded ids to suppress re-sent requests on reconnect
+<kimi.approval.responded> //= {};
+<kimi.approval.responded>->{$request_id} = 1;
+
+## persist responded set for session resume across restarts
+my $responded_str = join( "\n", keys %{<kimi.approval.responded>} ) . "\n";
+<[file.zenka_dir.write]>->( 'approval_responded', \$responded_str );
+
 return <[websocket.send]>->( <kimi.ws.socket>, $json );
 
-#,,,,,.,.,,,,,...,.,.,,.,,..,,..,,,..,,.,,,.,,..,,...,...,..,,,,,,,.,,,.,,..,,
-#3PEQIC2LTQFVYUNIAWRWK3OMFQBGHTZJEHY44P3JNP7B5YFXX7OVXCSRYJLRHI3JXMEB55ZLYMLKO
-#\\\|MLSWRGWH6VE5NJNVAMUN4F3JLDFLF3BTSXD4T7ZUO4TBSFYSSMV \ / AMOS7 \ YOURUM ::
-#\[7]WTMW5GM7PI4XFQEJUBMLGA77CC55LLGDLJFNMYALEY6DXQBBOSDQ 7  DATA SIGNATURE ::
+#,,,.,.,.,,..,,..,,..,,..,,.,,,,.,,,.,,,.,..,,..,,...,...,...,.,,,..,,,.,,,..,
+#YXG7UU3KABV3VNOKK4XKYW4C7RQU433SYYHAYWOYIRF3QE5G6FK34M5PKPOPSLF3CLN4GFKKIVEPQ
+#\\\|YFL4NG7LROJEB7QAJHSIMLHKZPX6NSRGOSMXMSKMTLMKQJOBW4Y \ / AMOS7 \ YOURUM ::
+#\[7]4SYH64TGB4AYENUBNRYPZDKL6BPVVSHR36IIZDQJRY7D5T5PQ6DQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
