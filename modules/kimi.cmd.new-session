@@ -20,11 +20,14 @@ if (<kimi.ws.connected>) {
     <kimi.ws.connected> = FALSE;
 }
 
-<kimi.ws.status>        = qw| disconnected |;
-<kimi.session_id>       = undef;
-<kimi.wire.accumulator> = '';
-<kimi.wire.pending>     = {};
-<kimi.task.active_id>   = undef;
+<kimi.ws.status>          = qw| disconnected |;
+<kimi.session_id>         = undef;
+<kimi.wire.accumulator>   = '';
+<kimi.wire.pending>       = {};
+<kimi.task.active_id>     = undef;
+<kimi.approval.responded> = {};
+<kimi.approval.pending>   = {};
+<[file.zenka_dir.write]>->( 'approval_responded', \'' );
 
 ## schedule immediate reconnect [ will create fresh session ]
 <[event.add_timer]>->(
@@ -36,8 +39,8 @@ if (<kimi.ws.connected>) {
 
 return { 'mode' => 'true', 'data' => 'session cleared, reconnecting' };
 
-#,,,,,.,.,,,,,..,,...,...,,..,,,.,,,,,..,,,,,,..,,...,...,...,..,,,,.,.,.,...,
-#EZXKAUJBJFH7IO37VCY3CSIM42KU53YHXBUS2UDRK7L65YGI35SRYB42QQVPO6R3CTQXXZRZSM6RO
-#\\\|AJ6T23IA7GDB2262X4TCDFZIPTCGI4IC6QMMUG5ATPRU7D7GOCQ \ / AMOS7 \ YOURUM ::
-#\[7]AWNHR4H6GZDYTLJN5GKHXV554F4IGVYL35QGOI7BETMLV6OIBUBI 7  DATA SIGNATURE ::
+#,,.,,.,,,.,.,.,,,.,,,...,.,,,,,,,.,,,..,,,,.,..,,...,...,,,,,,.,,...,,,,,..,,
+#E6VRYHBEPB3MTBBO2LNSAMWHJIOMXSGJJADUFQVPW6AMO4KFJUE5MCA5RIYCHH5M2OVNOLBZJJLIQ
+#\\\|FQGTLXI5UUHDNSRXIAAUW6MHFVX4CXNU7B5Y3ICLBED4GUDGZNE \ / AMOS7 \ YOURUM ::
+#\[7]BNURKVKBQXVQ6YTNJ3JYOQCDRM53ZMACHB6CJMZSZONIKKQEL4BA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -20,6 +20,15 @@ my $sender      = $payload->{'sender'}       // '';
 my $action      = $payload->{'action'}       // '';
 my $description = $payload->{'description'}  // '';
 
+## skip already-responded requests [ kimi-web re-sends on reconnect ]
+<kimi.approval.responded> //= {};
+if ( exists <kimi.approval.responded>->{$request_id} ) {
+    <[base.logs]>->(
+        2, ': skipping already-responded approval [ %s ]', $request_id
+    );
+    return;
+}
+
 <[base.logs]>->(
     1, ': approval request [ %s ] action=%s : %s',
     $request_id, $action, $description
@@ -66,8 +75,8 @@ if ( defined $auto_allow->{$action} ) {
 
 return;
 
-#,,..,,.,,..,,,..,.,,,,..,...,,..,,,.,...,.,,,..,,...,...,..,,,..,,..,..,,.,,,
-#LWO656C4X3OBZ36NPKYV3FDJ3OAP63AUXXZKY43RUYH6NW7JSKFV7DOBXO34UR34SRAXYHFP23AYM
-#\\\|2UYXHXL5TTMJXCHO7R6L37IWJQ3HQBRJUQISNL56WMUIXBOQZ7P \ / AMOS7 \ YOURUM ::
-#\[7]LTXIHSPH7LIHCNZH73UQVAYSEGFDICEDR3MFM2UL4WZSZZFR3CBI 7  DATA SIGNATURE ::
+#,,,.,..,,,.,,,,.,,..,...,,,,,..,,,..,,.,,,,,,..,,...,..,,...,,,.,..,,.,.,,.,,
+#VYN5O56QSRMZD4FJU3GV33HOSXGBL4URK3JIGTF7Y2HJR2OZE5VMFGVPILQVPMEGHU73LYVEDZXGM
+#\\\|YDQ47SBGJ7RBGVWRLBUDLTNO3NH4ZMAA2ASBSIQ25ATNTVHLNFS \ / AMOS7 \ YOURUM ::
+#\[7]6C57JQ6G2WRQQ5Y6HHSPVTFLJ2OB3HCGXZ7YZF6XJWSMTBVB2OCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
