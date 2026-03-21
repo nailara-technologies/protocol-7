@@ -9,9 +9,9 @@
 my $path = <httpsd.path.request_capture> //= qw|/dev/shm/httpsd-last-request|;
 return if not -f $path;    ## skipping when no capture file is present ##
 
-my $log_level    = 0;                         ## custom buffer level ##
+my $log_level    = 0;                             ## custom buffer level ##
 my $buffer_name  = qw| httpsd-crash-log |;
-my $content      = <[file.slurp]>->($path);
+my $content      = <[file.slurp]>->($path)->$*;
 my $collected_at = <[base.ntime.b32]>->(3);
 <buffer.httpsd-crash-log.max_size> //= 64 * 1024;
 
@@ -34,8 +34,8 @@ for my $line ( $r_msg, split( "\n", $content ), $end_msg ) {
     <[base.buffer.add_line]>->( $buffer_name, join ' :', $log_prefix, $line );
 }
 
-#,,,,,,..,,,.,...,...,,.,,,.,,,,,,,.,,,,,,,,.,..,,...,...,,..,.,,,.,,,,,,,.,.,
-#MPRRUNMJVGPYEIUKAVILQCISH6SSCPLFXL25F4JJ4Q2IQCUWUD3H44ETHMXVAS5BQPY3PWTOTO7ZO
-#\\\|OL756K4YAWS3CEZFSKOTWV4COWA3IIBMMXJ5FWJ3M3SX44BENHB \ / AMOS7 \ YOURUM ::
-#\[7]HEDIVRG64Z7MTG7G2MPVWI6VWIOMKKHBXVFKIW6FZPII4XLF6ODI 7  DATA SIGNATURE ::
+#,,..,..,,..,,,,.,,,,,...,,,,,..,,.,,,..,,,..,..,,...,..,,.,,,.,,,,.,,,..,.,,,
+#L5B3LQXS3C6C747Z7EJVNUQZGB3SVX44HCEOU4TMDWKLOZZCGYVT7CS7OZD3BSJ5F6ABCCOELSBGO
+#\\\|GUB4AJ452U53UXNOV5VCSAST3ECAY6XEKOFXCJJFTAL66ORH6ZI \ / AMOS7 \ YOURUM ::
+#\[7]VQQ2QSTGBO6BCQIMIP7Z2ELZAOCA3SOH5YXXT4Y6BBCYKMFDOGBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
