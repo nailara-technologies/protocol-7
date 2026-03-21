@@ -13,7 +13,16 @@ my $log_level    = 0;                             ## custom buffer level ##
 my $buffer_name  = qw| httpsd-crash-log |;
 my $content      = <[file.slurp]>->($path)->$*;
 my $collected_at = <[base.ntime.b32]>->(3);
-<buffer.httpsd-crash-log.max_size> //= 64 * 1024;
+
+## initializing buffer ondemand ##
+$data{'buffer'}{$buffer_name}{'max_size'} //= 64 * 1024;
+$data{'buffer'}{$buffer_name}{'data'}     //= [];
+$data{'buffer'}{$buffer_name}{'size'}     //= 0;
+
+### log to disk when configured ##
+if ( <[base.cfg_bool]>->( <httpsd.cfg.request_capture_send> // TRUE ) ) {
+    $data{'buffer'}{$buffer_name}{'log_cmd'} //= qw| p7-log.append |;
+}
 
 unlink $path
     or <[base.logs]>->(
@@ -34,8 +43,8 @@ for my $line ( $r_msg, split( "\n", $content ), $end_msg ) {
     <[base.buffer.add_line]>->( $buffer_name, join ' :', $log_prefix, $line );
 }
 
-#,,..,..,,..,,,,.,,,,,...,,,,,..,,.,,,..,,,..,..,,...,..,,.,,,.,,,,.,,,..,.,,,
-#L5B3LQXS3C6C747Z7EJVNUQZGB3SVX44HCEOU4TMDWKLOZZCGYVT7CS7OZD3BSJ5F6ABCCOELSBGO
-#\\\|GUB4AJ452U53UXNOV5VCSAST3ECAY6XEKOFXCJJFTAL66ORH6ZI \ / AMOS7 \ YOURUM ::
-#\[7]VQQ2QSTGBO6BCQIMIP7Z2ELZAOCA3SOH5YXXT4Y6BBCYKMFDOGBQ 7  DATA SIGNATURE ::
+#,,,.,,,.,,,.,,,,,,..,,..,...,,,.,.,.,.,.,.,,,..,,...,..,,,..,..,,,,.,,.,,.,.,
+#7P3JQDLKXRD4TYS7ZDBIIHYVOGE6RRIDXE7KPQGMCBTXGHYIDFIJ4U2WK3HI4563U5SSX4TGQ66KG
+#\\\|SLJEF4L4WUUSEJCL52BZB4NMHM3XLQKIH2NTZZAT6INPECBHABD \ / AMOS7 \ YOURUM ::
+#\[7]TWI5ANXZENS7Z7LW5OAMENVUERQ33WR5TNO2DB6C5DHJZVVU3YAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -24,12 +24,12 @@ httpsd.cfg.cipher_suite             = ECDHE-RSA-AES256-GCM-SHA384:ECDHE-RSA-AES1
 httpsd.cfg.hsts_max_age             = 31536000
 httpsd.cfg.hsts_include_subdomains  = 1
 
-## crash capture : write last request to /dev/shm before each request
-## disable once crash is identified and fixed [ re-enable if it recurs ]
+## crash capture : write last request to /dev/shm before each request ####
+## disable once crash is identified and fixed [ re-enable if it recurs ] #
 httpsd.cfg.request_capture = yes
-
-## forward crash capture buffer to disk via p7-log
-buffer.httpsd-crash-log.log_cmd  =  p7-log.append
+### forward crash capture buffer to disk via p7-log zenka ##
+httpsd.cfg.request_capture_send = true
+####
 
 ## graceful startup: certificate provisioning with exponential backoff
 ## when certificate missing, retry periodically with increasing delays
@@ -77,8 +77,8 @@ httpsd.timeout      =  14
 
 [zenka.loop]
 
-#,,,.,..,,..,,...,.,,,,.,,,,,,...,,..,,,,,..,,..,,...,...,..,,..,,...,,,,,,,,,
-#PFC73HZNKDDUMT72L6VEMRZP43E2233OJJWTMXWBEXP5LBRH6Q24BLKEI7546WOEFB4H33BODREFA
-#\\\|2XJGY7ANL7ORGMQFN32SVACUEPNMBS5NXPUAE6FAWY32BE4URPJ \ / AMOS7 \ YOURUM ::
-#\[7]XECLRLFA2PAN2FTHFIIDRTGCBFVPDTFSELLWJ5QVNNSQUDEGAKDY 7  DATA SIGNATURE ::
+#,,.,,,.,,.,.,,..,..,,,,,,,,,,,.,,,,.,,,.,,,,,..,,...,...,.,,,,,,,,..,,.,,..,,
+#BSVPYATV6UACBPTR2SLFEWQ6H7LSMJL5N7ZCJ2MUWXT6KHCQVB4GXMLGCTUVLSJC2YADYKRKIXWXI
+#\\\|AIR6A7U3FXBPSSRUPISXKBUX5BALKUT5JMW6TINABF2O33KCBZX \ / AMOS7 \ YOURUM ::
+#\[7]V4EWHL4BHVADMDXEUN4WFECPQOKOJBNDJIGTVVRV4R6BLYVXQUDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -165,11 +165,11 @@ $data{'protocol'}{'https'} = {
 
 ## crash-capture buffer : initialize or clean up depending on feature state ##
 if ( <[base.cfg_bool]>->( <httpsd.cfg.request_capture> // 1 ) ) {
-    $data{'buffer'}{'httpsd-crash-log'}{'max_size'} //= 64 * 1024;
-    $data{'buffer'}{'httpsd-crash-log'}{'data'}     //= [];
-    $data{'buffer'}{'httpsd-crash-log'}{'size'}     //= 0;
 
     <httpsd.path.request_capture> //= qw| /dev/shm/httpsd-last-request |;
+    ##
+    ## buffer 'httpsd-crash-log' initialized ondemand when required  ##
+    ############################  in httpsd.request_capture.collect  ##
 
     ## register end_code callback once — guards against re-init double-push ##
     if ( not <httpsd.request_capture.cb_registered> ) {
@@ -178,8 +178,6 @@ if ( <[base.cfg_bool]>->( <httpsd.cfg.request_capture> // 1 ) ) {
         <[base.log]>->( 1, '::[ crash mitigation ]:.' );
         <[base.log]>->( 1, ': request capture registerd..' );
     }
-} else {    ## remove ghost config entry ##
-    delete $data{'buffer'}{'httpsd-crash-log'};
 }
 
 <[base.logs]>->( 2, 'HTTPSD initialization complete' );
@@ -188,8 +186,8 @@ if ( <[base.cfg_bool]>->( <httpsd.cfg.request_capture> // 1 ) ) {
 
 0;
 
-#,,..,,,,,,,.,,,.,...,,..,..,,...,,,,,...,..,,..,,...,...,,.,,,,,,.,.,,,.,...,
-#6S66GFPML7GUCJQCRWAL2TDFM5ALGTWEW2U2JY6TBO52UYA3MV4VWVTLHPWVKKZEND6FT54NJTHYU
-#\\\|KMRMZ6PAUG7NVIEEJQSKNILVSVBLUZXMUH6A3FPBJN2W3FUUMEW \ / AMOS7 \ YOURUM ::
-#\[7]DRFNJVE2D447SL7V3LAAI2KKOHOWJKYLNDU7IUBQDZFKP522BABY 7  DATA SIGNATURE ::
+#,,,.,,.,,,.,,..,,,,.,..,,..,,...,,,,,,,.,.,.,..,,...,...,.,,,.,,,.,,,.,.,..,,
+#OWSTB3R6GUGFIYABVJLFCEKJSO4JX6JOOOFD75PSHCTMWW3SFBTFCCAZJVBHUCIV6KPYARY7CAOLA
+#\\\|AF5SK2RWKK22FKAWQDIGJIODPD5SJOPQFY6BOV3HP3GMQIN75SN \ / AMOS7 \ YOURUM ::
+#\[7]5VLISEBL5A7RSH7UGJMAEVIMZOGLVLOJBK5R72Q6VJMYVX42JIDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
