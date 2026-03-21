@@ -65,8 +65,9 @@ if ( ref $peer_fh and $peer_fh->isa('IO::Socket::SSL') ) {
 $code{'httpsd.request_capture.write'}->(
     {   'event'     => 'request-start',
         'client_ip' => $request->{'client'}{'addr'},
-        'method'    => $h_req->method // '',
-        'uri'       => $h_req->uri    // '',
+        'method'    => $h_req->method         // '',
+        'uri'       => $h_req->uri            // '',
+        'host'      => $h_req->header('Host') // '',
         'tls'       => $tls_info,
     }
 ) if exists $code{'httpsd.request_capture.write'};
@@ -170,8 +171,8 @@ if ( defined <http.handler>->{ lc $request->{'method'} } ) {
 
 return 2;        ## <-- disconnecting client ##
 
-#,,,.,,,.,,..,,,.,.,.,.,.,,..,,,,,,,,,,,,,...,..,,...,..,,,,.,,.,,...,,,.,.,.,
-#76Z4ZIG7NT2XHQS4J77HMX4AJGVDKIEWIYCGF725QOTPGFCTU4ZSXUB2RBCX6E3AZW26ARUGZNMVW
-#\\\|UWMNFTGGWDYIW6L7DT6WDWEZI77VK622E4XZ3GNWRXYEYOF7N5A \ / AMOS7 \ YOURUM ::
-#\[7]IF6ZRZUGMDYX3N33CIQJDDFJ7VLP64G2AC36SWILP5BTNJFMMWAI 7  DATA SIGNATURE ::
+#,,,,,,.,,,,,,...,,,.,...,.,.,..,,.,,,,.,,,..,..,,...,...,,..,,,,,,,,,,.,,,..,
+#LXLHCJRTIU2XND3DGMZGXGXXM6UROQMK42KUZRS7KFZVJ33GR37AFRLQAL6EKA3K4QN725IPHZSQI
+#\\\|BAR7CELQRCRFIGT2NDMZQUPKHA27CXRQXOOWU4LJRCOXK6DW7AX \ / AMOS7 \ YOURUM ::
+#\[7]5TE2YYCW5V656IRDCCLNCCO2OQYJ2EU7LAP4AIF36KDOB6HZ3GAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
