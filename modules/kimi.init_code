@@ -49,10 +49,27 @@ if ( not defined <kimi.session_id> ) {
 <kimi.approval.pending>      //= {};     ## { $request_id => { action, ... } }
 <kimi.approval.auto_approve> //= TRUE;   ## auto-approve all [ task mode ]
 <kimi.approval.auto_allow>   //= {};     ## policy allowlist { action => 1 }
+<kimi.approval.responded>    //= {};     ## { $request_id => 1 } dedup set
+
+## restore responded set from previous run
+if ( not keys %{<kimi.approval.responded>} ) {
+    my $sref = <[file.zenka_dir.load]>->('approval_responded');
+    if ( defined $sref and length $$sref ) {
+        for my $line ( split m{\n}, $$sref ) {
+            next unless length $line;
+            <kimi.approval.responded>->{$line} = 1;
+        }
+        <[base.logs]>->(
+            2,
+            ': restored %d responded approval ids',
+            scalar keys %{<kimi.approval.responded>}
+        );
+    }
+}
 
 ## reconnect configuration [ exponential backoff ]
-<kimi.connect.retry_delay> //= 60;       ## max retry delay cap [ seconds ]
-<kimi.connect.retry_cur>   //= 2;        ## current delay [ reset on connect ]
+<kimi.connect.retry_delay> //= 60;      ## max retry delay cap [ seconds ]
+<kimi.connect.retry_cur>   //= 2;       ## current delay [ reset on connect ]
 <kimi.connect.retrying>    //= FALSE;
 
 ## schedule initial connection attempt after init completes
@@ -67,8 +84,8 @@ if ( not defined <kimi.session_id> ) {
 
 return TRUE;
 
-#,,,,,...,.,,,,..,,,.,,.,,.,.,,..,.,.,,.,,,.,,..,,...,...,...,,.,,.,.,.,.,.,.,
-#IR7E6YPAT73ONYN7DB5Z6R4SDCSY4BQA5AXVDY3E3EEL5H4E2QSYK3DPC2ZFDBB5EIKQEU2QA3AXO
-#\\\|FI7CQ3GGHDMAU4WNQRMYUMEAALFS3JOLSZH2J6TCOJNW53VEDRP \ / AMOS7 \ YOURUM ::
-#\[7]VHIWJLEDYS2WI2YE2DUAQ4KC25UQO2YDZUYT2Q42YFKCQ74EJ6CQ 7  DATA SIGNATURE ::
+#,,,.,..,,...,.,.,.,.,,,,,..,,,.,,.,,,...,...,..,,...,..,,,..,.,,,,,,,..,,.,.,
+#UW22KDMRJYM7HX4W3ARFFVU37SONW7Y5O23LE6QGXJHNO6ABGBSHI7QQH72NVMHKQERIS75IYTGEU
+#\\\|XYQLFCWLEVVO2JI6PPGXAOCI3X2CAWXAXMQHXJA4SH66MWEYGTK \ / AMOS7 \ YOURUM ::
+#\[7]4SF3VGDDJUH5BGWRU6LOXIGCUVVJZCQ57UFD2COLYVQVZANLOEBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
