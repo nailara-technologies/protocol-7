@@ -1,0 +1,43 @@
+## [:< ##
+
+# name  = kimi.cmd.new-session
+# descr = clear saved session and reconnect fresh
+
+## clear persisted session id
+<[file.zenka_dir.write]>->( 'session_id', \'' );
+
+## tear down current connection if active
+if (<kimi.ws.connected>) {
+    if ( defined <kimi.ws.io_watcher> ) {
+        <kimi.ws.io_watcher>->cancel
+            if <kimi.ws.io_watcher>->is_active;
+        <kimi.ws.io_watcher> = undef;
+    }
+    if ( defined <kimi.ws.socket> ) {
+        eval { shutdown( <kimi.ws.socket>, 2 ) };
+        close <kimi.ws.socket>;
+    }
+    <kimi.ws.connected> = FALSE;
+}
+
+<kimi.ws.status>        = qw| disconnected |;
+<kimi.session_id>       = undef;
+<kimi.wire.accumulator> = '';
+<kimi.wire.pending>     = {};
+<kimi.task.active_id>   = undef;
+
+## schedule immediate reconnect [ will create fresh session ]
+<[event.add_timer]>->(
+    {   'after'   => 0.5,
+        'handler' => qw| kimi.connect |,
+        'desc'    => 'fresh session reconnect'
+    }
+);
+
+return { 'mode' => 'true', 'data' => 'session cleared, reconnecting' };
+
+#,,,,,.,.,,,,,..,,...,...,,..,,,.,,,,,..,,,,,,..,,...,...,...,..,,,,.,.,.,...,
+#EZXKAUJBJFH7IO37VCY3CSIM42KU53YHXBUS2UDRK7L65YGI35SRYB42QQVPO6R3CTQXXZRZSM6RO
+#\\\|AJ6T23IA7GDB2262X4TCDFZIPTCGI4IC6QMMUG5ATPRU7D7GOCQ \ / AMOS7 \ YOURUM ::
+#\[7]AWNHR4H6GZDYTLJN5GKHXV554F4IGVYL35QGOI7BETMLV6OIBUBI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

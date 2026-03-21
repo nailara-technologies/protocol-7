@@ -30,9 +30,21 @@ my $parsed_data;
 eval { $parsed_data = $json->decode($json_string); };
 
 if ($EVAL_ERROR) {
+    my $preview = substr( $json_string, 0, 120 );
+    $preview =~ s{\n}{ }g;
     <[base.logs]>->(
         1,           'json.decode error: %s [input: %s]',
-        $EVAL_ERROR, substr( $json_string, 0, 100 )
+        $EVAL_ERROR, $preview
+    );
+    <buffer.json-errors.max_size> //= 42 * 1024;
+    <[base.buffer.add_line]>->( qw| json-errors |, '' );
+    <[base.buffer.add_line]>->(
+        qw| json-errors |,
+        sprintf( '[ json decode error ] %s', $EVAL_ERROR )
+    );
+    <[base.buffer.add_line]>->(
+        qw| json-errors |,
+        sprintf( '  input: %s', $preview )
     );
     return {};
 }
@@ -41,8 +53,8 @@ return defined $parsed_data ? $parsed_data : {};
 
 0;
 
-#,,..,,..,,.,,,..,,..,,,,,,.,,..,,,..,...,.,,,..,,...,..,,.,,,,,.,.,,,.,,,,.,,
-#FVGZRN6XNXYLGEBRGAJDDXIZ5GLGWMHBJS5XNKCKBHS7JBOTIFEREQILW45WUFIIRYHTHNI5TPQEK
-#\\\|HXLIFEWH43D72FGOE6UGNJUII73WIVX6JA6SCKVQCB7QCET4MEI \ / AMOS7 \ YOURUM ::
-#\[7]UORVDU32YEJAJTX4RON7ACDAS3ZVYZH56A33XZS3B42I5SEEZYCQ 7  DATA SIGNATURE ::
+#,,.,,,.,,,,,,...,,.,,,.,,.,,,..,,...,.,,,..,,..,,...,...,,.,,..,,,,,,.,.,.,.,
+#443LGYKZI7NB2SFMOFOJ5X2RLDQBYX2HPKUG4NRHO7F5T3MRFUX3J37OXLUXSQOVQ73I7VPFS43WC
+#\\\|WAQEL74C6FYY6ZN3OR552OZU5ACODRLTOAHNQFE45YLQ2672O5F \ / AMOS7 \ YOURUM ::
+#\[7]FEKW3JDHBLZNA3WBDJR64ECKL7BMTODMXH53BTVAPM7F7UR7OUBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
