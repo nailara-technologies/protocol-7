@@ -83,10 +83,13 @@ if ( not defined $sock ) {
     return;
 }
 
-<kimi.ws.socket>         = $sock;
-<kimi.ws.frame>          = Protocol::WebSocket::Frame->new;
+<kimi.ws.socket> = $sock;
+<kimi.ws.frame>  = Protocol::WebSocket::Frame->new(
+    max_payload_size => 16 * 1024
+        * 1024                    ## 16 MiB [ tool results can be large ]
+);
 <kimi.wire.accumulator>  = '';
-<kimi.connect.retry_cur> = 2;    ## reset backoff on each new connect
+<kimi.connect.retry_cur> = 2;     ## reset backoff on each new connect
 
 ## register event.add_io for incoming frames
 <kimi.ws.io_watcher> = <[event.add_io]>->(
@@ -106,8 +109,8 @@ if ( not defined $sock ) {
 
 <[base.logs]>->( 2, 'kimi.connect: websocket connected [ %s ]', $ws_url );
 
-#,,.,,..,,,..,.,.,,,.,.,.,...,.,.,..,,,,.,.,,,..,,...,...,..,,...,.,.,,..,..,,
-#QBFFSFR2BRQDVSVZCUHN33YDVMH6UVV7LJ5EV47IQVMQOVCH6VOAB2WM4VZ65H3SWJVU2DGLJJUJW
-#\\\|FXDUW3CPTI2V4UOY3Q5HSRSDHJ3NRVIMX5GNCFZ2IUETZS65WLH \ / AMOS7 \ YOURUM ::
-#\[7]CEQ7SHZVGEPPFPFQNC4LYDHUGAQMQZHCRWUMD6URKD4VMB7FBWAI 7  DATA SIGNATURE ::
+#,,,,,..,,,..,,.,,,,.,,,,,.,,,.,.,...,.,,,.,.,..,,...,...,.,.,,..,.,,,,.,,,,,,
+#JM2AY7QLZDQKAVR6UEVAPWQJ7FODSV6ZOW3GSVNDNL2Z4ZVLECNRQBPHB7OHOVLBQHC3KKHPCGZMW
+#\\\|F2NZRUJTCJU2OVJIC5JWVGCBOCGEVRVABDRUCXXXD2DHKORAFGQ \ / AMOS7 \ YOURUM ::
+#\[7]SW52LWFKTFSTBBOVEHMT5C45X4XYUZLXEOLFUKZIWR7W5VR7H6BI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

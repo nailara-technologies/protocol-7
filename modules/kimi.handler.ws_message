@@ -51,8 +51,12 @@ if ( not defined $text ) {
 ## parse json-rpc frame
 my $msg = eval { JSON::decode_json($text) };
 if ($@) {
-    <[base.logs]>
-        ->( 0, 'kimi.handler.ws_message: json parse error : %s', $@ );
+    my $preview = substr( $text, 0, 120 );
+    $preview =~ s{\n}{ }g;
+    <[base.logs]>->(
+        0,  'kimi.handler.ws_message: json parse error : %s [ %s ]',
+        $@, $preview
+    );
     return;
 }
 
@@ -227,8 +231,8 @@ if ( not length($method) and length($msg_id) ) {
     }
 }
 
-#,,,.,..,,,..,,,,,.,,,,.,,,.,,..,,.,.,,.,,...,..,,...,...,..,,.,,,,.,,,,,,,.,,
-#FDM4YQR4WS4X7LQI2L3GLSRTWH7KPMTV4K6WDXXWOITBCXCNH4E36ID47UEY3VN3CHZOE3BEMIEMW
-#\\\|4YVLORO45UWM3KXLUTVI2L3NLUKAZT26KVWKEORSPIKA2UQU4KU \ / AMOS7 \ YOURUM ::
-#\[7]HI6RLK6JVGSKH76BNJX5UWH6Q2ND3BRDFTRRT77PE7VNNC7LW2AQ 7  DATA SIGNATURE ::
+#,,..,...,,.,,.,,,...,,,,,...,..,,.,.,...,,,,,..,,...,...,,..,,..,...,...,.,,,
+#UD2MMOXIK6RQSLBMZMRITPQER2DW2MGEJUZHV6IUIXHNELYZOIVKPZBKEPBWGXYHI6VRV547D55SW
+#\\\|QGE7X7PW5M32METPVNDC4AEJ5CS2XMKRBL7I3I6T6ZYLO4S4BPB \ / AMOS7 \ YOURUM ::
+#\[7]3EEPRIZOWPRAWW7WM2WQAVYOXNTTOKKOFK7EWNRDK7GPUOFUBYCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
