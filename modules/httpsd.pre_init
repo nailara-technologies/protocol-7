@@ -8,31 +8,20 @@
 
 <[base.log]>->( 2, 'httpsd pre-initialization: loading TLS libraries..,' );
 
-# Certificate paths
-<httpsd.cfg.certificate_path> //= '/etc/protocol-7/certs/current.pem';
-<httpsd.cfg.key_path>         //= '/etc/protocol-7/certs/current.key';
+## certificate paths [ 'default' aligns with content dir naming convention ]
+## note ##
+## real paths auto-discovered in post_init via discover_active_certificate ##
+##
+<httpsd.cfg.certificate_path> //= '/etc/protocol-7/certs/default.pem';
+<httpsd.cfg.key_path>         //= '/etc/protocol-7/certs/default.key';
 <httpsd.cfg.tls_version>      //= 'TLSv1_2';
-
-# Validate certificate and key exist
-if ( !-f <httpsd.cfg.certificate_path> ) {
-    <[base.log]>->(
-        1,
-        "warning: HTTPSD certificate not found at <httpsd.cfg.certificate_path>"
-    );
-}
-
-if ( !-f <httpsd.cfg.key_path> ) {
-    <[base.log]>->(
-        1, "warning: HTTPSD key not found at <httpsd.cfg.key_path>"
-    );
-}
 
 <[base.log]>->( 2, 'httpsd pre-init complete' );
 
 0;
 
-#,,.,,...,,,.,,,,,,,,,,.,,..,,.,.,,,,,,,.,.,.,..,,...,...,...,..,,...,,..,...,
-#XVUH3HIX2HXD4K5FB25HSRYZVS66ZJTLPYID6TJS3YV3YC75RUDTS6KTHXXJWLK4GM54VA2GOS2EW
-#\\\|HGBWS3IMBVJXGDJYMG4CT2EBFAHGEBHMKOPVEUG4Y2SBL4BJMEQ \ / AMOS7 \ YOURUM ::
-#\[7]FUAQF62BKDXTJ5B2LFMS7GW5LKKCBQGBTRZ7E2CZ4DEDXI3F2YAQ 7  DATA SIGNATURE ::
+#,,,.,...,...,,..,.,,,,,.,.,,,..,,,,,,.,.,,..,..,,...,...,...,,..,.,,,.,.,,.,,
+#HARKAHBGYGCA7CP25DCK5E347CBNJBJ5JECJ2BYDKAZGKMRYM5J2ZI76MPFA4ICTZMNBBBEZ7MV74
+#\\\|AJJFDHP6BGYK6XNB6B7UGQIW5YWGX4OYBSRJPVJXQIGKEIDPIOH \ / AMOS7 \ YOURUM ::
+#\[7]OYUEFBP3NLU5JPIRN2ZT7GVRWJQ2V5EFHUPUFODMY73NT7XHAIBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
