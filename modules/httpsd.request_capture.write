@@ -1,7 +1,7 @@
 ## [:< ##
 
 # name  = httpsd.request_capture.write
-# param = \%info  ## event, client_ip, method [opt], uri [opt], tls [opt]
+# param = \%info  ## event, client_ip, method, uri, host, tls [all opt]
 # descr = overwrite /dev/shm capture file with current request context
 #         [ pure tmpfs write — no disk I/O, survives process crash ]
 
@@ -16,17 +16,19 @@ my $event  = $info->{'event'}     // qw| unknown |;
 my $ip     = $info->{'client_ip'} // qw| unknown |;
 my $method = $info->{'method'}    // '';
 my $uri    = $info->{'uri'}       // '';
+my $host   = $info->{'host'}      // '';
 my $tls    = $info->{'tls'}       // '';
 
 my $content = " ntime     : $ntime\n event     : $event\n client_ip : $ip\n";
 $content .= " method    : $method\n" if length $method;
 $content .= " uri       : $uri\n"    if length $uri;
+$content .= " host      : $host\n"   if length $host;
 $content .= " tls       : $tls\n"    if length $tls;
 
 <[file.put]>->( $path, \$content ) or warn ': request-capture : write failed';
 
-#,,,,,..,,..,,.,,,...,,,,,.,.,,..,.,,,,.,,...,..,,...,..,,,,.,,..,,,,,,..,,,.,
-#DLKRMSRAS3SDPVHGOHXIMPTOGKUHAOH3KMKKKHS3O3KMCV2VWMPKG5TZLOM5BYUANSC4ZSQPPPAMY
-#\\\|BIWT2JJARKYIIHFEH23FRCZI6BVTGM7VUVTHZPV7O7J7FPRGBAO \ / AMOS7 \ YOURUM ::
-#\[7]MFBM65K63V5ARQOKOB2HNT4YRT3G24UUK3PP3BHTBW75ZJKBLQAA 7  DATA SIGNATURE ::
+#,,.,,...,,.,,,,,,.,.,,,.,,,.,..,,.,.,,.,,.,.,..,,...,...,...,,,,,..,,...,,,,,
+#27YHR4VMIVEV5OY2EOHNT3LEXALMCVHZYOSOCXUT5H6AZSZFWHIX6XCPY67P2AFC2G3JLZNMZOZME
+#\\\|B45ZMXWCR5H7JPXCK4KWWLKV46BTET3HEA4CXJFRWO3R3HFGGTU \ / AMOS7 \ YOURUM ::
+#\[7]B67M5LJRJTVQ2O6S3DLTBOT6I2MS7PRVH6BMZKHNZ4Y3RUFKXUCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
