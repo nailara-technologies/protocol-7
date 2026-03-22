@@ -1,8 +1,10 @@
 ---
 task: httpsd non-blocking SSL accept
-status: planned
+status: completed
 priority: high
 created: 2026-03-22
+completed: 2026-03-22
+implemented_by: JT4HGQA
 source: kimi task A3ID76I analysis + claude session refinement
 
 context: |
@@ -51,13 +53,35 @@ fix_approach: |
 config_additions:
   - httpsd.ssl_handshake_timeout: 10 (seconds, configurable)
 
+implementation: |
+  modified modules:
+  - io.ip.ssl.input.connect: rewritten to use non-blocking TCP accept + start_SSL
+    with SSL_startHandshake => 0, registers IO watcher and timeout timer
+  - io.ip.ssl.handshake.handler: new module, handles accept_SSL completion,
+    SSL_WANT_READ/SSL_WANT_WRITE retry logic, error classification
+  - io.ip.ssl.handshake.timeout: new module, handles 10s timeout, logs client_ip,
+    emits ssl-handshake-timeout event for crash capture
+  - httpsd.init_code: added httpsd.cfg.ssl_handshake_timeout (default 10s),
+    initialized $data{'ssl_handshake'} tracking hash
+
+  flow:
+  1. io.ip.ssl.input.connect accepts TCP via SUPER::accept()
+  2. sets socket non-blocking, calls start_SSL with SSL_startHandshake => 0
+  3. registers IO watcher (io.ip.ssl.handshake.handler) for read/write events
+  4. registers timer (io.ip.ssl.handshake.timeout) for 10s timeout
+  5. handshake.handler calls accept_SSL() on each event:
+     - success: calls base.session.init, establishes https session
+     - SSL_WANT_READ/WRITE: returns, waits for next event
+     - error: logs, cleans up, closes socket
+  6. handshake.timeout cancels stalled handshakes, logs, emits capture event
+
 notes: |
   ssl.connect_handler may need same fix if used by other ssl zenki.
-  crash capture already records ssl-handshake-start — add ssl-handshake-timeout
-  event for monitoring. consider rate-limiting repeated offender IPs.
+  crash capture records: ssl-handshake-start and ssl-handshake-timeout events.
+  consider rate-limiting repeated offender IPs.
 
-#,,,.,.,.,.,,,,.,,,,.,...,,,,,.,,,,,.,,,.,,,,,..,,...,..,,.,.,,,.,,,.,...,,..,
-#B43REF2MA37XYWG6OBKDVPZ6Q4TSG2PLGMNJXDJVQ5X4TGTNWDDSQEZOUI2PXO3DI2PJVG2DLQJYW
-#\\\|Y7GOZETNTRCELB5WTYXXVNIESBRAEYTRYPAGQM46CI46BLR5JVO \ / AMOS7 \ YOURUM ::
-#\[7]TKQUHIP6RDQT5MGWK3DCL5SKJZ5RHUF7AFZ5MOWRWNZPTJVIFKAY 7  DATA SIGNATURE ::
+#,,,,,,.,,.,.,,..,,..,,,,,...,,.,,,,,,...,,..,..,,...,...,..,,.,.,,,.,,.,,,,,,
+#QVAJKCIPHKV36R2T2BAAL55Q3DKPR6A6NWTYONAUKKCSFBMUILWXAVACPADYVRIY4HRTM3SQIPEY2
+#\\\|UZCNYBPQ5SKDNGVLQFTUF7DKCP3HFQGV6OSU2LC22CAQDXFKXAK \ / AMOS7 \ YOURUM ::
+#\[7]N65I5UQNWRSME2OE52NX2QTQLI7OKPXWY4QKUU6ARGVZ22CO7EDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

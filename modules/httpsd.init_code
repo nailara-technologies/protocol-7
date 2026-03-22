@@ -89,6 +89,8 @@ if ( defined <https.handler.get> ) {
 <httpsd.cfg.key_path>                //= '/etc/protocol-7/certs/default.key';
 <httpsd.cfg.hsts_max_age>            //= 31536000;
 <httpsd.cfg.hsts_include_subdomains> //= 1;
+<httpsd.cfg.ssl_handshake_timeout>
+    //= 10;    # seconds, for non-blocking SSL accept
 
 # protocol state for HTTPS [using 'https' protocol instead of 'http']
 # create HTTPS state with httpsd.request_handler for input [overriding HTTP]
@@ -153,6 +155,9 @@ $data{'protocol'}{'https'} = {
 <httpsd.sessions>         = {};
 <httpsd.connection_count> = 0;
 
+# SSL handshake tracking for non-blocking accept
+$data{'ssl_handshake'} = {};
+
 # performance metrics
 <httpsd.metrics> = {
     handshakes_successful => 0,
@@ -186,8 +191,8 @@ if ( <[base.cfg_bool]>->( <httpsd.cfg.request_capture> // 1 ) ) {
 
 0;
 
-#,,,,,,.,,..,,,.,,...,,,,,,,,,..,,.,.,,..,.,,,..,,...,...,.,,,,..,.,,,.,.,..,,
-#CGUIDMACJSD2L3OP4JLLQFVCIU4NLZBCGXGCM6IRRJRBVF3UJLMWQ5P56RHVI6MCIZM4UOETVUEIY
-#\\\|QJNDV4XB4WJMRKUIVQJK6MFCV7EZVYI27PRRCXM3YCYCXOP4J7K \ / AMOS7 \ YOURUM ::
-#\[7]CZ2O4WEPUTOAGX5LSV4RANTIU5SFQDD5DOKHTXYOPCI22XZNCQDY 7  DATA SIGNATURE ::
+#,,..,,..,.,,,,.,,,,.,..,,.,,,,,,,.,,,..,,...,..,,...,...,,..,.,,,.,,,.,,,,,.,
+#GCEAAZLDDLNSJSVNSRR62MCIBCL3JRH3UAHM265CZ7MSOFREHTSAR5LTXNIXH6QIWK75ZEPNUUFOS
+#\\\|JSXTZKD4M3SMQ4DA3VS2Z6BOCTSPZP5XIB3U7U6ON2KAHWYFHCF \ / AMOS7 \ YOURUM ::
+#\[7]KB3TQQXXVQM46QGVBXZPYCAAJVWKWFQ3DS3UVC422Z5EB34MLABY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
