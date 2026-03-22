@@ -65,8 +65,8 @@ if ( $action eq 'signal' ) {
 
 ## Newline - submit command
 if ( $action eq 'newline' ) {
-    my $cursor_pos = $editor->{cursor_pos};
-    my $buffer     = $editor->{buffer};
+    my $cursor_pos = $editor->{cursor_pos} // 0;
+    my $buffer     = $editor->{buffer}     // '';
     my $buffer_len = length($buffer);
 
     ## get terminal width to choose render path
@@ -121,8 +121,8 @@ if ( $action eq 'newline' ) {
 ## Unknown action - ignore
 return undef;
 
-#,,.,,.,.,,,,,.,.,.,,,.,,,,..,,,.,,..,.,.,...,.,.,...,...,..,,,,.,,,.,...,..,,
-#VA3SRNMF32CQS7RXOWMZIY3HGK4NEK5VSKGMSWPPBEOSA46LRHVAZTIRIDH7HUDSQBJCAEO25BI2E
-#\\\|F2A2YCGGGG4TIHRU553P46P6HWIZXUJUAJFWGV6HRHT4JTQMCNI \ / AMOS7 \ YOURUM ::
-#\[7]E74WYUC5CFFIHGQE7C2GA4RGXH4NZL5TJEGZJERQK4V2RAULNYBA 7  DATA SIGNATURE ::
+#,,.,,..,,,,.,..,,.,.,...,,..,.,.,,..,,,.,,..,.,.,...,...,..,,...,,,,,,.,,,..,
+#MV6SZ5OEEIEF33TMDOGQ2B37IC6R6JSS7IIQSJFOYKYA4OOC6CZVVPV24WEHO6XYZWSELTSTG2COE
+#\\\|FYHCQ7Z66TLJYFJXKTHI5P3YJPDORW4OYM375CK2VEA27DJAXB7 \ / AMOS7 \ YOURUM ::
+#\[7]7CLRNVTL7KW5HGMRSBK5M2SXQOEW3D2ZW6MWESO7GXQNNJK3ZOCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

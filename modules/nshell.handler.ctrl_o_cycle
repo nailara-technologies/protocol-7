@@ -5,118 +5,99 @@
 
 my $state_ref = shift // {};
 
-## Only initialize Ctrl+O state, not caller-provided values
-$state_ref->{'ctrl_o_entries_added'}  //= 0;
-$state_ref->{'ctrl_o_start_position'} //= -1;
-$state_ref->{'current_history_index'} //= -1;
+my $cmd       = $state_ref->{'editor'}->{'buffer'}    // '';
+my $cur_index = $state_ref->{'current_history_index'} // -1;
 
-my $cmd = $state_ref->{'editor'}->{'buffer'} // '';
+## [ ignore if not viewing history or empty buffer ]
+return undef if $cur_index < 0 or not length $cmd;
 
-## Set start index on first Ctrl+O press [ for looping ]
-if ( $state_ref->{'ctrl_o_start_position'} < 0 ) {
-    $state_ref->{'ctrl_o_start_position'}
-        = $state_ref->{'current_history_index'};
-    $state_ref->{'ctrl_o_entries_added'} = 0;
-    if (<nshell.mode.no_tty_debug>) {
-        <[base.logs]>->(
-            1,
-            "ctrl_o: cycle start at index=%s",
-            $state_ref->{'ctrl_o_start_position'}
-        );
-    }
+## [ record cycle start position on first Ctrl+O press ]
+if ( ( $state_ref->{'ctrl_o_start_position'} // -1 ) < 0 ) {
+    $state_ref->{'ctrl_o_start_position'} = $cur_index;
+    $state_ref->{'ctrl_o_entries_added'}  = 0;
 }
 
-## Print command for execution
-printf "\r\e[K%s%s\e[0m\n", $colors{'p7_fg_0004'}, $cmd;
+## [ print command for execution — restore p7_fg_0004 after reset ]
+printf "\r\e[K%s%s\e[0m%s\n",
+    $colors{'p7_fg_0004'}, $cmd, $colors{'p7_fg_0004'};
 STDOUT->flush();
 
-## Add executed command to history FIRST
-## This shifts all indices up by 1, so we calculate next_index after
-if ( length $cmd ) {
-    my @lines = split "\n", $cmd;
-    AMOS7::TERM::history_add(@lines);
-    ## Track that an entry was added [ shifts all indices up by 1 ]
-    $state_ref->{'ctrl_o_entries_added'}++;
-    ## Note: we do NOT increment ctrl_o_start_position here
-    ## The shift is applied dynamically via $shift variable
-    ## start_position stays constant (the original cycle start point)
+## [ add to history ]
+my @lines = split "\n", $cmd;
+AMOS7::TERM::history_add(@lines);
+$state_ref->{'ctrl_o_entries_added'}++;
+
+## [ find next older entry with duplicate skipping — same logic as arrow_up ]
+my $next_index = -1;
+my $next_lines = undef;
+my $attempts   = 0;
+my $search_idx = $cur_index - 1;
+
+while ( $attempts < scalar @AMOS7::TERM::history_entries ) {
+    last if $search_idx < 0;
+    if ( $search_idx < scalar @AMOS7::TERM::history_entries ) {
+        my $entry = $AMOS7::TERM::history_entries[$search_idx];
+        if ( ref($entry) eq qw| ARRAY | && $entry->[1] ) {
+            my $entry_text = join "\n", $entry->[1]->@*;
+            if ( $entry_text ne $cmd ) {
+                $next_index = $search_idx;
+                $next_lines = $entry->[1];
+                last;
+            }
+        }
+    }
+    $search_idx--;
+    $attempts++;
+}
+
+if ( defined $next_lines ) {
+    ## [ advance to next entry — stay in VIEWING_HISTORY ]
+    my $next_text = join "\n", $next_lines->@*;
+    $state_ref->{'current_history_index'} = $next_index;
+    $state_ref->{'display_buffer'}        = $next_text;
+    $state_ref->{'current_mode'}          = 2;          ## [ VIEWING_HISTORY ]
+    $state_ref->{'display_preloaded_entry'} = TRUE;
+    AMOS7::TERM::editor_load( $state_ref->{'editor'}, $next_text );
+
+    ## [ schedule deferred render — fires after command reply has printed ]
+    <[event.add_timer]>->(
+        {   'after'   => 0.15,
+            'handler' => qw| nshell.handler.ctrl_o_render_preload |,
+            'desc'    => 'render preloaded entry after reply'
+        }
+    );
 
     if (<nshell.mode.no_tty_debug>) {
         <[base.logs]>->(
             1,
-            "ctrl_o: added command to history,"
-                . " entries_added=%s start_position=%s",
-            $state_ref->{'ctrl_o_entries_added'},
-            $state_ref->{'ctrl_o_start_position'}
+            "ctrl_o: executed '%s', advanced to index %d '%s'",
+            substr( $cmd, 0, 40 ),
+            $next_index, substr( $next_text, 0, 40 )
+        );
+    }
+} else {
+    ## [ no more entries — reset to NORMAL after executing ]
+    $state_ref->{'current_history_index'}   = -1;
+    $state_ref->{'current_mode'}            = 0;       ## [ NORMAL ]
+    $state_ref->{'display_buffer'}          = '';
+    $state_ref->{'ctrl_o_start_position'}   = -1;
+    $state_ref->{'ctrl_o_entries_added'}    = 0;
+    $state_ref->{'display_preloaded_entry'} = FALSE;
+    AMOS7::TERM::editor_load( $state_ref->{'editor'}, '' );
+
+    if (<nshell.mode.no_tty_debug>) {
+        <[base.logs]>->(
+            1,
+            "ctrl_o: executed '%s', no more entries — NORMAL",
+            substr( $cmd, 0, 40 )
         );
     }
 }
 
-## [ calculate indices after history_add shifts everything ]
-## [ shift accounts for entries added during the cycle ]
-my $shift = $state_ref->{'ctrl_o_entries_added'};
+return $cmd;
 
-## [ calculate post-shift positions consistently ]
-my $pos_original = $state_ref->{'ctrl_o_start_position'} + $shift;
-my $pos_before   = $pos_original - 1;
-
-## [ current position also shifted if we had a valid index ]
-my $current_now = $state_ref->{'current_history_index'};
-$current_now++ if $current_now >= 0;
-
-## [ toggle between original and previous entry ]
-my $next_index
-    = ( $current_now == $pos_original ) ? $pos_before : $pos_original;
-
-if (<nshell.mode.no_tty_debug>) {
-    <[base.logs]>->(
-        1,
-        "ctrl_o: current=%s pos_original=%s pos_before=%s next=%s shift=%s",
-        $current_now, $pos_original, $pos_before, $next_index, $shift
-    );
-}
-
-## Navigate to next entry [ load into editor for display ]
-if ( $next_index >= 0 && $next_index < @AMOS7::TERM::history_entries ) {
-    my $entry = $AMOS7::TERM::history_entries[$next_index];
-    if ( ref($entry) eq qw| ARRAY | && $entry->[1] ) {
-        $state_ref->{'current_history_index'} = $next_index;
-        $state_ref->{'display_buffer'}        = join "\n", $entry->[1]->@*;
-
-        ## Load into editor
-        AMOS7::TERM::editor_load( $state_ref->{'editor'},
-            $state_ref->{'display_buffer'} );
-
-        ## Signal to display the preloaded entry on next cursor call
-        $state_ref->{'display_preloaded_entry'} = TRUE;
-
-        if (<nshell.mode.no_tty_debug>) {
-            <[base.log]>->(
-                1, "ctrl_o: loaded history entry at index=$next_index"
-            );
-        }
-    }
-} elsif (<nshell.mode.no_tty_debug>) {
-    <[base.logs]>->(
-        1,           "ctrl_o: next_index=%s out of bounds [ 0..%s ]",
-        $next_index, $#AMOS7::TERM::history_entries
-    );
-}
-
-## Set flag to redraw cursor on next call
-$state_ref->{'ctrl_o_redraw_cursor'} = TRUE;
-
-if ( length $cmd ) { ## stay in VIEWING_HISTORY mode with next entry preloaded
-    if (<nshell.mode.no_tty_debug>) {
-        <[base.logs]>->( 1, "ctrl_o: RETURNING cmd='%s'", $cmd );
-    }
-    return $cmd;
-} else {
-    return undef;
-}
-
-#,,,,,.,,,,.,,,,,,,..,..,,,,,,..,,,,,,.,,,,,,,.,.,...,...,,,.,,..,,,.,,,.,,,,,
-#CRVFOEM5YONSJVN3OVELJNQY2QGVZQYF6DN7IGKCL3EJ2TYIE7B7UB6DUAKGJR44S23ARTTYQHAAM
-#\\\|54F52YBIJPSTDDVTJ274LIOBMR6DCLMJNV27DLPAPGDKG2GWOLH \ / AMOS7 \ YOURUM ::
-#\[7]HSUTWRYSPXPU3YNW3SA3N5UAJGVAGPCFLKVMSOLINPWDHCTOXOBA 7  DATA SIGNATURE ::
+#,,,.,...,,,,,,..,.,.,,.,,,,,,...,...,,..,,..,.,.,...,...,..,,...,,,.,,,,,,.,,
+#HEZMXYXLAFDETRD2ZJUMSXGRC3ZQ27OSSZIAPNT65M556UHLU34OJWRAGEGAXPMLK4PJRWLDL76LE
+#\\\|MWN4V5BIB2PSSG4EC2YZIEV7AMB7WZI277OPYUT3P6WGQYPACZA \ / AMOS7 \ YOURUM ::
+#\[7]YZWNGXZF3GKBWJ4NPDHTC3Z462YMDBGTM3YB2Q2NYREQPPQ5TACA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

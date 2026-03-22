@@ -86,11 +86,11 @@ state %chr_map = (
 ### [ initialize debug state on first use ]
 ##
 <nshell.debug_state> //= {
-    current_mode            =>  0,      # NORMAL
+    current_mode            =>  0,   # NORMAL
     current_history_index   => -1,
-    ctrl_o_start_position   => undef,
-    ctrl_o_entries_added    => 0,
-    display_preloaded_entry => 0,
+    ctrl_o_start_position   => -1,
+    ctrl_o_entries_added    =>  0,
+    display_preloaded_entry =>  0,
     mode_names              => {
         0 => 'NORMAL',
         1 => 'SEARCHING',
@@ -103,7 +103,7 @@ my $debug_state = <nshell.debug_state>;
 ### [ initialize state tracking buffer for LLM-friendly debug output ]
 ##
 if ( not exists <buffer.nshell-state-track> ) {
-    <buffer.nshell-state-track.max_size> = 12 * 1024;    ## 12K buffer ##
+    <buffer.nshell-state-track.max_size> = 24 * 1024;    ## 24K buffer ##
     <[base.buffer.add_line]>->(
         qw| nshell-state-track |,
         sprintf( '=== nshell state tracking initialized [%s] ===',
@@ -236,18 +236,76 @@ $log_debug_event->(
     )
 ) unless $is_debug_status_call;
 
-### [ let event loop process the queued keys ]
+### [ process queued keys — event.once drives event loop for processing ]
 ##
-<[event.once]>->(0.07);    ## Event::loop with 0.07s timeout
 
-## manually process debug buffer by repeatedly calling read_from_buffer
-## until buffer is consumed (handles cursor display on first call)
-my $iteration = 0;
-while ( length <nshell.buffer.debug_input> && $iteration < 20 ) {
+## diagnostic: state before processing
+my $diag_editor = <nshell.state>->{'editor'};
+$log_debug_event->(
+    'PRE_PROCESS',
+    sprintf(
+        'debug_buf_len=%d, editor_buf="%s", editor_defined=%d, mode=%d',
+        length( <nshell.buffer.debug_input> // '' ),
+        substr( ( ( $diag_editor // {} )->{'buffer'} // '' ), 0, 40 ),
+        ( defined $diag_editor ? 1 : 0 ),
+        ( <nshell.state>->{'current_mode'} // 0 )
+    )
+) unless $is_debug_status_call;
+
+## consume show_cursor_on_call phase if active [ first call after Enter ]
+<[event.once]>->(0.07);
+
+## diagnostic: state after first event.once
+$diag_editor = <nshell.state>->{'editor'};
+$log_debug_event->(
+    'POST_ONCE_1',
+    sprintf(
+        'debug_buf_len=%d, editor_buf="%s", '
+            . 'editor_defined=%d, mode=%d, hist_idx=%d',
+        length( <nshell.buffer.debug_input> // '' ),
+        substr( ( ( $diag_editor // {} )->{'buffer'} // '' ), 0, 40 ),
+        ( defined $diag_editor ? 1 : 0 ),
+        ( <nshell.state>->{'current_mode'}          // 0 ),
+        ( <nshell.state>->{'current_history_index'} // -1 )
+    )
+) unless $is_debug_status_call;
+
+## process the debug buffer [ keys consumed via event loop ]
+my $iteration     = 0;
+my $submitted_cmd = undef;
+while ( length( <nshell.buffer.debug_input> // '' ) && $iteration < 20 ) {
     $iteration++;
-    <[nshell.read_from_buffer]>;
-    <[event.once]>->(0.02);    ## brief event processing
+    my $result = <[nshell.read_from_buffer]>;
+    if ( defined $result and length $result ) {
+        ## command was submitted [ Enter key processed ]
+        ## route to cube same as shell_loop does
+        my ($cube_sid) = keys <user.cube.session>->%*;
+        if ( defined $cube_sid
+            and exists $data{'session'}{$cube_sid} ) {
+            $data{'session'}{$cube_sid}{'buffer'}{'output'}
+                .= $result . "\n";
+            $submitted_cmd = $result;
+            $log_debug_event->( 'EXEC', "submitted: $result" );
+        }
+    }
+    <[event.once]>->(0.02);
 }
+
+## diagnostic: state after processing loop
+$diag_editor = <nshell.state>->{'editor'};
+$log_debug_event->(
+    'POST_LOOP',
+    sprintf(
+        'iterations=%d, debug_buf_len=%d, editor_buf="%s",'
+            . ' editor_defined=%d, mode=%d, hist_idx=%d',
+        $iteration,
+        length( <nshell.buffer.debug_input> // '' ),
+        substr( ( ( $diag_editor // {} )->{'buffer'} // '' ), 0, 40 ),
+        ( defined $diag_editor ? 1 : 0 ),
+        ( <nshell.state>->{'current_mode'}          // 0 ),
+        ( <nshell.state>->{'current_history_index'} // -1 )
+    )
+) unless $is_debug_status_call;
 
 STATUS_SECTION:
 
@@ -334,8 +392,8 @@ my $state_transition_reply = sprintf(
 
 return { 'mode' => qw| size |, 'data' => $state_transition_reply }
 
-#,,,.,..,,...,,,,,..,,,,.,...,..,,.,.,..,,.,.,..,,...,...,,,.,.,.,.,.,,..,,.,,
-#THFVB22MQ6LQQJ7X5RWP2JRYFG2L2ICQSNEJ4WNUDGJDOAQRX54KAH7Q52D7TUANIMY72YIEV4UYW
-#\\\|R4J653JX3INQXR2SEKVUGOM7M2Q63ITDL2BH5ZZZJZM2KMS6KBS \ / AMOS7 \ YOURUM ::
-#\[7]SK5IN2GMGZGXIHZ5BCXSUUQWZJEFZPKOHXGGLCXQNKXDHALYKACA 7  DATA SIGNATURE ::
+#,,,,,.,.,.,,,,.,,...,...,,.,,...,...,..,,...,..,,...,...,.,.,,.,,,,.,...,,,,,
+#OWPLVCIB7ZYIFXYKEEXOZVTRICYXIP6KB3EAYXFGZYK7Y36YV6YUDIAJKPXKB6LYGW4D6OMXU6LTW
+#\\\|HVDB4IQ7UABDV7VV7WVZWC34XZU562UN6XCPOW5THT5TLDVOGWZ \ / AMOS7 \ YOURUM ::
+#\[7]SVY7VP4CBVYYVXRLA7LLKZROSLMDW2YFZTCX6PPQ2BFWBM342QCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

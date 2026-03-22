@@ -13,24 +13,21 @@ my $new_rows = $size[1] // 24;
 $data{'nshell'}{'cfg'}{'term_cols'} = $new_cols;
 $data{'nshell'}{'cfg'}{'term_rows'} = $new_rows;
 
-## redraw current input line at new width (if editor is active)
+## [ redraw current input line at new width (if editor is active) ]
 my $state_ref = $data{'nshell'}{'state'} // {};
 if ( defined $state_ref->{'editor'} ) {
 
-    ## reset view_offset so viewport recalculates from scratch at new width
+    ##[ reset view_offset so viewport recalculates from scratch at new width ]
     $state_ref->{'view_offset'} = 0;
 
-    ## clear current line and the line below [ previous wider renders may have
-    ## left remnants on the next screen line when the terminal narrows ]
+    ##[ clear current line and the line below - previous wider renders may
+    ##  have left remnants on the next screen line when the terminal narrows ]
     print "\r\e[2K\e[1B\r\e[2K\e[1A";
-    <[nshell.render.viewport]>->(
-        $state_ref->{'editor'},
-        $state_ref->{'colors'}
-    );
+    <[nshell.render.viewport]>->( $state_ref->{'editor'}, \%colors );
 }
 
-#,,,.,,,.,,.,,,.,,,.,,,,.,.,,,..,,,,,,.,.,,..,..,,...,...,..,,...,..,,.,,,,.,,
-#POM4ED4VMWDFPQFO65PCWFVL7Q4K7A74667U4IUC7PNIAZEAE2LQNF7DN3AZ775XZQ2JTQVAAKXKK
-#\\\|SJO2DE44OEIO6TDDFYPOZ7CIJJRKCN43JWGHKYKY2AKZYMX4PE4 \ / AMOS7 \ YOURUM ::
-#\[7]SSL7ACLBKIRDPVEH7VKLSN5FDKY3LCBKNZX3MAEY3IA4KJRTBADY 7  DATA SIGNATURE ::
+#,,,,,.,,,...,.,,,.,,,,,,,,,,,.,.,.,,,.,.,..,,..,,...,...,.,.,,.,,,,.,,..,.,.,
+#GNYEMEINCOPG3WGLMG4H4XHCD4FMBYIHHFI4VYY5DVPANZY2N3HEEKNDXXR5XBLINH4B6R6TBHZQQ
+#\\\|ERGZJ2BBVGTLNZERHIIFSQCZYVFM6TN5GPCYA7LJMRMXJ5JNSD5 \ / AMOS7 \ YOURUM ::
+#\[7]EYCM55Y45DL7K5YQ62AHBAAO6SE5YD6H3LKFV4RSWZDSETZLIWAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

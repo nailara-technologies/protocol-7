@@ -29,23 +29,22 @@ if ($show_cursor_on_call) {
     $state_ref->{'editor'} //= AMOS7::TERM::editor_init();
     AMOS7::TERM::cursor_set_color( $colors{'p7_fg_0003'} );
 
-    ## Check if we need to display a preloaded entry (from Ctrl+O cycle)
+    ## [ check if we need to display a preloaded entry from ctrl+o cycle ]
     if ( $state_ref->{'display_preloaded_entry'} ) {
         $state_ref->{'display_preloaded_entry'} = FALSE;
-        ## Display the preloaded buffer with cursor
+        ## [ display the preloaded buffer with cursor ]
         my $buffer = $state_ref->{'editor'}->{'buffer'} // '';
         if (<nshell.mode.no_tty_debug>) {
             <[base.logs]>->(
-                2,       "preload display: buffer='%s' color_0004='%s'",
+                2,       "[ preload display: buffer='%s' color_0004='%s' ]",
                 $buffer, $colors{'p7_fg_0004'} // '<undef>'
             );
         }
-        ## viewport render handles overflow for long preloaded history entries
+        ## [ clear line and render preloaded entry ]
+        ## [ \r\e[2K avoids wrap on long lines, matches arrow handler behavior ]
+        print "\r\e[2K";
         $state_ref->{'view_offset'} = 0;
-        <[nshell.render.viewport]>->(
-            $state_ref->{'editor'},
-            $state_ref->{'colors'}
-        );
+        <[nshell.render.viewport]>->( $state_ref->{'editor'}, \%colors );
     } else {
         ## Just display cursor on empty line
         print $colors{'p7_fg_0003'} . "_\r" . "\e[0m" . $colors{'p7_fg_0004'};
@@ -195,11 +194,11 @@ while ( length $input_chars ) {
             next;
         }
 
-        ## Reset Ctrl+O cycle on manual navigation
-        if ( $key eq "\e[A" or $key eq "\e[B" ) {    # Up or Down arrow
-            $state_ref->{'ctrl_o_start_position'} = undef;
+        ## [ reset ctrl+o cycle on manual navigation ]
+        if ( $key eq "\e[A" or $key eq "\e[B" ) {    # [ up or down arrow ]
+            $state_ref->{'ctrl_o_start_position'} = -1;
             $state_ref->{'ctrl_o_entries_added'}  = 0;
-            ## Fall through to existing arrow handling
+            ## [ fall through to existing arrow handling ]
         }
 
         if ( $key eq "\e[A" ) {
@@ -301,15 +300,15 @@ while ( length $input_chars ) {
         );
     }
 
-    ## Check for state change when exiting history mode
+    ## [ check for state change when exiting history mode ]
     if ( defined $result && $state_ref->{'current_mode'} == 2 ) {
         <[base.buffer.add_line]>->(
             qw| no-tty-debug |,
             "exiting VIEWING_HISTORY, returning to NORMAL"
         ) if <nshell.mode.no_tty_debug>;
-        $state_ref->{'current_mode'}          = 0;       # Return to NORMAL
+        $state_ref->{'current_mode'}          = 0;    # [ return to normal ]
         $state_ref->{'current_history_index'} = -1;
-        $state_ref->{'ctrl_o_start_position'} = undef;
+        $state_ref->{'ctrl_o_start_position'} = -1;
         $state_ref->{'ctrl_o_entries_added'}  = 0;
     }
 
@@ -327,8 +326,8 @@ while ( length $input_chars ) {
 
 return undef;
 
-#,,,,,,,.,...,...,,,.,.,,,.,.,,,.,...,,,.,..,,.,.,...,...,...,,,,,...,,,,,,,.,
-#IA6Z5RGCD5ZQQFGJPMDUQJRFBEFNGUGLTVM7CLJS3HNO2YKZLOZDI6RN5MFY64Z4YAWJZMTIHBAOG
-#\\\|TAG7IYQ3PXUM3GBVJKKJCIYTUWPTJ5STHN4U5JCCZZCHD3KBHFX \ / AMOS7 \ YOURUM ::
-#\[7]BWWD2QMRMRVODXH4I3BWDMDZGLZ3NBH753XEWGBIQ7VMEDHMSQCY 7  DATA SIGNATURE ::
+#,,,.,.,,,,,,,,,,,,,,,,,,,..,,..,,..,,..,,,..,.,.,...,...,,,,,,,,,,..,.,.,.,.,
+#JFN2PLEKSQSMX3WSS7AXEAZ3SBRDQ4B42SS3CA6AMPXRUOKRIRBPFH6CGILPJEBD4XXPUE65JLFI6
+#\\\|AIFWADWDUNQXW7P2ASCHPWW3OEHGHIAOTJH2CVIKMFPCIVBPNYW \ / AMOS7 \ YOURUM ::
+#\[7]CAKEAEBK7FFDPAMOWGFKTRQCWSDRCPQBGIYS5HUSKVO4OQ3VTIBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
