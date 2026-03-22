@@ -1,0 +1,38 @@
+## [:< ##
+
+# name  = nshell.handler.ctrl_o_render_preload
+# descr = timer callback to render preloaded entry after command reply
+
+## [ fired ~150ms after Ctrl+O, so command reply has already printed ]
+
+my $state_ref = <nshell.state> // {};
+
+## [ only render if preload flag is still set — might have been cancelled ]
+return if not $state_ref->{'display_preloaded_entry'};
+$state_ref->{'display_preloaded_entry'} = FALSE;
+
+my $editor = $state_ref->{'editor'} // return;
+my $buffer = $editor->{'buffer'}    // '';
+
+return unless length $buffer;
+
+## [ render the preloaded entry with cursor, same as arrow_up display path ]
+print "\r\e[2K";
+$state_ref->{'view_offset'} = 0;
+<[nshell.render.viewport]>->( $editor, \%colors );
+
+if (<nshell.mode.no_tty_debug>) {
+    <[base.logs]>->(
+        1,
+        "ctrl_o_render: displayed preload '%s'",
+        substr( $buffer, 0, 40 )
+    );
+}
+
+return;
+
+#,,,,,...,,,.,,.,,.,.,..,,.,.,.,.,,..,,..,,..,..,,...,...,,,.,,.,,...,,..,.,,,
+#HMRT7G5ZZ4EDFXJASRIXENK2AO3V4EZ3YAHXAT3Q2VDMA6QPI5BRKGASGBQKZHPW6MX7FVGQ23DMK
+#\\\|FHQDCYSYY7LAD7QXPOSADZ2I73G433X4FGRKFI44SEDUHBSRNLN \ / AMOS7 \ YOURUM ::
+#\[7]GRP4LFXAIAVTSAY7Y45GWQRNBUGAXOQQ3V3EH7NUEFEGSUG3NOBA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
