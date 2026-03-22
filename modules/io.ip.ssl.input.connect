@@ -1,8 +1,9 @@
 ## [:< ##
 
 # name = io.ip.ssl.input.connect
-# descr = handle incoming SSL/TLS connections
-#        [ like io.ip.tcp.input.connect but for IO::Socket::SSL ]
+# descr = handle incoming SSL/TLS connections with non-blocking handshake
+#        [ prevents event loop stall from slow/bot clients that open TCP
+#          but never complete SSL handshake ]
 
 my $fd = $_[0]->w->fd;     ## <-- $data{'session'}{$id}{'handle'} ##
 my $id = $_[0]->w->data;
@@ -14,86 +15,38 @@ if ( not exists $data{'session'}->{$id} ) {
 
 my $client_sock_fd;
 
-# Accept connections from IO::Socket::SSL listening socket
+## accept connections from IO::Socket::SSL listening socket
 if ( ref($fd) eq qw| IO::Socket::SSL | and -S $fd ) {
-    ## set server socket to non-blocking to prevent SSL
-    ## handshake from blocking event loop
+    ## set server socket to non-blocking ##
     $fd->blocking(0);
 
-    if ( not $client_sock_fd = $fd->accept() ) {
+    ## accept tcp connection without ssl handshake [ blocking would stall here ] ##
+    ## use SUPER::accept to get plain IO::Socket::IP first
+    my $tcp_client = $fd->SUPER::accept();
+
+    if ( not $tcp_client ) {
         ## no pending connection [ level-triggered re-fire ] ##
         return undef if $!{EAGAIN} or $!{EWOULDBLOCK};
 
-        my $log_level = 0;
-        my $known_lvl = 2;
-        my $err_msg   = <[base.format_error]>->( IO::Socket::SSL::errstr() );
-        if ( $err_msg =~ m|error:0A000126| ) {
-            $err_msg = 'client session shutdown';
-            $log_level
-                = $known_lvl;    ## expected : client closed before handshake
-        } elsif ( $err_msg =~ m|0[Aa]000412|
-            or $err_msg =~ m|bad.certificate| ) {
-            ## client rejected server certificate [ TLS alert 42 ]
-            ## causes: staging CA not trusted, cert/domain mismatch,
-            ##         or Ed25519 cert with incompatible client
-            $err_msg   = 'tls: client rejected certificate [bad_certificate]';
-            $log_level = 1;
-        }
-        $err_msg = lc($err_msg) if $err_msg =~ s| attempt||g;
-        if ( length( $err_msg // '' ) ) {
-            my $os_err = <[base.str.os_err]>;
-            $err_msg = sprintf( '%s [%s]', $err_msg, $os_err )
-                if length $os_err;
-            $log_level = $known_lvl
-                if $err_msg =~ s|connection reset|reset|
-                or $err_msg =~ s|broken pipe|sigpipe|
-                or not length $os_err;
-        } else {
-            $err_msg = <[base.str.os_err]> if not length( $err_msg // '' );
-        }
-        $err_msg =~ s|broken pipe|sigpipe|;
-        <[base.log]>->( $log_level, "[$id] : IP-TCP-SSL-accept : $err_msg" );
+        my $err_msg = <[base.format_error]>->($OS_ERROR);
+        <[base.log]>->(
+            0, "[$id] : IP-TCP-SSL-accept : tcp accept failed: $err_msg"
+        );
         return undef;
     }
 
-    ## set non-blocking : prevent event loop stall on slow clients ##
-    $client_sock_fd->blocking(0);
-    binmode( $client_sock_fd, ':raw' );
-
+    ## get peer info before any potential failures ##
     my ( $p_host, $p_port )
-        = ( $client_sock_fd->peerhost(), $client_sock_fd->peerport() );
+        = ( $tcp_client->peerhost(), $tcp_client->peerport() );
 
     return undef    ##  <-- closed .., ##
         if not defined $p_host
         or not defined $p_port;
 
-    ## Register accepted client connection in handle data
-    ## structure [ by both socket ref and FD ]
-    my $client_fd = fileno($client_sock_fd);
-
-    $data{'handle'}{$client_sock_fd} = {
-        'encryption' => qw| tls |,
-        'mode'       => qw| input |,
-        'link'       => qw| ip.ssl |,
-        'peerhost'   => $p_host,
-        'peerport'   => $p_port,
-        'v4_over_6'  => $p_host =~ s|^::ffff:|| ? 1 : 0
-    };
-
-    # Also register by numeric FD for event loop lookup
-    $data{'handle'}{$client_fd} = $data{'handle'}{$client_sock_fd};
-
+    ## log connection start for crash capture ##
     <[base.logs]>->(
-        1,
-        '[%s] IN.-SSL [%s:%s] encrypted=tls',
-        $id,
-        $data{'handle'}{$client_sock_fd}{'peerhost'},
-        $data{'handle'}{$client_sock_fd}{'peerport'}
-    );
-
-    <[base.logs]>->(
-        2,   '[%s] SSL socket registered: fd=%d (ref and numeric)',
-        $id, $client_fd
+        1,   '[%s] IN.-SSL [%s:%s] encrypted=tls (handshake-pending)',
+        $id, $p_host, $p_port
     );
 
     ## crash capture hook [ httpsd only — no-op in other ssl zenki ] ##
@@ -101,18 +54,115 @@ if ( ref($fd) eq qw| IO::Socket::SSL | and -S $fd ) {
         ->( { 'event' => 'ssl-handshake-start', 'client_ip' => $p_host } )
         if exists $code{'httpsd.request_capture.write'};
 
-    return $client_sock_fd;    ## <-- success \ returning client socket ##
+    ## set client socket to non-blocking before ssl upgrade ##
+    $tcp_client->blocking(0);
+    binmode( $tcp_client, ':raw' );
+
+    ## get ssl context from server socket for start_SSL ##
+    my $ssl_ctx_obj = ${*$fd}{'_SSL_ctx'};
+    my $ssl_ctx
+        = defined $ssl_ctx_obj
+        ? ( $ssl_ctx_obj->{'context'} // $ssl_ctx_obj->{'ssl_ctx'}
+            // $ssl_ctx_obj->{'ctx'} )
+        : undef;
+
+    ## upgrade tcp socket to ssl with deferred handshake ##
+    my $ssl_client = eval {
+        IO::Socket::SSL->start_SSL(
+            $tcp_client,
+            SSL_server         => 1,
+            SSL_startHandshake => 0,           ## <-- defer handshake ##
+            SSL_reuse_ctx      => $ssl_ctx,    ## reuse server SSL context ##
+        );
+    };
+
+    if ($EVAL_ERROR) {
+        <[base.logs]>
+            ->( 1, '[%s] SSL start_SSL error: %s', $id, $EVAL_ERROR );
+        close($tcp_client);
+        return undef;
+    }
+
+    if ( not defined $ssl_client ) {
+        my $ssl_err = IO::Socket::SSL::errstr() || 'unknown error';
+        <[base.logs]>->( 1, '[%s] SSL start_SSL failed: %s', $id, $ssl_err );
+        close($tcp_client);
+        return undef;
+    }
+
+    ## create unique handshake id ##
+    my $hs_id = 'ssl_hs_' . $id . '_' . fileno($ssl_client) . '_' . time;
+
+    ## get handshake timeout from config ##
+    my $hs_timeout = <httpsd.cfg.ssl_handshake_timeout> // 10;
+
+    ## register pending handshake ##
+    $data{'ssl_handshake'}{$hs_id} = {
+        'socket'     => $ssl_client,
+        'fd'         => fileno($ssl_client),
+        'peerhost'   => $p_host,
+        'peerport'   => $p_port,
+        'server_id'  => $id,
+        'start_time' => time,
+        'io_watcher' => undef,                 ## will be set below
+        'timer'      => undef,                 ## will be set below
+    };
+
+    ## register io watcher for non-blocking ssl handshake ##
+    my $io_watcher = <[base.event.add_io]>->(
+        {   'fd'     => $ssl_client,
+            'poll'   => 'rw',       ## ssl handshake may need read or write ##
+            'repeat' => 1,
+            'data'   => $hs_id,
+            'handler' => 'io.ip.ssl.handshake.handler'
+        }
+    );
+
+    if ( not defined $io_watcher ) {
+        <[base.logs]>->(
+            0, '[%s] failed to add SSL handshake IO watcher', $id
+        );
+        delete $data{'ssl_handshake'}{$hs_id};
+        close($ssl_client);
+        return undef;
+    }
+
+    $data{'ssl_handshake'}{$hs_id}{'io_watcher'} = $io_watcher;
+
+    ## register timeout timer ##
+    my $timer = <[base.event.add_timer]>->(
+        {   'after'   => $hs_timeout,
+            'data'    => $hs_id,
+            'handler' => 'io.ip.ssl.handshake.timeout'
+        }
+    );
+
+    if ( not defined $timer ) {
+        <[base.logs]>->(
+            0, '[%s] failed to add SSL handshake timeout timer', $id
+        );
+        $io_watcher->cancel if $io_watcher->can('cancel');
+        delete $data{'ssl_handshake'}{$hs_id};
+        close($ssl_client);
+        return undef;
+    }
+
+    $data{'ssl_handshake'}{$hs_id}{'timer'} = $timer;
+
+    ## return undef — handshake completion handled by event callbacks ##
+    ## the actual client socket will be registered after handshake completes ##
+    return undef;
 
 } else {
     <[base.logs]>->(
         0,   '[%d] server socket is not valid (expected IO::Socket::SSL) %s',
         $id, <[base.caller]>
     );
-    return undef;              ## <-- connection closed \ error connecting ##
+    return undef;    ## <-- connection closed \ error connecting ##
 }
 
-#,,.,,.,.,.,,,,.,,,,,,,,,,,.,,.,,,.,,,...,.,,,..,,...,...,.,.,.,,,...,,,,,,.,,
-#INUS26NL5RSDFXXYJ6CJWWLT55U3CU2YXHOV43AHIMLGRP2MDK4X6NEBNMAWXTR7IX63W5BHVK2LE
-#\\\|UCBH3GMRVKBPYIOO6NANATYOGZS3DSQLXTRZZSIWLE7THZJIXIQ \ / AMOS7 \ YOURUM ::
-#\[7]WMMZREGJ4I4VCKRLAPGLTKZWP7WOLTHCLY6XH4UJDCM4NMPVDIAQ 7  DATA SIGNATURE ::
+#,,,.,,..,,,,,...,,.,,...,.,,,,.,,,,.,,.,,,.,,.,.,...,...,.,.,.,.,,.,,..,,,..,
+#VWFYFW6K2HZ72BYT6LLCJVD5TDSDX42NEY5XAEVZZBFHJK7LVDQZISRMAVF5OWI2WJJCKTG6CZ444
+#\\\|QA5RPEFHIEAFWDHJGORXZPPRJNFQ2IBJA4LXI2QYTBDAUJQMCJX \ / AMOS7 \ YOURUM ::
+#\[7]AMP6ND2ILX6C2YGLHSFCE7JA7OOUXQJRJP72Z5VG4I6DSVNZ54AY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
