@@ -1,0 +1,40 @@
+## [:< ##
+
+# name  = kimi.handler.reconnect_grace_timeout
+# descr = fail preserved prompt entries that survived reconnect grace period
+
+## if prompts are still pending after grace period, fail them now
+foreach my $pend_id ( keys %{<kimi.wire.pending>} ) {
+    my $pend = <kimi.wire.pending>->{$pend_id};
+    next if ( $pend->{'type'} // '' ) ne qw| prompt |;
+
+    <[base.logs]>->(
+        0, ': reconnect grace expired — failing pending prompt [ %s ]',
+        $pend_id
+    );
+    delete <kimi.wire.pending>->{$pend_id};
+    my $rid = $pend->{'reply_id'} // '';
+    if ( length($rid) ) {
+        <[base.callback.cmd_reply]>->(
+            $rid, { 'mode' => 'false', 'data' => 'kimi reconnect timeout' }
+        );
+    }
+}
+
+## reset task if still active
+if ( defined <kimi.task.active_id> ) {
+    my $task_id = <kimi.task.active_id>;
+    <[base.logs]>->( 0, ': grace timeout — resetting task %s', $task_id );
+    <[protocol-7.route-send]>->(
+        {   'command'   => 'task.reset',
+            'call_args' => { 'args' => $task_id }
+        }
+    );
+    <kimi.task.active_id> = undef;
+}
+
+#,,,.,,,,,,,,,,,,,...,.,.,..,,,,.,,,,,..,,.,.,.,.,...,...,..,,.,.,.,.,,..,,,,,
+#D5WDWKCT3PZETJO3ULCBYT5ZDFH46EUDMVXULOXNC3FVZFHZEWFU24OCPTD5HTCVPFBJUWA6GBCFO
+#\\\|KQIFY6HNS4OT6YLE232GJQ4YBELZ4BO7FPWMPE2FI5UHIIGOZ2D \ / AMOS7 \ YOURUM ::
+#\[7]JQYJBUNFNNUBG2V4KUCTRRUECFFXA7IEYEHQYRBIDR2WSSU43MDQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
