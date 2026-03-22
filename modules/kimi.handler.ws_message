@@ -64,8 +64,9 @@ if ( not defined $text ) {
     }
 
     ## schedule grace timeout to fail preserved prompts if reconnect stalls
+    ## [ timer reference stored so it can be cancelled on successful reconnect ]
     if ($has_active_prompt) {
-        <[event.add_timer]>->(
+        <kimi.reconnect.grace_timer> = <[event.add_timer]>->(
             {   'after'   => 90,
                 'handler' => qw| kimi.handler.reconnect_grace_timeout |,
                 'desc'    => 'fail preserved prompts if still pending'
@@ -103,6 +104,17 @@ my $params = $msg->{'params'} // {};
 if ( $method eq qw| history_complete | ) {
     <[base.logs]>
         ->( 2, 'kimi.handler.ws_message: history_complete received' );
+
+    ## cancel reconnect grace timer — websocket is alive again
+    if ( defined <kimi.reconnect.grace_timer> ) {
+        <kimi.reconnect.grace_timer>->cancel
+            if <kimi.reconnect.grace_timer>->is_active;
+        <kimi.reconnect.grace_timer> = undef;
+        <[base.logs]>->(
+            1, ': reconnect grace timer cancelled — session alive'
+        );
+    }
+
     ## skip initialize if already ready, busy, or retry in progress
     if (   <kimi.ws.status> eq qw| ready |
         or <kimi.ws.status> eq qw| busy |
@@ -249,6 +261,14 @@ if ( not length($method) and length($msg_id) ) {
             <kimi.session.was_ready>  = TRUE;
             <kimi.init.retry_count>   = 0;
             <kimi.init.retry_pending> = FALSE;
+
+            ## cancel reconnect grace timer — fully recovered
+            if ( defined <kimi.reconnect.grace_timer> ) {
+                <kimi.reconnect.grace_timer>->cancel
+                    if <kimi.reconnect.grace_timer>->is_active;
+                <kimi.reconnect.grace_timer> = undef;
+            }
+
             if ( not <kimi.session.acquired> ) {
                 ## first successful handshake — go online
                 <kimi.session.acquired> = TRUE;
@@ -272,26 +292,23 @@ if ( not length($method) and length($msg_id) ) {
             if ( $err =~ m{agent turn.*in progress}i ) {
                 <kimi.init.retry_count> //= 0;
                 <kimi.init.retry_count>++;
-                if ( <kimi.init.retry_count> <= 12
-                    and not( <kimi.init.retry_pending> // FALSE ) )
-                {    ## ~60s max
+                if ( not( <kimi.init.retry_pending> // FALSE ) ) {
                     <kimi.init.retry_pending> = TRUE;
+
+                    ## adaptive interval: 5s for first 12, then 15s
+                    ## no hard limit — session is alive if agent turn runs
+                    my $interval = <kimi.init.retry_count> <= 12 ? 5 : 15;
+
                     <[base.logs]>->(
-                        2, ': init retry %d/12 in 5s [ waiting for turn ]',
-                        <kimi.init.retry_count>
+                        2, ': init retry %d in %ds [ agent turn active ]',
+                        <kimi.init.retry_count>, $interval
                     );
                     <[event.add_timer]>->(
-                        {   'after'   => 5,
+                        {   'after'   => $interval,
                             'handler' => qw| kimi.wire.initialize |,
                             'desc'    => 'init retry after agent turn'
                         }
                     );
-                } elsif ( <kimi.init.retry_count> > 12 ) {
-                    <[base.logs]>->(
-                        0, ': init retry limit reached — giving up'
-                    );
-                    <kimi.init.retry_count>   = 0;
-                    <kimi.init.retry_pending> = FALSE;
                 }
             }
         }
@@ -310,8 +327,8 @@ if ( not length($method) and length($msg_id) ) {
     }
 }
 
-#,,,.,,.,,..,,...,.,.,..,,,,,,,,,,...,.,,,,,,,..,,...,...,...,,,.,.,,,,..,...,
-#XMCYDFKMRPXQSDX5G5Z6AA7AP3QWVRA5DKXPU4OYM75Z7TCX27HMVPMIHFDCTDEN2XXPKZVRBP4S2
-#\\\|XKOUGMKVF3DEXAWX46DU72TXMAOD7BJOZNISRKPQ22M6CWDURDS \ / AMOS7 \ YOURUM ::
-#\[7]OUWWVQZT5MVPBEMTKCN6M5DI6AEPFAAJXZ5NRI5DNKWKB6BH36DI 7  DATA SIGNATURE ::
+#,,,,,,.,,...,,,,,,.,,,..,...,...,...,..,,...,..,,...,...,..,,,..,..,,,.,,,.,,
+#OW7OU6OHSUGCKR6KISTKPHPFRA6VPMNELCAHLCKY4TIRV2XJWO3P2USUQDB3S4FNLZIADJD5RHNV2
+#\\\|2NKVVLUWUBLX2JC2IFFEOGNW7BCIXAVFVLQEUPLUVKICGOFV2HC \ / AMOS7 \ YOURUM ::
+#\[7]PZDQKGNUXY7HMDUKOAU3RY63GUM2N7MM5AWUCHKJI2KC5XPQYOBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
