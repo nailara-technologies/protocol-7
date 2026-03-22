@@ -4,8 +4,9 @@
 # descr = detect dead/archived kimi-web session and force fresh reconnect
 
 ## if status is still 'connecting' after timeout, session is dead
-return if <kimi.ws.status> eq qw| ready |
-    or   <kimi.ws.status> eq qw| busy |;
+return
+    if <kimi.ws.status> eq qw| ready |
+    or <kimi.ws.status> eq qw| busy |;
 
 ## don't clear session if we have active prompts — session is alive but
 ## busy with our work [ init fails because agent turn is in progress ]
@@ -18,16 +19,10 @@ foreach my $pend_id ( keys %{<kimi.wire.pending>} ) {
     }
 }
 if ($has_pending_prompt) {
-    <[base.logs]>->(
-        2, ': liveness timeout skipped — active prompt pending'
-    );
+    <[base.logs]>
+        ->( 2, ': liveness timeout skipped — active prompt pending' );
     return;
 }
-
-<[base.logs]>->(
-    0, ': session liveness timeout [ status=%s ] — clearing stale session',
-    <kimi.ws.status>
-);
 
 ## tear down websocket
 if ( defined <kimi.ws.io_watcher> ) {
@@ -42,15 +37,33 @@ if ( defined <kimi.ws.socket> ) {
 <kimi.ws.connected> = FALSE;
 <kimi.ws.status>    = qw| disconnected |;
 
-## clear session id so next connect creates a fresh session
+## if session was previously working, keep the session id and just
+## reconnect the websocket — the kimi-web session is likely still
+## alive [ agent turn may still be running in the background ]
+if ( <kimi.session.was_ready> // FALSE ) {
+    <[base.logs]>->(
+        1,
+        ': liveness timeout [ status=%s ] — session was previously ready,'
+            . ' preserving session_id for reconnect',
+        <kimi.ws.status>
+    );
+    <[kimi.connect.schedule_retry]>;
+    return;
+}
+
+## session never reached ready state — clear and create fresh
+<[base.logs]>->(
+    0, ': session liveness timeout [ status=%s ] — clearing dead session',
+    <kimi.ws.status>
+);
 <kimi.session_id> = undef;
 <[file.zenka_dir.write]>->( 'session_id', \'' );
 
-<[base.logs]>->( 1, ': cleared stale session — scheduling fresh connect' );
+<[base.logs]>->( 1, ': cleared dead session — scheduling fresh connect' );
 <[kimi.connect.schedule_retry]>;
 
-#,,,,,,,,,.,.,.,.,,..,..,,,,,,,,.,,.,,,..,,,,,.,.,...,..,,.,.,...,.,,,..,,.,,,
-#56GFYOHTGDCGQDAW7D2HFG5AZZFKXTNN2WEXSWY6GDD4ZEL4RXLS3BVDEBDOMV5HPMGENZRMWZ5BC
-#\\\|2V3OGQ7TVOARXV4SWQ6RFQT5APOGRXR2WC3UVXZ24KPEUTL5HDK \ / AMOS7 \ YOURUM ::
-#\[7]G5XXTN23ATW2QEXWTC4KA5IEMU2KLJFJW3GAR4OYO45QTUIHIECQ 7  DATA SIGNATURE ::
+#,,,,,.,.,...,...,,.,,..,,,..,...,,.,,...,..,,.,.,...,...,.,,,,.,,...,,,.,..,,
+#H2LKJNKIT4ISDWKRXUDU2PRW5S7FEFWMWN3PX6YXXC5YUKQ7PH5KULK5QUHJZ3QRYPOCODRJZUYUI
+#\\\|4GMRDONZW7XOQMXX6YXVKV663CBLV5R4XS5ZTRN3EGFG47PUAMR \ / AMOS7 \ YOURUM ::
+#\[7]XK2YOBOZZXRTQDVPZJWLW3QBFO4KZDU37FGD5UA34ZAPCKMFJ2AQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

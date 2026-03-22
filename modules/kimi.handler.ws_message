@@ -156,8 +156,9 @@ if ( $method eq qw| event | ) {
             my $pend     = delete <kimi.wire.pending>->{$pend_id};
             my $reply_id = $pend->{'reply_id'} // '';
             my $response = <kimi.wire.accumulator>;
-            <kimi.wire.accumulator> = '';
-            <kimi.ws.status>        = qw| ready |;
+            <kimi.wire.accumulator>  = '';
+            <kimi.ws.status>         = qw| ready |;
+            <kimi.session.was_ready> = TRUE;
 
             ## check if this was a task submission
             my $task_id = $pend->{'task_id'} // '';
@@ -183,8 +184,9 @@ if ( $method eq qw| event | ) {
                 );
             }
         } else {
-            <kimi.wire.accumulator> = '';
-            <kimi.ws.status>        = qw| ready |;
+            <kimi.wire.accumulator>  = '';
+            <kimi.ws.status>         = qw| ready |;
+            <kimi.session.was_ready> = TRUE;
         }
         return;
     }
@@ -244,6 +246,7 @@ if ( not length($method) and length($msg_id) ) {
     if ( $pend->{'type'} eq qw| initialize | ) {
         if ( defined $msg->{'result'} ) {
             <kimi.ws.status>          = qw| ready |;
+            <kimi.session.was_ready>  = TRUE;
             <kimi.init.retry_count>   = 0;
             <kimi.init.retry_pending> = FALSE;
             if ( not <kimi.session.acquired> ) {
@@ -307,8 +310,8 @@ if ( not length($method) and length($msg_id) ) {
     }
 }
 
-#,,,.,,.,,.,,,,.,,,,.,.,.,,.,,...,.,.,,.,,...,..,,...,...,.,,,..,,.,,,,,.,,,,,
-#5T7L3NUQ7AKGPW2ZCHWIFH32D23YZG2O5W3FIYZKJJX27EGXHQ2DKFSJZIFVSBUBX2NS6K7LRYBCO
-#\\\|63LLG533UBV5FCMGWK2YNBH5LQEVEGHZTHFKZ7PBWJPO3TDIAYN \ / AMOS7 \ YOURUM ::
-#\[7]4LRXGEPACKKBCPBAOPGZT6ZGUSUQYKN4JN2DYIDIYJSOTR6BIIBI 7  DATA SIGNATURE ::
+#,,,.,,.,,..,,...,.,.,..,,,,,,,,,,...,.,,,,,,,..,,...,...,...,,,.,.,,,,..,...,
+#XMCYDFKMRPXQSDX5G5Z6AA7AP3QWVRA5DKXPU4OYM75Z7TCX27HMVPMIHFDCTDEN2XXPKZVRBP4S2
+#\\\|XKOUGMKVF3DEXAWX46DU72TXMAOD7BJOZNISRKPQ22M6CWDURDS \ / AMOS7 \ YOURUM ::
+#\[7]OUWWVQZT5MVPBEMTKCN6M5DI6AEPFAAJXZ5NRI5DNKWKB6BH36DI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
