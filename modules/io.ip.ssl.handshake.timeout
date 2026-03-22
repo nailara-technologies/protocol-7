@@ -1,0 +1,61 @@
+## [:< ##
+
+# name  = io.ip.ssl.handshake.timeout
+# descr = handle SSL handshake timeout - cleanup stalled handshakes
+#         [ AWS bots and slow clients that open TCP but never send ClientHello ]
+
+my $w     = $_[0]->w;
+my $hs_id = $w->data;
+
+## validate handshake state exists ##
+if ( not exists $data{'ssl_handshake'}{$hs_id} ) {
+    ## handshake state already cleaned up [ likely completed ] ##
+    $w->cancel if $w->is_active;
+    return undef;
+}
+
+my $hs         = $data{'ssl_handshake'}{$hs_id};
+my $server_id  = $hs->{'server_id'};
+my $p_host     = $hs->{'peerhost'};
+my $p_port     = $hs->{'peerport'};
+my $ssl_client = $hs->{'socket'};
+
+## log timeout event ##
+<[base.logs]>->(
+    1, '[%s] ssl handshake timeout for %s:%s [ possible scanner/bot ]',
+    $server_id, $p_host, $p_port
+);
+
+## crash capture hook [ httpsd only — record ssl-handshake-timeout event ] ##
+$code{'httpsd.request_capture.write'}->(
+    {   'event'     => 'ssl-handshake-timeout',
+        'client_ip' => $p_host,
+        'port'      => $p_port,
+        'duration'  => ( <httpsd.cfg.ssl_handshake_timeout> // 10 )
+    }
+) if exists $code{'httpsd.request_capture.write'};
+
+## cancel io watcher if still active ##
+if ( defined $hs->{'io_watcher'} and $hs->{'io_watcher'}->can('cancel') ) {
+    $hs->{'io_watcher'}->cancel if $hs->{'io_watcher'}->is_active;
+}
+
+## close socket ##
+if ( defined $ssl_client ) {
+    eval { shutdown( $ssl_client, 2 ) };
+    close($ssl_client);
+}
+
+## remove handshake state ##
+delete $data{'ssl_handshake'}{$hs_id};
+
+## cancel self ##
+$w->cancel if $w->is_active;
+
+return undef;
+
+#,,,.,,,,,.,,,,,,,.,.,,,,,,..,.,.,,,,,,.,,,..,.,.,...,...,,..,,..,.,.,,..,,,.,
+#4DTON2MNISQYU7H52BS3AILXSD4Y7OGTW34HGCGFFWYNTSEWMPB26KHWRETF4WHH46DJOO6LOMDEC
+#\\\|AHJC5ELBFZS2GH2UKTJPB3JBUR5CDCFB6A5P5IAOM77C2LCZJ2C \ / AMOS7 \ YOURUM ::
+#\[7]4BNIXLZHIBFNZMMP6ROZGRQWH3LAJ7LZU6NHGTB7SA7PZVOJAAAA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
