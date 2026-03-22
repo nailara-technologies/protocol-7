@@ -386,7 +386,24 @@ sub sock_read_bytes {
 }
 
 sub cube_connect {
-    return $cube_sock if defined $cube_sock and $cube_sock->connected;
+    if ( defined $cube_sock ) {
+        ## verify socket is still alive [ connected() is unreliable for
+        ## half-closed sockets — probe with zero-length non-blocking read ]
+        my $probe;
+        $cube_sock->blocking(0);
+        my $n = sysread( $cube_sock, $probe, 1 );
+        $cube_sock->blocking(1);
+        if ( defined $n and $n == 0 ) {
+            ## EOF — remote closed
+            log_msg('cube socket EOF detected — reconnecting');
+            cube_disconnect();
+        } elsif ( $cube_sock->connected ) {
+            return $cube_sock;
+        } else {
+            log_msg('cube socket no longer connected — reconnecting');
+            cube_disconnect();
+        }
+    }
 
     log_msg( 'connecting to cube [ %s ]', $socket_path );
 
@@ -443,6 +460,7 @@ sub cube_disconnect {
 
 sub cube_command {
     my $command = shift;
+    my $retry   = shift // 1;    ## allow one reconnect attempt
 
     my $sock = cube_connect();
     if ( not defined $sock ) {
@@ -452,13 +470,20 @@ sub cube_command {
     log_msg( 'sending: %s', $command );
 
     ## send command
-    sock_write( $sock, "$command\n" );
+    my $written = sock_write( $sock, "$command\n" );
+    if ( not defined $written ) {
+        log_msg('write failed — connection stale');
+        cube_disconnect();
+        return cube_command( $command, 0 ) if $retry;
+        return ( 0, 'connection lost during write' );
+    }
 
     ## read first response line [ unbuffered ]
     my $first_line = sock_readline($sock);
     if ( not defined $first_line ) {
         log_msg('connection lost during read');
         cube_disconnect();
+        return cube_command( $command, 0 ) if $retry;
         return ( 0, 'connection lost' );
     }
 
@@ -551,8 +576,8 @@ sub log_msg {
     printf STDERR "[mcp-server-p7] %s\n", $msg;
 }
 
-#,,,.,,,,,..,,...,,,,,.,.,,.,,..,,,,.,,..,,,.,..,,...,...,...,..,,,.,,,,,,,..,
-#YIMGE3UJWUANORVW76L2WV3CZILXF32UGYKLOI5DAC5RC66DXS7EPBIC3BFPVIZDBPE6JM3VYFLKO
-#\\\|PCBACFS4F23QY7YFMGL7XHJ6AMT2I5BYNFWNSK4KJOSCQTXHFIO \ / AMOS7 \ YOURUM ::
-#\[7]O4FJ3V5LV7NPIJNQXG7KFABEQADD4LPHYZWWFLWDH75IRRAOLOCA 7  DATA SIGNATURE ::
+#,,.,,,..,,.,,,,,,...,,,.,,.,,..,,.,.,.,.,...,..,,...,...,...,.,,,.,.,...,..,,
+#DYGC3TE4Z6BZCXK5SBL55ZQ6J2H3CDVTVD6XSUPUNX7HIS2ZBSF6TMGSEEUGZP5CTIMDHW3MEJQTU
+#\\\|ML2OYIKEM4BU3IXACJ6GPGEXYQVIFAUCNGWQRCIIORREV37I47E \ / AMOS7 \ YOURUM ::
+#\[7]YN3IWBFTIBPAWSGVFA6MCCWPONUPKKVGC4ENBCM3HO4W6RXD5IAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
