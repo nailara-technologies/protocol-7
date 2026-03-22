@@ -101,9 +101,18 @@ my $params = $msg->{'params'} // {};
 ## --- server-sent events (method present, no id or id not a response) ---
 
 if ( $method eq qw| history_complete | ) {
-    ## environment ready — send wire initialize handshake
     <[base.logs]>
         ->( 2, 'kimi.handler.ws_message: history_complete received' );
+    ## skip initialize if already ready, busy, or retry in progress
+    if (   <kimi.ws.status> eq qw| ready |
+        or <kimi.ws.status> eq qw| busy |
+        or ( <kimi.init.retry_pending> // FALSE ) ) {
+        <[base.logs]>->(
+            2, ': skipping init [ status=%s retry_pending=%s ]',
+            <kimi.ws.status>, <kimi.init.retry_pending> // 0
+        );
+        return;
+    }
     <[kimi.wire.initialize]>;
     return;
 }
@@ -234,8 +243,9 @@ if ( not length($method) and length($msg_id) ) {
 
     if ( $pend->{'type'} eq qw| initialize | ) {
         if ( defined $msg->{'result'} ) {
-            <kimi.ws.status>        = qw| ready |;
-            <kimi.init.retry_count> = 0;
+            <kimi.ws.status>          = qw| ready |;
+            <kimi.init.retry_count>   = 0;
+            <kimi.init.retry_pending> = FALSE;
             if ( not <kimi.session.acquired> ) {
                 ## first successful handshake — go online
                 <kimi.session.acquired> = TRUE;
@@ -256,7 +266,10 @@ if ( not length($method) and length($msg_id) ) {
             if ( $err =~ m{agent turn.*in progress}i ) {
                 <kimi.init.retry_count> //= 0;
                 <kimi.init.retry_count>++;
-                if ( <kimi.init.retry_count> <= 12 ) {    ## ~60s max
+                if ( <kimi.init.retry_count> <= 12
+                    and not( <kimi.init.retry_pending> // FALSE ) )
+                {    ## ~60s max
+                    <kimi.init.retry_pending> = TRUE;
                     <[base.logs]>->(
                         1, ': init retry %d/12 in 5s [ waiting for turn ]',
                         <kimi.init.retry_count>
@@ -267,11 +280,12 @@ if ( not length($method) and length($msg_id) ) {
                             'desc'    => 'init retry after agent turn'
                         }
                     );
-                } else {
+                } elsif ( <kimi.init.retry_count> > 12 ) {
                     <[base.logs]>->(
                         0, ': init retry limit reached — giving up'
                     );
-                    <kimi.init.retry_count> = 0;
+                    <kimi.init.retry_count>   = 0;
+                    <kimi.init.retry_pending> = FALSE;
                 }
             }
         }
@@ -290,8 +304,8 @@ if ( not length($method) and length($msg_id) ) {
     }
 }
 
-#,,,,,,.,,,,,,,..,,..,.,,,,.,,,,,,,,.,..,,,,.,..,,...,...,.,.,...,,,,,,,,,.,.,
-#FWSHT2OYF6WHMNT4JG3XIMJAEZH5QTI7MX3UIFAL4BMYBFDPNL3YO3EDTTPJCPZGKTYSWIHTBISEO
-#\\\|FNSHA7K7BUOGTL4LHE4ZFUMMVH7SYX3XEOQK7QFE6XFMOSAJRKO \ / AMOS7 \ YOURUM ::
-#\[7]UUW3RHYXN4FSUFTU3CEUK7TBGG4EH5AE3QBCP4WW3D6REC52OCBI 7  DATA SIGNATURE ::
+#,,,.,...,..,,...,.,,,,,,,,,.,,,,,.,.,,..,...,..,,...,...,...,.,.,...,..,,,.,,
+#36NQROIAE7ZLM5HZTX7BHQ7OIP5QYUQEWCE2GPDE2ZTVFU4ETNQHFPJ4SSCTDXPQE4V3PDXKIWI34
+#\\\|ED5IGWEHDODJLPNUI7E5Y4UWFA6YYYSTD4ELSSTQMNWKT65KDVU \ / AMOS7 \ YOURUM ::
+#\[7]NJVPZRDYZDSUVOSITH5KQVYTJQRXGKWWDULMXI6FZUDTVY4TAQBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
