@@ -13,6 +13,8 @@
   user as coding zenka; tasks decomposed for autonomous execution between sessions
 - `topic-distributed-consensus.md` — channels zenka, multi-model group chat, consensus groups,
   distributed P7 nodes with ik_llama.cpp on remote servers
+- `feedback-kimi-code-review.md` — common issues in kimi-generated P7 code: SUPER:: resolution,
+  namespace swaps, SSL internals, missing log levels, style, fake signatures
 
 ## File Creation Notes (CRITICAL)
 - **Never add** the single-line `#,,.,,,...` stub at end of new files
@@ -73,9 +75,9 @@
   - reload guard: skip collect when `system.zenka.initialized` (not a real crash)
   - cert path: `current.pem` → `default.pem`, removed premature warning from pre_init
   - task file: `data/yaml/coding-tasks/httpsd-cert-architecture-cleanup.yaml`
-- **httpsd SSL handshake hang** (Mar 22 2026): identified, not yet fixed — AWS bots send partial
-  ClientHello then go silent, blocking SSL accept indefinitely; v7 heartbeat timeout kills+restarts;
-  crash capture now shows `ssl-handshake-start` event with client IP; needs non-blocking accept
+- **httpsd non-blocking SSL accept** (Mar 22 2026): completed ✅ — kimi task JT4HGQA + 3 review fixes;
+  commits `830f5d8fd`, `3714866e8`, `f98d85c5b`, `a950a7190`; deployed to pri.v7.ax;
+  rate-limiting follow-up pending; see `feedback-kimi-code-review.md` for review patterns
 - **kimi-web session data loss** (Mar 21 2026): hundreds of real sessions lost from `~/.kimi/sessions/`,
   likely caused by kimi zenka API interactions rewriting `kimi.json` (birth=Mar 21 03:22);
   35 sessions remain on disk with content intact; full backup at
@@ -212,8 +214,8 @@
 - Pattern: `my @non_num = grep { defined $data_ref->{$ARG}->{$key} and not looks_like_number(...) } keys $data_ref->%*`
 - Global `$SIG{__WARN__}` exists — if wrapping warn handler, capture `$prev_warn = $SIG{__WARN__}` first and call through
 
-#,,,.,,,.,..,,,.,,,,,,...,..,,,.,,,,.,...,,,.,..,,...,...,,.,,.,,,,,.,,,.,,..,
-#C3X3DAENEI6L7CHFGO63QKCM7RSIZSVQCJL6XZY5NZJGOAXQ5YL7MHYYOU2KOCALRD4UJ5YVJU4IU
-#\\\|TOLEDR3PS7ZAT4CNQBPBQ5ROWX7VN5YPG2YGWQJG4CPIS7M5KHQ \ / AMOS7 \ YOURUM ::
-#\[7]3FXNSD37Z6G33NUYGVVGZA53KE2JZ3LTGK44DDIHD234LTLNGGCQ 7  DATA SIGNATURE ::
+#,,..,,,.,.,.,,.,,,.,,...,,,.,.,,,,..,..,,,,.,..,,...,...,.,,,...,...,,..,.,,,
+#YD57MZSECJOT7SJHGAJIPI5RLX3FG2455CHGOB5SZN25XAF3LRBCJRIB7BUZBMCGY7ZVXIASBBWXS
+#\\\|JLNJJVO5U3V6CC5HUSU5CSBJ6WPLQ3TADPVYSCYPEJVUOR7VSH6 \ / AMOS7 \ YOURUM ::
+#\[7]BQKETBFJILCWKGFEIBER3FL7O4DND7SHJRJH23H4XZ524D2X4OAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
