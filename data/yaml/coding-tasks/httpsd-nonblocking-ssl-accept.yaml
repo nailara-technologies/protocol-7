@@ -1,0 +1,63 @@
+---
+task: httpsd non-blocking SSL accept
+status: planned
+priority: high
+created: 2026-03-22
+source: kimi task A3ID76I analysis + claude session refinement
+
+context: |
+  httpsd hangs when AWS bots (e.g. 52.35.118.240) open TCP connection but never
+  send SSL ClientHello. IO::Socket::SSL->accept() performs blocking handshake on
+  new client socket even when server socket is non-blocking — new socket does not
+  inherit non-blocking mode. event loop stalls, v7 heartbeat kills + restarts.
+
+  crash buffer shows: ssl-handshake-start event with client_ip, then silence.
+  last incident: 2026-03-22 on atom, httpsd restarted after ~1.5h uptime.
+
+root_cause: |
+  io.ip.ssl.input.connect line 21: $fd->blocking(0) sets SERVER socket non-blocking
+  io.ip.ssl.input.connect line 23: $fd->accept() creates CLIENT socket in blocking mode
+  IO::Socket::SSL docs confirm: "accept on a non-blocking TCP socket results in a
+  new TCP socket which does not inherit the non-blocking behavior of the master socket.
+  And thus, the initial SSL handshake on the new socket inside IO::Socket::SSL::accept
+  will be done in a blocking way."
+
+affected_modules:
+  - io.ip.ssl.input.connect (lines 17-57, primary)
+  - httpsd.create_ssl_socket (lines 95-134, socket creation)
+  - ssl.connect_handler (lines 5-25, secondary)
+
+fix_approach: |
+  event-driven non-blocking handshake [ option C — fits P7 event loop model ]
+
+  1. accept TCP connection from server socket (non-blocking, immediate)
+  2. set new client socket to non-blocking: $client->blocking(0)
+  3. call IO::Socket::SSL->start_SSL($client, SSL_startHandshake => 0, SSL_server => 1)
+  4. register event.add_io watcher on client fd for handshake progress
+  5. in watcher handler: call $client->accept_SSL()
+     - returns true → handshake complete, proceed to normal request handling
+     - returns false with SSL_WANT_READ/SSL_WANT_WRITE → wait for next event
+     - returns false with other error → close socket, cancel watcher
+  6. register event.add_timer (10s) as handshake timeout
+     - on timeout: cancel io watcher, close socket, log client_ip
+  7. on successful handshake: cancel timeout timer, register normal request handler
+
+  advantages over alternatives:
+  - no SIGALRM interference with Event module (option B risk)
+  - no blocking select/poll loop (option A still blocks during IO::Select)
+  - pure event-driven, consistent with P7 architecture
+  - handshake happens in background, other connections processed normally
+
+config_additions:
+  - httpsd.ssl_handshake_timeout: 10 (seconds, configurable)
+
+notes: |
+  ssl.connect_handler may need same fix if used by other ssl zenki.
+  crash capture already records ssl-handshake-start — add ssl-handshake-timeout
+  event for monitoring. consider rate-limiting repeated offender IPs.
+
+#,,,.,.,.,.,,,,.,,,,.,...,,,,,.,,,,,.,,,.,,,,,..,,...,..,,.,.,,,.,,,.,...,,..,
+#B43REF2MA37XYWG6OBKDVPZ6Q4TSG2PLGMNJXDJVQ5X4TGTNWDDSQEZOUI2PXO3DI2PJVG2DLQJYW
+#\\\|Y7GOZETNTRCELB5WTYXXVNIESBRAEYTRYPAGQM46CI46BLR5JVO \ / AMOS7 \ YOURUM ::
+#\[7]TKQUHIP6RDQT5MGWK3DCL5SKJZ5RHUF7AFZ5MOWRWNZPTJVIFKAY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
