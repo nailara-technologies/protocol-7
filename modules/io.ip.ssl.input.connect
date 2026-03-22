@@ -60,21 +60,15 @@ if ( ref($fd) eq qw| IO::Socket::SSL | and -S $fd ) {
     $tcp_client->blocking(0);
     binmode( $tcp_client, ':raw' );
 
-    ## get ssl context from server socket for start_SSL ##
-    my $ssl_ctx_obj = ${*$fd}{'_SSL_ctx'};
-    my $ssl_ctx
-        = defined $ssl_ctx_obj
-        ? ( $ssl_ctx_obj->{'context'} // $ssl_ctx_obj->{'ssl_ctx'}
-            // $ssl_ctx_obj->{'ctx'} )
-        : undef;
-
     ## upgrade tcp socket to ssl with deferred handshake ##
+    ## SSL_reuse_ctx accepts IO::Socket::SSL instance directly ##
+    ## [ inherits cert, key, ciphers from server socket ]      ##
     my $ssl_client = eval {
         IO::Socket::SSL->start_SSL(
             $tcp_client,
             SSL_server         => 1,
-            SSL_startHandshake => 0,           ## <-- defer handshake ##
-            SSL_reuse_ctx      => $ssl_ctx,    ## reuse server SSL context ##
+            SSL_startHandshake => 0,      ## <-- defer handshake ##
+            SSL_reuse_ctx      => $fd,    ## reuse server socket context ##
         );
     };
 
@@ -163,8 +157,8 @@ if ( ref($fd) eq qw| IO::Socket::SSL | and -S $fd ) {
     return undef;    ## <-- connection closed \ error connecting ##
 }
 
-#,,,.,,..,...,,..,,,,,,.,,.,,,,,.,,..,,..,,.,,.,.,...,...,.,,,,..,,,.,.,,,,.,,
-#I5ZRERSVPUGFPWQC46ZOXWPC72SG46MJDRP322NTKUWHNE6V2K5YCY7ZJW6ZU2XA6ZJYRCSXK6T44
-#\\\|7UTJV47DUD32O5CVKMESBHGSRGYN5YFJCXPS2U3S26R7CQIZZ3P \ / AMOS7 \ YOURUM ::
-#\[7]KA3OPTRSOULVPJYZAHTR54362BHCYIZYHMBRVLK26IQ7ZJRUUIDQ 7  DATA SIGNATURE ::
+#,,..,.,,,,,.,,..,,.,,..,,.,.,,,,,..,,,.,,,..,.,.,...,...,,,,,..,,.,.,.,,,.,.,
+#KL5E4ZLESQKNNNLU2IA2YH4JJVKAIONYPX5SEVKLD7OOSC3JZI4XBTZQLJY6S2YNG6N7F5IBHYJWM
+#\\\|VNLQBMSHIPI42CNVS36SXBYWINJ5NKUY4O3C6WZJ7FA3XWOGJN6 \ / AMOS7 \ YOURUM ::
+#\[7]IREQVYCC2BRSALIFVN4BOYANEUOLGU24X3GDD67RVHQXSEQ7FWAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
