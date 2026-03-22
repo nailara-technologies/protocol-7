@@ -105,7 +105,7 @@ if ( ref($fd) eq qw| IO::Socket::SSL | and -S $fd ) {
     };
 
     ## register io watcher for non-blocking ssl handshake ##
-    my $io_watcher = <[base.event.add_io]>->(
+    my $io_watcher = <[event.add_io]>->(
         {   'fd'     => $ssl_client,
             'poll'   => 'rw',       ## ssl handshake may need read or write ##
             'repeat' => 1,
@@ -126,7 +126,7 @@ if ( ref($fd) eq qw| IO::Socket::SSL | and -S $fd ) {
     $data{'ssl_handshake'}{$hs_id}{'io_watcher'} = $io_watcher;
 
     ## register timeout timer ##
-    my $timer = <[base.event.add_timer]>->(
+    my $timer = <[event.add_timer]>->(
         {   'after'   => $hs_timeout,
             'data'    => $hs_id,
             'handler' => 'io.ip.ssl.handshake.timeout'
@@ -157,8 +157,8 @@ if ( ref($fd) eq qw| IO::Socket::SSL | and -S $fd ) {
     return undef;    ## <-- connection closed \ error connecting ##
 }
 
-#,,..,.,,,,,.,,..,,.,,..,,.,.,,,,,..,,,.,,,..,.,.,...,...,,,,,..,,.,.,.,,,.,.,
-#KL5E4ZLESQKNNNLU2IA2YH4JJVKAIONYPX5SEVKLD7OOSC3JZI4XBTZQLJY6S2YNG6N7F5IBHYJWM
-#\\\|VNLQBMSHIPI42CNVS36SXBYWINJ5NKUY4O3C6WZJ7FA3XWOGJN6 \ / AMOS7 \ YOURUM ::
-#\[7]IREQVYCC2BRSALIFVN4BOYANEUOLGU24X3GDD67RVHQXSEQ7FWAQ 7  DATA SIGNATURE ::
+#,,.,,..,,..,,,..,...,,,.,..,,..,,...,..,,.,,,.,.,...,...,..,,,..,,,.,.,,,.,.,
+#22VF2U27GIDN3VN2KZI6AYYVUHRH4LY3BDSEU7H6QTUL3EJNAE23SBDH3UBNBI3DFKB6JAJU4Q5ZA
+#\\\|R4BZPMHP3ZUWJY3CFX5HFVJLCSR5Q7IBAQ4NVD3GBCT2JBK4MDN \ / AMOS7 \ YOURUM ::
+#\[7]W2SNCO7B44EKPVPOMI4BNK4IOVUI3GBEXE2IAPNSPRCIZHD57MBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
