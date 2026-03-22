@@ -107,10 +107,20 @@ if ( not defined $sock ) {
 <kimi.ws.connected> = TRUE;
 ## status set to 'ready' after history_complete + initialize handshake succeed
 
+## session liveness timeout — if status doesn't leave 'connecting' within
+## 15s, the session is likely dead/archived. clear and retry with fresh one.
+## [ must fit within v7 start timeout of ~65s with room for fresh connect ]
+<[event.add_timer]>->(
+    {   'after'   => 15,
+        'handler' => qw| kimi.handler.session_liveness_timeout |,
+        'desc'    => 'detect dead kimi-web session'
+    }
+);
+
 <[base.logs]>->( 2, 'kimi.connect: websocket connected [ %s ]', $ws_url );
 
-#,,,,,..,,,..,,.,,,,.,,,,,.,,,.,.,...,.,,,.,.,..,,...,...,.,.,,..,.,,,,.,,,,,,
-#JM2AY7QLZDQKAVR6UEVAPWQJ7FODSV6ZOW3GSVNDNL2Z4ZVLECNRQBPHB7OHOVLBQHC3KKHPCGZMW
-#\\\|F2NZRUJTCJU2OVJIC5JWVGCBOCGEVRVABDRUCXXXD2DHKORAFGQ \ / AMOS7 \ YOURUM ::
-#\[7]SW52LWFKTFSTBBOVEHMT5C45X4XYUZLXEOLFUKZIWR7W5VR7H6BI 7  DATA SIGNATURE ::
+#,,.,,.,.,,,,,,,.,.,.,,.,,...,,.,,.,.,.,.,,,,,..,,...,..,,.,,,.,.,,,.,.,.,,,,,
+#PUFZRSVFFPUEF6GBLKC6HTWWDBSQTSGT263EXIBL2SWIU6BF2ADJWKTATXSG6VR5GZK3MXHTVTJX2
+#\\\|TNJLWTP237EMMZJAYBDF65MTBDEB73YOOFWUWDOK5GSPRBASYWC \ / AMOS7 \ YOURUM ::
+#\[7]KUUZKJOWO4ZAOFFJMPBOYPZVBVX3NYT3H465RLZ6WKSQP3AGBWDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -12,8 +12,8 @@ my $lines_ref    = undef;
 my $current_entry_text = $state_ref->{'display_buffer'} // '';
 
 if ( $state_ref->{'current_history_index'} >= 0 ) {
-    ## We're viewing history - navigate relative to current position
-    ## Up = newer = lower index, skip duplicates
+    ## [ we're viewing history - navigate relative to current position ]
+    ## [ Up = older = lower index, skip duplicates ]
     my $attempts     = 0;
     my $search_index = $state_ref->{'current_history_index'} - 1;
 
@@ -34,7 +34,7 @@ if ( $state_ref->{'current_history_index'} >= 0 ) {
         $attempts++;
     }
 } else {
-    ## Not in tracked history - start from oldest entry (last in array)
+    ## [ not in tracked history - start from newest entry (last in array) ]
     if (@AMOS7::TERM::history_entries) {
         my $attempts     = 0;
         my $search_index = @AMOS7::TERM::history_entries - 1;
@@ -66,8 +66,14 @@ print "\r\e[2K";
 
 $state_ref->{'display_buffer'} = join "\n", $lines_ref->@*;
 
-## Update history index if navigating from tracked position
-$state_ref->{'current_history_index'} = $target_index if $target_index >= 0;
+## [ validate and update history index ]
+if ( $target_index >= 0 && $target_index < @AMOS7::TERM::history_entries ) {
+    $state_ref->{'current_history_index'} = $target_index;
+} elsif ( $target_index >= @AMOS7::TERM::history_entries ) {
+    $state_ref->{'current_history_index'} = $#AMOS7::TERM::history_entries;
+} else {
+    $state_ref->{'current_history_index'} = -1;
+}
 
 ## Load into editor to sync editor buffer
 AMOS7::TERM::editor_load( $editor, $state_ref->{'display_buffer'} );
@@ -82,8 +88,8 @@ $state_ref->{'current_mode'} = 2;    # VIEWING_HISTORY
 
 return;
 
-#,,..,,..,,,.,,,.,.,.,,,.,..,,,,.,..,,,,,,..,,.,.,...,...,...,..,,,,,,..,,.,.,
-#FPB5V2OQWBTWEF5B3W43KBUBEQBUZ2VBMYARRCYLYMVILLVGYSMGXD5FRJFIXYQGC72FJSUMRCJBC
-#\\\|K2Z73VGRYUUAYI6GBD27WWE5TPJIMIH2SUUORNZQYAQXLRS7JSF \ / AMOS7 \ YOURUM ::
-#\[7]6YQCOGCSNXBEDP65AXCB72BSQ242MBHSVEXCD4GBDBE67HVMM6AY 7  DATA SIGNATURE ::
+#,,..,,..,..,,,.,,,,.,...,...,,..,.,.,,..,,.,,.,.,...,...,.,,,.,,,,.,,,..,.,,,
+#3EBJUBBPLYSDQG7WWYTCPRFD56H6SA72NLMZ56Y4SJOREKA52MEAEVDSXYE5VHJ4WPYI26U6ADBRG
+#\\\|RXIRFWMCI3JME7K3ETTY7NBXE4TDX4BS652ZJHVJNM6OF44UZEQ \ / AMOS7 \ YOURUM ::
+#\[7]BRI4N7MMJIXIHIUGTT5UOFOU6MGOYYRCAUN7E25YQZ5ZYRQ3RMDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

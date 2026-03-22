@@ -12,8 +12,8 @@ my $lines_ref    = undef;
 my $current_entry_text = $state_ref->{'display_buffer'} // '';
 
 if ( $state_ref->{'current_history_index'} >= 0 ) {
-    ## We're viewing history - navigate relative to current position
-    ## Down = older = higher index, skip duplicates
+    ## [ we're viewing history - navigate relative to current position ]
+    ## [ Down = newer = higher index, skip duplicates ]
     my $attempts     = 0;
     my $search_index = $state_ref->{'current_history_index'} + 1;
 
@@ -42,7 +42,7 @@ if ( $state_ref->{'current_history_index'} >= 0 ) {
         return;
     }
 } else {
-    ## Not in tracked history - clear any stray init cursor
+    ## [ not in tracked history - clear any stray init cursor ]
     <[nshell.render.empty_prompt]>->( $state_ref, $editor, $colors );
     return;
 }
@@ -53,8 +53,14 @@ print "\r\e[2K";
 
 $state_ref->{'display_buffer'} = join "\n", $lines_ref->@*;
 
-## Update history index if navigating from tracked position
-$state_ref->{'current_history_index'} = $target_index if $target_index >= 0;
+## [ validate and update history index ]
+if ( $target_index >= 0 && $target_index < @AMOS7::TERM::history_entries ) {
+    $state_ref->{'current_history_index'} = $target_index;
+} elsif ( $target_index >= @AMOS7::TERM::history_entries ) {
+    $state_ref->{'current_history_index'} = $#AMOS7::TERM::history_entries;
+} else {
+    $state_ref->{'current_history_index'} = -1;
+}
 
 ## Load into editor to sync editor buffer
 AMOS7::TERM::editor_load( $editor, $state_ref->{'display_buffer'} );
@@ -69,8 +75,8 @@ $state_ref->{'current_mode'} = 2;    # VIEWING_HISTORY
 
 return;
 
-#,,,,,..,,,.,,...,.,.,.,.,...,...,,,.,,,,,,.,,.,.,...,...,,.,,..,,...,.,,,,..,
-#4HDCBAAEDRYQRSBL725KJPZE4X2HPL5FIEWPIS6BM6JI3FGLNGL7HKBIUGQ4VETYR46UQYKW4VLK4
-#\\\|EYAWHEJNPJFEKYPCITGISIVUZJ5CF7PHR2YANJBWSRA6ZGUADPS \ / AMOS7 \ YOURUM ::
-#\[7]LQYZOTHI42JPAB6TWVPA7HXPMAS5I7KSOPRSVXGVT6PXPDJBIGAA 7  DATA SIGNATURE ::
+#,,,.,,,,,...,,,,,..,,,,.,.,.,...,,,,,,,,,.,,,.,.,...,...,,,,,,..,,.,,.,.,,..,
+#OY4VREIYIBMSRIDUAW2KGDCPFN25E3KORLEAVZVKOSZK4VQBD37B6W3GNSTCARZV7MOVGWXEYB322
+#\\\|Q7XZRI7UAN2D3IIH2JQVJSJRX5N6OYG3RDBDI56QO4AZHRBTFEV \ / AMOS7 \ YOURUM ::
+#\[7]CAI64V6KBOFNPX6XTDL6UJ3IFRPIIJ76OYVYPZHJCONR556MI6AA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
