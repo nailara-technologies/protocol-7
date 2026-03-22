@@ -1,145 +1,38 @@
 ---
 task: nshell history navigation fixes
-status: planned
+status: completed
 priority: high
-depends_on:
-  - nshell session protocol tunneling
+completed: 2026-03-22
+commit: 8c8424687
 
 context: |
-  nshell history navigation has several bugs that were introduced in commit
-  fb8515e99 (ctrl-o cycle feature) and made worse in b2777cc0b (attempted fix).
-  the last known working state is commit 8eeb64812.
+  nshell history navigation had several bugs introduced in commit fb8515e99
+  (ctrl-o cycle feature) and made worse in b2777cc0b (attempted fix).
+  fixed in two sessions: first fixing arrow navigation and removing broken
+  $shift calculation, then rebuilding char-add debug infrastructure and
+  implementing proper Ctrl+O cycling.
 
-  history array structure:
-    - index 0 = oldest entry (first added)
-    - index N = newest entry (last added, most recent)
-    - history_add pushes to end: push @history_entries, [timestamp, \@lines]
-    - therefore: lower index = older, higher index = newer
+completed_items:
+  - fix inverted comments in arrow_up and arrow_down
+  - remove broken $shift index calculation (history_add uses push, indices don't shift)
+  - fix ctrl_o_cycle: proper duplicate-skipping search, execute + advance to next older
+  - fix output colors after ctrl_o execution (restore p7_fg_0004 after \e[0m)
+  - fix state reset: current_mode explicitly reset in ctrl_o_cycle (bypasses read_from_buffer cleanup)
+  - consistent -1 sentinel for ctrl_o_start_position (not undef)
+  - fix char-add debug infrastructure: restore event.once, add cube command routing
+  - add diagnostic logging in char-add (PRE_PROCESS, POST_ONCE_1, POST_LOOP)
+  - guard undef editor fields in editor.process newline handler
+  - increase nshell-state-track buffer from 12K to 24K
+  - new module nshell.handler.ctrl_o_render_preload: timer-based deferred display
+  - 150ms timer ensures command reply prints before preloaded entry appears
 
-bugs_introduced:
-  - commit: fb8515e99
-    description: ctrl-o cycle feature introduced index calculation errors
-  - commit: b2777cc0b
-    description: attempted fix made index calculations worse with current_shifted logic
+remaining:
+  - history dump debug command (nice to have, not blocking)
+  - step-by-step debug mode (covered by existing char-add diagnostics)
+  - off-by-one bug with failed commands in history (not reproducible, monitor)
 
-working_reference:
-  - commit: 8eeb64812
-    description: last known working state for history navigation
-
-affected_modules:
-  - modules/nshell.history.arrow_up
-  - modules/nshell.history.arrow_down
-  - modules/nshell.handler.ctrl_o_cycle
-  - modules/nshell.state.reset_history
-
-fix_items:
-  - [ ] fix inverted comments in arrow_up (line 16)
-      current: "Up = newer = lower index"
-      should_be: "Up = older = lower index"
-      explanation: |
-        arrow_up decrements search_index (line 33: search_index--)
-        lower indices (toward 0) contain older entries
-        so Up arrow navigates to OLDER commands, not newer
-
-  - [ ] fix inverted comments in arrow_down (line 16)
-      current: "Down = older = higher index"
-      should_be: "Down = newer = higher index"
-      explanation: |
-        arrow_down increments search_index (line 33: search_index++)
-        higher indices (toward $#history_entries) contain newer entries
-        so Down arrow navigates to NEWER commands, not older
-
-  - [ ] fix ctrl_o_cycle index calculation (lines 55-68)
-      issue: |
-        after history_add shifts all entries up by 1, the calculation
-        for next_index uses inconsistent offset logic.
-        
-        current code:
-          - index_a = start_position + shift
-          - index_b = (start_position - 1) + shift
-          - current_shifted = current_history_index + 1  <-- bug
-          - toggles based on current_shifted vs index_a
-        
-        the +1 in current_shifted doesn't correctly account for the
-        fact that the current entry itself shifted if it was in history.
-      
-      fix_approach: |
-        calculate positions after shift consistently:
-          my $pos_original = start_position + shift;
-          my $pos_before   = pos_original - 1;
-          
-          my $current_now = current_history_index;
-          $current_now++ if current_now >= 0;  # only shift valid indices
-          
-          my $next_index = (current_now == pos_original) ? pos_before : pos_original;
-
-  - [ ] fix arrow key state corruption from ctrl-o
-      issue: |
-        when ctrl_o_cycle sets current_history_index incorrectly,
-        subsequent arrow navigation uses this corrupted index.
-        arrow_up/arrow_down check if current_history_index >= 0 to
-        determine navigation mode, so wrong values cause wrong branches.
-      
-      fix_approach: |
-        1. fix ctrl_o_cycle to calculate correct indices (above)
-        2. add bounds validation in arrow handlers before using index:
-           - ensure index < scalar(@history_entries)
-           - reset to -1 if index is out of bounds
-
-  - [ ] fix state reset consistency
-      issue: |
-        nshell.state.reset_history sets ctrl_o_start_position to undef
-        but ctrl_o_cycle initializes with //= -1, expecting numeric value.
-        mixing undef and -1 for "not set" causes subtle bugs.
-      
-      fix_approach: |
-        use consistent "not set" value:
-        - reset_history: set ctrl_o_start_position = -1 (not undef)
-        - ctrl_o_cycle: check < 0 instead of defined check
-        - this matches how current_history_index uses -1 for "not set"
-
-debug_support:
-  - [ ] add debug command to dump history_entries with indices
-      purpose: enable troubleshooting of history navigation issues
-      format: display index number and entry preview for each history item
-      example: |
-        history dump:
-        [0] 2026-01-24T12:00:00  ls -la
-        [1] 2026-01-24T12:05:00  cd /some/path
-        [2] 2026-01-24T12:10:00  grep -r foo bar/
-        ...
-      location: extend nshell.no-tty-debug.cmd.debug-status or new module
-      
-  - [ ] add step-by-step debug mode
-      purpose: see state changes during each keypress, not just final state
-      implementation: add optional logging between processing stages
-
-verification:
-  - [ ] verify arrow navigation without ctrl-o interference
-      steps:
-        1. add several commands to history
-        2. press up-arrow repeatedly - should show progressively older commands
-        3. press down-arrow - should show progressively newer commands
-        4. at prompt (no history view), down-arrow should clear/no-op
-      
-  - [ ] verify ctrl-o cycle correctness
-      steps:
-        1. have two different commands in history (cmd_a, cmd_b)
-        2. navigate to cmd_a with up-arrow
-        3. press ctrl-o - should execute cmd_a and preload cmd_b
-        4. press ctrl-o again - should execute cmd_b and preload cmd_a
-        5. verify alternating continues correctly
-      
-  - [ ] verify state reset clears all ctrl-o flags
-      check these state keys after editing in VIEWING_HISTORY mode:
-        - ctrl_o_start_position = -1
-        - ctrl_o_entries_added = 0
-        - ctrl_o_redraw_cursor = FALSE
-        - display_preloaded_entry = FALSE
-        - current_history_index = -1
-
-#,,,.,..,,.,,,...,...,,,,,,,,,..,,,..,.,,,.,.,.,.,...,..,,.,,,.,,,..,,.,,,.,,,
-#QKQ3FKE4KUFKVOXC5UNLVTP47YU6PA6MLDFEJRTHUVJMUYW6KIVHTTOFXGPZDR554VZY46ZV56CJI
-#\\\|BLV52QATZNT4KW5YOUJWW4EWCB3VLSG7P7OXKWFJ2XO7FRRWMV2 \ / AMOS7 \ YOURUM ::
-#\[7]KVF3WABYO2V5MF3DDIEBWIIF4OYR4DYAC6SQCJIW4YQN4FMP46BA 7  DATA SIGNATURE ::
+#,,..,...,...,,,,,,.,,...,...,,.,,...,,,,,..,,..,,...,..,,.,,,.,,,,.,,.,,,.,.,
+#M5XVCJUI5WN4DXGEAGWSGCLIYFGNLZIKJF46GR7C22Z7LZF6FSKRTX3K5CBWVNS4XGE55XEOWB6QU
+#\\\|3EKRYBWFNWZ3DROI4V5UPHFMFDYM6G6QUFGC6TK6WNOG5EM2GFK \ / AMOS7 \ YOURUM ::
+#\[7]2WVZ3TZTFLAWOUNJIRMZ5JAKGVEK2HTFS72N4LFZ7LJUBQL5MIDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
