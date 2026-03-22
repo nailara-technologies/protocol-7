@@ -52,25 +52,27 @@ if ( length $cmd ) {
     }
 }
 
-## NOW calculate indices (after history_add shifts everything)
-## Shift accounts for entries added during the cycle
-my $shift   = $state_ref->{'ctrl_o_entries_added'};
-my $index_a = $state_ref->{'ctrl_o_start_position'} + $shift;
-my $index_b = ( $state_ref->{'ctrl_o_start_position'} - 1 ) + $shift;
+## [ calculate indices after history_add shifts everything ]
+## [ shift accounts for entries added during the cycle ]
+my $shift = $state_ref->{'ctrl_o_entries_added'};
 
-## Toggle between the two based on current position
-## Note: current_history_index needs to account for the shift too
-my $current_shifted = $state_ref->{'current_history_index'}
-    + 1;    ## +1 for the entry just added
+## [ calculate post-shift positions consistently ]
+my $pos_original = $state_ref->{'ctrl_o_start_position'} + $shift;
+my $pos_before   = $pos_original - 1;
+
+## [ current position also shifted if we had a valid index ]
+my $current_now = $state_ref->{'current_history_index'};
+$current_now++ if $current_now >= 0;
+
+## [ toggle between original and previous entry ]
 my $next_index
-    = ( $current_shifted == $index_a )
-    ? $index_b
-    : $index_a;
+    = ( $current_now == $pos_original ) ? $pos_before : $pos_original;
 
 if (<nshell.mode.no_tty_debug>) {
     <[base.logs]>->(
-        1, "ctrl_o: current=%s index_a=%s index_b=%s next=%s shift=%s",
-        $current_shifted, $index_a, $index_b, $next_index, $shift
+        1,
+        "ctrl_o: current=%s pos_original=%s pos_before=%s next=%s shift=%s",
+        $current_now, $pos_original, $pos_before, $next_index, $shift
     );
 }
 
@@ -113,8 +115,8 @@ if ( length $cmd ) { ## stay in VIEWING_HISTORY mode with next entry preloaded
     return undef;
 }
 
-#,,..,.,.,.,,,...,.,.,...,.,.,,,,,,,.,.,.,,,,,.,.,...,...,...,..,,...,,.,,.,.,
-#HMPQD7MSNDXYRGV7G4SXBT3IKQPAQTB7ADVAAIWW6RZTEFGN7UHUC6EN4SBHD6NEM6JHQGSDDJ6XE
-#\\\|HTZ7F5C7UMRKWZTAC4G2SXFPDPX4SUVJPORVJKTU7ZRW5E2HEDT \ / AMOS7 \ YOURUM ::
-#\[7]73B7S7NN25SQICS25RNXU4ETUJAT272HISUHIURLTWFU7Y2VM6AY 7  DATA SIGNATURE ::
+#,,,,,.,,,,.,,,,,,,..,..,,,,,,..,,,,,,.,,,,,,,.,.,...,...,,,.,,..,,,.,,,.,,,,,
+#CRVFOEM5YONSJVN3OVELJNQY2QGVZQYF6DN7IGKCL3EJ2TYIE7B7UB6DUAKGJR44S23ARTTYQHAAM
+#\\\|54F52YBIJPSTDDVTJ274LIOBMR6DCLMJNV27DLPAPGDKG2GWOLH \ / AMOS7 \ YOURUM ::
+#\[7]HSUTWRYSPXPU3YNW3SA3N5UAJGVAGPCFLKVMSOLINPWDHCTOXOBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

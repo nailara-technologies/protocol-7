@@ -257,8 +257,11 @@ if ( not length($method) and length($msg_id) ) {
             }
         } else {
             my $err = $msg->{'error'}{'message'} // 'unknown';
+            ## log at level 2 for expected "agent turn in progress" retries
+            my $log_level = $err =~ m{agent turn.*in progress}i ? 2 : 0;
             <[base.logs]>->(
-                0, 'kimi.handler.ws_message: initialize failed : %s', $err
+                $log_level,
+                'kimi.handler.ws_message: initialize failed : %s', $err
             );
 
             ## retry initialize when agent turn is still in progress
@@ -271,7 +274,7 @@ if ( not length($method) and length($msg_id) ) {
                 {    ## ~60s max
                     <kimi.init.retry_pending> = TRUE;
                     <[base.logs]>->(
-                        1, ': init retry %d/12 in 5s [ waiting for turn ]',
+                        2, ': init retry %d/12 in 5s [ waiting for turn ]',
                         <kimi.init.retry_count>
                     );
                     <[event.add_timer]>->(
@@ -304,8 +307,8 @@ if ( not length($method) and length($msg_id) ) {
     }
 }
 
-#,,,.,...,..,,...,.,,,,,,,,,.,,,,,.,.,,..,...,..,,...,...,...,.,.,...,..,,,.,,
-#36NQROIAE7ZLM5HZTX7BHQ7OIP5QYUQEWCE2GPDE2ZTVFU4ETNQHFPJ4SSCTDXPQE4V3PDXKIWI34
-#\\\|ED5IGWEHDODJLPNUI7E5Y4UWFA6YYYSTD4ELSSTQMNWKT65KDVU \ / AMOS7 \ YOURUM ::
-#\[7]NJVPZRDYZDSUVOSITH5KQVYTJQRXGKWWDULMXI6FZUDTVY4TAQBA 7  DATA SIGNATURE ::
+#,,,.,,.,,.,,,,.,,,,.,.,.,,.,,...,.,.,,.,,...,..,,...,...,.,,,..,,.,,,,,.,,,,,
+#5T7L3NUQ7AKGPW2ZCHWIFH32D23YZG2O5W3FIYZKJJX27EGXHQ2DKFSJZIFVSBUBX2NS6K7LRYBCO
+#\\\|63LLG533UBV5FCMGWK2YNBH5LQEVEGHZTHFKZ7PBWJPO3TDIAYN \ / AMOS7 \ YOURUM ::
+#\[7]4LRXGEPACKKBCPBAOPGZT6ZGUSUQYKN4JN2DYIDIYJSOTR6BIIBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
