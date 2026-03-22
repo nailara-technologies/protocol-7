@@ -22,9 +22,9 @@ if ( ref($fd) eq qw| IO::Socket::SSL | and -S $fd ) {
 
     ## accept tcp connection without ssl handshake ##
     ##               [ blocking would stall here ] ##
-    ## explicit IO::Socket::accept bypasses        ##
-    ##          IO::Socket::SSL's accept override  ##
-    my $tcp_client = $fd->IO::Socket::accept();
+    ## IO::Socket::IP::accept bypasses SSL's accept override ##
+    ## but preserves IP socket layer [ buffering, sockopt ]  ##
+    my $tcp_client = $fd->IO::Socket::IP::accept();
 
     if ( not $tcp_client ) {
         ## no pending connection [ level-triggered re-fire ] ##
@@ -157,8 +157,8 @@ if ( ref($fd) eq qw| IO::Socket::SSL | and -S $fd ) {
     return undef;    ## <-- connection closed \ error connecting ##
 }
 
-#,,.,,..,,..,,,..,...,,,.,..,,..,,...,..,,.,,,.,.,...,...,..,,,..,,,.,.,,,.,.,
-#22VF2U27GIDN3VN2KZI6AYYVUHRH4LY3BDSEU7H6QTUL3EJNAE23SBDH3UBNBI3DFKB6JAJU4Q5ZA
-#\\\|R4BZPMHP3ZUWJY3CFX5HFVJLCSR5Q7IBAQ4NVD3GBCT2JBK4MDN \ / AMOS7 \ YOURUM ::
-#\[7]W2SNCO7B44EKPVPOMI4BNK4IOVUI3GBEXE2IAPNSPRCIZHD57MBA 7  DATA SIGNATURE ::
+#,,,,,,..,,,,,.,,,.,,,...,,..,..,,,,,,,,,,,..,.,.,...,...,..,,,,.,.,,,,,.,..,,
+#NKWERCV3DE25JA7HORGGVTNED22JVXA4LJEMWXGB7YIDIE6XDBSVDM76VXLZF3HCHNMRSVOBTSG74
+#\\\|VBSPFKTYQGDGJ5II3GW3M7AQIQCDLGGFPCLEEOTNARDHIGDNWNM \ / AMOS7 \ YOURUM ::
+#\[7]76Y3HMUE4SOVNDBUIPOZQXX6N2IFK5E5C2QVDKXYWB5OOCQGNWDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
