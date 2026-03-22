@@ -245,7 +245,12 @@ if ( $content_size <= 16 * 1024 and not exists $request->{'range'} ) {
     ### [LLL] consider passing output buffer to file.slurp : ###
     #
     ## use native file.slurp for consistent UTF-8 safe handling
-    my $file_content_ref = <[file.slurp]>->($file_path);
+    ## detect binary files and use :raw mode to avoid UTF-8 decode failures
+    my $is_text
+        = $content_type
+        =~ m{^(?:text|application/(?:json|xml|javascript|xhtml))};
+    my $file_content_ref
+        = <[file.slurp]>->( $file_path, undef, $is_text ? '' : ':raw' );
     unless ( ref $file_content_ref eq qw| SCALAR | ) {
         <[base.logs]>->(
             0, "[%s] failed to read '%s' [%s]",
@@ -280,8 +285,8 @@ return <[httpd.download_init]>->(
     }
 );
 
-#,,,.,,,.,,..,,..,,,,,,,,,..,,,..,...,,,,,.,.,..,,...,...,.,.,,..,...,,.,,...,
-#GLQNBTQFP3SWP7QO3K4U2HZ6YVPE7GCUKFLVWL4MK3OR3OZAK2S4I6Y65LFBWKDRQUR5336YPOMQI
-#\\\|MJ445VT5RYH6YD4OKFZUPU5GBOL2BJYTXMQRFJV6YIYSPBFXDYV \ / AMOS7 \ YOURUM ::
-#\[7]ZD36F3YG4EEZT3OQQGCZNF4KOHIHLPW5QNRWOQCV56YQSC3THKBI 7  DATA SIGNATURE ::
+#,,.,,.,.,,.,,.,,,,..,,.,,,,.,,.,,,..,,.,,,.,,..,,...,...,..,,,..,.,,,,.,,,,.,
+#HGI44B2SAOO6YDLFB2M67MTJBOZPAWTZBORJFCBFUNHIIHZ7XW7TOEXYG344UQ4XJZUXP4KSSRCBK
+#\\\|SAQQANLZSF3WFUSDSBLE6STWX37DNTVA3Y3I25BUOIWKEVQUYD2 \ / AMOS7 \ YOURUM ::
+#\[7]ML6FZMJCHTWCTY6IB3LESSGGQ5ZKJAV2FOXNT5MN3GIQLS6G3EAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
