@@ -29,9 +29,13 @@ if ( exists <kimi.approval.responded>->{$request_id} ) {
     return;
 }
 
+## collapse newlines and truncate for readable console logging
+( my $short_desc = $description ) =~ s{\n}{ }g;
+$short_desc = <[base.parser.center_ellipse_string]>->( $short_desc, 72 );
+
 <[base.logs]>->(
     1, ': approval request [ %s ] action=%s : %s',
-    $request_id, $action, $description
+    $request_id, $action, $short_desc
 );
 
 ## store in pending approvals for manual approve/reject commands
@@ -48,7 +52,7 @@ if ( exists <kimi.approval.responded>->{$request_id} ) {
 if (<kimi.approval.auto_approve>) {
     <[base.logs]>->(
         1, ': auto-approving [ %s ] %s : %s',
-        $request_id, $action, $description
+        $request_id, $action, $short_desc
     );
     delete <kimi.approval.pending>->{$request_id};
     <[kimi.wire.approval_respond]>->( $request_id, 'approve' );
@@ -60,7 +64,7 @@ my $auto_allow = <kimi.approval.auto_allow> // {};
 if ( defined $auto_allow->{$action} ) {
     <[base.logs]>->(
         1, ': policy-approved [ %s ] %s : %s',
-        $request_id, $action, $description
+        $request_id, $action, $short_desc
     );
     delete <kimi.approval.pending>->{$request_id};
     <[kimi.wire.approval_respond]>->( $request_id, 'approve' );
@@ -70,13 +74,13 @@ if ( defined $auto_allow->{$action} ) {
 ## otherwise leave pending — user must approve/reject via kimi.approve/reject
 <[base.logs]>->(
     1, ': awaiting manual approval [ %s ] %s : %s',
-    $request_id, $action, $description
+    $request_id, $action, $short_desc
 );
 
 return;
 
-#,,,.,..,,,.,,,,.,,..,...,,,,,..,,,..,,.,,,,,,..,,...,..,,...,,,.,..,,.,.,,.,,
-#VYN5O56QSRMZD4FJU3GV33HOSXGBL4URK3JIGTF7Y2HJR2OZE5VMFGVPILQVPMEGHU73LYVEDZXGM
-#\\\|YDQ47SBGJ7RBGVWRLBUDLTNO3NH4ZMAA2ASBSIQ25ATNTVHLNFS \ / AMOS7 \ YOURUM ::
-#\[7]6C57JQ6G2WRQQ5Y6HHSPVTFLJ2OB3HCGXZ7YZF6XJWSMTBVB2OCY 7  DATA SIGNATURE ::
+#,,..,,.,,...,,,.,...,..,,,,,,...,,,,,.,.,,,,,..,,...,..,,,,,,.,.,.,,,.,.,,..,
+#6C7KWICKOUKYQEHS5JDPM5K64EYQLQHSFUGW4REJGG6POXNAPV45XKDY6GXQJSFPSB5PPGZEHUX3A
+#\\\|Q565Z3R2J72CKTUR6H4YCC7CP6ZEARKCDESE2AEV2BTGGIHWFCB \ / AMOS7 \ YOURUM ::
+#\[7]5JAB2IGWYBYEFLFMMGTTGNHCWSKVCPV6VBRYXAI2KC6YIGAGBOCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

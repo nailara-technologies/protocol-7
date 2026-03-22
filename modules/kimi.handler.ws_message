@@ -20,8 +20,36 @@ if ( not defined $text ) {
             if <kimi.ws.io_watcher>->is_active;
         <kimi.ws.io_watcher> = undef;
     }
-    ## reset active task if any [ reverts to pending ]
-    if ( defined <kimi.task.active_id> ) {
+    ## check for active prompt entries — preserve them across reconnect
+    ## so TurnEnd can still deliver the result after kimi-web finishes
+    my $has_active_prompt = FALSE;
+    foreach my $pend_id ( keys %{<kimi.wire.pending>} ) {
+        my $pend = <kimi.wire.pending>->{$pend_id};
+        if ( ( $pend->{'type'} // '' ) eq qw| prompt | ) {
+            $has_active_prompt = TRUE;
+            <[base.logs]>->(
+                1, ': preserving pending prompt [ %s ] across reconnect',
+                $pend_id
+            );
+        } else {
+            ## fail non-prompt entries immediately [ e.g. initialize ]
+            delete <kimi.wire.pending>->{$pend_id};
+            my $rid = $pend->{'reply_id'} // '';
+            if ( length($rid) ) {
+                <[base.callback.cmd_reply]>->(
+                    $rid, { 'mode' => 'false', 'data' => 'kimi disconnected' }
+                );
+            }
+        }
+    }
+
+    ## preserve active task across reconnect if prompt is still pending
+    if ( $has_active_prompt and defined <kimi.task.active_id> ) {
+        <[base.logs]>->(
+            1, ': keeping task %s active across reconnect',
+            <kimi.task.active_id>
+        );
+    } elsif ( defined <kimi.task.active_id> ) {
         my $task_id = <kimi.task.active_id>;
         <[base.logs]>->(
             1, ': kimi disconnected mid-task %s, resetting to pending',
@@ -34,16 +62,17 @@ if ( not defined $text ) {
         );
         <kimi.task.active_id> = undef;
     }
-    ## fail any pending reply so caller does not hang
-    foreach my $pend_id ( keys %{<kimi.wire.pending>} ) {
-        my $pend = delete <kimi.wire.pending>->{$pend_id};
-        my $rid  = $pend->{'reply_id'} // '';
-        if ( length($rid) ) {
-            <[base.callback.cmd_reply]>->(
-                $rid, { 'mode' => 'false', 'data' => 'kimi disconnected' }
-            );
-        }
+
+    ## schedule grace timeout to fail preserved prompts if reconnect stalls
+    if ($has_active_prompt) {
+        <[event.add_timer]>->(
+            {   'after'   => 90,
+                'handler' => qw| kimi.handler.reconnect_grace_timeout |,
+                'desc'    => 'fail preserved prompts if still pending'
+            }
+        );
     }
+
     <[kimi.connect.schedule_retry]>;
     return;
 }
@@ -205,7 +234,8 @@ if ( not length($method) and length($msg_id) ) {
 
     if ( $pend->{'type'} eq qw| initialize | ) {
         if ( defined $msg->{'result'} ) {
-            <kimi.ws.status> = qw| ready |;
+            <kimi.ws.status>        = qw| ready |;
+            <kimi.init.retry_count> = 0;
             if ( not <kimi.session.acquired> ) {
                 ## first successful handshake — go online
                 <kimi.session.acquired> = TRUE;
@@ -220,6 +250,30 @@ if ( not length($method) and length($msg_id) ) {
             <[base.logs]>->(
                 0, 'kimi.handler.ws_message: initialize failed : %s', $err
             );
+
+            ## retry initialize when agent turn is still in progress
+            ## [ kimi-web is finishing work from before the reconnect ]
+            if ( $err =~ m{agent turn.*in progress}i ) {
+                <kimi.init.retry_count> //= 0;
+                <kimi.init.retry_count>++;
+                if ( <kimi.init.retry_count> <= 12 ) {    ## ~60s max
+                    <[base.logs]>->(
+                        1, ': init retry %d/12 in 5s [ waiting for turn ]',
+                        <kimi.init.retry_count>
+                    );
+                    <[event.add_timer]>->(
+                        {   'after'   => 5,
+                            'handler' => qw| kimi.wire.initialize |,
+                            'desc'    => 'init retry after agent turn'
+                        }
+                    );
+                } else {
+                    <[base.logs]>->(
+                        0, ': init retry limit reached — giving up'
+                    );
+                    <kimi.init.retry_count> = 0;
+                }
+            }
         }
         return;
     }
@@ -236,8 +290,8 @@ if ( not length($method) and length($msg_id) ) {
     }
 }
 
-#,,,.,..,,...,...,,,,,..,,.,.,,..,..,,..,,,,.,..,,...,...,,.,,,..,.,.,,..,..,,
-#WAWHWWGTEBCGQXSBD4UQS3FXN55T7SXHTEAIZRHIZNLADBJBIOZVTDSYQ2SCVZ7H3UVMW4WMPULYI
-#\\\|G67PAZZEA5WPDB6IP562EIGNC6GR2LI7B2BX4LJHHDU5WZMFSON \ / AMOS7 \ YOURUM ::
-#\[7]PCTBNKPL7ZKDTCH5HHHWSCACTINFSM4LU5BHIRKQFWFKIAUDOQDQ 7  DATA SIGNATURE ::
+#,,,,,,.,,,,,,,..,,..,.,,,,.,,,,,,,,.,..,,,,.,..,,...,...,.,.,...,,,,,,,,,.,.,
+#FWSHT2OYF6WHMNT4JG3XIMJAEZH5QTI7MX3UIFAL4BMYBFDPNL3YO3EDTTPJCPZGKTYSWIHTBISEO
+#\\\|FNSHA7K7BUOGTL4LHE4ZFUMMVH7SYX3XEOQK7QFE6XFMOSAJRKO \ / AMOS7 \ YOURUM ::
+#\[7]UUW3RHYXN4FSUFTU3CEUK7TBGG4EH5AE3QBCP4WW3D6REC52OCBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
