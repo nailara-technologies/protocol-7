@@ -170,8 +170,10 @@ sub _cleanup_handshake {
 
     ## close socket unless told to keep it [ on successful handshake ] ##
     if ( not $keep_socket and defined $hs->{'socket'} ) {
-        eval { shutdown( $hs->{'socket'}, 2 ) };
-        close( $hs->{'socket'} );
+        if ( defined fileno( $hs->{'socket'} ) ) {
+            eval { shutdown( $hs->{'socket'}, 2 ) };
+            close( $hs->{'socket'} );
+        }
     }
 
     ## remove handshake state ##
@@ -180,8 +182,8 @@ sub _cleanup_handshake {
 
 0;
 
-#,,..,,..,.,.,,,,,,,,,,..,,..,,.,,,.,,...,,,,,.,.,...,...,..,,,,,,,,,,,,.,,,,,
-#KMSCHGJSRN3X2EN4XUVULWY7DIYXU3VS4SCWJOMESQEXLJ2IVZNWAPGV3TU4VGZ5PKOUCEZ3EOR6Q
-#\\\|VAX5OJEGRO5RE2425RUB2BPEK5QBGPTAY6A6B675BOVAVRR2I73 \ / AMOS7 \ YOURUM ::
-#\[7]MR2DGPA3S5P5QCBNCSZAHXZKTVRZPJMHRDEUHUNKGPI4YAKDKGAI 7  DATA SIGNATURE ::
+#,,..,...,.,,,..,,,,.,,.,,,,,,,,,,.,,,...,.,,,.,.,...,...,.,,,,,,,,,,,,.,,,.,,
+#DM5WYUXX5BKCUAUKCIKY57WQJS6Z57L2JWXECN77MLPJKKKGFWX7CNUJ3GWWBSGSPA57HJL66AFSC
+#\\\|RDI7SGATWXPVC77JL52TGFCOHIDY2YNPUBQWPMMXCUPGUVKVONW \ / AMOS7 \ YOURUM ::
+#\[7]5NVDJGCMF4CCSZCZXESBH52Z5HBSWAYADK4I4546PCMGQK73K6DY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
