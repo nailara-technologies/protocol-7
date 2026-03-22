@@ -1,0 +1,56 @@
+## [:< ##
+
+# name  = kimi.handler.session_liveness_timeout
+# descr = detect dead/archived kimi-web session and force fresh reconnect
+
+## if status is still 'connecting' after timeout, session is dead
+return if <kimi.ws.status> eq qw| ready |
+    or   <kimi.ws.status> eq qw| busy |;
+
+## don't clear session if we have active prompts — session is alive but
+## busy with our work [ init fails because agent turn is in progress ]
+my $has_pending_prompt = FALSE;
+foreach my $pend_id ( keys %{<kimi.wire.pending>} ) {
+    if ( ( <kimi.wire.pending>->{$pend_id}->{'type'} // '' ) eq qw| prompt | )
+    {
+        $has_pending_prompt = TRUE;
+        last;
+    }
+}
+if ($has_pending_prompt) {
+    <[base.logs]>->(
+        2, ': liveness timeout skipped — active prompt pending'
+    );
+    return;
+}
+
+<[base.logs]>->(
+    0, ': session liveness timeout [ status=%s ] — clearing stale session',
+    <kimi.ws.status>
+);
+
+## tear down websocket
+if ( defined <kimi.ws.io_watcher> ) {
+    <kimi.ws.io_watcher>->cancel
+        if <kimi.ws.io_watcher>->is_active;
+    <kimi.ws.io_watcher> = undef;
+}
+if ( defined <kimi.ws.socket> ) {
+    eval { shutdown( <kimi.ws.socket>, 2 ) };
+    close <kimi.ws.socket>;
+}
+<kimi.ws.connected> = FALSE;
+<kimi.ws.status>    = qw| disconnected |;
+
+## clear session id so next connect creates a fresh session
+<kimi.session_id> = undef;
+<[file.zenka_dir.write]>->( 'session_id', \'' );
+
+<[base.logs]>->( 1, ': cleared stale session — scheduling fresh connect' );
+<[kimi.connect.schedule_retry]>;
+
+#,,,,,,,,,.,.,.,.,,..,..,,,,,,,,.,,.,,,..,,,,,.,.,...,..,,.,.,...,.,,,..,,.,,,
+#56GFYOHTGDCGQDAW7D2HFG5AZZFKXTNN2WEXSWY6GDD4ZEL4RXLS3BVDEBDOMV5HPMGENZRMWZ5BC
+#\\\|2V3OGQ7TVOARXV4SWQ6RFQT5APOGRXR2WC3UVXZ24KPEUTL5HDK \ / AMOS7 \ YOURUM ::
+#\[7]G5XXTN23ATW2QEXWTC4KA5IEMU2KLJFJW3GAR4OYO45QTUIHIECQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

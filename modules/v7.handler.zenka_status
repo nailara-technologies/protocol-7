@@ -295,7 +295,8 @@ foreach my $name_or_id (@check_keys) {
                             sprintf( 'instance %s is terminated', $name_str )
                     }
                 );
-            } <v7.zenka.notify_online>->{$name_or_id};
+            } <v7.zenka.notify_online>->{$name_or_id}->@*;
+            delete <v7.zenka.notify_online>->{$name_or_id};
         } elsif ( $status =~ m{^(online|extbin|error)$}
             or $status eq qw| offline |
             and defined $zenka_config->{'restart'}->{'disabled'}
@@ -483,8 +484,8 @@ if ( $old_status ne qw| online | and $status eq qw| online | ) { # LLL extbin?
 
 <[jobqueue.check_dependencies]>;
 
-#,,,,,...,,.,,,.,,.,,,,,,,..,,,.,,.,.,.,.,,,,,..,,...,...,...,,,.,,.,,,.,,,..,
-#4ZS4HLIAUBJRTUF5MWSF2TVO7EHCSZMTRA4XLX6KU2EBNMCJPOSULVQPE6TDIJVJWMG37NOSDJ6JY
-#\\\|5I4IXYPZPF2WVJ2CMEJRFP7QAU2QGTYJNH7FBSCUKPTG577RL7J \ / AMOS7 \ YOURUM ::
-#\[7]K3QNIGQ3P42YRV6BKXOG4XDNV3ALEYZXQFRKJMSZTNKZF27ACOAY 7  DATA SIGNATURE ::
+#,,..,...,,,.,.,,,,.,,..,,,,.,,.,,,..,..,,.,,,..,,...,...,.,,,.,,,,.,,.,.,,,,,
+#3CXPLALRI25RIUOIYTPRELC5JWDM7AAYGGGOFSIAQXZHS7C2ZUBGSK6MCFBOP6VRKGBNAI35W77A2
+#\\\|3F7KVWL4UWEDYWNVDDGZBE4DBXNUWAENVTJJ5AHWHVRF5IL4R6O \ / AMOS7 \ YOURUM ::
+#\[7]JCSIUUMZDTOE3EULJQTBH743MBGNTRGXJ4FWWDIL263YMHMH6MCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
