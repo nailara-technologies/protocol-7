@@ -1,0 +1,55 @@
+## [:< ##
+
+# name  = letsencr.child.validate_chain
+# descr = validate cert chain, fix via AIA on mismatch
+
+my ( $leaf_pem, $chain_pem ) = @ARG;
+
+unless ( defined $leaf_pem and length $leaf_pem ) {
+    return { 'valid' => 0, 'error' => 'leaf certificate required' };
+}
+
+## extract issuer from leaf cert
+my $leaf_issuer = <[letsencr.x509_field]>->( $leaf_pem, '-issuer' );
+unless ( defined $leaf_issuer ) {
+    return { 'valid' => 0, 'error' => 'cannot parse leaf issuer' };
+}
+
+<[base.logs]>->( 2, ': leaf issuer: %s', $leaf_issuer );
+
+## if no chain provided, fetch intermediate via AIA immediately
+unless ( defined $chain_pem and length $chain_pem ) {
+    <[base.logs]>->( 1, ': no chain provided — fetching via AIA' );
+    return <[letsencr.fetch_intermediate_via_aia]>->($leaf_pem);
+}
+
+## extract subject from first cert in chain
+my $chain_subject = <[letsencr.x509_field]>->( $chain_pem, '-subject' );
+unless ( defined $chain_subject ) {
+    <[base.logs]>->(
+        1, ': cannot parse chain cert subject — fetching via AIA'
+    );
+    return <[letsencr.fetch_intermediate_via_aia]>->($leaf_pem);
+}
+
+<[base.logs]>->( 2, ': chain subject: %s', $chain_subject );
+
+## compare: leaf issuer must match chain subject
+if ( $leaf_issuer eq $chain_subject ) {
+    <[base.logs]>->( 2, ': chain valid — issuer matches' );
+    return { 'valid' => 1, 'chain_pem' => $chain_pem };
+}
+
+## mismatch — fetch correct intermediate
+<[base.logs]>->(
+    1,            ': chain mismatch — leaf issuer [%s] != chain subject [%s]',
+    $leaf_issuer, $chain_subject
+);
+
+return <[letsencr.fetch_intermediate_via_aia]>->($leaf_pem);
+
+#,,..,.,,,,.,,,,,,,,.,,.,,...,,,,,.,.,..,,,,.,..,,...,...,,,,,,,.,.,.,,,.,,..,
+#XRUR6YMUZF7QWGEY54BSQUYX5QZQYM6YXCUZO3Z3QBSYODTW5R354CCYR4L3ZUJOCBGCYTGRVUZY4
+#\\\|QUBXS7NM5EBL2VJJ3JHM2AEPDALCXNMDLATHJ3YK6MNWHVFMDGL \ / AMOS7 \ YOURUM ::
+#\[7]JWD6DSCHJZBX64FRDIRRFAZAZ2BVCEVQ7X2U2UT5SA5GO2SMIEBQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
