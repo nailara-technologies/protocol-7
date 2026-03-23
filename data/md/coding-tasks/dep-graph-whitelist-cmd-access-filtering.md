@@ -1,127 +1,117 @@
-# Task: dep-graph whitelist — cmd access filtering + on-demand module exemption
+# Task: dep-graph whitelist — loaded-set boundary enforcement
 
-## Background
+## Core Bug
 
-The current `dep-graph --list-subs` / `gen-sub-whitelist` system generates a
-subroutine whitelist by static reachability analysis from a zenka's entry points.
-Two related limitations were identified during the 2026-03-19 whitelist
-regeneration session.
+`walk_reachable` in `bin/dev/dep-graph` follows all static call edges in the
+global dep-graph regardless of whether the target module's namespace is actually
+loaded by the zenka. this causes modules from unrelated zenki to leak into
+every whitelist.
 
-## Issue 1: devmod.* in every zenka whitelist
+### Example: X-11 zenka
 
-`base.sig_NUM53` is unconditionally seeded as an entry point for all zenki
-(it is registered dynamically via sprintf in `base.init_zenka.install_signal_handlers`
-and cannot be traced statically). It contains:
+X-11 loads: `auth net protocol io.unix io.ip X-11`
 
-```perl
-<[base.load_runtime_modules]>->('devmod');
-<[base.init_modules]>->('devmod');
-```
+yet its `--list-subs` output includes subs from `channels.*`, `httpd.*`,
+`httpsd.*`, `v7.*`, `p7-log.*`, `set-up.*`, `crypt.*` — none of which
+are in the loaded set.
 
-Because dep-graph now detects `load_runtime_modules` calls, the full `devmod.*`
-namespace (~40 subs) is included in every zenka's whitelist — even zenki that
-never run devmod in production.
-
-This is technically correct (any zenka *can* receive SIGNUM53 and load devmod),
-but the devmod commands that become available after loading are governed by the
-zenka's `access.cmd.*` config, not by static reachability alone.
-
-## Issue 2: *.cmd.* subs not filtered by enabled commands
-
-Currently all `*.cmd.*` subs reachable from a zenka are whitelisted regardless
-of whether those commands are actually enabled in the zenka's `start` or
-`access.cmd.*` configuration files. A zenka with:
+### Leak path
 
 ```
-access.cmd.usr.cube  =  *
+plugin.auth.auth-keypair.tofu-notification
+  → channels.cmd.update          [ static call edge ]
+    → channels.util.yaml_decode  [ walked transitively ]
+    → channels.handler.data_change
 ```
 
-gets every reachable cmd sub whitelisted. A zenka with:
+`plugin.auth.*` is correctly included [ auth is loaded ]. but
+`channels.cmd.update` is a call that would fail at runtime if channels
+is not loaded — the whitelist should not include it.
 
-```
-access.cmd.usr.cube  =  httpd.reload, httpd.status
-```
+same pattern causes httpd/httpsd/v7/p7-log subs to appear in zenki
+that never load those namespaces.
 
-gets the same full set — the whitelist does not reflect the narrower access.
+## Root Cause
 
-Filtering whitelisted `*.cmd.*` subs to only those enabled in the zenka's access
-config would:
-- significantly reduce whitelist sizes
-- make the whitelist a precise reflection of what a zenka is permitted to do
-- create a concrete incentive to replace wildcard `*` command access with
-  explicit lists (because wildcards keep whitelist sizes large, while explicit
-  lists shrink them)
+`walk_reachable` (line ~1190) is a plain BFS over the dep-graph with no
+boundary check. it follows every edge in `$graph->{$module}` into any
+target, even if that target belongs to a namespace the zenka never loads.
 
-## Proposed expansion
+the loaded set (`$loaded_set`) is available and already used for scoping
+cmd/console/lifecycle subs — but the core `walk_reachable` walk itself
+is unconstrained.
 
-### Phase A — cmd access filtering in dep-graph/gen-sub-whitelist
+## Fix: loaded-namespace boundary filter
 
-1. Parse the zenka's `access.cmd.*` configuration entries during whitelist
-   generation (already accessible via the start file and shared-params).
-2. After reachability analysis, filter `*.cmd.*` nodes: only include those
-   whose command name matches at least one enabled pattern in the access config.
-3. Wildcard `*` access = keep all reachable cmd subs (current behaviour,
-   no regression for existing zenki).
-4. Explicit list = keep only the listed commands plus transitive deps.
+after the full reachable set is built [ after lifecycle subs, line ~882 ],
+filter out subs whose top-level namespace is not in the loaded set.
 
-### Phase B — on-demand / signal-loaded module exemption
+### determining shared vs zenka-owned namespaces
 
-Modules loaded exclusively via signal handlers (SIGNUM53 → devmod) or
-on-demand triggers represent a distinct loading category:
+shared namespaces are loaded by most/all zenki via `base.*` and are always
+valid targets: `base`, `io`, `net`, `auth`, `protocol`, `plugin`, `event`,
+`file`, `chk-sum`, `log`, `crypt`.
 
-- they are not present at init time
-- their availability is controlled by an external signal, not by whitelist
-- once loaded, the *access config* (not the whitelist) governs which of their
-  commands are callable
+zenka-owned namespaces correspond to directories in `configuration/zenki/`
+— these should only appear in the whitelist if they are in the loaded set.
 
-Options:
-a. **Exempt category**: tag `base.sig_NUM*` handlers as "on-demand loaders";
-   the namespaces they load are exempt from whitelist checking entirely
-   (the whitelist only covers statically-loaded code).
-b. **Separate on-demand whitelist**: generate a secondary
-   `subroutine.ondemand-white-list` for signal/on-demand modules; checked
-   only after the module has actually been loaded into `%code`.
-c. **Access-config-gated**: treat on-demand namespaces identically to Phase A —
-   only whitelist their cmd subs if the zenka's access config permits them.
+the filter logic:
+1. build `%loaded_ns` from `$loaded_set` top-level prefixes [ already done at line 856 ]
+2. build `%zenka_ns` by scanning `configuration/zenki/` directory names
+3. for each sub in `%reachable`: extract top-level namespace prefix
+4. if prefix is in `%zenka_ns` AND NOT in `%loaded_ns`: remove from reachable
+5. subs with non-zenka prefixes [ shared namespaces ] are always kept
 
-Option (c) is the simplest and most consistent with Phase A.
+### placement in code
+
+insert the filter between the lifecycle-subs loop (line ~882) and the
+existing access.cmd filter (line ~884). this way:
+- the reachable set is fully expanded first [ including runtime loads ]
+- the namespace boundary is enforced
+- the access.cmd filter then further narrows cmd subs [ Phase A, already implemented ]
+
+### devmod special case
+
+`devmod.*` enters via `base.sig_NUM53` → `load_runtime_modules('devmod')`.
+the runtime-load scanner (line ~770) correctly adds devmod to `$loaded_set`,
+so devmod subs pass the namespace filter. the existing access.cmd filter
+(line ~884) then narrows devmod cmd subs to those permitted by access config.
+no special handling needed — the two filters compose correctly.
 
 ## Acceptance criteria
 
-- [ ] dep-graph / gen-sub-whitelist parse zenka access.cmd.* entries
-- [ ] *.cmd.* whitelist entries are filtered to access-permitted commands
-      (wildcard `*` retains current behaviour)
-- [ ] devmod.* no longer appears in zenki that have no devmod access configured
-- [ ] zenki with explicit access lists show measurably smaller whitelists
-- [ ] regression test: zenki with wildcard access produce identical whitelists
-      to current output
+- [ ] X-11 whitelist contains zero channels.*/httpd.*/httpsd.*/v7.* subs
+- [ ] httpd whitelist still contains all httpd.* subs [ httpd is in loaded set ]
+- [ ] cube whitelist still contains all its subs [ cube loads everything it needs ]
+- [ ] zenki with `modules.load = auth net protocol io.unix io.ip ZENKA`
+      contain only base/shared + ZENKA namespace subs
+- [ ] regression: whitelists for zenki that explicitly load a namespace are
+      unchanged from current output
 
 ## Related files
 
-- `bin/dev/dep-graph` — reachability analysis, `--list-subs` mode
+- `bin/dev/dep-graph` — `walk_reachable` (line ~1190), `analyze_zenka_reachability`
+  (line ~628), `$loaded_set` construction, lifecycle-subs loop (line ~846),
+  access.cmd filter (line ~884)
 - `bin/dev/gen-sub-whitelist` — whitelist file writer
 - `configuration/zenki/*/subroutine.white-list` — generated output
-- `configuration/zenki/*/start` — modules.load + access.cmd entries
-- `modules/base.sig_NUM53` — devmod on-demand loader via SIGNUM53
-- `modules/base.init_zenka.install_signal_handlers` — signal registration loop
-- `modules/base.parser.access_conf` — **reference for glob-to-regex translation**:
-  lines 78–97 show the correct pattern for converting `access.cmd.*` glob patterns
-  to anchored regexes. key substitutions (applied after dot-escaping):
-  `**` → `.+`, `*` → `[^\\.]+`. dep-graph must replicate this logic when
-  checking whether a command name matches an access pattern — do NOT use a
-  naive `m/^\$re\$/` or simple string glob.
+- `configuration/zenki/*/start` — `modules.load` defines loaded set
+- `modules/plugin.auth.auth-keypair.tofu-notification` — example leak path
+  [ calls channels.cmd.update ]
 
 ## Notes
 
-- Phase A alone is already a significant improvement; Phase B can follow.
-- The access-config parsing required for Phase A is the same infrastructure
-  needed to verify that access.cmd.* entries reference real subs — a useful
-  consistency check in its own right.
-- Implementing Phase A will surface zenki using overly broad wildcard access,
-  creating a natural audit trail for tightening permissions.
+- do NOT hardcode namespace lists to filter [ httpd, httpsd, etc. ].
+  the filter must be generic: derive zenka-owned namespaces from
+  `configuration/zenki/` directory listing, check against loaded set.
+- `walk_reachable` itself should remain unconstrained — the filter is
+  a post-pass, not a walk boundary. this keeps the walk simple and
+  avoids breaking the reachability analysis for other output modes.
+- the existing access.cmd filter (Phase A) is already correct and
+  composes with this fix — no changes needed there.
 
-#,,,,,..,,.,,,...,,.,,,..,,.,,,..,,.,,,,.,.,,,..,,...,...,...,,.,,.,.,,,,,.,,,
-#MGXR3XUE5AXJI4GEKZGAKOD763LOJL4CGWCPHKOIUXBYBMW2E4AYFFLT2NRWHF7ONDZA7JSIX3J6S
-#\\\|Z66I5MZ3X32ZPDL2FCJIXUUCUVWJU5RJGHNRYJHCR62WKJEYYTS \ / AMOS7 \ YOURUM ::
-#\[7]PQFCSCORBKR72R246OC5ZMG6RGFSZVQXU4VO54WXA3I7T2KLOAAI 7  DATA SIGNATURE ::
+#,,,,,,..,.,.,,,.,,.,,,.,,.,,,,,,,,.,,...,,..,..,,...,..,,...,..,,,..,.,,,...,
+#AEDASVB6ZCKGUCCO5RF4GC5ALDSAC2L5OZ5CEQBDOLSMAPAEAI7AJIWJ2ZV7KKACREUX5S7RBVIWY
+#\\\|BQ74P2EB3UPG7NZSFZI3LNZZDUEJMPOEYRC4O3I2ZYRDBECBIPW \ / AMOS7 \ YOURUM ::
+#\[7]OHTWBPXCPH5RMXWLE5N5HC3FFAXKYVQOWRT2IBGPYBEY6HPVLIAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
