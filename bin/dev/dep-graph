@@ -828,7 +828,7 @@ sub analyze_zenka_reachability {
         if ( exists $loaded_set->{'net'} ) {
             for my $ns ( qw| base |, keys %{$loaded_set} ) {
                 for my $node (
-                    grep {m/^\Q$ns\E\.(?:cmd|console)\./}
+                    grep {m/^\Q$ns\E\.(?:.*\.)?(?:cmd|console)\./}
                     keys %{$graph}
                 ) {
                     next if $reachable{$node};
@@ -844,8 +844,8 @@ sub analyze_zenka_reachability {
         if ( not exists $loaded_set->{'net'}
             and exists $reachable{'base.call.console_command'} ) {
             for my $ns ( qw| base |, keys %{$loaded_set} ) {
-                for my $node ( grep {m/^\Q$ns\E\.console\./} keys %{$graph} )
-                {
+                for my $node ( grep {m/^\Q$ns\E\.(?:.*\.)?console\./}
+                    keys %{$graph} ) {
                     next if $reachable{$node};
                     my %new = walk_reachable( $graph, [$node] );
                     %reachable = ( %reachable, %new );
@@ -1617,8 +1617,8 @@ sub classify_dispatch_confidence {
     return 'open';
 }
 
-#,,..,...,.,.,.,.,..,,...,,,.,,,,,,,.,..,,,..,.,.,...,..,,,.,,,,,,..,,.,,,,.,,
-#23WY7SEV2I5CEF7SNKB25AF37SJ4XPO4HJIYVCNZ7LWEFNZLWO2MG2U2F6Z4NNUE33M6TCPOE4Y64
-#\\\|O5LP5S5VJ2OZ7F5KI4VZFAPQQX6Y62THAHS3S554WQIHOFABQ4I \ / AMOS7 \ YOURUM ::
-#\[7]RGK3TMOVUHNNYKGOT47HVNGHUYW6BE7QJGQQQO5MO44KPJ7TBUCI 7  DATA SIGNATURE ::
+#,,..,.,.,.,.,..,,.,,,...,.,,,..,,.,.,,,,,.,.,.,.,...,...,.,.,,.,,,,,,.,.,,,,,
+#K45B4TLGOVQWGXP2CKRYKGIYPHNZLLHJ5ZKK43DOEHLJNNPQT3PDEMYCAZU2MANXMN6ROWTKTDVWC
+#\\\|QPG5G7W6G6FMGXUHQHSGSY2WKSEZ3UGJ2QXBVZYXVICYAQ5LNYJ \ / AMOS7 \ YOURUM ::
+#\[7]AA6KGGGLTQYYZB5EGSNJII6IZOJRUEU7U6BS2QF4RG7AV5U3ZSAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
