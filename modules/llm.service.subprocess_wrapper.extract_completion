@@ -1,0 +1,30 @@
+## [:< ##
+
+# name  = llm.service.subprocess_wrapper.extract_completion
+# descr = extract completion text from llama.cpp subprocess output
+# param = $output, $prompt
+
+my ( $output, $prompt ) = @ARG;
+
+# llama.cpp repeats the prompt then shows completion
+# find where the completion starts after the prompt
+
+if ( $output =~ m|\Q$prompt\E\s*(.+?)$|s ) {
+    my $completion = $1;
+
+    # clean up trailing tokens
+    $completion =~ s|\[end_of_text\].*$||;
+    $completion =~ s|\s+$||;
+    return $completion if length($completion) > 0;
+}
+
+# fallback: return last 500 chars of output
+return substr( $output, -500 ) if length($output) > 0;
+
+return "No response generated";
+
+#,,.,,,,.,,,.,..,,...,,,,,,..,,,,,.,.,,,.,,,.,.,.,...,..,,,..,,..,.,.,...,,,,,
+#HPO25UAI272DIZC7CBXGZ4XHRTVHSKEHRLXXWOM535GEV6FFQBMCFB2L2OPIBN4J6OX5TYBRW3X3O
+#\\\|NZ6IKSIDITN3ANVCDIQOKP7TVF7F4URD6V75MIIPF7PDUJIGUNS \ / AMOS7 \ YOURUM ::
+#\[7]DNJFZ5TP6ANTAQRNVQHQMMDZ4KE756UFQHYZB6ANT6JLX5FQ2WAI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

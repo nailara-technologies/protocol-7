@@ -34,7 +34,7 @@ my %MODELS = (
 
 # Query a single LLM via subprocess (llama-cli)
 my $query_single_model = sub {
-    my ( $model, $prompt ) = @_;
+    my ( $model, $prompt ) = @ARG;
 
     return {
         success => FALSE,
@@ -62,7 +62,9 @@ my $query_single_model = sub {
                     "llama-cli not available. Install ik_llama.cpp: https://github.com/ikawrakow/ik_llama.cpp",
                 help => "For now, using mock responses for testing",
                 fallback_response =>
-                    _generate_mock_response( $model, $prompt )
+                    <[llm.service.consensus_vote.generate_mock_response]>->(
+                    $model, $prompt
+                    )
             };
         }
         return $llm_result;
@@ -77,7 +79,7 @@ my $query_single_model = sub {
 
 # Map responses to cubic space coordinates
 my $map_to_cubic_space = sub {
-    my ($responses) = @_;
+    my ($responses) = @ARG;
 
     # Cubic space uses harmonic positioning
     # Each answer is mapped to coordinates based on:
@@ -110,7 +112,7 @@ my $map_to_cubic_space = sub {
 
 # Calculate consensus via center of mass in cubic space
 my $calculate_consensus = sub {
-    my (@coordinates) = @_;
+    my (@coordinates) = @ARG;
 
     return {
         success => FALSE,
@@ -143,14 +145,16 @@ my $calculate_consensus = sub {
         $max_distance = $distance if $distance > $max_distance;
     }
 
-    # Calculate harmonic certainty using BASE32 encoding principles
+    # calculate harmonic certainty using BASE32 encoding principles
     my $avg_distance
         = sum( map { $_->{distance} } @distances ) / scalar(@distances);
     my $certainty
         = $max_distance > 0 ? 1 - ( $avg_distance / $max_distance ) : 1.0;
 
-    # Harmonic certainty (div-7 pattern)
-    my $harmonic_certainty = _encode_harmonic_certainty($certainty);
+    # harmonic certainty (div-7 pattern)
+    my $harmonic_certainty
+        = <[llm.service.consensus_vote.encode_harmonic_certainty]>
+        ->($certainty);
 
     return {
         success   => TRUE,
@@ -169,7 +173,7 @@ my $calculate_consensus = sub {
 
 # Perform full consensus voting
 my $consensus_vote = sub {
-    my ( $task, $models_to_use ) = @_;
+    my ( $task, $models_to_use ) = @ARG;
 
     $models_to_use //= [ 'qwen', 'mathstral', 'aya' ];
 
@@ -267,56 +271,9 @@ my $consensus_vote = sub {
     };
 };
 
-# Harmonic certainty encoding (BASE32-like, div-7 pattern)
-sub _encode_harmonic_certainty {
-    my ($certainty) = @_;
-
-    # Map 0-1 to harmonic levels using div-7 pattern
-    # BASE32 encoding: 7^n divisions
-    my $level         = int( $certainty * 7 );
-    my $harmonic_code = sprintf( "%07b", $level );    # 7-bit binary
-
-    return {
-        numeric         => $certainty,
-        harmonic_level  => $level,
-        binary_encoding => $harmonic_code,
-        interpretation  => _interpret_certainty_level($level)
-    };
-}
-
-sub _interpret_certainty_level {
-    my ($level) = @_;
-
-    my @levels = (
-        'Very Low', 'Low',       'Moderate', 'Good',
-        'High',     'Very High', 'Excellent'
-    );
-
-    return $levels[$level] // 'Unknown';
-}
-
-# Mock response generator (for development)
-sub _generate_mock_response {
-    my ( $model, $prompt ) = @_;
-
-    if ( $model eq 'qwen' ) {
-        return
-            "This is a reasoning response from Qwen focusing on logical analysis. ";
-    } elsif ( $model eq 'mathstral' ) {
-        return
-            "This is a mathematical reasoning response from Mathstral with detailed steps. ";
-    } elsif ( $model eq 'aya' ) {
-        return
-            "This is a multilingual response from Aya considering cross-cultural context. ";
-    }
-
-    return
-        "Response from $model regarding: " . substr( $prompt, 0, 50 ) . "...";
-}
-
 # Main entry point
-my $cmd  = shift @_ // 'vote';
-my $arg1 = shift @_;
+my $cmd  = shift @ARG // 'vote';
+my $arg1 = shift @ARG;
 
 if ( $cmd eq 'vote' ) {
     return consensus_vote->( $arg1, $_[0] );
@@ -342,8 +299,8 @@ if ( $cmd eq 'vote' ) {
     };
 }
 
-#,,,.,...,,,,,...,.,.,..,,...,.,.,.,,,,.,,,..,..,,...,..,,,.,,..,,,.,,.,,,,..,
-#S6LYHAJCW2WF6CZQQLEXCVAOOBLY74T5WEXXNV7VL3RKZC6IZDOOFTNMCQ5FXY64EXN4J32A2PIAG
-#\\\|N7B777MGKRUKDXC5DUHE4ZNO7C6UITRXMT6JMPOTTZE7FMOPVLP \ / AMOS7 \ YOURUM ::
-#\[7]VBRFNF3INXH7LLZAO5CZTSXJ2VGTPB5M2ZM4ANFKCKT6PZXVB2DI 7  DATA SIGNATURE ::
+#,,.,,,,,,,..,,,.,.,,,,..,.,.,,,.,,..,...,,.,,..,,...,...,.,,,.,,,,,,,,,,,,..,
+#SKDRHXQAVC5BHSOJ7RK7ADKYIZ3W2PIYFC2CEE4AWJEZNYQA7YTVC7PAPKEKULV77GS2Z6MHI73EM
+#\\\|P6XOUTRNOEHIZSK5T7IHPLOWFO4BRSCJYRMFRLC3NRDDLUW7IGX \ / AMOS7 \ YOURUM ::
+#\[7]LUJPRSMRP6Y3DDRUXV67BHPZCIGMNUQVRQ7HXIH3S5XESSWLCACI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

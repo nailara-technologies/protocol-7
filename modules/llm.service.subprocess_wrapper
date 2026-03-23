@@ -21,7 +21,7 @@ my %MODEL_ALIASES = (
 <[base.perlmod.autoload]>->(qw| JSON::PP |);
 
 my $get_model_config = sub {
-    my ($model_alias) = @_;
+    my ($model_alias) = @ARG;
 
     # Resolve alias to model ID
     my $model_id = $MODEL_ALIASES{$model_alias} || $model_alias;
@@ -54,7 +54,7 @@ my $get_model_config = sub {
 
 # Query a model via subprocess
 my $query_subprocess = sub {
-    my ( $model, $prompt ) = @_;
+    my ( $model, $prompt ) = @ARG;
 
     <[base.logs]>->( 1, "[llm.service] query_subprocess : model=%s", $model );
 
@@ -120,8 +120,10 @@ my $query_subprocess = sub {
         };
     }
 
-    # Parse output (llama.cpp outputs the completion after the prompt)
-    my $answer = _extract_completion( $out, $prompt );
+    # parse output (llama.cpp outputs the completion after the prompt)
+    my $answer = <[llm.service.subprocess_wrapper.extract_completion]>->(
+        $out, $prompt
+    );
 
     return {
         success  => TRUE,
@@ -129,54 +131,18 @@ my $query_subprocess = sub {
             model       => $model,
             prompt      => $prompt,
             answer      => $answer,
-            tokens_used => _estimate_tokens( $prompt, $answer ),
-            latency_ms  => int( $elapsed * 1000 ),
-            timestamp   => time(),
-            confidence  => _estimate_confidence($out)
+            tokens_used =>
+                <[llm.service.subprocess_wrapper.estimate_tokens]>->(
+                $prompt, $answer
+                ),
+            latency_ms => int( $elapsed * 1000 ),
+            timestamp  => time(),
+            confidence =>
+                <[llm.service.subprocess_wrapper.estimate_confidence]>->(
+                $out)
         }
     };
 };
-
-# Extract the completion from llama.cpp output
-sub _extract_completion {
-    my ( $output, $prompt ) = @_;
-
-    # llama.cpp repeats the prompt then shows completion
-    # Find where the completion starts after the prompt
-    my $prompt_escaped = quotemeta($prompt);
-
-    if ( $output =~ /\Q$prompt\E\s*(.+?)$/s ) {
-        my $completion = $1;
-
-        # Clean up trailing tokens
-        $completion =~ s|\[end_of_text\].*$||;
-        $completion =~ s|\s+$||;
-        return $completion if length($completion) > 0;
-    }
-
-    # Fallback: return last 500 chars of output
-    return substr( $output, -500 ) if length($output) > 0;
-
-    return "No response generated";
-}
-
-# Estimate token count (rough approximation)
-sub _estimate_tokens {
-    my ( $prompt, $answer ) = @_;
-
-    my $total_text = $prompt . ' ' . $answer;
-
-    # Rough estimate: 1 token per 4 characters
-    return int( length($total_text) / 4 );
-}
-
-# Estimate confidence from output
-sub _estimate_confidence {
-    my ($output) = @_;
-
-    # Very simple heuristic: if output is substantial, high confidence
-    return 0.5 + ( length($output) / 1000 ) * 0.4;
-}
 
 # Get list of available models
 my $get_available_models = sub {
@@ -229,8 +195,8 @@ my $check_llama_cli = sub {
 };
 
 # Main entry point
-my $cmd  = shift @_ // 'query';
-my $arg1 = shift @_;
+my $cmd  = shift @ARG // 'query';
+my $arg1 = shift @ARG;
 
 if ( $cmd eq 'query' ) {
     return query_subprocess->( $arg1, $_[0] );
@@ -251,8 +217,8 @@ if ( $cmd eq 'query' ) {
     };
 }
 
-#,,.,,,..,,.,,..,,,,,,,.,,.,.,,..,..,,.,.,.,,,..,,...,...,,,.,.,.,,,.,,.,,,,,,
-#63FTIPN3EC2GLSUIHX7XXYZUBLE5JSBMGJN5AAZ6DWE2ITRVJNR2L4WHOZXMSMGP5CLUXJYYAVYHG
-#\\\|DJYRUEDYLRYMA5ILFWSLPJLVQO7WVIJIYNPN62W2MEXGAQTGWYP \ / AMOS7 \ YOURUM ::
-#\[7]YLTZ3YEQSNLCMDJCLQH57DRWYUTY2MHZ6QWEOPOTTZFCLUIIQUAY 7  DATA SIGNATURE ::
+#,,..,.,,,..,,.,,,,,,,,,.,,,,,,,,,,,.,,,.,,.,,..,,...,...,.,,,,,,,,,.,,,,,,,,,
+#3EWDGYREJ55PEJVT2T7DPVF4IRAYG2A74PERI3PGIKLM2JV36UOFCMLK7GNYKHJ7NXF6C2EUE53KO
+#\\\|NAAZ4IH2YIPFMHGCK4IAYQ2ZQ2AM3GSJLFLW3NLK3SSZLPYEJQI \ / AMOS7 \ YOURUM ::
+#\[7]LD7A7IUDOG3QXADUKKZSSRWPRZW2FASLCBRQLB4OYCONXSPKQWCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

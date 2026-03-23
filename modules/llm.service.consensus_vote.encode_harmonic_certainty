@@ -1,0 +1,27 @@
+## [:< ##
+
+# name  = llm.service.consensus_vote.encode_harmonic_certainty
+# descr = encode certainty level using harmonic mathematics
+# param = $certainty
+
+my ($certainty) = @ARG;
+
+# map 0-1 to harmonic levels using div-7 pattern
+# BASE32 encoding: 7^n divisions
+
+my $level         = int( $certainty * 7 );
+my $harmonic_code = sprintf( "%07b", $level );    # 7-bit binary
+
+return {
+    numeric         => $certainty,
+    harmonic_level  => $level,
+    binary_encoding => $harmonic_code,
+    interpretation  =>
+        <[llm.service.consensus_vote.interpret_certainty_level]>->($level)
+};
+
+#,,.,,,,.,..,,,,.,.,.,,,,,,,,,...,.,,,..,,,,,,.,.,...,...,,..,,.,,,,,,.,.,,..,
+#7QO6OCZSSD5REWT56KR44U4QORYE6QMEV3GEAI7VHVJWZD6LPF5OTDUYJWO6UJOTA3AU66RGQZI22
+#\\\|DCNJ4XGT3VGQBQPULWBTG7BLM7ZD3ZJNMNURWTTSXJE5WXBPF43 \ / AMOS7 \ YOURUM ::
+#\[7]POIIIJRKRXZJJ25F4COG6QM4DZNT7WRAZPHBWWIQP4HGKXS2HQBQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
