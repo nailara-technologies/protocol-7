@@ -13,6 +13,8 @@
   user as coding zenka; tasks decomposed for autonomous execution between sessions
 - `topic-distributed-consensus.md` — channels zenka, multi-model group chat, consensus groups,
   distributed P7 nodes with ik_llama.cpp on remote servers
+- `topic-task-coordination.md` — task zenka as coordinator between kimi/coding/models,
+  current state, dispatch flow, architectural questions, reference to scattered design docs
 - `feedback-kimi-code-review.md` — common issues in kimi-generated P7 code: SUPER:: resolution,
   namespace swaps, SSL internals, missing log levels, style, fake signatures
 
@@ -23,67 +25,33 @@
 - Real footer: checksum line, hash line, two AMOS7/YOURUM lines, separator
 
 ## System Status
-- **HTTPS (httpsd)**: production cert on pri.v7.ax ✅ full chain served (leaf + R12 via .pem)
-- **Models memory system**: completed ✅ collision-free AMOS checksums, `[:memory:CHECKSUM]` expansion
-- **Models-coding integration**: completed ✅ `models.chat` routes local models through coding zenka
-- **Data zenka + SHM mounting**: built by Kimi (Feb 21-25) ✅ — 97 modules, holographic topology
-- **Harmonic mathematics session** (Feb 27 2026): deep exploration → `topic-harmonic-mathematics.md`
-- **v7 stdout SHM log** (Feb 27 2026): completed ✅ — details in `topic-completed.md`
-- **fork-child cleanup + sig_chld pid filter** (Mar 2 2026): completed ✅ — commit `1ffe1d2fa`
-- **kimi-web WebSocket client zenka** (Mar 2 2026): completed ✅ — commit `68af03d0a`
-- **route-send migration + binmode fix** (Mar 2 2026): completed ✅ — commit `0c1f202ba`
-- **standalone zenka log_cmd race fix** (Mar 4 2026): completed ✅ — commit `8f81bfdb1`
-- **work zenka cleanup** (Mar 4 2026): completed ✅ — commit `8f81bfdb1`
-- **non-blocking socket read fix** (Mar 7 2026): completed ✅ — commit `0c590de22`
-- **models registry consolidation** (Mar 8 2026): completed ✅ — see `topic-completed.md`
-- **coding zenka event loop + switch-model** (Mar 8 2026): completed ✅ — see `topic-completed.md`
-- **deferred compilation stub mechanism** (Mar 15 2026): partial ✅ — stubs install for non-whitelisted
-  runtime subs; lifecycle hooks excluded (absence = skip by convention); event loop readiness guard
-  fixed (`$data{'watcher'}{'io'}{'transfer'}` check); `base.handler.deferred_compile` uses
-  `base.load_runtime_modules` to bypass whitelist; level-1 log visibility for any stray triggers;
-  design doc at `data/md/documentation/deferred-compilation-design.md` for deeper namespace/phase work
-  and `topic-patterns.md` (inference server status pattern)
-- **zulum→decoder entropy wiring** (Mar 10 2026): completed ✅ — route-send callback,
-  level-5-B32 buffer, is_true stream state; see `zulum-decoder-routing-reference.md`
-- **harmonic transit vision architecture** (Mar 11 2026): documented ✅ —
-  DTM 6×7×13 CCW shift register, 15-bit `#:::::` footer encoding, binary sunburst
-  zoom promotion (0110/1001), multi-speed lanes, lens effect on distance, PYTAURAZA;
-  see `data/md/documentation/harmonic-transit-vision-architecture.md`
-- **signature oscillation Variant A** (Mar 16 2026): resolved ✅ — state=7/6 encoding fix,
-  remove-N restore semantics, empty file state=6; commit `2bf1b3d46`; 109 files resigned.
-  Variant B (double-footer on never-signed non-empty files) still open — fixtures at
-  `data/asc/test-fixtures/signature-oscillation-2026-03-15/`
-- **config double-load bug**: pre-existing duplicate config key warnings on startup/reload — needs "already loaded" guard in config parser; see `bug-config-double-load.md`
-- **task zenka** (Mar 20 2026): completed ✅ — YAML persistence via format.yaml, ntime.b32 timestamps
-- **models task dispatch** (Mar 20 2026): completed ✅ — jobqueue integration with dispatch_slot
-  dependency type for sequential execution; event-driven notify → claim → enqueue → execute pipeline
-- **kimi task-poll async fix** (Mar 20 2026): completed ✅ — rewrote broken sync assumption, param→call_args fix in ws_message
-- **repo var/ cleanup needed**: `var/httpd/` tracked from Nov 2025 AI error — should be removed, template relocated to `data/html/templates/`
-- **dep-graph lifecycle hook gap**: `*.init_code`, `*.pre_init`, `*.post_init`, `*.end_code` must always be whitelisted for loaded namespaces — see `feedback-devmod-whitelist.md`
-- **MCP server for Claude Code** (Mar 20 2026): completed ✅ — `bin/mcp-server-p7` stdio MCP server,
-  config at `data/json/claude/.mcp.json` symlinked from project root `.mcp.json`;
-  tools: p7_command, p7_task_create, p7_task_show, p7_task_queue, p7_task_complete, p7_task_continue;
-  unbuffered sysread I/O, unix-$USER auth, `close\n` disconnect; commits `9901a539d`, `3a8be6700`
-- **kimi zenka upgrades** (Mar 21-22 2026): completed ✅ — see `topic-completed.md`
-  - JSON parse fix: `decode_json` → `from_json` for UTF-8 websocket text frames
-  - approval replay dedup: `responded` set persisted to zenka_dir across restarts
-  - session management: `new-session`, `session-info` commands; devmod + format.json modules
-  - websocket frame: eval wrapper in handler.read, 16MB max_payload_size
-- **httpsd crash capture fixes** (Mar 21-22 2026): completed ✅
-  - `file.slurp` returns scalar ref — was stringifying to `SCALAR(0x...)` in crash log
-  - on-demand buffer init: moved from init_code to collect module, config flag for log forwarding
-  - reload guard: skip collect when `system.zenka.initialized` (not a real crash)
-  - cert path: `current.pem` → `default.pem`, removed premature warning from pre_init
-  - task file: `data/yaml/coding-tasks/httpsd-cert-architecture-cleanup.yaml`
-- **httpsd non-blocking SSL accept** (Mar 22 2026): completed ✅ — kimi task JT4HGQA + 3 review fixes;
-  commits `830f5d8fd`, `3714866e8`, `f98d85c5b`, `a950a7190`; deployed to pri.v7.ax;
-  rate-limiting follow-up pending; see `feedback-kimi-code-review.md` for review patterns
-- **kimi-web session data loss** (Mar 21 2026): hundreds of real sessions lost from `~/.kimi/sessions/`,
-  likely caused by kimi zenka API interactions rewriting `kimi.json` (birth=Mar 21 03:22);
-  35 sessions remain on disk with content intact; full backup at
-  `/data/backup/kimi/kimi-sessions.full_dir.0000.tar.xz` (105M)
-- **httpd favicon.ico binary read bug**: `file.slurp` applies UTF-8 decode to binary .ico files,
-  `\xAB` fails → HTTP 500; needs `:raw` binmode for binary content types
+
+### Completed (Feb-Mar 2026) — details in `topic-completed.md`
+- HTTPS httpsd, models memory, models-coding integration, data zenka + SHM
+- v7 stdout SHM log, fork-child cleanup, kimi-web WebSocket client
+- route-send migration, standalone log_cmd race, non-blocking socket read
+- models registry consolidation, coding zenka event loop + switch-model
+- zulum→decoder entropy wiring, harmonic transit vision architecture
+- signature oscillation Variant A (`2bf1b3d46`), task zenka, models task dispatch
+- kimi task-poll async fix, MCP server for Claude Code (`9901a539d`)
+- kimi zenka upgrades (JSON/websocket/approval/session), httpsd crash capture
+- httpsd non-blocking SSL accept (deployed pri.v7.ax), favicon binary read fix
+- kimi reconnect busy-status preservation (`0799bb8d6`)
+- llm inline subroutine extraction — kimi task AKXEYFQ (`526d91760`)
+
+### Active / Partial
+- **deferred compilation stubs** (Mar 15): partial ✅ — deeper namespace/phase work pending;
+  design doc at `data/md/documentation/deferred-compilation-design.md`
+- **task coordination architecture**: see `topic-task-coordination.md` for full state + roadmap
+- **multi-model consensus**: llm.service.consensus_vote modules extracted but untested;
+  needs refinement for 5-of-7 algorithm group and real model providers
+
+### Open Bugs / Cleanup
+- **config double-load bug**: duplicate config key warnings — see `bug-config-double-load.md`
+- **signature oscillation Variant B**: double-footer on never-signed non-empty files
+- **repo var/ cleanup**: `var/httpd/` tracked from Nov 2025 AI error
+- **dep-graph lifecycle hook gap**: see `feedback-devmod-whitelist.md`
+- **kimi-web session data loss** (Mar 21): backup at `/data/backup/kimi/kimi-sessions.full_dir.0000.tar.xz`
 
 ## Key Technical Insights
 
@@ -214,8 +182,8 @@
 - Pattern: `my @non_num = grep { defined $data_ref->{$ARG}->{$key} and not looks_like_number(...) } keys $data_ref->%*`
 - Global `$SIG{__WARN__}` exists — if wrapping warn handler, capture `$prev_warn = $SIG{__WARN__}` first and call through
 
-#,,..,,,.,.,.,,.,,,.,,...,,,.,.,,,,..,..,,,,.,..,,...,...,.,,,...,...,,..,.,,,
-#YD57MZSECJOT7SJHGAJIPI5RLX3FG2455CHGOB5SZN25XAF3LRBCJRIB7BUZBMCGY7ZVXIASBBWXS
-#\\\|JLNJJVO5U3V6CC5HUSU5CSBJ6WPLQ3TADPVYSCYPEJVUOR7VSH6 \ / AMOS7 \ YOURUM ::
-#\[7]BQKETBFJILCWKGFEIBER3FL7O4DND7SHJRJH23H4XZ524D2X4OAA 7  DATA SIGNATURE ::
+#,,..,..,,,,,,,,.,,,,,,,.,,.,,,,,,,,,,,,.,,.,,..,,...,..,,,.,,.,.,..,,..,,,.,,
+#JG7NB3G72V45BUYYDJIKWQIMVNIKMZEF3PQIDFYEYAUUKLBW5FREEQDSXGBPT5YVUCN5WKSO4KKK6
+#\\\|LFX7TUUGQKG3GMDVZIN25TXEJE5OA7YLTBZKZ4XJKEW4PSXAN2O \ / AMOS7 \ YOURUM ::
+#\[7]U357TO6SMPJUEOBXTE7VNLCMVQ2AYV6CJCLHV66PGBAG7CCDGUAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
