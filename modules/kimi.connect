@@ -105,7 +105,22 @@ if ( not defined $sock ) {
 );
 
 <kimi.ws.connected> = TRUE;
-## status set to 'ready' after history_complete + initialize handshake succeed
+
+## if prompts were preserved across reconnect, restore busy status so that
+## history_complete skips initialize [ TurnEnd will fire when work completes ]
+my $has_preserved_prompt = FALSE;
+for my $pend_id ( keys %{<kimi.wire.pending>} ) {
+    if ( ( <kimi.wire.pending>->{$pend_id}{'type'} // '' ) eq qw| prompt | ) {
+        $has_preserved_prompt = TRUE;
+        last;
+    }
+}
+if ($has_preserved_prompt) {
+    <kimi.ws.status> = qw| busy |;
+    <[base.logs]>->(
+        1, ': reconnected with preserved prompt — status set to busy'
+    );
+}    ## else status stays 'connecting' until history_complete + initialize
 
 ## session liveness timeout — if status doesn't leave 'connecting' within
 ## 15s, the session is likely dead/archived. clear and retry with fresh one.
@@ -119,8 +134,8 @@ if ( not defined $sock ) {
 
 <[base.logs]>->( 2, 'kimi.connect: websocket connected [ %s ]', $ws_url );
 
-#,,.,,.,.,,,,,,,.,.,.,,.,,...,,.,,.,.,.,.,,,,,..,,...,..,,.,,,.,.,,,.,.,.,,,,,
-#PUFZRSVFFPUEF6GBLKC6HTWWDBSQTSGT263EXIBL2SWIU6BF2ADJWKTATXSG6VR5GZK3MXHTVTJX2
-#\\\|TNJLWTP237EMMZJAYBDF65MTBDEB73YOOFWUWDOK5GSPRBASYWC \ / AMOS7 \ YOURUM ::
-#\[7]KUUZKJOWO4ZAOFFJMPBOYPZVBVX3NYT3H465RLZ6WKSQP3AGBWDA 7  DATA SIGNATURE ::
+#,,..,,,,,,,,,.,,,,,,,,..,..,,,,.,.,.,,,.,,.,,..,,...,...,..,,.,.,,,,,,,,,,..,
+#IMFVHSUGPUXZHODSQU2JKYYDTML4X2KMIUTKQ3WHXLLZKKOJ245TAG67GZCHSNOBO33I3LZ2QRUUE
+#\\\|U4MREX67YLPV66TCPNDMJTDWWO7ANC2Y3DDMVJCPESJ7S2ATKKG \ / AMOS7 \ YOURUM ::
+#\[7]OED5VFMZTKQMFZNAY7WMKJOO3YRZA6XF2PYJPHQPKT2MLLQNS4AQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
