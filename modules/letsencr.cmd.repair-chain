@@ -1,0 +1,104 @@
+## [:< ##
+
+# name  = letsencr.cmd.repair-chain
+# descr = repair mismatched certificate chain via AIA
+# param = domain name
+
+my $domain = $call->{'args'} // '';
+
+unless ( length $domain ) {
+    return { 'mode' => 'false', 'data' => 'domain name required' };
+}
+
+my $certs_dir = <letsencr.certs.dir>;
+my $pem_path  = "$certs_dir/$domain.pem";
+
+unless ( -f $pem_path ) {
+    return {
+        'mode' => 'false',
+        'data' => sprintf( 'no pem file found at %s', $pem_path )
+    };
+}
+
+<[base.logs]>->( 1, ': repair-chain: checking %s', $domain );
+
+## read current pem file [ :raw — binary cert data ]
+my $pem_content = <[file.slurp]>->( $pem_path, qw| :raw | )->$*;
+
+## split into individual PEM blocks
+my @pem_blocks
+    = $pem_content =~ m{(-----BEGIN [A-Z ]+-----.*?-----END [A-Z ]+-----)}gs;
+
+## identify cert blocks vs key block
+my @cert_blocks;
+my $key_block;
+for my $block (@pem_blocks) {
+    if ( $block =~ m{PRIVATE KEY} ) {
+        $key_block = $block;
+    } else {
+        push @cert_blocks, $block;
+    }
+}
+
+unless (@cert_blocks) {
+    return { 'mode' => 'false', 'data' => 'no certificates found in pem' };
+}
+
+my $leaf_pem  = $cert_blocks[0];
+my $chain_pem = join( "\n", @cert_blocks[ 1 .. $#cert_blocks ] );
+
+## validate chain
+my $result = <[letsencr.child.validate_chain]>->( $leaf_pem, $chain_pem );
+
+unless ( $result->{'valid'} ) {
+    return {
+        'mode' => 'false',
+        'data' => sprintf( 'chain repair failed: %s', $result->{'error'} )
+    };
+}
+
+## check if chain actually changed
+if ( $result->{'chain_pem'} eq $chain_pem ) {
+    <[base.logs]>->( 1, ': chain already valid for %s', $domain );
+    return { 'mode' => 'true', 'data' => 'chain already valid' };
+}
+
+## rebuild pem: leaf + corrected chain + key
+my $new_pem = $leaf_pem . "\n" . $result->{'chain_pem'};
+$new_pem .= "\n" . $key_block if defined $key_block;
+$new_pem .= "\n";
+
+## backup current pem
+my $backup_path = "$pem_path.backup." . time();
+<[file.put]>->( $backup_path, \$pem_content );
+chmod 0640, $backup_path;
+<[base.logs]>->( 1, ': backed up current pem to %s', $backup_path );
+
+## write repaired pem
+<[file.put]>->( $pem_path, \$new_pem );
+chmod 0640, $pem_path;
+
+## also update the .chain file if it exists
+my $chain_path = "$certs_dir/$domain.chain";
+if ( -f $chain_path ) {
+    my $chain_content = $result->{'chain_pem'} . "\n";
+    <[file.put]>->( $chain_path, \$chain_content );
+    chmod 0640, $chain_path;
+    <[base.logs]>->( 1, ': updated chain file %s', $chain_path );
+}
+
+<[base.logs]>->( 1, ': chain repaired for %s', $domain );
+
+return {
+    'mode' => 'true',
+    'data' => sprintf(
+        'chain repaired for %s — backup at %s',
+        $domain, $backup_path
+    )
+};
+
+#,,,,,,,,,,,.,,,.,,.,,...,...,.,.,,,,,.,,,.,,,..,,...,...,.,.,...,...,...,,..,
+#V2NN4RTF4WVVBSXIRLCRPKN2SADTHTHKEQLYR53DBZNIP4ZXFW4AVPJ3YYGKFSJY25IUV5MXC3L62
+#\\\|54WBWRWJJZEZNIX654F3ENDMD3KFZGPJHTGVB6B3MQTSRFSHMGN \ / AMOS7 \ YOURUM ::
+#\[7]KTE73VNZXO3SDL4BL2XYRSVPM4PYHKKGUWNZEZCQZWPQL72BCGBI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
