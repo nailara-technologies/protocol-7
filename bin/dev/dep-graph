@@ -493,6 +493,30 @@ sub sort_by_length {
     return sort { length $a <=> length $b } reverse sort grep {defined} @ARG;
 }
 
+sub get_zenka_namespaces {
+    ##  scan configuration/zenki/ to find zenka-owned namespaces          ##
+    ##  returns hash of namespace names that correspond to zenki configs   ##
+    ##  these namespaces should only appear in whitelists when loaded      ##
+    state %zenka_ns;
+    return %zenka_ns if %zenka_ns;
+
+    my $zenki_dir = c_dir( $root_path, qw| configuration zenki | );
+    return () unless -d $zenki_dir;
+
+    opendir my $dh, $zenki_dir or return ();
+    my @entries = readdir $dh;
+    closedir $dh;
+
+    for my $entry (@entries) {
+        next if $entry eq qw| . | || $entry eq qw| .. |;
+        my $path = c_dir( $zenki_dir, $entry );
+        next unless -d $path;
+        $zenka_ns{$entry} = 1;
+    }
+
+    return %zenka_ns;
+}
+
 sub generate_tree_output {
     ##  generate indented subroutine tree from a root module  ##
     my ( $graph, $root ) = @ARG;
@@ -880,6 +904,28 @@ sub analyze_zenka_reachability {
                 }
             }
         }
+
+        ##  filter reachable subs from zenka-owned namespaces not in loaded set  ##
+        ##  this prevents namespace leaks where walk_reachable follows static  ##
+        ##  call edges into modules from unrelated zenki [e.g., channels.*,    ##
+        ##  httpd.*, v7.* subs appearing in X-11 whitelist ]                  ##
+        my %zenka_ns = get_zenka_namespaces();
+        my @filtered_ns;
+        for my $sub ( keys %reachable ) {
+            my ($ns) = $sub =~ m|^([^.]+)|;
+
+            ##  shared namespaces are always valid [ base, io, net, etc. ]  ##
+            if ( not exists $zenka_ns{$ns} ) {
+                push @filtered_ns, $sub;
+                next;
+            }
+
+            ##  zenka-owned namespace: keep only if in loaded set  ##
+            if ( exists $loaded_ns{$ns} ) {
+                push @filtered_ns, $sub;
+            }
+        }
+        %reachable = map { $_ => 1 } @filtered_ns;
 
         ##  filter reachable subs based on access.cmd.* configuration  ##
         ##  this implements Phase A (cmd access filtering) and         ##
@@ -1571,8 +1617,8 @@ sub classify_dispatch_confidence {
     return 'open';
 }
 
-#,,..,.,.,.,,,.,.,.,.,,,,,,,.,.,,,.,.,,.,,.,,,.,.,...,...,...,.,,,.,,,,.,,.,.,
-#GK2FDH3JC7L2ATU6XSRDPGMSWK7T2PQGQNZGZLIILXUWSBDNCVW3TBRIY2O2TTFXG6IWXOJ2TF7BU
-#\\\|7XHCQYG7EBP72OBLRC6BQGQZPLEQHQH3525FSVJUTZO6RE36JAU \ / AMOS7 \ YOURUM ::
-#\[7]DR3SPLMDSMDD2EYWLMJBDBWJI4BSBVAD5IWNQYK2S43S2M4YFWDA 7  DATA SIGNATURE ::
+#,,..,...,.,.,.,.,..,,...,,,.,,,,,,,.,..,,,..,.,.,...,..,,,.,,,,,,..,,.,,,,.,,
+#23WY7SEV2I5CEF7SNKB25AF37SJ4XPO4HJIYVCNZ7LWEFNZLWO2MG2U2F6Z4NNUE33M6TCPOE4Y64
+#\\\|O5LP5S5VJ2OZ7F5KI4VZFAPQQX6Y62THAHS3S554WQIHOFABQ4I \ / AMOS7 \ YOURUM ::
+#\[7]RGK3TMOVUHNNYKGOT47HVNGHUYW6BE7QJGQQQO5MO44KPJ7TBUCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
