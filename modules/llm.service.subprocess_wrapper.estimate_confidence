@@ -1,0 +1,16 @@
+## [:< ##
+
+# name  = llm.service.subprocess_wrapper.estimate_confidence
+# descr = estimate confidence score from llama.cpp output
+# param = $output
+
+my ($output) = @ARG;
+
+# very simple heuristic: if output is substantial, high confidence
+return 0.5 + ( length($output) / 1000 ) * 0.4;
+
+#,,,,,..,,.,.,...,,,,,,.,,,,,,...,...,...,,,.,.,.,...,..,,.,.,...,...,,..,.,.,
+#MEAZECQSZ5FNTA7BGDU5G4GRRFMQE27COGBGKTG6R5KGEQNDRCA2FDS57LGUAO5VKSBRLSDBHSYPE
+#\\\|ZJAYH64WWR2C7KUM4VAK7BCFAA66H74JYHCJLHD33ELYMYQASPA \ / AMOS7 \ YOURUM ::
+#\[7]N4C5KKZD4O225IVDBFW3BRASDLLGNJ6GS3RIOQAVG3SZAUJ5H2BA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
