@@ -15,6 +15,12 @@
     'Crypt::OpenSSL::X509', qw| FORMAT_ASN1 FORMAT_PEM |
 );
 
+## load shared letsencr modules [ not covered by prefix-based loading ]
+<[base.load_runtime_modules]>->('letsencr.x509_field');
+<[base.load_runtime_modules]>->('letsencr.der_to_pem');
+<[base.load_runtime_modules]>->('letsencr.extract_aia_url');
+<[base.load_runtime_modules]>->('letsencr.fetch_intermediate_via_aia');
+
 ## Load ACME and cryptographic modules
 <[base.perlmod.load]>->('JSON::XS');
 <[base.perlmod.load]>->('HTTP::Request');
@@ -94,8 +100,8 @@ if (    $enroll_init eq qw| re-init |
 
 0;
 
-#,,.,,.,.,,,,,,,,,.,,,.,.,..,,,,.,,,,,.,,,...,..,,...,..,,...,..,,,,.,...,.,,,
-#ZDXNB6J76STYWJIPOHMFQFKPA4HZ3PC6LMLEIOY62Z2ZHSJ5HK65XT53MMOYKXAHLFKM2KV43CQ7K
-#\\\|OZM3C4EFMPPGBOSHAFPZXDY3VKZ6APWDICYBOZCAH6TCSBS37MU \ / AMOS7 \ YOURUM ::
-#\[7]O6SWSTIVB2MFEPGDERAUNZX2P2VXTKLYHPDI7JRRV7RZ6MBYNABQ 7  DATA SIGNATURE ::
+#,,..,,,,,,,.,...,.,,,,.,,,,,,.,.,,..,...,,,.,..,,...,...,,.,,.,.,.,,,..,,..,,
+#G7LJHMBPBR6SF2ATCMISSXY42OFUO3ZRSL3MCGZCUY2Y6XUJX7ANANYN7OZMXT57FYHQAD22DVVSK
+#\\\|P3QPOEAIVGBTDFK2RXEHEGTXKHUREY3IVPJAPQKAJSAQQYUMTB2 \ / AMOS7 \ YOURUM ::
+#\[7]EYMXLMXH64T3IEQYYGXXNLVWN6LCLTRCSEABRMHI5KEPDMGZQWDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
