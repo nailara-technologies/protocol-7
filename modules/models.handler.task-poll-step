@@ -165,11 +165,53 @@ if ( $step eq 'show' ) {
     return;
 }
 
+## ======================================================================
+## step: check-next — pick up next pending task after previous completes
+## ======================================================================
+
+if ( $step eq 'check-next' ) {
+
+    ## parse queue output for first pending task id
+    my $queue_text = '';
+    if ( $cmd eq 'SIZE' ) {
+        $queue_text = $rdata;
+    } elsif ( $cmd eq 'TRUE' ) {
+        $queue_text = $args->{'args'} // '';
+    }
+
+    if ( not length $queue_text or $queue_text =~ m{^no tasks found} ) {
+        <[base.log]>->( 2, ': no pending tasks in queue' );
+        return;
+    }
+
+    ## first line = oldest pending task: "TASKID  pending  description..."
+    my ($next_id) = $queue_text =~ m{^([A-Z0-9]{7})\s+pending}m;
+
+    if ( not defined $next_id ) {
+        <[base.log]>->( 2, ': no parseable pending task in queue output' );
+        return;
+    }
+
+    <[base.logs]>->( 1, ': auto-dispatching next pending task %s', $next_id );
+
+    ## claim via same async chain as task-notify
+    <[protocol-7.route-send]>->(
+        {   'command'   => 'task.claim',
+            'call_args' => { 'args' => "$next_id models" },
+            'reply'     => {
+                'handler' => 'models.handler.task-poll-step',
+                'params'  => { 'step' => 'claimed', 'task_id' => $next_id }
+            }
+        }
+    );
+    return;
+}
+
 <[base.logs]>->( 0, ': task-poll-step: unknown step [ %s ]', $step );
 return;
 
-#,,.,,.,.,...,,..,,,,,,,,,.,,,,,.,.,.,,..,.,.,.,.,...,...,.,.,.,,,.,.,,.,,,..,
-#UTBXOCACHTKMDX4QHHFJX5YABBRVDOJ34R25BXDUBWRU5OMC4PWM2HVTXZ65TXEGBMZ3557NB3GUI
-#\\\|JCDIBPI4GCRSO3SZABZFFVKJFQPBLHOHXBPM5TG3YGDT3AE34UC \ / AMOS7 \ YOURUM ::
-#\[7]PJJPBUID7R2KQFDQEGUVACPDFLI5J6VHOPW4KBFBMUL3TECJUWAQ 7  DATA SIGNATURE ::
+#,,..,..,,,,.,,,.,,..,..,,..,,..,,.,,,,.,,...,.,.,...,...,.,,,,,.,..,,,,,,...,
+#XNMGHYY3N7XCWP4G5VV2UVJCARMSXXSUJ3EBBBC7C7TNV4N2NX3DD5IQRNZSUWIHTPXASOZ7UZ47S
+#\\\|I2AJ4772KAVHBIJDT6DYXRQA7L57WTX4JHIYRMFBGGEHE4QBV7F \ / AMOS7 \ YOURUM ::
+#\[7]AY6DO7UE432PNPQB7RYTRKUEVPLTROMIREHLMYY6DKEYJHUSHUBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
