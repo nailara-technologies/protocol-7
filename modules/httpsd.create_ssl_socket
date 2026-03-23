@@ -225,8 +225,7 @@ if ( Net::SSLeay->can('CTX_set_tlsext_servername_callback') ) {
                 = $code{'httpsd.callback.ssl_cert_select'}
                 ->( undef, $hostname );
             if ( defined $c and -f $c and defined $k and -f $k ) {
-                Net::SSLeay::use_certificate_file( $ssl, $c,
-                    Net::SSLeay::FILETYPE_PEM() );
+                Net::SSLeay::use_certificate_chain_file( $ssl, $c );
                 Net::SSLeay::use_PrivateKey_file( $ssl, $k,
                     Net::SSLeay::FILETYPE_PEM() );
             }
@@ -248,8 +247,8 @@ return $ssl_socket;
 
 0;
 
-#,,.,,..,,.,,,...,..,,,..,...,.,,,.,,,...,..,,..,,...,...,...,.,,,.,.,.,,,..,,
-#MKRNT4MO5546JZGQ34CS57FBW2RSZLVHHYNZNOKOTWDYGNCHK2O4ADNYSZM2EUQF5FKA7NBD7LC7C
-#\\\|U5YY7RRNG3TKGZN3CLTTROGIAAHAPVUR7OPHHWTK7UE3X47WUL7 \ / AMOS7 \ YOURUM ::
-#\[7]PXRUVWSARVPXXLXODCC6LA3N7Q3FL5ESQCWAAQ6TCWQFJ73GQACQ 7  DATA SIGNATURE ::
+#,,,.,.,.,,,,,,.,,,..,...,.,,,..,,,,.,.,.,,,,,..,,...,...,.,.,...,,,.,,.,,,.,,
+#Q6PEKOSD5ZZIHHM34NDM6YKHS2X67JTPGC6GWMSXC52WVYDBKFIDXZQU6MRFGIVNBMVB5YB44XN5M
+#\\\|6BJMG4CQGANQF7JD3K2BXLOTYEZV3HVVEEB472SMCFI7M2F24OV \ / AMOS7 \ YOURUM ::
+#\[7]LJBUNR2KYAT7SGGZMRZX3FR7S4FF5XJNGRL4AVHUKMVMZEVBM2CA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
