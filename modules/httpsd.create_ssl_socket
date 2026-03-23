@@ -64,14 +64,17 @@ if ( $tls_version =~ m/:/ ) {
     );
 }
 
-## Verify certificate key type compatibility with cipher suite
-my $cert_info = `openssl x509 -in $cert_file -text -noout 2>/dev/null |
-    grep -i "public key"`;
-my $key_type
-    = `openssl pkey -in $key_file -text -noout 2>/dev/null | head -1`;
+## verify certificate key type compatibility with cipher suite
+my $cert_info = 'unknown';
+my $key_type  = 'unknown';
+my $x509      = eval { Crypt::OpenSSL::X509->new_from_file($cert_file); };
+if ( defined $x509 ) {
+    $key_type  = $x509->key_alg_name() // 'unknown';
+    $cert_info = sprintf '%s %d-bit', $key_type, $x509->bit_length() // 0;
+}
 
-<[base.logs]>->( 3, '  certificate key type: %s', $key_type  // 'unknown' );
-<[base.logs]>->( 3, '  certificate info: %s',     $cert_info // 'unknown' );
+<[base.logs]>->( 3, '  certificate key type: %s', $key_type );
+<[base.logs]>->( 3, '  certificate info: %s',     $cert_info );
 
 ## Create SSL socket with enhanced error diagnostics
 my $ssl_socket;
@@ -245,8 +248,8 @@ return $ssl_socket;
 
 0;
 
-#,,,.,.,.,.,.,..,,,,,,,.,,,..,...,.,.,,,.,..,,..,,...,...,,.,,,.,,,..,.,,,,,.,
-#T3Q2YJBGWVPUJV4FJ6EIPN6M5ECXSPUX6O7TYBSAZS77HGYGM2KE3KIOQYAL5W4UNKAMTJNGLDL52
-#\\\|Q2L2NEAUA7LAQNZLJ5AUTYXUS77Q4D4HPWCGDZFQFFNFLXLZ7NF \ / AMOS7 \ YOURUM ::
-#\[7]MOKKATN2RLS2S5JD5GL7RO3XC7OWIMYATLWOH7MYSSY2VA6ZJABI 7  DATA SIGNATURE ::
+#,,.,,..,,.,,,...,..,,,..,...,.,,,.,,,...,..,,..,,...,...,...,.,,,.,.,.,,,..,,
+#MKRNT4MO5546JZGQ34CS57FBW2RSZLVHHYNZNOKOTWDYGNCHK2O4ADNYSZM2EUQF5FKA7NBD7LC7C
+#\\\|U5YY7RRNG3TKGZN3CLTTROGIAAHAPVUR7OPHHWTK7UE3X47WUL7 \ / AMOS7 \ YOURUM ::
+#\[7]PXRUVWSARVPXXLXODCC6LA3N7Q3FL5ESQCWAAQ6TCWQFJ73GQACQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
