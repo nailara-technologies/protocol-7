@@ -40,34 +40,24 @@ my $rsa = eval { Crypt::OpenSSL::RSA->new_private_key($pem_private) } or do {
 
 <[base.log]>->( 2, "RSA account key loaded from cache [ PEM format ]" );
 
-## extract public key as PEM to parse modulus/exponent
+## extract modulus and exponent via Crypt::PK::RSA [ CryptX ]
 my $pem_public = $rsa->get_public_key_string;
-my ( $fh, $temp_pub ) = <[file.temp]>;
-
-print $fh $pem_public;
-close($fh);
-
-## extract modulus as hex
-my $modulus_hex
-    = `openssl rsa -pubin -noout -modulus < $temp_pub 2>/dev/null`;
-$modulus_hex =~ s/Modulus=//;
-chomp($modulus_hex);
-
-<[base.logs]>->( 3, 'modulus hex length: %d chars', length($modulus_hex) );
+my $pk_rsa     = Crypt::PK::RSA->new( \$pem_public );
+my $key_hash   = $pk_rsa->key2hash;
 
 my $modulus_b64;
 my $exponent_b64;
 
-## convert modulus hex to binary and base64url
-if ($modulus_hex) {
-    my $modulus_bin = pack( 'H*', lc($modulus_hex) );
+if ( $key_hash->{'N'} ) {
+    my $modulus_bin = pack( 'H*', $key_hash->{'N'} );
+    $modulus_bin =~ s{^\x00}{};    ## strip leading null byte
     $modulus_b64 = encode_base64url($modulus_bin);
     <[base.logs]>
         ->( 3, 'modulus_b64 length: %d chars', length($modulus_b64) );
 }
 
-## standard RSA exponent is 65537 (encode as 3 bytes: 0x01 0x00 0x01)
-my $exponent_bin = pack( 'C*', 0x01, 0x00, 0x01 );
+## exponent from key hash [ hex → binary → base64url ]
+my $exponent_bin = pack( 'H*', $key_hash->{'e'} );
 $exponent_b64 = encode_base64url($exponent_bin);
 
 <[base.logs]>->(
@@ -101,8 +91,8 @@ $keys{'RSA'}->{$key_name} = {
 ## return key name
 return $key_name;
 
-#,,,,,,..,,.,,,,.,,.,,,..,,,,,,.,,.,.,,..,,.,,..,,...,...,,,.,..,,...,,,.,,.,,
-#AL4CAEVRDKVO6SH2C5YBJSCTJKVOFDIAGKGKIX2YRDG4PP5BE3EKWVIYLWBVU2BR6Y7TM4JLVR2G2
-#\\\|6XTOLGD75CC6FCTY2I6SBJGOBXKDLISO42HKCG4QOIWWAOCSSYU \ / AMOS7 \ YOURUM ::
-#\[7]EBI7HH2QTDAO7HBMP2GRXIIC7LNDZ3OXMF7XE3H5M3S42MYMW4AA 7  DATA SIGNATURE ::
+#,,,,,.,,,...,,,.,,,.,,.,,.,,,...,.,.,,..,.,.,..,,...,...,,.,,,,.,.,.,..,,...,
+#U2HTKNO7BGDG4U23S74STH46KK6D6S34BROM3DDQSYSA4P5BB3LM4D7AGIZ2Y6X6H7LGNFYQSUPCK
+#\\\|ITTHDRLGLOYZNDXE7NB3EIJNSJJ5XL5SSV7WALPCEXOS2L46E6G \ / AMOS7 \ YOURUM ::
+#\[7]JVOXKILOVL6FRG56CFSXKA2E62RJX6E26LLMT5F75FYGIFJWHQDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

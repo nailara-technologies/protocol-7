@@ -39,15 +39,15 @@ unless ( -d $cert_dir ) {
     <[base.log]>->( 2, ": created certificate directory : $cert_dir" );
 }
 
-## Generate private key [Ed25519]
+## generate Ed25519 private key via CryptX
 <[base.log]>->( 2, ':. generating Ed25519 private key..' );
 
-my $temp_key_file = <[file.temp]>;
-
-my $key_result = system( "openssl genpkey -algorithm Ed25519"
-        . " -out '$temp_key_file' 2>/dev/null" );
-
-unless ( -f $temp_key_file && -s $temp_key_file && $key_result == 0 ) {
+my $ed25519 = eval {
+    my $pk = Crypt::PK::Ed25519->new;
+    $pk->generate_key;
+    $pk;
+};
+unless ( defined $ed25519 ) {
     <[base.log]>->( 0, 'failed to generate Ed25519 key' );
     return {
         'mode' => qw| false |,
@@ -55,19 +55,40 @@ unless ( -f $temp_key_file && -s $temp_key_file && $key_result == 0 ) {
     };
 }
 
+my $key_pem = $ed25519->export_key_pem('private');
+
 <[base.log]>->( 2, ':.. Ed25519 key generated successfully' );
 
-## Generate self-signed certificate (365 days, no intermediate processing)
+## create self-signed x509 certificate via Net::SSLeay [ 365 days ]
 <[base.log]>->( 2, ':. generating self-signed certificate..' );
 
-my $temp_cert_file = <[file.temp]>;
+my $cert_pem = eval {
+    my $x509 = Net::SSLeay::X509_new();
+    Net::SSLeay::X509_set_version( $x509, 2 );
 
-my $cert_result
-    = system( "openssl req -new -x509 -key '$temp_key_file' "
-        . "-out '$temp_cert_file' -days 365 -subj '/CN=localhost' 2>/dev/null"
-    );
+    my $name = Net::SSLeay::X509_get_subject_name($x509);
+    Net::SSLeay::X509_NAME_add_entry_by_txt( $name, 'CN',
+        &Net::SSLeay::MBSTRING_UTF8, 'localhost' );
+    Net::SSLeay::X509_set_issuer_name( $x509, $name );
 
-unless ( -f $temp_cert_file && -s $temp_cert_file && $cert_result == 0 ) {
+    Net::SSLeay::X509_gmtime_adj( Net::SSLeay::X509_get0_notBefore($x509),
+        0 );
+    Net::SSLeay::X509_gmtime_adj( Net::SSLeay::X509_get0_notAfter($x509),
+        365 * 86400 );
+
+    ## load Ed25519 key into EVP_PKEY
+    my $bio = Net::SSLeay::BIO_new( Net::SSLeay::BIO_s_mem() );
+    Net::SSLeay::BIO_write( $bio, $key_pem );
+    my $pkey = Net::SSLeay::PEM_read_bio_PrivateKey($bio);
+    Net::SSLeay::BIO_free($bio);
+
+    Net::SSLeay::X509_set_pubkey( $x509, $pkey );
+    Net::SSLeay::X509_sign( $x509, $pkey, 0 );    ## 0 = Ed25519 null digest
+
+    Net::SSLeay::PEM_get_string_X509($x509);
+};
+
+unless ( defined $cert_pem and length $cert_pem ) {
     <[base.log]>->( 0, 'failed to generate self-signed certificate' );
     return {
         'mode' => qw| false |,
@@ -77,41 +98,21 @@ unless ( -f $temp_cert_file && -s $temp_cert_file && $cert_result == 0 ) {
 
 <[base.log]>->( 2, ':.. self-signed certificate generated successfully' );
 
-## Install certificate to final location
+## install certificate to final location
 <[base.log]>->( 2, ":. installing certificate to $cert_path" );
 
-unless ( <[file.copy]>->( $temp_cert_file, $cert_path ) ) {
-    <[base.log]>->( 0, "failed to install certificate to $cert_path" );
-    return {
-        'mode' => qw| false |,
-        'data' => "✗ Failed to install certificate to $cert_path\n"
-    };
-}
+<[file.put]>->( $cert_path, \$cert_pem );
+chmod( 0600, $cert_path );
 
-unless ( chmod( 0600, $cert_path ) ) {
-    <[base.log]>->(
-        0, ":. warning .: could not set permissions on $cert_path"
-    );
-}
+<[base.log]>->( 2, 'certificate installed successfully' );
 
-<[base.log]>->( 2, "certificate installed successfully" );
-
-## Install private key to final location
+## install private key to final location
 <[base.log]>->( 2, ":. installing private key to $key_path" );
 
-unless ( <[file.copy]>->( $temp_key_file, $key_path ) ) {
-    <[base.log]>->( 0, "failed to install private key to $key_path" );
-    return {
-        'mode' => qw| false |,
-        'data' => "✗ Failed to install private key to $key_path\n"
-    };
-}
+<[file.put]>->( $key_path, \$key_pem );
+chmod( 0600, $key_path );
 
-unless ( chmod( 0600, $key_path ) ) {
-    <[base.log]>->( 1, "warning : could not set permissions on $key_path" );
-}
-
-<[base.log]>->( 2, "private key installed successfully" );
+<[base.log]>->( 2, 'private key installed successfully' );
 
 ## Build success response
 my $reply_string
@@ -142,8 +143,8 @@ return {
     'data' => $reply_string
 };
 
-#,,,.,..,,,.,,.,,,,,.,..,,.,.,..,,,,.,.,,,,,,,..,,...,...,...,,..,.,,,,.,,...,
-#STTXCT77NTXUR3JTX4MASWTTURQY2SEQ47OSQEEFSBVIZQB6WS5Z6PRAZKRYHCGXE2YVMBZNTAKZI
-#\\\|SSB525WP6J6DEYHEZ4KPEF4724LG4HZ4QBVLJWHHXWZPK5EQQ54 \ / AMOS7 \ YOURUM ::
-#\[7]ZPH3NQK4CFYJF62GH2YCUTWSO3WTFOZVLX4ZNQEYRRU43662B4BQ 7  DATA SIGNATURE ::
+#,,..,,,,,...,,..,.,.,...,,,.,,,.,,,.,.,,,.,.,..,,...,...,,,,,,,.,,..,,,,,,..,
+#NYLKNBMPQNNKXJOJK2TPPKFPEF2TLK4N2FZE43MAKFUZ6OL7EF6CY73P2SY7WQACJDBHNXDYQ2SQK
+#\\\|YRBLDSI6NRY327S7RX7JOCOZPQC447AFE5S3KN7ZVPIEGAU2JYL \ / AMOS7 \ YOURUM ::
+#\[7]XBXM7JTLMI6UQC76PH254OQNFTTO46MK2P6UOB5YQSAYKSDTJMAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
