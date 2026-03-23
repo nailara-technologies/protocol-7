@@ -78,10 +78,21 @@ if ( defined $job_id ) {
 }
 <models.task.active_job> = undef;
 
+## check for next pending task in queue ##
+<[protocol-7.route-send]>->(
+    {   'command'   => 'task.queue',
+        'call_args' => { 'args' => 'status=pending' },
+        'reply'     => {
+            'handler' => 'models.handler.task-poll-step',
+            'params'  => { 'step' => 'check-next' }
+        }
+    }
+);
+
 return;
 
-#,,,.,,..,..,,,,.,.,.,..,,,..,,..,,,.,,.,,,.,,.,.,...,...,...,.,,,,.,,...,..,,
-#IBSKMPAHSOQ57WUWOIXERTBIRTAV2BV6KH45LOP5VTGI52BTW4WIZQ3HY23ZTLSE56SC2VNCRPRQW
-#\\\|VBJOXG5KT7EEMSMY2SWR7R4MXZOHDS7NQ3IVZFBRFSWUOXSP43L \ / AMOS7 \ YOURUM ::
-#\[7]LD54NVUTX52XS3QJUKL4OOJIYDYFKH33I2LR2KLO2C7IDVLLHABA 7  DATA SIGNATURE ::
+#,,,.,,,.,,.,,,,.,.,,,.,,,,,.,.,,,,,.,..,,,.,,.,.,...,...,...,,,,,,,.,,,,,,,.,
+#G2OMVFPFTK3VK5MIQWIQTVNYUZSJMPXD3Y55JIHXWQOSIE4MPD4Q2HMMBAQRQRPG7EIWPACCZNSDY
+#\\\|LUHDH66VBUN5XZAK42UO6TZDXMY3JQGPLLN7HB2HSJRENWBDQJ7 \ / AMOS7 \ YOURUM ::
+#\[7]YEBPJE4NNKPXNVG5CBYKWRSFFYY2KPQMH3UGULTSM3RUIB7BBYDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
