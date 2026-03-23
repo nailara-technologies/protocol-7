@@ -1,0 +1,30 @@
+## [:< ##
+
+# name  = letsencr.extract_aia_url
+# descr = extract AIA CA Issuers URI from PEM
+
+my ($pem) = @ARG;
+
+my $x509
+    = eval { Crypt::OpenSSL::X509->new_from_string( $pem, FORMAT_PEM ); };
+return undef unless defined $x509;
+
+## extract AIA extension
+my $exts = $x509->extensions_by_name();
+return undef
+    unless ref $exts eq qw| HASH | and exists $exts->{'authorityInfoAccess'};
+
+my $aia_text = $exts->{'authorityInfoAccess'}->to_string();
+
+## parse CA Issuers URI from AIA text
+if ( $aia_text =~ m{CA Issuers\s*-\s*URI:(\S+)} ) {
+    return $1;
+}
+
+return undef;
+
+#,,,.,,,,,,,.,.,,,.,.,.,,,,.,,.,,,.,,,.,.,.,.,..,,...,...,..,,,..,.,.,,,.,.,.,
+#PUIP3PKD7H57PHZY4MY2ZLNXFKGMUIWURK66J56D24I4XV7URNHW4BT5RQOASVSXKOQJD2QY2ZUCE
+#\\\|BCT6C5GMNTZRSIYP6EN5WL2W6XHHE33POTBO73D4WVXKH6UTIHJ \ / AMOS7 \ YOURUM ::
+#\[7]NMYKPLTQ2B4ZQTBFH3YTIDW34Q7NBCBTWIKDXB3V434YPOZLVUCY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

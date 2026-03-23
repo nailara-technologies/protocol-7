@@ -1,0 +1,74 @@
+## [:< ##
+
+# name  = letsencr.fetch_intermediate_via_aia
+# descr = fetch intermediate cert via AIA URL
+
+my ($leaf_pem) = @ARG;
+
+## extract AIA URL from leaf certificate
+my $aia_url = <[letsencr.extract_aia_url]>->($leaf_pem);
+unless ( defined $aia_url ) {
+    return {
+        'valid' => 0,
+        'error' => 'no AIA CA Issuers URL in leaf certificate'
+    };
+}
+
+<[base.logs]>->( 1, ': fetching intermediate from AIA: %s', $aia_url );
+
+## fetch the intermediate certificate [ DER format from Let's Encrypt ]
+my $ua   = LWP::UserAgent->new( 'timeout' => 15 );
+my $resp = $ua->get($aia_url);
+
+unless ( $resp->is_success ) {
+    return {
+        'valid' => 0,
+        'error' => sprintf( 'AIA fetch failed: %s', $resp->status_line )
+    };
+}
+
+my $der_data = $resp->content;
+
+## detect format: DER or PEM
+my $intermediate_pem;
+if ( $der_data =~ m{-----BEGIN CERTIFICATE-----} ) {
+    ## already PEM
+    $intermediate_pem = $der_data;
+} else {
+    ## convert DER to PEM via openssl
+    $intermediate_pem = <[letsencr.der_to_pem]>->($der_data);
+}
+
+unless ( defined $intermediate_pem and length $intermediate_pem ) {
+    return { 'valid' => 0, 'error' => 'DER to PEM conversion failed' };
+}
+
+## verify the fetched intermediate matches leaf issuer
+my $leaf_issuer = <[letsencr.x509_field]>->( $leaf_pem, '-issuer' );
+my $inter_subject
+    = <[letsencr.x509_field]>->( $intermediate_pem, '-subject' );
+
+if (    defined $leaf_issuer
+    and defined $inter_subject
+    and $leaf_issuer eq $inter_subject ) {
+    <[base.logs]>->(
+        1, ': fetched correct intermediate [%s]',
+        $inter_subject
+    );
+    return { 'valid' => 1, 'chain_pem' => $intermediate_pem };
+}
+
+return {
+    'valid' => 0,
+    'error' => sprintf(
+        'AIA intermediate subject [%s] does not match leaf issuer [%s]',
+        $inter_subject // 'undef',
+        $leaf_issuer   // 'undef'
+    )
+};
+
+#,,,,,,,.,,.,,,.,,,.,,.,,,,..,,..,..,,,,.,,..,..,,...,..,,,..,.,,,.,.,...,,..,
+#HAMRLGMY2OBKEBEPO3JCLBJKHBW6CAHKGICSRT3QOKZ5DRQOVE4CJCVKCDYNSBMXS5JAFYXC3O3SA
+#\\\|HGINOCFG4FDKGP63P4GMZIIFB5UJ6ESVRW7OGSHGBL27AKVSYBC \ / AMOS7 \ YOURUM ::
+#\[7]R5HQXCPF2TAKFLIR3W5VYY2PAQARY5KSA3EAGYDINJBOSAF2LMDA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

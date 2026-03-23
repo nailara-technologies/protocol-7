@@ -1,0 +1,25 @@
+## [:< ##
+
+# name  = letsencr.x509_field
+# descr = extract x509 field from PEM certificate
+
+my ( $pem, $field ) = @ARG;
+
+my $x509
+    = eval { Crypt::OpenSSL::X509->new_from_string( $pem, FORMAT_PEM ); };
+return undef unless defined $x509;
+
+## map openssl CLI field names to X509 methods
+if ( $field eq '-subject' ) {
+    return $x509->subject();
+} elsif ( $field eq '-issuer' ) {
+    return $x509->issuer();
+}
+
+return undef;
+
+#,,,,,,,,,.,,,.,,,,,,,.,,,,.,,.,,,.,.,..,,,,.,..,,...,..,,...,,..,,.,,...,...,
+#56QCYM6MM3NUZM4X26C62EYGTY2OFVGPBNODXB2G4OLENWAWYVT33FVD2YYLGNEN2UDQHEQ6YMNGA
+#\\\|LEBS7J44SCFOWE2NIFYN55V3XYGB2XVEANKDGJ7MGZVQJK4RNXJ \ / AMOS7 \ YOURUM ::
+#\[7]RAB7BYNAL4PTXQVK2ESLKYCREY227NH24IX2VUZAOLZ5D4JOWGAI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

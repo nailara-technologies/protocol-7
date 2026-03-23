@@ -562,6 +562,8 @@ return [ qw[
         models.cmd.announce
         mediainfo.init_code
         lm-vision.init_code
+        letsencr.x509_field
+        letsencr.der_to_pem
         letsencr.cmd.revoke
         letsencr.cmd.enroll
         keys.console.rename
@@ -1293,6 +1295,7 @@ return [ qw[
         menu-commands.cmd.update
         menu-commands.cmd.status
         menu-commands.cmd.remove
+        letsencr.extract_aia_url
         letsencr.child.init_code
         letsencr.base.check_dirs
         keys.select_archive_path
@@ -1437,6 +1440,7 @@ return [ qw[
         menu-commands.update-menu
         melt.trigger.auto_cleanup
         letsencr.parent.init_code
+        letsencr.cmd.repair-chain
         letsencr.child.create_jws
         letsencr.child.acme_renew
         jobqueue.priorities_table
@@ -1993,6 +1997,7 @@ return [ qw[
         lm-vision.cmd.get_full_stderr
         lm-vision.cmd.get_full_output
         letsencr.parent.send_to_child
+        letsencr.child.validate_chain
         letsencr.child.send_to_parent
         kimi.handler.approval_request
         keys.select_archive_path.curs
@@ -2576,6 +2581,7 @@ return [ qw[
         lm-vision.handler.read_batch_output
         letsencr.parent.process_pending_ops
         letsencr.parent.handler_child_ready
+        letsencr.fetch_intermediate_via_aia
         letsencr.child.respond_to_challenge
         letsencr.child.load_rsa_account_key
         letsencr.child.generate_account_key
@@ -2932,8 +2938,8 @@ return [ qw[
     ]
 ];
 
-#,,.,,,..,.,.,,,,,,,,,,,,,,.,,,..,,.,,,.,,,,.,.,.,...,...,,..,...,,,.,.,.,.,.,
-#IL5J2SPVEUVJO76PBLHFZ3A4QTZ3EC2K64V3CPVFHXH24G43VHI5JKBG4CAYIPWPSYUSUM3O5QJIE
-#\\\|J5TWWQ6CWUD5YSMLUFY7CA3GH5YNGDKFOLHJ36LYGYMO6KJYMGE \ / AMOS7 \ YOURUM ::
-#\[7]OIN7IUXWELRIFNPCQ4EDSYGRETOB3I6INJI5XP5UXDSFEW5Q4ADY 7  DATA SIGNATURE ::
+#,,..,,.,,,..,,,,,.,,,...,,,,,.,,,,.,,.,,,.,.,.,.,...,...,...,...,...,.,,,..,,
+#JBNQDQA2MEX2MXDXXIXMOO4FX2MAOKB7FGKXDVIRBEQFHEJPKW5WX7RZRE32A6PXPSOVQJQS3ADXO
+#\\\|LIH5DKPKGCKUCE3MN3WRMLYSF3M3MZ5S6J3MFU24HU437WBPSDW \ / AMOS7 \ YOURUM ::
+#\[7]WPMV2VQN3PAPFGSLLPI7BLUHIH2JOCQCKW3FQLEPXGEZK6MP7SAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

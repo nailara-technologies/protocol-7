@@ -9,7 +9,7 @@
 
 ## Helper to clean up a specific challenge
 sub _cleanup_challenge {
-    my ( $domain, $token ) = @_;
+    my ( $domain, $token ) = @ARG;
     return unless $domain && $token;
     <[base.logs]>->( 2, 'cleaning up challenge for %s', $domain );
     <[protocol-7.route-send]>->(
@@ -305,6 +305,20 @@ my $chain       = join( "\n", @certs );
     length($certificate), length($chain)
 );
 
+## validate chain: verify intermediate matches leaf issuer, fix via AIA if not
+my $chain_check = <[letsencr.child.validate_chain]>->( $certificate, $chain );
+
+if ( $chain_check->{'valid'} ) {
+    $chain = $chain_check->{'chain_pem'};
+    <[base.logs]>->( 2, 'chain validated for %s', $primary_domain );
+} else {
+    <[base.logs]>->(
+        0,               'chain validation failed for %s: %s',
+        $primary_domain, $chain_check->{'error'} // 'unknown'
+    );
+    ## proceed with original chain — better than no chain at all
+}
+
 my $final_result = {
     status      => qw| success |,
     domains     => $domains,
@@ -345,8 +359,8 @@ delete <letsencr.child.acme_state>;
 <[base.log]>->( 2, 'challenge processing complete, certificate ready' );
 return $final_result;
 
-#,,,,,..,,.,.,..,,.,,,,,,,,.,,..,,,.,,...,,.,,..,,...,...,,.,,,,.,,..,..,,,.,,
-#RULRC6KOAYIIGLPZUBBMCCKJR4DNZDQSRKHZ7WSB7L5J7NHQHKMOEZWWVGESPBQTXLA3BUH3JF2LK
-#\\\|DKSV2WC3JRPGSNNJB3AK2QRX323CSSW337AS2RRAP7LA7REPN6T \ / AMOS7 \ YOURUM ::
-#\[7]L4YLW6RXVDHI72YBFFNTO6QN7UW6LO7IW3WE22SRC3SKUA265SBQ 7  DATA SIGNATURE ::
+#,,.,,,.,,.,.,,,.,,,,,,.,,,..,...,,..,,.,,..,,..,,...,...,.,.,,,.,.,,,,,,,,.,,
+#O4FJQQNI4ABMRMOC4EBRJSDBEEQ2ISLF6L7T57FEH7IZPKR2NGGL5YVIMO6Z2V2OZOSWS5LCAF6KI
+#\\\|7DK3ZTPIMK3O6SCSUSZFHV25L7A2BIJEB4KLZFQL25ECUKKOXVL \ / AMOS7 \ YOURUM ::
+#\[7]OL4M5VBVUFV7KJZ6TJBZIHAGHEPX657FM5WDQ4E3FTUVY7GYDGBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
