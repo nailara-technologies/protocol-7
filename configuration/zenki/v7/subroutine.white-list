@@ -73,7 +73,6 @@ v7.zenka.get_id
 v7.instance_ids
 v7.cmd.teardown
 plugin.auth.pwd
-p7-log.add_line
 net.read_binary
 devmod.pre_init
 crypt.init_code
@@ -183,7 +182,6 @@ plugin.auth.twofish
 jobqueue.remove_job
 io.ip.tcp.init_code
 devmod.console-dump
-channels.cmd.update
 base.utf8.clean_str
 base.str.eval_error
 base.round_truncate
@@ -309,7 +307,6 @@ v7.handler.zenka_status
 v7.handler.zenka_output
 v7.handler.shutdown_cmd
 v7.callback.host-reboot
-set-up.json.import_file
 protocol.sftp.init_code
 jobqueue.queue_template
 io.unix.socket.end_code
@@ -348,7 +345,6 @@ v7.cmd.forced-mod-reload
 v7.callback.object.zenka
 protocol.https.init_code
 plugin.auth.auth-keypair
-p7-log.handler.close_log
 io.unix.socket.init_code
 crypt.C25519.verify_sign
 crypt.C25519.single_file
@@ -384,9 +380,7 @@ v7.bin_p7c_chksum_current
 jobqueue.priorities_table
 jobqueue.joblist_template
 io.unix.socket.input.open
-httpd.base.size.normalize
 crypt.C25519.load_keypair
-channels.util.yaml_decode
 base.sourcecode.init_code
 base.session.cancel_route
 base.register_p7_mod_load
@@ -450,7 +444,6 @@ jobqueue.check_dependencies
 io.unix.socket.output.close
 io.ip.ssl.handshake.timeout
 io.ip.ssl.handshake.handler
-httpd.update_download_count
 crypt.C25519.sign_file_list
 crypt.C25519.key_is_virtual
 crypt.C25519.get_remote_key
@@ -478,10 +471,8 @@ v7.handler.cube_session_auth
 v7.callback.instance.restart
 protocol.protocol-7.pre_init
 io.unix.socket.input.connect
-httpsd.request_capture.write
 crypt.C25519.keystr_is_valid
 crypt.C25519.compare_keypair
-channels.handler.data_change
 base.validate.composite_name
 base.session.check_remaining
 base.process-into-background
@@ -501,7 +492,6 @@ v7.handler.cube_session_close
 v7.callback.stdout_log_rotate
 v7.callback.register_ondemand
 protocol.protocol-7.init_code
-debian.parent.check_installed
 crypt.C25519.validate_keyname
 crypt.C25519.store_remote_key
 crypt.C25519.signature_exists
@@ -553,7 +543,6 @@ v7.zenka.instance.track_handover
 v7.zenka.end-handler.web-browser
 v7.handler.set_initialized_reply
 v7.handler.instance_verification
-session.parent.show_startup_help
 crypt.C25519.name_from_skey_name
 crypt.C25519.load_all_signatures
 crypt.C25519.key_signatures_list
@@ -573,7 +562,6 @@ base.config.load_proto_7_version
 base.calculate_line_length_stats
 v7.parser.manually_stopped_tstamp
 v7.callback.delete_instance_cache
-session.parent.check_minimal_deps
 protocol.amos-chksum.ext-cmd.exit
 plugin.auth.zenka.no-keys-defined
 crypt.C25519.verify_key_signature
@@ -618,7 +606,6 @@ base.event.callback.io-idle-restart
 base.callback.reset_strm_size_timer
 protocol.amos-chksum.ext-cmd.version
 protocol.amos-chksum.command-handler
-debian.parent.resolve_cpan_to_debian
 crypt.C25519.cmd.register-master-key
 base.warnings.compact_diff_to_pragma
 base.warnings.compact_diff_from_bits
@@ -627,14 +614,11 @@ base.parser.decode_harmonized_refstr
 base.handler.read.encryption-wrapper
 base.callback.clean_data_source_hash
 v7.handler.heartbeat_response_timeout
-session.parent.check_and_resolve_deps
 protocol.sftp.handler.write_to_server
 protocol.protocol-7.message-templates
 protocol.protocol-7.link-upgrade.init
 protocol.amos-chksum.ext-cmd.commands
 protocol.amos-chksum.connect_callback
-debian.parent.verify_dependency_state
-debian.parent.scan_zenki_dependencies
 crypt.C25519.list_key_signature_names
 crypt.C25519.generate_session_keypair
 crypt.C25519.create_signature_request
@@ -657,21 +641,16 @@ base.zenki.ondemand.handler.startup_reply
 base.agent_code.handler.sig_warn.end_proc
 protocol.protocol-7.link-upgrade.handshake
 plugin.auth.auth-keypair.tofu-notification
-debian.parent.callback.register_deb_package
-debian.parent.callback.register_cpan_module
 base.referenced_subroutines.clear_from_disk
-debian.parent.callback.check_module_loadable
 base.log.send-buffer.reply-handler.send-reply
 plugin.auth.auth-keypair.load-authorized-users
 plugin.auth.auth-keypair.cleanup-incoming-keys
-debian.parent.callback.check_package_installed
 plugin.auth.auth-keypair.validate-incoming-tofu
 protocol.protocol-7.protocol-version-path-set-up
 base.log.send-buffer.reply-handler.notify-online
-debian.parent.callback.register_binary_dependency
 
-#,,..,,,.,,.,,...,,.,,,,.,,,,,...,..,,.,,,..,,..,,...,...,...,.,,,..,,,,,,,.,,
-#6BFMI5XCTKYD73VV2BTAYSIKMQBAG3JCXUT6LLFKQT7STQGUF3KQUI7JFCKTB5ERC4GIHAT2CXD6G
-#\\\|GINWF7G5HRUEQORAQLIXAAFM7EQAI4CYG4CAJLLZUWI6S6N5GNI \ / AMOS7 \ YOURUM ::
-#\[7]7DECTBD56IOE2U24LMJZEIAC6BSMGNEAYSUTD2DGFJZJCBCRGIBQ 7  DATA SIGNATURE ::
+#,,..,..,,.,,,...,,,.,,,,,,..,.,.,,..,.,.,,,.,..,,...,...,..,,...,..,,.,,,,.,,
+#XW26C5YWFX5ZVAF34ZLJS2KRPWY5OODQZABJPRDQTMX3V67R22VFAUSI5GOJB7CLLADAXNLBY3JAE
+#\\\|ZXFO2FL4U4AMLK4E27RUTPU6D5KEQ3RJW4RULDJ7SK2SF7KMIIG \ / AMOS7 \ YOURUM ::
+#\[7]P3K3VZVQ6REBTQ3F4VTGLY6M32ZQPJUIMES6XEWA2KBY34M3NUBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
