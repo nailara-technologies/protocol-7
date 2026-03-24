@@ -1,0 +1,42 @@
+## [:< ##
+
+# name  = nameserv.zone.save
+# descr = save a zone to yaml file
+
+my $zone_name = shift;
+
+my $zones = <nameserv.zones>;
+
+return if not exists $zones->{$zone_name};
+
+my $zone = $zones->{$zone_name};
+
+my $data = {
+    serial  => $zone->{'serial'},
+    ttl     => $zone->{'ttl'},
+    records => $zone->{'records'},
+};
+
+my $yaml_str = <[format.yaml.dump_str]>->($data);
+if ( not defined $yaml_str ) {
+    <[base.logs]>->( 0, "failed to serialize zone: %s", $zone_name );
+    return;
+}
+
+## write to zone directory (relative to zenka var path)
+my $filepath = sprintf( "zones/%s.yaml", $zone_name );
+my $result   = <[file.zenka_dir.write]>->( $filepath, \$yaml_str );
+
+if ( defined $result ) {
+    <[base.logs]>->( 2, "saved zone: %s", $zone_name );
+} else {
+    <[base.logs]>->( 0, "failed to save zone: %s", $zone_name );
+}
+
+return $result;
+
+#,,,.,.,.,.,,,..,,,..,,.,,,..,,,.,.,.,...,.,.,..,,...,..,,,,,,,,,,..,,...,,..,
+#24TV54DJXSJDNGFGHLAA53A2ALUHMVNWMLKY6JFJSEDZGTLKRWJLQY3D5VIWJS4QFN5K4NQG42JJ4
+#\\\|QGJC25PZIWIJKHSZBBMCWXKO7JOS6ZWNIYUFRAMVLKCRLPAJBCA \ / AMOS7 \ YOURUM ::
+#\[7]UCWK2CJRM4GADJ34TTL42PRAR7AF54LVAYUOLYHSY57QTF4CFODY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,0 +1,40 @@
+## [:< ##
+
+# name  = nameserv.start_listener
+# descr = start the dns udp listener (called by init_code)
+
+my $sock = IO::Socket::INET->new(
+    LocalAddr   => <nameserv.bind.addr>,
+    LocalPort   => <nameserv.bind.port>,
+    Proto       => 'udp',
+    ReuseAddr   => 1,
+    ReusePort   => 1,
+    ReuseSocket => TRUE,
+    )
+    or do {
+    <[base.logs]>->( 0, "cannot bind dns socket: %s", <[base.str.os_err]> );
+    return;
+    };
+
+<nameserv.socket> = $sock;
+
+<[event.add_io]>->(
+    {   fd      => $sock,
+        poll    => 'r',
+        handler => qw| nameserv.handler.query |,
+        desc    => 'dns query handler'
+    }
+);
+
+<[base.logs]>->(
+    1,                    ": dns listener started on %s:%d",
+    <nameserv.bind.addr>, <nameserv.bind.port>
+);
+
+return $sock;
+
+#,,..,..,,,.,,...,,,.,,,,,...,,.,,...,,,.,.,.,..,,...,...,...,...,.,.,...,,,,,
+#2YGF7JFQ5EGWB7MR2L4DVD4WJPCRI57KSPKLXBB44KYYDCKY2ADBD6RAIL5H6H4UIAWYIPCGDMUIQ
+#\\\|N3PJMEPJ3SKPVNLUD2DYIIAWJNZ27RZ2AVGPCMXRSP53EJLEAPD \ / AMOS7 \ YOURUM ::
+#\[7]HL67Z3BYYOAE2TVGCF7TQG3FO25LJM35ZXWQ7TEFFSOMCG672WBQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -41,7 +41,10 @@
                                      httpd.setup-acme-challenge \
                                      httpd.cleanup-acme-challenge \
                                      httpd.remove-acme-challenge \
-                                     httpsd.reload-certificates
+                                     httpsd.reload-certificates \
+                                     nameserv.set-record \
+                                     nameserv.remove-record \
+                                     nameserv.get-record
 
             access.cmd.usr.httpd  =  web.process_template_ipc web.*
 
@@ -225,6 +228,8 @@
        access.cmd.usr.start-anim  =  X-11.wait_visible X-11.bg_color \
                                      v7.report-temp-path
 
+         access.cmd.usr.nameserv  =  v7.register_child
+
        access.cmd.usr.rss-ticker  =  content.get_list ticker.read_file
 
            access.cmd.usr.ticker  =  tile-groups.get-layer X-11.gpu_load \
@@ -232,8 +237,8 @@
                                      tile-groups.get_subconfig \
                                      rss-ticker.resend_update
 
-#,,,.,..,,.,,,,,,,,,,,,..,,,.,.,,,...,...,.,.,..,,...,...,...,...,,.,,,.,,,.,,
-#P3JBRK6BMN354J4XPHPG5IQCBJO424GDCRA2EAYVTKMPLXGLEN4GHBUT5D7FXWAZG4YEC4JV4LBSQ
-#\\\|WPKRVOOX2JTSF72ICMYPIIBV4P4RVJ4KTO3SVCG2LRCFAHEDV37 \ / AMOS7 \ YOURUM ::
-#\[7]3FUL5NXOVIH2DATBOZUR4HMTU34Q4HZWC3JW4GWG3ZPMWYL6AYAI 7  DATA SIGNATURE ::
+#,,,,,...,...,,,,,.,.,.,,,.,.,,,,,,..,.,,,..,,..,,...,...,.,.,,.,,.,,,,,,,...,
+#K3P4KUA47G2NFUYRVQ4XL2NWP2IBO7EUJU7BMHFMX7RYCBTHTVVIS3EMVWC3CSFU4HXY24CMM74MI
+#\\\|AKD43XV5C7FDAI5XWVXHEWJ3N4RJX3WM4JAIOU4NSZ4XI26TEMM \ / AMOS7 \ YOURUM ::
+#\[7]LHMJ7MQRAD7DPJ2VPE5AKAI4II243QUQAMZM4ZWTIUWCGPMVIEAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
