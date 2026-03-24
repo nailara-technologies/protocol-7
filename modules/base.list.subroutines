@@ -429,6 +429,8 @@ return [ qw[
         osd-logo.init_code
         notify.cmd.message
         notify-osd.startup
+        nameserv.zone.save
+        nameserv.init_code
         mpv.handler.stdout
         mpv.handler.stderr
         mpv.cmd.set_volume
@@ -553,6 +555,9 @@ return [ qw[
         openbox.cmd.get_pid
         nshell.term_restore
         nodes.cmd.add-trunc
+        nameserv.zones.load
+        nameserv.event.emit
+        nameserv.cmd.status
         models.task.execute
         models.task.enqueue
         models.storage.init
@@ -668,6 +673,7 @@ return [ qw[
         osd-logo.open_window
         nshell.render.cursor
         notify-osd.init_code
+        nameserv.zone.lookup
         mpv.volume.calc_incr
         mpv.loop_plist_param
         mpv.cmd.pipe_cmd_raw
@@ -694,8 +700,8 @@ return [ qw[
         kimi.cmd.new-session
         keys.console.enc-key
         keys.console.dec-key
+        io.ssl.ip.input.open
         io.ip.tcp.input.open
-        io.ip.ssl.input.open
         impressive.parse_bin
         impressive.init_code
         impressive.cmd.pause
@@ -839,9 +845,9 @@ return [ qw[
         keys.console.sign-key
         jobqueue.get_next_job
         jobqueue.get_job_data
+        io.ssl.ip.input.close
         io.ip.tcp.output.open
         io.ip.tcp.input.close
-        io.ip.ssl.input.close
         impressive.cmd.status
         impressive.cmd.resume
         image-quality.analyze
@@ -975,6 +981,8 @@ return [ qw[
         nshell.render.viewport
         nshell.history.page_up
         nodes.parser.node_pkey
+        nameserv.handler.query
+        nameserv.cmd.show-zone
         mpv.handler.pipe.float
         mpv.handler.path_reply
         mpv.handler.audio_fade
@@ -1121,6 +1129,10 @@ return [ qw[
         nshell.render.full_line
         nshell.read_from_buffer
         nshell.history.arrow_up
+        nameserv.start_listener
+        nameserv.cmd.set-record
+        nameserv.cmd.list-zones
+        nameserv.cmd.get-record
         mpv.set-up.import_rules
         mpv.set-up.export_rules
         mpv.open_control_socket
@@ -1143,8 +1155,8 @@ return [ qw[
         keys.console.github-pat
         jobqueue.queue_template
         io.unix.socket.end_code
+        io.ssl.ip.input.connect
         io.ip.tcp.input.connect
-        io.ip.ssl.input.connect
         impressive.get_playlist
         image-quality.init_code
         httpd.system.network_io
@@ -1417,6 +1429,7 @@ return [ qw[
         nshell.parser.term_decode
         nshell.history.arrow_down
         notify-loves.send_message
+        nameserv.cmd.reload-zones
         mpv.update_resc_timestamp
         mpv.handler.reenc_refresh
         mpv.handler.pipe.playlist
@@ -1572,6 +1585,7 @@ return [ qw[
         nshell.redraw_command_line
         nshell.handler.term_resize
         nshell.handler.debug_input
+        nameserv.cmd.remove-record
         mpv.handler.resume_timeout
         mpv.handler.get_list_reply
         mpv.handler.cmd_prop.pause
@@ -1738,8 +1752,8 @@ return [ qw[
         keys.console.enc-key-chksum
         jobqueue.check_dependencies
         io.unix.socket.output.close
-        io.ip.ssl.handshake.timeout
-        io.ip.ssl.handshake.handler
+        io.ssl.ip.handshake.cleanup
+        io.ssl.ip.handler.handshake
         image2html.parent.init_code
         httpsd.wait_for_certificate
         httpd.update_download_count
@@ -2593,6 +2607,7 @@ return [ qw[
         letsencr.child.extract_rsa_exponent
         letsencr.child.download_certificate
         letsencr.child.cmd.inst-self-signed
+        io.ssl.ip.handler.handshake_timeout
         impressive.callback.stop_start-anim
         image2html.child.handler.conversion
         image-quality.vision.parse_response
@@ -2942,8 +2957,8 @@ return [ qw[
     ]
 ];
 
-#,,,.,,,,,,..,,.,,...,..,,.,.,...,,,,,,.,,,,.,.,.,...,...,...,..,,.,,,,.,,,,.,
-#BC4TOFLA6F64OUNCJAKJYXVR43LL5IHD4JNCK5VW5PR3OI6B5DCKH32C4RMBBO7KDZYDWKC3JJGWA
-#\\\|2UCQLXKHEKSWJCUC5WXOQUJ37FEG6FDL72FR5E736YEM6GGQFN2 \ / AMOS7 \ YOURUM ::
-#\[7]M2WFGPXLHSD7AGOXYUPOZZGH2A7MATUNJGGVGPJHFIREQQZCPKAQ 7  DATA SIGNATURE ::
+#,,,,,.,,,,..,.,.,...,...,,,,,.,,,.,.,,.,,.,.,.,.,...,.,,,...,,.,,.,,,.,.,...,
+#BQ2YO2VZBV55LM2CCYDVNOHY7AQKFIIY5E6B53NOCCCLYCRS33WV3N3OWYJS2SEX2IK2AJYBA5GJ4
+#\\\|OONLFSCRN7U3KECJD4QWMM3E4MJBXC32KNP65S7IFXFZ3Q66X5Q \ / AMOS7 \ YOURUM ::
+#\[7]MUUZMYMEI7OQM7QU2LIBZQITTCTBEBQMLSSFG4ZMQLIXX4UROSCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
