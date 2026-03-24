@@ -1,0 +1,94 @@
+## [:< ##
+
+# name  = context.share.import
+# descr = import shared context data from other zenki
+
+my $params = shift // {};
+
+my $key     = $params->{'key'}     // '';
+my $channel = $params->{'channel'} // qw| context |;
+my $max_age = $params->{'max_age'} // 0;
+
+return { 'mode' => qw| false |, 'data' => 'key required' }
+    unless length $key;
+
+my $package;
+
+## try channels.memory-sync if available ##
+my $sync_fn = $code{'channels.memory-sync.fetch'}
+    // $code{'base.memory-sync.fetch'};
+
+if ( defined $sync_fn ) {
+    my $result = $sync_fn->( { 'channel' => $channel, 'key' => $key } );
+    if ( ref $result eq qw| HASH | and $result->{'mode'} eq qw| true | ) {
+        $package = $result->{'data'};
+    }
+}
+
+## fallback: check local shared namespace ##
+if ( not defined $package ) {
+    <context.shared> //= {};
+    $package = <context.shared>->{$key};
+}
+
+unless ( defined $package ) {
+    return { 'mode' => qw| false |, 'data' => 'not found' };
+}
+
+## check age ##
+if ( $max_age > 0 ) {
+    my $age = time() - ( $package->{'exported_at'} // 0 );
+    if ( $age > $max_age ) {
+        return {
+            'mode' => qw| false |,
+            'data' => { 'reason' => qw| too_old |, 'age' => $age }
+        };
+    }
+}
+
+## check ttl ##
+my $exported_at = $package->{'exported_at'} // 0;
+my $ttl         = $package->{'ttl'}         // 300;
+if ( time() > $exported_at + $ttl ) {
+    return {
+        'mode' => qw| false |,
+        'data' =>
+            { 'reason' => qw| expired |, 'age' => time() - $exported_at }
+    };
+}
+
+## deserialize if needed ##
+my $data = $package->{'payload'};
+if ( $package->{'is_ref'} ) {
+    <[base.perlmod.load]>->('JSON');
+    $data = eval { JSON::from_json($data) };
+    if ($@) {
+        <[base.logs]>->(
+            0, ':. share.import: json decode failed [ %s ] :.', $@
+        );
+        return { 'mode' => qw| false |, 'data' => 'deserialization failed' };
+    }
+}
+
+<[base.logs]>->(
+    3, ':. share.import: key=%s source=%s age=%ds :.',
+    $key,
+    $package->{'source'} // qw| unknown |,
+    time() - $exported_at
+);
+
+return {
+    'mode' => qw| true |,
+    'data' => {
+        'result' => $data,
+        'source' => $package->{'source'} // qw| unknown |,
+        'age'    => time() - $exported_at,
+        'key'    => $key
+    }
+};
+
+#,,,.,.,,,.,,,..,,,..,,,,,..,,,,.,.,.,,,.,,,,,..,,...,..,,.,,,,..,,.,,.,,,,..,
+#6JW3ESSSHY67EIIPTXXJNV7XO5KPCXPGJZ4CF2EOF5F2J7MRJKKPFMEMEFYABJP4RNAVRVEI3MZBM
+#\\\|N4VZDFMGXWDN6OU7J4DHTLPLLYQ6OKVYBSDU7WON47V4UBMSQ6A \ / AMOS7 \ YOURUM ::
+#\[7]XQHDPZI4O5ASVBUAHIIWWE2LUETGCMIEKXOLKTSP3XYWKSHKPGCA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

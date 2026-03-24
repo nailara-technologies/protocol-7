@@ -1,0 +1,70 @@
+## [:< ##
+
+# name  = context.cache.fetch
+# descr = retrieve cached context by key with freshness check
+
+my $params = shift // {};
+
+my $key         = $params->{'key'}         // '';
+my $max_age     = $params->{'max_age'}     // 0;
+my $allow_stale = $params->{'allow_stale'} // FALSE;
+
+return { 'mode' => qw| false |, 'data' => 'cache key required' }
+    unless length $key;
+
+<context.cache> //= {};
+
+my $entry = <context.cache>->{$key};
+
+unless ( defined $entry ) {
+    return { 'mode' => qw| false |, 'data' => 'cache miss' };
+}
+
+my $now = time();
+
+## check expiry ##
+my $expired = $now > $entry->{'expires_at'};
+
+## check max_age if specified ##
+my $too_old = 0;
+if ( $max_age > 0 ) {
+    $too_old = ( $now - $entry->{'stored_at'} ) > $max_age;
+}
+
+if ( ( $expired or $too_old ) and not $allow_stale ) {
+    return {
+        'mode' => qw| false |,
+        'data' => {
+            'reason' => $expired ? qw| expired | : qw| too_old |,
+            'age'    => $now - $entry->{'stored_at'}
+        }
+    };
+}
+
+## cache hit ##
+$entry->{'hits'}++;
+$entry->{'last_hit'} = $now;
+
+my $age = $now - $entry->{'stored_at'};
+
+<[base.logs]>->(
+    3,    ':. cache.fetch: hit key=%s age=%ds hits=%d :.',
+    $key, $age, $entry->{'hits'}
+);
+
+return {
+    'mode' => qw| true |,
+    'data' => {
+        'result' => $entry->{'data'},
+        'age'    => $age,
+        'hits'   => $entry->{'hits'},
+        'stale'  => ( $expired or $too_old ) ? TRUE : FALSE,
+        'source' => $entry->{'source'}
+    }
+};
+
+#,,,,,,.,,,,.,.,,,...,,,,,..,,...,,.,,..,,..,,..,,...,...,..,,..,,,,.,.,.,..,,
+#T52FISMKEHX72N2DJTO6W3KWQJPFRT322XLWDSQXX2PXJSSYS57I7GOGDQA5MOCQZACENGMYE7D3E
+#\\\|5EOGCEGRAUXF36ONCRAK3LL7L75HWI76CBNHWUIYG6V5IQSXMHJ \ / AMOS7 \ YOURUM ::
+#\[7]ZN2T5S75A2MJWADEYSJVQFRWFGNTW3JM5QPWTRYB3Q6OBZNRMCCY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
