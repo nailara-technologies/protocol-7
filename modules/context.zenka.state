@@ -1,0 +1,58 @@
+## [:< ##
+
+# name  = context.zenka.state
+# descr = runtime state snapshot of connected zenki
+
+my $params = shift // {};
+
+my $zenka  = $params->{'zenka'}  // '';
+my $budget = $params->{'budget'} // 600;
+
+my $char_budget = int( $budget * <context.cfg.chars_per_token> );
+
+my $output = "## zenka state ##\n\n";
+
+## local zenka info ##
+$output .= sprintf "local: %s [ sid %s ]\n",
+    <system.zenka.name> // 'unknown',
+    <system.zenka.id>   // 'none';
+
+$output .= sprintf "initialized: %s\n",
+    <system.zenka.initialized> ? 'yes' : 'no';
+
+## list connected sessions if cube access available ##
+if ( exists $code{'base.protocol-7.command.send.local'} ) {
+    ## query cube for session list ##
+    my $cmd_id = <[base.protocol-7.command.send.local]>->(
+        {   'command'   => 'list sessions',
+            'call_args' => { 'args' => '' },
+            'reply'     => {
+                'handler' => 'base.handler.command.eval_reply'
+            }
+        }
+    );
+
+    if ( $cmd_id > 0 ) {
+        $output .= "session query dispatched\n";
+    } else {
+        $output .= "cube not connected\n";
+    }
+}
+
+## add loaded modules count ##
+my $mod_count = scalar keys %code;
+$output .= sprintf "loaded modules: %d\n", $mod_count;
+
+## truncate to budget ##
+if ( length($output) > $char_budget ) {
+    $output = substr( $output, 0, $char_budget );
+    $output .= "\n... [ truncated ]\n";
+}
+
+return $output;
+
+#,,..,...,,,.,.,.,...,...,..,,,.,,.,,,..,,,.,,..,,...,...,.,.,,,,,.,.,..,,,,,,
+#3D5EWHWEHC3MNRKDSYANFKZMIEHTALU5M7PU3UOAX7VJF5UBL4A2RC64STKBO5MOTYYTXO7ZBYILA
+#\\\|JIH6TRVTXU2U6QYPUYWLXJ6C4PCAIOXN4VLJ62KP2BRIVBX2MDQ \ / AMOS7 \ YOURUM ::
+#\[7]U7GF4GZSINNSSSOHISHNEQWWF5GJYC7S36MOPFXZBS6TZB4JRWBQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
