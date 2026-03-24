@@ -1,0 +1,56 @@
+## [:< ##
+
+# name  = context.style.guide
+# descr = extract code style conventions for context assembly
+
+my $params = shift // {};
+
+my $budget      = $params->{'budget'} // 500;
+my $char_budget = int( $budget * <context.cfg.chars_per_token> );
+
+my $style_file = <context.cfg.style_file>;
+
+## read conventions yaml ##
+if ( -f $style_file and -r $style_file ) {
+    my $content_ref = <[file.slurp]>->($style_file);
+    if ( defined $content_ref ) {
+        my $content = $content_ref->$*;
+
+        ## strip signature blocks ##
+        $content =~ s|^#,,.*\n.*\n.*AMOS7.*\n.*DATA\sSIGNATURE.*\n.*\n||ms;
+
+        ## truncate to budget ##
+        if ( length($content) > $char_budget ) {
+            $content = substr( $content, 0, $char_budget );
+            $content .= "\n... [ truncated ]";
+        }
+
+        return "## code style conventions ##\n$content";
+    }
+}
+
+## fallback: inline essential conventions ##
+my $fallback = <<'STYLE';
+## code style conventions [ essential ] ##
+- lowercase comments: ## read config from file
+- bracket annotations: [ word ] not ( word )
+- $ARG instead of $_
+- qw| true | qw| false | for return modes
+- base.logs with sprintf format codes, no interpolation
+- log levels: 0=error 1=default 2=info 3=debug
+- no sub {} declarations in module files
+- no use/require — use perlmod.load in init_code
+- column width <= 78 characters
+STYLE
+
+if ( length($fallback) > $char_budget ) {
+    $fallback = substr( $fallback, 0, $char_budget );
+}
+
+return $fallback;
+
+#,,.,,...,,,.,.,,,.,,,,,,,,,.,...,,,,,..,,,..,..,,...,..,,...,...,..,,.,,,.,.,
+#QXPM36HBHV6BSZQ72RYDGCE6WBTGC74FIW2OUQWABZQQTDMFALF7GZKNZWCVDD6MMVDNVRWMOI3OM
+#\\\|W4YVH6GXZZE2Y6QIDK6KTUNH5ITXFKFRGBMDLDX4BHVGI2KC26B \ / AMOS7 \ YOURUM ::
+#\[7]JIKHMTYVIIPQ5BBI7NRVON6QTTVFDHXZ3MFL5HWJOUTOFXLLM6CI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

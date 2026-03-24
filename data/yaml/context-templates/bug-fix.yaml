@@ -1,0 +1,28 @@
+---
+name: bug-fix
+budget: 4000
+sections:
+  - provider: context.error.recent
+    budget_pct: 20
+    priority: 1
+    params:
+      filter: "{{error_pattern}}"
+  - provider: context.task.active
+    budget_pct: 10
+    priority: 2
+  - provider: context.file
+    budget_pct: 50
+    priority: 3
+    params:
+      path: "{{target_file}}"
+  - provider: context.git.recent_changes
+    budget_pct: 20
+    priority: 4
+    params:
+      since_commit: "HEAD~5"
+
+#,,,.,.,,,.,.,.,.,,..,.,.,.,.,..,,..,,.,,,.,,,..,,...,...,...,,..,.,,,.,,,,,,,
+#URM6YAF7CZKMOAZ5YELJ2BTTNKLONWXP6VXNEB2E2EVFLRLY3GNOZWJRXD7IAGWS3SLRUL57AU3QQ
+#\\\|MMB5NOIWH4Y2AMLISOWHWYW6ZHVMV32PJ7LDFMTS5PD2VO6CQ6L \ / AMOS7 \ YOURUM ::
+#\[7]BBE3OPL3FEJDA5XUZ5CI5D43GSMBSZAYBNSUXM5X7C6UFKV3ZUDI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

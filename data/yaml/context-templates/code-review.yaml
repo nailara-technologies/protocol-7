@@ -1,0 +1,31 @@
+---
+name: code-review
+budget: 4000
+sections:
+  - provider: context.style.guide
+    budget_pct: 10
+    priority: 1
+  - provider: context.git.recent_changes
+    budget_pct: 30
+    priority: 2
+    params:
+      max_files: 5
+      exclude_pattern: '^#,,'
+  - provider: context.file
+    budget_pct: 40
+    priority: 3
+    params:
+      path: "{{target_file}}"
+  - provider: context.task.active
+    budget_pct: 10
+    priority: 4
+  - provider: context.error.recent
+    budget_pct: 10
+    priority: 5
+    optional: true
+
+#,,,,,.,,,,,,,,..,..,,,.,,,.,,.,.,...,,,,,...,..,,...,...,..,,.,,,,.,,..,,.,,,
+#K2AUGLSMTEM63H2S5DZW57Z77CQOGZIGF6WIAHPHI5TZNYJWU4LPVP7ZKURZRKC3WQ544IUFGOBZ2
+#\\\|LCRUPDPIIC2WAQ6D5KZAWSBIOZRXBI3N4OREGFABXJRY6DAWAJZ \ / AMOS7 \ YOURUM ::
+#\[7]6BNPQRQGT4XVMHGDWKFAYZMAXCOZVIAMHBZIZQTLVNITJ2QCJKAA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

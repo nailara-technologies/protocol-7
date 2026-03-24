@@ -1,0 +1,77 @@
+## [:< ##
+
+# name  = context.compose
+# descr = assemble context from provider list with budget
+
+my $params = shift // {};
+
+my $providers = $params->{'providers'} // [];
+my $budget    = $params->{'budget'}    // <context.cfg.default_budget>;
+my $vars      = $params->{'vars'}      // {};
+
+## if template name given, delegate to template.render ##
+if ( defined $params->{'template'} ) {
+    return <[context.template.render]>->(
+        {   'template' => $params->{'template'},
+            'vars'     => $vars
+        }
+    );
+}
+
+## manual provider list: distribute budget equally ##
+my $provider_count = scalar @$providers;
+return '' unless $provider_count;
+
+my $per_provider = int( $budget / $provider_count );
+
+my @rendered;
+
+foreach my $entry (@$providers) {
+    my ( $provider, $prov_params );
+
+    if ( ref $entry eq qw| HASH | ) {
+        $provider    = $entry->{'provider'} // next;
+        $prov_params = { %{ $entry->{'params'} // {} } };
+    } else {
+        $provider    = $entry;
+        $prov_params = {};
+    }
+
+    $prov_params->{'budget'} //= $per_provider;
+
+    ## substitute variables ##
+    foreach my $key ( keys %$prov_params ) {
+        next unless defined $prov_params->{$key};
+        next if ref $prov_params->{$key};
+        $prov_params->{$key} =~ s|\{\{(\w+)\}\}|
+            defined $vars->{$1} ? $vars->{$1} : ''
+        |ge;
+    }
+
+    ## call provider ##
+    if ( exists $code{$provider} ) {
+        my $result;
+        eval { $result = $code{$provider}->($prov_params) };
+        if ($EVAL_ERROR) {
+            <[base.logs]>->(
+                0,         ': context.compose provider error [ %s ]: %s',
+                $provider, <[base.str.eval_error]>
+            );
+            next;
+        }
+        push @rendered, $result
+            if defined $result and length $result;
+    } else {
+        <[base.logs]>->(
+            1, ': context.compose provider not loaded [ %s ]', $provider
+        );
+    }
+}
+
+return join "\n\n", @rendered;
+
+#,,,,,,..,.,.,,.,,,,.,...,..,,,,,,,,,,...,,.,,..,,...,..,,,,.,,,.,.,.,.,.,.,,,
+#GUES4D3JICWBX55LXMF7HZTCWMDRL66G2KWHQGIJNYWVQRNXPPDPQKDEAZBVOZ7PWZEEL2KSHAVKQ
+#\\\|UKZNX45237FUBR4W7JIU2SLUC23AK6DJODPRNJOTM2NJ4UC2VT5 \ / AMOS7 \ YOURUM ::
+#\[7]CVIDMBQUBPNUF4DWKRZCYUSPEHIDJJCE6NNTVH2SUKGOCMKK7EAY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
