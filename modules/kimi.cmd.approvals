@@ -6,7 +6,7 @@
 my @pending = sort keys %{<kimi.approval.pending>};
 
 if ( not @pending ) {
-    return { 'mode' => 'false', 'data' => 'no pending approvals' };
+    return { 'mode' => qw| false |, 'data' => 'no pending approvals' };
 }
 
 my $output = '';
@@ -18,10 +18,10 @@ foreach my $rid (@pending) {
         $p->{'description'} // '';
 }
 
-return { 'mode' => 'data', 'data' => $output };
+return { 'mode' => qw| data |, 'data' => $output };
 
-#,,,.,.,.,..,,..,,.,,,,,,,,,.,...,,,,,...,..,,..,,...,..,,..,,,.,,,,.,,..,,,,,
-#MTMPGMZTAS4A3BU6SVRVLIH5NVYTGRVUVKTK4MQMUHPWNUCJYCKQMVZ4RZ3VC7METP6PHIMRX3J5U
-#\\\|YQFKOOGP7IQKVXYKF7BFORH6NZPMUXJZGU54B6OIL4G4QD5EOEO \ / AMOS7 \ YOURUM ::
-#\[7]D2NFH2DW25GKHQI7LMSHE5QENG5VWYCYDOJLCECZTTL3MEMSMQBQ 7  DATA SIGNATURE ::
+#,,,,,,.,,.,,,,,,,,.,,..,,.,.,.,,,,.,,...,.,.,.,.,...,...,...,,..,,,.,,..,,,.,
+#MSTCJ624EPQ263G3TQBJ3SUS3QCFWMKSEU75WYLAWWCD6BNMW3ZZ2AFRDVMKHVORPVRZLJ4BEP42U
+#\\\|T3HGXNQ2XKLK6BQAWOSL5UO5AY7D7XOKD6PEP6UBVHTPQTGKUIO \ / AMOS7 \ YOURUM ::
+#\[7]YRKNBEK2ZVKVYRPB7XPS5BX4BPVPWWYY2HSGWTI7GLQDL4FSC4CA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

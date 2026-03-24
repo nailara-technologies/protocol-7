@@ -5,8 +5,6 @@
 # note  = called by websocket.handler.read on each complete frame
 #         first arg is undef on disconnect
 
-<[base.perlmod.load]>->(qw| JSON |);
-
 my $text    = shift;
 my $context = shift // {};
 
@@ -37,7 +35,8 @@ if ( not defined $text ) {
             my $rid = $pend->{'reply_id'} // '';
             if ( length($rid) ) {
                 <[base.callback.cmd_reply]>->(
-                    $rid, { 'mode' => 'false', 'data' => 'kimi disconnected' }
+                    $rid,
+                    { 'mode' => qw| false |, 'data' => 'kimi disconnected' }
                 );
             }
         }
@@ -74,7 +73,14 @@ if ( not defined $text ) {
         );
     }
 
-    <[kimi.connect.schedule_retry]>;
+    ## only retry if work is pending — idle disconnect is normal
+    if ($has_active_prompt) {
+        <[kimi.connect.schedule_retry]>;
+    } else {
+        <[base.logs]>->(
+            2, ': idle disconnect — will reconnect on next request'
+        );
+    }
     return;
 }
 
@@ -99,7 +105,7 @@ my $method = $msg->{'method'} // '';
 my $msg_id = $msg->{'id'}     // '';
 my $params = $msg->{'params'} // {};
 
-## --- server-sent events (method present, no id or id not a response) ---
+## --- server-sent events [ method present, no id or id not a response ] ---
 
 if ( $method eq qw| history_complete | ) {
     <[base.logs]>
@@ -123,6 +129,13 @@ if ( $method eq qw| history_complete | ) {
             2, ': skipping init [ status=%s retry_pending=%s ]',
             <kimi.ws.status>, <kimi.init.retry_pending> // 0
         );
+
+        ## dispatch deferred prompt if ready [ init path handles its own ]
+        if ( <kimi.ws.status> eq qw| ready |
+            and defined <kimi.next.deferred> ) {
+            my $def = delete <kimi.next.deferred>;
+            <[kimi.wire.prompt]>->( $def->{'prompt'}, $def->{'reply_id'} );
+        }
         return;
     }
     <[kimi.wire.initialize]>;
@@ -161,7 +174,7 @@ if ( $method eq qw| event | ) {
 
         ## find the pending prompt entry and fire deferred reply
         my ($pend_id) = grep {
-            ( <kimi.wire.pending>->{$_}->{'type'} // '' ) eq qw| prompt |
+            ( <kimi.wire.pending>->{$ARG}->{'type'} // '' ) eq qw| prompt |
         } keys %{<kimi.wire.pending>};
 
         if ( defined $pend_id ) {
@@ -192,7 +205,7 @@ if ( $method eq qw| event | ) {
             ## fire original reply handler if set
             if ( length($reply_id) ) {
                 <[base.callback.cmd_reply]>->(
-                    $reply_id, { 'mode' => 'size', 'data' => $response }
+                    $reply_id, { 'mode' => qw| size |, 'data' => $response }
                 );
             }
         } else {
@@ -203,7 +216,7 @@ if ( $method eq qw| event | ) {
         return;
     }
 
-    ## other event types (TurnBegin, StepBegin, ToolCall, etc.) — log at debug
+    ## other event types [ TurnBegin, StepBegin, ToolCall, etc. ] — log at debug
     <[base.logs]>->( 3, 'kimi.handler.ws_message: event [ type=%s ]', $type );
     return;
 }
@@ -242,7 +255,7 @@ if ( $method eq qw| request | ) {
     return;
 }
 
-## --- responses to our requests (method is absent or empty) ---
+## --- responses to our requests [ method is absent or empty ] ---
 
 if ( not length($method) and length($msg_id) ) {
     my $pend = delete <kimi.wire.pending>->{$msg_id};
@@ -269,19 +282,25 @@ if ( not length($method) and length($msg_id) ) {
                 <kimi.reconnect.grace_timer> = undef;
             }
 
+            ## dispatch deferred prompt after fresh session ready
+            if ( defined <kimi.next.deferred> ) {
+                my $def = delete <kimi.next.deferred>;
+                <[kimi.wire.prompt]>
+                    ->( $def->{'prompt'}, $def->{'reply_id'} );
+            }
+
             if ( not <kimi.session.acquired> ) {
-                ## first successful handshake — go online
+                ## first successful handshake
                 <kimi.session.acquired> = TRUE;
                 <[base.logs]>
                     ->( 1, ': kimi-web ready to serve requests :..' );
-                <[base.async.get_session_id]>;
             } else {
                 <[base.logs]>->( 2, 'kimi: reconnected — status ready' );
             }
         } else {
             my $err = $msg->{'error'}{'message'} // 'unknown';
             ## log at level 2 for expected "agent turn in progress" retries
-            my $log_level = $err =~ m{agent turn.*in progress}i ? 2 : 0;
+            my $log_level = $err =~ m|agent turn.*in progress|i ? 2 : 0;
             <[base.logs]>->(
                 $log_level,
                 'kimi.handler.ws_message: initialize failed : %s', $err
@@ -289,7 +308,7 @@ if ( not length($method) and length($msg_id) ) {
 
             ## retry initialize when agent turn is still in progress
             ## [ kimi-web is finishing work from before the reconnect ]
-            if ( $err =~ m{agent turn.*in progress}i ) {
+            if ( $err =~ m|agent turn.*in progress|i ) {
                 <kimi.init.retry_count> //= 0;
                 <kimi.init.retry_count>++;
                 if ( not( <kimi.init.retry_pending> // FALSE ) ) {
@@ -317,18 +336,19 @@ if ( not length($method) and length($msg_id) ) {
 
     if ( $pend->{'type'} eq qw| prompt | ) {
         ## success/cancel response for the prompt request itself
-        ## actual content arrives via event stream above
+        ## actual content arrives via event stream — re-insert pending
+        ## entry so TurnEnd can find it [ delete above was premature ]
+        <kimi.wire.pending>->{$msg_id} = $pend;
         my $status = ( $msg->{'result'} // {} )->{'status'} // 'unknown';
         <[base.logs]>->(
-            2,
-            'kimi.handler.ws_message: prompt response [ status=%s ]', $status
+            2, 'kimi.handler.ws_message: prompt ack [ status=%s ]', $status
         );
         return;
     }
 }
 
-#,,,,,,.,,...,,,,,,.,,,..,...,...,...,..,,...,..,,...,...,..,,,..,..,,,.,,,.,,
-#OW7OU6OHSUGCKR6KISTKPHPFRA6VPMNELCAHLCKY4TIRV2XJWO3P2USUQDB3S4FNLZIADJD5RHNV2
-#\\\|2NKVVLUWUBLX2JC2IFFEOGNW7BCIXAVFVLQEUPLUVKICGOFV2HC \ / AMOS7 \ YOURUM ::
-#\[7]PZDQKGNUXY7HMDUKOAU3RY63GUM2N7MM5AWUCHKJI2KC5XPQYOBA 7  DATA SIGNATURE ::
+#,,..,.,,,,..,,..,,,.,.,,,..,,.,.,,.,,...,..,,.,.,...,...,..,,,..,..,,.,,,..,,
+#6LCQXTLPKKCYGC3ALAJUPTX37L5UYN7PZKEMBLQM4R7N3VRTBZ7GDXFDOZA62IVSXLAHEIZKVX4PC
+#\\\|4X4JHC6KWS5GPL2PTFUCRNWGBXYWKMSRNIYSZUC7LW6QXRMIXRD \ / AMOS7 \ YOURUM ::
+#\[7]5PAKLE7O2BDEAKFL5MZMOQVCEGKLZO5G4OCXJE3S6R2DHBSEGQAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

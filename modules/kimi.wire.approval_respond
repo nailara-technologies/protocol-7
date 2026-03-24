@@ -9,8 +9,6 @@ my $response   = shift // 'approve'; ## approve | approve_for_session | reject
 ## build json-rpc 2.0 success response with ApprovalResponse result
 ## note: cannot use kimi.wire.send here — it builds method-based messages
 ##       but approval responses are id-based with 'result' field
-<[base.perlmod.load]>->(qw| JSON |);
-
 unless ( <kimi.ws.connected> and defined <kimi.ws.socket> ) {
     <[base.logs]>->( 0, 'kimi.wire.approval_respond: not connected' );
     return undef;
@@ -46,8 +44,8 @@ my $responded_str = join( "\n", keys %{<kimi.approval.responded>} ) . "\n";
 
 return <[websocket.send]>->( <kimi.ws.socket>, $json );
 
-#,,,.,.,.,,..,,..,,..,,..,,.,,,,.,,,.,,,.,..,,..,,...,...,...,.,,,..,,,.,,,..,
-#YXG7UU3KABV3VNOKK4XKYW4C7RQU433SYYHAYWOYIRF3QE5G6FK34M5PKPOPSLF3CLN4GFKKIVEPQ
-#\\\|YFL4NG7LROJEB7QAJHSIMLHKZPX6NSRGOSMXMSKMTLMKQJOBW4Y \ / AMOS7 \ YOURUM ::
-#\[7]4SYH64TGB4AYENUBNRYPZDKL6BPVVSHR36IIZDQJRY7D5T5PQ6DQ 7  DATA SIGNATURE ::
+#,,..,,,,,,,,,..,,..,,.,,,,,,,.,.,.,.,,,.,,..,.,.,...,...,,.,,..,,,..,,.,,,,.,
+#DQS4VZYGRNEUM4F7JKORLIY5HFYFT6ULIMTCOLDCTYBYC4GJISIQ76Y2N7P2237KOY4TNXDEDWNLE
+#\\\|O6DM6GRKCH2JUV63PLYOFNMSE3IBUGUNY5DUY4IU4L6FDNWNO2H \ / AMOS7 \ YOURUM ::
+#\[7]TAE2ZWD64VPPZQ3IWIYU3JX2ZE42ZG3NIZ3XJJGSXXDGJKMNJ4AA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,0 +1,60 @@
+## [:< ##
+
+# name  = kimi.session.create
+# descr = create new kimi-web session via rest api [ api child ]
+# return = session_id on success, undef on error
+
+my $handles = <[kimi.session.start_api_child]>;
+if ( not defined $handles ) {
+    <[base.logs]>->( 0, 'kimi.session.create: api child unavailable' );
+    return undef;
+}
+
+my ( $r_fh, $w_fh ) = @{$handles};
+
+my $work_dir = <kimi.web.work_dir> // '';
+my $api_url  = sprintf( '%s/api/sessions/', <kimi.web.base_url> );
+
+## pass project work_dir in json post body
+my $body
+    = length $work_dir
+    ? JSON::encode_json( { 'work_dir' => $work_dir } )
+    : '{}';
+
+print $w_fh "create $api_url $body\n";
+my $response = <$r_fh>;
+chomp $response if defined $response;
+
+if ( not defined $response or $response =~ m|^error (.+)$| ) {
+    <[base.logs]>->(
+        0,
+        'kimi.session.create: session create failed : %s',
+        $1 // 'no response from api child'
+    );
+    return undef;
+}
+
+if ( $response !~ m|^session_id (.+)$| ) {
+    <[base.logs]>->(
+        0, 'kimi.session.create: unexpected response [ %s ]', $response
+    );
+    return undef;
+}
+
+my $session_id = $1;
+
+<[base.logs]>->(
+    2, 'kimi.session.create: session created [ %s ]', $session_id
+);
+
+## persist session id for resume after restart
+my $sid_str = $session_id . "\n";
+<[file.zenka_dir.write]>->( 'session_id', \$sid_str );
+
+return $session_id;
+
+#,,,,,,..,..,,.,.,,.,,.,.,,,,,,.,,,.,,...,.,,,.,.,...,...,.,,,...,,,,,,,.,,,.,
+#2NGX6QCJC7ZXXDOKCATT3WWO7RJJMHIY5QM26XKS6NRAWILFGYSAHQFV2RBFMIKE3ASF6WSJUYJZQ
+#\\\|7RHVJ525VF2MFDMOBWLLLNRMICJT4LUPLGC5ZESEMI2A2YQLRJQ \ / AMOS7 \ YOURUM ::
+#\[7]IAQKJLUC4TYH5BIBWGMYV7UJ67GEAK7SQL6KBNDO23HSFAXPLMAA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

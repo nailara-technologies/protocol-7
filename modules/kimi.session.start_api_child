@@ -1,0 +1,111 @@
+## [:< ##
+
+# name  = kimi.session.start_api_child
+# descr = spawn persistent lightweight perl child for kimi-web api calls
+# return = [ r_fh, w_fh ] on success, undef on error
+
+## already running — return existing handles
+if (    defined <kimi.api_child.w_fh>
+    and defined <kimi.api_child.r_fh> ) {
+    return [ <kimi.api_child.r_fh>, <kimi.api_child.w_fh> ];
+}
+
+<system.path.perl_bin> //= <[base.get_path.perl_exec]>;
+
+my $child_code = <<~'EOT';
+use v5.24; use strict; use warnings; use English;
+use LWP::UserAgent; use JSON;
+$| = 1;
+$PROGRAM_NAME = 'kimi-api-child';
+my $ua = LWP::UserAgent->new( timeout => 10 );
+while ( my $line = <STDIN> ) {
+    chomp $line;
+
+    ## verify <url>
+    if ( $line =~ m{^verify (.+)$} ) {
+        my $url  = $1;
+        my $resp = eval { $ua->get($url) };
+        if ( $@ or not $resp ) {
+            print "error $@\n";
+            next;
+        }
+        if ( not $resp->is_success ) {
+            print "stale " . $resp->status_line . "\n";
+            next;
+        }
+        my $body = eval { JSON::from_json( $resp->decoded_content ) };
+        if (    not defined $body
+            or ( ref $body eq 'HASH' and $body->{'archived'} ) )
+        {
+            print "archived\n";
+        } else {
+            print "valid\n";
+        }
+        next;
+    }
+
+    ## create <url> <json_body>
+    if ( $line =~ m{^create (\S+) (.+)$} ) {
+        my ( $url, $json_body ) = ( $1, $2 );
+        my $resp = eval {
+            $ua->post(
+                $url,
+                'Content-Type' => 'application/json',
+                'Content'      => $json_body
+            );
+        };
+        if ( $@ or not $resp ) {
+            print "error $@\n";
+            next;
+        }
+        if ( not $resp->is_success ) {
+            print "error " . $resp->status_line . "\n";
+            next;
+        }
+        my $session = eval { JSON::from_json( $resp->decoded_content ) };
+        if ( $@ or not defined $session
+            or not defined $session->{'session_id'} )
+        {
+            print "error invalid response\n";
+            next;
+        }
+        print "session_id " . $session->{'session_id'} . "\n";
+        next;
+    }
+
+    print "error unknown command\n";
+}
+EOT
+
+my ( $r_fh, $w_fh );
+
+eval {
+    my $pid = IPC::Open2::open2( $r_fh, $w_fh,
+        <system.path.perl_bin>, qw| -e |, $child_code );
+    <kimi.api_child.pid> = $pid;
+};
+
+if ( $@ or not defined $r_fh ) {
+    <[base.logs]>->(
+        0,
+        'kimi.session.start_api_child: spawn failed : %s',
+        $@ // 'unknown'
+    );
+    return undef;
+}
+
+## autoflush write handle
+$w_fh->autoflush(1);
+
+<kimi.api_child.r_fh> = $r_fh;
+<kimi.api_child.w_fh> = $w_fh;
+
+<[base.logs]>->( 2, ': api child started [ pid %d ]', <kimi.api_child.pid> );
+
+return [ $r_fh, $w_fh ];
+
+#,,.,,,,.,...,,..,.,.,..,,.,,,.,.,.,,,,..,.,,,.,.,...,...,,,,,,,,,...,,.,,.,.,
+#UZHO3HRIIFJM3RYDSZGXMNXKYFKRC7N3P6RAF63FC4NKMX2WQPTIOAYY5NXF2YDNIUNXTNEWTHKGQ
+#\\\|KDX72EBEGD5YMBZOUPAQCAVP3YAJLV657HYI4TOV2GGE2JR6PRL \ / AMOS7 \ YOURUM ::
+#\[7]JKIBIUE257FQXB4ODIFU5U4PTID77QQ66Q4G5S2NXTOA4R7XU2CY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

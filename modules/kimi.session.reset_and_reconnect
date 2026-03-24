@@ -1,0 +1,94 @@
+## [:< ##
+
+# name  = kimi.session.reset_and_reconnect
+# descr = lightweight session reset : tear down, create fresh session, reconnect
+
+## tear down websocket if connected
+if (<kimi.ws.connected>) {
+    if ( defined <kimi.ws.io_watcher> ) {
+        <kimi.ws.io_watcher>->cancel
+            if <kimi.ws.io_watcher>->is_active;
+        <kimi.ws.io_watcher> = undef;
+    }
+    if ( defined <kimi.ws.socket> ) {
+        eval { shutdown( <kimi.ws.socket>, 2 ) };
+        close <kimi.ws.socket>;
+    }
+    <kimi.ws.connected> = FALSE;
+}
+
+## clear session state
+<kimi.session_id>       = undef;
+<kimi.wire.accumulator> = '';
+<kimi.wire.pending>     = {};
+<kimi.ws.status>        = qw| connecting |;
+
+## create fresh session via rest api
+my $new_session_id = <[kimi.session.create]>;
+
+if ( not defined $new_session_id ) {
+    <[base.logs]>->(
+        0, 'kimi.session.reset_and_reconnect: session create failed'
+    );
+    <kimi.ws.status> = qw| disconnected |;
+    <[kimi.connect.schedule_retry]>;
+    return;
+}
+
+<kimi.session_id> = $new_session_id;
+
+## websocket connect
+my $ws_url = sprintf( '%s/api/sessions/%s/stream',
+    <kimi.web.ws_base>, <kimi.session_id> );
+
+my $sock = <[websocket.connect]>->($ws_url);
+
+if ( not defined $sock ) {
+    <[base.logs]>->(
+        0,
+        'kimi.session.reset_and_reconnect: websocket connect failed [ %s ]',
+        $ws_url
+    );
+    <kimi.ws.status>  = qw| disconnected |;
+    <kimi.session_id> = undef;
+    <[kimi.connect.schedule_retry]>;
+    return;
+}
+
+<kimi.ws.socket> = $sock;
+<kimi.ws.frame>  = Protocol::WebSocket::Frame->new(
+    max_payload_size => 16 * 1024
+        * 1024    ## 16 MiB [ tool results can be large ]
+);
+<kimi.connect.retry_cur> = 2;
+
+## register event.add_io for incoming frames
+<kimi.ws.io_watcher> = <[event.add_io]>->(
+    {   'fd'      => $sock,
+        'handler' => qw| websocket.handler.read |,
+        'data'    => {
+            'frame'      => <kimi.ws.frame>,
+            'on_message' => qw| kimi.handler.ws_message |,
+            'context'    => { 'session_id' => <kimi.session_id> }
+        },
+        'poll' => qw| re |
+    }
+);
+
+<kimi.ws.connected> = TRUE;
+
+## schedule session liveness timeout
+<[event.add_timer]>->(
+    {   'after'   => 15,
+        'handler' => qw| kimi.handler.session_liveness_timeout |,
+        'desc'    => 'detect dead kimi-web session after reset'
+    }
+);
+
+<[base.logs]>->( 1, ': session reset complete — awaiting ready' );
+
+#,,,,,.,.,,..,,,.,,..,...,,,.,,.,,...,,,,,.,,,.,.,...,...,,..,.,.,.,,,..,,,..,
+#WYFPVMB6TXY65DESCITL3MAINGEK67UL7YEWZZUUOROV7BWVZQHYNG6LZZV5WKYAWK4RU4ZMCXKSQ
+#\\\|FEMXLBNCMMTSWBPHFSGCNNUVG4VNTWB5SD7PCFOBJJ4MXZ2OF2A \ / AMOS7 \ YOURUM ::
+#\[7]4KJWNDXKDVYOWK254ZSC4WHLEYVU3VW5TRVZBNDNWXSQS4PNSEBA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
