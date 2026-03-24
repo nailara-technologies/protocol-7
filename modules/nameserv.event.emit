@@ -1,0 +1,28 @@
+## [:< ##
+
+# name  = nameserv.event.emit
+# descr = emit internal nameserv events (zenka-local event dispatcher)
+
+my $event_name = shift;
+my $event_data = shift // {};
+
+## zenka-local event emitter since p7 core lacks event.emit
+
+my $full_event_name = "nameserv.$event_name";
+
+## log the event
+if ( ref $event_data eq 'HASH' ) {
+    my $data_str = join ', ',
+        map {"$ARG=$event_data->{$ARG}"} sort keys %$event_data;
+    <[base.logs]>->( 3, "event: %s [ %s ]", $full_event_name, $data_str );
+} else {
+    <[base.logs]>->( 3, "event: %s", $full_event_name );
+}
+
+return TRUE;
+
+#,,,,,.,,,,,,,,.,,,.,,..,,,,.,...,,,.,,.,,,.,,..,,...,...,.,.,.,.,...,..,,,,.,
+#TCREC3DXJXIP4GSG5MXFCBFYUSZI24ZLOID3U2U66DN6MUOBXYC2OPR33O5HWRMGFPJEDYJMN4BJ2
+#\\\|FLRQ6JUL5EMQFUGSAGVU6FDKKGUHOG4F63P5AAXFYMLMMK7GXYO \ / AMOS7 \ YOURUM ::
+#\[7]2ZQMKT3HEQDO26WY7IPDXCR5WS7IA3FC2JVVAHTXG2ZSEFC3IYBA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

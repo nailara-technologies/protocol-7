@@ -1,0 +1,52 @@
+## [:< ##
+
+# name  = nameserv.cmd.show-zone
+# descr = display all records in a zone
+
+my $args_str = $call->{'args'} // '';
+
+## parse args: zone=<zone>
+## or positional: <zone>
+my %args;
+if ( $args_str =~ /=/ ) {
+    while ( $args_str =~ /(\w+)=(\S+)/g ) {
+        $args{$1} = $2;
+    }
+} else {
+    my @parts = split /\s+/, $args_str;
+    $args{'zone'} = $parts[0] if @parts;
+}
+
+my $zone_name = lc( $args{'zone'} // '' );
+
+if ( not $zone_name ) {
+    return { mode => 'false', data => 'usage: show-zone zone=<zone>' };
+}
+
+my $zones = <nameserv.zones>;
+
+if ( not exists $zones->{$zone_name} ) {
+    return { mode => 'false', data => "zone not found: $zone_name" };
+}
+
+my $zone  = $zones->{$zone_name};
+my @lines = (
+    sprintf( "zone: %s",     $zone_name ),
+    sprintf( "  serial: %d", $zone->{'serial'} ),
+    sprintf( "  ttl: %d",    $zone->{'ttl'} ),
+    sprintf("  records:"),
+);
+
+for my $rec ( @{ $zone->{'records'} } ) {
+    push @lines,
+        sprintf( "    %s %s %s",
+        $rec->{'name'}, $rec->{'type'}, $rec->{'value'} );
+}
+
+return { mode => 'size', data => join( "\n", @lines ) };
+
+#,,..,,,.,..,,,,,,,,,,.,.,.,,,...,.,.,.,,,,.,,..,,...,...,.,.,,.,,,,,,.,,,,,.,
+#RE6TR2PNYNHMN5REDQIFDNLBFX6RWEWIIL4IUVZMASOS7EJPLHZ767WH6FDWJO4LHNZUNWVOWWA6Y
+#\\\|SC6AF47USJCCLUC4NFKEG4PUN2AHUI2F2KZXGGECGQP4A3MPFPB \ / AMOS7 \ YOURUM ::
+#\[7]YPH3EHR3QQ3WYAK2MKVOAMXTK6PBYDT72D4OAEY2PTCJJZM2YABQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

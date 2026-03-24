@@ -1,0 +1,79 @@
+## [:< ##
+
+# name  = nameserv.cmd.set-record
+# descr = add or update a dns record in a zone
+
+my $args_str = $call->{'args'} // '';
+
+## parse args: zone=<zone> name=<name> type=<type> value=<value>
+## or positional: <zone> <type> <name> <value>
+my %args;
+if ( $args_str =~ /=/ ) {
+    ## key=value format
+    while ( $args_str =~ /(\w+)=(\S+)/g ) {
+        $args{$1} = $2;
+    }
+} else {
+    ## positional: zone type name value
+    my @parts = split /\s+/, $args_str;
+    $args{'zone'}  = $parts[0]                           if @parts;
+    $args{'type'}  = $parts[1]                           if @parts > 1;
+    $args{'name'}  = $parts[2]                           if @parts > 2;
+    $args{'value'} = join( ' ', @parts[ 3 .. $#parts ] ) if @parts > 3;
+}
+
+my $zone_name = lc( $args{'zone'} // '' );
+my $rec_name  = lc( $args{'name'} // '' );
+my $rec_type  = uc( $args{'type'} // 'A' );
+my $rec_value = $args{'value'} // '';
+
+if ( not $zone_name or not $rec_name or not $rec_value ) {
+    return {
+        mode => 'false',
+        data =>
+            'usage: set-record zone=<zone> name=<name> type=<type> value=<value>'
+    };
+}
+
+my $zones = <nameserv.zones>;
+
+if ( not exists $zones->{$zone_name} ) {
+    ## create new zone
+    $zones->{$zone_name} = {
+        records => [],
+        serial  => time(),
+        ttl     => 3600,
+    };
+}
+
+my $zone = $zones->{$zone_name};
+
+## remove existing record with same name/type
+$zone->{'records'} = [
+    grep {
+        not( lc( $ARG->{'name'} ) eq $rec_name
+            and $ARG->{'type'} eq $rec_type )
+    } @{ $zone->{'records'} }
+];
+
+## add new record
+push @{ $zone->{'records'} },
+    {
+    name  => $rec_name,
+    type  => $rec_type,
+    value => $rec_value,
+    };
+
+$zone->{'serial'} = time();
+
+<[nameserv.zone.save]>->($zone_name);
+
+my $msg
+    = sprintf( "record added: %s %s %s", $rec_name, $rec_type, $rec_value );
+return { mode => 'true', data => $msg };
+
+#,,,.,,,.,..,,,.,,..,,,..,,,,,.,.,...,...,,,,,..,,...,..,,...,.,,,...,,,,,,,.,
+#5S4ZD5V337YASFUGSXXVYZZZ5TI2PQRYBWACIOLVTUCL7YBYQOIYYFXXDBYSPK2XQAGBGBIM6DNOG
+#\\\|YUL7XKNBV5NWJZBDCIE3A5FYBUW7NLFB3AMM2HWPWRCBLEGEG2X \ / AMOS7 \ YOURUM ::
+#\[7]5V4AZJBPII7UUKNOKARU7FXEL6Z7C2T7RCA43Y7K56MRVD23YMAI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

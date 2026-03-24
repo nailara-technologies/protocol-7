@@ -1,0 +1,40 @@
+## [:< ##
+
+# name  = nameserv.init_code
+# descr = initialize nameserv dns server state
+
+<[base.perlmod.load]>->('Net::DNS');
+<[base.perlmod.load]>->('Net::DNS::Packet');
+<[base.perlmod.load]>->('Net::DNS::RR');
+
+## nameserv configuration
+<nameserv.bind.addr> //= '0.0.0.0';
+<nameserv.bind.port> //= 53;
+<nameserv.zone_dir>  //= '/var/protocol-7/nameserv/zones';
+
+## runtime state
+<nameserv.zones> //= {}; ## { zone_name => { records => [...], serial => N } }
+<nameserv.socket> //= undef;
+<nameserv.stats>  //= { queries => 0, errors => 0 };
+
+## ensure zone directory exists
+if ( not -d <nameserv.zone_dir> ) {
+    <[file.make_path]>->(
+        <nameserv.zone_dir>, 0750, <system.amos-zenka-user>,
+        <system.amos-zenka-user>
+    ) or die "<< cannot create zone dir >>";
+}
+
+## load initial zones
+<[nameserv.zones.load]>;
+
+## start udp listener (binds to port 53, must happen before root.drop_privs)
+<[nameserv.start_listener]>;
+
+0;
+
+#,,,.,...,...,...,.,,,...,.,,,,,,,...,,,.,,,,,..,,...,...,,.,,..,,.,.,,.,,,..,
+#Z7SLE5GJRMUF434E6L6NLKTFVLXGGOR3D55GQ26MRQHTYGF2AIRG7ANDJNVWMFJK4HCXHRCFAFGIQ
+#\\\|35A6LAIH22WO2OHHPILFDCRIBVDQZAAFXTPH7NCBHAL3K4CPSG6 \ / AMOS7 \ YOURUM ::
+#\[7]F5F62LO6ATNDUB53HXPQD7NTRZAKKKJBG2QCMY6KSUOEOOX3G2BA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

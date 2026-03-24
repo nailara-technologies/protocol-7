@@ -1,0 +1,80 @@
+## [:< ##
+
+# name  = nameserv.zones.load
+# descr = load dns zone files from zone directory
+
+my $zone_dir = <nameserv.zone_dir>;
+my $zones    = <nameserv.zones>;
+
+## clear current zones
+$zones->%* = ();
+
+if ( not -d $zone_dir ) {
+    <[base.logs]>->( 0, "zone directory not found: %s", $zone_dir );
+    return;
+}
+
+## scan for zone files (*.zone or *.yaml)
+my @zone_files;
+opendir my $dh, $zone_dir or do {
+    <[base.logs]>->( 0, "cannot open zone dir: %s", <[base.str.os_err]> );
+    return;
+};
+@zone_files = grep {/\.(zone|yaml)$/} readdir $dh;
+closedir $dh;
+
+for my $filename ( sort @zone_files ) {
+    my $filepath  = "$zone_dir/$filename";
+    my $zone_name = $filename;
+    $zone_name =~ s/\.(zone|yaml)$//;
+
+    my $content_ref = <[file.slurp]>->($filepath);
+    if ( not defined $content_ref ) {
+        <[base.logs]>->( 0, "cannot read zone file: %s", $filename );
+        next;
+    }
+
+    my ( $zone_data, $err ) = <[format.yaml.load_str]>->( $content_ref->$* );
+    if ( not defined $zone_data or ref $zone_data ne 'HASH' ) {
+        <[base.logs]>->(
+            0,         "invalid yaml in zone file: %s [ %s ]",
+            $filename, $err // 'unknown error'
+        );
+        next;
+    }
+
+    ## validate zone has required fields
+    if ( not exists $zone_data->{'records'} ) {
+        <[base.logs]>->( 0, "zone %s missing 'records' field", $zone_name );
+        next;
+    }
+
+    ## generate serial from mtime if not provided
+    my $serial = $zone_data->{'serial'} // ( stat $filepath )[9] // time();
+
+    $zones->{ lc($zone_name) } = {
+        records => $zone_data->{'records'},
+        serial  => $serial,
+        ttl     => $zone_data->{'ttl'} // 3600,
+    };
+
+    my $rec_count = scalar @{ $zone_data->{'records'} };
+    <[base.logs]>->(
+        2, "loaded zone %s (%d records, serial %d)",
+        $zone_name, $rec_count, $serial
+    );
+}
+
+my $total_zones = scalar keys %$zones;
+<[base.logs]>->( 1, ": loaded %d zone(s)", $total_zones );
+
+## emit zone reload event
+<[nameserv.event.emit]>->( 'zones.reloaded', { count => $total_zones } );
+
+0;
+
+#,,..,...,.,,,...,.,,,,,.,...,,,.,,.,,,..,,.,,..,,...,...,,..,,,,,..,,.,,,.,.,
+#AALV3RVG6L5GAAEU4BHFOEL67QTNRQIQ7VLPD7Q7NGAPHVNK2RGIS3WXLS322V25XETLFLRDLAU4K
+#\\\|5TXAI3436VEOFI742WBQBGOLZLP5B27DW7PF3IA4CNG7GLSYQQB \ / AMOS7 \ YOURUM ::
+#\[7]BDPOWMFI6AHEMW26V4422WA6IQJLJ4RT7NC72I6TQJG3PAXWNMCQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
