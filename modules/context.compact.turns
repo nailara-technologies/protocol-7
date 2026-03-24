@@ -1,0 +1,30 @@
+## [:< ##
+
+# name  = context.compact.turns
+# descr = compact conversation turns via models.conversation
+
+my $params = shift // {};
+
+my $job_id     = $params->{'job_id'}     // '';
+my $keep_turns = $params->{'keep_turns'} // 5;
+
+## delegate to models.conversation.compact if available ##
+if ( exists $code{'models.conversation.compact'} ) {
+    my $result = $code{'models.conversation.compact'}->(
+        {   'job_id'     => $job_id,
+            'keep_turns' => $keep_turns
+        }
+    );
+    return $result if defined $result;
+}
+
+return {
+    'mode' => qw| false |,
+    'data' => 'conversation compaction not available'
+};
+
+#,,..,,.,,,.,,...,,,.,,..,,..,...,,,.,.,,,...,..,,...,...,,.,,,,.,...,.,,,,,,,
+#4KHV5YF3M5XXQB6LIVZD7RH3EQIQ4MLR37HQP6MPAOA3PPKR7AKTCY3ODL6TNDBSVGYZMQ7CCQABY
+#\\\|4DDWF5ITMCV4ABPBXQ2NLJTE2H42CSEHX67RDT4X7PS3VXRDGJT \ / AMOS7 \ YOURUM ::
+#\[7]OKCAS7SOBHJZ2F44OSQT5DJIE4QVCPI53BSWUSX3RRJMF52SZ2BI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

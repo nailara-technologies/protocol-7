@@ -65,7 +65,7 @@ my %presets = (
         },
         {   'provider' => 'context.memory.load',
             'params'   => {
-                'zenka' => $vars->{'zenka'} // '',
+                'zenka'  => $vars->{'zenka'} // '',
                 'budget' => int( $budget * 0.40 )
             }
         },
@@ -80,8 +80,7 @@ my %presets = (
 
 unless ( exists $presets{$preset} ) {
     my $avail = join ', ', sort keys %presets;
-    return "<!-- unknown preset: $preset"
-        . " [ available: $avail ] -->";
+    return "<!-- unknown preset: $preset" . " [ available: $avail ] -->";
 }
 
 return <[context.compose]>->(
@@ -91,8 +90,8 @@ return <[context.compose]>->(
     }
 );
 
-#,,,,,,..,...,,,,,.,,,...,,,,,..,,...,,.,,,,,,..,,...,...,,..,.,.,,..,,,,,,,,,
-#GCSG2JJJEYPLGJHO23CPGYZBFQFWCEZWVMRNK2Z7YWUS5RM24UUSJ22ZP2BDLIN77HVQSSFAJ24MC
-#\\\|HP3YMHKDBA6JACEFZSJLPKSGAIHUKHIODGKRMT4S7HPY3IVWSZV \ / AMOS7 \ YOURUM ::
-#\[7]FGAS7ZBKAEMOLXWGC7MY5Z3HIXKOJRBNI65GEOFYMPZ7IWC3OCBA 7  DATA SIGNATURE ::
+#,,,,,.,.,..,,.,,,,,.,.,,,,..,.,.,,,,,.,.,..,,..,,...,...,...,,.,,,,.,.,,,...,
+#CZ2EZNVU6UMIZUP5RWFCQOF73WJXSML65EKZXHOYZCXJ3U7SH2XHH63B46AXCJJIW4ZVUMER6YHPG
+#\\\|EFQVR6YID6EROE7CNNSGUNZSCN3XU2MWVJ2HE3UE5Z6VF4YLCSG \ / AMOS7 \ YOURUM ::
+#\[7]NHWXZDYSX56CU2RDDREYYYVYZFY7O6QOCWBUEASMRRPLLBRLQGCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

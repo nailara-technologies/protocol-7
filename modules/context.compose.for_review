@@ -6,9 +6,8 @@
 my $params = shift // {};
 
 my $target_file = $params->{'target_file'} // '';
-my $budget      = $params->{'budget'}
-    // <context.cfg.default_budget>;
-my $vars = $params->{'vars'} // {};
+my $budget      = $params->{'budget'}      // <context.cfg.default_budget>;
+my $vars        = $params->{'vars'}        // {};
 
 ## merge target_file into vars ##
 $vars->{'target_file'} = $target_file if length $target_file;
@@ -33,10 +32,10 @@ return <[context.compose]>->(
         'vars'      => $vars,
         'providers' => [
             {   'provider' => 'context.style.guide',
-                'params' => { 'budget' => int( $budget * 0.15 ) }
+                'params'   => { 'budget' => int( $budget * 0.15 ) }
             },
             {   'provider' => 'context.git.recent_changes',
-                'params' => {
+                'params'   => {
                     'budget'    => int( $budget * 0.25 ),
                     'max_files' => 5
                 }
@@ -48,14 +47,14 @@ return <[context.compose]>->(
                 }
             },
             {   'provider' => 'context.task.active',
-                'params' => { 'budget' => int( $budget * 0.15 ) }
+                'params'   => { 'budget' => int( $budget * 0.15 ) }
             },
         ]
     }
 );
 
-#,,,.,,.,,,..,.,,,..,,..,,,,,,,,,,,..,.,,,..,,..,,...,..,,.,.,,,.,,.,,.,,,,.,,
-#2N5SJVVH6NLJVEZFVSMLKJKWEJNXUUVQVF5ECSY6I5NOGGPKC5ER3VL2UJXGBELOU7T6C7RPVHXCG
-#\\\|PYZ5ZQTRFNL6QTYQBBMPF457DLPJOKQTOQ6FRWQTZVTSPCTVR4P \ / AMOS7 \ YOURUM ::
-#\[7]RJEO2LAR7RVAEUCME3ECMGU7OIBYBYJ7AGONKQFN6IWJH4GFAGCQ 7  DATA SIGNATURE ::
+#,,.,,.,,,..,,,.,,.,,,.,,,.,,,,,,,.,.,.,,,.,.,..,,...,...,,..,...,,..,...,.,,,
+#OUU7RKQILD5XXNA3FIBOLJOYNLIBN3A2S6YK5T7FKT3IA4UZT777RFIX7RTRGZCRUH33JPGSEY7QE
+#\\\|CSLPLJEKGQ2S7VLUVSBEU2BQUOMMBAFLC25SPQAR65SXUBVV4NC \ / AMOS7 \ YOURUM ::
+#\[7]5YL7ZTMXUPMBDQ2UUDWUP72SHXTIZBLGVEFJRKNJW65KVKWCEOBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -27,15 +27,15 @@ unless ( defined $buffer and ref $buffer eq qw| ARRAY | ) {
 my @errors;
 my $count = 0;
 
-for ( my $i = $#$buffer; $i >= 0 and $count < $lines; $i-- )
-{
+for ( my $i = $#$buffer; $i >= 0 and $count < $lines; $i-- ) {
     my $entry = $buffer->[$i];
     next unless defined $entry;
 
     ## buffer entries may be strings or structured ##
     my $text;
     if ( ref $entry eq qw| HASH | ) {
-        next if defined $entry->{'level'}
+        next
+            if defined $entry->{'level'}
             and $entry->{'level'} > 0;
         $text = $entry->{'text'} // $entry->{'data'} // '';
     } else {
@@ -67,13 +67,13 @@ foreach my $err ( reverse @errors ) {
         last;
     }
     $output .= $line;
-    $used   += length $line;
+    $used += length $line;
 }
 
 return $output;
 
-#,,,,,,,,,.,,,,,,,.,,,,,,,,,.,,,.,,.,,..,,,.,,..,,...,...,,,,,...,,.,,...,,,,,
-#57VJJVRCVP3DF5WGSFNUOX5QAVHOHNQGX4BHZ4J2P46WCNQN5QQL2CFLXGXTDN233RFKXLLUMVWH6
-#\\\|PZ2T6HECSLD5EY3VVKH4KHN2E3CVZJQRQEBZORC6MXGXIFK2NNU \ / AMOS7 \ YOURUM ::
-#\[7]322FIM3JTG27OE4K3V7OH6WWGKECSL76ZGFW4RFURIEILE3YUCCI 7  DATA SIGNATURE ::
+#,,.,,.,.,,..,,..,,,,,..,,.,,,.,.,,.,,.,.,,,,,..,,...,...,.,.,...,..,,.,,,.,,,
+#523YROXMN35OBNNVX3ZSBRYXFZ6CEBKI3ZY26NYPDXHMFHWYYOQ4GNO5VDYFQZVWIZFFGH7SEL4VA
+#\\\|M4LCEXSXIWTFFJXF5EIBB5ZRH64U5CVBAWC7DY6UIGF64QFWA3U \ / AMOS7 \ YOURUM ::
+#\[7]F6I5OO7QO3TKOOUOV6BTDY2KOIJBPCSGUZ2WB5W6QK4GCYPL34CQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
