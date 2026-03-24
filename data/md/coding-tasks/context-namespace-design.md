@@ -98,14 +98,21 @@ sources: initial design, kimi task LBULHXQ, nist-coder-v1.1 model input
 | `context.share.export` | export context for another zenka | e |
 | `context.share.import` | import shared context from peer | e |
 
-### layer 5 — context delegation [ kimi <-> coding bridge ]
+### layer 5 — context delegation [ role-fluid model coordination ]
+
+roles are negotiated, not fixed — any model can be coordinator or executor.
+role assignment is itself agreement-based: which model leads depends on
+task context, capability fit, and multi-perspective consensus. roles can
+shift mid-session. flawed courses of action are unlikely to pass agreement
+across diverse model perspectives, adding inherent task safety.
 
 | module | descr | phase |
 |--------|-------|-------|
-| `context.delegate.prepare` | prepare task + minimal context for offload | d |
-| `context.delegate.dispatch` | send to coding/models backend via ask-reply | d |
+| `context.delegate.prepare` | prepare task + minimal context for any role pair | d |
+| `context.delegate.dispatch` | route to target model via ask-reply | d |
 | `context.delegate.collect` | collect result via async callback | d |
 | `context.delegate.verify` | verify result: completeness, format, semantics | d |
+| `context.delegate.role` | negotiate coordinator/executor roles for task | d |
 
 ---
 
@@ -291,17 +298,30 @@ task-type weighted priorities, not static ranks:
 - `context.template.render` reuses existing template engine
 - missing variables resolve to empty string with logged warning
 
-### kimi/coding delegation flow
-1. kimi calls `context.delegate.prepare` with task description
-2. `context.compose.for_delegation` builds minimal context via template
-3. `context.delegate.dispatch` routes via models.ask-reply or coding.ask-reply
-4. result collected via async callback in `context.delegate.collect`
-5. `context.delegate.verify` validates before kimi acts on result
+### model coordination flow [ role-fluid ]
+1. coordinator calls `context.delegate.role` — resolves who leads this task
+   [ may be pre-assigned, capability-matched, or consensus-negotiated ]
+2. coordinator calls `context.delegate.prepare` with task description
+3. `context.compose.for_delegation` builds context via template
+4. `context.delegate.dispatch` routes to executor via ask-reply
+5. result collected via async callback in `context.delegate.collect`
+6. `context.delegate.verify` validates before coordinator acts on result
+7. roles may swap mid-task if executor identifies a better decomposition
+
+### role negotiation
+- roles are parameters: `coordinator` and `executor` fields in delegate params
+- any model endpoint can fill either role
+- `context.delegate.role` can resolve via:
+  - explicit assignment [ caller specifies ]
+  - capability matching [ task type → model strengths ]
+  - consensus [ ask available models, agree on lead ]
+- role history tracked per task for audit and learning
 
 ### local model requirements [ nist-coder-v1.1 ]
 - needs: problem description, relevant code snippets, system info, constraints
 - verify: run code, compare outputs, document solution
 - budget: small context window — delegation template uses 2000 tokens max
+- strength: security review — natural executor for forensics tasks
 
 ---
 
@@ -336,9 +356,10 @@ task-type weighted priorities, not static ranks:
 - `context.priority.prune` — lowest-priority removal
 - `context.pattern.find` — codebase pattern search
 
-### phase d — delegation layer
-- `context.delegate.prepare` — task + context packaging
-- `context.delegate.dispatch` — route to backend
+### phase d — delegation layer [ role-fluid ]
+- `context.delegate.role` — negotiate coordinator/executor for task
+- `context.delegate.prepare` — task + context packaging [ role-agnostic ]
+- `context.delegate.dispatch` — route to target model endpoint
 - `context.delegate.collect` — async result collection
 - `context.delegate.verify` — structured verification
 - `context.compose.for_delegation` — minimal context builder
@@ -373,8 +394,8 @@ these are small enough for individual submission and review:
 
 ---
 
-#,,..,...,,.,,..,,.,.,...,.,.,,,.,,,.,,,.,.,.,..,,...,...,.,.,,..,..,,,,,,,,,,
-#ON2PGVMOFZXGMOHSZIAIWB2UPSVV4D2IXMQ3VWELQJR4RY7QTYVTZF5FWE4WGGAQGOCQMPJX57NXA
-#\\\|T3OOGUAN263XMWXYMZS7FDCB2KOP2OYVKRA4KAHDOY77XTC32YF \ / AMOS7 \ YOURUM ::
-#\[7]VG6BNQXWBUOFDNS3XKM7VL5B5DU3PYFCLIHP6HZROND6WMUBNABQ 7  DATA SIGNATURE ::
+#,,.,,..,,...,,,,,,..,,,.,,,.,...,.,.,,.,,.,,,..,,...,...,,..,.,.,.,.,.,,,,,,,
+#H6PRNMVZULSBZQH2DAE3Q3RWSZTTFBNO6WWU6J5INWQLKTTZPMOGH4DYK4S5CF35DWS5FWB5W6DHG
+#\\\|RFF5ICDQVS3H5UZRMJUEFOPQYQQGSHJYGXYBBEPQGUZKMHSKKZM \ / AMOS7 \ YOURUM ::
+#\[7]ZEMVV4AXHTOCPK32Q4ETV437X6RQ7I3XHS3SH4YXIWCXLJ2JPEAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

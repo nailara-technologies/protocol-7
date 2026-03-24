@@ -1,0 +1,68 @@
+## [:< ##
+
+# name  = context.delegate.collect
+# descr = process async delegation result from callback reply
+
+my $params = shift // {};
+
+my $reply_data   = $params->{'reply_data'}   // '';
+my $reply_params = $params->{'reply_params'} // {};
+my $reply_status = $params->{'reply_status'} // qw| unknown |;
+
+my $roles     = $reply_params->{'delegate_roles'} // {};
+my $task_type = $reply_params->{'delegate_task'}  // '';
+
+## check for error status ##
+if ( $reply_status eq qw| false | or $reply_status eq qw| error | ) {
+    <[base.logs]>->(
+        0,
+        ':. delegate.collect: error from %s [ %s ] :.',
+        $roles->{'executor'} // qw| unknown |,
+        substr( $reply_data, 0, 200 )
+    );
+    return {
+        'mode' => qw| false |,
+        'data' => {
+            'status'    => qw| error |,
+            'error'     => $reply_data,
+            'roles'     => $roles,
+            'task_type' => $task_type
+        }
+    };
+}
+
+## decode result if base32r encoded ##
+my $result = $reply_data;
+if ( $result =~ m{^[2-7A-Z]+$} and length($result) > 20 ) {
+    <[base.perlmod.load]>->('Crypt::Misc');
+    my $decoded = eval { Crypt::Misc::decode_b32r($result) };
+    $result = $decoded if defined $decoded and length $decoded;
+}
+
+## strip trailing whitespace ##
+$result =~ s|\s+$|| if defined $result;
+
+my $result_tokens = int( length($result) / <context.cfg.chars_per_token> );
+
+<[base.logs]>->(
+    2, ':. delegate.collect: received %d chars [ ~%d tokens ] from %s :.',
+    length($result), $result_tokens, $roles->{'executor'} // qw| unknown |
+);
+
+return {
+    'mode' => qw| true |,
+    'data' => {
+        'status'        => qw| complete |,
+        'result'        => $result,
+        'result_tokens' => $result_tokens,
+        'roles'         => $roles,
+        'task_type'     => $task_type,
+        'tracking'      => $reply_params
+    }
+};
+
+#,,,.,,,,,,,.,.,,,,,.,,,,,,.,,...,,..,,,.,.,,,..,,...,...,.,,,,..,,..,,.,,,,,,
+#ASM3B5K7L2GEO5PEAKM2CDBXOPNBTRK73ZGIMI7HZMFBUQJ74ZQT77HLSAII465YPGUJNIQWHKKHM
+#\\\|CAELVLJJ3VRMAIGKXBPOLWQPIFAOH6YK2IYIGIBDQMA4ULZY7FD \ / AMOS7 \ YOURUM ::
+#\[7]BZC3KCBUX7U4CK73BWLCYHISSMQJH7LVP6AYM6WCNJU567FEAGDI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

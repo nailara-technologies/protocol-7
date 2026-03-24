@@ -19,6 +19,8 @@
   namespace swaps, SSL internals, missing log levels, style, fake signatures
 - `topic-context-and-forensics.md` — context.* module namespace design, forensics zenka vision
   (nightly security audits via NIST/security models), model capabilities mapping
+- `topic-checksum-addressing.md` — AMOS checksums as universal routing primitive,
+  everything-is-a-group-of-1, expectability principle, delegation via checksum endpoints
 
 ## File Creation Notes (CRITICAL)
 - **Never add** the single-line `#,,.,,,...` stub at end of new files
@@ -184,8 +186,8 @@
 - Pattern: `my @non_num = grep { defined $data_ref->{$ARG}->{$key} and not looks_like_number(...) } keys $data_ref->%*`
 - Global `$SIG{__WARN__}` exists — if wrapping warn handler, capture `$prev_warn = $SIG{__WARN__}` first and call through
 
-#,,..,...,,..,,,.,,..,,..,.,,,.,,,,..,,,.,,,,,..,,...,...,.,.,,,.,.,.,...,..,,
-#SDCFQVHQ3DNSZ5ZT2OKM636VETOOOO2DLJUJ6FJ5RUPUOD7C4MUB3A4DHYNEETNJZHRZI7B5PEFNY
-#\\\|BNBWUKYKHBYPCSSAOJ36B6NSKQOMCSMQJIYT7O2Y3WWY6UFZSX7 \ / AMOS7 \ YOURUM ::
-#\[7]7HGVEC2QN4KPDXOCWF3RB7JDOLFHBNZK5L744LD33PHIZTSV2GCI 7  DATA SIGNATURE ::
+#,,..,..,,.,.,,..,,,.,..,,,.,,.,,,,,,,,,.,,,.,..,,...,...,...,,,.,..,,.,,,.,.,
+#YGRMLXWVL2PNNZY3DWHCIBF7APB4YR6U6LMS4I5UP4O77SZRHCQKAPP4AKIKUEA7HMIXNVKDBFHEK
+#\\\|OACKCMTZBRPPN2MXHP5AA4VQ6FIR64P7E3ICRJRGM7PX2ZP4S5Y \ / AMOS7 \ YOURUM ::
+#\[7]DWRMMCG2FBBTAMISLOWGJHKEPAP7W53JJYKGNMPWEHFQIZHBZAAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

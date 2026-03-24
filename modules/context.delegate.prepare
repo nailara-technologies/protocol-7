@@ -1,0 +1,90 @@
+## [:< ##
+
+# name  = context.delegate.prepare
+# descr = prepare task context package for delegation to any model
+
+my $params = shift // {};
+
+my $task_type   = $params->{'task_type'}   // '';
+my $description = $params->{'description'} // '';
+my $target_file = $params->{'target_file'} // '';
+my $namespace   = $params->{'namespace'}   // '';
+my $budget      = $params->{'budget'}      // 2000;
+my $extra       = $params->{'extra'}       // {};
+
+return { 'mode' => qw| false |, 'data' => 'description required' }
+    unless length $description;
+
+## resolve roles ##
+my $role_result = $code{'context.delegate.role'}->(
+    {   'task_type'   => $task_type,
+        'coordinator' => $params->{'coordinator'} // '',
+        'executor'    => $params->{'executor'}    // '',
+        'strategy'    => $params->{'strategy'}    // qw| auto |
+    }
+);
+
+return $role_result unless $role_result->{'mode'} eq qw| true |;
+
+my $roles = $role_result->{'data'};
+
+## assemble context via delegation template or compose ##
+my $context_text = '';
+
+my $compose_fn = $code{'context.compose.for_delegation'}
+    // $code{'context.compose'};
+
+if ( defined $compose_fn ) {
+    my $compose_result = $compose_fn->(
+        {   'template'  => qw| delegation |,
+            'budget'    => $budget,
+            'variables' => {
+                'target_file'      => $target_file,
+                'target_namespace' => $namespace,
+                'target_module'    => $target_file,
+                %$extra
+            }
+        }
+    );
+
+    if ( ref $compose_result eq qw| HASH |
+        and defined $compose_result->{'data'} ) {
+        $context_text
+            = ref $compose_result->{'data'}
+            ? $compose_result->{'data'}->{'context'} // ''
+            : $compose_result->{'data'};
+    }
+}
+
+## build prompt ##
+my $prompt = '';
+
+$prompt .= "## task [ $task_type ] ##\n\n" if length $task_type;
+$prompt .= "$description\n\n";
+
+if ( length $context_text ) {
+    $prompt .= "## context ##\n\n$context_text\n\n";
+}
+
+## include extra instructions if present ##
+if ( defined $extra->{'instructions'} and length $extra->{'instructions'} ) {
+    $prompt .= "## instructions ##\n\n$extra->{'instructions'}\n\n";
+}
+
+return {
+    'mode' => qw| true |,
+    'data' => {
+        'prompt'      => $prompt,
+        'roles'       => $roles,
+        'target_cmd'  => $roles->{'target_cmd'},
+        'task_type'   => $task_type,
+        'budget_used' => length($prompt),
+        'has_context' => length($context_text) ? TRUE : FALSE
+    }
+};
+
+#,,,.,,,,,.,.,.,.,.,.,,,.,,,.,,..,.,.,.,,,,,.,..,,...,..,,,.,,,.,,,,.,.,.,,,.,
+#EVJVCW4Q3UHR3UTO2I6XFMK5D4Z2NBSXR6YIIYX36YQNNDLXX6EIL5SA2X32AR4F6TKHTU2N2CKEE
+#\\\|UMK2GOZ5JYS34NLSBQX6VWH352DB4RRQVWDAUXEIZGE6X5BHLMY \ / AMOS7 \ YOURUM ::
+#\[7]JZQKUDEVDLW7JASTN73UJP2YJVTNOP4EUYHCX4HKG7GMUYNNRCDA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
