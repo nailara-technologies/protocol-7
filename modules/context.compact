@@ -1,0 +1,70 @@
+## [:< ##
+
+# name  = context.compact
+# descr = reduce context text to fit within token budget
+
+my $params = shift // {};
+
+my $text   = $params->{'text'}   // '';
+my $budget = $params->{'budget'} // <context.cfg.default_budget>;
+
+my $char_budget = int( $budget * <context.cfg.chars_per_token> );
+
+return $text if length($text) <= $char_budget;
+
+## split into sections [ delimited by ## headers ] ##
+my @sections;
+my $current = '';
+
+foreach my $line ( split m|\n|, $text ) {
+    if ( $line =~ m|^##\s| and length $current ) {
+        push @sections, $current;
+        $current = '';
+    }
+    $current .= "$line\n";
+}
+push @sections, $current if length $current;
+
+## if single section, simple truncation ##
+if ( @sections <= 1 ) {
+    my $result = substr( $text, 0, $char_budget );
+    $result .= "\n... [ compacted to $budget tokens ]\n";
+    return $result;
+}
+
+## strip signature blocks from all sections ##
+foreach my $sec (@sections) {
+    $sec =~ s|^#,,.*\n.*\n.*AMOS7.*\n.*DATA\sSIGNATURE.*\n.*\n||ms;
+}
+
+## strip empty lines and trailing whitespace ##
+foreach my $sec (@sections) {
+    $sec =~ s|\n{3,}|\n\n|g;
+    $sec =~ s|\s+\n|\n|g;
+}
+
+## reassemble within budget ##
+my $output = '';
+my $used   = 0;
+
+foreach my $sec (@sections) {
+    if ( $used + length($sec) > $char_budget ) {
+        ## try to include partial section ##
+        my $remaining = $char_budget - $used;
+        if ( $remaining > 100 ) {
+            $output .= substr( $sec, 0, $remaining );
+            $output .= "\n... [ compacted ]\n";
+        }
+        last;
+    }
+    $output .= $sec;
+    $used += length $sec;
+}
+
+return $output;
+
+#,,,.,,,,,...,,..,.,,,.,,,,,.,.,.,,,,,.,,,.,.,..,,...,...,..,,..,,.,,,..,,..,,
+#KAG5LU5M6ID5ANS6SZOCWJU67AJPWSL44ALE3LBOLDI67ZLAX5CM7OBKV4T7RUKDYWVCUIPG47L5S
+#\\\|HX2BUJ5CX5G2OGKRVFETGMR6E3G6YPLJSQHWMZGN2SACT7NYAWL \ / AMOS7 \ YOURUM ::
+#\[7]GFHL5MXY2JUS6EPLU5UO6WKHBSSQENIICZQ7HP7WNMUSAU4QVUDY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

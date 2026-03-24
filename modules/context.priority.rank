@@ -1,0 +1,64 @@
+## [:< ##
+
+# name  = context.priority.rank
+# descr = rank context sections by task-weighted priority
+
+my $params = shift // {};
+
+my $sections  = $params->{'sections'}  // [];
+my $task_type = $params->{'task_type'} // '';
+
+## task-type weight adjustments ##
+my %type_weights = (
+    'bug-fix' => {
+        'context.error.recent'       => 1.5,
+        'context.file'               => 1.3,
+        'context.git.recent_changes' => 1.2,
+        'context.style.guide'        => 0.5,
+    },
+    'code-review' => {
+        'context.style.guide'        => 1.5,
+        'context.file'               => 1.3,
+        'context.git.recent_changes' => 1.2,
+        'context.error.recent'       => 0.7,
+    },
+    'feature-impl' => {
+        'context.memory.load'         => 1.4,
+        'context.modules.list'        => 1.2,
+        'context.file'                => 1.3,
+        'context.module.dependencies' => 1.1,
+    },
+    'delegation' => {
+        'context.style.guide' => 1.5,
+        'context.file'        => 1.4,
+        'context.task.active' => 0.8,
+    },
+);
+
+my $weights = $type_weights{$task_type} // {};
+
+## rank sections ##
+my @ranked = map {
+    my $provider = $ARG->{'provider'}    // '';
+    my $base_pri = $ARG->{'priority'}    // 99;
+    my $weight   = $weights->{$provider} // 1.0;
+
+    ## lower score = higher priority ##
+    my $score = $base_pri / $weight;
+
+    { %$ARG, '_score' => $score }
+} @$sections;
+
+## sort by computed score ##
+@ranked = sort { $a->{'_score'} <=> $b->{'_score'} } @ranked;
+
+## clean up internal score key ##
+delete $ARG->{'_score'} foreach @ranked;
+
+return \@ranked;
+
+#,,,.,,..,.,,,,,,,,.,,,,.,,..,,.,,.,.,..,,,,,,..,,...,..,,,..,.,.,,.,,.,.,.,,,
+#YNZVI37EWR4DS33G7BY4NLNQTZR36YAF6PJUYBYOYDFYJFUJ5N3OLL2WPSS5VU2PIODTJQMHEW27Q
+#\\\|MHEXG6ES65ZFUPBDWMWSXQTLGQ2TITPWMNJNSHQHC4VFAJGBUTG \ / AMOS7 \ YOURUM ::
+#\[7]Z6UNCAVL76NS55AZ6W5XUTTB7ASSXLQLHSVRY53Q2MIV6IVW36AI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
