@@ -4,7 +4,7 @@
 # descr   = info on SIZE vs CHRSIZE encoding modes
 #
 # usage   : reply-encoding-mode
-# note    = SIZE mode now always reports BYTE count (with global 'use bytes;' pragma)
+# note    = SIZE mode reports BYTE count [ via bytes::length ]
 #           CHRSIZE mode reports CHARACTER count (UTF-8 aware)
 #           This command is retained for backwards compatibility only
 
@@ -18,7 +18,7 @@ if ( length($requested_mode) == 0 ) {
     ## No mode specified - show current behavior
     return {
         'mode' => qw| true |,
-        'data' => "SIZE mode: byte count (global 'use bytes;' pragma) "
+        'data' => "SIZE mode: byte count [ bytes::length ] "
             . "| CHRSIZE mode: character count (UTF-8 aware)"
     };
 } else {
@@ -32,8 +32,8 @@ if ( length($requested_mode) == 0 ) {
 
 1;
 
-#,,..,.,.,.,,,,,.,...,.,.,.,,,..,,...,...,,,,,..,,...,...,..,,,,,,,..,.,.,,.,,
-#AEX5IDJXKRN7UGGUX5E5SU7M2YXYO6I3OZAZ5MKEVG5GL5OAF6OTMEUJLBQJHRFS6IMJWUUG4JNXU
-#\\\|LHEGDQGOIWVZJ6EO2GO6AV3WZGTTAG6SZGU6DLIODAVYFFNX233 \ / AMOS7 \ YOURUM ::
-#\[7]4DQNXPUTGJJXJPYQG3A62TTXUWPCS4ROI4A5EY564E7XCF7RI2AQ 7  DATA SIGNATURE ::
+#,,.,,.,,,,..,..,,,,.,..,,,.,,,..,.,,,.,,,..,,..,,...,..,,.,,,...,,.,,,..,,..,
+#NNNXITMVRMPP7U7WQDQLY4XTK422BFDO5VMBAPXC2BQ7SKUOHCIEB4QR6UNCR7XZ5WOCLSRQFR5T6
+#\\\|G7IK5QTEUCGWGWNJ2PHVRRF4YLKG7ZMUIN6TBWJN5EWHB5UQIJF \ / AMOS7 \ YOURUM ::
+#\[7]5ZLHHW5UXOBJ3OLOW6T25SZZ66SYXPQBERWGR2TEXYI2NK3U42BY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

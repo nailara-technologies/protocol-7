@@ -4,9 +4,6 @@
 # descr = create kimi-web session and establish persistent websocket
 #         connection
 
-map { <[base.perlmod.load]>->($_) }
-    qw| JSON LWP::UserAgent Protocol::WebSocket::Frame |;
-
 if (<kimi.ws.connected>) {
     <[base.logs]>->( 2, 'kimi.connect: already connected' );
     return;
@@ -15,56 +12,61 @@ if (<kimi.ws.connected>) {
 <kimi.ws.status>        = qw| connecting |;
 <kimi.connect.retrying> = FALSE;
 
-## create new kimi-web session via rest api (once per lifetime)
+## verify restored session id is still valid at the backend [ api child ]
+if ( defined <kimi.session_id> ) {
+    my $handles = <[kimi.session.start_api_child]>;
+    if ( not defined $handles ) {
+        <[base.logs]>->( 0, ': api child unavailable — clearing session' );
+        <kimi.session_id> = undef;
+        <[file.zenka_dir.write]>->( 'session_id', \'' );
+    } else {
+        my ( $r_fh, $w_fh ) = @{$handles};
+        my $check_url = sprintf( '%s/api/sessions/%s',
+            <kimi.web.base_url>, <kimi.session_id> );
+
+        print $w_fh "verify $check_url\n";
+        my $status_line = <$r_fh>;
+        chomp $status_line if defined $status_line;
+
+        if ( not defined $status_line
+            or $status_line =~ m{^(stale|archived)} ) {
+            <[base.logs]>->(
+                1,
+                ': restored session %s is %s — creating fresh',
+                <kimi.session_id>,
+                ( $status_line // 'no response' ) =~ m|^stale|
+                ? "stale [ $status_line ]"
+                : ( $status_line // 'child error' )
+            );
+            <kimi.session_id> = undef;
+            <[file.zenka_dir.write]>->( 'session_id', \'' );
+        } elsif ( $status_line =~ m|^error| ) {
+            <[base.logs]>->(
+                0, ': session verify error [ %s ] — clearing session',
+                $status_line
+            );
+            <kimi.session_id> = undef;
+            <[file.zenka_dir.write]>->( 'session_id', \'' );
+        } else {
+            <[base.logs]>->(
+                2, ': restored session %s verified at backend',
+                <kimi.session_id>
+            );
+        }
+    }
+}
+
+## create new kimi-web session via rest api [ api child ]
 if ( not defined <kimi.session_id> ) {
-    my $ua       = LWP::UserAgent->new( timeout => 10 );
-    my $work_dir = <kimi.web.work_dir> // '';
-    my $api_url  = sprintf( '%s/api/sessions/', <kimi.web.base_url> );
+    my $session_id = <[kimi.session.create]>;
 
-    ## pass project work_dir in json post body
-    my $body
-        = length $work_dir
-        ? JSON::encode_json( { 'work_dir' => $work_dir } )
-        : '{}';
-
-    my $resp = $ua->post(
-        $api_url,
-        'Content-Type' => 'application/json',
-        'Content'      => $body
-    );
-
-    if ( not $resp->is_success ) {
-        <[base.logs]>->(
-            0, 'kimi.connect: session create failed : %s',
-            $resp->status_line
-        );
+    if ( not defined $session_id ) {
         <kimi.ws.status> = qw| disconnected |;
         <[kimi.connect.schedule_retry]>;
         return;
     }
 
-    my $session = eval { JSON::decode_json( $resp->decoded_content ) };
-    if ( $@ or not defined $session or not defined $session->{'session_id'} )
-    {
-        <[base.logs]>->(
-            0,
-            'kimi.connect: invalid session response : %s',
-            $@ // 'no session_id'
-        );
-        <kimi.ws.status> = qw| disconnected |;
-        <[kimi.connect.schedule_retry]>;
-        return;
-    }
-
-    <kimi.session_id> = $session->{'session_id'};
-    <[base.logs]>->(
-        2, 'kimi.connect: session created [ %s ]',
-        <kimi.session_id>
-    );
-
-    ## persist session id for resume after restart
-    my $sid_str = <kimi.session_id> . "\n";
-    <[file.zenka_dir.write]>->( 'session_id', \$sid_str );
+    <kimi.session_id> = $session_id;
 }
 
 ## websocket connect
@@ -134,8 +136,8 @@ if ($has_preserved_prompt) {
 
 <[base.logs]>->( 2, 'kimi.connect: websocket connected [ %s ]', $ws_url );
 
-#,,..,,,,,,,,,.,,,,,,,,..,..,,,,.,.,.,,,.,,.,,..,,...,...,..,,.,.,,,,,,,,,,..,
-#IMFVHSUGPUXZHODSQU2JKYYDTML4X2KMIUTKQ3WHXLLZKKOJ245TAG67GZCHSNOBO33I3LZ2QRUUE
-#\\\|U4MREX67YLPV66TCPNDMJTDWWO7ANC2Y3DDMVJCPESJ7S2ATKKG \ / AMOS7 \ YOURUM ::
-#\[7]OED5VFMZTKQMFZNAY7WMKJOO3YRZA6XF2PYJPHQPKT2MLLQNS4AQ 7  DATA SIGNATURE ::
+#,,,,,,.,,,,.,.,.,,,,,...,.,.,.,.,,,,,,..,.,,,.,.,...,...,...,.,.,,..,,,.,..,,
+#Y6SYG4P6E3NKVVKN34ZNYV2SQ46WUAEZZZHFKJNEJ4UX2HT3TX7EZGWQ6MRH5B64E4WMBRPBIKYMA
+#\\\|JFNVMCTCCZL534U7KWQLXRYLSSLJ5RM3WLTFTPIESY6B7XTELP7 \ / AMOS7 \ YOURUM ::
+#\[7]BTGX3XIFMLVRQ4AWAUKLVQIE2MDE6VZCU3ZWZIH7VFJFNARRBKDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

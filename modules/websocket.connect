@@ -5,9 +5,6 @@
 # param = $url  [ ws://host:port/path ]
 # return = IO::Socket::INET handle (non-blocking) or undef on failure
 
-<[base.perlmod.load]>->(qw| IO::Socket::INET |);
-<[base.perlmod.load]>->(qw| Protocol::WebSocket::Handshake::Client |);
-
 my $url = shift // return undef;
 
 ## parse ws://host:port/path
@@ -37,6 +34,11 @@ if ( not defined $sock ) {
     return undef;
 }
 
+## set receive timeout for handshake reads [ Socket::SO_RCVTIMEO ]
+my $hs_timeout = <websocket.connect_timeout> // 5;
+my $timeval    = pack( 'l!l!', $hs_timeout, 0 );     ## { tv_sec, tv_usec }
+$sock->sockopt( Socket::SO_RCVTIMEO, $timeval );
+
 ## http upgrade handshake
 my $handshake = Protocol::WebSocket::Handshake::Client->new(
     url => sprintf( 'ws://%s:%d%s', $host, $port, $path ) );
@@ -49,11 +51,25 @@ $sock->syswrite($req_str) or do {
     return undef;
 };
 
-## read server response until handshake is complete (blocking)
+## read server response until handshake is complete
 while ( not $handshake->is_done ) {
     my $chunk = '';
     my $n     = sysread( $sock, $chunk, 4096 );
-    if ( not defined $n or $n == 0 ) {
+    if ( not defined $n ) {
+        if ( $! == Errno::EAGAIN || $! == Errno::EWOULDBLOCK ) {
+            <[base.logs]>->(
+                0, 'websocket.connect: handshake read timeout [ %ds ]',
+                $hs_timeout
+            );
+        } else {
+            <[base.logs]>->(
+                0, 'websocket.connect: handshake read error : %s', $OS_ERROR
+            );
+        }
+        $sock->close;
+        return undef;
+    }
+    if ( $n == 0 ) {
         <[base.logs]>->(
             0, 'websocket.connect: connection closed during handshake'
         );
@@ -71,7 +87,8 @@ while ( not $handshake->is_done ) {
     }
 }
 
-## set socket non-blocking before handing to event loop
+## clear receive timeout and set non-blocking before handing to event loop
+$sock->sockopt( Socket::SO_RCVTIMEO, pack( 'l!l!', 0, 0 ) );
 $sock->blocking(0);
 
 <[base.logs]>->(
@@ -81,8 +98,8 @@ $sock->blocking(0);
 
 return $sock;
 
-#,,..,.,,,,.,,,..,...,,..,,,,,,.,,,..,,..,,..,..,,...,...,,..,.,.,,,,,,,.,,.,,
-#YAAOEXDNOUWK4EM6NNT27IBLTH4A7IOOFFWBUW5RX73YRXLMQ7FNVBN5WLOL42B3QCNOCSAFRMNG4
-#\\\|IPYOAFD7HR2KHEUAFLMYOFELKDBXYXQFOMJNSYPZTFBBTXLWHDJ \ / AMOS7 \ YOURUM ::
-#\[7]DA6UJ4CA7H4A6E4BI4LJEJJWCXG5CTTTKYUXPJ7CEENDN4CC56BQ 7  DATA SIGNATURE ::
+#,,,,,,..,.,,,..,,,,,,,,,,.,,,.,.,.,,,..,,..,,..,,...,...,.,,,.,,,.,,,,..,,,.,
+#GT76GQFJX256SUP63FHIMJ5FE2CS4KTPFVKIWXUAUCZTP7SSPT4A4RVOU76WEQTHSWNRSK2G4IWJU
+#\\\|E4L22GMYR2LZ6RMEY5LM2T6NZQMOCEC5FYG4VWZ4O3HW6WXTCBW \ / AMOS7 \ YOURUM ::
+#\[7]4JD7QZARD7KMVY7XB5WLE7CERTQFZOA6CVDVXA6BM4SNJKFVNGCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
