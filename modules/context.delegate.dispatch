@@ -1,0 +1,87 @@
+## [:< ##
+
+# name  = context.delegate.dispatch
+# descr = route prepared delegation to target model endpoint
+
+my $params = shift // {};
+
+my $prepared      = $params->{'prepared'} // {};
+my $reply_handler = $params->{'reply_handler'}
+    // qw| context.delegate.handler.result |;
+my $reply_params = $params->{'reply_params'} // {};
+
+my $prompt     = $prepared->{'prompt'}     // '';
+my $target_cmd = $prepared->{'target_cmd'} // '';
+my $roles      = $prepared->{'roles'}      // {};
+
+return { 'mode' => qw| false |, 'data' => 'no prompt in prepared package' }
+    unless length $prompt;
+
+return { 'mode' => qw| false |, 'data' => 'no target_cmd resolved' }
+    unless length $target_cmd;
+
+## base32r encode for safe ipc ##
+<[base.perlmod.load]>->('Crypt::Misc');
+
+my $encoded = eval { Crypt::Misc::encode_b32r($prompt) };
+
+if ( $@ or not defined $encoded or not length $encoded ) {
+    <[base.logs]>->(
+        0,
+        ':. delegate.dispatch: base32r encode failed [ %s ] :.',
+        $@ // qw| unknown |
+    );
+    return { 'mode' => qw| false |, 'data' => 'prompt encoding failed' };
+}
+
+## merge tracking info into reply params ##
+my %tracking = (
+    'delegate_roles'  => $roles,
+    'delegate_task'   => $prepared->{'task_type'}   // '',
+    'delegate_budget' => $prepared->{'budget_used'} // 0,
+    %$reply_params
+);
+
+## dispatch via route-send ##
+my $sent = <[protocol-7.route-send]>->(
+    {   'command'   => $target_cmd,
+        'call_args' => { 'args' => $encoded },
+        'reply'     => {
+            'handler' => $reply_handler,
+            'params'  => \%tracking
+        }
+    }
+);
+
+if ( $sent <= 0 ) {
+    <[base.logs]>->(
+        0, ':. delegate.dispatch: target %s not reachable :.', $target_cmd
+    );
+    return {
+        'mode' => qw| false |,
+        'data' => "target not reachable: $target_cmd"
+    };
+}
+
+<[base.logs]>->(
+    2,
+    ':. delegate.dispatch: sent to %s [ coordinator=%s executor=%s ] :.',
+    $target_cmd,
+    $roles->{'coordinator'} // qw| unknown |,
+    $roles->{'executor'}    // qw| unknown |
+);
+
+return {
+    'mode' => qw| true |,
+    'data' => {
+        'dispatched' => TRUE,
+        'target_cmd' => $target_cmd,
+        'roles'      => $roles
+    }
+};
+
+#,,..,.,.,.,.,,..,,..,,,,,.,.,,,.,,.,,,,.,,,.,..,,...,...,...,,..,,,,,,,,,.,,,
+#JPU4WARXBW4A2ECRJDPPFGB4WGB6QV5BVPKWL76XSKI7MN634DQW6VHTQWWA4O7NN7B4YLYOYPLQK
+#\\\|SMPCG6EMTRE7CP64DS2POABWDZM4I4SGGYI32UBLCQSYAT3KZL7 \ / AMOS7 \ YOURUM ::
+#\[7]IXASLQGUGVNSZAVWOORYSZMZKMT64R2YHPJIHQKNOI3REXS3HSCY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

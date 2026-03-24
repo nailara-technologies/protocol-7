@@ -1,0 +1,100 @@
+## [:< ##
+
+# name  = context.delegate.role
+# descr = negotiate coordinator/executor roles for delegation task
+
+my $params = shift // {};
+
+my $task_type   = $params->{'task_type'}   // '';
+my $coordinator = $params->{'coordinator'} // '';
+my $executor    = $params->{'executor'}    // '';
+my $strategy    = $params->{'strategy'}    // qw| auto |;
+
+## explicit assignment — caller already decided ##
+if ( $strategy eq qw| explicit | ) {
+    return {
+        'mode' => qw| true |,
+        'data' => {
+            'coordinator' => $coordinator,
+            'executor'    => $executor,
+            'strategy'    => qw| explicit |,
+            'negotiated'  => FALSE
+        }
+        }
+        if length $coordinator and length $executor;
+
+    return {
+        'mode' => qw| false |,
+        'data' => 'explicit strategy requires both coordinator and executor'
+    };
+}
+
+## capability-based role resolution ##
+my %task_affinity = (
+    'security-review' => {
+        'prefer_executor' => [qw| coding nist-coder |],
+        'prefer_coord'    => [qw| kimi models |]
+    },
+    'code-review' => {
+        'prefer_executor' => [qw| kimi coding |],
+        'prefer_coord'    => [qw| models |]
+    },
+    'bug-fix' => {
+        'prefer_executor' => [qw| coding |],
+        'prefer_coord'    => [qw| kimi models |]
+    },
+    'feature-impl' => {
+        'prefer_executor' => [qw| coding |],
+        'prefer_coord'    => [qw| kimi models |]
+    },
+    'style-check' => {
+        'prefer_executor' => [qw| kimi |],
+        'prefer_coord'    => [qw| models |]
+    },
+    'summarize' => {
+        'prefer_executor' => [qw| kimi |],
+        'prefer_coord'    => [qw| models |]
+    },
+);
+
+my $affinity = $task_affinity{$task_type} // {};
+
+## resolve coordinator if not specified ##
+if ( not length $coordinator ) {
+    my $prefs = $affinity->{'prefer_coord'} // [];
+    $coordinator = $prefs->[0] // qw| models |;
+}
+
+## resolve executor if not specified ##
+if ( not length $executor ) {
+    my $prefs = $affinity->{'prefer_executor'} // [];
+    $executor = $prefs->[0] // qw| coding |;
+}
+
+## prevent self-delegation ##
+if ( $coordinator eq $executor ) {
+    my $alt_prefs = $affinity->{'prefer_executor'} // [];
+    my @others    = grep { $ARG ne $coordinator } @$alt_prefs;
+    $executor = $others[0] // qw| coding |;
+}
+
+## build target command from executor zenka name ##
+my $target_cmd = "$executor.ask-reply";
+
+return {
+    'mode' => qw| true |,
+    'data' => {
+        'coordinator' => $coordinator,
+        'executor'    => $executor,
+        'target_cmd'  => $target_cmd,
+        'task_type'   => $task_type,
+        'strategy' => $strategy eq qw| auto | ? qw| capability | : $strategy,
+        'negotiated' => FALSE
+    }
+};
+
+#,,.,,,,.,...,,,.,,,,,,,,,,..,,,,,...,.,,,.,,,..,,...,.,.,.,.,...,.,.,.,.,.,.,
+#ZYKKBV352H4NXSREDUTJT5O5KFJJWN2P4U76KMFDR6LCPA7EBDXZW2RLMMTAN6INIDKHNJ5U5R3BC
+#\\\|K4P27IHJMFRI6ONGXFFOR6X62RKQ4TZRLV3MPXXYUCW2GIAE4IO \ / AMOS7 \ YOURUM ::
+#\[7]DUPLUEV4UA3RHUFSQE2JVXHPUD4MVWMJMKW2UVHON2KSI7B43EAI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

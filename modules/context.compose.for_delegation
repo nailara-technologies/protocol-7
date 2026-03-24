@@ -1,0 +1,95 @@
+## [:< ##
+
+# name  = context.compose.for_delegation
+# descr = build minimal context package for model-to-model delegation
+
+my $params = shift // {};
+
+my $budget    = $params->{'budget'}    // 2000;
+my $variables = $params->{'variables'} // {};
+my $task_type = $params->{'task_type'} // '';
+
+## try template-based composition first ##
+my $compose = $code{'context.compose'};
+
+if ( defined $compose ) {
+    my $result = $compose->(
+        {   'template'  => qw| delegation |,
+            'budget'    => $budget,
+            'variables' => $variables
+        }
+    );
+
+    if ( ref $result eq qw| HASH |
+        and $result->{'mode'} ne qw| false | ) {
+        return $result;
+    }
+}
+
+## fallback: assemble directly from available providers ##
+my $char_budget = int( $budget * <context.cfg.chars_per_token> );
+my $output      = '';
+my $used        = 0;
+
+## style guide [ always include — small and essential ] ##
+my $style_fn = $code{'context.style.guide'};
+if ( defined $style_fn ) {
+    my $style = $style_fn->( { 'budget' => int( $budget * 0.15 ) } );
+    if ( defined $style and not ref $style ) {
+        $output .= "$style\n\n";
+        $used += length $style;
+    }
+}
+
+## target file content [ largest allocation ] ##
+my $target = $variables->{'target_file'} // '';
+if ( length $target and $used < $char_budget ) {
+    my $file_fn = $code{'context.file.extract'} // $code{'context.file'};
+    if ( defined $file_fn ) {
+        my $remaining_tokens = int(
+            ( $char_budget - $used ) / <context.cfg.chars_per_token> * 0.75 );
+        my $content = $file_fn->(
+            {   'path'   => $target,
+                'budget' => $remaining_tokens
+            }
+        );
+        if ( defined $content and not ref $content ) {
+            $output .= "$content\n\n";
+            $used += length $content;
+        }
+    }
+}
+
+## module dependencies [ if budget allows ] ##
+my $ns = $variables->{'target_namespace'} // '';
+if ( length($ns) and $used < $char_budget ) {
+    my $dep_fn = $code{'context.module.dependencies'};
+    if ( defined $dep_fn ) {
+        my $remaining_tokens
+            = int( ( $char_budget - $used ) / <context.cfg.chars_per_token> );
+        my $deps = $dep_fn->(
+            {   'module' => $variables->{'target_module'} // $target,
+                'budget' => $remaining_tokens
+            }
+        );
+        if ( defined $deps and not ref $deps ) {
+            $output .= "$deps\n";
+            $used += length $deps;
+        }
+    }
+}
+
+return {
+    'mode' => length($output) ? qw| true | : qw| false |,
+    'data' => {
+        'context'     => $output,
+        'tokens_used' => int( $used / <context.cfg.chars_per_token> ),
+        'budget'      => $budget
+    }
+};
+
+#,,.,,...,.,,,..,,..,,,..,,.,,,.,,.,.,.,,,,..,..,,...,...,..,,.,,,.,,,.,.,..,,
+#4MRFIQ4MCSQ3WPT74DXGK2OLPCNIF6XESGNXBR5PMYKWKDPTADVXONVNBLPPGLTIEXOECBL62BHMW
+#\\\|QMGLL4YW52ZFOOABIBDHSH4KQ4IFP6YA2UPESRUBDCGGSPELD32 \ / AMOS7 \ YOURUM ::
+#\[7]K632EJ5ETILSSXV2V3KHD4ADO2VKBXTJCL5MK2WQGAXDFG2NLSBI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
