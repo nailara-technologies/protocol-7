@@ -1,0 +1,100 @@
+## [:< ##
+
+# name  = context.delegate.verify
+# descr = validate delegation result: completeness, format, syntax
+
+my $params = shift // {};
+
+my $collected = $params->{'collected'} // {};
+my $expect    = $params->{'expect'}    // {};
+
+my $result    = $collected->{'result'}    // '';
+my $task_type = $collected->{'task_type'} // '';
+my $roles     = $collected->{'roles'}     // {};
+
+my @warnings;
+my $complete   = TRUE;
+my $format_ok  = TRUE;
+my $valid_code = UNKNOWN;
+
+## check result presence ##
+unless ( length $result ) {
+    $complete = FALSE;
+    push @warnings, 'empty result';
+}
+
+## check expected fields if specified ##
+if ( defined $expect->{'contains'}
+    and ref $expect->{'contains'} eq qw| ARRAY | ) {
+    foreach my $expected ( $expect->{'contains'}->@* ) {
+        unless ( $result =~ m|\Q$expected\E|i ) {
+            push @warnings, "missing expected content: $expected";
+            $complete = FALSE;
+        }
+    }
+}
+
+## check minimum length if specified ##
+if ( defined $expect->{'min_length'} ) {
+    if ( length($result) < $expect->{'min_length'} ) {
+        push @warnings,
+            sprintf 'result too short [ %d < %d ]',
+            length($result), $expect->{'min_length'};
+        $complete = FALSE;
+    }
+}
+
+## check for p7 module format if result looks like code ##
+if (    $task_type =~ m{impl|fix|feature|code}i
+    and $result =~ m{^\s*##\s*\[:<\s*##}m ) {
+    ## has p7 header — check for return statement ##
+    unless ( $result =~ m{^\s*return\s}m ) {
+        push @warnings, 'p7 module code has no return statement';
+        $format_ok = FALSE;
+    }
+
+    ## check for forbidden sub declarations ##
+    if ( $result =~ m{^\s*sub\s+\w+}m ) {
+        push @warnings, 'p7 module should not use sub declarations';
+        $format_ok = FALSE;
+    }
+}
+
+## check for error indicators in result ##
+if ( $result =~ m{error|failed|cannot|unable}i and length($result) < 200 ) {
+    push @warnings, 'result may be an error message';
+    $complete = FALSE;
+}
+
+## token accounting ##
+my $result_tokens = $collected->{'result_tokens'}                 // 0;
+my $budget_used   = $collected->{'tracking'}->{'delegate_budget'} // 0;
+
+<[base.logs]>->(
+    2,
+    ':. delegate.verify: complete=%s format=%s warnings=%d :.',
+    $complete  ? qw| yes | : qw| no |,
+    $format_ok ? qw| yes | : qw| no |,
+    scalar @warnings
+);
+
+return {
+    'mode' => qw| true |,
+    'data' => {
+        'complete'     => $complete,
+        'format_ok'    => $format_ok,
+        'valid_code'   => $valid_code,
+        'token_count'  => $result_tokens,
+        'budget_input' => $budget_used,
+        'warnings'     => \@warnings,
+        'roles'        => $roles,
+        'task_type'    => $task_type,
+        'pass'         => ( $complete and $format_ok ) ? TRUE : FALSE
+    }
+};
+
+#,,,,,..,,...,,,.,,,,,,,.,..,,,,.,,,,,,,,,..,,..,,...,..,,.,,,.,,,...,...,.,,,
+#USA2BMP32XPQWAGRABO3LN6P6452XETEUU5UXDRZAX7QIWU35LWOBCQ43XS27NJHCEWK2VZWIJBCC
+#\\\|6CTKYE5CIMJCYV2YTH6ZDSP46XZX55YBGUH5JAEMZCTWQBVVWZK \ / AMOS7 \ YOURUM ::
+#\[7]LNXPDDONXGVQM7WEHURXQDTSR3XK7BUSLX34JWKQET333K2FDWDY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
