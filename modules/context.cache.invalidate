@@ -1,0 +1,79 @@
+## [:< ##
+
+# name  = context.cache.invalidate
+# descr = invalidate cache entries by key, tag, or age
+
+my $params = shift // {};
+
+my $key     = $params->{'key'}     // '';
+my $tag     = $params->{'tag'}     // '';
+my $max_age = $params->{'max_age'} // 0;
+my $all     = $params->{'all'}     // FALSE;
+
+<context.cache> //= {};
+
+my @removed;
+
+## invalidate all ##
+if ($all) {
+    @removed = keys <context.cache>->%*;
+    <context.cache> = {};
+    <[base.logs]>->(
+        2,
+        ':. cache.invalidate: cleared all [ %d entries ] :.',
+        scalar @removed
+    );
+    return {
+        'mode' => qw| true |,
+        'data' => { 'removed' => \@removed, 'count' => scalar @removed }
+    };
+}
+
+## invalidate by key ##
+if ( length $key ) {
+    if ( exists <context.cache>->{$key} ) {
+        delete <context.cache>->{$key};
+        push @removed, $key;
+    }
+}
+
+## invalidate by tag ##
+if ( length $tag ) {
+    foreach my $k ( keys <context.cache>->%* ) {
+        my $entry = <context.cache>->{$k};
+        my $tags  = $entry->{'tags'} // [];
+        if ( grep { $ARG eq $tag } @$tags ) {
+            delete <context.cache>->{$k};
+            push @removed, $k;
+        }
+    }
+}
+
+## invalidate by age ##
+if ( $max_age > 0 ) {
+    my $now = time();
+    foreach my $k ( keys <context.cache>->%* ) {
+        my $entry = <context.cache>->{$k};
+        if ( ( $now - $entry->{'stored_at'} ) > $max_age ) {
+            delete <context.cache>->{$k};
+            push @removed, $k;
+        }
+    }
+}
+
+<[base.logs]>->(
+    2,
+    ':. cache.invalidate: removed %d entries :.',
+    scalar @removed
+);
+
+return {
+    'mode' => qw| true |,
+    'data' => { 'removed' => \@removed, 'count' => scalar @removed }
+};
+
+#,,..,,.,,.,.,,,,,...,...,..,,,,.,.,.,,..,...,..,,...,..,,..,,.,.,..,,.,.,..,,
+#LP3NVYXBCWHGJPJRVUCFHZXB22P47UNRE2S6NZTDMG2YHGDY6DJ62L25IYGGES5LTCWL3WMT3BBUK
+#\\\|2XL4PZ27V26JNYCWMIUHF5PSHYDEVPNBL4XZZD4FIJEHTSLDHP5 \ / AMOS7 \ YOURUM ::
+#\[7]665UGR7PPZ5PSPGL5H5Y4S7GNIGJDXTFUNL4NCKYOJRZE2ITC6CA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

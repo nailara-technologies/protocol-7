@@ -1,0 +1,86 @@
+## [:< ##
+
+# name  = context.share.export
+# descr = export context data for cross-zenka sharing
+
+my $params = shift // {};
+
+my $key     = $params->{'key'}     // '';
+my $data    = $params->{'data'}    // '';
+my $target  = $params->{'target'}  // '';
+my $ttl     = $params->{'ttl'}     // 300;
+my $channel = $params->{'channel'} // qw| context |;
+
+return { 'mode' => qw| false |, 'data' => 'key and data required' }
+    unless length $key and ( length $data or ref $data );
+
+## serialize data if ref ##
+my $payload = $data;
+if ( ref $data ) {
+    <[base.perlmod.load]>->('JSON');
+    $payload = eval { JSON::encode_json($data) };
+    if ($@) {
+        <[base.logs]>->(
+            0, ':. share.export: json encode failed [ %s ] :.', $@
+        );
+        return { 'mode' => qw| false |, 'data' => 'serialization failed' };
+    }
+}
+
+## build export package ##
+my $package = {
+    'key'         => $key,
+    'payload'     => $payload,
+    'source'      => <system.zenka.name> // qw| unknown |,
+    'exported_at' => time(),
+    'ttl'         => $ttl,
+    'is_ref'      => ref $data ? TRUE : FALSE
+};
+
+## try channels.memory-sync if available ##
+my $sync_fn = $code{'channels.memory-sync.publish'}
+    // $code{'base.memory-sync.publish'};
+
+if ( defined $sync_fn ) {
+    my $result = $sync_fn->(
+        {   'channel' => $channel,
+            'key'     => $key,
+            'data'    => $package,
+            'target'  => $target
+        }
+    );
+    if ( ref $result eq qw| HASH | and $result->{'mode'} eq qw| true | ) {
+        <[base.logs]>->(
+            2,    ':. share.export: published key=%s to channel=%s :.',
+            $key, $channel
+        );
+        return {
+            'mode' => qw| true |,
+            'data' => {
+                'exported' => TRUE,
+                'via'      => qw| memory-sync |,
+                'key'      => $key
+            }
+        };
+    }
+}
+
+## fallback: store in shared data namespace ##
+<context.shared> //= {};
+<context.shared>->{$key} = $package;
+
+<[base.logs]>->(
+    2, ':. share.export: stored locally key=%s [ sync not available ] :.',
+    $key
+);
+
+return {
+    'mode' => qw| true |,
+    'data' => { 'exported' => TRUE, 'via' => qw| local |, 'key' => $key }
+};
+
+#,,..,.,.,,.,,.,,,,..,..,,,,,,.,,,.,.,,.,,,,.,..,,...,...,,,.,,.,,...,,,.,.,,,
+#7HGHLNG6QLJ7VNYJAL4JPXWVDV53KJYO64XIF3ORHKCFBUM7BHU5N4LPU3OU4JSOWOCZQZDANV6NY
+#\\\|7BM2OKZLYPCITTVAVCCALO7ZOF3BPHSK6J66WOCOQDURW775RIJ \ / AMOS7 \ YOURUM ::
+#\[7]XGCVQAQSKHVJQGE2EI2ROMVDZAZWCGJVV5O6RJG4E2XRMZWLGEBY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
