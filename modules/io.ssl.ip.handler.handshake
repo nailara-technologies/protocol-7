@@ -1,6 +1,6 @@
 ## [:< ##
 
-# name  = io.ip.ssl.handshake.handler
+# name  = io.ssl.ip.handler.handshake
 # descr = handle non-blocking SSL handshake completion via accept_SSL
 #         [ called by event loop when SSL socket is ready for handshake IO ]
 # note  = handles SSL_WANT_READ/SSL_WANT_WRITE retry and handshake completion
@@ -24,7 +24,7 @@ if ( not defined $ssl_client or not fileno($ssl_client) ) {
     <[base.logs]>->(
         2, '[%s] ssl handshake: socket closed during handshake', $server_id
     );
-    _cleanup_handshake( $hs_id, 0 );
+    <[io.ssl.ip.handshake.cleanup]>->( $hs_id, 0 );
     return undef;
 }
 
@@ -59,7 +59,7 @@ if ($result) {
     );
 
     ## clean up handshake state but keep socket open ##
-    _cleanup_handshake( $hs_id, 1 );
+    <[io.ssl.ip.handshake.cleanup]>->( $hs_id, 1 );
 
     ## initialize session for the accepted connection ##
     ## [ mirrors what base.handler.connect does after getting client socket ]
@@ -144,46 +144,15 @@ if ($result) {
     );
 
     ## clean up failed handshake ##
-    _cleanup_handshake( $hs_id, 0 );
+    <[io.ssl.ip.handshake.cleanup]>->( $hs_id, 0 );
 
     return undef;
 }
 
-## [ internal subroutine — cleanup handshake state ] ##
-sub _cleanup_handshake {
-    my ( $hs_id, $keep_socket ) = @_;
-
-    return unless exists $data{'ssl_handshake'}{$hs_id};
-
-    my $hs = $data{'ssl_handshake'}{$hs_id};
-
-    ## cancel io watcher ##
-    if ( defined $hs->{'io_watcher'} and $hs->{'io_watcher'}->can('cancel') )
-    {
-        $hs->{'io_watcher'}->cancel if $hs->{'io_watcher'}->is_active;
-    }
-
-    ## cancel timeout timer ##
-    if ( defined $hs->{'timer'} and $hs->{'timer'}->can('cancel') ) {
-        $hs->{'timer'}->cancel if $hs->{'timer'}->is_active;
-    }
-
-    ## close socket unless told to keep it [ on successful handshake ] ##
-    if ( not $keep_socket and defined $hs->{'socket'} ) {
-        if ( defined fileno( $hs->{'socket'} ) ) {
-            eval { shutdown( $hs->{'socket'}, 2 ) };
-            close( $hs->{'socket'} );
-        }
-    }
-
-    ## remove handshake state ##
-    delete $data{'ssl_handshake'}{$hs_id};
-}
-
 0;
 
-#,,..,...,.,,,..,,,,.,,.,,,,,,,,,,.,,,...,.,,,.,.,...,...,.,,,,,,,,,,,,.,,,.,,
-#DM5WYUXX5BKCUAUKCIKY57WQJS6Z57L2JWXECN77MLPJKKKGFWX7CNUJ3GWWBSGSPA57HJL66AFSC
-#\\\|RDI7SGATWXPVC77JL52TGFCOHIDY2YNPUBQWPMMXCUPGUVKVONW \ / AMOS7 \ YOURUM ::
-#\[7]5NVDJGCMF4CCSZCZXESBH52Z5HBSWAYADK4I4546PCMGQK73K6DY 7  DATA SIGNATURE ::
+#,,..,..,,..,,,,,,..,,...,.,.,.,.,,..,,,.,,,.,.,.,...,...,...,...,.,.,,,,,.,.,
+#ILONSU6KFZ3QV5O3AKBBTCHN2X2ZWY7PTRKQAKEK6SO5HNWY2XVPEK6FIIPUQIEIBYPG245EJSQ6E
+#\\\|GH5T2HRINKM3LNB3JOZNTCXNLSGBQM56ROY7YGRYAPXGGY73ARG \ / AMOS7 \ YOURUM ::
+#\[7]L4ONUEIR6NAI5ZINBVGA4ZMPI5KD4XXT44IUUILLWWNLA4SRNSAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

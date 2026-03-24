@@ -1,6 +1,6 @@
 ## [:< ##
 
-# name = io.ip.ssl.input.connect
+# name = io.ssl.ip.input.connect
 # descr = handle incoming SSL/TLS connections with non-blocking handshake
 #        [ prevents event loop stall from slow/bot clients that open TCP
 #          but never complete SSL handshake ]
@@ -110,7 +110,7 @@ if ( ref($fd) eq qw| IO::Socket::SSL | and -S $fd ) {
             'poll'   => 'rw',       ## ssl handshake may need read or write ##
             'repeat' => 1,
             'data'   => $hs_id,
-            'handler' => 'io.ip.ssl.handshake.handler'
+            'handler' => 'io.ssl.ip.handler.handshake'
         }
     );
 
@@ -129,7 +129,7 @@ if ( ref($fd) eq qw| IO::Socket::SSL | and -S $fd ) {
     my $timer = <[event.add_timer]>->(
         {   'after'   => $hs_timeout,
             'data'    => $hs_id,
-            'handler' => 'io.ip.ssl.handshake.timeout'
+            'handler' => 'io.ssl.ip.handler.handshake_timeout'
         }
     );
 
@@ -157,8 +157,8 @@ if ( ref($fd) eq qw| IO::Socket::SSL | and -S $fd ) {
     return undef;    ## <-- connection closed \ error connecting ##
 }
 
-#,,,,,,..,,,,,.,,,.,,,...,,..,..,,,,,,,,,,,..,.,.,...,...,..,,,,.,.,,,,,.,..,,
-#NKWERCV3DE25JA7HORGGVTNED22JVXA4LJEMWXGB7YIDIE6XDBSVDM76VXLZF3HCHNMRSVOBTSG74
-#\\\|VBSPFKTYQGDGJ5II3GW3M7AQIQCDLGGFPCLEEOTNARDHIGDNWNM \ / AMOS7 \ YOURUM ::
-#\[7]76Y3HMUE4SOVNDBUIPOZQXX6N2IFK5E5C2QVDKXYWB5OOCQGNWDY 7  DATA SIGNATURE ::
+#,,.,,.,,,,,.,..,,,,,,...,,.,,,,.,...,.,.,,,.,.,.,...,...,..,,..,,.,.,.,.,,.,,
+#VMSW4W73NQCPWPMSBXGKOEZSPLYQ7OBEBK6PCW5BMDZMEN6LANU7MF5VXXQYX345XXKNAJHRVSMKS
+#\\\|GJQ3S5OQDIROUCW4244IRKZPEHERIA6D54DAAZ2EIN6MDJEXPZE \ / AMOS7 \ YOURUM ::
+#\[7]D72N4IBZMOTX6ZDPPXCS3E2ZTZZ5Y6YUO2AUJFVHESHRYREYIWBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
