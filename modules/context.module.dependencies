@@ -1,0 +1,91 @@
+## [:< ##
+
+# name  = context.module.dependencies
+# descr = find what a module calls and what calls it
+
+my $params = shift // {};
+
+my $module = $params->{'module'} // '';
+my $budget = $params->{'budget'} // 800;
+
+my $char_budget = int( $budget * <context.cfg.chars_per_token> );
+
+return "<!-- no module specified -->" unless length $module;
+
+## normalize module name ##
+$module =~ s|^modules/||;
+
+my $output = "## dependencies [ $module ] ##\n\n";
+
+## outgoing: what does this module call? ##
+my $path = "modules/$module";
+if ( -f $path and -r $path ) {
+    open my $fh, '<', $path or return "<!-- cannot read $path -->";
+    my @lines = <$fh>;
+    close $fh;
+
+    my %calls;
+    foreach my $line (@lines) {
+        ## match <[module.name]> calls ##
+        while ( $line =~ m|<\[([a-z][a-z0-9._-]+)\]>|g ) {
+            $calls{$1}++;
+        }
+        ## match $code{'module.name'} calls ##
+        while ( $line =~ m|\$code\{'([a-z][a-z0-9._-]+)'\}|g )
+        {
+            $calls{$1}++;
+        }
+    }
+
+    if ( keys %calls ) {
+        $output .= "### calls [ outgoing ]\n";
+        foreach my $name ( sort keys %calls ) {
+            $output .= "- $name";
+            $output .= " [$calls{$name}x]" if $calls{$name} > 1;
+            $output .= "\n";
+        }
+        $output .= "\n";
+    }
+}
+
+## incoming: what calls this module? ##
+my @all_modules = glob 'modules/*';
+my %callers;
+
+foreach my $mod_path (@all_modules) {
+    next if $mod_path eq $path;
+    next unless -f $mod_path;
+
+    open my $fh, '<', $mod_path or next;
+    my $content = do { local $/; <$fh> };
+    close $fh;
+
+    if (   $content =~ m|\Q$module\E|
+        or $content =~ m|<\[\Q$module\E\]>| )
+    {
+        my $caller = $mod_path;
+        $caller =~ s|^modules/||;
+        $callers{$caller}++;
+    }
+}
+
+if ( keys %callers ) {
+    $output .= "### called by [ incoming ]\n";
+    foreach my $name ( sort keys %callers ) {
+        $output .= "- $name\n";
+    }
+}
+
+## truncate to budget ##
+if ( length($output) > $char_budget ) {
+    $output = substr( $output, 0, $char_budget );
+    $output .= "\n... [ truncated ]\n";
+}
+
+return $output;
+
+#,,,,,,,.,,,,,.,.,,.,,.,.,..,,,..,...,,..,,,,,..,,...,...,.,,,...,,,.,.,,,,,,,
+#653J3QLSBFZKFTLBUCD3V4NE2NSOSXYY5E3RYY5QD4DJZLR2UNRDRXHAAQKTMEBLBVWF3DIIJN5MW
+#\\\|CU6I3GJ5IXPANKY35P6XZ4GDMAP2QDDP2PYL7MKYG37SAJPDLQP \ / AMOS7 \ YOURUM ::
+#\[7]LVO3VBYFASWKCY6BIU76NKK7ULY3AISW322CPGF46ONAQXJSNSDY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

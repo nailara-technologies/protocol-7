@@ -1,5 +1,18 @@
 # Completed Work Sessions
 
+## kimi session management + task dispatch hardening (Mar 23 2026)
+New modules: `kimi.session.create` (extracted REST session creation), `kimi.session.reset_and_reconnect`
+(fresh session for `:next:` prefix), `models.handler.notify-online-reply` (dispatch after online confirm).
+`:next:` prefix: `models.task.execute` prepends to all prompts, `ask-reply` detects it, stores deferred,
+triggers reset_and_reconnect, ws_message dispatches after ready. `v7.notify_online` extended with `:start:`
+prefix (calls start_once before waiting). `models.task.execute` gates dispatch on `v7.notify_online :start:`
+— prevents "route collapsed" on restarts. Kimi startup: `get_session_id` in start file (immediate online),
+`kimi.connect` via 0.5s timer (non-blocking for v7). Stale session verification via GET (handles 200+null
+and archived). Idle disconnect: no aggressive retry, reconnect on demand in `ask-reply`. Websocket
+`SO_RCVTIMEO` for handshake timeout. All `perlmod.load` moved to init_code. `decode_json` → `from_json`
+fix in `kimi.session.create`. Task T32NUNA assigned to kimi for self-review of remaining style/architecture
+issues.
+
 ## kimi zenka upgrades (Mar 21-22 2026) — commits `8452304ae` through `772e7e964`
 JSON parse root cause: `decode_json` expects UTF-8 bytes but websocket frame parser returns
 decoded Perl strings; multibyte chars (box-drawing `┌─│└`) caused silent parse failures with
@@ -75,8 +88,8 @@ saves via `yaml_save`
 - switch-model: auto backend (gpu first, cpu fallback); kill old server before VRAM check;
   0.3s wait for GPU driver VRAM release; use provided model_path directly in spawn_smart
 
-#,,.,,...,,,.,,,.,,..,..,,,,.,...,...,,,,,...,..,,...,...,..,,,..,...,..,,,,.,
-#JYELDBTYIGNATQJKFPRRP7HP4EX3BTX5AMY4Y6P6KVVBRNQHL5WJ4YLFJHYZRYXFQPX7ZH3KQAM72
-#\\\|E3WLVFIMQ7VPNJVHYQ5HQD3TJWNDIUHYSMFXFSNWKUIPQFEYFQR \ / AMOS7 \ YOURUM ::
-#\[7]MCSL3IVL5Z4TOFBLWEYOHYZE2T5QW7THBP3KWYF3J4ZCUESFBGBQ 7  DATA SIGNATURE ::
+#,,,,,.,.,...,,,,,...,,..,,,,,,,.,.,.,,.,,,..,..,,...,...,...,.,,,..,,,,,,.,.,
+#MC4HCBLSFVQ45EK4XQJIBANZNVIMB7GLNNX6PDKWMBJWZAQT7ZBESA2RBLCT5MVIHYBZC7GRXVT7E
+#\\\|OOLVAC2AMCRWO3EDWU2QEIG76JAPE4RUGV3PQEGTA4VPZE3OPNX \ / AMOS7 \ YOURUM ::
+#\[7]OHCZYFOLJBYP46YIMPBT745J624UW24WPZUYN7KKLJ4FBDT2ZEDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

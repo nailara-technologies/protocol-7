@@ -1,0 +1,98 @@
+## [:< ##
+
+# name  = context.compose.quick
+# descr = predefined quick-context combos for common queries
+
+my $params = shift // {};
+
+my $preset = $params->{'preset'} // '';
+my $budget = $params->{'budget'} // 2000;
+my $vars   = $params->{'vars'}   // {};
+
+## predefined presets ##
+my %presets = (
+    'explain' => [
+        {   'provider' => 'context.file',
+            'params'   => {
+                'path'   => $vars->{'target_file'} // '',
+                'budget' => int( $budget * 0.70 )
+            }
+        },
+        {   'provider' => 'context.module.dependencies',
+            'params'   => {
+                'module' => $vars->{'target_module'} // '',
+                'budget' => int( $budget * 0.30 )
+            }
+        },
+    ],
+    'style-check' => [
+        {   'provider' => 'context.style.guide',
+            'params'   => { 'budget' => int( $budget * 0.30 ) }
+        },
+        {   'provider' => 'context.file',
+            'params'   => {
+                'path'   => $vars->{'target_file'} // '',
+                'budget' => int( $budget * 0.70 )
+            }
+        },
+    ],
+    'debug' => [
+        {   'provider' => 'context.error.recent',
+            'params'   => {
+                'budget' => int( $budget * 0.30 ),
+                'filter' => $vars->{'error_pattern'} // ''
+            }
+        },
+        {   'provider' => 'context.file',
+            'params'   => {
+                'path'   => $vars->{'target_file'} // '',
+                'budget' => int( $budget * 0.40 )
+            }
+        },
+        {   'provider' => 'context.git.recent_changes',
+            'params'   => {
+                'budget'       => int( $budget * 0.30 ),
+                'since_commit' => 'HEAD~3'
+            }
+        },
+    ],
+    'overview' => [
+        {   'provider' => 'context.modules.list',
+            'params'   => {
+                'namespace' => $vars->{'namespace'} // '',
+                'budget'    => int( $budget * 0.30 )
+            }
+        },
+        {   'provider' => 'context.memory.load',
+            'params'   => {
+                'zenka' => $vars->{'zenka'} // '',
+                'budget' => int( $budget * 0.40 )
+            }
+        },
+        {   'provider' => 'context.task.active',
+            'params'   => {
+                'format' => 'full',
+                'budget' => int( $budget * 0.30 )
+            }
+        },
+    ],
+);
+
+unless ( exists $presets{$preset} ) {
+    my $avail = join ', ', sort keys %presets;
+    return "<!-- unknown preset: $preset"
+        . " [ available: $avail ] -->";
+}
+
+return <[context.compose]>->(
+    {   'budget'    => $budget,
+        'vars'      => $vars,
+        'providers' => $presets{$preset}
+    }
+);
+
+#,,,,,,..,...,,,,,.,,,...,,,,,..,,...,,.,,,,,,..,,...,...,,..,.,.,,..,,,,,,,,,
+#GCSG2JJJEYPLGJHO23CPGYZBFQFWCEZWVMRNK2Z7YWUS5RM24UUSJ22ZP2BDLIN77HVQSSFAJ24MC
+#\\\|HP3YMHKDBA6JACEFZSJLPKSGAIHUKHIODGKRMT4S7HPY3IVWSZV \ / AMOS7 \ YOURUM ::
+#\[7]FGAS7ZBKAEMOLXWGC7MY5Z3HIXKOJRBNI65GEOFYMPZ7IWC3OCBA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

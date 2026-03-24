@@ -209,10 +209,27 @@ defined <hash.path>{key};            ## value defined
 
 ## string handling
 
-### qw| | for word lists
+### qw| | for word lists and scalar strings
 ```perl
 qw| success error pending |          ## correct — spaces separate
 qw|success error pending|            ## also correct
+```
+
+### qw| | for scalar string values [ preferred ]
+```perl
+## ref comparisons — qw| | preferred over quotes
+ref $result eq qw| HASH |            ## correct — project style
+ref $buffer eq qw| ARRAY |           ## correct
+ref $entry  eq qw| HASH |            ## correct
+
+## return mode values
+return { 'mode' => qw| true | }      ## correct — always qw| |
+return { 'mode' => qw| false | }     ## correct
+
+## general scalar assignments
+my $name = qw| zenka |;              ## correct — qw| | for keywords
+
+## do NOT flag qw| | on scalars as wrong — it IS the style
 ```
 
 ### qq| | for interpolation needs
@@ -499,8 +516,8 @@ s|old|new|gsx    ## global + single-line + extended
 
 ---
 
-#,,.,,,,.,,,,,.,.,,..,,,.,,..,,,,,.,.,,,.,.,.,.,.,...,...,..,,,,.,.,.,...,,,.,
-#JJFGKN6CCL7DPZXUKEHA7ZXVIIQSS2A5A5QAGXMINQTNHKXWCHEFHXPDZMJCDJXXZZYK5YNTQOL2Q
-#\\\|WCIW6WG4ZJY44BWOMLIKAZFLY55HEAFZMFJNOCEDGW4GTXXETPX \ / AMOS7 \ YOURUM ::
-#\[7]MZ25LGG5TFYN5IR7SIKX7VIOWLQXYZ3LPUY2UWJMAXUJTHBRRECY 7  DATA SIGNATURE ::
+#,,.,,,..,,,.,,..,,,,,.,,,,,,,.,.,.,,,,,.,...,.,.,...,...,..,,,,,,,.,,,,,,.,,,
+#TP7HXTN7JWM6MIC4V6NEOEPN24V66IY3VHYDPECF6FKUK2MOEFQXN6ACLLMZWHMC6WBUZICAGZJI4
+#\\\|DPXYUDJRUNLFHHYZRYXRLYJHNSIILM2QCACNREVGQBJKLIG4ZA3 \ / AMOS7 \ YOURUM ::
+#\[7]TXPZA4EWKUPRFIKAYGLRKDGSXE2CP5CM56KCGKPNHODHA7X4FGDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

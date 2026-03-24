@@ -1,0 +1,41 @@
+## [:< ##
+
+# name  = context.conversation.history
+# descr = conversation turns with depth limit
+
+my $params = shift // {};
+
+my $job_id = $params->{'job_id'} // '';
+my $depth  = $params->{'depth'}  // 10;
+my $budget = $params->{'budget'} // 1000;
+
+my $char_budget = int( $budget * <context.cfg.chars_per_token> );
+
+## delegate to models.conversation.get_context if available ##
+if ( exists $code{'models.conversation.get_context'} ) {
+    my $result = $code{'models.conversation.get_context'}->(
+        {   'job_id' => $job_id,
+            'depth'  => $depth
+        }
+    );
+
+    if ( defined $result and ref $result eq qw| HASH | ) {
+        my $text = $result->{'context_text'} // '';
+
+        if ( length($text) > $char_budget ) {
+            $text = substr( $text, 0, $char_budget );
+            $text .= "\n... [ truncated ]\n";
+        }
+
+        return "## conversation history ##\n$text";
+    }
+}
+
+## fallback: no conversation system loaded ##
+return "<!-- conversation history not available -->";
+
+#,,..,,,,,,..,,.,,...,,,.,,,.,,.,,,,.,,..,,,,,..,,...,...,.,,,..,,,..,.,.,,..,
+#BYFNCM7ZOUEO7ESZPORIJKIKUAGNKHF42HOJBOM4VPE7NHQUAADM3VXSHBED2GXAA2VHIPHVAHUDI
+#\\\|JP5BP4WLHIOCIFK2MF6YNGOKWYQWVELSVNQQ7PA3SKZROL4CF7K \ / AMOS7 \ YOURUM ::
+#\[7]O25LVSV2RN3NMLQR6GN7XTJ3NIOVIKZNGO2CA7AI3FD4X2YNZYBI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
