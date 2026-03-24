@@ -1,0 +1,79 @@
+## [:< ##
+
+# name  = context.delegate.handler.result
+# descr = reply handler for delegation dispatch results
+
+my $reply = shift;
+
+my $data   = $reply->{'data'}   // '';
+my $mode   = $reply->{'mode'}   // qw| unknown |;
+my $params = $reply->{'params'} // {};
+
+## collect and verify ##
+my $collected = $code{'context.delegate.collect'}->(
+    {   'reply_data'   => $data,
+        'reply_params' => $params,
+        'reply_status' => $mode
+    }
+);
+
+my $collect_data = $collected->{'data'} // {};
+
+## verify if collection succeeded ##
+if ( $collected->{'mode'} eq qw| true | ) {
+    my $verified = $code{'context.delegate.verify'}->(
+        {   'collected' => $collect_data,
+            'expect'    => $params->{'expect'} // {}
+        }
+    );
+
+    my $verify_data = $verified->{'data'} // {};
+
+    <[base.logs]>->(
+        1,
+        ':. delegate.result: task=%s pass=%s warnings=%d :.',
+        $collect_data->{'task_type'} // qw| unknown |,
+        $verify_data->{'pass'} ? qw| yes | : qw| no |,
+        scalar( $verify_data->{'warnings'}->@* )
+    );
+
+    ## store result in cache if key provided ##
+    my $cache_key = $params->{'cache_key'} // '';
+    if ( length $cache_key and exists $code{'context.cache.store'} ) {
+        $code{'context.cache.store'}->(
+            {   'key'    => $cache_key,
+                'data'   => $collect_data->{'result'},
+                'ttl'    => 600,
+                'source' => 'delegate',
+                'tags'   =>
+                    [ qw| delegation |, $collect_data->{'task_type'} // '' ]
+            }
+        );
+    }
+
+    ## forward to caller's handler if specified ##
+    my $forward = $params->{'forward_handler'} // '';
+    if ( length $forward and exists $code{$forward} ) {
+        $code{$forward}->(
+            {   'result'   => $collect_data->{'result'},
+                'verified' => $verify_data,
+                'roles'    => $collect_data->{'roles'},
+                'params'   => $params
+            }
+        );
+    }
+} else {
+    <[base.logs]>->(
+        0,
+        ':. delegate.result: collection failed [ %s ] :.',
+        $collect_data->{'error'} // qw| unknown |
+    );
+}
+
+return TRUE;
+
+#,,.,,.,.,,,.,,..,..,,.,.,...,...,..,,,,,,,,.,..,,...,...,...,,,.,,.,,,,.,,,.,
+#5ZICBFTNDIK5WK6KQKMHCEG3AHNJ7R5TOP6IXKOB6GHUIVP3LGAICXPN77HGHIOSGIOGYYDQHPSZA
+#\\\|KEPNGYK4W7W6ZA6J3JUP5REBPPCZPZWXJAZ4GZQCCJX3D3K6W5M \ / AMOS7 \ YOURUM ::
+#\[7]FZRHCDZTW3KO6UNATDWA4WM4PEPHPPG6AE3NBCLAERGD7ZFB2UDY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
