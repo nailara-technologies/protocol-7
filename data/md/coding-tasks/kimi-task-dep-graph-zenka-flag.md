@@ -142,10 +142,10 @@ three complementary flags for inspecting what a start file declares,
 without running reachability analysis. works with both `-zenka=NAME`
 and `-stdin`.
 
-- [ ] `-list` — print a deduplicated, sorted list of all declared items
+- [x] `-list` — print a deduplicated, sorted list of all declared items
       (modules and config includes combined), one per line
-- [ ] `-list-modules` — print only `modules.load` entries, one per line
-- [ ] `-list-configs` — print only `load_config` file includes, one per line
+- [x] `-list-modules` — print only `modules.load` entries, one per line
+- [x] `-list-configs` — print only `load_config` file includes, one per line
 
 ### context
 
@@ -258,8 +258,8 @@ these calls are detectable by the dep-graph scanner (already scans
 - [ ] edges resolved by rules tagged `[ rule-resolved ]` vs `[ static ]` in
       output — keeps provenance clear and makes rules auditable
 
-#,,,,,.,,,.,.,,,.,..,,...,..,,,,.,,,,,.,.,...,..,,...,...,..,,,.,,.,.,..,,,..,
-#KOMA7AN5JYDZA74CBBLJKYDBCZ5MVX6W4EXJDMAZXAR32A4YZAQCRYTWAOPZGMHFFSZJU45Y3DRBQ
-#\\\|CDM4STNKXNJV63G6N3Y7ECD5AL7ROHS6RNHGYO27L4QTVQASTIF \ / AMOS7 \ YOURUM ::
-#\[7]FWOJD5NRGRE74SPV5KUCA32UHSOI7IQW6WXZHAIZAYKVHN7VRACA 7  DATA SIGNATURE ::
+#,,,.,.,.,.,.,..,,,,.,,.,,,.,,.,,,.,.,.,.,.,,,..,,...,.,.,...,,.,,...,...,.,.,
+#FHLJYLASWW5LLRMRUJ5IRQ6AZUK2U6U6K2MHWMKG3LWUPEI2G37A34P57X5CJZSVJS5YGFHSZFYFA
+#\\\|B4OQGOYNLVKAOP66IV37V7AJ2GPNO2K2JWTX4VIXQX5CMUNCQTD \ / AMOS7 \ YOURUM ::
+#\[7]GOZJAITANUDI2KJIKUD32OKZFOWCUKNWYQNE7FW6MDTVUSQAQUDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

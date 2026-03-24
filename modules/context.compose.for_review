@@ -1,0 +1,61 @@
+## [:< ##
+
+# name  = context.compose.for_review
+# descr = assemble context for code review tasks
+
+my $params = shift // {};
+
+my $target_file = $params->{'target_file'} // '';
+my $budget      = $params->{'budget'}
+    // <context.cfg.default_budget>;
+my $vars = $params->{'vars'} // {};
+
+## merge target_file into vars ##
+$vars->{'target_file'} = $target_file if length $target_file;
+
+## try code-review template first ##
+my $template = <[context.template.load]>->('code-review');
+
+if ( defined $template ) {
+    $template->{'budget'} = $budget
+        if defined $params->{'budget'};
+
+    return <[context.template.render]>->(
+        {   'template' => $template,
+            'vars'     => $vars
+        }
+    );
+}
+
+## fallback: manual assembly ##
+return <[context.compose]>->(
+    {   'budget'    => $budget,
+        'vars'      => $vars,
+        'providers' => [
+            {   'provider' => 'context.style.guide',
+                'params' => { 'budget' => int( $budget * 0.15 ) }
+            },
+            {   'provider' => 'context.git.recent_changes',
+                'params' => {
+                    'budget'    => int( $budget * 0.25 ),
+                    'max_files' => 5
+                }
+            },
+            {   'provider' => 'context.file',
+                'params'   => {
+                    'budget' => int( $budget * 0.45 ),
+                    'path'   => $target_file
+                }
+            },
+            {   'provider' => 'context.task.active',
+                'params' => { 'budget' => int( $budget * 0.15 ) }
+            },
+        ]
+    }
+);
+
+#,,,.,,.,,,..,.,,,..,,..,,,,,,,,,,,..,.,,,..,,..,,...,..,,.,.,,,.,,.,,.,,,,.,,
+#2N5SJVVH6NLJVEZFVSMLKJKWEJNXUUVQVF5ECSY6I5NOGGPKC5ER3VL2UJXGBELOU7T6C7RPVHXCG
+#\\\|PYZ5ZQTRFNL6QTYQBBMPF457DLPJOKQTOQ6FRWQTZVTSPCTVR4P \ / AMOS7 \ YOURUM ::
+#\[7]RJEO2LAR7RVAEUCME3ECMGU7OIBYBYJ7AGONKQFN6IWJH4GFAGCQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
