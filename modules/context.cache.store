@@ -1,0 +1,50 @@
+## [:< ##
+
+# name  = context.cache.store
+# descr = store context result with key and ttl
+
+my $params = shift // {};
+
+my $key    = $params->{'key'}    // '';
+my $data   = $params->{'data'}   // '';
+my $ttl    = $params->{'ttl'}    // 300;
+my $tags   = $params->{'tags'}   // [];
+my $source = $params->{'source'} // '';
+
+return { 'mode' => qw| false |, 'data' => 'cache key required' }
+    unless length $key;
+
+## initialize cache store if needed ##
+<context.cache> //= {};
+
+my $now = time();
+
+<context.cache>->{$key} = {
+    'data'       => $data,
+    'stored_at'  => $now,
+    'expires_at' => $now + $ttl,
+    'ttl'        => $ttl,
+    'tags'       => $tags,
+    'source'     => $source,
+    'hits'       => 0
+};
+
+<[base.logs]>->(
+    3,    ':. cache.store: key=%s ttl=%d source=%s :.',
+    $key, $ttl, $source
+);
+
+return {
+    'mode' => qw| true |,
+    'data' => {
+        'key'        => $key,
+        'expires_at' => $now + $ttl,
+        'stored'     => TRUE
+    }
+};
+
+#,,.,,,,.,,,,,...,,,,,.,.,.,.,,..,,..,.,,,,,,,..,,...,...,..,,,,,,,,.,.,.,,,,,
+#IQKJNXV5QXFLPMSO4TVMK3KGAZIZKJTQMP3D2V3KV3PILK35SLSFXFTRATPLVGJ3EXNG74ASKE26E
+#\\\|GTYBCA5Q5AKXNKH5MCBUHEVAUXWUB4ZTGNQJB3YCCHQLHCKTRN5 \ / AMOS7 \ YOURUM ::
+#\[7]HKF5O44VIR76E3SWWNVCKMCU34VTNGFZXYW2S3I33ZXZJDXKWOBI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
