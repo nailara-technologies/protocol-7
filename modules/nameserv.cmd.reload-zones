@@ -1,0 +1,26 @@
+## [:< ##
+
+# name  = nameserv.cmd.reload-zones
+# descr = reload all dns zone files from disk
+
+<[base.logs]>->( 1, ": reloading dns zones..," );
+
+my $old_count = scalar keys <nameserv.zones>->%*;
+
+<[nameserv.zones.load]>;
+
+my $new_count = scalar keys <nameserv.zones>->%*;
+
+my $msg = sprintf( "zones reloaded: %d zone(s) loaded (was %d)",
+    $new_count, $old_count );
+
+## emit event for any listeners
+<[nameserv.event.emit]>->( 'cmd.reload-zones', { count => $new_count } );
+
+return { mode => 'true', data => $msg };
+
+#,,..,..,,,,.,.,.,,,.,.,.,...,,..,,..,...,.,.,..,,...,..,,.,.,,,.,,.,,,,,,...,
+#OTQ4RS52H7HJKZ477OWV2A5RBQGEQGBU2UIGGINU57PQUK733UN57INYWZYAWUWS5SKKQNVE4OBFA
+#\\\|MWIJNXQFRLZTI5PKQ4BYQMSJ7WK3IPKDPAJMWE4NIO7DI2OOZAT \ / AMOS7 \ YOURUM ::
+#\[7]6ZUIY636LWB7OPY6GDUS5LRB4CT5RMASHJOOCZ7HYF3CGF4R66AA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

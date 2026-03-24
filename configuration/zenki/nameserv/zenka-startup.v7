@@ -1,0 +1,20 @@
+## [:< ##
+
+# name  = zenka-startup.v7
+# descr = 'nameserv' zenka startup configuration used by 'v7' zenka
+
+dependencies = cube
+
+: v7-init :
+  start_mode = stdin-zenka
+  nameserv.key = [base.prng.chars-anum:44]
+  [v7.callback.setup_zenka_key:<instance_id>,'<zenka_name>',<nameserv.key>]
+
+: zenka-init :
+  [base.auth.set_zenka_key:'<{nameserv.key}>']
+
+#,,.,,,..,.,,,,,.,,,.,,,.,,.,,.,.,.,.,.,,,..,,..,,...,..,,,,.,..,,.,,,..,,,,.,
+#YJ2Y5GHEHKFH55ABA6AGB2WPXGENBGSREOVKYCHBOU5UUSGV3QJS4HSAYXTEANDR2W3NDJHONS56A
+#\\\|LRYSHSA4UNDU4FYTDVVQ4ZMN4Y4QALRKZ7B555QCZLEJZND6BSI \ / AMOS7 \ YOURUM ::
+#\[7]NWC2PPXLMLX2VAFO4LU44TALAPYCXFYSJLBAHRBIAHKGNZLJA6AY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

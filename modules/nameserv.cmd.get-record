@@ -1,0 +1,56 @@
+## [:< ##
+
+# name  = nameserv.cmd.get-record
+# descr = lookup a specific dns record
+
+my $args_str = $call->{'args'} // '';
+
+## parse args: name=<name> [type=<type>]
+## or positional: <name> [type]
+my %args;
+if ( $args_str =~ /=/ ) {
+    while ( $args_str =~ /(\w+)=(\S+)/g ) {
+        $args{$1} = $2;
+    }
+} else {
+    my @parts = split /\s+/, $args_str;
+    $args{'name'} = $parts[0] if @parts;
+    $args{'type'} = $parts[1] if @parts > 1;
+}
+
+my $rec_name = lc( $args{'name'} // '' );
+my $rec_type = uc( $args{'type'} // '' );
+
+if ( not $rec_name ) {
+    return {
+        mode => 'false',
+        data => 'usage: get-record name=<name> [type=<type>]'
+    };
+}
+
+my $zones = <nameserv.zones>;
+my @matches;
+
+for my $zone_name ( keys %$zones ) {
+    my $zone = $zones->{$zone_name};
+    for my $rec ( @{ $zone->{'records'} } ) {
+        next if lc( $rec->{'name'} ) ne $rec_name;
+        next if $rec_type and $rec->{'type'} ne $rec_type;
+        push @matches,
+            sprintf( "%s %s %s (zone: %s)",
+            $rec->{'name'}, $rec->{'type'}, $rec->{'value'}, $zone_name );
+    }
+}
+
+if ( not @matches ) {
+    return { mode => 'false', data => "no records found for: $rec_name" };
+}
+
+my $data_str = "records found:\n  " . join( "\n  ", @matches );
+return { mode => 'size', data => $data_str };
+
+#,,,,,.,,,.,,,,.,,.,.,..,,,..,,.,,.,,,.,,,...,..,,...,...,.,,,...,.,,,.,.,,,.,
+#K2ZVGO4ZZPAEAFFHCRO3OO6EZ3BVKN4GJO4SL624WDK5NA6B4FQHLWQYASBLZEDWKNGWU4WNUZFRO
+#\\\|LG63WKI5HPOH3FBB6B2MAGDBOGB4FE4IQADT6MW6KC4FI3BDQKB \ / AMOS7 \ YOURUM ::
+#\[7]ZOPKBW4MLCIXV7HBKLL7DK2W6PJUFDSMD56HFDUIEB64ZS26YIBI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

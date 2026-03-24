@@ -1,0 +1,28 @@
+## [:< ##
+
+# name  = nameserv.cmd.list-zones
+# descr = list all loaded zones
+
+my $zones = <nameserv.zones>;
+
+if ( not keys %$zones ) {
+    return { mode => 'true', data => 'no zones loaded' };
+}
+
+my @lines = ( sprintf( "loaded zones (%d):", scalar keys %$zones ) );
+
+for my $zone_name ( sort keys %$zones ) {
+    my $zone      = $zones->{$zone_name};
+    my $rec_count = scalar @{ $zone->{'records'} // [] };
+    push @lines,
+        sprintf( "  %s: %d records (serial %d)",
+        $zone_name, $rec_count, $zone->{'serial'} );
+}
+
+return { mode => 'size', data => join( "\n", @lines ) };
+
+#,,.,,,,.,.,.,,..,..,,,.,,,.,,...,.,.,,,.,,,,,..,,...,...,..,,.,.,,,,,,,.,,.,,
+#SLBBPWZ6WYPZIAWUKG3QOT2E2IGUR7FSROTAKRBZDNUWZG7FZHUQGA6PC2GP4ML2XAXX5J2HBP5RY
+#\\\|Q4MRU66BQTMDOYSTYK7UVDTV53QDLDZFVFUZVJWSX5NWNRFXT2Z \ / AMOS7 \ YOURUM ::
+#\[7]BR5ZWWYPWLJNSZFJON2RSQ5BJTCJU2U35HDNQ7YUIJ36KQO6UMDA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

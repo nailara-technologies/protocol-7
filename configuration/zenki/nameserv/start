@@ -1,0 +1,44 @@
+
+ .:[ protocol-7 nameserv dns server zenka (phase-1) ]:.
+
+[load_config_file:'shared-params']
+
+## dns server configuration
+nameserv.bind.addr = 127.0.0.1
+nameserv.bind.port = 53
+nameserv.zone_dir  = '/var/protocol-7/nameserv/zones'
+
+## command access for cube
+access.cmd.usr.cube = commands heart reload verify-instance \
+                      list show-buffer buffer-erase buffer-erase-level \
+                      show-access src-ver src-age subname name \
+                      reload-zones status set-record remove-record \
+                      get-record show-zone list-zones
+
+## logging verbosity
+system.verbosity.zenka_buffer  = 2
+system.verbosity.zenka_console = 2
+
+## required modules
+modules.load = auth net protocol io.unix format.yaml nameserv
+
+[load_modules:<modules.load>]
+[init_modules]
+
+## drop privileges
+[root.drop_privs:<system.amos-zenka-user>]
+
+## connect to cube for ipc (receive routed commands)
+[base.net.connect:'unix']
+
+## register with cube (required for command routing)
+[get_session_id]
+
+## enter event loop (handles dns via io events)
+[zenka.loop]
+
+#,,,,,,,.,..,,..,,,,,,,,,,.,.,,.,,..,,,.,,,.,,..,,...,..,,,..,,,,,,..,..,,.,.,
+#Y4SL6JQXG2TY2RJDEC62X55OPHO4AAYFKA7U6FHFD5SUWLUCGNSXQCQ4A4GPXYASGVIK6IG4DRJGW
+#\\\|AD2G6KHBY3ANEKVGN6E3RGUG5YOA7DXRL6WBVO2FLK2HNLXN6T2 \ / AMOS7 \ YOURUM ::
+#\[7]OGX6VZMEHLCREV5YYK5KG6UWO6NX6OMVFQE3JQLOAOEQEBYK6SAY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

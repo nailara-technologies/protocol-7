@@ -27,15 +27,15 @@ xvfb-run cpanm Event Clone Hash::Flatten Hash::Merge::Simple \
       Device::Gembird Net::Libdnet::Arp \
       Crypt::Curve25519 Crypt::Ed25519 \
       https://github.com/gitpan/Module-Build-Pluggable-XSUtil.git \
-      Digest::Skein Digest::CRC
+      Digest::Skein Digest::CRC Net::DNS
 
 # note: XML::SAX failed with cpanm ... installation with 'cpan' itself worked
 
 # Graphics::Magick : http://sourceforge.net/projects/graphicsmagick/files/graphicsmagick/
 #                    ..or check your distribution packages!
 
-#,,,.,,..,,.,,,,,,,,.,..,,,,.,,..,.,,,,.,,.,,,..,,...,...,.,.,.,.,,..,.,.,,,.,
-#DLS4OINYQRSQIBJ3RVMLQOBKV4AYRIOJOYZXZ5CKEWAF7PSYRCP2UB4RFOBRS3EDJ77ZGF6GRQOLA
-#\\\|NJYHIKYFW4X5HISML5JEZOWEIUJNHBWUIVTFNTRD3IZQBZUDG4Z \ / AMOS7 \ YOURUM ::
-#\[7]USEE5KK2FV2YWBZCESY7PSSUFYNCRNXHK6WRE73F64FWA7MKX4BY 7  DATA SIGNATURE ::
+#,,.,,,,,,.,,,.,.,..,,,,.,..,,.,,,..,,,.,,...,..,,...,...,,..,...,.,.,.,.,,,.,
+#SOE36UA7OFT4QD3WMAF53NU2HQ3XVKKHZ3UQA6UXK4YY4447ZQNRENS6LBNGLE4WNWBHK4AERKU22
+#\\\|H3XBVIYF53XZPUSKLPEDML7ZBBKAP7GS72NXJMEUYDPP742CXGK \ / AMOS7 \ YOURUM ::
+#\[7]VSZJCWJM4GVSG5AJ2NHMB5HGSZLRGYK45QMFHU62J4XMRGBOI2AQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

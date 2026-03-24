@@ -1,0 +1,35 @@
+## [:< ##
+
+# name  = nameserv.zone.lookup
+# descr = internal zone lookup by query name
+
+my $qname = shift;
+
+$qname = lc( $qname // '' );
+
+my $zones = <nameserv.zones>;
+
+## find longest matching zone (most specific)
+my $best_match = undef;
+my $best_len   = 0;
+
+for my $zone_name ( keys %$zones ) {
+    my $zone = $zones->{$zone_name};
+    my $zlen = length $zone_name;
+
+    ## match exact zone or subdomain
+    if ( $qname eq $zone_name or $qname =~ /\.$zone_name$/i ) {
+        if ( $zlen > $best_len ) {
+            $best_match = $zone;
+            $best_len   = $zlen;
+        }
+    }
+}
+
+return $best_match;
+
+#,,..,,..,.,,,...,,.,,,..,...,.,,,..,,...,,.,,..,,...,...,.,.,,,.,.,.,,.,,,,.,
+#5LQ5F5FCRJKKF65XRIEJO22CX3A7WRSRKEYCKHGOSUM7U42YVPBQUNWS6SEP7N7Q2DV6CZI7LE5UW
+#\\\|WBWGMZBTXWXJVLTMSEZ4NRCXQDVMXHUNQUUHQSQ2WXIKXWT5ZWB \ / AMOS7 \ YOURUM ::
+#\[7]ITW744PIH7MCTCQHFUIEFA7DD6YN7OWXYKDAHQ3NGOKCPQ532WDA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

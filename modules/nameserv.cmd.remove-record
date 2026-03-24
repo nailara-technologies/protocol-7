@@ -1,0 +1,68 @@
+## [:< ##
+
+# name  = nameserv.cmd.remove-record
+# descr = remove a dns record from a zone
+
+my $args_str = $call->{'args'} // '';
+
+## parse args: zone=<zone> name=<name> [type=<type>]
+## or positional: <zone> <name> [type]
+my %args;
+if ( $args_str =~ /=/ ) {
+    while ( $args_str =~ /(\w+)=(\S+)/g ) {
+        $args{$1} = $2;
+    }
+} else {
+    my @parts = split /\s+/, $args_str;
+    $args{'zone'} = $parts[0] if @parts;
+    $args{'name'} = $parts[1] if @parts > 1;
+    $args{'type'} = $parts[2] if @parts > 2;
+}
+
+my $zone_name = lc( $args{'zone'} // '' );
+my $rec_name  = lc( $args{'name'} // '' );
+my $rec_type  = uc( $args{'type'} // '' );
+
+if ( not $zone_name or not $rec_name ) {
+    return {
+        mode => 'false',
+        data => 'usage: remove-record zone=<zone> name=<name> [type=<type>]'
+    };
+}
+
+my $zones = <nameserv.zones>;
+
+if ( not exists $zones->{$zone_name} ) {
+    return { mode => 'false', data => "zone not found: $zone_name" };
+}
+
+my $zone       = $zones->{$zone_name};
+my $orig_count = scalar @{ $zone->{'records'} };
+
+## filter out matching records
+$zone->{'records'} = [
+    grep {
+        my $match = lc( $ARG->{'name'} ) eq $rec_name;
+        $match &&= $ARG->{'type'} eq $rec_type if $rec_type;
+        not $match;
+    } @{ $zone->{'records'} }
+];
+
+my $removed = $orig_count - scalar @{ $zone->{'records'} };
+
+if ( $removed == 0 ) {
+    return { mode => 'false', data => "record not found: $rec_name" };
+}
+
+$zone->{'serial'} = time();
+
+<[nameserv.zone.save]>->($zone_name);
+
+my $msg = sprintf( "removed %d record(s) from %s", $removed, $zone_name );
+return { mode => 'true', data => $msg };
+
+#,,,.,,,,,,..,..,,...,,,.,,..,,..,.,,,...,..,,..,,...,...,...,,,.,,,,,,,.,..,,
+#KMHQNURMZDH2QEKD7GUATAVNIJT55G25SAAHQVGP6AVO5CAF6PDSMI227T77RWGY6PH2R4XOLI42W
+#\\\|GMOFPSLIZK4OPDCEOVWKLIW4JAWGQEK7HWMUJTVDHE4NOC5PB5B \ / AMOS7 \ YOURUM ::
+#\[7]6JIJGF5R7FTXUSX2TDUTNXW6X4K7H4ZMH42PTAP6ETLU3M2J7SDQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

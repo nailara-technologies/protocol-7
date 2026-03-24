@@ -1,0 +1,33 @@
+---
+# Example zone file for nameserv phase-1
+# Place zone files in /var/protocol-7/nameserv/zones/
+
+serial: 2024032401
+ttl: 3600
+
+records:
+  - name: another.local
+    type: A
+    value: 127.0.0.1
+    
+  - name: server.another.local
+    type: A
+    value: 127.0.0.1
+    
+  - name: ns.another.local
+    type: A
+    value: 127.0.0.1
+    
+  - name: another.local
+    type: NS
+    value: ns.another.local
+    
+  - name: another.local
+    type: SOA
+    value: ns.another.local admin.another.local 2024032401 3600 600 86400 3600
+
+#,,.,,,..,.,,,,,,,,.,,,.,,..,,...,.,,,,,,,,,.,..,,...,.,,,...,.,.,,..,,,.,,,,,
+#5G6L7FYLHRG5EGDTGSQNDP25BHYTLC6JSDJ5BMWRREBFOGZ4ZKOZPVWTNJ3EEXAX3SJV7YF5XOJ2S
+#\\\|K2ZBGEX3DSD4PWQTJARBZWUSLV2MUBWBBOQFDD2WSROWSIOFKSD \ / AMOS7 \ YOURUM ::
+#\[7]4TREMEJVNEIHFMJXWLXVVETFLIJS6NIPQ6IXXXK6NS5HDSWUSKBY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
