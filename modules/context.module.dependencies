@@ -31,8 +31,7 @@ if ( -f $path and -r $path ) {
             $calls{$1}++;
         }
         ## match $code{'module.name'} calls ##
-        while ( $line =~ m|\$code\{'([a-z][a-z0-9._-]+)'\}|g )
-        {
+        while ( $line =~ m|\$code\{'([a-z][a-z0-9._-]+)'\}|g ) {
             $calls{$1}++;
         }
     }
@@ -61,8 +60,7 @@ foreach my $mod_path (@all_modules) {
     close $fh;
 
     if (   $content =~ m|\Q$module\E|
-        or $content =~ m|<\[\Q$module\E\]>| )
-    {
+        or $content =~ m|<\[\Q$module\E\]>| ) {
         my $caller = $mod_path;
         $caller =~ s|^modules/||;
         $callers{$caller}++;
@@ -84,8 +82,8 @@ if ( length($output) > $char_budget ) {
 
 return $output;
 
-#,,,,,,,.,,,,,.,.,,.,,.,.,..,,,..,...,,..,,,,,..,,...,...,.,,,...,,,.,.,,,,,,,
-#653J3QLSBFZKFTLBUCD3V4NE2NSOSXYY5E3RYY5QD4DJZLR2UNRDRXHAAQKTMEBLBVWF3DIIJN5MW
-#\\\|CU6I3GJ5IXPANKY35P6XZ4GDMAP2QDDP2PYL7MKYG37SAJPDLQP \ / AMOS7 \ YOURUM ::
-#\[7]LVO3VBYFASWKCY6BIU76NKK7ULY3AISW322CPGF46ONAQXJSNSDY 7  DATA SIGNATURE ::
+#,,..,,,.,..,,,,.,,..,..,,,,.,.,.,..,,..,,..,,..,,...,...,,,.,,..,..,,,,,,.,.,
+#J4EHJ7TK4MF4BBL7WHLKFKQT62DJKDRPWJ23KVXRXDXJHLO3WZFVF4RJNFYWNMJ5QRKMECTI6LCWW
+#\\\|SETXNGQLNIEYVE7BKKVUULM3KLEGL2GYLH6MXL7IOBBDHE3JSHL \ / AMOS7 \ YOURUM ::
+#\[7]TWAUTAYF5LPW4DWFFHHTWFZEGES7WLJY3AJNRB7KQEN475AGR6CQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

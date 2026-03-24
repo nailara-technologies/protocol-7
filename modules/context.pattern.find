@@ -1,0 +1,90 @@
+## [:< ##
+
+# name  = context.pattern.find
+# descr = find similar patterns across the codebase
+
+my $params = shift // {};
+
+my $pattern     = $params->{'pattern'}     // '';
+my $namespace   = $params->{'namespace'}   // '';
+my $budget      = $params->{'budget'}      // 800;
+my $max_matches = $params->{'max_matches'} // 10;
+
+my $char_budget = int( $budget * <context.cfg.chars_per_token> );
+
+return "<!-- no pattern specified -->" unless length $pattern;
+
+## build file list ##
+my @files;
+if ( length $namespace ) {
+    @files = glob "modules/$namespace.*";
+} else {
+    @files = glob 'modules/*';
+}
+
+## search for pattern ##
+my @matches;
+
+foreach my $file (@files) {
+    next unless -f $file;
+
+    open my $fh, '<', $file or next;
+    my @lines = <$fh>;
+    close $fh;
+
+    my $mod_name = $file;
+    $mod_name =~ s|^modules/||;
+
+    for my $i ( 0 .. $#lines ) {
+        if ( $lines[$i] =~ m|\Q$pattern\E|i ) {
+            ## gather context [ 1 line before, match, 1 after ] ##
+            my $before = $i > 0       ? $lines[ $i - 1 ] : '';
+            my $after  = $i < $#lines ? $lines[ $i + 1 ] : '';
+
+            push @matches,
+                {
+                'module' => $mod_name,
+                'line'   => $i + 1,
+                'before' => $before,
+                'match'  => $lines[$i],
+                'after'  => $after
+                };
+
+            last if @matches >= $max_matches;
+        }
+    }
+
+    last if @matches >= $max_matches;
+}
+
+return "<!-- no matches for: $pattern -->" unless @matches;
+
+## format output ##
+my $output = sprintf "## pattern [ %s ] — %d match(es) ##\n\n",
+    $pattern, scalar @matches;
+
+my $used = length $output;
+
+foreach my $m (@matches) {
+    my $block = sprintf "%s:%d\n", $m->{'module'}, $m->{'line'};
+    $block .= "  $m->{'before'}" if length $m->{'before'};
+    $block .= "> $m->{'match'}";
+    $block .= "  $m->{'after'}" if length $m->{'after'};
+    $block .= "\n";
+
+    if ( $used + length($block) > $char_budget ) {
+        $output .= "... [ truncated ]\n";
+        last;
+    }
+
+    $output .= $block;
+    $used += length $block;
+}
+
+return $output;
+
+#,,.,,,.,,.,,,,,,,.,.,,..,,,,,,..,..,,,,.,,..,..,,...,...,.,,,,.,,...,.,,,.,,,
+#6LOQAXSBFMDF54YZ2T6SZ7HHKSUUFHMZKHWVU7RLOCRDYON3V3EBSK5J5V3FYKRCLABJL54KLFHLA
+#\\\|6OTHWX3NAYAZZD6HQ3TCX5SKIGNQM7QJWUFGHS3TOXJ24IT63L2 \ / AMOS7 \ YOURUM ::
+#\[7]HT6FF4BO4QOKDROS7GZYSAF2YLJ7KJDZIXH5Q4TVNEX7PO2SHWDQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

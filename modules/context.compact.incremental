@@ -1,0 +1,102 @@
+## [:< ##
+
+# name  = context.compact.incremental
+# descr = incremental compaction preserving section structure
+
+my $params = shift // {};
+
+my $text   = $params->{'text'}   // '';
+my $budget = $params->{'budget'} // <context.cfg.default_budget>;
+
+my $char_budget = int( $budget * <context.cfg.chars_per_token> );
+
+return $text if length($text) <= $char_budget;
+
+## parse into sections with headers ##
+my @sections;
+my $header = '';
+my $body   = '';
+
+foreach my $line ( split m|\n|, $text ) {
+    if ( $line =~ m|^##\s+(.+)| ) {
+        if ( length $header or length $body ) {
+            push @sections,
+                {
+                'header' => $header,
+                'body'   => $body,
+                'len'    => length($header) + length($body)
+                };
+        }
+        $header = "$line\n";
+        $body   = '';
+    } else {
+        $body .= "$line\n";
+    }
+}
+
+if ( length $header or length $body ) {
+    push @sections,
+        {
+        'header' => $header,
+        'body'   => $body,
+        'len'    => length($header) + length($body)
+        };
+}
+
+## pass 1: strip signature blocks ##
+foreach my $sec (@sections) {
+    $sec->{'body'} =~ s|#,,.*\n.*\n.*AMOS7.*\n.*DATA\sSIGNATURE.*\n.*\n||gms;
+    $sec->{'len'}
+        = length( $sec->{'header'} ) + length( $sec->{'body'} );
+}
+
+## pass 2: collapse multiple blank lines ##
+foreach my $sec (@sections) {
+    $sec->{'body'} =~ s|\n{3,}|\n\n|g;
+    $sec->{'len'}
+        = length( $sec->{'header'} ) + length( $sec->{'body'} );
+}
+
+## check if fits now ##
+my $total = 0;
+$total += $ARG->{'len'} foreach @sections;
+if ( $total <= $char_budget ) {
+    return join '', map { $ARG->{'header'} . $ARG->{'body'} } @sections;
+}
+
+## pass 3: truncate largest sections first ##
+while ( $total > $char_budget and @sections > 1 ) {
+    ## find largest section ##
+    my $max_idx = 0;
+    for my $i ( 1 .. $#sections ) {
+        $max_idx = $i
+            if $sections[$i]->{'len'} > $sections[$max_idx]->{'len'};
+    }
+
+    ## halve its body ##
+    my $sec  = $sections[$max_idx];
+    my $half = int( length( $sec->{'body'} ) / 2 );
+    $sec->{'body'} = substr( $sec->{'body'}, 0, $half );
+    $sec->{'body'} .= "\n... [ compacted ]\n";
+    my $old_len = $sec->{'len'};
+    $sec->{'len'}
+        = length( $sec->{'header'} ) + length( $sec->{'body'} );
+    $total -= ( $old_len - $sec->{'len'} );
+}
+
+## reassemble ##
+my $output = join '', map { $ARG->{'header'} . $ARG->{'body'} } @sections;
+
+## final truncation safety ##
+if ( length($output) > $char_budget ) {
+    $output = substr( $output, 0, $char_budget );
+    $output .= "\n... [ compacted ]\n";
+}
+
+return $output;
+
+#,,..,.,.,,.,,,.,,,,.,,.,,...,...,.,.,.,.,...,..,,...,...,,..,..,,,,.,.,.,,,,,
+#HR4ZAMFNYABLRR45KNDW3VW3OFDJWSGMJJE2MIGUAGJBVFKVGDGNBQXOSKJGI774WKCFGUHBM7T7W
+#\\\|JOWY364AWFYWOPZWBZKVNOSLLIG24Y4PB323T4SPXO2DRQE3FB2 \ / AMOS7 \ YOURUM ::
+#\[7]I75SOJWL6KQN4IKWH73JNKWG64BFFW4XIFQZX3YO2TWEXTUIXIBY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

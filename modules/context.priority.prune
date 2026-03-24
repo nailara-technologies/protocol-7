@@ -1,0 +1,62 @@
+## [:< ##
+
+# name  = context.priority.prune
+# descr = remove lowest priority sections to fit budget
+
+my $params = shift // {};
+
+my $sections = $params->{'sections'} // [];
+my $budget   = $params->{'budget'}   // <context.cfg.default_budget>;
+
+my $char_budget = int( $budget * <context.cfg.chars_per_token> );
+
+## calculate total size ##
+my $total = 0;
+foreach my $sec (@$sections) {
+    $sec->{'_size'} = length( $sec->{'content'} // '' );
+    $total += $sec->{'_size'};
+}
+
+## if within budget, return all ##
+if ( $total <= $char_budget ) {
+    delete $ARG->{'_size'} foreach @$sections;
+    return $sections;
+}
+
+## sort by priority [ higher number = lower priority ] ##
+my @sorted
+    = sort { ( $b->{'priority'} // 99 ) <=> ( $a->{'priority'} // 99 ) }
+    @$sections;
+
+## remove lowest priority sections until within budget ##
+my @pruned;
+
+while ( $total > $char_budget and @sorted ) {
+    my $removed = shift @sorted;
+
+    ## skip if section is not optional ##
+    unless ( $removed->{'optional'} ) {
+        push @pruned, $removed;
+        next;
+    }
+
+    $total -= $removed->{'_size'};
+}
+
+## remaining sections kept ##
+push @pruned, @sorted;
+
+## re-sort by original priority order ##
+@pruned = sort { ( $a->{'priority'} // 99 ) <=> ( $b->{'priority'} // 99 ) }
+    @pruned;
+
+## clean up ##
+delete $ARG->{'_size'} foreach @pruned;
+
+return \@pruned;
+
+#,,.,,,.,,.,,,..,,,,,,..,,.,.,.,,,,.,,,,,,,..,..,,...,...,,,.,.,.,...,.,,,,,.,
+#CFZ26LW4QROBSFWIT7LECXWVZZHER5FM6VKEEFBCNGUSDMQCRH7XFSNF4I34RZP5FMEKBNS2C3AO2
+#\\\|O36XBHKRFLNCSGKKCOC5HL7OC2H7VVPNUUJYKXYYML3RD6PTSXU \ / AMOS7 \ YOURUM ::
+#\[7]233GQKVDCNFMUW6LWQRRU4JH4QPFL2YX7YT4ZMRQFSGZRCEMCMCQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

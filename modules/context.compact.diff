@@ -1,0 +1,60 @@
+## [:< ##
+
+# name  = context.compact.diff
+# descr = reduce diff output to essential changes
+
+my $params = shift // {};
+
+my $diff   = $params->{'diff'}   // '';
+my $budget = $params->{'budget'} // 1000;
+
+my $char_budget = int( $budget * <context.cfg.chars_per_token> );
+
+return $diff if length($diff) <= $char_budget;
+
+my @lines = split m|\n|, $diff;
+my @kept;
+
+foreach my $line (@lines) {
+    ## always keep file headers ##
+    if (   $line =~ m|^diff\s--git|
+        or $line =~ m|^---\s|
+        or $line =~ m|^\+\+\+\s| ) {
+        push @kept, $line;
+        next;
+    }
+
+    ## always keep hunk headers ##
+    if ( $line =~ m|^@@| ) {
+        push @kept, $line;
+        next;
+    }
+
+    ## keep added and removed lines ##
+    if ( $line =~ m|^[+-]| and $line !~ m|^[+-]{3}| ) {
+        ## skip signature lines ##
+        next if $line =~ m|^[+-]#,,|;
+        next if $line =~ m|^[+-]#\\|;
+        next if $line =~ m|^[+-]#::::|;
+        push @kept, $line;
+        next;
+    }
+
+    ## skip context lines [ lines starting with space ] ##
+}
+
+my $output = join "\n", @kept;
+
+## truncate if still over budget ##
+if ( length($output) > $char_budget ) {
+    $output = substr( $output, 0, $char_budget );
+    $output .= "\n... [ diff compacted ]\n";
+}
+
+return $output;
+
+#,,..,,..,,,,,.,,,..,,...,...,,..,,,.,,,.,,..,..,,...,...,,..,.,.,...,.,,,...,
+#JU3W4VMIL6DMBB4KQ47L4TKB57R335AEOTIFQZKKGJOXIDOXNNYUTC2Z4B3LYAWM6GS5S72VI2PR4
+#\\\|WHL5IL5JY45XXWHHM3PC47OYYZYUIOKFAFQZC3PFUGGIDEAROCK \ / AMOS7 \ YOURUM ::
+#\[7]RLCW7JIZ6BWUKINCD3B2LKBOKICCQFXX2366JS5KNJJIXNLDL2DQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
