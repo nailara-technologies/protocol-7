@@ -16,7 +16,8 @@ foreach my $pend_id ( keys %{<kimi.wire.pending>} ) {
     my $rid = $pend->{'reply_id'} // '';
     if ( length($rid) ) {
         <[base.callback.cmd_reply]>->(
-            $rid, { 'mode' => 'false', 'data' => 'kimi reconnect timeout' }
+            $rid,
+            { 'mode' => qw| false |, 'data' => 'kimi reconnect timeout' }
         );
     }
 }
@@ -33,8 +34,8 @@ if ( defined <kimi.task.active_id> ) {
     <kimi.task.active_id> = undef;
 }
 
-#,,,.,,,,,,,,,,,,,...,.,.,..,,,,.,,,,,..,,.,.,.,.,...,...,..,,.,.,.,.,,..,,,,,
-#D5WDWKCT3PZETJO3ULCBYT5ZDFH46EUDMVXULOXNC3FVZFHZEWFU24OCPTD5HTCVPFBJUWA6GBCFO
-#\\\|KQIFY6HNS4OT6YLE232GJQ4YBELZ4BO7FPWMPE2FI5UHIIGOZ2D \ / AMOS7 \ YOURUM ::
-#\[7]JQYJBUNFNNUBG2V4KUCTRRUECFFXA7IEYEHQYRBIDR2WSSU43MDQ 7  DATA SIGNATURE ::
+#,,,.,,.,,,,.,.,,,.,.,,..,,,,,,,,,,,.,.,.,.,.,.,.,...,...,,,.,.,.,,,,,,..,...,
+#LSL5ZKKWS7ZAPVTRMEWS6UDBDAMFFZPNM3UHTIDC2DIS7ZBHYGH6JVLGRQ6HOARKWMQRBO7JGWGW4
+#\\\|GG526GBUUTXWFRQVWXMRME4ZRF454IWN3STT3FLRECEWFDLPZAH \ / AMOS7 \ YOURUM ::
+#\[7]RJYAXL5RUGEOHPGZI63FDHUEIQF3OV3IT2BSX2MOLF6OFWXCN2CI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,7 +1,7 @@
 ## [:< ##
 
 # name  = v7.zenka.cmd.notify_online
-# param = <zenka|instance>
+# param = [:start:] <zenka|instance>
 # descr = reply when zenka startup complete or failed
 
 <v7.zenka.notify_online> //= {};
@@ -15,6 +15,9 @@ return {
     'data' => 'expected zenka name or instance parameter'
     }
     if not defined $query_param or !length($query_param);
+
+## optional :start: prefix — ensure zenka is started before waiting
+my $do_start = $query_param =~ s{^:start:\s*}{};
 
 my @instances = <[v7.instance_ids]>;
 
@@ -93,12 +96,20 @@ foreach my $id (@instances) {    # zenka name [ +subname ]
 
 <[base.logs]>->( 2, "startup notification request ['%s']", $query_copy );
 
+## trigger start_once when :start: prefix was given
+if ($do_start) {
+    <[base.logs]>->(
+        2, ': notify_online :start: — ensuring %s is started', $query_copy
+    );
+    <[zenka.cmd.start_once]>->( { 'args' => $query_copy } );
+}
+
 push <v7.zenka.notify_online>->{$query_copy}->@*, $reply_id;
 
 return { 'mode' => qw| deferred | }
 
-#,,,,,,,,,,.,,,.,,,,.,,..,..,,..,,.,.,,,.,..,,..,,...,...,.,.,,..,,,.,...,,,,,
-#V42YSHDV3MZ5CMIZY5RZQ2PL2YLQUNRRZGDU65FILLUBWQ32BSW77FPPTHS4T7TRAQH25OZKGJIZE
-#\\\|2NV3YTPCXLGD45SMY2DVKZYYKYMJHLYIKMGAAM5SJWUOFDJB7AB \ / AMOS7 \ YOURUM ::
-#\[7]NMAEJB5USSYLE25SGUKDY3KRZYDOOY2PMF7JQPPB364TGQGO4EAA 7  DATA SIGNATURE ::
+#,,,.,..,,,..,.,,,..,,..,,,..,.,.,,,,,,,,,,..,..,,...,..,,..,,.,.,,..,,..,,.,,
+#GQTIZ5JSYHBFZ6M62X2HSJ42W4FCRVOCYDM3ZBYKHGP2PZ7ED6HOOOTF5W25G3XNLX4WCEWB7J53W
+#\\\|FDRAHODUUO756LGYJ4TFTHAB7KH44FIJIWSSELK6PRJJM27GT4Y \ / AMOS7 \ YOURUM ::
+#\[7]IUGOY6JLCBEQD27VSIPCWXKSNZGQ7RXPSUMEX6APC34GS4CDU2BY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

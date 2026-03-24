@@ -4,9 +4,7 @@
 # descr = send prompt to kimi-web and return response
 # param = <prompt>
 
-<[base.perlmod.load]>->(qw| Crypt::Misc |);
-
-## extract prompt from call args [supports base32r-encoded multiline prompts]
+## extract prompt from call args [ supports base32r-encoded multiline prompts ]
 my $prompt;
 
 if ( defined $call->{'param'} and ref $call->{'param'} eq qw| HASH | ) {
@@ -23,16 +21,34 @@ if ( $prompt =~ m{^[2-7A-Z]+$} ) {
 }
 
 unless ( length $prompt ) {
-    return { 'mode' => 'false', 'data' => 'prompt required' };
+    return { 'mode' => qw| false |, 'data' => 'prompt required' };
 }
 
-unless (<kimi.ws.connected>) {
-    return { 'mode' => 'false', 'data' => 'kimi not connected' };
+## check for :next: prefix — fresh session before dispatch
+if ( $prompt =~ s{^:next:\s*}{} ) {
+    ## store deferred prompt for post-reconnect dispatch
+    <kimi.next.deferred> = {
+        'prompt'   => $prompt,
+        'reply_id' => $$call{'reply_id'}
+    };
+    ## trigger session reset + reconnect
+    <[kimi.session.reset_and_reconnect]>;
+    return { 'mode' => qw| deferred | };
+}
+
+## reconnect on demand if disconnected [ idle disconnect or first use ]
+if ( not <kimi.ws.connected> or <kimi.ws.status> eq qw| disconnected | ) {
+    <kimi.next.deferred> = {
+        'prompt'   => $prompt,
+        'reply_id' => $$call{'reply_id'}
+    };
+    <[kimi.connect]>;
+    return { 'mode' => qw| deferred | };
 }
 
 unless ( <kimi.ws.status> eq qw| ready | ) {
     return {
-        'mode' => 'false',
+        'mode' => qw| false |,
         'data' => sprintf( 'kimi not ready [ status=%s ]', <kimi.ws.status> )
     };
 }
@@ -41,7 +57,7 @@ my $reply_id = $$call{'reply_id'};
 
 my $msg_id = <[kimi.wire.prompt]>->( $prompt, $reply_id );
 
-return { 'mode' => 'false', 'data' => 'kimi.wire.prompt failed' }
+return { 'mode' => qw| false |, 'data' => 'kimi.wire.prompt failed' }
     unless defined $msg_id;
 
 <[base.logs]>->(
@@ -49,10 +65,10 @@ return { 'mode' => 'false', 'data' => 'kimi.wire.prompt failed' }
     $msg_id, $reply_id
 );
 
-return { 'mode' => 'deferred' };
+return { 'mode' => qw| deferred | };
 
-#,,..,.,,,...,..,,.,,,,,,,,.,,,,,,.,,,.,.,.,,,..,,...,...,,,.,...,,,.,.,.,,.,,
-#XXH7HEC2FYWIXREXWMNPY6BLMSON662ZPMDOPXFTG6BFOL2N3ZRQH62MQI5IMJRKI5K44HY2L6AE4
-#\\\|2TX7F3US43SXKBAW7EYPRU74CBNMRISJBKLJX3UL2URSAKE7DQN \ / AMOS7 \ YOURUM ::
-#\[7]DBYVVVZI56RPB3KMHI2VPVXMCB6FENSJHJR6CW2MEQ2QDJCIWSCY 7  DATA SIGNATURE ::
+#,,.,,,,,,,.,,,,.,.,.,...,.,,,.,,,.,,,..,,,,.,.,.,...,...,..,,.,,,.,.,,..,...,
+#EGVWQ2GIXTGWXATRA7ZMGM45PZ2KC7OVFVECLIYRQZBMR3L2HV5ARLWXSFICV6EFVM5JYWUJQJVJS
+#\\\|SZQZUPU7YWY6JHKHN263HN5C7GXAQFDWRWKIFYGKA3KH6TRRC2H \ / AMOS7 \ YOURUM ::
+#\[7]4NJGSDDBNH4Z7XTL7PHWRUZJF32HDJCJMBSEAZFGENWYUIHJRSBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

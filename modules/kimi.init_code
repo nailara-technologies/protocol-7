@@ -3,8 +3,10 @@
 # name  = kimi.init_code
 # descr = initialize kimi-web zenka client state and schedule connection
 
-map { <[base.perlmod.load]>->($_) }
-    qw| JSON LWP::UserAgent Protocol::WebSocket::Frame |;
+map { <[base.perlmod.load]>->($ARG) }
+    qw| JSON LWP::UserAgent Protocol::WebSocket::Frame
+    IO::Socket::INET Protocol::WebSocket::Handshake::Client
+    Errno Crypt::Misc IPC::Open2 |;
 
 ## kimi-web endpoint configuration
 <kimi.web.host> //= qw| 127.0.0.1 |;
@@ -72,14 +74,19 @@ if ( not keys %{<kimi.approval.responded>} ) {
     }
 }
 
+## api child state [ persistent lightweight perl child for session api ]
+<kimi.api_child.pid>  //= undef;
+<kimi.api_child.r_fh> //= undef;
+<kimi.api_child.w_fh> //= undef;
+
 ## reconnect configuration [ exponential backoff ]
 <kimi.connect.retry_delay> //= 60;      ## max retry delay cap [ seconds ]
 <kimi.connect.retry_cur>   //= 2;       ## current delay [ reset on connect ]
 <kimi.connect.retrying>    //= FALSE;
 
-## schedule initial connection attempt after init completes
+## schedule kimi-web connection attempt after event loop starts
 <[event.add_timer]>->(
-    {   'after'   => 1.0,
+    {   'after'   => 0.5,
         'handler' => qw| kimi.connect |,
         'desc'    => 'initial kimi-web websocket connection'
     }
@@ -89,8 +96,8 @@ if ( not keys %{<kimi.approval.responded>} ) {
 
 return TRUE;
 
-#,,,,,,..,..,,.,,,...,,,.,..,,,,,,.,.,...,,,.,..,,...,...,..,,,,.,,.,,..,,...,
-#744ZV4BU2FSGKUBQSZPBAZNHJZU4RSLXE4TGWNOAI3RZ5HBE5OBW6GM3QJ6NIX3M6FBJZZUNNVYC6
-#\\\|2OG6FA3FPFTTJQMTPLCPMRI4G32K7T6W5NYK7EMV2G6VCDREBY3 \ / AMOS7 \ YOURUM ::
-#\[7]WAZMZ34MAFVEJ4UDEBC4XDVYFG4ESMU7EKZUZAJ67IZ7YRDJ36BY 7  DATA SIGNATURE ::
+#,,..,,..,,.,,.,.,,,,,..,,,..,.,,,,..,.,.,..,,..,,...,...,,.,,..,,..,,..,,.,,,
+#JSF56RZ4TAUGWGXJA3LVTPGJ2LLS43QNWVULSV3OVGK4ZOZGXZSFD3MGFKYXUOU5FENNOQVMYEXLK
+#\\\|P24Y627QSAVRJGUKJCJKVH3YLL6SQS2VG6KPFAW3UMESUZH3ZHP \ / AMOS7 \ YOURUM ::
+#\[7]5J66WPKP6PYWJJTV3PYAA2RGAGZEDZZ3M2YYVDEAPWG4GBCDGYDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

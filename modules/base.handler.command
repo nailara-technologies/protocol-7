@@ -559,7 +559,7 @@ if ( $cmd =~ m,^(TRUE|FALSE|WAIT|SIZE|CHRSIZE|STRM|STRM-SIZE|GET|TERM)$, ) {
                     my $msg_len = 0 + $LAST_PAREN_MATCH;
                     $call_args->{'args'} = $msg_len; ##  removing 0 prefix  ##
 
-                    ## SIZE mode : BYTE count [ global 'use bytes;' pragma ]
+                    ## SIZE mode : BYTE count [ bytes:: via perlmod.autoload ]
                     my $buffer_len_bytes = bytes::length( $input->$* );
 
                     if ( $buffer_len_bytes >= $msg_len ) {    ##BYTES##
@@ -1942,8 +1942,8 @@ UNKNOWN_CMD_GLOBAL_HANDLED:
 
 return 0;        ## comand complete ##
 
-#,,,,,.,,,,..,.,,,,.,,..,,.,,,,..,.,,,,.,,.,,,..,,...,...,,.,,.,.,,..,..,,,.,,
-#DITICHR73LNW4WA5VHTFUAJCJJDTKHJR5QZBRM3VJSHBCH2DBDTJ4QY62RTXQLG67EQHSWC6OYNDS
-#\\\|SO2EARR72RSHOEY2IX5ZHLEAMDVX7EZCUMCHJ25EWT6H47ONG4E \ / AMOS7 \ YOURUM ::
-#\[7]DDKOYNIOQQHWRGZJUVECBIW6SG4BQDLGKHBNTZTXGGUABIGHBODA 7  DATA SIGNATURE ::
+#,,..,,.,,,..,.,,,.,,,,,.,,,,,,,.,,,.,,.,,.,.,..,,...,...,.,.,.,.,...,,,,,...,
+#FOS743IJRNH76O4VSKVJ2JUF6FVR7IWD3O2KWR6TK44QA3Z6XAWW7VW7TMIGSSQCZW5Y3J4NIRL4O
+#\\\|N2NCAE7DHKOWV6QAOVY46ZTWMOQ6OSU65C4ONZJ46WANXBA5VZR \ / AMOS7 \ YOURUM ::
+#\[7]S35ZNCHTJXKV2ZH7YEUSWPCLQ63H267AT736ZVJBNUSNBCN3BGCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

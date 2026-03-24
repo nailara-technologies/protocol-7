@@ -1,7 +1,7 @@
 ## [:< ##
 
 # name  = base.callback.cmd_reply
-# descr = callback to asynchronous ['defered'] reply to local commands
+# descr = deliver deferred reply to local command caller
 
 my ( $reply_id, $reply ) = @ARG;
 
@@ -72,9 +72,9 @@ if ( $reply->{'mode'} =~ m{^(TRUE|FALSE|WAIT)$}io ) {
     ## Ensure data ends with newline for protocol coherence
     $data .= "\n" unless $data =~ /\n$/;
 
-    ## With global 'use bytes;' pragma, length() counts bytes
     ## SIZE mode reports BYTE count for buffer/socket operations
-    my $byte_count = length($data);
+    ## [ bytes:: loaded via perlmod.autoload — not a lexical pragma ]
+    my $byte_count = bytes::length($data);
 
     $output->$* .= sprintf( "%sSIZE %d\n%s", $_cmd_id, $byte_count, $data );
 
@@ -103,8 +103,8 @@ if ( $reply->{'mode'} =~ m{^(TRUE|FALSE|WAIT)$}io ) {
 
 delete <base.cmd_reply>->{$reply_id};
 
-#,,,.,.,.,.,,,,.,,.,.,.,,,.,,,,,.,...,...,.,.,..,,...,...,...,,,.,.,,,,..,..,,
-#DLMIIWGI5PIIZHGLCGT6KATVJL2ZRQI6OM6Z3RK6XCZVZSEWF2QLQC35DZXV3IBXXOI26SRFJFY36
-#\\\|ZRPHPPPGPJYYGVTSELINMIHTSFDCAQOBTLLH27EEYAKD5JLTWA3 \ / AMOS7 \ YOURUM ::
-#\[7]O6GP5HKA5V3WK3PKF2KQZGD3K34H5BVXNRHATSN26O4IA6HNUMDQ 7  DATA SIGNATURE ::
+#,,.,,.,,,...,..,,,.,,,..,,,.,,.,,...,,.,,,,,,..,,...,...,,.,,,,,,,.,,,,.,,,.,
+#2G2ISB4AV4JAEKZMG7VE2QP5MUTI7IDHRAAMLJY5ULDWIE54IEALNS3P4GLLTHZGLLGYMMG53RNEO
+#\\\|UDPOKAU2OXCF2QB25G2AS4I3MKMZ46OYJOY2WMXLWXCULXBJAX2 \ / AMOS7 \ YOURUM ::
+#\[7]TTF7MAXXSE2DPW6NET2SMV4YTXBB2SMFERPVQ7M6AF2UFUZB6MBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

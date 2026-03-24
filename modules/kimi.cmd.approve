@@ -9,14 +9,14 @@ my $request_id = $$call{'args'} // '';
 if ( not length $request_id ) {
     my @pending = keys %{<kimi.approval.pending>};
     if ( not @pending ) {
-        return { 'mode' => 'false', 'data' => 'no pending approvals' };
+        return { 'mode' => qw| false |, 'data' => 'no pending approvals' };
     }
     foreach my $rid (@pending) {
         delete <kimi.approval.pending>->{$rid};
         <[kimi.wire.approval_respond]>->( $rid, 'approve' );
     }
     return {
-        'mode' => 'true',
+        'mode' => qw| true |,
         'data' => sprintf( 'approved %d pending requests', scalar @pending )
     };
 }
@@ -24,7 +24,7 @@ if ( not length $request_id ) {
 my $pend = delete <kimi.approval.pending>->{$request_id};
 if ( not defined $pend ) {
     return {
-        'mode' => 'false',
+        'mode' => qw| false |,
         'data' => "no pending approval for $request_id"
     };
 }
@@ -32,13 +32,13 @@ if ( not defined $pend ) {
 <[kimi.wire.approval_respond]>->( $request_id, 'approve' );
 
 return {
-    'mode' => 'true',
+    'mode' => qw| true |,
     'data' =>
         sprintf( 'approved %s [ %s ]', $request_id, $pend->{'action'} // '' )
 };
 
-#,,,,,.,,,.,.,.,,,.,.,.,,,..,,..,,...,..,,,.,,..,,...,..,,..,,,,,,,.,,..,,.,.,
-#5ML3XEV2DKMK4Q32KWEPEHWYSMNSJRDSQNFOEIGL76C3YBGN7U3P2NMA7HJUET343HWR2JJEZN642
-#\\\|DTOP6NVI7MZ3KSP6REQPHOLCYR3OFLAN5BUHI62BWUREBG5CGHF \ / AMOS7 \ YOURUM ::
-#\[7]EF5O2QO4JVDEFWOMKWOQZ2LM2AJD2YAJR7TCQTVP7345OT3PGUDQ 7  DATA SIGNATURE ::
+#,,,.,,..,.,.,,,,,..,,,,.,,.,,,,,,.,.,...,,.,,.,.,...,...,.,.,,.,,.,,,,.,,..,,
+#FNDHKJTXDQDW3SOMLIHDWIWRZQZELYZX6QQCYRULS4R7XOAB33QFCET3HERMQU5LJEAIOQTBDPLVK
+#\\\|GIHYXA2R5EN6DVNVZNP4BQLYLRP7AC4BUX44ITQSCKZIWJLS6YS \ / AMOS7 \ YOURUM ::
+#\[7]VMROWKMW34UP4S5FYLPA3QZ3PQUPQBEXULKVQVQVXGN4VUAGYADI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
