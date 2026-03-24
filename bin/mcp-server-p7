@@ -40,6 +40,7 @@ binmode( STDOUT, ':raw' );
 binmode( STDERR, ':encoding(UTF-8)' );
 
 $OUTPUT_AUTOFLUSH = TRUE;
+$SIG{'PIPE'} = 'IGNORE';         ## prevent death on closed cube socket write
 
 ##[ tool definitions ]##
 
@@ -576,8 +577,8 @@ sub log_msg {
     printf STDERR "[mcp-server-p7] %s\n", $msg;
 }
 
-#,,.,,,..,,.,,,,,,...,,,.,,.,,..,,.,.,.,.,...,..,,...,...,...,.,,,.,.,...,..,,
-#DYGC3TE4Z6BZCXK5SBL55ZQ6J2H3CDVTVD6XSUPUNX7HIS2ZBSF6TMGSEEUGZP5CTIMDHW3MEJQTU
-#\\\|ML2OYIKEM4BU3IXACJ6GPGEXYQVIFAUCNGWQRCIIORREV37I47E \ / AMOS7 \ YOURUM ::
-#\[7]YN3IWBFTIBPAWSGVFA6MCCWPONUPKKVGC4ENBCM3HO4W6RXD5IAA 7  DATA SIGNATURE ::
+#,,,,,.,,,,,.,,..,.,.,..,,,,,,,.,,.,,,,..,,,.,..,,...,...,..,,,,.,..,,..,,,.,,
+#NVTG6QDBB5BJGWULVT2WMUXGQGRBUYFRC7I7MYAAXQS5EYNK74G66LTQTS2OR5RVKM73KPRM36D36
+#\\\|CUQVOPM2I5BNKPURSKYAACV5IMR4SATAF7QEKATKF2VK57TIVGD \ / AMOS7 \ YOURUM ::
+#\[7]ACG6S5S5S447F7DFXLE435GGAUWYTTSXTYADA4JXOHQJ4HQBYEDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
