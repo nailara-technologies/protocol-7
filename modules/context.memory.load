@@ -1,0 +1,96 @@
+## [:< ##
+
+# name  = context.memory.load
+# descr = load ai-mem files for a zenka with budget
+
+my $params = shift // {};
+
+my $zenka       = $params->{'zenka'}  // '';
+my $topics      = $params->{'topics'} // '';
+my $budget      = $params->{'budget'} // 1000;
+my $char_budget = int( $budget * <context.cfg.chars_per_token> );
+
+my $mem_dir = <context.cfg.ai_mem_dir>;
+
+## resolve zenka directory ##
+my $zenka_dir;
+if ( length $zenka and -d "$mem_dir/$zenka" ) {
+    $zenka_dir = "$mem_dir/$zenka";
+} else {
+    ## try all subdirectories ##
+    my @dirs = glob "$mem_dir/*";
+    $zenka_dir = $dirs[0] if @dirs;
+}
+
+return "<!-- no ai-mem directory found -->"
+    unless defined $zenka_dir and -d $zenka_dir;
+
+## find matching files ##
+my @files;
+if ( length $topics ) {
+    ## filter by topic keywords ##
+    my @keywords = split m|\s+|, lc $topics;
+    foreach my $file ( glob "$zenka_dir/*.md" ) {
+        my $basename = lc $file;
+        $basename =~ s|^.*/||;
+        foreach my $kw (@keywords) {
+            if ( $basename =~ m|\Q$kw\E| ) {
+                push @files, $file;
+                last;
+            }
+        }
+    }
+} else {
+    ## load all markdown files ##
+    @files = glob "$zenka_dir/*.md";
+}
+
+return "<!-- no matching memory files -->" unless @files;
+
+## sort by size [ smaller files first — more likely to be focused ] ##
+@files = sort { -s $a <=> -s $b } @files;
+
+## read files within budget ##
+my $output = "## ai-mem [ $zenka_dir ] ##\n";
+my $used   = length $output;
+
+foreach my $file (@files) {
+    my $basename = $file;
+    $basename =~ s|^.*/||;
+
+    my $content_ref = <[file.slurp]>->($file);
+    next unless defined $content_ref;
+
+    my $content = $content_ref->$*;
+
+    ## strip signature blocks ##
+    $content =~ s|^#,,.*\n.*\n.*AMOS7.*\n.*DATA\sSIGNATURE.*\n.*\n||ms;
+
+    my $section     = "### $basename\n$content\n";
+    my $section_len = length $section;
+
+    if ( $used + $section_len > $char_budget ) {
+        ## try truncating this file ##
+        my $remaining
+            = $char_budget - $used
+            - length("### $basename\n")
+            - length("\n... [ truncated ]\n");
+        if ( $remaining > 200 ) {
+            $output .= "### $basename\n";
+            $output .= substr( $content, 0, $remaining );
+            $output .= "\n... [ truncated ]\n";
+        }
+        last;
+    }
+
+    $output .= $section;
+    $used += $section_len;
+}
+
+return $output;
+
+#,,.,,.,,,.,.,.,.,,,.,..,,,..,,,.,,..,,.,,.,,,..,,...,...,,,.,,,,,,,.,..,,...,
+#D76OVSFOFCWRJQPP5JHCGYGW2JB4TIP3YLL4BCXGVABSQ5JCU6VEGLZK4IFJPVRTTUYFJO7HTEALY
+#\\\|OK6Y6RMBRBV2PXMJTSKAJXWNX5BC32NIWOON4ZIGYZTTZRX4II2 \ / AMOS7 \ YOURUM ::
+#\[7]IT3LD2PTK5KSWBSLDOXUBDRL6WGLNN4Y2OLUUM5QAVVXUEUNEEBA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

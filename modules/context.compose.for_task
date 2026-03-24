@@ -1,0 +1,58 @@
+## [:< ##
+
+# name  = context.compose.for_task
+# descr = assemble context for a task using template or defaults
+
+my $params = shift // {};
+
+my $task_type = $params->{'type'}   // qw| feature-impl |;
+my $vars      = $params->{'vars'}   // {};
+my $budget    = $params->{'budget'} // <context.cfg.default_budget>;
+
+## try to load matching template ##
+my $template = <[context.template.load]>->($task_type);
+
+if ( defined $template ) {
+    ## override budget if explicitly specified ##
+    $template->{'budget'} = $budget if defined $params->{'budget'};
+
+    return <[context.template.render]>->(
+        {   'template' => $template,
+            'vars'     => $vars
+        }
+    );
+}
+
+## fallback: default provider list for unknown task types ##
+<[base.logs]>->(
+    2, ': no template for task type [ %s ] — using defaults', $task_type
+);
+
+return <[context.compose]>->(
+    {   'budget'    => $budget,
+        'vars'      => $vars,
+        'providers' => [
+            {   'provider' => 'context.style.guide',
+                'params'   => { 'budget' => int( $budget * 0.15 ) }
+            },
+            {   'provider' => 'context.task.active',
+                'params'   => { 'budget' => int( $budget * 0.10 ) }
+            },
+            {   'provider' => 'context.file',
+                'params'   => {
+                    'budget' => int( $budget * 0.50 ),
+                    'path'   => $vars->{'target_file'} // ''
+                }
+            },
+            {   'provider' => 'context.git.recent_changes',
+                'params'   => { 'budget' => int( $budget * 0.25 ) }
+            },
+        ]
+    }
+);
+
+#,,..,,..,,..,...,..,,,,.,,,.,,..,,..,..,,,.,,..,,...,..,,,,.,,,,,.,,,..,,.,,,
+#ZIEMIAOHJRPQURGEAY3RTTSR6XDUICLHVQCB2JUVA5YB5UES2M67EUVNBGC2ZFZ6V57SBHRQW3INO
+#\\\|47F2ATTEWZTMPK7FHZ242BOOWUQPUDVJ36W4XPMD4YGVA73MQTO \ / AMOS7 \ YOURUM ::
+#\[7]PLME6PLHYATMVTZTL4CRUENSN57GMPQ7TRRKBZ5SAIF3ZP6YRABA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
