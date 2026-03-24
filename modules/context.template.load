@@ -1,0 +1,61 @@
+## [:< ##
+
+# name  = context.template.load
+# descr = load named context template from yaml
+
+my $name = shift // return undef;
+
+## check cache first ##
+if ( exists <context.templates>->{$name} ) {
+    return <context.templates>->{$name};
+}
+
+## resolve template file ##
+my $template_dir = <context.cfg.template_dir>;
+my $path         = "$template_dir/$name.yaml";
+
+unless ( -f $path and -r $path ) {
+    <[base.logs]>->( 0, ': context template not found [ %s ]', $path );
+    return undef;
+}
+
+## load yaml ##
+my ( $template, $err ) = <[format.yaml.load_file]>->($path);
+
+if ( defined $err or not defined $template ) {
+    <[base.logs]>->(
+        0,     ': context template parse error [ %s ]: %s',
+        $name, $err // 'empty'
+    );
+    return undef;
+}
+
+## validate required fields ##
+unless (defined $template->{'name'}
+    and defined $template->{'sections'}
+    and ref $template->{'sections'} eq qw| ARRAY | ) {
+    <[base.logs]>->(
+        0, ': context template invalid [ %s ]: missing name or sections',
+        $name
+    );
+    return undef;
+}
+
+## set defaults ##
+$template->{'budget'} //= <context.cfg.default_budget>;
+
+## cache for reuse ##
+<context.templates>->{$name} = $template;
+
+<[base.logs]>->(
+    2,     ': context template loaded [ %s ] [ %d sections ]',
+    $name, scalar $template->{'sections'}->@*
+);
+
+return $template;
+
+#,,.,,,.,,,,,,,,.,,..,.,,,...,..,,,,,,,..,..,,..,,...,...,.,,,.,.,,,.,,.,,,.,,
+#AJMTSOSPVU3WYGDLXAKUW23PEV362KH3HBYJY27U3NSFVQ7WGQ37TOX7VM26VGIBNFT5DJKIZOTMW
+#\\\|POAYRUFTK5LZJJPOFYUNF6WQMEOP7T4YL36A3KL6TUO72OSNS2I \ / AMOS7 \ YOURUM ::
+#\[7]V4YQGZ4MPD2PKTSJIO4ZJOVZ2IDU6NRRNDIPJRD2THD56DP5TEBA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,0 +1,104 @@
+## [:< ##
+
+# name  = context.template.render
+# descr = render context template with variable substitution
+
+my $params = shift // {};
+
+my $template = $params->{'template'};
+my $vars     = $params->{'vars'} // {};
+
+## accept template name or template hashref ##
+if ( not ref $template ) {
+    $template = <[context.template.load]>->($template);
+    return undef unless defined $template;
+}
+
+my $total_budget = $template->{'budget'} // <context.cfg.default_budget>;
+
+## sort sections by priority [ lower number = higher priority ] ##
+my @sections
+    = sort { ( $a->{'priority'} // 99 ) <=> ( $b->{'priority'} // 99 ) }
+    $template->{'sections'}->@*;
+
+## render each section ##
+my @rendered;
+my $total_used = 0;
+
+foreach my $section (@sections) {
+    my $provider   = $section->{'provider'}   // next;
+    my $budget_pct = $section->{'budget_pct'} // 20;
+    my $optional   = $section->{'optional'}   // 0;
+
+    ## calculate section budget ##
+    my $section_budget = int( $total_budget * $budget_pct / 100 );
+
+    ## prepare provider params ##
+    my %prov_params = %{ $section->{'params'} // {} };
+    $prov_params{'budget'} = $section_budget;
+
+    ## substitute template variables in param values ##
+    foreach my $key ( keys %prov_params ) {
+        next unless defined $prov_params{$key};
+        next if ref $prov_params{$key};
+        $prov_params{$key} =~ s|\{\{(\w+)\}\}|
+            defined $vars->{$1} ? $vars->{$1} : ''
+        |ge;
+    }
+
+    ## skip section if required variable was empty ##
+    my $has_empty_required = 0;
+    foreach my $key ( keys %prov_params ) {
+        next if $key eq 'budget';
+        if (    defined $prov_params{$key}
+            and not ref $prov_params{$key}
+            and $prov_params{$key} eq '' ) {
+            $has_empty_required = 1;
+            last;
+        }
+    }
+
+    if ( $has_empty_required and $optional ) {
+        <[base.logs]>->(
+            3, ': skipping optional section [ %s ] — empty variable',
+            $provider
+        );
+        next;
+    }
+
+    ## call provider ##
+    my $result;
+    if ( exists $code{$provider} ) {
+        eval { $result = $code{$provider}->( \%prov_params ) };
+        if ($EVAL_ERROR) {
+            <[base.logs]>->(
+                0,         ': context provider error [ %s ]: %s',
+                $provider, <[base.str.eval_error]>
+            );
+            next if $optional;
+            $result = "<!-- error in $provider -->";
+        }
+    } else {
+        <[base.logs]>->(
+            1, ': context provider not loaded [ %s ]', $provider
+        );
+        next if $optional;
+        $result = "<!-- provider not available: $provider -->";
+    }
+
+    next unless defined $result and length $result;
+
+    push @rendered, $result;
+    $total_used += length $result;
+}
+
+## join sections ##
+my $output = join "\n\n", @rendered;
+
+return $output;
+
+#,,,.,..,,..,,..,,,..,,,.,,,,,...,,,,,...,,..,..,,...,...,.,.,,,.,..,,.,,,..,,
+#T6UPFP3LME5G7JW4JVNYOIRFFIFWKLEQ3CHQQPNPRMTNMOGFFC2UHW7HFXTOEDHUFWMWK5XDQWQCK
+#\\\|4FJOZRRQ42SJQFKLUJ7APHCBR6OICX7RJF37TH4ESLIP5WFN3PP \ / AMOS7 \ YOURUM ::
+#\[7]IAODJA4RT3P5LSAJ5HQHCP5ZFXGNJNVYE7YFNJP7IZODAL7TW4DQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
