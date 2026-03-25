@@ -4,11 +4,11 @@
 # descr = HTTP backend for vision analysis via llama-server with LOVES_IT allocation
 # param = image_path, prompt, reply_id, requester, amos_tokens
 
-my $params     = shift                   // {};
-my $image_path = $params->{'image_path'} // '';
-my $prompt     = $params->{'prompt'}     // 'describe this image';
-my $reply_id   = $params->{'reply_id'}   // '';
-my $requester  = $params->{'requester'}  // 'anonymous';
+my $params      = shift                    // {};
+my $image_path  = $params->{'image_path'}  // '';
+my $prompt      = $params->{'prompt'}      // 'describe this image';
+my $reply_id    = $params->{'reply_id'}    // '';
+my $requester   = $params->{'requester'}   // 'anonymous';
 my $amos_tokens = $params->{'amos_tokens'} // 0;
 
 return { 'mode' => qw| false |, 'data' => 'image_path required' }
@@ -21,37 +21,45 @@ return { 'mode' => qw| false |, 'data' => 'image not found' }
 ## Calculate workload hash for loves_it scoring
 my $workload_hash = <[chk-sum.bmw.filesum]>->( 256, $image_path );
 
-## Use AMOS7 checksum with elf modes 4 and 7 (default truth modes)
-my $amos_result = eval {
-    <[chk-sum.amos]>->( { 'str' => $workload_hash, 'elf_modes' => [ 4, 7 ] } );
-};
+## Calculate ELF checksum (provides truth assertion)
+my $elf_result = eval { <[chk-sum.elf]>->($workload_hash) } // '';
 
-## For mode 13 (cosmic assertion), use division by 13 validation
-my $div13_valid = 0;
+## Calculate AMOS7 checksum (provides harmonic validation)
+my $amos_result = eval { <[chk-sum.amos]>->($workload_hash) } // '';
+
+## Derive loves_it score from checksum properties
+## Mode 4 (data truth): Checksum exists and is valid
+my $mode4 = ( defined $elf_result && length($elf_result) > 0 ) ? 1 : 0;
+
+## Mode 7 (love-truth): AMOS checksum validates with harmonic properties
+my $mode7 = ( defined $amos_result && length($amos_result) >= 7 ) ? 1 : 0;
+
+## Mode 13 (cosmic assertion): Division by 13 pattern in checksum
+my $mode13 = 0;
 if ( defined $amos_result && length($amos_result) >= 13 ) {
     my $first_13 = substr( $amos_result, 0, 13 );
-    ## Check if it contains harmonic patterns (simplified check)
-    $div13_valid = 1 if $first_13 =~ m{[27][59]};  ## Harmonic signature
+    ## Check for harmonic patterns (0, 7, 2, 5, 9 in base32)
+    $mode13 = 1 if $first_13 =~ m{[02759]};
 }
 
-## Check modes (simplified - use checksum properties)
-my $mode4  = defined $amos_result ? 1 : 0;  ## Data exists (mode 4: data truth)
-my $mode7  = ( defined $amos_result && length($amos_result) >= 7 ) ? 1 : 0;  ## Mode 7: love-truth
-my $mode13 = $div13_valid;
-
 ## Calculate loves_it score (max 13)
-my $loves_score = ( $mode4 ? 4 : 0 ) + ( $mode7 ? 7 : 0 ) + ( $mode13 ? 2 : 0 );
-my $loves_it    = $loves_score == 13;
+my $loves_score
+    = ( $mode4 ? 4 : 0 ) + ( $mode7 ? 7 : 0 ) + ( $mode13 ? 2 : 0 );
+my $loves_it = $loves_score == 13;
 
 ## Calculate priority weight (0.25 to 1.13)
 my $priority_weight = $loves_score / 13;
 $priority_weight = 0.25 if $priority_weight < 0.25;
-$priority_weight *= 1.13 if $loves_it;  ## 13% bonus for loves_it!
+$priority_weight *= 1.13 if $loves_it;    ## 13% bonus for loves_it!
 
 <[base.log]>->(
     1,
     "[http_analyze] loves_it score: %d (modes 4:%d 7:%d 13:%d) weight: %.2f",
-    $loves_score, $mode4, $mode7, $mode13, $priority_weight
+    $loves_score,
+    $mode4,
+    $mode7,
+    $mode13,
+    $priority_weight
 );
 
 ## Get server endpoint from coding zenka ##
@@ -65,7 +73,8 @@ my $model_name  = $server_info->{'model'} // 'vision-model';
 );
 
 ## Load and base64-encode image ##
-open my $img_fh, '<:raw', $image_path
+open my $img_fh, '<:raw',
+    $image_path
     or return {
     'mode' => qw| false |,
     'data' => "failed to open image: $!"
@@ -107,11 +116,11 @@ my $request = {
 my $http_request = HTTP::Request->new(
     'POST',
     "$server_url/v1/chat/completions",
-    [   'Content-Type'         => 'application/json',
-        'X-Loves-It-Score'     => $loves_score,
-        'X-Priority-Weight'    => sprintf( "%.2f", $priority_weight ),
-        'X-Requester'          => $requester,
-        'X-AMOS-Tokens'        => $amos_tokens,
+    [   'Content-Type'      => 'application/json',
+        'X-Loves-It-Score'  => $loves_score,
+        'X-Priority-Weight' => sprintf( "%.2f", $priority_weight ),
+        'X-Requester'       => $requester,
+        'X-AMOS-Tokens'     => $amos_tokens,
         $loves_it ? ( 'X-Loves-It' => 'true' ) : (),
     ],
     <[format.json.encode]>->($request)
@@ -121,7 +130,10 @@ my $ua       = LWP::UserAgent->new( timeout => 300 );
 my $response = $ua->request($http_request);
 
 if ( !$response->is_success ) {
-    <[base.log]>->( 0, "[http_analyze] HTTP error: %s", $response->status_line );
+    <[base.log]>->(
+        0, "[http_analyze] HTTP error: %s",
+        $response->status_line
+    );
     return {
         'mode' => qw| false |,
         'data' => "HTTP error: " . $response->status_line
@@ -132,7 +144,9 @@ if ( !$response->is_success ) {
 my $result = <[format.json.decode]>->( $response->content );
 
 if ( !$result || !exists $result->{'choices'} ) {
-    <[base.log]>->( 0, "[http_analyze] JSON parse error or unexpected response" );
+    <[base.log]>->(
+        0, "[http_analyze] JSON parse error or unexpected response"
+    );
     return {
         'mode' => qw| false |,
         'data' => 'json parse error or unexpected response format'
@@ -151,28 +165,26 @@ my $finish_reason  = $result->{'choices'}[0]{'finish_reason'}      // 'stop';
 ## Store result with LOVES_IT metadata ##
 my $job_id = <[base.gen_id]>->(<lm-vision.jobs>);
 <lm-vision.jobs>->{$job_id} = {
-    'job_id'         => $job_id,
-    'reply_id'       => $reply_id,
-    'image_path'     => $image_path,
-    'prompt'         => $prompt,
-    'status'         => 'complete',
-    'output'         => $generated_text,
-    'finish_reason'  => $finish_reason,
-    'start_time'     => <[base.time]>->(3),
-    'end_time'       => <[base.time]>->(3),
-    'backend'        => 'http',
-    'loves_score'    => $loves_score,
-    'loves_it'       => $loves_it,
+    'job_id'          => $job_id,
+    'reply_id'        => $reply_id,
+    'image_path'      => $image_path,
+    'prompt'          => $prompt,
+    'status'          => 'complete',
+    'output'          => $generated_text,
+    'finish_reason'   => $finish_reason,
+    'start_time'      => <[base.time]>->(3),
+    'end_time'        => <[base.time]>->(3),
+    'backend'         => 'http',
+    'loves_score'     => $loves_score,
+    'loves_it'        => $loves_it,
     'priority_weight' => $priority_weight,
-    'modes'          => { '4' => $mode4, '7' => $mode7, '13' => $mode13 },
+    'modes'           => { '4' => $mode4, '7' => $mode7, '13' => $mode13 },
 };
 
 ## Send reply if requested ##
 if ( length($reply_id) ) {
-    my $reply_data = sprintf(
-        "[loves_it:%d/13 weight:%.2f]\n%s",
-        $loves_score, $priority_weight, $generated_text
-    );
+    my $reply_data = sprintf( "[loves_it:%d/13 weight:%.2f]\n%s",
+        $loves_score, $priority_weight, $generated_text );
     <[base.callback.cmd_reply]>->(
         $reply_id, { 'mode' => 'size', 'data' => $reply_data }
     );
@@ -181,17 +193,17 @@ if ( length($reply_id) ) {
 return {
     'mode' => qw| true |,
     'data' => {
-        'job_id'         => $job_id,
-        'output'         => $generated_text,
-        'finish_reason'  => $finish_reason,
-        'loves_score'    => $loves_score,
-        'loves_it'       => $loves_it,
+        'job_id'          => $job_id,
+        'output'          => $generated_text,
+        'finish_reason'   => $finish_reason,
+        'loves_score'     => $loves_score,
+        'loves_it'        => $loves_it,
         'priority_weight' => $priority_weight,
     }
 };
 
-#,,..,...,..,,,,.,...,,,.,,..,,..,...,..,,,,.,.,.,...,..,,.,,,.,.,,,,,,.,,,.,,
-#FVMD7BRB33WO2NBJKTRBB5VMZNEDK5LYW2TPDQ2ZL23EM4DCRPPF6SSGKB7LPYJTDCXQPE6QEHIGG
-#\\\|PR2FZV5IF4DSJP7HFBZI3OGYMCBTLCPI37S36ZPZ4YP6FWLTJGM \ / AMOS7 \ YOURUM ::
-#\[7]ZGX6JKNQODOSKPKCDZN4SOVCAI4VCANFBYRBJ3CUBWFUNPIXFKAA 7  DATA SIGNATURE ::
+#,,,,,.,,,..,,...,...,,,,,..,,,.,,,..,,.,,,..,.,.,...,...,...,,..,,,.,.,.,.,.,
+#BDS2FFMP3X4FKMMRWESOT42AKVXEEVTRXT3DEVFPTVKQEBEQFUZ3GFP6HKDVHUAIER5UDGZ4DY3QC
+#\\\|YZOUD3OYAR54Z3DRLHODZKN6PXZF6OSLDV5JCUYQSQWAJCH6O4G \ / AMOS7 \ YOURUM ::
+#\[7]JFRGDVFICEAAS4MC4SMLAYY5I2GISPIBQREJKFV36LFUXYEGYSAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
