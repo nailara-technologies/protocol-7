@@ -212,6 +212,86 @@ becomes optional — only triggered if regex flags uncertainty.
 
 ---
 
+## decision tree — regex → callback → LLM escalation
+
+each transformation is a **decision tree** where nodes are regexes, callbacks,
+or LLM escalation points. the tree grows from its own decisions.
+
+### escalation ladder
+
+```
+level 0: regex match → auto-apply [ fastest, no cost ]
+level 1: callback → evaluate condition → select from alternatives [ fast ]
+level 2: LLM call → decide among options [ expensive, but informed ]
+level 3: user prompt → confirm preference [ rare, but definitive ]
+```
+
+### example: m|| pipe delimiter fix
+
+```
+regex: detect m|...(a|b)...|
+  │
+  ├─ callback: does pattern body contain alternation pipes?
+  │   no  → pass [ no issue ]
+  │   yes → callback: which delimiter alternatives are safe?
+  │           candidates: m{} m() m[] m!! m##
+  │           │
+  │           ├─ callback: pattern contains braces?
+  │           │   no  → m{} [ auto-select, confidence 0.98 ]
+  │           │   yes → callback: pattern contains parens?
+  │           │         no  → m() [ auto-select ]
+  │           │         yes → escalate to LLM
+  │           │               │
+  │           │               └─ LLM selects best delimiter
+  │           │                  → user confirms? [ optional ]
+  │           │                  → record preference as hint
+  │           │                  → next time: skip LLM, use hint
+  │           │
+  │           └─ if regex expansion exceeds readability threshold:
+  │               → is next style alternative still smaller?
+  │               → is this better left for LLM context awareness?
+  │               → meta-decision: regex vs LLM boundary assessment
+  │
+  └─ apply selected fix → log → update stats
+```
+
+### preference recording
+
+user and LLM decisions become **loaded hints** — not hard rules, but
+weighted defaults available in similar future cases:
+
+```yaml
+preferences:
+  - pattern: regex-delimiter-conflict
+    hint: prefer m{} even when braces present [ escape inner braces ]
+    source: user-confirmed
+    confidence: 0.95
+    recorded: 2026-03-25
+    applied: 0
+    overridden: 0
+
+  - pattern: qw-vs-quotes
+    hint: qw| | preferred for single scalars in P7
+    source: user-corrected
+    confidence: 1.0
+    recorded: 2026-03-22
+    note: kimi flagged as wrong, user corrected — this IS the style
+```
+
+### tree growth dynamics
+
+```
+session 1: 3 nodes in tree → 5 LLM calls → 2 preferences recorded
+session 5: 12 nodes → 2 LLM calls → 1 new preference
+session 20: 30 nodes → 0 LLM calls [ all patterns covered ]
+session 21: 30 nodes → 1 LLM call [ novel pattern ] → 31 nodes
+```
+
+each resolved escalation adds a node. each user preference prunes a branch.
+the tree converges toward complete coverage while staying open to novelty.
+
+---
+
 ## self-refinement properties
 
 ### each iteration improves the next
@@ -220,6 +300,59 @@ becomes optional — only triggered if regex flags uncertainty.
 - false positives tracked → confidence adjusts automatically
 - coverage metrics guide which attributes still need LLM attention
 - regex lists version-controlled → refinements are auditable
+- user preferences become loaded hints, reducing future escalations
+
+### three-layer optimization
+
+```
+layer 1: regex handles syntax [ frees LLM reasoning ]
+  - style corrections, delimiter fixes, naming conventions
+  - basic coding LLMs already have full syntax understanding
+  - style enforcement is a delimiter between generations:
+    protected and optimizing, freeing reasoning for architecture
+
+layer 2: regex groups replace generic LLM file operations [ high confidence ]
+  - open/read/close → <[file.slurp]>->($path)->$*
+  - manual socket setup → <[base.net.connect]>
+  - parallel similar regex alternatives cover input pattern space
+  - complexity handled by coverage breadth, not individual regex depth
+
+layer 3: LLM compacts the regex tree itself [ meta-optimization ]
+  - review regex branches for redundant coverage
+  - collapse N specific patterns → 1 generalized pattern
+  - decrease iteration steps at branch points via reference count
+  - keep same functionality with fewer nodes
+  - regular optimization target: tree compaction cycle
+```
+
+the tree breathes: **expands** through learning new patterns,
+**compacts** through LLM-driven generalization. same rhythm as
+context compaction — expand where focus is needed, contract
+where resolution was reached.
+
+### reference count optimization
+
+when multiple regex alternatives cover overlapping input space:
+- that overlap is visible as branch count at decision nodes
+- high reference count = redundancy = compaction opportunity
+- LLM reviews the group, finds the generalized pattern
+- N branches → 1 branch, same coverage, fewer steps
+- the compacted tree is itself version-controlled and auditable
+
+```
+before compaction:
+  regex-A: m|foo_bar| → style fix    [ 40 hits ]
+  regex-B: m|foo_baz| → style fix    [ 35 hits ]
+  regex-C: m|foo_\w+| → style fix    [ 12 hits ]
+  total: 3 branches, 87 hits
+
+after LLM compaction:
+  regex-AC: m|foo_\w+| → style fix   [ 87 hits ]
+  total: 1 branch, same coverage
+
+  regex-B removed: fully covered by generalized regex-AC
+  regex-A removed: fully covered by generalized regex-AC
+```
 
 ### partial coverage is valuable
 
@@ -268,8 +401,8 @@ cycle N:  99% regex, 1% LLM   [ maintenance only ]
 - verbose expansion during execution, compact logging
 - models can suggest and test new patterns directly
 
-#,,..,,,,,,.,,,.,,.,.,,.,,.,,,,,,,.,.,,,.,...,..,,...,...,...,,..,...,,.,,.,,,
-#GZ2ZGRE5OAEVABIER7KOAJDV3ELEOPTIE3E55P2KJOYSVSEBCE2H4I3FL3IT7DOT7RDTNIEC4XTOW
-#\\\|IKSDQOEVSXSBMF3365XUG5PTUGBVPIJHRIOUKHNGXDVYOOCI37C \ / AMOS7 \ YOURUM ::
-#\[7]IN5IE2N4PVDWTOU24DSKFHJDXX7BLT5UGBY3DTISTCYA2XSEK4DQ 7  DATA SIGNATURE ::
+#,,..,,,.,,,.,.,,,.,.,,..,,..,,.,,,..,..,,...,..,,...,...,...,..,,..,,..,,..,,
+#DZ5RLL6QD44UIHEM5WXM53FJ775FQS2HJE4OITJA4XBCI5N2FFYO56VFGWGM645VGWVILSLU4WVPQ
+#\\\|IBKQNFUKCX2RCSQ7ATQ6KMJID5K5TDHFVOVHACI2DOMLVLXAXRA \ / AMOS7 \ YOURUM ::
+#\[7]DQJL7AHHIUNYAD7TPCFPDGNWMPGNGLWTZ6WQGEON7ERG5X46S4BQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
