@@ -1,9 +1,10 @@
-# Session Handover — Mar 25 2026
+# Session Handover — Mar 25 2026 (updated)
 
-## context.* namespace — complete 5-phase implementation
+## context.* namespace — complete 5-phase implementation + runtime zenka
 
-all 5 phases committed on `base` branch. this is the unified context management
-layer for budget-aware llm context assembly, compaction, delegation, and caching.
+all 5 phases committed on `base` branch. context zenka running and tested.
+this is the unified context management layer for budget-aware llm context
+assembly, compaction, delegation, and caching.
 
 ### commit history
 
@@ -16,49 +17,63 @@ layer for budget-aware llm context assembly, compaction, delegation, and caching
 | `9be6c7978` | E — caching | cache.store/fetch/invalidate, share.export/import |
 | `f481c82a8` | D+ — handler | delegate.handler.result (async reply callback) |
 | `7d6432406` | dep-graph | module.dep_graph (Kosaraju SCC), dep_order, dep_pack |
-| *unsigned* | review pipeline | review.plan/page/iterate/consolidate, review.handler.page_result |
+| `f05d01317` | review pipeline | review.plan/page/iterate/consolidate, review.handler.page_result |
+| `caede9bb9` | ncode foundation | ncode.init_code, regex.load/apply/save + seed patterns |
+| `98efcd1a5` | context zenka | zenka config, v7.cmd.start fix, channels.memory-sync.fetch/publish |
 
-### review pipeline status
+---
 
-5 modules written, `ptd -c` clean. **needs**: signing, then commit.
+## ncode — self-refining regex transformation engine
 
-files:
-- `modules/context.review.plan` — pattern → dep_graph → dep_order → dep_pack → plan
-- `modules/context.review.page` — assemble single page: summary + targets + files
-- `modules/context.review.iterate` — page loop: async dispatch or synchronous
-- `modules/context.review.consolidate` — write result_dir with per-module .review.md + SUMMARY.md
-- `modules/context.review.handler.page_result` — async chain: collect → compact → next page
+foundation modules implemented and running in context zenka:
+- `ncode.init_code` — loads patterns from `data/yaml/ncode-patterns/*.yaml`
+- `ncode.regex.load` — parses yaml definitions, compiles with `qr//`
+- `ncode.regex.apply` — applicability filtering, confidence thresholds, scan/apply modes
+- `ncode.regex.save` — persist patterns back to yaml (uses `format.yaml.write_file`)
+
+seed patterns in `data/yaml/ncode-patterns/p7-style.yaml` — 12 patterns covering:
+pipe-delimiter `m||` conflicts, comment style, `qw|` quoting, `$ARG` convention,
+module call syntax, sub declarations, `return TRUE` constants, log formatting
+
+design doc: `data/md/coding-tasks/ncode-zenka-self-refining-regex.md`
+- decision tree escalation: regex → callback → LLM → user preference
+- three-layer optimization: syntax, high-confidence file ops, meta-compaction
+- reference count tree compaction via LLM generalization
+- design-phase advising: ncode surfaces suggestions before code generation
 
 ---
 
 ## design documents
 
 - `data/md/coding-tasks/context-namespace-design.md` — master design, all 5 layers, templates, phasing
-- `data/md/coding-tasks/context-batch-review-pipeline.md` — paginated review with dep-graph packing and rolling summaries
+- `data/md/coding-tasks/context-batch-review-pipeline.md` — paginated review with dep-graph packing, step groups
+- `data/md/coding-tasks/ncode-zenka-self-refining-regex.md` — ncode design, decision trees, tree compaction
+- `data/md/coding-tasks/checksum-route-binary-framing.md` — B32R binary framing with 0/1 delimiters
+- `data/md/coding-tasks/checksum-route-binary-framing-harmonic-foundations.md` — kimi synthesis, 1001 cube
 - `data/yaml/context-templates/` — code-review.yaml, bug-fix.yaml, feature-impl.yaml, delegation.yaml
 
 ---
 
 ## what to do next — priority order
 
-### 1. sign and commit review pipeline
-```bash
-bin/Protocol-7 sourcecode update-signatures
-git add modules/context.review.plan modules/context.review.page \
-       modules/context.review.iterate modules/context.review.consolidate \
-       modules/context.review.handler.page_result
-```
+### 1. runtime testing — context zenka is live
 
-### 2. strategic testing — load context namespace in a zenka
-
-the modules are additive and don't break anything, but need runtime verification:
-- add `context.*` modules to a test zenka's module whitelist
-- verify `context.init_code` sets up config defaults correctly
-- test `context.compose.for_task` with a known task type (e.g., `code-review`)
-- test `context.cache.store` → `context.cache.fetch` round-trip
-- test `context.delegate.role` with various task types
-- test full pipeline: `review.plan` → `review.iterate` → `review.consolidate`
+the context zenka is running (`v7.start context`). test:
+- `context.compose.for_task` with a known task type (e.g., `code-review`)
+- `context.cache.store` → `context.cache.fetch` round-trip
+- `context.delegate.role` with various task types
+- full pipeline: `review.plan` → `review.iterate` → `review.consolidate`
 - verify result directory structure in `data/review/<type>/`
+- ncode pattern loading: check `ncode.patterns` data key after init
+
+### 2. ncode expansion — remaining modules
+
+build out the ncode learning loop:
+- `ncode.regex.assess` — check if a transformation diff can become regex
+- `ncode.regex.expand` — add new pattern with confidence tracking
+- `ncode.transform.wave` — single regex + LLM refinement cycle
+- `ncode.cmd.transform` — command interface for other zenki
+- `ncode.cmd.tool_list` — self-describing capabilities for models
 
 ### 3. wire delegation into task system
 
@@ -66,7 +81,17 @@ the modules are additive and don't break anything, but need runtime verification
 - test model→model delegation via task system with a simple review task
 - verify `delegate.handler.result` chains correctly through collect → verify → cache
 
-### 4. step group expansion — compliance-driven iteration
+### 4. valued trees — floating-point factor nodes
+
+tree nodes carry floating-point factors: integer = reference count,
+fraction = implicit priority/applicability weight. each node value can itself
+be a decision tree in the same format — self-similar nesting. applies to:
+- ncode regex confidence/coverage scores
+- task dependency priority ordering
+- consensus voting weights
+- branch node group elements
+
+### 5. step group expansion — compliance-driven iteration
 
 current pipeline iterates linearly through pages. evolve to:
 - each pipeline node becomes a step group [ list of assessor steps ]
@@ -75,7 +100,7 @@ current pipeline iterates linearly through pages. evolve to:
 - iterate based on attribute compliance, not fixed page count
 - see "pipeline nodes as step groups" in batch review pipeline design doc
 
-### 5. checksum-addressed model endpoints
+### 6. checksum-addressed model endpoints
 
 current `context.delegate.role` resolves to zenka string names.
 future: resolve via AMOS checksum lookup through models registry.
@@ -147,9 +172,9 @@ compose.for_task(task_type)
 
 ## files changed this session
 
-### new modules (41 total)
+### new modules (49 total)
 
-#### phases A-E: context management
+#### phases A-E: context management (33)
 ```
 modules/context.init_code
 modules/context.template.load
@@ -186,7 +211,7 @@ modules/context.share.export
 modules/context.share.import
 ```
 
-#### dep-graph + review pipeline
+#### dep-graph + review pipeline (8)
 ```
 modules/context.module.dep_graph
 modules/context.module.dep_order
@@ -198,10 +223,28 @@ modules/context.review.consolidate
 modules/context.review.handler.page_result
 ```
 
-### design docs + research
+#### ncode foundation (4)
 ```
+modules/ncode.init_code
+modules/ncode.regex.load
+modules/ncode.regex.apply
+modules/ncode.regex.save
+```
+
+#### infrastructure (4)
+```
+modules/channels.memory-sync.fetch
+modules/channels.memory-sync.publish
+modules/v7.zenka.cmd.start            [ bugfix: undef guard for start-by-name ]
+configuration/zenki/context/           [ start, zenka-startup.v7, whitelist ]
+```
+
+### data files
+```
+data/yaml/ncode-patterns/p7-style.yaml                       [ 12 seed patterns ]
 data/md/coding-tasks/context-namespace-design.md              [ role fluidity update ]
 data/md/coding-tasks/context-batch-review-pipeline.md         [ step group architecture ]
+data/md/coding-tasks/ncode-zenka-self-refining-regex.md       [ decision tree design ]
 data/md/coding-tasks/checksum-route-binary-framing.md         [ B32R binary framing ]
 data/md/coding-tasks/checksum-route-binary-framing-harmonic-foundations.md  [ kimi synthesis ]
 data/md/coding-tasks/context-runtime-testing-and-depgraph.md  [ testing task ]
