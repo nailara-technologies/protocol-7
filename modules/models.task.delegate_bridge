@@ -1,0 +1,78 @@
+## [:< ##
+
+# name  = models.task.delegate_bridge
+# descr = entry point for task delegation - checks context online then delegates
+
+my $params = shift // {};
+
+my $task_id    = $params->{'task_id'}    // '';
+my $model      = $params->{'model'}      // '';
+my $prompt     = $params->{'prompt'}     // '';
+my $target_cmd = $params->{'target_cmd'} // '';
+my $job_id     = $params->{'job_id'}     // '';
+my $delegate   = $params->{'delegate'}   // {};
+
+## internal flag to skip check when called from reply handler ##
+my $skip_check = $params->{'_skip_check'} // FALSE;
+
+## if skip_check is set, context is already confirmed online ##
+if ($skip_check) {
+    <[base.logs]>->(
+        3, ':. delegate_bridge: skipping check, delegating directly'
+    );
+    return <[models.task.do-delegation]>->($params);
+}
+
+## validate required params ##
+return { 'mode' => qw| false |, 'data' => 'task_id required' }
+    unless length $task_id;
+
+return { 'mode' => qw| false |, 'data' => 'prompt required' }
+    unless length $prompt;
+
+<[base.logs]>->(
+    2, ':. delegate_bridge: checking context online for task %s', $task_id
+);
+
+## send async notify_online to check/start context zenka ##
+my $sent = <[protocol-7.route-send]>->(
+    {   'command'   => 'v7.notify_online',
+        'call_args' => { 'args' => qw| :start: context | },
+        'reply'     => {
+            'handler' => qw| models.handler.delegate-online-reply |,
+            'params'  => {
+                'task_id'    => $task_id,
+                'model'      => $model,
+                'prompt'     => $prompt,
+                'target_cmd' => $target_cmd,
+                'job_id'     => $job_id,
+                'delegate'   => $delegate
+            }
+        }
+    }
+);
+
+if ( $sent <= 0 ) {
+    <[base.logs]>->(
+        2, ':. delegate_bridge: failed to send notify_online, fallback'
+    );
+    return { 'mode' => qw| false |, 'data' => 'notify_online send failed' };
+}
+
+## command sent successfully - reply will come async ##
+<[base.logs]>->(
+    2, ':. delegate_bridge: notify_online sent, waiting for context'
+);
+
+return {
+    'mode' => qw| true |,
+    'data' => { 'status' => qw| checking | }
+};
+
+#,,..,..,,,..,..,,,,,,,,,,..,,,.,,.,.,.,,,,.,,..,,...,...,...,,,.,,..,.,,,.,.,
+
+#,,,.,,..,,.,,,,.,,.,,...,,,.,.,.,.,.,.,.,.,.,..,,...,...,.,,,,..,,.,,,,.,.,,,
+#RJZM3NAR5AUL64GNDIPANILVHKUMBT45US5K72HFE7CT2UNCKLBHATCA3QIEEKQZ2OBOB5D3WCJ7W
+#\\\|ORPH5WFGCPPD32MPCRQLE2Q5C45TUN4STCDZAGWVO5MUMAJ2FOV \ / AMOS7 \ YOURUM ::
+#\[7]BWPRLSATBS5AOWDHQZKM566AJ5TO2PQ5J34IB3PU65GGZO2NUEAQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

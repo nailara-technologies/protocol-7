@@ -1,0 +1,122 @@
+## [:< ##
+
+# name  = models.task.do-delegation
+# descr = perform delegation after context is confirmed online
+
+my $params = shift // {};
+
+my $task_id    = $params->{'task_id'}    // '';
+my $model      = $params->{'model'}      // '';
+my $prompt     = $params->{'prompt'}     // '';
+my $target_cmd = $params->{'target_cmd'} // '';
+my $job_id     = $params->{'job_id'}     // '';
+my $delegate   = $params->{'delegate'}   // {};
+
+## validate required params ##
+return { 'mode' => qw| false |, 'data' => 'task_id required' }
+    unless length $task_id;
+
+return { 'mode' => qw| false |, 'data' => 'prompt required' }
+    unless length $prompt;
+
+## check if context delegation modules are available ##
+my $prepare_fn  = $code{'context.delegate.prepare'};
+my $dispatch_fn = $code{'context.delegate.dispatch'};
+
+unless ( defined $prepare_fn and defined $dispatch_fn ) {
+    <[base.logs]>->(
+        2, ':. do-delegation: context delegation modules not available'
+    );
+    return { 'mode' => qw| false |, 'data' => 'delegation not available' };
+}
+
+## extract delegation params ##
+my $task_type   = $delegate->{'task_type'}   // qw| code-review |;
+my $budget      = $delegate->{'budget'}      // 4000;
+my $namespace   = $delegate->{'namespace'}   // '';
+my $coordinator = $delegate->{'coordinator'} // '';
+my $executor    = $delegate->{'executor'}    // '';
+my $strategy    = $delegate->{'strategy'}    // qw| auto |;
+my $target_file = $delegate->{'target_file'} // '';
+
+## prepare delegation context ##
+my $prepare_result = $prepare_fn->(
+    {   'task_type'   => $task_type,
+        'description' => $prompt,
+        'target_file' => $target_file,
+        'namespace'   => $namespace,
+        'budget'      => $budget,
+        'coordinator' => $coordinator,
+        'executor'    => $executor,
+        'strategy'    => $strategy,
+        'extra'       => { 'task_id' => $task_id, 'model' => $model }
+    }
+);
+
+unless ( $prepare_result->{'mode'} eq qw| true | ) {
+    <[base.logs]>->(
+        0,
+        ':. do-delegation: prepare failed [ %s ]',
+        $prepare_result->{'data'} // qw| unknown |
+    );
+    return { 'mode' => qw| false |, 'data' => 'delegation prepare failed' };
+}
+
+my $prepared = $prepare_result->{'data'};
+
+## set up reply params for result handler ##
+my $reply_params = {
+    'task_id'         => $task_id,
+    'model'           => $model,
+    'job_id'          => $job_id,
+    'delegate_roles'  => $prepared->{'roles'},
+    'delegate_task'   => $task_type,
+    'original_target' => $target_cmd
+};
+
+## add cache key if caching enabled ##
+if ( $delegate->{'cache'} // FALSE ) {
+    $reply_params->{'cache_key'} = "task:$task_type:$task_id";
+}
+
+## dispatch via context delegation pipeline ##
+my $dispatch_result = $dispatch_fn->(
+    {   'prepared'      => $prepared,
+        'reply_handler' => qw| models.handler.delegate_result |,
+        'reply_params'  => $reply_params
+    }
+);
+
+if ( $dispatch_result->{'mode'} eq qw| true | ) {
+    <[base.logs]>->(
+        2,
+        ':. do-delegation: task %s dispatched [ %s -> %s ]',
+        $task_id,
+        $prepared->{'roles'}->{'coordinator'} // qw| unknown |,
+        $prepared->{'roles'}->{'executor'}    // qw| unknown |
+    );
+    return {
+        'mode' => qw| true |,
+        'data' => {
+            'dispatched'   => TRUE,
+            'via_delegate' => TRUE,
+            'roles'        => $prepared->{'roles'},
+            'target_cmd'   => $prepared->{'target_cmd'}
+        }
+    };
+} else {
+    <[base.logs]>->(
+        0,
+        ':. do-delegation: dispatch failed [ %s ]',
+        $dispatch_result->{'data'} // qw| unknown |
+    );
+    return { 'mode' => qw| false |, 'data' => 'delegation dispatch failed' };
+}
+
+#,,..,..,,,..,..,,,,,,,,,,..,,,.,,.,.,.,,,,.,,..,,...,...,...,,,.,,..,.,,,.,.,
+
+#,,..,..,,,.,,,,.,.,,,,.,,.,,,..,,.,,,.,.,.,,,..,,...,..,,,..,,.,,..,,,..,.,.,
+#I3PK2VRXCJFDDJD5KT5XXR7HD2GAX3ZES6D5QRK3AGWPFGNY6VPX5I2M4FVJK52FOQAUDCAVGQEOY
+#\\\|OKDF6OU6QJPZAK44EXGMAERF6SE66JXTDJD6IGG25F7IWEK54KF \ / AMOS7 \ YOURUM ::
+#\[7]SL5KUHKWD5SRHIH6MMKV6AQBHJ7N3PZGEVCEALXRYURPFVOYO4CY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

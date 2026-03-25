@@ -52,10 +52,10 @@ instead of direct single-model dispatch.
 #### estimated complexity: small
 
 #### acceptance criteria
-- [ ] task with `delegate => true` routes through delegation pipeline
-- [ ] task result contains delegation metadata when delegated
-- [ ] fallback to direct execution on delegation failure
-- [ ] no regression in existing non-delegated task execution
+- [x] task with `delegate => true` routes through delegation pipeline
+- [x] task result contains delegation metadata when delegated
+- [x] fallback to direct execution on delegation failure
+- [x] no regression in existing non-delegated task execution
 
 ---
 
@@ -456,11 +456,38 @@ this plan is complete when:
 - 2026-03-25: plan created, compile fixes verified
 - patterns loaded: 11 [ from ncode.init ]
 - compile warnings: 0 [ verified ]
+- 2026-03-25: 1.2 delegation wiring implemented
+  - modules:
+    - models.task.delegate_bridge [ entry point ]
+    - models.handler.delegate-online-reply [ async online check handler ]
+    - models.task.do-delegation [ prepare + dispatch ]
+    - models.task.fallback-direct [ direct dispatch fallback ]
+    - models.handler.delegate_result [ async result handler ]
+  - modified: models.task.execute (delegation path with async flow)
+  - access: models zenka granted context.delegate.* access
+- 2026-03-25: context tree checksum addressing design ✅
+  - design docs:
+    - context-tree-checksum-addressing.md [ resumable checksum architecture ]
+    - context-tree-checksum-templates.md [ validation templates ]
+    - context-tree-checksum-inspiration.md [ lessons from source.signature_valid ]
+    - context-tree-octal-encoding.md [ compact encoding from amos7.encode_octal_header ]
+  - modules:
+    - context.tree.checksum.init_code [ infra initialization ]
+    - context.tree.checksum.state [ resumable AMOS/ELF/BMW state ]
+    - context.tree.checksum.stream [ position-aware streams ]
+    - context.tree.checksum.template [ validation template management ]
+  - concept: resumable incremental checksums for eternal storage
+  - ELF: natively resumable via start_checksum (confirmed in AMOS7::CHKSUM::ELF)
+  - BMW: requires XS patch for getstate/setstate/clone (test plan exists)
+  - integrates with: storage zenka, index zenka, sourcecode symlinks (45+ modules)
+  - templates: entropic exclusion + contextual constraints (AMOS7::TEMPLATE + Truth.pm)
+  - validation patterns: RQ/OP constants, multi-layer truth assertion, repair mode (from source.signature_valid)
+  - octal encoding: 19 octal digits = 57 bits (checksum + state + iterations) in comma/dot visual pattern (from amos7.encode_octal_header)
 
 ---
 
-#,,..,..,,,..,..,,,,,,,,,,..,,,.,,.,.,.,,,,.,,..,,...,...,...,,,.,,..,.,,,.,.,
-#EPSGIM53FVRFZHKIXCC4CFNYOQDMPJ2XORHPOIXUK6ALFIHFESAEUVL5WZWBULBTF7AKJIGBEZNIE
-#\\\|PJSLQBZTH6DEJHMZC72DUXZ2MB42IKZ2KWJIV2C65VAJ3M52HST \ / AMOS7 \ YOURUM ::
-#\[7]O6MHS2X7PUESR46XEULRQXS2D7YE2SIWSYREE5CERUXMDJZQNMCI 7  DATA SIGNATURE ::
+#,,,.,,,.,.,.,...,...,,..,,.,,.,.,,,,,,.,,,.,,..,,...,...,...,..,,...,..,,...,
+#VDFXWQY4CXKE56WYTA6C5OOMWV3Z2YOS6IUD532MLTU2XZNVNOPC4PXS2EC5CWU2QSIAQUQQARGTS
+#\\\|PNPY7KGTIUBGJEWRAPKESQJVEG557V2XYCLH3UJXEXSCBXVZ3ED \ / AMOS7 \ YOURUM ::
+#\[7]H7IBCNI6NEMYR45JSIUJS4W65K4UHD3RLMWODJDWKUWJ5QEKZ2BQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

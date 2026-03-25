@@ -595,8 +595,71 @@ v7[setup]      → first-run wizard
 
 ---
 
-#,,,,,.,,,,,.,,,.,,.,,,,,,,,,,...,.,.,.,,,,,,,..,,...,...,.,.,...,.,.,..,,,.,,
-#RQWQJ5U4MQXLEQ2FV7Y4SJPIADP2BVABGCDQMPC4I2IZMB7YHEPZYGYBWAKYFWZWD5N3ZQMNJ3DRY
-#\\\|AGYZRP2J2E5D5VDMBQZE42ZY2CAUTILC74OYVQNO7F5BGMREI56 \ / AMOS7 \ YOURUM ::
-#\[7]5RTDDU3ULQ5AOOQSK5XXBKHXJ475FJOVJCHRZA6WXAM3Q77UPSAQ 7  DATA SIGNATURE ::
+## Task Execution Quality Patterns (March 2025)
+
+### What Works Well
+
+**1. Structured Context Preparation**
+- `MEMORY.md` as index → `coding-style.md` for conventions → `HANDOVER.md` for architecture
+- This creates progressive disclosure: overview → details → current state
+- Result: fewer syntax errors, better pattern adherence
+
+**2. Explicit File Reading Order**
+When a task specifies files to read in order, it creates mental model before implementation:
+```
+1. MEMORY.md — understand my own history
+2. coding-style.md — syntax constraints
+3. HANDOVER.md — architecture context
+4. next-steps-plan.md — specific requirements
+5. existing modules — patterns to follow
+```
+
+**3. Handler Chain Pattern for Async Flows**
+- `v7.notify_online` returns send count, not result
+- Must use reply handler chain: `caller → notify_online → handler → next_step`
+- Each handler validates result, either continues flow or falls back
+- Key: handler receives `{ data, mode, params }` from original call
+
+**4. Module Decomposition Strategy**
+- Split complex flows into single-purpose modules:
+  - `*_bridge` — entry point / coordination
+  - `handler.*-reply` — async reply processing
+  - `do_*` — actual work after preconditions met
+  - `fallback-*` — extracted fallback logic
+- Benefits: testable, reusable, clear failure points
+
+**5. Todo List as State Machine**
+Using SetTodoList to track progress:
+- Creates clear checkpoints
+- Allows parallel work streams
+- Easy to resume if interrupted
+- Good for reporting status
+
+### Red Flags to Avoid
+
+**1. Assuming Synchronous Returns**
+- `protocol-7.route-send` returns send count (0/1), never reply data
+- Always check if command is async before interpreting return value
+- When in doubt: read the command module's source
+
+**2. Inline Fallback Logic**
+- Duplicating dispatch code in multiple places
+- Better: extract `fallback-*` module, call from multiple handlers
+- Keeps handlers focused on flow control, not implementation
+
+**3. Missing Reset of Active State**
+When falling back after partial progress:
+```perl
+## reset before fallback ##
+<models.task.active_id>  = $task_id;
+<models.task.active_job> = $job_id;
+```
+Otherwise downstream code sees wrong state.
+
+---
+
+#,,..,,..,,,.,..,,...,..,,,,,,,..,,.,,,,.,.,.,..,,...,...,...,..,,,..,,..,...,
+#DOZBB7UREUZO73JJTUVPEDPQMTJONOBMFGTVNLKCFKSK5EYOXV3H3E4LUCJQTMME4UJE3F6Q25OIU
+#\\\|ZTGJ4KIRNOKCIXBCJDPK6UUO4B4J3OGDJXECIE2GPRZ3R42PJA7 \ / AMOS7 \ YOURUM ::
+#\[7]LXXSHJAEWJIUYY3OUVL3L3Q5Q2YX2V67K6OH636FNSAXNY6KN4AY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

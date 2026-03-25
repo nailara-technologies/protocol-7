@@ -1,0 +1,104 @@
+## [:< ##
+
+# name  = models.handler.delegate-online-reply
+# descr = reply handler for context zenka online check before delegation
+
+my $reply = shift;
+
+my $data   = $reply->{'data'}   // '';
+my $mode   = $reply->{'mode'}   // qw| unknown |;
+my $params = $reply->{'params'} // {};
+
+my $task_id    = $params->{'task_id'}    // '';
+my $model      = $params->{'model'}      // '';
+my $job_id     = $params->{'job_id'}     // '';
+my $prompt     = $params->{'prompt'}     // '';
+my $target_cmd = $params->{'target_cmd'} // '';
+my $delegate   = $params->{'delegate'}   // {};
+
+<[base.logs]>->(
+    2,     ':. delegate-online-reply: context status [%s] for task %s',
+    $mode, $task_id
+);
+
+## handle failure ##
+if ( $mode eq qw| false | ) {
+    my $reason = $data // 'context not available';
+    <[base.logs]>->(
+        2, ':. delegate-online-reply: context not available [ %s ], fallback',
+        $reason
+    );
+
+    ## reset active state first ##
+    <models.task.active_id>  = $task_id;
+    <models.task.active_job> = $job_id;
+
+    ## fall back to direct dispatch ##
+    <[models.task.fallback-direct]>->(
+        {   'task_id'    => $task_id,
+            'model'      => $model,
+            'prompt'     => $prompt,
+            'target_cmd' => $target_cmd,
+            'job_id'     => $job_id
+        }
+    );
+    return;
+}
+
+## context is online (mode = true or deferred-success) ##
+## proceed with delegation ##
+<[base.logs]>->(
+    2, ':. delegate-online-reply: context ready, proceeding with delegation'
+);
+
+my $do_result = <[models.task.do-delegation]>->(
+    {   'task_id'    => $task_id,
+        'model'      => $model,
+        'prompt'     => $prompt,
+        'target_cmd' => $target_cmd,
+        'job_id'     => $job_id,
+        'delegate'   => $delegate
+    }
+);
+
+## handle delegation failure ##
+if ( ref $do_result ne qw| HASH |
+    or $do_result->{'mode'} ne qw| true | ) {
+    my $reason
+        = ref $do_result eq qw| HASH |
+        ? $do_result->{'data'}
+        : qw| unknown |;
+    <[base.logs]>->(
+        2, ':. delegate-online-reply: delegation failed [ %s ], fallback',
+        $reason
+    );
+
+    ## reset active state before fallback ##
+    <models.task.active_id>  = $task_id;
+    <models.task.active_job> = $job_id;
+
+    <[models.task.fallback-direct]>->(
+        {   'task_id'    => $task_id,
+            'model'      => $model,
+            'prompt'     => $prompt,
+            'target_cmd' => $target_cmd,
+            'job_id'     => $job_id
+        }
+    );
+    return;
+}
+
+## delegation dispatched successfully ##
+<[base.logs]>->(
+    1, ':. delegate-online-reply: task %s dispatched via delegation', $task_id
+);
+
+return;
+
+#,,..,..,,,..,..,,,,,,,,,,..,,,.,,.,.,.,,,,.,,..,,...,...,...,,,.,,..,.,,,.,.,
+
+#,,..,...,..,,...,,,.,.,,,.,.,,,.,,,,,..,,..,,..,,...,...,...,...,.,,,.,.,,..,
+#I7DMQQUH3DAT4XYNESKYHNYGBEVWZ6P3AVVZSOOZTO5QSNAHZEQ53CJRBIGQMZUKFSWNUN56RRNOU
+#\\\|MY3JUB6RZ2U2KAYDKW2DHGFYYBI5NDLO4ARQ5JIKV273U2ZE344 \ / AMOS7 \ YOURUM ::
+#\[7]RKHCFIXCLZZ6R3W6ARZWFFVFIYT73QPOZ47CYD7YSI6M7IQOOSBY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

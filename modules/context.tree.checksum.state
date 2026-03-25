@@ -1,0 +1,391 @@
+## [:< ##
+
+# name  = context.tree.checksum.state
+# descr = resumable checksum state for incremental AMOS/ELF/BMW calculation
+
+my $params = shift // {};
+
+my $action = $params->{'action'} // qw| create |;
+
+## action: create | add | finalize | save | load | clone ##
+
+if ( $action eq qw| create | ) {
+    ## create new state ##
+    my $state = {
+        ## ELF state ##
+        'elf_sum'   => 0,
+        'elf_mode'  => $params->{'elf_mode'}  // 7,
+        'elf_shift' => $params->{'elf_shift'} // 13,
+
+        ## BMW state ##
+        'bmw_ctx'   => undef,    ## Digest::BMW context
+        'bmw_state' => undef,    ## serialized state for resume
+
+        ## harmonization state ##
+        'mod_step'      => 0,
+        'mod_bits_pool' => '',    ## remaining mod bits for truth assert
+
+        ## metadata ##
+        'bytes_in'  => 0,
+        'chunks'    => 0,
+        'created'   => <[base.time]>->(4),
+        'last_add'  => <[base.time]>->(4),
+        'state_id'  => <[base.gen_id]>->(),
+        'finalized' => FALSE,
+    };
+
+    ## initialize BMW context ##
+    eval {
+        $state->{'bmw_ctx'} = Digest::BMW->new(512);
+        ## test if clone method exists (resumability support) ##
+        $state->{'bmw_resumable'}
+            = $state->{'bmw_ctx'}->can(qw| clone |) ? TRUE : FALSE;
+    };
+    if ($@) {
+        <[base.logs]>->( 0, ':. checksum.state: BMW init failed [ %s ]', $@ );
+        return { 'mode' => qw| false |, 'data' => 'BMW init failed' };
+    }
+
+    ## store in active states ##
+    <context.tree.checksum.states>->{ $state->{'state_id'} } = $state;
+
+    return {
+        'mode' => qw| true |,
+        'data' => {
+            'state_id'      => $state->{'state_id'},
+            'bmw_resumable' => $state->{'bmw_resumable'}
+        }
+    };
+
+} elsif ( $action eq qw| add | ) {
+    ## add data to existing state ##
+    my $state_id = $params->{'state_id'} // '';
+    my $data     = $params->{'data'}     // '';
+    my $position = $params->{'position'};    ## optional stream position ##
+
+    return { 'mode' => qw| false |, 'data' => 'state_id required' }
+        unless length $state_id;
+
+    my $state = <context.tree.checksum.states>->{$state_id};
+    return { 'mode' => qw| false |, 'data' => 'state not found' }
+        unless defined $state;
+
+    return { 'mode' => qw| false |, 'data' => 'state already finalized' }
+        if $state->{'finalized'};
+
+    ## add to BMW context (always works, may or may not be resumable) ##
+    if ( ref $state->{'bmw_ctx'} ) {
+        $state->{'bmw_ctx'}->add($data);
+
+        ## if BMW supports clone, save state at chunk boundaries ##
+        if (    $state->{'bmw_resumable'}
+            and $state->{'bmw_ctx'}->can(qw| clone |) ) {
+            ## store clone for potential resume ##
+            $state->{'bmw_state'} = $state->{'bmw_ctx'}->clone();
+        }
+    }
+
+    ## update ELF sum incrementally ##
+    ## ELF naturally supports resumption via start_checksum parameter ##
+    my $new_elf_sum = <[base.chk-sum.elf]>->(
+        $data,
+        $state->{'elf_sum'},    ## start from previous sum ##
+        $state->{'elf_mode'},
+        $state->{'elf_shift'}
+    );
+
+    $state->{'elf_sum'} = $new_elf_sum;
+
+    ## update metadata ##
+    $state->{'bytes_in'} += length $data;
+    $state->{'chunks'}++;
+    $state->{'last_add'} = <[base.time]>->(4);
+
+    ## optionally index position for stream addressing ##
+    if ( defined $position and $position =~ m|^\d+$| ) {
+        $state->{'positions'} //= {};
+        $state->{'positions'}->{$position} = {
+            'elf_sum'   => $new_elf_sum,
+            'bytes_in'  => $state->{'bytes_in'},
+            'chunk_num' => $state->{'chunks'}
+        };
+
+        ## also save BMW state at this position if resumable ##
+        if ( $state->{'bmw_resumable'} and ref $state->{'bmw_state'} ) {
+            $state->{'positions'}->{$position}->{'bmw_state'}
+                = $state->{'bmw_state'}->clone();
+        }
+    }
+
+    return {
+        'mode' => qw| true |,
+        'data' => {
+            'bytes_in' => $state->{'bytes_in'},
+            'elf_sum'  => $new_elf_sum,
+            'chunks'   => $state->{'chunks'}
+        }
+    };
+
+} elsif ( $action eq qw| finalize | ) {
+    ## finalize and get checksum ##
+    my $state_id = $params->{'state_id'} // '';
+
+    return { 'mode' => qw| false |, 'data' => 'state_id required' }
+        unless length $state_id;
+
+    my $state = <context.tree.checksum.states>->{$state_id};
+    return { 'mode' => qw| false |, 'data' => 'state not found' }
+        unless defined $state;
+
+    ## get BMW digest ##
+    my $bmw_digest;
+    if ( ref $state->{'bmw_ctx'} ) {
+        ## use clone for digest to preserve context ##
+        my $ctx_for_digest
+            = $state->{'bmw_resumable'}
+            ? $state->{'bmw_ctx'}->clone()
+            : $state->{'bmw_ctx'};
+        $bmw_digest = $ctx_for_digest->digest;
+    }
+
+    ## harmonize ELF and BMW via AMOS7::CHKSUM ##
+    ## pass pre-calculated inputs to avoid re-processing ##
+    my $amos_result;
+    eval {
+        ## AMOS7::CHKSUM supports hashref form with pre-calculated values ##
+        $amos_result = AMOS7::CHKSUM::amos_chksum(
+            {   'elf_checksum' => $state->{'elf_sum'},
+                'BMW_checksum' => $bmw_digest,
+                'elf-modes'    => [ $state->{'elf_mode'} ],
+            }
+        );
+    };
+
+    if ( $@ || not defined $amos_result ) {
+        <[base.logs]>->(
+            0,
+            ':. checksum.state: harmonization failed [ %s ]',
+            $@ // 'unknown'
+        );
+        return { 'mode' => qw| false |, 'data' => 'harmonization failed' };
+    }
+
+    $state->{'finalized'}      = TRUE;
+    $state->{'final_checksum'} = $amos_result;
+
+    ## optionally clean up state ##
+    if ( $params->{'cleanup'} // TRUE ) {
+        delete <context.tree.checksum.states>->{$state_id};
+    }
+
+    return {
+        'mode' => qw| true |,
+        'data' => {
+            'checksum'      => $amos_result,
+            'bytes_in'      => $state->{'bytes_in'},
+            'chunks'        => $state->{'chunks'},
+            'bmw_resumable' => $state->{'bmw_resumable'},
+        }
+    };
+
+} elsif ( $action eq qw| save | ) {
+    ## serialize state for later resumption ##
+    my $state_id = $params->{'state_id'} // '';
+
+    return { 'mode' => qw| false |, 'data' => 'state_id required' }
+        unless length $state_id;
+
+    my $state = <context.tree.checksum.states>->{$state_id};
+    return { 'mode' => qw| false |, 'data' => 'state not found' }
+        unless defined $state;
+
+    ## serialize state ##
+    my $saved = {
+        ## ELF: fully resumable via sum ##
+        'elf_sum'   => $state->{'elf_sum'},
+        'elf_mode'  => $state->{'elf_mode'},
+        'elf_shift' => $state->{'elf_shift'},
+
+        ## BMW: resumable only if getstate exists ##
+        'bmw_resumable' => $state->{'bmw_resumable'},
+        'bmw_state'     => undef,    ## would need getstate() support ##
+
+        ## harmonization ##
+        'mod_step'      => $state->{'mod_step'},
+        'mod_bits_pool' => $state->{'mod_bits_pool'},
+
+        ## metadata ##
+        'bytes_in'  => $state->{'bytes_in'},
+        'chunks'    => $state->{'chunks'},
+        'positions' => $state->{'positions'},    ## position index ##
+        'saved_at'  => <[base.time]>->(4),
+    };
+
+    ## try to serialize BMW state if getstate method exists ##
+    if (    $state->{'bmw_resumable'}
+        and ref $state->{'bmw_ctx'}
+        and $state->{'bmw_ctx'}->can(qw| getstate |) ) {
+        eval { $saved->{'bmw_state'} = $state->{'bmw_ctx'}->getstate(); };
+        if ($@) {
+            <[base.logs]>->(
+                2, ':. checksum.state: BMW getstate failed [ %s ]', $@
+            );
+        }
+    }
+
+    ## store in persistent cache ##
+    my $cache_key = "chkstate:$state_id";
+    if ( exists $code{'context.cache.store'} ) {
+        <[context.cache.store]>->(
+            {   'key'  => $cache_key,
+                'data' => $saved,
+                'ttl'  => $params->{'ttl'} // 86400,
+            }
+        );
+    }
+
+    return {
+        'mode' => qw| true |,
+        'data' => {
+            'saved_to'      => $cache_key,
+            'bmw_resumable' => $state->{'bmw_resumable'},
+            'has_bmw_state' => defined $saved->{'bmw_state'},
+        }
+    };
+
+} elsif ( $action eq qw| load | ) {
+    ## load previously saved state ##
+    my $state_id = $params->{'state_id'} // '';
+
+    return { 'mode' => qw| false |, 'data' => 'state_id required' }
+        unless length $state_id;
+
+    ## try to load from cache ##
+    my $saved;
+    if ( exists $code{'context.cache.fetch'} ) {
+        my $result
+            = <[context.cache.fetch]>->( { 'key' => "chkstate:$state_id" } );
+        $saved = $result->{'data'} if ref $result eq qw| HASH |;
+    }
+
+    return { 'mode' => qw| false |, 'data' => 'state not found in cache' }
+        unless defined $saved;
+
+    ## reconstruct state ##
+    my $state = {
+        'elf_sum'       => $saved->{'elf_sum'},
+        'elf_mode'      => $saved->{'elf_mode'},
+        'elf_shift'     => $saved->{'elf_shift'},
+        'mod_step'      => $saved->{'mod_step'},
+        'mod_bits_pool' => $saved->{'mod_bits_pool'},
+        'bytes_in'      => $saved->{'bytes_in'},
+        'chunks'        => $saved->{'chunks'},
+        'positions'     => $saved->{'positions'},
+        'state_id'      => $state_id,
+        'loaded'        => TRUE,
+        'bmw_resumable' => $saved->{'bmw_resumable'} // FALSE,
+    };
+
+    ## reconstruct BMW context if possible ##
+    if ( $state->{'bmw_resumable'} and defined $saved->{'bmw_state'} ) {
+        eval {
+            $state->{'bmw_ctx'} = Digest::BMW->new(512);
+            if ( $state->{'bmw_ctx'}->can(qw| setstate |) ) {
+                $state->{'bmw_ctx'}->setstate( $saved->{'bmw_state'} );
+            }
+        };
+        if ($@) {
+            <[base.logs]>->(
+                2, ':. checksum.state: BMW restore failed [ %s ]', $@
+            );
+            $state->{'bmw_ctx'} = undef;
+        }
+    }
+
+    ## if BMW couldn't be restored, mark for restart ##
+    if ( not ref $state->{'bmw_ctx'} ) {
+        <[base.logs]>->(
+            2,
+            ':. checksum.state: BMW not restored, will restart [ state_id=%s ]',
+            $state_id
+        );
+        ## this is acceptable — ELF continuity is maintained ##
+        ## BMW will restart, final checksum will differ but that's ok ##
+        ## for position-addressed indexing, we use ELF sum anyway ##
+    }
+
+    <context.tree.checksum.states>->{$state_id} = $state;
+
+    return {
+        'mode' => qw| true |,
+        'data' => {
+            'state_id'      => $state_id,
+            'bytes_in'      => $state->{'bytes_in'},
+            'bmw_resumable' => $state->{'bmw_resumable'},
+            'bmw_restored'  => ref $state->{'bmw_ctx'} ? TRUE : FALSE,
+        }
+    };
+
+} elsif ( $action eq qw| clone | ) {
+    ## clone an active state for parallel processing ##
+    my $state_id = $params->{'state_id'} // '';
+
+    return { 'mode' => qw| false |, 'data' => 'state_id required' }
+        unless length $state_id;
+
+    my $state = <context.tree.checksum.states>->{$state_id};
+    return { 'mode' => qw| false |, 'data' => 'state not found' }
+        unless defined $state;
+
+    ## create new state with same parameters ##
+    my $new_state_id = <[base.gen_id]>->();
+    my $cloned       = {
+        'elf_sum'       => $state->{'elf_sum'},
+        'elf_mode'      => $state->{'elf_mode'},
+        'elf_shift'     => $state->{'elf_shift'},
+        'bmw_ctx'       => undef,
+        'bmw_state'     => undef,
+        'bmw_resumable' => $state->{'bmw_resumable'},
+        'mod_step'      => $state->{'mod_step'},
+        'mod_bits_pool' => $state->{'mod_bits_pool'},
+        'bytes_in'      => $state->{'bytes_in'},
+        'chunks'        => $state->{'chunks'},
+        'positions'     => { $state->{'positions'}->%* },   ## shallow copy ##
+        'created'       => <[base.time]>->(4),
+        'state_id'      => $new_state_id,
+        'cloned_from'   => $state_id,
+    };
+
+    ## clone BMW context if possible ##
+    if (    $state->{'bmw_resumable'}
+        and ref $state->{'bmw_ctx'}
+        and $state->{'bmw_ctx'}->can(qw| clone |) ) {
+        eval { $cloned->{'bmw_ctx'} = $state->{'bmw_ctx'}->clone(); };
+        if ($@) {
+            <[base.logs]>->(
+                2, ':. checksum.state: BMW clone failed [ %s ]', $@
+            );
+        }
+    }
+
+    <context.tree.checksum.states>->{$new_state_id} = $cloned;
+
+    return {
+        'mode' => qw| true |,
+        'data' => {
+            'state_id'    => $new_state_id,
+            'cloned_from' => $state_id,
+            'bmw_cloned'  => ref $cloned->{'bmw_ctx'} ? TRUE : FALSE,
+        }
+    };
+}
+
+return { 'mode' => qw| false |, 'data' => 'unknown action' };
+
+#,,.,,,.,,,..,,..,,.,,...,...,...,,,.,,,.,,,.,..,,...,...,..,,,,.,,..,,,,,,,,,
+
+#,,.,,,,,,,.,,...,.,.,..,,.,.,..,,.,.,,,.,...,..,,...,..,,..,,,,.,,..,,.,,,,.,
+#IVDQ523JXOF3CFNEDZD3ZE2SE57UDWYNJXVQBRHIAOZDTEMVKFKNYMQD5ESMB4JPWYPXNBBE74RB4
+#\\\|QYOC2SILENSFWW4KG3V45VF5QPKH5ZFZILLLW7XUPK4RSPE4UXZ \ / AMOS7 \ YOURUM ::
+#\[7]4LICTFFUW2IWOTRJADSUCWE4LLY5TOTSBAPL2BKJ2E2QR2KPCWCY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,0 +1,157 @@
+## [:< ##
+
+# name  = models.handler.delegate_result
+# descr = async handler for delegation results from context pipeline
+
+my $reply = shift;
+
+my $data   = $reply->{'data'}   // '';
+my $mode   = $reply->{'mode'}   // qw| unknown |;
+my $params = $reply->{'params'} // {};
+
+my $task_id = $params->{'task_id'} // '';
+my $model   = $params->{'model'}   // '';
+my $job_id  = $params->{'job_id'}  // '';
+
+<[base.logs]>->(
+    2,        ':. delegate_result: received result for task %s [ mode=%s ]',
+    $task_id, $mode
+);
+
+## collect and structure the result ##
+my $collected;
+
+if ( exists $code{'context.delegate.collect'} ) {
+    $collected = $code{'context.delegate.collect'}->(
+        {   'reply_data'   => $data,
+            'reply_params' => $params,
+            'reply_status' => $mode
+        }
+    );
+} else {
+    ## fallback: basic result structure if collect not available ##
+    $collected = {
+        'mode' => $mode eq qw| false | ? qw| false | : qw| true |,
+        'data' => {
+            'status' => $mode eq qw| false | ? qw| error | : qw| complete |,
+            'result' => $data,
+            'roles'  => $params->{'delegate_roles'} // {}
+        }
+    };
+}
+
+my $collect_data = $collected->{'data'} // {};
+
+## handle collection failure ##
+if ( $collected->{'mode'} ne qw| true | ) {
+    my $error = $collect_data->{'error'} // 'delegation collection failed';
+    <[base.logs]>->(
+        0, ':. delegate_result: collection failed [ %s ]', $error
+    );
+
+    ## fail the task ##
+    if ( length $task_id ) {
+        <[protocol-7.route-send]>->(
+            {   'command'   => 'task.fail',
+                'call_args' => { 'args' => "$task_id $error" }
+            }
+        );
+    }
+
+    ## clear active state and move job to error ##
+    <models.task.active_id>  = undef;
+    <models.task.active_job> = undef;
+    <[jobqueue.move_job]>->( $job_id, qw| error | ) if length $job_id;
+    return;
+}
+
+## verify the result if verify module available ##
+my $verify_data = { 'pass' => TRUE, 'warnings' => [] };
+
+if ( exists $code{'context.delegate.verify'} ) {
+    my $verified = $code{'context.delegate.verify'}->(
+        {   'collected' => $collect_data,
+            'expect'    => $params->{'expect'} // {}
+        }
+    );
+    $verify_data = $verified->{'data'} // $verify_data;
+}
+
+## extract result and prepare for task completion ##
+my $result = $collect_data->{'result'} // '';
+my $roles  = $collect_data->{'roles'}  // $params->{'delegate_roles'} // {};
+
+## build result with delegation metadata ##
+my $result_with_meta = $result;
+
+## collapse newlines for safe protocol framing ##
+( my $safe_result = $result_with_meta ) =~ s|\s+| |gs;
+$safe_result = substr( $safe_result, 0, 8000 );    ## limit length ##
+
+## complete or fail based on verification ##
+my $job_outcome = qw| completed |;
+
+if ( length $task_id ) {
+    if ( $verify_data->{'pass'} ) {
+        ## include delegation metadata in result ##
+        my $meta = sprintf(
+            '[delegated:%s->%s:%s]',
+            $roles->{'coordinator'}    // qw| unknown |,
+            $roles->{'executor'}       // qw| unknown |,
+            $params->{'delegate_task'} // qw| task |
+        );
+        my $full_result = "$safe_result $meta";
+
+        <[protocol-7.route-send]>->(
+            {   'command'   => 'task.complete',
+                'call_args' => { 'args' => "$task_id $full_result" }
+            }
+        );
+        <[base.logs]>->(
+            1, ':. delegate_result: task %s completed via delegation',
+            $task_id
+        );
+    } else {
+        my $warnings = join ',', $verify_data->{'warnings'}->@*;
+        <[base.logs]>->(
+            0, ':. delegate_result: task %s verification failed [ %s ]',
+            $task_id, $warnings
+        );
+        <[protocol-7.route-send]>->(
+            {   'command'   => 'task.fail',
+                'call_args' =>
+                    { 'args' => "$task_id verification failed: $warnings" }
+            }
+        );
+        $job_outcome = qw| error |;
+    }
+}
+
+## clear active dispatch guard ##
+<models.task.active_id>  = undef;
+<models.task.active_job> = undef;
+
+## move job to final state ##
+if ( length $job_id ) {
+    <[jobqueue.move_job]>->( $job_id, $job_outcome );
+    delete <models.task.jobs>->{$job_id};
+}
+
+## trigger next task processing ##
+<[protocol-7.route-send]>->(
+    {   'command'   => 'task.queue',
+        'call_args' => { 'args' => qw| status=pending | },
+        'reply'     => {
+            'handler' => qw| models.handler.task-poll-step |,
+            'params'  => { 'step' => qw| check-next | }
+        }
+    }
+);
+
+return;
+
+#,,..,,,,,,..,,,,,...,...,...,,,.,,.,,,..,..,,..,,...,...,,..,,.,,,..,,,.,..,,
+#KIOKG3KFESXO32BIRYO76KGPH57HEILWIUDSQVT52NOKBJEBS6UYMQ4AUKM3QZNZVKMJBQ5V25DT2
+#\\\|67EYLWUMP6TF64YPKZZMK54EA7FF5WM4P2RHF4JYGHYDGKGDRI5 \ / AMOS7 \ YOURUM ::
+#\[7]5JPKN4C3B2SEIEZGWDSNXHCLVCU3ISXHZSYQWQFLLVUOS5XDTGAQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
