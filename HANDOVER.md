@@ -20,20 +20,41 @@ assembly, compaction, delegation, and caching.
 | `f05d01317` | review pipeline | review.plan/page/iterate/consolidate, review.handler.page_result |
 | `caede9bb9` | ncode foundation | ncode.init_code, regex.load/apply/save + seed patterns |
 | `98efcd1a5` | context zenka | zenka config, v7.cmd.start fix, channels.memory-sync.fetch/publish |
+| `5ed7db030` | ncode assess | regex.assess — diff-to-pattern extraction, confidence [0.27,0.97] |
+| `a339d9a93` | ncode expand | regex.expand — library growth with capacity management |
+| `14d1da0be` | ncode wave | transform.wave + kimi base32r decode fix |
+| `7c93b750a` | ncode handler | transform.handler.wave_reply — closes self-refinement loop |
+| `225e7fcb1` | ncode commands | cmd.transform + cmd.tool_list — complete phase 1+2 |
 
 ---
 
 ## ncode — self-refining regex transformation engine
 
-foundation modules implemented and running in context zenka:
+**11 modules — phases 1+2 complete**, running in context zenka:
+
+core engine:
 - `ncode.init_code` — loads patterns from `data/yaml/ncode-patterns/*.yaml`
 - `ncode.regex.load` — parses yaml definitions, compiles with `qr//`
 - `ncode.regex.apply` — applicability filtering, confidence thresholds, scan/apply modes
 - `ncode.regex.save` — persist patterns back to yaml (uses `format.yaml.write_file`)
 
+learning loop (kimi-implemented):
+- `ncode.regex.assess` — diff-to-pattern extraction, confidence range [0.27, 0.97]
+- `ncode.regex.expand` — add to library with weighted confidence merge, capacity eviction
+
+orchestration:
+- `ncode.transform.wave` — single refinement cycle: regex pre-pass → LLM dispatch
+- `ncode.transform.handler.wave_reply` — async: LLM result → assess → expand → save
+
+command interface:
+- `ncode.cmd.transform` — multi-wave command interface with deferred LLM support
+- `ncode.cmd.tool_list` — self-describing capabilities (5 tools with param specs)
+
 seed patterns in `data/yaml/ncode-patterns/p7-style.yaml` — 12 patterns covering:
 pipe-delimiter `m||` conflicts, comment style, `qw|` quoting, `$ARG` convention,
 module call syntax, sub declarations, `return TRUE` constants, log formatting
+
+also: `bin/kimi-task` helper script for base32r-encoded prompt dispatch to kimi
 
 design doc: `data/md/coding-tasks/ncode-zenka-self-refining-regex.md`
 - decision tree escalation: regex → callback → LLM → user preference
@@ -172,7 +193,7 @@ compose.for_task(task_type)
 
 ## files changed this session
 
-### new modules (49 total)
+### new modules (58 total)
 
 #### phases A-E: context management (33)
 ```
@@ -223,24 +244,32 @@ modules/context.review.consolidate
 modules/context.review.handler.page_result
 ```
 
-#### ncode foundation (4)
+#### ncode — complete phases 1+2 (11)
 ```
 modules/ncode.init_code
 modules/ncode.regex.load
 modules/ncode.regex.apply
 modules/ncode.regex.save
+modules/ncode.regex.assess             [ kimi: diff-to-pattern extraction ]
+modules/ncode.regex.expand             [ kimi: library growth + capacity mgmt ]
+modules/ncode.transform.wave           [ kimi: regex + LLM orchestration ]
+modules/ncode.transform.handler.wave_reply  [ kimi: async assess → expand → save ]
+modules/ncode.cmd.transform            [ kimi: multi-wave command interface ]
+modules/ncode.cmd.tool_list            [ kimi: self-describing capabilities ]
 ```
 
-#### infrastructure (4)
+#### infrastructure (5)
 ```
 modules/channels.memory-sync.fetch
 modules/channels.memory-sync.publish
 modules/v7.zenka.cmd.start            [ bugfix: undef guard for start-by-name ]
+modules/kimi.cmd.ask-reply             [ bugfix: base32r decode order + alphabet ]
 configuration/zenki/context/           [ start, zenka-startup.v7, whitelist ]
 ```
 
-### data files
+### scripts + data files
 ```
+bin/kimi-task                                                 [ base32r prompt dispatch ]
 data/yaml/ncode-patterns/p7-style.yaml                       [ 12 seed patterns ]
 data/md/coding-tasks/context-namespace-design.md              [ role fluidity update ]
 data/md/coding-tasks/context-batch-review-pipeline.md         [ step group architecture ]
