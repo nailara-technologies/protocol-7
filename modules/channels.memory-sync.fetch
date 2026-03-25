@@ -1,0 +1,31 @@
+## [:< ##
+
+# name  = channels.memory-sync.fetch
+# descr = fetch key-value data from memory-sync channel store
+
+my $params = shift // {};
+
+my $channel = $params->{'channel'} // qw| default |;
+my $key     = $params->{'key'}     // '';
+
+return { 'mode' => qw| false |, 'data' => 'key required' }
+    unless length $key;
+
+<channels.memory_sync_store> //= {};
+
+my $store = <channels.memory_sync_store>->{$channel} // {};
+my $entry = $store->{$key};
+
+return { 'mode' => qw| false |, 'data' => 'not found' }
+    unless defined $entry;
+
+return {
+    'mode' => qw| true |,
+    'data' => $entry->{'data'}
+};
+
+#,,..,.,,,..,,.,,,,,,,..,,.,.,,.,,.,.,,.,,,..,..,,...,...,...,...,..,,,.,,,..,
+#4HRJLTLDZE3RTW55YDMYZPL36KYZ7OBQ4JLW2SQLSYQC3RQ7K63EV3YMVOJHP7BAHVMAE565WEM6A
+#\\\|2GIM6754W4CK47JJN2UTKXRF4MOUM7KNWDSBGD7RPT7UJMZLRON \ / AMOS7 \ YOURUM ::
+#\[7]KHQMEE6PYGWCARO3WWMOX2YUOGRCVKOUU4WEBACUANEOEJADPGAA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
