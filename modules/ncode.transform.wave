@@ -1,0 +1,226 @@
+## [:< ##
+
+# name  = ncode.transform.wave
+# descr = single refinement wave combining regex pre-pass with optional LLM
+# param = $params [ input, file_type, namespace, target, llm_cmd, llm_budget,
+#                   save_patterns ]
+
+my $params = shift // {};
+
+## extract parameters ##
+my $input         = $params->{'input'}         // '';
+my $file_type     = $params->{'file_type'}     // qw| module |;
+my $namespace     = $params->{'namespace'}     // '';
+my $target        = $params->{'target'}        // '';
+my $llm_cmd       = $params->{'llm_cmd'}       // '';
+my $llm_budget    = $params->{'llm_budget'}    // 0;
+my $save_patterns = $params->{'save_patterns'} // 1;
+
+## validate input ##
+return { 'mode' => qw| false |, 'data' => 'input code required' }
+    unless length $input;
+
+## step 1: run regex pre-pass ##
+my $regex_result = <[ncode.regex.apply]>->(
+    {   'input'     => $input,
+        'file_type' => $file_type,
+        'namespace' => $namespace,
+        'mode'      => qw| apply |
+    }
+);
+
+## handle regex apply failure ##
+if ( $regex_result->{'mode'} ne qw| true | ) {
+    return {
+        'mode' => qw| false |,
+        'data' => 'regex apply failed: ' . $regex_result->{'data'}
+    };
+}
+
+my $regex_data = $regex_result->{'data'};
+my $output     = $regex_data->{'output'};
+my $changed    = $regex_data->{'changed'};
+my $flagged    = $regex_data->{'flagged'} // [];
+
+## step 2: check if all issues resolved by regex ##
+my $wave_stats = {
+    'regex_applied'  => $regex_data->{'total_applied'} // 0,
+    'regex_flagged'  => scalar @$flagged,
+    'llm_needed'     => 0,
+    'llm_dispatched' => 0
+};
+
+## no flagged items - regex handled everything ##
+if ( @$flagged == 0 ) {
+    return {
+        'mode' => qw| true |,
+        'data' => {
+            'output'     => $output,
+            'changed'    => $changed,
+            'wave_stats' => $wave_stats
+        }
+    };
+}
+
+## step 3: flagged items remain - check for LLM mode ##
+$wave_stats->{'llm_needed'} = 1;
+
+## regex-only mode - no llm_cmd provided ##
+unless ( length $llm_cmd ) {
+    return {
+        'mode' => qw| true |,
+        'data' => {
+            'output'     => $output,
+            'changed'    => $changed,
+            'wave_stats' => $wave_stats
+        }
+    };
+}
+
+## step 4: build LLM prompt for remaining issues ##
+my $prompt = _build_llm_prompt( $output, $flagged, $target, $file_type );
+
+## encode prompt with base32r for safe transmission ##
+<[base.perlmod.load]>->('Crypt::Misc');
+
+my $encoded = eval { Crypt::Misc::encode_b32r($prompt) };
+
+if ( $@ or not defined $encoded or not length $encoded ) {
+    <[base.logs]>->(
+        0,
+        ':. ncode.transform.wave: base32r encode failed [ %s ] :.',
+        $@ // qw| unknown |
+    );
+
+    ## return regex result as fallback ##
+    return {
+        'mode' => qw| true |,
+        'data' => {
+            'output'     => $output,
+            'changed'    => $changed,
+            'wave_stats' => $wave_stats
+        }
+    };
+}
+
+## step 5: dispatch to LLM via route-send ##
+my $reply_handler = $params->{'reply_handler'}
+    // qw| ncode.transform.handler.wave_reply |;
+
+## build wave state for async continuation ##
+my $wave_state = {
+    'input'          => $output,          ## current state after regex ##
+    'file_type'      => $file_type,
+    'namespace'      => $namespace,
+    'target'         => $target,
+    'save_patterns'  => $save_patterns,
+    'regex_applied'  => $wave_stats->{'regex_applied'},
+    'regex_flagged'  => $wave_stats->{'regex_flagged'},
+    'llm_budget'     => $llm_budget,
+    'original_input' => $input
+};
+
+my $sent = <[protocol-7.route-send]>->(
+    {   'command'   => $llm_cmd,
+        'call_args' => { 'args' => $encoded },
+        'reply'     => {
+            'handler' => $reply_handler,
+            'params'  => $wave_state
+        }
+    }
+);
+
+if ( $sent <= 0 ) {
+    <[base.logs]>->(
+        1, ':. ncode.transform.wave: llm dispatch failed [ %s ] :.', $llm_cmd
+    );
+
+    ## return regex result as fallback ##
+    return {
+        'mode' => qw| true |,
+        'data' => {
+            'output'     => $output,
+            'changed'    => $changed,
+            'wave_stats' => $wave_stats
+        }
+    };
+}
+
+$wave_stats->{'llm_dispatched'} = 1;
+
+<[base.logs]>->(
+    2,
+    ':. ncode.transform.wave: dispatched to %s [ flagged=%d budget=%d ] :.',
+    $llm_cmd, scalar @$flagged, $llm_budget
+);
+
+## return deferred - async handler will continue ##
+return {
+    'mode' => qw| deferred |,
+    'data' => {
+        'output'     => $output,
+        'changed'    => $changed,
+        'wave_stats' => $wave_stats
+    }
+};
+
+## internal: build LLM prompt describing flagged issues ##
+sub _build_llm_prompt {
+    my ( $code, $flagged, $target, $file_type ) = @_;
+
+    my @lines;
+
+    push @lines, '## Code transformation request ##';
+    push @lines, '';
+
+    if ( length $target ) {
+        push @lines, "Target style: $target";
+    }
+
+    push @lines, "File type: $file_type";
+    push @lines, '';
+
+    push @lines, '## Current code after regex pre-pass ##';
+    push @lines, '';
+    push @lines, '```';
+
+    my @code_lines = split m|\n|, $code;
+    push @lines, @code_lines;
+
+    push @lines, '```';
+    push @lines, '';
+
+    push @lines, '## Flagged items requiring transformation ##';
+    push @lines, '';
+
+    foreach my $flag (@$flagged) {
+        my $name    = $flag->{'name'}    // 'unknown';
+        my $matches = $flag->{'matches'} // 0;
+        my $action  = $flag->{'action'}  // qw| flag_for_review |;
+        my $conf    = $flag->{'conf'}    // 0;
+        my $lines   = $flag->{'lines'}   // [];
+
+        push @lines,
+            sprintf( "- Pattern '%s' [conf=%.2f, action=%s, matches=%d]",
+            $name, $conf, $action, $matches );
+
+        if (@$lines) {
+            push @lines, '  Lines: ' . join( ', ', @$lines );
+        }
+    }
+
+    push @lines, '';
+    push @lines, '## Instructions ##';
+    push @lines, '';
+    push @lines, 'Transform the code above to resolve all flagged items.';
+    push @lines, 'Maintain the existing structure and style where possible.';
+    push @lines, 'Return the complete transformed code in a code block.';
+
+    return join "\n", @lines;
+}
+
+#,,,,,,.,,..,,,..,.,,,.,,,.,,,.,,,.,.,.,,,,,.,.,.,...,...,..,,,..,.,.,.,,,.,.,
+#HRSKWCNB4ZT4MYG6GOHQYCY3Z2HYTJGYPFMFSWCEOS7BZSHURZKFUF7OYTUNPC24C4QB2GS2PIE3S
+#\\\|RSTOKKEWCWUYBX6JCMWR7ET2VOXDFAQAOY5HZKBQIUPROQEJKFP \ / AMOS7 \ YOURUM ::
+#\[7]2HBPW7W53ZVKNGJ4MVGKFQHBP2QJ5PY5C2J72VMIOBPKSSSQ7CCQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

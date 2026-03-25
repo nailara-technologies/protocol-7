@@ -14,18 +14,20 @@ if ( defined $call->{'param'} and ref $call->{'param'} eq qw| HASH | ) {
     $prompt = $call->{'args'} // '';
 }
 
-## decode base32r if the string looks encoded
-if ( $prompt =~ m{^[2-7A-Z]+$} ) {
-    my $decoded = eval { Crypt::Misc::decode_b32r($prompt) };
-    $prompt = $decoded if defined $decoded and length $decoded;
-}
-
 unless ( length $prompt ) {
     return { 'mode' => qw| false |, 'data' => 'prompt required' };
 }
 
 ## check for :next: prefix — fresh session before dispatch
-if ( $prompt =~ s{^:next:\s*}{} ) {
+my $wants_next = $prompt =~ s{^:next:\s*}{};
+
+## decode base32r if the string looks encoded
+if ( $prompt =~ m{^[2-9A-Z]+$} ) {
+    my $decoded = eval { Crypt::Misc::decode_b32r($prompt) };
+    $prompt = $decoded if defined $decoded and length $decoded;
+}
+
+if ($wants_next) {
     ## store deferred prompt for post-reconnect dispatch
     <kimi.next.deferred> = {
         'prompt'   => $prompt,
@@ -67,8 +69,8 @@ return { 'mode' => qw| false |, 'data' => 'kimi.wire.prompt failed' }
 
 return { 'mode' => qw| deferred | };
 
-#,,.,,,,,,,.,,,,.,.,.,...,.,,,.,,,.,,,..,,,,.,.,.,...,...,..,,.,,,.,.,,..,...,
-#EGVWQ2GIXTGWXATRA7ZMGM45PZ2KC7OVFVECLIYRQZBMR3L2HV5ARLWXSFICV6EFVM5JYWUJQJVJS
-#\\\|SZQZUPU7YWY6JHKHN263HN5C7GXAQFDWRWKIFYGKA3KH6TRRC2H \ / AMOS7 \ YOURUM ::
-#\[7]4NJGSDDBNH4Z7XTL7PHWRUZJF32HDJCJMBSEAZFGENWYUIHJRSBA 7  DATA SIGNATURE ::
+#,,.,,.,.,.,,,,,.,,..,...,.,.,..,,,..,...,,,,,.,.,...,...,..,,.,,,,.,,..,,,,.,
+#ZNFAZZ5LNGG6J5GWY5DFT4VVLNF6TW7XSN5XYEQF44XD4FGX52PIN6GL2GHLL3OCA4ODNUY6VAZCQ
+#\\\|GJG25MZEK42EZFY2MR7AIA4567ZA27OR6Y4DERSCKXFDJQNXBZ5 \ / AMOS7 \ YOURUM ::
+#\[7]2PLAHR3KTYALE3KCBMDUHS3SO7XATP4MEFZZP7MFURKLMAREX2BY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
