@@ -176,8 +176,8 @@ The `llama-mtmd-cli-cuda-fa` binary (CLI fallback) was not rebuilt in Mar 2026. 
 **Integrated Task**: HTTP backend (complete) + CLI fallback (downgrade) + LOVES_IT allocation (new)  
 **Session Target**: Implement Phase 1 & 2  
 
-#,,,.,..,,,,,,,,,,,.,,,..,.,,,..,,,..,..,,,,.,..,,...,...,.,,,...,,,,,,,.,..,,
-#Y6CN275SHEFPFDOO7COA2KHCSJGNYZCOENTBUO3XRXZWTH6WCV73TCQJWHKM5TNHPKYI4WS4CSOYQ
-#\\\|EX6P6XDTTYMLFCFNTBQS5HRQJDHH34OMVWUWC5DXUWGBOBTLQMP \\ / AMOS7 \\ YOURUM ::
-#\\[7]2ZNJBOHWV6Z5K763E6EZVKOYATKZYJQ7MPRCGC322XFOLMXQYOCY 7  DATA SIGNATURE ::
+#,,.,,,,,,.,.,,,,,.,.,,.,,,..,.,.,..,,...,,,.,.,.,...,...,,,,,,,.,,.,,...,,,,,
+#JMXAPJN2XFG34E3U4MARSMBNUXFC3CMR44454GZAZ67MN5ZRVIS27K72GUJUQYFP37E7SF3TKV7HC
+#\\\|6TMGMMQGR2EXQCNWFMZJQPCIAMLEXM6FVDBPK4222H7OSGUKO6Y \ / AMOS7 \ YOURUM ::
+#\[7]TBHQ2WZKP6YAIKL2NVJ5G2ZHUTWKYWDVBGIRAL3G5RFRVGRIUADA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
