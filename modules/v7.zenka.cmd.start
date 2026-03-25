@@ -103,13 +103,17 @@ if ( exists $zenka_config->{'max_concurrency'}
     and <[v7.start_count]>->($zenka_name)
     >= $zenka_config->{'max_concurrency'} ) {
     ## allow one expansion slot for concurrent handover mode
-    my $is_handover = $call->{'mode'} eq qw| concurrent-handover |;
+    my $is_handover
+        = ( defined $call->{'mode'}
+            and $call->{'mode'} eq qw| concurrent-handover | );
     my $at_exact_limit
         = <[v7.start_count]>->($zenka_name)
         == $zenka_config->{'max_concurrency'};
     my $handover_already_active
-        = grep { exists <v7.zenka.instance>->{$ARG}->{'handover_expansion'} }
-        <[zenka.instance.get_ids]>->($zenka_id)->@*;
+        = defined $zenka_id
+        ? grep { exists <v7.zenka.instance>->{$ARG}->{'handover_expansion'} }
+        <[zenka.instance.get_ids]>->($zenka_id)->@*
+        : 0;
 
     if ( $is_handover and $at_exact_limit and not $handover_already_active ) {
         <[base.logs]>->(
@@ -226,8 +230,8 @@ return {
     'data' => sprintf( "job queued [ID=%d]", $job_id )
     }
 
-#,,.,,..,,,.,,,,,,,..,...,.,,,,,.,.,,,,..,..,,..,,...,...,.,.,..,,..,,,,.,,,,,
-#DGY44DCSQN2BUWJSHHJTR7BIAEFJLV6FROUJGGCXG7UVQ2X23CARHVIJYTLHZQWPTNK45K6MY5IJW
-#\\\|JF5MKOLBITIWZWGICI467IW4BMW7OUSBWCAX6YEIGEPISRIWDWY \ / AMOS7 \ YOURUM ::
-#\[7]RNAYIIEIJFYDAV6GL5S6YIATPNSHBFN5IUA2T53UVXVG637RLOBI 7  DATA SIGNATURE ::
+#,,,,,,,,,..,,...,.,.,,,,,,..,...,.,,,.,.,,,,,..,,...,.,.,,,.,,..,,,,,,,.,..,,
+#RVPQ2NBNIQGXBH5RJVYKXSIPIJQD6VCGCP64NAXIYTW3AOHS33Y5KHPDERRSX5FKF67QHMIME45XK
+#\\\|2XRKIJC3XQG5VHPIN5C2OTGDMHJKYZLZKBH6JMUV477K6JLBFFH \ / AMOS7 \ YOURUM ::
+#\[7]BEL4OKLLJMTFAA2YZEKRWN4UTXAI3S7VJU4L55VVTQ7JZHZT4WCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

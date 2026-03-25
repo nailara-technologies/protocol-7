@@ -1,0 +1,46 @@
+## [:< ##
+
+# name  = channels.memory-sync.publish
+# descr = publish key-value data to memory-sync channel
+
+my $params = shift // {};
+
+my $channel = $params->{'channel'} // qw| default |;
+my $key     = $params->{'key'}     // '';
+my $data    = $params->{'data'};
+my $target  = $params->{'target'} // '';
+
+return { 'mode' => qw| false |, 'data' => 'key required' }
+    unless length $key;
+
+## store in channel-local data ##
+<channels.memory_sync_store> //= {};
+<channels.memory_sync_store>->{$channel} //= {};
+<channels.memory_sync_store>->{$channel}->{$key} = {
+    'data'         => $data,
+    'published_at' => time(),
+    'source'       => <system.zenka.name> // qw| unknown |
+};
+
+## queue for batch-send if target specified ##
+if ( length $target ) {
+    <channels.memory_sync.pending_changes> //= {};
+    <channels.memory_sync.pending_changes>->{$key} = {
+        'remote_zenka'  => $target,
+        'remote_path'   => "memory_sync_store.$channel.$key",
+        'changed_value' => $data,
+        'queued_at'     => time(),
+        'watch_id'      => "publish.$key"
+    };
+}
+
+return {
+    'mode' => qw| true |,
+    'data' => { 'key' => $key, 'channel' => $channel }
+};
+
+#,,..,...,..,,..,,..,,,,.,,..,,..,...,.,.,,,.,..,,...,...,...,..,,..,,..,,,,,,
+#SZUAIMFH3Z4TVXUET6O7ZP3BNF37TZJUXLVV3H4YZJYDHAOIPDHKSKKWKUYNZAILQSSCG55TBHYYK
+#\\\|AGQ4CRRSXYOI3C37FPYKDQ5AYKPC2XWNABLQ7LNGYTX2IORHPA4 \ / AMOS7 \ YOURUM ::
+#\[7]E4NJMVJPSI4HYLT7YPWVKFM5NEGZ4LHT5ICODJS6JEKAGVG6EGDQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
