@@ -1,0 +1,24 @@
+## [:< ##
+
+# name  = context.string.common_prefix_len
+# descr = find common prefix length between two strings
+
+my $params = shift // {};
+
+my $a = $params->{'a'} // '';
+my $b = $params->{'b'} // '';
+
+my $len = 0;
+my $max = length $a < length $b ? length $a : length $b;
+
+while ( $len < $max and substr( $a, $len, 1 ) eq substr( $b, $len, 1 ) ) {
+    $len++;
+}
+
+return $len;
+
+#,,..,.,.,..,,,,,,,.,,,,.,,..,,,.,,..,,..,,.,,.,.,...,...,,..,..,,..,,,.,,,,,,
+#BRWVC6GBETE27TSEETCOT6CC6K6RYHF6N7KXMNH4LOEZZ7URXIKW7V2O4T7XFTEHPYO7VCJLVW52M
+#\\\|JNRJX7V7OI47TYJAPFGI5UOPDN34R2PUS4PUZEOHMQHMIXHYZNI \ / AMOS7 \ YOURUM ::
+#\[7]4PMAT3AC253OZO665NBNZNIPTTY22YZJSAJBA3VR3ANJD22T4YDI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

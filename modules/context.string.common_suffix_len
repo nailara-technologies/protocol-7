@@ -1,0 +1,28 @@
+## [:< ##
+
+# name  = context.string.common_suffix_len
+# descr = find common suffix length between two strings
+
+my $params = shift // {};
+
+my $a = $params->{'a'} // '';
+my $b = $params->{'b'} // '';
+
+my $len   = 0;
+my $len_a = length $a;
+my $len_b = length $b;
+my $max   = $len_a < $len_b ? $len_a : $len_b;
+
+while ( $len < $max
+    and substr( $a, $len_a - $len - 1, 1 ) eq
+    substr( $b, $len_b - $len - 1, 1 ) ) {
+    $len++;
+}
+
+return $len;
+
+#,,.,,..,,,,.,,,.,,,.,,,,,..,,,,,,.,.,.,,,,.,,.,.,...,...,,..,..,,..,,,.,,.,.,
+#U7YLTQU2AHJKLD6VBAGSQKS7G5ISPAZVHFCA36V6V2VXMTEI7SJ42NGV6GRF54W5MIW4Q5WCADJPW
+#\\\|RAOJJ56CIZ7LG67ABK34NTWSTLXX6B4J3WIYKX2O5QWC5MHXMFC \ / AMOS7 \ YOURUM ::
+#\[7]EOUGURXGXT7YSIM4MRXOXLD4Z2KAXM7VQEVCJWSR4BWQNORXASAY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

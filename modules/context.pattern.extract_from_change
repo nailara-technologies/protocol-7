@@ -1,0 +1,134 @@
+## [:< ##
+
+# name  = context.pattern.extract_from_change
+# descr = extract regex pattern from a line change
+
+my $params = shift // {};
+
+my $old = $params->{'old'} // '';
+my $new = $params->{'new'} // '';
+
+return undef if $old eq $new;
+
+my $prefix_len
+    = <[context.string.common_prefix_len]>->( { 'a' => $old, 'b' => $new } );
+my $suffix_len
+    = <[context.string.common_suffix_len]>->( { 'a' => $old, 'b' => $new } );
+
+my $old_len = length $old;
+my $new_len = length $new;
+
+## extract middle parts ##
+my $old_middle = '';
+my $new_middle = '';
+
+if ( $prefix_len + $suffix_len < $old_len ) {
+    $old_middle
+        = substr( $old, $prefix_len, $old_len - $prefix_len - $suffix_len );
+}
+if ( $prefix_len + $suffix_len < $new_len ) {
+    $new_middle
+        = substr( $new, $prefix_len, $new_len - $prefix_len - $suffix_len );
+}
+
+## build pattern with capture groups ##
+my $pattern = '';
+my $replace = '';
+my @vars;
+
+## escape prefix for regex ##
+my $prefix = substr( $old, 0, $prefix_len );
+$prefix =~ s{([\^\$\*\+\?\.\|\(\)\[\]\{\}\\])}{\\$1}g;
+
+## escape suffix for regex ##
+my $suffix = '';
+if ($suffix_len) {
+    $suffix = substr( $old, $old_len - $suffix_len );
+    $suffix =~ s{([\^\$\*\+\?\.\|\(\)\[\]\{\}\\])}{\\$1}g;
+}
+
+## analyze the changed portion ##
+if ( length $old_middle and length $new_middle ) {
+    ## substitution pattern ##
+    my $var_num = 1;
+
+    ## check for numeric changes ##
+    if ( $old_middle =~ m|^\d+$| and $new_middle =~ m|^\d+$| ) {
+        ## number change - generic ##
+        $pattern = $prefix . '(\d+)' . $suffix;
+        $replace = $prefix . $new_middle . $suffix;
+        @vars    = qw| number |;
+    }
+    ## check for identifier changes ##
+    elsif ( $old_middle =~ m|^[a-zA-Z_]\w*$|
+        and $new_middle =~ m|^[a-zA-Z_]\w*$| ) {
+        ## identifier change ##
+        $pattern = $prefix . '([a-zA-Z_]\w*)' . $suffix;
+        $replace = $prefix . $new_middle . $suffix;
+        @vars    = qw| identifier |;
+    }
+    ## check for quoted string changes ##
+    elsif ( $old_middle =~ m|^['"].*['"]$|
+        and $new_middle =~ m|^['"].*['"]$| ) {
+        ## quoted string change ##
+        $pattern = $prefix . '([\'"][^\'"]*[\'"])' . $suffix;
+        $replace = $prefix . $new_middle . $suffix;
+        @vars    = qw| string |;
+    }
+    ## check for value assignment changes ##
+    elsif ( $old =~ m|^(\s*\$?\w+\s*=\s*)(.+?)(\s*;?\s*)$|
+        and $new =~ m|^(\s*\$?\w+\s*=\s*)(.+?)(\s*;?\s*)$| ) {
+        my ( $pre, $old_val, $post ) = ( $1, $2, $3 );
+        my $new_val = $2;
+        ( undef, $new_val, undef )
+            = ( $new =~ m|^(\s*\$?\w+\s*=\s*)(.+?)(\s*;?\s*)$| );
+
+        $pre  =~ s{([\^\$\*\+\?\.\|\(\)\[\]\{\}\\])}{\\$1}g;
+        $post =~ s{([\^\$\*\+\?\.\|\(\)\[\]\{\}\\])}{\\$1}g;
+
+        $pattern = $pre . '(.*?)' . $post;
+        $replace = $pre . $new_val . $post;
+        @vars    = qw| value |;
+    } else {
+        ## generic pattern with word/space capture ##
+        my $escaped_old = $old_middle;
+        $escaped_old =~ s{([\^\$\*\+\?\.\|\(\)\[\]\{\}\\])}{\\$1}g;
+        $escaped_old =~ s|\w+|([\\w\\-]+)|g;
+        $escaped_old =~ s|\d+|(\\d+)|g;
+        $escaped_old =~ s|\s+|\\s+|g;
+
+        $pattern = $prefix . $escaped_old . $suffix;
+        $replace = $new;
+        @vars    = qw| token |;
+    }
+} else {
+    ## addition or deletion - flag only pattern ##
+    return undef if $suffix_len + $prefix_len < 5;
+
+    $pattern = $prefix . '.*?' . $suffix;
+    $replace = undef;                       ## flag only ##
+    @vars    = qw| content |;
+}
+
+## generate description ##
+my $descr = <[context.pattern.generate_description]>->(
+    {   'old'  => $old,
+        'new'  => $new,
+        'vars' => \@vars
+    }
+);
+my $note = sprintf 'line %s -> %s', $old, $new;
+
+return {
+    'pattern' => $pattern,
+    'replace' => $replace,
+    'descr'   => $descr,
+    'note'    => $note,
+    'vars'    => \@vars
+};
+
+#,,,,,,,,,.,,,..,,,..,...,,..,..,,.,,,,,.,,,.,.,.,...,..,,..,,..,,..,,,,,,...,
+#NVB4SII4ELP4IHFBXWEQK7BWROQOEAC66ZJ5RLJ2TOIAFNJ7KBB7DQQZNINNU2457BDXIAPMSGVCM
+#\\\|YQYAR7FHYQR2NG6OFRGFCVNQZBKVDBT6T3MZHQCSCD7G3OCR6UE \ / AMOS7 \ YOURUM ::
+#\[7]AOCGAJ3CRIHGNWPJN4ALJRTEU66YAKGTQPOGYLFXSHFKEFRJX6BY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

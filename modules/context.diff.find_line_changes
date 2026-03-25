@@ -1,0 +1,72 @@
+## [:< ##
+
+# name  = context.diff.find_line_changes
+# descr = find 1:1 line changes using simple alignment
+
+my $params = shift // {};
+
+my $in_ref  = $params->{'in'}  // [];
+my $out_ref = $params->{'out'} // [];
+
+my @in  = @$in_ref;
+my @out = @$out_ref;
+
+my @changes;
+my $i = 0;
+my $j = 0;
+
+while ( $i < @in and $j < @out ) {
+    if ( $in[$i] eq $out[$j] ) {
+        ## lines match - skip ##
+        $i++;
+        $j++;
+    } elsif (
+        <[context.diff.lines_similar]>->(
+            { 'a' => $in[$i], 'b' => $out[$j] }
+        )
+    ) {
+        ## similar lines - potential pattern extraction ##
+        push @changes,
+            {
+            'old'      => $in[$i],
+            'new'      => $out[$j],
+            'in_line'  => $i + 1,
+            'out_line' => $j + 1
+            };
+        $i++;
+        $j++;
+    } else {
+        ## diverged - try to resync ##
+        my $lookahead = <[context.diff.find_resync]>->(
+            {   'in'  => \@in,
+                'i'   => $i,
+                'out' => \@out,
+                'j'   => $j
+            }
+        );
+        if ( $lookahead > 0 and $lookahead <= 3 ) {
+            ## skip differing lines ##
+            $i += $lookahead;
+            $j += $lookahead;
+        } else {
+            ## single line change assumed ##
+            push @changes,
+                {
+                'old'      => $in[$i],
+                'new'      => $out[$j],
+                'in_line'  => $i + 1,
+                'out_line' => $j + 1
+                };
+            $i++;
+            $j++;
+        }
+    }
+}
+
+return @changes;
+
+#,,,.,.,,,,,.,...,,.,,,,.,,,.,,.,,,.,,...,,,,,.,.,...,.,.,,.,,...,..,,,.,,,,,,
+#HPF6VILJAMBVQBUPTJNEF3FMIN3MS3MS3PR5YLHEAHVXFGARAZYFUHIONQQ653N6UIAN3MXIW5AKU
+#\\\|V4KPC7GVAMG3LLQWAS3CCULW6HFH4CVIF4RK43YCHQQB44AAWVJ \ / AMOS7 \ YOURUM ::
+#\[7]O6E6VEORAZYFM23NHRNBXCL3H7FNX64IY3NGPM6HQRYJ44R7WQAY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

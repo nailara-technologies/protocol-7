@@ -1,0 +1,18 @@
+## [:< ##
+
+# name  = context.string.ellipsize
+# descr = truncate long strings for display with ellipsis
+
+my $params = shift // {};
+
+my $str = $params->{'str'} // '';
+my $max = $params->{'max'} // 40;
+
+return $str if length $str <= $max;
+return substr( $str, 0, $max - 3 ) . '...';
+
+#,,,.,.,,,,,,,...,...,,,,,...,...,,,.,,,.,...,.,.,...,...,.,.,.,.,,..,,,,,,.,,
+#V6TZD4MPUIRR6Y5BD6G6T4A3I4GNKVDX2LCBLUDRLI7G36F5HU2GS7UZDBU5HKK6UMI2TBOHCKE7W
+#\\\|KN2GYJ2EOZ3HN5VJOXHCCP3T6W7QNOOHKM7CQRXGEIRLQTFDNLM \ / AMOS7 \ YOURUM ::
+#\[7]CZEYGTZFZAVY45BOEBSKCBSDX4JTKK6MCMGDH3GROJWKPNZ7BUDY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

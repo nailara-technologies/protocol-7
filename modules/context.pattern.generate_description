@@ -1,0 +1,41 @@
+## [:< ##
+
+# name  = context.pattern.generate_description
+# descr = generate human-readable description of a transformation
+
+my $params = shift // {};
+
+my $old      = $params->{'old'}  // '';
+my $new      = $params->{'new'}  // '';
+my $vars_ref = $params->{'vars'} // [];
+
+my @vars = @$vars_ref;
+
+## describe the transformation ##
+if ( @vars == 1 and $vars[0] eq qw| number | ) {
+    return sprintf "change numeric value from '%s' to '%s'",
+        <[context.string.ellipsize]>->( { 'str' => $old } ),
+        <[context.string.ellipsize]>->( { 'str' => $new } );
+} elsif ( @vars == 1 and $vars[0] eq qw| identifier | ) {
+    return sprintf "rename identifier from '%s' to '%s'",
+        <[context.string.ellipsize]>->( { 'str' => $old } ),
+        <[context.string.ellipsize]>->( { 'str' => $new } );
+} elsif ( @vars == 1 and $vars[0] eq qw| string | ) {
+    return sprintf "update string literal from '%s' to '%s'",
+        <[context.string.ellipsize]>->( { 'str' => $old } ),
+        <[context.string.ellipsize]>->( { 'str' => $new } );
+} elsif ( @vars == 1 and $vars[0] eq qw| value | ) {
+    return sprintf "modify value assignment from '%s' to '%s'",
+        <[context.string.ellipsize]>->( { 'str' => $old } ),
+        <[context.string.ellipsize]>->( { 'str' => $new } );
+} else {
+    return sprintf "transform '%s' to '%s'",
+        <[context.string.ellipsize]>->( { 'str' => $old } ),
+        <[context.string.ellipsize]>->( { 'str' => $new } );
+}
+
+#,,,,,.,.,,..,.,.,,.,,,,,,...,,,,,,.,,.,.,.,,,.,.,...,..,,..,,...,...,...,,.,,
+#U2H4SDLQFYOBWHYNNAFVQ6KHZ4YXCKW64UTFK5ZXBLQG3NU3PVBVXB2DDFQXVXYCKW3SVGWOASIAO
+#\\\|Z6GNPRC5FFEYWBF4O6D3CZYLVNR5KPBMTMIITSBYF5BHS3QLEFE \ / AMOS7 \ YOURUM ::
+#\[7]HRWMHTWCGVC6VKWPJGY6X6BPBGZ33T2CDOLKTHJY3KXSXB5WJOCY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
