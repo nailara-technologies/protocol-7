@@ -1,0 +1,124 @@
+## [:< ##
+
+# name  = ncode.regex.save
+# descr = persist current regex patterns to yaml file
+
+my $params = shift // {};
+
+my $file      = $params->{'file'}        // '';
+my $filter    = $params->{'filter'}      // '';
+my $min_apply = $params->{'min_applied'} // 0;
+
+return { 'mode' => qw| false |, 'data' => 'file path required' }
+    unless length $file;
+
+<ncode.patterns> //= {};
+
+my $patterns = <ncode.patterns>;
+
+return { 'mode' => qw| false |, 'data' => 'no patterns to save' }
+    unless keys %$patterns;
+
+## collect patterns for export ##
+my @export;
+
+foreach my $name ( sort keys %$patterns ) {
+    my $def = $patterns->{$name};
+
+    ## optional namespace filter ##
+    if ( length $filter ) {
+        next unless $name =~ m{^\Q$filter\E};
+    }
+
+    ## optional minimum applied count ##
+    if ($min_apply) {
+        my $applied = $def->{'stats'}->{'applied'} // 0;
+        next unless $applied >= $min_apply;
+    }
+
+    ## build exportable structure [ no compiled regex ] ##
+    my $entry = {
+        'name'          => $name,
+        'descr'         => $def->{'descr'}   // '',
+        'pattern'       => $def->{'pattern'} // '',
+        'origin'        => $def->{'origin'}  // qw| unknown |,
+        'source_task'   => $def->{'source_task'},
+        'note'          => $def->{'note'},
+        'applicability' => $def->{'applicability'} // {},
+        'stats'         => {
+            'applied'        => $def->{'stats'}->{'applied'}        // 0,
+            'false_positive' => $def->{'stats'}->{'false_positive'} // 0
+        }
+    };
+
+    ## include replace if defined ##
+    $entry->{'replace'} = $def->{'replace'} if defined $def->{'replace'};
+
+    ## remove undef optional fields ##
+    delete $entry->{'source_task'}
+        unless defined $entry->{'source_task'}
+        and length $entry->{'source_task'};
+    delete $entry->{'note'}
+        unless defined $entry->{'note'}
+        and length $entry->{'note'};
+
+    push @export, $entry;
+}
+
+return { 'mode' => qw| false |, 'data' => 'no patterns matched filter' }
+    unless @export;
+
+## serialize to yaml ##
+my $yaml_fn = $code{'format.yaml.dump_file'};
+my $success;
+
+if ( defined $yaml_fn ) {
+    $success = $yaml_fn->( $file, { 'patterns' => \@export } );
+} else {
+    <[base.perlmod.load]>->('YAML::XS');
+    my $yaml_str = eval { YAML::XS::Dump( { 'patterns' => \@export } ) };
+    if ($@) {
+        <[base.logs]>->(
+            0, ':. ncode.regex.save: yaml dump error [ %s ] :.', $@
+        );
+        return {
+            'mode' => qw| false |,
+            'data' => 'yaml serialization error'
+        };
+    }
+
+    ## write to file ##
+    my $fh;
+    if ( not open( $fh, '>', $file ) ) {
+        <[base.logs]>->(
+            0,     ':. ncode.regex.save: cannot write %s [ %s ] :.',
+            $file, $!
+        );
+        return { 'mode' => qw| false |, 'data' => "write failed: $!" };
+    }
+    print {$fh} $yaml_str;
+    close $fh;
+    $success = 1;
+}
+
+return { 'mode' => qw| false |, 'data' => 'write failed' } unless $success;
+
+<[base.logs]>->(
+    2,
+    ':. ncode.regex.save: wrote %d patterns to %s :.',
+    scalar @export, $file
+);
+
+return {
+    'mode' => qw| true |,
+    'data' => {
+        'file'  => $file,
+        'saved' => scalar @export
+    }
+};
+
+#,,,,,...,,..,.,,,,.,,.,,,.,.,,,.,,,,,.,,,,..,..,,...,...,,,,,,,,,...,.,.,.,,,
+#B3QUWAFOUIF3Z6XWMXWXCB4L2MOKD2XNR5PSP5DFWLNUAXPKS6HSRDAX5PGHUQQ5PHMWL6GTM64AO
+#\\\|DPAMOM2B2KAMHMVMYM63YLAOBNTVDEVDHF3VAHRQRPWSUMCEGMQ \ / AMOS7 \ YOURUM ::
+#\[7]BLY7A25VK4JJLN5L5GW5WRGCFW5KRWF4K34RTLUBEFNCSMNGHCBI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

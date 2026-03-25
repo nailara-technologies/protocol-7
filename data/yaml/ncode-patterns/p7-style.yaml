@@ -1,0 +1,181 @@
+---
+patterns:
+
+  ## regex delimiter conflicts — the founding pattern ##
+
+  - name: regex-pipe-alternation-m-bar
+    descr: flag m|| regexes containing alternation pipes inside pattern
+    pattern: 'm\|[^|]*\([^)]*\|[^)]*\)[^|]*\|'
+    replace: null
+    applicability:
+      file_type: module
+      action: flag_for_review
+      confidence: 0.75
+    origin: manual
+    note: suggest m{} when pattern contains pipes — encountered 3x in context.* session
+    stats:
+      applied: 0
+      false_positive: 0
+
+  - name: regex-pipe-alternation-split
+    descr: fix split m|| with alternation — use m{} delimiter
+    pattern: 'split\s+m\|([^|]*\|[^|]*)\|'
+    replace: null
+    applicability:
+      file_type: module
+      action: flag_for_review
+      confidence: 0.70
+    origin: manual
+    note: split with alternation inside m|| is ambiguous — flag for m{} conversion
+    stats:
+      applied: 0
+      false_positive: 0
+
+  ## comment style ##
+
+  - name: comment-uppercase-start
+    descr: flag comments starting with uppercase after ##
+    pattern: '^\s*##\s+[A-Z][a-z]'
+    replace: null
+    applicability:
+      file_type: module
+      confidence: 0.80
+      action: flag_for_review
+    origin: manual
+    note: p7 style uses lowercase comments — flag but dont auto-fix [ context needed ]
+    stats:
+      applied: 0
+      false_positive: 0
+
+  ## quoting style ##
+
+  - name: single-quote-to-qw-scalar
+    descr: convert single-quoted scalar assignments to qw| | style
+    pattern: "=\\s+'([a-z_]+)'"
+    replace: "= qw| $1 |"
+    applicability:
+      file_type: module
+      context: scalar_assignment
+      confidence: 0.85
+      exclude: multi_word
+    origin: manual
+    source_task: AKXEYFQ
+    note: p7 convention — qw| | for single-word scalars in assignments
+    stats:
+      applied: 0
+      false_positive: 0
+
+  - name: double-quote-to-qw-scalar
+    descr: convert double-quoted scalar assignments to qw| | when no interpolation
+    pattern: '=\s+"([a-z_]+)"'
+    replace: "= qw| $1 |"
+    applicability:
+      file_type: module
+      context: scalar_assignment
+      confidence: 0.80
+      exclude: interpolated
+    origin: manual
+    note: only for non-interpolated simple identifiers
+    stats:
+      applied: 0
+      false_positive: 0
+
+  ## p7 syntax patterns ##
+
+  - name: module-call-missing-bracket
+    descr: flag incorrect module call syntax missing closing bracket
+    pattern: '<\[[\w.]+\]->'
+    replace: null
+    applicability:
+      file_type: module
+      action: flag_for_review
+      confidence: 0.95
+    origin: manual
+    note: must be <[module.name]>->() with ]> before ->
+    stats:
+      applied: 0
+      false_positive: 0
+
+  - name: sub-declaration-in-module
+    descr: flag sub declarations in module files
+    pattern: '^\s*sub\s+\w+\s*\{'
+    replace: null
+    applicability:
+      file_type: module
+      action: flag_for_review
+      confidence: 0.90
+    origin: manual
+    note: p7 modules are the subroutine — sub {} inside is usually wrong
+    stats:
+      applied: 0
+      false_positive: 0
+
+  ## variable style ##
+
+  - name: dollar-underscore-to-arg
+    descr: replace $_ with $ARG in module code
+    pattern: '\$_(?!\w)'
+    replace: '$ARG'
+    applicability:
+      file_type: module
+      confidence: 0.90
+      exclude: inside_string
+    origin: manual
+    note: p7 uses $ARG instead of $_ for readability
+    stats:
+      applied: 0
+      false_positive: 0
+
+  ## constant style ##
+
+  - name: return-one-to-true
+    descr: flag return 1 that should be return TRUE
+    pattern: '^\s*return\s+1\s*;'
+    replace: null
+    applicability:
+      file_type: module
+      action: flag_for_review
+      confidence: 0.70
+    origin: manual
+    note: TRUE=5 in p7 — return 1 is likely wrong, but needs context check
+    stats:
+      applied: 0
+      false_positive: 0
+
+  ## logging style ##
+
+  - name: log-missing-format-wrapper
+    descr: flag log calls with variable interpolation instead of sprintf
+    pattern: '<\[base\.logs?\]>->\(\s*\d+\s*,\s*[''"].*\$\w+'
+    replace: null
+    applicability:
+      file_type: module
+      action: flag_for_review
+      confidence: 0.85
+    origin: manual
+    note: use sprintf format codes in logs — no variable interpolation
+    stats:
+      applied: 0
+      false_positive: 0
+
+  ## annotation style ##
+
+  - name: paren-annotation-to-bracket
+    descr: flag parenthesized annotations in comments that should use brackets
+    pattern: '##\s+.*\(\s*\w+\s*\)'
+    replace: null
+    applicability:
+      file_type: module
+      action: flag_for_review
+      confidence: 0.65
+    origin: manual
+    note: p7 uses [ word ] not ( word ) in comments — low confidence, many false positives
+    stats:
+      applied: 0
+      false_positive: 0
+
+#,,.,,,,.,,..,.,,,,..,,.,,,,.,..,,,,,,...,..,,..,,...,...,,..,...,...,,.,,.,.,
+#ZRZR5VMXKBWNOXGWMLVWXEHLYD56XGIMPFKDYMRWJ2CJFNGNFTPXICITRKEGU23XMOGEMJZ3XS5SM
+#\\\|GL6C72RLBVJAJBMA727OYB2HZDK4QSPDWRGKZLX7LZCHXQPX65R \ / AMOS7 \ YOURUM ::
+#\[7]VGOMYWOM4GAFWSCR24AMC5UFLTUKWZUUSG24L4OHEOR25UNZTIDA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
