@@ -1,0 +1,150 @@
+## [:< ##
+
+# name  = ncode.transform.handler.wave_reply
+# descr = async reply handler for transform.wave LLM dispatch
+
+my $reply = shift;
+
+## extract reply components ##
+my $data   = $reply->{'data'}   // '';
+my $mode   = $reply->{'mode'}   // qw| unknown |;
+my $params = $reply->{'params'} // {};
+
+## extract wave state from reply params ##
+my $wave_state = $params;
+
+my $original_input = $wave_state->{'original_input'} // '';
+my $regex_input    = $wave_state->{'input'}          // '';
+my $file_type      = $wave_state->{'file_type'}      // qw| module |;
+my $namespace      = $wave_state->{'namespace'}      // '';
+my $save_patterns  = $wave_state->{'save_patterns'}  // 1;
+my $regex_applied  = $wave_state->{'regex_applied'}  // 0;
+my $regex_flagged  = $wave_state->{'regex_flagged'}  // 0;
+
+## get reply_id for callback ##
+my $reply_id = $reply->{'reply_id'} // '';
+
+## decode LLM response (base32r encoded) ##
+my $llm_output = '';
+
+if ( length $data ) {
+    <[base.perlmod.load]>->('Crypt::Misc');
+
+    $llm_output = eval { Crypt::Misc::decode_b32r($data) };
+
+    if ( $@ or not defined $llm_output ) {
+        <[base.logs]>->(
+            0,
+            ':. ncode.transform.handler.wave_reply: '
+                . 'base32r decode failed [ %s ] :.',
+            $@ // qw| unknown |
+        );
+        $llm_output = '';
+    }
+}
+
+## fallback to regex output if LLM response empty or failed ##
+my $final_output = length $llm_output ? $llm_output : $regex_input;
+my $changed      = $final_output ne $original_input;
+
+## extract code block if present (LLM may wrap in markdown) ##
+if ( $final_output =~ m|```(?:\w+)?\n(.+?)\n```|s ) {
+    $final_output = $1;
+    $changed      = $final_output ne $original_input;
+}
+
+## assess patterns from the diff ##
+my $candidates     = [];
+my $patterns_added = 0;
+
+if ( $changed and length $final_output ) {
+    my $assess_result = <[ncode.regex.assess]>->(
+        {   'input'   => $regex_input,
+            'output'  => $final_output,
+            'context' => {
+                'file_type' => $file_type,
+                'namespace' => $namespace,
+                'task_id'   => $reply_id
+            }
+        }
+    );
+
+    if ( $assess_result->{'mode'} eq qw| true | ) {
+        $candidates = $assess_result->{'data'} // [];
+
+        ## expand candidates to library if found ##
+        if (@$candidates) {
+            my $expand_result = <[ncode.regex.expand]>->(
+                {   'candidates' => $candidates,
+                    'merge_mode' => qw| add |
+                }
+            );
+
+            if ( $expand_result->{'mode'} eq qw| true | ) {
+                $patterns_added = $expand_result->{'data'}->{'added'} // 0;
+
+                <[base.logs]>->(
+                    2,
+                    ':. ncode.transform.handler.wave_reply: '
+                        . 'expanded %d patterns :.',
+                    $patterns_added
+                );
+
+                ## persist if save_patterns enabled ##
+                if ( $save_patterns and $patterns_added > 0 ) {
+                    my $save_file
+                        = sprintf( 'data/ncode/patterns/%s.yaml',
+                        $file_type );
+
+                    my $save_result = <[ncode.regex.save]>->(
+                        {   'file'   => $save_file,
+                            'filter' => ''
+                        }
+                    );
+
+                    if ( $save_result->{'mode'} ne qw| true | ) {
+                        <[base.logs]>->(
+                            1,
+                            ':. ncode.transform.handler.wave_reply: '
+                                . 'save failed [ %s ] :.',
+                            $save_result->{'data'} // qw| unknown |
+                        );
+                    }
+                }
+            }
+        }
+    }
+}
+
+## build wave stats ##
+my $wave_stats = {
+    'regex_applied'      => $regex_applied,
+    'regex_flagged'      => $regex_flagged,
+    'llm_applied'        => $changed ? 1 : 0,
+    'patterns_extracted' => scalar @$candidates,
+    'patterns_added'     => $patterns_added
+};
+
+## build final result ##
+my $result = {
+    'mode' => qw| true |,
+    'data' => {
+        'output'     => $final_output,
+        'changed'    => $changed,
+        'wave_stats' => $wave_stats,
+        'candidates' => $candidates
+    }
+};
+
+## forward to caller's reply handler if specified ##
+if ( length $reply_id ) {
+    <[base.callback.cmd_reply]>->( $reply_id, $result );
+}
+
+return TRUE;
+
+#,,..,,,.,,,.,...,.,,,,,.,,.,,,,.,,..,,,.,,..,..,,...,...,.,.,,,.,.,.,,.,,,..,
+#YQQNQWNUAMMECDLRKD4KTEVEUAKQ5WWG2LZZFQLMSUK27DAAQVS7OTP35COOZDACI5KQVK5YCUCIA
+#\\\|NYQSLAXCFAQXTKYX62UHALX2QA7GTXILURRGL62INM5LG7SFQ6G \ / AMOS7 \ YOURUM ::
+#\[7]U7GXACN2NNGJ7DPNLDSZ3PP63FLIGZLFNYGM2YRV6QDBLQSMYQAA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
