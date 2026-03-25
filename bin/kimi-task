@@ -1,0 +1,83 @@
+#!/usr/bin/perl
+
+## kimi-task — submit prompt to kimi via p7c with base32r encoding ##
+##
+## usage:
+##   bin/kimi-task "short prompt here"
+##   bin/kimi-task < prompt-file.txt
+##   echo "prompt" | bin/kimi-task
+##   bin/kimi-task -next "prompt"       ## force fresh session
+##   bin/kimi-task -file task.md        ## read prompt from file
+##
+
+use strict;
+use warnings;
+use Crypt::Misc qw| encode_b32r |;
+
+my $fresh  = 0;
+my $prompt = '';
+
+## parse args ##
+while ( my $arg = shift @ARGV ) {
+    if ( $arg eq '-next' ) {
+        $fresh = 1;
+    } elsif ( $arg eq '-file' ) {
+        my $file = shift @ARGV // die ":: -file requires a path\n";
+        open my $fh, '<', $file or die ":: cannot read $file: $!\n";
+        local $/;
+        $prompt = <$fh>;
+        close $fh;
+    } elsif ( $arg eq '-help' or $arg eq '--help' ) {
+        print <<~'USAGE';
+        usage: kimi-task [options] [prompt]
+
+        options:
+          -next         force fresh kimi session before dispatch
+          -file PATH    read prompt from file
+          -help         show this help
+
+        if no prompt arg, reads from stdin.
+        prompt is base32r-encoded to avoid protocol framing issues.
+        USAGE
+        exit 0;
+    } elsif ( not length $prompt ) {
+        $prompt = $arg;
+    }
+}
+
+## read from stdin if no prompt yet ##
+unless ( length $prompt ) {
+    if ( -t STDIN ) {
+        print ":: enter prompt [ ctrl-d to submit ]:\n";
+    }
+    local $/;
+    $prompt = <STDIN> // '';
+}
+
+chomp $prompt;
+
+die ":: empty prompt\n" unless length $prompt;
+
+## encode ##
+my $encoded = encode_b32r($prompt);
+
+## build command ##
+my $prefix = $fresh ? ':next:' : '';
+my $cmd    = "p7c kimi.ask-reply '${prefix}${encoded}'";
+
+## show summary ##
+my $preview = substr( $prompt, 0, 80 );
+$preview .= '...' if length $prompt > 80;
+printf ":: prompt: %s\n", $preview;
+printf ":: encoded: %d bytes → %d b32r chars\n",
+    length($prompt), length($encoded);
+printf ":: fresh session: %s\n", $fresh ? 'yes' : 'no';
+
+## dispatch ##
+exec $cmd;
+
+#,,,,,...,,,,,.,,,,..,,,,,,,.,,,.,.,.,,,,,,.,,..,,...,...,.,.,.,.,,.,,,..,...,
+#HIQYO3OTTTLUYXR4VDXRUE23W4X5CDCMAORRSVOD3KOAMMGHRXJJRFMDOKHRYGXN6BQ5ZRGIZBW3E
+#\\\|ILIM57RD76CM2I6QX6UQ6XLXWNGQT3TBELMU5CGFFD5NR7WYBTS \ / AMOS7 \ YOURUM ::
+#\[7]YR6HIZIZ4AFNEFAZDFMBVQ2MKFUIJWDGDXPQIB4CGEBFPLCSMMCA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
