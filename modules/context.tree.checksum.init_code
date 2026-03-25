@@ -1,0 +1,67 @@
+## [:< ##
+
+# name  = context.tree.checksum.init_code
+# descr = initialize resumable checksum infrastructure for context tree
+
+## check for required modules ##
+<[base.perlmod.load]>->('Digest::BMW');
+
+## ensure AMOS7::CHKSUM has state support ##
+my $amos_checksum_path = <system.zenka.pm_path> . qw| /AMOS7/CHKSUM.pm |;
+
+if ( -f $amos_checksum_path ) {
+    ## load AMOS7::CHKSUM with state extension ##
+    eval { require AMOS7::CHKSUM };
+    if ($@) {
+        <[base.logs]>->(
+            0, ':. context.tree.checksum: AMOS7::CHKSUM load failed [ %s ]',
+            $@
+        );
+        return FALSE;
+    }
+}
+
+## initialize context tree checksum state storage ##
+<context.tree.checksum.states>  //= {};
+<context.tree.checksum.streams> //= {};
+<context.tree.checksum.index>   //= {};
+
+## configuration ##
+<context.tree.checksum.cfg> //= {
+    'chunk_size'     => 4096,    ## bytes per chunk checksum
+    'max_state_age'  => 3600,    ## seconds to keep idle states
+    'index_levels'   => 2,       ## directory depth for index
+    'diff_threshold' => 0.5,     ## store diff if < 50% size
+    'elf_mode'       => 7,       ## default ELF mode
+    'elf_shift'      => 13,      ## default ELF shift
+};
+
+## create storage directories if needed ##
+my $tree_root = <system.path.data> . qw| /context-tree |;
+
+foreach my $subdir (qw| index nodes edges streams |) {
+    my $path = "$tree_root/$subdir";
+    if ( not -d $path ) {
+        eval { require File::Path; File::Path::make_path($path) };
+        if ($@) {
+            <[base.logs]>->(
+                0, ':. context.tree.checksum: mkdir failed [ %s ]', $@
+            );
+            return FALSE;
+        }
+    }
+}
+
+<[base.logs]>->(
+    2, ':. context.tree.checksum: initialized [ root=%s ]', $tree_root
+);
+
+return TRUE;
+
+#,,.,,,.,,,..,,..,,.,,...,...,...,,,.,,,.,,,.,..,,...,...,..,,,,.,,..,,,,,,,,,
+
+#,,..,.,.,,,.,..,,..,,,.,,,..,.,,,,,,,.,,,,.,,..,,...,...,,.,,,,,,.,,,,,.,.,,,
+#TFVF5CSXHEKV3OD3UA3D2HDQDPD5TPS56GKDYX3FU7SXU3Q2QSDZ6WZWNE7SU6UZOCOSR6D43VZWA
+#\\\|VIYP7Z7SUDQFJGYOFBXQR5EJNM266RWWF2PAUEX6ZCNCLQE76KS \ / AMOS7 \ YOURUM ::
+#\[7]2DOLKZIXOBVKG6LMMDCCVZHZYISTZYWMPWOUE2L27DBJFVP3CCCY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

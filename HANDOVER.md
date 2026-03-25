@@ -96,11 +96,18 @@ build out the ncode learning loop:
 - `ncode.cmd.transform` — command interface for other zenki
 - `ncode.cmd.tool_list` — self-describing capabilities for models
 
-### 3. wire delegation into task system
+### 3. wire delegation into task system ✅
 
-- wire `models.task.execute` to optionally use `context.delegate.prepare`
+- ✅ wire `models.task.execute` to optionally use `context.delegate.prepare`
 - test model→model delegation via task system with a simple review task
 - verify `delegate.handler.result` chains correctly through collect → verify → cache
+
+**new modules:**
+- `models.task.delegate_bridge` — adapter between task system and context delegation
+- `models.handler.delegate_result` — async handler for delegation results
+
+**modified:**
+- `models.task.execute` — optional delegation path with fallback to direct dispatch
 
 ### 4. valued trees — floating-point factor nodes
 
@@ -193,7 +200,7 @@ compose.for_task(task_type)
 
 ## files changed this session
 
-### new modules (58 total)
+### new modules (67 total)
 
 #### phases A-E: context management (33)
 ```
@@ -266,6 +273,48 @@ modules/v7.zenka.cmd.start            [ bugfix: undef guard for start-by-name ]
 modules/kimi.cmd.ask-reply             [ bugfix: base32r decode order + alphabet ]
 configuration/zenki/context/           [ start, zenka-startup.v7, whitelist ]
 ```
+
+#### delegation wiring (5)
+```
+modules/models.task.delegate_bridge         [ entry point: checks context online ]
+modules/models.handler.delegate-online-reply [ reply handler: online -> do-delegation ]
+modules/models.task.do-delegation           [ performs prepare + dispatch ]
+modules/models.task.fallback-direct         [ extracted direct dispatch logic ]
+modules/models.handler.delegate_result      [ async handler for delegation results ]
+```
+
+**modified:**
+- `modules/models.task.execute` — added optional delegation path with fallback
+- `configuration/zenki/cube/access.zenki` — added context.delegate.* access for models
+
+#### context tree checksum addressing (5)
+```
+modules/context.tree.checksum.init_code   [ initialize resumable checksum infra ]
+modules/context.tree.checksum.state       [ resumable AMOS/ELF/BMW state ]
+modules/context.tree.checksum.stream      [ position-aware stream checksums ]
+modules/context.tree.checksum.template    [ validation template management ]
+data/md/coding-tasks/context-tree-checksum-addressing.md  [ design document ]
+data/md/coding-tasks/context-tree-checksum-templates.md   [ template documentation ]
+data/md/coding-tasks/context-tree-checksum-inspiration.md [ lessons from source.signature_valid ]
+data/md/coding-tasks/context-tree-octal-encoding.md       [ compact encoding from amos7.encode_octal_header ]
+```
+
+**concept:** eternal content-addressed storage using resumable checksums
+- ELF: already resumable via start_checksum parameter
+- BMW: requires getstate/setstate/clone XS patch (see bmw_resumability_test_plan.md)
+- Position-addressed: checksum at any stream position
+- Diff-based: store only changes, reference by checksum pairs
+- **Templates: entropic exclusion + contextual constraints via sprintf/regex/CODE**
+- **Octal encoding: 19 octal digits (57 bits) in comma/dot visual pattern**
+
+**integration with existing infrastructure:**
+- storage zenka: already runs `amos-chksum` unix socket (extended with stateful streams)
+- index zenka: uses checksum-derived paths (same algorithm for context tree nodes)
+- sourcecode symlinks: checksum-based deduplication (applied to runtime context)
+- `source.signature_valid`: comprehensive truth assertion patterns (RQ/OP constants, multi-layer validation, repair mode)
+- `amos7.encode_octal_header`: 19-digit octal encoding (checksum + state + iterations in visual pattern)
+- 45+ modules already use AMOS checksums (context.tree.checksum extends with resumability)
+- **AMOS7::TEMPLATE + AMOS7::Assert::Truth: validation templates for branch isolation**
 
 ### scripts + data files
 ```

@@ -1,0 +1,82 @@
+## [:< ##
+
+# name  = models.task.fallback-direct
+# descr = fallback to direct dispatch when delegation fails
+
+<[base.perlmod.load]>->('Crypt::Misc');
+
+my $params = shift // {};
+
+my $task_id    = $params->{'task_id'}    // '';
+my $model      = $params->{'model'}      // '';
+my $prompt     = $params->{'prompt'}     // '';
+my $target_cmd = $params->{'target_cmd'} // '';
+my $job_id     = $params->{'job_id'}     // '';
+
+<[base.logs]>->(
+    2, ':. fallback-direct: task %s falling back to direct dispatch',
+    $task_id
+);
+
+## prepend :next: for fresh session per task ##
+$prompt = ':next: ' . $prompt;
+
+## base32r encode prompt for safe ipc ##
+my $encoded = eval { Crypt::Misc::encode_b32r($prompt) };
+if ( $@ or not defined $encoded or not length $encoded ) {
+    <[base.logs]>->( 0, ': fallback-direct: base32r encode failed' );
+    <[protocol-7.route-send]>->(
+        {   'command'   => 'task.fail',
+            'call_args' => { 'args' => "$task_id encode error" }
+        }
+    );
+    <models.task.active_id>  = undef;
+    <models.task.active_job> = undef;
+    <[jobqueue.move_job]>->( $job_id, qw| error | );
+    return FALSE;
+}
+
+## extract zenka name from target command ##
+( my $zenka_name = $target_cmd ) =~ s{\..*}{};
+
+## wait for backend zenka to be online before dispatching ##
+my $sent = <[protocol-7.route-send]>->(
+    {   'command'   => 'v7.notify_online',
+        'call_args' => { 'args' => ":start: $zenka_name" },
+        'reply'     => {
+            'handler' => qw| models.handler.notify-online-reply |,
+            'params'  => {
+                'task_id'    => $task_id,
+                'model'      => $model,
+                'job_id'     => $job_id,
+                'target_cmd' => $target_cmd,
+                'encoded'    => $encoded
+            }
+        }
+    }
+);
+
+if ( $sent <= 0 ) {
+    <[base.logs]>->(
+        0, ': fallback-direct: v7 not reachable [ job %s ]', $job_id
+    );
+    <[protocol-7.route-send]>->(
+        {   'command'   => 'task.fail',
+            'call_args' => { 'args' => "$task_id v7 not reachable" }
+        }
+    );
+    <models.task.active_id>  = undef;
+    <models.task.active_job> = undef;
+    <[jobqueue.move_job]>->( $job_id, qw| error | );
+    return FALSE;
+}
+
+return TRUE;
+
+#,,..,..,,,..,..,,,,,,,,,,..,,,.,,.,.,.,,,,.,,..,,...,...,...,,,.,,..,.,,,.,.,
+
+#,,.,,.,.,.,,,,,,,..,,.,.,,,.,..,,,,,,,..,..,,..,,...,...,...,,,.,..,,.,,,..,,
+#THEYAQ4HIHNJCPFSKQ5NGZIWIFLVT4YS27WD6LS6MUTLJY3GFTLPPMU6BMYP3MZ7GAIEEERPUL7C4
+#\\\|5WVG62IHFQRCWF74RG7WGYRERM554MOIWW7MS6EARCMXXCRD4QF \ / AMOS7 \ YOURUM ::
+#\[7]EIONAD2KIUQMKNDSQPDJI5IT6KNJXNTG77RETAUAOJ34ZDFQZUAA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
