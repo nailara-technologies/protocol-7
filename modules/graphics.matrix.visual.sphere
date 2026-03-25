@@ -1,0 +1,103 @@
+## [:< ##
+
+# name  = graphics.matrix.visual.sphere
+# desc  = Cubic pixel sphere classification and sizing utilities
+
+my $action = shift // qw| size |;
+my $param  = shift;
+
+## Sphere definitions (13³ based hierarchy) ##
+my $SPHERE_DEFS = {
+    0 => {
+        'name'       => qw| color_sample |,
+        'max_pixels' => 1,
+        'size'       => [ 1, 1 ]
+    },
+    1 => { 'name' => qw| micro |, 'max_pixels' => 16, 'size' => [ 4, 4 ] },
+    2 => {
+        'name'       => qw| thumbnail |,
+        'max_pixels' => 169,
+        'size'       => [ 13, 13 ]
+    },
+    3 => {
+        'name'       => qw| preview |,
+        'max_pixels' => 1764,
+        'size'       => [ 42, 42 ]
+    },
+    4 => {
+        'name'       => qw| medium |,
+        'max_pixels' => 16384,
+        'size'       => [ 128, 128 ]
+    },
+    5 => {
+        'name'       => qw| large |,
+        'max_pixels' => 147456,
+        'size'       => [ 384, 384 ]
+    },
+    6 => {
+        'name'       => qw| full |,
+        'max_pixels' => 1327104,
+        'size'       => [ 1152, 1152 ]
+    },
+};
+
+## sphere_to_size - Get target dimensions for a sphere ##
+if ( $action eq qw| size | ) {
+    my $sphere = $param // 0;
+    my @sizes  = (
+        [ 1,    1 ],
+        [ 4,    4 ],
+        [ 13,   13 ],
+        [ 42,   42 ],
+        [ 128,  128 ],
+        [ 384,  384 ],
+        [ 1152, 1152 ]
+    );
+    return $sizes[$sphere] // [ 1152, 1152 ];
+}
+
+## classify - Determine sphere from pixel count ##
+elsif ( $action eq qw| classify | ) {
+    my $pixels = $param // 0;
+
+    my $sphere = 0;
+    for my $s ( 0 .. 6 ) {
+        if ( $pixels <= $SPHERE_DEFS->{$s}->{'max_pixels'} ) {
+            $sphere = $s;
+            last;
+        }
+        $sphere = $s if $s == 6;
+    }
+
+    return {
+        'sphere'   => $sphere,
+        'name'     => $SPHERE_DEFS->{$sphere}->{'name'},
+        'max_size' => $SPHERE_DEFS->{$sphere}->{'size'},
+        'pixels'   => $pixels,
+    };
+}
+
+## cubic_coord - Calculate 3D cubic coordinates ##
+elsif ( $action eq qw| coord | ) {
+    my ( $w, $h ) = @$param;
+    return [
+        int( $w / 13 ) % 13,
+        int( $h / 13 ) % 13,
+        <[graphics.matrix.visual.sphere]>
+            ->( qw| classify |, $w * $h )->{'sphere'}
+    ];
+}
+
+## defs - Return all sphere definitions ##
+elsif ( $action eq qw| defs | ) {
+    return $SPHERE_DEFS;
+
+} else {
+    return { 'mode' => qw| false |, 'data' => "unknown action: $action" };
+}
+
+#,,.,,,,.,,..,,.,,...,.,,,..,,..,,.,,,,,.,,.,,.,.,...,...,...,.,.,.,,,,.,,,,,,
+#J3K2DKJVUOV654M4D2EVN35KMESKFAPXMWTOKCMVHN5JCKFSOXRLQRJAVWBVJKJRSQSMLXHZDWXTM
+#\\\|6X6IAMS5U5U652KKBJBHZHBPO7DKPKIPIRJFFPKFCSZ25ASH6BP \ / AMOS7 \ YOURUM ::
+#\[7]LRYN7E64A3TZLMQLOMF5KJZJ5TYJIMQW7WTJDRF5DRMHE2FBF6DQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,0 +1,27 @@
+## [:< ##
+
+# name  = graphics.matrix.visual.cluster-center
+# desc  = Calculate cubic coordinate center of a cluster
+
+my $cluster = shift                // {};
+my $images  = $cluster->{'images'} // [];
+
+return [ 0, 0, 0 ] unless @$images;
+
+my $sum_x = 0;
+my $sum_y = 0;
+my $sum_z = 0;
+for my $img (@$images) {
+    $sum_x += $img->{'cubic_coord'}->[0];
+    $sum_y += $img->{'cubic_coord'}->[1];
+    $sum_z += $img->{'cubic_coord'}->[2];
+}
+my $n = scalar(@$images);
+
+return [ int( $sum_x / $n ), int( $sum_y / $n ), int( $sum_z / $n ) ];
+
+#,,,,,.,,,,,,,.,.,,,,,...,,,.,..,,,..,,.,,..,,.,.,...,...,...,.,.,,..,,.,,.,,,
+#N7KW4WKL7BPM3KFP2TCLQUXSG3VIXC6EQV4YSAUMY4AAYUGEZUW5VI6REMFNYEID6HNHMXOFB4CTW
+#\\\|JCQUBEWRKQHUUEDW3QAOUDETC3A5W2ZTTWPUC2YSPBVE4EGLACL \ / AMOS7 \ YOURUM ::
+#\[7]7YVUG3HLSFGMVPVFO6YNZDJK66A3TZD7OJ6S6GSIECBUJA4QGMBI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

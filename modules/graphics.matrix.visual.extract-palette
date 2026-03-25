@@ -1,0 +1,22 @@
+## [:< ##
+
+# name  = graphics.matrix.visual.extract-palette
+# desc  = Extract color palette from sphere 0 images
+
+my $images = shift // [];
+
+my $colors = {};
+for my $img (@$images) {
+    my $col = $img->{'color_sample'} // [ 128, 128, 128 ];
+    my $key = sprintf( "%02x%02x%02x", @$col );
+    $colors->{$key} = ( $colors->{$key} // 0 ) + 1;
+}
+
+# Sort by frequency
+return [ sort { $colors->{$b} <=> $colors->{$a} } keys %$colors ];
+
+#,,.,,,,.,.,,,,,.,...,,.,,.,,,,..,,,.,..,,...,.,.,...,...,..,,,.,,..,,,,.,..,,
+#HFAJQJWYTF7LQLTDMOQNIDLJL4UDL2SU2ZRNRHVU7TRZIISPU5PDJTKK4CFJIDIFWLXYKXJLS6WHC
+#\\\|2UB7XP2EMNODQURDDLULYAHFW5PTCKJFS2QHP4PJN4IXJ3XZF42 \ / AMOS7 \ YOURUM ::
+#\[7]VVIV6TCZ6ZAQKYHSUABTOSXGMWEPIHESQRKRC2UUJRPCR7DL74CQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

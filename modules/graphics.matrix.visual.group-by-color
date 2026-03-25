@@ -1,0 +1,56 @@
+## [:< ##
+
+# name  = graphics.matrix.visual.group-by-color
+# desc  = Group images by color similarity
+#
+# input : $images - array of image hashes with color_sample
+#         $threshold - similarity threshold
+# output: array of color cluster hashes
+
+my $images    = shift // [];
+my $threshold = shift // 0.95;
+
+my $groups   = [];
+my $assigned = {};
+
+for my $i ( 0 .. $#$images ) {
+    next if $assigned->{$i};
+
+    my $img_a = $images->[$i];
+    my $group = {
+        'sphere'       => 0,
+        'images'       => [$img_a],
+        'similarity'   => 1.0,
+        'color_center' => $img_a->{'color_sample'},
+    };
+
+    # Find similar colors
+    for my $j ( $i + 1 .. $#$images ) {
+        next if $assigned->{$j};
+
+        my $img_b = $images->[$j];
+        my $sim   = <[graphics.matrix.visual.color]>->(
+            $img_a->{'color_sample'} // [ 128, 128, 128 ],
+            $img_b->{'color_sample'} // [ 128, 128, 128 ]
+        );
+
+        # Normalize to 0-1 range (color returns raw distance)
+        $sim = 1.0 - ( $sim / 441.67 );
+
+        if ( $sim > $threshold ) {
+            push @{ $group->{'images'} }, $img_b;
+            $assigned->{$j} = 1;
+            $group->{'similarity'} = $sim if $sim < $group->{'similarity'};
+        }
+    }
+
+    push @$groups, $group if @{ $group->{'images'} } > 1;
+}
+
+return $groups;
+
+#,,,,,.,.,,,,,,.,,,..,.,,,.,.,,,.,..,,,,.,,.,,.,.,...,...,...,.,,,,..,,..,.,.,
+#WX24TBWD447RSHHV77U5AIOF4ONKYSFQQKWF5CVLMZFUQWSJLKCVSN2USCGA2KNPPBTTGYTDOWZ4W
+#\\\|CYT7T6465SHA2J4CXHT2X7YT7EGLYZFXB6DVHNO5YY6PBYHW45Z \ / AMOS7 \ YOURUM ::
+#\[7]VS4YRUMICQ7Y7AKNGLT7SLP6QTV4NI46ZCLFBRK2EJHDRACEL6DI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
