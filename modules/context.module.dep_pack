@@ -1,0 +1,123 @@
+## [:< ##
+
+# name  = context.module.dep_pack
+# descr = bin-pack ordered modules into budget-sized review pages
+
+my $params = shift // {};
+
+my $ordered     = $params->{'ordered'}     // [];
+my $page_budget = $params->{'page_budget'} // 4000;
+my $summary_pct = $params->{'summary_pct'} // 0.20;
+my $nodes       = $params->{'nodes'}       // {};
+
+return { 'mode' => qw| false |, 'data' => 'no ordered clusters' }
+    unless @$ordered;
+
+my @pages;
+my @current_page;
+my $current_used = 0;
+my $page_num     = 0;
+
+foreach my $cluster (@$ordered) {
+    my $cluster_tokens = $cluster->{'size_tokens'} // 0;
+    my @members        = $cluster->{'members'}->@*;
+
+    ## reserve summary space for page 2+ ##
+    my $effective_budget = $page_budget;
+    if ( $page_num > 0 ) {
+        $effective_budget = int( $page_budget * ( 1 - $summary_pct ) );
+    }
+
+    ## try to keep SCC clusters together ##
+    if ( $cluster->{'is_scc'} ) {
+        ## scc cluster: if it fits, add whole; if not, emit page first ##
+        if (    $current_used + $cluster_tokens > $effective_budget
+            and @current_page ) {
+            push @pages,
+                {
+                'page'        => $page_num,
+                'files'       => [@current_page],
+                'tokens'      => $current_used,
+                'budget'      => $effective_budget,
+                'has_summary' => $page_num > 0 ? TRUE : FALSE
+                };
+            $page_num++;
+            @current_page     = ();
+            $current_used     = 0;
+            $effective_budget = int( $page_budget * ( 1 - $summary_pct ) );
+        }
+
+        ## add all scc members ##
+        foreach my $member (@members) {
+            push @current_page, $member;
+            $current_used += $nodes->{$member}->{'size_tokens'} // 0;
+        }
+        next;
+    }
+
+    ## non-scc: pack members individually ##
+    foreach my $member (@members) {
+        my $member_tokens = $nodes->{$member}->{'size_tokens'} // 0;
+
+        if (    $current_used + $member_tokens > $effective_budget
+            and @current_page ) {
+            push @pages,
+                {
+                'page'        => $page_num,
+                'files'       => [@current_page],
+                'tokens'      => $current_used,
+                'budget'      => $effective_budget,
+                'has_summary' => $page_num > 0 ? TRUE : FALSE
+                };
+            $page_num++;
+            @current_page     = ();
+            $current_used     = 0;
+            $effective_budget = int( $page_budget * ( 1 - $summary_pct ) );
+        }
+
+        push @current_page, $member;
+        $current_used += $member_tokens;
+    }
+}
+
+## emit final page ##
+if (@current_page) {
+    my $effective_budget = $page_budget;
+    if ( $page_num > 0 ) {
+        $effective_budget = int( $page_budget * ( 1 - $summary_pct ) );
+    }
+    push @pages,
+        {
+        'page'        => $page_num,
+        'files'       => [@current_page],
+        'tokens'      => $current_used,
+        'budget'      => $effective_budget,
+        'has_summary' => $page_num > 0 ? TRUE : FALSE
+        };
+}
+
+## compute summary ##
+my $total_tokens = 0;
+my $total_files  = 0;
+foreach my $page (@pages) {
+    $total_tokens += $page->{'tokens'};
+    $total_files  += scalar $page->{'files'}->@*;
+}
+
+return {
+    'mode' => qw| true |,
+    'data' => {
+        'pages'        => \@pages,
+        'total_pages'  => scalar @pages,
+        'total_files'  => $total_files,
+        'total_tokens' => $total_tokens,
+        'page_budget'  => $page_budget,
+        'summary_pct'  => $summary_pct
+    }
+};
+
+#,,,,,...,..,,,..,,,.,,..,,,.,,,,,,,.,,,.,,,.,..,,...,...,,..,..,,.,.,,.,,.,.,
+#JQ26S7C7HXSQYA4ST5EP4RKOIOGYD4EEUQ2VCCB5AGD27HEGQTTYY5YHUC2WFGBBSQAE7CRG22CAE
+#\\\|ZOPAUWMTP4LATVSPCODYFRAPQEYDNSPLLOLSFMLXXOAFF5LTCLV \ / AMOS7 \ YOURUM ::
+#\[7]HEOWLSMLPNSKFC4LZHIJT4KN7K6GGJH7H7SA7HM5YRPGWZ2KQEAA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
