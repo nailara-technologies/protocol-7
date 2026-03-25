@@ -21,6 +21,7 @@
   (nightly security audits via NIST/security models), model capabilities mapping
 - `topic-checksum-addressing.md` — AMOS checksums as universal routing primitive,
   everything-is-a-group-of-1, expectability principle, delegation via checksum endpoints
+- `feedback-ptd-syntax-check.md` — use `ptd -c` not `perl -c` for P7 module syntax checks
 
 ## File Creation Notes (CRITICAL)
 - **Never add** the single-line `#,,.,,,...` stub at end of new files
@@ -186,8 +187,8 @@
 - Pattern: `my @non_num = grep { defined $data_ref->{$ARG}->{$key} and not looks_like_number(...) } keys $data_ref->%*`
 - Global `$SIG{__WARN__}` exists — if wrapping warn handler, capture `$prev_warn = $SIG{__WARN__}` first and call through
 
-#,,..,..,,.,.,,..,,,.,..,,,.,,.,,,,,,,,,.,,,.,..,,...,...,...,,,.,..,,.,,,.,.,
-#YGRMLXWVL2PNNZY3DWHCIBF7APB4YR6U6LMS4I5UP4O77SZRHCQKAPP4AKIKUEA7HMIXNVKDBFHEK
-#\\\|OACKCMTZBRPPN2MXHP5AA4VQ6FIR64P7E3ICRJRGM7PX2ZP4S5Y \ / AMOS7 \ YOURUM ::
-#\[7]DWRMMCG2FBBTAMISLOWGJHKEPAP7W53JJYKGNMPWEHFQIZHBZAAA 7  DATA SIGNATURE ::
+#,,..,.,,,.,,,,.,,,,.,.,,,,.,,..,,,..,.,.,...,..,,...,...,...,,,.,..,,,,,,..,,
+#GP4KXFW3PZ3M5HGSPHDAEZYFRPITAEJPOA465JGAQVIZ43IA5JIGOI4HDLTGL5MMCEP2ULFZBQOGU
+#\\\|2A6WR2YKRH56H6XT5YULKQNCV3NZEWFYOUDPWFUSAZK54SSV3DO \ / AMOS7 \ YOURUM ::
+#\[7]QHWPT5FD3GEEOWU32BD5HQAULVFWAFPSAABVSQUJ5MFQJTFKLSCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

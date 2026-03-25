@@ -1,0 +1,115 @@
+## [:< ##
+
+# name  = context.module.dep_order
+# descr = topological sort with SCC cluster grouping
+
+my $params = shift // {};
+
+my $graph = $params->{'graph'} // {};
+
+my $nodes    = $graph->{'nodes'}          // {};
+my $edges    = $graph->{'internal_edges'} // [];
+my $clusters = $graph->{'clusters'}       // [];
+
+return { 'mode' => qw| false |, 'data' => 'no graph data' }
+    unless keys %$nodes;
+
+## build cluster membership map ##
+my %node_cluster;
+my %cluster_id;
+
+for my $i ( 0 .. $#$clusters ) {
+    foreach my $node ( $clusters->[$i]->@* ) {
+        $node_cluster{$node} = $i;
+        $cluster_id{$i}      = 1;
+    }
+}
+
+## build cluster-level adjacency ##
+my %cluster_adj;
+my %cluster_radj;
+
+foreach my $e (@$edges) {
+    my $from_c = $node_cluster{ $e->{'from'} } // next;
+    my $to_c   = $node_cluster{ $e->{'to'} }   // next;
+    next if $from_c == $to_c;
+    $cluster_adj{$from_c}{$to_c}  = 1;
+    $cluster_radj{$to_c}{$from_c} = 1;
+}
+
+## topological sort of clusters [ kahn's algorithm ] ##
+my %in_degree;
+$in_degree{$ARG} = 0 for keys %cluster_id;
+
+foreach my $from ( keys %cluster_adj ) {
+    foreach my $to ( keys $cluster_adj{$from}->%* ) {
+        $in_degree{$to}++;
+    }
+}
+
+my @queue = sort grep { $in_degree{$ARG} == 0 } keys %cluster_id;
+my @topo_order;
+
+while (@queue) {
+    my $c = shift @queue;
+    push @topo_order, $c;
+    my $c_targets = $cluster_adj{$c} // {};
+    foreach my $next ( sort keys %$c_targets ) {
+        $in_degree{$next}--;
+        push @queue, $next if $in_degree{$next} == 0;
+    }
+}
+
+## detect cycles between clusters [ should not exist after SCC ] ##
+my $has_cycle = ( scalar @topo_order != scalar keys %cluster_id );
+
+## build ordered file list ##
+my @ordered;
+
+foreach my $c_id (@topo_order) {
+    my @members = $clusters->[$c_id]->@*;
+
+    ## within cluster: sort by outgoing edge count [ most deps first ] ##
+    my %out_count;
+    foreach my $e (@$edges) {
+        $out_count{ $e->{'from'} }++
+            if exists $node_cluster{ $e->{'from'} }
+            and $node_cluster{ $e->{'from'} } == $c_id;
+    }
+
+    @members = sort {
+        ( $out_count{$b} // 0 ) <=> ( $out_count{$a} // 0 )
+            or $a cmp $b
+    } @members;
+
+    push @ordered,
+        {
+        'cluster_id'  => $c_id,
+        'members'     => \@members,
+        'is_scc'      => ( @members > 1 ) ? TRUE : FALSE,
+        'size_tokens' => 0
+        };
+
+    ## sum token sizes ##
+    my $total = 0;
+    foreach my $m (@members) {
+        $total += $nodes->{$m}->{'size_tokens'} // 0;
+    }
+    $ordered[-1]->{'size_tokens'} = $total;
+}
+
+return {
+    'mode' => qw| true |,
+    'data' => {
+        'ordered'        => \@ordered,
+        'has_cycle'      => $has_cycle ? TRUE : FALSE,
+        'total_clusters' => scalar @topo_order,
+        'scc_count'      => scalar( grep { $ARG->{'is_scc'} } @ordered )
+    }
+};
+
+#,,..,.,,,,..,,.,,..,,,..,.,,,.,,,,..,...,,,.,..,,...,...,.,.,...,,,,,.,.,...,
+#5SY6IACLN5P7Y42RZLK7LIVPGN3TQDITV5V3Q7HB6ZMBZA5UGRATAOQEDX4AOSV4LVNL3XDX7OOHS
+#\\\|WRJ3NDBEUFB3MCB5EYOOXY2WCGZMXG6WZOSTDQXPTDRI4VYFW27 \ / AMOS7 \ YOURUM ::
+#\[7]TDLE2P26HPXI5JDUYCRPMS22AMMZO25V7CYIFKNUIZM3Y7DKJGCQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
