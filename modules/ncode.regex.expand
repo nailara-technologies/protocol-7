@@ -1,0 +1,263 @@
+## [:< ##
+
+# name  = ncode.regex.expand
+# descr = add new patterns to the dynamic regex library
+
+my $params = shift // {};
+
+my $candidates = $params->{'candidates'} // [];
+my $merge_mode = $params->{'merge_mode'} // qw| add |;
+
+return { 'mode' => qw| false |, 'data' => 'candidates must be arrayref' }
+    unless ref $candidates eq qw| ARRAY |;
+
+## ensure pattern storage exists ##
+<ncode.patterns> //= {};
+my $patterns = <ncode.patterns>;
+
+## config values ##
+my $max_patterns = <ncode.cfg.max_patterns>         // 500;
+my $threshold    = <ncode.cfg.confidence_threshold> // 0.70;
+
+## result tracking ##
+my @details;
+my $added_count    = 0;
+my $merged_count   = 0;
+my $rejected_count = 0;
+
+## handle merge modes ##
+if ( $merge_mode eq qw| replace | ) {
+    ## clear existing patterns ##
+    <ncode.patterns> = {};
+    $patterns = <ncode.patterns>;
+}
+
+## process each candidate ##
+foreach my $candidate (@$candidates) {
+    my $detail = _process_candidate( $candidate, $patterns, $max_patterns,
+        $threshold );
+    push @details, $detail;
+
+    if ( $detail->{'status'} eq qw| added | ) {
+        $added_count++;
+    } elsif ( $detail->{'status'} eq qw| merged | ) {
+        $merged_count++;
+    } else {
+        $rejected_count++;
+    }
+}
+
+return {
+    'mode' => qw| true |,
+    'data' => {
+        'added'    => $added_count,
+        'merged'   => $merged_count,
+        'rejected' => $rejected_count,
+        'details'  => \@details
+    }
+};
+
+## internal: process a single candidate ##
+sub _process_candidate {
+    my ( $candidate, $patterns, $max_patterns, $threshold ) = @_;
+
+    my $name    = $candidate->{'name'}    // '';
+    my $pattern = $candidate->{'pattern'} // '';
+    my $replace = $candidate->{'replace'};
+    my $app     = $candidate->{'applicability'} // {};
+    my $conf    = $app->{'confidence'}          // 0.5;
+
+    ## validate required fields ##
+    unless ( length $name and length $pattern ) {
+        return {
+            'name'   => $name || qw| [unnamed] |,
+            'status' => qw| rejected |,
+            'reason' => 'missing name or pattern'
+        };
+    }
+
+    ## compile regex ##
+    my $compiled = eval {qr/$pattern/};
+    if ($@) {
+        <[base.log]>->(
+            1, ':. ncode.regex.expand: compile failed [%s] :.', $name
+        );
+        return {
+            'name'   => $name,
+            'status' => qw| rejected |,
+            'reason' => 'regex compilation failed'
+        };
+    }
+
+    ## check for duplicates (exact pattern string match) ##
+    my $existing_name = _find_duplicate( $pattern, $patterns );
+    if ( defined $existing_name ) {
+        my $merged
+            = _merge_duplicate( $existing_name, $candidate, $patterns );
+        return {
+            'name'           => $name,
+            'status'         => qw| merged |,
+            'merged_with'    => $existing_name,
+            'new_confidence' => $merged->{'confidence'}
+        };
+    }
+
+    ## capacity check ##
+    my $current_count = scalar keys %$patterns;
+    if ( $current_count >= $max_patterns ) {
+        my $evicted = _evict_and_replace( $candidate, $compiled, $patterns,
+            $max_patterns );
+        if ( defined $evicted ) {
+            <[base.log]>->(
+                1,
+                ':. ncode.regex.expand: evicted %s for %s '
+                    . '[conf %.2f > %.2f] :.',
+                $evicted,
+                $name,
+                $conf,
+                $patterns->{$evicted} // 0
+            );
+            return {
+                'name'    => $name,
+                'status'  => qw| added |,
+                'evicted' => $evicted,
+                'reason'  => 'replaced lower confidence pattern'
+            };
+        } else {
+            return {
+                'name'   => $name,
+                'status' => qw| rejected |,
+                'reason' => 'capacity limit reached'
+            };
+        }
+    }
+
+    ## add new pattern ##
+    $patterns->{$name} = {
+        'name'          => $name,
+        'descr'         => $candidate->{'descr'} // '',
+        'pattern'       => $pattern,
+        'compiled'      => $compiled,
+        'replace'       => $replace,
+        'applicability' => {
+            'file_type'  => $app->{'file_type'} // qw| module |,
+            'confidence' => $conf,
+            'coverage'   => $app->{'coverage'} // qw| partial |
+        },
+        'origin'      => $candidate->{'origin'}      // qw| expanded |,
+        'source_task' => $candidate->{'source_task'} // '',
+        'note'        => $candidate->{'note'}        // '',
+        'stats'       => {
+            'applied'        => 0,
+            'false_positive' => 0,
+            'skipped'        => 0
+        }
+    };
+
+    return {
+        'name'   => $name,
+        'status' => qw| added |
+    };
+}
+
+## internal: find duplicate by pattern string ##
+sub _find_duplicate {
+    my ( $pattern, $patterns ) = @_;
+
+    foreach my $name ( keys %$patterns ) {
+        my $existing = $patterns->{$name};
+        if ( $existing->{'pattern'} eq $pattern ) {
+            return $name;
+        }
+    }
+    return undef;
+}
+
+## internal: merge duplicate pattern stats ##
+sub _merge_duplicate {
+    my ( $existing_name, $candidate, $patterns ) = @_;
+
+    my $existing = $patterns->{$existing_name};
+    my $old_conf = $existing->{'applicability'}->{'confidence'}  // 0.5;
+    my $old_app  = $existing->{'stats'}->{'applied'}             // 0;
+    my $new_conf = $candidate->{'applicability'}->{'confidence'} // $old_conf;
+
+    ## weighted average: new_conf = (old_conf * old_applied + candidate_conf)
+    ##     / (old_applied + 1) ##
+    my $merged_conf = ( $old_conf * $old_app + $new_conf ) / ( $old_app + 1 );
+
+    ## round to 2 decimal places ##
+    $merged_conf = sprintf qw| %.2f |, $merged_conf;
+
+    ## update confidence ##
+    $existing->{'applicability'}->{'confidence'} = $merged_conf;
+
+    ## update source tracking to most recent ##
+    $existing->{'source_task'} = $candidate->{'source_task'}
+        if length $candidate->{'source_task'} // '';
+
+    return { 'confidence' => $merged_conf };
+}
+
+## internal: evict lowest scoring pattern if candidate is better ##
+sub _evict_and_replace {
+    my ( $candidate, $compiled, $patterns, $max_patterns ) = @_;
+
+    my $app             = $candidate->{'applicability'} // {};
+    my $new_conf        = $app->{'confidence'}          // 0.5;
+    my $candidate_score = $new_conf * 1;    ## applied = 1 for new ##
+
+    ## find pattern with lowest (confidence * applied) score ##
+    my $lowest_name  = undef;
+    my $lowest_score = $candidate_score;
+
+    foreach my $name ( keys %$patterns ) {
+        my $p     = $patterns->{$name};
+        my $conf  = $p->{'applicability'}->{'confidence'} // 0.5;
+        my $appd  = $p->{'stats'}->{'applied'}            // 0;
+        my $score = $conf * ( $appd + 1 );    ## +1 to avoid zero ##
+
+        if ( $score < $lowest_score ) {
+            $lowest_score = $score;
+            $lowest_name  = $name;
+        }
+    }
+
+    ## only replace if we found a lower scoring pattern ##
+    return undef unless defined $lowest_name;
+
+    my $name = $candidate->{'name'};
+
+    ## remove evicted pattern ##
+    delete $patterns->{$lowest_name};
+
+    ## add new pattern ##
+    $patterns->{$name} = {
+        'name'          => $name,
+        'descr'         => $candidate->{'descr'} // '',
+        'pattern'       => $candidate->{'pattern'},
+        'compiled'      => $compiled,
+        'replace'       => $candidate->{'replace'},
+        'applicability' => {
+            'file_type'  => $app->{'file_type'} // qw| module |,
+            'confidence' => $new_conf,
+            'coverage'   => $app->{'coverage'} // qw| partial |
+        },
+        'origin'      => $candidate->{'origin'}      // qw| expanded |,
+        'source_task' => $candidate->{'source_task'} // '',
+        'note'        => $candidate->{'note'}        // '',
+        'stats'       => {
+            'applied'        => 0,
+            'false_positive' => 0,
+            'skipped'        => 0
+        }
+    };
+
+    return $lowest_name;
+}
+
+#,,,.,,,.,...,,.,,,..,,..,,,.,..,,.,,,.,.,.,.,..,,...,...,.,,,,,.,,,,,,.,,,..,
+#QLMT46HIKU25S7JQFNSVCPRGTGK7I67ZOEHOEGHEJECKLTRHSJ4237NNYVNA5LPCI7Q3ZWU7UJN2A
+#\\\|UMHUQBG4XRGMIF5352N2TLLHT3HZAACXIW4KHHDDSPYRCVTINEN \ / AMOS7 \ YOURUM ::
+#\[7]JNES7PZG6ZVCJEKASFTKPYCMZ5YEOZFB5EKHC7NGZ4P2OQZRIQCI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
