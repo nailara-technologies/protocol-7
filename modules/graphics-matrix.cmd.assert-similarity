@@ -1,0 +1,77 @@
+## [:< ##
+
+# name  = graphics-matrix.cmd.assert-similarity
+# descr = assert image similarity, returns float (0.0-1.0)
+#         Compares two images and returns similarity score
+#
+# param = <image_a> <image_b> [method]
+#
+# return: { 'mode' => 'true', 'data' => <similarity_float> } on success
+#         { 'mode' => 'false', 'data' => <error_message> } on failure
+
+my @call_params = split m{\ +}, $call->{'args'} // '';
+
+## Show help if no params ##
+return { 'mode' => qw| size |, 'data' => <<'EOT' } if not @call_params;
+
+::[ graphics-matrix assert-similarity <image_a> <image_b> [method] ]:.
+:
+:: Compare two images and return similarity score as floating point value
+:
+:: image_a ............ first image path
+:: image_b ............ second image path
+:: method ............. comparison method: color|perceptual|cubic|structure
+::                      (default: auto)
+:
+:: return: similarity value between 0.0 and 1.0
+::
+:: example: work assert-similarity /path/to/img1.png /path/to/img2.png
+::          work assert-similarity img1.png img2.png color
+.
+
+EOT
+
+my $image_a = $call_params[0];
+my $image_b = $call_params[1];
+my $method  = $call_params[2] // qw| auto |;
+
+## Validate inputs ##
+return { 'mode' => qw| false |, 'data' => 'image_a required' }
+    unless defined $image_a;
+return { 'mode' => qw| false |, 'data' => 'image_b required' }
+    unless defined $image_b;
+
+## Check file existence ##
+return { 'mode' => qw| false |, 'data' => "image not found: $image_a" }
+    unless -f $image_a;
+return { 'mode' => qw| false |, 'data' => "image not found: $image_b" }
+    unless -f $image_b;
+
+## Calculate similarity ##
+my $result = <[graphics.matrix.visual.similarity]>->(
+    {   'image_a' => $image_a,
+        'image_b' => $image_b,
+        'method'  => $method,
+    }
+);
+
+## Return result ##
+if ( $result->{'mode'} eq qw| true | ) {
+
+    # Return similarity as simple float value
+    return {
+        'mode' => qw| true |,
+        'data' => $result->{'similarity'},
+    };
+} else {
+    return {
+        'mode' => qw| false |,
+        'data' => $result->{'data'} // 'comparison failed'
+    };
+}
+
+#,,..,.,,,...,,.,,,,,,,..,,..,,.,,,,,,..,,.,,,.,.,...,..,,...,,..,...,.,.,,,,,
+#J7ZTRTKY2CWACLCEP7XCVCJLUFEK6GTBQEL2HP6Y4RFFC5B566LUG4AMJPX7ZUFVRWPJKV63Y6YK6
+#\\\|55YG6NBOVM5JXII7GP7FEQTWNWQESVFPFLU5EVKC64AEPES2BKB \ / AMOS7 \ YOURUM ::
+#\[7]CDPAXVI6UV57NTW5NXDCBAQONQYVYYBP2NEQHZXOFESFYEKCP6AQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

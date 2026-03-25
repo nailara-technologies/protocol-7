@@ -1,0 +1,44 @@
+## [:< ##
+
+# name  = graphics.matrix.visual.vision-batches
+# desc  = Create lm-vision zenka batches from similarity clusters
+#
+# input : $clusters - array of cluster hashes with images, sphere, similarity
+#         $threshold - similarity threshold for deduplication candidates
+#
+# output: array of batch hashes ready for lm-vision processing
+
+my $clusters  = shift // [];
+my $threshold = shift // 0.95;
+
+my $batches = [];
+
+for my $cluster (@$clusters) {
+    next unless @{ $cluster->{'images'} } > 1;
+
+    my $batch_id = <[graphics.matrix.visual.generate-batch-id]>->($cluster);
+    my $priority = 10 - ( $cluster->{'sphere'} // 0 );
+    $priority = 1 if $priority < 1;
+
+    my $batch = {
+        'batch_id'     => $batch_id,
+        'sphere'       => $cluster->{'sphere'},
+        'image_count'  => scalar( @{ $cluster->{'images'} } ),
+        'images'       => [ map { $_->{'image'} } @{ $cluster->{'images'} } ],
+        'similarity'   => $cluster->{'similarity'},
+        'cubic_center' =>
+            <[graphics.matrix.visual.cluster-center]>->($cluster),
+        'task'     => qw| deduplication_analysis |,
+        'priority' => $priority,
+    };
+
+    push @$batches, $batch;
+}
+
+return $batches;
+
+#,,,,,,..,,..,,..,,.,,,.,,.,.,,,.,,..,..,,..,,.,.,...,...,...,,,.,.,.,...,..,,
+#HQYI6ILIH6VBVN5LRYK3SOAZHBXVQS3PYNYCA3TSYXM2AGCBQCAHM3YAKMTBS4N2A6SCPFFA4MHQU
+#\\\|6LHMUAZ3QUHGOQ6COTJWTK2SYP3JJVP6GNKPRFCRZQPWVLOYJDH \ / AMOS7 \ YOURUM ::
+#\[7]2K6NJ7ZSBMCBXATQ3EF6C6GR57USYRGHRUSGWMZYW43DWNYMCSDA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

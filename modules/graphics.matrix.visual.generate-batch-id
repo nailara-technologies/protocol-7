@@ -1,0 +1,18 @@
+## [:< ##
+
+# name  = graphics.matrix.visual.generate-batch-id
+# desc  = Generate unique batch ID for vision processing
+
+my $cluster = shift // {};
+
+my $center = <[graphics.matrix.visual.cluster-center]>->($cluster);
+my $sphere = $cluster->{'sphere'} // 0;
+
+return
+    sprintf( "cubic-batch-s%d-%d%d%d-%d", $sphere, @$center, time() % 10000 );
+
+#,,,.,.,,,,..,...,,,.,,,,,...,.,.,,.,,,,.,,..,.,.,...,...,.,,,,,,,.,.,,,.,,,,,
+#44SXUDVEOELCBEHH7MLHKZTHP7T75GSUP72PYYH3KUZV7XB4Y54HGMVFZGN4GZ33DSLPM6DD24BT4
+#\\\|R4TSV36BUD7W6ZFVIXLZO2Q55ARWLW5YMG42UNBIKW4R6UWKCBE \ / AMOS7 \ YOURUM ::
+#\[7]UCUNBCPOTHPMNTUMDCL3GCIJMCESPNCET3XZSVLPHM5P2LNLLKCA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

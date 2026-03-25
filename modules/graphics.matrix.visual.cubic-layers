@@ -1,0 +1,40 @@
+## [:< ##
+
+# name  = graphics.matrix.visual.cubic-layers
+# desc  = Build hierarchical sphere layers for cubic-sorted images
+#
+# input : $by_sphere - hash mapping sphere numbers to image arrays
+#         $max_spheres - maximum sphere layer (0-6, default: 6)
+#
+# output: hash of sphere layers with metadata and statistics
+
+my $by_sphere   = shift // {};
+my $max_spheres = shift // 6;
+
+my $SPHERE_DEFS = <[graphics.matrix.visual.sphere]>->(qw| defs |);
+my $layers      = {};
+
+for my $sphere ( 0 .. $max_spheres ) {
+    my $sphere_images = $by_sphere->{$sphere} // [];
+
+    $layers->{$sphere} = {
+        'definition' => $SPHERE_DEFS->{$sphere},
+        'count'      => scalar(@$sphere_images),
+        'images'     => $sphere_images,
+        'cubic_grid' =>
+            <[graphics.matrix.visual.build-cubic-grid]>->($sphere_images),
+        'color_palette' => $sphere == 0
+        ? <[graphics.matrix.visual.extract-palette]>->($sphere_images)
+        : undef,
+        'statistics' =>
+            <[graphics.matrix.visual.sphere-stats]>->($sphere_images),
+    };
+}
+
+return $layers;
+
+#,,..,.,,,...,.,.,.,,,,,.,..,,.,,,,,.,,,,,,,.,.,.,...,...,,.,,.,,,..,,,.,,,,.,
+#4IMP7TSOXY5VJQGYPFSRUN2QIPASOTFN4D2DPR5T2ECP2GZCYIUPD4ORYU4E6YJI7F5CYUDV4TI7Y
+#\\\|GKCD27BLRAQOESO72R7AF4NKPOYL2KEFPQQFZB2VCASMKE2PISB \ / AMOS7 \ YOURUM ::
+#\[7]3IOMY5OLGTBFCPLSORUQ4M3BEXZDUI6WNDBQT6WESIFM6EYNE6AQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,0 +1,28 @@
+## [:< ##
+
+# name  = graphics.matrix.visual.sphere-stats
+# desc  = Calculate statistics for a sphere of images
+
+my $images = shift // [];
+
+my $sum_pixels       = 0;
+my $unique_checksums = {};
+
+for my $img (@$images) {
+    $sum_pixels += $img->{'pixels'} // 0;
+    $unique_checksums->{ $img->{'checksum'} } = 1 if $img->{'checksum'};
+}
+
+my $n = scalar(@$images);
+
+return {
+    'total_pixels'     => $sum_pixels,
+    'avg_size'         => $n ? int( $sum_pixels / $n ) : 0,
+    'unique_checksums' => scalar( keys %$unique_checksums ),
+};
+
+#,,..,.,.,.,,,.,.,,..,,,.,,.,,..,,,..,,.,,,..,.,.,...,.,.,,.,,,,,,...,..,,,.,,
+#Q6XMQ5TBQACGAUESA4OUF7VIEN2ITWDQCJKNYBRXUT63URVEFRVYE4HD74TPZOHLYUIJFODKFK3LW
+#\\\|IQICOPGAVOF6SW5DBLRJE7FJJZ57BIVQRCRCZKB2CPOP5IQD6JJ \ / AMOS7 \ YOURUM ::
+#\[7]CROLHLLKKRVEJJ2QG4RUR33IHWIKRQQXSPHT2LXDIDQHTXJNKYBA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

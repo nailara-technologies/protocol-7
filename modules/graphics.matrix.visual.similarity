@@ -1,0 +1,224 @@
+## [:< ##
+
+# name  = graphics.matrix.visual.similarity
+# desc  = Visual similarity assertion for cubic pixel-based image sorting
+#         Handles 1x1 pixel color similarity up to full resolution comparison
+#
+# input : $params->{'image_a'}  - path or image data (ref)
+#         $params->{'image_b'}  - path or image data (ref)
+#         $params->{'method'}   - 'color', 'structure', 'perceptual', 'cubic'
+#         $params->{'resolution'} - target resolution (default: auto)
+#
+# output: { 'similarity' => 0.0-1.0, 'method' => ..., 'confidence' => ... }
+
+my $params = shift // return { 'mode' => qw| false |, 'data' => 'no params' };
+
+my $image_a    = $params->{'image_a'};
+my $image_b    = $params->{'image_b'};
+my $method     = $params->{'method'} // qw| auto |;
+my $target_res = $params->{'resolution'};
+
+return { 'mode' => qw| false |, 'data' => 'image_a required' }
+    unless defined $image_a;
+return { 'mode' => qw| false |, 'data' => 'image_b required' }
+    unless defined $image_b;
+
+##[ RESOLUTION DETECTION ]####################################################
+
+my $info_a = <[graphics.matrix.visual.detect-resolution]>->($image_a);
+my $info_b = <[graphics.matrix.visual.detect-resolution]>->($image_b);
+
+return $info_a if $info_a->{'mode'} eq qw| false |;
+return $info_b if $info_b->{'mode'} eq qw| false |;
+
+##[ CUBIC PIXEL SPHERE CLASSIFICATION ]#######################################
+
+my $sphere_a = <[graphics.matrix.visual.sphere]>->(
+    qw| classify |,
+    ( $info_a->{'size'}[0] // 1 ) * ( $info_a->{'size'}[1] // 1 )
+);
+my $sphere_b = <[graphics.matrix.visual.sphere]>->(
+    qw| classify |,
+    ( $info_b->{'size'}[0] // 1 ) * ( $info_b->{'size'}[1] // 1 )
+);
+
+##[ SIMILARITY METHODS ]######################################################
+
+my $result;
+
+if ( $method eq qw| color_sample | ) {
+    my $rgb_a = $info_a->{'rgb'} // [ 128, 128, 128 ];
+    my $rgb_b = $info_b->{'rgb'} // [ 128, 128, 128 ];
+
+    my $distance     = <[graphics.matrix.visual.color]>->( $rgb_a, $rgb_b );
+    my $max_distance = sqrt( 3 * 255**2 );
+    my $similarity   = 1.0 - ( $distance / $max_distance );
+
+    # Harmonic boost for Protocol Blue proximity
+    my $protocol_blue = [ 6, 71, 195 ];
+    my $dist_to_blue_a
+        = <[graphics.matrix.visual.color]>->( $rgb_a, $protocol_blue );
+    my $dist_to_blue_b
+        = <[graphics.matrix.visual.color]>->( $rgb_b, $protocol_blue );
+
+    my $harmonic_bonus = 0;
+    if ( $dist_to_blue_a < 50 && $dist_to_blue_b < 50 ) {
+        $harmonic_bonus = 0.1;
+    }
+
+    $similarity
+        = $similarity + $harmonic_bonus > 1.0
+        ? 1.0
+        : $similarity + $harmonic_bonus;
+
+    $result = {
+        'similarity' => $similarity,
+        'distance'   => $distance,
+        'method'     => qw| color_sample |,
+        'confidence' => $similarity > 0.95
+        ? qw| high |
+        : ( $similarity > 0.8 ? qw| medium | : qw| low | ),
+        'harmonic_aligned' => $harmonic_bonus > 0,
+    };
+
+} elsif ( $method eq qw| perceptual | ) {
+    my $hash_a = <[graphics.matrix.visual.phash]>->($image_a);
+    my $hash_b = <[graphics.matrix.visual.phash]>->($image_b);
+
+    my $hamming    = <[graphics.matrix.visual.hamming]>->( $hash_a, $hash_b );
+    my $similarity = 1.0 - ( $hamming / 64 );
+
+    $result = {
+        'similarity' => $similarity,
+        'hamming'    => $hamming,
+        'hash_a'     => $hash_a,
+        'hash_b'     => $hash_b,
+        'method'     => qw| perceptual |,
+        'confidence' => $similarity > 0.9 ? qw| high | : qw| medium |,
+    };
+
+} elsif ( $method eq qw| cubic | ) {
+
+    # For now, use perceptual as proxy for cubic comparison
+    my $hash_a     = <[graphics.matrix.visual.phash]>->($image_a);
+    my $hash_b     = <[graphics.matrix.visual.phash]>->($image_b);
+    my $hamming    = <[graphics.matrix.visual.hamming]>->( $hash_a, $hash_b );
+    my $similarity = 1.0 - ( $hamming / 64 );
+
+    $result = {
+        'similarity' => $similarity,
+        'hamming'    => $hamming,
+        'method'     => qw| cubic |,
+        'sphere'     => $sphere_a->{'sphere'},
+        'confidence' => $similarity > 0.9 ? qw| high | : qw| medium |,
+    };
+
+} elsif ( $method eq qw| structure | ) {
+
+    # Placeholder - would implement SSIM
+    my $hash_a     = <[graphics.matrix.visual.phash]>->($image_a);
+    my $hash_b     = <[graphics.matrix.visual.phash]>->($image_b);
+    my $hamming    = <[graphics.matrix.visual.hamming]>->( $hash_a, $hash_b );
+    my $similarity = 1.0 - ( $hamming / 64 );
+
+    $result = {
+        'similarity' => $similarity,
+        'hamming'    => $hamming,
+        'method'     => qw| structure |,
+        'note'       => qw| SSIM implementation pending |,
+        'confidence' => $similarity > 0.9 ? qw| high | : qw| medium |,
+    };
+
+} elsif ( $method eq qw| auto | ) {
+
+    # Auto-select method based on sphere classification
+    if ( $sphere_a->{'sphere'} == 0 || $sphere_b->{'sphere'} == 0 ) {
+
+        # Color samples - use color comparison
+        my $rgb_a = $info_a->{'rgb'} // [ 128, 128, 128 ];
+        my $rgb_b = $info_b->{'rgb'} // [ 128, 128, 128 ];
+
+        my $distance = <[graphics.matrix.visual.color]>->( $rgb_a, $rgb_b );
+        my $max_distance = sqrt( 3 * 255**2 );
+        my $similarity   = 1.0 - ( $distance / $max_distance );
+
+        my $protocol_blue = [ 6, 71, 195 ];
+        my $dist_to_blue_a
+            = <[graphics.matrix.visual.color]>->( $rgb_a, $protocol_blue );
+        my $dist_to_blue_b
+            = <[graphics.matrix.visual.color]>->( $rgb_b, $protocol_blue );
+
+        my $harmonic_bonus = 0;
+        if ( $dist_to_blue_a < 50 && $dist_to_blue_b < 50 ) {
+            $harmonic_bonus = 0.1;
+        }
+
+        $similarity
+            = $similarity + $harmonic_bonus > 1.0
+            ? 1.0
+            : $similarity + $harmonic_bonus;
+
+        $result = {
+            'similarity' => $similarity,
+            'distance'   => $distance,
+            'method'     => qw| color_sample |,
+            'confidence' => $similarity > 0.95
+            ? qw| high |
+            : ( $similarity > 0.8 ? qw| medium | : qw| low | ),
+            'harmonic_aligned' => $harmonic_bonus > 0,
+        };
+
+    } elsif ( $sphere_a->{'sphere'} != $sphere_b->{'sphere'} ) {
+
+        # Different spheres - use perceptual hash
+        my $hash_a = <[graphics.matrix.visual.phash]>->($image_a);
+        my $hash_b = <[graphics.matrix.visual.phash]>->($image_b);
+        my $hamming
+            = <[graphics.matrix.visual.hamming]>->( $hash_a, $hash_b );
+        my $similarity = 1.0 - ( $hamming / 64 );
+
+        $result = {
+            'similarity' => $similarity,
+            'hamming'    => $hamming,
+            'method'     => qw| perceptual |,
+            'confidence' => $similarity > 0.9 ? qw| high | : qw| medium |,
+        };
+
+    } else {
+
+        # Same sphere - use cubic comparison (perceptual for now)
+        my $hash_a = <[graphics.matrix.visual.phash]>->($image_a);
+        my $hash_b = <[graphics.matrix.visual.phash]>->($image_b);
+        my $hamming
+            = <[graphics.matrix.visual.hamming]>->( $hash_a, $hash_b );
+        my $similarity = 1.0 - ( $hamming / 64 );
+
+        $result = {
+            'similarity' => $similarity,
+            'hamming'    => $hamming,
+            'method'     => qw| cubic |,
+            'sphere'     => $sphere_a->{'sphere'},
+            'confidence' => $similarity > 0.9 ? qw| high | : qw| medium |,
+        };
+    }
+
+} else {
+    return { 'mode' => qw| false |, 'data' => "unknown method: $method" };
+}
+
+##[ CUBIC TOPOLOGY INTEGRATION ]##############################################
+
+$result->{'cubic'} = {
+    'sphere_a'    => $sphere_a,
+    'sphere_b'    => $sphere_b,
+    'same_sphere' => $sphere_a->{'sphere'} == $sphere_b->{'sphere'},
+};
+
+$result->{'mode'} = qw| true |;
+return $result;
+
+#,,,,,,,,,,,,,,.,,,,,,,,,,.,,,,,.,,..,,.,,.,.,.,.,...,...,..,,,..,...,...,,.,,
+#PZ7M3ZY7DVFS2RQVMAONT2GBGQZQ2ZWUDY2YJ7UZAW4F2Q3U2WEKSLGFBT3YRUMZTI3ENQ2WEDPRY
+#\\\|3R3FR7NQSZA7VGNZ6K5GIX4CVPJR6HJSPLDANJZIS57U7E4SKLA \ / AMOS7 \ YOURUM ::
+#\[7]3VFGPOVRFJ6WKPLCBFNSIFSWZLCX5KN64F7BRDALO7D54Y7FGCDI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

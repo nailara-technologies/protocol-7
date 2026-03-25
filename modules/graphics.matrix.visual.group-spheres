@@ -1,0 +1,40 @@
+## [:< ##
+
+# name  = graphics.matrix.visual.group-spheres
+# desc  = Group classified images by sphere and sort by cubic coordinates
+#
+# input : $classified - array of classified image hashes
+#         $max_spheres - maximum sphere number
+# output: hash { sphere_num => [sorted images] }
+
+my $classified  = shift // [];
+my $max_spheres = shift // 6;
+
+my $spheres = {};
+
+# Initialize empty spheres
+$spheres->{$_} = [] for 0 .. $max_spheres;
+
+# Group images
+for my $img (@$classified) {
+    my $s = $img->{'sphere'};
+    push @{ $spheres->{$s} }, $img;
+}
+
+# Sort within spheres by cubic coordinate for spatial locality
+for my $s ( 0 .. $max_spheres ) {
+    $spheres->{$s} = [
+        sort {
+                   $a->{'cubic_coord'}->[0] <=> $b->{'cubic_coord'}->[0]
+                || $a->{'cubic_coord'}->[1] <=> $b->{'cubic_coord'}->[1]
+        } @{ $spheres->{$s} // [] }
+    ];
+}
+
+return $spheres;
+
+#,,,,,,,.,.,.,,,,,,,.,...,,..,,,.,,.,,.,.,,,.,.,.,...,..,,...,.,,,..,,,,.,..,,
+#42GO2RCNN4XTKYYRIOFW4OWROAZFASANPTY4DCFH3JCCHHPAWHAJHBDDCOZX3RL2D2RUPUASBOTVQ
+#\\\|UZB7XE2XMMWUJHCVWP3SFIWXMZ2LLDL4QNYJUK6UOT2EFVEKDOM \ / AMOS7 \ YOURUM ::
+#\[7]BSXFMW6VODFGRYV5OUOJJA54OCBBVCRMED5LTY43AZS5A4HIZ6CA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,0 +1,43 @@
+## [:< ##
+
+# name  = graphics.matrix.visual.find-clusters
+# desc  = Find similarity clusters within sphere groups
+#
+# input : $spheres - hash of sphere groups
+#         $threshold - similarity threshold (default: 0.95)
+# output: array of cluster hashes
+
+my $spheres   = shift // {};
+my $threshold = shift // 0.95;
+
+my $clusters = [];
+
+for my $sphere ( sort { $a <=> $b } keys %$spheres ) {
+    my $sphere_images = $spheres->{$sphere} // [];
+    next unless @$sphere_images;
+
+    # For sphere 0 (color samples), group by color similarity
+    if ( $sphere == 0 ) {
+        my $color_groups = <[graphics.matrix.visual.group-by-color]>->(
+            $sphere_images, $threshold
+        );
+        push @$clusters, @$color_groups;
+    }
+
+    # For larger spheres, use spatial proximity
+    else {
+        my $proximity_groups
+            = <[graphics.matrix.visual.group-by-proximity]>->(
+            $sphere_images, $threshold
+            );
+        push @$clusters, @$proximity_groups;
+    }
+}
+
+return $clusters;
+
+#,,..,.,,,,,,,.,,,...,,..,..,,,.,,.,.,,,,,,,.,.,.,...,...,..,,,.,,...,,..,...,
+#NWJEWGTFTRFNSOQIGA56AQG76AY2XMDZRXEMC6AD2Y75DNBIF43WYCIOEAOL2ICGBU3NEWHXDXG5Y
+#\\\|ZG7YLTFPC2HIPKPFAOFHV3KAOA5XWTJUZZMZSGQWQRLJMDJYQ22 \ / AMOS7 \ YOURUM ::
+#\[7]YUIULX2W7AMJ5HZAPR5FWWOK4ZTO3SL2RSX7TYHGHUHCEPAAAYBI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
