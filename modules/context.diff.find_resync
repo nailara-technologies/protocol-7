@@ -1,0 +1,25 @@
+## [:< ##
+
+# name  = context.diff.find_resync
+# descr = find how many lines to skip to resync diff alignment
+
+my $params = shift // {};
+
+my $in_ref  = $params->{'in'}  // [];
+my $i       = $params->{'i'}   // 0;
+my $out_ref = $params->{'out'} // [];
+my $j       = $params->{'j'}   // 0;
+
+for my $skip ( 1 .. 3 ) {
+    return $skip
+        if $i + $skip < @$in_ref
+        and $j + $skip < @$out_ref
+        and $in_ref->[ $i + $skip ] eq $out_ref->[ $j + $skip ];
+}
+return 0;
+
+#,,,,,..,,...,,.,,,,,,,,.,..,,..,,,,,,,,,,..,,.,.,...,...,,..,,,.,,.,,...,...,
+#OGNBC4J5AO5LIF6IU333FIZJXVCP2ONOK3B2PYYBQVH5Z6M67LN4L2FVLNU2L56MPPLNCK5VSOPOC
+#\\\|O7HRSX6NTNNG4LT2HISAKDFQUGY6MHJZ3V4TGZY66JYWY2IC4RW \ / AMOS7 \ YOURUM ::
+#\[7]NGLS7ZPMDU2F6P5R5QA23PWWE6D2HAY34KPBBR6BUVJUKIWYZMCI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

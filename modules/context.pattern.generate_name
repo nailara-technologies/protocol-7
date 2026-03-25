@@ -1,0 +1,34 @@
+## [:< ##
+
+# name  = context.pattern.generate_name
+# descr = generate unique pattern name based on type and index
+
+my $params = shift // {};
+
+my $extracted = $params->{'extracted'} // {};
+my $idx       = $params->{'idx'}       // 0;
+
+my $prefix = qw| auto |;
+my @vars   = @{ $extracted->{'vars'} // [] };
+
+if ( @vars == 1 ) {
+    $prefix = $vars[0];
+}
+
+## add type hint from pattern content ##
+my $pattern = $extracted->{'pattern'} // '';
+if ( $pattern =~ m|=\s*\(| ) {
+    $prefix .= qw| -assignment |;
+} elsif ( $pattern =~ m|##| ) {
+    $prefix .= qw| -comment |;
+} elsif ( $pattern =~ m|sub\s| ) {
+    $prefix .= qw| -sub |;
+}
+
+return sprintf '%s-%04d', $prefix, $idx;
+
+#,,,.,,.,,,..,,.,,,.,,.,,,,,,,,,,,,.,,,.,,..,,.,.,...,.,.,.,,,.,.,.,,,,.,,,.,,
+#V6NVMG6Y5N7YLDR3HP2QOEZBOLRVC57VXAP5HSMVTOE5OV22SSH7XYQKUQNN2DFTUZIRFJ7SNXO2C
+#\\\|NBR3VUQFUGKIEMV3CP3O34UDOREPTQKWJNBHQNCU3RPHOJZE2ZZ \ / AMOS7 \ YOURUM ::
+#\[7]PI5PDPBFL463VRBXRAZEYWSULNKRQBA374RJX2J5OZYCNT7WGOAQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
