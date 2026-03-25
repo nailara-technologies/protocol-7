@@ -3,8 +3,6 @@
 # name  = models.task.execute
 # descr = jobqueue callback : dispatch task to backend
 
-<[base.perlmod.load]>->('Crypt::Misc');
-
 my $callback = shift;
 my $job_id   = $callback->{'job_id'};
 my $params   = $callback->{'params'} // {};
@@ -23,65 +21,75 @@ my $target_cmd = $params->{'target_cmd'} // '';
 <models.task.active_id>  = $task_id;
 <models.task.active_job> = $job_id;
 
-## prepend :next: for fresh session per task
-$prompt = ':next: ' . $prompt;
+## check for delegation flag ##
+my $delegate_config = $params->{'delegate'} // {};
+my $use_delegation
+    = ref $delegate_config eq qw| HASH |
+    ? ( $delegate_config->{'enabled'} // FALSE )
+    : FALSE;
 
-## base32r encode prompt for safe ipc ##
-my $encoded = eval { Crypt::Misc::encode_b32r($prompt) };
-if ( $@ or not defined $encoded or not length $encoded ) {
-    <[base.logs]>->( 0, ': task %s: base32r encode failed', $task_id );
-    <[protocol-7.route-send]>->(
-        {   'command'   => 'task.fail',
-            'call_args' => { 'args' => "$task_id encode error" }
+## try delegation path if enabled ##
+if ($use_delegation) {
+    <[base.logs]>->( 2, ': task %s: attempting delegation path', $task_id );
+
+    my $bridge_result = <[models.task.delegate_bridge]>->(
+        {   'task_id'    => $task_id,
+            'model'      => $model,
+            'prompt'     => $prompt,
+            'target_cmd' => $target_cmd,
+            'job_id'     => $job_id,
+            'delegate'   => $delegate_config
         }
     );
-    <models.task.active_id>  = undef;
-    <models.task.active_job> = undef;
-    <[jobqueue.move_job]>->( $job_id, qw| error | );
-    return FALSE;
+
+    ## check if delegation flow started successfully ##
+    if ( ref $bridge_result eq qw| HASH | ) {
+        if ( $bridge_result->{'mode'} eq qw| true | ) {
+            my $status = $bridge_result->{'data'}->{'status'} // '';
+            if ( $status eq qw| checking | ) {
+                ## async check in progress - handler will continue ##
+                <[base.logs]>->(
+                    2, ': task %s: delegation check in progress', $task_id
+                );
+                return TRUE;
+            }
+            ## immediate success (should not happen with _skip_check) ##
+            <[base.logs]>->(
+                1, ': task %s: delegated successfully', $task_id
+            );
+            return TRUE;
+        }
+    }
+
+    ## bridge returned failure - fallback to direct dispatch ##
+    my $reason
+        = ref $bridge_result eq qw| HASH |
+        ? $bridge_result->{'data'}
+        : qw| unknown |;
+    <[base.logs]>->(
+        2,        ': task %s: delegation bridge failed [ %s ], falling back',
+        $task_id, $reason
+    );
+
+    ## reset active state before fallback ##
+    <models.task.active_id>  = $task_id;
+    <models.task.active_job> = $job_id;
 }
 
-## extract zenka name from target command [ kimi.ask-reply → kimi ]
-( my $zenka_name = $target_cmd ) =~ s{\..*}{};
-
-## wait for backend zenka to be online before dispatching
-my $sent = <[protocol-7.route-send]>->(
-    {   'command'   => 'v7.notify_online',
-        'call_args' => { 'args' => ":start: $zenka_name" },
-        'reply'     => {
-            'handler' => 'models.handler.notify-online-reply',
-            'params'  => {
-                'task_id'    => $task_id,
-                'model'      => $model,
-                'job_id'     => $job_id,
-                'target_cmd' => $target_cmd,
-                'encoded'    => $encoded
-            }
-        }
+## fall back to direct dispatch ##
+return <[models.task.fallback-direct]>->(
+    {   'task_id'    => $task_id,
+        'model'      => $model,
+        'prompt'     => $prompt,
+        'target_cmd' => $target_cmd,
+        'job_id'     => $job_id
     }
 );
 
-if ( $sent <= 0 ) {
-    <[base.logs]>->(
-        0, ': task %s: v7 not reachable [ job %s ]',
-        $task_id, $job_id
-    );
-    <[protocol-7.route-send]>->(
-        {   'command'   => 'task.fail',
-            'call_args' =>
-                { 'args' => "$task_id v7 not reachable" }
-        }
-    );
-    <models.task.active_id>  = undef;
-    <models.task.active_job> = undef;
-    <[jobqueue.move_job]>->( $job_id, qw| error | );
-    return FALSE;
-}
-
-return TRUE;
-
 #,,,.,.,,,.,,,,.,,,.,,..,,.,.,.,.,,,.,.,.,,..,.,.,...,...,,,,,.,.,.,,,.,.,.,,,
-#772AAHA6Q2EQQKIPNBK7TI7VQX3RIP2IIVPONLK2V53CHKEW4IAVXA4BSJD2JVP6R6RON5D2HPZA4
-#\\\|LL5Q2R3QMJMJSV5I7LIHCFNYJZG567LJHFBRUXVKDDP77H563UE \ / AMOS7 \ YOURUM ::
-#\[7]7WTRYTPG62VEYSWV6EFJDLWTEBEMJAMQ6XTD7J3FMABLRDMWIQCY 7  DATA SIGNATURE ::
+
+#,,,.,,,,,.,.,...,..,,.,,,..,,,,.,.,.,,,,,,.,,..,,...,...,,,.,,,.,...,,..,..,,
+#4B7EXWXVV6AUBN6YUJQFCVCU4KGFWH6TJC6EPB4X2PH3FIFGRKJA6SUN5GJ7EF3NIXMHMRJCO6ZRW
+#\\\|3UZWZXBX4F5VEZMGBPCZMECWYIS6OTA6J2FLQ4VNBPUJXGOOXIT \ / AMOS7 \ YOURUM ::
+#\[7]VVV2P6WZYGUTKGMMW6CDT6HCMZ4EA43YT5AUCLJXOTGWWKGZLICQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

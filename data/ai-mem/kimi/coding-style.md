@@ -114,6 +114,84 @@ return { 'mode' => qw| size |, 'data' => "line1\nline2" };   ## correct
 
 ---
 
+## async handler chains [ critical ]
+
+### protocol-7.route-send returns send count, NOT reply data
+```perl
+## wrong — interpreting return as data
+my $result = <[protocol-7.route-send]>->({ ... });
+if ( $result->{'mode'} eq qw| true | ) { ... }   ## crash — $result is 0 or 1
+
+## correct — check send count
+my $sent = <[protocol-7.route-send]>->({ ... });
+if ( $sent <= 0 ) { ## failed to send
+    ## handle send failure
+}
+## reply comes async via handler
+```
+
+### handler chain pattern
+For multi-step async workflows, use handler chain:
+```
+caller → route-send with handler_a
+    ↓ async
+handler_a → validate → route-send with handler_b OR fallback
+    ↓ async
+handler_b → validate → complete OR fallback
+```
+
+### handler signature
+```perl
+## [:< ##
+# name  = models.handler.my-reply
+# descr = handle reply from some async command
+
+my $reply = shift;
+
+my $data   = $reply->{'data'}   // '';
+my $mode   = $reply->{'mode'}   // qw| unknown |;
+my $params = $reply->{'params'} // {};  ## original params from route-send
+
+## $mode is: true | false | size | deferred | unknown
+if ( $mode eq qw| false | ) {
+    ## handle failure, fallback
+} else {
+    ## continue workflow
+}
+```
+
+### preserving state across async boundaries
+Pass all needed context in `reply.params`:
+```perl
+<[protocol-7.route-send]>->(
+    {   'command'   => 'v7.notify_online',
+        'call_args' => { 'args' => ":start: $zenka_name" },
+        'reply'     => {
+            'handler' => qw| models.handler.my-reply |,
+            'params'  => {           ## [ all context needed by handler ]
+                'task_id'    => $task_id,
+                'model'      => $model,
+                'job_id'     => $job_id,
+                'target_cmd' => $target_cmd,
+                'encoded'    => $encoded
+            }
+        }
+    }
+);
+```
+
+### reset active state before fallback
+When handler needs to fall back to alternative flow:
+```perl
+## handler detected failure, falling back ##
+<models.task.active_id>  = $task_id;   ## restore guard
+<models.task.active_job> = $job_id;
+
+<[models.task.fallback-direct]>->($params);  ## alternative flow
+```
+
+---
+
 ## logging [ critical ]
 
 ### format strings — never interpolate
@@ -516,8 +594,8 @@ s|old|new|gsx    ## global + single-line + extended
 
 ---
 
-#,,.,,,..,,,.,,..,,,,,.,,,,,,,.,.,.,,,,,.,...,.,.,...,...,..,,,,,,,.,,,,,,.,,,
-#TP7HXTN7JWM6MIC4V6NEOEPN24V66IY3VHYDPECF6FKUK2MOEFQXN6ACLLMZWHMC6WBUZICAGZJI4
-#\\\|DPXYUDJRUNLFHHYZRYXRLYJHNSIILM2QCACNREVGQBJKLIG4ZA3 \ / AMOS7 \ YOURUM ::
-#\[7]TXPZA4EWKUPRFIKAYGLRKDGSXE2CP5CM56KCGKPNHODHA7X4FGDA 7  DATA SIGNATURE ::
+#,,,,,..,,,..,,,,,.,,,,,.,...,,,,,,..,,,.,..,,.,.,...,...,,.,,,..,,.,,,,,,..,,
+#BLSSBXBBE4CV6ZX4WTCVBU4QUF2P4CZDZGTEGCIYKFXSA7KJHHWX6KOWDKTY4QVLHJ3NLRYWAXTRE
+#\\\|PWFZYRG5LVQISBN2D3MY6D3NLS7IIWPLXYJP2KWO6TSOBQOXXZA \ / AMOS7 \ YOURUM ::
+#\[7]4LSYB5PBQLWA2MAQSKPBX2QHCHP7C5Q7H73ZJ4N3IJYX2RIE2WCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

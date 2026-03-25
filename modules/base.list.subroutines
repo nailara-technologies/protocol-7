@@ -1481,6 +1481,7 @@ return [ qw[
         mpv.handler.event.unpause
         mpv.cmd.autoskip_interval
         mpv.await_window_presence
+        models.task.do-delegation
         models.storage.move_model
         models.storage.check_tier
         models.registry.get_entry
@@ -1781,6 +1782,8 @@ return [ qw[
         nshell.execute_cube_command
         net.read_linewise_estimated
         mpv.callback.reenc_finished
+        models.task.fallback-direct
+        models.task.delegate_bridge
         models.parser.str.is_vision
         models.parser.gguf_metadata
         models.local_server_manager
@@ -1832,6 +1835,7 @@ return [ qw[
         crypt.C25519.get_remote_key
         crypt.C25519.gen_keys_typed
         crypt.C25519.compute_shared
+        context.tree.checksum.state
         context.module.dependencies
         context.compact.incremental
         content.set-up.import_rules
@@ -1966,6 +1970,7 @@ return [ qw[
         cube.cmd.reply-encoding-mode
         crypt.C25519.keystr_is_valid
         crypt.C25519.compare_keypair
+        context.tree.checksum.stream
         context.conversation.history
         content.cmd.entries_withheld
         coding.intake.normalize_task
@@ -2198,6 +2203,7 @@ return [ qw[
         models.test.api_fallback_chain
         models.storage.tier_management
         models.handler.kimi_web_result
+        models.handler.delegate_result
         models.discover.scan_directory
         models.conversation.task_chain
         models.conversation.list_saved
@@ -2240,6 +2246,7 @@ return [ qw[
         crypt.C25519.key_name_and_type
         crypt.C25519.key_bin_checksums
         crypt.C25519.chksum_cache.retr
+        context.tree.checksum.template
         context.diff.find_line_changes
         context.compose.for_delegation
         content.handler.mimetype_reply
@@ -2343,6 +2350,7 @@ return [ qw[
         crypt.C25519.decrypt_secret_key
         crypt.C25519.cmd.set-client-key
         crypt.C25519.cmd.get-public-key
+        context.tree.checksum.init_code
         context.delegate.handler.result
         content.callback.check_mimetype
         compton.callback.not_composited
@@ -2706,6 +2714,7 @@ return [ qw[
         nshell.history.find_session_boundary
         nshell.handler.ctrl_o_render_preload
         nodes.handler.discover_details_reply
+        models.handler.delegate-online-reply
         models.handler.coding_result_forward
         models.checksum.calculate_bmw_base32
         models.callback.object_dispatch_slot
@@ -3023,8 +3032,8 @@ return [ qw[
     ]
 ];
 
-#,,,,,..,,.,,,,..,...,...,,..,...,.,,,,..,,..,.,.,...,..,,,,.,.,,,,..,,..,,,,,
-#2P6N6Z6T73WEIBU44JZ2MS3TLTZO4OOAJ3IPZ6OQVJAZPLGHDILMY5RTDGP6YOA7MD3TB2EKJWQLY
-#\\\|T2PUQEI4ZVW7DR25ELN5IJ4R5FBQ5PQ7F4OWCVNU5VEBEE37IUT \ / AMOS7 \ YOURUM ::
-#\[7]76TTWKVDX7LKTPWXZO76KYSLDACIXSGMJIHWRNUQG5UCPA4J5YCQ 7  DATA SIGNATURE ::
+#,,.,,..,,,..,.,.,,.,,,,,,,.,,.,.,...,,.,,...,.,.,...,...,,,.,.,,,,,.,,..,,,,,
+#PKPTW743SFTIPUFBEI23ROYRTGJIY4KB4A24OMQYD6UNDBYBMUXNVGGEV2KDBEL3COFLTJBQZVIZE
+#\\\|7KT5UJJ7J6JMTEB3RQGLLF4QYGBTYPU5K4WEIEWDYFPSBMKSESS \ / AMOS7 \ YOURUM ::
+#\[7]SCSZZPBOCFX4NRUM6LAQULUQ7IPPJ67YUYE57OMUTUHLLCFJLYBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

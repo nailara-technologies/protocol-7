@@ -1,0 +1,339 @@
+## [:< ##
+
+# name  = context.tree.checksum.stream
+# descr = position-aware stream checksums for context tree addressing
+
+my $params = shift // {};
+
+my $action = $params->{'action'} // qw| open |;
+
+## action: open | add_chunk | checksum_at | close ##
+
+if ( $action eq qw| open | ) {
+    ## open new stream for incremental checksum ##
+    my $stream_id  = $params->{'stream_id'} // <[base.gen_id]>->();
+    my $chunk_size = $params->{'chunk_size'}
+        // <context.tree.checksum.cfg>->{'chunk_size'} // 4096;
+
+    ## create underlying checksum state ##
+    my $state_result = <[context.tree.checksum.state]>->(
+        {   'action'    => qw| create |,
+            'elf_mode'  => $params->{'elf_mode'},
+            'elf_shift' => $params->{'elf_shift'},
+        }
+    );
+
+    return $state_result unless $state_result->{'mode'} eq qw| true |;
+
+    my $state_id = $state_result->{'data'}->{'state_id'};
+
+    ## create stream record ##
+    my $stream = {
+        'stream_id'   => $stream_id,
+        'state_id'    => $state_id,
+        'chunk_size'  => $chunk_size,
+        'bytes_total' => 0,
+        'chunks'      => 0,
+        'positions'   => {},           ## position -> { elf_sum, checksum } ##
+        'created'     => <[base.time]>->(4),
+        'last_chunk'  => <[base.time]>->(4),
+    };
+
+    <context.tree.checksum.streams>->{$stream_id} = $stream;
+
+    <[base.logs]>->(
+        2, ':. checksum.stream: opened [ stream_id=%s chunk_size=%d ]',
+        $stream_id, $chunk_size
+    );
+
+    return {
+        'mode' => qw| true |,
+        'data' => {
+            'stream_id' => $stream_id,
+            'state_id'  => $state_id,
+        }
+    };
+
+} elsif ( $action eq qw| add_chunk | ) {
+    ## add data chunk to stream ##
+    my $stream_id = $params->{'stream_id'} // '';
+    my $data      = $params->{'data'}      // '';
+
+    return { 'mode' => qw| false |, 'data' => 'stream_id required' }
+        unless length $stream_id;
+
+    my $stream = <context.tree.checksum.streams>->{$stream_id};
+    return { 'mode' => qw| false |, 'data' => 'stream not found' }
+        unless defined $stream;
+
+    my $position = $stream->{'bytes_total'};    ## current position ##
+
+    ## add to underlying state with position tracking ##
+    my $add_result = <[context.tree.checksum.state]>->(
+        {   'action'   => qw| add |,
+            'state_id' => $stream->{'state_id'},
+            'data'     => $data,
+            'position' => $position,
+        }
+    );
+
+    return $add_result unless $add_result->{'mode'} eq qw| true |;
+
+    ## update stream metadata ##
+    my $data_len = length $data;
+    $stream->{'bytes_total'} += $data_len;
+    $stream->{'chunks'}++;
+    $stream->{'last_chunk'} = <[base.time]>->(4);
+
+    ## record position checksum ##
+    my $elf_sum = $add_result->{'data'}->{'elf_sum'};
+    $stream->{'positions'}->{$position} = {
+        'elf_sum'   => $elf_sum,
+        'bytes_in'  => $stream->{'bytes_total'},
+        'chunk_num' => $stream->{'chunks'},
+    };
+
+    ## optionally emit intermediate checksum ##
+    if ( $params->{'emit_checksum'} // FALSE ) {
+        ## quick ELF-based checksum at this position ##
+        my $quick_chksum = substr( $elf_sum, -7 );   ## 7 chars for brevity ##
+
+        ## index in context tree if available ##
+        if ( exists $code{'context.tree.index.position'} ) {
+            <[context.tree.index.position]>->(
+                {   'stream_id' => $stream_id,
+                    'position'  => $position,
+                    'checksum'  => $quick_chksum,
+                    'bytes_in'  => $stream->{'bytes_total'},
+                }
+            );
+        }
+
+        return {
+            'mode' => qw| true |,
+            'data' => {
+                'position'     => $position,
+                'elf_sum'      => $elf_sum,
+                'quick_chksum' => $quick_chksum,
+                'bytes_total'  => $stream->{'bytes_total'},
+            }
+        };
+    }
+
+    return {
+        'mode' => qw| true |,
+        'data' => {
+            'bytes_total' => $stream->{'bytes_total'},
+            'chunks'      => $stream->{'chunks'},
+        }
+    };
+
+} elsif ( $action eq qw| checksum_at | ) {
+    ## get checksum at specific position ##
+    my $stream_id = $params->{'stream_id'} // '';
+    my $position  = $params->{'position'};
+
+    return { 'mode' => qw| false |, 'data' => 'stream_id required' }
+        unless length $stream_id;
+
+    return { 'mode' => qw| false |, 'data' => 'position required' }
+        unless defined $position;
+
+    my $stream = <context.tree.checksum.streams>->{$stream_id};
+    return { 'mode' => qw| false |, 'data' => 'stream not found' }
+        unless defined $stream;
+
+    ## find closest recorded position at or before requested position ##
+    my $positions   = $stream->{'positions'};
+    my $closest_pos = 0;
+
+    foreach my $pos ( sort { $a <=> $b } keys %$positions ) {
+        last if $pos > $position;
+        $closest_pos = $pos;
+    }
+
+    my $pos_data = $positions->{$closest_pos};
+
+    if ( not defined $pos_data ) {
+        return { 'mode' => qw| false |, 'data' => 'no checksum at position' };
+    }
+
+    return {
+        'mode' => qw| true |,
+        'data' => {
+            'position'      => $closest_pos,
+            'requested_pos' => $position,
+            'offset_delta'  => $position - $closest_pos,
+            'elf_sum'       => $pos_data->{'elf_sum'},
+            'bytes_in'      => $pos_data->{'bytes_in'},
+            'chunk_num'     => $pos_data->{'chunk_num'},
+            ## note: exact checksum at position requires re-processing ##
+            ## from closest checkpoint if delta is non-zero ##
+        }
+    };
+
+} elsif ( $action eq qw| finalize | ) {
+    ## finalize stream and get full AMOS checksum ##
+    my $stream_id = $params->{'stream_id'} // '';
+    my $cleanup   = $params->{'cleanup'}   // TRUE;
+
+    return { 'mode' => qw| false |, 'data' => 'stream_id required' }
+        unless length $stream_id;
+
+    my $stream = <context.tree.checksum.streams>->{$stream_id};
+    return { 'mode' => qw| false |, 'data' => 'stream not found' }
+        unless defined $stream;
+
+    ## finalize underlying state ##
+    my $final_result = <[context.tree.checksum.state]>->(
+        {   'action'   => qw| finalize |,
+            'state_id' => $stream->{'state_id'},
+            'cleanup'  => $cleanup,
+        }
+    );
+
+    return $final_result unless $final_result->{'mode'} eq qw| true |;
+
+    ## store position index if requested ##
+    if ( $params->{'save_index'} // FALSE ) {
+        my $index_key = "stream-index:$stream_id";
+        if ( exists $code{'context.cache.store'} ) {
+            <[context.cache.store]>->(
+                {   'key'  => $index_key,
+                    'data' => {
+                        'stream_id'   => $stream_id,
+                        'positions'   => $stream->{'positions'},
+                        'bytes_total' => $stream->{'bytes_total'},
+                        'checksum' => $final_result->{'data'}->{'checksum'},
+                    },
+                    'ttl' => 86400 * 7,    ## 7 days ##
+                }
+            );
+        }
+    }
+
+    my $result_data = {
+        'stream_id'   => $stream_id,
+        'checksum'    => $final_result->{'data'}->{'checksum'},
+        'bytes_total' => $stream->{'bytes_total'},
+        'chunks'      => $stream->{'chunks'},
+        'positions'   => scalar keys %{ $stream->{'positions'} },
+    };
+
+    ## cleanup stream record ##
+    delete <context.tree.checksum.streams>->{$stream_id} if $cleanup;
+
+    return {
+        'mode' => qw| true |,
+        'data' => $result_data,
+    };
+
+} elsif ( $action eq qw| close | ) {
+    ## close stream without finalizing (for later resume) ##
+    my $stream_id = $params->{'stream_id'} // '';
+
+    return { 'mode' => qw| false |, 'data' => 'stream_id required' }
+        unless length $stream_id;
+
+    my $stream = <context.tree.checksum.streams>->{$stream_id};
+    return { 'mode' => qw| false |, 'data' => 'stream not found' }
+        unless defined $stream;
+
+    ## save underlying state ##
+    my $save_result = <[context.tree.checksum.state]>->(
+        {   'action'   => qw| save |,
+            'state_id' => $stream->{'state_id'},
+            'ttl'      => $params->{'ttl'} // 86400,
+        }
+    );
+
+    ## save stream metadata ##
+    my $meta_key = "stream-meta:$stream_id";
+    if ( exists $code{'context.cache.store'} ) {
+        <[context.cache.store]>->(
+            {   'key'  => $meta_key,
+                'data' => {
+                    'stream_id'   => $stream_id,
+                    'state_id'    => $stream->{'state_id'},
+                    'bytes_total' => $stream->{'bytes_total'},
+                    'chunks'      => $stream->{'chunks'},
+                    'positions'   => $stream->{'positions'},
+                },
+                'ttl' => $params->{'ttl'} // 86400,
+            }
+        );
+    }
+
+    ## remove from active streams ##
+    delete <context.tree.checksum.streams>->{$stream_id};
+
+    return {
+        'mode' => qw| true |,
+        'data' => {
+            'stream_id'   => $stream_id,
+            'state_saved' => $save_result->{'mode'} eq qw| true |,
+            'bytes_total' => $stream->{'bytes_total'},
+        }
+    };
+
+} elsif ( $action eq qw| resume | ) {
+    ## resume previously closed stream ##
+    my $stream_id = $params->{'stream_id'} // '';
+
+    return { 'mode' => qw| false |, 'data' => 'stream_id required' }
+        unless length $stream_id;
+
+    ## load stream metadata ##
+    my $meta_key = "stream-meta:$stream_id";
+    my $meta;
+    if ( exists $code{'context.cache.fetch'} ) {
+        my $result = <[context.cache.fetch]>->( { 'key' => $meta_key } );
+        $meta = $result->{'data'} if ref $result eq qw| HASH |;
+    }
+
+    return { 'mode' => qw| false |, 'data' => 'stream metadata not found' }
+        unless defined $meta;
+
+    ## load underlying state ##
+    my $state_id    = $meta->{'state_id'};
+    my $load_result = <[context.tree.checksum.state]>->(
+        {   'action'   => qw| load |,
+            'state_id' => $state_id,
+        }
+    );
+
+    return $load_result unless $load_result->{'mode'} eq qw| true |;
+
+    ## reconstruct stream record ##
+    my $stream = {
+        'stream_id'   => $stream_id,
+        'state_id'    => $state_id,
+        'chunk_size'  => $meta->{'chunk_size'} // 4096,
+        'bytes_total' => $meta->{'bytes_total'},
+        'chunks'      => $meta->{'chunks'},
+        'positions'   => $meta->{'positions'},
+        'resumed'     => TRUE,
+        'resumed_at'  => <[base.time]>->(4),
+    };
+
+    <context.tree.checksum.streams>->{$stream_id} = $stream;
+
+    return {
+        'mode' => qw| true |,
+        'data' => {
+            'stream_id'   => $stream_id,
+            'bytes_total' => $stream->{'bytes_total'},
+            'chunks'      => $stream->{'chunks'},
+        }
+    };
+}
+
+return { 'mode' => qw| false |, 'data' => 'unknown action' };
+
+#,,.,,,.,,,..,,..,,.,,...,...,...,,,.,,,.,,,.,..,,...,...,..,,,,.,,..,,,,,,,,,
+
+#,,,.,,,,,,..,.,.,,,,,...,...,.,,,,,,,,,,,...,..,,...,...,.,.,..,,...,,,,,,,,,
+#JWVJXNX2JQECCG2MHUYOS66UO3TKHHMHXA3XPNHQE5WTLVWCQURVHO56SICT6PXVJPOJDW5HFAL7E
+#\\\|K3ABC5AKXFQKREEXQZRVZ2B7F5QT5P4RWJK32ZRWWDKTUHDLX3I \ / AMOS7 \ YOURUM ::
+#\[7]W4GMHCS6Y67VMUTNFBQAR4LNR7SWVSRO42J7Q5AVPH5MPA5C6KDY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
