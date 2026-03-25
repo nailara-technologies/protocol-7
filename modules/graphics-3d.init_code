@@ -1,0 +1,69 @@
+## [:< ##
+
+# name  = graphics-3d.init_code
+# descr = 3D terminal graphics zenka initialization (8×7×13 voxel space)
+#
+# Architecture: Zero-copy SHM buffer shared with decoder/data zenki
+# Rendering: GTK3/Cairo at 60 FPS with configurable cursor translucency curves
+# Matrix: 8×7×13 = 728 voxels + 1 frame voxel = 729 = 9³
+
+<[base.log]>->( 2, ":: initializing graphics-3d zenka..," );
+
+## === load required modules === ##
+<[base.perlmod.autoload]>->('Gtk3');
+<[base.perlmod.autoload]>->('Cairo::GObject');
+<[base.perlmod.autoload]>->('Glib');
+
+## === GdkX11 introspection (WSL compatible) === ##
+Glib::Object::Introspection->setup(
+    qw| basename | => qw| GdkX11 |,
+    qw| version  | => qw|  3.0   |,
+    qw| package  | => qw| Gtk3::Gdk |
+);
+
+## === 3D grid configuration === ##
+<graphics-3d.grid.width>  //= 8;     # X: 8 columns
+<graphics-3d.grid.height> //= 7;     # Y: 7 rows
+<graphics-3d.grid.depth>  //= 13;    # Z: 13 layers (LOVES_IT harmonic)
+<graphics-3d.voxel_count> = 8 * 7 * 13;      # 728 data voxels
+<graphics-3d.voxel_bytes> = 2;               # 2 bytes per voxel
+<graphics-3d.buffer_size> = 728 * 2 + 16;    # +16 for frame header
+
+## === cursor state initialization === ##
+<graphics-3d.cursor.position>
+    //= { qw| x | => 0, qw| y | => 0, qw| z | => 0 };
+<graphics-3d.cursor.blink_start> //= <[base.time]>->(3);
+<graphics-3d.cursor.mode>        //= qw| normal |;    # normal, insert, visual
+<graphics-3d.cursor.visible>     //= TRUE;
+
+## === rendering configuration === ##
+<graphics-3d.render.fps>        //= 60;
+<graphics-3d.render.bg_color>   //= 'p7_bg_000';      # black background
+<graphics-3d.render.use_alpha>  //= TRUE;
+<graphics-3d.render.blue_shade> //= 3;                # cyan-blue spectrum
+
+## === SHM channel for data zenka coupling === ##
+<graphics-3d.shm.channel_path> //= '/data/terminals/graphics-3d/buffer';
+
+## === frame counter for decoder synchronization === ##
+# Frame 57 (56+1) = frame intelligence node
+<graphics-3d.frame.counter> //= 0;
+<graphics-3d.frame.node>    //= 57;
+
+## === translucency curve profiles === ##
+<graphics-3d.cfg.available_curves> //= [
+    qw| sigmoid |,           # S-curve (default)
+    qw| sine |,              # natural harmonic
+    qw| gaussian_pulse |,    # bell curve
+    qw| exponential |,       # decay style
+    qw| quantized |,         # 13 discrete levels
+    qw| heartbeat |,         # double pulse
+];
+
+<[base.log]>->( 2, ":: graphics-3d initialized: 8×7×13 voxel space," );
+
+#,,..,.,,,.,,,..,,,,,,.,,,,..,...,...,,,.,,,.,.,.,...,...,,..,,,.,..,,.,.,...,
+#YTZDQ2TUGFQCSRVRGOK55CEPAOSEZ7XDJJI5QWK56AEBHEWAY33VVYCANJUA7ZJ5DEIFEDARU7QMS
+#\\\|USN2WJNJIXPVLOBTGBF4GHLZZA2ZZF7XPIOMQHMAMHUMRR4LZBT \ / AMOS7 \ YOURUM ::
+#\[7]BTJ3LAW6S3JMVQ7DWV2DIZUCYTTW4RNZKCFNLANNA67LHHX2NSCQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

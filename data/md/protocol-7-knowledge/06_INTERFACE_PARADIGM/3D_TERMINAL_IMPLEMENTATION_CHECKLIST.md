@@ -1,35 +1,41 @@
 # 3D Terminal Implementation Checklist
 
-**Status**: Implementation Phase  
-**Target**: WSL-compatible (GTK3-based)  
-**References**: ticker zenka, web-browser zenka, data zenka SHM  
+**Status**: Implementation Phase
+**Target**: WSL-compatible (GTK3-based)
+**References**: ticker zenka, web-browser zenka, data zenka SHM
 
 ---
 
 ## Phase 0: Research & Code Reuse (Week 0)
 
 ### Existing Code Analysis
-- [ ] **Study ticker zenka GTK3 setup**
-  - [ ] `modules/ticker.init_code` - GTK3 initialization
-  - [ ] `modules/ticker.callback.draw` - Rendering loop
-  - [ ] `modules/ticker.calc_colors` - Blue translucency
-  - [ ] Configuration: `configuration/zenki/ticker/start`
-  
-- [ ] **Study web-browser zenka GTK3 patterns**
-  - [ ] WebKit2GTK integration
-  - [ ] Window management
-  - [ ] Event handling
-  
-- [ ] **Study data zenka SHM infrastructure**
-  - [ ] `data.channel.shm.create` - SHM creation
-  - [ ] `data.mount.shm.open` - SHM access
-  - [ ] `data.mount.fuse.*` - FUSE filesystem
-  
-- [ ] **Study decoder zenka entropy handling**
-  - [ ] `decoder.zenka.receive_entropy` - Stream input
-  - [ ] `decoder.base.decode_d13_bits` - Decoding
+- [x] **Study ticker zenka GTK3 setup**
+  - [x] `modules/ticker.init_code` - GTK3 initialization
+  - [x] `modules/ticker.callback.draw` - Rendering loop
+  - [x] `modules/ticker.calc_colors` - Blue translucency
+  - [x] `modules/ticker.handler.fade_in` - Gaussian fade curves
+  - [x] Configuration: `configuration/zenki/ticker/start`
 
-**Deliverable**: Code reuse map document
+- [x] **Study web-browser zenka GTK3 patterns**
+  - [x] WebKit2GTK integration
+  - [x] Window management
+  - [x] Event handling
+
+- [x] **Study data zenka SHM infrastructure**
+  - [x] `data.channel.shm.create` - SHM creation
+  - [x] `data.mount.shm.open` - SHM access
+  - [x] `data.mount.fuse.*` - FUSE filesystem
+
+- [x] **Study decoder zenka entropy handling**
+  - [x] `decoder.zenka.receive_entropy` - Stream input
+  - [x] `decoder.base.decode_d13_bits` - Decoding
+
+- [x] **Study nshell zenka patterns**
+  - [x] `modules/nshell.render.cursor` - Cursor rendering
+  - [x] `modules/nshell.history.arrow_up` - Navigation
+  - [x] `modules/nshell.init_code` - Buffer structure
+
+**Deliverable**: Code reuse map document (completed)
 
 ---
 
@@ -39,14 +45,14 @@
 
 #### Create Buffer Structure
 ```perl
-## data.3d.buffer.create
-sub create_3d_buffer {
-    my ($name, $dimensions) = @_;
-    ## X=8, Y=7, Z=13
-    ## Returns buffer reference
-}
+## graphics-3d.init_code
+<graphics-3d.grid.width>   //= 8;    # X: 8 columns
+<graphics-3d.grid.height>  //= 7;    # Y: 7 rows
+<graphics-3d.grid.depth>   //= 13;   # Z: 13 layers
+<graphics-3d.buffer_size>  = 728 * 2 + 16;  # 1472 bytes
 ```
-- [ ] Define 8×7×13 structure
+- [x] Define 8×7×13 structure (728 voxels + frame header)
+- [x] Cursor translucency curves (6 profiles)
 - [ ] Header metadata (dimensions, current_z, timestamp)
 - [ ] Layer data (z=0..12, alpha values)
 - [ ] Resonance map storage
@@ -364,8 +370,8 @@ p7c v7.start amos-term-3d
 
 | Phase | Week | Status | Notes |
 |-------|------|--------|-------|
-| 0: Research | 0 | ⬜ | Code reuse map |
-| 1: 3D Buffer | 1-2 | ⬜ | SHM core |
+| 0: Research | 0 | ✅ | Code reuse map, nshell study |
+| 1: 3D Buffer | 1-2 | 🟡 | SHM core, cursor curves done |
 | 2: GTK3 Display | 3-4 | ⬜ | Visual rendering |
 | 3: Terminal | 5-6 | ⬜ | Input/output |
 | 4: Decoder | 7-8 | ⬜ | Pattern analysis |
@@ -389,16 +395,16 @@ p7c v7.start amos-term-3d
 
 ---
 
-*Checklist: 2026-03-25*  
-*Target: WSL + GTK3*  
-*Reference: ticker, web-browser, data zenka*  
+*Checklist: 2026-03-25*
+*Target: WSL + GTK3*
+*Reference: ticker, web-browser, data zenka*
 *Signature: 7VNKDBUU6DTBNJ2OK7EMV3WTD72AHBLQTAGMKOIKBZJI2NXDZOBQ*
 
 ---
 *Signature: 7VNKDBUU6DTBNJ2OK7EMV3WTD72AHBLQTAGMKOIKBZJI2NXDZOBQ*
 
-#,,,,,..,,.,.,,..,.,.,,.,,.,.,.,.,.,.,,,.,.,.,..,,...,...,,.,,,..,.,.,,.,,...,
-#IRLCN6ZXL72TKZWJ2SDBN5VVNCWSRWFZLOQTR4RV3ES3BKJZBY3K2FCK2QO6YAF7ICQTDJO4STNJ4
-#\\\|C7UO2J3MB4LZUKDRRUDX2RMBLWI5IMPW5J55GYBE7WIGLKBI4EP \ / AMOS7 \ YOURUM ::
-#\[7]FHUN6ANMXZBIYSSFORVQQUZIAZSVSIXJB7PEXMQLMIKOGPDQMKBQ 7  DATA SIGNATURE ::
+#,,.,,.,.,,.,,,..,...,...,,.,,,,.,.,,,,,,,,.,,..,,...,...,,..,,.,,,.,,,.,,.,.,
+#R65VNEBK4XOI6WB7RP5XHZHMNYADUFC55XAJMXSNH3X4NZSEN52HMR5I3CSO4HV2U224WBPWTSXBW
+#\\\|WFEHF2PYEVORKC2DGLFULAQSHLPSNVVSFHP3OVH64CYM7QZ3LW6 \ / AMOS7 \ YOURUM ::
+#\[7]2SU2SNSEW243X6ZX5B2UKPSRKFE3DRNFZ7Z6LTVOO6C6LV2XV4AA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
