@@ -1,0 +1,32 @@
+## [:< ##
+
+# name  = context.diff.lines_similar
+# descr = check if two lines are similar enough for pattern extraction
+
+my $params = shift // {};
+
+my $a = $params->{'a'} // '';
+my $b = $params->{'b'} // '';
+
+return 0 if length $a < 3 or length $b < 3;
+
+## check for common prefix/suffix ##
+my $prefix_len
+    = <[context.string.common_prefix_len]>->( { 'a' => $a, 'b' => $b } );
+my $suffix_len
+    = <[context.string.common_suffix_len]>->( { 'a' => $a, 'b' => $b } );
+
+my $min_len = length $a < length $b ? length $a : length $b;
+return 0 if $min_len == 0;
+
+my $common = $prefix_len + $suffix_len;
+my $ratio  = $common / $min_len;
+
+## need at least 40% common content and some structure ##
+return ( $ratio > 0.40 && $prefix_len >= 2 );
+
+#,,,.,,,,,..,,.,.,.,,,,,,,..,,..,,.,,,,..,,,.,.,.,...,...,..,,,..,.,.,..,,...,
+#LQYUMA7JKC776V4HU3PK5FA57WOZYZP7FUDER6KBNTSN6COVW63ISOH2Q65WNSXLL3EYMM5SXQEQK
+#\\\|7J4U4CCSVAZQVITDAAUIJMDY26Y3NG4YTIDFXHUDHCVAGMWXCEI \ / AMOS7 \ YOURUM ::
+#\[7]ONQKNHWWUJJ6CIVDTVGFTPTVNXEXEW7J2DQ4Z2OHOE5GTK27VEBY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

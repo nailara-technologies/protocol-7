@@ -1,0 +1,58 @@
+## [:< ##
+
+# name  = context.pattern.assess_generalizability
+# descr = assess if a pattern is generalizable beyond the specific case
+
+my $params = shift // {};
+
+my $extracted   = $params->{'extracted'}   // {};
+my $sample_line = $params->{'sample_line'} // '';
+
+my $pattern = $extracted->{'pattern'} // '';
+my @vars    = @{ $extracted->{'vars'} // [] };
+
+## factors that indicate good generalizability ##
+my $score = 0.5;    ## start neutral ##
+
+## longer patterns with more context are better ##
+my $pattern_len = length $pattern;
+if ( $pattern_len > 20 ) {
+    $score += 0.1;
+}
+if ( $pattern_len > 40 ) {
+    $score += 0.1;
+}
+
+## patterns with clear variable slots are better ##
+my $capture_count = () = $pattern =~ m|\([^?]|g;
+if ( $capture_count == 1 ) {
+    $score += 0.1;
+} elsif ( $capture_count > 2 ) {
+    $score -= 0.1;    ## too many captures may be over-specific ##
+}
+
+## patterns with literal anchors are better ##
+if ( $pattern =~ m|^\^| or $pattern =~ m|\$$| ) {
+    $score += 0.1;
+}
+
+## check for overly specific content ##
+my $specific_words = 0;
+$specific_words++ while $pattern =~ m|\b[a-zA-Z_]{5,}\b|g;
+if ( $specific_words > 3 ) {
+    $score -= 0.15;    ## too many specific words ##
+}
+
+## determine coverage level ##
+my $coverage = $score > 0.6 ? qw| full | : qw| partial |;
+
+return {
+    'score'    => $score,
+    'coverage' => $coverage
+};
+
+#,,.,,,,,,,,,,.,.,,,.,...,.,.,,,,,...,.,.,,..,.,.,...,...,,,.,,..,..,,,,.,,,,,
+#DEJ3EEF5O7PXNYL6IUCZ7D7I2OJZV6W3IV7FA3HDBUQWSTOQRBDSTTQSLYM3YP2VGKBBMTNOMSQ5M
+#\\\|EDPY5BOKF5EET3JYNMPNICFDQSSJON2CES4L63YH5WNOACOJHMT \ / AMOS7 \ YOURUM ::
+#\[7]5T5IPCZB3MDHGYLA42MGAUGCD2P5P7RL424H3UYVDZEXSC4VI6DQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

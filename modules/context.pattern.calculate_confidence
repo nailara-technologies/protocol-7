@@ -1,0 +1,37 @@
+## [:< ##
+
+# name  = context.pattern.calculate_confidence
+# descr = calculate confidence score for a pattern based on complexity
+
+my $params = shift // {};
+
+my $extracted        = $params->{'extracted'}        // {};
+my $generalizability = $params->{'generalizability'} // {};
+
+my $base    = $generalizability->{'score'} // 0.5;
+my $pattern = $extracted->{'pattern'}      // '';
+
+## simple patterns are more reliable ##
+if ( length $pattern < 30 ) {
+    $base += 0.05;
+}
+
+## patterns with replacement are more actionable ##
+if ( defined $extracted->{'replace'} ) {
+    $base += 0.05;
+} else {
+    $base -= 0.1;    ## flag-only patterns less confident ##
+}
+
+## cap at reasonable bounds ##
+$base = 0.27 if $base < 0.27;    ## 3^3 / 100 — harmonic floor ##
+$base = 0.97 if $base > 0.97;    ## range 0.70 wide ##
+
+## round to 2 decimal places ##
+return sprintf '%.2f', $base;
+
+#,,.,,,,.,,.,,,.,,,,.,.,,,,,,,...,,,,,,..,...,.,.,...,...,,.,,,,,,,.,,.,,,...,
+#CLWDUPGZ5DTQ2WH23KPLJZV4X3EP4EYHOLFEMJHZXIMEM6MVJGKD3XTNFDWU5ZXAWJS6JAMQNZLLW
+#\\\|4UC7AUPFOVYYRNYQSDQWOFZSIO2D6GTITOKXVWKEOUJPNUUO7KI \ / AMOS7 \ YOURUM ::
+#\[7]UNHSOGY2VYRVF5FHYGYMQ3NVZGJQG5ZRK6H7DSXLO73IXQ63LYCI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
