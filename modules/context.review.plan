@@ -1,0 +1,86 @@
+## [:< ##
+
+# name  = context.review.plan
+# descr = create paginated review plan from pattern or file list
+
+my $params = shift // {};
+
+my $pattern     = $params->{'pattern'}     // '';
+my $namespace   = $params->{'namespace'}   // '';
+my $files       = $params->{'files'}       // [];
+my $review_type = $params->{'review_type'} // qw| style |;
+my $page_budget = $params->{'page_budget'} // 4000;
+my $result_dir  = $params->{'result_dir'}  // 'data/review';
+my $targets     = $params->{'targets'}     // [];
+
+## build dependency graph ##
+my $graph_result = $code{'context.module.dep_graph'}->(
+    {   'pattern'   => $pattern,
+        'namespace' => $namespace,
+        'files'     => $files
+    }
+);
+
+return $graph_result unless $graph_result->{'mode'} eq qw| true |;
+
+my $graph = $graph_result->{'data'};
+
+## topological ordering ##
+my $order_result
+    = $code{'context.module.dep_order'}->( { 'graph' => $graph } );
+
+return $order_result unless $order_result->{'mode'} eq qw| true |;
+
+my $order = $order_result->{'data'};
+
+## bin-pack into pages ##
+my $pack_result = $code{'context.module.dep_pack'}->(
+    {   'ordered'     => $order->{'ordered'},
+        'page_budget' => $page_budget,
+        'nodes'       => $graph->{'nodes'}
+    }
+);
+
+return $pack_result unless $pack_result->{'mode'} eq qw| true |;
+
+my $pages = $pack_result->{'data'};
+
+## ensure result directory structure ##
+my $type_dir = "$result_dir/$review_type";
+
+## build plan manifest ##
+my $plan = {
+    'review_type'  => $review_type,
+    'result_dir'   => $type_dir,
+    'page_budget'  => $page_budget,
+    'pages'        => $pages->{'pages'},
+    'total_pages'  => $pages->{'total_pages'},
+    'total_files'  => $pages->{'total_files'},
+    'total_tokens' => $pages->{'total_tokens'},
+    'targets'      => $targets,
+    'graph_stats'  => {
+        'file_count' => $graph->{'file_count'},
+        'edge_count' => $graph->{'edge_count'},
+        'scc_count'  => $order->{'scc_count'},
+        'has_cycle'  => $order->{'has_cycle'}
+    },
+    'status'     => qw| planned |,
+    'created_at' => time()
+};
+
+<[base.logs]>->(
+    1,
+    ':. review.plan: %s review — %d files in %d pages [ %d tokens ] :.',
+    $review_type,
+    $pages->{'total_files'},
+    $pages->{'total_pages'},
+    $pages->{'total_tokens'}
+);
+
+return { 'mode' => qw| true |, 'data' => $plan };
+
+#,,,.,,,,,.,,,,,.,,,,,...,,,.,,,,,...,,.,,,.,,..,,...,...,.,.,..,,.,,,.,,,.,.,
+#4ILZ3ZJECBP7WRE7DUNIWEEPQK3OTONZAL5K2V43FBCATG27O3PFXQYNQ7Q72YEBYZW52ZCVA2DOY
+#\\\|S5JFM3OWCXANCH4HAVUVEORCGMRZNOVD7V2URFEOKZPGWQTLZRK \ / AMOS7 \ YOURUM ::
+#\[7]ZNCJQD4OCRAGPVLS37YJYTXPZDX2KTVNZIFZ3TECN2L5SACOV4DY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
