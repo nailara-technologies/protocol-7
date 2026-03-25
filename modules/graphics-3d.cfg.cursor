@@ -1,0 +1,75 @@
+## [:< ##
+
+# name  = graphics-3d.cfg.cursor
+# descr = 3D terminal cursor configuration with translucency curves
+
+## === cursor curve profiles === ##
+# Available: sigmoid, sine, gaussian_pulse, exponential, quantized, heartbeat
+<graphics-3d.cfg.cursor_curve> //= 'sigmoid';
+
+## === cycle timing (13/10 = 1.3 seconds for P7 harmony) === ##
+<graphics-3d.cfg.cursor_cycle_seconds> //= 1.3;
+
+## === translucency bounds === ##
+<graphics-3d.cfg.cursor_alpha_min> //= 0.13;    # 13% minimum (P7)
+<graphics-3d.cfg.cursor_alpha_max> //= 1.00;    # fully opaque
+
+## === cursor color by z-depth === ##
+# 13 z-layers each get a distinct blue shade (003 to 377)
+<graphics-3d.cfg.cursor_colors> //= {
+    0  => 'p7_bg_003',                          # deepest (blue-black)
+    1  => 'p7_bg_013',
+    2  => 'p7_bg_023',
+    3  => 'p7_bg_033',
+    4  => 'p7_bg_043',
+    5  => 'p7_bg_053',
+    6  => 'p7_bg_063',
+    7  => 'p7_bg_073',
+    8  => 'p7_bg_103',
+    9  => 'p7_bg_113',
+    10 => 'p7_bg_123',
+    11 => 'p7_bg_133',
+    12 => 'p7_bg_233',                          # nearest (brighter blue)
+};
+
+## === cursor shape by position === ##
+# underscore for empty, block for filled, bar for insert mode
+<graphics-3d.cfg.cursor_shapes> //= {
+    qw| empty  | => qw| underscore |,           # at empty voxel
+    qw| filled | => qw| block      |,           # at filled voxel
+    qw| insert | => qw| bar        |,           # insert mode
+};
+
+## === 3D navigation key mapping === ##
+<graphics-3d.cfg.nav_keys> //= {
+
+    # xy-plane (traditional arrow keys)
+    qw| up     | => { qw| dy | => -1, qw| dx | => 0, qw| dz | => 0 },
+    qw| down   | => { qw| dy | =>  1, qw| dx | => 0, qw| dz | => 0 },
+    qw| left   | => { qw| dx | => -1, qw| dy | => 0, qw| dz | => 0 },
+    qw| right  | => { qw| dx | =>  1, qw| dy | => 0, qw| dz | => 0 },
+
+    # z-depth (shift+arrow or page keys)
+    qw| page_up   | => { qw| dz | => -1, qw| dx | => 0, qw| dy | => 0 }
+    ,    # deeper
+    qw| page_down | => { qw| dz | => 1, qw| dx | => 0, qw| dy | => 0 }
+    ,    # nearer
+         # vim-style (h/j/k/l for xy, [/] for z)
+    qw| h | => { qw| dx | => -1, qw| dy | => 0, qw| dz | => 0 },
+    qw| j | => { qw| dy | =>  1, qw| dx | => 0, qw| dz | => 0 },
+    qw| k | => { qw| dy | => -1, qw| dx | => 0, qw| dz | => 0 },
+    qw| l | => { qw| dx | =>  1, qw| dy | => 0, qw| dz | => 0 },
+    qw| [ | => { qw| dz | => -1, qw| dx | => 0, qw| dy | => 0 },
+    qw| ] | => { qw| dz | =>  1, qw| dx | => 0, qw| dy | => 0 },
+};
+
+## === wrap-around behavior === ##
+<graphics-3d.cfg.wrap_x> //= TRUE;     # wrap on x-axis
+<graphics-3d.cfg.wrap_y> //= FALSE;    # stop at edges
+<graphics-3d.cfg.wrap_z> //= FALSE;    # stop at front/back
+
+#,,.,,,,.,..,,,..,..,,...,,..,..,,,,,,,,.,..,,.,.,...,...,,.,,...,...,.,,,...,
+#DLOFUSMW6E5NBWQEYY4L7E3DJBBH72BZ6OPCMUMWPT33MZKAERNOPJJIOUTSNXGZ3DX2ZO6V6T6DQ
+#\\\|4YZD3LB2DRLOZAUO5CE54U7RKWFCJJYK75RTO6TLMMGYSBT62CV \ / AMOS7 \ YOURUM ::
+#\[7]H257A67D25DHH7MZ43XETWSLNNZFCANASHQXAZU7BSFJ3AMX34BA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

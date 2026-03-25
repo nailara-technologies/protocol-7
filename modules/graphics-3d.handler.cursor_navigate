@@ -1,0 +1,66 @@
+## [:< ##
+
+# name  = graphics-3d.handler.cursor_navigate
+# descr = Handle 3D cursor navigation with wrap-around logic
+
+my ( $current_pos, $nav_key ) = @ARG;
+
+$current_pos //= { qw| x | => 0, qw| y | => 0, qw| z | => 0 };
+
+## get navigation delta from config ##
+my $nav_config = <graphics-3d.cfg.nav_keys>;
+my $delta      = $nav_config->{$nav_key};
+
+if ( not defined $delta ) {
+    <[base.log]>->( 1, ":: unknown nav key: $nav_key" );
+    return undef;
+}
+
+## calculate new position ##
+my $new_pos = {
+    qw| x | => $current_pos->{'x'} + ( $delta->{'dx'} // 0 ),
+    qw| y | => $current_pos->{'y'} + ( $delta->{'dy'} // 0 ),
+    qw| z | => $current_pos->{'z'} + ( $delta->{'dz'} // 0 ),
+};
+
+## boundary constraints (8×7×13 grid) ##
+my $grid = {
+    qw| x_max | => 7,     # 0-7 = 8 columns
+    qw| y_max | => 6,     # 0-6 = 7 rows
+    qw| z_max | => 12,    # 0-12 = 13 layers
+};
+
+## apply wrap-around or clamping ##
+foreach my $axis (qw| x y z |) {
+    my $max   = $grid->{"${axis}_max"};
+    my $wrap  = <graphics-3d.cfg.wrap_${axis}>;
+    my $coord = $new_pos->{$axis};
+
+    if ($wrap) {
+        ## wrap around ##
+        $coord = $coord % ( $max + 1 );
+        $coord += $max + 1 if $coord < 0;
+    } else {
+        ## clamp to bounds ##
+        $coord = 0    if $coord < 0;
+        $coord = $max if $coord > $max;
+    }
+
+    $new_pos->{$axis} = $coord;
+}
+
+## reset blink cycle on movement (cursor becomes fully visible) ##
+<graphics-3d.cursor.blink_start> = <[base.time]>->(3);
+
+## trigger render update ##
+<[base.log]>->(
+    2, ":. cursor moved to ($new_pos->{'x'},$new_pos->{'y'},$new_pos->{'z'})"
+) if <system.debug>;
+
+return $new_pos;
+
+#,,,,,,..,,,,,.,.,,..,,,.,,,,,.,.,,,,,,.,,.,,,.,.,...,...,..,,,.,,,.,,,..,,,.,
+#HQGKIQBVJDEQH7WIJK2KAGVU6ZTKWMS42UEIJBQTM5RDIZUIZH4JZHUOZG3V4UQBIYFHV2QZGPSHO
+#\\\|NRCMBYKQLPRJGJPJWZXNQQGHFDSPLEV6TFZQKVORSFZUUTWX2J4 \ / AMOS7 \ YOURUM ::
+#\[7]HZMXS2M4UA23ZSM4JBWTDFQ3PLY47KSMSBXMZMK7B5K5T66KWYBA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
