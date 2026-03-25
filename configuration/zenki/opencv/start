@@ -1,0 +1,35 @@
+
+.:[ protocol-7 opencv - GPU-accelerated computer vision ]:.
+
+[load_config_file:'shared-params']
+
+### access control ###
+access.cmd.usr.cube = commands heart reload verify-instance \
+                      list show-buffer buffer-erase \
+                      features-detect features-match \
+                      faces-detect objects-detect \
+                      filter-apply transform-warp
+
+## On-demand configuration ##
+start.on_demand = 1
+restart.disabled = 1
+heartbeat.disabled = 1
+idle_timeout = 120  ## Auto-shutdown after 2 minutes of inactivity
+
+## Module loading ##
+modules.load = auth net protocol io.unix opencv
+[load_modules:<modules.load>]
+[init_modules]
+
+[root.drop_privs:<system.amos-zenka-user>]
+
+[base.net.connect:'unix']
+[base.get_session_id]
+
+[zenka.loop]
+
+#,,..,.,.,,,.,,..,...,.,.,,,,,,,,,.,.,.,.,,..,.,.,...,...,..,,,.,,..,,,,,,..,,
+#CIQF3L5ZKTKFOYFDTVUT3ESV5O53EOXD4YF5OB3A2QCKUVXSQ3FQ4IJCHNYUAQZT2AXXEBPPYSUMK
+#\\\|SSGVYZ3CZEO3H4SQKF6QQREXUBG4RT5RFPYE7K3Z2B6EZ5OMRIH \ / AMOS7 \ YOURUM ::
+#\[7]V7XO2PE3FRR6M4O3FE3TEHQMCHZHSUFFPFPSK5CBP7WQOK7HJ2CA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

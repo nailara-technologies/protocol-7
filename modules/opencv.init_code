@@ -1,0 +1,40 @@
+## [:< ##
+
+# name = opencv.init_code
+
+## Load PDL::OpenCV if available
+eval {
+    require PDL::OpenCV;
+    require PDL::OpenCV::Imgproc;
+    require PDL::OpenCV::Imgcodecs;
+    1;
+};
+
+if ($@) {
+    <[base.log]>->(
+        1, 'PDL::OpenCV not available, falling back to Graphics::Magick'
+    );
+    <[base.perlmod.autoload]>->('Graphics::Magick');
+}
+
+## Initialize OpenCV DNN module if available
+eval {
+    require PDL::OpenCV::Dnn;
+    <opencv.dnn.available> = 1;
+    1;
+} or <opencv.dnn.available> = 0;
+
+## Initialize object detection if available
+eval {
+    require PDL::OpenCV::Objdetect;
+    <opencv.objdetect.available> = 1;
+    1;
+} or <opencv.objdetect.available> = 0;
+
+0;
+
+#,,,.,,..,,..,...,,,.,,..,,..,..,,..,,.,.,,,,,.,.,...,...,.,.,,..,,.,,...,..,,
+#5Y7DWWWOSKXZZSOJJDPMEW6GRBCWNADEXZI43DRGTFNZQRVMYV3Q3XB4XKUIKC2LKL4RMZJKJJ67A
+#\\\|XQ4435SLWO7ZJKCXFLXBQLGW6GPOIC5NIH6JBD5T7PVZG33RS6P \ / AMOS7 \ YOURUM ::
+#\[7]UTX3TYXQRLICPH35OVC5FDWSPZHD4BDO7BRM4NDFONMKR2UT3QCI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
