@@ -1,0 +1,55 @@
+## [:< ##
+
+# name  = graphics.matrix.visual.group-by-proximity
+# desc  = Group images by spatial proximity in cubic coordinates
+#
+# input : $images - array of image hashes with cubic_coord
+#         $threshold - distance threshold (default: 2 cells)
+# output: array of proximity cluster hashes
+
+my $images    = shift // [];
+my $threshold = shift // 2;
+
+my $groups   = [];
+my $assigned = {};
+
+for my $i ( 0 .. $#$images ) {
+    next if $assigned->{$i};
+
+    my $img_a = $images->[$i];
+    my $group = {
+        'sphere'     => $img_a->{'sphere'},
+        'images'     => [$img_a],
+        'similarity' => 1.0,
+    };
+
+    my $coord_a = $img_a->{'cubic_coord'};
+
+    for my $j ( $i + 1 .. $#$images ) {
+        next if $assigned->{$j};
+
+        my $img_b   = $images->[$j];
+        my $coord_b = $img_b->{'cubic_coord'};
+
+        # Calculate cubic distance
+        my $dist
+            = sqrt( ( $coord_a->[0] - $coord_b->[0] )**2
+                + ( $coord_a->[1] - $coord_b->[1] )**2
+                + ( $coord_a->[2] - $coord_b->[2] )**2 );
+
+        if ( $dist < $threshold ) {
+            push @{ $group->{'images'} }, $img_b;
+            $assigned->{$j} = 1;
+        }
+    }
+
+    push @$groups, $group if @{ $group->{'images'} } > 1;
+}
+
+return $groups;
+
+#,,.,,,..,..,,...,,.,,...,..,,,.,,,,,,,..,...,.,.,...,...,..,,.,.,..,,..,,,,,,
+#M3EROZZMBN3FNLG3CV7J6PGZXCQMZM76UQYAXPSHCPLTNLO3K46PJCYRKCNG5CEYF5XH7L25DJTS6
+#\\\|QJB25O6MYXMJWWN7TG5MJGBI2TCOU3E3A37W5S7OJWO7XYO4ICA \ / AMOS7 \ YOURUM ::
+#\[7]VOES47WJVZD73WMPGBZILUK6FYQ2LUTB55SCZKBZH5DCMVQSKIDI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

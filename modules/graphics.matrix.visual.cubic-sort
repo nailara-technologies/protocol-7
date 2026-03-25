@@ -1,0 +1,86 @@
+## [:< ##
+
+# name  = graphics.matrix.visual.cubic-sort
+# desc  = Pre-sort images into cubic pixel spheres for efficient deduplication
+#         and lm-vision zenka batch processing. Creates hierarchical
+#         sphere layers from 1x1 color samples up to full resolution.
+#
+# input : $params->{'images'}      - array of image paths/refs
+#         $params->{'max_spheres'} - maximum sphere layer (0-6, default: 6)
+#         $params->{'similarity_threshold'} - for dedup clustering (default: 0.95)
+#
+# output: { 'spheres' => { 0 => [...], 1 => [...], ... }, 'clusters' => [...] }
+
+my $params = shift // return { 'mode' => qw| false |, 'data' => 'no params' };
+
+my $images      = $params->{'images'}               // [];
+my $max_spheres = $params->{'max_spheres'}          // 6;
+my $threshold   = $params->{'similarity_threshold'} // 0.95;
+
+return { 'mode' => qw| true |, 'data' => 'no images', 'spheres' => {} }
+    unless @$images;
+
+##[ PHASE 1: CLASSIFY ALL IMAGES INTO SPHERES ]###############################
+
+my $classified
+    = <[graphics.matrix.visual.classify-all]>->( $images, $max_spheres );
+
+##[ PHASE 2: GROUP BY SPHERE AND CUBIC COORDINATES ]##########################
+
+my $by_sphere
+    = <[graphics.matrix.visual.group-spheres]>->( $classified, $max_spheres );
+
+##[ PHASE 3: FIND SIMILARITY CLUSTERS WITHIN SPHERES ]########################
+
+my $clusters
+    = <[graphics.matrix.visual.find-clusters]>->( $by_sphere, $threshold );
+
+##[ PHASE 4: CREATE LM-VISION BATCHES ]#######################################
+
+my $vision_batches
+    = <[graphics.matrix.visual.vision-batches]>->( $clusters, $threshold );
+
+##[ PHASE 5: BUILD SPHERE LAYERS FOR HIERARCHICAL ACCESS ]####################
+
+my $sphere_layers
+    = <[graphics.matrix.visual.cubic-layers]>->( $by_sphere, $max_spheres );
+
+##[ SUM UTILITY ]#############################################################
+
+my $sum = sub {
+    my $total = 0;
+    $total += $_ for @_;
+    return $total;
+};
+
+##[ RETURN COMPLETE SORTING RESULT ]##########################################
+
+return {
+    'mode'           => qw| true |,
+    'total_images'   => scalar(@$classified),
+    'spheres'        => $by_sphere,
+    'sphere_layers'  => $sphere_layers,
+    'clusters'       => $clusters,
+    'cluster_count'  => scalar(@$clusters),
+    'vision_batches' => $vision_batches,
+    'batch_count'    => scalar(@$vision_batches),
+    'statistics'     => {
+        'by_sphere' => {
+            map { $_ => scalar( @{ $by_sphere->{$_} // [] } ) }
+                0 .. $max_spheres
+        },
+        'dedup_candidates' =>
+            scalar( grep { $_->{'similarity'} > $threshold } @$clusters ),
+    },
+    'for_lm_vision' => {
+        'batches'    => $vision_batches,
+        'total_work' =>
+            $sum->( map { $_->{'image_count'} } @$vision_batches ),
+    },
+};
+
+#,,,,,,..,,..,,,,,,..,,.,,,.,,.,,,,,.,.,.,.,.,.,.,...,...,...,,,,,...,,.,,..,,
+#IO7SMZK2EAL3LQ3SDLMA2JGFU7QGXW4NY4ZLW6WRTCDVFCNQONZQQX6RUAOVE4G2UWFXAL34XLPCO
+#\\\|K4V7DU22PF2ICRUPZVVSNMLQZEJ46245TAB3Z5JE35WPKL67DDH \ / AMOS7 \ YOURUM ::
+#\[7]YEYQFGYOBV4YOUMSKEM76RH7C2DGEKK2T43T7QO2YDG7FRXRKOBI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

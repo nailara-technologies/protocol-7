@@ -1,0 +1,20 @@
+## [:< ##
+
+# name  = graphics.matrix.visual.build-cubic-grid
+# desc  = Build 3D cubic grid index from images
+
+my $images = shift // [];
+
+my $grid = {};
+for my $img (@$images) {
+    my ( $x, $y, $z ) = @{ $img->{'cubic_coord'} };
+    $grid->{$x}{$y}{$z} = $img;
+}
+
+return $grid;
+
+#,,,.,,.,,.,.,.,,,..,,..,,,.,,,,.,.,.,.,,,..,,.,.,...,...,...,.,.,.,,,.,,,.,.,
+#66KMUNME2LVS5XNXJG43YEJVGUGTTXK2KBDAKOBNGQOZUSZVRMSWON7BE6RNBNCVFMDW3CIJPB266
+#\\\|6LFZPOIJZNT3FSIMK3XWYK24PPXM4TWP7KDJ4OMSJUVLYGNZDSX \ / AMOS7 \ YOURUM ::
+#\[7]7324FFN73WPN6VPJ7AWADIZYIWST7RS42BPPINE6KSZ43CXH7AAQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

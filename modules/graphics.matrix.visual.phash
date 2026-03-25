@@ -1,0 +1,72 @@
+## [:< ##
+
+# name  = graphics.matrix.visual.phash
+# desc  = Perceptual hash generation for image similarity
+#         Uses Image::Hash if available, falls back to header-based hash
+
+my $image = shift;
+
+return "0" x 16 unless defined $image;
+
+my $hash;
+
+# Try Image::Hash if available (provides aHash, dHash, pHash)
+if ( eval { require Image::Hash; 1 } ) {
+    my $img_data;
+
+    if ( !ref $image && -f $image ) {
+
+        # Load from file
+        $img_data = Image::Hash->new($image);
+    } elsif ( ref $image eq qw| SCALAR | ) {
+
+        # Load from blob - write to temp file
+        my ( $fh, $temp_path ) = <[file.temp]>->();
+        if ($fh) {
+            binmode($fh);
+            print {$fh} $$image;
+            close($fh);
+            $img_data = Image::Hash->new($temp_path);
+            unlink($temp_path) if $temp_path;
+        }
+    }
+
+    if ($img_data) {
+
+        # Use average hash (aHash) - fast and robust
+        $hash = $img_data->ahash();
+    }
+}
+
+# Fallback to header-based hash if Image::Hash failed or not available
+if ( !defined $hash ) {
+    my $data;
+
+    if ( !ref $image && -f $image ) {
+
+        # File path - read first 8KB
+        if ( open my $fh, '<', $image ) {
+            binmode($fh);
+            read( $fh, $data, 8192 );
+            close($fh);
+        }
+    } elsif ( ref $image eq qw| SCALAR | ) {
+
+        # Binary data - use first 8 bytes
+        $data = substr( $$image, 0, 8192 );
+    }
+
+    if ($data) {
+        $hash = sprintf( "%016s", unpack( "H*", substr( $data, 0, 8 ) ) );
+        $hash =~ s| ||g;
+        $hash .= "0" x ( 16 - length($hash) ) if length($hash) < 16;
+    }
+}
+
+return $hash // "0" x 16;
+
+#,,,.,...,,.,,,,,,..,,...,,.,,.,.,,,,,,,,,...,.,.,...,..,,,,.,,,.,,.,,,.,,,,.,
+#IWFG7LMUSRC5NA5KHM2ZS4SIPIYKE3VOKGW64GGIYQH7I6ETHMX4IVAXGCAES67XFFFZ2PELB7GVI
+#\\\|RA6WECSCS55ULUD5GSJJQLHHOIKT5EFE4TCDEU74HIPWCF54Y54 \ / AMOS7 \ YOURUM ::
+#\[7]UKUIVBVTYJMVEIMB4GGTRBXU6KOMIA6JVJHPPEKV2VOVODCRLYCY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

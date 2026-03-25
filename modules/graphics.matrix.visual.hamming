@@ -1,0 +1,57 @@
+## [:< ##
+
+# name  = graphics.matrix.visual.hamming
+# desc  = Hamming distance calculation for perceptual hashes
+
+my $hex1 = shift // return 32;
+my $hex2 = shift // return 32;
+
+# Validate inputs are hex strings
+return 32 if $hex1 !~ m|^[0-9a-fA-F]+$|;
+return 32 if $hex2 !~ m|^[0-9a-fA-F]+$|;
+
+# Pad/truncate to 16 hex chars (64 bits)
+$hex1 = substr( $hex1 . '0' x 16, 0, 16 );
+$hex2 = substr( $hex2 . '0' x 16, 0, 16 );
+
+# Convert hex to binary string without using hex() to avoid overflow warnings
+my %hex2bin = (
+    '0' => '0000',
+    '1' => '0001',
+    '2' => '0010',
+    '3' => '0011',
+    '4' => '0100',
+    '5' => '0101',
+    '6' => '0110',
+    '7' => '0111',
+    '8' => '1000',
+    '9' => '1001',
+    'a' => '1010',
+    'b' => '1011',
+    'c' => '1100',
+    'd' => '1101',
+    'e' => '1110',
+    'f' => '1111',
+    'A' => '1010',
+    'B' => '1011',
+    'C' => '1100',
+    'D' => '1101',
+    'E' => '1110',
+    'F' => '1111',
+);
+
+my $bin1 = join( '', map { $hex2bin{$_} // '0000' } split( '', $hex1 ) );
+my $bin2 = join( '', map { $hex2bin{$_} // '0000' } split( '', $hex2 ) );
+
+my $distance = 0;
+for my $i ( 0 .. 63 ) {
+    $distance++ if substr( $bin1, $i, 1 ) ne substr( $bin2, $i, 1 );
+}
+
+return $distance;
+
+#,,.,,.,.,...,,,,,...,.,.,.,,,.,,,.,,,,,.,,..,.,.,...,..,,..,,...,,..,.,.,,,.,
+#HHEQDO6D5ZZLCTKPE3DEOQD4SOATC56ECTLNNWJIT3AILTJF77G57WSN2KTMZ26PXE3JXPD7TCUVM
+#\\\|TCGRI5KEEDXAX53RYNEBLXXW2MV4K7YW37VOX4HZC62UY5SXAJC \ / AMOS7 \ YOURUM ::
+#\[7]5DVSZBEOM4ZNBODK5VGZW2WZDB6HW3CND62CIOEO73P3SMMTCACQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
