@@ -203,16 +203,72 @@ phase D [ delegation layer ]. implementation sequence:
 
 ---
 
+## pipeline nodes as step groups
+
+each pipeline node is NOT a single operation — it is a **list of steps**
+that assess all important attributes. a node is a group of size 1 by default,
+expandable to parallel assessment from multiple perspectives.
+
+### step group lifecycle
+
+```
+step group [ initially size 1 ]
+  │
+  ├─ expand: add assessors based on attribute requirements
+  │   model-A reviews security
+  │   model-B reviews style
+  │   model-C reviews dependencies
+  │
+  ├─ parallel execution: each perspective runs independently
+  │
+  ├─ summarize: merge into one compliance result
+  │
+  ├─ check: attribute group compliance met?
+  │   yes → compact and advance to next node
+  │   no  → expand with additional steps for failing attributes
+  │
+  └─ iterate: count based on compliance, not linear distribution
+```
+
+### compliance-driven iteration
+
+iteration count is a function of **attribute group compliance**, not page count.
+a page with clean code might need 1 pass. a page with security-sensitive
+networking code might need 3 passes — first for correctness, then security,
+then style — each adding assessors as needed.
+
+```
+while not all_attributes_compliant(result):
+    expand step group with assessors for failing attributes
+    run parallel perspectives
+    summarize into updated result
+    check compliance
+```
+
+### single models as groups
+
+treating single models as groups from the start means:
+- adding another model to a step is a membership change, not a code change
+- results always go through summarization [ even for group size 1 ]
+- the summarization path is exercised and reliable before it's needed at scale
+- any model can be added to any step based on applicable usefulness
+
+### optimization insertion points
+
+optimizations are **additional steps per cycle**, not replacement steps:
+- tight cycle groups of related steps compact early
+- "into time you can always expand" — temporal budget allows deeper passes
+- early compaction prevents error propagation across cycle boundaries
+
 ## open questions
 
-- should page reviews run in parallel or strictly sequential?
-  [ parallel loses iteration summary benefit but is faster for independent files ]
-- hybrid approach: parallel within SCC clusters, sequential across clusters?
-- should the dep graph include data-hash key dependencies or only code calls?
+- should dep graph include data-hash key dependencies or only code calls?
 - consolidation model: same as page reviewer or a separate summarization model?
+- how to express attribute compliance thresholds in review plan config?
+- should step group membership be static per plan or adaptive per page?
 
-#,,,,,,,,,,..,,.,,,..,,,,,,..,.,.,,..,,.,,...,..,,...,...,..,,,,.,,,.,,..,,.,,
-#3OKIQU5YLIYV4R3QSWBEMYFJLRJLJHI46NSTWUGHBYBMJ3S6WTZMWZTSM6CK6CINN4DU6X4C7M4P4
-#\\\|I3FLK5JMB3RCYGDHHXWIKT4TFRTN6MEYRNGQTGZVUMXIF2MKKNN \ / AMOS7 \ YOURUM ::
-#\[7]5IOIVQR3G6FU4DK2RZR7OY2CCP3PUCU5IFG5PZBGCXIMTIMIVWCI 7  DATA SIGNATURE ::
+#,,,,,.,,,.,,,,,.,,.,,,.,,,,.,..,,,.,,..,,..,,..,,...,...,,,.,,,,,.,,,...,..,,
+#QQAUKF2YIFVOVO4V3BT7D5K5MXPBUEIMZXRB77TLJKKA4KGMNTGIJ2VERSZ4KUNCNZY7CUT6WYC7E
+#\\\|LLM4PBKPAR2TBGZA5F4G2SV5W6RW55AVM2XA5NR5GADEZ57VEFL \ / AMOS7 \ YOURUM ::
+#\[7]SDOAGDZMJCKYHNWDKYWFVTV4KVWZVTC2C4VJOIGPA7GBRZFHE4BI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

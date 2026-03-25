@@ -1,0 +1,109 @@
+## [:< ##
+
+# name  = context.review.handler.page_result
+# descr = async reply handler: collect page review, compact, iterate next
+
+my $reply = shift;
+
+my $data   = $reply->{'data'}   // '';
+my $mode   = $reply->{'mode'}   // qw| unknown |;
+my $params = $reply->{'params'} // {};
+
+my $plan       = $params->{'plan'}       // {};
+my $page_num   = $params->{'page_num'}   // 0;
+my $summary    = $params->{'summary'}    // '';
+my $results    = $params->{'results'}    // [];
+my $result_dir = $params->{'result_dir'} // $plan->{'result_dir'} // '';
+
+## decode result if needed ##
+my $review = $data;
+if ( $review =~ m{^[2-7A-Z]+$} and length($review) > 20 ) {
+    <[base.perlmod.load]>->('Crypt::Misc');
+    my $decoded = eval { Crypt::Misc::decode_b32r($review) };
+    $review = $decoded if defined $decoded and length $decoded;
+}
+
+## store page result ##
+my $page_files = [];
+my $pages      = $plan->{'pages'} // [];
+if ( $page_num < scalar @$pages ) {
+    $page_files = $pages->[$page_num]->{'files'} // [];
+}
+
+push @$results,
+    {
+    'page_num' => $page_num,
+    'review'   => $review,
+    'files'    => $page_files,
+    'status'   => $mode
+    };
+
+<[base.logs]>->(
+    2,         ':. review.page_result: page %d complete [ %d chars ] :.',
+    $page_num, length $review
+);
+
+## compact review into summary for next page ##
+my $compact_fn = $code{'context.compact'};
+if ( defined $compact_fn ) {
+    my $new_entry = sprintf "### page %d\n%s\n", $page_num, $review;
+    my $combined  = length($summary) ? "$summary\n$new_entry" : $new_entry;
+
+    my $compacted = $compact_fn->(
+        {   'text'   => $combined,
+            'budget' => int( ( $plan->{'page_budget'} // 4000 ) * 0.20 )
+        }
+    );
+
+    $summary = ref $compacted ? $compacted : $compacted // $combined;
+} else {
+    ## simple truncation fallback ##
+    my $new_entry = sprintf "page %d: %s\n",
+        $page_num, substr( $review, 0, 200 );
+    $summary .= $new_entry;
+}
+
+## check if all pages done ##
+my $next_page   = $page_num + 1;
+my $total_pages = $plan->{'total_pages'} // 0;
+
+if ( $next_page >= $total_pages ) {
+    ## consolidate final results ##
+    <[base.logs]>->(
+        1, ':. review: all %d pages complete — consolidating :.',
+        $total_pages
+    );
+
+    my $consolidate_fn = $code{'context.review.consolidate'};
+    if ( defined $consolidate_fn ) {
+        $consolidate_fn->(
+            {   'plan'       => $plan,
+                'results'    => $results,
+                'result_dir' => $result_dir
+            }
+        );
+    }
+    return TRUE;
+}
+
+## iterate to next page ##
+my $iterate_fn = $code{'context.review.iterate'};
+if ( defined $iterate_fn ) {
+    $iterate_fn->(
+        {   'plan'       => $plan,
+            'page_num'   => $next_page,
+            'summary'    => $summary,
+            'results'    => $results,
+            'target_cmd' => $params->{'target_cmd'} // '',
+            'result_dir' => $result_dir
+        }
+    );
+}
+
+return TRUE;
+
+#,,,,,.,,,..,,,..,,..,..,,,..,,.,,.,.,,..,,,,,..,,...,...,.,.,.,.,...,,..,,.,,
+#CNEDT7BDZFPDX3ZKXF43DQLQCN2TDG7EHKMSWEA43WZY4Q4ZYRZYGCX3ACGVTQ2AIRXVA26A7ZXGA
+#\\\|YDMA4IBDPKTTYTOQ3J5O7RV4WE3MEVHWHWTO5FL7PJYXDRK6L74 \ / AMOS7 \ YOURUM ::
+#\[7]5NJ7MXPYTZDN5DABD4CGI6WEO42WVKQIQSBOKCRSNB5ABVNZGKCQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

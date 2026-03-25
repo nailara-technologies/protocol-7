@@ -13,19 +13,21 @@ layer for budget-aware llm context assembly, compaction, delegation, and caching
 | `7f7e19daf` | B — providers | file.extract, module.dependencies, zenka.state, conversation.history, error.recent, compose.for_review, compose.quick |
 | `4b347ef75` | C — compaction | compact, compact.turns/diff/incremental, priority.rank/prune, pattern.find |
 | `fbc2bb9fa` | D — delegation | delegate.role/prepare/dispatch/collect/verify, compose.for_delegation |
-| *unsigned* | E — caching | cache.store/fetch/invalidate, share.export/import |
+| `9be6c7978` | E — caching | cache.store/fetch/invalidate, share.export/import |
+| `f481c82a8` | D+ — handler | delegate.handler.result (async reply callback) |
+| `7d6432406` | dep-graph | module.dep_graph (Kosaraju SCC), dep_order, dep_pack |
+| *unsigned* | review pipeline | review.plan/page/iterate/consolidate, review.handler.page_result |
 
-### phase E status
+### review pipeline status
 
-5 modules written, syntax-clean (perl -c errors are expected P7 data-hash syntax).
-**needs**: signing via `bin/Protocol-7 sourcecode update-signatures`, then commit.
+5 modules written, `ptd -c` clean. **needs**: signing, then commit.
 
 files:
-- `modules/context.cache.store` — key+ttl storage in `<context.cache>` data hash
-- `modules/context.cache.fetch` — freshness-checked retrieval with hit counting
-- `modules/context.cache.invalidate` — by key, tag, age, or clear all
-- `modules/context.share.export` — serialize + publish via channels.memory-sync or local fallback
-- `modules/context.share.import` — fetch + deserialize with ttl/age checks
+- `modules/context.review.plan` — pattern → dep_graph → dep_order → dep_pack → plan
+- `modules/context.review.page` — assemble single page: summary + targets + files
+- `modules/context.review.iterate` — page loop: async dispatch or synchronous
+- `modules/context.review.consolidate` — write result_dir with per-module .review.md + SUMMARY.md
+- `modules/context.review.handler.page_result` — async chain: collect → compact → next page
 
 ---
 
@@ -39,13 +41,12 @@ files:
 
 ## what to do next — priority order
 
-### 1. sign and commit phase E
+### 1. sign and commit review pipeline
 ```bash
 bin/Protocol-7 sourcecode update-signatures
-git add modules/context.cache.store modules/context.cache.fetch \
-       modules/context.cache.invalidate modules/context.share.export \
-       modules/context.share.import
-# commit message: "Add context.* phase-E: caching and cross-zenka sharing"
+git add modules/context.review.plan modules/context.review.page \
+       modules/context.review.iterate modules/context.review.consolidate \
+       modules/context.review.handler.page_result
 ```
 
 ### 2. strategic testing — load context namespace in a zenka
@@ -56,34 +57,31 @@ the modules are additive and don't break anything, but need runtime verification
 - test `context.compose.for_task` with a known task type (e.g., `code-review`)
 - test `context.cache.store` → `context.cache.fetch` round-trip
 - test `context.delegate.role` with various task types
-- verify `context.template.load` reads yaml templates from `data/yaml/context-templates/`
+- test full pipeline: `review.plan` → `review.iterate` → `review.consolidate`
+- verify result directory structure in `data/review/<type>/`
 
-### 3. batch review pipeline — dependency graph modules
+### 3. wire delegation into task system
 
-design doc at `data/md/coding-tasks/context-batch-review-pipeline.md`.
-next implementation targets:
-- `context.module.dep_graph` — full bidirectional dep graph for file set
-- `context.module.dep_order` — topological sort with SCC clustering
-- `context.module.dep_pack` — bin-pack ordered files into budget-sized pages
+- wire `models.task.execute` to optionally use `context.delegate.prepare`
+- test model→model delegation via task system with a simple review task
+- verify `delegate.handler.result` chains correctly through collect → verify → cache
 
-these build on existing `context.module.dependencies` (phase B) and can be
-tested standalone. the pipeline modules (review.plan/page/iterate/consolidate)
-come after the dep modules work.
+### 4. step group expansion — compliance-driven iteration
 
-### 4. wire delegation into task system
-
-the `context.delegate.*` modules implement role-fluid model coordination.
-to make them live:
-- create `context.delegate.handler.result` — the reply handler referenced by dispatch
-- wire `models.task.execute` to optionally use `context.delegate.prepare` for context assembly
-- test kimi→coding delegation via task system with a simple code review task
+current pipeline iterates linearly through pages. evolve to:
+- each pipeline node becomes a step group [ list of assessor steps ]
+- parallel perspectives from multiple models per step
+- summarize into one compliance result per step
+- iterate based on attribute compliance, not fixed page count
+- see "pipeline nodes as step groups" in batch review pipeline design doc
 
 ### 5. checksum-addressed model endpoints
 
 current `context.delegate.role` resolves to zenka string names.
 future: resolve via AMOS checksum lookup through models registry.
 `models.registry.lookup` and `models.decision.recommendation_engine` already
-score models by context — wire into `delegate.role` for capability-based resolution.
+score models by context — wire into `delegate.role` for checksum resolution.
+single models treated as groups from the start — same summarization path.
 
 ---
 
@@ -149,7 +147,9 @@ compose.for_task(task_type)
 
 ## files changed this session
 
-### new modules (26 total across phases A-E)
+### new modules (41 total)
+
+#### phases A-E: context management
 ```
 modules/context.init_code
 modules/context.template.load
@@ -178,6 +178,7 @@ modules/context.delegate.prepare
 modules/context.delegate.dispatch
 modules/context.delegate.collect
 modules/context.delegate.verify
+modules/context.delegate.handler.result
 modules/context.cache.store
 modules/context.cache.fetch
 modules/context.cache.invalidate
@@ -185,10 +186,26 @@ modules/context.share.export
 modules/context.share.import
 ```
 
-### design docs
+#### dep-graph + review pipeline
 ```
-data/md/coding-tasks/context-namespace-design.md    [ updated with role fluidity ]
-data/md/coding-tasks/context-batch-review-pipeline.md  [ new — paginated review design ]
+modules/context.module.dep_graph
+modules/context.module.dep_order
+modules/context.module.dep_pack
+modules/context.review.plan
+modules/context.review.page
+modules/context.review.iterate
+modules/context.review.consolidate
+modules/context.review.handler.page_result
+```
+
+### design docs + research
+```
+data/md/coding-tasks/context-namespace-design.md              [ role fluidity update ]
+data/md/coding-tasks/context-batch-review-pipeline.md         [ step group architecture ]
+data/md/coding-tasks/checksum-route-binary-framing.md         [ B32R binary framing ]
+data/md/coding-tasks/checksum-route-binary-framing-harmonic-foundations.md  [ kimi synthesis ]
+data/md/coding-tasks/context-runtime-testing-and-depgraph.md  [ testing task ]
+data/gfx/cubic-space-topology/v13.7.1.partial.png             [ 1001 cube topology ]
 data/yaml/context-templates/code-review.yaml
 data/yaml/context-templates/bug-fix.yaml
 data/yaml/context-templates/feature-impl.yaml
