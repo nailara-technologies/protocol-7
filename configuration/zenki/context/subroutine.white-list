@@ -92,6 +92,7 @@ devmod.post_init
 devmod.init_code
 devmod.cmd.sleep
 devmod.cmd.since
+channels.cleanup
 base.resolve_key
 base.prng.reseed
 base.path_owners
@@ -135,12 +136,16 @@ base.cmd.epoch_v7
 base.cmd.cpu-time
 base.cmd.commands
 base.chk-sum.amos
+ncode.regex.expand
+ncode.regex.assess
 devmod.cmd.elf-num
 devmod.cmd.elf-b32
 devmod.cmd.eat-mem
 devmod.cmd.del-env
 devmod.cmd.b32-elf
 devmod.cmd.add-env
+channels.init_code
+channels.heartbeat
 base.reload_values
 base.reload_config
 base.parser.config
@@ -173,6 +178,7 @@ context.review.page
 context.memory.load
 context.cache.store
 context.cache.fetch
+channels.cmd.update
 base.utf8.clean_str
 base.str.eval_error
 base.round_truncate
@@ -191,6 +197,9 @@ base.extract_values
 base.event.pre_init
 base.diff.hash_keys
 base.calc_unix_path
+format.yaml.pre_init
+format.yaml.load_str
+format.yaml.dump_str
 devmod.cmd.test-strm
 devmod.cmd.list-subs
 devmod.cmd.eval-code
@@ -202,6 +211,7 @@ context.modules.list
 context.file.extract
 context.error.recent
 context.compact.diff
+channels.memory-sync
 base.route.init_code
 base.root.drop_privs
 base.read_proc_times
@@ -251,9 +261,13 @@ base.cmd.when-present
 base.cmd.dependencies
 base.cmd.buffer-erase
 base.balanced-average
+format.yaml.write_file
 devmod.cmd.switch-user
 context.review.iterate
 context.priority.prune
+channels.mapping.apply
+channels.cmd.test-strm
+channels.cmd.subscribe
 base.session.init_code
 base.required_bin_path
 base.register_src_deps
@@ -305,6 +319,7 @@ context.delegate.prepare
 context.delegate.collect
 context.compose.for_task
 context.cache.invalidate
+channels.cmd.unsubscribe
 base.zenka.is_v7_started
 base.templates.init_code
 base.session.check.close
@@ -317,6 +332,10 @@ base.check_cfg_cmd_alias
 io.unix.socket.input.open
 devmod.cmd.test-strm-size
 context.delegate.dispatch
+channels.util.yaml_encode
+channels.util.yaml_decode
+channels.test-oscillation
+channels.memory-sync.init
 base.sourcecode.init_code
 base.session.cancel_route
 base.register_p7_mod_load
@@ -337,6 +356,7 @@ io.unix.socket.input.close
 context.review.consolidate
 context.git.recent_changes
 context.compose.for_review
+channels.memory-sync.fetch
 base.warnings.from_bitmask
 base.session.check.flushed
 base.reverse-sort.key-name
@@ -355,6 +375,8 @@ devmod.cmd.permission-setup
 devmod.cmd.extract-line-map
 context.module.dependencies
 context.compact.incremental
+channels.cmd.test-strm-size
+channels.cmd.channels-since
 base.templates.register_add
 base.session.calc_cmd_stats
 base.root.check_system_user
@@ -369,6 +391,8 @@ protocol.protocol-7.pre_init
 io.unix.socket.input.connect
 devmod.cmd.receive-multiline
 context.conversation.history
+channels.memory-sync.publish
+channels.handler.data_change
 base.validate.composite_name
 base.session.check_remaining
 base.process-into-background
@@ -381,6 +405,10 @@ protocol.protocol-7.init_code
 devmod.cmd.keep-devmod-loaded
 devmod.cmd.inline-subroutines
 crypt.C25519.get_usr_keys_dir
+channels.subscription.mapping
+channels.subscription.manager
+channels.cmd.ai-review-submit
+channels.cmd.ai-review-status
 base.validate.data_key_syntax
 base.source.collect_file_list
 base.handler.ondemand_timeout
@@ -398,6 +426,8 @@ protocol.sftp.connect_callback
 protocol.amos-chksum.init_code
 devmod.cmd.decode-harmonic-ref
 context.compose.for_delegation
+channels.util.get_review_stage
+channels.cmd.ai-review-approve
 base.zenki.ondemand_registered
 base.session.send_init_reports
 base.p7refs.get_refaddr_prefix
@@ -407,9 +437,15 @@ base.cache.refaddr-prefix.init
 devmod.cmd.change-log-verbosity
 crypt.C25519.cmd.get-public-key
 context.delegate.handler.result
+channels.util.extract_json_path
+channels.memory-sync.batch-send
+channels.content-discovery.init
+channels.cmd.ai-review-feedback
 base.warnings.compact_statehash
 base.p7refs.gen_template_chksum
 base.buffer.local_logfile_write
+channels.cmd.next-data-timestamp
+channels.cmd.last-data-timestamp
 base.perlmod.install_cpan_module
 base.perlmod.get_collision_index
 base.parser.harmonized_reference
@@ -419,6 +455,8 @@ base.file.get_swapped_subs_pairs
 base.config.load_proto_7_version
 protocol.amos-chksum.ext-cmd.exit
 plugin.auth.zenka.no-keys-defined
+channels.memory-sync.sync-handler
+channels.handler.content-detected
 base.sourcecode.in-mem.sub-source
 base.perlmod.init_install_buffers
 base.parser.center_ellipse_string
@@ -433,6 +471,8 @@ protocol.amos-chksum.ext-cmd.clear
 protocol.amos-chksum.ext-cmd.bytes
 plugin.auth.auth-keypair.init_code
 context.review.handler.page_result
+channels.memory-sync.apply-changes
+channels.handler.subscription_data
 base.protocol-7.command.send.local
 base.path-set-up.zenka-directories
 base.handler.read.encoding-wrapper
@@ -442,6 +482,7 @@ base.callback.setup_rollback_timer
 protocol.sftp.handler.session_close
 protocol.protocol-7.encryption.init
 protocol.amos-chksum.ext-cmd.select
+channels.memory-sync.register-watch
 base.perlmod.register_loaded_module
 base.number-cache.is_valid_template
 base.handler.write.encoding-wrapper
@@ -462,14 +503,17 @@ protocol.protocol-7.message-templates
 protocol.protocol-7.link-upgrade.init
 protocol.amos-chksum.ext-cmd.commands
 protocol.amos-chksum.connect_callback
+channels.handler.playlist-integration
 base.perlmod.unregister_loaded_module
 base.handler.write.encryption-wrapper
 protocol.sftp.terminate_server_process
 protocol.protocol-7.auth.select-method
 io.unix.socket.handler.report-tmp-path
+channels.memory-sync.conflict-resolver
 base.log.send-buffer.idle-callback-set
 auth.callback.cap-neg.select-strm-mode
 auth.callback.cap-neg.select-size-mode
+channels.handler.llm-content-evaluation
 base.perlmods.blacklist_collision_index
 base.log.send-buffer.send-idle-callback
 base.init_zenka.install_signal_handlers
@@ -492,8 +536,8 @@ auth.callback.cap-neg.declare-strm-size-support
 protocol.protocol-7.protocol-version-path-set-up
 base.log.send-buffer.reply-handler.notify-online
 
-#,,..,..,,..,,,..,,,.,.,,,.,,,,.,,.,.,.,.,,.,,..,,...,...,...,..,,..,,...,.,.,
-#YPYO7MZICTRH2FF24XLAQ7CT4DAEK2HV7SDTFIJF7ZRUZZ2NH2VYRSNI4QWTGRVG2O6Z33YZHF5XQ
-#\\\|3WDTUQOP3F7L3E2NLFGRARC26EEMF6UAKN4M624EPRNHIFOEVVX \ / AMOS7 \ YOURUM ::
-#\[7]SOLAHS7NJAZCZLLEU46VRR2F35HFVUSKH4R3WQYE55UOEBAYNWCI 7  DATA SIGNATURE ::
+#,,..,.,.,,.,,...,..,,...,.,,,.,.,,.,,.,,,,,.,..,,...,...,.,,,..,,,.,,,,.,,.,,
+#3SQWTIRXHNPTQQMVVFGWWMMXOQO52MTNATBQLJDZ2INZ3Q6YE5IWVFJXSFN65UHAAZ5FZJB2F3YWK
+#\\\|OOBPXLHTQUSP5I5J3AM5RDQZ65URAN4L55CXCM5I3QFR47KINCZ \ / AMOS7 \ YOURUM ::
+#\[7]XPHQNOAR4HBRKTCX3Q4JZU7MMYJ5J4BXC33HMSL3LY2UTNKD5UDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
