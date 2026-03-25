@@ -28,7 +28,7 @@ my @valid_types = qw| security style refactor dependency |;
 my $type_valid  = grep { $_ eq $type } @valid_types;
 $type = qw| style | unless $type_valid;
 
-<[base.log]>->(
+<[base.logs]>->(
     1,     ':. review.cmd: starting %s review — pattern: %s :.',
     $type, $pattern
 );
@@ -45,7 +45,7 @@ my $plan_result = <[context.review.plan]>->(
 ## handle plan failure ##
 if ( $plan_result->{'mode'} ne qw| true | ) {
     my $error = $plan_result->{'data'} // 'plan creation failed';
-    <[base.log]>->( 0, ':. review.cmd: plan failed — %s :.', $error );
+    <[base.logs]>->( 0, ':. review.cmd: plan failed — %s :.', $error );
     return { 'mode' => qw| false |, 'data' => $error };
 }
 
@@ -53,11 +53,11 @@ my $plan = $plan_result->{'data'};
 
 ## check if any files matched ##
 if ( ( $plan->{'total_files'} // 0 ) == 0 ) {
-    <[base.log]>->( 1, ':. review.cmd: no files matched pattern :.' );
+    <[base.logs]>->( 1, ':. review.cmd: no files matched pattern :.' );
     return { 'mode' => qw| false |, 'data' => 'no files matched pattern' };
 }
 
-<[base.log]>->(
+<[base.logs]>->(
     1,
     ':. review.cmd: plan created — %d files in %d pages :.',
     $plan->{'total_files'},
@@ -75,7 +75,7 @@ my $iterate_result = <[context.review.iterate]>->(
 ## handle iteration failure ##
 if ( $iterate_result->{'mode'} ne qw| true | ) {
     my $error = $iterate_result->{'data'} // 'iteration failed';
-    <[base.log]>->( 0, ':. review.cmd: iterate failed — %s :.', $error );
+    <[base.logs]>->( 0, ':. review.cmd: iterate failed — %s :.', $error );
     return { 'mode' => qw| false |, 'data' => $error };
 }
 
@@ -84,7 +84,7 @@ my $status       = $iterate_data->{'status'} // '';
 
 ## step 3: handle async (deferred) mode ##
 if ( $status eq qw| dispatched | ) {
-    <[base.log]>->(
+    <[base.logs]>->(
         1,
         ':. review.cmd: async dispatch — page %d/%d :.',
         $iterate_data->{'page_num'} + 1,
@@ -107,7 +107,7 @@ if ( $status eq qw| dispatched | ) {
 if ( $status eq qw| ready | ) {
 
     ## synchronous mode: results need manual processing ##
-    <[base.log]>->(
+    <[base.logs]>->(
         1, ':. review.cmd: sync mode — page ready for processing :.'
     );
     return {
@@ -139,7 +139,7 @@ if ( $status eq qw| complete | ) {
 
     if ( $consolidate_result->{'mode'} ne qw| true | ) {
         my $error = $consolidate_result->{'data'} // 'consolidation failed';
-        <[base.log]>->(
+        <[base.logs]>->(
             0, ':. review.cmd: consolidate failed — %s :.', $error
         );
         return { 'mode' => qw| false |, 'data' => $error };
@@ -147,7 +147,7 @@ if ( $status eq qw| complete | ) {
 
     my $consolidate_data = $consolidate_result->{'data'};
 
-    <[base.log]>->(
+    <[base.logs]>->(
         1,
         ':. review.cmd: complete — %d findings in %s :.',
         $consolidate_data->{'total_findings'} // 0,
@@ -171,11 +171,11 @@ if ( $status eq qw| complete | ) {
 }
 
 ## unknown status ##
-<[base.log]>->( 0, ':. review.cmd: unknown status — %s :.', $status );
+<[base.logs]>->( 0, ':. review.cmd: unknown status — %s :.', $status );
 return { 'mode' => qw| false |, 'data' => "unknown status: $status" };
 
-#,,..,,,,,.,,,.,.,..,,,,.,..,,,,.,...,,..,,..,.,.,...,..,,...,,.,,,.,,,,,,..,,
-#Z3RQL7IOV3LCAVJK7WKY7JPQNVY7TQNGAK6E436TAUZVS7BLW2J2R3HDPUKYJIC7KKHRJYJRW735G
-#\\\|DZSXL5B2JF4HMI5JL33UFM2WFIIXYOBIM6ZNBVSIVZYLKFCBTUQ \ / AMOS7 \ YOURUM ::
-#\[7]Q6CNT56J5KBBFZHWWJTF47CJG7G44NXJFBARGF7BLTKIVC2QYUDQ 7  DATA SIGNATURE ::
+#,,.,,,.,,,..,,..,.,,,,..,.,.,.,.,,..,.,.,,,,,.,.,...,..,,.,,,..,,,..,,,,,,,.,
+#EQ63NL5MCBKN7FAV6P5YVQWIUSLCZ3R6IZQYQKO6MMLLHO34KNHLWOE6CQT7OH6EFEQEG56Q3CMIW
+#\\\|OY5HCN4MF5NOZQ4PAI2BTPTYCJXIR6CXHE66MCYVG5EO5IEOVGG \ / AMOS7 \ YOURUM ::
+#\[7]HVQW3YW3ZA5NDXGRTBWGYMPXTCKZSXZBTIX5NLQCVHCYWR6JFYBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

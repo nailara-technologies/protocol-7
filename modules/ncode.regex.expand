@@ -79,7 +79,7 @@ sub _process_candidate {
     ## compile regex ##
     my $compiled = eval {qr/$pattern/};
     if ($@) {
-        <[base.log]>->(
+        <[base.logs]>->(
             1, ':. ncode.regex.expand: compile failed [%s] :.', $name
         );
         return {
@@ -108,7 +108,7 @@ sub _process_candidate {
         my $evicted = _evict_and_replace( $candidate, $compiled, $patterns,
             $max_patterns );
         if ( defined $evicted ) {
-            <[base.log]>->(
+            <[base.logs]>->(
                 1,
                 ':. ncode.regex.expand: evicted %s for %s '
                     . '[conf %.2f > %.2f] :.',
@@ -256,8 +256,8 @@ sub _evict_and_replace {
     return $lowest_name;
 }
 
-#,,,.,,,.,...,,.,,,..,,..,,,.,..,,.,,,.,.,.,.,..,,...,...,.,,,,,.,,,,,,.,,,..,
-#QLMT46HIKU25S7JQFNSVCPRGTGK7I67ZOEHOEGHEJECKLTRHSJ4237NNYVNA5LPCI7Q3ZWU7UJN2A
-#\\\|UMHUQBG4XRGMIF5352N2TLLHT3HZAACXIW4KHHDDSPYRCVTINEN \ / AMOS7 \ YOURUM ::
-#\[7]JNES7PZG6ZVCJEKASFTKPYCMZ5YEOZFB5EKHC7NGZ4P2OQZRIQCI 7  DATA SIGNATURE ::
+#,,,.,,..,...,.,,,,,,,...,,.,,..,,...,,,.,,.,,..,,...,...,,..,.,,,..,,.,.,,,.,
+#VSEO4EBCJDYPBF4ZEUOAGJONCMDS4KQPT6RFZ7CV7QWADSDP2PPRRESEAV4WYZQE4YBE6BG454NGA
+#\\\|BJXRTOSJULN5CGEUR77Z54JDRXFWQHOI5QT4LDXXKRRBAMXLPCC \ / AMOS7 \ YOURUM ::
+#\[7]BT76MAYWLK5VE4FLTIDYFYSKOZ753SNX4RA5ZH7LMCF2KLFFSOBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
