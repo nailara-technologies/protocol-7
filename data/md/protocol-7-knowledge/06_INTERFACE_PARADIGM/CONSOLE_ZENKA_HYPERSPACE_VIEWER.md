@@ -272,3 +272,9 @@ my $color = $FNC{'true_int'}->($num) ? $C{'T'} : $C{'0'};
 
 ---
 *Signature: 7VNKDBUU6DTBNJ2OK7EMV3WTD72AHBLQTAGMKOIKBZJI2NXDZOBQ*
+
+#,,,,,.,.,,.,,.,,,..,,,,,,,..,,..,,..,..,,,..,..,,...,...,..,,,,,,.,,,..,,,,,,
+#7H77VZWGBLB654WFQD2K655FCQX5M3UMOMFQWUHVNO6ZJNG27W25R5L2NLVNVKEPWTT3RIMKZCFTM
+#\\\|GNS2JKWDK3IMNRG2P4JN5Q36IIHOB3XJDUXL5JSIFNTPJV7MWUN \ / AMOS7 \ YOURUM ::
+#\[7]XVGXSV5AW2WVVO6PNXPL6ZLZN3NWMRZ4LVAGRC55LJ3AFJYJWWCQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

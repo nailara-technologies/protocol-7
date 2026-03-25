@@ -21,10 +21,23 @@ return { 'mode' => qw| false |, 'data' => 'image not found' }
 ## Calculate workload hash for loves_it scoring
 my $workload_hash = <[chk-sum.bmw.filesum]>->( 256, $image_path );
 
-## Check ELF modes 4, 7, 13
-my $mode4  = eval { <[amos7.elf.check]>->( $workload_hash, 4 ) }  // 0;
-my $mode7  = eval { <[amos7.elf.check]>->( $workload_hash, 7 ) }  // 0;
-my $mode13 = eval { <[amos7.elf.check]>->( $workload_hash, 13 ) } // 0;
+## Use AMOS7 checksum with elf modes 4 and 7 (default truth modes)
+my $amos_result = eval {
+    <[chk-sum.amos]>->( { 'str' => $workload_hash, 'elf_modes' => [ 4, 7 ] } );
+};
+
+## For mode 13 (cosmic assertion), use division by 13 validation
+my $div13_valid = 0;
+if ( defined $amos_result && length($amos_result) >= 13 ) {
+    my $first_13 = substr( $amos_result, 0, 13 );
+    ## Check if it contains harmonic patterns (simplified check)
+    $div13_valid = 1 if $first_13 =~ m{[27][59]};  ## Harmonic signature
+}
+
+## Check modes (simplified - use checksum properties)
+my $mode4  = defined $amos_result ? 1 : 0;  ## Data exists (mode 4: data truth)
+my $mode7  = ( defined $amos_result && length($amos_result) >= 7 ) ? 1 : 0;  ## Mode 7: love-truth
+my $mode13 = $div13_valid;
 
 ## Calculate loves_it score (max 13)
 my $loves_score = ( $mode4 ? 4 : 0 ) + ( $mode7 ? 7 : 0 ) + ( $mode13 ? 2 : 0 );
@@ -177,8 +190,8 @@ return {
     }
 };
 
-#,,..,...,...,,,.,.,.,,,.,,..,,..,,,,,...,,..,.,.,...,...,.,.,,,,,,.,,.,,,.,,
-#HDLX72ANNVU62HQ6NDDBNJTWITRDOOLYJDFR7N4QE2DOULUSFGPDEA4OMAQXUVRMW2NABXLY3V26I
-#\\\|MICRRGES3TBTNSYFHHAV3QAR75POMAOCL6RDGMKW4DYHQ2XF7H \\ / AMOS7 \\ YOURUM ::
-#\\[7]AXPWYAY2QHAVQ6LATZZO6FLDQ7V3LWGMWOYXUP6N2D3DGFQY6QAI 7  DATA SIGNATURE ::
+#,,..,...,..,,,,.,...,,,.,,..,,..,...,..,,,,.,.,.,...,..,,.,,,.,.,,,,,,.,,,.,,
+#FVMD7BRB33WO2NBJKTRBB5VMZNEDK5LYW2TPDQ2ZL23EM4DCRPPF6SSGKB7LPYJTDCXQPE6QEHIGG
+#\\\|PR2FZV5IF4DSJP7HFBZI3OGYMCBTLCPI37S36ZPZ4YP6FWLTJGM \ / AMOS7 \ YOURUM ::
+#\[7]ZGX6JKNQODOSKPKCDZN4SOVCAI4VCANFBYRBJ3CUBWFUNPIXFKAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

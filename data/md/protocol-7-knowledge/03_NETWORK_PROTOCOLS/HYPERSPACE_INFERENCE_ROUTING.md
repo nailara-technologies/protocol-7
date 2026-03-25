@@ -230,3 +230,9 @@ Each layer answers different questions without interference.
 
 ---
 *Signature: 7VNKDBUU6DTBNJ2OK7EMV3WTD72AHBLQTAGMKOIKBZJI2NXDZOBQ*
+
+#,,,,,.,.,...,,,.,,..,.,,,..,,,.,,,.,,..,,,.,,..,,...,...,...,,..,..,,...,,,.,
+#ANUERSXG67SRKC7FRXE6BU24S7ISUJUIYQRORLCRXA5GIGMLRW7URP5ZH352V2TV6VPOAG5AEWDKG
+#\\\|TXHI7KEEUTNC46TTQF23CNNT5YJATKNTTBTXCSSBWZEZHVG5AD7 \ / AMOS7 \ YOURUM ::
+#\[7]PQOCFQMAO4MLALPD5G24JAIG2D4OW7S5V46VYOS7INR6FNBC4KBY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
