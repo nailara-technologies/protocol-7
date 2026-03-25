@@ -1,0 +1,99 @@
+## [:< ##
+
+# name  = context.review.iterate
+# descr = drive page-by-page review with summary carry and result directory
+
+my $params = shift // {};
+
+my $plan       = $params->{'plan'}       // {};
+my $page_num   = $params->{'page_num'}   // 0;
+my $summary    = $params->{'summary'}    // '';
+my $results    = $params->{'results'}    // [];
+my $target_cmd = $params->{'target_cmd'} // '';
+my $result_dir = $plan->{'result_dir'}   // 'data/review/style';
+
+my $total_pages = $plan->{'total_pages'} // 0;
+
+return { 'mode' => qw| false |, 'data' => 'no pages in plan' }
+    unless $total_pages > 0;
+
+## check if review is complete ##
+if ( $page_num >= $total_pages ) {
+    return {
+        'mode' => qw| true |,
+        'data' => {
+            'status'     => qw| complete |,
+            'pages_done' => $total_pages,
+            'results'    => $results,
+            'summary'    => $summary,
+            'result_dir' => $result_dir
+        }
+    };
+}
+
+## assemble current page ##
+my $page_result = $code{'context.review.page'}->(
+    {   'plan'     => $plan,
+        'page_num' => $page_num,
+        'summary'  => $summary,
+        'targets'  => $plan->{'targets'} // []
+    }
+);
+
+return $page_result unless $page_result->{'mode'} eq qw| true |;
+
+my $page_data = $page_result->{'data'};
+
+## if target_cmd specified, dispatch for async processing ##
+if ( length $target_cmd ) {
+    my $prepared = {
+        'prompt'      => $page_data->{'prompt'},
+        'target_cmd'  => $target_cmd,
+        'roles'       => { 'executor' => $target_cmd },
+        'task_type'   => $plan->{'review_type'} // qw| review |,
+        'budget_used' => $page_data->{'char_size'}
+    };
+
+    my $dispatch_fn = $code{'context.delegate.dispatch'};
+    if ( defined $dispatch_fn ) {
+        my $dispatch_result = $dispatch_fn->(
+            {   'prepared'      => $prepared,
+                'reply_handler' => qw| context.review.handler.page_result |,
+                'reply_params'  => {
+                    'plan'       => $plan,
+                    'page_num'   => $page_num,
+                    'summary'    => $summary,
+                    'results'    => $results,
+                    'result_dir' => $result_dir
+                }
+            }
+        );
+        return {
+            'mode' => qw| true |,
+            'data' => {
+                'status'   => qw| dispatched |,
+                'page_num' => $page_num,
+                'dispatch' => $dispatch_result->{'data'}
+            }
+        };
+    }
+}
+
+## synchronous mode: return page for manual processing ##
+return {
+    'mode' => qw| true |,
+    'data' => {
+        'status'   => qw| ready |,
+        'page_num' => $page_num,
+        'page'     => $page_data,
+        'plan'     => $plan,
+        'summary'  => $summary,
+        'results'  => $results
+    }
+};
+
+#,,.,,.,,,..,,...,,..,,..,,..,.,,,.,,,.,.,,,,,..,,...,..,,.,.,..,,,,.,..,,.,.,
+#ZL25W2SRYM2ISRNYUNKQD3CEUQRTFB5NZOK3S2WLYKDM4LHQ5IZIGIMUJHDCYPHKER54K2XPTG4RU
+#\\\|SEAAFKWZO3GJVCRRKJL6C2NEYPUTDZ22TEWP4XZHIZSWUQYCLS5 \ / AMOS7 \ YOURUM ::
+#\[7]ZDKQWMMHBWL2YWM4LL64CNX74PMEXUGF5FISTJCW7IRCWKZ7VYAQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
