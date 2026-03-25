@@ -139,7 +139,7 @@ sub _lines_similar {
     my $ratio  = $common / $min_len;
 
     ## need at least 40% common content and some structure ##
-    return $ratio > 0.40 and $prefix_len >= 2;
+    return ( $ratio > 0.40 && $prefix_len >= 2 );
 }
 
 ## internal: find common prefix length ##
@@ -287,7 +287,7 @@ sub _extract_pattern {
 
     ## generate description ##
     my $descr = _generate_description( $old, $new, \@vars );
-    my $note  = sprintf qw| line %s -> %s |, $old, $new;
+    my $note  = sprintf 'line %s -> %s', $old, $new;
 
     return {
         'pattern' => $pattern,
@@ -306,19 +306,19 @@ sub _generate_description {
 
     ## describe the transformation ##
     if ( @vars == 1 and $vars[0] eq qw| number | ) {
-        return sprintf qw| change numeric value from '%s' to '%s' |,
+        return sprintf "change numeric value from '%s' to '%s'",
             _ellipsize($old), _ellipsize($new);
     } elsif ( @vars == 1 and $vars[0] eq qw| identifier | ) {
-        return sprintf qw| rename identifier from '%s' to '%s' |,
+        return sprintf "rename identifier from '%s' to '%s'",
             _ellipsize($old), _ellipsize($new);
     } elsif ( @vars == 1 and $vars[0] eq qw| string | ) {
-        return sprintf qw| update string literal from '%s' to '%s' |,
+        return sprintf "update string literal from '%s' to '%s'",
             _ellipsize($old), _ellipsize($new);
     } elsif ( @vars == 1 and $vars[0] eq qw| value | ) {
-        return sprintf qw| modify value assignment from '%s' to '%s' |,
+        return sprintf "modify value assignment from '%s' to '%s'",
             _ellipsize($old), _ellipsize($new);
     } else {
-        return sprintf qw| transform '%s' to '%s' |,
+        return sprintf "transform '%s' to '%s'",
             _ellipsize($old), _ellipsize($new);
     }
 }
@@ -405,7 +405,7 @@ sub _calculate_confidence {
     $base = 0.97 if $base > 0.97;    ## range 0.70 wide ##
 
     ## round to 2 decimal places ##
-    return sprintf qw| %.2f |, $base;
+    return sprintf '%.2f', $base;
 }
 
 ## internal: generate unique pattern name ##
@@ -429,11 +429,11 @@ sub _generate_name {
         $prefix .= qw| -sub |;
     }
 
-    return sprintf qw| %s-%04d |, $prefix, $idx;
+    return sprintf '%s-%04d', $prefix, $idx;
 }
 
-#,,,,,,.,,.,.,,,.,.,.,,..,,,.,,,,,,.,,,.,,,,,,.,.,...,...,.,.,..,,...,,,.,,,,,
-#I4I5237QF7ERCU4XM4RNPN7PFKU3WE2B6FAX74O4EMYATB6PBYBVCLA4GL4ARBRT25MTJZXS5ATHM
-#\\\|PU6JTWQGOW3WAN7W7QKDXOH6SBZLOW45WZBP76CAAQOFC3MWAY4 \ / AMOS7 \ YOURUM ::
-#\[7]PBOHMYKURIWF4FQFB7EQHYSTOJFBWKRC766KOGDXNKPIEUAFYADY 7  DATA SIGNATURE ::
+#,,..,,.,,,..,,,.,...,,,,,..,,...,..,,,..,,..,.,.,...,...,...,...,,,.,..,,.,.,
+#KA4LWEBJNPI3HUU3CQ5R553MIDXFIKNIESXHQWT6YDEVMOLHZA335Z3VWRLT66ZBDLPUZUIR7ADUC
+#\\\|2J4BRJM5BFMSF7VIAOFRRNGAYFKDNUEEY476E2MRIQRS6AVLXJV \ / AMOS7 \ YOURUM ::
+#\[7]3T7HN4I3FFHT6SSGKVSYCLEIOCHF7QN2C4DGF323UZZVSTZTXQDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -17,6 +17,11 @@
 ## load patterns from yaml ##
 my $pattern_dir = <ncode.cfg.pattern_dir>;
 
+## resolve relative path against system root ##
+if ( $pattern_dir !~ m|^/| and defined <system.root_path> ) {
+    $pattern_dir = <system.root_path> . '/' . $pattern_dir;
+}
+
 if ( -d $pattern_dir ) {
     my @files = glob "$pattern_dir/*.yaml";
     foreach my $file (@files) {
@@ -47,8 +52,8 @@ my $total = scalar keys <ncode.patterns>->%*;
 
 return TRUE;
 
-#,,..,,..,,,.,,,.,,.,,...,..,,,..,,..,..,,...,..,,...,...,.,.,,..,,,,,..,,.,.,
-#B4LFW2Y5DAPH3N4L5OSYGLK26VWDYOUGEYXCGSU5MCLTO7PXZXC4STGXPOT5OPYJ53WZ5Y7HLNWI4
-#\\\|5CXQZBDPP2A3ZVRCCYB2X6CUSYXX352RN6MIM6M7UVUMK4RQMV2 \ / AMOS7 \ YOURUM ::
-#\[7]HCFMSGZAAWMH3JYNQWZGXSDCHFGH5RADAZXPSIMTXEDTW3QEQMCQ 7  DATA SIGNATURE ::
+#,,..,..,,.,,,.,.,,,,,,,.,,,,,.,.,..,,,.,,.,.,..,,...,...,..,,,,,,,,.,..,,.,,,
+#4B4JBB5L6K5GKAA4DOJ5CSIIF5B3QXZX3SB6BEXU2GJYEDVL5YQ5F2V5TUMXNXHGOA4Q3XSDTL7JA
+#\\\|4P44SWDHUCCMIM4Q4ZGEO3FYJZXCAJNGCG5ZGO357JALMPBQI2Z \ / AMOS7 \ YOURUM ::
+#\[7]J5CHSCSP3AA4TKULV2JX5F2ALQPMH4ZQN6VXACEMHJ6NLFKTZQDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
