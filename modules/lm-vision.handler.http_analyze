@@ -1,18 +1,45 @@
 ## [:< ##
 
 # name  = lm-vision.handler.http_analyze
-# descr = HTTP backend for vision analysis via llama-server
-# param = image_path, prompt, reply_id
+# descr = HTTP backend for vision analysis via llama-server with LOVES_IT allocation
+# param = image_path, prompt, reply_id, requester, amos_tokens
 
 my $params     = shift                   // {};
 my $image_path = $params->{'image_path'} // '';
 my $prompt     = $params->{'prompt'}     // 'describe this image';
 my $reply_id   = $params->{'reply_id'}   // '';
+my $requester  = $params->{'requester'}  // 'anonymous';
+my $amos_tokens = $params->{'amos_tokens'} // 0;
 
 return { 'mode' => qw| false |, 'data' => 'image_path required' }
     unless length($image_path);
 return { 'mode' => qw| false |, 'data' => 'image not found' }
     unless -f $image_path;
+
+##[ LOVES_IT RESOURCE ALLOCATION ]############################################
+
+## Calculate workload hash for loves_it scoring
+my $workload_hash = <[chk-sum.bmw.filesum]>->( 256, $image_path );
+
+## Check ELF modes 4, 7, 13
+my $mode4  = eval { <[amos7.elf.check]>->( $workload_hash, 4 ) }  // 0;
+my $mode7  = eval { <[amos7.elf.check]>->( $workload_hash, 7 ) }  // 0;
+my $mode13 = eval { <[amos7.elf.check]>->( $workload_hash, 13 ) } // 0;
+
+## Calculate loves_it score (max 13)
+my $loves_score = ( $mode4 ? 4 : 0 ) + ( $mode7 ? 7 : 0 ) + ( $mode13 ? 2 : 0 );
+my $loves_it    = $loves_score == 13;
+
+## Calculate priority weight (0.25 to 1.13)
+my $priority_weight = $loves_score / 13;
+$priority_weight = 0.25 if $priority_weight < 0.25;
+$priority_weight *= 1.13 if $loves_it;  ## 13% bonus for loves_it!
+
+<[base.log]>->(
+    1,
+    "[http_analyze] loves_it score: %d (modes 4:%d 7:%d 13:%d) weight: %.2f",
+    $loves_score, $mode4, $mode7, $mode13, $priority_weight
+);
 
 ## Get server endpoint from coding zenka ##
 my $server_info = <coding.inference_servers>->{'gpu'} // {};
@@ -20,13 +47,12 @@ my $server_url  = $server_info->{'url'}   // 'http://localhost:8000';
 my $model_name  = $server_info->{'model'} // 'vision-model';
 
 <[base.log]>->(
-    1,           "[http_analyze] analyzing %s via %s",
-    $image_path, $server_url
+    1, "[http_analyze] analyzing %s via %s (priority: %.2f)",
+    $image_path, $server_url, $priority_weight
 );
 
 ## Load and base64-encode image ##
-open my $img_fh, '<:raw',
-    $image_path
+open my $img_fh, '<:raw', $image_path
     or return {
     'mode' => qw| false |,
     'data' => "failed to open image: $!"
@@ -47,7 +73,7 @@ if ( $image_path =~ m{\.(png|gif|webp)$}i ) {
         :                    'image/jpeg';
 }
 
-## Build OpenAI-compatible request ##
+## Build OpenAI-compatible request with LOVES_IT headers ##
 my $request = {
     'model'    => $model_name,
     'messages' => [
@@ -61,30 +87,28 @@ my $request = {
             ]
         }
     ],
-    'max_tokens' => <lm-vision.max_tokens> // 4096,
+    'max_tokens' => 4096,
 };
 
-## Send HTTP POST (blocking for Phase 1) ##
-my $ua = LWP::UserAgent->new( 'timeout' => <lm-vision.http_timeout> // 120, );
-
-my $http_request
-    = HTTP::Request->new( 'POST', "$server_url/v1/chat/completions" );
-$http_request->header( 'Content-Type' => 'application/json' );
-$http_request->content( <[format.json.encode]>->($request) );
-
-<[base.log]>->(
-    2, "[http_analyze] sending %d bytes image data",
-    length($b64_image)
+## Send HTTP request with LOVES_IT priority headers ##
+my $http_request = HTTP::Request->new(
+    'POST',
+    "$server_url/v1/chat/completions",
+    [   'Content-Type'         => 'application/json',
+        'X-Loves-It-Score'     => $loves_score,
+        'X-Priority-Weight'    => sprintf( "%.2f", $priority_weight ),
+        'X-Requester'          => $requester,
+        'X-AMOS-Tokens'        => $amos_tokens,
+        $loves_it ? ( 'X-Loves-It' => 'true' ) : (),
+    ],
+    <[format.json.encode]>->($request)
 );
 
+my $ua       = LWP::UserAgent->new( timeout => 300 );
 my $response = $ua->request($http_request);
 
-## Handle response ##
 if ( !$response->is_success ) {
-    <[base.log]>->(
-        0, "[http_analyze] HTTP error: %s",
-        $response->status_line
-    );
+    <[base.log]>->( 0, "[http_analyze] HTTP error: %s", $response->status_line );
     return {
         'mode' => qw| false |,
         'data' => "HTTP error: " . $response->status_line
@@ -107,43 +131,54 @@ my $generated_text = $result->{'choices'}[0]{'message'}{'content'} // '';
 my $finish_reason  = $result->{'choices'}[0]{'finish_reason'}      // 'stop';
 
 <[base.log]>->(
-    1, "[http_analyze] complete: %d chars, finish_reason=%s",
-    length($generated_text), $finish_reason
+    1, "[http_analyze] complete: %d chars, finish_reason=%s, loves_score=%d",
+    length($generated_text), $finish_reason, $loves_score
 );
 
-## Store result ##
+## Store result with LOVES_IT metadata ##
 my $job_id = <[base.gen_id]>->(<lm-vision.jobs>);
 <lm-vision.jobs>->{$job_id} = {
-    'job_id'        => $job_id,
-    'reply_id'      => $reply_id,
-    'image_path'    => $image_path,
-    'prompt'        => $prompt,
-    'status'        => 'complete',
-    'output'        => $generated_text,
-    'finish_reason' => $finish_reason,
-    'start_time'    => <[base.time]>->(3),
-    'end_time'      => <[base.time]>->(3),
-    'backend'       => 'http',
+    'job_id'         => $job_id,
+    'reply_id'       => $reply_id,
+    'image_path'     => $image_path,
+    'prompt'         => $prompt,
+    'status'         => 'complete',
+    'output'         => $generated_text,
+    'finish_reason'  => $finish_reason,
+    'start_time'     => <[base.time]>->(3),
+    'end_time'       => <[base.time]>->(3),
+    'backend'        => 'http',
+    'loves_score'    => $loves_score,
+    'loves_it'       => $loves_it,
+    'priority_weight' => $priority_weight,
+    'modes'          => { '4' => $mode4, '7' => $mode7, '13' => $mode13 },
 };
 
 ## Send reply if requested ##
 if ( length($reply_id) ) {
+    my $reply_data = sprintf(
+        "[loves_it:%d/13 weight:%.2f]\n%s",
+        $loves_score, $priority_weight, $generated_text
+    );
     <[base.callback.cmd_reply]>->(
-        $reply_id, { 'mode' => 'size', 'data' => $generated_text }
+        $reply_id, { 'mode' => 'size', 'data' => $reply_data }
     );
 }
 
 return {
     'mode' => qw| true |,
     'data' => {
-        'job_id'        => $job_id,
-        'output'        => $generated_text,
-        'finish_reason' => $finish_reason,
+        'job_id'         => $job_id,
+        'output'         => $generated_text,
+        'finish_reason'  => $finish_reason,
+        'loves_score'    => $loves_score,
+        'loves_it'       => $loves_it,
+        'priority_weight' => $priority_weight,
     }
 };
 
-#,,..,...,...,,,.,.,.,,,.,,..,,..,,,,,...,,..,.,.,...,...,.,.,,,,,,.,,.,,,.,.,
+#,,..,...,...,,,.,.,.,,,.,,..,,..,,,,,...,,..,.,.,...,...,.,.,,,,,,.,,.,,,.,,
 #HDLX72ANNVU62HQ6NDDBNJTWITRDOOLYJDFR7N4QE2DOULUSFGPDEA4OMAQXUVRMW2NABXLY3V26I
-#\\\|MICRRGES3TBTNS7YFHHAV3QAR75POMAOCL6RDGMKW4DYHQ2XF7H \ / AMOS7 \ YOURUM ::
-#\[7]AXPWYAY2QHAVQ6LATZZO6FLDQ7V3LWGMWOYXUP6N2D3DGFQY6QAI 7  DATA SIGNATURE ::
+#\\\|MICRRGES3TBTNSYFHHAV3QAR75POMAOCL6RDGMKW4DYHQ2XF7H \\ / AMOS7 \\ YOURUM ::
+#\\[7]AXPWYAY2QHAVQ6LATZZO6FLDQ7V3LWGMWOYXUP6N2D3DGFQY6QAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
