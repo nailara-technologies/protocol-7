@@ -396,13 +396,22 @@ cycle N:  99% regex, 1% LLM   [ maintenance only ]
 - coverage tracking per attribute group
 - optional LLM steps based on coverage thresholds
 
-### phase 4 — model interface
+### phase 4 — model interface + design-phase advising
 - `ncode.cmd.tool_list` — self-describing capabilities
 - verbose expansion during execution, compact logging
 - models can suggest and test new patterns directly
+- **design-phase suggestions**: ncode surfaces prioritized pattern hints
+  *before* code generation, preventing issues rather than fixing them
+- models learn to use ncode as fast contextualized scan tool with edit
+  capabilities on the result stream — always style-aware, token-efficient
+  even for large-scale refactorings
+- awareness of ncode capabilities makes models bolder at structural changes:
+  style compliance is handled, so architectural ambition is freed
+- cleaner structure from early ncode passes reduces integration code
+  for follow-up design steps — each improvement compounds
 
-#,,..,,,.,,,.,.,,,.,.,,..,,..,,.,,,..,..,,...,..,,...,...,...,..,,..,,..,,..,,
-#DZ5RLL6QD44UIHEM5WXM53FJ775FQS2HJE4OITJA4XBCI5N2FFYO56VFGWGM645VGWVILSLU4WVPQ
-#\\\|IBKQNFUKCX2RCSQ7ATQ6KMJID5K5TDHFVOVHACI2DOMLVLXAXRA \ / AMOS7 \ YOURUM ::
-#\[7]DQJL7AHHIUNYAD7TPCFPDGNWMPGNGLWTZ6WQGEON7ERG5X46S4BQ 7  DATA SIGNATURE ::
+#,,,,,...,..,,,,,,,,,,..,,,.,,...,,,.,..,,..,,..,,...,...,.,.,,,,,..,,,,.,..,,
+#IMI5MDYVCVBHI5PE66KLUXCHPSTQQMSDGC7XCYNQRMSZFS5V5KX7T4V7NA32CJEVKOPWT6XI4YWH6
+#\\\|JO74BVUCQPYLMVVPW656IYMQFQPYEKMAR3JBAKXMI4PHGNASCOX \ / AMOS7 \ YOURUM ::
+#\[7]PWS6RZO5SNHCG4ODS5HU3NIDUABREKLYFAOUEDAPXGBC3HI7BACY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

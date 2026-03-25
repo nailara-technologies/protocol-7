@@ -1,0 +1,135 @@
+## [:< ##
+
+# name  = ncode.regex.apply
+# descr = run applicable regex patterns on input text
+
+my $params = shift // {};
+
+my $input     = $params->{'input'}     // '';
+my $file_type = $params->{'file_type'} // qw| module |;
+my $namespace = $params->{'namespace'} // '';
+my $mode      = $params->{'mode'}      // qw| apply |;
+my $threshold = $params->{'threshold'} // <ncode.cfg.auto_apply_threshold>
+    // 0.90;
+
+return { 'mode' => qw| false |, 'data' => 'no input' }
+    unless length $input;
+
+<ncode.patterns> //= {};
+
+my $patterns = <ncode.patterns>;
+
+return { 'mode' => qw| false |, 'data' => 'no patterns loaded' }
+    unless keys %$patterns;
+
+my $output = $input;
+my @applied;
+my @flagged;
+my @skipped;
+
+foreach my $name ( sort keys %$patterns ) {
+    my $def  = $patterns->{$name};
+    my $app  = $def->{'applicability'} // {};
+    my $conf = $app->{'confidence'}    // 0.5;
+
+    ## check applicability conditions ##
+    if ( defined $app->{'file_type'} and $app->{'file_type'} ne '*' ) {
+        next unless $file_type eq $app->{'file_type'};
+    }
+
+    if ( defined $app->{'namespace'} and $app->{'namespace'} ne '*' ) {
+        if ( length $namespace ) {
+            next unless $namespace =~ m|^\Q$app->{'namespace'}\E|;
+        }
+    }
+
+    ## check for required predecessor patterns ##
+    if ( defined $app->{'requires'}
+        and ref $app->{'requires'} eq qw| ARRAY | ) {
+        my $prereqs_met = 1;
+        foreach my $req ( $app->{'requires'}->@* ) {
+            unless ( grep { $ARG->{'name'} eq $req } @applied ) {
+                $prereqs_met = 0;
+                last;
+            }
+        }
+        next unless $prereqs_met;
+    }
+
+    my $compiled = $def->{'compiled'};
+    my $replace  = $def->{'replace'};
+
+    ## count matches ##
+    my @matches;
+    my $line_num = 0;
+    foreach my $line ( split m|\n|, $output ) {
+        $line_num++;
+        if ( $line =~ $compiled ) {
+            push @matches, { 'line' => $line_num, 'text' => $line };
+        }
+    }
+
+    next unless @matches;
+
+    ## below threshold or flag-only: report but don't modify ##
+    if ( $conf < $threshold or not defined $replace or $mode eq qw| scan | ) {
+        my $action = $app->{'action'} // qw| flag_for_review |;
+        push @flagged,
+            {
+            'name'    => $name,
+            'matches' => scalar @matches,
+            'action'  => $action,
+            'conf'    => $conf,
+            'lines'   => [ map { $ARG->{'line'} } @matches ]
+            };
+        $def->{'stats'}->{'skipped'}++;
+        next;
+    }
+
+    ## apply replacement ##
+    my $count  = 0;
+    my $before = $output;
+
+    ## line-by-line replacement for tracking ##
+    my @lines = split m|\n|, $output;
+    for my $i ( 0 .. $#lines ) {
+        if ( $lines[$i] =~ $compiled ) {
+            my $old = $lines[$i];
+            $lines[$i] =~ s|$compiled|$replace|;
+            $count++ if $lines[$i] ne $old;
+        }
+    }
+    $output = join "\n", @lines;
+
+    if ($count) {
+        push @applied,
+            {
+            'name'  => $name,
+            'count' => $count,
+            'conf'  => $conf,
+            'lines' => [ map { $ARG->{'line'} } @matches ]
+            };
+        $def->{'stats'}->{'applied'} += $count;
+    }
+}
+
+my $changed = $output ne $input;
+
+return {
+    'mode' => qw| true |,
+    'data' => {
+        'output'        => $output,
+        'changed'       => $changed ? TRUE : FALSE,
+        'applied'       => \@applied,
+        'flagged'       => \@flagged,
+        'total_applied' => scalar @applied,
+        'total_flagged' => scalar @flagged,
+        'total_fixes'   => ( scalar map { $ARG->{'count'} } @applied )
+    }
+};
+
+#,,,,,,..,.,,,.,,,,,,,,,,,..,,,.,,,,,,.,,,,.,,..,,...,...,..,,.,,,,..,,,.,.,.,
+#DON4727RKJWRM5RCXJOLI2H52RECWER5ELTSJSE2IN3DWYOTS3ZTWYJNDLOE7JFMJ6M73AEIVQIBU
+#\\\|LDGR2EE6NSQG5LMDOW7SF4LDFQWTVWRLNQIOB772RCX54BTN22I \ / AMOS7 \ YOURUM ::
+#\[7]WYFKFUFN5I4SVMDABAVEX6VYVH7CNSFHDFN2SHC7LFQYCUBZCKDQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
