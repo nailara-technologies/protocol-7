@@ -1,0 +1,439 @@
+## [:< ##
+
+# name  = ncode.regex.assess
+# descr = check if a transformation diff can become a regex pattern
+
+my $params = shift // {};
+
+my $input     = $params->{'input'}      // '';
+my $output    = $params->{'output'}     // '';
+my $context   = $params->{'context'}    // {};
+my $file_type = $context->{'file_type'} // qw| module |;
+my $namespace = $context->{'namespace'} // '';
+my $task_id   = $context->{'task_id'}   // '';
+
+return { 'mode' => qw| true |, 'data' => [] }
+    if $input eq $output;
+
+return { 'mode' => qw| false |, 'data' => 'no input provided' }
+    unless length $input;
+
+return { 'mode' => qw| false |, 'data' => 'no output provided' }
+    unless length $output;
+
+## compute line-by-line diff ##
+my @input_lines  = split m|\n|, $input;
+my @output_lines = split m|\n|, $output;
+
+my @candidates;
+my $change_idx = 0;
+
+## simple lcs-based diff to find 1:1 line changes ##
+my @changes = _find_line_changes( \@input_lines, \@output_lines );
+
+foreach my $change (@changes) {
+    my ( $old_line, $new_line ) = @$change{qw| old new |};
+
+    ## attempt to extract regex pattern + replacement ##
+    my $extracted = _extract_pattern( $old_line, $new_line );
+
+    next unless defined $extracted;
+
+    ## assess generalizability ##
+    my $generalizability = _assess_generalizability( $extracted, $old_line );
+
+    ## assign confidence based on complexity and context ##
+    my $confidence = _calculate_confidence( $extracted, $generalizability );
+
+    ## build candidate pattern ##
+    my $name = _generate_name( $extracted, $change_idx++ );
+
+    my $candidate = {
+        'name'          => $name,
+        'descr'         => $extracted->{'descr'},
+        'pattern'       => $extracted->{'pattern'},
+        'replace'       => $extracted->{'replace'},
+        'applicability' => {
+            'file_type'  => $file_type,
+            'confidence' => $confidence,
+            'coverage'   => $generalizability->{'coverage'}
+        },
+        'origin'      => qw| llm-extracted |,
+        'source_task' => $task_id,
+        'note'        => $extracted->{'note'}
+    };
+
+    push @candidates, $candidate;
+}
+
+return {
+    'mode' => qw| true |,
+    'data' => \@candidates
+};
+
+## internal: find 1:1 line changes using simple alignment ##
+sub _find_line_changes {
+    my ( $in_ref, $out_ref ) = @_;
+    my @in  = @$in_ref;
+    my @out = @$out_ref;
+
+    my @changes;
+    my $i = 0;
+    my $j = 0;
+
+    while ( $i < @in and $j < @out ) {
+        if ( $in[$i] eq $out[$j] ) {
+            ## lines match - skip ##
+            $i++;
+            $j++;
+        } elsif ( _lines_similar( $in[$i], $out[$j] ) ) {
+            ## similar lines - potential pattern extraction ##
+            push @changes,
+                {
+                'old'      => $in[$i],
+                'new'      => $out[$j],
+                'in_line'  => $i + 1,
+                'out_line' => $j + 1
+                };
+            $i++;
+            $j++;
+        } else {
+            ## diverged - try to resync ##
+            my $lookahead = _find_resync( \@in, $i, \@out, $j );
+            if ( $lookahead > 0 and $lookahead <= 3 ) {
+                ## skip differing lines ##
+                $i += $lookahead;
+                $j += $lookahead;
+            } else {
+                ## single line change assumed ##
+                push @changes,
+                    {
+                    'old'      => $in[$i],
+                    'new'      => $out[$j],
+                    'in_line'  => $i + 1,
+                    'out_line' => $j + 1
+                    };
+                $i++;
+                $j++;
+            }
+        }
+    }
+
+    return @changes;
+}
+
+## internal: check if two lines are similar enough for pattern extraction ##
+sub _lines_similar {
+    my ( $a, $b ) = @_;
+
+    return 0 if length $a < 3 or length $b < 3;
+
+    ## check for common prefix/suffix ##
+    my $prefix_len = _common_prefix_len( $a, $b );
+    my $suffix_len = _common_suffix_len( $a, $b );
+
+    my $min_len = length $a < length $b ? length $a : length $b;
+    return 0 if $min_len == 0;
+
+    my $common = $prefix_len + $suffix_len;
+    my $ratio  = $common / $min_len;
+
+    ## need at least 40% common content and some structure ##
+    return $ratio > 0.40 and $prefix_len >= 2;
+}
+
+## internal: find common prefix length ##
+sub _common_prefix_len {
+    my ( $a, $b ) = @_;
+    my $len = 0;
+    my $max = length $a < length $b ? length $a : length $b;
+    while ( $len < $max and substr( $a, $len, 1 ) eq substr( $b, $len, 1 ) ) {
+        $len++;
+    }
+    return $len;
+}
+
+## internal: find common suffix length ##
+sub _common_suffix_len {
+    my ( $a, $b ) = @_;
+    my $len   = 0;
+    my $len_a = length $a;
+    my $len_b = length $b;
+    my $max   = $len_a < $len_b ? $len_a : $len_b;
+    while ( $len < $max
+        and substr( $a, $len_a - $len - 1, 1 ) eq
+        substr( $b, $len_b - $len - 1, 1 ) ) {
+        $len++;
+    }
+    return $len;
+}
+
+## internal: find how many lines to skip to resync ##
+sub _find_resync {
+    my ( $in_ref, $i, $out_ref, $j ) = @_;
+
+    for my $skip ( 1 .. 3 ) {
+        return $skip
+            if $i + $skip < @$in_ref
+            and $j + $skip < @$out_ref
+            and $in_ref->[ $i + $skip ] eq $out_ref->[ $j + $skip ];
+    }
+    return 0;
+}
+
+## internal: extract regex pattern from line change ##
+sub _extract_pattern {
+    my ( $old, $new ) = @_;
+
+    return undef if $old eq $new;
+
+    my $prefix_len = _common_prefix_len( $old, $new );
+    my $suffix_len = _common_suffix_len( $old, $new );
+
+    my $old_len = length $old;
+    my $new_len = length $new;
+
+    ## extract middle parts ##
+    my $old_middle = '';
+    my $new_middle = '';
+
+    if ( $prefix_len + $suffix_len < $old_len ) {
+        $old_middle = substr( $old, $prefix_len,
+            $old_len - $prefix_len - $suffix_len );
+    }
+    if ( $prefix_len + $suffix_len < $new_len ) {
+        $new_middle = substr( $new, $prefix_len,
+            $new_len - $prefix_len - $suffix_len );
+    }
+
+    ## build pattern with capture groups ##
+    my $pattern = '';
+    my $replace = '';
+    my @vars;
+
+    ## escape prefix for regex ##
+    my $prefix = substr( $old, 0, $prefix_len );
+    $prefix =~ s{([\^\$\*\+\?\.\|\(\)\[\]\{\}\\])}{\\$1}g;
+
+    ## escape suffix for regex ##
+    my $suffix = '';
+    if ($suffix_len) {
+        $suffix = substr( $old, $old_len - $suffix_len );
+        $suffix =~ s{([\^\$\*\+\?\.\|\(\)\[\]\{\}\\])}{\\$1}g;
+    }
+
+    ## analyze the changed portion ##
+    if ( length $old_middle and length $new_middle ) {
+        ## substitution pattern ##
+        my $var_num = 1;
+
+        ## check for numeric changes ##
+        if ( $old_middle =~ m|^\d+$| and $new_middle =~ m|^\d+$| ) {
+            ## number change - generic ##
+            $pattern = $prefix . '(\d+)' . $suffix;
+            $replace = $prefix . $new_middle . $suffix;
+            @vars    = qw| number |;
+        }
+        ## check for identifier changes ##
+        elsif ( $old_middle =~ m|^[a-zA-Z_]\w*$|
+            and $new_middle =~ m|^[a-zA-Z_]\w*$| ) {
+            ## identifier change ##
+            $pattern = $prefix . '([a-zA-Z_]\w*)' . $suffix;
+            $replace = $prefix . $new_middle . $suffix;
+            @vars    = qw| identifier |;
+        }
+        ## check for quoted string changes ##
+        elsif ( $old_middle =~ m|^['"].*['"]$|
+            and $new_middle =~ m|^['"].*['"]$| ) {
+            ## quoted string change ##
+            $pattern = $prefix . '([\'"][^\'"]*[\'"])' . $suffix;
+            $replace = $prefix . $new_middle . $suffix;
+            @vars    = qw| string |;
+        }
+        ## check for value assignment changes ##
+        elsif ( $old =~ m|^(\s*\$?\w+\s*=\s*)(.+?)(\s*;?\s*)$|
+            and $new =~ m|^(\s*\$?\w+\s*=\s*)(.+?)(\s*;?\s*)$| ) {
+            my ( $pre, $old_val, $post ) = ( $1, $2, $3 );
+            my $new_val = $2;
+            ( undef, $new_val, undef )
+                = ( $new =~ m|^(\s*\$?\w+\s*=\s*)(.+?)(\s*;?\s*)$| );
+
+            $pre  =~ s{([\^\$\*\+\?\.\|\(\)\[\]\{\}\\])}{\\$1}g;
+            $post =~ s{([\^\$\*\+\?\.\|\(\)\[\]\{\}\\])}{\\$1}g;
+
+            $pattern = $pre . '(.*?)' . $post;
+            $replace = $pre . $new_val . $post;
+            @vars    = qw| value |;
+        } else {
+            ## generic pattern with word/space capture ##
+            my $escaped_old = $old_middle;
+            $escaped_old =~ s{([\^\$\*\+\?\.\|\(\)\[\]\{\}\\])}{\\$1}g;
+            $escaped_old =~ s|\w+|([\\w\\-]+)|g;
+            $escaped_old =~ s|\d+|(\\d+)|g;
+            $escaped_old =~ s|\s+|\\s+|g;
+
+            $pattern = $prefix . $escaped_old . $suffix;
+            $replace = $new;
+            @vars    = qw| token |;
+        }
+    } else {
+        ## addition or deletion - flag only pattern ##
+        return undef if $suffix_len + $prefix_len < 5;
+
+        $pattern = $prefix . '.*?' . $suffix;
+        $replace = undef;                       ## flag only ##
+        @vars    = qw| content |;
+    }
+
+    ## generate description ##
+    my $descr = _generate_description( $old, $new, \@vars );
+    my $note  = sprintf qw| line %s -> %s |, $old, $new;
+
+    return {
+        'pattern' => $pattern,
+        'replace' => $replace,
+        'descr'   => $descr,
+        'note'    => $note,
+        'vars'    => \@vars
+    };
+}
+
+## internal: generate human-readable description ##
+sub _generate_description {
+    my ( $old, $new, $vars_ref ) = @_;
+
+    my @vars = @$vars_ref;
+
+    ## describe the transformation ##
+    if ( @vars == 1 and $vars[0] eq qw| number | ) {
+        return sprintf qw| change numeric value from '%s' to '%s' |,
+            _ellipsize($old), _ellipsize($new);
+    } elsif ( @vars == 1 and $vars[0] eq qw| identifier | ) {
+        return sprintf qw| rename identifier from '%s' to '%s' |,
+            _ellipsize($old), _ellipsize($new);
+    } elsif ( @vars == 1 and $vars[0] eq qw| string | ) {
+        return sprintf qw| update string literal from '%s' to '%s' |,
+            _ellipsize($old), _ellipsize($new);
+    } elsif ( @vars == 1 and $vars[0] eq qw| value | ) {
+        return sprintf qw| modify value assignment from '%s' to '%s' |,
+            _ellipsize($old), _ellipsize($new);
+    } else {
+        return sprintf qw| transform '%s' to '%s' |,
+            _ellipsize($old), _ellipsize($new);
+    }
+}
+
+## internal: truncate long strings for display ##
+sub _ellipsize {
+    my ( $str, $max ) = @_;
+    $max //= 40;
+    return $str if length $str <= $max;
+    return substr( $str, 0, $max - 3 ) . '...';
+}
+
+## internal: assess if pattern is generalizable ##
+sub _assess_generalizability {
+    my ( $extracted, $sample_line ) = @_;
+
+    my $pattern = $extracted->{'pattern'};
+    my @vars    = @{ $extracted->{'vars'} // [] };
+
+    ## factors that indicate good generalizability ##
+    my $score = 0.5;    ## start neutral ##
+
+    ## longer patterns with more context are better ##
+    my $pattern_len = length $pattern;
+    if ( $pattern_len > 20 ) {
+        $score += 0.1;
+    }
+    if ( $pattern_len > 40 ) {
+        $score += 0.1;
+    }
+
+    ## patterns with clear variable slots are better ##
+    my $capture_count = () = $pattern =~ m|\([^?]|g;
+    if ( $capture_count == 1 ) {
+        $score += 0.1;
+    } elsif ( $capture_count > 2 ) {
+        $score -= 0.1;    ## too many captures may be over-specific ##
+    }
+
+    ## patterns with literal anchors are better ##
+    if ( $pattern =~ m|^\^| or $pattern =~ m|\$$| ) {
+        $score += 0.1;
+    }
+
+    ## check for overly specific content ##
+    my $specific_words = 0;
+    $specific_words++ while $pattern =~ m|\b[a-zA-Z_]{5,}\b|g;
+    if ( $specific_words > 3 ) {
+        $score -= 0.15;    ## too many specific words ##
+    }
+
+    ## determine coverage level ##
+    my $coverage = $score > 0.6 ? qw| full | : qw| partial |;
+
+    return {
+        'score'    => $score,
+        'coverage' => $coverage
+    };
+}
+
+## internal: calculate confidence score ##
+sub _calculate_confidence {
+    my ( $extracted, $generalizability ) = @_;
+
+    my $base = $generalizability->{'score'};
+
+    ## adjust based on pattern complexity ##
+    my $pattern = $extracted->{'pattern'};
+
+    ## simple patterns are more reliable ##
+    if ( length $pattern < 30 ) {
+        $base += 0.05;
+    }
+
+    ## patterns with replacement are more actionable ##
+    if ( defined $extracted->{'replace'} ) {
+        $base += 0.05;
+    } else {
+        $base -= 0.1;    ## flag-only patterns less confident ##
+    }
+
+    ## cap at reasonable bounds ##
+    $base = 0.27 if $base < 0.27;    ## 3^3 / 100 — harmonic floor ##
+    $base = 0.97 if $base > 0.97;    ## range 0.70 wide ##
+
+    ## round to 2 decimal places ##
+    return sprintf qw| %.2f |, $base;
+}
+
+## internal: generate unique pattern name ##
+sub _generate_name {
+    my ( $extracted, $idx ) = @_;
+
+    my $prefix = qw| auto |;
+    my @vars   = @{ $extracted->{'vars'} // [] };
+
+    if ( @vars == 1 ) {
+        $prefix = $vars[0];
+    }
+
+    ## add type hint from pattern content ##
+    my $pattern = $extracted->{'pattern'};
+    if ( $pattern =~ m|=\s*\(| ) {
+        $prefix .= qw| -assignment |;
+    } elsif ( $pattern =~ m|##| ) {
+        $prefix .= qw| -comment |;
+    } elsif ( $pattern =~ m|sub\s| ) {
+        $prefix .= qw| -sub |;
+    }
+
+    return sprintf qw| %s-%04d |, $prefix, $idx;
+}
+
+#,,,,,,.,,.,.,,,.,.,.,,..,,,.,,,,,,.,,,.,,,,,,.,.,...,...,.,.,..,,...,,,.,,,,,
+#I4I5237QF7ERCU4XM4RNPN7PFKU3WE2B6FAX74O4EMYATB6PBYBVCLA4GL4ARBRT25MTJZXS5ATHM
+#\\\|PU6JTWQGOW3WAN7W7QKDXOH6SBZLOW45WZBP76CAAQOFC3MWAY4 \ / AMOS7 \ YOURUM ::
+#\[7]PBOHMYKURIWF4FQFB7EQHYSTOJFBWKRC766KOGDXNKPIEUAFYADY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
