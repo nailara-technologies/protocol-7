@@ -1,0 +1,50 @@
+## [:< ##
+
+# name  = amos-term.handler.nshell-output
+# descr = Output handler for nshell to 3D buffer
+
+my ( $text, $nshell_state ) = @ARG;
+
+my $amos = $nshell_state->{'amos_term'};
+return unless defined $amos;
+
+my $attach_id = $amos->{'attach_id'};
+my $attach    = <amos-term.buffer-attachments>->{$attach_id};
+return unless defined $attach;
+
+## === write text to buffer at cursor position === ##
+my $cursor    = $attach->{'cursor'};
+my $window_id = $attach->{'buffer_id'};
+
+foreach my $char ( split //, $text ) {
+    if ( $char eq "\n" ) {
+        ## newline: shift Z (history) and reset X ##
+        <[amos-term.buffer-shift_z]>->($window_id);
+        $cursor->{'x'} = 0;
+        $cursor->{'y'} = ( $cursor->{'y'} + 1 ) % 7;
+    } else {
+        ## write character ##
+        <[amos-term.buffer-write]>->(
+            $window_id,
+            $cursor->{'x'},
+            $cursor->{'y'},
+            $cursor->{'z'},
+            $char,
+            4    # p7_fg_0004 color
+        );
+        $cursor->{'x'} = ( $cursor->{'x'} + 1 ) % 8;
+    }
+}
+
+## === trigger render update === ##
+my $window = <amos-term.windows.by_id>->{$window_id};
+if ( defined $window and $window->{'display'}->{'visible'} ) {
+    $window->{'display'}->{'draw_area'}->queue_draw()
+        if defined $window->{'display'}->{'draw_area'};
+}
+
+#,,,.,,,.,..,,,,.,.,,,,..,...,.,.,,..,,,,,,..,.,.,...,..,,...,.,.,,,,,..,,.,.,
+#4TBAFX63DRAZD4EEDY7LBVFLHL5K247LEC5YN7FOTR6COD4BZDVTHGEYMI65NSBC4DXG4ETTDPSB6
+#\\\|DVHFPXZQV5KOH3WMBFH232CPJEQ5MJI6TPYWUACIAJ5LLSA2TZB \ / AMOS7 \ YOURUM ::
+#\[7]KLPJSXVECXGLMVDUVYQQWI5THM27ID3OJQVDJSEBUVOLLX45T2BA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

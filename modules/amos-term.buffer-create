@@ -8,14 +8,19 @@ my $window_id = shift;
 my $window = <amos-term.windows.by_id>->{$window_id};
 return undef unless defined $window;
 
-my $amos_id  = $window->{'amos_id'};
+my $amos_id    = $window->{'amos_id'};
+my $session_id = $window->{'session_id'};
+
+## create unique SHM identifier (must be >= 32 chars for data.mount.shm.create) ##
+my $shm_owner_id = sprintf( "amos-term-buffer:%s:%010d:%08d",
+    $amos_id, $session_id, time() % 100000000 );
 my $shm_path = <amos-term.cfg.shm_base_path> . "/$amos_id";
 
 ## create SHM using data zenka ##
 my $shm_size = $window->{'buffer'}->{'voxel_count'} * 2 + 16;    # 1472 bytes
 
 my $shm = <[data.mount.shm.create]>->(
-    $amos_id,                                                    # owner
+    $shm_owner_id,    # owner (32+ chars)
     $shm_size,
     { 'sub_path' => 'buffer' }
 );
@@ -36,8 +41,8 @@ ${ $shm->{'mmap_ptr'} } = "\0" x $shm_size;
 
 return $shm;
 
-#,,,.,.,.,,,,,,,.,.,,,,,,,,.,,.,,,..,,,,,,.,,,.,.,...,...,,..,..,,,,,,,.,,.,,,
-#WRG7UYSHHV7G7SGYL2N6FRT62AEQQIKIILAR5S22FWWRQTLVG5RSAWW3BQKC6BKQ4TRLFN4DTSEP6
-#\\\|NKEIP6TRCMHYKPFMGQB2ULTALIM6OLVAHZDTRTK4AFRDVD6OOS2 \ / AMOS7 \ YOURUM ::
-#\[7]OGZO3QF4ZGOJWBKXNA3U4AVTZYJSEXZXON6QA55UXSAML7DAFEBY 7  DATA SIGNATURE ::
+#,,..,,,,,,..,.,.,.,,,,..,..,,.,,,,,.,...,..,,.,.,...,...,..,,.,,,.,,,,,.,...,
+#LKXKUZ5ZP2BBLRSYJ6BK2GBDA7MQU44OTAFHYINLII6SXVJBKWJ4ALWYDTVIGQV5UXG4OZBLQ2J2W
+#\\\|4YLTDMEVMK5DYZ377JBM7UKM6JCZRWN4H5HKAR4IX3KCZKOLNIJ \ / AMOS7 \ YOURUM ::
+#\[7]7HIAOF4QPMB7KB5O37XCXPBDG6P5NBMBO47QBDFXKLF5CHCMUIAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

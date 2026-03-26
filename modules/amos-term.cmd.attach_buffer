@@ -3,33 +3,39 @@
 # name  = amos-term.cmd.attach_buffer
 # descr = Command to attach nshell or other clients to 3D buffer
 
-my ( $buffer_id, $client_type, $options ) = @ARG;
+my $args = $$call{'args'} // '';
+my ( $buffer_id, $client_type, $options ) = split /\s+/, $args;
+$buffer_id =~ s/^\s+|\s+$//g if defined $buffer_id;
 
 $client_type //= qw| nshell |;
 $options     //= {};
 
 ## === resolve buffer === ##
 my $window;
-if ( $buffer_id =~ m{^amos:([A-Z2-7]{10})$}i ) {
+if ( $buffer_id =~ m{^amos:([A-Z0-9]{10})$}i ) {
     my $amos_id = uc($1);
     my $sid     = <amos-term.windows.by_amos>->{$amos_id};
-    return "Error: buffer not found\n" unless defined $sid;
+    return { 'mode' => 'false', 'data' => 'buffer not found' }
+        unless defined $sid;
     $window = <amos-term.windows.by_id>->{$sid};
 } elsif ( $buffer_id =~ m{^name:(.+)$} ) {
     my $name = $1;
     my $sid  = <amos-term.windows.by_name>->{$name};
-    return "Error: buffer '$name' not found\n" unless defined $sid;
+    return { 'mode' => 'false', 'data' => "buffer '$name' not found" }
+        unless defined $sid;
     $window = <amos-term.windows.by_id>->{$sid};
 } else {
     $window = <amos-term.windows.by_id>->{$buffer_id};
 }
 
-return "Error: buffer not found\n" unless defined $window;
+return { 'mode' => 'false', 'data' => 'buffer not found' }
+    unless defined $window;
 
 ## === create buffer if not exists (lazy allocation) === ##
 if ( not defined $window->{'buffer'}->{'shm_path'} ) {
     my $result = <[amos-term.buffer-create]>->( $window->{'session_id'} );
-    return "Error: buffer creation failed\n" unless $result;
+    return { 'mode' => 'false', 'data' => 'buffer creation failed' }
+        unless $result;
 }
 
 ## === attach client === ##
@@ -44,21 +50,24 @@ if ( $client_type eq qw| nshell | ) {
 }
 
 if ( not defined $attachment ) {
-    return "Error: attachment failed\n";
+    return { 'mode' => 'false', 'data' => 'attachment failed' };
 }
 
 ## === return success info === ##
 my $amos_id   = $window->{'amos_id'};
 my $attach_id = $attachment->{'attach_id'};
 
-return sprintf(
-    "Attached to buffer [%s]\nAMOS ID: %s\nAttachment: %s\n",
-    $window->{'client_name'},
-    $amos_id, $attach_id
-);
+return {
+    'mode' => 'size',
+    'data' => sprintf(
+        "Attached to buffer [%s]\nAMOS ID: %s\nAttachment: %s\n",
+        $window->{'client_name'},
+        $amos_id, $attach_id
+    )
+};
 
-#,,.,,.,,,...,,,.,.,.,.,.,.,,,.,.,,..,,,,,,..,.,.,...,...,,..,...,,,.,.,,,,.,,
-#2IVURRIJ354JTRR7K34SKPAHEPBII7TZV4KOYLZUHPGDUOKIDP3BNHIO7B4FIIBMOQ6O3I4FDOJ52
-#\\\|H754PP5XTHCRMGH2CCME6LM2MWH6QWO4U6ZFOZLE5EXMMBGOVZT \ / AMOS7 \ YOURUM ::
-#\[7]XY2QMR77GJHX43BEDCREL4HLDMQKIXMHNZOPEQCRT6YKC2FRHYCQ 7  DATA SIGNATURE ::
+#,,,.,.,.,,,,,...,...,,,.,.,,,...,,,,,,,,,,..,.,.,...,.,.,...,..,,,..,.,,,...,
+#NOZBR5IVUCT6KRHHEHN2SMFULO7N3UG5FIVCPRAP2C4TEATLFKXIJBHJMBF4DKTDFBZFQ5I6POBGO
+#\\\|RXA7QSHW62ESVHNYVGMM3IYXQ24ELGFAN52GII55PE5LMAFKJWH \ / AMOS7 \ YOURUM ::
+#\[7]JX4DFH66PGDMYEEFDHFGBHLNNOHHPF6ZWVEHH6JBZNHT2RJDKYAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
