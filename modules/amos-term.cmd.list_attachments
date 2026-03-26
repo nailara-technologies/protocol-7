@@ -3,7 +3,8 @@
 # name  = amos-term.cmd.list_attachments
 # descr = List all clients attached to a buffer
 
-my $buffer_id = shift // 'current';
+my $buffer_id = $$call{'args'} // 'current';
+$buffer_id =~ s/^\s+|\s+$//g;
 
 ## === resolve buffer === ##
 my $window;
@@ -51,8 +52,8 @@ foreach my $attach_id (@attachments) {
 
 return $output;
 
-#,,,.,,.,,..,,.,,,..,,,..,,.,,..,,,..,...,.,.,.,.,...,...,.,,,,.,,,,,,.,.,,,,,
-#B2PFPSZ3CVYWFAWUWMIKRBHNFWSIV7XFGKXUPGZPKDXM6PQH3BNYBMRQMKBLCOWAKNNUQ3X5IHQAO
-#\\\|YLWLRZDEC34M3JIQF7OYK6OJ76U52GE6JSN26IJIIKOVOMC7D3R \ / AMOS7 \ YOURUM ::
-#\[7]ONBK5VTCIDXEXPAWICA5TVHRLKQLBHCG4SKVKGM6IVWUU4TJYQCQ 7  DATA SIGNATURE ::
+#,,,,,,,.,,,,,,,,,,,,,,,.,.,.,,,.,,,.,,,,,..,,.,.,...,...,...,,,.,,.,,.,.,.,.,
+#KMFXEFC7RWIFH3QM54IXCSMN7FANCOJDWOUWUK7MJWXOTNOCM3KF7WCLUIYCZ2BZRJUAMJNIIYA7Q
+#\\\|36V5N7C74Y55CZB3FAQPNNMB37KIQGVVU2GI34U2IBJ6KGLJQBF \ / AMOS7 \ YOURUM ::
+#\[7]U7VZOGMFYZSYJAL3IDEDWRACHLEMAPA4CNQWD4ELFRKORGLVAIBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
