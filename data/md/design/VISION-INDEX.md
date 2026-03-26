@@ -75,6 +75,90 @@ Key concepts:
 
 ---
 
+### 6. [Love as Amplification](./LOVE-AS-AMPLIFICATION.md)
+**The network feels what you feel—attention as a physical force.**
+
+Key concepts:
+- LOVE vertex of deduplication triangle is operational (not just semantic)
+- Attention creates visual intensification
+- Content drifts toward LOVE vertex through engagement
+- Current love (real-time) vs overall love (accumulated weight)
+- Resonance propagation through network topology
+
+**Status:** Specification complete, love field mechanics defined
+
+---
+
+### 7. [Settings & Statistics Zenka](./SETTINGS-STATISTICS-ZENKA.md)
+**Privacy-first configuration with inheritance and minimal diffs.**
+
+Key concepts:
+- Strict separation: personal (never leaves device) vs impersonal (improves network)
+- Settings inheritance: personal → branch → network → hardcoded
+- Statistics aggregation with k-anonymity guarantees
+- Diff-based sync: only personal overrides shared
+- Branch defaults improve from aggregate patterns
+
+**Status:** Architecture defined, implementation pending
+
+---
+
+### 8. [User-Centric Privacy Model](./USER-CENTRIC-PRIVACY-MODEL.md)
+**Privacy as explicit, not default—transparent visibility of network knowledge.**
+
+Key concepts:
+- Private by default: mark as personal to keep local
+- Leaf-most branch locality: inherit from closest community
+- User namespace: user.personal.*, user.local.*, user.inherited.*
+- Privacy dashboard: see exactly what network knows
+- Minimal diff shrinks as defaults improve
+
+**Status:** Specification complete, privacy boundaries defined
+
+---
+
+### 9. [HTTPD-Web Convergence](./HTTPD-WEB-CONVERGENCE.md)
+**Web and desktop as phase offsets of the same templates.**
+
+Key concepts:
+- Template-based HTTPD endpoints for HTML/JS frontends
+- WebKit GTK bridge: desktop apps via web templates initially
+- In-place upgrades: web view → desktop application seamlessly
+- Vertical dependency resolution with dedup tree backing
+- Observer is stable, content is stable, only phase shifts
+
+**Status:** Specification complete, implementation pending
+
+---
+
+### 10. [Visual Middleware & Omni-Vision](./VISUAL-MIDDLEWARE-OMNI-VISION.md)
+**The network as a self-perceiving entity.**
+
+Key concepts:
+- Visual middleware is infrastructure (Xvfb + browser zenki)
+- Omni-vision: always-on, multi-perspective network self-awareness
+- 7+ simultaneous viewpoints, each capturable and controllable
+- Visual consensus: 5-of-7 validation of network state
+- Remote control API: network can manipulate its own views
+
+**Status:** Specification complete, architecture defined
+
+---
+
+### 11. [Unifying Principle: Checksum Coordinates](./UNIFYING-PRINCIPLE-CHECKSUM-COORDINATES.md)
+**The foundational insight: checksums as the universal coordinate system.**
+
+Key concepts:
+- Three domains unified: Information (files), Documentation (knowledge), Network (topology)
+- Timestamp-Checksum duality: temporal + semantic axes
+- Checksum IS the address (content-addressed everything)
+- Implicit organization through proximity
+- Self-verifying, deduplicated, emergently load-balanced
+
+**Status:** Synthesis document, unifies all vision documents
+
+---
+
 ## Interconnection
 
 These five visions are not separate features—they are **aspects of the same system**:
@@ -103,11 +187,16 @@ These five visions are not separate features—they are **aspects of the same sy
 
 **How they connect:**
 
-1. **Visual Mask** provides the universal representation layer
-2. **Network Desktop** provides the operational interface
-3. **Holographic Interface** enables multi-modal perception of the mask
-4. **Self-Bootstrapping** enables organic growth without central authority
-5. **Geometric Resilience** protects the entire structure through topology
+1. **Checksum Coordinates** provide the foundational addressing system (unifies all layers)
+2. **Visual Mask** provides the universal representation layer
+3. **Network Desktop** provides the operational interface
+4. **Holographic Interface** enables multi-modal perception of the mask
+5. **Self-Bootstrapping** enables organic growth without central authority
+6. **Geometric Resilience** protects the entire structure through topology
+7. **Love Amplification** makes the network responsive to attention
+8. **Privacy Model** ensures user agency and data minimization
+9. **HTTPD Convergence** unifies web and desktop interfaces
+10. **Omni-Vision** enables the network to perceive itself
 
 ## Implementation Status
 
