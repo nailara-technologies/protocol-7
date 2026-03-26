@@ -88,108 +88,127 @@ sub map_to_shm {
 
 ## Phase 2: GTK3 3D Display (Week 3-4)
 
-### Module: `amos-term.3d.render`
+### Module: `protocol.amos-term` + `amos-term.*`
 
-#### GTK3 Initialization
-```perl
-## amos-term.3d.init_code
-## Reuse: ticker.init_code patterns
-```
-- [ ] Gtk3::init
-- [ ] Window creation
-- [ ] Transparency setup (RGBA)
+#### Protocol Registration
+- [x] `protocol.amos-term.init_code` - Protocol state machine (4 states)
+- [x] Window registry by ID, AMOS checksum, and name
+- [x] Session integration with event system
+
+#### Window Management (Object-Oriented)
+- [x] `amos-term.window.create` - AMOS checksum ID generation
+- [x] `amos-term.window.open` - GTK3 window with 60 FPS timer
+- [x] `amos-term.window.close` - Hide window (preserve buffer)
+- [x] `amos-term.window.destroy` - Full cleanup
+- [ ] `amos-term.window.move` - Position control
+- [ ] `amos-term.window.resize` - Size control
+- [ ] `amos-term.window.fullscreen` - Fullscreen toggle
+
+#### Command API
+- [x] `amos-term.handler.command` - Protocol command dispatch
+- [ ] Buffer commands: create, write, read, clear
+- [ ] Cursor commands: move, set_pos
+- [ ] Plugin commands: load, unload, list
+
+#### 3D Rendering
+- [x] `amos-term.render.draw_buffer` - Cairo 8×7×13 grid
+- [x] Z-depth alpha blending (deeper = more translucent)
+- [x] Blue hue modulation (protocol blue gradient)
+- [x] Cursor with translucency curve integration
+- [ ] 60 FPS render timer
 - [ ] Double buffering
+- [ ] Resonance glow effects
 
-#### 3D Rendering Loop
-```perl
-## amos-term.3d.render.loop
-sub render_3d_buffer {
-    my ($buffer, $current_z, $view_mode) = @_;
-    ## Cairo/GTK3 drawing
-}
-```
-- [ ] Layer rendering (Z=0 visible, Z=1-12 faded)
-- [ ] Alpha blending per layer
-- [ ] Blue hue modulation (deeper = lighter blue)
-- [ ] 60 FPS target
-
-#### Visual Effects
-- [ ] Transparency gradient (Z-based)
-- [ ] Resonance glow (high-pattern areas)
-- [ ] Cursor tracking
-- [ ] Smooth Z-transitions
+#### Plugin System
+- [x] `amos-term.plugin.init_code` - Plugin registry
+- [x] `amos-term.plugin.load` - Hot-reloadable extensions
+- [x] Plugin types: decoder, routing, render, input
+- [ ] `amos-term.plugin.reload` - Runtime reload
+- [ ] `amos-term.plugin.unload` - Cleanup
 
 **Color Palette** (from ticker):
-- [ ] Surface (Z=0): #0647C3, alpha=90%
+- [x] Surface (Z=0): #0647C3, alpha=90%
 - [ ] Mid (Z=1-6): #0647C3, alpha=70%
 - [ ] Deep (Z=7-9): #4A90E2, alpha=50%
 - [ ] Ancient (Z=10-12): #87CEEB, alpha=30%
-- [ ] Background: #00003D, alpha=95%
+- [x] Background: #00003D, alpha=95%
 
 **Testing**:
 - [ ] GTK3 window opens
-- [ ] 3D buffer renders
-- [ ] Transparency works
+- [ ] AMOS checksum ID displayed
+- [ ] 3D buffer renders with depth
+- [ ] Cursor translucency animates
 - [ ] 60 FPS achieved
 - [ ] WSL: X11/Wayland display works
 
-**Deliverable**: Visual 3D terminal window
+**Deliverable**: Visual 3D terminal window with plugin system
 
 ---
 
 ## Phase 3: Terminal Integration (Week 5-6)
 
-### Module: `amos-term.3d.core`
+### Module: `amos-term.core` + nshell integration
 
 #### Buffer Management
 ```perl
-## amos-term.3d.buffer_manager
-sub initialize_terminal_buffer {
-    ## Create named buffer in data zenka
-}
+## amos-term.buffer.*
+- create: SHM allocation for 8×7×13 voxels
+- write/read: voxel access
+- shift_z: history push
 ```
-- [ ] Create terminal buffer on startup
+- [x] Buffer structure defined in window create
+- [ ] `amos-term.buffer.create` - SHM allocation
+- [ ] `amos-term.buffer.write` - Write voxel (x,y,z,color,attr)
+- [ ] `amos-term.buffer.read` - Read voxel
+- [ ] `amos-term.buffer.shift_z` - History push to Z+1
+- [ ] `amos-term.buffer.clear` - Zero buffer
 - [ ] Mount to data zenka SHM
 - [ ] Register with decoder
-- [ ] Periodic sync
 
-#### Input Handling
+#### Input Handling (nshell integration)
 ```perl
-## amos-term.3d.input
-sub handle_keypress {
-    my ($key, $buffer) = @_;
-    ## Extended keymap with Z-navigation
-}
+## amos-term.handler.key_press
+## Reuse: nshell.render.cursor, nshell.history.*
 ```
+- [ ] Key event to buffer write
 - [ ] Standard terminal input (X/Y cursor)
-- [ ] Z-navigation (PgUp/Dn)
+- [ ] Z-navigation (PgUp/Dn or [/])
 - [ ] Pattern jump (Ctrl+↑/↓)
 - [ ] Resonance attractor (Tab)
+- [ ] Command mode integration with nshell
 
 #### Output Handling
 - [ ] Character write to Z=0
 - [ ] Newline → shift Z (history)
 - [ ] Scrollback in Z-depth
-- [ ] Pattern highlighting
+- [ ] Pattern highlighting via plugins
 
-**Key Bindings**:
-- [ ] ↑/↓: Command history (Y)
-- [ ] ←/→: Cursor (X)
-- [ ] PgUp/Dn: Z-depth
+**Key Bindings** (from graphics-3d.cfg.cursor):
+- [x] ↑/↓/k/j: Y cursor movement
+- [x] ←/→/h/l: X cursor movement  
+- [x] PgUp/[/: Z- (deeper)
+- [x] PgDown/]: Z+ (nearer)
 - [ ] Home: Z=0 (surface)
-- [ ] End: Deepest Z
-- [ ] Ctrl+↑/↓: Similar pattern
+- [ ] End: Z=12 (deepest)
+- [ ] Ctrl+↑/↓: Similar pattern (decoder plugin)
 - [ ] Tab: Resonance attractor
 - [ ] F1-F7: Jump to Z=0-6
 - [ ] F8-F13: Jump to Z=7-12
+
+**Addressing** (protocol.amos-term):
+- [x] By session ID: `amos-term:42`
+- [x] By AMOS checksum: `amos:K9M2P7L4N8`
+- [x] By name: `name:term-001`
+- [ ] Routed events: `target => 'amos-term:K9M2P7L4N8'`
 
 **Testing**:
 - [ ] Typing appears in Z=0
 - [ ] History shifts to Z+1
 - [ ] Z-navigation works
 - [ ] Pattern jumps functional
+- [ ] Plugin decoder integration
 
-**Deliverable**: Functional 3D terminal
+**Deliverable**: Functional 3D terminal with nshell integration
 
 ---
 
@@ -197,19 +216,32 @@ sub handle_keypress {
 
 ### Module: `decoder.3d.buffer`
 
-#### Pattern Analysis
+#### Pattern Analysis (inspired by v7.zenka-output.patterns)
 ```perl
-## decoder.3d.buffer.analyze
-sub analyze_buffer_patterns {
-    my ($buffer_name) = @_;
-    ## Zero-copy SHM read
-    ## Pattern recognition
-}
+## amos-term.decoder.* (v7 pattern system adaptation)
+- init_patterns: Compile regex patterns to handlers
+- scan_buffer: Scan Z-layer, trigger matches
+- Pattern config: configuration/zenki/amos-term/decoder.patterns
 ```
-- [ ] Zero-copy buffer read
-- [ ] ELF checksum comparison
+
+**Pattern Format:**
+```yaml
+- elf-mode7::^[A-Z2-7]{17}$::
+  [amos-term.plugin.decoder.elf_match:<window_id>,<match_0>,7]
+  
+- high-entropy::[\x00-\x1f]{8,}::
+  [amos-term.plugin.decoder.entropy:<window_id>,<layer_z>,high]
+```
+
+**Implementation:**
+- [x] Pattern config file (decoder.patterns)
+- [x] amos-term.decoder.init_patterns (compiler)
+- [x] amos-term.decoder.scan_buffer (scanner)
+- [x] amos-term.plugin.decoder.elf_match (handler)
+- [x] amos-term.render.highlight (visual feedback)
+- [ ] Zero-copy buffer read optimization
 - [ ] AMOS7 harmonic validation
-- [ ] Resonance calculation
+- [ ] Resonance calculation scoring
 
 #### Entropy Stream
 ```perl
@@ -229,7 +261,7 @@ sub buffer_to_entropy_stream {
 
 **Testing**:
 - [ ] Decoder reads buffer
-- [ ] Patterns recognized
+- [x] Patterns recognized (via elf_match plugin)
 - [ ] Metadata published
 - [ ] <5ms analysis latency
 
@@ -370,11 +402,11 @@ p7c v7.start amos-term-3d
 
 | Phase | Week | Status | Notes |
 |-------|------|--------|-------|
-| 0: Research | 0 | ✅ | Code reuse map, nshell study |
-| 1: 3D Buffer | 1-2 | 🟡 | SHM core, cursor curves done |
-| 2: GTK3 Display | 3-4 | ⬜ | Visual rendering |
-| 3: Terminal | 5-6 | ⬜ | Input/output |
-| 4: Decoder | 7-8 | ⬜ | Pattern analysis |
+| 0: Research | 0 | ✅ | Code reuse map, nshell study, v7 patterns |
+| 1: 3D Buffer | 1-2 | ✅ | Cursor curves, 8×7×13 grid, config |
+| 2: GTK3 Display | 3-4 | ✅ | protocol.amos_term, window mgmt, plugins |
+| 3: Terminal | 5-6 | 🟡 | nshell integration, buffer I/O |
+| 4: Decoder | 7-8 | 🟡 | Pattern analysis (v7-inspired) |
 | 5: Data Coupling | 9 | ⬜ | FUSE/sync |
 | 6: Integration | 10 | ⬜ | E2E testing |
 
@@ -403,8 +435,8 @@ p7c v7.start amos-term-3d
 ---
 *Signature: 7VNKDBUU6DTBNJ2OK7EMV3WTD72AHBLQTAGMKOIKBZJI2NXDZOBQ*
 
-#,,.,,.,.,,.,,,..,...,...,,.,,,,.,.,,,,,,,,.,,..,,...,...,,..,,.,,,.,,,.,,.,.,
-#R65VNEBK4XOI6WB7RP5XHZHMNYADUFC55XAJMXSNH3X4NZSEN52HMR5I3CSO4HV2U224WBPWTSXBW
-#\\\|WFEHF2PYEVORKC2DGLFULAQSHLPSNVVSFHP3OVH64CYM7QZ3LW6 \ / AMOS7 \ YOURUM ::
-#\[7]2SU2SNSEW243X6ZX5B2UKPSRKFE3DRNFZ7Z6LTVOO6C6LV2XV4AA 7  DATA SIGNATURE ::
+#,,,.,,,.,..,,.,,,.,.,,.,,,,.,.,.,.,.,,,.,,..,..,,...,...,...,,.,,,..,,,.,.,.,
+#JF4W56JZERVOJGSM3O7BK7HUCBVBB7ATL63NXDERIMGLZSEG3FPPIEI3IWSTA37YQDBDPRLHWT3XU
+#\\\|EWEM3SLOFLCFECQZOSNUUTVGXDGIYHSBH2SFDY2DJHWFE4ANSPV \ / AMOS7 \ YOURUM ::
+#\[7]FEUUSNCUTPWKPWRHOBK5GE4BY7XHKZPAOOQST3ER43VAWIYFR2BI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

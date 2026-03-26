@@ -1,0 +1,55 @@
+## [:< ##
+
+# name  = amos-term.decoder.scan_buffer
+# descr = Scan 3D buffer layer and trigger pattern matches
+
+my ( $window_id, $layer_z ) = @ARG;
+
+$layer_z //= 0;    # default to surface layer
+
+my $window = <amos-term.windows.by_id>->{$window_id};
+return undef unless defined $window;
+
+my $buffer  = $window->{'buffer'};
+my $amos_id = $window->{'amos_id'};
+
+## === extract layer data from SHM buffer === ##
+my $layer_data = <[amos-term.buffer.get_layer]>->( $window_id, $layer_z );
+return undef unless defined $layer_data;
+
+## === scan patterns === ##
+my $patterns      = <amos-term.decoder.patterns> // {};
+my $matches_found = 0;
+
+foreach my $pattern_name ( keys %$patterns ) {
+    my $pattern_refs = $patterns->{$pattern_name};
+
+    foreach my $regex ( keys %$pattern_refs ) {
+        my $handler = $pattern_refs->{$regex};
+
+        # Scan layer data for pattern
+        while ( $layer_data =~ m{($regex)}g ) {
+            my @matches = ( $1, $2, $3, $4, $5, $6, $7, $8, $9 );
+
+            # Call handler with context
+            eval { $handler->( $window_id, $amos_id, $layer_z, @matches ); };
+
+            if ($@) {
+                <[base.logs]>->( 0, ":: decoder error: %s", $@ );
+            } else {
+                $matches_found++;
+            }
+
+            # Prevent infinite loop on zero-width matches
+            pos($layer_data) = pos($layer_data) + 1;
+        }
+    }
+}
+
+return $matches_found;
+
+#,,.,,.,.,..,,..,,,.,,,.,,,,.,,,,,,,,,.,.,...,.,.,...,...,.,,,.,.,...,,..,.,.,
+#HGLATMZTHAAL6T2DTO323J7WELRF4YTBPDAPWQ6B7DTPO3MKZXMIFV7BZGFE4P6MDBRWGKQBLDSIC
+#\\\|AS4QTQMUHXLOQXQG6VMJO4OWINDFV6HCUDSPHHMHN7WT7U2NY3Q \ / AMOS7 \ YOURUM ::
+#\[7]EOAZJPWVEIJ7JNLQIAP7C242ZTUQVFCA7N3ZREPQK4FR36AV3KCI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

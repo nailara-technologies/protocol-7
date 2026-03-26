@@ -1,0 +1,17 @@
+## [:< ##
+
+# name  = amos-term.session.set_state
+# descr = Update amos-term session to new protocol state
+
+my ( $session_id, $new_state ) = @ARG;
+
+## use base.session.init_state for proper protocol state transition ##
+my $result = <[base.session.init_state]>->( $session_id, $new_state );
+
+return $result ? $new_state : undef;
+
+#,,.,,.,,,,,.,,,,,...,,,,,..,,,.,,,.,,.,.,...,.,.,...,...,.,.,,.,,,,,,.,.,,,,,
+#D5BDHD2K4ZATWP2GTAOEFGPY5KGOHXP676UZYIZ4FS5TAP64VS6WNXUU7KUGBWSEAQ5JCDYU5WMIA
+#\\\|OFKYP6PYYPPLXT3XMRAYRROURACSUBYG4JK5U2BLDOHHMIZHQIF \ / AMOS7 \ YOURUM ::
+#\[7]LRVZG5FF5WJW2CEVCBD7XDBVYPZ5KN5HM2XMAC4XVS4BLWYSCOCI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
