@@ -13,15 +13,12 @@ my $fullscreen = $params->{'fullscreen'} // FALSE;
 my $alpha      = $params->{'alpha'}      // <amos-term.cfg.default_alpha>;
 
 ## === generate AMOS checksum ID === ##
-my $timestamp = <[base.time]>->(5);       # LLL ntime
-my $seed_data = sprintf( '%s:%s:%s:%d',
-    $client_name, $timestamp, <system.zenka.name>, $$ );
-
-my $bmw_hash = <[chk-sum.bmw.filesum]>->( 256, \$seed_data );
-my $amos_id  = uc( substr( $bmw_hash, 0, 10 ) );    # 42-bit AMOS identifier
-
-$amos_id =~ s/[^A-Z2-7]//g;                         # AMOS7 alphabet only
-$amos_id = sprintf( '%010s', $amos_id );
+my $timestamp = <[base.time]>->(3);
+## simple AMOS ID: T + timestamp + counter ##
+my $amos_id = sprintf( 'T%09d%01d',
+    $timestamp % 1000000000,
+    <amos-term.windows.count> % 10 );
+$amos_id = uc( substr( $amos_id . 'K9M2P7L4N8', 0, 10 ) );
 
 ## === check for name collision === ##
 if ( exists <amos-term.windows.by_name>->{$client_name} ) {
@@ -31,8 +28,9 @@ if ( exists <amos-term.windows.by_name>->{$client_name} ) {
 
 if ( exists <amos-term.windows.by_amos>->{$amos_id} ) {
     ## rare collision - append counter ##
-    $amos_id = uc( substr( $bmw_hash, 0, 9 ) )
-        . sprintf( '%01X', <amos-term.windows.count> % 16 );
+    $amos_id = sprintf( '%09s%01X',
+        substr( $amos_id, 0, 9 ),
+        <amos-term.windows.count> % 16 );
 }
 
 ## === create session === ##
@@ -115,8 +113,8 @@ $data{'session'}->{$session_id}->{'amos_id'} = $amos_id;
 ## === return window reference === ##
 return wantarray ? ( $session_id, $amos_id ) : $session_id;
 
-#,,,.,.,,,,,,,,,,,..,,..,,..,,,,,,...,,,.,.,,,.,.,...,...,...,,,,,,.,,,.,,.,.,
-#QSBXPOCL6PSBKOHFC736H6DOA5B33UGOC7OT7PMZTAKAYWNQIR2G4QKZZQO7SDM2A3AISMOG2VJK6
-#\\\|LKPCZ2SJOIH43BKXRB3VZLUX47EA6AFTRLSIZGQRRIMXVF53YNL \ / AMOS7 \ YOURUM ::
-#\[7]AW7GTKUKGLMIMBUUK7FEZCMTDSXFOW6WOJJC4RFKLAHVQOGEN6AA 7  DATA SIGNATURE ::
+#,,,.,.,,,,.,,,,.,,.,,..,,,,,,,,.,,..,..,,,..,.,.,...,...,...,,..,...,.,.,,,,,
+#V7I74IYQXIFTC6N6ESTRQQ65SCJTKWMAUGMVQSUQHY26THUMQ3WZOKFKWI7KM4JKIEKFDW74WD7AI
+#\\\|NNQB3CCIT2CR3SSWGY2YTPCAUB3OMI3HS5V2RCS3I557WFB4DDM \ / AMOS7 \ YOURUM ::
+#\[7]ESIATFKM6SP52JXI32WSWYUW6O7UZHBYPNXC43RALBPNI7IQ3ABI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

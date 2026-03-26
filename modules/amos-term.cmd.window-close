@@ -5,16 +5,25 @@
 
 my $amos_id = shift;
 
-return "Error: AMOS ID required\n" unless defined $amos_id;
+return {
+    qw| mode | => qw| immediate |,
+    qw| data | => "Error: AMOS ID required\n"
+    }
+    unless defined $amos_id;
 
 my $result = <[amos-term.window-close]>->("amos:$amos_id");
 
-return $result
-    ? "Window closed (buffer preserved)\n"
-    : "Error: close failed\n";
+return {
+    qw| mode | => qw| immediate |,
+    qw| data | => (
+        $result
+        ? "Window closed (buffer preserved)\n"
+        : "Error: close failed\n"
+    )
+};
 
-#,,,.,...,,..,,,.,,,,,,.,,,,,,,,.,,..,,,.,,,,,.,.,...,...,,.,,.,,,,..,,,,,.,.,
-#ZKS2KZ72WR4UNDH4MLZQILIVASJ3RWPZ5UL4EWLKIQKWAPHQ4CFEMMJQQJBBQ2GPGBNJRMDHPPI3C
-#\\\|LZ2W4L6HWQ2LWL6TEKB4PZDXVV5JYXZ5AY3XMZOM47FAJ4SYWXB \ / AMOS7 \ YOURUM ::
-#\[7]ZLCHIRULH2TM23KDY7KA3SKGVDGKBUQ5JVG4EVBYP3GNFYPI36CQ 7  DATA SIGNATURE ::
+#,,,.,,,,,,.,,,,.,.,.,,.,,,.,,,,,,,..,..,,,..,.,.,...,...,,.,,,..,,..,,..,,,.,
+#7TDQPW2CRJ25I6MUBYR54AAJVJKDTC4JOY475YWYETJ7WRTRUT6I4N2J6V3C34PI6J63AEUFHJMWO
+#\\\|ZL466Z3UVCJZRSGXQIU6YMGSYIROZI64BSUKJNWUSTKM7ZOVS5E \ / AMOS7 \ YOURUM ::
+#\[7]O4AC6ZWUMDVUBKKADJ3VAI5ZRMPHKBHPB2CTEFIWE3DLYIUAVUCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
