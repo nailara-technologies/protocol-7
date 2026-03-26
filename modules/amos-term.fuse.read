@@ -1,0 +1,59 @@
+## [:< ##
+
+# name  = amos-term.fuse.read
+# descr = FUSE read handler for 3D terminal buffers
+
+my ( $file_path, $offset, $length, $amos_id ) = @ARG;
+
+$file_path =~ s|^/||;
+my $window = <[amos-term.fuse.get_window]>->($amos_id);
+return -ENOENT() unless defined $window;
+
+my $content;
+
+## === Z-layers (binary voxel data) === ##
+if ( $file_path =~ m{^z-(\d+)$} ) {
+    my $z = $1;
+    return -ENOENT() if $z < 0 or $z > 12;
+
+    my $layer_data
+        = <[amos-term.buffer.get_layer]>->( $window->{'session_id'}, $z );
+    $content = $layer_data // ( "\0" x <amos-term.fuse.layer_size> );
+}
+
+## === metadata (JSON) === ##
+elsif ( $file_path eq 'metadata' or $file_path eq 'metadata.json' ) {
+    $content = <[amos-term.fuse.build_metadata]>->($window);
+}
+
+## === cursor position === ##
+elsif ( $file_path eq 'cursor' or $file_path eq 'cursor.txt' ) {
+    my $cursor = $window->{'buffer'}->{'cursor'};
+    $content = sprintf( "%d,%d,%d\n",
+        $cursor->{'x'}, $cursor->{'y'}, $cursor->{'z'} );
+}
+
+## === attachments list === ##
+elsif ( $file_path eq 'attachments' or $file_path eq 'attachments.txt' ) {
+    my @attach = $window->{'attachments'} ? $window->{'attachments'}->@* : ();
+    $content = join( "\n", @attach ) . ( @attach ? "\n" : '' );
+
+} else {
+    return -ENOENT();
+}
+
+## === return requested slice === ##
+my $total_len = length($content);
+$offset = 0 if $offset < 0;
+return '' if $offset >= $total_len;
+
+my $remaining = $total_len - $offset;
+$length = $remaining if $length > $remaining;
+
+return substr( $content, $offset, $length );
+
+#,,.,,.,,,,..,.,,,..,,.,.,,,,,...,..,,,.,,.,.,.,.,...,...,,..,,..,,,.,,.,,..,,
+#E4H5X4TWSUCH53YKSFO4M6ASDQ6FYSRWT62ZAEWQ3DB3VHH5455XBORSYSB7EMZ3RCLSHOW33BFQI
+#\\\|V7SAVG44ZZKPGC5N6MCGAV6R7IM3FWSB756E6NTCTDXEY4Q3UBK \ / AMOS7 \ YOURUM ::
+#\[7]BWW6NBD3BSK6ENLRCFIEQ4P6WP35YCLIHLPER4GQZS2TV5DGJACI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

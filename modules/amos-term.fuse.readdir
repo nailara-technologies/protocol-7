@@ -1,0 +1,40 @@
+## [:< ##
+
+# name  = amos-term.fuse.readdir
+# descr = FUSE readdir handler for 3D terminal buffers
+
+my ( $dir_path, $amos_id ) = @ARG;
+
+$dir_path =~ s|^/||;
+return -ENOENT() unless $dir_path eq '' or $dir_path eq '.';
+
+my $window = <[amos-term.fuse.get_window]>->($amos_id);
+return -ENOENT() unless defined $window;
+
+## === build directory listing === ##
+my @entries = ( '.', '..' );
+
+## === symlink to current Z layer === ##
+push @entries, 'current';
+
+## === Z-layers (z-0 to z-12) === ##
+for my $z ( 0 .. 12 ) {
+    push @entries, "z-$z";
+}
+
+## === metadata === ##
+push @entries, 'metadata';
+
+## === cursor position === ##
+push @entries, 'cursor';
+
+## === attachments list === ##
+push @entries, 'attachments';
+
+return ( @entries, 0 );    # 0 = success
+
+#,,,,,,..,..,,..,,...,,,.,...,.,.,,,,,...,.,.,.,.,...,...,...,.,,,,.,,,.,,.,.,
+#ZQI5X77V7VL7OKK6Y2OWXRHC73KJSF4CKRJ3ZR2YEFAO2FFTRGJBF3QEEQUZ6Q656KWPTBBPV2VTU
+#\\\|GMKZRB3VCTAE3P4M2U6CWH2V5JAJMKTASBRRDHPU3M53ZVWXWA3 \ / AMOS7 \ YOURUM ::
+#\[7]XJMJEOJRX6RCESTMQDGGMT5ZRPMO36HJ4T54PZYSI2YKSUH2WWDA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
