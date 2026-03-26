@@ -64,8 +64,7 @@ $data{'devmod'} //= {};
 
 {
     no warnings qw| redefine |;
-    *main::dump_var
-        = $code{'base.devmod.dump_var'}
+    *main::dump_var = $code{'base.devmod.dump_var'}
 }
 
 ## skipping p7-log.append commands in log level 2 devmod output ##
@@ -283,7 +282,7 @@ if ( defined <setup.aliases> ) {
 ## pack identity anchor as hashref matching base.indexcube.push format ##
 ## [ cannot call base.indexcube.push here — chk-sum swap not yet applied ] ##
 if ( scalar(@INDEXCUBE) == 0 ) {
-    my $p7ref = <[base.p7ref.self]>->();
+    my $p7ref = <[base.p7ref.self]>;
     push @INDEXCUBE, {
         'p7ref'     => $p7ref,
         'timestamp' => <[base.time]>->(5),
@@ -294,8 +293,8 @@ if ( scalar(@INDEXCUBE) == 0 ) {
 
 return FALSE;
 
-#,,,.,,,,,,..,.,.,,..,..,,,..,...,.,,,.,.,.,.,..,,...,...,..,,...,,.,,,.,,..,,
-#DB3QJ2QTJWLOWTESTJ4YZHJABHW3UFC7XFIYJ5SQHHYLQQVG3XRVCBPSFMPXYY3SP3OC2ABPP72QE
-#\\\|GGSLOF6JB42NTCYYL5GXZVOTFD3OF7BHMLX7DJTDIKQSOUMCL7E \ / AMOS7 \ YOURUM ::
-#\[7]PQRXTCTJAJMF4EQXBOFUZXFGO62ILIWIWQNWHYLEOJ3TGMFETWAI 7  DATA SIGNATURE ::
+#,,,,,..,,,.,,...,.,,,.,.,,..,...,,,,,,,.,...,..,,...,...,...,,..,,,,,..,,,..,
+#4ERVGGGYRYE6DKOQVRJGBPZKXIIW543TKV7LKMQL5K3YBIZ34ZCOSEMB53OYM34IUJLENHUIXL7JQ
+#\\\|FBMOTNFXCLJQLRAUGOIFBGELH54WHQ66BQELTX5BWSEEEZQHOPO \ / AMOS7 \ YOURUM ::
+#\[7]NBOFMKETSX7Q5DYQ6CQQFXIDCXKXASC73Q5MN7TQQXSWENVPTWCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
