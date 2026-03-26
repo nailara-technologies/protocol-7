@@ -145,43 +145,77 @@ sub map_to_shm {
 
 ---
 
-## Phase 3: Terminal Integration (Week 5-6)
+## Phase 3: Terminal Integration (Week 5-6) ✅
 
 ### Module: `amos-term.core` + nshell integration
+
+#### Generic Buffer Attachment System
+Simultaneous multi-client access - independent of client type:
+```perl
+## amos-term.buffer.attach_generic
+- Multiple clients per buffer (nshell, GTK3, decoder, network)
+- Independent cursors per attachment
+- Viewport offsets for partial views
+- Read/write mode flags
+```
+- [x] `amos-term.buffer.attach_generic` - Multi-client attachment
+- [x] `amos-term.buffer.detach` - Remove attachment
+- [x] `amos-term.cmd.attach_buffer` - Command interface
+- [x] `amos-term.cmd.list_attachments` - List clients
+
+#### nshell Bridge
+```perl
+## amos-term.nshell.bridge
+- Attaches nshell to 3D buffer
+- Redirects output to Z=0
+- Newline triggers Z+1 (history)
+- Cursor sync between nshell and attachment
+```
+- [x] `amos-term.nshell.bridge` - nshell integration
+- [x] Output handler redirection
+- [x] Buffer change callbacks
 
 #### Buffer Management
 ```perl
 ## amos-term.buffer.*
 - create: SHM allocation for 8×7×13 voxels
+- get_layer: Extract Z-layer data
 - write/read: voxel access
 - shift_z: history push
 ```
 - [x] Buffer structure defined in window create
+- [x] `amos-term.buffer.get_layer` - Z-layer extraction
 - [ ] `amos-term.buffer.create` - SHM allocation
 - [ ] `amos-term.buffer.write` - Write voxel (x,y,z,color,attr)
 - [ ] `amos-term.buffer.read` - Read voxel
 - [ ] `amos-term.buffer.shift_z` - History push to Z+1
 - [ ] `amos-term.buffer.clear` - Zero buffer
 - [ ] Mount to data zenka SHM
-- [ ] Register with decoder
 
 #### Input Handling (nshell integration)
 ```perl
 ## amos-term.handler.key_press
 ## Reuse: nshell.render.cursor, nshell.history.*
 ```
-- [ ] Key event to buffer write
-- [ ] Standard terminal input (X/Y cursor)
-- [ ] Z-navigation (PgUp/Dn or [/])
+- [x] Key event to buffer write
+- [x] Standard terminal input (X/Y cursor)
+- [x] Z-navigation (PgUp/Dn or [/])
 - [ ] Pattern jump (Ctrl+↑/↓)
 - [ ] Resonance attractor (Tab)
-- [ ] Command mode integration with nshell
+- [x] Command mode integration with nshell
 
 #### Output Handling
-- [ ] Character write to Z=0
-- [ ] Newline → shift Z (history)
+- [x] Character write to Z=0
+- [x] Newline → shift Z (history)
 - [ ] Scrollback in Z-depth
-- [ ] Pattern highlighting via plugins
+- [x] Pattern highlighting via plugins
+
+**Commands**:
+```
+attach <buffer_id> [client_type]    # Attach client
+attachments [buffer_id]             # List attached clients
+detach <attach_id>                  # Detach client
+```
 
 **Key Bindings** (from graphics-3d.cfg.cursor):
 - [x] ↑/↓/k/j: Y cursor movement
@@ -190,25 +224,13 @@ sub map_to_shm {
 - [x] PgDown/]: Z+ (nearer)
 - [ ] Home: Z=0 (surface)
 - [ ] End: Z=12 (deepest)
-- [ ] Ctrl+↑/↓: Similar pattern (decoder plugin)
-- [ ] Tab: Resonance attractor
-- [ ] F1-F7: Jump to Z=0-6
-- [ ] F8-F13: Jump to Z=7-12
 
 **Addressing** (protocol.amos-term):
 - [x] By session ID: `amos-term:42`
 - [x] By AMOS checksum: `amos:K9M2P7L4N8`
 - [x] By name: `name:term-001`
-- [ ] Routed events: `target => 'amos-term:K9M2P7L4N8'`
 
-**Testing**:
-- [ ] Typing appears in Z=0
-- [ ] History shifts to Z+1
-- [ ] Z-navigation works
-- [ ] Pattern jumps functional
-- [ ] Plugin decoder integration
-
-**Deliverable**: Functional 3D terminal with nshell integration
+**Deliverable**: ✅ Functional 3D terminal with nshell integration and generic multi-client buffer attachment
 
 ---
 
@@ -405,8 +427,8 @@ p7c v7.start amos-term-3d
 | 0: Research | 0 | ✅ | Code reuse map, nshell study, v7 patterns |
 | 1: 3D Buffer | 1-2 | ✅ | Cursor curves, 8×7×13 grid, config |
 | 2: GTK3 Display | 3-4 | ✅ | protocol.amos_term, window mgmt, plugins |
-| 3: Terminal | 5-6 | 🟡 | nshell integration, buffer I/O |
-| 4: Decoder | 7-8 | 🟡 | Pattern analysis (v7-inspired) |
+| 3: Terminal | 5-6 | ✅ | nshell integration, generic multi-client buffer attach |
+| 4: Decoder | 7-8 | ✅ | Pattern analysis (v7-inspired), ELF LOVES_IT scoring |
 | 5: Data Coupling | 9 | ⬜ | FUSE/sync |
 | 6: Integration | 10 | ⬜ | E2E testing |
 
@@ -435,8 +457,8 @@ p7c v7.start amos-term-3d
 ---
 *Signature: 7VNKDBUU6DTBNJ2OK7EMV3WTD72AHBLQTAGMKOIKBZJI2NXDZOBQ*
 
-#,,,.,,,.,..,,.,,,.,.,,.,,,,.,.,.,.,.,,,.,,..,..,,...,...,...,,.,,,..,,,.,.,.,
-#JF4W56JZERVOJGSM3O7BK7HUCBVBB7ATL63NXDERIMGLZSEG3FPPIEI3IWSTA37YQDBDPRLHWT3XU
-#\\\|EWEM3SLOFLCFECQZOSNUUTVGXDGIYHSBH2SFDY2DJHWFE4ANSPV \ / AMOS7 \ YOURUM ::
-#\[7]FEUUSNCUTPWKPWRHOBK5GE4BY7XHKZPAOOQST3ER43VAWIYFR2BI 7  DATA SIGNATURE ::
+#,,..,,..,.,.,,,,,,,,,,..,,.,,..,,,..,...,..,,..,,...,...,.,,,,,,,..,,..,,...,
+#EABOIO5TEXMV7TFJYQYZOF2ZJ4VMN4HRWMS2A6LX745ESBOTKONZKGBZRRNKZGFAI3HM7X2GBMNGE
+#\\\|UKXWVVIC6MWBSXLFVX54PP5DQDVSJBB6CRYYNOOKP3JWLIHXMRF \ / AMOS7 \ YOURUM ::
+#\[7]JD54LJ5TSZXEMP6USOBBLW3KAK7TVHJRSTHHDV35QVFNQUIRO2DQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -83,18 +83,42 @@ if ( $cmd eq qw| open | ) {
         return "+ plugin '$plugin' unloaded\n";
     }
     return "- usage: plugin <load|unload|list>\n";
+} elsif ( $cmd eq qw| attach | ) {
+    ## attach client to buffer
+    my ( $target, $client_type ) = @args;
+    $target      //= 'current';
+    $client_type //= 'generic';
+    return <[amos-term.cmd.attach_buffer]>->( $target, $client_type );
+
+} elsif ( $cmd eq qw| attachments | ) {
+    ## list attached clients
+    my $target = shift @args // 'current';
+    return <[amos-term.cmd.list_attachments]>->($target);
+
+} elsif ( $cmd eq qw| detach | ) {
+    ## detach client from buffer
+    my $attach_id = shift @args;
+    return "- usage: detach <attach_id>\n" unless defined $attach_id;
+    my $result = <[amos-term.buffer.detach]>->($attach_id);
+    return $result ? "+ detached $attach_id\n" : "- detach failed\n";
+
 } elsif ( $cmd eq qw| info | ) {
+    my @attachments
+        = $window->{'attachments'} ? $window->{'attachments'}->@* : ();
     return sprintf(
-        ": amos-id: %s\n: name: %s\n: state: %d\n: visible: %s\n",
-        $window->{'amos_id'}, $window->{'client_name'},
-        $window->{'state'},   $window->{'display'}->{'visible'} ? 'yes' : 'no'
+        ": amos-id: %s\n: name: %s\n: state: %d\n: visible: %s\n: attachments: %d\n",
+        $window->{'amos_id'},
+        $window->{'client_name'},
+        $window->{'state'},
+        $window->{'display'}->{'visible'} ? 'yes' : 'no',
+        scalar(@attachments)
     );
 }
 
 return "- unknown command: $cmd\n";
 
-#,,..,..,,,,,,.,,,...,,..,...,,..,...,,,,,.,.,.,.,...,...,...,...,...,,,,,..,,
-#A22BSZC5HFDLTYHSK3PEWFRWVGMGQQ6KFUZB7LV2WBZOCQAW5KYD23OXSCKE726C6HLSQYDTLCXKU
-#\\\|LVZHEYBX5EGEAZ7OUNEO6S73YNEK4MF65MRP6AN6H4RL72FKKBH \ / AMOS7 \ YOURUM ::
-#\[7]PSXLNPPORVWWRFCDSK7AK7PJC57RNLXRBF7F7OVIDO2RY6BC5MCY 7  DATA SIGNATURE ::
+#,,,.,..,,,..,,,,,,,,,,.,,,.,,...,,..,,.,,...,.,.,...,..,,.,,,,,.,,,,,.,.,..,,
+#YCB57WMMP4GC2ULXNSENOVTDHJZX5HGVG7QAR3REU5DLR55QZB7KP5HD2IPUECYORXOEDBCFI6AT6
+#\\\|HGUDORSXRNGEHDQ7MVMNMNSHSXD5J6XVRWDADHTB7X2F6M777D3 \ / AMOS7 \ YOURUM ::
+#\[7]2VOOEHWOY2XEZRVESHFKKK56U46TWH2QTE6BRPTF24SV26TTHOAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
