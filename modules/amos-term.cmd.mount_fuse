@@ -3,43 +3,54 @@
 # name  = amos-term.cmd.mount_fuse
 # descr = Mount 3D buffer as FUSE filesystem
 
-my ( $buffer_id, $mount_point ) = @ARG;
+my $args = $$call{'args'} // '';
+my ( $buffer_id, $mount_point ) = split /\s+/, $args;
+$buffer_id =~ s/^\s+|\s+$//g if defined $buffer_id;
 
 ## === resolve buffer === ##
 my $window;
-if ( $buffer_id =~ m{^amos:([A-Z2-7]{10})$}i ) {
+if ( $buffer_id =~ m{^amos:([A-Z0-9]{10})$}i ) {
     my $amos_id = uc($1);
     my $sid     = <amos-term.windows.by_amos>->{$amos_id};
-    return "Error: buffer not found\n" unless defined $sid;
+    return { 'mode' => 'false', 'data' => 'buffer not found' }
+        unless defined $sid;
     $window = <amos-term.windows.by_id>->{$sid};
     $mount_point //= <amos-term.fuse.mount_base> . "/$amos_id";
 } elsif ( $buffer_id =~ m{^name:(.+)$} ) {
     my $name = $1;
     my $sid  = <amos-term.windows.by_name>->{$name};
-    return "Error: buffer '$name' not found\n" unless defined $sid;
+    return { 'mode' => 'false', 'data' => "buffer '$name' not found" }
+        unless defined $sid;
     $window = <amos-term.windows.by_id>->{$sid};
     $mount_point //= <amos-term.fuse.mount_base> . "/" . $window->{'amos_id'};
 } else {
     $window = <amos-term.windows.by_id>->{$buffer_id};
-    return "Error: buffer not found\n" unless defined $window;
+    return { 'mode' => 'false', 'data' => 'buffer not found' }
+        unless defined $window;
     $mount_point //= <amos-term.fuse.mount_base> . "/" . $window->{'amos_id'};
 }
 
 ## === check FUSE availability === ##
 if ( not <data.fuse.capabilities.available> ) {
-    return "Error: FUSE not available (install Fuse.pm)\n";
+    return {
+        'mode' => 'false',
+        'data' => 'FUSE not available (install Fuse.pm)'
+    };
 }
 
 ## === ensure mount point exists === ##
 if ( not -d $mount_point ) {
     require File::Path;
     File::Path::make_path($mount_point)
-        or return "Error: cannot create mount point $mount_point\n";
+        or return {
+        'mode' => 'false',
+        'data' => "cannot create mount point $mount_point"
+        };
 }
 
 ## === check if already mounted === ##
 if ( exists <amos-term.fuse.mounts>->{$mount_point} ) {
-    return "Error: already mounted at $mount_point\n";
+    return { 'mode' => 'false', 'data' => "already mounted at $mount_point" };
 }
 
 ## === spawn FUSE filesystem === ##
@@ -51,7 +62,7 @@ my $amos_id = $window->{'amos_id'};
 my $pid = fork();
 
 if ( not defined $pid ) {
-    return "Error: fork failed\n";
+    return { 'mode' => 'false', 'data' => 'fork failed' };
 }
 
 if ( $pid == 0 ) {
@@ -79,10 +90,15 @@ if ( $pid == 0 ) {
     qw| mounted | => <[base.time]>->(3),
 };
 
-return sprintf( "Mounted %s at %s (pid %d)\n", $amos_id, $mount_point, $pid );
+return {
+    'mode' => 'size',
+    'data' => sprintf(
+        "Mounted %s at %s (pid %d)\n", $amos_id, $mount_point, $pid
+    )
+};
 
-#,,,.,,,,,,..,,..,...,,..,,,.,...,,,.,,..,..,,.,.,...,...,...,..,,.,.,,.,,..,,
-#6U32D4ALZQF5IYKUWTPJXVEXRZDYZRKPFWCXAJOZEQJZ2CQ652FN3WIBWUJN57UM4HAG7ERP6B5Y6
-#\\\|ZNCNJEKMYAEI34OETETYPDAKY7MBBURNR47XC3FZQYTH2W36QJU \ / AMOS7 \ YOURUM ::
-#\[7]IRRFRQ2LXCDYTQYR7LCYCEY3BY7JT52LKLBUMFLBGG4EXG3TRMDY 7  DATA SIGNATURE ::
+#,,..,.,,,,.,,.,.,,..,,.,,.,.,.,.,,..,,,.,.,.,.,.,...,...,..,,...,.,.,.,.,.,,,
+#JQMRPVOEUQRUAE3XZTTUZKEEUS6TE6EOVNKDXC3DPYPG5GA65JPWGDLMVDNXVBFRL2DA3RQLHHSUQ
+#\\\|IQRZ2AGS2SAEDSUE3V44YZSEUWL7FYKCEQWXYW4S6CPOPVESHTC \ / AMOS7 \ YOURUM ::
+#\[7]EOXHUBDLRRRSH3DQNZTBFON2CPIM5LFGRHPCNES3IQ2DR22FGOBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

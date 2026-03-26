@@ -7,7 +7,7 @@ my $mount_point = $$call{'args'};
 $mount_point =~ s/^\s+|\s+$//g if defined $mount_point;
 
 ## === if AMOS ID provided, lookup mount point === ##
-if ( $mount_point =~ m{^amos:([A-Z2-7]{10})$}i ) {
+if ( $mount_point =~ m{^amos:([A-Z0-9]{10})$}i ) {
     my $amos_id = uc($1);
     ## find mount point for this AMOS ID
     foreach my $mp ( keys <amos-term.fuse.mounts>->%* ) {
@@ -18,11 +18,15 @@ if ( $mount_point =~ m{^amos:([A-Z2-7]{10})$}i ) {
     }
 }
 
-return "Error: mount point not found\n" unless defined $mount_point;
+return { 'mode' => 'false', 'data' => 'mount point not found' }
+    unless defined $mount_point;
 
 ## === check if we have this mount === ##
 my $mount_info = <amos-term.fuse.mounts>->{$mount_point};
-return "Error: not an amos-term mount: $mount_point\n"
+return {
+    'mode' => 'false',
+    'data' => "not an amos-term mount: $mount_point"
+    }
     unless defined $mount_info;
 
 ## === kill the FUSE process === ##
@@ -37,10 +41,13 @@ delete <amos-term.fuse.mounts>->{$mount_point};
 
 <[base.logs]>->( 2, "[FUSE] unmounted %s from %s", $amos_id, $mount_point );
 
-return sprintf( "Unmounted %s from %s\n", $amos_id, $mount_point );
+return {
+    'mode' => 'size',
+    'data' => sprintf( "Unmounted %s from %s\n", $amos_id, $mount_point )
+};
 
-#,,..,.,.,,..,..,,,,.,,.,,...,.,,,...,.,.,..,,.,.,...,...,,..,,,,,...,.,.,,..,
-#JD2YZ2JWELWKVM724NOVSRQD2BNZUDN2MSER4DWWLAD53YQX73S26SX6ZTGZNHEW6K3GBQC3OFDPW
-#\\\|WUKRW2GF2DK4OMT3X7JSAOKBPXNHZTQG3O5GVLDJITM4IRM55CJ \ / AMOS7 \ YOURUM ::
-#\[7]4VPJLBPORGML6WOOGCOM32TFMTPMQLZOUFGA3IUNTSFTZJMTWYBQ 7  DATA SIGNATURE ::
+#,,..,.,,,...,.,,,,,,,..,,,.,,,..,,,.,,.,,,.,,.,.,...,...,,,.,...,...,...,.,,,
+#LCL6N3LMUOFLGVQWZO6KCMCIQ74O3HZIQWZNP2PLXXKGWJM6YUQ5UMLIEG3F7JNXQHWEC36RXLTZM
+#\\\|7CHQ5G2SJDPHQIH7RF3VDTKVOJ5GLPKCHWO2EXT5VZQIWR7E2NJ \ / AMOS7 \ YOURUM ::
+#\[7]FGSNSUS2UYLJVZVZC2I3LO6TDYX2TAONJY5KQMUH2RVZYZ2QV6BY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

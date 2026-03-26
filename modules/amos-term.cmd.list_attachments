@@ -11,23 +11,26 @@ my $window;
 if ( $buffer_id eq 'current' ) {
     ## use nshell's current attachment ##
     my $nshell_amos = <nshell.state>->{'amos_term'}->{'amos_id'};
-    return "Error: no current buffer attachment\n"
+    return { 'mode' => 'false', 'data' => 'no current buffer attachment' }
         unless defined $nshell_amos;
     $window = <amos-term.windows.by_id>
         ->{ <amos-term.windows.by_amos>->{$nshell_amos} };
-} elsif ( $buffer_id =~ m{^amos:([A-Z2-7]{10})$}i ) {
+} elsif ( $buffer_id =~ m{^amos:([A-Z0-9]{10})$}i ) {
     my $amos_id = uc($1);
     my $sid     = <amos-term.windows.by_amos>->{$amos_id};
-    return "Error: buffer not found\n" unless defined $sid;
+    return { 'mode' => 'false', 'data' => 'buffer not found' }
+        unless defined $sid;
     $window = <amos-term.windows.by_id>->{$sid};
 } else {
     $window = <amos-term.windows.by_id>->{$buffer_id};
 }
 
-return "Error: buffer not found\n" unless defined $window;
+return { 'mode' => 'false', 'data' => 'buffer not found' }
+    unless defined $window;
 
 ## === list attachments === ##
-my @attachments = $window->{'attachments'}->@*;
+my @attachments
+    = $window->{'attachments'} ? $window->{'attachments'}->@* : ();
 
 my $output = sprintf(
     "Buffer: %s [%s]\n%d active attachment(s):\n",
@@ -50,10 +53,10 @@ foreach my $attach_id (@attachments) {
     );
 }
 
-return $output;
+return { 'mode' => 'size', 'data' => $output };
 
-#,,,,,,,.,,,,,,,,,,,,,,,.,.,.,,,.,,,.,,,,,..,,.,.,...,...,...,,,.,,.,,.,.,.,.,
-#KMFXEFC7RWIFH3QM54IXCSMN7FANCOJDWOUWUK7MJWXOTNOCM3KF7WCLUIYCZ2BZRJUAMJNIIYA7Q
-#\\\|36V5N7C74Y55CZB3FAQPNNMB37KIQGVVU2GI34U2IBJ6KGLJQBF \ / AMOS7 \ YOURUM ::
-#\[7]U7VZOGMFYZSYJAL3IDEDWRACHLEMAPA4CNQWD4ELFRKORGLVAIBA 7  DATA SIGNATURE ::
+#,,,.,,,,,...,,.,,,,.,...,,..,...,,,.,,..,.,,,.,.,...,...,..,,,..,...,,,,,...,
+#VT2AUYQL6XFWWHFAVF7UMLZVK4X7VVMINZ4AQFJRMQFAKHW4NKDJDFHU4CWRNS4WOWWNZWCBW5H5W
+#\\\|6GYOPLZIAIBZKQVX6ERVUP3LCUHQF6UTI3A7UC6I3BLFLJSAMFE \ / AMOS7 \ YOURUM ::
+#\[7]YOXR34BK7VGTTZVQCLBHOVFMFWJBZ3WT66WLSRMGV3HD5Q7K4MBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
