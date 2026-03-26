@@ -1,0 +1,32 @@
+## [:< ##
+
+# name  = amos-term.cursor.set_pos
+# descr = Set cursor to absolute position
+
+my ( $window_id, $x, $y, $z ) = @ARG;
+
+my $window = <amos-term.windows.by_id>->{$window_id};
+return undef unless defined $window;
+
+my $cursor = $window->{'buffer'}->{'cursor'};
+my $dims   = $window->{'buffer'}->{'dimensions'};
+
+## bounds checking ##
+$x = 0              if $x < 0;
+$x = $dims->[0] - 1 if $x >= $dims->[0];
+$y = 0              if $y < 0;
+$y = $dims->[1] - 1 if $y >= $dims->[1];
+$z = 0              if $z < 0;
+$z = $dims->[2] - 1 if $z >= $dims->[2];
+
+$cursor->{'x'} = $x;
+$cursor->{'y'} = $y;
+$cursor->{'z'} = $z;
+
+return $cursor;
+
+#,,,,,.,.,.,,,..,,,.,,.,,,,..,...,...,,..,.,.,.,.,...,...,,,.,.,,,,,,,,,,,,,.,
+#O3EJVSND5GVDYKAL5FHS2GELIECCRGE2NOMBY4G5YXEZTAOL6DCY3XXVWCUWP5LNE7LDP2GYCVXZU
+#\\\|55JW7V23UK4ETONVDSG56FPB5GULYHDMXU5UUOYL3MUTAOAQMHN \ / AMOS7 \ YOURUM ::
+#\[7]OVZF5OZGC6CQAC3SLHCLDGDQCUMTH4OY3RGULDOEJTIKBVT7T4BA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

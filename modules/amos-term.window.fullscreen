@@ -1,0 +1,31 @@
+## [:< ##
+
+# name  = amos-term.window.fullscreen
+# descr = Toggle fullscreen mode for GTK3 window
+
+my ( $window_id, $enable ) = @ARG;
+$enable //= TRUE;
+
+my $window = <amos-term.windows.by_id>->{$window_id};
+return undef unless defined $window;
+
+my $gtk_win = $window->{'display'}->{'gtk_window'};
+return undef unless defined $gtk_win;
+
+if ($enable) {
+    $gtk_win->fullscreen();
+    $window->{'state'} = 3;    # fullscreen state
+} else {
+    $gtk_win->unfullscreen();
+    $window->{'state'} = 1;    # normal state
+}
+
+$window->{'display'}->{'fullscreen'} = $enable;
+
+return $window_id;
+
+#,,..,,,,,,,,,.,,,...,.,,,..,,,,.,,,.,,..,.,,,.,.,...,...,...,..,,...,,.,,,,.,
+#FDG7OBBGBRB6DPSSQB24WPGMEPMQ53NPSP2ZSIMNZOZ7AMMFLMI7URWTKAYJDXVR2O5ZOQRUG3HQA
+#\\\|VVWKVDVMJTASQTVHQ2IKIMAQUTVLRCMCGZY4NLS4Q4PHWMYNUCP \ / AMOS7 \ YOURUM ::
+#\[7]B7DLGGR33LABR6ZTMCU6IHFM2BGULG6376BA4L3G6NMVGPEBTWCI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

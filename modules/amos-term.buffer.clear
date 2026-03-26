@@ -1,0 +1,25 @@
+## [:< ##
+
+# name  = amos-term.buffer.clear
+# descr = Clear all voxels in 3D buffer
+
+my $window_id = shift;
+
+my $window = <amos-term.windows.by_id>->{$window_id};
+return undef unless defined $window;
+
+my $shm_ptr = $window->{'buffer'}->{'shm_ptr'};
+return undef unless defined $shm_ptr;
+
+my $size = $window->{'buffer'}->{'voxel_count'} * 2;
+
+## clear to zeros ##
+substr( $$shm_ptr, 0, $size ) = "\0" x $size;
+
+return TRUE;
+
+#,,,.,,.,,,..,.,.,,.,,...,...,,,.,,..,.,.,,..,.,.,...,...,.,.,,..,,..,.,,,...,
+#DPOOUPRFWV776HU7VK72WLRNKKH36DN4POO4A3LLZ6UWZKJTNSLJ5EJKKHDXTNJRIQ43FZZ2CMWKS
+#\\\|BIJT7PLOFALVCJZFLH6AJMI6WFINEZLLHJOHMHMTTFVJWWYYLN5 \ / AMOS7 \ YOURUM ::
+#\[7]JHZYSJQF76XWFN3I2OMB55NJUUTY7O7AE4SVDAIM342NJG6VI4DQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
