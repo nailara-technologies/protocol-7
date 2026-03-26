@@ -235,23 +235,51 @@ testing_strategy:
     - Cross-zenka buffer synchronization
     - Plugin loading and hot-reload
 
+llm_integration:
+  context_zenka:
+    description: |
+      Context zenka provides session compaction for LLM efficiency.
+      editor.session.compact generates summaries/diffs of editing sessions,
+      allowing LLMs to "open and forget" applications like humans.
+    
+    paging:
+      description: |
+        Token-aware paging prevents LLMs from wasting tokens on irrelevant content.
+        editor.control.page with token_limit and early-abort capability.
+      
+    multi_modal:
+      description: |
+        lm-vision zenka edits classification summaries inline.
+        coding zenka uses editor with semantic understanding.
+        All through unified editor.* interface.
+
+  network_desktop:
+    concept: data/md/concepts/PROTOCOL-7-NETWORK-DESKTOP-ENVIRONMENT.md
+    principle: |
+      UI/Data separation enables network convergence.
+      Editor runs on laptop, compute on GPU server, storage on file server.
+      All transparent via editor.bridge.* modules.
+
 references:
   related_modules:
     - modules/amos-term.* (3D buffer system)
     - modules/nshell.* (terminal input)
     - modules/data.mount.* (FUSE infrastructure)
     - modules/vterm.* (visual consensus rendering)
+    - modules/context.* (session compaction for LLMs)
+    - modules/coding.* (source code integration)
   
   design_patterns:
     - Protocol-7 plugin architecture
     - Holographic buffer topology
     - Zenka sub-feature loading
+    - Network desktop convergence
 
 created: 2026-03-26
 tags: [editor, amos-term, nshell, gui, terminal, fuse, 3d, hybrid]
 
-#,,,,,,,,,.,,,..,,,.,,...,.,.,,,,,...,,.,,.,,,..,,...,..,,.,.,,..,,,.,,,,,.,,,
-#MUMR2VEZTWJRG5PKWWOCPRVMTHMPYIZGEHIDWLJTWGPIQBMNKTQ6TJHL573CWY2EEUGPEOM2WASF4
-#\\\|RXI7BU6INYFQ6V2QTEQCYQSFJX426PQ4SBH7D62WOFRIZ4AL27Z \ / AMOS7 \ YOURUM ::
-#\[7]V66ZLGPY7LMQRWBFMNE77DX2KCMGNSBVK4EUB27SABMHYBVTXQCQ 7  DATA SIGNATURE ::
+#,,,.,...,,,.,,,,,,..,,,,,,,.,...,...,,.,,..,,..,,...,...,.,.,,.,,.,,,,.,,.,.,
+#OJX2XBZII3PQ264GKCIKWKHXHI2ASHSZOYVDX65TF3UPLPZYQG4ODXIZGQ4ZTTVRONOP47LZAU6UW
+#\\\|2GDINJARO7BGYFE67ZEQUKKVGYK4CNICBAEBJX5EOJCRAW562BS \ / AMOS7 \ YOURUM ::
+#\[7]RLZMKH4K2KTRG4FNRRDKL2KXIT5SHYYOERF4QBLD55L5W4A5HICI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
