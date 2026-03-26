@@ -5,14 +5,22 @@
 
 my $amos_id = shift;
 
-return "Error: AMOS ID required\n" unless defined $amos_id;
+return {
+    qw| mode | => qw| immediate |,
+    qw| data | => "Error: AMOS ID required\n"
+    }
+    unless defined $amos_id;
 
 my $result = <[amos-term.window-destroy]>->("amos:$amos_id");
 
-return $result ? "Window destroyed\n" : "Error: destroy failed\n";
+return {
+    qw| mode | => qw| immediate |,
+    qw| data | =>
+        ( $result ? "Window destroyed\n" : "Error: destroy failed\n" )
+};
 
-#,,.,,.,.,...,.,.,,.,,...,,.,,,..,,.,,.,,,,,,,.,.,...,...,...,.,,,,,,,,,,,,.,,
-#ZTIRSBISSRL2FVSYQR3V7LTJZJZOIZMIJAV3E3DKLJUBR2KBTKTBHKRHXOA4MGG7ESDWFLJ33OH3A
-#\\\|ZOSGEPICFCYJXMK7VJLGXAPYCKVRU772CNQTOKKRQJ4J57MHM46 \ / AMOS7 \ YOURUM ::
-#\[7]SEPEFNSTBOGCKHYX4XVGHAO4YNIAIAQGWONY35DHYZFXI4RHPQDY 7  DATA SIGNATURE ::
+#,,,.,,..,.,,,...,.,.,,,.,..,,.,.,,.,,...,,,,,.,.,...,...,..,,,.,,,..,,,,,,,,,
+#7LQJ25NERFA7T2MY42CODNC5VFCH5SZU4V66HZC655BR2OJG6C3VPZTBNXNUCPA7ZBQQXD2HH2ZDM
+#\\\|WL53EYU5E7WUIB6QWOMYLZEHJCFLRKXOY4TDGLILQYJA4FWCCJP \ / AMOS7 \ YOURUM ::
+#\[7]NGED4KVMBJIKOEVOO3Z4K5SGXU6F22O6PGZ5JHONEAUSWMZQHSBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
