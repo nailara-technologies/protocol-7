@@ -8,7 +8,7 @@ $options //= {};
 
 ## === resolve window reference === ##
 my $window;
-if ( $window_id =~ m{^amos:([A-Z2-7]{10})$}i ) {
+if ( $window_id =~ m{^amos:([A-Z0-9]{10})$}i ) {
     my $amos_id = uc($1);
     $window_id = <amos-term.windows.by_amos>->{$amos_id};
     return undef unless defined $window_id;
@@ -117,8 +117,8 @@ $window->{'watcher'}->{'render'} = Glib::Timeout->add(
 
 return $window_id;
 
-#,,,.,,,,,...,,.,,...,,.,,,..,,,,,,,.,,,,,.,.,.,.,...,...,...,..,,..,,.,,,,,.,
-#5UROGD7X6A4VLNE5G4A5FC66LKULWGQQ4QCUJ3D7UM5V5BB5FW76R55JC6PFAJDJZ2XOIANTAWUWI
-#\\\|H7565NWVVQCVVJXYJQ22JL7KFJCKLRT3J53MFM7IP4JS34HXCYJ \ / AMOS7 \ YOURUM ::
-#\[7]C6EZO6WOZMLPO5A2MNTY2XOTWNUU7I7BL6TQGXZ3YOCJUI4C6GBQ 7  DATA SIGNATURE ::
+#,,.,,,.,,,.,,.,,,.,,,,.,,,.,,...,,..,.,.,,..,.,.,...,...,.,.,,,.,.,.,,,,,.,.,
+#KKGLAAWJ6YRQMRNQS5LAN2JIIU3OFPPH3A7C77VDP27E5CEHQDN76LUPWD5BYQARJFLEOFCEV2Z72
+#\\\|4HWY4SICRZZVKMNOCXKEESJWCRF5CDG2PN774LFPTMPSTFY6OIZ \ / AMOS7 \ YOURUM ::
+#\[7]R2I43G5OL6NYKL3TXJOWVHERY7ZAEL7HY3PANQF3WI2DUCMSRQAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
