@@ -1,0 +1,383 @@
+# Parent Window Coordinator and Hybrid Zenka Architecture
+# Evolution from tile-groups to generic window management
+
+overview:
+  status: conceptual
+  priority: high
+  vision: |
+    Evolve tile-groups from kiosk layout manager into a generic parent window
+    coordinator zenka. Support both terminal compartmentalization and GTK3 UI
+    applications. Enable fullscreen and windowed modes. Maintain psychedelic
+    aesthetic while providing serious development capabilities.
+  
+  philosophy: |
+    The user is protected by psychedelic layering from disharmonic input streams.
+    Color represents pre-analysis and contextualized categorization - always.
+    This improves data preparation quality for vision-capable LLMs while creating
+    a more harmonious computing environment.
+
+architecture:
+  current_state:
+    tile_groups_zenka:
+      description: |
+        Existing kiosk-mode layout manager for X-11 windows.
+        - Subname-aware (correlates zenka sub-names with X-11 tile names)
+        - Static layouts for information displays
+        - Protocol-7-menu integration
+        - Ticker integration (psychedelic color upgrades)
+      
+      limitations:
+        - Static layouts (not dynamic)
+        - Kiosk-focused (not development desktop)
+        - Limited interaction patterns
+        - No window parenting/coordination
+  
+  target_state:
+    window_coordinator_zenka:
+      description: |
+        Generic parent window coordinator for any UI type.
+        - Template-based window management
+        - Supports terminal, GTK3, SDL, WebView containers
+        - Dynamic layout switching (kiosk ↔ developer ↔ mixing)
+        - Subname correlation across all UI types
+        - Full parenting hierarchy (zenka as window parent)
+      
+      key_innovations:
+        template_based: |
+          Window definitions as templates, not hardcoded layouts.
+          ```yaml
+          window.template:
+            type: terminal | gtk3 | sdl | webview
+            parent: coordinator | root
+            geometry: dynamic | fixed
+            styling: psychedelic | minimal | classic
+            input_mode: fullscreen | windowed | tiled
+          ```
+        
+        hybrid_parenting: |
+          Parent process coordination across zenki types:
+          - amos-term windows → coordinator children
+          - nshell instances → coordinator children  
+          - editor sessions → coordinator children
+          - GTK3 applications → coordinator children
+          
+          All share same parenting hierarchy, lifecycle management.
+        
+        psychedelic_protection: |
+          Color-as-meaning at the window manager level:
+          - Window borders encode zenka type/state
+          - Background patterns indicate data flow
+          - Transparency shows relationship depth
+          - Animation speed reflects activity level
+          
+          Protects user from visual noise while providing information.
+        
+        llm_optimized: |
+          Window state exportable for LLM context:
+          - Compact representation of open windows
+          - Activity summaries per window
+          - Relationship graphs between windows
+          - Token-efficient window manipulation commands
+
+namespace_design:
+  window.coordinator.init_code: |
+    Initialize coordinator subsystem.
+    - Load window templates
+    - Register UI type handlers (terminal, GTK3, SDL, etc.)
+    - Setup X-11 integration or alternative display backend
+    - Initialize psychedelic rendering pipeline
+  
+  window.coordinator.template.*: |
+    Template management for window definitions.
+    - window.coordinator.template.load
+    - window.coordinator.template.apply
+    - window.coordinator.template.inherit
+    - window.coordinator.template.validate
+  
+  window.coordinator.parent.*: |
+    Parent-child relationship management.
+    - window.coordinator.parent.register
+    - window.coordinator.parent.reparent
+    - window.coordinator.parent.collect
+    - window.coordinator.parent.signal
+  
+  window.coordinator.layout.*: |
+    Dynamic layout management (evolved from tile-groups).
+    - window.coordinator.layout.kiosk     # Original tile-groups mode
+    - window.coordinator.layout.developer # IDE-style layout
+    - window.coordinator.layout.mixing    # Psychedelic trance interface
+    - window.coordinator.layout.custom    # User-defined
+  
+  window.coordinator.psychedelic.*: |
+    Visual protection and aesthetic rendering.
+    - window.coordinator.psychedelic.border   # Colored window borders
+    - window.coordinator.psychedelic.depth    # Transparency/3D layering
+    - window.coordinator.psychedelic.flow     # Animation/data flow
+    - window.coordinator.psychedelic.harmonic # Color harmony algorithms
+  
+  window.coordinator.bridge.*: |
+    Integration with existing zenki.
+    - window.coordinator.bridge.tile_groups  # Backward compatibility
+    - window.coordinator.bridge.amos_term    # 3D terminal integration
+    - window.coordinator.bridge.nshell       # Terminal parenting
+    - window.coordinator.bridge.editor       # Editor window management
+    - window.coordinator.bridge.protocol_7_menu  # Menu integration
+
+hybrid_zenka_modes:
+  kiosk_mode:
+    description: |
+      Original tile-groups behavior. Static layouts for information display.
+      - Ticker streams
+      - System status
+      - Fixed layouts
+      - Minimal interaction
+    
+    use_cases: [dashboard, signage, ambient display]
+  
+  developer_mode:
+    description: |
+      IDE-style layout with dynamic window management.
+      - Multiple editor windows
+      - Terminal panels
+      - File browser
+      - Tool windows (debugger, etc.)
+      - Configurable layouts
+    
+    use_cases: [software development, system administration]
+  
+  mixing_mode:
+    description: |
+      Psychedelic trance creation interface.
+      - Touchscreen optimized
+      - Audio visualization
+      - Pattern mixing/composition
+      - Color-harmonic controls
+      - Fullscreen immersive
+    
+    use_cases: [music production, visual performance, art creation]
+  
+  custom_mode:
+    description: |
+      User-defined templates.
+      - JSON/YAML layout definitions
+      - Scriptable behaviors
+      - Plugin support
+      - Shareable configurations
+    
+    use_cases: [specialized workflows, accessibility needs]
+
+technical_implementation:
+  display_backends:
+    x11: |
+      Traditional X-11 window parenting.
+      - XEmbed for containerization
+      - Window manager hints
+      - EWMH compliance
+    
+    wayland: |
+      Future Wayland support (optional).
+      - Layer-shell protocol
+      - Custom compositor integration
+    
+    framebuffer: |
+      Direct framebuffer rendering.
+      - SDL2 for input/output
+      - No X11 dependency
+      - Embedded systems
+  
+  window_types:
+    terminal: |
+      amos-term or nshell instances.
+      - Pseudo-terminal management
+      - 3D voxel or 2D text rendering
+      - Input event forwarding
+    
+    gtk3: |
+      GTK3 application embedding.
+      - GtkSocket/GtkPlug (X11)
+      - Custom container widgets
+      - Theme integration with psychedelic colors
+    
+    sdl: |
+      SDL2 applications (games, visualizers).
+      - Surface sharing
+      - Input grab management
+    
+    webview: |
+      Web-based interfaces.
+      - WebKit2GTK embedding
+      - JavaScript bridge
+      - CSS psychedelic theming
+  
+  parenting_hierarchy:
+    coordinator_root: |
+      The coordinator zenka owns the display.
+      ```
+      window.coordinator (parent process)
+        ├── amos-term.0 (3D terminal)
+        ├── editor.0 (GTK3 editor)
+        ├── nshell.0 (terminal)
+        └── protocol-7-menu (menu overlay)
+      ```
+    
+    lifecycle_management: |
+      - Child zenki are spawned by coordinator
+      - Death of child signals coordinator
+      - Coordinator can restart/migrate children
+      - Graceful shutdown sequences
+
+reverse_integration:
+  tile_groups_cleanup:
+    description: |
+      Once window.coordinator exceeds tile-groups capabilities,
+      refactor tile-groups to use coordinator internals.
+      
+      Steps:
+      1. Implement window.coordinator with tile-groups compatibility layer
+      2. Migrate protocol-7-menu to use coordinator API
+      3. Migrate ticker to coordinator templates
+      4. Refactor tile-groups as 'kiosk' layout preset
+      5. Deprecate standalone tile-groups complexity
+    
+  benefits:
+    - Single codebase for all window management
+    - Consistent psychedelic theming everywhere
+    - Unified LLM interface across all UI types
+    - Easier maintenance and feature development
+
+llm_integration:
+  window_state_export: |
+    Compact representation for LLM context:
+    ```perl
+    {
+        layout => 'developer',
+        windows => [
+            { id => 'editor.0', type => 'gtk3', file => 'main.pl', active => 1 },
+            { id => 'nshell.0', type => 'terminal', cwd => '/project', cmd => 'git diff' },
+            { id => 'amos-term.1', type => '3dterm', buffer => 'T774553648' },
+        ],
+        focus => 'editor.0',
+        activity_summary => '3 files edited, 2 terminals active',
+    }
+    ```
+  
+  token_efficient_commands: |
+    LLM can manipulate windows with compact commands:
+    - `focus editor.0` - Switch focus
+    - `split nshell.0 vertical` - Split terminal
+    - `layout kiosk` - Switch layout mode
+    - `spawn amos-term --buffer T774553648` - New window
+
+touchscreen_interfaces:
+  trance_mixing: |
+    Fullscreen psychedelic interface for music/visual performance.
+    - Color-harmonic touch controls
+    - Pattern mixing gestures
+    - Audio-reactive visualization
+    - Recording/playback of sessions
+  
+  recomposition: |
+    Visual pattern creation and manipulation.
+    - Layer-based composition
+    - Real-time effects
+    - Export to various formats
+    - Collaborative editing
+
+color_as_analysis:
+  principle: |
+    Every color choice is pre-analysis.
+    Window borders encode:
+    - Zenka type (hue)
+    - Activity level (saturation)
+    - Relationship depth (brightness)
+    - Data freshness (animation speed)
+  
+  llm_benefit: |
+    Vision-capable LLMs receive pre-categorized visual information.
+    Color indicates semantic meaning without requiring OCR or
+    complex scene understanding.
+    
+    Example: "Red-bordered window with fast animation"
+    → High-priority, recently updated, needs attention
+
+implementation_phases:
+  phase_1_core_coordinator:
+    tasks:
+      - Create window.coordinator.init_code
+      - Implement template loading system
+      - Create basic X11 parenting
+      - Integrate with existing tile-groups (compatibility)
+    estimated_hours: 12
+    dependencies: [X11 expertise, window manager protocols]
+  
+  phase_2_terminal_integration:
+    tasks:
+      - window.coordinator.bridge.amos_term
+      - window.coordinator.bridge.nshell
+      - Parent process coordination
+      - Lifecycle management
+    estimated_hours: 8
+    dependencies: [amos-term, nshell internals]
+  
+  phase_3_gtk3_embedding:
+    tasks:
+      - window.coordinator for GTK3 apps
+      - Protocol-7-menu migration
+      - Editor zenka integration
+      - Theme harmonization
+    estimated_hours: 10
+    dependencies: [GTK3, GObject introspection]
+  
+  phase_4_psychedelic_rendering:
+    tasks:
+      - window.coordinator.psychedelic.* modules
+      - Color harmony algorithms
+      - Animation system
+      - Transparency/depth
+    estimated_hours: 8
+    dependencies: [Graphics programming, color theory]
+  
+  phase_5_layout_modes:
+    tasks:
+      - Implement kiosk/developer/mixing modes
+      - Dynamic layout switching
+      - User customization
+      - State persistence
+    estimated_hours: 6
+    dependencies: [UI/UX design]
+  
+  phase_6_reverse_integration:
+    tasks:
+      - Refactor tile-groups as kiosk preset
+      - Migrate ticker to coordinator
+      - Migrate protocol-7-menu
+      - Deprecation of old APIs
+    estimated_hours: 8
+    dependencies: [Backward compatibility testing]
+
+total_estimated_hours: 52
+
+references:
+  existing_modules:
+    - modules/tile-groups.* (foundation)
+    - modules/X-11.* (window management)
+    - modules/protocol-7-menu.* (menu system)
+    - modules/ticker.* (information display)
+    - modules/amos-term.* (3D terminal)
+    - modules/nshell.* (terminal interface)
+  
+  design_influences:
+    - Plan 9 window system (everything is a file)
+    - i3/sway tiling window managers (dynamic layouts)
+    - Enlightenment DR16 (psychedelic themes)
+    - Data moshing aesthetics (glitch art)
+
+created: 2026-03-26
+tags: [window-manager, coordinator, hybrid-zenka, tile-groups, psychedelic, ui, gtk3, terminal, touchscreen, trance, mixing]
+#,,..,,..,,,.,..,,...,..,,,,,,,..,,.,,,,.,.,.,..,,...,...,...,..,,,..,,..,...
+
+#,,..,,.,,.,,,,..,...,,.,,,..,,,,,,.,,,,.,.,,,..,,...,...,,..,,.,,,,,,...,,.,,
+#RWZ26OMVSHRYH4JZVWW7RVKMU4UIYV376SCL2FEARHWQZYAQUDNREHYM4NXRAWSEGVZWFRN3YBIT4
+#\\\|ILP2CGPAWAFCRFYAN2UAXSYC75JOFTKIOAAJCIILDMQMFVKYG67 \ / AMOS7 \ YOURUM ::
+#\[7]OTZARMGQAM7I37ZS23HOYYBVUX3RGVLW5WNA6LSZKLQCTVCBQEDA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
