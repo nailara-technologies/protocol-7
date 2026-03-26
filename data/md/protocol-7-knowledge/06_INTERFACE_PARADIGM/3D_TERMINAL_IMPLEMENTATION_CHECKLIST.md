@@ -291,28 +291,54 @@ sub buffer_to_entropy_stream {
 
 ---
 
-## Phase 5: Data Zenka Coupling (Week 9)
+## Phase 5: Data Zenka Coupling (Week 9) ✅
 
-### Named Buffer Exposure
-
-#### FUSE Mount
+### FUSE Filesystem Mount
 ```bash
-/data/terminals/<zenka>/<buffer>/
-  ├── current      -> Z=0
-  ├── history/
-  │   ├── z-1
-  │   ├── z-2
-  │   └── ...
-  └── metadata/
-      ├── patterns
-      └── resonance
+/data/terminals/<amos_id>/
+  ├── current       -> z-0 (symlink to current Z)
+  ├── z-0 .. z-12   # Binary layer files (112 bytes each)
+  ├── metadata      # JSON buffer info
+  ├── cursor        # Text cursor position
+  └── attachments   # List of attached clients
 ```
-- [ ] FUSE filesystem structure
-- [ ] Symlink current → Z=0
-- [ ] History layer files
-- [ ] Metadata JSON
 
-#### Buffer Transfer Protocol
+**Implementation:**
+- [x] `amos-term.fuse.init_code` - FUSE subsystem initialization
+- [x] `amos-term.fuse.getattr` - File attributes (stat)
+- [x] `amos-term.fuse.readdir` - Directory listing
+- [x] `amos-term.fuse.read` - File read operations
+- [x] `amos-term.fuse.get_window` - Resolve AMOS ID
+- [x] `amos-term.fuse.build_metadata` - JSON metadata
+- [x] `amos-term.cmd.mount_fuse` - Mount command
+- [x] `amos-term.cmd.umount_fuse` - Unmount command
+
+**Features:**
+- [x] Symlink current → active Z layer
+- [x] Binary layer files (zero-copy SHM read)
+- [x] JSON metadata export
+- [x] Cursor position monitoring
+- [x] Attachment list export
+
+**Commands:**
+```
+mount [buffer] [path]    # Mount buffer as FUSE
+umount [buffer|path]     # Unmount FUSE filesystem
+```
+
+**External Access:**
+```bash
+# Read layer data
+xxd /data/terminals/K9M2P7L4N8/z-0
+
+# Monitor cursor
+watch -n 0.5 cat /data/terminals/K9M2P7L4N8/cursor
+
+# Python access
+python3 -c "import json; print(json.load(open('/data/terminals/K9M2P7L4N8/metadata')))"
+```
+
+#### Buffer Transfer Protocol (Future)
 ```perl
 ## data.3d.buffer.sync
 sub sync_buffer {
@@ -429,7 +455,7 @@ p7c v7.start amos-term-3d
 | 2: GTK3 Display | 3-4 | ✅ | protocol.amos_term, window mgmt, plugins |
 | 3: Terminal | 5-6 | ✅ | nshell integration, generic multi-client buffer attach |
 | 4: Decoder | 7-8 | ✅ | Pattern analysis (v7-inspired), ELF LOVES_IT scoring |
-| 5: Data Coupling | 9 | ⬜ | FUSE/sync |
+| 5: Data Coupling | 9 | ✅ | FUSE filesystem at /data/terminals/<amos_id>/ |
 | 6: Integration | 10 | ⬜ | E2E testing |
 
 **Legend**: ⬜ Not started | 🟡 In progress | ✅ Complete
@@ -457,8 +483,8 @@ p7c v7.start amos-term-3d
 ---
 *Signature: 7VNKDBUU6DTBNJ2OK7EMV3WTD72AHBLQTAGMKOIKBZJI2NXDZOBQ*
 
-#,,..,,..,.,.,,,,,,,,,,..,,.,,..,,,..,...,..,,..,,...,...,.,,,,,,,..,,..,,...,
-#EABOIO5TEXMV7TFJYQYZOF2ZJ4VMN4HRWMS2A6LX745ESBOTKONZKGBZRRNKZGFAI3HM7X2GBMNGE
-#\\\|UKXWVVIC6MWBSXLFVX54PP5DQDVSJBB6CRYYNOOKP3JWLIHXMRF \ / AMOS7 \ YOURUM ::
-#\[7]JD54LJ5TSZXEMP6USOBBLW3KAK7TVHJRSTHHDV35QVFNQUIRO2DQ 7  DATA SIGNATURE ::
+#,,,.,..,,..,,,,,,.,.,...,,..,,,,,..,,,..,...,..,,...,..,,.,.,.,.,..,,,.,,..,,
+#CDACDC4QR6T72KRG3ARX2KSGCNM5PS5RZTJM7N6VD4VF26YG2ZJVLSB5EAAL64DZIYSUBLLCTBDAE
+#\\\|F7DCD5U44NEUOGZRZWHKZNPTUFIFUU4XU2RWWS4IQ6GUEIIZ3AJ \ / AMOS7 \ YOURUM ::
+#\[7]R756JOWXR25ZSEQNXO2VL7TBVIVN3BVCN3CYMDUILYD5PPAUPACY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
