@@ -1,0 +1,38 @@
+## [:< ##
+
+# name  = amos-term.buffer.get_layer
+# descr = Extract Z-layer data from 3D buffer
+
+my ( $window_id, $z ) = @ARG;
+
+$z //= 0;
+
+my $window = <amos-term.windows.by_id>->{$window_id};
+return undef unless defined $window;
+
+my $buffer = $window->{'buffer'};
+my $dims   = $buffer->{'dimensions'};    # [8, 7, 13]
+
+## bounds check ##
+return undef if $z < 0 or $z >= $dims->[2];
+
+## calculate layer offset ##
+# 8 * 7 = 56 voxels per layer
+# Each voxel = 2 bytes
+my $layer_size = $dims->[0] * $dims->[1] * 2;    # 112 bytes
+my $offset     = $z * $layer_size;
+
+## extract from SHM if available ##
+if ( defined $buffer->{'shm_ptr'} ) {
+    my $shm = $buffer->{'shm_ptr'};
+    return substr( $$shm, $offset, $layer_size );
+}
+
+## fallback: return empty layer ##
+return "\0" x $layer_size;
+
+#,,.,,,,,,,,.,,,.,.,.,,.,,..,,.,.,.,.,...,.,.,.,.,...,...,.,,,..,,,.,,,,.,,,.,
+#65EFJCULOZ65J7V6HEPAJE53WC7IKWHFEGPCUNAER4T7JDPOX7FLDZZUS7T77PKU6TNSDL6HDBXTE
+#\\\|4YYMJOP5OWR2BPT4LDMMVSKUZN6DV34O3BU3ZQWAIKO2TQG2CL7 \ / AMOS7 \ YOURUM ::
+#\[7]7DC3XOYAAJ4RV6DQTMQRVAEC3GNHEPJ3I5WI7DZWUPJJFGVYLYAQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

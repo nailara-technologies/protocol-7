@@ -1,0 +1,87 @@
+## [:< ##
+
+# name  = amos-term.render.draw_buffer
+# descr = Cairo render of 3D buffer to GTK window
+
+my ( $window_id, $cr ) = @ARG;
+
+my $window = <amos-term.windows.by_id>->{$window_id};
+return FALSE unless defined $window;
+
+## === get dimensions === ##
+my ( $width, $height ) = $cr->get_clip_extents;
+$width  -= 0;    # adjust for margins
+$height -= 0;
+
+## === background (protocol blue-black) === ##
+$cr->set_source_rgba( 0.0, 0.0, 0.024, $window->{'display'}->{'alpha'} )
+    ;            # #000006
+$cr->paint();
+
+## === calculate grid === ##
+my $grid_w = 8;     # X
+my $grid_h = 7;     # Y
+my $grid_d = 13;    # Z (depth affects alpha)
+
+my $cell_w = $width / $grid_w;
+my $cell_h = $height / $grid_h;
+
+## === render each layer with depth alpha === ##
+for my $z ( 0 .. $grid_d - 1 ) {
+    ## deeper layers more translucent ##
+    my $depth_alpha = 1.0 - ( $z / $grid_d ) * 0.7;    # 1.0 -> 0.3
+
+    ## blue shifts lighter with depth ##
+    my $blue  = 0.76 + ( $z / $grid_d ) * 0.24;        # 0.76 -> 1.0
+    my $green = 0.28 + ( $z / $grid_d ) * 0.2;         # 0.28 -> 0.48
+    my $red   = 0.02 + ( $z / $grid_d ) * 0.1;         # 0.02 -> 0.12
+
+    $cr->set_source_rgba( $red, $green, $blue, $depth_alpha * 0.3 );
+
+    ## offset for 3D effect (parallax) ##
+    my $offset_x = $z * 2;
+    my $offset_y = $z * 1;
+
+    ## draw grid cells for this layer ##
+    for my $y ( 0 .. $grid_h - 1 ) {
+        for my $x ( 0 .. $grid_w - 1 ) {
+            my $px = $x * $cell_w + $offset_x;
+            my $py = $y * $cell_h + $offset_y;
+
+            $cr->rectangle( $px + 1, $py + 1, $cell_w - 2, $cell_h - 2 );
+            $cr->fill();
+        }
+    }
+}
+
+## === render cursor with translucency curve === ##
+my $cursor = $window->{'buffer'}->{'cursor'};
+my $cx     = $cursor->{'x'};
+my $cy     = $cursor->{'y'};
+my $cz     = $cursor->{'z'};
+
+## calculate cursor alpha from curve ##
+my $elapsed = <[base.time]>->(3) - ( <amos-term.cursor.blink_start> // 0 );
+my $cursor_alpha = <[graphics-3d.calc.cursor-translucency]>->(
+    $elapsed, $window->{'buffer'}->{'cursor_curve'}
+);
+
+## cursor position with depth offset ##
+my $c_px = $cx * $cell_w + $cz * 2;
+my $c_py = $cy * $cell_h + $cz * 1;
+
+## draw cursor (block style) ##
+$cr->set_source_rgba( 0.27, 0.15, 0.67, $cursor_alpha );    # #4427AC
+$cr->rectangle( $c_px, $c_py, $cell_w, $cell_h );
+$cr->fill();
+
+## === update timestamp === ##
+$window->{'display'}->{'last_render'} = <[base.time]>->(3);
+
+return TRUE;
+
+#,,..,,..,...,.,.,,.,,,,.,.,,,,,.,,..,,,,,.,.,.,.,...,...,,..,...,,.,,,..,,,.,
+#4ZUQM6OFC3DAB3GADEOXYG2MGNKX6REXTU7QMKOOUUEHHZEPXSNOTEYQJXNZ3PHGNLD27OAEUYY7Q
+#\\\|JA7SUBUQRUTP7RRZJDNXDJT6VYFL2QMS5MXWOQ24UPHTJTNWEBC \ / AMOS7 \ YOURUM ::
+#\[7]CIQAUGGQJGQ5WMKIE2BYBHMEUKP337NWWCODABTI4PCRS7P7SKCI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

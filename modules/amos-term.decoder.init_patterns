@@ -1,0 +1,75 @@
+## [:< ##
+
+# name  = amos-term.decoder.init_patterns
+# descr = Initialize 3D buffer pattern matchers for decoder integration
+#
+# Pattern format: <pattern_name>::<regex>::<action>
+# Special vars: <window_id>, <amos_id>, <match_1>, <match_2>, etc.
+# Actions: amos-term.handler.decode.*, amos-term.plugin.*
+
+my $pattern_config = shift // <amos-term.decoder.pattern_config>;
+
+if ( not defined $pattern_config
+    or ref($pattern_config) ne qw| ARRAY | ) {
+    <[base.logs]>->( 1, ":: no decoder patterns to initialize" );
+    return;
+}
+
+my $re         = qw| :: |;                                # delimiter
+my $name_chars = qr|\w\d_\-|,;                            # pattern name chars
+my $patt_chars = qr|\[\]\(\)\\\w\d_\-\.\+\*\?\^\$\|\s|;
+
+foreach my $p_ref (@$pattern_config) {
+    foreach my $pattern ( keys %$p_ref ) {
+        my $p_key = $pattern;
+
+        # Parse: name::regex::[i]
+        if ( $pattern =~ s{^([$name_chars]+)$re([$patt_chars]+)$re(i?)}{$2} )
+        {
+
+            my ( $name, $regex, $i_flag ) = ( $1, $2, $3 // '' );
+            $name =~ s|\s||g;
+
+            my $pattern_re
+                = $i_flag eq qw| i |
+                ? qr|$regex|i
+                : qr|$regex|;
+
+            my $action_code = $p_ref->{$p_key};
+
+            # Compile action subroutine
+            my $sub_code = join( '',
+                "sub {\n",
+                "    my \$window_id = shift;\n",
+                "    my \$amos_id   = shift;\n",
+                "    my \$layer_z   = shift;\n",
+                "    my @matches   = @ARG;\n",
+                "    ",
+                ( map {"    $_\n"} <[base.parser.config]>->($action_code) ),
+                "}\n" );
+
+            $sub_code =~ s|<window_id>|\$window_id|g;
+            $sub_code =~ s|<amos_id>|\$amos_id|g;
+            $sub_code =~ s|<layer_z>|\$layer_z|g;
+            $sub_code =~ s|<match_([1-9])>|\$matches[ $1 - 1 ]|g;
+
+            <amos-term.decoder.patterns>->{$name}->{$pattern_re}
+                = eval $sub_code;
+
+            <[base.logs]>->( 2, ":. decoder pattern '%s' compiled", $name )
+                if <system.debug>;
+        } else {
+            <[base.logs]>->( 0, ":: pattern syntax error: %s", $pattern );
+        }
+    }
+}
+
+<[base.logs]>->( 2, ":: decoder patterns initialized" );
+
+0;
+
+#,,,,,,,.,.,.,,,,,,,,,,,,,,,,,.,.,.,.,,,.,.,.,.,.,...,..,,.,,,,,.,.,,,..,,..,,
+#YLCRBCKZNBQ3IAXZE5TGHWTL27BRS7FOUKZJLPG7XB54S3K3NGBNPPW3IZEMX4HIZV4BXQLOTI3V2
+#\\\|JJDO4A6FXK4POFTSDKCYF7H4BWH3ESZO7XHZKBOCI2CAC5SO2H4 \ / AMOS7 \ YOURUM ::
+#\[7]EB46OTRCH6AAOHYZSFO3NUESUUBNMI6XYI2PVIR6GVITOKMDEQCY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

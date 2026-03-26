@@ -1,0 +1,86 @@
+## [:< ##
+
+# name  = amos-term.handler.key_press
+# descr = Handle GTK3 key press events for 3D terminal
+
+my ( $window_id, $event ) = @ARG;
+
+my $window = <amos-term.windows.by_id>->{$window_id};
+return FALSE unless defined $window;
+
+my $keyval  = $event->get_keyval();
+my $keyname = Gtk3::Gdk::keyval_name($keyval);
+my $state   = $event->get_state();
+
+## === modifier detection === ##
+my $ctrl  = $state * ['control-mask'] ? TRUE : FALSE;
+my $shift = $state * ['shift-mask']   ? TRUE : FALSE;
+
+<[base.logs]>->( 2, "[key:%s ctrl=%d shift=%d]", $keyname, $ctrl, $shift )
+    if <system.debug>;
+
+## === navigation mapping === ##
+my %nav_keys = (
+    ## arrows ##
+    qw| Up    | => { qw| dy | => -1, qw| dx | => 0, qw| dz | => 0 },
+    qw| Down  | => { qw| dy | =>  1, qw| dx | => 0, qw| dz | => 0 },
+    qw| Left  | => { qw| dx | => -1, qw| dy | => 0, qw| dz | => 0 },
+    qw| Right | => { qw| dx | =>  1, qw| dy | => 0, qw| dz | => 0 },
+    ## Z-depth ##
+    qw| Page_Up   | => { qw| dz | => -1, qw| dx | => 0, qw| dy | => 0 },
+    qw| Page_Down | => { qw| dz | =>  1, qw| dx | => 0, qw| dy | => 0 },
+    ## vim-style ##
+    qw| k |            => { qw| dy | => -1, qw| dx | => 0, qw| dz | => 0 },
+    qw| j |            => { qw| dy | =>  1, qw| dx | => 0, qw| dz | => 0 },
+    qw| h |            => { qw| dx | => -1, qw| dy | => 0, qw| dz | => 0 },
+    qw| l |            => { qw| dx | =>  1, qw| dy | => 0, qw| dz | => 0 },
+    qw| bracketleft  | => { qw| dz | => -1, qw| dx | => 0, qw| dy | => 0 },
+    qw| bracketright | => { qw| dz | =>  1, qw| dx | => 0, qw| dy | => 0 },
+);
+
+## === handle navigation === ##
+if ( exists $nav_keys{$keyname} and not $ctrl ) {
+    my $delta = $nav_keys{$keyname};
+    <[amos-term.cursor.move]>->(
+        $window_id,
+        $delta->{'dx'} // 0,
+        $delta->{'dy'} // 0,
+        $delta->{'dz'} // 0
+    );
+    return TRUE;    # handled
+}
+
+## === special keys === ##
+if ( $keyname eq qw| Escape | ) {
+    <[amos-term.window.close]>->($window_id);
+    return TRUE;
+} elsif ( $keyname eq qw| F11 | or ( $keyname eq qw| f | and $ctrl ) ) {
+    my $fs = not $window->{'display'}->{'fullscreen'};
+    <[amos-term.window.fullscreen]>->( $window_id, $fs );
+    return TRUE;
+}
+
+## === printable character === ##
+if ( length($keyname) == 1 and $keyname =~ m{^[ -~]$} ) {
+    ## write to buffer at cursor position ##
+    my $cursor = $window->{'buffer'}->{'cursor'};
+    <[amos-term.buffer.write]>->(
+        $window_id,
+        $cursor->{'x'},
+        $cursor->{'y'},
+        $cursor->{'z'},
+        $keyname,
+        0    # default color index
+    );
+    ## advance cursor X ##
+    <[amos-term.cursor.move]>->( $window_id, 1, 0, 0 );
+    return TRUE;
+}
+
+return FALSE;    # not handled
+
+#,,,,,.,,,,,.,...,,,.,...,,.,,...,...,...,.,,,.,.,...,...,,,.,,,.,..,,,..,.,,,
+#HA6YMJBICP2UIVOLSI5N224NHKXAC4ZGQSD5R7D7QSBCUGEF2DDV2HK5FVQYKSXMDYFXLVAEW3RZ4
+#\\\|MZVWNOYMIHTNYXGK76VDXX3PA2SH2WHUGSGL7LOLJO2LZ3ZIRKW \ / AMOS7 \ YOURUM ::
+#\[7]IVRHJ4EMEGHNDSQTXZLBPNWWEWSLS6MMSVWH3Z52KOY3A5TGIEBQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

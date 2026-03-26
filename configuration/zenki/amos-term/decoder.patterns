@@ -1,0 +1,47 @@
+## [:< ##
+
+# name  = amos-term decoder.patterns
+# descr = 3D buffer content patterns for decoder plugin triggers
+
+.: output patterns :.
+
+  # === ELF checksum patterns ===
+  
+  - elf-mode4::^[A-Z2-7]{10}$::
+    [amos-term.plugin.decoder.elf_match:<window_id>,<match_0>,4]
+    
+  - elf-mode7::^[A-Z2-7]{17}$::
+    [amos-term.plugin.decoder.elf_match:<window_id>,<match_0>,7]
+    
+  - elf-mode13::^[A-Z2-7]{32}$::
+    [amos-term.plugin.decoder.elf_match:<window_id>,<match_0>,13]
+
+  # === AMOS7 protocol patterns ===
+  
+  - amos7-banner::^\\7\\\\AMOS7\\\\[A-Z2-7]+\\\\::$::
+    [amos-term.handler.decode.protocol:<window_id>,<match_0>,amos7]
+    
+  - protocol-7-banner::^\\\\PROTOCOL-7-VERSION\\\\[A-Z2-7]{7}\\\\::$::
+    [amos-term.handler.decode.protocol:<window_id>,<match_0>,p7]
+
+  # === Resonance patterns (high-entropy regions) ===
+  
+  - high-entropy::[\x00-\x1f]{8,}::
+    [amos-term.plugin.decoder.entropy:<window_id>,<layer_z>,high]
+    
+  - pattern-repeat::(.)\1{7,}::
+    [amos-term.plugin.decoder.pattern:<window_id>,<match_1>,repeat]
+
+  # === Harmonic patterns (13-based) ===
+  
+  - loves-it-score-13::^.*13.*$::
+    [amos-term.plugin.decoder.loves_it:<window_id>,<match_0>,13]
+    
+  - harmonic-77::^.{77}$::
+    [amos-term.plugin.decoder.harmonic:<window_id>,<match_0>,77]
+
+#,,,.,.,.,..,,,,,,,,.,,,,,.,.,,,,,,.,,.,,,.,,,.,.,...,...,,.,,.,,,.,.,,,.,.,,,
+#X76YDVJFWBBMHASY35CBX5FZSE4PPTMOYTIRTQA2I6JV5PXYZ7A5CAHWBIG7VO5VAEPL4PORHY2NO
+#\\\|K7IOMK2M3UTX7N4G3Q457PFRCJRRTBFDAOK2OUUV6535OVH4HSZ \ / AMOS7 \ YOURUM ::
+#\[7]SANW4BNSICQUTAG3AQO6HXGJFYXLDMFHOPPRW3QN4CHDJUGDBOBI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

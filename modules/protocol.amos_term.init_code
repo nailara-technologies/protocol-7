@@ -1,0 +1,94 @@
+## [:< ##
+
+# name  = protocol.amos-term.init_code
+# descr = Protocol-7 terminal buffer protocol for 3D window management
+
+<protocol.amosterm.version> = qw| 0.7.13 |;
+
+## === protocol registration === ##
+$data{'protocol'}{'amos-term'} = {
+    qw| connect | => {
+        qw| callback | => undef, # windows created via API, not socket connect
+        qw| banner |   =>
+            sprintf( ".AMOS-TERM\\%s\\\n", <protocol.amosterm.version> )
+    },
+    qw| state | => {
+        ## state 0: window created, buffer allocation pending ##
+        qw| 0 | => {
+            qw| read-mode | => qw| linewise |,
+            qw| input |     =>
+                { qw| handler | => qw| amos-term.handler.command | },
+            qw| output | =>
+                { qw| handler | => qw| amos-term.handler.output | },
+            qw| error | =>
+                { qw| handler | => qw| base.handler.session_error | }
+        },
+        ## state 1: window active with buffer attached ##
+        qw| 1 | => {
+            qw| read-mode |     => qw| binary |,    # 3D voxel data stream
+            qw| bytes-to-read | => 1472,    # 728 voxels * 2 bytes + header
+            qw| input |         =>
+                { qw| handler | => qw| amos-term.handler.buffer_input | },
+            qw| output | =>
+                { qw| handler | => qw| amos-term.handler.render_cmd | },
+            qw| error | =>
+                { qw| handler | => qw| base.handler.session_error | }
+        },
+        ## state 2: window minimized/hidden (buffer updates, no render) ##
+        qw| 2 | => {
+            qw| read-mode |     => qw| binary |,
+            qw| bytes-to-read | => 1472,
+            qw| input |         =>
+                { qw| handler | => qw| amos-term.handler.buffer_input | },
+            qw| output | => { qw| handler | => qw| amos-term.handler.noop | },
+            qw| error |  =>
+                { qw| handler | => qw| base.handler.session_error | }
+        },
+        ## state 3: fullscreen mode ##
+        qw| 3 | => {
+            qw| read-mode |     => qw| binary |,
+            qw| bytes-to-read | => 1472,
+            qw| input |         =>
+                { qw| handler | => qw| amos-term.handler.buffer_input | },
+            qw| output | =>
+                { qw| handler | => qw| amos-term.handler.render_fs | },
+            qw| error | =>
+                { qw| handler | => qw| base.handler.session_error | }
+        }
+    },
+    qw| command-handlers | => {
+        qw| input |   => [qw| multi-line |],
+        qw| process | => [qq||]
+    }
+};
+
+## === window registry === ##
+<amos-term.windows.by_id>   //= {};    # session_id -> window_ref
+<amos-term.windows.by_amos> //= {};    # amos_id -> session_id
+<amos-term.windows.by_name> //= {};    # client_name -> session_id
+<amos-term.windows.count>   //= 0;
+
+## === plugin registry === ##
+<amos-term.plugin.decoder> //= {};
+<amos-term.plugin.routing> //= {};
+<amos-term.plugin.render>  //= {};
+
+## === default configuration === ##
+<amos-term.cfg.default_geometry> //= qw| 640x480 |;
+<amos-term.cfg.default_fps>      //= 60;
+<amos-term.cfg.default_alpha>    //= 0.95;
+<amos-term.cfg.cursor_curve>     //= qw| sigmoid |;
+<amos-term.cfg.shm_base_path>    //= qw| /dev/shm/amos-term |;
+
+<[base.logs]>->(
+    2, ":: protocol.amos-term %s registered,",
+    <protocol.amosterm.version>
+);
+
+0;
+
+#,,..,.,,,.,,,.,,,..,,..,,.,.,,,.,.,.,.,,,..,,.,.,...,...,...,..,,.,.,,,.,.,.,
+#WYOBUJLFJ7W6SMPZ6YAPKX5TUWRMZ4T7455WSFZBQQD5YXMAMGK4QAU67PSKPQ43G4TKDH5E67BR4
+#\\\|6IWBJJ3DTTRL2JYZ7ZMJ7OJ7HCGMM7ABNMECPUD5Q7Q3GXDE5NT \ / AMOS7 \ YOURUM ::
+#\[7]KBOP3YXT6DZSZWC6JYKXARYFHNHRN3IQRJ3EVDOZS7FHTB67F6CY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

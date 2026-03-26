@@ -1,0 +1,49 @@
+## [:< ##
+
+# name  = amos-term.window.close
+# descr = Close GTK3 window (hide, preserve buffer)
+
+my $window_id = shift;
+
+## === resolve window === ##
+my $window = <amos-term.windows.by_id>->{$window_id};
+if ( not defined $window ) {
+    <[base.logs]>->( 0, ":: close: window %s not found", $window_id );
+    return undef;
+}
+
+## === already closed? === ##
+if ( not $window->{'display'}->{'visible'} ) {
+    return $window_id;
+}
+
+## === cancel render timer === ##
+if ( exists $window->{'watcher'}->{'render'} ) {
+    Glib::Source->remove( $window->{'watcher'}->{'render'} );
+    delete $window->{'watcher'}->{'render'};
+}
+
+## === hide window === ##
+if ( defined $window->{'display'}->{'gtk_window'} ) {
+    $window->{'display'}->{'gtk_window'}->hide();
+    $window->{'display'}->{'gtk_window'} = undef;
+}
+
+$window->{'display'}->{'visible'} = FALSE;
+$window->{'state'} = 2;                      # hidden state
+
+## === update session state === ##
+<[amos-term.session.set_state]>->( $window_id, 2 );
+
+<[base.logs]>->(
+    2, ":. window [%s] closed (buffer preserved)",
+    $window->{'amos_id'}
+);
+
+return $window_id;
+
+#,,.,,,.,,,..,..,,,,,,,,,,...,...,,,,,.,,,.,,,.,.,...,...,,,.,.,,,,.,,,..,...,
+#FUTB5BSHIK36CADBOP4SVR5QUDIPH55FNNWGR5FWWAPUGONCM6G2UAMSYHMCQE5TAHLI3NGFOC2CQ
+#\\\|YBSIUPUVFNKXO5URTYOX6GM5VXWAOJLIXMJSI75U5QRIDPONTH5 \ / AMOS7 \ YOURUM ::
+#\[7]5EXWYA55244M6QLGTJECWRNT4QXGBFGNCK2SMRLJUHCGO7RA76BY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

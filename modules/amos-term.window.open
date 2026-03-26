@@ -1,0 +1,124 @@
+## [:< ##
+
+# name  = amos-term.window.open
+# descr = Open GTK3 window for amos-term buffer (display only, no SHM)
+
+my ( $window_id, $options ) = @ARG;
+$options //= {};
+
+## === resolve window reference === ##
+my $window;
+if ( $window_id =~ m{^amos:([A-Z2-7]{10})$}i ) {
+    my $amos_id = uc($1);
+    $window_id = <amos-term.windows.by_amos>->{$amos_id};
+    return undef unless defined $window_id;
+} elsif ( $window_id =~ m{^name:(.+)$} ) {
+    my $name = $1;
+    $window_id = <amos-term.windows.by_name>->{$name};
+    return undef unless defined $window_id;
+}
+
+$window = <amos-term.windows.by_id>->{$window_id};
+if ( not defined $window ) {
+    <[base.logs]>->( 0, ":: window %s not found", $window_id );
+    return undef;
+}
+
+## === already open? === ##
+if ( $window->{'display'}->{'visible'} ) {
+    <[base.logs]>->( 1, ":: window already open, bringing to front" );
+    $window->{'display'}->{'gtk_window'}->present();
+    return $window_id;
+}
+
+## === initialize GTK3 if needed === ##
+if ( not defined <amos-term.gtk_initialized> ) {
+    Gtk3::init();
+    <amos-term.gtk_initialized> = TRUE;
+    <[base.logs]>->( 2, ":: GTK3 initialized for amos-term" );
+}
+
+## === create window === ##
+my $gtk_win = Gtk3::Window->new('toplevel');
+$gtk_win->set_title( sprintf( 'AMOS-TERM [%s]', $window->{'amos_id'} ) );
+
+## === geometry === ##
+my ( $w, $h ) = $window->{'display'}->{'geometry'} =~ m{(\d+)x(\d+)};
+$w //= 640;
+$h //= 480;
+$gtk_win->set_default_size( $w, $h );
+
+## === transparency setup === ##
+if ( <ticker.use_transparency> // TRUE ) {
+    $gtk_win->set_visual( $gtk_win->get_screen->get_rgba_visual );
+}
+
+## === event handlers === ##
+$gtk_win->signal_connect(
+    'destroy' => sub {
+        <[amos-term.window.close]>->($window_id);
+    }
+);
+
+$gtk_win->signal_connect(
+    'key-press-event' => sub {
+        my ( $widget, $event ) = @_;
+        return <[amos-term.handler.key_press]>->( $window_id, $event );
+    }
+);
+
+## === drawing area === ##
+my $draw_area = Gtk3::DrawingArea->new();
+$draw_area->set_size_request( $w, $h );
+
+$draw_area->signal_connect(
+    'draw' => sub {
+        my ( $widget, $cr ) = @_;
+        return <[amos-term.render.draw_buffer]>->( $window_id, $cr );
+    }
+);
+
+$gtk_win->add($draw_area);
+
+## === fullscreen === ##
+if ( $window->{'display'}->{'fullscreen'} or $options->{'fullscreen'} ) {
+    $gtk_win->fullscreen();
+    $window->{'state'} = 3;
+}
+
+## === store references === ##
+$window->{'display'}->{'gtk_window'} = $gtk_win;
+$window->{'display'}->{'draw_area'}  = $draw_area;
+$window->{'display'}->{'visible'}    = TRUE;
+
+## === show window === ##
+$gtk_win->show_all();
+
+## === start render timer (60 FPS) === ##
+my $fps      = $window->{'display'}->{'fps'};
+my $interval = int( 1000 / $fps );              # milliseconds
+
+$window->{'watcher'}->{'render'} = Glib::Timeout->add(
+    $interval,
+    sub {
+        return FALSE unless $window->{'display'}->{'visible'};
+        $window->{'display'}->{'draw_area'}->queue_draw();
+        return TRUE;
+    }
+);
+
+## === update session state === ##
+<[amos-term.session.set_state]>->( $window_id, $window->{'state'} || 1 );
+
+<[base.logs]>->(
+    2, ":. window [%s] opened (%dx%d @ %d FPS)",
+    $window->{'amos_id'}, $w, $h, $fps
+);
+
+return $window_id;
+
+#,,,.,..,,,,,,.,.,,..,.,,,,,.,.,,,,..,..,,,,,,.,.,...,...,...,,,.,.,.,.,,,,..,
+#GGOIT7F7FJCCR3EQPKR4UEEMUE6VBOWHHQOP4SUR2EEBVTLCW6M54YEEYPEZJS42LDKLYKP6TTJQY
+#\\\|S5VWMAWAYMB2Q5FTCQ4R4NK6DGSQP6YWAVUPEO7U4FFPXNYPGZZ \ / AMOS7 \ YOURUM ::
+#\[7]IK7R6CYFNOCJWC5NRK6XAOWBAY66FT5HXWJW6S4WNETRMK4LEGAI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

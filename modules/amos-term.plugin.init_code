@@ -1,0 +1,53 @@
+## [:< ##
+
+# name  = amos-term.plugin.init_code
+# descr = Plugin system for reloadable amos-term extensions
+
+## === plugin registry === ##
+<amos-term.plugin.registry> //= {};
+
+## === built-in plugin types === ##
+<amos-term.plugin.types> = {
+    qw| decoder | => {
+        qw| desc | => qw| Buffer content decoder |,
+        qw| hook | => qw| buffer.decode |,
+        qw| dir |  => qw| modules/amos-term.plugin.decoder |,
+    },
+    qw| routing | => {
+        qw| desc | => qw| Event routing extension |,
+        qw| hook | => qw| event.route |,
+        qw| dir |  => qw| modules/amos-term.plugin.routing |,
+    },
+    qw| render | => {
+        qw| desc | => qw| Custom render pipeline |,
+        qw| hook | => qw| render.frame |,
+        qw| dir |  => qw| modules/amos-term.plugin.render |,
+    },
+    qw| input | => {
+        qw| desc | => qw| Input handler extension |,
+        qw| hook | => qw| input.key |,
+        qw| dir |  => qw| modules/amos-term.plugin.input |,
+    }
+};
+
+## === default plugins === ##
+<amos-term.plugin.defaults> //= [
+    qw|
+        decoder.pattern-match
+        decoder.entropy
+        |
+];
+
+## === plugin loader cache === ##
+<amos-term.plugin.loaded>  //= {};
+<amos-term.plugin.watcher> //= undef;    # inotify watcher for hot-reload
+
+<[base.logs]>->( 2, ":: amos-term plugin system initialized" );
+
+0;
+
+#,,.,,.,.,...,,.,,,,,,.,.,,.,,,,,,,.,,.,.,,.,,.,.,...,...,,,,,...,,..,..,,..,,
+#IN7H7YQEQEAKCQUD4ZCJXKEKC7RPWYGSJJBBNC6SOUEEIBUXA4GYEFUZ7EYWRVSDYQFNU5DIYEPAQ
+#\\\|3AUUYHWDL2BHLE7HBPVNN2TDJ7VUTV7MNIHAD55AKQDJI4TRG4T \ / AMOS7 \ YOURUM ::
+#\[7]XI4KNM56H2YAIXI4GJBTULUBKT7MLXDWVGMNY4YYNEKZQIHZPWDI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
