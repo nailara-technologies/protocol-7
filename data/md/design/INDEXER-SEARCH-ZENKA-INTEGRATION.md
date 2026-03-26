@@ -60,20 +60,20 @@ package indexer.harmonic;
 # Build harmonic index from checksums
 sub build_harmonic_index {
     my ($checksum_set) = @_;
-    
+
     my %harmonic_clusters;
-    
+
     foreach my $checksum (@$checksum_set) {
         # Extract numerical value
         my $num = base32_decode($checksum);
-        
+
         # Calculate division by 13 pattern
         my $pattern = calculate_repeating_decimal($num / 13, 6);
-        
+
         # Categorize by harmonic truth
         my $truth_category = categorize_truth_pattern($pattern);
         # Categories: TRUE (384615, 461538...), FALSE (230769...), AMBIGUOUS
-        
+
         # Add to cluster
         push @{ $harmonic_clusters{$truth_category} }, {
             checksum => $checksum,
@@ -81,24 +81,24 @@ sub build_harmonic_index {
             truth    => $truth_category,
         };
     }
-    
+
     return \%harmonic_clusters;
 }
 
 # Query by harmonic resonance
 sub query_harmonic_resonance {
     my ($query_checksum, $resonance_threshold) = @_;
-    
+
     my $query_pattern = calculate_repeating_decimal(
         base32_decode($query_checksum) / 13, 6
     );
-    
+
     # Find harmonically similar checksums
     my @resonant = grep {
-        harmonic_distance($query_pattern, $_->{pattern}) 
+        harmonic_distance($query_pattern, $_->{pattern})
             < $resonance_threshold
     } values %{ $harmonic_index->{$query_checksum} };
-    
+
     return sort_by_harmony(@resonant);
 }
 ```
@@ -111,17 +111,17 @@ package indexer.checksum;
 # Multi-dimensional checksum index
 sub build_checksum_index {
     my ($content_store) = @_;
-    
+
     return {
         # Spatial index (cubic topology)
         spatial => build_spatial_index($content_store),
-        
+
         # Temporal index (timestamp proximity)
         temporal => build_temporal_index($content_store),
-        
+
         # Semantic index (reference relationships)
         semantic => build_semantic_index($content_store),
-        
+
         # Wave index (statistics flow)
         wave => build_wave_index($content_store),
     };
@@ -130,18 +130,18 @@ sub build_checksum_index {
 # Unified coordinate query
 sub query_checksum_coordinates {
     my ($spatial, $temporal, $semantic) = @_;
-    
+
     # Query each dimension
     my @spatial_matches  = $spatial_index->query($spatial);
     my @temporal_matches = $temporal_index->query($temporal);
     my @semantic_matches = $semantic_index->query($semantic);
-    
+
     # Find intersection (content matching all criteria)
     my %intersection;
     $intersection{$_}++ for @spatial_matches;
     $intersection{$_}++ for @temporal_matches;
     $intersection{$_}++ for @semantic_matches;
-    
+
     # Return checksums matching all three dimensions
     return grep { $intersection{$_} >= 3 } keys %intersection;
 }
@@ -155,13 +155,13 @@ package indexer.visual;
 # Visual pattern index for fuzzy grouping
 sub build_visual_index {
     my ($checksum_set) = @_;
-    
+
     my %visual_patterns;
-    
+
     foreach my $checksum (@$checksum_set) {
         # Generate visual fingerprint
         my $pattern = generate_visual_pattern($checksum);
-        
+
         # Extract features
         $visual_patterns{$checksum} = {
             color_signature    => extract_color_signature($pattern),
@@ -171,22 +171,22 @@ sub build_visual_index {
             pattern_vector     => vectorize_pattern($pattern),
         };
     }
-    
+
     return \%visual_patterns;
 }
 
 # Fuzzy visual search
 sub query_visual_similarity {
     my ($query_pattern, $similarity_threshold) = @_;
-    
+
     my $query_vector = vectorize_pattern($query_pattern);
-    
+
     # Find visually similar patterns
     my @similar = grep {
-        cosine_similarity($query_vector, $_->{pattern_vector}) 
+        cosine_similarity($query_vector, $_->{pattern_vector})
             > $similarity_threshold
     } values %$visual_index;
-    
+
     # Weight by multiple dimensions
     return sort {
         visual_resonance_score($query_pattern, $b)
@@ -207,20 +207,20 @@ package search;
 # Mode 1: Harmonic Search ("Find what resonates")
 sub search.harmonic {
     my ($query, $parameters) = @_;
-    
+
     # Convert query to harmonic pattern
     my $query_checksum = checksum_from_query($query);
     my $query_harmonic = calculate_harmonic_pattern($query_checksum);
-    
+
     # Query indexer for resonance
     my @resonant = indexer.harmonic->query_resonance(
         $query_harmonic,
         threshold => $parameters->{resonance} // 0.87
     );
-    
+
     # Apply visual fuzzy grouping
     my @groups = indexer.visual->fuzzy_group(\@resonant);
-    
+
     return {
         mode     => 'harmonic',
         query    => $query,
@@ -236,20 +236,20 @@ sub search.harmonic {
 # Mode 2: Coordinate Search ("Find at these coordinates")
 sub search.coordinates {
     my ($coordinates, $parameters) = @_;
-    
+
     # Parse coordinate space
     my $spatial  = $coordinates->{spatial};   # Checksum space
     my $temporal = $coordinates->{temporal};  # Timestamp range
     my $semantic = $coordinates->{semantic};  # Reference graph
-    
+
     # Query indexer
     my @matches = indexer.checksum->query_coordinates(
         $spatial, $temporal, $semantic
     );
-    
+
     # Apply wave mechanics filtering
     my @wave_filtered = wave.filter_by_phase(\@matches, $parameters->{wave});
-    
+
     return {
         mode     => 'coordinate',
         space    => $coordinates,
@@ -264,21 +264,21 @@ sub search.coordinates {
 # Mode 3: Visual Search ("Find what looks like this")
 sub search.visual {
     my ($visual_pattern, $parameters) = @_;
-    
+
     # Vectorize the visual query
     my $query_vector = indexer.visual->vectorize($visual_pattern);
-    
+
     # Find similar patterns
     my @similar = indexer.visual->query_similarity(
         $query_vector,
         threshold => $parameters->{similarity} // 0.75
     );
-    
+
     # Enhance with harmonic verification
     my @harmonically_valid = grep {
         indexer.harmonic->verify_truth($_->{checksum})
     } @similar;
-    
+
     return {
         mode     => 'visual',
         pattern  => $visual_pattern,
@@ -293,12 +293,12 @@ sub search.visual {
 # Mode 4: Wave Search ("Find what's emerging")
 sub search.wave {
     my ($wave_parameters, $context) = @_;
-    
+
     # Query based on wave phase
     my $phase = $wave_parameters->{phase};  # 0, 1, or 2
-    
+
     my @emerging;
-    
+
     if ($phase == 0) {
         # Local spikes - newly popular content
         @emerging = indexer.wave->query_local_spikes($context);
@@ -309,7 +309,7 @@ sub search.wave {
         # Global synthesis - network-wide shifts
         @emerging = indexer.wave->query_global_patterns($context);
     }
-    
+
     return {
         mode     => 'wave',
         phase    => $phase,
@@ -368,39 +368,39 @@ Deduplication Tree (already exists)
 
 sub indexer.wave.update {
     my ($wave_pulse) = @_;
-    
+
     if ($wave_pulse->{direction} eq 'up') {
         # Statistics pulse from leaves
         # Update reference counts
         # Detect spikes
         # Flag emerging content
-        
+
         foreach my $stat (@{ $wave_pulse->{statistics} }) {
             my $checksum = $stat->{checksum};
             my $count    = $stat->{reference_count};
-            
+
             # Update index
             $reference_index->{$checksum} = $count;
-            
+
             # Detect spike (sudden increase)
             if (is_spike($checksum, $count)) {
                 flag_as_emerging($checksum);
             }
         }
-        
+
     } else {
         # Deduplication pulse from above
         # Update replication factors
         # Optimize local storage
         # Apply new defaults
-        
+
         foreach my $instruction (@{ $wave_pulse->{dedup_instructions} }) {
             my $checksum = $instruction->{checksum};
             my $priority = $instruction->{priority};
-            
+
             # Update visual index with new priority
             $visual_index->{$checksum}{priority} = $priority;
-            
+
             # Adjust harmonic clustering
             if ($priority eq 'hot') {
                 promote_in_harmonic_index($checksum);
@@ -570,3 +570,9 @@ The result IS the harmonic neighborhood.
 *"The indexer maps the harmonic coordinates of knowledge. The search zenka provides navigation through resonance. Together, they make the network discoverable through aesthetic intuition."*
 
 #,,.,,.,,.,,.,,.,.,.,.,.,,.,.,.,,.,.,.,,.,,.,.,.,,.,.,.,,.,.,.,,.,.,.,,.,.,.,,
+
+#,,..,,,.,...,,..,,..,.,,,...,..,,,.,,...,.,,,..,,...,...,.,.,..,,.,,,.,,,,,.,
+#GK4G32I64VSSVU55E7MULGYXC3EOTK4AFTU3KXZ4UPE6GFORXYJZAWVDAZPIYTBPWLZAAKNMG6S6U
+#\\\|PH4SL5HTYYKT6J6IHIVS3DRNU5JGF4VIPKUY6QTUFJRZ4BCZAGX \ / AMOS7 \ YOURUM ::
+#\[7]H6P3S6BQRDIFVO2UEZHEPSNUSDAPI3AJOP5JX7S3K4JNJX6LQ2DI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
