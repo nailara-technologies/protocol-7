@@ -3,23 +3,24 @@
 # name  = amos-term.cmd.window-open
 # descr = Open GTK3 window for existing buffer
 
-my $amos_id = shift;
+my $amos_id = $$call{'args'};
+$amos_id =~ s/^\s+|\s+$//g;    # trim whitespace
 
 return {
-    qw| mode | => qw| immediate |,
-    qw| data | => "Error: AMOS ID required\n"
+    'mode' => 'false',
+    'data' => "Error: AMOS ID required\n"
     }
-    unless defined $amos_id;
+    unless defined $amos_id and length $amos_id;
 
 my $result = <[amos-term.window-open]>->("amos:$amos_id");
 
 return {
-    qw| mode | => qw| immediate |,
+    'mode'     => 'true',
     qw| data | => ( $result ? "Window opened\n" : "Error: open failed\n" )
 };
 
-#,,.,,.,.,,,,,.,,,,,,,,.,,..,,,..,..,,..,,,,,,.,.,...,...,..,,..,,.,,,..,,,..,
-#IBR6X7TF4F2R7KEZWLOOTVXP4L33T52RXXQZM2H4LMNZEAS6LTP7SO7EJBUQAZVMDLL7BRT4UIA4U
-#\\\|WLNR65UOKLYGNZC7IBCV7BBADPUTVGGRBNIQGH7HJQMKVQ7IJ6Z \ / AMOS7 \ YOURUM ::
-#\[7]LJWM45TDDJQOEHQ7BYIKRVBFGXW2MR7MQLTWAMWTMFM6ODQMH6BQ 7  DATA SIGNATURE ::
+#,,.,,,,,,.,.,,,,,.,.,,,,,,,,,,,,,.,.,,..,,..,.,.,...,...,...,,,,,,,,,...,...,
+#LKLDBTVFRLWE3EBMSUG7BODZUBEJOPDFAQSE2HEEIGC6N72AMHX7GNFBJLSENVL3LB5TPEMW26QQM
+#\\\|Y6KZ3FE32RHCUKZK4OBHCA5JG53WU65YXXVHZ6H3FIS63UHH5KE \ / AMOS7 \ YOURUM ::
+#\[7]KB62MTZGN2P6WWIAZKKOZPFI3S223IAUWKVYE45JQUKSFUCQOYCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

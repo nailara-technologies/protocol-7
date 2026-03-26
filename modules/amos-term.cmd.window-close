@@ -3,10 +3,11 @@
 # name  = amos-term.cmd.window-close
 # descr = Close GTK3 window (preserve buffer)
 
-my $amos_id = shift;
+my $amos_id = $$call{'args'};
+$amos_id =~ s/^\s+|\s+$//g;
 
 return {
-    qw| mode | => qw| immediate |,
+    'mode'     => 'true',
     qw| data | => "Error: AMOS ID required\n"
     }
     unless defined $amos_id;
@@ -14,7 +15,7 @@ return {
 my $result = <[amos-term.window-close]>->("amos:$amos_id");
 
 return {
-    qw| mode | => qw| immediate |,
+    'mode'     => 'true',
     qw| data | => (
         $result
         ? "Window closed (buffer preserved)\n"
@@ -22,8 +23,8 @@ return {
     )
 };
 
-#,,,.,,,,,,.,,,,.,.,.,,.,,,.,,,,,,,..,..,,,..,.,.,...,...,,.,,,..,,..,,..,,,.,
-#7TDQPW2CRJ25I6MUBYR54AAJVJKDTC4JOY475YWYETJ7WRTRUT6I4N2J6V3C34PI6J63AEUFHJMWO
-#\\\|ZL466Z3UVCJZRSGXQIU6YMGSYIROZI64BSUKJNWUSTKM7ZOVS5E \ / AMOS7 \ YOURUM ::
-#\[7]O4AC6ZWUMDVUBKKADJ3VAI5ZRMPHKBHPB2CTEFIWE3DLYIUAVUCA 7  DATA SIGNATURE ::
+#,,.,,,,.,,,,,,,.,.,,,..,,.,.,.,,,...,,,,,.,.,.,.,...,...,...,,..,...,.,,,.,.,
+#NQODB47737N2W3RBTFTT3M2PHGZUO3VTT5U2QE6V6G7EDVTHWOZCYVO3VPSOPRDVHAJ2LLQ5DSYTK
+#\\\|SWR7PJFWDNXQCKGOPW7F6BSFIVMA4OPOQFKVQIKA7VYGFH3U2N3 \ / AMOS7 \ YOURUM ::
+#\[7]2VVNODKHLBDTIRJMK3VK67X4J2333MMVXQO6WSY2RXAYUMADU4AQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
