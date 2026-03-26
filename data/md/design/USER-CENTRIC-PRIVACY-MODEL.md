@@ -73,7 +73,7 @@ Your Branch (leaf-most locality):
 
 Why this matters for privacy:
   • Inherits defaults matching your context
-  • Receives optimizations for your use cases  
+  • Receives optimizations for your use cases
   • Shares statistics with minimum exposure
   • Personal diffs stay within community bounds
 ```
@@ -352,21 +352,21 @@ my $network_knowledge = <[privacy.dashboard.get]>->();
 
 sub statistics.collect_event {
     my ( $event_type, $data, $privacy_level ) = @_;
-    
+
     # Check if this data type is allowed at this privacy level
-    my $allowed = <[privacy.check_allowed]>->( 
-        $event_type, $privacy_level 
+    my $allowed = <[privacy.check_allowed]>->(
+        $event_type, $privacy_level
     );
-    
+
     return undef unless $allowed;
-    
+
     # Anonymize based on privacy rules
     my $anonymized = <[privacy.anonymize]>->( $data, {
         'remove_identifiers' => true,
         'bucket_time' => '10_minutes',
         'min_k_anonymity' => 5,
     });
-    
+
     # Only contribute if passes privacy threshold
     if ( <[privacy.validate_contribution]>->($anonymized) ) {
         <[statistics.contribute]>->($anonymized);
@@ -415,25 +415,25 @@ sub statistics.collect_event {
 
 sub privacy.validate_transmission {
     my $data = shift;
-    
+
     # Check for identifiers
     if ( contains_identifier($data) ) {
         <[privacy.alert]>->("Identifier found in outgoing data");
         return false;
     }
-    
+
     # Check resolution
     if ( temporal_resolution($data) < $MIN_BUCKET_SIZE ) {
         <[privacy.alert]>->("Temporal resolution too high");
         return false;
     }
-    
+
     # Check k-anonymity
     if ( k_anonymity($data) < $MIN_K ) {
         <[privacy.alert]>->("Insufficient k-anonymity");
         return false;
     }
-    
+
     # Check against personal registry
     my $personal_keys = <[settings.personal.list]>->();
     foreach my $key ( keys %$data ) {
@@ -442,7 +442,7 @@ sub privacy.validate_transmission {
             return false;
         }
     }
-    
+
     return true;
 }
 ```
@@ -487,8 +487,8 @@ The result: **You know what the network knows. And it's never more than it needs
 
 #,,..,,.,,.,.,..,,,..,,,.,.,.,.,.,,,,.,,.,.,,,..,..,,.,.,.,.,.,.,.,,..,,.,,,,.
 
-#,,..,.,.,...,.,.,.,,,,.,,,.,,,,,,,,,,.,.,,,,,..,,...,..,,,,,,..,,,,,,,..,.,.,
-#3PCYS7DQHXNPNMVPJVJMIO5HGDARXWENIDBPJHCD5KDMU4KHQO5WVUBO5Y6NYJBZJWOT3V5QED45K
-#\\\|4H4ZY4AC5UJLNZLXAG35IQSMYY2VVQXBNTK2A7RDAIGRZFJ4TQX \ / AMOS7 \ YOURUM ::
-#\[7]KFA44LGV2MDIF4IHCVXBDDAVM5XZ5B4BHUKFJRXDID7MSMOGCUBQ 7  DATA SIGNATURE ::
+#,,.,,...,,,.,.,,,.,.,.,,,,..,..,,.,.,.,.,.,.,..,,...,...,.,.,,,,,.,.,,.,,..,,
+#6QBULXE3HVDMXP6C567V5LETNO66OOXSPL5H6SWVVPNAWKQMMI5ZF4WRWJR5KPR4QXEMREV6T3GT2
+#\\\|AOG6CSEKPF3VBU2Q7UTK2BPHOEMAMBK42MH3RZYZOPTHLARMI7R \ / AMOS7 \ YOURUM ::
+#\[7]YR2HT5FUD7YTWIWJP7TVZGFT22UCZFEARYBWAZTG4DEAS3W55IAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

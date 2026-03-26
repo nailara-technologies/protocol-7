@@ -7,7 +7,7 @@ In Protocol-7, the **LOVE** vertex of the deduplication triangle is not merely s
 ```
 The triangle rotates:
       TRUTH
-         ↻      
+         ↻
    AWARENESS ←→ LOVE
          ↻
 
@@ -193,13 +193,13 @@ Attempted suppression:
 
   Authority: "Remove this content"
   Network: "It glows too brightly"
-  
+
   The loved content:
   - Exists in many copies (geometric resilience)
   - Is actively accessed (current love)
   - Has deep references (overall love)
   - Creates visible void when removed
-  
+
   Suppression becomes obvious:
   "Why does this area of the network go dark?"
   "What are they trying to un-love?"
@@ -304,8 +304,8 @@ The cycle completes. The network breathes. =)
 
 #,,.,..,.,,,..,,.,,,,,.,.,,.,...,.,,.,.,.,,,.,,..,,.,..,,.,..,.,.,,,...,.,,.,
 
-#,,,,,.,,,,,.,,,.,..,,,.,,.,,,,..,,..,..,,,..,..,,...,...,..,,,,,,...,.,,,,,.,
-#HI5H2MUEII2G4URXDXQVLCY2MQ25OND4HO5NG7DJ33YZ3Z5JGD5X4Z7TZTYLGZ6LHEESMJPDTVEEU
-#\\\|COWYGEST24GMXPCHWDQ2QEFGFYX2JWB2K6VWIULG5JC2BUOL2WS \ / AMOS7 \ YOURUM ::
-#\[7]72KC4VR6ZZDJOO5OGK4CB6JG3SS4PHMIOADTXUXGEH2CD6PHG4AY 7  DATA SIGNATURE ::
+#,,.,,...,,,,,,..,.,.,.,,,.,,,,.,,,.,,.,.,,,,,..,,...,...,...,,.,,..,,.,.,,..,
+#7ALDCS5CKSK7LPAGDUKB7C4EGKEZVKCFIAYUJ7JCNIZVCQKODHCU5UOUHVN7DR6QZHHFYANO72SB4
+#\\\|SUL3HZW4CST62433IDMZRXASJUCE7VMH23LUOZ5Q4L6GKJKMUD5 \ / AMOS7 \ YOURUM ::
+#\[7]GPTEMH75VGEFDXW23KJLECQOTZXUTSMK5UKPAGRJJAXT6DOKAIBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

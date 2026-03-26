@@ -126,7 +126,7 @@ Visual-Only Data Flow:
 4. **Acoustic/Resonance:** Visual as frequency
    ```
    Red channel → Low frequency (ground/bass)
-   Green channel → Mid frequency (body)  
+   Green channel → Mid frequency (body)
    Blue channel → High frequency (air/treble)
    Alpha channel → Resonance envelope
    ```
@@ -156,7 +156,7 @@ Extended Dimensions:
   C → Consensus level (5-fth sub-bit accumulation)
   H → Harmonic resonance (entropy patterns)
   R → Relationship topology (connections to other nodes)
-  
+
 Each dimension is a mask channel.
 Each channel is independently perceivable.
 Together they form the complete transport descriptor.
@@ -189,7 +189,7 @@ At the deepest layer, Protocol-7 operates on **visual resonance**:
 ```
 Layer 0: Visual Resonance
   - Color as information
-  - Pattern as structure  
+  - Pattern as structure
   - Animation as state change
   - Transparency as relationship depth
 
@@ -320,7 +320,7 @@ Instead:
 
 **You can make the entire network operate on:**
 - Visual patterns
-- Acoustic resonance  
+- Acoustic resonance
 - Cryptographic checksums
 - Numerical coordinates
 - Semantic topology
@@ -340,8 +340,8 @@ And the visual mask provides the **all-encompassing base layer** upon which ever
 
 #,,..,,..,,,.,..,,...,..,,,,,,,..,,.,,,,.,.,.,..,,...,...,...,..,,,..,,..,...
 
-#,,,.,.,.,,..,,,.,,..,.,,,,.,,,,,,...,.,,,,..,..,,...,..,,..,,,..,,.,,.,,,,.,,
-#BUTNDWLM4N3HXHVZIF6K2TKURRTTPPG6IRVIGN4JCAFIYZRWFBBKF6AVWFBSRPFGZFLQ4UHMYLVEC
-#\\\|DT7GUJSQVHBNZK4S7AXEIOAAJKEXIGKYKDYNAFDSKFE2WZPCRN3 \ / AMOS7 \ YOURUM ::
-#\[7]II4ZNLUKNSMEQQMYF6I6DQCQL3NFLU63DXUZ4AEA2JS3UOSX3ACA 7  DATA SIGNATURE ::
+#,,.,,..,,...,,,.,,,.,,,.,...,..,,,..,.,.,,.,,..,,...,...,,.,,...,,,,,...,,,.,
+#QNZ2J2SNYLKVKVTQXH6MYX6KSRB3IR3HIW5P2XILEWWJDWHT6BKTADP3VGW3ATFPUBX7F2HW23YA4
+#\\\|KZZZ2S3U7BRBYZRU4MRJ7IMFGNPKOYJOL2BTBTX2XKPA3XVL42E \ / AMOS7 \ YOURUM ::
+#\[7]WWFH4SA4FIIPY3C2NFLIK3YZXIDHYXXPODX7L2VNLKXBL2S6XOBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
