@@ -1,6 +1,6 @@
 ## [:< ##
 
-# name  = amos-term.window.destroy
+# name  = amos-term.window-destroy
 # descr = Destroy window and clean up all resources
 
 my $window_id = shift;
@@ -23,7 +23,7 @@ my $amos_id     = $window->{'amos_id'};
 my $client_name = $window->{'client_name'};
 
 ## === close window if open === ##
-<[amos-term.window.close]>->($window_id) if $window->{'display'}->{'visible'};
+<[amos-term.window-close]>->($window_id) if $window->{'display'}->{'visible'};
 
 ## === release SHM buffer === ##
 if ( defined $window->{'buffer'}->{'shm_path'} ) {
@@ -52,8 +52,8 @@ delete <amos-term.windows.by_name>->{$client_name};
 
 return $window_id;
 
-#,,..,..,,..,,..,,,,.,,.,,,,.,.,,,..,,,..,,..,.,.,...,...,,.,,,..,.,.,,,,,.,,,
-#4SMONHRNGVQ5T6D3KUTXWUKJZ5GISGPXAYZBTBGIPIPZKY5CMWRZYXIXQ5ABMRSIHKEW45BXN6TAY
-#\\\|IVUQR6S7YKCSYLB34I6ITG4LEZ4IWG4AZPPITHAAZSENEJSL5VF \ / AMOS7 \ YOURUM ::
-#\[7]D7QROEXC5G4AQABKWCINP36K5MNXYBDYOEMARDT2GSPK4JJEZ4AQ 7  DATA SIGNATURE ::
+#,,.,,.,.,..,,,,.,.,.,,,.,,,.,,,.,,.,,..,,.,.,.,.,...,..,,...,.,.,.,.,...,,,,,
+#TQ3S4IIURT3TBCK445OPFBMQUACCKTLM4WDFWOYJSCIHBFOJCXUW53TXXKBEGYEC4P7HVH6QDCNIS
+#\\\|J6BFECWLR3U3B5NMAERU3FZG54M53MBXFUV7BXMCMXKFOXNM4TV \ / AMOS7 \ YOURUM ::
+#\[7]GHL5K4MH73O243IHICS2SVRG44J4URICQQMCZRFJS2F6XCNP7UCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

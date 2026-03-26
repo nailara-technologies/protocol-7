@@ -1,6 +1,6 @@
 ## [:< ##
 
-# name  = amos-term.buffer.detach
+# name  = amos-term.buffer-detach
 # descr = Detach client from buffer
 
 my $attach_id = shift;
@@ -8,7 +8,7 @@ my $attach_id = shift;
 return undef unless defined $attach_id;
 
 ## === find attachment === ##
-my $attach = <amos-term.buffer.attachments>->{$attach_id};
+my $attach = <amos-term.buffer-attachments>->{$attach_id};
 return undef unless defined $attach;
 
 my $buffer_id = $attach->{'buffer_id'};
@@ -21,14 +21,14 @@ if ( defined $window and defined $window->{'attachments'} ) {
 }
 
 ## === remove from global registry === ##
-delete <amos-term.buffer.attachments>->{$attach_id};
+delete <amos-term.buffer-attachments>->{$attach_id};
 
 <[base.logs]>->( 2, "[buffer] detached %s", $attach_id );
 
 return TRUE;
 
-#,,.,,...,.,,,,..,,,.,...,.,,,,..,.,,,.,,,.,.,.,.,...,...,...,,,.,,,,,...,..,,
-#I3J2PKU65RHHTKKIKVG5EORVWT22KQ5HEPO3EYYWYCHUUFLPWLHVDHF74GDM3WJMMV63G4VOZ545Q
-#\\\|X5A6R64IL4PP2ZIONJJMRAO4BBVKE5OK3CTTFVXYZ67PDAA66AB \ / AMOS7 \ YOURUM ::
-#\[7]3CHXMRVYSMEJ7XJNVPNY2JPGF3QGZYMYOMOB2Z5MSDLQHWGJ76AQ 7  DATA SIGNATURE ::
+#,,,,,...,..,,..,,,,,,...,,,.,..,,.,.,..,,.,.,.,.,...,...,..,,...,,,.,...,,.,,
+#GW3ABV6CWGGJJ5UVYA4VPSCTTOH3E3E5WZH2PEVLCKQLR64WR6FAGSKMXXRKSM7JWCQPFSHWWBMA2
+#\\\|BIOPPD7UTPNZD2IGHKG7GQWEJL4IINKNGBTWKJGVOQBZNW32GDL \ / AMOS7 \ YOURUM ::
+#\[7]QIKWZOZPPQCHAB2RBLQVKEITURETY6XEMTAEAKY54PMNRU5FBWCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

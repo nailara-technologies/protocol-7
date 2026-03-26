@@ -28,7 +28,7 @@ return "Error: buffer not found\n" unless defined $window;
 
 ## === create buffer if not exists (lazy allocation) === ##
 if ( not defined $window->{'buffer'}->{'shm_path'} ) {
-    my $result = <[amos-term.buffer.create]>->( $window->{'session_id'} );
+    my $result = <[amos-term.buffer-create]>->( $window->{'session_id'} );
     return "Error: buffer creation failed\n" unless $result;
 }
 
@@ -38,7 +38,7 @@ my $attachment;
 if ( $client_type eq qw| nshell | ) {
     $attachment = <[amos-term.nshell.bridge]>->($buffer_id);
 } else {
-    $attachment = <[amos-term.buffer.attach_generic]>->(
+    $attachment = <[amos-term.buffer-attach_generic]>->(
         $buffer_id, $client_type, $options
     );
 }
@@ -57,8 +57,8 @@ return sprintf(
     $amos_id, $attach_id
 );
 
-#,,.,,,.,,.,,,,,.,,..,,,,,.,,,..,,...,...,,,.,.,.,...,...,..,,..,,,,.,,..,...,
-#ZHI35336TUKBULKPMLMZQ267MXLCKQZ4WA4ALBTEK5TJZQJXI2G6SKNTAWN535MZMPCX6SDVXCTG2
-#\\\|3KFP7MTJURCKS4JPOYFJPM4ITLLECYCJKSKLREOHVIHX6VD5I4N \ / AMOS7 \ YOURUM ::
-#\[7]YFP3KMNKUQYTQ3HEEC3RLZP6OK3UV6ZZPA2B5T4CICWHRL4MPYBI 7  DATA SIGNATURE ::
+#,,.,,.,,,...,,,.,.,.,.,.,.,,,.,.,,..,,,,,,..,.,.,...,...,,..,...,,,.,.,,,,.,,
+#2IVURRIJ354JTRR7K34SKPAHEPBII7TZV4KOYLZUHPGDUOKIDP3BNHIO7B4FIIBMOQ6O3I4FDOJ52
+#\\\|H754PP5XTHCRMGH2CCME6LM2MWH6QWO4U6ZFOZLE5EXMMBGOVZT \ / AMOS7 \ YOURUM ::
+#\[7]XY2QMR77GJHX43BEDCREL4HLDMQKIXMHNZOPEQCRT6YKC2FRHYCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
