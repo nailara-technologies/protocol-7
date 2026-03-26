@@ -17,7 +17,7 @@ if ( $file_path =~ m{^z-(\d+)$} ) {
     return -ENOENT() if $z < 0 or $z > 12;
 
     my $layer_data
-        = <[amos-term.buffer.get_layer]>->( $window->{'session_id'}, $z );
+        = <[amos-term.buffer-get_layer]>->( $window->{'session_id'}, $z );
     $content = $layer_data // ( "\0" x <amos-term.fuse.layer_size> );
 }
 
@@ -52,8 +52,8 @@ $length = $remaining if $length > $remaining;
 
 return substr( $content, $offset, $length );
 
-#,,.,,.,,,,..,.,,,..,,.,.,,,,,...,..,,,.,,.,.,.,.,...,...,,..,,..,,,.,,.,,..,,
-#E4H5X4TWSUCH53YKSFO4M6ASDQ6FYSRWT62ZAEWQ3DB3VHH5455XBORSYSB7EMZ3RCLSHOW33BFQI
-#\\\|V7SAVG44ZZKPGC5N6MCGAV6R7IM3FWSB756E6NTCTDXEY4Q3UBK \ / AMOS7 \ YOURUM ::
-#\[7]BWW6NBD3BSK6ENLRCFIEQ4P6WP35YCLIHLPER4GQZS2TV5DGJACI 7  DATA SIGNATURE ::
+#,,..,,,.,...,.,.,..,,.,.,...,,.,,,..,,,.,,,,,.,.,...,..,,,.,,.,.,.,,,..,,,.,,
+#DU6EF2WH5EKUO2W6OXJIRM3QCI6EIKRZ4GOIIDUMYEXP4NTXPKHGJ4P2TBVLE2T7MCQBGZ5YKXEDE
+#\\\|5EB5SWZYSJV6QCOTM742LBNE57EBI6JOZZNW5OQJ6PWJJO4O6F2 \ / AMOS7 \ YOURUM ::
+#\[7]XIZYC5DSSSM5WDNXSUXJ3YLLVWPBWNPJ3DSTH7NKOF3DL5JHXEAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

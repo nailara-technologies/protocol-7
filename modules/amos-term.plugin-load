@@ -1,6 +1,6 @@
 ## [:< ##
 
-# name  = amos-term.plugin.load
+# name  = amos-term.plugin-load
 # descr = Load amos-term plugin (hot-reloadable)
 
 my ( $window_id, $plugin_name ) = @ARG;
@@ -14,18 +14,18 @@ if ( not defined $type or not defined $name ) {
     return undef;
 }
 
-my $type_def = <amos-term.plugin.types>->{$type};
+my $type_def = <amos-term.plugin-types>->{$type};
 if ( not defined $type_def ) {
     <[base.logs]>->( 0, ":: unknown plugin type: %s", $type );
     return undef;
 }
 
 ## === build module name === ##
-my $module = sprintf( 'amos-term.plugin.%s.%s', $type, $name );
+my $module = sprintf( 'amos-term.plugin-%s.%s', $type, $name );
 my $file   = sprintf( 'modules/%s', $module );
 
 ## === check if already loaded === ##
-if ( exists <amos-term.plugin.loaded>->{$module} ) {
+if ( exists <amos-term.plugin-loaded>->{$module} ) {
     <[base.logs]>->( 1, ":. plugin '%s' already loaded", $plugin_name );
     return $module;
 }
@@ -41,7 +41,7 @@ if ($@) {
 }
 
 ## === register plugin === ##
-<amos-term.plugin.loaded>->{$module} = {
+<amos-term.plugin-loaded>->{$module} = {
     qw| name |    => $plugin_name,
     qw| type |    => $type,
     qw| module |  => $module,
@@ -70,8 +70,8 @@ if ( defined $window_id ) {
 
 return $module;
 
-#,,..,..,,.,,,.,.,,.,,,..,,..,..,,,.,,.,,,,..,.,.,...,..,,..,,,..,.,,,.,,,..,,
-#OEK7HMMR7OCVLRRDOMSL4QSR3PJ6PPOGOTIANL6KNHPTPVLR4SSHIXYJTZ3RP7SHMSTMBGVEJXHVG
-#\\\|PUCXJJFFJQQAHKW54XPJGYAQGEWAPD2SMUOUH7RDBLS7JOT7NE3 \ / AMOS7 \ YOURUM ::
-#\[7]OI4WFL2TTDQJYNUY7DLYMMCEG7JUYDJKANQON6T3LBMQU53A6KAA 7  DATA SIGNATURE ::
+#,,.,,,,,,,.,,,,.,...,,..,...,.,.,.,,,,,,,...,.,.,...,..,,..,,,..,.,.,,,.,,..,
+#ATC42HLPOCPA2ADENLVDPMVMPZWZH35JPMYH3MHBPUPG2Z7ENWNZF3EFP6NO7ESKZSXP722GHUX4W
+#\\\|LVLS3RLUYP4I5QLFNOJOIKXEEIOCM6OQV6ZKNCFGMAHO7W2BPKR \ / AMOS7 \ YOURUM ::
+#\[7]ETEL4NTN5JAKJVJR764HRHX7QCGA374YTQM7V6VRYTGN44JOHSAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

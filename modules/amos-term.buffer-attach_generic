@@ -1,6 +1,6 @@
 ## [:< ##
 
-# name  = amos-term.buffer.attach_generic
+# name  = amos-term.buffer-attach_generic
 # descr = Generic buffer attachment for simultaneous multi-client access
 #
 # Allows multiple clients (nshell, GTK3 window, decoder, network) to
@@ -31,7 +31,7 @@ return undef unless defined $window;
 
 ## === generate client attachment ID === ##
 my $attach_id = sprintf( '%s:%s:%d',
-    $client_type, $window->{'amos_id'}, <amos-term.buffer.attach_seq>++ );
+    $client_type, $window->{'amos_id'}, <amos-term.buffer-attach_seq>++ );
 
 ## === attachment structure === ##
 my $attachment = {
@@ -71,7 +71,7 @@ my $attachment = {
 };
 
 ## === register attachment === ##
-<amos-term.buffer.attachments>->{$attach_id} = $attachment;
+<amos-term.buffer-attachments>->{$attach_id} = $attachment;
 
 ## === add to buffer's attachment list === ##
 $window->{'attachments'} //= [];
@@ -82,7 +82,7 @@ if ( $client_params->{'notify_others'} ) {
     foreach my $other_attach ( $window->{'attachments'}->@* ) {
         next if $other_attach eq $attach_id;
         ## trigger notification callback ##
-        my $other = <amos-term.buffer.attachments>->{$other_attach};
+        my $other = <amos-term.buffer-attachments>->{$other_attach};
         if ( defined $other->{'client_data'}->{'on_attach'} ) {
             $other->{'client_data'}->{'on_attach'}
                 ->( $attach_id, $client_type );
@@ -97,8 +97,8 @@ if ( $client_params->{'notify_others'} ) {
 
 return $attachment;
 
-#,,,,,,,,,.,.,,..,..,,,,,,,,,,,..,,,.,.,.,,.,,.,.,...,..,,,..,,.,,...,.,.,,,.,
-#FCTWMHQMWBKXZVQ7CYKVTZ3ZDIRVDYIL4R26Q5XNRG7YNKZEGVDETL472QZJRWLYWFACXZXQNF666
-#\\\|OL53AQZGNTE3FWBPXNUTISYTZNL7PJJNLBNBKN7KIT3AYQQRUTE \ / AMOS7 \ YOURUM ::
-#\[7]4KDG3PUSS4QFRJHGMSTIBEUMSTQQQ6MU5XGZ3CLQH44EUAT6RKCI 7  DATA SIGNATURE ::
+#,,.,,.,.,..,,..,,,,,,,..,...,..,,..,,.,.,...,.,.,...,...,...,..,,,,.,,..,,.,,
+#RQ3O7JEXVXHWLI5C262QJ342UFFLJCNDJAIABLWXCOU2U2SXCMAQROD36YK3WPZ2LJSYAVUBDRBGS
+#\\\|WTQZZWJLLHOHIWWG2HLYMIPFE63Y72Q4Y26IUKUMYNWWBQOUZNF \ / AMOS7 \ YOURUM ::
+#\[7]WAWKOFX6Y6Y3AA2AT3I5I2CWKL3ZE2CANRP2ZJIFFBTRPP4PJQBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

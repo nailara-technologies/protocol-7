@@ -41,7 +41,7 @@ my %nav_keys = (
 ## === handle navigation === ##
 if ( exists $nav_keys{$keyname} and not $ctrl ) {
     my $delta = $nav_keys{$keyname};
-    <[amos-term.cursor.move]>->(
+    <[amos-term.cursor-move]>->(
         $window_id,
         $delta->{'dx'} // 0,
         $delta->{'dy'} // 0,
@@ -52,11 +52,11 @@ if ( exists $nav_keys{$keyname} and not $ctrl ) {
 
 ## === special keys === ##
 if ( $keyname eq qw| Escape | ) {
-    <[amos-term.window.close]>->($window_id);
+    <[amos-term.window-close]>->($window_id);
     return TRUE;
 } elsif ( $keyname eq qw| F11 | or ( $keyname eq qw| f | and $ctrl ) ) {
     my $fs = not $window->{'display'}->{'fullscreen'};
-    <[amos-term.window.fullscreen]>->( $window_id, $fs );
+    <[amos-term.window-fullscreen]>->( $window_id, $fs );
     return TRUE;
 }
 
@@ -64,7 +64,7 @@ if ( $keyname eq qw| Escape | ) {
 if ( length($keyname) == 1 and $keyname =~ m{^[ -~]$} ) {
     ## write to buffer at cursor position ##
     my $cursor = $window->{'buffer'}->{'cursor'};
-    <[amos-term.buffer.write]>->(
+    <[amos-term.buffer-write]>->(
         $window_id,
         $cursor->{'x'},
         $cursor->{'y'},
@@ -73,14 +73,14 @@ if ( length($keyname) == 1 and $keyname =~ m{^[ -~]$} ) {
         0    # default color index
     );
     ## advance cursor X ##
-    <[amos-term.cursor.move]>->( $window_id, 1, 0, 0 );
+    <[amos-term.cursor-move]>->( $window_id, 1, 0, 0 );
     return TRUE;
 }
 
 return FALSE;    # not handled
 
-#,,,,,.,,,,,.,...,,,.,...,,.,,...,...,...,.,,,.,.,...,...,,,.,,,.,..,,,..,.,,,
-#HA6YMJBICP2UIVOLSI5N224NHKXAC4ZGQSD5R7D7QSBCUGEF2DDV2HK5FVQYKSXMDYFXLVAEW3RZ4
-#\\\|MZVWNOYMIHTNYXGK76VDXX3PA2SH2WHUGSGL7LOLJO2LZ3ZIRKW \ / AMOS7 \ YOURUM ::
-#\[7]IVRHJ4EMEGHNDSQTXZLBPNWWEWSLS6MMSVWH3Z52KOY3A5TGIEBQ 7  DATA SIGNATURE ::
+#,,,,,,..,,.,,.,.,,.,,,,,,,..,...,...,,.,,,..,.,.,...,...,...,.,.,.,,,,,,,,,.,
+#DACXVQIYV7CDIKP6RQ6KZKZBOFNKTIUP7ECENNKPFNI5SCAXEHUBI6EDO2FHCG2OBSKN3ZV2X6LN4
+#\\\|EE2KH3WV2OXCS6AEJO6Z72K4N3DPPEY4HNNOFT34WK2BB73FDSB \ / AMOS7 \ YOURUM ::
+#\[7]ZHXDSAQRIP6QSLZ27BFZIJJHU6KJ3SXPZZDPR5QTQDGJU6Z3LMBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
