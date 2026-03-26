@@ -20,7 +20,7 @@ apt-get -y install gcc git make cpanminus libc6-dev libmce-perl \
             libhttp-date-perl liburi-query-perl libdigest-crc-perl \
             libdigest-elf-perl libfile-which-perl libfile-finder-perl \
             libperl-critic-perl libsub-uplevel-perl libbsd-resource-perl \
-            libdigest-jhash-perl libfile-extattr-perl \
+            libdigest-jhash-perl libfile-extattr-perl libfuse-perl \
             libfile-slurper-perl libhash-flatten-perl libhttp-message-perl \
             libyaml-libyaml-perl libyaml-tiny-perl libconfig-simple-perl \
             libio-socket-ssl-perl libtest-requires-perl \
@@ -67,8 +67,8 @@ perl -Mv5.13 -e \
 
 # LLL cpan2deb --recursive --build --install-deps --install-build-deps --install
 
-#,,..,..,,,,.,..,,,,,,,..,.,.,.,.,..,,,,,,.,,,..,,...,..,,.,,,.,.,.,.,,,.,.,,,
-#IO5TC7Z6NA6TV4433RUXEV4E4L3O36VZBBB2XNAGJHRHXIV3B4GCM6UUMLX5UPUERH3TUC5QZCRF6
-#\\\|7DTY54FBFHYA7TIWIH7BHN6BOKNU7CE4SQLQS2HUZ2RSW34ZLP4 \ / AMOS7 \ YOURUM ::
-#\[7]WGWCLQMGVKXKJ4DF3L5LIQ3K23H64V4MDEEENMG57FAHBARGBWAY 7  DATA SIGNATURE ::
+#,,,.,,,,,,,.,.,,,,,.,.,,,,.,,...,.,.,,.,,,..,..,,...,...,,,,,.,.,.,.,...,,,.,
+#TNDCHMNZEH6K4L74F4UOCCS5XJYZXEABVNX5XLIZGCXMVXHVVJD4HQ4WTGVHZSWO5TRA3WKKIIRTC
+#\\\|D3XIVOLVTH2KGIC3YXJOIJ5QLDGY5NSBBDZ2BSOLIVNOI3MABZD \ / AMOS7 \ YOURUM ::
+#\[7]5XWN4YX7LFJXUT5ZALPO6ZDFSFDDARV6TOJTFY3BB53RUTXEVECY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

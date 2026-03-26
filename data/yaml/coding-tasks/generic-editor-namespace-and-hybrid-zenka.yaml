@@ -1,0 +1,257 @@
+# Generic Editor Namespace and Hybrid Zenka Architecture
+# Task: Design and implement editor.* subroutines for Protocol-7
+
+overview:
+  status: planning
+  priority: high
+  assignee: TBD
+  
+  goal: |
+    Create a generic, pluggable editor namespace (editor.*) that can be 
+    embedded as a sub-feature in any zenka, enabling n-dimensional text 
+    editing across GTK3 GUI, terminal (nshell), and hybrid environments.
+  
+  vision: |
+    Merge nshell's readline-based input with amos-term's 3D buffer concept
+    into a unified editor framework that adapts to any rendering context
+    while maintaining Protocol-7's holographic philosophy.
+
+dependencies:
+  # Phase 1: Update dependency management
+  update_deps:
+    status: pending
+    files:
+      - .deps/profiles.yaml
+      - modules/base.known_dependencies
+      - bin/dependencies/install_minimal_dependencies.debian.sh
+    
+    add_packages:
+      apt:
+        - libfuse-perl          # For FUSE filesystem mounts
+        - libsys-mmap-perl      # For shared memory buffers
+      cpan:
+        - Fuse                  # FUSE filesystem interface
+        # File::ExtAttr and Sys::Mmap already in zenka-common profile
+    
+    new_profile:
+      name: amos-term
+      description: "3D terminal with FUSE buffer mounting"
+      includes:
+        - runtime
+        - X11-Desktop
+      apt:
+        - libfuse-perl
+        - libsys-mmap-perl
+      cpan:
+        - Fuse
+
+architecture:
+  # Phase 2: Core editor namespace design
+  
+  core_principles:
+    - plugin-based: Control, UI, and buffer adapters are swappable
+    - dimension-agnostic: Works in 1D (terminal), 2D (GUI), 3D+ (amos-term)
+    - buffer-unified: Single editor core, multiple rendering backends
+    - zenka-embeddable: Loadable as sub-feature via editor.init_code
+  
+  namespace_structure:
+    editor.init_code: |
+      Initialize editor subsystem, register plugin types
+      - Load core editing engine
+      - Register available adapters (control, ui, buffer)
+      - Set up keybinding dispatch table
+    
+    editor.control.*: |
+      Input handling and command dispatch
+      - editor.control.keymap - Key binding management
+      - editor.control.commands - Editor commands (insert, delete, navigate)
+      - editor.control.modes - Modal editing (insert/normal/visual)
+      - editor.control.plugins - Dynamic command loading
+    
+    editor.ui.*: |
+      Rendering adapters (multiple can be active)
+      - editor.ui.terminal - Terminal/readline rendering (nshell-style)
+      - editor.ui.gtk3 - GTK3 widget rendering
+      - editor.ui.vterm - 3D voxel rendering (amos-term integration)
+      - editor.ui.status - Status line/mode indicator
+    
+    editor.buffer.*: |
+      Buffer management and storage adapters
+      - editor.buffer.memory - In-memory text storage
+      - editor.buffer.shm - Shared memory (data zenka integration)
+      - editor.buffer.file - File-backed with auto-save
+      - editor.buffer.mount - FUSE mountable buffer interface
+    
+    editor.bridge.*: |
+      Integration with other subsystems
+      - editor.bridge.nshell - Connect to nshell input loop
+      - editor.bridge.amos-term - Connect to 3D voxel buffer
+      - editor.bridge.data - Mount as data zenka filesystem
+      - editor.bridge.fuse - FUSE filesystem export
+    
+    editor.plugin.*: |
+      Extensible plugin system
+      - editor.plugin.syntax - Syntax highlighting
+      - editor.plugin.completion - Auto-completion
+      - editor.plugin.search - Search and replace
+      - editor.plugin.macro - Keyboard macros
+
+hybrid_zenka:
+  # Phase 3: Editor-as-zenka implementation
+  
+  name: editor
+  type: hybrid_subsystem  # Can be standalone zenka or loaded into others
+  
+  startup_modes:
+    standalone:
+      description: "Full editor zenka with GUI"
+      config: configuration/zenki/editor/start-gui
+      modules: editor, editor.ui.gtk3, editor.control.vim
+    
+    nshell_embedded:
+      description: "Editor loaded within nshell"
+      config: loaded via nshell keybinding (Ctrl+X Ctrl+E)
+      modules: editor, editor.ui.terminal, editor.control.emacs
+    
+    amos_term_embedded:
+      description: "3D editor in amos-term window"
+      config: auto-loaded when window opens
+      modules: editor, editor.ui.vterm, editor.control.hybrid
+  
+  integration_points:
+    nshell:
+      - Hijack readline during edit mode
+      - Preserve history across edit sessions
+      - Use existing nshell key detection
+    
+    amos_term:
+      - Render to 3D voxel buffer
+      - Cursor follows Z-depth (history layers)
+      - Multiple viewports (split editing)
+    
+    data_zenka:
+      - Mount buffer as editable filesystem
+      - File creation = new buffer
+      - Directory = buffer groups
+
+implementation_phases:
+  phase_1_dependencies:
+    tasks:
+      - Add Fuse to .deps/profiles.yaml (amos-term profile)
+      - Update base.known_dependencies with Fuse entry
+      - Add libfuse-perl to install_minimal_dependencies.debian.sh
+    estimated_hours: 1
+  
+  phase_2_core_editor:
+    tasks:
+      - Create editor.init_code with plugin registry
+      - Implement editor.buffer.memory (rope data structure)
+      - Create editor.control.commands (basic editing)
+      - Implement editor.ui.terminal (nshell adapter)
+    estimated_hours: 8
+    
+  phase_3_nshell_integration:
+    tasks:
+      - Create editor.bridge.nshell
+      - Implement Ctrl+X Ctrl_E keybinding in nshell
+      - Test embedded editing in nshell context
+      - Preserve nshell history integration
+    estimated_hours: 4
+    
+  phase_4_amos_term_integration:
+    tasks:
+      - Create editor.ui.vterm (3D rendering)
+      - Implement Z-layer navigation (history depth)
+      - Create editor.bridge.amos-term
+      - Test 3D cursor movement
+    estimated_hours: 6
+    
+  phase_5_fuse_filesystem:
+    tasks:
+      - Create editor.buffer.mount
+      - Implement FUSE getattr/readdir/read/write
+      - Mount editor buffers under /mnt/p7-editor/
+      - Test with standard Unix tools
+    estimated_hours: 4
+    
+  phase_6_hybrid_zenka:
+    tasks:
+      - Create editor zenka start configuration
+      - Implement mode switching (standalone/embedded)
+      - Test cross-zenka buffer sharing
+      - Documentation and examples
+    estimated_hours: 4
+
+technical_notes:
+  data_structures:
+    rope: |
+      For efficient text operations in large buffers.
+      Balanced tree of text chunks, O(log n) insert/delete.
+    
+    voxel_buffer: |
+      3D text storage for amos-term integration.
+      X=character, Y=line, Z=history layer.
+      Each voxel: {char, color, attributes, timestamp}
+  
+  plugin_interface:
+    control_plugin: |
+      register_key($key_sequence, $handler_sub)
+      register_command($name, $handler_sub)
+      get_mode() / set_mode($mode)
+    
+    ui_plugin: |
+      render_buffer($buffer_ref, $viewport)
+      update_cursor($x, $y, $z)
+      refresh_display()
+    
+    buffer_plugin: |
+      load($source)
+      save($destination)
+      insert($position, $text)
+      delete($start, $end)
+      get_line($line_num)
+  
+  keybinding_dispatch:
+    architecture: |
+      Editor uses priority-based key dispatch:
+      1. Plugin-specific keys (syntax, completion)
+      2. Mode-specific keys (insert vs normal)
+      3. Global editor keys (save, quit)
+      4. Pass-through to host zenka (nshell, amos-term)
+
+testing_strategy:
+  unit_tests:
+    - editor.buffer.memory rope operations
+    - editor.control.commands text manipulation
+    - editor.ui.terminal rendering accuracy
+  
+  integration_tests:
+    - nshell embedded editing session
+    - amos-term 3D cursor navigation
+    - FUSE mount with vi/vim on mounted buffer
+  
+  e2e_tests:
+    - Full workflow: nshell → editor → save → amos-term view
+    - Cross-zenka buffer synchronization
+    - Plugin loading and hot-reload
+
+references:
+  related_modules:
+    - modules/amos-term.* (3D buffer system)
+    - modules/nshell.* (terminal input)
+    - modules/data.mount.* (FUSE infrastructure)
+    - modules/vterm.* (visual consensus rendering)
+  
+  design_patterns:
+    - Protocol-7 plugin architecture
+    - Holographic buffer topology
+    - Zenka sub-feature loading
+
+created: 2026-03-26
+tags: [editor, amos-term, nshell, gui, terminal, fuse, 3d, hybrid]
+
+#,,,,,,,,,.,,,..,,,.,,...,.,.,,,,,...,,.,,.,,,..,,...,..,,.,.,,..,,,.,,,,,.,,,
+#MUMR2VEZTWJRG5PKWWOCPRVMTHMPYIZGEHIDWLJTWGPIQBMNKTQ6TJHL573CWY2EEUGPEOM2WASF4
+#\\\|RXI7BU6INYFQ6V2QTEQCYQSFJX426PQ4SBH7D62WOFRIZ4AL27Z \ / AMOS7 \ YOURUM ::
+#\[7]V66ZLGPY7LMQRWBFMNE77DX2KCMGNSBVK4EUB27SABMHYBVTXQCQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
