@@ -71,16 +71,16 @@ Protocol-7 maintains strict separation between:
 
 sub settings.get {
     my $key = shift;
-    
+
     # 1. Check personal (local only)
     return $personal{$key} if exists $personal{$key};
-    
+
     # 2. Check branch defaults (from network)
     return $branch_defaults{$key} if exists $branch_defaults{$key};
-    
+
     # 3. Check network defaults (from dedup tree)
     return $network_defaults{$key} if exists $network_defaults{$key};
-    
+
     # 4. Hardcoded fallback
     return $hardcoded_defaults{$key};
 }
@@ -440,8 +440,8 @@ access.cmd.usr.cube = report status opt-out
 
 #,,.,,.,.,,.,,,,.,,,,.,.,,,,,,..,,.,.,.,,,.,.,,.,,..,,,.,.,,,..,,.,,,.,.,,,,.
 
-#,,..,,,.,...,,,.,.,,,.,.,,,,,,,,,.,.,.,.,,,.,..,,...,.,.,...,.,,,,..,.,,,,,.,
-#5MVV4ISPHVVLVN425M3C5Y464TXGY7BS4YWZOLOBTDC2KSWTEC6V7L6QWKGQJBBLTJU5S5NY4OWK4
-#\\\|VDCRRHIKDIEKJ2LJMUHK2OHQQUSR5VOL2NAARQBR5BO4E622J22 \ / AMOS7 \ YOURUM ::
-#\[7]P37DVQXUJBZ7IAJETRHJMMHQGSQFPQP7VJBJ65UYLA4SV5TL66CI 7  DATA SIGNATURE ::
+#,,,,,...,.,.,...,,.,,...,,,,,,,.,,..,...,..,,..,,...,...,..,,,.,,.,,,,,,,..,,
+#BFOJPEQAKLF4D7AYU7MNLTFMO7L3ASRGEHTRRDLRQRFESBP5H5C5HI5O4ZZITBNCX24U63UKGVSMA
+#\\\|PS27ASL2VICD4D3WH7KXHJVL3JZUISZFPZDRLPGHDV5LIIW62OQ \ / AMOS7 \ YOURUM ::
+#\[7]KGNH2SZWVLH5JTCIPCCA72HWTYD67RMPPJ5WPY77OBMI326BBEDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
