@@ -1,0 +1,26 @@
+## [:< ##
+
+# name  = amos-term.cmd.window-create
+# descr = Create new 3D terminal window
+
+my ( $client_name, $geometry ) = @ARG;
+
+$client_name //= 'term-' . <[base.time]>->(2);
+$geometry    //= '640x480';
+
+my ( $session_id, $amos_id ) = <[amos-term.window-create]>->(
+    {   qw| client_name | => $client_name,
+        qw| geometry |    => $geometry
+    }
+);
+
+return "Error: window creation failed\n" unless defined $session_id;
+
+return sprintf( "Window created\nAMOS ID: %s\nSession: %d\nName: %s\n",
+    $amos_id, $session_id, $client_name );
+
+#,,..,,,,,...,,,.,.,,,..,,...,,.,,.,,,...,,.,,.,.,...,...,...,,,.,,,,,...,...,
+#3MT7OHZ6L2J7VJ3IPZAWNBA6CDRYN2XNRII7KCJCOQ2SZ6XYFMVFH5LCMWIFG45ZU3IGYUCGWAZN2
+#\\\|CH2ZN5622ZN4QTP3F6Q6LQASKMH6FPYFYT64KXEDCPKNQVIVCEQ \ / AMOS7 \ YOURUM ::
+#\[7]ASAEJWT6M6ABHWQPW7NSHJW66N5HBFO4UKYG2TSZ2SOA3UZEVWBI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
