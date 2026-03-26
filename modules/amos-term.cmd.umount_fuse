@@ -1,0 +1,45 @@
+## [:< ##
+
+# name  = amos-term.cmd.umount_fuse
+# descr = Unmount FUSE filesystem for 3D buffer
+
+my $mount_point = shift;
+
+## === if AMOS ID provided, lookup mount point === ##
+if ( $mount_point =~ m{^amos:([A-Z2-7]{10})$}i ) {
+    my $amos_id = uc($1);
+    ## find mount point for this AMOS ID
+    foreach my $mp ( keys <amos-term.fuse.mounts>->%* ) {
+        if ( <amos-term.fuse.mounts>->{$mp}->{'amos_id'} eq $amos_id ) {
+            $mount_point = $mp;
+            last;
+        }
+    }
+}
+
+return "Error: mount point not found\n" unless defined $mount_point;
+
+## === check if we have this mount === ##
+my $mount_info = <amos-term.fuse.mounts>->{$mount_point};
+return "Error: not an amos-term mount: $mount_point\n"
+    unless defined $mount_info;
+
+## === kill the FUSE process === ##
+my $pid     = $mount_info->{'pid'};
+my $amos_id = $mount_info->{'amos_id'};
+
+kill( 'TERM', $pid );
+waitpid( $pid, 0 );
+
+## === remove from registry === ##
+delete <amos-term.fuse.mounts>->{$mount_point};
+
+<[base.logs]>->( 2, "[FUSE] unmounted %s from %s", $amos_id, $mount_point );
+
+return sprintf( "Unmounted %s from %s\n", $amos_id, $mount_point );
+
+#,,..,,.,,,.,,..,,..,,,,.,,..,.,,,,.,,,..,.,,,.,.,...,...,,..,,,,,,..,..,,...,
+#X27O4AZZDD57LETJQHDY3EU65OYAAM7YDIWQVS7VX2HHLHW334PPLCY7JNMQ47NPHB3P42YUJK22I
+#\\\|5THWS6HE3WCGJDXOM26WQS7PVJ3QL3CKWJHZKVSM4OJTUVYZPQK \ / AMOS7 \ YOURUM ::
+#\[7]MI6NVZILR2MC7EABMTTCTCHAUGXT5MQ5EV4KTA2PU2QLINWAJADA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
