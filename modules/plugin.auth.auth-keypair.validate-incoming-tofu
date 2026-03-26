@@ -15,7 +15,7 @@ return 4
 return 4 unless defined $peerhost and defined $peerport;
 
 ##  Get home directory for remote-keys structure  ##
-my $home_dir = <[base.get_homedir]>->();
+my $home_dir = <[base.get_homedir]>;
 return 4 unless defined $home_dir and -d $home_dir;
 
 my $remote_keys_base = catfile( $home_dir,         qw| .n remote-keys | );
@@ -34,12 +34,11 @@ $host_safe =~ tr/:\//__/;
 my $hostname_port = "${host_safe}_${peerport}";
 
 ##  Try host-restricted first: incoming/<user>.<host>_<port>.public  ##
-my $restricted_file = catfile( $incoming_dir,
-    "${username}.${hostname_port}.public" );
+my $restricted_file
+    = catfile( $incoming_dir, "${username}.${hostname_port}.public" );
 
 ##  Fall back to unrestricted: incoming/<user>.public  ##
-my $unrestricted_file
-    = catfile( $incoming_dir, "${username}.public" );
+my $unrestricted_file = catfile( $incoming_dir, "${username}.public" );
 
 ##  Check for authorized symlink in authorized/<zenka>/<user>.public  ##
 my $authorized_link = catfile( $authorized_dir, "${username}.public" );
@@ -156,9 +155,7 @@ if ( defined $incoming_file ) {
 
     ##  Send notification to admins via channels  ##
     my $notify_result = <[plugin.auth.auth-keypair.tofu-notification]>->(
-        $username,
-        $peerhost,
-        $peerport
+        $username, $peerhost, $peerport
     );
 
     if ( $notify_result != 0 ) {
@@ -175,8 +172,8 @@ if ( defined $incoming_file ) {
 
 1;
 
-#,,.,,..,,,.,,,.,,.,,,,,.,.,,,,.,,,,,,,,.,...,.,.,...,...,...,...,,,,,,,,,,,.,
-#BBTKYQX7G7BQOLPQLJQQVLI3HJQPO7KNEBNVNVPODLBUHPLZ7LIW33W6XXXVYTBNMFKVUOHB7HMM6
-#\\\|5YNTRSIJWCFG3YHSC646QBPLN4BN6MM5PCLLH65QEQTCYENIF43 \ / AMOS7 \ YOURUM ::
-#\[7]SYKZQUMXYNUALFZRHLGVNL6RWDIEX7BMBSKT3UD2X6BQ6AU2WUAQ 7  DATA SIGNATURE ::
+#,,,,,.,.,,.,,,..,,..,,,.,..,,...,,.,,,.,,,,,,.,.,...,..,,...,.,,,.,,,.,,,,,.,
+#CWTFR6CTM7IT7XSGO4GHNR56VU3QLD6UEH3LYQ2AYM56KFLFGMC2JP2BYDFRWYGJGXFHV2UJSC33S
+#\\\|TCPDKHKRP4RZGKDAR5EV7WPZ3HI3RCUFCD4UFYIEZ2IVJVEVCTM \ / AMOS7 \ YOURUM ::
+#\[7]KN7FQY2VIYKFYSX22AB2EDS2RRGOCYL35G6UKMN2P2VFNTX2WEAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
