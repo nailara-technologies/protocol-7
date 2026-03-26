@@ -6,13 +6,14 @@
 # return  = int(count) number of keys cleaned up, or undef on error
 
 ##  Configuration for cleanup behavior  ##
-my $cleanup_ttl_seconds = <plugin.auth.auth-keypair.cleanup_ttl_seconds> //= 86400;  ## 24 hours default ##
-my $cleanup_enabled     = <plugin.auth.auth-keypair.cleanup_enabled> //= TRUE;
+my $cleanup_ttl_seconds = <plugin.auth.auth-keypair.cleanup_ttl_seconds>
+    //= 86400;    ## 24 hours default ##
+my $cleanup_enabled = <plugin.auth.auth-keypair.cleanup_enabled> //= TRUE;
 
 return 0 unless $cleanup_enabled;
 
 ##  Get home directory and verify remote-keys structure  ##
-my $home_dir = <[base.get_homedir]>->();
+my $home_dir = <[base.get_homedir]>;
 return undef unless defined $home_dir and -d $home_dir;
 
 my $remote_keys_base = catfile( $home_dir,         qw| .n remote-keys | );
@@ -71,10 +72,8 @@ foreach my $file_path (@incoming_files) {
         ##  Key has expired, remove it  ##
         unless ( unlink($file_path) ) {
             <[base.logs]>->(
-                0,
-                "auth-keypair cleanup: failed to remove %s: %s",
-                $file_name,
-                $!
+                0,          "auth-keypair cleanup: failed to remove %s: %s",
+                $file_name, $!
             );
             next;
         }
@@ -84,8 +83,7 @@ foreach my $file_path (@incoming_files) {
         <[base.logs]>->(
             1,
             "auth-keypair cleanup: removed unpinned key %s (age: %d hours)",
-            $file_name,
-            int( $file_age / 3600 )
+            $file_name, int( $file_age / 3600 )
         );
     }
 }
@@ -94,8 +92,8 @@ return $cleanup_count;
 
 1;
 
-#,,,.,.,.,,.,,,.,,,,.,,..,.,,,,..,...,.,.,..,,.,.,...,..,,,.,,,.,,.,,,..,,.,,,
-#6JSTSZJTMA34HPGKTN5UV6RLK2B5KUCVJ6ABFLNBUWQSFIK3AMXA65LXUG6QJPJUXAH5RMCZKJWBW
-#\\\|C57P2LOSUBQ4EEJITG5WCIZN5OD54DMCO6MKBHCBNMXKMRTFUEF \ / AMOS7 \ YOURUM ::
-#\[7]CMXLCRXIRJHBBLKRJCFWTYBI7YU3HIOEQEY7EVKBP3HEOGKZDCAQ 7  DATA SIGNATURE ::
+#,,,,,.,.,..,,,.,,,..,,..,,,,,.,.,,.,,,,.,,.,,.,.,...,...,,.,,..,,,..,,..,.,.,
+#SFOBGDLDDF33JA2KIWOGGOLMCJFDDCFKETA5ICUY2MEDSGPGM66OSPUEIAECFHRQUOJQUWJUXDPGE
+#\\\|EXIO5ZCBQPURE2FDCMWOWCQOIKWHIYHJCAXQ7NTRXA2TQ5UADPH \ / AMOS7 \ YOURUM ::
+#\[7]MUYKBDP6JF4PNJ3LKNIGHFFK4NHZUHPGYCU4CQXCQWSSF4GHQGDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
