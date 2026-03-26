@@ -1,0 +1,20 @@
+## [:< ##
+
+# name  = amos-term.fuse.get_window
+# descr = Helper to resolve AMOS ID to window reference for FUSE
+
+my $amos_id = shift;
+
+return undef unless defined $amos_id;
+$amos_id = uc($amos_id);
+
+my $session_id = <amos-term.windows.by_amos>->{$amos_id};
+return undef unless defined $session_id;
+
+return <amos-term.windows.by_id>->{$session_id};
+
+#,,.,,,,.,.,.,,,,,..,,,,,,.,,,.,,,...,,,.,,..,.,.,...,...,..,,.,.,,.,,,,,,...,
+#OWQT5QOZNSA4YUHIIEEZA4KQXMU3FUKHIMV6HQHNNYSNMAXBDZZ7SJRJINBN5RU5RLP7LDYYNSY5I
+#\\\|QDHA6VN4E6YJAMDE3GBJSOWGQ33YUGH7CUMRYNVGBA3HZGERT23 \ / AMOS7 \ YOURUM ::
+#\[7]B7JKY6UW2SNTFI2KNWTUGOM7GWDLLNUFOVI57JY3P3ITJ2YD6YBY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

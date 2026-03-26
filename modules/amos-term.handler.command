@@ -102,6 +102,17 @@ if ( $cmd eq qw| open | ) {
     my $result = <[amos-term.buffer.detach]>->($attach_id);
     return $result ? "+ detached $attach_id\n" : "- detach failed\n";
 
+} elsif ( $cmd eq qw| mount | ) {
+    ## mount buffer as FUSE filesystem
+    my ( $target, $path ) = @args;
+    $target //= 'current';
+    return <[amos-term.cmd.mount_fuse]>->( $target, $path );
+
+} elsif ( $cmd eq qw| umount | ) {
+    ## unmount FUSE filesystem
+    my $target = shift @args // 'current';
+    return <[amos-term.cmd.umount_fuse]>->($target);
+
 } elsif ( $cmd eq qw| info | ) {
     my @attachments
         = $window->{'attachments'} ? $window->{'attachments'}->@* : ();
@@ -117,8 +128,8 @@ if ( $cmd eq qw| open | ) {
 
 return "- unknown command: $cmd\n";
 
-#,,,.,..,,,..,,,,,,,,,,.,,,.,,...,,..,,.,,...,.,.,...,..,,.,,,,,.,,,,,.,.,..,,
-#YCB57WMMP4GC2ULXNSENOVTDHJZX5HGVG7QAR3REU5DLR55QZB7KP5HD2IPUECYORXOEDBCFI6AT6
-#\\\|HGUDORSXRNGEHDQ7MVMNMNSHSXD5J6XVRWDADHTB7X2F6M777D3 \ / AMOS7 \ YOURUM ::
-#\[7]2VOOEHWOY2XEZRVESHFKKK56U46TWH2QTE6BRPTF24SV26TTHOAI 7  DATA SIGNATURE ::
+#,,..,,..,,.,,,,,,,.,,.,,,,..,.,,,,.,,..,,,.,,.,.,...,...,.,,,,,.,,.,,,,.,,,,,
+#7JN23O2ALUTGIYGCLZ3CNA7VE3JRFMZLT6LKNCZWSAJ6ASNZ53M2JJCFCKZKE6XRKD2AP44GAWSP6
+#\\\|D4CPUOB663SF532XBMGVFUUOTKZFNACXWMLN2TOCVVZJ6UKXP5I \ / AMOS7 \ YOURUM ::
+#\[7]2V5IIIXOBRTLD2F3KFILTJWUKEOLO5WXMH4RNZYKHJUNJIW34IBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

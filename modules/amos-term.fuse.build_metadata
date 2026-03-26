@@ -1,0 +1,53 @@
+## [:< ##
+
+# name  = amos-term.fuse.build_metadata
+# descr = Build JSON metadata for buffer FUSE export
+
+my $window = shift;
+return '{}' unless defined $window;
+
+my $dims   = $window->{'buffer'}->{'dimensions'};
+my $cursor = $window->{'buffer'}->{'cursor'};
+my @attachments
+    = $window->{'attachments'} ? $window->{'attachments'}->@* : ();
+
+## === build metadata structure === ##
+my $meta = {
+    qw| amos_id |    => $window->{'amos_id'},
+    qw| name |       => $window->{'client_name'},
+    qw| session_id | => $window->{'session_id'},
+    qw| created |    => $window->{'created'},
+    qw| dimensions | => { x => $dims->[0], y => $dims->[1], z => $dims->[2] },
+    qw| cursor |     =>
+        { x => $cursor->{'x'}, y => $cursor->{'y'}, z => $cursor->{'z'} },
+    qw| state |       => $window->{'state'},
+    qw| visible |     => $window->{'display'}->{'visible'} ? 1 : 0,
+    qw| attachments | => scalar(@attachments),
+    qw| layer_size |  => <amos-term.fuse.layer_size>,
+    qw| version |     => qw| 0.7.13 |,
+};
+
+## === encode to JSON === ##
+if ( eval { require JSON::XS; 1 } ) {
+    return JSON::XS->new->pretty->canonical->encode($meta);
+} else {
+    ## fallback: simple string concat ##
+    my $json = "{\n";
+    $json .= qq|  "amos_id": "$meta->{'amos_id'}",\n|;
+    $json .= qq|  "name": "$meta->{'name'}",\n|;
+    $json .= qq|  "session_id": $meta->{'session_id'},\n|;
+    $json .= qq|  "created": "$meta->{'created'}",\n|;
+    $json .= qq|  "state": $meta->{'state'},\n|;
+    $json .= qq|  "visible": $meta->{'visible'},\n|;
+    $json .= qq|  "attachments": $meta->{'attachments'},\n|;
+    $json .= qq|  "layer_size": $meta->{'layer_size'},\n|;
+    $json .= qq|  "version": "$meta->{'version'}"\n|;
+    $json .= "}\n";
+    return $json;
+}
+
+#,,,,,..,,..,,,.,,,.,,.,,,.,,,,,.,.,.,..,,,.,,.,.,...,...,.,.,.,.,..,,.,,,..,,
+#5O4WA2POMFLQEFM7ZDU56HQPSBTJHM5FST2J63XS7NEJBK6CSWJ4TXQSBO3SYLRR56AMNJDMAPVUQ
+#\\\|TYLALSNAYWBBRIY54TI4CECXNUIQ26Z3IFZTVCU2QINVXPYM3PI \ / AMOS7 \ YOURUM ::
+#\[7]HKRCSP4IM4OUWY6SDUVZF45GTQYIUBZPCYB6DKIXDTTXJBE3D6BI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

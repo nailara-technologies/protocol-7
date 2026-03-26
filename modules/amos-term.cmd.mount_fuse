@@ -1,0 +1,88 @@
+## [:< ##
+
+# name  = amos-term.cmd.mount_fuse
+# descr = Mount 3D buffer as FUSE filesystem
+
+my ( $buffer_id, $mount_point ) = @ARG;
+
+## === resolve buffer === ##
+my $window;
+if ( $buffer_id =~ m{^amos:([A-Z2-7]{10})$}i ) {
+    my $amos_id = uc($1);
+    my $sid     = <amos-term.windows.by_amos>->{$amos_id};
+    return "Error: buffer not found\n" unless defined $sid;
+    $window = <amos-term.windows.by_id>->{$sid};
+    $mount_point //= <amos-term.fuse.mount_base> . "/$amos_id";
+} elsif ( $buffer_id =~ m{^name:(.+)$} ) {
+    my $name = $1;
+    my $sid  = <amos-term.windows.by_name>->{$name};
+    return "Error: buffer '$name' not found\n" unless defined $sid;
+    $window = <amos-term.windows.by_id>->{$sid};
+    $mount_point //= <amos-term.fuse.mount_base> . "/" . $window->{'amos_id'};
+} else {
+    $window = <amos-term.windows.by_id>->{$buffer_id};
+    return "Error: buffer not found\n" unless defined $window;
+    $mount_point //= <amos-term.fuse.mount_base> . "/" . $window->{'amos_id'};
+}
+
+## === check FUSE availability === ##
+if ( not <data.fuse.capabilities.available> ) {
+    return "Error: FUSE not available (install Fuse.pm)\n";
+}
+
+## === ensure mount point exists === ##
+if ( not -d $mount_point ) {
+    require File::Path;
+    File::Path::make_path($mount_point)
+        or return "Error: cannot create mount point $mount_point\n";
+}
+
+## === check if already mounted === ##
+if ( exists <amos-term.fuse.mounts>->{$mount_point} ) {
+    return "Error: already mounted at $mount_point\n";
+}
+
+## === spawn FUSE filesystem === ##
+my $amos_id = $window->{'amos_id'};
+
+<[base.logs]>->( 2, "[FUSE] mounting %s at %s", $amos_id, $mount_point );
+
+## === fork and mount === ##
+my $pid = fork();
+
+if ( not defined $pid ) {
+    return "Error: fork failed\n";
+}
+
+if ( $pid == 0 ) {
+    ## === child process: run FUSE === ##
+    require Fuse;
+    Fuse->import();
+
+    Fuse::main(
+        qw| mountpoint | => $mount_point,
+        qw| getattr | => sub { <[amos-term.fuse.getattr]>->( @_, $amos_id ) },
+        qw| getdir |  => sub { <[amos-term.fuse.readdir]>->( @_, $amos_id ) },
+        qw| open |    => sub {0},    # always ok
+        qw| read |     => sub { <[amos-term.fuse.read]>->( @_, $amos_id ) },
+        qw| release |  => sub {0},
+        qw| threaded | => 0,
+    );
+
+    exit(0);
+}
+
+## === parent: record mount === ##
+<amos-term.fuse.mounts>->{$mount_point} = {
+    qw| amos_id | => $amos_id,
+    qw| pid |     => $pid,
+    qw| mounted | => <[base.time]>->(3),
+};
+
+return sprintf( "Mounted %s at %s (pid %d)\n", $amos_id, $mount_point, $pid );
+
+#,,,.,,,,,,..,,..,...,,..,,,.,...,,,.,,..,..,,.,.,...,...,...,..,,.,.,,.,,..,,
+#6U32D4ALZQF5IYKUWTPJXVEXRZDYZRKPFWCXAJOZEQJZ2CQ652FN3WIBWUJN57UM4HAG7ERP6B5Y6
+#\\\|ZNCNJEKMYAEI34OETETYPDAKY7MBBURNR47XC3FZQYTH2W36QJU \ / AMOS7 \ YOURUM ::
+#\[7]IRRFRQ2LXCDYTQYR7LCYCEY3BY7JT52LKLBUMFLBGG4EXG3TRMDY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
