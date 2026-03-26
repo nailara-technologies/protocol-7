@@ -309,3 +309,9 @@ The purring kitten doesn't need to defend itself. It simply **is**, and in being
 *"Security is not a feature we add. It is depth we grow into."*
 
 #,,,.,,.,,..,.,,,.,.,,,.,.,.,,..,,.,..,,,.,.,,..,,,,,..,.,.,.,,.,,.,,,.,,,,,.
+
+#,,..,.,,,...,.,,,,.,,...,,..,,,.,,..,...,,,,,..,,...,...,...,,,.,,,.,.,.,,.,,
+#SIBPVV3QTHRFQFSZPTXB25NCCC3ZMM4I4VQEAMCCPVEORE3UCO75WCZLC2IAJNJRM5QZXYT4EGA7A
+#\\\|TPQTV6ABBPSQI4TTMC3O3UHIWBNASRWL5YNOMZFCLOKFNYNRMCA \ / AMOS7 \ YOURUM ::
+#\[7]NHTESPDNT55BBUPY7NXKC4EFPMCVIF3M37DD6TKPNCSHA5K6VIAQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
