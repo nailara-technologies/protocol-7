@@ -658,8 +658,118 @@ Otherwise downstream code sees wrong state.
 
 ---
 
-#,,..,,..,,,.,..,,...,..,,,,,,,..,,.,,,,.,.,.,..,,...,...,...,..,,,..,,..,...,
-#DOZBB7UREUZO73JJTUVPEDPQMTJONOBMFGTVNLKCFKSK5EYOXV3H3E4LUCJQTMME4UJE3F6Q25OIU
-#\\\|ZTGJ4KIRNOKCIXBCJDPK6UUO4B4J3OGDJXECIE2GPRZ3R42PJA7 \ / AMOS7 \ YOURUM ::
-#\[7]LXXSHJAEWJIUYY3OUVL3L3Q5Q2YX2V67K6OH636FNSAXNY6KN4AY 7  DATA SIGNATURE ::
+## amos-term Window Management Fixes (March 2026)
+
+### Hash Dereference Syntax Compatibility
+
+**Issue**: Perl's `//=` operator doesn't work with typeglobs (`<var>`)
+```perl
+# INVALID - causes compilation error:
+<amos-term.windows.by_amos> //= {};
+
+# VALID - use hash reference syntax:
+my $by_amos = <amos-term.windows.by_amos> // {};
+my @windows = keys %$by_amos;
+```
+
+### Command Return Format
+
+**Valid modes for `*.cmd.*` modules**:
+- `'true'` - Success with data
+- `'false'` - Error with message
+- `'size'` - Data with size prefix (for multi-line replies)
+- `'deferred'` - Async operation, reply via handler chain
+
+**Invalid modes**:
+- `'immediate'` - NOT a valid mode (causes protocol errors)
+
+### Handle Mode Initialization for Pipe Sessions
+
+When creating sessions with pipes (not sockets), set handle mode BEFORE `base.session.init`:
+
+```perl
+## set handle mode BEFORE session init (required by init_state) ##
+$data{'handle'}{$reader}{'mode'} = qw| internal |;
+
+my $session_id = <[base.session.init]>->(
+    $reader,      qw| amos-term |,
+    qw| client |, $client_name
+);
+```
+
+Without this, `base.session.init_state` fails with "handle mode not defined".
+
+### Argument Parsing in *.cmd.* Modules
+
+**CRITICAL**: In `*.cmd.*` modules, `shift` gives you `$call`, NOT the arguments:
+
+```perl
+# WRONG - shift gives $call hashref:
+my $amos_id = shift;  # Actually gets { args => "...", session_id => ... }
+
+# RIGHT - use $call->{'args'}:
+my $amos_id = $call->{'args'};
+$amos_id =~ s/^\s+|\s+$//g;  # trim whitespace
+```
+
+### WARNING: 'deferred' Mode Can Appear Blocking
+
+**Issue**: `{ 'mode' => 'deferred' }` appears to hang when async activity stalls
+
+**Why**: Deferred mode tells Protocol-7 that a reply handler will send the response later. If that handler:
+- Never gets called
+- Crashes silently
+- Returns without sending reply
+- Has a routing error
+
+The client sees an indefinite timeout (appears blocking).
+
+**Debugging**:
+```bash
+# Check if handler was registered:
+p7c zenka.show-buffer amos-term  # Check logs for handler errors
+
+# Test with 'true'/'size' mode first:
+return { 'mode' => 'true', 'data' => 'test' };  # If this works, routing is OK
+
+# Then convert to deferred once flow verified
+```
+
+**Best Practice**: Always implement the reply handler and error path BEFORE using deferred mode.
+
+### Access Configuration for Zenka Commands
+
+**Three layers of access control**:
+
+1. **Zenka's own start file** (`access.cmd.usr.cube`) - Exposes commands generically
+2. **cube/access.zenki** - Routes commands between zenki (needs `zenka.command-name` prefix)
+3. **Per-command SID prefix** - Rarely needed, configured in `command_aliases`
+
+**Example - Routing amos-term commands**:
+```
+# In configuration/zenki/amos-term/start:
+access.cmd.usr.cube = window-create window-open list-windows
+
+# In configuration/zenki/cube/access.zenki:
+access.cmd.usr.amos-term = amos-term.window-create amos-term.window-open amos-term.list-windows
+```
+
+### Authentication for Zenka-to-Zenka Commands
+
+To test commands as specific user:
+```bash
+# Add unix auth support for the zenka user in cube/auth.zenki:
+auth.setup.usr.amos-term = :zenka:,:unix:<unix-AMOS-user>,:unix:<unix-admin>
+
+# Reload and test:
+p7c reload
+p7c amos-term.list-windows
+```
+
+---
+
+#,,..,...,.,,,..,,...,,..,,,,,,,.,..,,.,,,,,.,.,.,...,...,...,..,,...,..,,.,,,
+#VZZ4Q2ZYXMFONPICONNTPL35KVOTPUTBN2HCZANGYM6VF76KWUFI4JD3FOAKNCHOBQ2QXQZXOWQWA
+#\\\|KIKUNRBT53CWU2BXH5INQAXIXSLACBY4GGH3W3HA34VCKGT3ZPM \ / AMOS7 \ YOURUM ::
+#\[7]OFCY2XKS7EB62OG2UJ25IUKDU3UYZPRIRMCAP4BCSGBUHSB642DI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
