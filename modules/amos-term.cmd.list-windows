@@ -1,0 +1,42 @@
+## [:< ##
+
+# name  = amos-term.cmd.list-windows
+# descr = List all 3D terminal windows
+
+my $output = ".: amos-term windows :.\n\n";
+
+my @windows = keys <amos-term.windows.by_amos>->%*;
+
+if ( @windows == 0 ) {
+    $output .= "No windows created\n";
+    return $output;
+}
+
+$output .= sprintf( "%-12s %-20s %s\n", "AMOS ID", "Name", "State" );
+$output .= "-" x 50 . "\n";
+
+foreach my $amos_id ( sort @windows ) {
+    my $session_id = <amos-term.windows.by_amos>->{$amos_id};
+    my $window     = <amos-term.windows.by_id>->{$session_id};
+    next unless defined $window;
+
+    my $state = $window->{'state'};
+    my $name  = $window->{'client_name'};
+
+    my $state_str
+        = $state == 0 ? 'created'
+        : $state == 1 ? 'active'
+        : $state == 2 ? 'hidden'
+        : $state == 3 ? 'fullscreen'
+        :               'unknown';
+
+    $output .= sprintf( "%-12s %-20s %s\n", $amos_id, $name, $state_str );
+}
+
+return $output;
+
+#,,,,,,,,,..,,.,,,,..,..,,.,,,,,,,,.,,.,.,.,,,.,.,...,...,...,.,,,,,,,,.,,,,.,
+#IITF2MCSIDYGAJFZ336XKTBGQ3A4PR6H4JJ5Y3T7TJ6WRT32NZ5KGVPLJU2GHCVBWCGH4QRJDUCTG
+#\\\|4JV4SF4MDAEG3OPN765XPC7KQJWHW2U7NGADVH7I2XO3NRUTG4C \ / AMOS7 \ YOURUM ::
+#\[7]HEPGHO2O7USJLSUEXLK2PB6J75SS34QBDZ5QLV3BND6XFR3OU6BI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
