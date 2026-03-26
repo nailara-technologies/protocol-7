@@ -26,6 +26,19 @@ if ( not defined $state ) {
 
 my $mode = $data{'handle'}{ $session->{'handle'} }{'mode'};
 
+if ( not defined $mode ) {
+    <[base.s_warn]>->(
+        "[%d] handle mode not defined for session handle '%s' <{C1}>",
+        $s_id, $session->{'handle'} // 'undef'
+    );
+    <[base.logs]>->(
+        0,
+        "[%d] init_state: session created without handle mode - check session creation",
+        $s_id
+    );
+    return FALSE;
+}
+
 <[base.logs]>->( 2, "[%d] init_state : mode='%s'", $s_id, $mode );
 
 if ( not defined $state ) {
@@ -163,8 +176,8 @@ if ( $session->{'mode'} ne qw| server | ) {
 
 return TRUE;    ## <-- success ###
 
-#,,,.,,,,,,.,,.,.,,,.,,.,,,.,,,,,,,,,,,,,,,,.,..,,...,...,...,..,,.,,,...,..,,
-#WFXQ6VSIQKSZNLBICTLS7VWWVZ4PNRJG4ICKSCHMRYWMU6I2EH27SWB6P4QUNVPJMVZXFNFUVHWPC
-#\\\|NXSLI56DFOR65POEB6I7SXMVEXKD3IOTEKD2MPKFHGL2ZX3S6DV \ / AMOS7 \ YOURUM ::
-#\[7]MBM4QGV5ZFSUGVSLI63IUKGZU3T36XJKVSW4OKO4HQEL3KFYHGDI 7  DATA SIGNATURE ::
+#,,..,,,,,,,,,..,,,.,,.,.,,..,,,.,,,,,,,.,,.,,..,,...,...,..,,,,.,.,,,...,.,,,
+#VQODQVO262GYYTP6STQSMCZSGLEE2NXRP26URZW7IIIEHQDRUH7MXRWUEE6OWN2SN6K3VWOPCSRUK
+#\\\|DYPFLJMQVXMVM5KTDXQV336MTY3WASO4GOGSA4QLPU6IH4E4ZIJ \ / AMOS7 \ YOURUM ::
+#\[7]QA66QSMLZ7TT4SD2H5DQZJ3DMDNATEG6B5VEQ4RKITNY2GMCXIDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

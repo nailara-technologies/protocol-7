@@ -40,6 +40,9 @@ binmode($reader);
 binmode($writer);
 $writer->autoflush(1);
 
+## set handle mode BEFORE session init (required by init_state) ##
+$data{'handle'}{$reader}{'mode'} = qw| internal |;
+
 my $session_id = <[base.session.init]>->(
     $reader,      qw| amos-term |,
     qw| client |, $client_name
@@ -113,8 +116,8 @@ $data{'session'}->{$session_id}->{'amos_id'} = $amos_id;
 ## === return window reference === ##
 return wantarray ? ( $session_id, $amos_id ) : $session_id;
 
-#,,,.,.,,,,.,,,,.,,.,,..,,,,,,,,.,,..,..,,,..,.,.,...,...,...,,..,...,.,.,,,,,
-#V7I74IYQXIFTC6N6ESTRQQ65SCJTKWMAUGMVQSUQHY26THUMQ3WZOKFKWI7KM4JKIEKFDW74WD7AI
-#\\\|NNQB3CCIT2CR3SSWGY2YTPCAUB3OMI3HS5V2RCS3I557WFB4DDM \ / AMOS7 \ YOURUM ::
-#\[7]ESIATFKM6SP52JXI32WSWYUW6O7UZHBYPNXC43RALBPNI7IQ3ABI 7  DATA SIGNATURE ::
+#,,..,,.,,,,,,,..,,,,,,,.,,,.,,.,,,.,,.,,,...,.,.,...,...,.,,,,,,,...,...,,,.,
+#ME5GTKTLU443FIPL3F6MPV247AMIZ63XTQKMAJNBBRXSJG3TWLNSE6GHKV7EX2SDWUMMMVVPDLFRI
+#\\\|P7WWGM3V53RUDRTOITOKWPO3AMUFDSE6E37UGSAYMAKKXE5LQEO \ / AMOS7 \ YOURUM ::
+#\[7]MBAX23Z7EGPZV5Q5MVRMXLBRZ6D637BI4RY4ICIBKUG7X74OMQAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

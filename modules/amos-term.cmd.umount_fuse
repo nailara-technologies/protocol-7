@@ -3,7 +3,8 @@
 # name  = amos-term.cmd.umount_fuse
 # descr = Unmount FUSE filesystem for 3D buffer
 
-my $mount_point = shift;
+my $mount_point = $$call{'args'};
+$mount_point =~ s/^\s+|\s+$//g if defined $mount_point;
 
 ## === if AMOS ID provided, lookup mount point === ##
 if ( $mount_point =~ m{^amos:([A-Z2-7]{10})$}i ) {
@@ -38,8 +39,8 @@ delete <amos-term.fuse.mounts>->{$mount_point};
 
 return sprintf( "Unmounted %s from %s\n", $amos_id, $mount_point );
 
-#,,..,,.,,,.,,..,,..,,,,.,,..,.,,,,.,,,..,.,,,.,.,...,...,,..,,,,,,..,..,,...,
-#X27O4AZZDD57LETJQHDY3EU65OYAAM7YDIWQVS7VX2HHLHW334PPLCY7JNMQ47NPHB3P42YUJK22I
-#\\\|5THWS6HE3WCGJDXOM26WQS7PVJ3QL3CKWJHZKVSM4OJTUVYZPQK \ / AMOS7 \ YOURUM ::
-#\[7]MI6NVZILR2MC7EABMTTCTCHAUGXT5MQ5EV4KTA2PU2QLINWAJADA 7  DATA SIGNATURE ::
+#,,..,.,.,,..,..,,,,.,,.,,...,.,,,...,.,.,..,,.,.,...,...,,..,,,,,...,.,.,,..,
+#JD2YZ2JWELWKVM724NOVSRQD2BNZUDN2MSER4DWWLAD53YQX73S26SX6ZTGZNHEW6K3GBQC3OFDPW
+#\\\|WUKRW2GF2DK4OMT3X7JSAOKBPXNHZTQG3O5GVLDJITM4IRM55CJ \ / AMOS7 \ YOURUM ::
+#\[7]4VPJLBPORGML6WOOGCOM32TFMTPMQLZOUFGA3IUNTSFTZJMTWYBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

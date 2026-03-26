@@ -5,19 +5,22 @@
 
 my $output = ".: amos-term windows :.\n\n";
 
-my @windows = keys %{ <amos-term.windows.by_amos> // {} };
+my $by_amos = <amos-term.windows.by_amos> // {};
+my @windows = keys %$by_amos;
 
 if ( @windows == 0 ) {
     $output .= "No windows created\n";
-    return { qw| mode | => qw| immediate |, qw| data | => $output };
+    return { 'mode' => 'size', 'data' => $output };
 }
 
 $output .= sprintf( "%-12s %-20s %s\n", "AMOS ID", "Name", "State" );
 $output .= "-" x 50 . "\n";
 
+my $by_id = <amos-term.windows.by_id> // {};
+
 foreach my $amos_id ( sort @windows ) {
-    my $session_id = <amos-term.windows.by_amos>->{$amos_id};
-    my $window     = <amos-term.windows.by_id>->{$session_id};
+    my $session_id = $by_amos->{$amos_id};
+    my $window     = $by_id->{$session_id};
     next unless defined $window;
 
     my $state = $window->{'state'};
@@ -33,10 +36,10 @@ foreach my $amos_id ( sort @windows ) {
     $output .= sprintf( "%-12s %-20s %s\n", $amos_id, $name, $state_str );
 }
 
-return { qw| mode | => qw| immediate |, qw| data | => $output };
+return { 'mode' => 'size', 'data' => $output };
 
-#,,,,,.,.,..,,,.,,,,.,.,.,,,,,.,,,...,,.,,..,,.,.,...,...,,,,,,..,.,.,.,,,.,,,
-#5FU5CNKASDBJWXBBOEEC2GE2JKXIVSTZJTOILRWKHMH3PF6DTOANG5JQZQYTCTFPZPC555TVPXRCU
-#\\\|SI4MMRYSDTNCXHBUHN3UMXMOZZRJM7O72N7LGSJ5C5OXI5YDPDJ \ / AMOS7 \ YOURUM ::
-#\[7]YAD6FOVZ75RXTELY5W4TWTXBMVY743PKJ2SDXGELXJ47ATM7LCAA 7  DATA SIGNATURE ::
+#,,,.,,,,,..,,...,.,.,...,...,..,,..,,.,.,...,.,.,...,...,.,,,...,...,,..,..,,
+#446H3JWOZ3RGEYPBWOW5ODMVNRWCQQZXNV5CSRENNOEL6S7WNF4AZTRBTRGNZKOJCDQMFDO5KG6WI
+#\\\|DYFZVM3FPMACXEBV44WI2P2TKZEUZDT44XQKBZ35BVZJBHMXJHN \ / AMOS7 \ YOURUM ::
+#\[7]XFEQDNM3GJJ77IHZW6AANDOMWG2DUEPWRL2GLSETODVLGMG5TSBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
