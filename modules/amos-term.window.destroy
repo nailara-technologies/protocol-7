@@ -1,0 +1,59 @@
+## [:< ##
+
+# name  = amos-term.window.destroy
+# descr = Destroy window and clean up all resources
+
+my $window_id = shift;
+
+## === resolve window === ##
+my $window;
+if ( $window_id =~ m{^amos:([A-Z2-7]{10})$}i ) {
+    my $amos_id = uc($1);
+    $window_id = <amos-term.windows.by_amos>->{$amos_id};
+    return undef unless defined $window_id;
+}
+
+$window = <amos-term.windows.by_id>->{$window_id};
+if ( not defined $window ) {
+    <[base.logs]>->( 0, ":: destroy: window %s not found", $window_id );
+    return undef;
+}
+
+my $amos_id     = $window->{'amos_id'};
+my $client_name = $window->{'client_name'};
+
+## === close window if open === ##
+<[amos-term.window.close]>->($window_id) if $window->{'display'}->{'visible'};
+
+## === release SHM buffer === ##
+if ( defined $window->{'buffer'}->{'shm_path'} ) {
+    <[data.mount.shm.remove]>->( $window->{'buffer'}->{'shm_path'} );
+}
+
+## === close pipe handles === ##
+close( $window->{'handles'}->{'read'} )
+    if defined $window->{'handles'}->{'read'};
+close( $window->{'handles'}->{'write'} )
+    if defined $window->{'handles'}->{'write'};
+
+## === shutdown session === ##
+if ( exists $data{'session'}->{$window_id} ) {
+    $data{'session'}->{$window_id}->{'shutdown'} = TRUE;
+}
+
+## === unregister from indices === ##
+delete <amos-term.windows.by_id>->{$window_id};
+delete <amos-term.windows.by_amos>->{$amos_id};
+delete <amos-term.windows.by_name>->{$client_name};
+
+<amos-term.windows.count>--;
+
+<[base.logs]>->( 2, ":. window [%s] '%s' destroyed", $amos_id, $client_name );
+
+return $window_id;
+
+#,,..,..,,..,,..,,,,.,,.,,,,.,.,,,..,,,..,,..,.,.,...,...,,.,,,..,.,.,,,,,.,,,
+#4SMONHRNGVQ5T6D3KUTXWUKJZ5GISGPXAYZBTBGIPIPZKY5CMWRZYXIXQ5ABMRSIHKEW45BXN6TAY
+#\\\|IVUQR6S7YKCSYLB34I6ITG4LEZ4IWG4AZPPITHAAZSENEJSL5VF \ / AMOS7 \ YOURUM ::
+#\[7]D7QROEXC5G4AQABKWCINP36K5MNXYBDYOEMARDT2GSPK4JJEZ4AQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

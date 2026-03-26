@@ -1,0 +1,63 @@
+## [:< ##
+
+# name  = amos-term.plugin.decoder.elf_match
+# descr = Decoder plugin for ELF checksum pattern matching
+#
+# Triggered by: elf-mode4, elf-mode7, elf-mode13 patterns
+# Calculates LOVES_IT score from matched checksum
+
+my ( $window_id, $amos_id, $checksum, $mode ) = @ARG;
+
+return undef unless defined $checksum and defined $mode;
+
+## === validate checksum format === ##
+$checksum = uc($checksum);
+$checksum =~ s|[^A-Z2-7]||g;    # AMOS7 alphabet only
+
+## === calculate LOVES_IT score === ##
+my $loves_score = 0;
+
+if ( $mode == 4 ) {
+    $loves_score = 4 if length($checksum) >= 4;
+} elsif ( $mode == 7 ) {
+    my $mode7 = <[chk-sum.elf]>->($checksum);
+    $loves_score = 4 + $mode7 if $mode7 == 7;
+} elsif ( $mode == 13 ) {
+    my $mode4  = <[chk-sum.elf]>->( substr( $checksum, 0, 10 ) );
+    my $mode7  = <[chk-sum.elf]>->($checksum);
+    my $mode13 = <[chk-sum.elf]>->( substr( $checksum, -26 ) );
+
+    $loves_score = $mode4 + $mode7;
+    $loves_score += 2 if $mode13 == 2;
+}
+
+## === store result === ##
+my $window = <amos-term.windows.by_id>->{$window_id};
+if ( defined $window ) {
+    $window->{'decoder'}->{'elf_matches'} //= [];
+    push $window->{'decoder'}->{'elf_matches'}->@*,
+        {
+        qw| checksum |    => $checksum,
+        qw| mode |        => $mode,
+        qw| loves_score | => $loves_score,
+        qw| timestamp |   => <[base.time]>->(3)
+        };
+
+    ## === trigger visual feedback if high score === ##
+    if ( $loves_score >= 10 ) {
+        <[amos-term.render.highlight]>->( $window_id, 'high_resonance' );
+    }
+}
+
+<[base.logs]>->(
+    2, "[decoder:%s] ELF mode-%d match, LOVES_IT=%d",
+    $amos_id, $mode, $loves_score
+);
+
+return $loves_score;
+
+#,,,.,.,,,,,.,...,,,.,,,,,,..,,..,,..,.,,,..,,.,.,...,...,...,.,.,.,.,,.,,,..,
+#ZNSKEDRHN6D2RLGE77NGYR6GLQLORG23NT6HXOLLSLIFZ5HDLTNIH6DT4RJESTYB43UYXNSACQUL2
+#\\\|577QHQO6HXUDK5SREKRSPAG3TRY3CNX2HBU26O3IXLEOBBWTXLH \ / AMOS7 \ YOURUM ::
+#\[7]UYEFEHGFNQUHYEKEG2NPFP5Q7IBC2EUI32XYYOOPKAF6QCR7KCAQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,0 +1,49 @@
+## [:< ##
+
+# name  = amos-term.render.highlight
+# descr = Visual highlight effect for decoder events
+
+my ( $window_id, $highlight_type, $duration ) = @ARG;
+
+$duration //= 1.3;    # 1.3 seconds default (P7 harmonic)
+
+my $window = <amos-term.windows.by_id>->{$window_id};
+return undef unless defined $window;
+
+## === highlight types === ##
+my %colors = (
+    qw| high_resonance | => { r => 1.0,  g => 0.0,  b => 0.3 },     # magenta
+    qw| pattern_match |  => { r => 0.0,  g => 0.8,  b => 1.0 },     # cyan
+    qw| elf_detected |   => { r => 0.27, g => 0.15, b => 0.67 },    # purple
+    qw| cursor_focus |   => { r => 0.76, g => 0.28, b => 0.02 },    # orange
+);
+
+my $color = $colors{$highlight_type} // $colors{'pattern_match'};
+
+## === set highlight state === ##
+$window->{'render'}->{'highlight'} = {
+    qw| type |       => $highlight_type,
+    qw| color |      => $color,
+    qw| start_time | => <[base.time]>->(3),
+    qw| duration |   => $duration,
+    qw| alpha |      => 0.7
+};
+
+## === auto-clear timer === ##
+Glib::Timeout->add(
+    int( $duration * 1000 ),
+    sub {
+        my $win = <amos-term.windows.by_id>->{$window_id};
+        return FALSE unless defined $win;
+        delete $win->{'render'}->{'highlight'};
+        return FALSE;    # one-shot
+    }
+);
+
+return TRUE;
+
+#,,..,,,,,...,,,.,,,.,,.,,,,.,,,.,,,,,.,.,..,,.,.,...,..,,...,..,,...,,,.,,,,,
+#LGHVAU6JZU2OFM5CZMCXAMP7UCY65ZFGNTJBWJTCP3747VXOLROSVA343KFGPJNDRPEP2G2ZDEHUQ
+#\\\|TSB2YWA2F5ZWGELMEXDMHA2FNUOC47MZMRYTSIM6Z6UVSQM53OE \ / AMOS7 \ YOURUM ::
+#\[7]T3TN7YHLKQHA2N7NNDYMRY7AP7FYTCYOIPTW2POZHNDI3NNZU4CY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
