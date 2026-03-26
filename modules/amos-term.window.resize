@@ -1,0 +1,23 @@
+## [:< ##
+
+# name  = amos-term.window.resize
+# descr = Resize GTK3 window
+
+my ( $window_id, $w, $h ) = @ARG;
+
+my $window = <amos-term.windows.by_id>->{$window_id};
+return undef unless defined $window;
+
+my $gtk_win = $window->{'display'}->{'gtk_window'};
+return undef unless defined $gtk_win;
+
+$gtk_win->resize( $w, $h );
+$window->{'display'}->{'geometry'} = "${w}x$h";
+
+return $window_id;
+
+#,,,,,,..,.,,,,.,,...,..,,.,,,...,...,,.,,,,.,.,.,...,...,.,.,.,.,..,,.,,,...,
+#3AXYJWFZ2PPGVRMNNXXSBS5XLHYUI77NFGBSPDUWE4PGLI7MTLCMKA4G5X37GMHEDALZMK6HDOHSW
+#\\\|AIPCVD57PPGYKQMWRFP7YUJCOFRXGV74S2CIX5GWMFDFPOZ53F3 \ / AMOS7 \ YOURUM ::
+#\[7]PJFNQFSWYUXEFUNKGBWO6MKRRGKB67VTFDA44RBN7EGQQLYLSQAI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

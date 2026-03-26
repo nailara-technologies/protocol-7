@@ -891,6 +891,7 @@ return [ qw[
         filter.cmd.add_filter
         download.cmd.get_file
         data.mount.shm.unlink
+        data.mount.shm.remove
         data.mount.shm.create
         data.mount.fuse.spawn
         data.init_holographic
@@ -956,7 +957,9 @@ return [ qw[
         base.X-11.get_display
         auto-hide.cmd.get-pid
         amos-term.window.open
+        amos-term.window.move
         amos-term.plugin.load
+        amos-term.cursor.move
         X-11.get_window_title
         X-11.get_video_driver
         X-11.get_modifier_map
@@ -1109,6 +1112,8 @@ return [ qw[
         amos-term.window.close
         amos-term.fuse.readdir
         amos-term.fuse.getattr
+        amos-term.buffer.write
+        amos-term.buffer.clear
         X-11.process-x11-error
         X-11.cmd.unhide_window
         X-11.cmd.set_mouse_pos
@@ -1276,9 +1281,12 @@ return [ qw[
         base.X-11.get_dbus_addr
         base.X-11.assign_window
         auth.zenka.authenticate
+        amos-term.window.resize
         amos-term.window.create
+        amos-term.plugin.unload
         amos-term.nshell.bridge
         amos-term.buffer.detach
+        amos-term.buffer.create
         X-11.set_window_opacity
         X-11.get_window_opacity
         X-11.cmd.stop-slideshow
@@ -1430,7 +1438,9 @@ return [ qw[
         base.X-11.iconify_window
         amos-term.window.destroy
         amos-term.fuse.init_code
+        amos-term.cursor.set_pos
         amos-term.cmd.mount_fuse
+        amos-term.buffer.shift_z
         X-11.set-up.import_rules
         X-11.set-up.export_rules
         X-11.scan_display_states
@@ -1717,6 +1727,7 @@ return [ qw[
         base.warnings.from_bitmask
         base.session.check.flushed
         base.reverse-sort.key-name
+        base.protocol.compile_once
         base.protocol-7.route-send
         base.perlmods.INC_path_pms
         base.perlmod.install_cpanm
@@ -1896,6 +1907,7 @@ return [ qw[
         base.cmd.buffer-erase-level
         base.chk-sum.elf.vax-BASE32
         base.chk-sum.amos.init_code
+        amos-term.window.fullscreen
         amos-term.session.set_state
         amos-term.handler.key_press
         amos-term.cmd.attach_buffer
@@ -3089,8 +3101,8 @@ return [ qw[
     ]
 ];
 
-#,,,,,.,,,,,.,,,,,...,...,,.,,..,,...,,..,.,,,.,.,...,...,.,.,..,,...,.,.,..,,
-#N3AVEUTY63O3LE6J7U7GGFQR26SDP5P3ZGX7GDIXANHUOQYYB2WJQV34E3XNSFURWABVVZXM5AEFE
-#\\\|RI7QXX27X32S3PZWRKYHXWO5Z25EXXCMGI5DOIYTLWJMEJXWJEL \ / AMOS7 \ YOURUM ::
-#\[7]YUNU2FIFUFEZD5VKCBNRT73TEMTEDVQ57JYGWJCG7HJTV76SW6AY 7  DATA SIGNATURE ::
+#,,..,.,,,,,.,,,,,,,.,,,,,,,.,,.,,.,,,,,,,,..,.,.,...,...,..,,,,,,.,.,.,,,,.,,
+#G5GOS3DH5J4KJTM4MMLVAJ7WDD54AYZV3L4Z3PCXQ7OCGSYMTJXXA5N2OD6JHLSMV5P6GGSR5X2I4
+#\\\|YC7SAFSE4F5YWBZJTN24J55A767HGZIPUGLZGAJ5LC6T4NSFJVO \ / AMOS7 \ YOURUM ::
+#\[7]TEKX7FN5HY55O2VKUQPISGXRH7VCR744A3KOD6OZ73WOJDMSNIBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
