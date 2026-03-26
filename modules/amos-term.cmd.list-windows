@@ -5,7 +5,7 @@
 
 my $output = ".: amos-term windows :.\n\n";
 
-my @windows = keys <amos-term.windows.by_amos>->%*;
+my @windows = keys %{ <amos-term.windows.by_amos> // {} };
 
 if ( @windows == 0 ) {
     $output .= "No windows created\n";
@@ -35,8 +35,8 @@ foreach my $amos_id ( sort @windows ) {
 
 return { qw| mode | => qw| immediate |, qw| data | => $output };
 
-#,,,,,,..,.,,,.,,,...,,.,,,,.,,,.,.,,,,..,,..,.,.,...,...,...,.,,,,,,,.,.,..,,
-#C4FLPEERNEDGQ5SQPNNGNAZLSAALDA2C55UW54PQLIY2S7U54LV4NKYHPD6HS7QMI2HZFPGPFM6FC
-#\\\|GXMPRZIUXMWSK3UOQS7FUYAHLJBFOQ6UHLCDR3YMJOJY6ABZMKH \ / AMOS7 \ YOURUM ::
-#\[7]CLCLXZNPD5O3RSOFFSNEL5CFSFLVYTP2RH5IXI7ZOQOZQLFA4OBI 7  DATA SIGNATURE ::
+#,,,,,.,.,..,,,.,,,,.,.,.,,,,,.,,,...,,.,,..,,.,.,...,...,,,,,,..,.,.,.,,,.,,,
+#5FU5CNKASDBJWXBBOEEC2GE2JKXIVSTZJTOILRWKHMH3PF6DTOANG5JQZQYTCTFPZPC555TVPXRCU
+#\\\|SI4MMRYSDTNCXHBUHN3UMXMOZZRJM7O72N7LGSJ5C5OXI5YDPDJ \ / AMOS7 \ YOURUM ::
+#\[7]YAD6FOVZ75RXTELY5W4TWTXBMVY743PKJ2SDXGELXJ47ATM7LCAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
