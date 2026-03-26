@@ -1,0 +1,58 @@
+## [:< ##
+
+# name  = amos-term.cmd.list_attachments
+# descr = List all clients attached to a buffer
+
+my $buffer_id = shift // 'current';
+
+## === resolve buffer === ##
+my $window;
+if ( $buffer_id eq 'current' ) {
+    ## use nshell's current attachment ##
+    my $nshell_amos = <nshell.state>->{'amos_term'}->{'amos_id'};
+    return "Error: no current buffer attachment\n"
+        unless defined $nshell_amos;
+    $window = <amos-term.windows.by_id>
+        ->{ <amos-term.windows.by_amos>->{$nshell_amos} };
+} elsif ( $buffer_id =~ m{^amos:([A-Z2-7]{10})$}i ) {
+    my $amos_id = uc($1);
+    my $sid     = <amos-term.windows.by_amos>->{$amos_id};
+    return "Error: buffer not found\n" unless defined $sid;
+    $window = <amos-term.windows.by_id>->{$sid};
+} else {
+    $window = <amos-term.windows.by_id>->{$buffer_id};
+}
+
+return "Error: buffer not found\n" unless defined $window;
+
+## === list attachments === ##
+my @attachments = $window->{'attachments'}->@*;
+
+my $output = sprintf(
+    "Buffer: %s [%s]\n%d active attachment(s):\n",
+    $window->{'client_name'},
+    $window->{'amos_id'}, scalar(@attachments)
+);
+
+foreach my $attach_id (@attachments) {
+    my $attach = <amos-term.buffer.attachments>->{$attach_id};
+    next unless defined $attach;
+
+    $output .= sprintf(
+        "  %-20s | %-10s | cursor(%d,%d,%d) | %s\n",
+        $attach_id,
+        $attach->{'client_type'},
+        $attach->{'cursor'}->{'x'},
+        $attach->{'cursor'}->{'y'},
+        $attach->{'cursor'}->{'z'},
+        $attach->{'mode'}->{'write'} ? 'RW' : 'RO'
+    );
+}
+
+return $output;
+
+#,,.,,.,.,..,,.,.,,.,,.,,,,..,,,,,.,,,.,,,,.,,.,.,...,...,,..,.,.,,.,,,,.,..,,
+#SW7Z5KHUTXB2L5AH7IDNIXZFGB7PXRS62N6NVFD7BLEQNT3SBVUCNZGJOF73P2TFIL4TJ3M5SLL4Q
+#\\\|NYOHOZ6H7HHJJWQHNX42NKRPFUAYV5Z5VDKHOHDKETICKPCDGMW \ / AMOS7 \ YOURUM ::
+#\[7]PZ5SLCMY53G34USWGPBZXIH7MCONKFSA6C6VWA65WRWPFCMJZ4CQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

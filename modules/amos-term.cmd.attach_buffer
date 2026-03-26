@@ -1,0 +1,64 @@
+## [:< ##
+
+# name  = amos-term.cmd.attach_buffer
+# descr = Command to attach nshell or other clients to 3D buffer
+
+my ( $buffer_id, $client_type, $options ) = @ARG;
+
+$client_type //= qw| nshell |;
+$options     //= {};
+
+## === resolve buffer === ##
+my $window;
+if ( $buffer_id =~ m{^amos:([A-Z2-7]{10})$}i ) {
+    my $amos_id = uc($1);
+    my $sid     = <amos-term.windows.by_amos>->{$amos_id};
+    return "Error: buffer not found\n" unless defined $sid;
+    $window = <amos-term.windows.by_id>->{$sid};
+} elsif ( $buffer_id =~ m{^name:(.+)$} ) {
+    my $name = $1;
+    my $sid  = <amos-term.windows.by_name>->{$name};
+    return "Error: buffer '$name' not found\n" unless defined $sid;
+    $window = <amos-term.windows.by_id>->{$sid};
+} else {
+    $window = <amos-term.windows.by_id>->{$buffer_id};
+}
+
+return "Error: buffer not found\n" unless defined $window;
+
+## === create buffer if not exists (lazy allocation) === ##
+if ( not defined $window->{'buffer'}->{'shm_path'} ) {
+    my $result = <[amos-term.buffer.create]>->( $window->{'session_id'} );
+    return "Error: buffer creation failed\n" unless $result;
+}
+
+## === attach client === ##
+my $attachment;
+
+if ( $client_type eq qw| nshell | ) {
+    $attachment = <[amos-term.nshell.bridge]>->($buffer_id);
+} else {
+    $attachment = <[amos-term.buffer.attach_generic]>->(
+        $buffer_id, $client_type, $options
+    );
+}
+
+if ( not defined $attachment ) {
+    return "Error: attachment failed\n";
+}
+
+## === return success info === ##
+my $amos_id   = $window->{'amos_id'};
+my $attach_id = $attachment->{'attach_id'};
+
+return sprintf(
+    "Attached to buffer [%s]\nAMOS ID: %s\nAttachment: %s\n",
+    $window->{'client_name'},
+    $amos_id, $attach_id
+);
+
+#,,.,,,.,,.,,,,,.,,..,,,,,.,,,..,,...,...,,,.,.,.,...,...,..,,..,,,,.,,..,...,
+#ZHI35336TUKBULKPMLMZQ267MXLCKQZ4WA4ALBTEK5TJZQJXI2G6SKNTAWN535MZMPCX6SDVXCTG2
+#\\\|3KFP7MTJURCKS4JPOYFJPM4ITLLECYCJKSKLREOHVIHX6VD5I4N \ / AMOS7 \ YOURUM ::
+#\[7]YFP3KMNKUQYTQ3HEEC3RLZP6OK3UV6ZZPA2B5T4CICWHRL4MPYBI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,0 +1,104 @@
+## [:< ##
+
+# name  = amos-term.buffer.attach_generic
+# descr = Generic buffer attachment for simultaneous multi-client access
+#
+# Allows multiple clients (nshell, GTK3 window, decoder, network) to
+# attach to the same 3D buffer simultaneously with independent cursors.
+
+my ( $buffer_id, $client_type, $client_params ) = @ARG;
+
+$client_type   //= qw| generic |;
+$client_params //= {};
+
+## === resolve buffer === ##
+my $window;
+if ( $buffer_id =~ m{^amos:([A-Z2-7]{10})$}i ) {
+    my $amos_id = uc($1);
+    my $sid     = <amos-term.windows.by_amos>->{$amos_id};
+    return undef unless defined $sid;
+    $window = <amos-term.windows.by_id>->{$sid};
+} elsif ( $buffer_id =~ m{^name:(.+)$} ) {
+    my $name = $1;
+    my $sid  = <amos-term.windows.by_name>->{$name};
+    return undef unless defined $sid;
+    $window = <amos-term.windows.by_id>->{$sid};
+} else {
+    $window = <amos-term.windows.by_id>->{$buffer_id};
+}
+
+return undef unless defined $window;
+
+## === generate client attachment ID === ##
+my $attach_id = sprintf( '%s:%s:%d',
+    $client_type, $window->{'amos_id'}, <amos-term.buffer.attach_seq>++ );
+
+## === attachment structure === ##
+my $attachment = {
+    qw| attach_id |   => $attach_id,
+    qw| buffer_id |   => $window->{'session_id'},
+    qw| amos_id |     => $window->{'amos_id'},
+    qw| client_type | => $client_type,
+    qw| attached |    => <[base.time]>->(3),
+
+    ## independent cursor per attachment ##
+    qw| cursor | => {
+        qw| x | => $client_params->{'cursor_x'} // 0,
+        qw| y | => $client_params->{'cursor_y'} // 0,
+        qw| z | => $client_params->{'cursor_z'} // 0,
+    },
+
+    ## viewport (for partial buffer views) ##
+    qw| viewport | => {
+        qw| x_offset | => $client_params->{'x_offset'} // 0,
+        qw| y_offset | => $client_params->{'y_offset'} // 0,
+        qw| z_layer |  => $client_params->{'z_layer'}  // 0,    # current Z
+        qw| width |    => $client_params->{'width'}    // 8,
+        qw| height |   => $client_params->{'height'}   // 7,
+    },
+
+    ## mode flags ##
+    qw| mode | => {
+        qw| read |           => $client_params->{'read'}           // TRUE,
+        qw| write |          => $client_params->{'write'}          // FALSE,
+        qw| cursor_visible | => $client_params->{'cursor_visible'} // TRUE,
+        qw| follow_buffer |  => $client_params->{'follow'}
+            // FALSE,    # auto Z-scroll
+    },
+
+    ## client-specific data ##
+    qw| client_data | => $client_params->{'data'} // {},
+};
+
+## === register attachment === ##
+<amos-term.buffer.attachments>->{$attach_id} = $attachment;
+
+## === add to buffer's attachment list === ##
+$window->{'attachments'} //= [];
+push $window->{'attachments'}->@*, $attach_id;
+
+## === notify existing clients of new attachment (optional) ##
+if ( $client_params->{'notify_others'} ) {
+    foreach my $other_attach ( $window->{'attachments'}->@* ) {
+        next if $other_attach eq $attach_id;
+        ## trigger notification callback ##
+        my $other = <amos-term.buffer.attachments>->{$other_attach};
+        if ( defined $other->{'client_data'}->{'on_attach'} ) {
+            $other->{'client_data'}->{'on_attach'}
+                ->( $attach_id, $client_type );
+        }
+    }
+}
+
+<[base.logs]>->(
+    2, "[buffer:%s] %s client attached [%s]",
+    $window->{'amos_id'}, $client_type, $attach_id
+);
+
+return $attachment;
+
+#,,,,,,,,,.,.,,..,..,,,,,,,,,,,..,,,.,.,.,,.,,.,.,...,..,,,..,,.,,...,.,.,,,.,
+#FCTWMHQMWBKXZVQ7CYKVTZ3ZDIRVDYIL4R26Q5XNRG7YNKZEGVDETL472QZJRWLYWFACXZXQNF666
+#\\\|OL53AQZGNTE3FWBPXNUTISYTZNL7PJJNLBNBKN7KIT3AYQQRUTE \ / AMOS7 \ YOURUM ::
+#\[7]4KDG3PUSS4QFRJHGMSTIBEUMSTQQQ6MU5XGZ3CLQH44EUAT6RKCI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
