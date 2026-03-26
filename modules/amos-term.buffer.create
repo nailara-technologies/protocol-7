@@ -1,0 +1,43 @@
+## [:< ##
+
+# name  = amos-term.buffer.create
+# descr = Create SHM buffer for 3D terminal
+
+my $window_id = shift;
+
+my $window = <amos-term.windows.by_id>->{$window_id};
+return undef unless defined $window;
+
+my $amos_id  = $window->{'amos_id'};
+my $shm_path = <amos-term.cfg.shm_base_path> . "/$amos_id";
+
+## create SHM using data zenka ##
+my $shm_size = $window->{'buffer'}->{'voxel_count'} * 2 + 16;    # 1472 bytes
+
+my $shm = <[data.mount.shm.create]>->(
+    $amos_id,                                                    # owner
+    $shm_size,
+    { 'sub_path' => 'buffer' }
+);
+
+return undef unless defined $shm;
+
+## store reference ##
+$window->{'buffer'}->{'shm_path'} = $shm_path;
+$window->{'buffer'}->{'shm_ptr'}  = $shm->{'mmap_ptr'};
+
+## initialize to zeros ##
+${ $shm->{'mmap_ptr'} } = "\0" x $shm_size;
+
+<[base.logs]>->(
+    2,        ":. buffer created for %s (%d bytes)",
+    $amos_id, $shm_size
+);
+
+return $shm;
+
+#,,,,,.,.,.,,,,..,,,.,,,,,,,.,,,.,,,.,,.,,...,.,.,...,...,,.,,,..,,,.,,.,,.,.,
+#UU3OO2DREZSDHNTXUNV52CN325L44Q2GXOGX7YSH3XS46OQYBN7LMXKP2XJV6SPKQEI55C72B6ODQ
+#\\\|47BARL44FA26DAYQZXRSP44THAEWXFXQLRZXT5JXFK4IHN3QT74 \ / AMOS7 \ YOURUM ::
+#\[7]TC5PNIUGBFNVKA4YPXRTNO6OHBYSXOKGLF4C3RPBHFK2MP6TYQDY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

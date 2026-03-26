@@ -1,0 +1,26 @@
+## [:< ##
+
+# name  = base.protocol.compile_once
+# descr = Compile Protocol-7 module if not already compiled
+
+my $module_path = shift;
+
+return undef unless defined $module_path;
+
+## check if already compiled ##
+my $module_name = $module_path;
+$module_name =~ s{^modules/}{};
+$module_name =~ s{/}{.}g;
+
+return TRUE if exists $code{$module_name};
+
+## compile the module ##
+my $result = <[base.parser.protocol]>->($module_path);
+
+return defined $result ? TRUE : undef;
+
+#,,.,,,,,,.,,,.,.,,,,,,..,,.,,,,,,,,,,...,,.,,.,.,...,...,,,.,..,,,.,,.,,,,..,
+#YEIJIO7Z3G4ZK4ZLSXMA4E5XGIY6O6KI4RD7AUB76HGMXQTY4YA2Y27YLI6MHZDP4UY6UMVABADFG
+#\\\|RAYXZUI4FRLOBAH7OTFEQDQE2YF72P4EA7QRB3FFPC7G3WTKIP2 \ / AMOS7 \ YOURUM ::
+#\[7]27WW3TB5TATHZWUNCR3EE3WWVMZXSXYWYFJTHRUJUI7DPFA4DECA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

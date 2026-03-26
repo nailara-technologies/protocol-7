@@ -1,0 +1,28 @@
+## [:< ##
+
+# name  = data.mount.shm.remove
+# descr = Remove/unlink SHM file
+
+my $shm_path = shift;
+
+return undef unless defined $shm_path;
+
+## ensure path is under /dev/shm ##
+return undef unless $shm_path =~ m{^/dev/shm/};
+
+## unlink the SHM file ##
+my $result = unlink($shm_path);
+
+if ($result) {
+    <[base.logs]>->( 2, ":. SHM removed: %s", $shm_path );
+} else {
+    <[base.logs]>->( 1, ":: failed to remove SHM: %s", $shm_path );
+}
+
+return $result;
+
+#,,..,,,,,,,.,,..,,,,,,,.,,,.,,..,.,.,,.,,..,,.,.,...,...,,.,,,,,,,,,,.,.,,,,,
+#YDTPFTECNO3LP2OMWDYVNBW7LESXXPZUOIOPJRFYAL7UTFZSCYMZ647GKGHXKJ4RIXZJIUUJM7YDM
+#\\\|M5WGZ7HYE3DQGPSJ26HSHQZOOSZHFVJHGX4PDUZZQRFTVVKNVBR \ / AMOS7 \ YOURUM ::
+#\[7]JBB3H3MKCV5HDA3Z5X27Q4PQPBL7HLKLWYWW54MYNMEY7L7HGECQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

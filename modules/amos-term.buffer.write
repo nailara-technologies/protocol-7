@@ -1,0 +1,34 @@
+## [:< ##
+
+# name  = amos-term.buffer.write
+# descr = Write voxel to 3D buffer
+
+my ( $window_id, $x, $y, $z, $char, $color_idx ) = @ARG;
+
+$color_idx //= 4;    # default p7_fg_0004
+
+my $window = <amos-term.windows.by_id>->{$window_id};
+return undef unless defined $window;
+
+my $shm_ptr = $window->{'buffer'}->{'shm_ptr'};
+return undef unless defined $shm_ptr;
+
+## bounds check ##
+my $dims = $window->{'buffer'}->{'dimensions'};
+return undef if $x < 0 or $x >= $dims->[0];
+return undef if $y < 0 or $y >= $dims->[1];
+return undef if $z < 0 or $z >= $dims->[2];
+
+## calculate offset: z*(8*7) + y*8 + x, *2 bytes ##
+my $offset = ( $z * 56 + $y * 8 + $x ) * 2;
+
+## write voxel (color byte + attr byte) ##
+substr( $$shm_ptr, $offset, 2 ) = pack( 'CC', $color_idx, ord($char) // 0 );
+
+return TRUE;
+
+#,,.,,,,.,,..,,.,,.,,,,,,,,,,,.,.,.,.,,..,,,.,.,.,...,...,...,,,.,,,,,.,.,,..,
+#V64MJEN3WWPX5XSQY3AOPHQ4T3CHI3BTXZ2XUFHMFAOSFCCOGCIF3LNRDPPE6QYHTCHCLI3BE4MKI
+#\\\|WDBT3KYGLAPAXKV7X3BZS3IC7A62DUWG5EGADWYUI56UXT7T4HV \ / AMOS7 \ YOURUM ::
+#\[7]FHTPWNK6NZMD262SSAF6IK4GN53YU3JZ5GKBBRZ7Y6MHC7XLRACQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

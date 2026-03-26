@@ -1,0 +1,38 @@
+## [:< ##
+
+# name  = amos-term.plugin.unload
+# descr = Unload amos-term plugin
+
+my ( $window_id, $plugin_name ) = @ARG;
+
+## build module name ##
+my ( $type, $name ) = $plugin_name =~ m{^(\w+)\.(\w+)$};
+return undef unless defined $type and defined $name;
+
+my $module = sprintf( 'amos-term.plugin.%s.%s', $type, $name );
+
+## check if loaded ##
+my $plugin_info = <amos-term.plugin.loaded>->{$module};
+return undef unless defined $plugin_info;
+
+## remove from window's plugin list ##
+if ( defined $window_id ) {
+    my $window = <amos-term.windows.by_id>->{$window_id};
+    if ( defined $window and defined $window->{'plugins'} ) {
+        $window->{'plugins'}
+            = [ grep { $_ ne $module } $window->{'plugins'}->@* ];
+    }
+}
+
+## remove from global registry ##
+delete <amos-term.plugin.loaded>->{$module};
+
+<[base.logs]>->( 2, ":: plugin '%s' unloaded", $plugin_name );
+
+return $module;
+
+#,,.,,,..,...,...,,,,,...,...,.,,,,..,.,,,,,,,.,.,...,...,.,.,,.,,..,,,,.,,,,,
+#FSZF2X3OKEPU6JD4RB72GT2WVF2FTM3GPJ3NTPHEOGMCGFY5JY5NUSCQQMPWE35LTQKOFYYCKRCVI
+#\\\|2NWKS7CNDB6WBWQDFZMVULYAQB7VFLMA76JV3S636BEIO2GBR5F \ / AMOS7 \ YOURUM ::
+#\[7]J5H7HA5CBV5NP5ZW3M7TVWXC2MZQTQY4JZFZSI4JNNU4ZFB7M4BI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
