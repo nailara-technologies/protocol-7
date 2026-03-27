@@ -1,0 +1,96 @@
+## [:<
+# name  = pager.source.9p
+# descr = Pager data source: 9P filesystem
+## >:]
+
+return sub {
+    my ($args) = @_;
+
+    my $location = $args->{'location'};  # p7://9p:host/mnt/path
+    my $batch_size = $args->{'batch_size'} // 100;
+    my $filters = $args->{'filters'} // {};
+
+    # Parse P7REF
+    my $p7ref;
+    if ($location =~ m|^p7://|) {
+        $p7ref = <[plugin.storage.p7ref.parse]>->($location);
+    }
+
+    my $mount_point;
+    if ($p7ref && $p7ref->{'type'} eq '9p') {
+        # Ensure 9P is mounted
+        $mount_point = <[storage.9p.mount]>->({
+            'authority' => $p7ref->{'authority'},
+            'path'      => $p7ref->{'address'},
+        });
+    }
+
+    return undef unless $mount_point && -d $mount_point;
+
+    # Use storage.9p.scan for enumeration
+    my $queue = [];
+    my $buffer = [];
+    my $cursor = 0;
+    my $done = 0;
+
+    return {
+        'type'     => '9p',
+        'location' => $location,
+        'mount'    => $mount_point,
+        'total'    => undef,  # Unknown
+        'cursor'   => 0,
+        'filters'  => $filters,
+
+        'next_batch' => sub {
+            my $batch = [];
+
+            # Fill buffer from scan if needed
+            if (!@$buffer && !$done) {
+                my $scan_result = <[storage.9p.scan]>->({
+                    'mount_point'    => $mount_point,
+                    'max_results'    => $batch_size * 2,
+                    'inclusion_add'  => $filters->{'include'} // [],
+                    'exclusion_add'  => $filters->{'exclude'} // [],
+                });
+
+                $buffer = $scan_result->{'entries'} // [];
+                $done = 1 if @$buffer < $batch_size;
+            }
+
+            # Return batch from buffer
+            while (@$buffer && @$batch < $batch_size) {
+                my $entry = shift @$buffer;
+                push @$batch, {
+                    'path'  => $entry->{'path'},
+                    'name'  => $entry->{'name'},
+                    'size'  => $entry->{'size'},
+                    'mtime' => $entry->{'mtime'},
+                    'type'  => $entry->{'type'},
+                    'mode'  => $entry->{'mode'},
+                };
+                $cursor++;
+            }
+
+            return $batch;
+        },
+
+        'get_item_at' => sub {
+            # 9P doesn't support efficient random access without full index
+            return undef;
+        },
+
+        'close' => sub {
+            # Unmount if we mounted it
+            <[storage.9p.umount]>->({ 'mount_point' => $mount_point })
+                if $p7ref;
+        },
+    };
+};
+
+# SPDX-License-Identifier: ISC
+
+#,,,.,.,,,,,,,.,,,...,,,,,..,,...,,,,,,,.,..,,..,,...,...,..,,,,.,.,,,...,,,.,
+#ZHGBPK76SSR7YPSBY4C2AFN7JKWFRNN2JROFPLWPVSL226A5O53OOWGCGSR53FI4EFFKWPBPIC4AI
+#\\\|B7KG5NP5DGYDFGQYXFEGNGYPZSA3PVIY7PTH34GMAS36V7O4GUE \ / AMOS7 \ YOURUM ::
+#\[7]UKHWGAGP5FWLTBKWCCE25FFGTMUBA5HUNRADCFKJJGOABVHVESAA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

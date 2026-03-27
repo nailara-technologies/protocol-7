@@ -1,0 +1,86 @@
+## [:< ##
+# name  = plugin.storage.p7ref.search
+# descr = Search P7REF index by various criteria
+
+use strict;
+use warnings;
+
+return sub {
+    my ($args) = @_;
+
+    my $by = $args->{by}
+        or return { 'mode' => 'false', 'data' => 'search criteria required' };
+    my $value = $args->{value}
+        or return { 'mode' => 'false', 'data' => 'search value required' };
+    my $filters = $args->{filters} // {};
+
+    my $registry = $data{'storage'}{'mapping'}{'p7ref'};
+    my $index    = $registry->{'index'};
+
+    my @results;
+
+    # Search by index type
+    if ( $by eq 'checksum' and exists $index->{'by-checksum'}{$value} ) {
+        @results = @{ $index->{'by-checksum'}{$value} };
+    } elsif ( $by eq '9p' and exists $index->{'by-9p'}{$value} ) {
+        @results = @{ $index->{'by-9p'}{$value} };
+    } elsif ( $by eq 'path' and exists $index->{'by-path'}{$value} ) {
+        @results = ( $index->{'by-path'}{$value} );
+    } elsif ( $by eq 'type' ) {
+
+        # Search all cached entries by type
+        for my $p7ref ( keys %{ $registry->{'cache'} } ) {
+            my $cached = $registry->{'cache'}{$p7ref};
+            if ( $cached->{'type'} eq $value ) {
+                push @results, $p7ref;
+            }
+        }
+    } elsif ( $by eq 'segment' ) {
+
+        # Search by segment name
+        for my $p7ref ( keys %{ $registry->{'cache'} } ) {
+            my $cached = $registry->{'cache'}{$p7ref};
+            if ( $cached->{'segments'} ) {
+                for my $seg ( @{ $cached->{'segments'} } ) {
+                    if ( $seg eq $value ) {
+                        push @results, $p7ref;
+                        last;
+                    }
+                }
+            }
+        }
+    }
+
+    # Apply filters
+    if ( %{$filters} ) {
+        @results = grep {
+            my $meta = $registry->{'cache'}{$_}{'metadata'} // {};
+            my $keep = 1;
+            for my $k ( keys %{$filters} ) {
+                if ( $meta->{$k} ne $filters->{$k} ) {
+                    $keep = 0;
+                    last;
+                }
+            }
+            $keep;
+        } @results;
+    }
+
+    return {
+        'mode' => 'true',
+        'data' => {
+            'results' => \@results,
+            'count'   => scalar(@results),
+            'by'      => $by,
+            'value'   => $value,
+        }
+    };
+};
+
+#,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,
+
+#,,,,,,.,,...,...,,..,,,,,,,,,.,,,,,.,...,.,.,..,,...,...,.,.,..,,,..,.,.,,.,,
+#AKJ2EB46ZZHUM5KAOCXF75SEOJZ2TZXIQS6M2RNRFGPENWOA4WXWPWINUF6M6DKAJ675XPKVKWU3A
+#\\\|HOOR6UTYDNK7W7CSBHRBJDLQ7Z37GIDQJ7JZVELDXFS2EWNOZBZ \ / AMOS7 \ YOURUM ::
+#\[7]XRIK5NCUEC46QP6XKWA4UI5XJP7NR7M5SNCPABONO4UAMZ6IMQBY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

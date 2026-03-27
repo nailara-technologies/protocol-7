@@ -1,0 +1,129 @@
+## [:< ##
+# name  = storage.cmd.visual
+# descr = Visual mapping commands for storage harmonization
+
+use strict;
+use warnings;
+
+return sub {
+    my ($call) = @_;
+    my $args = $call->{'args'} // '';
+
+    # Parse: <subcommand> <args...>
+    my ( $cmd, @rest ) = split /\s+/, $args, 2;
+    $cmd //= '';
+
+    if ( not length $cmd ) {
+        return {
+            'mode' => 'false',
+            'data' =>
+                "Usage: visual <extract|proximity|workflow|render> <args...>\n"
+                . "  visual extract <p7ref> :layer: intrinsic\n"
+                . "  visual proximity <ref1> <ref2> :method: harmonized\n"
+                . "  visual workflow <name> :refs: @file.txt\n"
+        };
+    }
+
+    if ( $cmd eq 'extract' ) {
+        return cmd_extract(@rest);
+    } elsif ( $cmd eq 'proximity' ) {
+        return cmd_proximity(@rest);
+    } elsif ( $cmd eq 'workflows' ) {
+        return cmd_list_workflows();
+    } else {
+        return { 'mode' => 'false', 'data' => "Unknown command: $cmd" };
+    }
+};
+
+## Extract float values ##
+sub cmd_extract {
+    my ( $p7ref, @opts ) = @_;
+
+    return { 'mode' => 'false', 'data' => 'p7ref required' } unless $p7ref;
+
+    # Parse options
+    my @layers = ('intrinsic');
+    for ( my $i = 0; $i < @opts; $i += 2 ) {
+        my $k = $opts[$i]       // '';
+        my $v = $opts[ $i + 1 ] // '';
+        $k =~ s/^://;
+        $k =~ s/:$//;
+        if ( $k eq 'layer' ) {
+            @layers = split /,/, $v;
+        }
+    }
+
+    my $result = <[plugin.storage.visual.extract-floats]>->(
+        {   'p7ref'  => $p7ref,
+            'layers' => \@layers,
+        }
+    );
+
+    if ( $result->{mode} eq 'true' ) {
+        my $data   = $result->{data};
+        my $output = "Float values for $p7ref:\n";
+        for my $k ( sort keys %$data ) {
+            $output .= sprintf( "  %s: %.4f\n", $k, $data->{$k} );
+        }
+        return { 'mode' => 'size', 'data' => $output };
+    } else {
+        return $result;
+    }
+}
+
+## Calculate proximity ##
+sub cmd_proximity {
+    my ( $ref1, $ref2, @opts ) = @_;
+
+    return { 'mode' => 'false', 'data' => 'Two refs required' }
+        unless $ref1 and $ref2;
+
+    my $method = 'harmonized';
+    for ( my $i = 0; $i < @opts; $i += 2 ) {
+        my $k = $opts[$i]       // '';
+        my $v = $opts[ $i + 1 ] // '';
+        $k =~ s/^://;
+        $k =~ s/:$//;
+        $method = $v if $k eq 'method';
+    }
+
+    my $result = <[plugin.storage.visual.proximity-calc]>->(
+        {   'ref1'   => $ref1,
+            'ref2'   => $ref2,
+            'method' => $method,
+        }
+    );
+
+    if ( $result->{mode} eq 'true' ) {
+        my $data = $result->{data};
+        my $output
+            = sprintf( "Proximity: %.4f (similarity: %.4f)\nMethod: %s\n",
+            $data->{distance}, $data->{similarity}, $data->{method} );
+        return { 'mode' => 'size', 'data' => $output };
+    } else {
+        return $result;
+    }
+}
+
+## List available workflows ##
+sub cmd_list_workflows {
+    my $registry  = $data{'storage'}{'mapping'}{'visual'};
+    my $workflows = $registry->{workflows};
+
+    my $output = "Available visual workflows:\n\n";
+    for my $name ( sort keys %$workflows ) {
+        my $wf = $workflows->{$name};
+        $output .= sprintf( "  %-20s %s\n", $name, $wf->{desc} );
+        $output .= sprintf( "    Steps: %d\n", scalar( @{ $wf->{steps} } ) );
+    }
+
+    return { 'mode' => 'size', 'data' => $output };
+}
+
+#,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,
+
+#,,.,,,.,,,,,,.,,,.,,,.,.,..,,...,.,,,,.,,,.,,..,,...,...,,,.,..,,.,.,...,.,.,
+#GMYCQMHLHQ7ERQLQGWOIS3IA6PMTWNJFDVE7CSQZVJXV6VTLSXUS4PDCRVJ7UO5V33MPDRRZAA5WE
+#\\\|THV6ZPHUIRJGTWWJJQWUBGRPFTJZPSN7AL3PSM7R2DGRIGJGQY6 \ / AMOS7 \ YOURUM ::
+#\[7]XDDJUFXLB6IX4YITKNFWFOM6PCJKKWPY2NLCRX5UZUJCLJ4CH6AI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,0 +1,38 @@
+## [:< ##
+# name  = plugin.storage.p7ref
+# descr = P7REF unified storage reference - main dispatch
+
+use strict;
+use warnings;
+
+return sub {
+    my ($args) = @_;
+    $args //= {};
+
+    my $operation = $args->{operation} // 'resolve';
+
+    if ( $operation eq 'resolve' ) {
+        return <[plugin.storage.p7ref.resolve]>->($args);
+    } elsif ( $operation eq 'parse' ) {
+        return <[plugin.storage.p7ref.parse]>->($args);
+    } elsif ( $operation eq 'index' ) {
+        return <[plugin.storage.p7ref.index]>->($args);
+    } elsif ( $operation eq 'search' ) {
+        return <[plugin.storage.p7ref.search]>->($args);
+    } elsif ( $operation eq 'nested' ) {
+        return <[plugin.storage.p7ref.nested-resolve]>->($args);
+    } else {
+        return {
+            'mode' => 'false',
+            'data' => "Unknown operation: $operation"
+        };
+    }
+};
+
+#,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,
+
+#,,,.,,.,,,,,,.,,,,,.,,,,,..,,.,,,.,.,,..,...,..,,...,...,,,.,,,.,.,,,,,,,...,
+#OQTIPNY5FNAPYF5G3YMBBAOBHQDJ3PKLKOA56GPENTDZPEV36TWH4G24P45NQPFMXGHEOJQB2VMGM
+#\\\|JZ6NNL2VLAX4O5FJULJWVSVCHHHUWDTBGE5DEDHJFTNGYDRTP6U \ / AMOS7 \ YOURUM ::
+#\[7]NRLYWG2WJP544TEZTCWQFUP6FRS53LEGKINHYBC3YOYTNDWEUIDI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

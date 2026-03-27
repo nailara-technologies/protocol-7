@@ -84,6 +84,7 @@ return [ qw[
         fs.is_mounted
         events.recalc
         dbus.run_dbus
+        command.pager
         base.timezone
         base.sprint_t
         base.sort-num
@@ -185,6 +186,8 @@ return [ qw[
         ssh.load_config
         power.init_code
         plugin.auth.pwd
+        pager.source.9p
+        pager.init-code
         p7-log.add_line
         notify.cmd.warn
         notify.cmd.info
@@ -251,6 +254,7 @@ return [ qw[
         povray.init_code
         plugin.auth.unix
         pcycle.init_code
+        pager.sort.chain
         p7-log.init_code
         os-pkg.init_code
         opencv.init_code
@@ -341,6 +345,7 @@ return [ qw[
         task.cmd.complete
         storage.post_init
         storage.init_code
+        storage.cmd.p7ref
         storage.9p.attach
         ssl.cmd.read_data
         power.save_config
@@ -348,6 +353,7 @@ return [ qw[
         power.load_config
         power.cmd.all_off
         plugin.auth.zenka
+        pager.buffer.page
         p7-log.cmd.append
         openbox.init_code
         nshell.state_init
@@ -440,6 +446,7 @@ return [ qw[
         ticker.open_window
         ticker.calc_colors
         template.init_code
+        storage.cmd.visual
         storage.9p.version
         storage.9p.readdir
         storage.9p.connect
@@ -451,6 +458,8 @@ return [ qw[
         plan-9.client.stat
         plan-9.client.read
         plan-9.client.open
+        pager.filter.chain
+        pager.command.demo
         osd-logo.init_code
         notify.cmd.message
         notify-osd.startup
@@ -581,6 +590,8 @@ return [ qw[
         plnx.cmd.get_ticker
         plnx.cmd.currencies
         plan-9.client.clunk
+        pager.sort.adaptive
+        pager.export.binary
         openbox.cmd.version
         openbox.cmd.get_pid
         nshell.term_restore
@@ -710,7 +721,10 @@ return [ qw[
         power.cmd.add_device
         power-x11.get_states
         plugin.web.menu.tree
+        plugin.storage.p7ref
         plan-9.client.attach
+        pager.sort.multi-key
+        pager.buffer.virtual
         p7-log.cmd.list-logs
         osd-logo.open_window
         nshell.render.cursor
@@ -873,6 +887,10 @@ return [ qw[
         plan-9.protocol.codec
         plan-9.client.version
         pcycle.handler.toggle
+        pager.viewport.render
+        pager.source.register
+        pager.buffer.prefetch
+        pager.buffer.page.get
         p7-log.cmd.file-sizes
         nshell.search.handler
         nshell.register_hooks
@@ -1043,6 +1061,7 @@ return [ qw[
         reenc-msg.cmd.finished
         power.add_status_timer
         plan-9.client.list-dir
+        pager.source.file-list
         nshell.write_to_buffer
         nshell.render.viewport
         nshell.history.page_up
@@ -1204,6 +1223,7 @@ return [ qw[
         pdf.html.base.valid_pdf
         pdf.html.base.init_code
         pcycle.handler.shutdown
+        pager.filter.preference
         openbox.cleanup_tmp_dir
         nshell.render.full_line
         nshell.read_from_buffer
@@ -1368,6 +1388,10 @@ return [ qw[
         plugin.auth.auth-keypair
         plan-9.client.disconnect
         pdf.html.child.init_code
+        pager.encode.division-13
+        pager.editor.integration
+        pager.decode.division-13
+        pager.buffer.page.resize
         p7-log.handler.close_log
         nshell.render.clear_line
         nshell.history.page_down
@@ -1437,6 +1461,7 @@ return [ qw[
         context.delegate.collect
         context.compose.for_task
         context.cache.invalidate
+        command.checksum-cluster
         coding.test.models_async
         coding.task.queue_status
         coding.task.analyze_full
@@ -1531,6 +1556,7 @@ return [ qw[
         plan-9.server.buffer-stat
         plan-9.protocol.constants
         pdf.html.parent.init_code
+        pager.view.true-int-color
         nshell.parser.term_encode
         nshell.parser.term_decode
         nshell.history.arrow_down
@@ -1691,9 +1717,13 @@ return [ qw[
         protocol.sftp.read_ssh_env
         power-x11.handler.show_all
         plugin.web.content.dirlist
+        plugin.storage.p7ref.parse
+        plugin.storage.p7ref.index
         plan-9.server.client.close
         plan-9.server.buffer-write
         plan-9.client.read-message
+        pager.view.amos-data-pager
+        pager.source.checksum-list
         nshell.state.reset_history
         nshell.setup_stdin_watcher
         nshell.render.empty_prompt
@@ -1847,6 +1877,7 @@ return [ qw[
         source.cmd.update-src-links
         source.AMOS-center-bit.desc
         set-up.handler.export_reply
+        plugin.storage.p7ref.search
         plan-9.server.handle_attach
         plan-9.server.export_buffer
         plan-9.server.client.accept
@@ -2004,6 +2035,7 @@ return [ qw[
         rss.ticker.cmd.resend_update
         protocol.protocol-7.pre_init
         protocol.amos_term.init_code
+        plugin.storage.p7ref.resolve
         plan-9.server.handle_version
         plan-9.server.handle_request
         plan-9.server.handle-io-stat
@@ -2011,6 +2043,8 @@ return [ qw[
         plan-9.server.handle-io-open
         pdf.html.base.write_pdf_html
         pdf.html.base.get_page_count
+        pager.filter.harmonic-random
+        pager.buffer.page.invalidate
         osd-logo.set-up.import_rules
         nshell.handler.command_reply
         mpv.handler.pipe.val_percent
@@ -2145,6 +2179,7 @@ return [ qw[
         pdf.html.base.write_stub_page
         pdf.html.base.white_page_hash
         pdf.html.base.fork_conv_child
+        pager.view.amos-data-pager-56
         nshell.util.syswrite_complete
         nshell.util.extract_utf8_char
         nshell.hook.input_passthrough
@@ -2291,6 +2326,7 @@ return [ qw[
         protocol-7-menu.load-menu-tree
         protocol-7-menu.graphical-init
         protocol-7-menu.cmd.input-text
+        plugin.storage.p7ref.init_code
         plugin.storage.checksum.verify
         plugin.storage.checksum.lookup
         pdf.html.child.cmd.convert_pdf
@@ -2408,6 +2444,7 @@ return [ qw[
         storage.amos_chksum.open_socket
         screenshot.cmd.get_region_color
         protocol-7-menu.cmd.menu-update
+        plugin.storage.visual.init_code
         plan-9.server.buffer-read-layer
         osd-logo.handler.download_reply
         nshell.hook.unknown_reply_route
@@ -2521,6 +2558,7 @@ return [ qw[
         plan-9.protocol.codec.encode-qid
         plan-9.protocol.codec.decode-qid
         pdf.html.parent.cmd.check_format
+        pager.buffer.page.invalidate-all
         osd-logo.callback.download_image
         openbox.callback.already_running
         nshell.no-tty-debug.cmd.char-add
@@ -2614,6 +2652,7 @@ return [ qw[
         plugin.auth.zenka.no-keys-defined
         plan-9.protocol.codec.encode-stat
         pdf.html.child.handler.conversion
+        pager.filter.division-13-harmonic
         mpv.initialize.observe_properties
         mpv.handler.event.property-change
         models.storage.discover_directory
@@ -2777,6 +2816,8 @@ return [ qw[
         protocol-7-menu.cmd.provider-status
         protocol-7-menu.cmd.get-action-keys
         protocol-7-menu.cmd.debug-structure
+        plugin.storage.p7ref.nested-resolve
+        plugin.storage.checksum.cluster.add
         plan-9.protocol.codec.encode-uint64
         plan-9.protocol.codec.encode-uint32
         plan-9.protocol.codec.encode-uint16
@@ -2846,6 +2887,8 @@ return [ qw[
         protocol.amos-chksum.ext-cmd.version
         protocol.amos-chksum.command-handler
         protocol-7-menu.graphical-menu-popup
+        plugin.storage.visual.proximity-calc
+        plugin.storage.visual.extract-floats
         plan-9.server.buffer-read-buffer-dir
         plan-9.protocol.codec.encode-message
         nshell.no-tty-debug.cmd.debug-status
@@ -2904,6 +2947,7 @@ return [ qw[
         protocol-7-menu.update-provider-items
         protocol-7-menu.remove-provider-items
         protocol-7-menu.graphical-window-init
+        plugin.storage.checksum.cluster.query
         models.statistics.invocation_tracking
         models.registry.init_from_definitions
         models.decision.recommendation_engine
@@ -2948,6 +2992,8 @@ return [ qw[
         protocol.protocol-7.auth.select-method
         protocol-7-menu.graphical-startup-init
         protocol-7-menu.cmd.menu-update-notify
+        plugin.storage.checksum.cluster.lookup
+        plugin.storage.checksum.cluster.create
         mpv.handler.event.property-change.path
         models.memory.generate_unique_checksum
         models.handler.read_inference_response
@@ -3012,6 +3058,7 @@ return [ qw[
         sourcecode.console.verify-dev-signatures
         sourcecode.console.read-sig-footer-state
         protocol.sftp.handler.read_server_output
+        plugin.storage.checksum.cluster.traverse
         plugin.storage.checksum.cache-invalidate
         mpv.handler.event.property-change.volume
         mpv.handler.event.property-change.height
@@ -3041,6 +3088,7 @@ return [ qw[
         sourcecode.console.undo-checksum-symlinks
         sourcecode.console.strip-signature-footer
         protocol.protocol-7.auth.select-size-mode
+        plugin.storage.checksum.cluster.init-code
         pdf.html.parent.handler.convert_pdf_reply
         nodes.callback.local_network.offline-node
         models.registry.get_entry.get_model_entry
@@ -3185,8 +3233,8 @@ return [ qw[
     ]
 ];
 
-#,,..,.,.,..,,.,,,.,.,,..,...,,.,,.,,,.,.,,,,,.,.,...,...,,,.,,,,,..,,,..,..,,
-#Z5PBWXCBFTA7AKYAQU2VHPXW3B5MSQEBTUX6E4SMMHMXZALRTRJ4VE2DURJNUQDQGREGL7EW7USXQ
-#\\\|5BSSHNDISIK3I43ZLLBGTXUBMZLLTIXIBNT5SW2NGQYCYBSNKSB \ / AMOS7 \ YOURUM ::
-#\[7]CON5FHKPKIFN5Q3XVEMBNHLA3XEMRDP2T7L3YLDKSB2XESR6MCAQ 7  DATA SIGNATURE ::
+#,,,,,,,,,,.,,.,,,..,,..,,,,,,..,,,..,,.,,,..,.,.,...,..,,..,,,,.,.,,,,,,,,,.,
+#VEQSUO7F3SDLWROXVHTAYSZHMZSXESQZBIRHW3IYTDZB4XJWAD3V6NCO4YXICQWBXZHIS7OIVQZ2Q
+#\\\|DZSZ5GPXXH3NJ3XZLJ4WOX6N4VHV7N7U2KOX2OAEYOPPRAQPAYW \ / AMOS7 \ YOURUM ::
+#\[7]4SRNGJGZSTUUNXNISLS5QYKY7M3KZ22BD6RYJSSY36VXXZZE34AI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

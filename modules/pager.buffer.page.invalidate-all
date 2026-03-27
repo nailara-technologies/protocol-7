@@ -1,0 +1,28 @@
+## [:<
+# name  = pager.buffer.page.invalidate-all
+# descr = Invalidate all pages in buffer cache
+## >:]
+
+return sub {
+    my ($args) = @_;
+
+    my $buf = $args->{'buffer'};
+    return 0 unless $buf;
+
+    my $total = scalar(keys %{$buf->{'pages'}{'cached'}});
+
+    $buf->{'pages'}{'cached'} = {};
+    $buf->{'pages'}{'lru'} = [];
+    $buf->{'pages'}{'dirty'} = {};
+    $buf->{'memory'}{'current'} = 0;
+
+    return $total;
+};
+
+# SPDX-License-Identifier: ISC
+
+#,,,,,,..,,,.,,,.,,.,,,,,,.,,,,,,,.,.,.,,,..,,..,,...,...,,,.,..,,..,,,..,.,,,
+#ZUHLRPPMFFOAICMEVQ2CPN2IRCNW27ZCR3LPFCB3A7DKHL4ZUPVCOCFRR2DI4ZWAPBQVWDDPMH6LK
+#\\\|YS2TLJCTUXOZO3IWOTUPOLUGOWAQYSV5CLWWWHME5ZMHMJID56J \ / AMOS7 \ YOURUM ::
+#\[7]EUWRCWK6AXLF2DXU3HTVDEA2VKLQBBTUAZV5QIOESRACHLU27OAY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

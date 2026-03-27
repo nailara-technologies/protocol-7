@@ -1,0 +1,32 @@
+## [:<
+# name  = pager.buffer.page.resize
+# descr = Resize page size (invalidates cache)
+## >:]
+
+return sub {
+    my ($buf, $new_size) = @_;
+
+    return 0 unless $buf && $new_size > 0;
+
+    my $old_size = $buf->{'pages'}{'size'};
+    return 0 if $old_size == $new_size;
+
+    # Invalidate all cached pages since indices change
+    <[pager.buffer.page.invalidate_all]>->({ 'buffer' => $buf });
+
+    $buf->{'pages'}{'size'} = $new_size;
+
+    # Recalculate max cache based on memory limit
+    my $max_items = $buf->{'memory'}{'max_items'};
+    $buf->{'pages'}{'max_cache'} = int($max_items / $new_size) + 1;
+
+    return 1;
+};
+
+# SPDX-License-Identifier: ISC
+
+#,,..,,,.,,.,,..,,,.,,,,.,,..,.,,,,,,,,,.,.,,,..,,...,...,.,,,,,,,,,.,.,.,,.,,
+#BVFMKI5JIQK3P22DU2K4LUZRHOKJLRQJXLF3D2AGWJW637DQNIICZN5WJECITZISLLZ6BQWEHLG4K
+#\\\|OY3W7MOS5M6B5ITR2CQ4RP2VJ3GEY5XFYGFQWWSFYGAXDQ7M44T \ / AMOS7 \ YOURUM ::
+#\[7]AUOC7LYNTY2KTJH6VD4SPGBS5C4G26UMVMSB4I73XAST675EYUAY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
