@@ -614,3 +614,11 @@ data/md/design/PAGER-DIVISION-13-INTEGRATION.md
 data/md/design/CHECKSUM-CLUSTER-MAP.md
 ```
 
+
+
+---
+
+## Additional Handover Documents
+
+- `data/md/handover/CLAUDE-CATCHUP-2026-03-25.md` — Full system overview for Claude
+- `data/md/handover/KIMI-NEXT-STEPS-2026-03-25.md` — In-flight ideas, pending work, architectural questions (97% tokens, 99h to reset)
