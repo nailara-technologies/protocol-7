@@ -1,0 +1,90 @@
+## [:< ##
+# name  = plugin.storage.checksum.map-file
+# descr = Map a file to its checksum address
+
+use strict;
+use warnings;
+
+return sub {
+    my ($args) = @_;
+
+    my $path = $args->{path}
+        or return { 'mode' => 'false', 'data' => 'path required' };
+    my $algorithm = $args->{algorithm} // 'bmw';
+
+    my $registry = $data{'storage'}{'mapping'}{'checksum'};
+
+    # Check cache first
+    if ( exists $registry->{'cache'}{$path} ) {
+        my $cached = $registry->{'cache'}{$path};
+        if ( -f $path ) {
+            my ( $mtime, $size ) = ( stat($path) )[ 9, 7 ];
+            if ( $cached->{mtime} == $mtime and $cached->{size} == $size ) {
+                $registry->{'stats'}{'cached'}++;
+                return {
+                    'mode' => 'true',
+                    'data' => {
+                        'path'      => $path,
+                        'checksum'  => $cached->{checksum},
+                        'algorithm' => $cached->{algorithm},
+                        'cached'    => 1,
+                    }
+                };
+            }
+        }
+    }
+
+    # Compute checksum
+    return { 'mode' => 'false', 'data' => 'file not found' } unless -f $path;
+
+    my $checksum;
+    if ( $algorithm eq 'bmw' ) {
+        $checksum = <[base.chk-sum.bmw.file]>->($path);
+    } elsif ( $algorithm eq 'sha256' ) {
+        $checksum = <[crypt.sha256.file]>->($path);
+    } else {
+        return {
+            'mode' => 'false',
+            'data' => "Unknown algorithm: $algorithm"
+        };
+    }
+
+    return { 'mode' => 'false', 'data' => 'checksum computation failed' }
+        unless defined $checksum;
+
+    my ( $mtime, $size ) = ( stat($path) )[ 9, 7 ];
+
+    # Update cache
+    $registry->{'cache'}{$path} = {
+        'checksum'  => $checksum,
+        'algorithm' => $algorithm,
+        'mtime'     => $mtime,
+        'size'      => $size,
+        'cached_at' => time(),
+    };
+
+    # Update reverse mapping
+    push @{ $registry->{'reverse'}{$checksum} }, $path
+        unless grep { $_ eq $path }
+        @{ $registry->{'reverse'}{$checksum} // [] };
+
+    $registry->{'stats'}{'hashed'}++;
+
+    return {
+        'mode' => 'true',
+        'data' => {
+            'path'      => $path,
+            'checksum'  => $checksum,
+            'algorithm' => $algorithm,
+            'cached'    => 0,
+        }
+    };
+};
+
+#,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,
+
+#,,.,,..,,,.,,...,..,,..,,..,,.,,,.,,,..,,,.,,..,,...,...,,..,,..,,,.,.,,,...,
+#GZUGJ2VKE4XQTG7OFBO4SA5SRYJOOA65YXSLNV34NLAAVDE4LPTETWOIHMUHEOZXNW6S6IIVHTQJQ
+#\\\|VCWKVLHKFG3ZLYHZR6WKNCYFGV25BMFB7U3TMUCNV3HYXND4QYU \ / AMOS7 \ YOURUM ::
+#\[7]K6H3TAJVZITT7RRCJMIHK3C2MZB4GFP4YYWBMTQ3WSR77APFXIAY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

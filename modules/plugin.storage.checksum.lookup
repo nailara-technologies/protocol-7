@@ -1,0 +1,44 @@
+## [:< ##
+# name  = plugin.storage.checksum.lookup
+# descr = Look up files by checksum
+
+use strict;
+use warnings;
+
+return sub {
+    my ($args) = @_;
+
+    my $checksum = $args->{checksum}
+        or return { 'mode' => 'false', 'data' => 'checksum required' };
+
+    my $registry = $data{'storage'}{'mapping'}{'checksum'};
+    my $paths    = $registry->{'reverse'}{$checksum} // [];
+
+    # Verify paths still exist and match
+    my @valid_paths;
+    for my $path (@$paths) {
+        if ( -f $path ) {
+            my $cached = $registry->{'cache'}{$path};
+            if ( $cached and $cached->{checksum} eq $checksum ) {
+                push @valid_paths, $path;
+            }
+        }
+    }
+
+    return {
+        'mode' => 'true',
+        'data' => {
+            'checksum' => $checksum,
+            'paths'    => \@valid_paths,
+            'count'    => scalar(@valid_paths),
+        }
+    };
+};
+
+#,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,
+
+#,,,,,.,,,,,.,..,,,..,,.,,...,,,.,,.,,,..,,.,,..,,...,...,.,,,,,,,,..,,,,,.,,,
+#Q7RSK2KX5UUHT7ULMAMIITLGCCDNMVIN3QAMMXR4YXURHXJLPMCV3G3HMHVZGTILSEDLTEPEEXT4Y
+#\\\|4PP5PVXHQD2GUOWWDS4EYK2HIEWMI56MZZYXV35FZV4OSTW7GNI \ / AMOS7 \ YOURUM ::
+#\[7]FLEYI36CQU3QCUXA7XFDMZZZJF6R27KDNHYTHOASDIF667P4S6DQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
