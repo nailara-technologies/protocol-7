@@ -1,0 +1,40 @@
+## [:< ##
+# name  = storage.cmd.9p-connect
+# descr = Connect to 9P server
+
+use strict;
+use warnings;
+
+return sub {
+    my ($call) = @_;
+    my $args = $call->{'args'} // '';
+    my ( $host, $port, $name ) = split /\s+/, $args, 3;
+
+    $host //= '127.0.0.1';
+    $port //= 5640;
+    $name //= "$host:$port";
+
+    my $result = <[storage.9p.connect]>->(
+        {   host => $host,
+            port => $port,
+            name => $name,
+        }
+    );
+
+    if ( $result->{'mode'} eq 'true' ) {
+        return {
+            'mode' => 'size',
+            'data' => "Connected to 9P server $name at $host:$port\n"
+        };
+    } else {
+        return $result;
+    }
+};
+
+#,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,
+
+#,,,,,.,.,,,,,,..,,..,,,.,...,.,.,,,,,.,,,,,,,..,,...,...,..,,...,..,,.,.,..,,
+#NOM3OFJR5SOI2KMZIRHL5BVYVEGZ7NDIU3N5WQQSV2XW7R5PG6CWXQXXAQM5DEE7IOFMVM6C6A432
+#\\\|JY7P6MMMVI4CEEDEG3J5XKNUVGRMBPE6FMM65JILNAQVPXKRS2G \ / AMOS7 \ YOURUM ::
+#\[7]ZTI33UXS3LSVSJMYGGZQEA74QUUQAT3KQW7N7LHGJ24YGOZDQECI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
