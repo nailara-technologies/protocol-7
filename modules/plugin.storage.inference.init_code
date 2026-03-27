@@ -3,11 +3,23 @@
 # name  = plugin.storage.inference.init_code
 # descr = initialize checksum-addressed inference cache plugin
 
+## create zenka cache directory while still root ##
+<[base.path-set-up.check-zenka-paths]>->(
+    TRUE, undef, undef, undef, qw| inference-cache |
+);
+
+## resolve zenka var directory for cache root ##
+my $zenka_dirs = <system.path.zenka-dirs>;
+my $var_base   = $zenka_dirs->{'var_P7'};
+my $zenka_name = <system.zenka.name>;
+my $root_path  = catfile( $var_base, $zenka_name, qw| inference-cache | );
+
 ## inference cache registry ##
 $data{'storage'}{'mapping'}{'inference'} = {
-    'enabled'   => 1,
-    'version'   => '0.1',
-    'root_path' => <system.root_path> . '/var/inference-cache',
+    'enabled'    => 1,
+    'version'    => '0.2',
+    'root_path'  => $root_path,
+    'rel_prefix' => 'inference-cache',    ## for file.zenka_dir.* calls ##
 
     ## in-memory hot index: L13 => branch metadata ##
     'branches' => {},
@@ -32,21 +44,6 @@ $data{'storage'}{'mapping'}{'inference'} = {
     },
 };
 
-## ensure cache root directory exists ##
-my $root = $data{'storage'}{'mapping'}{'inference'}{'root_path'};
-
-if ( not -d $root ) {
-    my $umask_prev = umask 0002;
-    mkdir $root, 0775;
-    umask $umask_prev;
-
-    if ( not -d $root ) {
-        <[base.logs]>->(
-            0, ':. inference.init: cannot create cache root [ %s ]', $root
-        );
-    }
-}
-
 ## register with p7ref system if available ##
 if ( exists $data{'storage'}{'mapping'}{'p7ref'} ) {
     $data{'storage'}{'mapping'}{'p7ref'}{'types'}{'inference'} = {
@@ -57,13 +54,13 @@ if ( exists $data{'storage'}{'mapping'}{'p7ref'} ) {
 }
 
 <[base.logs]>->(
-    1, ':. inference cache plugin initialized v0.1 [ root=%s ]', $root
+    1, ':. inference cache plugin initialized v0.2 [ root=%s ]', $root_path
 );
 
 0;
 
-#,,,.,..,,...,...,,..,,..,,,.,...,...,.,,,,,,,..,,...,...,...,,..,..,,,.,,...,
-#ZCBSNUFDUVAFLZJ37VWVR2IPPN6HH4ZVXQZHKCEZH52PYCPHEZDHEOYGFJUN3LVSJC7P2PLH4PQTM
-#\\\|JYFTOWOQ7QJFZ5IBYZEDKYI3YB7RMHJWYUS53Q2BMEZTS2ES33V \ / AMOS7 \ YOURUM ::
-#\[7]QO2IT5CQTZVGPISU3HTMM5JGMAIODFIAADEZXMOPKSRGRKHU5MCA 7  DATA SIGNATURE ::
+#,,..,..,,.,,,,,,,,..,,,.,,,.,,,,,..,,..,,,,.,..,,...,..,,...,...,.,.,.,,,..,,
+#VSIDPSO7DUTWCQEKDPMH36ABL4OB5HYMF5NKJJJVCN6UFRGTM255M25OTMDNSKPG7M3WNVILE3IUA
+#\\\|T2Y7JBAY3WIRGDTQJNRFUCMKSQXCM7HTMKD22IXXCUEIBHUR4BS \ / AMOS7 \ YOURUM ::
+#\[7]LEIBVJAJ5TXB56WDBEX7D3ZLHH5LOIM6UCT3BLYT4UNCQ2C5YKCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
