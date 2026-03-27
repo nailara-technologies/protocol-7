@@ -1,0 +1,45 @@
+## [:< ##
+# name  = plan-9.server.client.data
+# descr = Process data from 9P client
+
+use strict;
+use warnings;
+
+return sub {
+    my ( $fd, $data ) = @_;
+
+    my $client = $data{'plan-9'}{'server'}{'clients'}{$fd};
+    return unless $client;
+
+    $client->{'buffer'} .= $data;
+
+    while ( length( $client->{'buffer'} ) >= 4 ) {
+        my $size = <[plan-9.protocol.codec.decode-uint32]>
+            ->( substr( $client->{'buffer'}, 0, 4 ) );
+
+        return if length( $client->{'buffer'} ) < $size;
+
+        my $msg  = substr( $client->{'buffer'}, 0, $size, '' );
+        my $type = <[plan-9.protocol.codec.decode-uint8]>
+            ->( substr( $msg, 4, 1 ) );
+        my $tag = <[plan-9.protocol.codec.decode-uint16]>
+            ->( substr( $msg, 5, 2 ) );
+        my $payload = substr( $msg, 7 );
+
+        my $response = <[plan-9.server.handle_request]>->(
+            $client, $fd, $type, $tag, $payload
+        );
+
+        if ($response) {
+            <[base.net.send_to_socket]>->( $fd, \$response );
+        }
+    }
+};
+
+#,,.,,.,,.,,.,,.,.,.,.,.,,.,.,.,,.,.,.,,.,,.,.,.,,.,,.,,.,,.,,.,.,.,,.,.,.,.,
+
+#,,,.,...,..,,,..,,,.,,.,,...,,,.,,,.,,,.,,.,,..,,...,...,...,.,.,,,.,.,.,.,,,
+#4PS73YHJLXL7W523AV3GJRXE2BPFMYOAMHDMNS5ZTDYOB3POYN3EFN35S75RDSUI4PUPEK3IK65HW
+#\\\|IPQDTBACBBNMAFWIXPY23NNDCZAEBQEEW7SVHUO7GH5MR4WQESP \ / AMOS7 \ YOURUM ::
+#\[7]4D57OJJQ7KO5PBWAYQEUQ6XPLFEXXYNBNUBATFBWM2W7LOD4BOBQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,0 +1,16 @@
+## [:< ##
+# name  = plan-9.protocol.codec.encode-message
+# descr = Encode 9P message header
+
+return sub {
+    my ( $type, $tag, $payload ) = @_;
+    $tag //= 0xFFFF;
+    my $size = 4 + 1 + 2 + length($payload);
+    return pack( 'V C v', $size, $type, $tag ) . $payload;
+};
+
+#,,,.,,.,,.,.,,,,,,,,,.,.,...,,,.,..,,,..,..,,..,,...,...,...,,.,,...,,.,,,..,
+#QAXI7SXYVFZDEIFGWBXCRISK4KCPLL7NLM2L4GY5JZE7R4PV3PJ7OSL3AD6PYPSSCDWG2GW4Q6IS4
+#\\\|NYIZINWPOV24NLBOBTNORGR4LIYUJED3NFHE6UA2R3WV4TL5AOI \ / AMOS7 \ YOURUM ::
+#\[7]X5HOWO7G4VL5RQN62O7D5HPRHPINMKL4MCJ32SSLS2UEOZJ7I6BA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

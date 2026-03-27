@@ -1,0 +1,38 @@
+## [:< ##
+# name  = plan-9.server.handle_version
+# descr = Handle 9P Tversion/Rversion
+
+use strict;
+use warnings;
+
+return sub {
+    my ( $client, $tag, $data ) = @_;
+
+    my $msize
+        = <[plan-9.protocol.codec.decode-uint32]>->( substr( $data, 0, 4 ) );
+
+    my ( $version, $rest )
+        = <[plan-9.protocol.codec.decode-string]>->( substr( $data, 4 ) );
+
+    # Negotiate message size (max 65536)
+    $client->{msize} = $msize < 65536 ? $msize : 65536;
+
+    # Only support 9P2000
+    my $response_version = ( $version eq '9P2000' ) ? '9P2000' : 'unknown';
+
+    my $resp = <[plan-9.protocol.codec.encode-uint32]>->( $client->{msize} )
+        . <[plan-9.protocol.codec.encode-string]>->($response_version);
+
+    return <[plan-9.protocol.codec.encode-message]>->(
+        <plan-9.protocol.constants.Rversion>,
+        $tag, $resp
+    );
+};
+
+#,,.,,.,,.,,.,,.,.,.,.,.,,.,.,.,,.,.,.,,.,,.,.,.,,.,.,.,,.,.,.,,.,.,.,,.,.,.,,
+
+#,,..,,.,,,..,,.,,,.,,,.,,,..,.,.,,,.,...,,,,,..,,...,..,,,.,,.,,,,.,,.,,,...,
+#NYDLBGXN77XFTCOJKREXFDEZASJUNSMVAIBPOMTQ57BHJC3HOOKT264BXNKJIXQMZ2RN77FCD5TJG
+#\\\|T7FPOBXIK6QB2K5ZAAEFRWMT2Z5IJJIM5MMS45P47DW2JEH2MED \ / AMOS7 \ YOURUM ::
+#\[7]MDXL3SCC3FKHYUZNT55WRQGGKYK3EFJKCYCU5K7TTGIQH2T4A2DQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

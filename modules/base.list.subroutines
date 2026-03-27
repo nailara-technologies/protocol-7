@@ -72,6 +72,8 @@ return [ qw[
         ssh.init_code
         power.dev_obj
         power.cmd.off
+        plan-9.server
+        plan-9.config
         pcycle.switch
         net.init_code
         net.calc_port
@@ -206,7 +208,6 @@ return [ qw[
         devmod.cmd.echo
         devmod.cmd.dump
         debian.cmd.scan
-        data.fuse.const
         cube.cmd.select
         crypt.init_code
         context.compose
@@ -607,7 +608,6 @@ return [ qw[
         decoder.cmd.harmony
         data.mount.shm.open
         data.hooks.register
-        data.fuse.init_code
         data.cmd.mount-hash
         data.cmd.mount-cube
         cube.cmd.clear-cons
@@ -851,6 +851,8 @@ return [ qw[
         reenc-msg.open_window
         reenc-msg.cmd.refresh
         power-x11.open_window
+        plan-9.protocol.error
+        plan-9.protocol.codec
         pcycle.handler.toggle
         p7-log.cmd.file-sizes
         nshell.search.handler
@@ -1114,6 +1116,7 @@ return [ qw[
         amos-term.window-close
         amos-term.fuse.readdir
         amos-term.fuse.getattr
+        amos-term.cmd.mount-9p
         amos-term.buffer-write
         amos-term.buffer-clear
         X-11.process-x11-error
@@ -1390,6 +1393,7 @@ return [ qw[
         devmod.cmd.current-umask
         data.mount.shm.init_code
         data.get.resolve_virtual
+        data.fuse.const.disabled
         data.cmd.attach-fs-mount
         cube.set-up.import_rules
         cube.set-up.export_rules
@@ -1441,7 +1445,6 @@ return [ qw[
         amos-term.window-destroy
         amos-term.fuse.init_code
         amos-term.cursor-set_pos
-        amos-term.cmd.mount_fuse
         amos-term.buffer-shift_z
         X-11.set-up.import_rules
         X-11.set-up.export_rules
@@ -1497,6 +1500,10 @@ return [ qw[
         power.set-up.import_rules
         power.set-up.export_rules
         power.cmd.get_device_addr
+        plan-9.server.handle_walk
+        plan-9.server.client.data
+        plan-9.server.buffer-stat
+        plan-9.protocol.constants
         pdf.html.parent.init_code
         nshell.parser.term_encode
         nshell.parser.term_decode
@@ -1598,7 +1605,6 @@ return [ qw[
         amos-term.handler.command
         amos-term.fuse.get_window
         amos-term.cmd.window-open
-        amos-term.cmd.umount_fuse
         X-11.set_background_image
         X-11.handler.wait_visible
         X-11.handler.read_gpu_top
@@ -1659,6 +1665,8 @@ return [ qw[
         protocol.sftp.read_ssh_env
         power-x11.handler.show_all
         plugin.web.content.dirlist
+        plan-9.server.client.close
+        plan-9.server.buffer-write
         nshell.state.reset_history
         nshell.setup_stdin_watcher
         nshell.render.empty_prompt
@@ -1811,6 +1819,9 @@ return [ qw[
         source.cmd.update-src-links
         source.AMOS-center-bit.desc
         set-up.handler.export_reply
+        plan-9.server.handle_attach
+        plan-9.server.export_buffer
+        plan-9.server.client.accept
         pdf.html.parent.cmd.get_url
         pdf.html.base.get_page_size
         pdf.html.base.get_html_path
@@ -1965,6 +1976,11 @@ return [ qw[
         rss.ticker.cmd.resend_update
         protocol.protocol-7.pre_init
         protocol.amos_term.init_code
+        plan-9.server.handle_version
+        plan-9.server.handle_request
+        plan-9.server.handle-io-stat
+        plan-9.server.handle-io-read
+        plan-9.server.handle-io-open
         pdf.html.base.write_pdf_html
         pdf.html.base.get_page_count
         osd-logo.set-up.import_rules
@@ -2014,6 +2030,7 @@ return [ qw[
         decoder.cmd.show-accumulator
         decoder.base.decode_d13_bits
         debian.parser.package_status
+        data.fuse.init_code.disabled
         cube.cmd.reply-encoding-mode
         crypt.C25519.keystr_is_valid
         crypt.C25519.compare_keypair
@@ -2095,6 +2112,8 @@ return [ qw[
         protocol-7-menu.position.save
         protocol-7-menu.position.load
         plugin.image-resize.init_code
+        plan-9.server.handle-io-write
+        plan-9.server.handle-io-clunk
         pdf.html.base.write_stub_page
         pdf.html.base.white_page_hash
         pdf.html.base.fork_conv_child
@@ -2358,6 +2377,7 @@ return [ qw[
         storage.amos_chksum.open_socket
         screenshot.cmd.get_region_color
         protocol-7-menu.cmd.menu-update
+        plan-9.server.buffer-read-layer
         osd-logo.handler.download_reply
         nshell.hook.unknown_reply_route
         nodes.send_host_details_request
@@ -2465,6 +2485,9 @@ return [ qw[
         reenc-msg.handler.shutdown_timer
         protocol-7-menu.load-action-keys
         protocol-7-menu.example-provider
+        plan-9.server.init_code.disabled
+        plan-9.protocol.codec.encode-qid
+        plan-9.protocol.codec.decode-qid
         pdf.html.parent.cmd.check_format
         osd-logo.callback.download_image
         openbox.callback.already_running
@@ -2556,6 +2579,7 @@ return [ qw[
         protocol-7-menu.provider-register
         protocol-7-menu.cmd.test-provider
         plugin.auth.zenka.no-keys-defined
+        plan-9.protocol.codec.encode-stat
         pdf.html.child.handler.conversion
         mpv.initialize.observe_properties
         mpv.handler.event.property-change
@@ -2606,6 +2630,7 @@ return [ qw[
         base.callback.expire_code_version
         base.buffer.handler.sending_state
         base.X-11.coordinates_to_geometry
+        amos-term.cmd.mount_fuse.disabled
         X-11.maximize_intel_gpu_frequency
         X-11.handler.wait_visible_timeout
         X-11.callback.force_driver_reload
@@ -2642,6 +2667,10 @@ return [ qw[
         protocol-7-menu.cmd.gfx-action-key
         protocol-7-menu.add-provider-items
         plugin.auth.auth-keypair.init_code
+        plan-9.server.buffer-read-root-dir
+        plan-9.server.buffer-read-metadata
+        plan-9.protocol.codec.encode-uint8
+        plan-9.protocol.codec.decode-uint8
         pdf.html.child.check_cache_timeout
         nshell.hook.unknown_command_global
         nodes.handler.discover_node_online
@@ -2693,6 +2722,7 @@ return [ qw[
         base.callback.setup_rollback_timer
         amos-term.plugin-decoder.init_code
         amos-term.plugin-decoder.elf_match
+        amos-term.cmd.umount_fuse.disabled
         USR.AMOS7-admin.sourcecode-pub-key
         workspace-transfer.env.detect_paths
         workspace-transfer.cmd.status-check
@@ -2714,6 +2744,14 @@ return [ qw[
         protocol-7-menu.cmd.provider-status
         protocol-7-menu.cmd.get-action-keys
         protocol-7-menu.cmd.debug-structure
+        plan-9.protocol.codec.encode-uint64
+        plan-9.protocol.codec.encode-uint32
+        plan-9.protocol.codec.encode-uint16
+        plan-9.protocol.codec.encode-string
+        plan-9.protocol.codec.decode-uint64
+        plan-9.protocol.codec.decode-uint32
+        plan-9.protocol.codec.decode-uint16
+        plan-9.protocol.codec.decode-string
         osd-logo.handler.colortoalpha_reply
         models.gguf.file.file_type_to_quant
         models.decision.recommendation_base
@@ -2775,6 +2813,8 @@ return [ qw[
         protocol.amos-chksum.ext-cmd.version
         protocol.amos-chksum.command-handler
         protocol-7-menu.graphical-menu-popup
+        plan-9.server.buffer-read-buffer-dir
+        plan-9.protocol.codec.encode-message
         nshell.no-tty-debug.cmd.debug-status
         nshell.history.find_session_boundary
         nshell.handler.ctrl_o_render_preload
@@ -3111,8 +3151,8 @@ return [ qw[
     ]
 ];
 
-#,,..,...,,..,..,,,.,,.,,,,,.,,,.,,,.,.,.,..,,.,.,...,..,,.,.,.,,,.,,,.,,,,,.,
-#QPICDZPHVMCIII7MA6I7JX2BGS7VRREQCRJIWXTKYJI4N4XEAHQ6U2RRQDQFUYA47BVAKVMQGYQ5U
-#\\\|GBIQK6NOANQXZ6JVXRVPKOMUMHDUD4W3G5WGC2BGX52LNNXLGMO \ / AMOS7 \ YOURUM ::
-#\[7]R2GEB67QKXHNCABP5XF7WLE5QW6MD765FFHIBX6VEGPXXK4JQIDI 7  DATA SIGNATURE ::
+#,,.,,...,,,,,,,,,,.,,,,,,..,,...,,.,,.,,,,,,,.,.,...,..,,.,.,,,,,.,.,,,.,.,,,
+#CBCLD26FTDIQHDQWZO424BTMC67HI27AVASOQBHOCBNACKXYWZ6TCTHFH5ORZPBHJ35KNY7HIPFIG
+#\\\|7F2N7LGLPJEHROAYHGQUPRCD4YALGQJIOPGMYHAIIEHMOKIRE2D \ / AMOS7 \ YOURUM ::
+#\[7]YBPLIAG56CD2HM2N5FECSJGQMMT2B2AYI4IDEWB6H3CPDXZIHUCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

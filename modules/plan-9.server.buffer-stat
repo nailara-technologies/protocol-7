@@ -1,0 +1,64 @@
+## [:< ##
+# name  = plan-9.server.buffer-stat
+# descr = Get stat info for buffer entries
+
+use strict;
+use warnings;
+
+return sub {
+    my ($f) = @_;
+
+    my %stat = (
+        type  => 0,
+        dev   => 0,
+        atime => time,
+        mtime => time,
+        uid   => 'root',
+        gid   => 'root',
+        muid  => 'root',
+    );
+
+    if ( $f->{type} eq 'root' ) {
+        $stat{qid_type}    = <plan-9.protocol.constants.QTDIR>;
+        $stat{qid_version} = 0;
+        $stat{qid_path}    = 0;
+        $stat{mode}        = 0755 | <plan-9.protocol.constants.DMDIR>;
+        $stat{name}        = '/';
+        $stat{length}      = 0;
+    } elsif ( $f->{type} eq 'buffer' ) {
+        my $buf = $data{'plan-9'}{'server'}{'buffers'}{ $f->{name} };
+        $stat{qid_type}    = <plan-9.protocol.constants.QTDIR>;
+        $stat{qid_version} = $buf->{qid_version} // 0;
+        $stat{qid_path}    = $buf->{qid_path}    // 0;
+        $stat{mode}        = 0755 | <plan-9.protocol.constants.DMDIR>;
+        $stat{name}        = $f->{name};
+        $stat{length}      = 0;
+    } elsif ( $f->{type} eq 'layer' ) {
+        my $buf = $data{'plan-9'}{'server'}{'buffers'}{ $f->{buffer} };
+        $stat{qid_type}    = <plan-9.protocol.constants.QTFILE>;
+        $stat{qid_version} = 0;
+        $stat{qid_path}    = ( $buf->{qid_path} // 0 ) + $f->{z} + 1;
+        $stat{mode}        = 0644;
+        $stat{name}        = "z-" . $f->{z};
+        my $layer_data = $buf->{window}{buffer}{layers}[ $f->{z} ] // '';
+        $stat{length} = length($layer_data);
+    } elsif ( $f->{type} eq 'metadata' ) {
+        my $buf = $data{'plan-9'}{'server'}{'buffers'}{ $f->{buffer} };
+        $stat{qid_type}    = <plan-9.protocol.constants.QTFILE>;
+        $stat{qid_version} = 0;
+        $stat{qid_path}    = ( $buf->{qid_path} // 0 ) + 100;
+        $stat{mode}        = 0644;
+        $stat{name}        = 'metadata';
+        $stat{length}      = 1024;
+    }
+
+    return \%stat;
+};
+
+#,,.,,.,,.,,.,,.,.,.,.,.,,.,.,.,,.,.,.,,.,,.,.,.,,.,.,.,,.,.,.,,.,.,.,,.,.,.,,
+
+#,,..,,,,,,,,,..,,,.,,,..,,..,,.,,.,,,,..,...,..,,...,...,,..,,,.,.,,,.,,,,.,,
+#2FCO4Q546VJNGCA4L4MD4OKNNKC6M2USG77MWEGSPPBBKCS3QXVPBELKMHSAEO4K3YGFSNC66HIGS
+#\\\|VRIVIMTTEWKUTZPHPFO4N7SQRH3PKVYC7Q2TFEVT4J4DFH7GLCC \ / AMOS7 \ YOURUM ::
+#\[7]WGMFOSHURFGKEEBFPL7VXOIPHPGZ5TWQS2DPUUTXKKMN7Q6GRMAY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

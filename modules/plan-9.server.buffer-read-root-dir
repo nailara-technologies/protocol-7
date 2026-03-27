@@ -1,0 +1,42 @@
+## [:< ##
+# name  = plan-9.server.buffer-read-root-dir
+# descr = Read root directory - list exported buffers
+
+use strict;
+use warnings;
+
+return sub {
+    my ( $offset, $count ) = @_;
+
+    my $entries = '';
+    foreach
+        my $amos_id ( sort keys %{ $data{'plan-9'}{'server'}{'buffers'} } ) {
+        my $buf  = $data{'plan-9'}{'server'}{'buffers'}{$amos_id};
+        my $stat = {
+            type        => 0,
+            dev         => 0,
+            qid_type    => <plan-9.protocol.constants.QTDIR>,
+            qid_version => $buf->{qid_version},
+            qid_path    => $buf->{qid_path},
+            mode        => 0755 | <plan-9.protocol.constants.DMDIR>,
+            atime       => time,
+            mtime       => time,
+            length      => 0,
+            name        => $amos_id,
+            uid         => 'root',
+            gid         => 'root',
+            muid        => 'root',
+        };
+        $entries .= <[plan-9.protocol.codec.encode-stat]>->($stat);
+    }
+
+    return substr( $entries, $offset, $count );
+};
+
+#,,.,,.,,.,,.,,.,.,.,.,.,,.,.,.,,.,.,.,,.,,.,.,.,,.,.,.,,.,.,.,,.,.,.,,.,.,.,,
+
+#,,,.,,,.,,,,,,..,,..,.,,,,,.,..,,.,.,,.,,,..,..,,...,...,.,.,..,,,.,,,,,,..,,
+#J2CQLFDX73QQVLNBEEZNRSKB34NUNJSZXIZZ7VESCS6XMCCS3ZEQ4MLNJYRDNZRVH6ZK7ZTPKEKEM
+#\\\|JVQDGJRUFQJUHJZNWP5SJOS2MAQKWST4AOFQWXRV3VR46PWG4WJ \ / AMOS7 \ YOURUM ::
+#\[7]PYFQ2NAAK6APMUOXXW7XZJIQEWSWG62ZXNSO7BDWE53USYUU4OBA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,0 +1,28 @@
+## [:< ##
+# name  = plan-9.server.handle-io-clunk
+# descr = Handle 9P Tclunk/Rclunk
+
+use strict;
+use warnings;
+
+return sub {
+    my ( $client, $tag, $data ) = @_;
+
+    my $fid
+        = <[plan-9.protocol.codec.decode-uint32]>->( substr( $data, 0, 4 ) );
+
+    delete $client->{fids}{$fid};
+
+    return <[plan-9.protocol.codec.encode-message]>->(
+        <plan-9.protocol.constants.Rclunk>,
+        $tag, ''
+    );
+};
+
+#,,.,,.,,.,,.,,.,.,.,.,.,,.,.,.,,.,.,.,,.,,.,.,.,,.,.,.,,.,.,.,,.,.,.,,.,.,.,,
+
+#,,.,,,.,,,.,,,,.,,..,.,,,.,.,,.,,...,...,,,.,..,,...,...,,,,,..,,..,,,..,,.,,
+#YG2HE42LUL3XD6QBG4OEUEV32PRT33CSVKHKQKYLKK2OLB222JRKP2BRVK6HXX56K4O4STU6H7P6U
+#\\\|OHDLIZ4J5FU3LHIRCTWZFCVAG643GXLKJF5GCOQJ2HTHE3XDDKJ \ / AMOS7 \ YOURUM ::
+#\[7]BSUZLB2KTMTRS2U5EU5GCNHWDTRPSJAHEJOJTBCKRUCY3MJ6LEDI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

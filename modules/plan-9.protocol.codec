@@ -1,0 +1,113 @@
+## [:< ##
+# name  = plan-9.protocol.codec
+# descr = 9P protocol encoding/decoding functions
+
+use strict;
+use warnings;
+
+return {
+    ## Message encoding ##
+    encode_message => sub {
+        my ( $type, $tag, $payload ) = @_;
+        $tag //= 0xFFFF;                         # NOTAG
+        my $size = 4 + 1 + 2 + length($payload); # size + type + tag + payload
+        return pack( 'V C v', $size, $type, $tag ) . $payload;
+    },
+
+    ## Integer encoding ##
+    encode_uint8  => sub { pack( 'C', $_[0] ) },
+    encode_uint16 => sub { pack( 'v', $_[0] ) },
+    encode_uint32 => sub { pack( 'V', $_[0] ) },
+    encode_uint64 => sub {
+        my ( $lo, $hi ) = ( $_[0] & 0xFFFFFFFF, $_[0] >> 32 );
+        pack( 'VV', $lo, $hi );
+    },
+
+    ## Integer decoding ##
+    decode_uint8  => sub { ( unpack( 'C', $_[0] ) )[0] },
+    decode_uint16 => sub { ( unpack( 'v', $_[0] ) )[0] },
+    decode_uint32 => sub { ( unpack( 'V', $_[0] ) )[0] },
+    decode_uint64 => sub {
+        my ( $lo, $hi ) = unpack( 'VV', $_[0] );
+        return ( $hi << 32 ) | $lo;
+    },
+
+    ## String encoding/decoding ##
+    encode_string => sub {
+        my ($str) = @_;
+        my $len = length($str);
+        return pack( 'v', $len ) . $str;
+    },
+
+    decode_string => sub {
+        my ($data) = @_;
+        my $len = unpack( 'v', substr( $data, 0, 2 ) );
+        return ( substr( $data, 2, $len ), substr( $data, 2 + $len ) );
+    },
+
+    ## Qid encoding/decoding ##
+    encode_qid => sub {
+        my ( $type, $version, $path ) = @_;
+
+        # Qid: type(1) + version(4) + path(8) = 13 bytes
+        my ( $plo, $phi ) = ( $path & 0xFFFFFFFF, $path >> 32 );
+        return pack( 'C V VV', $type, $version, $plo, $phi );
+    },
+
+    decode_qid => sub {
+        my ($data) = @_;
+        my ( $type, $version, $plo, $phi ) = unpack( 'C V VV', $data );
+        my $path = ( $phi << 32 ) | $plo;
+        return ( $type, $version, $path );
+    },
+
+    ## Stat encoding ##
+    encode_stat => sub {
+        my ($stat) = @_;
+
+        # Calculate sizes first
+        my $name_len = length( $stat->{name} // '' );
+        my $uid_len  = length( $stat->{uid}  // 'root' );
+        my $gid_len  = length( $stat->{gid}  // 'root' );
+        my $muid_len = length( $stat->{muid} // 'root' );
+
+        my $stat_len
+            = 2 + 4 + 13 + 4 + 4 + 4 + 8 + 2
+            + $name_len + 2
+            + $uid_len + 2
+            + $gid_len + 2
+            + $muid_len;
+
+# size(2) + type(2) + dev(4) + qid(13) + mode(4) + atime(4) + mtime(4) + length(8) + name + uid + gid + muid
+
+        my $encoded
+            = pack( 'v', $stat_len )
+            . pack( 'v', $stat->{type} // 0 )
+            . pack( 'V', $stat->{dev}  // 0 )
+            . <[plan-9.protocol.codec.encode-qid]>->(
+            $stat->{qid_type}, $stat->{qid_version}, $stat->{qid_path}
+            )
+            . pack( 'V', $stat->{mode}  // 0644 )
+            . pack( 'V', $stat->{atime} // time )
+            . pack( 'V', $stat->{mtime} // time )
+            . <[plan-9.protocol.codec.encode-uint64]>
+            ->( $stat->{length} // 0 )
+            . <[plan-9.protocol.codec.encode-string]>->( $stat->{name} )
+            . <[plan-9.protocol.codec.encode-string]>
+            ->( $stat->{uid} // 'root' )
+            . <[plan-9.protocol.codec.encode-string]>
+            ->( $stat->{gid} // 'root' )
+            . <[plan-9.protocol.codec.encode-string]>
+            ->( $stat->{muid} // 'root' );
+
+        return $encoded;
+    },
+};
+
+#,,.,,.,,.,,.,,.,.,.,.,.,,.,.,.,,.,.,.,,.,,.,.,.,,.,.,.,,.,.,.,,.,.,.,,.,.,.,,
+
+#,,,,,,..,...,,,,,...,.,.,,,,,,..,...,.,,,.,.,..,,...,.,.,...,..,,,.,,,,.,...,
+#PY7FCBSUYKAR2ICQE7WWMJXBI2P3JT75P6HEH3ZPL2FDX5HNT73Y42GGIW6ZSA6VFFIXI56OMI2ZK
+#\\\|GSHEXMFVVWLXMD4ZK4KPWJSEZMEQQTXKVRGLNNCA3D3UWJKAQ4R \ / AMOS7 \ YOURUM ::
+#\[7]QPI6RJUBQUWBSWF5OWVOFJJGXNSPXUBVK6MSDENCDJOBS3QJKEBI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

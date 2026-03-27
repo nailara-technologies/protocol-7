@@ -102,16 +102,20 @@ if ( $cmd eq qw| open | ) {
     my $result = <[amos-term.buffer-detach]>->($attach_id);
     return $result ? "+ detached $attach_id\n" : "- detach failed\n";
 
-} elsif ( $cmd eq qw| mount | ) {
-    ## mount buffer as FUSE filesystem
+} elsif ( $cmd eq qw| mount-9p | ) {
+    ## mount buffer via 9P protocol
     my ( $target, $path ) = @args;
     $target //= 'current';
-    return <[amos-term.cmd.mount_fuse]>->( $target, $path );
+    return <[amos-term.cmd.mount-9p]>->( { 'args' => "$target $path" } );
+
+} elsif ( $cmd eq qw| mount | ) {
+    ## DEPRECATED: use mount-9p instead
+    return
+        "- 'mount' deprecated, use 'mount-9p' instead (FUSE replaced with 9P)\n";
 
 } elsif ( $cmd eq qw| umount | ) {
-    ## unmount FUSE filesystem
-    my $target = shift @args // 'current';
-    return <[amos-term.cmd.umount_fuse]>->($target);
+    ## DEPRECATED: 9P unmount is handled by the OS
+    return "- 'umount' deprecated, use 'sudo umount <mountpoint>'\n";
 
 } elsif ( $cmd eq qw| info | ) {
     my @attachments
@@ -128,8 +132,8 @@ if ( $cmd eq qw| open | ) {
 
 return "- unknown command: $cmd\n";
 
-#,,,.,...,,..,...,,..,,,.,,..,.,.,,.,,,..,,..,.,.,...,...,,.,,...,...,,..,,.,,
-#QSF3UTN3YTPJUJUC7IFR62JXW4VU33IEH2BWUILOKYDQPYT36P4VPRXGWLKWNL3BXT6AJTT3TRL3O
-#\\\|YNNRHY7IS2J2GN5D6AIFOTWIOYLW7JXFLSXYF3R2KZWU7G4KZTM \ / AMOS7 \ YOURUM ::
-#\[7]JQDGKE5JE2JBNNCX6GTPER5RIRK2IILVIP2X6ELPNH6ONR6PLQAQ 7  DATA SIGNATURE ::
+#,,..,,,.,...,,,.,.,,,.,.,.,,,.,,,,.,,,,.,..,,.,.,...,...,,..,,.,,.,.,.,,,,,.,
+#OSMCGTUOPKQTIOLRGTOOM4BSCF5XVVYKARH4NRXTICZRCV3R4JVOCPDCWETVEDCXVKVM6YUO2TAQC
+#\\\|BVHOMIM5A35FRFJWWNGLWNFYDHGOQKB2JUKHPP4NEZCLY5AHXJ3 \ / AMOS7 \ YOURUM ::
+#\[7]TG3ZNUMCLDPTJX7SY3PNIM4EMV3ELVYJEFDEZCBCQ4S3TD3YYCAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

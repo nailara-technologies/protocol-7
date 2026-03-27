@@ -1,0 +1,82 @@
+## [:< ##
+# name  = plan-9.protocol.constants
+# descr = 9P protocol message type constants
+
+use constant {
+
+    # Message sizes
+    HEADER_SIZE  => 7,       # size[4] type[1] tag[2]
+    MAX_MSG_SIZE => 8192,    # Maximum message size
+
+    # Message types (T = request, R = response)
+    Tversion => 100,
+    Rversion => 101,
+    Tauth    => 102,
+    Rauth    => 103,
+    Tattach  => 104,
+    Rattach  => 105,
+    Terror   => 106,         # Illegal
+    Rerror   => 107,
+    Tflush   => 108,
+    Rflush   => 109,
+    Twalk    => 110,
+    Rwalk    => 111,
+    Topen    => 112,
+    Ropen    => 113,
+    Tcreate  => 114,
+    Rcreate  => 115,
+    Tread    => 116,
+    Rread    => 117,
+    Twrite   => 118,
+    Rwrite   => 119,
+    Tclunk   => 120,
+    Rclunk   => 121,
+    Tremove  => 122,
+    Rremove  => 123,
+    Tstat    => 124,
+    Rstat    => 125,
+    Twstat   => 126,
+    Rwstat   => 127,
+
+    # File modes
+    DMDIR    => 0x80000000,    # Directory
+    DMAPPEND => 0x40000000,    # Append-only
+    DMEXCL   => 0x20000000,    # Exclusive use
+    DMMOUNT  => 0x10000000,    # Mounted channel
+    DMAUTH   => 0x08000000,    # Authentication file
+    DMTMP    => 0x04000000,    # Temporary file
+
+    # Permissions
+    DMREAD  => 0x4,            # Read permission
+    DMWRITE => 0x2,            # Write permission
+    DMEXEC  => 0x1,            # Execute permission
+
+    # Qid types
+    QTDIR     => 0x80,         # Directory
+    QTAPPEND  => 0x40,         # Append-only
+    QTEXCL    => 0x20,         # Exclusive use
+    QTMOUNT   => 0x10,         # Mounted channel
+    QTAUTH    => 0x08,         # Authentication file
+    QTTMP     => 0x04,         # Temporary file
+    QTSYMLINK => 0x02,         # Symbolic link
+    QTFILE    => 0x00,         # Plain file
+
+    # Open modes
+    OREAD   => 0,              # Open for read
+    OWRITE  => 1,              # Open for write
+    ORDWR   => 2,              # Open for read/write
+    OEXEC   => 3,              # Open for execute
+    OTRUNC  => 0x10,           # Truncate
+    ORCLOSE => 0x40,           # Remove on close
+};
+
+# Version string
+our $PROTOCOL_VERSION = "9P2000";
+
+#,,.,,.,,.,,.,,.,.,.,.,.,,.,.,.,,.,.,.,,.,,.,.,.,,.,.,.,,.,.,.,,.,.,.,,.,.,.,,
+
+#,,.,,..,,,,,,.,.,.,.,..,,.,.,,,.,,,.,,,.,..,,..,,...,...,.,,,.,,,..,,...,.,,,
+#DUQQ6PLZ354HBL4EPHB3URT64D7EYHJTGP5G6WKEL63ZYWQFQDMUEDRDOMNORWQM2CKK3TZEZL65I
+#\\\|3INSAC3ELKBU4VZKN6I5E65INLXLCM4VZ47H7EKNIBYCOHFDP2D \ / AMOS7 \ YOURUM ::
+#\[7]SZIFQYY5DFNMMOYNIVHDLEYOVZK54LY7XBWKFJARA4VADO5XTMBI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
