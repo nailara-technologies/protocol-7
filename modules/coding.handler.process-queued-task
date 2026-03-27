@@ -209,6 +209,20 @@ my $response_text     = '';
 my $finish_reason_val = 'stop';
 my $http_error;
 
+## build message array with optional system prompt ##
+my @messages;
+if ( exists $code{'coding.system_prompt'} ) {
+    my $sys_prompt = $code{'coding.system_prompt'}->();
+    if ( defined $sys_prompt and length $sys_prompt ) {
+        push @messages, { role => 'system', content => $sys_prompt };
+        <[base.logs]>->(
+            2, "[process-queued-task] system prompt injected [ %d chars ]",
+            length($sys_prompt)
+        );
+    }
+}
+push @messages, { role => 'user', content => $prompt };
+
 eval {
     use LWP::UserAgent;
     use JSON::PP;
@@ -219,7 +233,7 @@ eval {
     my $json = JSON::PP->new->utf8->canonical;
     my $body = $json->encode(
         {   model       => $model_id,
-            messages    => [ { role => 'user', content => $prompt } ],
+            messages    => \@messages,
             max_tokens  => $max_tokens,
             temperature => $temperature,
         }
@@ -300,8 +314,8 @@ if ( length $response_text
 ## return result hashref for jobqueue callback ##
 return { success => TRUE, result => $response_text, task_id => $task_id };
 
-#,,,,,,..,...,,,.,..,,.,,,,..,,,,,,.,,,..,.,,,..,,...,...,,.,,...,,..,.,,,..,,
-#SQHU5RGQOBPIFB2DEDAM63FJPNS6NFRDCGIHLWAPVT77PJCLTCRFVXGEH354KUMG7QPOCTP5TRVBE
-#\\\|GVDLKPNA4OF5RARUNVQGIGSEDDQDZFQKGYP7YS2CU3DZQKK7SCY \ / AMOS7 \ YOURUM ::
-#\[7]33UNERFF6HBA2W3KUML4EZNGS55ORNLX6QLOFVKIWJZZBDC3L6CY 7  DATA SIGNATURE ::
+#,,..,,.,,.,,,..,,..,,,,.,..,,,,.,.,.,.,.,,.,,..,,...,.,.,.,,,...,.,.,..,,.,.,
+#DTGK2XZB6DUSNU2NINWOSLQIZGVS44U4TWSXCTNRSENU4VJYWL26TODI5FJJNMHEXUZNXRBQV4TD6
+#\\\|Z73TTAUT62C26LASKBHTHVFBRCG5SFWE7R4NRKQ6YFZEPBDZ3P3 \ / AMOS7 \ YOURUM ::
+#\[7]6WDTYDATAXMMMW57WEUGYF3DNGQN7GHJREZRVJ5N3QACGNTIYADA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
