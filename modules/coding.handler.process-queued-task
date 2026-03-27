@@ -114,6 +114,34 @@ $task->{'execution'}->{'started'}    = <[base.time]>->(3);
 # Use the clean query (prefix stripped)
 my $prompt = $parsed->{'query'};
 
+## enrich prompt with module content for review and explain tasks ##
+if (exists $code{'coding.context.read_module'}
+    and $prompt =~ m{(?:review|explain|check|analyze)\s+
+                     (?:modules?[/\s]+)?
+                     ([\w][\w.\-]+[\w])}xi
+) {
+    my $target_module = $1;
+    my $read_result   = $code{'coding.context.read_module'}
+        ->( { 'module' => $target_module, 'max_chars' => 6000 } );
+    if ( ref $read_result eq qw| HASH |
+        and $read_result->{'mode'} eq qw| true | ) {
+        my $mod = $read_result->{'data'};
+        $prompt
+            .= sprintf "\n\n"
+            . ".:[ module content : %s ]:.\n"
+            . ".:[ descr = %s ]:.\n"
+            . ".:[ %d lines ]:.\n\n%s",
+            $mod->{'module'},
+            $mod->{'descr'} || '?',
+            $mod->{'lines'},
+            $mod->{'content'};
+        <[base.logs]>->(
+            1, "[process-queued-task] enriched prompt with %s [ %d chars ]",
+            $mod->{'module'}, $mod->{'chars'}
+        );
+    }
+}
+
 ## check inference cache before calling backend ##
 if ( exists $code{'plugin.storage.inference.lookup'} ) {
     my $cache_result = $code{'plugin.storage.inference.lookup'}->(
@@ -314,8 +342,8 @@ if ( length $response_text
 ## return result hashref for jobqueue callback ##
 return { success => TRUE, result => $response_text, task_id => $task_id };
 
-#,,..,,.,,.,,,..,,..,,,,.,..,,,,.,.,.,.,.,,.,,..,,...,.,.,.,,,...,.,.,..,,.,.,
-#DTGK2XZB6DUSNU2NINWOSLQIZGVS44U4TWSXCTNRSENU4VJYWL26TODI5FJJNMHEXUZNXRBQV4TD6
-#\\\|Z73TTAUT62C26LASKBHTHVFBRCG5SFWE7R4NRKQ6YFZEPBDZ3P3 \ / AMOS7 \ YOURUM ::
-#\[7]6WDTYDATAXMMMW57WEUGYF3DNGQN7GHJREZRVJ5N3QACGNTIYADA 7  DATA SIGNATURE ::
+#,,.,,,,,,...,,,.,,,.,,,.,.,,,.,.,,,.,,.,,,.,,..,,...,...,..,,.,.,.,,,,,.,..,,
+#YJFLPORKUCHOJXC6UJZXWIGSFVQPYVBQ5ESYCDBUJ3Y2Y6K4O2SLHPUO6JGB3TGG3URB6EV3NXQPE
+#\\\|EYSGJ2KFJJJ62LP775RKJC3DJSJL5GND6TTXPN73HAJOBATZSZT \ / AMOS7 \ YOURUM ::
+#\[7]E5MXEK3JOSDXQFTGLE2H36DG57FUBFETDTPGRLK2GPJ6JSQYZAAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
