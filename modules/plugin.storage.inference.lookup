@@ -28,6 +28,7 @@ return { 'mode' => qw| false |, 'data' => 'checksum computation failed' }
 
 my $registry   = $data{'storage'}{'mapping'}{'inference'};
 my $root       = $registry->{'root_path'};
+my $rel_prefix = $registry->{'rel_prefix'};
 my $branch_dir = "$root/$L13";
 
 ## check disk ##
@@ -39,31 +40,27 @@ unless ( -d $branch_dir ) {
     return { 'mode' => qw| false |, 'data' => 'cache miss' };
 }
 
-my $result_dir  = "$branch_dir/results";
-my $meta_dir    = "$branch_dir/meta";
-my $branch_meta = "$branch_dir/.meta";
+my $result_dir = "$branch_dir/results";
+my $meta_dir   = "$branch_dir/meta";
+my $rel_bmeta  = "$rel_prefix/$L13/.meta";
 
 ## read branch metadata and increment hit count ##
 my %branch_info;
-if ( -f $branch_meta and open my $fh, '<:encoding(UTF-8)', $branch_meta ) {
-    while ( my $line = <$fh> ) {
-        chomp $line;
+my $bmeta_ref = <[file.zenka_dir.load]>->($rel_bmeta);
+if ( defined $bmeta_ref ) {
+    for my $line ( split "\n", $bmeta_ref->$* ) {
         $branch_info{$1} = $2 if $line =~ m{^([^=]+)=(.*)$};
     }
-    close $fh;
 }
 
 $branch_info{'hit_count'} //= 0;
 $branch_info{'hit_count'}++;
 $branch_info{'last_access'} = time();
 
-## write updated hit count ##
-if ( open my $fh, '>:encoding(UTF-8)', $branch_meta ) {
-    for my $key ( sort keys %branch_info ) {
-        print {$fh} "$key=$branch_info{$key}\n";
-    }
-    close $fh;
-}
+## write updated hit count via zenka_dir ##
+my $bmeta_content = join '', map {"$_=$branch_info{$_}\n"}
+    sort keys %branch_info;
+<[file.zenka_dir.write]>->( $rel_bmeta, \$bmeta_content, qw| > |, 0664 );
 
 ## scan results directory ##
 my @results;
@@ -178,8 +175,8 @@ return {
     },
 };
 
-#,,..,.,,,.,,,,..,,.,,,,.,,..,.,.,.,.,..,,,,,,..,,...,...,,,.,,.,,.,,,,,,,..,,
-#ORU6MRDIFHMWZMLOUPUSQYGMIL5U77QUQQP7SD4NHQLH6SLT4DEGME4WQUCBHGDUEAOYUX2DVXQI6
-#\\\|X2BZHKWIZORE7KN5SUX7NVKUPPCKVTZHCS3QV6NKXLMZ2AFUCNY \ / AMOS7 \ YOURUM ::
-#\[7]I5XE6ARYS7S23RPU7V5C4YJJ2TRESQE5U4JBUITZXSRCP57GNICA 7  DATA SIGNATURE ::
+#,,,.,,,.,..,,...,,.,,,,.,,..,,,,,,..,...,.,.,..,,...,...,.,.,,,.,,..,,..,,..,
+#MJWFIQ6BQ4XOBNJKEY4ZZG54HZF3W6ELCONA7F3WNFJJ5VSJSTQCWFJ7HHXVH45RJOGONBMAFQMNO
+#\\\|TIQWZRMQI7ZJE37MWIJCHOESURALFXDZ37ZQ6Z57DJJSCFNPV55 \ / AMOS7 \ YOURUM ::
+#\[7]INSLYCC3AUGXKHDUGRFI4VCSGLQFKYI4Y3JGXSW2KVXEWSLO5MBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

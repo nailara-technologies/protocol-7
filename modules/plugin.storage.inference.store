@@ -18,8 +18,9 @@ return { 'mode' => qw| false |, 'data' => 'question required' }
 return { 'mode' => qw| false |, 'data' => 'response required' }
     unless length $response;
 
-my $registry = $data{'storage'}{'mapping'}{'inference'};
-my $root     = $registry->{'root_path'};
+my $registry   = $data{'storage'}{'mapping'}{'inference'};
+my $root       = $registry->{'root_path'};
+my $rel_prefix = $registry->{'rel_prefix'};
 
 ## compute checksums ##
 my $question_L13 = <[chk-sum.bmw.L13-str]>->($question);
@@ -31,13 +32,17 @@ return { 'mode' => qw| false |, 'data' => 'checksum computation failed' }
     and defined $response_B32
     and defined $response_L13;
 
+## absolute paths for existence checks and reads ##
 my $branch_dir  = "$root/$question_L13";
 my $result_dir  = "$branch_dir/results";
 my $meta_dir    = "$branch_dir/meta";
 my $refs_dir    = "$branch_dir/refs";
-my $result_file = "$result_dir/$response_B32";
-my $meta_file   = "$meta_dir/$response_B32.meta";
 my $branch_meta = "$branch_dir/.meta";
+
+## relative paths for file.zenka_dir.write ##
+my $rel_result = "$rel_prefix/$question_L13/results/$response_B32";
+my $rel_meta   = "$rel_prefix/$question_L13/meta/$response_B32.meta";
+my $rel_bmeta  = "$rel_prefix/$question_L13/.meta";
 
 my $now    = time();
 my $is_new = not -d $branch_dir;
@@ -73,7 +78,7 @@ if ( -d $meta_dir ) {
                     if ( $divergence < $threshold ) {
                         ## near-duplicate — increment hit, skip store ##
                         $registry->{'stats'}{'dedup_skips'}++;
-                        _update_branch_meta( $branch_meta, $question, $now,
+                        _update_branch_meta( $rel_bmeta, $question, $now,
                             'hit' );
 
                         if ( exists $registry->{'branches'}{$question_L13} ) {
@@ -108,57 +113,41 @@ if ( -d $meta_dir ) {
     }
 }
 
-## create branch directory structure ##
-my $umask_prev = umask 0002;
-
-for my $dir ( $branch_dir, $result_dir, $meta_dir, $refs_dir ) {
-    if ( not -d $dir ) {
-        mkdir $dir, 0775 or do {
-            umask $umask_prev;
-            <[base.logs]>->(
-                0, ':. inference.store: mkdir failed [ %s ]', $dir
-            );
-            return { 'mode' => qw| false |, 'data' => "mkdir failed: $dir" };
-        };
-    }
-}
-
-## write result file ##
-if ( open my $fh, '>:encoding(UTF-8)', $result_file ) {
-    print {$fh} $response;
-    close $fh;
-    chmod 0664, $result_file;
-} else {
-    umask $umask_prev;
+## write result file via zenka_dir [ handles mkdir + permissions ] ##
+my $written
+    = <[file.zenka_dir.write]>->( $rel_result, \$response, qw| > |, 0664 );
+if ( not defined $written ) {
+    <[base.logs]>->(
+        0, ':. inference.store: write failed [ %s ]', $rel_result
+    );
     return {
         'mode' => qw| false |,
-        'data' => "cannot write result: $result_file"
+        'data' => "cannot write result: $rel_result"
     };
 }
 
 ## write response meta file ##
-if ( open my $fh, '>:encoding(UTF-8)', $meta_file ) {
-    print {$fh} "model=$model\n";
-    print {$fh} "temperature=$temp\n";
-    print {$fh} "finish_reason=$finish\n";
-    print {$fh} "timestamp=$now\n";
-    print {$fh} "response_L13=$response_L13\n";
-    print {$fh} "response_len=" . length($response) . "\n";
-    print {$fh} "tags=" . join( ',', $tags->@* ) . "\n" if $tags->@*;
-    close $fh;
-    chmod 0664, $meta_file;
-} else {
-    umask $umask_prev;
+my $meta_content
+    = "model=$model\n"
+    . "temperature=$temp\n"
+    . "finish_reason=$finish\n"
+    . "timestamp=$now\n"
+    . "response_L13=$response_L13\n"
+    . "response_len="
+    . length($response) . "\n";
+$meta_content .= "tags=" . join( ',', $tags->@* ) . "\n" if $tags->@*;
+
+my $meta_written
+    = <[file.zenka_dir.write]>->( $rel_meta, \$meta_content, qw| > |, 0664 );
+if ( not defined $meta_written ) {
     return {
         'mode' => qw| false |,
-        'data' => "cannot write meta: $meta_file"
+        'data' => "cannot write meta: $rel_meta"
     };
 }
 
 ## update branch .meta ##
-_update_branch_meta( $branch_meta, $question, $now, 'store' );
-
-umask $umask_prev;
+_update_branch_meta( $rel_bmeta, $question, $now, 'store' );
 
 ## update in-memory hot index ##
 if ( not exists $registry->{'branches'}{$question_L13} ) {
@@ -178,7 +167,9 @@ for my $ref_L13 ( $refs->@* ) {
     next unless length $ref_L13;
     my $link_path   = "$refs_dir/$ref_L13";
     my $link_target = "../../$ref_L13";
-    symlink $link_target, $link_path unless -e $link_path;
+    if ( -d $refs_dir ) {
+        symlink $link_target, $link_path unless -e $link_path;
+    }
 }
 
 ## register with cluster system if available ##
@@ -227,17 +218,17 @@ return {
     }
 };
 
-## update or create branch .meta file ##
+## update or create branch .meta file [ relative path for zenka_dir ] ##
 sub _update_branch_meta {
-    my ( $path, $question, $time, $action ) = @_;
+    my ( $rel_path, $question, $time, $action ) = @_;
 
+    ## read existing meta via zenka_dir.load ##
     my %meta;
-    if ( -f $path and open my $fh, '<:encoding(UTF-8)', $path ) {
-        while ( my $line = <$fh> ) {
-            chomp $line;
+    my $existing = <[file.zenka_dir.load]>->($rel_path);
+    if ( defined $existing ) {
+        for my $line ( split "\n", $existing->$* ) {
             $meta{$1} = $2 if $line =~ m{^([^=]+)=(.*)$};
         }
-        close $fh;
     }
 
     $meta{'question'}  //= $question;
@@ -249,19 +240,14 @@ sub _update_branch_meta {
         $meta{'hit_count'}++;
     }
 
-    if ( open my $fh, '>:encoding(UTF-8)', $path ) {
-        for my $key ( sort keys %meta ) {
-            print {$fh} "$key=$meta{$key}\n";
-        }
-        close $fh;
-        chmod 0664, $path;
-    }
+    my $content = join '', map {"$_=$meta{$_}\n"} sort keys %meta;
+    <[file.zenka_dir.write]>->( $rel_path, \$content, qw| > |, 0664 );
 
     return;
 }
 
-#,,..,,.,,,..,...,.,.,..,,,,.,,.,,,,.,.,.,.,.,..,,...,...,,,.,,.,,,,.,...,,,,,
-#JPCUJKVBEDA6UMRKZFJ5HPGFYVYYFWQW2QJPB2U6ROY7RZ2H3YUDVVHZYEFTENRVN4R3OO22ZTK2S
-#\\\|UC4YHKQOF4PD3RIVIFEJ7QPZD62LVTOD2EI4ZNQOGPZZFJQEUMA \ / AMOS7 \ YOURUM ::
-#\[7]76K66W7HM6EYZPWTOVAH2WC4SBS237IY3LGPPVKHKHCI6I7XWOBQ 7  DATA SIGNATURE ::
+#,,.,,,..,,,.,...,..,,,,.,...,,..,,..,.,.,,..,..,,...,.,.,...,...,,..,,..,...,
+#2E6V7FL7NSXO46WTRY7DUKEQGHA6NLD6CVUPU6GEUGH2GICDGFLQ666SJWZIFAXKWLQMFKIHDWUOE
+#\\\|YH4YD22MJDWHRKQKAQ4GMCOEVLWWUE7HAKYFQ2KJOQJSHYSD7AI \ / AMOS7 \ YOURUM ::
+#\[7]K4TD7E6ZWUHKLW3NUV4DQE4YYC4IKKOZFSZ3DLCE2Y2K2GQBKAAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
