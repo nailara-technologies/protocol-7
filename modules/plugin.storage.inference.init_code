@@ -3,23 +3,23 @@
 # name  = plugin.storage.inference.init_code
 # descr = initialize checksum-addressed inference cache plugin
 
-## create zenka cache directory while still root ##
+## create zenka results directory while still root ##
 <[base.path-set-up.check-zenka-paths]>->(
-    TRUE, undef, undef, undef, qw| inference-cache |
+    TRUE, undef, undef, undef, qw| results |
 );
 
-## resolve zenka var directory for cache root ##
+## resolve zenka var directory for results root ##
 my $zenka_dirs = <system.path.zenka-dirs>;
 my $var_base   = $zenka_dirs->{'var_P7'};
 my $zenka_name = <system.zenka.name>;
-my $root_path  = catfile( $var_base, $zenka_name, qw| inference-cache | );
+my $root_path  = catfile( $var_base, $zenka_name, qw| results | );
 
 ## inference cache registry ##
 $data{'storage'}{'mapping'}{'inference'} = {
     'enabled'    => 1,
-    'version'    => '0.2',
+    'version'    => '0.3',
     'root_path'  => $root_path,
-    'rel_prefix' => 'inference-cache',    ## for file.zenka_dir.* calls ##
+    'rel_prefix' => 'results',    ## for file.zenka_dir.* calls ##
 
     ## in-memory hot index: L13 => branch metadata ##
     'branches' => {},
@@ -54,13 +54,13 @@ if ( exists $data{'storage'}{'mapping'}{'p7ref'} ) {
 }
 
 <[base.logs]>->(
-    1, ':. inference cache plugin initialized v0.2 [ root=%s ]', $root_path
+    1, ':. inference cache plugin initialized v0.3 [ root=%s ]', $root_path
 );
 
 0;
 
-#,,..,..,,.,,,,,,,,..,,,.,,,.,,,,,..,,..,,,,.,..,,...,..,,...,...,.,.,.,,,..,,
-#VSIDPSO7DUTWCQEKDPMH36ABL4OB5HYMF5NKJJJVCN6UFRGTM255M25OTMDNSKPG7M3WNVILE3IUA
-#\\\|T2Y7JBAY3WIRGDTQJNRFUCMKSQXCM7HTMKD22IXXCUEIBHUR4BS \ / AMOS7 \ YOURUM ::
-#\[7]LEIBVJAJ5TXB56WDBEX7D3ZLHH5LOIM6UCT3BLYT4UNCQ2C5YKCI 7  DATA SIGNATURE ::
+#,,,,,,..,.,,,,..,,,.,,..,,..,,.,,.,,,,,,,,..,..,,...,...,.,,,,,.,...,...,,.,,
+#R4JKDOWO2IR7XUMG5Z5L44V7ZFWKKMPJWNVVEXLUL574ASH42MQB6JYRCWZMHE53ZIUQMGLD5A4GC
+#\\\|J7VTXQ54YEADS26GPUS55AW5T5ZSQG2VOJVBDYZ6FI3QQANIVNH \ / AMOS7 \ YOURUM ::
+#\[7]TEOAF267DPF5M4JXRLU5WPOVOFUNF4TVUS7NU7IJZXUGOA4TPUBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
