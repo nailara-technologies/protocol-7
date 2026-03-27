@@ -1,0 +1,59 @@
+## [:< ##
+# name  = plan-9.server
+# descr = 9P protocol server for exporting amos-term buffers
+
+use strict;
+use warnings;
+
+# Server state
+$data{'plan-9'}{'server'} = {
+    'buffers'  => {},
+    'clients'  => {},
+    'next_qid' => 1,
+    'port'     => undef,
+    'listener' => undef,
+};
+
+## Start server ##
+return sub {
+    my ($options) = @_;
+    $options //= {};
+
+    my $port = $options->{port} // <plan-9.config.port> // 15640;
+    my $host = $options->{host} // '127.0.0.1';
+
+    if ( defined $data{'plan-9'}{'server'}{'listener'} ) {
+        return {
+            'mode' => 'true',
+            'data' =>
+                "9P server already running on port $data{'plan-9'}{'server'}{'port'}"
+        };
+    }
+
+    $data{'plan-9'}{'server'}{'port'} = $port;
+
+    my $lsock = <[io.ip.tcp.input.open]>->( $host, $port );
+
+    if ( not defined $lsock ) {
+        return {
+            'mode' => 'false',
+            'data' => "Failed to start 9P server on $host:$port"
+        };
+    }
+
+    $data{'plan-9'}{'server'}{'listener'} = $lsock;
+    <[base.logs]>->("9P server listening on $host:$port");
+
+    return {
+        'mode' => 'true',
+        'data' => "9P server started on $host:$port"
+    };
+};
+
+#,,.,,.,,.,,.,,.,.,.,.,.,,.,.,.,,.,.,.,,.,,.,.,.,,.,.,.,,.,.,.,,.,.,.,,.,.,.,,
+
+#,,..,.,,,.,.,,.,,...,.,,,.,,,..,,,,.,,,,,,.,,..,,...,..,,,,,,...,,,.,,.,,.,.,
+#ZGRZVWG5HKFS6N472EDWH5XWPAAPNT4VEU62QZJPPLWWNFYT2LHZOME5LTCF3DMHVKLK2C2C2TUXY
+#\\\|LKPK5FPGQSRI4I65ZI556QM3GXCZNPTKXY6PVEDV4NYKPAYMIWL \ / AMOS7 \ YOURUM ::
+#\[7]ULU3B7RVIQLFHYBZFYWTPIIR7IY3POS3E77HTOK6J57P3ZLOFMAI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

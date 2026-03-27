@@ -1,0 +1,29 @@
+## [:< ##
+# name  = plan-9.server.client.accept
+# descr = Handle 9P client connection
+
+use strict;
+use warnings;
+
+return sub {
+    my ( $fd, $peer_addr ) = @_;
+
+    $data{'plan-9'}{'server'}{'clients'}{$fd} = {
+        'fids'   => {},
+        'msize'  => 8192,
+        'uname'  => undef,
+        'aname'  => undef,
+        'buffer' => '',
+        'peer'   => $peer_addr,
+    };
+
+    <[base.logs]>->("9P client connected from $peer_addr");
+};
+
+#,,.,,.,,.,,.,,.,.,.,.,.,,.,.,.,,.,.,.,,.,,.,.,.,,.,.,.,,.,.,.,,.,.,.,,.,.,.,,
+
+#,,.,,..,,,,.,,.,,,,.,,,,,.,,,.,.,.,.,,,,,,..,..,,...,...,..,,,..,...,.,.,,.,,
+#JPS35BCXQZBFDBCVH47BLZF6EGMACSZFDZCHVR56IL5JYCD5MEBMQEPYHIGI327NEBHNZGSROA3C6
+#\\\|DUHKKR7XHMZQ5KMFSUZGT6KMZKXNJTRVGVX6WEHFTRMN2MMVEJZ \ / AMOS7 \ YOURUM ::
+#\[7]HZLCVWR43USNQZ5F5XCDR23TCSRUHI6CCBXUAT7U3ODQ52T3IADI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

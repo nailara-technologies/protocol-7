@@ -1,0 +1,31 @@
+## [:< ##
+# name  = plan-9.server.export_buffer
+# descr = Export a buffer for 9P access
+
+use strict;
+use warnings;
+
+return sub {
+    my ( $window, $amos_id ) = @_;
+
+    $amos_id //= $window->{'amos_id'};
+
+    $data{'plan-9'}{'server'}{'buffers'}{$amos_id} = {
+        'window'      => $window,
+        'qid_path'    => $data{'plan-9'}{'server'}{'next_qid'}++,
+        'qid_version' => 0,
+        'exported_at' => time(),
+    };
+
+    <[base.logs]>->("Exported buffer $amos_id for 9P access");
+
+    return 1;
+};
+
+#,,.,,.,,.,,.,,.,,.,.,.,,.,.,.,,.,.,.,,.,,.,.,.,,.,,.,,.,.,.,,.,.,.,,.,.,.,.,
+
+#,,,.,..,,..,,..,,.,.,,..,.,,,,,.,,,,,,.,,.,.,..,,...,...,...,,..,,,,,.,,,,.,,
+#ZMZFPIBXUY6VR36G3GTO6X3OKONNGGTHIWIQWBSEZPGFFZ5LT4NPYVQYDKGHU5HZPSQQDAHUN2RFW
+#\\\|UHOUQJQBODKM5G27GLOY4K24DWWEI2J34QUQBFJCBRO2ATD5JJK \ / AMOS7 \ YOURUM ::
+#\[7]SEXRNGCB7QF3BW3UTUCAIAOXXRRGPSIRTTAEFTGM7YZXBSX27UBA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

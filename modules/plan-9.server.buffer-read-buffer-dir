@@ -1,0 +1,62 @@
+## [:< ##
+# name  = plan-9.server.buffer-read-buffer-dir
+# descr = Read buffer directory - list z-layers
+
+use strict;
+use warnings;
+
+return sub {
+    my ( $amos_id, $offset, $count ) = @_;
+
+    my $buf = $data{'plan-9'}{'server'}{'buffers'}{$amos_id};
+    return '' unless $buf;
+
+    my $window  = $buf->{window};
+    my $entries = '';
+
+    for my $z ( 0 .. 12 ) {
+        my $stat = {
+            type        => 0,
+            dev         => 0,
+            qid_type    => <plan-9.protocol.constants.QTFILE>,
+            qid_version => 0,
+            qid_path    => $buf->{qid_path} + $z + 1,
+            mode        => 0644,
+            atime       => time,
+            mtime       => time,
+            length      => $window->{buffer}{layer_size} // 8192,
+            name        => "z-$z",
+            uid         => 'root',
+            gid         => 'root',
+            muid        => 'root',
+        };
+        $entries .= <[plan-9.protocol.codec.encode-stat]>->($stat);
+    }
+
+    my $meta_stat = {
+        type        => 0,
+        dev         => 0,
+        qid_type    => <plan-9.protocol.constants.QTFILE>,
+        qid_version => 0,
+        qid_path    => $buf->{qid_path} + 100,
+        mode        => 0644,
+        atime       => time,
+        mtime       => time,
+        length      => 1024,
+        name        => 'metadata',
+        uid         => 'root',
+        gid         => 'root',
+        muid        => 'root',
+    };
+    $entries .= <[plan-9.protocol.codec.encode-stat]>->($meta_stat);
+
+    return substr( $entries, $offset, $count );
+};
+
+#,,.,,.,,.,,.,,.,.,.,.,.,,.,.,.,,.,.,.,,.,,.,.,.,,.,.,.,,.,.,.,,.,.,.,,.,.,.,,
+
+#,,..,..,,.,.,,,.,..,,..,,.,,,,,.,,,,,...,,.,,..,,...,...,..,,.,,,.,,,,..,.,,,
+#72WRUIJ7Y5GB46MRERBW5B5RQVGWFICXHZTTCBHRIAXYVW7G2RREMVRIYADBMZ6622S3BZMTDAUHQ
+#\\\|O3E3JF3H3ESLNCBHIKUAVBPCC533DYVJXEJQ7YLPEMDAMROPE5Y \ / AMOS7 \ YOURUM ::
+#\[7]BBEUEK4KKWPIW5HM7E2LAJHKAGYUGEV4QVX7AYKRKJCXAJR2XABI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

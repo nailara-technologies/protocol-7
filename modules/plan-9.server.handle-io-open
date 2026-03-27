@@ -1,0 +1,44 @@
+## [:< ##
+# name  = plan-9.server.handle-io-open
+# descr = Handle 9P Topen/Ropen
+
+use strict;
+use warnings;
+
+return sub {
+    my ( $client, $tag, $data ) = @_;
+
+    my $fid
+        = <[plan-9.protocol.codec.decode-uint32]>->( substr( $data, 0, 4 ) );
+    my $mode
+        = <[plan-9.protocol.codec.decode-uint8]>->( substr( $data, 4, 1 ) );
+
+    my $f = $client->{fids}{$fid};
+    return <[plan-9.protocol.error]>->( $tag, "invalid fid" ) unless $f;
+
+    $f->{omode} = $mode;
+    $f->{open}  = 1;
+
+    my $qid = <[plan-9.protocol.codec.encode-qid]>->(
+        $f->{qid}{type}, $f->{qid}{version},
+        $f->{qid}{path}
+    );
+
+    my $resp
+        = $qid
+        . <[plan-9.protocol.codec.encode-uint32]>
+        ->( $client->{msize} // 8192 );
+
+    return <[plan-9.protocol.codec.encode-message]>->(
+        <plan-9.protocol.constants.Ropen>,
+        $tag, $resp
+    );
+};
+
+#,,.,,.,,.,,.,,.,.,.,.,.,,.,.,.,,.,.,.,,.,,.,.,.,,.,.,.,,.,.,.,,.,.,.,,.,.,.,,
+
+#,,..,.,,,...,.,.,,..,,.,,,,.,,.,,,..,.,.,,.,,..,,...,...,,..,,,.,.,,,,,.,.,.,
+#UHNFXRAHO6HVHYXTQDMFJPC23LNJAU7LB5LPQYMJCDEVR4A4FPMX5JO56YE66WFUH6EOD4KUD3KZK
+#\\\|GXUQ4LVUCVAF4JEDAUSW3HSFCK3MEGHGK373BS5CUVMKHNEUUTV \ / AMOS7 \ YOURUM ::
+#\[7]BGZS5M6QYV5S4SLFA2KV7QI5HJUCDBBVQIDAJ5SWBUXDAB7FVKBY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

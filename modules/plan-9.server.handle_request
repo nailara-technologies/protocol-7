@@ -1,0 +1,49 @@
+## [:< ##
+# name  = plan-9.server.handle_request
+# descr = Dispatch 9P protocol requests
+
+use strict;
+use warnings;
+
+return sub {
+    my ( $client, $fd, $type, $tag, $data ) = @_;
+
+    my $Tversion = <plan-9.protocol.constants.Tversion>;
+    my $Tattach  = <plan-9.protocol.constants.Tattach>;
+    my $Twalk    = <plan-9.protocol.constants.Twalk>;
+    my $Topen    = <plan-9.protocol.constants.Topen>;
+    my $Tread    = <plan-9.protocol.constants.Tread>;
+    my $Twrite   = <plan-9.protocol.constants.Twrite>;
+    my $Tclunk   = <plan-9.protocol.constants.Tclunk>;
+    my $Tstat    = <plan-9.protocol.constants.Tstat>;
+
+    if ( $type == $Tversion ) {
+        return <[plan-9.server.handle_version]>->( $client, $tag, $data );
+    } elsif ( $type == $Tattach ) {
+        return <[plan-9.server.handle_attach]>->( $client, $tag, $data );
+    } elsif ( $type == $Twalk ) {
+        return <[plan-9.server.handle_walk]>->( $client, $tag, $data );
+    } elsif ( $type == $Topen ) {
+        return <[plan-9.server.handle-io-open]>->( $client, $tag, $data );
+    } elsif ( $type == $Tread ) {
+        return <[plan-9.server.handle-io-read]>->( $client, $tag, $data );
+    } elsif ( $type == $Twrite ) {
+        return <[plan-9.server.handle-io-write]>->( $client, $tag, $data );
+    } elsif ( $type == $Tclunk ) {
+        return <[plan-9.server.handle-io-clunk]>->( $client, $tag, $data );
+    } elsif ( $type == $Tstat ) {
+        return <[plan-9.server.handle-io-stat]>->( $client, $tag, $data );
+    } else {
+        return
+            <[plan-9.protocol.error]>
+            ->( $tag, "unknown message type: $type" );
+    }
+};
+
+#,,.,,.,,.,,.,,.,.,.,.,.,,.,.,.,,.,.,.,,.,,.,.,.,,.,.,.,,.,.,.,,.,.,.,,.,.,.,,
+
+#,,..,..,,,.,,...,,.,,,,.,,,.,,.,,..,,,,.,,,.,..,,...,...,.,.,.,.,,.,,,,.,.,,,
+#PVOC36MY46MOYKLOSJO5RBSN3PH4UYQOH7KLU5YABAZKRHZ4AFK4QH7OZADEMURHMU6DMBLYDZIT2
+#\\\|TGZND7BJ7T33WX53EGTHPNZ6BATAS67BQJ5MCJABL525VZOMFQD \ / AMOS7 \ YOURUM ::
+#\[7]7ZANBVZIH73SZ3OQTTKAAFOFI7JO4WAXG7GWCQC57ZYAEWRJU6DI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

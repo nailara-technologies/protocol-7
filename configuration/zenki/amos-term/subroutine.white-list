@@ -26,6 +26,8 @@ base.set_key
 base.s_write
 base.max-len
 base.del_key
+plan-9.server
+plan-9.config
 net.init_code
 net.calc_port
 base.timezone
@@ -147,6 +149,7 @@ base.clear_p7_mods
 base.clean_unicode
 base.clean_hashref
 plugin.auth.twofish
+io.ip.tcp.init_code
 devmod.console-dump
 data.mount.shm.open
 data.hooks.register
@@ -173,6 +176,7 @@ base.diff.hash_keys
 base.calc_unix_path
 amos-term.init_code
 amos-term.fuse.read
+io.ip.tcp.input.open
 data.mount.shm.stats
 data.mount.fuse.read
 data.mount.fuse.open
@@ -202,6 +206,8 @@ base.cmd.show-access
 base.cmd.amos-chksum
 base.buffer.add_line
 auth.zenka.init_code
+plan-9.protocol.error
+plan-9.protocol.codec
 data.mount.shm.unlink
 data.mount.shm.remove
 data.mount.shm.create
@@ -254,9 +260,11 @@ auth.unix.authenticate
 amos-term.window-close
 amos-term.fuse.readdir
 amos-term.fuse.getattr
+amos-term.cmd.mount-9p
 amos-term.buffer-write
 amos-term.buffer-clear
 protocol.sftp.init_code
+plan-9.server.init_code
 io.unix.socket.end_code
 data.mount.fuse.release
 data.mount.fuse.readdir
@@ -312,6 +320,10 @@ amos-term.fuse.init_code
 amos-term.cursor-set_pos
 amos-term.cmd.mount_fuse
 amos-term.buffer-shift_z
+plan-9.server.handle_walk
+plan-9.server.client.data
+plan-9.server.buffer-stat
+plan-9.protocol.constants
 io.unix.socket.input.open
 data.mount.shm.test.basic
 data.mount.fuse.init_code
@@ -335,6 +347,8 @@ amos-term.fuse.get_window
 amos-term.cmd.window-open
 amos-term.cmd.umount_fuse
 protocol.sftp.read_ssh_env
+plan-9.server.client.close
+plan-9.server.buffer-write
 io.unix.socket.output.open
 io.unix.socket.input.close
 data.mount.shm.lock.unlock
@@ -359,6 +373,9 @@ amos-term.plugin-init_code
 amos-term.cmd.window-close
 amos-term.cmd.list-windows
 amos-term.buffer-get_layer
+plan-9.server.handle_attach
+plan-9.server.export_buffer
+plan-9.server.client.accept
 net.read_linewise_estimated
 io.unix.socket.output.close
 data.mount.shm.header.write
@@ -382,6 +399,11 @@ amos-term.cmd.window-create
 amos-term.cmd.attach_buffer
 protocol.protocol-7.pre_init
 protocol.amos_term.init_code
+plan-9.server.handle_version
+plan-9.server.handle_request
+plan-9.server.handle-io-stat
+plan-9.server.handle-io-read
+plan-9.server.handle-io-open
 io.unix.socket.input.connect
 graphics.matrix.visual.color
 base.validate.composite_name
@@ -396,6 +418,8 @@ amos-term.term-params-update
 amos-term.render.draw_buffer
 amos-term.cmd.window-destroy
 protocol.protocol-7.init_code
+plan-9.server.handle-io-write
+plan-9.server.handle-io-clunk
 graphics.matrix.visual.sphere
 data.mount.shm.permission.add
 data.get.resolve_interference
@@ -428,6 +452,7 @@ base.number-cache.true_upwards
 base.log.send-buffer.add-queue
 base.cache.refaddr-prefix.init
 amos-term.cmd.list_attachments
+plan-9.server.buffer-read-layer
 data.mount.shm.create.mmap_file
 data.get.validate_path_security
 data.get.resolve_plugin_handler
@@ -439,6 +464,8 @@ base.buffer.local_logfile_write
 amos-term.handler.nshell-output
 amos-term.decoder.init_patterns
 amos-term.buffer-attach_generic
+plan-9.protocol.codec.encode-qid
+plan-9.protocol.codec.decode-qid
 data.mount.shm.permission.verify
 data.get.find_interference_match
 base.perlmod.install_cpan_module
@@ -450,6 +477,7 @@ base.file.get_swapped_subs_pairs
 base.config.load_proto_7_version
 protocol.amos-chksum.ext-cmd.exit
 plugin.auth.zenka.no-keys-defined
+plan-9.protocol.codec.encode-stat
 graphics.matrix.visual.cubic-sort
 data.topology.interference.map.PI
 data.mount.shm.open.mmap_shm_read
@@ -467,6 +495,10 @@ protocol.amos-chksum.ext-cmd.close
 protocol.amos-chksum.ext-cmd.clear
 protocol.amos-chksum.ext-cmd.bytes
 plugin.auth.auth-keypair.init_code
+plan-9.server.buffer-read-root-dir
+plan-9.server.buffer-read-metadata
+plan-9.protocol.codec.encode-uint8
+plan-9.protocol.codec.decode-uint8
 data.mount.shm.open.parse_shm_path
 data.mount.shm.open.mmap_file_read
 base.protocol-7.command.send.local
@@ -480,6 +512,14 @@ amos-term.plugin-decoder.elf_match
 protocol.sftp.handler.session_close
 protocol.protocol-7.encryption.init
 protocol.amos-chksum.ext-cmd.select
+plan-9.protocol.codec.encode-uint64
+plan-9.protocol.codec.encode-uint32
+plan-9.protocol.codec.encode-uint16
+plan-9.protocol.codec.encode-string
+plan-9.protocol.codec.decode-uint64
+plan-9.protocol.codec.decode-uint32
+plan-9.protocol.codec.decode-uint16
+plan-9.protocol.codec.decode-string
 graphics.matrix.visual.sphere-stats
 graphics.matrix.visual.cubic-layers
 graphics.matrix.visual.classify-all
@@ -492,6 +532,8 @@ base.event.callback.io-idle-restart
 base.callback.reset_strm_size_timer
 protocol.amos-chksum.ext-cmd.version
 protocol.amos-chksum.command-handler
+plan-9.server.buffer-read-buffer-dir
+plan-9.protocol.codec.encode-message
 graphics.matrix.visual.group-spheres
 graphics.matrix.visual.find-clusters
 graphics.matrix.visual.extract-color
@@ -570,8 +612,8 @@ data.topology.interference.map.generate_cubic_neighbors
 data.topology.interference.map.calculate_resonance_field
 data.topology.interference.map.calculate_constructive_zone
 
-#,,,.,,..,...,,,,,,,,,..,,,,,,,.,,..,,,.,,.,,,..,,...,...,.,.,,.,,...,.,.,,..,
-#PPLKTCTANCCERPA73MX5WKZAH5H7MCUVJFPRDM5V5UAABGTPHQ6WCMFXUEBQ6DO32EPYY2QEXHUBQ
-#\\\|2Y4I2ZTFKQV7ZSBMRTZYZWFTMLIFJN6ZKMNGMP5C5BAF2KJSL43 \ / AMOS7 \ YOURUM ::
-#\[7]R545WBF4LQTTWBR7NAWMQG2W46DWELLTV4ASSKCYWDVATMXY26DI 7  DATA SIGNATURE ::
+#,,,.,,.,,.,,,.,.,,,.,...,,,,,.,.,..,,..,,.,.,..,,...,..,,.,,,,..,,,,,.,,,...,
+#CBRGQOPNV2UZQ5GSSYVWRWTD4SQRCCXQFTYCGG62DVSXK3MGGZWUQFIAIB7M4NYUZHYXAORKAC6DQ
+#\\\|6DLW3B7OXQVLLOK6FZCI5VRFB44QRKEUJ5BK2JLPF254HHJNTC2 \ / AMOS7 \ YOURUM ::
+#\[7]S6LBTJYEK6UGFTVL4VJJCXGRD3AGVMDUZX46XFT5JMZ45HNWTGDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

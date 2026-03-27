@@ -1,0 +1,177 @@
+## [:< ##
+# name  = plan-9.server.init_code
+# descr = Initialize 9P server for amos-term buffer export
+
+use IO::Socket::INET;
+use IO::Select;
+
+# 9P server state
+$data{'plan-9'}{'server'}{'port'}    //= 5640;     # Default 9P port
+$data{'plan-9'}{'server'}{'buffers'} //= {};       # Exported buffers
+$data{'plan-9'}{'server'}{'fids'}    //= {};       # Fid to buffer mapping
+$data{'plan-9'}{'server'}{'running'} //= 0;        # Server state
+$data{'plan-9'}{'server'}{'socket'}  //= undef;    # Server socket
+
+# Export a buffer via 9P
+sub plan_9_export_buffer {
+    my ( $amos_id, $window ) = @_;
+
+    $data{'plan-9'}{'server'}{'buffers'}{$amos_id} = {
+        window      => $window,
+        qid_path    => int( rand(0xFFFFFFFFFFFFFFFF) ),    # Unique Qid path
+        qid_version => 0,
+        attached    => {},    # Fids attached to this buffer
+    };
+
+    <[base.logs]>->( 2, "[9P] Buffer %s exported", $amos_id );
+    return 1;
+}
+
+# Unexport a buffer
+sub plan_9_unexport_buffer {
+    my ($amos_id) = @_;
+    delete $data{'plan-9'}{'server'}{'buffers'}{$amos_id};
+    <[base.logs]>->( 2, "[9P] Buffer %s unexported", $amos_id );
+    return 1;
+}
+
+# Start 9P server
+sub plan_9_server_start {
+    my ($port) = @_;
+    $port //= $data{'plan-9'}{'server'}{'port'};
+
+    return 1 if $data{'plan-9'}{'server'}{'running'};
+
+    my $server = IO::Socket::INET->new(
+        LocalPort => $port,
+        Listen    => 5,
+        Reuse     => 1,
+        Proto     => 'tcp',
+        )
+        or do {
+        <[base.s_warn]>->("[9P] Cannot create server: $!");
+        return 0;
+        };
+
+    $data{'plan-9'}{'server'}{'socket'}  = $server;
+    $data{'plan-9'}{'server'}{'port'}    = $port;
+    $data{'plan-9'}{'server'}{'running'} = 1;
+    $data{'plan-9'}{'server'}{'select'}  = IO::Select->new($server);
+
+    # Fork server process
+    my $pid = fork();
+    if ( not defined $pid ) {
+        <[base.s_warn]>->("[9P] Fork failed: $!");
+        return 0;
+    }
+
+    if ( $pid == 0 ) {
+
+        # Child: run 9P server
+        plan_9_server_loop();
+        exit(0);
+    }
+
+    # Parent: record PID
+    $data{'plan-9'}{'server'}{'pid'} = $pid;
+    <[base.logs]>->(
+        2,     "[9P] Server started on port %d (pid %d)",
+        $port, $pid
+    );
+
+    return $pid;
+}
+
+# Stop 9P server
+sub plan_9_server_stop {
+    my $pid = $data{'plan-9'}{'server'}{'pid'};
+    if ($pid) {
+        kill 'TERM', $pid;
+        waitpid( $pid, 0 );
+    }
+
+    $data{'plan-9'}{'server'}{'running'} = 0;
+    $data{'plan-9'}{'server'}{'socket'}  = undef;
+    $data{'plan-9'}{'server'}{'pid'}     = undef;
+
+    <[base.logs]>->( 2, "[9P] Server stopped" );
+    return 1;
+}
+
+# Server main loop
+sub plan_9_server_loop {
+    my $server = $data{'plan-9'}{'server'}{'socket'};
+    my $select = $data{'plan-9'}{'server'}{'select'};
+
+    my %clients;    # Client sockets
+    my %buffers;    # Client read buffers
+
+    while ( $data{'plan-9'}{'server'}{'running'} ) {
+        my @ready = $select->can_read(1);    # 1 second timeout
+
+        foreach my $sock (@ready) {
+            if ( $sock == $server ) {
+
+                # New connection
+                my $client = $server->accept();
+                $select->add($client);
+                $clients{$client} = {
+                    socket => $client,
+                    buffer => '',
+                    fids   => {},
+                    uname  => '',
+                    aname  => '',
+                };
+                <[base.logs]>->(
+                    3, "[9P] Client connected from %s",
+                    $client->peerhost()
+                );
+            } else {
+
+                # Client data
+                my $client_data = $clients{$sock};
+                my $bytes       = sysread(
+                    $sock, $client_data->{buffer},
+                    8192,  length( $client_data->{buffer} )
+                );
+
+                if ( not defined $bytes or $bytes == 0 ) {
+
+                    # Client disconnected
+                    $select->remove($sock);
+                    delete $clients{$sock};
+                    close($sock);
+                    <[base.logs]>->( 3, "[9P] Client disconnected" );
+                    next;
+                }
+
+                # Process messages
+                while (
+                    my ( $type, $tag, $data, $rest )
+                    = <[plan-9.protocol.codec.decode-message]>->(
+                        $client_data->{buffer}
+                    )
+                ) {
+                    $client_data->{buffer} = $rest;
+
+                    my $response = <[plan-9.server.handle_request]>->(
+                        $client_data,
+                        $type, $tag, $data
+                    );
+
+                    syswrite( $sock, $response ) if $response;
+                }
+            }
+        }
+    }
+}
+
+return { 'mode' => 'true', 'data' => '9P server initialized' };
+
+#,,.,,.,,.,,.,,.,.,.,.,.,,.,.,.,,.,.,.,,.,,.,.,.,,.,.,.,,.,,.,,.,.,.,,.,.,.,,
+
+#,,..,,..,,..,...,,..,.,,,,,,,.,,,.,.,,,,,...,..,,...,...,...,,..,..,,.,,,,,.,
+#JB2VMGZWMFXV35ZNGTN22746DTDOTBMCPGQUBYBHFX46FBQYZVG6YM47OUNKQVJ2EBIPOI5R3PJQW
+#\\\|VVH6MZEHJYKWOMZ44IVBICJB5UGHOMTEL4SLL7ALOOJ52BMQ5CI \ / AMOS7 \ YOURUM ::
+#\[7]TBN2N7JYKDQMWEUCPOAZWSSZUYQ6RBAYPOJXS5WKUYDDX2A7GWAI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

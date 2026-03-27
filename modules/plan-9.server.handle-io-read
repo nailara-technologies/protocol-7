@@ -1,0 +1,57 @@
+## [:< ##
+# name  = plan-9.server.handle-io-read
+# descr = Handle 9P Tread/Rread
+
+use strict;
+use warnings;
+
+return sub {
+    my ( $client, $tag, $data ) = @_;
+
+    my $fid
+        = <[plan-9.protocol.codec.decode-uint32]>->( substr( $data, 0, 4 ) );
+    my $offset
+        = <[plan-9.protocol.codec.decode-uint64]>->( substr( $data, 4, 8 ) );
+    my $count
+        = <[plan-9.protocol.codec.decode-uint32]>->( substr( $data, 12, 4 ) );
+
+    my $f = $client->{fids}{$fid};
+    return <[plan-9.protocol.error]>->( $tag, "invalid fid" ) unless $f;
+    return <[plan-9.protocol.error]>->( $tag, "fid not open" )
+        unless $f->{open};
+
+    my $content = '';
+
+    if ( $f->{type} eq 'root' ) {
+        $content
+            = <[plan-9.server.buffer-read-root-dir]>->( $offset, $count );
+    } elsif ( $f->{type} eq 'buffer' ) {
+        $content = <[plan-9.server.buffer-read-buffer-dir]>->(
+            $f->{name}, $offset, $count
+        );
+    } elsif ( $f->{type} eq 'layer' ) {
+        $content = <[plan-9.server.buffer-read-layer]>->(
+            $f->{buffer}, $f->{z}, $offset, $count
+        );
+    } elsif ( $f->{type} eq 'metadata' ) {
+        $content = <[plan-9.server.buffer-read-metadata]>->(
+            $f->{buffer}, $offset, $count
+        );
+    }
+
+    my $resp = <[plan-9.protocol.codec.encode-uint32]>->( length($content) )
+        . $content;
+
+    return <[plan-9.protocol.codec.encode-message]>->(
+        <plan-9.protocol.constants.Rread>,
+        $tag, $resp
+    );
+};
+
+#,,.,,.,,.,,.,,.,.,.,.,.,,.,.,.,,.,.,.,,.,,.,.,.,,.,.,.,,.,.,.,,.,.,.,,.,.,.,,
+
+#,,..,.,.,,,,,...,,..,,,,,,,,,...,,..,,,,,,..,..,,...,...,...,,,.,,,,,.,,,.,,,
+#VOCOYO6TC7Z5NQZL2ZFYPVGNQYX75KYLVLJYFHP3UNT7HYPTR4MS2N3FRUKBGBOVTB2CA5JAACMRS
+#\\\|3PJB37ZRFJLOSDITPU4ZHV2ZVXT4AEB4EJWTOMKJXYKDRVSEA2J \ / AMOS7 \ YOURUM ::
+#\[7]54YYK3BJKOQTHPESWMN5CZBA4JLLKXVZKVOC352USWZ4VIT5MYCY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
