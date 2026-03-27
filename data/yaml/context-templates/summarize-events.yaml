@@ -1,0 +1,30 @@
+---
+name: summarize-events
+descr: compress awareness tree events into higher-level summaries
+budget: 1500
+sections:
+  - provider: context.tree.summary.get-branch
+    budget_pct: 70
+    priority: 1
+    params:
+      branch: "{{source_branch}}"
+      format: events
+      time_range: ["{{time_start}}", "{{time_end}}"]
+      max_events: 50
+  - provider: context.style.guide
+    budget_pct: 10
+    priority: 2
+  - provider: context.tree.summary.get-branch
+    budget_pct: 20
+    priority: 3
+    params:
+      branch: "{{source_branch}}"
+      format: summary
+      time_range: ["-24 hours", "{{time_start}}"]
+    optional: true
+
+#,,..,,,,,,..,...,.,.,.,.,,..,,,,,,,.,.,,,.,.,..,,...,...,...,.,.,...,.,.,.,,,
+#DLLRT7LO2ZOELFS4ZTMQ7L5CAZNVBANKUSV3HAVBA3OLLMTD5VEZOGZUJ2EPMAJPHAOGLZ4HRAF64
+#\\\|JHJDVL2DAMJ6WE4P6LIC23ZSBLCIRAGSUQUGNG34WAFDZRH2PSN \ / AMOS7 \ YOURUM ::
+#\[7]ZHUQWMJQMFU542YXXUG7GFOYIYEGJFQLAZ3PXLQIOB326OY6KAAQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
