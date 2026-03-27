@@ -1,0 +1,267 @@
+## [:< ##
+
+# name  = plugin.storage.inference.store
+# descr = store inference result to checksum-addressed disk cache
+
+my $params = shift // {};
+
+my $question = $params->{'question'}      // '';
+my $response = $params->{'response'}      // '';
+my $model    = $params->{'model'}         // qw| unknown |;
+my $temp     = $params->{'temperature'}   // 0.7;
+my $finish   = $params->{'finish_reason'} // qw| stop |;
+my $tags     = $params->{'tags'}          // [];
+my $refs     = $params->{'refs'}          // [];
+
+return { 'mode' => qw| false |, 'data' => 'question required' }
+    unless length $question;
+return { 'mode' => qw| false |, 'data' => 'response required' }
+    unless length $response;
+
+my $registry = $data{'storage'}{'mapping'}{'inference'};
+my $root     = $registry->{'root_path'};
+
+## compute checksums ##
+my $question_L13 = <[chk-sum.bmw.L13-str]>->($question);
+my $response_B32 = <[chk-sum.bmw.224.B32]>->($response);
+my $response_L13 = <[chk-sum.bmw.L13-str]>->($response);
+
+return { 'mode' => qw| false |, 'data' => 'checksum computation failed' }
+    unless defined $question_L13
+    and defined $response_B32
+    and defined $response_L13;
+
+my $branch_dir  = "$root/$question_L13";
+my $result_dir  = "$branch_dir/results";
+my $meta_dir    = "$branch_dir/meta";
+my $refs_dir    = "$branch_dir/refs";
+my $result_file = "$result_dir/$response_B32";
+my $meta_file   = "$meta_dir/$response_B32.meta";
+my $branch_meta = "$branch_dir/.meta";
+
+my $now    = time();
+my $is_new = not -d $branch_dir;
+
+## check for near-duplicate response at this branch [ entropy check ] ##
+if ( -d $meta_dir ) {
+    my $threshold = $registry->{'config'}{'entropy_threshold'};
+    if ( opendir my $dh, $meta_dir ) {
+        while ( my $entry = readdir $dh ) {
+            next unless $entry =~ m{\.meta$};
+            my $existing_meta_path = "$meta_dir/$entry";
+            if ( open my $fh, '<:encoding(UTF-8)', $existing_meta_path ) {
+                my %emeta;
+                while ( my $line = <$fh> ) {
+                    chomp $line;
+                    if ( $line =~ m{^([^=]+)=(.*)$} ) {
+                        $emeta{$1} = $2;
+                    }
+                }
+                close $fh;
+
+                ## compare response L13 hamming distance ##
+                my $existing_L13 = $emeta{'response_L13'} // '';
+                if ( length $existing_L13 == length $response_L13 ) {
+                    my $distance = 0;
+                    for my $i ( 0 .. length($response_L13) - 1 ) {
+                        $distance++
+                            if substr( $response_L13, $i, 1 ) ne
+                            substr( $existing_L13, $i, 1 );
+                    }
+                    my $divergence = $distance / length($response_L13);
+
+                    if ( $divergence < $threshold ) {
+                        ## near-duplicate — increment hit, skip store ##
+                        $registry->{'stats'}{'dedup_skips'}++;
+                        _update_branch_meta( $branch_meta, $question, $now,
+                            'hit' );
+
+                        if ( exists $registry->{'branches'}{$question_L13} ) {
+                            $registry->{'branches'}{$question_L13}
+                                {'hit_count'}++;
+                            $registry->{'branches'}{$question_L13}{'last_hit'}
+                                = $now;
+                        }
+
+                        <[base.logs]>->(
+                            2,
+                            ':. inference.store: dedup skip at %s [ divergence=%.3f < %.3f ]',
+                            $question_L13,
+                            $divergence,
+                            $threshold
+                        );
+
+                        return {
+                            'mode' => qw| true |,
+                            'data' => {
+                                'branch' => $question_L13,
+                                'result' => $response_B32,
+                                'cached' => TRUE,
+                                'dedup'  => TRUE,
+                            }
+                        };
+                    }
+                }
+            }
+        }
+        closedir $dh;
+    }
+}
+
+## create branch directory structure ##
+my $umask_prev = umask 0002;
+
+for my $dir ( $branch_dir, $result_dir, $meta_dir, $refs_dir ) {
+    if ( not -d $dir ) {
+        mkdir $dir, 0775 or do {
+            umask $umask_prev;
+            <[base.logs]>->(
+                0, ':. inference.store: mkdir failed [ %s ]', $dir
+            );
+            return { 'mode' => qw| false |, 'data' => "mkdir failed: $dir" };
+        };
+    }
+}
+
+## write result file ##
+if ( open my $fh, '>:encoding(UTF-8)', $result_file ) {
+    print {$fh} $response;
+    close $fh;
+    chmod 0664, $result_file;
+} else {
+    umask $umask_prev;
+    return {
+        'mode' => qw| false |,
+        'data' => "cannot write result: $result_file"
+    };
+}
+
+## write response meta file ##
+if ( open my $fh, '>:encoding(UTF-8)', $meta_file ) {
+    print {$fh} "model=$model\n";
+    print {$fh} "temperature=$temp\n";
+    print {$fh} "finish_reason=$finish\n";
+    print {$fh} "timestamp=$now\n";
+    print {$fh} "response_L13=$response_L13\n";
+    print {$fh} "response_len=" . length($response) . "\n";
+    print {$fh} "tags=" . join( ',', $tags->@* ) . "\n" if $tags->@*;
+    close $fh;
+    chmod 0664, $meta_file;
+} else {
+    umask $umask_prev;
+    return {
+        'mode' => qw| false |,
+        'data' => "cannot write meta: $meta_file"
+    };
+}
+
+## update branch .meta ##
+_update_branch_meta( $branch_meta, $question, $now, 'store' );
+
+umask $umask_prev;
+
+## update in-memory hot index ##
+if ( not exists $registry->{'branches'}{$question_L13} ) {
+    $registry->{'branches'}{$question_L13} = {
+        'hit_count'    => 0,
+        'created'      => $now,
+        'last_hit'     => $now,
+        'result_count' => 0,
+    };
+    $registry->{'stats'}{'branches'}++;
+}
+$registry->{'branches'}{$question_L13}{'result_count'}++;
+$registry->{'branches'}{$question_L13}{'last_hit'} = $now;
+
+## create symlink refs to related branches ##
+for my $ref_L13 ( $refs->@* ) {
+    next unless length $ref_L13;
+    my $link_path   = "$refs_dir/$ref_L13";
+    my $link_target = "../../$ref_L13";
+    symlink $link_target, $link_path unless -e $link_path;
+}
+
+## register with cluster system if available ##
+if ( exists $code{'plugin.storage.checksum.cluster.add'} ) {
+    $code{'plugin.storage.checksum.cluster.add'}->(
+        {   'checksum' => $question_L13,
+            'members'  => [$response_B32],
+            'type'     => qw| inference |,
+        }
+    );
+}
+
+## emit awareness event if available ##
+if ( exists $code{'context.tree.summary.add-event'} ) {
+    $code{'context.tree.summary.add-event'}->(
+        {   'type'    => 'inference-cached',
+            'agent'   => qw| coding |,
+            'branch'  => 'storage.inference',
+            'payload' => {
+                'question_L13' => $question_L13,
+                'response_B32' => $response_B32,
+                'model'        => $model,
+                'is_new'       => $is_new ? TRUE : FALSE,
+            },
+            'references' =>
+                { 'checksums' => [ $question_L13, $response_B32 ], },
+        }
+    );
+}
+
+$registry->{'stats'}{'stores'}++;
+$registry->{'stats'}{'total_results'}++;
+
+<[base.logs]>->(
+    1,             ':. inference.store: %s → %s [ model=%s new_branch=%s ]',
+    $question_L13, substr( $response_B32, 0, 12 ),
+    $model,        $is_new ? qw| yes | : qw| no |
+);
+
+return {
+    'mode' => qw| true |,
+    'data' => {
+        'branch' => $question_L13,
+        'result' => $response_B32,
+        'cached' => FALSE,
+    }
+};
+
+## update or create branch .meta file ##
+sub _update_branch_meta {
+    my ( $path, $question, $time, $action ) = @_;
+
+    my %meta;
+    if ( -f $path and open my $fh, '<:encoding(UTF-8)', $path ) {
+        while ( my $line = <$fh> ) {
+            chomp $line;
+            $meta{$1} = $2 if $line =~ m{^([^=]+)=(.*)$};
+        }
+        close $fh;
+    }
+
+    $meta{'question'}  //= $question;
+    $meta{'created'}   //= $time;
+    $meta{'hit_count'} //= 0;
+    $meta{'last_access'} = $time;
+
+    if ( $action eq qw| hit | ) {
+        $meta{'hit_count'}++;
+    }
+
+    if ( open my $fh, '>:encoding(UTF-8)', $path ) {
+        for my $key ( sort keys %meta ) {
+            print {$fh} "$key=$meta{$key}\n";
+        }
+        close $fh;
+        chmod 0664, $path;
+    }
+
+    return;
+}
+
+#,,..,,.,,,..,...,.,.,..,,,,.,,.,,,,.,.,.,.,.,..,,...,...,,,.,,.,,,,.,...,,,,,
+#JPCUJKVBEDA6UMRKZFJ5HPGFYVYYFWQW2QJPB2U6ROY7RZ2H3YUDVVHZYEFTENRVN4R3OO22ZTK2S
+#\\\|UC4YHKQOF4PD3RIVIFEJ7QPZD62LVTOD2EI4ZNQOGPZZFJQEUMA \ / AMOS7 \ YOURUM ::
+#\[7]76K66W7HM6EYZPWTOVAH2WC4SBS237IY3LGPPVKHKHCI6I7XWOBQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,0 +1,185 @@
+## [:< ##
+
+# name  = plugin.storage.inference.lookup
+# descr = find cached inference response by question checksum
+
+my $params = shift // {};
+
+my $question    = $params->{'question'}    // '';
+my $checksum    = $params->{'checksum'}    // '';
+my $max_results = $params->{'max_results'} // 5;
+my $prefer      = $params->{'prefer'}      // qw| recent |;
+
+## resolve L13 from question text or use provided checksum ##
+my $L13;
+if ( length $checksum ) {
+    $L13 = $checksum;
+} elsif ( length $question ) {
+    $L13 = <[chk-sum.bmw.L13-str]>->($question);
+} else {
+    return {
+        'mode' => qw| false |,
+        'data' => 'question or checksum required'
+    };
+}
+
+return { 'mode' => qw| false |, 'data' => 'checksum computation failed' }
+    unless defined $L13;
+
+my $registry   = $data{'storage'}{'mapping'}{'inference'};
+my $root       = $registry->{'root_path'};
+my $branch_dir = "$root/$L13";
+
+## check disk ##
+unless ( -d $branch_dir ) {
+    $registry->{'stats'}{'misses'}++;
+
+    <[base.logs]>->( 3, ':. inference.lookup: miss [ %s ]', $L13 );
+
+    return { 'mode' => qw| false |, 'data' => 'cache miss' };
+}
+
+my $result_dir  = "$branch_dir/results";
+my $meta_dir    = "$branch_dir/meta";
+my $branch_meta = "$branch_dir/.meta";
+
+## read branch metadata and increment hit count ##
+my %branch_info;
+if ( -f $branch_meta and open my $fh, '<:encoding(UTF-8)', $branch_meta ) {
+    while ( my $line = <$fh> ) {
+        chomp $line;
+        $branch_info{$1} = $2 if $line =~ m{^([^=]+)=(.*)$};
+    }
+    close $fh;
+}
+
+$branch_info{'hit_count'} //= 0;
+$branch_info{'hit_count'}++;
+$branch_info{'last_access'} = time();
+
+## write updated hit count ##
+if ( open my $fh, '>:encoding(UTF-8)', $branch_meta ) {
+    for my $key ( sort keys %branch_info ) {
+        print {$fh} "$key=$branch_info{$key}\n";
+    }
+    close $fh;
+}
+
+## scan results directory ##
+my @results;
+
+if ( -d $result_dir and opendir my $dh, $result_dir ) {
+    while ( my $entry = readdir $dh ) {
+        next if $entry =~ m{^\.};
+        my $result_path = "$result_dir/$entry";
+        next unless -f $result_path;
+
+        my $response_B32 = $entry;
+
+        ## read response content ##
+        my $content = '';
+        if ( open my $rfh, '<:encoding(UTF-8)', $result_path ) {
+            local $/;
+            $content = <$rfh>;
+            close $rfh;
+        }
+
+        ## read response meta ##
+        my %rmeta;
+        my $rmeta_path = "$meta_dir/$response_B32.meta";
+        if ( -f $rmeta_path and open my $mfh,
+            '<:encoding(UTF-8)', $rmeta_path ) {
+            while ( my $line = <$mfh> ) {
+                chomp $line;
+                $rmeta{$1} = $2 if $line =~ m{^([^=]+)=(.*)$};
+            }
+            close $mfh;
+        }
+
+        push @results,
+            {
+            'checksum'      => $response_B32,
+            'content'       => $content,
+            'model'         => $rmeta{'model'}         // qw| unknown |,
+            'timestamp'     => $rmeta{'timestamp'}     // 0,
+            'response_L13'  => $rmeta{'response_L13'}  // '',
+            'temperature'   => $rmeta{'temperature'}   // 0.7,
+            'finish_reason' => $rmeta{'finish_reason'} // qw| stop |,
+            'response_len'  => $rmeta{'response_len'}  // length($content),
+            };
+    }
+    closedir $dh;
+}
+
+## sort by preference ##
+if ( $prefer eq qw| recent | ) {
+    @results
+        = sort { $b->{'timestamp'} <=> $a->{'timestamp'} } @results;
+} elsif ( $prefer eq qw| longest | ) {
+    @results
+        = sort { $b->{'response_len'} <=> $a->{'response_len'} } @results;
+} elsif ( $prefer =~ m{^model:(.+)$} ) {
+    ## prefer specific model, then recent ##
+    my $target_model = $1;
+    @results = sort {
+        ( ( $b->{'model'} eq $target_model )
+            <=> ( $a->{'model'} eq $target_model ) )
+            || ( $b->{'timestamp'} <=> $a->{'timestamp'} )
+    } @results;
+}
+
+## limit results ##
+if ( @results > $max_results ) {
+    @results = @results[ 0 .. $max_results - 1 ];
+}
+
+## update in-memory hot index ##
+$registry->{'branches'}{$L13} //= {
+    'hit_count'    => 0,
+    'created'      => $branch_info{'created'} // time(),
+    'last_hit'     => time(),
+    'result_count' => scalar @results,
+};
+$registry->{'branches'}{$L13}{'hit_count'}++;
+$registry->{'branches'}{$L13}{'last_hit'} = time();
+
+$registry->{'stats'}{'hits'}++;
+
+<[base.logs]>->(
+    2, ':. inference.lookup: hit [ %s ] %d results, %d total hits',
+    $L13,
+    scalar @results,
+    $branch_info{'hit_count'}
+);
+
+## emit awareness event if available ##
+if ( exists $code{'context.tree.summary.add-event'} ) {
+    $code{'context.tree.summary.add-event'}->(
+        {   'type'    => 'inference-cache-hit',
+            'agent'   => qw| coding |,
+            'branch'  => 'storage.inference',
+            'payload' => {
+                'question_L13' => $L13,
+                'result_count' => scalar @results,
+                'hit_count'    => $branch_info{'hit_count'},
+            },
+            'references' => { 'checksums' => [$L13] },
+        }
+    );
+}
+
+return {
+    'mode' => qw| true |,
+    'data' => {
+        'branch'       => $L13,
+        'hit_count'    => $branch_info{'hit_count'},
+        'result_count' => scalar @results,
+        'results'      => \@results,
+    },
+};
+
+#,,..,.,,,.,,,,..,,.,,,,.,,..,.,.,.,.,..,,,,,,..,,...,...,,,.,,.,,.,,,,,,,..,,
+#ORU6MRDIFHMWZMLOUPUSQYGMIL5U77QUQQP7SD4NHQLH6SLT4DEGME4WQUCBHGDUEAOYUX2DVXQI6
+#\\\|X2BZHKWIZORE7KN5SUX7NVKUPPCKVTZHCS3QV6NKXLMZ2AFUCNY \ / AMOS7 \ YOURUM ::
+#\[7]I5XE6ARYS7S23RPU7V5C4YJJ2TRESQE5U4JBUITZXSRCP57GNICA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
