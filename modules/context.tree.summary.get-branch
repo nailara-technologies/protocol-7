@@ -1,0 +1,197 @@
+## [:< ##
+# name  = context.tree.summary.get-branch
+# descr = Retrieve branch with relevance filtering and summarization
+
+use strict;
+use warnings;
+
+return sub {
+    my ($args) = @_;
+
+    my $branch = $args->{'branch'} // 'general';
+    my $time_range = $args->{'time_range'} // ['-1 hour', 'now'];
+    my $min_relevance = $args->{'min_relevance'} // 0.0;
+    my $max_events = $args->{'max_events'} // 100;
+    my $format = $args->{'format'} // 'events';  # events | summary | narrative
+
+    my $tree = $data{'context'}{'tree'}{'summary'};
+
+    # Resolve time range
+    my ($start_time, $end_time) = _resolve_time_range($time_range);
+
+    # Get events from branch index
+    my $all_checksums = $tree->{'index'}{'by_branch'}{$branch} // [];
+
+    # Filter by time and relevance
+    my @filtered;
+    for my $checksum (@$all_checksums) {
+        my $event = $tree->{'events'}{$checksum};
+        next unless $event;
+
+        # Time filter
+        next if $event->{'timestamp'} < $start_time;
+        next if $event->{'timestamp'} > $end_time;
+
+        # Relevance filter
+        next if $event->{'relevance'}{'total'} < $min_relevance;
+
+        push @filtered, $event;
+    }
+
+    # Sort by relevance (desc), then time (desc)
+    @filtered = sort {
+        $b->{'relevance'}{'total'} <=> $a->{'relevance'}{'total'}
+        || $b->{'timestamp'} <=> $a->{'timestamp'}
+    } @filtered;
+
+    # Limit
+    if (@filtered > $max_events) {
+        @filtered = @filtered[0 .. $max_events - 1];
+    }
+
+    $tree->{'stats'}{'queries_served'}++;
+
+    # Format output
+    if ($format eq 'events') {
+        return {
+            'mode' => 'true',
+            'data' => {
+                'branch'      => $branch,
+                'time_range'  => [$start_time, $end_time],
+                'event_count' => scalar(@filtered),
+                'events'      => \@filtered,
+            },
+        };
+    }
+    elsif ($format eq 'summary') {
+        my $summary = _generate_summary(\@filtered);
+        return {
+            'mode' => 'true',
+            'data' => {
+                'branch'      => $branch,
+                'summary'     => $summary,
+                'source_count'=> scalar(@filtered),
+            },
+        };
+    }
+    elsif ($format eq 'narrative') {
+        my $narrative = _generate_narrative(\@filtered);
+        return {
+            'mode' => 'true',
+            'data' => {
+                'branch'    => $branch,
+                'narrative' => $narrative,
+            },
+        };
+    }
+
+    return { 'mode' => 'false', 'data' => 'unknown format' };
+};
+
+# Resolve time range expressions
+sub _resolve_time_range {
+    my ($range) = @_;
+    my $now = time();
+
+    my $start = $range->[0] // '-1 hour';
+    my $end = $range->[1] // 'now';
+
+    # Parse relative times
+    $start = _parse_relative_time($start, $now);
+    $end = _parse_relative_time($end, $now);
+
+    return ($start, $end);
+}
+
+sub _parse_relative_time {
+    my ($expr, $now) = @_;
+
+    return $now if $expr eq 'now';
+
+    if ($expr =~ /^-?\d+\s*(second|minute|hour|day|week)s?$/) {
+        my ($num, $unit) = $expr =~ /(-?\d+)\s*(\w+)/;
+        my $multiplier = {
+            'second' => 1,
+            'minute' => 60,
+            'hour'   => 3600,
+            'day'    => 86400,
+            'week'   => 604800,
+        }->{$unit} // 1;
+
+        return $now + ($num * $multiplier);
+    }
+
+    # Assume absolute timestamp
+    return $expr if $expr =~ /^\d+$/;
+
+    return $now;
+}
+
+# Generate structured summary
+sub _generate_summary {
+    my ($events) = @_;
+
+    my %by_type;
+    my %by_agent;
+    my $total_relevance = 0;
+
+    for my $event (@$events) {
+        $by_type{$event->{'type'}}++;
+        $by_agent{$event->{'agent'}}++;
+        $total_relevance += $event->{'relevance'}{'total'};
+    }
+
+    return {
+        'event_count'     => scalar(@$events),
+        'unique_types'    => scalar(keys %by_type),
+        'unique_agents'   => scalar(keys %by_agent),
+        'by_type'         => \%by_type,
+        'by_agent'        => \%by_agent,
+        'avg_relevance'   => @$events ? ($total_relevance / @$events) : 0,
+        'time_span_hours' => @$events
+            ? (($events->[0]{'timestamp'} - $events->[-1]{'timestamp'}) / 3600)
+            : 0,
+    };
+}
+
+# Generate human-readable narrative
+sub _generate_narrative {
+    my ($events) = @_;
+
+    return "No events in branch." unless @$events;
+
+    my $summary = _generate_summary($events);
+
+    my @parts;
+    push @parts, sprintf(
+        "Branch contains %d events across %d types from %d agents.",
+        $summary->{'event_count'},
+        $summary->{'unique_types'},
+        $summary->{'unique_agents'},
+    );
+
+    # Top types
+    my @top_types = sort { $summary->{'by_type'}{$b} <=> $summary->{'by_type'}{$a} }
+                    keys %{$summary->{'by_type'}};
+    if (@top_types) {
+        push @parts, "Most common: " .
+                     join(', ', map { "$_-> $summary->{'by_type'}{$_}" } @top_types[0..2]);
+    }
+
+    # Recent highlights
+    my @high_relevance = grep { $_->{'relevance'}{'total'} > 0.8 } @$events;
+    if (@high_relevance) {
+        push @parts, sprintf("%d high-relevance events including: %s",
+            scalar(@high_relevance),
+            $high_relevance[0]{'type'},
+        );
+    }
+
+    return join('. ', @parts) . '.';
+}
+
+#,,,,,,..,.,.,.,,,..,,,..,,,.,,,.,.,,,..,,,.,,.,.,...,...,,..,...,.,,,,..,,.,,
+#5FDHGH4KFJUXNCLRZUKY7Q463Y645HLSEORPTHXSSIAPXSLL7ZUMEYBBEOHRVUFFKKOIK5GIBQQKM
+#\\\|CBRBOLQ62F2EIVWDJQ6X7XON2GM7LOGH3ECYYZ2VCCKHKRR7PIG \ / AMOS7 \ YOURUM ::
+#\[7]QDCNR644H33PJBK2E7GN6NUQVO477LPFWGPX2YLSIY2K6DGFCECA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
