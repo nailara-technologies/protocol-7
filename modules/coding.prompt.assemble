@@ -1,0 +1,90 @@
+## [:< ##
+
+# name  = coding.prompt.assemble
+# descr = build inference message array from task [ single source of truth ]
+
+my $task = shift // {};
+
+## parse query for backend/model prefix ##
+my $raw_type = $task->{'metadata'}->{'raw_request'}->{'type'}        // '';
+my $raw_desc = $task->{'metadata'}->{'raw_request'}->{'description'} // '';
+
+my $parsed;
+if ( $raw_type =~ m{^(cpu|gpu)$}i ) {
+    $parsed = {
+        backend => lc($raw_type),
+        model   => undef,
+        query   => $raw_desc
+    };
+} else {
+    my $raw_prompt = $task->{'request'}->{'description'} // '';
+    $parsed = <[coding.parser.query_prefix]>->($raw_prompt);
+}
+
+## select best available backend ##
+my $backend_info = <[coding.routing.select_backend]>->(
+    {   backend         => $parsed->{'backend'},
+        preferred_model => $parsed->{'model'}
+    }
+);
+
+## start with clean query [ prefix stripped ] ##
+my $prompt = $parsed->{'query'};
+
+## enrich prompt with module content for review and explain tasks ##
+if (exists $code{'coding.context.read_module'}
+    and $prompt =~ m{(?:review|explain|check|analyze)\s+
+                     (?:modules?[/\s]+)?
+                     ([\w][\w.\-]+[\w])}xi
+) {
+    my $target_module = $1;
+    my $read_result   = $code{'coding.context.read_module'}
+        ->( { 'module' => $target_module, 'max_chars' => 6000 } );
+    if ( ref $read_result eq qw| HASH |
+        and $read_result->{'mode'} eq qw| true | ) {
+        my $mod = $read_result->{'data'};
+        $prompt
+            .= sprintf "\n\n"
+            . ".:[ module content : %s ]:.\n"
+            . ".:[ descr = %s ]:.\n"
+            . ".:[ %d lines ]:.\n\n%s",
+            $mod->{'module'},
+            $mod->{'descr'} || '?',
+            $mod->{'lines'},
+            $mod->{'content'};
+        <[base.logs]>->(
+            1, ':. prompt.assemble: enriched with %s [ %d chars ]',
+            $mod->{'module'}, $mod->{'chars'}
+        );
+    }
+}
+
+## build message array with optional system prompt ##
+my @messages;
+if ( exists $code{'coding.system_prompt'} ) {
+    my $sys_prompt = $code{'coding.system_prompt'}->();
+    if ( defined $sys_prompt and length $sys_prompt ) {
+        push @messages, { 'role' => 'system', 'content' => $sys_prompt };
+    }
+}
+push @messages, { 'role' => 'user', 'content' => $prompt };
+
+<[base.logs]>->(
+    2,
+    ':. prompt.assemble: %d messages, %d chars user prompt',
+    scalar @messages,
+    length($prompt)
+);
+
+return {
+    'prompt'       => $prompt,
+    'messages'     => \@messages,
+    'parsed'       => $parsed,
+    'backend_info' => $backend_info,
+};
+
+#,,,.,,..,,.,,.,.,,.,,...,...,,,,,.,.,,,.,,,.,..,,...,..,,.,,,.,.,...,,..,,,,,
+#ZC3RISMNLWYXCBE4WVC5JOLSD35S2EE4HO4N4UWVOGMUZZBAMCANXTATTZD3RKJDBRFBOHTM5RAOG
+#\\\|SVLV7ZK7RT4XAWFJPBU2DNEY2QNMUVQABVWED6JPSMI2FQJQXF4 \ / AMOS7 \ YOURUM ::
+#\[7]EZNVITLMD7IEGOOCYCOYPPQVCBDVFLDC23FQ4CCKSJN7ONLPHEAA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
