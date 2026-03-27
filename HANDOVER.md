@@ -625,6 +625,7 @@ data/md/design/CHECKSUM-CLUSTER-MAP.md
 - `data/md/handover/LOCAL-LLM-INTEGRATION-2026-03-25.md` — Path to making local LLMs useful for review/coding
 - `data/md/design/CONTEXT-AWARENESS-TREE.md` — Network-wide parallel consciousness via summary trees
 - `data/md/design/CONTEXT-AWARENESS-TREE-TEMPORAL.md` — Temporal symmetry (past/future mirror, forming concepts, emergent clusters)
+- `data/md/design/FRACTAL-DEDUPLICATION-AWARENESS.md` — Unified theory: content (space), meaning (semantics), time (awareness) share same compression structure
 
 ---
 
