@@ -132,6 +132,7 @@ base.cmd.epoch_v7
 base.cmd.cpu-time
 base.cmd.commands
 base.chk-sum.amos
+storage.cmd.visual
 storage.9p.version
 storage.9p.readdir
 storage.9p.connect
@@ -279,6 +280,7 @@ base.chk-sum.bmw.512_32
 base.auth.set_zenka_key
 auth.zenka.authenticate
 protocol.https.init_code
+plugin.storage.inference
 plugin.auth.auth-keypair
 plan-9.client.disconnect
 io.unix.socket.init_code
@@ -392,6 +394,7 @@ auth.zenka.process_auth_reply
 protocol.sftp.connect_callback
 protocol.amos-chksum.init_code
 plugin.storage.p7ref.init_code
+plugin.storage.inference.store
 plugin.storage.checksum.verify
 plugin.storage.checksum.lookup
 base.zenki.ondemand_registered
@@ -402,6 +405,8 @@ base.log.send-buffer.add-queue
 base.chk-sum.amos.calc_version
 base.cache.refaddr-prefix.init
 storage.amos_chksum.open_socket
+plugin.storage.visual.init_code
+plugin.storage.inference.lookup
 plan-9.server.buffer-read-layer
 crypt.C25519.cmd.get-public-key
 base.warnings.compact_statehash
@@ -435,6 +440,7 @@ protocol.amos-chksum.ext-cmd.modes
 protocol.amos-chksum.ext-cmd.close
 protocol.amos-chksum.ext-cmd.clear
 protocol.amos-chksum.ext-cmd.bytes
+plugin.storage.inference.init_code
 plugin.auth.auth-keypair.init_code
 plan-9.server.buffer-read-root-dir
 plan-9.server.buffer-read-metadata
@@ -450,6 +456,7 @@ protocol.sftp.handler.session_close
 protocol.protocol-7.encryption.init
 protocol.amos-chksum.ext-cmd.select
 plugin.storage.p7ref.nested-resolve
+plugin.storage.checksum.cluster.add
 plan-9.protocol.codec.encode-uint64
 plan-9.protocol.codec.encode-uint32
 plan-9.protocol.codec.encode-uint16
@@ -467,6 +474,8 @@ base.event.callback.io-idle-restart
 base.callback.reset_strm_size_timer
 protocol.amos-chksum.ext-cmd.version
 protocol.amos-chksum.command-handler
+plugin.storage.visual.proximity-calc
+plugin.storage.visual.extract-floats
 plan-9.server.buffer-read-buffer-dir
 plan-9.protocol.codec.encode-message
 graphics-3d.calc.cursor-translucency
@@ -481,11 +490,14 @@ protocol.protocol-7.message-templates
 protocol.protocol-7.link-upgrade.init
 protocol.amos-chksum.ext-cmd.commands
 protocol.amos-chksum.connect_callback
+plugin.storage.checksum.cluster.query
 base.perlmod.unregister_loaded_module
 base.handler.write.encryption-wrapper
 storage.protocol.SFTP.open_unix_socket
 protocol.sftp.terminate_server_process
 protocol.protocol-7.auth.select-method
+plugin.storage.checksum.cluster.lookup
+plugin.storage.checksum.cluster.create
 io.unix.socket.handler.report-tmp-path
 base.log.send-buffer.idle-callback-set
 auth.callback.cap-neg.select-strm-mode
@@ -496,8 +508,10 @@ base.init_zenka.install_signal_handlers
 base.handler.strm_size_absolute_timeout
 base.chk-sum.amos.truth_template_chksum
 protocol.sftp.handler.read_server_output
+plugin.storage.checksum.cluster.traverse
 plugin.storage.checksum.cache-invalidate
 protocol.protocol-7.auth.select-size-mode
+plugin.storage.checksum.cluster.init-code
 base.zenki.ondemand.handler.startup_reply
 base.agent_code.handler.sig_warn.end_proc
 protocol.protocol-7.link-upgrade.handshake
@@ -513,8 +527,8 @@ auth.callback.cap-neg.declare-strm-size-support
 protocol.protocol-7.protocol-version-path-set-up
 base.log.send-buffer.reply-handler.notify-online
 
-#,,.,,,,.,..,,,.,,,.,,,.,,..,,..,,,,,,,.,,.,.,..,,...,.,.,.,,,,,,,..,,...,.,,,
-#EF6I3YMZQBRJTLOJV5Y427S5CB24UGNLGZCE5TK4WCH3MCBUYPRMPV7SSF32DHYKN4ZIJXQ6BH3LY
-#\\\|63IN2T2XE2XCZ7WBXUSDEYKUBWGIE23GVSULIIPTV3PV5DODE24 \ / AMOS7 \ YOURUM ::
-#\[7]TIJ5HHG2ZBHFFGCSVQDGPRUDUHZJDBP6NHYWEGK6W5AA2KWDKYCQ 7  DATA SIGNATURE ::
+#,,,,,,.,,,,,,,..,.,,,,..,.,,,,..,,,.,.,,,,,.,..,,...,...,,,.,...,,,,,,,,,,,.,
+#6C5ZEZS6TJNQDJKBVRJYZTOPQZAJMBRUP6CLOUVRNHM5FAEC4ESXIUCZAHJNVJFPOQPREGW7LJRJK
+#\\\|TC426TMMJB67CAAPD4FGT65Q4TEKULZKXKTISZ22WOHRMCZTB5S \ / AMOS7 \ YOURUM ::
+#\[7]2U6UK23ZBY54QXZZAMCMW3OXDIH5X2AOBRYGHHTGVUNV2VR4DOCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

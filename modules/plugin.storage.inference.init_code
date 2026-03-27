@@ -1,0 +1,69 @@
+## [:< ##
+
+# name  = plugin.storage.inference.init_code
+# descr = initialize checksum-addressed inference cache plugin
+
+## inference cache registry ##
+$data{'storage'}{'mapping'}{'inference'} = {
+    'enabled'   => 1,
+    'version'   => '0.1',
+    'root_path' => <system.root_path> . '/var/inference-cache',
+
+    ## in-memory hot index: L13 => branch metadata ##
+    'branches' => {},
+
+    ## config ##
+    'config' => {
+        'entropy_threshold'  => 0.15,    # L13 hamming distance for "same"
+        'max_results_branch' => 20,      # max responses per question branch
+        'hit_attention_mult' => 1.5,     # attention multiplier per cache hit
+        'prune_min_age_days' => 30,      # min age before prune candidates
+        'prune_min_hits'     => 0,       # 0-hit branches after min_age
+    },
+
+    ## stats ##
+    'stats' => {
+        'hits'          => 0,
+        'misses'        => 0,
+        'stores'        => 0,
+        'dedup_skips'   => 0,
+        'branches'      => 0,
+        'total_results' => 0,
+    },
+};
+
+## ensure cache root directory exists ##
+my $root = $data{'storage'}{'mapping'}{'inference'}{'root_path'};
+
+if ( not -d $root ) {
+    my $umask_prev = umask 0002;
+    mkdir $root, 0775;
+    umask $umask_prev;
+
+    if ( not -d $root ) {
+        <[base.logs]>->(
+            0, ':. inference.init: cannot create cache root [ %s ]', $root
+        );
+    }
+}
+
+## register with p7ref system if available ##
+if ( exists $data{'storage'}{'mapping'}{'p7ref'} ) {
+    $data{'storage'}{'mapping'}{'p7ref'}{'types'}{'inference'} = {
+        'handler'  => 'plugin.storage.inference',
+        'priority' => 7,
+    };
+    <[base.logs]>->( 2, ':. inference.init: registered p7ref type handler' );
+}
+
+<[base.logs]>->(
+    1, ':. inference cache plugin initialized v0.1 [ root=%s ]', $root
+);
+
+0;
+
+#,,,.,..,,...,...,,..,,..,,,.,...,...,.,,,,,,,..,,...,...,...,,..,..,,,.,,...,
+#ZCBSNUFDUVAFLZJ37VWVR2IPPN6HH4ZVXQZHKCEZH52PYCPHEZDHEOYGFJUN3LVSJC7P2PLH4PQTM
+#\\\|JYFTOWOQ7QJFZ5IBYZEDKYI3YB7RMHJWYUS53Q2BMEZTS2ES33V \ / AMOS7 \ YOURUM ::
+#\[7]QO2IT5CQTZVGPISU3HTMM5JGMAIODFIAADEZXMOPKSRGRKHU5MCA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

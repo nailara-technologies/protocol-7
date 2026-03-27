@@ -1,0 +1,35 @@
+## [:< ##
+
+# name  = plugin.storage.inference
+# descr = inference cache storage plugin — main dispatch
+
+my $args = shift // {};
+
+my $operation = $args->{'operation'} // qw| lookup |;
+
+if ( $operation eq qw| store | ) {
+    return <[plugin.storage.inference.store]>->($args);
+} elsif ( $operation eq qw| lookup | ) {
+    return <[plugin.storage.inference.lookup]>->($args);
+} elsif ( $operation eq qw| stats | ) {
+    my $registry = $data{'storage'}{'mapping'}{'inference'};
+    return {
+        'mode' => qw| true |,
+        'data' => {
+            'stats'    => $registry->{'stats'},
+            'branches' => scalar keys $registry->{'branches'}->%*,
+            'enabled'  => $registry->{'enabled'},
+        }
+    };
+} else {
+    return {
+        'mode' => qw| false |,
+        'data' => "unknown operation: $operation",
+    };
+}
+
+#,,,.,,.,,,,.,,,,,,.,,...,..,,,.,,..,,,.,,,.,,..,,...,...,..,,...,,,.,,.,,.,.,
+#IESRUHBR36YWDRU2SGBJ2P73ZLJUS6Y6YHVGA2KTW6WJ3KLAFJV4BC23TODJZPJ2BTRXBFLUVT3OC
+#\\\|EXGWEQEWSLIUIELIDE5GNQXCGEOINYHI5YKPYCXPAFD2EVYVQEU \ / AMOS7 \ YOURUM ::
+#\[7]CIXG3UEFD42ZMPVGCNCYYBUT3ECCW2F5BKHCBDY3MGHLT34WTIAY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
