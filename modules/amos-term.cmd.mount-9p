@@ -1,0 +1,87 @@
+## [:< ##
+# name  = amos-term.cmd.mount-9p
+# descr = Mount 3D buffer via 9P protocol
+
+use strict;
+use warnings;
+
+return sub {
+    my ($call) = @_;
+    my $args = $call->{'args'} // '';
+    my ( $buffer_id, $mount_point ) = split /\s+/, $args, 2;
+
+    $buffer_id =~ s/^\s+|\s+$//g if defined $buffer_id;
+
+    ## === Resolve buffer === ##
+    my $window;
+
+    if ( not defined $buffer_id or $buffer_id eq '' ) {
+        return {
+            'mode' => 'false',
+            'data' => 'Usage: mount-9p <buffer_id> [mount_point]'
+        };
+    }
+
+    if ( $buffer_id =~ m{^amos:([A-Z0-9]{10})$}i ) {
+        my $amos_id = uc($1);
+        my $sid     = <amos-term.windows.by_amos>->{$amos_id};
+        return { 'mode' => 'false', 'data' => "buffer $amos_id not found" }
+            unless defined $sid;
+        $window = <amos-term.windows.by_id>->{$sid};
+    } elsif ( $buffer_id =~ m{^name:(.+)$} ) {
+        my $name = $1;
+        my $sid  = <amos-term.windows.by_name>->{$name};
+        return { 'mode' => 'false', 'data' => "buffer '$name' not found" }
+            unless defined $sid;
+        $window = <amos-term.windows.by_id>->{$sid};
+    } else {
+
+        # Try as session id directly
+        $window = <amos-term.windows.by_id>->{$buffer_id};
+        return {
+            'mode' => 'false',
+            'data' => "buffer '$buffer_id' not found"
+            }
+            unless defined $window;
+    }
+
+    my $amos_id = $window->{'amos_id'};
+    $mount_point //= "/mnt/amos-term/$amos_id";
+
+    ## === Ensure 9P server is running === ##
+    my $server_result = <[plan-9.server]>->();
+    return $server_result if $server_result->{'mode'} eq 'false';
+
+    ## === Export the buffer === ##
+    <[plan-9.server.export_buffer]>->( $window, $amos_id );
+
+    my $port = <plan-9.config.port> // 15640;
+
+    ## === Provide mount instructions === ##
+    return {
+        'mode' => 'size',
+        'data' => sprintf(
+            "9P server ready for buffer %s\n\n"
+                . "To mount:\n"
+                . "  sudo mkdir -p %s\n"
+                . "  sudo mount -t 9p 127.0.0.1 %s -o port=%d,trans=tcp\n\n"
+                . "To unmount:\n"
+                . "  sudo umount %s\n\n"
+                . "The buffer is exported at:\n"
+                . "  127.0.0.1:%d/%s/\n\n"
+                . "Files available:\n"
+                . "  z-0 to z-12  - 3D buffer layers\n"
+                . "  metadata     - Buffer information\n",
+            $amos_id,     $mount_point, $mount_point, $port,
+            $mount_point, $port,        $amos_id
+        )
+    };
+};
+
+#,,.,,.,,.,,.,,.,.,.,.,.,,.,.,.,,.,.,.,,.,,.,.,.,,.,.,.,,.,.,.,,.,.,.,,.,.,.,,
+
+#,,.,,,,,,,,,,...,...,..,,,,,,.,,,,,,,,,.,...,..,,...,...,,.,,,,,,.,.,,..,.,,,
+#TOOUREVAA5WAFOQATDOQ2T6BOERIG2UL7K4N4AGNYM7DPJ7YBJ2MXHSWEO74GLIESJCE5C4S26RMM
+#\\\|JYJGQLXSTPJ3BHHWCEQ6Y3I3FGGB62Y4L35V3CTMT5VWP3V6P44 \ / AMOS7 \ YOURUM ::
+#\[7]ADXQOFRPY4JRKKVJ7JQDWAZRDUWH4XEMSGBOCWPNWJHY3TYISUAI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

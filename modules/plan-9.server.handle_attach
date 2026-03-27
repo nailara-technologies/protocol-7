@@ -1,0 +1,51 @@
+## [:< ##
+# name  = plan-9.server.handle_attach
+# descr = Handle 9P Tattach/Rattach
+
+use strict;
+use warnings;
+
+return sub {
+    my ( $client, $tag, $data ) = @_;
+
+    my $fid
+        = <[plan-9.protocol.codec.decode-uint32]>->( substr( $data, 0, 4 ) );
+    my $afid
+        = <[plan-9.protocol.codec.decode-uint32]>->( substr( $data, 4, 4 ) );
+
+    my ( $uname, $rest )
+        = <[plan-9.protocol.codec.decode-string]>->( substr( $data, 8 ) );
+    my ( $aname, $rest2 ) = <[plan-9.protocol.codec.decode-string]>->($rest);
+
+    $client->{uname} = $uname;
+    $client->{aname} = $aname;
+
+    # Root Qid - type directory, version 0, path 0
+    my $root_qid = <[plan-9.protocol.codec.encode-qid]>->(
+        <plan-9.protocol.constants.QTDIR>,
+        0, 0
+    );
+
+    $client->{fids}{$fid} = {
+        type => 'root',
+        qid  => {
+            type    => <plan-9.protocol.constants.QTDIR>,
+            version => 0,
+            path    => 0
+        },
+        path => '/',
+    };
+
+    return <[plan-9.protocol.codec.encode-message]>->(
+        <plan-9.protocol.constants.Rattach>,
+        $tag, $root_qid
+    );
+};
+
+#,,.,,.,,.,,.,,.,.,.,.,.,,.,.,.,,.,.,.,,.,,.,.,.,,.,.,.,,.,.,.,,.,.,.,,.,.,.,,
+
+#,,,.,...,.,,,...,,..,,,.,,..,..,,,..,..,,...,..,,...,...,..,,.,.,.,,,,,,,,..,
+#ABQAE7UK4EWRXY6MIXY44DP36CEOZPUHLIYMW5YEAFNQ7LLH27AIBVB5PQUWF2QVEYSBMJFCL4C2Q
+#\\\|K5X35R3OFT5L3JJ2QFXSBDTB6CECWLJD4M6M2SPNN7KMZVAND2Z \ / AMOS7 \ YOURUM ::
+#\[7]AZDD6HATCSN45DIDB74M463XJEWYK4UCALJP43W3U6EPZNGFV4CA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,0 +1,25 @@
+## [:< ##
+# name  = plan-9.protocol.error
+# descr = Encode 9P error responses
+
+use strict;
+use warnings;
+
+return sub {
+    my ( $tag, $error ) = @_;
+
+    my $resp = <[plan-9.protocol.codec.encode-string]>->($error);
+
+    return <[plan-9.protocol.codec.encode-message]>->(
+        <plan-9.protocol.constants.Rerror>,
+        $tag, $resp
+    );
+};
+
+#,,.,,.,,.,,.,,.,.,.,.,.,,.,.,.,,.,.,.,,.,,.,,.,.,,.,.,.,,.,.,.,,.,.,,.,.,.,.,
+
+#,,,.,.,,,,,,,.,.,..,,,,.,.,,,,,.,,..,.,.,,.,,..,,...,...,,,.,...,,.,,.,,,,,.,
+#CTWMRLGSU2EPYP3TBZVACP7IIIU2OMWZ2KEHBN6O3W5S4ACU3LSLIPB425KGW3PLKPEMLX2WD4336
+#\\\|2QQ4LUISARMWY7WXYIXURCLESY3MQATALKUJMVCCLIRFFNEHQUI \ / AMOS7 \ YOURUM ::
+#\[7]B2M77W6YACLEWP65C7NWNYA653YT2N5GG4WVKXSOYLW5UKEUJACQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

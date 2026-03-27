@@ -1,0 +1,118 @@
+## [:< ##
+# name  = plan-9.server.handle_walk
+# descr = Handle 9P Twalk/Rwalk
+
+use strict;
+use warnings;
+
+return sub {
+    my ( $client, $tag, $data ) = @_;
+
+    my $fid
+        = <[plan-9.protocol.codec.decode-uint32]>->( substr( $data, 0, 4 ) );
+    my $newfid
+        = <[plan-9.protocol.codec.decode-uint32]>->( substr( $data, 4, 4 ) );
+    my $nwname
+        = <[plan-9.protocol.codec.decode-uint16]>->( substr( $data, 8, 2 ) );
+
+    my $rest = substr( $data, 10 );
+    my @wnames;
+    for ( 1 .. $nwname ) {
+        my ( $name, $r ) = <[plan-9.protocol.codec.decode-string]>->($rest);
+        push @wnames, $name;
+        $rest = $r;
+    }
+
+    my $current = $client->{fids}{$fid};
+
+    return <[plan-9.protocol.error]>->( $tag, "invalid fid" ) unless $current;
+
+    my @qids;
+    my $walk_result = $current;
+
+    foreach my $name (@wnames) {
+        if ( $walk_result->{type} eq 'root' ) {
+
+            # Walking from root - look up exported buffer
+            my $buf = $data{'plan-9'}{'server'}{'buffers'}{$name};
+            return <[plan-9.protocol.error]>->( $tag, "file not found" )
+                unless $buf;
+
+            $walk_result = {
+                type => 'buffer',
+                name => $name,
+                qid  => {
+                    type    => <plan-9.protocol.constants.QTDIR>,
+                    version => $buf->{qid_version},
+                    path    => $buf->{qid_path}
+                },
+            };
+            push @qids, $walk_result->{qid};
+
+        } elsif ( $walk_result->{type} eq 'buffer' ) {
+
+            # Walking in buffer directory
+            my $buf = $data{'plan-9'}{'server'}{'buffers'}
+                { $walk_result->{name} };
+
+            if ( $name =~ /^z-(\d+)$/ ) {
+                my $z = $1;
+                return <[plan-9.protocol.error]>->( $tag, "invalid layer" )
+                    unless $z >= 0 && $z <= 12;
+
+                $walk_result = {
+                    type   => 'layer',
+                    buffer => $walk_result->{name},
+                    z      => $z,
+                    qid    => {
+                        type    => <plan-9.protocol.constants.QTFILE>,
+                        version => 0,
+                        path    => $buf->{qid_path} + $z + 1,
+                    },
+                };
+                push @qids, $walk_result->{qid};
+
+            } elsif ( $name eq 'metadata' ) {
+                $walk_result = {
+                    type   => 'metadata',
+                    buffer => $walk_result->{name},
+                    qid    => {
+                        type    => <plan-9.protocol.constants.QTFILE>,
+                        version => 0,
+                        path    => $buf->{qid_path} + 100,
+                    },
+                };
+                push @qids, $walk_result->{qid};
+
+            } else {
+                return <[plan-9.protocol.error]>->( $tag, "file not found" );
+            }
+        } else {
+            return <[plan-9.protocol.error]>->( $tag, "not a directory" );
+        }
+    }
+
+    # Clone to newfid
+    $client->{fids}{$newfid} = $walk_result;
+
+    # Encode response
+    my $resp = <[plan-9.protocol.codec.encode-uint16]>->( scalar @qids );
+    foreach my $qid (@qids) {
+        $resp .= <[plan-9.protocol.codec.encode-qid]>->(
+            $qid->{type}, $qid->{version}, $qid->{path}
+        );
+    }
+
+    return <[plan-9.protocol.codec.encode-message]>->(
+        <plan-9.protocol.constants.Rwalk>,
+        $tag, $resp
+    );
+};
+
+#,,.,,.,,.,,.,,.,.,.,.,.,,.,.,.,,.,.,.,,.,,.,.,.,,.,.,.,,.,.,.,,.,.,.,,.,.,.,,
+
+#,,..,...,,,,,,,,,,.,,,,,,,..,...,,..,,,.,.,,,..,,...,...,,,.,..,,,..,...,.,,,
+#TYYEDDI2OGCSM5CLOKNHDAJG7WMUV24RAOJV5EUD6JWQC72YYD37NQXVLIKHIHGY2N45M35DQAFC2
+#\\\|ILJOTQUHP5PDCTWPCM5IPFMPTP5RDQ33OJZGPEFS5UKC3EELDLT \ / AMOS7 \ YOURUM ::
+#\[7]5SBTZ5UZRUYEJ4Q2XKQRMHIU2CAGDYQ4KGZQNA2NDZP54F2ET6AQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

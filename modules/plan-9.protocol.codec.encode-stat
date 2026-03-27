@@ -1,0 +1,36 @@
+## [:< ##
+# name  = plan-9.protocol.codec.encode-stat
+return sub {
+    my ($stat) = @_;
+
+    my $name_len = length( $stat->{name} // '' );
+    my $uid_len  = length( $stat->{uid}  // 'root' );
+    my $gid_len  = length( $stat->{gid}  // 'root' );
+    my $muid_len = length( $stat->{muid} // 'root' );
+
+    my $encoded = pack( 'v', 0 ) .    # size placeholder
+        pack( 'v', $stat->{type}  // 0 )
+        . pack( 'V', $stat->{dev} // 0 )
+        . <[plan-9.protocol.codec.encode-qid]>->(
+        $stat->{qid_type}, $stat->{qid_version}, $stat->{qid_path}
+        )
+        . pack( 'V', $stat->{mode}  // 0644 )
+        . pack( 'V', $stat->{atime} // time )
+        . pack( 'V', $stat->{mtime} // time )
+        . <[plan-9.protocol.codec.encode-uint64]>->( $stat->{length} // 0 )
+        . <[plan-9.protocol.codec.encode-string]>->( $stat->{name} )
+        . <[plan-9.protocol.codec.encode-string]>->( $stat->{uid} // 'root' )
+        . <[plan-9.protocol.codec.encode-string]>->( $stat->{gid} // 'root' )
+        . <[plan-9.protocol.codec.encode-string]>
+        ->( $stat->{muid} // 'root' );
+
+    # Fix up size
+    substr( $encoded, 0, 2 ) = pack( 'v', length($encoded) - 2 );
+    return $encoded;
+};
+
+#,,,.,,,,,.,.,,..,,..,.,,,,,.,,,,,,,,,.,.,...,..,,...,...,,..,,,,,,,,,...,.,.,
+#7ASZSIVIPJNMLUETZ5QAP4POFDTHPQXCWHPX5ZY52YYNZAE24CSSEXJFCLJYMEZBLKBLLFKM62SUI
+#\\\|MLDD6DN757PNKC22YLOA7SSK2BPBA26H4IHMLPRE3ERAH3ZTVKK \ / AMOS7 \ YOURUM ::
+#\[7]VFN4WB6BG3GLFLBGJEFNLWFXJG7FPF2VRHW5RNKGQFPDUQ4CYUAQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

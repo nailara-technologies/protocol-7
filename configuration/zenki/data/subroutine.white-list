@@ -71,6 +71,7 @@ devmod.pre_init
 devmod.cmd.true
 devmod.cmd.echo
 devmod.cmd.dump
+data.fuse.const
 base.zenka.loop
 base.str.os_err
 base.prng.bytes
@@ -83,6 +84,7 @@ base.event.once
 base.event.loop
 base.cmd.whoami
 base.cmd.reload
+base.calc_gauss
 plugin.auth.unix
 devmod.post_init
 devmod.init_code
@@ -132,6 +134,7 @@ base.cmd.epoch_v7
 base.cmd.cpu-time
 base.cmd.commands
 base.chk-sum.amos
+format.json.encode
 devmod.cmd.elf-num
 devmod.cmd.elf-b32
 devmod.cmd.eat-mem
@@ -165,6 +168,7 @@ devmod.cmd.exec-sub
 devmod.cmd.dump-env
 data.mount.shm.open
 data.hooks.register
+data.fuse.init_code
 data.cmd.mount-hash
 data.cmd.mount-cube
 base.utf8.clean_str
@@ -219,10 +223,12 @@ base.cmd.amos-chksum
 base.buffer.add_line
 auth.zenka.init_code
 data.mount.shm.unlink
+data.mount.shm.remove
 data.mount.shm.create
 data.mount.fuse.spawn
 data.init_holographic
 data.ensure_hash_path
+data.cmd.mount-visual
 data.channel.shm.read
 data.channel.shm.poll
 crypt.C25519.key_vars
@@ -342,6 +348,7 @@ data.channel.shm.init_code
 base.warnings.from_bitmask
 base.session.check.flushed
 base.reverse-sort.key-name
+base.protocol.compile_once
 base.perlmod.install_cpanm
 base.parser.data_hkey_tree
 base.ntime.epoch_timestamp
@@ -369,7 +376,9 @@ base.cmd.buffer-erase-level
 base.chk-sum.elf.vax-BASE32
 base.chk-sum.amos.init_code
 protocol.protocol-7.pre_init
+protocol.amos_term.init_code
 io.unix.socket.input.connect
+graphics.matrix.visual.color
 devmod.cmd.receive-multiline
 base.validate.composite_name
 base.session.check_remaining
@@ -380,6 +389,7 @@ base.handler.hooks.has_hooks
 base.handler.heart_ack_reply
 base.access.special-user-map
 protocol.protocol-7.init_code
+graphics.matrix.visual.sphere
 devmod.cmd.keep-devmod-loaded
 devmod.cmd.inline-subroutines
 data.mount.shm.permission.add
@@ -431,6 +441,7 @@ base.file.get_swapped_subs_pairs
 base.config.load_proto_7_version
 protocol.amos-chksum.ext-cmd.exit
 plugin.auth.zenka.no-keys-defined
+graphics.matrix.visual.cubic-sort
 data.topology.interference.map.PI
 data.mount.shm.open.mmap_shm_read
 data.mount.shm.open.derive_pubkey
@@ -458,6 +469,9 @@ base.callback.setup_rollback_timer
 protocol.sftp.handler.session_close
 protocol.protocol-7.encryption.init
 protocol.amos-chksum.ext-cmd.select
+graphics.matrix.visual.sphere-stats
+graphics.matrix.visual.cubic-layers
+graphics.matrix.visual.classify-all
 base.perlmod.register_loaded_module
 base.number-cache.is_valid_template
 base.handler.write.encoding-wrapper
@@ -467,6 +481,10 @@ base.event.callback.io-idle-restart
 base.callback.reset_strm_size_timer
 protocol.amos-chksum.ext-cmd.version
 protocol.amos-chksum.command-handler
+graphics.matrix.visual.group-spheres
+graphics.matrix.visual.find-clusters
+graphics.matrix.visual.extract-color
+graphics-3d.calc.cursor-translucency
 base.warnings.compact_diff_to_pragma
 base.warnings.compact_diff_from_bits
 base.perlmod.manual_reload_blacklist
@@ -478,25 +496,33 @@ protocol.protocol-7.message-templates
 protocol.protocol-7.link-upgrade.init
 protocol.amos-chksum.ext-cmd.commands
 protocol.amos-chksum.connect_callback
+graphics.matrix.visual.vision-batches
+graphics.matrix.visual.group-by-color
+graphics.matrix.visual.cluster-center
 data.mount.shm.create.pack_shm_header
 base.perlmod.unregister_loaded_module
 base.handler.write.encryption-wrapper
 protocol.sftp.terminate_server_process
 protocol.protocol-7.auth.select-method
 io.unix.socket.handler.report-tmp-path
+graphics.matrix.visual.extract-palette
 base.log.send-buffer.idle-callback-set
 auth.callback.cap-neg.select-strm-mode
 auth.callback.cap-neg.select-size-mode
+graphics.matrix.visual.build-cubic-grid
 base.perlmods.blacklist_collision_index
 base.log.send-buffer.send-idle-callback
 base.init_zenka.install_signal_handlers
 base.handler.strm_size_absolute_timeout
 base.chk-sum.amos.truth_template_chksum
 protocol.sftp.handler.read_server_output
+graphics.matrix.visual.generate-batch-id
+graphics.matrix.visual.detect-resolution
 data.topology.interference.map.CUBE_SIZE
 data.init_holographic.determine_polarity
 data.init_holographic.coordinate_to_hash
 protocol.protocol-7.auth.select-size-mode
+graphics.matrix.visual.group-by-proximity
 data.init_holographic.generate_field_line
 base.zenki.ondemand.handler.startup_reply
 base.agent_code.handler.sig_warn.end_proc
@@ -532,8 +558,8 @@ data.topology.interference.map.generate_cubic_neighbors
 data.topology.interference.map.calculate_resonance_field
 data.topology.interference.map.calculate_constructive_zone
 
-#,,,.,,..,,.,,,,.,..,,.,.,,.,,,,.,.,.,.,,,..,,..,,...,...,.,,,,.,,..,,,..,.,.,
-#DCTEMINPU64S76DVFSBXSPJ3OW3Z2VZZHLVAMAGV6ELJCBQXDURXSNZ45RPT7UC2ZPG2LLNWSPFHK
-#\\\|5S5J6OVIFI5MZJI2FNLLR7PWJRSMDU262O7GNK5SZ7GHMIQMHOQ \ / AMOS7 \ YOURUM ::
-#\[7]DG4OGJBMPGPIO7HV5QVAHHPZ4UJHI7R3Q7JRA472OHSMUBDOC2CI 7  DATA SIGNATURE ::
+#,,..,.,.,,.,,.,,,..,,,,.,...,.,.,..,,,,,,..,,..,,...,...,..,,.,.,,..,..,,,,.,
+#7GBGVTXOEJZG74BCKJWM5YHVTGYG7V43RDJDDLL53UPHKEM7K4RVCJBO3WU3GDIBLIGTO2TADC3EY
+#\\\|F4OVWZNXPF63BZ2SIHVTV355RNXBMKCT2KTMXL6CMFPQCRJV7A7 \ / AMOS7 \ YOURUM ::
+#\[7]3C4MTSXIGKICN26QM4GUISTYZ65DYE6RPEQ222TC3J2M2NVCT2AA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

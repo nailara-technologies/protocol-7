@@ -1,0 +1,34 @@
+## [:< ##
+# name  = plan-9.server.buffer-read-metadata
+# descr = Read buffer metadata
+
+use strict;
+use warnings;
+
+return sub {
+    my ( $amos_id, $offset, $count ) = @_;
+
+    my $buf = $data{'plan-9'}{'server'}{'buffers'}{$amos_id};
+    return '' unless $buf;
+
+    my $window = $buf->{window};
+    my $meta   = sprintf(
+        "amos_id: %s\nsession_id: %s\ncreated: %s\nsize: %dx%dx%d\n",
+        $amos_id,
+        $window->{session_id} // 'unknown',
+        scalar( localtime( $window->{created} // time ) ),
+        $window->{buffer}{width}  // 80,
+        $window->{buffer}{height} // 24,
+        $window->{buffer}{depth}  // 13,
+    );
+
+    return substr( $meta, $offset, $count );
+};
+
+#,,.,,.,,.,,.,,.,.,.,.,.,,.,.,.,,.,.,.,,.,,.,.,.,,.,.,.,,.,.,.,,.,.,.,,.,.,.,,
+
+#,,,.,.,.,..,,.,,,,,,,.,,,,,.,.,,,.,.,.,,,,..,..,,...,...,.,.,,,,,,,,,,.,,...,
+#6FT57RCWKSBHVR4YANSDGJQ5OWIKUKZKGSCAOILTXXVGNFHFJREUSX422FX52M572O3GIA7I57JCW
+#\\\|PXDIGZ42WSKJOJFN7UE3IY2J3VMBVBTPM6XZ7XCH42DUX5AWAAP \ / AMOS7 \ YOURUM ::
+#\[7]6MXXHJHTVFPNUIWW6JBIRHZPUSR54YRV7XLZKD5K56ENMCXCWCAA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
