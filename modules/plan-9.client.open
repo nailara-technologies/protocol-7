@@ -1,0 +1,44 @@
+## [:< ##
+# name  = plan-9.client.open
+# descr = Open file on 9P server
+
+use strict;
+use warnings;
+
+return sub {
+    my ( $client, $fid, $mode ) = @_;
+    $mode //= 0;    # OREAD
+
+    my $req = <[plan-9.protocol.codec.encode-uint32]>->($fid)
+        . <[plan-9.protocol.codec.encode-uint8]>->($mode);
+
+    my $msg = <[plan-9.protocol.codec.encode-message]>->(
+        <plan-9.protocol.constants.Topen>,
+        3, $req
+    );
+
+    $client->{socket}->send($msg);
+
+    my $resp = <[plan-9.client.read-message]>->($client);
+    return $resp if $resp->{'mode'} eq 'false';
+
+    my $data = $resp->{'data'};
+    my ( $qid_type, $qid_version, $qid_path )
+        = <[plan-9.protocol.codec.decode-qid]>->( substr( $data, 0, 13 ) );
+    my $iounit
+        = <[plan-9.protocol.codec.decode-uint32]>->( substr( $data, 13, 4 ) );
+
+    $client->{fids}{$fid}{open}   = 1;
+    $client->{fids}{$fid}{omode}  = $mode;
+    $client->{fids}{$fid}{iounit} = $iounit;
+
+    return { 'mode' => 'true', 'data' => $iounit };
+};
+
+#,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,
+
+#,,,.,,,,,.,.,,.,,,,,,,.,,,.,,,,,,..,,,..,.,,,..,,...,...,...,.,,,,..,,,,,..,,
+#SRLEULIOAI4RT5HK5LUEJSMA6LFQZVWO52X54XCBGQ2B3F6P47DMQLK62QQQMSRZUAXQCCAORPWD2
+#\\\|YY4CY5E2VEFZQXJRPIWIN5BATMZ7NU25QNMDINQUM3ME7VG75QW \ / AMOS7 \ YOURUM ::
+#\[7]LN7SHWP4QYS27R3TYLNQJRBE5DGE64JUSJKNQEFWRU5NXRE6DGAY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

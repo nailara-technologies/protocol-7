@@ -1,0 +1,52 @@
+## [:< ##
+# name  = plan-9.client.version
+# descr = 9P client version negotiation
+
+use strict;
+use warnings;
+
+return sub {
+    my ($client) = @_;
+
+    my $tag     = 0;
+    my $msize   = 8192;
+    my $version = '9P2000';
+
+    my $req = <[plan-9.protocol.codec.encode-uint32]>->($msize)
+        . <[plan-9.protocol.codec.encode-string]>->($version);
+
+    my $msg = <[plan-9.protocol.codec.encode-message]>->(
+        <plan-9.protocol.constants.Tversion>,
+        $tag, $req
+    );
+
+    my $sent = $client->{socket}->send($msg);
+    if ( not defined $sent ) {
+        return { 'mode' => 'false', 'data' => 'send failed' };
+    }
+
+    my $resp = <[plan-9.client.read-message]>->($client);
+    return $resp if $resp->{'mode'} eq 'false';
+
+    my $data = $resp->{'data'};
+    my $r_msize
+        = <[plan-9.protocol.codec.decode-uint32]>->( substr( $data, 0, 4 ) );
+    my ( $r_version, $rest )
+        = <[plan-9.protocol.codec.decode-string]>->( substr( $data, 4 ) );
+
+    if ( $r_version ne '9P2000' ) {
+        return { 'mode' => 'false', 'data' => 'version mismatch' };
+    }
+
+    $client->{msize} = $r_msize < $msize ? $r_msize : $msize;
+
+    return { 'mode' => 'true', 'data' => $client->{msize} };
+};
+
+#,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,
+
+#,,.,,.,.,.,.,,.,,.,.,.,.,..,,,,,,,,.,...,,,.,..,,...,..,,...,,,,,.,,,,.,,,.,,
+#5UGPVH5LEUA62VN52TMKHCARIXT2CTBFOTRQBW5LBWIRXJDN6TDXH22C4CPJ6PQP5XS7JXS7BJV3K
+#\\\|DQMNDF2I3UHV7GM6Z6RD6VLYXKAZCPJJ3QMF45I6Y3ZAQOUYKRY \ / AMOS7 \ YOURUM ::
+#\[7]GHABM2MDKFM7DTFW2FKM5J25365A6ZIWYEYTET7Z63QOJAGMO6DQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

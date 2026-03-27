@@ -1,0 +1,60 @@
+## [:< ##
+# name  = plan-9.client.read-message
+# descr = Read 9P message from server
+
+use strict;
+use warnings;
+
+return sub {
+    my ($client) = @_;
+
+    my $socket = $client->{socket};
+    my $header = '';
+
+    # Read 4-byte size
+    while ( length($header) < 4 ) {
+        my $buf = '';
+        my $n   = $socket->sysread( $buf, 4 - length($header) );
+        return { 'mode' => 'false', 'data' => 'connection closed' }
+            if not defined $n or $n == 0;
+        $header .= $buf;
+    }
+
+    my $size = <[plan-9.protocol.codec.decode-uint32]>->($header);
+    my $body = '';
+
+    while ( length($body) < $size - 4 ) {
+        my $buf = '';
+        my $n   = $socket->sysread( $buf, $size - 4 - length($body) );
+        return { 'mode' => 'false', 'data' => 'connection closed' }
+            if not defined $n or $n == 0;
+        $body .= $buf;
+    }
+
+    my $type
+        = <[plan-9.protocol.codec.decode-uint8]>->( substr( $body, 0, 1 ) );
+    my $tag
+        = <[plan-9.protocol.codec.decode-uint16]>->( substr( $body, 1, 2 ) );
+    my $data = substr( $body, 3 );
+
+    if ( $type == <plan-9.protocol.constants.Rerror> ) {
+        my ( $error, $rest )
+            = <[plan-9.protocol.codec.decode-string]>->($data);
+        return { 'mode' => 'false', 'data' => $error };
+    }
+
+    return {
+        'mode' => 'true',
+        'type' => $type,
+        'tag'  => $tag,
+        'data' => $data
+    };
+};
+
+#,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,
+
+#,,..,.,.,,,.,.,,,.,.,...,..,,,,,,..,,,,.,,.,,..,,...,..,,..,,.,.,,,,,,..,.,.,
+#MUAY3XYTVHQJBIVKQJGRY7T76UD4CFTFFWCVKCRM4A3NJIBY7IIRTB5C2EQGN4MGMONMNVAVSUQCU
+#\\\|ZCF6G7ROOCSVMPAB5FYCWBJKURZZBHC4MPTIQLIE6L7Z6EGKS32 \ / AMOS7 \ YOURUM ::
+#\[7]7QYCUHXIOC7DRQLIIPECP5PYR47KGCTIEUAATVZXHPYH3AVLOKCY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

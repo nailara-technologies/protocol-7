@@ -1,0 +1,91 @@
+## [:< ##
+# name  = plan-9.client.stat
+# descr = Stat file on 9P server
+
+use strict;
+use warnings;
+
+return sub {
+    my ( $client, $fid ) = @_;
+
+    my $req = <[plan-9.protocol.codec.encode-uint32]>->($fid);
+
+    my $msg = <[plan-9.protocol.codec.encode-message]>->(
+        <plan-9.protocol.constants.Tstat>,
+        5, $req
+    );
+
+    $client->{socket}->send($msg);
+
+    my $resp = <[plan-9.client.read-message]>->($client);
+    return $resp if $resp->{'mode'} eq 'false';
+
+    my $data = $resp->{'data'};
+    my $stat_size
+        = <[plan-9.protocol.codec.decode-uint16]>->( substr( $data, 0, 2 ) );
+    my $stat_data = substr( $data, 2, $stat_size );
+
+    # Parse stat structure
+    my $pos  = 2;                                        # Skip size field
+    my $type = <[plan-9.protocol.codec.decode-uint16]>
+        ->( substr( $stat_data, $pos, 2 ) );
+    $pos += 2;
+    my $dev = <[plan-9.protocol.codec.decode-uint32]>
+        ->( substr( $stat_data, $pos, 4 ) );
+    $pos += 4;
+
+    my ( $qid_type, $qid_version, $qid_path )
+        = <[plan-9.protocol.codec.decode-qid]>
+        ->( substr( $stat_data, $pos, 13 ) );
+    $pos += 13;
+
+    my $mode = <[plan-9.protocol.codec.decode-uint32]>
+        ->( substr( $stat_data, $pos, 4 ) );
+    $pos += 4;
+    my $atime = <[plan-9.protocol.codec.decode-uint32]>
+        ->( substr( $stat_data, $pos, 4 ) );
+    $pos += 4;
+    my $mtime = <[plan-9.protocol.codec.decode-uint32]>
+        ->( substr( $stat_data, $pos, 4 ) );
+    $pos += 4;
+    my $length = <[plan-9.protocol.codec.decode-uint64]>
+        ->( substr( $stat_data, $pos, 8 ) );
+    $pos += 8;
+
+    my ( $name, $rest )
+        = <[plan-9.protocol.codec.decode-string]>
+        ->( substr( $stat_data, $pos ) );
+    $pos = length($stat_data) - length($rest);
+    my ( $uid,  $rest2 ) = <[plan-9.protocol.codec.decode-string]>->($rest);
+    my ( $gid,  $rest3 ) = <[plan-9.protocol.codec.decode-string]>->($rest2);
+    my ( $muid, $rest4 ) = <[plan-9.protocol.codec.decode-string]>->($rest3);
+
+    return {
+        'mode' => 'true',
+        'data' => {
+            'type' => $type,
+            'dev'  => $dev,
+            'qid'  => {
+                'type'    => $qid_type,
+                'version' => $qid_version,
+                'path'    => $qid_path
+            },
+            'mode'   => $mode,
+            'atime'  => $atime,
+            'mtime'  => $mtime,
+            'length' => $length,
+            'name'   => $name,
+            'uid'    => $uid,
+            'gid'    => $gid,
+            'muid'   => $muid,
+        }
+    };
+};
+
+#,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,
+
+#,,,,,,,,,,,.,.,,,,,.,..,,,..,,..,.,.,,..,.,,,..,,...,..,,.,,,.,,,,..,,,,,...,
+#XF5WSX6ARRPMWXJ7G74FBMZBKOQDH5DCFZ6STAPLTY6Y64J2X63S22MO2V5ZMEHCIIBU25AUOVOGK
+#\\\|334PHNAEFXV7CKQGUTBDY6CKBMPSXTOZWARMH6UHTTPDJ2R4VN3 \ / AMOS7 \ YOURUM ::
+#\[7]QD52AIHVLXTFVMNQDJ7LHO5TGJVEG7ZCJGRSIY47FRRZUCRI2MCA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

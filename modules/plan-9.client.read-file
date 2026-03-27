@@ -1,0 +1,57 @@
+## [:< ##
+# name  = plan-9.client.read-file
+# descr = High-level file read from 9P server
+
+use strict;
+use warnings;
+
+return sub {
+    my ( $client_name, $path ) = @_;
+
+    my $client = $data{'plan-9'}{'client'}{$client_name};
+    return { 'mode' => 'false', 'data' => 'client not found' } unless $client;
+
+    # Walk to file
+    my @parts = grep {length} split m|/|, $path;
+    my $fid   = $client->{next_fid}++;
+
+    my $walk_result = <[plan-9.client.walk]>
+        ->( $client, $client->{root_fid}, $fid, @parts );
+    return $walk_result if $walk_result->{'mode'} eq 'false';
+
+    # Open file
+    my $open_result = <[plan-9.client.open]>->( $client, $fid, 0 );    # OREAD
+    return $open_result if $open_result->{'mode'} eq 'false';
+
+    # Read entire file
+    my $content = '';
+    my $offset  = 0;
+    my $iounit  = $client->{fids}{$fid}{iounit} // 8192;
+
+    while (1) {
+        my $read_result
+            = <[plan-9.client.read]>->( $client, $fid, $offset, $iounit );
+        last if $read_result->{'mode'} eq 'false';
+
+        my $chunk = $read_result->{'data'};
+        last if length($chunk) == 0;
+
+        $content .= $chunk;
+        $offset += length($chunk);
+
+        last if length($chunk) < $iounit;
+    }
+
+    # Clunk fid
+    <[plan-9.client.clunk]>->( $client, $fid );
+
+    return { 'mode' => 'true', 'data' => $content };
+};
+
+#,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,
+
+#,,..,,..,,,.,,,.,.,,,,.,,,,,,..,,,..,.,.,,,,,..,,...,...,,..,...,,..,,,,,,..,
+#C7XJJFVQ6UUNEKKSCEGON5Q3D77D2O7VNUMFHTTACPV6BQYSMMETLZVAPG7J77MTQIVF7MOTRD4OK
+#\\\|TOOEWP4BSW4AGAXXBTJDZK6EYTWGE4JVSJXNJ5U63OSFQ2ZPIBZ \ / AMOS7 \ YOURUM ::
+#\[7]EVC62CWV7RK7B6EQXHR4FDLHQQUYDKPCBMMEP7KC6RIIPIYEZIBI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
