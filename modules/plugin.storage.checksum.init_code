@@ -1,0 +1,38 @@
+## [:< ##
+# name  = plugin.storage.checksum.init_code
+# descr = Initialize checksum-based storage mapping plugin
+
+use strict;
+use warnings;
+
+## Initialize checksum mapping registry ##
+$data{'storage'}{'mapping'}{'checksum'} = {
+    'enabled'    => 1,
+    'algorithms' => {},    # algorithm -> { priority, impl }
+    'cache'      => {},    # path -> { checksum, mtime, size }
+    'reverse'    => {},    # checksum -> [ paths ]
+    'stats'      => {
+        'hashed'     => 0,
+        'cached'     => 0,
+        'collisions' => 0,
+    },
+};
+
+## Default algorithm priority ##
+$data{'storage'}{'mapping'}{'checksum'}{'algorithms'} = {
+    'bmw'    => { 'priority' => 1, 'bits' => 224 },    # BMW-224 (fast)
+    'sha256' => { 'priority' => 2, 'bits' => 256 },    # SHA-256 (standard)
+    'bmw512' => { 'priority' => 3, 'bits' => 512 },    # BMW-512 (secure)
+};
+
+<[base.logs]>->("Storage mapping plugin initialized: checksum");
+
+0;    # Init code returns 0 or true
+
+#,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,
+
+#,,.,,,..,,..,,.,,.,.,.,.,,,,,,,,,,,,,..,,...,..,,...,...,..,,.,,,,,.,,..,...,
+#JDIUO2W5YEVOWTBETC46FVZACOMQHEPZLMLSRE6I3FK3QMUXJLI4TS4X3QFS7C3GEVEBKYKHC3TWO
+#\\\|HVYZ5KGD4M623YKUALSVPL5ITHVOI4XDI7WXXLGIIBTHODOS3IS \ / AMOS7 \ YOURUM ::
+#\[7]MBLBPWHEVRXOJASTM6INTSQ7VTCCA3KWKQXRTHUFOI3CHCPVMYAA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
