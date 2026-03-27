@@ -114,6 +114,56 @@ $task->{'execution'}->{'started'}    = <[base.time]>->(3);
 # Use the clean query (prefix stripped)
 my $prompt = $parsed->{'query'};
 
+## check inference cache before calling backend ##
+if ( exists $code{'plugin.storage.inference.lookup'} ) {
+    my $cache_result = $code{'plugin.storage.inference.lookup'}->(
+        {   'question'    => $prompt,
+            'max_results' => 1,
+            'prefer'      => qw| recent |
+        }
+    );
+
+    if (    ref $cache_result eq qw| HASH |
+        and $cache_result->{'mode'} eq qw| true |
+        and $cache_result->{'data'}{'results'}
+        and $cache_result->{'data'}{'results'}->@* ) {
+        my $cached    = $cache_result->{'data'}{'results'}[0];
+        my $hit_count = $cache_result->{'data'}{'hit_count'} // 0;
+
+        <[base.logs]>->(
+            1,
+            "[process-queued-task] cache hit [ branch=%s hits=%d model=%s ]",
+            $cache_result->{'data'}{'branch'},
+            $hit_count,
+            $cached->{'model'} // qw| unknown |
+        );
+
+        ## update task execution metadata ##
+        $task->{'execution'}->{'status'}        = 'completed';
+        $task->{'execution'}->{'model_used'}    = $cached->{'model'};
+        $task->{'execution'}->{'cached'}        = TRUE;
+        $task->{'execution'}->{'started'}       = <[base.time]>->(3);
+        $task->{'execution'}->{'finish_reason'} = $cached->{'finish_reason'}
+            // qw| stop |;
+
+        my $t = <coding.task.queue>->{$task_id};
+        $t->{'execution'}->{'finish_reason'} = $cached->{'finish_reason'}
+            // qw| stop |
+            if defined $t;
+
+        return {
+            success => TRUE,
+            result  => $cached->{'content'},
+            task_id => $task_id,
+            cached  => TRUE,
+        };
+    }
+
+    <[base.logs]>->(
+        2, "[process-queued-task] cache miss, proceeding to inference"
+    );
+}
+
 <[base.logs]>->(
     1,
     "[process-queued-task] routed to %s:%d",
@@ -224,11 +274,34 @@ if ( defined $http_error ) {
     return { success => FALSE, error => $http_error, task_id => $task_id };
 }
 
+## store result in inference cache ##
+if ( length $response_text
+    and exists $code{'plugin.storage.inference.store'} ) {
+    my $store_result = $code{'plugin.storage.inference.store'}->(
+        {   'question'      => $prompt,
+            'response'      => $response_text,
+            'model'         => $model_id,
+            'temperature'   => $temperature,
+            'finish_reason' => $finish_reason_val,
+        }
+    );
+
+    if ( ref $store_result eq qw| HASH |
+        and $store_result->{'mode'} eq qw| true | ) {
+        <[base.logs]>->(
+            2,
+            "[process-queued-task] cached → branch=%s result=%s",
+            $store_result->{'data'}{'branch'} // '?',
+            substr( $store_result->{'data'}{'result'} // '', 0, 12 )
+        );
+    }
+}
+
 ## return result hashref for jobqueue callback ##
 return { success => TRUE, result => $response_text, task_id => $task_id };
 
-#,,.,,,,,,..,,,..,.,,,..,,.,,,..,,,,.,..,,,,.,..,,...,...,.,.,.,.,,.,,,,.,.,,,
-#NGN46C4NIJ5Z5WYOKP6RCWNO73DUODZX33FKVTFK3B6V6QUKGBFTB5ZTFF34NBKBYZTTYLJE4YZBG
-#\\\|EPR24XT2BPWHGVCFLBEMHXTY3BKTL74UF4DPI5J3QFHBUHJTJAZ \ / AMOS7 \ YOURUM ::
-#\[7]WM7S7I3TFDSL5HV53OJNY3PPYVGQRUBLENQAGVSUH7LK47IVPWBQ 7  DATA SIGNATURE ::
+#,,,,,,..,...,,,.,..,,.,,,,..,,,,,,.,,,..,.,,,..,,...,...,,.,,...,,..,.,,,..,,
+#SQHU5RGQOBPIFB2DEDAM63FJPNS6NFRDCGIHLWAPVT77PJCLTCRFVXGEH354KUMG7QPOCTP5TRVBE
+#\\\|GVDLKPNA4OF5RARUNVQGIGSEDDQDZFQKGYP7YS2CU3DZQKK7SCY \ / AMOS7 \ YOURUM ::
+#\[7]33UNERFF6HBA2W3KUML4EZNGS55ORNLX6QLOFVKIWJZZBDC3L6CY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
