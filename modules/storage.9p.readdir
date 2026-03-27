@@ -1,0 +1,84 @@
+## [:< ##
+# name  = storage.9p.readdir
+# descr = Read directory entries from 9P
+
+use strict;
+use warnings;
+
+return sub {
+    my ( $conn, $fid ) = @_;
+
+    # Open directory
+    my $open_res = <[storage.9p.open]>->( $conn, $fid, 0 );    # OREAD
+    return $open_res if $open_res->{'mode'} eq 'false';
+
+    my @entries;
+    my $offset = 0;
+    my $iounit = $conn->{fids}{$fid}{iounit} // $conn->{msize} // 8192;
+
+    while (1) {
+        my $tag = ++$conn->{tag} & 0xFFFF;
+
+        my $req
+            = <[plan-9.protocol.codec.encode-uint32]>->($fid)
+            . <[plan-9.protocol.codec.encode-uint64]>->($offset)
+            . <[plan-9.protocol.codec.encode-uint32]>->($iounit);
+
+        my $msg = <[plan-9.protocol.codec.encode-message]>->(
+            <plan-9.protocol.constants.Tread>,
+            $tag, $req
+        );
+
+        $conn->{socket}->send($msg);
+
+        my $resp = <[storage.9p.read-message]>->( $conn, $tag );
+        if ( $resp->{'mode'} eq 'false' ) {
+            return $resp;
+        }
+
+        my $data = $resp->{'data'};
+        my $len  = <[plan-9.protocol.codec.decode-uint32]>
+            ->( substr( $data, 0, 4 ) );
+        my $content = substr( $data, 4, $len );
+
+        last if length($content) == 0;
+
+        # Parse directory entries
+        my $pos = 0;
+        while ( $pos < length($content) ) {
+            last if $pos + 2 > length($content);
+            my $stat_size = <[plan-9.protocol.codec.decode-uint16]>
+                ->( substr( $content, $pos, 2 ) );
+            last if $pos + 2 + $stat_size > length($content);
+
+            my $stat_data = substr( $content, $pos + 2, $stat_size );
+            $pos += 2 + $stat_size;
+
+            # Extract name from stat (skip to name field)
+            my $name_pos = 2 + 2 + 4 + 13 + 4 + 4 + 4 + 8;
+            next if $name_pos >= length($stat_data);
+
+            my ( $name, $rest )
+                = <[plan-9.protocol.codec.decode-string]>
+                ->( substr( $stat_data, $name_pos ) );
+
+            # Skip . and ..
+            if ( $name ne '.' and $name ne '..' ) {
+                push @entries, $name;
+            }
+        }
+
+        $offset += length($content);
+        last if length($content) < $iounit;
+    }
+
+    return { 'mode' => 'true', 'data' => \@entries };
+};
+
+#,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,
+
+#,,..,,,.,.,.,,,.,,,,,.,.,.,.,,,,,,..,...,,.,,..,,...,...,.,,,..,,.,,,.,.,.,.,
+#6ZRRGZLZ2WAMLD2U4SOPJCOFFGDF7PDCJQ4RB3DX36EZXUEVJSG52WAEXJ7ABCT5K3MSYA3IZIDUM
+#\\\|3M2773E25OHQSV7XHNWSEBUJOHJ4GPXS2T6UPGDCJDH3MDA23S7 \ / AMOS7 \ YOURUM ::
+#\[7]6GLS4SL4ZDR6XU3FLQVTTIUBUWOJYN5ZJHZWSGUQCDBLIFVKVGBY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

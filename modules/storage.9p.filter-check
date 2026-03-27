@@ -1,0 +1,86 @@
+## [:< ##
+# name  = storage.9p.filter-check
+# descr = Check if path matches filter criteria
+#
+# Logic:
+#   inclusion_add:  [A, B, C]  => match if (path =~ A OR path =~ B OR path =~ C)
+#   inclusion_and:  [A, B, C]  => match if (path =~ A AND path =~ B AND path =~ C)
+#   exclusion_add:  [A, B, C]  => reject if (path =~ A OR path =~ B OR path =~ C)
+#   exclusion_and:  [A, B, C]  => reject if (path =~ A AND path =~ B AND path =~ C)
+#
+#   Order: exclusion_and > exclusion_add > inclusion_and > inclusion_add
+
+use strict;
+use warnings;
+
+return sub {
+    my ( $path, $info, $filters ) = @_;
+
+    my $inclusion_add = $filters->{inclusion_add} // [];
+    my $inclusion_and = $filters->{inclusion_and} // [];
+    my $exclusion_add = $filters->{exclusion_add} // [];
+    my $exclusion_and = $filters->{exclusion_and} // [];
+
+    # Check exclusion_and first (AND logic - all must match to reject)
+    if (@$exclusion_and) {
+        my $all_match = 1;
+        for my $pattern (@$exclusion_and) {
+            if ( ref $pattern eq 'CODE' ) {
+                $all_match = 0 unless $pattern->( $path, $info );
+            } else {
+                $all_match = 0 unless $path =~ $pattern;
+            }
+            last unless $all_match;
+        }
+        return 0 if $all_match;    # All exclusion patterns matched - reject
+    }
+
+    # Check exclusion_add (OR logic - any match rejects)
+    for my $pattern (@$exclusion_add) {
+        if ( ref $pattern eq 'CODE' ) {
+            return 0 if $pattern->( $path, $info );
+        } else {
+            return 0 if $path =~ $pattern;
+        }
+    }
+
+    # If no inclusion filters, accept all (that passed exclusions)
+    return 1 if ( !@$inclusion_add and !@$inclusion_and );
+
+    # Check inclusion_and (AND logic - all must match)
+    if (@$inclusion_and) {
+        my $all_match = 1;
+        for my $pattern (@$inclusion_and) {
+            if ( ref $pattern eq 'CODE' ) {
+                $all_match = 0 unless $pattern->( $path, $info );
+            } else {
+                $all_match = 0 unless $path =~ $pattern;
+            }
+            last unless $all_match;
+        }
+        return 0 unless $all_match;    # Not all inclusion patterns matched
+    }
+
+    # Check inclusion_add (OR logic - any match accepts)
+    if (@$inclusion_add) {
+        for my $pattern (@$inclusion_add) {
+            if ( ref $pattern eq 'CODE' ) {
+                return 1 if $pattern->( $path, $info );
+            } else {
+                return 1 if $path =~ $pattern;
+            }
+        }
+        return 0;                      # No inclusion pattern matched
+    }
+
+    # inclusion_and passed, no inclusion_add to check
+    return 1;
+};
+
+#,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,
+
+#,,,.,.,,,...,.,.,.,,,,,.,,..,..,,,,.,.,,,..,,..,,...,...,...,..,,,.,,.,,,.,.,
+#IUJPKIZGSNREPENN2WAQ2MNAXIETPCRMMR76SHDKGKRTSHM4KYZGVKTYIM6VIBQDBHXTIYOHEVIY4
+#\\\|VX7UMUMYHCVJYF4I4BVVC7VP5GT3NX7BAATKL6JLPXSFKYMZ7LY \ / AMOS7 \ YOURUM ::
+#\[7]M7QA3QYSDNTX225ETDG7IEIEKKIRLMYXJD6WOG2RTR4KKUMC2KDI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

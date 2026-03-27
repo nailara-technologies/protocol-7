@@ -1,0 +1,88 @@
+## [:< ##
+# name  = storage.9p.connect
+# descr = Connect to 9P server for storage integration
+
+use strict;
+use warnings;
+
+use IO::Socket::INET;
+
+return sub {
+    my ($args) = @_;
+    $args //= {};
+
+    my $host  = $args->{host}  // '127.0.0.1';
+    my $port  = $args->{port}  // 5640;
+    my $name  = $args->{name}  // "$host:$port";
+    my $aname = $args->{aname} // '';
+    my $uname = $args->{uname} // 'root';
+
+    # Check if already connected
+    if ( exists $data{'storage'}{'9p'}{'connections'}{$name} ) {
+        return {
+            'mode' => 'true',
+            'data' => "Already connected to $name"
+        };
+    }
+
+    # Establish TCP connection
+    my $socket = IO::Socket::INET->new(
+        PeerAddr => $host,
+        PeerPort => $port,
+        Proto    => 'tcp',
+        Timeout  => 5,
+    );
+
+    if ( not defined $socket ) {
+        return {
+            'mode' => 'false',
+            'data' => "Cannot connect to $host:$port: $!"
+        };
+    }
+
+    $socket->autoflush(1);
+
+    my $conn = {
+        'socket'   => $socket,
+        'host'     => $host,
+        'port'     => $port,
+        'name'     => $name,
+        'uname'    => $uname,
+        'msize'    => 8192,
+        'root_fid' => 0,
+        'next_fid' => 1,
+        'fids'     => {},
+        'tag'      => 0,
+    };
+
+    # Version negotiation
+    my $version_res = <[storage.9p.version]>->($conn);
+    if ( $version_res->{'mode'} eq 'false' ) {
+        close $socket;
+        return $version_res;
+    }
+
+    # Attach to root
+    my $attach_res = <[storage.9p.attach]>->( $conn, $aname );
+    if ( $attach_res->{'mode'} eq 'false' ) {
+        close $socket;
+        return $attach_res;
+    }
+
+    $data{'storage'}{'9p'}{'connections'}{$name} = $conn;
+
+    <[base.logs]>->("Storage 9P: connected to $name");
+
+    return {
+        'mode' => 'true',
+        'data' => $name
+    };
+};
+
+#,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,
+
+#,,,,,...,...,...,,..,..,,,..,.,.,,,,,.,,,,..,..,,...,...,.,,,...,.,.,..,,.,.,
+#3HDU6UH2TXUWY2QI52ON3G4EJDV3QYHFF7DW5N7YLGXC6RGT5FMWFJRWSRUPVZLIN5VBUKXQR4IJ4
+#\\\|H3T6HGAVRQ7F2NQU6VDGJ6QNXREGJVBIYGWBGEROWS3GNJXIMES \ / AMOS7 \ YOURUM ::
+#\[7]ZWQQUCEXZ3ZA32QLVWTBF67ZXA62NFQEMWU7UY6PIDNHF3V45WCY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

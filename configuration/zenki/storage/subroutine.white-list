@@ -25,6 +25,9 @@ base.set_key
 base.s_write
 base.max-len
 base.del_key
+plan-9.server
+plan-9.config
+plan-9.client
 net.init_code
 net.calc_port
 base.timezone
@@ -60,6 +63,10 @@ base.conf-wrap
 base.cmd.heart
 base.cmd.clear
 auth.auth_list
+storage.9p.walk
+storage.9p.stat
+storage.9p.scan
+storage.9p.open
 plugin.auth.pwd
 net.read_binary
 devmod.pre_init
@@ -76,6 +83,7 @@ base.event.loop
 base.cmd.whoami
 base.cmd.reload
 base.calc_gauss
+storage.9p.clunk
 plugin.auth.unix
 devmod.post_init
 devmod.init_code
@@ -100,6 +108,7 @@ auth.pwd.success
 auth.auth_select
 storage.post_init
 storage.init_code
+storage.9p.attach
 plugin.auth.zenka
 net.read_bytewise
 base.session.init
@@ -122,6 +131,13 @@ base.cmd.epoch_v7
 base.cmd.cpu-time
 base.cmd.commands
 base.chk-sum.amos
+storage.9p.version
+storage.9p.readdir
+storage.9p.connect
+plan-9.client.walk
+plan-9.client.stat
+plan-9.client.read
+plan-9.client.open
 base.reload_values
 base.reload_config
 base.protocol.bind
@@ -142,7 +158,10 @@ base.clear_p7_mods
 base.clean_unicode
 base.clean_hashref
 storage.map-dirs.fs
+storage.cmd.9p-scan
 plugin.auth.twofish
+plan-9.client.clunk
+io.ip.tcp.init_code
 devmod.console-dump
 base.utf8.clean_str
 base.str.eval_error
@@ -162,6 +181,8 @@ base.extract_values
 base.event.pre_init
 base.diff.hash_keys
 base.calc_unix_path
+plan-9.client.attach
+io.ip.tcp.input.open
 base.route.init_code
 base.root.drop_privs
 base.read_proc_times
@@ -187,6 +208,9 @@ base.cmd.amos-chksum
 base.buffer.add_line
 auth.zenka.init_code
 storage.map-dirs.tree
+plan-9.protocol.error
+plan-9.protocol.codec
+plan-9.client.version
 crypt.C25519.key_vars
 crypt.C25519.gen_keys
 base.session.shutdown
@@ -206,6 +230,8 @@ base.cmd.when-present
 base.cmd.dependencies
 base.cmd.buffer-erase
 base.balanced-average
+storage.cmd.9p-connect
+plan-9.client.list-dir
 base.session.init_code
 base.required_bin_path
 base.register_src_deps
@@ -219,7 +245,11 @@ base.comp-int.is_valid
 auth.unix.authenticate
 storage.map-dirs.fs.del
 storage.map-dirs.fs.add
+storage.9p.read-message
+storage.9p.filter-check
 protocol.sftp.init_code
+plan-9.server.init_code
+plan-9.client.read-file
 io.unix.socket.end_code
 crypt.C25519.key_exists
 base.templates.pre_init
@@ -244,6 +274,7 @@ base.auth.set_zenka_key
 auth.zenka.authenticate
 protocol.https.init_code
 plugin.auth.auth-keypair
+plan-9.client.disconnect
 io.unix.socket.init_code
 base.zenka.is_v7_started
 base.templates.init_code
@@ -256,6 +287,10 @@ base.chk-sum.bmw.L13-str
 base.check_cfg_cmd_alias
 storage.map-dirs.tree.del
 storage.map-dirs.tree.add
+plan-9.server.handle_walk
+plan-9.server.client.data
+plan-9.server.buffer-stat
+plan-9.protocol.constants
 io.unix.socket.input.open
 base.sourcecode.init_code
 base.session.cancel_route
@@ -273,6 +308,9 @@ base.chk-sum.bmw.pre_init
 base.callback.delayed-log
 storage.map-dirs.init_code
 protocol.sftp.read_ssh_env
+plan-9.server.client.close
+plan-9.server.buffer-write
+plan-9.client.read-message
 io.unix.socket.output.open
 io.unix.socket.input.close
 base.warnings.from_bitmask
@@ -289,6 +327,9 @@ base.check_dependency_dirs
 auth.zenka.cmd.session-key
 storage.sftp.unix.sock_path
 storage.map-dirs.check-dirs
+plan-9.server.handle_attach
+plan-9.server.export_buffer
+plan-9.server.client.accept
 net.read_linewise_estimated
 io.unix.socket.output.close
 base.templates.register_add
@@ -303,6 +344,11 @@ base.chk-sum.elf.vax-BASE32
 base.chk-sum.amos.init_code
 protocol.protocol-7.pre_init
 protocol.amos_term.init_code
+plan-9.server.handle_version
+plan-9.server.handle_request
+plan-9.server.handle-io-stat
+plan-9.server.handle-io-read
+plan-9.server.handle-io-open
 io.unix.socket.input.connect
 base.validate.composite_name
 base.session.check_remaining
@@ -313,6 +359,8 @@ base.handler.hooks.has_hooks
 base.handler.heart_ack_reply
 base.access.special-user-map
 protocol.protocol-7.init_code
+plan-9.server.handle-io-write
+plan-9.server.handle-io-clunk
 crypt.C25519.get_usr_keys_dir
 base.validate.data_key_syntax
 base.source.collect_file_list
@@ -337,11 +385,14 @@ base.log.send-buffer.add-queue
 base.chk-sum.amos.calc_version
 base.cache.refaddr-prefix.init
 storage.amos_chksum.open_socket
+plan-9.server.buffer-read-layer
 crypt.C25519.cmd.get-public-key
 base.warnings.compact_statehash
 base.p7refs.gen_template_chksum
 base.buffer.local_logfile_write
 storage.unix.handler.amos-chksum
+plan-9.protocol.codec.encode-qid
+plan-9.protocol.codec.decode-qid
 base.perlmod.install_cpan_module
 base.perlmod.get_collision_index
 base.parser.harmonized_reference
@@ -352,6 +403,7 @@ base.config.load_proto_7_version
 base.chk-sum.amos.unix.sock_path
 protocol.amos-chksum.ext-cmd.exit
 plugin.auth.zenka.no-keys-defined
+plan-9.protocol.codec.encode-stat
 base.sourcecode.in-mem.sub-source
 base.perlmod.init_install_buffers
 base.parser.center_ellipse_string
@@ -365,6 +417,10 @@ protocol.amos-chksum.ext-cmd.close
 protocol.amos-chksum.ext-cmd.clear
 protocol.amos-chksum.ext-cmd.bytes
 plugin.auth.auth-keypair.init_code
+plan-9.server.buffer-read-root-dir
+plan-9.server.buffer-read-metadata
+plan-9.protocol.codec.encode-uint8
+plan-9.protocol.codec.decode-uint8
 base.protocol-7.command.send.local
 base.path-set-up.zenka-directories
 base.handler.read.encoding-wrapper
@@ -374,6 +430,14 @@ base.callback.setup_rollback_timer
 protocol.sftp.handler.session_close
 protocol.protocol-7.encryption.init
 protocol.amos-chksum.ext-cmd.select
+plan-9.protocol.codec.encode-uint64
+plan-9.protocol.codec.encode-uint32
+plan-9.protocol.codec.encode-uint16
+plan-9.protocol.codec.encode-string
+plan-9.protocol.codec.decode-uint64
+plan-9.protocol.codec.decode-uint32
+plan-9.protocol.codec.decode-uint16
+plan-9.protocol.codec.decode-string
 base.perlmod.register_loaded_module
 base.number-cache.is_valid_template
 base.handler.write.encoding-wrapper
@@ -383,6 +447,8 @@ base.event.callback.io-idle-restart
 base.callback.reset_strm_size_timer
 protocol.amos-chksum.ext-cmd.version
 protocol.amos-chksum.command-handler
+plan-9.server.buffer-read-buffer-dir
+plan-9.protocol.codec.encode-message
 graphics-3d.calc.cursor-translucency
 base.warnings.compact_diff_to_pragma
 base.warnings.compact_diff_from_bits
@@ -426,8 +492,8 @@ auth.callback.cap-neg.declare-strm-size-support
 protocol.protocol-7.protocol-version-path-set-up
 base.log.send-buffer.reply-handler.notify-online
 
-#,,,.,,,.,,..,,,.,.,,,,..,...,..,,..,,.,,,,,,,..,,...,...,,,.,.,,,..,,,,.,.,.,
-#ZNFGID2FOJB624ERIPRU5T7WUXCRBJESK6UMBCP3JPE2QOFCHP4USDFXJNXUCPSYY3ZXLPW65KQQS
-#\\\|S4IG3XGF6FSFIAERJUR6QSZABX7PGRDCIABCTQVFY7ONHVNKRFR \ / AMOS7 \ YOURUM ::
-#\[7]5FMMFGOONCSGOH3BMWUQDH5AZXTLOOPJKV62EMKWX3CSP4XRSQCI 7  DATA SIGNATURE ::
+#,,,.,.,.,.,,,..,,,,,,.,.,,,,,,.,,,..,.,.,,,.,..,,...,...,.,.,,,,,,..,,..,,..,
+#HUPQTSV4R5GP2BPTP4KYS3FXVNWJ22XPVBLHOSTN32XTUSHUB4ATILRG3HWQTRBEPFOB4R7222PPC
+#\\\|V7W57MDGL3MYHJUYU4WVWTAEX6WZEYD56LW5TEGVWJTJW2F53QJ \ / AMOS7 \ YOURUM ::
+#\[7]SZIVR3LFNIDVKG6NJC73DX6FIH4KI7QZVONVEJSIW44JVO4PSIDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

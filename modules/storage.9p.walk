@@ -1,0 +1,56 @@
+## [:< ##
+# name  = storage.9p.walk
+# descr = Walk path on 9P server
+
+use strict;
+use warnings;
+
+return sub {
+    my ( $conn, $fid, $newfid, @wnames ) = @_;
+
+    my $tag = ++$conn->{tag} & 0xFFFF;
+
+    my $req
+        = <[plan-9.protocol.codec.encode-uint32]>->($fid)
+        . <[plan-9.protocol.codec.encode-uint32]>->($newfid)
+        . <[plan-9.protocol.codec.encode-uint16]>->( scalar @wnames );
+
+    for my $name (@wnames) {
+        $req .= <[plan-9.protocol.codec.encode-string]>->($name);
+    }
+
+    my $msg = <[plan-9.protocol.codec.encode-message]>->(
+        <plan-9.protocol.constants.Twalk>,
+        $tag, $req
+    );
+
+    $conn->{socket}->send($msg);
+
+    my $resp = <[storage.9p.read-message]>->( $conn, $tag );
+    return $resp if $resp->{'mode'} eq 'false';
+
+    my $data = $resp->{'data'};
+    my $nwqid
+        = <[plan-9.protocol.codec.decode-uint16]>->( substr( $data, 0, 2 ) );
+
+    # Track new fid
+    if ( exists $conn->{fids}{$fid} ) {
+        $conn->{fids}{$newfid} = { %{ $conn->{fids}{$fid} } };
+        if (@wnames) {
+            my $new_path = $conn->{fids}{$newfid}{path} // '/';
+            $new_path .= '/' if $new_path ne '/';
+            $new_path .= join( '/', @wnames );
+            $conn->{fids}{$newfid}{path} = $new_path;
+        }
+    }
+
+    return { 'mode' => 'true', 'data' => $nwqid };
+};
+
+#,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,
+
+#,,..,,,.,.,,,.,,,,,.,,.,,...,,.,,.,.,..,,,,,,..,,...,...,,,.,...,...,.,.,.,,,
+#J7KWWSXQCWRZCRKIVZNGP2DMHHQIKTFPF3L76ASN657EEEHASVYG44VYTDXIDJPPQV64MM42HW5LY
+#\\\|G2M5HIGOKC2NDOANABF4HP7Y4JU7WTHJXZHWCZ62NC5JJGLPEI2 \ / AMOS7 \ YOURUM ::
+#\[7]EB7NTEI3GRKP5XKGPPE5KVX56KMHNUTL3UBEWKFL3UUF2UJY2IAI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
