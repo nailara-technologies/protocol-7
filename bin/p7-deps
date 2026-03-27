@@ -127,11 +127,14 @@ sub check_profile {
     print "🔍 Checking dependencies for: $profile_name\n";
     print "   $profile->{description}\n\n";
 
-    # Handle includes (meta-profiles)
+    my @missing;
+    my $total  = 0;
+    my $all_ok = 1;
+
+    # Handle includes first (dependencies from other profiles)
     if ( $profile->{includes} ) {
         print "📦 Profile includes: "
             . join( ', ', @{ $profile->{includes} } ) . "\n\n";
-        my $all_ok = 1;
         for my $included ( @{ $profile->{includes} } ) {
 
             # Always use fresh checks for included profiles
@@ -139,12 +142,10 @@ sub check_profile {
                 $is_explicit_check ? 'explicit' : undef );
             $all_ok = 0 if $result != 0;
         }
-        update_cache( $profile_name, $all_ok );
-        return $all_ok ? 0 : 1;
     }
 
-    my @missing;
-    my $total = 0;
+    # Now check this profile's own packages (even if it has includes)
+    # This allows profiles to both include AND extend
 
     # Check APT packages
     if ( $profile->{apt} ) {
@@ -209,6 +210,9 @@ sub check_profile {
         print "\n";
     }
 
+    # Update all_ok based on own packages
+    $all_ok = 0 if @missing;
+
     if (@missing) {
         print "❌ Missing " . scalar(@missing) . " dependencies\n\n";
         print "💡 Install with: bin/p7-deps install $profile_name\n";
@@ -239,16 +243,16 @@ sub install_profile {
     print "\n${NEON_green_yellow}Installing profile: $profile_name${reset}\n";
     print "   $profile->{description}\n\n";
 
-    # Handle includes (meta-profiles)
+    # Handle includes first (install dependencies from other profiles)
     if ( $profile->{includes} ) {
         print "📦 Profile includes: "
             . join( ', ', @{ $profile->{includes} } ) . "\n\n";
         for my $included ( @{ $profile->{includes} } ) {
             install_profile( $included, $opts );
         }
-        return;
     }
 
+    # Now install this profile's own packages (even if it has includes)
     my @to_install_apt;
     my @to_install_cpan;
 
@@ -794,8 +798,8 @@ ZENKA CONFIGURATION:
 EOF
 }
 
-#,,,.,.,,,,..,.,,,,..,..,,,.,,,.,,.,,,.,.,,,.,..,,...,..,,.,.,,.,,.,,,.,.,.,,,
-#D7ULPNT46PQXUMHKSOFL6QOXM3HSNQ3JYA2RXAFUTOXPCXD2GKJTVOVSFCPGZTXUWX3GPITXFVMIQ
-#\\\|NHF35NFM2QLHPUE6WE5OBFJFU3AQLW7HVCOLMCABI5TDH74IL5P \ / AMOS7 \ YOURUM ::
-#\[7]DUADEQHSAYRZR2S4MDZYO4G25RPQJ5VGUMBQUWYGEGYEAU3EXCAY 7  DATA SIGNATURE ::
+#,,,,,.,,,.,.,.,.,,..,.,.,,,,,,,,,,.,,,,.,...,..,,...,..,,.,.,.,.,,..,,.,,...,
+#EQIXXVGG427BLM5W2XPEYVOKBSJ3C356MPHYCVWGDIM4NEEGAGKLIQC7P5DRWUAOYOGZDIU7JRBLG
+#\\\|4NE4Y2LXZFPKSOBNR6RTVM4MPPWETTXE2LVFG6FIQ7CJN5IZZ5H \ / AMOS7 \ YOURUM ::
+#\[7]IQYIZUJML66PNFPJPTLQAB4BKD5VAM3FVL53B2KMRSKPHSF3KSBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
