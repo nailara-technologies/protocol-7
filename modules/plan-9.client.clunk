@@ -1,0 +1,32 @@
+## [:< ##
+# name  = plan-9.client.clunk
+# descr = Close/release fid on 9P server
+
+use strict;
+use warnings;
+
+return sub {
+    my ( $client, $fid ) = @_;
+
+    my $req = <[plan-9.protocol.codec.encode-uint32]>->($fid);
+
+    my $msg = <[plan-9.protocol.codec.encode-message]>->(
+        <plan-9.protocol.constants.Tclunk>,
+        6, $req
+    );
+
+    $client->{socket}->send($msg);
+
+    my $resp = <[plan-9.client.read-message]>->($client);
+    delete $client->{fids}{$fid};
+
+    return $resp;
+};
+
+#,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,
+
+#,,.,,.,.,,..,.,,,...,..,,,.,,,,,,,,.,...,.,,,..,,...,...,.,.,,,,,,.,,,,,,,,.,
+#IJYSHVYHNYXCJDFSEGDX4B5G3C62DROTRNCAB6IFU3EJPT7QU4DWPG52WMUQY6WUXB7U2WPAI64LC
+#\\\|MYEFVBMDFGW4FJV6YWJZH5FNYMKORUMLDFHQSTPEI3TWKCWXYFX \ / AMOS7 \ YOURUM ::
+#\[7]YHF3O6LSIFOVSWO6GFH2IED6PDEZVOFHB6PQRNMDXXNBTRTJ6EBI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
