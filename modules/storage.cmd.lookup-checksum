@@ -1,0 +1,60 @@
+## [:< ##
+# name  = storage.cmd.lookup-checksum
+# descr = Look up files by checksum
+
+use strict;
+use warnings;
+
+return sub {
+    my ($call) = @_;
+    my $args = $call->{'args'} // '';
+
+    my ( $type, $checksum ) = split /\s+/, $args, 2;
+
+    $type     //= '';
+    $checksum //= '';
+
+    if ( not length $type or not length $checksum ) {
+        return {
+            'mode' => 'false',
+            'data' => 'Usage: lookup-checksum <mapping-type> <checksum>'
+        };
+    }
+
+    my $module = "plugin.storage.$type";
+
+    unless ( exists $data{'storage'}{'mapping'}{$type} ) {
+        return {
+            'mode' => 'false',
+            'data' => "Mapping type '$type' not loaded"
+        };
+    }
+
+    my $result = <[$module]>->(
+        {   'operation' => 'lookup',
+            'checksum'  => $checksum,
+        }
+    );
+
+    if ( $result->{'mode'} eq 'true' ) {
+        my $data   = $result->{'data'};
+        my $output = "Checksum: $data->{checksum}\n";
+        $output .= "Found: $data->{count} file(s)\n\n";
+
+        for my $path ( @{ $data->{paths} } ) {
+            $output .= "  $path\n";
+        }
+
+        return { 'mode' => 'size', 'data' => $output };
+    } else {
+        return $result;
+    }
+};
+
+#,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,
+
+#,,.,,.,,,..,,,..,,,.,.,,,,,.,..,,..,,,.,,,,.,..,,...,...,.,,,...,.,,,.,,,,,,,
+#T7KASG2KOOIHBEELOPUCASRDSOF3UIPAQ2OD3G7U6YH426PIKQX7U7BP7U5Z3TCDZJ2VB4HV5ZAN4
+#\\\|LHHWZ2IWI4GX4PGC5Y27ZB77GSGO4QY4YTIF6FNV2YQ65XS3L6S \ / AMOS7 \ YOURUM ::
+#\[7]IOYONKCLJHTTLEA7BUENA434UBP2SGC7RM7YOOI3K2IBOBXB2SCI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

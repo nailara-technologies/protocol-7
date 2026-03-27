@@ -1,0 +1,60 @@
+## [:< ##
+# name  = plugin.storage.checksum.cache-invalidate
+# descr = Invalidate checksum cache entries
+
+use strict;
+use warnings;
+
+return sub {
+    my ($args) = @_;
+    $args //= {};
+
+    my $path       = $args->{path};
+    my $all        = $args->{all} // 0;
+    my $older_than = $args->{older_than};    # seconds
+
+    my $registry    = $data{'storage'}{'mapping'}{'checksum'};
+    my $invalidated = 0;
+
+    if ($all) {
+
+        # Clear all cache entries
+        for my $path ( keys %{ $registry->{'cache'} } ) {
+            delete $registry->{'cache'}{$path};
+            $invalidated++;
+        }
+    } elsif ( defined $path ) {
+
+        # Clear specific path
+        if ( exists $registry->{'cache'}{$path} ) {
+            delete $registry->{'cache'}{$path};
+            $invalidated++;
+        }
+    } elsif ( defined $older_than ) {
+
+        # Clear entries older than N seconds
+        my $cutoff = time() - $older_than;
+        for my $path ( keys %{ $registry->{'cache'} } ) {
+            if ( $registry->{'cache'}{$path}{'cached_at'} < $cutoff ) {
+                delete $registry->{'cache'}{$path};
+                $invalidated++;
+            }
+        }
+    }
+
+    return {
+        'mode' => 'true',
+        'data' => {
+            'invalidated' => $invalidated,
+            'remaining'   => scalar( keys %{ $registry->{'cache'} } ),
+        }
+    };
+};
+
+#,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,
+
+#,,,,,,,,,,,.,.,.,,,.,.,,,,..,...,,,.,,,.,.,,,..,,...,...,,,,,,.,,.,.,,..,.,.,
+#PYMBPHG34QBPVFNV6YUBOLBA7JDDKU7DWC3DROTFJN4U7DE2GQ55F63722HV3CX2TDAVI5V3UA7YQ
+#\\\|N3ANBLQ5X6BTM7YV6TUVFHNEETIO5XRHG73SFR2O2K3EHQHGLND \ / AMOS7 \ YOURUM ::
+#\[7]RXAU54IYNUOFC7KSUP5KMFVBG7HLLN23ZLJ43FNNUCVZELXFK2BQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

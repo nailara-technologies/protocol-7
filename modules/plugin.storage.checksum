@@ -1,0 +1,36 @@
+## [:< ##
+# name  = plugin.storage.checksum
+# descr = Checksum-based storage mapping - main dispatch
+
+use strict;
+use warnings;
+
+return sub {
+    my ($args) = @_;
+    $args //= {};
+
+    my $operation = $args->{operation} // 'map';
+
+    if ( $operation eq 'map' ) {
+        return <[plugin.storage.checksum.map-file]>->($args);
+    } elsif ( $operation eq 'lookup' ) {
+        return <[plugin.storage.checksum.lookup]>->($args);
+    } elsif ( $operation eq 'verify' ) {
+        return <[plugin.storage.checksum.verify]>->($args);
+    } elsif ( $operation eq 'cache-invalidate' ) {
+        return <[plugin.storage.checksum.cache-invalidate]>->($args);
+    } else {
+        return {
+            'mode' => 'false',
+            'data' => "Unknown operation: $operation"
+        };
+    }
+};
+
+#,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,
+
+#,,.,,,..,.,,,,,,,,.,,,..,.,.,.,,,,,,,,,.,.,.,..,,...,..,,,..,.,,,,,,,...,,..,
+#DEB66MFOQ6CQGTEMRMIZP6AOG5N5RC3BCQFS3OSDI2OK5KINTQ5WXQZYJ42RXRUTCBMJEE2A6D6R2
+#\\\|FUFSLE3436NZPZB4S45EMLYQJTVJROGZE6PYBRIKBQ2RVO4SMV7 \ / AMOS7 \ YOURUM ::
+#\[7]UQSR7YMB3RXLBTYYLJMZ34PZNXTAZCRNKCBU7N46DBMH44ZOKWAA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

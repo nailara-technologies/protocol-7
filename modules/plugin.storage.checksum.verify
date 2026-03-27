@@ -1,0 +1,52 @@
+## [:< ##
+# name  = plugin.storage.checksum.verify
+# descr = Verify file integrity against cached checksum
+
+use strict;
+use warnings;
+
+return sub {
+    my ($args) = @_;
+
+    my $path = $args->{path}
+        or return { 'mode' => 'false', 'data' => 'path required' };
+
+    my $registry = $data{'storage'}{'mapping'}{'checksum'};
+    my $cached   = $registry->{'cache'}{$path};
+
+    return { 'mode' => 'false', 'data' => 'no cached checksum' }
+        unless $cached;
+    return { 'mode' => 'false', 'data' => 'file not found' } unless -f $path;
+
+    # Re-compute checksum
+    my $current_checksum;
+    if ( $cached->{algorithm} eq 'bmw' ) {
+        $current_checksum = <[base.chk-sum.bmw.file]>->($path);
+    } elsif ( $cached->{algorithm} eq 'sha256' ) {
+        $current_checksum = <[crypt.sha256.file]>->($path);
+    }
+
+    return { 'mode' => 'false', 'data' => 'checksum computation failed' }
+        unless defined $current_checksum;
+
+    my $valid = $current_checksum eq $cached->{checksum};
+
+    return {
+        'mode' => 'true',
+        'data' => {
+            'path'      => $path,
+            'valid'     => $valid,
+            'cached'    => $cached->{checksum},
+            'current'   => $current_checksum,
+            'algorithm' => $cached->{algorithm},
+        }
+    };
+};
+
+#,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,
+
+#,,,.,.,,,.,.,.,,,,,,,...,.,,,.,.,,,.,.,,,,..,..,,...,...,...,..,,,.,,,.,,..,,
+#EUBYWLRV7FXFFAPYRQOOYDG3XD2CM2IRAKX4XW5XRTQBIYN3KCDKP3JONGSRSSRUBHLDJY5U4NS4W
+#\\\|GJETNP6GHE3Z4OC7E6ZVQCL2HGT7RBOLAEWAGODSY2GPCPSY7L3 \ / AMOS7 \ YOURUM ::
+#\[7]CDA7JI7ME6VAMZRXBQHS6Q2COTAUV547DXZIOQIJV4OKTIYFJCDA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

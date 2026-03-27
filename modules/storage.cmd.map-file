@@ -1,0 +1,74 @@
+## [:< ##
+# name  = storage.cmd.map-file
+# descr = Map a file using storage mapping plugins
+
+use strict;
+use warnings;
+
+return sub {
+    my ($call) = @_;
+    my $args = $call->{'args'} // '';
+
+    # Parse: <mapping-type> <path> [:option: value ...]
+    my ( $type, $path, @opts ) = split /\s+/, $args;
+
+    $type //= '';
+    $path //= '';
+
+    if ( not length $type or not length $path ) {
+        return {
+            'mode' => 'false',
+            'data' =>
+                'Usage: map-file <mapping-type> <path> [:option: value ...]'
+        };
+    }
+
+    # Parse options
+    my $options = {};
+    for ( my $i = 0; $i < @opts; $i += 2 ) {
+        my $opt = $opts[$i];
+        my $val = $opts[ $i + 1 ] // '';
+        $opt =~ s/^://;
+        $opt =~ s/:$//;
+        $options->{$opt} = $val;
+    }
+
+    my $module = "plugin.storage.$type";
+
+    # Check if mapping plugin exists
+    unless ( exists $data{'storage'}{'mapping'}{$type} ) {
+        return {
+            'mode' => 'false',
+            'data' => "Mapping type '$type' not loaded"
+        };
+    }
+
+    my $result = <[$module]>->(
+        {   'operation' => 'map',
+            'path'      => $path,
+            'algorithm' => $options->{algorithm} // 'bmw',
+        }
+    );
+
+    if ( $result->{'mode'} eq 'true' ) {
+        my $data = $result->{'data'};
+        return {
+            'mode' => 'size',
+            'data' => sprintf(
+                "File: %s\nChecksum: %s\nAlgorithm: %s\nCached: %s\n",
+                $data->{path},      $data->{checksum},
+                $data->{algorithm}, $data->{cached} ? 'yes' : 'no'
+            )
+        };
+    } else {
+        return $result;
+    }
+};
+
+#,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,
+
+#,,..,...,.,.,,..,.,.,.,.,,,,,,..,..,,,,.,.,.,..,,...,...,...,.,.,.,.,,,.,,.,,
+#L26M5IPSGA3QG65GVLGQBZSVL7PX6FWJBPXBE3QKO5HCJOSMXQI2YMJ3SIRAHX7IJRXYC3CBZR3IW
+#\\\|BK2ODH4THBRJGFN4MEJHG7GWWGV5WY36WWMB6GTPBQ4A4AETDZ7 \ / AMOS7 \ YOURUM ::
+#\[7]37QY6EILLQI7II3ZVWJRQF54LMVRA2IJJWI2M4XB55A3G7MXBQAI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
