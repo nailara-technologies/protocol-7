@@ -1,0 +1,31 @@
+---
+name: inference-review
+descr: context template for local model code review with awareness
+budget: 2000
+sections:
+  - provider: context.style.guide
+    budget_pct: 15
+    priority: 1
+  - provider: context.file.extract
+    budget_pct: 50
+    priority: 2
+    params:
+      path: "{{target_module}}"
+  - provider: context.tree.summary.get-branch
+    budget_pct: 20
+    priority: 3
+    params:
+      branch: "{{awareness_branch}}"
+      format: narrative
+      time_range: ["-1 hour", "now"]
+    optional: true
+  - provider: context.error.recent
+    budget_pct: 15
+    priority: 4
+    optional: true
+
+#,,,.,.,.,,..,,,,,,.,,...,,,,,,.,,.,.,,..,...,..,,...,...,...,.,.,...,,..,,,.,
+#3MCVKFKH7UFQ5NFGK2GTY2DPBXHFJJOVNHYI3ETN7DVVQFA5Z3WRI5QJLBBGIMPOVFM5AYTNO6YL4
+#\\\|HVRFGT2RTFWZP4FKIAFCMTYEU2SMBLYQV35BPRSOYIPPVAKWZNJ \ / AMOS7 \ YOURUM ::
+#\[7]6Q3JB7CATCOBUT4YLNMBTLERCPVVBC2AHVTNHTHPQN6ZXQGGZMBI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
