@@ -1,0 +1,151 @@
+## [:< ##
+# name  = command.context-awareness
+# descr = Command interface for context awareness tree
+
+use strict;
+use warnings;
+
+return sub {
+    my ($args, $caller) = @_;
+    my $cmd = shift @$args // 'status';
+
+    my %opts;
+    my @positional;
+
+    for my $arg (@$args) {
+        if ($arg =~ /^--(\w+)(?:=(.+))?$/) {
+            $opts{$1} = $2 // 1;
+        }
+        elsif ($arg =~ /^:(\w+):\s*(.+)$/) {
+            $opts{$1} = $2;
+        }
+        else {
+            push @positional, $arg;
+        }
+    }
+
+    if ($cmd eq 'status') {
+        my $tree = $data{'context'}{'tree'}{'summary'};
+        return sprintf(
+            "Awareness Tree Status:\n" .
+            "  Version: %s\n" .
+            "  Events: %d (added: %d, compacted: %d)\n" .
+            "  Summaries: %d\n" .
+            "  Queries served: %d\n" .
+            "  Branches: %d",
+            $tree->{'version'},
+            scalar(keys %{$tree->{'events'}}),
+            $tree->{'stats'}{'events_added'},
+            $tree->{'stats'}{'events_compacted'},
+            scalar(keys %{$tree->{'summaries'}}),
+            $tree->{'stats'}{'queries_served'},
+            scalar(keys %{$tree->{'index'}{'by_branch'}}),
+        );
+    }
+    elsif ($cmd eq 'publish') {
+        my $type = shift @positional;
+        my $branch = $opts{'branch'} // 'general';
+        my $payload_str = $opts{'payload'} // '{}';
+
+        return "Usage: context-awareness publish <type> [:branch: name] [:payload: json]"
+            unless $type;
+
+        my $payload = <[format.json.read]>->($payload_str) // {};
+
+        my $result = <[context.tree.summary.add-event]>->({
+            'type'    => $type,
+            'branch'  => $branch,
+            'agent'   => $opts{'agent'} // $data{'agent'}{'id'} // 'unknown',
+            'payload' => $payload,
+        });
+
+        return $result->{'mode'} eq 'true'
+            ? "Published event $result->{'data'}{'id'} (relevance: " .
+              sprintf("%.2f", $result->{'data'}{'relevance'}) . ")"
+            : "Failed: $result->{'data'}";
+    }
+    elsif ($cmd eq 'query') {
+        my $branch = shift @positional // 'general';
+        my $format = $opts{'format'} // 'narrative';
+
+        my $result = <[context.tree.summary.get-branch]>->({
+            'branch'        => $branch,
+            'time_range'    => [$opts{'since'} // '-1 hour', 'now'],
+            'min_relevance' => $opts{'min-relevance'} // 0.0,
+            'max_events'    => $opts{'limit'} // 20,
+            'format'        => $format,
+        });
+
+        return "Query failed" unless $result->{'mode'} eq 'true';
+
+        if ($format eq 'narrative') {
+            return $result->{'data'}{'narrative'};
+        }
+        elsif ($format eq 'summary') {
+            my $s = $result->{'data'}{'summary'};
+            return sprintf(
+                "Branch '%s': %d events, %d types, avg relevance %.2f",
+                $branch,
+                $s->{'event_count'},
+                $s->{'unique_types'},
+                $s->{'avg_relevance'},
+            );
+        }
+        else {
+            my @out = "Events in '$branch':";
+            for my $e (@{$result->{'data'}{'events'}}) {
+                push @out, sprintf("  [%s] %s (%.2f) - %s",
+                    scalar(localtime($e->{'timestamp'})),
+                    $e->{'type'},
+                    $e->{'relevance'}{'total'},
+                    $e->{'agent'},
+                );
+            }
+            return join("\n", @out);
+        }
+    }
+    elsif ($cmd eq 'checkpoint') {
+        my $operation = shift @positional // 'save';
+
+        my $result = <[context.tree.summary.checkpoint]>->({
+            'operation' => $operation,
+            'tag'       => $opts{'tag'} // time(),
+            'branches'  => [$opts{'branches'} // 'all'],
+        });
+
+        return $result->{'mode'} eq 'true'
+            ? "Checkpoint $operation: " . <[format.json.write]>->($result->{'data'})
+            : "Failed: $result->{'data'}";
+    }
+    else {
+        return <<'HELP';
+Context Awareness Tree — Network-wide parallel consciousness
+
+Usage: context-awareness <command> [options]
+
+Commands:
+  status
+    Show tree statistics
+
+  publish <type> [:branch: name] [:payload: json]
+    Publish event to awareness tree
+    Example: context-awareness publish module-created \
+             :branch: coding :payload: {"module": "foo"}
+
+  query [branch] [:format: narrative|summary|events] [:limit: N]
+    Query branch with relevance filtering
+    Example: context-awareness query storage :format: narrative
+
+  checkpoint <save|load|list> [:tag: name] [:branches: all]
+    Save or restore awareness state
+    Example: context-awareness checkpoint save :tag: pre-reset
+
+HELP
+    }
+};
+
+#,,.,,.,.,,..,,..,..,,,,.,,.,,.,,,,,.,,.,,,.,,.,.,...,...,.,.,,,,,.,,,,.,,.,,,
+#4VXHFBADQEXVP3SCYRXCDHXQRZBSPOUQQWDDNFKPFQP4BZJYBU54HKREACIDYP3FUDCNJQNVZT6OW
+#\\\|THHUONGSBKSQME5PE6DQRBLK56HQ4BWXKFEWH4QYAELTABUXKUR \ / AMOS7 \ YOURUM ::
+#\[7]XZSTFWUWWEF3GGWWFK6RXVVYRC3SBFFP532OGISWDZ5RA5JYBECQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

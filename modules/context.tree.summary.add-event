@@ -1,0 +1,153 @@
+## [:< ##
+# name  = context.tree.summary.add-event
+# descr = Add event to awareness tree
+
+use strict;
+use warnings;
+
+return sub {
+    my ($args) = @_;
+
+    my $type = $args->{'type'} or return { 'mode' => 'false', 'data' => 'type required' };
+    my $agent = $args->{'agent'} // $data{'agent'}{'id'} // 'unknown';
+    my $branch = $args->{'branch'} // 'general';
+    my $payload = $args->{'payload'} // {};
+    my $references = $args->{'references'} // {};
+    my $timestamp = $args->{'timestamp'} // time();
+
+    my $tree = $data{'context'}{'tree'}{'summary'};
+
+    # Create event node
+    my $event = {
+        'type'       => $type,
+        'agent'      => $agent,
+        'branch'     => $branch,
+        'timestamp'  => $timestamp,
+        'payload'    => $payload,
+        'references' => $references,
+    };
+
+    # Generate checksum for event (content-addressed)
+    my $event_str = join('|',
+        $type, $agent, $branch, $timestamp,
+        _canonical_json($payload),
+        _canonical_json($references),
+    );
+    my $checksum = <[base.chk-sum.bmw.L13-str]>->($event_str);
+    $checksum = "bmw-L13:$checksum";
+
+    $event->{'id'} = $checksum;
+
+    # Calculate initial relevance
+    $event->{'relevance'} = _calculate_relevance($event);
+
+    # Store event
+    $tree->{'events'}{$checksum} = $event;
+    $tree->{'stats'}{'events_added'}++;
+
+    # Update indices
+    push @{$tree->{'index'}{'by_time'}{int($timestamp / 3600)}}, $checksum;
+    push @{$tree->{'index'}{'by_type'}{$type}}, $checksum;
+    push @{$tree->{'index'}{'by_agent'}{$agent}}, $checksum;
+    push @{$tree->{'index'}{'by_branch'}{$branch}}, $checksum;
+
+    # Index references
+    for my $ref_type (keys %$references) {
+        for my $ref_val (@{$references->{$ref_type}}) {
+            push @{$tree->{'index'}{'by_ref'}{$ref_val}}, $checksum;
+        }
+    }
+
+    # Trigger compaction check if needed
+    if ($tree->{'stats'}{'events_added'} % 1000 == 0) {
+        <[context.tree.summary.compact.check]>->({
+            'trigger' => 'event-threshold',
+        });
+    }
+
+    return {
+        'mode' => 'true',
+        'data' => {
+            'id'        => $checksum,
+            'timestamp' => $timestamp,
+            'relevance' => $event->{'relevance'}{'total'},
+        },
+    };
+};
+
+# Canonical JSON for checksum stability
+sub _canonical_json {
+    my ($data) = @_;
+    return '{}' unless defined $data;
+    # Sort keys recursively for canonical form
+    return _canonical_encode($data);
+}
+
+sub _canonical_encode {
+    my ($obj) = @_;
+
+    if (ref($obj) eq 'HASH') {
+        my @pairs;
+        for my $key (sort keys %$obj) {
+            push @pairs, '"' . $key . '":' . _canonical_encode($obj->{$key});
+        }
+        return '{' . join(',', @pairs) . '}';
+    }
+    elsif (ref($obj) eq 'ARRAY') {
+        return '[' . join(',', map { _canonical_encode($_) } @$obj) . ']';
+    }
+    elsif (defined $obj) {
+        $obj =~ s/"/\\"/g;
+        return '"' . $obj . '"';
+    }
+    else {
+        return 'null';
+    }
+}
+
+# Calculate relevance scores
+sub _calculate_relevance {
+    my ($event) = @_;
+
+    my $weights = $data{'context'}{'tree'}{'summary'}{'config'}{'relevance_weights'};
+    my $now = time();
+    my $age = $now - $event->{'timestamp'};
+
+    # Recency: exponential decay
+    my $recency = exp(-$age / 3600);  # 1-hour half-life
+
+    # Proximity: based on branch depth (simplified)
+    my $proximity = 1.0;  # Would calculate from current context
+
+    # Centrality: placeholder (would use graph analysis)
+    my $centrality = 0.5;
+
+    # Semantic: placeholder (would use vector similarity)
+    my $semantic = 0.5;
+
+    # Authority: based on agent
+    my $authority = ($event->{'agent'} =~ /kimi|claude/) ? 1.0 : 0.7;
+
+    # Total relevance
+    my $total =
+        $weights->{'proximity'}  * $proximity +
+        $weights->{'recency'}    * $recency +
+        $weights->{'centrality'} * $centrality +
+        $weights->{'semantic'}   * $semantic +
+        $weights->{'authority'}  * $authority;
+
+    return {
+        'total'      => $total,
+        'proximity'  => $proximity,
+        'recency'    => $recency,
+        'centrality' => $centrality,
+        'semantic'   => $semantic,
+        'authority'  => $authority,
+    };
+}
+
+#,,..,,.,,,..,,,.,,..,,..,...,.,.,.,,,,,.,,,,,.,.,...,..,,...,,.,,.,.,,.,,,..,
+#G4KRP7JIAUTYVEM7TDQSAHZ7BPQK6XLBN23AADPRIACKTIZ6ZHDWCS2WLCEZJ2QKVAKALBZHIIJLC
+#\\\|K5NYAS5DO5MJRNTH2HAALESV4BALAPILSMDV2NECWQJMPZT5DWO \ / AMOS7 \ YOURUM ::
+#\[7]X2HFMVZAHYO4JKXJHG5NNATBGMKZI3JKMBCTIWOMKLOVRGGANUCY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

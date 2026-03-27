@@ -622,3 +622,44 @@ data/md/design/CHECKSUM-CLUSTER-MAP.md
 
 - `data/md/handover/CLAUDE-CATCHUP-2026-03-25.md` — Full system overview for Claude
 - `data/md/handover/KIMI-NEXT-STEPS-2026-03-25.md` — In-flight ideas, pending work, architectural questions (97% tokens, 99h to reset)
+- `data/md/handover/LOCAL-LLM-INTEGRATION-2026-03-25.md` — Path to making local LLMs useful for review/coding
+- `data/md/design/CONTEXT-AWARENESS-TREE.md` — Network-wide parallel consciousness via summary trees
+
+---
+
+## Context Awareness Tree — NEW (4 modules)
+
+**Concept**: Parallel tree to deduplication — track "what happens" not just "what exists".
+
+**Core insight**: Deduplication eliminates redundant content. Summarization eliminates redundant narrative. Same structures serve both.
+
+### Modules
+- `context.tree.summary.init-code` — Initialize awareness registry
+- `context.tree.summary.add-event` — Add event with relevance scoring
+- `context.tree.summary.get-branch` — Retrieve with filtering/summarization
+- `context.tree.summary.checkpoint` — Save/load for reset recovery
+
+### Features
+- **Hierarchical**: Leaf → Twig → Branch → Trunk → Root
+- **Relevance-ranked**: Proximity, recency, centrality, semantic, authority
+- **Network-synced**: Gossip protocol for cross-agent awareness
+- **Reset-resilient**: Checkpoints preserve context across resets
+- **LLM-optimized**: Summarization solves context window limits
+
+### Integration
+- Pager zenka: browse awareness as virtual buffer
+- Checksum clusters: events reference checksums
+- Context delegation: narrative threads per task
+- Division-13: harmonic sampling of representative events
+
+### Solves
+- LLM context window limits (hierarchical summarization)
+- Reset amnesia (persistent checkpoints)
+- Parallel coordination (cross-agent event streaming)
+- Semantic deduplication (narrative compression)
+
+### Status
+- Design document complete
+- 4 core modules implemented
+- Ready for event generation integration
+- Network sync layer pending
