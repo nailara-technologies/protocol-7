@@ -66,31 +66,11 @@ unless ( defined $task ) {
     return { success => FALSE, error => "task not found: $task_id" };
 }
 
-# Parse query for backend/model prefix
-# Check metadata.raw_request.type first (set by task intake for "CPU: query" format)
-my $raw_type = $task->{metadata}->{raw_request}->{type}        // '';
-my $raw_desc = $task->{metadata}->{raw_request}->{description} // '';
-
-my $parsed;
-if ( $raw_type =~ m{^(cpu|gpu)$}i ) {
-    ## Task intake parsed "CPU: query" as type=CPU, description=query ##
-    $parsed = {
-        backend => lc($raw_type),
-        model   => undef,
-        query   => $raw_desc
-    };
-} else {
-    ## Try parsing description directly for checksum format ##
-    my $raw_prompt = $task->{request}->{description} // '';
-    $parsed = <[coding.parser.query_prefix]>->($raw_prompt);
-}
-
-# Select best available backend
-my $backend_info = <[coding.routing.select_backend]>->(
-    {   backend         => $parsed->{'backend'},
-        preferred_model => $parsed->{'model'}
-    }
-);
+## assemble prompt and message array [ shared with show-prompt ] ##
+my $assembled    = <[coding.prompt.assemble]>->($task);
+my $parsed       = $assembled->{'parsed'};
+my $backend_info = $assembled->{'backend_info'};
+my $prompt       = $assembled->{'prompt'};
 
 unless ( $backend_info->{'available'} ) {
     <[base.logs]>->(
@@ -104,43 +84,12 @@ unless ( $backend_info->{'available'} ) {
     return { success => FALSE, error => $task->{'execution'}->{'error'} };
 }
 
-# Update task with routing info
+## update task with routing info ##
 $task->{'execution'}->{'backend'}    = $backend_info->{'backend'};
 $task->{'execution'}->{'port'}       = $backend_info->{'port'};
 $task->{'execution'}->{'model_used'} = $backend_info->{'model'};
 $task->{'execution'}->{'status'}     = 'in_progress';
 $task->{'execution'}->{'started'}    = <[base.time]>->(3);
-
-# Use the clean query (prefix stripped)
-my $prompt = $parsed->{'query'};
-
-## enrich prompt with module content for review and explain tasks ##
-if (exists $code{'coding.context.read_module'}
-    and $prompt =~ m{(?:review|explain|check|analyze)\s+
-                     (?:modules?[/\s]+)?
-                     ([\w][\w.\-]+[\w])}xi
-) {
-    my $target_module = $1;
-    my $read_result   = $code{'coding.context.read_module'}
-        ->( { 'module' => $target_module, 'max_chars' => 6000 } );
-    if ( ref $read_result eq qw| HASH |
-        and $read_result->{'mode'} eq qw| true | ) {
-        my $mod = $read_result->{'data'};
-        $prompt
-            .= sprintf "\n\n"
-            . ".:[ module content : %s ]:.\n"
-            . ".:[ descr = %s ]:.\n"
-            . ".:[ %d lines ]:.\n\n%s",
-            $mod->{'module'},
-            $mod->{'descr'} || '?',
-            $mod->{'lines'},
-            $mod->{'content'};
-        <[base.logs]>->(
-            1, "[process-queued-task] enriched prompt with %s [ %d chars ]",
-            $mod->{'module'}, $mod->{'chars'}
-        );
-    }
-}
 
 ## check inference cache before calling backend ##
 if ( exists $code{'plugin.storage.inference.lookup'} ) {
@@ -237,19 +186,8 @@ my $response_text     = '';
 my $finish_reason_val = 'stop';
 my $http_error;
 
-## build message array with optional system prompt ##
-my @messages;
-if ( exists $code{'coding.system_prompt'} ) {
-    my $sys_prompt = $code{'coding.system_prompt'}->();
-    if ( defined $sys_prompt and length $sys_prompt ) {
-        push @messages, { role => 'system', content => $sys_prompt };
-        <[base.logs]>->(
-            2, "[process-queued-task] system prompt injected [ %d chars ]",
-            length($sys_prompt)
-        );
-    }
-}
-push @messages, { role => 'user', content => $prompt };
+## use pre-assembled message array ##
+my @messages = $assembled->{'messages'}->@*;
 
 eval {
     use LWP::UserAgent;
@@ -342,8 +280,8 @@ if ( length $response_text
 ## return result hashref for jobqueue callback ##
 return { success => TRUE, result => $response_text, task_id => $task_id };
 
-#,,.,,,,,,...,,,.,,,.,,,.,.,,,.,.,,,.,,.,,,.,,..,,...,...,..,,.,.,.,,,,,.,..,,
-#YJFLPORKUCHOJXC6UJZXWIGSFVQPYVBQ5ESYCDBUJ3Y2Y6K4O2SLHPUO6JGB3TGG3URB6EV3NXQPE
-#\\\|EYSGJ2KFJJJ62LP775RKJC3DJSJL5GND6TTXPN73HAJOBATZSZT \ / AMOS7 \ YOURUM ::
-#\[7]E5MXEK3JOSDXQFTGLE2H36DG57FUBFETDTPGRLK2GPJ6JSQYZAAI 7  DATA SIGNATURE ::
+#,,,.,...,.,.,,..,..,,,,.,.,.,.,.,...,.,,,..,,..,,...,...,,,.,,,,,..,,...,...,
+#HYJF7KP2GD75FY2G6U3MEE5KOYTYIIT3D2LKA73UB3UICFXLHVJ4AACH2TI3G5OVM7Y3CPBGJF2BI
+#\\\|4NBTKY2WERL6UINI4XCBTDZ4HJYVGQ3VZBE3D2Z4OEUI5VZ2RP4 \ / AMOS7 \ YOURUM ::
+#\[7]RVXNFXQZZE25J5LZSERHQ756T2MOYVG5XE3U5DQ7AKLAHASGYCAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

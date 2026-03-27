@@ -1,0 +1,121 @@
+## [:< ##
+
+# name  = coding.cmd.show-prompt
+# descr = dry run prompt assembly [ no inference call ]
+# param = <request_string>
+
+my $request_str;
+
+if ( defined $call->{'param'} && ref $call->{'param'} eq qw| HASH | ) {
+    $request_str //= $call->{'param'}->{'request'}
+        // $call->{'param'}->{'question'}
+        // $call->{'param'}->{'description'} // '';
+
+    if ( $request_str =~ /^[2-7A-Z]+$/ ) {
+        my $decoded = decode_b32r($request_str);
+        $request_str = $decoded if defined $decoded && length $decoded;
+    }
+
+    $request_str =~ s/\\n/\n/g;
+
+    if ( defined $call->{'data'} && length $call->{'data'} ) {
+        my $body = $call->{'data'};
+        if ( $body =~ /^[2-7A-Z]+$/ ) {
+            my $decoded = decode_b32r($body);
+            $body = $decoded if defined $decoded && length $decoded;
+        }
+        $body =~ s/\\n/\n/g;
+        $request_str .= "\nContext:\n" . $body;
+    }
+} else {
+    $request_str = $call->{'args'} // '';
+
+    if ( $request_str =~ /^[2-7A-Z]+$/ ) {
+        my $decoded = decode_b32r($request_str);
+        $request_str = $decoded if defined $decoded && length $decoded;
+    }
+}
+
+return { 'mode' => qw| false |, 'data' => "request string required\n" }
+    if !length($request_str);
+
+## run through task intake to get parsed description ##
+my $intake_result = <[coding.task.intake]>->($request_str);
+return {
+    'mode' => qw| false |,
+    'data' => "intake failed: $intake_result->{error}"
+    }
+    if !$intake_result->{success};
+
+## assemble prompt via shared module ##
+my $assembled    = <[coding.prompt.assemble]>->( $intake_result->{'task'} );
+my $backend_info = $assembled->{'backend_info'};
+my $prompt       = $assembled->{'prompt'};
+my @messages     = $assembled->{'messages'}->@*;
+
+my $model_id    = $backend_info->{'model'}      // 'unknown';
+my $max_tokens  = <inference.model.max_tokens>  // 4096;
+my $temperature = <inference.model.temperature> // 0.7;
+
+## format output ##
+my $output = '';
+
+$output .= ".:[ show-prompt : dry run — no inference call ]:.\n";
+$output
+    .= ".:[ model=$model_id max_tokens=$max_tokens temp=$temperature ]:.\n";
+$output
+    .= ".:[ backend="
+    . ( $backend_info->{'backend'} // '?' )
+    . " port="
+    . ( $backend_info->{'port'} // '?' )
+    . " ]:.\n";
+$output .= ".:[ messages=" . scalar(@messages) . " ]:.\n\n";
+
+for my $i ( 0 .. $#messages ) {
+    my $msg = $messages[$i];
+    $output .= sprintf "--- [ message %d : role=%s : %d chars ] ---\n",
+        $i, $msg->{'role'}, length( $msg->{'content'} );
+    $output .= $msg->{'content'} . "\n\n";
+}
+
+## cache check [ informational ] ##
+if ( exists $code{'plugin.storage.inference.lookup'} ) {
+    my $cache_result = $code{'plugin.storage.inference.lookup'}->(
+        {   'question'    => $prompt,
+            'max_results' => 1,
+            'prefer'      => qw| recent |
+        }
+    );
+    if (    ref $cache_result eq qw| HASH |
+        and $cache_result->{'mode'} eq qw| true |
+        and $cache_result->{'data'}{'results'}
+        and $cache_result->{'data'}{'results'}->@* ) {
+        my $cached = $cache_result->{'data'}{'results'}[0];
+        $output .= sprintf
+            ".:[ cache: HIT branch=%s hits=%d model=%s len=%d ]:.\n",
+            $cache_result->{'data'}{'branch'},
+            $cache_result->{'data'}{'hit_count'} // 0,
+            $cached->{'model'}                   // '?',
+            $cached->{'response_len'}            // 0;
+    } else {
+        $output .= ".:[ cache: MISS ]:.\n";
+    }
+}
+
+$output .= sprintf ".:[ total prompt size: %d chars ]:.\n",
+    length( $messages[-1]{'content'} );
+
+<[base.logs]>->(
+    2,
+    ':. show-prompt: resolved %d messages, %d chars',
+    scalar @messages,
+    length( $messages[-1]{'content'} )
+);
+
+return { 'mode' => qw| size |, 'data' => $output };
+
+#,,,.,.,,,.,,,..,,...,.,.,.,,,.,.,,,.,,,,,.,,,..,,...,...,,,.,,.,,.,.,..,,,.,,
+#EUSSAOQLTEOMYQZQIG3IKPKWD4ONYBAIWAKIPNKMMQJ2WM2RPBPGXQE5KTMCJWFCZGDYC3TAAB7AI
+#\\\|PKW4V7NMLL5T6ZV2LBRREQLC53RZC25THT4UTIB5YGI72275XGV \ / AMOS7 \ YOURUM ::
+#\[7]GI35QCXNKHPUKLI4PRFHYQW3OTDDGF5KZCHKAKQHDXVRLZOZBMDI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
