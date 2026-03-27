@@ -1,0 +1,55 @@
+## [:< ##
+# name  = plan-9.client.attach
+# descr = 9P client attach to filesystem
+
+use strict;
+use warnings;
+
+return sub {
+    my ( $client, $aname ) = @_;
+    $aname //= '';
+
+    my $fid   = $client->{root_fid};
+    my $afid  = 0xFFFFFFFF;                   # NOFID
+    my $uname = $client->{uname} // 'root';
+
+    my $req
+        = <[plan-9.protocol.codec.encode-uint32]>->($fid)
+        . <[plan-9.protocol.codec.encode-uint32]>->($afid)
+        . <[plan-9.protocol.codec.encode-string]>->($uname)
+        . <[plan-9.protocol.codec.encode-string]>->($aname);
+
+    my $msg = <[plan-9.protocol.codec.encode-message]>->(
+        <plan-9.protocol.constants.Tattach>,
+        1, $req
+    );
+
+    $client->{socket}->send($msg);
+
+    my $resp = <[plan-9.client.read-message]>->($client);
+    return $resp if $resp->{'mode'} eq 'false';
+
+    my $data = $resp->{'data'};
+    my ( $qid_type, $qid_version, $qid_path )
+        = <[plan-9.protocol.codec.decode-qid]>->( substr( $data, 0, 13 ) );
+
+    $client->{fids}{$fid} = {
+        'type' => 'root',
+        'qid'  => {
+            'type'    => $qid_type,
+            'version' => $qid_version,
+            'path'    => $qid_path
+        },
+        'path' => '/',
+    };
+
+    return { 'mode' => 'true', 'data' => $fid };
+};
+
+#,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,
+
+#,,,,,,.,,..,,,..,...,...,...,,.,,,,,,...,.,,,..,,...,...,...,,..,..,,,.,,..,,
+#VLQBBMMUNMLF5ZFF2HFOMJRB5L25WR65DLOH3DAWSPRNNG22OWQGD5U25M3GCQQN2SO4MLWJAH7UW
+#\\\|CT35BTI2OXNJFZAAU7IXVOMF6TT6VOBKGY6LT6DCAZ4BQCAVGJ5 \ / AMOS7 \ YOURUM ::
+#\[7]4MT3CUC2YSM6J7UUC2OWLZ2PIUPZTD6ZEAQVBNW5FM7TE7TNE4BA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
