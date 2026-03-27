@@ -1232,14 +1232,24 @@ sub p7_referenced_subroutines__add {
     }
 
     my $sub_sourcecode = $sub_source_sref->$*;
-    $sub_sourcecode =~ s|#[^\n]+$||mg;               ## <-- improve ##  [LLL]
 
     my @source_lines = split "\n", $sub_sourcecode;
 
     $data{'base'}{'subroutines'}{'referenced'} //= {};
     my $src_linenum = 0;
+    my $v7_syn_on   = TRUE;                          ## v7-syn switch state ##
     foreach my $source_line (@source_lines) {
         $src_linenum++;
+
+        ## v7-syn switch — track parsing state ##
+        if ( $source_line =~ m{##\[:v7-syn:(\w+):\]##} ) {
+            my $val = lc $1;
+            $v7_syn_on = ( $val =~ m{^(?:on|true|yes|1)$} ) ? TRUE : FALSE;
+            next;
+        }
+        next if not $v7_syn_on;    ## skip v7-syn disabled regions ##
+
+        $source_line =~ s|#[^\n]+$||;    ## strip comments ##
         while ( $source_line =~ s|\$code\{'([$sub_name_re]+)'}|| ) {
             my $subroutine = $LAST_PAREN_MATCH;
             ## track where it was found ##
@@ -1622,8 +1632,35 @@ sub p7_load_code {
                 ## POD, special sections ]
                 my @lines = split "\n", $data{'code'}{$file_name}{'source'};
                 my @joined;
+                my $heredoc_end;      ## heredoc terminator tracking ##
+                my $v7_syn = TRUE;    ## v7-syntax transform state ##
                 for ( my $i = 0; $i < @lines; $i++ ) {
                     my $line = $lines[$i];
+
+                    ## v7-syn switch [ ##[:v7-syn:<bool>:]## ] ##
+                    if ( $line =~ m{##\[:v7-syn:(\w+):\]##} ) {
+                        my $val = lc $1;
+                        $v7_syn
+                            = ( $val =~ m{^(?:on|true|yes|1)$} )
+                            ? TRUE
+                            : FALSE;
+                    }
+
+                    ## skip heredoc body lines [ pass through unmodified ] ##
+                    if ( defined $heredoc_end ) {
+                        push @joined, $line;
+                        undef $heredoc_end
+                            if $line =~ m{^\s*\Q$heredoc_end\E\s*$};
+                        next;
+                    }
+
+                    ## detect heredoc opener [ <<'TAG' <<"TAG" <<~'TAG' ] ##
+                    ## require operator context before << ##
+                    ## [ prevents matching << inside string literals ] ##
+                    if ( $line =~ m{(?:^|[=\(,;\s])<<~?\s*(['"])(\w+)\1} ) {
+                        $heredoc_end = $2;
+                    }
+
                     ## only join non-protected lines ending with
                     ## continuation pattern [ -> for method calls,
                     ## comma for args, lists, operators ]
@@ -1638,18 +1675,51 @@ sub p7_load_code {
                     }
                     push @joined, $line;
                 }
+                $v7_syn = TRUE;    ## reset for transform pass ##
+                my $in_heredoc;    ## heredoc state ##
                 $data{'code'}{$file_name}{'source'} = join "\n", map {
 
+                    ## v7-syn switch — update state on marker lines ##
+                    if (m{##\[:v7-syn:(\w+):\]##}) {
+                        my $val = lc $1;
+                        $v7_syn
+                            = ( $val =~ m{^(?:on|true|yes|1)$} )
+                            ? TRUE
+                            : FALSE;
+                        $ARG;
+                    }
+
+                    ## track heredoc body — pass through untransformed ##
+                    elsif ( defined $in_heredoc ) {
+                        undef $in_heredoc
+                            if m{^\s*\Q$in_heredoc\E\s*$};
+                        $ARG;
+                    }
+
+                    ## v7-syn disabled — pass through untransformed ##
+                    elsif ( not $v7_syn ) {$ARG}
+
                   # skip protected lines: comments, POD, special Perl sections
-                    m{^\s*\#} || m{^=\w+} || m{^__(?:DATA|END)__} ? $ARG :
+                    elsif (m{^\s*\#}
+                        || m{^=\w+}
+                        || m{^__(?:DATA|END)__} ) {
+                        $ARG;
+                    }
+
+                    else {
+                        ## detect heredoc opener [ operator context ] ##
+                        if (m{(?:^|[=\(,;\s])<<~?\s*(['"])(\w+)\1}) {
+                            $in_heredoc = $2;
+                        }
 
                      # transform special syntax [non-destructive with /r flag]
                      # preserve escaping with (?<!\\) negative lookbehind
                         s|(?<!\\)<\[([\w\-\.]+)\]>\s*->\(|\$code{'$1'}->(|gr
-                        =~ s|(?<!\\)<\[([\w\-\.]+)\]>|\$code{'$1'}->()|gr
-                        =~ s|(?<!\\)<([\w\-:]+\.[\w\-\.:]+)>|
+                            =~ s|(?<!\\)<\[([\w\-\.]+)\]>|\$code{'$1'}->()|gr
+                            =~ s|(?<!\\)<([\w\-:]+\.[\w\-\.:]+)>|
                             do { my $k = "\$data{'$1'}";
                                  $k =~ s<\.><'}{'>g; $k }|reg
+                    }
                 } @joined;
                 $RS = "\n";
                 if (length( $data{'code'}{$file_name}{'source'} ) > $orig_len
@@ -5624,8 +5694,8 @@ __DATA__
 :
 :.
 
-#,,,,,.,,,,.,,,,.,,,,,,.,,.,.,,,,,,.,,,,.,.,.,..,,...,..,,,.,,..,,,.,,.,,,.,.,
-#4F4GNHERBBT67IJKSZZ5AJ5ZWKKKD5JOLWQBUL5HUUQUO6EVD4RLLSZOZKPEW5FMXJNTYDXJAYNNC
-#\\\|MK4Z66G7M3Z2EI33GZHPY2EYVWRDFZSH6IPVLKSFCWHDBWO6AO4 \ / AMOS7 \ YOURUM ::
-#\[7]YWITNN3CKGG5GJC6PSRUQY5G7TMHHPKB654NQGXIWEDSZXZXCMAA 7  DATA SIGNATURE ::
+#,,,,,,,.,..,,,,.,...,...,,.,,.,,,..,,..,,..,,..,,...,...,.,.,.,.,.,,,.,.,,.,,
+#LMOJIKMPEKBG36RC6LMXKSJUDQHKXOGXKEQ5PQIBJJB3NHYDGNONNODSXO4MZOH7GKAURPRFZKM6C
+#\\\|JKIAKALWVVKEYCUEZEV5RHKNJ24BUQFWEAWXWZ4ZLGIX2BO447X \ / AMOS7 \ YOURUM ::
+#\[7]6HWWPVL2RTHVUTI35LLQFBHLASFZH2X7CWFCYG2MZKGND4TAR2BI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
