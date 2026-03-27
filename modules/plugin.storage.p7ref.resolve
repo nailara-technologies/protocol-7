@@ -1,0 +1,104 @@
+## [:< ##
+# name  = plugin.storage.p7ref.resolve
+# descr = Resolve P7REF to actual storage location
+
+use strict;
+use warnings;
+
+return sub {
+    my ($args) = @_;
+
+    my $p7ref = $args->{p7ref}
+        or return { 'mode' => 'false', 'data' => 'p7ref required' };
+
+    my $registry = $data{'storage'}{'mapping'}{'p7ref'};
+
+    # Parse first
+    my $parse_res = <[plugin.storage.p7ref.parse]>->( { 'p7ref' => $p7ref } );
+    return $parse_res if $parse_res->{'mode'} eq 'false';
+
+    my $parsed = $parse_res->{'data'};
+    my $type   = $parsed->{'type'};
+
+    # Check if type is supported
+    my $type_info = $registry->{'types'}{$type};
+    if ( not $type_info ) {
+        return { 'mode' => 'false', 'data' => "Unknown P7REF type: $type" };
+    }
+
+    $registry->{'stats'}{'resolved'}++;
+
+    # Handle nested references
+    if ( $type eq 'nested' or @{ $parsed->{'nested'} } ) {
+        return <[plugin.storage.p7ref.nested-resolve]>->($args);
+    }
+
+    # Dispatch to type-specific handler
+    my $handler = $type_info->{'handler'};
+    my $result;
+
+    if ( $type eq 'checksum' ) {
+        $result = <[$handler]>->(
+            {   'operation' => 'lookup',
+                'checksum'  => $parsed->{'address'},
+            }
+        );
+    } elsif ( $type eq '9p' ) {
+
+        # Build 9P path from address and segments
+        my $path = $parsed->{'address'};
+        $path .= '/' . join( '/', @{ $parsed->{'segments'} } )
+            if @{ $parsed->{'segments'} };
+
+        $result = {
+            'mode' => 'true',
+            'data' => {
+                'protocol'  => '9p',
+                'authority' => $parsed->{'authority'} // 'localhost:5640',
+                'path'      => $path,
+                'full'      => "9p://"
+                    . ( $parsed->{'authority'} // 'localhost:5640' )
+                    . $path,
+            }
+        };
+    } elsif ( $type eq 'path' ) {
+        $result = {
+            'mode' => 'true',
+            'data' => {
+                'protocol' => 'local',
+                'path'     => $parsed->{'address'},
+                'exists'   => -e $parsed->{'address'} ? 1 : 0,
+            }
+        };
+    } elsif ( $type eq 'segment' ) {
+        $result = {
+            'mode' => 'true',
+            'data' => {
+                'protocol' => 'segment',
+                'segments' => $parsed->{'segments'},
+                'base'     => $parsed->{'address'},
+            }
+        };
+    } else {
+        return {
+            'mode' => 'false',
+            'data' => "Handler not implemented for type: $type"
+        };
+    }
+
+    # Add P7REF metadata
+    if ( $result->{'mode'} eq 'true' ) {
+        $result->{'data'}{'p7ref'} = $p7ref;
+        $result->{'data'}{'type'}  = $type;
+    }
+
+    return $result;
+};
+
+#,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,
+
+#,,..,...,,.,,..,,.,.,...,.,,,,.,,,,.,...,,..,..,,...,...,,,.,,,.,.,.,.,,,,.,,
+#YSQBYJBUIZIH2JQHSLUTRRNXSVZIWKFHDA64O2QQSWBOY5YL6DDX5FR6PXX3GVZUOTUUSMYMY7SUO
+#\\\|RBBS5LEE3A2NYODAPD6CHQFVGTVSB2AMWKPJKESIBB2UMIB3JPW \ / AMOS7 \ YOURUM ::
+#\[7]ZFYHR2NNUWGS53BVZGMLBF5NB2K6UQ5X3SOKVSGHU5RP5PTKSKBQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

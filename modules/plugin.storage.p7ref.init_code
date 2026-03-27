@@ -1,0 +1,90 @@
+## [:< ##
+# name  = plugin.storage.p7ref.init_code
+# descr = Initialize P7REF unified storage reference system
+#
+# P7REF Format:
+#   p7://<type>:<address>[@<authority>][|<segment>]
+#
+# Examples:
+#   p7://checksum:AMOS7ABC123
+#   p7://9p:localhost:5640/mnt/c/file.txt
+#   p7://path:/home/user/documents
+#   p7://segment:AMOS7|files|downloads
+#   p7://nested:9p:host/path[checksum:hash]
+
+use strict;
+use warnings;
+
+## P7REF registry ##
+$data{'storage'}{'mapping'}{'p7ref'} = {
+    'enabled' => 1,
+    'version' => '1.0',
+
+    ## Reference type handlers ##
+    'types' => {
+        'checksum' =>
+            { 'handler' => 'plugin.storage.checksum', 'priority' => 1 },
+        '9p'   => { 'handler' => 'storage.9p', 'priority' => 2 },
+        'path' => {
+            'handler'  => 'plugin.storage.p7ref.path-handler',
+            'priority' => 3
+        },
+        'segment' => {
+            'handler'  => 'plugin.storage.p7ref.segment-handler',
+            'priority' => 4
+        },
+        'nested' => {
+            'handler'  => 'plugin.storage.p7ref.nested-handler',
+            'priority' => 5
+        },
+    },
+
+    ## Reference cache ##
+    'cache' => {},    # p7ref -> { resolved, timestamp, hits }
+
+    ## Index for parallel references ##
+    'index' => {
+        'by-checksum' => {},    # checksum -> [p7refs]
+        'by-path'     => {},    # path -> p7ref
+        'by-9p'       => {},    # 9p-address -> [p7refs]
+    },
+
+    ## Stats ##
+    'stats' => {
+        'parsed'   => 0,
+        'resolved' => 0,
+        'cached'   => 0,
+        'failed'   => 0,
+    },
+};
+
+## P7REF syntax regex ##
+$data{'storage'}{'mapping'}{'p7ref'}{'regex'} = {
+
+    # Full P7REF: p7://type:address[@authority][|segment][?query]
+    'full' => qr|^p7://([a-z]+):(.+)$|i,
+
+    # Nested: [...[...]]
+    'nested' => qr|\[([^\]]+)\]|,
+
+    # Segment: |segment|
+    'segment' => qr/\|([^|]+)\|/,
+
+    # Authority: @host:port
+    'authority' => qr|@([^/]+)|,
+
+    # Query: ?key=value&...
+    'query' => qr|\?(.+)$|,
+};
+
+<[base.logs]>->("P7REF storage mapping initialized v1.0");
+
+0;
+
+#,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,
+
+#,,..,..,,,.,,.,,,,,,,.,.,.,,,,.,,..,,,,.,,,.,..,,...,...,..,,,..,..,,,.,,,,.,
+#4SQ6HVDIDDTQJD3GNYBHQNDXGEN2QBOAYCLUTFMSGTTQB4XOJWDUXNPZCUWYQEI2T4IRKM4VSJE7Q
+#\\\|LEL2VRQ2BR7DEMIBPL4GVBX6VTZYFKKHSA6P5H6X2GZ4GDHN6CH \ / AMOS7 \ YOURUM ::
+#\[7]SZH5JXADZMVRFQV6KX5XBIUOXJXNVGYI6L6O7PRP7TK22XSZM2CQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

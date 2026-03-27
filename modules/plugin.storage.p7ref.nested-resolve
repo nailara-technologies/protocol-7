@@ -1,0 +1,84 @@
+## [:< ##
+# name  = plugin.storage.p7ref.nested-resolve
+# descr = Resolve nested P7REF chains
+
+use strict;
+use warnings;
+
+return sub {
+    my ($args) = @_;
+
+    my $p7ref = $args->{p7ref}
+        or return { 'mode' => 'false', 'data' => 'p7ref required' };
+    my $depth = $args->{depth} // 0;
+
+    return { 'mode' => 'false', 'data' => 'Nesting too deep' } if $depth > 10;
+
+    my $parse_res = <[plugin.storage.p7ref.parse]>->( { 'p7ref' => $p7ref } );
+    return $parse_res if $parse_res->{'mode'} eq 'false';
+
+    my $parsed = $parse_res->{'data'};
+    my @nested = @{ $parsed->{'nested'} };
+
+    return { 'mode' => 'false', 'data' => 'No nested references found' }
+        unless @nested;
+
+    # Resolve from outermost to innermost
+    my @chain;
+    my $current_ref = $p7ref;
+
+    # First resolve the base reference
+    my $base_ref = $parsed->{'original'};
+    $base_ref =~ s/\[[^\]]+\]//g;    # Remove nested parts for base
+
+    my $base_res = <[plugin.storage.p7ref.resolve]>->(
+        {   'p7ref' => $base_ref,
+            'depth' => $depth + 1,
+        }
+    );
+
+    push @chain,
+        {
+        'level'    => 0,
+        'p7ref'    => $base_ref,
+        'resolved' => $base_res,
+        };
+
+    # Resolve each nested level
+    for my $i ( 0 .. $#nested ) {
+        my $nested_ref = $nested[$i];
+
+        # Add p7:// prefix if missing
+        $nested_ref = "p7://$nested_ref" unless $nested_ref =~ /^p7:/i;
+
+        my $nested_res = <[plugin.storage.p7ref.resolve]>->(
+            {   'p7ref' => $nested_ref,
+                'depth' => $depth + 1,
+            }
+        );
+
+        push @chain,
+            {
+            'level'    => $i + 1,
+            'p7ref'    => $nested_ref,
+            'resolved' => $nested_res,
+            };
+    }
+
+    return {
+        'mode' => 'true',
+        'data' => {
+            'chain' => \@chain,
+            'depth' => scalar(@chain),
+            'final' => $chain[-1]{'resolved'},
+        }
+    };
+};
+
+#,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,
+
+#,,..,.,.,,,.,..,,,,.,.,,,,,.,...,,,.,.,,,.,.,..,,...,.,.,.,,,.,.,,,,,,..,,..,
+#ZSDVTFV23C4L2FIPINHBPKHQ2NK3ZYLXLHAYQMFUIY33WGO47H5747F6UGIZTUCQ4LPVUNZV3MFWU
+#\\\|FMA7MYT4YCIY3PVIHXBB44OQAD65MFRRKJX4QMYQNF3O6M6XUVN \ / AMOS7 \ YOURUM ::
+#\[7]73TIRKYH64QUCJCFBDXA2BSDR5JN7LNIEXADBNT7HAZCKNZH54BY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

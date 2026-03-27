@@ -1,0 +1,171 @@
+## [:<
+# name  = pager.filter.division-13-harmonic
+# descr = Harmonic filtering using division-13-table entropy protocol
+## >:]
+
+return sub {
+    my ($args) = @_;
+    my $items = $args->{'items'};
+    my $params = $args->{'params'} // {};
+
+    return $items unless @$items > 0;
+
+    my $seed = $params->{'seed'} // 1;
+    my $mode = $params->{'mode'} // 'entropy';  # entropy | routing | payload
+    my $strength = $params->{'strength'} // 0.7;
+
+    # Generate division-13 entropy sequence
+    my @sequence = _generate_d13_sequence($seed, scalar(@$items));
+
+    # Score items based on their relationship to harmonic sequence
+    my @scored;
+    for my $i (0 .. $#$items) {
+        my $item = $items->[$i];
+        my $d13_state = $sequence[$i];
+
+        # Extract item's numeric fingerprint
+        my $item_num = _item_to_number($item);
+
+        # Calculate harmonic alignment
+        my $score = _calculate_harmonic_score($item_num, $d13_state, $mode);
+
+        push @scored, {
+            'item'  => $item,
+            'score' => $score * $strength,
+            'd13'   => $d13_state,
+        };
+    }
+
+    # Sort by harmonic score
+    @scored = sort { $b->{'score'} <=> $a->{'score'} } @scored;
+
+    my @result = map { $_->{'item'} } @scored;
+
+    # Mark with harmonic metadata
+    for my $i (0 .. $#result) {
+        $result[$i]{'_d13_score'} = $scored[$i]{'score'};
+        $result[$i]{'_d13_state'} = $scored[$i]{'d13'}{'full_64'};
+        $result[$i]{'_d13_entropy'} = $scored[$i]{'d13'}{'main_42'};
+    }
+
+    return \@result;
+};
+
+# Generate division-13 harmonic sequence
+sub _generate_d13_sequence {
+    my ($seed, $count) = @_;
+
+    my @sequence;
+    my $Z = $seed;
+    $Z =~ s|\.|| if defined $Z && $Z =~ m|.|;  # Remove floating point
+    $Z //= 1;
+
+    my $iteration = 0;
+    while (@sequence < $count * 2) {  # Generate extra for filtering
+        $iteration++;
+
+        # Core division-13 algorithm
+        $Z <<= 4;
+        $Z /= 13;  # Or: $Z * 11 * 77 / 1001
+
+        # Only keep true states (similar to is_true check)
+        my $num_bits_64 = sprintf('%064b', $Z);
+        my $main_42 = substr($num_bits_64, 0, 42);
+        my $decoded = substr($num_bits_64, 42, 7);
+        my $aux_15 = substr($num_bits_64, 49, 15);
+
+        # Simple truth check (would use AMOS7::Assert::Truth in full impl)
+        my $is_valid = _is_true_state($Z, $main_42);
+
+        push @sequence, {
+            'full_64'   => $Z,
+            'main_42'   => $main_42,
+            'decoded'   => $decoded,
+            'aux_15'    => $aux_15,
+            'iteration' => $iteration,
+        } if $is_valid;
+
+        last if $iteration > $count * 10;  # Safety limit
+    }
+
+    return @sequence[0 .. $count - 1];
+}
+
+# Convert item to numeric representation
+sub _item_to_number {
+    my ($item) = @_;
+
+    if ($item->{'checksum'}) {
+        # Use checksum as number
+        return hex(substr($item->{'checksum'}, 0, 16));
+    }
+    elsif ($item->{'path'}) {
+        # Hash path to number
+        my $hash = <[base.chk-sum.bmw.L13-str]>->($item->{'path'});
+        return hex(substr($hash, 0, 16));
+    }
+    else {
+        # Use all fields
+        my $data = join('', sort map { $item->{$_} // '' } keys %$item);
+        my $hash = <[base.chk-sum.bmw.L13-str]>->($data);
+        return hex(substr($hash, 0, 16));
+    }
+}
+
+# Calculate harmonic alignment score
+sub _calculate_harmonic_score {
+    my ($item_num, $d13_state, $mode) = @_;
+
+    my $d13_num = $d13_state->{'full_64'};
+
+    if ($mode eq 'entropy') {
+        # Score based on entropy pattern similarity
+        my $item_bits = sprintf('%064b', $item_num);
+        my $d13_bits = $d13_state->{'main_42'};
+
+        # Hamming distance on main 42 bits
+        my $distance = 0;
+        for my $i (0 .. 41) {
+            $distance++ if substr($item_bits, $i, 1) ne substr($d13_bits, $i, 1);
+        }
+        return 1.0 - ($distance / 42);
+    }
+    elsif ($mode eq 'routing') {
+        # Score based on routing state alignment
+        my $item_decoded = ($item_num >> 42) & 0x7F;
+        my $d13_decoded = oct('0b' . $d13_state->{'decoded'});
+
+        # Prefer similar routing states
+        my $diff = abs($item_decoded - $d13_decoded);
+        return 1.0 - ($diff / 128);
+    }
+    elsif ($mode eq 'payload') {
+        # Score based on payload capacity
+        my $decoded = $d13_state->{'decoded'};
+        # Prefer BASE32 payload states (010 prefix)
+        return 1.0 if substr($decoded, 0, 3) eq '010';
+        return 0.5 if substr($decoded, 0, 1) eq '1';  # Graphical
+        return 0.2;
+    }
+
+    return 0.5;  # Default neutral
+}
+
+# Simplified true state check
+sub _is_true_state {
+    my ($num, $main_42) = @_;
+    # Would use AMOS7::Assert::Truth::is_true in production
+    # For now, check basic bit balance
+    my $bits = sprintf('%b', $num);
+    my $ones = $bits =~ tr/1//;
+    my $zeros = length($bits) - $ones;
+    return abs($ones - $zeros) < length($bits) * 0.3;  # Roughly balanced
+}
+
+# SPDX-License-Identifier: ISC
+
+#,,,.,.,.,.,.,,..,,,.,..,,.,.,.,,,,.,,,.,,.,.,..,,...,...,.,,,,,,,,..,...,..,,
+#FIM6NWCKHIA2BW7I627G7P3VBT34WXEL7ODODOMDI7TW5OLJ2H7CRLFH7KOQQZH64VAOVD65TMM3E
+#\\\|OVLBUPJC6LOIF4D7VMXZ5OFAVZRRTIF7EFBWMYCLJ43WZHGSHKB \ / AMOS7 \ YOURUM ::
+#\[7]CENGM4T2NROKSQTTAXJ36K6XBVL3CRIPCXKTXQXHYX242AZXKCDA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

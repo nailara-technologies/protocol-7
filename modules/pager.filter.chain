@@ -1,0 +1,68 @@
+## [:<
+# name  = pager.filter.chain
+# descr = Manage filter chains for virtual buffers
+## >:]
+
+return sub {
+    my ($args) = @_;
+
+    my $buffer_id = $args->{'buffer_id'};
+    my $action = $args->{'action'};
+    my $buf = $data{'pager'}{'buffers'}{$buffer_id};
+
+    return undef unless $buf;
+
+    if ($action eq 'add') {
+        my $filter_type = $args->{'type'};
+        my $params = $args->{'params'} // {};
+
+        push @{$buf->{'filters'}}, {
+            'type'   => $filter_type,
+            'params' => $params,
+        };
+
+        # Mark all pages dirty since filter changed
+        <[pager.buffer.page.invalidate_all]>->({ 'buffer' => $buf });
+
+        return scalar(@{$buf->{'filters'}});
+    }
+    elsif ($action eq 'remove') {
+        my $index = $args->{'index'};
+        return undef unless defined $index && $index >= 0 && $index < @{$buf->{'filters'}};
+
+        splice(@{$buf->{'filters'}}, $index, 1);
+        <[pager.buffer.page.invalidate_all]>->({ 'buffer' => $buf });
+        return 1;
+    }
+    elsif ($action eq 'clear') {
+        $buf->{'filters'} = [];
+        <[pager.buffer.page.invalidate_all]>->({ 'buffer' => $buf });
+        return 1;
+    }
+    elsif ($action eq 'list') {
+        return $buf->{'filters'};
+    }
+    elsif ($action eq 'reorder') {
+        my $new_order = $args->{'order'};  # Array of indices
+        return undef unless ref($new_order) eq 'ARRAY';
+
+        my @new_filters;
+        for my $idx (@$new_order) {
+            push @new_filters, $buf->{'filters'}[$idx] if defined $buf->{'filters'}[$idx];
+        }
+
+        $buf->{'filters'} = \@new_filters;
+        <[pager.buffer.page.invalidate_all]>->({ 'buffer' => $buf });
+        return 1;
+    }
+
+    return undef;
+};
+
+# SPDX-License-Identifier: ISC
+
+#,,,.,..,,..,,,.,,,,,,,,,,...,,.,,,,,,,..,...,..,,...,...,...,.,,,,..,..,,,..,
+#GMAUCLOHTKWAH6BDAVZZXEWQPDNEGKVG4JGPFSS7Y6UPGVJ3U64CBM5IHRUP3WLDERRNB6BJGMVSE
+#\\\|G4VKCOOSHA7LJ3QXUL4LLXTZ26NZRZLJ66GKM7LM7KAY7BBC2WH \ / AMOS7 \ YOURUM ::
+#\[7]KTP5LC35RJPU4MHGYWVKKF3RVZIS5EFKQO5R47ZFISPUT3GQOGAQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,0 +1,88 @@
+## [:<
+# name  = pager.view.amos-data-pager-56
+# descr = Integration with bin/amos-data-pager-56 for 56-bit true_int visualization
+## >:]
+
+return sub {
+    my ($args) = @_;
+
+    my $buffer_id = $args->{'buffer_id'};
+    my $buf = $data{'pager'}{'buffers'}{$buffer_id};
+    return undef unless $buf;
+
+    my $start = $args->{'start'} // 0;
+    my $lines = $args->{'lines'} // 20;
+    my $temp_file = $args->{'temp_file'} // "/tmp/pager56-$buffer_id-$$.bin";
+    my $use_true_int = $args->{'true_int'} // 1;  # Color by true_int by default
+
+    # Export current viewport to binary format for amos-data-pager-56
+    my $page_size = $buf->{'pages'}{'size'};
+    my $start_page = int($start / $page_size);
+
+    # Gather items from buffer
+    my @items;
+    for my $page_num ($start_page .. $start_page + 1) {
+        my $page = <[pager.buffer.page.get]>->($buf, $page_num);
+        push @items, @$page if $page;
+    }
+
+    # Convert items to binary representation
+    # 56-bit = 7 bytes per row (perfect for L13 checksums)
+    open(my $fh, '>:raw', $temp_file) or return undef;
+
+    for my $i (0 .. $lines - 1) {
+        my $item = $items[$start + $i - ($start_page * $page_size)];
+        my $bin;
+
+        if ($item && $item->{'checksum'}) {
+            # Decode base32 checksum to binary
+            my $algo = $item->{'algorithm'} // 'bmw';
+
+            if ($algo =~ /bmw-L13/i) {
+                # Direct L13 checksum - perfect 56-bit
+                $bin = <[base.decode.bmw-L13]>->($item->{'checksum'});
+            }
+            else {
+                # Decode and truncate/pad to 7 bytes
+                $bin = <[base.decode.bmw]>->($item->{'checksum'});
+            }
+
+            # Ensure exactly 7 bytes
+            $bin = substr($bin . "\0" x 7, 0, 7);
+        }
+        elsif ($item && $item->{'path'}) {
+            # Encode path as 56-bit L13 fingerprint
+            my $hash = <[base.chk-sum.bmw.L13-str]>->($item->{'path'});
+            $bin = pack('H*', substr($hash, 0, 14));  # 14 hex chars = 7 bytes
+        }
+        else {
+            # Empty row - use zeroes (will show as false in true_int coloring)
+            $bin = "\0" x 7;
+        }
+
+        print $fh $bin;
+    }
+
+    close($fh);
+
+    # Launch amos-data-pager-56
+    my $cmd = "$data{'path'}{'bin'}/amos-data-pager-56 '$temp_file'";
+
+    if ($args->{'async'}) {
+        system("$cmd &");
+        return { 'temp_file' => $temp_file };
+    }
+    else {
+        system($cmd);
+        unlink($temp_file) unless $args->{'keep_temp'};
+        return 1;
+    }
+};
+
+# SPDX-License-Identifier: ISC
+
+#,,.,,,..,,,,,.,.,,,,,,,,,,..,,,.,.,,,,,.,,,.,..,,...,...,,..,..,,,,,,.,.,.,.,
+#NPGN3WZR2AECZDNSK7PVJXMJRLU6IOSGPKT2SBDDU5KR6GT6HUIG35MUDXCNADHFVHT4UZJVCZ4VQ
+#\\\|WC5T6WFXRA6YEUIQ3JPD5EDRUK6MYSZ65EDUDVAALB4CZ2OGMQH \ / AMOS7 \ YOURUM ::
+#\[7]JFUE5LTQHVN4RHNFOUCLY2VGD6YXUH5ZYJ3TFIOR2I53A46OFUAI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
