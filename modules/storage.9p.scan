@@ -1,0 +1,170 @@
+## [:< ##
+# name  = storage.9p.scan
+# descr = Scan 9P filesystem with advanced filtering
+#         Supports: inclusion-add, inclusion-and, exclusion-add, exclusion-and
+#                   + coderef callbacks
+#
+# Filter syntax:
+#   inclusion_add  => [ qr/\.txt$/, qr/\.md$/ ]     # OR match
+#   inclusion_and  => [ qr/doc/, qr/2024/ ]         # AND match
+#   exclusion_add  => [ qr/\.tmp$/, qr/~$/ ]        # OR exclude
+#   exclusion_and  => [ qr/temp/, qr/backup/ ]      # AND exclude
+#   callbacks      => { match => sub {}, reject => sub {} }
+
+use strict;
+use warnings;
+
+return sub {
+    my ($args) = @_;
+    $args //= {};
+
+    my $name = $args->{name}
+        or return { 'mode' => 'false', 'data' => 'name required' };
+    my $path      = $args->{path}      // '/';
+    my $recursive = $args->{recursive} // 1;
+    my $max_depth = $args->{max_depth} // 10;
+
+    # Filter options
+    my $inclusion_add = $args->{inclusion_add} // [];
+    my $inclusion_and = $args->{inclusion_and} // [];
+    my $exclusion_add = $args->{exclusion_add} // [];
+    my $exclusion_and = $args->{exclusion_and} // [];
+    my $callbacks     = $args->{callbacks}     // {};
+
+    # Normalize filters to arrays
+    $inclusion_add = [$inclusion_add] unless ref $inclusion_add eq 'ARRAY';
+    $inclusion_and = [$inclusion_and] unless ref $inclusion_and eq 'ARRAY';
+    $exclusion_add = [$exclusion_add] unless ref $exclusion_add eq 'ARRAY';
+    $exclusion_and = [$exclusion_and] unless ref $exclusion_and eq 'ARRAY';
+
+    my $conn = $data{'storage'}{'9p'}{'connections'}{$name};
+    return { 'mode' => 'false', 'data' => 'not connected' } unless $conn;
+
+    my @results;
+    my $stats = {
+        'scanned'  => 0,
+        'matched'  => 0,
+        'rejected' => 0,
+        'errors'   => 0,
+    };
+
+    # Recursive scan function
+    my $scan_dir;
+    $scan_dir = sub {
+        my ( $dir_path, $fid, $depth ) = @_;
+        return if $depth > $max_depth;
+
+        # Read directory
+        my $entries = <[storage.9p.readdir]>->( $conn, $fid );
+        if ( $entries->{'mode'} eq 'false' ) {
+            $stats->{errors}++;
+            return;
+        }
+
+        for my $entry ( @{ $entries->{'data'} } ) {
+            $stats->{scanned}++;
+
+            my $full_path = $dir_path eq '/' ? "/$entry" : "$dir_path/$entry";
+
+            # Get file info
+            my $stat = <[storage.9p.stat]>->( $conn, $fid, $entry );
+            if ( $stat->{'mode'} eq 'false' ) {
+                $stats->{errors}++;
+                next;
+            }
+
+            my $info = $stat->{'data'};
+            $info->{path} = $full_path;
+
+            # Apply filters
+            my $match = <[storage.9p.filter-check]>->(
+                $full_path,
+                $info,
+                {   inclusion_add => $inclusion_add,
+                    inclusion_and => $inclusion_and,
+                    exclusion_add => $exclusion_add,
+                    exclusion_and => $exclusion_and,
+                    callbacks     => $callbacks,
+                }
+            );
+
+            if ($match) {
+                $stats->{matched}++;
+                push @results, $info;
+
+                # Callback for matched file
+                if ( exists $callbacks->{match}
+                    and ref $callbacks->{match} eq 'CODE' ) {
+                    $callbacks->{match}->($info);
+                }
+            } else {
+                $stats->{rejected}++;
+
+                # Callback for rejected file
+                if ( exists $callbacks->{reject}
+                    and ref $callbacks->{reject} eq 'CODE' ) {
+                    $callbacks->{reject}->($info);
+                }
+            }
+
+            # Recurse into subdirectories
+            if (    $recursive
+                and $info->{qid}{type} & <plan-9.protocol.constants.QTDIR> ) {
+
+                # Walk to subdirectory
+                my $sub_fid = $conn->{next_fid}++;
+                my $walk
+                    = <[storage.9p.walk]>->( $conn, $fid, $sub_fid, $entry );
+
+                if ( $walk->{'mode'} eq 'true' ) {
+                    $scan_dir->( $full_path, $sub_fid, $depth + 1 );
+                    <[storage.9p.clunk]>->( $conn, $sub_fid );
+                }
+            }
+        }
+    };
+
+    # Walk to starting path
+    my @path_parts = grep {length} split m|/|, $path;
+    my $start_fid  = $conn->{next_fid}++;
+
+    if (@path_parts) {
+        my $walk = <[storage.9p.walk]>->(
+            $conn, $conn->{root_fid}, $start_fid, @path_parts
+        );
+        if ( $walk->{'mode'} eq 'false' ) {
+            return {
+                'mode' => 'false',
+                'data' => "cannot walk to $path: $walk->{data}"
+            };
+        }
+    } else {
+        $start_fid = $conn->{root_fid};
+    }
+
+    # Start scanning
+    $scan_dir->( $path, $start_fid, 0 );
+
+    # Cleanup
+    if ( $start_fid != $conn->{root_fid} ) {
+        <[storage.9p.clunk]>->( $conn, $start_fid );
+    }
+
+    <[base.logs]>->(
+        "Storage 9P scan: $stats->{scanned} scanned, $stats->{matched} matched, $stats->{rejected} rejected"
+    );
+
+    return {
+        'mode'  => 'true',
+        'data'  => \@results,
+        'stats' => $stats,
+    };
+};
+
+#,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,
+
+#,,.,,,.,,...,,,.,,.,,,,.,,.,,,..,.,.,..,,.,.,..,,...,...,.,.,..,,,,.,,,,,,,,,
+#2EEPUQ75EFKAHDFEBKZZZWY6TH77KGKLQ4AVXZ2PXTXHC6DBWNXYTKZA745WKUFPUCLFWNOIWE7JK
+#\\\|HRX2SKL6S7RAQXMJKFSUY5X2VV5LDY3BPREWKAOFDLZ577ITTVS \ / AMOS7 \ YOURUM ::
+#\[7]KLAEKJTR3SNVOJNEDWGMMGE4QLQWPBYFFOYN5O7ZGD2CNZGNR6DY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

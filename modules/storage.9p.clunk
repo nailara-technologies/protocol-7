@@ -1,0 +1,33 @@
+## [:< ##
+# name  = storage.9p.clunk
+# descr = Release fid on 9P server
+
+use strict;
+use warnings;
+
+return sub {
+    my ( $conn, $fid ) = @_;
+
+    my $tag = ++$conn->{tag} & 0xFFFF;
+    my $req = <[plan-9.protocol.codec.encode-uint32]>->($fid);
+
+    my $msg = <[plan-9.protocol.codec.encode-message]>->(
+        <plan-9.protocol.constants.Tclunk>,
+        $tag, $req
+    );
+
+    $conn->{socket}->send($msg);
+
+    my $resp = <[storage.9p.read-message]>->( $conn, $tag );
+    delete $conn->{fids}{$fid};
+
+    return $resp;
+};
+
+#,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,
+
+#,,,,,,,,,.,.,,..,.,,,,,.,.,,,,,.,.,,,,.,,,,,,..,,...,...,...,,,.,,..,,..,,..,
+#GLLDPXQVCMMKQNCE3HWMA4GXHBDT4D7FP26EER3FAW5G5CQGJ5LKELQO6GESYHV26HIG2OTSHUWIK
+#\\\|SVKT4LXLC3TXZPDV4IZAOCT4J2AHNGIWZ7U6KGYYRLKIY7C3NHM \ / AMOS7 \ YOURUM ::
+#\[7]LJEXHO7YX7FCT5U5FKPGKNOWZDMVZGM7K3OYW6OQBRRBQAYPLKAI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

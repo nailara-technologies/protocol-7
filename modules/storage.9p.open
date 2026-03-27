@@ -1,0 +1,46 @@
+## [:< ##
+# name  = storage.9p.open
+# descr = Open file/directory on 9P
+
+use strict;
+use warnings;
+
+return sub {
+    my ( $conn, $fid, $mode ) = @_;
+    $mode //= 0;    # OREAD
+
+    my $tag = ++$conn->{tag} & 0xFFFF;
+
+    my $req = <[plan-9.protocol.codec.encode-uint32]>->($fid)
+        . <[plan-9.protocol.codec.encode-uint8]>->($mode);
+
+    my $msg = <[plan-9.protocol.codec.encode-message]>->(
+        <plan-9.protocol.constants.Topen>,
+        $tag, $req
+    );
+
+    $conn->{socket}->send($msg);
+
+    my $resp = <[storage.9p.read-message]>->( $conn, $tag );
+    return $resp if $resp->{'mode'} eq 'false';
+
+    my $data = $resp->{'data'};
+    my ( $qid_type, $qid_version, $qid_path )
+        = <[plan-9.protocol.codec.decode-qid]>->( substr( $data, 0, 13 ) );
+    my $iounit
+        = <[plan-9.protocol.codec.decode-uint32]>->( substr( $data, 13, 4 ) );
+
+    $conn->{fids}{$fid}{open}   = 1;
+    $conn->{fids}{$fid}{omode}  = $mode;
+    $conn->{fids}{$fid}{iounit} = $iounit;
+
+    return { 'mode' => 'true', 'data' => $iounit };
+};
+
+#,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,
+
+#,,..,,.,,,,.,,,.,.,,,..,,..,,,..,...,,..,.,.,..,,...,...,.,,,..,,,.,,.,.,,.,,
+#NJRUJDJFAU5CFIDSG23DRAAAJUCBISFTGMKV2A2DM2FPCEN56KKJUDHSAUB3PX5ENB6BV6STQXI2M
+#\\\|UYF4ZNFYMTFWW623AXTUHOOJPQQY3EUJN3EQJ5A7AQK5VTNBBHS \ / AMOS7 \ YOURUM ::
+#\[7]UNV3WMG3TR67ZUGCKJVH2B7AEVSYVULH7D7TQPSRNW3QJR6DOUCA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

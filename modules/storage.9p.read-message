@@ -1,0 +1,67 @@
+## [:< ##
+# name  = storage.9p.read-message
+# descr = Read 9P message for storage
+
+use strict;
+use warnings;
+
+return sub {
+    my ( $conn, $expect_tag ) = @_;
+
+    my $socket = $conn->{socket};
+    my $header = '';
+
+    # Read 4-byte size
+    while ( length($header) < 4 ) {
+        my $buf = '';
+        my $n   = $socket->sysread( $buf, 4 - length($header) );
+        return { 'mode' => 'false', 'data' => 'connection closed' }
+            if not defined $n or $n == 0;
+        $header .= $buf;
+    }
+
+    my $size = <[plan-9.protocol.codec.decode-uint32]>->($header);
+    my $body = '';
+
+    while ( length($body) < $size - 4 ) {
+        my $buf = '';
+        my $n   = $socket->sysread( $buf, $size - 4 - length($body) );
+        return { 'mode' => 'false', 'data' => 'connection closed' }
+            if not defined $n or $n == 0;
+        $body .= $buf;
+    }
+
+    my $type
+        = <[plan-9.protocol.codec.decode-uint8]>->( substr( $body, 0, 1 ) );
+    my $tag
+        = <[plan-9.protocol.codec.decode-uint16]>->( substr( $body, 1, 2 ) );
+    my $data = substr( $body, 3 );
+
+    if ( $type == <plan-9.protocol.constants.Rerror> ) {
+        my ( $error, $rest )
+            = <[plan-9.protocol.codec.decode-string]>->($data);
+        return { 'mode' => 'false', 'data' => $error };
+    }
+
+    if ( defined $expect_tag and $tag != $expect_tag ) {
+        return {
+            'mode' => 'false',
+            'data' => "tag mismatch: expected $expect_tag, got $tag"
+        };
+    }
+
+    return {
+        'mode' => 'true',
+        'type' => $type,
+        'tag'  => $tag,
+        'data' => $data
+    };
+};
+
+#,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,
+
+#,,,,,.,.,.,,,,..,...,.,,,..,,..,,,,,,.,.,,..,..,,...,...,,..,...,..,,,,.,,.,,
+#ULXLYSHTSDFK2GWUN2EILFQQTJPOEWBV7A7RLHX4XPOSOWBCDRPH3FV3OW4PQXCUFBBQWGDQIAVLG
+#\\\|TOILBHE7U4MDSM5ZOWLDX7WBWZBJ7EFD5TSCVFQJTZ6CSTPLCNG \ / AMOS7 \ YOURUM ::
+#\[7]MKNFBIZHTCPIFTVAPC37LWX5XWX7GT5CUH35F3HMBIYKPEC22YAI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

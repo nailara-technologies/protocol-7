@@ -1,0 +1,108 @@
+## [:< ##
+# name  = storage.9p.stat
+# descr = Stat file/directory in 9P
+
+use strict;
+use warnings;
+
+return sub {
+    my ( $conn, $fid, $name ) = @_;
+
+    # Walk to target if name provided
+    my $target_fid = $fid;
+    if ( defined $name and length $name ) {
+        $target_fid = $conn->{next_fid}++;
+        my $walk = <[storage.9p.walk]>->( $conn, $fid, $target_fid, $name );
+        if ( $walk->{'mode'} eq 'false' ) {
+            return $walk;
+        }
+    }
+
+    my $tag = ++$conn->{tag} & 0xFFFF;
+    my $req = <[plan-9.protocol.codec.encode-uint32]>->($target_fid);
+
+    my $msg = <[plan-9.protocol.codec.encode-message]>->(
+        <plan-9.protocol.constants.Tstat>,
+        $tag, $req
+    );
+
+    $conn->{socket}->send($msg);
+
+    my $resp = <[storage.9p.read-message]>->( $conn, $tag );
+
+    # Cleanup temporary fid
+    if ( defined $name and length $name and $target_fid != $fid ) {
+        <[storage.9p.clunk]>->( $conn, $target_fid );
+    }
+
+    return $resp if $resp->{'mode'} eq 'false';
+
+    my $data = $resp->{'data'};
+    my $stat_size
+        = <[plan-9.protocol.codec.decode-uint16]>->( substr( $data, 0, 2 ) );
+    my $stat_data = substr( $data, 2, $stat_size );
+
+    # Parse stat structure
+    my $pos  = 2;
+    my $type = <[plan-9.protocol.codec.decode-uint16]>
+        ->( substr( $stat_data, $pos, 2 ) );
+    $pos += 2;
+    my $dev = <[plan-9.protocol.codec.decode-uint32]>
+        ->( substr( $stat_data, $pos, 4 ) );
+    $pos += 4;
+
+    my ( $qid_type, $qid_version, $qid_path )
+        = <[plan-9.protocol.codec.decode-qid]>
+        ->( substr( $stat_data, $pos, 13 ) );
+    $pos += 13;
+
+    my $mode = <[plan-9.protocol.codec.decode-uint32]>
+        ->( substr( $stat_data, $pos, 4 ) );
+    $pos += 4;
+    my $atime = <[plan-9.protocol.codec.decode-uint32]>
+        ->( substr( $stat_data, $pos, 4 ) );
+    $pos += 4;
+    my $mtime = <[plan-9.protocol.codec.decode-uint32]>
+        ->( substr( $stat_data, $pos, 4 ) );
+    $pos += 4;
+    my $length = <[plan-9.protocol.codec.decode-uint64]>
+        ->( substr( $stat_data, $pos, 8 ) );
+    $pos += 8;
+
+    my ( $fname, $rest )
+        = <[plan-9.protocol.codec.decode-string]>
+        ->( substr( $stat_data, $pos ) );
+    $pos = length($stat_data) - length($rest);
+    my ( $uid,  $rest2 ) = <[plan-9.protocol.codec.decode-string]>->($rest);
+    my ( $gid,  $rest3 ) = <[plan-9.protocol.codec.decode-string]>->($rest2);
+    my ( $muid, $rest4 ) = <[plan-9.protocol.codec.decode-string]>->($rest3);
+
+    return {
+        'mode' => 'true',
+        'data' => {
+            'type' => $type,
+            'dev'  => $dev,
+            'qid'  => {
+                'type'    => $qid_type,
+                'version' => $qid_version,
+                'path'    => $qid_path
+            },
+            'mode'   => $mode,
+            'atime'  => $atime,
+            'mtime'  => $mtime,
+            'length' => $length,
+            'name'   => $fname,
+            'uid'    => $uid,
+            'gid'    => $gid,
+            'muid'   => $muid,
+        }
+    };
+};
+
+#,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,
+
+#,,.,,,.,,..,,.,.,..,,,,,,,..,,.,,,..,.,,,,.,,..,,...,...,,..,.,,,,,.,,,,,,,.,
+#FJEXDM6OUD2JT3P4GIAIVJEF742QYLHOSVLDEIYIM6Y4K3CIBBL6IGWQKV3ZEVYLMNYLX7BZYBMPW
+#\\\|CXNWWDB73NMEDVGZMYWLEZZMP6LDYH6R3M455IMQGJLTCTD6PLQ \ / AMOS7 \ YOURUM ::
+#\[7]FZ7KHXHZYZWZX5NDBHTQGTD3ZGV7MUSVTR4ASTKDMAKZMR7SQIBI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

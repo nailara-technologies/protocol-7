@@ -1,0 +1,49 @@
+## [:< ##
+# name  = storage.9p.version
+# descr = 9P version negotiation for storage
+
+use strict;
+use warnings;
+
+return sub {
+    my ($conn) = @_;
+
+    my $tag     = ++$conn->{tag} & 0xFFFF;
+    my $msize   = 8192;
+    my $version = '9P2000';
+
+    my $req = <[plan-9.protocol.codec.encode-uint32]>->($msize)
+        . <[plan-9.protocol.codec.encode-string]>->($version);
+
+    my $msg = <[plan-9.protocol.codec.encode-message]>->(
+        <plan-9.protocol.constants.Tversion>,
+        $tag, $req
+    );
+
+    $conn->{socket}->send($msg);
+
+    my $resp = <[storage.9p.read-message]>->( $conn, $tag );
+    return $resp if $resp->{'mode'} eq 'false';
+
+    my $data = $resp->{'data'};
+    my $r_msize
+        = <[plan-9.protocol.codec.decode-uint32]>->( substr( $data, 0, 4 ) );
+    my ( $r_version, $rest )
+        = <[plan-9.protocol.codec.decode-string]>->( substr( $data, 4 ) );
+
+    if ( $r_version ne '9P2000' ) {
+        return { 'mode' => 'false', 'data' => 'version mismatch' };
+    }
+
+    $conn->{msize} = $r_msize < $msize ? $r_msize : $msize;
+
+    return { 'mode' => 'true', 'data' => $conn->{msize} };
+};
+
+#,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,
+
+#,,,,,,..,,,.,,,.,.,.,...,,,,,.,.,.,.,,,.,,..,..,,...,..,,...,,,.,.,.,..,,..,,
+#MVOBMI4FGNH2XVUGRCJJQGQNAQ5HZM4DSDMDIA2QYPEBJ3BNJF44MDPQNTEPO3L44SZ4BB3ABHA2O
+#\\\|WJIXYVTO6XCYYBBO3QWETMKSENOIFK6IWUYPQFIXA2LA736PUQ5 \ / AMOS7 \ YOURUM ::
+#\[7]BJGRXR327QWDPBIRH3WGLNV6DQGD3LCM5QQNEBJ7XMEIUIBIGAAY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

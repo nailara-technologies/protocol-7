@@ -1,0 +1,55 @@
+## [:< ##
+# name  = storage.9p.attach
+# descr = 9P attach for storage connection
+
+use strict;
+use warnings;
+
+return sub {
+    my ( $conn, $aname ) = @_;
+    $aname //= '';
+
+    my $fid  = $conn->{root_fid};
+    my $afid = 0xFFFFFFFF;
+    my $tag  = ++$conn->{tag} & 0xFFFF;
+
+    my $req
+        = <[plan-9.protocol.codec.encode-uint32]>->($fid)
+        . <[plan-9.protocol.codec.encode-uint32]>->($afid)
+        . <[plan-9.protocol.codec.encode-string]>->( $conn->{uname} )
+        . <[plan-9.protocol.codec.encode-string]>->($aname);
+
+    my $msg = <[plan-9.protocol.codec.encode-message]>->(
+        <plan-9.protocol.constants.Tattach>,
+        $tag, $req
+    );
+
+    $conn->{socket}->send($msg);
+
+    my $resp = <[storage.9p.read-message]>->( $conn, $tag );
+    return $resp if $resp->{'mode'} eq 'false';
+
+    my $data = $resp->{'data'};
+    my ( $qid_type, $qid_version, $qid_path )
+        = <[plan-9.protocol.codec.decode-qid]>->( substr( $data, 0, 13 ) );
+
+    $conn->{fids}{$fid} = {
+        'type' => 'root',
+        'qid'  => {
+            'type'    => $qid_type,
+            'version' => $qid_version,
+            'path'    => $qid_path
+        },
+        'path' => '/',
+    };
+
+    return { 'mode' => 'true', 'data' => $fid };
+};
+
+#,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,
+
+#,,,.,,,,,,,,,...,.,.,,..,,,,,,,.,...,,.,,.,,,..,,...,...,,..,..,,,.,,,.,,,,,,
+#L75PE52ZDD6VQHWCINKK2OM76U7UJF752BTE4ZEUPSCXV5SGOY67BNONX3WHCI4WNBOIT3E55LOKC
+#\\\|YNUHSFVMWKOBGYNH5MNS5MKQEJYJOPMYTNMUU5IWFI5IELSIM7N \ / AMOS7 \ YOURUM ::
+#\[7]L74742ULSPTQBVVLF73XPFEWFPG4QWKED5XWU2YAL5P5LVXGKSBY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
