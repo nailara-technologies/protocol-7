@@ -624,6 +624,7 @@ data/md/design/CHECKSUM-CLUSTER-MAP.md
 - `data/md/handover/KIMI-NEXT-STEPS-2026-03-25.md` — In-flight ideas, pending work, architectural questions (97% tokens, 99h to reset)
 - `data/md/handover/LOCAL-LLM-INTEGRATION-2026-03-25.md` — Path to making local LLMs useful for review/coding
 - `data/md/design/CONTEXT-AWARENESS-TREE.md` — Network-wide parallel consciousness via summary trees
+- `data/md/design/CONTEXT-AWARENESS-TREE-TEMPORAL.md` — Temporal symmetry (past/future mirror, forming concepts, emergent clusters)
 
 ---
 
