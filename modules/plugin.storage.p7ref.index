@@ -1,0 +1,60 @@
+## [:< ##
+# name  = plugin.storage.p7ref.index
+# descr = Index P7REF for parallel reference tracking
+
+use strict;
+use warnings;
+
+return sub {
+    my ($args) = @_;
+
+    my $p7ref = $args->{p7ref}
+        or return { 'mode' => 'false', 'data' => 'p7ref required' };
+    my $metadata = $args->{metadata} // {};
+
+    my $registry = $data{'storage'}{'mapping'}{'p7ref'};
+    my $index    = $registry->{'index'};
+
+    # Parse to extract components
+    my $parse_res = <[plugin.storage.p7ref.parse]>->( { 'p7ref' => $p7ref } );
+    return $parse_res if $parse_res->{'mode'} eq 'false';
+
+    my $parsed = $parse_res->{'data'};
+
+    # Index by type-specific keys
+    if ( $parsed->{'type'} eq 'checksum' ) {
+        my $checksum = $parsed->{'address'};
+        $index->{'by-checksum'}{$checksum} //= [];
+        push @{ $index->{'by-checksum'}{$checksum} }, $p7ref
+            unless grep { $_ eq $p7ref }
+            @{ $index->{'by-checksum'}{$checksum} };
+    } elsif ( $parsed->{'type'} eq '9p' ) {
+        my $key = ( $parsed->{'authority'} // 'localhost:5640' )
+            . $parsed->{'address'};
+        $index->{'by-9p'}{$key} //= [];
+        push @{ $index->{'by-9p'}{$key} }, $p7ref
+            unless grep { $_ eq $p7ref } @{ $index->{'by-9p'}{$key} };
+    } elsif ( $parsed->{'type'} eq 'path' ) {
+        $index->{'by-path'}{ $parsed->{'address'} } = $p7ref;
+    }
+
+    # Store metadata
+    $registry->{'cache'}{$p7ref}{'metadata'} = $metadata;
+
+    return {
+        'mode' => 'true',
+        'data' => {
+            'indexed' => 1,
+            'type'    => $parsed->{'type'},
+            'p7ref'   => $p7ref,
+        }
+    };
+};
+
+#,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,
+
+#,,,,,.,.,..,,,..,,,,,.,.,.,.,,..,,,.,,,,,.,.,..,,...,...,...,.,,,.,,,.,,,,,,,
+#5DDTOZK3DGLMSECUX3NXHDPOLQKUPBO76Y2Y7QZ3K7VXOFATMNA3KU26ZEGJSLY7QWLM6HIZMPSNQ
+#\\\|IPY6WER5AOOPXX3LQJ3664JIMZ6IKPIPQRCVBXYMCKRVTIZ2IJV \ / AMOS7 \ YOURUM ::
+#\[7]WLRLRAKUNKKYUYU4E33VE7LKEEI5JYLYHC27E6UDYT5MCHOUOYDY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

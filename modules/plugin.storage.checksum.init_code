@@ -18,21 +18,32 @@ $data{'storage'}{'mapping'}{'checksum'} = {
     },
 };
 
-## Default algorithm priority ##
+## Available BMW checksum algorithms ##
 $data{'storage'}{'mapping'}{'checksum'}{'algorithms'} = {
-    'bmw'    => { 'priority' => 1, 'bits' => 224 },    # BMW-224 (fast)
-    'sha256' => { 'priority' => 2, 'bits' => 256 },    # SHA-256 (standard)
-    'bmw512' => { 'priority' => 3, 'bits' => 512 },    # BMW-512 (secure)
+
+    # Standard file checksums
+    'bmw'     => { 'priority' => 1, 'module' => 'base.chk-sum.bmw.filesum' },
+    'bmw-224' => { 'priority' => 2, 'module' => 'base.chk-sum.bmw.224.B32' },
+    'bmw-512' => { 'priority' => 3, 'module' => 'base.chk-sum.bmw.512_32' },
+
+    # L13 for @INDEXCUBE integration
+    'bmw-L13' => { 'priority' => 4, 'module' => 'base.chk-sum.bmw.L13-str' },
+    'bmw-L13-b32' =>
+        { 'priority' => 5, 'module' => 'base.chk-sum.bmw.str-b32.L13' },
+
+    # AMOS checksums
+    'amos' => { 'priority' => 6, 'module' => 'base.chk-sum.amos' },
 };
 
-<[base.logs]>->("Storage mapping plugin initialized: checksum");
+<[base.logs]>
+    ->("Storage mapping plugin initialized: checksum (BMW/AMOS/L13)");
 
-0;    # Init code returns 0 or true
+0;
 
 #,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,
 
-#,,.,,,..,,..,,.,,.,.,.,.,,,,,,,,,,,,,..,,...,..,,...,...,..,,.,,,,,.,,..,...,
-#JDIUO2W5YEVOWTBETC46FVZACOMQHEPZLMLSRE6I3FK3QMUXJLI4TS4X3QFS7C3GEVEBKYKHC3TWO
-#\\\|HVYZ5KGD4M623YKUALSVPL5ITHVOI4XDI7WXXLGIIBTHODOS3IS \ / AMOS7 \ YOURUM ::
-#\[7]MBLBPWHEVRXOJASTM6INTSQ7VTCCA3KWKQXRTHUFOI3CHCPVMYAA 7  DATA SIGNATURE ::
+#,,.,,.,,,.,,,...,..,,,..,,.,,.,,,,,.,,,,,.,,,..,,...,.,,,,,,,,,,,,.,,..,,,,.,
+#GSAYVHJHNV3GA625QKUIDZZPTGSUDRGMVAZI2GR5IQFLID4PWM3XWB66SH6KNG4A4ZRJW2W7IXDEY
+#\\\|UDJSSKR3EIUSRGL6URKM3XBYKVXIJ4AGWCMK7NY2HWZT2LF7DC7 \ / AMOS7 \ YOURUM ::
+#\[7]5ETFRZNVOAXA4TSJEQVM4OUNPEW4WZSXFQ5XCTJFBRS2ZLKFOOCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

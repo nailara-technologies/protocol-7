@@ -1,0 +1,105 @@
+## [:< ##
+# name  = plugin.storage.checksum.cluster.create
+# descr = Create a new checksum cluster
+
+use strict;
+use warnings;
+
+return sub {
+    my ($args) = @_;
+
+    my $checksum = $args->{'checksum'};  # Primary checksum (cluster ID)
+    my $type = $args->{'type'} // 'proximity';
+    my $members = $args->{'members'} // [];  # Arrayref of related checksums
+    my $metadata = $args->{'metadata'} // {};
+
+    return { 'mode' => 'false', 'data' => 'checksum required' } unless $checksum;
+
+    my $registry = $data{'storage'}{'mapping'}{'checksum-cluster'};
+
+    # Normalize checksum format
+    $checksum = _normalize_checksum($checksum);
+
+    # Check if cluster already exists
+    if (exists $registry->{'clusters'}{$checksum}) {
+        return {
+            'mode' => 'false',
+            'data' => 'cluster already exists',
+            'p7ref' => "p7://checksum-cluster:$checksum",
+        };
+    }
+
+    # Validate member checksums
+    my @valid_members = grep { defined && length } @$members;
+    @valid_members = map { _normalize_checksum($_) } @valid_members;
+
+    # Remove self-reference if present
+    @valid_members = grep { $_ ne $checksum } @valid_members;
+
+    # Use shared empty arrayref if no members (memory optimization)
+    my $member_array;
+    if (@valid_members == 0 && $registry->{'config'}{'compress_empty'}) {
+        $member_array = $registry->{'_empty_array'};
+        $registry->{'stats'}{'memory_shared'} += 24;  # Approximate array overhead
+    }
+    else {
+        $member_array = \@valid_members;
+    }
+
+    # Create cluster
+    my $cluster = {
+        'id'       => $checksum,
+        'type'     => $type,
+        'members'  => $member_array,
+        'metadata' => $metadata,
+        'p7ref'    => "p7://checksum-cluster:$checksum",
+        'created'  => time(),
+        'updated'  => time(),
+    };
+
+    $registry->{'clusters'}{$checksum} = $cluster;
+    $registry->{'by_type'}{$type}{$checksum} = 1;
+    $registry->{'stats'}{'clusters_created'}++;
+    $registry->{'stats'}{'members_added'} += scalar(@valid_members);
+
+    # Update reverse index
+    if ($registry->{'config'}{'index_reverse'}) {
+        for my $member (@valid_members) {
+            $registry->{'index'}{$member} = $checksum;
+        }
+    }
+
+    # Cache P7REF
+    $registry->{'p7ref_cache'}{$checksum} = $cluster->{'p7ref'};
+
+    return {
+        'mode' => 'true',
+        'data' => {
+            'cluster_id' => $checksum,
+            'p7ref'      => $cluster->{'p7ref'},
+            'member_count' => scalar(@valid_members),
+        }
+    };
+};
+
+# Normalize checksum to standard format
+sub _normalize_checksum {
+    my ($checksum) = @_;
+    return undef unless defined $checksum;
+
+    # Remove whitespace
+    $checksum =~ s|\s+||g;
+
+    # Ensure algorithm prefix if not present
+    if ($checksum !~ m|^[a-z0-9-]+:|i) {
+        $checksum = "bmw-L13:$checksum";
+    }
+
+    return lc($checksum);
+}
+
+#,,,.,,,,,...,...,,,.,...,...,..,,.,.,...,.,.,.,.,...,..,,..,,,..,,,.,,,,,..,,
+#HXFUX6OW2VQBYDNGC536JCRYY6DWB3TQ3H4FCTUFMR3YXBZTGLLGRLRO4YYYTNESAG6V6MQ2UDA56
+#\\\|ZI752YGNHP3U75ZD6HMYZO2HF3J7T5XHTMT77I6SYHT7L6PI3LK \ / AMOS7 \ YOURUM ::
+#\[7]OOITOYLZNA7BJCTHVGAWMJJYALBPFMYG2GV7DFQT4ABGNJ6RZ2DA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,0 +1,43 @@
+## [:<
+# name  = pager.buffer.page
+# descr = Page operations for virtual buffers
+## >:]
+
+return sub {
+    my ($args) = @_;
+
+    my $buffer_id = $args->{'buffer_id'};
+    my $op = $args->{'operation'};
+    my $buf = $data{'pager'}{'buffers'}{$buffer_id};
+
+    return undef unless $buf;
+
+    if ($op eq 'get') {
+        my $page_num = $args->{'page_num'} // 0;
+        return <[pager.buffer.page.get]>->($buf, $page_num);
+    }
+    elsif ($op eq 'invalidate') {
+        my $page_num = $args->{'page_num'};
+        return <[pager.buffer.page.invalidate]>->($buf, $page_num);
+    }
+    elsif ($op eq 'invalidate_all') {
+        return <[pager.buffer.page.invalidate_all]>->($buf);
+    }
+    elsif ($op eq 'stats') {
+        return $buf->{'stats'};
+    }
+    elsif ($op eq 'resize') {
+        my $new_size = $args->{'page_size'};
+        return <[pager.buffer.page.resize]>->($buf, $new_size);
+    }
+
+    return undef;
+};
+
+# SPDX-License-Identifier: ISC
+
+#,,,.,,.,,,.,,,..,...,..,,,.,,,,,,...,.,.,,,.,..,,...,...,.,.,..,,.,.,,.,,.,.,
+#SJ4APDTOGAMTHLSFGEKSZEMMDJ5GCHPLV2ZJLEHL7UFSUNXGUEDFVHGKP6VH6HN4QDYG2OUX76TEE
+#\\\|JPY7JWIUIQYWLXRRNKCPLV4CDP6BKJEKYURKAM7XXSTE4ER3BAX \ / AMOS7 \ YOURUM ::
+#\[7]KKCZMMXBXLQFKV6ODHFZ7JNBXNKOR6MIYQLQMELLGBRCSLFPZAAY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

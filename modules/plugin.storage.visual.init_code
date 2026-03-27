@@ -1,0 +1,103 @@
+## [:< ##
+# name  = plugin.storage.visual.init_code
+# descr = Initialize visual mapping system for storage harmonization
+
+use strict;
+use warnings;
+
+## Visual mapping registry ##
+$data{'storage'}{'mapping'}{'visual'} = {
+    'enabled' => 1,
+    'version' => '0.1',
+
+    ## Float extraction layer configs ##
+    'layers' => {
+        'intrinsic' => {
+            'enabled' => 1,
+            'metrics' =>
+                [qw| entropy path_depth ref_count access_freq size_log |],
+        },
+        'temporal' => {
+            'enabled' => 1,
+            'metrics' => [qw| age velocity decay time_pref |],
+        },
+        'network' => {
+            'enabled' => 1,
+            'metrics' => [qw| hops bandwidth reliability centrality |],
+        },
+        'L13' => {
+            'enabled' => 1,    # For @INDEXCUBE integration
+            'metrics' => [qw| L13_x L13_y L13_z |],
+        },
+    },
+
+    ## Proximity calculation methods ##
+    'proximity_methods' => {
+        'checksum' => { 'weight' => 0.4, 'impl' => 'hamming' },
+        'path'     => { 'weight' => 0.3, 'impl' => 'levenshtein' },
+        'semantic' => { 'weight' => 0.2, 'impl' => 'segment_overlap' },
+        'temporal' => { 'weight' => 0.1, 'impl' => 'time_proximity' },
+    },
+
+    ## Harmonization workflow registry ##
+    'workflows' => {},
+
+    ## Visual space cache ##
+    'coordinates' => {},    # p7ref -> { x, y, z, ... }
+
+    ## Graph cache ##
+    'graphs' => {},
+
+    ## Stats ##
+    'stats' => {
+        'refs_processed'  => 0,
+        'graphs_rendered' => 0,
+        'workflows_run'   => 0,
+    },
+};
+
+## Pre-defined workflows ##
+$data{'storage'}{'mapping'}{'visual'}{'workflows'} = {
+    'dedup-hot-files' => {
+        'desc'  => 'Find and prioritize frequently accessed duplicates',
+        'steps' => [
+            { 'filter' => 'proximity-cluster', 'threshold' => 0.05 },
+            { 'filter' => 'sort', 'by' => 'access_frequency', 'desc' => 1 },
+            {   'filter'     => 'threshold',
+                'percentile' => 0.10,
+                'action'     => 'prioritize-cache'
+            },
+        ],
+    },
+    'migrate-cold-storage' => {
+        'desc'  => 'Move old, rarely accessed files to 9P cold storage',
+        'steps' => [
+            { 'filter' => 'temporal', 'older_than_days' => 90 },
+            { 'filter' => 'sort', 'by' => 'access_frequency', 'desc' => 0 },
+            {   'filter'     => 'threshold',
+                'percentile' => 0.20,
+                'action'     => 'migrate-to-9p'
+            },
+        ],
+    },
+    'indexcube-cluster' => {
+        'desc'  => 'Cluster by L13 coordinates for INDEXCUBE visualization',
+        'steps' => [
+            { 'filter' => 'extract',    'layer'  => 'L13' },
+            { 'filter' => 'cluster-3d', 'radius' => 0.1 },
+            { 'filter' => 'render',     'mode'   => 'sphere-cloud' },
+        ],
+    },
+};
+
+<[base.logs]>->("Visual mapping plugin initialized v0.1");
+
+0;
+
+#,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,
+
+#,,,,,,,,,,..,,.,,..,,.,.,..,,,,.,,,.,.,.,,,,,..,,...,..,,...,..,,,.,,,.,,,.,,
+#YEM7DQYALCUL5FJG4VZCYRPNEHX7EOJ63JPRVELGTXMESX5GHLBJED2LYEOTW7VTJWOI6S6KXZY2I
+#\\\|RWP7ZAACPI4K2BOF4OD4ALIWSQNFGXMENEULHX5PE7AV4LFDB6F \ / AMOS7 \ YOURUM ::
+#\[7]7F7ZRGTFP3RPHFWUUXJSV6IZ53HGWLVF4SLIBDAXSZRP4JUJOWBI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

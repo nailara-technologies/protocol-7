@@ -14,6 +14,11 @@ return sub {
 
     my $registry = $data{'storage'}{'mapping'}{'checksum'};
 
+    # Validate algorithm
+    my $algo_info = $registry->{'algorithms'}{$algorithm};
+    return { 'mode' => 'false', 'data' => "Unknown algorithm: $algorithm" }
+        unless $algo_info;
+
     # Check cache first
     if ( exists $registry->{'cache'}{$path} ) {
         my $cached = $registry->{'cache'}{$path};
@@ -38,14 +43,34 @@ return sub {
     return { 'mode' => 'false', 'data' => 'file not found' } unless -f $path;
 
     my $checksum;
+
+    # Dispatch to correct BMW/AMOS checksum module
     if ( $algorithm eq 'bmw' ) {
-        $checksum = <[base.chk-sum.bmw.file]>->($path);
-    } elsif ( $algorithm eq 'sha256' ) {
-        $checksum = <[crypt.sha256.file]>->($path);
+        $checksum = <[base.chk-sum.bmw.filesum]>->($path);
+    } elsif ( $algorithm eq 'bmw-224' ) {
+        $checksum = <[base.chk-sum.bmw.224.B32]>->($path);
+    } elsif ( $algorithm eq 'bmw-512' ) {
+        $checksum = <[base.chk-sum.bmw.512_32]>->($path);
+    } elsif ( $algorithm eq 'bmw-L13' ) {
+
+        # For L13, we need to read file content as string
+        open my $fh, '<:raw', $path
+            or return { 'mode' => 'false', 'data' => 'cannot read file' };
+        my $content = do { local $/; <$fh> };
+        close $fh;
+        $checksum = <[base.chk-sum.bmw.L13-str]>->($content);
+    } elsif ( $algorithm eq 'bmw-L13-b32' ) {
+        open my $fh, '<:raw', $path
+            or return { 'mode' => 'false', 'data' => 'cannot read file' };
+        my $content = do { local $/; <$fh> };
+        close $fh;
+        $checksum = <[base.chk-sum.bmw.str-b32.L13]>->($content);
+    } elsif ( $algorithm eq 'amos' ) {
+        $checksum = <[base.chk-sum.amos]>->($path);
     } else {
         return {
             'mode' => 'false',
-            'data' => "Unknown algorithm: $algorithm"
+            'data' => "Algorithm handler not implemented: $algorithm"
         };
     }
 
@@ -83,8 +108,8 @@ return sub {
 
 #,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,
 
-#,,.,,..,,,.,,...,..,,..,,..,,.,,,.,,,..,,,.,,..,,...,...,,..,,..,,,.,.,,,...,
-#GZUGJ2VKE4XQTG7OFBO4SA5SRYJOOA65YXSLNV34NLAAVDE4LPTETWOIHMUHEOZXNW6S6IIVHTQJQ
-#\\\|VCWKVLHKFG3ZLYHZR6WKNCYFGV25BMFB7U3TMUCNV3HYXND4QYU \ / AMOS7 \ YOURUM ::
-#\[7]K6H3TAJVZITT7RRCJMIHK3C2MZB4GFP4YYWBMTQ3WSR77APFXIAY 7  DATA SIGNATURE ::
+#,,,.,...,,,.,,,.,,,,,,,,,,,,,,,,,.,.,,,.,,..,..,,...,...,...,...,..,,.,.,,,.,
+#QDLHJZJIRCGQM76H7XGXIPU46Q2N6IYPV7RIBA2CKVFNCXY6AN2SHVIC3VN5MRCGA3ESBHFOZNNMK
+#\\\|RL6YXFVULOBS753RN4J2SAMWERKWIAUHD3BVHOF4H5MKYZH4V6X \ / AMOS7 \ YOURUM ::
+#\[7]BYLEMGJVXMUU7Q6VFF5G4V7YOAXZ4JJ4IC2H62BCHGBQVTOHFMDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

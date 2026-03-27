@@ -351,3 +351,266 @@ data/yaml/context-templates/delegation.yaml
 - `file.slurp` returns scalar ref — dereference with `->$*`
 - `TRUE=5, FALSE=0, UNKNOWN=2` — not 1/0
 - event timers: repeating needs BOTH `interval => N` AND `repeat => TRUE`
+
+---
+
+## pager zenka + checksum cluster — memory-efficient data structures (new)
+
+**36 modules — pager (29) + checksum cluster (7) implemented**, design complete. Provides virtualized
+views into arbitrarily large datasets with filter chains, harmonic randomization,
+adaptive sorting, and memory-bounded page caching.
+
+### core concept
+
+```
+Data Source → Filter Chain → Sort Chain → Virtual Buffer → Viewport
+     ↓              ↓            ↓              ↓            ↓
+  [9P/FS]     [Harmonic]    [Weighted]   [Page Cache]  [Terminal]
+  [Checksums] [Random]      [Adaptive]   [LRU+Prefetch][Editor]
+```
+
+### architecture
+
+**buffer management:**
+- `pager.init_code` — initialize pager state and source registry
+- `pager.buffer.virtual` — create virtual buffer with configurable page/cache size
+- `pager.buffer.page` — page operation dispatcher
+- `pager.buffer.page.get` — cache-aware page fetch with LRU eviction
+- `pager.buffer.page.invalidate` — invalidate specific page
+- `pager.buffer.page.invalidate-all` — bulk cache invalidation
+- `pager.buffer.page.resize` — resize page dimensions
+- `pager.buffer.prefetch` — predictive prefetch based on scroll patterns
+
+**data sources:**
+- `pager.source.file_list` — filesystem enumeration (streaming)
+- `pager.source.checksum_list` — BMW/AMOS checksum files with random access
+- `pager.source.9p` — 9P filesystem via storage.9p.* integration
+- `pager.source.register` — register custom source types
+
+**filter chain:**
+- `pager.filter.chain` — chain management (add/remove/clear/list/reorder)
+- `pager.filter.harmonic_random` — harmonic distribution for "pleasant" randomness
+- `pager.filter.preference` — user preference weighting (recency, type, size, pattern)
+
+**sort chain:**
+- `pager.sort.chain` — sort configuration management
+- `pager.sort.multi_key` — weighted multi-criteria sorting
+- `pager.sort.adaptive` — dynamic weights based on access patterns
+
+**viewport & editor:**
+- `pager.viewport.render` — render buffer to display dimensions
+- `pager.view.true-int-color` — apply true_int harmonic coloring to items
+- `pager.editor.integration` — amos-term editor virtual buffer integration
+
+**external viewer integration:**
+- `pager.view.amos-data-pager` — 72-bit visualization via bin/amos-data-pager
+- `pager.view.amos-data-pager-56` — 56-bit true_int coloring via bin/amos-data-pager-56
+- `pager.export.binary` — export to binary format for external tools
+
+**division-13 integration:**
+- `pager.filter.division-13-harmonic` — harmonic filtering using D13 entropy
+- `pager.encode.division-13` — encode items in D13 protocol format
+- `pager.decode.division-13` — decode D13 protocol frames
+
+**commands:**
+- `command.pager` — full CLI: create, filter, sort, view, edit, list, close, stats
+- `pager.command.demo` — quick demo with harmonic random + preference filters
+
+### division-13-table connection
+
+The pager integrates with `bin/dev/division-13-table` algorithm:
+- **42-bit entropy**: item fingerprint comparison
+- **7-bit decoded**: routing, BASE32 payload, graphical ops
+- **15-bit auxiliary**: precision/detachment
+
+Uses harmonic randomization via D13 entropy states for "pleasant" item ordering
+that aligns with Protocol-7's core mathematical foundation (1/13 = 0.076923...).
+
+### memory guarantees
+
+```perl
+$max_memory = $page_size * $max_cached_pages * $item_size;
+# e.g., 100 * 10 * 256 = 256KB physical for 10M virtual items (0.0025%)
+```
+
+### usage examples
+
+```bash
+# Create pager from filesystem
+pager create files --source=file-list :root: /data :recursive: 1
+
+# Add harmonic random filter (pleasant distribution)
+pager filter files add harmonic-random :seed: 42 :strength: 0.7
+
+# Add preference boost for recent files
+pager filter files add preference :recent: 0.8 :type_pref: 0.3
+
+# Configure sort: recent first, then size, then name
+pager sort files set mtime:desc:0.5 size:asc:0.3 name:asc:0.2
+
+# View viewport
+pager view files --height=50 --width=120
+
+# Open in editor (virtual buffer - doesn't load all)
+pager edit files
+
+# View with amos-data-pager-56 (56-bit true_int harmonic coloring)
+pager view files --amos-56
+
+# Export to binary for external processing
+pager export files --format=56-bit --output=/tmp/files.bin
+```
+
+### design documents
+
+`data/md/design/PAGER-ZENKA.md` — complete architecture with:
+- Virtual buffer structure
+- Page cache LRU+predictive replacement
+- Filter chain composition (harmonic random, preference)
+- Sort chain with adaptive weight learning
+- Editor integration patterns
+- Integration with storage zenka via P7REF
+
+`data/md/design/PAGER-DIVISION-13-INTEGRATION.md` — division-13-table integration:
+- 42/7/15 bit structure for harmonic entropy
+- Protocol encoding/decoding (routing, BASE32, graphical)
+- Integration with amos-data-pager-56 for 56-bit visualization
+
+---
+
+## checksum cluster map — checksum-to-group mapping (new)
+
+**7 modules — performant ant memory efficient** mapping of checksums to sequential
+groups of checksums, with P7REF expansion for unlimited scalability.
+
+### core concept
+
+```perl
+{
+  'bmw-L13:ABC123...' => {
+    'members'  => ['bmw-L13:DEF456...', 'p7://checksum-cluster:overflow'],
+    'type'     => 'proximity',
+    'p7ref'    => 'p7://checksum-cluster:bmw-L13:ABC123...',
+  }
+}
+```
+
+### modules
+
+**core:**
+- `plugin.storage.checksum.cluster.init-code` — initialize cluster registry
+- `plugin.storage.checksum.cluster.create` — create new cluster with members
+- `plugin.storage.checksum.cluster.add` — add members (auto-overflow)
+
+**query & traverse:**
+- `plugin.storage.checksum.cluster.lookup` — O(1) lookup with P7REF resolution
+- `plugin.storage.checksum.cluster.traverse` — graph traversal with cycle detection
+- `plugin.storage.checksum.cluster.query` — query by type/size/stats
+
+**commands:**
+- `command.checksum-cluster` — CLI for create/add/lookup/traverse/query
+
+### cluster types
+
+| type | use case |
+|------|----------|
+| `proximity` | Hamming similarity groups |
+| `temporal`  | Version history chains |
+| `semantic`  | Content similarity |
+| `version`   | Explicit versioning |
+| `harmonic`  | D13 entropy alignment |
+| `overflow`  | Auto-created for size management |
+
+### memory efficiency
+
+- **shared empty arrayrefs** — singleton for empty clusters
+- **lazy P7REF resolution** — only expand when requested
+- **reverse index** — O(1) member-to-cluster lookup
+- **overflow chaining** — unlimited cluster size via P7REF links
+
+### usage
+
+```bash
+# create cluster
+checksum-cluster create bmw-L13:abc123 :type: proximity mem1 mem2 mem3
+
+# lookup (resolves P7REFs automatically)
+checksum-cluster lookup bmw-L13:abc123
+
+# traverse graph
+checksum-cluster traverse bmw-L13:abc123 :max-depth: 5
+
+# query hubs (checksums in multiple clusters)
+checksum-cluster query hubs :limit: 10
+```
+
+### design document
+
+`data/md/design/CHECKSUM-CLUSTER-MAP.md` — complete architecture with:
+- Hashref-to-arrayref structure
+- P7REF expansion for scalability
+- Memory optimization strategies
+- Integration with pager zenka and visual mapping
+- Performance characteristics and storage estimates
+
+---
+
+
+---
+
+## files changed this session (pager + checksum cluster)
+
+### pager zenka — 29 modules
+
+```
+modules/pager.init-code
+modules/pager.source.register
+modules/pager.source.9p
+modules/pager.source.checksum-list
+modules/pager.source.file-list
+modules/pager.buffer.virtual
+modules/pager.buffer.page
+modules/pager.buffer.page.get
+modules/pager.buffer.page.invalidate
+modules/pager.buffer.page.invalidate-all
+modules/pager.buffer.page.resize
+modules/pager.buffer.prefetch
+modules/pager.filter.chain
+modules/pager.filter.harmonic-random
+modules/pager.filter.preference
+modules/pager.filter.division-13-harmonic
+modules/pager.sort.chain
+modules/pager.sort.multi-key
+modules/pager.sort.adaptive
+modules/pager.encode.division-13
+modules/pager.decode.division-13
+modules/pager.viewport.render
+modules/pager.view.true-int-color
+modules/pager.view.amos-data-pager
+modules/pager.view.amos-data-pager-56
+modules/pager.export.binary
+modules/pager.editor.integration
+modules/pager.command.demo
+modules/command.pager
+```
+
+### checksum cluster map — 7 modules
+
+```
+modules/plugin.storage.checksum.cluster.init-code
+modules/plugin.storage.checksum.cluster.create
+modules/plugin.storage.checksum.cluster.add
+modules/plugin.storage.checksum.cluster.lookup
+modules/plugin.storage.checksum.cluster.traverse
+modules/plugin.storage.checksum.cluster.query
+modules/command.checksum-cluster
+```
+
+### design documents
+
+```
+data/md/design/PAGER-ZENKA.md
+data/md/design/PAGER-DIVISION-13-INTEGRATION.md
+data/md/design/CHECKSUM-CLUSTER-MAP.md
+```
+

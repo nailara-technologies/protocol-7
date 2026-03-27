@@ -1,0 +1,148 @@
+## [:< ##
+# name  = plugin.storage.checksum.cluster.traverse
+# descr = Traverse cluster graph with depth limit and cycle detection
+
+use strict;
+use warnings;
+
+return sub {
+    my ($args) = @_;
+
+    my $start_checksum = $args->{'start'};
+    my $max_depth = $args->{'max_depth'} // 3;
+    my $type_filter = $args->{'type'};  # Optional type filter
+    my $callback = $args->{'callback'};  # Optional callback for each node
+
+    return { 'mode' => 'false', 'data' => 'start checksum required' }
+        unless $start_checksum;
+
+    my $registry = $data{'storage'}{'mapping'}{'checksum-cluster'};
+    $start_checksum = _normalize_checksum($start_checksum);
+
+    # BFS traversal with cycle detection
+    my %visited;      # checksum => depth
+    my @queue;        # [checksum, depth, path]
+    my @results;      # All visited nodes with metadata
+
+    push @queue, [$start_checksum, 0, [$start_checksum]];
+    $visited{$start_checksum} = 0;
+
+    while (@queue) {
+        my ($current, $depth, $path) = @{shift @queue};
+
+        # Get cluster for this checksum
+        my $cluster_data = <[plugin.storage.checksum.cluster.lookup]>->({
+            'checksum'      => $current,
+            'resolve_p7ref' => 0,  # We'll handle manually for traversal
+        });
+
+        next unless $cluster_data;
+
+        # Type filter
+        next if $type_filter && $cluster_data->{'type'} ne $type_filter;
+
+        # Record visit
+        my $node_info = {
+            'checksum'   => $current,
+            'depth'      => $depth,
+            'path'       => [@$path],
+            'cluster_id' => $cluster_data->{'cluster_id'},
+            'type'       => $cluster_data->{'type'},
+            'members'    => [],  # Will fill with unvisited neighbors
+        };
+
+        # Process members as potential next nodes
+        for my $member (@{$cluster_data->{'members'}}) {
+            # Skip P7REFs for graph traversal (they're expansion, not graph edges)
+            next if $member =~ m|^p7://|;
+
+            # Normalize
+            $member = _normalize_checksum($member);
+            next unless $member;
+
+            push @{$node_info->{'members'}}, $member;
+
+            # Add to queue if not visited and within depth
+            if (!exists $visited{$member} && $depth < $max_depth) {
+                $visited{$member} = $depth + 1;
+                push @queue, [$member, $depth + 1, [@$path, $member]];
+            }
+        }
+
+        push @results, $node_info;
+
+        # Call user callback if provided
+        $callback->($node_info) if $callback && ref($callback) eq 'CODE';
+    }
+
+    return {
+        'mode' => 'true',
+        'data' => {
+            'start'      => $start_checksum,
+            'max_depth'  => $max_depth,
+            'nodes'      => \@results,
+            'node_count' => scalar(@results),
+            'visited'    => \%visited,
+        }
+    };
+};
+
+# Find path between two checksums
+sub find_path {
+    my ($args) = @_;
+
+    my $from = $args->{'from'};
+    my $to = $args->{'to'};
+    my $max_depth = $args->{'max_depth'} // 5;
+
+    return undef unless $from && $to;
+
+    $from = _normalize_checksum($from);
+    $to = _normalize_checksum($to);
+
+    # BFS with path tracking
+    my %visited;
+    my @queue = ([$from, [$from]]);
+    $visited{$from} = 1;
+
+    while (@queue) {
+        my ($current, $path) = @{shift @queue};
+
+        return $path if $current eq $to;
+        last if @$path >= $max_depth;
+
+        my $cluster_data = <[plugin.storage.checksum.cluster.lookup]>->({
+            'checksum'      => $current,
+            'resolve_p7ref' => 0,
+        });
+
+        next unless $cluster_data;
+
+        for my $member (@{$cluster_data->{'members'}}) {
+            next if $member =~ m|^p7://|;
+            $member = _normalize_checksum($member);
+            next unless $member && !$visited{$member};
+
+            $visited{$member} = 1;
+            push @queue, [$member, [@$path, $member]];
+        }
+    }
+
+    return undef;  # No path found
+}
+
+sub _normalize_checksum {
+    my ($checksum) = @_;
+    return undef unless defined $checksum;
+    $checksum =~ s|\s+||g;
+    if ($checksum !~ m|^[a-z0-9-]+:|i) {
+        $checksum = "bmw-L13:$checksum";
+    }
+    return lc($checksum);
+}
+
+#,,,.,,,,,...,,,.,,,.,,,,,,,.,,,.,.,.,.,.,,..,.,.,...,...,...,.,,,..,,.,.,,.,,
+#UU2CAC7SIB2DWV6CJBDVKCJMWLAAQPFCQEAKWE6TGX52TKLVV4XMC2YI6LLO4IHX2L53VGGJZZ44E
+#\\\|YMWIVALFFBI7VKG65U725H5MIFH4MO5U5ARU7MYLCZAULXDULTY \ / AMOS7 \ YOURUM ::
+#\[7]D5PV654JTMLHUSDSCB56KWCDNKJQCR4H5VPC4CQKLQUTLZLFUECQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

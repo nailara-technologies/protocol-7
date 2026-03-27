@@ -1,0 +1,59 @@
+## [:< ##
+# name  = plugin.storage.checksum.cluster.init-code
+# descr = Initialize checksum cluster mapping system
+
+use strict;
+use warnings;
+
+## Checksum cluster registry ##
+$data{'storage'}{'mapping'}{'checksum-cluster'} = {
+    'version' => '0.1',
+
+    # Primary storage: checksum => cluster data
+    # Structure: hashref { members => arrayref, metadata => {} }
+    'clusters' => {},
+
+    # Reverse index: member_checksum => cluster_id
+    # For O(1) lookup of which cluster a checksum belongs to
+    'index' => {},
+
+    # Group by relation type
+    'by_type' => {
+        'proximity' => {},   # Spatial/checksum similarity
+        'temporal'  => {},   # Time-based sequences
+        'semantic'  => {},   # Content similarity
+        'version'   => {},   # Version chains
+        'harmonic'  => {},   # D13 harmonic alignment
+    },
+
+    # P7REF cache for expandable references
+    'p7ref_cache' => {},
+
+    # Memory optimization: shared arrayrefs for empty/singleton groups
+    '_empty_array' => [],
+
+    # Configuration
+    'config' => {
+        'max_members_default' => 1000,    # Soft limit per cluster
+        'auto_expand'         => 1,       # Auto-expand via P7REF
+        'index_reverse'       => 1,       # Maintain reverse index
+        'compress_empty'      => 1,       # Share empty arrayrefs
+    },
+
+    # Statistics
+    'stats' => {
+        'clusters_created'  => 0,
+        'members_added'     => 0,
+        'lookups'           => 0,
+        'p7refs_resolved'   => 0,
+        'memory_shared'     => 0,  # Bytes saved via shared refs
+    },
+};
+
+0;
+
+#,,..,,,,,..,,,,,,...,,.,,...,,.,,...,.,,,.,.,.,.,...,...,.,.,...,.,.,.,.,...,
+#GUONQIF2DJYZXZFVXUO3BJGRRXPC34A344653HC3PNRDIKBYCXFMGDDS5Q67HTKZF37DIJVVYUFHY
+#\\\|3GLI6ZO4HCKJNPTKLO6ZM4OKBOAPZ7BYRGYXACTHQLIIMVUMS34 \ / AMOS7 \ YOURUM ::
+#\[7]RBWSYM6NKT5GB7YUHZJ4YDM3GE6PKWD53H2YPSFQVQFPJ5WYNWBY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

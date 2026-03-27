@@ -18,12 +18,29 @@ return sub {
         unless $cached;
     return { 'mode' => 'false', 'data' => 'file not found' } unless -f $path;
 
-    # Re-compute checksum
+    # Re-compute checksum based on algorithm
     my $current_checksum;
-    if ( $cached->{algorithm} eq 'bmw' ) {
-        $current_checksum = <[base.chk-sum.bmw.file]>->($path);
-    } elsif ( $cached->{algorithm} eq 'sha256' ) {
-        $current_checksum = <[crypt.sha256.file]>->($path);
+    my $algorithm = $cached->{algorithm};
+
+    if ( $algorithm eq 'bmw' ) {
+        $current_checksum = <[base.chk-sum.bmw.filesum]>->($path);
+    } elsif ( $algorithm eq 'bmw-224' ) {
+        $current_checksum = <[base.chk-sum.bmw.224.B32]>->($path);
+    } elsif ( $algorithm eq 'bmw-512' ) {
+        $current_checksum = <[base.chk-sum.bmw.512_32]>->($path);
+    } elsif ( $algorithm eq 'bmw-L13' or $algorithm eq 'bmw-L13-b32' ) {
+        open my $fh, '<:raw', $path
+            or return { 'mode' => 'false', 'data' => 'cannot read file' };
+        my $content = do { local $/; <$fh> };
+        close $fh;
+
+        if ( $algorithm eq 'bmw-L13' ) {
+            $current_checksum = <[base.chk-sum.bmw.L13-str]>->($content);
+        } else {
+            $current_checksum = <[base.chk-sum.bmw.str-b32.L13]>->($content);
+        }
+    } elsif ( $algorithm eq 'amos' ) {
+        $current_checksum = <[base.chk-sum.amos]>->($path);
     }
 
     return { 'mode' => 'false', 'data' => 'checksum computation failed' }
@@ -38,15 +55,15 @@ return sub {
             'valid'     => $valid,
             'cached'    => $cached->{checksum},
             'current'   => $current_checksum,
-            'algorithm' => $cached->{algorithm},
+            'algorithm' => $algorithm,
         }
     };
 };
 
 #,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,
 
-#,,,.,.,,,.,.,.,,,,,,,...,.,,,.,.,,,.,.,,,,..,..,,...,...,...,..,,,.,,,.,,..,,
-#EUBYWLRV7FXFFAPYRQOOYDG3XD2CM2IRAKX4XW5XRTQBIYN3KCDKP3JONGSRSSRUBHLDJY5U4NS4W
-#\\\|GJETNP6GHE3Z4OC7E6ZVQCL2HGT7RBOLAEWAGODSY2GPCPSY7L3 \ / AMOS7 \ YOURUM ::
-#\[7]CDA7JI7ME6VAMZRXBQHS6Q2COTAUV547DXZIOQIJV4OKTIYFJCDA 7  DATA SIGNATURE ::
+#,,.,,...,.,.,...,,.,,,..,...,,..,,,.,,,,,..,,..,,...,...,.,,,.,,,..,,..,,.,,,
+#5OKE5ZQGNWCW37DW2JUCLLC3A7IPXW3W5WTG6E325JZHM74ET7HSDRGHWHC4V5R3PLE34QXD32NGE
+#\\\|347W5TKOFESDDDLZL2GXEVMQOHBFI533DJGXXH6J2NS5CQYH27L \ / AMOS7 \ YOURUM ::
+#\[7]6NAW6GNHKSSBNSQ6J3FI7BQIX3OH5RVKMTJ7XNTWJKRGALRCXQCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

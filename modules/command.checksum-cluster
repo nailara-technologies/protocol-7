@@ -1,0 +1,226 @@
+## [:< ##
+# name  = command.checksum-cluster
+# descr = Command interface for checksum cluster management
+
+use strict;
+use warnings;
+
+return sub {
+    my ($args, $caller) = @_;
+    my $cmd = shift @$args // 'help';
+
+    my %opts;
+    my @positional;
+
+    # Parse arguments
+    for my $arg (@$args) {
+        if ($arg =~ /^--(\w+)(?:=(.+))?$/) {
+            $opts{$1} = $2 // 1;
+        }
+        elsif ($arg =~ /^:(\w+):\s*(.+)$/) {
+            $opts{$1} = $2;
+        }
+        else {
+            push @positional, $arg;
+        }
+    }
+
+    if ($cmd eq 'create') {
+        my $checksum = shift @positional;
+        my $type = $opts{'type'} // 'proximity';
+        my @members = @positional;
+
+        return "Usage: checksum-cluster create <checksum> [:type: proximity] [member1 member2 ...]"
+            unless $checksum;
+
+        my $result = <[plugin.storage.checksum.cluster.create]>->({
+            'checksum' => $checksum,
+            'type'     => $type,
+            'members'  => \@members,
+            'metadata' => { 'created_by' => 'cmd' },
+        });
+
+        return $result->{'mode'} eq 'true'
+            ? "Created cluster $result->{'data'}{'cluster_id'} with $result->{'data'}{'member_count'} members"
+            : "Failed: $result->{'data'}";
+    }
+    elsif ($cmd eq 'add') {
+        my $cluster_id = shift @positional;
+        return "Usage: checksum-cluster add <cluster-id> <member1> [member2 ...]"
+            unless $cluster_id && @positional;
+
+        my $result = <[plugin.storage.checksum.cluster.add]>->({
+            'cluster_id' => $cluster_id,
+            'members'    => \@positional,
+        });
+
+        return $result->{'mode'} eq 'true'
+            ? "Added $result->{'data'}{'added'} members (total: $result->{'data'}{'total_members'})"
+            : "Failed: $result->{'data'}";
+    }
+    elsif ($cmd eq 'lookup') {
+        my $checksum = shift @positional;
+        return "Usage: checksum-cluster lookup <checksum>" unless $checksum;
+
+        my $result = <[plugin.storage.checksum.cluster.lookup]>->({
+            'checksum'      => $checksum,
+            'resolve_p7ref' => $opts{'resolve'} // 1,
+        });
+
+        return "Not found" unless $result;
+
+        my $out = "Cluster: $result->{'cluster_id'}\n";
+        $out .= "Type: $result->{'type'}\n";
+        $out .= "P7REF: $result->{'p7ref'}\n";
+        $out .= "Members (" . scalar(@{$result->{'members'}}) . "):\n";
+
+        for my $m (@{$result->{'members'}}) {
+            $out .= "  $m\n";
+        }
+
+        return $out;
+    }
+    elsif ($cmd eq 'traverse') {
+        my $start = shift @positional;
+        return "Usage: checksum-cluster traverse <start-checksum> [:max-depth: 3]"
+            unless $start;
+
+        my $result = <[plugin.storage.checksum.cluster.traverse]>->({
+            'start'     => $start,
+            'max_depth' => $opts{'max-depth'} // 3,
+            'type'      => $opts{'type'},
+        });
+
+        return $result->{'mode'} eq 'false'
+            ? "Failed: $result->{'data'}"
+            : "Traversed $result->{'data'}{'node_count'} nodes from $start";
+    }
+    elsif ($cmd eq 'query') {
+        my $query_type = shift @positional // 'all';
+
+        my $result = <[plugin.storage.checksum.cluster.query]>->({
+            'query'    => $query_type,
+            'type'     => $opts{'type'},
+            'min_size' => $opts{'min-size'},
+            'max_size' => $opts{'max-size'},
+            'limit'    => $opts{'limit'} // 100,
+        });
+
+        return "Query failed" unless $result->{'mode'} eq 'true';
+
+        if ($query_type eq 'stats') {
+            my $stats = $result->{'data'};
+            return sprintf(
+                "Cluster Stats:\n" .
+                "  Total clusters: %d\n" .
+                "  Total members:  %d\n" .
+                "  Reverse index:  %d\n" .
+                "  Memory saved:   %d bytes",
+                $stats->{'total_clusters'},
+                $stats->{'total_members'},
+                $stats->{'reverse_index'},
+                $stats->{'memory_shared'}
+            );
+        }
+
+        my @items = @{$result->{'data'}};
+        my $out = "Results ($result->{'count'}):\n";
+        for my $item (@items[0 .. 19]) {
+            last unless $item;
+            if (ref($item) eq 'HASH') {
+                $out .= sprintf("  %s [%s] %d members\n",
+                    $item->{'id'}, $item->{'type'}, $item->{'size'});
+            }
+            else {
+                $out .= "  $item\n";
+            }
+        }
+        $out .= "  ... (truncated)" if @items > 20;
+        return $out;
+    }
+    elsif ($cmd eq 'from-visual') {
+        # Create clusters from visual mapping layers
+        my $layer = shift @positional // 'L13';
+        my $threshold = $opts{'threshold'} // 0.1;
+
+        # Get coordinates from visual mapping
+        my $coords = $data{'storage'}{'mapping'}{'visual'}{'coordinates'};
+        return "No visual coordinates found" unless $coords && %$coords;
+
+        my $clustered = 0;
+
+        # Group by proximity in L13 space
+        for my $p7ref (keys %$coords) {
+            my $coord = $coords->{$p7ref};
+            next unless $coord->{'L13_x'};
+
+            # Find or create cluster for nearby coordinates
+            # This is a simplified version - real implementation would use proper clustering
+            my $cluster_key = sprintf("L13-cluster:%d,%d,%d",
+                int($coord->{'L13_x'} / 10),
+                int($coord->{'L13_y'} / 10),
+                int($coord->{'L13_z'} / 10),
+            );
+
+            # Extract checksum from p7ref
+            my $checksum = $p7ref;
+            $checksum =~ s|^p7://[^/]+/||;
+
+            # Create cluster if not exists
+            if (!exists $data{'storage'}{'mapping'}{'checksum-cluster'}{'clusters'}{$cluster_key}) {
+                <[plugin.storage.checksum.cluster.create]>->({
+                    'checksum' => $cluster_key,
+                    'type'     => 'spatial',
+                    'metadata' => { 'layer' => $layer, 'threshold' => $threshold },
+                });
+                $clustered++;
+            }
+
+            # Add to cluster
+            <[plugin.storage.checksum.cluster.add]>->({
+                'cluster_id' => $cluster_key,
+                'members'    => [$checksum],
+            });
+        }
+
+        return "Created/updated $clustered clusters from visual layer '$layer'";
+    }
+    else {
+        return <<'HELP';
+Checksum Cluster - Map checksums to sequential groups
+
+Usage: checksum-cluster <command> [options]
+
+Commands:
+  create <checksum> [:type: proximity] [member1 member2 ...]
+    Create new cluster. Types: proximity, temporal, semantic, version, harmonic
+
+  add <cluster-id> <member1> [member2 ...]
+    Add members to existing cluster
+
+  lookup <checksum> [--resolve=1]
+    Find cluster by checksum (as ID or member)
+
+  traverse <start-checksum> [:max-depth: 3] [:type: filter]
+    Graph traversal from starting checksum
+
+  query <all|orphans|hubs|stats> [:type: filter] [:limit: N]
+    Query clusters by various criteria
+
+  from-visual <layer> [:threshold: 0.1]
+    Create clusters from visual mapping coordinates
+
+Examples:
+  checksum-cluster create bmw-L13:abc123 :type: proximity mem1 mem2 mem3
+  checksum-cluster lookup bmw-L13:abc123
+  checksum-cluster traverse bmw-L13:abc123 :max-depth: 5
+  checksum-cluster query hubs :limit: 10
+HELP
+    }
+};
+
+#,,..,,,.,..,,,,.,,..,,,,,,,,,.,,,.,.,,..,..,,.,.,...,...,,,.,..,,,.,,..,,,,,,
+#YACN4RBPOZMMVV37NZV7WEYSOVEVFBKOOFSSSQ7A443ALXD42UTJKFKQ6ZM2FERL25OLOIDYZOHDU
+#\\\|VNBQHXV7VZTHM5QTC7YQQMSVVQBTN4UIPD2APZWCHCF3DM6VFEW \ / AMOS7 \ YOURUM ::
+#\[7]SUUGTIOWRUBKXOJFQCNQ424GC3QG2MQKEN5PPE2AGVGZEIQUUIAI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

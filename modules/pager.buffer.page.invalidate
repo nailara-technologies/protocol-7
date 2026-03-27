@@ -1,0 +1,43 @@
+## [:<
+# name  = pager.buffer.page.invalidate
+# descr = Invalidate specific page in cache
+## >:]
+
+return sub {
+    my ($args) = @_;
+
+    my $buf = $args->{'buffer'};
+    my $page_num = $args->{'page_num'};
+
+    return 0 unless $buf;
+
+    if (defined $page_num) {
+        # Invalidate specific page
+        if (exists $buf->{'pages'}{'cached'}{$page_num}) {
+            my $count = scalar(@{$buf->{'pages'}{'cached'}{$page_num}});
+            delete $buf->{'pages'}{'cached'}{$page_num};
+            @{$buf->{'pages'}{'lru'}} = grep { $_ != $page_num } @{$buf->{'pages'}{'lru'}};
+            $buf->{'memory'}{'current'} -= $count;
+            $buf->{'memory'}{'current'} = 0 if $buf->{'memory'}{'current'} < 0;
+            return 1;
+        }
+        return 0;
+    }
+    else {
+        # Invalidate all pages
+        my $total = scalar(keys %{$buf->{'pages'}{'cached'}});
+        $buf->{'pages'}{'cached'} = {};
+        $buf->{'pages'}{'lru'} = [];
+        $buf->{'pages'}{'dirty'} = {};
+        $buf->{'memory'}{'current'} = 0;
+        return $total;
+    }
+};
+
+# SPDX-License-Identifier: ISC
+
+#,,,,,,,,,.,.,,,.,.,,,,..,...,,.,,...,...,,.,,..,,...,...,...,,,,,,,,,...,,..,
+#ZKFGR7N7KLSZXKKR4BE7VRXP23EZWSZHRURUYVIF2JROJXW53PNKDWIYTIGOPAFVZHY3JLQISMPGS
+#\\\|F67IJ6KAOABHXXTM24KHIY5OZH3LZATW2C6P63S2JUIG2SOSU3A \ / AMOS7 \ YOURUM ::
+#\[7]3GJK45XPGKX6KKPHOJA4FQZQONSRKOTBKYUM5R3TDOLBOC3HUWBQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
