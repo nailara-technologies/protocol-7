@@ -60,7 +60,9 @@ $branch_info{'last_access'} = time();
 ## write updated hit count via zenka_dir ##
 my $bmeta_content = join '', map {"$_=$branch_info{$_}\n"}
     sort keys %branch_info;
-<[file.zenka_dir.write]>->( $rel_bmeta, \$bmeta_content, qw| > |, 0664 );
+<[file.zenka_dir.write]>->(
+    $rel_bmeta, \$bmeta_content, qw| > |, 0664, ':encoding(UTF-8)'
+);
 
 ## scan results directory ##
 my @results;
@@ -175,8 +177,8 @@ return {
     },
 };
 
-#,,,.,,,.,..,,...,,.,,,,.,,..,,,,,,..,...,.,.,..,,...,...,.,.,,,.,,..,,..,,..,
-#MJWFIQ6BQ4XOBNJKEY4ZZG54HZF3W6ELCONA7F3WNFJJ5VSJSTQCWFJ7HHXVH45RJOGONBMAFQMNO
-#\\\|TIQWZRMQI7ZJE37MWIJCHOESURALFXDZ37ZQ6Z57DJJSCFNPV55 \ / AMOS7 \ YOURUM ::
-#\[7]INSLYCC3AUGXKHDUGRFI4VCSGLQFKYI4Y3JGXSW2KVXEWSLO5MBQ 7  DATA SIGNATURE ::
+#,,,,,,.,,,..,,,,,.,,,..,,,.,,.,,,..,,,,,,,,.,..,,...,...,...,.,,,..,,...,.,.,
+#44PGTG2VGSESTC2E4Q4RVRQUKYQRLPCH25A4UKOVVMAPRNYZOUQMXIZNS2Y32AQYA7BGCQL2HHJ3Y
+#\\\|FS3Z4TXRV4FVA4P337W2UV7RRFPWKVUUTHACKNTDQP4PBJVC3AH \ / AMOS7 \ YOURUM ::
+#\[7]5PDTLJFN3J7XPLQHADPECY3YNVADOFLY4RBMMPTD3ESZBFMQWEAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
