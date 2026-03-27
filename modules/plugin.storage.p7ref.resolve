@@ -70,6 +70,57 @@ return sub {
                 'exists'   => -e $parsed->{'address'} ? 1 : 0,
             }
         };
+    } elsif ( $type eq 'inference' ) {
+
+        ## resolve inference cache branch ##
+        my $L13     = $parsed->{'address'};
+        my $segment = $parsed->{'segments'}[0] // '';
+
+        if ( exists $code{'plugin.storage.inference.lookup'} ) {
+
+            ## segment selects: best | meta | specific B32-224 response ##
+            if ( $segment eq qw| meta | ) {
+                my $root = $data{'storage'}{'mapping'}{'inference'}{'root_path'}
+                    // '';
+                my $meta_path = "$root/$L13/.meta";
+                $result = {
+                    'mode' => ( -f $meta_path ) ? qw| true | : qw| false |,
+                    'data' => {
+                        'protocol' => 'inference',
+                        'path'     => $meta_path,
+                        'branch'   => $L13,
+                        'segment'  => qw| meta |,
+                    }
+                };
+            } else {
+                ## lookup best or specific result ##
+                my %lookup_args = (
+                    'checksum'    => $L13,
+                    'max_results' => 1,
+                    'prefer'      => qw| recent |,
+                );
+
+                my $lookup = $code{'plugin.storage.inference.lookup'}
+                    ->( \%lookup_args );
+
+                $result = {
+                    'mode' => $lookup->{'mode'},
+                    'data' => {
+                        'protocol' => 'inference',
+                        'branch'   => $L13,
+                        'segment'  => $segment,
+                        'results'  => $lookup->{'data'}{'results'} // [],
+                        'hit_count' => $lookup->{'data'}{'hit_count'} // 0,
+                    }
+                };
+            }
+        } else {
+            $result = {
+                'mode' => qw| false |,
+                'data' => 'inference cache plugin not loaded',
+            };
+        }
+
     } elsif ( $type eq 'segment' ) {
         $result = {
             'mode' => 'true',
@@ -97,8 +148,8 @@ return sub {
 
 #,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,
 
-#,,..,...,,.,,..,,.,.,...,.,,,,.,,,,.,...,,..,..,,...,...,,,.,,,.,.,.,.,,,,.,,
-#YSQBYJBUIZIH2JQHSLUTRRNXSVZIWKFHDA64O2QQSWBOY5YL6DDX5FR6PXX3GVZUOTUUSMYMY7SUO
-#\\\|RBBS5LEE3A2NYODAPD6CHQFVGTVSB2AMWKPJKESIBB2UMIB3JPW \ / AMOS7 \ YOURUM ::
-#\[7]ZFYHR2NNUWGS53BVZGMLBF5NB2K6UQ5X3SOKVSGHU5RP5PTKSKBQ 7  DATA SIGNATURE ::
+#,,.,,,,.,...,,.,,.,,,,.,,...,,..,,,,,,,,,,.,,..,,...,...,.,.,.,.,.,.,..,,,,.,
+#ELQ6FVPVBDLNUQN5XBUN6P3FE4YDTREAFAQVBYUJEZGD5ERNGB7HTFUOWJO37R6ONGNMU7OBGRJKI
+#\\\|4HNK5H2VESJGTTDSN6RPVGKQ2YEPXMU7HHTZ33QJMDJTRFOTAQF \ / AMOS7 \ YOURUM ::
+#\[7]JCZ2VHRJKJPINKAJSCQQT5SLLU363OFHPUXTI4S2HSNZVYKYK4DY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
