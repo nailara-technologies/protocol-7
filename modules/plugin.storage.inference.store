@@ -114,8 +114,9 @@ if ( -d $meta_dir ) {
 }
 
 ## write result file via zenka_dir [ handles mkdir + permissions ] ##
-my $written
-    = <[file.zenka_dir.write]>->( $rel_result, \$response, qw| > |, 0664 );
+my $written = <[file.zenka_dir.write]>->(
+    $rel_result, \$response, qw| > |, 0664, ':encoding(UTF-8)'
+);
 if ( not defined $written ) {
     <[base.logs]>->(
         0, ':. inference.store: write failed [ %s ]', $rel_result
@@ -137,8 +138,9 @@ my $meta_content
     . length($response) . "\n";
 $meta_content .= "tags=" . join( ',', $tags->@* ) . "\n" if $tags->@*;
 
-my $meta_written
-    = <[file.zenka_dir.write]>->( $rel_meta, \$meta_content, qw| > |, 0664 );
+my $meta_written = <[file.zenka_dir.write]>->(
+    $rel_meta, \$meta_content, qw| > |, 0664, ':encoding(UTF-8)'
+);
 if ( not defined $meta_written ) {
     return {
         'mode' => qw| false |,
@@ -241,13 +243,15 @@ sub _update_branch_meta {
     }
 
     my $content = join '', map {"$_=$meta{$_}\n"} sort keys %meta;
-    <[file.zenka_dir.write]>->( $rel_path, \$content, qw| > |, 0664 );
+    <[file.zenka_dir.write]>->(
+        $rel_path, \$content, qw| > |, 0664, ':encoding(UTF-8)'
+    );
 
     return;
 }
 
-#,,.,,,..,,,.,...,..,,,,.,...,,..,,..,.,.,,..,..,,...,.,.,...,...,,..,,..,...,
-#2E6V7FL7NSXO46WTRY7DUKEQGHA6NLD6CVUPU6GEUGH2GICDGFLQ666SJWZIFAXKWLQMFKIHDWUOE
-#\\\|YH4YD22MJDWHRKQKAQ4GMCOEVLWWUE7HAKYFQ2KJOQJSHYSD7AI \ / AMOS7 \ YOURUM ::
-#\[7]K4TD7E6ZWUHKLW3NUV4DQE4YYC4IKKOZFSZ3DLCE2Y2K2GQBKAAY 7  DATA SIGNATURE ::
+#,,.,,,.,,.,,,,,.,.,.,..,,,,.,.,,,.,,,.,,,...,..,,...,...,.,,,,.,,,,,,...,,,,,
+#ODHMYIBACQ7LBEX3VFAUJZRZQ3UNR2QXDG6PQQN33SINICUF55EAGE5OKDLBG3Q72ASFECAC4X34U
+#\\\|TPPBVJUTP4QH2WO7OIK4CHIZZX3NFZYVYPQLGKW3AFWWN6AWOKA \ / AMOS7 \ YOURUM ::
+#\[7]MTIW3EPYJV6G7G6DDLB3525VOSEPV7LXN3CJANOY3A7UOLZWJQAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
