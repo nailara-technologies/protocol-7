@@ -844,8 +844,10 @@ sub analyze_zenka_reachability {
         if ( not exists $loaded_set->{'net'}
             and exists $reachable{'base.call.console_command'} ) {
             for my $ns ( qw| base |, keys %{$loaded_set} ) {
-                for my $node ( grep {m/^\Q$ns\E\.(?:.*\.)?console\./}
-                    keys %{$graph} ) {
+                for my $node (
+                    grep {m/^\Q$ns\E\.(?:.*\.)?console\./}
+                    keys %{$graph}
+                ) {
                     next if $reachable{$node};
                     my %new = walk_reachable( $graph, [$node] );
                     %reachable = ( %reachable, %new );
@@ -855,9 +857,17 @@ sub analyze_zenka_reachability {
 
        #  include plugin.* modules scoped to loaded namespaces only          #
        #  plugin.auth.* only when auth loaded, plugin.web.* when web loaded  #
+       #  also match plugin.X.* when plugin.X is explicitly in modules.load  #
         if ( exists $loaded_set->{'net'} ) {
             my %loaded_ns
                 = map { ( split m|\.| )[0] => 1 } keys %{$loaded_set};
+            ## also index plugin sub-namespaces from loaded set ##
+            ## plugin.storage.inference → loaded_ns{storage} = 1 ##
+            for my $loaded_key ( keys %{$loaded_set} ) {
+                if ( $loaded_key =~ m|^plugin\.([^.]+)| ) {
+                    $loaded_ns{$1} = 1;
+                }
+            }
             for my $node ( grep {m/^plugin\./} keys %{$graph} ) {
                 next if $reachable{$node};
                 my ($plugin_ns) = $node =~ m|^plugin\.([^.]+)|;
@@ -1617,8 +1627,8 @@ sub classify_dispatch_confidence {
     return 'open';
 }
 
-#,,..,.,.,.,.,..,,.,,,...,.,,,..,,.,.,,,,,.,.,.,.,...,...,.,.,,.,,,,,,.,.,,,,,
-#K45B4TLGOVQWGXP2CKRYKGIYPHNZLLHJ5ZKK43DOEHLJNNPQT3PDEMYCAZU2MANXMN6ROWTKTDVWC
-#\\\|QPG5G7W6G6FMGXUHQHSGSY2WKSEZ3UGJ2QXBVZYXVICYAQ5LNYJ \ / AMOS7 \ YOURUM ::
-#\[7]AA6KGGGLTQYYZB5EGSNJII6IZOJRUEU7U6BS2QF4RG7AV5U3ZSAQ 7  DATA SIGNATURE ::
+#,,..,.,,,,,,,.,.,.,.,,..,...,.,,,..,,,.,,,,.,.,.,...,...,,,.,,.,,,..,,,.,...,
+#ZTDL4HBYC7RAQXRCXS4D2KJHVWVDDWO762O2KGN2BWIHXAT5LABINBJHNVD3A3J4AZGL6IV3DNYYY
+#\\\|GQKU3Z5KL7XE4KAVTBHDLMUVJ65OKF4CCJJMTER75DYLVA2NYZD \ / AMOS7 \ YOURUM ::
+#\[7]YXFGN3QAB226ISNJPGHP5H3HQNZUBE3NZGT4RLI5SMDLCRKX2WAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

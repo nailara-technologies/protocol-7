@@ -165,6 +165,7 @@ base.event.pre_init
 base.diff.hash_keys
 base.dependency.add
 base.calc_unix_path
+plugin.storage.p7ref
 models.config.loader
 io.ip.tcp.input.open
 coding.task.complete
@@ -190,6 +191,7 @@ base.eval.comp_regex
 base.disable_command
 base.devmod.dump_var
 base.cmd.show-buffer
+base.chk-sum.bmw.ctx
 base.buffer.add_line
 auth.zenka.init_code
 models.parser.size_gb
@@ -238,6 +240,7 @@ base.file.get-non-dirs
 base.comp-int.is_valid
 auth.unix.authenticate
 protocol.sftp.init_code
+plugin.storage.checksum
 jobqueue.queue_template
 io.unix.socket.end_code
 io.ip.tcp.input.connect
@@ -264,6 +267,7 @@ base.execute_zenka_code
 base.dump.data_key_list
 base.convert.hex_to_int
 base.chk-sum.elf.inline
+base.chk-sum.bmw.512_32
 base.callback.cmd_reply
 base.auth.set_zenka_key
 auth.zenka.authenticate
@@ -294,6 +298,7 @@ base.file.zenka_dir.load
 base.file.strip_path_str
 base.dependency.pre_init
 base.cmd.verify-instance
+base.chk-sum.bmw.filesum
 base.chk-sum.bmw.L13-str
 base.chk-sum.bmw.224.B32
 base.check_cfg_cmd_alias
@@ -327,6 +332,8 @@ base.chk-sum.elf.pre_init
 base.chk-sum.bmw.pre_init
 base.callback.delayed-log
 protocol.sftp.read_ssh_env
+plugin.storage.p7ref.parse
+plugin.storage.p7ref.index
 models.parser.ellipse_name
 models.conversation.create
 models.callback.send_reply
@@ -358,6 +365,7 @@ base.handler.session_error
 base.event.io_idle_restart
 base.dependency.add_object
 base.check_dependency_dirs
+plugin.storage.p7ref.search
 net.read_linewise_estimated
 models.parser.str.is_vision
 models.handler.llm_response
@@ -388,6 +396,7 @@ base.chk-sum.elf.vax-BASE32
 base.chk-sum.amos.init_code
 protocol.protocol-7.pre_init
 protocol.amos_term.init_code
+plugin.storage.p7ref.resolve
 models.conversation.add_turn
 io.unix.socket.input.connect
 crypt.C25519.keystr_is_valid
@@ -440,7 +449,10 @@ base.callback.report_children
 auth.zenka.process_auth_reply
 protocol.sftp.connect_callback
 protocol.amos-chksum.init_code
+plugin.storage.p7ref.init_code
 plugin.storage.inference.store
+plugin.storage.checksum.verify
+plugin.storage.checksum.lookup
 models.conversation.task_chain
 models.conversation.list_saved
 jobqueue.handler.queue_counter
@@ -463,6 +475,7 @@ base.p7refs.get_refaddr_prefix
 base.number-cache.true_upwards
 base.log.send-buffer.add-queue
 base.cache.refaddr-prefix.init
+plugin.storage.visual.init_code
 plugin.storage.inference.lookup
 models.handler.refresh_registry
 models.conversation.get_context
@@ -477,6 +490,7 @@ base.zenki.set_ondemand_timeout
 base.warnings.compact_statehash
 base.p7refs.gen_template_chksum
 base.buffer.local_logfile_write
+plugin.storage.checksum.map-file
 crypt.C25519.name_from_skey_name
 crypt.C25519.load_all_signatures
 crypt.C25519.key_signatures_list
@@ -539,6 +553,7 @@ base.callback.setup_rollback_timer
 protocol.sftp.handler.session_close
 protocol.protocol-7.encryption.init
 protocol.amos-chksum.ext-cmd.select
+plugin.storage.p7ref.nested-resolve
 plugin.storage.checksum.cluster.add
 models.conversation.add_participant
 coding.learning.update_success_rate
@@ -552,6 +567,8 @@ base.event.callback.io-idle-restart
 base.callback.reset_strm_size_timer
 protocol.amos-chksum.ext-cmd.version
 protocol.amos-chksum.command-handler
+plugin.storage.visual.proximity-calc
+plugin.storage.visual.extract-floats
 models.callback.object_dispatch_slot
 graphics-3d.calc.cursor-translucency
 coding.routing.make_routing_decision
@@ -571,6 +588,7 @@ protocol.protocol-7.message-templates
 protocol.protocol-7.link-upgrade.init
 protocol.amos-chksum.ext-cmd.commands
 protocol.amos-chksum.connect_callback
+plugin.storage.checksum.cluster.query
 models.registry.init_from_definitions
 crypt.C25519.list_key_signature_names
 crypt.C25519.generate_session_keypair
@@ -585,6 +603,7 @@ base.perlmod.unregister_loaded_module
 base.handler.write.encryption-wrapper
 protocol.sftp.terminate_server_process
 protocol.protocol-7.auth.select-method
+plugin.storage.checksum.cluster.lookup
 plugin.storage.checksum.cluster.create
 io.unix.socket.handler.report-tmp-path
 coding.callback.object_model_discovery
@@ -603,12 +622,15 @@ base.init_zenka.install_signal_handlers
 base.handler.strm_size_absolute_timeout
 base.chk-sum.amos.truth_template_chksum
 protocol.sftp.handler.read_server_output
+plugin.storage.checksum.cluster.traverse
+plugin.storage.checksum.cache-invalidate
 coding.vision-parser.extraction.workflow
 coding.learning.generate_recommendations
 coding.handler.monitor_inference_startup
 coding.handler.models_resolve_path_reply
 coding.handler.fetch_model_discovery_job
 protocol.protocol-7.auth.select-size-mode
+plugin.storage.checksum.cluster.init-code
 crypt.C25519.validate_remote_key_checksum
 coding.vision-parser.handler.vision_reply
 base.zenki.ondemand.handler.startup_reply
@@ -636,8 +658,8 @@ base.log.send-buffer.reply-handler.notify-online
 coding.vision-parser.handler.check_vision_completion
 coding.vision-parser.handler.check_extraction_completion
 
-#,,,.,,..,,.,,,,,,.,.,,,.,,.,,.,,,.,,,...,.,,,..,,...,...,,.,,.,.,,.,,..,,,,,,
-#2AIGBHRHGUEH7EDKZEUITTFT22RT6VNMSKLUEITNKD5ABB7JUI4YGTYXA3M6ZWHQ3V6COHOYIMJ6W
-#\\\|CTGB6452JOZ7IGXYET3JFCW26C4CDKOP4VU4BAEAIC34YN53G7I \ / AMOS7 \ YOURUM ::
-#\[7]JTECDN4LVQHUGYASLAZADXUHGXE3LTW26GOIUW52GDNLDXZE3ECQ 7  DATA SIGNATURE ::
+#,,..,..,,,..,.,.,..,,,.,,,..,,.,,.,,,.,.,,,,,..,,...,...,.,.,.,,,,..,.,.,,,.,
+#YF56R7SNYY2SQLKSMNVITZBNOXWO2UKTO5E5LDLG4QUBXXTY42FTSSQLFXLTKNIAVCLXBIGSORTYC
+#\\\|4OBLB4AJHLXULETTXB27OLGBVYFSD6ABJXADLIOOAWWSO7AXN3U \ / AMOS7 \ YOURUM ::
+#\[7]47FHUAZIZOO5VJSFI42WMPXYTXMLGNXJRWOANPRKJIDAWDYE66CI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
