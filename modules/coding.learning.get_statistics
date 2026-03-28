@@ -6,22 +6,56 @@
 
 my ( $task_type, $service ) = @ARG;
 
+## load outcomes from persistence file ##
+my $outcomes_file = '/var/protocol-7/coding/learning/outcomes.json';
+my @outcomes;
+
+if ( -f $outcomes_file ) {
+    <[base.perlmod.autoload]>->('JSON::PP');
+    my $content = <[file.slurp]>->($outcomes_file)->$*;
+    if ( defined $content and length $content ) {
+        my $decoded = eval { JSON::PP::decode_json($content) };
+        @outcomes = $decoded->@* if ref $decoded eq qw| ARRAY |;
+    }
+}
+
+## filter by task_type and service if specified ##
+my @filtered = grep {
+           ( !defined $task_type || $ARG->{'task_type'} eq $task_type )
+        && ( !defined $service || $ARG->{'service'} eq $service )
+} @outcomes;
+
+## compute aggregates ##
+my $total      = scalar @filtered;
+my $successful = scalar grep { $ARG->{'success'} } @filtered;
+my $failed     = $total - $successful;
+
+my $total_tokens   = 0;
+my $total_duration = 0;
+for my $o (@filtered) {
+    $total_tokens   += $o->{'tokens_used'} // 0;
+    $total_duration += $o->{'duration_ms'} // 0;
+}
+
 return {
     success    => TRUE,
     statistics => {
-        task_type       => $task_type,
-        service         => $service,
-        total_attempts  => 0,
-        successful      => 0,
-        failed          => 0,
-        success_rate    => 0,
-        avg_tokens      => 0,
-        avg_duration_ms => 0
+        task_type      => $task_type,
+        service        => $service,
+        total_attempts => $total,
+        successful     => $successful,
+        failed         => $failed,
+        success_rate   => $total > 0 ? int( $successful * 100 / $total )
+        : 0,
+        avg_tokens => $total > 0 ? int( $total_tokens / $total )
+        : 0,
+        avg_duration_ms => $total > 0 ? int( $total_duration / $total )
+        : 0,
     }
 };
 
-#,,..,...,,..,...,...,,.,,..,,.,,,,..,,,.,.,.,..,,...,...,,.,,,,.,..,,,.,,,,,,
-#PYXZUZU2T4K7LJLINJNL34U2EQNO7LEXZUHNR5J7D544DPZE4XSOQE55WPKZRI6FO5SUEASYGGZOO
-#\\\|6ZMFK576ENV6P2RPDI2IHSWWNGDGAXJXRISH2PJESACOD3GDYA7 \ / AMOS7 \ YOURUM ::
-#\[7]NCSNXZGS74QB6AMNPC5FR5TSRJK2YMTSIRKYAALWZTIV6D7F6YBA 7  DATA SIGNATURE ::
+#,,,.,...,...,..,,,,,,,,.,,.,,,.,,.,,,,.,,.,,,..,,...,...,.,,,...,...,..,,..,,
+#IVHAWLDX3JBP5T5PG4TFVD6AIJ5QVCWHBO33AXZNNEUKDBRKJM7RSNCUS6JFP6ULOPZJBJOCP7KVC
+#\\\|N2FMRK7NTUMT5IPRJZBX377LAB4HLZ7YT5HWT53SPMHJO5ERJA5 \ / AMOS7 \ YOURUM ::
+#\[7]TRF5UTZSX7TYYURFOG3T6EHO2WNMAT5VMBFHNBPL6FJBBPPY7MBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
