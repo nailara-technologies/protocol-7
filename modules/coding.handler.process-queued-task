@@ -194,10 +194,11 @@ my $finish_reason_val = 'stop';
 my $http_error;
 my $max_tool_rounds = 42;
 my $tool_round      = 0;
+my $server_retries  = 2;   ## retries for transient server errors [ jinja ] ##
 
 ## context size tracking for compaction ##
 my $context_limit     = <inference.model.context_length> // 16384;
-my $compact_threshold = int( $context_limit * 0.55 );    ## compact at 55% ##
+my $compact_threshold = int( $context_limit * 0.47 );    ## compact at 47% ##
 my $chars_per_token   = 3.2;    ## adjusted for tool-calling JSON overhead ##
 my $keep_recent_msgs  = 6;      ## preserve last 3 tool rounds [ 6 msgs ] ##
 
@@ -344,18 +345,43 @@ INFERENCE_LOOP:
         );
 
         if ( !$http_response->is_success ) {
-            $http_error = $http_response->status_line;
-            ## log response body for diagnostics ##
-            my $body = $http_response->content // '';
+            my $status = $http_response->status_line;
+            ## extract error detail from response body ##
+            my $detail = '';
+            my $body   = $http_response->content // '';
             if ( length $body ) {
                 my $err_detail = eval { $json->decode($body) };
                 if ( ref $err_detail eq qw| HASH |
                     and $err_detail->{'error'} ) {
-                    $http_error .= sprintf ' [ %s ]',
-                        $err_detail->{'error'}{'message'}
+                    $detail = $err_detail->{'error'}{'message'}
                         // $err_detail->{'error'};
                 }
             }
+
+            ## detect jinja template errors [ retryable ] ##
+            my $is_jinja_err = $detail =~ m|item pairs from a mapping|
+                || $detail =~ m|jinja|i;
+
+            if ( $is_jinja_err and $server_retries > 0 ) {
+                $server_retries--;
+                <[base.logs]>->(
+                    1,
+                    "[process-queued-task] jinja template error"
+                        . " [ retrying, %d left ]",
+                    $server_retries
+                );
+                ## remove last assistant message with broken tool calls ##
+                pop @messages
+                    if @messages
+                    and ( $messages[-1]->{'role'} // '' ) eq 'assistant';
+                <[base.sleep]>->(0.5);
+                next INFERENCE_LOOP;
+            }
+
+            $http_error
+                = length $detail
+                ? sprintf '%s [ %s ]', $status, $detail
+                : $status;
             last INFERENCE_LOOP;
         }
 
@@ -491,8 +517,8 @@ if ( length $response_text
 ## return result hashref for jobqueue callback ##
 return { success => TRUE, result => $response_text, task_id => $task_id };
 
-#,,,,,...,.,,,.,.,.,,,,,,,,,,,.,.,.,.,.,,,.,.,..,,...,...,..,,.,,,,,,,..,,.,,,
-#Z4NPFU5IFGV7DEDETSKGJW3MSFYTMLOSZOFDFB2CZYAXYG7O6ZAV7SR6K4W377TB2L3FA6XXPU5DU
-#\\\|72HOIMXWIGC46YWUQDXZMGXJPPVERLIP26YXMG5IQKEYPVDBFCM \ / AMOS7 \ YOURUM ::
-#\[7]EVBBVI3KHC23EUAP5JVPCKMTMOGGZQMYR7AFK2NWWS2QOWFU6UDY 7  DATA SIGNATURE ::
+#,,.,,...,..,,...,,.,,..,,,..,..,,,,,,,..,.,,,..,,...,...,...,.,.,...,.,.,,.,,
+#GZZF56DZZNWCH34WANO52PHAPUU2YV5ZRVJ6ZGSCNHISUSR6TYGF2DAOIGVE3NG2WEDCSHI4MIKNS
+#\\\|KQWMYYXGEKDATQJE2PXTCMQTCFDRBN4HHERS4MX7TVY3P7C7PRC \ / AMOS7 \ YOURUM ::
+#\[7]C6MSNCY5TAU5GAZRYM4UF5K4DSJ7RPBZ4K6ETEC635FZF6HMXGCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
