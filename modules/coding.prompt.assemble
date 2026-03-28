@@ -76,15 +76,31 @@ push @messages, { 'role' => 'user', 'content' => $prompt };
     length($prompt)
 );
 
+## collect tool definitions if available ##
+my $tools;
+if ( exists $code{'coding.tools.definitions'} ) {
+    $tools = $code{'coding.tools.definitions'}->();
+    if ( ref $tools eq qw| ARRAY | and $tools->@* ) {
+        <[base.logs]>->(
+            2,
+            ':. prompt.assemble: %d tools available',
+            scalar $tools->@*
+        );
+    } else {
+        $tools = undef;
+    }
+}
+
 return {
     'prompt'       => $prompt,
     'messages'     => \@messages,
     'parsed'       => $parsed,
     'backend_info' => $backend_info,
+    'tools'        => $tools,
 };
 
-#,,,.,,..,,.,,.,.,,.,,...,...,,,,,.,.,,,.,,,.,..,,...,..,,.,,,.,.,...,,..,,,,,
-#ZC3RISMNLWYXCBE4WVC5JOLSD35S2EE4HO4N4UWVOGMUZZBAMCANXTATTZD3RKJDBRFBOHTM5RAOG
-#\\\|SVLV7ZK7RT4XAWFJPBU2DNEY2QNMUVQABVWED6JPSMI2FQJQXF4 \ / AMOS7 \ YOURUM ::
-#\[7]EZNVITLMD7IEGOOCYCOYPPQVCBDVFLDC23FQ4CCKSJN7ONLPHEAA 7  DATA SIGNATURE ::
+#,,,,,,,,,..,,,..,,..,,,.,,,,,,,,,.,,,,..,,,.,..,,...,...,..,,.,,,,,,,,..,..,,
+#GTKW5OT37OE3OJKJA54SI2B6GIPD24XU4MHHPZIB63VEBQK3LC3BLBSJZIR4Q36KRYZXFECQENOKS
+#\\\|7WZXKPQGILUCRGCVQMOPA66PUIEIFRTFNTKHP2MNDZENX33FY36 \ / AMOS7 \ YOURUM ::
+#\[7]VQ4ZVX5X66NXQDQ7Q2NJOQHVO7USN55IFHGHEV5VTK7ZY7FAZABQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
