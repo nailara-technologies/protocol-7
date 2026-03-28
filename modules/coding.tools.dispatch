@@ -8,6 +8,7 @@ my $tool_call = shift // {};
 my $name = $tool_call->{'function'}->{'name'} // $tool_call->{'name'} // '';
 my $args = $tool_call->{'function'}->{'arguments'}
     // $tool_call->{'arguments'} // {};
+$args = {} unless ref $args eq qw| HASH |;
 my $call_id = $tool_call->{'id'} // '';
 
 ## parse arguments if still JSON string ##
@@ -193,8 +194,8 @@ return {
     'content' => $content,
 };
 
-#,,..,,,.,..,,...,,.,,.,,,.,,,...,,,.,.,,,,..,..,,...,...,,,.,...,.,.,,,.,,,,,
-#3LUUMDVYQETXQVQSKWRL2FCLZ242CV5LBSYKD7IST4SFN3HY7TVPJNVD5ORVMGHTPZDAWMOPXHBYS
-#\\\|QDYYDKYAVYV7DQUUXPO4A2BQTSJQDELRXJXMTF6IONV3XDEYRUM \ / AMOS7 \ YOURUM ::
-#\[7]XYN2WVEPVR47JTXS6VNXKCMC7G74XXLZD3C2WISL3XS4IC5QYCBA 7  DATA SIGNATURE ::
+#,,.,,,.,,.,.,,,,,,,,,..,,,,,,,.,,..,,.,,,...,..,,...,...,,,.,,,,,...,,,,,,..,
+#VONPBA2STKOJYZGN5SIJ6SWNSI6P4STZROATXRRXSONADOGE4JZJNVYPH3PO2SCCOGWFG3NFGYXC4
+#\\\|ECHS4NPUWXQFKDLJVHNEH5SHSMB5XPGLNEXP4TXDXMQBFDEXISM \ / AMOS7 \ YOURUM ::
+#\[7]X6BMNT62SIZUL6V7WU3D5NMEE3SIV2O6DT6ZLPNFPWBSHCGXRCDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
