@@ -8,7 +8,8 @@ my $params = shift // {};
 my $budget      = $params->{'budget'} // 500;
 my $char_budget = int( $budget * <context.cfg.chars_per_token> );
 
-my $style_file = <context.cfg.style_file>;
+my $root       = <system.root_path>;
+my $style_file = "$root/" . <context.cfg.style_file>;
 
 ## read conventions yaml ##
 if ( -f $style_file and -r $style_file ) {
@@ -49,8 +50,8 @@ if ( length($fallback) > $char_budget ) {
 
 return $fallback;
 
-#,,.,,...,,,.,.,,,.,,,,,,,,,.,...,,,,,..,,,..,..,,...,..,,...,...,..,,.,,,.,.,
-#QXPM36HBHV6BSZQ72RYDGCE6WBTGC74FIW2OUQWABZQQTDMFALF7GZKNZWCVDD6MMVDNVRWMOI3OM
-#\\\|W4YVH6GXZZE2Y6QIDK6KTUNH5ITXFKFRGBMDLDX4BHVGI2KC26B \ / AMOS7 \ YOURUM ::
-#\[7]JIKHMTYVIIPQ5BBI7NRVON6QTTVFDHXZ3MFL5HWJOUTOFXLLM6CI 7  DATA SIGNATURE ::
+#,,..,,..,.,,,..,,.,.,.,.,,.,,...,,.,,,,.,,..,..,,...,...,,..,...,,..,.,.,,,.,
+#JMB7W7SM7ATI4RDZYGH576VPAIKRG6TWNKIP53VHSRR7W32PPVU5HMN3KVCTPHWML4LHHB6ZL2CZE
+#\\\|EXAOWWP52CI2W54ESAVC7W5NECFPWKMA373JR3WKW7VE3CQRSF7 \ / AMOS7 \ YOURUM ::
+#\[7]TGPXMAC56YP3UP5H73OHUKF7MDCYASHIZP2UULQUNTQY4DK77ODQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
