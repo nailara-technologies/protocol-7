@@ -71,7 +71,14 @@ $output
     . " ]:.\n";
 my $tools      = $assembled->{'tools'};
 my $tool_count = ( ref $tools eq qw| ARRAY | ) ? scalar $tools->@* : 0;
-$output .= ".:[ messages=" . scalar(@messages) . " tools=$tool_count ]:.\n\n";
+my $hooks      = $assembled->{'hooks'} // [];
+my $hook_count = scalar $hooks->@*;
+$output .= ".:[ messages=" . scalar(@messages) . " tools=$tool_count";
+$output .= " hooks=$hook_count" if $hook_count;
+$output .= " ]:.\n";
+$output .= ".:[ template=system-default ]:.\n"
+    if $hook_count or @messages > 1;
+$output .= "\n";
 
 ## list available tools ##
 if ( $tool_count > 0 ) {
@@ -131,8 +138,8 @@ $output .= sprintf ".:[ total prompt size: %d chars ]:.\n",
 
 return { 'mode' => qw| size |, 'data' => $output };
 
-#,,,,,,,.,...,,.,,.,,,...,.,,,,..,.,,,...,,,.,..,,...,...,.,,,,,.,,..,,..,.,,,
-#4Q3KLTIKTRMUDIAS64GW6FWG75M4PCXIATWTDZHUMIXFRYGAFEPIKX5ID2K4NBL3XAMULZCSKISDG
-#\\\|6TPLCLKU77WI6WZ3AXDU4GWB2C34WVMIG25SEINFIFRXSBVL6BQ \ / AMOS7 \ YOURUM ::
-#\[7]4ELMOQYNX6I6QD5BXNAYLLDRGFI3WYCU6KX5H4L2VWIJ6WUHAACA 7  DATA SIGNATURE ::
+#,,,.,..,,..,,,,.,,..,.,.,,.,,..,,,,,,...,..,,..,,...,...,,..,,..,.,,,,,.,,..,
+#75E33QTMEQVHWSII5QBVWDKX4HLPNVC43L6SZGZPUWROMJO3V6YSTOMDID7Z75ZSKWZ2D3JIJFFLW
+#\\\|A5D5DPL2RGVCIAUY5MWQGTB4HB7HBDONDSQFB6LXVCAOAZSUUE5 \ / AMOS7 \ YOURUM ::
+#\[7]F66QH5OABINL2OHTKDDBCLPKZLYLHYIC74LKDUFHPSG4QEBTQ6BI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
