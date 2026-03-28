@@ -204,7 +204,7 @@ if ( $backend eq 'http' || ( $backend eq 'auto' && $http_available ) ) {
     return <[lm-vision.handler.http_analyze]>->(
         {   'image_path' => $working_image_path,
             'prompt'     => $prompt,
-            'reply_id'   => $$call{'reply_id'}
+            'reply_id'   => $call->{'reply_id'}
         }
     );
 }
@@ -289,7 +289,7 @@ my $job_id = <[base.gen_id]>->(<lm-vision.jobs>);
 # Create job entry with filehandles and output buffers
 my $job = {
     'job_id'              => $job_id,
-    'reply_id'            => $$call{'reply_id'},
+    'reply_id'            => $call->{'reply_id'},
     'image_path'          => $image_path,
     'prompt'              => $prompt,
     'status'              => qw| running |,
@@ -299,7 +299,7 @@ my $job = {
     'output'              => '',
     'stderr'              => '',
     'start_time'          => <[base.time]>->(3),
-    'is_completion_chain' => 0                  # Not part of completion chain
+    'is_completion_chain' => 0    # Not part of completion chain
 };
 
 # Store job in queue
@@ -335,12 +335,12 @@ $job->{'err_io'} = <[event.add_io]>->(
 
 <[base.logs]>->(
     1, "[analyze_image] returning deferred: reply_id=%s",
-    $$call{'reply_id'}
+    $call->{'reply_id'}
 );
 return { 'mode' => 'deferred' };
 
-#,,,.,,,,,,.,,,..,.,,,..,,,,.,.,,,,,,,,,.,.,,,..,,...,...,.,.,,.,,.,,,,,,,,,.,
-#3E6BZDV5FKGSJ4X6RT7NEWCIHVMLO4NWHAIDFS75TBXDFSJMAU2ITFFZ6JKBIIEJUPKB4HZGNKDGQ
-#\\\|263HZKX6LY6FRSHOF2L2WPYIZVAS4BSRXLJOWSGVXIJDP4XMCTC \ / AMOS7 \ YOURUM ::
-#\[7]G2UR77A53CJASPNDXR7BXQVPOCSIFQFSK4PFHIXTBGPP22EJB6AQ 7  DATA SIGNATURE ::
+#,,..,...,,..,,,.,,..,,,,,,,,,,..,.,,,,,,,,,.,..,,...,...,...,...,,..,,..,...,
+#5KTKFSHHTJEZTUFXGIHSBSESJTVFUUM3EBKQQTXBSQRVYOAJWPAVNUNCLXJIWH6HUPETLSC6JBCV4
+#\\\|O7GDGXNWQQSDPJAIAMQ7IZMWPUUVJEIO6KZ6RIIRQ6WH7BRORMH \ / AMOS7 \ YOURUM ::
+#\[7]YAWTSEPTTAVMXNFNDCFGCBHKFSNJCQOCZ5ZGFXQ6GM2FEEWB4OCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

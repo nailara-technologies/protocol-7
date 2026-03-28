@@ -8,19 +8,22 @@ my $staged_dir
     . <system.zenka.name>
     . '/staged';
 
-return { 'mode' => 'false', 'data' => 'no staged directory' }
+return { 'mode' => qw| false |, 'data' => 'no staged directory' }
     unless -d $staged_dir;
 
 my $dh;
 if ( not opendir $dh, $staged_dir ) {
     <[base.logs]>->( 0, ':. clear-applied: cannot open %s', $staged_dir );
-    return { 'mode' => 'false', 'data' => 'cannot read staged directory' };
+    return {
+        'mode' => qw| false |,
+        'data' => 'cannot read staged directory'
+    };
 }
 
 my @files = sort grep { $ARG ne '.' and $ARG ne '..' } readdir $dh;
 closedir $dh;
 
-return { 'mode' => 'false', 'data' => 'no staged edits' } unless @files;
+return { 'mode' => qw| false |, 'data' => 'no staged edits' } unless @files;
 
 my $root    = <system.root_path>;
 my $cleared = 0;
@@ -58,10 +61,10 @@ if ( $kept == 0 and $cleared > 0 ) {
 
 $output .= sprintf "\n## %d cleared, %d remaining ##\n", $cleared, $kept;
 
-return { 'mode' => 'size', 'data' => $output };
+return { 'mode' => qw| size |, 'data' => $output };
 
-#,,..,,.,,,.,,.,,,,..,,,,,,..,.,.,,..,,..,,.,,.,.,...,...,...,.,.,.,,,.,,,.,.,
-#NTGP4AREPFXNYFZATO57MORUT7IVEIQLDRJTAD4AJR36DYCQ2IKOJ4BHANUUWE6PCIRURWYC4BZXK
-#\\\|HBCNHYMB2HMGAH6GKFBAL7GJJV4X7C7VZQAA6CQGSI3EMJDUSTF \ / AMOS7 \ YOURUM ::
-#\[7]4PN5OXWQ2A3L26GH63RAVTXZ3FX5QV6III2T2ZNOFM5QR6GN7GDQ 7  DATA SIGNATURE ::
+#,,,,,.,.,.,.,.,,,...,.,,,...,,.,,,,,,.,.,.,,,.,.,...,...,,,,,...,,,.,,,,,,,.,
+#EVCL36ZK27VVZDIYAWYBS7HWIJPDOFCUYE6HXBGVGFDCVYDRLZIWBVNUAZC4ERFTEZ54LKJ76Y24Y
+#\\\|627XTFRNTS6CEO7UI4DQSN4ESVVFWQSCBKWPXPCPFCCDKHMUEWN \ / AMOS7 \ YOURUM ::
+#\[7]7W4UTT6VBIV6DXU4WQ6IRKRLNWBLHXAQ6DNVY5WPEARLMLHRP2AY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

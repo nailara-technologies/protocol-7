@@ -3,7 +3,7 @@
 # name  = kimi.cmd.approve
 # descr = approve a pending tool call request
 
-my $request_id = $$call{'args'} // '';
+my $request_id = $call->{'args'} // '';
 
 ## approve all pending if no id given
 if ( not length $request_id ) {
@@ -37,8 +37,8 @@ return {
         sprintf( 'approved %s [ %s ]', $request_id, $pend->{'action'} // '' )
 };
 
-#,,,.,,..,.,.,,,,,..,,,,.,,.,,,,,,.,.,...,,.,,.,.,...,...,.,.,,.,,.,,,,.,,..,,
-#FNDHKJTXDQDW3SOMLIHDWIWRZQZELYZX6QQCYRULS4R7XOAB33QFCET3HERMQU5LJEAIOQTBDPLVK
-#\\\|GIHYXA2R5EN6DVNVZNP4BQLYLRP7AC4BUX44ITQSCKZIWJLS6YS \ / AMOS7 \ YOURUM ::
-#\[7]VMROWKMW34UP4S5FYLPA3QZ3PQUPQBEXULKVQVQVXGN4VUAGYADI 7  DATA SIGNATURE ::
+#,,.,,,,.,.,,,.,.,..,,,,,,.,.,,.,,,..,,..,...,.,.,...,...,...,...,,.,,,..,.,,,
+#ED2NHGMV5OEVJK3DSMUXV2WSU2BZD26GZYX72HV7LOVBURF3GIDTWAE4OLNRMK2GHZ7GANB52IU4C
+#\\\|O5P7JES5WG5BGYTJSU5W3RCVYUHJITU4VE4DRLMCUJIMLFSM5QT \ / AMOS7 \ YOURUM ::
+#\[7]KMWHCMTIZ4ZICTWTXHAK2LHKHZICUBLUF7X2MLCOHIE7RQ7UN6AQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -3,7 +3,7 @@
 # name  = devmod.cmd.since
 # param = [unix|rel[ative]]
 # descr = zenka startup local, unix time or 'uptime'
-my $mode = $$call{'args'} // '';
+my $mode = $call->{'args'} // '';
 $mode = 'rel' if $mode eq 'relative';
 return { 'mode' => qw| false |, 'data' => 'invalid output mode' }
     if $mode !~ m,^(|unix|rel)$,;
@@ -16,8 +16,8 @@ $startup_time = <[base.parser.duration]>->($startup_time)  if $mode eq 'rel';
 
 return { 'mode' => qw| true |, 'data' => $startup_time }
 
-#,,..,...,,,,,,..,..,,.,.,,.,,.,,,.,,,,,,,.,.,..,,...,...,...,,,.,.,,,,..,,,.,
-#3S4OQUDND5U7FRBCUFHZRNGCKSYF5S6RZOM6UXZVFPI7UQO3YCADZZM3LQDMVS2RY2O7W2HTDK2OG
-#\\\|43GAM7XVNMAU32E233LK5QOM7LZ36SV5N65OJ4C6M75TIFYCTLY \ / AMOS7 \ YOURUM ::
-#\[7]ZX2TSSDRNDA6VNORZHOASPBDVG24J5X3Z2ABWCARNJSNZQCUQOBQ 7  DATA SIGNATURE ::
+#,,,,,,,,,.,,,,..,.,.,.,.,,,.,.,,,,,.,.,,,,,,,..,,...,...,,..,,,,,.,,,.,.,,.,,
+#CGWDUECGS4XTBDX653MVMRFBXV6HB7QBBICD67YVWLCJLIRAHKIWOM3GJDVDJH5UCG5QTXBXQA76C
+#\\\|JAPSZ5DP6EBJOIYD4OHLVGZBDU6DQWPGBI2LXWPBF5Z57VKFFTQ \ / AMOS7 \ YOURUM ::
+#\[7]PILT3THG2AVQMRFH4EAODYTQ4OHFAHSK6XQCQ26EH3G4YYAEV2DQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

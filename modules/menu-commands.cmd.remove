@@ -3,7 +3,7 @@
 # name = menu-commands.cmd.remove
 # descr = Remove a menu command mapping
 
-my $mapping_id = defined $$call{'args'} ? $$call{'args'} : '';
+my $mapping_id = defined $call->{'args'} ? $call->{'args'} : '';
 $mapping_id =~ s{^\s+|\s+$}{}g;
 
 unless ($mapping_id) {
@@ -14,7 +14,7 @@ unless ($mapping_id) {
 }
 
 # Check if mapping exists
-unless (exists <menu-commands.mappings>->{$mapping_id}) {
+unless ( exists <menu-commands.mappings>->{$mapping_id} ) {
     return {
         'mode' => qw| false |,
         'data' => 'Mapping not found: ' . $mapping_id
@@ -35,8 +35,8 @@ return {
     'data' => 'Removed mapping: ' . $mapping_id
 };
 
-#,,,.,,,.,.,.,,..,,,,,...,,,,,.,,,,.,,,,,,,,.,..,,...,...,,,.,,.,,..,,,.,,,,.,
-#33GJNNOVHLS2UUF5UY7TH4GFVS3CKJXPBTHH3W4D5L23VND4L7MJ4HHYDBVSGYCKJUXTDXLLM7UXS
-#\\\|FADTYAN7DSA5T6YLUD753VGFUFHOSRYUS6PV3DPXQYNRZTPGFUS \ / AMOS7 \ YOURUM ::
-#\[7]GL4C3P2UCTY3WRKBBDIGLZVOFS4HRWF5YARUJQPRWB5TSOT5H4DA 7  DATA SIGNATURE ::
+#,,,,,,.,,.,,,...,...,,.,,.,,,,,,,...,..,,..,,..,,...,...,.,.,,..,,..,..,,,,,,
+#TT2BDOCGV5AJTOLOSPPB3B2R5KMIDLBSKIMRFP52K6KVN55XVOEGXXCXRQIRYZ3BGLGGJZ2IZULQI
+#\\\|M6UGGDIAEV2OLU554HHHKA6A3HYLKMC2LB4MY2JQ5B36Z7HXWIB \ / AMOS7 \ YOURUM ::
+#\[7]66UK26RAFJYTRMZ6ESEYR5HFIT5B6FOTRWAYBSPFP2EVAGVWNWAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

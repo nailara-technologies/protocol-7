@@ -5,7 +5,7 @@
 # descr = raise specified window to top
 
 my $X         = <X-11.obj>;
-my $window_id = $$call{'args'};
+my $window_id = $call->{'args'};
 
 return { 'mode' => qw| false |, 'data' => 'x11 window id required' }
     if not defined $window_id;
@@ -22,8 +22,8 @@ $X->ConfigureWindow( $window_id, stack_mode => 'Above' );
 
 return { 'mode' => qw| true |, 'data' => 'raised to top' };
 
-#,,,.,,..,,..,,..,,.,,,,.,,,,,...,,.,,,..,..,,..,,...,...,,.,,.,.,.,,,,..,...,
-#4GWDN6FPRJAOMVWFOFNM5ZOKLEWIR5CJKQCLCX4HWULR7VLMCUTFBDIWFBXNHWPJU56SA42S2CM64
-#\\\|D7RC5IAV46AGNKN7R6EBZO6AHZ34W7MIGTCUGQIO42QFJ7NVN6S \ / AMOS7 \ YOURUM ::
-#\[7]D4GEBMWGIR54CXH6FQSKBB45MQEYS6ATNTGMMILWJDN3F7WHPCCA 7  DATA SIGNATURE ::
+#,,..,...,,,.,.,,,,.,,..,,,,.,..,,,,,,.,,,..,,..,,...,...,,..,.,.,.,,,,,,,..,,
+#WPV4DMH4DAKOLYZCQLSES4KO3YHVZERFD5Z6CRNRSOUA6LOBWGE27462B2WQ5QI4LOXA2XNA4CHMI
+#\\\|X5S7JXK4B35H3LOE7F5GLYVG4VZ6FXVNTAHUVF3ZYX3JKXRNFJB \ / AMOS7 \ YOURUM ::
+#\[7]3WVF55SDGOHEELGO5VNAJPD4H2JK5GSI5H42SHF25WDI73IYW2DA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -4,7 +4,7 @@
 # param = <factor>
 # descr = set playback speed factor [0.01..100.0]
 
-my $speed = $$call{'args'} // '';
+my $speed = $call->{'args'} // '';
 
 return {
     'mode' => qw| false |,
@@ -20,7 +20,7 @@ return { 'mode' => qw| false |, 'data' => 'minimum value 0.01' }
 return { 'mode' => qw| false |, 'data' => 'maximum speed value is 100' }
     if $speed_val > 100;
 
-push( @{<mpv.reply_ids>}, $$call{'reply_id'} );
+push( @{<mpv.reply_ids>}, $call->{'reply_id'} );
 <mpv.success_reply_str> = "playback speed now $speed_val";
 <mpv.success_reply_str> =~ s|\.?0+$|x|;
 <mpv.success_reply_str> =~ s|now 1x$|reset|;
@@ -29,8 +29,8 @@ push( @{<mpv.reply_ids>}, $$call{'reply_id'} );
 
 return { 'mode' => 'deferred' };
 
-#,,..,,,.,,,.,...,.,,,...,..,,,,,,,,.,,,.,.,.,..,,...,..,,.,,,,..,.,,,.,.,,.,,
-#V4NDAVV4MF2JHR2TYA2XA4VHSEOMOPJ5UO2SLHGIHN5XFALGSTPWRR2Z4URMAIJZHIHV6URCGBIXU
-#\\\|SVQBITXZ2C3REMVNDUINR5XXNATMI3R2H5GCA26IXF7R5YAQ6YA \ / AMOS7 \ YOURUM ::
-#\[7]SV5S7PIBSMCMYOJHSXRKFLEUY2CISKMD3XEMMNL4QOPLLCNS6OCY 7  DATA SIGNATURE ::
+#,,..,...,,,.,,,.,.,,,...,.,.,,.,,,..,.,,,..,,..,,...,...,...,,,,,,..,...,...,
+#NZDJB7R54TWIIRRIIJZ7MED34LXR7VOJHHUKIJKHEXZJZ7VDZPMPQQBZFDQA77AQIXL4SBWJ3LNAE
+#\\\|SH35RIWMITGZEAZWPCWRPMMNJ4VY542LLVLIS6TLR6Z63EYETYF \ / AMOS7 \ YOURUM ::
+#\[7]CLP7PSVKWDOA6IR2Q56J3HFR3VUBXPVQF6VCFHQQBDAS6YPCNSCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -4,7 +4,7 @@
 # param = <y-offset>
 # descr = vertical video position [-1..1]
 
-my $offset = $$call{'args'};
+my $offset = $call->{'args'};
 
 return {
     'mode' => qw| false |,
@@ -14,7 +14,7 @@ return {
     or $offset < -1
     or $offset > 1;
 
-push( @{<mpv.reply_ids>}, $$call{'reply_id'} );
+push( @{<mpv.reply_ids>}, $call->{'reply_id'} );
 
 if ( $offset == 0 ) {
     <mpv.success_reply_str> = 'vertical alignment reset';
@@ -26,8 +26,8 @@ if ( $offset == 0 ) {
 
 return { 'mode' => 'deferred' };
 
-#,,..,.,,,...,,,.,...,,,,,.,,,,,,,,,.,.,.,...,..,,...,...,.,.,.,,,,,.,...,..,,
-#KQFNREODJBIYLOTO6BB2I36A6B2E6SX3CXWUV3TTL4JDLY2KE23CHV67QCZSXQEB7UP3EA6MMASZW
-#\\\|DBAL76B6INROOCNHUKTIO73ZTBZCA25KBMNYWIYH6AXL5JOUPH5 \ / AMOS7 \ YOURUM ::
-#\[7]5E5JEEUWKKXFQITEKWXSLEHPJPOKBTMROFLCDCNCPMMXDFQBZQBI 7  DATA SIGNATURE ::
+#,,,.,,.,,,.,,.,,,...,,,,,..,,,,.,,.,,,..,,.,,..,,...,...,..,,.,,,.,,,..,,.,.,
+#MQZIAGVUFLMGH2YBRXS3ZPXNJXNYI6XX4UZJ4RV6KOOZJLA4TX5CBM3KSBWO2LGKVCTJHIMKSBZSM
+#\\\|B6MDIRAXA5NS3RQQ6H47CSRQJ6EBTMVV53STCUE3BFNA4UUXPWH \ / AMOS7 \ YOURUM ::
+#\[7]62PVWSMALCBYCOEESA7PWOG3CPHF7RSZGH3A6B7EPLE33P2BQEDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

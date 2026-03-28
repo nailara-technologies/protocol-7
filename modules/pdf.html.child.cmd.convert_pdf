@@ -4,7 +4,7 @@
 # param = <pdf_path> [width]
 # descr = returns file:// url to html version of pdf
 
-my ( $pdf_path, $target_width ) = split( / +/, $$call{'args'} );
+my ( $pdf_path, $target_width ) = split( / +/, $call->{'args'} );
 
 return { 'mode' => qw| false |, 'data' => 'expected path to pdf file!' }
     if not defined $pdf_path or !length($pdf_path);
@@ -49,13 +49,13 @@ return {
 if ( exists <pdf.html.conversions>->{$html_dir_name} ) {
     push(
         @{ <pdf.html.conversions>->{$html_dir_name}->{'reply_ids'} },
-        $$call{'reply_id'}
+        $call->{'reply_id'}
     );
     return { 'mode' => 'deferred' };
 }
 
 my $conversion_setup = {
-    'reply_ids'    => [ $$call{'reply_id'} ],
+    'reply_ids'    => [ $call->{'reply_id'} ],
     'width'        => $target_width,
     'pdf_file'     => $pdf_path,
     'html_path'    => $html_path,

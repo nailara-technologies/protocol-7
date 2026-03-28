@@ -16,8 +16,7 @@ my $buffer_name = qw| zenka |;
 my $output      = "## recent errors ##\n";
 
 ## access buffer data if available ##
-my $buf_key = "buffer.$buffer_name";
-my $buffer  = <$buf_key> // undef;
+my $buffer = <buffer.zenka.data> // undef;
 
 unless ( defined $buffer and ref $buffer eq qw| ARRAY | ) {
     return "<!-- no error buffer available -->";
@@ -72,8 +71,8 @@ foreach my $err ( reverse @errors ) {
 
 return $output;
 
-#,,.,,.,.,,..,,..,,,,,..,,.,,,.,.,,.,,.,.,,,,,..,,...,...,.,.,...,..,,.,,,.,,,
-#523YROXMN35OBNNVX3ZSBRYXFZ6CEBKI3ZY26NYPDXHMFHWYYOQ4GNO5VDYFQZVWIZFFGH7SEL4VA
-#\\\|M4LCEXSXIWTFFJXF5EIBB5ZRH64U5CVBAWC7DY6UIGF64QFWA3U \ / AMOS7 \ YOURUM ::
-#\[7]F6I5OO7QO3TKOOUOV6BTDY2KOIJBPCSGUZ2WB5W6QK4GCYPL34CQ 7  DATA SIGNATURE ::
+#,,.,,,..,.,,,,.,,.,.,,.,,,,.,,,,,,,.,,,.,.,.,..,,...,...,..,,,..,,.,,,,.,.,.,
+#6EINBNNYXVMDRS3Q5BZA36UR6WWHXM4FZOZYZOANGJK3FZCPUJHLM6LA2TBLRQJFLF2LMGAJUYXKQ
+#\\\|PQSBNLVGEUHML4M2EFMS7EG4COXV3UPPVGQL572KVZXNTAQTNJY \ / AMOS7 \ YOURUM ::
+#\[7]QM6OZDRCUMPNUYVOYMGP7I4UMLRH4ZEAY7XCNW2RRZAYBIQE6MBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

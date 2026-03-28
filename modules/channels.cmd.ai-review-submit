@@ -5,7 +5,7 @@
 # param = <json: branch diff message urgency>
 # return = { mode => 'timestamp', data => 'review_id' }
 
-my $args_ref = $$call{'args'} // '';
+my $args_ref = $call->{'args'} // '';
 
 my $data_ref;
 eval {
@@ -33,7 +33,7 @@ my $review_id = 'review_' . <[base.gen_id]>->( {} );
 ##  Store review submission  ##
 <channels.ai_reviews> //= {};
 <channels.ai_reviews>->{$review_id} = {
-    'developer'          => $$call{'session_id'} // 'unknown',
+    'developer'          => $call->{'session_id'} // 'unknown',
     'branch'             => $data_ref->{'branch'},
     'diff'               => $data_ref->{'diff'},
     'message'            => $data_ref->{'message'},
@@ -48,7 +48,7 @@ my $review_id = 'review_' . <[base.gen_id]>->( {} );
 ##  Post to AI review channel for processing  ##
 my $submission_payload = {
     'review_id'    => $review_id,
-    'developer'    => $$call{'session_id'},
+    'developer'    => $call->{'session_id'},
     'branch'       => $data_ref->{'branch'},
     'diff'         => $data_ref->{'diff'},
     'message'      => $data_ref->{'message'},
@@ -72,7 +72,7 @@ if ( length $EVAL_ERROR ) {
 <[channels.cmd.update]>->(
     {   'call' => {
             'args'       => "code-review.ai-submissions $json_str",
-            'session_id' => $$call{'session_id'}
+            'session_id' => $call->{'session_id'}
         }
     }
 );
@@ -81,7 +81,7 @@ if ( length $EVAL_ERROR ) {
     1,
     "channels: submitted code review %s from %s on branch '%s' (urgency: %s)",
     $review_id,
-    $$call{'session_id'},
+    $call->{'session_id'},
     $data_ref->{'branch'},
     $data_ref->{'urgency'}
 );
@@ -93,8 +93,8 @@ return {
 
 1;
 
-#,,,,,...,,.,,..,,,,.,,.,,.,,,,..,..,,,..,,..,..,,...,...,..,,,..,.,.,.,,,..,,
-#UDFQTFIGIYQGTXD5ZJMZP3TEWNLPCK54DNO4RTUI3575ENQIGGZFGIPFCVV47Y6GQTCLYE2X4NR3C
-#\\\|PRLOW5B3JESWRNPA7GKM3M23EVNL44NCDYZOQ6B2N67V6KZW4PM \ / AMOS7 \ YOURUM ::
-#\[7]QOEYLFWD4Y7SI6HFVBXVT7DLOGPCHUDCVPFTYQW7LHZBHNESNECQ 7  DATA SIGNATURE ::
+#,,,.,,..,...,..,,..,,..,,,,,,,,,,,.,,,,,,..,,..,,...,...,,,,,.,,,,,.,,.,,.,,,
+#CVKZFICGDADWG3ZWD6L3XZ46TAI4JYLQJMA6VYSOMQT4PX7J57USCVWJ5D5CW4GX26P7XBP7QUSB2
+#\\\|3PC2MBXBAKISVGDUQM7GYQDR57IIK7DQBA5KFWDCTZ2GEU36IEU \ / AMOS7 \ YOURUM ::
+#\[7]UQOSSIQ5FZVUKFPCDLMQAF5YOQOMYASLC6T5H4GNUF2B2J2LHKAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -4,7 +4,8 @@
 # descr = manually resume/continue incomplete code analysis
 # param = <job_id> [instruction]
 
-( my $meta_id, my $additional_instruction ) = split( m| +|, $$call{'args'}, 2 );
+( my $meta_id, my $additional_instruction )
+    = split( m| +|, $call->{'args'}, 2 );
 $additional_instruction //= '';
 
 # Parameter validation
@@ -52,10 +53,10 @@ $meta_job->{'continue_analysis'} = TRUE;
     1, "[resume-analysis] triggered continuation, returning deferred"
 );
 
-return { 'mode' => 'deferred' };
+return { 'mode' => qw| deferred | };
 
-#,,,,,,,.,,,,,..,,,..,,..,.,,,..,,.,.,,.,,..,,..,,...,...,..,,,,.,.,.,.,.,...,
-#F7EBM6JL3U3IWVCLTXGQ5NE36PTLEIKAYUTLTZZ7MZOMTGPMM46YSKMYHCWBMV7V275SJD5TZRAI4
-#\\\|WXHIK4J6HRETQMC3DLPBC3RVRBT3ANRS4X62NLNJVCGODYGJABO \ / AMOS7 \ YOURUM ::
-#\[7]TBSGI4OVQ5R6MWNYKALRMXNTR3CJ7GUSZNLFMGXTQS66UG3BL6CI 7  DATA SIGNATURE ::
+#,,..,.,,,,.,,.,.,,,,,,.,,.,,,,,.,...,,,,,,.,,..,,...,...,,..,,,.,,,.,,..,,,,,
+#ODB75QNEANQK3OJEF7ONP7PJSY433WBRDWTDAWR5VP67SDV463332OHRE2Y2LS54R6FCCOIGVJ66G
+#\\\|OUQKJMFWPVSIXUHX6BFFUMCF45QLNPK33VXKFYTBFCNMRAXOD7O \ / AMOS7 \ YOURUM ::
+#\[7]FPBMEA3M3TXSSBVCWZELQS5AZBZ6KPC6I2IMJ65Q4PHXBRNN2ODY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

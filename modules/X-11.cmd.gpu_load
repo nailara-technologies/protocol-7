@@ -8,8 +8,8 @@ return { 'mode' => qw| false |, 'data' => 'no statistics available' }
     if not defined <X-11.gpu_top.stats.load_average>
     or not defined <X-11.gpu_top.stats.secs>;
 
-if ( defined $$call{'args'} ) {
-    my $ivl  = $$call{'args'};
+if ( defined $call->{'args'} ) {
+    my $ivl  = $call->{'args'};
     my %secs = map { $ARG => 1 } @{<X-11.gpu_top.stats.secs>};
     return {
         'mode' => qw| false |,
@@ -51,8 +51,8 @@ $stats_str =~ s| +$||;
 
 return { 'mode' => qw| true |, 'data' => $stats_str }
 
-#,,..,..,,..,,..,,..,,.,.,,..,...,..,,.,.,,..,..,,...,...,.,.,,,,,,..,.,.,,..,
-#67PYZIPEASPF7P2QWGKXRNRRLS7LRG2PQKEPBG24BKXZHYA4N4235P776X3L2XCNZG6PDVSK4KU7Y
-#\\\|Q4THYDAQNJEKRNSMNJKTV2MPTWYZ3M4GMEEOLK4EB4GNDUTAHCW \ / AMOS7 \ YOURUM ::
-#\[7]RIYHOOPSZ47MX6DFFPRQSRVPQSVL5ZHADGSORFIBKPE6CB2SWQBA 7  DATA SIGNATURE ::
+#,,,,,,,,,.,,,,,,,..,,,,,,.,,,.,.,,,,,...,..,,..,,...,...,,,.,,.,,,,,,...,,..,
+#CMXGFDTJDAW3ZEW2PUGMVBSXJWDZTIKJ6L64IMHE4CUD2WRS4I4ROLBXOXZVOR7OQAQAD7UTQCJVS
+#\\\|TMBTCNS342HB73QF6RZR5RV23FACJPY7QCHLSFVDL4DJEJ26TMH \ / AMOS7 \ YOURUM ::
+#\[7]E2EGFZXS3NQUJSEFQFHWA54SQ6YAX7K4TXHHUHBBODL5QRHGSSDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

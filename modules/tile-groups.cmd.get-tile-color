@@ -4,15 +4,15 @@
 # param = <zenka-|tile_name>
 # descr = average region color for zenka \ tile name
 
-my $reply_id          = $$call{'reply_id'};
+my $reply_id          = $call->{'reply_id'};
 my $get_color_command = 'cube.screenshot.get_region_color';
 
 return {
     'mode' => qw| false |,
     'data' => "expected valid tile or zenka name"
     }
-    if not defined $$call{'args'}
-    or $$call{'args'} !~ /^(\S+)( +(\S+))?$/;
+    if not defined $call->{'args'}
+    or $call->{'args'} !~ /^(\S+)( +(\S+))?$/;
 my ( $source_zenka, $zenka_name ) = ( $1, $3 );
 
 $source_zenka =~ s|^.+\.||g;
@@ -82,8 +82,8 @@ foreach my $border_name (@borders) {
 
 return { 'mode' => 'deferred' }
 
-#,,,.,,..,,,,,...,,,.,..,,,,,,,..,,.,,,.,,,,.,..,,...,...,..,,.,.,,..,,,.,.,,,
-#2H6IVZKW7PE3VPUV5TP6XBSHUMCHEIMH6D7QDS5XJQY6CYKYHQUOL6QLWOI5RPANQSQCVTWMMQEKS
-#\\\|LVTS2QEJX52E7QNN5M7VW3E2NV77FYBKJPGRTCRAZZFNBBMZSGI \ / AMOS7 \ YOURUM ::
-#\[7]N7SGPJYXL5O6OVR6GRF7ZENBHNWG7JWQ3IQJ5HOH3HZ2NAFHR6AI 7  DATA SIGNATURE ::
+#,,,,,.,.,,..,,..,,..,,.,,,,,,...,,..,,.,,.,,,..,,...,...,..,,,,,,.,.,..,,.,,,
+#SQZHKHME52TH2D6HXBEF35YT3P6X2I5TDA6B7BZDDTR25WSFK34H2BIDO7D6MPSVHC4S7TV74UQ6K
+#\\\|ULKKYIXBGNUPIX5TE2SRNV5WVIP6VALKB36J4NPEKX7VP3JDGRS \ / AMOS7 \ YOURUM ::
+#\[7]7UKL4XXKKLRDLEJFGJUVZEX5C6BWTO6X3WCYJTZMW322UYSXFMCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

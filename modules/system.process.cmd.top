@@ -5,7 +5,7 @@
 # descr = get top process list (cached [5s])
 
 my $filter;
-my $limit = $$call{'args'} // '';
+my $limit = $call->{'args'} // '';
 my $top   = <process.table.top>;
 
 if ( $limit =~ /([^\d][^\s]*)( +(\d+))?/ ) {
@@ -45,8 +45,8 @@ foreach my $pid (
 
 return { 'mode' => qw| size |, 'data' => $top_table_txt };
 
-#,,..,,.,,...,,,.,,,,,,,,,.,,,...,,,.,,.,,.,.,..,,...,...,.,,,,,,,,..,.,.,...,
-#LGF7TLXZ2AWJNDAP6D5VH2EVBBTRQUJOJSN6V2ORBLE6YV6EE7KRQMECGIWDUZVUHZC43REXA2AXK
-#\\\|FGRMWQZWWFIOUFN52HVTUQH6B2WRD6C5A6KWVRE4ITGS3OEZVHA \ / AMOS7 \ YOURUM ::
-#\[7]V7S2QFQVTZQQ3DSVUDRYYIX5KJZ6F5UAZWWOTKR6QB7ZOLLOW4CA 7  DATA SIGNATURE ::
+#,,..,,,,,.,,,,.,,,,,,,,,,..,,.,,,,,,,...,..,,..,,...,...,..,,.,.,.,.,,,.,.,,,
+#MGIBVNVWSW5WMHLY2V24UO7DDJVPU47SUIOSSA4ZWFSU3HTM6KOXIBRUDTVD5BACVZIBV3EPA2KT6
+#\\\|SJW4I5RQKE6TGYDH522U2D2HEOJMFK5ZOABONAI4XKOKEW4QS6A \ / AMOS7 \ YOURUM ::
+#\[7]X5EY4TVDZOBSOKLX5T2MROGRD25QDGT5MJBM6EZARWK6FDMIHQCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

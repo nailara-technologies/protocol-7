@@ -4,7 +4,7 @@
 # param = <pdf_path> [width]
 # descr = returns file:// url to html version of pdf
 
-my ( $pdf_location, $target_width ) = split( / +/, $$call{'args'} );
+my ( $pdf_location, $target_width ) = split( / +/, $call->{'args'} );
 
 return { 'mode' => qw| false |, 'data' => 'expected path to pdf file!' }
     if not defined $pdf_location or !length($pdf_location);
