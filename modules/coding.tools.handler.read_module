@@ -1,0 +1,30 @@
+## [:< ##
+# name  = coding.tools.handler.read_module
+# descr = dispatch read_module tool call to coding.context.read_module handler
+
+my $args = shift // {};
+
+return unless exists $code{'coding.context.read_module'};
+my $result = $code{'coding.context.read_module'}->(
+    {   'module'    => $args->{'module'}    // '',
+        'max_chars' => $args->{'max_chars'} // 8000,
+    }
+);
+if ( ref $result eq qw| HASH | and $result->{'mode'} eq qw| true | ) {
+    my $d = $result->{'data'};
+    return sprintf ".:[ module: %s ]:.\n.:[ descr: %s ]:.\n"
+        . ".:[ %d lines, %d chars%s ]:.\n\n%s",
+        $d->{'module'},
+        $d->{'descr'} // '?',
+        $d->{'lines'},
+        $d->{'chars'},
+        $d->{'truncated'} ? ' truncated' : '',
+        $d->{'content'};
+}
+return $result;
+
+#,,,,,,,,,.,,,,,,,,..,,.,,...,,,,,,,.,.,.,.,,,..,,...,...,..,,..,,.,.,,..,...,
+#CB4FZB64MY7T73MHMOTUHGHXEKTKPCQRZV6H57SF37X3TTW5A2E5EDKSAR2IGMOW4GLQKULV7ZWCY
+#\\\|UOKKM4DG6QL4RH73EMRSILEVDGAFFRRZZMIG5V5THYAP47QV53O \ / AMOS7 \ YOURUM ::
+#\[7]ETH2MYBBXW7JDU57L3V6J5QUA34OFDT5SW6C6GINALHRPKTPXKCQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

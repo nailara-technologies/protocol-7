@@ -1,0 +1,55 @@
+## [:< ##
+# name  = coding.tools.handler.ptd_format
+# descr = format P7 module with ptd and report changes
+
+my $args   = shift             // {};
+my $module = $args->{'module'} // return 'module name required';
+
+## validate module name ##
+return 'error: invalid module name'
+    if $module =~ m{[;&|`\$\\"'\n\r/]};
+
+my $root = <system.root_path>;
+my $path = "$root/modules/$module";
+return "error: module not found [ $module ]" unless -f $path;
+
+## read before ##
+my $before_ref = <[file.slurp]>->($path);
+return 'error: cannot read module' unless defined $before_ref;
+
+my $err_file = "/var/protocol-7/coding/state/.ptd_fmt.$$";
+my $output   = '';
+if ( open my $fh, '-|', "$root/bin/ptd $path 2>$err_file" ) {
+    local $/;
+    $output = <$fh>;
+    close $fh;
+}
+$output =~ s|\e\[[0-9;]*m||g;
+
+my $warnings = '';
+if ( -s $err_file ) {
+    if ( open my $efh, '<', $err_file ) {
+        local $/;
+        $warnings = <$efh>;
+        close $efh;
+    }
+}
+unlink $err_file;
+
+## check if file changed ##
+my $after_ref = <[file.slurp]>->($path);
+my $changed   = ( defined $after_ref and $after_ref->$* ne $before_ref->$* );
+
+my $result = $output;
+$result
+    .= $changed
+    ? "\n[ file was reformatted ]"
+    : "\n[ no formatting changes needed ]";
+$result .= "\n## warnings ##\n$warnings" if length $warnings;
+return $result;
+
+#,,..,,..,..,,...,,,.,,,,,,,,,.,.,,.,,..,,.,,,..,,...,...,..,,,.,,,.,,,..,,,,,
+#MSUG3ZZYELBIKCYZCXEI5HLAAABJKJPSG7XYS4PAOGADOKRL636FIFT6IXRINGEBF52V76SAXZMAQ
+#\\\|7XIP234R7OLZXT4I3JQUD5Y74OHZY4RU4QRSA2Q4MXKZMKD6YSH \ / AMOS7 \ YOURUM ::
+#\[7]M7B3R5KGG5LC7XLRV2XOMEKPDXTJECGJDZJD22NLIZFCQNTSFMDI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
