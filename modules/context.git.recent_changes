@@ -17,28 +17,34 @@ my $since_commit = $params->{'since_commit'}
 my $char_budget = int( $budget * 4 );
 my $output      = '';
 
-## build git command [ run from project root ] ##
-my $root    = <system.root_path>;
-my @git_cmd = ( 'git', '-C', $root, qw| diff --stat | );
+## run from project root ##
+my $root = <system.root_path>;
 
-## add since_commit if provided ##
-if ( length($since_commit) ) {
-    push @git_cmd, $since_commit;
+## verify git repo before running commands ##
+unless ( -d "$root/.git" ) {
+    return "<!-- not a git repository -->";
 }
 
-## capture git diff stat ##
+## git diff --stat for uncommitted changes ##
+my @diff_cmd = ( 'git', '-C', $root, 'diff', '--stat' );
+push @diff_cmd, $since_commit if length $since_commit;
+
 my $stat_output = '';
-{
+if ( open my $git_fh, '-|', @diff_cmd ) {
     local $/;
-    open my $git_fh, '-|', @git_cmd
-        or return "<!-- git diff failed: $! -->";
     $stat_output = <$git_fh>;
     close $git_fh;
 }
 
-## if no changes, return empty indicator ##
-unless ( length($stat_output) ) {
-    return "<!-- no recent changes -->";
+## if no uncommitted changes, show recent commits instead ##
+unless ( length $stat_output ) {
+    my @log_cmd = ( 'git', '-C', $root, 'log', '--oneline', "-$max_files" );
+    if ( open my $log_fh, '-|', @log_cmd ) {
+        local $/;
+        $stat_output = <$log_fh>;
+        close $log_fh;
+    }
+    return "<!-- no recent changes -->" unless length $stat_output;
 }
 
 ## parse and truncate to budget ##
@@ -77,8 +83,8 @@ if ( $file_count >= $max_files ) {
 
 return $output;
 
-#,,..,...,,,.,,,,,,..,...,,,.,,,.,,,,,,,.,,..,..,,...,.,.,,,,,...,.,,,,,.,,..,
-#FUM34SGHVTZE4D76KE4SSCUJCRPJDZ6WPYQ3RPRER5CB5WAJEENZ3CQBXJ6QZEQQ4PREZVOIQVERU
-#\\\|YJWSTANG7XG3IRWFIYDRG3XVLV5SDAHEFNWEDBNZ4SSAVDXIO75 \ / AMOS7 \ YOURUM ::
-#\[7]4VSJATZ5N7TTTWDIJ6EJHKOGTQ6UALSZGTYCSSBDDGXEY5FGUWAI 7  DATA SIGNATURE ::
+#,,..,,,,,,..,,,,,.,,,,..,.,.,,..,...,.,.,,..,..,,...,...,.,,,,.,,..,,,..,,,,,
+#BIO5HFQYFUYWHFZ4Q76ALNI7VY754UXZFFOFILVJGIGNLWW5R2CP6ZWNWGTILRCTUV5QOLH4K6Y2Y
+#\\\|RIZASSZA46BUQCIZOKECGQVCGS32BBXLZKITHHW6DNPASMJW2WD \ / AMOS7 \ YOURUM ::
+#\[7]WBUF6SW3I2JBPNNEOJWM62SSW25XWUTHP6CEXHMCRGNRBN3PIIDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
