@@ -1,0 +1,42 @@
+---
+name: system-compact-debug
+descr: post-fix compaction template — summarize debug session to tiny context
+budget: 500
+sections:
+  - static: |
+      summarize this debug session concisely:
+      - what was the bug [ one line ]
+      - what was the fix [ one line ]
+      - what files were changed
+      - any side effects or follow-up needed
+      keep it under 5 lines.
+    priority: 1
+    budget_pct: 30
+  - provider: context.error.recent
+    priority: 2
+    budget_pct: 30
+    params:
+      filter: "{{error_pattern}}"
+      lines: 10
+    optional: true
+  - provider: context.git.recent_changes
+    priority: 3
+    budget_pct: 40
+    params:
+      since_commit: "{{fix_commit}}"
+    optional: true
+
+## processing mode — how to run this template ##
+processing:
+  ## sequential is default — one model, one pass ##
+  mode: sequential
+  ## future: consensus, voting, chain ##
+  # mode: consensus
+  # group: [model_a, model_b, model_c]
+  # threshold: 3_of_5
+
+#,,..,,,.,...,,.,,..,,.,.,..,,...,,,.,.,.,,.,,..,,...,...,.,.,,.,,,,.,.,,,,,.,
+#55QUTL4WPOTKDOCVT5V2ZMS6HYJWKY4BMS5DA7R7BGF7TI4VCJNWA3LKAXDGFBSIKRYDYRDL4M7PM
+#\\\|FZO3F5MDKQNCYTVLSEC2BZMA2V2ZW5VAOAFAESJEHOLDH4CSSWO \ / AMOS7 \ YOURUM ::
+#\[7]ETGGOFIUIFVAODVXODZJIDKMEOPXBWLNCUYOFZREBUGXOZLJ6MCA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

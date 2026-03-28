@@ -1,0 +1,65 @@
+---
+name: system-default
+descr: composable system prompt with conditional sections
+budget: 3000
+sections:
+  ## always included — core P7 knowledge ##
+  - include: system-base
+    priority: 1
+    budget_pct: 35
+
+  ## tools section — only when tools are available ##
+  - include: system-tools
+    priority: 2
+    budget_pct: 20
+    when: has_tools
+
+  ## review checklist — for review and analysis tasks ##
+  - include: system-review
+    priority: 3
+    budget_pct: 10
+    when: task_type=review
+
+  ## memory and reminders — when memory system available ##
+  - include: system-memory
+    priority: 4
+    budget_pct: 15
+    when: has_memory
+    optional: true
+
+  ## active task context ##
+  - provider: context.task.active
+    priority: 5
+    budget_pct: 10
+    optional: true
+    when: has_active_task
+
+  ## recent errors — for debug tasks ##
+  - provider: context.error.recent
+    priority: 6
+    budget_pct: 10
+    optional: true
+    when: task_type=debug
+    params:
+      filter: "{{error_pattern}}"
+      lines: 30
+
+## post-task hooks — triggered after model output ##
+on_complete:
+  ## compact debug context after successful fix ##
+  - when: [task_type=debug, output_contains=fixed]
+    action: compact
+    template: summarize-events
+    vars:
+      source_branch: "{{task_branch}}"
+
+  ## update memory after significant analysis ##
+  - when: [task_type=review, output_length_gt=500]
+    action: memory_update
+    topic: "{{target_module}}"
+
+#,,,.,,..,,,.,,..,..,,,..,.,,,,,.,,.,,,..,,..,..,,...,...,..,,.,.,,.,,..,,,..,
+#Y75SWN5O4SHTGPETGQ5P3JHKRMSNPVLABDEO5XLDZTUJIIY342XM374KHWFSWW2NXMOE62MBP2ZC4
+#\\\|ZNGR6J2KPQ2XQ5HXSAOURA5WLQ3AZKFKLIM2WOAYEFXWPUVSOCF \ / AMOS7 \ YOURUM ::
+#\[7]YBDKJJFSZQWG46AEISHYNHVFPSXPCCS7KZ5BDI2674JZ4O6XX2AI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
