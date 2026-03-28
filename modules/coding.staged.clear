@@ -1,0 +1,47 @@
+## [:< ##
+
+# name  = coding.staged.clear
+# descr = remove all files from staged edits directory
+
+my $staged_dir
+    = <system.path.zenka-dirs>->{'var_P7'} . '/'
+    . <system.zenka.name>
+    . '/staged';
+
+return 0 unless -d $staged_dir;
+
+my $dh;
+if ( not opendir $dh, $staged_dir ) {
+    <[base.logs]>->( 0, ':. staged.clear: cannot open %s', $staged_dir );
+    return 0;
+}
+
+my @files = grep { $ARG ne '.' and $ARG ne '..' } readdir $dh;
+closedir $dh;
+
+return 0 unless @files;
+
+my $removed = 0;
+for my $fname (@files) {
+    if ( unlink "$staged_dir/$fname" ) {
+        $removed++;
+    } else {
+        <[base.logs]>->(
+            0,      ':. staged.clear: cannot remove %s [ %s ]',
+            $fname, $OS_ERROR
+        );
+    }
+}
+
+<[base.logs]>->(
+    2,        ':. staged.clear: removed %d file%s',
+    $removed, $removed == 1 ? '' : 's'
+) if $removed;
+
+return $removed;
+
+#,,.,,,,,,,,,,..,,.,,,..,,,.,,,.,,.,,,,..,,,,,.,.,...,...,,..,..,,.,,,...,.,.,
+#IDTXNT64YLCM3NGUFZRMFGG65CQZKHNLCWVMMIHO3FJYG6Y5P7IQLKNPRVTQZLLXDW4MNNPLPIJNQ
+#\\\|BF74ZOJITTKZLELXA7DPHTVNY3I6EVNCKUNRF52GPSILNPHPINW \ / AMOS7 \ YOURUM ::
+#\[7]ZFOIPUAEGNQ72JBRYZX7S7ZXPCSPG3LKMQ3HACM4XJ6MHK26R2CA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
