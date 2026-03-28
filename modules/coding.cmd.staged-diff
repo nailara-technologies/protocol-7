@@ -3,7 +3,16 @@
 # name  = coding.cmd.staged-diff
 # descr = show diff of staged edits against current source
 
-my $filter = $$call{'args'} // '';
+my $args = $$call{'args'} // '';
+
+## check for :files: flag [ list filenames only ] ##
+my $files_only = 0;
+if ( $args =~ s|:files:|| ) {
+    $files_only = 1;
+}
+my $filter = $args;
+$filter =~ s|^\s+||;
+$filter =~ s|\s+$||;
 
 my $staged_dir
     = <system.path.zenka-dirs>->{'var_P7'} . '/'
@@ -38,6 +47,13 @@ for my $staged_name (@files) {
     my $src_path    = "$root/$src_rel";
     my $staged_path = "$staged_dir/$staged_name";
 
+    ## :files: mode - just list the path ##
+    if ($files_only) {
+        my $marker = -f $src_path ? '' : ' [new]';
+        $output .= sprintf "%s%s\n", $src_rel, $marker;
+        next;
+    }
+
     unless ( -f $src_path ) {
         $output .= sprintf "## %s [ new file, %d bytes ] ##\n",
             $src_rel, -s $staged_path;
@@ -66,8 +82,8 @@ $output = 'no matching staged edits' unless length $output;
 
 return { 'mode' => 'size', 'data' => $output };
 
-#,,.,,.,,,...,,.,,,,,,,..,..,,,.,,,,,,.,,,..,,..,,...,...,..,,.,,,,,.,,.,,.,.,
-#AMFUCMP72GS77YZBRRVYLDKJXT764D4AJFNU7ZXBLEHCJRSNYK53EJ7KHK4LBX3RJNXQI5DO3Q4Y4
-#\\\|LPPMVPZXWZI7USN7E254H673WSPLBUGOIGX2R2ZRUELQNZUB4D3 \ / AMOS7 \ YOURUM ::
-#\[7]4G6L3HUVTWLTPQ5MGXNLDZXQRQ7Z6IFTRROFENCVZ2OABDTICODQ 7  DATA SIGNATURE ::
+#,,..,.,.,,,,,,,,,,.,,.,.,,,.,,.,,,,,,.,.,.,,,..,,...,...,...,...,...,,..,.,.,
+#CRIBLCYTGTMUB6WMRIIJC3GN5BMCI3Z75GFBDHOZAC4E5A74ZV5O7B3XT34W4RK6EIJDZ7NGMRFY6
+#\\\|6VYA7AJZK4MZDW7NBX2HO7GTSEHFU5OO7XL2WX64F2TCSPQDHZR \ / AMOS7 \ YOURUM ::
+#\[7]3CQINT3S4AQFKAU7WHSTSI5LZ4WENLKMWQH2DZWYFEZW2NXBCABI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
