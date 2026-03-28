@@ -282,6 +282,122 @@ my %dispatch = (
         );
     },
 
+    'edit_file' => sub {
+        my $path  = $args->{'path'}  // return 'path required';
+        my $edits = $args->{'edits'} // return 'edits required';
+        my $apply = $args->{'apply'} // 0;
+
+        my $root     = <system.root_path>;
+        my $abs_path = "$root/$path";
+
+        ## validate path stays within project ##
+        return 'error: path escapes project root'
+            if $abs_path =~ m|\.\./| or $path =~ m|^/|;
+        return 'error: file not found' unless -f $abs_path;
+
+        ## parse edits JSON ##
+        my $edit_list;
+        if ( not ref $edits ) {
+            $edit_list = eval { JSON::PP::decode_json($edits) };
+            return "error: invalid edits JSON: $@" if $@;
+        } else {
+            $edit_list = $edits;
+        }
+        return 'error: edits must be an array'
+            unless ref $edit_list eq qw| ARRAY |;
+
+        ## read current file ##
+        my $content_ref = <[file.slurp]>->($abs_path);
+        return 'error: cannot read file' unless defined $content_ref;
+        my @lines = split /\n/, $content_ref->$*, -1;
+
+        ## validate and apply edits ##
+        my @preview;
+        my $errors = 0;
+        for my $edit ( sort { $b->{'line'} <=> $a->{'line'} } @$edit_list ) {
+            my $ln  = $edit->{'line'} // next;
+            my $old = $edit->{'old'}  // '';
+            my $new = $edit->{'new'}  // '';
+
+            if ( $ln < 1 or $ln > scalar @lines ) {
+                push @preview,
+                    sprintf "line %d: OUT OF RANGE [ 1..%d ]",
+                    $ln, scalar @lines;
+                $errors++;
+                next;
+            }
+
+            my $actual = $lines[ $ln - 1 ];
+            ## trim for comparison ##
+            my $actual_trim = $actual;
+            my $old_trim    = $old;
+            $actual_trim =~ s|^\s+||;
+            $actual_trim =~ s|\s+$||;
+            $old_trim    =~ s|^\s+||;
+            $old_trim    =~ s|\s+$||;
+
+            if ( length $old_trim and $actual_trim ne $old_trim ) {
+                push @preview,
+                    sprintf
+                    "line %d: MISMATCH\n  expected: %s\n  actual:   %s",
+                    $ln, $old, $actual;
+                $errors++;
+                next;
+            }
+
+            push @preview, sprintf "line %d: %s\n     --> %s", $ln, $actual,
+                $new;
+            $lines[ $ln - 1 ] = $new if $apply;
+        }
+
+        ## write back if applying and no errors ##
+        if ( $apply and not $errors ) {
+            my $output = join "\n", @lines;
+            if ( open my $fh, '>:encoding(UTF-8)', $abs_path ) {
+                print $fh $output;
+                close $fh;
+                return sprintf "applied %d edits to %s\n%s",
+                    scalar @$edit_list, $path, join "\n", @preview;
+            }
+            return 'error: cannot write file';
+        }
+
+        my $mode = $apply ? 'BLOCKED' : 'PREVIEW';
+        return sprintf "## %s [ %d edits, %d errors ] ##\n%s",
+            $mode, scalar @$edit_list, $errors, join "\n", @preview;
+    },
+
+    'write_new_file' => sub {
+        my $path    = $args->{'path'}    // return 'path required';
+        my $content = $args->{'content'} // return 'content required';
+
+        my $root     = <system.root_path>;
+        my $abs_path = "$root/$path";
+
+        ## validate path stays within project ##
+        return 'error: path escapes project root'
+            if $abs_path =~ m|\.\./| or $path =~ m|^/|;
+
+        ## refuse to overwrite existing files ##
+        return "error: file already exists [ $path ]" if -e $abs_path;
+
+        ## ensure parent directory exists ##
+        my $dir = $abs_path;
+        $dir =~ s|/[^/]+$||;
+        unless ( -d $dir ) {
+            require File::Path;
+            File::Path::make_path($dir);
+        }
+
+        if ( open my $fh, '>:encoding(UTF-8)', $abs_path ) {
+            print $fh $content;
+            close $fh;
+            return sprintf "created %s [ %d bytes ]", $path, length($content);
+        }
+
+        return 'error: cannot create file';
+    },
+
 );
 
 ## look up and execute ##
@@ -328,8 +444,8 @@ return {
     'content' => $content,
 };
 
-#,,..,,..,,..,,.,,,,.,..,,,,,,,,.,.,,,.,.,,,.,..,,...,...,.,.,...,..,,...,...,
-#IJ4PSQRQFHDPAEOHZY4WJ65T6D6N3QMYXYZ7GFE6IIKPUKSSEMF2THST2AQNI4MFCLVZGU5RTM5VM
-#\\\|PNW6USEODEEDKMDWNHEXOBOLZ55MC4W4DIHPCYGR3LSSYJIDEGL \ / AMOS7 \ YOURUM ::
-#\[7]NJBNAJACLH3J45GYG5MR3GGUCGJE3FZHGKBT4QADRGUQAFU32ICY 7  DATA SIGNATURE ::
+#,,,,,,,.,,,,,...,,.,,,,,,,,.,,.,,.,.,..,,,.,,..,,...,...,,..,...,,,,,...,..,,
+#ADSMNJHM3DD4IJXHU3JASRG4IKLH3DQZHQES3CLFSSZSDUNJZ5ROQSZNFMTGHTGJMTF7ELH5TDA7Q
+#\\\|M7QOFUYZ3YRXYO473UZLXT26MDXISBID4JJKOMEMLY37NUPC4YN \ / AMOS7 \ YOURUM ::
+#\[7]73NRIH72OFHCVY6F3JHCYG6G2OY67PP5WARHHHQYFLR7JJABQGBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
