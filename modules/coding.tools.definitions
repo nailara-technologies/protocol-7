@@ -282,6 +282,32 @@ push @tools,
     },
     };
 
+## ncode_search — full codebase search via ncode binary ##
+push @tools,
+    {
+    'type'     => 'function',
+    'function' => {
+        'name'        => 'ncode_search',
+        'description' => 'search entire P7 codebase with ncode [ all files,'
+            . ' line numbers, grouped by file ]',
+        'parameters' => {
+            'type'       => 'object',
+            'properties' => {
+                'query' => {
+                    'type'        => 'string',
+                    'description' =>
+                        'search string [ case insensitive regex ]'
+                },
+                'max_results' => {
+                    'type'        => 'integer',
+                    'description' => 'max output lines [ default 50 ]'
+                },
+            },
+            'required' => ['query'],
+        },
+    },
+    };
+
 <[base.logs]>->(
     2,
     ':. tools.definitions: %d tools available',
@@ -290,8 +316,8 @@ push @tools,
 
 return \@tools;
 
-#,,.,,,..,,.,,,.,,,,.,..,,,.,,.,,,...,.,,,...,..,,...,...,.,,,,,.,.,.,...,,.,,
-#LTVKO2OHPVZL24WCBCDNDKPMED76AYONXH4ZGGNM6I5EK74W3KCOLZ4ED7KFQYRFIRCPC56V53CXS
-#\\\|YO4Y5ZAMKOFJUOISN5LKJYVTSZNUK54YFKDL27SADFHP5J6S6UU \ / AMOS7 \ YOURUM ::
-#\[7]6CIWSMV6R2MNYRAY2Q6RH2GNGWVNZVAV3VNTXJXFZ4IBUUEDU2CA 7  DATA SIGNATURE ::
+#,,..,..,,,.,,,.,,...,.,.,,.,,,,,,,,,,,..,,..,..,,...,...,.,,,.,,,.,,,,,.,.,,,
+#VHXURATILRSDUAOKVCE5EOG7U2NJTAFZ55UVJ7O3A5PUDXJFZHPYMQZP5P7NCW7TMN74JOSFVSEMS
+#\\\|7UQX6256RV66A6WLGJ6ZH2HSZHEUFQIXOSUDIM34TXQJ7PW4TJD \ / AMOS7 \ YOURUM ::
+#\[7]2ADCXYQKQMMFE5KNSP5U4AD7R3W74ZAEOTPSEI6KCBIVGJ2VXODA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

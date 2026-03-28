@@ -176,6 +176,38 @@ my %dispatch = (
             : "no matches for /$pattern/";
     },
 
+    'ncode_search' => sub {
+        my $query       = $args->{'query'}       // return 'query required';
+        my $max_results = $args->{'max_results'} // 50;
+
+        ## validate query — alphanumeric, dots, underscores, hyphens ##
+        ## reject shell metacharacters ##
+        if ( $query =~ m{[;&|`\$\\"'\n\r]} ) {
+            return 'error: query contains invalid characters';
+        }
+        return 'error: query too short' if length($query) < 2;
+        return 'error: query too long'  if length($query) > 200;
+
+        my $root = <system.root_path>;
+        my @cmd = ( "$root/bin/ncode", '-no-color', 'search', 'all', $query );
+
+        my $output = '';
+        my $count  = 0;
+        if ( open my $fh, '-|', @cmd ) {
+            while ( my $line = <$fh> ) {
+                last if $count >= $max_results;
+                $output .= $line;
+                $count++;
+            }
+            close $fh;
+        }
+
+        return $count
+            ? sprintf( "## ncode search: %d lines for '%s' ##\n%s",
+            $count, $query, $output )
+            : "no matches for '$query'";
+    },
+
     'extract_file' => sub {
         return unless exists $code{'context.file.extract'};
         return $code{'context.file.extract'}->(
@@ -233,8 +265,8 @@ return {
     'content' => $content,
 };
 
-#,,.,,,,.,,,,,,.,,.,,,..,,...,,,.,.,.,,,,,.,,,..,,...,...,..,,.,.,.,,,...,.,.,
-#NTCULXHRMLTTROQDCM6TUV7OFNCFD4POSJWAG6WVXZNRK2AOURTOPNAW65CF2BEWALNARSXACID56
-#\\\|IMTGSXUWD3G457LSED2DHKGHBMRF433DLRZCV7GZ4LDXPVM74VD \ / AMOS7 \ YOURUM ::
-#\[7]HJ4QGKC2TB3QFY5PKKNXUIQEMTCINZXPFEOUHWUKNWQQMRMUSCAQ 7  DATA SIGNATURE ::
+#,,,,,.,,,..,,,..,.,.,,,.,.,.,...,,..,,..,,,,,..,,...,...,..,,.,,,,,.,,..,...,
+#2377T36ROKJ3PMPRJW3X43EOX5HM74YJ2M2JWVKGVG64NGD4FYBRUSVYJEHFD2HMMGIRH2DQSNSBQ
+#\\\|E3IALDJ56CKENVMSNMMESB7VUYNFLFKTRSYX2ZLHYNOLLGTV7ID \ / AMOS7 \ YOURUM ::
+#\[7]OEMEPO46LNSGKL5A2WY2BJBFH7KJGKEVSVXL6FEWOOMAICFYQACA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
