@@ -434,6 +434,17 @@ INFERENCE_LOOP:
 
                 my $tool_result = $code{'coding.tools.dispatch'}->($tc);
 
+                ## sanitize malformed arguments before they re-enter   ##
+                ## conversation history — jinja template crashes when   ##
+                ## iterating non-dict arguments in tool_calls messages  ##
+                my $tc_args = $tc->{'function'}->{'arguments'} // '';
+                if ( not ref $tc_args and length $tc_args ) {
+                    my $check = eval { JSON::PP::decode_json($tc_args) };
+                    if ( not defined $check or ref $check ne qw| HASH | ) {
+                        $tc->{'function'}->{'arguments'} = '{}';
+                    }
+                }
+
                 ## append tool result as tool role message ##
                 push @messages,
                     {
@@ -529,8 +540,8 @@ if ( length $response_text
 ## return result hashref for jobqueue callback ##
 return { success => TRUE, result => $response_text, task_id => $task_id };
 
-#,,.,,..,,...,...,...,.,,,,.,,.,.,,.,,,,.,.,.,..,,...,...,.,.,.,,,,.,,.,,,,,.,
-#GMBGYGYVMXJ5LDEMTYOU7GRIY3VJWNRF6LRPEWKGKOUTBGEHKSEYDCEB4J6RGXBNRFMKI4CH7UVN6
-#\\\|MIOX734IFXBQKY6BOJFIJUDPC4T4XPUZUZZT5VEMN5PC52BNH74 \ / AMOS7 \ YOURUM ::
-#\[7]2NSA3NAI45TC2TLGAVIILUMQMUHXQ37VCTCNFVFOW6D4HNUGAGBY 7  DATA SIGNATURE ::
+#,,,.,,,.,.,.,.,.,.,.,...,,,,,...,,,.,.,,,,,,,..,,...,...,.,,,.,.,..,,.,.,,,,,
+#BQQB24YM56VYYUJ3ZUNJNZPHFTV53LGL4XOG5DIOIHNEE5YRY6NJQZU6PLOMA3FQX6NVF5DYHQLP4
+#\\\|REDJBIDW3FNGCR4GTNWJFEKD4N6JSJGTF5OZ64MX47ARN745SIQ \ / AMOS7 \ YOURUM ::
+#\[7]JRWQHG4LTTEZVE5ZOM7MM66C5TKTCY5HG2AODA5GVYJ32OTJ7YAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

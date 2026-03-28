@@ -3,7 +3,7 @@
 # name = menu-commands.cmd.remove-category
 # descr = Remove a menu category
 
-my $category_id = defined $$call{'args'} ? $$call{'args'} : '';
+my $category_id = defined $call->{'args'} ? $call->{'args'} : '';
 $category_id =~ s{^\s+|\s+$}{}g;
 
 unless ($category_id) {
@@ -14,7 +14,7 @@ unless ($category_id) {
 }
 
 # Check if category exists
-unless (exists <menu-commands.categories>->{$category_id}) {
+unless ( exists <menu-commands.categories>->{$category_id} ) {
     return {
         'mode' => qw| false |,
         'data' => 'Category not found: ' . $category_id
@@ -23,14 +23,16 @@ unless (exists <menu-commands.categories>->{$category_id}) {
 
 # Count items using this category
 my $count = 0;
-foreach my $m (values %{<menu-commands.mappings>}) {
-    $count++ if ($m->{'category'} // '') eq $category_id;
+foreach my $m ( values %{<menu-commands.mappings>} ) {
+    $count++ if ( $m->{'category'} // '' ) eq $category_id;
 }
 
-if ($count > 0) {
+if ( $count > 0 ) {
     return {
         'mode' => qw| false |,
-        'data' => 'Cannot remove category with ' . $count . ' item(s). Remove items first or update their category.'
+        'data' => 'Cannot remove category with '
+            . $count
+            . ' item(s). Remove items first or update their category.'
     };
 }
 
@@ -48,8 +50,8 @@ return {
     'data' => 'Removed category: ' . $category_id
 };
 
-#,,,,,...,,,.,.,,,...,..,,.,.,.,,,.,.,,..,,,.,..,,...,...,.,,,..,,.,,,,..,.,,,
-#RZWPJSVU33JYEHJ6H6YUOWATGEKUP5XDX52RX4MGW4XWNBFST4UB6B2UQCP2GK7BQGS7PRSZKB3PI
-#\\\|XARL7OHWPMGPKD37XI5JPDFMYPGIQZ6ZDFROZGRUZASXCXBP5U2 \ / AMOS7 \ YOURUM ::
-#\[7]VZPMTVU5UGMBNCUOOKNLZOM7N25V67N7FB3WKU5RIFZKZLFX6MDI 7  DATA SIGNATURE ::
+#,,..,,.,,,,,,,.,,,,,,,..,,..,.,.,...,...,.,,,..,,...,...,..,,,,.,,,.,..,,.,.,
+#TBBBF3WRU23GL5VND27L2ASKEJR2W7BT74M73MRS7QS2KXL5SQY6DDQD7OKSORGHLUOD7CSP66AM6
+#\\\|PSMP75NNJD2VUU3AWDHIHGNX6TJNJNKKK7M44K3FJTEAQOBKQS5 \ / AMOS7 \ YOURUM ::
+#\[7]ZQQIEZPTO6YNKLOWIWPK4NOAOXUG4WPQUFMQGUJHOZ36HDLHZKCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

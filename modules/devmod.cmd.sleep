@@ -4,8 +4,8 @@
 # param = <seconds>
 # descr = sleeps / blocks <n> seconds [devmod]
 
-my $seconds    = $$call{'args'};
-my $session_id = $$call{'session_id'};
+my $seconds    = $call->{'args'};
+my $session_id = $call->{'session_id'};
 my $hi_res     = exists <system.perl_module.installed.Time::HiRes> ? 1 : 0;
 if ( not defined $seconds or $seconds !~ /^\d+(\.\d+)?$/ or !$seconds ) {
     $$reply{'data'} = 'required <seconds> parameter';
@@ -58,8 +58,8 @@ if ( not defined $seconds or $seconds !~ /^\d+(\.\d+)?$/ or !$seconds ) {
     };
 }
 
-#,,,.,.,.,,,.,,,,,,.,,,,.,...,...,,,,,.,.,,.,,..,,...,...,,,,,...,,,,,,.,,.,,,
-#DYLQ3LXXVYJ6TVOC732IKYVLFLYH3XG6NPW2OIWKL2ZZX7W5UE7NNQRUQJYKP4RJ32RCQW5LQ7MFK
-#\\\|UOKMKPZY6CBSCHASQJWNSL6SN6DFM4WWKTJXB7G5Z7CCKJOE7HU \ / AMOS7 \ YOURUM ::
-#\[7]67KN7MMWKPXKZ3CLWINFFO5ONS3OE65335ICDPMYYNCCOTNBRSCI 7  DATA SIGNATURE ::
+#,,..,,,.,,,.,,,.,,,,,...,.,.,.,.,..,,.,.,.,,,..,,...,...,..,,.,,,,..,...,..,,
+#POGNVR55CIUXXW5V3GCLZKXOSCABYLFI7EVXTEWD5UALNKIMO6VYFTTDBOXL4THQKKBPABS2G2ZFC
+#\\\|YHVIWJROJGW4YPJ3DKAOEX737YE4N2LFG5S73UU4EHNIZLOC4O3 \ / AMOS7 \ YOURUM ::
+#\[7]GVDDGRGNBGXG3BMJUDWDD63THSEQQ4DVBVOLHUQCEIPNIRCTTQAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

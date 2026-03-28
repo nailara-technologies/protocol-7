@@ -5,7 +5,7 @@
 # descr = returns file:// url to image html page
 
 my ( $image_location, $target_width, $target_height )
-    = split( / +/, $$call{'args'} );
+    = split( / +/, $call->{'args'} );
 
 return { 'mode' => qw| false |, 'data' => 'expected path to image file!' }
     if not defined $image_location or !length($image_location);
@@ -96,8 +96,8 @@ if ( !-d $html_path ) {
 
 return { 'mode' => qw| true |, 'data' => "file://$html_path/image.html" }
 
-#,,,.,..,,...,.,,,..,,...,.,.,...,..,,..,,.,,,..,,...,...,.,.,...,,,,,...,..,,
-#FOFDBJIJLFMT3365ZZEECFZMLMIWPZEVDU5ER4XIMEODQSJYOVH54Z2KH7PUSVUOXH66RXKI5QQK2
-#\\\|YVZB33OGYAGX62JUFO3EGRTLP7NS24MYPM536YHJ2MFYXTYQ4IY \ / AMOS7 \ YOURUM ::
-#\[7]7U552DCSAVJISEGSLMVP5VBFU4UFWASMJ3P34TZJZD662URQAMDA 7  DATA SIGNATURE ::
+#,,,,,,..,.,.,,,.,..,,...,...,,,,,..,,.,,,.,.,..,,...,...,...,.,.,,.,,,.,,,,,,
+#65AD5QDZUEFBFQHY7PMFT5SMQHJQJOAP5VH655K2PZQUNQPXIMSDAWBL3OAINVUMG54K3C6XJ7I2Y
+#\\\|OL7NUEWR7DQWVEYZLBXKQK5BVANEY6VGLO2MRBJJIPEEDYBDWH2 \ / AMOS7 \ YOURUM ::
+#\[7]FDCVLP6LCEONH7B3OUSF7SLUAWTELQVUMJCNCQ547KJOVC3VQ4AQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

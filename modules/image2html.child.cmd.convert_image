@@ -5,7 +5,7 @@
 # descr = returns file:// url and starts conversion
 
 my ( $image_path, $target_width, $target_height )
-    = split( / +/, $$call{'args'} );
+    = split( / +/, $call->{'args'} );
 
 return { 'mode' => qw| false |, 'data' => 'expected path to image file!' }
     if not defined $image_path or !length($image_path);
@@ -54,7 +54,7 @@ return {
 if ( exists <image2html.conversions>->{$html_dir_name} ) {
     push(
         @{ <image2html.conversions>->{$html_dir_name}->{'reply_ids'} },
-        $$call{'reply_id'}
+        $call->{'reply_id'}
     );
     return { 'mode' => 'deferred' };
 }
@@ -62,7 +62,7 @@ if ( exists <image2html.conversions>->{$html_dir_name} ) {
 <[base.log]>->( 2, "converting '$image_path' .." );
 
 my $conversion_setup = {
-    'reply_ids'  => [ $$call{'reply_id'} ],
+    'reply_ids'  => [ $call->{'reply_id'} ],
     'width'      => $target_width,
     'height'     => $target_height,
     'image_file' => $image_path,
@@ -79,8 +79,8 @@ my $conversion_setup = {
 
 return { 'mode' => 'deferred' };
 
-#,,,.,.,,,...,..,,,,,,,..,,,,,,..,.,.,,,.,,,,,..,,...,...,.,,,,,.,...,.,.,,..,
-#NRLNEQPDNJAZCYQKDH7WVCMJOTBKUDZ4VJR24WJXZRUBHKHH62Z3WTRU6JPKR4LNF4TQGLIWDGMAK
-#\\\|SOFQWQU245Z45VN4IWSNF26SKOXVRKKJ3ZCJBFREPHA6VN2VQQI \ / AMOS7 \ YOURUM ::
-#\[7]YXXOU23UPEXJVBDYTKE2XZEFNHK3QA455FGEOK27SVMMX7FVQYCI 7  DATA SIGNATURE ::
+#,,..,,,.,,,.,,..,.,.,.,.,,.,,,,,,.,.,,..,,..,..,,...,..,,..,,..,,,,,,.,.,,..,
+#HJFFEZGY353ZBCGIY43Y3XMJIHJNNJLSAMQLKF76TBTH3X6PTGLFU44NQRJEPAC3CV6FBDSH4FWWS
+#\\\|SU7JBDOJULZRTE4Z3J3FWGKNLVOEOPT4H4NP4Y55ZF4TWP4KHKD \ / AMOS7 \ YOURUM ::
+#\[7]6J2RVHY2HA67HZVOCRKIMM6CUMPKU5VXP6D5DPD3HPOPXIOQ32DQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -3,15 +3,15 @@
 # name  = filter.cmd.add_filter
 # descr = add a filter to a chain
 
-if ( my $chain_id = <[filter.add_filter]>->( split( / /, $$call{'args'} ) ) )
+if ( my $chain_id = <[filter.add_filter]>->( split( / /, $call->{'args'} ) ) )
 {
     $reply = { 'mode' => qw| true |, 'data' => "filter added: id=$chain_id" };
 } else {
     $$reply{'data'} = 'unable to add filter';
 }
 
-#,,,,,..,,,..,.,,,,,.,,,,,..,,.,.,..,,.,.,,,.,..,,...,...,.,.,,,.,,..,,,.,..,,
-#ZEK4OI5XOG3SQKHJJBF3IPHK6GM2WEGLSXFYVTFWLTRGVX7VUCM73F6GCYT3SKEVWDBS4XQV2ADD4
-#\\\|SAGV7BTUJ4HT36WFOPJEKO25WHBNZGCEEN45JECBKUFR4J766LP \ / AMOS7 \ YOURUM ::
-#\[7]UYCC75OO2PLPN4XPVNL6BIOPWRIWGSSJEPMPJZEUDX2CVOSRVUCI 7  DATA SIGNATURE ::
+#,,..,,.,,.,,,...,..,,,..,..,,..,,.,,,,..,.,,,..,,...,...,...,,..,,,.,,..,,.,,
+#DRFFJ24ZA7TEGIAH7UBNWU7LPGJ5WCWEIFSCMZEWAVBXL5AWSC6QLZGIJZ26CORUGFBLTV2ZW7BGG
+#\\\|6KR76ZMEDV6WZ2YYVR6NOZCNE2Y6DRYAVGN4XC3MX7X7NCUU4SF \ / AMOS7 \ YOURUM ::
+#\[7]C66HUGQFCZYEIKBLPJCPDDJN22IO6UE7JR7MTAWRMYP5WXI4PIAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

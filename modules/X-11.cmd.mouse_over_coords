@@ -5,8 +5,8 @@
 # descr = move mouse to new coorinates and back
 # todo  = LLL check / enforce screen boundaries
 
-my $log_sid = $$call{'session_id'};
-my @params  = split( / +/, $$call{'args'} );
+my $log_sid = $call->{'session_id'};
+my @params  = split( / +/, $call->{'args'} );
 my %coords  = ( 'x' => shift @params, 'y' => shift @params );
 map {
     return { 'mode' => qw| false |, 'data' => "expected $ARG parameter" }
@@ -39,8 +39,8 @@ my %p_old = <X-11.obj>->QueryPointer( <X-11.obj>->root );
 
 return { 'mode' => qw| true |, 'data' => "hovered over specified position" }
 
-#,,..,.,,,,.,,,,.,,.,,.,,,,,.,...,,,,,...,.,.,..,,...,...,..,,...,,..,...,.,.,
-#2JFDCDLFKEKR32ZDXKOTYGPAGBGU552NX4YVV5IZQKOREPLI6GZKYJ7R4KUC2ECPNB5FXOKUE7OBE
-#\\\|OL2SX2O7KLVT652DKCD4GQPUGTPHMDDAY74FK4YVWXYFYU7XCH5 \ / AMOS7 \ YOURUM ::
-#\[7]AMFN5UQC6B73FZVLK64TILIHKDXUUESJ232GX3OELFHJMVZZLYAA 7  DATA SIGNATURE ::
+#,,..,..,,,,.,.,.,..,,,.,,,,,,.,,,,,,,..,,,.,,..,,...,...,,..,,.,,,,.,..,,,..,
+#P2ZWIZDLMARWIFXGJG4GOHLR6LLDQBX3NZUXKMXHCHRI6DQTVNFUMNK7BYGJB53X5O634DPB6Q7RE
+#\\\|5MNMOQWXUSXVBMMM34JEX4H7DNOWMGMY4ZRNRFV2YZEXV4SMG4C \ / AMOS7 \ YOURUM ::
+#\[7]FM3JLWXXTVOLQG7LLIZDXJEW5Z2EZL6HSJ7GUSDYT5U32F7HFYAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

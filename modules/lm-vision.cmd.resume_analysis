@@ -1,9 +1,9 @@
 ## [:< ##
 
 # name  = lm-vision.cmd.resume_analysis
-# descr = continue image analysis that was truncated or incomplete
+# descr = continue truncated or incomplete image analysis
 
-my ( $job_id, $additional_prompt ) = split( m| +|, $$call{'args'}, 2 );
+my ( $job_id, $additional_prompt ) = split( m| +|, $call->{'args'}, 2 );
 $additional_prompt //= '';
 
 unless ( defined $job_id && length $job_id ) {
@@ -138,7 +138,7 @@ my $continuation_job_id = <[base.gen_id]>->(<lm-vision.jobs>);
 # Create job entry for continuation
 my $job = {
     'job_id'           => $continuation_job_id,
-    'reply_id'         => $$call{'reply_id'},
+    'reply_id'         => $call->{'reply_id'},
     'image_path'       => $image_path,
     'prompt'           => $continuation_prompt,
     'status'           => qw| running |,
@@ -185,12 +185,12 @@ $job->{'err_io'} = <[event.add_io]>->(
 
 <[base.logs]>->(
     1, "[resume_analysis] returning deferred: reply_id=%s",
-    $$call{'reply_id'}
+    $call->{'reply_id'}
 );
 return { 'mode' => 'deferred' };
 
-#,,..,,,.,,,.,,,,,,,.,,..,..,,,..,,.,,.,,,,..,..,,...,...,.,,,,..,.,.,,,.,.,,,
-#MELRETBAKOFVLEMXENDL4UTRNJJ3G5E4IGZJJMONJUS5RZ2A5VWS77FKFOE65WC425RIKU7CL3VSK
-#\\\|IGRLQ2XKNN6HPWNGL2X5PU2J3X7AO6XK7ICSZRSEPRSHZYTBHEF \ / AMOS7 \ YOURUM ::
-#\[7]JMCKUN7VVTHLCS442U3Y6XWJKEMAB7TMQGKEHRK43LLK4LRFNADA 7  DATA SIGNATURE ::
+#,,.,,...,,.,,.,.,,.,,.,,,...,...,,,.,,,,,..,,..,,...,...,,,.,..,,,..,,.,,,,,,
+#LKDVA37FFTPJ6RSGA2WC4QVD7V2RXCPWHMIJUSKUTY2YJ5PPXCBSLCZW2R6LOKSNNT2JUSILOL74U
+#\\\|LI7I3SYTYDWTPHLWUBIOA4SN37JU25XJNATWVDRD6ASAFYUODLZ \ / AMOS7 \ YOURUM ::
+#\[7]TLJKZYNTB2UPCQXXDJFVTTGTNGBTBVIQQ3I6O6OHV3DKEUH2KKBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

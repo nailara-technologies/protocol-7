@@ -7,7 +7,7 @@
 my $re = $data{'regex'}{'base'};
 
 ## Trim leading|trailing whitespace from arguments
-my $args = defined $$call{'args'} ? $$call{'args'} : '';
+my $args = defined $call->{'args'} ? $call->{'args'} : '';
 $args =~ s{^\s+|\s+$}{}g;
 
 return { 'mode' => qw| false |, 'data' => 'expected <add|del> <zenka_name>' }
@@ -18,7 +18,8 @@ my ( $cmd, $zenka_name ) = split m|\s+|, $args;
 
 if ( $cmd eq 'add' ) {
     ## Validate composite name safety
-    my $validation = <[base.validate.composite_name]>->( $zenka_name, 'ondemand' );
+    my $validation
+        = <[base.validate.composite_name]>->( $zenka_name, 'ondemand' );
     if ( !$validation->{valid} ) {
         return {
             'mode' => qw| false |,
@@ -78,8 +79,8 @@ if ( $cmd eq 'add' ) {
     };
 }
 
-#,,,,,..,,...,,.,,.,.,,,.,.,,,,,,,,,.,,.,,.,,,..,,...,.,.,...,.,.,...,,.,,,,.,
-#5O7QNJ2VPYDLNCK2VGAVEPDL4WVVR2BQLOE3SP3CXVT4JAAG4324GBKK2VFZAWOLIRC4ITD63SP5S
-#\\\|IIROUFO6RAB5BWW3XNHUGRDIG47VEBK2KEBMC2WOAEHUF3F6T6C \ / AMOS7 \ YOURUM ::
-#\[7]M76KAODGZOYXP2D62C5ZOEJBPE3T4LTPIENVR4X5GPQF46TMI6AI 7  DATA SIGNATURE ::
+#,,.,,,..,.,,,...,,..,..,,...,...,...,,,.,,,.,..,,...,...,.,,,.,,,,,,,..,,,,,,
+#B6Z3P2IL6ORYCBACN6GKQAKSSJCFEG2SWGIJE6C77GD4VCUZ6GHVKD6QRU3YAQNYPWAHD45ESNVBO
+#\\\|6XLY7K4G46OFQBOJYZHF6E4TIISCLU6PMLNQBTZBIOHKZN7ADIH \ / AMOS7 \ YOURUM ::
+#\[7]YSPSQ2BX36RHGNAX2NHS7ZLYP7JIBYHCK4NCPBE6ACYXH7WJT2CI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

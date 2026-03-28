@@ -3,7 +3,7 @@
 # name  = system.cmd.reenable-reboot
 # descr = activate automatic 'xcrash' mitigation reboot
 
-( my $cube_user, undef ) = split( m| +|, $$call{'args'}, 2 );
+( my $cube_user, undef ) = split( m| +|, $call->{'args'}, 2 );
 my $hostname = <system.host.hostname>;
 my $uname_re = <regex.base.usr_str>;
 
@@ -25,8 +25,8 @@ my $log_message   = "$reply_message [ by '$cube_user' ]";
 
 return { 'mode' => qw| true |, 'data' => $reply_message };
 
-#,,,,,,,.,...,,..,.,.,,..,,.,,,..,...,,,,,.,,,..,,...,...,...,..,,,.,,,..,,.,,
-#L76QMV3YJH5A5GVF3AL675IHB6X3QEJ5B6H3GUYANHGHPENYR6W5M23ILTSJP2UQ3GETQAZDGKDVW
-#\\\|4SUIMLNRPHW33AP2GZE6TWYT7RDFZESGRFMX4VDRP3PULKDW26E \ / AMOS7 \ YOURUM ::
-#\[7]PDAGIDFBEOASD5PHGADWUXKPKS26M56S4VZVULV6C5TFHQJGNQDY 7  DATA SIGNATURE ::
+#,,,,,,..,,,,,..,,,.,,,,.,.,.,,,,,..,,.,,,,.,,..,,...,...,.,.,.,,,.,.,.,.,...,
+#HLPWEZQENSIZ4H2NMHJE7ZUIL7LSKOCPDXKP3PA7KJXTNWUVIUA6UU4YG7ULZKCSJELFFKSCGQKSO
+#\\\|HIFBM3IRR4NTVS63A7UE2P4K6ZX6PIAZUK64OR3P47DNGPTYO7B \ / AMOS7 \ YOURUM ::
+#\[7]GQFJTGXKGRJOXYZYN64F7K4RAQT37RQVUHTPFQQCFMLGBDLEUIAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

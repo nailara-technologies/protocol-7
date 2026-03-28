@@ -31,7 +31,7 @@ if ($wants_next) {
     ## store deferred prompt for post-reconnect dispatch
     <kimi.next.deferred> = {
         'prompt'   => $prompt,
-        'reply_id' => $$call{'reply_id'}
+        'reply_id' => $call->{'reply_id'}
     };
     ## trigger session reset + reconnect
     <[kimi.session.reset_and_reconnect]>;
@@ -42,7 +42,7 @@ if ($wants_next) {
 if ( not <kimi.ws.connected> or <kimi.ws.status> eq qw| disconnected | ) {
     <kimi.next.deferred> = {
         'prompt'   => $prompt,
-        'reply_id' => $$call{'reply_id'}
+        'reply_id' => $call->{'reply_id'}
     };
     <[kimi.connect]>;
     return { 'mode' => qw| deferred | };
@@ -55,7 +55,7 @@ unless ( <kimi.ws.status> eq qw| ready | ) {
     };
 }
 
-my $reply_id = $$call{'reply_id'};
+my $reply_id = $call->{'reply_id'};
 
 my $msg_id = <[kimi.wire.prompt]>->( $prompt, $reply_id );
 
@@ -69,8 +69,8 @@ return { 'mode' => qw| false |, 'data' => 'kimi.wire.prompt failed' }
 
 return { 'mode' => qw| deferred | };
 
-#,,.,,.,.,.,,,,,.,,..,...,.,.,..,,,..,...,,,,,.,.,...,...,..,,.,,,,.,,..,,,,.,
-#ZNFAZZ5LNGG6J5GWY5DFT4VVLNF6TW7XSN5XYEQF44XD4FGX52PIN6GL2GHLL3OCA4ODNUY6VAZCQ
-#\\\|GJG25MZEK42EZFY2MR7AIA4567ZA27OR6Y4DERSCKXFDJQNXBZ5 \ / AMOS7 \ YOURUM ::
-#\[7]2PLAHR3KTYALE3KCBMDUHS3SO7XATP4MEFZZP7MFURKLMAREX2BY 7  DATA SIGNATURE ::
+#,,..,,..,,,,,,,,,...,.,.,,,.,,.,,,,.,,,,,,,.,.,.,...,..,,..,,.,.,,,.,,..,,,,,
+#T67XF3HMHYHROK3FDKEXXSWELCWQ4E7A2JFGLQNISNHG3JHWORUZXTS2YSJEU7VOQA2TBHMHZLXD2
+#\\\|374ZOZ5GR3RH7HHED7RZJGZJH27XM5F6REGBX4UNZU6ODZHR2EV \ / AMOS7 \ YOURUM ::
+#\[7]EOQZ4A2SW3B7CA6UPVWTA5YCCTXZZHUOU44VZSLYOX52GUMHQKCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

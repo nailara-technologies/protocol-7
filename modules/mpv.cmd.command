@@ -5,7 +5,7 @@
 # descr = send raw command through mpv control pipe
 
 my $cmd_str
-    = $$call{'args'};    # LLL: implement parameter quoting instead of '!'
+    = $call->{'args'};    # LLL: implement parameter quoting instead of '!'
 
 return { 'mode' => qw| false |, 'data' => 'expected mpv command' }
     if not defined $cmd_str or !length($cmd_str);
@@ -15,7 +15,7 @@ return {
     }
     if $cmd_str =~ m,^\!?(run|hook|subprocess),;
 
-push( @{<mpv.reply_ids>},     $$call{'reply_id'} );
+push( @{<mpv.reply_ids>},     $call->{'reply_id'} );
 push( @{<mpv.command.reply>}, { 'handler' => 'mpv.handler.pipe.command' } );
 
 if ( $cmd_str !~ s|^\!|| ) {
@@ -27,8 +27,8 @@ if ( $cmd_str !~ s|^\!|| ) {
 
 return { 'mode' => 'deferred' };
 
-#,,,,,.,.,,.,,,.,,,,.,,,.,...,.,.,,,.,.,,,,..,..,,...,..,,,.,,,..,...,,,.,...,
-#P4CUCULHIHEARQT2LMX4UVRE6MD5TBINRVP2SGKTVOVFFQTZ2SU7ZLLB5RVZ4MXAHYJW646XAJU4A
-#\\\|EGOHAETH32YFBK4P5GVRJ5H3K2YNWTXY4ZFL5AT2M36LHNVUX32 \ / AMOS7 \ YOURUM ::
-#\[7]2WMLIDWQFKFYLFY36P3P5MZGGJGU7WXL6SHUA62PD67SJFN3XGAI 7  DATA SIGNATURE ::
+#,,.,,.,.,,..,.,,,,..,,.,,.,,,,,,,,,.,..,,...,..,,...,...,...,,..,,,.,..,,.,,,
+#4VWHFQGUT34UMHLRE5AWHECVLCDY5N4XX6OOJRHK6MJKFXVBY3JC5DQNRYQMHKGUVEXUVZGDNJ4IU
+#\\\|OITZRAR5VEMFXY2EG3KBOIJUCCK5WQBZF3SALQ7NH34Z4VTITGZ \ / AMOS7 \ YOURUM ::
+#\[7]T6FXTRKLQMDGYSJAVLECFEF6VADAMGSWLWYAZ5FWSCMXGL4UKSDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

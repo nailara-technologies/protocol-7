@@ -3,15 +3,15 @@
 # name  = mpv.cmd.version
 # descr = return mpv player version
 
-push( @{<mpv.reply_ids>}, $$call{'reply_id'} );
+push( @{<mpv.reply_ids>}, $call->{'reply_id'} );
 
 push( @{<mpv.command.reply>}, { 'handler' => 'mpv.handler.pipe.version' } );
 <[mpv.send_command]>->( 'get_property_string', 'mpv-version' );
 
 return { 'mode' => 'deferred' };
 
-#,,..,,.,,,,.,.,,,..,,,,.,.,,,,,,,.,.,..,,..,,..,,...,..,,...,,,.,,..,..,,,,.,
-#SDSLQCM2LSBDITJIYFLLQQJ5K7IIDNMLVSMFYBAXQUIJMSZNVDLULGTW5TWRAYVBOC3566LHW42E6
-#\\\|W6RUANH4OFJ2QUYN4XKH73KYREL6ESJVMSI4AECD277B4IW5Z7N \ / AMOS7 \ YOURUM ::
-#\[7]S43XMRBSPG6QDYT3WPVNNUGMAEJDTZ5P7JU4J5JRENWSJL5ZD2AI 7  DATA SIGNATURE ::
+#,,,.,,,.,...,.,.,.,,,.,.,.,.,...,,,.,.,,,.,.,..,,...,..,,.,,,...,,,,,.,,,.,.,
+#DRDJ5M2QD75H3VFHVTSMMP23PLY44L54ZIXQVAF26GQPATYQ6TDA52MRQTBAHGVZDOUL4WCTKQWBI
+#\\\|AE4XMX362R2DVGLUCPVNPKHOV64YHLY2DOYDOKRVHPDAQI34BWX \ / AMOS7 \ YOURUM ::
+#\[7]MAP62JCSSZBCB2KUNAETFGK3BLWBNLALV7UNOPVMEYZIUZYZDOCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

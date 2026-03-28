@@ -1,11 +1,11 @@
 ## [:< ##
 
 # name  = coding.cmd.complete-analysis
-# descr = submit code task with automatic resumption until complete
+# descr = submit code task with auto-resume on incomplete
 # param = <task_description>
 
 # Parse task description from arguments
-my $task_description = $$call{'args'} // '';
+my $task_description = $call->{'args'} // '';
 
 # Parameter validation
 return { 'mode' => qw| false |, 'data' => 'task description required' }
@@ -71,14 +71,14 @@ if ( !$queue_result->{success} ) {
 my $meta_id  = <[base.gen_id]>->(<coding.complete_analysis_jobs>);
 my $meta_job = {
     'meta_id'      => $meta_id,
-    'reply_id'     => $$call{'reply_id'},
+    'reply_id'     => $call->{'reply_id'},
     'task_id'      => $routed_task->{id},
     'task'         => $routed_task,
     'description'  => $task_description,
     'status'       => qw| analyzing |,
     'accumulated'  => '',
     'resume_count' => 0,
-    'max_resumes'  => 5,                    # Safety limit
+    'max_resumes'  => 5,                     # Safety limit
     'start_time'   => <[base.time]>->(3),
 };
 
@@ -116,10 +116,10 @@ $meta_job->{'continuation_watcher'} = <[event.add_var]>->(
     1, "[complete-analysis] returning deferred, monitoring for completion"
 );
 
-return { 'mode' => 'deferred' };
+return { 'mode' => qw| deferred | };
 
-#,,,,,.,,,,,,,,..,,..,,.,,,,.,...,,,,,,,.,,.,,..,,...,..,,..,,,..,..,,,.,,.,,,
-#DQ64M7DBSJAK4C6HAUUW2TY22FLLYV3MZWTDYFOG4FYMQZLFHTNQJWXNCGQLYPFB2A4MQNPIVLOXU
-#\\\|ABPMU3KVHH7Z63VRYQVCKPAZJZG2ROSP67ODTIIVH77UGA5RESI \ / AMOS7 \ YOURUM ::
-#\[7]RAHYRT2D5VKKV4TDNUQMKAJITLYEDOVUJYLEYW55M3CZGMU4YIAY 7  DATA SIGNATURE ::
+#,,,,,,,,,,..,,,.,,..,,.,,.,,,,,,,,,,,,,.,.,,,..,,...,...,.,.,,,.,.,.,.,,,...,
+#DE2ZQUQIZ3YHIZUKGHDX3DBWYSFYJB6CTQBC35QB2ERCYCC7EQUFJXVHMQYD77QBVVQIJY7NTAAT4
+#\\\|GG5IHD73DHOW73PU26CJB6XBFOAI6EHIM3UOCYNL5UJVPDFTUND \ / AMOS7 \ YOURUM ::
+#\[7]W3RN3GVG7VIQPX2CZHGC575JHCCEJXFOEPSNO44GID33VQK75UBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

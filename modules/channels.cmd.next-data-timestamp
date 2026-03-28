@@ -6,7 +6,7 @@
 # return = { mode => 'timestamp', data => 'TRUE <timestamp_b32>' } on change
 #          { mode => 'false', data => 'FALSE' } on disconnect/error
 
-my $args   = $$call{'args'} // '';
+my $args   = $call->{'args'} // '';
 my %params = ( 'channel' => '', 'since' => '' );
 
 ##  Parse parameters: channel-path and since:timestamp  ##
@@ -30,7 +30,7 @@ my $request_id = <[base.gen_id]>->(<channels.blocking_clients>);
     'channel_path' => $channel_path,
     'since_ts'     => $since_ts,
     'timestamp'    => <[base.time]>->(3),
-    'session_id'   => $$call{'session_id'} // 'unknown'
+    'session_id'   => $call->{'session_id'} // 'unknown'
 };
 
 <[base.logs]>->(
@@ -56,8 +56,8 @@ return {
 
 1;
 
-#,,.,,,,,,,,.,,,.,,,.,..,,..,,.,,,,,.,,..,..,,.,.,...,...,.,.,..,,,,,,.,,,..,,
-#SPIETVS66MMT4AIU7HZ4T44GGKVJBTJ65JPS3VZ45BOAKFAO6UY4A4PLJBX2FWQMH3LKH5XJXWJKG
-#\\\|MMXA7PEXLF2UYUU2W246VOWOVPHBFUAOFE2GIEH5XSJPPD3PKBU \ / AMOS7 \ YOURUM ::
-#\[7]EZIZKOIVXVGRUYUIDKSTLUVKK27V3P5Q4AGYJT2RF4ZDCCM5ZQDY 7  DATA SIGNATURE ::
+#,,..,..,,,,,,,,,,...,,,.,.,,,.,.,...,,..,,,.,.,.,...,...,,..,.,.,...,,..,.,,,
+#KY2SENELORD4GED2426WLLEY5DYTGZIR6WNAHNROC6OVGNOFD76V6DAJC74XBKQ2EP4FP6RFUJXSS
+#\\\|NPHTZHS27KRSSOVC3PAKG7J7XQTVOUYAMKTZGFJEQ5KBWHUHQBS \ / AMOS7 \ YOURUM ::
+#\[7]YJWOKMBTH6MOZNSSNTCZSVLXIFR7XSPDBA5MTLIT5KE3GNUIZIAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

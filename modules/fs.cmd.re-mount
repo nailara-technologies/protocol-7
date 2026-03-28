@@ -4,7 +4,7 @@
 # param = <mount-point>
 # descr = forced re-mounting of specified mount-point
 
-my $mount_point = $$call{'args'};
+my $mount_point = $call->{'args'};
 return { 'mode' => qw| false |, 'data' => 'expected mount-point parameter' }
     if not defined $mount_point;
 $mount_point =~ s|/+$|| if length($mount_point) > 1;
@@ -52,8 +52,8 @@ if ( system( '/bin/mount', $mount_point ) != 0
 
 return { 'mode' => qw| true |, 'data' => $success_msg };
 
-#,,.,,,..,...,,,,,,,.,,,,,..,,...,,..,,.,,.,,,..,,...,...,..,,.,.,,.,,...,,,.,
-#5TWPMDJEW7BMA7W5GNT2F3LFRPVCAH74PXGY3WFIAZNXMJT27RZWEM5F7R47FPVWJCVTVLW4CANHC
-#\\\|WYYYIMPKYYWEW2VWELHRC3QC2FLESSHFOTKMEVU46NXWCY22SBM \ / AMOS7 \ YOURUM ::
-#\[7]UYFU2KK5GB5FECRVP77HMEAQEFXQFOA2SOV7YQSMVDBX4M7U4ACY 7  DATA SIGNATURE ::
+#,,,,,,..,..,,.,.,,,.,..,,,,.,,.,,.,.,..,,...,..,,...,..,,,,.,,,,,,,.,.,,,,..,
+#KEOUZWB6RM6BLSBMOYLVPYP4XQZAKFFWQPZGPPQD4YAFRUFPMNR4P7FX2EDD5C5WKTUW46BO2OBUU
+#\\\|HCD6ZMHBZ4PYZKWXG7EDX7FGAUW32M3WAWBJA636PITSEHLNHNV \ / AMOS7 \ YOURUM ::
+#\[7]FHLI7BLVF2Q6V7YK27U6VVLGJU75LVU4QWCKEAW7NZ7CV74BWABA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

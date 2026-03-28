@@ -3,7 +3,7 @@
 # name  = coding.cmd.staged-diff
 # descr = show diff of staged edits against current source
 
-my $args = $$call{'args'} // '';
+my $args = $call->{'args'} // '';
 
 ## check for :files: flag [ list filenames only ] ##
 my $files_only = 0;
@@ -19,19 +19,22 @@ my $staged_dir
     . <system.zenka.name>
     . '/staged';
 
-return { 'mode' => 'false', 'data' => 'no staged directory' }
+return { 'mode' => qw| false |, 'data' => 'no staged directory' }
     unless -d $staged_dir;
 
 my $dh;
 if ( not opendir $dh, $staged_dir ) {
     <[base.logs]>->( 0, ':. staged-diff: cannot open %s', $staged_dir );
-    return { 'mode' => 'false', 'data' => 'cannot read staged directory' };
+    return {
+        'mode' => qw| false |,
+        'data' => 'cannot read staged directory'
+    };
 }
 
 my @files = sort grep { $ARG ne '.' and $ARG ne '..' } readdir $dh;
 closedir $dh;
 
-return { 'mode' => 'false', 'data' => 'no staged edits' } unless @files;
+return { 'mode' => qw| false |, 'data' => 'no staged edits' } unless @files;
 
 my $root   = <system.root_path>;
 my $output = '';
@@ -80,10 +83,10 @@ for my $staged_name (@files) {
 
 $output = 'no matching staged edits' unless length $output;
 
-return { 'mode' => 'size', 'data' => $output };
+return { 'mode' => qw| size |, 'data' => $output };
 
-#,,..,.,.,,,,,,,,,,.,,.,.,,,.,,.,,,,,,.,.,.,,,..,,...,...,...,...,...,,..,.,.,
-#CRIBLCYTGTMUB6WMRIIJC3GN5BMCI3Z75GFBDHOZAC4E5A74ZV5O7B3XT34W4RK6EIJDZ7NGMRFY6
-#\\\|6VYA7AJZK4MZDW7NBX2HO7GTSEHFU5OO7XL2WX64F2TCSPQDHZR \ / AMOS7 \ YOURUM ::
-#\[7]3CQINT3S4AQFKAU7WHSTSI5LZ4WENLKMWQH2DZWYFEZW2NXBCABI 7  DATA SIGNATURE ::
+#,,.,,...,,..,,,,,..,,...,,,.,,.,,...,.,.,,..,..,,...,...,.,.,..,,...,,..,,,,,
+#IYWEUPI3VGXRR6SG2IRACWABLKONRVB2YPO4H5XIDEXHVPPLKLKEKJRFQ7EZPKX7US4A5YKFAG6D4
+#\\\|VPCZJDEMF7BKVGG5YF7VTPS6NVZVMT5WH42IZ2DFCDBEBAHXRQI \ / AMOS7 \ YOURUM ::
+#\[7]MULUJJ4ZMSOEDC55ABKYKNLK3VOZD5RJ5STWKC24C6XWLYWUYICA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

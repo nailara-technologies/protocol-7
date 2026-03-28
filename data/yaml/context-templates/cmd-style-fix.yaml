@@ -1,0 +1,113 @@
+---
+name: cmd-style-fix
+descr: fix P7 style issues in cmd modules — qw modes, args access, return format
+budget: 4000
+sections:
+  ## core knowledge ##
+  - include: system-base
+    priority: 1
+    budget_pct: 10
+
+  ## target module content ##
+  - provider: context.file.extract
+    priority: 2
+    budget_pct: 20
+    params:
+      extract: full
+    label: target module source
+
+  ## instructions ##
+  - static: |
+      fix protocol-7 style issues in the target cmd module(s).
+      if no specific target given, process all coding.cmd.* modules.
+
+      ## fixes to apply ##
+
+      ### 1. mode values: use qw| | not quoted strings ###
+
+      return hashrefs must use qw| | for mode values:
+      ```perl
+      ## WRONG ##
+      return { 'mode' => 'size', 'data' => $output };
+      return { 'mode' => 'false', 'data' => $msg };
+      return { 'mode' => 'true', 'data' => $msg };
+
+      ## CORRECT ##
+      return { 'mode' => qw| size |, 'data' => $output };
+      return { 'mode' => qw| false |, 'data' => $msg };
+      return { 'mode' => qw| true |, 'data' => $msg };
+      ```
+
+      also applies to non-return contexts:
+      ```perl
+      ## WRONG ##
+      { 'mode' => 'deferred', 'data' => $id }
+
+      ## CORRECT ##
+      { 'mode' => qw| deferred |, 'data' => $id }
+      ```
+
+      ### 2. args access: use $call->{'args'} ###
+
+      cmd modules must access args via arrow dereference $call->{'key'}:
+      ```perl
+      ## CORRECT ##
+      my $args = $call->{'args'} // '';
+
+      ## also correct for other call keys ##
+      my $param = $call->{'param'};
+      my $data  = $call->{'data'};
+      ```
+
+      do not use `shift` or `@ARG` for args [ different in cmd context ]
+
+      ### 3. return format: always hashref with mode + data ###
+
+      every return path must return { 'mode' => qw| X |, 'data' => $val }:
+      - qw| size | for normal output
+      - qw| false | for error or empty
+      - qw| true | for boolean success
+      - qw| deferred | for async results
+
+      flag any bare returns: `return;` or `return $string;`
+
+      ### 4. default args: always // '' ###
+
+      ```perl
+      ## WRONG — no default ##
+      my $args = $call->{'args'};
+
+      ## CORRECT ##
+      my $args = $call->{'args'} // '';
+      ```
+
+      ## process ##
+
+      1. use list_modules to find all coding.cmd.* modules [ or read target ]
+      2. read each module with read_file
+      3. check for all four issue types above
+      4. apply fixes with edit_file for each module that needs changes
+      5. report what was fixed
+
+      ## output ##
+
+      for each module processed:
+      - module: <name>
+        fixes: <list of changes applied>
+        status: fixed | clean | skipped
+
+      summary: N modules processed, M fixes applied
+    priority: 3
+    budget_pct: 70
+    label: cmd style fix instructions
+
+on_complete:
+  - when: [output_length_gt=200]
+    action: memory_update
+    topic: "fix:cmd-style"
+
+#,,,.,...,.,.,..,,,,,,,..,...,.,,,..,,,..,,..,..,,...,...,.,.,..,,,.,,..,,,.,,
+#YUZMR4YWAUWJEZFTWH3HPN5F4GTAQ4GIMYYJ7DH5373NALYSQHUSOXEZGTHMCNLGYRUBOMJYJ3W4C
+#\\\|5AZEM2MAXWHOOULSSZCRZHUX4FZSWJSND3YOLJW4RWQ73EC4FEN \ / AMOS7 \ YOURUM ::
+#\[7]ZUSZ3AADXKYBQDNWZCQMYJH43YWVV23HJH57LSRPOHQNOWBJCABY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

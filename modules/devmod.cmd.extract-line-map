@@ -4,8 +4,8 @@
 # descr = returns a linenum-map for specified file
 # param = <file-path>
 
-my $usr_sid   = $$call{'session_id'};
-my $file_name = $$call{'args'};
+my $usr_sid   = $call->{'session_id'};
+my $file_name = $call->{'args'};
 state $last_warned = '';
 
 my $std_msg = 'file not found or insufficient read permissions';
@@ -33,8 +33,8 @@ map {
 
 return { 'mode' => qw| size |, 'data' => $response . "\n" };
 
-#,,,,,.,.,.,.,...,,.,,,,.,.,,,,.,,...,...,.,.,..,,...,...,...,...,,..,.,,,...,
-#WJFEP5GOTG5ENBQUNSBZZUHUCFFYU6KZJGYBKSN3PPEMBOJL5QBWLEMBI2QPV4VT6T7PRZ4ULSYHC
-#\\\|R74Z3Z2PT7R73SLBTRSHWP24EODAAVPJ7V6KPK7ZQPTWZHFGTVS \ / AMOS7 \ YOURUM ::
-#\[7]6ZCMZVEQBFGWGXTGOLY5RY2XT3XBSBNW34VLTJCZPEHGRP6WOKCI 7  DATA SIGNATURE ::
+#,,.,,,..,.,.,.,,,,,.,,.,,..,,..,,.,,,.,.,,,.,..,,...,...,..,,.,,,...,.,,,,,.,
+#YZEU4DWLJVZECQPPOCLPYYN2NFSA5664QGPL2JHVV6J6RFWKF5PALWBDDLJ3SSSNNTQAQVP6VYQ3E
+#\\\|535YXCMDRHF74Q5B2RTMYWTFXC4EXAVF5X2CDFOZW2KEWQIGBUD \ / AMOS7 \ YOURUM ::
+#\[7]Y7CR647H6CRTYNEOZVWP4LWFI5NUQZ36POHOTFUCFVDHWPQT6IDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

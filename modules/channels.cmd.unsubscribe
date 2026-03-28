@@ -5,7 +5,7 @@
 # param = <channel-path>
 # return = { mode => 'true', data => 'unsubscribed from <channel-path>' }
 
-my $args         = $$call{'args'} // '';
+my $args         = $call->{'args'} // '';
 my $channel_path = $args;
 $channel_path =~ s|^\s+||;    ## trim leading whitespace ##
 $channel_path =~ s|\s+$||;    ## trim trailing whitespace ##
@@ -17,7 +17,7 @@ return {
     unless length $channel_path;
 
 ##  Find and remove this session's subscription  ##
-my $session_id = $$call{'session_id'} // 'unknown';
+my $session_id = $call->{'session_id'} // 'unknown';
 my $found      = FALSE;
 
 if ( defined <channels.subscriptions>->{$channel_path} ) {
@@ -53,8 +53,8 @@ return {
 
 1;
 
-#,,,.,,,.,.,,,,,.,..,,,..,.,.,,..,.,.,,.,,...,.,.,...,...,,,,,,,,,,.,,..,,,.,,
-#XQUIXQZW4GH66PSLINKKVCXINPJYCTSCJEIO366WO3GEFMFLDLIYX3PZ42YZTNP2QNSWYFN3UQ6YO
-#\\\|2T4UERBCCNEFTJA7VOON6NTGYUZI7QMR3GDXQ3BB7355YUF676Q \ / AMOS7 \ YOURUM ::
-#\[7]ZXTQWQGZYDPSVSACQH5TOJUQLF6V63CRDU4DTUKOSTJEF6JQSOAA 7  DATA SIGNATURE ::
+#,,,,,,..,.,.,,..,,.,,,,.,.,,,,,,,,,.,,,.,,.,,.,.,...,...,...,,.,,..,,,,,,,,.,
+#NFOTSBIOR3IAFAOFFOWFYTFMD2725WK4WHH5AM2VUSXJ7CQZEW53KHU2GK7ESOFLWKNFOPCLYUYHQ
+#\\\|72FZHOJYPAGSBNILO3Y2HF24RBLBMGTEYCCZVITGKIECFX22INW \ / AMOS7 \ YOURUM ::
+#\[7]WH3KDCZ3GTXVGAXO26QR56TKVTBAYNJL24XBSBRNUWT5WWLIW6AI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

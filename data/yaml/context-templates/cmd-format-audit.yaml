@@ -28,17 +28,17 @@ sections:
       # name  = zenka.cmd.command_name
       # descr = brief description of what it does
 
-      my $args = $$call{'args'} // '';
+      my $args = $call->{'args'} // '';
 
       ## ... processing ...
 
-      return { 'mode' => 'size', 'data' => $output };
+      return { 'mode' => qw| size |, 'data' => $output };
       ```
 
       ## what to check ##
 
       ### parameter access ###
-      - must use `$$call{'args'}` not `shift` or `@ARG`
+      - must use `$call->{'args'}` not `shift` or `@ARG`
       - `$call` is the implicit command context hashref
       - args is always a string, parse if structured data needed
 
@@ -50,7 +50,7 @@ sections:
       - `return;` without value causes "broken command"
 
       ### common mistakes ###
-      - returning `$output` instead of `{ mode => 'size', data => $output }`
+      - returning `$output` instead of `{ 'mode' => qw| size |, 'data' => $output }`
       - using `shift` for args [ works differently in cmd context ]
       - missing `// ''` default on args [ undef warnings ]
       - returning hashref with wrong keys [ 'result' instead of 'data' ]
@@ -81,8 +81,8 @@ on_complete:
     action: memory_update
     topic: "audit:cmd-format"
 
-#,,.,,..,,,.,,,,.,,,.,,..,,.,,,..,...,,,.,,..,.,.,...,...,.,,,,..,.,,,,,.,..,,
-#7SYWSHMOQCSUXWZ4AUFITZR3LWMCQIQXV55T7EVB4PYGKQD4KFLKWBIVMOVF6CDB45NQGPC6VPCDE
-#\\\|CL5ERFOWYAUCVEGK3HQS6BASPS6DBOGTGZNUZMBIBF7LVLSX2XE \ / AMOS7 \ YOURUM ::
-#\[7]WAHID5RQQXCNFO6NL2QGMHEZOGBBZUQN3EFS23TUOK6NFFPZGMAA 7  DATA SIGNATURE ::
+#,,..,,.,,,,,,,,,,,,.,,..,...,,,.,..,,,.,,...,.,.,...,...,.,,,,,,,...,..,,,,.,
+#ECKYZE3NLFL67TKELAQZRRAXIP3KCXMCUSYWYYV6QKMPBNMYAFGR34KFKTAOJYXTIGFNYR5PBXZ4O
+#\\\|HD6GUSKRZ357G56EJZNQCB23PDMMAKKYJSOEUKEC7WTMP2GOOWT \ / AMOS7 \ YOURUM ::
+#\[7]ZO6G3WVXNOQN6RFGFWFGMNBLMM25RLJXF2KPLB76BDGK35QPSYCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

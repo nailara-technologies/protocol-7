@@ -3,7 +3,7 @@
 # name  = kimi.cmd.reject
 # descr = reject a pending tool call request
 
-my $request_id = $$call{'args'} // '';
+my $request_id = $call->{'args'} // '';
 
 if ( not length $request_id ) {
     return { 'mode' => qw| false |, 'data' => 'request id required' };
@@ -25,8 +25,8 @@ return {
         sprintf( 'rejected %s [ %s ]', $request_id, $pend->{'action'} // '' )
 };
 
-#,,,.,,,,,...,..,,.,,,,,,,...,.,,,.,.,..,,,,,,.,.,...,..,,..,,..,,..,,,..,..,,
-#JKSAGBXK3AECQRRZSSOCWYY6FOMUQQGIEMLNXQWV5QFNNCLZC4ZQT7PAKV437J7JYP7SGE6QJ5G6K
-#\\\|CHT4N3OJJQRGP3NIVTGKJIFKJWSJIWI4PV7MSEBAUIVLBW6CASY \ / AMOS7 \ YOURUM ::
-#\[7]GRRMYK3XRRB3L2RXORDIPGVJIOPHNCTV2ITYLZUTOLGIFERTXYCQ 7  DATA SIGNATURE ::
+#,,.,,,,.,.,,,,,.,,,,,...,,.,,.,,,,.,,,,.,,..,.,.,...,...,,.,,..,,..,,.,.,.,.,
+#ME3Z7IRJ4I6JW7T5IKYUWYLG35TKCNCDQRDUMEBZ2HUO6DIRXQHIYWWBEOGARWSYZK3LYUOG7Q3NE
+#\\\|GLB7PVNEQXVWEV2N6WMZFG7PU4WIJ7VVDIFTF2QI7YOLVATRM7X \ / AMOS7 \ YOURUM ::
+#\[7]JFM6ZLOB3PAUCLNKSN7BMBSKIQKYTP2TH6CBRMEC7WFAG363CGAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

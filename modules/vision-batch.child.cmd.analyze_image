@@ -4,7 +4,7 @@
 # param = <image-path> [job_id]
 # descr = Analyze a single image and return quality metrics
 
-my ( $image_path, $job_id ) = split( / +/, $$call{'args'}, 2 );
+my ( $image_path, $job_id ) = split( / +/, $call->{'args'}, 2 );
 
 <[base.log]>->(
     2, "child.cmd.analyze_image: received command for job_id=$job_id"
@@ -40,7 +40,9 @@ my $analysis_result;
 eval { $analysis_result = <[image-quality.analyze]>->($image_path); };
 if ($EVAL_ERROR) {
     <[base.log]>->(
-        1, sprintf( "child.cmd.analyze_image: EXCEPTION in analyze: %s", $EVAL_ERROR )
+        1,
+        sprintf( "child.cmd.analyze_image: EXCEPTION in analyze: %s",
+            $EVAL_ERROR )
     );
     return {
         'mode' => qw| false |,
@@ -78,8 +80,8 @@ return {
     'data' => freeze($response) . "\n"
     }
 
-#,,..,.,.,.,,,,..,,.,,.,.,,,,,,,.,...,,,,,..,,..,,...,...,,,.,,,.,...,,,.,..,,
-#4ELPMPB5XNXETKNP5J4LBHHDUVLJ6OCSY73Q2FBFLDCQGXFIXVKED6J4GIZRKXSEER5VOOXSZKMX4
-#\\\|NSJE6TTP66K4K2BD27HJ52XED5FMQNRQQKYANXZ6V77FGFJYMHZ \ / AMOS7 \ YOURUM ::
-#\[7]U7VRS5IAOWG35RW5JNRDFQEAPBXRZ2CILQHFM6B2KCSIUHXSI6DI 7  DATA SIGNATURE ::
+#,,.,,.,.,,,,,.,.,,.,,,,,,.,.,..,,,,.,,..,.,,,..,,...,...,,.,,.,.,,..,,.,,,..,
+#INB2CX6YD5QYVR62G6IB4ZR2CWDHC5DX5SBXHCYGN2CK2RCQPXHODZWCAL5R2EQGYTEK2TY24H3BO
+#\\\|XSKYVA4KUQXLASF4FPI35XSLEHKUFGAF4JDPBJSCVGRVCNZFKAM \ / AMOS7 \ YOURUM ::
+#\[7]2ZP5HWAHUR4H4BOH774ADW52Z2YKEZR67FERX6IKLKPUU3TMBAAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -4,7 +4,7 @@
 # param = [target_%]
 # descr = trigger slowing down autoscroll FPS
 
-my $percent = $$call{'args'};
+my $percent = $call->{'args'};
 $percent =~ s|%$|| if defined $percent;
 return { 'mode' => qw| false |, 'data' => 'expected percent value [0..100]' }
     if defined $percent and ( $percent !~ /^\d+$/ or $percent > 100 );
@@ -29,8 +29,8 @@ if ( defined $percent ) {
     };
 }
 
-#,,..,,..,,.,,,..,.,.,,,.,...,,,.,.,,,.,.,,,,,..,,...,...,,,.,.,,,.,.,,..,,..,
-#6DIGKECGIUTHGY6JF366KFNBDJZUTWDQ2CTZUSR5LYI5SPHEBR7IEK7DHRIU4BZSJKOWLD4PIPTYQ
-#\\\|WBJZO6FRJXAOVLHHS5MUHRN3EHLXFEHLKPLXN3XFHA7GFSRXHP5 \ / AMOS7 \ YOURUM ::
-#\[7]B3LILLP7CQ64PD6VW42ZHKGBZB6FIKETO7AUAHPGPUERTQPCGUDQ 7  DATA SIGNATURE ::
+#,,,,,,,,,.,.,...,.,,,.,.,..,,.,.,,,.,,.,,..,,..,,...,...,.,.,,,.,..,,,,,,.,,,
+#JHFJXLBYR7AMCDV6VXMRTAC7MTRKSAC554OI7BSPTBKLQE2PXBC3ESAFCQ7324X54N3LXBNERKVVU
+#\\\|7QP4PN5IFX5Y6B7ZRG4ZKABSKB3H52Q6TG426MBXXTU2NFW4R55 \ / AMOS7 \ YOURUM ::
+#\[7]TSNAGVVPO5RRCSUTPBNTRFBN5IHZAET3IXGX6O2F74VJ4MFJREBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

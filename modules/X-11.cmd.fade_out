@@ -5,7 +5,7 @@
 # descr = fade out specified window(s) and reply
 
 my $X = <X-11.obj>;
-my ( $duration, @window_ids ) = split( / +/, $$call{'args'} );
+my ( $duration, @window_ids ) = split( / +/, $call->{'args'} );
 
 ( $duration, my $fade_limit ) = split( /:/, $duration );
 
@@ -24,7 +24,7 @@ map {
         if $ARG !~ /^\d+$/
 } @window_ids;
 
-my $reply_id     = $$call{'reply_id'};
+my $reply_id     = $call->{'reply_id'};
 my %fade_windows = map { $ARG => 1 } @window_ids;
 
 my $xtops = <X-11.WM>;
@@ -68,8 +68,8 @@ my $fade_interval = sprintf( '%.4f', 1 / $fade_fps );
 
 return { 'mode' => 'deferred' };
 
-#,,,.,,.,,..,,.,.,..,,,,,,,,.,,.,,...,...,.,,,..,,...,...,...,,.,,.,,,..,,...,
-#6IWE2E3O72DY24LZGCKMQ54TBOJUME2WZNG7MSBONZZ6OLXP747B36DGPVLP37OYFKY44UJEMYO3A
-#\\\|PBISFDD7B5VHHHYFYYVPUVC7ESJEMM5FPDPFMEXV2E2V76KJVG7 \ / AMOS7 \ YOURUM ::
-#\[7]MUQKAOM73DQ4VY4EZENBEJZ57NG2TDTAI67QAFQFD5WQXR72DMDY 7  DATA SIGNATURE ::
+#,,,,,...,..,,...,,..,...,.,,,,,.,.,.,...,,..,..,,...,...,...,.,,,..,,,,.,,,.,
+#7KBKNMXDICNWZM7NM7N73CZJFGWBEGYVYOCQSQ7XZGVGHRMXHPO5IILQCBGIH33YIRM4H2OBPXKKY
+#\\\|XDYLMTX5YBIEO3N6USDKAUDGL7COXZUK2XBQITCWAT3UA2XGSMK \ / AMOS7 \ YOURUM ::
+#\[7]6CPV4ET2COOEXA7AHCFTSCVMIRP3V3O5U36O35IJZINK2ASWS2CQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

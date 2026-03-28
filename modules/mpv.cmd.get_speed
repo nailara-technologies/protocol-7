@@ -3,15 +3,15 @@
 # name  = mpv.cmd.get_speed
 # descr = return current playback speed factor
 
-push( @{<mpv.reply_ids>}, $$call{'reply_id'} );
+push( @{<mpv.reply_ids>}, $call->{'reply_id'} );
 
 push( @{<mpv.command.reply>}, { 'handler' => 'mpv.handler.pipe.float' } );
 <[mpv.send_command]>->( 'get_property_string', 'speed' );
 
 return { 'mode' => 'deferred' };
 
-#,,,.,..,,..,,,.,,,..,,,,,.,.,,.,,.,.,,,,,,.,,..,,...,...,,,.,..,,.,,,,,,,,,.,
-#ZYNWZZZEKXQ5PNX2K2KAMT76GRMT3ZVJYFKN7LHCTCIYPQLFRWHD6A3QLWKXYU6NVZEJZHCIWCQIU
-#\\\|JR2WFPFJ6WZGR3W6RINEC5CHFRW4PRTKZZLJSG3WUJKE4WPNADG \ / AMOS7 \ YOURUM ::
-#\[7]P4OUGWKJYVNU6E7ECT4PCJJMESUA5ZUBZOXMSYSVK2FO46GNOIDA 7  DATA SIGNATURE ::
+#,,.,,...,.,,,,,.,,,.,,,,,...,.,.,..,,,,,,,,.,..,,...,...,,,.,,,,,.,.,.,.,,..,
+#HAT4TM26GSWICOYAATPRKPHTUNKKRYGKY4KH4U4BT4IQPJVMO3HXXYKQIS5WTUC2OFHNNSKWR3Y24
+#\\\|GLOOHUFXKNVTISOW7S6GUL7GDXPORY7VFBUEVWI7G6YSGBJCYML \ / AMOS7 \ YOURUM ::
+#\[7]FN4U5MRPIDFLOF3QWQ4JYPPDNFVARBOPAMQXMB7TKULXL5ZEY6CQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
