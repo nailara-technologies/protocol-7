@@ -11,7 +11,8 @@ if ( exists <context.templates>->{$name} ) {
 }
 
 ## resolve template file ##
-my $template_dir = <context.cfg.template_dir>;
+my $root         = <system.root_path>;
+my $template_dir = "$root/" . <context.cfg.template_dir>;
 my $path         = "$template_dir/$name.yaml";
 
 unless ( -f $path and -r $path ) {
@@ -54,8 +55,8 @@ $template->{'budget'} //= <context.cfg.default_budget>;
 
 return $template;
 
-#,,.,,,.,,,,,,,,.,,..,.,,,...,..,,,,,,,..,..,,..,,...,...,.,,,.,.,,,.,,.,,,.,,
-#AJMTSOSPVU3WYGDLXAKUW23PEV362KH3HBYJY27U3NSFVQ7WGQ37TOX7VM26VGIBNFT5DJKIZOTMW
-#\\\|POAYRUFTK5LZJJPOFYUNF6WQMEOP7T4YL36A3KL6TUO72OSNS2I \ / AMOS7 \ YOURUM ::
-#\[7]V4YQGZ4MPD2PKTSJIO4ZJOVZ2IDU6NRRNDIPJRD2THD56DP5TEBA 7  DATA SIGNATURE ::
+#,,..,,.,,..,,,,.,,..,.,,,,,,,,,,,.,,,,.,,..,,..,,...,...,.,,,,,,,...,.,.,.,.,
+#CXBGDKU6HJU7TJ7HIJD6L7V5KLNGCTJGTHA3RR7WEPKPLY6EKEFEH6L236TPK2IQ7FJO3WVT76Q42
+#\\\|QECNB7S3MTH6P4IDK4ILBYT3IY5DVOQEWUZGDRZEFKC5WPU6XVV \ / AMOS7 \ YOURUM ::
+#\[7]A3DKQC6EVNRRFEKCBYY3KXSM7REVPX5PMWEF7YGTZDKP5SZC3QBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
