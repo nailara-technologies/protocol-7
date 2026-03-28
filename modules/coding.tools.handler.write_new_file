@@ -1,0 +1,44 @@
+## [:< ##
+# name  = coding.tools.handler.write_new_file
+# descr = write new file with validation and staging support
+
+my $args    = shift              // {};
+my $path    = $args->{'path'}    // return 'path required';
+my $content = $args->{'content'} // return 'content required';
+
+my $root     = <system.root_path>;
+my $abs_path = "$root/$path";
+
+## validate path stays within project ##
+return 'error: path escapes project root'
+    if $abs_path =~ m|\.\./| or $path =~ m|^/|;
+
+## refuse to overwrite existing files ##
+return "error: file already exists [ $path ]" if -e $abs_path;
+
+## check if parent dir is writable ##
+my $dir = $abs_path;
+$dir =~ s|/[^/]+$||;
+if ( -d $dir and -w $dir ) {
+    <[file.put]>->( $abs_path, \$content );
+    return sprintf "created %s [ %d bytes ]", $path, length($content);
+}
+## stage to zenka dir when no write access ##
+my $stage_name = $path;
+$stage_name =~ s|/|__|g;
+my $stage_rel = "staged/$stage_name";
+<[file.zenka_dir.write]>->(
+    $stage_rel, \$content, '>', 0664, ':encoding(UTF-8)'
+);
+<[base.logs]>->(
+    1, ':. write_new_file: staged %s [ no write access ]', $path
+);
+return sprintf "staged new file %s [ %d bytes, no write access ]\n"
+    . "staged at: %s",
+    $path, length($content), $stage_rel;
+
+#,,,.,,.,,...,,,.,...,,,.,...,,..,,.,,.,,,,,,,..,,...,...,,,.,,..,,,.,,..,.,.,
+#SDCLYNPZAS6HMWE5JV777RYR4UTWMFWTIY3TDA2H35N4GWILYQ2W6C6DPKKURHTPUARZWW3JTIU4K
+#\\\|DP3C6N3RXU25GYYADBXDCFEHGGDG2SD3NZV46MNIAOUTK5LDRNC \ / AMOS7 \ YOURUM ::
+#\[7]TSTVMLQEDK43GZLWAJYCX6LDC6EJVWOVW6HCLAJFJBQUU7DCCIAI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

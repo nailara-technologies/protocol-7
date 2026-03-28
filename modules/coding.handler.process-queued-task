@@ -217,7 +217,19 @@ INFERENCE_LOOP:
         ## context compaction: estimate size, compact if approaching limit ##
         if ( $tool_round > 2 and @messages > 4 ) {
             my $total_chars = 0;
-            $total_chars += length( $_->{'content'} // '' ) for @messages;
+            for my $msg (@messages) {
+                $total_chars += length( $msg->{'content'} // '' );
+                ## count tool call arguments [ often largest part ] ##
+                if ( ref $msg->{'tool_calls'} eq qw| ARRAY | ) {
+                    for my $tc ( $msg->{'tool_calls'}->@* ) {
+                        $total_chars
+                            += length( $tc->{'function'}->{'arguments'}
+                                // '' );
+                        $total_chars
+                            += length( $tc->{'function'}->{'name'} // '' );
+                    }
+                }
+            }
             my $est_tokens = int( $total_chars / $chars_per_token );
 
             if ( $est_tokens > $compact_threshold ) {
@@ -517,8 +529,8 @@ if ( length $response_text
 ## return result hashref for jobqueue callback ##
 return { success => TRUE, result => $response_text, task_id => $task_id };
 
-#,,.,,...,..,,...,,.,,..,,,..,..,,,,,,,..,.,,,..,,...,...,...,.,.,...,.,.,,.,,
-#GZZF56DZZNWCH34WANO52PHAPUU2YV5ZRVJ6ZGSCNHISUSR6TYGF2DAOIGVE3NG2WEDCSHI4MIKNS
-#\\\|KQWMYYXGEKDATQJE2PXTCMQTCFDRBN4HHERS4MX7TVY3P7C7PRC \ / AMOS7 \ YOURUM ::
-#\[7]C6MSNCY5TAU5GAZRYM4UF5K4DSJ7RPBZ4K6ETEC635FZF6HMXGCY 7  DATA SIGNATURE ::
+#,,.,,..,,...,...,...,.,,,,.,,.,.,,.,,,,.,.,.,..,,...,...,.,.,.,,,,.,,.,,,,,.,
+#GMBGYGYVMXJ5LDEMTYOU7GRIY3VJWNRF6LRPEWKGKOUTBGEHKSEYDCEB4J6RGXBNRFMKI4CH7UVN6
+#\\\|MIOX734IFXBQKY6BOJFIJUDPC4T4XPUZUZZT5VEMN5PC52BNH74 \ / AMOS7 \ YOURUM ::
+#\[7]2NSA3NAI45TC2TLGAVIILUMQMUHXQ37VCTCNFVFOW6D4HNUGAGBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
