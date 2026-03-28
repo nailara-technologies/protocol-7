@@ -25,6 +25,7 @@ coding.cfg.assume_admin_group = yes  ## run with project owner's group ##
 coding.cfg.allow_chmod_apply  = yes  ## chmod g+w target files during apply ##
 
 ## GPU+CPU Dual Inference Configuration ##
+inference.backend.lib_path = /data/source/ik_llama.cpp
 inference.backend.gpu.enabled = yes
 inference.backend.gpu.binary = /data/source/ik_llama.cpp/llama-server-cuda-fa
 inference.backend.gpu.vram_threshold = 3221225472  ## 3GB in bytes [Gemma3 Glitter is 2.21GB] ##
@@ -50,6 +51,7 @@ inference.routing.fallback_on_timeout = yes  ## Try CPU if GPU times out ##
 inference.model.context_length = 65536  ## doubled for multi-round tool sessions ##
 inference.model.max_tokens = 4096
 inference.model.temperature = 0.7
+inference.model.seed = 0  ## 0 = harmonic seed from ntime+fortuna, >0 = fixed ##
 
 ## Default model AMOS checksum (resolved from models zenka during init) ##
 
@@ -78,8 +80,8 @@ modules.load = auth net protocol io.unix io.ip jobqueue crypt.C25519 coding \
 
 [zenka.loop]
 
-#,,..,..,,,,.,.,.,.,,,.,.,..,,,,.,.,,,,,,,,,.,..,,...,...,...,,.,,,,,,,..,,.,,
-#N6DGHN7L2FP7WQ265VGFDDGZQ4GOX3AFP6DD4Z4T7VI7DJ74JVC7OROIDJTBB64JQ4DGOAIJNV66A
-#\\\|7HRF4BGUCVS76NPVBKKE42FICUJ4ASPF27ONGDY6R7FCVW4OY2D \ / AMOS7 \ YOURUM ::
-#\[7]GD5DWPPOSK5LTNBVGK2R3NXSDAYMU3MYZ2S53Z5VTWJXHTAJFODA 7  DATA SIGNATURE ::
+#,,.,,...,..,,...,...,.,,,,..,,.,,...,,..,..,,..,,...,.,.,,..,,,.,,,.,...,,.,,
+#D2GFN5UKWAHQKUE7VFBXYOZY2553EP7BV5UEN7YOSABGGEAIJJICRPV6YILIUXUD4TCRUJSUJFAXI
+#\\\|3DY32HL7FLYEO5HBPYBVGZGMWRFUKJ6MXA2HWN4GMV7VFQTEO2C \ / AMOS7 \ YOURUM ::
+#\[7]6WDFXW7DOMDBOOVYEB4CQPY3LEWTUOP2FRPV7QZ3VMWPTFOVRACI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

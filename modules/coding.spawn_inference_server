@@ -9,12 +9,11 @@ my $backend = $params->{'backend'} // qw| cpu |;
 my $port    = $params->{'port'}    // 8000;
 
 ## look up binary from config if not explicitly provided ##
-my $binary = $params->{'binary'} // (
+my $lib_path = <coding.lib_path>   // '';
+my $binary   = $params->{'binary'} // (
     $backend eq 'gpu'
-    ? ( <inference.backend.gpu.binary>
-            // '/data/source/ik_llama.cpp/llama-server-cuda-fa' )
-    : ( <inference.backend.cpu.binary>
-            // '/data/source/ik_llama.cpp/llama-server-cpu' )
+    ? ( <inference.backend.gpu.binary> // "$lib_path/llama-server-cuda-fa" )
+    : ( <inference.backend.cpu.binary> // "$lib_path/llama-server-cpu" )
 );
 my $threads     = $params->{'threads'}     // 8;
 my $gpu_layers  = $params->{'gpu_layers'}  // 33;
@@ -152,6 +151,28 @@ push @cmd, qw| --no-warmup |;
 # Enable jinja template engine for tool calling support
 push @cmd, qw| --jinja |;
 
+## harmonic seed [ configurable fixed seed or generated from ntime+fortuna ] ##
+my $fixed_seed = <inference.model.seed> // 0;
+my $seed;
+if ($fixed_seed) {
+    $seed = $fixed_seed;
+} else {
+    ## generate harmonic seed from network timestamp mixed with fortuna ##
+    my $fortuna = <base.prng.fortuna>;
+    ( $seed = join( '', <[base.ntime]>->(13), $fortuna->int32 ) ) =~ s|\.||g;
+    ( $seed /= 13 ) =~ s,(\.|e.+$),,g;
+    ## iterate until harmonically valid ##
+    my $attempts = 57;
+    while ( $attempts-- and <[base.assert.harmony]>->($seed) == 0 ) {
+        ( $seed = join( '', <[base.ntime]>->(13), $fortuna->int32 ) )
+            =~ s|\.||g;
+        ( $seed /= 13 ) =~ s,(\.|e.+$),,g;
+        <[base.sleep]>->(0.0013) if $attempts < 37;
+    }
+}
+push @cmd, '--seed', $seed;
+<[base.logs]>->( 1, ': %s server seed : %s', $backend, $seed );
+
 ## Spawn llama-server with open3
 my ( $server_in, $server_out, $server_err );
 $server_err = Symbol::gensym;
@@ -195,6 +216,7 @@ for my $pipe_fh ( $server_out, $server_err ) {
     'port'       => $port,
     'pid'        => $pid,
     'binary'     => $binary,
+    'seed'       => $seed,
     'status'     => qw| starting |,
     'start_time' => <[base.time]>->(3),
     'stdout'     => $server_out,
@@ -238,8 +260,8 @@ return {
     'port'    => $port
 };
 
-#,,.,,..,,.,.,,..,,.,,,,,,,,,,..,,..,,...,,,.,..,,...,...,,,,,...,,,.,..,,,.,,
-#52Z4MBQGJVTCC452UCMFPZEZT4JWG36SPYX5RTOODTHYD3D4HHU2LA5TD3TBUJ2ESU6GECJ62S2DW
-#\\\|GUZ7QMXADLGOUJZZUB7FEHJWI656SCYJZBS6MCZZPYMDYDBOKV4 \ / AMOS7 \ YOURUM ::
-#\[7]AZTAMGOTRWNRLO2BUA77CVDGGE5HNMDUK7RJU5P2EUZ5XDX6LQCA 7  DATA SIGNATURE ::
+#,,..,..,,,..,..,,.,,,,.,,,.,,,..,,.,,...,,,.,..,,...,...,.,.,..,,..,,...,...,
+#4KN57PUD5FNLC5W64DWF7F5ZUUAQ6UYCCMJYBAOD4BJTWUPDOEHIUBFHL6BGGJYQAPBQVXMTOHYZ6
+#\\\|U7X66AZSKHU5EWZ57ZX5QY7DN4B5UJP5PBGHQVRBUI3NSQEVSOJ \ / AMOS7 \ YOURUM ::
+#\[7]26FTY5HSOPRUO5IP7YXJJNNZ3VUQ3EG66EPOEVFATAVADTUUMMDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
