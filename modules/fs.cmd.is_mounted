@@ -4,7 +4,7 @@
 # param = <mount-point>
 # descr = return if filesystem is mounted
 
-( my $mount_point_str = $$call{'args'} // '' ) =~ s|/$||g;
+( my $mount_point_str = $call->{'args'} // '' ) =~ s|/$||g;
 
 return { 'mode' => qw| false |, 'data' => 'expected mount-point parameter' }
     if !length($mount_point_str);
@@ -19,8 +19,8 @@ if ( $status == 1 ) {
     return { 'mode' => qw| false |, 'data' => 'mount-point does not exist' };
 }
 
-#,,.,,.,,,.,,,,..,.,,,...,,..,,.,,,..,...,...,..,,...,...,,.,,...,.,,,,,,,,..,
-#XZZ24ERXGI36EPEIB2VYL7XNOK5JB2XT7RAVWJIABFPHOKEU5QCO4JA2FEUIHWFL4QO2LYBZWI55U
-#\\\|RQD3OXHEMMUSRBV4XWACMO7TXQHXUY5QFH5Q5VIUZJVQMXENHTL \ / AMOS7 \ YOURUM ::
-#\[7]A7Z46MVC62EXZZMW2B2BNLXHPUDJTEXDCCQ5QDH5ENTJTMEZBIDI 7  DATA SIGNATURE ::
+#,,..,.,,,,..,,,,,,,.,,..,.,,,,,,,,,,,.,.,,,,,..,,...,...,..,,.,.,...,.,,,...,
+#A3TMVLRC3EL6Q4A7YATVEW6YYC3B66LY2X2O5X3CXPWPSMAEDQZ7ONWXFCKQYTOZFSYTN5UP5ZZXG
+#\\\|ZD6KDPPVW2EAEPKB5XEUAHRSBBNR53BDBQW2H7GHETWBZPSTJHE \ / AMOS7 \ YOURUM ::
+#\[7]XYW35AZJBYEDFDCRUVKUVAB5GF2W76ZTTXP4Z4MKETPOAT36PWBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

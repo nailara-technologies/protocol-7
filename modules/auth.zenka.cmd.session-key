@@ -5,8 +5,8 @@
 # descr = set up session key for zenka auth.
 # todo  = parameter validation ..,
 
-my $id = $$call{'session_id'};
-my ( $sn_zenka, $key ) = split( m| +|, $$call{'args'}, 2 );
+my $id = $call->{'session_id'};
+my ( $sn_zenka, $key ) = split( m| +|, $call->{'args'}, 2 );
 
 my $zenka = $sn_zenka; # <-- $sn_zenka also contains subname if zenka has one.
 my $subname = $zenka =~ s|\[(.+)\]$|| ? $LAST_PAREN_MATCH : '';
@@ -45,8 +45,8 @@ if ($type_authorized) {    ##  has :zenka:  ##
     };
 }
 
-#,,,,,,,.,,..,,,,,,.,,.,,,.,,,,,,,..,,,,,,..,,..,,...,...,...,,..,,,,,.,.,,..,
-#4HDWGAEOTNIESB66QUTLI7M3QK6FAFUTHKBXDNMDUCX4KQ2MUDVQHTNDYIZDD3XHFRA5XDTRGRFYW
-#\\\|N3A5SQL76YMTYKO2CTCM5GC3IKMLQYOC6HCTU2ET65ILM5X7E32 \ / AMOS7 \ YOURUM ::
-#\[7]I7LSPYVMMTY4LFPEVDX4BQCG7EWUFL4PUG6UMMPTDQT5PRCZCUAY 7  DATA SIGNATURE ::
+#,,,,,.,,,,.,,,.,,.,.,.,,,,,,,.,.,...,.,.,,,.,..,,...,...,.,.,,,,,.,.,,,,,.,.,
+#YSX62KH5EEBDKXTI3R3UU26RV6HFF2VAQQOW64T4PNWYMMHB5XRKNXOH6TMT22NSJRKCLVKMX6OE6
+#\\\|THICXGFQ7RYCSLPS4MD6SWOIQDYON5VOKLPEJ2HKOORFD6464XC \ / AMOS7 \ YOURUM ::
+#\[7]2QCITSCGM6MZSV26UX2LSSMR7JPXN3QZVA2ABBQXKOYSCVG4BEAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

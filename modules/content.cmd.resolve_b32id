@@ -4,7 +4,7 @@
 # param = <b32id>
 # descr = return parsed playlist entry for given b32id
 
-my $b32id = $$call{'args'};
+my $b32id = $call->{'args'};
 return { 'mode' => qw| false |, 'data' => 'valid <b32id> expected!' }
     if not defined $b32id
     or $b32id !~ m|^\w{5,23}$|;
@@ -17,8 +17,8 @@ return {
 
 return { 'mode' => qw| true |, 'data' => <content.b32id_src_str>->{$b32id} };
 
-#,,..,..,,,,,,,,,,..,,,,.,.,.,.,.,,,,,.,.,.,.,..,,...,..,,.,.,..,,,.,,,..,.,,,
-#7HA7TZDNWAHY42COM2TUWLLCFVMC2WO32NCQATXGJHNNEIDXKOS4HUAAPJMY6C2HF2ER25VDFTP6A
-#\\\|BWSES7NPOHIIOLDJVKMSR7K3V7AD3O7MJ4IPXHTMX2WCMYDGZ3I \ / AMOS7 \ YOURUM ::
-#\[7]YF4TS5DC5P5BW3Y43XUKHABGMLMWLGSGYT7DPCX3MEI3WCK2UKAI 7  DATA SIGNATURE ::
+#,,.,,,..,,.,,..,,,,,,,,.,,.,,,.,,,,.,...,...,..,,...,...,...,,,,,...,,..,.,,,
+#XWEREUM46MQM3HREOCQHYRO4MEVBOHCASPOXX4J2J2JMPYCYVTPIA32NDFWVWPXUJU3VTWMQ2ZOQM
+#\\\|FOWE3V3X6MGOGDQ27A7NNVX4REMATDUUMUYAHS4DP6DJBCSS2NH \ / AMOS7 \ YOURUM ::
+#\[7]F5XWHIGOODEWYPH6YNPB6RD5IAWNHD2RNJ4PLXPCPM6VKQRRA4AI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

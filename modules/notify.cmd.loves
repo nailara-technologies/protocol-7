@@ -4,8 +4,8 @@
 # param = '<title>' '<message>'
 # descr = custom notification (using 'loves it' icon)
 
-my $txt_param = $$call{'args'} // '';
-my $id        = $$call{'session_id'};
+my $txt_param = $call->{'args'} // '';
+my $id        = $call->{'session_id'};
 
 return { 'mode' => qw| false |, 'data' => 'no message text submitted' }
     if !length($txt_param);
@@ -46,7 +46,7 @@ map {
 
 if ( defined $title or @matches ) {
     my $msg_str
-        = <system.verbosity.console> >= 3 ? " ['$$call{args}']" : ' ...';
+        = <system.verbosity.console> >= 3 ? " ['$call->{args}']" : ' ...';
     <[base.log]>->( 2, "[$id] sending notification" . $msg_str );
     my @msg = $title;
     push( @msg, $body ) if defined $body;
@@ -79,8 +79,8 @@ if ( defined $title or @matches ) {
     return { 'mode' => qw| false |, 'data' => 'no message text submitted' };
 }
 
-#,,,,,..,,,,.,,..,,..,..,,,.,,,,,,.,,,.,.,...,..,,...,...,..,,..,,.,,,,,.,,..,
-#52Y2ZC2OXIBRGVSOH2SEPQ2KOB4UUB5BICIVDXUA5AVSVOJKM5MFESDUIX6DXD6UX2M4JL6CGIO5Y
-#\\\|2FXZMPN763PCK7BLQHZTYVJLLTAAVVG2SAO2HCO6RZVL7N7PQ5G \ / AMOS7 \ YOURUM ::
-#\[7]DKCWGYI3N5TKEAETV42GTTVXBPLVOLCSGVK43KM7DHOCUYIYXYBA 7  DATA SIGNATURE ::
+#,,,.,,.,,.,.,.,.,,,,,,.,,,,,,,,,,,,,,,,.,.,,,..,,...,...,..,,.,.,...,,,.,...,
+#TSHQLRUBOKSM7EOLAZYO4LUNLKNS37OVRCRTCM6YW6DOYNMWFILNIFI6RJ5VCSDQADDIOR45CL24K
+#\\\|E7B2AHS25BSCNSS5NJ3PM5ERREGLC4U4NVO6OYNH3I6KILXM4LJ \ / AMOS7 \ YOURUM ::
+#\[7]YZNNOOHXFK7AX3R2OGCXYZ5ZDJ6RACOFMNT74S56R6EXUO63IQCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

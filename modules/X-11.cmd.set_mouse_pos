@@ -4,8 +4,8 @@
 # param = <pos_x> <pos_y>
 # descr = move mouse pointer to given coordinates
 
-my $log_sid = $$call{'session_id'};
-my @params  = split( / +/, $$call{'args'} );
+my $log_sid = $call->{'session_id'};
+my @params  = split( / +/, $call->{'args'} );
 my %coords  = ( 'x' => shift @params, 'y' => shift @params );
 map {
     return { 'mode' => qw| false |, 'data' => "expected $ARG parameter" }
@@ -35,8 +35,8 @@ return {
 
 return { 'mode' => qw| true |, 'data' => "mouse position set" }
 
-#,,.,,...,.,.,.,,,..,,,,,,.,.,,,,,,,.,,.,,..,,..,,...,...,...,,.,,...,,,.,.,.,
-#SMZXINKUNZPGPDW6IE7QERGDHHXF4EU7G7N5VIAROOQKSGUGUEAY74NM6WKUGORUZ42VDD54EBDGE
-#\\\|23WOTRCIZR2644CTSDAL6QP376U637WV3ZFELEPG7YFGCZU6223 \ / AMOS7 \ YOURUM ::
-#\[7]HVEPQBZK4RHOFUIZHD4AEJQMAQ4CNEGFLC76IXEVMOQ3466MKECA 7  DATA SIGNATURE ::
+#,,,.,,,.,...,,..,..,,,..,,,.,.,,,..,,.,.,,.,,..,,...,..,,,..,,,.,,.,,.,,,,.,,
+#MIPHJWZU7DKS7CLB3XDQMBGBEFBQGESG7A4MTDYJAXUQC36OPH3IPJ3UJNWO5ETV62QANDKET32RO
+#\\\|EUD6YZGJFLC2ERTPSZBRSAYQ6SX2IG7J6C7BOCHJF4DV6WXN4K5 \ / AMOS7 \ YOURUM ::
+#\[7]73XOB7QOUD3ZKOYMBN7UV744EYBDM2H3AYPN4LQLLIZ5V7AZUICI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

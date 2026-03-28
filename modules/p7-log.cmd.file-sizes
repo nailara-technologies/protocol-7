@@ -4,7 +4,7 @@
 # param = [pattern]
 # descr = protocol-7 log file size summary table
 
-my $name_pattern = $$call{'args'};
+my $name_pattern = $call->{'args'};
 
 my $system_name = <system.host.hostname>;
 my $reply_str   = sprintf( "..%11s\n", '..' );
@@ -66,8 +66,8 @@ $reply_str .= sprintf( "=\\ %-6s /=  <----$x\n\n",
 
 return { 'mode' => qw| size |, 'data' => $reply_str }
 
-#,,..,,,,,..,,.,.,,.,,..,,,,.,..,,...,.,.,,..,..,,...,...,..,,.,.,.,,,,,.,.,,,
-#HRJ26MCRJCFPIL7EXYAXXFMCLYIPRQTNF37OQSPOSBZBER6FPELLV2KKXQU4ELGGI3ZLQE4KC3JQ4
-#\\\|6IWK5TLPAUZAUCBSS3FHZM53PTNSXKGH3XC4SG7BXY7HLAHH3HV \ / AMOS7 \ YOURUM ::
-#\[7]2PXO5TIE7HLFWCYHHYAJPGM2SFMX53LYF3W7CY7RWGLQBLW7MICQ 7  DATA SIGNATURE ::
+#,,..,,,,,.,,,...,,..,..,,,.,,.,.,...,,,.,..,,..,,...,..,,,,.,,..,,.,,..,,,,,,
+#AEQNJRIEPWFCGHXBWMOHM2OXVI373QFVZXZ34ST72XNBEAZ5NPM6QUDEJ2TEEC46BDCLLOVBGCROC
+#\\\|SXSY7U6NUWW2GYGTGP2LUGUQCHVFB7VSGUAPGIUCVAXEU6IZIPY \ / AMOS7 \ YOURUM ::
+#\[7]TSZKSNLLE3Q73Y4TRUAEW7PYDXAPNWMKXP42Q6LOEESM3LEJFKAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

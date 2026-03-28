@@ -3,12 +3,12 @@
 # name = menu-commands.cmd.add-category
 # descr = Add a new menu category
 
-my $args = defined $$call{'args'} ? $$call{'args'} : '';
+my $args = defined $call->{'args'} ? $call->{'args'} : '';
 $args =~ s{^\s+|\s+$}{}g;
 
-my @parts = split(/\s+/, $args);
+my @parts = split( /\s+/, $args );
 
-unless (@parts >= 2) {
+unless ( @parts >= 2 ) {
     return {
         'mode' => qw| false |,
         'data' => 'Usage: add-category <category-id> <label> [order]'
@@ -16,18 +16,19 @@ unless (@parts >= 2) {
 }
 
 my $category_id = $parts[0];
-my $label = $parts[1];
+my $label       = $parts[1];
 
 # Validate category-id
-unless ($category_id =~ /^[a-zA-Z0-9_-]+$/) {
+unless ( $category_id =~ /^[a-zA-Z0-9_-]+$/ ) {
     return {
         'mode' => qw| false |,
-        'data' => 'Category ID must contain only alphanumeric characters, underscores, and dashes'
+        'data' =>
+            'Category ID must contain only alphanumeric characters, underscores, and dashes'
     };
 }
 
 # Check if category already exists
-if (exists <menu-commands.categories>->{$category_id}) {
+if ( exists <menu-commands.categories>->{$category_id} ) {
     return {
         'mode' => qw| false |,
         'data' => 'Category already exists: ' . $category_id
@@ -36,9 +37,9 @@ if (exists <menu-commands.categories>->{$category_id}) {
 
 # Check if last part looks like an order number
 my $order = 0;
-if (@parts > 2 && $parts[-1] =~ /^\d+$/) {
+if ( @parts > 2 && $parts[-1] =~ /^\d+$/ ) {
     $order = pop @parts;
-    $label = join(' ', @parts[1..$#parts]);
+    $label = join( ' ', @parts[ 1 .. $#parts ] );
 }
 
 # Add to categories hash
@@ -58,8 +59,8 @@ return {
     'data' => 'Added category: ' . $category_id
 };
 
-#,,.,,,..,...,.,,,,..,.,.,.,.,,,.,...,,,.,,,.,..,,...,...,,..,.,.,,.,,..,,.,,,
-#U2V2V62MRJ3MKTRUJJ3OR6HHVBLCOMGIMYOAJQOAC3FY2LL3SAMJVB7CIYUZLAVW5MY44E7TGZS3A
-#\\\|LG5NXYS6LI2GKIEG4RX6JWD24EEAHMVR6JT7ZFVFGUWY4N3EXX2 \ / AMOS7 \ YOURUM ::
-#\[7]PFKWNEF6LOUOZDZ3GT4S5MSLSZ2J64OS32YTPK47UAL5POAFEQDQ 7  DATA SIGNATURE ::
+#,,,,,,..,,,,,,..,,.,,..,,.,.,,..,,..,.,,,,..,..,,...,...,...,..,,..,,,..,..,,
+#Z5YOX4AYI2IBXR5Y6ESVYWRX676RT34QX6TQGAHDBNJQ6WVXXWF6A7ZEHSZCLZWUQTFA2RN2MF7ZY
+#\\\|5HZG47WEFU5CY5CMMK4JOBAGJBGNIIKS4WVKJOLKDGTGGK3FLJA \ / AMOS7 \ YOURUM ::
+#\[7]C2PPLNRLYYMH5ID4MRHDML2VTU23BPB5TRMFJGR7526RZFUJPWCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

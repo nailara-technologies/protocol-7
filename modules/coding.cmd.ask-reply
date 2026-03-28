@@ -1,7 +1,7 @@
 ## [:< ##
 
 # name  = coding.cmd.ask-reply
-# descr = submit coding task and return deferred reply when complete
+# descr = submit coding task, return full reply when complete
 # param = <request_string>
 
 # Handle both single-line and multiline modes
@@ -80,7 +80,7 @@ $data{'coding'}{'deferred_replies'} //= {};
 my $deferred_id = <[base.gen_id]>->( $data{"coding"}{"deferred_replies"} );
 $data{"coding"}{"deferred_replies"}->{$deferred_id} = {
     'deferred_id' => $deferred_id,
-    'reply_id'    => $$call{'reply_id'},
+    'reply_id'    => $call->{'reply_id'},
     'task_id'     => $routed_task->{'id'},
     'submitted'   => <[base.time]>->(3),
     'status'      => qw| waiting |
@@ -91,10 +91,10 @@ $data{"coding"}{"deferred_replies"}->{$deferred_id} = {
     $routed_task->{'id'}, $deferred_id
 );
 
-return { 'mode' => 'deferred' };
+return { 'mode' => qw| deferred | };
 
-#,,..,..,,.,.,,,,,,.,,,..,,,.,,.,,.,.,..,,.,,,.,.,...,...,..,,,.,,,..,.,.,.,,,
-#IY2BT2WDJNVRMOY5KVEOJG7FS53KSZEPMXOKME7667EQUJBK6CR2TZUL74CA7THN364SV7WAVGXM6
-#\\\|OT73HHYS4YWJN63U23CERD6UWZD2DVJOPJQH7KTN54RQSBZN5CB \ / AMOS7 \ YOURUM ::
-#\[7]XKPZYXUDA3E4P4NQM3GABPCQKTOQH2NFKYA2NW5774HZXTT2CMDA 7  DATA SIGNATURE ::
+#,,,,,,.,,,..,,.,,..,,,,,,..,,,.,,,.,,..,,..,,.,.,...,..,,.,,,.,,,...,,,.,,,,,
+#QHCXHM3BYSA26UNNQHRLA74FAFBT5CSMLQZYX4OTY26ICOWZ3B2AFH3DWUWPODRCA6OZDN6TVUQIS
+#\\\|44B5UNUF73BYOFGW57MHTNHU6J7EJQIQPPCGR65BODRUA7T3C5T \ / AMOS7 \ YOURUM ::
+#\[7]K6477NKF4TI4DLSF22U5RZZJMPMHG3WPZMUMUEUMNO67AV6JTGBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

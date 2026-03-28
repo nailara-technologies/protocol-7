@@ -5,7 +5,7 @@
 # param = <channel-path>
 # return = { mode => 'true', data => 'subscribed to <channel-path>' }
 
-my $args         = $$call{'args'} // '';
+my $args         = $call->{'args'} // '';
 my $channel_path = $args;
 $channel_path =~ s|^\s+||;    ## trim leading whitespace ##
 $channel_path =~ s|\s+$||;    ## trim trailing whitespace ##
@@ -25,7 +25,7 @@ unless ( $channel_path =~ m|^[a-z0-9\.\-_]+$|i ) {
 }
 
 ##  Create subscription entry (lazy activation)  ##
-my $session_id = $$call{'session_id'} // 'unknown';
+my $session_id = $call->{'session_id'} // 'unknown';
 
 ##  If channel doesn't exist yet, create it  ##
 <channels.subscriptions>->{$channel_path} //= {};
@@ -55,8 +55,8 @@ return {
 
 1;
 
-#,,,.,,..,,..,,..,...,.,,,..,,,,.,.,,,,,.,.,,,.,.,...,...,..,,.,.,,,.,...,,,.,
-#W5NLDOLBO4HGXVABV3YYMGJJY724FAOJ3JUH7ZQ27A63EYLFWZFJKGUBVPUVH646T2CMLK47UQH64
-#\\\|BRED5ILQGNLGHQPNOC5UORZ3BM66OJEZSVYB6D2RGLTUVY5OZSK \ / AMOS7 \ YOURUM ::
-#\[7]LVTMBKRWFC4T7GMWZYX7X7NXEGZSVFGV6WO7XYEREXONYXZWKCAY 7  DATA SIGNATURE ::
+#,,..,.,.,,,.,.,.,,.,,,..,,,.,,,.,..,,.,,,,,,,.,.,...,...,..,,.,,,...,,..,,..,
+#OEFQVHP2XZCX6PNZMHVCVIZTGI7ST267LB7AOYNUMD6VKRA7VT655JUP4QJKDIECS2H3BEEMAVB2W
+#\\\|2JFW265KB6DKCGZOROTT5CTXJR35BRODS76HGTI6KBA7I5FZVLU \ / AMOS7 \ YOURUM ::
+#\[7]GBWPZ5MGYVTTU6BF2UBCONRBHWAIARNZE6C2UGOC3ZFJZ7M7LEAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

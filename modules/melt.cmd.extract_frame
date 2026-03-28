@@ -4,7 +4,7 @@
 # param = <position> <video_path>
 # descr = extract specified video frame, start=0
 
-my ( $frame_num, $video_path ) = split( / +/, $$call{'args'} // '', 2 );
+my ( $frame_num, $video_path ) = split( / +/, $call->{'args'} // '', 2 );
 
 <[melt.trigger.auto_cleanup]>;
 
@@ -30,7 +30,7 @@ if ( !-r $video_path ) {
             'params'  => {
                 'frame'    => $frame_num,
                 'vid_path' => $video_path,
-                'reply_id' => $$call{'reply_id'}
+                'reply_id' => $call->{'reply_id'}
             }
         }
     }
@@ -38,8 +38,8 @@ if ( !-r $video_path ) {
 
 return { 'mode' => 'deferred' };
 
-#,,.,,,,,,,..,,,,,,,,,,,,,...,,.,,,.,,,..,.,.,..,,...,...,.,.,...,,.,,,,.,,,.,
-#LJQTPOPYVLW5Y6I6S2YRELBIORR43XJRSDUQYNDMN5DCNYFMEGM5LJYBR4LOQR5EJ3E7XHAUNJR7S
-#\\\|ZOZG3EW5SF5E4TRHDMDF54FU3KR2CZ4QCCO5EAWME536TJXEE5I \ / AMOS7 \ YOURUM ::
-#\[7]HJO7YEGFQIZMPHIJ75GYC7AMDLNSP77AJ2V55BWHLPANUO4AZSDQ 7  DATA SIGNATURE ::
+#,,..,..,,..,,,.,,,.,,...,,,,,,,.,,.,,,,,,.,,,..,,...,..,,...,..,,,,,,,.,,,,.,
+#5MOEYT6VKQKW5KTCQRLBL7IW2NDKMZZASU7AMMVF42XDLJATZXD2CRJB3BPH56PMBKXA5FNAA2UZO
+#\\\|XSJD2VG5TK7ZZHJVME2T2YCDKQB7ET7SZ2NYS66NUSD7CWATQWO \ / AMOS7 \ YOURUM ::
+#\[7]QV7DFL2M5FJA7TZF7SHXCGMEV76CEIRMFCXTBP77WXVGWOVWP2DI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

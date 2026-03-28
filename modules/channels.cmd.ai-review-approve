@@ -5,7 +5,7 @@
 # param = <json: review_id commit_message>
 # return = { mode => 'true'/'false', data => 'status message' }
 
-my $args_ref = $$call{'args'} // '';
+my $args_ref = $call->{'args'} // '';
 
 my $approval_ref;
 eval {
@@ -26,7 +26,7 @@ return {
     unless $approval_ref->{'review_id'};
 
 my $review_id = $approval_ref->{'review_id'};
-my $developer = $$call{'session_id'} // 'unknown';
+my $developer = $call->{'session_id'} // 'unknown';
 
 ##  Retrieve review record  ##
 <channels.ai_reviews> //= {};
@@ -119,8 +119,8 @@ return {
 
 1;
 
-#,,,.,,.,,.,,,...,..,,...,...,...,..,,.,.,...,..,,...,..,,,,.,.,.,.,,,...,...,
-#VFRZRWKCPR4ZDSDVHTRPFH3YCJ55USP2AZOND7QKIZ3SYGE2H5HQ625OSXP2R33C5UXWZATE4DHIQ
-#\\\|ENVJEVU5SE4D26UDWIJ2AAOV2MIVBLYTWMC7NF4QK5QTX2HI4PT \ / AMOS7 \ YOURUM ::
-#\[7]3DR6N6K5DUMU7AK6HPM3DILMBN6U2INVLUISIMZXUKKW4QT3BMBQ 7  DATA SIGNATURE ::
+#,,..,..,,,..,.,,,,,,,,,.,,,,,,,,,,.,,..,,..,,..,,...,...,.,,,...,,,.,..,,.,,,
+#D6R5OPVPMSFQDSVU5FK4C3I7CRLVR2IEJTNRW75HVHPNXPS7L2USTDRVI7ZDUBZC7KKLLEEWFVVOC
+#\\\|CJWHNH6WVOQQAPPQPDPV6YAW33CC4BBHACEBN5XN4S6LW6RWG2U \ / AMOS7 \ YOURUM ::
+#\[7]UFCR6AT7W4PBMQHBJHIAJOQULE6M6LYH4L4QI2B3RVRTT4E3EICY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

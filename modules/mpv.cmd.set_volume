@@ -4,13 +4,13 @@
 # param = <volume%>
 # descr = set playback volume [0-100%]
 
-my $volume = $$call{'args'} // '';
+my $volume = $call->{'args'} // '';
 
 return { 'mode' => qw| false |, 'data' => 'expected volume in percent' }
     if !length($volume)
     or $volume !~ /^\d+(\.\d+)?%?$/;
 
-push( @{<mpv.reply_ids>}, $$call{'reply_id'} );
+push( @{<mpv.reply_ids>}, $call->{'reply_id'} );
 <mpv.success_reply_str> = sprintf( 'volume now %0.1f', $volume ) . '%';
 <mpv.success_reply_str> =~ s|\.0||;
 
@@ -23,8 +23,8 @@ push( @{<mpv.reply_ids>}, $$call{'reply_id'} );
 
 return { 'mode' => 'deferred' };
 
-#,,.,,..,,,..,.,.,,.,,,..,,,,,..,,..,,.,,,.,,,..,,...,...,,..,...,...,,,.,..,,
-#CCKBUQH2NP7LFK7U5EQ6X6NRB2O2TKGZXU2AYTVKFLMKSZPGX2CRSVWHRBXGEVVR6QIHP2TNUJJ4I
-#\\\|NTCYSUIBMOE6YM5CKACKMF3MTA3OJG4SG7DIGF5VAYFN5I3ROAB \ / AMOS7 \ YOURUM ::
-#\[7]YRBMS4LFKCYDSDSFKS7QPVRICYLQVHDTAHOXGXZJDB56L7JKOWDA 7  DATA SIGNATURE ::
+#,,,.,,..,,,,,..,,.,.,.,.,...,.,.,.,.,.,,,,..,..,,...,...,..,,,..,,..,,..,,,,,
+#TQBAGTR6SY3GWDOMVZWEQGGX35VDY2JWU6CGS2M3UIKN4X2GRAYFXC7MB65YW2D7LZLMJVQJA3UMO
+#\\\|ITDEOF5ELHOZGHOABEXO6FDQ3NASDELVEW3VURG3P3XBWVNDZTT \ / AMOS7 \ YOURUM ::
+#\[7]2EIQVLBKHLKKPF47OKNZGMJKYWYDXD5KGQEVQDPOG4NU3RAPUUDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

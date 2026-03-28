@@ -4,7 +4,7 @@
 # descr = decode base32 + VAX encoded elf value
 # param = <b32>
 
-my $b32_str = $$call{'args'} // '';
+my $b32_str = $call->{'args'} // '';
 
 return {
     'mode' => qw| false |,
@@ -24,8 +24,8 @@ return { 'mode' => qw| false |, 'data' => 'not an encoded number' }
 
 return { 'mode' => qw| true |, 'data' => $elf_int }
 
-#,,,.,...,,,,,...,...,,.,,.,.,.,,,,,,,,.,,,,.,..,,...,..,,...,.,,,,,.,,,,,,,,,
-#TGGUSTL5S6BTKNBKY5AUCI7HZ7RWFVHBV4FNPJJT4NC7BRIULT3VHB4EIERFSZSX63EBVA4UIAY7Y
-#\\\|JGZL546P36G5JTBFPZS2KGV5F3P2LCMDOAKLALVKXKQAJGVMOIJ \ / AMOS7 \ YOURUM ::
-#\[7]7ROGNTDEGUPB2J74BD7DKMHQQOXUSYHHZ6YGXXKLDAGLCB427OBQ 7  DATA SIGNATURE ::
+#,,..,.,,,,.,,,.,,,,.,.,,,...,.,.,,,.,.,,,,,.,..,,...,...,...,.,.,,,,,...,.,,,
+#VUTW5JXW3WY43KZKGL5A5UK27K54ZQNWWWYRD5HLWCNIXOTFWJG5A4TY55G2ZJ7SCUZJINOI7X43Y
+#\\\|GMXGSTWBHDGSXIKYGV7W7JOX4D4ND27MER2B62V54TSIK5G67NV \ / AMOS7 \ YOURUM ::
+#\[7]IEZITIXBE76HA7EPEJQKBFQ7UHIYPXMNCMM7DCD6YG4ZUZNXH6CY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

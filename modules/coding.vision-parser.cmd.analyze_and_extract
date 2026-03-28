@@ -68,7 +68,7 @@ unless ( $conv_result->{'success'} ) {
 # Create job entry - save reply_id for later callback
 my $job = {
     'job_id'            => $job_id,
-    'reply_id'          => $$call{'reply_id'},
+    'reply_id'          => $call->{'reply_id'},
     'image_path'        => $image_path,
     'vision_prompt'     => $vision_prompt,
     'extraction_prompt' => $extraction_prompt,
@@ -116,8 +116,8 @@ my $queue_result = <[protocol-7.command.send.local]>->(
 # Return deferred response - actual result will come via reply handler
 return { 'mode' => 'deferred', 'data' => "Vision analysis queued\n" };
 
-#,,..,,,.,.,,,...,,..,,,.,,.,,,,.,,,.,...,.,,,..,,...,...,.,.,,..,..,,..,,.,.,
-#UIIELGWJQJFXTBSNBEOOH7IXJD5KOU3LD5EG5PFDAMDP65Q5P2PWZT4SQDAKVC5LCFOSBA7M2YVNO
-#\\\|PKG3IHFGXZVT4KA3VS6ZFRIS2VSESGMR3BLJAGYK5RU7FAVKKZW \ / AMOS7 \ YOURUM ::
-#\[7]DXUUOZML34ARJ4LNO4RCDBPZJWHY73RFB5LYD5UWIF3T5K74OUDY 7  DATA SIGNATURE ::
+#,,..,..,,,..,...,,,.,,.,,,..,,.,,.,.,..,,...,..,,...,...,...,,.,,..,,.,,,,..,
+#EBOA7VARTQQILIBVUUZB2I5X7WZYVXUFX6VQLFBX76OZ2W6CIH4W6E5IXVL5LCUBCHWCL47DWFQGE
+#\\\|5QYCYZP3IDU5NFAE3PCHXLHCM3IUKXLDSEEB3B6J75DW4CHQ5EY \ / AMOS7 \ YOURUM ::
+#\[7]DATR27F7UT4RA4GDWHQHLHQKRVDRVFNUM5ICKAR6SU7LOTKJ6MBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

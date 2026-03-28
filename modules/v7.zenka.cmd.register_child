@@ -6,7 +6,7 @@
 # todo  = also extract and set process start_time in process->child->PID = ..,
 
 my $instance_id;
-my $child_pid  = $$call{'args'};
+my $child_pid  = $call->{'args'};
 my $parent_pid = <[v7.sub-process.get_ppid]>->($child_pid);
 
 foreach my $id (<[v7.instance_ids]>) {
@@ -37,8 +37,8 @@ $instance->{'process'}->{'child'}->{$child_pid} = 1;
 
 return { 'mode' => qw| true |, 'data' => 'registered' };
 
-#,,..,,..,..,,,.,,,,,,,..,.,,,...,..,,...,..,,..,,...,...,...,.,.,,,,,..,,,..,
-#QCSEUFHDEGWWSUAOLYDOHP5OO7CL5SDQLUKIAJN3HZCWQRZWVELCLMQNNZ2QK62NWMPMACXBXYGHU
-#\\\|X4FKVRTDUZRAGMWNSBJIJA4RD2IGJ7BTAETME3B2MXN3L47SDCZ \ / AMOS7 \ YOURUM ::
-#\[7]PCAPSFOQG5FTTLRPMUMJSNPWGHV5ADTJGH4RGU35G3OAEEZCNADI 7  DATA SIGNATURE ::
+#,,,,,,,.,..,,,,.,,,,,,,,,.,.,.,,,.,,,,,,,.,.,..,,...,...,,,.,,,,,.,,,,,,,.,,,
+#RXIY3G37QO7QVZG6SVL6GYX7DLS54ZE63Z47LFVGUKYXUSZCGOJAKE55QTYWIRENQSCV2TX6T23QO
+#\\\|OILSI7VTD7IFPWF3AONRQSOGMS3B7B3HUISMM2VKQG7FMNRMEK3 \ / AMOS7 \ YOURUM ::
+#\[7]YOXJTHV3H5AYYQUTPCPTX6URWTHTWYY2TZSFDDTKNF5JXDBPNIBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

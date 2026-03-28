@@ -5,10 +5,10 @@
 # params = <name> [chain_list]
 
 return { 'mode' => qw| false |, 'data' => 'chain <name> expected' }
-    if not defined $$call{'args'};
+    if not defined $call->{'args'};
 
 if ( my $filter_id
-    = <[filter.compile_chain]>->( split( / +/, $$call{'args'} ) ) ) {
+    = <[filter.compile_chain]>->( split( / +/, $call->{'args'} ) ) ) {
 
     return {
         'mode' => qw| true |,
@@ -22,8 +22,8 @@ if ( my $filter_id
     };
 }
 
-#,,,.,.,,,.,.,.,.,,,,,.,,,.,.,...,.,.,...,,,,,..,,...,...,,..,...,,.,,,.,,,,.,
-#23SDRVZRCRP25L5WJ2BUU6CIN77WDJ2EJQY23SDTHUMYDBBWWXJXLDCGEFXEAPCHSUG6VULBSBNC2
-#\\\|UFMGJWU5V7KUIV7ZJ6QRK5QPZVBLHXW4CVFZHAMKZVHUWPY3B6D \ / AMOS7 \ YOURUM ::
-#\[7]IDOZLKL364XNODUUB6E3KH23KF63FNPZWVG3RJ634RHJIVGBXKCI 7  DATA SIGNATURE ::
+#,,..,.,.,,..,..,,,..,..,,,,.,.,.,,,,,,,.,,,,,..,,...,...,...,..,,..,,,,.,,..,
+#FINUAXV2YIMB672QWR2SUDVCBPCOYFPP3YSZFNO4HWGRYPJFUX4MZTSEGBFHAB36O2TKMQODCRZYU
+#\\\|ZLI2VXSAYLITZMZPDDY2SW4MYSMLHNSVISXROE5WLSIVMGJTDRV \ / AMOS7 \ YOURUM ::
+#\[7]KECC4KPAHUPVOS32GTK5APDKHLQU2CTJRK7A7PGL53MFZ5NQVICI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

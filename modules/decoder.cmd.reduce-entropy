@@ -5,8 +5,8 @@
 # descr = async /13 harmonic reduction of level-5 accumulator
 
 my $stream_id
-    = defined $$call{'args'} && length $$call{'args'}
-    ? $$call{'args'}
+    = defined $call->{'args'} && length $call->{'args'}
+    ? $call->{'args'}
     : 'all';
 
 <decoder.jobs> //= {};
@@ -34,7 +34,7 @@ return { 'mode' => qw| false |, 'data' => 'reduction job already running' }
     if exists <decoder.jobs>->{$job_id};
 
 my $index_job = {
-    'reply_id'       => $$call{'reply_id'},
+    'reply_id'       => $call->{'reply_id'},
     'job-type'       => 'reduce-entropy',
     'stream_id'      => $stream_id,
     'values'         => [ @{$values_ref} ],      ## snapshot ##
@@ -59,8 +59,8 @@ my $index_job = {
 
 return { 'mode' => 'deferred' };
 
-#,,,.,..,,.,.,...,,..,,..,..,,,.,,...,...,,..,..,,...,..,,.,.,,,.,.,.,,.,,..,,
-#TM2PPXLZJST2RAZM6FYTNETJQDKJNIDR5LXL65J7GJVV42AVMZLW3GNLC5K7IE34Q5KN3MPPUBIRG
-#\\\|FIYBKRWGBVS5KOS3OQMYXQ3FX2U4T3WTVGEEUCVYHJRA6CUDZNB \ / AMOS7 \ YOURUM ::
-#\[7]OLZ644C5CTVJVG4XJHKRVEZT2GGHTQV5SFJJZPHSH4HOB45KMWDA 7  DATA SIGNATURE ::
+#,,,.,.,,,...,.,,,..,,.,,,.,.,,,.,.,.,,,,,...,..,,...,...,...,,,,,.,.,,,.,,,.,
+#6LPBC6GPYURX2TNAUCVOL3GFL7RJ723QCQHDZMNOX5MYUTNMBNBLI7XAH5WKNN23SVSOA64QWDRPK
+#\\\|ERLA7M7RL4L2MXUXA6YFOCWSG6UCKRF5LPSSR6PU36E4VGRG3OP \ / AMOS7 \ YOURUM ::
+#\[7]EP6OEFXJSEFNQD2THDEARJNXWD2SH5RDUZQPCXJJAZNQLXF5SCCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

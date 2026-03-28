@@ -4,7 +4,7 @@
 # descr = fetch result of a completed coding task
 # param = <task_id>
 
-my $task_id = $$call{'args'} // '';
+my $task_id = $call->{'args'} // '';
 
 return { 'mode' => qw| false |, 'data' => 'task_id required' }
     if !length($task_id);
@@ -28,28 +28,28 @@ if ( $status eq 'completed' ) {
 
     if ( $newlines == 0 ) {
         $result =~ s/\n$//;
-        return { 'mode' => 'true', 'data' => $result };
+        return { 'mode' => qw| true |, 'data' => $result };
     } else {
         $result .= "\n" if $result !~ /\n$/;
-        return { 'mode' => 'size', 'data' => $result };
+        return { 'mode' => qw| size |, 'data' => $result };
     }
 } elsif ( $status eq 'failed' || $status eq 'error' ) {
     my $error = $task->{'execution'}->{'error'} // 'unknown error';
-    return { 'mode' => 'false', 'data' => $error };
+    return { 'mode' => qw| false |, 'data' => $error };
 } elsif ( $status eq 'in_progress' || $status eq 'pending' ) {
     return {
-        'mode' => 'true',
+        'mode' => qw| true |,
         'data' => "task $task_id is still $status"
     };
 } else {
     return {
-        'mode' => 'true',
+        'mode' => qw| true |,
         'data' => "task $task_id status: $status"
     };
 }
 
-#,,,,,...,.,.,,,.,,,.,.,,,.,,,...,,,,,,.,,,.,,.,.,...,...,.,.,,.,,.,.,..,,.,,,
-#ODHGWNW7JNMJFUNGHI6TSGLZOT2RIVDOFSDVQTUJZXFDUFN67TABF7ANNLZBF56AFGPNUQGVFGUOO
-#\\\|BOO263N3GBQP77UWO6KLGCWLAKC7BFBCFSTTA6JGCFUUTMGMNPQ \ / AMOS7 \ YOURUM ::
-#\[7]T6PAVKZTFGX24TVWRUAGSCHTQFU7JKJCKWF6RKIJ3ZYH7AO7T4AA 7  DATA SIGNATURE ::
+#,,,.,..,,,..,,,,,.,,,.,.,,,.,...,..,,.,.,,.,,.,.,...,...,..,,,,,,...,..,,.,.,
+#LRZHPCGBVEJA5GJVJD3CVETAM24MGDTDNLLKOUH4WEKRFANH23MEC3JTQ5DHJV7IOA6YZTI274SRI
+#\\\|6GVVDOUDPXMDRNZCQFOVSHUCGK3H7MQ3K3NJIDGUASGITIQVLGX \ / AMOS7 \ YOURUM ::
+#\[7]2MRGDTVKE75U5TQH573ZBLV7PAWQLWHHFQ7TXGTM4RV7GSRKNOBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

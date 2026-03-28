@@ -4,7 +4,7 @@
 # param = <pdf_path>
 # descr = check if file is recognized as valid pdf
 
-my $pdf_path = $$call{'args'} // '';
+my $pdf_path = $call->{'args'} // '';
 
 return { 'mode' => qw| false |, 'data' => 'expected path to pdf file!' }
     if !length($pdf_path);

@@ -4,10 +4,10 @@
 # param = <name>
 # descr = report whether a user or zenka is connected
 
-if ( not defined $$call{'args'} or !length( $$call{'args'} ) ) {
+if ( not defined $call->{'args'} or !length( $call->{'args'} ) ) {
     $$reply{'data'} = 'no username specified';
-} elsif ( $$call{'args'} =~ <regex.base.usr> ) {
-    my $user = $$call{'args'};
+} elsif ( $call->{'args'} =~ <regex.base.usr> ) {
+    my $user = $call->{'args'};
 
     return { 'mode' => qw| false |, 'data' => 'seen no such client' }
         if not exists $data{'user'}{$user}
@@ -40,8 +40,8 @@ if ( not defined $$call{'args'} or !length( $$call{'args'} ) ) {
     $$reply{'data'} = 'invalid username';
 }
 
-#,,.,,,.,,,,,,.,,,,,.,.,.,,,.,.,,,..,,..,,,,.,..,,...,..,,,.,,.,.,,.,,,.,,...,
-#MVFXD2VDCSLB5NUIOFVMMYG3GIAAACIWZHJKZ2UTBTMOCEJGGCEIGVKMEVTZ5MJ6435GSRXWNZHLI
-#\\\|X7GS3UHM4JV4FKGC24WDAN3H2WZD5EXSRWUQMQSFF6KG7HBHWI4 \ / AMOS7 \ YOURUM ::
-#\[7]7EZHY4EX4GTWAYLKKRRUWEQ46P3WLRXIEDQ4DYW7VJDSU2UC4ECA 7  DATA SIGNATURE ::
+#,,,,,..,,,.,,.,.,.,,,,.,,.,.,...,,..,.,.,...,..,,...,...,,..,...,,,.,,.,,...,
+#VFWTPQBNV2FVOIBLKLG3ZIXNCK5NGESNERCB2WU6ON74T52KXSFIREAXEUOGW2L4ONTNN5FKRZNOC
+#\\\|S56L6HR3WCL3QUAB6TWV35KHHCRCGLYANMFIEALV4VNW5ZOEFNU \ / AMOS7 \ YOURUM ::
+#\[7]IYCM73SMZJDSJEOZQHLGPLBOVZR2XT33HVALO5CGHINV7D4S6SBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -4,22 +4,22 @@
 # param = <file|url>
 # descr = silenlty add entry to current playlist
 
-my $file_path = $$call{'args'};
+my $file_path = $call->{'args'};
 
 return { 'mode' => qw| false |, 'data' => 'expected path or url' }
     if not defined $file_path or !length($file_path);
 
 $file_path =~ s|/+$|| if -d $file_path;
 
-push( @{<mpv.reply_ids>}, $$call{'reply_id'} );
+push( @{<mpv.reply_ids>}, $call->{'reply_id'} );
 <mpv.success_reply_str> = 'added to playlist';
 
 <[mpv.send_command]>->( 'loadfile', $file_path, 'append' );
 
 return { 'mode' => 'deferred' };
 
-#,,..,,,.,,..,,..,.,.,,,,,,.,,...,,.,,,..,...,..,,...,...,..,,.,.,.,,,.,,,,,.,
-#JSOABFOJ4J4LVLUA6KX7F3ZQN7GBTOA7KZZ4XEMHKPVJ62FEZXQKSAWRJRX3FNTKTUOP5EJ6ZG3JG
-#\\\|GDA3S32GEQBNDALLUYY2MKT6F3CD3LABSMMCD4NLE4GMQWZWCAN \ / AMOS7 \ YOURUM ::
-#\[7]WMH4ZAOT47M5JJVTJDPQBTY2VJQBZRWZRVLBKUNXB6EAEFSBV2AA 7  DATA SIGNATURE ::
+#,,..,.,,,.,.,,..,,,,,,,,,.,,,,,.,,,,,,.,,..,,..,,...,...,...,.,,,,,.,,,,,,..,
+#RVARRLH75MLVLDKMXECRUQNKDLNF3F2SBAFIIJOZ633WNW6CQCISIYJF7A24ZXV3O732T3OZ7BT6K
+#\\\|APJW32VA3BNCDKMZJ7LSSWSHUQTOBA7HZX6YJFSMJWU5BXA2K2M \ / AMOS7 \ YOURUM ::
+#\[7]D5JSENBRIDROKKIWZ42PXW7GHXBCELWQJ3K5NER7DE7OI2FB3QDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

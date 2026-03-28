@@ -8,7 +8,7 @@ return { 'mode' => qw| false |, 'data' => 'expected zenka name parameter' }
     if not defined <set-up.json.export_allowed>
     or !<set-up.json.export_allowed>;
 
-my ( $zenka_name, $config_type ) = split( / +/, $$call{'args'}, 2 );
+my ( $zenka_name, $config_type ) = split( / +/, $call->{'args'}, 2 );
 return { 'mode' => qw| false |, 'data' => 'expected zenka name parameter' }
     if not defined $zenka_name;
 $config_type //= 'set-up';    # default
@@ -35,7 +35,7 @@ $cmd_path = "cube.get-config" if $zenka_name eq qw| cube |;
             'params'  => {
                 'zenka_name'  => $zenka_name,
                 'config_type' => $config_type,
-                'reply_id'    => $$call{'reply_id'}
+                'reply_id'    => $call->{'reply_id'}
             }
         }
     }
@@ -43,8 +43,8 @@ $cmd_path = "cube.get-config" if $zenka_name eq qw| cube |;
 
 return { 'mode' => 'deferred' };
 
-#,,,,,,..,.,.,.,,,.,.,,,,,..,,..,,,,,,..,,,.,,..,,...,...,...,,.,,,.,,,,,,,,,,
-#GYSL5T6C6JGUI7RHGTEY3SBOOZKXSCA5W3ROFNI5Y56ML7B3RLMQGKS7S42F3PKMBFB6RO63JVIZG
-#\\\|SRFYUQJXLU3N3ACBZRVLIMQ36DV4HPCCTCPUUSB4UM533RZAI3Q \ / AMOS7 \ YOURUM ::
-#\[7]G5CZZ53BF5UXXQD2667UDJSZAV2UCPDJTLF4VXKSMGS2ONVIB4AQ 7  DATA SIGNATURE ::
+#,,,.,,..,,,,,.,,,,,,,,.,,...,..,,,,.,,,.,...,..,,...,...,,,.,.,,,,,.,...,.,,,
+#BADVGTFEKSPEBCUI6PATUTGFRXT4P6XORQPRHHBRVZ6W7DB4VK3TUFONRXFV4A4XF2EOA3GYQ65RS
+#\\\|36R5X4DQUMPTSQJU7ZW5FQFY3MXSJQOAGZPZ35BGODJVEMPWJCH \ / AMOS7 \ YOURUM ::
+#\[7]ITEFZLLNS5WKKGA7YLRD3OC2BNZM7BQYYWDLTB7LXTI6HWIRKUDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

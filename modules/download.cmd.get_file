@@ -4,7 +4,7 @@
 # param = <url>
 # descr = download file from specified url
 
-my $url = $$call{'args'} // '';
+my $url = $call->{'args'} // '';
 
 return { 'mode' => qw| false |, 'data' => 'expected url parameter' }
     if !length($url);
@@ -69,8 +69,8 @@ my $bytes_downloaded = File::stat::stat($target_path)->size;
 
 return { 'mode' => qw| true |, 'data' => $target_path };
 
-#,,,,,...,..,,...,,,.,,,.,,,,,,,,,...,.,,,,,.,..,,...,..,,,.,,.,,,...,,,,,,,,,
-#5AWAS7F3OO4PCUTLWXYOCI4Q6SSOL6ZYY5ZSD5LY3CDVJCVG2RYF47DK6633ZK4NKHS2536Y432C2
-#\\\|2W5IAM3YXVBJSBFQYGRU7P3TVFD5VZCXLBYDPZNNQVKO4OYIKRG \ / AMOS7 \ YOURUM ::
-#\[7]XM7DGWSJOVVWHRBWTNHSVLE6TQZEFQYR3FJKKGN7UDYODW4WDADY 7  DATA SIGNATURE ::
+#,,,.,.,,,,.,,.,.,,..,,.,,,,,,,..,,..,.,,,,.,,..,,...,...,...,,,,,...,.,,,,.,,
+#V26N34AZ2HO2JS46HXPA5PSJOCF37D2FRO27VFABYV3Q7UQ4QV5DZM7JV6IAFHD64GMKI672M3ASY
+#\\\|4FWSJVRLN6EWV7YSFXF6FMSQXMA6VRVNLORTTKR3CQEHSQU3BA4 \ / AMOS7 \ YOURUM ::
+#\[7]BGAKARISK4MU6TPMMXRUMXKKT3I4DA7N7K6R2BDKKAPX4HTVHAAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

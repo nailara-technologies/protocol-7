@@ -4,8 +4,8 @@
 # param = <key>
 # descr = delete a key \ value from the 'data' hash
 
-my $del_keystr = $$call{'args'};
-my $cid        = $$call{'session_id'};
+my $del_keystr = $call->{'args'};
+my $cid        = $call->{'session_id'};
 
 return { 'mode' => qw| false |, 'data' => 'no key specified' }
     if not defined $del_keystr or !length($del_keystr);
@@ -32,8 +32,8 @@ if ( not defined <[base.resolve_key]>->($del_keystr) ) {
     return { 'mode' => qw| false |, 'data' => 'not successful' };
 }
 
-#,,,,,..,,,.,,..,,.,.,..,,...,,,,,,..,,,.,,,,,..,,...,...,...,,,.,..,,.,.,,..,
-#RRPCSUM64EOH5IKO3NZZ2EYZINZ3FDCAK4BRK44UOB55WIK3SSUHKUXSBNSKFBRCQ63J564RIRV5A
-#\\\|7OJJAZXAAVHCAO4GMIUBNSL76NVINPIZH6KHD2DH32NMGDXXT34 \ / AMOS7 \ YOURUM ::
-#\[7]M6JR2DYCMLYPTVBH7NPZGSY26AXOS7X52HRD5A3LD6BZ5LL55KDA 7  DATA SIGNATURE ::
+#,,.,,...,.,,,..,,,,,,.,,,,,,,...,,..,..,,,,.,..,,...,...,.,,,...,.,,,,,,,...,
+#QFOER5EAOKG7WGGFOWMAWUGOZ7X6DBRIBR5TMFUZL3DIZG2OYBRX7CTMACPO4D6ARMCBU66BVFMD4
+#\\\|I55WBVGRLQTFE4OKTEKHVKT2G7LT46NN5EJYLY2ZVNCE2TGDGIL \ / AMOS7 \ YOURUM ::
+#\[7]L3QUF5ZNFEEIR3KHMJ7YY2RM75CPK2YLKJBHGNONT5A6HAKVI4CA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

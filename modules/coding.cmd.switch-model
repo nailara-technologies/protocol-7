@@ -8,8 +8,8 @@ my $args = $call->{'args'} // '';
 
 unless ( length $args ) {
     return {
-        mode => 'size',
-        data =>
+        'mode' => qw| size |,
+        data   =>
             "Usage: switch-model <model_checksum> [backend=gpu|cpu|both|auto]\n"
             . "Example: switch-model IR65EUQ:ZGJ3K5Y\n"
             . "Example: switch-model IR65EUQ:ZGJ3K5Y backend=cpu\n"
@@ -23,16 +23,16 @@ my ( $model_checksum, $backend_opt )
 
 unless ( defined $model_checksum ) {
     return {
-        mode => 'size',
-        data => "Error: Invalid checksum format. Expected XXXXXXX:XXXXXXX\n"
+        'mode' => qw| size |,
+        data   => "Error: Invalid checksum format. Expected XXXXXXX:XXXXXXX\n"
     };
 }
 
 $backend_opt = lc( $backend_opt // 'auto' );
 unless ( $backend_opt =~ m{^(gpu|cpu|both|auto)$} ) {
     return {
-        mode => 'size',
-        data => "Error: backend must be gpu, cpu, both, or auto\n"
+        'mode' => qw| size |,
+        data   => "Error: backend must be gpu, cpu, both, or auto\n"
     };
 }
 
@@ -53,8 +53,8 @@ foreach my $key ( keys %$registry ) {
 
 unless ( defined $model_name ) {
     return {
-        mode => 'size',
-        data => "Error: Model $model_checksum not found in registry\n"
+        'mode' => qw| size |,
+        data   => "Error: Model $model_checksum not found in registry\n"
             . "Use 'coding.list coding-models' to see available models\n"
     };
 }
@@ -78,13 +78,13 @@ $reply = <[protocol-7.command.send.local]>->(
 <coding.pending_model_switch_time>     = <[base.time]>->(3);
 
 return {
-    mode => 'size',
-    data => "Switching model to $model_name ($model_checksum)...\n"
+    'mode' => qw| size |,
+    data   => "Switching model to $model_name ($model_checksum)...\n"
         . "Restarting inference servers. This may take a moment.\n"
 };
 
-#,,,.,.,.,,,.,..,,,.,,..,,,..,.,,,..,,.,.,...,.,.,...,.,.,.,.,.,,,.,,,,.,,,,.,
-#C7F753IS3UMYPEKEKJR5ZWFURW3PORSRQKXMJKYAXR372EJOAE6QQUS7UFHICOOJVBDXKUKNGGZCM
-#\\\|XCMF3CYKAHZEDE2VN2HK4CIMIVP7GSHN4DZWS5SXOT2JUVCGDJS \ / AMOS7 \ YOURUM ::
-#\[7]O4BSDASLCHZARLGCAH4KO7ZP7E3QBSX3DJFGZ6RUTJX3RLKQVOAA 7  DATA SIGNATURE ::
+#,,,.,,,,,,..,,,.,..,,,,.,,..,,,.,.,.,,,,,...,.,.,...,...,,,.,,..,.,.,,..,,..,
+#HHZFAFOGKYQ33EU2U5G7N5ZCGRJ4MA43P6JCX4BUDNJL53IE4UCGWXYCMPTWEGLC2U2CCGV4HDSKU
+#\\\|NC2WSBASHWA7ABEPU44D7XWEVZFQS3D33PBUJLCH4UNJN66K54W \ / AMOS7 \ YOURUM ::
+#\[7]CBI3L3KOEEGSWCV5IV4SC3ASUHYKDDY3P36FWTL32SSY44NAX6AI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

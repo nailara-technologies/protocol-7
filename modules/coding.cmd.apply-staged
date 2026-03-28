@@ -3,26 +3,29 @@
 # name  = coding.cmd.apply-staged
 # descr = apply staged edits to project source files
 
-my $filter = $$call{'args'} // '';
+my $filter = $call->{'args'} // '';
 
 my $staged_dir
     = <system.path.zenka-dirs>->{'var_P7'} . '/'
     . <system.zenka.name>
     . '/staged';
 
-return { 'mode' => 'false', 'data' => 'no staged directory' }
+return { 'mode' => qw| false |, 'data' => 'no staged directory' }
     unless -d $staged_dir;
 
 my $dh;
 if ( not opendir $dh, $staged_dir ) {
     <[base.logs]>->( 0, ':. apply-staged: cannot open %s', $staged_dir );
-    return { 'mode' => 'false', 'data' => 'cannot read staged directory' };
+    return {
+        'mode' => qw| false |,
+        'data' => 'cannot read staged directory'
+    };
 }
 
 my @files = sort grep { $ARG ne '.' and $ARG ne '..' } readdir $dh;
 closedir $dh;
 
-return { 'mode' => 'false', 'data' => 'no staged edits' } unless @files;
+return { 'mode' => qw| false |, 'data' => 'no staged edits' } unless @files;
 
 my $root       = <system.root_path>;
 my $applied    = 0;
@@ -96,10 +99,10 @@ if ( length $shell_cmds ) {
 
 $output .= sprintf "\n## %d applied, %d skipped ##\n", $applied, $skipped;
 
-return { 'mode' => 'size', 'data' => $output };
+return { 'mode' => qw| size |, 'data' => $output };
 
-#,,,.,.,,,.,,,,,.,.,.,..,,..,,,,,,...,..,,..,,..,,...,...,.,.,..,,,,.,,,.,...,
-#LWKO2WD42BNFHBGXIOJGSG4ZJ43XEGU3JWJYK3HOVIP7VJR4DREC75ELN3I2NJI2HVOMYLTDN2VKW
-#\\\|46W7LLVOAUVOAOTGIIIRSH2FH73EWFHV75LAATWMSHVGVR2UIRE \ / AMOS7 \ YOURUM ::
-#\[7]AEX3BBU7OMQUN7WIKUHFI25DOX46BNMQNMW4GU262BWXX2IRJMBY 7  DATA SIGNATURE ::
+#,,..,.,.,..,,,,.,...,...,..,,,,.,..,,..,,,,.,..,,...,..,,,,,,.,,,,,,,..,,,,,,
+#JAAGQOJOE46XLFVGTG5LFH6P53AAINTYKVBJMLP3VD657PYPBYPTG5QQBJ6OL2HS4F2BFCRE2O6GG
+#\\\|Y5GYHHICG3VSRS24NNRUGPGEJPXM4K5CPTZHA232GJ2QFEGFFY3 \ / AMOS7 \ YOURUM ::
+#\[7]RCHYFIG3A6WMLNBO4353SJSULIPV2USLCUWBCQGPHI4B6EBVLEDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -5,7 +5,7 @@
 # descr = broadcast a reboot warning to all unix users
 
 ( my $warn_seconds, my $reboot_reason )
-    = split( m| +|, $$call{'args'} // '', 2 );
+    = split( m| +|, $call->{'args'} // '', 2 );
 
 my $who_bin_path  = <[file.which]>->('who');
 my $wall_bin_path = <[file.which]>->('wall');
@@ -47,8 +47,8 @@ if (system( $wall_bin_path,
 }
 return { mode => qw| true |, 'data' => 'message sent to all terminals.' };
 
-#,,,,,..,,,,.,,.,,..,,,,,,,.,,,,.,,,.,.,,,...,..,,...,..,,...,.,.,,,,,.,.,..,,
-#QFRXE3KRTG5NGH3Z36SEQOQSYZVS27AFV4NOM7LWKJQHQGGDHBLHQN2I3JCFUWU4KIL3BHAPS7O2Q
-#\\\|5XCBTTCFZSCT3S5RQQLN7BE6ATUE44KTNJ4KERVC5A2VFHV6OW4 \ / AMOS7 \ YOURUM ::
-#\[7]HACDTPIBONDULEYIW5LY4A3VYX2XG3VXLALJZMZTHWE6AD6M54CI 7  DATA SIGNATURE ::
+#,,..,.,,,.,,,,.,,..,,.,.,.,,,.,.,,,,,.,,,,,,,..,,...,...,.,.,,..,,.,,,..,.,.,
+#GMAE5BSB7ZU2Y7UBXQVADMWQ5X57NFTQTGK4G66E2SHASUCO4MED5EZHIQD6H6J5WCGBNC52ATWSS
+#\\\|EKHNZGIB3DUZETQ3B4H5IDNJFSPU2RWEY62KBI2X7P4INVCMJVJ \ / AMOS7 \ YOURUM ::
+#\[7]3PNFPQGEUWKR2ONEGUOZENGSQSQ3LBBKFYLYELBLFWOHNEANWSAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

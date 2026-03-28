@@ -6,8 +6,8 @@
 # return  = $reply { mode data }
 # descr   = displays on-screen notification message
 
-my $txt_param = $$call{'args'} // '';
-my $id        = $$call{'session_id'};
+my $txt_param = $call->{'args'} // '';
+my $id        = $call->{'session_id'};
 
 return { 'mode' => qw| false |, 'data' => 'no message text submitted' }
     if !length($txt_param);
@@ -60,8 +60,8 @@ if ( defined $txt_param and $txt_param ne '' ) {
     return { 'mode' => qw| false |, 'data' => 'no message text submitted' };
 }
 
-#,,,,,.,,,.,,,,..,...,...,,,,,..,,...,,,.,.,.,..,,...,..,,.,.,.,.,,.,,,,.,,..,
-#6QS3M74HFSHC3PP24Q6XLISKJORHPTRYLYIKL4O6AKOJGKB4FBLARS7HUYX47YE2FRV274ESRW5LU
-#\\\|XDTBSWMJFX6YSWRJTLI5UHQEZWNIAINR336TTV4AEF5JRCTPN74 \ / AMOS7 \ YOURUM ::
-#\[7]UMZFOTXMZQROPE6FXDEP5J7KWPQOLM573IENX5NW7JUASEYQMKBY 7  DATA SIGNATURE ::
+#,,.,,,,.,,,,,,,,,,.,,,..,,,.,.,.,...,..,,...,..,,...,...,,..,.,,,...,...,.,.,
+#W6I7EHIYRIKQNOTZ4WOMDWJIXT6I6ES5M2DT5GTNTWXPYETARNJBWIO5I4U5QCMIM3Y6Q7RVVID7U
+#\\\|XHZYQRXORMSDDX4BADTR7LKLW3AKAGZJL3Q2HFKVB6NVTVNWLMN \ / AMOS7 \ YOURUM ::
+#\[7]D6X4HBH2NR7FGBNAZV22JUBEIVLH4YCIMFV5HYHOM2UB7OHMYKCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

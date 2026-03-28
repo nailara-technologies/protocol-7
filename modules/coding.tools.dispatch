@@ -28,11 +28,23 @@ if ( not ref $args and length $args ) {
             2,             ':. raw args [ %d chars ]: %.200s',
             length($args), $args
         );
+        my $parse_err = <[base.str.eval_error]> // 'unknown parse error';
+        $parse_err =~ s|\s+at\s+\S+\s+line\s+\d+.*||s;    ## strip location ##
+        my $raw_snip = substr( $args, 0, 300 );
         return {
             'id'      => $call_id,
             'role'    => 'tool',
-            'content' => "error: invalid arguments JSON"
-                . " - check quoting in nested values",
+            'content' => sprintf(
+                "error: JSON parse failed for '%s' arguments.\n"
+                    . "parse error: %s\n"
+                    . "raw input (%d chars): %s\n\n"
+                    . "fix: ensure arguments is a single valid JSON object "
+                    . "with properly escaped strings. "
+                    . "common mistakes: unescaped quotes inside strings, "
+                    . "trailing commas, unquoted keys, "
+                    . "single quotes instead of double quotes.",
+                $name, $parse_err, length($args), $raw_snip
+            ),
         };
     }
 }
@@ -407,8 +419,8 @@ return {
     'content' => $content,
 };
 
-#,,,,,,,,,,,,,,,.,,,,,.,.,,..,.,.,,..,.,.,,,,,..,,...,...,,,.,,,.,..,,.,,,...,
-#URA6BDM4LZSUH43F7B4PIT7XZKGR6DQKFMSVKZKNPGQKIUFU4H37J7CQK3TN64JXMG3ZZH4UHNSAO
-#\\\|PNNMRBDJTSM7TVNPPMWWIVCQIWWZWISR2PFOE3XXQ4WU6K6NINA \ / AMOS7 \ YOURUM ::
-#\[7]DPMKR7AYW64NSNZT25EO2DI2HD5NSEYYP2GGRFK4PVUVG7VBPGAI 7  DATA SIGNATURE ::
+#,,,.,...,.,.,,,,,,,.,..,,,,,,.,.,,,.,...,,..,..,,...,...,..,,...,,..,..,,,,.,
+#3E6GBWNSSBAV24DC3M2LRRKQKNE2ZGZJNYPIRLK4G6FDTDAGY6JVC6GD3UHF237DVCMQJP567NVYE
+#\\\|YXAW534HPTE6PKSHF34JDHT6FEFMNDFGANKO4PSHULCJMRJ4EX6 \ / AMOS7 \ YOURUM ::
+#\[7]ZXFEESSSYMOZ4RK52X2SYHAPRNRFJDLE4JQGGR26X4KBZAWR6UCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

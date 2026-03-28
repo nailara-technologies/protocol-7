@@ -4,7 +4,7 @@
 # param = <zenka>
 # descr = list exportable configs
 
-my $zenka_name = $$call{'args'};
+my $zenka_name = $call->{'args'};
 return { 'mode' => qw| false |, 'data' => 'expected zenka name parameter' }
     if not defined $zenka_name;
 
@@ -21,7 +21,7 @@ $cmd_path = "cube.get-config-names" if $zenka_name eq qw| cube |;
             'handler' => qw| set-up.handler.zenka_reply |,
             'params'  => {
                 'zenka_name' => $zenka_name,
-                'reply_id'   => $$call{'reply_id'}
+                'reply_id'   => $call->{'reply_id'}
             }
         }
     }
@@ -29,8 +29,8 @@ $cmd_path = "cube.get-config-names" if $zenka_name eq qw| cube |;
 
 return { 'mode' => 'deferred' };
 
-#,,.,,,.,,,.,,.,.,,,,,..,,...,.,,,...,.,.,,,,,..,,...,..,,...,,,,,...,.,.,..,,
-#T6IJ4WQJCZONMHHGNBQFYC4R4SSXDB4QDON32XSM4YK4AHBJLZKUUK4RXRRRGCVP3ELWISSRO2Q5A
-#\\\|NQMUBKSL7Q23MDO3ZV7YXJMET4GWNLIG2Q3MJIYGND7OVLJZ7XC \ / AMOS7 \ YOURUM ::
-#\[7]UTNBM6QOKJXQWTIJMCKWMYTBT4G3N65MFQG3FDJDI6K7YJXJWQBY 7  DATA SIGNATURE ::
+#,,,.,,,.,,,.,,,,,,..,.,,,,.,,,.,,,,.,,,.,...,..,,...,...,...,,.,,..,,...,,,.,
+#62PPOUW6NTTHFMD4XOXPOW4SJ477J2DS75EHOZSTEDSMVHJXLIOGWP3PP52ZTKIFSLA66HYXODCZW
+#\\\|ZTN3QQS5R44VLZ5EPO4MHGGGUUPUY7RLJ3PIF4XEBOOS3VIVQFG \ / AMOS7 \ YOURUM ::
+#\[7]T5UDKFUJZLL5JIPKL2UCCEAAO2EWZ2RHOS4GYCPDU46PFWFIVWDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

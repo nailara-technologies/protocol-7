@@ -5,8 +5,8 @@
 # descr = show level-5 and level-6 accumulator state
 
 my $stream_id
-    = defined $$call{'args'} && length $$call{'args'}
-    ? $$call{'args'}
+    = defined $call->{'args'} && length $call->{'args'}
+    ? $call->{'args'}
     : undef;
 
 my @lines;
@@ -78,8 +78,8 @@ push @lines, '', sprintf( "active jobs : %d", $job_count );
 
 return { 'mode' => qw| true |, 'data' => join( "\n", @lines ) };
 
-#,,..,,,,,,.,,...,.,,,,,,,,,,,..,,...,..,,,,.,..,,...,...,.,.,..,,..,,.,,,,,.,
-#UXDU3LHBQDSPFXBHRBLEIK6Z34SCHXSNG36CD4RVFDTV22HIOVMTVNZZG765YQK5HBWCK5P4BPSN2
-#\\\|AVQSJGOEAAXJJHJ4WXFHLM7STWMEG7GFMG3HIXZGW232Z7Y2CZJ \ / AMOS7 \ YOURUM ::
-#\[7]Z2UGYM6D2EETU5HH3NLQFHJBMLYUDBU66YFT5JQQRA2KJD4YIQDI 7  DATA SIGNATURE ::
+#,,,.,..,,,..,,,,,,,.,..,,..,,...,..,,...,...,..,,...,...,.,,,,,,,,..,,,.,,..,
+#TW3THWAUMO4OIZZVZJTOHWGAG66UKREK4W5TTP3CZDLEQ2O4TJ4FX6REP6I7QOTVSCFDQQWEJOSAI
+#\\\|Z7YU34B7CZPCJHZ42PENLREXQEFWLTV2BEGG6NWGW6JUSYS4JV6 \ / AMOS7 \ YOURUM ::
+#\[7]LOVLLPM53JRO5QVJDXPMNT6MCRC7LP7KG2GZHMHHQRKHPG3A32BQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

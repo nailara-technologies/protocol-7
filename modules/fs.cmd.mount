@@ -4,7 +4,7 @@
 # param = [dev] <mount-point>
 # descr = mount the specified device or filesystem
 
-my ( $mount_point, $device ) = reverse split( m| +|, $$call{'args'}, 2 );
+my ( $mount_point, $device ) = reverse split( m| +|, $call->{'args'}, 2 );
 return { 'mode' => qw| false |, 'data' => 'expected mount-point parameter' }
     if not defined $mount_point;
 $mount_point =~ s|/+$|| if length($mount_point) > 1;
@@ -51,8 +51,8 @@ if ( not defined $device ) {
 
 return { 'mode' => qw| true |, 'data' => 'successfully mounted' };
 
-#,,.,,,.,,,.,,,,.,,,.,...,.,.,,,,,.,.,,,.,,.,,..,,...,...,..,,.,,,...,.,.,...,
-#QNOFY6IMUFT6KRSU6DGIMNFOJXGUJYNHM3NAZYV7C274SRTJFQRWBO7STKP6QHHYX3NCWTDZAX5KA
-#\\\|6KCJQJC6TPZME2RT4F5M2KVB6PHR4GLFE7B2QEHDHMRFM5RMBVC \ / AMOS7 \ YOURUM ::
-#\[7]DEQUE474NGQCKIXUBN6QP4ZOXWBR5SDFXU6DDTBD5EWAWMU6FGCY 7  DATA SIGNATURE ::
+#,,..,.,.,,,,,.,.,,,.,,.,,,.,,,.,,,,,,...,,..,..,,...,...,...,.,,,,..,.,.,,,.,
+#BDKKPGU6RXV5IF2ITDD2ZXDYQK5EYQ7KEOSKDN77SGSTNLP2WEWIIOA5YPFJPZXNQFWFRIC5RP5CI
+#\\\|RFCCEPFV7YNZ6UHYHYOX6RN6XNH2ENRDGHMZYUXU3A343M5F5KD \ / AMOS7 \ YOURUM ::
+#\[7]VPB644PE4IU6X6MGKWHDHYHH5XPWZYIFF6Q7S2UI7LZY7LSTP6BY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

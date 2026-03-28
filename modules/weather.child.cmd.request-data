@@ -4,7 +4,7 @@
 # param = <id> <cur|hrs|days>
 # descr = return weather data for num. station id
 
-my ( $station_id, $type ) = split( / +/, $$call{'args'}, 2 );
+my ( $station_id, $type ) = split( / +/, $call->{'args'}, 2 );
 my $units    = <weather.cfg.units>    || 'metric';
 my $language = <weather.cfg.language> || 'de';
 
@@ -104,8 +104,8 @@ return {
     'data' => freeze($json_data) . "\n"
 };
 
-#,,..,.,.,,.,,.,,,.,,,,,,,,.,,...,,.,,.,.,...,..,,...,,,,,...,.,.,..,,,,,,,..,
-#FERHO7L7PAIRGUEU4TSLLYFKHGRNGL24FYF467O4EW5IOLMCEFOHZH3RJCE42HFJOSJQ3BRCHRYL6
-#\\\|YHDQBULDYQDMLNFPYUK54KZCVK6HQYOS3AETHZMBUGO4IXLKHWR \ / AMOS7 \ YOURUM ::
-#\[7]2UIYEKOUX5MBYRUTW3B2SEIWGGSMGTM54MUX2XNNHSSED5Z4ZADY 7  DATA SIGNATURE ::
+#,,..,...,...,...,,,,,.,,,..,,.,,,,.,,...,,,.,..,,...,...,...,,,,,,..,...,.,,,
+#TH5DLFU7KHMCBAIUVM6XTLCSGN4ZRBYQGVB4IXR33JHRQDNGLVLLFUYZ4BMLLD7LNL2A6GH2MZI3O
+#\\\|HE6LW5R34XM4HRAO4JMDUP33O4JHH2WCKUTUP4UU2P4JUMTV5UH \ / AMOS7 \ YOURUM ::
+#\[7]E6QOZ7AWB2JZZIJWKREGGNCP6CVT3RU3WQ3NOYYUNP3UYQJSSAAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

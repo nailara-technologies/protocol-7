@@ -4,7 +4,7 @@
 # param = [nosync]
 # descr = force power off using sysrq-trigger [host]
 
-my $param = $$call{'args'} // '';
+my $param = $call->{'args'} // '';
 my $poweroff_enabled = <v7.system-poweroff.enabled> //= 1;
 
 return {
@@ -34,8 +34,8 @@ system('/bin/sync') if $param ne 'nosync';
 
 return { 'mode' => qw| true |, 'data' => '<< powering off host system >>' }
 
-#,,,.,,,,,.,.,,,,,,,.,.,,,,,.,.,.,.,.,,.,,..,,..,,...,...,,.,,.,,,,.,,,,,,,,,,
-#5CH7FIH6DMKIL4GU7SXA43QVZKN3OE5GRNI6MCBLSXWOROJ3WYCGMWJ7XDYKUGTHLTC7S3AVYKL2E
-#\\\|GIUXSBISPXYAHAU6QTBFSKJDT5AFPCKZABY4TJ47R7IU5ZWM7PN \ / AMOS7 \ YOURUM ::
-#\[7]666TAPQUWCIOFN37F6H5YJL37CIJJODZGS5MDQ52ZKN2L24ZOWDQ 7  DATA SIGNATURE ::
+#,,..,,.,,,..,..,,,,,,,,.,,,,,,,.,..,,,.,,,,.,..,,...,...,.,.,.,.,,..,.,.,,,,,
+#XKEWHXOR5TFZFJE3TRJSG6BL4VAPGQWUSQ7CLUVGSPVVR4U6GAT2ZIBHCJBH6Y3Q67FSOECPDSDPE
+#\\\|LHSEJYJNGLDLUAT2DZORSNHBSG3RGX5DGEXK55MPIIFI4YJC3ZA \ / AMOS7 \ YOURUM ::
+#\[7]TDFNGLXONNJRNCWQVE33V55NFXJHQDH2YTKC4XS7PRFHKCEGISDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

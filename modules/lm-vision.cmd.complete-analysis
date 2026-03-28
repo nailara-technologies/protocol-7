@@ -3,7 +3,7 @@
 # name  = lm-vision.cmd.complete-analysis
 # descr = perform vision analysis with automatic resumption
 
-my ( $image_path, $prompt ) = split( m| +|, $$call{'args'}, 2 );
+my ( $image_path, $prompt ) = split( m| +|, $call->{'args'}, 2 );
 $prompt //= 'describe this image';
 
 unless ( defined $image_path && length $image_path ) {
@@ -25,7 +25,7 @@ unless ( -f $image_path ) {
 my $meta_id  = <[base.gen_id]>->(<lm-vision.complete_analysis_jobs>);
 my $meta_job = {
     'meta_id'      => $meta_id,
-    'reply_id'     => $$call{'reply_id'},
+    'reply_id'     => $call->{'reply_id'},
     'image_path'   => $image_path,
     'prompt'       => $prompt,
     'status'       => qw| analyzing |,
@@ -176,8 +176,8 @@ $job->{'err_io'} = <[event.add_io]>->(
 
 return { 'mode' => 'deferred' };
 
-#,,,.,.,.,,,,,,..,,..,,,.,...,.,.,...,,..,,..,..,,...,..,,,.,,...,,,,,.,.,,,.,
-#SO4GHMWMVXVDYDPUTVNMDNH74QGNUJ3PWTCNEJSGOMBNFXLCTGPU542SLLIN62JECHWELFIRUYK2M
-#\\\|FPJSGLJF4CKC3TAYUR52KRJOPC45O3NQPZ5ALS2HHHX4HOONIKY \ / AMOS7 \ YOURUM ::
-#\[7]FMCJ4XIZM5VA5DIWEZ7HXK25TUDKMRGM5SJFGB6HMDIENK4KFAAA 7  DATA SIGNATURE ::
+#,,.,,.,,,.,,,.,,,,..,,,,,,..,,..,,,,,,..,,..,..,,...,...,.,.,.,.,,.,,.,,,,,.,
+#DDKFRH2SEJEX4TCPAN3HR4ZKA3SQKMZTJPW7BZPDAVXX7EI5MOBAUONHQCD4OAANSSNOTI7B2Q6NC
+#\\\|DLREBSVXY3BENAV4QVHL2SOG3TBCNCAJ2GV5EOT6YFO3U27VY6R \ / AMOS7 \ YOURUM ::
+#\[7]XQQY5NOS5JZLX3RXYJP22CQ6AR3PAWKWNJWSNIGWPYK76BILGSAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

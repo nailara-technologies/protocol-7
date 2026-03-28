@@ -4,7 +4,7 @@
 # param = <w_id> <opacity>
 # descr = set window opacity in percent [0..100]
 
-my ( $window_id, $opacity ) = split( m| +|, $$call{'args'} );
+my ( $window_id, $opacity ) = split( m| +|, $call->{'args'} );
 
 return { 'mode' => qw| false |, 'data' => 'x11 window id required' }
     if not defined $window_id;
@@ -32,8 +32,8 @@ my $result = <[X-11.set_window_opacity]>->( $window_id, $opacity / 100 );
 
 return { 'mode' => qw| true |, 'data' => "set opacity to $opacity%" };
 
-#,,.,,...,.,.,,.,,,..,,,.,,.,,,..,,,,,.,,,...,..,,...,...,,..,.,.,,,.,...,.,.,
-#XKA5DNNWF4WL27JTMDXC4IJDTBFU5VPTCVXN7O5XT52GVJO6OHOZCAVAVPJTE2ZKRXP6Q5LLRWWQ2
-#\\\|6SN7JSR7UOMEES5J2Y4UOOFBURYIX5Q2RI44CMACDV4XWCBCWI7 \ / AMOS7 \ YOURUM ::
-#\[7]FYRMUZR7W7BGQYCSTBSGIDME6MCZTOD5UM3D4T75OPVTKJND7WAA 7  DATA SIGNATURE ::
+#,,..,...,...,,,.,.,.,,.,,,..,,..,..,,..,,,,,,..,,...,...,,..,...,,,.,.,,,,.,,
+#7XECN5JF4IIMKHAUFN72JVV6KVP3A2XYFL3ISSLZP2K4NOKWYMRYGQ43HKES2I3LTWKWG4PMBDD3U
+#\\\|67QZ7A3NVD4FSD3QKKR34UXVASBUBSXL2NHMXRTUETE7VC5XFDG \ / AMOS7 \ YOURUM ::
+#\[7]R6RPS6VRQCH5RUIPBF62LHO4MASCNDA3FPVHY5Q55GEUNNZ2RKAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

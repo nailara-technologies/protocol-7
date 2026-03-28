@@ -4,7 +4,7 @@
 # descr = set zenka session to 'initialized' [0=='own']
 # param = <sid|0>
 
-my $sid = $$call{'args'} || $call->{'session_id'};    # 0 == self [current s.]
+my $sid = $call->{'args'} || $call->{'session_id'};   # 0 == self [current s.]
 
 return { 'mode' => qw| false |, 'data' => 'no such session' }
     if not exists $data{'session'}{$sid};
@@ -30,8 +30,8 @@ my $zenka_name = $data{'session'}{$sid}{'user'};
 
 return { 'mode' => qw| true |, 'data' => qw| initialized | }
 
-#,,,,,...,,..,...,.,.,,..,,,,,,,.,..,,..,,,..,..,,...,...,...,,.,,,,,,,,.,,,.,
-#32BX2MYOHS7KMYZQ4HDEYJRGDPSTTNVMYFOMNTXW4TTNGAWYIXUBEC6F6MX26WKXFN4Q6Q2RVXICG
-#\\\|YMEGC2YBOWK4HGQWE73URYPGEKXVFQR536POAAHTQU67INPAU3X \ / AMOS7 \ YOURUM ::
-#\[7]UHPBM3T2VJN6HDLQFRDIC2I4U4RCSX5DMD6P5QG2MHZQ5GAPLWBI 7  DATA SIGNATURE ::
+#,,..,,.,,.,.,.,.,..,,,..,,.,,..,,,..,,..,,,.,..,,...,...,,,.,..,,,,.,,.,,.,.,
+#X7QBT4PA6KMWEHPDHE5GS2JNAN6RJAITDQ324TFIPU5PYRJIXVFB7UY3CJVKAMFUNJRXFI5ZF6EU6
+#\\\|Y2RGESVDVBG2PMNUFZIRCCOPA5PP6MYUWWU4FMWYR5J4PYJKLNL \ / AMOS7 \ YOURUM ::
+#\[7]7UYX6SKBCTEYLXFRMHSXSI4S6EGEM5YT42GMO4R3NQN4YPM5TWCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -3,7 +3,7 @@
 # name  = system.cmd.abort-reboot
 # descr = abort or disable automatic [xcrash] reboot
 
-( my $cube_user, undef ) = split( m| +|, $$call{'args'}, 2 );
+( my $cube_user, undef ) = split( m| +|, $call->{'args'}, 2 );
 my $hostname = <system.host.hostname>;
 my $uname_re = <regex.base.usr_str>;
 
@@ -37,8 +37,8 @@ if ( defined <system.timer.host_reboot> ) {
 
 return { 'mode' => qw| true |, 'data' => $reply_message }
 
-#,,.,,,,,,..,,...,,.,,,.,,.,,,...,..,,..,,.,,,..,,...,...,,,,,,,.,,.,,.,.,,,,,
-#RXOM2CXB4V4Y3ZGFAFUBM64WTC3T2OLMKOM6NPLZFHKTFFBYA42NOUR3PDZHC7DIYU6KBOGVUFUXS
-#\\\|ZVGDJOYDZVKAQNKQDVZXHFDJDH6LHTRBTSHZIF7H56R44EAPKSO \ / AMOS7 \ YOURUM ::
-#\[7]EHAJDMEHYOHI7HUESBTJWQRDZ7ARHIME67ERZFKM2JYRMCP5WMBI 7  DATA SIGNATURE ::
+#,,.,,..,,.,.,..,,,.,,...,,,.,..,,.,,,,..,,,.,..,,...,...,.,,,,..,.,.,,.,,,,.,
+#A637D2W673GAEVZREZQBIKD65HF3UBDD4RAWXKTZJJZIKW3NKMF2NWQDVKQFWNCBLH3ILT5ND4ETO
+#\\\|PPV3LBAEUP3ZLGIJBPYC43SK5K2CNB23TGPLLNZDLUMSPAFFMEL \ / AMOS7 \ YOURUM ::
+#\[7]6FKGCPP57B4WF3TWQ5DGXJ2Y7ZDVZCXOJDMHJAARNSCG45IHUODA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

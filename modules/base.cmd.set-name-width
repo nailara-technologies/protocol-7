@@ -3,7 +3,7 @@
 # name  = base.cmd.set-name-width
 # descr = sets the max zenka name width [console]
 
-my $new_width = $1 if $$call{'args'} =~ /^(\d{1,2})$/;
+my $new_width = $1 if $call->{'args'} =~ /^(\d{1,2})$/;
 my $zenka_prefix
     = join( '.', ' :' . <system.node.name>, <system.zenka.name> );
 my $min_len = length($zenka_prefix) - 1;
@@ -21,8 +21,8 @@ return { 'mode' => qw| false |, 'data' => "is already at $new_width" }
 
 return { 'mode' => qw| true |, 'data' => "name-width = $new_width" }
 
-#,,,.,...,,,,,...,,..,..,,,..,..,,,..,,,,,.,,,..,,...,...,...,,.,,.,,,,,.,,,,,
-#RUKKSADIE6YJSRJU65DKCK44NVA2O7BPUJH4QZMMGXVD4TQFW23ZO6DSSJSUTXOYDFV5JHKHEXRHK
-#\\\|YNW6ZIVXGG5TSOPMPYU6YTALNUTDFTKPW77652Y2MHIJDA23LNP \ / AMOS7 \ YOURUM ::
-#\[7]4T4C35NN3PAZYZE2FOYZTIA6YNQ75YXEZFCV4JSVIEIFLQLE4MDQ 7  DATA SIGNATURE ::
+#,,,.,,,,,..,,...,,,.,,,,,.,.,...,..,,.,,,.,,,..,,...,...,...,,,.,.,,,,.,,...,
+#YIQ2JP5LGSFQOHWBOPAW54NUIMVQ4KHBIJYM6EFC5NQZVAQNLUMCVBU6SLPHZ6JMRWRJBLP3563PU
+#\\\|JQXY4753NXTABOJUJHAODFEBR224ZST6YUQVKHUGNDJIKREXNQQ \ / AMOS7 \ YOURUM ::
+#\[7]BZD5I36DV4UHMTK6UHIB2QQKDCFCFAURQ5TIEWTOZQT3OV4RYQDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
