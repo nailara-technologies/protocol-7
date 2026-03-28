@@ -318,12 +318,22 @@ INFERENCE_LOOP:
 
         my $body = $json->encode( \%request );
 
+        ## estimate token usage for monitoring ##
+        my $body_chars  = length($body);
+        my $est_tokens  = int( $body_chars / $chars_per_token );
+        my $pct_used    = int( $est_tokens * 100 / $context_limit );
+        my $tokens_left = $context_limit - $est_tokens - $max_tokens;
+
         <[base.logs]>->(
-            2,
-            "[process-queued-task] inference request round=%d port=%d msgs=%d",
+            1,
+            "[process-queued-task] round=%d msgs=%d est_tokens=%d/%d"
+                . " [ %d%% ] remaining=%d",
             $tool_round,
-            $inference_port,
-            scalar @messages
+            scalar @messages,
+            $est_tokens,
+            $context_limit,
+            $pct_used,
+            $tokens_left > 0 ? $tokens_left : 0
         );
 
         my $http_response = $ua->post(
@@ -476,8 +486,8 @@ if ( length $response_text
 ## return result hashref for jobqueue callback ##
 return { success => TRUE, result => $response_text, task_id => $task_id };
 
-#,,,,,,,.,..,,,,,,.,.,,..,..,,,,.,...,,.,,.,.,..,,...,.,,,...,,.,,...,,,.,,,,,
-#5RIZTDWTJENBRE3QXCOTHRBFSBPQYOCLGBR5TUE2B2ZPKHXGNTRKCFIBVMQL5PSKDOLC2BBDRNE5O
-#\\\|MFIIUZQDFAHW5LWRS2LQGBXQAV2SENYIXR4UUJ5FKWW7GAJD5T2 \ / AMOS7 \ YOURUM ::
-#\[7]HIW7VIXZINZLHK3LU7FFOAPXQJNH6ERWOBI66ZS7ZBTLR42XWUCI 7  DATA SIGNATURE ::
+#,,,,,,.,,.,,,...,,.,,...,,.,,,.,,.,,,,.,,.,.,..,,...,...,.,.,...,.,.,,,.,,,,,
+#CEM7QGXQB4SP62HGBBYUKAMSF2AXBKVRJ7SXOHDXKZJL7LNB4R6JNOV6LCZS3CPINXU4QWLF6PSIO
+#\\\|SAVEMFTGJXRZBDQF4SZOBKF6NX5WD2JX6QUWZRHXLZFXEDVISCJ \ / AMOS7 \ YOURUM ::
+#\[7]WV2QGZFCBJHPFSIBUG42FV5KE3ZDQD4G64UJVFSJRKXIUPTP56CQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

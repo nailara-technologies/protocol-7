@@ -25,6 +25,7 @@
 - `feedback-kimi-dispatch-pattern.md` — dispatching tasks to kimi via bin/kimi-task is highly
   token-efficient; write detailed task files, review for known issues
 - `topic-tool-shm-architecture.md` — LLM tool calling (8 tools), dispatch loop, SHM+mmap file editing vision
+- `topic-coding-zenka-templates.md` — 25+ context templates, 13 tools, review cycles, meta-reflection cascade
 
 ## File Creation Notes (CRITICAL)
 - **Never add** the single-line `#,,.,,,...` stub at end of new files
@@ -190,8 +191,8 @@
 - Pattern: `my @non_num = grep { defined $data_ref->{$ARG}->{$key} and not looks_like_number(...) } keys $data_ref->%*`
 - Global `$SIG{__WARN__}` exists — if wrapping warn handler, capture `$prev_warn = $SIG{__WARN__}` first and call through
 
-#,,,,,,,.,,..,,.,,...,.,,,..,,,,.,,,,,,,.,...,..,,...,...,...,,.,,,,.,...,.,.,
-#F6FETV77BHRU4ZMJZKUNSYAZ7F7GRTI4VXCGKEHOXMVOD7O3ELO7NI7E7VZOWJ3RY6O6LU4XV3YVC
-#\\\|RJYHUUEQK7WO3Z4F2426HB2F3NTUVNQMXHH3AMUHPKD3ISZKNGB \ / AMOS7 \ YOURUM ::
-#\[7]26IKHX7DQYR7FXGILQNCR2AZCIN3RVHYAEYP3IAE4ZHOS5EHVKCA 7  DATA SIGNATURE ::
+#,,,.,...,.,.,..,,.,.,,.,,,,,,,,.,,,.,.,,,,,,,..,,...,...,...,..,,,..,.,.,,..,
+#BCPG6APQJQYHFYTJ7PV7DAGKICPWKCKEEGKZVMOGUYMJ5GGQAQDC4XR3D64E73QZWBT6N6IEIV33G
+#\\\|ORRTDCVZJ553V6L77JWFL4MEKI7KB7SWWTCVAVNGRQIIHWZSIMK \ / AMOS7 \ YOURUM ::
+#\[7]F7VT4IVYQHB7SBM3LV624WNFHRKN5UTK4262FVITROXZTQ74FUCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
