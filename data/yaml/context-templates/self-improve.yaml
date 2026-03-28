@@ -1,0 +1,90 @@
+---
+name: self-improve
+descr: review own tool interface and suggest improvements to coding zenka capabilities
+budget: 4000
+sections:
+  ## core knowledge ##
+  - include: system-base
+    priority: 1
+    budget_pct: 20
+
+  ## current tool definitions ##
+  - provider: context.file.extract
+    priority: 2
+    budget_pct: 20
+    params:
+      path: "modules/coding.tools.definitions"
+    label: current tool definitions
+
+  ## current dispatch handlers ##
+  - provider: context.file.extract
+    priority: 3
+    budget_pct: 20
+    params:
+      path: "modules/coding.tools.dispatch"
+      extract: functions
+    label: dispatch handler signatures
+
+  ## available context modules [ potential tool targets ] ##
+  - provider: context.modules.list
+    priority: 4
+    budget_pct: 10
+    params:
+      namespace: "context"
+    optional: true
+    label: available context modules
+
+  ## available coding modules ##
+  - provider: context.modules.list
+    priority: 5
+    budget_pct: 10
+    params:
+      namespace: "coding"
+    optional: true
+    label: available coding modules
+
+  ## improvement instructions ##
+  - static: |
+      you are reviewing your own tool interface. analyze the tools you have
+      available and the modules that exist but are NOT yet exposed as tools.
+
+      for each finding, classify as:
+      - MISSING: useful module exists but no tool exposes it
+      - WEAK: tool exists but has limited parameters or bad defaults
+      - REDUNDANT: two tools overlap significantly
+      - GAP: no module exists for a clearly useful capability
+
+      output format:
+      ## missing tools ##
+      - tool_name: suggested name
+        module: existing module to wrap
+        reason: why this would be useful
+        params: suggested parameters
+
+      ## tool improvements ##
+      - tool: existing tool name
+        issue: what is weak or wrong
+        fix: specific improvement
+
+      ## capability gaps ##
+      - capability: what is missing
+        suggestion: how to implement it
+        priority: high/medium/low
+
+      focus on tools that would make code review, debugging, and code
+      generation more effective. consider what information you found
+      yourself needing during previous reviews but could not access.
+    priority: 6
+    budget_pct: 20
+    label: improvement instructions
+
+on_complete:
+  - when: [output_length_gt=200]
+    action: memory_update
+    topic: "self-improve:tool-interface"
+
+#,,..,..,,,,.,,,.,,,,,,,.,,,,,..,,.,.,...,,..,..,,...,...,,..,,..,,,.,.,.,...,
+#5PQOPAA3C52N22565ZGTEDW72CQMIKDEO4MN4EZMA2SDZAGK773EH7U3P47UNZIF27RCABUVHQ62C
+#\\\|2RFZXK4ESPQZN5YLMUMYHTSIMBFNDOQC5USAY2QQTSRZRT5PXTJ \ / AMOS7 \ YOURUM ::
+#\[7]F26BJQSG7XH643HPRVBQMSQU5GGB5X6XHJA77IFNRTZKDDZK3IAQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

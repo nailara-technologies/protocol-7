@@ -1,0 +1,81 @@
+---
+name: tool-review
+descr: review a module using tools to gather context, then suggest direct code improvements
+budget: 4000
+sections:
+  ## style conventions ##
+  - provider: context.style.guide
+    priority: 1
+    budget_pct: 10
+    label: style conventions
+
+  ## review checklist ##
+  - include: system-review
+    priority: 2
+    budget_pct: 10
+
+  ## the target module ##
+  - provider: context.file.extract
+    priority: 3
+    budget_pct: 30
+    params:
+      path: "{{target_module}}"
+    label: module under review
+
+  ## module dependencies ##
+  - provider: context.module.dependencies
+    priority: 4
+    budget_pct: 10
+    params:
+      module: "{{target_module}}"
+    optional: true
+    label: dependency graph
+
+  ## review and fix instructions ##
+  - static: |
+      review the module above thoroughly. use your tools to gather any
+      additional context you need:
+      - read_module / read_file for referenced modules
+      - module_deps for call graph
+      - search_code / ncode_search for usage patterns
+      - list_modules to find related modules
+      - dep_graph for namespace-level architecture
+
+      then produce a structured review with DIRECT code fixes:
+
+      ## summary ##
+      one paragraph assessment of the module
+
+      ## issues found ##
+      for each issue:
+      - severity: critical / warning / style / suggestion
+      - line: N
+      - issue: description
+      - fix: exact replacement code
+
+      ## architecture notes ##
+      observations about the module's role, coupling, and improvement
+      opportunities that go beyond line-level fixes
+
+      output fixes in this format so they can be applied directly:
+      ```
+      line N: OLD_CODE
+         --> NEW_CODE
+      ```
+
+      if the module is clean, say: no issues found — module follows
+      P7 conventions correctly.
+    priority: 5
+    budget_pct: 40
+    label: review and fix instructions
+
+on_complete:
+  - when: [output_length_gt=200, not_output_contains=no issues found]
+    action: memory_update
+    topic: "tool-review:{{target_module}}"
+
+#,,,.,.,.,,.,,...,,,.,.,.,,,,,,,,,,,.,.,,,.,,,..,,...,...,..,,.,.,,,.,...,.,.,
+#V2P3SJKKDNCKFZ4JIDDURVNX47AKIXXBU7Y53W75KGPWGPEQ6GGIC4JBHTZCLMGPRP7LWSOPU6IMK
+#\\\|5NK342ZRK7EVP5FZ6X7S3MJZ2JQBLJDJOJFRN43CQ5THE3MJTDC \ / AMOS7 \ YOURUM ::
+#\[7]OQBBILLA3RCOPAC4OZXL7GH62LKJLU446RWQ7BJKUIDDOLB3TGCA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

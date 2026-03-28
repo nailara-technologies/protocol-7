@@ -1,0 +1,39 @@
+---
+name: commit-msg
+descr: analyze staged git changes and suggest a commit message
+budget: 3000
+sections:
+  ## recent commit messages for style reference ##
+  - provider: context.git.recent_changes
+    priority: 1
+    budget_pct: 15
+    params:
+      max_files: 5
+    optional: true
+    label: recent changes for style reference
+
+  ## instructions ##
+  - static: |
+      analyze the staged git diff provided below and write a commit message.
+
+      rules:
+      - first line: imperative mood, max 72 chars, no period
+        [ e.g. "Add X", "Fix Y", "Refactor Z" ]
+      - blank line after subject
+      - body: bullet points explaining what changed and why
+      - group related changes under a single bullet
+      - mention module names with dot notation [ coding.tools.dispatch ]
+      - do not mention signature or version file changes
+      - do not list every file — summarize by purpose
+
+      output ONLY the commit message, nothing else. no markdown fencing.
+      start directly with the subject line.
+    priority: 2
+    budget_pct: 85
+    label: commit message instructions
+
+#,,,,,,..,,.,,,.,,..,,,,,,,,,,.,,,,,,,..,,..,,..,,...,..,,...,.,.,,.,,.,,,,,,,
+#Z7BM5LQGWQNO7OUQ3KQTWP2UI23URQXBIKXI7Q6FG44PDFKDMV5OBPT2COMOXZW6QSOQUFYQH3FBS
+#\\\|BLWG4ORP35IXTHBSUWUAY4RVAZ343WMGH6QRD2Q5XR4JPKWMTXV \ / AMOS7 \ YOURUM ::
+#\[7]6INO72KD74G7VUZR6C6QWVDA7EHSU67V2NIL2QXWWYR2IW6XBUDY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

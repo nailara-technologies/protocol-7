@@ -335,6 +335,61 @@ push @tools,
     },
     };
 
+## edit_file — line-based file editing with preview ##
+push @tools,
+    {
+    'type'     => 'function',
+    'function' => {
+        'name'        => 'edit_file',
+        'description' => 'replace specific lines in a file'
+            . ' [ preview mode by default, set apply=true to write ]',
+        'parameters' => {
+            'type'       => 'object',
+            'properties' => {
+                'path' => {
+                    'type'        => 'string',
+                    'description' => 'file path relative to project root'
+                },
+                'edits' => {
+                    'type'        => 'string',
+                    'description' => 'edit instructions as JSON array:'
+                        . ' [{"line":N,"old":"text","new":"text"}]'
+                },
+                'apply' => {
+                    'type'        => 'boolean',
+                    'description' =>
+                        'false=preview [ default ], true=write changes'
+                },
+            },
+            'required' => [ 'path', 'edits' ],
+        },
+    },
+    };
+
+## write_new_file — create a new file [ refuses to overwrite ] ##
+push @tools,
+    {
+    'type'     => 'function',
+    'function' => {
+        'name'        => 'write_new_file',
+        'description' => 'create a new file [ fails if file already exists ]',
+        'parameters'  => {
+            'type'       => 'object',
+            'properties' => {
+                'path' => {
+                    'type'        => 'string',
+                    'description' => 'file path relative to project root'
+                },
+                'content' => {
+                    'type'        => 'string',
+                    'description' => 'file content to write'
+                },
+            },
+            'required' => [ 'path', 'content' ],
+        },
+    },
+    };
+
 <[base.logs]>->(
     2,
     ':. tools.definitions: %d tools available',
@@ -343,8 +398,8 @@ push @tools,
 
 return \@tools;
 
-#,,.,,,,,,..,,,,.,,,,,,.,,.,.,...,,,,,...,,..,..,,...,...,...,...,..,,.,,,,.,,
-#J5CSW6FFR7KOBD6QEXN256O4UEM3EOGN37U2AKNUAY65X46LSBA5TOJ7NSYPBPA6EZJFURWXUZPSA
-#\\\|Z6DSNE5R476TBH73OLVCAA5L2PKF7H3PUAPTDCEOLK5DN26ELKT \ / AMOS7 \ YOURUM ::
-#\[7]YV3T2HELQC2TDLOF3VYDJWVDKRRMAU2BYOD3IQ5AH7E6NHGICWBA 7  DATA SIGNATURE ::
+#,,..,.,.,,,.,,,,,,,.,,..,,..,,,.,,..,,..,,..,..,,...,...,,..,...,...,...,..,,
+#AHPS35GQRWYZUKIUNEQDOOFAVWBRCXBTUDE67N26DFSRQPJSTX547NRGI5XXMNKETKVYLQGPSN2U4
+#\\\|6CRLHMMIC6AXBNOWHPKZQLXZLLAXCCCEBIUQKXGJ335Z6O2YXIS \ / AMOS7 \ YOURUM ::
+#\[7]ZDKSPUEWV3P6U2SRFHQVNXRKI22DJL52YGLP3LJTWLGNGBL7KOAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
