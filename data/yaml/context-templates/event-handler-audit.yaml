@@ -1,0 +1,95 @@
+---
+name: event-handler-audit
+descr: audit event handlers for timer/io patterns and common mistakes
+budget: 4000
+sections:
+  ## core knowledge ##
+  - include: system-base
+    priority: 1
+    budget_pct: 10
+
+  ## target module content ##
+  - provider: context.file.extract
+    priority: 2
+    budget_pct: 20
+    params:
+      extract: full
+    label: target module source
+
+  ## instructions ##
+  - static: |
+      audit the target module for protocol-7 event handler issues.
+
+      ## critical timer patterns ##
+
+      repeating timers MUST have both 'interval' and 'repeat' keys:
+      ```perl
+      ## correct ##
+      <[event.add_timer]>->({
+          'interval' => 62,
+          'repeat'   => TRUE,
+          'handler'  => 'zenka.handler.name'
+      });
+
+      ## WRONG — repeat without interval causes error ##
+      <[event.add_timer]>->({ 'repeat' => 62, 'handler' => '...' });
+
+      ## one-shot timer — 'after' with no interval ##
+      <[event.add_timer]>->({ 'after' => 5, 'handler' => '...' });
+      ```
+
+      ## what to check ##
+
+      ### timer registration ###
+      - repeating timers have both 'interval' and 'repeat' => TRUE
+      - one-shot timers use 'after' not 'interval'
+      - timer handles stored for later cancellation
+      - no timers registered in cmd modules [ wrong context ]
+
+      ### io handler registration ###
+      - file descriptors valid when registered
+      - handlers cancel watchers before re-registering
+      - poll mode appropriate [ 'r', 'w', 're' ]
+
+      ### handler modules ###
+      - handler subs access event data via shift
+      - no blocking operations inside handlers [ use fork-child ]
+      - handlers return values appropriate for event system
+
+      ### route-send patterns ###
+      - protocol-7.route-send returns count, NOT reply data
+      - replies arrive asynchronously via reply.handler callback
+      - use call_args => { args => $string } not param => { hashref }
+      - no multiline args [ corrupt protocol framing ]
+
+      ## investigation steps ##
+
+      1. read target module with read_file
+      2. find all event.add_timer and event.add_io calls
+      3. verify timer patterns are correct
+      4. check handler references exist via ncode_search
+      5. flag any blocking operations inside handlers
+
+      ## output ##
+
+      for each finding:
+      - location: <module:line>
+        issue: <description>
+        severity: critical/warning/info
+        fix: <suggestion>
+
+      apply fixes with edit_file for critical issues only.
+    priority: 3
+    budget_pct: 70
+    label: event handler audit instructions
+
+on_complete:
+  - when: [output_length_gt=200]
+    action: memory_update
+    topic: "audit:event-handlers"
+
+#,,.,,,..,,.,,.,.,.,.,..,,,,.,...,,,.,,,.,,.,,.,.,...,...,.,.,,..,..,,.,.,.,,,
+#SFO3GIJIRU6S72JRGQWPAW33BWWRBNZTMLX7G72NRO3MCSX53VNUYTI6UFZAFM3FGUUNGQ3I4D75K
+#\\\|5VVS3KULBSPZZKQDXUNNNGQ7XDFCORD7QLQ25M47H775H4WWQRJ \ / AMOS7 \ YOURUM ::
+#\[7]57DU2X6DBQCIICYESHK2WEVHHASCBPK2RXUFJD56TJ5VLUJICUCY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

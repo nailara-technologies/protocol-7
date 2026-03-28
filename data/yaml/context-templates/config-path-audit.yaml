@@ -1,0 +1,81 @@
+---
+name: config-path-audit
+descr: verify config variable paths have no conflicts or dead references
+budget: 4000
+sections:
+  ## core knowledge ##
+  - include: system-base
+    priority: 1
+    budget_pct: 10
+
+  ## target module content ##
+  - provider: context.file.extract
+    priority: 2
+    budget_pct: 20
+    params:
+      extract: full
+    label: target module source
+
+  ## instructions ##
+  - static: |
+      audit the target module for protocol-7 config variable issues.
+
+      ## config variable path conflicts ##
+
+      in protocol-7, `<a.b.c>` and `<a.b.c.d>` CONFLICT because `a.b.c`
+      is a scalar and `.d` tries to dereference it as a hash. this is a
+      critical bug pattern.
+
+      ## what to check ##
+
+      ### path conflicts ###
+      - find all `<config.variable.paths>` used in the module
+      - check for parent-child conflicts [ scalar vs hash at same node ]
+      - search with ncode_search for the same config paths in other modules
+        and the start file to find cross-module conflicts
+
+      ### dead references ###
+      - config variables read but never set [ not in start file or init_code ]
+      - config variables set but never read elsewhere
+
+      ### naming conventions ###
+      - `<zenka.cfg.*>` for zenka-specific configuration
+      - `<inference.*>` for inference settings
+      - `<system.*>` for system-level settings
+      - flat sibling names to avoid path conflicts
+
+      ## investigation steps ##
+
+      1. read the module and extract all `<config.path>` references
+      2. check the zenka start file for matching config definitions
+      3. use ncode_search to find cross-module usage of same paths
+      4. identify conflicts, dead refs, and naming issues
+
+      ## output format ##
+
+      ### conflicts ###
+      - paths: <a.b.c> and <a.b.c.d>
+        modules: <where each is used>
+        fix: <rename suggestion>
+
+      ### dead references ###
+      - path: <config.path>
+        type: set-never-read | read-never-set
+        module: <where it appears>
+
+      report findings only — do not edit files for config path changes
+      as they require coordinated changes across multiple files.
+    priority: 3
+    budget_pct: 70
+    label: config path audit instructions
+
+on_complete:
+  - when: [output_length_gt=200]
+    action: memory_update
+    topic: "audit:config-paths"
+
+#,,.,,.,.,...,,..,.,,,..,,,,.,.,.,,.,,,,.,,,,,.,.,...,...,...,.,.,,,.,,,.,,,.,
+#XBV23TGZZCZEWYNQW75M5ANJT6A6642BN6VSCHOG62JEREDUUBWOS2SM2LBMI6GDCKBCC7NWL2JNU
+#\\\|OBMWI3TJR7JS4JXKRW6MZ2CMD5V2PTHKYCEVJL2TSOCUWG36YGU \ / AMOS7 \ YOURUM ::
+#\[7]5AH4QUZNDKBLXU675AKFMA3KOI3WUALQLAUWG3QKD3W73SNTKEAA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

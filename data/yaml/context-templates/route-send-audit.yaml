@@ -1,0 +1,88 @@
+---
+name: route-send-audit
+descr: audit inter-zenka communication for route-send pattern correctness
+budget: 4000
+sections:
+  ## core knowledge ##
+  - include: system-base
+    priority: 1
+    budget_pct: 10
+
+  ## target module content ##
+  - provider: context.file.extract
+    priority: 2
+    budget_pct: 25
+    params:
+      extract: full
+    label: target module source
+
+  ## instructions ##
+  - static: |
+      audit the target module for protocol-7 inter-zenka communication issues.
+
+      ## route-send pattern [ CRITICAL ] ##
+
+      `protocol-7.route-send` wraps send.local with parent route prefix.
+      it returns the COUNT of sent commands (0 or 1), NOT the reply data.
+      replies arrive asynchronously via the reply.handler callback.
+
+      ### correct pattern ###
+      ```perl
+      my $sent = <[protocol-7.route-send]>->({
+          'command'   => 'target.command_name',
+          'call_args' => { 'args' => $string_data },
+          'reply'     => {
+              'handler' => 'my_zenka.handler.reply_name',
+              'params'  => { 'context' => $value }
+          }
+      });
+      ```
+
+      ### common mistakes ###
+      - treating return value as reply data [ it is 0 or 1 ]
+      - using `param => { hashref }` [ never transmitted ]
+      - must use `call_args => { args => $string }` [ string only ]
+      - multiline args corrupt protocol framing [ base32r encode ]
+      - using route-send for child.* commands [ use send.local directly ]
+
+      ## what to check ##
+
+      1. all route-send and send.local calls
+      2. return value handling [ must not expect reply data ]
+      3. parameter format [ call_args.args string, not param hashref ]
+      4. reply handler existence [ ncode_search for handler module ]
+      5. multiline data in args [ needs encoding ]
+      6. child.* vs cube-routed command usage
+
+      ## investigation steps ##
+
+      1. read the target module
+      2. find all route-send and send.local calls
+      3. trace the reply handlers
+      4. verify handler modules exist with ncode_search
+      5. check for multiline args that need encoding
+
+      ## output ##
+
+      for each finding:
+      - location: <module:line>
+        pattern: route-send | send.local
+        issue: <description>
+        severity: critical/warning
+        fix: <suggestion>
+
+      apply fixes with edit_file for critical issues.
+    priority: 3
+    budget_pct: 65
+    label: route-send audit instructions
+
+on_complete:
+  - when: [output_length_gt=200]
+    action: memory_update
+    topic: "audit:route-send"
+
+#,,,,,...,.,,,..,,..,,.,.,,.,,.,,,.,,,,,.,,,,,.,.,...,...,..,,,,,,.,,,...,,,.,
+#2DTBDQTHPQ7O7BIBXMCW7L672YPA4JAJ72662YHPMDRCP36BVXER7UF5PLRY6NJGGCILO42B6SMTI
+#\\\|2ZITQYBN47ZQQQ5VEVDL2OFCJVE73VZFZC2MK5CKDVESQUUBF6R \ / AMOS7 \ YOURUM ::
+#\[7]IWALOKPK5QCCKMTWQD3Y32FHHLA3XK4DFF3CEXTGLLLQXJBPDADA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
