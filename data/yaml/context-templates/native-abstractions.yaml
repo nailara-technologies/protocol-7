@@ -1,0 +1,97 @@
+---
+name: native-abstractions
+descr: flag external binary calls replaceable by perl modules or P7 routines
+budget: 4000
+sections:
+  ## core knowledge ##
+  - include: system-base
+    priority: 1
+    budget_pct: 15
+
+  ## target module content ##
+  - provider: context.file.extract
+    priority: 2
+    budget_pct: 35
+    params:
+      extract: full
+    label: target module source
+
+  ## available base modules for reference ##
+  - provider: context.modules.list
+    priority: 3
+    budget_pct: 10
+    params:
+      namespace: "base"
+    optional: true
+    label: available base modules
+
+  ## instructions ##
+  - static: |
+      audit the target module for external binary/command invocations that
+      could be replaced by perl modules or protocol-7 native routines.
+
+      ## investigation steps ##
+
+      1. read the target module
+      2. find all external command calls:
+         - open ... '-|', @cmd  [ pipe open ]
+         - system(@cmd) or qx{...} or backticks
+         - IPC::Open3 for command execution
+      3. for each command, check if a perl module or P7 routine exists
+      4. use ncode_search to find the same command pattern elsewhere
+      5. use list_modules on base namespace for existing abstractions
+
+      ## common replacements ##
+
+      file operations:
+        grep -> P7 ncode_search or search_code tool, or Perl regex on slurp
+        find -> File::Find or glob()
+        cat  -> <[file.slurp]>->($path)
+        wc   -> length() on slurped content
+        chmod/chown -> perl builtins chmod(), chown()
+        mkdir -> File::Path::make_path or <[base.path-set-up.*]>
+
+      network:
+        curl/wget -> HTTP::Tiny [ already in core ]
+        fuser -> direct /proc/net/tcp parsing or IO::Socket probe
+
+      process:
+        ps/pgrep -> /proc/ filesystem reads
+        kill -> perl builtin kill()
+
+      text processing:
+        sed/awk -> perl regex s/// or split/join
+        sort/uniq -> perl sort {} and hash dedup
+        head/tail -> array slicing on slurped lines
+
+      ## when external commands are acceptable ##
+      - commands with no good perl equivalent [ fuser for port lookup ]
+      - compiled binaries that are part of the project [ bin/ncode, bin/ptd ]
+      - GPU/hardware-specific tools [ llama-server ]
+      - performance-critical operations where the binary is faster
+
+      ## output format ##
+
+      for each finding:
+      - line: <number>
+        command: <external binary being called>
+        replacement: <perl module or P7 routine>
+        benefit: <why the replacement is better>
+        risk: low/medium/high
+
+      use ncode_search to check how many other modules use the same
+      external command — higher count means higher extraction value.
+    priority: 4
+    budget_pct: 40
+    label: native abstraction audit instructions
+
+on_complete:
+  - when: [output_length_gt=200]
+    action: memory_update
+    topic: "audit:native-abstractions"
+
+#,,,,,...,,.,,,..,,..,,,.,.,.,...,,,.,,..,,.,,..,,...,...,..,,.,,,.,.,,.,,,,.,
+#TDKNMTWSAGHMYE57X62AH4OY5DYRR3VKMH3G7HRTL6U7MHEKA2ISJVDBLLAXUHK5RCTYXZSM3AY4K
+#\\\|QI7IXN3PUIQBAZLI62AUUVHF2CST4CTZ2VHPUWFDX63UO23CWSM \ / AMOS7 \ YOURUM ::
+#\[7]OFBP7HG36AFMK54O3ILCBNLLKP2HPC2VCQAOG5DUAQEW2TH2AIDQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
