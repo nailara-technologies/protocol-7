@@ -6,15 +6,41 @@
 
 my ($task) = @ARG;
 
-# In a real system, check living tree cache
+my $task_type = $task->{'type'} // $task->{'task_type'} // '';
+
+## no cache lookup without a task type ##
+return { found => 0 } unless length $task_type;
+
+## load outcomes from persistence file ##
+my $outcomes_file = '/var/protocol-7/coding/learning/outcomes.json';
+return { found => 0 } unless -f $outcomes_file;
+
+<[base.perlmod.autoload]>->('JSON::PP');
+my $content = <[file.slurp]>->($outcomes_file)->$*;
+return { found => 0 } unless defined $content and length $content;
+
+my $outcomes = eval { JSON::PP::decode_json($content) };
+return { found => 0 } unless ref $outcomes eq qw| ARRAY |;
+
+## find most recent successful outcome for this task type ##
+my $match;
+for my $o ( reverse $outcomes->@* ) {
+    next unless $o->{'task_type'} eq $task_type;
+    next unless $o->{'success'};
+    $match = $o;
+    last;
+}
+
+return { found => 0 } unless defined $match;
+
 return {
-    found         => 0,
-    cached_result => undef,
-    cache_key     => undef
+    found         => 1,
+    cached_result => $match,
+    cache_key     => sprintf( '%s:%s', $task_type, $match->{'task_id'} )
 };
 
-#,,,,,,.,,,..,...,..,,...,...,,,,,,..,,,.,...,..,,...,...,...,,.,,...,,,,,,.,,
-#GN6CUIKTBWFM77GOSUSPX2BGEYJVFGR6QRSBTYNFEXDYKMSQH64BQEUI5JPGRLU436EALDDTKF73C
-#\\\|PG57AUO7BUVB4WQCO5477CPFJKMMO4HB6JZDWKHG5WWHJSNLVKE \ / AMOS7 \ YOURUM ::
-#\[7]MOSXBB2VCJJNXUJG25HKBEQ3PHWFIMKOMAVZU6TBJIHIMDGBYSBA 7  DATA SIGNATURE ::
+#,,,.,.,.,.,,,,..,,..,...,.,,,..,,.,.,.,,,,..,..,,...,...,..,,,..,.,,,,..,.,,,
+#D2KXI7YRGQOM76WUDX4IS7LIKNYKK2IIJHQ4LZPB7PSJVXLW7CM3YXPM7ABIHDKIFC5WL4DC5LJ6U
+#\\\|NDBFEZW7SRMYUJ5YK4HN776AA7FGQMWYM4D3G3LR3UCQWLX2NS3 \ / AMOS7 \ YOURUM ::
+#\[7]BWGY5J6MCTVDED36MSLGILBC5BG23VC34FIBBABE533VZRDTHICI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

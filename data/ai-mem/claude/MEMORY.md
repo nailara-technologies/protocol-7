@@ -26,6 +26,8 @@
   token-efficient; write detailed task files, review for known issues
 - `topic-tool-shm-architecture.md` — LLM tool calling (8 tools), dispatch loop, SHM+mmap file editing vision
 - `topic-coding-zenka-templates.md` — 25+ context templates, 13 tools, review cycles, meta-reflection cascade
+- `feedback-p7c-multiline.md` — p7c cannot handle multiline task descriptions; use single-line or templates
+- `feedback-coding-zenka-edits.md` — local LLM often describes edits instead of applying them; verify results
 
 ## File Creation Notes (CRITICAL)
 - **Never add** the single-line `#,,.,,,...` stub at end of new files
@@ -191,8 +193,8 @@
 - Pattern: `my @non_num = grep { defined $data_ref->{$ARG}->{$key} and not looks_like_number(...) } keys $data_ref->%*`
 - Global `$SIG{__WARN__}` exists — if wrapping warn handler, capture `$prev_warn = $SIG{__WARN__}` first and call through
 
-#,,,.,...,.,.,..,,.,.,,.,,,,,,,,.,,,.,.,,,,,,,..,,...,...,...,..,,,..,.,.,,..,
-#BCPG6APQJQYHFYTJ7PV7DAGKICPWKCKEEGKZVMOGUYMJ5GGQAQDC4XR3D64E73QZWBT6N6IEIV33G
-#\\\|ORRTDCVZJ553V6L77JWFL4MEKI7KB7SWWTCVAVNGRQIIHWZSIMK \ / AMOS7 \ YOURUM ::
-#\[7]F7VT4IVYQHB7SBM3LV624WNFHRKN5UTK4262FVITROXZTQ74FUCA 7  DATA SIGNATURE ::
+#,,..,,..,...,.,,,.,.,,..,..,,,,.,,,,,,,.,,,,,..,,...,...,.,.,.,.,,.,,,..,,..,
+#355OP5X5T2EKXPB5HFVPKFYPMYNFSP5BRQ6J6INTIRRRVCOKDIEY2BBY7DRRSMEQL7WUN7PB2NHS4
+#\\\|AHJ2HJKHSP2NRXAS2HZ6MQI2FTBWT6IDQXLW3QRWAEH67J4YKKV \ / AMOS7 \ YOURUM ::
+#\[7]V4MFGOSXUDNC3ZRUBWOTNFAOG4ZS2XN43US4FBCFA3LGFKFIBUCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
