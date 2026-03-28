@@ -282,6 +282,33 @@ push @tools,
     },
     };
 
+## dep_graph — bidirectional call graph for a namespace ##
+push @tools,
+    {
+    'type'     => 'function',
+    'function' => {
+        'name'        => 'dep_graph',
+        'description' => 'build call graph for a module namespace'
+            . ' [ shows who calls what, clusters ]',
+        'parameters' => {
+            'type'       => 'object',
+            'properties' => {
+                'namespace' => {
+                    'type'        => 'string',
+                    'description' =>
+                        'module namespace [ e.g. coding, context.template ]'
+                },
+                'module' => {
+                    'type'        => 'string',
+                    'description' =>
+                        'single module to graph [ alternative to namespace ]'
+                },
+            },
+            'required' => [],
+        },
+    },
+    };
+
 ## ncode_search — full codebase search via ncode binary ##
 push @tools,
     {
@@ -316,8 +343,8 @@ push @tools,
 
 return \@tools;
 
-#,,..,..,,,.,,,.,,...,.,.,,.,,,,,,,,,,,..,,..,..,,...,...,.,,,.,,,.,,,,,.,.,,,
-#VHXURATILRSDUAOKVCE5EOG7U2NJTAFZ55UVJ7O3A5PUDXJFZHPYMQZP5P7NCW7TMN74JOSFVSEMS
-#\\\|7UQX6256RV66A6WLGJ6ZH2HSZHEUFQIXOSUDIM34TXQJ7PW4TJD \ / AMOS7 \ YOURUM ::
-#\[7]2ADCXYQKQMMFE5KNSP5U4AD7R3W74ZAEOTPSEI6KCBIVGJ2VXODA 7  DATA SIGNATURE ::
+#,,.,,,,,,..,,,,.,,,,,,.,,.,.,...,,,,,...,,..,..,,...,...,...,...,..,,.,,,,.,,
+#J5CSW6FFR7KOBD6QEXN256O4UEM3EOGN37U2AKNUAY65X46LSBA5TOJ7NSYPBPA6EZJFURWXUZPSA
+#\\\|Z6DSNE5R476TBH73OLVCAA5L2PKF7H3PUAPTDCEOLK5DN26ELKT \ / AMOS7 \ YOURUM ::
+#\[7]YV3T2HELQC2TDLOF3VYDJWVDKRRMAU2BYOD3IQ5AH7E6NHGICWBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

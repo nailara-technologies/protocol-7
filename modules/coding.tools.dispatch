@@ -176,6 +176,67 @@ my %dispatch = (
             : "no matches for /$pattern/";
     },
 
+    'dep_graph' => sub {
+        return unless exists $code{'context.module.dep_graph'};
+        my $namespace = $args->{'namespace'} // '';
+        my $module    = $args->{'module'}    // '';
+
+        my %params;
+        if ( length $module ) {
+            my $root = <system.root_path>;
+            $params{'files'} = ["$root/modules/$module"];
+        } elsif ( length $namespace ) {
+            my $root = <system.root_path>;
+            $params{'pattern'}   = "$root/modules/$namespace.*";
+            $params{'namespace'} = $namespace;
+        } else {
+            return 'error: namespace or module required';
+        }
+
+        my $result = $code{'context.module.dep_graph'}->( \%params );
+        return 'no graph data'
+            unless ref $result eq qw| HASH |
+            and $result->{'mode'} eq qw| true |;
+
+        my $d = $result->{'data'};
+
+        ## format as readable text ##
+        my $out = sprintf "## dep graph: %d files, %d edges ##\n",
+            $d->{'file_count'}, $d->{'edge_count'};
+
+        ## clusters ##
+        if ( $d->{'clusters'} and $d->{'clusters'}->@* ) {
+            $out .= "\n## clusters [ strongly connected ] ##\n";
+            for my $c ( $d->{'clusters'}->@* ) {
+                $out .= sprintf "  [ %s ]\n", join ', ', $c->@*;
+            }
+        }
+
+        ## internal edges ##
+        if ( $d->{'internal_edges'} and $d->{'internal_edges'}->@* ) {
+            $out .= "\n## internal calls ##\n";
+            for my $e ( $d->{'internal_edges'}->@* ) {
+                $out .= sprintf "  %s -> %s [ %s ]\n",
+                    $e->{'from'}, $e->{'to'}, $e->{'type'};
+            }
+        }
+
+        ## external deps [ capped ] ##
+        if ( $d->{'external_edges'} and $d->{'external_edges'}->@* ) {
+            $out .= "\n## external dependencies ##\n";
+            my $ext_count = 0;
+            for my $e ( $d->{'external_edges'}->@* ) {
+                last if $ext_count++ >= 30;
+                $out .= sprintf "  %s -> %s [ %s ]\n",
+                    $e->{'from'}, $e->{'to'}, $e->{'type'};
+            }
+            my $total = scalar $d->{'external_edges'}->@*;
+            $out .= "  ... [ $total total ]\n" if $total > 30;
+        }
+
+        return $out;
+    },
+
     'ncode_search' => sub {
         my $query       = $args->{'query'}       // return 'query required';
         my $max_results = $args->{'max_results'} // 50;
@@ -265,8 +326,8 @@ return {
     'content' => $content,
 };
 
-#,,,,,.,,,..,,,..,.,.,,,.,.,.,...,,..,,..,,,,,..,,...,...,..,,.,,,,,.,,..,...,
-#2377T36ROKJ3PMPRJW3X43EOX5HM74YJ2M2JWVKGVG64NGD4FYBRUSVYJEHFD2HMMGIRH2DQSNSBQ
-#\\\|E3IALDJ56CKENVMSNMMESB7VUYNFLFKTRSYX2ZLHYNOLLGTV7ID \ / AMOS7 \ YOURUM ::
-#\[7]OEMEPO46LNSGKL5A2WY2BJBFH7KJGKEVSVXL6FEWOOMAICFYQACA 7  DATA SIGNATURE ::
+#,,,.,,.,,,.,,,,,,,,,,.,,,,,.,,.,,.,,,...,.,.,..,,...,...,,,.,..,,,..,,..,.,,,
+#KMITEZNTQ73PJCW7L27SW7WAMLP2IWRVOYAAXNHIMFDBVWAWLVA5H3CYNQAQZTNTSTJYMSLMRLTUG
+#\\\|YC3H7QFLTIHEO4ND6ZMVGFSX5RUKDPFIXJGSU6LDGYYPTI3NVDN \ / AMOS7 \ YOURUM ::
+#\[7]XSGWJPXOTUVHKGSS6P2NXSNKGMY5CS6JU5DN5MWKC6GIV4VR5QDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
