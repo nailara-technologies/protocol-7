@@ -41,6 +41,13 @@ if ($assume_admin) {
     }
 }
 
+## allow git commands as protocol-7 user in taeki-owned repo ##
+if ( defined <system.root_path> and -d <system.root_path> . '/.git' ) {
+    $ENV{'GIT_CONFIG_COUNT'}   = 1;
+    $ENV{'GIT_CONFIG_KEY_0'}   = 'safe.directory';
+    $ENV{'GIT_CONFIG_VALUE_0'} = <system.root_path>;
+}
+
 ## fork privileged chmod child before drop_privs ##
 <[coding.start.chmod_child]>;
 
@@ -303,8 +310,8 @@ if ( not $already_initialized ) {
 
 return 0;
 
-#,,.,,.,,,.,,,.,.,,,,,...,..,,.,.,...,,,.,,,.,..,,...,...,...,,,,,...,.,.,,..,
-#HMZQKHUT75ZT7ZKAE5YZHUZTT54RRFICVLMROEB3L5QJDXWIXQQIRVBG5KELIQG7ZWTJYOWN4LOMQ
-#\\\|ZU5IPCCTXMXOURBU7375GEDBMB5FGXSRJEB7E4BLL3EIZLY4VH3 \ / AMOS7 \ YOURUM ::
-#\[7]HLENXAW2Y6WKFQPM7G27W6HDB3AJM6W34U5B3MKFUNSUKCL2B2CI 7  DATA SIGNATURE ::
+#,,.,,,,.,.,,,.,.,..,,...,,.,,...,..,,,.,,,..,..,,...,...,,,.,...,.,,,,,,,,.,,
+#LM2ULFPULH2SAK2IY7RA7YWNYEXDYFOGVVBR2HUHRFZWEP2D7PBLRGDUP6IAHH2DSYBFUJFCTHTBO
+#\\\|Y6WUNKRNO6C2DBBTNVJNWALYZXTTTYGITU6B7VDSTJHAHGAXC3F \ / AMOS7 \ YOURUM ::
+#\[7]EZ2L4M7EM7VGB2Z44KXEHJARVDEZRDTG42YTVRXCBGU66RQ3NQBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,0 +1,20 @@
+## [:< ##
+# name  = coding.tools.handler.read_file
+# descr = dispatch read_file tool call to context.file handler
+
+my $args = shift // {};
+
+return unless exists $code{'context.file'};
+return $code{'context.file'}->(
+    {   'path'      => $args->{'path'}      // '',
+        'budget'    => $args->{'budget'}    // 2000,
+        'from_line' => $args->{'from_line'} // 1,
+        'to_line'   => $args->{'to_line'}   // 0,
+    }
+);
+
+#,,.,,.,,,.,,,,..,..,,...,.,.,,..,.,,,,.,,,,.,..,,...,...,,..,.,,,..,,.,.,..,,
+#2C7ZQ4NUNFM72HA55GWRAG7RSHXVBRGXW4MO2RGZ7S674DEIJ7ERMIIAOXG4COQAUL3LTF53NILTI
+#\\\|YQPEQQZH4QNVC3HXZVTZ7ICTWHGRB6UYK4EOOU5TBJ6GCVBBKON \ / AMOS7 \ YOURUM ::
+#\[7]YSGQYZ7JJKLQAQZUQIM6NPYX6PKHSEVEXRJVU2KVILJ66POEO2DQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,0 +1,44 @@
+## [:< ##
+# name  = coding.tools.handler.ptd_check
+# descr = check P7 module syntax with ptd -c
+
+my $args   = shift             // {};
+my $module = $args->{'module'} // return 'module name required';
+
+## validate module name ##
+return 'error: invalid module name'
+    if $module =~ m{[;&|`\$\\"'\n\r/]};
+
+my $root = <system.root_path>;
+my $path = "$root/modules/$module";
+return "error: module not found [ $module ]" unless -f $path;
+
+my $err_file = "/var/protocol-7/coding/state/.ptd_check.$$";
+my $output   = '';
+if ( open my $fh, '-|', "$root/bin/ptd -c $path 2>$err_file" ) {
+    local $/;
+    $output = <$fh>;
+    close $fh;
+}
+## strip ansi color codes ##
+$output =~ s|\e\[[0-9;]*m||g;
+
+my $warnings = '';
+if ( -s $err_file ) {
+    if ( open my $efh, '<', $err_file ) {
+        local $/;
+        $warnings = <$efh>;
+        close $efh;
+    }
+}
+unlink $err_file;
+
+my $result = $output;
+$result .= "\n## warnings ##\n$warnings" if length $warnings;
+return $result;
+
+#,,,,,...,,.,,,,,,,,,,,..,,..,.,.,...,.,.,,.,,..,,...,...,..,,,,.,,,.,...,...,
+#5UFU7QZLI44Y4OBFQM4PSLKXGFWVA34RBA2OH3X564GD2M3XZSNECUAADZZJHUWE3GXM3A3DVU4OC
+#\\\|DNISS3MC5UXV7ADD4AFE6O4MSO7YTOHY6IANQE7CB5XCLFHVKBL \ / AMOS7 \ YOURUM ::
+#\[7]4ELZUQB75ZJY4J7WI5VQWBLAOOAICY5IJMRAULMSW4OJGAKWIGCA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

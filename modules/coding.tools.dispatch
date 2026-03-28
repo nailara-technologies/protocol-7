@@ -48,75 +48,9 @@ $args = {} unless ref $args eq qw| HASH |;
 ## dispatch table: tool name => [ module, param builder ] ##
 my %dispatch = (
 
-    'read_file' => sub {
-        return unless exists $code{'context.file'};
-        return $code{'context.file'}->(
-            {   'path'      => $args->{'path'}      // '',
-                'budget'    => $args->{'budget'}    // 2000,
-                'from_line' => $args->{'from_line'} // 1,
-                'to_line'   => $args->{'to_line'}   // 0,
-            }
-        );
-    },
-
-    'read_module' => sub {
-        return unless exists $code{'coding.context.read_module'};
-        my $result = $code{'coding.context.read_module'}->(
-            {   'module'    => $args->{'module'}    // '',
-                'max_chars' => $args->{'max_chars'} // 8000,
-            }
-        );
-        if ( ref $result eq qw| HASH | and $result->{'mode'} eq qw| true | ) {
-            my $d = $result->{'data'};
-            return sprintf ".:[ module: %s ]:.\n.:[ descr: %s ]:.\n"
-                . ".:[ %d lines, %d chars%s ]:.\n\n%s",
-                $d->{'module'},
-                $d->{'descr'} // '?',
-                $d->{'lines'},
-                $d->{'chars'},
-                $d->{'truncated'} ? ' truncated' : '',
-                $d->{'content'};
-        }
-        return $result;
-    },
-
-    'list_modules' => sub {
-        return unless exists $code{'context.modules.list'};
-        return $code{'context.modules.list'}->(
-            {   'namespace' => $args->{'namespace'} // '',
-                'budget'    => $args->{'budget'}    // 800,
-            }
-        );
-    },
-
-    'module_deps' => sub {
-        return unless exists $code{'context.module.dependencies'};
-        return $code{'context.module.dependencies'}->(
-            {   'module' => $args->{'module'} // '',
-                'budget' => $args->{'budget'} // 800,
-            }
-        );
-    },
-
-    'recent_changes' => sub {
-        return unless exists $code{'context.git.recent_changes'};
-        return $code{'context.git.recent_changes'}->(
-            {   'budget'       => $args->{'budget'}       // 1500,
-                'max_files'    => $args->{'max_files'}    // 10,
-                'since_commit' => $args->{'since_commit'} // '',
-            }
-        );
-    },
-
-    'recent_errors' => sub {
-        return unless exists $code{'context.error.recent'};
-        return $code{'context.error.recent'}->(
-            {   'filter' => $args->{'filter'} // '',
-                'lines'  => $args->{'lines'}  // 50,
-                'budget' => $args->{'budget'} // 500,
-            }
-        );
-    },
+    ## read_file, read_module, list_modules, module_deps,         ##
+    ## recent_changes, recent_errors, extract_file, ptd_check,    ##
+    ## ptd_format, write_new_file → coding.tools.handler.* modules ##
 
     'list_files' => sub {
         return unless exists $code{'pager.source.file-list'};
@@ -323,17 +257,6 @@ my %dispatch = (
             : "no matches for '$query'";
     },
 
-    'extract_file' => sub {
-        return unless exists $code{'context.file.extract'};
-        return $code{'context.file.extract'}->(
-            {   'path'    => $args->{'path'}    // '',
-                'extract' => $args->{'extract'} // 'header',
-                'pattern' => $args->{'pattern'} // '',
-                'budget'  => $args->{'budget'}  // 1000,
-            }
-        );
-    },
-
     'edit_file' => sub {
         my $path  = $args->{'path'}  // return 'path required';
         my $edits = $args->{'edits'} // return 'edits required';
@@ -434,130 +357,11 @@ my %dispatch = (
             $mode, scalar @$edit_list, $errors, join "\n", @preview;
     },
 
-    'write_new_file' => sub {
-        my $path    = $args->{'path'}    // return 'path required';
-        my $content = $args->{'content'} // return 'content required';
-
-        my $root     = <system.root_path>;
-        my $abs_path = "$root/$path";
-
-        ## validate path stays within project ##
-        return 'error: path escapes project root'
-            if $abs_path =~ m|\.\./| or $path =~ m|^/|;
-
-        ## refuse to overwrite existing files ##
-        return "error: file already exists [ $path ]" if -e $abs_path;
-
-        ## check if parent dir is writable ##
-        my $dir = $abs_path;
-        $dir =~ s|/[^/]+$||;
-        if ( -d $dir and -w $dir ) {
-            <[file.put]>->( $abs_path, \$content );
-            return sprintf "created %s [ %d bytes ]", $path, length($content);
-        }
-        ## stage to zenka dir when no write access ##
-        my $stage_name = $path;
-        $stage_name =~ s|/|__|g;
-        my $stage_rel = "staged/$stage_name";
-        <[file.zenka_dir.write]>->(
-            $stage_rel, \$content, '>', 0664, ':encoding(UTF-8)'
-        );
-        <[base.logs]>->(
-            1, ':. write_new_file: staged %s [ no write access ]', $path
-        );
-        return sprintf "staged new file %s [ %d bytes, no write access ]\n"
-            . "staged at: %s",
-            $path, length($content), $stage_rel;
-    },
-
-    'ptd_check' => sub {
-        my $module = $args->{'module'} // return 'module name required';
-
-        ## validate module name ##
-        return 'error: invalid module name'
-            if $module =~ m{[;&|`\$\\"'\n\r/]};
-
-        my $root = <system.root_path>;
-        my $path = "$root/modules/$module";
-        return "error: module not found [ $module ]" unless -f $path;
-
-        my $err_file = "/var/protocol-7/coding/state/.ptd_check.$$";
-        my $output   = '';
-        if ( open my $fh, '-|', "$root/bin/ptd -c $path 2>$err_file" ) {
-            local $/;
-            $output = <$fh>;
-            close $fh;
-        }
-        ## strip ansi color codes ##
-        $output =~ s|\e\[[0-9;]*m||g;
-
-        my $warnings = '';
-        if ( -s $err_file ) {
-            if ( open my $efh, '<', $err_file ) {
-                local $/;
-                $warnings = <$efh>;
-                close $efh;
-            }
-        }
-        unlink $err_file;
-
-        my $result = $output;
-        $result .= "\n## warnings ##\n$warnings" if length $warnings;
-        return $result;
-    },
-
-    'ptd_format' => sub {
-        my $module = $args->{'module'} // return 'module name required';
-
-        ## validate module name ##
-        return 'error: invalid module name'
-            if $module =~ m{[;&|`\$\\"'\n\r/]};
-
-        my $root = <system.root_path>;
-        my $path = "$root/modules/$module";
-        return "error: module not found [ $module ]" unless -f $path;
-
-        ## read before ##
-        my $before_ref = <[file.slurp]>->($path);
-        return 'error: cannot read module' unless defined $before_ref;
-
-        my $err_file = "/var/protocol-7/coding/state/.ptd_fmt.$$";
-        my $output   = '';
-        if ( open my $fh, '-|', "$root/bin/ptd $path 2>$err_file" ) {
-            local $/;
-            $output = <$fh>;
-            close $fh;
-        }
-        $output =~ s|\e\[[0-9;]*m||g;
-
-        my $warnings = '';
-        if ( -s $err_file ) {
-            if ( open my $efh, '<', $err_file ) {
-                local $/;
-                $warnings = <$efh>;
-                close $efh;
-            }
-        }
-        unlink $err_file;
-
-        ## check if file changed ##
-        my $after_ref = <[file.slurp]>->($path);
-        my $changed
-            = ( defined $after_ref and $after_ref->$* ne $before_ref->$* );
-
-        my $result = $output;
-        $result
-            .= $changed
-            ? "\n[ file was reformatted ]"
-            : "\n[ no formatting changes needed ]";
-        $result .= "\n## warnings ##\n$warnings" if length $warnings;
-        return $result;
-    },
-
 );
 
-## look up and execute ##
-unless ( exists $dispatch{$name} ) {
+## look up and execute — dispatch table first, then handler modules ##
+my $handler_mod = "coding.tools.handler.$name";
+if ( not exists $dispatch{$name} and not exists $code{$handler_mod} ) {
     <[base.logs]>->( 0, ':. tools.dispatch: unknown tool [ %s ]', $name );
     return {
         'id'      => $call_id,
@@ -566,7 +370,10 @@ unless ( exists $dispatch{$name} ) {
     };
 }
 
-my $raw_result = $dispatch{$name}->();
+my $raw_result
+    = exists $dispatch{$name}
+    ? $dispatch{$name}->()
+    : $code{$handler_mod}->($args);
 
 ## normalize result to string ##
 my $content;
@@ -600,8 +407,8 @@ return {
     'content' => $content,
 };
 
-#,,,,,,,,,.,.,...,.,,,...,.,.,.,,,.,.,,..,.,.,..,,...,..,,.,.,,,,,,..,..,,...,
-#6BY7OHJPL5EN75TDDRJRERVGOJV3YRY7VC46ZYNWRUWGC2OZJRLPNKS6WVUUBZAJ7ZOH3UYQ7MDOO
-#\\\|3CXUO5XOQCIGZY7EFVON4U4BGAN74YM7SIDTMIWCW33ZYIIWXG7 \ / AMOS7 \ YOURUM ::
-#\[7]MONYK63SO3CXVKCK3SWX7YVRHH6CXHV6IMZN4RZF2QI4FNMZCKCI 7  DATA SIGNATURE ::
+#,,,,,,,,,,,,,,,.,,,,,.,.,,..,.,.,,..,.,.,,,,,..,,...,...,,,.,,,.,..,,.,,,...,
+#URA6BDM4LZSUH43F7B4PIT7XZKGR6DQKFMSVKZKNPGQKIUFU4H37J7CQK3TN64JXMG3ZZH4UHNSAO
+#\\\|PNNMRBDJTSM7TVNPPMWWIVCQIWWZWISR2PFOE3XXQ4WU6K6NINA \ / AMOS7 \ YOURUM ::
+#\[7]DPMKR7AYW64NSNZT25EO2DI2HD5NSEYYP2GGRFK4PVUVG7VBPGAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,0 +1,20 @@
+## [:< ##
+# name  = coding.tools.handler.extract_file
+# descr = dispatch extract_file tool call to context.file.extract handler
+
+my $args = shift // {};
+
+return unless exists $code{'context.file.extract'};
+return $code{'context.file.extract'}->(
+    {   'path'    => $args->{'path'}    // '',
+        'extract' => $args->{'extract'} // 'header',
+        'pattern' => $args->{'pattern'} // '',
+        'budget'  => $args->{'budget'}  // 1000,
+    }
+);
+
+#,,,.,...,...,,.,,,..,,..,,,.,.,.,.,,,,,,,,.,,..,,...,..,,..,,.,,,,..,,,,,.,.,
+#ZEIXAM2S5U6K7MRJGQPAKUEQQKLM623TOH55HQROIO7ATPGUC7O6BHWET237TYYSFWSWMXI2M7JLG
+#\\\|7KV37GBIQ2W5UWTWWMZHYDSKCT7P3XKRZNGBLQL7MWQMNZ2SLUA \ / AMOS7 \ YOURUM ::
+#\[7]46DWSUMNESIU654S5KCJARLHWPIEBWPKOADMLMNNEJFP54OQAOAQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
