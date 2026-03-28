@@ -24,8 +24,8 @@ my ( undef, undef, undef, $zenka_gid ) = getpwnam(<system.amos-zenka-user>);
 <coding.cfg.drop_privs_admin_group> = getgrgid($zenka_gid) // '';
 if ($assume_admin) {
     my $root_stat  = File::stat::stat( <system.root_path> // '' );
-    my $root_gid   = defined $root_stat ? $root_stat->gid : undef;
-    my $group_name = defined $root_gid ? getgrgid($root_gid) : undef;
+    my $root_gid   = defined $root_stat ? $root_stat->gid     : undef;
+    my $group_name = defined $root_gid  ? getgrgid($root_gid) : undef;
     if ( defined $group_name ) {
         <coding.cfg.drop_privs_admin_group> = $group_name;
         <[base.logs]>->(
@@ -40,6 +40,9 @@ if ($assume_admin) {
         );
     }
 }
+
+## fork privileged chmod child before drop_privs ##
+<[coding.start.chmod_child]>;
 
 # Initialize coding zenka data structure
 <coding.state> //= {
@@ -299,8 +302,8 @@ if ( not $already_initialized ) {
 
 return 0;
 
-#,,.,,..,,,,,,..,,.,.,,.,,.,.,..,,...,.,,,,.,,..,,...,...,...,.,.,,,.,...,.,.,
-#GYP7CRDNEUDUUMQWTXLKNRWF6UT646RBLAFJPQZYC6L6Q5WCJCPYMAAYVA2LXWYURK2Z2X7675XCU
-#\\\|LPIJWFS4ADAFPK55AVRQECA5HWN2JZMFG6MIPNK6XFFA244ECU4 \ / AMOS7 \ YOURUM ::
-#\[7]MDRZLH4GYAWAYXLUZ4NROHTOVV7RGXG5CM5BGYB6O35HRJBUO2CA 7  DATA SIGNATURE ::
+#,,..,...,.,,,,,,,...,,.,,...,,,.,...,,,.,...,..,,...,...,..,,.,,,.,.,,,,,,,.,
+#3I7FPZ555NYBQFQD4IB2DSFL7KASQF7RLAUNPALC4DM2MSU3W6N45I2Q63QDQEYS62WETKVSH6U72
+#\\\|C2ABBV6BUCTL4QUCHAUQWU6MKYYOA6PNCY2KN63CUX3QG7WLSQW \ / AMOS7 \ YOURUM ::
+#\[7]4GRWSDB7DBRBIDMGUHHAME27QV7R7IRZX25K4BK77CAY55M5NKBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
