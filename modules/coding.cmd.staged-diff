@@ -10,17 +10,19 @@ my $staged_dir
     . <system.zenka.name>
     . '/staged';
 
-return "no staged directory" unless -d $staged_dir;
+return { 'mode' => 'false', 'data' => 'no staged directory' }
+    unless -d $staged_dir;
 
-if ( not opendir my $dh, $staged_dir ) {
+my $dh;
+if ( not opendir $dh, $staged_dir ) {
     <[base.logs]>->( 0, ':. staged-diff: cannot open %s', $staged_dir );
-    return "error: cannot read staged directory";
+    return { 'mode' => 'false', 'data' => 'cannot read staged directory' };
 }
 
 my @files = sort grep { $ARG ne '.' and $ARG ne '..' } readdir $dh;
 closedir $dh;
 
-return "no staged edits" unless @files;
+return { 'mode' => 'false', 'data' => 'no staged edits' } unless @files;
 
 my $root   = <system.root_path>;
 my $output = '';
@@ -60,10 +62,12 @@ for my $staged_name (@files) {
     }
 }
 
-return length $output ? $output : "no matching staged edits";
+$output = 'no matching staged edits' unless length $output;
 
-#,,,,,,..,..,,,.,,..,,.,.,,,,,.,.,,,.,.,.,,,,,..,,...,...,...,...,.,.,,..,,.,,
-#WGULAB4JMK55DRNAV6XR5TUPGTF2RFTLLTA2KVNNP6JP52P3RRGERECA2I54VNRQIJYOYOVMUQMPQ
-#\\\|RYTKMHSKBO3L6T7DCMO4OU3WYTMOQFH3EPQBHE3SGOMKC355DAW \ / AMOS7 \ YOURUM ::
-#\[7]RKJ4XJHGA6JLVPWO32QZPS7GQTG2UE7OJYYCWSWGVVVYAAPFS6DQ 7  DATA SIGNATURE ::
+return { 'mode' => 'size', 'data' => $output };
+
+#,,.,,.,,,...,,.,,,,,,,..,..,,,.,,,,,,.,,,..,,..,,...,...,..,,.,,,,,.,,.,,.,.,
+#AMFUCMP72GS77YZBRRVYLDKJXT764D4AJFNU7ZXBLEHCJRSNYK53EJ7KHK4LBX3RJNXQI5DO3Q4Y4
+#\\\|LPPMVPZXWZI7USN7E254H673WSPLBUGOIGX2R2ZRUELQNZUB4D3 \ / AMOS7 \ YOURUM ::
+#\[7]4G6L3HUVTWLTPQ5MGXNLDZXQRQ7Z6IFTRROFENCVZ2OABDTICODQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
