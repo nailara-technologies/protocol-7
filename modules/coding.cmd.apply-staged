@@ -1,0 +1,71 @@
+## [:< ##
+
+# name  = coding.cmd.apply-staged
+# descr = apply staged edits to project source files
+
+my $filter = $$call{'args'} // '';
+
+my $staged_dir
+    = <system.path.zenka-dirs>->{'var_P7'} . '/'
+    . <system.zenka.name>
+    . '/staged';
+
+return "no staged directory" unless -d $staged_dir;
+
+if ( not opendir my $dh, $staged_dir ) {
+    <[base.logs]>->( 0, ':. apply-staged: cannot open %s', $staged_dir );
+    return "error: cannot read staged directory";
+}
+
+my @files = sort grep { $ARG ne '.' and $ARG ne '..' } readdir $dh;
+closedir $dh;
+
+return "no staged edits" unless @files;
+
+my $root    = <system.root_path>;
+my $applied = 0;
+my $skipped = 0;
+my $output  = '';
+
+for my $staged_name (@files) {
+    ## convert staged name back to source path ##
+    my $src_rel = $staged_name;
+    $src_rel =~ s|__|/|g;
+
+    ## optional filter ##
+    next if length $filter and $src_rel !~ m|\Q$filter\E|;
+
+    my $src_path    = "$root/$src_rel";
+    my $staged_path = "$staged_dir/$staged_name";
+
+    ## read staged content ##
+    my $content_ref = <[file.slurp]>->($staged_path);
+    unless ( defined $content_ref ) {
+        $output .= sprintf ":. %s : cannot read staged file\n", $src_rel;
+        $skipped++;
+        next;
+    }
+
+    ## write to source path ##
+    my $written = <[file.put]>->( $src_path, $content_ref );
+    if ($written) {
+        $output .= sprintf ":. %s : applied [ %d bytes ]\n",
+            $src_rel, length $content_ref->$*;
+        $applied++;
+        ## remove staged file after successful apply ##
+        unlink $staged_path;
+    } else {
+        $output .= sprintf ":. %s : write failed\n", $src_rel;
+        $skipped++;
+    }
+}
+
+$output .= sprintf "\n## %d applied, %d skipped ##\n", $applied, $skipped;
+
+return $output;
+
+#,,,,,,,,,...,,,,,,.,,...,.,.,,,,,...,.,.,.,.,..,,...,..,,,..,.,,,.,.,.,,,..,,
+#E6XEJZXW3KR7DMUOX2KWCH2FFN7IFBNTWJMCMIJHJ6JP3XN4PNE3NHLJBAB3IRTMBFYKWUSCZZ7WU
+#\\\|BLPXV7WJICU734N2V3QTG2PGZI5M5P4C5EF2GW7BYBCPTL63B26 \ / AMOS7 \ YOURUM ::
+#\[7]X5IWNKJLSIMMJ7WM2YWS26TB6QKS6ICHML7GAPGDB7LPGCQZS2AQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

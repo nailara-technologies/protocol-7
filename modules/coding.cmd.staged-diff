@@ -1,0 +1,69 @@
+## [:< ##
+
+# name  = coding.cmd.staged-diff
+# descr = show diff of staged edits against current source
+
+my $filter = $$call{'args'} // '';
+
+my $staged_dir
+    = <system.path.zenka-dirs>->{'var_P7'} . '/'
+    . <system.zenka.name>
+    . '/staged';
+
+return "no staged directory" unless -d $staged_dir;
+
+if ( not opendir my $dh, $staged_dir ) {
+    <[base.logs]>->( 0, ':. staged-diff: cannot open %s', $staged_dir );
+    return "error: cannot read staged directory";
+}
+
+my @files = sort grep { $ARG ne '.' and $ARG ne '..' } readdir $dh;
+closedir $dh;
+
+return "no staged edits" unless @files;
+
+my $root   = <system.root_path>;
+my $output = '';
+
+for my $staged_name (@files) {
+    ## convert staged name back to source path ##
+    my $src_rel = $staged_name;
+    $src_rel =~ s|__|/|g;
+
+    ## optional filter ##
+    next if length $filter and $src_rel !~ m|\Q$filter\E|;
+
+    my $src_path    = "$root/$src_rel";
+    my $staged_path = "$staged_dir/$staged_name";
+
+    unless ( -f $src_path ) {
+        $output .= sprintf "## %s [ new file, %d bytes ] ##\n",
+            $src_rel, -s $staged_path;
+        next;
+    }
+
+    ## run diff ##
+    my $diff = '';
+    if ( open my $fh, '-|', 'diff', '-u', $src_path, $staged_path ) {
+        local $/;
+        $diff = <$fh>;
+        close $fh;
+    }
+
+    if ( length $diff ) {
+        ## strip absolute paths for readability ##
+        $diff =~ s|\Q$root/\E||g;
+        $diff =~ s|\Q$staged_dir/\E|staged/|g;
+        $output .= sprintf "## %s ##\n%s\n", $src_rel, $diff;
+    } else {
+        $output .= sprintf "## %s [ no changes ] ##\n", $src_rel;
+    }
+}
+
+return length $output ? $output : "no matching staged edits";
+
+#,,,,,,..,..,,,.,,..,,.,.,,,,,.,.,,,.,.,.,,,,,..,,...,...,...,...,.,.,,..,,.,,
+#WGULAB4JMK55DRNAV6XR5TUPGTF2RFTLLTA2KVNNP6JP52P3RRGERECA2I54VNRQIJYOYOVMUQMPQ
+#\\\|RYTKMHSKBO3L6T7DCMO4OU3WYTMOQFH3EPQBHE3SGOMKC355DAW \ / AMOS7 \ YOURUM ::
+#\[7]RKJ4XJHGA6JLVPWO32QZPS7GQTG2UE7OJYYCWSWGVVVYAAPFS6DQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
