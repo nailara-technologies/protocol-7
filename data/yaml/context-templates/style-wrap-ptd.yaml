@@ -1,0 +1,86 @@
+---
+name: style-wrap-ptd
+descr: wrap long comment lines and format with ptd
+budget: 4000
+sections:
+  ## core knowledge ##
+  - include: system-base
+    priority: 1
+    budget_pct: 15
+
+  ## target module content ##
+  - provider: context.file.extract
+    priority: 2
+    budget_pct: 40
+    params:
+      extract: full
+    label: target module source
+
+  ## style instructions ##
+  - static: |
+      audit the target module for overly long lines and formatting issues,
+      then fix them.
+
+      ## step 1: identify long lines ##
+
+      find lines exceeding 80 characters. categorize:
+
+      ### comment lines [ ## ... ## ] ###
+      - wrap at 78 chars, continuing on next line with same indent + ##
+      - keep the closing ## on each line
+      - example:
+        before: ## this is a very long comment that describes something in great detail and keeps going ##
+        after:
+          ## this is a very long comment that describes ##
+          ## something in great detail and keeps going  ##
+
+      ### code lines ###
+      - break at natural boundaries [ after comma, before operator ]
+      - align continuation with the expression start
+      - string concatenation: use . operator on next line
+      - hash constructors: one key-value pair per line
+      - long conditionals: break after logical operators
+
+      ### log format strings ###
+      - use string concatenation with . for long format strings
+      - example:
+        before: <[base.logs]>->( 1, '[spawn_inference_server] killed orphan %s server [pid:%d] from pid file', $backend, $saved_pid );
+        after:
+          <[base.logs]>->(
+              1,
+              '[spawn_inference_server] killed orphan %s'
+                  . ' server [pid:%d] from pid file',
+              $backend, $saved_pid
+          );
+
+      ## step 2: apply edits ##
+
+      use edit_file with apply=true to fix the long lines.
+
+      ## step 3: run ptd ##
+
+      after edits, run ptd_format on the module to auto-indent.
+      then run ptd_check to verify syntax is still valid.
+
+      ## output format ##
+
+      list each wrapped line:
+      - line: <number>
+        chars: <original length>
+        action: wrapped/reformatted
+
+      end with ptd_check result: syntax ok or errors found.
+    priority: 3
+    budget_pct: 45
+    label: style wrap and format instructions
+
+on_complete:
+  - when: [output_length_gt=200]
+    action: memory_update
+    topic: "audit:style-wrap-ptd"
+
+#,,.,,.,,,,,.,.,,,...,.,.,.,,,.,.,,..,...,.,.,..,,...,...,,,.,,..,,..,,,,,,..,
+#DOMEB44XGMYDGISHWGQPQPWC23SJ7HBHSGC6PNZZ2I74ZP5OGXHZH7JUZNC2ADI2XNV45QB6Q3QQY
+#\\\|6IBSSDINQALJLBDTJZV7VMBWCPEGJWWDSFMTKHN6LM6SVDB62FO \ / AMOS7 \ YOURUM ::
+#\[7]RLYVBRAL47KM4WKBVFCJVPXMVXELKLHZT4TGUA23LIXVN4TYM6DQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

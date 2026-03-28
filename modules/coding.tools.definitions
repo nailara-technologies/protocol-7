@@ -366,6 +366,50 @@ push @tools,
     },
     };
 
+## ptd_check — syntax check a P7 module ##
+push @tools,
+    {
+    'type'     => 'function',
+    'function' => {
+        'name'        => 'ptd_check',
+        'description' => 'syntax check a P7 module with ptd -c'
+            . ' [ reports compile errors ]',
+        'parameters' => {
+            'type'       => 'object',
+            'properties' => {
+                'module' => {
+                    'type'        => 'string',
+                    'description' =>
+                        'module name [ e.g. coding.tools.dispatch ]'
+                },
+            },
+            'required' => ['module'],
+        },
+    },
+    };
+
+## ptd_format — format a P7 module with ptd ##
+push @tools,
+    {
+    'type'     => 'function',
+    'function' => {
+        'name'        => 'ptd_format',
+        'description' => 'format a P7 module with ptd'
+            . ' [ auto-indents and reports changes ]',
+        'parameters' => {
+            'type'       => 'object',
+            'properties' => {
+                'module' => {
+                    'type'        => 'string',
+                    'description' =>
+                        'module name [ e.g. coding.tools.dispatch ]'
+                },
+            },
+            'required' => ['module'],
+        },
+    },
+    };
+
 ## write_new_file — create a new file [ refuses to overwrite ] ##
 push @tools,
     {
@@ -398,8 +442,8 @@ push @tools,
 
 return \@tools;
 
-#,,..,.,.,,,.,,,,,,,.,,..,,..,,,.,,..,,..,,..,..,,...,...,,..,...,...,...,..,,
-#AHPS35GQRWYZUKIUNEQDOOFAVWBRCXBTUDE67N26DFSRQPJSTX547NRGI5XXMNKETKVYLQGPSN2U4
-#\\\|6CRLHMMIC6AXBNOWHPKZQLXZLLAXCCCEBIUQKXGJ335Z6O2YXIS \ / AMOS7 \ YOURUM ::
-#\[7]ZDKSPUEWV3P6U2SRFHQVNXRKI22DJL52YGLP3LJTWLGNGBL7KOAI 7  DATA SIGNATURE ::
+#,,..,.,.,..,,,..,,,.,..,,,,,,,,.,,.,,...,,..,..,,...,...,,..,,.,,.,,,,..,.,,,
+#GTXEIHE2RXQ3M7CYKK65XUJNTRPVCL45VNX4AXXUUVPPUCTLEIBAFHB6GSXMVCDURT7FQCMFV4H74
+#\\\|CZRTJQ4XKSSDLROXZSYDK4DQYI265VX2A4D66Z3UUAME55YXIGH \ / AMOS7 \ YOURUM ::
+#\[7]6354WMBZH2LVBUJ6RBZVTUHMMNNC2Q44JV5ALHGTNNLVJHICO6DY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
