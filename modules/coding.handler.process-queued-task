@@ -361,7 +361,8 @@ INFERENCE_LOOP:
 
         my $decoded = eval { $json->decode( $http_response->content ) };
         if ($@) {
-            $http_error = "json decode error: $@";
+            $http_error = sprintf 'json decode error: %s',
+                <[base.str.eval_error]>;
             last INFERENCE_LOOP;
         }
 
@@ -452,11 +453,13 @@ INFERENCE_LOOP:
     }
 };
 
-$http_error //= $@ if $@;    ## capture eval die ##
+$http_error //= <[base.str.eval_error]> if $@;    ## capture eval die ##
 
 if ( defined $http_error ) {
+    my $err_short
+        = <[base.parser.center_ellipse_string]>->( $http_error, 72 );
     <[base.logs]>->(
-        0, "[process-queued-task] inference error: %s", $http_error
+        0, "[process-queued-task] inference error: %s", $err_short
     );
     return { success => FALSE, error => $http_error, task_id => $task_id };
 }
@@ -488,8 +491,8 @@ if ( length $response_text
 ## return result hashref for jobqueue callback ##
 return { success => TRUE, result => $response_text, task_id => $task_id };
 
-#,,..,,.,,...,..,,.,.,.,.,,,,,.,,,.,,,...,..,,..,,...,...,..,,.,.,,..,,,.,,,.,
-#XFPKHS76CPMRTUY7BDENRPE643I5KBD6EJ25TAHIARHM6AOXSRMTWWP6X2AF6AQUDHRFL4U3E336Q
-#\\\|PKWS4RZFFK6FL3I7GX2TXA2URZKO5ZMH2N6WW2MNRJM2XEB7QI4 \ / AMOS7 \ YOURUM ::
-#\[7]V5LI7THD2HNKBQ2WBDF4S52KB4W55V6TXWAVJUYNHFUWSWEX4UBA 7  DATA SIGNATURE ::
+#,,,,,...,.,,,.,.,.,,,,,,,,,,,.,.,.,.,.,,,.,.,..,,...,...,..,,.,,,,,,,..,,.,,,
+#Z4NPFU5IFGV7DEDETSKGJW3MSFYTMLOSZOFDFB2CZYAXYG7O6ZAV7SR6K4W377TB2L3FA6XXPU5DU
+#\\\|72HOIMXWIGC46YWUQDXZMGXJPPVERLIP26YXMG5IQKEYPVDBFCM \ / AMOS7 \ YOURUM ::
+#\[7]EVBBVI3KHC23EUAP5JVPCKMTMOGGZQMYR7AFK2NWWS2QOWFU6UDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
