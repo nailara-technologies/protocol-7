@@ -55,7 +55,7 @@ while ( my $line = <STDIN> ) {
             );
         };
         if ( $@ or not $resp ) {
-            print "error $@\n";
+            print "error " . ( $@ // 'request failed' ) . "\n";
             next;
         }
         if ( not $resp->is_success ) {
@@ -104,8 +104,8 @@ $w_fh->autoflush(1);
 
 return [ $r_fh, $w_fh ];
 
-#,,.,,,,.,...,,..,.,.,..,,.,,,.,.,.,,,,..,.,,,.,.,...,...,,,,,,,,,...,,.,,.,.,
-#UZHO3HRIIFJM3RYDSZGXMNXKYFKRC7N3P6RAF63FC4NKMX2WQPTIOAYY5NXF2YDNIUNXTNEWTHKGQ
-#\\\|KDX72EBEGD5YMBZOUPAQCAVP3YAJLV657HYI4TOV2GGE2JR6PRL \ / AMOS7 \ YOURUM ::
-#\[7]JKIBIUE257FQXB4ODIFU5U4PTID77QQ66Q4G5S2NXTOA4R7XU2CY 7  DATA SIGNATURE ::
+#,,..,.,.,,,,,,.,,,,.,.,.,,,,,..,,,..,..,,,,.,.,.,...,..,,.,,,...,,,.,.,.,..,,
+#IAQJFNRQXW7KLSJF4S373NLBGMBX4IYA4I5SHVB5AJQN3QKCGM7CO2Q6QC3ADZDSY4XFYPYGC3TPK
+#\\\|PSARPO4GPB5LRPBTTJQ3E46W5SU6IQH3YIV73Q74EXQ5TDIJBIQ \ / AMOS7 \ YOURUM ::
+#\[7]XEEPVCEJMEAHVIMWBSN76IT3IKUJBZLZABUNXPYKT2FDL65PNYDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
