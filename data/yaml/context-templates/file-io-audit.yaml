@@ -1,0 +1,91 @@
+---
+name: file-io-audit
+descr: audit modules for raw file I/O and suggest native file.* replacements
+budget: 4000
+sections:
+  ## core knowledge ##
+  - include: system-base
+    priority: 1
+    budget_pct: 15
+
+  ## target module content ##
+  - provider: context.file.extract
+    priority: 2
+    budget_pct: 35
+    params:
+      extract: full
+    label: target module source
+
+  ## available file.* routines for reference ##
+  - provider: context.modules.list
+    priority: 3
+    budget_pct: 10
+    params:
+      namespace: "base.file"
+    optional: true
+    label: available base.file modules
+
+  ## audit instructions ##
+  - static: |
+      audit the target module for raw perl file I/O that should use the
+      native protocol-7 file.* routines instead. these routines handle
+      permissions, error logging, path validation, and zenka directory
+      resolution automatically.
+
+      ## patterns to flag ##
+
+      raw open for reading:
+        open my $fh, '<', $path
+        should be: <[file.slurp]>->($path) [ returns \$content ]
+        or: <[file.zenka_dir.load]>->($rel_path) [ for /var/protocol-7/<zenka>/ ]
+
+      raw open for writing:
+        open my $fh, '>', $path  /  print {$fh}  /  close $fh
+        should be: <[file.put]>->($path, \$content)
+        or: <[file.zenka_dir.write]>->($rel_path, \$content)
+
+      raw unlink:
+        unlink $path
+        should be: <[file.zenka_dir.unlink_file]>->($rel_path)
+        [ for files in zenka var dir ]
+
+      raw mkdir:
+        mkdir $path
+        should be: handled by <[base.path-set-up.check-zenka-paths]>
+        during init_code [ while still root ]
+
+      raw file test with absolute /var/protocol-7/ paths:
+        -f "/var/protocol-7/coding/..."
+        should use zenka_dir routines with relative paths instead
+
+      ## when raw I/O is acceptable ##
+      - /proc/ filesystem reads [ pid verification ]
+      - pipe opens for command execution [ open -| ]
+      - temporary files that are created and removed in the same scope
+      - IPC::Open3 pipes [ stdout/stderr capture ]
+
+      ## output format ##
+      for each finding:
+      - line: approximate line number
+        raw: the raw I/O pattern found
+        replacement: exact P7-native replacement code
+        note: any caveats [ e.g. slurp returns scalar ref ]
+
+      ## summary ##
+      at the end, list the count of replaceable patterns found and whether
+      the module has any raw I/O that is correctly used [ from the
+      acceptable list above ].
+    priority: 4
+    budget_pct: 40
+    label: file I/O audit instructions
+
+on_complete:
+  - when: [output_length_gt=200]
+    action: memory_update
+    topic: "audit:file-io-patterns"
+
+#,,,,,,,.,,.,,,..,,.,,,..,...,.,.,,,.,...,,,.,..,,...,.,.,...,...,.,.,...,...,
+#7SACHIIWYKOPSMPF3CEZ3ODVLPQI6LJBKWGGH2UBF7NF27RVQRMZNSTFQWE4LHVXNLW5HXSAV5WE6
+#\\\|SQBDFVX3VHZOXRLCNAYBMC45ZVLVVORNW4SD3NV7VGXNGHQKUTA \ / AMOS7 \ YOURUM ::
+#\[7]WNQBM36FZVLT2HZ7FUHBVFAK7LN4QTKZ56TJYTVJJU4SC6GUT4CY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
