@@ -30,7 +30,7 @@ my $skipped    = 0;
 my $output     = '';
 my $shell_cmds = '';
 
-my $allow_chmod = <[base.cfg_bool]>->( <coding.cfg.allow_chmod_apply> // 0 );
+my $chmod_fh = <coding.chmod_child.w_fh>;    ## privileged child handle ##
 
 for my $staged_name (@files) {
     ## convert staged name back to source path ##
@@ -51,11 +51,15 @@ for my $staged_name (@files) {
         next;
     }
 
-    ## temporarily enable group write if allowed and needed ##
+    ## request group-write via privileged chmod child if needed ##
     my $mode_restore;
-    if ( $allow_chmod and -f $src_path and not -w $src_path ) {
-        my $cur_mode = ( stat $src_path )[2] & 07777;
-        if ( chmod( $cur_mode | 0020, $src_path ) ) {
+    if ( defined $chmod_fh and -f $src_path and not -w $src_path ) {
+        my $fstat    = File::stat::stat($src_path);
+        my $cur_mode = $fstat->mode & 07777;
+        print {$chmod_fh} "gw $src_path\n";
+        ## brief yield for child to process chmod ##
+        select undef, undef, undef, 0.01;
+        if ( -w $src_path ) {
             $mode_restore = $cur_mode;
         }
     }
@@ -63,8 +67,11 @@ for my $staged_name (@files) {
     ## write to source path ##
     my $written = <[file.put]>->( $src_path, $content_ref );
 
-    ## restore original file permissions ##
-    chmod $mode_restore, $src_path if defined $mode_restore;
+    ## restore original file permissions via chmod child ##
+    if ( defined $mode_restore and defined $chmod_fh ) {
+        print {$chmod_fh} sprintf "restore %04o %s\n",
+            $mode_restore, $src_path;
+    }
 
     if ($written) {
         $output .= sprintf ":. %s : applied [ %d bytes ]\n",
@@ -91,8 +98,8 @@ $output .= sprintf "\n## %d applied, %d skipped ##\n", $applied, $skipped;
 
 return { 'mode' => 'size', 'data' => $output };
 
-#,,.,,,,,,.,,,,.,,,..,.,,,,,.,...,,..,..,,,,,,..,,...,...,.,.,.,.,.,.,,,.,...,
-#LB5MOD7P4PXPE66JQSBQ3N6WVZHONOAJWL57SR4HRVHIYF33P4FEERQEATUAYEHEYHOQDHNKKEIGO
-#\\\|QEKKPTOLTJTM7N3STW3DUIOA3HR44T6ZSTMXGBNMR5RPEHYGXQS \ / AMOS7 \ YOURUM ::
-#\[7]TCETS75IT4R6RYX7KWJYWVPKBUL5OSBYL25U2WJJ4O7SOSXQJ6AA 7  DATA SIGNATURE ::
+#,,,.,.,,,.,,,,,.,.,.,..,,..,,,,,,...,..,,..,,..,,...,...,.,.,..,,,,.,,,.,...,
+#LWKO2WD42BNFHBGXIOJGSG4ZJ43XEGU3JWJYK3HOVIP7VJR4DREC75ELN3I2NJI2HVOMYLTDN2VKW
+#\\\|46W7LLVOAUVOAOTGIIIRSH2FH73EWFHV75LAATWMSHVGVR2UIRE \ / AMOS7 \ YOURUM ::
+#\[7]AEX3BBU7OMQUN7WIKUHFI25DOX46BNMQNMW4GU262BWXX2IRJMBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
