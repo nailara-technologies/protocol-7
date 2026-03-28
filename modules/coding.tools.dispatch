@@ -395,14 +395,25 @@ my %dispatch = (
 
         ## write back if applying and no errors ##
         if ( $apply and not $errors ) {
-            my $output = join "\n", @lines;
-            if ( open my $fh, '>:encoding(UTF-8)', $abs_path ) {
-                print $fh $output;
-                close $fh;
+            my $new_content = join "\n", @lines;
+            if ( -w $abs_path ) {
+                <[file.put]>->( $abs_path, \$new_content );
                 return sprintf "applied %d edits to %s\n%s",
                     scalar @$edit_list, $path, join "\n", @preview;
             }
-            return 'error: cannot write file';
+            ## stage to zenka dir when no write access ##
+            my $stage_name = $path;
+            $stage_name =~ s|/|__|g;
+            my $stage_rel = "staged/$stage_name";
+            <[file.zenka_dir.write]>->( $stage_rel, \$new_content );
+            <[base.logs]>->(
+                1, ':. edit_file: staged %s [ no write access ]', $path
+            );
+            return
+                sprintf "staged %d edits for %s [ no write access ]\n"
+                . "staged at: %s\n%s",
+                scalar @$edit_list, $path, $stage_rel,
+                join "\n", @preview;
         }
 
         my $mode = $apply ? 'BLOCKED' : 'PREVIEW';
@@ -424,21 +435,108 @@ my %dispatch = (
         ## refuse to overwrite existing files ##
         return "error: file already exists [ $path ]" if -e $abs_path;
 
-        ## ensure parent directory exists ##
+        ## check if parent dir is writable ##
         my $dir = $abs_path;
         $dir =~ s|/[^/]+$||;
-        unless ( -d $dir ) {
-            require File::Path;
-            File::Path::make_path($dir);
-        }
-
-        if ( open my $fh, '>:encoding(UTF-8)', $abs_path ) {
-            print $fh $content;
-            close $fh;
+        if ( -d $dir and -w $dir ) {
+            <[file.put]>->( $abs_path, \$content );
             return sprintf "created %s [ %d bytes ]", $path, length($content);
         }
+        ## stage to zenka dir when no write access ##
+        my $stage_name = $path;
+        $stage_name =~ s|/|__|g;
+        my $stage_rel = "staged/$stage_name";
+        <[file.zenka_dir.write]>->( $stage_rel, \$content );
+        <[base.logs]>->(
+            1, ':. write_new_file: staged %s [ no write access ]', $path
+        );
+        return sprintf "staged new file %s [ %d bytes, no write access ]\n"
+            . "staged at: %s",
+            $path, length($content), $stage_rel;
+    },
 
-        return 'error: cannot create file';
+    'ptd_check' => sub {
+        my $module = $args->{'module'} // return 'module name required';
+
+        ## validate module name ##
+        return 'error: invalid module name'
+            if $module =~ m{[;&|`\$\\"'\n\r/]};
+
+        my $root = <system.root_path>;
+        my $path = "$root/modules/$module";
+        return "error: module not found [ $module ]" unless -f $path;
+
+        my $err_file = "$root/var/tmp/.ptd_check.$$";
+        my $output   = '';
+        if ( open my $fh, '-|', "$root/bin/ptd -c $path 2>$err_file" ) {
+            local $/;
+            $output = <$fh>;
+            close $fh;
+        }
+        ## strip ansi color codes ##
+        $output =~ s|\e\[[0-9;]*m||g;
+
+        my $warnings = '';
+        if ( -s $err_file ) {
+            if ( open my $efh, '<', $err_file ) {
+                local $/;
+                $warnings = <$efh>;
+                close $efh;
+            }
+        }
+        unlink $err_file;
+
+        my $result = $output;
+        $result .= "\n## warnings ##\n$warnings" if length $warnings;
+        return $result;
+    },
+
+    'ptd_format' => sub {
+        my $module = $args->{'module'} // return 'module name required';
+
+        ## validate module name ##
+        return 'error: invalid module name'
+            if $module =~ m{[;&|`\$\\"'\n\r/]};
+
+        my $root = <system.root_path>;
+        my $path = "$root/modules/$module";
+        return "error: module not found [ $module ]" unless -f $path;
+
+        ## read before ##
+        my $before_ref = <[file.slurp]>->($path);
+        return 'error: cannot read module' unless defined $before_ref;
+
+        my $err_file = "$root/var/tmp/.ptd_fmt.$$";
+        my $output   = '';
+        if ( open my $fh, '-|', "$root/bin/ptd $path 2>$err_file" ) {
+            local $/;
+            $output = <$fh>;
+            close $fh;
+        }
+        $output =~ s|\e\[[0-9;]*m||g;
+
+        my $warnings = '';
+        if ( -s $err_file ) {
+            if ( open my $efh, '<', $err_file ) {
+                local $/;
+                $warnings = <$efh>;
+                close $efh;
+            }
+        }
+        unlink $err_file;
+
+        ## check if file changed ##
+        my $after_ref = <[file.slurp]>->($path);
+        my $changed
+            = ( defined $after_ref and $after_ref->$* ne $before_ref->$* );
+
+        my $result = $output;
+        $result
+            .= $changed
+            ? "\n[ file was reformatted ]"
+            : "\n[ no formatting changes needed ]";
+        $result .= "\n## warnings ##\n$warnings" if length $warnings;
+        return $result;
     },
 
 );
@@ -487,8 +585,8 @@ return {
     'content' => $content,
 };
 
-#,,.,,,.,,.,.,,,.,,,,,.,.,,..,...,,,.,,.,,..,,..,,...,...,.,,,,,.,..,,,.,,,..,
-#ZJBC3DQ2R2P3AUDUZW3ZSFS7C47Z43VYDUXOMEB26L5E4Q6FQMPPTB26QN7RKFZGATYQ4RTJR7LES
-#\\\|H25XOTVGDVMSAPX2VYJCEKME2VRKG65UWVQISZADKGFB4YAO5AG \ / AMOS7 \ YOURUM ::
-#\[7]SMFAO7INIKYEIU7WODCSCZUH6BQKCOYUAGRSZL4E2DMEEJZVVICQ 7  DATA SIGNATURE ::
+#,,,,,.,,,,.,,.,.,,,,,.,.,...,,..,.,.,,.,,,,,,..,,...,...,.,,,,,.,,.,,,,,,,..,
+#OCQBTVWJ7WADLQADNNBBWAHEDTER6GHLW5S7FUL5T42ZTYI3PUEV2BBIMSIPQ7SV7JVQQI7UBVANE
+#\\\|TXOZFGND3JXDCIJSOLF2OGPWDWFOXYUUDTTR2XBUR62VC6OLMYY \ / AMOS7 \ YOURUM ::
+#\[7]I4A4NLDDPC67LLL4JXEVF42UZOTZ3UBTV5IIAVNXCWQT7NCQWSCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
