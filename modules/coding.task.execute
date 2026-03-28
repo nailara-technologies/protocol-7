@@ -78,9 +78,10 @@ if ( defined $result && $result->{'success'} ) {
     <[coding.task.complete]>->( $task_id, $result_text );
 } else {
     my $error_msg = $result->{'error'} // 'unknown error';
+    my $err_short = <[base.parser.center_ellipse_string]>->( $error_msg, 72 );
     <[base.logs]>->(
         0,        "coding.task.execute: task %s failed: %s",
-        $task_id, $error_msg
+        $task_id, $err_short
     );
     <[jobqueue.move_job]>->( $job_id, 'error' );
     <[coding.task.fail]>->( $task_id, $error_msg );
@@ -88,8 +89,8 @@ if ( defined $result && $result->{'success'} ) {
 
 return $result;
 
-#,,..,.,.,,,.,,,,,.,.,..,,..,,.,,,,..,,..,,.,,.,.,...,...,...,,.,,.,.,.,,,.,.,
-#KUEFTXQQK6FTPHQ74QXWGH5HEXXMQRFSJFRN3R4E7HAPZORTN26FMCDALOLX6DE5QGU3OIBAMRWIO
-#\\\|PTXQZQOEFW3LPRZVJQLMUXSLBEFCOCKZ6O2G2TELQK5RFFRPFEH \ / AMOS7 \ YOURUM ::
-#\[7]HQXAESLJEN7NRY4Q6B4E5FEVXRGCCNH6WWARGGK7LP76AKBIY4CI 7  DATA SIGNATURE ::
+#,,,.,...,.,,,,.,,.,,,...,,..,..,,..,,,,,,,.,,.,.,...,...,..,,...,,,,,,,,,,..,
+#J7JE7CX2OZFWS44QO42NBVXHUY3HGGNZYCJJCVVKA4I2MBLIZ2UZT6CTSJCGTZVBCEIGJEK6TRLVI
+#\\\|KTVL7CN5K3S3VE6NSCC5FI27QGYEZETXLJ36JTTM6JIRMRFSGUC \ / AMOS7 \ YOURUM ::
+#\[7]BG77I27BCV4QKT7SR73Z3ESEUR2QVC5SYDISRV5TQG62G5EZPODA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
