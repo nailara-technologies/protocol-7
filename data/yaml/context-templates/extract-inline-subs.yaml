@@ -1,0 +1,114 @@
+---
+name: extract-inline-subs
+descr: find inline sub {} declarations and extract into separate module files
+budget: 5000
+sections:
+  ## core knowledge ##
+  - include: system-base
+    priority: 1
+    budget_pct: 10
+
+  ## target module content ##
+  - provider: context.file.extract
+    priority: 2
+    budget_pct: 25
+    params:
+      extract: full
+    label: target module source
+
+  ## instructions ##
+  - static: |
+      analyze the target module for inline sub {} declarations that should
+      be extracted into separate protocol-7 module files.
+
+      ## background ##
+
+      protocol-7 modules are single-subroutine files in the modules/ directory.
+      the filename becomes the callable name. inline sub {} declarations inside
+      modules bypass this architecture and cannot be individually reloaded,
+      tested, or reused.
+
+      ## investigation steps ##
+
+      1. read the target module fully with read_file
+      2. identify all inline sub {} declarations [ named and anonymous ]
+      3. for each: determine if it is a good extraction candidate
+      4. use ncode_search to check if similar logic exists elsewhere
+      5. propose the new module filename and interface
+
+      ## what to extract ##
+
+      - named subs: `my $handler = sub { ... };` or `sub name { ... }`
+      - anonymous subs assigned to variables and called multiple times
+      - callback subs longer than ~10 lines
+      - subs that could be reused by other modules
+
+      ## what to leave inline ##
+
+      - short closures [ under 5 lines ] that capture local state
+      - one-shot callbacks tightly coupled to surrounding logic
+      - sort/grep/map blocks
+
+      ## extraction pattern ##
+
+      given an inline sub like:
+      ```perl
+      my $process_result = sub {
+          my $data = shift;
+          ## 20 lines of processing ##
+          return $result;
+      };
+      ```
+
+      extract to: `modules/coding.util.process_result`
+      ```perl
+      ## [:< ##
+      # name  = coding.util.process_result
+      # descr = process inference result data
+      my $data = shift;
+      ## 20 lines of processing ##
+      return $result;
+      ```
+
+      and replace inline with:
+      ```perl
+      my $result = <[coding.util.process_result]>->($data);
+      ```
+
+      ## naming conventions ##
+      - <zenka>.handler.* : event/callback handlers
+      - <zenka>.util.* : utility functions
+      - <zenka>.parser.* : data transformation/parsing
+      - keep the namespace consistent with existing module organization
+
+      ## output format ##
+
+      for each extraction candidate:
+      - current: description of the inline sub and its location
+        line: <line number>
+        length: <number of lines>
+        proposed_module: <new module filename>
+        interface: <calling convention after extraction>
+        captures: <list of variables from outer scope it needs>
+        risk: low/medium/high [ based on closure complexity ]
+
+      use edit_file to create the new module files where extraction is
+      straightforward [ risk=low, no complex closures ]. for medium/high
+      risk extractions, report findings only.
+
+      important: new module files must use the ## [:< ## header format
+      and include name/descr comments. do NOT add signature stubs.
+    priority: 3
+    budget_pct: 65
+    label: inline sub extraction instructions
+
+on_complete:
+  - when: [output_length_gt=200]
+    action: memory_update
+    topic: "audit:extract-inline-subs"
+
+#,,,.,,,,,..,,,.,,,,,,...,...,,,,,..,,...,,,,,.,.,...,..,,,.,,..,,..,,,,,,.,,,
+#OJ5UYFDCFGW2VVMMCXAZJFYSWBCS4LDI57B53T4XVUNV7MY5EDSRDBNYRSASDQJI6DDANVNSMHV5M
+#\\\|LPIWDN4NPSIR2GHQITX7VGPEH7HVQOCGF3FLVF3RHXLG2Y4JOPE \ / AMOS7 \ YOURUM ::
+#\[7]XYULSOH4MTADSZ6BUTZFBUZIGHJ7QPNSHP6HAID527H7ZG2PUCBY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
