@@ -18,6 +18,13 @@ return if not length $admin_group;
 my $admin_gid = ( getgrnam($admin_group) )[2];
 return if not defined $admin_gid;
 
+## resolve admin user for privilege drop ##
+my $admin_user = <system.admin-user> // '';
+return if not length $admin_user;
+
+my ( undef, undef, $admin_uid, $admin_user_gid ) = getpwnam($admin_user);
+return if not defined $admin_uid;
+
 <system.path.perl_bin> //= <[base.get_path.perl_exec]>;
 
 my $zenka_name_chars = qr|0-9A-Za-z_\-|;
@@ -29,7 +36,10 @@ my $child_code = <<~"EOT";
 use v5.24; use strict; use warnings; use English;
 use Fcntl qw| :mode |;
 map { \$SIG{\$ARG} = qw| IGNORE | } qw| INT TERM QUIT |;
-\$PROGRAM_NAME = q|$zenka_name-<root>-chmod-child|;
+## drop to admin user [ file owner — can chmod without root ] ##
+\$GID = \$EGID = $admin_user_gid;
+\$UID = \$EUID = $admin_uid;
+\$PROGRAM_NAME = q|$zenka_name-<$admin_user>-chmod-child|;
 my \$admin_gid = $admin_gid;
 while ( my \$line = <STDIN> ) {
     chomp \$line;
@@ -41,6 +51,19 @@ while ( my \$line = <STDIN> ) {
         next if not defined \$gid or \$gid != \$admin_gid;
         my \$cur = ( stat \$path )[2] & 07777;
         chmod( \$cur | 0020, \$path );
+    } elsif ( \$line =~ m|^create (.+)\$| ) {
+        my \$path = \$1;
+        next if -e \$path;
+        ## verify parent dir is owned by admin group ##
+        ( my \$dir = \$path ) =~ s|/[^/]+\$||;
+        next if not -d \$dir;
+        my \$dir_gid = ( stat \$dir )[5];
+        next if not defined \$dir_gid or \$dir_gid != \$admin_gid;
+        ## create empty file as admin user [ 0664 for group write ] ##
+        if ( open my \$fh, '>', \$path ) {
+            close \$fh;
+            chmod( 0664, \$path );
+        }
     } elsif ( \$line =~ m|^restore (\\d+) (.+)\$| ) {
         my ( \$mode, \$path ) = ( oct(\$1), \$2 );
         next if not -f \$path;
@@ -65,8 +88,8 @@ EOT
     <coding.chmod_child.pid>, $admin_group, $admin_gid
 );
 
-#,,.,,...,,,.,.,.,,,,,.,.,,.,,,,,,.,,,...,,.,,.,.,...,...,,.,,,,.,.,,,.,,,...,
-#5KAEMNLWENRMVEFORYODBNGHJN5CTQMYGICQQHKKUMT7F2MUXCOTZF6X74AH234R3S64N47D47EN6
-#\\\|S52DRKFC5MNHCQ2BHZMQJJNVSDWOJQVOBCFUF6PVCBNJKSX5CXG \ / AMOS7 \ YOURUM ::
-#\[7]KJPFBOMF2SAD73MYFQD6YVCMTOHC45BUDACCLB5QQSSEU3KXYMDY 7  DATA SIGNATURE ::
+#,,..,,.,,,.,,,..,,,.,.,,,..,,,..,,..,.,,,.,,,.,.,...,...,,,,,,..,..,,...,,.,,
+#FUHUO4MVOVGPL3EYW4LPKEKX7N323C37PIVRYISJKUY3HI7LOKMRRH2GUJT7Q6R3TBPDMBGKT7GHU
+#\\\|FJQWG4IOITQFCPM3EFG4I4ACWXZS26OXH66VBHSHCPUBZNVF7EL \ / AMOS7 \ YOURUM ::
+#\[7]VJTNCJ3YH4OBKJS62GLNWGQM5KNOEJTNWUX5K4DQL3O2FG4FQIBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
