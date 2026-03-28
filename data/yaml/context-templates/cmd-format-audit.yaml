@@ -1,0 +1,88 @@
+---
+name: cmd-format-audit
+descr: audit cmd modules for correct parameter and return format
+budget: 4000
+sections:
+  ## core knowledge ##
+  - include: system-base
+    priority: 1
+    budget_pct: 10
+
+  ## target module content ##
+  - provider: context.file.extract
+    priority: 2
+    budget_pct: 20
+    params:
+      extract: full
+    label: target module source
+
+  ## instructions ##
+  - static: |
+      audit the target *.cmd.* module [ or all cmd modules if no target given ]
+      for protocol-7 command handler conventions.
+
+      ## correct cmd module pattern ##
+
+      ```perl
+      ## [:< ##
+      # name  = zenka.cmd.command_name
+      # descr = brief description of what it does
+
+      my $args = $$call{'args'} // '';
+
+      ## ... processing ...
+
+      return { 'mode' => 'size', 'data' => $output };
+      ```
+
+      ## what to check ##
+
+      ### parameter access ###
+      - must use `$$call{'args'}` not `shift` or `@ARG`
+      - `$call` is the implicit command context hashref
+      - args is always a string, parse if structured data needed
+
+      ### return format ###
+      - must return a hashref: `{ 'mode' => $m, 'data' => $d }`
+      - mode values: 'size' [ normal output ], 'false' [ error/empty ],
+        'true' [ boolean success ]
+      - bare string returns cause "broken command" errors
+      - `return;` without value causes "broken command"
+
+      ### common mistakes ###
+      - returning `$output` instead of `{ mode => 'size', data => $output }`
+      - using `shift` for args [ works differently in cmd context ]
+      - missing `// ''` default on args [ undef warnings ]
+      - returning hashref with wrong keys [ 'result' instead of 'data' ]
+
+      ## investigation steps ##
+
+      1. read the target module with read_file
+      2. check parameter access pattern
+      3. check all return paths for correct hashref format
+      4. search for other cmd modules with ncode_search to compare
+      5. use edit_file to fix any issues found
+
+      ## output format ##
+
+      for each issue:
+      - file: <module path>
+        line: <line number>
+        issue: <description>
+        fix: <what it should be>
+
+      apply fixes with edit_file for straightforward corrections.
+    priority: 3
+    budget_pct: 70
+    label: cmd format audit instructions
+
+on_complete:
+  - when: [output_length_gt=200]
+    action: memory_update
+    topic: "audit:cmd-format"
+
+#,,.,,..,,,.,,,,.,,,.,,..,,.,,,..,...,,,.,,..,.,.,...,...,.,,,,..,.,,,,,.,..,,
+#7SYWSHMOQCSUXWZ4AUFITZR3LWMCQIQXV55T7EVB4PYGKQD4KFLKWBIVMOVF6CDB45NQGPC6VPCDE
+#\\\|CL5ERFOWYAUCVEGK3HQS6BASPS6DBOGTGZNUZMBIBF7LVLSX2XE \ / AMOS7 \ YOURUM ::
+#\[7]WAHID5RQQXCNFO6NL2QGMHEZOGBBZUQN3EFS23TUOK6NFFPZGMAA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
