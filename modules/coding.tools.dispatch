@@ -13,6 +13,10 @@ my $call_id = $tool_call->{'id'} // '';
 ## parse arguments if still JSON string ##
 if ( not ref $args and length $args ) {
     my $parsed = eval { JSON::PP::decode_json($args) };
+    ## fallback: try from_json for character strings ##
+    $parsed = eval { JSON::from_json($args) }
+        if not defined $parsed
+        or ref $parsed ne qw| HASH |;
     if ( defined $parsed and ref $parsed eq qw| HASH | ) {
         $args = $parsed;
     } else {
@@ -20,10 +24,15 @@ if ( not ref $args and length $args ) {
             0,     ':. tools.dispatch: JSON parse error for %s: %s',
             $name, $@ // 'unknown'
         );
+        <[base.logs]>->(
+            2,             ':. raw args [ %d chars ]: %.200s',
+            length($args), $args
+        );
         return {
             'id'      => $call_id,
             'role'    => 'tool',
-            'content' => "error: invalid arguments JSON",
+            'content' => "error: invalid arguments JSON"
+                . " - check quoting in nested values",
         };
     }
 }
@@ -405,7 +414,9 @@ my %dispatch = (
             my $stage_name = $path;
             $stage_name =~ s|/|__|g;
             my $stage_rel = "staged/$stage_name";
-            <[file.zenka_dir.write]>->( $stage_rel, \$new_content );
+            <[file.zenka_dir.write]>->(
+                $stage_rel, \$new_content, '>', 0664, ':encoding(UTF-8)'
+            );
             <[base.logs]>->(
                 1, ':. edit_file: staged %s [ no write access ]', $path
             );
@@ -446,7 +457,9 @@ my %dispatch = (
         my $stage_name = $path;
         $stage_name =~ s|/|__|g;
         my $stage_rel = "staged/$stage_name";
-        <[file.zenka_dir.write]>->( $stage_rel, \$content );
+        <[file.zenka_dir.write]>->(
+            $stage_rel, \$content, '>', 0664, ':encoding(UTF-8)'
+        );
         <[base.logs]>->(
             1, ':. write_new_file: staged %s [ no write access ]', $path
         );
@@ -585,8 +598,8 @@ return {
     'content' => $content,
 };
 
-#,,,.,..,,.,,,.,.,...,.,.,..,,.,.,,,,,...,...,..,,...,...,...,.,,,,..,,,.,,..,
-#PCEEEZ5W7VQTMYHXSHFUGLNRVSMW7BGHBOHKG5LUEL7YVS7DKJTP6AGKEVNSW3537B7WRTI4SWL5C
-#\\\|RS2SKUP67S6WOL6KG5ZCA3BFNHW5Y4H2Q5QNWOF47HYJUHIXFTM \ / AMOS7 \ YOURUM ::
-#\[7]QUO6KMGWOVI3WGHJUMAFETOMPVRU5PR27SNRHDTC7F76XYFDPYDI 7  DATA SIGNATURE ::
+#,,..,.,,,,,.,..,,.,,,.,,,.,.,,,,,,,,,.,.,.,.,..,,...,...,..,,...,,..,,.,,..,,
+#VLSDCXKLYG4WYPHT6CUT3TWWSKW3JDSTPN6AONTIZV6W5QEWN5HCN5L5MDVWDUC2IOFMEJAXSU5HS
+#\\\|WWY2YGVYHUGAVXEALXUNPNFBRJLYOFEBC6M6QI2FCFOEKCSL3QD \ / AMOS7 \ YOURUM ::
+#\[7]CUPIDFZXDKCROJK6YDWFHOE7JI3WSFS5B4IEQMI3LO2PVFQFRYDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

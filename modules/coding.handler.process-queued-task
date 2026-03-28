@@ -196,9 +196,9 @@ my $tool_round      = 0;
 
 ## context size tracking for compaction ##
 my $context_limit     = <inference.model.context_length> // 16384;
-my $compact_threshold = int( $context_limit * 0.70 );    ## compact at 70% ##
-my $chars_per_token   = 4;                               ## rough estimate ##
-my $keep_recent_msgs  = 6;    ## preserve last 3 tool rounds [ 6 msgs ] ##
+my $compact_threshold = int( $context_limit * 0.55 );    ## compact at 55% ##
+my $chars_per_token   = 3.2;    ## adjusted for tool-calling JSON overhead ##
+my $keep_recent_msgs  = 6;      ## preserve last 3 tool rounds [ 6 msgs ] ##
 
 eval {
     use LWP::UserAgent;
@@ -486,8 +486,8 @@ if ( length $response_text
 ## return result hashref for jobqueue callback ##
 return { success => TRUE, result => $response_text, task_id => $task_id };
 
-#,,,,,,.,,.,,,...,,.,,...,,.,,,.,,.,,,,.,,.,.,..,,...,...,.,.,...,.,.,,,.,,,,,
-#CEM7QGXQB4SP62HGBBYUKAMSF2AXBKVRJ7SXOHDXKZJL7LNB4R6JNOV6LCZS3CPINXU4QWLF6PSIO
-#\\\|SAVEMFTGJXRZBDQF4SZOBKF6NX5WD2JX6QUWZRHXLZFXEDVISCJ \ / AMOS7 \ YOURUM ::
-#\[7]WV2QGZFCBJHPFSIBUG42FV5KE3ZDQD4G64UJVFSJRKXIUPTP56CQ 7  DATA SIGNATURE ::
+#,,,.,...,,.,,.,,,..,,...,...,..,,,.,,,..,,.,,..,,...,...,...,,..,,,,,...,,..,
+#T6GW3WA2ECEM2KDWIK6BPNERQD7DRGX3QKJJHVFDQGKA7XTSEVHWTXCBF6F34TUSHKO4VTDLMQNFY
+#\\\|3LG4NQEEXDP7ZLQHO6YW5O3EKR5T5NKXJJTKWQU2KSKZJDZ6YX7 \ / AMOS7 \ YOURUM ::
+#\[7]WPX4C5XE5AIVYHHCQYDUBI5XNVBOQCB5EBNEZBSLQFVVEJOHDSCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
