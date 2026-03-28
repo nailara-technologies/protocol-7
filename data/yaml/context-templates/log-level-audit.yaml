@@ -1,0 +1,84 @@
+---
+name: log-level-audit
+descr: audit log calls for correct level, format strings, and P7 style
+budget: 3000
+sections:
+  ## core knowledge ##
+  - include: system-base
+    priority: 1
+    budget_pct: 10
+
+  ## target module content ##
+  - provider: context.file.extract
+    priority: 2
+    budget_pct: 25
+    params:
+      extract: full
+    label: target module source
+
+  ## instructions ##
+  - static: |
+      audit the target module for protocol-7 logging conventions.
+
+      ## log functions ##
+
+      - `<[base.logs]>->( $level, $format, @args )` — sprintf-style, explicit level
+      - `<[base.log]>->( $level, $message )` — plain string, explicit level
+      - `<[base.log]>->( $message )` — plain string, default level 1
+      - `<[base.s_warn]>->( $format, @args )` — sprintf warning, level 0
+
+      ## log levels ##
+      - 0 = error [ always shown ]
+      - 1 = default [ normal operation ]
+      - 2 = info [ verbose ]
+      - 3 = debug [ very verbose ]
+
+      ## what to check ##
+
+      ### level correctness ###
+      - errors and failures should be level 0
+      - normal operation milestones level 1
+      - detailed progress level 2
+      - debug/trace level 3
+      - startup messages typically level 1 or 2
+
+      ### format string safety ###
+      - never interpolate variables directly: `"error: $msg"` is WRONG
+      - use sprintf format codes: `"error: %s", $msg` is correct
+      - base.logs uses sprintf internally — pass format + args
+
+      ### P7 style ###
+      - messages start lowercase: `: loading config` not `: Loading config`
+      - use `:. :` prefix/suffix pattern for structured output
+      - annotations use `[ word ]` not `( word )`
+      - keep messages concise
+
+      ## investigation steps ##
+
+      1. read the target module
+      2. find all log/logs/s_warn calls
+      3. check levels are appropriate for the message type
+      4. check format strings for direct interpolation
+      5. fix with edit_file where clearly wrong
+
+      ## output ##
+
+      for each finding:
+      - line: <number>
+        current: <the log call>
+        issue: wrong-level | interpolation | style
+        fix: <corrected version>
+    priority: 3
+    budget_pct: 65
+    label: log level audit instructions
+
+on_complete:
+  - when: [output_length_gt=200]
+    action: memory_update
+    topic: "audit:log-levels"
+
+#,,,.,..,,,..,..,,...,..,,,.,,.,.,,..,..,,,,,,.,.,...,...,.,.,,..,...,.,.,,..,
+#P2N7IBXM4MLHUGI4OVAMRTXKLPCMY2EG5RGHSJYLQTOVSESN2EG4F7MYR3CW7NRZJ3VQFSVW6IBBA
+#\\\|TMX3BUORP7V2G4O76COVC5TWNLFJ2ENHRXLHJ6D6CD2I7YEDJDC \ / AMOS7 \ YOURUM ::
+#\[7]W2TRXMXC5UWW6V5TQDZRHINARAZPF7STNRBMO2G5KRH3SDOD4WCY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
