@@ -1,0 +1,77 @@
+## [:< ##
+
+# name  = coding.cmd.clear-cache
+# descr = clear inference result cache [ disk + memory ]
+
+my $args = shift // '';
+
+my $registry = $data{'storage'}{'mapping'}{'inference'} // {};
+my $root     = $registry->{'root_path'}                 // '';
+
+unless ( length $root and -d $root ) {
+    return {
+        'mode' => qw| false |,
+        'data' => "no inference cache root found",
+    };
+}
+
+## count branches before clearing ##
+my $branch_count = 0;
+my $result_count = 0;
+
+if ( opendir my $dh, $root ) {
+    while ( my $entry = readdir $dh ) {
+        next if $entry =~ m{^\.};
+        next unless -d "$root/$entry";
+        $branch_count++;
+        if ( opendir my $bdh, "$root/$entry" ) {
+            while ( my $ts = readdir $bdh ) {
+                next if $ts =~ m{^\.};
+                next if $ts eq qw| refs |;
+                next unless -d "$root/$entry/$ts";
+                $result_count++;
+            }
+            closedir $bdh;
+        }
+    }
+    closedir $dh;
+}
+
+## remove all branch directories ##
+require File::Path;
+my $errors = [];
+File::Path::remove_tree( $root, { 'keep_root' => 1, 'error' => \$errors } );
+
+## reset in-memory index ##
+$registry->{'branches'} = {};
+$registry->{'stats'}    = {
+    'hits'          => 0,
+    'misses'        => 0,
+    'stores'        => 0,
+    'dedup_skips'   => 0,
+    'branches'      => 0,
+    'total_results' => 0,
+};
+
+my $err_count = scalar $errors->@*;
+
+<[base.logs]>->(
+    1,             ': clear-cache: removed %d branches, %d results%s',
+    $branch_count, $result_count,
+    $err_count ? sprintf( ' [ %d errors ]', $err_count ) : ''
+);
+
+return {
+    'mode' => qw| true |,
+    'data' => sprintf(
+        "cache cleared: %d branches, %d results removed%s",
+        $branch_count, $result_count,
+        $err_count ? sprintf( ' [ %d errors ]', $err_count ) : ''
+    ),
+};
+
+#,,..,,,,,.,.,,.,,,,,,..,,...,,..,.,,,..,,.,,,..,,...,...,...,,,.,,..,.,,,.,,,
+#TACAPLLRY2IDAEQAN3BJZB6KUNIF33PPAPTDF7ABWFQMNAWR5V5VBJ4S4SEN7M756BNGDVF7ZTXIY
+#\\\|RSSRXOZOEDBWT2FB4FQYJEYJZBOCUJYPJR2PPPI3C3YSI5RPCAV \ / AMOS7 \ YOURUM ::
+#\[7]6XF7O5GCI5BS5XOQRNIMPOS67LPXANF2RYV56CA7DA47D3DR2SCI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
