@@ -1,0 +1,62 @@
+---
+name: tool-fix
+descr: fix a specific tool handler based on error diagnosis
+budget: 3500
+sections:
+  ## style conventions ##
+  - provider: context.style.guide
+    priority: 1
+    budget_pct: 10
+    label: style conventions
+
+  ## the tool definitions ##
+  - provider: context.file.extract
+    priority: 2
+    budget_pct: 20
+    params:
+      path: "modules/coding.tools.definitions"
+    label: tool definitions
+
+  ## the dispatch module — full content ##
+  - provider: context.file.extract
+    priority: 3
+    budget_pct: 35
+    params:
+      path: "modules/coding.tools.dispatch"
+    label: dispatch handlers
+
+  ## the target module the tool calls ##
+  - provider: context.file.extract
+    priority: 4
+    budget_pct: 15
+    params:
+      path: "{{target_module}}"
+    optional: true
+    label: target provider module
+
+  ## fix instructions ##
+  - static: |
+      fix the tool handler issue described below. output ONLY the corrected
+      code with line numbers. follow P7 style conventions strictly.
+
+      issue: {{issue_description}}
+
+      check these common problems:
+      - return format: tools must return string content, dispatch wraps it
+      - missing args handling: default all params with //
+      - undefined $code{} refs: check exists before calling
+      - file paths: prepend <system.root_path> for relative paths
+      - shell safety: validate/sanitize user input for exec calls
+
+      format fixes as:
+      file: <module name>
+      line N: old → new
+    priority: 5
+    budget_pct: 20
+    label: fix instructions
+
+#,,,,,,..,.,,,...,,.,,...,,,,,...,..,,,,,,.,,,..,,...,...,.,.,,,.,..,,,,.,,..,
+#VR2UDG34SGCVX6DF7Q3RPPFR4AUEJFLPRMA5MTPD2HVSEIGFVKPRJXWLDLPVJRKHEXGCI5OWBG7VA
+#\\\|ZYJIYZ264IAPYFTXNNMGIV22YQHUWQVDCL7Z2B2O2SW57G7CE43 \ / AMOS7 \ YOURUM ::
+#\[7]3O7YRVILNHZ6BQWVQW2ZZQ4MZ72S43P4RW6LWHVYXUMJRS6VA2CY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
