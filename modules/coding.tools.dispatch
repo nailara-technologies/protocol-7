@@ -345,8 +345,22 @@ my %dispatch = (
         ## write back if applying and no errors ##
         if ( $apply and not $errors ) {
             my $new_content = join "\n", @lines;
+
+            ## chmod g+w if configured and file not writable ##
+            my $did_chmod = 0;
+            if ( !-w $abs_path
+                and ( <coding.cfg.allow_chmod_apply> // '' ) eq qw| yes | ) {
+                my $mode = ( stat $abs_path )[2];
+                if ( defined $mode ) {
+                    chmod( $mode | 020, $abs_path );    ## add g+w ##
+                    $did_chmod = 1;
+                }
+            }
+
             if ( -w $abs_path ) {
                 <[file.put]>->( $abs_path, \$new_content );
+                ## restore original permissions ##
+                chmod( 0664, $abs_path ) if $did_chmod;
                 return sprintf "applied %d edits to %s\n%s",
                     scalar @$edit_list, $path, join "\n", @preview;
             }
@@ -419,8 +433,8 @@ return {
     'content' => $content,
 };
 
-#,,,.,...,.,.,,,,,,,.,..,,,,,,.,.,,,.,...,,..,..,,...,...,..,,...,,..,..,,,,.,
-#3E6GBWNSSBAV24DC3M2LRRKQKNE2ZGZJNYPIRLK4G6FDTDAGY6JVC6GD3UHF237DVCMQJP567NVYE
-#\\\|YXAW534HPTE6PKSHF34JDHT6FEFMNDFGANKO4PSHULCJMRJ4EX6 \ / AMOS7 \ YOURUM ::
-#\[7]ZXFEESSSYMOZ4RK52X2SYHAPRNRFJDLE4JQGGR26X4KBZAWR6UCI 7  DATA SIGNATURE ::
+#,,,,,.,.,.,.,,,.,.,.,,..,,,.,,..,..,,.,,,..,,..,,...,...,,..,.,,,.,.,,,.,..,,
+#WXKVMJHYY62N4KLUOJUDRS4A3SVLBZVSWFCH7M2FJED3E6S5BNQSEJ3KTKHMKNGKKGGQIANDO2EGE
+#\\\|GSWTXKFCSDQFQU4BW7DGXJ7FWAICKPGJNWISSXWNV76TLBFVOL4 \ / AMOS7 \ YOURUM ::
+#\[7]ZA3MJ3SCYJGDXBDXVAR6HB26XIVV4PDXH25Q6SOYBC7JPTWXXYDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -19,10 +19,29 @@ return "error: file already exists [ $path ]" if -e $abs_path;
 ## check if parent dir is writable ##
 my $dir = $abs_path;
 $dir =~ s|/[^/]+$||;
+
+## chmod g+w parent dir if configured and not writable ##
+my $did_chmod = 0;
+if (    -d $dir
+    and !-w $dir
+    and ( <coding.cfg.allow_chmod_apply> // '' ) eq qw| yes | ) {
+    my $mode = ( stat $dir )[2];
+    if ( defined $mode ) {
+        chmod( $mode | 020, $dir );    ## add g+w ##
+        $did_chmod = 1;
+    }
+}
+
 if ( -d $dir and -w $dir ) {
     <[file.put]>->( $abs_path, \$content );
+    chmod( 0664, $abs_path );
+    ## restore dir permissions ##
+    chmod( 0775, $dir ) if $did_chmod;
     return sprintf "created %s [ %d bytes ]", $path, length($content);
 }
+## restore dir if chmod didn't help ##
+chmod( 0775, $dir ) if $did_chmod;
+
 ## stage to zenka dir when no write access ##
 my $stage_name = $path;
 $stage_name =~ s|/|__|g;
@@ -37,8 +56,8 @@ return sprintf "staged new file %s [ %d bytes, no write access ]\n"
     . "staged at: %s",
     $path, length($content), $stage_rel;
 
-#,,,.,,.,,...,,,.,...,,,.,...,,..,,.,,.,,,,,,,..,,...,...,,,.,,..,,,.,,..,.,.,
-#SDCLYNPZAS6HMWE5JV777RYR4UTWMFWTIY3TDA2H35N4GWILYQ2W6C6DPKKURHTPUARZWW3JTIU4K
-#\\\|DP3C6N3RXU25GYYADBXDCFEHGGDG2SD3NZV46MNIAOUTK5LDRNC \ / AMOS7 \ YOURUM ::
-#\[7]TSTVMLQEDK43GZLWAJYCX6LDC6EJVWOVW6HCLAJFJBQUU7DCCIAI 7  DATA SIGNATURE ::
+#,,,.,,.,,...,,..,..,,..,,...,,,,,.,,,,,,,,..,..,,...,...,..,,...,...,,,,,,,.,
+#Y7IAO4N5OLNUS7J5MH34OOBDOFWQE2BQN64JO4X4TPAJ2TW7JGDOPHHAAJ4227FT4CPPXAA6JHBYS
+#\\\|4ZMYMH27CZLYPJXRZBMANDGZSGE5FIGY75BMIHNCDNOGWWZPBB3 \ / AMOS7 \ YOURUM ::
+#\[7]USX5B2Y32IPO5RNF3VSITVLQZ7ECTCI2O5ANDT5MSV6AHPQ3WEBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

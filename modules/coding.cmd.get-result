@@ -21,6 +21,13 @@ my $status = $task->{'execution'}->{'status'} // 'unknown';
 if ( $status eq 'completed' ) {
     my $result = $task->{'execution'}->{'result'} // '';
 
+    ## empty result means task produced no output ##
+    return {
+        'mode' => qw| false |,
+        'data' => 'task completed with empty result'
+        }
+        unless length $result;
+
     # Determine reply mode based on internal newlines
     my $stripped = $result;
     $stripped =~ s/\n$//;
@@ -48,8 +55,8 @@ if ( $status eq 'completed' ) {
     };
 }
 
-#,,,.,..,,,..,,,,,.,,,.,.,,,.,...,..,,.,.,,.,,.,.,...,...,..,,,,,,...,..,,.,.,
-#LRZHPCGBVEJA5GJVJD3CVETAM24MGDTDNLLKOUH4WEKRFANH23MEC3JTQ5DHJV7IOA6YZTI274SRI
-#\\\|6GVVDOUDPXMDRNZCQFOVSHUCGK3H7MQ3K3NJIDGUASGITIQVLGX \ / AMOS7 \ YOURUM ::
-#\[7]2MRGDTVKE75U5TQH573ZBLV7PAWQLWHHFQ7TXGTM4RV7GSRKNOBY 7  DATA SIGNATURE ::
+#,,,,,,,.,..,,,.,,...,,.,,,,,,.,.,,.,,,,.,,,.,.,.,...,...,..,,,..,,..,,.,,.,,,
+#VPWVXAVBKTZHUX7LGJMDK2SUC5GGTIKBOET3EGWBLLMY63YYRPMXL25UDRWU336ISFH222RIIBHZ6
+#\\\|PL2I3BWRUFON2ESRU2WI6X4UON6IPDLBLXHYQXRF6CVYV6JF6KS \ / AMOS7 \ YOURUM ::
+#\[7]3GMDGDIWEREK4I6DG4V7VLLI2ANFW5546J6ISHZ5KJ2FQRUDNIAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
