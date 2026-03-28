@@ -191,8 +191,14 @@ my $tools = $assembled->{'tools'};
 my $response_text     = '';
 my $finish_reason_val = 'stop';
 my $http_error;
-my $max_tool_rounds = 10;
+my $max_tool_rounds = 42;
 my $tool_round      = 0;
+
+## context size tracking for compaction ##
+my $context_limit     = <inference.model.context_length> // 16384;
+my $compact_threshold = int( $context_limit * 0.70 );    ## compact at 70% ##
+my $chars_per_token   = 4;                               ## rough estimate ##
+my $keep_recent_msgs  = 6;    ## preserve last 3 tool rounds [ 6 msgs ] ##
 
 eval {
     use LWP::UserAgent;
@@ -205,6 +211,96 @@ eval {
 
 INFERENCE_LOOP:
     while ( $tool_round <= $max_tool_rounds ) {
+
+        ## context compaction: estimate size, compact if approaching limit ##
+        if ( $tool_round > 2 and @messages > 4 ) {
+            my $total_chars = 0;
+            $total_chars += length( $_->{'content'} // '' ) for @messages;
+            my $est_tokens = int( $total_chars / $chars_per_token );
+
+            if ( $est_tokens > $compact_threshold ) {
+                <[base.logs]>->(
+                    1,
+                    "[process-queued-task] context compaction: "
+                        . "%d tokens est, threshold=%d, %d msgs",
+                    $est_tokens,
+                    $compact_threshold,
+                    scalar @messages
+                );
+
+                ## keep system [0] and user [1] messages intact ##
+                ## compact tool round messages in the middle ##
+                ## keep the most recent $keep_recent_msgs messages ##
+                my $protect_start = 2;    ## after system + user ##
+                my $protect_end   = scalar(@messages) - $keep_recent_msgs;
+                $protect_end = $protect_start
+                    if $protect_end < $protect_start;
+
+                if ( $protect_end > $protect_start ) {
+                    ## graduated compaction: older = more aggressive ##
+                    my $mid = int( ( $protect_start + $protect_end ) / 2 );
+                    my @summary_parts;
+
+                    ## oldest section: aggressive — just tool names ##
+                    for my $i ( $protect_start .. $mid - 1 ) {
+                        my $m = $messages[$i];
+                        if ( $m->{'role'} eq 'assistant'
+                            and ref $m->{'tool_calls'} eq qw| ARRAY | ) {
+                            my @names
+                                = map { $_->{'function'}->{'name'} // '?' }
+                                $m->{'tool_calls'}->@*;
+                            push @summary_parts,
+                                'called: ' . join( ', ', @names );
+                        } elsif ( $m->{'role'} eq 'tool' ) {
+                            my $content = $m->{'content'} // '';
+                            my $snip    = substr( $content, 0, 80 );
+                            $snip =~ s|\n.*||s;
+                            push @summary_parts, "result: $snip";
+                        }
+                    }
+
+                    ## middle section: moderate — tool name + short result ##
+                    for my $i ( $mid .. $protect_end - 1 ) {
+                        my $m = $messages[$i];
+                        if ( $m->{'role'} eq 'assistant'
+                            and ref $m->{'tool_calls'} eq qw| ARRAY | ) {
+                            my @names
+                                = map { $_->{'function'}->{'name'} // '?' }
+                                $m->{'tool_calls'}->@*;
+                            push @summary_parts,
+                                'called: ' . join( ', ', @names );
+                        } elsif ( $m->{'role'} eq 'tool' ) {
+                            my $content = $m->{'content'} // '';
+                            my $snip    = substr( $content, 0, 200 );
+                            $snip =~ s|\n| / |g;
+                            push @summary_parts, "result: $snip";
+                        }
+                    }
+
+                    ## replace compacted range with summary message ##
+                    my $summary
+                        = "[ compacted tool rounds — "
+                        . scalar(@summary_parts)
+                        . " interactions ]\n"
+                        . join( "\n", @summary_parts );
+
+                    splice @messages, $protect_start,
+                        $protect_end - $protect_start,
+                        {
+                        'role'    => 'assistant',
+                        'content' => $summary,
+                        };
+
+                    <[base.logs]>->(
+                        1,
+                        "[process-queued-task] compacted %d msgs → 1 "
+                            . "summary, %d msgs remain",
+                        $protect_end - $protect_start,
+                        scalar @messages
+                    );
+                }
+            }
+        }
 
         ## build request body ##
         my %request = (
@@ -304,6 +400,11 @@ INFERENCE_LOOP:
                 scalar $message->{'tool_calls'}->@*
             );
 
+            ## yield to event loop between tool rounds ##
+            ## allows network commands [ show-buffer, get-result ] to be ##
+            ## processed while inference is running ##
+            <[event.once]>->(0.0007);
+
             next INFERENCE_LOOP;
         }
 
@@ -375,8 +476,8 @@ if ( length $response_text
 ## return result hashref for jobqueue callback ##
 return { success => TRUE, result => $response_text, task_id => $task_id };
 
-#,,,,,,..,,,,,...,...,,..,,.,,.,,,,.,,,..,,..,..,,...,...,,,,,..,,.,.,.,,,.,,,
-#2U7B4CUWHVGM2Y24GAPAFLZIE5WLDKUFUJF4SLKGY3Z3T5IIX5KOAOOYC2QR6XFLRY3UILAC4WLHE
-#\\\|W7TWHVNR2GZRP2CLGJQCKU2I7RVDJOT5XWUTN6WOTZ7HIAKJC2X \ / AMOS7 \ YOURUM ::
-#\[7]4FXCDB7JEUDRKK7HDAQD7L5IBQIBIB6DR33FVP2FD32UD5GLUYCI 7  DATA SIGNATURE ::
+#,,,,,,,.,..,,,,,,.,.,,..,..,,,,.,...,,.,,.,.,..,,...,.,,,...,,.,,...,,,.,,,,,
+#5RIZTDWTJENBRE3QXCOTHRBFSBPQYOCLGBR5TUE2B2ZPKHXGNTRKCFIBVMQL5PSKDOLC2BBDRNE5O
+#\\\|MFIIUZQDFAHW5LWRS2LQGBXQAV2SENYIXR4UUJ5FKWW7GAJD5T2 \ / AMOS7 \ YOURUM ::
+#\[7]HIW7VIXZINZLHK3LU7FFOAPXQJNH6ERWOBI66ZS7ZBTLR42XWUCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
