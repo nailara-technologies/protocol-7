@@ -163,7 +163,7 @@ my %dispatch = (
             = ( 'grep', '-rn', '--include=*', '-m', '200', $pattern, @dirs );
 
         ## capture stderr to tmpfile to avoid pipe deadlock ##
-        my $err_file = "$root/var/tmp/.search_err.$$";
+        my $err_file = "/var/protocol-7/coding/state/.search_err.$$";
         if (open my $fh, '-|', "@{[ join ' ',
             map { quotemeta $ARG } @cmd ]} 2>$err_file"
         ) {
@@ -280,7 +280,7 @@ my %dispatch = (
         my $count  = 0;
 
         ## capture stderr to tmpfile to avoid pipe deadlock ##
-        my $err_file = "$root/var/tmp/.ncode_err.$$";
+        my $err_file = "/var/protocol-7/coding/state/.ncode_err.$$";
         if (open my $fh, '-|', "@{[ join ' ',
             map { quotemeta $ARG } @cmd ]} 2>$err_file"
         ) {
@@ -466,7 +466,7 @@ my %dispatch = (
         my $path = "$root/modules/$module";
         return "error: module not found [ $module ]" unless -f $path;
 
-        my $err_file = "$root/var/tmp/.ptd_check.$$";
+        my $err_file = "/var/protocol-7/coding/state/.ptd_check.$$";
         my $output   = '';
         if ( open my $fh, '-|', "$root/bin/ptd -c $path 2>$err_file" ) {
             local $/;
@@ -506,7 +506,7 @@ my %dispatch = (
         my $before_ref = <[file.slurp]>->($path);
         return 'error: cannot read module' unless defined $before_ref;
 
-        my $err_file = "$root/var/tmp/.ptd_fmt.$$";
+        my $err_file = "/var/protocol-7/coding/state/.ptd_fmt.$$";
         my $output   = '';
         if ( open my $fh, '-|', "$root/bin/ptd $path 2>$err_file" ) {
             local $/;
@@ -585,8 +585,8 @@ return {
     'content' => $content,
 };
 
-#,,,,,.,,,,.,,.,.,,,,,.,.,...,,..,.,.,,.,,,,,,..,,...,...,.,,,,,.,,.,,,,,,,..,
-#OCQBTVWJ7WADLQADNNBBWAHEDTER6GHLW5S7FUL5T42ZTYI3PUEV2BBIMSIPQ7SV7JVQQI7UBVANE
-#\\\|TXOZFGND3JXDCIJSOLF2OGPWDWFOXYUUDTTR2XBUR62VC6OLMYY \ / AMOS7 \ YOURUM ::
-#\[7]I4A4NLDDPC67LLL4JXEVF42UZOTZ3UBTV5IIAVNXCWQT7NCQWSCY 7  DATA SIGNATURE ::
+#,,,.,..,,.,,,.,.,...,.,.,..,,.,.,,,,,...,...,..,,...,...,...,.,,,,..,,,.,,..,
+#PCEEEZ5W7VQTMYHXSHFUGLNRVSMW7BGHBOHKG5LUEL7YVS7DKJTP6AGKEVNSW3537B7WRTI4SWL5C
+#\\\|RS2SKUP67S6WOL6KG5ZCA3BFNHW5Y4H2Q5QNWOF47HYJUHIXFTM \ / AMOS7 \ YOURUM ::
+#\[7]QUO6KMGWOVI3WGHJUMAFETOMPVRU5PR27SNRHDTC7F76XYFDPYDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

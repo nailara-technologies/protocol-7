@@ -1,0 +1,92 @@
+---
+name: extract-redundancy
+descr: find duplicate code blocks and suggest shared module extraction
+budget: 5000
+sections:
+  ## core knowledge ##
+  - include: system-base
+    priority: 1
+    budget_pct: 10
+
+  ## target module content ##
+  - provider: context.file.extract
+    priority: 2
+    budget_pct: 25
+    params:
+      extract: full
+    label: target module source
+
+  ## module dependency graph ##
+  - provider: context.module.dep_graph
+    priority: 3
+    budget_pct: 10
+    optional: true
+    label: dependency graph for context
+
+  ## instructions ##
+  - static: |
+      analyze the target module for redundant code patterns that should be
+      extracted into shared generic modules.
+
+      ## investigation steps ##
+
+      1. read the target module fully
+      2. identify repeated code blocks [ 3+ lines appearing twice or more ]
+      3. use ncode_search to find the same patterns in other modules
+      4. use dep_graph to understand the module's namespace relationships
+      5. determine if a shared abstraction already exists
+
+      ## what to flag ##
+
+      ### internal redundancy ###
+      - same logic repeated within the module [ loop, condition, transform ]
+      - copy-paste blocks with minor variable name changes
+      - identical error handling patterns
+
+      ### cross-module redundancy ###
+      - patterns found in 2+ modules via ncode_search
+      - common utility operations not yet in base.* namespace
+      - zenka-specific code that could be generic
+
+      ## naming conventions for new modules ##
+      - base.* : truly generic, usable by any zenka
+      - base.<category>.* : grouped utilities [ base.file.*, base.net.* ]
+      - <zenka>.util.* : zenka-family shared code
+
+      ## output format ##
+
+      ### redundancy findings ###
+      for each finding:
+      - pattern: <description of the repeated code>
+        locations:
+          - <module:line> [ from ncode_search ]
+          - <module:line>
+        extraction:
+          module_name: <suggested new module name>
+          interface: <function signature>
+          shared_by: <list of zenki/modules that would use it>
+
+      ### recommended new modules ###
+      - name: <module name>
+        descr: <brief description>
+        callers: <who would call it>
+        priority: high/medium/low
+        saves: <approximate lines removed across all callers>
+
+      do NOT create the modules — only report findings and suggestions.
+      use search_code and ncode_search extensively to verify cross-module
+      occurrences before recommending extraction.
+    priority: 4
+    budget_pct: 55
+    label: redundancy extraction instructions
+
+on_complete:
+  - when: [output_length_gt=200]
+    action: memory_update
+    topic: "audit:extract-redundancy"
+
+#,,,,,.,.,,..,,.,,.,.,.,,,.,,,.,.,,..,,..,,.,,..,,...,..,,..,,..,,.,,,...,,,.,
+#W5SSYMZPNM4OLP4F3H2QVUSDB6A3IWVWRRZWPM7M2AWY3ZUTQXDTN2SSWJCFHSIDSFZI2L3XY5L6C
+#\\\|DGVHJ3FRH2PPCK7FLEPLKRR7MMEAXRNBS2KET643VONT6ZDFDT4 \ / AMOS7 \ YOURUM ::
+#\[7]5SFEHKRRYCLLWPMGWPLPN6Z67FY3UXFD2XMBOA4OEBX4RWY5QADQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
