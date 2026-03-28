@@ -1,0 +1,55 @@
+---
+name: tasks-open
+descr: find open coding tasks and summarize priorities and next steps
+budget: 4000
+sections:
+  ## core knowledge ##
+  - include: system-base
+    priority: 1
+    budget_pct: 15
+
+  ## scan instructions ##
+  - static: |
+      scan the coding task files to find OPEN tasks [ not completed ].
+
+      use list_files and read_file to examine:
+      - data/yaml/coding-tasks/*.yaml — look for status: field
+        [ open, in_progress, blocked, pending are all "open" ]
+        [ completed, done, cancelled are "closed" ]
+      - data/md/coding-tasks/*.md — look for status markers or
+        absence of completion indicators
+
+      for each open task produce:
+      - name: task filename
+      - status: current status value
+      - priority: if specified
+      - summary: one-line description
+      - blockers: if any noted
+      - next_step: what needs to happen next
+
+      then output a prioritized list:
+      ## open tasks [ N total ] ##
+
+      ### high priority ###
+      - task_name — summary [ status ] — next step
+
+      ### medium priority ###
+      ...
+
+      ### low / unset priority ###
+      ...
+
+      ### blocked ###
+      - task_name — summary — blocked by: reason
+
+      also flag any tasks that look stale [ created > 30 days ago,
+      no recent activity ] with a note suggesting review or closure.
+    priority: 2
+    budget_pct: 85
+    label: task scan instructions
+
+#,,..,,.,,.,.,,.,,,,.,,,,,.,.,..,,..,,.,,,,..,..,,...,.,.,.,,,,..,.,,,,..,...,
+#NVQMDCI6ZJ3CNM67RDO5LXBKDEGRYITW4EF552HNZQWTJHOGNBSC2K4GLU65ARCPS2VEZM5BYQIFC
+#\\\|VAMQZGMSO4FV2A4YJ6RYGZMBTUW26DQF3BY5WZYNK3Y3FSZUQWM \ / AMOS7 \ YOURUM ::
+#\[7]XZHCZ4KR2462KP3YVA432AUBZRY3UXCPDUC22YFCABI3Q6BKHQBI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

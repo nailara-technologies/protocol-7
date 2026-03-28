@@ -1,0 +1,135 @@
+---
+name: meta-create-template
+descr: generate a new context template from a workflow description
+budget: 4000
+sections:
+  ## existing templates as examples ##
+  - provider: context.file.extract
+    priority: 1
+    budget_pct: 10
+    params:
+      path: "data/yaml/context-templates/tool-review.yaml"
+    label: example template [ tool-review ]
+
+  - provider: context.file.extract
+    priority: 2
+    budget_pct: 10
+    params:
+      path: "data/yaml/context-templates/self-improve.yaml"
+    label: example template [ self-improve ]
+
+  - provider: context.file.extract
+    priority: 3
+    budget_pct: 5
+    params:
+      path: "data/yaml/context-templates/system-default.yaml"
+    label: example template [ system-default ]
+
+  ## available providers for sections ##
+  - provider: context.modules.list
+    priority: 4
+    budget_pct: 5
+    params:
+      namespace: "context"
+    optional: true
+    label: available context providers
+
+  ## template creation instructions ##
+  - static: |
+      create a new context template based on the workflow described below.
+
+      workflow: {{workflow_description}}
+
+      template format rules:
+      ```yaml
+      ---
+      name: template-name
+      descr: one line description
+      budget: 3000-5000
+      sections:
+        - include: other-template    ## recursive include ##
+          priority: N
+          budget_pct: NN
+          when: condition             ## optional ##
+
+        - provider: module.name      ## call a module ##
+          priority: N
+          budget_pct: NN
+          params:
+            key: "value"
+            var: "{{template_var}}"   ## substituted at resolve time ##
+          optional: true              ## skip if module missing ##
+          label: section label
+
+        - static: |                   ## inline text ##
+            instructions for the model...
+          priority: N
+          budget_pct: NN
+          label: section label
+
+      on_complete:                    ## post-task hooks ##
+        - when: [condition1, condition2]
+          action: memory_update
+          topic: "category:topic"
+      ```
+
+      available section types:
+      - include: recursive template inclusion [ see examples above ]
+      - provider: call a code module [ context.*, coding.* ]
+      - static: inline instruction text
+      - summarize: inference-based summary [ phase 3 ]
+
+      available when conditions:
+      - has_X: check truthy presence of key X in context
+      - task_type=value: match task type
+      - not_X: absence check
+
+      available providers [ use list_modules for full list ]:
+      - context.file.extract: smart file reading
+      - context.git.recent_changes: git activity
+      - context.error.recent: error logs
+      - context.modules.list: module discovery
+      - context.module.dependencies: call graph
+      - context.style.guide: code conventions
+      - context.memory.load: persistent memory
+
+      design principles:
+      1. budget awareness: total budget_pct should sum to ~100
+      2. priority ordering: lower number = higher priority = rendered first
+      3. optional sections: mark as optional if provider might not exist
+      4. graduated context: include broad context early, specific late
+      5. actionable instructions: static sections should request specific
+         output format with clear structure
+      6. on_complete hooks: trigger follow-up actions for significant output
+      7. template variables: use {{var}} for parameterized templates
+
+      output the complete YAML template ready for write_new_file.
+      also suggest a filename following the naming pattern of existing
+      templates [ lowercase, hyphenated, descriptive ].
+
+      format:
+      ## suggested filename ##
+      data/yaml/context-templates/NAME.yaml
+
+      ## template content ##
+      ```yaml
+      [ full template YAML ]
+      ```
+
+      ## usage ##
+      coding.submit TYPE target_or_description
+      [ how to invoke this template ]
+    priority: 5
+    budget_pct: 70
+    label: template creation instructions
+
+on_complete:
+  - when: [output_length_gt=200, output_contains=yaml]
+    action: memory_update
+    topic: "meta-create-template:generated"
+
+#,,,,,.,,,..,,.,,,,,,,...,,..,,..,,,.,,,,,.,.,..,,...,...,..,,..,,,..,..,,...,
+#ZPVHYXW5KU6O2XTD6ME3743I3FDG5CAODPU7HRGZYD46OUF2S63HPFETZNP7ZKTR3Y7MPJKP37IUK
+#\\\|OEJUBL6Q4I3RHM2DBGCXSNKAWWYZJZBK54UQ6Y7QAOROP6NU3HJ \ / AMOS7 \ YOURUM ::
+#\[7]K7GOI27FV5ECG7ZPR7FPKJVNZLSKYLY47OAUFQIAVYYOHVFATICY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
