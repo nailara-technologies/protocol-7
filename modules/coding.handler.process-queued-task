@@ -192,7 +192,7 @@ my $tools = $assembled->{'tools'};
 my $response_text     = '';
 my $finish_reason_val = 'stop';
 my $http_error;
-my $max_tool_rounds = 42;
+my $max_tool_rounds = 247;
 my $tool_round      = 0;
 my $server_retries  = 2;   ## retries for transient server errors [ jinja ] ##
 
@@ -230,7 +230,8 @@ INFERENCE_LOOP:
                     }
                 }
             }
-            my $est_tokens = int( $total_chars / $chars_per_token );
+            ## 1.4x accounts for JSON keys, tool defs, metadata ##
+            my $est_tokens = int( ( $total_chars * 1.4 ) / $chars_per_token );
 
             if ( $est_tokens > $compact_threshold ) {
                 <[base.logs]>->(
@@ -510,6 +511,8 @@ if ( defined $http_error ) {
     <[base.logs]>->(
         0, "[process-queued-task] inference error: %s", $err_short
     );
+    $task->{'execution'}->{'status'} = 'failed';
+    $task->{'execution'}->{'error'}  = $http_error;
     return { success => FALSE, error => $http_error, task_id => $task_id };
 }
 
@@ -540,8 +543,8 @@ if ( length $response_text
 ## return result hashref for jobqueue callback ##
 return { success => TRUE, result => $response_text, task_id => $task_id };
 
-#,,,.,,,.,.,.,.,.,.,.,...,,,,,...,,,.,.,,,,,,,..,,...,...,.,,,.,.,..,,.,.,,,,,
-#BQQB24YM56VYYUJ3ZUNJNZPHFTV53LGL4XOG5DIOIHNEE5YRY6NJQZU6PLOMA3FQX6NVF5DYHQLP4
-#\\\|REDJBIDW3FNGCR4GTNWJFEKD4N6JSJGTF5OZ64MX47ARN745SIQ \ / AMOS7 \ YOURUM ::
-#\[7]JRWQHG4LTTEZVE5ZOM7MM66C5TKTCY5HG2AODA5GVYJ32OTJ7YAQ 7  DATA SIGNATURE ::
+#,,,.,.,.,,,.,,,,,.,.,.,.,,..,.,.,,.,,,,,,,,.,..,,...,..,,...,...,,,,,,,,,,..,
+#HTYKSCSHXJYLIVQ7IBTQ33HUX27TIJBUVRWZ5Y7AHWZTD2JXJQGESIHLZB5BID25BBH7EULG7SCCY
+#\\\|KVRMM2PFMQHXYZ2K7BMLZAG6ZIG2Z5J5GDXYVUYBUE2YWNFAYPU \ / AMOS7 \ YOURUM ::
+#\[7]6WBBDCNQAFIME7FMYXCOPABSF5MK2PY7SHYUKP5RVY4ZRALXTGBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
