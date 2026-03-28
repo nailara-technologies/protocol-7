@@ -36,8 +36,29 @@ automatically. No memory duplication, no manual load/save.
 
 Fits into existing data.mount.shm.create.mmap_file / mmap_shm distinction.
 
-#,,,,,,,.,,,.,...,...,,,.,...,,,.,..,,,.,,,,,,..,,...,...,...,..,,,..,.,.,.,.,
-#2OABRIFIUAUQNL6QDVR5JYGXHWX77PH6GTB2IMSV5HFGHA4OYEHYXWELRI3PP2KHEEUGXSKUQVAHS
-#\\\|UIDZIJN45OOOC7GJD3XQEZNEBHVTLLK7O6OCSEVL3HKUP7PSDZF \ / AMOS7 \ YOURUM ::
-#\[7]HLHYVYGPVKLQUA3T7PTH2VEQXRVW6C53R4YF5RKSM52245YMOUBQ 7  DATA SIGNATURE ::
+## Deduplicating Knowledge Index (planned — layer 3)
+
+Word/phrase/paragraph-level content indexing with AMOS checksum keys.
+Relevance + reference count scoring for context assembly.
+Models reference cached results by checksum ID — passable in task queue
+or between models directly from cache, SHM accessible.
+
+## Data Zenka Handoff Pattern (planned — layer 4)
+
+Creating zenka (coding) stores to SHM → data zenka adopts ownership.
+Data zenka maintains cache with its own algorithms, TTL, settings.
+
+## Difference-Based Storage (planned — layer 5)
+
+Checksums referencing lists of sequential checksums.
+Re-referenceable and re-nestable at zero copy.
+9P modules (client+server in data.* namespace) expand cross-node access.
+
+User note: "adding another abstracting layer is a temporary workaround
+that is still clean and no initial technical debt" — accepted pattern.
+
+#,,,,,,..,,,,,,,.,.,.,..,,,..,,,.,.,,,,.,,,,.,..,,...,...,,.,,...,,,.,,.,,.,.,
+#EMLPK2DN5A2JBEUDUUMFOMFYRX62TRKWOFWIVVU3MC4QGYO3B5XFC67AX6TLQWQ73T4CQOYIYSR64
+#\\\|3IBWFTQMQOB7I53ZOSCJH7TUZGDV2GCQO3LVXW2AKRBFJNWYSWA \ / AMOS7 \ YOURUM ::
+#\[7]WQPYYLIK6BROXQZFQ2ACD2H6TTOLOKKURCP74SSM25W4DGYPSKAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
