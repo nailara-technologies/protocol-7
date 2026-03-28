@@ -1,0 +1,90 @@
+---
+name: descr-and-logs
+descr: shorten descr tags and improve log messages for P7 style
+budget: 4000
+sections:
+  ## core knowledge ##
+  - include: system-base
+    priority: 1
+    budget_pct: 15
+
+  ## target module content ##
+  - provider: context.file.extract
+    priority: 2
+    budget_pct: 40
+    params:
+      extract: full
+    label: target module source
+
+  ## audit instructions ##
+  - static: |
+      audit the target module for two categories of improvements:
+
+      ## 1. descr tag shortening ##
+
+      the `# descr = ...` line near the top of each module should be a
+      brief, lowercase phrase. it appears in module listings and must be
+      scannable at a glance.
+
+      rules:
+      - max 60 characters
+      - lowercase, no trailing period
+      - remove filler words [ "this module", "used to", "handles the" ]
+      - start with a verb or noun that describes the action
+      - for *.cmd.* modules: "command: <what it does>"
+      - for *.console.* modules: "console: <what it does>"
+
+      examples:
+        bad:  "this module handles the processing of incoming HTTP requests"
+        good: "process incoming HTTP requests"
+        bad:  "used to spawn and manage inference server processes"
+        good: "spawn inference server processes"
+
+      ## 2. log message improvement ##
+
+      log messages via <[base.logs]> or <[base.log]> should follow P7 style:
+
+      rules:
+      - lowercase narrative [ no capitalized words except acronyms ]
+      - concise: remove redundant context the log system already provides
+      - no variable interpolation in format string [ use %s %d etc ]
+      - prefix with `:. ` for subsystem context
+      - log levels: 0=error, 1=default, 2=info/debug
+      - avoid repeating the module name in the message [ already in log ]
+
+      examples:
+        bad:  "Starting the inference server on port %d"
+        good: ":. spawning inference server on port %d"
+        bad:  "ERROR: Failed to connect to server"
+        good: ":. connect failed"
+
+      ## output format ##
+
+      ### descr changes ###
+      - module: <name>
+        old: <current descr>
+        new: <improved descr>
+
+      ### log message changes ###
+      for each finding:
+      - line: <number>
+        old: <current message>
+        new: <improved message>
+        reason: <why>
+
+      use edit_file with apply=true to make the changes. run ptd_check
+      after edits to verify syntax.
+    priority: 3
+    budget_pct: 45
+    label: descr and log audit instructions
+
+on_complete:
+  - when: [output_length_gt=200]
+    action: memory_update
+    topic: "audit:descr-and-logs"
+
+#,,..,.,,,.,,,,,,,,,,,,..,,,,,.,,,,.,,,..,...,..,,...,...,..,,.,.,.,,,,.,,,,,,
+#FBHRXNQ6FTVASKLYS5XBCAKXK37WD7254OX2K4V6QOM4PNPCBBU57262UKMUS2AD56UNFB67MAUBE
+#\\\|PM5ITAYHPCAB6CWD63GSTVLQM2OABUBGK6IXI3CQ3WLLWIQJO4N \ / AMOS7 \ YOURUM ::
+#\[7]2YRUESHKN77M5U5OMSGJQNMIEZ352BM3MGJBBS2J2NHZ5ZAL6MDA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
