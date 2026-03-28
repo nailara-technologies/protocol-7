@@ -6,19 +6,14 @@
 ## check for required modules ##
 <[base.perlmod.load]>->('Digest::BMW');
 
-## ensure AMOS7::CHKSUM has state support ##
-my $amos_checksum_path = <system.zenka.pm_path> . qw| /AMOS7/CHKSUM.pm |;
-
-if ( -f $amos_checksum_path ) {
-    ## load AMOS7::CHKSUM with state extension ##
-    eval { require AMOS7::CHKSUM };
-    if ($@) {
-        <[base.logs]>->(
-            0, ':. context.tree.checksum: AMOS7::CHKSUM load failed [ %s ]',
-            $@
-        );
-        return FALSE;
-    }
+## load AMOS7::CHKSUM with state extension ##
+eval { require AMOS7::CHKSUM };
+if ($@) {
+    <[base.logs]>->(
+        0, ':. context.tree.checksum: AMOS7::CHKSUM load failed [ %s ] :.',
+        $@
+    );
+    return FALSE;
 }
 
 ## initialize context tree checksum state storage ##
@@ -37,7 +32,8 @@ if ( -f $amos_checksum_path ) {
 };
 
 ## create storage directories if needed ##
-my $tree_root = <system.path.data> . qw| /context-tree |;
+my $tree_root = sprintf qw| /var/protocol-7/%s/context-tree |,
+    <system.zenka.name>;
 
 foreach my $subdir (qw| index nodes edges streams |) {
     my $path = "$tree_root/$subdir";
@@ -60,8 +56,8 @@ return TRUE;
 
 #,,.,,,.,,,..,,..,,.,,...,...,...,,,.,,,.,,,.,..,,...,...,..,,,,.,,..,,,,,,,,,
 
-#,,..,.,.,,,.,..,,..,,,.,,,..,.,,,,,,,.,,,,.,,..,,...,...,,.,,,,,,.,,,,,.,.,,,
-#TFVF5CSXHEKV3OD3UA3D2HDQDPD5TPS56GKDYX3FU7SXU3Q2QSDZ6WZWNE7SU6UZOCOSR6D43VZWA
-#\\\|VIYP7Z7SUDQFJGYOFBXQR5EJNM266RWWF2PAUEX6ZCNCLQE76KS \ / AMOS7 \ YOURUM ::
-#\[7]2DOLKZIXOBVKG6LMMDCCVZHZYISTZYWMPWOUE2L27DBJFVP3CCCY 7  DATA SIGNATURE ::
+#,,,.,,..,,..,,..,..,,,..,.,,,,..,..,,,,.,,,,,..,,...,...,,,,,,..,,..,..,,,,.,
+#EPWMQGPRKOKKVAANRFWPCQXILXNSVEJDH7ZMHNEBK5BF4SXBISM5JSNTNA5PFRR2VAQLJPFHUPTUC
+#\\\|5ED7YBQGUXJHVPXTXLPZLMLDDD3KGZWNT7IUJMWQCTGC353VMXV \ / AMOS7 \ YOURUM ::
+#\[7]4EACGWPQIQZFDX4RU3ESTNP33YBY6M24JYQAYLYKYDWNQDIJTIBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

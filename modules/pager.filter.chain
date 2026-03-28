@@ -22,7 +22,7 @@ return sub {
         };
 
         # Mark all pages dirty since filter changed
-        <[pager.buffer.page.invalidate_all]>->({ 'buffer' => $buf });
+        <[pager.buffer.page.invalidate-all]>->({ 'buffer' => $buf });
 
         return scalar(@{$buf->{'filters'}});
     }
@@ -31,12 +31,12 @@ return sub {
         return undef unless defined $index && $index >= 0 && $index < @{$buf->{'filters'}};
 
         splice(@{$buf->{'filters'}}, $index, 1);
-        <[pager.buffer.page.invalidate_all]>->({ 'buffer' => $buf });
+        <[pager.buffer.page.invalidate-all]>->({ 'buffer' => $buf });
         return 1;
     }
     elsif ($action eq 'clear') {
         $buf->{'filters'} = [];
-        <[pager.buffer.page.invalidate_all]>->({ 'buffer' => $buf });
+        <[pager.buffer.page.invalidate-all]>->({ 'buffer' => $buf });
         return 1;
     }
     elsif ($action eq 'list') {
@@ -52,7 +52,7 @@ return sub {
         }
 
         $buf->{'filters'} = \@new_filters;
-        <[pager.buffer.page.invalidate_all]>->({ 'buffer' => $buf });
+        <[pager.buffer.page.invalidate-all]>->({ 'buffer' => $buf });
         return 1;
     }
 
@@ -61,8 +61,8 @@ return sub {
 
 # SPDX-License-Identifier: ISC
 
-#,,,.,..,,..,,,.,,,,,,,,,,...,,.,,,,,,,..,...,..,,...,...,...,.,,,,..,..,,,..,
-#GMAUCLOHTKWAH6BDAVZZXEWQPDNEGKVG4JGPFSS7Y6UPGVJ3U64CBM5IHRUP3WLDERRNB6BJGMVSE
-#\\\|G4VKCOOSHA7LJ3QXUL4LLXTZ26NZRZLJ66GKM7LM7KAY7BBC2WH \ / AMOS7 \ YOURUM ::
-#\[7]KTP5LC35RJPU4MHGYWVKKF3RVZIS5EFKQO5R47ZFISPUT3GQOGAQ 7  DATA SIGNATURE ::
+#,,..,,..,...,,..,,..,.,,,.,.,...,.,.,,..,,,.,..,,...,..,,..,,,..,,..,,..,,.,,
+#PVXQX74IOBGM45DPWUMSSP2PSXCY5B3J5E6DWIHH7556LA3JK3L2G4K3PJWPUXPIPCKNFGITQBFLA
+#\\\|MQECKGN2GP5TQGSNJFHO5PMM5ZNEVLVCODI3SBOTN63BOHIQKXO \ / AMOS7 \ YOURUM ::
+#\[7]PN5AMEZLPFE77BPOKYFDQRYLTKAOEIOZ2T5XDA7FVB6RJ24L2QAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
