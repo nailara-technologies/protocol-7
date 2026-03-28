@@ -137,6 +137,45 @@ my %dispatch = (
         return $output;
     },
 
+    'search_code' => sub {
+        my $pattern     = $args->{'pattern'}     // return 'pattern required';
+        my $scope       = $args->{'scope'}       // qw| modules |;
+        my $max_results = $args->{'max_results'} // 30;
+
+        my $root = <system.root_path>;
+        my @dirs;
+        if ( $scope eq qw| config | ) {
+            @dirs = ("$root/configuration");
+        } elsif ( $scope eq qw| all | ) {
+            @dirs = ( "$root/modules", "$root/configuration" );
+        } else {
+            @dirs = ("$root/modules");
+        }
+
+        my $output  = '';
+        my $count   = 0;
+        my $dir_str = join ' ', @dirs;
+
+        ## safe pattern — escape shell, run grep ##
+        my @cmd
+            = ( 'grep', '-rn', '--include=*', '-m', '200', $pattern, @dirs );
+        if ( open my $fh, '-|', @cmd ) {
+            while ( my $line = <$fh> ) {
+                last if $count >= $max_results;
+                ## strip root prefix for readability ##
+                $line =~ s|^\Q$root/\E||;
+                $output .= $line;
+                $count++;
+            }
+            close $fh;
+        }
+
+        return $count
+            ? sprintf( "## %d matches for /%s/ ##\n%s",
+            $count, $pattern, $output )
+            : "no matches for /$pattern/";
+    },
+
     'extract_file' => sub {
         return unless exists $code{'context.file.extract'};
         return $code{'context.file.extract'}->(
@@ -194,8 +233,8 @@ return {
     'content' => $content,
 };
 
-#,,.,,,.,,.,.,,,,,,,,,..,,,,,,,.,,..,,.,,,...,..,,...,...,,,.,,,,,...,,,,,,..,
-#VONPBA2STKOJYZGN5SIJ6SWNSI6P4STZROATXRRXSONADOGE4JZJNVYPH3PO2SCCOGWFG3NFGYXC4
-#\\\|ECHS4NPUWXQFKDLJVHNEH5SHSMB5XPGLNEXP4TXDXMQBFDEXISM \ / AMOS7 \ YOURUM ::
-#\[7]X6BMNT62SIZUL6V7WU3D5NMEE3SIV2O6DT6ZLPNFPWBSHCGXRCDQ 7  DATA SIGNATURE ::
+#,,.,,,,.,,,,,,.,,.,,,..,,...,,,.,.,.,,,,,.,,,..,,...,...,..,,.,.,.,,,...,.,.,
+#NTCULXHRMLTTROQDCM6TUV7OFNCFD4POSJWAG6WVXZNRK2AOURTOPNAW65CF2BEWALNARSXACID56
+#\\\|IMTGSXUWD3G457LSED2DHKGHBMRF433DLRZCV7GZ4LDXPVM74VD \ / AMOS7 \ YOURUM ::
+#\[7]HJ4QGKC2TB3QFY5PKKNXUIQEMTCINZXPFEOUHWUKNWQQMRMUSCAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
