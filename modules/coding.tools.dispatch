@@ -161,15 +161,34 @@ my %dispatch = (
         ## safe pattern — escape shell, run grep ##
         my @cmd
             = ( 'grep', '-rn', '--include=*', '-m', '200', $pattern, @dirs );
-        if ( open my $fh, '-|', @cmd ) {
-            while ( my $line = <$fh> ) {
+
+        ## capture both stdout and stderr via open3 ##
+        my ( $child_in, $child_out, $child_err );
+        $child_err = Symbol::gensym;
+        my $pid = eval {
+            IPC::Open3::open3( $child_in, $child_out, $child_err, @cmd );
+        };
+        if ($pid) {
+            close $child_in;
+            while ( my $line = <$child_out> ) {
                 last if $count >= $max_results;
                 ## strip root prefix for readability ##
                 $line =~ s|^\Q$root/\E||;
                 $output .= $line;
                 $count++;
             }
-            close $fh;
+            ## collect stderr warnings [ permission errors etc ] ##
+            my $warnings = '';
+            while ( my $err_line = <$child_err> ) {
+                $err_line =~ s|^\Q$root/\E||;
+                $warnings .= $err_line;
+            }
+            close $child_out;
+            close $child_err;
+            waitpid( $pid, 0 );
+            if ( length $warnings ) {
+                $output .= sprintf "\n## warnings ##\n%s", $warnings;
+            }
         }
 
         return $count
@@ -256,13 +275,31 @@ my %dispatch = (
 
         my $output = '';
         my $count  = 0;
-        if ( open my $fh, '-|', @cmd ) {
-            while ( my $line = <$fh> ) {
+
+        ## capture both stdout and stderr via open3 ##
+        my ( $child_in, $child_out, $child_err );
+        $child_err = Symbol::gensym;
+        my $pid = eval {
+            IPC::Open3::open3( $child_in, $child_out, $child_err, @cmd );
+        };
+        if ($pid) {
+            close $child_in;
+            while ( my $line = <$child_out> ) {
                 last if $count >= $max_results;
                 $output .= $line;
                 $count++;
             }
-            close $fh;
+            ## collect stderr warnings [ permission errors etc ] ##
+            my $warnings = '';
+            while ( my $err_line = <$child_err> ) {
+                $warnings .= $err_line;
+            }
+            close $child_out;
+            close $child_err;
+            waitpid( $pid, 0 );
+            if ( length $warnings ) {
+                $output .= sprintf "\n## warnings ##\n%s", $warnings;
+            }
         }
 
         return $count
@@ -444,8 +481,8 @@ return {
     'content' => $content,
 };
 
-#,,,,,,,.,,,,,...,,.,,,,,,,,.,,.,,.,.,..,,,.,,..,,...,...,,..,...,,,,,...,..,,
-#ADSMNJHM3DD4IJXHU3JASRG4IKLH3DQZHQES3CLFSSZSDUNJZ5ROQSZNFMTGHTGJMTF7ELH5TDA7Q
-#\\\|M7QOFUYZ3YRXYO473UZLXT26MDXISBID4JJKOMEMLY37NUPC4YN \ / AMOS7 \ YOURUM ::
-#\[7]73NRIH72OFHCVY6F3JHCYG6G2OY67PP5WARHHHQYFLR7JJABQGBI 7  DATA SIGNATURE ::
+#,,,.,,,,,,,.,,,,,..,,,,.,,.,,..,,,,.,,.,,.,.,..,,...,...,...,,,.,,,.,.,,,...,
+#SIICWU2MWG4LSYAXSVF7BPH3TS3AQGPH2QV5WDPBM44EPYKTBAP4EGOUXRMPJ2FCXHDA56WWZMYK4
+#\\\|C3T5HZH45BGVWGXFQ7CXCSY2W3YY33OJ2RDHZFF3OHVSP6FG5K7 \ / AMOS7 \ YOURUM ::
+#\[7]53D23PHA3I25KWTOWJX645ZQFX3S5GCXVDLA7GNRRHXPCRLMPSDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
