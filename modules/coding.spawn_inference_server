@@ -79,8 +79,11 @@ push @cmd, '--mmproj', $mmproj_path
 push @cmd, qw| --log-disable --log-file /dev/null |;
 
 # Add context and other parameters
-push @cmd, qw| -c 7777 |;    # Context size for text inference
-push @cmd, qw| -n 3000 |;    # Default max tokens
+## context and generation limits from config ##
+my $ctx_size   = <inference.model.context_length> // 16384;
+my $max_tokens = <inference.model.max_tokens>     // 4096;
+push @cmd, '-c', $ctx_size;
+push @cmd, '-n', $max_tokens;
 
 # Backend-specific settings
 if ( $backend eq qw| cpu | ) {
@@ -178,8 +181,8 @@ return {
     'port'    => $port
 };
 
-#,,,.,,..,,,.,,,.,.,,,...,...,,,,,,,.,...,,,,,..,,...,...,...,,.,,,.,,.,,,,,,,
-#UQV734J7FJWWBHQ3NCORUFDOMMOOFAOVXBO2BPXNJCFBRPM3U5JENB2RRXEFRQ7SZVIUFE3SVZHEI
-#\\\|BLBSCUI2CTBE2CMW5LAU5JUDUDWZSMBJCVDPXI6AVY7VI6HTZNI \ / AMOS7 \ YOURUM ::
-#\[7]JL2T7VQVI6T2GZ4TP66QDGZW4UNHKEQDSVDH5Q76SULZ5RC2EMCQ 7  DATA SIGNATURE ::
+#,,,,,..,,,.,,.,,,,,.,...,,..,.,,,,,,,,.,,...,..,,...,...,,,.,.,.,.,,,,,.,.,.,
+#4U5W764CARQVFVAQPJ4HSWVSLYXAC4EXU2W42AWSNB2OD6LNXPA3OLNMZ5VZTK62X6UQJDBVQBAWQ
+#\\\|4YK6OUK7NBL4ANVNE5N5ZZB2B7FSIQPQXOMK7EZGJGTA644LIOQ \ / AMOS7 \ YOURUM ::
+#\[7]YTLEDDBJHPDWMJXTRXW3MLGLK3IP7VAAD56PAIXRDS7TFT6YKQAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
