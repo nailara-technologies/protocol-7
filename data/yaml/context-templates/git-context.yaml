@@ -1,0 +1,41 @@
+---
+name: git-context
+descr: recent git activity with module awareness for handover context
+budget: 2000
+sections:
+  ## recent changes ##
+  - provider: context.git.recent_changes
+    priority: 1
+    budget_pct: 50
+    params:
+      since_commit: "{{since_commit}}"
+      max_files: 15
+    label: git changes
+
+  ## module listing for changed namespace ##
+  - provider: context.modules.list
+    priority: 2
+    budget_pct: 20
+    params:
+      namespace: "{{changed_namespace}}"
+    optional: true
+    when: has_changed_namespace
+    label: affected modules
+
+  ## context summary instruction ##
+  - static: |
+      provide a concise handover summary:
+      - what areas of the codebase were touched
+      - what the changes accomplish together
+      - any patterns or themes across the commits
+      - risks or follow-up items
+      format as bullet points, under 8 lines.
+    priority: 3
+    budget_pct: 30
+    label: handover instructions
+
+#,,,,,.,.,.,.,...,.,.,.,,,.,,,,,.,.,.,,,.,.,.,..,,...,...,,,.,,.,,,,.,,.,,.,.,
+#L2VIZ5PWKNLMEGQNT2JJSTAABEN2NBCXUJNPIG5LAVNE6A4KABFJZD3MQKQAUE6UB26KWLZTC2KEK
+#\\\|TURALZVU3AJBJSUJHJCEDMK5IDFKWNYYNFQCEQS4XDAEGRUFIOB \ / AMOS7 \ YOURUM ::
+#\[7]RIRV2H45RHL2SAOZMS7MCYSXQK2UGNHQDAOSUAJZNYPR7WSILQAA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
