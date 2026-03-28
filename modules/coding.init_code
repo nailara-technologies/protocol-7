@@ -68,7 +68,8 @@ if ( defined $saved_meta_ref && length $saved_meta_ref->$* ) {
 <coding.model_metadata> //= {};
 
 # Set library path for llama-server binaries (CPU and GPU backends)
-<coding.lib_path> = qw| /data/source/ik_llama.cpp |;    ## [LLL] fix hardcoded
+<coding.lib_path> = <inference.backend.lib_path>
+    // qw| /data/source/ik_llama.cpp |;
 
 <[base.logs]>->( 1, ": library path : '%s'..", <coding.lib_path> );
 
@@ -122,11 +123,11 @@ if ( defined $saved_budget_ref && length $saved_budget_ref->$* ) {
 my $params  = <coding.spawn_params> //= {};
 my $backend = <inference.backend>   //= { 'cpu' => {}, 'gpu' => {} };
 
-##  store spawn parameters for async spawning  ##  [LLL] fix hardcoded paths
+##  store spawn parameters for async spawning ##
 $params->{'cpu_binary'} = <inference.backend.cpu.binary>
-    // '/data/source/ik_llama.cpp/llama-server-cpu';
+    // <coding.lib_path> . '/llama-server-cpu';
 $params->{'gpu_binary'} = <inference.backend.gpu.binary>
-    // '/data/source/ik_llama.cpp/llama-server-cuda-fa';
+    // <coding.lib_path> . '/llama-server-cuda-fa';
 $params->{'gpu_enabled'}  = <inference.backend.gpu.enabled> // TRUE;
 $params->{'cpu_model_id'} = <inference.backend.cpu.model_id>
     // 'gemma3-glitter-4b';
@@ -302,8 +303,8 @@ if ( not $already_initialized ) {
 
 return 0;
 
-#,,..,...,.,,,,,,,...,,.,,...,,,.,...,,,.,...,..,,...,...,..,,.,,,.,.,,,,,,,.,
-#3I7FPZ555NYBQFQD4IB2DSFL7KASQF7RLAUNPALC4DM2MSU3W6N45I2Q63QDQEYS62WETKVSH6U72
-#\\\|C2ABBV6BUCTL4QUCHAUQWU6MKYYOA6PNCY2KN63CUX3QG7WLSQW \ / AMOS7 \ YOURUM ::
-#\[7]4GRWSDB7DBRBIDMGUHHAME27QV7R7IRZX25K4BK77CAY55M5NKBA 7  DATA SIGNATURE ::
+#,,.,,.,,,.,,,.,.,,,,,...,..,,.,.,...,,,.,,,.,..,,...,...,...,,,,,...,.,.,,..,
+#HMZQKHUT75ZT7ZKAE5YZHUZTT54RRFICVLMROEB3L5QJDXWIXQQIRVBG5KELIQG7ZWTJYOWN4LOMQ
+#\\\|ZU5IPCCTXMXOURBU7375GEDBMB5FGXSRJEB7E4BLL3EIZLY4VH3 \ / AMOS7 \ YOURUM ::
+#\[7]HLENXAW2Y6WKFQPM7G27W6HDB3AJM6W34U5B3MKFUNSUKCL2B2CI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -175,10 +175,11 @@ my $max_tokens     = <inference.model.max_tokens>  // 4096;
 my $temperature    = <inference.model.temperature> // 0.7;
 my $inference_port = $backend_info->{'port'};
 my $model_id       = $backend_info->{'model'};
+my $server_seed    = $backend_info->{'seed'} // 'unknown';
 
 <[base.logs]>->(
-    1, "[process-queued-task] using model=%s max_tokens=%d temp=%f port=%d",
-    $model_id, $max_tokens, $temperature, $inference_port
+    1, "[process-queued-task] model=%s tokens=%d temp=%f port=%d seed=%s",
+    $model_id, $max_tokens, $temperature, $inference_port, $server_seed
 );
 
 ## use pre-assembled message array ##
@@ -468,6 +469,7 @@ if ( length $response_text
             'response'      => $response_text,
             'model'         => $model_id,
             'temperature'   => $temperature,
+            'seed'          => $server_seed,
             'finish_reason' => $finish_reason_val,
         }
     );
@@ -486,8 +488,8 @@ if ( length $response_text
 ## return result hashref for jobqueue callback ##
 return { success => TRUE, result => $response_text, task_id => $task_id };
 
-#,,,,,,..,,,,,,,,,,,,,,..,,..,.,.,,,.,.,.,,.,,..,,...,...,..,,,..,.,,,..,,,,.,
-#AXS3LIMSI765RC523MNLPOX2OT35XQIFEOSIEGOLIAUQCSYAGLOPNJQMH63N5JSRFPY4QHZFSMVFE
-#\\\|3RRNNXV4CZD2B2NEHIG2JJQQKBK3AAFJWDXUHLCYDAEKP4ZJYNR \ / AMOS7 \ YOURUM ::
-#\[7]VVQDZCU3RG6ARIW55U2FQC5STGPL27QQZC6Y74WOZ4VJF3G4HWCA 7  DATA SIGNATURE ::
+#,,..,,.,,...,..,,.,.,.,.,,,,,.,,,.,,,...,..,,..,,...,...,..,,.,.,,..,,,.,,,.,
+#XFPKHS76CPMRTUY7BDENRPE643I5KBD6EJ25TAHIARHM6AOXSRMTWWP6X2AF6AQUDHRFL4U3E336Q
+#\\\|PKWS4RZFFK6FL3I7GX2TXA2URZKO5ZMH2N6WW2MNRJM2XEB7QI4 \ / AMOS7 \ YOURUM ::
+#\[7]V5LI7THD2HNKBQ2WBDF4S52KB4W55V6TXWAVJUYNHFUWSWEX4UBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
