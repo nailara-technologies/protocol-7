@@ -32,30 +32,52 @@ my $backend_info = <[coding.routing.select_backend]>->(
 my $prompt = $parsed->{'query'};
 
 ## enrich prompt with module content for review and explain tasks ##
+## skip enrichment when a specialized template handles context loading ##
+my $skip_enrich = 0;
 if (exists $code{'coding.context.read_module'}
     and $prompt =~ m{(?:review|explain|check|analyze)\s+
                      (?:modules?[/\s]+)?
                      ([\w][\w.\-]+[\w])}xi
 ) {
-    my $target_module = $1;
-    my $read_result   = $code{'coding.context.read_module'}
-        ->( { 'module' => $target_module, 'max_chars' => 6000 } );
-    if ( ref $read_result eq qw| HASH |
-        and $read_result->{'mode'} eq qw| true | ) {
-        my $mod = $read_result->{'data'};
-        $prompt
-            .= sprintf "\n\n"
-            . ".:[ module content : %s ]:.\n"
-            . ".:[ descr = %s ]:.\n"
-            . ".:[ %d lines ]:.\n\n%s",
-            $mod->{'module'},
-            $mod->{'descr'} || '?',
-            $mod->{'lines'},
-            $mod->{'content'};
+    my $enrich_module = $1;
+
+    ## check if this word matches a template name — if so, the template ##
+    ## handles its own context, skip inline enrichment ##
+    my $root    = <system.root_path>;
+    my $tpl_dir = "$root/"
+        . ( <context.cfg.template_dir> // 'data/yaml/context-templates' );
+    my $hyph_name = $enrich_module;
+    $hyph_name =~ s|\.|-|g;
+    if (   -f "$tpl_dir/$enrich_module.yaml"
+        or -f "$tpl_dir/$hyph_name.yaml" ) {
+        $skip_enrich = 1;
         <[base.logs]>->(
-            1, ':. prompt.assemble: enriched with %s [ %d chars ]',
-            $mod->{'module'}, $mod->{'chars'}
+            2,
+            ':. prompt.assemble: skip enrich, template handles context [ %s ]',
+            $enrich_module
         );
+    }
+
+    if ( not $skip_enrich ) {
+        my $read_result = $code{'coding.context.read_module'}
+            ->( { 'module' => $enrich_module, 'max_chars' => 6000 } );
+        if ( ref $read_result eq qw| HASH |
+            and $read_result->{'mode'} eq qw| true | ) {
+            my $mod = $read_result->{'data'};
+            $prompt
+                .= sprintf "\n\n"
+                . ".:[ module content : %s ]:.\n"
+                . ".:[ descr = %s ]:.\n"
+                . ".:[ %d lines ]:.\n\n%s",
+                $mod->{'module'},
+                $mod->{'descr'} || '?',
+                $mod->{'lines'},
+                $mod->{'content'};
+            <[base.logs]>->(
+                1, ':. prompt.assemble: enriched with %s [ %d chars ]',
+                $mod->{'module'}, $mod->{'chars'}
+            );
+        }
     }
 }
 
@@ -76,17 +98,91 @@ if ( exists $code{'coding.tools.definitions'} ) {
 
 ## build template context for condition evaluation ##
 my $task_type = $task->{'metadata'}->{'raw_request'}->{'type'} // 'review';
-my $tpl_vars  = {
-    'task_type'    => $task_type,
-    'task_summary' => substr( $prompt, 0, 200 ),
+
+## dynamic template selection from prompt ##
+## check if prompt references a known template name ##
+my $selected_template = 'system-default';
+my $target_module     = '';
+
+if ( exists $code{'context.template.load'} ) {
+    my $root         = <system.root_path>;
+    my $template_dir = "$root/"
+        . ( <context.cfg.template_dir> // 'data/yaml/context-templates' );
+
+    ## extract candidate words from prompt ##
+    my @words = $prompt =~ m{([\w][\w-]*[\w])}g;
+
+    ## check each word against template files ##
+    ## longer matches first [ self-improve before self ] ##
+    for my $candidate ( sort { length($b) <=> length($a) } @words ) {
+        next if $candidate =~ m{^system-};    ## skip system templates ##
+        my $tpl_path = "$template_dir/$candidate.yaml";
+        if ( -f $tpl_path ) {
+            $selected_template = $candidate;
+            <[base.logs]>->(
+                1, ':. prompt.assemble: matched template [ %s ]', $candidate
+            );
+            last;
+        }
+    }
+
+    ## also try hyphenated versions of dot-notation words ##
+    if ( $selected_template eq 'system-default' ) {
+        for my $candidate (@words) {
+            my $hyph = $candidate;
+            $hyph =~ s|\.|-|g;
+            next if $hyph eq $candidate;
+            next if $hyph =~ m{^system-};
+            my $tpl_path = "$template_dir/$hyph.yaml";
+            if ( -f $tpl_path ) {
+                $selected_template = $hyph;
+                <[base.logs]>->(
+                    1,
+                    ':. prompt.assemble: matched template [ %s ] via dot→hyphen',
+                    $hyph
+                );
+                last;
+            }
+        }
+    }
+}
+
+## extract target module from prompt [ for template vars ] ##
+if ($prompt =~ m{(?:review|explain|check|analyze|fix)\s+
+                   (?:modules?[/\s]+)?
+                   ([\w][\w.\-]+[\w])}xi
+) {
+    my $candidate = $1;
+    ## don't use template name as target module ##
+    if ( $candidate ne $selected_template ) {
+        $target_module = $candidate;
+    }
+}
+
+## also extract target from second word after template name ##
+if ( not length $target_module
+    and $prompt =~ m{\Q$selected_template\E\s+([\w][\w.\-]+[\w])}i ) {
+    $target_module = $1;
+}
+
+my $tpl_vars = {
+    'task_type'         => $task_type,
+    'task_summary'      => substr( $prompt, 0, 200 ),
+    'target_module'     => $target_module,
+    'selected_template' => $selected_template,
 };
 my $tpl_context = {
     'task_type'   => $task_type,
     'tools'       => ( defined $tools and $tools->@* )   ? 1 : '',
     'memory'      => exists $code{'context.memory.load'} ? 1 : '',
     'active_task' => '',
-    'module'      => ( $prompt =~ m{[\w][\w.\-]+[\w]} ) ? 1 : '',
+    'module'      => length($target_module) ? 1 : '',
 };
+
+<[base.logs]>->(
+    2, ':. prompt.assemble: template=%s target=%s task_type=%s',
+    $selected_template, $target_module || 'none', $task_type
+);
 
 ## resolve system prompt via template or fallback ##
 my @messages;
@@ -94,7 +190,7 @@ my $hooks = [];
 
 if ( exists $code{'context.template.resolve'} ) {
     my $resolved = $code{'context.template.resolve'}->(
-        {   'template' => 'system-default',
+        {   'template' => $selected_template,
             'vars'     => $tpl_vars,
             'context'  => $tpl_context,
         }
@@ -142,8 +238,8 @@ return {
     'hooks'        => $hooks,
 };
 
-#,,.,,,..,.,,,,..,,..,,,.,.,.,,..,,,,,,,,,.,,,..,,...,...,,..,.,,,,..,.,,,,,,,
-#2ATG2ROQDH3T3YQ6MOUEAZSHO4JV5MNFYPLYHDPMFM6EX3XKRHNLZSJFMKWZS36CWFRVOSL6PR4EI
-#\\\|N6NYU2TOGYRFGGFKVLRCDZ2T75UGOSSQZQY54WBTRWBJGL7NFZF \ / AMOS7 \ YOURUM ::
-#\[7]BMI7FBTKA5663NZ3FVOSY3WC6UX4L6ZRENGRPW34ACJPPK4VL2AA 7  DATA SIGNATURE ::
+#,,,,,..,,,,.,,,,,,,,,,,,,,,.,,.,,,..,,,,,,,,,..,,...,...,.,,,.,.,,.,,.,.,.,,,
+#P4ZSZPR4S5X2OAG3SEWPGORFPFYW2P36SZ7HZ6YZCJJRJGFUISWXSZJRR77G42PLRDJN3AFFWI4DK
+#\\\|726SMB4H45XHZFVJN67H6O3B3CLN6IWZGRF7ZE7B4STDBTRB4ZI \ / AMOS7 \ YOURUM ::
+#\[7]WNJR6VPZRIKYFI2T4UJFRB3WRPJHQO7WWNQW2FHMG4KLV63WW4DA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
