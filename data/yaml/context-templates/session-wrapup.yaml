@@ -1,0 +1,43 @@
+---
+name: session-wrapup
+descr: full session wrapup — git summary + error check + review + next steps
+budget: 3000
+sections:
+  ## git context for what happened ##
+  - include: git-context
+    priority: 1
+    budget_pct: 35
+
+  ## error check — only if debug session ##
+  - include: system-compact-debug
+    priority: 2
+    budget_pct: 20
+    when: task_type=debug
+    optional: true
+
+  ## review checklist — only if code was written ##
+  - include: system-review
+    priority: 3
+    budget_pct: 10
+    when: has_code_changes
+
+  ## session cleanup with next steps ##
+  - include: session-cleanup
+    priority: 4
+    budget_pct: 35
+
+on_complete:
+  ## update memory with session summary ##
+  - when: output_length_gt=300
+    action: memory_update
+    topic: "wrapup:{{session_date}}"
+  ## compact debug context if fix was applied ##
+  - when: [task_type=debug, output_contains=fixed]
+    action: compact
+    template: system-compact-debug
+
+#,,,,,,,,,,..,.,.,..,,,,.,,,,,,..,,.,,,,.,,..,..,,...,..,,,.,,,..,.,,,,..,,,.,
+#NRBYQKSNFYUF4XDCPY64ZZ3KWAEICSXE2PWOK5M765SDALYOBJBGJJY7KU7BVUW2R6W7IZ4NK2UNK
+#\\\|PLNN6PMAXMRP6EXHQ33D7FVVNIPIAKLJBC333PDOFLKA5GZORLZ \ / AMOS7 \ YOURUM ::
+#\[7]MRPMOFHU75KVUFDVSMAMIBG2QQK7WNRWQX3GPL6V4APDCMKLWKDA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,0 +1,53 @@
+---
+name: session-cleanup
+descr: post-session cleanup — summarize work done, flag loose ends
+budget: 1500
+sections:
+  ## recent git changes as work summary ##
+  - provider: context.git.recent_changes
+    priority: 1
+    budget_pct: 40
+    params:
+      since_commit: "{{since_commit}}"
+      max_files: 10
+    label: recent changes
+
+  ## any recent errors to flag ##
+  - provider: context.error.recent
+    priority: 2
+    budget_pct: 20
+    params:
+      lines: 15
+    optional: true
+    label: recent errors
+
+  ## active task context for continuity ##
+  - provider: context.task.active
+    priority: 3
+    budget_pct: 15
+    optional: true
+    when: has_active_task
+    label: active task
+
+  ## cleanup instructions ##
+  - static: |
+      summarize this session:
+      1. what was accomplished [ list changes by topic ]
+      2. what errors remain unresolved
+      3. what should be done next [ prioritized ]
+      4. any files that need signing or staging
+      keep summary under 10 lines. flag anything blocking.
+    priority: 4
+    budget_pct: 25
+    label: cleanup instructions
+
+on_complete:
+  - when: output_contains=next
+    action: memory_update
+    topic: "session:{{session_date}}"
+
+#,,,,,.,.,...,..,,..,,..,,,,.,.,.,.,,,.,.,,..,..,,...,..,,.,,,...,..,,,,.,,,,,
+#RVXT63PGPJKVRH5B4EKXGBPYQCEJK3MPTFHZRK7OVAG6YRZHTUUYIOXIWNNCEFQRZ7TMISYILAZZK
+#\\\|EHWUYOARFZZ6MSCHTOK73Q4HJLVZVZ6AGXLP54DBQHW43OGDOYY \ / AMOS7 \ YOURUM ::
+#\[7]XZI4G6YQA5XRK2R46ENK3BYHIKWDYMS2PKQUGXKBVLFKSSDKQKAY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

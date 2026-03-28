@@ -1,0 +1,68 @@
+---
+name: module-review
+descr: review a specific P7 module — style, dependencies, common issues
+budget: 3000
+sections:
+  ## review checklist from shared template ##
+  - include: system-review
+    priority: 1
+    budget_pct: 10
+
+  ## style guide for reference ##
+  - provider: context.style.guide
+    priority: 2
+    budget_pct: 10
+    optional: true
+    label: style reference
+
+  ## the module being reviewed ##
+  - provider: context.file.extract
+    priority: 3
+    budget_pct: 40
+    params:
+      path: "{{target_module}}"
+    label: target module
+
+  ## dependency graph of the module ##
+  - provider: context.module.dependencies
+    priority: 4
+    budget_pct: 15
+    params:
+      module: "{{target_module}}"
+    optional: true
+    label: module dependencies
+
+  ## sibling modules in same namespace ##
+  - provider: context.modules.list
+    priority: 5
+    budget_pct: 10
+    params:
+      namespace: "{{target_namespace}}"
+    optional: true
+    label: related modules
+
+  ## review task instructions ##
+  - static: |
+      review the module above for:
+      - invocation syntax errors [ <[name]>-> not <[name-> ]
+      - TRUE/FALSE constant usage [ not 1/0 ]
+      - log format correctness [ sprintf, correct level ]
+      - file.slurp dereference [ ->$* ]
+      - perlmod.load usage [ not use/require ]
+      - return mode format [ qw| true | / qw| false | ]
+      - namespace/swap boundary issues
+      report issues concisely with line numbers.
+    priority: 6
+    budget_pct: 15
+    label: review instructions
+
+on_complete:
+  - when: [output_length_gt=200]
+    action: memory_update
+    topic: "review:{{target_module}}"
+
+#,,.,,..,,,,,,.,.,..,,.,.,...,.,.,,.,,..,,...,..,,...,...,..,,...,,,.,,..,...,
+#NY2G33PSGJMRUT6LTD3Q644XI34ON7PS6UVEUNHTHXKACHUYFP73F7KLQXPI5GSRJ32XE67FXNJKK
+#\\\|XZCRWLMDUBWEUVJ34W7Y6MSXB3JNWZGX6YJQXQUZFCSZ7RBN4ST \ / AMOS7 \ YOURUM ::
+#\[7]K3HWO4O5AED7GF2P5RSWAIGXOC4IWD4ADWC2H4VPA6DG5T3RZ2DA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
