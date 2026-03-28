@@ -14,29 +14,37 @@ sections:
     budget_pct: 20
     when: has_tools
 
+  ## code style conventions — for review and style tasks ##
+  - provider: context.style.guide
+    priority: 3
+    budget_pct: 10
+    when: task_type=review
+    optional: true
+    label: style conventions
+
   ## review checklist — for review and analysis tasks ##
   - include: system-review
-    priority: 3
+    priority: 4
     budget_pct: 10
     when: task_type=review
 
   ## memory and reminders — when memory system available ##
   - include: system-memory
-    priority: 4
+    priority: 5
     budget_pct: 15
     when: has_memory
     optional: true
 
   ## active task context ##
   - provider: context.task.active
-    priority: 5
+    priority: 6
     budget_pct: 10
     optional: true
     when: has_active_task
 
   ## recent errors — for debug tasks ##
   - provider: context.error.recent
-    priority: 6
+    priority: 7
     budget_pct: 10
     optional: true
     when: task_type=debug
@@ -58,8 +66,8 @@ on_complete:
     action: memory_update
     topic: "{{target_module}}"
 
-#,,,.,,..,,,.,,..,..,,,..,.,,,,,.,,.,,,..,,..,..,,...,...,..,,.,.,,.,,..,,,..,
-#Y75SWN5O4SHTGPETGQ5P3JHKRMSNPVLABDEO5XLDZTUJIIY342XM374KHWFSWW2NXMOE62MBP2ZC4
-#\\\|ZNGR6J2KPQ2XQ5HXSAOURA5WLQ3AZKFKLIM2WOAYEFXWPUVSOCF \ / AMOS7 \ YOURUM ::
-#\[7]YBDKJJFSZQWG46AEISHYNHVFPSXPCCS7KZ5BDI2674JZ4O6XX2AI 7  DATA SIGNATURE ::
+#,,,.,,,.,,.,,,,.,..,,,,,,.,,,,..,.,.,..,,..,,..,,...,...,...,,,.,..,,.,.,...,
+#MUGPIJC7MEBHPG3G7PS6VKEUQTVU7EFGKODUAKSSNTJEG6H3NRM4KGXQUBF4LTXUB4V2TBAPAWCTY
+#\\\|YJG4ZXZGQQVOWOCDOS3SIS5Z54FV6RUFS42YUL4322F5EYDVPO7 \ / AMOS7 \ YOURUM ::
+#\[7]TI6SXLNHN32KQGPAJC3TBEACTLPRSQDNRRSWV7FH4SZ3SEZ4AICI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
