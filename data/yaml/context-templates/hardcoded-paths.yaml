@@ -1,0 +1,78 @@
+---
+name: hardcoded-paths
+descr: find hardcoded paths and replace with P7 config variables
+budget: 4000
+sections:
+  ## core knowledge ##
+  - include: system-base
+    priority: 1
+    budget_pct: 15
+
+  ## target module content ##
+  - provider: context.file.extract
+    priority: 2
+    budget_pct: 35
+    params:
+      extract: full
+    label: target module source
+
+  ## audit instructions ##
+  - static: |
+      audit the target module for hardcoded filesystem paths that should
+      use protocol-7 config variables or path composition instead.
+
+      ## what to flag ##
+
+      hardcoded absolute paths:
+        "/data/projects/protocol-7/..." -> <system.root_path>
+        "/var/protocol-7/..."           -> <system.path.zenka-dirs>
+        "/etc/protocol-7/..."           -> <system.path.zenka-dirs>
+        "/data/source/..."              -> config variable
+        "/usr/local/bin/..."            -> config variable
+
+      hardcoded binary paths:
+        "/data/source/ik_llama.cpp/llama-server-cuda-fa"
+          -> <inference.backend.gpu.binary>
+        "/usr/bin/grep" or similar -> no prefix needed [ in PATH ]
+
+      path construction without catfile:
+        "$dir/$file" -> catfile($dir, $file)
+        string concatenation for paths -> use File::Spec or catfile
+
+      ## what is acceptable ##
+      - /proc/ filesystem paths [ kernel interface, not configurable ]
+      - /dev/null [ standard unix ]
+      - paths already using config variables [ <config.key> ]
+      - paths composed with catfile or catdir
+      - fallback defaults after // operator [ already config-driven ]
+
+      ## P7 path variables available ##
+      - <system.root_path> : project root directory
+      - <system.path.zenka-dirs> hash:
+        - var_P7  : /var/protocol-7
+        - etc_P7  : /etc/protocol-7
+      - <system.zenka.name> : current zenka name
+      - file.zenka_dir.* routines for zenka-relative paths
+
+      ## output format ##
+      for each finding:
+      - line: <number>
+        hardcoded: <the literal path>
+        replacement: <P7-native replacement code>
+        type: absolute-path / binary-path / path-construction
+
+      use edit_file with apply=true to fix. run ptd_check after.
+    priority: 3
+    budget_pct: 50
+    label: hardcoded paths audit instructions
+
+on_complete:
+  - when: [output_length_gt=200]
+    action: memory_update
+    topic: "audit:hardcoded-paths"
+
+#,,,,,,,,,.,.,.,.,,..,.,.,..,,..,,...,.,,,.,,,..,,...,...,.,.,..,,,.,,,,,,,.,,
+#IOA532SQ562PZENCOVSIRCIZB7ZA7RRU6627WTHVT3IQJVYKVIAO3A77Z3J3EAOSL7YWEVHSK6AKM
+#\\\|F7HKHD7DBNRE6YG3IX4I356ZFNER2YFOQJV3JOMMSR6RMXQB54E \ / AMOS7 \ YOURUM ::
+#\[7]72MEV3BAXBZ2E4WMAIBQN3VOJIDJ2SI3VE64M3R3RFUXYGGW2AAY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
