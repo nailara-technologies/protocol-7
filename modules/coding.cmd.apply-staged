@@ -24,10 +24,13 @@ closedir $dh;
 
 return { 'mode' => 'false', 'data' => 'no staged edits' } unless @files;
 
-my $root    = <system.root_path>;
-my $applied = 0;
-my $skipped = 0;
-my $output  = '';
+my $root       = <system.root_path>;
+my $applied    = 0;
+my $skipped    = 0;
+my $output     = '';
+my $shell_cmds = '';
+
+my $allow_chmod = <[base.cfg_bool]>->( <coding.cfg.allow_chmod_apply> // 0 );
 
 for my $staged_name (@files) {
     ## convert staged name back to source path ##
@@ -48,8 +51,21 @@ for my $staged_name (@files) {
         next;
     }
 
+    ## temporarily enable group write if allowed and needed ##
+    my $mode_restore;
+    if ( $allow_chmod and -f $src_path and not -w $src_path ) {
+        my $cur_mode = ( stat $src_path )[2] & 07777;
+        if ( chmod( $cur_mode | 0020, $src_path ) ) {
+            $mode_restore = $cur_mode;
+        }
+    }
+
     ## write to source path ##
     my $written = <[file.put]>->( $src_path, $content_ref );
+
+    ## restore original file permissions ##
+    chmod $mode_restore, $src_path if defined $mode_restore;
+
     if ($written) {
         $output .= sprintf ":. %s : applied [ %d bytes ]\n",
             $src_rel, length $content_ref->$*;
@@ -57,17 +73,26 @@ for my $staged_name (@files) {
         ## remove staged file after successful apply ##
         unlink $staged_path;
     } else {
-        $output .= sprintf ":. %s : write failed\n", $src_rel;
+        ## direct write failed - emit shell command as fallback ##
+        $output .= sprintf ":. %s : no write access [ %d bytes ]\n",
+            $src_rel, length $content_ref->$*;
+        $shell_cmds .= sprintf "cp -v '%s' '%s'\n", $staged_path, $src_path;
         $skipped++;
     }
+}
+
+if ( length $shell_cmds ) {
+    $output .= sprintf "\n## run as project owner to apply %d file%s ##\n",
+        $skipped, $skipped == 1 ? '' : 's';
+    $output .= $shell_cmds;
 }
 
 $output .= sprintf "\n## %d applied, %d skipped ##\n", $applied, $skipped;
 
 return { 'mode' => 'size', 'data' => $output };
 
-#,,.,,,.,,...,.,.,..,,...,,,.,..,,.,,,..,,,..,..,,...,...,.,.,,.,,,..,,,.,.,.,
-#4FRFJ55H3P4MI5K6LRJ36HNYZ7JPOBPLIZ5EJBR4MYDCBNRVFWBQFAXRPMPTLB6YQCHCVLOS6MLNG
-#\\\|PITLH3JGSZY5W5YNXAISSH55UYRQ6BOOYBLFVXFGWCYKX57VS5S \ / AMOS7 \ YOURUM ::
-#\[7]HGKIOD3AHJX5XNXIDDROFFLGE4F3IBBZD47LE573PG76OIR6LUDA 7  DATA SIGNATURE ::
+#,,.,,,,,,.,,,,.,,,..,.,,,,,.,...,,..,..,,,,,,..,,...,...,.,.,.,.,.,.,,,.,...,
+#LB5MOD7P4PXPE66JQSBQ3N6WVZHONOAJWL57SR4HRVHIYF33P4FEERQEATUAYEHEYHOQDHNKKEIGO
+#\\\|QEKKPTOLTJTM7N3STW3DUIOA3HR44T6ZSTMXGBNMR5RPEHYGXQS \ / AMOS7 \ YOURUM ::
+#\[7]TCETS75IT4R6RYX7KWJYWVPKBUL5OSBYL25U2WJJ4O7SOSXQJ6AA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

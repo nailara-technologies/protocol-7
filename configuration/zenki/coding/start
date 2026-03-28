@@ -20,6 +20,10 @@ system.verbosity.zenka_console = 2  ##  console [debugging] verbosity  ##
 ## Enable automatic user key creation for coding zenka ##
 crypt.C25519.autocreate-user-key = yes
 
+## project file write access [ apply-staged ] ##
+coding.cfg.assume_admin_group = yes  ## run with project owner's group ##
+coding.cfg.allow_chmod_apply  = yes  ## chmod g+w target files during apply ##
+
 ## GPU+CPU Dual Inference Configuration ##
 inference.backend.gpu.enabled = yes
 inference.backend.gpu.binary = /data/source/ik_llama.cpp/llama-server-cuda-fa
@@ -63,7 +67,7 @@ modules.load = auth net protocol io.unix io.ip jobqueue crypt.C25519 coding \
 [load_modules:<modules.load>]
 [init_modules]
 
-[root.drop_privs:<system.amos-zenka-user>] ## [LLL] needs hybrid mode version
+[root.drop_privs:<coding.cfg.drop_privs_user>,<coding.cfg.drop_privs_admin_group>]
 
 [base.net.connect:'unix'] ## [ has network from here ] ##
 
@@ -74,8 +78,8 @@ modules.load = auth net protocol io.unix io.ip jobqueue crypt.C25519 coding \
 
 [zenka.loop]
 
-#,,,.,,..,...,...,,,.,,..,.,.,,,,,,.,,...,...,..,,...,...,,,.,...,...,..,,,..,
-#QCE7C46DXSCODZLDJ26VMTEBKD5635ZG32VFLCNC5D5Z54H2YWF5H26HRO7W4LIJKIOCXL5JM4DFC
-#\\\|CH44DKLCFY2YFDDQRBBVBT2FOLRFF7ZU2MWMDOOXNWXWXZGWPAT \ / AMOS7 \ YOURUM ::
-#\[7]WFLXTMPZOBUQQRNNZU7RX7WJXVZCVH6J2EIOZIG2ALPMZAMUDADA 7  DATA SIGNATURE ::
+#,,..,.,.,,.,,.,.,.,,,..,,...,..,,,,.,,,,,.,.,..,,...,...,...,..,,...,,,,,,,,,
+#ST6FRTFDI7NUFXF3U7ENRQQMTA6TI6UE5HJLVVIUXKXQDO6ISPAZ4WQM6MZJRKBVCUFKZIAIHB4CK
+#\\\|LKUOOWPLKA7TX4EHY7MCMXBUVAKBG6I2VMRYXNONQR56UYHWVGM \ / AMOS7 \ YOURUM ::
+#\[7]Q4MEOAUZ4EOWOCOLMJZTWP3IKJOVTYXDQOZAORJUF4IJTR4GD4CQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
