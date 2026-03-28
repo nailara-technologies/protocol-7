@@ -1,0 +1,70 @@
+---
+name: tool-errors
+descr: diagnose tool call errors from recent inference runs and suggest fixes
+budget: 3000
+sections:
+  ## tool definitions reference ##
+  - provider: coding.tools.definitions.summary
+    priority: 1
+    budget_pct: 15
+    optional: true
+    label: available tools
+
+  ## recent error log with tool filter ##
+  - provider: context.error.recent
+    priority: 2
+    budget_pct: 25
+    params:
+      filter: "tools.dispatch"
+      lines: 40
+    optional: true
+    label: recent tool dispatch errors
+
+  ## the dispatch module for reference ##
+  - provider: context.file.extract
+    priority: 3
+    budget_pct: 25
+    params:
+      path: "modules/coding.tools.dispatch"
+      extract: functions
+    label: dispatch handlers
+
+  ## recent inference buffer ##
+  - provider: context.error.recent
+    priority: 4
+    budget_pct: 15
+    params:
+      filter: "process-queued-task"
+      lines: 30
+    optional: true
+    label: recent inference log
+
+  ## diagnosis instructions ##
+  - static: |
+      analyze the tool dispatch errors above and identify:
+
+      1. which tool calls failed and why
+      2. common patterns [ missing args, undefined handlers, bad return types ]
+      3. suggested fixes with specific code changes
+
+      for each error, output:
+      tool: <name>
+      error: <what went wrong>
+      fix: <specific change needed>
+      location: <module:line if known>
+
+      if no errors found, say: no tool errors detected.
+    priority: 5
+    budget_pct: 20
+    label: diagnosis instructions
+
+on_complete:
+  - when: [output_length_gt=100, not_output_contains=no tool errors]
+    action: memory_update
+    topic: "tool-errors:diagnosis"
+
+#,,.,,.,.,,,.,,,.,..,,..,,...,,.,,...,,,.,.,.,..,,...,...,..,,,,,,,.,,,,,,,,.,
+#CZWBJ7AQW56QIGAJEPTV7EZCJI4YPYQO6SSNNFXZ7IKOT6VW2BTOSZGFGYAPIBAY5AFUH3QDSVPDS
+#\\\|K2RZA5CQC75QGIQAYFPRG66EMZJCUDO2ITNKPXVA2C3Y6WFZTMU \ / AMOS7 \ YOURUM ::
+#\[7]E24ZMWTWXDXQOPCNJQJLBWEQ7WE3UO6YIRX46J7T6CXD5QKHEIBA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

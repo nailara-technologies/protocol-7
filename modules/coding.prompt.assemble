@@ -81,11 +81,11 @@ my $tpl_vars  = {
     'task_summary' => substr( $prompt, 0, 200 ),
 };
 my $tpl_context = {
-    'task_type'       => $task_type,
-    'has_tools'       => ( defined $tools and $tools->@* )   ? 1 : '',
-    'has_memory'      => exists $code{'context.memory.load'} ? 1 : '',
-    'has_active_task' => '',
-    'has_module'      => ( $prompt =~ m{[\w][\w.\-]+[\w]} ) ? 1 : '',
+    'task_type'   => $task_type,
+    'tools'       => ( defined $tools and $tools->@* )   ? 1 : '',
+    'memory'      => exists $code{'context.memory.load'} ? 1 : '',
+    'active_task' => '',
+    'module'      => ( $prompt =~ m{[\w][\w.\-]+[\w]} ) ? 1 : '',
 };
 
 ## resolve system prompt via template or fallback ##
@@ -142,8 +142,8 @@ return {
     'hooks'        => $hooks,
 };
 
-#,,..,.,.,...,,,,,..,,,,,,...,.,.,.,.,,..,...,..,,...,...,.,,,,..,,,.,,.,,.,.,
-#6MXVHEPETX6BQ2EQQD4R4C6MI6KFGQSBH3QKX5U6F4FAQSRWA2GZPMIDCWIZ6VHDD67C7FHR7BOM2
-#\\\|4BLLWBQVSKKQFHRJOJYZBZII2A2DOUFZSQIIC2N4UUAJIPCVVTE \ / AMOS7 \ YOURUM ::
-#\[7]WH7UZJLI46BWZJ6YIPF46TU34ZUO23G6AZZKMWXSVGQNJCMWU2AI 7  DATA SIGNATURE ::
+#,,.,,,..,.,,,,..,,..,,,.,.,.,,..,,,,,,,,,.,,,..,,...,...,,..,.,,,,..,.,,,,,,,
+#2ATG2ROQDH3T3YQ6MOUEAZSHO4JV5MNFYPLYHDPMFM6EX3XKRHNLZSJFMKWZS36CWFRVOSL6PR4EI
+#\\\|N6NYU2TOGYRFGGFKVLRCDZ2T75UGOSSQZQY54WBTRWBJGL7NFZF \ / AMOS7 \ YOURUM ::
+#\[7]BMI7FBTKA5663NZ3FVOSY3WC6UX4L6ZRENGRPW34ACJPPK4VL2AA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
