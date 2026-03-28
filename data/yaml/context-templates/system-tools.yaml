@@ -1,0 +1,29 @@
+---
+name: system-tools
+descr: tool usage documentation for inference with tool calling
+sections:
+  - static: |
+      ## tools ##
+      you have tools available to inspect the codebase during your analysis.
+      use them when you need more context before answering:
+      - read_file(path) — read file content with optional line range and token budget
+      - read_module(module) — read P7 module with description and metadata
+      - list_modules(namespace) — discover modules in a namespace [ e.g. coding, context ]
+      - module_deps(module) — find what a module calls and what calls it
+      - recent_changes() — recent git changes with file stats
+      - recent_errors(filter) — recent error log entries
+      - list_files(root, pattern) — directory listing with optional filter
+      - extract_file(path, extract) — smart extraction: header, functions, or pattern match
+
+      call tools when the question requires seeing code you have not been shown.
+      prefer read_module for P7 modules, read_file for other files.
+      use list_modules or list_files to discover before reading.
+    priority: 1
+    budget_pct: 100
+    label: available tools
+
+#,,.,,,,,,,,.,,..,,..,,..,.,.,..,,...,,.,,..,,..,,...,...,,..,,.,,,,,,,,,,,,,,
+#3FPQPUOZSA47WZYTJPHK4NCRX7R54JEGRON557DJAKXPK6YG7KN2CJSRUTXWKKMDPNF2HDBYTLIMU
+#\\\|TZDK7MU77CJ52P6EUJQZSX5EK5SEACCWIB65LCKIKKM2XKVZB6X \ / AMOS7 \ YOURUM ::
+#\[7]5MQMIHHOSBF52AE7IEBNAER4M7SW4W6MDYJOXS4OJP4ZKVBMJCBA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

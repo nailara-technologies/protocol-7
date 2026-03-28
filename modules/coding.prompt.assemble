@@ -59,24 +59,7 @@ if (exists $code{'coding.context.read_module'}
     }
 }
 
-## build message array with optional system prompt ##
-my @messages;
-if ( exists $code{'coding.system_prompt'} ) {
-    my $sys_prompt = $code{'coding.system_prompt'}->();
-    if ( defined $sys_prompt and length $sys_prompt ) {
-        push @messages, { 'role' => 'system', 'content' => $sys_prompt };
-    }
-}
-push @messages, { 'role' => 'user', 'content' => $prompt };
-
-<[base.logs]>->(
-    2,
-    ':. prompt.assemble: %d messages, %d chars user prompt',
-    scalar @messages,
-    length($prompt)
-);
-
-## collect tool definitions if available ##
+## collect tool definitions early [ needed for template context ] ##
 my $tools;
 if ( exists $code{'coding.tools.definitions'} ) {
     $tools = $code{'coding.tools.definitions'}->();
@@ -91,16 +74,76 @@ if ( exists $code{'coding.tools.definitions'} ) {
     }
 }
 
+## build template context for condition evaluation ##
+my $task_type = $task->{'metadata'}->{'raw_request'}->{'type'} // 'review';
+my $tpl_vars  = {
+    'task_type'    => $task_type,
+    'task_summary' => substr( $prompt, 0, 200 ),
+};
+my $tpl_context = {
+    'task_type'       => $task_type,
+    'has_tools'       => ( defined $tools and $tools->@* )       ? 1 : '',
+    'has_memory'      => exists $code{'context.memory.relevant'} ? 1 : '',
+    'has_active_task' => '',
+    'has_module'      => ( $prompt =~ m{[\w][\w.\-]+[\w]} ) ? 1 : '',
+};
+
+## resolve system prompt via template or fallback ##
+my @messages;
+my $hooks = [];
+
+if ( exists $code{'context.template.resolve'} ) {
+    my $resolved = $code{'context.template.resolve'}->(
+        {   'template' => 'system-default',
+            'vars'     => $tpl_vars,
+            'context'  => $tpl_context,
+        }
+    );
+
+    if ( defined $resolved and length( $resolved->{'content'} // '' ) ) {
+        push @messages,
+            { 'role' => 'system', 'content' => $resolved->{'content'} };
+        $hooks = $resolved->{'hooks'} // [];
+        <[base.logs]>->(
+            2,
+            ':. prompt.assemble: template resolved [ %d chars, %d hooks ]',
+            length( $resolved->{'content'} ),
+            scalar $hooks->@*
+        );
+    }
+}
+
+## fallback to hardcoded system prompt ##
+if ( not @messages and exists $code{'coding.system_prompt'} ) {
+    my $sys_prompt = $code{'coding.system_prompt'}->();
+    if ( defined $sys_prompt and length $sys_prompt ) {
+        push @messages, { 'role' => 'system', 'content' => $sys_prompt };
+        <[base.logs]>->(
+            2, ':. prompt.assemble: fallback to coding.system_prompt'
+        );
+    }
+}
+
+push @messages, { 'role' => 'user', 'content' => $prompt };
+
+<[base.logs]>->(
+    2,
+    ':. prompt.assemble: %d messages, %d chars user prompt',
+    scalar @messages,
+    length($prompt)
+);
+
 return {
     'prompt'       => $prompt,
     'messages'     => \@messages,
     'parsed'       => $parsed,
     'backend_info' => $backend_info,
     'tools'        => $tools,
+    'hooks'        => $hooks,
 };
 
-#,,,,,,,,,..,,,..,,..,,,.,,,,,,,,,.,,,,..,,,.,..,,...,...,..,,.,,,,,,,,..,..,,
-#GTKW5OT37OE3OJKJA54SI2B6GIPD24XU4MHHPZIB63VEBQK3LC3BLBSJZIR4Q36KRYZXFECQENOKS
-#\\\|7WZXKPQGILUCRGCVQMOPA66PUIEIFRTFNTKHP2MNDZENX33FY36 \ / AMOS7 \ YOURUM ::
-#\[7]VQ4ZVX5X66NXQDQ7Q2NJOQHVO7USN55IFHGHEV5VTK7ZY7FAZABQ 7  DATA SIGNATURE ::
+#,,..,,.,,,,,,..,,.,.,..,,,..,,,.,,,,,,..,.,,,..,,...,...,.,.,,.,,.,.,,.,,.,,,
+#6VKOBOS2OVLRLEOJI2V5CCTKXK5UYCOF3M5YLC3BZWJRU4N2TPJAYVD4P5TTEU47O3XZWJIR32CL6
+#\\\|AVC25BHLRHEFDWSBF5EJ36CHSYCSWGPE7N6TWRKU3CWH4QZ4ZEH \ / AMOS7 \ YOURUM ::
+#\[7]GRBKBFK3JFRDQ5CRC3A2ZP5IWJ7CWUDUGKHTE4PFUYI6PDIE6GDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

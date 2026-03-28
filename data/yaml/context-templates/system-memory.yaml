@@ -1,0 +1,29 @@
+---
+name: system-memory
+descr: memory and reminder interface documentation
+sections:
+  - static: |
+      ## memory ##
+      you can read and update persistent memory entries:
+      - memory entries persist across tasks and sessions
+      - use memory to record insights, decisions, and context about ongoing work
+      - check memory before starting a task for relevant prior context
+      - update memory after completing work that changes project understanding
+    priority: 1
+    budget_pct: 50
+    label: memory interface
+  - provider: context.memory.relevant
+    priority: 2
+    budget_pct: 50
+    optional: true
+    params:
+      query: "{{task_summary}}"
+      max_entries: 5
+    when: has_memory
+    label: relevant memories
+
+#,,,.,,..,,..,,,.,.,,,,..,.,,,...,,.,,,..,,..,..,,...,...,,..,.,,,,,.,..,,,..,
+#4H7V3DLRVVLTCUB24T75K4BBTLYPVHV5VLQ45UFSFFF7CXO6ZOWGEDDDJHQB36T4RKMZIUYUZATKO
+#\\\|S2AWTRQHZ3NW4DCDVYEC467CJ5QZLBNWRI4MUYEQYVAK5SEG5EO \ / AMOS7 \ YOURUM ::
+#\[7]TT56MABJFWIMJJPAOHZBQICQRUYKD2XFYASPZKYFZQ62T4TQBWDY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
