@@ -108,12 +108,32 @@ my %dispatch = (
 
     'list_files' => sub {
         return unless exists $code{'pager.source.file-list'};
-        return $code{'pager.source.file-list'}->(
-            {   'root'      => $args->{'root'}      // '.',
+        my $source = $code{'pager.source.file-list'}->(
+            {   'root'      => $args->{'root'}      // <system.root_path>,
                 'pattern'   => $args->{'pattern'}   // '',
                 'recursive' => $args->{'recursive'} // 1,
             }
         );
+        return unless ref $source eq qw| HASH |;
+
+        ## consume first batch and format as text listing ##
+        my $batch = $source->{'next_batch'}->();
+        return '<!-- no files found -->' unless $batch and $batch->@*;
+
+        my $output = "## files in ${\( $source->{'root'} )} ##\n";
+        for my $item ( $batch->@* ) {
+            $output .= sprintf "%-5s %8d  %s\n",
+                $item->{'type'} // '?',
+                $item->{'size'} // 0,
+                $item->{'path'} // $item->{'name'};
+        }
+
+        my $count = scalar $batch->@*;
+        if ( $count >= 100 ) {
+            $output .= "... [ showing first $count entries ]\n";
+        }
+
+        return $output;
     },
 
     'extract_file' => sub {
@@ -173,8 +193,8 @@ return {
     'content' => $content,
 };
 
-#,,,.,,,.,.,.,.,.,,.,,.,.,,.,,,.,,..,,,,,,.,.,..,,...,...,...,.,.,...,,.,,,,,,
-#D4I3VQQJMUT3Z77ITU33RDYCY5SLG2DXZV53FQRMGTTR4OXJ5S2XB452D5HKVW6SCU37BNFKQDYBI
-#\\\|IAGW3FIPIU6E7S2QE2YZBB773YVRJZ3LR7QKITOGI6I2HSXJHXG \ / AMOS7 \ YOURUM ::
-#\[7]PFOXDG3GLN57PYB3MXZX43EOUSIJTSLEQJ5OFK3M4EALI2BWBUCQ 7  DATA SIGNATURE ::
+#,,..,,,.,..,,...,,.,,.,,,.,,,...,,,.,.,,,,..,..,,...,...,,,.,...,.,.,,,.,,,,,
+#3LUUMDVYQETXQVQSKWRL2FCLZ242CV5LBSYKD7IST4SFN3HY7TVPJNVD5ORVMGHTPZDAWMOPXHBYS
+#\\\|QDYYDKYAVYV7DQUUXPO4A2BQTSJQDELRXJXMTF6IONV3XDEYRUM \ / AMOS7 \ YOURUM ::
+#\[7]XYN2WVEPVR47JTXS6VNXKCMC7G74XXLZD3C2WISL3XS4IC5QYCBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

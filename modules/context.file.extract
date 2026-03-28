@@ -12,17 +12,22 @@ my $pattern = $params->{'pattern'} // '';
 
 my $char_budget = int( $budget * <context.cfg.chars_per_token> );
 
-## resolve file path ##
+## resolve file path relative to project root ##
 $path =~ s|\.\./||g;
 $path =~ s|^/||;
 
-unless ( -f $path and -r $path ) {
-    if ( -f "modules/$path" and -r "modules/$path" ) {
-        $path = "modules/$path";
+my $root     = <system.root_path>;
+my $abs_path = "$root/$path";
+
+unless ( -f $abs_path and -r $abs_path ) {
+    my $mod_path = "$root/modules/$path";
+    if ( -f $mod_path and -r $mod_path ) {
+        $abs_path = $mod_path;
     } else {
         return "<!-- file not found: $path -->";
     }
 }
+$path = $abs_path;
 
 open my $fh, '<', $path
     or return "<!-- cannot read: $path -->";
@@ -34,14 +39,14 @@ my @selected;
 if ( $extract eq qw| header | ) {
     ## first 20 lines [ module header + early code ] ##
     my $limit = 20;
-    $limit = scalar @lines if scalar @lines < $limit;
+    $limit    = scalar @lines if scalar @lines < $limit;
     @selected = @lines[ 0 .. $limit - 1 ];
 
 } elsif ( $extract eq qw| grep | and length $pattern ) {
     ## lines matching pattern with context ##
     for my $i ( 0 .. $#lines ) {
         if ( $lines[$i] =~ m|\Q$pattern\E|i ) {
-            my $start = $i > 2 ? $i - 2 : 0;
+            my $start = $i > 2           ? $i - 2 : 0;
             my $end   = $i + 2 < $#lines ? $i + 2 : $#lines;
             push @selected, @lines[ $start .. $end ];
             push @selected, "---\n";
@@ -51,12 +56,11 @@ if ( $extract eq qw| header | ) {
 } elsif ( $extract eq qw| params | ) {
     ## extract parameter and config lines ##
     foreach my $line (@lines) {
-        if ( $line =~ m{^\s*#\s*(name|descr|param|usage)}
+        if (   $line =~ m{^\s*#\s*(name|descr|param|usage)}
             or $line =~ m|^\s*my\s+\$\w+\s*=.*shift|
             or $line =~ m|^\s*my\s+\$\w+\s*=.*param|
             or $line =~ m|^\s*my\s+\$\w+\s*=.*args|
-            or $line =~ m|^\s*my\s+\$\w+\s*=.*call| )
-        {
+            or $line =~ m|^\s*my\s+\$\w+\s*=.*call| ) {
             push @selected, $line;
         }
     }
@@ -64,7 +68,7 @@ if ( $extract eq qw| header | ) {
 } else {
     ## unknown extract mode — return header ##
     my $limit = 20;
-    $limit = scalar @lines if scalar @lines < $limit;
+    $limit    = scalar @lines if scalar @lines < $limit;
     @selected = @lines[ 0 .. $limit - 1 ];
 }
 
@@ -79,14 +83,14 @@ foreach my $line (@selected) {
         last;
     }
     $content .= $line;
-    $used    += $len;
+    $used += $len;
 }
 
 return "## file extract [ $path : $extract ] ##\n"
     . "\`\`\`\n$content\`\`\`\n";
 
-#,,..,,,.,..,,,..,..,,,.,,.,,,,,,,..,,...,,,.,..,,...,...,...,,..,.,.,...,..,,
-#DNGBN6PX6F54ZMPDMFC2TOTX6KDIDSAY3LENYNWUHTOJC67EH23T45DSFPUFBH53AZ4PCDJ33HF4C
-#\\\|JSRPWHLVNNWCY6OUJZY2CCQLATUKMVIWYVO5A3QUMP46QDM5COU \ / AMOS7 \ YOURUM ::
-#\[7]UV57G6VCN2YU63MOT2MWQGUOY7SGF6R6XNW5NYAEBN4XDOPLESCQ 7  DATA SIGNATURE ::
+#,,..,,.,,.,,,..,,.,.,,.,,,..,...,.,,,,..,,,.,..,,...,...,..,,.,.,...,,..,...,
+#333UVGXQS6XFQ676K5VPDY43UFGKLUKH7FSF77N46TOP5SSZWCQAYS4MS3HXTGCCTBHJIZVZBU72C
+#\\\|22WKBMWGVS5ZZQDLHZXHC7TE62WZ2CRWDC6MZHRNTEOTK4ZJMNE \ / AMOS7 \ YOURUM ::
+#\[7]POZFIDIRYKFW2JVPST5SUQJZW5LMYDRSW2VPIC4PIMMGRCYY62AQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

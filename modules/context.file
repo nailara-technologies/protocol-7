@@ -23,15 +23,21 @@ unless ( length($path) ) {
 $path =~ s|\.\./||g;
 $path =~ s|^/||;
 
+## resolve relative to project root ##
+my $root     = <system.root_path>;
+my $abs_path = "$root/$path";
+
 ## check if file exists ##
-unless ( -f $path and -r $path ) {
+unless ( -f $abs_path and -r $abs_path ) {
     ## try prefixing with modules/ ##
-    if ( -f "modules/$path" and -r "modules/$path" ) {
-        $path = "modules/$path";
+    my $mod_path = "$root/modules/$path";
+    if ( -f $mod_path and -r $mod_path ) {
+        $abs_path = $mod_path;
     } else {
         return "<!-- file not found: $path -->";
     }
 }
+$path = $abs_path;
 
 ## read file ##
 open my $fh, '<', $path or return "<!-- cannot read: $path -->";
@@ -68,8 +74,8 @@ $output .= "\n\`\`\`\n";
 
 return $output;
 
-#,,,.,..,,.,,,..,,..,,.,,,..,,,,.,.,,,,,.,,,,,..,,...,...,.,,,.,.,.,,,...,,,.,
-#7VBPI6HIAPAE2RUEHRHETYWL7FK37HUSZ25JXVK6WMYXL3VZG6RIOA3VE6KIAUZYAE6T2ILCFOXMM
-#\\\|Z6L5IMK3PSON64SLD74MJRPSWELPMX57RMQXTQTZDCWGSQ37QRT \ / AMOS7 \ YOURUM ::
-#\[7]RA7Z7BZU4EAOF5ACYPZRGU47R6LZXUGMPJOKEIM4C335C23MPODY 7  DATA SIGNATURE ::
+#,,.,,,,.,.,,,,..,,..,,..,.,.,,,.,,.,,.,,,...,..,,...,...,...,..,,,,,,,,,,.,.,
+#WS5GYLQLT5GMV2HPSTSJWDVGT6WG3LVFXAOYUGPS2LCIG33LJU4GYKZWBSZC2LWFIDVVUPC54YIEA
+#\\\|KI7A3NVWZK3HX7A7WE7WMMTL4R4PSXUMTQOMNKDYQWTYTZB73OS \ / AMOS7 \ YOURUM ::
+#\[7]HQP67R2QQU7RESCV36BYPJKKZPT6VIWEQYJFAR4PQWOU7FPAICAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -92,6 +92,9 @@ if ( $backend eq qw| cpu | ) {
 # No warmup to start faster
 push @cmd, qw| --no-warmup |;
 
+# Enable jinja template engine for tool calling support
+push @cmd, qw| --jinja |;
+
 ## Spawn llama-server with open3
 my ( $server_in, $server_out, $server_err );
 $server_err = Symbol::gensym;
@@ -175,8 +178,8 @@ return {
     'port'    => $port
 };
 
-#,,,.,,..,,,.,...,..,,,,,,..,,,,,,,..,,..,.,,,..,,...,..,,...,,.,,..,,,,,,,.,,
-#CIUWCTHLXCQ5ZK6XUHV7W3ATVBG27Z3KMHTZ3HDZ4PWBWH4RWA7VWEJHW3NW3IIXYRNK2UDUYQL72
-#\\\|DERSTQRRXZ4M4VZ3QUXCUT3GF5LN3KVX5ANREZ3RIQZKUNUR5ED \ / AMOS7 \ YOURUM ::
-#\[7]AQX7JGJ47J5WOV6AQN3RIP5SWZN53SCEJ4FWMGXYEJAF5DYM4EBI 7  DATA SIGNATURE ::
+#,,,.,,..,,,.,,,.,.,,,...,...,,,,,,,.,...,,,,,..,,...,...,...,,.,,,.,,.,,,,,,,
+#UQV734J7FJWWBHQ3NCORUFDOMMOOFAOVXBO2BPXNJCFBRPM3U5JENB2RRXEFRQ7SZVIUFE3SVZHEI
+#\\\|BLBSCUI2CTBE2CMW5LAU5JUDUDWZSMBJCVDPXI6AVY7VI6HTZNI \ / AMOS7 \ YOURUM ::
+#\[7]JL2T7VQVI6T2GZ4TP66QDGZW4UNHKEQDSVDH5Q76SULZ5RC2EMCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

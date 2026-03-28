@@ -20,7 +20,8 @@ unless ( length($namespace) ) {
 $namespace =~ s|[^\w.\-]||g;
 
 ## find modules ##
-my $pattern = "modules/$namespace.*";
+my $root    = <system.root_path>;
+my $pattern = "$root/modules/$namespace.*";
 my @modules = glob($pattern);
 
 ## sort by filename length (shorter = more generic = more important) ##
@@ -33,7 +34,7 @@ my @output = ($header);
 
 foreach my $mod (@modules) {
     ## extract module name from path ##
-    $mod =~ s|^modules/||;
+    $mod =~ s|^.*/modules/||;
 
     my $line     = "- $mod\n";
     my $line_len = length($line);
@@ -49,8 +50,8 @@ foreach my $mod (@modules) {
 
 return join( '', @output );
 
-#,,.,,...,..,,,,.,.,.,...,...,.,,,..,,,,,,..,,..,,...,...,,..,..,,...,,,,,,..,
-#TNJLRI3ERFGUGYPOBJRJXOCMNEXJI3GFEAHBFSGD7IQSTA7BFC6YUKR52JIXUOOA2MFW5IWPCMOGQ
-#\\\|R7RV46TFJDGMAVR7SRGNKRRSLTFF7XFWNUCQHQVOJHDLN6ZTL3W \ / AMOS7 \ YOURUM ::
-#\[7]BMAJEX6LYJ5IUSVYV36NPFXACMWASXZRZA2KH5Q3SHE2XAAZB4CA 7  DATA SIGNATURE ::
+#,,,.,,,,,,,.,,,.,..,,..,,,,.,,..,...,..,,,.,,..,,...,..,,,..,.,.,,..,,,,,,,.,
+#5BSLUMFWPPW5AGJ2WDWSRBU5H5VGFV3U6EL6ELM6T6WMWJITYEN2AUW63IXGID7GVHVYCZCEPAQ56
+#\\\|M2FWA4TFWUM6LAR3APLLSRT26ATH6VHG2OKXXDOM2YFUHQI44W3 \ / AMOS7 \ YOURUM ::
+#\[7]6QPZIGSLVYDNAK375IJ642UQ3HVLFQDQDN7JM3NKWKQ5SV6SQQBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
