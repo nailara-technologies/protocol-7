@@ -1,0 +1,131 @@
+---
+name: review-cycle
+descr: self-reviewing iterative cycle with auto-compaction, fix-or-escalate decisions
+budget: 4500
+sections:
+  ## style conventions ##
+  - provider: context.style.guide
+    priority: 1
+    budget_pct: 8
+    label: style conventions
+
+  ## review checklist ##
+  - include: system-review
+    priority: 2
+    budget_pct: 7
+
+  ## the target to review ##
+  - provider: context.file.extract
+    priority: 3
+    budget_pct: 25
+    params:
+      path: "{{target_module}}"
+    label: target module
+
+  ## review cycle instructions ##
+  - static: |
+      perform a self-reviewing iterative analysis of the module above.
+
+      ## cycle protocol ##
+
+      ### phase 1: initial review ###
+      use tools to gather context: read_module, module_deps, search_code,
+      dep_graph as needed. produce a structured review with findings.
+
+      ### phase 2: self-review ###
+      review your OWN output from phase 1. for each finding ask:
+      - is this accurate? verify by re-reading the actual code
+      - is this actionable? vague observations are not useful
+      - is this a real issue or a style preference?
+      - did i miss something more important?
+
+      classify your review quality:
+      - CONFIDENT: findings verified, fixes are correct — proceed
+      - FIXABLE: some findings were wrong, i can correct them now
+      - UNCERTAIN: need more context or human judgement — escalate
+
+      ### phase 3: action based on classification ###
+
+      if CONFIDENT:
+        output the verified findings with fixes.
+        compact the review into a dense summary [ max 500 chars ]
+        for memory storage. include:
+        - module name and scope reviewed
+        - N issues found by severity
+        - key fix applied or recommended
+        - confidence assessment
+
+      if FIXABLE:
+        correct the wrong findings inline.
+        re-verify corrections using tools.
+        output the corrected review.
+        note what was wrong in the initial pass and why, so the
+        system prompt or template can be improved to prevent it.
+        compact with correction notes included.
+
+      if UNCERTAIN:
+        output what you are confident about.
+        clearly mark uncertain items with [ESCALATE] prefix.
+        for each escalation:
+        - what is unclear
+        - what additional context would resolve it
+        - suggested next step [ specific tool call or human review ]
+        compact with escalation items highlighted.
+
+      ### phase 4: improvement suggestions ###
+      based on this review cycle, suggest:
+      - prompt improvements: what should system-base include?
+      - template improvements: what sections would have helped?
+      - tool improvements: what tool capability was missing?
+      - self-correction patterns: what did phase 2 catch that
+        phase 1 got wrong? this becomes training signal.
+
+      ## output format ##
+
+      ## review: {{target_module}} ##
+
+      ### findings [ N issues ] ###
+      for each:
+      - severity: critical / warning / style
+      - line: N
+      - issue: description
+      - fix: exact code change or [ESCALATE] with reason
+      - confidence: high / medium / low
+      - verified: yes/no [ did phase 2 confirm this? ]
+
+      ### self-review corrections ###
+      - what phase 1 got wrong and the correction
+
+      ### compact summary [ for memory ] ###
+      dense paragraph summarizing the review outcome
+
+      ### quality classification ###
+      CONFIDENT / FIXABLE / UNCERTAIN
+
+      ### improvement suggestions ###
+      categorized suggestions for system improvement
+    priority: 4
+    budget_pct: 60
+    label: review cycle instructions
+
+on_complete:
+  ## store compact summary when confident ##
+  - when: [output_contains=CONFIDENT, output_length_gt=200]
+    action: memory_update
+    topic: "review-cycle:{{target_module}}"
+
+  ## flag escalations for attention ##
+  - when: [output_contains=ESCALATE]
+    action: memory_update
+    topic: "escalation:{{target_module}}"
+
+  ## capture self-correction patterns ##
+  - when: [output_contains=FIXABLE, output_length_gt=200]
+    action: memory_update
+    topic: "self-correction:{{target_module}}"
+
+#,,,,,,,,,,..,..,,..,,,..,,..,.,.,...,,,.,.,,,..,,...,...,...,,,.,..,,,,.,,,,,
+#DUFZ4EG7KN4EIR732WPTG5S43Q7RRKPIOGNJKUODUNB7FJSZULWHYULQWAYLZRUXWC2SQ7KJRR434
+#\\\|4Z6K55JLSICPA2FYF3PGU3IU73NXTXBSGTBC5LCAGLRMMB2Q4BO \ / AMOS7 \ YOURUM ::
+#\[7]7GJK467HHNIKAE3DPGAZ2MT5PYK4G3QFLHFQDEN4SEJXW6KP44BI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

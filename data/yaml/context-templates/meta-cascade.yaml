@@ -1,0 +1,75 @@
+---
+name: meta-cascade
+descr: orchestrate multi-step self-improvement from reflection output
+budget: 3500
+sections:
+  ## the reflection output to process ##
+  - static: |
+      you are processing the output of a meta-reflect session.
+      the reflection identified categorized findings across streams.
+
+      your job: for each category with actionable items, determine
+      the correct follow-up and either execute it or queue it.
+
+      ## dispatch rules ##
+
+      category: errors
+      → use search_code and read_module to verify the errors still exist
+      → if confirmed, use edit_file to fix simple issues directly
+      → for complex issues, describe the fix for manual review
+
+      category: prompt improvements
+      → read the current system-base template
+      → use edit_file to add missing conventions
+      → or use write_new_file to create a new include template
+
+      category: documentation gaps
+      → use write_new_file to create documentation in data/md/
+      → follow existing doc format from data/md/documentation/
+
+      category: workflow templates
+      → use read_file on similar existing templates for structure
+      → use write_new_file to create the new template YAML
+      → follow the format shown in data/yaml/context-templates/
+
+      category: system message suggestions
+      → read data/yaml/context-templates/system-base.yaml
+      → suggest specific additions with exact wording
+
+      ## execution rules ##
+      - preview all edit_file changes before applying
+      - never overwrite existing templates — create new ones
+      - for each action taken, report what was done
+      - for each action skipped, report why
+
+      ## output format ##
+      ## actions taken ##
+      - action: what was done
+        category: which stream
+        result: outcome
+
+      ## actions queued [ need manual review ] ##
+      - action: what should be done
+        category: which stream
+        reason: why manual review needed
+        suggested_command: coding.submit template target
+
+      ## metrics ##
+      - total findings processed: N
+      - auto-resolved: N
+      - queued for review: N
+      - skipped [ already resolved ]: N
+    priority: 1
+    budget_pct: 100
+    label: cascade orchestrator
+
+on_complete:
+  - when: [output_contains=actions taken]
+    action: memory_update
+    topic: "meta-cascade:results"
+
+#,,..,,..,.,.,,,,,,..,.,.,,..,,,.,.,,,..,,,.,,..,,...,...,.,,,..,,...,,..,,..,
+#OISLJPAXRQS4Z3QFBLZ4JI2MZWN3NOADSRRSW4PF6ETHONAEJSMEQLNBQVTWUS5UIEZSYP26FVNRI
+#\\\|G3LJUTYNLJQITLLNKDCB3VI7TXYFNIRS5BOFEPM3C5IK7QA5BEH \ / AMOS7 \ YOURUM ::
+#\[7]PNT5FFVQ2SQA233IN7WNFCQIP7IQOML23CWUZ54UKLTGVFMNDSBA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,0 +1,106 @@
+---
+name: review-deep
+descr: multi-pass deep review with rolling compaction for large modules
+budget: 5000
+sections:
+  ## style conventions ##
+  - provider: context.style.guide
+    priority: 1
+    budget_pct: 5
+    label: style conventions
+
+  ## review checklist ##
+  - include: system-review
+    priority: 2
+    budget_pct: 5
+
+  ## deep review instructions ##
+  - static: |
+      perform a deep multi-pass review of {{target_module}}.
+      this protocol handles modules too large for single-pass review
+      by using rolling compaction between passes.
+
+      ## pass 1: structure and overview ##
+      use extract_file with extract=header and extract=functions to get
+      the module shape. use module_deps for call graph. use dep_graph
+      for namespace context.
+
+      produce: structural overview [ 200 chars max ]
+      - purpose, parameters, return values
+      - call graph position [ what calls it, what it calls ]
+      - estimated complexity
+
+      ## pass 2: line-by-line review ##
+      use read_file with line ranges to review the module in chunks.
+      start from line 1, read ~50 lines at a time.
+
+      for each chunk:
+      1. review against style conventions and P7 patterns
+      2. note issues with line numbers
+      3. compact your findings for this chunk into a dense summary
+
+      between chunks, your earlier findings will be compacted by the
+      context system. this is expected — your compact summaries survive.
+      write them as if they need to stand alone.
+
+      chunk summary format [ max 200 chars per chunk ]:
+      "lines N-M: [N issues] severity: description; fix: change"
+
+      ## pass 3: cross-cutting concerns ##
+      with the structural overview and chunk summaries available:
+      - error handling: are all failure paths covered?
+      - input validation: are parameters checked at boundaries?
+      - resource cleanup: are file handles, connections closed?
+      - naming consistency: does the module follow namespace conventions?
+      - return values: consistent mode/data hashref returns?
+
+      ## pass 4: self-review and classification ##
+      review your own findings. apply the review-cycle protocol:
+      - CONFIDENT: verified findings, output fixes
+      - FIXABLE: correct and re-verify
+      - UNCERTAIN: escalate with context needs
+
+      ## output format ##
+
+      ## deep review: {{target_module}} ##
+
+      ### structure ###
+      compact structural overview
+
+      ### findings by chunk ###
+      - lines N-M: issue [ severity ] — fix
+
+      ### cross-cutting ###
+      - concern: finding — fix or [ESCALATE]
+
+      ### fix summary ###
+      all fixes consolidated, ready for edit_file:
+      ```
+      line N: old
+         --> new
+      ```
+
+      ### classification ###
+      CONFIDENT / FIXABLE / UNCERTAIN
+
+      ### compacted review [ for memory ] ###
+      one dense paragraph [ max 500 chars ] capturing the full review
+      outcome, suitable for future reference without re-reading the module.
+    priority: 3
+    budget_pct: 90
+    label: deep review protocol
+
+on_complete:
+  - when: [output_contains=CONFIDENT, output_length_gt=300]
+    action: memory_update
+    topic: "deep-review:{{target_module}}"
+
+  - when: [output_contains=ESCALATE]
+    action: memory_update
+    topic: "escalation:{{target_module}}"
+
+#,,..,.,.,,,,,..,,,..,,..,...,,.,,.,,,,,,,,..,..,,...,..,,..,,.,,,..,,,,.,,,.,
+#2OLW6BLE74YQMMUMOQXSGSMIRFYNKPEWEJ4FV7MMESM6CRCKONUOGXAGYA5OPTMHHAWPXNRYCOFZQ
+#\\\|MHQAJE4CRZRMMPTRPS6UDHYYGKW7N3KYO3C4WEPZB3WJJ4HEQKY \ / AMOS7 \ YOURUM ::
+#\[7]5V547OQCMZOAMKFOGUYZ2HMWWJOF2Q3BUMPRUBHVTKD6JUAFWMCI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

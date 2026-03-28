@@ -1,0 +1,50 @@
+---
+name: tasks-completed
+descr: find completed coding tasks and verify against git history
+budget: 3500
+sections:
+  ## recent git changes for cross-reference ##
+  - provider: context.git.recent_changes
+    priority: 1
+    budget_pct: 15
+    params:
+      max_files: 20
+    optional: true
+    label: recent git changes
+
+  ## scan instructions ##
+  - static: |
+      scan the coding task files to find COMPLETED tasks and verify them.
+
+      use list_files and read_file to examine:
+      - data/yaml/coding-tasks/*.yaml — status: completed or done
+      - data/md/coding-tasks/*.md — completion indicators
+
+      for each completed task produce:
+      - name: task filename
+      - completed: date if known
+      - commit: if referenced
+      - summary: what was done
+
+      also cross-reference with git history using recent_changes:
+      - flag tasks marked complete but with no matching commit
+      - flag recent commits that might complete unmarked tasks
+
+      output format:
+      ## completed tasks [ N total ] ##
+      - task_name — summary [ completed: date, commit: hash ]
+
+      ## possibly completed but unmarked ##
+      - task_name — recent commit XYZ appears to address this
+
+      ## marked complete but unverifiable ##
+      - task_name — no commit reference found
+    priority: 2
+    budget_pct: 85
+    label: task verification instructions
+
+#,,.,,..,,...,,,.,,.,,,.,,,,.,...,..,,.,,,,..,..,,...,...,...,..,,,,.,,,.,,.,,
+#6U2QE6S4KSU7AZHS3Z5QNF2LECCE6IQPXYBESDGPK74SD4KK33NFMVJUBLXUP3RCCRMB5TLQDVJ7C
+#\\\|JYL3HOCEGHDQ4RQAZIYE7NZ6GZDCEAWA4QJQVPXJX2U4HPBBQWS \ / AMOS7 \ YOURUM ::
+#\[7]IJX2R56NNFOXSAW62VX54ZSP2ZZAJ66PB2AISGW3NMBKSFF5MIDY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

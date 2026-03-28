@@ -1,0 +1,100 @@
+---
+name: meta-reflect
+descr: post-task reflection — categorize findings into actionable improvement streams
+budget: 4000
+sections:
+  ## core knowledge ##
+  - include: system-base
+    priority: 1
+    budget_pct: 15
+
+  ## recent activity for context ##
+  - provider: context.git.recent_changes
+    priority: 2
+    budget_pct: 10
+    params:
+      max_files: 10
+    optional: true
+    label: recent activity
+
+  ## existing templates for awareness ##
+  - provider: context.modules.list
+    priority: 3
+    budget_pct: 5
+    params:
+      namespace: "context"
+    optional: true
+    label: available context modules
+
+  ## reflection instructions ##
+  - static: |
+      you just completed a coding task. reflect on the entire session
+      and categorize your findings into actionable improvement streams.
+
+      use your tools to review:
+      - recent_changes for what was modified
+      - recent_errors for issues encountered
+      - list_files on data/yaml/context-templates/ for existing templates
+
+      categorize findings into these streams:
+
+      ## 1. errors [ trigger: tool-errors template ] ##
+      tool call failures, dispatch errors, missing handlers.
+      for each: tool name, error, suggested fix.
+
+      ## 2. prompt improvements [ trigger: prompt refinement ] ##
+      cases where the system prompt was insufficient:
+      - missing conventions the model needed
+      - ambiguous instructions that caused wrong behavior
+      - context that should have been included but was not
+      for each: what was missing, suggested addition, which template.
+
+      ## 3. documentation gaps [ trigger: doc generation ] ##
+      modules, patterns, or workflows that lack documentation:
+      - undocumented module interfaces
+      - patterns that took multiple attempts to get right
+      - configuration that is non-obvious
+      for each: what needs documenting, suggested location.
+
+      ## 4. workflow templates [ trigger: meta-create-template ] ##
+      repeatable sequences that could become templates:
+      - multi-step processes performed manually
+      - tool call patterns that recurred
+      - review/fix/verify cycles for specific module types
+      for each: workflow name, steps involved, which tools used,
+      suggested template structure.
+
+      ## 5. system message suggestions [ trigger: system-base update ] ##
+      knowledge that should be in the base system prompt:
+      - facts the model had to discover via tools
+      - patterns it got wrong on first attempt
+      - conventions not covered by current system-base
+      for each: the knowledge, why it matters, suggested wording.
+
+      output format for each stream:
+      - category: stream name
+        count: N items
+        items:
+          - finding: description
+            severity: critical / important / nice-to-have
+            action: what to do
+            trigger: which template or process handles this
+
+      at the end, output a summary:
+      ## action plan ##
+      ordered list of the most impactful improvements, with the
+      template or command that should be run next to address each.
+    priority: 4
+    budget_pct: 70
+    label: reflection instructions
+
+on_complete:
+  - when: [output_length_gt=300]
+    action: memory_update
+    topic: "meta-reflect:session"
+
+#,,,,,.,.,...,...,,,,,,,,,..,,...,,..,...,,,,,..,,...,...,.,.,..,,...,...,.,,,
+#2TWCWKXERDL65GMB2LVQAVJRWQNCWYGLFF3SLIMQ7RV3QJ4BSIFFDJYQ6KTJC2R4XPU73LK4Y7K5S
+#\\\|KJKHF66BZX65ZFJ4KDI4FYFY2QAJQAOJYDGFWX4YDLP2VLS3II4 \ / AMOS7 \ YOURUM ::
+#\[7]HVSE647HEB5TCKS65PPHJHB7XUGQBGXZGFRUDVVI2IUX5ZUNBOAQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
