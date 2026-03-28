@@ -358,8 +358,13 @@ my %dispatch = (
         return 'error: edits must be an array'
             unless ref $edit_list eq qw| ARRAY |;
 
-        ## read current file ##
-        my $content_ref = <[file.slurp]>->($abs_path);
+        ## read current file [ prefer staged version for accumulation ] ##
+        my $stage_name = $path;
+        $stage_name =~ s|/|__|g;
+        my $stage_rel   = "staged/$stage_name";
+        my $content_ref = <[file.zenka_dir.load]>->($stage_rel);
+        $content_ref = <[file.slurp]>->($abs_path)
+            unless defined $content_ref;
         return 'error: cannot read file' unless defined $content_ref;
         my @lines = split /\n/, $content_ref->$*, -1;
 
@@ -411,9 +416,6 @@ my %dispatch = (
                     scalar @$edit_list, $path, join "\n", @preview;
             }
             ## stage to zenka dir when no write access ##
-            my $stage_name = $path;
-            $stage_name =~ s|/|__|g;
-            my $stage_rel = "staged/$stage_name";
             <[file.zenka_dir.write]>->(
                 $stage_rel, \$new_content, '>', 0664, ':encoding(UTF-8)'
             );
@@ -598,8 +600,8 @@ return {
     'content' => $content,
 };
 
-#,,..,.,,,,,.,..,,.,,,.,,,.,.,,,,,,,,,.,.,.,.,..,,...,...,..,,...,,..,,.,,..,,
-#VLSDCXKLYG4WYPHT6CUT3TWWSKW3JDSTPN6AONTIZV6W5QEWN5HCN5L5MDVWDUC2IOFMEJAXSU5HS
-#\\\|WWY2YGVYHUGAVXEALXUNPNFBRJLYOFEBC6M6QI2FCFOEKCSL3QD \ / AMOS7 \ YOURUM ::
-#\[7]CUPIDFZXDKCROJK6YDWFHOE7JI3WSFS5B4IEQMI3LO2PVFQFRYDY 7  DATA SIGNATURE ::
+#,,..,...,...,,,,,,..,,.,,,,,,,,,,.,,,,..,..,,..,,...,...,,.,,..,,,,,,,,,,.,.,
+#Z4HWNCANV2L2YM3DBZJZAFZ6FJNJQD6XBIXPSESU2JS43CMU24TQPPMCGIGVP4DNK4BGP5W22V6KO
+#\\\|KPZYH6PTYCYLW6FR5JXSAZMWXPE5LZRGHGEQWRAJSE6WBU2HK7Q \ / AMOS7 \ YOURUM ::
+#\[7]UEFDXWBSTXZMBF5OMIJR5XTPXOCLBMXOLU7DCPIMTCGGN4OLR2AY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
