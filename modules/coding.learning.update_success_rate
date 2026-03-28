@@ -6,23 +6,51 @@
 
 my ( $task_type, $success ) = @ARG;
 
-return {
-    success => FALSE,
-    error   => 'task type required'
-    }
+return { success => FALSE, error => 'task type required' }
     unless defined $task_type;
 
-# In a real system, would query outcomes and calculate rolling statistics
+## load outcomes from persistence file ##
+my $outcomes_file = '/var/protocol-7/coding/learning/outcomes.json';
+my @outcomes;
+
+if ( -f $outcomes_file ) {
+    <[base.perlmod.autoload]>->('JSON::PP');
+    my $content = <[file.slurp]>->($outcomes_file)->$*;
+    if ( defined $content and length $content ) {
+        my $decoded = eval { JSON::PP::decode_json($content) };
+        @outcomes = $decoded->@* if ref $decoded eq qw| ARRAY |;
+    }
+}
+
+## filter by task type ##
+my @matching = grep { ( $ARG->{'task_type'} // '' ) eq $task_type } @outcomes;
+my $total    = scalar @matching;
+my $wins     = scalar grep { $ARG->{'success'} } @matching;
+
+## compute trend from last 10 outcomes ##
+my $trend = 'neutral';
+if ( $total >= 4 ) {
+    my @recent = @matching > 10 ? @matching[ -10 .. -1 ] : @matching;
+    my $half   = int( scalar(@recent) / 2 );
+    my $older  = scalar grep { $ARG->{'success'} } @recent[ 0 .. $half - 1 ];
+    my $newer
+        = scalar grep { $ARG->{'success'} } @recent[ $half .. $#recent ];
+    $trend
+        = $newer > $older ? 'improving'
+        : $newer < $older ? 'declining'
+        :                   'stable';
+}
+
 return {
     success      => TRUE,
     task_type    => $task_type,
-    success_rate => 0.5,
-    samples      => 0,
-    trend        => 'neutral'
+    success_rate => $total > 0 ? int( $wins * 100 / $total ) : 0,
+    samples      => $total,
+    trend        => $trend
 };
 
-#,,..,.,.,..,,,,.,,,,,,,.,..,,.,.,..,,,,,,.,,,..,,...,...,.,.,.,.,..,,...,,,.,
-#B6U77QTAEFQLBTCDFUEY6ALAZJLUFTGJU46TGJHAVCQCP47VPZMOABPMSN5BB6ZEZMXJTLLK4QBXQ
-#\\\|GJYQRDSD6MHQUB4WKGOLMZF2C7OE65ZUXRWCGOI7BZ2PYWIKFKK \ / AMOS7 \ YOURUM ::
-#\[7]LRBOZHANXUWIXRBEHQFPZWI2MC6KWLMZVJOQN6XW6Z7KXC66VADI 7  DATA SIGNATURE ::
+#,,,,,,,,,,.,,..,,.,.,...,,,,,..,,,,.,.,.,.,,,..,,...,..,,..,,,.,,,,,,..,,.,.,
+#NWEK75AWHFYXHZW53CHB5HIEOJSDOLF7V4AIBXJU4ZRTJBBMWYZM7NUK2LBJ45FNBGJEIPXKJWRX4
+#\\\|FEK6IJ3UDWOCY6ZCLK3CUVY6VLP4R47L4CPFTWNVENS62Y7ENRX \ / AMOS7 \ YOURUM ::
+#\[7]COAPINHNO7ANU3JZYYX7Z4P2JKXIFXJNBDKKXV4VL4ZGAGSTZQAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

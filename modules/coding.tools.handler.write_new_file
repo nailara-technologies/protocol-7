@@ -20,27 +20,27 @@ return "error: file already exists [ $path ]" if -e $abs_path;
 my $dir = $abs_path;
 $dir =~ s|/[^/]+$||;
 
-## chmod g+w parent dir if configured and not writable ##
-my $did_chmod = 0;
-if (    -d $dir
-    and !-w $dir
-    and ( <coding.cfg.allow_chmod_apply> // '' ) eq qw| yes | ) {
-    my $mode = ( stat $dir )[2];
-    if ( defined $mode ) {
-        chmod( $mode | 020, $dir );    ## add g+w ##
-        $did_chmod = 1;
-    }
+## use chmod child to create empty file as admin user if needed ##
+my $chmod_fh = <coding.chmod_child.w_fh>;
+if ( -d $dir and !-w $dir and defined $chmod_fh ) {
+    print {$chmod_fh} "create $abs_path\n";
+    select undef, undef, undef, 0.01;    ## yield for child ##
 }
 
-if ( -d $dir and -w $dir ) {
+if ( -f $abs_path and -w $abs_path ) {
+    ## file created by chmod child [ 0664 taeki:taeki ] — write content ##
+    <[file.put]>->( $abs_path, \$content );
+    ## restore to 0644 after write ##
+    if ( defined $chmod_fh ) {
+        print {$chmod_fh} sprintf "restore 0644 %s\n", $abs_path;
+    }
+    return sprintf "created %s [ %d bytes ]", $path, length($content);
+} elsif ( -d $dir and -w $dir ) {
+    ## dir is writable directly ##
     <[file.put]>->( $abs_path, \$content );
     chmod( 0664, $abs_path );
-    ## restore dir permissions ##
-    chmod( 0775, $dir ) if $did_chmod;
     return sprintf "created %s [ %d bytes ]", $path, length($content);
 }
-## restore dir if chmod didn't help ##
-chmod( 0775, $dir ) if $did_chmod;
 
 ## stage to zenka dir when no write access ##
 my $stage_name = $path;
@@ -56,8 +56,8 @@ return sprintf "staged new file %s [ %d bytes, no write access ]\n"
     . "staged at: %s",
     $path, length($content), $stage_rel;
 
-#,,,.,,.,,...,,..,..,,..,,...,,,,,.,,,,,,,,..,..,,...,...,..,,...,...,,,,,,,.,
-#Y7IAO4N5OLNUS7J5MH34OOBDOFWQE2BQN64JO4X4TPAJ2TW7JGDOPHHAAJ4227FT4CPPXAA6JHBYS
-#\\\|4ZMYMH27CZLYPJXRZBMANDGZSGE5FIGY75BMIHNCDNOGWWZPBB3 \ / AMOS7 \ YOURUM ::
-#\[7]USX5B2Y32IPO5RNF3VSITVLQZ7ECTCI2O5ANDT5MSV6AHPQ3WEBY 7  DATA SIGNATURE ::
+#,,.,,.,,,,.,,,,,,,.,,...,...,,.,,,,.,,,,,,.,,..,,...,...,,,.,,..,,,,,,.,,,,.,
+#LYQVYUMTFEAJ42OUIEAQIRQL2ZQZ4CRFU46DUQY5UPUTNW5GWZQWA5UXJS2TLRZGSYRM733GTABNA
+#\\\|RSST3JDKLE2T2NOHHFKQFNSOZW5NMIMYF7ULLGSUAGU4VGYV5FY \ / AMOS7 \ YOURUM ::
+#\[7]AZ35WQBMG44OKAKWDRAB46XJP4Y3XYSUEXDAVUTSH4EY65SXIIBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
