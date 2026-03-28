@@ -41,6 +41,60 @@ if ( my $old_pid = $old->{'pid'} ) {
     }
 }
 
+## check persisted pid file for orphans surviving zenka restart ##
+my $pid_rel   = "state/inference.$backend.pid";
+my $saved_ref = <[file.zenka_dir.load]>->($pid_rel);
+if ( defined $saved_ref ) {
+    my ( $saved_pid, $saved_bin ) = split m|\n|, $saved_ref->$*;
+    $saved_pid //= '';
+    $saved_bin //= '';
+    if ( $saved_pid =~ m|^\d+$| and kill( 0, $saved_pid ) ) {
+        ## verify process name matches before killing ##
+        my $proc_cmd = '';
+        if ( open my $cfh, '<', "/proc/$saved_pid/cmdline" ) {
+            local $/;
+            $proc_cmd = <$cfh>;
+            close $cfh;
+        }
+        if ( length $saved_bin and $proc_cmd =~ m|\Q$saved_bin\E| ) {
+            kill( 'KILL', $saved_pid );
+            <[base.logs]>->(
+                1,
+                '[spawn_inference_server] killed orphan %s'
+                    . ' server [pid:%d] from pid file',
+                $backend,
+                $saved_pid
+            );
+        }
+    }
+    <[file.zenka_dir.unlink_file]>->($pid_rel);
+}
+
+## scan for stale llama-server processes on same port ##
+if ( open my $pfh, '-|', 'fuser', '-n', 'tcp', $port ) {
+    while ( my $line = <$pfh> ) {
+        for my $stale_pid ( $line =~ m|(\d+)|g ) {
+            next if $stale_pid == $$;    ## skip self ##
+            my $proc_cmd = '';
+            if ( open my $cfh, '<', "/proc/$stale_pid/cmdline" ) {
+                local $/;
+                $proc_cmd = <$cfh>;
+                close $cfh;
+            }
+            next unless $proc_cmd =~ m|llama-server|;
+            kill( 'KILL', $stale_pid );
+            <[base.logs]>->(
+                1,
+                '[spawn_inference_server] killed stale llama-server'
+                    . ' on port %d [pid:%d]',
+                $port,
+                $stale_pid
+            );
+        }
+    }
+    close $pfh;
+}
+
 <[base.logs]>->(
     1,        "[spawn_inference_server] backend=%s port=%d",
     $backend, $port
@@ -131,6 +185,9 @@ for my $pipe_fh ( $server_out, $server_err ) {
 ## Report child PID to v7 for lifecycle management
 <[base.zenki.report_child_pid]>->($pid);
 
+## persist pid + binary name for orphan detection across restarts ##
+<[file.zenka_dir.write]>->( $pid_rel, \"$pid\n$binary\n" );
+
 ## Store server metadata (initialize if needed)
 <coding.inference_servers> = {} unless defined <coding.inference_servers>;
 <coding.inference_servers>->{$backend} = {
@@ -181,8 +238,8 @@ return {
     'port'    => $port
 };
 
-#,,,,,..,,,.,,.,,,,,.,...,,..,.,,,,,,,,.,,...,..,,...,...,,,.,.,.,.,,,,,.,.,.,
-#4U5W764CARQVFVAQPJ4HSWVSLYXAC4EXU2W42AWSNB2OD6LNXPA3OLNMZ5VZTK62X6UQJDBVQBAWQ
-#\\\|4YK6OUK7NBL4ANVNE5N5ZZB2B7FSIQPQXOMK7EZGJGTA644LIOQ \ / AMOS7 \ YOURUM ::
-#\[7]YTLEDDBJHPDWMJXTRXW3MLGLK3IP7VAAD56PAIXRDS7TFT6YKQAQ 7  DATA SIGNATURE ::
+#,,.,,,,.,...,..,,,..,.,,,,,.,..,,,,,,.,,,..,,..,,...,...,.,.,..,,.,.,.,.,..,,
+#I734BDB5AGIMLZB5AID2C77CCCM43SC5B7DGKZL5XKBWOUCA64VDVXOKWPZZRCTSKUS2RFEXB3AJE
+#\\\|ZLQ7JO6QIZR5IMKSYYB4F2XO2IGRMFITFOD6KUDI4WBDWHOIXDB \ / AMOS7 \ YOURUM ::
+#\[7]D22IWGQSJHG57CEU4PCZIG63SMTI3EI4O2AUYZF43MBBGPV4QCCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

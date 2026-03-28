@@ -162,34 +162,37 @@ my %dispatch = (
         my @cmd
             = ( 'grep', '-rn', '--include=*', '-m', '200', $pattern, @dirs );
 
-        ## capture both stdout and stderr via open3 ##
-        my ( $child_in, $child_out, $child_err );
-        $child_err = Symbol::gensym;
-        my $pid = eval {
-            IPC::Open3::open3( $child_in, $child_out, $child_err, @cmd );
-        };
-        if ($pid) {
-            close $child_in;
-            while ( my $line = <$child_out> ) {
+        ## capture stderr to tmpfile to avoid pipe deadlock ##
+        my $err_file = "$root/var/tmp/.search_err.$$";
+        if (open my $fh, '-|', "@{[ join ' ',
+            map { quotemeta $ARG } @cmd ]} 2>$err_file"
+        ) {
+            while ( my $line = <$fh> ) {
                 last if $count >= $max_results;
                 ## strip root prefix for readability ##
                 $line =~ s|^\Q$root/\E||;
                 $output .= $line;
                 $count++;
             }
-            ## collect stderr warnings [ permission errors etc ] ##
-            my $warnings = '';
-            while ( my $err_line = <$child_err> ) {
-                $err_line =~ s|^\Q$root/\E||;
-                $warnings .= $err_line;
-            }
-            close $child_out;
-            close $child_err;
-            waitpid( $pid, 0 );
-            if ( length $warnings ) {
-                $output .= sprintf "\n## warnings ##\n%s", $warnings;
-            }
+            close $fh;
         }
+        ## collect stderr warnings [ permission errors etc ] ##
+        my $warnings = '';
+        if ( -s $err_file ) {
+            if ( open my $efh, '<', $err_file ) {
+                local $/;
+                $warnings = <$efh>;
+                close $efh;
+                $warnings =~ s|\Q$root/\E||g;
+            }
+            <[base.logs]>->(
+                2,
+                ':. search_code: stderr [ %d bytes ]',
+                length $warnings
+            );
+            $output .= sprintf "\n## warnings ##\n%s", $warnings;
+        }
+        unlink $err_file;
 
         return $count
             ? sprintf( "## %d matches for /%s/ ##\n%s",
@@ -276,31 +279,34 @@ my %dispatch = (
         my $output = '';
         my $count  = 0;
 
-        ## capture both stdout and stderr via open3 ##
-        my ( $child_in, $child_out, $child_err );
-        $child_err = Symbol::gensym;
-        my $pid = eval {
-            IPC::Open3::open3( $child_in, $child_out, $child_err, @cmd );
-        };
-        if ($pid) {
-            close $child_in;
-            while ( my $line = <$child_out> ) {
+        ## capture stderr to tmpfile to avoid pipe deadlock ##
+        my $err_file = "$root/var/tmp/.ncode_err.$$";
+        if (open my $fh, '-|', "@{[ join ' ',
+            map { quotemeta $ARG } @cmd ]} 2>$err_file"
+        ) {
+            while ( my $line = <$fh> ) {
                 last if $count >= $max_results;
                 $output .= $line;
                 $count++;
             }
-            ## collect stderr warnings [ permission errors etc ] ##
-            my $warnings = '';
-            while ( my $err_line = <$child_err> ) {
-                $warnings .= $err_line;
-            }
-            close $child_out;
-            close $child_err;
-            waitpid( $pid, 0 );
-            if ( length $warnings ) {
-                $output .= sprintf "\n## warnings ##\n%s", $warnings;
-            }
+            close $fh;
         }
+        ## collect stderr warnings [ permission errors etc ] ##
+        my $warnings = '';
+        if ( -s $err_file ) {
+            if ( open my $efh, '<', $err_file ) {
+                local $/;
+                $warnings = <$efh>;
+                close $efh;
+            }
+            <[base.logs]>->(
+                2,
+                ':. ncode_search: stderr [ %d bytes ]',
+                length $warnings
+            );
+            $output .= sprintf "\n## warnings ##\n%s", $warnings;
+        }
+        unlink $err_file;
 
         return $count
             ? sprintf( "## ncode search: %d lines for '%s' ##\n%s",
@@ -481,8 +487,8 @@ return {
     'content' => $content,
 };
 
-#,,,.,,,,,,,.,,,,,..,,,,.,,.,,..,,,,.,,.,,.,.,..,,...,...,...,,,.,,,.,.,,,...,
-#SIICWU2MWG4LSYAXSVF7BPH3TS3AQGPH2QV5WDPBM44EPYKTBAP4EGOUXRMPJ2FCXHDA56WWZMYK4
-#\\\|C3T5HZH45BGVWGXFQ7CXCSY2W3YY33OJ2RDHZFF3OHVSP6FG5K7 \ / AMOS7 \ YOURUM ::
-#\[7]53D23PHA3I25KWTOWJX645ZQFX3S5GCXVDLA7GNRRHXPCRLMPSDQ 7  DATA SIGNATURE ::
+#,,.,,,.,,.,.,,,.,,,,,.,.,,..,...,,,.,,.,,..,,..,,...,...,.,,,,,.,..,,,.,,,..,
+#ZJBC3DQ2R2P3AUDUZW3ZSFS7C47Z43VYDUXOMEB26L5E4Q6FQMPPTB26QN7RKFZGATYQ4RTJR7LES
+#\\\|H25XOTVGDVMSAPX2VYJCEKME2VRKG65UWVQISZADKGFB4YAO5AG \ / AMOS7 \ YOURUM ::
+#\[7]SMFAO7INIKYEIU7WODCSCZUH6BQKCOYUAGRSZL4E2DMEEJZVVICQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
