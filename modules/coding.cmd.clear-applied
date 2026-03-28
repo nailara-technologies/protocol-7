@@ -1,0 +1,67 @@
+## [:< ##
+
+# name  = coding.cmd.clear-applied
+# descr = remove staged files identical to current source
+
+my $staged_dir
+    = <system.path.zenka-dirs>->{'var_P7'} . '/'
+    . <system.zenka.name>
+    . '/staged';
+
+return { 'mode' => 'false', 'data' => 'no staged directory' }
+    unless -d $staged_dir;
+
+my $dh;
+if ( not opendir $dh, $staged_dir ) {
+    <[base.logs]>->( 0, ':. clear-applied: cannot open %s', $staged_dir );
+    return { 'mode' => 'false', 'data' => 'cannot read staged directory' };
+}
+
+my @files = sort grep { $ARG ne '.' and $ARG ne '..' } readdir $dh;
+closedir $dh;
+
+return { 'mode' => 'false', 'data' => 'no staged edits' } unless @files;
+
+my $root    = <system.root_path>;
+my $cleared = 0;
+my $kept    = 0;
+my $output  = '';
+
+for my $staged_name (@files) {
+    ## convert staged name back to source path ##
+    my $src_rel = $staged_name;
+    $src_rel =~ s|__|/|g;
+
+    my $src_path    = "$root/$src_rel";
+    my $staged_path = "$staged_dir/$staged_name";
+
+    ## read both files ##
+    my $staged_ref = <[file.slurp]>->($staged_path);
+    my $src_ref    = -f $src_path ? <[file.slurp]>->($src_path) : undef;
+
+    ## compare content ##
+    if (    defined $staged_ref
+        and defined $src_ref
+        and $staged_ref->$* eq $src_ref->$* ) {
+        unlink $staged_path;
+        $output .= sprintf ":. %s : identical, cleared\n", $src_rel;
+        $cleared++;
+    } else {
+        $kept++;
+    }
+}
+
+## remove staged dir if empty ##
+if ( $kept == 0 and $cleared > 0 ) {
+    $output .= "\n## staged directory now empty ##\n";
+}
+
+$output .= sprintf "\n## %d cleared, %d remaining ##\n", $cleared, $kept;
+
+return { 'mode' => 'size', 'data' => $output };
+
+#,,..,,.,,,.,,.,,,,..,,,,,,..,.,.,,..,,..,,.,,.,.,...,...,...,.,.,.,,,.,,,.,.,
+#NTGP4AREPFXNYFZATO57MORUT7IVEIQLDRJTAD4AJR36DYCQ2IKOJ4BHANUUWE6PCIRURWYC4BZXK
+#\\\|HBCNHYMB2HMGAH6GKFBAL7GJJV4X7C7VZQAA6CQGSI3EMJDUSTF \ / AMOS7 \ YOURUM ::
+#\[7]4PN5OXWQ2A3L26GH63RAVTXZ3FX5QV6III2T2ZNOFM5QR6GN7GDQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
