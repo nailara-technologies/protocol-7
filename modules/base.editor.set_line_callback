@@ -1,0 +1,27 @@
+## [:< ##
+# name  = base.editor.set_line_callback
+# descr = set line content callback for virtual editor buffer
+
+## [ stub ] register callback for fetching line content ##
+
+return sub {
+    my ($args) = @_;
+
+    my $buffer_id = $args->{'buffer_id'};
+    my $callback  = $args->{'callback'};
+    my $buf       = $data{'editor'}{'buffers'}{$buffer_id};
+
+    return undef unless $buf;
+
+    $buf->{'line_callback'} = $callback;
+
+    return 1;
+};
+
+# SPDX-License-Identifier: ISC
+
+#,,,,,.,,,.,,,,.,,,.,,.,,,...,,,.,,.,,,,,,.,.,..,,...,...,,,,,,.,,,..,.,.,.,.,
+#RY4BAY7HLUVCGKF6T7VQK5BOKQYZJ5CWFUGXUA7GVZJ6I34AI6RA2OVKG22SYV2JYHZ52OBTNSDDM
+#\\\|EOYYLG2A6DN422QXMIDXAT6OLJPSNYHQLBYJ7KML665JCALQADT \ / AMOS7 \ YOURUM ::
+#\[7]ENU5LA2BJOFG4QIGK7JALP6U6JPPUOAI5JIAMVQ22K677YJXNSCQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

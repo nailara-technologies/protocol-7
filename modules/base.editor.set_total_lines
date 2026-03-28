@@ -1,0 +1,27 @@
+## [:< ##
+# name  = base.editor.set_total_lines
+# descr = set total lines callback for virtual editor buffer
+
+## [ stub ] register callback for reporting total line count ##
+
+return sub {
+    my ($args) = @_;
+
+    my $buffer_id = $args->{'buffer_id'};
+    my $callback  = $args->{'callback'};
+    my $buf       = $data{'editor'}{'buffers'}{$buffer_id};
+
+    return undef unless $buf;
+
+    $buf->{'total_lines_callback'} = $callback;
+
+    return 1;
+};
+
+# SPDX-License-Identifier: ISC
+
+#,,,,,,,.,...,.,.,.,,,...,,,.,,..,,,,,,.,,..,,..,,...,...,.,,,,,,,,,,,.,,,.,.,
+#P5JJLW3F7LJZTTN4IUWEYHC6W7FY4VFGZ7OPGGINOHTRE5DGSXFM5CGMICF3F4P7NVPHS7KN6V6IM
+#\\\|YEGUJ6GG2NRHXOSN3SIHAVGPBGHYEE3CTKJCA7JHRTRAIXR3TUC \ / AMOS7 \ YOURUM ::
+#\[7]BRMX2MWE6UV664YGNWA7W4LNQXGIZ3EQJTPXW6PZAHV5DH2ZOCBI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

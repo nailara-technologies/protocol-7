@@ -63,7 +63,7 @@ sub _decode_d13_state {
         # Routing
         $result->{'type'} = 'routing';
         $result->{'hop_count'} = 1 + oct('0b' . substr($decoded, 3, 3));
-        $result->{'direction'} = _decode_direction(substr($decoded, 5, 2));
+        $result->{'direction'} = <[pager.decode.direction]>->(substr($decoded, 5, 2));
 
         return undef if $mode eq 'payload' || $mode eq 'graphical';
     }
@@ -100,17 +100,10 @@ sub _decode_d13_state {
     return $result;
 }
 
-# Decode direction bits
-sub _decode_direction {
-    my ($bits) = @_;
-    my $dir = oct('0b' . $bits);
-    return ['UP', 'RIGHT', 'LEFT', 'DOWN']->[$dir] // 'UNKNOWN';
-}
-
 # SPDX-License-Identifier: ISC
 
-#,,..,,,.,.,.,,..,,.,,,,,,,.,,,,,,,,.,,,,,.,,,..,,...,...,.,.,,,,,...,.,,,.,,,
-#XMREN5MHV7LQ7LLI6XRTJHQ4PX4JSBJVQXQ2XN5QR6K75OCV5TVXLIC46NNLFWZXUFNTID2TVVPGA
-#\\\|FRJ37GOAWXTLTBRBT2GF3SUGLJVU2VB3TSG2EHXQ5MI4RJTCIQ4 \ / AMOS7 \ YOURUM ::
-#\[7]N5KP4WCO5XV34HMOJ2MSJY5ZWRWNN5TCYPQWVAOYZLOCJWRNVCAY 7  DATA SIGNATURE ::
+#,,.,,,..,..,,,.,,,.,,..,,.,.,.,,,...,.,,,...,..,,...,..,,,,.,,,.,.,,,,,,,,,,,
+#P557BOKQRBQTR455H2LFUX2NOPDHDL4UHLYHM3G3YTHQL5P3S2V2HPLUWTR3YMCI5HRHSOKERPIDM
+#\\\|LOE7VNLR5EH25DRDGRP77ZGPRHLRYE3ONUNMBKJKVAE7K2TZOR7 \ / AMOS7 \ YOURUM ::
+#\[7]3PAF3BNPWBYRLNL5OXVFZDPU7NAJI4GNIQSCQU3JYCFX6G7EDKCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
