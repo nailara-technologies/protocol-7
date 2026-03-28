@@ -1,0 +1,62 @@
+---
+name: tasks-prioritize
+descr: prioritize next coding tasks based on open items and recent git activity
+budget: 4000
+sections:
+  ## recent git changes to understand momentum ##
+  - provider: context.git.recent_changes
+    priority: 1
+    budget_pct: 15
+    params:
+      max_files: 15
+    optional: true
+    label: recent git activity
+
+  ## prioritization instructions ##
+  - static: |
+      determine the best next coding tasks by combining open task files
+      with recent development momentum.
+
+      step 1: use list_files to scan data/yaml/coding-tasks/ and
+      data/md/coding-tasks/ for open tasks [ not completed/done/cancelled ]
+
+      step 2: use recent_changes and ncode_search to understand what
+      namespaces and modules were recently worked on
+
+      step 3: use read_file on the most promising task files for details
+
+      prioritization criteria [ weighted ]:
+      1. momentum [ 30% ]: tasks in namespaces with recent commits rank higher
+         — continuing active work is cheaper than context-switching
+      2. explicit priority [ 25% ]: respect priority: field in task files
+      3. dependencies [ 20% ]: tasks that unblock other tasks rank higher
+      4. effort [ 15% ]: smaller tasks that can ship quickly rank higher
+      5. staleness [ 10% ]: very old tasks get a small penalty unless
+         they are foundational
+
+      output format:
+      ## recommended next tasks [ top 5 ] ##
+
+      ### 1. task_name — one-line summary ###
+      - priority: high/medium/low [ from file ]
+      - momentum: recent work in same namespace? which commits?
+      - effort: estimated scope [ small / medium / large ]
+      - unblocks: other tasks this enables
+      - reason: why this should be next
+
+      ### 2. ...
+
+      ## recently active namespaces ##
+      - namespace — N recent commits — related open tasks: list
+
+      ## parked [ important but no current momentum ] ##
+      - task_name — summary — would need: what to restart
+    priority: 2
+    budget_pct: 85
+    label: prioritization instructions
+
+#,,,,,.,,,.,.,..,,...,.,,,,,,,.,.,...,.,,,...,..,,...,..,,...,.,,,.,,,,..,,,,,
+#I5FZMCBZYIUMUZNO5ANV2PSOJSKUIPFEGWQ4B7FM6SAHFEYBQCHI2TKUVVXL5PUISNCUVYPGUFYC4
+#\\\|SWNY4U3ABSLTXQ4EHCUV7S6TJF2GVTMFRAH3CA3DRKLYHEXHAQ6 \ / AMOS7 \ YOURUM ::
+#\[7]7275MPJ4UWJBXK2HGMQ3CYEER2SQGL3DVBSHHBIURYKOJG565WAQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
