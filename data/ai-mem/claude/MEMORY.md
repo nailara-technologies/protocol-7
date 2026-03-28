@@ -24,6 +24,7 @@
 - `feedback-ptd-syntax-check.md` — use `ptd -c` not `perl -c` for P7 module syntax checks
 - `feedback-kimi-dispatch-pattern.md` — dispatching tasks to kimi via bin/kimi-task is highly
   token-efficient; write detailed task files, review for known issues
+- `topic-tool-shm-architecture.md` — LLM tool calling (8 tools), dispatch loop, SHM+mmap file editing vision
 
 ## File Creation Notes (CRITICAL)
 - **Never add** the single-line `#,,.,,,...` stub at end of new files
@@ -189,8 +190,8 @@
 - Pattern: `my @non_num = grep { defined $data_ref->{$ARG}->{$key} and not looks_like_number(...) } keys $data_ref->%*`
 - Global `$SIG{__WARN__}` exists — if wrapping warn handler, capture `$prev_warn = $SIG{__WARN__}` first and call through
 
-#,,..,,..,...,,..,,,.,,.,,,,.,.,.,.,,,...,.,.,..,,...,...,.,.,,,,,.,.,..,,,,.,
-#J2GA45K4OXNPEQ2KFH34WWWJNWFRJSCVIEHC55RLQIT7KZC7SBT7QLE7LDS77FFGZ3BURD5IEPF6O
-#\\\|MLOKNEQ5CUFKIVEDYQ2JNEU3NZN74Y5BA6HU4DOYGW4XHGPGC3I \ / AMOS7 \ YOURUM ::
-#\[7]LWJJFTZFTVK5IQRE4EJAAPAHSFI7RELG5ZJRXLPLAAT2YZ2KWQDY 7  DATA SIGNATURE ::
+#,,,,,,,.,,..,,.,,...,.,,,..,,,,.,,,,,,,.,...,..,,...,...,...,,.,,,,.,...,.,.,
+#F6FETV77BHRU4ZMJZKUNSYAZ7F7GRTI4VXCGKEHOXMVOD7O3ELO7NI7E7VZOWJ3RY6O6LU4XV3YVC
+#\\\|RJYHUUEQK7WO3Z4F2426HB2F3NTUVNQMXHH3AMUHPKD3ISZKNGB \ / AMOS7 \ YOURUM ::
+#\[7]26IKHX7DQYR7FXGILQNCR2AZCIN3RVHYAEYP3IAE4ZHOS5EHVKCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

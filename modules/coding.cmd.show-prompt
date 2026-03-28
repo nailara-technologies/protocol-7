@@ -69,7 +69,24 @@ $output
     . " port="
     . ( $backend_info->{'port'} // '?' )
     . " ]:.\n";
-$output .= ".:[ messages=" . scalar(@messages) . " ]:.\n\n";
+my $tools      = $assembled->{'tools'};
+my $tool_count = ( ref $tools eq qw| ARRAY | ) ? scalar $tools->@* : 0;
+$output .= ".:[ messages=" . scalar(@messages) . " tools=$tool_count ]:.\n\n";
+
+## list available tools ##
+if ( $tool_count > 0 ) {
+    $output .= ".:[ tools ]:.\n";
+    for my $tool ( $tools->@* ) {
+        my $fn     = $tool->{'function'}                 // {};
+        my $params = $fn->{'parameters'}->{'properties'} // {};
+        my @pnames = sort keys $params->%*;
+        $output .= sprintf "  %s(%s) — %s\n",
+            $fn->{'name'} // '?',
+            join( ', ', @pnames ),
+            $fn->{'description'} // '';
+    }
+    $output .= "\n";
+}
 
 for my $i ( 0 .. $#messages ) {
     my $msg = $messages[$i];
@@ -114,8 +131,8 @@ $output .= sprintf ".:[ total prompt size: %d chars ]:.\n",
 
 return { 'mode' => qw| size |, 'data' => $output };
 
-#,,,.,.,,,.,,,..,,...,.,.,.,,,.,.,,,.,,,,,.,,,..,,...,...,,,.,,.,,.,.,..,,,.,,
-#EUSSAOQLTEOMYQZQIG3IKPKWD4ONYBAIWAKIPNKMMQJ2WM2RPBPGXQE5KTMCJWFCZGDYC3TAAB7AI
-#\\\|PKW4V7NMLL5T6ZV2LBRREQLC53RZC25THT4UTIB5YGI72275XGV \ / AMOS7 \ YOURUM ::
-#\[7]GI35QCXNKHPUKLI4PRFHYQW3OTDDGF5KZCHKAKQHDXVRLZOZBMDI 7  DATA SIGNATURE ::
+#,,,,,,,.,...,,.,,.,,,...,.,,,,..,.,,,...,,,.,..,,...,...,.,,,,,.,,..,,..,.,,,
+#4Q3KLTIKTRMUDIAS64GW6FWG75M4PCXIATWTDZHUMIXFRYGAFEPIKX5ID2K4NBL3XAMULZCSKISDG
+#\\\|6TPLCLKU77WI6WZ3AXDU4GWB2C34WVMIG25SEINFIFRXSBVL6BQ \ / AMOS7 \ YOURUM ::
+#\[7]4ELMOQYNX6I6QD5BXNAYLLDRGFI3WYCU6KX5H4L2VWIJ6WUHAACA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
