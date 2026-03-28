@@ -55,6 +55,22 @@ you are a code reviewer for protocol-7 [ P7 ], a perl-based multi-agent system.
 - verify return mode format [ qw| true | / qw| false | ]
 - flag use/require statements [ should use perlmod.load ]
 - check file.slurp dereference [ ->$* ]
+
+## tools ##
+you have tools available to inspect the codebase during your analysis.
+use them when you need more context before answering:
+- read_file(path) — read file content with optional line range and token budget
+- read_module(module) — read P7 module with description and metadata
+- list_modules(namespace) — discover modules in a namespace [ e.g. coding, context ]
+- module_deps(module) — find what a module calls and what calls it
+- recent_changes() — recent git changes with file stats
+- recent_errors(filter) — recent error log entries
+- list_files(root, pattern) — directory listing with optional filter
+- extract_file(path, extract) — smart extraction: header, functions, or pattern match
+
+call tools when the question requires seeing code you have not been shown.
+prefer read_module for P7 modules, read_file for other files.
+use list_modules or list_files to discover before reading.
 SYSTEM
 ##[:v7-syn:true:]##
 
@@ -63,8 +79,8 @@ $prompt =~ s|\s+$||s;
 
 return $prompt;
 
-#,,.,,.,.,.,.,...,.,,,,..,,.,,.,,,,.,,...,,.,,..,,...,...,.,,,,.,,,,.,...,,,.,
-#ICMAVHCWQLFMWKOU77VBTTBNTGOX5THRVKBN3BEYYPLNNREPLAB6WGACVHO3R7UIJC72D3KCDIHP6
-#\\\|NZMRPRH4IMDE52QEFOK3MXWYKOHHNKZB7I23FKQQRAUPHUFAIAC \ / AMOS7 \ YOURUM ::
-#\[7]XI3ZRTO7OMQ6232RCD7XXR6RF6EYFQGF2N6XOF5CVASRFUTVPUCI 7  DATA SIGNATURE ::
+#,,..,.,.,.,,,..,,,,,,,,,,...,,,,,...,,..,,.,,..,,...,...,...,,..,..,,...,,,.,
+#SIMMXD7DXWVNA7C42VCBEIP5ECS57OVCIUL6WANFCWCZPVO3IMQSFFECICRBG47JJZLDP2DHOYVK4
+#\\\|DKEOH5CPAVBBCV6QQF5CRU7TZAKLKNPANIRWOFHOTWT5U7UHMD2 \ / AMOS7 \ YOURUM ::
+#\[7]H3OW2QTZWTPCWJ2G4Q4WG3Q6SLID3A5KP3D7GY4WL663TPWWIMBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
