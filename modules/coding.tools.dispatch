@@ -1,0 +1,180 @@
+## [:< ##
+
+# name  = coding.tools.dispatch
+# descr = execute tool call and return result string
+
+my $tool_call = shift // {};
+
+my $name = $tool_call->{'function'}->{'name'} // $tool_call->{'name'} // '';
+my $args = $tool_call->{'function'}->{'arguments'}
+    // $tool_call->{'arguments'} // {};
+my $call_id = $tool_call->{'id'} // '';
+
+## parse arguments if still JSON string ##
+if ( not ref $args and length $args ) {
+    my $parsed = eval { JSON::PP::decode_json($args) };
+    if ( defined $parsed and ref $parsed eq qw| HASH | ) {
+        $args = $parsed;
+    } else {
+        <[base.logs]>->(
+            0,     ':. tools.dispatch: JSON parse error for %s: %s',
+            $name, $@ // 'unknown'
+        );
+        return {
+            'id'      => $call_id,
+            'role'    => 'tool',
+            'content' => "error: invalid arguments JSON",
+        };
+    }
+}
+
+<[base.logs]>->(
+    2,     ':. tools.dispatch: %s [ %d args ]',
+    $name, scalar keys $args->%*
+);
+
+## dispatch table: tool name => [ module, param builder ] ##
+my %dispatch = (
+
+    'read_file' => sub {
+        return unless exists $code{'context.file'};
+        return $code{'context.file'}->(
+            {   'path'      => $args->{'path'}      // '',
+                'budget'    => $args->{'budget'}    // 2000,
+                'from_line' => $args->{'from_line'} // 1,
+                'to_line'   => $args->{'to_line'}   // 0,
+            }
+        );
+    },
+
+    'read_module' => sub {
+        return unless exists $code{'coding.context.read_module'};
+        my $result = $code{'coding.context.read_module'}->(
+            {   'module'    => $args->{'module'}    // '',
+                'max_chars' => $args->{'max_chars'} // 8000,
+            }
+        );
+        if ( ref $result eq qw| HASH | and $result->{'mode'} eq qw| true | ) {
+            my $d = $result->{'data'};
+            return sprintf ".:[ module: %s ]:.\n.:[ descr: %s ]:.\n"
+                . ".:[ %d lines, %d chars%s ]:.\n\n%s",
+                $d->{'module'},
+                $d->{'descr'} // '?',
+                $d->{'lines'},
+                $d->{'chars'},
+                $d->{'truncated'} ? ' truncated' : '',
+                $d->{'content'};
+        }
+        return $result;
+    },
+
+    'list_modules' => sub {
+        return unless exists $code{'context.modules.list'};
+        return $code{'context.modules.list'}->(
+            {   'namespace' => $args->{'namespace'} // '',
+                'budget'    => $args->{'budget'}    // 800,
+            }
+        );
+    },
+
+    'module_deps' => sub {
+        return unless exists $code{'context.module.dependencies'};
+        return $code{'context.module.dependencies'}->(
+            {   'module' => $args->{'module'} // '',
+                'budget' => $args->{'budget'} // 800,
+            }
+        );
+    },
+
+    'recent_changes' => sub {
+        return unless exists $code{'context.git.recent_changes'};
+        return $code{'context.git.recent_changes'}->(
+            {   'budget'       => $args->{'budget'}       // 1500,
+                'max_files'    => $args->{'max_files'}    // 10,
+                'since_commit' => $args->{'since_commit'} // '',
+            }
+        );
+    },
+
+    'recent_errors' => sub {
+        return unless exists $code{'context.error.recent'};
+        return $code{'context.error.recent'}->(
+            {   'filter' => $args->{'filter'} // '',
+                'lines'  => $args->{'lines'}  // 50,
+                'budget' => $args->{'budget'} // 500,
+            }
+        );
+    },
+
+    'list_files' => sub {
+        return unless exists $code{'pager.source.file-list'};
+        return $code{'pager.source.file-list'}->(
+            {   'root'      => $args->{'root'}      // '.',
+                'pattern'   => $args->{'pattern'}   // '',
+                'recursive' => $args->{'recursive'} // 1,
+            }
+        );
+    },
+
+    'extract_file' => sub {
+        return unless exists $code{'context.file.extract'};
+        return $code{'context.file.extract'}->(
+            {   'path'    => $args->{'path'}    // '',
+                'extract' => $args->{'extract'} // 'header',
+                'pattern' => $args->{'pattern'} // '',
+                'budget'  => $args->{'budget'}  // 1000,
+            }
+        );
+    },
+
+);
+
+## look up and execute ##
+unless ( exists $dispatch{$name} ) {
+    <[base.logs]>->( 0, ':. tools.dispatch: unknown tool [ %s ]', $name );
+    return {
+        'id'      => $call_id,
+        'role'    => 'tool',
+        'content' => "error: unknown tool '$name'",
+    };
+}
+
+my $raw_result = $dispatch{$name}->();
+
+## normalize result to string ##
+my $content;
+if ( not defined $raw_result ) {
+    $content = 'error: tool handler returned undef';
+} elsif ( ref $raw_result eq qw| HASH | ) {
+    if ( exists $raw_result->{'data'} ) {
+        $content
+            = ref $raw_result->{'data'}
+            ? JSON::PP->new->utf8->pretty->canonical->encode(
+            $raw_result->{'data'} )
+            : $raw_result->{'data'};
+    } else {
+        $content
+            = JSON::PP->new->utf8->pretty->canonical->encode($raw_result);
+    }
+} elsif ( ref $raw_result ) {
+    $content = JSON::PP->new->utf8->pretty->canonical->encode($raw_result);
+} else {
+    $content = $raw_result;
+}
+
+<[base.logs]>->(
+    2,     ':. tools.dispatch: %s → %d chars',
+    $name, length($content)
+);
+
+return {
+    'id'      => $call_id,
+    'role'    => 'tool',
+    'content' => $content,
+};
+
+#,,,.,,,.,.,.,.,.,,.,,.,.,,.,,,.,,..,,,,,,.,.,..,,...,...,...,.,.,...,,.,,,,,,
+#D4I3VQQJMUT3Z77ITU33RDYCY5SLG2DXZV53FQRMGTTR4OXJ5S2XB452D5HKVW6SCU37BNFKQDYBI
+#\\\|IAGW3FIPIU6E7S2QE2YZBB773YVRJZ3LR7QKITOGI6I2HSXJHXG \ / AMOS7 \ YOURUM ::
+#\[7]PFOXDG3GLN57PYB3MXZX43EOUSIJTSLEQJ5OFK3M4EALI2BWBUCQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

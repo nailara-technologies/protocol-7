@@ -1,0 +1,268 @@
+## [:< ##
+
+# name  = coding.tools.definitions
+# descr = OpenAI function-calling tool schemas for inference
+
+## returns arrayref of tool definitions in OpenAI format ##
+## each tool maps to an existing $code{} module          ##
+
+my @tools;
+
+## read_file — budget-aware file content ##
+if ( exists $code{'context.file'} ) {
+    push @tools,
+        {
+        'type'     => 'function',
+        'function' => {
+            'name'        => 'read_file',
+            'description' =>
+                'read file content with line range and token budget',
+            'parameters' => {
+                'type'       => 'object',
+                'properties' => {
+                    'path' => {
+                        'type'        => 'string',
+                        'description' => 'file path relative to project root'
+                    },
+                    'from_line' => {
+                        'type'        => 'integer',
+                        'description' => 'start line number [ default 1 ]'
+                    },
+                    'to_line' => {
+                        'type'        => 'integer',
+                        'description' => 'end line number [ 0 = to end ]'
+                    },
+                    'budget' => {
+                        'type'        => 'integer',
+                        'description' => 'token budget [ default 2000 ]'
+                    },
+                },
+                'required' => ['path'],
+            },
+        },
+        };
+}
+
+## read_module — P7 module content with metadata ##
+if ( exists $code{'coding.context.read_module'} ) {
+    push @tools,
+        {
+        'type'     => 'function',
+        'function' => {
+            'name'        => 'read_module',
+            'description' =>
+                'read P7 module file with description and metadata',
+            'parameters' => {
+                'type'       => 'object',
+                'properties' => {
+                    'module' => {
+                        'type'        => 'string',
+                        'description' =>
+                            'module name [ e.g. coding.system_prompt ]'
+                    },
+                    'max_chars' => {
+                        'type'        => 'integer',
+                        'description' => 'character budget [ default 8000 ]'
+                    },
+                },
+                'required' => ['module'],
+            },
+        },
+        };
+}
+
+## list_modules — discover modules by namespace ##
+if ( exists $code{'context.modules.list'} ) {
+    push @tools,
+        {
+        'type'     => 'function',
+        'function' => {
+            'name'        => 'list_modules',
+            'description' => 'list available modules in a namespace',
+            'parameters'  => {
+                'type'       => 'object',
+                'properties' => {
+                    'namespace' => {
+                        'type'        => 'string',
+                        'description' =>
+                            'module namespace [ e.g. coding, context, httpd ]'
+                    },
+                    'budget' => {
+                        'type'        => 'integer',
+                        'description' => 'token budget [ default 800 ]'
+                    },
+                },
+                'required' => ['namespace'],
+            },
+        },
+        };
+}
+
+## module_deps — dependency call graph ##
+if ( exists $code{'context.module.dependencies'} ) {
+    push @tools,
+        {
+        'type'     => 'function',
+        'function' => {
+            'name'        => 'module_deps',
+            'description' => 'find what a module calls and what calls it',
+            'parameters'  => {
+                'type'       => 'object',
+                'properties' => {
+                    'module' => {
+                        'type'        => 'string',
+                        'description' => 'module name to analyze'
+                    },
+                    'budget' => {
+                        'type'        => 'integer',
+                        'description' => 'token budget [ default 800 ]'
+                    },
+                },
+                'required' => ['module'],
+            },
+        },
+        };
+}
+
+## recent_changes — git diff stats ##
+if ( exists $code{'context.git.recent_changes'} ) {
+    push @tools,
+        {
+        'type'     => 'function',
+        'function' => {
+            'name'        => 'recent_changes',
+            'description' => 'recent git changes with file stats',
+            'parameters'  => {
+                'type'       => 'object',
+                'properties' => {
+                    'max_files' => {
+                        'type'        => 'integer',
+                        'description' => 'max files to list [ default 10 ]'
+                    },
+                    'since_commit' => {
+                        'type'        => 'string',
+                        'description' => 'specific commit to diff from'
+                    },
+                    'budget' => {
+                        'type'        => 'integer',
+                        'description' => 'token budget [ default 1500 ]'
+                    },
+                },
+                'required' => [],
+            },
+        },
+        };
+}
+
+## recent_errors — error log with filter ##
+if ( exists $code{'context.error.recent'} ) {
+    push @tools,
+        {
+        'type'     => 'function',
+        'function' => {
+            'name'        => 'recent_errors',
+            'description' => 'recent error log entries with optional filter',
+            'parameters'  => {
+                'type'       => 'object',
+                'properties' => {
+                    'filter' => {
+                        'type'        => 'string',
+                        'description' => 'error filter pattern'
+                    },
+                    'lines' => {
+                        'type'        => 'integer',
+                        'description' => 'max error lines [ default 50 ]'
+                    },
+                    'budget' => {
+                        'type'        => 'integer',
+                        'description' => 'token budget [ default 500 ]'
+                    },
+                },
+                'required' => [],
+            },
+        },
+        };
+}
+
+## list_files — directory listing ##
+if ( exists $code{'pager.source.file-list'} ) {
+    push @tools,
+        {
+        'type'     => 'function',
+        'function' => {
+            'name'        => 'list_files',
+            'description' =>
+                'list files in a directory with optional pattern',
+            'parameters' => {
+                'type'       => 'object',
+                'properties' => {
+                    'root' => {
+                        'type'        => 'string',
+                        'description' =>
+                            'directory path [ default project root ]'
+                    },
+                    'pattern' => {
+                        'type'        => 'string',
+                        'description' => 'file pattern filter'
+                    },
+                    'recursive' => {
+                        'type'        => 'boolean',
+                        'description' =>
+                            'recurse subdirectories [ default true ]'
+                    },
+                },
+                'required' => [],
+            },
+        },
+        };
+}
+
+## extract_file — smart partial file read ##
+if ( exists $code{'context.file.extract'} ) {
+    push @tools,
+        {
+        'type'     => 'function',
+        'function' => {
+            'name'        => 'extract_file',
+            'description' =>
+                'smart file extraction: header, functions, or pattern match',
+            'parameters' => {
+                'type'       => 'object',
+                'properties' => {
+                    'path' => {
+                        'type'        => 'string',
+                        'description' => 'file path relative to project root'
+                    },
+                    'extract' => {
+                        'type'        => 'string',
+                        'description' =>
+                            'extraction mode: header, functions, or pattern'
+                    },
+                    'pattern' => {
+                        'type'        => 'string',
+                        'description' => 'regex for pattern extraction mode'
+                    },
+                    'budget' => {
+                        'type'        => 'integer',
+                        'description' => 'token budget [ default 1000 ]'
+                    },
+                },
+                'required' => ['path'],
+            },
+        },
+        };
+}
+
+<[base.logs]>->(
+    2,
+    ':. tools.definitions: %d tools available',
+    scalar @tools
+);
+
+return \@tools;
+
+#,,.,,,.,,,..,,,,,,..,...,..,,,.,,.,.,.,.,,..,..,,...,..,,...,..,,.,,,.,.,...,
+#ZZIF56JG3VMK3PDKTUTANAKPCAYT4CP25KLD5MTHS272BJ5EQVXAEZ2IVTKBWLPXAODX3WCS7DNVK
+#\\\|NPSO7WGBQOFYVJVG3IZFJ7W5A7HGEAAXK23DRLXBELY5QZ6PZV3 \ / AMOS7 \ YOURUM ::
+#\[7]G3EFMTHRVCKC7FZ3WHW3WFI6KFD7ZU2VYAMOYEJAQSDU46CUCWBI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

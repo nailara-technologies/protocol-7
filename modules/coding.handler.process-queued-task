@@ -181,13 +181,18 @@ my $model_id       = $backend_info->{'model'};
     $model_id, $max_tokens, $temperature, $inference_port
 );
 
-# Make HTTP request to inference server
+## use pre-assembled message array ##
+my @messages = $assembled->{'messages'}->@*;
+
+## tool definitions for function calling ##
+my $tools = $assembled->{'tools'};
+
+## inference loop with tool call support ##
 my $response_text     = '';
 my $finish_reason_val = 'stop';
 my $http_error;
-
-## use pre-assembled message array ##
-my @messages = $assembled->{'messages'}->@*;
+my $max_tool_rounds = 10;
+my $tool_round      = 0;
 
 eval {
     use LWP::UserAgent;
@@ -197,51 +202,130 @@ eval {
     $ua->timeout(300);    ## 5 min [ allows 4096 token generation on gpu ] ##
 
     my $json = JSON::PP->new->utf8->canonical;
-    my $body = $json->encode(
-        {   model       => $model_id,
+
+INFERENCE_LOOP:
+    while ( $tool_round <= $max_tool_rounds ) {
+
+        ## build request body ##
+        my %request = (
+            model       => $model_id,
             messages    => \@messages,
             max_tokens  => $max_tokens,
             temperature => $temperature,
+        );
+
+        ## include tools on first round or when tool loop is active ##
+        if ( defined $tools and $tools->@* ) {
+            $request{'tools'}       = $tools;
+            $request{'tool_choice'} = 'auto';
         }
-    );
 
-    <[base.logs]>->(
-        2, "[process-queued-task] sending inference request to port %d",
-        $inference_port
-    );
+        my $body = $json->encode( \%request );
 
-    my $http_response = $ua->post(
-        "http://localhost:${inference_port}/v1/chat/completions",
-        Content_Type => 'application/json',
-        Content      => $body
-    );
+        <[base.logs]>->(
+            2,
+            "[process-queued-task] inference request round=%d port=%d msgs=%d",
+            $tool_round,
+            $inference_port,
+            scalar @messages
+        );
 
-    if ( !$http_response->is_success ) {
-        $http_error = $http_response->status_line;
-    } else {
+        my $http_response = $ua->post(
+            "http://localhost:${inference_port}/v1/chat/completions",
+            Content_Type => 'application/json',
+            Content      => $body
+        );
+
+        if ( !$http_response->is_success ) {
+            $http_error = $http_response->status_line;
+            last INFERENCE_LOOP;
+        }
+
         my $decoded = eval { $json->decode( $http_response->content ) };
         if ($@) {
             $http_error = "json decode error: $@";
-        } elsif ( ref($decoded) eq qw| HASH | && $decoded->{'choices'} ) {
-            $response_text = $decoded->{'choices'}[0]{'message'}{'content'}
-                // '';
-            $finish_reason_val = $decoded->{'choices'}[0]{'finish_reason'}
-                // 'stop';
+            last INFERENCE_LOOP;
+        }
 
-            ## store finish_reason on task so completion chain can read it ##
-            my $t = <coding.task.queue>->{$task_id};
-            $t->{'execution'}->{'finish_reason'} = $finish_reason_val
-                if defined $t;
+        unless ( ref($decoded) eq qw| HASH | && $decoded->{'choices'} ) {
+            $http_error = 'unexpected response format';
+            last INFERENCE_LOOP;
+        }
 
+        my $choice  = $decoded->{'choices'}[0];
+        my $message = $choice->{'message'} // {};
+        $finish_reason_val = $choice->{'finish_reason'} // 'stop';
+
+        ## check for tool calls ##
+        if (    $finish_reason_val eq 'tool_calls'
+            and ref $message->{'tool_calls'} eq qw| ARRAY |
+            and $message->{'tool_calls'}->@*
+            and exists $code{'coding.tools.dispatch'} ) {
+            $tool_round++;
+
+            ## append assistant message with tool calls to conversation ##
+            push @messages, $message;
+
+            ## dispatch each tool call ##
+            for my $tc ( $message->{'tool_calls'}->@* ) {
+                my $tool_name = $tc->{'function'}->{'name'} // '?';
+
+                <[base.logs]>->(
+                    1, "[process-queued-task] tool call round=%d: %s",
+                    $tool_round, $tool_name
+                );
+
+                my $tool_result = $code{'coding.tools.dispatch'}->($tc);
+
+                ## append tool result as tool role message ##
+                push @messages,
+                    {
+                    'role'         => 'tool',
+                    'tool_call_id' => $tc->{'id'}               // '',
+                    'content'      => $tool_result->{'content'} // '',
+                    };
+            }
+
+            <[base.logs]>->(
+                2,
+                "[process-queued-task] tool round %d complete, %d calls dispatched",
+                $tool_round,
+                scalar $message->{'tool_calls'}->@*
+            );
+
+            next INFERENCE_LOOP;
+        }
+
+        ## normal completion — extract response text ##
+        $response_text = $message->{'content'} // '';
+
+        ## accumulate partial content from tool rounds ##
+        if ( $tool_round > 0 ) {
+            <[base.logs]>->(
+                1,
+                "[process-queued-task] completed after %d tool rounds, %d chars",
+                $tool_round,
+                length($response_text)
+            );
+        } else {
             <[base.logs]>->(
                 1,
                 "[process-queued-task] inference success: %d chars, finish_reason=%s",
                 length($response_text),
                 $finish_reason_val
             );
-        } else {
-            $http_error = 'unexpected response format';
         }
+
+        ## store finish_reason on task so completion chain can read it ##
+        my $t = <coding.task.queue>->{$task_id};
+        $t->{'execution'}->{'finish_reason'} = $finish_reason_val
+            if defined $t;
+
+        last INFERENCE_LOOP;
+    }
+
+    if ( $tool_round > $max_tool_rounds ) {
+        $http_error = "tool call loop exceeded $max_tool_rounds rounds";
     }
 };
 
@@ -280,8 +364,8 @@ if ( length $response_text
 ## return result hashref for jobqueue callback ##
 return { success => TRUE, result => $response_text, task_id => $task_id };
 
-#,,,.,...,.,.,,..,..,,,,.,.,.,.,.,...,.,,,..,,..,,...,...,,,.,,,,,..,,...,...,
-#HYJF7KP2GD75FY2G6U3MEE5KOYTYIIT3D2LKA73UB3UICFXLHVJ4AACH2TI3G5OVM7Y3CPBGJF2BI
-#\\\|4NBTKY2WERL6UINI4XCBTDZ4HJYVGQ3VZBE3D2Z4OEUI5VZ2RP4 \ / AMOS7 \ YOURUM ::
-#\[7]RVXNFXQZZE25J5LZSERHQ756T2MOYVG5XE3U5DQ7AKLAHASGYCAI 7  DATA SIGNATURE ::
+#,,,.,,,.,,.,,,,.,.,.,,,.,..,,,,.,.,.,,,,,,..,..,,...,...,.,.,,.,,.,,,..,,.,,,
+#VGN7SWQHEHD7LXLJXKH3ZNW62VI3A73MECLWCADDLMJA526X7IRR2PQFNXS4COWRTDBXVUQEWCIXK
+#\\\|YHUEPMNPPNMCPAY2QKQKMHWP3BTPAGEU7TSMKWH3DHSLOIQX6KW \ / AMOS7 \ YOURUM ::
+#\[7]U7YKA7GDF5RU44O23ENOPCAQEVWVXPP3TXVRVUDVD25HUD2MVMDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
