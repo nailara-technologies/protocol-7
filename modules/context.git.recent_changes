@@ -17,8 +17,9 @@ my $since_commit = $params->{'since_commit'}
 my $char_budget = int( $budget * 4 );
 my $output      = '';
 
-## build git command ##
-my @git_cmd = (qw| git diff --stat |);
+## build git command [ run from project root ] ##
+my $root    = <system.root_path>;
+my @git_cmd = ( 'git', '-C', $root, qw| diff --stat | );
 
 ## add since_commit if provided ##
 if ( length($since_commit) ) {
@@ -76,8 +77,8 @@ if ( $file_count >= $max_files ) {
 
 return $output;
 
-#,,.,,.,,,..,,,.,,,..,.,.,...,.,,,,,,,,..,,..,..,,...,...,,,.,,..,.,,,,,.,,,.,
-#2AQDVK34CHVDMITE5ESRX6FJGFQRKPOGFX65NKDRTJXLRWMDQ2LUM3DQN5D5RKGTY6DIHWKLVUA72
-#\\\|IOGNGJ6P53CUNFAAS53UPQ4BEHR3ELVIQRGAPMA5IT4KYGXYI6F \ / AMOS7 \ YOURUM ::
-#\[7]T6AXHGYHNQCYKA77YXEAHVYJFNMNHDJ2J2TNE7DIBZA3JFYIWYDI 7  DATA SIGNATURE ::
+#,,..,...,,,.,,,,,,..,...,,,.,,,.,,,,,,,.,,..,..,,...,.,.,,,,,...,.,,,,,.,,..,
+#FUM34SGHVTZE4D76KE4SSCUJCRPJDZ6WPYQ3RPRER5CB5WAJEENZ3CQBXJ6QZEQQ4PREZVOIQVERU
+#\\\|YJWSTANG7XG3IRWFIYDRG3XVLV5SDAHEFNWEDBNZ4SSAVDXIO75 \ / AMOS7 \ YOURUM ::
+#\[7]4VSJATZ5N7TTTWDIJ6EJHKOGTQ6UALSZGTYCSSBDDGXEY5FGUWAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
