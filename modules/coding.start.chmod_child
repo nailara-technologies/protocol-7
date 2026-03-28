@@ -1,0 +1,72 @@
+## [:< ##
+
+# name  = coding.start.chmod_child
+# descr = fork privileged child for temporary chmod during apply-staged
+
+return if defined <coding.chmod_child.w_fh>;
+return if not( $EUID == 0 or $UID == 0 );      ## must be root to fork ##
+
+my $allow_chmod = <[base.cfg_bool]>->( <coding.cfg.allow_chmod_apply> // 0 );
+my $assume_admin
+    = <[base.cfg_bool]>->( <coding.cfg.assume_admin_group> // 0 );
+
+return if not $allow_chmod or not $assume_admin;
+
+my $admin_group = <coding.cfg.drop_privs_admin_group> // '';
+return if not length $admin_group;
+
+my $admin_gid = ( getgrnam($admin_group) )[2];
+return if not defined $admin_gid;
+
+<system.path.perl_bin> //= <[base.get_path.perl_exec]>;
+
+my $zenka_name_chars = qr|0-9A-Za-z_\-|;
+( my $zenka_name = <system.zenka.name> ) =~ s|[^$zenka_name_chars]+||g;
+
+<[base.log]>->( 2, ': starting chmod-child .,' );
+
+my $child_code = <<~"EOT";
+use v5.24; use strict; use warnings; use English;
+use Fcntl qw| :mode |;
+map { \$SIG{\$ARG} = qw| IGNORE | } qw| INT TERM QUIT |;
+\$PROGRAM_NAME = q|$zenka_name-<root>-chmod-child|;
+my \$admin_gid = $admin_gid;
+while ( my \$line = <STDIN> ) {
+    chomp \$line;
+    exit if not length \$line;
+    if ( \$line =~ m|^gw (.+)\$| ) {
+        my \$path = \$1;
+        next if not -f \$path;
+        my \$gid = ( stat \$path )[5];
+        next if not defined \$gid or \$gid != \$admin_gid;
+        my \$cur = ( stat \$path )[2] & 07777;
+        chmod( \$cur | 0020, \$path );
+    } elsif ( \$line =~ m|^restore (\\d+) (.+)\$| ) {
+        my ( \$mode, \$path ) = ( oct(\$1), \$2 );
+        next if not -f \$path;
+        chmod( \$mode, \$path );
+    }
+}
+EOT
+
+<[base.perlmod.load]>->('IPC::Open2')
+    if not <[base.perlmod.loaded]>->('IPC::Open2');
+
+<coding.chmod_child.pid>
+    = IPC::Open2::open2( undef, <coding.chmod_child.w_fh>,
+    <system.path.perl_bin>, qw| -e |, $child_code )
+    || die sprintf( "cannot start perl chmod child process [ %s ]\n",
+    scalar <[base.format_error]>->($OS_ERROR) );
+
+<coding.chmod_child.admin_gid> = $admin_gid;
+
+<[base.logs]>->(
+    2, ': started chmod child [pid:%d] admin_group=%s [gid=%d]',
+    <coding.chmod_child.pid>, $admin_group, $admin_gid
+);
+
+#,,.,,...,,,.,.,.,,,,,.,.,,.,,,,,,.,,,...,,.,,.,.,...,...,,.,,,,.,.,,,.,,,...,
+#5KAEMNLWENRMVEFORYODBNGHJN5CTQMYGICQQHKKUMT7F2MUXCOTZF6X74AH234R3S64N47D47EN6
+#\\\|S52DRKFC5MNHCQ2BHZMQJJNVSDWOJQVOBCFUF6PVCBNJKSX5CXG \ / AMOS7 \ YOURUM ::
+#\[7]KJPFBOMF2SAD73MYFQD6YVCMTOHC45BUDACCLB5QQSSEU3KXYMDY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
