@@ -9,13 +9,14 @@ return sub {
     my ($args) = @_;
 
     my $operation = $args->{'operation'} // 'save';
-    my $tag = $args->{'tag'} // time();
-    my $branches = $args->{'branches'} // ['all'];
+    my $tag       = $args->{'tag'}       // time();
+    my $branches  = $args->{'branches'}  // ['all'];
 
-    my $tree = $data{'context'}{'tree'}{'summary'};
+    my $tree           = $data{'context'}{'tree'}{'summary'};
     my $checkpoint_dir = $data{'path'}{'var'} . '/checkpoints/awareness';
 
-    if ($operation eq 'save') {
+    if ( $operation eq 'save' ) {
+
         # Ensure directory exists
         <[file.make_path]>->($checkpoint_dir) unless -d $checkpoint_dir;
 
@@ -24,12 +25,13 @@ return sub {
             'tag'       => $tag,
             'timestamp' => time(),
             'version'   => $tree->{'version'},
-            'stats'     => { %{$tree->{'stats'} } },
+            'stats'     => { %{ $tree->{'stats'} } },
         };
 
         # Select branches to save
-        my @branch_list = ($branches->[0] eq 'all')
-            ? keys %{$tree->{'index'}{'by_branch'}}
+        my @branch_list
+            = ( $branches->[0] eq 'all' )
+            ? keys %{ $tree->{'index'}{'by_branch'} }
             : @$branches;
 
         $checkpoint->{'branches'} = \@branch_list;
@@ -43,29 +45,28 @@ return sub {
             my $checksums = $tree->{'index'}{'by_branch'}{$branch} // [];
 
             for my $checksum (@$checksums) {
-                if (exists $tree->{'events'}{$checksum}) {
+                if ( exists $tree->{'events'}{$checksum} ) {
                     my $event = $tree->{'events'}{$checksum};
-                    if ($event->{'timestamp'} > $cutoff) {
+                    if ( $event->{'timestamp'} > $cutoff ) {
                         push @recent_events, $event;
                     }
-                }
-                elsif (exists $tree->{'summaries'}{$checksum}) {
+                } elsif ( exists $tree->{'summaries'}{$checksum} ) {
                     push @summaries, $tree->{'summaries'}{$checksum};
                 }
             }
         }
 
         $checkpoint->{'recent_events'} = \@recent_events;
-        $checkpoint->{'summaries'} = \@summaries;
+        $checkpoint->{'summaries'}     = \@summaries;
 
         # Serialize and save
         my $checkpoint_file = "$checkpoint_dir/checkpoint-$tag.json";
-        my $json = <[format.json.write]>->($checkpoint);
+        my $json            = <[format.json.encode]>->($checkpoint);
 
-        <[file.write]>->({
-            'path'    => $checkpoint_file,
-            'content' => $json,
-        });
+        if ( open my $fh, '>:encoding(UTF-8)', $checkpoint_file ) {
+            print {$fh} $json;
+            close $fh;
+        }
 
         # Register checkpoint
         $tree->{'checkpoints'}{$tag} = {
@@ -77,33 +78,32 @@ return sub {
         return {
             'mode' => 'true',
             'data' => {
-                'tag'          => $tag,
-                'file'         => $checkpoint_file,
-                'events_saved' => scalar(@recent_events),
+                'tag'             => $tag,
+                'file'            => $checkpoint_file,
+                'events_saved'    => scalar(@recent_events),
                 'summaries_saved' => scalar(@summaries),
             },
         };
-    }
-    elsif ($operation eq 'load') {
+    } elsif ( $operation eq 'load' ) {
         my $checkpoint_info = $tree->{'checkpoints'}{$tag};
         return { 'mode' => 'false', 'data' => 'checkpoint not found' }
             unless $checkpoint_info;
 
         # Load and deserialize
-        my $json = <[file.slurp]>->($checkpoint_info->{'file'})->$*;
-        my $checkpoint = <[format.json.read]>->($json);
+        my $json       = <[file.slurp]>->( $checkpoint_info->{'file'} )->$*;
+        my $checkpoint = <[format.json.decode]>->($json);
 
         # Restore events
         my $restored_events = 0;
-        for my $event (@{$checkpoint->{'recent_events'}}) {
-            $tree->{'events'}{$event->{'id'}} = $event;
+        for my $event ( @{ $checkpoint->{'recent_events'} } ) {
+            $tree->{'events'}{ $event->{'id'} } = $event;
             $restored_events++;
         }
 
         # Restore summaries
         my $restored_summaries = 0;
-        for my $summary (@{$checkpoint->{'summaries'}}) {
-            $tree->{'summaries'}{$summary->{'id'}} = $summary;
+        for my $summary ( @{ $checkpoint->{'summaries'} } ) {
+            $tree->{'summaries'}{ $summary->{'id'} } = $summary;
             $restored_summaries++;
         }
 
@@ -113,31 +113,31 @@ return sub {
         return {
             'mode' => 'true',
             'data' => {
-                'tag'               => $tag,
-                'events_restored'   => $restored_events,
-                'summaries_restored'=> $restored_summaries,
-                'checkpoint_age_hours' => (time() - $checkpoint->{'timestamp'}) / 3600,
+                'tag'                  => $tag,
+                'events_restored'      => $restored_events,
+                'summaries_restored'   => $restored_summaries,
+                'checkpoint_age_hours' =>
+                    ( time() - $checkpoint->{'timestamp'} ) / 3600,
             },
         };
-    }
-    elsif ($operation eq 'list') {
+    } elsif ( $operation eq 'list' ) {
         my @checkpoints = sort { $b->{'timestamp'} <=> $a->{'timestamp'} }
-                          values %{$tree->{'checkpoints'}};
+            values %{ $tree->{'checkpoints'} };
 
         return {
             'mode' => 'true',
             'data' => \@checkpoints,
         };
-    }
-    elsif ($operation eq 'prune') {
+    } elsif ( $operation eq 'prune' ) {
+
         # Remove old checkpoints
-        my $max_age = $args->{'max_age'} // 604800;  # 1 week
-        my $cutoff = time() - $max_age;
+        my $max_age = $args->{'max_age'} // 604800;    # 1 week
+        my $cutoff  = time() - $max_age;
 
         my $pruned = 0;
-        for my $tag (keys %{$tree->{'checkpoints'}}) {
+        for my $tag ( keys %{ $tree->{'checkpoints'} } ) {
             my $info = $tree->{'checkpoints'}{$tag};
-            if ($info->{'timestamp'} < $cutoff) {
+            if ( $info->{'timestamp'} < $cutoff ) {
                 unlink $info->{'file'} if -f $info->{'file'};
                 delete $tree->{'checkpoints'}{$tag};
                 $pruned++;
@@ -153,8 +153,8 @@ return sub {
     return { 'mode' => 'false', 'data' => 'unknown operation' };
 };
 
-#,,,.,.,.,,,,,,.,,,,,,,,,,,..,,,.,,,.,.,,,,..,.,.,...,...,,.,,,,.,,,,,,.,,,,.,
-#JD6C3M6JXHZ3HXRLM235MFRFNZHRPUJTYIWMNENEXNRTCM2GFZTR5CFOEFRSFTBFP5CPPQF55DHQS
-#\\\|5F34DND5BMECBKPXA45QTNPSZBDDAINV57RFIKIVYK4IMKP6VCX \ / AMOS7 \ YOURUM ::
-#\[7]WG7F6KYC6Z2NY7OEWZH7XCOCADN3GDK23X7R54U2BGHREWPYTCCI 7  DATA SIGNATURE ::
+#,,,.,,,.,.,.,,,.,.,,,,.,,,..,,..,,.,,..,,.,,,.,.,...,...,,,,,...,..,,.,,,.,.,
+#CVPPXIQ6TC3GN446FBXDIPNJFKXCX777Q67H5BOTUC3HVPP4CJTFLWO3NUXXHJZ4MWDYZ2KID33O2
+#\\\|PZW55M4JMCPECVNGG6KOWI6GBSDDFZZE5O7EEZHGHFB6I7YY2XM \ / AMOS7 \ YOURUM ::
+#\[7]NG5BEOFR2YMAAWLLA2IUTQICPN4BXVYGUBBBF5LVG75YAVTEB2DQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
