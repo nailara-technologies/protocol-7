@@ -238,6 +238,17 @@ INFERENCE_LOOP:
 
         if ( !$http_response->is_success ) {
             $http_error = $http_response->status_line;
+            ## log response body for diagnostics ##
+            my $body = $http_response->content // '';
+            if ( length $body ) {
+                my $err_detail = eval { $json->decode($body) };
+                if ( ref $err_detail eq qw| HASH |
+                    and $err_detail->{'error'} ) {
+                    $http_error .= sprintf ' [ %s ]',
+                        $err_detail->{'error'}{'message'}
+                        // $err_detail->{'error'};
+                }
+            }
             last INFERENCE_LOOP;
         }
 
@@ -364,8 +375,8 @@ if ( length $response_text
 ## return result hashref for jobqueue callback ##
 return { success => TRUE, result => $response_text, task_id => $task_id };
 
-#,,,.,,,.,,.,,,,.,.,.,,,.,..,,,,.,.,.,,,,,,..,..,,...,...,.,.,,.,,.,,,..,,.,,,
-#VGN7SWQHEHD7LXLJXKH3ZNW62VI3A73MECLWCADDLMJA526X7IRR2PQFNXS4COWRTDBXVUQEWCIXK
-#\\\|YHUEPMNPPNMCPAY2QKQKMHWP3BTPAGEU7TSMKWH3DHSLOIQX6KW \ / AMOS7 \ YOURUM ::
-#\[7]U7YKA7GDF5RU44O23ENOPCAQEVWVXPP3TXVRVUDVD25HUD2MVMDQ 7  DATA SIGNATURE ::
+#,,,,,,..,,,,,...,...,,..,,.,,.,,,,.,,,..,,..,..,,...,...,,,,,..,,.,.,.,,,.,,,
+#2U7B4CUWHVGM2Y24GAPAFLZIE5WLDKUFUJF4SLKGY3Z3T5IIX5KOAOOYC2QR6XFLRY3UILAC4WLHE
+#\\\|W7TWHVNR2GZRP2CLGJQCKU2I7RVDJOT5XWUTN6WOTZ7HIAKJC2X \ / AMOS7 \ YOURUM ::
+#\[7]4FXCDB7JEUDRKK7HDAQD7L5IBQIBIB6DR33FVP2FD32UD5GLUYCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
