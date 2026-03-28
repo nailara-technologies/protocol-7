@@ -253,6 +253,35 @@ if ( exists $code{'context.file.extract'} ) {
         };
 }
 
+## search_code — grep across codebase ##
+push @tools,
+    {
+    'type'     => 'function',
+    'function' => {
+        'name'        => 'search_code',
+        'description' => 'search modules and files for a pattern [ grep ]',
+        'parameters'  => {
+            'type'       => 'object',
+            'properties' => {
+                'pattern' => {
+                    'type'        => 'string',
+                    'description' => 'search pattern [ perl regex ]'
+                },
+                'scope' => {
+                    'type'        => 'string',
+                    'description' => 'search scope: modules, config, or all'
+                        . ' [ default modules ]'
+                },
+                'max_results' => {
+                    'type'        => 'integer',
+                    'description' => 'max matching lines [ default 30 ]'
+                },
+            },
+            'required' => ['pattern'],
+        },
+    },
+    };
+
 <[base.logs]>->(
     2,
     ':. tools.definitions: %d tools available',
@@ -261,8 +290,8 @@ if ( exists $code{'context.file.extract'} ) {
 
 return \@tools;
 
-#,,.,,,.,,,..,,,,,,..,...,..,,,.,,.,.,.,.,,..,..,,...,..,,...,..,,.,,,.,.,...,
-#ZZIF56JG3VMK3PDKTUTANAKPCAYT4CP25KLD5MTHS272BJ5EQVXAEZ2IVTKBWLPXAODX3WCS7DNVK
-#\\\|NPSO7WGBQOFYVJVG3IZFJ7W5A7HGEAAXK23DRLXBELY5QZ6PZV3 \ / AMOS7 \ YOURUM ::
-#\[7]G3EFMTHRVCKC7FZ3WHW3WFI6KFD7ZU2VYAMOYEJAQSDU46CUCWBI 7  DATA SIGNATURE ::
+#,,.,,,..,,.,,,.,,,,.,..,,,.,,.,,,...,.,,,...,..,,...,...,.,,,,,.,.,.,...,,.,,
+#LTVKO2OHPVZL24WCBCDNDKPMED76AYONXH4ZGGNM6I5EK74W3KCOLZ4ED7KFQYRFIRCPC56V53CXS
+#\\\|YO4Y5ZAMKOFJUOISN5LKJYVTSZNUK54YFKDL27SADFHP5J6S6UU \ / AMOS7 \ YOURUM ::
+#\[7]6CIWSMV6R2MNYRAY2Q6RH2GNGWVNZVAV3VNTXJXFZ4IBUUEDU2CA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

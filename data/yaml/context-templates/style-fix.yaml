@@ -1,0 +1,57 @@
+---
+name: style-fix
+descr: check and fix P7 code style issues in a module — output corrected code
+budget: 3500
+sections:
+  ## style conventions reference ##
+  - provider: context.style.guide
+    priority: 1
+    budget_pct: 15
+    label: style conventions
+
+  ## review checklist for known patterns ##
+  - include: system-review
+    priority: 2
+    budget_pct: 10
+
+  ## the module to fix ##
+  - provider: context.file.extract
+    priority: 3
+    budget_pct: 45
+    params:
+      path: "{{target_module}}"
+    label: module to fix
+
+  ## fix instructions ##
+  - static: |
+      fix all style issues in the module above. output ONLY the corrected
+      lines with line numbers. do not output unchanged lines.
+
+      priority fixes [ stop if none found ]:
+      - invocation syntax: <[name]>-> not <[name->
+      - TRUE/FALSE constants: not 1/0
+      - log calls: base.logs with sprintf format, correct level
+      - return mode: qw| true | / qw| false |
+      - use/require: should be perlmod.load in init_code
+      - file.slurp dereference: ->$*
+      - comments: lowercase, [ brackets ] not ( parens )
+      - $ARG not $_ where applicable
+
+      format each fix as:
+      line N: old → new
+
+      if no issues found, say: no style issues found.
+    priority: 4
+    budget_pct: 30
+    label: fix instructions
+
+on_complete:
+  - when: [output_length_gt=50, not_output_contains=no style issues]
+    action: memory_update
+    topic: "style-fix:{{target_module}}"
+
+#,,..,,..,.,,,,,.,.,.,,.,,.,,,,,.,,,.,.,,,.,.,..,,...,...,,.,,..,,,..,.,,,.,.,
+#I4BMJNBX75LRYTU46JPR343LBIVLWOQPKSNUQJF7HVJNKICCAVQBWWONO62R2I5EFC3JE2CELM3CA
+#\\\|END7F4CREFEQW4QTIFMX635STGOR4OKXVHLWHHTXPWDACSTHPH4 \ / AMOS7 \ YOURUM ::
+#\[7]Q6M6NWAJVA5FWSM7LPONXC2BMDCL3SBLFTDKEI75GRSNHR2ID2DA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
