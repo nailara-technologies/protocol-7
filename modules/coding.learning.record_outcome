@@ -28,8 +28,41 @@ my $outcome = {
     : 0
 };
 
-# Store outcome in history (placeholder for living tree integration)
-my $key = sprintf( "learning.outcome.%s", $task_id );
+## persist outcome to JSON file ##
+my $learn_dir     = '/var/protocol-7/coding/learning';
+my $outcomes_file = $learn_dir . '/outcomes.json';
+
+## ensure directory exists ##
+if ( !-d $learn_dir ) {
+    require File::Path;
+    File::Path::make_path($learn_dir);
+}
+
+## load existing outcomes ##
+<[base.perlmod.autoload]>->('JSON::PP');
+my @outcomes;
+if ( -f $outcomes_file ) {
+    my $content = <[file.slurp]>->($outcomes_file)->$*;
+    if ( defined $content and length $content ) {
+        my $decoded = eval { JSON::PP::decode_json($content) };
+        @outcomes = $decoded->@* if ref $decoded eq qw| ARRAY |;
+    }
+}
+
+## append and write back ##
+push @outcomes, $outcome;
+my $json_out = JSON::PP->new->utf8->pretty->canonical->encode( \@outcomes );
+
+if ( open my $fh, '>', $outcomes_file ) {
+    print {$fh} $json_out;
+    close $fh;
+} else {
+    <[base.logs]>->(
+        0,              '[record_outcome] cannot write %s : %s',
+        $outcomes_file, $!
+    );
+    return { success => FALSE, error => "cannot write outcomes: $!" };
+}
 
 return {
     success => TRUE,
@@ -37,8 +70,8 @@ return {
     message => sprintf( "recorded outcome for task : %s", $task_id )
 };
 
-#,,,.,,,,,,..,,,.,,,.,,,,,..,,.,.,...,,,,,,.,,..,,...,...,,.,,,..,,,.,,,.,,,.,
-#HS43UAAN2CHTTIXRJF6PD3DOHOVKI3YZ7TYRVSXYNYGBC4ELQRVBV2SOF7QTIOYI7C6SWX4DUW5UY
-#\\\|KKDIDPBMHVZFXP7SDB2ERHBLQEFWL4WSKBPAUCLSZZYYJGEDXF7 \ / AMOS7 \ YOURUM ::
-#\[7]IUIVXGLC2PSPCM65BZYGAZWPSMKKAL6EBYQHTQQB5M7F3RIXWSDQ 7  DATA SIGNATURE ::
+#,,..,.,.,..,,.,.,..,,.,.,,.,,,,,,,..,...,.,,,..,,...,...,..,,,.,,..,,,,.,,,.,
+#4F3VVZVVBCWRTI24GJMMENOZI4426SAF7BJNN4SFU7XE2QSC6SOFSQT763U5AABEYMAUG6UPYWZHK
+#\\\|HNHYQL2CVCYLYYW77BXP4S77C7BJ4QRUNYY6UWMCX7FWDVFZXEU \ / AMOS7 \ YOURUM ::
+#\[7]INCBQTD5SMOSSOZGQN6ZSJYNHDQCHSBPK7GBQ22SFXU4QPUKPCDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
