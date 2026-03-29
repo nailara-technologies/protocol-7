@@ -1,0 +1,38 @@
+## [:< ##
+
+# name  = plugin.storage.util.visual.semantic_distance
+# descr = Calculate Jaccard-based semantic distance from segment overlap
+
+my ( $ref1, $ref2 ) = @ARG;
+
+# Parse to get segments
+my $p1 = <[plugin.storage.p7ref.parse]>->( { 'p7ref' => $ref1 } );
+my $p2 = <[plugin.storage.p7ref.parse]>->( { 'p7ref' => $ref2 } );
+
+return 1.0 unless $p1->{mode} eq 'true' and $p2->{mode} eq 'true';
+
+my @seg1 = @{ $p1->{data}{segments} // [] };
+my @seg2 = @{ $p2->{data}{segments} // [] };
+
+return 1.0 if @seg1 == 0 and @seg2 == 0;
+
+# Calculate Jaccard similarity
+my %set1 = map { $ARG => 1 } @seg1;
+my %set2 = map { $ARG => 1 } @seg2;
+
+my $intersection = 0;
+for my $s ( keys %set1 ) {
+    $intersection++ if exists $set2{$s};
+}
+
+my $union = scalar( keys %set1 ) + scalar( keys %set2 ) - $intersection;
+return 1.0 if $union == 0;
+
+my $similarity = $intersection / $union;
+return 1.0 - $similarity;
+
+#,,,,,...,..,,,,.,.,.,,,.,..,,.,,,,.,,,,.,.,,,..,,...,...,.,.,,,,,,,,,.,.,...,
+#4HSJ2ZTXR3ZGMWG2XUBEQMIPDFYXSVVMPTA2W5VPARF2CDTPTL3NA6MZYD7BMG472EGBHY63JAPO2
+#\\\|RFDIER73BWECZVRYI7NV6NICE24APHYAFD2DIQOPCHJGCYO2R6M \ / AMOS7 \ YOURUM ::
+#\[7]MBFNBSMHNN23RTQ55O3BZDPP3IN5EVZCB7ZCJI2LTGQ362XHVUAA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

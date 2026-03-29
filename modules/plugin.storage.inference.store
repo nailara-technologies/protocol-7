@@ -52,8 +52,9 @@ my $is_new = not -d $branch_dir;
 if ( -d $branch_dir and opendir my $bdh, $branch_dir ) {
     my $threshold = $registry->{'config'}{'entropy_threshold'};
     my @ts_dirs   = sort { $b cmp $a }
-        grep { $_ !~ m{^\.} and $_ ne qw| refs | and -d "$branch_dir/$_" }
-        readdir $bdh;
+        grep {
+        $ARG !~ m{^\.} and $ARG ne qw| refs | and -d "$branch_dir/$ARG"
+        } readdir $bdh;
     closedir $bdh;
 
 DEDUP_SCAN:
@@ -233,7 +234,7 @@ return {
 
 ## update or create branch .meta file [ relative path for zenka_dir ] ##
 sub _update_branch_meta {
-    my ( $rel_path, $question, $time, $action ) = @_;
+    my ( $rel_path, $question, $time, $action ) = @ARG;
 
     ## read existing meta via zenka_dir.load ##
     my %meta;
@@ -253,7 +254,7 @@ sub _update_branch_meta {
         $meta{'hit_count'}++;
     }
 
-    my $content = join '', map {"$_=$meta{$_}\n"} sort keys %meta;
+    my $content = join '', map {"$ARG=$meta{$ARG}\n"} sort keys %meta;
     <[file.zenka_dir.write]>->(
         $rel_path, \$content, qw| > |, 0664, ':encoding(UTF-8)'
     );
@@ -261,8 +262,8 @@ sub _update_branch_meta {
     return;
 }
 
-#,,,.,.,,,,,.,,..,..,,,.,,,..,,,,,,,,,.,,,.,,,..,,...,.,.,...,.,.,.,.,.,,,..,,
-#OFRH2LZAQR3EN4D2HEZKDHMJ5QNA7MUHRU63MBHW6CFFHOH4VAR6UGIAQRZHEBS3VWRAXSYI6S3WA
-#\\\|2P55VXGPAMM7R45TOOF22I4UAZ5L655CK4OCXF6MC5HHZGKZ7HV \ / AMOS7 \ YOURUM ::
-#\[7]HFV7WV2EJXZSEVKIQPIBEWLOOYY772T3BZURCGSOE7QGBZVOYYAI 7  DATA SIGNATURE ::
+#,,..,.,,,,,,,,,,,,..,,,.,..,,...,,,.,,..,,,,,..,,...,...,...,,..,,.,,..,,..,,
+#LPDYAV7MHYAO6UISO4X5OGA5YVJOT5I27DA7F67WKAH7WRTQON5UPZ7CRJQECYCL5OEM7RS7FHUXC
+#\\\|FW5RXFADGKFQC53MI637XOUZGUONQOWPY2VZBP2TLQBMQCRZBRZ \ / AMOS7 \ YOURUM ::
+#\[7]PQLPFEMYK3BC2LGBBBIRA7Y7LBAAUQ345IIR6IDJKD457PTAWUAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

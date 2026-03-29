@@ -1,0 +1,34 @@
+## [:< ##
+
+# name  = plugin.storage.util.visual.temporal_distance
+# descr = Calculate temporal distance from access decay metrics
+
+my ( $ref1, $ref2 ) = @ARG;
+
+# Extract temporal floats
+my $f1 = <[plugin.storage.visual.extract-floats]>->(
+    {   'p7ref'  => $ref1,
+        'layers' => ['temporal'],
+    }
+);
+my $f2 = <[plugin.storage.visual.extract-floats]>->(
+    {   'p7ref'  => $ref2,
+        'layers' => ['temporal'],
+    }
+);
+
+return 1.0 unless $f1->{mode} eq 'true' and $f2->{mode} eq 'true';
+
+my $d1 = $f1->{data};
+my $d2 = $f2->{data};
+
+# Compare access decay (most important temporal metric)
+my $decay_diff = abs( ( $d1->{decay} // 0 ) - ( $d2->{decay} // 0 ) );
+
+return $decay_diff;
+
+#,,.,,,.,,..,,.,,,.,,,.,,,.,,,.,.,,,,,,,,,...,..,,...,...,.,.,..,,.,.,.,,,..,,
+#DBDHGJSKC3GSHCPJGISADWE6JRGJIYCFB7QEWWC73UH2C4RN72NTDJYQDUFEPDQ4VUHKHPXAGDCLW
+#\\\|LXO5T25SEA4H3DGHEENAU6XHA53V6QB6HOS2WALVMA2QHFC443M \ / AMOS7 \ YOURUM ::
+#\[7]JC4HFCDIF7ZO7FWZSHYLCVWMYEEI7BWSTOXAV6Y4SW55TVYLWGAY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
