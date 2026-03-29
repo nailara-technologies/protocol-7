@@ -272,7 +272,7 @@ my %dispatch = (
     'edit_file' => sub {
         my $path  = $args->{'path'}  // return 'path required';
         my $edits = $args->{'edits'} // return 'edits required';
-        my $apply = $args->{'apply'} // 0;
+        my $apply = $args->{'apply'} // 1;    ## default: apply ##
 
         my $root     = <system.root_path>;
         my $abs_path = "$root/$path";
@@ -436,8 +436,8 @@ return {
     'content' => $content,
 };
 
-#,,.,,,..,..,,,..,.,,,,,,,,.,,...,..,,..,,...,..,,...,...,..,,,.,,.,.,,..,,.,,
-#3KC6FCMJ7YSM63JHYABWBGRIO5CUX2O2SJNM74BLDHSY5BAITYLFOMRO5EDOIGK4DQQEVFXI4ZBBU
-#\\\|NP6DN6Z3VMF4OZA2PU4PQ4QEU63KZFYGUQU6SCD3R6CXJ7WUGUC \ / AMOS7 \ YOURUM ::
-#\[7]JIGFSGUWPLZ6DUMR3DUZWCMTOXSIF3TXQD6YMHZKO27VNRNXWMBA 7  DATA SIGNATURE ::
+#,,..,,,.,.,.,,..,.,,,.,.,,..,..,,..,,,,.,,.,,..,,...,..,,.,,,..,,..,,,,,,...,
+#QL5M2TJLZJZY4BEHCAQOX4D6EYC6DPO46R5RTV2UVXH6LTN37ZCI5FHA7EM5POZZKEZT5TYYSMJCM
+#\\\|H6WB54WSM44K27MBZLOWREQ2FX22WEVRAJ6FGCSE4AMHFNOIMYJ \ / AMOS7 \ YOURUM ::
+#\[7]E5B67P6PBNHW2CHUEGV2BNNBWIIK4T5DIMJVV23VP7YRT67A5QDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
