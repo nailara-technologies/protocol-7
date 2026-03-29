@@ -6,7 +6,7 @@ use strict;
 use warnings;
 
 return sub {
-    my ($args) = @_;
+    my ($args) = @ARG;
 
     my $checksum = $args->{'checksum'};    # Primary checksum (cluster ID)
     my $type     = $args->{'type'}     // 'proximity';
@@ -32,11 +32,12 @@ return sub {
 
     # Validate member checksums
     my @valid_members = grep { defined && length } @$members;
-    @valid_members = map { <[plugin.storage.util.normalize_checksum]>->($_) }
+    @valid_members
+        = map { <[plugin.storage.util.normalize_checksum]>->($ARG) }
         @valid_members;
 
     # Remove self-reference if present
-    @valid_members = grep { $_ ne $checksum } @valid_members;
+    @valid_members = grep { $ARG ne $checksum } @valid_members;
 
     # Use shared empty arrayref if no members (memory optimization)
     my $member_array;
@@ -84,8 +85,8 @@ return sub {
     };
 };
 
-#,,,,,,,.,.,.,,,,,,,.,.,,,,..,,,,,..,,.,,,,,,,.,.,...,..,,...,..,,...,.,,,.,.,
-#44HQW6WT6VJRBVIW7Q4SN7SSMUZVS5PPXU52IUKFV3FY25PCEKRXNW5W4LNSPQVIFF5Z4DFD6T6GK
-#\\\|UMOG7JYJW2Y4P32K4MGTRWFTTZPWDMBJAKNPLGZQ2HXCJF4CQDH \ / AMOS7 \ YOURUM ::
-#\[7]YJPPQNJCL63GZVGO72KITTVHRLSMTNSECZA2KNO5TS326DYZYODQ 7  DATA SIGNATURE ::
+#,,.,,..,,.,.,,,,,,.,,.,,,,..,.,,,,,.,,,,,,..,.,.,...,...,.,.,.,.,.,.,.,,,...,
+#YVDHCVIRYU6EZUYG7FIGBBBIJZ6KMO4P4K2ZTLSQJHSS35Y46CYXVMQEXSCJWDTKDVD3KBM72ZNPW
+#\\\|WZPROZPBRLXWYPSYJXYYHJ3HBE4BGRWRX7JET5V4JQQS2M2JGQN \ / AMOS7 \ YOURUM ::
+#\[7]QK74DLXI4NLPWXEJGAL4RJ5STEPGCU5BFLKH4MBUUFX5OYRCNQBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -6,7 +6,7 @@ use strict;
 use warnings;
 
 return sub {
-    my ($args) = @_;
+    my ($args) = @ARG;
 
     my $by = $args->{by}
         or return { 'mode' => 'false', 'data' => 'search criteria required' };
@@ -54,7 +54,7 @@ return sub {
     # Apply filters
     if ( %{$filters} ) {
         @results = grep {
-            my $meta = $registry->{'cache'}{$_}{'metadata'} // {};
+            my $meta = $registry->{'cache'}{$ARG}{'metadata'} // {};
             my $keep = 1;
             for my $k ( keys %{$filters} ) {
                 if ( $meta->{$k} ne $filters->{$k} ) {
@@ -79,8 +79,8 @@ return sub {
 
 #,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,
 
-#,,,,,,.,,...,...,,..,,,,,,,,,.,,,,,.,...,.,.,..,,...,...,.,.,..,,,..,.,.,,.,,
-#AKJ2EB46ZZHUM5KAOCXF75SEOJZ2TZXIQS6M2RNRFGPENWOA4WXWPWINUF6M6DKAJ675XPKVKWU3A
-#\\\|HOOR6UTYDNK7W7CSBHRBJDLQ7Z37GIDQJ7JZVELDXFS2EWNOZBZ \ / AMOS7 \ YOURUM ::
-#\[7]XRIK5NCUEC46QP6XKWA4UI5XJP7NR7M5SNCPABONO4UAMZ6IMQBY 7  DATA SIGNATURE ::
+#,,.,,,,.,...,,.,,...,,..,...,,..,..,,...,,..,..,,...,...,.,.,.,.,,,.,,.,,,..,
+#P7KOIOLXZPOYWLWWH6FVZLQXW7VI4RD7A76JPDQV7ZUYZFCSEV626H6NYAVNMWCUY54TGKKA6HPEW
+#\\\|6MVRYQ244H66XVYID4SSJC4JZBU2D5PGEHSYKLRFOELSFSWNLIE \ / AMOS7 \ YOURUM ::
+#\[7]CVNZEXDLHPAZ6CCHQL37VAQYSCN5MUI7YRCXBJMT4DQSYBGIIOBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,225 +1,86 @@
 ## [:< ##
+
 # name  = plugin.storage.visual.proximity-calc
 # descr = Calculate visual proximity between P7REFs
 
-use strict;
-use warnings;
+my ($args) = @ARG;
 
-return sub {
-    my ($args) = @_;
+my $ref1 = $args->{ref1}
+    or return { 'mode' => 'false', 'data' => 'ref1 required' };
+my $ref2 = $args->{ref2}
+    or return { 'mode' => 'false', 'data' => 'ref2 required' };
+my $method = $args->{method} // 'harmonized';
 
-    my $ref1 = $args->{ref1}
-        or return { 'mode' => 'false', 'data' => 'ref1 required' };
-    my $ref2 = $args->{ref2}
-        or return { 'mode' => 'false', 'data' => 'ref2 required' };
-    my $method = $args->{method} // 'harmonized';
+my $registry = $data{'storage'}{'mapping'}{'visual'};
+my $methods  = $registry->{'proximity_methods'};
 
-    my $registry = $data{'storage'}{'mapping'}{'visual'};
-    my $methods  = $registry->{'proximity_methods'};
+my $distance;
 
-    my $distance;
+if ( $method eq 'checksum' ) {
+    $distance
+        = <[plugin.storage.util.visual.checksum_distance]>->( $ref1, $ref2 );
+} elsif ( $method eq 'path' ) {
+    $distance
+        = <[plugin.storage.util.visual.path_distance]>->( $ref1, $ref2 );
+} elsif ( $method eq 'semantic' ) {
+    $distance
+        = <[plugin.storage.util.visual.semantic_distance]>->( $ref1, $ref2 );
+} elsif ( $method eq 'temporal' ) {
+    $distance
+        = <[plugin.storage.util.visual.temporal_distance]>->( $ref1, $ref2 );
+} elsif ( $method eq 'harmonized' ) {
 
-    if ( $method eq 'checksum' ) {
-        $distance = checksum_distance( $ref1, $ref2 );
-    } elsif ( $method eq 'path' ) {
-        $distance = path_distance( $ref1, $ref2 );
-    } elsif ( $method eq 'semantic' ) {
-        $distance = semantic_distance( $ref1, $ref2 );
-    } elsif ( $method eq 'temporal' ) {
-        $distance = temporal_distance( $ref1, $ref2 );
-    } elsif ( $method eq 'harmonized' ) {
+    # Weighted combination
+    my $total_weight = 0;
+    my $weighted_sum = 0;
 
-        # Weighted combination
-        my $total_weight = 0;
-        my $weighted_sum = 0;
+    for my $m ( keys %$methods ) {
+        my $d;
+        $d
+            = <[plugin.storage.util.visual.checksum_distance]>
+            ->( $ref1, $ref2 )
+            if $m eq 'checksum';
+        $d = <[plugin.storage.util.visual.path_distance]>->( $ref1, $ref2 )
+            if $m eq 'path';
+        $d
+            = <[plugin.storage.util.visual.semantic_distance]>
+            ->( $ref1, $ref2 )
+            if $m eq 'semantic';
+        $d
+            = <[plugin.storage.util.visual.temporal_distance]>
+            ->( $ref1, $ref2 )
+            if $m eq 'temporal';
 
-        for my $m ( keys %$methods ) {
-            my $d;
-            $d = checksum_distance( $ref1, $ref2 ) if $m eq 'checksum';
-            $d = path_distance( $ref1, $ref2 )     if $m eq 'path';
-            $d = semantic_distance( $ref1, $ref2 ) if $m eq 'semantic';
-            $d = temporal_distance( $ref1, $ref2 ) if $m eq 'temporal';
+        next unless defined $d;
 
-            next unless defined $d;
-
-            $weighted_sum += $d * $methods->{$m}{weight};
-            $total_weight += $methods->{$m}{weight};
-        }
-
-        $distance = $total_weight > 0 ? $weighted_sum / $total_weight : 1.0;
-    } else {
-        return { 'mode' => 'false', 'data' => "Unknown method: $method" };
+        $weighted_sum += $d * $methods->{$m}{weight};
+        $total_weight += $methods->{$m}{weight};
     }
 
-    # Clamp to 0-1
-    $distance = 0 if $distance < 0;
-    $distance = 1 if $distance > 1;
+    $distance = $total_weight > 0 ? $weighted_sum / $total_weight : 1.0;
+} else {
+    return { 'mode' => 'false', 'data' => "Unknown method: $method" };
+}
 
-    return {
-        'mode' => 'true',
-        'data' => {
-            'ref1'       => $ref1,
-            'ref2'       => $ref2,
-            'method'     => $method,
-            'distance'   => $distance,
-            'similarity' => 1.0 - $distance,
-        }
-    };
+# Clamp to 0-1
+$distance = 0 if $distance < 0;
+$distance = 1 if $distance > 1;
+
+return {
+    'mode' => 'true',
+    'data' => {
+        'ref1'       => $ref1,
+        'ref2'       => $ref2,
+        'method'     => $method,
+        'distance'   => $distance,
+        'similarity' => 1.0 - $distance,
+    }
 };
-
-## Checksum distance (Hamming-like for base32) ##
-sub checksum_distance {
-    my ( $ref1, $ref2 ) = @_;
-
-    # Resolve to get checksums
-    my $r1 = <[plugin.storage.p7ref.resolve]>->( { 'p7ref' => $ref1 } );
-    my $r2 = <[plugin.storage.p7ref.resolve]>->( { 'p7ref' => $ref2 } );
-
-    return 1.0 unless $r1->{mode} eq 'true' and $r2->{mode} eq 'true';
-
-    my $chk1 = $r1->{data}{checksum} // '';
-    my $chk2 = $r2->{data}{checksum} // '';
-
-    return 1.0 if length($chk1) == 0 or length($chk2) == 0;
-
-    # Normalize lengths
-    my $min_len
-        = length($chk1) < length($chk2) ? length($chk1) : length($chk2);
-    $chk1 = substr( $chk1, 0, $min_len );
-    $chk2 = substr( $chk2, 0, $min_len );
-
-    # Calculate character differences
-    my $diff = 0;
-    my @c1   = split //, $chk1;
-    my @c2   = split //, $chk2;
-
-    for my $i ( 0 .. $#c1 ) {
-        $diff++ if $c1[$i] ne $c2[$i];
-    }
-
-    return $diff / $min_len;
-}
-
-## Path distance (Levenshtein) ##
-sub path_distance {
-    my ( $ref1, $ref2 ) = @_;
-
-    my $r1 = <[plugin.storage.p7ref.resolve]>->( { 'p7ref' => $ref1 } );
-    my $r2 = <[plugin.storage.p7ref.resolve]>->( { 'p7ref' => $ref2 } );
-
-    return 1.0 unless $r1->{mode} eq 'true' and $r2->{mode} eq 'true';
-
-    my $path1 = $r1->{data}{path} // '';
-    my $path2 = $r2->{data}{path} // '';
-
-    return 1.0 if length($path1) == 0 or length($path2) == 0;
-
-    # Normalize paths
-    $path1 =~ s|^/||;
-    $path2 =~ s|^/||;
-
-    my $max_len
-        = length($path1) > length($path2) ? length($path1) : length($path2);
-    return 0 if $max_len == 0;
-
-    my $lev = levenshtein( $path1, $path2 );
-    return $lev / $max_len;
-}
-
-## Semantic distance (segment overlap) ##
-sub semantic_distance {
-    my ( $ref1, $ref2 ) = @_;
-
-    # Parse to get segments
-    my $p1 = <[plugin.storage.p7ref.parse]>->( { 'p7ref' => $ref1 } );
-    my $p2 = <[plugin.storage.p7ref.parse]>->( { 'p7ref' => $ref2 } );
-
-    return 1.0 unless $p1->{mode} eq 'true' and $p2->{mode} eq 'true';
-
-    my @seg1 = @{ $p1->{data}{segments} // [] };
-    my @seg2 = @{ $p2->{data}{segments} // [] };
-
-    return 1.0 if @seg1 == 0 and @seg2 == 0;
-
-    # Calculate Jaccard similarity
-    my %set1 = map { $_ => 1 } @seg1;
-    my %set2 = map { $_ => 1 } @seg2;
-
-    my $intersection = 0;
-    for my $s ( keys %set1 ) {
-        $intersection++ if exists $set2{$s};
-    }
-
-    my $union = scalar( keys %set1 ) + scalar( keys %set2 ) - $intersection;
-    return 1.0 if $union == 0;
-
-    my $similarity = $intersection / $union;
-    return 1.0 - $similarity;
-}
-
-## Temporal distance ##
-sub temporal_distance {
-    my ( $ref1, $ref2 ) = @_;
-
-    # Extract temporal floats
-    my $f1 = <[plugin.storage.visual.extract-floats]>->(
-        {   'p7ref'  => $ref1,
-            'layers' => ['temporal'],
-        }
-    );
-    my $f2 = <[plugin.storage.visual.extract-floats]>->(
-        {   'p7ref'  => $ref2,
-            'layers' => ['temporal'],
-        }
-    );
-
-    return 1.0 unless $f1->{mode} eq 'true' and $f2->{mode} eq 'true';
-
-    my $d1 = $f1->{data};
-    my $d2 = $f2->{data};
-
-    # Compare access decay (most important temporal metric)
-    my $decay_diff = abs( ( $d1->{decay} // 0 ) - ( $d2->{decay} // 0 ) );
-
-    return $decay_diff;
-}
-
-## Levenshtein distance ##
-sub levenshtein {
-    my ( $s,    $t )    = @_;
-    my ( $len1, $len2 ) = ( length $s, length $t );
-    return $len2 if ( $len1 == 0 );
-    return $len1 if ( $len2 == 0 );
-
-    my %d;
-    for my $i ( 0 .. $len1 ) { $d{$i}{0} = $i; }
-    for my $j ( 0 .. $len2 ) { $d{0}{$j} = $j; }
-
-    for my $i ( 1 .. $len1 ) {
-        my $s_i = substr( $s, $i - 1, 1 );
-        for my $j ( 1 .. $len2 ) {
-            my $cost = ( $s_i eq substr( $t, $j - 1, 1 ) ) ? 0 : 1;
-            $d{$i}{$j} = min(
-                $d{ $i - 1 }{$j} + 1,
-                $d{$i}{ $j - 1 } + 1,
-                $d{ $i - 1 }{ $j - 1 } + $cost
-            );
-        }
-    }
-
-    return $d{$len1}{$len2};
-}
-
-sub min {
-    my $min = shift;
-    for (@_) { $min = $_ if $_ < $min; }
-    return $min;
-}
 
 #,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,
 
-#,,,.,.,.,,,.,.,,,,,,,.,,,...,,,.,,,,,.,,,,.,,..,,...,...,...,...,,,,,,.,,,,,,
-#HUPU4VV535NVAQLTXA2ID5QO3MC4QANEY3UEIP27OIJNKEU75HOVYBANMYMX3ON3BK3FS4K54AMUE
-#\\\|QO3PYSNCBH3NUEOKK2ELE26WHDO4V36ITJZSKNDFCNECRVRSJHB \ / AMOS7 \ YOURUM ::
-#\[7]JRAV2BEJEYAXOK2774D3ICHFV5HYM34MNSB5U5V7Y3ZFKGR2BSBY 7  DATA SIGNATURE ::
+#,,..,,,.,,,.,,..,..,,,,.,.,,,...,,..,.,,,..,,..,,...,...,..,,.,.,.,,,.,,,,.,,
+#J6RE5P4EMTEBGBKNOW3RURWEFHUV7Q5JYVKXCZ2LN3JYR443NWKBBCPBSIRBDZVXVTX75AAZVOFRA
+#\\\|N2JNOAF7XXRRFIPSUAV42BTQ7KLJBCELB7SAKZNYUQK6EO22P4X \ / AMOS7 \ YOURUM ::
+#\[7]7ULXMNVBAY437YKDUNEOUIHCYMS42CRFD6HEI56QKDL5VOMBWIDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

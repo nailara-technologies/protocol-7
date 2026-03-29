@@ -56,7 +56,7 @@ $branch_info{'hit_count'}++;
 $branch_info{'last_access'} = time();
 
 ## write updated hit count via zenka_dir ##
-my $bmeta_content = join '', map {"$_=$branch_info{$_}\n"}
+my $bmeta_content = join '', map {"$ARG=$branch_info{$ARG}\n"}
     sort keys %branch_info;
 <[file.zenka_dir.write]>->(
     $rel_bmeta, \$bmeta_content, qw| > |, 0664, ':encoding(UTF-8)'
@@ -67,8 +67,9 @@ my @results;
 
 if ( opendir my $bdh, $branch_dir ) {
     my @ts_dirs = sort { $b cmp $a }
-        grep { $_ !~ m{^\.} and $_ ne qw| refs | and -d "$branch_dir/$_" }
-        readdir $bdh;
+        grep {
+        $ARG !~ m{^\.} and $ARG ne qw| refs | and -d "$branch_dir/$ARG"
+        } readdir $bdh;
     closedir $bdh;
 
     for my $ts_entry (@ts_dirs) {
@@ -195,8 +196,8 @@ return {
     },
 };
 
-#,,.,,.,,,..,,..,,...,.,.,,.,,,,,,.,.,,,.,,,,,..,,...,...,...,.,.,..,,,,,,,..,
-#KG5N5FJFPTQKPDEHK7PWBORM3WVO2TVFSSULQK45TTBXLXAOCLEEOP6XEO7MBJDBIHAOWWIHEZ6R6
-#\\\|BKQPIXONOZDOGXYYRYXEB6AX2MKBCGUGDOGJDS6LX6SHYMRGV6L \ / AMOS7 \ YOURUM ::
-#\[7]OFBFVCLP7ZJIZ4W6OHCOSHST5PLZXQLOAJO44B2AC2BIYJSW6SDY 7  DATA SIGNATURE ::
+#,,,.,.,,,,,,,...,,.,,,,.,..,,,,,,...,,,,,,.,,..,,...,...,.,,,.,.,..,,,.,,,,,,
+#B6UDGQ2X6C25PER2GBZHZFDORCHNC6RMJMRRRBMXX6AJSJZHNQSZKPQO5NDLZTUPLCDOKK27YDIFU
+#\\\|BV2EJBCADPROUC745KFWOJJW7CS3MNTUL5OMR622HM3ZUMUQEWU \ / AMOS7 \ YOURUM ::
+#\[7]ZYYCPTF7QIQFWCQAJCCUM7QUZRPCIF7N35RF7FOEOPQ26Z3XEGBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

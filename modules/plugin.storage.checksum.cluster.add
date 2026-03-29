@@ -6,7 +6,7 @@ use strict;
 use warnings;
 
 return sub {
-    my ($args) = @_;
+    my ($args) = @ARG;
 
     my $cluster_id = $args->{'cluster_id'};
     my $members    = $args->{'members'};      # Single checksum or arrayref
@@ -32,15 +32,15 @@ return sub {
     }
 
     # Normalize and filter
-    @new_members = map { <[plugin.storage.util.normalize_checksum]>->($_) }
+    @new_members = map { <[plugin.storage.util.normalize_checksum]>->($ARG) }
         @new_members;
     @new_members = grep { defined && length } @new_members;
     @new_members
-        = grep { $_ ne $cluster_id } @new_members;    # No self-reference
+        = grep { $ARG ne $cluster_id } @new_members;    # No self-reference
 
     # Remove duplicates (both within new and against existing)
-    my %existing = map { $_ => 1 } @{ $cluster->{'members'} };
-    @new_members = grep { !$existing{$_} } @new_members;
+    my %existing = map { $ARG => 1 } @{ $cluster->{'members'} };
+    @new_members = grep { !$existing{$ARG} } @new_members;
 
     return { 'mode' => 'true', 'data' => { 'added' => 0 } }
         unless @new_members;
@@ -95,8 +95,8 @@ return sub {
     };
 };
 
-#,,..,.,.,,.,,,,,,,..,,,.,,..,.,,,,..,,,.,,,,,.,.,...,...,,..,..,,...,,.,,.,,,
-#2JRAV5E2JDFSPPNSWAQBRCQ2GJ67KR7USS5CN7OLE4VTTJJHYMDJJPN5SOPKP5VMBTPCNTABCCZCG
-#\\\|HJ27OLMBPUXZLYZXZ6IWU6GT4XGKBQAVYIEBL4FI26JLN77DWDV \ / AMOS7 \ YOURUM ::
-#\[7]M5KVSI5B7WN3SXH6PBDNGLVLP2NEV57IWH42PHGIUUQS73W2K2BI 7  DATA SIGNATURE ::
+#,,,,,,,,,,..,.,.,,,,,...,,,.,.,.,...,..,,,..,.,.,...,..,,...,,.,,.,.,...,,,.,
+#A53CYNS5JKDOPMCBI6WGJJSOYPVZ5KJP65CS2LYDXK2P65ZNCLQR546EZUOG6QWWYOJ2NA52XDEYS
+#\\\|7DJ3LORL7EX2BLWW6NQDW52P335D7QS757AYTOWGUY47DUOAFSL \ / AMOS7 \ YOURUM ::
+#\[7]RMXIL2HCLGB63ZPMTWM2XOYCMK4K22HLYCSIX34J32AKLDIUXGCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

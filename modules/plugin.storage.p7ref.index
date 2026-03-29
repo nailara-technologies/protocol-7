@@ -6,7 +6,7 @@ use strict;
 use warnings;
 
 return sub {
-    my ($args) = @_;
+    my ($args) = @ARG;
 
     my $p7ref = $args->{p7ref}
         or return { 'mode' => 'false', 'data' => 'p7ref required' };
@@ -26,14 +26,14 @@ return sub {
         my $checksum = $parsed->{'address'};
         $index->{'by-checksum'}{$checksum} //= [];
         push @{ $index->{'by-checksum'}{$checksum} }, $p7ref
-            unless grep { $_ eq $p7ref }
+            unless grep { $ARG eq $p7ref }
             @{ $index->{'by-checksum'}{$checksum} };
     } elsif ( $parsed->{'type'} eq '9p' ) {
         my $key = ( $parsed->{'authority'} // 'localhost:5640' )
             . $parsed->{'address'};
         $index->{'by-9p'}{$key} //= [];
         push @{ $index->{'by-9p'}{$key} }, $p7ref
-            unless grep { $_ eq $p7ref } @{ $index->{'by-9p'}{$key} };
+            unless grep { $ARG eq $p7ref } @{ $index->{'by-9p'}{$key} };
     } elsif ( $parsed->{'type'} eq 'path' ) {
         $index->{'by-path'}{ $parsed->{'address'} } = $p7ref;
     }
@@ -53,8 +53,8 @@ return sub {
 
 #,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,
 
-#,,,,,.,.,..,,,..,,,,,.,.,.,.,,..,,,.,,,,,.,.,..,,...,...,...,.,,,.,,,.,,,,,,,
-#5DDTOZK3DGLMSECUX3NXHDPOLQKUPBO76Y2Y7QZ3K7VXOFATMNA3KU26ZEGJSLY7QWLM6HIZMPSNQ
-#\\\|IPY6WER5AOOPXX3LQJ3664JIMZ6IKPIPQRCVBXYMCKRVTIZ2IJV \ / AMOS7 \ YOURUM ::
-#\[7]WLRLRAKUNKKYUYU4E33VE7LKEEI5JYLYHC27E6UDYT5MCHOUOYDY 7  DATA SIGNATURE ::
+#,,..,,,.,...,..,,,.,,,.,,.,.,,..,.,,,,,.,..,,..,,...,..,,..,,.,,,,..,,.,,,,,,
+#GW45QIE4YZTGNUQ5MMIZIL3YOE4CWFG2KZQY2DGXJWTKNPLT3J4WENLQVEA3KU74LYTIASED6PVTM
+#\\\|W3PUIQWE6GX7D4QLZAVF22MQFT544ATK2F6JCCAFOEE7T67ZUJG \ / AMOS7 \ YOURUM ::
+#\[7]QNGTIW3JCZV4WEQC77MGJF5AVTRUEWJZ4EDR25XOMVHQQ5KSLUAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

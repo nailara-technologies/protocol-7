@@ -1,0 +1,33 @@
+## [:< ##
+
+# name  = plugin.storage.util.visual.path_distance
+# descr = Calculate Levenshtein-based path distance between two P7REFs
+
+my ( $ref1, $ref2 ) = @ARG;
+
+my $r1 = <[plugin.storage.p7ref.resolve]>->( { 'p7ref' => $ref1 } );
+my $r2 = <[plugin.storage.p7ref.resolve]>->( { 'p7ref' => $ref2 } );
+
+return 1.0 unless $r1->{mode} eq 'true' and $r2->{mode} eq 'true';
+
+my $path1 = $r1->{data}{path} // '';
+my $path2 = $r2->{data}{path} // '';
+
+return 1.0 if length($path1) == 0 or length($path2) == 0;
+
+# Normalize paths
+$path1 =~ s|^/||;
+$path2 =~ s|^/||;
+
+my $max_len
+    = length($path1) > length($path2) ? length($path1) : length($path2);
+return 0 if $max_len == 0;
+
+my $lev = levenshtein( $path1, $path2 );
+return $lev / $max_len;
+
+#,,..,,..,,..,..,,,..,,,,,..,,,.,,.,.,.,,,.,,,..,,...,...,,,.,..,,,.,,.,.,,..,
+#2WXCCX67MEQJAGD4P4F434VDA3CMTM2SDYDNVV2G4XI6AEKO2ZQCPATRZVC5CEQYNHLOH4MVKOO5C
+#\\\|ATMEC65B5PCPAN4HEHMTJWW4BXTUVCB66POTFHUWKUMVFIGS64U \ / AMOS7 \ YOURUM ::
+#\[7]L5EWX4UNVCI42LWO3BWYS2S5B3YA4EZOKTEN57OYGSD7DRHRYSBI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

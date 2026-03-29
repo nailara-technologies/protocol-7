@@ -6,7 +6,7 @@ use strict;
 use warnings;
 
 return sub {
-    my ($args) = @_;
+    my ($args) = @ARG;
 
     my $path = $args->{path}
         or return { 'mode' => 'false', 'data' => 'path required' };
@@ -90,7 +90,7 @@ return sub {
 
     # Update reverse mapping
     push @{ $registry->{'reverse'}{$checksum} }, $path
-        unless grep { $_ eq $path }
+        unless grep { $ARG eq $path }
         @{ $registry->{'reverse'}{$checksum} // [] };
 
     $registry->{'stats'}{'hashed'}++;
@@ -108,8 +108,8 @@ return sub {
 
 #,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,
 
-#,,,.,...,,,.,,,.,,,,,,,,,,,,,,,,,.,.,,,.,,..,..,,...,...,...,...,..,,.,.,,,.,
-#QDLHJZJIRCGQM76H7XGXIPU46Q2N6IYPV7RIBA2CKVFNCXY6AN2SHVIC3VN5MRCGA3ESBHFOZNNMK
-#\\\|RL6YXFVULOBS753RN4J2SAMWERKWIAUHD3BVHOF4H5MKYZH4V6X \ / AMOS7 \ YOURUM ::
-#\[7]BYLEMGJVXMUU7Q6VFF5G4V7YOAXZ4JJ4IC2H62BCHGBQVTOHFMDA 7  DATA SIGNATURE ::
+#,,,.,,,.,,.,,..,,,.,,,,.,,,,,,..,,,.,...,.,,,..,,...,..,,,..,...,,..,.,,,,,,,
+#SFU2ZFRH37IMBSAQO467EJ6ZILFLFJSDM5J2XEABCQKGBJJHVKHN5MOPQRFP4UBUIQZ26YKC7DLMW
+#\\\|5RRZWUUIB4QEYXVULZLQMWUBCBO5FHDOS4ZU7DJWKMFFZPUQJU7 \ / AMOS7 \ YOURUM ::
+#\[7]KY5BS25SSSNKQWKIIKUU5MY576ENAVQYRAQL2MFLRRNXI5DYJICY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

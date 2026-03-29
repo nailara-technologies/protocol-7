@@ -1,0 +1,40 @@
+## [:< ##
+
+# name  = plugin.storage.util.visual.checksum_distance
+# descr = Calculate Hamming-like checksum distance between two P7REFs
+
+my ( $ref1, $ref2 ) = @ARG;
+
+# Resolve to get checksums
+my $r1 = <[plugin.storage.p7ref.resolve]>->( { 'p7ref' => $ref1 } );
+my $r2 = <[plugin.storage.p7ref.resolve]>->( { 'p7ref' => $ref2 } );
+
+return 1.0 unless $r1->{mode} eq 'true' and $r2->{mode} eq 'true';
+
+my $chk1 = $r1->{data}{checksum} // '';
+my $chk2 = $r2->{data}{checksum} // '';
+
+return 1.0 if length($chk1) == 0 or length($chk2) == 0;
+
+# Normalize lengths
+my $min_len
+    = length($chk1) < length($chk2) ? length($chk1) : length($chk2);
+$chk1 = substr( $chk1, 0, $min_len );
+$chk2 = substr( $chk2, 0, $min_len );
+
+# Calculate character differences
+my $diff = 0;
+my @c1   = split //, $chk1;
+my @c2   = split //, $chk2;
+
+for my $i ( 0 .. $#c1 ) {
+    $diff++ if $c1[$i] ne $c2[$i];
+}
+
+return $diff / $min_len;
+
+#,,,.,,..,,.,,,..,..,,...,...,,,,,.,,,,,,,,..,..,,...,..,,...,...,.,.,..,,..,,
+#5IWIGM27TEBUZS3EZUMLO4BLBDC6XK3LIBC3DHBHP5JJ2TQULSQMWW4MDGJM2VGKFGJ4XAEVWNI4K
+#\\\|A2GJRELLXTJILPHJX3EKSKEIDATOYXC4BS73SH5YOGKPPYU7KQB \ / AMOS7 \ YOURUM ::
+#\[7]H6NWAMBWK7C3ROFUBISQIYOK7FYFTKMM6YF2CP2V36LIT5ETYQDA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
