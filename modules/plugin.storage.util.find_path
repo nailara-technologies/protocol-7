@@ -1,0 +1,52 @@
+## [:< ##
+
+# name  = plugin.storage.util.find_path
+# descr = Find path between two checksums
+
+my ($args) = @_;
+
+my $from      = $args->{'from'};
+my $to        = $args->{'to'};
+my $max_depth = $args->{'max_depth'} // 5;
+
+return undef unless $from && $to;
+
+$from = <[plugin.storage.util.normalize_checksum]>->($from);
+$to   = <[plugin.storage.util.normalize_checksum]>->($to);
+
+# BFS with path tracking
+my %visited;
+my @queue = ( [ $from, [$from] ] );
+$visited{$from} = 1;
+
+while (@queue) {
+    my ( $current, $path ) = @{ shift @queue };
+
+    return $path if $current eq $to;
+    last         if @$path >= $max_depth;
+
+    my $cluster_data = <[plugin.storage.checksum.cluster.lookup]>->(
+        {   'checksum'      => $current,
+            'resolve_p7ref' => 0,
+        }
+    );
+
+    next unless $cluster_data;
+
+    for my $member ( @{ $cluster_data->{'members'} } ) {
+        next if $member =~ m|^p7://|;
+        $member = <[plugin.storage.util.normalize_checksum]>->($member);
+        next unless $member && !$visited{$member};
+
+        $visited{$member} = 1;
+        push @queue, [ $member, [ @$path, $member ] ];
+    }
+}
+
+return undef;    # No path found
+
+#,,..,,,.,,..,,,,,.,,,...,...,,..,.,,,.,.,...,..,,...,..,,.,.,,.,,..,,,,.,,,.,
+#FIHCLCKFVZOV6DVC7LGKKMYUM2JA6PNJIM2K5PMDO4YUTNMSOQ7SAWYGIKULCP22CA2ABYUILX3ZY
+#\\\|KIGAXG3X65U5YETJ7BWIO4C477AQGDETQAVM37QNXN7YIC33S72 \ / AMOS7 \ YOURUM ::
+#\[7]2PVGBO6RDM337LOMDR5WWQZFC3NYHSAWIIQ3W7GU2E3SFMLO4KDI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

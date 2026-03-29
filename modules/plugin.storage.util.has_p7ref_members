@@ -1,0 +1,18 @@
+## [:< ##
+
+# name  = plugin.storage.util.has_p7ref_members
+# descr = Check if member list contains P7REFs
+
+my ($members) = @_;
+return 0 unless $members && @$members;
+
+for my $m (@$members) {
+    return 1 if $m =~ m|^p7://|;
+}
+return 0;
+
+#,,.,,.,.,,,.,,,,,.,.,..,,,.,,,,.,...,...,,..,..,,...,...,...,,.,,,..,,,.,,.,,
+#JXVKCHNSD2KLCW7T5FCUMWKM2APFMPEPKZFQD2JUIROZWIXPNE3HUSZWMZCZ3P6XBHNIZNYWV2WAC
+#\\\|OP4CD42HHCSKNFAEVJZTXRRKARIOYFIBVM7UWHE4VD46TDASS3L \ / AMOS7 \ YOURUM ::
+#\[7]QW2VUFVDUBEH5CEBAKFGF4A6YF7CKTOGDSYCAT5GKSLTNAL62IDA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

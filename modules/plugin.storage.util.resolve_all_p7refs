@@ -1,0 +1,38 @@
+## [:< ##
+
+# name  = plugin.storage.util.resolve_all_p7refs
+# descr = Resolve all P7REF members to actual checksums
+
+my ( $members, $registry ) = @_;
+
+my @resolved;
+
+for my $member (@$members) {
+    if ( $member =~ m|^p7://checksum-cluster:([^\]]+)| ) {
+
+        # It's a cluster reference - expand it
+        my $sub_cluster_id = $1;
+        $registry->{'stats'}{'p7refs_resolved'}++;
+
+        if ( exists $registry->{'clusters'}{$sub_cluster_id} ) {
+            push @resolved,
+                @{ $registry->{'clusters'}{$sub_cluster_id}{'members'} };
+        } else {
+
+            # P7REF points outside - use storage.p7ref.resolve
+            my $resolved = <[plugin.storage.p7ref.resolve]>
+                ->( { 'p7ref' => $member, } );
+            push @resolved, $resolved if $resolved;
+        }
+    } else {
+        push @resolved, $member;
+    }
+}
+
+return \@resolved;
+
+#,,,,,,..,.,.,.,,,.,,,,..,,,.,.,.,...,,,.,..,,..,,...,...,...,,,.,,,.,.,.,.,.,
+#ZZ5HDEP32J4N7UXYGFRGAEEGSM6UYZEFSN54ENQH46E5E4OELCXQ42LYQP3JYXZ5U46M7B3GNIEYG
+#\\\|HNBEW5P3GMABG7JDRSXOXLPHHIVO222CJE76I7FFNMVVA7LX3OH \ / AMOS7 \ YOURUM ::
+#\[7]XTB44CZOI6AQWKIXLZLFZ4TN4XASIVCL26HGQBJRCG2WS6TAGODQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
