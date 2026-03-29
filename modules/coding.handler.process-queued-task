@@ -198,7 +198,7 @@ my $server_retries  = 2;   ## retries for transient server errors [ jinja ] ##
 
 ## context size tracking for compaction ##
 my $context_limit     = <inference.model.context_length> // 16384;
-my $compact_threshold = int( $context_limit * 0.47 );    ## compact at 47% ##
+my $compact_threshold = int( $context_limit * 0.53 );    ## compact at 53% ##
 my $chars_per_token   = 3.2;    ## adjusted for tool-calling JSON overhead ##
 my $keep_recent_msgs  = 6;      ## preserve last 3 tool rounds [ 6 msgs ] ##
 
@@ -543,8 +543,8 @@ if ( length $response_text
 ## return result hashref for jobqueue callback ##
 return { success => TRUE, result => $response_text, task_id => $task_id };
 
-#,,,.,.,.,,,.,,,,,.,.,.,.,,..,.,.,,.,,,,,,,,.,..,,...,..,,...,...,,,,,,,,,,..,
-#HTYKSCSHXJYLIVQ7IBTQ33HUX27TIJBUVRWZ5Y7AHWZTD2JXJQGESIHLZB5BID25BBH7EULG7SCCY
-#\\\|KVRMM2PFMQHXYZ2K7BMLZAG6ZIG2Z5J5GDXYVUYBUE2YWNFAYPU \ / AMOS7 \ YOURUM ::
-#\[7]6WBBDCNQAFIME7FMYXCOPABSF5MK2PY7SHYUKP5RVY4ZRALXTGBA 7  DATA SIGNATURE ::
+#,,,,,,..,.,.,,,,,...,..,,..,,,,,,,,.,.,,,,..,..,,...,...,...,,,,,,..,,.,,.,.,
+#QG7QOJNZ4APHMDX2JIKZMYR4R57PM52SBPUH646RSL62I7BJHHUGIBFBXDFYCPE7UH7I2JRXRPG6G
+#\\\|7IURBSZSSGDKV2XG2G56EMTHWMLBCO5ACZ2JQ7R6HYEOPORMGIW \ / AMOS7 \ YOURUM ::
+#\[7]D4TNTEQCM7KOK3DXB672VDI3SG4OVAKXBHB7EXFO3P3R7VVLCMDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

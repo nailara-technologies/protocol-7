@@ -1,0 +1,48 @@
+## [:< ##
+
+# name  = context.util.template.evaluate_when
+# descr = evaluate when condition against vars and context for templates
+
+my ( $when, $v, $ctx ) = @_;
+
+## string condition ##
+if ( not ref $when ) {
+    ## key=value check ##
+    if ( $when =~ m|^(\w[\w.]*)=(.+)$| ) {
+        my ( $key, $expected ) = ( $1, $2 );
+        my $actual = $v->{$key} // $ctx->{$key} // '';
+        return $actual eq $expected;
+    }
+    ## has_X check -- truthy presence ##
+    if ( $when =~ m|^has_(\w[\w.]*)$| ) {
+        my $key = $1;
+        return defined( $v->{$key} // $ctx->{$key} )
+            && length( $v->{$key} // $ctx->{$key} // '' );
+    }
+    ## not_X check -- absence ##
+    if ( $when =~ m|^not_(\w[\w.]*)$| ) {
+        my $key = $1;
+        return !length( $v->{$key} // $ctx->{$key} // '' );
+    }
+    ## bare key -- truthy ##
+    my $val = $v->{$when} // $ctx->{$when} // '';
+    return length($val) > 0;
+}
+
+## array condition -- ALL must be true ##
+if ( ref $when eq qw| ARRAY | ) {
+    for my $cond ( $when->@* ) {
+        return FALSE
+            unless
+            <[context.util.template.evaluate_when]>->( $cond, $v, $ctx );
+    }
+    return TRUE;
+}
+
+return TRUE;
+
+#,,,,,...,..,,,,,,,..,.,.,,.,,...,..,,,,,,,,,,.,.,...,..,,,.,,,..,.,,,..,,,.,,
+#2F5NFOU4N5VONURMFD3EXA64NO2L7WXJDJ3A4GA356REAL2HAYC3JJAVZ4DXXI5MX7TXDR2UTYRNM
+#\\\|BKSORA7QHOOLQUNBPGNU4JPJEVYH6XV7OJQPDDIL7PGTQEHMTOC \ / AMOS7 \ YOURUM ::
+#\[7]BKJNX2QPQXOTXC3KLTWDVMBQKOD5JEKKI3T76NXLWLZJJRYJGKCA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

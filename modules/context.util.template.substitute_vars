@@ -1,0 +1,22 @@
+## [:< ##
+
+# name  = context.util.template.substitute_vars
+# descr = substitute {{var}} placeholders in provider params hashref
+
+my ( $params_ref, $v ) = @_;
+
+foreach my $key ( keys $params_ref->%* ) {
+    next unless defined $params_ref->{$key};
+    next if ref $params_ref->{$key};
+    $params_ref->{$key} =~ s|\{\{(\w[\w.]*)\}\}|
+        defined $v->{$1} ? $v->{$1} : ''
+    |ge;
+}
+
+return;
+
+#,,,,,..,,...,...,...,,.,,,.,,.,.,.,,,,,.,,.,,.,.,...,...,,.,,,..,,..,,..,...,
+#Z7JGTNZAJWTVP5X5Y7C7TIKCD4YBXSUK3RZJAMMGPD5OLS23MYAJVHIOCWNKLRARVJJ4JKMERLYYU
+#\\\|4WKAPA6JJ7OADA75L7JONFDV2I2PSCRZB36SHD47TVHB2IBT5SO \ / AMOS7 \ YOURUM ::
+#\[7]STH664PTLNMIUA7FSI7EF22FXULJQ5CA53DI7HRGSOUH467Q3KBI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

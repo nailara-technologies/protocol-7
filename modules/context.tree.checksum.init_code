@@ -31,22 +31,9 @@ if ($@) {
     'elf_shift'      => 13,      ## default ELF shift
 };
 
-## create storage directories if needed ##
-my $tree_root = sprintf qw| /var/protocol-7/%s/context-tree |,
-    <system.zenka.name>;
-
-foreach my $subdir (qw| index nodes edges streams |) {
-    my $path = "$tree_root/$subdir";
-    if ( not -d $path ) {
-        eval { require File::Path; File::Path::make_path($path) };
-        if ($@) {
-            <[base.logs]>->(
-                0, ':. context.tree.checksum: mkdir failed [ %s ]', $@
-            );
-            return FALSE;
-        }
-    }
-}
+## storage path [ created by coding.init_code via check-zenka-paths ] ##
+my $tree_root = sprintf '%s/%s/context-tree',
+    <system.path.zenka-dirs.var_P7>, <system.zenka.name>;
 
 <[base.logs]>->(
     2, ':. context.tree.checksum: initialized [ root=%s ]', $tree_root
@@ -56,8 +43,8 @@ return TRUE;
 
 #,,.,,,.,,,..,,..,,.,,...,...,...,,,.,,,.,,,.,..,,...,...,..,,,,.,,..,,,,,,,,,
 
-#,,,.,,..,,..,,..,..,,,..,.,,,,..,..,,,,.,,,,,..,,...,...,,,,,,..,,..,..,,,,.,
-#EPWMQGPRKOKKVAANRFWPCQXILXNSVEJDH7ZMHNEBK5BF4SXBISM5JSNTNA5PFRR2VAQLJPFHUPTUC
-#\\\|5ED7YBQGUXJHVPXTXLPZLMLDDD3KGZWNT7IUJMWQCTGC353VMXV \ / AMOS7 \ YOURUM ::
-#\[7]4EACGWPQIQZFDX4RU3ESTNP33YBY6M24JYQAYLYKYDWNQDIJTIBA 7  DATA SIGNATURE ::
+#,,,.,...,,.,,.,,,.,,,...,,..,,.,,,,,,,,.,,,,,..,,...,...,,,.,..,,.,,,...,.,.,
+#VIUMNDWCUJ2E2KFJLQS4OHIX6BHSJCRY66H66R4X7LXEHXL5TOPBEZT2G22KZ52NA7OPX7G3JYJJQ
+#\\\|XWQQ6TR4FFEOTVT3ME6NRMTO6WMWNUCLXX73DZBGTSSCONRYIRC \ / AMOS7 \ YOURUM ::
+#\[7]VINH7FNMAZ7WZCZXWW5CRSM5UHRRBKA4AVRGB2IZTXSQAR64EOCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -277,10 +277,15 @@ my %dispatch = (
         my $root     = <system.root_path>;
         my $abs_path = "$root/$path";
 
-        ## validate path stays within project ##
+        ## validate path stays within project [ resolve symlinks ] ##
+        use Cwd qw| abs_path |;
+        my $real_path = Cwd::abs_path($abs_path) // '';
+        my $real_root = Cwd::abs_path($root)     // '';
         return 'error: path escapes project root'
-            if $abs_path =~ m|\.\./| or $path =~ m|^/|;
-        return 'error: file not found' unless -f $abs_path;
+            if !length $real_path
+            or index( $real_path, "$real_root/" ) != 0;
+        return 'error: file not found' unless -f $real_path;
+        $abs_path = $real_path;
 
         ## parse edits JSON ##
         my $edit_list;
@@ -349,8 +354,9 @@ my %dispatch = (
             ## use privileged chmod child if file not writable ##
             my $chmod_fh = <coding.chmod_child.w_fh>;
             my $mode_restore;
-            if ( !-w $abs_path and defined $chmod_fh ) {
-                my $cur_mode = ( stat $abs_path )[2] & 07777;
+            if ( -f $abs_path and !-w $abs_path and defined $chmod_fh ) {
+                my $cur_mode = ( stat $abs_path )[2] // 0644;
+                $cur_mode &= 07777;
                 print {$chmod_fh} "gw $abs_path\n";
                 select undef, undef, undef, 0.01;    ## yield for child ##
                 $mode_restore = $cur_mode if -w $abs_path;
@@ -436,8 +442,8 @@ return {
     'content' => $content,
 };
 
-#,,..,,,.,.,.,,..,.,,,.,.,,..,..,,..,,,,.,,.,,..,,...,..,,.,,,..,,..,,,,,,...,
-#QL5M2TJLZJZY4BEHCAQOX4D6EYC6DPO46R5RTV2UVXH6LTN37ZCI5FHA7EM5POZZKEZT5TYYSMJCM
-#\\\|H6WB54WSM44K27MBZLOWREQ2FX22WEVRAJ6FGCSE4AMHFNOIMYJ \ / AMOS7 \ YOURUM ::
-#\[7]E5B67P6PBNHW2CHUEGV2BNNBWIIK4T5DIMJVV23VP7YRT67A5QDY 7  DATA SIGNATURE ::
+#,,,,,.,.,.,,,,,.,...,,..,,.,,,.,,,.,,,.,,..,,..,,...,...,.,,,,,,,...,...,.,,,
+#TKUGO5Q55Q6NE4MB6VEQHMJDI2EH567I4KE42JSA5YX6FLBQ2PPV3BWO3FZO73AXIKMWL3UIXTHVM
+#\\\|JO7DKAHUXMYHCL4P74Q5V4UGIGBGJM3Q7CRDJHXD6RJXLBYUEQU \ / AMOS7 \ YOURUM ::
+#\[7]OYSQXNYVFQ7K4CG2FK3RHGBSLIAZI3QHP6C74UND5D4T4KB73YDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
