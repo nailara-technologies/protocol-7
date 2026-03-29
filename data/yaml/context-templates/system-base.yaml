@@ -17,7 +17,13 @@ sections:
       - dot notation: zenka.subsystem.function [ e.g. coding.handler.process-queued-task ]
       - lowercase comments: ## read config ## not ## Read Config ##
       - bracket annotations: [ word ] not ( word )
-      - $ARG instead of $_ where applicable
+      - `use English` is always loaded by bin/Protocol-7 — the longer verbose
+        variable names are preferred over the short perl defaults:
+        $ARG for $_, @ARG for @_, $EVAL_ERROR for $@, $OS_ERROR for $!,
+        $MATCH for $&, $INPUT_RECORD_SEPARATOR for $/, etc.
+        these are true aliases, not copies — $ARG IS $_ in all contexts
+        including for/map/grep loops. `for (@ARG) { $min = $ARG if ... }`
+        is correct: @ARG is the function args, $ARG is the loop variable.
       - qw| word | with pipe delimiters [ not qw() or qw// ]
       - column width <= 78 characters
 
@@ -42,8 +48,8 @@ sections:
     budget_pct: 40
     label: p7 core knowledge
 
-#,,.,,...,.,,,,.,,,.,,.,.,,,,,,,,,...,,,,,,..,..,,...,...,,.,,,,.,,..,.,.,.,,,
-#HFKDEVWZBXNFGHPBJ55Z6WV7TQM43GKNNR6XOV7XX4AMFDD3RLCXPFPNHKA3FLKM2F7RHBD2CQZMY
-#\\\|M6GFCISB5HO5P7D3D2QRBL25YTESGUZGZI2MLRKN672TQYLOHP6 \ / AMOS7 \ YOURUM ::
-#\[7]QLYEZ2GGYREGKMJWRHHMISYMVR2WBANUQ55XMP3HCMSZQSWIPQAI 7  DATA SIGNATURE ::
+#,,.,,,,,,,..,.,.,.,,,.,.,...,..,,..,,.,,,,..,..,,...,...,...,.,.,.,.,,,.,..,,
+#KIL764632QMXX3V33J3Q5ICEN2BYE6WJX54VPD7DKJVCPB2JXZMXA5U7H5CJSGSU2ZF7HOC4IEETM
+#\\\|OZBMCVTDKRXH6Q4WP5IDTI6P2FSDFQCSBCUPGRYMHY37HSAUHY2 \ / AMOS7 \ YOURUM ::
+#\[7]W3CFIFYQ2O5WBLXGNWPC22MP4HTPA7SSA2KOUBV243K4X7IWPWAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
