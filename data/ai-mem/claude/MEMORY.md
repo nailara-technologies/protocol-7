@@ -28,6 +28,7 @@
 - `topic-coding-zenka-templates.md` — 25+ context templates, 13 tools, review cycles, meta-reflection cascade
 - `feedback-p7c-multiline.md` — p7c cannot handle multiline task descriptions; use single-line or templates
 - `feedback-coding-zenka-edits.md` — local LLM often describes edits instead of applying them; verify results
+- `topic-tool-suggestions.md` — LLM-suggested tools/improvements, prioritized; implemented/deferred/sources
 
 ## File Creation Notes (CRITICAL)
 - **Never add** the single-line `#,,.,,,...` stub at end of new files
@@ -59,10 +60,13 @@
 - Model successfully applied edits to identify_patterns via chmod child
 - edit_file defaults to apply=true (model wasn't setting it)
 - whats-next reconnaissance template, cmd-style-fix template
-- Inline sub extraction: pager.* namespace in progress (19 subs across 7 modules)
+- Inline sub extraction: context.* done (8 modules), plugin.storage.cluster.* done (5 modules)
+- New tools: replace_in_file (content-based edit), validate_module_format, list_inline_subs
+- Extraction template refined: verbatim copy rules, one-at-a-time, new tool workflow
+- First fully autonomous extraction succeeded (plugin.storage.cluster.* via task-THFSFBY)
 
 ### Active / Partial
-- **pager inline extraction**: task-KWPCTLA running, 19 subs in 7 pager.* modules
+- **plugin.storage inline extraction**: 14 subs remaining (inference.store, visual.*)
 - **deferred compilation stubs** (Mar 15): partial ✅ — deeper namespace/phase work pending;
   design doc at `data/md/documentation/deferred-compilation-design.md`
 - **task coordination architecture**: see `topic-task-coordination.md` for full state + roadmap
@@ -205,8 +209,8 @@
 - Pattern: `my @non_num = grep { defined $data_ref->{$ARG}->{$key} and not looks_like_number(...) } keys $data_ref->%*`
 - Global `$SIG{__WARN__}` exists — if wrapping warn handler, capture `$prev_warn = $SIG{__WARN__}` first and call through
 
-#,,,,,,,,,.,.,,.,,.,.,,,.,,,.,.,.,,,.,.,.,,,,,..,,...,...,,,.,,..,,..,.,.,,..,
-#N7P6THBJ5J24JU2EQ6DTCF4RJNWF52KG7DJ5HL54K6NHJG2B3CSG3WNNYGLBFF32TB43ETT6A3QO2
-#\\\|NG3VZKDTIF7ECUBJ7XP7FYJRSCWI6LB2JI2PBWCCFF7QUGTTRUN \ / AMOS7 \ YOURUM ::
-#\[7]NHWAY6EECEMUMJLY76UDLDLLQHGRC4X2T4HHOQUYJ2HKAYJ7VYAA 7  DATA SIGNATURE ::
+#,,.,,.,,,..,,...,,,.,,,.,..,,,..,,,.,,..,,.,,..,,...,...,..,,,,.,.,.,,.,,,,,,
+#KHCPYN37K3RYV6FK4COH2NPNXZM2DV4BVRIIUG4MZ2SIGZVAHW7NXUEFABQAKNZ7X5MORZQW334EQ
+#\\\|U4CHO2ZR5RHMSX5AYJAS5T5LIG76MEDNMM3NASPXTX3RKSXEYOX \ / AMOS7 \ YOURUM ::
+#\[7]ASLK22SZKHTNINZKONPW5MVOLEEOKNCH7OEYHHKVJXEKMTGLWADY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

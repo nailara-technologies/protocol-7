@@ -3,10 +3,11 @@
 # name  = coding.tools.handler.replace_in_file
 # descr = content-based find and replace in existing files
 
-my $args       = shift                 // {};
-my $path       = $args->{'path'}       // return 'path required';
-my $old_string = $args->{'old_string'} // return 'old_string required';
-my $new_string = $args->{'new_string'} // return 'new_string required';
+my $args        = shift                  // {};
+my $path        = $args->{'path'}        // return 'path required';
+my $old_string  = $args->{'old_string'}  // return 'old_string required';
+my $new_string  = $args->{'new_string'}  // return 'new_string required';
+my $replace_all = $args->{'replace_all'} // 0;
 
 my $root     = <system.root_path>;
 my $abs_path = "$root/$path";
@@ -41,26 +42,42 @@ my $content = $content_ref->$*;
 my $idx = index( $content, $old_string );
 return 'error: old_string not found in file' if $idx == -1;
 
-## check for ambiguous matches [ must be unique ] ##
-my $second = index( $content, $old_string, $idx + 1 );
-if ( $second != -1 ) {
-    ## count total occurrences ##
-    my $count  = 0;
-    my $search = 0;
-    while ( ( my $pos = index( $content, $old_string, $search ) ) != -1 ) {
-        $count++;
-        $search = $pos + 1;
-    }
+## count total occurrences ##
+my $count  = 0;
+my $search = 0;
+while ( ( my $pos = index( $content, $old_string, $search ) ) != -1 ) {
+    $count++;
+    $search = $pos + 1;
+}
+
+## check for ambiguous matches [ must be unique unless replace_all ] ##
+if ( $count > 1 and not $replace_all ) {
     return
         sprintf 'error: old_string matches %d locations in file'
-        . ' — provide more surrounding context to make it unique', $count;
+        . ' — use replace_all=true or provide more context', $count;
 }
 
 ## perform replacement ##
-my $new_content
-    = substr( $content, 0, $idx )
-    . $new_string
-    . substr( $content, $idx + length($old_string) );
+my $new_content;
+if ( $replace_all and $count > 1 ) {
+    $new_content = $content;
+    ## replace all occurrences from end to start [ preserve positions ] ##
+    my @positions;
+    $search = 0;
+    while ( ( my $pos = index( $content, $old_string, $search ) ) != -1 ) {
+        push @positions, $pos;
+        $search = $pos + 1;
+    }
+    $new_content = $content;
+    for my $pos ( reverse @positions ) {
+        substr( $new_content, $pos, length($old_string), $new_string );
+    }
+} else {
+    $new_content
+        = substr( $content, 0, $idx )
+        . $new_string
+        . substr( $content, $idx + length($old_string) );
+}
 
 ## write back using chmod child if needed ##
 my $chmod_fh = <coding.chmod_child.w_fh>;
@@ -79,8 +96,9 @@ if ( -w $abs_path ) {
         print {$chmod_fh} sprintf "restore %04o %s\n", $mode_restore,
             $abs_path;
     }
-    return sprintf "replaced in %s [ -%d +%d chars ]",
-        $path, length($old_string), length($new_string);
+    return sprintf "replaced %d occurrence%s in %s [ -%d +%d chars ]",
+        $count, ( $count > 1 ? 's' : '' ),
+        $path, length($old_string) * $count, length($new_string) * $count;
 }
 
 ## stage when no write access ##
@@ -94,8 +112,8 @@ return sprintf "staged replace in %s [ -%d +%d chars, no write access ]\n"
     . "staged at: %s",
     $path, length($old_string), length($new_string), $stage_rel;
 
-#,,,,,,..,...,..,,...,,,.,..,,..,,,,,,,..,..,,.,.,...,...,.,.,...,,,,,..,,,..,
-#2Q2E2OR54MPENRRCEDIAWC7GTXBNUOF66HA3GXH2JVS27KWPIX5TKZ5K2R5QII6574WETR6IDI2L4
-#\\\|Z4NVX24WI3NNURQWSTWXAG34P3T5GBTIZ4VAIOUYI4UCZYCVEQG \ / AMOS7 \ YOURUM ::
-#\[7]V4TDCNJZALEDOAIKGOK6I62XJQVLO7UFXEWZ66V62X7ERXPHQ4CI 7  DATA SIGNATURE ::
+#,,.,,.,,,,,,,...,,,,,..,,.,.,,.,,.,.,,..,.,,,.,.,...,...,,.,,,.,,..,,.,.,,,.,
+#HDP6RERPSNQNA7AG3TVQAHYPDHHANC7E7B35HNQ3WQ2ICI2WTWC2F27NAHSD7OKSNQDOJGY7P5VNS
+#\\\|PEFVEDPAKERVFAWPW3JFDF6JHHHFUDABDUMNPXTVUY723Y5U2CO \ / AMOS7 \ YOURUM ::
+#\[7]JC52LQYL7UPXJPWHFQZ655H7W3IF4D2XH7Z255NZX3R6GBCGCGCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
