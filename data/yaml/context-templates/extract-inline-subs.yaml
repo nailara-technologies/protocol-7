@@ -146,27 +146,18 @@ sections:
 
       1. read source module, list all sub declarations with line numbers
       2. classify each: extract / leave-inline / combine-with-parent
-      3. report plan with module names before writing anything
-      4. for each extraction [ one at a time ]:
+      3. output a BRIEF plan [ one line per sub: name, action, target ]
+      4. IMMEDIATELY start writing — the plan is not the deliverable.
+         for each extraction [ one at a time ]:
          a. write_new_file with the extracted module
          b. edit_file to update source call site and remove old sub
          c. verify source still looks correct [ read_module ]
       5. report completion summary
 
-      ## output format ##
-
-      ### extraction plan ###
-      for each candidate:
-      - sub: _name [ line N, M lines ]
-      - action: extract / leave / combine
-      - target: proposed.module.name
-      - reason: why this action
-
-      ### results ###
-      for each completed extraction:
-      - created: module.name [ N bytes ]
-      - updated: source.module [ call site at line N ]
-      - verified: yes/no
+      IMPORTANT: the goal is EXTRACTED MODULE FILES, not a report.
+      keep the plan short [ 1 line per sub ] then spend all remaining
+      rounds on writing files and editing sources. do not dump sub
+      bodies into the plan — the code goes into the new module files.
     priority: 3
     budget_pct: 65
     label: inline sub extraction instructions
@@ -176,8 +167,8 @@ on_complete:
     action: memory_update
     topic: "audit:extract-inline-subs"
 
-#,,.,,,..,,..,,.,,,,.,..,,,.,,...,...,..,,,..,.,.,...,...,.,,,,..,.,,,,.,,.,,,
-#HBLLHBISP24QW3SMFI5MW4IA2GOGAAAEDL22OIGEMVGPVWQCYSCKDWWMFLWJGCEIL5R3WBZFURFSE
-#\\\|BXAH3W2WL24ZZXX4QPVHGBGMWARAM6674ETT37VSICJQGOSWL4S \ / AMOS7 \ YOURUM ::
-#\[7]L63RU3IP6Q32MSXGRE5KXUY3Y2IC5DGXIKU7B32KMZPGAB4JVQAY 7  DATA SIGNATURE ::
+#,,..,,,.,..,,.,.,.,,,...,...,,,,,,,,,,,,,,..,.,.,...,...,.,,,,.,,...,,,.,..,,
+#Q3GH2W3HV7NTCY2JNHXTIF7DSMB7IHXJCMOVHJ52JRRVWAHG73C4WO5LW74S2N3SVC3VEQZLN7GO6
+#\\\|5UXFGCN3LPRI3TAWAHQRJUWJX3X5IOY3CKWZSEODFKUE6LIO7GB \ / AMOS7 \ YOURUM ::
+#\[7]SCSHZEL3T6JNMU2XHYH4WYZKIR2L7T3QG5AGXN4KLNX6LKMDU6AQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
