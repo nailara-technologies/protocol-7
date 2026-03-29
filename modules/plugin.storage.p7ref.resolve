@@ -6,7 +6,7 @@ use strict;
 use warnings;
 
 return sub {
-    my ($args) = @_;
+    my ($args) = @ARG;
 
     my $p7ref = $args->{p7ref}
         or return { 'mode' => 'false', 'data' => 'p7ref required' };
@@ -80,7 +80,8 @@ return sub {
 
             ## segment selects: best | meta | specific B32-224 response ##
             if ( $segment eq qw| meta | ) {
-                my $root = $data{'storage'}{'mapping'}{'inference'}{'root_path'}
+                my $root
+                    = $data{'storage'}{'mapping'}{'inference'}{'root_path'}
                     // '';
                 my $meta_path = "$root/$L13/.meta";
                 $result = {
@@ -106,10 +107,10 @@ return sub {
                 $result = {
                     'mode' => $lookup->{'mode'},
                     'data' => {
-                        'protocol' => 'inference',
-                        'branch'   => $L13,
-                        'segment'  => $segment,
-                        'results'  => $lookup->{'data'}{'results'} // [],
+                        'protocol'  => 'inference',
+                        'branch'    => $L13,
+                        'segment'   => $segment,
+                        'results'   => $lookup->{'data'}{'results'}   // [],
                         'hit_count' => $lookup->{'data'}{'hit_count'} // 0,
                     }
                 };
@@ -148,8 +149,8 @@ return sub {
 
 #,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,
 
-#,,.,,,,.,...,,.,,.,,,,.,,...,,..,,,,,,,,,,.,,..,,...,...,.,.,.,.,.,.,..,,,,.,
-#ELQ6FVPVBDLNUQN5XBUN6P3FE4YDTREAFAQVBYUJEZGD5ERNGB7HTFUOWJO37R6ONGNMU7OBGRJKI
-#\\\|4HNK5H2VESJGTTDSN6RPVGKQ2YEPXMU7HHTZ33QJMDJTRFOTAQF \ / AMOS7 \ YOURUM ::
-#\[7]JCZ2VHRJKJPINKAJSCQQT5SLLU363OFHPUXTI4S2HSNZVYKYK4DY 7  DATA SIGNATURE ::
+#,,,,,.,,,.,.,.,.,,,,,..,,...,,.,,.,,,,,,,...,..,,...,...,..,,,,.,,.,,.,,,,.,,
+#MODZEU6CG3AOYVQFM2JRMJAOO7353YKQI3YCOFFSPVLYATIQQ2E4EPF572MJVH3V4MYMKDYT6YXAY
+#\\\|FAVEC7Y3CYNDRS4KVLJV5YW34JQH5T2Q7LYVTUHZBYHI2DLT4IE \ / AMOS7 \ YOURUM ::
+#\[7]EXUGEFPCGOFHTZB3GDR6QVMT2DETJWUWAFENOINRFV6VAO3QEKCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

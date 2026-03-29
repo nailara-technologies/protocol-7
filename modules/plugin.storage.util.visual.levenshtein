@@ -1,0 +1,33 @@
+## [:< ##
+
+# name  = plugin.storage.util.visual.levenshtein
+# descr = Calculate Levenshtein edit distance between two strings
+
+my ( $s,    $t )    = @ARG;
+my ( $len1, $len2 ) = ( length $s, length $t );
+return $len2 if ( $len1 == 0 );
+return $len1 if ( $len2 == 0 );
+
+my %d;
+for my $i ( 0 .. $len1 ) { $d{$i}{0} = $i; }
+for my $j ( 0 .. $len2 ) { $d{0}{$j} = $j; }
+
+for my $i ( 1 .. $len1 ) {
+    my $s_i = substr( $s, $i - 1, 1 );
+    for my $j ( 1 .. $len2 ) {
+        my $cost = ( $s_i eq substr( $t, $j - 1, 1 ) ) ? 0 : 1;
+        $d{$i}{$j} = min(
+            $d{ $i - 1 }{$j} + 1,
+            $d{$i}{ $j - 1 } + 1,
+            $d{ $i - 1 }{ $j - 1 } + $cost
+        );
+    }
+}
+
+return $d{$len1}{$len2};
+
+#,,,,,,,.,,..,,,.,,..,.,,,,,.,.,,,,.,,...,,..,..,,...,...,..,,.,,,.,.,.,,,..,,
+#EFDNA4WIOXUAYSIO3WWGNT2J2EGDBFCHULKEUEX3WEEHXFCPOFFSQ5UMUDZ4PG4LKPT4QCN4ICNEO
+#\\\|3GWJSJ6JKRCSQ3DRD7YHKFKO6MDU3YG6BRUONDG4WWGLPZSZCKU \ / AMOS7 \ YOURUM ::
+#\[7]NDYGZ2LA6IE2KPOXK4ITB3HRLJZUABTLU7HFGKMKMCXJSTYF4SAY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

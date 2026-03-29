@@ -3,11 +3,11 @@
 # name  = plugin.storage.util.visual.calculate_entropy
 # descr = Calculate Shannon entropy of a string normalized to 0-1 range
 
-my ($str) = @_;
+my ($str) = @ARG;
 return 0 unless length($str);
 
 my %freq;
-$freq{$_}++ for split //, $str;
+$freq{$ARG}++ for split //, $str;
 
 my $entropy = 0;
 my $len     = length($str);
@@ -19,8 +19,8 @@ for my $count ( values %freq ) {
 # Normalize to 0-1 (max entropy for base32 is log2(32) = 5)
 return $entropy / 5.0;
 
-#,,,.,..,,,,.,...,,.,,,,.,.,,,,.,,,,.,.,,,...,..,,...,...,.,.,...,,..,...,,..,
-#4IEAQ6UYEGSU2DCTEO3JABZD756TQBM43F2Q2LRVXDOLAU2VOSIVJ6TC3OXALRLPM5PCTLCXEKLCQ
-#\\\|HXNXOVWYJRCLSE545EEM2MYYPLUUI7NEW2KO45DXDDVJ5LDW3DO \ / AMOS7 \ YOURUM ::
-#\[7]6YAVCKAF4GD6HN5WN6KZ5ZZE6WLWRM35QNKCUGVDVH4HFCZKCQDI 7  DATA SIGNATURE ::
+#,,,.,,..,,..,,,,,.,.,...,,.,,,,.,,,.,...,..,,..,,...,..,,.,,,.,,,.,.,.,,,.,.,
+#57JMNU6J7EA2FCMCF7TK3G3EFGO5GOLWWVTCCUZ6CGUBMTPM7TBY5PGZS6IDWZVCMPPC4KWSOJAFU
+#\\\|UXRVDGF7VCO2IV2QSRKCNTJXIC6QYKFC26FSONFRBYM2HDQX7CF \ / AMOS7 \ YOURUM ::
+#\[7]4HZBHH2X37O6YLLNBDEKIFUCCVDUO5SR7TWI7A255JQZV536QICQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
