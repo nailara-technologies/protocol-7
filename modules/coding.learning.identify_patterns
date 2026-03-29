@@ -8,20 +8,66 @@ my ($min_samples) = @ARG;
 
 $min_samples //= 10;
 
-# Placeholder pattern detection
-return {
-    success  => TRUE,
-    patterns => [
-        {   pattern    => 'code generation works best with mathstral',
-            frequency  => 0,
-            impact     => 'medium',
-            confidence => 0
-        }
-    ]
-};
+## load outcomes from persistence file ##
+my $outcomes_file = '/var/protocol-7/coding/learning/outcomes.json';
+my @outcomes;
 
-#,,,,,,,.,,.,,..,,,.,,,..,,..,.,.,,.,,..,,,.,,..,,...,..,,...,,,.,...,,..,,.,,
+if ( -f $outcomes_file ) {
+    <[base.perlmod.autoload]>->('JSON::PP');
+    my $content = <[file.slurp]>->($outcomes_file)->$*;
+    if ( defined $content and length $content ) {
+        my $decoded = eval { JSON::PP::decode_json($content) };
+        @outcomes = $decoded->@* if ref $decoded eq qw| ARRAY |;
+    }
+}
+
+## group outcomes by task_type and service ##
+my %task_service_map;
+for my $o (@outcomes) {
+    my $task_type = $o->{'task_type'} // 'unknown';
+    my $service   = $o->{'service'}   // 'unknown';
+    $task_service_map{$task_type}{$service}{'total'}++;
+    $task_service_map{$task_type}{$service}{'success'}++
+        if $o->{'success'};
+}
+
+## build patterns: best service per task type ##
+my @patterns;
+for my $task_type ( sort keys %task_service_map ) {
+    my $services = $task_service_map{$task_type};
+    my @ranked
+        = sort { $services->{$b}{'success'} <=> $services->{$a}{'success'} }
+        keys $services->%*;
+
+    for my $service ( @ranked[ 0 .. 2 ] ) {
+        last unless defined $service;
+        my $total   = $services->{$service}{'total'}   // 0;
+        my $success = $services->{$service}{'success'} // 0;
+        next if $total < $min_samples;
+        my $rate = $total > 0 ? $success / $total : 0;
+        push @patterns,
+            {
+            'pattern'   => "$task_type works best with $service",
+            'frequency' => $total,
+            'impact'    => $total > 5 ? 'high'
+            : $total > 2 ? 'medium'
+            : 'low',
+            'confidence' => $rate > 0.8 ? 0.9
+            : $rate > 0.5 ? 0.7
+            :               0.5,
+            };
+    }
+}
+
+return { success => TRUE, patterns => \@patterns };
+
 #NDPXDO6U6LWIDCCUH5WYWVWA76JIUZHSSWEBSACDFTOJFZ2HERPQMY7X6JJRLKIYWWFZCCGMJ4O2Y
 #\\\|VJHITLWEXB7SX65S3VP2W6XLBTLX3OGLKX7NXIKCMBXVBK2ERCJ \ / AMOS7 \ YOURUM ::
 #\[7]5RCGDZYI7W3EOHLNTUNMCCK24EWZR5HSDQ4MSBLNCLWGSCTDQ2DQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+
+#,,,.,,.,,,..,.,.,,..,,,.,.,,,,.,,.,,,.,,,...,..,,...,...,.,.,,,,,.,.,,..,,,.,
+#DMGUQ3LMED3M3AAZTPJ5JP5ARLHHATP33JCXWTLVQJXW7BC2H6MLJCJFZMVIGU2TLMAO6UXE6NDTQ
+#\\\|6OAMR3PX6XUQ2HWEL2P5XXSOOTJZUZZ3KCA4HN4BWM3EA3UOXLQ \ / AMOS7 \ YOURUM ::
+#\[7]EMFSMV6ZHZJBOJAI3R3OUJHTZ5WLV35IQZOWN5W2S4VV2P6FFWCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
