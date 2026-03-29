@@ -18,8 +18,8 @@ sections:
 
   ## instructions ##
   - static: |
-      analyze the target module for inline sub {} declarations that should
-      be extracted into separate protocol-7 module files.
+      extract inline sub {} declarations from the target module into
+      separate protocol-7 module files.
 
       ## background ##
 
@@ -30,18 +30,17 @@ sections:
 
       ## investigation steps ##
 
-      1. read the target module fully with read_file
-      2. identify all inline sub {} declarations [ named and anonymous ]
+      1. read the target module fully with read_module
+      2. identify all `sub name { ... }` declarations
       3. for each: determine if it is a good extraction candidate
-      4. use ncode_search to check if similar logic exists elsewhere
-      5. propose the new module filename and interface
+      4. plan all extractions BEFORE writing any files
+      5. extract ONE module at a time [ write, then update source, then next ]
 
       ## what to extract ##
 
-      - named subs: `my $handler = sub { ... };` or `sub name { ... }`
-      - anonymous subs assigned to variables and called multiple times
+      - named subs: `sub _helper { ... }`
+      - anonymous subs assigned to variables: `my $handler = sub { ... };`
       - callback subs longer than ~10 lines
-      - subs that could be reused by other modules
 
       ## what to leave inline ##
 
@@ -49,55 +48,125 @@ sections:
       - one-shot callbacks tightly coupled to surrounding logic
       - sort/grep/map blocks
 
-      ## extraction pattern ##
+      ## CRITICAL RULES ##
 
-      given an inline sub like:
-      ```perl
-      my $process_result = sub {
-          my $data = shift;
-          ## 20 lines of processing ##
-          return $result;
-      };
+      ### verbatim copy ###
+      copy the sub body EXACTLY as-is into the new module. do NOT:
+      - rewrite or improve the logic
+      - add placeholder or stub implementations
+      - fabricate algorithms or fake data
+      - change variable names or refactor structure
+      the extracted module must contain the SAME code, just restructured.
+
+      ### correct P7 module format ###
+      every new module file MUST look exactly like this:
       ```
-
-      extract to: `modules/coding.util.process_result`
-      ```perl
       ## [:< ##
-      # name  = coding.util.process_result
-      # descr = process inference result data
-      my $data = shift;
-      ## 20 lines of processing ##
+
+      # name  = namespace.util.function_name
+      # descr = one line description of what it does
+
+      my $arg = shift;
+      ## ... verbatim sub body here ...
       return $result;
       ```
 
-      and replace inline with:
-      ```perl
-      my $result = <[coding.util.process_result]>->($data);
-      ```
+      do NOT use `return sub { ... }` wrapper. the module body IS the sub.
+      do NOT use `sub { }` anywhere. just the bare code.
+      do NOT add `use strict; use warnings;` — the loader handles this.
+      do NOT add signature stubs or checksum lines at the end.
+      the header MUST be `## [:< ##` with spaces and trailing ##.
+
+      ### one at a time ###
+      extract and write ONE new module, then update the source call site,
+      then move to the next. do NOT batch multiple write_new_file calls
+      in a single tool round — this causes truncation.
+
+      ### source module edits ###
+      when updating the source module to call the extracted module:
+      - replace ONLY the sub declaration and its call sites
+      - preserve ALL surrounding code structure [ braces, semicolons ]
+      - use `<[new.module.name]>->($args)` invocation syntax
+      - if the sub was called as `_helper($x, $y)` change to
+        `<[namespace.util.helper]>->($x, $y)`
+      - if the sub calls itself recursively, use the module's own name:
+        `<[namespace.util.helper]>->($x)` for self-recursion
+      - verify the edit does not break closing braces or return statements
+
+      ### inner helper subs ###
+      if a sub only calls one small internal helper [ under 10 lines ],
+      combine both into the extracted module as bare code with the helper
+      as a `sub _name { }` inside the module. but if the helper is also
+      used elsewhere or is substantial, extract it as its own module.
 
       ## naming conventions ##
+
+      - <zenka>.util.<namespace>.<function> : utility functions
       - <zenka>.handler.* : event/callback handlers
-      - <zenka>.util.* : utility functions
       - <zenka>.parser.* : data transformation/parsing
-      - keep the namespace consistent with existing module organization
+      - keep namespace consistent with existing module organization
+      - use the original sub name [ without _ prefix ] as the function part
+
+      ## extraction pattern ##
+
+      given a source module `pager.filter.thing` containing:
+      ```perl
+      ## main module body code here ...
+      my $score = _calculate_score($item);
+      ## more code ...
+
+      sub _calculate_score {
+          my ($item) = @_;
+          my $val = $item->{'weight'} * 13;
+          return $val;
+      }
+      ```
+
+      create: `modules/pager.util.filter.calculate_score`
+      ```
+      ## [:< ##
+
+      # name  = pager.util.filter.calculate_score
+      # descr = calculate score for pager filter item
+
+      my ($item) = @_;
+      my $val = $item->{'weight'} * 13;
+      return $val;
+      ```
+
+      update source to:
+      ```perl
+      ## main module body code here ...
+      my $score = <[pager.util.filter.calculate_score]>->($item);
+      ## more code ...
+      ```
+      [ sub declaration removed entirely from source ]
+
+      ## workflow ##
+
+      1. read source module, list all sub declarations with line numbers
+      2. classify each: extract / leave-inline / combine-with-parent
+      3. report plan with module names before writing anything
+      4. for each extraction [ one at a time ]:
+         a. write_new_file with the extracted module
+         b. edit_file to update source call site and remove old sub
+         c. verify source still looks correct [ read_module ]
+      5. report completion summary
 
       ## output format ##
 
-      for each extraction candidate:
-      - current: description of the inline sub and its location
-        line: <line number>
-        length: <number of lines>
-        proposed_module: <new module filename>
-        interface: <calling convention after extraction>
-        captures: <list of variables from outer scope it needs>
-        risk: low/medium/high [ based on closure complexity ]
+      ### extraction plan ###
+      for each candidate:
+      - sub: _name [ line N, M lines ]
+      - action: extract / leave / combine
+      - target: proposed.module.name
+      - reason: why this action
 
-      use edit_file to create the new module files where extraction is
-      straightforward [ risk=low, no complex closures ]. for medium/high
-      risk extractions, report findings only.
-
-      important: new module files must use the ## [:< ## header format
-      and include name/descr comments. do NOT add signature stubs.
+      ### results ###
+      for each completed extraction:
+      - created: module.name [ N bytes ]
+      - updated: source.module [ call site at line N ]
+      - verified: yes/no
     priority: 3
     budget_pct: 65
     label: inline sub extraction instructions
@@ -107,8 +176,8 @@ on_complete:
     action: memory_update
     topic: "audit:extract-inline-subs"
 
-#,,,.,,,,,..,,,.,,,,,,...,...,,,,,..,,...,,,,,.,.,...,..,,,.,,..,,..,,,,,,.,,,
-#OJ5UYFDCFGW2VVMMCXAZJFYSWBCS4LDI57B53T4XVUNV7MY5EDSRDBNYRSASDQJI6DDANVNSMHV5M
-#\\\|LPIWDN4NPSIR2GHQITX7VGPEH7HVQOCGF3FLVF3RHXLG2Y4JOPE \ / AMOS7 \ YOURUM ::
-#\[7]XYULSOH4MTADSZ6BUTZFBUZIGHJ7QPNSHP6HAID527H7ZG2PUCBY 7  DATA SIGNATURE ::
+#,,.,,,..,,..,,.,,,,.,..,,,.,,...,...,..,,,..,.,.,...,...,.,,,,..,.,,,,.,,.,,,
+#HBLLHBISP24QW3SMFI5MW4IA2GOGAAAEDL22OIGEMVGPVWQCYSCKDWWMFLWJGCEIL5R3WBZFURFSE
+#\\\|BXAH3W2WL24ZZXX4QPVHGBGMWARAM6674ETT37VSICJQGOSWL4S \ / AMOS7 \ YOURUM ::
+#\[7]L63RU3IP6Q32MSXGRE5KXUY3Y2IC5DGXIKU7B32KMZPGAB4JVQAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
