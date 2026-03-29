@@ -392,6 +392,19 @@ my %dispatch = (
             $mode, scalar @$edit_list, $errors, join "\n", @preview;
     },
 
+    ## record_question / record_suggestion → shared observation handler ##
+    'record_question' => sub {
+        return unless exists $code{'coding.tools.handler.record_observation'};
+        $args->{'type'} = 'question';
+        return $code{'coding.tools.handler.record_observation'}->($args);
+    },
+
+    'record_suggestion' => sub {
+        return unless exists $code{'coding.tools.handler.record_observation'};
+        $args->{'type'} = 'suggestion';
+        return $code{'coding.tools.handler.record_observation'}->($args);
+    },
+
 );
 
 ## look up and execute — dispatch table first, then handler modules ##
@@ -442,8 +455,8 @@ return {
     'content' => $content,
 };
 
-#,,,,,.,.,.,,,,,.,...,,..,,.,,,.,,,.,,,.,,..,,..,,...,...,.,,,,,,,...,...,.,,,
-#TKUGO5Q55Q6NE4MB6VEQHMJDI2EH567I4KE42JSA5YX6FLBQ2PPV3BWO3FZO73AXIKMWL3UIXTHVM
-#\\\|JO7DKAHUXMYHCL4P74Q5V4UGIGBGJM3Q7CRDJHXD6RJXLBYUEQU \ / AMOS7 \ YOURUM ::
-#\[7]OYSQXNYVFQ7K4CG2FK3RHGBSLIAZI3QHP6C74UND5D4T4KB73YDQ 7  DATA SIGNATURE ::
+#,,,,,...,..,,.,,,,..,.,.,,..,,,.,.,,,,..,,,.,..,,...,...,...,,,,,,..,..,,,..,
+#3HFRGLDTT35R4BHYKLEAUPP6PXQTUUK56NPIILTJ6AMRQCTGMPYKW7WHM5VFLGZ3X3SWPRQQFIK3O
+#\\\|RTUNMJXCQ7AY7EIOAQHFPOJTBRYQDZG2L3E5TY65B7J6DSVXRBV \ / AMOS7 \ YOURUM ::
+#\[7]B5H6C45OE4TABDZYWAWOB3ATH2HVUDXIYYYKTHYJXT3XOLGWNCDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,0 +1,22 @@
+## [:< ##
+
+# name  = coding.tools.handler.task_complete
+# descr = signal task completion and stop the inference loop
+
+my $args    = shift              // {};
+my $summary = $args->{'summary'} // 'task completed';
+
+## set the stop flag that process-queued-task checks ##
+<coding.tool_loop.stop>         = TRUE;
+<coding.tool_loop.stop_reason>  = 'task_complete';
+<coding.tool_loop.stop_summary> = $summary;
+
+<[base.logs]>->( 1, ':. task_complete: %s', substr( $summary, 0, 200 ) );
+
+return $summary;
+
+#,,..,..,,,.,,..,,,.,,,..,.,,,.,.,.,,,...,...,.,.,...,...,,..,,.,,,,.,..,,..,,
+#OFFUNGMHHZETT267JTJ6TNMHYJDWLRX6UQZWMML7EZTHYACFPZYZ73WQBTAIX533IKL4AUBFWGYAC
+#\\\|KUKMUANX3HUUBLKFU36SYSNRHUKI2LICE3J6ZF3LW3TUFS7UMDA \ / AMOS7 \ YOURUM ::
+#\[7]SNWRXYKEKOGRXSMSIUSIQVMJALEKOOQUXKP7INR4LWVWRCH4D6CQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

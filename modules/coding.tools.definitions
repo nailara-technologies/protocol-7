@@ -496,6 +496,122 @@ push @tools,
     },
     };
 
+## task_complete — signal task completion and stop the loop ##
+push @tools,
+    {
+    'type'     => 'function',
+    'function' => {
+        'name'        => 'task_complete',
+        'description' => 'signal that the task is done and stop working'
+            . ' [ call this when all work is finished ]',
+        'parameters' => {
+            'type'       => 'object',
+            'properties' => {
+                'summary' => {
+                    'type'        => 'string',
+                    'description' => 'brief summary of what was accomplished'
+                },
+            },
+            'required' => ['summary'],
+        },
+    },
+    };
+
+## escalate — signal need for human attention ##
+push @tools,
+    {
+    'type'     => 'function',
+    'function' => {
+        'name'        => 'escalate',
+        'description' => 'stop and ask a human for help'
+            . ' [ use when blocked, confused, or need a decision ]',
+        'parameters' => {
+            'type'       => 'object',
+            'properties' => {
+                'question' => {
+                    'type'        => 'string',
+                    'description' => 'what you need help with'
+                },
+                'context' => {
+                    'type'        => 'string',
+                    'description' =>
+                        'additional context [ what you tried, why stuck ]'
+                },
+                'severity' => {
+                    'type'        => 'string',
+                    'description' =>
+                        'question, warning, or blocker [ default question ]'
+                },
+            },
+            'required' => ['question'],
+        },
+    },
+    };
+
+## record_question — note uncertainty without stopping ##
+push @tools,
+    {
+    'type'     => 'function',
+    'function' => {
+        'name'        => 'record_question',
+        'description' => 'record a question or uncertainty for later'
+            . ' human review [ does NOT stop the task ]',
+        'parameters' => {
+            'type'       => 'object',
+            'properties' => {
+                'content' => {
+                    'type'        => 'string',
+                    'description' => 'the question or uncertainty to record'
+                },
+                'category' => {
+                    'type'        => 'string',
+                    'description' =>
+                        'topic area [ e.g. architecture, naming,'
+                        . ' requirements, style ] [ default general ]'
+                },
+                'priority' => {
+                    'type'        => 'string',
+                    'description' =>
+                        'low, normal, or high [ default normal ]'
+                },
+            },
+            'required' => ['content'],
+        },
+    },
+    };
+
+## record_suggestion — note an improvement idea without stopping ##
+push @tools,
+    {
+    'type'     => 'function',
+    'function' => {
+        'name'        => 'record_suggestion',
+        'description' => 'record an improvement suggestion for later'
+            . ' analysis [ does NOT stop the task ]',
+        'parameters' => {
+            'type'       => 'object',
+            'properties' => {
+                'content' => {
+                    'type'        => 'string',
+                    'description' => 'the suggestion or improvement idea'
+                },
+                'category' => {
+                    'type'        => 'string',
+                    'description' =>
+                        'topic area [ e.g. tools, templates, workflow,'
+                        . ' extraction, code-quality ] [ default general ]'
+                },
+                'priority' => {
+                    'type'        => 'string',
+                    'description' =>
+                        'low, normal, or high [ default normal ]'
+                },
+            },
+            'required' => ['content'],
+        },
+    },
+    };
+
 ## write_new_file — create a new file [ refuses to overwrite ] ##
 push @tools,
     {
@@ -528,8 +644,8 @@ push @tools,
 
 return \@tools;
 
-#,,..,.,,,.,,,.,,,.,,,.,.,,..,.,.,,.,,...,,,,,..,,...,...,...,,..,...,..,,...,
-#ZJ3J7PNXEMPT72ZBDD7TCTPM6WZL2LC4XXHJJWOHK737N3OKLHVUBUKKVK3TQHBMUIKOOLXNZ6BVI
-#\\\|V7HTNLMBBPLVWYNBBGGMGC6GIBSKBSCMUOEW7AB6XOX23ZWSOIX \ / AMOS7 \ YOURUM ::
-#\[7]EFWD7SQJHGR3GS4OJGVEDO6BRKZI7UXJSPZXYZEOV2OQYZHXMKDY 7  DATA SIGNATURE ::
+#,,,.,..,,..,,,,,,,.,,,.,,.,.,.,.,.,.,,..,,,.,..,,...,...,.,,,...,.,.,.,,,,..,
+#T5D4SPRF5SK55RMZOO34RFQMSYSTGV7LUUGCNDXJWU25WIAI2MABP64ZFEIXITXEH23JIL5UUQR7A
+#\\\|QWD3ZNBQC6JSQICZ6UKSOHD5BJ2AEAQQXL3XB4L2K2ZSF5HBSWA \ / AMOS7 \ YOURUM ::
+#\[7]F6S7KD4JEAEXDOS4AGQOBU4E3NP3MLFB2UVOEKXVC5DQMVPWVUDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

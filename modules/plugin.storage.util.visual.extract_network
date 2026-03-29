@@ -1,0 +1,29 @@
+## [:< ##
+
+# name  = plugin.storage.util.visual.extract_network
+# descr = Extract network properties from P7REF data for visual positioning
+
+my ($data) = @_;
+my %metrics;
+
+if ( $data->{protocol} eq '9p' ) {
+
+    # 9P specific metrics
+    $metrics{hops}        = 0.1;     # Direct connection
+    $metrics{bandwidth}   = 0.95;    # Assume high bandwidth
+    $metrics{reliability} = 0.99;
+    $metrics{centrality}  = 0.5;     # Placeholder
+} elsif ( $data->{protocol} eq 'local' ) {
+    $metrics{hops}        = 0.0;
+    $metrics{bandwidth}   = 1.0;
+    $metrics{reliability} = 1.0;
+    $metrics{centrality}  = 1.0;
+}
+
+return \%metrics;
+
+#,,..,..,,,,,,,,.,..,,...,.,,,,,,,..,,,..,,,.,..,,...,...,,..,.,,,,,,,,,,,...,
+#U7B4XP7COI35Y4RHR5PVIYZAAAQDAMWSWK4DIVZJLHX24QXR7KZBJJZF6B6D4WYO7ZORFMC6QR62A
+#\\\|Q7K24UBRWR33M2XUZCFXGI7VAPKTNB6TJ2VTZ3WFNMMP63KINY6 \ / AMOS7 \ YOURUM ::
+#\[7]WL56IU6U77SP7BUSKM6LD6AIAU4HDDX5KJX24MY3JH6KBLRSNEBI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

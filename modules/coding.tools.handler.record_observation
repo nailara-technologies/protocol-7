@@ -1,0 +1,67 @@
+## [:< ##
+
+# name  = coding.tools.handler.record_observation
+# descr = append a question or suggestion to the observations stash
+
+my $args = shift // {};
+my $type = $args->{'type'}
+    // return 'type required [ question or suggestion ]';
+my $content  = $args->{'content'}  // return 'content required';
+my $category = $args->{'category'} // 'general';
+my $priority = $args->{'priority'} // 'normal';
+
+## validate type ##
+return "error: type must be 'question' or 'suggestion'"
+    unless $type eq 'question' or $type eq 'suggestion';
+
+## resolve current task id from active task ##
+my $task_id = '';
+for my $tid ( keys <coding.task.queue>->%* ) {
+    my $t = <coding.task.queue>->{$tid};
+    if ( ref $t eq qw| HASH |
+        and ( $t->{'execution'}{'status'} // '' ) eq 'in_progress' ) {
+        $task_id = $tid;
+        last;
+    }
+}
+
+## build observation entry ##
+my $entry = {
+    'type'      => $type,
+    'content'   => $content,
+    'category'  => $category,
+    'priority'  => $priority,
+    'task_id'   => $task_id,
+    'timestamp' => <[base.time]>->(3),
+};
+
+## serialize and append via zenka_dir ##
+use JSON::PP;
+my $json_line = JSON::PP->new->utf8->canonical->encode($entry);
+
+my $rel_path = "observations/${type}s.jsonl";
+
+## load existing content, append new line ##
+my $existing_ref = <[file.zenka_dir.load]>->($rel_path);
+my $new_content
+    = defined $existing_ref
+    ? $existing_ref->$* . "$json_line\n"
+    : "$json_line\n";
+
+<[file.zenka_dir.write]>->(
+    $rel_path, \$new_content, '>', 0664, ':encoding(UTF-8)'
+);
+
+<[base.logs]>->(
+    1, ':. record_observation: %s [ %s ] %s',
+    $type, $category, substr( $content, 0, 80 )
+);
+
+return sprintf 'recorded %s [ %s, %s ] — continue working',
+    $type, $category, $priority;
+
+#,,,,,..,,..,,...,,..,.,,,,.,,...,,,.,,,.,.,.,.,.,...,...,,..,.,.,..,,..,,.,.,
+#ML62UFOS4UUOROVGI4OMQLJHGYMLFIM5T4CCEDRM32PGQ2Z4RSUE4NU7ILQLSMVRY52QA23UDK2U6
+#\\\|HHUI7HPTG6CSTDYJUPCGYOOA3L4ZL3T7FF22VTF6IQHZ7I2AKBP \ / AMOS7 \ YOURUM ::
+#\[7]6JMBTQ7YZXKARUHU4GNKWZCC7OVMC4DOTJHCUVVZIFO72EHCIGDY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

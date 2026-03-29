@@ -1,0 +1,28 @@
+## [:< ##
+
+# name  = plugin.storage.util.visual.extract_L13
+# descr = Extract L13 coordinates from P7REF checksum for visual positioning
+
+my ($data) = @_;
+my %metrics;
+
+# If we have L13 checksum, extract 3D coordinates
+if ( $data->{checksum} and length( $data->{checksum} ) >= 13 ) {
+
+    # Use first 13 chars as coordinate basis
+    my $L13 = substr( $data->{checksum}, 0, 13 );
+
+    # Convert to 3D coordinates (simplified)
+    my @chars = split //, $L13;
+    $metrics{L13_x} = ord( $chars[0] ) / 255.0;
+    $metrics{L13_y} = ord( $chars[4] ) / 255.0;
+    $metrics{L13_z} = ord( $chars[8] ) / 255.0;
+}
+
+return \%metrics;
+
+#,,,.,..,,.,.,,..,,,,,,..,..,,..,,...,,,,,,.,,..,,...,...,,..,,,.,,,,,...,..,,
+#RW4VFOLLOLFKIQS2B4I57PWUDNCUCALJXOUU45HQQ5UP46ZDNOGSEIRX44M5MFIZFDQYKYK6FI7RE
+#\\\|ZPVG5LX7RZS2FELDDZ4LJBLCJRNSSEVTKJQFJKQAUQOC4WHNTKR \ / AMOS7 \ YOURUM ::
+#\[7]QZSUBDRH3TPYIGDFHKRN5VPN7CWD7CE3QBK6E5YCY5UTDIATB2DQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

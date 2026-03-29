@@ -66,6 +66,11 @@ unless ( defined $task ) {
     return { success => FALSE, error => "task not found: $task_id" };
 }
 
+## reset tool loop stop flag for this task ##
+<coding.tool_loop.stop>         = FALSE;
+<coding.tool_loop.stop_reason>  = '';
+<coding.tool_loop.stop_summary> = '';
+
 ## assemble prompt and message array [ shared with show-prompt ] ##
 my $assembled    = <[coding.prompt.assemble]>->($task);
 my $parsed       = $assembled->{'parsed'};
@@ -462,6 +467,30 @@ INFERENCE_LOOP:
                 scalar $message->{'tool_calls'}->@*
             );
 
+            ## check if a tool signaled stop [ task_complete / escalate ] ##
+            if (<coding.tool_loop.stop>) {
+                my $reason  = <coding.tool_loop.stop_reason>  // 'unknown';
+                my $summary = <coding.tool_loop.stop_summary> // '';
+
+                <[base.logs]>->(
+                    1,       "[process-queued-task] stop signal: %s [ %s ]",
+                    $reason, substr( $summary, 0, 120 )
+                );
+
+                $response_text = $summary;
+                $finish_reason_val
+                    = $reason eq 'escalate' ? 'escalate' : 'stop';
+
+                ## store reason on task ##
+                my $t = <coding.task.queue>->{$task_id};
+                if ( defined $t ) {
+                    $t->{'execution'}->{'finish_reason'} = $finish_reason_val;
+                    $t->{'execution'}->{'stop_reason'}   = $reason;
+                }
+
+                last INFERENCE_LOOP;
+            }
+
             ## yield to event loop between tool rounds ##
             ## allows network commands [ show-buffer, get-result ] to be ##
             ## processed while inference is running ##
@@ -543,8 +572,8 @@ if ( length $response_text
 ## return result hashref for jobqueue callback ##
 return { success => TRUE, result => $response_text, task_id => $task_id };
 
-#,,,,,,..,.,.,,,,,...,..,,..,,,,,,,,.,.,,,,..,..,,...,...,...,,,,,,..,,.,,.,.,
-#QG7QOJNZ4APHMDX2JIKZMYR4R57PM52SBPUH646RSL62I7BJHHUGIBFBXDFYCPE7UH7I2JRXRPG6G
-#\\\|7IURBSZSSGDKV2XG2G56EMTHWMLBCO5ACZ2JQ7R6HYEOPORMGIW \ / AMOS7 \ YOURUM ::
-#\[7]D4TNTEQCM7KOK3DXB672VDI3SG4OVAKXBHB7EXFO3P3R7VVLCMDQ 7  DATA SIGNATURE ::
+#,,..,,,,,..,,...,,.,,,,.,.,.,.,,,.,.,..,,,,,,..,,...,...,.,,,.,,,,.,,...,.,.,
+#BXQSYJXXNOE3TNPXUS3BIEJ5W65FOBUKYBLCZXNF5ILJYF3D75PVEEN75JL572XNDZBWCHULPJKTG
+#\\\|QRPMKT5CPRQIQWVFJDGMY5HLPKMVXCX3BFPAU4PGCV64I4WQOI7 \ / AMOS7 \ YOURUM ::
+#\[7]IMPG32JOAIIN3XEFNQBT2TLCKT7L4KFAOAGM7ZK4ODQM3USCDUDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

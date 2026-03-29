@@ -1,0 +1,45 @@
+## [:< ##
+
+# name  = plugin.storage.util.visual.extract_intrinsic
+# descr = Extract intrinsic properties from P7REF data for visual positioning
+
+my ($data) = @_;
+my $path = $data->{path} // '';
+my %metrics;
+
+# Checksum entropy (if checksum available)
+if ( $data->{checksum} ) {
+    $metrics{entropy} = <[plugin.storage.util.visual.calculate_entropy]>
+        ->( $data->{checksum} );
+}
+
+# Path depth (normalized)
+if ($path) {
+    my @parts = split m|/|, $path;
+    $metrics{path_depth} = scalar(@parts) / 20.0;    # Normalize to ~20 levels
+    $metrics{path_depth} = 1.0 if $metrics{path_depth} > 1.0;
+}
+
+# File size log scale
+if ( -f $path ) {
+    my $size = -s $path;
+    $metrics{size_log} = $size > 0 ? log($size) / log(2) : 0;
+    $metrics{size_log} /= 40.0;                      # Normalize to ~1TB
+    $metrics{size_log} = 1.0 if $metrics{size_log} > 1.0;
+}
+
+# Reference count (from cache if available)
+my $registry = $data{'storage'}{'mapping'}{'checksum'};
+if ( $data->{checksum} and $registry->{reverse}{ $data->{checksum} } ) {
+    $metrics{ref_count}
+        = scalar( @{ $registry->{reverse}{ $data->{checksum} } } ) / 10.0;
+    $metrics{ref_count} = 1.0 if $metrics{ref_count} > 1.0;
+}
+
+return \%metrics;
+
+#,,..,..,,.,,,..,,,,.,.,,,,,.,,,,,.,.,.,.,.,.,..,,...,...,...,...,.,.,,,.,,..,
+#SKKBZWGWDL4ZKDXS4L7E2QJNU7WXWC43MRJWS3SIZOH5U747YQQPI32QLHPF2EFR4EVO2WOH6BNIY
+#\\\|SPRTLDN33BH23DX56OMU6M3X4WWQ7MYYTNEPIKPQJFPQT7VUFPD \ / AMOS7 \ YOURUM ::
+#\[7]KXJMIKIUFOXFMFLSPV7MBTIZ7LPU26TRO37SNCXHYDFXLQUGGGCA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

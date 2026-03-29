@@ -1,0 +1,32 @@
+## [:< ##
+
+# name  = coding.tools.handler.escalate
+# descr = signal that the task needs human attention and stop the loop
+
+my $args     = shift               // {};
+my $question = $args->{'question'} // return 'question required';
+my $context  = $args->{'context'}  // '';
+my $severity = $args->{'severity'} // 'question';
+
+## set the stop flag with escalation details ##
+<coding.tool_loop.stop>         = TRUE;
+<coding.tool_loop.stop_reason>  = 'escalate';
+<coding.tool_loop.stop_summary> = $question;
+
+## build escalation message ##
+my $msg = sprintf "[ESCALATE:%s] %s", $severity, $question;
+$msg .= "\ncontext: $context" if length $context;
+
+<[base.logs]>->(
+    1,
+    ':. escalate: %s [ %s ]',
+    substr( $question, 0, 200 ), $severity
+);
+
+return $msg;
+
+#,,.,,.,,,.,.,,..,,,,,,.,,,.,,,.,,.,,,..,,,.,,.,.,...,..,,,.,,.,,,,..,.,.,,.,,
+#2AX7MG3FV6WPU6ZGSIEAIW3BI6DEYT7VZM5FYOMQXVUORCNG44PFD7YOPRQMZEGFIDS4AOIFW5V3M
+#\\\|OLOU4KTD5RZ3WKPTUEWKAEYE4U4IZCG2ZYWVACYMRBJI7XAYPE3 \ / AMOS7 \ YOURUM ::
+#\[7]3X47UC2Y5XAPBMGUR3YW32OOP5J3QEB6RREYE5MQJ4OERRQCZUCI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
