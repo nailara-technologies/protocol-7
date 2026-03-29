@@ -1,94 +1,95 @@
-## [:<
+## [:< ##
+
 # name  = pager.source.file-list
 # descr = Pager data source: filesystem file listings
-## >:]
 
-return sub {
-    my ($args) = @_;
+my ($args) = @ARG;
 
-    my $root = $args->{'root'} // '.';
-    my $recursive = $args->{'recursive'} // 1;
-    my $follow_symlinks = $args->{'follow_symlinks'} // 0;
-    my $batch_size = $args->{'batch_size'} // 100;
-    my $pattern = $args->{'pattern'};
+my $root            = $args->{'root'}            // '.';
+my $recursive       = $args->{'recursive'}       // 1;
+my $follow_symlinks = $args->{'follow_symlinks'} // 0;
+my $batch_size      = $args->{'batch_size'}      // 100;
+my $pattern         = $args->{'pattern'};
 
-    # Find command setup
-    my @cmd = ('find', $root);
-    push @cmd, '-maxdepth', '1' unless $recursive;
-    push @cmd, '-follow' if $follow_symlinks;
-    push @cmd, '-type', 'f' if $args->{'files_only'};
-    push @cmd, '-type', 'd' if $args->{'dirs_only'};
+# Find command setup
+my @cmd = ( 'find', $root );
+push @cmd, '-maxdepth', '1' unless $recursive;
+push @cmd, '-follow' if $follow_symlinks;
+push @cmd, '-type', 'f' if $args->{'files_only'};
+push @cmd, '-type', 'd' if $args->{'dirs_only'};
 
-    my $depth = 0;
-    my @pending = ($root);
-    my $current_batch = [];
+my $depth         = 0;
+my @pending       = ($root);
+my $current_batch = [];
 
-    return {
-        'type'    => 'file-list',
-        'root'    => $root,
-        'total'   => undef,  # Unknown until enumeration
-        'cursor'  => 0,
+return {
+    'type'   => 'file-list',
+    'root'   => $root,
+    'total'  => undef,         # Unknown until enumeration
+    'cursor' => 0,
 
-        'next_batch' => sub {
-            my $batch = [];
+    'next_batch' => sub {
+        my $batch = [];
 
-            while (@pending && @$batch < $batch_size) {
-                my $dir = shift @pending;
+        while ( @pending && @$batch < $batch_size ) {
+            my $dir = shift @pending;
 
-                opendir(my $dh, $dir) or next;
-                my @entries = readdir($dh);
-                closedir($dh);
+            opendir( my $dh, $dir ) or next;
+            my @entries = readdir($dh);
+            closedir($dh);
 
-                for my $entry (sort @entries) {
-                    next if $entry eq '.' || $entry eq '..';
+            for my $entry ( sort @entries ) {
+                next if $entry eq '.' || $entry eq '..';
 
-                    my $path = "$dir/$entry";
-                    $path =~ s|//|/|g;
+                my $path = "$dir/$entry";
+                $path =~ s|//|/|g;
 
-                    next if $pattern && $entry !~ /$pattern/;
+                next if $pattern && $entry !~ /$pattern/;
 
-                    my @stat = stat($path);
-                    next unless @stat;
+                my @stat = stat($path);
+                next unless @stat;
 
-                    my $item = {
-                        'path'    => $path,
-                        'name'    => $entry,
-                        'size'    => $stat[7],
-                        'mtime'   => $stat[9],
-                        'mode'    => $stat[2],
-                        'type'    => -d $path ? 'dir' : 'file',
-                    };
+                my $item = {
+                    'path'  => $path,
+                    'name'  => $entry,
+                    'size'  => $stat[7],
+                    'mtime' => $stat[9],
+                    'mode'  => $stat[2],
+                    'type'  => -d $path ? 'dir' : 'file',
+                };
 
-                    push @$batch, $item;
+                push @$batch, $item;
 
-                    if (-d $path && $recursive) {
-                        push @pending, $path unless (-l $path && !$follow_symlinks);
-                    }
+                if ( -d $path && $recursive ) {
+                    push @pending, $path
+                        unless ( -l $path && !$follow_symlinks );
                 }
             }
+        }
 
-            return $batch;
-        },
+        return $batch;
+    },
 
-        'get_item_at' => sub {
-            my ($idx) = @_;
-            # For random access, would need index - currently sequential
-            return undef;
-        },
+    'get_item_at' => sub {
+        my ($idx) = @ARG;
 
-        'estimate_total' => sub {
-            # Quick estimate using find -maxdepth 2 | wc -l
-            my $estimate = `find "$root" -maxdepth 2 2>/dev/null | wc -l`;
-            chomp $estimate;
-            return $estimate || 1000;
-        },
-    };
+        # For random access, would need index - currently sequential
+        return undef;
+    },
+
+    'estimate_total' => sub {
+
+        # Quick estimate using find -maxdepth 2 | wc -l
+        my $estimate = `find "$root" -maxdepth 2 2>/dev/null | wc -l`;
+        chomp $estimate;
+        return $estimate || 1000;
+    },
 };
 
 # SPDX-License-Identifier: ISC
 
-#,,,.,..,,...,,,.,.,,,,.,,,,,,.,,,,,.,.,,,,..,..,,...,...,..,,,..,..,,,..,,,,,
-#YXXINCG6SIL3LU3HQ6KLKSCSXYYBMJKOYVZZ3WBFUHZ4Z6VQDX6MHMX57XF6G6SN2TOSXRDLYN7C4
-#\\\|IUIYAUYIXEKKBGEYGSYWK2KNBD4AAP4IJVTCUYX5MIZABFCLHWG \ / AMOS7 \ YOURUM ::
-#\[7]UPPTLJ4MZ53ZWYRFGO2PSXZE4MECVYRYD57KBOLSNSKCZXF7QABQ 7  DATA SIGNATURE ::
+#,,.,,..,,,.,,..,,,..,,..,,..,,..,,,,,,,.,...,..,,...,...,,,,,,,.,..,,,,.,.,.,
+#HVSXT64FKJCWOAKE3T5WYU3ZVHDPBF6UYN4RAVTEMSI5Q2TUMYDKPHCCLR4CXJKC3C3FY5I7JOR54
+#\\\|ISJX4LIBRB35ZHNGTAHHJGB44VC6CSBPFXJ7RR7FDXRMINKP6QD \ / AMOS7 \ YOURUM ::
+#\[7]5EYKSACVX2TWUYLYMNXV5IFHIR5BC3ES2S7PELH6MD3UGFNQW2BQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,43 +1,37 @@
-## [:<
+## [:< ##
+
 # name  = pager.buffer.page
-# descr = Page operations for virtual buffers
-## >:]
+# descr = page operations for virtual buffers
 
-return sub {
-    my ($args) = @_;
+my ($args) = @ARG;
 
-    my $buffer_id = $args->{'buffer_id'};
-    my $op = $args->{'operation'};
-    my $buf = $data{'pager'}{'buffers'}{$buffer_id};
+my $buffer_id = $args->{'buffer_id'};
+my $op        = $args->{'operation'};
+my $buf       = $data{'pager'}{'buffers'}{$buffer_id};
 
-    return undef unless $buf;
+return undef unless $buf;
 
-    if ($op eq 'get') {
-        my $page_num = $args->{'page_num'} // 0;
-        return <[pager.buffer.page.get]>->($buf, $page_num);
-    }
-    elsif ($op eq 'invalidate') {
-        my $page_num = $args->{'page_num'};
-        return <[pager.buffer.page.invalidate]>->($buf, $page_num);
-    }
-    elsif ($op eq 'invalidate_all') {
-        return <[pager.buffer.page.invalidate-all]>->($buf);
-    }
-    elsif ($op eq 'stats') {
-        return $buf->{'stats'};
-    }
-    elsif ($op eq 'resize') {
-        my $new_size = $args->{'page_size'};
-        return <[pager.buffer.page.resize]>->($buf, $new_size);
-    }
+if ( $op eq 'get' ) {
+    my $page_num = $args->{'page_num'} // 0;
+    return <[pager.buffer.page.get]>->( $buf, $page_num );
+} elsif ( $op eq 'invalidate' ) {
+    my $page_num = $args->{'page_num'};
+    return <[pager.buffer.page.invalidate]>->( $buf, $page_num );
+} elsif ( $op eq 'invalidate_all' ) {
+    return <[pager.buffer.page.invalidate-all]>->($buf);
+} elsif ( $op eq 'stats' ) {
+    return $buf->{'stats'};
+} elsif ( $op eq 'resize' ) {
+    my $new_size = $args->{'page_size'};
+    return <[pager.buffer.page.resize]>->( $buf, $new_size );
+}
 
-    return undef;
-};
+return undef;
 
 # SPDX-License-Identifier: ISC
 
-#,,,,,..,,,..,,,,,.,,,...,,.,,...,.,.,,.,,,,,,..,,...,...,...,.,,,...,.,,,.,,,
-#NFRDPJQEE5NFJBDSSMXH24UTZQ5RP4ENO6NN25KJK2TKVMWRSDRD77Q4CBY2GA4W5GF2SLHCAOYWE
-#\\\|F2SRWMTNJTSJGYLCL5I3AORM4MW57GJJ3YNAAEJLHIGHUGQ5QVN \ / AMOS7 \ YOURUM ::
-#\[7]2JAHG2YRFDOVHT2IB6TEH22FUOXDP5TFNMB7GG47YFO4W5EEFICI 7  DATA SIGNATURE ::
+#,,,.,.,.,..,,..,,...,,,.,...,,.,,.,,,,,,,...,..,,...,...,.,,,.,.,.,.,.,.,.,.,
+#KI4FBPYH5EQZJIGUKPNLZA2GZIQFGF2DIYRW5P2ZF44TS3DVUXTTJ63CWU4OIVZZF5MOQY2WHHFKA
+#\\\|XWLIR3FKLEHIWDR3WJNCAUCUMTHP5S7QJJVDQXN6CGAMWSF6HMO \ / AMOS7 \ YOURUM ::
+#\[7]6MNOCB27OKOFYRSR2AXWXJ7I2ASA2GHHKDUVVCB4ZG5WZZLKS2DI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
