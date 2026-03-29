@@ -48,6 +48,18 @@ sections:
       - one-shot callbacks tightly coupled to surrounding logic
       - sort/grep/map blocks
 
+      ## handling `return sub { ... }` wrapper modules ##
+
+      some older modules wrap their entire body in `return sub { ... };`.
+      when you encounter this pattern:
+      1. the content INSIDE the `return sub { }` wrapper is the real module body
+      2. unwrap it: remove `return sub {` at the top and `};` at the end
+      3. dedent the body by one level [ the wrapper added one indent level ]
+      4. also remove `use strict; use warnings;` — the loader adds these
+      5. extract the named subs from the unwrapped body as usual
+      6. the remaining unwrapped body becomes the source module's new content
+      do NOT create a separate "dispatcher" module — update the source in-place.
+
       ## CRITICAL RULES ##
 
       ### verbatim copy ###
@@ -176,6 +188,21 @@ sections:
       keep the plan short [ 1 line per sub ] then spend all remaining
       rounds on writing files and editing sources. do not dump sub
       bodies into the plan — the code goes into the new module files.
+
+      ## ONE tool call per round for file writes ##
+
+      NEVER call write_new_file more than once in a single tool round.
+      NEVER call write_new_file and replace_in_file in the same round.
+      sequence: write → validate → replace call site → remove old sub → next.
+      each step gets its own tool round. batching causes truncation and errors.
+
+      ## completion ##
+
+      when all extractions are done and all source call sites are updated:
+      - call task_complete with a summary of what was extracted
+      - use record_suggestion or record_question during work if you notice
+        anything worth flagging [ tool issues, template gaps, naming questions ]
+      do NOT keep working after everything is extracted — call task_complete.
     priority: 3
     budget_pct: 65
     label: inline sub extraction instructions
@@ -185,8 +212,8 @@ on_complete:
     action: memory_update
     topic: "audit:extract-inline-subs"
 
-#,,.,,,,,,,,,,,,.,.,,,,..,.,.,,,,,,.,,.,.,..,,.,.,...,...,,,.,,..,,..,,,,,.,,,
-#ZOEE7MO4YQ63BDZHKEJ3RZWITQFSAU2M5334WTPFXEGHPPMBWO6JNJCKZU44WUJOP2PDONIRXN5UY
-#\\\|UYSUFP3E32BXIQEPGSRZ4QS3V3L73LOG5BQH6KZN4MZT2P4OLCH \ / AMOS7 \ YOURUM ::
-#\[7]2XOZJ3ZGAWDDJPVB6RDJV34BE3OWXFVP4MCHS7MP2FG7QU4UR4DI 7  DATA SIGNATURE ::
+#,,.,,,..,.,.,..,,..,,.,.,,,,,.,.,,,.,...,,,,,.,.,...,...,..,,..,,,.,,,.,,.,.,
+#UIE7OMAR7WSGOHBSZOWZS2GMFYOVAWB74UWR3OVNTTLBMLVKFSH4QFV6P7EBMMBLMASKNDZR6Y62U
+#\\\|IEPBYUBZ6UQM2WZULR2WYDYTTXGTE5UYLVVOMONLQFXXTLBQ3O5 \ / AMOS7 \ YOURUM ::
+#\[7]EEPHLYHFIIG2NPZXDYMFFU3I6YH2PQ3Z7MAKO4XLCZBGGKXJOACI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
