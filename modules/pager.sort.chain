@@ -1,108 +1,101 @@
-## [:<
+## [:< ##
+
 # name  = pager.sort.chain
 # descr = Manage sort configuration for virtual buffers
-## >:]
 
-return sub {
-    my ($args) = @_;
+my ($args) = @ARG;
 
-    my $buffer_id = $args->{'buffer_id'};
-    my $action = $args->{'action'};
-    my $buf = $data{'pager'}{'buffers'}{$buffer_id};
+my $buffer_id = $args->{'buffer_id'};
+my $action    = $args->{'action'};
+my $buf       = $data{'pager'}{'buffers'}{$buffer_id};
 
-    return undef unless $buf;
+return undef unless $buf;
 
-    if ($action eq 'set') {
-        my $sort_spec = {
-            'type'     => $args->{'type'} // 'multi-key',
-            'keys'     => $args->{'keys'} // [],
-            'adaptive' => $args->{'adaptive'} // 0,
-            'history'  => $args->{'history'} // {},
-        };
+if ( $action eq 'set' ) {
+    my $sort_spec = {
+        'type'     => $args->{'type'}     // 'multi-key',
+        'keys'     => $args->{'keys'}     // [],
+        'adaptive' => $args->{'adaptive'} // 0,
+        'history'  => $args->{'history'}  // {},
+    };
 
-        $buf->{'sort'} = $sort_spec;
-        <[pager.buffer.page.invalidate-all]>->({ 'buffer' => $buf });
-        return 1;
-    }
-    elsif ($action eq 'add_key') {
-        my $key = {
-            'field'  => $args->{'field'},
-            'dir'    => $args->{'dir'} // 'asc',
-            'weight' => $args->{'weight'} // 1.0,
-        };
+    $buf->{'sort'} = $sort_spec;
+    <[pager.buffer.page.invalidate-all]>->( { 'buffer' => $buf } );
+    return 1;
+} elsif ( $action eq 'add_key' ) {
+    my $key = {
+        'field'  => $args->{'field'},
+        'dir'    => $args->{'dir'}    // 'asc',
+        'weight' => $args->{'weight'} // 1.0,
+    };
 
-        $buf->{'sort'} //= { 'type' => 'multi-key', 'keys' => [] };
-        push @{$buf->{'sort'}{'keys'}}, $key;
-        <[pager.buffer.page.invalidate-all]>->({ 'buffer' => $buf });
-        return scalar(@{$buf->{'sort'}{'keys'}});
-    }
-    elsif ($action eq 'remove_key') {
-        my $index = $args->{'index'};
-        return undef unless $buf->{'sort'} && defined $index;
-        return undef unless $index >= 0 && $index < @{$buf->{'sort'}{'keys'}};
+    $buf->{'sort'} //= { 'type' => 'multi-key', 'keys' => [] };
+    push @{ $buf->{'sort'}{'keys'} }, $key;
+    <[pager.buffer.page.invalidate-all]>->( { 'buffer' => $buf } );
+    return scalar( @{ $buf->{'sort'}{'keys'} } );
+} elsif ( $action eq 'remove_key' ) {
+    my $index = $args->{'index'};
+    return undef unless $buf->{'sort'} && defined $index;
+    return undef unless $index >= 0 && $index < @{ $buf->{'sort'}{'keys'} };
 
-        splice(@{$buf->{'sort'}{'keys'}}, $index, 1);
-        <[pager.buffer.page.invalidate-all]>->({ 'buffer' => $buf });
-        return 1;
-    }
-    elsif ($action eq 'clear') {
-        $buf->{'sort'} = undef;
-        <[pager.buffer.page.invalidate-all]>->({ 'buffer' => $buf });
-        return 1;
-    }
-    elsif ($action eq 'get') {
-        return $buf->{'sort'};
-    }
-    elsif ($action eq 'enable_adaptive') {
-        $buf->{'sort'}{'adaptive'} = 1;
-        $buf->{'sort'}{'type'} = 'adaptive';
-        $buf->{'sort'}{'history'} = $args->{'history'} // {};
-        <[pager.buffer.page.invalidate-all]>->({ 'buffer' => $buf });
-        return 1;
-    }
-    elsif ($action eq 'record_access') {
-        # Record item access for adaptive learning
-        return unless $buf->{'sort'} && $buf->{'sort'}{'adaptive'};
+    splice( @{ $buf->{'sort'}{'keys'} }, $index, 1 );
+    <[pager.buffer.page.invalidate-all]>->( { 'buffer' => $buf } );
+    return 1;
+} elsif ( $action eq 'clear' ) {
+    $buf->{'sort'} = undef;
+    <[pager.buffer.page.invalidate-all]>->( { 'buffer' => $buf } );
+    return 1;
+} elsif ( $action eq 'get' ) {
+    return $buf->{'sort'};
+} elsif ( $action eq 'enable_adaptive' ) {
+    $buf->{'sort'}{'adaptive'} = 1;
+    $buf->{'sort'}{'type'}     = 'adaptive';
+    $buf->{'sort'}{'history'}  = $args->{'history'} // {};
+    <[pager.buffer.page.invalidate-all]>->( { 'buffer' => $buf } );
+    return 1;
+} elsif ( $action eq 'record_access' ) {
 
-        my $item = $args->{'item'};
-        my $history = $buf->{'sort'}{'history'};
+    # Record item access for adaptive learning
+    return unless $buf->{'sort'} && $buf->{'sort'}{'adaptive'};
 
-        # Record accessed fields
-        for my $field (qw(mtime size type)) {
-            if (defined $item->{$field}) {
-                $history->{'accessed_fields'}{$field}++;
-            }
+    my $item    = $args->{'item'};
+    my $history = $buf->{'sort'}{'history'};
+
+    # Record accessed fields
+    for my $field (qw(mtime size type)) {
+        if ( defined $item->{$field} ) {
+            $history->{'accessed_fields'}{$field}++;
         }
-
-        # Time distribution
-        if ($item->{'mtime'}) {
-            my $age_days = (time() - $item->{'mtime'}) / 86400;
-            if ($age_days < 7) {
-                $history->{'time_distribution'}{'recent'}++;
-            } else {
-                $history->{'time_distribution'}{'old'}++;
-            }
-        }
-
-        # Size distribution
-        if ($item->{'size'}) {
-            if ($item->{'size'} > 1024 * 1024) {
-                $history->{'size_distribution'}{'large'}++;
-            } else {
-                $history->{'size_distribution'}{'small'}++;
-            }
-        }
-
-        return 1;
     }
 
-    return undef;
-};
+    # Time distribution
+    if ( $item->{'mtime'} ) {
+        my $age_days = ( time() - $item->{'mtime'} ) / 86400;
+        if ( $age_days < 7 ) {
+            $history->{'time_distribution'}{'recent'}++;
+        } else {
+            $history->{'time_distribution'}{'old'}++;
+        }
+    }
+
+    # Size distribution
+    if ( $item->{'size'} ) {
+        if ( $item->{'size'} > 1024 * 1024 ) {
+            $history->{'size_distribution'}{'large'}++;
+        } else {
+            $history->{'size_distribution'}{'small'}++;
+        }
+    }
+
+    return 1;
+}
+
+return undef;
 
 # SPDX-License-Identifier: ISC
 
-#,,.,,.,.,,.,,.,.,.,,,,.,,,..,..,,.,.,...,,,.,..,,...,...,..,,,.,,,,,,...,,,.,
-#57CQ5YKFNCZTAXUJI6RZCLDIBWJ22D4RMR5HCJNFMUKPO2QNLEOGS5VUROSPDSGTZ75RM5PFICSV4
-#\\\|P627TXBZKLUEJ7MEYITH7O7LMGFYVFMJBG4HJESMOPY22TXNJZQ \ / AMOS7 \ YOURUM ::
-#\[7]SFLGNJBXPOROKLWIS5XUGAVA3LUWSB7DDCKZ7DDJHBB3NK4M34AY 7  DATA SIGNATURE ::
+#,,,.,,.,,,,,,,..,.,.,,,.,.,,,...,,..,.,,,,,.,..,,...,.,.,,,.,,,,,..,,..,,,,,,
+#XMVUS7TRKQTD4FGEWKWFQW23SWO2QPGW5YLMMQQBJZV24SNPKIGGZZK5OH25WTJIJU55AO4J7XEMQ
+#\\\|42MIIY2F3BSTD4MBELAK3ZYOKK7235JNLPTYA6ISPV6PL2IEBNB \ / AMOS7 \ YOURUM ::
+#\[7]NN62K37NAW5R4YE5Y2F7RM3CP34ODZREGVS72TZGMSA2SYHFDCAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,79 +1,80 @@
-## [:<
+## [:< ##
+
 # name  = pager.view.amos-data-pager
 # descr = Integration with bin/amos-data-pager for 72-bit visualization
-## >:]
 
-return sub {
-    my ($args) = @_;
+my ($args) = @ARG;
 
-    my $buffer_id = $args->{'buffer_id'};
-    my $buf = $data{'pager'}{'buffers'}{$buffer_id};
-    return undef unless $buf;
+my $buffer_id = $args->{'buffer_id'};
+my $buf       = $data{'pager'}{'buffers'}{$buffer_id};
+return undef unless $buf;
 
-    my $start = $args->{'start'} // 0;
-    my $lines = $args->{'lines'} // 20;
-    my $temp_file = $args->{'temp_file'} // "/tmp/pager-$buffer_id-$$.bin";
+my $start     = $args->{'start'}     // 0;
+my $lines     = $args->{'lines'}     // 20;
+my $temp_file = $args->{'temp_file'} // "/tmp/pager-$buffer_id-$$.bin";
 
-    # Export current viewport to binary format for amos-data-pager
-    my $page_size = $buf->{'pages'}{'size'};
-    my $start_page = int($start / $page_size);
+# Export current viewport to binary format for amos-data-pager
+my $page_size  = $buf->{'pages'}{'size'};
+my $start_page = int( $start / $page_size );
 
-    # Gather items from buffer
-    my @items;
-    for my $page_num ($start_page .. $start_page + 1) {
-        my $page = <[pager.buffer.page.get]>->($buf, $page_num);
-        push @items, @$page if $page;
+# Gather items from buffer
+my @items;
+for my $page_num ( $start_page .. $start_page + 1 ) {
+    my $page = <[pager.buffer.page.get]>->( $buf, $page_num );
+    push @items, @$page if $page;
+}
+
+# Convert items to binary representation
+# 72-bit = 9 bytes per row
+open( my $fh, '>:raw', $temp_file ) or return undef;
+
+for my $i ( 0 .. $lines - 1 ) {
+    my $item = $items[ $start + $i - ( $start_page * $page_size ) ];
+
+    if ( $item && $item->{'checksum'} ) {
+
+        # Decode base32 checksum to binary
+        my $bin = <[base.decode.bmw]>->( $item->{'checksum'} );
+
+        # Pad/truncate to 9 bytes (72 bits)
+        $bin = substr( $bin . "\0" x 9, 0, 9 );
+        print $fh $bin;
+    } elsif ( $item && $item->{'path'} ) {
+
+        # Encode path as 72-bit fingerprint
+        my $hash = <[base.chk-sum.bmw.L13-str]>->( $item->{'path'} );
+        my $bin  = pack( 'H*', $hash );
+        $bin = substr( $bin . "\0" x 9, 0, 9 );
+        print $fh $bin;
+    } else {
+
+        # Empty row
+        print $fh "\0" x 9;
     }
+}
 
-    # Convert items to binary representation
-    # 72-bit = 9 bytes per row
-    open(my $fh, '>:raw', $temp_file) or return undef;
+close($fh);
 
-    for my $i (0 .. $lines - 1) {
-        my $item = $items[$start + $i - ($start_page * $page_size)];
+# Launch amos-data-pager
+my $cmd = "$data{'path'}{'bin'}/amos-data-pager '$temp_file'";
 
-        if ($item && $item->{'checksum'}) {
-            # Decode base32 checksum to binary
-            my $bin = <[base.decode.bmw]>->($item->{'checksum'});
-            # Pad/truncate to 9 bytes (72 bits)
-            $bin = substr($bin . "\0" x 9, 0, 9);
-            print $fh $bin;
-        }
-        elsif ($item && $item->{'path'}) {
-            # Encode path as 72-bit fingerprint
-            my $hash = <[base.chk-sum.bmw.L13-str]>->($item->{'path'});
-            my $bin = pack('H*', $hash);
-            $bin = substr($bin . "\0" x 9, 0, 9);
-            print $fh $bin;
-        }
-        else {
-            # Empty row
-            print $fh "\0" x 9;
-        }
-    }
+if ( $args->{'async'} ) {
 
-    close($fh);
+    # Non-blocking launch
+    system("$cmd &");
+    return { 'temp_file' => $temp_file, 'pid' => $! };
+} else {
 
-    # Launch amos-data-pager
-    my $cmd = "$data{'path'}{'bin'}/amos-data-pager '$temp_file'";
-
-    if ($args->{'async'}) {
-        # Non-blocking launch
-        system("$cmd &");
-        return { 'temp_file' => $temp_file, 'pid' => $! };
-    }
-    else {
-        # Blocking launch
-        system($cmd);
-        unlink($temp_file) unless $args->{'keep_temp'};
-        return 1;
-    }
-};
+    # Blocking launch
+    system($cmd);
+    unlink($temp_file) unless $args->{'keep_temp'};
+    return 1;
+}
 
 # SPDX-License-Identifier: ISC
 
-#,,,.,.,.,.,,,,.,,,..,,,,,.,,,...,...,,..,.,.,..,,...,...,,,.,.,,,,.,,..,,..,,
-#2CMA4ZR65HCZSGAESMEGLHL7O22PIFAJO3IW6UCBR4R7HKXK7Y734R6RM5OXPF6RVLWFAXEZ4342Y
-#\\\|Z3KLQFIQVRUTJURWFEPFXKE5ILJ62GWPL5VLJDTL2E27PSJU3HI \ / AMOS7 \ YOURUM ::
-#\[7]IZDSBNFPIY3FWUPE4NBHZP56UZA26B6AOXYYB4WCDTUU4D5DTWCY 7  DATA SIGNATURE ::
+#,,.,,,,.,...,.,,,.,,,,.,,..,,..,,.,,,,.,,.,,,..,,...,...,...,,,,,..,,.,,,..,,
+#ZL3LCLZNSQBGFDRBQP5Q3P2PD2FGAM2LC5AKF3HHQL7EEXOBXESFFV2FJZLXQ3JMAKAM2LCXFPNIG
+#\\\|HEFJ3ZVN7RBMRUHRVRHBE52ZEYS6S6LP4XOQMCZFDVXHL2S5YK7 \ / AMOS7 \ YOURUM ::
+#\[7]4OT2M3I2HW3FFB3PAJN74M3QUAXODBGTRVR5F7EBQXVM4XP3BKCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

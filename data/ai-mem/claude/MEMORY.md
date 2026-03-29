@@ -76,6 +76,8 @@
 - **multi-model consensus**: llm.service.consensus_vote modules extracted but untested
 
 ### Open Bugs / Cleanup
+- **signature missing-endline bug**: footer glues to last code line when file lacks trailing
+  newline — `return sprintf(...);#,,.,,...` on one line. pre-commit rejects as "no separator endline"
 - **config double-load bug**: duplicate config key warnings — see `bug-config-double-load.md`
 - **signature oscillation Variant B**: double-footer on never-signed non-empty files
 - **repo var/ cleanup**: `var/httpd/` tracked from Nov 2025 AI error
@@ -211,8 +213,8 @@
 - Pattern: `my @non_num = grep { defined $data_ref->{$ARG}->{$key} and not looks_like_number(...) } keys $data_ref->%*`
 - Global `$SIG{__WARN__}` exists — if wrapping warn handler, capture `$prev_warn = $SIG{__WARN__}` first and call through
 
-#,,,.,.,.,,..,,,,,.,,,.,,,...,..,,.,,,,,,,,,.,..,,...,..,,.,.,.,,,,..,,,.,..,,
-#CQ7LXQ322NDGLRYEYTZZBAXRHS6XQREU4N4P4D3PBC3FW37GLH64I5QQKHHF3X2KZURWX55SVPU6O
-#\\\|GG5MBG5JA2SE2SM6WSKVKNNBOIC7MUAEDB2G33V2PX6G4FZWRAN \ / AMOS7 \ YOURUM ::
-#\[7]ELRLOSNTCYEQUZPMG6LVJFQRZKZGDTCVLDVKRV4GFCMMXQ4KDKDA 7  DATA SIGNATURE ::
+#,,,.,,,.,,.,,,..,.,.,,.,,..,,,,,,,,,,,,,,..,,..,,...,...,..,,..,,,,.,,,.,,.,,
+#ZA5QJLYJX6Q26Q2X5RWOWYVLTD4L4BFNE22DTXXS4QB5PIPNEB2TMTPU6TKPYDUNRTB53RJNK52SA
+#\\\|TMDOJCPUI63MTZZ7RSWM6BISHCK76IAWQORPVLLUIY77WHSZBVH \ / AMOS7 \ YOURUM ::
+#\[7]SQX3NPZOKCLJZM4E3RL467L64LLPHPJF3MYPOJBIPMF2YXIY2WDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

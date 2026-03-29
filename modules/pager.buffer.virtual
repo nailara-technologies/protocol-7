@@ -1,73 +1,71 @@
-## [:<
+## [:< ##
+
 # name  = pager.buffer.virtual
 # descr = Virtual buffer manager with page cache
-## >:]
 
-return sub {
-    my ($args) = @_;
+my ($args) = @ARG;
 
-    my $source = $args->{'source'};  # Source object from pager.source.*
-    my $source_type = $args->{'source_type'} // 'file-list';
-    my $source_args = $args->{'source_args'} // {};
+my $source      = $args->{'source'};    # Source object from pager.source.*
+my $source_type = $args->{'source_type'} // 'file-list';
+my $source_args = $args->{'source_args'} // {};
 
-    # Create source if not provided
-    if (!$source) {
-        my $source_mod = "pager.source.$source_type";
-        $source = <[$source_mod]>->($source_args);
-    }
+# Create source if not provided
+if ( !$source ) {
+    my $source_mod = "pager.source.$source_type";
+    $source = <[$source_mod]>->($source_args);
+}
 
-    return undef unless $source;
+return undef unless $source;
 
-    # Buffer configuration
-    my $page_size = $args->{'page_size'} // 100;
-    my $max_cached_pages = $args->{'max_cache'} // 10;
-    my $item_size = $args->{'item_size'} // 256;
+# Buffer configuration
+my $page_size        = $args->{'page_size'} // 100;
+my $max_cached_pages = $args->{'max_cache'} // 10;
+my $item_size        = $args->{'item_size'} // 256;
 
-    # Generate buffer ID
-    my $buffer_id = 'buf_' . $data{'pager'}{'next_id'}++;
+# Generate buffer ID
+my $buffer_id = 'buf_' . $data{'pager'}{'next_id'}++;
 
-    # Initialize buffer state
-    $data{'pager'}{'buffers'}{$buffer_id} = {
-        'id'        => $buffer_id,
-        'source'    => $source,
-        'source_type'=> $source_type,
+# Initialize buffer state
+$data{'pager'}{'buffers'}{$buffer_id} = {
+    'id'          => $buffer_id,
+    'source'      => $source,
+    'source_type' => $source_type,
 
-        # Filter and sort chains
-        'filters'   => [],
-        'sort'      => undef,
+    # Filter and sort chains
+    'filters' => [],
+    'sort'    => undef,
 
-        # Page cache
-        'pages'     => {
-            'size'       => $page_size,
-            'max_cache'  => $max_cached_pages,
-            'cached'     => {},
-            'dirty'      => {},
-            'lru'        => [],
-        },
+    # Page cache
+    'pages' => {
+        'size'      => $page_size,
+        'max_cache' => $max_cached_pages,
+        'cached'    => {},
+        'dirty'     => {},
+        'lru'       => [],
+    },
 
-        # Statistics
-        'stats'     => {
-            'hits'       => 0,
-            'misses'     => 0,
-            'prefetches' => 0,
-            'items_seen' => 0,
-        },
+    # Statistics
+    'stats' => {
+        'hits'       => 0,
+        'misses'     => 0,
+        'prefetches' => 0,
+        'items_seen' => 0,
+    },
 
-        # Memory tracking
-        'memory'    => {
-            'item_size'  => $item_size,
-            'current'    => 0,
-            'max_items'  => $page_size * $max_cached_pages,
-        },
-    };
-
-    return $buffer_id;
+    # Memory tracking
+    'memory' => {
+        'item_size' => $item_size,
+        'current'   => 0,
+        'max_items' => $page_size * $max_cached_pages,
+    },
 };
+
+return $buffer_id;
 
 # SPDX-License-Identifier: ISC
 
-#,,..,.,,,,..,...,,..,...,.,,,,,.,..,,,,.,.,,,..,,...,...,...,.,.,...,,..,..,,
-#NXAXYSSYUL4223C22SNWDZNIYVP7OW3RU7VA3GDARBE3SMFKMWBNNEOISP2YL2XPW6C6BKAGCZT5E
-#\\\|BQDRZLF5ZZ72FYKXLK4Z7KFY5YWEWPY5XLVVU73Y4OPRLAFENVH \ / AMOS7 \ YOURUM ::
-#\[7]OOV5PNWYTNYCAPET7EE2IJU553LGZ3IHMW5XG5YQ3IPXBZWXISAQ 7  DATA SIGNATURE ::
+#,,..,,..,,..,,,.,.,.,.,,,,,.,..,,,.,,,..,,.,,..,,...,.,,,...,.,.,,,,,,..,...,
+#44H3E5NFLQS4WNNIMCEEQTRVXY442G5U66FZETL5YJLOD5JU52COKETHNYM4KGKFCDHLV5XLGB4UW
+#\\\|DVV6XHGPVNQTE5U2KSZLPEJRLATXYUK3GZSKBMPAXE2V44YITXB \ / AMOS7 \ YOURUM ::
+#\[7]INHNKV4P5OWRD7V4L5WU2LBWHAP65DYRBDJ3V3S6DYDKS5FXCSAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

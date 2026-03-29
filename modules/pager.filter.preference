@@ -1,80 +1,79 @@
-## [:<
+## [:< ##
+
 # name  = pager.filter.preference
 # descr = Apply user preference weighting to item ordering
-## >:]
 
-return sub {
-    my ($args) = @_;
-    my $items = $args->{'items'};
-    my $params = $args->{'params'} // {};
+my ($args) = @ARG;
+my $items  = $args->{'items'};
+my $params = $args->{'params'} // {};
 
-    return $items unless @$items > 0;
+return $items unless @$items > 0;
 
-    my $recent_weight = $params->{'recent'} // 0.0;
-    my $type_weight = $params->{'type_pref'} // 0.0;
-    my $size_weight = $params->{'size_pref'} // 0.0;  # prefer large/small
-    my $name_weight = $params->{'name_pref'} // 0.0;  # pattern match
-    my $pattern = $params->{'pattern'};
+my $recent_weight = $params->{'recent'}    // 0.0;
+my $type_weight   = $params->{'type_pref'} // 0.0;
+my $size_weight   = $params->{'size_pref'} // 0.0;    # prefer large/small
+my $name_weight   = $params->{'name_pref'} // 0.0;    # pattern match
+my $pattern       = $params->{'pattern'};
 
-    my $now = time();
+my $now = time();
 
-    my @scored;
-    for my $item (@$items) {
-        my $score = 0;
+my @scored;
+for my $item (@$items) {
+    my $score = 0;
 
-        # Recency score (exponential decay)
-        if ($recent_weight > 0 && $item->{'mtime'}) {
-            my $age_days = ($now - $item->{'mtime'}) / 86400;
-            my $recency = exp(-$age_days / 30);  # 30-day half-life
-            $score += $recent_weight * $recency;
-        }
+    # Recency score (exponential decay)
+    if ( $recent_weight > 0 && $item->{'mtime'} ) {
+        my $age_days = ( $now - $item->{'mtime'} ) / 86400;
+        my $recency  = exp( -$age_days / 30 );              # 30-day half-life
+        $score += $recent_weight * $recency;
+    }
 
-        # File type preference (directories vs files)
-        if ($type_weight > 0 && $item->{'type'}) {
-            my $type_score = $item->{'type'} eq 'dir' ? 1.0 : 0.5;
-            $score += $type_weight * $type_score;
-        }
+    # File type preference (directories vs files)
+    if ( $type_weight > 0 && $item->{'type'} ) {
+        my $type_score = $item->{'type'} eq 'dir' ? 1.0 : 0.5;
+        $score += $type_weight * $type_score;
+    }
 
-        # Size preference (log scale, prefer medium-sized files)
-        if ($size_weight > 0 && $item->{'size'}) {
-            my $size_kb = $item->{'size'} / 1024;
-            my $size_score = 1.0 / (1.0 + abs(log($size_kb + 1) - 10) / 10);
-            $score += $size_weight * $size_score;
-        }
+    # Size preference (log scale, prefer medium-sized files)
+    if ( $size_weight > 0 && $item->{'size'} ) {
+        my $size_kb    = $item->{'size'} / 1024;
+        my $size_score = 1.0 / ( 1.0 + abs( log( $size_kb + 1 ) - 10 ) / 10 );
+        $score += $size_weight * $size_score;
+    }
 
-        # Name pattern match
-        if ($name_weight > 0 && $pattern && $item->{'name'}) {
-            my $name_score = ($item->{'name'} =~ /$pattern/i) ? 1.0 : 0.0;
-            $score += $name_weight * $name_score;
-        }
+    # Name pattern match
+    if ( $name_weight > 0 && $pattern && $item->{'name'} ) {
+        my $name_score = ( $item->{'name'} =~ /$pattern/i ) ? 1.0 : 0.0;
+        $score += $name_weight * $name_score;
+    }
 
-        # Preserve original position as tiebreaker
-        push @scored, {
-            'item'  => $item,
-            'score' => $score,
+    # Preserve original position as tiebreaker
+    push @scored,
+        {
+        'item'  => $item,
+        'score' => $score,
         };
-    }
+}
 
-    # Sort by score descending
-    @scored = sort {
-        $b->{'score'} <=> $a->{'score'} ||
-        $a->{'item'}{'_original_idx'} <=> $b->{'item'}{'_original_idx'}
-    } @scored;
+# Sort by score descending
+@scored = sort {
+           $b->{'score'} <=> $a->{'score'}
+        || $a->{'item'}{'_original_idx'} <=> $b->{'item'}{'_original_idx'}
+} @scored;
 
-    my @result = map { $_->{'item'} } @scored;
+my @result = map { $ARG->{'item'} } @scored;
 
-    # Mark with preference score
-    for my $i (0 .. $#result) {
-        $result[$i]{'_pref_score'} = $scored[$i]{'score'};
-    }
+# Mark with preference score
+for my $i ( 0 .. $#result ) {
+    $result[$i]{'_pref_score'} = $scored[$i]{'score'};
+}
 
-    return \@result;
-};
+return \@result;
 
 # SPDX-License-Identifier: ISC
 
-#,,..,,,,,..,,,..,,,,,.,,,...,,,,,,,,,,.,,.,.,..,,...,...,.,,,,..,...,..,,.,,,
-#J4RCY4MQPTRZH7BYVYISJF6S7UBHNXAEE53WIFK6KZHQITKHNVUMCVLXFSK7EM3QK6WKRDMBS3R34
-#\\\|VQ2X3VQK2JZQXIWETELH56Q65EPYRSBFE3GLMSB3S6WGNCA32EX \ / AMOS7 \ YOURUM ::
-#\[7]OD44YMTA2S3I5N2E6CMGBIDOMJ2QWIR63PXIBCA2X6IZ36WI4ACI 7  DATA SIGNATURE ::
+#,,.,,,,,,...,,,.,,.,,..,,,,.,...,,.,,...,,.,,..,,...,...,...,.,.,...,,.,,..,,
+#IC4E2SIQLQNPUGZ2K2ZE3VOFMJ6VZWQ7XHD7KEVRYSBMJOV7WETBC2DQ5MQ5254LV4R5XHUNAHJDK
+#\\\|IAYI57BFMDO2MMVDXAPE7CAGPCTXDIDDEOI4U7KTI6IBCJSTDD2 \ / AMOS7 \ YOURUM ::
+#\[7]HGX2SEELCXKWEFMF5GELEFXXK5GD6NVVBJLMKGJIUBIE6G7JFQDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
