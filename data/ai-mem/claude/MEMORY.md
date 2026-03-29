@@ -29,6 +29,8 @@
 - `feedback-p7c-multiline.md` — p7c cannot handle multiline task descriptions; use single-line or templates
 - `feedback-coding-zenka-edits.md` — local LLM often describes edits instead of applying them; verify results
 - `topic-tool-suggestions.md` — LLM-suggested tools/improvements, prioritized; implemented/deferred/sources
+- `topic-namespace-tree-intelligence.md` — the tree IS the intelligence: unified namespace for
+  code/data/state/history/planning, branch summarization, universal off-band access
 
 ## File Creation Notes (CRITICAL)
 - **Never add** the single-line `#,,.,,,...` stub at end of new files
@@ -66,12 +68,12 @@
 - First fully autonomous extraction succeeded (plugin.storage.cluster.* via task-THFSFBY)
 
 ### Active / Partial
-- **plugin.storage inline extraction**: 14 subs remaining (inference.store, visual.*)
-- **deferred compilation stubs** (Mar 15): partial ✅ — deeper namespace/phase work pending;
-  design doc at `data/md/documentation/deferred-compilation-design.md`
+- **pager.* inline extraction**: 19 subs across 7 modules, queued as 3 tasks (Mar 29)
+- **namespace tree as intelligence layer**: unified tree for code/data/state/history/planning,
+  branch summarization, off-band access — see `topic-namespace-tree-intelligence.md`
+- **deferred compilation stubs** (Mar 15): partial — deeper namespace/phase work pending
 - **task coordination architecture**: see `topic-task-coordination.md` for full state + roadmap
-- **multi-model consensus**: llm.service.consensus_vote modules extracted but untested;
-  needs refinement for 5-of-7 algorithm group and real model providers
+- **multi-model consensus**: llm.service.consensus_vote modules extracted but untested
 
 ### Open Bugs / Cleanup
 - **config double-load bug**: duplicate config key warnings — see `bug-config-double-load.md`
@@ -209,8 +211,8 @@
 - Pattern: `my @non_num = grep { defined $data_ref->{$ARG}->{$key} and not looks_like_number(...) } keys $data_ref->%*`
 - Global `$SIG{__WARN__}` exists — if wrapping warn handler, capture `$prev_warn = $SIG{__WARN__}` first and call through
 
-#,,.,,.,,,..,,...,,,.,,,.,..,,,..,,,.,,..,,.,,..,,...,...,..,,,,.,.,.,,.,,,,,,
-#KHCPYN37K3RYV6FK4COH2NPNXZM2DV4BVRIIUG4MZ2SIGZVAHW7NXUEFABQAKNZ7X5MORZQW334EQ
-#\\\|U4CHO2ZR5RHMSX5AYJAS5T5LIG76MEDNMM3NASPXTX3RKSXEYOX \ / AMOS7 \ YOURUM ::
-#\[7]ASLK22SZKHTNINZKONPW5MVOLEEOKNCH7OEYHHKVJXEKMTGLWADY 7  DATA SIGNATURE ::
+#,,,.,.,.,,..,,,,,.,,,.,,,...,..,,.,,,,,,,,,.,..,,...,..,,.,.,.,,,,..,,,.,..,,
+#CQ7LXQ322NDGLRYEYTZZBAXRHS6XQREU4N4P4D3PBC3FW37GLH64I5QQKHHF3X2KZURWX55SVPU6O
+#\\\|GG5MBG5JA2SE2SM6WSKVKNNBOIC7MUAEDB2G33V2PX6G4FZWRAN \ / AMOS7 \ YOURUM ::
+#\[7]ELRLOSNTCYEQUZPMG6LVJFQRZKZGDTCVLDVKRV4GFCMMXQ4KDKDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
