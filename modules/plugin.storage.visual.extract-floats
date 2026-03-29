@@ -25,16 +25,35 @@ return sub {
     for my $layer (@$layers) {
         given ($layer) {
             when ('intrinsic') {
-                $result = { %$result, %{ extract_intrinsic($data) } };
+                $result = {
+                    %$result,
+                    %{  <[plugin.storage.util.visual.extract_intrinsic]>->(
+                            $data)
+                    }
+                };
             }
             when ('temporal') {
-                $result = { %$result, %{ extract_temporal($data) } };
+                $result = {
+                    %$result,
+                    %{  <[plugin.storage.util.visual.extract_temporal]>->(
+                            $data)
+                    }
+                };
             }
             when ('network') {
-                $result = { %$result, %{ extract_network($data) } };
+                $result = {
+                    %$result,
+                    %{  <[plugin.storage.util.visual.extract_network]>->(
+                            $data)
+                    }
+                };
             }
             when ('L13') {
-                $result = { %$result, %{ extract_L13($data) } };
+                $result = {
+                    %$result,
+                    %{  <[plugin.storage.util.visual.extract_L13]>->($data)
+                    }
+                };
             }
         }
     }
@@ -47,138 +66,10 @@ return sub {
     };
 };
 
-## Layer: Intrinsic properties ##
-sub extract_intrinsic {
-    my ($data) = @_;
-    my $path = $data->{path} // '';
-
-    my %metrics;
-
-    # Checksum entropy (if checksum available)
-    if ( $data->{checksum} ) {
-        $metrics{entropy} = calculate_entropy( $data->{checksum} );
-    }
-
-    # Path depth (normalized)
-    if ($path) {
-        my @parts = split m|/|, $path;
-        $metrics{path_depth}
-            = scalar(@parts) / 20.0;    # Normalize to ~20 levels
-        $metrics{path_depth} = 1.0 if $metrics{path_depth} > 1.0;
-    }
-
-    # File size log scale
-    if ( -f $path ) {
-        my $size = -s $path;
-        $metrics{size_log} = $size > 0 ? log($size) / log(2) : 0;
-        $metrics{size_log} /= 40.0;     # Normalize to ~1TB
-        $metrics{size_log} = 1.0 if $metrics{size_log} > 1.0;
-    }
-
-    # Reference count (from cache if available)
-    my $registry = $data{'storage'}{'mapping'}{'checksum'};
-    if ( $data->{checksum} and $registry->{reverse}{ $data->{checksum} } ) {
-        $metrics{ref_count}
-            = scalar( @{ $registry->{reverse}{ $data->{checksum} } } ) / 10.0;
-        $metrics{ref_count} = 1.0 if $metrics{ref_count} > 1.0;
-    }
-
-    return \%metrics;
-}
-
-## Layer: Temporal properties ##
-sub extract_temporal {
-    my ($data) = @_;
-    my $path = $data->{path} // '';
-    my %metrics;
-
-    if ( -f $path ) {
-        my ( $atime, $mtime, $ctime ) = ( stat($path) )[ 8, 9, 10 ];
-        my $now = time();
-
-        # Age in days (normalized)
-        $metrics{age} = ( $now - $ctime ) / 86400.0 / 365.0;    # Years
-        $metrics{age} = 1.0 if $metrics{age} > 1.0;
-
-        # Access decay (exponential)
-        my $days_since_access = ( $now - $atime ) / 86400.0;
-        $metrics{decay}
-            = exp( -$days_since_access / 30.0 );    # 30-day half-life
-
-        # Time of day preference (0-24 normalized)
-        my ($hour) = ( localtime($atime) )[2];
-        $metrics{time_pref} = $hour / 24.0;
-    }
-
-    return \%metrics;
-}
-
-## Layer: Network properties ##
-sub extract_network {
-    my ($data) = @_;
-    my %metrics;
-
-    if ( $data->{protocol} eq '9p' ) {
-
-        # 9P specific metrics
-        $metrics{hops}        = 0.1;     # Direct connection
-        $metrics{bandwidth}   = 0.95;    # Assume high bandwidth
-        $metrics{reliability} = 0.99;
-        $metrics{centrality}  = 0.5;     # Placeholder
-    } elsif ( $data->{protocol} eq 'local' ) {
-        $metrics{hops}        = 0.0;
-        $metrics{bandwidth}   = 1.0;
-        $metrics{reliability} = 1.0;
-        $metrics{centrality}  = 1.0;
-    }
-
-    return \%metrics;
-}
-
-## Layer: L13 coordinates ##
-sub extract_L13 {
-    my ($data) = @_;
-    my %metrics;
-
-    # If we have L13 checksum, extract 3D coordinates
-    if ( $data->{checksum} and length( $data->{checksum} ) >= 13 ) {
-
-        # Use first 13 chars as coordinate basis
-        my $L13 = substr( $data->{checksum}, 0, 13 );
-
-        # Convert to 3D coordinates (simplified)
-        my @chars = split //, $L13;
-        $metrics{L13_x} = ord( $chars[0] ) / 255.0;
-        $metrics{L13_y} = ord( $chars[4] ) / 255.0;
-        $metrics{L13_z} = ord( $chars[8] ) / 255.0;
-    }
-
-    return \%metrics;
-}
-
-## Helper: Calculate entropy of string ##
-sub calculate_entropy {
-    my ($str) = @_;
-    return 0 unless length($str);
-
-    my %freq;
-    $freq{$_}++ for split //, $str;
-
-    my $entropy = 0;
-    my $len     = length($str);
-    for my $count ( values %freq ) {
-        my $p = $count / $len;
-        $entropy -= $p * log($p) / log(2);
-    }
-
-    # Normalize to 0-1 (max entropy for base32 is log2(32) = 5)
-    return $entropy / 5.0;
-}
-
 #,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,,.,
 
-#,,,.,,,,,.,,,,..,,.,,...,,..,,,,,,.,,.,,,.,.,..,,...,.,.,.,.,...,..,,,..,,,.,
-#H5TWFWBRJFW4KQ3TZZSPYWTQM4MYXRYWHFNF6RPLQGWU7E5ABN3QM2ASMYXCM2PG6DMIUA4SDFKP6
-#\\\|DBLFFJESWQFPZRRYVYQ6MXPN43FEGK32BT4XOBQJYJXNKVRA7E7 \ / AMOS7 \ YOURUM ::
-#\[7]RS4OBRDZTTFSJNIZV5ESNSBBSTRULHDYPYNMXPTORRQG7HVR7QAI 7  DATA SIGNATURE ::
+#,,,.,,,.,,,,,,,.,,..,,,.,,,,,..,,.,,,,..,.,,,..,,...,...,.,.,,..,,.,,,..,...,
+#EVRLSUW3RJGCI5LPQVYFRISKHYDY24FYSYVFA3WQNVROPPVBTX6BQFBUPMFO776P3423O2P4N62XI
+#\\\|RB6D63FUIMKRBSAHM45HLKIJDNM3I3GFTI2CK26ZUGLXNITN77E \ / AMOS7 \ YOURUM ::
+#\[7]PVYGKS2DE6BRQFU6MXGLKNNGXZ5M3DL4OJ5UME234VLBLB6CQMCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

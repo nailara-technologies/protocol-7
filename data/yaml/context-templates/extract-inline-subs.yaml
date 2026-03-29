@@ -106,6 +106,8 @@ sections:
       - <zenka>.parser.* : data transformation/parsing
       - keep namespace consistent with existing module organization
       - use the original sub name [ without _ prefix ] as the function part
+      - NEVER add file extensions [ no .p7, .pm, .pl ] — P7 module files
+        have NO extension. the filename IS the module name.
 
       ## extraction pattern ##
 
@@ -166,7 +168,11 @@ sections:
         format errors immediately [ header, forbidden patterns, etc. ]
       - use ptd_check after editing source modules to verify syntax.
 
-      IMPORTANT: the goal is EXTRACTED MODULE FILES, not a report.
+      IMPORTANT: the goal is EXTRACTED MODULE FILES with UPDATED SOURCES.
+      creating new modules is only half the job — you MUST also:
+      - replace every call site in the source [ _helper() → <[new.module]>->() ]
+      - remove the old sub declaration from the source module
+      if source edits are not done, the extraction is incomplete.
       keep the plan short [ 1 line per sub ] then spend all remaining
       rounds on writing files and editing sources. do not dump sub
       bodies into the plan — the code goes into the new module files.
@@ -179,8 +185,8 @@ on_complete:
     action: memory_update
     topic: "audit:extract-inline-subs"
 
-#,,,,,..,,,.,,,..,,,.,,..,,..,..,,.,.,,,.,,,.,.,.,...,...,..,,..,,,..,,.,,...,
-#Z2V2DQ67MUK6JLTWHEUDWVQBL75JOTLITMSOFB2C3SZFMYACHTDNLXO3OECODYYBHFTUGIMQUQFAK
-#\\\|TEMSQU64ZABZBL4H767PTRJUFQ5AB4H5XTM6WFNLEJKJRKTM5ZL \ / AMOS7 \ YOURUM ::
-#\[7]CNABPQNKBRHQLIO3OJL3C6XOKQZELW6LUVJREGVAYINB426MEKAI 7  DATA SIGNATURE ::
+#,,.,,,,,,,,,,,,.,.,,,,..,.,.,,,,,,.,,.,.,..,,.,.,...,...,,,.,,..,,..,,,,,.,,,
+#ZOEE7MO4YQ63BDZHKEJ3RZWITQFSAU2M5334WTPFXEGHPPMBWO6JNJCKZU44WUJOP2PDONIRXN5UY
+#\\\|UYSUFP3E32BXIQEPGSRZ4QS3V3L73LOG5BQH6KZN4MZT2P4OLCH \ / AMOS7 \ YOURUM ::
+#\[7]2XOZJ3ZGAWDDJPVB6RDJV34BE3OWXFVP4MCHS7MP2FG7QU4UR4DI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
