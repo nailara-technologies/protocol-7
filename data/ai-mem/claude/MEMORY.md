@@ -50,7 +50,19 @@
 - kimi reconnect busy-status preservation (`0799bb8d6`)
 - llm inline subroutine extraction — kimi task AKXEYFQ (`526d91760`)
 
+### Completed (Mar 28-29 2026)
+- Coding zenka chmod child: runs as admin user (taeki), gw/restore/create commands
+- edit_file/write_new_file wired through chmod child for direct file writes
+- Context compaction verified working: 71→1 msgs, 47%→10% context
+- Token estimation 1.4x JSON overhead multiplier, round limit 42→247
+- Learning persistence: outcomes.json, get_statistics, check_cache_first, update_success_rate
+- Model successfully applied edits to identify_patterns via chmod child
+- edit_file defaults to apply=true (model wasn't setting it)
+- whats-next reconnaissance template, cmd-style-fix template
+- Inline sub extraction: pager.* namespace in progress (19 subs across 7 modules)
+
 ### Active / Partial
+- **pager inline extraction**: task-KWPCTLA running, 19 subs in 7 pager.* modules
 - **deferred compilation stubs** (Mar 15): partial ✅ — deeper namespace/phase work pending;
   design doc at `data/md/documentation/deferred-compilation-design.md`
 - **task coordination architecture**: see `topic-task-coordination.md` for full state + roadmap
@@ -193,8 +205,8 @@
 - Pattern: `my @non_num = grep { defined $data_ref->{$ARG}->{$key} and not looks_like_number(...) } keys $data_ref->%*`
 - Global `$SIG{__WARN__}` exists — if wrapping warn handler, capture `$prev_warn = $SIG{__WARN__}` first and call through
 
-#,,..,,..,...,.,,,.,.,,..,..,,,,.,,,,,,,.,,,,,..,,...,...,.,.,.,.,,.,,,..,,..,
-#355OP5X5T2EKXPB5HFVPKFYPMYNFSP5BRQ6J6INTIRRRVCOKDIEY2BBY7DRRSMEQL7WUN7PB2NHS4
-#\\\|AHJ2HJKHSP2NRXAS2HZ6MQI2FTBWT6IDQXLW3QRWAEH67J4YKKV \ / AMOS7 \ YOURUM ::
-#\[7]V4MFGOSXUDNC3ZRUBWOTNFAOG4ZS2XN43US4FBCFA3LGFKFIBUCY 7  DATA SIGNATURE ::
+#,,,,,,,,,.,.,,.,,.,.,,,.,,,.,.,.,,,.,.,.,,,,,..,,...,...,,,.,,..,,..,.,.,,..,
+#N7P6THBJ5J24JU2EQ6DTCF4RJNWF52KG7DJ5HL54K6NHJG2B3CSG3WNNYGLBFF32TB43ETT6A3QO2
+#\\\|NG3VZKDTIF7ECUBJ7XP7FYJRSCWI6LB2JI2PBWCCFF7QUGTTRUN \ / AMOS7 \ YOURUM ::
+#\[7]NHWAY6EECEMUMJLY76UDLDLLQHGRC4X2T4HHOQUYJ2HKAYJ7VYAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
