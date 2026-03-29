@@ -1,46 +1,48 @@
-## [:<
+## [:< ##
+
 # name  = pager.command.demo
 # descr = Demo pager with sample data
-## >:]
 
-return sub {
-    my ($args, $caller) = @_;
+my ( $args, $caller ) = @ARG;
 
-    my $count = $args->[0] // 1000;
-    my $source_type = $args->[1] // 'file-list';
+my $count       = $args->[0] // 1000;
+my $source_type = $args->[1] // 'file-list';
 
-    # Create demo pager
-    my $buffer_id = <[pager.buffer.virtual]>->({
-        'source_type' => $source_type,
+# Create demo pager
+my $buffer_id = <[pager.buffer.virtual]>->(
+    {   'source_type' => $source_type,
         'source_args' => {
             'root'      => '/tmp',
             'recursive' => 0,
         },
         'page_size' => 20,
         'max_cache' => 5,
-    });
+    }
+);
 
-    return "Failed to create pager" unless $buffer_id;
+return "Failed to create pager" unless $buffer_id;
 
-    # Add harmonic random filter for "pleasant" ordering
-    <[pager.filter.chain]>->({
-        'buffer_id' => $buffer_id,
+# Add harmonic random filter for "pleasant" ordering
+<[pager.filter.chain]>->(
+    {   'buffer_id' => $buffer_id,
         'action'    => 'add',
         'type'      => 'harmonic-random',
         'params'    => { 'seed' => 42, 'strength' => 0.7 },
-    });
+    }
+);
 
-    # Add preference filter
-    <[pager.filter.chain]>->({
-        'buffer_id' => $buffer_id,
+# Add preference filter
+<[pager.filter.chain]>->(
+    {   'buffer_id' => $buffer_id,
         'action'    => 'add',
         'type'      => 'preference',
         'params'    => { 'recent' => 0.5, 'type_pref' => 0.3 },
-    });
+    }
+);
 
-    # Set multi-key sort
-    <[pager.sort.chain]>->({
-        'buffer_id' => $buffer_id,
+# Set multi-key sort
+<[pager.sort.chain]>->(
+    {   'buffer_id' => $buffer_id,
         'action'    => 'set',
         'type'      => 'multi-key',
         'keys'      => [
@@ -48,43 +50,45 @@ return sub {
             { 'field' => 'size',  'dir' => 'asc',  'weight' => 0.3 },
             { 'field' => 'name',  'dir' => 'asc',  'weight' => 0.2 },
         ],
-    });
+    }
+);
 
-    # Render viewport
-    my $render = <[pager.viewport.render]>->({
-        'buffer_id' => $buffer_id,
+# Render viewport
+my $render = <[pager.viewport.render]>->(
+    {   'buffer_id' => $buffer_id,
         'top'       => 0,
         'height'    => 20,
         'width'     => 80,
-    });
-
-    my $output = "=== Pager Demo ($buffer_id) ===\n";
-    $output .= "Filters: harmonic-random, preference\n";
-    $output .= "Sort: mtime(desc):0.5, size(asc):0.3, name(asc):0.2\n";
-    $output .= "=" x 80 . "\n";
-    $output .= join("\n", @{$render->{'lines'}}) if $render;
-    $output .= "\n" . "=" x 80 . "\n";
-
-    # Show stats
-    my $buf = $data{'pager'}{'buffers'}{$buffer_id};
-    if ($buf) {
-        $output .= sprintf("Stats: hits=%d misses=%d prefetches=%d\n",
-            $buf->{'stats'}{'hits'},
-            $buf->{'stats'}{'misses'},
-            $buf->{'stats'}{'prefetches'}
-        );
     }
+);
 
-    # Cleanup
-    delete $data{'pager'}{'buffers'}{$buffer_id};
+my $output = "=== Pager Demo ($buffer_id) ===\n";
+$output .= "Filters: harmonic-random, preference\n";
+$output .= "Sort: mtime(desc):0.5, size(asc):0.3, name(asc):0.2\n";
+$output .= "=" x 80 . "\n";
+$output .= join( "\n", @{ $render->{'lines'} } ) if $render;
+$output .= "\n" . "=" x 80 . "\n";
 
-    return $output;
-};
+# Show stats
+my $buf = $data{'pager'}{'buffers'}{$buffer_id};
+if ($buf) {
+    $output .= sprintf(
+        "Stats: hits=%d misses=%d prefetches=%d\n",
+        $buf->{'stats'}{'hits'},
+        $buf->{'stats'}{'misses'},
+        $buf->{'stats'}{'prefetches'}
+    );
+}
+
+# Cleanup
+delete $data{'pager'}{'buffers'}{$buffer_id};
+
+return $output;
 
 # SPDX-License-Identifier: ISC
 
-#,,.,,,..,,.,,.,.,,,,,..,,.,.,.,.,.,.,...,,.,,..,,...,...,.,.,.,.,.,.,,.,,,..,
-#4XMQFXD2XXRHJQLSXQWUTUMPEIFSMKFQXZJK7QQTDA5GHMRHFP7FA7T5EV6SONMKXSCA47EHJZKRG
-#\\\|UR7KCC74AMY4K2QR7R2MNHGFUOEHIP66ORNLZMPDCM2W5Z7YRJC \ / AMOS7 \ YOURUM ::
-#\[7]MMFF6JYMG5FBSOEEQPR2ZXZR3G2QEKNV6SO75VINMPIKORFOWCAI 7  DATA SIGNATURE ::
+#,,.,,,..,,..,.,.,..,,...,.,.,,.,,,..,.,.,.,,,..,,...,...,,,.,,,.,,..,,,.,.,.,
+#TH2D2PKXZ7V7GKVASPV2P4FAELYTYJEZPE6EEKWEP5FC5LOW7X4I6N7G7JJK3PG5ZCGRHZ2O4YBQY
+#\\\|H4GW6YYLGZVOU53EOIDGMOD7Z23EGD5IETKBM4GWXMDYIQOYQJI \ / AMOS7 \ YOURUM ::
+#\[7]C2QQBE7QBGEQFHLA7447FPM2WCNOXF7W5QIM5HNUWBDN6LJOROBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

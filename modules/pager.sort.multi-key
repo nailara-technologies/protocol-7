@@ -1,70 +1,69 @@
-## [:<
+## [:< ##
+
 # name  = pager.sort.multi-key
 # descr = Multi-key weighted sorting
-## >:]
 
-return sub {
-    my ($args) = @_;
-    my $items = $args->{'items'};
-    my $spec = $args->{'spec'} // {};
+my ($args) = @ARG;
+my $items  = $args->{'items'};
+my $spec   = $args->{'spec'} // {};
 
-    return $items unless @$items > 1;
+return $items unless @$items > 1;
 
-    my $keys = $spec->{'keys'} // [{ 'field' => 'name', 'dir' => 'asc', 'weight' => 1.0 }];
+my $keys = $spec->{'keys'}
+    // [ { 'field' => 'name', 'dir' => 'asc', 'weight' => 1.0 } ];
 
-    # If no weights specified, use equal weights
-    my $total_weight = 0;
+# If no weights specified, use equal weights
+my $total_weight = 0;
+for my $key (@$keys) {
+    $key->{'weight'} //= 1.0;
+    $total_weight += $key->{'weight'};
+}
+
+# Normalize weights
+if ( $total_weight > 0 ) {
     for my $key (@$keys) {
-        $key->{'weight'} //= 1.0;
-        $total_weight += $key->{'weight'};
+        $key->{'weight'} /= $total_weight;
     }
+}
 
-    # Normalize weights
-    if ($total_weight > 0) {
-        for my $key (@$keys) {
-            $key->{'weight'} /= $total_weight;
+# Sort using Schwartzian transform for efficiency
+my @sorted = map { $ARG->[0] }
+    sort {
+    my $cmp = 0;
+    for my $key (@$keys) {
+        my $field  = $key->{'field'};
+        my $dir    = $key->{'dir'} eq 'desc' ? -1 : 1;
+        my $weight = $key->{'weight'};
+
+        my $va = $a->[1]{$field};
+        my $vb = $b->[1]{$field};
+
+        # Handle undef values
+        $va = '' unless defined $va;
+        $vb = '' unless defined $vb;
+
+        # Numeric comparison for numbers, string otherwise
+        if ( $va =~ /^-?\d+(\.\d+)?$/ && $vb =~ /^-?\d+(\.\d+)?$/ ) {
+            $cmp = ( $va <=> $vb ) * $dir;
+        } else {
+            $cmp = ( $va cmp $vb ) * $dir;
         }
+
+        # Apply weight (scaled comparison)
+        $cmp = $cmp * $weight;
+
+        last if $cmp != 0;
     }
+    $cmp;
+    }
+    map { [ $ARG, $ARG ] } @$items;
 
-    # Sort using Schwartzian transform for efficiency
-    my @sorted = map { $_->[0] }
-        sort {
-            my $cmp = 0;
-            for my $key (@$keys) {
-                my $field = $key->{'field'};
-                my $dir = $key->{'dir'} eq 'desc' ? -1 : 1;
-                my $weight = $key->{'weight'};
-
-                my $va = $a->[1]{$field};
-                my $vb = $b->[1]{$field};
-
-                # Handle undef values
-                $va = '' unless defined $va;
-                $vb = '' unless defined $vb;
-
-                # Numeric comparison for numbers, string otherwise
-                if ($va =~ /^-?\d+(\.\d+)?$/ && $vb =~ /^-?\d+(\.\d+)?$/) {
-                    $cmp = ($va <=> $vb) * $dir;
-                } else {
-                    $cmp = ($va cmp $vb) * $dir;
-                }
-
-                # Apply weight (scaled comparison)
-                $cmp = $cmp * $weight;
-
-                last if $cmp != 0;
-            }
-            $cmp;
-        }
-        map { [$_, $_] } @$items;
-
-    return \@sorted;
-};
+return \@sorted;
 
 # SPDX-License-Identifier: ISC
 
-#,,,.,.,.,.,.,,..,.,.,..,,,.,,,..,,,.,.,,,,,,,..,,...,...,.,,,.,,,.,,,..,,,,,,
-#OSOTZJUABHFEDXW3CH253UJ7OHXDBBJXKTZPJQKNXVQ53JUKV45TPMSNWGIPLJCHPXJF57E2CUOPM
-#\\\|OHQ6BSK2NXX76XJE2MY3DDY3HZJGXZKB3GXKFYGDK63X3JRNU32 \ / AMOS7 \ YOURUM ::
-#\[7]2RPFHN3KGHAXJNFDGHF5AGOI57PQ5NGYNECUBDUV5V2NRRKK4YAI 7  DATA SIGNATURE ::
+#,,..,.,.,,.,,.,.,.,,,..,,.,.,.,,,.,.,,..,.,,,..,,...,...,...,,.,,,,,,.,,,,,,,
+#PJ22OFBWYJXE5F3F7N4KJJPTN7O5T5SPTEJTKUGV3Y4L27X3S4LZ6SZCUCWHOWLYQYLOHXJ3KQ6JW
+#\\\|J4DCNEAGZAX6H7AR42P36Y7XWO6OHS2WAJKOJS7T2NE2P4D73QG \ / AMOS7 \ YOURUM ::
+#\[7]GOSGKLE75S4SL6Y4RUDXD6URQCNODOO25FB2IGK4KMPQS4AQXSAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

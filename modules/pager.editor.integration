@@ -1,111 +1,114 @@
-## [:<
+## [:< ##
+
 # name  = pager.editor.integration
 # descr = Integrate pager with amos-term editor
-## >:]
 
-return sub {
-    my ($args) = @_;
+my ($args) = @ARG;
 
-    my $buffer_id = $args->{'buffer_id'};
-    my $action = $args->{'action'};
-    my $buf = $data{'pager'}{'buffers'}{$buffer_id};
+my $buffer_id = $args->{'buffer_id'};
+my $action    = $args->{'action'};
+my $buf       = $data{'pager'}{'buffers'}{$buffer_id};
 
-    return undef unless $buf;
+return undef unless $buf;
 
-    if ($action eq 'open') {
-        # Create amos-term buffer from pager
-        my $editor_id = $args->{'editor_id'} // "pager_$buffer_id";
-        my $read_only = $args->{'read_only'} // 1;
+if ( $action eq 'open' ) {
 
-        # Initialize editor buffer (virtual - doesn't load all content)
-        <[base.editor.init_buffer]>->({
-            'buffer_id' => $editor_id,
+    # Create amos-term buffer from pager
+    my $editor_id = $args->{'editor_id'} // "pager_$buffer_id";
+    my $read_only = $args->{'read_only'} // 1;
+
+    # Initialize editor buffer (virtual - doesn't load all content)
+    <[base.editor.init_buffer]>->(
+        {   'buffer_id' => $editor_id,
             'virtual'   => 1,
             'pager_id'  => $buffer_id,
             'read_only' => $read_only,
-        });
+        }
+    );
 
-        # Set up line getter callback
-        <[base.editor.set_line_callback]>->({
-            'buffer_id' => $editor_id,
+    # Set up line getter callback
+    <[base.editor.set_line_callback]>->(
+        {   'buffer_id' => $editor_id,
             'callback'  => sub {
-                my ($line_num) = @_;
-                return <[pager.editor.get_line]>->({
-                    'buffer_id' => $buffer_id,
-                    'line'      => $line_num,
-                });
+                my ($line_num) = @ARG;
+                return <[pager.editor.get_line]>->(
+                    {   'buffer_id' => $buffer_id,
+                        'line'      => $line_num,
+                    }
+                );
             },
-        });
+        }
+    );
 
-        # Set up total lines callback
-        <[base.editor.set_total_lines]>->({
-            'buffer_id' => $editor_id,
+    # Set up total lines callback
+    <[base.editor.set_total_lines]>->(
+        {   'buffer_id' => $editor_id,
             'callback'  => sub {
-                return $buf->{'source'}{'total'} // $buf->{'stats'}{'items_seen'} * 2;
+                return $buf->{'source'}{'total'}
+                    // $buf->{'stats'}{'items_seen'} * 2;
             },
-        });
+        }
+    );
 
-        return $editor_id;
-    }
-    elsif ($action eq 'get_line') {
-        my $line_num = $args->{'line'};
-        my $page_size = $buf->{'pages'}{'size'};
-        my $page_num = int($line_num / $page_size);
-        my $offset = $line_num % $page_size;
+    return $editor_id;
+} elsif ( $action eq 'get_line' ) {
+    my $line_num  = $args->{'line'};
+    my $page_size = $buf->{'pages'}{'size'};
+    my $page_num  = int( $line_num / $page_size );
+    my $offset    = $line_num % $page_size;
 
-        my $page = <[pager.buffer.page.get]>->($buf, $page_num);
-        return '' unless $page && @$page > $offset;
+    my $page = <[pager.buffer.page.get]>->( $buf, $page_num );
+    return '' unless $page && @$page > $offset;
 
-        my $item = $page->[$offset];
-        return _format_line($item);
-    }
-    elsif ($action eq 'sync_cursor') {
-        # Report cursor position to pager for adaptive sorting
-        my $line = $args->{'line'};
-        my $item = _get_item_at_line($buf, $line);
+    my $item = $page->[$offset];
+    return _format_line($item);
+} elsif ( $action eq 'sync_cursor' ) {
 
-        if ($item && $buf->{'sort'}{'adaptive'}) {
-            <[pager.sort.chain]>->({
-                'buffer_id' => $buffer_id,
+    # Report cursor position to pager for adaptive sorting
+    my $line = $args->{'line'};
+    my $item = _get_item_at_line( $buf, $line );
+
+    if ( $item && $buf->{'sort'}{'adaptive'} ) {
+        <[pager.sort.chain]>->(
+            {   'buffer_id' => $buffer_id,
                 'action'    => 'record_access',
                 'item'      => $item,
-            });
-        }
-
-        return 1;
-    }
-    elsif ($action eq 'get_item_at_cursor') {
-        my $line = $args->{'line'};
-        return _get_item_at_line($buf, $line);
-    }
-    elsif ($action eq 'execute_on_item') {
-        # Execute command on item at cursor
-        my $line = $args->{'line'};
-        my $command = $args->{'command'};
-        my $item = _get_item_at_line($buf, $line);
-
-        return undef unless $item;
-
-        # Substitute item properties in command
-        $command =~ s/\{path\}/$item->{path}/g if $item->{path};
-        $command =~ s/\{name\}/$item->{name}/g if $item->{name};
-        $command =~ s/\{checksum\}/$item->{checksum}/g if $item->{checksum};
-
-        return system($command);
+            }
+        );
     }
 
-    return undef;
-};
+    return 1;
+} elsif ( $action eq 'get_item_at_cursor' ) {
+    my $line = $args->{'line'};
+    return _get_item_at_line( $buf, $line );
+} elsif ( $action eq 'execute_on_item' ) {
+
+    # Execute command on item at cursor
+    my $line    = $args->{'line'};
+    my $command = $args->{'command'};
+    my $item    = _get_item_at_line( $buf, $line );
+
+    return undef unless $item;
+
+    # Substitute item properties in command
+    $command =~ s/\{path\}/$item->{path}/g         if $item->{path};
+    $command =~ s/\{name\}/$item->{name}/g         if $item->{name};
+    $command =~ s/\{checksum\}/$item->{checksum}/g if $item->{checksum};
+
+    return system($command);
+}
+
+return undef;
 
 # Get item at specific line number
 sub _get_item_at_line {
-    my ($buf, $line_num) = @_;
+    my ( $buf, $line_num ) = @ARG;
 
     my $page_size = $buf->{'pages'}{'size'};
-    my $page_num = int($line_num / $page_size);
-    my $offset = $line_num % $page_size;
+    my $page_num  = int( $line_num / $page_size );
+    my $offset    = $line_num % $page_size;
 
-    my $page = <[pager.buffer.page.get]>->($buf, $page_num);
+    my $page = <[pager.buffer.page.get]>->( $buf, $page_num );
     return undef unless $page && @$page > $offset;
 
     return $page->[$offset];
@@ -113,13 +116,11 @@ sub _get_item_at_line {
 
 # Format item as single line for editor
 sub _format_line {
-    my ($item) = @_;
+    my ($item) = @ARG;
 
-    if ($item->{'checksum'}) {
-        return sprintf("%s  %s",
-            $item->{'checksum'},
-            $item->{'path'} // ''
-        );
+    if ( $item->{'checksum'} ) {
+        return
+            sprintf( "%s  %s", $item->{'checksum'}, $item->{'path'} // '' );
     }
 
     return $item->{'path'} // $item->{'name'} // '(unknown)';
@@ -127,8 +128,8 @@ sub _format_line {
 
 # SPDX-License-Identifier: ISC
 
-#,,,.,..,,...,,,,,.,.,,,.,...,.,,,.,.,,,,,..,,..,,...,...,...,,..,,,.,,..,,..,
-#RML4PZ7TNSZKGCDKZE2GLEIAW6NBOWKYM56NQCA7KTCNZEETNU77JDWYU5UYCREBH3FDT6KHZH3BM
-#\\\|IF4FDMFDR5WQJ7QUUSUOH4VIEM6MG2VFITAAKIQJYTJM3S7C4OL \ / AMOS7 \ YOURUM ::
-#\[7]WQSLXOLG6WXOYDPSTYCOMDN2TAGP37TMFLYRP3SVHIJDBURKZSBQ 7  DATA SIGNATURE ::
+#,,..,,..,,.,,.,,,,,.,...,,.,,,,,,.,.,..,,..,,..,,...,...,...,,.,,,,.,.,,,.,,,
+#YUIFTMPBMSG6HS46RPBTUKKCQ5MR3SOOQETTSTJ4IOFSNPRFE7PGVPPHMD3WOD6SV6ZPP2446TOPM
+#\\\|IQPAARKW6E7I5PGSN7L3VIA2LJR5OCI2Z6QTGX4QB7JNW3TXFMA \ / AMOS7 \ YOURUM ::
+#\[7]D3DDWOVFZGWWHYO74IE2ZUHU7RVBTDJIPG34XW4W3KCFOG63SEDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

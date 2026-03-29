@@ -1,122 +1,123 @@
-## [:<
+## [:< ##
+
 # name  = pager.source.checksum-list
 # descr = Pager data source: checksum list files with index support
-## >:]
 
-return sub {
-    my ($args) = @_;
+my ($args) = @ARG;
 
-    my $file = $args->{'file'} or return undef;
-    my $format = $args->{'format'} // 'bmw-base32';  # bmw-base32, amos, hex
-    my $index_file = $args->{'index'};  # Optional index for random access
-    my $batch_size = $args->{'batch_size'} // 1000;
+my $file       = $args->{'file'} or return undef;
+my $format     = $args->{'format'} // 'bmw-base32';    # bmw-base32, amos, hex
+my $index_file = $args->{'index'};    # Optional index for random access
+my $batch_size = $args->{'batch_size'} // 1000;
 
-    # Determine checksum length based on format
-    my $checksum_len = {
-        'bmw-base32' => 32,
-        'bmw-L13-b32'=> 27,
-        'bmw-224'    => 36,
-        'amos'       => 24,
-        'hex'        => 64,
-    }->{$format} // 32;
+# Determine checksum length based on format
+my $checksum_len = {
+    'bmw-base32'  => 32,
+    'bmw-L13-b32' => 27,
+    'bmw-224'     => 36,
+    'amos'        => 24,
+    'hex'         => 64,
+}->{$format} // 32;
 
-    my $line_len = $checksum_len + 1;  # +1 for newline
+my $line_len = $checksum_len + 1;     # +1 for newline
 
-    # Open file
-    open(my $fh, '<', $file) or return undef;
+# Open file
+open( my $fh, '<', $file ) or return undef;
 
-    # Get total count from file size or index
-    my $total;
-    if ($index_file && -f $index_file) {
-        # Read index header
-        open(my $idx, '<', $index_file) or return undef;
-        my $header = <$idx>;
-        close($idx);
-        if ($header =~ /count:(\d+)/) {
-            $total = $1;
-        }
+# Get total count from file size or index
+my $total;
+if ( $index_file && -f $index_file ) {
+
+    # Read index header
+    open( my $idx, '<', $index_file ) or return undef;
+    my $header = <$idx>;
+    close($idx);
+    if ( $header =~ /count:(\d+)/ ) {
+        $total = $1;
     }
+}
 
-    if (!$total) {
-        my $size = -s $file;
-        $total = int($size / $line_len) if $size && $line_len;
-    }
+if ( !$total ) {
+    my $size = -s $file;
+    $total = int( $size / $line_len ) if $size && $line_len;
+}
 
-    my $current_pos = 0;
+my $current_pos = 0;
 
-    return {
-        'type'    => 'checksum-list',
-        'file'    => $file,
-        'format'  => $format,
-        'total'   => $total,
-        'cursor'  => 0,
-        'fh'      => $fh,
+return {
+    'type'   => 'checksum-list',
+    'file'   => $file,
+    'format' => $format,
+    'total'  => $total,
+    'cursor' => 0,
+    'fh'     => $fh,
 
-        'next_batch' => sub {
-            my $batch = [];
-            my $count = 0;
+    'next_batch' => sub {
+        my $batch = [];
+        my $count = 0;
 
-            while ($count < $batch_size && !eof($fh)) {
-                my $line = <$fh>;
-                next unless defined $line;
-                chomp $line;
-                next unless length($line) >= $checksum_len;
+        while ( $count < $batch_size && !eof($fh) ) {
+            my $line = <$fh>;
+            next unless defined $line;
+            chomp $line;
+            next unless length($line) >= $checksum_len;
 
-                my $checksum = substr($line, 0, $checksum_len);
-                my $path = '';
+            my $checksum = substr( $line, 0, $checksum_len );
+            my $path     = '';
 
-                # Format: <checksum>  <path>  or just <checksum>
-                if (length($line) > $checksum_len + 2) {
-                    $path = substr($line, $checksum_len + 2);
-                }
-
-                push @$batch, {
-                    'checksum'  => $checksum,
-                    'algorithm' => $format,
-                    'path'      => $path,
-                    'index'     => $current_pos++,
-                };
-                $count++;
+            # Format: <checksum>  <path>  or just <checksum>
+            if ( length($line) > $checksum_len + 2 ) {
+                $path = substr( $line, $checksum_len + 2 );
             }
 
-            return $batch;
-        },
-
-        'get_item_at' => sub {
-            my ($idx) = @_;
-            return undef unless $idx >= 0;
-
-            # Seek to position if possible
-            my $seek_pos = $idx * $line_len;
-            return undef unless seek($fh, $seek_pos, 0);
-
-            my $line = <$fh>;
-            return undef unless defined $line;
-            chomp $line;
-
-            my $checksum = substr($line, 0, $checksum_len);
-            my $path = length($line) > $checksum_len + 2
-                ? substr($line, $checksum_len + 2)
-                : '';
-
-            return {
+            push @$batch,
+                {
                 'checksum'  => $checksum,
                 'algorithm' => $format,
                 'path'      => $path,
-                'index'     => $idx,
-            };
-        },
+                'index'     => $current_pos++,
+                };
+            $count++;
+        }
 
-        'close' => sub {
-            close($fh) if $fh;
-        },
-    };
+        return $batch;
+    },
+
+    'get_item_at' => sub {
+        my ($idx) = @ARG;
+        return undef unless $idx >= 0;
+
+        # Seek to position if possible
+        my $seek_pos = $idx * $line_len;
+        return undef unless seek( $fh, $seek_pos, 0 );
+
+        my $line = <$fh>;
+        return undef unless defined $line;
+        chomp $line;
+
+        my $checksum = substr( $line, 0, $checksum_len );
+        my $path
+            = length($line) > $checksum_len + 2
+            ? substr( $line, $checksum_len + 2 )
+            : '';
+
+        return {
+            'checksum'  => $checksum,
+            'algorithm' => $format,
+            'path'      => $path,
+            'index'     => $idx,
+        };
+    },
+
+    'close' => sub {
+        close($fh) if $fh;
+    },
 };
 
 # SPDX-License-Identifier: ISC
 
-#,,,,,,,,,,,,,...,..,,,,.,.,.,,..,,..,...,.,.,..,,...,.,.,,,.,.,,,,..,...,,.,,
-#BA4QFKTW3M7DRACSAG4XC4SU7J5VLJRVUGXD47SVXYLRIDGIPGJW33SOKGBUJBKPPXGIRO4I2HQ7O
-#\\\|LUURP7QWXQDBFROXGCRBA3FHEI5XTNLPM3HG4R2PUKGMR472KOH \ / AMOS7 \ YOURUM ::
-#\[7]3FGE4UHRVGC4RIPBAMXIRG76FIJQL6XGIJRLXMHGBEO34LHN4QAI 7  DATA SIGNATURE ::
+#,,,,,.,,,.,.,,,,,..,,.,.,,..,...,,..,,..,..,,..,,...,...,...,..,,...,,.,,,,.,
+#J4YFVQRWHG3KANF35PWXNHIOFWQFMV2YXQ3SSYCGFOIYVOF3ZE2SUUCGKSBFKLWSPF7Z5NPNFGHWE
+#\\\|6ZK6MEIQQGULAWHJ2C42TNE3D6TEHOONLH3FMYPPQRBVB3H25TL \ / AMOS7 \ YOURUM ::
+#\[7]SPXV5YXLW4FUTSFQSZNDRTFMLJGLQORZSDUAOSG7QARG7YAOJ4AA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

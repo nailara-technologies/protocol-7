@@ -1,132 +1,136 @@
-## [:<
+## [:< ##
+
 # name  = pager.encode.division-13
 # descr = Encode pager items using division-13-table protocol format
-## >:]
 
-return sub {
-    my ($args) = @_;
+my ($args) = @ARG;
 
-    my $items = $args->{'items'};
-    my $seed = $args->{'seed'} // 1;
-    my $format = $args->{'format'} // 'binary';  # binary | base32 | display
+my $items  = $args->{'items'};
+my $seed   = $args->{'seed'}   // 1;
+my $format = $args->{'format'} // 'binary';    # binary | base32 | display
 
-    return [] unless $items && @$items;
+return [] unless $items && @$items;
 
-    my @encoded;
-    my $Z = $seed;
-    $Z =~ s|\.|| if defined $Z && $Z =~ m|.|;
-    $Z //= 1;
+my @encoded;
+my $Z = $seed;
+$Z =~ s|\.|| if defined $Z && $Z =~ m|.|;
+$Z //= 1;
 
-    my $iteration = 0;
-    my $item_idx = 0;
+my $iteration = 0;
+my $item_idx  = 0;
 
-    while ($item_idx < @$items) {
-        $iteration++;
+while ( $item_idx < @$items ) {
+    $iteration++;
 
-        # Generate division-13 state
-        $Z <<= 4;
-        $Z /= 13;
+    # Generate division-13 state
+    $Z <<= 4;
+    $Z /= 13;
 
-        my $num_bits_64 = sprintf('%064b', $Z);
-        my $main_42 = substr($num_bits_64, 0, 42);
-        my $decoded = substr($num_bits_64, 42, 7);
-        my $aux_15 = substr($num_bits_64, 49, 15);
+    my $num_bits_64 = sprintf( '%064b', $Z );
+    my $main_42     = substr( $num_bits_64, 0,  42 );
+    my $decoded     = substr( $num_bits_64, 42, 7 );
+    my $aux_15      = substr( $num_bits_64, 49, 15 );
 
-        # Only use valid states
-        next unless _is_valid_state($Z, $main_42);
+    # Only use valid states
+    next unless _is_valid_state( $Z, $main_42 );
 
-        my $item = $items->[$item_idx++];
+    my $item = $items->[ $item_idx++ ];
 
-        # Encode based on decoded section type
-        my $type_prefix = substr($decoded, 0, 2);
-        my $encoded_item = {
-            'item'      => $item,
-            'd13_state' => {
-                'full_64'   => $Z,
-                'main_42'   => $main_42,
-                'decoded'   => $decoded,
-                'aux_15'    => $aux_15,
-                'iteration' => $iteration,
-            },
-        };
+    # Encode based on decoded section type
+    my $type_prefix  = substr( $decoded, 0, 2 );
+    my $encoded_item = {
+        'item'      => $item,
+        'd13_state' => {
+            'full_64'   => $Z,
+            'main_42'   => $main_42,
+            'decoded'   => $decoded,
+            'aux_15'    => $aux_15,
+            'iteration' => $iteration,
+        },
+    };
 
-        if ($type_prefix eq '00') {
-            # Routing state
-            $encoded_item->{'type'} = 'routing';
-            $encoded_item->{'hop_count'} = 1 + oct('0b' . substr($decoded, 3, 3));
-            $encoded_item->{'direction'} = <[pager.decode.direction]>->(substr($decoded, 5, 2));
+    if ( $type_prefix eq '00' ) {
+
+        # Routing state
+        $encoded_item->{'type'} = 'routing';
+        $encoded_item->{'hop_count'}
+            = 1 + oct( '0b' . substr( $decoded, 3, 3 ) );
+        $encoded_item->{'direction'}
+            = <[pager.decode.direction]>->( substr( $decoded, 5, 2 ) );
+    } elsif ( $type_prefix eq '01' ) {
+        my $subtype = substr( $decoded, 2, 1 );
+        if ( $subtype eq '0' ) {
+
+            # BASE32 payload
+            $encoded_item->{'type'} = 'base32';
+            $encoded_item->{'payload'}
+                = _encode_base32_chunk( $item, substr( $decoded, 3, 5 ) );
+        } else {
+
+            # Document header
+            $encoded_item->{'type'}  = 'document';
+            $encoded_item->{'color'} = ( substr( $decoded, 3, 1 ) eq '1' );
+            $encoded_item->{'size_bits'} = substr( $decoded, 4, 4 );
         }
-        elsif ($type_prefix eq '01') {
-            my $subtype = substr($decoded, 2, 1);
-            if ($subtype eq '0') {
-                # BASE32 payload
-                $encoded_item->{'type'} = 'base32';
-                $encoded_item->{'payload'} = _encode_base32_chunk($item, substr($decoded, 3, 5));
-            }
-            else {
-                # Document header
-                $encoded_item->{'type'} = 'document';
-                $encoded_item->{'color'} = (substr($decoded, 3, 1) eq '1');
-                $encoded_item->{'size_bits'} = substr($decoded, 4, 4);
-            }
-        }
-        elsif (substr($decoded, 0, 1) eq '1') {
-            # Graphical 5x7 matrix
-            $encoded_item->{'type'} = 'graphical';
-            $encoded_item->{'matrix'} = _encode_5x7_matrix($item, substr($decoded, 1, 6));
-        }
+    } elsif ( substr( $decoded, 0, 1 ) eq '1' ) {
 
-        # Binary representation for export
-        if ($format eq 'binary') {
-            $encoded_item->{'binary'} = pack('Q>', $Z);
-        }
-        elsif ($format eq 'base32') {
-            $encoded_item->{'base32'} = <[base.encode.b32]>->(pack('Q>', $Z));
-        }
-        elsif ($format eq 'display') {
-            $encoded_item->{'display'} = _format_display($encoded_item);
-        }
-
-        push @encoded, $encoded_item;
+        # Graphical 5x7 matrix
+        $encoded_item->{'type'} = 'graphical';
+        $encoded_item->{'matrix'}
+            = _encode_5x7_matrix( $item, substr( $decoded, 1, 6 ) );
     }
 
-    return \@encoded;
-};
+    # Binary representation for export
+    if ( $format eq 'binary' ) {
+        $encoded_item->{'binary'} = pack( 'Q>', $Z );
+    } elsif ( $format eq 'base32' ) {
+        $encoded_item->{'base32'} = <[base.encode.b32]>->( pack( 'Q>', $Z ) );
+    } elsif ( $format eq 'display' ) {
+        $encoded_item->{'display'} = _format_display($encoded_item);
+    }
+
+    push @encoded, $encoded_item;
+}
+
+return \@encoded;
 
 # Encode item as BASE32 chunk
 sub _encode_base32_chunk {
-    my ($item, $bits) = @_;
+    my ( $item, $bits ) = @ARG;
 
-    my $data = $item->{'path'} // $item->{'name'} // $item->{'checksum'} // '';
-    my $value = oct('0b' . $bits);
+    my $data = $item->{'path'} // $item->{'name'} // $item->{'checksum'}
+        // '';
+    my $value = oct( '0b' . $bits );
 
     # Use 5 bits to select character from data
-    return substr($data, $value % (length($data) || 1), 1) if length($data);
-    return chr(65 + $value);  # Fallback to A-Z
+    return substr( $data, $value % ( length($data) || 1 ), 1 )
+        if length($data);
+    return chr( 65 + $value );    # Fallback to A-Z
 }
 
 # Encode item as 5x7 matrix
 sub _encode_5x7_matrix {
-    my ($item, $bits) = @_;
+    my ( $item, $bits ) = @ARG;
 
-    my $value = oct('0b' . $bits);
-    my $x = $value % 5;
-    my $y = int($value / 5) % 7;
+    my $value = oct( '0b' . $bits );
+    my $x     = $value % 5;
+    my $y     = int( $value / 5 ) % 7;
 
     return { 'x' => $x, 'y' => $y, 'set' => 1 };
 }
 
 # Format for display
 sub _format_display {
-    my ($encoded) = @_;
+    my ($encoded) = @ARG;
 
     my $type = $encoded->{'type'};
-    my $d13 = $encoded->{'d13_state'};
+    my $d13  = $encoded->{'d13_state'};
 
-    return sprintf("[%s] %s | 42:%s | 7:%s | 15:%s",
+    return sprintf(
+        "[%s] %s | 42:%s | 7:%s | 15:%s",
         $type,
         $encoded->{'item'}{'name'} // $encoded->{'item'}{'checksum'} // '?',
-        substr($d13->{'main_42'}, 0, 8) . '...',
+        substr( $d13->{'main_42'}, 0, 8 ) . '...',
         $d13->{'decoded'},
         $d13->{'aux_15'}
     );
@@ -134,17 +138,17 @@ sub _format_display {
 
 # Validate state (simplified)
 sub _is_valid_state {
-    my ($num, $main_42) = @_;
-    my $bits = sprintf('%b', $num);
-    my $ones = $bits =~ tr/1//;
+    my ( $num, $main_42 ) = @ARG;
+    my $bits  = sprintf( '%b', $num );
+    my $ones  = $bits =~ tr/1//;
     my $zeros = length($bits) - $ones;
-    return abs($ones - $zeros) < length($bits) * 0.4;
+    return abs( $ones - $zeros ) < length($bits) * 0.4;
 }
 
 # SPDX-License-Identifier: ISC
 
-#,,,.,.,.,...,,,.,,,.,.,,,.,,,,..,,,.,...,.,.,..,,...,...,..,,..,,,.,,.,,,.,,,
-#FXSRM2HU6IFOJK4QXXAVEDTUIDDMFV7ZXE74EZC4BH3WGTB7ZLBCSPPCSLRXVYJSF4JHIZXKIF7J6
-#\\\|AMBESX7Q2EH3B37NTA2LOUTUZTEWZRJ2XI2DMUBYHNKIJZHIND7 \ / AMOS7 \ YOURUM ::
-#\[7]4DY27Y6THAKL2LR22N23KP2P5JCLDG6T5YVMTJRY672GO6Y3SOCY 7  DATA SIGNATURE ::
+#,,,.,,,,,..,,,..,...,..,,.,,,,,,,..,,..,,.,.,..,,...,...,,.,,..,,,,,,...,.,,,
+#EIYGZIPSZY2TFEGANIR37SOYB3S4363ZFE7CRWES4LRM3NRQVBTX337BQK2GOZWKL5PGABYFLNTNY
+#\\\|RPQ67VEG3ANE7DKZWDSAKVGK7QJX4ZEAERCDMTSCSWTDNZFJDOG \ / AMOS7 \ YOURUM ::
+#\[7]AONFHP4DKR76QXJL4PUUOOVGE6I3IV5TLZALDF42H5ZCTNKVN4DQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

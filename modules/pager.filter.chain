@@ -1,68 +1,67 @@
-## [:<
-# name  = pager.filter.chain
-# descr = Manage filter chains for virtual buffers
-## >:]
+## [:< ##
 
-return sub {
-    my ($args) = @_;
+    # name  = pager.filter.chain
+    # descr = Manage filter chains for virtual buffers
+
+    my ($args) = @ARG;
 
     my $buffer_id = $args->{'buffer_id'};
-    my $action = $args->{'action'};
-    my $buf = $data{'pager'}{'buffers'}{$buffer_id};
+    my $action    = $args->{'action'};
+    my $buf       = $data{'pager'}{'buffers'}{$buffer_id};
 
     return undef unless $buf;
 
-    if ($action eq 'add') {
+    if ( $action eq 'add' ) {
         my $filter_type = $args->{'type'};
-        my $params = $args->{'params'} // {};
+        my $params      = $args->{'params'} // {};
 
-        push @{$buf->{'filters'}}, {
+        push @{ $buf->{'filters'} },
+            {
             'type'   => $filter_type,
             'params' => $params,
-        };
+            };
 
         # Mark all pages dirty since filter changed
-        <[pager.buffer.page.invalidate-all]>->({ 'buffer' => $buf });
+        <[pager.buffer.page.invalidate-all]>->( { 'buffer' => $buf } );
 
-        return scalar(@{$buf->{'filters'}});
-    }
-    elsif ($action eq 'remove') {
+        return scalar( @{ $buf->{'filters'} } );
+    } elsif ( $action eq 'remove' ) {
         my $index = $args->{'index'};
-        return undef unless defined $index && $index >= 0 && $index < @{$buf->{'filters'}};
+        return undef
+            unless defined $index
+            && $index >= 0
+            && $index < @{ $buf->{'filters'} };
 
-        splice(@{$buf->{'filters'}}, $index, 1);
-        <[pager.buffer.page.invalidate-all]>->({ 'buffer' => $buf });
+        splice( @{ $buf->{'filters'} }, $index, 1 );
+        <[pager.buffer.page.invalidate-all]>->( { 'buffer' => $buf } );
         return 1;
-    }
-    elsif ($action eq 'clear') {
+    } elsif ( $action eq 'clear' ) {
         $buf->{'filters'} = [];
-        <[pager.buffer.page.invalidate-all]>->({ 'buffer' => $buf });
+        <[pager.buffer.page.invalidate-all]>->( { 'buffer' => $buf } );
         return 1;
-    }
-    elsif ($action eq 'list') {
+    } elsif ( $action eq 'list' ) {
         return $buf->{'filters'};
-    }
-    elsif ($action eq 'reorder') {
-        my $new_order = $args->{'order'};  # Array of indices
+    } elsif ( $action eq 'reorder' ) {
+        my $new_order = $args->{'order'};    # Array of indices
         return undef unless ref($new_order) eq 'ARRAY';
 
         my @new_filters;
         for my $idx (@$new_order) {
-            push @new_filters, $buf->{'filters'}[$idx] if defined $buf->{'filters'}[$idx];
+            push @new_filters, $buf->{'filters'}[$idx]
+                if defined $buf->{'filters'}[$idx];
         }
 
         $buf->{'filters'} = \@new_filters;
-        <[pager.buffer.page.invalidate-all]>->({ 'buffer' => $buf });
+        <[pager.buffer.page.invalidate-all]>->( { 'buffer' => $buf } );
         return 1;
     }
 
     return undef;
-};
 
-# SPDX-License-Identifier: ISC
+    # SPDX-License-Identifier: ISC
 
-#,,..,,..,...,,..,,..,.,,,.,.,...,.,.,,..,,,.,..,,...,..,,..,,,..,,..,,..,,.,,
-#PVXQX74IOBGM45DPWUMSSP2PSXCY5B3J5E6DWIHH7556LA3JK3L2G4K3PJWPUXPIPCKNFGITQBFLA
-#\\\|MQECKGN2GP5TQGSNJFHO5PMM5ZNEVLVCODI3SBOTN63BOHIQKXO \ / AMOS7 \ YOURUM ::
-#\[7]PN5AMEZLPFE77BPOKYFDQRYLTKAOEIOZ2T5XDA7FVB6RJ24L2QAA 7  DATA SIGNATURE ::
+#,,,,,,,.,,.,,.,.,...,,.,,...,.,,,,,,,,,.,..,,..,,...,...,,..,,,.,,,,,,..,,..,
+#GMVJKEVOP3WUPDXWS4SQZPTWZ35376HWVLMW5BIOEYCJLO5EO6L7UZJIN2BGEH35O4CZZK73GCJ2A
+#\\\|OGYSAQ5YQRSC3VJFHZEJXURHG25GFIKZTKNWPAXCVB5CXL4BMQZ \ / AMOS7 \ YOURUM ::
+#\[7]MVQIDEP6UKQVUVFXAAJCU53LIGFFVDV2Y65KA7MKNFMY35HHLCAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

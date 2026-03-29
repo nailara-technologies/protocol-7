@@ -1,119 +1,68 @@
-## [:<
+## [:< ##
+
 # name  = pager.viewport.render
 # descr = Render virtual buffer viewport to display
-## >:]
 
-return sub {
-    my ($args) = @_;
+my ($args) = @ARG;
 
-    my $buffer_id = $args->{'buffer_id'};
-    my $buf = $data{'pager'}{'buffers'}{$buffer_id};
-    return undef unless $buf;
+my $buffer_id = $args->{'buffer_id'};
+my $buf       = $data{'pager'}{'buffers'}{$buffer_id};
+return undef unless $buf;
 
-    my $top = $args->{'top'} // 0;        # First item to show
-    my $height = $args->{'height'} // 24; # Rows visible
-    my $width = $args->{'width'} // 80;   # Columns available
-    my $cursor = $args->{'cursor'} // 0;  # Cursor position (0-based within view)
+my $top    = $args->{'top'}    // 0;   # First item to show
+my $height = $args->{'height'} // 24;  # Rows visible
+my $width  = $args->{'width'}  // 80;  # Columns available
+my $cursor = $args->{'cursor'} // 0;   # Cursor position (0-based within view)
 
-    my $page_size = $buf->{'pages'}{'size'};
-    my $start_page = int($top / $page_size);
-    my $end_page = int(($top + $height - 1) / $page_size);
+my $page_size  = $buf->{'pages'}{'size'};
+my $start_page = int( $top / $page_size );
+my $end_page   = int( ( $top + $height - 1 ) / $page_size );
 
-    # Gather items from page(s)
-    my @items;
-    for my $page_num ($start_page .. $end_page) {
-        my $page_items = <[pager.buffer.page.get]>->($buf, $page_num);
-        next unless $page_items;
-        push @items, @$page_items;
+# Gather items from page(s)
+my @items;
+for my $page_num ( $start_page .. $end_page ) {
+    my $page_items = <[pager.buffer.page.get]>->( $buf, $page_num );
+    next unless $page_items;
+    push @items, @$page_items;
+}
+
+# Calculate visible slice
+my $offset_in_items = $top - ( $start_page * $page_size );
+my @visible = @items[ $offset_in_items .. $offset_in_items + $height - 1 ];
+
+# Format function (customizable)
+my $formatter = <[pager.util.viewport.default_formatter]>;
+
+# Render lines
+my @lines;
+for my $i ( 0 .. $height - 1 ) {
+    my $item = $visible[$i];
+    my $line;
+
+    if ($item) {
+        my $is_cursor = ( $i == $cursor );
+        $line = $formatter->( $item, $width, $is_cursor );
+    } else {
+        $line = ' ' x $width;
     }
 
-    # Calculate visible slice
-    my $offset_in_items = $top - ($start_page * $page_size);
-    my @visible = @items[$offset_in_items .. $offset_in_items + $height - 1];
+    # Truncate/pad to width
+    $line = substr( $line, 0, $width )        if length($line) > $width;
+    $line .= ' ' x ( $width - length($line) ) if length($line) < $width;
 
-    # Format function (customizable)
-    my $formatter = $args->{'formatter'} // \&_default_formatter;
+    push @lines, $line;
+}
 
-    # Render lines
-    my @lines;
-    for my $i (0 .. $height - 1) {
-        my $item = $visible[$i];
-        my $line;
-
-        if ($item) {
-            my $is_cursor = ($i == $cursor);
-            $line = $formatter->($item, $width, $is_cursor);
-        } else {
-            $line = ' ' x $width;
-        }
-
-        # Truncate/pad to width
-        $line = substr($line, 0, $width) if length($line) > $width;
-        $line .= ' ' x ($width - length($line)) if length($line) < $width;
-
-        push @lines, $line;
-    }
-
-    return {
-        'lines'      => \@lines,
-        'total_items'=> scalar(@items),
-        'top'        => $top,
-        'cursor'     => $top + $cursor,
-        'has_more'   => (scalar(@items) > $offset_in_items + $height),
-    };
+return {
+    'lines'       => \@lines,
+    'total_items' => scalar(@items),
+    'top'         => $top,
+    'cursor'      => $top + $cursor,
+    'has_more'    => ( scalar(@items) > $offset_in_items + $height ),
 };
 
-# Default item formatter
-sub _default_formatter {
-    my ($item, $width, $is_cursor) = @_;
-
-    my $prefix = $is_cursor ? '> ' : '  ';
-
-    if ($item->{'type'} && $item->{'type'} eq 'checksum') {
-        # Checksum display
-        return sprintf("%s%-8s %s %s",
-            $prefix,
-            $item->{'algorithm'} // 'bmw',
-            substr($item->{'checksum'} // '', 0, 32),
-            $item->{'path'} // ''
-        );
-    }
-
-    # File/dir display
-    my $size_str = _format_size($item->{'size'} // 0);
-    my $type_char = $item->{'type'} eq 'dir' ? 'd' :
-                    $item->{'type'} eq 'link' ? 'l' : '-';
-
-    return sprintf("%s%s %10s %s",
-        $prefix,
-        $type_char,
-        $size_str,
-        $item->{'name'} // $item->{'path'} // '(unknown)'
-    );
-}
-
-# Format byte size for display
-sub _format_size {
-    my ($bytes) = @_;
-
-    return '0' if $bytes == 0;
-
-    my @units = qw(B KB MB GB TB);
-    my $unit_idx = 0;
-
-    while ($bytes >= 1024 && $unit_idx < @units - 1) {
-        $bytes /= 1024;
-        $unit_idx++;
-    }
-
-    return sprintf($bytes < 10 ? "%.1f%s" : "%.0f%s",
-                   $bytes, $units[$unit_idx]);
-}
-
-# SPDX-License-Identifier: ISC
-
-#,,..,..,,,.,,,,,,...,...,,,.,,,.,...,,,.,,..,..,,...,...,.,,,...,,..,.,.,,,,,
-#GIGUG6ROMGVCJC6EHRZNFUBHMUDI4SOK5EYK3UDUGKNZT4JIYEVZLEDE5IFIEM6V2E2C63VAMTLA2
-#\\\|VTAJVEMTIPU7TPTMF5GMKIDSHL2TNVUDSDCP3BIXXSGZNE7T72D \ / AMOS7 \ YOURUM ::
-#\[7]HADB6R55IAJF3Q22BNUGG3TM67XC6GRIIC4XCWE5QE733YZ236BI 7  DATA SIGNATURE ::
+#,,.,,,.,,,.,,.,,,.,.,,.,,.,,,,..,,,,,.,.,,,,,..,,...,...,,,.,..,,,,.,.,.,,.,,
+#DMD7I2PAVD42TYZY4MEA7T36NRT34T6AJAOSX3GF2SFGPKZQEDUHGKBYUZNVBBD7FCW3LLGHEYAYU
+#\\\|TXNMYCU4OJ6JGQVUMLIGUALC4LSH4JRXRC2PT3LKG3EM6NB2EQS \ / AMOS7 \ YOURUM ::
+#\[7]W2CMB24XPXYAHBSZUWUMPGYPILWXFA35BWEZ4WBRD5PVXZEALMBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

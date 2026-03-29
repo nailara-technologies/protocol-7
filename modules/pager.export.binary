@@ -1,93 +1,90 @@
-## [:<
+## [:< ##
+
 # name  = pager.export.binary
 # descr = Export pager buffer to binary format for external viewers
-## >:]
 
-return sub {
-    my ($args) = @_;
+my ($args) = @ARG;
 
-    my $buffer_id = $args->{'buffer_id'};
-    my $buf = $data{'pager'}{'buffers'}{$buffer_id};
-    return undef unless $buf;
+my $buffer_id = $args->{'buffer_id'};
+my $buf       = $data{'pager'}{'buffers'}{$buffer_id};
+return undef unless $buf;
 
-    my $output = $args->{'output'};  # File path or return scalar ref
-    my $format = $args->{'format'} // '56-bit';  # 56-bit | 72-bit | 64-bit | L13
-    my $start = $args->{'start'} // 0;
-    my $count = $args->{'count'} // $buf->{'pages'}{'size'};
+my $output = $args->{'output'};    # File path or return scalar ref
+my $format = $args->{'format'} // '56-bit';   # 56-bit | 72-bit | 64-bit | L13
+my $start  = $args->{'start'}  // 0;
+my $count  = $args->{'count'}  // $buf->{'pages'}{'size'};
 
-    my $page_size = $buf->{'pages'}{'size'};
-    my $start_page = int($start / $page_size);
-    my $end_page = int(($start + $count - 1) / $page_size);
+my $page_size  = $buf->{'pages'}{'size'};
+my $start_page = int( $start / $page_size );
+my $end_page   = int( ( $start + $count - 1 ) / $page_size );
 
-    # Gather items
-    my @items;
-    for my $page_num ($start_page .. $end_page) {
-        my $page = <[pager.buffer.page.get]>->($buf, $page_num);
-        push @items, @$page if $page;
-    }
+# Gather items
+my @items;
+for my $page_num ( $start_page .. $end_page ) {
+    my $page = <[pager.buffer.page.get]>->( $buf, $page_num );
+    push @items, @$page if $page;
+}
 
-    # Extract visible slice
-    my $offset = $start - ($start_page * $page_size);
-    @items = @items[$offset .. $offset + $count - 1];
+# Extract visible slice
+my $offset = $start - ( $start_page * $page_size );
+@items = @items[ $offset .. $offset + $count - 1 ];
 
-    # Determine byte width based on format
-    my $byte_width = {
-        '56-bit' => 7,
-        '72-bit' => 9,
-        '64-bit' => 8,
-        'L13'    => 7,
-    }->{$format} // 7;
+# Determine byte width based on format
+my $byte_width = {
+    '56-bit' => 7,
+    '72-bit' => 9,
+    '64-bit' => 8,
+    'L13'    => 7,
+}->{$format} // 7;
 
-    # Build binary output
-    my $binary = '';
+# Build binary output
+my $binary = '';
 
-    for my $item (@items) {
-        my $bin;
+for my $item (@items) {
+    my $bin;
 
-        if ($item->{'checksum'}) {
-            # Decode checksum to binary
-            my $algo = $item->{'algorithm'} // 'bmw';
+    if ( $item->{'checksum'} ) {
 
-            if ($algo =~ /bmw-L13/i || $format eq 'L13') {
-                $bin = <[base.decode.bmw-L13]>->($item->{'checksum'});
-            }
-            else {
-                $bin = <[base.decode.bmw]>->($item->{'checksum'});
-            }
+        # Decode checksum to binary
+        my $algo = $item->{'algorithm'} // 'bmw';
+
+        if ( $algo =~ /bmw-L13/i || $format eq 'L13' ) {
+            $bin = <[base.decode.bmw-L13]>->( $item->{'checksum'} );
+        } else {
+            $bin = <[base.decode.bmw]>->( $item->{'checksum'} );
         }
-        elsif ($item->{'path'}) {
-            # Hash path to binary
-            my $hash = <[base.chk-sum.bmw.L13-str]>->($item->{'path'});
-            $bin = pack('H*', substr($hash, 0, $byte_width * 2));
-        }
-        else {
-            # Default to item fingerprint
-            my $data = join('', map { $item->{$_} // '' } sort keys %$item);
-            my $hash = <[base.chk-sum.bmw.L13-str]>->($data);
-            $bin = pack('H*', substr($hash, 0, $byte_width * 2));
-        }
+    } elsif ( $item->{'path'} ) {
 
-        # Pad/truncate to exact width
-        $bin = substr($bin . "\0" x $byte_width, 0, $byte_width);
-        $binary .= $bin;
+        # Hash path to binary
+        my $hash = <[base.chk-sum.bmw.L13-str]>->( $item->{'path'} );
+        $bin = pack( 'H*', substr( $hash, 0, $byte_width * 2 ) );
+    } else {
+
+        # Default to item fingerprint
+        my $data = join( '', map { $item->{$ARG} // '' } sort keys %$item );
+        my $hash = <[base.chk-sum.bmw.L13-str]>->($data);
+        $bin = pack( 'H*', substr( $hash, 0, $byte_width * 2 ) );
     }
 
-    # Output
-    if ($output) {
-        open(my $fh, '>:raw', $output) or return undef;
-        print $fh $binary;
-        close($fh);
-        return length($binary);
-    }
-    else {
-        return \$binary;
-    }
-};
+    # Pad/truncate to exact width
+    $bin = substr( $bin . "\0" x $byte_width, 0, $byte_width );
+    $binary .= $bin;
+}
+
+# Output
+if ($output) {
+    open( my $fh, '>:raw', $output ) or return undef;
+    print $fh $binary;
+    close($fh);
+    return length($binary);
+} else {
+    return \$binary;
+}
 
 # SPDX-License-Identifier: ISC
 
-#,,,,,,,.,,,,,...,..,,,,.,,..,,,.,.,.,..,,,,,,..,,...,..,,.,.,.,,,.,,,..,,,..,
-#JIYZ5SLRNEIMKNURU5BISV2QF4FSX2PTUCYQZOVVEBLYXN7VAHZGNLIUIVSLNIP6RDI7TDUNIES4Y
-#\\\|V6GBC4ASWLXLYB4QPYCOEGP6F4EBOK7VHWTJXYQTTT6OSQFKWTC \ / AMOS7 \ YOURUM ::
-#\[7]JIVE5FCMVLEBZHWL7UBZPNRMZKDSOFAOTO5LUWETDUW623WAGSAI 7  DATA SIGNATURE ::
+#,,,,,,,,,,,.,,,,,..,,,.,,.,.,,..,.,.,,.,,,..,..,,...,...,,,,,.,.,...,,..,.,,,
+#TB5LM372IFL3RH5RIBF2MPSMWIBL4QHJOYLMVQWGOYND2H2U42VFCHUANI3GBS4NUVQO2J32YVU4C
+#\\\|SCFWL4DY45657OHZLBAPFQZ7UK5DFH2HRQNM6ACUKK7B6TJXAAX \ / AMOS7 \ YOURUM ::
+#\[7]LVP6XZTBGSZFEALOI7YVKOS46VOO2FKDTYHPFXG6JZJUDU2TEKAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

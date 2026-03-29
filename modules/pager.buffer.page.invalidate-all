@@ -1,28 +1,26 @@
-## [:<
+## [:< ##
+
 # name  = pager.buffer.page.invalidate-all
-# descr = Invalidate all pages in buffer cache
-## >:]
+# descr = invalidate all pages in buffer cache
 
-return sub {
-    my ($args) = @_;
+my ($args) = @ARG;
 
-    my $buf = $args->{'buffer'};
-    return 0 unless $buf;
+my $buf = $args->{'buffer'};
+return 0 unless $buf;
 
-    my $total = scalar(keys %{$buf->{'pages'}{'cached'}});
+my $total = scalar( keys %{ $buf->{'pages'}{'cached'} } );
 
-    $buf->{'pages'}{'cached'} = {};
-    $buf->{'pages'}{'lru'} = [];
-    $buf->{'pages'}{'dirty'} = {};
-    $buf->{'memory'}{'current'} = 0;
+$buf->{'pages'}{'cached'}   = {};
+$buf->{'pages'}{'lru'}      = [];
+$buf->{'pages'}{'dirty'}    = {};
+$buf->{'memory'}{'current'} = 0;
 
-    return $total;
-};
+return $total;
 
 # SPDX-License-Identifier: ISC
 
-#,,,,,,..,,,.,,,.,,.,,,,,,.,,,,,,,.,.,.,,,..,,..,,...,...,,,.,..,,..,,,..,.,,,
-#ZUHLRPPMFFOAICMEVQ2CPN2IRCNW27ZCR3LPFCB3A7DKHL4ZUPVCOCFRR2DI4ZWAPBQVWDDPMH6LK
-#\\\|YS2TLJCTUXOZO3IWOTUPOLUGOWAQYSV5CLWWWHME5ZMHMJID56J \ / AMOS7 \ YOURUM ::
-#\[7]EUWRCWK6AXLF2DXU3HTVDEA2VKLQBBTUAZV5QIOESRACHLU27OAY 7  DATA SIGNATURE ::
+#,,,,,.,,,,..,..,,,,.,,.,,...,...,,..,...,,,.,..,,...,...,.,.,...,,..,,,,,.,.,
+#45HXH2CXWY2IZ3DUT7BGJPZ526DGAW7RPFLJUVUOUQJVE6TITSSW5P5E77AHDUGJWUW4X7IMKK4AI
+#\\\|4NECGRJEMYPSNEPYPTBSC3BLTXCNNZC4KUAGXMJPFNA4JR63APL \ / AMOS7 \ YOURUM ::
+#\[7]TGMSAOIFGLFMTTXGSZS5ZM5KGOYRKSXV54XLLC7T3A22RV35SADY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,87 +1,90 @@
-## [:<
+## [:< ##
+
 # name  = pager.view.true-int-color
 # descr = Apply true_int harmonic coloring to pager items
-## >:]
 
-return sub {
-    my ($args) = @_;
+my ($args) = @ARG;
 
-    my $items = $args->{'items'};  # Array ref of items
-    return [] unless $items && @$items;
+my $items = $args->{'items'};    # Array ref of items
+return [] unless $items && @$items;
 
-    my $color_mode = $args->{'color_mode'} // 'true_int';  # true_int | entropy | L13
-    my $style = $args->{'style'} // 'background';  # background | foreground | full
+my $color_mode = $args->{'color_mode'}
+    // 'true_int';               # true_int | entropy | L13
+my $style = $args->{'style'} // 'background'; # background | foreground | full
 
-    my @colored;
+my @colored;
 
-    for my $item (@$items) {
-        my $num;  # Numeric representation for coloring
+for my $item (@$items) {
+    my $num;    # Numeric representation for coloring
 
-        if ($item->{'checksum'}) {
-            # Convert checksum to numeric
-            my $bin = <[base.decode.bmw-L13]>->($item->{'checksum'});
-            $num = unpack('Q>', $bin . "\0\0") >> 8 if $bin;  # 56-bit
-        }
-        elsif ($item->{'path'}) {
-            my $hash = <[base.chk-sum.bmw.L13-str]>->($item->{'path'});
-            $num = hex(substr($hash, 0, 14));
-        }
-        else {
-            # Use item hash
-            my $data = join('', map { $item->{$_} // '' } sort keys %$item);
-            my $hash = <[base.chk-sum.bmw.L13-str]>->($data);
-            $num = hex(substr($hash, 0, 14));
-        }
+    if ( $item->{'checksum'} ) {
 
-        # Determine color based on mode
-        my $color_code;
+        # Convert checksum to numeric
+        my $bin = <[base.decode.bmw-L13]>->( $item->{'checksum'} );
+        $num = unpack( 'Q>', $bin . "\0\0" ) >> 8 if $bin;    # 56-bit
+    } elsif ( $item->{'path'} ) {
+        my $hash = <[base.chk-sum.bmw.L13-str]>->( $item->{'path'} );
+        $num = hex( substr( $hash, 0, 14 ) );
+    } else {
 
-        if ($color_mode eq 'true_int') {
-            # Use AMOS7::INLINE true_int if available
-            if (exists $data{'amos7'}{'inline'}{'true_int'}) {
-                my $is_true = $data{'amos7'}{'inline'}{'true_int'}->($num);
-                $color_code = $is_true ? 'true' : 'false';
-            }
-            else {
-                # Fallback: use L13 cube position
-                my $x = ($num >> 40) & 0xFF;
-                my $y = ($num >> 32) & 0xFF;
-                my $z = ($num >> 24) & 0xFF;
-                my $pos = ($x % 8) + (($y % 7) * 8) + (($z % 13) * 56);
-                $color_code = ($pos % 2) ? 'true' : 'false';
-            }
-        }
-        elsif ($color_mode eq 'entropy') {
-            # Color by entropy/bit patterns
-            my $bits = unpack('B56', pack('Q>', $num) >> 8);
-            my $ones = $bits =~ tr/1//;
-            my $entropy = abs($ones - 28) / 28;  # 0 = balanced, 1 = extreme
-            $color_code = $entropy < 0.3 ? 'balanced' :
-                          $entropy < 0.7 ? 'moderate' : 'extreme';
-        }
-        elsif ($color_mode eq 'L13') {
-            # Color by L13 cube position
-            my $x = ($num >> 40) & 0xFF;
-            my $y = ($num >> 32) & 0xFF;
-            my $z = ($num >> 24) & 0xFF;
-            my $layer = $z % 13;
-            $color_code = "layer_$layer";
-        }
-
-        push @colored, {
-            %$item,
-            '_color_code' => $color_code,
-            '_color_num'  => $num,
-        };
+        # Use item hash
+        my $data = join( '', map { $item->{$ARG} // '' } sort keys %$item );
+        my $hash = <[base.chk-sum.bmw.L13-str]>->($data);
+        $num = hex( substr( $hash, 0, 14 ) );
     }
 
-    return \@colored;
-};
+    # Determine color based on mode
+    my $color_code;
+
+    if ( $color_mode eq 'true_int' ) {
+
+        # Use AMOS7::INLINE true_int if available
+        if ( exists $data{'amos7'}{'inline'}{'true_int'} ) {
+            my $is_true = $data{'amos7'}{'inline'}{'true_int'}->($num);
+            $color_code = $is_true ? 'true' : 'false';
+        } else {
+
+            # Fallback: use L13 cube position
+            my $x   = ( $num >> 40 ) & 0xFF;
+            my $y   = ( $num >> 32 ) & 0xFF;
+            my $z   = ( $num >> 24 ) & 0xFF;
+            my $pos = ( $x % 8 ) + ( ( $y % 7 ) * 8 ) + ( ( $z % 13 ) * 56 );
+            $color_code = ( $pos % 2 ) ? 'true' : 'false';
+        }
+    } elsif ( $color_mode eq 'entropy' ) {
+
+        # Color by entropy/bit patterns
+        my $bits    = unpack( 'B56', pack( 'Q>', $num ) >> 8 );
+        my $ones    = $bits =~ tr/1//;
+        my $entropy = abs( $ones - 28 ) / 28;    # 0 = balanced, 1 = extreme
+        $color_code
+            = $entropy < 0.3 ? 'balanced'
+            : $entropy < 0.7 ? 'moderate'
+            :                  'extreme';
+    } elsif ( $color_mode eq 'L13' ) {
+
+        # Color by L13 cube position
+        my $x     = ( $num >> 40 ) & 0xFF;
+        my $y     = ( $num >> 32 ) & 0xFF;
+        my $z     = ( $num >> 24 ) & 0xFF;
+        my $layer = $z % 13;
+        $color_code = "layer_$layer";
+    }
+
+    push @colored,
+        {
+        %$item,
+        '_color_code' => $color_code,
+        '_color_num'  => $num,
+        };
+}
+
+return \@colored;
 
 # SPDX-License-Identifier: ISC
 
-#,,,.,...,..,,...,.,,,...,.,.,...,,.,,...,,,,,..,,...,..,,..,,...,.,.,..,,.,,,
-#444IE55C4MJB35ZD4JVHSQQZ3EEU7AS3KRNRBUMVT4Z34DOZG5C235M3TBTNACCMF5HFSLF7CNBKW
-#\\\|G4RS7IUUO73ZTVK27QX2MXKVGIKJLOZMJANNTSEOFVD5RZGQDTH \ / AMOS7 \ YOURUM ::
-#\[7]YOIS3R2QRR72XOG4C4C4IHQINER3EAKJE4YTLPL66U52RJ5IRGBQ 7  DATA SIGNATURE ::
+#,,,.,.,.,...,.,.,,..,,,,,,,.,.,.,...,,..,..,,..,,...,...,.,.,.,.,.,.,,..,..,,
+#Q75U3MALP2YERFJORSWARCI4XUV5GV24KDMHKHQYKQXV4RB6YB3UE636DVNZTDCI3OW7TZLKRMLHE
+#\\\|GIA2RZPQOW7LDFCME2MUUFJ2LNNDDGQJML446FTNLB45DVA4TBY \ / AMOS7 \ YOURUM ::
+#\[7]CGJ4IB7KGNF67H7T6J3MEQLXTN27XQ6SLU3YULWFS5D4N2DY7EBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

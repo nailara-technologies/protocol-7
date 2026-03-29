@@ -1,78 +1,80 @@
-## [:<
+## [:< ##
+
 # name  = pager.buffer.prefetch
 # descr = Predictive page prefetching
-## >:]
 
-return sub {
-    my ($args) = @_;
+my ($args) = @ARG;
 
-    my $buffer_id = $args->{'buffer_id'};
-    my $page_num = $args->{'page_num'};
-    my $direction = $args->{'direction'} // 'forward';
-    my $depth = $args->{'depth'} // 2;
+my $buffer_id = $args->{'buffer_id'};
+my $page_num  = $args->{'page_num'};
+my $direction = $args->{'direction'} // 'forward';
+my $depth     = $args->{'depth'}     // 2;
 
-    my $buf = $data{'pager'}{'buffers'}{$buffer_id};
-    return unless $buf;
+my $buf = $data{'pager'}{'buffers'}{$buffer_id};
+return unless $buf;
 
-    # Don't prefetch if cache is near full
-    my $cached = $buf->{'pages'}{'cached'};
-    my $max_cache = $buf->{'pages'}{'max_cache'};
-    return if scalar(keys %$cached) >= $max_cache - 1;
+# Don't prefetch if cache is near full
+my $cached    = $buf->{'pages'}{'cached'};
+my $max_cache = $buf->{'pages'}{'max_cache'};
+return if scalar( keys %$cached ) >= $max_cache - 1;
 
-    my @to_fetch;
+my @to_fetch;
 
-    # Linear prefetch in scroll direction
-    for my $i (1 .. $depth) {
-        my $target = $direction eq 'forward'
-            ? $page_num + $i
-            : $page_num - $i;
-        next if $target < 0;
-        push @to_fetch, $target unless exists $cached->{$target};
-    }
+# Linear prefetch in scroll direction
+for my $i ( 1 .. $depth ) {
+    my $target
+        = $direction eq 'forward'
+        ? $page_num + $i
+        : $page_num - $i;
+    next if $target < 0;
+    push @to_fetch, $target unless exists $cached->{$target};
+}
 
-    # Prefetch "jump targets" if user has patterns
-    if ($buf->{'access_pattern'}{'end_jumps'}) {
-        # Prefetch near end if user jumps there often
-        my $estimated_pages = _estimate_total_pages($buf);
-        push @to_fetch, $estimated_pages - 1
-            if $estimated_pages && !exists $cached->{$estimated_pages - 1};
-    }
+# Prefetch "jump targets" if user has patterns
+if ( $buf->{'access_pattern'}{'end_jumps'} ) {
 
-    # Limit prefetch to available cache slots
-    my $available = $max_cache - scalar(keys %$cached) - 1;
-    @to_fetch = @to_fetch[0 .. $available - 1] if @to_fetch > $available;
+    # Prefetch near end if user jumps there often
+    my $estimated_pages = _estimate_total_pages($buf);
+    push @to_fetch, $estimated_pages - 1
+        if $estimated_pages && !exists $cached->{ $estimated_pages - 1 };
+}
 
-    # Async load (non-blocking)
-    for my $prefetch_page (@to_fetch) {
-        $buf->{'stats'}{'prefetches'}++;
+# Limit prefetch to available cache slots
+my $available = $max_cache - scalar( keys %$cached ) - 1;
+@to_fetch = @to_fetch[ 0 .. $available - 1 ] if @to_fetch > $available;
 
-        # Load in background - simplified: just queue for next cycle
-        # In full implementation, could use async I/O
-        $buf->{'prefetch_queue'}{$prefetch_page} = 1;
-    }
+# Async load (non-blocking)
+for my $prefetch_page (@to_fetch) {
+    $buf->{'stats'}{'prefetches'}++;
 
-    return scalar(@to_fetch);
-};
+    # Load in background - simplified: just queue for next cycle
+    # In full implementation, could use async I/O
+    $buf->{'prefetch_queue'}{$prefetch_page} = 1;
+}
+
+return scalar(@to_fetch);
 
 # Estimate total pages from what we've seen
 sub _estimate_total_pages {
-    my ($buf) = @_;
+    my ($buf) = @ARG;
 
-    if ($buf->{'source'}{'total'}) {
-        return int($buf->{'source'}{'total'} / $buf->{'pages'}{'size'}) + 1;
+    if ( $buf->{'source'}{'total'} ) {
+        return int( $buf->{'source'}{'total'} / $buf->{'pages'}{'size'} ) + 1;
     }
 
     # Estimate based on items seen
     return undef unless $buf->{'stats'}{'items_seen'} > 0;
 
     # Conservative estimate: what we've seen is just the beginning
-    return int($buf->{'stats'}{'items_seen'} * 2 / $buf->{'pages'}{'size'}) + 1;
+    return
+        int( $buf->{'stats'}{'items_seen'} * 2 / $buf->{'pages'}{'size'} )
+        + 1;
 }
 
 # SPDX-License-Identifier: ISC
 
-#,,,.,,,.,,,,,,,,,.,,,,,.,...,.,.,,,.,,,.,,.,,..,,...,...,.,,,..,,,..,.,,,,..,
-#CVF4IEZ7BOYO3LBYOMVHR2SPX3AGKJOLMWQGAMJVXRXLM2PYRM4HVY36XGBAOGXNDD674C7XTKPVU
-#\\\|JGCXGRIVE3COOHRCASFRXSWLDRTU3BBWQPWBIG3733BI5H4FZMF \ / AMOS7 \ YOURUM ::
-#\[7]HNG4XYQF4ISXO3FDA6XJUYU2X7FA37C77V6WDBRWLZMSOOTZFEBY 7  DATA SIGNATURE ::
+#,,,.,,.,,,..,,..,,,,,,..,,.,,.,.,,.,,...,,..,..,,...,...,..,,..,,.,,,...,.,,,
+#MQ3AQ2B3VPQVHZX35SJJIKRNNUUW72EIP7NKO4GDRPCGKBIPKBWZIP2OHCC4EU7UD6ZJ2QZDUEAKK
+#\\\|ZGNPBKKVZQC42XEI4HBLECVONHJEPPUER2AKSXLUAYMDP3T73TE \ / AMOS7 \ YOURUM ::
+#\[7]SHJ2KIVZ4OBTUGUCFSAYJ2WMBVHFO5IT2QNJDXO3V5VZW4VYMQBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,0 +1,294 @@
+## [:< ##
+
+# name  = pager.command-dispatch
+# descr = pager zenka command interface
+
+my ( $args, $caller ) = @_;
+my $cmd = $args->[0] // 'help';
+shift @$args;
+
+my %opts;
+my @positional;
+
+## parse arguments ##
+for my $arg (@$args) {
+    if ( $arg =~ m|^--(\w+)(?:=(.+))?$| ) {
+        $opts{$1} = $2 // 1;
+    } elsif ( $arg =~ m|^:(\w+):\s*(.+)$| ) {
+        $opts{$1} = $2;
+    } else {
+        push @positional, $arg;
+    }
+}
+
+if ( $cmd eq 'create' ) {
+    my $name = shift @positional;
+    return "Usage: pager create <name> --source=<type> [--root=<path>]"
+        unless $name;
+
+    my $source_type = $opts{'source'} // 'file-list';
+    my $source_args = {};
+
+    ## map options to source args ##
+    $source_args->{'root'}     = $opts{'root'} if $opts{'root'};
+    $source_args->{'file'}     = $opts{'file'} if $opts{'file'};
+    $source_args->{'location'} = $opts{'location'}
+        if $opts{'location'};
+    $source_args->{'recursive'} = $opts{'recursive'}
+        if defined $opts{'recursive'};
+    $source_args->{'batch_size'} = $opts{'batch-size'}
+        if $opts{'batch-size'};
+
+    my $buffer_id = <[pager.buffer.virtual]>->(
+        {   'source_type' => $source_type,
+            'source_args' => $source_args,
+            'page_size'   => $opts{'page-size'} // 100,
+            'max_cache'   => $opts{'max-cache'} // 10,
+        }
+    );
+
+    ## store named reference ##
+    $data{'pager'}{'named'}{$name} = $buffer_id if $buffer_id;
+
+    return $buffer_id
+        ? "Created pager '$name' ($buffer_id)"
+        : "Failed to create pager";
+} elsif ( $cmd eq 'filter' ) {
+    my $name          = shift @positional;
+    my $filter_action = shift @positional;
+    return "Usage: pager filter <name> <add|remove|clear|list> ..."
+        unless $name && $filter_action;
+
+    my $buffer_id = $data{'pager'}{'named'}{$name} // $name;
+
+    if ( $filter_action eq 'add' ) {
+        my $type = shift @positional;
+        return "Usage: pager filter <name> add <type> [:param: value]..."
+            unless $type;
+
+        ## collect params ##
+        my %params;
+        while (@positional) {
+            my $p = shift @positional;
+            if ( $p =~ m|^:(\w+):\s*(.+)$| ) {
+                $params{$1} = $2;
+            }
+        }
+
+        my $result = <[pager.filter.chain]>->(
+            {   'buffer_id' => $buffer_id,
+                'action'    => 'add',
+                'type'      => $type,
+                'params'    => \%params,
+            }
+        );
+
+        return $result
+            ? "Added filter '$type'"
+            : "Failed to add filter";
+    } elsif ( $filter_action eq 'list' ) {
+        my $filters = <[pager.filter.chain]>->(
+            {   'buffer_id' => $buffer_id,
+                'action'    => 'list',
+            }
+        );
+
+        my @out;
+        for my $i ( 0 .. $#$filters ) {
+            my $f = $filters->[$i];
+            push @out, sprintf "%d: %s %s", $i, $f->{'type'},
+                join ', ', map {"$ARG=$f->{'params'}{$ARG}"}
+                keys $f->{'params'}->%*;
+        }
+        return join( "\n", @out ) || "No filters";
+    } elsif ( $filter_action eq 'clear' ) {
+        <[pager.filter.chain]>->(
+            {   'buffer_id' => $buffer_id,
+                'action'    => 'clear',
+            }
+        );
+        return "Filters cleared";
+    }
+} elsif ( $cmd eq 'sort' ) {
+    my $name        = shift @positional;
+    my $sort_action = shift @positional;
+    return "Usage: pager sort <name> <set|add|clear> ..."
+        unless $name && $sort_action;
+
+    my $buffer_id = $data{'pager'}{'named'}{$name} // $name;
+
+    if ( $sort_action eq 'set' ) {
+        my @keys;
+        my $adaptive = 0;
+
+        ## parse key specs: field:dir:weight ##
+        for my $arg (@positional) {
+            if ( $arg eq ':adaptive:' ) {
+                $adaptive = 1;
+                next;
+            }
+            if ( $arg =~ m|^(\w+):(asc|desc )( ?::([\d.]+))?$| ) {
+                push @keys,
+                    {
+                    'field'  => $1,
+                    'dir'    => $2,
+                    'weight' => $3 // 1.0,
+                    };
+            }
+        }
+
+        <[pager.sort.chain]>->(
+            {   'buffer_id' => $buffer_id,
+                'action'    => 'set',
+                'type'      => $adaptive ? 'adaptive' : 'multi-key',
+                'keys'      => \@keys,
+                'adaptive'  => $adaptive,
+            }
+        );
+
+        return $adaptive
+            ? "Adaptive sort configured"
+            : "Sort configured";
+    } elsif ( $sort_action eq 'clear' ) {
+        <[pager.sort.chain]>->(
+            {   'buffer_id' => $buffer_id,
+                'action'    => 'clear',
+            }
+        );
+        return "Sort cleared";
+    }
+} elsif ( $cmd eq 'view' ) {
+    my $name = shift @positional;
+    return "Usage: pager view <name> [--height=N] [--width=N]"
+        unless $name;
+
+    my $buffer_id = $data{'pager'}{'named'}{$name} // $name;
+    my $height    = $opts{'height'}                // 24;
+    my $width     = $opts{'width'}                 // 80;
+
+    my $render = <[pager.viewport.render]>->(
+        {   'buffer_id' => $buffer_id,
+            'top'       => $opts{'top'} // 0,
+            'height'    => $height,
+            'width'     => $width,
+        }
+    );
+
+    return join( "\n", $render->{'lines'}->@* ) if $render;
+    return "Failed to render viewport";
+} elsif ( $cmd eq 'edit' ) {
+    my $name = shift @positional;
+    return "Usage: pager edit <name>" unless $name;
+
+    my $buffer_id = $data{'pager'}{'named'}{$name} // $name;
+
+    my $editor_id = <[pager.editor.integration]>->(
+        {   'buffer_id' => $buffer_id,
+            'action'    => 'open',
+        }
+    );
+
+    return $editor_id
+        ? "Opened in editor: $editor_id"
+        : "Failed to open editor";
+} elsif ( $cmd eq 'list' ) {
+    my @out = "Active pagers:";
+    for my $name ( sort keys $data{'pager'}{'named'}->%* ) {
+        my $id  = $data{'pager'}{'named'}{$name};
+        my $buf = $data{'pager'}{'buffers'}{$id};
+        next unless $buf;
+
+        push @out,
+            sprintf "  %-20s %s | pages: %d cached | items seen: %d",
+            $name,
+            $buf->{'source_type'},
+            scalar( keys $buf->{'pages'}{'cached'}->%* ),
+            $buf->{'stats'}{'items_seen'};
+    }
+    return join "\n", @out;
+} elsif ( $cmd eq 'close' ) {
+    my $name = shift @positional;
+    return "Usage: pager close <name>" unless $name;
+
+    my $buffer_id = delete $data{'pager'}{'named'}{$name};
+    if ($buffer_id) {
+        my $buf = delete $data{'pager'}{'buffers'}{$buffer_id};
+        ## close source if it has close method ##
+        $buf->{'source'}{'close'}->()
+            if $buf
+            and $buf->{'source'}
+            and $buf->{'source'}{'close'};
+        return "Closed pager '$name'";
+    }
+    return "Pager '$name' not found";
+} elsif ( $cmd eq 'stats' ) {
+    my $name = shift @positional;
+    return "Usage: pager stats <name>" unless $name;
+
+    my $buffer_id = $data{'pager'}{'named'}{$name} // $name;
+    my $buf       = $data{'pager'}{'buffers'}{$buffer_id};
+    return "Buffer not found" unless $buf;
+
+    my $stats = $buf->{'stats'};
+    my $mem   = $buf->{'memory'};
+
+    return
+          sprintf "Pager '%s' stats:\n"
+        . "  Cache hits:   %d\n"
+        . "  Cache misses: %d\n"
+        . "  Prefetches:   %d\n"
+        . "  Items seen:   %d\n"
+        . "  Memory:       %d / %d items",
+        $name,
+        $stats->{'hits'},
+        $stats->{'misses'},
+        $stats->{'prefetches'},
+        $stats->{'items_seen'},
+        $mem->{'current'},
+        $mem->{'max_items'};
+} else {
+    return <<'HELP';
+pager zenka - virtual buffer management
+
+usage: pager <command> [options]
+
+commands:
+  create <name> --source=<type> [:opt: value] ...
+    create new pager. sources: file-list, checksum-list, 9p
+    options: :root: path, :file: path, :page-size: N, :max-cache: N
+
+  filter <name> <add|remove|clear|list> [type] [:param: value] ...
+    manage filter chain. types: preference, harmonic-random, division-13-harmonic
+    d13 params: :seed: N, :mode: entropy|routing|payload, :strength: 0.0-1.0
+
+  sort <name> <set|clear> [field:dir:weight] ... [:adaptive:]
+    manage sort. fields: name, size, mtime, type
+
+  view <name> [--height=N] [--width=N] [--top=N]
+    render viewport
+
+  edit <name>
+    open in editor
+
+  list
+    list active pagers
+
+  close <name>
+    close pager
+
+  stats <name>
+    show statistics
+
+examples:
+  pager create files --source=file-list :root: /data :recursive: 1
+  pager filter files add preference :recent: 0.8 :type_pref: 0.6
+  pager sort files set mtime:desc:0.5 size:asc:0.3
+  pager view files --height=50 --width=120
+HELP
+}
+
+#,,..,,.,,,..,,.,,..,,,..,,,,,.,,,,,.,.,.,...,.,.,...,...,...,,,,,,.,,,,,,..,,
+#UHSVSKPLV3YP7NXVFO4LATP4JBTYYB7MCTESBODKXWHWHGTZ7NB3QBI4R52K5UWLLOB5PJOJP7O7E
+#\\\|KWWCWOLLZR5UAPSNFFC3ITH4L2PUFFRQRLLMKC6P2HZDRPT2VUR \ / AMOS7 \ YOURUM ::
+#\[7]XGDSBKYGDGJUJIUIUBYWY624FWQEAH5YXYJK4XZDVKHLG6244GAQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

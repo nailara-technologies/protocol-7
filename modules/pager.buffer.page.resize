@@ -1,32 +1,28 @@
-## [:<
+## [:< ##
+
 # name  = pager.buffer.page.resize
-# descr = Resize page size (invalidates cache)
-## >:]
+# descr = resize page size [invalidates cache]
 
-return sub {
-    my ($buf, $new_size) = @_;
+my ( $buf, $new_size ) = @ARG;
 
-    return 0 unless $buf && $new_size > 0;
+return 0 unless $buf && $new_size > 0;
 
-    my $old_size = $buf->{'pages'}{'size'};
-    return 0 if $old_size == $new_size;
+my $old_size = $buf->{'pages'}{'size'};
+return 0 if $old_size == $new_size;
 
-    # Invalidate all cached pages since indices change
-    <[pager.buffer.page.invalidate-all]>->({ 'buffer' => $buf });
+# Invalidate all cached pages since indices change
+<[pager.buffer.page.invalidate-all]>->( { 'buffer' => $buf } );
 
-    $buf->{'pages'}{'size'} = $new_size;
+$buf->{'pages'}{'size'} = $new_size;
 
-    # Recalculate max cache based on memory limit
-    my $max_items = $buf->{'memory'}{'max_items'};
-    $buf->{'pages'}{'max_cache'} = int($max_items / $new_size) + 1;
+# Recalculate max cache based on memory limit
+my $max_items = $buf->{'memory'}{'max_items'};
+$buf->{'pages'}{'max_cache'} = int( $max_items / $new_size ) + 1;
 
-    return 1;
-};
+return 1;
 
-# SPDX-License-Identifier: ISC
-
-#,,..,..,,,..,,,.,..,,,.,,..,,..,,,.,,,.,,..,,..,,...,..,,.,.,.,.,..,,...,.,,,
-#IF32SF75334V6MRCO37A62EGA2GGLDU7U4VXW3XSGHW65FD6ATPJBGSQK56SPO7EJ2HIIP47UHK32
-#\\\|GVSTIK6DCNSOKO5RJ34BMJW4BTUU3MHFKCKL7X5FJXPYPAGMTT2 \ / AMOS7 \ YOURUM ::
-#\[7]2LW6ZKH4PKKL74RBPLVYR7S6MWX25WLXXODMDFVJ5CY5MWWYCEAY 7  DATA SIGNATURE ::
+#,,..,.,.,..,,.,.,.,.,.,.,.,,,,,.,.,.,,.,,.,.,..,,...,...,..,,,.,,.,,,,,,,,,,,
+#DO4BWEPAKV4AMLSBIMJDFP2MYQYO7ACY7T46BPTEB3KVMWO67YJ2A3ASPSKFRJSZKLPDMHFBJPFVC
+#\\\|LZDVZOWVYKD6F3T7CLHTUCOIY26XWE6DDKBQ6SODG5OHUBANYJY \ / AMOS7 \ YOURUM ::
+#\[7]7MSFFXZNMSVVMTNVLEH6IDUFSESZ5CUFCJZDKNGTS3STM6G45IBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,0 +1,35 @@
+## [:< ##
+
+# name  = pager.util.viewport.default_formatter
+# descr = Default formatter for pager viewport items
+
+my ( $item, $width, $is_cursor ) = @ARG;
+
+my $prefix = $is_cursor ? '> ' : '  ';
+
+if ( $item->{'type'} && $item->{'type'} eq 'checksum' ) {
+
+    # Checksum display
+    return sprintf( "%s%-8s %s %s",
+        $prefix,
+        $item->{'algorithm'} // 'bmw',
+        substr( $item->{'checksum'} // '', 0, 32 ),
+        $item->{'path'} // '' );
+}
+
+# File/dir display
+my $size_str = <[pager.util.viewport.format_size]>->( $item->{'size'} // 0 );
+my $type_char
+    = $item->{'type'} eq 'dir'  ? 'd'
+    : $item->{'type'} eq 'link' ? 'l'
+    :                             '-';
+
+return sprintf( "%s%s %10s %s",
+    $prefix, $type_char, $size_str,
+    $item->{'name'} // $item->{'path'} // '(unknown)' );
+
+#,,.,,,.,,.,.,,.,,,,.,,.,,,,.,..,,,.,,.,.,.,,,..,,...,...,...,,.,,,,.,.,.,..,,
+#BTQD3DE2SDWZ4VN6EDNF4QG4GOH6YNUGEFOOIF43YU342FXGQ2GGV4FMINCLJYRJ3KJKYHEHYPC52
+#\\\|3MB5SOVIS4S6EYYMNKGPYGAZR2CSAEOTKTJHAZUYTM2T2QEVO56 \ / AMOS7 \ YOURUM ::
+#\[7]65OXNVFO4NCKCUV24U3SNHTJ3274XOJ7SK5HJGAZSOW5S6WXGUCY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

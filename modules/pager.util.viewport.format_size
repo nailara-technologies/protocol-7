@@ -1,0 +1,25 @@
+## [:< ##
+
+# name  = pager.util.viewport.format_size
+# descr = Format byte size for display with units
+
+my ($bytes) = @ARG;
+
+return '0' if $bytes == 0;
+
+my @units    = qw(B KB MB GB TB);
+my $unit_idx = 0;
+
+while ( $bytes >= 1024 && $unit_idx < @units - 1 ) {
+    $bytes /= 1024;
+    $unit_idx++;
+}
+
+return
+    sprintf( $bytes < 10 ? "%.1f%s" : "%.0f%s", $bytes, $units[$unit_idx] );
+
+#,,,,,,..,,,.,..,,,.,,...,.,,,,..,,,.,,..,,..,..,,...,...,..,,.,,,,,.,,,.,,,.,
+#T2VACPYT4DAHD6HRESZB4I5WDOTETW32M2QRTBYX7JKG7WPLUA4A5PGAWY7RZFBEA6TUQLOOWKTWG
+#\\\|V7SIXDVWGRRZ5MZ6FPTOP5JR5GPAKBNLXKQJQQUQ4Q2VL5CMC2E \ / AMOS7 \ YOURUM ::
+#\[7]LPWG7FKXQEBKFAXP4BCJS23LY6XN65J2UHF3CA4PIR24SHUKI4AQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
