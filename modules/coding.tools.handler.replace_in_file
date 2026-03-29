@@ -1,0 +1,101 @@
+## [:< ##
+
+# name  = coding.tools.handler.replace_in_file
+# descr = content-based find and replace in existing files
+
+my $args       = shift                 // {};
+my $path       = $args->{'path'}       // return 'path required';
+my $old_string = $args->{'old_string'} // return 'old_string required';
+my $new_string = $args->{'new_string'} // return 'new_string required';
+
+my $root     = <system.root_path>;
+my $abs_path = "$root/$path";
+
+## auto-prefix modules/ for dot-notation filenames without directory ##
+if ( $path !~ m|/| and $path =~ m|\.\w+\.| ) {
+    $path     = "modules/$path";
+    $abs_path = "$root/$path";
+}
+
+## validate path stays within project [ resolve symlinks ] ##
+use Cwd qw| abs_path |;
+my $real_path = Cwd::abs_path($abs_path) // '';
+my $real_root = Cwd::abs_path($root)     // '';
+return 'error: path escapes project root'
+    if !length $real_path
+    or index( $real_path, "$real_root/" ) != 0;
+return 'error: file not found' unless -f $real_path;
+$abs_path = $real_path;
+
+## read current content [ prefer staged version for accumulation ] ##
+my $stage_name = $path;
+$stage_name =~ s|/|__|g;
+my $stage_rel   = "staged/$stage_name";
+my $content_ref = <[file.zenka_dir.load]>->($stage_rel);
+$content_ref = <[file.slurp]>->($abs_path)
+    unless defined $content_ref;
+return 'error: cannot read file' unless defined $content_ref;
+my $content = $content_ref->$*;
+
+## find old_string in content ##
+my $idx = index( $content, $old_string );
+return 'error: old_string not found in file' if $idx == -1;
+
+## check for ambiguous matches [ must be unique ] ##
+my $second = index( $content, $old_string, $idx + 1 );
+if ( $second != -1 ) {
+    ## count total occurrences ##
+    my $count  = 0;
+    my $search = 0;
+    while ( ( my $pos = index( $content, $old_string, $search ) ) != -1 ) {
+        $count++;
+        $search = $pos + 1;
+    }
+    return
+        sprintf 'error: old_string matches %d locations in file'
+        . ' — provide more surrounding context to make it unique', $count;
+}
+
+## perform replacement ##
+my $new_content
+    = substr( $content, 0, $idx )
+    . $new_string
+    . substr( $content, $idx + length($old_string) );
+
+## write back using chmod child if needed ##
+my $chmod_fh = <coding.chmod_child.w_fh>;
+my $mode_restore;
+if ( !-w $abs_path and defined $chmod_fh ) {
+    my $cur_mode = ( stat $abs_path )[2] // 0644;
+    $cur_mode &= 07777;
+    print {$chmod_fh} "gw $abs_path\n";
+    select undef, undef, undef, 0.01;    ## yield for child ##
+    $mode_restore = $cur_mode if -w $abs_path;
+}
+
+if ( -w $abs_path ) {
+    <[file.put]>->( $abs_path, \$new_content );
+    if ( defined $mode_restore and defined $chmod_fh ) {
+        print {$chmod_fh} sprintf "restore %04o %s\n", $mode_restore,
+            $abs_path;
+    }
+    return sprintf "replaced in %s [ -%d +%d chars ]",
+        $path, length($old_string), length($new_string);
+}
+
+## stage when no write access ##
+<[file.zenka_dir.write]>->(
+    $stage_rel, \$new_content, '>', 0664, ':encoding(UTF-8)'
+);
+<[base.logs]>->(
+    1, ':. replace_in_file: staged %s [ no write access ]', $path
+);
+return sprintf "staged replace in %s [ -%d +%d chars, no write access ]\n"
+    . "staged at: %s",
+    $path, length($old_string), length($new_string), $stage_rel;
+
+#,,,,,,..,...,..,,...,,,.,..,,..,,,,,,,..,..,,.,.,...,...,.,.,...,,,,,..,,,..,
+#2Q2E2OR54MPENRRCEDIAWC7GTXBNUOF66HA3GXH2JVS27KWPIX5TKZ5K2R5QII6574WETR6IDI2L4
+#\\\|Z4NVX24WI3NNURQWSTWXAG34P3T5GBTIZ4VAIOUYI4UCZYCVEQG \ / AMOS7 \ YOURUM ::
+#\[7]V4TDCNJZALEDOAIKGOK6I62XJQVLO7UFXEWZ66V62X7ERXPHQ4CI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
