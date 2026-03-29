@@ -391,8 +391,40 @@ push @tools,
                     'description' =>
                         'replacement text [ use empty string to delete ]'
                 },
+                'replace_all' => {
+                    'type'        => 'boolean',
+                    'description' =>
+                        'replace all occurrences [ default false ]'
+                },
             },
             'required' => [ 'path', 'old_string', 'new_string' ],
+        },
+    },
+    };
+
+## list_inline_subs — scan module for sub declarations ##
+push @tools,
+    {
+    'type'     => 'function',
+    'function' => {
+        'name'        => 'list_inline_subs',
+        'description' => 'scan a P7 module for inline sub declarations'
+            . ' [ returns names, line numbers, line counts ]',
+        'parameters' => {
+            'type'       => 'object',
+            'properties' => {
+                'module' => {
+                    'type'        => 'string',
+                    'description' =>
+                        'module name [ e.g. plugin.storage.visual.extract-floats ]'
+                },
+                'min_lines' => {
+                    'type'        => 'integer',
+                    'description' =>
+                        'minimum sub body lines to include [ default 0 ]'
+                },
+            },
+            'required' => ['module'],
         },
     },
     };
@@ -496,8 +528,8 @@ push @tools,
 
 return \@tools;
 
-#,,,,,,..,,,,,,,.,...,,,,,,..,,,.,,,.,,,.,,,,,..,,...,...,...,,..,...,,.,,,,.,
-#B3KPURK3NTSELPMG6HM6ANZBVLLX4S6DSHLE2N6V4VDXJRU7ABPFSJM2S4TMKJZBGNALS5JTKTOXG
-#\\\|Z7PBSUGTEYDJSD77AWZBLZYZEPRPXH2GBYEWYAU2F5UNCZBFCKB \ / AMOS7 \ YOURUM ::
-#\[7]VUIRITXVZ4TU57HM35LFMSK4ZBOUARYCX4ZB5SJOHRAUO3WLOWDY 7  DATA SIGNATURE ::
+#,,..,.,,,.,,,.,,,.,,,.,.,,..,.,.,,.,,...,,,,,..,,...,...,...,,..,...,..,,...,
+#ZJ3J7PNXEMPT72ZBDD7TCTPM6WZL2LC4XXHJJWOHK737N3OKLHVUBUKKVK3TQHBMUIKOOLXNZ6BVI
+#\\\|V7HTNLMBBPLVWYNBBGGMGC6GIBSKBSCMUOEW7AB6XOX23ZWSOIX \ / AMOS7 \ YOURUM ::
+#\[7]EFWD7SQJHGR3GS4OJGVEDO6BRKZI7UXJSPZXYZEOV2OQYZHXMKDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

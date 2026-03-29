@@ -1,0 +1,51 @@
+## [:< ##
+
+# name  = coding.tools.handler.list_inline_subs
+# descr = scan a P7 module for inline sub declarations
+
+my $args      = shift                // {};
+my $module    = $args->{'module'}    // return 'module name required';
+my $min_lines = $args->{'min_lines'} // 0;
+
+my $root     = <system.root_path>;
+my $abs_path = "$root/modules/$module";
+return "error: module not found [ $module ]" unless -f $abs_path;
+
+my $content_ref = <[file.slurp]>->($abs_path);
+return 'error: cannot read module' unless defined $content_ref;
+my @lines = split /\n/, $content_ref->$*;
+
+my @subs;
+for my $i ( 0 .. $#lines ) {
+    next unless $lines[$i] =~ m|^sub (\w+)\s*\{|;
+    my $name       = $1;
+    my $start_line = $i + 1;
+
+    ## count lines in sub body [ track brace depth ] ##
+    my $depth      = 0;
+    my $body_lines = 0;
+    for my $j ( $i .. $#lines ) {
+        $depth += ( $lines[$j] =~ tr/{// );
+        $depth -= ( $lines[$j] =~ tr/}// );
+        $body_lines++;
+        last if $depth <= 0 and $j > $i;
+    }
+
+    next if $min_lines and $body_lines < $min_lines;
+
+    push @subs, sprintf '%s [ line %d, %d lines ]', $name, $start_line,
+        $body_lines;
+}
+
+if ( not @subs ) {
+    return sprintf "no inline subs found in %s", $module;
+}
+
+return sprintf "%d inline subs in %s:\n%s",
+    scalar @subs, $module, join( "\n", map {"- $ARG"} @subs );
+
+#,,,.,,,.,,.,,,,,,...,,,,,.,,,,,.,...,,.,,.,,,.,.,...,...,,..,..,,,.,,...,,.,,
+#VCRNOG7GHMYX7QI4JQWJAWKOMRGDJDCMP3YEUEBE4KYRDYLF5BYWHPBVGQCA5ANLJBDQOAY3GCEQS
+#\\\|EJHA4LUX7ZWR652LQD3HPTXJEX46H32QPOAZEWL6MGJQUAMGEGA \ / AMOS7 \ YOURUM ::
+#\[7]JFJ3YTDPIXDZOW6HA23PGFYPRDHCMKJNNRXNDL2CT53I5XY6C6AA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
