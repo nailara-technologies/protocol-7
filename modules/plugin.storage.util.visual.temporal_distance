@@ -25,10 +25,13 @@ my $d2 = $f2->{data};
 # Compare access decay (most important temporal metric)
 my $decay_diff = abs( ( $d1->{decay} // 0 ) - ( $d2->{decay} // 0 ) );
 
+# Normalize to 0-1 for consistency with other distance methods
+return 0 if $decay_diff < 0;
+return 1 if $decay_diff > 1;
 return $decay_diff;
 
-#,,.,,,.,,..,,.,,,.,,,.,,,.,,,.,.,,,,,,,,,...,..,,...,...,.,.,..,,.,.,.,,,..,,
-#DBDHGJSKC3GSHCPJGISADWE6JRGJIYCFB7QEWWC73UH2C4RN72NTDJYQDUFEPDQ4VUHKHPXAGDCLW
-#\\\|LXO5T25SEA4H3DGHEENAU6XHA53V6QB6HOS2WALVMA2QHFC443M \ / AMOS7 \ YOURUM ::
-#\[7]JC4HFCDIF7ZO7FWZSHYLCVWMYEEI7BWSTOXAV6Y4SW55TVYLWGAY 7  DATA SIGNATURE ::
+#,,,.,...,,,.,..,,,..,,,.,,.,,..,,,,,,,..,,..,..,,...,...,,,,,..,,.,,,...,,,,,
+#7PLX67S3JJNJF3BF23JOPFUZ6S24PTFIRBB7FYQJVUUGMQVECU7ZVC3CYN4A7C4ZBIYTMSAGI2QSQ
+#\\\|F62X5MA637ITVE5T6TV7LKB2LWGPRITF7VCCSTWES4ZQTOENLB3 \ / AMOS7 \ YOURUM ::
+#\[7]RRRI4WF6QM44LHPC7EOEAMJX4BS54BWGVLQGSTOG4I64GFYYJSAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
