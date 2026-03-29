@@ -88,8 +88,21 @@ saves via `yaml_save`
 - switch-model: auto backend (gpu first, cpu fallback); kill old server before VRAM check;
   0.3s wait for GPU driver VRAM release; use provided model_path directly in spawn_smart
 
-#,,,,,.,.,...,,,,,...,,..,,,,,,,.,.,.,,.,,,..,..,,...,...,...,.,,,..,,,,,,.,.,
-#MC4HCBLSFVQ45EK4XQJIBANZNVIMB7GLNNX6PDKWMBJWZAQT7ZBESA2RBLCT5MVIHYBZC7GRXVT7E
-#\\\|OOLVAC2AMCRWO3EDWU2QEIG76JAPE4RUGV3PQEGTA4VPZE3OPNX \ / AMOS7 \ YOURUM ::
-#\[7]OHCZYFOLJBYP46YIMPBT745J624UW24WPZUYN7KKLJ4FBDT2ZEDY 7  DATA SIGNATURE ::
+## Coding zenka self-improvement cycle (Mar 29 2026)
+- Inline sub extraction: context.* (9 subs → 8 modules, manual), plugin.storage.cluster.* (6 subs → 5 modules, autonomous)
+- Pager extraction failed (wrong structure, edit mismatches) → diagnosed → refined template + new tools
+- New tools from model self-reflection: replace_in_file (content-based edit), validate_module_format,
+  list_inline_subs, replace_all flag. Model suggested these after meta-reflect tasks.
+- drop_privs moved into coding.init_code after check-zenka-paths + chmod child fork
+- Path escape hardening: Cwd::abs_path in dispatch and write_new_file
+- Compaction threshold 53%, max_tokens 8192, context-tree path fix
+- Extraction template refined 3x: verbatim copy, no return sub{}, one-at-a-time, tool workflow
+- Tool suggestions tracker created (topic-tool-suggestions.md) for deferred improvements
+- Commits: c0f31ed72 (context extraction + hardening), 774836862 (template v1),
+  638686882 (template v2 = commit 7000), bbb9fd34b (new tools), 2e13d3817 (autonomous extraction)
+
+#,,.,,,..,.,.,,..,.,,,,,,,,..,.,.,,..,...,,..,..,,...,...,,..,...,,.,,,.,,,,.,
+#VARPBOPRUBXCAAOXOOIHVH5L6ZURWC4IKIQPAZAS2PTSBDPDAFRUYSWEJODY2AURDPNXNVNUJ7XM4
+#\\\|YIGVG43RKSJXV2O6JL5AZV5PRJ32OMKVN2WBVSR5L2VGNVZ43ET \ / AMOS7 \ YOURUM ::
+#\[7]FOJ7Q5RTSB4PAPPP6OAP7XGQ66SYNEVULYU4MW6PLKP2YELBVKBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
