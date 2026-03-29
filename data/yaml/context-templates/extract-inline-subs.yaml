@@ -150,9 +150,21 @@ sections:
       4. IMMEDIATELY start writing — the plan is not the deliverable.
          for each extraction [ one at a time ]:
          a. write_new_file with the extracted module
-         b. edit_file to update source call site and remove old sub
-         c. verify source still looks correct [ read_module ]
+         b. validate_module_format to check the new module is correct
+         c. replace_in_file to update source call site [ replace the
+            _helper($args) call with <[new.module.name]>->($args) ]
+         d. replace_in_file to remove the old sub declaration from source
+         e. read_module to verify source still looks correct
       5. report completion summary
+
+      ## tool usage ##
+
+      - use replace_in_file [ NOT edit_file ] for source edits.
+        replace_in_file finds text by content match, no line numbers.
+        old_string must match uniquely — include enough context.
+      - use validate_module_format after each write_new_file to catch
+        format errors immediately [ header, forbidden patterns, etc. ]
+      - use ptd_check after editing source modules to verify syntax.
 
       IMPORTANT: the goal is EXTRACTED MODULE FILES, not a report.
       keep the plan short [ 1 line per sub ] then spend all remaining
@@ -167,8 +179,8 @@ on_complete:
     action: memory_update
     topic: "audit:extract-inline-subs"
 
-#,,..,,,.,..,,.,.,.,,,...,...,,,,,,,,,,,,,,..,.,.,...,...,.,,,,.,,...,,,.,..,,
-#Q3GH2W3HV7NTCY2JNHXTIF7DSMB7IHXJCMOVHJ52JRRVWAHG73C4WO5LW74S2N3SVC3VEQZLN7GO6
-#\\\|5UXFGCN3LPRI3TAWAHQRJUWJX3X5IOY3CKWZSEODFKUE6LIO7GB \ / AMOS7 \ YOURUM ::
-#\[7]SCSHZEL3T6JNMU2XHYH4WYZKIR2L7T3QG5AGXN4KLNX6LKMDU6AQ 7  DATA SIGNATURE ::
+#,,,,,..,,,.,,,..,,,.,,..,,..,..,,.,.,,,.,,,.,.,.,...,...,..,,..,,,..,,.,,...,
+#Z2V2DQ67MUK6JLTWHEUDWVQBL75JOTLITMSOFB2C3SZFMYACHTDNLXO3OECODYYBHFTUGIMQUQFAK
+#\\\|TEMSQU64ZABZBL4H767PTRJUFQ5AB4H5XTM6WFNLEJKJRKTM5ZL \ / AMOS7 \ YOURUM ::
+#\[7]CNABPQNKBRHQLIO3OJL3C6XOKQZELW6LUVJREGVAYINB426MEKAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
