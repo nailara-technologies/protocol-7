@@ -68,7 +68,10 @@ foreach my $section (@sections) {
 
     ## evaluate when condition ##
     if ( defined $section->{'when'} ) {
-        next unless _evaluate_when( $section->{'when'}, $vars, $context );
+        next
+            unless <[context.util.template.evaluate_when]>->(
+            $section->{'when'}, $vars, $context
+            );
     }
 
     ## calculate section budget ##
@@ -118,17 +121,21 @@ foreach my $section (@sections) {
         if ( exists $code{$provider} ) {
             my %prov_params = %{ $section->{'params'} // {} };
             $prov_params{'budget'} = $section_budget;
-            _substitute_vars( \%prov_params, $vars );
+            <[context.util.template.substitute_vars]>->(
+                \%prov_params, $vars
+            );
             eval { $result = $code{$provider}->( \%prov_params ) };
         }
 
-        ## provider — call a module ##
+        ## provider -- call a module ##
     } elsif ( defined $section->{'provider'} ) {
         my $provider = $section->{'provider'};
         if ( exists $code{$provider} ) {
             my %prov_params = %{ $section->{'params'} // {} };
             $prov_params{'budget'} = $section_budget;
-            _substitute_vars( \%prov_params, $vars );
+            <[context.util.template.substitute_vars]>->(
+                \%prov_params, $vars
+            );
             eval { $result = $code{$provider}->( \%prov_params ) };
             if ($EVAL_ERROR) {
                 <[base.logs]>->(
@@ -197,61 +204,10 @@ return {
     'depth'   => $depth,
 };
 
-## substitute {{var}} in provider params ##
-sub _substitute_vars {
-    my ( $params_ref, $v ) = @_;
-    foreach my $key ( keys $params_ref->%* ) {
-        next unless defined $params_ref->{$key};
-        next if ref $params_ref->{$key};
-        $params_ref->{$key} =~ s|\{\{(\w[\w.]*)\}\}|
-            defined $v->{$1} ? $v->{$1} : ''
-        |ge;
-    }
-}
-
-## evaluate when condition against vars and context ##
-sub _evaluate_when {
-    my ( $when, $v, $ctx ) = @_;
-
-    ## string condition ##
-    if ( not ref $when ) {
-        ## key=value check ##
-        if ( $when =~ m|^(\w[\w.]*)=(.+)$| ) {
-            my ( $key, $expected ) = ( $1, $2 );
-            my $actual = $v->{$key} // $ctx->{$key} // '';
-            return $actual eq $expected;
-        }
-        ## has_X check — truthy presence ##
-        if ( $when =~ m|^has_(\w[\w.]*)$| ) {
-            my $key = $1;
-            return defined( $v->{$key} // $ctx->{$key} )
-                && length( $v->{$key} // $ctx->{$key} // '' );
-        }
-        ## not_X check — absence ##
-        if ( $when =~ m|^not_(\w[\w.]*)$| ) {
-            my $key = $1;
-            return !length( $v->{$key} // $ctx->{$key} // '' );
-        }
-        ## bare key — truthy ##
-        my $val = $v->{$when} // $ctx->{$when} // '';
-        return length($val) > 0;
-    }
-
-    ## array condition — ALL must be true ##
-    if ( ref $when eq qw| ARRAY | ) {
-        for my $cond ( $when->@* ) {
-            return FALSE unless _evaluate_when( $cond, $v, $ctx );
-        }
-        return TRUE;
-    }
-
-    return TRUE;
-}
-
 # SPDX-License-Identifier: ISC
 
-#,,.,,.,,,,.,,..,,..,,,..,,,.,.,,,.,,,,.,,,.,,..,,...,..,,,.,,,.,,.,.,,,,,,.,,
-#S5XIWOCDIY4KYMAFFM2IID4ZTYNKMCQLGXFBYMQI3JGAEKVX5PFPVKZVVVOSAEXZOXAUDJKBCVAFE
-#\\\|AUHHKSEEJGJATCAY3DPBUXSWH4BDMYYHYI7AJEIN5WZSUUXTQ66 \ / AMOS7 \ YOURUM ::
-#\[7]KFI65LXNWDG3AYCVFSEQEV5WLU34DS3H7B5UJRGIR6UEFWPQ7QCQ 7  DATA SIGNATURE ::
+#,,..,,,.,..,,..,,,.,,..,,...,,..,.,.,,..,,.,,..,,...,...,.,,,...,.,.,...,..,,
+#KFR5O5MXLDZPEEVPSF7KJODEV524ESH6SBFCBE5B5QY7KBUTDYBNKMTHHFU64MBIQDASBRC64D6XG
+#\\\|5KQJINB4MBDRIRXVWOMALQ35OA2YMRA7VKQ4GEQSSCSWNXQOSO4 \ / AMOS7 \ YOURUM ::
+#\[7]U3G5LBYXYLIOQL2E76TAFQPWEF44L7T2YDOCOXHGYV5O6NSBZOAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

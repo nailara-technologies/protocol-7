@@ -1,0 +1,22 @@
+## [:< ##
+
+# name  = context.util.tree.resolve_time_range
+# descr = resolve relative time range expressions to epoch timestamps
+
+my $range = shift // [];
+
+my $now = time();
+
+my $start = $range->[0] // '-1 hour';
+my $end   = $range->[1] // 'now';
+
+return (
+    <[context.util.tree.parse_relative_time]>->( $start, $now ),
+    <[context.util.tree.parse_relative_time]>->( $end,   $now ),
+);
+
+#,,,.,,,.,,.,,,.,,,,.,,,.,.,,,.,.,,,.,,.,,,.,,.,.,...,..,,...,.,.,,..,.,.,,,.,
+#J3Q43PRIKMKFYLIABWPPICYGLOXHL7KKPNHC6Y3LRA446PAES4UGDHC4B7D3L342HWQQNQYGKZSW2
+#\\\|NIRCRGQXD66ZHPI7OWY46FBAMPBNHIBOV6OUYUVUOQEAEJWT73A \ / AMOS7 \ YOURUM ::
+#\[7]3JQRAUNZFTPMWYYO74L34DEB7DXYNWUQHHFY7TJNP64BKFYHTUBY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

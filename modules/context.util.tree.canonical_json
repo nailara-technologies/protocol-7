@@ -1,0 +1,34 @@
+## [:< ##
+
+# name  = context.util.tree.canonical_json
+# descr = deterministic JSON encoding for checksum stability [ recursive ]
+
+my $val = shift;
+
+return '{}' unless defined $val;
+
+if ( ref($val) eq qw| HASH | ) {
+    my @pairs;
+    for my $key ( sort keys $val->%* ) {
+        push @pairs,
+              '"'
+            . $key . '":'
+            . <[context.util.tree.canonical_json]>->( $val->{$key} );
+    }
+    return '{' . join( ',', @pairs ) . '}';
+} elsif ( ref($val) eq qw| ARRAY | ) {
+    return '['
+        . join( ',',
+        map { <[context.util.tree.canonical_json]>->($ARG) } $val->@* ) . ']';
+} elsif ( defined $val ) {
+    $val =~ s|"|\\"|g;
+    return '"' . $val . '"';
+} else {
+    return 'null';
+}
+
+#,,..,,.,,..,,,,.,,..,..,,,,.,.,.,...,...,.,,,.,.,...,...,.,,,.,.,..,,,.,,,,.,
+#XDVF5IBOOLHU2WLRBDGXECSOO5TTRKVF7T2FALOFY6RXDLSDZ4NKVIF5RRMRHJXYL3YUQIII3DXEQ
+#\\\|JUR3LZHFK23WRRJW3JZLLCCL6QRVL6QFACFQAFT6N337BVHJQDY \ / AMOS7 \ YOURUM ::
+#\[7]Y2TBRTK5REWCR2NBMPVJRAX6V2TBRXLHJULLMVH7YREFLM6UUECY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
