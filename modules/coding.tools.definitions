@@ -366,6 +366,60 @@ push @tools,
     },
     };
 
+## replace_in_file — content-based find and replace [ no line numbers ] ##
+push @tools,
+    {
+    'type'     => 'function',
+    'function' => {
+        'name'        => 'replace_in_file',
+        'description' => 'find and replace text in a file by content match'
+            . ' [ no line numbers needed, old_string must be unique ]',
+        'parameters' => {
+            'type'       => 'object',
+            'properties' => {
+                'path' => {
+                    'type'        => 'string',
+                    'description' => 'file path relative to project root'
+                },
+                'old_string' => {
+                    'type'        => 'string',
+                    'description' =>
+                        'exact text to find [ must match uniquely ]'
+                },
+                'new_string' => {
+                    'type'        => 'string',
+                    'description' =>
+                        'replacement text [ use empty string to delete ]'
+                },
+            },
+            'required' => [ 'path', 'old_string', 'new_string' ],
+        },
+    },
+    };
+
+## validate_module_format — check P7 module against format rules ##
+push @tools,
+    {
+    'type'     => 'function',
+    'function' => {
+        'name'        => 'validate_module_format',
+        'description' => 'check a P7 module for format issues:'
+            . ' header, metadata, forbidden patterns,'
+            . ' inline sub declarations',
+        'parameters' => {
+            'type'       => 'object',
+            'properties' => {
+                'module' => {
+                    'type'        => 'string',
+                    'description' =>
+                        'module name [ e.g. context.util.tree.canonical_json ]'
+                },
+            },
+            'required' => ['module'],
+        },
+    },
+    };
+
 ## ptd_check — syntax check a P7 module ##
 push @tools,
     {
@@ -442,8 +496,8 @@ push @tools,
 
 return \@tools;
 
-#,,..,.,,,,.,,,,.,,..,,,.,,,,,.,.,,.,,,..,,,.,..,,...,..,,...,.,.,,,.,.,,,..,,
-#GPOKTU7D3EPI3T7IHYN3LSL4IUVPIC4AFGQRTH5XIQAUV7E7UT3OYQU2G5RNH7BDOVW5ETP4XX4DM
-#\\\|FOGZM6Y4H47TDX2RGNDZHG7UANGIN3XS7SI2TCBLEYRE4EOTGLV \ / AMOS7 \ YOURUM ::
-#\[7]IQ4F52OVSLTJNYLHBJCTQLY6PCFFJ2PPD7DTCLYF7B2ED3DTPYDQ 7  DATA SIGNATURE ::
+#,,,,,,..,,,,,,,.,...,,,,,,..,,,.,,,.,,,.,,,,,..,,...,...,...,,..,...,,.,,,,.,
+#B3KPURK3NTSELPMG6HM6ANZBVLLX4S6DSHLE2N6V4VDXJRU7ABPFSJM2S4TMKJZBGNALS5JTKTOXG
+#\\\|Z7PBSUGTEYDJSD77AWZBLZYZEPRPXH2GBYEWYAU2F5UNCZBFCKB \ / AMOS7 \ YOURUM ::
+#\[7]VUIRITXVZ4TU57HM35LFMSK4ZBOUARYCX4ZB5SJOHRAUO3WLOWDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
