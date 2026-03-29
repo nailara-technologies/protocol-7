@@ -11,6 +11,12 @@ type: project
 - **list_inline_subs** — scan module for sub declarations, return names/lines/counts (2026-03-29)
 - **replace_in_file replace_all** — flag for replacing all occurrences (2026-03-29)
 
+## Findings from task-M7QLKRQ (2026-03-29)
+- Model added `.p7` extension to filenames — template now explicitly forbids extensions
+- Created new modules but skipped source edits — template now emphasizes both halves
+- validate_module_format can't check files not yet loaded (uses module name, resolves to modules/$name)
+- Model noted read_module truncation at 4000 chars forced manual sub body extraction
+
 ## Ready to Implement
 
 - **replace_in_file dry_run** — preview mode, show what would change without writing.
@@ -55,8 +61,8 @@ type: project
 - task-63KH5CQ (2026-03-29): second meta-reflection with tool access, suggested
   extract_single_sub, analyze_sub_complexity, replace_all, list_inline_subs
 
-#,,,.,,.,,,,.,,.,,,,.,..,,,.,,.,,,,..,,.,,,.,,..,,...,...,.,,,...,,,.,,,.,,,,,
-#LZWIHT7JPR4QYQZQV7YK6IBE6KM5HGFAYZTS3VTHZUVOMFPP4TQW4FCO2B53XFNAOICM3SEA5ZIL2
-#\\\|HJ55PB2772VWHJJC6DO3HQIANQM4BAAZ22FRQDVFFYKDMJB36AC \ / AMOS7 \ YOURUM ::
-#\[7]UNQJHZ4JBSB4BSDRD2LEBQ2FM5LB2CRD3DGMTKIXUXYRSLMPDSDY 7  DATA SIGNATURE ::
+#,,,.,...,.,.,.,.,...,.,,,...,..,,,.,,..,,,,,,..,,...,...,,..,,,,,,,,,...,,..,
+#O6TMO4NXVDUQSJFYVJRS6FFHQLHQC22DRMXU5KUIXIGJMADI4X3QKBBPYA5NIP22BDK6V5N5ILVOC
+#\\\|GNCO3HBXW6EL2A7PV2Y3PFKVHE57736AWXKTNYP5Q5JDECXCU5V \ / AMOS7 \ YOURUM ::
+#\[7]CACV76ZBD7RUJHMH5WPYXD26W6RTEWHITSYF4R6DVOZQG5OQTQAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

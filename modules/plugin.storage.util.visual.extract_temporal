@@ -1,0 +1,33 @@
+## [:< ##
+
+# name  = plugin.storage.util.visual.extract_temporal
+# descr = Extract temporal properties from P7REF data for visual positioning
+
+my ($data) = @_;
+my $path = $data->{path} // '';
+my %metrics;
+
+if ( -f $path ) {
+    my ( $atime, $mtime, $ctime ) = ( stat($path) )[ 8, 9, 10 ];
+    my $now = time();
+
+    # Age in days (normalized)
+    $metrics{age} = ( $now - $ctime ) / 86400.0 / 365.0;    # Years
+    $metrics{age} = 1.0 if $metrics{age} > 1.0;
+
+    # Access decay (exponential)
+    my $days_since_access = ( $now - $atime ) / 86400.0;
+    $metrics{decay} = exp( -$days_since_access / 30.0 );    # 30-day half-life
+
+    # Time of day preference (0-24 normalized)
+    my ($hour) = ( localtime($atime) )[2];
+    $metrics{time_pref} = $hour / 24.0;
+}
+
+return \%metrics;
+
+#,,,.,,..,.,,,.,.,...,..,,..,,,.,,.,.,.,.,...,..,,...,...,..,,.,.,.,.,.,.,,..,
+#CXHTM66PODDAZT6OBDFIEXKDS66I6XQOKXBWG6DS6VW7PKZTP7US2SSEZBHEL2OV5MRGVQ5PLKSJG
+#\\\|YUNOB4YWUKQ7LR3ORADQ6VTXOE4FNKM3LRNBAOYS33M27XZ3NG3 \ / AMOS7 \ YOURUM ::
+#\[7]73UBEP2NXFXYGFGSTAUOIXAA5SERBVA3FOQD55MM5LMGMQ5MSUAI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
