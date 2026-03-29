@@ -1,0 +1,23 @@
+## [:< ##
+
+# name  = plugin.storage.util.create_overflow_cluster
+# descr = Create overflow cluster when main cluster is full
+
+my ( $parent_id, $members ) = @_;
+
+return <[plugin.storage.checksum.cluster.create]>->(
+    {   'checksum' => $parent_id . '-overflow-' . time(),
+        'type'     => 'overflow',
+        'members'  => $members,
+        'metadata' => {
+            'parent'      => $parent_id,
+            'is_overflow' => 1,
+        },
+    }
+);
+
+#,,.,,.,.,...,,,,,.,.,,,.,,..,,,,,...,,,,,..,,..,,...,...,.,.,.,.,,,,,.,,,,.,,
+#F2PKCDEPODPNZ3XNUQTXGHT3X3EFGES6F3H6KIJMWOB67H3UCJCCTZQ42WELPZXZ6BV33NO374CDU
+#\\\|D7UXGCQT7G3DNUHLQ5YN4A4G53KIWL6FT5E6EBSJHGSOUV5GC36 \ / AMOS7 \ YOURUM ::
+#\[7]AYUMWNA5SOCPKWOAKVYNVDIZQQPY7WDHD5RWN3GSF2DEECAEIYAQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
