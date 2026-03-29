@@ -1,0 +1,55 @@
+## [:< ##
+
+# name  = context.util.tree.calculate_relevance
+# descr = calculate multi-dimensional relevance score for context tree event
+
+my $event = shift // return {};
+
+my $weights = <context.tree.summary.config.relevance_weights> // {
+    'proximity'  => 0.25,
+    'recency'    => 0.30,
+    'centrality' => 0.15,
+    'semantic'   => 0.15,
+    'authority'  => 0.15,
+};
+
+my $now = time();
+my $age = $now - ( $event->{'timestamp'} // $now );
+
+## recency: exponential decay [ 1-hour half-life ] ##
+my $recency = exp( -$age / 3600 );
+
+## proximity: based on branch depth [ simplified ] ##
+my $proximity = 1.0;
+
+## centrality: placeholder [ would use graph analysis ] ##
+my $centrality = 0.5;
+
+## semantic: placeholder [ would use vector similarity ] ##
+my $semantic = 0.5;
+
+## authority: based on agent ##
+my $authority = ( $event->{'agent'} // '' ) =~ m{kimi|claude} ? 1.0 : 0.7;
+
+## total relevance ##
+my $total
+    = $weights->{'proximity'} * $proximity
+    + $weights->{'recency'} * $recency
+    + $weights->{'centrality'} * $centrality
+    + $weights->{'semantic'} * $semantic
+    + $weights->{'authority'} * $authority;
+
+return {
+    'total'      => $total,
+    'proximity'  => $proximity,
+    'recency'    => $recency,
+    'centrality' => $centrality,
+    'semantic'   => $semantic,
+    'authority'  => $authority,
+};
+
+#,,.,,.,.,.,.,,.,,,,,,,.,,..,,..,,,..,...,.,.,.,.,...,...,.,,,.,.,..,,,..,,,.,
+#H662YQH3GLTAKTKCXAPRR25PSWPHSUCXIF4YZR5K6OH3P5ETFBKSHOWH62Y5BZNYZYENS43EI7FYK
+#\\\|NJX4WBL2PNL3NOF6KDILRWQAK5F6TCLIEIBQD5DD3S66OULXHDV \ / AMOS7 \ YOURUM ::
+#\[7]BOATL75G2JAJPZGGJKYCKZMB2HCXD4A4K6K2PUV4KXQU5IVTXSCA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

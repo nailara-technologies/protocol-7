@@ -1,0 +1,36 @@
+## [:< ##
+
+# name  = context.util.tree.generate_summary
+# descr = generate structured summary from filtered context tree events
+
+my $events = shift // [];
+
+my %by_type;
+my %by_agent;
+my $total_relevance = 0;
+
+for my $event ( $events->@* ) {
+    $by_type{ $event->{'type'} }++;
+    $by_agent{ $event->{'agent'} }++;
+    $total_relevance += $event->{'relevance'}{'total'} // 0;
+}
+
+my $count = scalar $events->@*;
+
+return {
+    'event_count'     => $count,
+    'unique_types'    => scalar( keys %by_type ),
+    'unique_agents'   => scalar( keys %by_agent ),
+    'by_type'         => \%by_type,
+    'by_agent'        => \%by_agent,
+    'avg_relevance'   => $count ? ( $total_relevance / $count ) : 0,
+    'time_span_hours' => $count
+    ? ( ( $events->[0]{'timestamp'} - $events->[-1]{'timestamp'} ) / 3600 )
+    : 0,
+};
+
+#,,,,,.,,,,,.,.,,,,..,,,,,,.,,,,,,.,.,..,,,,.,.,.,...,...,,..,.,.,,,,,,,,,,,,,
+#BCCJUFGYW6L3QTAHISWBNDPH56DXO3G5EAZ5RFFNGRBVLFXFI4DCHECEY3HCBYPDS64AABSVIV4ES
+#\\\|WQP3UXHFX46F4TWGSZMUTEWU24777GE5R5FLX5ETR5UISTZVVU2 \ / AMOS7 \ YOURUM ::
+#\[7]ROOOQRI7DVDBQDQQXTVPZJT4P6KX4UAML74JQIJ3ZKSUDLXHSIDI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

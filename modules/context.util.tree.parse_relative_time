@@ -1,0 +1,34 @@
+## [:< ##
+
+# name  = context.util.tree.parse_relative_time
+# descr = parse single relative time expression to epoch timestamp
+
+my ( $expr, $now ) = @_;
+
+$now //= time();
+
+return $now if $expr eq 'now';
+
+if ( $expr =~ m{^-?\d+\s*(second|minute|hour|day|week)s?$} ) {
+    my ( $num, $unit ) = $expr =~ m{(-?\d+)\s*(\w+)};
+    my $multiplier = {
+        'second' => 1,
+        'minute' => 60,
+        'hour'   => 3600,
+        'day'    => 86400,
+        'week'   => 604800,
+    }->{$unit} // 1;
+
+    return $now + ( $num * $multiplier );
+}
+
+## assume absolute timestamp ##
+return $expr if $expr =~ m|^\d+$|;
+
+return $now;
+
+#,,..,,.,,,,,,..,,,,.,,.,,,..,,.,,..,,.,.,..,,.,.,...,...,,..,,,.,.,.,,,.,,,.,
+#OHZLXZOTZHVEEWGE6OBW5TDDS4ICGRTNXARVEBZRCQZRRS376OMS4XTOT3YVITUI7INJOPR2EICFS
+#\\\|RY6VKSPCSGR5BBSBTJD5RIXTTKON3Q33RYX6RMSDKV76ORKOS7X \ / AMOS7 \ YOURUM ::
+#\[7]EF7DPKFHUEWKYNSHBHIGX4TCQHHUSUREVLIZMQV5SWNYZDQXO2AY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

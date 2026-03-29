@@ -1,0 +1,47 @@
+## [:< ##
+
+# name  = context.util.tree.generate_narrative
+# descr = generate human-readable narrative from context tree events
+
+my $events = shift // [];
+
+return 'no events in branch.' unless $events->@*;
+
+my $summary = <[context.util.tree.generate_summary]>->($events);
+
+my @parts;
+push @parts,
+    sprintf 'branch contains %d events across %d types from %d agents.',
+    $summary->{'event_count'},
+    $summary->{'unique_types'},
+    $summary->{'unique_agents'};
+
+## top types ##
+my @top_types
+    = sort { $summary->{'by_type'}{$b} <=> $summary->{'by_type'}{$a} }
+    keys $summary->{'by_type'}->%*;
+
+if (@top_types) {
+    my $max = @top_types > 3 ? 2 : $#top_types;
+    push @parts,
+        'most common: '
+        . join( ', ',
+        map {"$ARG=$summary->{'by_type'}{$ARG}"} @top_types[ 0 .. $max ] );
+}
+
+## recent highlights ##
+my @high_relevance
+    = grep { ( $ARG->{'relevance'}{'total'} // 0 ) > 0.8 } $events->@*;
+if (@high_relevance) {
+    push @parts, sprintf '%d high-relevance events including: %s',
+        scalar(@high_relevance),
+        $high_relevance[0]{'type'};
+}
+
+return join( '. ', @parts ) . '.';
+
+#,,.,,,.,,.,.,..,,.,,,,,,,.,,,..,,,,.,,,.,...,.,.,...,...,...,.,,,,.,,,,,,..,,
+#6DKOL5FD7Y4CA5UMM64R2EOVTSL2Z2COXLZ64BDACZBUQRRPM7AGQANC6QTMFQPMBTGDWCVPBNDJQ
+#\\\|BC7KXCX7QKQ6KD2CBEH3N5PC27NC53HW5I2EDGKGQ7JNGDAAZCH \ / AMOS7 \ YOURUM ::
+#\[7]YY3YMTEWADVVXSFC7YWREQ5QDYYFUMGBWKAMNMV5PQBOZFCAFUAA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

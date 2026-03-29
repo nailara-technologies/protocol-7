@@ -48,8 +48,37 @@ if ( defined <system.root_path> and -d <system.root_path> . '/.git' ) {
     $ENV{'GIT_CONFIG_VALUE_0'} = <system.root_path>;
 }
 
+## set up zenka paths as root [ correct ownership ] ##
+<[base.path-set-up.check-zenka-paths]>->(
+    TRUE, 0750, FALSE, 0700, 'context-tree'
+);
+<[base.path-set-up.check-zenka-paths]>->(
+    TRUE, 0750, FALSE, 0700, 'context-tree/index'
+);
+<[base.path-set-up.check-zenka-paths]>->(
+    TRUE, 0750, FALSE, 0700, 'context-tree/nodes'
+);
+<[base.path-set-up.check-zenka-paths]>->(
+    TRUE, 0750, FALSE, 0700, 'context-tree/edges'
+);
+<[base.path-set-up.check-zenka-paths]>->(
+    TRUE, 0750, FALSE, 0700, 'context-tree/streams'
+);
+<[base.path-set-up.check-zenka-paths]>->( TRUE, 0750, FALSE, 0700, 'staged' );
+<[base.path-set-up.check-zenka-paths]>->(
+    TRUE, 0750, FALSE, 0700, 'learning'
+);
+<[base.path-set-up.check-zenka-paths]>
+    ->( TRUE, 0750, FALSE, 0700, 'results' );
+<[base.path-set-up.check-zenka-paths]>->( TRUE, 0750, FALSE, 0700, 'state' );
+
 ## fork privileged chmod child before drop_privs ##
 <[coding.start.chmod_child]>;
+
+## drop privileges [ must happen after path setup and chmod child fork ] ##
+<[base.root.drop_privs]>->(
+    <coding.cfg.drop_privs_user>, <coding.cfg.drop_privs_admin_group>
+);
 
 # Initialize coding zenka data structure
 <coding.state> //= {
@@ -310,8 +339,8 @@ if ( not $already_initialized ) {
 
 return 0;
 
-#,,.,,,,.,.,,,.,.,..,,...,,.,,...,..,,,.,,,..,..,,...,...,,,.,...,.,,,,,,,,.,,
-#LM2ULFPULH2SAK2IY7RA7YWNYEXDYFOGVVBR2HUHRFZWEP2D7PBLRGDUP6IAHH2DSYBFUJFCTHTBO
-#\\\|Y6WUNKRNO6C2DBBTNVJNWALYZXTTTYGITU6B7VDSTJHAHGAXC3F \ / AMOS7 \ YOURUM ::
-#\[7]EZ2L4M7EM7VGB2Z44KXEHJARVDEZRDTG42YTVRXCBGU66RQ3NQBA 7  DATA SIGNATURE ::
+#,,,,,,,.,,,.,.,.,..,,,,,,,..,...,...,,,.,..,,..,,...,...,.,.,.,,,...,...,,,.,
+#DI3D5YSCB2O2YZENYOXN7WE6ZPH5NBSZSVUGK6DQBL6LEMK5MBYH6XD5NHT4322YGCOVGDKXWBLJI
+#\\\|ES4HQG5OORYC6KPM4QVNLNSP5CDCAVVSNROZ32OVEV5LJZFVFGZ \ / AMOS7 \ YOURUM ::
+#\[7]KMHDIW35WM4JZ67ZPBSZUQTXKTBH2MMBI7RICUVTRHYPRIIIIGDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

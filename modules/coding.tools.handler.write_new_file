@@ -9,9 +9,20 @@ my $content = $args->{'content'} // return 'content required';
 my $root     = <system.root_path>;
 my $abs_path = "$root/$path";
 
-## validate path stays within project ##
+## auto-prefix modules/ for dot-notation filenames without directory ##
+if ( $path !~ m|/| and $path =~ m|\.\w+\.| ) {
+    $path     = "modules/$path";
+    $abs_path = "$root/$path";
+}
+
+## validate path stays within project [ resolve symlinks ] ##
+use Cwd qw| abs_path |;
+my $real_root = Cwd::abs_path($root)                           // '';
+my $real_dir  = Cwd::abs_path( ( $abs_path =~ s|/[^/]+$||r ) ) // '';
 return 'error: path escapes project root'
-    if $abs_path =~ m|\.\./| or $path =~ m|^/|;
+    if !length $real_dir
+    or index( $real_dir, "$real_root/" ) != 0
+    or $path =~ m|\.\./|;
 
 ## refuse to overwrite existing files ##
 return "error: file already exists [ $path ]" if -e $abs_path;
@@ -56,8 +67,8 @@ return sprintf "staged new file %s [ %d bytes, no write access ]\n"
     . "staged at: %s",
     $path, length($content), $stage_rel;
 
-#,,.,,.,,,,.,,,,,,,.,,...,...,,.,,,,.,,,,,,.,,..,,...,...,,,.,,..,,,,,,.,,,,.,
-#LYQVYUMTFEAJ42OUIEAQIRQL2ZQZ4CRFU46DUQY5UPUTNW5GWZQWA5UXJS2TLRZGSYRM733GTABNA
-#\\\|RSST3JDKLE2T2NOHHFKQFNSOZW5NMIMYF7ULLGSUAGU4VGYV5FY \ / AMOS7 \ YOURUM ::
-#\[7]AZ35WQBMG44OKAKWDRAB46XJP4Y3XYSUEXDAVUTSH4EY65SXIIBI 7  DATA SIGNATURE ::
+#,,.,,,.,,..,,..,,,,.,.,,,..,,...,.,.,.,.,.,,,..,,...,...,..,,.,.,.,,,,,,,,.,,
+#OHZDZGFNI3UI6K7YR2UV2JBSQ7I4SWZHLFQME5KLTOQWLRB4AIYRVAS7TZ6JJFKW66ZFJHJF5INU4
+#\\\|46NZHBIC7GBPDWI4LJWBZBOQYHFVGFASAB4XWEVKU57NWS6MUK4 \ / AMOS7 \ YOURUM ::
+#\[7]MMHW4R7A47BJDC6JCSJRJ4BG5DLW5GUONEQBHJHA4I3FK5IXPAAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
