@@ -16,16 +16,14 @@ if ( defined $input && ref($input) && ref($input) =~ m{Event::} ) {
     $meta_id = $event->w->data;
 
     unless ( defined $meta_id && length $meta_id ) {
-        <[base.logs]>->( 0, "::processing:: meta_id required" );
+        <[base.logs]>->( 0, "::working:: meta_id required" );
         return { success => FALSE, error => 'meta_id required' };
     }
 
     my $meta_job = <coding.complete_analysis_jobs>->{$meta_id};
 
     unless ( defined $meta_job ) {
-        <[base.logs]>->(
-            0, "::processing:: meta-job not found : %s", $meta_id
-        );
+        <[base.logs]>->( 0, "::working:: meta-job not found : %s", $meta_id );
         return { success => FALSE, error => "meta-job not found: $meta_id" };
     }
 
@@ -38,22 +36,20 @@ if ( defined $input && ref($input) && ref($input) =~ m{Event::} ) {
     $meta_id = undef;    ## no meta-job for direct queue submit ##
 
     unless ( defined $task_id ) {
-        <[base.logs]>->(
-            0, "::processing:: task_id required in jobqueue mode"
-        );
+        <[base.logs]>->( 0, "::working:: task_id required in jobqueue mode" );
         return { success => FALSE, error => 'task_id required' };
     }
 } else {
     <[base.logs]>->(
         0,
-        "::processing:: unexpected input type : %s",
+        "::working:: unexpected input type : %s",
         ref($input) || 'undef'
     );
     return { success => FALSE, error => 'unexpected input type' };
 }
 
 <[base.logs]>->(
-    2,        "::processing:: processing task=%s [meta=%s]",
+    2,        "::working:: processing task=%s [meta=%s]",
     $task_id, $meta_id // 'none'
 );
 
@@ -61,7 +57,7 @@ if ( defined $input && ref($input) && ref($input) =~ m{Event::} ) {
 my $task = <coding.task.queue>->{$task_id};
 
 unless ( defined $task ) {
-    <[base.logs]>->( 0, "::processing:: task not found : %s", $task_id );
+    <[base.logs]>->( 0, "::working:: task not found : %s", $task_id );
     return { success => FALSE, error => "task not found : $task_id" };
 }
 
@@ -79,7 +75,7 @@ my $prompt       = $assembled->{'prompt'};
 unless ( $backend_info->{'available'} ) {
     <[base.logs]>->(
         0,
-        "::processing:: backend not available : %s",
+        "::working:: backend not available : %s",
         $backend_info->{'error'} // 'unknown'
     );
     $task->{'execution'}->{'status'} = 'failed';
@@ -113,7 +109,7 @@ if ( exists $code{'plugin.storage.inference.lookup'} ) {
 
         <[base.logs]>->(
             1,
-            "::processing:: cache hit [ branch=%s hits=%d model=%s ]",
+            "::working:: cache hit [ branch=%s hits=%d model=%s ]",
             $cache_result->{'data'}{'branch'},
             $hit_count,
             $cached->{'model'} // qw| unknown |
@@ -140,13 +136,12 @@ if ( exists $code{'plugin.storage.inference.lookup'} ) {
         };
     }
 
-    <[base.logs]>
-        ->( 2, "::processing:: cache miss, proceeding to inference" );
+    <[base.logs]>->( 2, "::working:: cache miss, proceeding to inference" );
 }
 
 <[base.logs]>->(
     1,
-    "::processing:: routed to %s:%d model=%s",
+    "::working:: routed to %s:%d model=%s",
     $backend_info->{'backend'},
     $backend_info->{'port'},
     $backend_info->{'model'} // 'default'
@@ -158,7 +153,7 @@ my $inference_result = <[coding.routing.decide_service]>->( 'route', $task );
 if ( !$inference_result->{success} ) {
     <[base.logs]>->(
         1,
-        "::processing:: routing decision : %s",
+        "::working:: routing decision : %s",
         $inference_result->{error}
     );
 }
@@ -171,7 +166,7 @@ my $model_id       = $backend_info->{'model'};
 my $server_seed    = $backend_info->{'seed'} // 'unknown';
 
 <[base.logs]>->(
-    2, "::processing:: model=%s tokens=%d temp=%f port=%d seed=%s",
+    2, "::working:: model=%s tokens=%d temp=%f port=%d seed=%s",
     $model_id, $max_tokens, $temperature, $inference_port, $server_seed
 );
 
@@ -229,7 +224,7 @@ INFERENCE_LOOP:
             if ( $est_tokens > $compact_threshold ) {
                 <[base.logs]>->(
                     1,
-                    "::processing:: context compaction : "
+                    "::working:: context compaction : "
                         . "%d tokens est, threshold=%d, %d msgs",
                     $est_tokens,
                     $compact_threshold,
@@ -301,7 +296,7 @@ INFERENCE_LOOP:
 
                     <[base.logs]>->(
                         1,
-                        "::processing:: compacted %d msgs → 1 "
+                        "::working:: compacted %d msgs → 1 "
                             . "summary, %d msgs remain",
                         $protect_end - $protect_start,
                         scalar @messages
@@ -334,14 +329,13 @@ INFERENCE_LOOP:
 
         <[base.logs]>->(
             1,
-            "::processing:: round=%d msgs=%d est_tokens=%d:%d"
-                . " [ %d%% ] remaining=%d",
+            "::working:: :%03d: msgs=%d est_tokens=%d:%d:%d [CTX:%d%%]",
             $tool_round,
             scalar @messages,
             $est_tokens,
             $context_limit,
-            $pct_used,
-            $tokens_left > 0 ? $tokens_left : 0
+            $tokens_left > 0 ? $tokens_left : 0,
+            $pct_used
         );
 
         my $http_response = $ua->post(
@@ -372,7 +366,7 @@ INFERENCE_LOOP:
                 $server_retries--;
                 <[base.logs]>->(
                     1,
-                    "::processing:: jinja template error"
+                    "::working:: jinja template error"
                         . " [ retrying, %d left ]",
                     $server_retries
                 );
@@ -422,7 +416,7 @@ INFERENCE_LOOP:
                 my $tool_name = $tc->{'function'}->{'name'} // '?';
 
                 <[base.logs]>->(
-                    2,           "::processing:: tool call :%04d: %s",
+                    2,           "::working:: tool call :%04d: %s",
                     $tool_round, $tool_name
                 );
 
@@ -451,7 +445,7 @@ INFERENCE_LOOP:
             my @tool_names = map { $_->{'function'}->{'name'} // '?' }
                 $message->{'tool_calls'}->@*;
             <[base.logs]>->(
-                1,           "::processing:: :%04d: %s",
+                1,           "::working:: :%03d: %s",
                 $tool_round, join( ', ', @tool_names )
             );
 
@@ -461,7 +455,7 @@ INFERENCE_LOOP:
                 my $summary = <coding.tool_loop.stop_summary> // '';
 
                 <[base.logs]>->(
-                    1,       "::processing:: stop signal: %s [ %s ]",
+                    1,       "::working:: stop signal: %s [ %s ]",
                     $reason, substr( $summary, 0, 120 )
                 );
 
@@ -493,13 +487,13 @@ INFERENCE_LOOP:
         ## accumulate partial content from tool rounds ##
         if ( $tool_round > 0 ) {
             <[base.logs]>->(
-                1, "::processing:: completed after %d tool rounds, %d chars",
+                1, "::working:: completed after %d tool rounds, %d chars",
                 $tool_round, length($response_text)
             );
         } else {
             <[base.logs]>->(
                 1,
-                "::processing:: inference success : %d chars, finish_reason=%s",
+                "::working:: inference success : %d chars, finish_reason=%s",
                 length($response_text),
                 $finish_reason_val
             );
@@ -523,7 +517,7 @@ $http_error //= <[base.str.eval_error]> if $@;    ## capture eval die ##
 if ( defined $http_error ) {
     my $err_short
         = <[base.parser.center_ellipse_string]>->( $http_error, 72 );
-    <[base.logs]>->( 0, "::processing:: inference error : %s", $err_short );
+    <[base.logs]>->( 0, "::working:: inference error : %s", $err_short );
     $task->{'execution'}->{'status'} = 'failed';
     $task->{'execution'}->{'error'}  = $http_error;
     return { success => FALSE, error => $http_error, task_id => $task_id };
@@ -546,7 +540,7 @@ if ( length $response_text
         and $store_result->{'mode'} eq qw| true | ) {
         <[base.logs]>->(
             2,
-            "::processing:: cached → branch=%s result=%s",
+            "::working:: cached → branch=%s result=%s",
             $store_result->{'data'}{'branch'} // '?',
             substr( $store_result->{'data'}{'result'} // '', 0, 12 )
         );
@@ -556,8 +550,8 @@ if ( length $response_text
 ## return result hashref for jobqueue callback ##
 return { success => TRUE, result => $response_text, task_id => $task_id };
 
-#,,,,,.,,,,,.,...,,,.,...,.,.,,..,.,,,.,,,,..,..,,...,...,.,.,,,,,...,,,,,..,,
-#WJLJTEF4SDNOG6I6DPCCTSSPNGV7TYISBOJGKPZULUVAK57XDNETGPN66GKN2HDPUW5RL3QN7DIRI
-#\\\|NSSKNLNYEGRKYFY4Z2KVRBC6QQUTKA6RN2PBMURI53X3CFURWLB \ / AMOS7 \ YOURUM ::
-#\[7]4C2ZEUQDBZVBILVJHVSA3RSE7KAVMPECXR5VVHUM4ZCYAN75YCCQ 7  DATA SIGNATURE ::
+#,,.,,,,,,.,.,...,,..,..,,.,,,.,.,,.,,.,.,,,.,..,,...,...,..,,,,,,..,,,.,,.,.,
+#2JPASHDVJQQNZBEI4CVUW7HQ7COGCYHWNWEDH3Z2AHFJJ3G4YH2EVABBENNC367D3RSVRJE52EAD6
+#\\\|2APORILPZIVU4MNGDWUEVVX7PMTKOTPBGFC7OUIQ7H7ZUI3BTBV \ / AMOS7 \ YOURUM ::
+#\[7]KVOSOF6W2E443OG4O5D4OOIMIU33LMMQLTPSYRBSDHGAXSSQC6DQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
