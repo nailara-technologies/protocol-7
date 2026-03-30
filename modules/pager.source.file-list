@@ -44,7 +44,15 @@ return {
                 my $path = "$dir/$entry";
                 $path =~ s|//|/|g;
 
-                next if $pattern && $entry !~ /$pattern/;
+                if ( length $pattern ) {
+                    my $re = eval {qr/$pattern/};
+                    if ( not defined $re ) {
+                        ## treat as literal substring match ##
+                        next if index( $entry, $pattern ) == -1;
+                    } else {
+                        next if $entry !~ $re;
+                    }
+                }
 
                 my @stat = stat($path);
                 next unless @stat;
@@ -88,8 +96,8 @@ return {
 
 # SPDX-License-Identifier: ISC
 
-#,,.,,..,,,.,,..,,,..,,..,,..,,..,,,,,,,.,...,..,,...,...,,,,,,,.,..,,,,.,.,.,
-#HVSXT64FKJCWOAKE3T5WYU3ZVHDPBF6UYN4RAVTEMSI5Q2TUMYDKPHCCLR4CXJKC3C3FY5I7JOR54
-#\\\|ISJX4LIBRB35ZHNGTAHHJGB44VC6CSBPFXJ7RR7FDXRMINKP6QD \ / AMOS7 \ YOURUM ::
-#\[7]5EYKSACVX2TWUYLYMNXV5IFHIR5BC3ES2S7PELH6MD3UGFNQW2BQ 7  DATA SIGNATURE ::
+#,,.,,,,,,..,,,..,,,,,,..,,,.,.,,,,.,,..,,,,,,..,,...,...,.,,,.,.,,,,,,,.,..,,
+#UU4TLFBLECI5UHZGSF7VAKVIRQMBJ2Z55XGHU7FEU62DFSZHCNSAOHTPWOXY7NJFOIW4AMJDCT4FC
+#\\\|OTVVWDD4CU6ENOHDHEKWRUCGIYUJDMPMZHU4USQLWUC4ELDJBTO \ / AMOS7 \ YOURUM ::
+#\[7]IJUOXNOKYZRL5JZIUPZJJBERIAMX6QDKAA6DVMUSA2NZ7NPJNSCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
