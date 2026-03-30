@@ -1,0 +1,104 @@
+---
+name: fix-format-issues
+descr: apply fixes from audit findings — format, style, missing headers, dead code
+budget: 4000
+sections:
+  ## style conventions ##
+  - include: system-review
+    priority: 1
+    budget_pct: 8
+
+  ## instructions ##
+  - static: |
+      apply fixes to modules based on audit findings or issue list.
+
+      ## round budget: aim for 10-20 tool rounds max ##
+      ## fix the listed issues, verify each, call task_complete ##
+      ## do NOT expand scope beyond the issues given ##
+
+      ## issues to fix ##
+      {{issues}}
+
+      ## fix protocol ##
+
+      ### step 1: read and understand ###
+
+      for each issue listed:
+      1. read_module to see the current module content
+      2. validate_module_format to confirm the reported issue exists
+      3. if the issue is NOT present [ already fixed ], skip it
+
+      ### step 2: classify and fix ###
+
+      for each confirmed issue, classify it:
+
+      **format fixes** [ safe to apply immediately ]:
+      - missing `# descr` line in header
+      - blank line issues after header
+      - missing `## [:< ##` header
+      - wrong comment style [ uppercase, parentheses ]
+      - incorrect log format or level
+      - missing `$ARG` substitution
+
+      **style fixes** [ safe to apply ]:
+      - qw| | mode values in return hashrefs
+      - bracket annotations [ word ] not ( word )
+      - lowercase comments
+      - log sprintf format without interpolation
+
+      **structural fixes** [ apply with care ]:
+      - dead code removal [ verify no callers first with search_code ]
+      - unreachable code paths
+      - duplicate logic
+
+      **needs judgment** [ do NOT fix, record instead ]:
+      - API changes or behavior changes
+      - module renaming or reorganization
+      - logic changes beyond obvious bugs
+
+      ### step 3: apply each fix ###
+
+      for each fix:
+      1. use replace_in_file to make the change
+      2. ptd_check the modified module immediately
+      3. if ptd_check fails, revert and record_question
+      4. validate_module_format after format fixes
+      5. record what changed and why
+
+      ### step 4: verification ###
+
+      after all fixes applied:
+      1. ptd_check every modified module
+      2. validate_module_format on modified modules
+      3. search_code if any references might be affected
+
+      ### step 5: summary ###
+
+      ## fix summary ##
+
+      **issues received**: N
+      **fixes applied**: N
+      **skipped** [ already fixed ]: N
+      **escalated** [ needs judgment ]: N
+
+      ### fixes applied ###
+      for each: module, what changed, why
+
+      ### escalated issues ###
+      issues that need human judgment
+
+      call task_complete with the fix count and any escalated issues.
+    priority: 2
+    budget_pct: 92
+    label: fix format issues instructions
+
+on_complete:
+  - when: [output_contains=fixes applied]
+    action: memory_update
+    topic: "fix-format:result"
+
+#,,,,,..,,,,,,,,,,.,.,,..,.,,,,,.,,..,,..,,,,,.,.,...,...,,,,,.,,,,,,,..,,,..,
+#DELIAEL4JXU4W73GLQZS634ZEEKTKRRJ4CC326GBDS6R74TWFB2UIVLTOTBQHCCG4W43MMDCJ4XGA
+#\\\|K24FGOK3UPKOAGDALUS2O3I3IP23BTS6MJQ54PFHDMSVVPXB23D \ / AMOS7 \ YOURUM ::
+#\[7]PEVSJUGZ6CLLBQ3VHI2V4LACUOTY2HHBARGQL5GDQPGAARDZT4CA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
