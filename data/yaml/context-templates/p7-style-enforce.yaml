@@ -1,0 +1,153 @@
+---
+name: p7-style-enforce
+descr: detect non-P7 patterns, replace with generic infrastructure, create abstractions
+budget: 5000
+sections:
+  ## core knowledge ##
+  - include: system-base
+    priority: 1
+    budget_pct: 8
+
+  ## style conventions ##
+  - include: system-review
+    priority: 2
+    budget_pct: 5
+
+  ## instructions ##
+  - static: |
+      detect code patterns that bypass protocol-7 infrastructure and correct
+      them to use the proper generic modules. when a needed abstraction does
+      not exist yet, create it.
+
+      ## round budget: aim for 20-30 tool rounds max ##
+      ## spend ~8 rounds detecting, ~18 rounds fixing, ~4 reporting ##
+      ## prioritize high-impact replacements over exhaustive scanning ##
+      ## call task_complete when key patterns are corrected ##
+
+      ## scope ##
+      {{scope}}
+
+      ## phase 1: detect non-P7 patterns [ ~8 rounds ] ##
+
+      scan the target namespace for code that bypasses P7 infrastructure.
+
+      ### 1a. raw file operations ###
+      search_code for these anti-patterns:
+      - `open(` or `open my` — should use <[file.open]>->()
+      - `close(` on raw handles — should use P7 file handle lifecycle
+      - `print $fh` or `syswrite` — should use <[file.zenka_dir.write]>->()
+        for persistent storage
+      - `read(` or `sysread` — should use <[file.slurp]>->() or
+        <[file.zenka_dir.load]>->()
+      - `mkdir` or `File::Path` — should use <[file.make_path]>->()
+      - `unlink` — should use <[file.zenka_dir.unlink_file]>->()
+        for zenka_dir files
+      - hardcoded paths like `/var/protocol-7/` — should derive from
+        <system.zenka.var_dir> or <protocol-7.zenka_dir> config keys
+
+      ### 1b. raw logging ###
+      - `warn ` or `print STDERR` — should use <[base.log]>->() or
+        <[base.logs]>->()
+      - string interpolation in log calls: `"value is $var"` — should use
+        sprintf format: `':. value is %s :.', $var`
+      - missing log levels: <[base.log]>->($msg) — should include level
+        when not default: <[base.logs]>->(2, ':. msg :.')
+
+      ### 1c. raw data access ###
+      - direct `$data{` access — should use <[base.resolve_key]>->()
+        or <[base.set_key]>->() for dynamic paths
+      - `exists $data{` with deep paths — should resolve first
+
+      ### 1d. raw process operations ###
+      - bare `fork()` — should use the P7 fork-child pattern
+      - bare `system()` or backticks — should use appropriate P7 wrapper
+      - bare `socket()` — should use P7 network abstractions
+
+      ### 1e. style violations ###
+      - `use Module;` or `require Module;` — should use
+        <[base.perlmod.autoload]>->('Module') in init_code
+      - `sub name { }` declarations — should be extracted to modules
+      - uppercase comments, parenthesized annotations
+      - `$_` instead of `$ARG`, `@_` instead of `@ARG`
+
+      ## phase 2: assess and prioritize ##
+
+      for each detected pattern:
+      1. **has P7 replacement**: existing module handles this → replace
+      2. **needs new abstraction**: pattern recurs but no module exists →
+         create the module first, then replace all call sites
+      3. **exception**: pattern is correct for context [ e.g. raw file ops
+         inside base.file.* modules themselves ] → skip
+
+      prioritize:
+      - patterns that appear 3+ times [ high redundancy reduction ]
+      - patterns in recently modified code [ fresh, easy to fix ]
+      - patterns that risk bugs [ hardcoded paths, missing error handling ]
+
+      ## phase 3: fix [ ~18 rounds ] ##
+
+      ### 3a. create missing abstractions ###
+      if you identified a recurring pattern with no P7 module:
+      1. design a clean module interface [ what args, what return ]
+      2. write_new_file with proper P7 module format
+      3. validate_module_format
+      4. ptd_check
+
+      naming for new abstractions:
+      - `base.file.*` for generic file operations
+      - `base.parser.*` for data transformation
+      - `<zenka>.util.*` for zenka-specific utilities
+
+      ### 3b. replace anti-patterns ###
+      for each replacement:
+      1. read_module to see full context
+      2. replace_in_file to swap raw pattern with P7 call
+      3. ptd_check the modified module
+
+      be careful:
+      - do NOT change code inside base.file.* or base.* infrastructure
+        modules — they ARE the abstraction layer, raw ops are correct there
+      - do NOT change code that handles edge cases the abstraction can't
+      - preserve error handling semantics when replacing
+
+      ### 3c. verify ###
+      after all replacements:
+      1. ptd_check every modified module
+      2. search_code to verify no broken references
+      3. validate_module_format for new modules
+
+      ## phase 4: report ##
+
+      ## style enforcement report ##
+
+      **modules scanned**: N
+      **anti-patterns found**: N [ N replaced, N need new abstraction, N skipped ]
+      **new abstractions created**: N
+
+      ### replacements applied ###
+      for each: module, old pattern, new P7 call
+
+      ### new modules created ###
+      for each: module name, purpose, what patterns it replaces
+
+      ### skipped patterns ###
+      patterns that are correct in context or need human judgment
+
+      ### remaining opportunities ###
+      patterns worth fixing in a follow-up session
+
+      call task_complete with the enforcement summary.
+    priority: 3
+    budget_pct: 87
+    label: p7 style enforcement instructions
+
+on_complete:
+  - when: [output_length_gt=300]
+    action: memory_update
+    topic: "style:p7-enforce"
+
+#,,.,,...,.,.,,.,,..,,..,,,..,,,.,,,.,,,,,..,,.,.,...,...,.,.,..,,,..,,.,,...,
+#LRIS72K6RRHRQ7HCJOWPV3HHAQN6RADVVXIJ2MAJ5YVRUYPJ6FL3HJMF4BSRCARR22RGZBAS2QNVY
+#\\\|ZKCYGOFQBOXPAZ7UKTKCVYU6ISACRAEWDNPOAY6UR7LSXEJBGO2 \ / AMOS7 \ YOURUM ::
+#\[7]EJPPCZE3Q6FAACI5K3HUQUVY7PEAKNF6X3UIOOTB2LVO6GVGQODY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,0 +1,124 @@
+---
+name: integrate-recent
+descr: wire recently completed features into the broader system using P7 patterns
+budget: 5000
+sections:
+  ## core knowledge ##
+  - include: system-base
+    priority: 1
+    budget_pct: 8
+
+  ## style conventions ##
+  - include: system-review
+    priority: 2
+    budget_pct: 5
+
+  ## instructions ##
+  - static: |
+      integrate recently completed features or components into the broader
+      protocol-7 system, ensuring they follow P7 patterns and connect properly.
+
+      ## round budget: aim for 20-30 tool rounds max ##
+      ## spend ~8 rounds investigating, ~18 rounds integrating, ~4 reporting ##
+      ## call task_complete when key integrations are done ##
+
+      ## phase 1: discover recent work [ ~8 rounds ] ##
+
+      ### 1a. recent commits ###
+      use recent_changes to see the last 10-15 commits.
+      identify: what new modules, commands, or features were added?
+
+      ### 1b. new module survey ###
+      for each recently added module:
+      1. read_module to understand what it does
+      2. module_deps to see what it calls and what calls it
+      3. search_code for references from other namespaces
+
+      ### 1c. integration gaps ###
+      for each new feature, check:
+      - is it accessible via a cmd module? [ user-facing features need one ]
+      - is it listed in the zenka start file access list?
+      - does it have proper init_code if it needs initialization?
+      - is it documented in the module header [ descr, param tags ]?
+      - does it use the right P7 abstractions [ not raw perl ]?
+
+      ## phase 2: integration checklist ##
+
+      for each feature, assess what integration work is needed:
+
+      **access wiring**
+      - cmd module exists and is in access.cmd list in start file?
+      - handler registered in appropriate event or dispatch table?
+      - if it's a tool: defined in coding.tools.definitions?
+
+      **P7 pattern compliance**
+      - uses <[module.name]>->() invocation, not $code{} directly?
+      - uses <[file.slurp]>->() / <[file.open]>->() for file ops?
+      - uses <[file.zenka_dir.write]>->() / <[file.zenka_dir.load]>->()
+        for persistent storage in /var/protocol-7/zenka/?
+      - uses <[base.logs]>->() with sprintf format, not interpolation?
+      - uses <[base.parser.center_ellipse_string]>->() for log truncation?
+      - returns { 'mode' => qw| true/false/size |, 'data' => $val }
+        from cmd modules?
+
+      **cross-namespace connections**
+      - do other namespaces that should know about this feature reference it?
+      - are there existing modules that duplicate what the new feature does?
+      - could existing callers benefit from using the new feature?
+
+      ## phase 3: integrate [ ~18 rounds ] ##
+
+      work through the gaps in priority order:
+
+      ### high priority ###
+      - missing access wiring [ feature exists but can't be reached ]
+      - broken references [ code calls module that doesn't exist yet ]
+      - missing cmd wrappers for interactive features
+
+      ### medium priority ###
+      - P7 pattern violations [ raw perl where abstraction exists ]
+      - missing header tags [ descr, param ]
+      - log format issues
+
+      ### low priority ###
+      - cross-namespace convenience wiring
+      - documentation gaps
+
+      for each fix:
+      1. read the module needing changes
+      2. apply the fix with replace_in_file or write_new_file
+      3. ptd_check the modified module
+      4. validate_module_format for new modules
+
+      ## phase 4: report ##
+
+      ## integration report ##
+
+      **features surveyed**: N
+      **integration gaps found**: N
+      **fixes applied**: N
+
+      ### integrations completed ###
+      for each: feature, what was wired, how
+
+      ### remaining gaps ###
+      integration work that needs human judgment or more context
+
+      ### cross-namespace opportunities ###
+      places where existing code could benefit from new features
+
+      call task_complete with the integration summary.
+    priority: 3
+    budget_pct: 87
+    label: integrate recent features instructions
+
+on_complete:
+  - when: [output_length_gt=300]
+    action: memory_update
+    topic: "integrate:recent"
+
+#,,,.,..,,.,,,,,,,...,,,.,..,,...,.,,,.,.,...,.,.,...,..,,,..,,,,,.,.,.,,,,..,
+#LTULM6XAE4DVJTFDMQA2MFKNJV2Q4AJAFIUGGZFJ64TVWZDRPJ6CSAI3NURG27MCFCANOKVLUY52S
+#\\\|LL5NXMZFEKVUKCUFR27OHKSWIQYSPUPANSUO5P7RZCQ3H4GB4GY \ / AMOS7 \ YOURUM ::
+#\[7]TMVW4YPV2J5H6HZDZUT7S6S7OCYE3TP5DTRUHZG6CTASWK4JHOAY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
