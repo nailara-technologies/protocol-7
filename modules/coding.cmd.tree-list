@@ -1,0 +1,32 @@
+## [:< ##
+
+# name  = coding.cmd.tree-list
+# param = [path] [pattern]
+# descr = list children of a %data tree branch
+
+my $args_str = $call->{'args'} // '';
+my ( $path, $pattern ) = split m| |, $args_str, 2;
+
+$path    //= '';
+$pattern //= '';
+
+my $result = $code{'coding.tools.handler.tree_list'}->(
+    {   'path'    => $path,
+        'pattern' => $pattern,
+        'depth'   => 2,
+        'budget'  => 3000
+    }
+);
+
+return { 'mode' => qw| false |, 'data' => $result }
+    if defined $result and $result =~ m{^(error|path not found|leaf value)};
+
+return { 'mode' => qw| size |, 'data' => $result // 'no data' };
+
+0;
+
+#,,,,,.,.,...,,.,,.,,,...,.,.,,,,,,.,,,,.,,.,,..,,...,.,.,..,,...,,,.,.,,,,..,
+#KGQ3R7WQ3PQIH6DJP5DKKQG6MUEBJOI5LZHV6WZUYK6UOHXP3ICEVSLAMIDCCYQV6MVH73GXM7MZW
+#\\\|GW4OBVUAFKFONXETAMCTAPQNKQL4X3G4ROAHQEPQICC43BQPTWW \ / AMOS7 \ YOURUM ::
+#\[7]AYDBOYLDRIS4BEBPA5XLYH5GWDWZ4WLGP7LKFWJ3C7ZLKMGAPGAQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

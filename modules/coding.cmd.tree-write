@@ -1,0 +1,29 @@
+## [:< ##
+
+# name  = coding.cmd.tree-write
+# param = <path> <value>
+# descr = set scalar value in %data tree
+
+my $args_str = $call->{'args'} // '';
+my ( $path, $value ) = split m| |, $args_str, 2;
+
+return { 'mode' => qw| false |, 'data' => 'expected: path value' }
+    unless defined $path and length $path;
+return { 'mode' => qw| false |, 'data' => 'expected value after path' }
+    unless defined $value;
+
+my $result = $code{'coding.tools.handler.tree_write'}
+    ->( { 'path' => $path, 'value' => $value } );
+
+return { 'mode' => qw| false |, 'data' => $result }
+    if $result =~ m|^error:|;
+
+return { 'mode' => qw| true |, 'data' => $result };
+
+0;
+
+#,,,,,.,,,,..,.,.,,.,,.,.,...,..,,..,,,..,,,.,..,,...,...,,..,..,,,.,,..,,...,
+#3GBGYVTCKW4WSPQFV6JKTQGXNMXQPLSZOULQ5ZIU4AKHFCYP4A2GIWUVWBZ2GGTSMBADAGUSWUBL2
+#\\\|7NIWE5COZAMA5WKGVXC23CAOADFWI7Q5PO43A47QDJIHRTV4FW2 \ / AMOS7 \ YOURUM ::
+#\[7]KEDSQL4W52YPLRVHHE6R5I4V4KDKMCXJYJTG6CJ5IAY4YVMZAMAY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

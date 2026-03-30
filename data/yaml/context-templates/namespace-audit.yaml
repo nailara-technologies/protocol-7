@@ -1,0 +1,108 @@
+---
+name: namespace-audit
+descr: deep audit of a module namespace — map deps, find issues, suggest improvements
+budget: 5000
+sections:
+  ## style conventions ##
+  - include: system-review
+    priority: 1
+    budget_pct: 8
+
+  ## instructions ##
+  - static: |
+      audit the module namespace '{{namespace}}' comprehensively.
+
+      ## phase 1: discovery ##
+
+      use tools to map the namespace completely:
+
+      1. **list_modules** for the namespace — get all module names
+      2. **dep_graph** for the namespace — understand internal call structure
+      3. **read_module** on the init_code module if it exists
+      4. **tree_list** on the namespace in %data — see runtime state shape
+      5. **search_code** for cross-namespace callers of this namespace
+
+      ## phase 2: structural analysis ##
+
+      for each module found, determine:
+      - its role [ init, handler, command, utility, tool ]
+      - what it calls [ internal and external ]
+      - what calls it
+      - its approximate size [ via read_module ]
+
+      produce a dependency map showing clusters and orphans.
+
+      ## phase 3: issue detection ##
+
+      look for:
+      - **dead modules**: not called by anything, no cmd.* entry
+      - **circular deps**: A calls B calls A
+      - **oversized modules**: > 100 lines, candidate for extraction
+      - **inline subs**: use list_inline_subs on larger modules
+      - **naming inconsistencies**: modules that don't follow namespace conventions
+      - **missing .init_code**: namespace without initialization
+      - **config mismatches**: modules referencing config keys that don't exist
+
+      ## phase 4: tree state mapping ##
+
+      use tree_list and tree_read to document the runtime %data shape:
+      - what keys does this namespace use in %data?
+      - are there orphaned data keys with no code reference?
+      - is the data structure well-organized or flat?
+
+      ## phase 5: recommendations ##
+
+      produce prioritized suggestions:
+
+      ### immediate fixes ###
+      issues that should be fixed now [ broken refs, dead code ]
+
+      ### refactoring opportunities ###
+      structural improvements [ extraction, renaming, reorganization ]
+
+      ### capability gaps ###
+      what this namespace should have but doesn't
+
+      ### tree structure improvements ###
+      how the %data layout could better serve this namespace
+
+      ## output format ##
+
+      ### namespace: {{namespace}} ###
+
+      **modules**: N total [ N init, N cmd, N handler, N util, N other ]
+      **data keys**: N in %data.{{namespace}}
+      **external callers**: N modules from other namespaces
+
+      ### dependency map ###
+      [ formatted dep graph ]
+
+      ### issues [ N found ] ###
+      for each:
+      - severity: critical / warning / info
+      - module: name
+      - issue: description
+      - fix: recommendation
+
+      ### tree state ###
+      [ %data structure summary ]
+
+      ### recommendations ###
+      [ prioritized list ]
+
+      when done, use record_suggestion to capture the top 3 improvements,
+      then call task_complete with a summary.
+    priority: 2
+    budget_pct: 92
+    label: namespace audit instructions
+
+on_complete:
+  - when: [output_length_gt=300]
+    action: memory_update
+    topic: "audit:{{namespace}}"
+
+#,,,,,,,,,,,.,.,,,,..,,.,,.,.,..,,.,.,.,,,,,,,..,,...,...,.,.,...,.,,,...,...,
+#SJZQJN7TSSXB4H26QFO3X4AODRTR6SV3FFYVZDTQLZNK3JMP6YK2PFD7UR65WNU5R4FHGYT772VGG
+#\\\|TFQZXU5S5OJDLH6332JWOWSLPNS52DXTQVJMVHQXWF4F3Q5TH6E \ / AMOS7 \ YOURUM ::
+#\[7]AJ3ZOUIUFL27D622JVX3WH2MBHCZK4T5CR2O6GV7WP5YAT5DNSCI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

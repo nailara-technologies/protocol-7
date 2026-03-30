@@ -1,0 +1,109 @@
+---
+name: review-and-improve
+descr: autonomous review of recent work — find issues, apply fixes, verify results
+budget: 5000
+sections:
+  ## style conventions ##
+  - include: system-review
+    priority: 1
+    budget_pct: 8
+
+  ## instructions ##
+  - static: |
+      autonomously review and improve recent work in the codebase.
+
+      ## scope ##
+      {{scope}}
+
+      ## protocol ##
+
+      ### phase 1: understand what changed ###
+
+      use recent_changes to see the latest modifications.
+      for each changed module:
+      1. read_module to see current content
+      2. module_deps to understand call graph
+      3. validate_module_format to check structure
+      4. list_inline_subs to check for extraction candidates
+
+      ### phase 2: systematic review ###
+
+      for each module, check:
+
+      **correctness**
+      - does the logic match the description?
+      - are error paths handled?
+      - are return values consistent with P7 conventions?
+
+      **style**
+      - lowercase comments? [ ## not ## Capital ]
+      - bracket annotations? [ word ] not ( word )
+      - log format: :. description .: with sprintf?
+      - $ARG not $_?
+      - no variable interpolation in log strings?
+
+      **structure**
+      - inline subs that should be extracted?
+      - dead code or unreachable paths?
+      - duplicated logic across modules?
+
+      **integration**
+      - do callers pass the right args?
+      - do return values match what callers expect?
+      - any namespace conflicts?
+
+      ### phase 3: fix what you can ###
+
+      for each issue found:
+
+      if SAFE TO FIX [ style, format, obvious bugs ]:
+        use replace_in_file or edit_file to apply the fix.
+        then ptd_check to verify syntax.
+        record what you changed and why.
+
+      if NEEDS JUDGMENT [ architecture, API changes, behavior ]:
+        use record_question to note the issue.
+        do NOT change the code.
+
+      if IMPROVEMENT IDEA [ not a bug, but could be better ]:
+        use record_suggestion to capture it.
+
+      ### phase 4: verification ###
+
+      after applying fixes:
+      1. ptd_check every modified module
+      2. validate_module_format on modified modules
+      3. search_code to verify no broken references
+
+      ### phase 5: summary ###
+
+      ## review summary ##
+
+      **modules reviewed**: N
+      **issues found**: N [ N fixed, N escalated, N suggested ]
+      **modules modified**: list
+
+      ### fixes applied ###
+      for each: module, line, what changed, why
+
+      ### questions for human ###
+      issues that need judgment
+
+      ### suggestions ###
+      improvement ideas for later
+
+      call task_complete with the fix count and any remaining questions.
+    priority: 2
+    budget_pct: 92
+    label: review and improve instructions
+
+on_complete:
+  - when: [output_contains=fixes applied]
+    action: memory_update
+    topic: "review-improve:{{scope}}"
+
+#,,.,,..,,,,,,.,,,,.,,,,.,,,.,.,.,..,,.,,,..,,..,,...,...,,..,,..,...,,..,,,.,
+#RPOGH2IGICGM7LUQ2732KGKOZBJ3ZUKGDQN5DHC2C5IQNCEXKOIJYDNYZNWXXICIPPX4QYPCMJVLO
+#\\\|IOSI4UHNHWFYWFST3EJ6SR5ZEO4OE4DUGLUQKHBTWKHDJH6RO4L \ / AMOS7 \ YOURUM ::
+#\[7]LOCHC2352SMC7SWBINOJRH4AIPJHGHQWMDANIYXM7BLFOTQKKMCA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
