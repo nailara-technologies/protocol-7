@@ -21,7 +21,12 @@ my $ref;
 if ( not length $path ) {
     $ref = \%data;
 } else {
-    $ref = <[data.resolve_hash_path]>->($path);
+    my $key_href = <[base.resolve_key]>->($path);
+    if ( defined $key_href and $key_href->{'r-type'} eq qw| HASH | ) {
+        $ref = $key_href->{'r-data'};
+    } elsif ( defined $key_href and not length $key_href->{'r-type'} ) {
+        return sprintf "leaf value at %s [ not a branch ]", $path;
+    }
 }
 
 return "path not found: $path" unless defined $ref;
@@ -95,8 +100,8 @@ return $output;
 
 0;
 
-#,,,.,.,.,..,,.,,,.,.,,..,,.,,,.,,,.,,,..,.,,,..,,...,...,..,,.,.,,,.,.,,,,,,,
-#JLKCG6E7CVYNUAJMCJMFVAZDKMZLED2NXMDVHTHMDB7LMOUPCRUSIYN5OCKENIVAF4SZ3SZ3X6SS6
-#\\\|DJ6GKUO3CSZ7ETCBM37JKP53NX7IV5XEBXYIITZZ52F3CBGZAGA \ / AMOS7 \ YOURUM ::
-#\[7]VVNPRNLB2ZKFPYDBZRMHQPJKHWJGER5J7NSYPPQHVC7SLR5BSCCY 7  DATA SIGNATURE ::
+#,,,.,,,.,...,..,,,..,...,..,,.,,,,.,,,.,,..,,..,,...,...,,,,,.,,,.,.,.,,,,,.,
+#L2UU6YP2ZOSDUVIOLSCYGI46NZUKAY73HNN77ZFPVBNN4SEZKUZQAORO4MEQN3M23QON5KIZXXVRG
+#\\\|4GVUE5ZVJD3NKZOXXHPK6BAXATELEB5HZ6XYODLMGPSNKDNQMVR \ / AMOS7 \ YOURUM ::
+#\[7]VV3LAMN2B6JBMJEV6I3M3EAXPJ6HJGYGPM3P2TY57V2O26LGIKDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
