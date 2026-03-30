@@ -1,0 +1,116 @@
+---
+name: observations-triage
+descr: triage accumulated suggestions and questions, act on clear items, dismiss invalid ones
+budget: 5000
+sections:
+  ## core knowledge ##
+  - include: system-base
+    priority: 1
+    budget_pct: 8
+
+  ## style conventions ##
+  - include: system-review
+    priority: 2
+    budget_pct: 5
+
+  ## instructions ##
+  - static: |
+      triage the accumulated observations from previous coding tasks.
+      dismiss invalid items, act on clear ones, escalate uncertain ones.
+
+      ## round budget: aim for 15-25 tool rounds max ##
+      ## triage all items but only act on the top 2-3 clearest ##
+      ## call task_complete with triage results ##
+
+      ## CRITICAL CONTEXT ##
+      P7 uses `use English` — $ARG IS $_ and @ARG IS @_.
+      they are the SAME variable, not different ones.
+      any suggestion saying "$ARG should be $_" is WRONG — dismiss it.
+      any question asking "should this use $_ instead of $ARG" — answer NO.
+
+      ## phase 1: read observations [ ~3 rounds ] ##
+
+      read the observation files:
+      1. read_file on /var/protocol-7/coding/observations/suggestions.jsonl
+      2. read_file on /var/protocol-7/coding/observations/questions.jsonl
+
+      each line is a JSON object with: type, category, content, priority,
+      task_id, timestamp
+
+      ## phase 2: triage each item [ ~5 rounds ] ##
+
+      for each observation, classify it:
+
+      ### DISMISS ###
+      the observation is wrong or no longer relevant:
+      - claims $ARG and $_ are different [ they are the same in P7 ]
+      - refers to code that has since been changed or extracted
+      - suggests something already implemented
+      - based on standard perl conventions that don't apply to P7
+
+      ### ACT ###
+      the observation identifies a real issue with a clear fix:
+      - actual bug [ logic error, missing check, crash risk ]
+      - missing normalization or range validation
+      - code quality improvement with clear implementation
+      criteria: you can fix it in < 5 tool rounds, and you're confident
+      about the P7-correct way to do it
+
+      ### ESCALATE ###
+      the observation raises a valid point but needs judgment:
+      - architectural decisions [ how should X be structured ]
+      - design questions [ should Y be normalized at function or caller ]
+      - template improvements that need testing
+
+      ### DEFER ###
+      valid but low priority or too large for this session:
+      - nice-to-have improvements
+      - large refactoring suggestions
+      - items that depend on other work being done first
+
+      ## phase 3: act on clear items [ ~12 rounds ] ##
+      ** PRESERVE $ARG and @ARG — NEVER revert to $_ or @_ **
+
+      for the top 2-3 ACT items:
+      1. read_module to understand the context
+      2. apply the fix with replace_in_file
+      3. ptd_check the modified module
+      4. record what you changed
+
+      ## phase 4: report ##
+
+      ## observations triage ##
+
+      **total items**: N [ N suggestions, N questions ]
+      **dismissed**: N [ with brief reason each ]
+      **acted on**: N [ with fix description ]
+      **escalated**: N [ with specific question ]
+      **deferred**: N [ with reason ]
+
+      ### dismissed items ###
+      for each: item summary, why dismissed
+
+      ### fixes applied ###
+      for each: module, what changed, which observation it addresses
+
+      ### escalated questions ###
+      for each: the specific question that needs human judgment
+
+      ### deferred items ###
+      for each: item summary, what it needs before it can be done
+
+      call task_complete with the triage summary.
+    priority: 3
+    budget_pct: 87
+    label: observations triage instructions
+
+on_complete:
+  - when: [output_length_gt=300]
+    action: memory_update
+    topic: "triage:observations"
+
+#,,,,,..,,...,,,.,,,,,...,,,,,..,,,,,,...,..,,.,.,...,...,,,.,,,.,,,.,..,,,,,,
+#RGHB2SXV6XCQH2UBUBKETN7W3O5WIDC6RK5IH6JKW465DT775RJJEPM3UUICP2TAHTID7TUBC6BAY
+#\\\|VKUAI2RYQRSLXGCDMFRWLG6SXICLEKZJOQOXVKMZ75ALCRTWF36 \ / AMOS7 \ YOURUM ::
+#\[7]HOJLIKSJU4EKWNNF6DXKFY7TT4ZV2DIBE5HSEBNDPGCVZI7MVEAQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
