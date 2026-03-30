@@ -102,6 +102,7 @@ if ( $r_type eq qw| ARRAY | ) {
         my $line;
         if ( $item_type eq qw| HASH | ) {
             my @hkeys   = ( sort keys $item->%* );
+            return 'no keys in hash item' unless @hkeys;
             my $max_idx = $#hkeys > 4 ? 4 : $#hkeys;
             my $preview = join ', ', map {
                 sprintf '%s=%s', $ARG, substr( $item->{$ARG} // '', 0, 40 )
@@ -128,8 +129,8 @@ return sprintf "## %s [ %s ] ##", $path, $r_type;
 
 0;
 
-#,,.,,,,,,.,,,.,.,,..,.,.,,,.,.,.,...,...,,.,,..,,...,...,.,.,.,,,.,,,,..,.,,,
-#YTDQ2DKRNIWPRRMAUUE2IWT5SBA4NG53YAPWGVXB2NWQET46EFCMJP42P2JIOSATY75DJZNY62YXK
-#\\\|JLFO3KB642J6YGXY5V3NBTQKQXBOQBNZPSRTT3NZAMJDTDRYTF3 \ / AMOS7 \ YOURUM ::
-#\[7]4ITHSQJA4K7MVTZZZXGGPCKBCQTTXLKQZJ6WYOHYPZND5MWFZOBQ 7  DATA SIGNATURE ::
+#,,.,,,..,,,.,...,..,,,..,,..,,,,,,,,,.,,,,,.,..,,...,..,,.,.,.,.,.,,,..,,,.,,
+#NBN424GCXBB4KWKO2FJG35JPVPX6CXNMH6QPACHG6MYTOH5BREIDZK2V6QWP2I34LS4KR3MCFH7P6
+#\\\|CT5EKBBOJT3LQNR5MT3HEKAIL55XWRULH7QEL2O5SSTXJ3Z2FA2 \ / AMOS7 \ YOURUM ::
+#\[7]EWA65QCVEZE4WYNUMM6PGVG4NW5M7JTZ2HSE77CZ2TPQHYKFU6CY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
