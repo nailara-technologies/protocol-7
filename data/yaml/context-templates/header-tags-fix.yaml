@@ -1,0 +1,120 @@
+---
+name: header-tags-fix
+descr: add missing descr and param tags to module headers based on code content
+budget: 4000
+sections:
+  ## core knowledge ##
+  - include: system-base
+    priority: 1
+    budget_pct: 8
+
+  ## instructions ##
+  - static: |
+      add missing or improve existing header tags in protocol-7 modules.
+
+      ## round budget: aim for 10-20 tool rounds max ##
+      ## process modules in batches, call task_complete when done ##
+
+      ## scope ##
+      {{scope}}
+
+      ## header tag format ##
+
+      every P7 module should have these header tags after `## [:< ##`:
+
+      ```
+      ## [:< ##
+
+      # name  = namespace.module.name
+      # descr = concise lowercase description of what the module does
+      # param = <required> [optional]
+      ```
+
+      ### descr tag rules ###
+
+      - **concise**: one short phrase, not a sentence
+      - **lowercase**: no capitals [ `return dependency chain` not `Return Dependency Chain` ]
+      - **action-oriented**: describe what the code DOES [ `parse json response` ]
+      - **specific**: mention the key noun [ `calculate score for pager filter item` ]
+      - derive from the code logic, not from the module name alone
+      - good examples from existing modules:
+        - `read value or branch from %data tree`
+        - `set scalar value in %data tree`
+        - `dispatch recent_errors tool call to context.error.recent handler`
+        - `show coding zenka status and queue information`
+        - `submit work request to coding zenka`
+
+      ### param tag rules ###
+
+      - only add `# param` if the module actually takes arguments
+      - for cmd modules: check if `$call->{'args'}` is used
+      - for non-cmd modules: check if `shift` or `@ARG` accesses arguments
+      - use `<angle brackets>` for required params
+      - use `[square brackets]` for optional params
+      - name params after what they represent, not their variable name
+      - good examples:
+        - `# param = <path> [depth]`
+        - `# param = <task_id>`
+        - `# param = [pattern]`
+        - `# param = <path> <value>`
+        - `# param = <request_string>`
+
+      ### what NOT to do ###
+
+      - do NOT add param tags to modules that take no arguments
+      - do NOT change existing correct tags
+      - do NOT modify any code below the header block
+      - do NOT add tags that aren't descr or param [ no example, no note ]
+      - do NOT capitalize the descr text
+
+      ## process ##
+
+      ### step 1: find modules to fix ###
+
+      if scope specifies modules, use those.
+      otherwise use list_modules for the target namespace,
+      then read_module each to check headers.
+
+      look for:
+      1. modules missing `# descr` line entirely
+      2. modules with vague or generic descr [ just the name restated ]
+      3. cmd modules that access args but have no `# param` line
+      4. non-cmd modules with shift/args but no `# param` line
+
+      ### step 2: read and fix ###
+
+      for each module needing fixes:
+      1. read_module to see the full content
+      2. determine the correct descr from the code logic
+      3. determine param format from how args are accessed
+      4. use replace_in_file to add/update the header tags
+      5. ptd_check the modified module
+
+      ### step 3: summary ###
+
+      ## header tags summary ##
+
+      **modules checked**: N
+      **descr added**: N
+      **descr improved**: N
+      **param added**: N
+      **skipped** [ already correct ]: N
+
+      ### changes applied ###
+      for each: module, tag added/changed, value
+
+      call task_complete with counts.
+    priority: 2
+    budget_pct: 92
+    label: header tags fix instructions
+
+on_complete:
+  - when: [output_contains=changes applied]
+    action: memory_update
+    topic: "fix:header-tags"
+
+#,,,,,...,,.,,,,,,...,,,.,..,,.,,,..,,.,,,,,.,.,.,...,...,.,,,,..,...,.,.,,,,,
+#JYMOVFBPIDFTHCP45VU7POWEFTYS54LOEA4JTXFPTBTCHNENCJP3CWRCUHTJL3FGGCUSQQXBJ75PA
+#\\\|RKSUH2WYWH4IDJVWNH3ZQ5HEU37A4RYQB2IOKSAB3G4BH5ROMA7 \ / AMOS7 \ YOURUM ::
+#\[7]Z2T57MD5AX56OHCWMONNEBJ7DROQ7ML4F73P2P64XDNIAPG22KBQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
