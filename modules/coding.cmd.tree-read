@@ -1,0 +1,31 @@
+## [:< ##
+
+# name  = coding.cmd.tree-read
+# param = <path> [depth]
+# descr = read value or branch from %data tree
+
+my $args_str = $call->{'args'} // '';
+my ( $path, $depth ) = split m| |, $args_str, 2;
+
+return { 'mode' => qw| false |, 'data' => 'expected path argument' }
+    unless defined $path and length $path;
+
+$depth //= 1;
+$depth = int($depth) if $depth =~ m|^\d+$|;
+$depth = 1           if $depth < 1 or $depth > 5;
+
+my $result = $code{'coding.tools.handler.tree_read'}
+    ->( { 'path' => $path, 'depth' => $depth, 'budget' => 3000 } );
+
+return { 'mode' => qw| false |, 'data' => $result }
+    if $result =~ m{^(error|path not found)};
+
+return { 'mode' => qw| size |, 'data' => $result };
+
+0;
+
+#,,.,,,,.,..,,.,.,,,.,.,,,.,,,,,,,..,,.,.,,..,..,,...,..,,,.,,..,,..,,.,.,,,.,
+#XTBWM65SYOGWT46XR45A6OC5LFLPPTJGV7OVL77PKIDZCBIQ6KOWJUDXIJCSACUCXBGAXUZ5MADB4
+#\\\|PV5NJGSORUJNEY2U2NRVSAERNRL2VUB2OYB4BVYHYKQ4H33MAOY \ / AMOS7 \ YOURUM ::
+#\[7]KERXFU4PDY6E6Z3GGP2PVJJ5YI7FIHUHVQ2SLGI47PB4PKXA3MCA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

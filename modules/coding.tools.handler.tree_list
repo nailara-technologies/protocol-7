@@ -1,0 +1,102 @@
+## [:< ##
+
+# name  = coding.tools.handler.tree_list
+# descr = list children of a branch in the %data tree with type info
+
+my $args = shift // {};
+
+my $path    = $args->{'path'}    // '';
+my $pattern = $args->{'pattern'} // '';
+my $depth   = $args->{'depth'}   // 1;
+my $budget  = $args->{'budget'}  // 1500;
+
+## validate path if provided ##
+if ( length $path ) {
+    my ( $valid, $errmsg ) = <[base.validate.data_key_syntax]>->($path);
+    return "error: invalid path: $errmsg" unless $valid;
+}
+
+## empty path = list top-level %data keys ##
+my $ref;
+if ( not length $path ) {
+    $ref = \%data;
+} else {
+    $ref = <[data.resolve_hash_path]>->($path);
+}
+
+return "path not found: $path" unless defined $ref;
+return sprintf "leaf value at %s [ not a branch ]", $path
+    unless ref $ref eq qw| HASH |;
+
+my @keys = <[base.sort]>->($ref);
+
+## apply pattern filter ##
+if ( length $pattern ) {
+    my $regex = eval {qr/$pattern/i};
+    return "error: invalid pattern: $@" if $@;
+    @keys = grep { $ARG =~ $regex } @keys;
+}
+
+my $prefix = length $path ? "$path." : '';
+my $output = sprintf "## %s [ %d entries ] ##\n",
+    ( length $path ? $path : '%data' ), scalar @keys;
+my $chars = length $output;
+
+for my $key (@keys) {
+    last if $chars > $budget * 4;
+
+    my $val  = $ref->{$key};
+    my $type = ref $val // '';
+    my $line;
+
+    if ( not $type ) {
+        ## scalar ##
+        my $display = defined $val ? substr( $val, 0, 60 ) : 'undef';
+        $display =~ s|\n|\\n|g;
+        $line = sprintf "  %-30s scalar    %s\n", $key, $display;
+    } elsif ( $type eq qw| HASH | ) {
+        my $count = scalar keys $val->%*;
+        $line = sprintf "  %-30s hash/     %d keys\n", $key, $count;
+
+        ## recurse if depth > 1 ##
+        if ( $depth > 1 and $count <= 30 and $chars < $budget * 3 ) {
+            for my $subkey ( <[base.sort]>->($val) ) {
+                last if $chars > $budget * 4;
+                my $sv  = $val->{$subkey};
+                my $svt = ref $sv // '';
+                my $info
+                    = $svt eq qw| HASH |
+                    ? sprintf( 'hash/ %d keys', scalar keys $sv->%* )
+                    : $svt eq qw| ARRAY |
+                    ? sprintf( 'array[] %d items', scalar $sv->@* )
+                    : $svt eq qw| CODE | ? 'code()'
+                    : defined $sv
+                    ? sprintf( 'scalar %s', substr( $sv, 0, 40 ) )
+                    : 'undef';
+                $info =~ s|\n|\\n|g;
+                my $subline = sprintf "    %-28s %s\n", $subkey, $info;
+                $line .= $subline;
+                $chars += length $subline;
+            }
+        }
+    } elsif ( $type eq qw| ARRAY | ) {
+        $line = sprintf "  %-30s array[]   %d items\n", $key, scalar $val->@*;
+    } elsif ( $type eq qw| CODE | ) {
+        $line = sprintf "  %-30s code()\n", $key;
+    } else {
+        $line = sprintf "  %-30s %s ref\n", $key, $type;
+    }
+
+    $output .= $line;
+    $chars += length $line;
+}
+
+return $output;
+
+0;
+
+#,,,.,.,.,..,,.,,,.,.,,..,,.,,,.,,,.,,,..,.,,,..,,...,...,..,,.,.,,,.,.,,,,,,,
+#JLKCG6E7CVYNUAJMCJMFVAZDKMZLED2NXMDVHTHMDB7LMOUPCRUSIYN5OCKENIVAF4SZ3SZ3X6SS6
+#\\\|DJ6GKUO3CSZ7ETCBM37JKP53NX7IV5XEBXYIITZZ52F3CBGZAGA \ / AMOS7 \ YOURUM ::
+#\[7]VVNPRNLB2ZKFPYDBZRMHQPJKHWJGER5J7NSYPPQHVC7SLR5BSCCY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

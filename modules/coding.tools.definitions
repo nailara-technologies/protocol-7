@@ -612,6 +612,98 @@ push @tools,
     },
     };
 
+## tree_read — read value at a dot-separated path in %data ##
+push @tools,
+    {
+    'type'     => 'function',
+    'function' => {
+        'name'        => 'tree_read',
+        'description' => 'read a value or branch from the %data tree'
+            . ' [ dot-separated path, shows type and contents ]',
+        'parameters' => {
+            'type'       => 'object',
+            'properties' => {
+                'path' => {
+                    'type'        => 'string',
+                    'description' =>
+                        'dot-separated data path [ e.g. coding.task.queue ]'
+                },
+                'depth' => {
+                    'type'        => 'integer',
+                    'description' =>
+                        'recursion depth for branch display [ default 1 ]'
+                },
+                'budget' => {
+                    'type'        => 'integer',
+                    'description' => 'token budget [ default 2000 ]'
+                },
+            },
+            'required' => ['path'],
+        },
+    },
+    };
+
+## tree_write — set scalar value at a dot-separated path ##
+push @tools,
+    {
+    'type'     => 'function',
+    'function' => {
+        'name'        => 'tree_write',
+        'description' => 'set a scalar value in the %data tree'
+            . ' [ restricted to coding, context, observations, task ]',
+        'parameters' => {
+            'type'       => 'object',
+            'properties' => {
+                'path' => {
+                    'type'        => 'string',
+                    'description' =>
+                        'dot-separated data path [ e.g. coding.notes.topic ]'
+                },
+                'value' => {
+                    'type'        => 'string',
+                    'description' => 'scalar value to set'
+                },
+            },
+            'required' => [ 'path', 'value' ],
+        },
+    },
+    };
+
+## tree_list — list children of a branch with type info ##
+push @tools,
+    {
+    'type'     => 'function',
+    'function' => {
+        'name'        => 'tree_list',
+        'description' => 'list children of a %data tree branch'
+            . ' [ shows keys, types, and sizes ]',
+        'parameters' => {
+            'type'       => 'object',
+            'properties' => {
+                'path' => {
+                    'type'        => 'string',
+                    'description' =>
+                        'dot-separated path [ empty = top-level ]'
+                },
+                'pattern' => {
+                    'type'        => 'string',
+                    'description' =>
+                        'regex filter for key names [ optional ]'
+                },
+                'depth' => {
+                    'type'        => 'integer',
+                    'description' => 'recursion depth [ default 1, max 3 ]'
+                },
+                'budget' => {
+                    'type'        => 'integer',
+                    'description' => 'token budget [ default 1500 ]'
+                },
+            },
+            'required' => [],
+        },
+    },
+    };
+
 ## write_new_file — create a new file [ refuses to overwrite ] ##
 push @tools,
     {
@@ -644,8 +736,8 @@ push @tools,
 
 return \@tools;
 
-#,,,.,..,,..,,,,,,,.,,,.,,.,.,.,.,.,.,,..,,,.,..,,...,...,.,,,...,.,.,.,,,,..,
-#T5D4SPRF5SK55RMZOO34RFQMSYSTGV7LUUGCNDXJWU25WIAI2MABP64ZFEIXITXEH23JIL5UUQR7A
-#\\\|QWD3ZNBQC6JSQICZ6UKSOHD5BJ2AEAQQXL3XB4L2K2ZSF5HBSWA \ / AMOS7 \ YOURUM ::
-#\[7]F6S7KD4JEAEXDOS4AGQOBU4E3NP3MLFB2UVOEKXVC5DQMVPWVUDY 7  DATA SIGNATURE ::
+#,,..,...,.,,,...,...,,,.,.,,,.,.,,,.,,,,,.,,,..,,...,...,...,..,,,.,,,,.,...,
+#QSAUPC77HQC5L6LGWFUCQNQBLPSLSTPTPRIQ4AXYEJEB2ZCK4GPOE6R5TDK6ZASIBZGG6LBU6CGRE
+#\\\|DWFPXPFAMPWHG4L6XVHPBUDODWF7LQBCJCOIHJN7GFA7KG2HGYW \ / AMOS7 \ YOURUM ::
+#\[7]MPGNZEHD6NFNAXOKDKF7MFYA5TERQZ3TKR3JXJKEU6J7J5E5AOAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

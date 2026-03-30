@@ -1,0 +1,97 @@
+---
+name: sub-task-decompose
+descr: break a complex task into ordered sub-tasks with deps and templates
+budget: 4000
+sections:
+  ## core knowledge ##
+  - include: system-base
+    priority: 1
+    budget_pct: 10
+
+  ## available templates for reference ##
+  - provider: context.file.extract
+    priority: 2
+    budget_pct: 5
+    params:
+      path: "data/yaml/context-templates/"
+      extract: "header"
+    optional: true
+    label: available templates [ headers only ]
+
+  ## instructions ##
+  - static: |
+      decompose the following task into ordered sub-tasks:
+
+      ## task ##
+      {{description}}
+
+      ## decomposition rules ##
+
+      1. **atomic sub-tasks**: each sub-task should be completable in one
+         coding zenka session [ ~20 tool rounds max ]
+      2. **clear boundaries**: each sub-task has a defined input and output
+      3. **dependency ordering**: if B needs A's output, mark the dependency
+      4. **template matching**: for each sub-task, identify which existing
+         context template best fits, or mark as 'new template needed'
+      5. **progressive value**: order so each completed sub-task adds value
+         even if later sub-tasks are not done [ fail gracefully ]
+
+      ## information gathering ##
+
+      before decomposing, gather context:
+      - use list_modules, dep_graph, read_module to understand affected code
+      - use tree_list to check relevant %data state
+      - use search_code to find related patterns
+      - use recent_changes to see if related work was done recently
+
+      ## output format ##
+
+      ### task decomposition: {{description}} ###
+
+      **total sub-tasks**: N
+      **estimated sessions**: N [ rough tool-round count ]
+      **critical path**: sub-task ids in order
+
+      ### sub-tasks ###
+
+      for each sub-task:
+      ```
+      ## ST-N: title ##
+      template: existing-template-name | new: suggested-name
+      depends_on: [ ST-X, ST-Y ] | none
+      scope: small | medium
+      context_files: [ list of modules/files to read ]
+      description: what to do, specifically
+      acceptance: how to verify it's done
+      ```
+
+      ### new templates needed ###
+
+      for each new template identified:
+      - **name**: template-name
+      - **purpose**: what workflow it supports
+      - **key sections**: what context it needs
+      - **reuse potential**: how often this pattern recurs
+
+      ### risk assessment ###
+
+      - what could go wrong
+      - which sub-tasks are most uncertain
+      - suggested fallback if a sub-task fails
+
+      when done, use record_suggestion for any template ideas,
+      then call task_complete with the decomposition summary.
+    priority: 3
+    budget_pct: 85
+    label: task decomposition instructions
+
+on_complete:
+  - when: [output_length_gt=300]
+    action: memory_update
+    topic: "decomposition:result"
+
+#,,,.,.,,,,.,,..,,.,.,,..,.,.,,,.,.,.,,,.,.,,,..,,...,...,,,.,..,,,.,,,..,,.,,
+#ERG7UQBPKCZOVSGVLFJOR55XWPCPVQ2RPAZJSXWBMLCAJ45WB5N5Y25TVMHG5LZQAQ7RBI7WAOF4K
+#\\\|JLERMDSQ6O7XK5WNXJ4SXSIJIYL3PRE2HT5GPWIGJGK2ZFPCLCA \ / AMOS7 \ YOURUM ::
+#\[7]L2APILTDVVGXINZT4MGGUXLBJPU3UOCDUDMTV4IWH2LILM73IGBQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
