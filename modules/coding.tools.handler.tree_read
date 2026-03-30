@@ -48,7 +48,7 @@ if ( $r_type eq qw| HASH | ) {
             $output .= $line;
             $chars += length $line;
         } elsif ( $val_type eq qw| HASH | ) {
-            my $count = scalar keys $val->%*;
+            my $count = scalar keys $val->%* // 0;
             my $line  = sprintf "  %s/ [ hash, %d keys ]\n", $key, $count;
             $output .= $line;
             $chars += length $line;
@@ -59,8 +59,8 @@ if ( $r_type eq qw| HASH | ) {
                     my $sv  = $val->{$subkey};
                     my $svt = ref $sv // '';
                     my $info
-                        = $svt eq qw| HASH |
-                        ? sprintf( '[ hash, %d keys ]', scalar keys $sv->%* )
+                        = $svt eq qw| HASH | ? sprintf( '[ hash, %d keys ]',
+                        scalar keys $sv->%* // 0 )
                         : $svt eq qw| ARRAY |
                         ? sprintf( '[ array, %d items ]', scalar $sv->@* )
                         : $svt eq qw| CODE | ? '[ code ]'
@@ -101,12 +101,12 @@ if ( $r_type eq qw| ARRAY | ) {
         my $item_type = ref $item // '';
         my $line;
         if ( $item_type eq qw| HASH | ) {
-            my @hkeys   = ( sort keys $item->%* );
+            my @hkeys = ( sort keys $item->%* );
             return 'no keys in hash item' unless @hkeys;
             my $max_idx = $#hkeys > 4 ? 4 : $#hkeys;
             my $preview = join ', ', map {
                 sprintf '%s=%s', $ARG, substr( $item->{$ARG} // '', 0, 40 )
-            } @hkeys[ 0 .. $max_idx ];
+            } @hkeys[ 0 .. ( $max_idx > $#hkeys ? $#hkeys : $max_idx ) ];
             $line = sprintf "  [%d] { %s }\n", $idx, $preview;
         } else {
             my $display = defined $item ? substr( "$item", 0, 120 ) : 'undef';
@@ -129,8 +129,8 @@ return sprintf "## %s [ %s ] ##", $path, $r_type;
 
 0;
 
-#,,.,,,..,,,.,...,..,,,..,,..,,,,,,,,,.,,,,,.,..,,...,..,,.,.,.,.,.,,,..,,,.,,
-#NBN424GCXBB4KWKO2FJG35JPVPX6CXNMH6QPACHG6MYTOH5BREIDZK2V6QWP2I34LS4KR3MCFH7P6
-#\\\|CT5EKBBOJT3LQNR5MT3HEKAIL55XWRULH7QEL2O5SSTXJ3Z2FA2 \ / AMOS7 \ YOURUM ::
-#\[7]EWA65QCVEZE4WYNUMM6PGVG4NW5M7JTZ2HSE77CZ2TPQHYKFU6CY 7  DATA SIGNATURE ::
+#,,,,,...,.,,,,,.,..,,,,.,...,,.,,...,,,,,,..,..,,...,.,.,,,,,,..,,.,,,.,,,,.,
+#YCJ7AQUQCKJWMEJENE4MO7TKGAVZNN6T3HMRMNSUYCNU26HOTXZGMVH2VMYHEY456LR6CVCS3EC2E
+#\\\|3TU5T2WBI7AJVAAZ2OORM5VGMHSX3QYQHQ2MC2LQW5NGBRVFN33 \ / AMOS7 \ YOURUM ::
+#\[7]K4LBWY6MMFXISEZIIHYEETE6UQMAJDTFRATMKSZYIOBW7KDQTODY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
