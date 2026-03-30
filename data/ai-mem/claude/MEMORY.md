@@ -25,9 +25,10 @@
 - `feedback-kimi-dispatch-pattern.md` — dispatching tasks to kimi via bin/kimi-task is highly
   token-efficient; write detailed task files, review for known issues
 - `topic-tool-shm-architecture.md` — LLM tool calling (8 tools), dispatch loop, SHM+mmap file editing vision
-- `topic-coding-zenka-templates.md` — 25+ context templates, 13 tools, review cycles, meta-reflection cascade
+- `topic-coding-zenka-templates.md` — 50+ context templates, 16+ tools, tree tools, autonomous loops
 - `feedback-p7c-multiline.md` — p7c cannot handle multiline task descriptions; use single-line or templates
 - `feedback-coding-zenka-edits.md` — local LLM often describes edits instead of applying them; verify results
+- `feedback-arg-regression.md` — local LLM reverts $ARG→$_ after context compaction; verify all edits
 - `topic-tool-suggestions.md` — LLM-suggested tools/improvements, prioritized; implemented/deferred/sources
 - `topic-namespace-tree-intelligence.md` — the tree IS the intelligence: unified namespace for
   code/data/state/history/planning, branch summarization, universal off-band access
@@ -67,14 +68,27 @@
 - Extraction template refined: verbatim copy rules, one-at-a-time, new tool workflow
 - First fully autonomous extraction succeeded (plugin.storage.cluster.* via task-THFSFBY)
 
-### Completed (Mar 30 2026)
+### Completed (Mar 30 2026 — earlier session)
 - Inline sub extraction complete: pager.* (30 subs), plugin.storage.* (7 subs), context.* (8 subs)
 - All extracted to .util.* namespaces, source call sites updated, zero inline subs remain in pager.*
 - Coding zenka tool loop: task_complete + escalate stop signals, record_question/record_suggestion
 - Observations stash working: JSONL in /var/protocol-7/coding/observations/
 - extract-inline-subs template refined: return sub unwrap, one-call-per-round, task_complete
 - Removed 5 .disabled modules crashing loader, fixed regex/interpolation/log-level bugs
-- Verbosity still at 3 in zenki/coding/start (temporary for debugging)
+
+### Completed (Mar 30 2026 — Claude session)
+- Tree tools: tree_read, tree_write, tree_list modules + P7 cmd wrappers + tool definitions
+- Plugin loading: plugins.load + [load_plugins] in coding zenka start (before init_modules)
+- Spawn race fix: model_path_reply re-triggers deferred spawn when gpu_pid is 0
+- Log refinement: process-queued-task consolidated to 1-line round summary
+- 13 new autonomous templates created (all with round budget hints + $ARG preservation):
+  autonomous-direction, integrate-recent, p7-style-enforce, fix-format-issues, git-diff-review,
+  header-tags-fix, regex-style-fix, param-validation-fix, error-resilience,
+  cross-namespace-wiring, observations-triage, post-task-verify, + round budgets on 4 existing
+- Bug fixes: tree_read slice undef, tree_read sprintf warn, pager.source.file-list regex crash
+- Coding zenka autonomously fixed 6 modules via templates (descr/param tags, format issues)
+- $ARG preservation reminder added to all 12 code-editing templates (local model regresses this)
+- Verbosity reduced to 2 in zenki/coding/start
 
 ### Active / Partial
 - **namespace tree as intelligence layer**: unified tree for code/data/state/history/planning,
@@ -221,8 +235,8 @@
 - Pattern: `my @non_num = grep { defined $data_ref->{$ARG}->{$key} and not looks_like_number(...) } keys $data_ref->%*`
 - Global `$SIG{__WARN__}` exists — if wrapping warn handler, capture `$prev_warn = $SIG{__WARN__}` first and call through
 
-#,,,,,..,,,.,,...,.,.,...,.,.,..,,,.,,,.,,.,.,..,,...,...,...,.,.,,..,,,.,,..,
-#5CYXLCFS5TN7PVJHWXVKG5IWVZ7OIAWRAIANMSUMVZJGLHXLPENOWQWJL2IMXWP22TKA2QELAD72M
-#\\\|FUWXMWD6EFYQA2IQMJZO2N45RCRIK5GW4E2BP5VAAILZORI73ZN \ / AMOS7 \ YOURUM ::
-#\[7]PQDJVFA3IH2D4MKD3V3TO2EDGDFYTIT7HLIPJM65DEG6PNDATKDI 7  DATA SIGNATURE ::
+#,,,,,.,,,,.,,.,.,.,.,,.,,..,,,.,,,.,,,,.,,,.,..,,...,...,,.,,,..,.,,,.,.,,,,,
+#R2NPMFEOL5RC6DN6LLDDUTAXYIZAZINYR5S4BPPGMZJQ4GHLUNKT4ZKXGVPLHUKVRUG6QY4VVZMIK
+#\\\|GN24K2TMTXS6GUMRS77PAYDKNETXNEOSOIYKD3FKA3EETYGV2OB \ / AMOS7 \ YOURUM ::
+#\[7]VD3A432JTXEHAGXW44SUFAKJUINLGHIDLPTZUJRSXGOGHUP5I2BI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
