@@ -48,7 +48,11 @@ foreach my $subkey (@dtree) {    ## traverse hash keys ##
     $next_ref = $next_ref->{$subkey};
 }
 
-<[base.logs]>->( ": set_key : %s = '%s'", $d_key_string, $value_content, );
+my $log_val
+    = length($value_content) > 77
+    ? <[base.parser.center_ellipse_string]>->( $value_content, 77 )
+    : $value_content;
+<[base.logs]>->( ": set_key : %s = '%s'", $d_key_string, $log_val );
 
 $next_ref->{$last_key} = $value_content;    ## set value ##
 
@@ -58,8 +62,8 @@ return TRUE if $next_ref->{$last_key} eq $value_content;    ## true ##
 
 return FALSE;                                               ##  false  ##
 
-#,,,,,,..,,..,...,.,,,,..,...,..,,.,,,...,..,,..,,...,...,,..,,,,,,.,,...,,..,
-#ZK5ZAKA4AMGSXDR66OY3GEXLS5ZS5OUT6FH25EL5G6VIKPRQHVRJC4S36FNK67YNHR2WSKKJQVR6Y
-#\\\|BJOBGPPECWY45UVY6LNWMJCTTU7NVTOKH35INEVK5VFPDJPZ5HH \ / AMOS7 \ YOURUM ::
-#\[7]NZUT62QE6E6JSWIJN5LAQPPZSHQUUO7UMAQOI763DNFYR3B3QMAQ 7  DATA SIGNATURE ::
+#,,.,,.,.,..,,,.,,,,,,,.,,.,,,.,,,...,,.,,,,.,..,,...,...,.,.,..,,,,,,,,.,,,.,
+#NUKLVTDSZ72JGRX5OUBDPGQWXDDICSEA5A7FPEUUCDUHPXUQTMGJ54DTD6GFPFDTXKUA56NXFHFPQ
+#\\\|N76QALOOKCQQL5JXDJSHCLUEHICBFHAJKKKZS6YYXFUXO3PLD56 \ / AMOS7 \ YOURUM ::
+#\[7]SWHQ63NP2HAZW3NN7PUT6X53WCWMEWZSX5UE3CCPZPV37MREVGAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

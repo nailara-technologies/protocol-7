@@ -59,6 +59,10 @@ base.dump_data
 base.conf-wrap
 base.cmd.heart
 auth.auth_list
+storage.9p.walk
+storage.9p.stat
+storage.9p.scan
+storage.9p.open
 plugin.auth.pwd
 pager.source.9p
 pager.init-code
@@ -80,6 +84,8 @@ base.encode.b32
 base.decode.bmw
 base.cmd.reload
 base.calc_gauss
+storage.9p.mount
+storage.9p.clunk
 plugin.auth.unix
 pager.sort.chain
 models.init_code
@@ -98,6 +104,10 @@ base.chk-sum.elf
 base.call_filter
 auth.pwd.success
 auth.auth_select
+storage.post_init
+storage.init_code
+storage.9p.umount
+storage.9p.attach
 plugin.auth.zenka
 pager.buffer.page
 net.read_bytewise
@@ -127,6 +137,9 @@ base.event.add_io
 base.context.list
 base.cmd.commands
 base.chk-sum.amos
+storage.9p.version
+storage.9p.readdir
+storage.9p.connect
 pager.command.demo
 jobqueue.init_code
 jobqueue.find_jobs
@@ -137,6 +150,7 @@ coding.task.intake
 coding.intake.work
 base.reload_values
 base.reload_config
+base.protocol.bind
 base.parser.config
 base.handler.write
 base.handler.input
@@ -150,6 +164,7 @@ base.dependency.ok
 base.clear_p7_mods
 base.clean_unicode
 base.clean_hashref
+storage.map-dirs.fs
 plugin.auth.twofish
 pager.sort.adaptive
 pager.export.binary
@@ -232,6 +247,7 @@ base.cmd.show-buffer
 base.chk-sum.bmw.ctx
 base.buffer.add_line
 auth.zenka.init_code
+storage.map-dirs.tree
 pager.viewport.render
 pager.source.register
 pager.editor.get_line
@@ -301,6 +317,10 @@ base.get_max_verbosity
 base.file.get-non-dirs
 base.comp-int.is_valid
 auth.unix.authenticate
+storage.map-dirs.fs.del
+storage.map-dirs.fs.add
+storage.9p.read-message
+storage.9p.filter-check
 protocol.sftp.init_code
 plugin.storage.checksum
 pager.filter.preference
@@ -387,6 +407,8 @@ base.chk-sum.bmw.filesum
 base.chk-sum.bmw.L13-str
 base.chk-sum.bmw.224.B32
 base.check_cfg_cmd_alias
+storage.map-dirs.tree.del
+storage.map-dirs.tree.add
 pager.view.true-int-color
 models.invoke_participant
 models.backend.api.invoke
@@ -418,6 +440,7 @@ base.erase_buffer_content
 base.chk-sum.elf.pre_init
 base.chk-sum.bmw.pre_init
 base.callback.delayed-log
+storage.map-dirs.init_code
 protocol.sftp.read_ssh_env
 plugin.storage.p7ref.parse
 plugin.storage.p7ref.index
@@ -458,6 +481,8 @@ base.handler.session_error
 base.event.io_idle_restart
 base.dependency.add_object
 base.check_dependency_dirs
+storage.sftp.unix.sock_path
+storage.map-dirs.check-dirs
 plugin.storage.p7ref.search
 net.read_linewise_estimated
 models.parser.str.is_vision
@@ -593,7 +618,9 @@ base.session.send_init_reports
 base.p7refs.get_refaddr_prefix
 base.number-cache.true_upwards
 base.log.send-buffer.add-queue
+base.chk-sum.amos.calc_version
 base.cache.refaddr-prefix.init
+storage.amos_chksum.open_socket
 plugin.storage.visual.init_code
 plugin.storage.inference.lookup
 pager.util.viewport.format_size
@@ -619,6 +646,7 @@ base.warnings.compact_statehash
 base.p7refs.gen_template_chksum
 base.file.zenka_dir.unlink_file
 base.buffer.local_logfile_write
+storage.unix.handler.amos-chksum
 plugin.storage.checksum.map-file
 pager.util.filter.item_to_number
 pager.util.encode.is_valid_state
@@ -649,6 +677,7 @@ base.handler.child_output.simple
 base.file.last_existing_dir_path
 base.file.get_swapped_subs_pairs
 base.config.load_proto_7_version
+base.chk-sum.amos.unix.sock_path
 protocol.amos-chksum.ext-cmd.exit
 plugin.storage.checksum.init_code
 plugin.auth.zenka.no-keys-defined
@@ -768,6 +797,7 @@ coding.handler.models_get_entry_reply
 coding.handler.check-completion-chain
 base.perlmod.unregister_loaded_module
 base.handler.write.encryption-wrapper
+storage.protocol.SFTP.open_unix_socket
 protocol.sftp.terminate_server_process
 protocol.protocol-7.auth.select-method
 plugin.storage.util.visual.levenshtein
@@ -845,8 +875,8 @@ base.log.send-buffer.reply-handler.notify-online
 coding.vision-parser.handler.check_vision_completion
 coding.vision-parser.handler.check_extraction_completion
 
-#,,,,,.,.,...,.,,,...,.,.,...,,,.,,,,,,,.,,..,..,,...,...,,..,,..,,,.,,..,.,,,
-#DTGYMKSV5JGPSS3LWOZ5F5TMMVGDFUKWRGXHXA7EBIB26NDYLMHXKSXI4PPWAOKRRHVI32DACQEAK
-#\\\|3LD65UVG76G64QGC27DIJ6BJPYEGVPGETNNR2LFTS37OZ6PJKKL \ / AMOS7 \ YOURUM ::
-#\[7]YU723I6MXOVSQIAZ5AIQ4IOWMNZVNHWXO2LJJXALDUODPDSLUGCQ 7  DATA SIGNATURE ::
+#,,,,,,,,,..,,.,.,..,,..,,..,,.,.,,,.,...,.,,,..,,...,...,,,,,.,,,.,.,...,,.,,
+#ZBZU4ENVH7RKJTJLZ7LXVEN7GBSSBY54YJ6FCFAV65I7AAWU424JW4XVQU743S6QKEMW62IJJDPSC
+#\\\|PNVMAK6YMHC5F7BDIZKTNZY77ZABJ57SXSU6IQZTXMAPMR6UAV2 \ / AMOS7 \ YOURUM ::
+#\[7]47NXS2SYOFRQE2IEMUCKFBCQNPWB7QPOVRWM35RYKT5O3XNTAGDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
