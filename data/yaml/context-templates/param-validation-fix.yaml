@@ -1,0 +1,163 @@
+---
+name: param-validation-fix
+descr: improve parameter validation and error reporting in cmd and console modules
+budget: 4000
+sections:
+  ## core knowledge ##
+  - include: system-base
+    priority: 1
+    budget_pct: 8
+
+  ## style conventions ##
+  - include: system-review
+    priority: 2
+    budget_pct: 5
+
+  ## instructions ##
+  - static: |
+      improve parameter validation and error reporting in protocol-7
+      command and console modules, modelled after the best existing examples.
+
+      ## round budget: aim for 15-25 tool rounds max ##
+      ## fix the modules with worst validation first ##
+      ## call task_complete when key improvements are applied ##
+
+      ## scope ##
+      {{scope}}
+
+      ## P7 validation patterns ##
+
+      ### cmd modules [ zenka commands ] ###
+
+      cmd modules receive `$call` hashref. good validation pattern:
+
+      ```perl
+      ## [:< ##
+      # name  = zenka.cmd.example
+      # descr = do something with a target
+      # param = <target> [options]
+
+      my $args = $call->{'args'} // '';
+
+      return { 'mode' => qw| false |, 'data' => 'expected <target> parameter' }
+          if not length $args;
+
+      my ( $target, $options ) = split m| |, $args, 2;
+      $options //= '';
+      ```
+
+      key rules:
+      - always `$call->{'args'} // ''` with default empty string
+      - return `{ 'mode' => qw| false |, 'data' => $error_msg }` for errors
+      - error messages: lowercase, mention the expected parameter name
+      - use `split m| |, $args, N` for positional parameters
+      - validate before using: check `length`, `defined`, format
+
+      ### console modules [ interactive commands ] ###
+
+      console modules receive args via `shift` or `@ARG`. good pattern:
+
+      ```perl
+      ## [:< ##
+      # name  = keys.console.example
+      # descr = do something with a key name
+      # param = <key-name>
+
+      my $name = shift // '';
+
+      if ( not length $name ) {
+          say "\n  << expected <key-name> parameter >>\n";
+          <[base.exit]>->(qw| 0110 |);
+      }
+      ```
+
+      key rules:
+      - always `shift // ''` or `shift // qw| default |`
+      - error output via `say` with `<< message >>` format
+      - exit with `<[base.exit]>->(qw| 0110 |)` on fatal validation failure
+      - validate before processing
+
+      ### regular modules [ library functions ] ###
+
+      non-command modules validate via guard returns:
+
+      ```perl
+      my $path = shift // return;
+      my $opts = shift // {};
+
+      return if not length $path;
+      ```
+
+      key rules:
+      - `shift // return` for required parameters [ silent fail ]
+      - `shift // {}` or `shift // ''` for optional with default
+      - no error messages in library code [ caller decides ]
+      - return undef or empty on bad input, never die
+
+      ## what to look for ##
+
+      ### missing validation ###
+      - `my $x = shift;` without `// default` [ undef risk ]
+      - `$call->{'args'}` without `// ''` [ undef in string ops ]
+      - no length check before using split result
+      - no type check before hashref/arrayref access
+
+      ### poor error messages ###
+      - `return { 'mode' => qw| false | }` without data [ silent fail ]
+      - error messages that don't say what was expected
+      - uppercase or verbose error messages
+      - missing parameter name in error text
+
+      ### inconsistent patterns ###
+      - some cmd modules using `shift` instead of `$call->{'args'}`
+      - mixing `return;` with `return { mode => ... }` in same module
+      - raw `die` or `warn` instead of P7 error returns
+
+      ## process ##
+
+      ### step 1: scan ###
+      use list_modules for the target namespace cmd and console modules.
+      read each module, check validation patterns.
+
+      ### step 2: prioritize ###
+      - **critical**: modules with no validation at all [ crash risk ]
+      - **important**: modules with missing defaults [ undef warnings ]
+      - **minor**: modules with poor error messages [ usability ]
+
+      ### step 3: apply fixes ###
+      for each module:
+      1. read_module to see full context
+      2. replace_in_file to add/fix validation
+      3. ptd_check the modified module
+
+      be careful:
+      - do NOT change the logic, only the validation wrapper
+      - preserve existing error semantics [ if it returned undef, keep that ]
+      - match the style of the better modules in the same namespace
+
+      ### step 4: summary ###
+
+      ## validation report ##
+
+      **modules checked**: N
+      **fixes applied**: N [ N defaults, N error msgs, N guards ]
+      **skipped**: N [ already good ]
+
+      ### fixes applied ###
+      for each: module, what was added/changed
+
+      call task_complete with counts.
+    priority: 3
+    budget_pct: 87
+    label: param validation fix instructions
+
+on_complete:
+  - when: [output_contains=fixes applied]
+    action: memory_update
+    topic: "fix:param-validation"
+
+#,,.,,,.,,...,...,..,,..,,...,,,.,..,,,.,,,.,,.,.,...,...,...,...,,,.,,,.,,,.,
+#O5BR2QP4PSOCY3CWXAVIMCVP6E3ZV3WEUXX2MZIYAVQZROGCH5TH7STU6ZHSZLWPV3SJ36IVRHCOI
+#\\\|BSZPQCZMTQU6NFKZYBFMGRQWPNSQB4AKXFONQZXM3UL7GJQZLLV \ / AMOS7 \ YOURUM ::
+#\[7]VAFZIGNMNHR7K3EV2S2R2NUYUJ52QWHYQH6OWJZJHTLGJE7AM2DQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

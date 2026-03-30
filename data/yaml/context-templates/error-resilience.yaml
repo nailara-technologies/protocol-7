@@ -1,0 +1,135 @@
+---
+name: error-resilience
+descr: find crash-prone patterns and add defensive guards without changing logic
+budget: 4000
+sections:
+  ## core knowledge ##
+  - include: system-base
+    priority: 1
+    budget_pct: 8
+
+  ## instructions ##
+  - static: |
+      find code patterns that crash on unexpected input and add minimal
+      defensive guards. do NOT change program logic or add error handling
+      for cases that cannot happen — only guard against real crash vectors.
+
+      ## round budget: aim for 15-25 tool rounds max ##
+      ## fix crash-prone patterns, not theoretical risks ##
+      ## call task_complete when critical guards are added ##
+
+      ## scope ##
+      {{scope}}
+
+      ## real crash vectors in P7 code ##
+
+      these patterns actually crash at runtime. fix them:
+
+      ### 1. unguarded regex from user input ###
+      ```perl
+      ## CRASHES if $pattern contains *, +, ? at start ##
+      $entry =~ /$pattern/
+
+      ## FIX: eval-compile or quotemeta ##
+      my $re = eval { qr/$pattern/ };
+      if ( not defined $re ) { ... fallback ... }
+      ```
+
+      ### 2. array slice beyond bounds ###
+      ```perl
+      ## CRASHES with undef if hash has < 5 keys ##
+      ( sort keys %hash )[ 0 .. 4 ]
+
+      ## FIX: clamp slice ##
+      my @keys = sort keys %hash;
+      @keys[ 0 .. ( $#keys > 4 ? 4 : $#keys ) ]
+      ```
+
+      ### 3. method call on undef ###
+      ```perl
+      ## CRASHES if resolve returns undef ##
+      my $result = <[some.module]>->($arg);
+      $result->{'key'}  ## undef deref if module returned undef
+
+      ## FIX: guard the access ##
+      return unless defined $result;
+      ```
+
+      ### 4. sprintf with undef args ###
+      ```perl
+      ## WARNS: undef value in sprintf ##
+      sprintf '%s=%s', $key, $hash->{$key}
+
+      ## FIX: default ##
+      sprintf '%s=%s', $key, $hash->{$key} // ''
+      ```
+
+      ### 5. hash deref on non-hash ###
+      ```perl
+      ## CRASHES if $val is scalar ##
+      keys $val->%*
+
+      ## FIX: check ref type ##
+      keys $val->%* if ref $val eq qw| HASH |
+      ```
+
+      ### 6. division by zero ###
+      ```perl
+      ## CRASHES ##
+      my $pct = $used / $total * 100;
+
+      ## FIX ##
+      my $pct = $total > 0 ? $used / $total * 100 : 0;
+      ```
+
+      ## what NOT to guard ##
+
+      - internal module calls that always return defined [ trust P7 infra ]
+      - hash access on known-shape hashes [ e.g. $call->{'args'} in cmd ]
+      - array operations on arrays you just built
+      - theoretical edge cases that have never triggered
+
+      ## process ##
+
+      ### step 1: scan for crash patterns ###
+      search_code for the anti-patterns above in target scope.
+      also check recent_errors for crash traces pointing to specific lines.
+
+      ### step 2: verify each is real ###
+      for each candidate:
+      - read the surrounding code context
+      - determine if the crash can actually happen
+      - skip if the input is always valid by construction
+
+      ### step 3: apply minimal guards ###
+      for each real crash risk:
+      1. add the smallest possible guard [ // '', defined check, eval ]
+      2. do NOT restructure the code or change the happy path
+      3. ptd_check the modified module
+
+      ### step 4: summary ###
+
+      ## resilience report ##
+
+      **patterns scanned**: N
+      **guards added**: N
+      **false positives skipped**: N
+
+      ### guards added ###
+      for each: module, line, crash pattern, guard added
+
+      call task_complete with counts.
+    priority: 2
+    budget_pct: 92
+    label: error resilience instructions
+
+on_complete:
+  - when: [output_contains=guards added]
+    action: memory_update
+    topic: "fix:error-resilience"
+
+#,,,.,,.,,.,,,...,,.,,,,.,,,,,.,.,.,,,,.,,.,.,.,.,...,..,,...,,.,,.,,,.,.,,,,,
+#RNJNPX6HURW547RGGEWAXCNNECBTQBLKKLUQYACUBRU2EEPNMK3XJ55A5UBPS6LMS5ZZHGMRZYFTG
+#\\\|L6DZZFUT7IL5BKBBQBUZEQKYCQX33YA6X6G4MAC6ZIDU2PBUYNA \ / AMOS7 \ YOURUM ::
+#\[7]Z46QMYEY5WGKCLB3FIYEBGKWMLZJNN4XU5C6C2X7VUD3PZSOVUBQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
