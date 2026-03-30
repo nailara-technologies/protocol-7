@@ -1,0 +1,133 @@
+## [:< ##
+
+# name  = coding.tools.handler.tree_read
+# descr = read value at a dot-separated path in the %data tree
+
+my $args = shift // {};
+
+my $path   = $args->{'path'}   // return 'error: path required';
+my $depth  = $args->{'depth'}  // 1;
+my $budget = $args->{'budget'} // 2000;
+
+## validate key syntax ##
+my ( $valid, $errmsg ) = <[base.validate.data_key_syntax]>->($path);
+return "error: invalid path: $errmsg" unless $valid;
+
+## resolve the path ##
+my $key_href = <[base.resolve_key]>->($path);
+return "path not found: $path" unless defined $key_href;
+
+my $r_type = $key_href->{'r-type'} // '';
+my $r_data = $key_href->{'r-data'};
+
+## plain scalar value ##
+if ( not length $r_type ) {
+    return "path not found: $path" unless defined $r_data;
+    my $display = substr( $r_data, 0, $budget * 4 );
+    return sprintf "## %s [ scalar ] ##\n%s", $path, $display;
+}
+
+## hash reference — show keys and optionally recurse ##
+if ( $r_type eq qw| HASH | ) {
+    my @keys   = <[base.sort]>->($r_data);
+    my $output = sprintf "## %s [ hash, %d keys ] ##\n", $path, scalar @keys;
+    my $chars  = length $output;
+
+    for my $key (@keys) {
+        last if $chars > $budget * 4;
+
+        my $val      = $r_data->{$key};
+        my $val_type = ref $val // '';
+        my $child    = "$path.$key";
+
+        if ( not $val_type ) {
+            ## plain scalar — show truncated value ##
+            my $display = defined $val ? substr( $val, 0, 120 ) : 'undef';
+            $display =~ s|\n|\\n|g;
+            my $line = sprintf "  %s = %s\n", $key, $display;
+            $output .= $line;
+            $chars += length $line;
+        } elsif ( $val_type eq qw| HASH | ) {
+            my $count = scalar keys $val->%*;
+            my $line  = sprintf "  %s/ [ hash, %d keys ]\n", $key, $count;
+            $output .= $line;
+            $chars += length $line;
+            ## recurse one level if depth allows ##
+            if ( $depth > 1 and $count <= 20 ) {
+                for my $subkey ( <[base.sort]>->($val) ) {
+                    last if $chars > $budget * 4;
+                    my $sv  = $val->{$subkey};
+                    my $svt = ref $sv // '';
+                    my $info
+                        = $svt eq qw| HASH |
+                        ? sprintf( '[ hash, %d keys ]', scalar keys $sv->%* )
+                        : $svt eq qw| ARRAY |
+                        ? sprintf( '[ array, %d items ]', scalar $sv->@* )
+                        : $svt eq qw| CODE | ? '[ code ]'
+                        : defined $sv        ? substr( $sv, 0, 80 )
+                        :                      'undef';
+                    $info =~ s|\n|\\n|g;
+                    my $line = sprintf "    %s = %s\n", $subkey, $info;
+                    $output .= $line;
+                    $chars += length $line;
+                }
+            }
+        } elsif ( $val_type eq qw| ARRAY | ) {
+            my $line = sprintf "  %s [] [ array, %d items ]\n", $key,
+                scalar $val->@*;
+            $output .= $line;
+            $chars += length $line;
+        } elsif ( $val_type eq qw| CODE | ) {
+            $output .= sprintf "  %s () [ code ref ]\n", $key;
+            $chars += 30;
+        } else {
+            $output .= sprintf "  %s [ %s ref ]\n", $key, $val_type;
+            $chars += 30;
+        }
+    }
+
+    return $output;
+}
+
+## array reference ##
+if ( $r_type eq qw| ARRAY | ) {
+    my @items  = $r_data->@*;
+    my $output = sprintf "## %s [ array, %d items ] ##\n", $path,
+        scalar @items;
+    my $chars = length $output;
+    my $idx   = 0;
+    for my $item (@items) {
+        last if $chars > $budget * 4;
+        my $item_type = ref $item // '';
+        my $line;
+        if ( $item_type eq qw| HASH | ) {
+            my $preview = join ', ', map {
+                sprintf '%s=%s', $ARG, substr( $item->{$ARG} // '', 0, 40 )
+            } ( sort keys $item->%* )[ 0 .. 4 ];
+            $line = sprintf "  [%d] { %s }\n", $idx, $preview;
+        } else {
+            my $display = defined $item ? substr( "$item", 0, 120 ) : 'undef';
+            $display =~ s|\n|\\n|g;
+            $line = sprintf "  [%d] %s\n", $idx, $display;
+        }
+        $output .= $line;
+        $chars += length $line;
+        $idx++;
+    }
+    return $output;
+}
+
+## code ref ##
+return sprintf "## %s [ code ref ] ##\ncallable reference", $path
+    if $r_type eq qw| CODE |;
+
+## other ##
+return sprintf "## %s [ %s ] ##", $path, $r_type;
+
+0;
+
+#,,..,.,,,.,,,,,,,..,,.,,,,,,,,,,,,..,,,,,,..,..,,...,...,.,.,,..,...,,,,,..,,
+#YRHPBTAWAFUBUMTFXKDSSAK4IZOCKH54XV6XCCY42TUAMGABC62Z75JV42JUVKGIVE7PUGNOOINWW
+#\\\|TCVV7ADYACYJAC7ELW3GM5VZEKZ6MTDVMYEEX2RK3ZZ7YJRYQM4 \ / AMOS7 \ YOURUM ::
+#\[7]BERVAVAWMXTBK3BHD2VK6WJ63QHKRIIZGESUNZYJ2TFQRNXWISCA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

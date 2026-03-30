@@ -1,0 +1,93 @@
+---
+name: tree-explore
+descr: map and document %data tree structure using tree tools
+budget: 4000
+sections:
+  ## instructions ##
+  - static: |
+      explore and document the %data tree structure for this zenka.
+
+      ## purpose ##
+
+      build a map of what lives in the runtime %data hash. this is the
+      foundation for the namespace-tree-intelligence layer — we need to
+      understand the current shape before we can optimize it.
+
+      ## exploration protocol ##
+
+      ### step 1: top-level survey ###
+      use tree_list with empty path to see all top-level branches.
+      record: branch name, type, approximate size.
+
+      ### step 2: branch drill-down ###
+      for each significant branch [ > 3 keys ], use tree_list with
+      depth=2 to map sub-structure. focus on:
+      - coding.* — task state, tool state, inference state
+      - context.* — context tree, templates, memory
+      - system.* — zenka configuration and runtime params
+      - any other branches with > 5 keys
+
+      ### step 3: state documentation ###
+      for interesting leaf values, use tree_read to capture current state.
+      especially:
+      - configuration values that affect behavior
+      - state machine values [ status, phase, flags ]
+      - counters and metrics
+      - cached data structures
+
+      ### step 4: structure analysis ###
+
+      produce observations about:
+      - **flat vs nested**: is the tree well-structured or dumped flat?
+      - **naming consistency**: do keys follow P7 conventions?
+      - **orphaned branches**: data that nothing seems to reference
+      - **missing structure**: expected branches that don't exist
+      - **type mismatches**: scalars where hashes would be better
+
+      ### step 5: tree map output ###
+
+      ## %data tree map ##
+
+      format as an indented tree with annotations:
+
+      ```
+      %data
+        coding/                     [ hash, 15 keys ]
+          task/                     [ hash, 5 keys ] — task queue state
+            queue []                [ array, 3 items ] — pending tasks
+            active                  [ scalar ] — current task id
+          tools/                    [ hash, 8 keys ] — tool state
+          ...
+        context/                    [ hash, 10 keys ]
+          ...
+        system/                     [ hash, 20 keys ] — runtime config
+          ...
+      ```
+
+      ### step 6: improvement suggestions ###
+
+      based on the map, suggest:
+      - branches that should be reorganized
+      - missing branches that would help [ e.g. coding.metrics ]
+      - data that should be persistent [ written to zenka_dir ]
+      - candidates for the shared %DATA tree [ cross-zenka visibility ]
+
+      use tree_write to store the tree map summary at
+      coding.tree_map.last_survey with a timestamp and key count.
+
+      use record_suggestion for structural improvement ideas.
+      call task_complete when the survey is done.
+    priority: 1
+    budget_pct: 100
+    label: tree exploration instructions
+
+on_complete:
+  - when: [output_length_gt=500]
+    action: memory_update
+    topic: "tree-explore:map"
+
+#,,,,,...,,..,..,,,..,...,,..,..,,,.,,...,.,.,..,,...,...,...,,,.,,.,,,,,,,,.,
+#FITGGCNTQLHCMQMPJXE2KKUNQ2V2F3SMMZVB22UM35C4YFD5IYOJFCALMLPBEQ3HHY26RVO3B5O5C
+#\\\|M6BHO4HP4PDTLZDQ2VLYJBD7I765IPDXCTSYCVWAHNC4ASD32JN \ / AMOS7 \ YOURUM ::
+#\[7]ZMI5HBSUWADWOBMLKX3JBSQ3KINBOGFIEBMM7WD5ZGQHWGCR6OAQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,0 +1,60 @@
+## [:< ##
+
+# name  = coding.tools.handler.tree_write
+# descr = set a scalar value at a dot-separated path in the %data tree
+
+my $args = shift // {};
+
+my $path  = $args->{'path'}  // return 'error: path required';
+my $value = $args->{'value'} // return 'error: value required';
+
+## validate key syntax ##
+my ( $valid, $errmsg ) = <[base.validate.data_key_syntax]>->($path);
+return "error: invalid path: $errmsg" unless $valid;
+
+## safety: restrict writes to coding.* and context.* namespaces ##
+## prevents accidental mutation of core system state ##
+my @allowed_prefixes = qw| coding context observations task |;
+my $allowed          = 0;
+for my $prefix (@allowed_prefixes) {
+    if ( index( $path, "$prefix." ) == 0 or $path eq $prefix ) {
+        $allowed = 1;
+        last;
+    }
+}
+return sprintf 'error: write restricted to %s namespaces',
+    join( ', ', @allowed_prefixes )
+    unless $allowed;
+
+## check current state ##
+my $existing = <[base.resolve_key]>->($path);
+my $was_new  = not defined $existing;
+
+## set the value ##
+my $result = <[base.set_key]>->( $path, $value );
+
+if ($result) {
+    if ($was_new) {
+        <[base.logs]>->(
+            2,     ':. tree_write: created %s = %.80s',
+            $path, $value
+        );
+        return sprintf "created: %s = %s", $path, $value;
+    } else {
+        <[base.logs]>->(
+            2,     ':. tree_write: updated %s = %.80s',
+            $path, $value
+        );
+        return sprintf "updated: %s = %s", $path, $value;
+    }
+}
+
+return "error: could not set value at $path";
+
+0;
+
+#,,,,,..,,...,.,,,.,.,,,.,.,.,.,,,...,..,,,,.,..,,...,.,,,...,.,,,.,,,.,.,,,,,
+#C5GAPS7YHMDGKEKAQB6TISG4F565QMFKALBZSFWPK2TJBHOWT27PBKNUWO4FKXRKFTAKYXGVYUKLE
+#\\\|NI7ZRJ2NMINSPBCQKX4IHKXME2TPZEOQ42RCV3BPVUSTXLBNSCS \ / AMOS7 \ YOURUM ::
+#\[7]FFXIPADVUA2RGWQQCE4IKGNEB2RUFL4LUDJ5NCEZBGTUNUAOZSAA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
