@@ -32,7 +32,7 @@ while ( $item_idx < @$items ) {
     my $aux_15      = substr( $num_bits_64, 49, 15 );
 
     # Only use valid states
-    next unless _is_valid_state( $Z, $main_42 );
+    next unless <[pager.util.encode.is_valid_state]>->( $Z, $main_42 );
 
     my $item = $items->[ $item_idx++ ];
 
@@ -64,7 +64,9 @@ while ( $item_idx < @$items ) {
             # BASE32 payload
             $encoded_item->{'type'} = 'base32';
             $encoded_item->{'payload'}
-                = _encode_base32_chunk( $item, substr( $decoded, 3, 5 ) );
+                = <[pager.util.encode.encode_base32_chunk]>->(
+                $item, substr( $decoded, 3, 5 )
+                );
         } else {
 
             # Document header
@@ -77,7 +79,9 @@ while ( $item_idx < @$items ) {
         # Graphical 5x7 matrix
         $encoded_item->{'type'} = 'graphical';
         $encoded_item->{'matrix'}
-            = _encode_5x7_matrix( $item, substr( $decoded, 1, 6 ) );
+            = <[pager.util.encode.encode_5x7_matrix]>->(
+            $item, substr( $decoded, 1, 6 )
+            );
     }
 
     # Binary representation for export
@@ -86,7 +90,8 @@ while ( $item_idx < @$items ) {
     } elsif ( $format eq 'base32' ) {
         $encoded_item->{'base32'} = <[base.encode.b32]>->( pack( 'Q>', $Z ) );
     } elsif ( $format eq 'display' ) {
-        $encoded_item->{'display'} = _format_display($encoded_item);
+        $encoded_item->{'display'}
+            = <[pager.util.encode.format_display]>->($encoded_item);
     }
 
     push @encoded, $encoded_item;
@@ -94,61 +99,8 @@ while ( $item_idx < @$items ) {
 
 return \@encoded;
 
-# Encode item as BASE32 chunk
-sub _encode_base32_chunk {
-    my ( $item, $bits ) = @ARG;
-
-    my $data = $item->{'path'} // $item->{'name'} // $item->{'checksum'}
-        // '';
-    my $value = oct( '0b' . $bits );
-
-    # Use 5 bits to select character from data
-    return substr( $data, $value % ( length($data) || 1 ), 1 )
-        if length($data);
-    return chr( 65 + $value );    # Fallback to A-Z
-}
-
-# Encode item as 5x7 matrix
-sub _encode_5x7_matrix {
-    my ( $item, $bits ) = @ARG;
-
-    my $value = oct( '0b' . $bits );
-    my $x     = $value % 5;
-    my $y     = int( $value / 5 ) % 7;
-
-    return { 'x' => $x, 'y' => $y, 'set' => 1 };
-}
-
-# Format for display
-sub _format_display {
-    my ($encoded) = @ARG;
-
-    my $type = $encoded->{'type'};
-    my $d13  = $encoded->{'d13_state'};
-
-    return sprintf(
-        "[%s] %s | 42:%s | 7:%s | 15:%s",
-        $type,
-        $encoded->{'item'}{'name'} // $encoded->{'item'}{'checksum'} // '?',
-        substr( $d13->{'main_42'}, 0, 8 ) . '...',
-        $d13->{'decoded'},
-        $d13->{'aux_15'}
-    );
-}
-
-# Validate state (simplified)
-sub _is_valid_state {
-    my ( $num, $main_42 ) = @ARG;
-    my $bits  = sprintf( '%b', $num );
-    my $ones  = $bits =~ tr/1//;
-    my $zeros = length($bits) - $ones;
-    return abs( $ones - $zeros ) < length($bits) * 0.4;
-}
-
-# SPDX-License-Identifier: ISC
-
-#,,,.,,,,,..,,,..,...,..,,.,,,,,,,..,,..,,.,.,..,,...,...,,.,,..,,,,,,...,.,,,
-#EIYGZIPSZY2TFEGANIR37SOYB3S4363ZFE7CRWES4LRM3NRQVBTX337BQK2GOZWKL5PGABYFLNTNY
-#\\\|RPQ67VEG3ANE7DKZWDSAKVGK7QJX4ZEAERCDMTSCSWTDNZFJDOG \ / AMOS7 \ YOURUM ::
-#\[7]AONFHP4DKR76QXJL4PUUOOVGE6I3IV5TLZALDF42H5ZCTNKVN4DQ 7  DATA SIGNATURE ::
+#,,,.,,,.,.,,,,.,,,.,,.,.,,.,,,..,.,.,,..,.,,,..,,...,...,..,,,.,,..,,,.,,,.,,
+#U7FABX5JLTL2KXWZXAVAKGAAARCN32DHA6MKRVKFISBHI5RIQCET4HGKHA5INEVVKX4KSXJIV3ETY
+#\\\|UAJBVT7YNUUVGCZXOPYU4ZNULDD6E5L76GSASTGJE23PH3FHGRJ \ / AMOS7 \ YOURUM ::
+#\[7]EE6EFTISZMPDCFA2UDYI76PB5HFILMM4J73XBNQPPB3MTMTULOCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

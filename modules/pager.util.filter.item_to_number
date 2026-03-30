@@ -1,0 +1,29 @@
+## [:< ##
+
+# name  = pager.util.filter.item_to_number
+# descr = Convert item to numeric representation
+
+my ($item) = @ARG;
+
+if ( $item->{'checksum'} ) {
+
+    # Use checksum as number
+    return hex( substr( $item->{'checksum'}, 0, 16 ) );
+} elsif ( $item->{'path'} ) {
+
+    # Hash path to number
+    my $hash = <[base.chk-sum.bmw.L13-str]>->( $item->{'path'} );
+    return hex( substr( $hash, 0, 16 ) );
+} else {
+
+    # Use all fields
+    my $data = join( '', sort map { $item->{$ARG} // '' } keys %$item );
+    my $hash = <[base.chk-sum.bmw.L13-str]>->($data);
+    return hex( substr( $hash, 0, 16 ) );
+}
+
+#,,..,,,.,,,.,.,,,...,..,,.,,,,,.,,,,,.,.,,..,..,,...,...,..,,.,,,...,...,..,,
+#JCG2YK7MZ2IMD63ZTHRYUS5YFW7JJESBA6I2R5GFPL44EYKJFSSVYBOVNHFRHVC7RFW5VL3M2CFMG
+#\\\|I22LDL5RYI2YOO32YU3QIAAX2MXJAS2PEXN7GQ36KXFVN5V33F6 \ / AMOS7 \ YOURUM ::
+#\[7]ZESKFVRJLOYJIOOQ76NWJZZP2HOZVGRBJSJDGLUOHKH32SKLYMBI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
