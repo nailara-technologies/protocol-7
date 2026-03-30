@@ -101,9 +101,11 @@ if ( $r_type eq qw| ARRAY | ) {
         my $item_type = ref $item // '';
         my $line;
         if ( $item_type eq qw| HASH | ) {
+            my @hkeys   = ( sort keys $item->%* );
+            my $max_idx = $#hkeys > 4 ? 4 : $#hkeys;
             my $preview = join ', ', map {
                 sprintf '%s=%s', $ARG, substr( $item->{$ARG} // '', 0, 40 )
-            } ( sort keys $item->%* )[ 0 .. 4 ];
+            } @hkeys[ 0 .. $max_idx ];
             $line = sprintf "  [%d] { %s }\n", $idx, $preview;
         } else {
             my $display = defined $item ? substr( "$item", 0, 120 ) : 'undef';
@@ -126,8 +128,8 @@ return sprintf "## %s [ %s ] ##", $path, $r_type;
 
 0;
 
-#,,..,.,,,.,,,,,,,..,,.,,,,,,,,,,,,..,,,,,,..,..,,...,...,.,.,,..,...,,,,,..,,
-#YRHPBTAWAFUBUMTFXKDSSAK4IZOCKH54XV6XCCY42TUAMGABC62Z75JV42JUVKGIVE7PUGNOOINWW
-#\\\|TCVV7ADYACYJAC7ELW3GM5VZEKZ6MTDVMYEEX2RK3ZZ7YJRYQM4 \ / AMOS7 \ YOURUM ::
-#\[7]BERVAVAWMXTBK3BHD2VK6WJ63QHKRIIZGESUNZYJ2TFQRNXWISCA 7  DATA SIGNATURE ::
+#,,.,,,,,,.,,,.,.,,..,.,.,,,.,.,.,...,...,,.,,..,,...,...,.,.,.,,,.,,,,..,.,,,
+#YTDQ2DKRNIWPRRMAUUE2IWT5SBA4NG53YAPWGVXB2NWQET46EFCMJP42P2JIOSATY75DJZNY62YXK
+#\\\|JLFO3KB642J6YGXY5V3NBTQKQXBOQBNZPSRTT3NZAMJDTDRYTF3 \ / AMOS7 \ YOURUM ::
+#\[7]4ITHSQJA4K7MVTZZZXGGPCKBCQTTXLKQZJ6WYOHYPZND5MWFZOBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
