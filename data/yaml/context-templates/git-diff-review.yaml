@@ -1,0 +1,110 @@
+---
+name: git-diff-review
+descr: review recent git changes for style, correctness, and integration issues
+budget: 4000
+sections:
+  ## style conventions ##
+  - include: system-review
+    priority: 1
+    budget_pct: 8
+
+  ## instructions ##
+  - static: |
+      review recent git changes for issues before commit or after merge.
+
+      ## round budget: aim for 10-20 tool rounds max ##
+      ## focus on the changed lines, not the entire module ##
+      ## call task_complete with findings, not exhaustive coverage ##
+
+      ## scope ##
+      {{scope}}
+
+      ## review protocol ##
+
+      ### step 1: identify what changed ###
+
+      use recent_changes to see the latest modifications.
+      for each changed module:
+      1. read_module to see current content
+      2. note which lines/sections were modified
+
+      ### step 2: review changed code ###
+
+      for each change, check:
+
+      **correctness**
+      - does the new code do what the commit message says?
+      - are error paths handled?
+      - are return values correct [ mode => qw| true/false/size | ]?
+      - any off-by-one, nil/undef, or type errors?
+
+      **style** [ only in changed lines ]
+      - lowercase comments? [ ## not ## Capital ]
+      - bracket annotations? [ word ] not ( word )
+      - log format: :. description .: with sprintf?
+      - $ARG not $_?
+      - no variable interpolation in log strings?
+      - qw| | for mode values?
+
+      **integration**
+      - do callers of changed code still pass correct args?
+      - if a return type changed, are callers updated?
+      - any new config keys that need to be in start files?
+      - any new modules that need to be in modules.load?
+
+      **safety**
+      - any hardcoded paths that should be config?
+      - any missing error checks on file/network ops?
+      - any eval blocks without error handling?
+
+      ### step 3: classify findings ###
+
+      for each issue found:
+
+      if SAFE TO FIX [ style, format, obvious typo ]:
+        use replace_in_file to apply the fix.
+        then ptd_check to verify syntax.
+
+      if NEEDS ATTENTION [ logic, integration, safety ]:
+        use record_question to flag it.
+
+      if MINOR NIT [ not wrong, just could be better ]:
+        use record_suggestion to note it.
+
+      ### step 4: summary ###
+
+      ## review summary ##
+
+      **changes reviewed**: N modules
+      **issues found**: N [ N fixed, N flagged, N suggested ]
+
+      ### fixes applied ###
+      for each: module, line, what changed
+
+      ### issues flagged ###
+      things that need human review
+
+      ### suggestions ###
+      minor improvements for later
+
+      ### verdict ###
+      one of:
+      - CLEAN: no issues found, safe to commit/merge
+      - FIXED: style issues corrected, re-check before commit
+      - NEEDS REVIEW: flagged issues require human judgment
+
+      call task_complete with the verdict and counts.
+    priority: 2
+    budget_pct: 92
+    label: git diff review instructions
+
+on_complete:
+  - when: [output_length_gt=200]
+    action: memory_update
+    topic: "review:git-diff"
+
+#,,,.,,..,,,,,.,.,,.,,,..,,..,...,.,,,,,,,...,.,.,...,...,...,,,,,.,,,,,,,.,.,
+#LKQTTEOFQGMGBGDWACWNIBLUUBZ5UMIQOYSOAY65NXXXLJF56WSX5SXAATFSQTCWLZRYZEXIJABWQ
+#\\\|LQ23AG3NS2SS7U4BSQAT2CGURLCEL4W2KBZLEP6RMVNBHEG6CYO \ / AMOS7 \ YOURUM ::
+#\[7]4JYZAQGMSVLBGFBYT576Q6UBAACUTUJ34ET5RZUZMNZ3RHJOB6DQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
