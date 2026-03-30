@@ -1,0 +1,21 @@
+## [:< ##
+
+# name  = pager.util.editor.get_item_at_line
+# descr = Get item at specific line number from pager buffer
+
+my ( $buf, $line_num ) = @ARG;
+
+my $page_size = $buf->{'pages'}{'size'};
+my $page_num  = int( $line_num / $page_size );
+my $offset    = $line_num % $page_size;
+
+my $page = <[pager.buffer.page.get]>->( $buf, $page_num );
+return undef unless $page && @$page > $offset;
+
+return $page->[$offset];
+
+#,,,.,.,.,,.,,,,,,.,,,,..,...,,.,,,,,,,.,,,..,..,,...,..,,...,,.,,,.,,...,,..,
+#L5AGBEQPLH6JHJ3UQLH2QYVZL5YKPPVB7RW43L2PCI5NLMXXCA5AWPMBSANLSV7AMA4NQYQRRTUQG
+#\\\|AXZN6354MC4PBLJLF5UEYBSWPFGUFUJV2DRA77USQ4CCGRAPAGE \ / AMOS7 \ YOURUM ::
+#\[7]OOYKC74WREMGOBSYH7BETGBPRYETAZT7X7O65VKFBFITHASHXODQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

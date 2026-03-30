@@ -1,0 +1,18 @@
+## [:< ##
+
+# name  = pager.util.editor.format_line
+# descr = Format item as single line for editor display
+
+my ($item) = @ARG;
+
+if ( $item->{'checksum'} ) {
+    return sprintf( "%s  %s", $item->{'checksum'}, $item->{'path'} // '' );
+}
+
+return $item->{'path'} // $item->{'name'} // '(unknown)';
+
+#,,,.,.,.,...,,,,,...,.,.,,,.,,..,,.,,.,,,,,,,..,,...,...,.,.,,,,,,,.,...,,,,,
+#2GJB7XSMOKF6PNPVLHGVYIGK5TD4ZOQO5PXVPANAHT2MZUNIGHNN63ALHCNYZ2SIDRCFIDEMYBSSI
+#\\\|5NV7XEBL73VIRLOIAPMH65N2ADQ3RQROXRNVI2WURL2RRYBFIQR \ / AMOS7 \ YOURUM ::
+#\[7]BI73QOGZUEQQPNNORX4CKQGCBP5UR6WDDYRJ2ZLDZMWI3CZ7FYCY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

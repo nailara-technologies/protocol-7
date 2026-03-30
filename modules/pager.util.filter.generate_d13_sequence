@@ -1,0 +1,49 @@
+## [:< ##
+
+# name  = pager.util.filter.generate_d13_sequence
+# descr = Generate division-13 harmonic sequence from seed and count
+
+my ( $seed, $count ) = @ARG;
+
+my @sequence;
+my $Z = $seed;
+$Z =~ s|\.|| if defined $Z && $Z =~ m|.|;    # Remove floating point
+$Z //= 1;
+
+my $iteration = 0;
+while ( @sequence < $count * 2 ) {    # Generate extra for filtering
+    $iteration++;
+
+    # Core division-13 algorithm
+    $Z <<= 4;
+    $Z /= 13;                         # Or: $Z * 11 * 77 / 1001
+
+    # Only keep true states (similar to is_true check)
+    my $num_bits_64 = sprintf( '%064b', $Z );
+    my $main_42     = substr( $num_bits_64, 0,  42 );
+    my $decoded     = substr( $num_bits_64, 42, 7 );
+    my $aux_15      = substr( $num_bits_64, 49, 15 );
+
+    # Simple truth check (would use AMOS7::Assert::Truth in full impl)
+    my $is_valid = <[pager.util.filter.is_true_state]>->( $Z, $main_42 );
+
+    push @sequence,
+        {
+        'full_64'   => $Z,
+        'main_42'   => $main_42,
+        'decoded'   => $decoded,
+        'aux_15'    => $aux_15,
+        'iteration' => $iteration,
+        }
+        if $is_valid;
+
+    last if $iteration > $count * 10;    # Safety limit
+}
+
+return @sequence[ 0 .. $count - 1 ];
+
+#,,,,,...,...,,.,,.,.,,..,,..,.,.,,,,,.,.,...,..,,...,...,.,.,.,.,.,,,.,.,...,
+#ZN6XARYTVVK5CNNYDBBTL6WMQU5DRJ3436C3FP4XPIHTRMPTTVOIWS5XWPJNBA3ZDPQ37EPAMDDEQ
+#\\\|DDJUC2XNPXAGGWOSJHBG2VZHV5B7ZSKNV65BR7U4MB7EMKMDYX4 \ / AMOS7 \ YOURUM ::
+#\[7]2YURFGMPITY5ZLX3H5WT2PEBT5V6OH423KDP4IMNZIRUOADNHSBQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

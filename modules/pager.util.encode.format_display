@@ -1,0 +1,24 @@
+## [:< ##
+
+# name  = pager.util.encode.format_display
+# descr = Format encoded item for display output
+
+my ($encoded) = @ARG;
+
+my $type = $encoded->{'type'};
+my $d13  = $encoded->{'d13_state'};
+
+return sprintf(
+    "[%s] %s | 42:%s | 7:%s | 15:%s",
+    $type,
+    $encoded->{'item'}{'name'} // $encoded->{'item'}{'checksum'} // '?',
+    substr( $d13->{'main_42'}, 0, 8 ) . '...',
+    $d13->{'decoded'},
+    $d13->{'aux_15'}
+);
+
+#,,.,,,,,,,,,,.,,,,,,,,,,,..,,,,.,..,,..,,,,,,..,,...,...,,,.,,.,,,,.,,,,,,,.,
+#PHWWS5COY2AFR5RYYE4O5NU567757QXWJKRGGFPF6ICQJ5CQSVTLOBH6AY5XYRPKJFKG23LLHYPRQ
+#\\\|RQFS4IBDOOACAIVUJZSSU7GTD44Y4ULB37IT4QOHFMWAWF54ESY \ / AMOS7 \ YOURUM ::
+#\[7]MRFAZUMRKASYVC2OU2VEWFOFJJODD642XJKOOM6CMPFEMJNHU2AI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

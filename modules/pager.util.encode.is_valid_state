@@ -1,0 +1,16 @@
+## [:< ##
+
+# name  = pager.util.encode.is_valid_state
+# descr = Validate division-13 state by checking bit balance
+
+my ( $num, $main_42 ) = @ARG;
+my $bits  = sprintf( '%b', $num );
+my $ones  = $bits =~ tr/1//;
+my $zeros = length($bits) - $ones;
+return abs( $ones - $zeros ) < length($bits) * 0.4;
+
+#,,,.,.,,,...,...,,.,,...,.,,,,,.,,.,,,.,,,,,,..,,...,..,,...,,,.,..,,..,,.,,,
+#O6N2DN3JYGWFBXBANAAICKFRBC4PPCLD5HI6CWKGPYD2GVAEC4RMAF5CFWV5SQXZKNE45TKRFABBU
+#\\\|OV4P35FHDHJZ7NOWRESPYDDDRRLM3K4DQFU6F7MIWKSOLLKLF6U \ / AMOS7 \ YOURUM ::
+#\[7]MBNZMPV2QAUGLJY5KUR5CJGOHFQPSTBYKKUDBJIBJWCAT2SQOOAI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

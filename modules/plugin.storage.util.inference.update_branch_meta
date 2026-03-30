@@ -1,0 +1,37 @@
+## [:< ##
+
+# name  = plugin.storage.util.inference.update_branch_meta
+# descr = update or create branch .meta file [ relative path for zenka_dir ]
+
+my ( $rel_path, $question, $time, $action ) = @ARG;
+
+## read existing meta via zenka_dir.load ##
+my %meta;
+my $existing = <[file.zenka_dir.load]>->($rel_path);
+if ( defined $existing ) {
+    for my $line ( split "\n", $existing->$* ) {
+        $meta{$1} = $2 if $line =~ m{^([^=]+)=(.*)$};
+    }
+}
+
+$meta{'question'}  //= $question;
+$meta{'created'}   //= $time;
+$meta{'hit_count'} //= 0;
+$meta{'last_access'} = $time;
+
+if ( $action eq qw| hit | ) {
+    $meta{'hit_count'}++;
+}
+
+my $content = join '', map {"$ARG=$meta{$ARG}\n"} sort keys %meta;
+<[file.zenka_dir.write]>->(
+    $rel_path, \$content, qw| > |, 0664, ':encoding(UTF-8)'
+);
+
+return;
+
+#,,,.,,.,,.,,,.,,,,..,...,,..,.,,,,.,,.,,,.,,,..,,...,...,,.,,,,,,..,,,.,,,.,,
+#UZ2WB7E63ACHFHXHNBNWSS7DWEPEOP7C52EQYJKR6CCEPSC4CDY7NDWCOPF34MFMLUKYN63OL5LC4
+#\\\|5JES43QHBRB5IEFNTGN3I52GAMQ24DVQ3QCQLUWUI26ZBW67Q55 \ / AMOS7 \ YOURUM ::
+#\[7]ZAQFUJH37NYRTGRMGZAYFQZ3MVQIVEHCW5JTNEHR44E27AW5HCAY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
