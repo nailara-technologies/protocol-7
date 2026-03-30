@@ -34,7 +34,7 @@ for my $i ( 1 .. $depth ) {
 if ( $buf->{'access_pattern'}{'end_jumps'} ) {
 
     # Prefetch near end if user jumps there often
-    my $estimated_pages = _estimate_total_pages($buf);
+    my $estimated_pages = <[pager.util.buffer.estimate_total_pages]>->($buf);
     push @to_fetch, $estimated_pages - 1
         if $estimated_pages && !exists $cached->{ $estimated_pages - 1 };
 }
@@ -54,27 +54,8 @@ for my $prefetch_page (@to_fetch) {
 
 return scalar(@to_fetch);
 
-# Estimate total pages from what we've seen
-sub _estimate_total_pages {
-    my ($buf) = @ARG;
-
-    if ( $buf->{'source'}{'total'} ) {
-        return int( $buf->{'source'}{'total'} / $buf->{'pages'}{'size'} ) + 1;
-    }
-
-    # Estimate based on items seen
-    return undef unless $buf->{'stats'}{'items_seen'} > 0;
-
-    # Conservative estimate: what we've seen is just the beginning
-    return
-        int( $buf->{'stats'}{'items_seen'} * 2 / $buf->{'pages'}{'size'} )
-        + 1;
-}
-
-# SPDX-License-Identifier: ISC
-
-#,,,.,,.,,,..,,..,,,,,,..,,.,,.,.,,.,,...,,..,..,,...,...,..,,..,,.,,,...,.,,,
-#MQ3AQ2B3VPQVHZX35SJJIKRNNUUW72EIP7NKO4GDRPCGKBIPKBWZIP2OHCC4EU7UD6ZJ2QZDUEAKK
-#\\\|ZGNPBKKVZQC42XEI4HBLECVONHJEPPUER2AKSXLUAYMDP3T73TE \ / AMOS7 \ YOURUM ::
-#\[7]SHJ2KIVZ4OBTUGUCFSAYJ2WMBVHFO5IT2QNJDXO3V5VZW4VYMQBI 7  DATA SIGNATURE ::
+#,,,.,..,,,..,,,,,.,,,,,,,,..,,.,,,..,...,...,..,,...,..,,,.,,,,,,.,,,.,.,...,
+#7IIGCLB6CEPX6O7LGD5PNTPW5EXM5V24YBVGTYVVCUE5FLIBXTLR6DYGSS7XYGDTAYWPTZCIANOL6
+#\\\|CRLQJIU7SV5UOH5PGHAH5GSGYCS55ERJCGSXZ3YSQ3BPYQ3YQCQ \ / AMOS7 \ YOURUM ::
+#\[7]TNH5J2V72L3Q7GO42PMANRU4T5YR2ZGL27L5ZJQN2FIUYAAXE4DY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

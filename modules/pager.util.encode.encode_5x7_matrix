@@ -1,0 +1,18 @@
+## [:< ##
+
+# name  = pager.util.encode.encode_5x7_matrix
+# descr = Encode item as 5x7 matrix coordinates
+
+my ( $item, $bits ) = @ARG;
+
+my $value = oct( '0b' . $bits );
+my $x     = $value % 5;
+my $y     = int( $value / 5 ) % 7;
+
+return { 'x' => $x, 'y' => $y, 'set' => 1 };
+
+#,,,.,,,.,,,,,..,,,..,,,,,,,.,..,,,.,,.,.,,..,..,,...,...,,.,,,..,..,,.,,,..,,
+#TOUMOUTSL6HNR2USGAL65DXNPFQL6D7PEN73GR3PIJQV4ELIOBCLNTBNZB6B2RERNQCU2BZMXF4SG
+#\\\|FTJRHUGR45FNBFLPVVGHY56V5EQUJAAYSKZS2P7Q53CRNST34ZG \ / AMOS7 \ YOURUM ::
+#\[7]SM5SXBM7J4QSQI24YRIPO3V26R6YPQRGETNAO2XQFQTFQYITWWBI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

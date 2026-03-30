@@ -1,0 +1,19 @@
+## [:< ##
+
+# name  = pager.util.filter.is_true_state
+# descr = Simplified true state check for numeric value
+
+my ( $num, $main_42 ) = @ARG;
+
+# Would use AMOS7::Assert::Truth::is_true in production
+# For now, check basic bit balance
+my $bits  = sprintf( '%b', $num );
+my $ones  = $bits =~ tr/1//;
+my $zeros = length($bits) - $ones;
+return abs( $ones - $zeros ) < length($bits) * 0.3;    # Roughly balanced
+
+#,,.,,,.,,.,.,,,,,.,.,.,,,...,,..,.,.,,,.,,,,,..,,...,...,..,,..,,,..,,,,,.,,,
+#ETE6OJJFHDRTNEKQL5JP7DY2VNNJJDU5PLYZUEJKVFXDSTC6WMXSHADMBCUKT6MNP3W2NRXISN3HW
+#\\\|UNBCMZLOG7V7LQW2VQ4EZGTWQ7MTZNW5M2RTV6LM4EYXUDYCDS4 \ / AMOS7 \ YOURUM ::
+#\[7]M7KHGFFC6OY4ZPHS7GYQDD7RZIFS6E4ZEMWDNOIFDML7AAAL3MDQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

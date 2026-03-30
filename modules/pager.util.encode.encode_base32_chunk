@@ -1,0 +1,20 @@
+## [:< ##
+
+# name  = pager.util.encode.encode_base32_chunk
+# descr = Encode item as BASE32 chunk using 5-bit character selection
+
+my ( $item, $bits ) = @ARG;
+
+my $data  = $item->{'path'} // $item->{'name'} // $item->{'checksum'} // '';
+my $value = oct( '0b' . $bits );
+
+# Use 5 bits to select character from data
+return substr( $data, $value % ( length($data) || 1 ), 1 )
+    if length($data);
+return chr( 65 + $value );    # Fallback to A-Z
+
+#,,,.,,.,,.,.,,,.,,..,.,.,,,.,.,.,,,.,,,,,.,,,..,,...,...,,.,,,.,,,,.,,,.,,,.,
+#6SPHKDXG5AZP3JROHNDIYGTLV2TVNCX5SP3HXUEOHVI4K2AWZJJZHQLPJOWXWXXILDKPHHDXQLKZI
+#\\\|2LJAJGH4B7UYDKPZQXBJAICQJ5VDDAIZIK4Q3SATBGDCRLLLQXL \ / AMOS7 \ YOURUM ::
+#\[7]37EKVNIVMZTS543VPCCGQRL3IO3QYQOV7K7EA2JMQWOTTZWBLSCQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

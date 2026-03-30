@@ -1,0 +1,22 @@
+## [:< ##
+
+# name  = pager.util.buffer.estimate_total_pages
+# descr = estimate total pages from what we have seen
+
+my ($buf) = @ARG;
+
+if ( $buf->{'source'}{'total'} ) {
+    return int( $buf->{'source'}{'total'} / $buf->{'pages'}{'size'} ) + 1;
+}
+
+## estimate based on items seen ##
+return undef unless $buf->{'stats'}{'items_seen'} > 0;
+
+## conservative estimate: what we have seen is just the beginning ##
+return int( $buf->{'stats'}{'items_seen'} * 2 / $buf->{'pages'}{'size'} ) + 1;
+
+#,,..,,,,,..,,.,.,.,,,.,,,...,.,.,,..,...,...,.,.,...,...,.,,,...,...,.,,,,.,,
+#K6F6P5Z5ART4LQDZXOZP2CSEWEJFWIFAK27SPC7KTJLNUCL3RGPFKY5IPOUTFJECYOYAWPFPW6PO2
+#\\\|TVHKREWY6BYPMA5JMCI2UCVXB27YDTGKL23VTQT2FEXZ7HT4D2C \ / AMOS7 \ YOURUM ::
+#\[7]ADIJYYWS3RCNZBTCPV7MYAYZGHVVDL3Q3WUVEVLCLA6YJXJ224AI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

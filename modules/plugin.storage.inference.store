@@ -86,7 +86,9 @@ DEDUP_SCAN:
                 if ( $divergence < $threshold ) {
                     ## near-duplicate — increment hit, skip store ##
                     $registry->{'stats'}{'dedup_skips'}++;
-                    _update_branch_meta( $rel_bmeta, $question, $now, 'hit' );
+                    <[plugin.storage.util.inference.update_branch_meta]>->(
+                        $rel_bmeta, $question, $now, 'hit'
+                    );
 
                     if ( exists $registry->{'branches'}{$question_L13} ) {
                         $registry->{'branches'}{$question_L13}{'hit_count'}++;
@@ -156,7 +158,9 @@ if ( not defined $meta_written ) {
 }
 
 ## update branch .meta ##
-_update_branch_meta( $rel_bmeta, $question, $now, 'store' );
+<[plugin.storage.util.inference.update_branch_meta]>->(
+    $rel_bmeta, $question, $now, 'store'
+);
 
 ## update in-memory hot index ##
 if ( not exists $registry->{'branches'}{$question_L13} ) {
@@ -232,38 +236,8 @@ return {
     }
 };
 
-## update or create branch .meta file [ relative path for zenka_dir ] ##
-sub _update_branch_meta {
-    my ( $rel_path, $question, $time, $action ) = @ARG;
-
-    ## read existing meta via zenka_dir.load ##
-    my %meta;
-    my $existing = <[file.zenka_dir.load]>->($rel_path);
-    if ( defined $existing ) {
-        for my $line ( split "\n", $existing->$* ) {
-            $meta{$1} = $2 if $line =~ m{^([^=]+)=(.*)$};
-        }
-    }
-
-    $meta{'question'}  //= $question;
-    $meta{'created'}   //= $time;
-    $meta{'hit_count'} //= 0;
-    $meta{'last_access'} = $time;
-
-    if ( $action eq qw| hit | ) {
-        $meta{'hit_count'}++;
-    }
-
-    my $content = join '', map {"$ARG=$meta{$ARG}\n"} sort keys %meta;
-    <[file.zenka_dir.write]>->(
-        $rel_path, \$content, qw| > |, 0664, ':encoding(UTF-8)'
-    );
-
-    return;
-}
-
-#,,..,.,,,,,,,,,,,,..,,,.,..,,...,,,.,,..,,,,,..,,...,...,...,,..,,.,,..,,..,,
-#LPDYAV7MHYAO6UISO4X5OGA5YVJOT5I27DA7F67WKAH7WRTQON5UPZ7CRJQECYCL5OEM7RS7FHUXC
-#\\\|FW5RXFADGKFQC53MI637XOUZGUONQOWPY2VZBP2TLQBMQCRZBRZ \ / AMOS7 \ YOURUM ::
-#\[7]PQLPFEMYK3BC2LGBBBIRA7Y7LBAAUQ345IIR6IDJKD457PTAWUAI 7  DATA SIGNATURE ::
+#,,,,,,,,,..,,,..,...,,..,,.,,.,.,,.,,..,,,,.,.,.,...,...,,..,.,.,,,.,,,.,..,,
+#OWELHSLCUPMXFMK42DZKBSKX6RGR63YQDT5G3732RZD7XFFHV6K6774RNHE2FL65FHIGSCQRQRFE6
+#\\\|YQIRFYLUNLYF2IXPESGSJ3WPXD275IDC23C4RADFKRYPDAE76UF \ / AMOS7 \ YOURUM ::
+#\[7]NWUWW5AJILQZIHV3SMC2PNMRDZYMIEJ6DU2HFAGYGHHRO4KKBOCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

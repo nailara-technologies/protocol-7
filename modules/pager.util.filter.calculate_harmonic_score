@@ -1,0 +1,49 @@
+## [:< ##
+
+# name  = pager.util.filter.calculate_harmonic_score
+# descr = Calculate harmonic alignment score for item and d13 state
+
+my ( $item_num, $d13_state, $mode ) = @ARG;
+
+my $d13_num = $d13_state->{'full_64'};
+
+if ( $mode eq 'entropy' ) {
+
+    # Score based on entropy pattern similarity
+    my $item_bits = sprintf( '%064b', $item_num );
+    my $d13_bits  = $d13_state->{'main_42'};
+
+    # Hamming distance on main 42 bits
+    my $distance = 0;
+    for my $i ( 0 .. 41 ) {
+        $distance++
+            if substr( $item_bits, $i, 1 ) ne substr( $d13_bits, $i, 1 );
+    }
+    return 1.0 - ( $distance / 42 );
+} elsif ( $mode eq 'routing' ) {
+
+    # Score based on routing state alignment
+    my $item_decoded = ( $item_num >> 42 ) & 0x7F;
+    my $d13_decoded  = oct( '0b' . $d13_state->{'decoded'} );
+
+    # Prefer similar routing states
+    my $diff = abs( $item_decoded - $d13_decoded );
+    return 1.0 - ( $diff / 128 );
+} elsif ( $mode eq 'payload' ) {
+
+    # Score based on payload capacity
+    my $decoded = $d13_state->{'decoded'};
+
+    # Prefer BASE32 payload states (010 prefix)
+    return 1.0 if substr( $decoded, 0, 3 ) eq '010';
+    return 0.5 if substr( $decoded, 0, 1 ) eq '1';     # Graphical
+    return 0.2;
+}
+
+return 0.5;                                            # Default neutral
+
+#,,..,.,.,,.,,..,,,,,,,.,,..,,.,.,,,,,,.,,..,,..,,...,..,,.,.,,.,,,..,...,...,
+#AOIDROII3BW3DRNOIEQWVF5KUKKOXX4ZDHBYCXNRXICCLXBI4IEDT3HEV7NEFPGYLHTRTDZ77VLB2
+#\\\|ZK2BN7GEJNDFRFWYF775QYBPFJEGOSSZ57CRT4PXPVIGCWYJ7AW \ / AMOS7 \ YOURUM ::
+#\[7]E2XMMPAMUMR6SXTA2ZZX272XRHO6TO2IWYZVZ7INBTDNWCKGAKDI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

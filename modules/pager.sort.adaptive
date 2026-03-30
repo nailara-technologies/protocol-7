@@ -13,7 +13,9 @@ my $base_keys = $spec->{'keys'}    // [];
 my $history   = $spec->{'history'} // {};    # Access pattern history
 
 # Analyze history to determine adaptive weights
-my $adaptive_keys = _compute_adaptive_keys( $base_keys, $history, $items );
+my $adaptive_keys = <[pager.util.sort.compute_adaptive_keys]>->(
+    $base_keys, $history, $items
+);
 
 # Delegate to multi-key sort with adaptive weights
 return <[pager.sort.multi-key]>->(
@@ -99,8 +101,8 @@ sub _compute_adaptive_keys {
 
 # SPDX-License-Identifier: ISC
 
-#,,,.,,,.,,,.,,..,..,,,.,,.,.,,,.,,,.,.,.,.,,,..,,...,...,,.,,...,..,,.,,,..,,
-#YFYRJK2MPOCUDFY3UUI52MMMNH5DHGXNLE4A2J53SVWZPXB3TQJCE2LRORHA6IOFZFOCPAQULLBQC
-#\\\|SPYM6E3XBTRNV6BYA3TOZ654OLDVFTAH5Q3JSIJY7NC2UGGWGB6 \ / AMOS7 \ YOURUM ::
-#\[7]42T2XZL3OKLPAXC45DTVT6CBGISBKTNXK4GRYCNSPXE2HCU4B2CI 7  DATA SIGNATURE ::
+#,,,,,,,,,,.,,,,.,,..,..,,,.,,.,.,.,,,,.,,.,.,..,,...,...,..,,,,.,,.,,..,,.,.,
+#GXNWWCSYCDXZVFR4ZZHN2TSEPOURCPBLHS37RUDPN6FJBIGEWD3RYI5DLLRR5EZSNB4KYM2OZBQSI
+#\\\|QY43IBO2XY2IHGGHN6ATHYUF5OZOQ2FJCBMNHBGG2V55ZA2URDF \ / AMOS7 \ YOURUM ::
+#\[7]X3R4373GUPTPJDQPP34GPW665DQGLD7IDL7BUW2VVNZCAWGYNEDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1461,7 +1461,6 @@ return [ qw[
         devmod.cmd.current-umask
         data.mount.shm.init_code
         data.get.resolve_virtual
-        data.fuse.const.disabled
         data.cmd.attach-fs-mount
         cube.set-up.import_rules
         cube.set-up.export_rules
@@ -2118,7 +2117,6 @@ return [ qw[
         decoder.cmd.show-accumulator
         decoder.base.decode_d13_bits
         debian.parser.package_status
-        data.fuse.init_code.disabled
         cube.cmd.reply-encoding-mode
         crypt.C25519.keystr_is_valid
         crypt.C25519.compare_keypair
@@ -2207,6 +2205,7 @@ return [ qw[
         pdf.html.base.white_page_hash
         pdf.html.base.fork_conv_child
         pager.view.amos-data-pager-56
+        pager.util.editor.format_line
         nshell.util.syswrite_complete
         nshell.util.extract_utf8_char
         nshell.hook.input_passthrough
@@ -2483,6 +2482,7 @@ return [ qw[
         plugin.storage.inference.lookup
         plan-9.server.buffer-read-layer
         pager.util.viewport.format_size
+        pager.util.filter.is_true_state
         osd-logo.handler.download_reply
         nshell.hook.unknown_reply_route
         nodes.send_host_details_request
@@ -2594,10 +2594,12 @@ return [ qw[
         protocol-7-menu.load-action-keys
         protocol-7-menu.example-provider
         plugin.storage.checksum.map-file
-        plan-9.server.init_code.disabled
         plan-9.protocol.codec.encode-qid
         plan-9.protocol.codec.decode-qid
         pdf.html.parent.cmd.check_format
+        pager.util.filter.item_to_number
+        pager.util.encode.is_valid_state
+        pager.util.encode.format_display
         pager.buffer.page.invalidate-all
         osd-logo.callback.download_image
         openbox.callback.already_running
@@ -2747,7 +2749,6 @@ return [ qw[
         base.callback.expire_code_version
         base.buffer.handler.sending_state
         base.X-11.coordinates_to_geometry
-        amos-term.cmd.mount_fuse.disabled
         X-11.maximize_intel_gpu_frequency
         X-11.handler.wait_visible_timeout
         X-11.callback.force_driver_reload
@@ -2790,6 +2791,8 @@ return [ qw[
         plan-9.protocol.codec.encode-uint8
         plan-9.protocol.codec.decode-uint8
         pdf.html.child.check_cache_timeout
+        pager.util.editor.get_item_at_line
+        pager.util.decode.decode_d13_state
         nshell.hook.unknown_command_global
         nodes.handler.discover_node_online
         ncode.transform.handler.wave_reply
@@ -2844,7 +2847,6 @@ return [ qw[
         base.callback.setup_rollback_timer
         amos-term.plugin-decoder.init_code
         amos-term.plugin-decoder.elf_match
-        amos-term.cmd.umount_fuse.disabled
         USR.AMOS7-admin.sourcecode-pub-key
         workspace-transfer.env.detect_paths
         workspace-transfer.cmd.status-check
@@ -2876,6 +2878,7 @@ return [ qw[
         plan-9.protocol.codec.decode-uint32
         plan-9.protocol.codec.decode-uint16
         plan-9.protocol.codec.decode-string
+        pager.util.encode.encode_5x7_matrix
         osd-logo.handler.colortoalpha_reply
         models.gguf.file.file_type_to_quant
         models.decision.recommendation_base
@@ -3006,6 +3009,8 @@ return [ qw[
         plugin.storage.util.has_p7ref_members
         plugin.storage.checksum.cluster.query
         pager.util.viewport.default_formatter
+        pager.util.sort.compute_adaptive_keys
+        pager.util.encode.encode_base32_chunk
         models.statistics.invocation_tracking
         models.registry.init_from_definitions
         models.decision.recommendation_engine
@@ -3060,6 +3065,7 @@ return [ qw[
         plugin.storage.util.normalize_checksum
         plugin.storage.checksum.cluster.lookup
         plugin.storage.checksum.cluster.create
+        pager.util.buffer.estimate_total_pages
         mpv.handler.event.property-change.path
         models.memory.generate_unique_checksum
         models.handler.read_inference_response
@@ -3091,6 +3097,7 @@ return [ qw[
         sourcecode.console.report-endline-state
         protocol-7-menu.handler.fetch-menu-data
         protocol-7-menu.cmd.show-graphical-menu
+        pager.util.filter.generate_d13_sequence
         mpv.handler.event.property-change.width
         models.storage.discover.discover_models
         models.registry.populate_from_discovery
@@ -3182,6 +3189,7 @@ return [ qw[
         protocol-7-menu.graphical-position-changed
         plugin.storage.util.visual.extract_network
         plugin.auth.auth-keypair.tofu-notification
+        pager.util.filter.calculate_harmonic_score
         letsencr.parent.handler_httpd_reload_reply
         auth.callback.cap-neg.declare-strm-support
         X-11.background.chksum-cache.write_to_disk
@@ -3252,6 +3260,7 @@ return [ qw[
         auth.callback.cap-neg.declare-strm-size-timeout
         auth.callback.cap-neg.declare-strm-size-support
         protocol.protocol-7.protocol-version-path-set-up
+        plugin.storage.util.inference.update_branch_meta
         models.decision.cost_base.get_latency_importance
         base.log.send-buffer.reply-handler.notify-online
         models.storage.create_symlink.create_fast_symlink
@@ -3310,8 +3319,8 @@ return [ qw[
     ]
 ];
 
-#,,,,,,,,,..,,,,.,..,,,..,..,,.,,,,.,,..,,,,.,.,.,...,...,,..,,..,,,.,.,,,.,.,
-#BQFRVSB7NHKVEMLIT3YXJBY63JJG3V2SCPOLK3TZSJOTKWWGZZXTISMB2S3LVF5FZYCATHJ36MA5U
-#\\\|AGAKR4VHCVOACWZ6C47L73AJOZMKJ7IP7CKQZ6S6B6CC2L3CTMA \ / AMOS7 \ YOURUM ::
-#\[7]FPLNGQX2IPVPXFO444ZB4GBLZNSJOKJQU66C2PXHJUACUXSWYCCY 7  DATA SIGNATURE ::
+#,,.,,.,,,..,,...,,,.,.,.,.,,,,,,,.,.,,..,,.,,.,.,...,...,,.,,,.,,...,,,,,.,.,
+#RQWYCFI4Y7IKQJKKT45KCOY6LNHCSBYQGE7TU4LM3G44PXWRBLUE2ZVQ25ACEBIJC6ABWKQ2KIS4Q
+#\\\|LJWXMZESZQEEZTMYI4ZHMPZWXHJ3LSWAYTGDKZOB3T6SX6YZJ7Q \ / AMOS7 \ YOURUM ::
+#\[7]BN2XSWCL336VORWCEPWBNLMQFW3EF4ONSF5AT6W5SJTE3BIHROCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,0 +1,82 @@
+## [:< ##
+
+# name  = pager.util.sort.compute_adaptive_keys
+# descr = Compute adaptive sort keys based on access history
+
+my ( $base_keys, $history, $items ) = @ARG;
+
+# Default keys if none provided
+$base_keys = [
+    { 'field' => 'mtime', 'dir' => 'desc' },
+    { 'field' => 'size',  'dir' => 'desc' },
+    ]
+    unless @$base_keys;
+
+# Analyze patterns
+my %patterns;
+
+if ( $history->{'accessed_fields'} ) {
+
+# Count how often each field was "important" (user clicked on items with that value)
+    for my $field ( keys %{ $history->{'accessed_fields'} } ) {
+        my $count = $history->{'accessed_fields'}{$field};
+        $patterns{$field} = $count;
+    }
+}
+
+if ( $history->{'time_distribution'} ) {
+
+    # Check if user prefers recent or old items
+    my $recent = $history->{'time_distribution'}{'recent'} // 0;
+    my $old    = $history->{'time_distribution'}{'old'}    // 0;
+    if ( $recent > $old * 2 ) {
+        $patterns{'recent'} = $recent;
+    }
+}
+
+if ( $history->{'size_distribution'} ) {
+
+    # Check if user prefers large or small files
+    my $large = $history->{'size_distribution'}{'large'} // 0;
+    my $small = $history->{'size_distribution'}{'small'} // 0;
+    $patterns{'size'} = abs( $large - $small );
+}
+
+# Build adaptive keys
+my @adaptive;
+
+for my $base (@$base_keys) {
+    my $field  = $base->{'field'};
+    my $weight = $base->{'weight'} // 1.0;
+
+    # Boost weight if this field shows patterns
+    if ( $patterns{$field} ) {
+        $weight *= ( 1.0 + log( $patterns{$field} + 1 ) / 5 );
+        $weight = 2.0 if $weight > 2.0;    # Cap at 2x
+    }
+
+    # Determine direction from patterns
+    my $dir = $base->{'dir'} // 'asc';
+    if ( $field eq 'mtime' && $patterns{'recent'} ) {
+        $dir = 'desc';                     # User prefers recent
+    }
+    if ( $field eq 'size' && $patterns{'size'} ) {
+        $dir = $history->{'size_distribution'}{'large'}
+            > $history->{'size_distribution'}{'small'} ? 'desc' : 'asc';
+    }
+
+    push @adaptive,
+        {
+        'field'  => $field,
+        'dir'    => $dir,
+        'weight' => $weight,
+        };
+}
+
+return \@adaptive;
+
+#,,,.,.,.,..,,,,,,,..,..,,.,,,.,,,.,,,,.,,.,,,..,,...,...,,,.,.,.,.,.,..,,.,.,
+#STQVAYRCCG63LXAWP5Y6UT3JTFQBDIW64XAHB36YDK7GZJA5EPV33UUSZEOBDSLG34MGS7JCYYBVY
+#\\\|3RTKTMH5UVA6OBRCOXDCJ54P25X2RXBWMM2VJKWV2HJTGRO7WPT \ / AMOS7 \ YOURUM ::
+#\[7]J4YCDMQNIYM7ZL2GAAHHT2JQIM57EN6MXVAWS77BAV3JH2224ACQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
