@@ -1,0 +1,118 @@
+---
+name: post-task-verify
+descr: verify code changes from a previous task — syntax, style regressions, format
+budget: 3000
+sections:
+  ## core knowledge ##
+  - include: system-base
+    priority: 1
+    budget_pct: 8
+
+  ## style conventions ##
+  - include: system-review
+    priority: 2
+    budget_pct: 5
+
+  ## instructions ##
+  - static: |
+      verify that changes from a recent coding task are correct and
+      haven't introduced regressions. this is a quality gate.
+
+      ## round budget: aim for 8-15 tool rounds max ##
+      ## check every modified file, fix regressions, report ##
+      ## call task_complete with pass/fail verdict ##
+
+      ## what to verify ##
+      {{scope}}
+
+      ## verification checklist ##
+
+      ### step 1: identify modified files ###
+      use recent_changes to see what was modified.
+      for each modified module:
+
+      ### step 2: syntax check ###
+      use ptd_check on every modified module.
+      if any fail: FAIL the verification immediately, report the error.
+
+      ### step 3: $ARG regression check ###
+      ** THIS IS THE MOST COMMON REGRESSION **
+      search_code for `$_` and `@_` in modified modules.
+      P7 code must use $ARG and @ARG [ English.pm aliases ].
+      exceptions:
+      - `$_[0]` in sort comparisons is acceptable
+      - regex special vars `$_` inside `(?{ })` blocks
+      - third-party code or quoted strings
+
+      if found: fix with replace_in_file, then ptd_check again.
+
+      ### step 4: module format check ###
+      use validate_module_format on every modified module.
+      check:
+      - header present: `## [:< ##`
+      - name tag matches filename
+      - descr tag present
+      - no `use strict` / `use warnings` [ loader handles these ]
+      - no `sub { }` wrapper [ unless intentional callback ]
+
+      ### step 5: style spot check ###
+      for each modified module, quickly verify:
+      - lowercase comments [ not capitalized ]
+      - bracket annotations [ word ] not ( word )
+      - qw| | with pipe delimiters
+      - log calls use sprintf format, not interpolation
+      - return hashrefs use qw| mode | not quoted 'mode'
+
+      ### step 6: reference integrity ###
+      if new modules were created:
+      - search_code to verify they are called from somewhere
+      - check the call site uses correct <[module.name]>->() syntax
+
+      if modules were renamed or removed:
+      - search_code to verify no broken references remain
+
+      ## fixing regressions ##
+      ** PRESERVE $ARG and @ARG — NEVER revert to $_ or @_ **
+
+      for each regression found:
+      1. replace_in_file to fix it
+      2. ptd_check the fixed module
+      3. record what was wrong and what you fixed
+
+      ## verdict ##
+
+      ## verification report ##
+
+      **modules checked**: N
+      **syntax**: all pass / N failures
+      **$ARG regressions**: N found, N fixed
+      **format issues**: N found, N fixed
+      **style issues**: N found [ fixed / noted ]
+      **broken references**: N found
+
+      ### verdict: PASS / FAIL / FIXED ###
+      - PASS: all checks clean, no issues
+      - FIXED: regressions found and corrected
+      - FAIL: issues found that need human attention
+
+      ### regressions fixed ###
+      for each: module, what was wrong, what was fixed
+
+      ### issues needing attention ###
+      anything that couldn't be auto-fixed
+
+      call task_complete with the verdict.
+    priority: 3
+    budget_pct: 87
+    label: post task verification instructions
+
+on_complete:
+  - when: [output_length_gt=100]
+    action: memory_update
+    topic: "verify:post-task"
+
+#,,..,,..,,..,,..,,,,,..,,,,.,,,,,,,,,..,,...,.,.,...,...,...,..,,...,,,.,...,
+#IVUFB5AHFI2NJQNNAVAMSIBBQV6NHBKJLKIAOZXZL6MKXQPZJKWHGGBHARNEMFKPSHDGXYUQULBNO
+#\\\|3CUCXIR23A3T3ZQ55CEGT2K4NGYXWQWOMENGBKRHR4GYWCB6BOP \ / AMOS7 \ YOURUM ::
+#\[7]OV5RHFCKIVWJYT5E4B7PEFBUD2BBBTPKA7CNXKHWJAICDUEMK2CQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
