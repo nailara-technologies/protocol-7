@@ -148,20 +148,10 @@ if ( exists $code{'plugin.storage.inference.lookup'} ) {
 
 <[base.logs]>->(
     1,
-    "[process-queued-task] routed to %s:%d",
+    "[process-queued-task] routed to %s:%d model=%s",
     $backend_info->{'backend'},
-    $backend_info->{'port'}
-);
-<[base.logs]>->(
-    2,
-    "[process-queued-task] model=%s",
+    $backend_info->{'port'},
     $backend_info->{'model'} // 'default'
-);
-
-<[base.logs]>->(
-    1,
-    "[process-queued-task] executing via inference: %s",
-    substr( $prompt, 0, 50 )
 );
 
 # Call inference API
@@ -183,7 +173,7 @@ my $model_id       = $backend_info->{'model'};
 my $server_seed    = $backend_info->{'seed'} // 'unknown';
 
 <[base.logs]>->(
-    1, "[process-queued-task] model=%s tokens=%d temp=%f port=%d seed=%s",
+    2, "[process-queued-task] model=%s tokens=%d temp=%f port=%d seed=%s",
     $model_id, $max_tokens, $temperature, $inference_port, $server_seed
 );
 
@@ -434,7 +424,7 @@ INFERENCE_LOOP:
                 my $tool_name = $tc->{'function'}->{'name'} // '?';
 
                 <[base.logs]>->(
-                    1, "[process-queued-task] tool call round=%d: %s",
+                    2, "[process-queued-task] tool call round=%d: %s",
                     $tool_round, $tool_name
                 );
 
@@ -460,11 +450,11 @@ INFERENCE_LOOP:
                     };
             }
 
+            my @tool_names = map { $_->{'function'}->{'name'} // '?' }
+                $message->{'tool_calls'}->@*;
             <[base.logs]>->(
-                2,
-                "[process-queued-task] tool round %d complete, %d calls dispatched",
-                $tool_round,
-                scalar $message->{'tool_calls'}->@*
+                1,           "[process-queued-task] round %d: %s",
+                $tool_round, join( ', ', @tool_names )
             );
 
             ## check if a tool signaled stop [ task_complete / escalate ] ##
@@ -572,8 +562,8 @@ if ( length $response_text
 ## return result hashref for jobqueue callback ##
 return { success => TRUE, result => $response_text, task_id => $task_id };
 
-#,,..,,,,,..,,...,,.,,,,.,.,.,.,,,.,.,..,,,,,,..,,...,...,.,,,.,,,,.,,...,.,.,
-#BXQSYJXXNOE3TNPXUS3BIEJ5W65FOBUKYBLCZXNF5ILJYF3D75PVEEN75JL572XNDZBWCHULPJKTG
-#\\\|QRPMKT5CPRQIQWVFJDGMY5HLPKMVXCX3BFPAU4PGCV64I4WQOI7 \ / AMOS7 \ YOURUM ::
-#\[7]IMPG32JOAIIN3XEFNQBT2TLCKT7L4KFAOAGM7ZK4ODQM3USCDUDA 7  DATA SIGNATURE ::
+#,,,,,.,,,...,,,,,,.,,,..,.,.,...,.,.,,.,,,..,..,,...,...,.,,,,.,,,,.,,,,,,,,,
+#3V4EEHRL4VZ32COMGZ3LHFA2SNKMIG6DUDJKVTODJH6KZYOGEGPVYE4EDL5B64DFTFCRAOLC7RLTI
+#\\\|ID6HZCPZITUE7FHYLU4HY7XKHGAMXK3E76EB4V53S4B3WZ7WSVJ \ / AMOS7 \ YOURUM ::
+#\[7]OK6UQNKJEHPGRDFKXOQRBNEUNEMBFXDMNQ4L7JKE2MSXSBLGBSDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
