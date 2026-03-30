@@ -67,8 +67,16 @@
 - Extraction template refined: verbatim copy rules, one-at-a-time, new tool workflow
 - First fully autonomous extraction succeeded (plugin.storage.cluster.* via task-THFSFBY)
 
+### Completed (Mar 30 2026)
+- Inline sub extraction complete: pager.* (30 subs), plugin.storage.* (7 subs), context.* (8 subs)
+- All extracted to .util.* namespaces, source call sites updated, zero inline subs remain in pager.*
+- Coding zenka tool loop: task_complete + escalate stop signals, record_question/record_suggestion
+- Observations stash working: JSONL in /var/protocol-7/coding/observations/
+- extract-inline-subs template refined: return sub unwrap, one-call-per-round, task_complete
+- Removed 5 .disabled modules crashing loader, fixed regex/interpolation/log-level bugs
+- Verbosity still at 3 in zenki/coding/start (temporary for debugging)
+
 ### Active / Partial
-- **pager.* inline extraction**: 19 subs across 7 modules, queued as 3 tasks (Mar 29)
 - **namespace tree as intelligence layer**: unified tree for code/data/state/history/planning,
   branch summarization, off-band access — see `topic-namespace-tree-intelligence.md`
 - **deferred compilation stubs** (Mar 15): partial — deeper namespace/phase work pending
@@ -213,8 +221,8 @@
 - Pattern: `my @non_num = grep { defined $data_ref->{$ARG}->{$key} and not looks_like_number(...) } keys $data_ref->%*`
 - Global `$SIG{__WARN__}` exists — if wrapping warn handler, capture `$prev_warn = $SIG{__WARN__}` first and call through
 
-#,,,.,,,.,,.,,,..,.,.,,.,,..,,,,,,,,,,,,,,..,,..,,...,...,..,,..,,,,.,,,.,,.,,
-#ZA5QJLYJX6Q26Q2X5RWOWYVLTD4L4BFNE22DTXXS4QB5PIPNEB2TMTPU6TKPYDUNRTB53RJNK52SA
-#\\\|TMDOJCPUI63MTZZ7RSWM6BISHCK76IAWQORPVLLUIY77WHSZBVH \ / AMOS7 \ YOURUM ::
-#\[7]SQX3NPZOKCLJZM4E3RL467L64LLPHPJF3MYPOJBIPMF2YXIY2WDI 7  DATA SIGNATURE ::
+#,,,,,..,,,.,,...,.,.,...,.,.,..,,,.,,,.,,.,.,..,,...,...,...,.,.,,..,,,.,,..,
+#5CYXLCFS5TN7PVJHWXVKG5IWVZ7OIAWRAIANMSUMVZJGLHXLPENOWQWJL2IMXWP22TKA2QELAD72M
+#\\\|FUWXMWD6EFYQA2IQMJZO2N45RCRIK5GW4E2BP5VAAILZORI73ZN \ / AMOS7 \ YOURUM ::
+#\[7]PQDJVFA3IH2D4MKD3V3TO2EDGDFYTIT7HLIPJM65DEG6PNDATKDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
