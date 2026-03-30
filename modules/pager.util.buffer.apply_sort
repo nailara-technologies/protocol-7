@@ -1,0 +1,26 @@
+## [:< ##
+
+# name  = pager.util.buffer.apply_sort
+# descr = apply sort specification to pager items
+
+my ( $buf, $items ) = @ARG;
+
+my $sort_spec = $buf->{'sort'};
+my $sort_type = $sort_spec->{'type'} // 'multi-key';
+
+my $sort_mod = "pager.sort.$sort_type";
+if ( exists $data{'calls'}{$sort_mod} ) {
+    $items = <[$sort_mod]>->(
+        {   'items' => $items,
+            'spec'  => $sort_spec,
+        }
+    );
+}
+
+return $items;
+
+#,,,,,...,.,.,,..,,,,,.,,,,.,,,.,,..,,,,.,,,,,.,.,...,.,.,.,.,.,,,,.,,.,,,,,,,
+#4KGV2L45USKSV2EY5QBHTSYA3HI6NX64BIK2VV2P2S4QMV72NVQJBQYEBH6HSKIHIO7B47SSWJIHA
+#\\\|BK2Y7JUK2XQN5ARMUTARO3TEBAQJMWB4IKCUFK4OWMASVGWZU3R \ / AMOS7 \ YOURUM ::
+#\[7]W7PLVKESCBRDTPB7DZZDIGOVGSZKCOHA5ZXN3JTQSE5FINVDNEBY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

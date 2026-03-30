@@ -1,0 +1,16 @@
+## [:< ##
+
+# name  = pager.util.buffer.update_lru
+# descr = update LRU list for a page access
+
+my ( $buf, $page_num ) = @ARG;
+
+my $lru = $buf->{'pages'}{'lru'};
+@$lru = grep { $ARG != $page_num } @$lru;
+push @$lru, $page_num;
+
+#,,,,,,,,,,..,...,..,,,.,,.,,,,,,,,.,,...,,..,.,.,...,...,.,,,.,,,,,,,,,.,,..,
+#BDLXU37PW2NYRMSJYOERQPFYYKSXGQDYE7OBVH2RYUCEB2LHDVD66RIEUCIKWEPKD2XL56IPOEP7Y
+#\\\|6VM4O7WBBHFGKUIMREKIILPZETCXI7KYFDLGUZTSINLIMGSWRPT \ / AMOS7 \ YOURUM ::
+#\[7]ZIX5IAEDNSJDLPM7ZNYLQF7265RZT3CZ24SZZALXYN2ZKQNH64AI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

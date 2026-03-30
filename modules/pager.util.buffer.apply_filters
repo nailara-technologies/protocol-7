@@ -1,0 +1,28 @@
+## [:< ##
+
+# name  = pager.util.buffer.apply_filters
+# descr = apply filter chain to pager items
+
+my ( $buf, $items ) = @ARG;
+
+for my $filter_spec ( @{ $buf->{'filters'} } ) {
+    my $filter_type   = $filter_spec->{'type'};
+    my $filter_params = $filter_spec->{'params'} // {};
+
+    my $filter_mod = "pager.filter.$filter_type";
+    if ( exists $data{'calls'}{$filter_mod} ) {
+        $items = <[$filter_mod]>->(
+            {   'items'  => $items,
+                'params' => $filter_params,
+            }
+        );
+    }
+}
+
+return $items;
+
+#,,..,,,,,,.,,,..,..,,,.,,..,,..,,.,,,,,,,...,.,.,...,..,,.,,,..,,,,.,,.,,,..,
+#HHYTG646V5LJ762D2I63A77QWCQXOG3KPKLU6GKPH4CFXMKMH6M2WDFO55QNAHOOLZX3S7THRAX4I
+#\\\|PFTNPK7S75GFB4HSXD77NKTEPZIWCYVD66HESXG2IEMEP3K5O5E \ / AMOS7 \ YOURUM ::
+#\[7]RVE52FAUW5NCIZ7ZFMM65BMDN5FEVOBQWNHKMRHN7DZHWHV752AQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
