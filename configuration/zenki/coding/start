@@ -8,7 +8,7 @@ access.cmd.usr.cube = commands heart reload verify-instance \
                       list show-buffer buffer-erase buffer-erase-level \
                       budget status submit get-result analyze_and_extract \
                       complete-analysis resume-analysis ask-reply switch-model \
-                      show-prompt dump-env \
+                      show-prompt dump-env list-subs \
                       vision-parser.analyze_and_extract vision-parser.status \
                       infer query test-inference clear-registry clear-cache \
                       receive-multiline staged-diff staged-clear clear-applied \
@@ -68,8 +68,16 @@ modules.load = auth net protocol io.unix io.ip jobqueue crypt.C25519 coding \
                                     models.conversation storage \
                                     context pager format.yaml \
                                    devmod ## <-- enabled for development [LLL]
+
+## storage plugins [ loaded separately via load_plugins ] ##
+## todo: consider generic auto-load mechanism for all zenki ##
+plugins.load = plugin.storage.inference plugin.storage.util.inference
+
 [load_modules:<modules.load>]
 [init_modules]
+
+## loading storage plugins ##
+[load_plugins:<plugins.load>]
 
 ## drop_privs moved to coding.init_code [ after path setup + chmod child ] ##
 
@@ -82,8 +90,8 @@ modules.load = auth net protocol io.unix io.ip jobqueue crypt.C25519 coding \
 
 [zenka.loop]
 
-#,,,.,..,,,,,,,,.,.,.,,,,,,.,,.,.,.,.,,..,.,,,..,,...,...,,,,,.,.,,,,,..,,...,
-#3N4UFYJMUJX7JU4JBLV4NRDHVKIYC6M74VNRDXMNX356HDPV5D73BZFUUVAAFUFKEFSEWXGU2SLKY
-#\\\|SQHELDJAXDLAFTOVFQPJ4XLOK7FAI6SVBMTWDU56EIPQTXPBTEP \ / AMOS7 \ YOURUM ::
-#\[7]BPCRPAAGH3BCYJDR7K6LD5RIDYP2TTETDXUGBFO6B3DORMXWFUDQ 7  DATA SIGNATURE ::
+#,,.,,.,.,.,,,.,,,...,,,.,,.,,,,.,.,,,,,.,.,,,..,,...,...,.,,,.,,,,..,,,.,,,.,
+#72KA6FMILGGINTAY5JUIE5XJBDDUFJINBYXDNC22VLYYWYSOJUHHDSDL3U4DD7OBV7G2G22ATK6JM
+#\\\|I6K2VG4U4J6PNJLXUJIRDW5IM7OU5XEBBVHLPUHZF5Z3FJL3KGN \ / AMOS7 \ YOURUM ::
+#\[7]HR73SICFJBW5UJXE23YCDLQGZ4YL2GIF3JDFYUHB7OM6DUJKU2DA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
