@@ -19,7 +19,7 @@ if ( ref($data) eq 'ARRAY' ) {
         my $d13 = $item->{'d13_state'};
         next unless $d13;
 
-        push @items, _decode_d13_state( $d13, $mode );
+        push @items, <[pager.util.decode.decode_d13_state]>->( $d13, $mode );
     }
 } elsif ( !ref($data) ) {
 
@@ -36,74 +36,14 @@ if ( ref($data) eq 'ARRAY' ) {
             'aux_15'  => substr( $num_bits_64, 49, 15 ),
         };
 
-        push @items, _decode_d13_state( $d13, $mode );
+        push @items, <[pager.util.decode.decode_d13_state]>->( $d13, $mode );
     }
 }
 
 return \@items;
 
-# Decode a single division-13 state
-sub _decode_d13_state {
-    my ( $d13, $mode ) = @ARG;
-
-    my $decoded = $d13->{'decoded'};
-    my $prefix  = substr( $decoded, 0, 2 );
-
-    my $result = {
-        'd13'       => $d13,
-        'raw_64'    => $d13->{'full_64'},
-        'main_42'   => $d13->{'main_42'},
-        'decoded_7' => $decoded,
-        'aux_15'    => $d13->{'aux_15'},
-    };
-
-    # Parse based on prefix
-    if ( $prefix eq '00' ) {
-
-        # Routing
-        $result->{'type'}      = 'routing';
-        $result->{'hop_count'} = 1 + oct( '0b' . substr( $decoded, 3, 3 ) );
-        $result->{'direction'}
-            = <[pager.decode.direction]>->( substr( $decoded, 5, 2 ) );
-
-        return undef if $mode eq 'payload' || $mode eq 'graphical';
-    } elsif ( $prefix eq '01' ) {
-        my $subtype = substr( $decoded, 2, 1 );
-        if ( $subtype eq '0' ) {
-
-            # BASE32 payload
-            $result->{'type'}       = 'base32_payload';
-            $result->{'char_index'} = oct( '0b' . substr( $decoded, 3, 5 ) );
-
-            return undef if $mode eq 'routing' || $mode eq 'graphical';
-        } else {
-
-            # Document header
-            $result->{'type'}      = 'document_header';
-            $result->{'color'}     = ( substr( $decoded, 3, 1 ) eq '1' );
-            $result->{'size_code'} = oct( '0b' . substr( $decoded, 4, 4 ) );
-
-            return undef if $mode eq 'routing' || $mode eq 'graphical';
-        }
-    } elsif ( substr( $decoded, 0, 1 ) eq '1' ) {
-
-        # Graphical
-        $result->{'type'}     = 'graphical';
-        $result->{'matrix_x'} = oct( '0b' . substr( $decoded, 1, 3 ) );
-        $result->{'matrix_y'} = oct( '0b' . substr( $decoded, 4, 3 ) );
-
-        return undef if $mode eq 'routing' || $mode eq 'payload';
-    } else {
-        $result->{'type'} = 'unknown';
-    }
-
-    return $result;
-}
-
-# SPDX-License-Identifier: ISC
-
-#,,..,,.,,,..,.,,,,.,,.,,,,,.,..,,...,,.,,.,,,..,,...,...,..,,,,,,,..,,..,.,,,
-#OQZ3RZS52QQKUGDEBGCBDNEIT3SHLZCCQ6D3LOMHPJH5JYNRGXHFUIDNPQ74CSCH4LZB3KUUHFYEU
-#\\\|EAZ7TXOAO3Z75R32BHHMYRJBGOIVC4DDEOZV7WCNAE667QGMCDV \ / AMOS7 \ YOURUM ::
-#\[7]JBO3CAL4FUAQAA74XE2UZES5USSXOJRDXL6TNAFQZV5CFPPLRQDA 7  DATA SIGNATURE ::
+#,,,,,...,.,.,,,.,...,,,.,,,,,...,,,,,,.,,.,.,..,,...,...,...,.,,,.,.,.,.,,,.,
+#I4HCUIS65QH6BLUAVFPBBVHDBLBNWF32PBNDMAVMO4BZZUAO5IY2GRYTDTQ6ODCBSKFS7VNPODDB6
+#\\\|VPQWWANWANDOCQ3GRX2TR7WWUBH5CMALYS2UCJIZ6RGZDVAJ5WM \ / AMOS7 \ YOURUM ::
+#\[7]DDXNKA3SYQI6O2VED5TY4Q4D6BMFLDAOIXLDNIA3AGXVXAPWTUDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

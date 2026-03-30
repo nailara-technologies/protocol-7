@@ -8,7 +8,7 @@ my ( $buf, $page_num ) = @ARG;
 # Cache hit
 if ( exists $buf->{'pages'}{'cached'}{$page_num} ) {
     $buf->{'stats'}{'hits'}++;
-    _update_lru( $buf, $page_num );
+    <[pager.util.buffer.update_lru]>->( $buf, $page_num );
     return $buf->{'pages'}{'cached'}{$page_num};
 }
 
@@ -27,15 +27,15 @@ if ( scalar( keys %$cached ) >= $buf->{'pages'}{'max_cache'} ) {
 }
 
 # 2. Load from source (may require multiple batches)
-my $items = _load_page_items( $buf, $page_num );
+my $items = <[pager.util.buffer.load_page_items]>->( $buf, $page_num );
 
 return undef unless $items && @$items;
 
 # 3. Apply filter chain
-$items = _apply_filters( $buf, $items );
+$items = <[pager.util.buffer.apply_filters]>->( $buf, $items );
 
 # 4. Apply sort if configured
-$items = _apply_sort( $buf, $items ) if $buf->{'sort'};
+$items = <[pager.util.buffer.apply_sort]>->( $buf, $items ) if $buf->{'sort'};
 
 # 5. Cache and update LRU
 $cached->{$page_num} = $items;
@@ -53,102 +53,8 @@ $buf->{'stats'}{'items_seen'} += scalar(@$items);
 
 return $items;
 
-# Load items for a specific page number
-sub _load_page_items {
-    my ( $buf, $page_num ) = @ARG;
-
-    my $page_size = $buf->{'pages'}{'size'};
-    my $start_idx = $page_num * $page_size;
-    my $source    = $buf->{'source'};
-
-    my @items;
-
-    # If source supports random access, use it
-    if ( $source->{'get_item_at'} ) {
-        for my $i ( 0 .. $page_size - 1 ) {
-            my $item = $source->{'get_item_at'}->( $start_idx + $i );
-            last unless $item;
-            push @items, $item;
-        }
-        return \@items;
-    }
-
-# Otherwise, need to batch through source
-# This is inefficient for high page numbers but necessary for streaming sources
-    my $current_batch = 0;
-    my $target_batch  = int( $start_idx / $page_size );
-
-    while ( $current_batch <= $target_batch ) {
-        my $batch = $source->{'next_batch'}->();
-        last unless $batch && @$batch;
-
-        if ( $current_batch == $target_batch ) {
-
-            # This is our target page
-            my $offset_in_batch = $start_idx % $page_size;
-            @items = @$batch[ $offset_in_batch .. $#$batch ];
-            @items = @items[ 0 .. $page_size - 1 ] if @items > $page_size;
-        }
-
-        $current_batch++;
-    }
-
-    return \@items;
-}
-
-# Apply filter chain to items
-sub _apply_filters {
-    my ( $buf, $items ) = @ARG;
-
-    for my $filter_spec ( @{ $buf->{'filters'} } ) {
-        my $filter_type   = $filter_spec->{'type'};
-        my $filter_params = $filter_spec->{'params'} // {};
-
-        my $filter_mod = "pager.filter.$filter_type";
-        if ( exists $data{'calls'}{$filter_mod} ) {
-            $items = <[$filter_mod]>->(
-                {   'items'  => $items,
-                    'params' => $filter_params,
-                }
-            );
-        }
-    }
-
-    return $items;
-}
-
-# Apply sort to items
-sub _apply_sort {
-    my ( $buf, $items ) = @ARG;
-
-    my $sort_spec = $buf->{'sort'};
-    my $sort_type = $sort_spec->{'type'} // 'multi-key';
-
-    my $sort_mod = "pager.sort.$sort_type";
-    if ( exists $data{'calls'}{$sort_mod} ) {
-        $items = <[$sort_mod]>->(
-            {   'items' => $items,
-                'spec'  => $sort_spec,
-            }
-        );
-    }
-
-    return $items;
-}
-
-# Update LRU list for a page
-sub _update_lru {
-    my ( $buf, $page_num ) = @ARG;
-
-    my $lru = $buf->{'pages'}{'lru'};
-    @$lru = grep { $ARG != $page_num } @$lru;
-    push @$lru, $page_num;
-}
-
-# SPDX-License-Identifier: ISC
-
-#,,..,,..,.,,,..,,,,.,.,.,...,,.,,,.,,,,,,,..,..,,...,...,.,.,,.,,,,.,.,.,,..,
-#EWJ6ZLZRISLPWPYJZT4MZEZSHODCPIOLVUSXOKPZ4IBMZIHZRJWYQ7HRMFBLGP7P7ZWUFOP6NRFHQ
-#\\\|4YFEVFI5RUYT25JTA2ATMLMO4F5HQ2AYONYZF7SK5EO4D2FH7EP \ / AMOS7 \ YOURUM ::
-#\[7]IFB2UVEUJCLCSHZLHEIXTFQCMYT6IEIYYA42MMNJ7IHTNYMUGYCA 7  DATA SIGNATURE ::
+#,,.,,,..,,..,.,.,...,..,,..,,,,.,,.,,..,,,..,..,,...,...,,,.,.,,,..,,...,,,.,
+#5OZLWJUP2JZUPSEPXRJXEHELJNI7XDXVM75MKVQ4DMC4Q65ZDD5ZRNHDZUAZJBG6XERJMUJN7X56Q
+#\\\|XL6TU67KWZSJB5HKZX6OTRLZGYENIIG4M3XSDXAGTVJZJRGQX44 \ / AMOS7 \ YOURUM ::
+#\[7]P2W2O4SK4D55RBXRX2RZYNTEDMZKYYXLQG3C4QFXUDMBZPPYBSDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

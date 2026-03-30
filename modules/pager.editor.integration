@@ -61,12 +61,12 @@ if ( $action eq 'open' ) {
     return '' unless $page && @$page > $offset;
 
     my $item = $page->[$offset];
-    return _format_line($item);
+    return <[pager.util.editor.format_line]>->($item);
 } elsif ( $action eq 'sync_cursor' ) {
 
     # Report cursor position to pager for adaptive sorting
     my $line = $args->{'line'};
-    my $item = _get_item_at_line( $buf, $line );
+    my $item = <[pager.util.editor.get_item_at_line]>->( $buf, $line );
 
     if ( $item && $buf->{'sort'}{'adaptive'} ) {
         <[pager.sort.chain]>->(
@@ -80,13 +80,13 @@ if ( $action eq 'open' ) {
     return 1;
 } elsif ( $action eq 'get_item_at_cursor' ) {
     my $line = $args->{'line'};
-    return _get_item_at_line( $buf, $line );
+    return <[pager.util.editor.get_item_at_line]>->( $buf, $line );
 } elsif ( $action eq 'execute_on_item' ) {
 
     # Execute command on item at cursor
     my $line    = $args->{'line'};
     my $command = $args->{'command'};
-    my $item    = _get_item_at_line( $buf, $line );
+    my $item    = <[pager.util.editor.get_item_at_line]>->( $buf, $line );
 
     return undef unless $item;
 
@@ -100,36 +100,8 @@ if ( $action eq 'open' ) {
 
 return undef;
 
-# Get item at specific line number
-sub _get_item_at_line {
-    my ( $buf, $line_num ) = @ARG;
-
-    my $page_size = $buf->{'pages'}{'size'};
-    my $page_num  = int( $line_num / $page_size );
-    my $offset    = $line_num % $page_size;
-
-    my $page = <[pager.buffer.page.get]>->( $buf, $page_num );
-    return undef unless $page && @$page > $offset;
-
-    return $page->[$offset];
-}
-
-# Format item as single line for editor
-sub _format_line {
-    my ($item) = @ARG;
-
-    if ( $item->{'checksum'} ) {
-        return
-            sprintf( "%s  %s", $item->{'checksum'}, $item->{'path'} // '' );
-    }
-
-    return $item->{'path'} // $item->{'name'} // '(unknown)';
-}
-
-# SPDX-License-Identifier: ISC
-
-#,,..,,..,,.,,.,,,,,.,...,,.,,,,,,.,.,..,,..,,..,,...,...,...,,.,,,,.,.,,,.,,,
-#YUIFTMPBMSG6HS46RPBTUKKCQ5MR3SOOQETTSTJ4IOFSNPRFE7PGVPPHMD3WOD6SV6ZPP2446TOPM
-#\\\|IQPAARKW6E7I5PGSN7L3VIA2LJR5OCI2Z6QTGX4QB7JNW3TXFMA \ / AMOS7 \ YOURUM ::
-#\[7]D3DDWOVFZGWWHYO74IE2ZUHU7RVBTDJIPG34XW4W3KCFOG63SEDQ 7  DATA SIGNATURE ::
+#,,.,,,.,,..,,,..,,,.,,,.,...,.,.,.,.,,.,,,,,,..,,...,..,,,,,,...,..,,..,,.,.,
+#5K2R243KC74AJKOUS7WVFOK7KYWUNYSL4JU56373GUIITRSIE4B75NHQ4DXM32KUGAZ42BUS2RZFC
+#\\\|63AIHRBH2XWBTTBLJIDQYDMKL3TDC7CLWVIR6GGQIS6NCFTIT2L \ / AMOS7 \ YOURUM ::
+#\[7]4FEW3CTZUOEZVBFDRVO4PUPGZ6DBG2ZBEMKBQX6O2DXT7QJZMYAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -24,85 +24,8 @@ return <[pager.sort.multi-key]>->(
     }
 );
 
-# Compute adaptive sort keys based on access history
-sub _compute_adaptive_keys {
-    my ( $base_keys, $history, $items ) = @ARG;
-
-    # Default keys if none provided
-    $base_keys = [
-        { 'field' => 'mtime', 'dir' => 'desc' },
-        { 'field' => 'size',  'dir' => 'desc' },
-        ]
-        unless @$base_keys;
-
-    # Analyze patterns
-    my %patterns;
-
-    if ( $history->{'accessed_fields'} ) {
-
-# Count how often each field was "important" (user clicked on items with that value)
-        for my $field ( keys %{ $history->{'accessed_fields'} } ) {
-            my $count = $history->{'accessed_fields'}{$field};
-            $patterns{$field} = $count;
-        }
-    }
-
-    if ( $history->{'time_distribution'} ) {
-
-        # Check if user prefers recent or old items
-        my $recent = $history->{'time_distribution'}{'recent'} // 0;
-        my $old    = $history->{'time_distribution'}{'old'}    // 0;
-        if ( $recent > $old * 2 ) {
-            $patterns{'recent'} = $recent;
-        }
-    }
-
-    if ( $history->{'size_distribution'} ) {
-
-        # Check if user prefers large or small files
-        my $large = $history->{'size_distribution'}{'large'} // 0;
-        my $small = $history->{'size_distribution'}{'small'} // 0;
-        $patterns{'size'} = abs( $large - $small );
-    }
-
-    # Build adaptive keys
-    my @adaptive;
-
-    for my $base (@$base_keys) {
-        my $field  = $base->{'field'};
-        my $weight = $base->{'weight'} // 1.0;
-
-        # Boost weight if this field shows patterns
-        if ( $patterns{$field} ) {
-            $weight *= ( 1.0 + log( $patterns{$field} + 1 ) / 5 );
-            $weight = 2.0 if $weight > 2.0;    # Cap at 2x
-        }
-
-        # Determine direction from patterns
-        my $dir = $base->{'dir'} // 'asc';
-        if ( $field eq 'mtime' && $patterns{'recent'} ) {
-            $dir = 'desc';                     # User prefers recent
-        }
-        if ( $field eq 'size' && $patterns{'size'} ) {
-            $dir = $history->{'size_distribution'}{'large'}
-                > $history->{'size_distribution'}{'small'} ? 'desc' : 'asc';
-        }
-
-        push @adaptive,
-            {
-            'field'  => $field,
-            'dir'    => $dir,
-            'weight' => $weight,
-            };
-    }
-
-    return \@adaptive;
-}
-
-# SPDX-License-Identifier: ISC
-
-#,,,,,,,,,,.,,,,.,,..,..,,,.,,.,.,.,,,,.,,.,.,..,,...,...,..,,,,.,,.,,..,,.,.,
-#GXNWWCSYCDXZVFR4ZZHN2TSEPOURCPBLHS37RUDPN6FJBIGEWD3RYI5DLLRR5EZSNB4KYM2OZBQSI
-#\\\|QY43IBO2XY2IHGGHN6ATHYUF5OZOQ2FJCBMNHBGG2V55ZA2URDF \ / AMOS7 \ YOURUM ::
-#\[7]X3R4373GUPTPJDQPP34GPW665DQGLD7IDL7BUW2VVNZCAWGYNEDY 7  DATA SIGNATURE ::
+#,,..,...,.,,,..,,.,,,.,.,.,.,..,,,,,,,.,,,..,..,,...,...,.,.,...,.,.,.,.,.,.,
+#RLBOLU2WZZO6A4PY2ORQ4YY7AWB7W4QOS6D4LLNCV2S7R3YOFUN2KN4GFEACNHGCAMFF22HVMEYEG
+#\\\|7KJCU3HQKEX7UQYB7DH4WAPXKE4WMOEZGYZCGQ7JHZJTSYB25W6 \ / AMOS7 \ YOURUM ::
+#\[7]DLA7BTLOKFLALQKXO72DZXQJOCVVW6VIJCYPSL5HVXUJFMUUSYDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
