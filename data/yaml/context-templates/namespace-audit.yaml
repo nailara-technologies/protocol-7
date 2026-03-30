@@ -12,9 +12,14 @@ sections:
   - static: |
       audit the module namespace '{{namespace}}' comprehensively.
 
+      ## round budget: aim for 15-25 tool rounds max ##
+      ## do NOT read every module — sample the largest and most connected ##
+      ## use dep_graph and list_modules for overview, read_module selectively ##
+      ## call task_complete when you have enough findings, not when exhaustive ##
+
       ## phase 1: discovery ##
 
-      use tools to map the namespace completely:
+      use tools to map the namespace efficiently:
 
       1. **list_modules** for the namespace — get all module names
       2. **dep_graph** for the namespace — understand internal call structure
@@ -101,8 +106,8 @@ on_complete:
     action: memory_update
     topic: "audit:{{namespace}}"
 
-#,,,,,,,,,,,.,.,,,,..,,.,,.,.,..,,.,.,.,,,,,,,..,,...,...,.,.,...,.,,,...,...,
-#SJZQJN7TSSXB4H26QFO3X4AODRTR6SV3FFYVZDTQLZNK3JMP6YK2PFD7UR65WNU5R4FHGYT772VGG
-#\\\|TFQZXU5S5OJDLH6332JWOWSLPNS52DXTQVJMVHQXWF4F3Q5TH6E \ / AMOS7 \ YOURUM ::
-#\[7]AJ3ZOUIUFL27D622JVX3WH2MBHCZK4T5CR2O6GV7WP5YAT5DNSCI 7  DATA SIGNATURE ::
+#,,,.,,..,,.,,.,,,..,,...,..,,,..,,..,,.,,...,..,,...,...,...,..,,,.,,.,,,...,
+#4YXC55IQZHDM3QWMENF57623HCP4TPBI5ADG72YCNJDCYGKRKJL4FEPMF5NTIH6PE22HJZV4QL5FC
+#\\\|N7X6EJ5C5RMMGYXZ7PTZ5RRYBZYOHXHLY5CTV4P3DHVG3ZPUOHJ \ / AMOS7 \ YOURUM ::
+#\[7]INISBUABLIZS26MFVBZ5OGQE6KLJTIRZ2YFP3KJ7AWX7FMUTBMDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
