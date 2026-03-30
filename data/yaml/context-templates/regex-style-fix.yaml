@@ -1,0 +1,115 @@
+---
+name: regex-style-fix
+descr: replace m// and s// regex forms with P7-preferred delimiters and optimize patterns
+budget: 4000
+sections:
+  ## core knowledge ##
+  - include: system-base
+    priority: 1
+    budget_pct: 8
+
+  ## instructions ##
+  - static: |
+      find and fix regex style issues in protocol-7 modules.
+
+      ## round budget: aim for 15-25 tool rounds max ##
+      ## fix the most impactful patterns first ##
+      ## call task_complete when key fixes are applied ##
+
+      ## scope ##
+      {{scope}}
+
+      ## P7 regex conventions ##
+
+      ### delimiter rules ###
+
+      protocol-7 avoids `m//` and `s///` forms. preferred delimiters:
+
+      - `m|pattern|` for simple match [ pipe delimiter ]
+      - `m{pattern}` when pattern contains pipe `|` [ alternation ]
+      - `s|old|new|` for simple substitution
+      - `s{old}{new}` for complex substitution or when content has pipes
+      - `=~ qr{pattern}` for precompiled or complex patterns
+
+      **never use**: `m/.../`, `s/.../`, `=~ /.../`
+      the `/` form conflicts visually with path separators and division.
+
+      ### common replacements ###
+
+      ```perl
+      ## WRONG ##
+      $line =~ /^#/
+      $path =~ s/\/+/\//g
+      $name =~ /\.(pm|pl)$/
+      if ( $val =~ /^\d+$/ )
+
+      ## CORRECT ##
+      $line =~ m|^#|
+      $path =~ s|/+|/|g
+      $name =~ m{\.(?:pm|pl)$}
+      if ( $val =~ m|^\d+$| )
+      ```
+
+      ### optimization patterns ###
+
+      - `m|^\Q$literal\E|` for literal string match [ quote metacharacters ]
+      - `index( $str, $substr ) > -1` instead of regex for plain substring
+      - `m|\A...\z|` instead of `m|^...$|` for full-string match [ avoid /m trap ]
+      - named captures `(?<name>...)` over positional `$1, $2` when >2 groups
+      - `qr{}` for patterns used in loops [ compile once ]
+
+      ### what NOT to change ###
+
+      - regexes inside `eval` blocks [ may be intentionally dynamic ]
+      - regexes in base.* infrastructure modules [ unless clearly wrong ]
+      - complex multi-line regexes with `/x` flag [ delimiter change risky ]
+      - `s|||` where the replacement contains the delimiter char
+
+      ## process ##
+
+      ### step 1: scan ###
+      search_code for `=~ /` and `!~ /` and `m/` and `s/` in target scope.
+      list all occurrences with module and line context.
+
+      ### step 2: classify ###
+      for each hit:
+      - **fix**: simple delimiter swap, no semantic change
+      - **optimize**: can simplify pattern or use index() instead
+      - **skip**: complex pattern, delimiter change risky
+
+      ### step 3: apply fixes ###
+      for each fixable pattern:
+      1. replace_in_file to swap delimiters
+      2. ptd_check the modified module
+
+      be careful with:
+      - patterns containing `|` in the match [ need `m{}` not `m||` ]
+      - substitutions where old or new text contains the delimiter
+      - patterns with flags [ `/gi` → `|gi` ]
+
+      ### step 4: summary ###
+
+      ## regex style report ##
+
+      **patterns scanned**: N
+      **fixes applied**: N [ N delimiter, N optimization ]
+      **skipped**: N [ with reason ]
+
+      ### fixes applied ###
+      for each: module, old pattern, new pattern
+
+      call task_complete with counts.
+    priority: 2
+    budget_pct: 92
+    label: regex style fix instructions
+
+on_complete:
+  - when: [output_contains=fixes applied]
+    action: memory_update
+    topic: "fix:regex-style"
+
+#,,.,,..,,,,,,,.,,,..,,..,,,,,,,,,,.,,.,,,.,.,.,.,...,...,...,...,,.,,,..,.,,,
+#APT3HEMI2XVNM3KECHIEOFZFTXQ25ZBL6YMHKOC52DVJVQEJAEFONKVCFDDBXKUUH64YOZOTGNJDQ
+#\\\|EFTDZQW27WRSSN26OQBZB4YG4MXZHZXVE3PCQ7VNPZ2FGXHAKBR \ / AMOS7 \ YOURUM ::
+#\[7]6KVC2ZUGLERGJVNPEKUEJ6NYHRSKTC7XHJHMDDTXRTSN2Z4I4ADY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

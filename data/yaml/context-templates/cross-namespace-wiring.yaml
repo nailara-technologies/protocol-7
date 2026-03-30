@@ -1,0 +1,117 @@
+---
+name: cross-namespace-wiring
+descr: discover modules that should know about each other and wire connections
+budget: 5000
+sections:
+  ## core knowledge ##
+  - include: system-base
+    priority: 1
+    budget_pct: 8
+
+  ## instructions ##
+  - static: |
+      discover modules across namespaces that solve similar problems or
+      could benefit from each other, and wire the connections.
+
+      ## round budget: aim for 15-25 tool rounds max ##
+      ## focus on the highest-value connections ##
+      ## call task_complete when key wiring is done ##
+
+      ## scope ##
+      {{scope}}
+
+      ## what cross-namespace wiring means ##
+
+      P7 modules are organized in namespace trees [ coding.*, pager.*, base.* ].
+      sometimes:
+      - two namespaces solve the same problem independently
+      - a utility in one namespace would benefit another
+      - a new feature isn't connected to modules that should use it
+      - generic logic lives in a specific namespace instead of base.*
+
+      ## phase 1: discover connections [ ~8 rounds ] ##
+
+      ### 1a. find duplicated patterns ###
+      search_code for patterns that appear in multiple namespaces:
+      - similar error handling [ same log messages, same guard patterns ]
+      - similar file operations [ reading same paths, same formats ]
+      - similar data transformations [ parsing, formatting, converting ]
+      - similar validation [ same checks, same error returns ]
+
+      ### 1b. find isolated utilities ###
+      look for modules in specific namespaces that are actually generic:
+      - `coding.util.*` functions that could serve other zenki
+      - `pager.util.*` functions with no pager-specific dependencies
+      - helper functions that multiple namespaces would benefit from
+
+      ### 1c. find unconnected features ###
+      use module_deps and dep_graph to find:
+      - modules with no callers [ orphaned ]
+      - newly created modules not yet referenced by expected callers
+      - base.* utilities that exist but aren't used where they should be
+
+      ## phase 2: assess connections ##
+
+      for each potential connection:
+
+      **promote to base**: utility is truly generic, should move to base.*
+      - verify no namespace-specific dependencies
+      - check naming fits base.* conventions
+
+      **create shared util**: two namespaces need the same thing
+      - extract common logic into a shared module
+      - update both call sites
+
+      **wire existing**: module exists but isn't called where it should be
+      - replace inline code with call to existing module
+      - verify interface matches
+
+      **leave alone**: connection is superficial or would over-couple
+      - note as observation, don't change
+
+      ## phase 3: wire [ ~15 rounds ] ##
+
+      for each connection to make:
+      1. read both modules involved
+      2. if creating new shared module: write_new_file, validate, ptd_check
+      3. if updating call sites: replace_in_file, ptd_check
+      4. if promoting to base: needs human approval — use record_question
+
+      priorities:
+      - wire existing unused modules first [ no new code needed ]
+      - create shared utils second [ reduces duplication ]
+      - promotions last [ need approval ]
+
+      ## phase 4: report ##
+
+      ## wiring report ##
+
+      **connections discovered**: N
+      **wired**: N
+      **promoted**: N [ or flagged for promotion ]
+      **left alone**: N
+
+      ### connections made ###
+      for each: source namespace, target namespace, what was connected
+
+      ### promotion candidates ###
+      modules that should move to base.* [ needs human approval ]
+
+      ### duplication hotspots ###
+      patterns that recur across 3+ namespaces
+
+      call task_complete with the wiring summary.
+    priority: 2
+    budget_pct: 92
+    label: cross namespace wiring instructions
+
+on_complete:
+  - when: [output_length_gt=300]
+    action: memory_update
+    topic: "wiring:cross-namespace"
+
+#,,,,,,..,..,,,,.,..,,,,.,..,,,,,,...,..,,.,.,.,.,...,..,,...,.,.,,,.,,.,,,.,,
+#ASTJNL3RBWHUZ5LL2X56FSTZ3TZYYPSCVONBIQDOA4QETCV3BY6YYEVI3CYUJ7DQN7SDBZWQD6VMW
+#\\\|YT22EHYCKT5TSRBWDRLXLBM7G5KPXXB72E52ANOFHPQS5PM5MRH \ / AMOS7 \ YOURUM ::
+#\[7]QIENUIKXRRKL2KMEIJYFAOGSHCQMH774GPAOGWORTF2NQVZHNSDQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
