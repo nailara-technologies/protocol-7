@@ -74,10 +74,11 @@ modules.load = auth net protocol io.unix io.ip jobqueue crypt.C25519 coding \
 plugins.load = plugin.storage.inference plugin.storage.util.inference
 
 [load_modules:<modules.load>]
-[init_modules]
 
-## loading storage plugins ##
+## loading storage plugins [ before init_modules so init_code runs ] ##
 [load_plugins:<plugins.load>]
+
+[init_modules]
 
 ## drop_privs moved to coding.init_code [ after path setup + chmod child ] ##
 
@@ -90,8 +91,8 @@ plugins.load = plugin.storage.inference plugin.storage.util.inference
 
 [zenka.loop]
 
-#,,.,,.,.,.,,,.,,,...,,,.,,.,,,,.,.,,,,,.,.,,,..,,...,...,.,,,.,,,,..,,,.,,,.,
-#72KA6FMILGGINTAY5JUIE5XJBDDUFJINBYXDNC22VLYYWYSOJUHHDSDL3U4DD7OBV7G2G22ATK6JM
-#\\\|I6K2VG4U4J6PNJLXUJIRDW5IM7OU5XEBBVHLPUHZF5Z3FJL3KGN \ / AMOS7 \ YOURUM ::
-#\[7]HR73SICFJBW5UJXE23YCDLQGZ4YL2GIF3JDFYUHB7OM6DUJKU2DA 7  DATA SIGNATURE ::
+#,,,,,.,.,.,,,,..,,.,,..,,,.,,...,,..,.,,,..,,..,,...,...,,.,,.,,,.,.,...,.,,,
+#FC4PWHNCHMGYCYZHHFXUWJQF4PKF6EIASFJ2JFKSX2USJMERGC7BDTZDLCA43OFBGVADQYIIGOV3K
+#\\\|ODYEL6R4G3CUHO3O4XGDCT35KWU7HPCJXXKOVV5U63BE2X56DFI \ / AMOS7 \ YOURUM ::
+#\[7]RIXQTORMC7IXUOENFXK27MM5VSMFB2HT2AFRZYF5C53BPJYPFEBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
