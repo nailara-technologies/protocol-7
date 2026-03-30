@@ -358,23 +358,26 @@ INFERENCE_LOOP:
                 }
             }
 
-            ## detect jinja template errors [ retryable ] ##
+            ## detect retryable errors ##
             my $is_jinja_err = $detail =~ m|item pairs from a mapping|
                 || $detail =~ m|jinja|i;
+            my $is_timeout = $status =~ m|timeout|i
+                || $status =~ m|^5\d\d|;
 
-            if ( $is_jinja_err and $server_retries > 0 ) {
+            if ( ( $is_jinja_err or $is_timeout ) and $server_retries > 0 ) {
                 $server_retries--;
+                my $err_type = $is_jinja_err ? 'jinja template' : 'server';
                 <[base.logs]>->(
-                    1,
-                    "::working:: jinja template error"
-                        . " [ retrying, %d left ]",
-                    $server_retries
+                    1,         "::working:: %s error [ retrying, %d left ]",
+                    $err_type, $server_retries
                 );
                 ## remove last assistant message with broken tool calls ##
-                pop @messages
-                    if @messages
-                    and ( $messages[-1]->{'role'} // '' ) eq 'assistant';
-                <[base.sleep]>->(0.5);
+                if ($is_jinja_err) {
+                    pop @messages
+                        if @messages
+                        and ( $messages[-1]->{'role'} // '' ) eq 'assistant';
+                }
+                <[base.sleep]>->( $is_timeout ? 2 : 0.5 );
                 next INFERENCE_LOOP;
             }
 
@@ -550,8 +553,8 @@ if ( length $response_text
 ## return result hashref for jobqueue callback ##
 return { success => TRUE, result => $response_text, task_id => $task_id };
 
-#,,.,,,,,,.,.,...,,..,..,,.,,,.,.,,.,,.,.,,,.,..,,...,...,..,,,,,,..,,,.,,.,.,
-#2JPASHDVJQQNZBEI4CVUW7HQ7COGCYHWNWEDH3Z2AHFJJ3G4YH2EVABBENNC367D3RSVRJE52EAD6
-#\\\|2APORILPZIVU4MNGDWUEVVX7PMTKOTPBGFC7OUIQ7H7ZUI3BTBV \ / AMOS7 \ YOURUM ::
-#\[7]KVOSOF6W2E443OG4O5D4OOIMIU33LMMQLTPSYRBSDHGAXSSQC6DQ 7  DATA SIGNATURE ::
+#,,.,,...,,.,,...,..,,.,,,,,.,,.,,..,,,..,,..,..,,...,...,.,.,.,.,...,..,,,,.,
+#N3UZDIFSON2BSCHMA2QRC6ALMZFORCWYIV4PGXC4TJ4IJEI4GYDVFKT2WNWOUXDS6HTTT6JHFBISY
+#\\\|DNWXYKWZEY7RSLGG3OBP5RP623S7GEFA7HBPTQJWD3ILZRMRKW4 \ / AMOS7 \ YOURUM ::
+#\[7]3ZWBW7RRVCS6FPULCIVUKTMUYK5QXDTM2EE37HUAHYGWG35G6YBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
