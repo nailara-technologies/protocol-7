@@ -905,9 +905,14 @@ sub cmd_search {
         if $base_target_for_validation !~ m|\+|
         and not exists $targets{$base_target_for_validation};
 
-    if (@params) { $search_pattern = join( ' ', @params ) }
-    else {
-        $search_pattern = get_user_input('regexp search pattern');
+    if (@params) {
+        $search_pattern = join( ' ', @params );
+        say "  :: [search] pattern parameter required ::\n" and exit(0010)
+            if $search_pattern eq ''
+            or $search_pattern eq qw| . |;
+    } else {
+        say "  :: [search] pattern parameter required ::\n"
+            and exit(0010);
     }
 
     my $source_data = load_source( $target, @file_options );
@@ -2989,8 +2994,8 @@ sub print_usage {
     print "\n    " . $C{'T'} . $usage_txt . $C{'R'};
 }
 
-#,,..,..,,.,,,.,,,,..,..,,..,,,,,,,.,,.,,,,,.,..,,...,...,,,.,,,,,...,.,,,.,,,
-#OSCQEIZ32ZBAZVMQAMQE32BK3FN6HKTCKDNVRKGV26A654RB2MXG4YHGVS24YZN3LMMBTJ5KFIAVI
-#\\\|KXTH65JXGJVNZO22JWI4QYZ6VW6WZACZBGWNJMPRWKE6FSKPCLD \ / AMOS7 \ YOURUM ::
-#\[7]AWZTEK7DA4VAJ3MVJZSB5F4TTZYY6IMP6EKF7ZYPVQKO2MRBH6AA 7  DATA SIGNATURE ::
+#,,,,,,..,,,.,,.,,.,,,.,.,,,.,.,.,,..,..,,,,.,..,,...,...,..,,,,.,...,.,,,,.,,
+#WEDZ4SYQAWOOJLHCD7DKEDGFGKBKFBF5H5NF4ANSYH3TNDYBC4SQQP7XFZKUX3RE7GGENDMOFQHAG
+#\\\|VPRL5ZQWPQL435XLRGVCXPPNW6AJA2IVB4UFRKZCSS4PKWW6AO7 \ / AMOS7 \ YOURUM ::
+#\[7]A4J2DUJF2GEGLI7SFCAVTV7MLEFQ5J76QFUI6PAW5LKOX2AKHUBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
