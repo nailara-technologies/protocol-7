@@ -17,12 +17,19 @@ $CPAN_tmp_dir .= '/.n.cpan';
 
 print "\n :\n";
 
-if    ( !@ARGV )                      {&show_commands}
-elsif ( $ARGV[0] eq 'update' )        {&update}
-elsif ( $ARGV[0] eq 'search' )        { &search( $ARGV[1] ) }
-elsif ( $ARGV[0] eq 'readme' )        { &show_readme( $ARGV[1] ) }
-elsif ( $ARGV[0] eq 'install' )       { &install( $ARGV[1] ) }
-elsif ( $ARGV[0] eq 'force-install' ) { &install( $ARGV[1], 1 ) }
+if    ( !@ARGV )                           {&show_commands}
+elsif ( $ARGV[0] eq 'update' )             {&update}
+elsif ( $ARGV[0] eq 'search' && $ARGV[1] ) { &search( $ARGV[1] ) }
+elsif ( $ARGV[0] eq 'search' ) {
+    print " :: usage: ncpan search <keyword>\n :\n";
+    exit;
+} elsif ( $ARGV[0] eq 'readme' ) {
+    &show_readme( $ARGV[1] );
+} elsif ( $ARGV[0] eq 'install' ) {
+    &install( $ARGV[1] );
+} elsif ( $ARGV[0] eq 'force-install' ) {
+    &install( $ARGV[1], 1 );
+}
 
 print " :: done\n :\n" if @ARGV and $ARGV[0] =~ /^(force-)?install$/;
 print "\n";
@@ -78,7 +85,11 @@ sub update {
 }
 
 sub search {
-    my $keyword         = $_[0];
+    my $keyword = shift || '';
+    if ( !$keyword ) {
+        print " :: usage: ncpan search <keyword>\n :\n";
+        exit;
+    }
     my $mod_name_len    = 33;
     my $mod_version_len = 3;
     print " ::[ search results for '$keyword' ]:.\n :\n";
@@ -171,9 +182,12 @@ sub install {
                         . "'$CPAN_tmp_dir/modules/$mod_file_name' [ \l$OS_ERROR ]\n";
 
                     my $bytes_read = 0;
-                    while ( $bytes_read < $MOD_size
-                        and $bytes_read += sysread $MOD_handle, $buffer,
-                        $MOD_size - $bytes_read ) {
+                    while (
+                            $bytes_read < $MOD_size
+                        and $bytes_read += sysread $MOD_handle,
+                        $buffer,
+                        $MOD_size - $bytes_read
+                    ) {
                         syswrite( $file_handle, $buffer );
                     }
 
@@ -248,10 +262,8 @@ sub install {
                                                 print " : running 'su root"
                                                     . " -c make install'"
                                                     . " ..\n.:\n\n";
-                                                if (!system(
-                                                        'su', 'root',
-                                                        '-c', 'make install'
-                                                    )
+                                                if (!system( 'su', 'root',
+                                                        '-c', 'make install' )
                                                 ) {
                                                     print "..\n";
                                                 } else {
@@ -477,8 +489,8 @@ sub show_commands {
         . "<module> [ no 'make test' ]\n" . " :\n";
 }
 
-#,,,.,,.,,,.,,.,.,,,,,,,.,,,.,.,.,.,.,,.,,..,,..,,...,...,,,.,..,,.,.,...,..,,
-#WRLPX3VHTP4ATCKKITCTPG4RHRWGOHJYQ2LMNJIGKUVQH5X42RKIOHKT56PFQGSARECJTIMXOPQ2U
-#\\\|3DTH4K3GU6G4IWTCAJSOKFQYNXK7RAYHMEREJGG5GUZCV2FDIUO \ / AMOS7 \ YOURUM ::
-#\[7]DN3NSRHSRAIDZXV32YNK3MDMZPU2HOVCMOHG5YTJQVD63V777IBI 7  DATA SIGNATURE ::
+#,,.,,...,,.,,,,.,.,,,...,..,,..,,,..,,.,,.,.,..,,...,..,,.,,,,,.,..,,..,,..,,
+#B6VRSGJLUGWYGOBOMLQMAT2SQMPWTTGVE4LUN53GNXXPWMQOCKAC2O45JS4KKK6ERFNEQDGNMRGMU
+#\\\|RGWOYVZEVJNEUIUTMAJJ42SH7ZXHRSFVBPYGHE5KW2N62XO4F3G \ / AMOS7 \ YOURUM ::
+#\[7]LYRNFQ2K3M4D6AX4EMQSR3UPED26YB3ZS4MFMUJNX3I3SUY2FKDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
