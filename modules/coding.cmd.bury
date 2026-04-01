@@ -1,0 +1,35 @@
+## [:< ##
+
+# name  = coding.cmd.bury
+# descr = permanently archive failed task to failed-stopped state
+
+my $args = $call->{'args'} // '';
+
+## parse task_id and optional reason ##
+my ($task_id, $reason) = split /\s+/, $args, 2;
+
+return { 'mode' => qw| false |, 'data' => 'task_id required' }
+    unless length $task_id;
+
+$reason //= 'manually stopped';
+
+my $result = <[coding.task.bury]>->($task_id, $reason);
+
+my $output;
+if ($result->{'mode'} eq qw| true |) {
+    $output = sprintf("Task %s buried to failed-stopped\n  reason: %s\n  at: %s\n",
+        $result->{'data'}{'task_id'},
+        $result->{'data'}{'reason'},
+        scalar(localtime($result->{'data'}{'buried_at'}))
+    );
+} else {
+    $output = "Failed: " . ($result->{'data'} // 'unknown error') . "\n";
+}
+
+return { 'mode' => qw| size |, 'data' => $output };
+
+#,,..,,,.,,..,.,.,,..,,,,,,.,,.,.,,,.,.,.,..,,.,.,...,...,,,.,,..,..,,,..,,,.,
+#5MAPCGIKA77MUXU22DFMTCDTIBLFZDOINOXNJ2LARGV5MLB4QHBQP2B6GR7ZLQME3O6WT3HGS3KTW
+#\\\|34IZUIXDX2YSCHBZAR6VYGKNJBBROJKPKOWHVV5TXWWHQ4HSOLA \ / AMOS7 \ YOURUM ::
+#\[7]JYFUGD74NZKBBYOCVS4SLUTMWPSQKMGDPNU53Q5WSMUAWWJCIUDI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
