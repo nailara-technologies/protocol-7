@@ -1,0 +1,63 @@
+## [:< ##
+
+# name    = kimi.task.complete
+# descr   = mark kimi task as completed
+# purpose = kimi task management
+#           [ wrapper around jobqueue.move_job to mark job complete ]
+
+my ( $task_id, $result ) = @ARG;
+
+return {
+    success => FALSE,
+    error   => 'task_id required'
+    }
+    unless defined $task_id;
+
+# Get task from kimi task queue
+my $queue_href = <kimi.task.queue>;
+my $task       = $queue_href->{$task_id};
+
+return {
+    success => FALSE,
+    error   => "task not found : '$task_id'"
+    }
+    unless defined $task;
+
+# Update task execution status
+$task->{'execution'}->{'status'}    = qw| completed |;
+$task->{'execution'}->{'result'}    = $result;
+$task->{'execution'}->{'success'}   = TRUE;
+$task->{'execution'}->{'completed'} = <[base.time]>->(3);
+
+# Move task to completed list
+my $aref_pending   = <kimi.task.pending>;
+my $aref_completed = <kimi.task.completed>;
+
+$aref_pending->@* = grep { $ARG ne $task_id } $aref_pending->@*;
+push $aref_completed->@*, $task_id;
+
+<[base.logs]>->( 2, "task completed : %s", $task_id );
+
+# Update budget tracking
+<kimi.budget.track_tokens>->(
+    {   'service'     => 'kimi.task.complete',
+        'tokens_used' => 1,                      # base overhead
+        'type'        => 'complete',
+    }
+);
+
+# Trigger task completion event handler (checks for auto-resume)
+<[kimi.event.on_task_complete]>->( $task_id, $result );
+
+return {
+    success => TRUE,
+    task_id => $task_id,
+    result  => $result,
+    message => "task completed : $task_id"
+};
+
+#,,,.,..,,.,,,...,..,,..,,.,.,,,.,,,.,...,,,,,..,,...,...,,,,,..,,.,,,,..,,..,
+#OQY2DZ4WVZ2QSNIAB4323RDVI7RBX7QLGP4L24IPFUAF4MLLK5VXJVEOOLJT4LWTA7JCR4JWK5ZC6
+#\\\|7LK25P4IFMAFGYTT476VYOYYFHOJFOAB2ETRGPON5UH37TDHY67 \ / AMOS7 \ YOURUM ::
+#\[7]6HXEBCXXGFULTE3OV5EH4TYMTZHIIFDAT5STZE3TZ4SGCFXOGYCQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

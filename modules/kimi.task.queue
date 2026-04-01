@@ -1,0 +1,36 @@
+## [:< ##
+
+# name = kimi.task.queue
+# descr = manage work queue by routing to specialized modules
+# purpose = Queue dispatcher: Route operations to appropriate handlers
+
+# Dispatcher routes queue operations to extracted modules
+my $cmd = shift @ARG // qw| status |;
+my $arg = shift @ARG;
+
+if ( $cmd eq 'enqueue' ) {
+    return <[kimi.task.queue_enqueue]>->($arg);
+} elsif ( $cmd eq 'next' ) {
+    return <[kimi.task.queue_next]>;
+} elsif ( $cmd eq 'complete' ) {
+    return <[kimi.task.queue_complete]>->( $arg, $ARG[0], $ARG[1] );
+} elsif ( $cmd eq 'fail' ) {
+    return <[kimi.task.queue_fail]>->( $arg, $ARG[0] );
+} elsif ( $cmd eq 'status' ) {
+    return <[kimi.task.queue_status]>->($arg);
+} elsif ( $cmd eq 'clear' ) {
+    return <[kimi.task.queue_clear]>;
+} else {
+    return {
+        success   => FALSE,
+        error     => "Unknown queue command: $cmd",
+        available =>
+            [ 'enqueue', 'next', 'complete', 'fail', 'status', 'clear' ]
+    };
+}
+
+#,,..,,..,...,,,.,,,,,,,,,,,.,,,.,,,,,...,,,.,..,,...,...,.,,,..,,,.,,,.,,,.,,
+#DDL335JMKN7WXYE3AJCYLB5CDYOGGG7SQRQODVQE5Z2G3CS63IOFQNX3UJK22Y4NVTEUOPS7PEE6K
+#\\\|QETVEIS52B3HMPAX4ZADOWUMGDLDVOSC7CJXXSNJOF2EY5U3QJJ \ / AMOS7 \ YOURUM ::
+#\[7]67BUQ72TDEPUO3VJYI2RNADSQ2T2SVFCFBED3FAXMWQGHOSIKMDI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

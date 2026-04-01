@@ -1,0 +1,102 @@
+## [:< ##
+
+# name  = kimi.task.enqueue
+# descr = enqueue kimi task with budget-aware job tracking
+# purpose = kimi task management : wrapper around event-driven task queue
+#         with priority calculation and duplicate detection
+
+my ($task) = @ARG;
+
+return {
+    success => FALSE,
+    error   => 'task must be a hashref'
+    }
+    unless ref($task) eq qw| HASH |;
+
+return {
+    success => FALSE,
+    error   => 'task must have id'
+    }
+    unless exists $task->{id};
+
+my $task_id = $task->{id};
+
+## step 1: add to kimi queue (for rich data + duplicate detection) ##
+my $queue_href   = <kimi.task.queue>   //= {};
+my $aref_pending = <kimi.task.pending> //= [];
+
+## prevent duplicates ##
+if ( exists $queue_href->{$task_id} ) {
+    return {
+        success       => FALSE,
+        error         => "task already in queue: $task_id",
+        existing_task => $queue_href->{$task_id}
+    };
+}
+
+## store task in kimi queue ##
+$queue_href->{$task_id} = {
+    %$task,
+    queued_at      => <[base.time]>->(3),
+    queue_position => scalar( $aref_pending->@* )
+};
+
+## add to pending list ##
+push $aref_pending->@*, $task_id;
+
+## step 2: check budget before enqueueing ##
+my $budget_status = <kimi.budget.check_budget>->( $task, 'enqueue' );
+
+unless ( $budget_status->{success} ) {
+    <[base.logs]>->(
+        2,        "kimi.task.enqueue: budget check failed for %s: %s",
+        $task_id, $budget_status->{error}
+    );
+    return $budget_status;
+}
+
+## determine task priority ##
+my $priority
+    = <[kimi.helper.task_priority]>->( $task->{type} // 'general', $task );
+
+my $job_params = {
+    name            => $task_id,
+    priority        => $priority,
+    object_id       => $task_id,
+    target_queue    => 'queued',
+    job_callback    => 'kimi.task.execute',
+    callback_params => { task_id => $task_id },
+};
+
+my $job_id = <[jobqueue.add_job]>->($job_params);
+
+unless ( defined $job_id ) {
+    <[base.logs]>->(
+        0, "task enqueue failed : %s [jobqueue error]", $task_id
+    );
+    return { success => FALSE, error => 'jobqueue.add_job failed' };
+}
+
+<[base.logs]>->( 2, "task enqueued : %s [job_id=%s]", $task_id, $job_id );
+
+# Update budget tracking
+<kimi.budget.track_tokens>->(
+    {   'service'     => 'kimi.task.enqueue',
+        'tokens_used' => 1,                     # base overhead
+        'type'        => 'enqueue',
+    }
+);
+
+return {
+    success    => TRUE,
+    job_id     => $job_id,
+    task_id    => $task_id,
+    queue_size => scalar( $aref_pending->@* ),
+    message    => "task enqueued: $task_id"
+};
+
+#,,,.,.,,,...,...,,.,,.,.,,,,,,,,,.,.,,,,,,..,..,,...,...,,.,,...,.,.,..,,,..,
+#6YWPACBQISBIMG5XHGJO4VL42UTCOPXMXVBOKXZPYQONS4ULYKLIUT3LP6752XHA2HSKPECM7ZV76
+#\\\|ZJIPWGJNIJQH6RCQGPAMC2FHPIPLASR6OB5SFADPTBTHMX53GCY \ / AMOS7 \ YOURUM ::
+#\[7]56DYCCVLUMGNQFU7FKIZFJJIIU672T6OWROVVT3DTZUEZRSQRMCY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

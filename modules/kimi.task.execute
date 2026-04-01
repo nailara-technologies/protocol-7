@@ -1,0 +1,75 @@
+## [:< ##
+
+# name  = kimi.task.execute
+# descr = execute a kimi task from jobqueue callback
+# purpose = bridge jobqueue execution to kimi task processing
+
+my $params          = shift;
+my $job_id          = $params->{'job_id'};
+my $callback_params = $params->{'params'} // {};
+
+my $task_id = $callback_params->{'task_id'};
+
+unless ( defined $task_id ) {
+    <[base.logs]>->(
+        0, "kimi.task.execute: missing task_id in callback params"
+    );
+    return FALSE;
+}
+
+## get task from kimi queue ##
+my $task = <kimi.task.queue>->{$task_id};
+
+unless ( defined $task ) {
+    <[base.logs]>->( 0, "kimi.task.execute: task not found: %s", $task_id );
+    return FALSE;
+}
+
+## mark task as in_progress ##
+$task->{'execution'}->{'status'}  = qw| in_progress |;
+$task->{'execution'}->{'started'} = <[base.time]>->(3);
+
+## move from pending to active ##
+my $aref_pending = <kimi.task.pending> // [];
+my $aref_active  = <kimi.task.active>  // [];
+
+$aref_pending->@* = grep { $ARG ne $task_id } $aref_pending->@*;
+push $aref_active->@*, $task_id;
+
+<kimi.task.active_id> = $task_id;
+
+<[base.logs]>->( 2, "kimi.task.execute: starting task %s", $task_id );
+
+## call the actual kimi handler ##
+## expects: { params => { task_id => ... } } for jobqueue callback mode ##
+my $result = <[kimi.handler.process-queued-task]>
+    ->( { 'params' => { 'task_id' => $task_id } } );
+
+## handle job completion based on result ##
+if ( defined $result && $result->{'success'} ) {
+    <[jobqueue.move_job]>->( $job_id, 'completed' );
+    ## extract the actual result text from hashref ##
+    my $result_text = $result->{'result'} // '';
+    <kimi.task.complete>->( $task_id, $result_text );
+} else {
+    my $error_msg
+        = defined $result
+        ? $result->{'error'} // 'unknown error'
+        : 'handler returned undef';
+    my $err_short = <[base.parser.center_ellipse_string]>->( $error_msg, 72 );
+    $err_short //= $error_msg;    ## fallback if center_ellipse fails ##
+    <[base.logs]>->(
+        0,        "kimi.task.execute: task %s failed: %s",
+        $task_id, $err_short
+    );
+    <[jobqueue.move_job]>->( $job_id, 'error' );
+    <kimi.task.fail>->( $task_id, $error_msg );
+}
+
+return $result;
+
+#,,.,,,..,,,.,,,.,.,,,..,,,,.,,.,,..,,..,,,,,,..,,...,...,,..,.,.,..,,.,.,.,.,
+#BWE5UI4UUY2W5SRQ4SE2RT5TWPRXJ5AJDMIFNL77G2QOBBD6WPKDCFUG6CFLC47PWFAZCUFV56ESQ
+#\\\|6VGTCMIJPIVW3UYIDDVBAOFWEAA6USR6ERUACDGSEZ56PJSNPH4 \ / AMOS7 \ YOURUM ::
+#\[7]NQ2ZO3GCMSDVXVVS6B7CCDSMTOVE6XSTS5DFT4HB4QQJNHS6AABA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

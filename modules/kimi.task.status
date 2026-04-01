@@ -1,0 +1,51 @@
+## [:< ##
+
+# name  = kimi.task.status
+# descr = get status of kimi task
+# purpose = kimi task management : wrapper around jobqueue.get_job_data
+
+my ($job_id) = @ARG;
+
+return {
+    success => FALSE,
+    error   => 'job id required'
+    }
+    unless defined $job_id;
+
+# get job data from jobqueue
+my $job_data = <[jobqueue.get_job_data]>->($job_id);
+
+return {
+    success => FALSE,
+    error   => "task not found : $job_id"
+    }
+    unless defined $job_data;
+
+# map jobqueue status to kimi task format
+my %status_map = (
+    queued    => 'pending',
+    running   => 'in_progress',
+    completed => 'completed',
+    error     => 'failed',
+    aborted   => 'failed',
+    paused    => 'paused',
+);
+
+my $task_status = $status_map{ $job_data->{status} } // $job_data->{status};
+
+return {
+    success   => TRUE,
+    job_id    => $job_id,
+    task_id   => $job_data->{object_id},
+    status    => $task_status,
+    priority  => $job_data->{priority},
+    queued_at => $job_data->{tstamp}->{queued},
+    started   => $job_data->{tstamp}->{running},
+    completed => $job_data->{tstamp}->{completed},
+};
+
+#,,,,,,.,,,,,,,.,,.,.,,,.,.,,,,,.,,.,,,..,,..,..,,...,...,,..,,,,,,,.,,..,..,,
+#B2RKEJRMZPP4LVJ4SQC554XANEGYSBIP4563G2QYV5OFAUQJZY27HRH7BUFL4BTASA4RGWRW7TTUA
+#\\\|GXQHELBPBRMPN7MHNQP2VVEBRMOYNRJDFVD7Z2OLP6YPY67UTEF \ / AMOS7 \ YOURUM ::
+#\[7]3ESTEI5QVXPC74HQ24F6ALNA7FNFBGLJSKBETAWZ4VERR32JFYAQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
