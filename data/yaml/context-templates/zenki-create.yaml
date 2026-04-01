@@ -1,0 +1,325 @@
+---
+name: zenki-create
+descr: create new protocol-7 zenka with proper structure
+budget: 5000
+sections:
+  ## core knowledge ##
+  - include: system-base
+    priority: 1
+    budget_pct: 10
+
+  ## P7 zenka patterns ##
+  - include: system-review
+    priority: 2
+    budget_pct: 5
+
+  ## instructions ##
+  - static: |
+      create a new protocol-7 zenka following established patterns.
+      this template covers standard, child-bearing, console, and hybrid zenki.
+
+      ## round budget: aim for 15-25 tool rounds ##
+      ## research similar zenki first, then implement step by step ##
+
+      ## phase 1: research and planning [ ~5 rounds ] ##
+
+      ### 1a. find similar zenki as reference ###
+      use list_modules to find zenki in similar category:
+      - service zenki: amos-term, httpd, httpsd, coding, models
+      - client zenki: kimi, weather, discover
+      - utility zenki: lm-vision, data, storage
+
+      ### 1b. determine zenka type ###
+      **standard zenka**: background service, no console interaction
+      - examples: coding, models, data, storage
+      - no special terminal handling needed
+
+      **console zenka**: interactive terminal application
+      - examples: amos-term, nshell
+      - uses AMOS7::TERM or similar for input handling
+      - requires terminal state management
+
+      **child-bearing zenka**: spawns sub-processes or child zenki
+      - examples: v7 (spawns all zenki), kimi-web (spawns agents)
+      - needs v7.register_child_zenka or lifecycle management
+      - requires cleanup handlers for child processes
+
+      **hybrid zenka**: combines multiple characteristics
+      - examples: coding (service + child processes for inference)
+      - most complex, handle each aspect separately
+
+      ### 1c. identify required modules ###
+      check reference zenka's start file for:
+      - modules.load list (auth, net, protocol, format.json, etc.)
+      - crypt.C25519 if authentication needed
+      - format.yaml if config parsing needed
+      - websocket if real-time communication needed
+
+      ## phase 2: create module structure [ ~10 rounds ] ##
+
+      ### 2a. minimal module set ###
+      every zenka needs at minimum:
+
+      ```
+      modules/<zenka-name>.init_code
+      ```
+
+      optional based on functionality:
+      ```
+      modules/<zenka-name>.cmd.<command-name>     # exposed commands
+      modules/<zenka-name>.handler.<event-name>   # event handlers
+      modules/<zenka-name>.wire.<protocol-name>   # protocol implementations
+      modules/<zenka-name>.internal.<helper>      # internal utilities
+      ```
+
+      ### 2b. init_code requirements ###
+
+      ```perl
+      ## [:< ##
+
+      # name  = <zenka-name>.init_code
+      # descr = initialize <zenka-name> zenka [ 55 chars max ]
+
+      ## initialization code here ##
+
+      return TRUE;  ## required ##
+
+     #,,..,.,.,,,,,,.,,...,..,,.,,,,,,,,.,,.,.,,,,,..,,...,...,,.,,,,.,.,.,,,.,,..,
+     #EDJEKQBZ6SESEZ4OYA7D3VFSJVPD5B3UD3G6LHXGZIUBFY2SL3KCPP66APHJ6IROWIHIOF63Y3VDW
+     #\\\|N72XPB6UUM3HFLFXQRBTV5VGT2WI5HA7MGEX2BGP7SB5DMFK7QT \ / AMOS7 \ YOURUM ::
+     #\[7]XWD5JID3XKVW4QXVPA67O7YP4DXDR7QNWRLEFW5KHG27WYXYTWDI 7  DATA SIGNATURE ::
+     #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+
+      **CRITICAL**: Never use `my $call = shift;` in *.cmd.* modules
+      - $call is already provided by the protocol-7 dispatcher
+      - Use: `my $args = $call->{'args'} // {};`
+
+      ### 2c. cmd module pattern ###
+
+      ```perl
+      ## [:< ##
+
+      # name  = <zenka-name>.cmd.<command>
+      # descr = what this command does [ keep under 55 chars ]
+      # param = param_name - param description [ under 55 chars ]
+
+      my $args = $call->{'args'} // {};  ## NOT my $call = shift ##
+
+      ## implementation ##
+
+      return {
+          'mode' => qw| true |,   ## or qw| false | / qw| size | ##
+          'data' => $result
+      };
+
+      #SIGNATURE-BLOCK
+      ```
+
+      ## phase 3: configuration [ ~5 rounds ] ##
+
+      ### 3a. create configuration directory ###
+      ```
+      configuration/zenki/<zenka-name>/
+      ├── start                    # main start configuration
+      ├── zenka-startup.v7         # v7 integration config
+      ├── pm-dep/                  # perl module dependencies
+      │   ├── .placeholder
+      │   ├── JSON                 # touch files for deps
+      │   └── YAML__XS
+      ├── source/                  # source module tracking
+      │   ├── .placeholder
+      │   ├── auth
+      │   └── <zenka-name>
+      └── os-dep/                  # os-level dependencies [ optional ]
+          ├── debian/
+          └── binary/
+      ```
+
+      ### 3b. start file template ###
+
+      ```
+       .:[ protocol-7 <zenka-name> zenka ]:.
+
+      [load_config_file:'shared-params']
+
+      access.cmd.usr.cube = commands heart reload verify-instance \
+                            list show-buffer buffer-erase \
+                            <your-command-1> <your-command-2> \
+                            src-age src-ver subname name
+
+      system.verbosity.zenka_buffer  = 2
+      system.verbosity.zenka_console = 2
+
+      ## zenka-specific configuration ##
+      <zenka-name>.setting = value
+
+      crypt.C25519.autocreate-user-key = yes
+
+      modules.load = auth net protocol io.unix crypt.C25519 \
+                     format.json devmod <zenka-name>
+
+      [load_modules:<modules.load>]
+      [init_modules]
+
+      [root.drop_privs:<system.amos-zenka-user>]
+
+      [base.net.connect:'unix']
+
+      [base.async.get_session_id]
+
+      [zenka.loop]
+      ```
+
+      ### 3c. zenka-startup.v7 template ###
+
+      ```
+      ## [:< ##
+
+      # name  = zenka-startup.v7
+      # descr = '<zenka-name>' zenka startup configuration for v7
+
+      dependencies = cube
+
+      start.on-demand    = 1
+      restart.disabled   = 1
+      heartbeat.disabled = 1
+      max_concurrency    = 1
+
+      : v7-init :
+        start_mode = stdin-zenka
+        <zenka-name>.key = [base.prng.chars-anum:44]
+        [v7.callback.setup_zenka_key:<instance_id>,'<zenka_name>',<<zenka-name>.key>]
+
+      : zenka-init :
+        [base.auth.set_zenka_key:'<<zenka-name>.key>']
+        [base.zenki.set_ondemand_timeout:3600]
+
+      #SIGNATURE-BLOCK
+      ```
+
+      **Note**: For child-bearing zenki, set `start.on-demand = 0` if
+      v7 should start it immediately, not on first use.
+
+      ### 3d. access and auth wiring ###
+
+      **configuration/zenki/cube/access.zenki**:
+      ```
+      access.cmd.usr.<zenka-name> = <zenka-name>.<cmd-1> <zenka-name>.<cmd-2>
+      ```
+
+      **configuration/zenki/cube/auth.zenki**:
+      ```
+      auth.setup.usr.<zenka-name> = :zenka:
+      ```
+
+      For zenki needing external auth, add:
+      ```
+      auth.setup.usr.<zenka-name> = :zenka: :unix:<user>
+      ```
+
+      ## phase 4: zenka-specific considerations ##
+
+      ### for child-bearing zenki ###
+      - Call `<[v7.register_child_zenka]>->(qw| <child-name> |)` in init_code
+      - Implement cleanup handlers for SIGCHLD
+      - Track child PIDs in %data tree
+      - Use `event.add_timer` for child health checks
+
+      ### for console zenki ###
+      - Use `AMOS7::TERM` or `nshell` patterns for input
+      - Handle terminal state (raw mode, echo, etc.)
+      - Implement proper cleanup on exit (restore terminal)
+      - Consider SHM buffer for display output
+
+      ### for service zenki with HTTP ###
+      - Use `httpd.*` patterns for request handling
+      - Implement proper request/response cycle
+      - Consider timeout handling carefully
+      - Use SIZE replies for large responses
+
+      ### for zenki with state persistence ###
+      - Use `<[file.zenka_dir.write]>->()` for state
+      - Use `<[file.zenka_dir.load]>->()` to restore
+      - Store in `$rel_path` under `/var/protocol-7/zenka/<zenka-name>/`
+
+      ## phase 5: verification [ ~3 rounds ] ##
+
+      ### 5a. syntax check ###
+      ```bash
+      ./bin/ptd modules/<zenka-name>.*
+      ```
+
+      ### 5b. integration check ###
+      - Verify module is in `base.list.subroutines` if needed
+      - Check all signatures are valid
+      - Verify access.zenki has routing
+      - Verify auth.zenki has auth setup
+
+      ### 5c. startup test ###
+      ```bash
+      p7c v7.start <zenka-name>
+      p7c <zenka-name>.commands  # test command access
+      ```
+
+      ## common pitfalls from kimi-web session ##
+
+      1. **$call masking**: Never `my $call = shift` in *.cmd.* modules
+         - $call is pre-declared by the dispatcher
+         - Use `my $args = $call->{'args'} // {}`
+
+      2. **Non-existent file.zenka_dir.make_path**:
+         - Doesn't exist - use `file.make_path` or create on-demand
+         - `file.zenka_dir.write` auto-creates directories
+
+      3. **Missing auth.setup in auth.zenki**:
+         - Causes "user not accepted for auth type :zenka:"
+         - Every zenka needs `auth.setup.usr.<name> = :zenka:`
+
+      4. **Loading self in modules.load**:
+         - Don't include `<zenka-name>` in modules.load
+         - Individual modules loaded automatically
+
+      5. **Return value from cmd modules**:
+         - Must return `{ 'mode' => qw| true |, 'data' => ... }`
+         - Use `qw| true |`, not `TRUE` constant
+         - Use `qw| false |` for errors
+         - Use `qw| size |` for multi-line responses
+
+      6. **$ARG and @ARG preservation**:
+         - Use English.pm aliases exclusively
+         - NEVER revert to `$_` or `@_`
+
+      ## output format ##
+
+      ## zenka creation: <zenka-name> ##
+
+      ### type: [standard|console|child-bearing|hybrid] ###
+
+      ### modules created ###
+      - list of modules with purposes
+
+      ### configuration ###
+      - files created in configuration/zenki/<zenka-name>/
+      - routing in cube/access.zenki and auth.zenki
+
+      ### testing commands ###
+      ```bash
+      p7c v7.start <zenka-name>
+      p7c <zenka-name>.<test-command>
+      ```
+
+      ### integration notes ###
+      - any special considerations
+      - child zenki spawned (if any)
+      - external dependencies
+
+      call task_complete when zenka is ready for testing.
+    priority: 3
+    budget_pct: 85
+    label: zenka creation instructions
+
+#,,..,,,,,,,.,,,,,,,,,.,,,.,,,,..,..,,.,,,.,.,..,,...,...,,..,.,,,,,.,,..,,,.,
+#XWPYNCWGQXSKTYQ3FUBHMLTDZIYTZ6YNBP5L2HAGAM32LFIYGW2OHYKFUK5ERYUZWILITMHBK2OHA
+#\\\|Z2AFC7RTEQHXPKXKOLQQDRVBKF2VXEU654FDHF4QCA6B5V6ZPYJ \ / AMOS7 \ YOURUM ::
+#\[7]F7XQCYNG464B6KQ43CGP2SROUXFCYTKCRHWJ3OQDV3E3BOJEDUAA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
