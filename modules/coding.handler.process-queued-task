@@ -519,11 +519,46 @@ INFERENCE_LOOP:
                     };
             }
 
-            my @tool_names = map { $_->{'function'}->{'name'} // '?' }
-                $message->{'tool_calls'}->@*;
+            ## build tool summary with truncated parameters ##
+            my @tool_summaries;
+            for my $tc ( $message->{'tool_calls'}->@* ) {
+                my $name = $tc->{'function'}->{'name'} // '?';
+                my $args = $tc->{'function'}->{'arguments'} // '';
+                
+                ## extract key params for context (path, pattern, module, etc.) ##
+                my $param_summary = '';
+                if ( length $args ) {
+                    my $args_hash = eval { JSON::PP::decode_json($args) };
+                    if ( ref $args_hash eq qw| HASH | ) {
+                        ## extract most informative params ##
+                        my @key_params;
+                        for my $key ( qw| path module pattern name query | ) {
+                            if ( defined $args_hash->{$key} 
+                                and length $args_hash->{$key} ) {
+                                push @key_params, 
+                                    "$key:" . $args_hash->{$key};
+                                last;    ## only first match ##
+                            }
+                        }
+                        $param_summary = join( ', ', @key_params )
+                            if @key_params;
+                    }
+                }
+                
+                ## ellipsize params for display ##
+                if ( length $param_summary ) {
+                    $param_summary = <[base.parser.ellipse_center]>->(
+                        $param_summary, 24
+                    );
+                    push @tool_summaries, "[ $name ]::[ $param_summary ]";
+                } else {
+                    push @tool_summaries, "[ $name ]";
+                }
+            }
+            
             <[base.logs]>->(
                 1,           "::working:: :%03d: %s",
-                $tool_round, join( ', ', @tool_names )
+                $tool_round, join( ' ', @tool_summaries )
             );
 
             ## check if a tool signaled stop [ task_complete / escalate ] ##
