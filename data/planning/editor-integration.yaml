@@ -1,0 +1,380 @@
+---
+# Protocol-7 Editor Integration Planning
+# Feature completeness analysis and missing components
+
+project: protocol-7
+version: 1.0
+date: 2024-01-01
+
+## Overview
+This document outlines the missing module components required to enable seamless editor toggle functionality between nshell's network terminal mode and an integrated editor mode.
+
+## Current State Analysis
+
+### Existing Infrastructure
+1. **nshell** - Native shell with:
+   - History management (ring buffer)
+   - AMOS7::TERM editor integration (character insertion, deletion, cursor movement)
+   - Search mode (Ctrl+R)
+   - History navigation (Page Up/Down, arrow keys)
+
+2. **amos-term** - Terminal infrastructure with:
+   - GTK3 window management
+   - Buffer management (SHM-based)
+   - Window operations (open, close, resize, fullscreen)
+   - Key press handling
+   - Cursor movement
+
+3. **pager** - Pager with editor integration:
+   - Virtual buffer support
+   - Editor callback integration
+   - Line-based rendering
+
+4. **protocol-7-menu** - Menu infrastructure with:
+   - Graphical menu support (Gtk3)
+   - Action key system
+   - Provider registration
+
+### Key Gap: Editor Namespace Missing
+There is no `modules/editor/` namespace yet. This is the primary blocker.
+
+## Missing Components
+
+### 1. Core Editor Zenka (modules/editor/)
+Priority: HIGH
+
+- editor.init_code
+  - Initialize editor state machine
+  - Set up editor buffers
+  - Configure AMOS7::TERM editor
+  - Handle editor lifecycle
+
+- editor.mode.switch
+  - Toggle between modes: NORMAL, INSERT, VISUAL
+  - Handle mode transitions
+  - Update display state
+
+- editor.buffer.create
+  - Create new editor buffer
+  - Initialize buffer metadata
+  - Set up SHM connection
+
+- editor.buffer.load
+  - Load file content into buffer
+  - Handle large files with pagination
+  - Support binary and text files
+
+- editor.buffer.save
+  - Save buffer to file
+  - Handle overwrite prompts
+  - Support incremental saves
+
+- editor.buffer.close
+  - Close buffer
+  - Clean up resources
+  - Release SHM
+
+- editor.file.open
+  - Open file dialog (via protocol-7-menu)
+  - Parse file path
+  - Validate file existence
+
+- editor.file.save
+  - Save file dialog
+  - Handle path creation
+  - Write file content
+
+- editor.file.quit
+  - Quit editor
+  - Save unsaved changes prompt
+  - Clean up buffers
+
+- editor.search
+  - Search functionality
+  - Search in files
+  - Search in buffers
+
+- editor.replace
+  - Find and replace
+  - Global replace
+  - Replace in files
+
+### 2. Window Management Integration (modules/amos-term/editor/)
+Priority: MEDIUM
+
+- amos-term.editor.window.open
+  - Open editor window
+  - Set initial buffer
+  - Configure geometry
+
+- amos-term.editor.window.close
+  - Close editor window
+  - Clean up buffer
+  - Restore terminal mode
+
+- amos-term.editor.window.fullscreen
+  - Toggle fullscreen mode
+  - Handle buffer resize
+  - Update rendering
+
+- amos-term.editor.window.switch
+  - Switch between windows
+  - Manage window stack
+  - Handle focus
+
+### 3. Template System (modules/context/template/)
+Priority: MEDIUM
+
+- context.template.editor
+  - Editor template configuration
+  - Default key bindings
+  - Buffer management settings
+
+- context.template.network-terminal
+  - Terminal template configuration
+  - History settings
+  - Passthrough configuration
+
+- context.template.switch
+  - Switch between templates
+  - Preserve state
+  - Handle transitions
+
+### 4. Hotkey Infrastructure (modules/protocol-7-menu/editor/)
+Priority: LOW
+
+- protocol-7-menu.editor.hotkey
+  - Register editor hotkeys
+  - Handle Ctrl+L (cycle templates)
+  - Handle Ctrl+O (open file)
+  - Handle Ctrl+S (save)
+  - Handle Ctrl+Q (quit)
+
+- protocol-7-menu.editor.action-keys
+  - Define editor action keys
+  - Map keys to actions
+  - Handle modifiers
+
+- protocol-7-menu.editor.menu-provider
+  - Register editor menu provider
+  - Provide editor menu items
+  - Update menu state
+
+### 5. Layer Management (modules/context/layers/)
+Priority: LOW
+
+- context.layers.switch
+  - Switch between layers
+  - Manage layer stack
+  - Handle layer transitions
+
+- context.layers.create
+  - Create new layer
+  - Initialize layer state
+  - Set layer metadata
+
+- context.layers.destroy
+  - Destroy layer
+  - Clean up resources
+  - Release buffers
+
+- context.layers.list
+  - List available layers
+  - Show layer metadata
+  - Display layer state
+
+### 6. Command Wrapper Infrastructure (modules/data/cmd/)
+Priority: LOW
+
+- data.cmd.editor.open
+  - Open editor for file
+  - Handle arguments
+  - Return editor session
+
+- data.cmd.editor.save
+  - Save editor buffer
+  - Handle arguments
+  - Return save status
+
+- data.cmd.editor.close
+  - Close editor session
+  - Handle arguments
+  - Return cleanup status
+
+- data.cmd.editor.switch
+  - Switch editor buffer
+  - Handle arguments
+  - Return new buffer state
+
+### 7. State Management (modules/context/editor/)
+Priority: LOW
+
+- context.editor.state.init
+  - Initialize editor state
+  - Set up buffers
+  - Configure defaults
+
+- context.editor.state.save
+  - Save editor state
+  - Preserve buffers
+  - Store configuration
+
+- context.editor.state.restore
+  - Restore editor state
+  - Reopen buffers
+  - Restore configuration
+
+- context.editor.state.sync
+  - Sync state across zenki
+  - Handle state updates
+  - Propagate changes
+
+## Implementation Priority
+
+### Phase 1: Core Editor (HIGH)
+1. `modules/editor/init_code`
+2. `modules/editor/mode.switch`
+3. `modules/editor/buffer/create`
+4. `modules/editor/buffer/load`
+5. `modules/editor/buffer/save`
+6. `modules/editor/file/open`
+7. `modules/editor/file/save`
+
+### Phase 2: Window Integration (MEDIUM)
+1. `modules/amos-term/editor/window.open`
+2. `modules/amos-term/editor/window.close`
+3. `modules/amos-term/editor/window.fullscreen`
+4. `modules/amos-term/editor/window.switch`
+
+### Phase 3: Template System (MEDIUM)
+1. `modules/context/template/editor`
+2. `modules/context/template/network-terminal`
+3. `modules/context/template/switch`
+
+### Phase 4: Hotkey Infrastructure (LOW)
+1. `modules/protocol-7-menu/editor/hotkey`
+2. `modules/protocol-7-menu/editor/action-keys`
+3. `modules/protocol-7-menu/editor/menu-provider`
+
+### Phase 5: Layer Management (LOW)
+1. `modules/context/layers/switch`
+2. `modules/context/layers/create`
+3. `modules/context/layers/destroy`
+4. `modules/context/layers/list`
+
+### Phase 6: Command Wrappers (LOW)
+1. `modules/data/cmd/editor.open`
+2. `modules/data/cmd/editor.save`
+3. `modules/data/cmd/editor.close`
+4. `modules/data/cmd/editor.switch`
+
+### Phase 7: State Management (LOW)
+1. `modules/context/editor/state/init`
+2. `modules/context/editor/state/save`
+3. `modules/context/editor/state/restore`
+4. `modules/context/editor/state/sync`
+
+## Feature Completeness Assessment
+
+### Network Terminal Mode (Current)
+- [x] History management
+- [x] Command relay to cube
+- [x] Basic editor input (AMOS7::TERM)
+- [x] Search mode (Ctrl+R)
+- [x] History navigation
+- [x] Terminal color support
+
+### Editor Mode (Target)
+- [ ] File open/save dialogs
+- [ ] Buffer management
+- [ ] Search/replace
+- [ ] Multi-file support
+- [ ] Undo/redo
+- [ ] Syntax highlighting
+- [ ] Tab completion
+- [ ] File tree view
+- [ ] Buffer switching
+- [ ] Layer management
+
+### Toggle/Integration (Target)
+- [ ] Hotkey to open editor
+- [ ] Hotkey to switch modes
+- [ ] Hotkey to cycle templates
+- [ ] State preservation
+- [ ] Layer switching
+- [ ] Template switching
+- [ ] Window management
+
+## Integration Points
+
+### nshell Shell Loop
+- [ ] Add editor toggle handler
+- [ ] Detect Ctrl+L key sequence
+- [ ] Switch to editor mode
+- [ ] Restore terminal mode
+
+### AMOS-TERM Windows
+- [ ] Add editor window type
+- [ ] Handle editor-specific key events
+- [ ] Manage editor buffer display
+- [ ] Handle fullscreen editor mode
+
+### Protocol-7 Menu
+- [ ] Register editor menu provider
+- [ ] Add editor menu items
+- [ ] Handle editor hotkeys
+- [ ] Support dynamic menu configuration
+
+### Data Zenka
+- [ ] Add editor command wrappers
+- [ ] Support editor buffer operations
+- [ ] Handle editor state changes
+
+## Testing Checklist
+
+### Basic Editor Operations
+- [ ] Open file
+- [ ] Edit content
+- [ ] Save file
+- [ ] Close file
+- [ ] Handle unsaved changes
+
+### Window Operations
+- [ ] Open editor window
+- [ ] Close editor window
+- [ ] Resize editor window
+- [ ] Toggle fullscreen
+- [ ] Switch between windows
+
+### Toggle Operations
+- [ ] Ctrl+L to open editor
+- [ ] Ctrl+L to cycle templates
+- [ ] Switch back to terminal
+- [ ] Preserve state across modes
+
+### Integration
+- [ ] Editor window appears
+- [ ] Buffer content displays
+- [ ] Hotkeys work correctly
+- [ ] State is preserved
+- [ ] No memory leaks
+
+## Notes
+
+- AMOS7::TERM editor is already available and functional
+- GTK3 infrastructure exists in amos-term and protocol-7-menu
+- Template system needs to be extended for editor support
+- Layer management is a new concept that needs implementation
+- Hotkey support in protocol-7-menu needs extension for editor-specific keys
+
+## References
+- `modules/nshell/editor.process` - Existing editor dispatcher
+- `modules/pager/editor.integration` - Existing pager editor integration
+- `modules/amos-term/window-open` - Existing window infrastructure
+- `modules/protocol-7-menu/graphical-main-loop` - Existing menu infrastructure
+
+#,,,,,..,,..,,...,.,,,.,,,...,..,,,,.,,,.,,.,,...,...,...,,.,,,..,..,,..,,.,,,
+#3U2TVWOFACJIDFNMUKI5HZ2LANSN2TYZLW2WPD22VDKOW5QWVY4S6XZNLLFHKT77G4JXQOYIXFRMS
+#\\\|HCAQI2OEJUXYO5LRPICOOHC7D24CJCWFHK5UXFSNHBCL5FEVBQP \ / AMOS7 \ YOURUM ::
+#\[7]S2GJPSIVH6QXOW36I4TIZ2A6QOB6LU3JFSDW5H5BDEHQRTJBPSDI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
