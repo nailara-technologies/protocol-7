@@ -1,0 +1,43 @@
+
+ .:[ protocol-7 kimi-web sub-agent spawner zenka ]:.
+
+[load_config_file:'shared-params']
+
+access.cmd.usr.cube = commands heart reload verify-instance \
+                      list show-buffer buffer-erase buffer-erase-level \
+                      spawn_agent list_agents dispatch dispatch_parallel \
+                      terminate_agent resolve_template \
+                      src-age src-ver subname name \
+                      eval-code deparse-code list-subs
+
+system.verbosity.zenka_buffer  = 2
+system.verbosity.zenka_console = 2
+
+## agent configuration
+kimi-web.agent.base_port   = 16000
+kimi-web.agent.max_agents  = 8
+
+## default context template budget
+kimi-web.template.budget = 8000
+
+crypt.C25519.autocreate-user-key = yes
+
+modules.load = auth net protocol io.unix crypt.C25519 \
+               format.json format.yaml devmod
+
+[load_modules:<modules.load>]
+[init_modules]
+
+[root.drop_privs:<system.amos-zenka-user>]
+
+[base.net.connect:'unix']
+
+[base.async.get_session_id]
+
+[zenka.loop]
+
+#,,,,,.,.,,,,,.,.,...,,,.,..,,...,.,,,...,,.,,..,,...,...,.,,,,.,,..,,.,,,...,
+#WXFH2L45ROVWOZSOEI44VBATG7L76PXE5HI4TIIUIEHWYAVGGNJUBIQ7PDDXLIGPWOZDACACXTPBQ
+#\\\|OTJU5LPEF56MN4FXCQ54KSJAYGJW5YGHUBWDTMC7ZOM4DY677HP \ / AMOS7 \ YOURUM ::
+#\[7]ROQQW5K7YFU52PU5W6P3YWXH6XP7LK3SXIZ37TJELSYJ7OJOL6DA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

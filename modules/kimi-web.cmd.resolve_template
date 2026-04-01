@@ -1,0 +1,51 @@
+## [:< ##
+
+# name  = kimi-web.cmd.resolve_template
+# descr = resolve P7 context templates for agent preloading
+# param = template - template name (e.g., integrate-recent)
+# param = vars     - variable substitutions hashref
+# param = budget   - token budget (default 8000)
+
+my $args = $call->{'args'} // {};
+
+my $template = $args->{'template'} // '';
+my $vars     = $args->{'vars'}     // {};
+my $budget   = $args->{'budget'}   // 8000;
+
+if ( not length $template ) {
+    return {
+        'mode' => qw| false |,
+        'data' => 'template name is required'
+    };
+}
+
+## resolve via context.template.resolve ##
+my $resolved = <[context.template.resolve]>->(
+    {   'template' => $template,
+        'vars'     => $vars,
+        'budget'   => $budget,
+    }
+);
+
+if ( not defined $resolved ) {
+    return {
+        'mode' => qw| false |,
+        'data' => "template '$template' not found or resolution failed"
+    };
+}
+
+return {
+    'mode' => qw| true |,
+    'data' => $resolved,
+    'meta' => {
+        'template'     => $template,
+        'budget_used'  => length($resolved),
+        'budget_total' => $budget,
+    }
+};
+
+#,,.,,,.,,,.,,,.,,.,.,.,,,.,.,,,.,,,,,,,.,,.,,.,.,...,...,.,.,..,,,.,,,,.,.,,,
+#BDQV6KM77YNSFEKW7LXXAGUUTI7VMWIQB5KCQKBNHMWMABNJJY7727I2DL7ECZXUFM5H7SFTBXSLY
+#\\\|BZPI6OTOR5AMH55UOUOYZVA6TFMAVCHXZISAM642YXNZC6L3IWI \ / AMOS7 \ YOURUM ::
+#\[7]UPJ7DOD4KCCMBXOM6GZHWUMQZLPBY2KDXCURJ7KRGSW5PGUSY6CI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

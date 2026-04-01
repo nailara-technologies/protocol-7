@@ -1,0 +1,63 @@
+## [:< ##
+
+# name  = kimi-web.internal.http_post_async
+# descr = asynchronous HTTP POST using event system
+
+my $params = shift;
+
+my $url      = $params->{'url'};
+my $body     = $params->{'body'};
+my $agent_id = $params->{'agent_id'};
+my $batch_id = $params->{'batch_id'};
+my $handler  = $params->{'handler'};
+my $timeout  = $params->{'timeout'} // 30;
+
+## fork for async operation ##
+my $pid = fork();
+
+if ( not defined $pid ) {
+    <[base.logs]>->( 0, ': fork failed for async POST: %s', $OS_ERROR );
+    ## signal failure via event ##
+    <[event.add_idle]>->(
+        {   'handler' => $handler,
+            'params'  => {
+                'agent_id' => $agent_id,
+                'batch_id' => $batch_id,
+                'result'   => 'fork failed: ' . $OS_ERROR,
+                'is_error' => 1,
+            }
+        }
+    );
+    return;
+}
+
+if ( $pid == 0 ) {
+    ## child process: make blocking request, then signal result ##
+    my ( $ok, $result )
+        = <[kimi-web.internal.http_post_sync]>->( $url, $body, $timeout );
+
+    ## signal result via parent event ##
+    <[protocol-7.route-send]>->(
+        {   'command' => 'event.add_idle',
+            'params'  => {
+                'handler' => $handler,
+                'params'  => {
+                    'agent_id' => $agent_id,
+                    'batch_id' => $batch_id,
+                    'result'   => $result,
+                    'is_error' => $ok ? 0 : 1,
+                }
+            }
+        }
+    );
+    exit(0);
+}
+
+## parent: child PID stored, will reap via SIGCHLD ##
+return $pid;
+
+#,,.,,,,,,,.,,..,,,.,,.,,,.,.,.,,,,..,...,,,,,.,.,...,...,...,.,,,,,.,,,.,...,
+#4FUZPEFKL5MHSWDKP2C4D7DYMPH7EJMAYYKYB5DKV2RCFFFMPWV3DA7E5GBKIVL2HX4EECXA23CU2
+#\\\|RQZYCSWYOV5UOHIMLOSSCKJ6TS2DOEGZOV5ZOFN6HYCLBII6RK5 \ / AMOS7 \ YOURUM ::
+#\[7]GKYDUJUXWV5QOS3GRDE7PUMDVXCFEKSSZI4E4NVEGS257NMGHEBY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,0 +1,113 @@
+## [:< ##
+
+# name  = kimi-web.cmd.terminate_agent
+# descr = gracefully terminate a kimi-web sub-agent
+# param = agent_id          - agent to terminate
+# param = preserve_context  - save context before exit (def:1)
+# param = force             - kill immediately (default false)
+
+my $args = $call->{'args'} // {};
+
+my $agent_id         = $args->{'agent_id'}         // '';
+my $preserve_context = $args->{'preserve_context'} // 1;
+my $force            = $args->{'force'}            // 0;
+
+## validate ##
+if ( not length $agent_id ) {
+    return {
+        'mode' => qw| false |,
+        'data' => 'agent_id is required'
+    };
+}
+
+my $registry   = <kimi-web.agent.registry>   // {};
+my $port_alloc = <kimi-web.agent.port_alloc> // {};
+my $agent      = $registry->{$agent_id};
+
+if ( not defined $agent ) {
+    return {
+        'mode' => qw| false |,
+        'data' => "agent $agent_id not found"
+    };
+}
+
+my $pid  = $agent->{'pid'};
+my $port = $agent->{'port'};
+
+## preserve context if requested ##
+if ( $preserve_context and not $force ) {
+    ## request context from agent ##
+    my $url          = "http://127.0.0.1:$port/v1/context";
+    my $context_data = <[kimi-web.internal.http_get_sync]>->( $url, 10 );
+
+    if ( defined $context_data and length $context_data ) {
+        my $context_path
+            = <[file.zenka_dir.path]>->("contexts/$agent-id-context.txt");
+        <[file.write]>->( $context_path, $context_data );
+
+        ## store P7REF in agent record ##
+        my $checksum = <[base.chk-sum.bmw.stringsum]>->($context_data);
+        $agent->{'context_p7ref'} = $checksum;
+
+        <[base.logs]>->(
+            2,         ': preserved context for %s [ p7ref: %s ]',
+            $agent_id, $checksum
+        );
+    }
+}
+
+## terminate process ##
+if ($force) {
+    kill qw| KILL |, $pid;
+    <[base.logs]>->(
+        1,         ': force-killed agent %s [ pid %d ]',
+        $agent_id, $pid
+    );
+} else {
+    ## graceful shutdown request ##
+    my $url = "http://127.0.0.1:$port/v1/shutdown";
+    <[kimi-web.internal.http_post_sync]>->( $url, '{}', 5 );
+
+    ## wait a moment, then check ##
+    sleep 1;
+    my $waited = 0;
+    while ( kill 0, $pid and $waited < 10 ) {
+        sleep 1;
+        $waited++;
+    }
+
+    ## force if still running ##
+    if ( kill 0, $pid ) {
+        kill qw| KILL |, $pid;
+        <[base.logs]>->(
+            1, ': force-killed agent %s after timeout', $agent_id
+        );
+    } else {
+        <[base.logs]>->( 2, ': gracefully terminated agent %s', $agent_id );
+    }
+}
+
+## clean up registry ##
+delete $registry->{$agent_id};
+$port_alloc->{$port} = undef;
+
+<kimi-web.agent.registry>   = $registry;
+<kimi-web.agent.port_alloc> = $port_alloc;
+
+## remove context file if not preserved ##
+if ( not $preserve_context ) {
+    my $context_path
+        = <[file.zenka_dir.path]>->("agents/$agent_id-context.txt");
+    unlink $context_path if -f $context_path;
+}
+
+return {
+    'mode' => qw| true |,
+    'data' => "agent $agent_id terminated"
+};
+
+#,,,,,...,..,,,,,,.,.,.,.,..,,.,.,.,.,,.,,,.,,.,.,...,..,,...,...,.,.,...,,.,,
+#KNATTMY7M3E5WNTOXJH3GA3F72KWRF2FQEYOYX7WBND74VIQ6P62QHPMBHHQNHHPH57P7AQE6IZO2
+#\\\|N4EQ2KKR2G3SCK6ZRXNFAX2CKGEWIWHPNVJBVXOA25HPNWCCRA7 \ / AMOS7 \ YOURUM ::
+#\[7]EZMQ73W3EWWRSWHKGVDQR4LMN5AHEOAEDK3NT2JTZMALGRKLPKDY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

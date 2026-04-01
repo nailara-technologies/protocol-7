@@ -1,0 +1,95 @@
+## [:< ##
+
+# name  = kimi-web.handler.agent_health_check
+# descr = periodic health check for spawned agents
+
+my $data     = shift;
+my $agent_id = $data->{'params'}{'agent_id'} // '';
+my $timer    = $data->{'timer'};
+
+my $registry = <kimi-web.agent.registry> // {};
+my $agent    = $registry->{$agent_id};
+
+## agent may have been terminated ##
+if ( not defined $agent ) {
+    $timer->cancel() if defined $timer;
+    return;
+}
+
+my $pid  = $agent->{'pid'};
+my $port = $agent->{'port'};
+
+## check if process still alive ##
+if ( not kill 0, $pid ) {
+    <[base.logs]>->(
+        0,         ': agent %s process died [ pid %d ]',
+        $agent_id, $pid
+    );
+    $agent->{'status'} = qw| error |;
+    <kimi-web.agent.registry> = $registry;
+    $timer->cancel() if defined $timer;
+    return;
+}
+
+## probe HTTP endpoint ##
+my $url      = "http://127.0.0.1:$port/v1/health";
+my $response = <[kimi-web.internal.http_get_sync]>->( $url, 5 );
+
+if ( defined $response and $response =~ m|ready| ) {
+    ## agent is ready ##
+    if ( $agent->{'status'} ne qw| ready | ) {
+        $agent->{'status'}   = qw| ready |;
+        $agent->{'ready_at'} = <[base.time]>->(3);
+        <kimi-web.agent.registry> = $registry;
+
+        <[base.logs]>->(
+            2,         ': agent %s is ready [ port %d ]',
+            $agent_id, $port
+        );
+
+        ## notify anyone waiting ##
+        <[event.signal_emit]>->(
+            'kimi-web.agent.ready',
+            {   'agent_id' => $agent_id,
+                'port'     => $port,
+            }
+        );
+    }
+
+    ## cancel timer, agent is healthy ##
+    $timer->cancel() if defined $timer;
+    return;
+}
+
+## still starting - reschedule check ##
+if ( $agent->{'status'} eq qw| starting | ) {
+    my $elapsed = <[base.time]>->(3) - $agent->{'started_at'};
+
+    if ( $elapsed > 60 ) {
+        ## startup timeout ##
+        <[base.logs]>->(
+            0,         ': agent %s startup timeout [ %d sec ]',
+            $agent_id, int($elapsed)
+        );
+        $agent->{'status'} = qw| error |;
+        <kimi-web.agent.registry> = $registry;
+        $timer->cancel() if defined $timer;
+        return;
+    }
+
+    ## reschedule ##
+    <[event.add_timer]>->(
+        {   'after'   => 3.0,
+            'handler' => 'kimi-web.handler.agent_health_check',
+            'params'  => { 'agent_id' => $agent_id }
+        }
+    );
+}
+
+$timer->cancel() if defined $timer;
+
+#,,..,...,.,.,,,.,,,.,.,.,.,,,.,.,,.,,.,,,,.,,.,.,...,...,...,,.,,,..,...,,,,,
+#BRJ6VXT5SN4BICJE7I267R7DBXR5G3GMRL4JTQ7K2BIHBKBI5PW5SFRR7YHDGSZBPLCCPROAFK7KG
+#\\\|7VQRESUSJ4HP5SDE7DKYHCHIBECKHLWFKQK6ANA22ORQV4SSCO6 \ / AMOS7 \ YOURUM ::
+#\[7]RXICVT6X6RFPJCMTVL4KL4XNJDTFS3PNYZW2PGZQKD6PG4USB4DI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

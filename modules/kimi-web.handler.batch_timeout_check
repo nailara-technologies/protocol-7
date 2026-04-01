@@ -1,0 +1,65 @@
+## [:< ##
+
+# name  = kimi-web.handler.batch_timeout_check
+# descr = handle timeout for parallel dispatch batches
+
+my $data     = shift;
+my $batch_id = $data->{'params'}{'batch_id'} // '';
+my $timer    = $data->{'timer'};
+
+my $batches = <kimi-web.agent.batches> // {};
+my $batch   = $batches->{$batch_id};
+
+## batch already complete ##
+if ( not defined $batch ) {
+    $timer->cancel() if defined $timer;
+    return;
+}
+
+## timeout reached - aggregate partial results ##
+my $pending = $batch->{'total'} - $batch->{'completed'};
+
+<[base.logs]>->(
+    1, ': batch %s timeout [ %d/%d complete, %d pending ]',
+    $batch_id, $batch->{'completed'}, $batch->{'total'}, $pending
+);
+
+## aggregate available results ##
+my $aggregated = <[kimi-web.internal.aggregate_results]>->($batch);
+
+## mark incomplete agents ##
+for my $agent_id ( @{ $batch->{'agent_ids'} } ) {
+    if ( not exists $batch->{'results'}{$agent_id} ) {
+        $aggregated->{'incomplete'}{$agent_id} = 'timeout';
+    }
+}
+
+## send reply ##
+my $reply_id = $batch->{'reply_id'};
+if ( length $reply_id ) {
+    <[base.callback.cmd_reply]>->(
+        $reply_id,
+        {   'mode' => qw| true |,
+            'data' => $aggregated,
+            'meta' => {
+                'batch_id'    => $batch_id,
+                'complete'    => $batch->{'completed'},
+                'total'       => $batch->{'total'},
+                'timed_out'   => 1,
+                'aggregation' => $batch->{'aggregation'},
+            }
+        }
+    );
+}
+
+## clean up ##
+delete $batches->{$batch_id};
+<kimi-web.agent.batches> = $batches;
+
+$timer->cancel() if defined $timer;
+
+#,,.,,,..,,,,,...,.,,,,.,,.,.,...,.,,,.,,,..,,.,.,...,...,...,...,,,.,,,,,,,,,
+#VUGH7TZHCLLV4272WYEQTZMTJS7YHQNXDFSNWYOGGZLDFMZT7L7Q2QD6RE7KMRBWZEMAGGUJDLEHE
+#\\\|YKSYBKO2NNXW2AMWP3SHPYMU5LSWUYVTND6SEJCK24BH2N4Z73S \ / AMOS7 \ YOURUM ::
+#\[7]VXU54SRI6R55VNFB2CLI57RXZHB5JKNYYA7YXD22YSNXNQKJ34CA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

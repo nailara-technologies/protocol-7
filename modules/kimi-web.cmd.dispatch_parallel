@@ -1,0 +1,111 @@
+## [:< ##
+
+# name  = kimi-web.cmd.dispatch_parallel
+# descr = dispatch prompt to multiple agents, aggregate results
+# param = agent_ids   - array of agent identifiers
+# param = prompt      - work to dispatch to all agents
+# param = aggregation - concat|vote|best|merge (default concat)
+# param = timeout     - timeout in seconds (default 300)
+
+my $args = $call->{'args'} // {};
+
+my $agent_ids   = $args->{'agent_ids'}   // [];
+my $prompt      = $args->{'prompt'}      // '';
+my $aggregation = $args->{'aggregation'} // qw| concat |;
+my $timeout     = $args->{'timeout'}     // 300;
+
+## validate ##
+if ( not @$agent_ids ) {
+    return {
+        'mode' => qw| false |,
+        'data' => 'agent_ids array is required'
+    };
+}
+if ( not length $prompt ) {
+    return {
+        'mode' => qw| false |,
+        'data' => 'prompt is required'
+    };
+}
+
+my $registry = <kimi-web.agent.registry> // {};
+my @ready_agents;
+
+## filter to ready agents ##
+for my $agent_id (@$agent_ids) {
+    my $agent = $registry->{$agent_id};
+    if ( defined $agent and $agent->{'status'} eq qw| ready | ) {
+        push @ready_agents, $agent_id;
+    }
+}
+
+if ( not @ready_agents ) {
+    return {
+        'mode' => qw| false |,
+        'data' => 'no ready agents found in provided list'
+    };
+}
+
+## dispatch to all agents in parallel (async) ##
+my $reply_id = $call->{'reply_id'} // '';
+my $batch_id = sprintf( 'batch-%d', <[base.time]>->(3) );
+
+## store batch state ##
+<kimi-web.agent.batches> //= {};
+<kimi-web.agent.batches> {$batch_id} = {
+    'agent_ids'   => \@ready_agents,
+    'results'     => {},
+    'completed'   => 0,
+    'total'       => scalar @ready_agents,
+    'aggregation' => $aggregation,
+    'reply_id'    => $reply_id,
+    'started_at'  => <[base.time]>->(3),
+    'timeout'     => $timeout,
+};
+
+## fire off async requests ##
+for my $agent_id (@ready_agents) {
+    my $agent = $registry->{$agent_id};
+    my $port  = $agent->{'port'};
+    my $url   = "http://127.0.0.1:$port/v1/chat";
+
+    my $request_body = <[base.json.encode]>->(
+        {   'prompt'   => $prompt,
+            'stream'   => \0,
+            'timeout'  => $timeout,
+            'batch_id' => $batch_id,
+        }
+    );
+
+    ## async request with callback ##
+    <[kimi-web.internal.http_post_async]>->(
+        {   'url'      => $url,
+            'body'     => $request_body,
+            'agent_id' => $agent_id,
+            'batch_id' => $batch_id,
+            'handler'  => 'kimi-web.handler.batch_result',
+            'timeout'  => $timeout,
+        }
+    );
+}
+
+## schedule timeout check ##
+<[event.add_timer]>->(
+    {   'after'   => $timeout + 5,
+        'handler' => 'kimi-web.handler.batch_timeout_check',
+        'params'  => { 'batch_id' => $batch_id }
+    }
+);
+
+<[base.logs]>->(
+    2, ': dispatched batch %s to %d agents [ agg: %s ]',
+    $batch_id, scalar @ready_agents, $aggregation
+);
+
+return { 'mode' => qw| deferred | };
+
+#,,..,...,,,,,.,.,...,,,.,,.,,,,,,,..,,.,,,.,,.,.,...,...,..,,,..,,,,,..,,,..,
+#DHV76PV6PBXFNUC5BURLDZY45EP52J7NUBTZ226XS63PX6KMVTKALEQ5M5AMBYWMOGOE52EXBMCXG
+#\\\|6M6CMIXHY4ML7KASRA2K7GEL2EBAIFSDZMYKJJRX67J7R23FDFZ \ / AMOS7 \ YOURUM ::
+#\[7]PVT23RPYIW762IG2H5UIVG4NO5B34IWB5NCRKLNMYJ3BA4XNHSDY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
