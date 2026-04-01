@@ -1,0 +1,67 @@
+## [:< ##
+
+# name  = kimi-web.handler.batch_result
+# descr = collect results from parallel agent dispatch
+
+my $data     = shift;
+my $agent_id = $data->{'agent_id'};
+my $batch_id = $data->{'batch_id'};
+my $result   = $data->{'result'};
+my $is_error = $data->{'is_error'} // 0;
+
+my $batches = <kimi-web.agent.batches> // {};
+my $batch   = $batches->{$batch_id};
+
+## batch may have timed out ##
+if ( not defined $batch ) {
+    <[base.logs]>->(
+        3,         ': batch %s result from %s after timeout/complete',
+        $batch_id, $agent_id
+    );
+    return;
+}
+
+## store result ##
+$batch->{'results'}{$agent_id} = {
+    'content'  => $result,
+    'is_error' => $is_error,
+    'received' => <[base.time]>->(3),
+};
+$batch->{'completed'}++;
+
+## check if all done ##
+if ( $batch->{'completed'} >= $batch->{'total'} ) {
+    ## aggregate results ##
+    my $aggregated = <[kimi-web.internal.aggregate_results]>->($batch);
+
+    ## send reply if we have reply_id ##
+    my $reply_id = $batch->{'reply_id'};
+    if ( length $reply_id ) {
+        <[base.callback.cmd_reply]>->(
+            $reply_id,
+            {   'mode' => qw| true |,
+                'data' => $aggregated,
+                'meta' => {
+                    'batch_id'    => $batch_id,
+                    'agents'      => $batch->{'total'},
+                    'aggregation' => $batch->{'aggregation'},
+                }
+            }
+        );
+    }
+
+    ## clean up batch ##
+    delete $batches->{$batch_id};
+    <kimi-web.agent.batches> = $batches;
+
+    <[base.logs]>->(
+        2, ': batch %s complete [ %d agents, %s agg ]',
+        $batch_id, $batch->{'total'}, $batch->{'aggregation'}
+    );
+}
+
+#,,.,,,,,,,..,,,,,,..,..,,,..,.,,,,.,,,,,,..,,.,.,...,...,...,.,,,...,.,.,.,.,
+#LVQSRTIDRPVVGKGQEJIHG76FI4ZCKNQDR4SDB566YR5V42C3AAFEFMOOYSSQE46DQOQIWJUYXWY2W
+#\\\|YBXHT5CBOQIAU6G7PS2THQYZJ7F36DENBNF3FGBUBTRJN6AHMAQ \ / AMOS7 \ YOURUM ::
+#\[7]WWHWCJVRVYFOKBKYHSC7VIDV5EDDP27KUKFVWRQZQPRCBOPAZWBQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

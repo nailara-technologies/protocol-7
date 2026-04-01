@@ -1,0 +1,106 @@
+## [:< ##
+
+# name  = kimi-web.internal.aggregate_results
+# descr = aggregate results from multiple agents based on strategy
+
+my $batch    = shift;
+my $results  = $batch->{'results'};
+my $strategy = $batch->{'aggregation'};
+
+my @agent_ids = keys %$results;
+my @contents  = map { $_->{'content'} } values %$results;
+
+if ( $strategy eq qw| concat | ) {
+    ## simple concatenation with headers ##
+    my $output = '';
+    for my $agent_id ( sort @agent_ids ) {
+        $output .= "## $agent_id ##\n";
+        $output .= $results->{$agent_id}{'content'} . "\n\n";
+    }
+    return { 'output' => $output, 'strategy' => qw| concat | };
+
+} elsif ( $strategy eq qw| vote | ) {
+    ## simple voting - find most common response ##
+    my %votes;
+    for my $content (@contents) {
+        ## normalize for comparison ##
+        ( my $key = $content ) =~ s{\s+}{ }g;
+        $key = lc substr( $key, 0, 200 );
+        $votes{$key}{'count'}++;
+        $votes{$key}{'example'} = $content;
+    }
+
+    ## find winner ##
+    my ($winner) = sort { $votes{$b}{'count'} <=> $votes{$a}{'count'} }
+        keys %votes;
+
+    return {
+        'output'   => $votes{$winner}{'example'},
+        'strategy' => qw| vote |,
+        'votes'    => \%votes,
+    };
+
+} elsif ( $strategy eq qw| merge | ) {
+    ## merge by combining unique insights ##
+    my %seen;
+    my @merged;
+
+    for my $content (@contents) {
+        ## split into sentences/paragraphs ##
+        my @parts = split /\n\n+/, $content;
+        for my $part (@parts) {
+            ## normalize for dedup ##
+            ( my $key = $part ) =~ s{\s+}{ }g;
+            $key = lc substr( $key, 0, 100 );
+            next if $seen{$key}++;
+            push @merged, $part;
+        }
+    }
+
+    return {
+        'output'   => join( "\n\n", @merged ),
+        'strategy' => qw| merge |,
+        'sources'  => scalar @agent_ids,
+    };
+
+} elsif ( $strategy eq qw| best | ) {
+    ## select best based on length/completeness heuristics ##
+    my $best;
+    my $best_score = 0;
+
+    for my $agent_id (@agent_ids) {
+        my $content = $results->{$agent_id}{'content'};
+        ## simple heuristic: length with penalty for errors ##
+        my $score = length($content);
+        $score *= 0.5 if $results->{$agent_id}{'is_error'};
+
+        ## bonus for structured output ##
+        $score += 100 if $content =~ m{^#{2,3}\s+\w}m;
+        $score += 50  if $content =~ m{\*\s+\w}m;
+
+        if ( $score > $best_score ) {
+            $best_score = $score;
+            $best       = $content;
+        }
+    }
+
+    return {
+        'output'   => $best,
+        'strategy' => qw| best |,
+        'score'    => $best_score,
+    };
+}
+
+## unknown strategy - default to concat ##
+my $output = '';
+for my $agent_id ( sort @agent_ids ) {
+    $output .= "## $agent_id ##\n";
+    $output .= $results->{$agent_id}{'content'} . "\n\n";
+}
+return { 'output' => $output, 'strategy' => 'concat (fallback)' };
+
+#,,,.,,,,,...,,..,.,,,,,.,.,.,.,.,.,.,.,,,,..,.,.,...,...,.,.,...,,..,.,.,,..,
+#AQYCLWIQ45YPCSSCKEJ4IV2F73RUTHLENY6S75UG6QNZKJ3WYNAQ3URIMBR26B4E5VXRJLGATJGIE
+#\\\|XN7JMT4HGGSZRBV6W5USQRZAV2IMLDLI3XX3F45D3ZZVQPXLQ7Y \ / AMOS7 \ YOURUM ::
+#\[7]LLD6YMYQJEJHRSVBGG4DLNKKMOVJDPHDJN22NI2KI22W54E3TYAY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

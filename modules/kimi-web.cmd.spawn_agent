@@ -1,0 +1,155 @@
+## [:< ##
+
+# name  = kimi-web.cmd.spawn_agent
+# descr = spawn a new kimi-cli web sub-agent process
+# param = context_slice  - P7REF or path to preload as context
+# param = model_config   - optional hashref of model parameters
+# param = priority       - scheduling priority (1-10, low=higher)
+# param = template       - optional context template to preload
+
+my $args = $call->{'args'} // {};
+
+## parse arguments ##
+my $context_slice = $args->{'context_slice'} // '';
+my $model_config  = $args->{'model_config'}  // {};
+my $priority      = $args->{'priority'}      // 5;
+my $template      = $args->{'template'}      // '';
+
+## check agent limit ##
+my $registry = <kimi-web.agent.registry> // {};
+if ( scalar keys %$registry >= <kimi-web.agent.max_agents> ) {
+    return {
+        'mode' => qw| false |,
+        'data' => 'max agent limit reached [ '
+            . <kimi-web.agent.max_agents> . ' ]'
+    };
+}
+
+## allocate port ##
+my $port_alloc = <kimi-web.agent.port_alloc> // {};
+my $port;
+for my $p ( sort keys %$port_alloc ) {
+    if ( not defined $port_alloc->{$p} ) {
+        $port = $p;
+        last;
+    }
+}
+
+if ( not defined $port ) {
+    return {
+        'mode' => qw| false |,
+        'data' => 'no free ports available'
+    };
+}
+
+## generate agent id ##
+my $agent_id = sprintf( 'kw-%04d', ++<kimi-web.agent.id_counter> );
+
+## prepare context preload ##
+my $preload_path = '';
+if ( length $context_slice ) {
+    ## resolve P7REF or direct path ##
+    if ( $context_slice =~ m|^[A-Z0-9]{52}$| ) {
+        ## P7REF checksum - resolve to storage path ##
+        $preload_path = <[plugin.storage.resolve_p7ref]>->($context_slice);
+    } elsif ( -f $context_slice ) {
+        $preload_path = $context_slice;
+    }
+}
+
+## if template specified, render and save to temp file ##
+my $context_file = '';
+if ( length $template ) {
+    my $rendered = <[context.template.resolve]>->(
+        {   'template' => $template,
+            'budget'   => $model_config->{'context_budget'} // 8000,
+            'vars'     => $model_config->{'template_vars'}  // {}
+        }
+    );
+
+    if ( defined $rendered and length $rendered ) {
+        $context_file
+            = <[file.zenka_dir.path]>->("agents/$agent_id-context.txt");
+        <[file.write]>->( $context_file, $rendered );
+    }
+}
+
+## build kimi-cli command ##
+my $kimi_cli = 'kimi-cli';    ## assume in PATH
+my @cmd      = (
+    $kimi_cli,
+    '--web',                  ## web mode (HTTP API)
+    '--port',     $port,
+    '--agent-id', $agent_id,
+);
+
+## add context preload if available ##
+if ( length $preload_path ) {
+    push @cmd, '--context-file', $preload_path;
+}
+if ( length $context_file ) {
+    push @cmd, '--system-prompt-file', $context_file;
+}
+
+## add model config ##
+if ( $model_config->{'model'} ) {
+    push @cmd, '--model', $model_config->{'model'};
+}
+if ( $model_config->{'temperature'} ) {
+    push @cmd, '--temperature', $model_config->{'temperature'};
+}
+
+## spawn process ##
+my $pid = fork();
+if ( not defined $pid ) {
+    return {
+        'mode' => qw| false |,
+        'data' => 'fork failed: ' . $OS_ERROR
+    };
+}
+
+if ( $pid == 0 ) {
+    ## child process ##
+    exec @cmd or die "exec kimi-cli failed: $OS_ERROR";
+}
+
+## parent: register agent ##
+$port_alloc->{$port}   = $agent_id;
+$registry->{$agent_id} = {
+    'pid'           => $pid,
+    'port'          => $port,
+    'status'        => qw| starting |,
+    'started_at'    => <[base.time]>->(3),
+    'priority'      => $priority,
+    'context_slice' => $context_slice,
+    'template'      => $template,
+    'model_config'  => $model_config,
+};
+
+## mark port allocated ##
+<kimi-web.agent.port_alloc> = $port_alloc;
+<kimi-web.agent.registry>   = $registry;
+
+## schedule health check ##
+<[event.add_timer]>->(
+    {   'after'   => 5.0,
+        'handler' => 'kimi-web.handler.agent_health_check',
+        'params'  => { 'agent_id' => $agent_id }
+    }
+);
+
+<[base.logs]>->(
+    2, ': spawned agent %s on port %d [ pid %d ]',
+    $agent_id, $port, $pid
+);
+
+return {
+    'mode' => qw| true |,
+    'data' => $agent_id
+};
+
+#,,,,,...,,..,...,.,,,.,.,,,,,,,.,..,,..,,.,.,.,.,...,...,,.,,,,,,.,.,,.,,.,.,
+#DFOXB3Q6VH6Y6Z5SRWGCYFWSITSO3E7EBLGRR64MVTTMKJDAUV2PHZS4363HDGJOMRTWFRCKSY7RQ
+#\\\|SNLSR6F6ZBR755PHGM5VG5MVYZI2IGBGLG7XTPOTD367V4O4AIA \ / AMOS7 \ YOURUM ::
+#\[7]QRWMALJK3KWTPRGYMTXFZPDFSNY4X53VBKYUCUGI5ACF3HUUIWCQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

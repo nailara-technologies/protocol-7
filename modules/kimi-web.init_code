@@ -1,0 +1,42 @@
+## [:< ##
+
+# name  = kimi-web.init_code
+# descr = initialize kimi-web sub-agent spawner and registry
+
+use Socket qw| AF_UNIX SOCK_STREAM |;
+
+## configuration ##
+<kimi-web.agent.base_port>  = 16000;    ## starting port for agents
+<kimi-web.agent.max_agents> = 8;        ## max concurrent agents
+<kimi-web.agent.registry>   = {};
+<kimi-web.agent.port_alloc> = {};       ## port -> agent_id mapping
+<kimi-web.agent.id_counter> = 0;
+
+## zenka directories created on-demand by file.zenka_dir.write ##
+
+## register with v7 for lifecycle management ##
+if ( <v7.started> // FALSE ) {
+    <[v7.register_child_zenka]>->(qw| kimi-web |);
+}
+
+## setup port allocation tracking ##
+my $base_port = <kimi-web.agent.base_port>;
+for my $i ( 0 .. <kimi-web.agent.max_agents> - 1 ) {
+    <kimi-web.agent.port_alloc> { $base_port + $i } = undef;    ## free
+}
+
+<[base.logs]>->(
+    2,
+    ': kimi-web initialized [ max %d agents, ports %d-%d ]',
+    <kimi-web.agent.max_agents>,
+    $base_port,
+    $base_port + <kimi-web.agent.max_agents> - 1
+);
+
+return TRUE;
+
+#,,,.,,,.,...,..,,..,,,,,,,..,,..,,.,,.,.,,..,.,.,...,...,.,,,.,.,.,.,,..,,,,,
+#KKNHKKAASXYCQVCOT3WY7Z64ATC34FM6K3R5A6J3XGNRDBEROXL4D7AZKWVGL5LTCQ67HVAXLGXDI
+#\\\|XIAD4YJ6JWNFJ7MCF3LTJO2JI7XHS2KUXZKGWKPOBEZVZLTTKQR \ / AMOS7 \ YOURUM ::
+#\[7]BYGT42JWPLRXELF4H5LAS6ITEUY6ZYVF2UV2GTMCDW5ASSP6O4DA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

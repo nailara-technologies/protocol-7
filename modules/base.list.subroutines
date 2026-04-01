@@ -485,6 +485,7 @@ return [ qw[
         letsencr.init_code
         kimi.cmd.ask-reply
         kimi.cmd.approvals
+        kimi-web.init_code
         keys.checksum_href
         jobqueue.init_code
         jobqueue.find_jobs
@@ -920,6 +921,7 @@ return [ qw[
         models.cmd.statistics
         menu-commands.cmd.add
         kimi.cmd.session-info
+        kimi-web.cmd.dispatch
         keys.read_key_archive
         keys.list_remote_keys
         keys.console.sign-key
@@ -1447,6 +1449,8 @@ return [ qw[
         letsencr.extract_aia_url
         letsencr.child.init_code
         letsencr.base.check_dirs
+        kimi-web.cmd.spawn_agent
+        kimi-web.cmd.list_agents
         keys.select_archive_path
         keys.console.remove-type
         io.unix.socket.init_code
@@ -2104,6 +2108,7 @@ return [ qw[
         letsencr.dns.inwx_create_txt
         letsencr.child.sign_rsa_data
         kimi.session.start_api_child
+        kimi-web.cmd.terminate_agent
         keys.console.list-upgradable
         keys.console.get-encoded-key
         keys.console.gen-pwd-keyfile
@@ -2239,6 +2244,8 @@ return [ qw[
         letsencr.child.validate_chain
         letsencr.child.send_to_parent
         kimi.handler.approval_request
+        kimi-web.handler.batch_result
+        kimi-web.cmd.resolve_template
         keys.select_archive_path.curs
         keys.console.remove-signature
         keys.console.encoding-upgrade
@@ -2395,6 +2402,7 @@ return [ qw[
         llm.service.subprocess_wrapper
         letsencr.child.get_fresh_nonce
         letsencr.child.cmd.query-algos
+        kimi-web.cmd.dispatch_parallel
         keys.console.gen-file-seed-key
         jobqueue.handler.queue_counter
         index.callback.wordlist-import
@@ -2519,6 +2527,7 @@ return [ qw[
         letsencr.child.load_account_key
         letsencr.child.encode_base64url
         letsencr.child.cmd.repair-chain
+        kimi-web.internal.http_get_sync
         image2html.base.write_stub_page
         image2html.base.fork_conv_child
         image-quality.vision.subprocess
@@ -2628,6 +2637,7 @@ return [ qw[
         letsencr.child.acme_http_request
         letsencr.child.acme_create_order
         kimi.session.reset_and_reconnect
+        kimi-web.internal.http_post_sync
         keys.console.keys-backup-archive
         image2html.base.write_image_html
         image2html.base.write_error_page
@@ -2727,6 +2737,7 @@ return [ qw[
         menu-commands.cmd.remove-category
         letsencr.child.acme_check_account
         letsencr.base.fork_letsencr_child
+        kimi-web.internal.http_post_async
         keys.pack_format.user_key_archive
         keys.console.downgrade-enc-status
         impressive.handler.stop_lsp_reply
@@ -2917,6 +2928,8 @@ return [ qw[
         letsencr.child.extract_rsa_exponent
         letsencr.child.download_certificate
         letsencr.child.cmd.inst-self-signed
+        kimi-web.internal.aggregate_results
+        kimi-web.handler.agent_health_check
         io.ssl.ip.handler.handshake_timeout
         impressive.callback.stop_start-anim
         image2html.child.handler.conversion
@@ -2977,6 +2990,7 @@ return [ qw[
         letsencr.child.acme_verify_challenge
         letsencr.child.acme_register_account
         kimi.handler.reconnect_grace_timeout
+        kimi-web.handler.batch_timeout_check
         image2html.child.check_cache_timeout
         httpsd.startup.validate_certificates
         httpd.handler.download_transfer.test
@@ -3335,8 +3349,8 @@ return [ qw[
     ]
 ];
 
-#,,..,.,.,.,,,,.,,.,,,.,.,,..,,,.,..,,,..,.,,,.,.,...,...,.,,,..,,,,.,.,,,,,,,
-#LUBNHLJY7LQWG6XW43Z25O22O7U3HILDJ3IZSRSNSDSDISB3LKL6LMBQSU7QJNLS3MCEVPTORMAPI
-#\\\|YBZ5NSXHDLPVUGY2ICIV4ECTTRWNZWCISXVFAPWRCSJFBMBRVV5 \ / AMOS7 \ YOURUM ::
-#\[7]I75IDFLD7LJOIR4JFYF55EZPSLMO7K46NB4OMOHHWEWSLBJD76BA 7  DATA SIGNATURE ::
+#,,,.,,,.,,,,,...,...,,.,,.,,,.,,,,,.,,,,,,.,,.,.,...,...,...,..,,,,,,,..,,,.,
+#7QAHZL7NQ2YRLB2BQEKXUQQBLJFP44GHXDBQ7OZ5KEBWUGKQWSD2CFHYS3F6NYP2QKO6JEYRQADWY
+#\\\|6XCPLQHPVGC6Y7BHRMCGIKYAF2H62ZI5PBGMN3LO6T6WZ6OPOBV \ / AMOS7 \ YOURUM ::
+#\[7]GW5NSG5DGE2WP2PNUXZLKZJJOBML7H5LQJILHK5FE6CAJ2CETODQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
