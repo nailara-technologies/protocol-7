@@ -1,0 +1,28 @@
+## [:< ##
+
+# name  = kimi-web.internal.http_get_sync
+# descr = synchronous HTTP GET to agent endpoint
+
+my $url     = shift;
+my $timeout = shift // 10;
+
+## use LWP::UserAgent if available, otherwise curl ##
+my $response;
+
+if ( eval { require LWP::UserAgent; 1 } ) {
+    my $ua  = LWP::UserAgent->new( timeout => $timeout );
+    my $res = $ua->get($url);
+    return $res->is_success ? $res->decoded_content : undef;
+} else {
+    ## fallback to curl ##
+    my $cmd = sprintf( 'curl -s -m %d %s 2>/dev/null',
+        $timeout, quotemeta($url) );
+    $response = qx| $cmd |;
+    return length $response ? $response : undef;
+}
+
+#,,.,,.,,,..,,,,,,..,,,,,,..,,.,.,.,,,,,,,..,,.,.,...,...,.,,,.,,,,,,,..,,..,,
+#25PAYUPAWB3RXAJOYI5KDCWWVH3C4B5GV2MZWRKRKQHVJCIK6BMDJ4CW4XEFSVIABA7WKKDEFBJ44
+#\\\|KW33S7Z25JX3H32E6HVQOTQ62YJB75BTUTNSA2SS5UGCTAMIZGN \ / AMOS7 \ YOURUM ::
+#\[7]JWTF73ZL4TALHTQAPQ4X6YLXWB4KJ5MHXSBXC327INMRMNOCTOAQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,0 +1,55 @@
+## [:< ##
+
+# name  = kimi-web.internal.http_post_sync
+# descr = synchronous HTTP POST to agent endpoint
+
+my $url     = shift;
+my $body    = shift;
+my $timeout = shift // 30;
+
+## use LWP::UserAgent if available ##
+if ( eval { require LWP::UserAgent; 1 } ) {
+    my $ua = LWP::UserAgent->new( timeout => $timeout );
+    $ua->default_header( 'Content-Type' => 'application/json' );
+    my $res = $ua->post( $url, Content => $body );
+
+    if ( $res->is_success ) {
+        my $content = $res->decoded_content;
+        ## try to parse JSON ##
+        if ( eval { require JSON; 1 } ) {
+            my $json = JSON->new->utf8;
+            my $data = eval { $json->decode($content) };
+            return ( 1, $data // $content );
+        }
+        return ( 1, $content );
+    }
+    return ( 0, $res->status_line );
+}
+
+## fallback to curl ##
+my $tmpfile = sprintf( '/tmp/kw-post-%d.json', $$ );
+<[file.write]>->( $tmpfile, $body );
+
+my $cmd
+    = sprintf(
+    'curl -s -m %d -H "Content-Type: application/json" -d @%s %s 2>/dev/null',
+    $timeout, $tmpfile, quotemeta($url) );
+my $response = qx| $cmd |;
+unlink $tmpfile;
+
+return ( 0, 'no response' ) unless length $response;
+
+## try to parse JSON ##
+if ( eval { require JSON; 1 } ) {
+    my $json = JSON->new->utf8;
+    my $data = eval { $json->decode($response) };
+    return ( 1, $data // $response );
+}
+
+return ( 1, $response );
+
+#,,,,,,.,,...,,..,.,,,,,.,,..,.,,,,..,,,,,,,.,.,.,...,...,.,,,,,.,..,,.,,,,,,,
+#LMAS2DB5PX2U26V3J5XTUWMRHFNHUJ7AGQF4RAVAKPPRKJ4N7CDKMY44F3KUWVVLJRPLYOFJGZ7V6
+#\\\|TYWCMGGDGUCXWD2FJ524PRLEQ7RDX5TDR2NBUD7T5YOSM6TFL7L \ / AMOS7 \ YOURUM ::
+#\[7]OU5THHQGQUPPISZ7PRGKNM5MPCQUIWKO4FFKGYSI4LORMMUKHKCI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
