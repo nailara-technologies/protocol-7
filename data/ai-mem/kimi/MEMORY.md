@@ -905,6 +905,8 @@ Templates are YAML files defining composable system prompts with:
 | `tasks-prioritize` | Rank next tasks by momentum | Planning sessions |
 | `session-wrapup` | Git summary + errors + next steps | End of session |
 | `system-default` | Composable base with conditional sections | Default system message |
+| `zenki-create` | Create new protocol-7 zenka | New zenka development |
+| `zenki-feature-port` | Port features between zenki | Feature reuse |
 
 ### Template Composition Example
 
@@ -1168,6 +1170,68 @@ Files cleaned in this session were created before this protection was in place.
 
 ---
 
+## Zenki Routing Analysis (April 2026)
+
+### Kimi vs Coding: Architecture Comparison
+
+| Aspect | Kimi Zenka | Coding Zenka |
+|--------|------------|--------------|
+| **Connection** | WebSocket to external service | Task queue + inference |
+| **Routing** | Direct: prompt → wire → ws | Pipeline: intake → analyze → route → enqueue |
+| **State** | Connection-based (ready/busy/disconnected) | Task-based (queued/running/complete) |
+| **Deferred** | Simple reply tracking | Complex with meta-jobs |
+| **Templates** | ✅ Dynamic system messages | ✅ Dynamic system messages |
+| **Base32r** | ✅ Encoded prompts | ✅ Encoded prompts |
+| **Task Queue** | ❌ None | ✅ Full queue system |
+| **Budget Tracking** | ❌ None | ✅ Per-task budgets |
+| **Tool Calling** | ❌ None | ✅ Full framework |
+| **Session Mgmt** | ✅ Persistent sessions | ❌ Task-scoped |
+| **:next: prefix** | ✅ Fresh session trigger | ❌ N/A |
+
+### Routing Flow Comparison
+
+**Kimi (Simple):**
+```
+ask-reply → wire.prompt → websocket → handler.ws_message → reply
+```
+
+**Coding (Complex):**
+```
+ask-reply → task.intake → task.analyze → routing.decide → 
+  task.enqueue → process-queued-task → inference → reply
+```
+
+### Features to Port
+
+**From Coding → Kimi:**
+- Task queue (for request batching)
+- Budget tracking (per-session limits)
+- Tool calling framework (if kimi supports it)
+
+**From Kimi → Coding:**
+- :next: prefix (force fresh context)
+- Session persistence patterns
+- Connection state management
+
+### Unified Interface Goal
+
+Both should support:
+```bash
+# Direct prompt (kimi: websocket, coding: task queue)
+p7c <zenka>.ask-reply "prompt"
+
+# With template
+p7c <zenka>.ask-reply template=code-review target_module=X
+
+# Force fresh context
+p7c <zenka>.ask-reply :next: "fresh prompt"
+
+# Check status
+p7c <zenka>.status
+```
+
+---
+
 ## Kimi + Kimi-Web Integration (April 2026)
 
 **kimi** zenka: Connects to external kimi-web service via HTTP/WebSocket  
@@ -1241,8 +1305,8 @@ p7c kimi-web.list_agents
 
 ---
 
-#,,,,,,.,,.,.,,,,,...,.,.,,,,,.,,,,,.,...,,..,.,.,...,...,,,,,,,,,,,.,,..,,.,,
-#RRMSD2K3YAZMTDGBLF4QVDGXO6APRHAXIQK534Y2SSKFMP4NGXUVGQQJL5OLBQJXYK76SJXZWF4DE
-#\\\|QFSCAFP6IXQVR6X67DTM7IYRI7W5OYVJHUOQFG2PCJ54EER7YOL \ / AMOS7 \ YOURUM ::
-#\[7]U63JVLCDZ5WZL6OOOAUSVBQ65PQXTJ6EZ2TQIHCUY5ZHXETBFWDA 7  DATA SIGNATURE ::
+#,,.,,.,.,,,.,,.,,...,,,.,,,.,.,.,.,,,..,,.,.,.,.,...,...,.,.,...,,,,,.,.,.,.,
+#FLXKL2L23USIQDAWSNVMWSEPJLD2G7CV64XUOWPPTWFL3YEGH3AAIEFLP5FQZZLFBTLZF7P55NMLW
+#\\\|QNWYGFGP2EQDCQ6U7ABYDEIQSFBVG5XJ2EIP3CBXRT7ROJ3AOJI \ / AMOS7 \ YOURUM ::
+#\[7]65HJYCVDLYFDBMLDLBSRPS62BXFHF3MKYY7FVBS6PQSO2VTPTWBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

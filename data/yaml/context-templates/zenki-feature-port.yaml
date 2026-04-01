@@ -1,0 +1,276 @@
+---
+name: zenki-feature-port
+descr: port features between protocol-7 zenki
+custom: true
+budget: 5000
+sections:
+  ## core knowledge ##
+  - include: system-base
+    priority: 1
+    budget_pct: 10
+
+  ## instructions ##
+  - static: |
+      port features from one protocol-7 zenka to another.
+      analyze source implementation, adapt patterns, integrate into target.
+
+      ## round budget: aim for 15-25 tool rounds ##
+      ## understand source deeply before implementing ##
+
+      ## phase 1: analyze source and target [ ~5 rounds ] ##
+
+      ### 1a. identify the feature to port ###
+      source_zenka: {{source_zenka}}
+      target_zenka: {{target_zenka}}
+      feature_name: {{feature_name}}
+      
+      ### 1b. understand source implementation ###
+      use list_modules to find source zenka modules:
+      - {{source_zenka}}.cmd.* - exposed commands
+      - {{source_zenka}}.handler.* - event handlers
+      - {{source_zenka}}.internal.* - utilities
+      - {{source_zenka}}.init_code - initialization
+
+      read the specific modules implementing the feature:
+      - identify data structures used
+      - note event/callback patterns
+      - find configuration parameters
+      - understand error handling
+
+      ### 1c. analyze target zenka structure ###
+      list_modules for {{target_zenka}} namespace
+      check target's init_code for:
+      - existing similar features (avoid duplication)
+      - initialization patterns
+      - data storage conventions
+
+      ## phase 2: adaptation analysis [ ~5 rounds ] ##
+
+      ### 2a. identify adaptations needed ###
+
+      **naming conventions**
+      - source uses: <{{source_zenka}}.data.key>
+      - target should use: <{{target_zenka}}.data.key>
+      - rename all typeglob references
+
+      **data storage**
+      - source: %data{'{{source_zenka}}'}{...}
+      - target: %data{'{{target_zenka}}'}{...}
+      - update all data path references
+
+      **configuration**
+      - check configuration/zenki/{{target_zenka}}/start
+      - add any new config keys needed
+      - follow existing config patterns
+
+      **access wiring**
+      - new commands need entries in access.cmd.usr.cube
+      - check cube/access.zenki for routing
+      - add auth.setup if new auth type needed
+
+      ### 2b. feature-specific considerations ###
+
+      **if porting task queue system:**
+      - needs jobqueue integration
+      - requires deferred reply tracking
+      - may need budget tracking
+      - check coding.task.* patterns
+
+      **if porting websocket/connection handling:**
+      - needs event.add_io for socket
+      - requires reconnection logic
+      - check kimi.connect and kimi.handler.ws_message
+
+      **if porting template system:**
+      - uses web.cmd.render-template
+      - needs context provider modules
+      - check context.template.* patterns
+
+      **if porting tool calling:**
+      - needs coding.tools.definitions
+      - requires tool dispatch handlers
+      - check coding.tools.* patterns
+
+      **if porting session management:**
+      - needs persistence (file.zenka_dir.*)
+      - requires session id generation
+      - check kimi.session.* patterns
+
+      ## phase 3: implementation [ ~10 rounds ] ##
+
+      ### 3a. create/adapt modules ###
+
+      for each module to port:
+
+      1. **read source module completely**
+         understand every line before adapting
+
+      2. **create target module with adapted naming:**
+         ```perl
+         ## [:< ##
+         
+         # name  = {{target_zenka}}.{{module_type}}.{{module_name}}
+         # descr = {{adapted description}}
+         
+         ## ADAPT: change all data references ##
+         # source: <{{source_zenka}}.data.key>
+         # target: <{{target_zenka}}.data.key>
+         
+         ## ADAPT: update event handlers ##
+         # source: 'source.handler.name'
+         # target: 'target.handler.name'
+         
+         ## implementation ##
+         [adapted code with P7 patterns]
+         
+         #signature-block
+         ```
+
+      3. **key adaptations:**
+         - `$ARG` and `@ARG` (NOT `$_` or `@_`)
+         - `<[module.name]>->()` invocation
+         - `{ 'mode' => qw| true |, 'data' => ... }` returns
+         - `<[base.logs]>->(level, fmt, ...)` logging
+         - proper error handling with fallbacks
+
+      ### 3b. update configuration ###
+
+      **configuration/zenki/{{target_zenka}}/start:**
+      - add new commands to access.cmd.usr.cube
+      - add configuration parameters
+      - add modules to modules.load if needed
+
+      **cube/access.zenki:**
+      - add routing: {{target_zenka}}.new-command
+
+      **cube/auth.zenki:**
+      - usually inherits :zenka: auth
+      - only add if new auth pattern needed
+
+      ### 3c. initialization updates ###
+
+      if feature needs init_code:
+      - add to {{target_zenka}}.init_code
+      - or create {{target_zenka}}.init.{{feature}}
+      - ensure proper initialization order
+
+      ## phase 4: verification [ ~5 rounds ] ##
+
+      ### 4a. syntax verification ###
+      ```bash
+      ./bin/ptd modules/{{target_zenka}}.*
+      ```
+
+      ### 4b. integration checks ###
+      - verify all typeglob references resolved
+      - check data path consistency
+      - validate command routing
+
+      ### 4c. functional test ###
+      ```bash
+      # start/restart target zenka
+      p7c v7.restart {{target_zenka}}
+      
+      # test new feature
+      p7c {{target_zenka}}.{{new_command}} {{test_args}}
+      ```
+
+      ## common porting patterns ##
+
+      ### pattern 1: task queue from coding → X ###
+
+      source modules:
+      - coding.task.intake
+      - coding.task.analyze
+      - coding.task.enqueue
+      - coding.handler.process-queued-task
+      - coding.routing.decide_service
+
+      adaptations:
+      - rename to X.task.*
+      - change deferred reply storage path
+      - adapt routing logic if needed
+      - add X-specific task parameters
+
+      ### pattern 2: websocket from kimi → X ###
+
+      source modules:
+      - kimi.connect
+      - kimi.wire.prompt
+      - kimi.wire.send
+      - kimi.handler.ws_message
+
+      adaptations:
+      - rename to X.connect, X.wire.*
+      - change websocket endpoint config
+      - adapt message protocol if needed
+      - handle X-specific connection states
+
+      ### pattern 3: templates from coding/kimi → X ###
+
+      source modules:
+      - models.backend.coding.invoke (or kimi_web)
+      - web.cmd.render-template
+
+      adaptations:
+      - use X-specific template path
+      - adapt budget parameters
+      - handle X-specific context providers
+
+      ### pattern 4: session management from kimi → X ###
+
+      source modules:
+      - kimi.session.create
+      - kimi.session.start_api_child
+      - kimi.session.reset_and_reconnect
+
+      adaptations:
+      - change session storage location
+      - adapt session id format if needed
+      - handle X-specific session lifecycle
+
+      ## output format ##
+
+      ## feature port: {{source_zenka}}.{{feature_name}} → {{target_zenka}} ##
+
+      ### modules created/adapted ###
+      - {{target_zenka}}.{{module}} - purpose
+
+      ### configuration changes ###
+      - configuration/zenki/{{target_zenka}}/start: changes
+      - cube/access.zenki: routing additions
+
+      ### data structure changes ###
+      - new data paths: %data{'{{target_zenka}}'}{...}
+
+      ### testing performed ###
+      - syntax check: pass/fail
+      - functional test: pass/fail
+      - integration test: pass/fail
+
+      ### notes ###
+      - any deviations from source
+      - target-specific adaptations
+      - known limitations
+
+      call task_complete when port is complete and tested.
+    priority: 2
+    budget_pct: 90
+    label: feature porting instructions
+
+on_complete:
+  - when: [output_contains=pass, output_length_gt=300]
+    action: memory_update
+    topic: "ported:{{source_zenka}}.{{feature_name}}→{{target_zenka}}"
+
+#,,,,,...,..,,..,..,,..,,,,..,,...,,,,,,.,...,,,..,,.,,..,.,..,,,..,.,,..,,,,
+#ZENKIFEATUREPORTTEMPLATEEXAMPLE123456789012345678901234567890123456789012345
+#\\\|EXAMPLEPLACEHOLDEREXAMPLEPLACEHOLDEREXAMPLEPLACEHOLDEREXAMPLEP \ / AMOS7
+#\[7]EXAMPLEPLACEHOLDEREXAMPLEPLACEHOLDEREXAMPLE 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+
+#,,..,.,,,..,,,,.,..,,.,.,..,,,,.,,,.,.,,,,..,..,,...,...,,,.,,..,,.,,,..,...,
+#HNWVAQRIA3TRH3KV4P6WOAMIVIBYZ4D5XH3B4JYS42K7IZJTTROEML3SZ3JW2DFC7AAZLCN5QCB6O
+#\\\|MHSMRQANAEBW2ZDMVSI5MWZSFJUJ37EKDAYNXSIVYB2OGIE5IIF \ / AMOS7 \ YOURUM ::
+#\[7]BMK4OSF6QUJDZK6EMCQLXAHLLGNDM5KCGB3NJMB7M3IXCINH42DY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
