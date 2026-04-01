@@ -5,27 +5,28 @@
 
 my $task_id = $call->{'args'} // '';
 
-return { 'mode' => qw| false |, 'data' => 'task_id required' } 
+return { 'mode' => qw| false |, 'data' => 'task_id required' }
     unless length $task_id;
 
 my $result = <[coding.task.resurrect]>->($task_id);
 
 my $output;
-if ($result->{'mode'} eq qw| true |) {
-    $output = sprintf("Task %s resurrected for retry #%d\n",
+if ( $result->{'mode'} eq qw| true | ) {
+    $output = sprintf(
+        "Task %s resurrected for retry #%d\n",
         $result->{'data'}{'task_id'},
         $result->{'data'}{'retry_count'}
     );
-    $output .= "Successfully re-queued for execution.\n" 
+    $output .= "Successfully re-queued for execution.\n"
         if $result->{'data'}{'queued'};
 } else {
-    $output = "Failed: " . ($result->{'data'} // 'unknown error') . "\n";
+    $output = "Failed: " . ( $result->{'data'} // 'unknown error' ) . "\n";
 }
 
 return { 'mode' => qw| size |, 'data' => $output };
 
-#,,,.,.,.,,..,.,,,,,,,,,,,,..,.,,,,.,,,.,,,..,.,.,...,..,,..,,.,,,..,,,.,,,,.,
-#ARM3LNVDGV2K5OVCOQNHYIW3GPJTBG5ALZ3QSJNZZ5GY7EA2VKLDM27LD2V5GZABOWKZU3PCZSIQ6
-#\\\|PT4NFXT4Z7L2KKE4RSQMTD5XFNUIC72A6MLAVGZO7HVGYDNQLNH \ / AMOS7 \ YOURUM ::
-#\[7]KS2TIUJCUZVFRY5Q4FS6DGJVO3AYZNBIISTK4YFXNTGDG5AL6SDY 7  DATA SIGNATURE ::
+#,,..,.,,,.,,,,..,,..,.,,,..,,.,.,..,,..,,..,,.,.,...,.,.,.,,,.,.,...,,.,,,,.,
+#GTCF7BAVBPUHRSSPJDZDH6664NNLPZZ46YSWBDP46SQPZZL6XOZYWV2ZJPXHUHNAO2W7L4M5SVME4
+#\\\|DLY2E2ZYDYQE6SM6B2ZLHUNXM4HPS3GXX6XU3WNLFRSPMN54YBK \ / AMOS7 \ YOURUM ::
+#\[7]BA72SMLSN3GJFXUJC4OWBZQIEMZFQDEUXP4QFBIZOXWZPIX64CDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
