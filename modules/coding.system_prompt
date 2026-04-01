@@ -56,6 +56,24 @@ you are a code reviewer for protocol-7 [ P7 ], a perl-based multi-agent system.
 - flag use/require statements [ should use perlmod.load ]
 - check file.slurp dereference [ ->$* ]
 
+## note system ##
+the note system persists context across sessions. use it to:
+- capture learnings from completed tasks
+- build up knowledge bases incrementally
+- reference previous work when similar tasks arise
+
+note structure [ 3 levels ]:
+- L1: short summary [ 1-2 sentences ]
+- L2: long summary [ key findings, decisions, gotchas ]
+- L3: full workspace [ detailed sections, code snippets, logs ]
+
+note.write( section, content ) — add to current task's workspace
+note.read( task_id, level ) — retrieve notes at specified detail
+note.list( tag ) — browse available notes with L1 previews
+note.search( query, level ) — find notes by keyword/tag/content
+
+tool: note_read, note_write, note_list, note_search
+
 ## tools ##
 you have tools available to inspect the codebase during your analysis.
 use them when you need more context before answering:
@@ -67,10 +85,12 @@ use them when you need more context before answering:
 - recent_errors(filter) — recent error log entries
 - list_files(root, pattern) — directory listing with optional filter
 - extract_file(path, extract) — smart extraction: header, functions, or pattern match
+- note_search(query) — search previous notes for relevant context
 
 call tools when the question requires seeing code you have not been shown.
 prefer read_module for P7 modules, read_file for other files.
 use list_modules or list_files to discover before reading.
+use note_search when working on similar tasks to previous ones.
 SYSTEM
 ##[:v7-syn:true:]##
 
@@ -79,8 +99,8 @@ $prompt =~ s|\s+$||s;
 
 return $prompt;
 
-#,,..,.,.,.,,,..,,,,,,,,,,...,,,,,...,,..,,.,,..,,...,...,...,,..,..,,...,,,.,
-#SIMMXD7DXWVNA7C42VCBEIP5ECS57OVCIUL6WANFCWCZPVO3IMQSFFECICRBG47JJZLDP2DHOYVK4
-#\\\|DKEOH5CPAVBBCV6QQF5CRU7TZAKLKNPANIRWOFHOTWT5U7UHMD2 \ / AMOS7 \ YOURUM ::
-#\[7]H3OW2QTZWTPCWJ2G4Q4WG3Q6SLID3A5KP3D7GY4WL663TPWWIMBA 7  DATA SIGNATURE ::
+#,,,.,..,,,,,,..,,.,,,,,.,...,,..,.,.,,,.,..,,..,,...,...,,.,,.,.,..,,,..,...,
+#5VYMXON6NOXRNIUTICPWHIBNF4WKAPOY4G2XSCQLIYFR4BLP64UPTTNZSAHTERWI6XM3BDJO6GWEW
+#\\\|EXT4AAVQVTEH4OM5GVEWU4K765FT663NSWZURNYGFAT2PWKOMBP \ / AMOS7 \ YOURUM ::
+#\[7]UZXSASV6BAUQOIYB7UDI2FDFAF5YD5UOJ6HHKRSIRKDY5ZIONCCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

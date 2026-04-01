@@ -1,0 +1,77 @@
+## [:< ##
+
+# name  = coding.tools.handler.note_search
+# descr = dispatch note_search tool call to note.search handler
+
+my $tool_call = shift // {};
+
+my $args = $tool_call->{'function'}->{'arguments'} // {};
+
+## extract parameters ##
+my $query        = $args->{'query'}        // '';
+my $search_level = $args->{'search_level'} // 'all';
+my $max_results  = $args->{'max_results'}  // 10;
+
+## validate query ##
+return { 'mode' => qw| false |, 'data' => 'query parameter required' }
+    unless length $query;
+
+## call the note.search handler ##
+my $result = <[note.search]>->( $query, $search_level, $max_results );
+
+## format response ##
+if ( $result->{'mode'} eq qw| true | ) {
+    my @matches = @{ $result->{'data'} // [] };
+
+    if ( !@matches ) {
+        return {
+            'mode' => qw| true |,
+            'data' => "No notes found matching '$query'"
+        };
+    }
+
+    my $output = sprintf "Found %d note(s) matching '%s':\n\n",
+        scalar(@matches), $query;
+
+    for my $match (@matches) {
+        $output .= sprintf "[task_id] %s\n", $match->{'task_id'};
+        $output .= sprintf "  matched_in: %s\n",
+            join( ', ', @{ $match->{'matched_in'} } );
+        $output .= sprintf "  score: %d\n", $match->{'score'};
+
+        if ( $match->{'matched_tag'} ) {
+            $output .= sprintf "  tag_match: %s\n", $match->{'matched_tag'};
+        }
+        if ( $match->{'L1_preview'} ) {
+            $output .= sprintf "  L1_preview: %s\n", $match->{'L1_preview'};
+        }
+        if ( $match->{'L2_snippets'} ) {
+            $output .= sprintf "  L2_snippets:\n";
+            for my $snippet ( @{ $match->{'L2_snippets'} } ) {
+                $output .= sprintf "    - %s\n", $snippet;
+            }
+        }
+        if ( $match->{'L3_sections'} ) {
+            $output .= sprintf "  L3_sections: %s\n",
+                join( ', ', @{ $match->{'L3_sections'} } );
+        }
+
+        $output .= "\n";
+    }
+
+    return { 'mode' => qw| true |, 'data' => $output };
+} else {
+    return {
+        'mode' => qw| false |,
+        'data' => $result->{'data'} // 'search failed'
+    };
+}
+
+#,,.,,,..,.,.,,..,,,,..,,.,.,.,,,..,,.,.,,.,,.,.,,,..,,..,.,.,,,.,.,,.,.,.,,,.
+#PLACEHOLDER_SIGNATURE_WILL_BE_FIXED_BY_PRE_COMMIT
+
+#,,,,,.,.,..,,,.,,...,,,.,,.,,,.,,..,,...,,..,..,,...,...,..,,...,,,.,,.,,,,,,
+#IHUEAJTZS5UYE4XTT7ZLNXCEAQI2OWPOJMWNF3XRK6XBAKHFHF5NUGXJ2Y5QK2XSN3EBYIS63MTVQ
+#\\\|27HKOL2ESJM4UNYHDAVTO5WWGX7YPV3AFVGZX63KFGDSSQ2XDST \ / AMOS7 \ YOURUM ::
+#\[7]EEVS2BGXH3CAHW5X54T5QM3MURCQQ5NODFRBFRBSOT3FZ3XPUSCY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

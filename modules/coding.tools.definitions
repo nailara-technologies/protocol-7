@@ -850,10 +850,45 @@ if ( exists $code{'coding.tools.handler.note_summarize'} ) {
         };
 }
 
+## note_search — find notes by keyword or content ##
+if ( exists $code{'coding.tools.handler.note_search'} ) {
+    push @tools,
+        {
+        'type'     => 'function',
+        'function' => {
+            'name'        => 'note_search',
+            'description' =>
+                'search previous notes by keyword, tag, or content'
+                . ' [ find relevant prior work ]',
+            'parameters' => {
+                'type'       => 'object',
+                'properties' => {
+                    'query' => {
+                        'type'        => 'string',
+                        'description' =>
+                            'search string [ matches task_id, tags, content ]'
+                    },
+                    'search_level' => {
+                        'type'        => 'string',
+                        'description' =>
+                            'where to search: all, L1, L2, L3, or meta',
+                        'enum' => [ 'all', 'L1', 'L2', 'L3', 'meta' ]
+                    },
+                    'max_results' => {
+                        'type'        => 'integer',
+                        'description' => 'max notes to return [ default 10 ]'
+                    },
+                },
+                'required' => ['query'],
+            },
+        },
+        };
+}
+
 return \@tools;
 
-#,,.,,,,,,,..,,,,,.,.,,.,,.,,,..,,.,,,,,,,,.,,..,,...,..,,.,,,.,.,.,,,,.,,,..,
-#KB4NBIFTY4M6Z5K6THBOO6UYPW5N2D4U2TGFCVZEJU5ZUDGPJA7HFRWRB7OT6VZW2Y4HPFTSKUXIU
-#\\\|YEYFJNDN4NHMWM5KWPFJ4CN5725CRIAL7VAFXJ3DJWYMENNAE7R \ / AMOS7 \ YOURUM ::
-#\[7]BXNQBOYI4ERIKDNSECLA3K3SDXGINTKPRP5SOJND2BRGZDUN6UCY 7  DATA SIGNATURE ::
+#,,,.,.,.,,..,..,,...,...,,,.,.,.,...,,..,,,,,..,,...,...,,..,.,,,..,,.,.,,.,,
+#PPOYO27D53RCDQ5D2PHQMVQPQNJXBKZS546GABBLFBI3DBNNWNJ66MUZAVNARVAS26V74IQN55X2S
+#\\\|E6KKWZYUPH6YLXDOJTAKH7VSZFRZNK523QQ5KEC642HJSOMDG46 \ / AMOS7 \ YOURUM ::
+#\[7]K5UQUAIV4ZCI7DHMBDI3ORU25NJLHOLH7LD7WNDRY2FBCK4F5CBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
