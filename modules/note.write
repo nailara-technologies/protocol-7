@@ -1,0 +1,46 @@
+## [:< ##
+
+# name  = note.write
+# descr = write content to task notes workspace
+
+my ($section, $content) = @ARG;
+
+return { 'mode' => qw| false |, 'data' => 'section required' }
+    unless defined $section && length $section;
+
+return { 'mode' => qw| false |, 'data' => 'content required' }
+    unless defined $content && length $content;
+
+my $task_id = <system.task_id> // 'unknown';
+my $workspace_dir = <[file.zenka_dir.data]> . "/notes/$task_id/workspace";
+
+## ensure workspace exists ##
+<[file.path.make_dir]>->($workspace_dir) unless -d $workspace_dir;
+
+## sanitize section name ##
+$section =~ s|[^a-zA-Z0-9._-]|_|g;
+my $note_file = "$workspace_dir/$section.md";
+
+## append with timestamp ##
+my $timestamp = <[base.time]>->(2);
+my $entry = "## $timestamp ##\n\n$content\n\n---\n\n";
+
+my $existing = -f $note_file ? <[file.read]>->($note_file) : '';
+<[file.write]>->($note_file, $existing . $entry);
+
+## update round counter in meta ##
+my $meta_file = <[file.zenka_dir.data]> . "/notes/$task_id/.meta";
+if (-f $meta_file) {
+    my $meta = eval { JSON::PP::decode_json(<[file.read]>->($meta_file)) };
+    if (ref $meta eq qw| HASH |) {
+        $meta->{'rounds'}++;
+        $meta->{'last_update'} = <[base.time]>->(3);
+        <[file.write]>->($meta_file, JSON::PP::encode_json($meta));
+    }
+}
+
+return {
+    'mode' => qw| true |,
+    'data' => { 'section' => $section, 'bytes' => length $entry }
+};
+

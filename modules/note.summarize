@@ -1,0 +1,48 @@
+## [:< ##
+
+# name  = note.summarize
+# descr = generate L1/L2 summaries from workspace content
+
+my ($task_id, $short_text, $long_text) = @ARG;
+
+$task_id //= <system.task_id> // 'unknown';
+
+my $base_dir = <[file.zenka_dir.data]> . '/notes';
+my $task_dir = "$base_dir/$task_id";
+
+return { 'mode' => qw| false |, 'data' => 'task not found' }
+    unless -d $task_dir;
+
+## L1: Short summary (user-provided or auto-generated) ##
+if (defined $short_text && length $short_text) {
+    my $short_file = "$task_dir/summary.short";
+    <[file.write]>->($short_file, $short_text);
+}
+
+## L2: Long summary (user-provided or auto-generated) ##
+if (defined $long_text && length $long_text) {
+    my $long_file = "$task_dir/summary.long";
+    <[file.write]>->($long_file, $long_text);
+}
+
+## update meta status ##
+my $meta_file = "$task_dir/.meta";
+if (-f $meta_file) {
+    my $meta = eval { JSON::PP::decode_json(<[file.read]>->($meta_file)) };
+    if (ref $meta eq qw| HASH |) {
+        $meta->{'summarized'} = <[base.time]>->(3);
+        $meta->{'has_L1'} = (-f "$task_dir/summary.short" && -s _) ? 1 : 0;
+        $meta->{'has_L2'} = (-f "$task_dir/summary.long" && -s _) ? 1 : 0;
+        <[file.write]>->($meta_file, JSON::PP::encode_json($meta));
+    }
+}
+
+return {
+    'mode' => qw| true |,
+    'data' => {
+        'task_id' => $task_id,
+        'L1'      => defined $short_text ? 'updated' : 'unchanged',
+        'L2'      => defined $long_text ? 'updated' : 'unchanged',
+    }
+};
+
