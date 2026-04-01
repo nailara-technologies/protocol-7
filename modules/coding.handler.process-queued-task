@@ -414,6 +414,80 @@ INFERENCE_LOOP:
             ## append assistant message with tool calls to conversation ##
             push @messages, $message;
 
+            ##========================================================##
+            ## LOOP DETECTION - Multi-phase with model assertion      ##
+            ## Compatible with future task multiplexing               ##
+            ##========================================================##
+
+            my $loop_check         = qw| false |;
+            my $assertion_injected = 0;
+
+            if ( exists $code{'coding.tool.detect_loop'} ) {
+                $loop_check = <[coding.tool.detect_loop]>->(
+                    $task, $message->{'tool_calls'}, 'suspicion'
+                );
+
+                ## Handle direct escalation (high-confidence patterns) ##
+                if (ref $loop_check eq qw| HASH |
+                    and (  $loop_check->{'skip_assert'}
+                        or $loop_check->{'escalate_direct'} )
+                ) {
+
+                    <[base.logs]>->(
+                        0,
+                        "::working:: loop detected [score %.1f]: %s",
+                        $loop_check->{'score'}   // 0,
+                        $loop_check->{'message'} // 'unknown'
+                    );
+
+                    ## Inject escalation warning as system message ##
+                    push @messages,
+                        {
+                        'role'    => 'system',
+                        'content' => $loop_check->{'warning'}
+                            // $loop_check->{'message'}
+                        };
+                }
+                ## Handle assertion request (polling-allowed patterns) ##
+                elsif ( ref $loop_check eq qw| HASH |
+                    and $loop_check->{'request_assertion'} ) {
+
+                    my $pattern = $loop_check->{'pattern'}    // 'unknown';
+                    my $score   = $loop_check->{'score'}      // 0;
+                    my $conf    = $loop_check->{'confidence'} // 0;
+
+                    <[base.logs]>->(
+                        1,
+                        "::working:: loop suspicion [%.1f, %s] - assertion",
+                        $score, $pattern
+                    );
+
+                    ## Build assertion prompt ##
+                    my $assert_prompt = sprintf(
+                        "[LOOP ASSERTION REQUEST]\n\n"
+                            . "Pattern '%s' detected (conf: %d%%)\n"
+                            . "Recent: %s | Score: %.1f\n\n"
+                            . "Self-assess: Are you looping? Reply:\n"
+                            . "LOOPING | NOT_LOOPING | UNCLEAR",
+                        $pattern,
+                        int( $conf * 100 ),
+                        join( ' → ',
+                            @{ $loop_check->{'history_snapshot'} // [] } ),
+                        $score
+                    );
+
+                    ## Inject as tool result ##
+                    push @messages,
+                        {
+                        'role'         => 'tool',
+                        'tool_call_id' => 'loop_assert_' . $tool_round,
+                        'content'      => $assert_prompt,
+                        };
+
+                    $assertion_injected = 1;
+                }
+            }
+
             ## dispatch each tool call ##
             for my $tc ( $message->{'tool_calls'}->@* ) {
                 my $tool_name = $tc->{'function'}->{'name'} // '?';
@@ -487,6 +561,60 @@ INFERENCE_LOOP:
         ## normal completion — extract response text ##
         $response_text = $message->{'content'} // '';
 
+        ##============================================================##
+        ## PROCESS ASSERTION RESPONSE (if assertion was requested)    ##
+        ##============================================================##
+        if (    exists $code{'coding.tool.detect_loop'}
+            and $task->{'execution'}->{'loop_detection'}
+            and
+            $task->{'execution'}->{'loop_detection'}->{'assertion_pending'} )
+        {
+
+            my $assert_result = <[coding.tool.detect_loop]>->(
+                $task,
+                $response_text,    ## Model's response content ##
+                'assertion'
+            );
+
+            if ( ref $assert_result eq qw| HASH | ) {
+                ## Model confirmed loop - escalate ##
+                if ( $assert_result->{'confirmed_loop'} ) {
+                    <[base.logs]>->(
+                        0,
+                        "::working:: loop CONFIRMED by model [%s]",
+                        $assert_result->{'votes'} // 'single'
+                    );
+
+                    ## Inject escalation warning ##
+                    push @messages,
+                        {
+                        'role'    => 'system',
+                        'content' => $assert_result->{'message'}
+                            . "\n\nACTION REQUIRED: "
+                            . "Please conclude your work or call task_complete."
+                        };
+
+                    ## Continue loop - model sees warning and should act ##
+                    next INFERENCE_LOOP;
+                }
+                ## Model says not looping - clear and continue ##
+                elsif ( $assert_result->{'assertion_complete'}
+                    and !$assert_result->{'confirmed_loop'} ) {
+                    <[base.logs]>->(
+                        1, "::working:: loop cleared by model assertion"
+                    );
+                }
+                ## Requesting confirmation (single assertion says looping) ##
+                elsif ( $assert_result->{'request_confirm'} ) {
+                    <[base.logs]>->(
+                        1,
+                        "::working:: loop assertion: requesting confirmation"
+                    );
+                    ## Will ask again on next suspicion trigger ##
+                }
+            }
+        }
+
         ## accumulate partial content from tool rounds ##
         if ( $tool_round > 0 ) {
             <[base.logs]>->(
@@ -553,8 +681,8 @@ if ( length $response_text
 ## return result hashref for jobqueue callback ##
 return { success => TRUE, result => $response_text, task_id => $task_id };
 
-#,,.,,...,,.,,...,..,,.,,,,,.,,.,,..,,,..,,..,..,,...,...,.,.,.,.,...,..,,,,.,
-#N3UZDIFSON2BSCHMA2QRC6ALMZFORCWYIV4PGXC4TJ4IJEI4GYDVFKT2WNWOUXDS6HTTT6JHFBISY
-#\\\|DNWXYKWZEY7RSLGG3OBP5RP623S7GEFA7HBPTQJWD3ILZRMRKW4 \ / AMOS7 \ YOURUM ::
-#\[7]3ZWBW7RRVCS6FPULCIVUKTMUYK5QXDTM2EE37HUAHYGWG35G6YBY 7  DATA SIGNATURE ::
+#,,..,,,,,,..,.,.,,,.,...,,..,.,,,,,.,,.,,.,.,..,,...,...,..,,,,,,,.,,..,,.,.,
+#DRUV426OUGFUZSP24XWKDMZRRKWLVOLYL5IA6FT5PE53ELMT2QOF4RYUSRJ3WJ2XANIUKXEYHTIJ4
+#\\\|WOEGRDJ2G6Z353YK6KMXPI3WYE7WXQ2CQNK7PUJ7DFKDMKHO3AJ \ / AMOS7 \ YOURUM ::
+#\[7]HDJV3G7ZJJG64TF5MPQ6PQMRU5ZHJCQMNRXKAHW637ZJJMAALQBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
