@@ -1,0 +1,139 @@
+## [:< ##
+
+# name  = note.search
+# descr = search notes by keyword, tag, or content pattern
+
+my ( $query, $search_level, $max_results ) = @ARG;
+
+$query        //= '';
+$search_level //= 'all';    ## all | L1 | L2 | L3 | meta ##
+$max_results  //= 10;
+
+return { 'mode' => qw| false |, 'data' => 'empty query' }
+    unless length $query;
+
+my $base_dir = <[file.zenka_dir.data_path]> . '/notes';
+return { 'mode' => qw| true |, 'data' => [] } unless -d $base_dir;
+
+my @task_dirs = <[file.glob]>->("$base_dir/*/");
+my @matches;
+
+QUERY:
+for my $task_dir (@task_dirs) {
+    next unless -d $task_dir;
+
+    my $task_id = <[file.basename]>->($task_dir);
+    my $match   = {
+        'task_id'    => $task_id,
+        'matched_in' => [],
+        'score'      => 0,
+    };
+
+    ## search in task_id itself ##
+    if ( $task_id =~ m|\Q$query\E|i ) {
+        push @{ $match->{'matched_in'} }, 'task_id';
+        $match->{'score'} += 10;
+    }
+
+    ## search metadata ##
+    if ( $search_level =~ m{^(all|meta)$} ) {
+        my $meta_file = "$task_dir/.meta";
+        if ( -f $meta_file ) {
+            my $content = <[file.read]>->($meta_file);
+            if ( $content =~ m|\Q$query\E|i ) {
+                push @{ $match->{'matched_in'} }, 'meta';
+                $match->{'score'} += 5;
+                ## extract matching tags ##
+                my $meta = eval { JSON::PP::decode_json($content) };
+                if ( ref $meta eq qw| HASH | ) {
+                    $match->{'tags'} = $meta->{'tags'};
+                    for my $tag ( @{ $meta->{'tags'} // [] } ) {
+                        if ( $tag =~ m|\Q$query\E|i ) {
+                            $match->{'matched_tag'} = $tag;
+                            $match->{'score'} += 15;
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    ## search L1 summary ##
+    if ( $search_level =~ m{^(all|L1)$} ) {
+        my $short_file = "$task_dir/summary.short";
+        if ( -f $short_file ) {
+            my $content = <[file.read]>->($short_file);
+            if ( $content =~ m|\Q$query\E|i ) {
+                push @{ $match->{'matched_in'} }, 'L1';
+                $match->{'score'} += 8;
+                $match->{'L1_preview'}
+                    = <[base.parser.ellipse_center]>->( $content, 120 );
+            }
+        }
+    }
+
+    ## search L2 summary ##
+    if ( $search_level =~ m{^(all|L2)$} ) {
+        my $long_file = "$task_dir/summary.long";
+        if ( -f $long_file ) {
+            my $content = <[file.read]>->($long_file);
+            if ( $content =~ m|\Q$query\E|i ) {
+                push @{ $match->{'matched_in'} }, 'L2';
+                $match->{'score'} += 6;
+                ## extract matching lines ##
+                my @lines = grep {m|\Q$query\E|i} split( m|\n|, $content );
+                $match->{'L2_snippets'} = [ splice @lines, 0, 3 ];
+            }
+        }
+    }
+
+    ## search L3 workspace ##
+    if ( $search_level =~ m{^(all|L3)$} ) {
+        my $workspace_dir = "$task_dir/workspace";
+        if ( -d $workspace_dir ) {
+            my @md_files = <[file.glob]>->("$workspace_dir/*.md");
+            my @l3_matches;
+
+            for my $md_file (@md_files) {
+                my $content = <[file.read]>->($md_file);
+                if ( $content =~ m|\Q$query\E|i ) {
+                    my $section = <[file.basename]>->($md_file);
+                    $section =~ s|\.md$||;
+                    push @l3_matches, $section;
+                    $match->{'score'} += 3;
+                }
+            }
+
+            if (@l3_matches) {
+                push @{ $match->{'matched_in'} }, 'L3';
+                $match->{'L3_sections'} = \@l3_matches;
+            }
+        }
+    }
+
+    ## keep if any matches found ##
+    if ( @{ $match->{'matched_in'} } ) {
+        push @matches, $match;
+        last QUERY if @matches >= $max_results * 2;   ## buffer for sorting ##
+    }
+}
+
+## sort by score descending ##
+@matches = sort { $b->{'score'} <=> $a->{'score'} } @matches;
+splice @matches, $max_results if @matches > $max_results;
+
+return {
+    'mode'  => qw| true |,
+    'data'  => \@matches,
+    'count' => scalar @matches,
+    'query' => $query,
+};
+
+#,,.,,,,.,,,.,.,.,,.,,.,.,,,.,,,,,.,.,.,,,.,,.,.,,..,,.,.,,,.,.,.,,,..,.,.,,,.,
+#PLACEHOLDER_SIGNATURE_WILL_BE_FIXED_BY_PRE_COMMIT
+
+#,,.,,.,,,.,,,.,.,...,.,.,.,.,.,.,,,.,..,,,.,,..,,...,...,...,.,,,,..,,,,,,..,
+#3PQ4PTLTY3VEG2YYWFE7X6WJ5GQVIHKUGWQE5OVGNY27HK5WN5XO7EXEKIA6FSTLTQEJPRC5MVTUW
+#\\\|F6R4HYGLWIGEYVUJGA44H2FGXEUKNCPE4F3VYOSAUKHLVN66XAZ \ / AMOS7 \ YOURUM ::
+#\[7]3TROCBSS2N4NCKYZOVFPWA2MACBKDLESQIEPUPXLUMNN2NE3P6CQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
