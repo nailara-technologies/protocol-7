@@ -13,8 +13,7 @@ my $servers = <coding.inference_servers> // {};
 for my $backend ( keys $servers->%* ) {
     if ( ( $servers->{$backend}->{'status'} // '' ) eq 'ready' ) {
         <[base.logs]>->(
-            3,
-            '[memory_system] %s server already ready, bypassing ram check',
+            3, '[memory_system] %s server already ready, bypassing ram check',
             $backend
         );
         return TRUE;
@@ -62,8 +61,8 @@ if ( $free_mb >= $min_free_mb ) {
     return FALSE;
 }
 
-#,,.,,,.,,,..,...,...,.,,,.,.,,,,,,.,,.,,,,..,.,.,...,...,..,,.,,,,..,.,,,,,,,
-#GCDQBI2T5TBIEC3GIUCVGCBGFR2BFDICYEO3BVXKSYFYYRIY2YDUNXYFZ7W3SE4MZQMYJG55P3RPA
-#\\\|4T5G7ABWSXOB7XWCE6DB26IAIYEH5UZLTMD4547WSXS7QBZUNGC \ / AMOS7 \ YOURUM ::
-#\[7]I3X54ROGQWXQTSD56DMNU5ETP3UWN6COMGPGNOH7WHSWX5WDJCCQ 7  DATA SIGNATURE ::
+#,,,,,,.,,...,...,,,.,,,.,,..,,,.,,,,,...,...,.,.,...,...,..,,,.,,,,,,,,.,,..,
+#BMK6DEJLRGGUNTWHLIWB5ZLJK3DM74LZYJH5MUSDIDBA7ZUKPA4MVYKYSX75ODQXCZF6AWC3P6MP2
+#\\\|45KVYROPGLRPFGC46XSRJUBMI6P5SWF6JJJM3KACHKF2QNLN4JD \ / AMOS7 \ YOURUM ::
+#\[7]QUSU3TA62L2WORZKKAZYJ6ZC3XJTSGK26JJHY2DNSMLVYLAHJWCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
