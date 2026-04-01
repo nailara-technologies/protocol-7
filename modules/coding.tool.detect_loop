@@ -1,0 +1,406 @@
+## [:< ##
+
+# name  = coding.tool.detect_loop
+# descr = detect repetitive tool call patterns, assert with model, escalate
+
+##============================================================================##
+##  LOOP DETECTION SYSTEM - Multi-phase with model assertion                  ##
+##============================================================================##
+##                                                                            ##
+##  Phase 1: SUSPICION  - Pattern detectors flag potential loops              ##
+##  Phase 2: ASSERTION  - Ask model to self-assess if looping                 ##
+##  Phase 3: ESCALATION - Intervene only if model confirms loop               ##
+##                                                                            ##
+##  Pattern registry allows expandable detection without code changes         ##
+##  Tool weights allow per-tool loop probability scoring                      ##
+##                                                                            ##
+##============================================================================##
+
+my ( $task, $tool_calls, $phase ) = @ARG;
+
+$phase //= 'suspicion';
+
+return qw| false | unless ref $task eq qw| HASH |;
+return qw| false | unless ref $tool_calls eq qw| ARRAY |;
+
+##----------------------------------------------------------------------------##
+## Tool Loop Probability Weights                                              ##
+##----------------------------------------------------------------------------##
+## Higher weight = more likely to indicate looping when repeated              ##
+##                                                                            ##
+## read_module: medium (legitimate for research, but often in loops)          ##
+## tree_read:   medium (directory traversal can loop)                         ##
+## grep:        low (frequently used legitimately)                            ##
+## search_web:  low (external calls are expensive, usually purposeful)        ##
+## shell:       high (command execution should vary)                          ##
+##                                                                            ##
+## Weights are multiplied by repetition count for scoring                     ##
+##----------------------------------------------------------------------------##
+
+my %tool_loop_weights = (
+    'read_module' => 0.6,
+    'tree_read'   => 0.7,
+    'grep'        => 0.3,
+    'search_web'  => 0.2,
+    'fetch_url'   => 0.2,
+    'shell'       => 0.8,
+    'write_file'  => 0.4,
+    'str_replace' => 0.4,
+    'read_file'   => 0.5,
+    'agent'       => 0.5,
+    'spawn_agent' => 0.5,
+    'default'     => 0.5,
+);
+
+##----------------------------------------------------------------------------##
+## Pattern Registry - expandable list of loop detectors                       ##
+##----------------------------------------------------------------------------##
+
+my @pattern_registry = (
+
+    ## Pattern: Strict alternation (A-B-A-B-A-B...) - high confidence loop    ##
+    {   'name'     => 'strict_alternation',
+        'priority' => 1,
+        'min_hits' => 6,
+        'check'    => sub {
+            my ( $history, $weights ) = @_;
+            return 0 unless @$history >= 6;
+
+            my @last6 = @$history[ -6 .. -1 ];
+            my ( $a, $b ) = ( $last6[0], $last6[1] );
+            return 0 if $a eq $b;
+
+            for my $i ( 0 .. 5 ) {
+                my $expected = ( $i % 2 == 0 ) ? $a : $b;
+                return 0 if $last6[$i] ne $expected;
+            }
+
+            ## Calculate weighted score ##
+            my $score = ( $weights->{$a} // 0.5 ) + ( $weights->{$b} // 0.5 );
+            return $score >= 1.0 ? 1 : 0;
+        },
+        'confidence'    => 0.8,
+        'allow_polling' => 0,
+    },
+
+    ## Pattern: Tri-cycle repeat (A-B-C-A-B-C-A-B-C...)                        ##
+    {   'name'     => 'tricycle_repeat',
+        'priority' => 2,
+        'min_hits' => 9,
+        'check'    => sub {
+            my ( $history, $weights ) = @_;
+            return 0 unless @$history >= 9;
+
+            my @last9 = @$history[ -9 .. -1 ];
+            my ( $a, $b, $c ) = ( $last9[0], $last9[1], $last9[2] );
+            return 0 if $a eq $b || $b eq $c;
+
+            for my $i ( 0 .. 8 ) {
+                my $expected
+                    = ( $i % 3 == 0 ) ? $a : ( $i % 3 == 1 ) ? $b : $c;
+                return 0 if $last9[$i] ne $expected;
+            }
+
+            my $score
+                = ( $weights->{$a} // 0.5 )
+                + ( $weights->{$b} // 0.5 )
+                + ( $weights->{$c} // 0.5 );
+            return $score >= 1.5 ? 1 : 0;
+        },
+        'confidence'    => 0.75,
+        'allow_polling' => 0,
+    },
+
+    ## Pattern: Same tool repeated many times (possible stuck retry)          ##
+    {   'name'     => 'stuck_retry',
+        'priority' => 3,
+        'min_hits' => 5,
+        'check'    => sub {
+            my ( $history, $weights ) = @_;
+            return 0 unless @$history >= 5;
+
+            my @last5 = @$history[ -5 .. -1 ];
+            my $first = $last5[0];
+            for my $h (@last5) { return 0 if $h ne $first; }
+
+            ## Weighted threshold - high-weight tools trigger sooner ##
+            my $weight = $weights->{$first} // 0.5;
+            return $weight >= 0.6 ? 1 : 0;
+        },
+        'confidence'    => 0.6,
+        'allow_polling' => 1,
+    },
+
+    ## Pattern: High frequency read operations (research spiral)              ##
+    {   'name'     => 'research_spiral',
+        'priority' => 4,
+        'min_hits' => 12,
+        'check'    => sub {
+            my ( $history, $weights ) = @_;
+            return 0 unless @$history >= 12;
+
+            my @last12     = @$history[ -12 .. -1 ];
+            my $read_count = grep { $_ eq 'read_module' } @last12;
+            my $weight_sum = 0;
+            $weight_sum += ( $weights->{$_} // 0.5 ) for @last12;
+
+            ## Trigger if many reads AND high cumulative weight ##
+            return ( $read_count >= 8 && $weight_sum >= 6.0 ) ? 1 : 0;
+        },
+        'confidence'    => 0.5,
+        'allow_polling' => 1,
+    },
+);
+
+##----------------------------------------------------------------------------##
+## Utility: Get or initialize loop detection state                            ##
+##----------------------------------------------------------------------------##
+
+my $ld_state = $task->{'execution'}->{'loop_detection'} //= {
+    'tool_history'       => [],
+    'suspicion_count'    => 0,
+    'assertion_pending'  => 0,
+    'assertion_results'  => [],
+    'confirmed_loop'     => 0,
+    'last_assertion_at'  => 0,
+    'patterns_matched'   => [],
+    'intervention_count' => 0,
+    'cumulative_score'   => 0,
+};
+
+##----------------------------------------------------------------------------##
+## Phase: SUSPICION - Check if current tool calls trigger pattern match       ##
+##----------------------------------------------------------------------------##
+
+if ( $phase eq 'suspicion' ) {
+
+    ## Extract tool names from current batch ##
+    my @current_names
+        = map { $_->{'function'}->{'name'} // $_->{'name'} // '?' }
+        @$tool_calls;
+    my $tool_key = join( ',', @current_names );
+
+    ## Update history ##
+    push @{ $ld_state->{'tool_history'} }, $tool_key;
+    splice @{ $ld_state->{'tool_history'} }, 0,
+        scalar( @{ $ld_state->{'tool_history'} } ) - 32
+        if @{ $ld_state->{'tool_history'} } > 32;
+
+    my $history = $ld_state->{'tool_history'};
+    my @matched_patterns;
+
+    ## Calculate cumulative loop score based on weights ##
+    my $cumulative_score = 0;
+    for my $h (@$history) {
+        my @tools = split /,/, $h;
+        for my $t (@tools) {
+            $cumulative_score += $tool_loop_weights{$t}
+                // $tool_loop_weights{'default'};
+        }
+    }
+    $ld_state->{'cumulative_score'} = $cumulative_score;
+
+    ## Check each pattern in priority order ##
+    for my $pattern (@pattern_registry) {
+        next unless @$history >= $pattern->{'min_hits'};
+
+        if ( $pattern->{'check'}->( $history, \%tool_loop_weights ) ) {
+            push @matched_patterns, $pattern;
+
+            <[base.logs]>->(
+                1,
+                "::loop-detect:: suspicion: pattern '%s' matched [conf=%.2f, score=%.1f]",
+                $pattern->{'name'},
+                $pattern->{'confidence'},
+                $cumulative_score
+            );
+        }
+    }
+
+    ## Store matched patterns ##
+    $ld_state->{'patterns_matched'} = \@matched_patterns;
+
+    ## Return suspicion level based on highest confidence match ##
+    if (@matched_patterns) {
+        my $top_pattern = $matched_patterns[0];
+
+        ## If cumulative score is very high, skip assertion ##
+        if ( $cumulative_score >= 15.0 ) {
+            return {
+                'suspicion'       => 1,
+                'confidence'      => $top_pattern->{'confidence'},
+                'pattern'         => $top_pattern->{'name'},
+                'score'           => $cumulative_score,
+                'skip_assert'     => 1,
+                'escalate_direct' => 1,
+                'message'         =>
+                    sprintf(
+                    "[LOOP DETECTED: score %.1f] High cumulative loop probability",
+                    $cumulative_score )
+            };
+        }
+
+        ## If pattern never allows polling, skip assertion ##
+        if ( !$top_pattern->{'allow_polling'} ) {
+            return {
+                'suspicion'   => 1,
+                'confidence'  => $top_pattern->{'confidence'},
+                'pattern'     => $top_pattern->{'name'},
+                'score'       => $cumulative_score,
+                'skip_assert' => 1,
+                'message'     => sprintf(
+                    "[LOOP DETECTED: %s] Pattern '%s' detected",
+                    scalar(@$history), $top_pattern->{'name'}
+                )
+            };
+        }
+
+        ## Otherwise, request assertion phase ##
+        $ld_state->{'assertion_pending'} = 1;
+        return {
+            'suspicion'         => 1,
+            'confidence'        => $top_pattern->{'confidence'},
+            'pattern'           => $top_pattern->{'name'},
+            'score'             => $cumulative_score,
+            'request_assertion' => 1,
+            'history_snapshot'  => [ @$history[ -6 .. -1 ] ],
+        };
+    }
+
+    return qw| false |;
+}
+
+##----------------------------------------------------------------------------##
+## Phase: ASSERTION - Process model's self-assessment response                ##
+##----------------------------------------------------------------------------##
+
+elsif ( $phase eq 'assertion' ) {
+
+    my $model_response = $tool_calls;  ## In assertion phase, this is response
+
+    ## Record assertion result ##
+    push @{ $ld_state->{'assertion_results'} },
+        {
+        'round'    => scalar( @{ $ld_state->{'tool_history'} } ),
+        'response' => $model_response,
+        'time'     => <[base.time]>->(3),
+        };
+
+    $ld_state->{'last_assertion_at'}
+        = scalar( @{ $ld_state->{'tool_history'} } );
+    $ld_state->{'assertion_pending'} = 0;
+
+    ## Parse model response for looping indication ##
+    my $response_upper = uc( $model_response // '' );
+    my $is_looping     = 0;
+
+    if ( $response_upper =~ /\b(LOOPING|STUCK|REPEATING|INFINITE)\b/ ) {
+        $is_looping = 1;
+    } elsif (
+        $response_upper =~ /\b(NOT_LOOPING|POLLING|WAITING|LEGITIMATE)\b/ ) {
+        $is_looping = 0;
+    } elsif ( $response_upper
+        =~ /\b(CONFIDENT|DEFINITE|CLEAR).{0,20}\b(LOOP|REPEAT)/i ) {
+        $is_looping = 1;
+    } else {
+        $is_looping = 0;
+    }
+
+    ## Statistical decision if we have multiple assertions ##
+    my @results         = @{ $ld_state->{'assertion_results'} };
+    my $assertion_count = scalar @results;
+
+    if ( $assertion_count >= 3 ) {
+        ## Count looping vs not looping in last 3 assertions ##
+        my $loop_votes = 0;
+        for my $r (@results) {
+            my $ru = uc( $r->{'response'} // '' );
+            $loop_votes++ if $ru =~ /\b(LOOPING|STUCK|REPEATING)\b/;
+        }
+
+        ## Majority vote decides ##
+        if ( $loop_votes >= 2 ) {
+            $ld_state->{'confirmed_loop'} = 1;
+            return {
+                'assertion_complete' => 1,
+                'confirmed_loop'     => 1,
+                'confidence'         => $loop_votes / $assertion_count,
+                'votes'              => "$loop_votes/$assertion_count",
+                'message'            => sprintf(
+                    "[LOOP CONFIRMED by %d/%d model assertions]",
+                    $loop_votes, $assertion_count
+                )
+            };
+        }
+    }
+
+    ## Single assertion that says looping ##
+    elsif ( $is_looping && $assertion_count < 3 ) {
+        return {
+            'assertion_received' => 1,
+            'model_says_looping' => 1,
+            'request_confirm'    => 1,
+            'message' => "Model reports LOOPING - requesting confirmation",
+        };
+    }
+
+    ## Model says not looping ##
+    return {
+        'assertion_complete' => 1,
+        'confirmed_loop'     => 0,
+        'cleared_until' => scalar( @{ $ld_state->{'tool_history'} } ) + 10,
+        'message'       => "Loop cleared by model assertion",
+    };
+}
+
+##----------------------------------------------------------------------------##
+## Phase: ESCALATION - Intervention confirmed, return warning                 ##
+##----------------------------------------------------------------------------##
+
+elsif ( $phase eq 'escalation' ) {
+
+    $ld_state->{'intervention_count'}++;
+
+    my $patterns = join( ', ',
+        map { $_->{'name'} } @{ $ld_state->{'patterns_matched'} // [] } );
+    my $rounds  = scalar( @{ $ld_state->{'tool_history'} } );
+    my $asserts = scalar( @{ $ld_state->{'assertion_results'} } );
+    my $score   = $ld_state->{'cumulative_score'};
+
+    <[base.logs]>->(
+        0,
+        "::loop-detect:: ESCALATING after %d rounds, %d assertions, score %.1f",
+        $rounds,
+        $asserts,
+        $score
+    );
+
+    return {
+        'escalate'           => 1,
+        'intervention_count' => $ld_state->{'intervention_count'},
+        'score'              => $score,
+        'warning'            => sprintf(
+            "[LOOP ESCALATION - Round %d, Score %.1f]\n\n"
+                . "Detected patterns: %s\n"
+                . "Model assertions: %d\n\n"
+                . "The AI appears to be stuck in a repetitive pattern.\n\n"
+                . "RECOMMENDED ACTIONS:\n"
+                . "1. Synthesize current findings and conclude\n"
+                . "2. Summarize progress and ask user for direction\n"
+                . "3. Use task_complete if sufficient work is done\n"
+                . "4. Consider task_escalate if truly stuck\n\n"
+                . "Continuing without change will hit the %d round limit.",
+            $rounds,  $score, $patterns || 'unknown',
+            $asserts, 247
+        )
+    };
+}
+
+## Unknown phase ##
+return qw| false |;
+
+#,,,.,...,,,.,,,.,.,,,,,,,.,,,,,,,,,.,...,,,.,.,.,...,...,..,,..,,...,.,.,.,.,
+#PPRPTLBW2HEAPDEF5TGADAC7NK7AF335IHMAR7HWDY6G523EWU4YCQSKK3YVDUO7V5V26EJ3RTIFO
+#\\\|BMMLLXK7PKCWHUUPQGQFE23Q2WLMKPDLRDKAJNXBSYIKPZ2WL3B \ / AMOS7 \ YOURUM ::
+#\[7]KOTMB6IBHPJAIMVZOXRGDTZNYI2XIHWDGGAAH3ZLTT7SCRX4COAY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
