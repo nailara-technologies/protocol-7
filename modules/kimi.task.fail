@@ -1,0 +1,49 @@
+## [:< ##
+
+# name  = kimi.task.fail
+# descr = mark kimi task as failed
+# purpose = kimi task management : wrapper around jobqueue.move_job to mark job failed with error
+
+my ( $job_id, $error_msg ) = @ARG;
+
+return {
+    success => FALSE,
+    error   => 'job_id required'
+    }
+    unless defined $job_id;
+
+$error_msg //= 'task execution failed';
+
+# Get job data before moving to verify it exists
+my $job_data = <[jobqueue.get_job_data]>->($job_id);
+
+return {
+    success => FALSE,
+    error   => "task not found : $job_id"
+    }
+    unless defined $job_data;
+
+# Move job to error queue
+<[jobqueue.move_job]>->( $job_id, 'error' );
+
+# Update budget tracking
+<kimi.budget.track_tokens>->(
+    {   'service'     => 'kimi.task.fail',
+        'tokens_used' => 1,                  # base overhead
+        'type'        => 'fail',
+    }
+);
+
+return {
+    success => TRUE,
+    job_id  => $job_id,
+    task_id => $job_data->{object_id},
+    error   => $error_msg,
+    message => "task failed : $job_id"
+};
+
+#,,,.,,..,.,.,,..,...,..,,,,.,.,,,.,,,,.,,.,.,..,,...,...,,,.,...,,,,,..,,.,.,
+#HN7JOALPJC6YSWEW2VKTEA6NJGJFXDY6EELTINXQAPRFVZM2FLBKKI2F5BHD6W3PIQM5B2ZDRC2NW
+#\\\|SBKOJ24LIUXCLWGHU34ODJSRU4ADZB3YPHHDEBVQBKZPDAJASYB \ / AMOS7 \ YOURUM ::
+#\[7]AFN3OOPLJ4DAIUYRO52KESCI7JI33Y6PLGJLHIKHYW5FWORRAQDY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

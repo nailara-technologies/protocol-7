@@ -49,11 +49,13 @@ if ( not defined $reply or ref $reply ne qw| HASH | ) {
     );
 
 } elsif ( not defined $reply->{'data'}
-    or $reply->{'mode'} ne qw| size | and not length $reply->{'data'} ) {
+    or ( defined $reply->{'mode'} and $reply->{'mode'} ne qw| size | )
+    and not length $reply->{'data'} ) {
     <[base.logs]>->(
-        0,           '[%d] empty %s-reply attempted %s',
-        $session_id, uc( $reply->{'mode'} ),
-        <[base.caller]>
+        0, '[%d] empty %s-reply attempted %s',
+        $session_id,
+        uc( $reply->{'mode'} // 'undef' ),
+        scalar <[base.caller]>
     );
     $reply->{'mode'} = qw| false |;
     $reply->{'data'}
@@ -62,11 +64,13 @@ if ( not defined $reply or ref $reply ne qw| HASH | ) {
 
 # check answer mode
 
-if ( $reply->{'mode'} =~ m{^(TRUE|FALSE|WAIT)$}io ) {
+my $reply_mode = $reply->{'mode'} // '';
+
+if ( $reply_mode =~ m{^(TRUE|FALSE|WAIT)$}io ) {
     $reply->{'data'} =~ s|\n|\\n|go;
     $output->$* .= sprintf "%s%s %s\n",
-        $_cmd_id, uc( $reply->{'mode'} ), $reply->{'data'};
-} elsif ( uc( $reply->{'mode'} ) eq qw| SIZE | ) {
+        $_cmd_id, uc($reply_mode), $reply->{'data'};
+} elsif ( uc($reply_mode) eq qw| SIZE | ) {
     my $data = $reply->{'data'};
 
     ## Ensure data ends with newline for protocol coherence
@@ -78,7 +82,7 @@ if ( $reply->{'mode'} =~ m{^(TRUE|FALSE|WAIT)$}io ) {
 
     $output->$* .= sprintf( "%sSIZE %d\n%s", $_cmd_id, $byte_count, $data );
 
-} elsif ( uc( $reply->{'mode'} ) eq qw| CHRSIZE | ) {
+} elsif ( uc($reply_mode) eq qw| CHRSIZE | ) {
     my $data = $reply->{'data'};
 
     ## Ensure data ends with newline for protocol coherence
@@ -95,7 +99,7 @@ if ( $reply->{'mode'} =~ m{^(TRUE|FALSE|WAIT)$}io ) {
     $output->$*
         .= sprintf( "%sCHRSIZE %d\n%s", $_cmd_id, $char_count, $data );
 
-} elsif ( uc( $reply->{'mode'} ) eq qw| TERM | ) {
+} elsif ( uc($reply_mode) eq qw| TERM | ) {
     <[base.session.shutdown]>->( $session_id, $reply->{'data'} );
 }
 
@@ -103,8 +107,8 @@ if ( $reply->{'mode'} =~ m{^(TRUE|FALSE|WAIT)$}io ) {
 
 delete <base.cmd_reply>->{$reply_id};
 
-#,,.,,,,.,...,..,,..,,..,,..,,.,,,.,.,.,,,,,,,..,,...,...,..,,,.,,...,...,.,.,
-#4HGZC4XOUK5IFB27ZTB4NM3RBZZUS3IDTR42BVR6B5DQDV7DHPR5OQNIP3UGXWG7LSD6SN6G4FOMY
-#\\\|EIYYX374VEBDPZOCCNKQGO4CL7QYUZAACBTENEVB7O7IGQYFKSW \ / AMOS7 \ YOURUM ::
-#\[7]GSL3EAKKAXMNGIA72YUXU6ZVRJENCQJGQW3PABO6ZL23EPRTTIDA 7  DATA SIGNATURE ::
+#,,.,,.,,,...,.,,,,..,.,.,,,,,,.,,,,,,,.,,,.,,..,,...,...,,..,...,.,.,,,,,.,,,
+#B4MARRL3TE77VRVEBXSBOJOKU3RXUFEG3J2SUJ4NNJMYH5WLSNX3FC7KDQ65SFF7KCJH7WNC6JE7S
+#\\\|WVVBBNQJVV3SX6IIYWI2R4WIKTFR6RAZH7EZYCR7AGCSWQA5YWM \ / AMOS7 \ YOURUM ::
+#\[7]TRDKEN5GISZOTU7WHOAXWTUPXFZIXI2V7B4GTYL7EYMIJYDY7MCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
