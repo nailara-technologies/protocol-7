@@ -1,0 +1,66 @@
+## [:< ##
+
+# name  = note.categorize
+# descr = add task to category index for cross-reference
+
+my ($tag, $task_id) = @ARG;
+
+return { 'mode' => qw| false |, 'data' => 'tag required' }
+    unless defined $tag && length $tag;
+
+$task_id //= <system.task_id> // 'unknown';
+
+## sanitize tag ##
+$tag =~ s|[^a-zA-Z0-9_-]|_|g;
+
+my $base_dir = <[file.zenka_dir.data]> . '/notes';
+my $cat_dir = "$base_dir/categories/$tag";
+
+<[file.path.make_dir]>->($cat_dir) unless -d $cat_dir;
+
+## add task to category list ##
+my $list_file = "$cat_dir/list";
+my @tasks;
+
+if (-f $list_file) {
+    my $content = <[file.read]>->($list_file);
+    @tasks = split /\n/, $content;
+}
+
+## add if not already present ##
+my $found = 0;
+for my $t (@tasks) {
+    $found = 1 if $t eq $task_id;
+}
+
+unless ($found) {
+    push @tasks, $task_id;
+    <[file.write]>->($list_file, join("\n", @tasks) . "\n");
+}
+
+## update task meta with tag ##
+my $meta_file = "$base_dir/$task_id/.meta";
+if (-f $meta_file) {
+    my $meta = eval { JSON::PP::decode_json(<[file.read]>->($meta_file)) };
+    if (ref $meta eq qw| HASH |) {
+        $meta->{'tags'} //= [];
+        my $tag_found = 0;
+        for my $t (@{$meta->{'tags'}}) {
+            $tag_found = 1 if $t eq $tag;
+        }
+        unless ($tag_found) {
+            push @{$meta->{'tags'}}, $tag;
+            <[file.write]>->($meta_file, JSON::PP::encode_json($meta));
+        }
+    }
+}
+
+return {
+    'mode' => qw| true |,
+    'data' => {
+        'tag'     => $tag,
+        'task_id' => $task_id,
+        'total'   => scalar @tasks,
+    }
+};
+

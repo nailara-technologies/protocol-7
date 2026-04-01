@@ -1,0 +1,73 @@
+## [:< ##
+
+# name  = note.read
+# descr = read notes at specified detail level (L1|L2|L3)
+
+my ($task_id, $level) = @ARG;
+
+$task_id //= <system.task_id> // 'unknown';
+$level  //= 'L3';  ## default to full workspace ##
+
+my $base_dir = <[file.zenka_dir.data]> . '/notes';
+my $task_dir = "$base_dir/$task_id";
+
+return { 'mode' => qw| false |, 'data' => 'task not found' }
+    unless -d $task_dir;
+
+## L1: Short summary only ##
+if ($level eq 'L1') {
+    my $short_file = "$task_dir/summary.short";
+    return { 'mode' => qw| false |, 'data' => 'no L1 summary' }
+        unless -f $short_file && -s $short_file;
+    
+    my $content = <[file.read]>->($short_file);
+    return {
+        'mode' => qw| true |,
+        'data' => {
+            'level'   => 'L1',
+            'task_id' => $task_id,
+            'summary' => $content,
+        }
+    };
+}
+
+## L2: Long summary + key findings ##
+if ($level eq 'L2') {
+    my $long_file = "$task_dir/summary.long";
+    return { 'mode' => qw| false |, 'data' => 'no L2 summary' }
+        unless -f $long_file && -s $long_file;
+    
+    my $content = <[file.read]>->($long_file);
+    return {
+        'mode' => qw| true |,
+        'data' => {
+            'level'   => 'L2',
+            'task_id' => $task_id,
+            'summary' => $content,
+        }
+    };
+}
+
+## L3: Full workspace ##
+my $workspace_dir = "$task_dir/workspace";
+return { 'mode' => qw| false |, 'data' => 'no workspace' }
+    unless -d $workspace_dir;
+
+my @files = <[file.glob]>->("$workspace_dir/*.md");
+my %sections;
+
+for my $file (@files) {
+    my $basename = <[file.basename]>->($file);
+    $basename =~ s/\.md$//;
+    $sections{$basename} = <[file.read]>->($file);
+}
+
+return {
+    'mode' => qw| true |,
+    'data' => {
+        'level'    => 'L3',
+        'task_id'  => $task_id,
+        'sections' => \\%sections,
+    }
+};
+
