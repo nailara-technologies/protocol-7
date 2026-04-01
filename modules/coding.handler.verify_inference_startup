@@ -1,0 +1,63 @@
+## [:< ##
+
+# name  = coding.handler.verify_inference_startup
+# descr = Verify inference server started successfully after restart
+
+my $data    = shift;
+my $backend = $data->{'params'}{'backend'} // 'gpu';
+
+my $servers     = <coding.inference_servers> // {};
+my $server_info = $servers->{$backend}       // {};
+
+## check if server is ready ##
+my $is_ready = ( $server_info->{'status'} // '' ) eq qw| ready |;
+my $pid      = $server_info->{'pid'} // 0;
+
+if ( $is_ready && $pid > 0 && kill 0, $pid ) {
+    <[base.logs]>->(
+        1, '[verify_inference_startup] %s server verified ready [pid=%d]',
+        $backend, $pid
+    );
+    ## reset restart count on successful recovery ##
+    $server_info->{'restart_count'} = 0;
+    return TRUE;
+}
+
+## server not ready - may still be starting or failed ##
+my $restart_count = $server_info->{'restart_count'} // 0;
+
+if ( $restart_count >= 5 ) {
+    <[base.logs]>->(
+        0,
+        '[verify_inference_startup] %s server failed to start after max retries',
+        $backend
+    );
+    $server_info->{'status'} = qw| failed |;
+    return FALSE;
+}
+
+## still starting - reschedule check ##
+<[base.logs]>->(
+    2, '[verify_inference_startup] %s server still starting, rechecking...',
+    $backend
+);
+
+<[event.add_timer]>->(
+    {   'after'   => 5.0,
+        'handler' => 'coding.handler.verify_inference_startup',
+        'params'  => { 'backend' => $backend }
+    }
+);
+
+return FALSE;
+
+#,,.,,..,,.,,,...,,.,,,..,,,.,,.,,,,.,...,,..,.,.,...,...,..,,,,.,.,,,.,.,.,,,
+#VERIFYINFERENCESTARTUPEXAMPLE123456789012345678901234567890123456789012345
+#\\\|EXAMPLEPLACEHOLDEREXAMPLEPLACEHOLDEREXAMPLEPLACEHOLDEREXAMPLEP \ / AMOS7
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+
+#,,,,,...,,,,,,.,,..,,,.,,.,.,,,.,..,,..,,...,..,,...,...,,..,,..,,,,,,..,..,,
+#KHM5V6E4QTK4Y32BPXAE6K3KU5X263V7ZFHQOZB6PSCQDNWMMYRFUXUQCCXAESSMT5E6PQPPAHHS6
+#\\\|ZH6R65EKS2JDRX4BPGICHWY3X2BEUX3YE3VRUTNAV27LBJ3L2D6 \ / AMOS7 \ YOURUM ::
+#\[7]TSJKMNVPRODAKX7T4RQVGSWEBFAA3X4SK3YIM2CFSUJVHCPY72DQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

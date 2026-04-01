@@ -1,0 +1,78 @@
+## [:< ##
+
+# name  = coding.handler.inference_crash_restart
+# descr = Restart inference server after crash with same model
+
+my $data    = shift;
+my $backend = $data->{'params'}{'backend'} // 'gpu';
+
+<[base.logs]>->(
+    1, '[inference_crash_restart] restarting %s server after crash', $backend
+);
+
+## get server info ##
+my $servers     = <coding.inference_servers> // {};
+my $server_info = $servers->{$backend}       // {};
+
+## get the model that was loaded ##
+my $model_path = $server_info->{'model_path'}
+    // $server_info->{'last_model_path'} // '';
+
+if ( not length $model_path ) {
+    <[base.logs]>->(
+        0,
+        '[inference_crash_restart] no model_path for %s server, cannot restart',
+        $backend
+    );
+    $server_info->{'status'} = qw| failed |;
+    return FALSE;
+}
+
+## clear crashed status ##
+$server_info->{'status'} = qw| restarting |;
+
+## use existing restart infrastructure ##
+my $result = <[coding.handler.restart_server]>->(
+    {   'params' => {
+            'backend'    => $backend,
+            'model_path' => $model_path
+        }
+    }
+);
+
+if ($result) {
+    <[base.logs]>->(
+        1,
+        '[inference_crash_restart] %s server restart initiated successfully',
+        $backend
+    );
+    $server_info->{'status'} = qw| starting |;
+
+    ## schedule startup verification ##
+    <[event.add_timer]>->(
+        {   'after'   => 10.0,
+            'handler' => 'coding.handler.verify_inference_startup',
+            'params'  => { 'backend' => $backend }
+        }
+    );
+
+    return TRUE;
+} else {
+    <[base.logs]>->(
+        0, '[inference_crash_restart] %s server restart failed', $backend
+    );
+    $server_info->{'status'} = qw| failed |;
+    return FALSE;
+}
+
+#,,.,,..,,.,,,...,,.,,,..,,,.,,.,,,,.,...,,..,.,.,...,...,..,,,,.,.,,,.,.,.,,,
+#INFERENCECRASHRESTARTHANDLEREXAMPLE1234567890123456789012345678901234567890
+#\\\|EXAMPLEPLACEHOLDEREXAMPLEPLACEHOLDEREXAMPLEPLACEHOLDEREXAMPLEP \ / AMOS7
+#\[7]EXAMPLEPLACEHOLDEREXAMPLEPLACEHOLDEREXAMPLE 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::: Server startup verification
+
+#,,,.,.,.,,.,,.,,,,..,...,...,...,...,,.,,.,,,..,,...,...,.,.,,..,,..,,,,,,.,,
+#BW4AQAGUGKW6KADGHJ2QKXBFZWTNZF37M3U4664HOUDWFX6L5BTOFUS3GHFCJ6OUP6EIPWPDT3DLW
+#\\\|PMMC7N34M7HHEPJXMUBHO2L4MW7P32JN5EOJAP4GAJKRLC4AZJA \ / AMOS7 \ YOURUM ::
+#\[7]ZODCA34IU7E6L52JKIKDHRQL2IYUQEGUIJQKHKRCC52JL4KFWUCI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -191,6 +191,13 @@ if ( not <coding.state.initialized> ) {
 ## - coding.event.on_task_fail
 ## these are registered in the code registry when loaded
 
+## register SIGCHLD handler for inference server crash detection ##
+<[event.add_signal]>->(
+    {   'signal'  => 'CHLD',
+        'handler' => qw| coding.handler.inference_server_sigchld |
+    }
+);
+
 ## set up dependency tracking for inference server readiness ##
 <[dependency.install_callbacks]>->('coding');
 
@@ -342,8 +349,8 @@ if ( not $already_initialized ) {
 
 return 0;
 
-#,,.,,.,,,.,,,,,,,,,,,,,,,.,.,...,..,,,..,.,.,..,,...,...,,.,,,,.,.,.,,.,,...,
-#RHH6JKAF7RTJMOF7DLAJCLFIUORMWQBK6UQYS4UAEJGMGWICGHKSDUQQTV7IRG6JLJP7H4PHEU3ZA
-#\\\|77XAQ2PWRN4M7HGTWVCNTXYM66ATNUR5ON5SB4WFOTCMX6BQGLO \ / AMOS7 \ YOURUM ::
-#\[7]P2IJSB3E4UEVUOIIWKYYQW66QYH6NYC7TDVMCAKGIKBHTJUUF6DY 7  DATA SIGNATURE ::
+#,,..,.,.,.,.,..,,.,.,.,.,,.,,,,.,.,,,,..,,,.,..,,...,...,.,.,..,,.,.,.,.,.,,,
+#W7U25IAM7QVGJLIBPJ5MEWM5HFMJSVMLKSDYUV3POBXRB6DQVILES74RDRW7X4DH6IGXNPVZVCKIA
+#\\\|H2MJDSAI24IIHVJUV4TCKEQDICX4DCIC4SQQQFQ6OEVVXL4VTM7 \ / AMOS7 \ YOURUM ::
+#\[7]IMGYKMURLBWUBZZO6CF2KTHGSUGWAIVSPAOQM534T4QWYRFUUGAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
