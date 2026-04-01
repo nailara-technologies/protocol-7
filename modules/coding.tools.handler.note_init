@@ -1,0 +1,18 @@
+## [:< ##
+
+# name  = coding.tools.handler.note_init
+# descr = initialize notes workspace for current coding task
+
+my $args = shift // {};
+
+my $task_id = $args->{'task_id'} // <system.task_id> // 'unknown';
+
+## call generic note.init ##
+my $result = <[note.init]>->($task_id);
+
+return {
+    'content' => $result->{'mode'} eq qw| true |
+        ? "Notes workspace initialized for task $task_id"
+        : "Failed: " . ($result->{'data'} // 'unknown'),
+};
+

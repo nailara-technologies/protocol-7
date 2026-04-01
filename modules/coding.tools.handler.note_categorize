@@ -1,0 +1,21 @@
+## [:< ##
+
+# name  = coding.tools.handler.note_categorize
+# descr = categorize current task notes with a tag
+
+my $args = shift // {};
+
+my $tag = $args->{'tag'} // '';
+
+return { 'content' => 'tag required' } unless length $tag;
+
+my $result = <[note.categorize]>->($tag);
+
+return {
+    'content' => $result->{'mode'} eq qw| true |
+        ? sprintf("Task categorized with tag '%s' (%d tasks in category)",
+            $result->{'data'}{'tag'},
+            $result->{'data'}{'total'})
+        : "Failed: " . ($result->{'data'} // 'unknown'),
+};
+
