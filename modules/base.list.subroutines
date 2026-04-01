@@ -123,6 +123,7 @@ return [ qw[
         mpv.cmd.append
         melt.init_code
         kimi.wire.send
+        kimi.task.fail
         kimi.init_code
         keys.post_init
         keys.init_code
@@ -202,6 +203,7 @@ return [ qw[
         mpv.cmd.align-y
         mpv.cmd.align-x
         models.cmd.chat
+        kimi.task.queue
         kimi.cmd.reject
         index.init_code
         httpsd.pre_init
@@ -273,6 +275,8 @@ return [ qw[
         mpv.cmd.add_file
         models.init_code
         kimi.wire.prompt
+        kimi.task.status
+        kimi.task.intake
         kimi.cmd.approve
         jobqueue.add_job
         httpsd.post_init
@@ -371,6 +375,8 @@ return [ qw[
         models.memory.add
         models.cmd.status
         models.cmd.memory
+        kimi.task.execute
+        kimi.task.enqueue
         keys.get_keyfiles
         keys.console.path
         keys.console.list
@@ -483,6 +489,7 @@ return [ qw[
         models.attach_file
         mod-test.post_init
         letsencr.init_code
+        kimi.task.complete
         kimi.connect.local
         kimi.cmd.ask-reply
         kimi.cmd.approvals
@@ -3116,6 +3123,7 @@ return [ qw[
         httpd.handler.download_transfer.broken
         httpd.benchmark.get_event_loop_metrics
         graphics.matrix.visual.extract-palette
+        coding.handler.inference_crash_restart
         coding.callback.object_model_discovery
         coding.callback.object_model_available
         channels.memory-sync.conflict-resolver
@@ -3145,7 +3153,9 @@ return [ qw[
         coding.vision-parser.extract.clean_json
         coding.tools.handler.record_observation
         coding.parser.model_name_with_selection
+        coding.handler.verify_inference_startup
         coding.handler.model_discovery_complete
+        coding.handler.inference_server_sigchld
         coding.callback.object_inference_server
         coding.callback.object.inference_server
         channels.handler.llm-content-evaluation
@@ -3352,8 +3362,8 @@ return [ qw[
     ]
 ];
 
-#,,,,,,,,,,.,,,,.,,..,,,.,.,.,,,.,,.,,..,,,..,.,.,...,...,.,,,..,,.,.,...,,..,
-#AAWUNZ7JXXQMLKX72SU2T5K5WVP5YBAW6FWGWCDKXPJQ6OECSR5YIWIOES65U3Q3QOJPLKJYL2O4Y
-#\\\|RO3DIBMBYOCWMBKXF4ANKVJ2VT5RBXIACL4DMSIBTNC3TR323GJ \ / AMOS7 \ YOURUM ::
-#\[7]B73VXOQAQ4AKGOVZD4O5QTJ7GNAZZ6XI4OTGWMUW3RMHRMCBUMBQ 7  DATA SIGNATURE ::
+#,,..,.,.,,..,.,.,...,,,,,,..,,..,..,,...,,.,,.,.,...,...,...,..,,...,,..,.,.,
+#RAVWTDJAXQCAKYL6I5LJW63PJDEJRRIPSATFZTZFAL4QTAE4WLNEHZEMURYKPEKJ5IODRDCUHXJVK
+#\\\|NYQL4WHJB3JG4XPCZ7XOJKOUYFPP4B3NLGBTLFUC66THBDQ3IDM \ / AMOS7 \ YOURUM ::
+#\[7]MNIAF2DCSQKHBIJ4AFD7VIIUX4SRLHCTPMF56ABXFLAMC7XSS4CA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

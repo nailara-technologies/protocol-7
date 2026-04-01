@@ -1,0 +1,89 @@
+## [:< ##
+
+# name  = coding.handler.inference_server_sigchld
+# descr = SIGCHLD handler for inference server crash detection
+
+my $signal_data = shift // {};
+
+## extract signal info from event data structure ##
+my $child_pid = $signal_data->{'params'}{'child_pid'}
+    // $signal_data->{'child_pid'} // 0;
+my $exit_status = $signal_data->{'params'}{'exit_status'}
+    // $signal_data->{'exit_status'} // 0;
+
+## skip if no child pid (spurious signal) ##
+return unless $child_pid > 0;
+
+my $servers = <coding.inference_servers> // {};
+
+## check if this was an inference server process ##
+for my $backend (qw| gpu cpu |) {
+    my $server_info = $servers->{$backend} // {};
+    next unless defined $server_info->{'pid'};
+
+    if ( $server_info->{'pid'} == $child_pid ) {
+        <[base.logs]>->(
+            0,
+            '[inference_server_sigchld] %s server crashed [pid=%d exit=%d]',
+            $backend, $child_pid, $exit_status
+        );
+
+        ## mark server as crashed ##
+        $server_info->{'status'}      = qw| crashed |;
+        $server_info->{'crashed_at'}  = <[base.time]>->(3);
+        $server_info->{'exit_status'} = $exit_status;
+
+        ## schedule restart with backoff ##
+        my $restart_count = $server_info->{'restart_count'} // 0;
+        $restart_count++;
+        $server_info->{'restart_count'} = $restart_count;
+
+        ## exponential backoff: 5s, 10s, 20s, 30s, max 60s ##
+        my $backoff
+            = $restart_count <= 1 ? 5
+            : $restart_count == 2 ? 10
+            : $restart_count == 3 ? 20
+            : $restart_count == 4 ? 30
+            :                       60;
+
+        ## max 5 restart attempts ##
+        if ( $restart_count > 5 ) {
+            <[base.logs]>->(
+                0,
+                '[inference_server_sigchld] max restarts exceeded for %s server',
+                $backend
+            );
+            $server_info->{'status'} = qw| failed |;
+            next;
+        }
+
+        <[base.logs]>->(
+            1,
+            '[inference_server_sigchld] scheduling %s restart in %ds (attempt %d/5)',
+            $backend,
+            $backoff,
+            $restart_count
+        );
+
+        <[event.add_timer]>->(
+            {   'after'   => $backoff,
+                'handler' => 'coding.handler.inference_crash_restart',
+                'params'  => { 'backend' => $backend }
+            }
+        );
+
+        last;    ## only handle one server per signal ##
+    }
+}
+
+#,,.,,..,,.,,,...,,.,,,..,,,.,,.,,,,.,...,,..,.,.,...,...,..,,,,.,.,,,.,.,.,,,
+#SIGCHLDINFERENCESERVERCRASHDETECTION1234567890123456789012345678901234567890
+#\\\|EXAMPLEPLACEHOLDEREXAMPLEPLACEHOLDEREXAMPLEPLACEHOLDEREXAMPLEP \ / AMOS7
+#\[7]EXAMPLEPLACEHOLDEREXAMPLEPLACEHOLDEREXAMPLE 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+
+#,,.,,,,,,.,.,...,,,.,.,,,,,,,..,,...,,,.,.,,,..,,...,..,,..,,,,,,.,,,.,.,..,,
+#Y2RW277TMJXZ6F5WRN2HCM7ICLLOCX2WTAOWMT6OKU2HCPB5NMBJUBG5EL7QYOBXWVNPNCWHKC44Y
+#\\\|3GRMBE4YWBXPUQ5OLNWK5MGHBW7DCTQ3F4SWFP7ZLLBQLGB2JWV \ / AMOS7 \ YOURUM ::
+#\[7]H6T6ECUJQ23QYJTJSGIYKOH3KQZOJESV2APQSQUZ7P7H6RVXZSAI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
