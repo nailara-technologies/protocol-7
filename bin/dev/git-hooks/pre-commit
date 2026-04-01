@@ -19,10 +19,11 @@ my $rd  = "\e[38;2;220;20;60m";    # crimson
 
 my $skip_backup_files = 1;         # ignores *~ filenames
 
-## Check for --no-verify flag to allow bypass
+## Check for -bypass-sig-check flag to allow bypass
 my $allow_unsigned = 0;
 for my $arg (@ARGV) {
-    $allow_unsigned = 1 if $arg eq '--no-verify' || $arg eq qw| -n |;
+    $allow_unsigned = 1
+        if $arg eq qw| -bypass-sig-check | || $arg eq qw| -b |;
 }
 
 my $skip_version_check   = $ENV{'SKIP_VERSION_CHECK'}   // 0;
@@ -165,8 +166,12 @@ unless ($skip_version_check) {
         print STDERR "${fg}:: ${no}hint${rst}${fg} : version numbers ensure "
             . "commits are properly tracked\n";
         print STDERR "${fg}::\n";
-        print STDERR "${fg}:: to override this check: ${bl}git commit "
-            . "--no-verify$rst or ${bl}SKIP_VERSION_CHECK=1 git commit$rst\n";
+
+        print STDERR "${fg}:: do _not_ override with : "
+            . "${bl}git commit -bypass-sig-check$rst "
+            . "or ${bl}SKIP_SIGNATURE_CHECK=1 "
+            . "git commit$rst\n";
+
         print STDERR "${fg}::\n$rst";
         exit 1 unless $allow_unsigned;
     }
@@ -218,8 +223,11 @@ unless ($skip_signature_check) {
             . "run ${bl}bin/Protocol-7 sourcecode "
             . "update-signatures$rst$fg to sign\n";
         print STDERR "${fg}::\n";
-        print STDERR "${fg}:: to override: "
-            . "${bl}SKIP_SIGNATURE_CHECK=1 git commit$rst\n";
+
+        print STDERR "${fg}:: do _not_ override with : "
+            . "${bl}git commit -bypass-sig-check$rst "
+            . "or ${bl}SKIP_SIGNATURE_CHECK=1 "
+            . "git commit$rst\n";
         print STDERR "${fg}::\n$rst";
         exit 1 unless $allow_unsigned;
     }
@@ -241,8 +249,9 @@ unless ($skip_signature_check) {
             . "run ${bl}bin/Protocol-7 sourcecode "
             . "update-signatures$rst$fg to sign\n";
         print STDERR "${fg}::\n";
-        print STDERR "${fg}:: to override this check: "
-            . "${bl}git commit --no-verify$rst or ${bl}SKIP_SIGNATURE_CHECK=1 "
+        print STDERR "${fg}:: do _not_ override with : "
+            . "${bl}git commit -bypass-sig-check$rst "
+            . "or ${bl}SKIP_SIGNATURE_CHECK=1 "
             . "git commit$rst\n";
         print STDERR "${fg}::\n$rst";
         exit 1 unless $allow_unsigned;
@@ -254,8 +263,8 @@ unless ($skip_signature_check) {
 print ":\n: done.\n:\n";
 exit 0;
 
-#,,,.,.,.,,.,,..,,..,,,.,,.,.,,,,,,.,,,,,,,,,,..,,...,...,..,,.,.,...,,,,,...,
-#LNL3HOBI5IZ7CXIOQ4NBOK7WZRUFKSJJPGMXMXZBIMTCJOO3ZA4YX3YIY5THYI6W2OUAPNHGMXLIS
-#\\\|K4LHAWLEMF7BCCH7YRVBKUME4ZHRGJ3G5LLUSKIPPJCLIQBZFL4 \ / AMOS7 \ YOURUM ::
-#\[7]R6FPKBJHWY7Y2RHADW5ILSQSZ2LFSE6XVZOKAFJIJ4GCFNEHXQBA 7  DATA SIGNATURE ::
+#,,..,,.,,..,,,,,,.,,,,,,,,,.,,,,,,,.,,,,,.,,,..,,...,...,..,,.,.,,,,,,,,,,..,
+#G4TVDAHRBG5SQZKEDIGFOJR435JW4JTHMKDIW3KOZKI4MSSTPRKG37AZ45ROAUEDBHNWVEIRHZJZK
+#\\\|WUZ6UGIHTWNQKQDZBGFZH6QESXB2P6IJI6BKKIUZMNPLHNQW6XE \ / AMOS7 \ YOURUM ::
+#\[7]JJ3NN5MNBUDZTBBRVYS4ZKVLQJWJ55MO5YIQJNDLOLINOWP2RKCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

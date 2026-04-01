@@ -1,0 +1,45 @@
+## [:< ##
+
+# name  = coding.task.failed.list
+# descr = list failed tasks with optional filters
+
+my ($filter_type, $max_results) = @ARG;
+
+$max_results //= 20;
+
+my $failed_queue = <coding.task.failed.queue> // {};
+my @results;
+
+for my $task_id (sort { $failed_queue->{$b}->{'execution'}->{'failed_at'} <=> 
+                        $failed_queue->{$a}->{'execution'}->{'failed_at'} } keys %$failed_queue) {
+    
+    my $task = $failed_queue->{$task_id};
+    my $exec = $task->{'execution'} // {};
+    
+    ## filter by failure type if requested ##
+    if (defined $filter_type && length $filter_type) {
+        next unless ($exec->{'failure_type'} // '') eq $filter_type;
+    }
+    
+    push @results, {
+        'task_id'      => $task_id,
+        'failed_at'    => $exec->{'failed_at'},
+        'error'        => <[base.parser.ellipse_center]>->($exec->{'error'} // 'unknown', 80),
+        'failure_type' => $exec->{'failure_type'} // 'unknown',
+        'retry_count'  => $exec->{'retry_count'} // 0,
+        'type'         => $task->{'type'} // 'unknown',
+    };
+    
+    last if @results >= $max_results;
+}
+
+return {
+    'mode' => qw| true |,
+    'data' => \\&results,
+};
+
+#,,,,,..,,...,,,.,,.,,,,.,..,,,,,,,..,,..,,,,,.,.,...,...,..,,,.,,...,,..,..,,
+#NEMGTENO745VKYG45T5RHSTLWCP4QC7G3I7KPY5DTCGPOL2KDHWUC6ZQMCOMTMIE7LZKD3F76ITXU
+#\\\|6KKYGUBLEQVV7Y5FLAZSCXTOGIBRWCPGHEODWT3THREQO5ZUY2U \ / AMOS7 \ YOURUM ::
+#\[7]Q2DIIEG7QJDO4PRUJNCPYP24OQNQIAU54FDAFZEPNOT6LLP6AICY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

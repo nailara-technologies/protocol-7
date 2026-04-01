@@ -1,0 +1,39 @@
+## [:< ##
+
+# name  = coding.cmd.failed
+# descr = list failed tasks with optional filters
+
+my $filter = $call->{'args'} // '';
+
+my $result = <[coding.task.failed.list]>->($filter, 20);
+
+my $output;
+if ($result->{'mode'} eq qw| true |) {
+    my $tasks = $result->{'data'} // [];
+    
+    if (@$tasks) {
+        $output = "Failed tasks:\n\n";
+        for my $t (@$tasks) {
+            $output .= sprintf("%s | %s | %s | retries:%d\n  %s\n\n",
+                $t->{'task_id'},
+                $t->{'failure_type'},
+                scalar(localtime($t->{'failed_at'})),
+                $t->{'retry_count'},
+                $t->{'error'}
+            );
+        }
+    } else {
+        $output = "No failed tasks";
+        $output .= " matching filter '$filter'" if $filter;
+    }
+} else {
+    $output = "Error: " . ($result->{'data'} // 'unknown');
+}
+
+return { 'mode' => qw| size |, 'data' => $output };
+
+#,,,,,...,,..,..,,.,,,,,.,,,,,...,,,.,.,.,.,,,.,.,...,...,...,..,,,,,,.,.,.,.,
+#K4DJ2VYO2R6JWSMTMMWK7T7MOORIMS64LKCGVASDJUY3U76SKZIBAN6HRQDMMAG32QIDD4EVQOH4Q
+#\\\|CSBUPY2HW7COXN2IY4D7LTNPY7WLHQJC3SW3RUET3KUXWW2BRG7 \ / AMOS7 \ YOURUM ::
+#\[7]VZEVOZCBS6RGP5T6QKQEGLMYK4SXTJHGBTDBIVP3D3HLHVR6IYAY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
