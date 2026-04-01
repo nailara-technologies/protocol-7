@@ -1,0 +1,377 @@
+# Planning Tool Specifications
+# Each tool defines a callable module with structured parameters
+
+---
+# Core Planner Tools
+# ==================
+
+planner.task-decomposer:
+  name: "planner.task-decomposer"
+  description: "Recursively decompose a task into atomic operations with dependencies"
+  namespace: "data.planning.planner"
+  parameters:
+    - name: task
+      type: string
+      required: true
+      description: "The high-level task to decompose"
+    - name: depth
+      type: integer
+      required: false
+      default: 3
+      description: "Maximum decomposition depth"
+    - name: budget
+      type: integer
+      required: false
+      default: 2000
+      description: "Token budget for analysis"
+    - name: tools
+      type: array
+      required: false
+      default:
+        - read_file
+        - read_module
+        - list_files
+        - search_code
+      description: "Available coding.tools for decomposition"
+  output:
+    - mode: true
+      data:
+        - subtasks: array
+          - name: string
+            description: string
+            dependencies: array
+            tools_required: array
+            estimated_cost: integer
+            parallelizable: boolean
+        - total_steps: integer
+        - critical_path: array
+        - resource_requirements: object
+
+planner.workflow-builder:
+  name: "planner.workflow-builder"
+  description: "Construct an execution plan with ordering, dependencies, and error handling"
+  namespace: "data.planning.planner"
+  parameters:
+    - name: subtasks
+      type: array
+      required: true
+      description: "Array of decomposed subtasks"
+    - name: constraints
+      type: object
+      required: false
+      description: "Execution constraints (time, resources, etc.)"
+    - name: retry_policy
+      type: object
+      required: false
+      default:
+        max_retries: 3
+        delay_seconds: 5
+      description: "Retry strategy for failures"
+  output:
+    - mode: true
+      data:
+        - workflow: array
+          - step_id: string
+            task: string
+            order: integer
+            dependencies: array
+            timeout_seconds: integer
+            retry_count: integer
+            error_handler: string
+        - execution_graph: object
+        - estimated_total_time_seconds: integer
+        - resource_estimate: object
+
+planner.strategy-selector:
+  name: "planner.strategy-selector"
+  description: "Select the most appropriate planning mode based on task context"
+  namespace: "data.planning.planner"
+  parameters:
+    - name: task
+      type: string
+      required: true
+      description: "The task description"
+    - name: context
+      type: object
+      required: false
+      description: "Additional context (current errors, recent changes, etc.)"
+    - name: available_tools
+      type: array
+      required: false
+      default:
+        - read_file
+        - write_new_file
+        - read_module
+        - module_deps
+      description: "Available tools"
+  output:
+    - mode: true
+      data:
+        - recommended_mode: string
+          options:
+            - analytical
+            - construction
+            - optimization
+            - debug
+        - confidence_score: float
+        - rationale: string
+        - alternative_modes: array
+        - tool_recommendations: array
+
+# Evaluators
+# ==========
+
+evaluators.cost-analyzer:
+  name: "evaluators.cost-analyzer"
+  description: "Estimate resource costs for a planned operation"
+  namespace: "data.planning.evaluators"
+  parameters:
+    - name: plan
+      type: object
+      required: true
+      description: "The plan to analyze"
+    - name: current_budget
+      type: integer
+      required: false
+      default: 5000
+      description: "Current token budget"
+    - name: cost_model
+      type: object
+      required: false
+      description: "Custom cost model (defaults: file=500, module=1000, write=800)"
+  output:
+    - mode: true
+      data:
+        - estimated_tokens: integer
+        - estimated_time_seconds: integer
+        - file_operations: integer
+        - module_operations: integer
+        - write_operations: integer
+        - budget_sufficient: boolean
+        - recommendations: array
+
+evaluators.risk-assessor:
+  name: "evaluators.risk-assessor"
+  description: "Identify and assess risks in a proposed plan"
+  namespace: "data.planning.evaluators"
+  parameters:
+    - name: plan
+      type: object
+      required: true
+      description: "The plan to assess"
+    - name: context
+      type: object
+      required: false
+      description: "Current system state"
+    - name: risk_categories
+      type: array
+      required: false
+      default:
+        - integration
+        - data-loss
+        - performance
+        - security
+      description: "Risk categories to check"
+  output:
+    - mode: true
+      data:
+        - risks: array
+          - category: string
+            severity: string
+            likelihood: float
+            impact: string
+            mitigation: string
+        - overall_risk_score: float
+        - high_priority_risks: array
+        - recommended_actions: array
+
+evaluators.feasibility-check:
+  name: "evaluators.feasibility-check"
+  description: "Validate whether a plan is technically feasible"
+  namespace: "data.planning.evaluators"
+  parameters:
+    - name: plan
+      type: object
+      required: true
+      description: "The plan to validate"
+    - name: available_modules
+      type: array
+      required: false
+      description: "List of available modules"
+    - name: constraints
+      type: object
+      required: false
+      description: "System constraints"
+  output:
+    - mode: true
+      data:
+        - feasible: boolean
+        - feasibility_score: float
+        - blockers: array
+        - prerequisites: array
+        - alternatives: array
+        - validation_details: object
+
+# Executors
+# =========
+
+executors.step-runner:
+  name: "executors.step-runner"
+  description: "Execute a single step in a plan with error handling"
+  namespace: "data.planning.executors"
+  parameters:
+    - name: step
+      type: object
+      required: true
+      description: "The step to execute"
+    - name: context
+      type: object
+      required: false
+      description: "Execution context"
+    - name: available_tools
+      type: array
+      required: false
+      default:
+        - read_file
+        - write_new_file
+        - read_module
+      description: "Available tools"
+    - name: step_timeout
+      type: integer
+      required: false
+      default: 300
+      description: "Step timeout in seconds"
+  output:
+    - mode: true
+      data:
+        - success: boolean
+        - result: any
+        - errors: array
+        - warnings: array
+        - execution_time_seconds: integer
+        - state_snapshot: object
+
+executors.rollback-handler:
+  name: "executors.rollback-handler"
+  description: "Handle plan execution failures with rollback capabilities"
+  namespace: "data.planning.executors"
+  parameters:
+    - name: failure
+      type: object
+      required: true
+      description: "The failure that occurred"
+    - name: plan
+      type: object
+      required: true
+      description: "Original plan for rollback"
+    - name: checkpoint
+      type: object
+      required: false
+      description: "Last known good state"
+    - name: rollback_strategy
+      type: string
+      required: false
+      default: "partial"
+      description: "rollback: immediate, partial, or analyze"
+  output:
+    - mode: true
+      data:
+        - rollback_executed: boolean
+        - recovery_status: string
+        - remaining_steps: array
+        - new_plan: object
+        - recommendations: array
+
+# State Management
+# ================
+
+state.context-store:
+  name: "state.context-store"
+  description: "Store and retrieve per-plan context"
+  namespace: "data.planning.state"
+  parameters:
+    - name: operation
+      type: string
+      required: true
+      description: "get, set, or clear"
+    - name: plan_id
+      type: string
+      required: true
+      description: "Unique plan identifier"
+    - name: key
+      type: string
+      required: false
+      description: "Context key (for get/set)"
+    - name: value
+      type: any
+      required: false
+      description: "Context value (for set)"
+  output:
+    - mode: true
+      data:
+        - operation_result: any
+        - context_size_bytes: integer
+        - storage_path: string
+
+state.history:
+  name: "state.history"
+  description: "Maintain execution history and trace"
+  namespace: "data.planning.state"
+  parameters:
+    - name: operation
+      type: string
+      required: true
+      description: "append, get, or clear"
+    - name: plan_id
+      type: string
+      required: true
+      description: "Unique plan identifier"
+    - name: entry
+      type: object
+      required: false
+      description: "History entry (for append)"
+  output:
+    - mode: true
+      data:
+        - history_entry: object
+        - total_entries: integer
+        - oldest_timestamp: string
+        - newest_timestamp: string
+
+# Module Dependencies
+# ===================
+
+planning.supporting-modules:
+  name: "planning.supporting-modules"
+  description: "Modules required by planning system"
+  namespace: "data.planning"
+  required_modules:
+    - base.logs
+      for: "All modules for error/info/debug logging"
+    - file.put
+      for: "File write operations"
+    - file.zenka_dir.write
+      for: "Staged file writes when no access"
+    - coding.chmod_child.w_fh
+      for: "File permission management"
+    - system.root_path
+      for: "Root path resolution"
+  optional_modules:
+    - context.module.dep_graph
+      for: "Dependency visualization"
+    - context.module.dependencies
+      for: "Module dependency analysis"
+    - context.error.recent
+      for: "Error log access"
+    - context.file
+      for: "File read operations"
+    - pager.source.file-list
+      for: "Directory listing"
+    - file.extract
+      for: "Smart file extraction"
+
+#,,,,,,,,,,,,,,,,,...,,..,,,.,,,.,,.,,,,,,.,.,...,...,...,...,..,,.,.,...,.,.,
+#GLDV4JYMBSM4YNUSPHKW3DPVAB6R7FODPKHHOEM5Z326KEMT5Q6W5725IPIEFUXF74ILUJSCCSXJS
+#\\\|7MMD4UBEXPMWUGCSB6B2MEFEAYIHZZSB2ECRIRSYAAMZ7IGHNLP \ / AMOS7 \ YOURUM ::
+#\[7]BL5V4XIBWVWDFH3MB7LMM7VJALZW2EJHJQ5DW34FGYJJAPAW2EDQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
