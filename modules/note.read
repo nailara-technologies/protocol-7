@@ -3,10 +3,10 @@
 # name  = note.read
 # descr = read notes at specified detail level (L1|L2|L3)
 
-my ($task_id, $level) = @ARG;
+my ( $task_id, $level ) = @ARG;
 
 $task_id //= <system.task_id> // 'unknown';
-$level  //= 'L3';  ## default to full workspace ##
+$level   //= 'L3';                            ## default to full workspace ##
 
 my $base_dir = <[file.zenka_dir.data]> . '/notes';
 my $task_dir = "$base_dir/$task_id";
@@ -15,11 +15,11 @@ return { 'mode' => qw| false |, 'data' => 'task not found' }
     unless -d $task_dir;
 
 ## L1: Short summary only ##
-if ($level eq 'L1') {
+if ( $level eq 'L1' ) {
     my $short_file = "$task_dir/summary.short";
     return { 'mode' => qw| false |, 'data' => 'no L1 summary' }
         unless -f $short_file && -s $short_file;
-    
+
     my $content = <[file.read]>->($short_file);
     return {
         'mode' => qw| true |,
@@ -32,11 +32,11 @@ if ($level eq 'L1') {
 }
 
 ## L2: Long summary + key findings ##
-if ($level eq 'L2') {
+if ( $level eq 'L2' ) {
     my $long_file = "$task_dir/summary.long";
     return { 'mode' => qw| false |, 'data' => 'no L2 summary' }
         unless -f $long_file && -s $long_file;
-    
+
     my $content = <[file.read]>->($long_file);
     return {
         'mode' => qw| true |,
@@ -71,3 +71,8 @@ return {
     }
 };
 
+#,,.,,,,.,,..,,.,,,,.,...,..,,...,..,,...,,.,,.,.,...,..,,,.,,...,,..,.,.,,,,,
+#K7RDWYNAUPKCVJLIDJWZQNCO7YM2YOSBLMJC7G7LUP222OJZENHCGMHC6IPSJ6C7U24LOLMIWY7QI
+#\\\|7QABLQFVZORCALCHKQXT7ZZ5TP6XXT3L4QOZAWHAJR2GFSZEU4D \ / AMOS7 \ YOURUM ::
+#\[7]RJN2DA5GU2PRYO6KQO4SBUFUK3VMVC64WBXQSAPZLMDYGUNBJMDQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

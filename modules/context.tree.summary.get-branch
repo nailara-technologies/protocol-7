@@ -5,88 +5,86 @@
 
 my ($args) = @_;
 
-    my $branch        = $args->{'branch'}        // 'general';
-    my $time_range    = $args->{'time_range'}    // [ '-1 hour', 'now' ];
-    my $min_relevance = $args->{'min_relevance'} // 0.0;
-    my $max_events    = $args->{'max_events'}    // 100;
-    my $format = $args->{'format'} // 'events'; # events | summary | narrative
+my $branch        = $args->{'branch'}        // 'general';
+my $time_range    = $args->{'time_range'}    // [ '-1 hour', 'now' ];
+my $min_relevance = $args->{'min_relevance'} // 0.0;
+my $max_events    = $args->{'max_events'}    // 100;
+my $format = $args->{'format'} // 'events';    # events | summary | narrative
 
-    my $tree = $data{'context'}{'tree'}{'summary'};
+my $tree = $data{'context'}{'tree'}{'summary'};
 
-    ## resolve time range ##
-    my ( $start_time, $end_time )
-        = <[context.util.tree.resolve_time_range]>->($time_range);
+## resolve time range ##
+my ( $start_time, $end_time )
+    = <[context.util.tree.resolve_time_range]>->($time_range);
 
-    # Get events from branch index
-    my $all_checksums = $tree->{'index'}{'by_branch'}{$branch} // [];
+# Get events from branch index
+my $all_checksums = $tree->{'index'}{'by_branch'}{$branch} // [];
 
-    # Filter by time and relevance
-    my @filtered;
-    for my $checksum (@$all_checksums) {
-        my $event = $tree->{'events'}{$checksum};
-        next unless $event;
+# Filter by time and relevance
+my @filtered;
+for my $checksum (@$all_checksums) {
+    my $event = $tree->{'events'}{$checksum};
+    next unless $event;
 
-        # Time filter
-        next if $event->{'timestamp'} < $start_time;
-        next if $event->{'timestamp'} > $end_time;
+    # Time filter
+    next if $event->{'timestamp'} < $start_time;
+    next if $event->{'timestamp'} > $end_time;
 
-        # Relevance filter
-        next if $event->{'relevance'}{'total'} < $min_relevance;
+    # Relevance filter
+    next if $event->{'relevance'}{'total'} < $min_relevance;
 
-        push @filtered, $event;
-    }
+    push @filtered, $event;
+}
 
-    # Sort by relevance (desc), then time (desc)
-    @filtered = sort {
-               $b->{'relevance'}{'total'} <=> $a->{'relevance'}{'total'}
-            || $b->{'timestamp'} <=> $a->{'timestamp'}
-    } @filtered;
+# Sort by relevance (desc), then time (desc)
+@filtered = sort {
+           $b->{'relevance'}{'total'} <=> $a->{'relevance'}{'total'}
+        || $b->{'timestamp'} <=> $a->{'timestamp'}
+} @filtered;
 
-    # Limit
-    if ( @filtered > $max_events ) {
-        @filtered = @filtered[ 0 .. $max_events - 1 ];
-    }
+# Limit
+if ( @filtered > $max_events ) {
+    @filtered = @filtered[ 0 .. $max_events - 1 ];
+}
 
-    $tree->{'stats'}{'queries_served'}++;
+$tree->{'stats'}{'queries_served'}++;
 
-    # Format output
-    if ( $format eq 'events' ) {
-        return {
-            'mode' => 'true',
-            'data' => {
-                'branch'      => $branch,
-                'time_range'  => [ $start_time, $end_time ],
-                'event_count' => scalar(@filtered),
-                'events'      => \@filtered,
-            },
-        };
-    } elsif ( $format eq 'summary' ) {
-        my $summary = <[context.util.tree.generate_summary]>->( \@filtered );
-        return {
-            'mode' => 'true',
-            'data' => {
-                'branch'       => $branch,
-                'summary'      => $summary,
-                'source_count' => scalar(@filtered),
-            },
-        };
-    } elsif ( $format eq 'narrative' ) {
-        my $narrative
-            = <[context.util.tree.generate_narrative]>->( \@filtered );
-        return {
-            'mode' => 'true',
-            'data' => {
-                'branch'    => $branch,
-                'narrative' => $narrative,
-            },
-        };
-    }
+# Format output
+if ( $format eq 'events' ) {
+    return {
+        'mode' => 'true',
+        'data' => {
+            'branch'      => $branch,
+            'time_range'  => [ $start_time, $end_time ],
+            'event_count' => scalar(@filtered),
+            'events'      => \@filtered,
+        },
+    };
+} elsif ( $format eq 'summary' ) {
+    my $summary = <[context.util.tree.generate_summary]>->( \@filtered );
+    return {
+        'mode' => 'true',
+        'data' => {
+            'branch'       => $branch,
+            'summary'      => $summary,
+            'source_count' => scalar(@filtered),
+        },
+    };
+} elsif ( $format eq 'narrative' ) {
+    my $narrative = <[context.util.tree.generate_narrative]>->( \@filtered );
+    return {
+        'mode' => 'true',
+        'data' => {
+            'branch'    => $branch,
+            'narrative' => $narrative,
+        },
+    };
+}
 
-    return { 'mode' => 'false', 'data' => 'unknown format' };
-};
+return { 'mode' => 'false', 'data' => 'unknown format' };
 
-#,,.,,,..,...,..,,,..,...,.,,,,,,,..,,.,.,,,,,.,.,...,...,..,,,,.,,,.,...,...,
-#3TMZQCL6S7B55HWVCY2XUQ5GZSLWTIT6BSWJJ2JMSNMES2OZAGDJAMMLYFZU25PVN4ZXC3QD66IKY
-#\\\|ZS5EUKGQ6NNNJHUO4YFHDECG7632FMZ6NYKH3SB7IHXMIP4C6RD \ / AMOS7 \ YOURUM ::
-#\[7]MDDWD3726X6WG2XD2UDLNHMMQ24UUWGPAEU76LBML22OJDS7LODQ 7  DATA SIGNATURE ::
+#,,.,,,.,,,,,,.,,,,..,,..,...,..,,,.,,.,,,,,.,.,.,...,...,..,,,,.,...,,..,,,.,
+#P65VBLLVXQBPCRB4BVUUZU74QFYABIT2FATXKMPE4IE6J7SF7DRTP7NSAEGI2YMMMHI3IJ5YU2F66
+#\\\|UXBRVLJBOVVHZZUKXD4Z273RFNNR2CMC6XRUIHDAPRK3TP3QZZH \ / AMOS7 \ YOURUM ::
+#\[7]JPCOGWJOPMHJBB7VU2KBBFFRZXPBB7SM3QXMKXYEKZVEW7HFPGAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
