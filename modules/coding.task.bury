@@ -1,0 +1,46 @@
+## [:< ##
+
+# name  = coding.task.bury
+# descr = permanently archive failed task to failed-stopped state
+
+my ($task_id, $reason) = @ARG;
+
+return { 'mode' => qw| false |, 'data' => 'task_id required' }
+    unless defined $task_id && length $task_id;
+
+my $failed_queue = <coding.task.failed.queue> // {};
+
+return { 'mode' => qw| false |, 'data' => 'task not found' }
+    unless exists $failed_queue->{$task_id};
+
+my $task = delete $failed_queue->{$task_id};
+
+## move to failed-stopped queue ##
+my $stopped_queue = <coding.task.failed_stopped.queue> //= {};
+$task->{'execution'}->{'buried_at'} = <[base.time]>->(3);
+$task->{'execution'}->{'bury_reason'} = $reason // 'manually stopped';
+$task->{'execution'}->{'status'} = 'failed-stopped';
+
+$stopped_queue->{$task_id} = $task;
+
+<[base.logs]>->(
+    0,
+    "::task:: buried [%s] to failed-stopped: %s",
+    $task_id,
+    $task->{'execution'}->{'bury_reason'}
+);
+
+return {
+    'mode' => qw| true |,
+    'data' => {
+        'task_id' => $task_id,
+        'buried_at' => $task->{'execution'}->{'buried_at'},
+        'reason'    => $task->{'execution'}->{'bury_reason'},
+    }
+};
+
+#,,,.,.,.,,.,,.,.,.,,,.,,,.,,,,,.,..,,,.,,.,,,.,.,...,..,,,,,,..,,...,.,,,,,.,
+#QPE35GCDQAWBNOJXBAT4HURCABLROSOIUBR3A5VJE64SRUT525QX7QZIWXB2IZIR3R2I65VX3VFCM
+#\\\|EHCTLDQE5CZSLFOFMCVTTZ4YOOSJCUB6AUBGKNCTWN52YQ4BQAD \ / AMOS7 \ YOURUM ::
+#\[7]Y6HCW37ADKRZHRVINZWVBTN5TEZPZUA2OGRELNKFG6LPS4NCQYAA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

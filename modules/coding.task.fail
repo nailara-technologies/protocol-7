@@ -1,41 +1,49 @@
 ## [:< ##
 
-# name = coding.task.fail
-# descr = mark coding task as failed
-# purpose = coding task management : wrapper around jobqueue.move_job to mark job failed with error
+# name  = coding.task.fail
+# descr = move failed task to failed queue with error context
 
-my ( $job_id, $error_msg ) = @ARG;
+my ($task, $error, $failure_type) = @ARG;
+
+return { 'mode' => qw| false |, 'data' => 'task required' }
+    unless ref $task eq qw| HASH |;
+
+$task->{'execution'} //= {};
+$task->{'execution'}->{'failed_at'}    = <[base.time]>->(3);
+$task->{'execution'}->{'error'}        = $error // 'unknown error';
+$task->{'execution'}->{'failure_type'} = $failure_type // 'unknown';
+$task->{'execution'}->{'retry_count'} //= 0;
+$task->{'execution'}->{'status'}       = 'failed';
+
+## store in failed queue ##
+my $failed_queue = <coding.task.failed.queue> //= {};
+$failed_queue->{$task->{'id'}} = $task;
+
+## remove from active queue ##
+if (exists <coding.task.queue>->{$task->{'id'}}) {
+    delete <coding.task.queue>->{$task->{'id'}};
+}
+
+<[base.logs]>->(
+    0,
+    "::task:: failed [%s]: %s [type: %s, retries: %d]",
+    $task->{'id'},
+    <[base.parser.ellipse_center]>->($error // 'unknown', 60),
+    $task->{'execution'}->{'failure_type'},
+    $task->{'execution'}->{'retry_count'}
+);
 
 return {
-    success => FALSE,
-    error   => 'job_id required'
+    'mode' => qw| true |,
+    'data' => {
+        'task_id' => $task->{'id'},
+        'failed_at' => $task->{'execution'}->{'failed_at'},
+        'retry_count' => $task->{'execution'}->{'retry_count'},
     }
-    unless defined $job_id;
-
-$error_msg //= 'task execution failed';
-
-# Get job data before moving to verify it exists
-my $job_data = <[jobqueue.get_job_data]>->($job_id);
-
-return {
-    success => FALSE,
-    error   => "task not found : $job_id"
-    }
-    unless defined $job_data;
-
-# Move job to error queue
-<[jobqueue.move_job]>->( $job_id, 'error' );
-
-return {
-    success => TRUE,
-    job_id  => $job_id,
-    task_id => $job_data->{object_id},
-    error   => $error_msg,
-    message => "task failed : $job_id"
 };
 
-#,,,.,.,,,.,,,.,.,.,.,.,.,...,,,.,.,,,.,,,,,.,..,,...,..,,.,.,.,,,,,,,...,,,.,
-#RIS34QEMNMVJGDKLPHYXYGAA6XUBRG62MGZCFCHSZR6CBKHUYHJM6VWQZ3I2LO4OYPSJSJBTTISQA
-#\\\|DHBAJIIEHZAK7QOO7EEPSBY7TVDURXCLATL76LERXE7ORSIWK7T \ / AMOS7 \ YOURUM ::
-#\[7]UNEOSWN4KKGGQP6XA4G7CSMJYTE56HP7LHFQ52VAGPNXSDKQXWDI 7  DATA SIGNATURE ::
+#,,.,,.,.,..,,,,,,.,,,...,.,.,.,.,..,,,,.,...,.,.,...,...,.,.,.,,,...,,.,,..,,
+#7M3WCNUNVTMXGDUZQ2M23DV7O2ORVORMZAQT7FA4PP4WI3IIGJ634JG5B6WNCRYOEGNH2MLCK3P2E
+#\\\|CVMTZY64YOYFHNY2YUEB4O4NW3CBNTWYIX4LHC74NABYZ7B6QFE \ / AMOS7 \ YOURUM ::
+#\[7]HENL53JBIYXKPSHLNF5KNDS6KBOT76OKR5AYBJ6OHETAZDN3J4AY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
