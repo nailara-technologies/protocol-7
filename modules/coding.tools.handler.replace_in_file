@@ -19,7 +19,6 @@ if ( $path !~ m|/| and $path =~ m|\.\w+\.| ) {
 }
 
 ## validate path stays within project [ resolve symlinks ] ##
-use Cwd qw| abs_path |;
 my $real_path = Cwd::abs_path($abs_path) // '';
 my $real_root = Cwd::abs_path($root)     // '';
 return 'error: path escapes project root'
@@ -112,8 +111,8 @@ return sprintf "staged replace in %s [ -%d +%d chars, no write access ]\n"
     . "staged at: %s",
     $path, length($old_string), length($new_string), $stage_rel;
 
-#,,.,,.,,,,,,,...,,,,,..,,.,.,,.,,.,.,,..,.,,,.,.,...,...,,.,,,.,,..,,.,.,,,.,
-#HDP6RERPSNQNA7AG3TVQAHYPDHHANC7E7B35HNQ3WQ2ICI2WTWC2F27NAHSD7OKSNQDOJGY7P5VNS
-#\\\|PEFVEDPAKERVFAWPW3JFDF6JHHHFUDABDUMNPXTVUY723Y5U2CO \ / AMOS7 \ YOURUM ::
-#\[7]JC52LQYL7UPXJPWHFQZ655H7W3IF4D2XH7Z255NZX3R6GBCGCGCI 7  DATA SIGNATURE ::
+#,,.,,.,.,.,.,,,.,...,,..,..,,..,,.,.,.,.,.,.,.,.,...,...,..,,.,,,..,,.,,,.,,,
+#EMOLFXB6MJTMOO7YBI7QTDEPW3ZXXOVTUQKUQKGVHYMPXGL2BJJD65T4MFJFHRES4ST6655FKFSDI
+#\\\|Y77FQ6QCA6WZ3QPO3PIMXD3NHSC6NKAAARUG4CBRX5DZP6HYU4A \ / AMOS7 \ YOURUM ::
+#\[7]TVTSHZC7IBEGIHHPR4G3MZXCD42ZJRX3OCSJCNPOE6MHQXR2JYCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

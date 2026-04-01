@@ -116,6 +116,22 @@ models:
       threads: 2
       tokens_per_sec: 3
 
+  qwen3.5-9b-uncensored:
+    name: "Qwen3.5 9B Uncensored Aggressive"
+    description: "9B uncensored Qwen3.5 with vision support"
+    path: /mnt/ext-xfs-data/models-lmstudio/HauhauCS/Qwen3.5-9B-Uncensored-HauhauCS-Aggressive/Qwen3.5-9B-Uncensored-HauhauCS-Aggressive-Q8_0.gguf
+    mmproj: /mnt/ext-xfs-data/models-lmstudio/HauhauCS/Qwen3.5-9B-Uncensored-HauhauCS-Aggressive/mmproj-Qwen3.5-9B-Uncensored-HauhauCS-Aggressive-BF16.gguf
+    quantization: Q8_0
+    context_length: 32768
+    is_vision: true
+    backends:
+      - gpu
+    metadata:
+      context_size: 32768
+      batch_size: 64
+      threads: 2
+      tokens_per_sec: 4
+
   # Text-only inference models
   mathstral-7b-v0.1:
     name: "Mathstral 7B v0.1"
@@ -151,11 +167,11 @@ models:
 aliases:
   default-gpu: qwen2.5-7b-instruct-1m
   default-cpu: qwen2.5-7b-instruct-1m
-  default-vision: qwen3-vl-4b-instruct
+  default-vision: qwen3.5-9b-uncensored
   manga-vision: opus-100-manga
 
-#,,,,,,.,,,,,,.,.,.,.,...,,,,,..,,.,,,,.,,,,.,..,,...,...,...,,,,,,,,,...,..,,
-#SSTDLL3Y4UKRBGFAKHGV3FMYBODRE4WKMZ7YSMHRLVJMEF5AJNWXZ6P4E64UKXSSKRUMJLAZMWOXW
-#\\\|6Y73NW4WNCNGAJF2ZOQPN6P7EA6MAAVUO6CA6SRXIBV7OKOVIP5 \ / AMOS7 \ YOURUM ::
-#\[7]AZY2Z2B4B6YOL2H6H22BOG4XI2OZUCATSJGYVGLYUHNMUOXBGGCY 7  DATA SIGNATURE ::
+#,,,,,.,.,.,.,...,.,,,,..,,,,,...,..,,,,.,..,,..,,...,...,...,.,.,...,,,.,,.,,
+#ANIFUS2HVVCXPTHBV66FCKFOYRPSF6US3DPDY3Q3DTSPAPK4Q3NVVYML5IPO57JHWX2QFM3XABMOU
+#\\\|3FMEBARKIRA3REP2H4BA6TLPGRLTGO7RGFVVRVOLUEYD6KKVGFX \ / AMOS7 \ YOURUM ::
+#\[7]D4NQAV4QBCIGSAYDAS6YIWRUF5Y2XITNOALKKK2MKVKRY5OCBUBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

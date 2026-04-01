@@ -76,6 +76,16 @@ foreach my $scan_dir (@$scan_paths) {
                 my $is_vision = 0;
                 $is_vision = 1 if $filename =~ m{vl|vision}i;
 
+                ## Check for companion mmproj file in same directory
+                my $mmproj_path = '';
+                my $model_dir   = $file_path;
+                $model_dir =~ s|/[^/]+$||;
+                my @mmproj_files = glob("$model_dir/*mmproj*.gguf");
+                if (@mmproj_files) {
+                    $mmproj_path = $mmproj_files[0];
+                    $is_vision   = 1;
+                }
+
                 ## Extract model family from path
                 my $family = 'local';
                 $family = 'qwen'  if $file_path =~ m|qwen|i;
@@ -98,6 +108,7 @@ foreach my $scan_dir (@$scan_paths) {
                     'is_vision'    => $is_vision,
                     'quantization' => $quantization,
                     'size_gb'      => sprintf( '%.3f', $size_gb ),
+                    'mmproj_path'  => $mmproj_path,
                     'found_at'     => $now,
                 };
             }
@@ -122,8 +133,8 @@ return {
     'scanned_paths' => $scan_paths,
 };
 
-#,,,,,,.,,...,..,,,,.,.,,,...,,..,,.,,,,.,,,,,.,.,...,...,...,.,,,.,,,.,.,...,
-#I2E5KWQ3MM5XJ2EAS57M3T3ZQCDDSYG5EMKRD32BGNCFMKIJF5QBOF7J7XB3KWONBWWQXP2TJOU7M
-#\\\|BXGA4OIYFSIFHJAGZAH3VXKPYFBOWU3H2M5ZI7CWANH645XNPFB \ / AMOS7 \ YOURUM ::
-#\[7]ZT2RJMUDIZ7NL3U3KY7YZIKP3YSFAXVTOT6CPEN5ULFFLCXZECBY 7  DATA SIGNATURE ::
+#,,,.,.,.,...,,,.,,..,..,,...,.,.,.,,,,,.,,,,,.,.,...,...,,..,..,,,.,,,,.,,..,
+#CAVNKAX5HJY367NI7GJ3ORC5SUP6JENOUHUJQO6GQXASANIPGDH36S2JLZ3ALY7SMPXFAEDLOTLIS
+#\\\|7BZBFASJHHX7T6MNHIFGTSTCTGOFJBTGT2UJGYV67ZHXEMRLNAH \ / AMOS7 \ YOURUM ::
+#\[7]SA5LFSQRMXHO5W7SWM5QJV7DLQQDS2OQEZZJ3CPP76HYETHYTCAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

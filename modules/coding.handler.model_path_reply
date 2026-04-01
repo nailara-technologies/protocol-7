@@ -58,19 +58,30 @@ unless ( defined $model_path && length $model_path ) {
 <inference.model.is_vision>   = $entry->{'is_vision'}   // 0;
 
 ## re-trigger spawn if servers not yet running [ race with deferred timer ] ##
-my $gpu_pid = <inference.gpu_pid> // 0;
-if ( not $gpu_pid
+## also respawn if mmproj_path became available after initial spawn ##
+my $gpu_pid       = <inference.gpu_pid> // 0;
+my $needs_respawn = 0;
+if ($gpu_pid) {
+    my $server     = <coding.inference_servers>      // {};
+    my $old_mmproj = $server->{'gpu'}{'mmproj_path'} // '';
+    my $new_mmproj = <inference.model.mmproj_path>   // '';
+    $needs_respawn = 1 if length($new_mmproj) && !length($old_mmproj);
+}
+
+if ( ( not $gpu_pid or $needs_respawn )
     and exists $code{'coding.async_spawn_inference_servers'} ) {
     <[base.logs]>->(
-        1, '[model_path_reply] path resolved, triggering deferred spawn'
+        1,
+        '[model_path_reply] path resolved, triggering %sspawn',
+        $needs_respawn ? 're-' : 'deferred '
     );
     $code{'coding.async_spawn_inference_servers'}->();
 }
 
 return TRUE;
 
-#,,.,,.,.,...,,..,...,...,,.,,,,.,,,.,...,.,,,..,,...,...,,..,,,.,.,.,...,.,.,
-#JDPE74P75PVWK5Q54RNOOMRNXSQX2YYDCXKMNBP24FKWO3DVUQIYZGRS2XQJ3M4UQUTZZP57USOMC
-#\\\|MEPBVDBFKQ4BF2H5NQX4X4W2FCZ5VGPRW46YB2SBEAI5SVAFW44 \ / AMOS7 \ YOURUM ::
-#\[7]5LRRD4PO3RWTWMB7AFLVEXPIVG6Z5IUXYW3KLLZMQZ6I6I7JESCI 7  DATA SIGNATURE ::
+#,,..,..,,..,,..,,,,.,.,,,.,.,,,,,.,.,..,,...,..,,...,.,.,...,,.,,,,,,,,.,...,
+#66IMWX6KURNCPMS42PNG3632MA66XRPPZUHIFI4R4OPNRBI2XBPIRD6OLJ7KEGFJEFBTDBRA6XLHS
+#\\\|US2HW35UQMEYWMDO3AIUQDHYVUL4FIPNGVDUOA7JONGINCS4TJE \ / AMOS7 \ YOURUM ::
+#\[7]E6ABRVVHDFH76PPUPQWDTHTHSXE2PYW24P35KESJFOSBBPEL6ABA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -16,6 +16,39 @@ return unless scalar @$batch > 0;
 my $batch_timer_ref;
 $batch_timer_ref = <lm-vision.batch_timer>;
 
+my ( $backend, $backend_reason ) = <[lm-vision.select_backend]>->();
+if ( $backend eq qw| unavailable | ) {
+    <[base.logs]>->(
+        0, '[process_batch] backend unavailable: %s',
+        $backend_reason
+    );
+    foreach my $req (@$batch) {
+        <[base.callback.cmd_reply]>->(
+            $req->{'reply_id'},
+            {   'mode' => qw| false |,
+                'data' => 'vision backend unavailable: ' . $backend_reason
+            }
+        );
+    }
+    @$batch = ();
+    return;
+}
+if ( $backend eq qw| http | ) {
+    <[base.logs]>->(
+        0, '[process_batch] http backend not supported for batching'
+    );
+    foreach my $req (@$batch) {
+        <[base.callback.cmd_reply]>->(
+            $req->{'reply_id'},
+            {   'mode' => qw| false |,
+                'data' => 'batch processing requires cli backend'
+            }
+        );
+    }
+    @$batch = ();
+    return;
+}
+
 # Extract first request to use for model loading
 my $first_req   = $batch->[0];
 my $binary      = <lm-vision.binary>;
@@ -147,8 +180,8 @@ $batch_job->{'err_io'} = <[event.add_io]>->(
 # Clear batch queue for next batch
 @$batch = ();
 
-#,,,,,,.,,,..,,,,,...,,,,,,,,,.,,,..,,,.,,,.,,..,,...,...,.,,,,.,,..,,,.,,,..,
-#GTURXCI2KZKIEASPMVS7U4ZYZNYQPVDGHALZUCQCTQVTZOH2ZS76NTACX5CRL6EMRZBGTUXGHHFX2
-#\\\|SEKTPTLDXH5N4TRRBR5E7TRNHTHR7QGTIHGKUKCO52ZVBVDKG75 \ / AMOS7 \ YOURUM ::
-#\[7]I36THFNRIKAR5ABU5MDDDIIOHPWBOFYLLBNGFC3TI52FO6AU2AAQ 7  DATA SIGNATURE ::
+#,,,.,.,.,,.,,,,.,...,.,,,,,,,...,,,,,,,,,.,,,..,,...,...,...,..,,.,,,..,,,.,,
+#UZGTANLC7U7XGAJYBSZITU74KBCXXC7ALDP7HZBYJ6CTDFJJUYOFLZZHU6JIHGZG5G2G2IGQ2TFVI
+#\\\|AZH3HSQRNKYOWOXXIYCRXHSM357GPMQC7V5SVD3XEMHUDDF27XE \ / AMOS7 \ YOURUM ::
+#\[7]ZIFBP3NEJVFQ3GGA46DJH26FTVS3JVYAHBE54DPX6IMDXAXBZSDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

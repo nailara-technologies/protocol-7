@@ -76,6 +76,10 @@ if (
         );
         $server->{'status'}       = qw| ready |;
         $server->{'ready_logged'} = TRUE;
+        $server->{'url'}
+            = sprintf( 'http://127.0.0.1:%d', $server->{'port'} // 8000 );
+        $server->{'model'}       = <inference.model.amos_id>     // '';
+        $server->{'mmproj_path'} = <inference.model.mmproj_path> // '';
 
         ## trigger dependency recheck for waiting jobs ##
         <[jobqueue.check_dependencies]>
@@ -131,8 +135,8 @@ if ( $bytes <= 0 ) {
     }
 }
 
-#,,.,,,.,,,..,,..,..,,,,,,.,.,,,,,,.,,,..,...,..,,...,...,..,,,,.,..,,.,,,,,.,
-#2G25LVHMIXRXZT6NHOO5JFFQYLKYIV3L7NINFUIGFEK5OVJLP7QPZA6I7EOXPGDJ4PMFKP6HHBYP2
-#\\\|JIWBIO45FLHYTTYPFDFL7D5UQTQETF5YEHGLFC3LCF2WDRRT72C \ / AMOS7 \ YOURUM ::
-#\[7]ZMSGCBFNVKG5K3AYYDDFMLUIS3QWTDOSJACRAXFIOS4J2RSEVEAQ 7  DATA SIGNATURE ::
+#,,..,...,...,...,,,.,..,,.,,,.,.,,,,,.,,,...,..,,...,.,.,.,,,,..,,,.,..,,,..,
+#I3E5UIGG7TDX6XRQCNT7W6L6UA5GSWZZQRUDSEMNM7JLPBOFJNE7G4GKATNODJDHNFFVWA4XMAM64
+#\\\|RTBH4BPBUJVBMMNFYOZ6SYRRDFAFB4QP3CYMFGURBMUIAVRSW4D \ / AMOS7 \ YOURUM ::
+#\[7]UXHSCH5HWOW36QDQJHIHKEQWKLRXHCBHVIGLBDSFJKCCYRHNTOBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

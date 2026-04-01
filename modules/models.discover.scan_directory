@@ -36,6 +36,18 @@ while ( my $entry = readdir($dh) ) {
             $is_vision = 1;    ## mmproj files are always vision-related
         }
 
+        ## Check for companion mmproj file in same directory
+        my $mmproj_path = '';
+        if ( !$is_mmproj ) {
+            my $model_dir = $full_path;
+            $model_dir =~ s|/[^/]+$||;
+            my @mmproj_files = glob( catfile( $model_dir, '*mmproj*.gguf' ) );
+            if (@mmproj_files) {
+                $mmproj_path = $mmproj_files[0];
+                $is_vision   = 1;
+            }
+        }
+
         ## Extract quantization from filename (e.g., Q4_K_M, Q6_K, Q8_0, IQ4_XS)
         ## Handles: Q4_K_M-imat, Q4_K_S-imatrix, Q6_K, IQ4_XS, etc.
         my $quantization = 'unknown';
@@ -78,7 +90,8 @@ while ( my $entry = readdir($dh) ) {
             size_gb      => sprintf( qw| %.3f |, $size_gb ),
             quantization => $quantization,
             source       => qw| discovered |,
-            is_vision    => $is_vision
+            is_vision    => $is_vision,
+            mmproj_path  => $mmproj_path
             };
     } elsif ( -d $full_path && $do_recurse ) {
 
@@ -95,8 +108,8 @@ closedir($dh);
 
 return \@models;
 
-#,,,,,,.,,,,.,..,,,,.,...,,,,,,,.,,..,,..,,,,,..,,...,..,,.,,,.,.,...,,,,,..,,
-#TVPGNAEZOUBTARBJ66LQDO3PZFDFOIT2VXCWXDGTA3O2FUVVM2XIUIQTARL2Z4RERFPZZWCRWDHYE
-#\\\|WRQS4FKFH6FRC2UAZUAGEI7ELP7XPAJSTQH52XZZAE475S3PP7V \ / AMOS7 \ YOURUM ::
-#\[7]G4FP3O2YOHU25SE67UY6B4ULZB4C2NVJFLMQCNA2RV3BWRHLICAQ 7  DATA SIGNATURE ::
+#,,,,,,.,,,.,,,,,,,,.,,.,,,,,,,.,,.,.,.,.,,,,,..,,...,...,...,,.,,,,.,.,,,..,,
+#KJITEEAKJKUTMYBYCEXF3WZUTVOKOKIUQDI7XF7OOOCLE6GK433E5STNHUPUYQ3ML5DJSQTWQWNGO
+#\\\|ALQFSKFOEXNEMBM4ZNPL3NICRCWA4TT5XE4SBAPBNDTAAQBO73N \ / AMOS7 \ YOURUM ::
+#\[7]XJRY4XWKIRETWZMK7EB3ZZLXW672D76K7ADOFYVVYY4SGJ2HMUAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

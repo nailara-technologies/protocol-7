@@ -1,7 +1,7 @@
 ## [:< ##
 
-# name = base.file.append
-# descr = append content to existing file
+# name = base.file.append_bin
+# descr = append content to existing file in raw mode
 
 my $write_file_path = shift // '';
 my @file_content    = @ARG;
@@ -18,6 +18,12 @@ if ( not length $write_file_path ) {
     return undef;
 }
 
+binmode( $fh, qw| :raw | )
+    or <[base.s_warn]>->(
+    'binmode : %s <{C1}>',
+    $write_file_path, <[base.str.os_err]>
+    );
+
 if ( @file_content > 1 ) {
     print {$fh} @file_content;
 } elsif ( @file_content and ref $file_content[0] eq qw| ARRAY | ) {
@@ -30,17 +36,18 @@ if ( @file_content > 1 ) {
     warn 'file content parameter is undefined <{C1}>';
 }
 
-if ( not close($fh) ) {
+if ( not close $fh ) {
     <[base.s_warn]>->(
         'close [ %s ] : %s <{C1}>',
         $write_file_path, <[base.str.os_err]>
     );
     return undef;
 }
+
 return TRUE;    ## true ##
 
-#,,,,,,,.,,,,,,.,,...,,,,,,..,..,,.,.,..,,.,,,.,.,...,...,..,,,,,,.,,,.,.,,.,,
-#COLQVCUQ4CNK4WWXI7KWOTZHXRYPU5QSXPCLQW6FPQIDX23F7LPVZPXY7X2WKTD6EKKNDWYBMOQ3Q
-#\\\|3QFU3UPCANRCS5Z2DVNDZY2BQAV5U6NZQWRGBXSVER6U2IK3QLT \ / AMOS7 \ YOURUM ::
-#\[7]TUKBGSMDDH4YXE4FQTX4DXKZCOXSKWIH2C7UCWCXF6NLK45TL2CQ 7  DATA SIGNATURE ::
+#,,,,,..,,.,,,.,,,..,,,,.,..,,,,.,,,.,,,,,,,,,.,.,...,...,,,,,..,,,,.,,,.,,..,
+#ETOOQCZT64FHREAFXMIPQKZ3FJSAYKQONRJPNWWIH4NUVGGRUSBY62TAG42KD65H5TR4TJ77VLV44
+#\\\|34YCIOT4WDAZ6VLZA6W3E7B7YMNL7BVVXSFT5XRHGKCWH3T2FSX \ / AMOS7 \ YOURUM ::
+#\[7]SORODH74KY2UAKI6OR666U5PDIQQKMBHQVZ6TL5333DD6MZGLUDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

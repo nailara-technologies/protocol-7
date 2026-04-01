@@ -187,20 +187,10 @@ unless ( $model_path && $mmproj_path ) {
 }
 
 ##[ BACKEND SELECTION ]#######################################################
-## Check if HTTP backend is available (coding zenka server) ##
-my $backend = <lm-vision.backend> // 'auto';    # auto | http | cli
+my ( $backend, $backend_reason ) = <[lm-vision.select_backend]>->();
 
-my $http_available = 0;
-if ( $backend eq 'auto' || $backend eq 'http' ) {
-    my $server_info = <coding.inference_servers> // {};
-    $http_available = 1
-        if exists $server_info->{'gpu'}
-        && $server_info->{'gpu'}{'status'} eq 'ready';
-}
-
-## Route to HTTP backend if available and not forced to CLI ##
-if ( $backend eq 'http' || ( $backend eq 'auto' && $http_available ) ) {
-    <[base.log]>->( 1, "[analyze_image] routing to HTTP backend" );
+if ( $backend eq qw| http | ) {
+    <[base.logs]>->( 1, "[analyze_image] routing to HTTP backend" );
     return <[lm-vision.handler.http_analyze]>->(
         {   'image_path' => $working_image_path,
             'prompt'     => $prompt,
@@ -209,8 +199,53 @@ if ( $backend eq 'http' || ( $backend eq 'auto' && $http_available ) ) {
     );
 }
 
+if ( $backend eq qw| loading | || $backend eq qw| unavailable | ) {
+    my $cached = ( <lm-vision.cached_coding_status> // {} )->{'gpu'} // {};
+
+    ## queue request if server is still loading or starting ##
+    if (   $backend eq qw| loading |
+        || $cached->{'still_loading'}
+        || ( $cached->{'status'} // '' ) eq qw| starting | ) {
+        <[base.logs]>->(
+            1, '[analyze_image] coding server loading, queuing request'
+        );
+        push(
+            <lm-vision.pending_requests>->@*,
+            {   'image_path' => $working_image_path,
+                'prompt'     => $prompt,
+                'reply_id'   => $call->{'reply_id'},
+                'queued_at'  => <[base.time]>->(3)
+            }
+        );
+        ## ensure polling is active to detect when server becomes ready ##
+        <lm-vision.poll_paused> = 0;
+        my $timer = <lm-vision.poll_timer>;
+        if ( !defined $timer || !$timer->is_active() ) {
+            <[base.logs]>->(
+                2, '[analyze_image] restarting status poll for queued request'
+            );
+            <lm-vision.poll_timer> = <[event.add_timer]>->(
+                {   'after'   => 2.0,
+                    'handler' => 'lm-vision.handler.poll_coding_status',
+                    'desc'    => 'poll after queuing vision request'
+                }
+            );
+        }
+        return { 'mode' => qw| deferred | };
+    }
+
+    <[base.logs]>->(
+        0, '[analyze_image] backend unavailable: %s',
+        $backend_reason
+    );
+    return {
+        'mode' => qw| false |,
+        'data' => 'vision backend unavailable: ' . $backend_reason
+    };
+}
+
 ## Fall through to CLI backend ##
-<[base.log]>->( 1, "[analyze_image] routing to CLI backend" );
+<[base.logs]>->( 1, "[analyze_image] routing to CLI backend" );
 
 # Build portable log file path using system.root_path
 my $log_file_path = <system.root_path> . '/llama';
@@ -339,8 +374,8 @@ $job->{'err_io'} = <[event.add_io]>->(
 );
 return { 'mode' => 'deferred' };
 
-#,,..,...,,..,,,.,,..,,,,,,,,,,..,.,,,,,,,,,.,..,,...,...,...,...,,..,,..,...,
-#5KTKFSHHTJEZTUFXGIHSBSESJTVFUUM3EBKQQTXBSQRVYOAJWPAVNUNCLXJIWH6HUPETLSC6JBCV4
-#\\\|O7GDGXNWQQSDPJAIAMQ7IZMWPUUVJEIO6KZ6RIIRQ6WH7BRORMH \ / AMOS7 \ YOURUM ::
-#\[7]YAWTSEPTTAVMXNFNDCFGCBHKFSNJCQOCZ5ZGFXQ6GM2FEEWB4OCI 7  DATA SIGNATURE ::
+#,,,,,,,,,.,,,,.,,..,,,,,,,,.,,,,,...,,,,,.,,,..,,...,...,,.,,,..,,..,,..,,..,
+#R6FDQT4SPOKMYYOSCJZLNVJ57ZX7SNNECSDLCAQDCI5FNJCIS3N5HLJ6377THFCTJC7HPSOS3LJYU
+#\\\|ROVLCLRPM3SIANNMGQCFJPGIE35P3GW3BDQWK4RCEF4U3LVROW2 \ / AMOS7 \ YOURUM ::
+#\[7]ZEVDQRIN4FCLYHX7S5ADRBEQSKAQDJARQZ3SMP7SCCFU477A2ABQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

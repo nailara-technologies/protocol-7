@@ -7,9 +7,9 @@
 
 ## load generic modules ##
 <[base.perlmod.autoload]>->('IPC::Open3');
-<[base.perlmod.load]>->( 'Symbol',      qw| gensym        | );
+<[base.perlmod.load]>->( 'Symbol', qw| gensym        | );
 <[base.perlmod.autoload]>->('LWP::UserAgent');
-<[base.perlmod.load]>->( 'HTTP::Request' );
+<[base.perlmod.load]>->('HTTP::Request');
 <[base.perlmod.load]>->( 'MIME::Base64', qw| encode_base64 | );
 
 ## load Imager module for image scaling ##
@@ -51,15 +51,24 @@ if ( -f $config_file ) {
     if ( ref $yaml_content_sref eq qw| SCALAR | ) {
         my $yaml = YAML::Tiny::Load( $yaml_content_sref->$* );
 
+        my $vision_model_key = 'qwen3.5-9b-uncensored';
+
+        ## resolve alias if configured ##
+        if (   $yaml
+            && exists $yaml->{'aliases'}
+            && exists $yaml->{'aliases'}->{'default-vision'} ) {
+            $vision_model_key = $yaml->{'aliases'}->{'default-vision'};
+        }
+
         if (   $yaml
             && exists $yaml->{'models'}
-            && exists $yaml->{'models'}->{'qwen3-vl-4b-instruct'} ) {
-            my $model_def = $yaml->{'models'}->{'qwen3-vl-4b-instruct'};
+            && exists $yaml->{'models'}->{$vision_model_key} ) {
+            my $model_def = $yaml->{'models'}->{$vision_model_key};
             $model_path  = $model_def->{'path'};
             $mmproj_path = $model_def->{'mmproj'};
         } else {
             <[base.log]>->(
-                0, " Error: qwen3-vl-4b-instruct not found in models.yaml"
+                0, " Error: $vision_model_key not found in models.yaml"
             );
         }
     }
@@ -105,6 +114,9 @@ if ( $model_path && $mmproj_path ) {
 # Initialize batch queue for request batching [amortizes model loading]
 <lm-vision.batch_queue> //= [];
 <lm-vision.batch_timer> = undef;
+
+# Initialize pending request queue for requests arriving while server is starting
+<lm-vision.pending_requests> //= [];
 <lm-vision.batch_window_ms>
     = 100;    # Collect requests for 100ms before processing
 
@@ -121,10 +133,27 @@ if ( $model_path && $mmproj_path ) {
 # Temp files are managed by base.file.temp
 # with automatic cleanup via end_code callbacks
 
+## register for coding zenka startup notification ##
+## [ first poll triggered when coding comes online ] ##
+## [ re-triggered after idle shutdown via http error handler ] ##
+<lm-vision.poll_interval> = 5.0;
+<lm-vision.poll_paused>   = 0;
+
+<[base.logs]>->(
+    1, '[init] registering for coding zenka startup notification'
+);
+
+<[protocol-7.route-send]>->(
+    {   'command'   => qw| v7.notify_online |,
+        'call_args' => { 'args' => ':start: coding' },
+        'reply' => { 'handler' => 'lm-vision.handler.coding_online_reply' }
+    }
+);
+
 0;    # Return success for module initialization
 
-#,,,.,,,.,,.,,...,,,.,,,.,,,.,...,,.,,.,,,,,,,..,,...,...,,,.,,..,,.,,...,.,.,
-#MDNZLUEKEUSLMG6UYPVHSNY6RPN46O5SPVDJZUIZORSVPKPBUVMJ6XWLZQKM53RPG5V6CMIC7ZPGA
-#\\\|EOZZ6DMYEP3COPSX25X37OQVWERTPS4EMAA2EOM3SODFNETHQZN \ / AMOS7 \ YOURUM ::
-#\[7]R4UIHX2TCJCZQ5V3POPA2L3C7N3ROAO2EB5USDTMG5C5G2EJXUCI 7  DATA SIGNATURE ::
+#,,,.,,.,,..,,,,.,,.,,...,.,.,..,,...,,,.,,,.,..,,...,...,...,,,.,,.,,,,.,,,.,
+#Z44XKJRMCWEKANNBUP2M2TAKEW3YNGFSG7OV7ZJ2JYT5VYRYDCC2EUX2BDQUQYEJXX35OQ4TVDZ64
+#\\\|5KRKNTZHCNMJOEGZMFXEC2WBBXTJQ2E6WHDE6PYYTYHOTMDQ6GO \ / AMOS7 \ YOURUM ::
+#\[7]XOVWAN4LKS5JIL3UR5I4BMRWXA54JZHJKW2CUZX6YLY6KJKSXADY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -118,6 +118,55 @@ if ( length($model_path) && !-f $model_path ) {
     return { 'success' => FALSE, 'error' => "model not found: $model_path" };
 }
 
+## memory safety: check for other llama processes before gpu spawn ##
+if ( $backend eq qw| gpu | ) {
+    my @other_procs = qx{ pgrep -a 'llama-(server|mtmd-cli)' 2>/dev/null };
+    my $own_pid     = <coding.inference_servers>->{$backend}{'pid'} // 0;
+    my @foreign_procs;
+    foreach my $proc (@other_procs) {
+        chomp $proc;
+        next unless length $proc;
+        my ($pid) = $proc =~ m|^(\d+)|;
+        next if $pid && $pid == $own_pid;
+        push @foreign_procs, $proc;
+    }
+    if (@foreign_procs) {
+        <[base.logs]>->(
+            0,
+            '[spawn_inference_server] foreign llama process detected,'
+                . ' refusing gpu spawn to prevent oom: %s',
+            join( '; ', @foreign_procs )
+        );
+        return {
+            'success' => FALSE,
+            'error'   => 'another llama process is running, gpu spawn blocked'
+        };
+    }
+
+    ## vram sanity check ##
+    my $nvidia_smi
+        = qx{ nvidia-smi --query-gpu=memory.total,memory.free --format=csv,noheader,nounits 2>/dev/null };
+    if ( $nvidia_smi =~ m|^(\d+),\s*(\d+)|m ) {
+        my ( $total_mb, $free_mb ) = ( $1, $2 );
+        my $model_size_mb = ( -s $model_path ) / ( 1024 * 1024 );
+        my $safety_mb     = 1024;    ## 1GB headroom ##
+        if ( $free_mb < $model_size_mb + $safety_mb ) {
+            <[base.logs]>->(
+                0,
+                '[spawn_inference_server] insufficient vram:'
+                    . ' free=%d MB model=%.0f MB safety=%d MB',
+                $free_mb,
+                $model_size_mb,
+                $safety_mb
+            );
+            return {
+                'success' => FALSE,
+                'error'   => 'insufficient vram for model load'
+            };
+        }
+    }
+}
+
 ## Build llama-server command
 my @cmd = ( $binary, '--port', $port, qw|  --host  127.0.0.1  | );
 
@@ -212,15 +261,16 @@ for my $pipe_fh ( $server_out, $server_err ) {
 ## Store server metadata (initialize if needed)
 <coding.inference_servers> = {} unless defined <coding.inference_servers>;
 <coding.inference_servers>->{$backend} = {
-    'backend'    => $backend,
-    'port'       => $port,
-    'pid'        => $pid,
-    'binary'     => $binary,
-    'seed'       => $seed,
-    'status'     => qw| starting |,
-    'start_time' => <[base.time]>->(3),
-    'stdout'     => $server_out,
-    'stderr'     => $server_err,
+    'backend'     => $backend,
+    'port'        => $port,
+    'pid'         => $pid,
+    'binary'      => $binary,
+    'seed'        => $seed,
+    'status'      => qw| starting |,
+    'start_time'  => <[base.time]>->(3),
+    'stdout'      => $server_out,
+    'stderr'      => $server_err,
+    'mmproj_path' => $mmproj_path,
 };
 
 ## Register I/O handlers to monitor startup
@@ -260,8 +310,8 @@ return {
     'port'    => $port
 };
 
-#,,..,..,,,..,..,,.,,,,.,,,.,,,..,,.,,...,,,.,..,,...,...,.,.,..,,..,,...,...,
-#4KN57PUD5FNLC5W64DWF7F5ZUUAQ6UYCCMJYBAOD4BJTWUPDOEHIUBFHL6BGGJYQAPBQVXMTOHYZ6
-#\\\|U7X66AZSKHU5EWZ57ZX5QY7DN4B5UJP5PBGHQVRBUI3NSQEVSOJ \ / AMOS7 \ YOURUM ::
-#\[7]26FTY5HSOPRUO5IP7YXJJNNZ3VUQ3EG66EPOEVFATAVADTUUMMDA 7  DATA SIGNATURE ::
+#,,,,,..,,.,.,,.,,..,,...,.,,,,.,,,.,,,,.,.,.,..,,...,...,...,.,.,,..,.,,,,.,,
+#7GRC4SHBHNJFJ4SKDEFHO5ENOFW5FCNA4VVUEW4CVEHXAWJVALPFUOGQOT4FTWVN6PBJE5U45X42Q
+#\\\|EYADUN6DQLUKLW7V5JTQ44JUO2TYHBVC42D6XC3O7MLNL5IJZIW \ / AMOS7 \ YOURUM ::
+#\[7]PNYQ2ORCWS7KKNNBURHNYYHQHOBWGUFU2BRP4JXWEF5UF36DMMCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
