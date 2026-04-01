@@ -152,6 +152,115 @@ my @tools = (
             'additionalProperties' => \0
         }
     },
+    {   'name'        => 'p7_agent_spawn',
+        'description' =>
+            'spawn a new kimi-web sub-agent for local inference. '
+            . 'returns agent_id on success.',
+        'inputSchema' => {
+            'type'       => 'object',
+            'properties' => {
+                'template' => {
+                    'type'        => 'string',
+                    'description' =>
+                        'optional context template '
+                        . '[ e.g. "code-review", "integrate-recent" ]'
+                },
+                'work_dir' => {
+                    'type'        => 'string',
+                    'description' =>
+                        'working directory for agent '
+                        . '[ default: system root path ]'
+                },
+                'priority' => {
+                    'type'        => 'integer',
+                    'description' => 'scheduling priority (1-10, lower=higher)',
+                    'default'     => 5
+                }
+            },
+            'additionalProperties' => \0
+        }
+    },
+    {   'name'        => 'p7_agent_list',
+        'description' =>
+            'list active kimi-web sub-agents with status and metrics',
+        'inputSchema' => {
+            'type'       => 'object',
+            'properties' => {
+                'status' => {
+                    'type'        => 'string',
+                    'description' =>
+                        'optional status filter '
+                        . '[ ready | starting | error ]'
+                }
+            },
+            'additionalProperties' => \0
+        }
+    },
+    {   'name'        => 'p7_agent_dispatch',
+        'description' =>
+            'send work to a specific kimi-web sub-agent. '
+            . 'blocks until complete or timeout.',
+        'inputSchema' => {
+            'type'       => 'object',
+            'properties' => {
+                'agent_id' => {
+                    'type'        => 'string',
+                    'description' => 'target agent identifier'
+                },
+                'prompt' => {
+                    'type'        => 'string',
+                    'description' => 'work to dispatch to the agent'
+                },
+                'timeout' => {
+                    'type'        => 'integer',
+                    'description' => 'timeout in seconds',
+                    'default'     => 300
+                }
+            },
+            'required'             => [ 'agent_id', 'prompt' ],
+            'additionalProperties' => \0
+        }
+    },
+    {   'name'        => 'p7_template_resolve',
+        'description' =>
+            'resolve a P7 context template for agent context preloading',
+        'inputSchema' => {
+            'type'       => 'object',
+            'properties' => {
+                'template' => {
+                    'type'        => 'string',
+                    'description' =>
+                        'template name '
+                        . '[ e.g. "integrate-recent", "review-deep" ]'
+                },
+                'vars' => {
+                    'type'        => 'object',
+                    'description' => 'variable substitutions hash'
+                },
+                'budget' => {
+                    'type'        => 'integer',
+                    'description' => 'token budget',
+                    'default'     => 8000
+                }
+            },
+            'required'             => ['template'],
+            'additionalProperties' => \0
+        }
+    },
+    {   'name'        => 'p7_zenka_start',
+        'description' => 'start a protocol-7 zenka by name',
+        'inputSchema' => {
+            'type'       => 'object',
+            'properties' => {
+                'zenka_name' => {
+                    'type'        => 'string',
+                    'description' => 'zenka to start [ e.g. "kimi-web" ]'
+                }
+            },
+            'required'             => ['zenka_name'],
+            'additionalProperties' => \0
+        }
+    },
 );
 
 ##[ main loop ]##
@@ -242,6 +351,16 @@ sub handle_tools_call {
         tool_task_complete( $id, $args );
     } elsif ( $name eq 'p7_task_continue' ) {
         tool_task_continue( $id, $args );
+    } elsif ( $name eq 'p7_agent_spawn' ) {
+        tool_agent_spawn( $id, $args );
+    } elsif ( $name eq 'p7_agent_list' ) {
+        tool_agent_list( $id, $args );
+    } elsif ( $name eq 'p7_agent_dispatch' ) {
+        tool_agent_dispatch( $id, $args );
+    } elsif ( $name eq 'p7_template_resolve' ) {
+        tool_template_resolve( $id, $args );
+    } elsif ( $name eq 'p7_zenka_start' ) {
+        tool_zenka_start( $id, $args );
     } else {
         send_error( $id, -32602, "unknown tool: $name" );
     }
@@ -568,6 +687,89 @@ sub send_tool_result {
 }
 
 ## =========================================================================
+## kimi-web tool implementations
+## =========================================================================
+
+sub tool_agent_spawn {
+    my ( $id, $args ) = @ARG;
+
+    my $template = $args->{'template'} // '';
+    my $work_dir = $args->{'work_dir'} // '';
+    my $priority = $args->{'priority'} // 5;
+
+    my $cmd = 'kimi-web.spawn_agent';
+    $cmd .= " template=$template" if length $template;
+    $cmd .= " work_dir=$work_dir" if length $work_dir;
+    $cmd .= " priority=$priority";
+
+    my ( $ok, $response ) = cube_command($cmd);
+    send_tool_result( $id, $response, $ok ? 0 : 1 );
+}
+
+sub tool_agent_list {
+    my ( $id, $args ) = @ARG;
+
+    my $status = $args->{'status'} // '';
+    my $cmd    = 'kimi-web.list_agents';
+    $cmd .= " status=$status" if length $status;
+
+    my ( $ok, $response ) = cube_command($cmd);
+    send_tool_result( $id, $response, $ok ? 0 : 1 );
+}
+
+sub tool_agent_dispatch {
+    my ( $id, $args ) = @ARG;
+
+    my $agent_id = $args->{'agent_id'} // '';
+    my $prompt   = $args->{'prompt'}   // '';
+    my $timeout  = $args->{'timeout'}  // 300;
+
+    if ( not length $agent_id ) {
+        return send_tool_result( $id, 'agent_id is required', 1 );
+    }
+    if ( not length $prompt ) {
+        return send_tool_result( $id, 'prompt is required', 1 );
+    }
+
+    ## collapse newlines for single-line IPC ##
+    ( my $safe_prompt = $prompt ) =~ s{\n}{ }g;
+
+    my $cmd = "kimi-web.dispatch agent_id=$agent_id prompt=\"$safe_prompt\" timeout=$timeout";
+
+    my ( $ok, $response ) = cube_command($cmd);
+    send_tool_result( $id, $response, $ok ? 0 : 1 );
+}
+
+sub tool_template_resolve {
+    my ( $id, $args ) = @ARG;
+
+    my $template = $args->{'template'} // '';
+    my $budget   = $args->{'budget'}   // 8000;
+
+    if ( not length $template ) {
+        return send_tool_result( $id, 'template is required', 1 );
+    }
+
+    my $cmd = "kimi-web.resolve_template template=$template budget=$budget";
+
+    my ( $ok, $response ) = cube_command($cmd);
+    send_tool_result( $id, $response, $ok ? 0 : 1 );
+}
+
+sub tool_zenka_start {
+    my ( $id, $args ) = @ARG;
+
+    my $zenka_name = $args->{'zenka_name'} // '';
+
+    if ( not length $zenka_name ) {
+        return send_tool_result( $id, 'zenka_name is required', 1 );
+    }
+
+    my ( $ok, $response ) = cube_command("v7.start $zenka_name");
+    send_tool_result( $id, $response, $ok ? 0 : 1 );
+}
+
+## =========================================================================
 ## logging [ stderr only — stdout is mcp protocol ]
 ## =========================================================================
 
@@ -577,8 +779,8 @@ sub log_msg {
     printf STDERR "[mcp-server-p7] %s\n", $msg;
 }
 
-#,,,,,.,,,,,.,,..,.,.,..,,,,,,,.,,.,,,,..,,,.,..,,...,...,..,,,,.,..,,..,,,.,,
-#NVTG6QDBB5BJGWULVT2WMUXGQGRBUYFRC7I7MYAAXQS5EYNK74G66LTQTS2OR5RVKM73KPRM36D36
-#\\\|CUQVOPM2I5BNKPURSKYAACV5IMR4SATAF7QEKATKF2VK57TIVGD \ / AMOS7 \ YOURUM ::
-#\[7]ACG6S5S5S447F7DFXLE435GGAUWYTTSXTYADA4JXOHQJ4HQBYEDY 7  DATA SIGNATURE ::
+#,,,,,.,,,,,.,,,.,,.,,,.,,,..,...,.,,,,.,,.,,,..,,...,...,.,.,,.,,.,.,.,,,,,,,
+#ES3HT2FIVDVYAKE7EXOH2J6QGIJ4VXNZHJZCTLUMVVMXRQXHKT6F2LRGQRCDY2MJ6FVNDUXDSMOBS
+#\\\|R35FHTAGSK3T6NHDIMOHZPMBULQ6YGP5UXWRBBI425Y52DJVACX \ / AMOS7 \ YOURUM ::
+#\[7]ZAKUBQPHY5M7EF3AK5A4AVW5IR5KABYB5BUL7NR2UW4UA733JGCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
