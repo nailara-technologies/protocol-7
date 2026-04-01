@@ -522,9 +522,9 @@ INFERENCE_LOOP:
             ## build tool summary with truncated parameters ##
             my @tool_summaries;
             for my $tc ( $message->{'tool_calls'}->@* ) {
-                my $name = $tc->{'function'}->{'name'} // '?';
+                my $name = $tc->{'function'}->{'name'}      // '?';
                 my $args = $tc->{'function'}->{'arguments'} // '';
-                
+
                 ## extract key params for context (path, pattern, module, etc.) ##
                 my $param_summary = '';
                 if ( length $args ) {
@@ -532,10 +532,10 @@ INFERENCE_LOOP:
                     if ( ref $args_hash eq qw| HASH | ) {
                         ## extract most informative params ##
                         my @key_params;
-                        for my $key ( qw| path module pattern name query | ) {
-                            if ( defined $args_hash->{$key} 
+                        for my $key (qw| path module pattern name query |) {
+                            if ( defined $args_hash->{$key}
                                 and length $args_hash->{$key} ) {
-                                push @key_params, 
+                                push @key_params,
                                     "$key:" . $args_hash->{$key};
                                 last;    ## only first match ##
                             }
@@ -544,18 +544,17 @@ INFERENCE_LOOP:
                             if @key_params;
                     }
                 }
-                
+
                 ## ellipsize params for display ##
                 if ( length $param_summary ) {
-                    $param_summary = <[base.parser.ellipse_center]>->(
-                        $param_summary, 24
-                    );
+                    $param_summary = <[base.parser.ellipse_center]>
+                        ->( $param_summary, 24 );
                     push @tool_summaries, "[ $name ]::[ $param_summary ]";
                 } else {
                     push @tool_summaries, "[ $name ]";
                 }
             }
-            
+
             <[base.logs]>->(
                 1,           "::working:: :%03d: %s",
                 $tool_round, join( ' ', @tool_summaries )
@@ -716,8 +715,8 @@ if ( length $response_text
 ## return result hashref for jobqueue callback ##
 return { success => TRUE, result => $response_text, task_id => $task_id };
 
-#,,..,,.,,,,.,,.,,,.,,...,..,,..,,..,,..,,,.,,..,,...,..,,...,.,,,,..,,,,,,.,,
-#TNZFK5KWBG6EOMXTP4ENWFWVK6GVDCP2SFV7SVT74IXYNAG6V7XWNYEJMWRCD7KV2HLMHSMB3ELHG
-#\\\|YAZTQE5BAPUDM4GM444ZG76FAKJPYVAIM2G2QRJ4KM6ESVY5B4Z \ / AMOS7 \ YOURUM ::
-#\[7]RVIVHPEQC3K5PGQDSVRTMH3DTW6FX6AFHO3VKRLNWBYOELZJFIAI 7  DATA SIGNATURE ::
+#,,,,,,.,,.,,,..,,,,.,,,.,,..,...,,,,,,..,.,.,..,,...,...,,..,,.,,...,...,.,,,
+#ITJNHW7F5V2GZVGOYJRZYW4TT726XJD6Z5KFZNEPIIQ4DCOFXR2C4M7NYFPPIOFWNUAQ5UPWE4WOY
+#\\\|ULZOJCTPO5BWTUJFPY3ZRXAS54LP6GHVGTCXDLEBB7LNQQMYWIP \ / AMOS7 \ YOURUM ::
+#\[7]NN47BM3VDNAFNNXFNUNN3KKJ3TFDQ36NKCSCWXJ3D34TAWQYROBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -3,7 +3,7 @@
 # name  = note.list
 # descr = list available note trees with L1 summaries
 
-my ($filter_tag, $max_results) = @ARG;
+my ( $filter_tag, $max_results ) = @ARG;
 
 $max_results //= 20;
 
@@ -15,44 +15,46 @@ my @results;
 
 for my $task_dir (@task_dirs) {
     next unless -d $task_dir;
-    
-    my $task_id = <[file.basename]>->($task_dir);
-    my $meta_file = "$task_dir/.meta";
+
+    my $task_id    = <[file.basename]>->($task_dir);
+    my $meta_file  = "$task_dir/.meta";
     my $short_file = "$task_dir/summary.short";
-    
+
     my $entry = {
         'task_id' => $task_id,
-        'has_L1'  => (-f $short_file && -s $short_file) ? 1 : 0,
-        'has_L2'  => (-f "$task_dir/summary.long" && -s _) ? 1 : 0,
+        'has_L1' => ( -f $short_file              && -s $short_file ) ? 1 : 0,
+        'has_L2' => ( -f "$task_dir/summary.long" && -s _ )           ? 1 : 0,
     };
-    
+
     ## load metadata if available ##
-    if (-f $meta_file) {
-        my $meta = eval { JSON::PP::decode_json(<[file.read]>->($meta_file)) };
-        if (ref $meta eq qw| HASH |) {
+    if ( -f $meta_file ) {
+        my $meta
+            = eval { JSON::PP::decode_json( <[file.read]>->($meta_file) ) };
+        if ( ref $meta eq qw| HASH | ) {
             $entry->{'created'} = $meta->{'created'};
             $entry->{'zenka'}   = $meta->{'zenka'};
             $entry->{'tags'}    = $meta->{'tags'};
             $entry->{'status'}  = $meta->{'status'};
             $entry->{'rounds'}  = $meta->{'rounds'};
-            
+
             ## filter by tag if requested ##
-            if (defined $filter_tag && length $filter_tag) {
+            if ( defined $filter_tag && length $filter_tag ) {
                 my $found = 0;
-                for my $tag (@{$meta->{'tags'} // []}) {
+                for my $tag ( @{ $meta->{'tags'} // [] } ) {
                     $found = 1 if $tag eq $filter_tag;
                 }
                 next unless $found;
             }
         }
     }
-    
+
     ## load L1 preview if available ##
-    if ($entry->{'has_L1'}) {
+    if ( $entry->{'has_L1'} ) {
         my $content = <[file.read]>->($short_file);
-        $entry->{'preview'} = <[base.parser.ellipse_center]>->($content, 120);
+        $entry->{'preview'}
+            = <[base.parser.ellipse_center]>->( $content, 120 );
     }
-    
+
     push @results, $entry;
     last if @results >= $max_results;
 }
@@ -65,3 +67,8 @@ return {
     'data' => \\&results,
 };
 
+#,,..,.,,,.,.,,,.,.,.,..,,,..,.,.,...,...,.,.,.,.,...,...,.,,,..,,,..,.,.,.,,,
+#EKWLRH5P3QZMW3TO3XULCXEDWORYX7X5YCBSYKOGJJ6TGN56XF2GGZGXQ4L3Y27YA57HFOVYPEACM
+#\\\|KFMKTSD7FLGFRVMU3SSPUAR7JYRBAIXYM5JVCXUZHCHNOBYBMEJ \ / AMOS7 \ YOURUM ::
+#\[7]V6F4BJDH6WBQXHZH4E5SGNPF3XYX6K5KCUOVFPWN4SHEBDFTTIAY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

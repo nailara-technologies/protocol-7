@@ -6,18 +6,25 @@
 my $args = shift // {};
 
 my $short = $args->{'short'} // '';
-my $long  = $args->{'long'} // '';
+my $long  = $args->{'long'}  // '';
 
 return { 'content' => 'at least one of short or long summary required' }
     unless length $short || length $long;
 
-my $result = <[note.summarize]>->(undef, $short, $long);
+my $result = <[note.summarize]>->( undef, $short, $long );
 
 return {
     'content' => $result->{'mode'} eq qw| true |
-        ? sprintf("Summaries updated: L1=%s, L2=%s",
-            $result->{'data'}{'L1'},
-            $result->{'data'}{'L2'})
-        : "Failed: " . ($result->{'data'} // 'unknown'),
+    ? sprintf(
+        "Summaries updated: L1=%s, L2=%s",
+        $result->{'data'}{'L1'},
+        $result->{'data'}{'L2'}
+        )
+    : "Failed: " . ( $result->{'data'} // 'unknown' ),
 };
 
+#,,,.,,,.,..,,,,,,,..,...,,,,,,..,..,,,,.,,.,,.,.,...,...,...,,.,,,.,,.,,,,,,,
+#SGAEQTOHHMPKGB3QJN6O27HIHSII2NJL44OOTE3FLYTLKT3Q7XXCU22OKLFM42IFZKNPTRVV2GV5K
+#\\\|YQ3FBEHAKFXZPWPMBLKM472QKJBIXDLH2WPL3DIJJTOHTKIADP7 \ / AMOS7 \ YOURUM ::
+#\[7]ABPNF5ZLYNWUVSJNB3QUZBOT5BMCWHNGDJ4ZO5SZZ4TD6TFXWUDY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

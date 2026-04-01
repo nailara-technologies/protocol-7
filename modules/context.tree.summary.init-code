@@ -10,15 +10,16 @@ $data{'context'}{'tree'}{'summary'} = {
 
     # Tree structure: hierarchical branches
     'branches' => {
+
         # Core system branches
-        'storage'    => { 'active' => 1, 'priority' => 'high' },
-        'context'    => { 'active' => 1, 'priority' => 'high' },
-        'index'      => { 'active' => 1, 'priority' => 'medium' },
+        'storage' => { 'active' => 1, 'priority' => 'high' },
+        'context' => { 'active' => 1, 'priority' => 'high' },
+        'index'   => { 'active' => 1, 'priority' => 'medium' },
 
         # Agent-specific branches
-        'agents'     => {
+        'agents' => {
             'kimi'   => { 'active' => 1, 'priority' => 'high' },
-            'claude' => { 'active' => 0, 'priority' => 'high' },  # Offline
+            'claude' => { 'active' => 0, 'priority' => 'high' },     # Offline
             'coding' => { 'active' => 1, 'priority' => 'medium' },
         },
 
@@ -29,39 +30,40 @@ $data{'context'}{'tree'}{'summary'} = {
     },
 
     # Event storage (checksum-addressed)
-    'events' => {},  # checksum => event_node
+    'events' => {},    # checksum => event_node
 
     # Summary nodes (compacted events)
-    'summaries' => {},  # checksum => summary_node
+    'summaries' => {},    # checksum => summary_node
 
     # Indices for efficient queries
     'index' => {
-        'by_time'    => {},  # timestamp => [checksums]
-        'by_type'    => {},  # type => [checksums]
-        'by_agent'   => {},  # agent => [checksums]
-        'by_branch'  => {},  # branch => [checksums]
-        'by_ref'     => {},  # referenced_checksum => [event_checksums]
+        'by_time'   => {},    # timestamp => [checksums]
+        'by_type'   => {},    # type => [checksums]
+        'by_agent'  => {},    # agent => [checksums]
+        'by_branch' => {},    # branch => [checksums]
+        'by_ref'    => {},    # referenced_checksum => [event_checksums]
     },
 
     # Relevance cache (ephemeral, LRU)
     'relevance_cache' => {
         'max_size' => 10000,
-        'entries'  => {},  # checksum => relevance_score
+        'entries'  => {},      # checksum => relevance_score
     },
 
     # Configuration
     'config' => {
+
         # Compaction schedule
         'compaction' => {
-            'twig_interval'  => 3600,     # 1 hour
-            'branch_interval'=> 86400,    # 24 hours
-            'trunk_interval' => 604800,   # 7 days
-            'retention_days' => 365,
+            'twig_interval'   => 3600,      # 1 hour
+            'branch_interval' => 86400,     # 24 hours
+            'trunk_interval'  => 604800,    # 7 days
+            'retention_days'  => 365,
         },
 
         # Sync settings
         'sync' => {
-            'gossip_interval' => 60,      # seconds
+            'gossip_interval' => 60,            # seconds
             'max_sync_peers'  => 5,
             'sync_priority'   => 'proximity',
         },
@@ -84,15 +86,15 @@ $data{'context'}{'tree'}{'summary'} = {
         'queries_served'    => 0,
         'syncs_completed'   => 0,
     },
-};
 
+};
 ## Checkpoint registry (for reset recovery)
 $data{'context'}{'tree'}{'summary'}{'checkpoints'} = {};
 
 0;
 
-#,,.,,,..,..,,,.,,,..,,,.,,,.,..,,,,,,..,,..,,.,.,...,...,.,,,..,,.,,,,.,,,,.,
-#4QHZ5275JVYSSOTD2MKAFHLM6JFYU5W6NSUHPXXRZINCGC2M5VKTM4VJR2JLVYXU423B6WKFWCK6G
-#\\\|5LU77YHWAN2V4UR3LG7ICNCXVX4OSEMR3DFXCPZXAZQEG7PZRAX \ / AMOS7 \ YOURUM ::
-#\[7]OCQIUEUE3UOWCAKNPAK36LZOLQ36QEQWHRVDLBLW3FHMICRCYUBQ 7  DATA SIGNATURE ::
+#,,.,,..,,.,,,.,.,,,,,..,,,.,,,,,,.,.,,,,,.,,,.,.,...,.,.,..,,.,.,...,,,,,...,
+#V4YDCUB2WKXO7ZHG3E6OUCZRA7IWDED4PFUGA7P55LULKTHMUQTBHV5UF6GJ2YKUSLETIEJFKL6RW
+#\\\|QTIBGKRLS5PDXDETH7ZEBGBVVJ5QVCYJA4MX3GSSODSHBC3GB7V \ / AMOS7 \ YOURUM ::
+#\[7]P45364E4WZW3FZ57VH3FVZ7KWT4T2GAICZX2DZHZVKHBWVWOFMBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
