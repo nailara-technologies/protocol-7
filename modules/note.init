@@ -1,0 +1,49 @@
+## [:< ##
+
+# name  = note.init
+# descr = initialize notes workspace for current task
+
+my $task_id = shift // <system.task_id> // 'unknown';
+
+## ensure base directory exists ##
+my $base_dir = <[file.zenka_dir.data]> . '/notes';
+<[file.path.make_dir]>->($base_dir) unless -d $base_dir;
+
+## task-specific workspace ##
+my $task_dir = "$base_dir/$task_id";
+my $workspace_dir = "$task_dir/workspace";
+
+<[file.path.make_dir]>->($task_dir);
+<[file.path.make_dir]>->($workspace_dir);
+
+## initialize metadata ##
+my $meta_file = "$task_dir/.meta";
+unless (-f $meta_file) {
+    my $meta = {
+        'task_id'   => $task_id,
+        'created'   => <[base.time]>->(3),
+        'zenka'     => <system.zenka_name> // 'unknown',
+        'tags'      => [],
+        'status'    => 'active',
+        'rounds'    => 0,
+    };
+    <[file.write]>->($meta_file, JSON::PP::encode_json($meta));
+}
+
+## initialize empty summaries if not exist ##
+my $short_summary = "$task_dir/summary.short";
+my $long_summary  = "$task_dir/summary.long";
+
+<[file.write]>->($short_summary, '') unless -f $short_summary;
+<[file.write]>->($long_summary, '') unless -f $long_summary;
+
+return {
+    'mode' => qw| true |,
+    'data' => {
+        'task_id'   => $task_id,
+        'base_dir'  => $base_dir,
+        'task_dir'  => $task_dir,
+        'workspace' => $workspace_dir,
+    }
+};
+
