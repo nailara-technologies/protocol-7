@@ -1,0 +1,27 @@
+## [:< ##
+
+# name  = coding.tools.handler.note_write
+# descr = write finding or thought to task notes
+
+my $args = shift // {};
+
+my $section = $args->{'section'} // 'general';
+my $content = $args->{'content'} // '';
+
+return { 'content' => 'section and content required' }
+    unless length $section && length $content;
+
+## auto-initialize if needed ##
+my $task_id = <system.task_id> // 'unknown';
+my $base_dir = <[file.zenka_dir.data]> . '/notes';
+<[note.init]>->($task_id) unless -d "$base_dir/$task_id";
+
+## write to notes ##
+my $result = <[note.write]>->($section, $content);
+
+return {
+    'content' => $result->{'mode'} eq qw| true |
+        ? "Note saved to section '$section' (" . $result->{'data'}{'bytes'} . " bytes)"
+        : "Failed: " . ($result->{'data'} // 'unknown'),
+};
+

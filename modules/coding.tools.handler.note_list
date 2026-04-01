@@ -1,0 +1,39 @@
+## [:< ##
+
+# name  = coding.tools.handler.note_list
+# descr = list available note trees with previews
+
+my $args = shift // {};
+
+my $tag         = $args->{'tag'} // '';
+my $max_results = $args->{'max'} // 10;
+
+my $result = <[note.list]>->($tag, $max_results);
+
+my $output;
+if ($result->{'mode'} eq qw| true |) {
+    my $tasks = $result->{'data'} // [];
+    
+    if (@$tasks) {
+        $output = "Available note trees:\n\n";
+        for my $t (@$tasks) {
+            $output .= sprintf("- %s [%s] rounds:%d L1:%s L2:%s\n",
+                $t->{'task_id'},
+                $t->{'zenka'} // '?',
+                $t->{'rounds'} // 0,
+                $t->{'has_L1'} ? 'Y' : 'N',
+                $t->{'has_L2'} ? 'Y' : 'N'
+            );
+            $output .= "  " . ($t->{'preview'} // '[no preview]') . "\n\n"
+                if $t->{'preview'};
+        }
+    } else {
+        $output = "No note trees found";
+        $output .= " with tag '$tag'" if $tag;
+    }
+} else {
+    $output = "Error: " . ($result->{'data'} // 'unknown');
+}
+
+return { 'content' => $output };
+
