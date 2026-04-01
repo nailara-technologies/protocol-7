@@ -1,0 +1,66 @@
+## [:< ##
+
+# name  = kimi.handler.pre_connect
+# descr = pre-connect handler to setup local agent if needed
+
+## called before kimi.connect to ensure local agent is ready ##
+
+my $use_local = <kimi.cfg.use_local_agent> // 0;
+return unless $use_local;
+
+## check if we already have a local agent configured ##
+if ( defined <kimi.web.local_agent_port> ) {
+    ## verify agent is still healthy ##
+    my $agent_id = <kimi.web.local_agent_id> // '';
+    if ( length $agent_id ) {
+        my $registry = <kimi-web.agent.registry> // {};
+        my $agent    = $registry->{$agent_id};
+        if ( defined $agent and $agent->{'status'} eq qw| ready | ) {
+            ## agent still ready, use it ##
+            <kimi.web.base_url>
+                = sprintf( 'http://127.0.0.1:%d', $agent->{'port'} );
+            <kimi.web.ws_base>
+                = sprintf( 'ws://127.0.0.1:%d', $agent->{'port'} );
+            return;
+        }
+    }
+    ## agent gone stale, clear it ##
+    <kimi.web.local_agent_port> = undef;
+    <kimi.web.local_agent_id>   = undef;
+}
+
+## need to ensure local agent ##
+my $work_dir = <kimi.cfg.work_dir>       // <system.root_path>;
+my $template = <kimi.cfg.local_template> // '';
+
+<[base.logs]>->(
+    2, ': pre-connect: ensuring local agent [ dir: %s ]', $work_dir
+);
+
+my $agent_info
+    = <[kimi-web.bridge.ensure_local_agent]>->( $work_dir, $template );
+
+if ( defined $agent_info ) {
+    ## configure kimi to use local agent ##
+    <kimi.web.local_agent_port> = $agent_info->{'port'};
+    <kimi.web.local_agent_id>   = $agent_info->{'agent_id'};
+    <kimi.web.base_url>         = $agent_info->{'url'};
+    <kimi.web.ws_base>          = $agent_info->{'ws_url'};
+
+    <[base.logs]>->(
+        2,
+        ': pre-connect: using local agent %s [ port %d ]',
+        $agent_info->{'agent_id'},
+        $agent_info->{'port'}
+    );
+} else {
+    <[base.logs]>->(
+        1, ': pre-connect: local agent unavailable, will fallback to remote'
+    );
+}
+
+#,,.,,,.,,.,.,.,.,,,,,.,,,.,,,,,.,,,,,,,,,,,.,..,,...,...,...,.,.,..,,,,,,.,,,
+#GH32PM24SX3R4O46FCQNPJGHQFOV35QMREKWOYFM4CF42HQU4NXUVZ6NKW5Q6HOTNCQQUYVZJIFTA
+#\\\|MQHXZUG2JN6OFAJ2YZMQX6FZ6JFAZXHYHUOOIMTQ6VD4X7NZYUT \ / AMOS7 \ YOURUM ::
+#\[7]W5SNM3TODEK5BINPHRDMJPLJE4WBMRRBAFYWOC3XXMZDQ2YQ7UDI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
