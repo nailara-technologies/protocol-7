@@ -1111,8 +1111,138 @@ p7c coding.ask template=zenki-create zenka_name=my-zenka zenka_type=standard
 
 ---
 
-#,,,,,...,,,,,...,...,.,,,...,.,,,.,.,.,,,.,.,.,.,...,...,,..,...,...,,..,,..,
-#5LQCRNBCVVXRUI72RDQXOH3HEN6KHOEZGLTO4VJCA7IJZL3CCKOGH2KROWXLKRFW6LW7N442BA3MO
-#\\\|RV6UVHW76R4JEDYHJGOZKKCTQYZF3QPJYHOBTNZEBEKNKW3YCM2 \ / AMOS7 \ YOURUM ::
-#\[7]7NAXVGFGGEMOEEP6DA7KIRI6CL26WF4KO3EGWCWCFX4UAOC3QOBQ 7  DATA SIGNATURE ::
+## Footer Cleanup Template (April 2026)
+
+**Template**: `data/yaml/context-templates/footer-cleanup.yaml`
+
+Cleans up signature blocks and file footers after edits.
+
+### Use Cases
+
+- Duplicate signatures after merge conflicts
+- Partial/mangled signature fragments
+- Wrong file type signatures
+- subroutine.white-list stale entries
+
+### Patterns Handled
+
+| Issue | Detection | Fix |
+|-------|-----------|-----|
+| Duplicate sigs | Multiple `#,,,.,,` blocks | Keep last, remove others |
+| Fragments | Truncated `#\\\|` or `#\[7]` | Remove, regenerate |
+| Wrong format | Check file extension | Apply correct format |
+| White-list stale | Module doesn't exist | Remove entry |
+
+### Workflow
+
+```bash
+# 1. Run cleanup template
+p7c coding.ask template=footer-cleanup
+
+# 2. Sign files (user action with passphrase)
+./bin/dev/sign-files <paths>
+
+# 3. Verify
+./bin/ptd -verify <files>
+```
+
+### Future: coding.tools Expansion
+
+Potential tools to add for reliable footer cleanup:
+- `coding.tools.handler.check_signatures` - Verify all file signatures
+- `coding.tools.handler.find_duplicate_sigs` - Detect duplicate blocks
+- `coding.tools.handler.white_list_cleanup` - Remove stale entries
+
+### Note: Existing Protection
+
+`modules/source.extract_sig_body` already has PLACEHOLDER detection:
+- Line 69-73: Strips PLACEHOLDER stub footers before processing
+- Line 111-114: Skips PLACEHOLDER during signature matching
+
+The regex pattern handles edge cases:
+```perl
+\n?#[\.,]{70,85}\n(?:#[^\n]*PLACEHOLDER[^\n]*\n)+#[:]{70,80}\n?
+```
+
+Files cleaned in this session were created before this protection was in place.
+
+---
+
+## Kimi + Kimi-Web Integration (April 2026)
+
+**kimi** zenka: Connects to external kimi-web service via HTTP/WebSocket  
+**kimi-web** zenka: Spawns local kimi-cli web processes as sub-agents
+
+### Integration Architecture
+
+```
+kimi.connect → kimi.handler.pre_connect → [if local mode enabled]
+                                                    ↓
+                                      kimi-web.bridge.ensure_local_agent
+                                                    ↓
+                              Check for ready agent → Spawn if needed
+                                                    ↓
+                              Return agent port/url → kimi connects locally
+```
+
+### Configuration
+
+**configuration/zenki/kimi/start:**
+```
+## local agent mode [ uses kimi-web zenka to spawn local agents ]
+kimi.cfg.use_local_agent = 1        ## enable local mode
+kimi.cfg.work_dir = /path/to/work   ## default: <system.root_path>
+kimi.cfg.local_template = code-review  ## context template for agents
+
+## admin group for spawned agent file access
+kimi.cfg.assume_admin_group = 1     ## use project admin group
+```
+
+### User/Group Handling
+
+Following coding zenka pattern:
+- Spawns run as `<system.amos-zenka-user>` (protocol-7)
+- Admin group auto-detected from `<system.root_path>` gid
+- Enables spawned agents to access project files
+
+### Flow
+
+1. **kimi.connect** triggers **kimi.handler.pre_connect**
+2. Pre-connect checks if local mode enabled
+3. If enabled, calls **kimi-web.bridge.ensure_local_agent**
+4. Bridge checks kimi-web registry for ready agents
+5. If none found, spawns new agent via **kimi-web.spawn_agent**
+6. Waits for agent to become ready (health check)
+7. kimi temporarily overrides base_url/ws_base to local agent
+8. Standard websocket connection proceeds
+
+### Fallback
+
+If local agent spawn fails:
+- Logs warning
+- Falls back to configured remote kimi-web endpoint
+- Existing session logic unchanged
+
+### Commands
+
+```bash
+## Check if local agent mode is active
+p7c kimi.get use_local_agent
+
+## Switch to local mode
+p7c kimi.set use_local_agent 1
+
+## Force new local agent spawn
+p7c kimi-web.spawn_agent template=code-review
+
+## List active local agents
+p7c kimi-web.list_agents
+```
+
+---
+
+#,,,,,,.,,.,.,,,,,...,.,.,,,,,.,,,,,.,...,,..,.,.,...,...,,,,,,,,,,,.,,..,,.,,
+#RRMSD2K3YAZMTDGBLF4QVDGXO6APRHAXIQK534Y2SSKFMP4NGXUVGQQJL5OLBQJXYK76SJXZWF4DE
+#\\\|QFSCAFP6IXQVR6X67DTM7IYRI7W5OYVJHUOQFG2PCJ54EER7YOL \ / AMOS7 \ YOURUM ::
+#\[7]U63JVLCDZ5WZL6OOOAUSVBQ65PQXTJ6EZ2TQIHCUY5ZHXETBFWDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

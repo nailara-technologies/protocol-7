@@ -1,0 +1,116 @@
+## [:< ##
+
+# name  = kimi-web.bridge.ensure_local_agent
+# descr = ensure local kimi-web agent exists, spawn if needed
+
+my $work_dir = shift // <system.root_path>;
+my $template = shift // '';
+
+## check if kimi-web has any ready agents ##
+my $agent_list = <[kimi-web.cmd.list_agents]>
+    ->( { 'args' => { 'status' => qw| ready | } } );
+
+my $agents = $agent_list->{'data'}{'agents'} // [];
+
+## return first ready agent if available ##
+if (@$agents) {
+    my $agent = $agents->[0];
+    <[base.logs]>->(
+        2,                    ': using existing local agent %s [ port %d ]',
+        $agent->{'agent_id'}, $agent->{'port'}
+    );
+    return {
+        'agent_id' => $agent->{'agent_id'},
+        'port'     => $agent->{'port'},
+        'url'      => sprintf( 'http://127.0.0.1:%d', $agent->{'port'} ),
+        'ws_url'   => sprintf( 'ws://127.0.0.1:%d',   $agent->{'port'} ),
+        'spawned'  => 0,
+    };
+}
+
+## no ready agent - spawn one via kimi-web ##
+<[base.logs]>->( 2, ': no local agent ready, spawning new one' );
+
+## resolve admin group for file access [ pattern from coding zenka ] ##
+my $admin_group = '';
+my $root_path   = <system.root_path> // '';
+if ( length $root_path and -d $root_path ) {
+    my ( undef, undef, $gid ) = stat($root_path);
+    if ( defined $gid ) {
+        $admin_group = getgrgid($gid) // '';
+    }
+}
+
+## spawn agent with appropriate context ##
+my $spawn_result = <[kimi-web.cmd.spawn_agent]>->(
+    {   'args' => {
+            'context_slice' => $work_dir,
+            'template'      => $template,
+            'priority'      => 5,
+            'model_config'  => { 'work_dir' => $work_dir, }
+        }
+    }
+);
+
+if ( $spawn_result->{'mode'} ne qw| true | ) {
+    <[base.logs]>->(
+        0,
+        ': failed to spawn local agent: %s',
+        $spawn_result->{'data'}
+    );
+    return undef;
+}
+
+my $agent_id = $spawn_result->{'data'};
+
+## wait for agent to become ready [ with timeout ] ##
+my $max_wait = 30;
+my $waited   = 0;
+my $agent_info;
+
+while ( $waited < $max_wait ) {
+    sleep 1;
+    $waited++;
+
+    my $status = <[kimi-web.cmd.list_agents]>
+        ->( { 'args' => { 'status' => qw| ready | } } );
+
+    $agents = $status->{'data'}{'agents'} // [];
+
+    ## find our agent ##
+    for my $a (@$agents) {
+        if ( $a->{'agent_id'} eq $agent_id ) {
+            $agent_info = $a;
+            last;
+        }
+    }
+
+    last if defined $agent_info;
+}
+
+if ( not defined $agent_info ) {
+    <[base.logs]>->(
+        0,         ': agent %s did not become ready within %d seconds',
+        $agent_id, $max_wait
+    );
+    return undef;
+}
+
+<[base.logs]>->(
+    2, ': spawned local agent %s [ port %d, waited %ds ]',
+    $agent_id, $agent_info->{'port'}, $waited
+);
+
+return {
+    'agent_id' => $agent_id,
+    'port'     => $agent_info->{'port'},
+    'url'      => sprintf( 'http://127.0.0.1:%d', $agent_info->{'port'} ),
+    'ws_url'   => sprintf( 'ws://127.0.0.1:%d',   $agent_info->{'port'} ),
+    'spawned'  => 1,
+};
+
+#,,.,,.,,,.,.,,,.,.,,,...,.,,,.,.,.,,,,,,,,.,,..,,...,...,.,.,.,,,...,,,,,,,.,
+#BNU2PWZGYRD3L7P4LXLK76FTIXEHUMIN3XP7M3MDH5NZHPAWBU6TFI437QYJUYYBRFOOWMWTYFQ36
+#\\\|2AH2ONGYCHJE5EW4DJMDJX7RCW3YSGG5LU64MLVXC7AEWBTFTPC \ / AMOS7 \ YOURUM ::
+#\[7]5OBBJ3UC4IDUIETPTDBEECUYXHU6AOU6MHRR6W53KLJJZ22HWIDI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

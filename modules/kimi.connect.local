@@ -1,0 +1,55 @@
+## [:< ##
+
+# name  = kimi.connect.local
+# descr = connect to local kimi-web agent, spawning if needed
+
+my $use_local = <kimi.cfg.use_local_agent> // 0;
+
+if ( not $use_local ) {
+    <[base.logs]>->(
+        2, ': local agent mode disabled, using standard connect'
+    );
+    return <[kimi.connect]>->(@ARG);
+}
+
+## ensure local agent exists ##
+my $work_dir = <kimi.cfg.work_dir>       // <system.root_path>;
+my $template = <kimi.cfg.local_template> // '';
+
+my $agent = <[kimi-web.bridge.ensure_local_agent]>->( $work_dir, $template );
+
+if ( not defined $agent ) {
+    <[base.logs]>->( 0, ': failed to ensure local agent, falling back' );
+    return <[kimi.connect]>->(@ARG);
+}
+
+## override kimi web endpoint to use local agent ##
+<kimi.web.local_agent_port> = $agent->{'port'};
+<kimi.web.local_agent_id>   = $agent->{'agent_id'};
+
+## temporarily redirect base_url and ws_base to local agent ##
+my $orig_base_url = <kimi.web.base_url>;
+my $orig_ws_base  = <kimi.web.ws_base>;
+
+<kimi.web.base_url> = $agent->{'url'};
+<kimi.web.ws_base>  = $agent->{'ws_url'};
+
+<[base.logs]>->(
+    2,                    ': connecting to local agent %s [ %s ]',
+    $agent->{'agent_id'}, $agent->{'url'}
+);
+
+## call standard connect with overridden endpoints ##
+my $result = <[kimi.connect]>->(@ARG);
+
+## restore original endpoints for future reconnects ##
+<kimi.web.base_url> = $orig_base_url;
+<kimi.web.ws_base>  = $orig_ws_base;
+
+return $result;
+
+#,,,.,..,,.,,,...,,..,,,,,,.,,..,,.,.,.,,,..,,..,,...,...,..,,.,,,,..,,..,..,,
+#U3LYAMRHDHLFZOHCYKHDX2UETAGREU3NMUFZGIZ4JVZSJHVDFHIAXN5MEVY4O7BK4V3MWC5ODFONS
+#\\\|5WOMPZ4VWQHFCH56A4F7H27MVGKKA7DYV23B2F27N46LZMPK2V6 \ / AMOS7 \ YOURUM ::
+#\[7]LECSAZX2NND2PHFQF57KMGKWVGZIMQAA4Z7SQXK5LUHH7QMFPUAI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

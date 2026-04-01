@@ -1,0 +1,163 @@
+---
+name: footer-cleanup
+descr: clean up signature blocks and file footers after edits
+budget: 3000
+sections:
+  ## core knowledge ##
+  - include: system-base
+    priority: 1
+    budget_pct: 15
+
+  ## style conventions ##
+  - include: system-review
+    priority: 2
+    budget_pct: 10
+
+  ## instructions ##
+  - static: |
+      clean up file footers and signature blocks after code edits.
+      ensures consistent signatures, removes duplicates, fixes formatting.
+
+      ## round budget: aim for 8-15 tool rounds ##
+      ## focus on files modified in recent commits ##
+
+      ## phase 1: identify files needing cleanup [ ~3 rounds ] ##
+
+      ### 1a. check recent changes ###
+      use recent_changes to see modified files.
+      look for:
+      - files with signature block changes (diff shows #,,,.,, lines)
+      - perl modules with missing or malformed signatures
+      - configuration files with outdated footers
+
+      ### 1b. identify specific issues ###
+      for each modified file:
+      1. read_file to check current footer state
+      2. look for these common issues:
+         - duplicate signature blocks
+         - partial/mangled signatures (from edit conflicts)
+         - missing trailing newline before signature
+         - wrong signature format for file type
+
+      ## phase 2: cleanup patterns [ ~5 rounds ] ##
+
+      ### pattern 1: duplicate signatures ###
+      some files end up with multiple signature blocks after merges.
+
+      **detection**: more than one block matching:
+      ```
+      #,,,,,...,..,,..,..,,..,,,,..,,...,,,,,,.,...,,,..,,.,,..,.,..,,,..,.,,..,,,
+      #<52-char-base32-checksum>
+      #\\\|... \ / AMOS7 \ YOURUM ::
+      #\[7]... 7  DATA SIGNATURE ::
+      #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+      ```
+
+      **fix**: keep only the last valid signature block, remove others.
+
+      ### pattern 2: partial/mangled signatures ###
+      edits can split signature blocks leaving fragments.
+
+      **detection**: lines starting with signature characters but malformed:
+      - `#,,,` without proper continuation
+      - `#\\\|` or `#\[7]` without full line
+      - truncated checksum lines
+
+      **fix**: remove fragments, regenerate complete signature.
+
+      ### pattern 3: wrong file type signatures ###
+      - perl modules need full AMOS7 signatures
+      - config files (yaml, start files) need signatures
+      - documentation (md) may or may not need signatures
+
+      **detection**: check file extension and location:
+      - `modules/*.` → needs signature
+      - `configuration/zenki/*/start` → needs signature
+      - `configuration/zenki/*/zenka-startup.v7` → needs signature
+      - `data/md/*.md` → usually no signature
+      - `data/yaml/context-templates/*.yaml` → needs signature
+
+      ### pattern 4: subroutine.white-list cleanup ###
+      when modules are removed or renamed, white-list may have stale entries.
+
+      **detection**:
+      - use validate_module_format to check all entries
+      - look for modules that no longer exist in modules/
+
+      **fix**: remove non-existent entries from white-list.
+
+      ## phase 3: signature regeneration [ ~5 rounds ] ##
+
+      ### for files needing new signatures ###
+
+      1. ensure file content is correct (all edits applied)
+      2. run ptd_check to verify syntax
+      3. ask user to sign file (requires passphrase)
+      4. verify signature is valid with ptd -verify
+
+      ### signature format reference ###
+
+      **perl modules**:
+      ```perl
+      #,,,,,...,..,,..,..,,..,,,,..,,...,,,,,,.,...,,,..,,.,,..,.,..,,,..,.,,..,,,
+      #<52-char-base32-checksum>
+      #\\\|<44-char-signature> \ / AMOS7 \ YOURUM ::
+      #\[7]<52-char-signing-key> 7  DATA SIGNATURE ::
+      #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+      ```
+
+      **yaml files** (same format, but no perl code markers):
+      ```yaml
+      #,,,,,...,..,,..,..,,..,,,,..,,...,,,,,,.,...,,,..,,.,,..,.,..,,,..,.,,..,,,
+      #<52-char-base32-checksum>
+      #\\\|<44-char-signature> \ / AMOS7 \ YOURUM ::
+      #\[7]<52-char-signing-key> 7  DATA SIGNATURE ::
+      #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+      ```
+
+      ## phase 4: verification [ ~2 rounds ] ##
+
+      ### check list ###
+      - [ ] all modified files have valid signatures
+      - [ ] no duplicate signatures in any file
+      - [ ] no partial/mangled signature fragments
+      - [ ] subroutine.white-list has no stale entries
+      - [ ] pre-commit checks pass
+
+      ## common pitfalls ##
+
+      **NEVER**: use SKIP_SIGNATURE_CHECK=1 or SKIP_VERSION_CHECK=1
+      **ALWAYS**: ask user to sign files with passphrase
+      **VERIFY**: run ptd_check after any signature-related edits
+
+      ## output format ##
+
+      ## footer cleanup summary ##
+
+      ### files processed ###
+      - file: <path>
+        action: <regenerated|cleaned|removed-duplicate|none>
+        issues: <description>
+
+      ### white-list changes ###
+      - removed: <entry> (module not found)
+
+      ### verification ###
+      - pre-commit status: <pass/fail>
+      - files needing user signature: <list>
+
+      call task_complete when all files are clean and signed.
+    priority: 3
+    budget_pct: 75
+    label: footer cleanup instructions
+
+on_complete:
+  - when: output_contains=needing user signature
+    action: memory_update
+    topic: "signatures:pending"
+
+#,,,,,.,,,.,,,,.,,.,.,,.,,,.,,.,.,,.,,.,,,.,.,..,,...,...,,,,,..,,,.,,,.,,,.,,
+#446L56XTWS5BYHO2OMXTSYJMCW4MMZTQ4S52OIX7RPINQBMAC6QFTTUFHT4XWZOU6S5NXV3PWNCBC
+#\\\|CUHTUGHCQ3WTWRERRFZH7A6R3YQEXVWUUMNUJQLHLWSSEY37AZU \ / AMOS7 \ YOURUM ::
+#\[7]2CZAQTYGYUUCGAAH3DEQS2XQC6BUSP7ETFETRWL5AXRBHBDDIADQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
