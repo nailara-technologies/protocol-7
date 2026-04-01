@@ -8,23 +8,24 @@ my $args = shift // {};
 my $tag         = $args->{'tag'} // '';
 my $max_results = $args->{'max'} // 10;
 
-my $result = <[note.list]>->($tag, $max_results);
+my $result = <[note.list]>->( $tag, $max_results );
 
 my $output;
-if ($result->{'mode'} eq qw| true |) {
+if ( $result->{'mode'} eq qw| true | ) {
     my $tasks = $result->{'data'} // [];
-    
+
     if (@$tasks) {
         $output = "Available note trees:\n\n";
         for my $t (@$tasks) {
-            $output .= sprintf("- %s [%s] rounds:%d L1:%s L2:%s\n",
+            $output .= sprintf(
+                "- %s [%s] rounds:%d L1:%s L2:%s\n",
                 $t->{'task_id'},
-                $t->{'zenka'} // '?',
+                $t->{'zenka'}  // '?',
                 $t->{'rounds'} // 0,
                 $t->{'has_L1'} ? 'Y' : 'N',
                 $t->{'has_L2'} ? 'Y' : 'N'
             );
-            $output .= "  " . ($t->{'preview'} // '[no preview]') . "\n\n"
+            $output .= "  " . ( $t->{'preview'} // '[no preview]' ) . "\n\n"
                 if $t->{'preview'};
         }
     } else {
@@ -32,8 +33,13 @@ if ($result->{'mode'} eq qw| true |) {
         $output .= " with tag '$tag'" if $tag;
     }
 } else {
-    $output = "Error: " . ($result->{'data'} // 'unknown');
+    $output = "Error: " . ( $result->{'data'} // 'unknown' );
 }
 
 return { 'content' => $output };
 
+#,,.,,,..,..,,..,,.,,,...,...,,,,,.,,,.,.,,,.,.,.,...,...,,..,,,,,,.,,,..,.,,,
+#7OFERK4BGMGA5KJY4WBYNYHRQ46A4AENLEGYWB3QV2546W2DZTDTGNHLOUR7VYZWYKIFHNA4IHTTE
+#\\\|FMRORXBUGZLUQ26ZVUS3XXPSNNRQ6KNUFLDJVAO3HW4IA7N7WHX \ / AMOS7 \ YOURUM ::
+#\[7]IE3QA7J7OAFYFEZ73QGRBX3T7AXT2WRASIEXAFUXARFEKP42VQCI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

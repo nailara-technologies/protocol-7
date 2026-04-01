@@ -10,7 +10,7 @@ my $base_dir = <[file.zenka_dir.data]> . '/notes';
 <[file.path.make_dir]>->($base_dir) unless -d $base_dir;
 
 ## task-specific workspace ##
-my $task_dir = "$base_dir/$task_id";
+my $task_dir      = "$base_dir/$task_id";
 my $workspace_dir = "$task_dir/workspace";
 
 <[file.path.make_dir]>->($task_dir);
@@ -18,24 +18,24 @@ my $workspace_dir = "$task_dir/workspace";
 
 ## initialize metadata ##
 my $meta_file = "$task_dir/.meta";
-unless (-f $meta_file) {
+unless ( -f $meta_file ) {
     my $meta = {
-        'task_id'   => $task_id,
-        'created'   => <[base.time]>->(3),
-        'zenka'     => <system.zenka_name> // 'unknown',
-        'tags'      => [],
-        'status'    => 'active',
-        'rounds'    => 0,
+        'task_id' => $task_id,
+        'created' => <[base.time]>->(3),
+        'zenka'   => <system.zenka_name> // 'unknown',
+        'tags'    => [],
+        'status'  => 'active',
+        'rounds'  => 0,
     };
-    <[file.write]>->($meta_file, JSON::PP::encode_json($meta));
+    <[file.write]>->( $meta_file, JSON::PP::encode_json($meta) );
 }
 
 ## initialize empty summaries if not exist ##
 my $short_summary = "$task_dir/summary.short";
 my $long_summary  = "$task_dir/summary.long";
 
-<[file.write]>->($short_summary, '') unless -f $short_summary;
-<[file.write]>->($long_summary, '') unless -f $long_summary;
+<[file.write]>->( $short_summary, '' ) unless -f $short_summary;
+<[file.write]>->( $long_summary,  '' ) unless -f $long_summary;
 
 return {
     'mode' => qw| true |,
@@ -47,3 +47,8 @@ return {
     }
 };
 
+#,,.,,.,,,,,.,.,.,,..,,.,,,..,...,,.,,..,,.,.,.,.,...,...,..,,,..,...,...,.,.,
+#AFRSAJVZT44LJ5CB35NDXZJOFOBEKA2W44FOFOSV7CWD4ZOHHSVTCHZSD42S4VDQHJJ5HX23ERDRI
+#\\\|DSBC7ICAM5R6OESH3VIOPRX7FXRCTAAZHUM63BRBTEYZ3CIVCSP \ / AMOS7 \ YOURUM ::
+#\[7]FEOX32KDYBSN7LV63AQORBGZZ4DDIZT5AB6ENGOBQLXCCBJIP6DI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

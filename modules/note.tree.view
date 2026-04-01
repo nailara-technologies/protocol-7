@@ -3,9 +3,9 @@
 # name  = note.tree.view
 # descr = display hierarchical summary of notes with AMOS chksum addressing
 
-my ($depth, $category_filter) = @ARG;
+my ( $depth, $category_filter ) = @ARG;
 
-$depth //= 2;  ## default depth ##
+$depth //= 2;    ## default depth ##
 
 my $base_dir = <[file.zenka_dir.data]> . '/notes';
 return { 'mode' => qw| true |, 'data' => {} } unless -d $base_dir;
@@ -15,11 +15,11 @@ my %tree;
 ## get all tasks or filtered by category ##
 my @task_ids;
 
-if (defined $category_filter && length $category_filter) {
+if ( defined $category_filter && length $category_filter ) {
     my $list_file = "$base_dir/categories/$category_filter/list";
-    if (-f $list_file) {
+    if ( -f $list_file ) {
         my $content = <[file.read]>->($list_file);
-        @task_ids = grep { length } split /\n/, $content;
+        @task_ids = grep {length} split /\n/, $content;
     }
 } else {
     my @task_dirs = <[file.glob]>->("$base_dir/*/");
@@ -33,55 +33,63 @@ if (defined $category_filter && length $category_filter) {
 for my $task_id (@task_ids) {
     my $task_dir = "$base_dir/$task_id";
     next unless -d $task_dir;
-    
-    my $meta_file = "$task_dir/.meta";
+
+    my $meta_file  = "$task_dir/.meta";
     my $short_file = "$task_dir/summary.short";
-    
+
     my $node = {
         'id'      => $task_id,
         'address' => <[base.chk-sum.elf.vax-BASE32]>->($task_id),
     };
-    
+
     ## load metadata ##
-    if (-f $meta_file) {
-        my $meta = eval { JSON::PP::decode_json(<[file.read]>->($meta_file)) };
-        if (ref $meta eq qw| HASH |) {
+    if ( -f $meta_file ) {
+        my $meta
+            = eval { JSON::PP::decode_json( <[file.read]>->($meta_file) ) };
+        if ( ref $meta eq qw| HASH | ) {
             $node->{'zenka'}  = $meta->{'zenka'};
             $node->{'tags'}   = $meta->{'tags'};
             $node->{'rounds'} = $meta->{'rounds'};
             $node->{'status'} = $meta->{'status'};
         }
     }
-    
+
     ## load L1 summary (truncated) ##
-    if (-f $short_file && -s $short_file) {
+    if ( -f $short_file && -s $short_file ) {
         my $content = <[file.read]>->($short_file);
-        if ($depth >= 2) {
-            $node->{'summary'} = <[base.parser.ellipse_center]>->($content, 200);
+        if ( $depth >= 2 ) {
+            $node->{'summary'}
+                = <[base.parser.ellipse_center]>->( $content, 200 );
         } else {
-            $node->{'summary'} = <[base.parser.ellipse_center]>->($content, 80);
+            $node->{'summary'}
+                = <[base.parser.ellipse_center]>->( $content, 80 );
         }
     }
-    
+
     $tree{$task_id} = $node;
 }
 
 ## organize by zenka or category depending on depth ##
 my %grouped;
-for my $task_id (sort keys %tree) {
-    my $node = $tree{$task_id};
+for my $task_id ( sort keys %tree ) {
+    my $node  = $tree{$task_id};
     my $group = $node->{'zenka'} // 'unknown';
     $grouped{$group} //= [];
-    push @{$grouped{$group}}, $node;
+    push @{ $grouped{$group} }, $node;
 }
 
 return {
     'mode' => qw| true |,
     'data' => {
-        'depth'    => $depth,
-        'count'    => scalar @task_ids,
-        'grouped'  => \\%grouped,
-        'flat'     => \\%tree,
+        'depth'   => $depth,
+        'count'   => scalar @task_ids,
+        'grouped' => \\%grouped,
+        'flat'    => \\%tree,
     }
 };
 
+#,,,.,.,,,..,,,.,,,.,,..,,...,..,,,..,,,.,,,,,.,.,...,...,.,.,..,,..,,,..,.,.,
+#KYGLC7WQO2FQEXAB75WWAYVNTELYZALMFSOPW5CA54WSVZVS5NEDKVC3M4DE472SRL5ZOXD5UDA56
+#\\\|N7OZWEBALVQQ2UOTYLPBMJON2NU43HU4VD2XLVLDTHNXU2RFRS7 \ / AMOS7 \ YOURUM ::
+#\[7]EDRIKCHM46PO475SA2POIYGHAB6IDOLULNE7BJCW4DW6BOSFUEDY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

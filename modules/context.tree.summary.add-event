@@ -5,80 +5,74 @@
 
 my ($args) = @_;
 
-    my $type = $args->{'type'}
-        or return { 'mode' => 'false', 'data' => 'type required' };
-    my $agent      = $args->{'agent'} // $data{'agent'}{'id'} // 'unknown';
-    my $branch     = $args->{'branch'}     // 'general';
-    my $payload    = $args->{'payload'}    // {};
-    my $references = $args->{'references'} // {};
-    my $timestamp  = $args->{'timestamp'}  // time();
+my $type = $args->{'type'}
+    or return { 'mode' => 'false', 'data' => 'type required' };
+my $agent      = $args->{'agent'}      // $data{'agent'}{'id'} // 'unknown';
+my $branch     = $args->{'branch'}     // 'general';
+my $payload    = $args->{'payload'}    // {};
+my $references = $args->{'references'} // {};
+my $timestamp  = $args->{'timestamp'}  // time();
 
-    my $tree = $data{'context'}{'tree'}{'summary'};
+my $tree = $data{'context'}{'tree'}{'summary'};
 
-    # Create event node
-    my $event = {
-        'type'       => $type,
-        'agent'      => $agent,
-        'branch'     => $branch,
-        'timestamp'  => $timestamp,
-        'payload'    => $payload,
-        'references' => $references,
-    };
-
-    ## generate checksum for event [ content-addressed ] ##
-    my $event_str = join( '|',
-        $type,
-        $agent,
-        $branch,
-        $timestamp,
-        <[context.util.tree.canonical_json]>->($payload),
-        <[context.util.tree.canonical_json]>->($references),
-    );
-    my $checksum = <[base.chk-sum.bmw.L13-str]>->($event_str);
-    $checksum = "bmw-L13:$checksum";
-
-    $event->{'id'} = $checksum;
-
-    ## calculate initial relevance ##
-    $event->{'relevance'}
-        = <[context.util.tree.calculate_relevance]>->($event);
-
-    # Store event
-    $tree->{'events'}{$checksum} = $event;
-    $tree->{'stats'}{'events_added'}++;
-
-    # Update indices
-    push @{ $tree->{'index'}{'by_time'}{ int( $timestamp / 3600 ) } },
-        $checksum;
-    push @{ $tree->{'index'}{'by_type'}{$type} },     $checksum;
-    push @{ $tree->{'index'}{'by_agent'}{$agent} },   $checksum;
-    push @{ $tree->{'index'}{'by_branch'}{$branch} }, $checksum;
-
-    # Index references
-    for my $ref_type ( keys %$references ) {
-        for my $ref_val ( @{ $references->{$ref_type} } ) {
-            push @{ $tree->{'index'}{'by_ref'}{$ref_val} }, $checksum;
-        }
-    }
-
-    # Trigger compaction check if needed
-    if ( $tree->{'stats'}{'events_added'} % 1000 == 0 ) {
-        <[context.tree.summary.compact.check]>
-            ->( { 'trigger' => 'event-threshold', } );
-    }
-
-    return {
-        'mode' => 'true',
-        'data' => {
-            'id'        => $checksum,
-            'timestamp' => $timestamp,
-            'relevance' => $event->{'relevance'}{'total'},
-        },
-    };
+# Create event node
+my $event = {
+    'type'       => $type,
+    'agent'      => $agent,
+    'branch'     => $branch,
+    'timestamp'  => $timestamp,
+    'payload'    => $payload,
+    'references' => $references,
 };
 
-#,,,,,,,,,..,,,,,,,.,,,,.,,..,.,.,...,.,.,.,.,.,.,...,...,.,,,,.,,..,,.,,,,.,,
-#UCR7QPIPWAW5Y46LAYVU6KVN7YMBZQEE6LJPXCOMRIFJYZEW6W7LEMC4FR5U3WQT4PLJJQEBCA6PW
-#\\\|QROKJQ2WICTHS3FDJO4RGBRJF6BSHH2ZED4AQBYI3YECZDR6NZT \ / AMOS7 \ YOURUM ::
-#\[7]IXVMWXHE2OBEMHBMXVO6B5TRAIWWTIJ7AIM74NHWFJVCRJDZ5QBA 7  DATA SIGNATURE ::
+## generate checksum for event [ content-addressed ] ##
+my $event_str = join( '|',
+    $type, $agent, $branch, $timestamp,
+    <[context.util.tree.canonical_json]>->($payload),
+    <[context.util.tree.canonical_json]>->($references),
+);
+my $checksum = <[base.chk-sum.bmw.L13-str]>->($event_str);
+$checksum = "bmw-L13:$checksum";
+
+$event->{'id'} = $checksum;
+
+## calculate initial relevance ##
+$event->{'relevance'} = <[context.util.tree.calculate_relevance]>->($event);
+
+# Store event
+$tree->{'events'}{$checksum} = $event;
+$tree->{'stats'}{'events_added'}++;
+
+# Update indices
+push @{ $tree->{'index'}{'by_time'}{ int( $timestamp / 3600 ) } }, $checksum;
+push @{ $tree->{'index'}{'by_type'}{$type} },                      $checksum;
+push @{ $tree->{'index'}{'by_agent'}{$agent} },                    $checksum;
+push @{ $tree->{'index'}{'by_branch'}{$branch} },                  $checksum;
+
+# Index references
+for my $ref_type ( keys %$references ) {
+    for my $ref_val ( @{ $references->{$ref_type} } ) {
+        push @{ $tree->{'index'}{'by_ref'}{$ref_val} }, $checksum;
+    }
+}
+
+# Trigger compaction check if needed
+if ( $tree->{'stats'}{'events_added'} % 1000 == 0 ) {
+    <[context.tree.summary.compact.check]>
+        ->( { 'trigger' => 'event-threshold', } );
+}
+
+return {
+    'mode' => 'true',
+    'data' => {
+        'id'        => $checksum,
+        'timestamp' => $timestamp,
+        'relevance' => $event->{'relevance'}{'total'},
+    },
+};
+
+#,,..,,,,,.,,,.,,,,,.,.,.,,.,,,,,,,,.,.,,,,..,.,.,...,...,.,.,.,,,,.,,,,,,,..,
+#YQ6KUNEUHVASCWMWOVYBE6MAB3UELBPKGBVFY2KDII6MQSAIZI65EAQKKEEB2QUDBMXWNGMIUM6UA
+#\\\|M5RQCAIS7WSA5GMMAYMJRVEJPCCJ4OAEV3USGTR5N5CPCY4WTFN \ / AMOS7 \ YOURUM ::
+#\[7]DVRIEFXARWIMGOTCHYFBZDDJADC5IEWO6YO53ZLIYZO3CVQ3GSBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

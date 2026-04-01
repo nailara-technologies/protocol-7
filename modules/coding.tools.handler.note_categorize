@@ -13,9 +13,16 @@ my $result = <[note.categorize]>->($tag);
 
 return {
     'content' => $result->{'mode'} eq qw| true |
-        ? sprintf("Task categorized with tag '%s' (%d tasks in category)",
-            $result->{'data'}{'tag'},
-            $result->{'data'}{'total'})
-        : "Failed: " . ($result->{'data'} // 'unknown'),
+    ? sprintf(
+        "Task categorized with tag '%s' (%d tasks in category)",
+        $result->{'data'}{'tag'},
+        $result->{'data'}{'total'}
+        )
+    : "Failed: " . ( $result->{'data'} // 'unknown' ),
 };
 
+#,,.,,,,,,...,,.,,.,,,...,,..,.,.,.,.,.,.,..,,.,.,...,..,,,..,...,.,,,,..,...,
+#GX4AD7T2YI7G3H5PWANCZSMIJLWQKCMZR3VQEWTHTC6IYGSY2MXCVQMWUSYTH7Z7NQ3MGFQ3MRXY4
+#\\\|6QYD3W5YLFUUKGYOWAZVFENMTQFK56RKS6E2LOZSICXD6ZJETZJ \ / AMOS7 \ YOURUM ::
+#\[7]UHGYHFARX2YMORQEHZWOADHWSQTBDZFVEG263L6J5DCAIYZ226BY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

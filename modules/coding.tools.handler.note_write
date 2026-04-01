@@ -12,16 +12,23 @@ return { 'content' => 'section and content required' }
     unless length $section && length $content;
 
 ## auto-initialize if needed ##
-my $task_id = <system.task_id> // 'unknown';
+my $task_id  = <system.task_id> // 'unknown';
 my $base_dir = <[file.zenka_dir.data]> . '/notes';
 <[note.init]>->($task_id) unless -d "$base_dir/$task_id";
 
 ## write to notes ##
-my $result = <[note.write]>->($section, $content);
+my $result = <[note.write]>->( $section, $content );
 
 return {
-    'content' => $result->{'mode'} eq qw| true |
-        ? "Note saved to section '$section' (" . $result->{'data'}{'bytes'} . " bytes)"
-        : "Failed: " . ($result->{'data'} // 'unknown'),
+      'content' => $result->{'mode'} eq qw| true |
+    ? "Note saved to section '$section' ("
+        . $result->{'data'}{'bytes'}
+        . " bytes)"
+    : "Failed: " . ( $result->{'data'} // 'unknown' ),
 };
 
+#,,,.,...,,,,,.,.,...,...,...,,,,,,.,,...,...,.,.,...,..,,...,.,,,,.,,.,,,,..,
+#OHZPPCKK4YCD5WFJIXXRC5TQGY5E4JE6IKQFHIAAIBKKSRHYDVB6SV7M4GFPCK5V53ZCL5IVOJJSY
+#\\\|F2GEJZ4AJJPEQMJ2LZE5OIOUPSTAG565YXMNGYRXYFLX6XJ7VFO \ / AMOS7 \ YOURUM ::
+#\[7]KQ2GQR7QQWUBVBMVNV4RN7POCNBVWSJV7NUJSQZFOUNDN3FO3AAA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

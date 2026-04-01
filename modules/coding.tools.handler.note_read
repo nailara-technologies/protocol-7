@@ -6,25 +6,25 @@
 my $args = shift // {};
 
 my $task_id = $args->{'task_id'} // <system.task_id> // 'unknown';
-my $level   = $args->{'level'} // 'L3';  ## L1, L2, or L3 ##
+my $level   = $args->{'level'}   // 'L3';    ## L1, L2, or L3 ##
 
 ## validate level ##
 $level = 'L3' unless $level =~ /^(L1|L2|L3)$/;
 
-my $result = <[note.read]>->($task_id, $level);
+my $result = <[note.read]>->( $task_id, $level );
 
 my $output;
-if ($result->{'mode'} eq qw| true |) {
+if ( $result->{'mode'} eq qw| true | ) {
     my $data = $result->{'data'};
     $output = "Notes for task $task_id (level $level):\n\n";
-    
-    if ($level eq 'L1' || $level eq 'L2') {
+
+    if ( $level eq 'L1' || $level eq 'L2' ) {
         $output .= $data->{'summary'} // '[no summary]';
     } else {
         ## L3 - list all sections ##
         my $sections = $data->{'sections'} // {};
-        if (keys %$sections) {
-            for my $name (sort keys %$sections) {
+        if ( keys %$sections ) {
+            for my $name ( sort keys %$sections ) {
                 $output .= "=== $name ===\n" . $sections->{$name} . "\n";
             }
         } else {
@@ -32,8 +32,13 @@ if ($result->{'mode'} eq qw| true |) {
         }
     }
 } else {
-    $output = "Error: " . ($result->{'data'} // 'unknown');
+    $output = "Error: " . ( $result->{'data'} // 'unknown' );
 }
 
 return { 'content' => $output };
 
+#,,..,.,,,.,.,,,.,...,,,,,...,,,.,,,,,..,,..,,.,.,...,...,...,,..,.,,,.,.,.,.,
+#P4H5XU7N74LF7JNQLLWCEHLSYM43O5HT2XGOVVK7AOMHIQ626CSOLQU7BWLAFYMW2SYYIH6M2T53A
+#\\\|DFFZGGF5Q4MIAXI2VGTWYIYNJCNG6HQQQC5TND2FSMLIH2356XC \ / AMOS7 \ YOURUM ::
+#\[7]5OIHCSMHYURI4XU36P777AHTATDWUKKPN2GCA7FUGMXTVWDRAUDY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

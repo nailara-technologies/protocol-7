@@ -12,21 +12,20 @@ my $position  = $args->{'position'};
 my $checksum  = $args->{'checksum'};
 my $bytes_in  = $args->{'bytes_in'};
 
-    ## TODO: store position index in context tree ##
+## TODO: store position index in context tree ##
 
-    my $tree = $data{'context'}{'tree'}{'index'} //= {};
-    $tree->{'positions'}{$stream_id}{$position} = {
-        'checksum' => $checksum,
-        'bytes_in' => $bytes_in,
-    };
-
-    return 1;
+my $tree = $data{'context'}{'tree'}{'index'} //= {};
+$tree->{'positions'}{$stream_id}{$position} = {
+    'checksum' => $checksum,
+    'bytes_in' => $bytes_in,
 };
+
+return 1;
 
 # SPDX-License-Identifier: ISC
 
-#,,..,..,,...,,.,,,,.,...,,,,,.,.,...,,.,,...,..,,...,.,.,...,.,,,,,.,,..,.,,,
-#BNNVTSZ4ZQV7LISFWLEROETAHTWYQPRB3JWZKPHGDRF2442VSGLPU26EPHU47PWYHQYP2BSE6SQNK
-#\\\|I4SVFECLQ3SJDZQKMBMZ4F4QQJM6XWU53O453MFB4QQCQ4KT6AP \ / AMOS7 \ YOURUM ::
-#\[7]IAXD6DGY7XYG7ADR47N6CE44L6AUJL5P3LSBR3TIDRXNAPWLUGCQ 7  DATA SIGNATURE ::
+#,,,.,...,,,,,,..,,..,,,.,,..,.,,,,,.,..,,,..,..,,...,...,.,.,,.,,.,,,,,,,.,.,
+#PQVYMZ6JHHD7F5O4D24NNDIDXFPPKYAJHL6LHXIK4FLOA7I7NKUUTMGNRRGJ2SXHZAT3VACMSZIE2
+#\\\|Q5JN4V7LR6S65TWGU3SMZZ33BOWQGH7MHBPGWXMUPYDFM4D5UIA \ / AMOS7 \ YOURUM ::
+#\[7]47APDO4EXEJ4LCE3NJ4QU6HGCBZSE6OCHAQE6XFC2OM7H6GRIQDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
