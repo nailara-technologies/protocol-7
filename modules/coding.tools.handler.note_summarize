@@ -1,0 +1,23 @@
+## [:< ##
+
+# name  = coding.tools.handler.note_summarize
+# descr = generate L1/L2 summaries from workspace
+
+my $args = shift // {};
+
+my $short = $args->{'short'} // '';
+my $long  = $args->{'long'} // '';
+
+return { 'content' => 'at least one of short or long summary required' }
+    unless length $short || length $long;
+
+my $result = <[note.summarize]>->(undef, $short, $long);
+
+return {
+    'content' => $result->{'mode'} eq qw| true |
+        ? sprintf("Summaries updated: L1=%s, L2=%s",
+            $result->{'data'}{'L1'},
+            $result->{'data'}{'L2'})
+        : "Failed: " . ($result->{'data'} // 'unknown'),
+};
+

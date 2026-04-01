@@ -1,0 +1,39 @@
+## [:< ##
+
+# name  = coding.tools.handler.note_read
+# descr = read notes from current or previous task at specified level
+
+my $args = shift // {};
+
+my $task_id = $args->{'task_id'} // <system.task_id> // 'unknown';
+my $level   = $args->{'level'} // 'L3';  ## L1, L2, or L3 ##
+
+## validate level ##
+$level = 'L3' unless $level =~ /^(L1|L2|L3)$/;
+
+my $result = <[note.read]>->($task_id, $level);
+
+my $output;
+if ($result->{'mode'} eq qw| true |) {
+    my $data = $result->{'data'};
+    $output = "Notes for task $task_id (level $level):\n\n";
+    
+    if ($level eq 'L1' || $level eq 'L2') {
+        $output .= $data->{'summary'} // '[no summary]';
+    } else {
+        ## L3 - list all sections ##
+        my $sections = $data->{'sections'} // {};
+        if (keys %$sections) {
+            for my $name (sort keys %$sections) {
+                $output .= "=== $name ===\n" . $sections->{$name} . "\n";
+            }
+        } else {
+            $output .= '[no notes found]';
+        }
+    }
+} else {
+    $output = "Error: " . ($result->{'data'} // 'unknown');
+}
+
+return { 'content' => $output };
+

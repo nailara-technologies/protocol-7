@@ -734,6 +734,120 @@ push @tools,
     scalar @tools
 );
 
+## note_write — save finding/thought to task notes ##
+if ( exists $code{'coding.tools.handler.note_write'} ) {
+    push @tools,
+        {
+        'type'     => 'function',
+        'function' => {
+            'name'        => 'note_write',
+            'description' => 'write a finding or thought to task notes workspace'
+                . ' [ persists across rounds, accessible to later tasks ]',
+            'parameters' => {
+                'type'       => 'object',
+                'properties' => {
+                    'section' => {
+                        'type'        => 'string',
+                        'description' =>
+                            'note section name [ e.g. finding, analysis, todo ]'
+                    },
+                    'content' => {
+                        'type'        => 'string',
+                        'description' => 'content to save'
+                    },
+                },
+                'required' => [ 'section', 'content' ],
+            },
+        },
+        };
+}
+
+## note_read — access notes from current or previous task ##
+if ( exists $code{'coding.tools.handler.note_read'} ) {
+    push @tools,
+        {
+        'type'     => 'function',
+        'function' => {
+            'name'        => 'note_read',
+            'description' => 'read notes from current or previous task'
+                . ' [ L1=short summary, L2=detailed, L3=full workspace ]',
+            'parameters' => {
+                'type'       => 'object',
+                'properties' => {
+                    'task_id' => {
+                        'type'        => 'string',
+                        'description' =>
+                            'task ID to read [ default: current task ]'
+                    },
+                    'level' => {
+                        'type'        => 'string',
+                        'description' =>
+                            'detail level: L1, L2, or L3 [ default L3 ]',
+                        'enum' => [ 'L1', 'L2', 'L3' ]
+                    },
+                },
+                'required' => [],
+            },
+        },
+        };
+}
+
+## note_list — browse available note trees ##
+if ( exists $code{'coding.tools.handler.note_list'} ) {
+    push @tools,
+        {
+        'type'     => 'function',
+        'function' => {
+            'name'        => 'note_list',
+            'description' => 'list available note trees with previews'
+                . ' [ find related prior work ]',
+            'parameters' => {
+                'type'       => 'object',
+                'properties' => {
+                    'tag' => {
+                        'type'        => 'string',
+                        'description' => 'filter by category tag [ optional ]'
+                    },
+                    'max' => {
+                        'type'        => 'integer',
+                        'description' => 'max results [ default 10 ]'
+                    },
+                },
+                'required' => [],
+            },
+        },
+        };
+}
+
+## note_summarize — create L1/L2 summaries ##
+if ( exists $code{'coding.tools.handler.note_summarize'} ) {
+    push @tools,
+        {
+        'type'     => 'function',
+        'function' => {
+            'name'        => 'note_summarize',
+            'description' => 'generate token-efficient summaries from workspace'
+                . ' [ L1 for quick scan, L2 for detailed context ]',
+            'parameters' => {
+                'type'       => 'object',
+                'properties' => {
+                    'short' => {
+                        'type'        => 'string',
+                        'description' =>
+                            'L1 short summary [ 1-2 paragraphs ]'
+                    },
+                    'long' => {
+                        'type'        => 'string',
+                        'description' =>
+                            'L2 detailed summary [ key findings, approach ]'
+                    },
+                },
+                'required' => [],
+            },
+        },
+        };
+}
+
 return \@tools;
 
 #,,..,...,.,,,...,...,,,.,.,,,.,.,,,.,,,,,.,,,..,,...,...,...,..,,,.,,,,.,...,
