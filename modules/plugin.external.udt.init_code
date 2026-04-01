@@ -1,0 +1,71 @@
+## [:< ##
+
+# name  = plugin.external.udt.init_code
+# descr = initialize UDT transport plugin and register with external registry
+
+my $udt_available = 0;
+
+## check for UDT::Simple module ##
+my $udt_loaded = <[base.perlmod.autoload]>->(qw| UDT::Simple |);
+
+if ( !$udt_loaded ) {
+    <[base.logs]>->( 1, ':. plugin.external.udt: UDT::Simple not available' );
+    return qw| false |;
+}
+
+$udt_available = 1;
+
+## verify external registry exists ##
+unless ( defined <external.transports> ) {
+    <[base.logs]>->(
+        0, ':. plugin.external.udt: external.init_code not loaded'
+    );
+    return qw| false |;
+}
+
+## register UDT transport ##
+<external.transports>->{'registry'}->{'udt'} = {
+
+    'name'        => 'udt',
+    'description' => 'UDT - UDP-based Data Transfer',
+    'available'   => 1,
+    'priority'    => 100,                             ## higher = preferred ##
+
+    ## capabilities ##
+    'capabilities' => {
+        'reliable'         => 1,
+        'ordered'          => 1,
+        'message_oriented' => 1,
+        'high_bdp'         => 1,    ## high bandwidth-delay product ##
+        'nat_traversal'    => 1,    ## UDP hole punching ##
+    },
+
+    ## default configuration ##
+    'config' => {
+        'default_port'   => 9000,
+        'listen_backlog' => 128,
+        'buffer_size'    => 8192,
+        'timeout_ms'     => 5000,
+    },
+
+    ## module loaded flag ##
+    'module_loaded' => 1,
+};
+
+## add to available transports ##
+push <external.transports>->{'available'}->@*, 'udt';
+
+## set as preferred if no preference set ##
+<external.transports>->{'preferred'} //= 'udt';
+
+<[base.logs]>->(
+    2, ':. plugin.external.udt: UDT transport registered (priority: %d)', 100
+);
+
+return qw| true |;
+
+#,,.,,,,.,..,,..,,.,.,,..,...,..,,,,.,,,,,...,.,.,...,...,...,..,,,..,,,,,.,,,
+#HDZNPQRT3NSNITCPLO2T4ZNF522ACU7SVTKUVYEZY7EOSGKWT7C5H62XEDGNXKETODPGSKPIHGESY
+#\\\|WWFFA6SZOPSJOENZPCMMCZOIFLMWU776SFU6AO4S52DTVD7WLVV \ / AMOS7 \ YOURUM ::
+#\[7]KCJ2V2T6J5SF33ABP5TVHQ7SKPESE2PORSQMCNIOAHSTHZPFRADI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

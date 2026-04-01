@@ -1,12 +1,44 @@
 ## [:< ##
 
 # name  = external.init_code
-# descr = not implemented yet [ external [incoming] connection zenka ]
+# descr = initialize generic transport registry for external plugins
 
-0;
+## transport registry - populated by plugin.external.* modules ##
+<external.transports> = {
 
-#,,..,..,,.,.,...,,.,,.,.,,,,,,,,,,.,,,.,,,,,,..,,...,...,,..,.,,,,,.,..,,,..,
-#SMLHIRSSYGRNWPYFI3VSY6NM6FBMSH7LKNL5GXQN4EFHEU7VYJEL5FIKY4KORNOPRF56BFPP6HNXS
-#\\\|W3YBJIXJXAB2FB2T2XT3MILWRGSU5TUVZRI56UG2HX542UFIISX \ / AMOS7 \ YOURUM ::
-#\[7]3EORRQHGZX2ZXCPSVKI4ARV4ZUGMPA3CUFSUIBJ2AJX7Z2YM62DI 7  DATA SIGNATURE ::
+    ## available transport types ##
+    'available' => [],
+
+    ## preference order (highest first) ##
+    'preferred' => undef,
+
+    ## transport metadata ##
+    'registry' => {},
+
+    ## active connections ##
+    'connections' => {},
+
+    ## statistics ##
+    'stats' => {
+        'bytes_sent'       => 0,
+        'bytes_received'   => 0,
+        'connections_ok'   => 0,
+        'connections_fail' => 0,
+    },
+};
+
+## protocol bridge registry ##
+<external.bridges> = {
+    'available' => [],
+    'active'    => {},
+};
+
+<[base.logs]>->( 2, ':. external.init_code: transport registry initialized' );
+
+return TRUE;
+
+#,,,.,,,,,,,.,,,,,.,.,,..,..,,.,.,,,,,..,,..,,.,.,...,...,.,.,,.,,...,,.,,,.,,
+#GPXREABP6MC6KR5MHZS2IKRGXEZHSEJEESWOX33YERKTA2YXNLKNHSSCNQRD7E235YM7CRDMGKUY6
+#\\\|3AM5YHEE7YWSDAQDW6VQPC6V2Y32JJP7GZTC2KL5PTIJ7RRJ4QY \ / AMOS7 \ YOURUM ::
+#\[7]CO5Y2BRZU7LO7GOFV2E2LUQ6RTHXE6AD5A5RWWF4T4U4ISBVJECI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
