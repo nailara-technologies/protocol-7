@@ -1,0 +1,24 @@
+## [:< ##
+
+# name  = file.zenka_dir.data_path
+# descr = return data directory path for current zenka
+
+my $global_config = shift // FALSE;
+
+my $zenka_dir_href = <system.path.zenka-dirs>;
+
+## select base directory ##
+my $base_dir = $global_config
+    ? $zenka_dir_href->{'etc_P7'}     ## /etc/protocol-7/ ##
+    : $zenka_dir_href->{'var_P7'};    ## /var/protocol-7/ ##
+
+## append zenka name subdirectory using catdir ##
+my $data_dir = catdir( $base_dir, <system.zenka.name> );
+
+return $data_dir;
+
+#,,,.,,.,,...,.,.,,,.,...,,,.,,,,,...,,..,.,.,..,,...,...,.,,,...,,..,..,,...,
+#JIPD5VEMRDPQB4LYGLSDA5QYPTT74MY5K4FWOLV7CS67VIEKFLBZYTLMQICDJLNVMI6AU7J4VDTJU
+#\\\|PJKUMTOFTRVEE6DKXLXQMGTDJTB53EG5RGY7FC54YC4OMOELR52 \ / AMOS7 \ YOURUM ::
+#\[7]KVLWH46TQ36D22PUEMS5VH3O27RROXZ2ROGK43KQJ2H46XR7XWAQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

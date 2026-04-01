@@ -9,6 +9,9 @@ return [ qw[
         data.get
         base.log
         vterm.shm
+        note.read
+        note.list
+        note.init
         base.sort
         base.open
         base.logt
@@ -19,6 +22,7 @@ return [ qw[
         vterm.cell
         ssl.server
         ssl.client
+        note.write
         base.regex
         base.cnt_s
         base.close
@@ -119,6 +123,8 @@ return [ qw[
         task.cmd.queue
         task.cmd.claim
         plnx.init_code
+        note.tree.view
+        note.summarize
         mpv.cmd.resume
         mpv.cmd.append
         melt.init_code
@@ -191,6 +197,7 @@ return [ qw[
         p7-log.add_line
         notify.cmd.warn
         notify.cmd.info
+        note.categorize
         nodes.init_code
         net.read_binary
         ncode.init_code
@@ -222,6 +229,7 @@ return [ qw[
         context.compose
         context.compact
         compton.startup
+        coding.cmd.bury
         chk-sum.md5.hex
         chk-sum.crc.b32
         base.zenka.loop
@@ -300,6 +308,7 @@ return [ qw[
         dbus.cmd.get-pid
         cube-13.cmd.jump
         coding.task.fail
+        coding.task.bury
         coding.init_code
         chk-sum.md5.b64u
         channels.cleanup
@@ -404,6 +413,7 @@ return [ qw[
         coding.state.save
         coding.cmd.submit
         coding.cmd.status
+        coding.cmd.failed
         coding.cmd.budget
         chk-sum.init_code
         c-trade.init_code
@@ -815,6 +825,7 @@ return [ qw[
         coding.system_prompt
         coding.cmd.tree-read
         coding.cmd.tree-list
+        coding.cmd.resurrect
         coding.cmd.ask-reply
         channels.memory-sync
         base.vec.offset_read
@@ -977,6 +988,7 @@ return [ qw[
         content.cmd.add-entry
         content.check_changes
         coding.tools.dispatch
+        coding.task.resurrect
         coding.intake.process
         coding.cmd.tree-write
         coding.cmd.get-result
@@ -1319,8 +1331,10 @@ return [ qw[
         content.cmd.reload_file
         content.cmd.clear_flags
         content.check_exclusive
+        coding.tool.detect_loop
         coding.task.queue_stats
         coding.task.queue_clear
+        coding.task.failed.list
         coding.cmd.switch-model
         coding.cmd.staged-clear
         coding.cmd.apply-staged
@@ -1469,6 +1483,7 @@ return [ qw[
         httpd.system.memory_free
         httpd.parse_range_header
         httpd.event.remove_timer
+        file.zenka_dir.data_path
         ffmpeg.cmd.rescale_video
         events.cmd.trigger_event
         event.anyevent.init_code
@@ -2221,6 +2236,7 @@ return [ qw[
         protocol-7-menu.position.load
         plugin.storage.util.find_path
         plugin.image-resize.init_code
+        plugin.external.udt.init_code
         plan-9.server.handle-io-write
         plan-9.server.handle-io-clunk
         pdf.html.base.write_stub_page
@@ -2451,6 +2467,9 @@ return [ qw[
         coding.tools.handler.tree_list
         coding.tools.handler.read_file
         coding.tools.handler.ptd_check
+        coding.tools.handler.note_read
+        coding.tools.handler.note_list
+        coding.tools.handler.note_init
         coding.task.analyze_complexity
         coding.parser.dependency_chain
         coding.learning.reset_learning
@@ -2566,6 +2585,7 @@ return [ qw[
         compton.callback.not_composited
         coding.tools.handler.tree_write
         coding.tools.handler.ptd_format
+        coding.tools.handler.note_write
         coding.parser.dependency_status
         coding.helper.task_id_generator
         coding.handler.system_mem_reply
@@ -2954,6 +2974,7 @@ return [ qw[
         content.handler.get_exclusive_reply
         coding.tools.handler.write_new_file
         coding.tools.handler.recent_changes
+        coding.tools.handler.note_summarize
         coding.learning.update_success_rate
         coding.helper.get_service_breakdown
         channels.memory-sync.register-watch
@@ -3015,6 +3036,7 @@ return [ qw[
         context.pattern.generate_description
         context.pattern.calculate_confidence
         coding.tools.handler.replace_in_file
+        coding.tools.handler.note_categorize
         coding.routing.make_routing_decision
         coding.handler.models_list_all_reply
         coding.handler.models_discover_reply
@@ -3362,8 +3384,8 @@ return [ qw[
     ]
 ];
 
-#,,..,.,.,,..,.,.,...,,,,,,..,,..,..,,...,,.,,.,.,...,...,...,..,,...,,..,.,.,
-#RAVWTDJAXQCAKYL6I5LJW63PJDEJRRIPSATFZTZFAL4QTAE4WLNEHZEMURYKPEKJ5IODRDCUHXJVK
-#\\\|NYQL4WHJB3JG4XPCZ7XOJKOUYFPP4B3NLGBTLFUC66THBDQ3IDM \ / AMOS7 \ YOURUM ::
-#\[7]MNIAF2DCSQKHBIJ4AFD7VIIUX4SRLHCTPMF56ABXFLAMC7XSS4CA 7  DATA SIGNATURE ::
+#,,.,,,..,,,,,,.,,,,,,,.,,,,.,.,,,.,.,..,,,,,,.,.,...,...,.,.,...,.,,,.,.,.,,,
+#GKHXQFUUDIASKRYYVDDFIB5LIDFWZRY46UAKSMIM2GNMTJL3E4XJNRMPTXBFLLGQATDZYPBTYSZHU
+#\\\|GB6JFHYIZDL57RHUOHDTP6BAH7C5ZAJ5A3XOOPRLVH7HOR7UNXP \ / AMOS7 \ YOURUM ::
+#\[7]IDBECMRYQDLCPGWNWAMQ6XC6TSURBGRISR7U2JPSUBK2ZSIUKIDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
