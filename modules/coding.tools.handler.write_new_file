@@ -1,10 +1,25 @@
 ## [:< ##
+
 # name  = coding.tools.handler.write_new_file
 # descr = write new file with validation and staging support
 
 my $args    = shift              // {};
 my $path    = $args->{'path'}    // return 'path required';
 my $content = $args->{'content'} // return 'content required';
+
+my $content_len = defined $content ? length($content) : 0;
+
+## warn if empty content [ suggest write_append ] ##
+if ( $content_len == 0 ) {
+    <[base.logs]>->(
+        1,     ':. write_new_file: created empty file %s [ %d bytes ]\n',
+        $path, $content_len
+    );
+    return sprintf "created empty file %s [ %d bytes ]\n",
+        $path, $content_len;
+}
+
+## note: use write_append for empty files [ <[coding.tools.handler.write_append]> ] ##
 
 my $root     = <system.root_path>;
 my $abs_path = "$root/$path";
@@ -16,7 +31,6 @@ if ( $path !~ m|/| and $path =~ m|\.\w+\.| ) {
 }
 
 ## validate path stays within project [ resolve symlinks ] ##
-use Cwd qw| abs_path |;
 my $real_root = Cwd::abs_path($root)                           // '';
 my $real_dir  = Cwd::abs_path( ( $abs_path =~ s|/[^/]+$||r ) ) // '';
 return 'error: path escapes project root'
@@ -53,6 +67,8 @@ if ( -f $abs_path and -w $abs_path ) {
     return sprintf "created %s [ %d bytes ]", $path, length($content);
 }
 
+## note: empty content creates 0-byte file [ use write_append to fill ] ##
+
 ## stage to zenka dir when no write access ##
 my $stage_name = $path;
 $stage_name =~ s|/|__|g;
@@ -67,8 +83,8 @@ return sprintf "staged new file %s [ %d bytes, no write access ]\n"
     . "staged at: %s",
     $path, length($content), $stage_rel;
 
-#,,.,,,.,,..,,..,,,,.,.,,,..,,...,.,.,.,.,.,,,..,,...,...,..,,.,.,.,,,,,,,,.,,
-#OHZDZGFNI3UI6K7YR2UV2JBSQ7I4SWZHLFQME5KLTOQWLRB4AIYRVAS7TZ6JJFKW66ZFJHJF5INU4
-#\\\|46NZHBIC7GBPDWI4LJWBZBOQYHFVGFASAB4XWEVKU57NWS6MUK4 \ / AMOS7 \ YOURUM ::
-#\[7]MMHW4R7A47BJDC6JCSJRJ4BG5DLW5GUONEQBHJHA4I3FK5IXPAAI 7  DATA SIGNATURE ::
+#,,,,,..,,...,..,,.,.,..,,...,,.,,,,.,,,,,..,,..,,...,...,.,.,.,,,.,.,,..,.,,,
+#I2OJB5CMVB6UEMVDEQ2MNBH26UZTIBIAFSZ7PZBTABQ4FLYB73BIZZMIVG4TRD72EZUN76BQM7SWE
+#\\\|PXVJK2JK265NAJ6LRR6MXLQOFBQ3RN4CNBRBUXUPP5TJKZ6QLTM \ / AMOS7 \ YOURUM ::
+#\[7]HK6S53AU55NEVBXXSNQ5NWMWPTROLSB4AGSGUBM3WVGC6NH32ACY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

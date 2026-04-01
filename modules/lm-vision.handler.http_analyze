@@ -52,7 +52,7 @@ my $priority_weight = $loves_score / 13;
 $priority_weight = 0.25 if $priority_weight < 0.25;
 $priority_weight *= 1.13 if $loves_it;    ## 13% bonus for loves_it!
 
-<[base.log]>->(
+<[base.logs]>->(
     1,
     "[http_analyze] loves_it score: %d (modes 4:%d 7:%d 13:%d) weight: %.2f",
     $loves_score,
@@ -62,12 +62,13 @@ $priority_weight *= 1.13 if $loves_it;    ## 13% bonus for loves_it!
     $priority_weight
 );
 
-## Get server endpoint from coding zenka ##
-my $server_info = <coding.inference_servers>->{'gpu'} // {};
-my $server_url  = $server_info->{'url'}   // 'http://localhost:8000';
-my $model_name  = $server_info->{'model'} // 'vision-model';
+## Get cached server endpoint from coding zenka ##
+my $server_info = ( <lm-vision.cached_coding_status> // {} )->{'gpu'} // {};
+my $server_url  = $server_info->{'url'}
+    // sprintf( 'http://127.0.0.1:%d', $server_info->{'port'} // 8000 );
+my $model_name = $server_info->{'model_id'} // 'vision-model';
 
-<[base.log]>->(
+<[base.logs]>->(
     1, "[http_analyze] analyzing %s via %s (priority: %.2f)",
     $image_path, $server_url, $priority_weight
 );
@@ -130,10 +131,22 @@ my $ua       = LWP::UserAgent->new( timeout => 300 );
 my $response = $ua->request($http_request);
 
 if ( !$response->is_success ) {
-    <[base.log]>->(
+    <[base.logs]>->(
         0, "[http_analyze] HTTP error: %s",
         $response->status_line
     );
+
+    ## re-register for coding startup notification on http error ##
+    ## [ wakes coding after idle shutdown and resumes polling ] ##
+    <lm-vision.poll_paused> = 0;
+    <[protocol-7.route-send]>->(
+        {   'command'   => qw| v7.notify_online |,
+            'call_args' => { 'args' => ':start: coding' },
+            'reply'     =>
+                { 'handler' => 'lm-vision.handler.coding_online_reply' }
+        }
+    );
+
     return {
         'mode' => qw| false |,
         'data' => "HTTP error: " . $response->status_line
@@ -144,7 +157,7 @@ if ( !$response->is_success ) {
 my $result = <[format.json.decode]>->( $response->content );
 
 if ( !$result || !exists $result->{'choices'} ) {
-    <[base.log]>->(
+    <[base.logs]>->(
         0, "[http_analyze] JSON parse error or unexpected response"
     );
     return {
@@ -157,10 +170,15 @@ if ( !$result || !exists $result->{'choices'} ) {
 my $generated_text = $result->{'choices'}[0]{'message'}{'content'} // '';
 my $finish_reason  = $result->{'choices'}[0]{'finish_reason'}      // 'stop';
 
-<[base.log]>->(
+<[base.logs]>->(
     1, "[http_analyze] complete: %d chars, finish_reason=%s, loves_score=%d",
     length($generated_text), $finish_reason, $loves_score
 );
+
+## pause status polling while http backend is healthy ##
+<lm-vision.poll_paused> = 1;
+my $timer = <lm-vision.poll_timer>;
+$timer->cancel() if defined $timer && $timer->is_active();
 
 ## Store result with LOVES_IT metadata ##
 my $job_id = <[base.gen_id]>->(<lm-vision.jobs>);
@@ -188,6 +206,7 @@ if ( length($reply_id) ) {
     <[base.callback.cmd_reply]>->(
         $reply_id, { 'mode' => 'size', 'data' => $reply_data }
     );
+    return { 'mode' => qw| deferred | };
 }
 
 return {
@@ -202,8 +221,8 @@ return {
     }
 };
 
-#,,,,,.,,,..,,...,...,,,,,..,,,.,,,..,,.,,,..,.,.,...,...,...,,..,,,.,.,.,.,.,
-#BDS2FFMP3X4FKMMRWESOT42AKVXEEVTRXT3DEVFPTVKQEBEQFUZ3GFP6HKDVHUAIER5UDGZ4DY3QC
-#\\\|YZOUD3OYAR54Z3DRLHODZKN6PXZF6OSLDV5JCUYQSQWAJCH6O4G \ / AMOS7 \ YOURUM ::
-#\[7]JFRGDVFICEAAS4MC4SMLAYY5I2GISPIBQREJKFV36LFUXYEGYSAI 7  DATA SIGNATURE ::
+#,,..,.,,,,,,,.,.,,.,,,,.,..,,...,,.,,...,..,,.,.,...,...,,..,.,.,...,...,.,.,
+#CBIKT4XMJ2CUJWKSCMV2TIKTSS3F5QHNBBWDPULDH3HKU6X7OYVV3UJGUVNCJRRBGNT73JJV4QQ6S
+#\\\|W4ZEHSMN75QDIOMKPC4KEASIOTMIWUVAYCNCTGYV3C4WCKMR2HX \ / AMOS7 \ YOURUM ::
+#\[7]M4SEWQ33MVLJOATTQ3M35SXI63RKGMZDQ3FBTO752SF7OGY35EAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

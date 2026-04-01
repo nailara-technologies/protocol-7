@@ -63,6 +63,28 @@ if ($additional_prompt) {
     $continuation_prompt .= "\n\nAdditional request: " . $additional_prompt;
 }
 
+my ( $backend, $backend_reason ) = <[lm-vision.select_backend]>->();
+if ( $backend eq qw| unavailable | ) {
+    <[base.logs]>->(
+        0, '[resume_analysis] backend unavailable: %s',
+        $backend_reason
+    );
+    return {
+        'mode' => qw| false |,
+        'data' => 'vision backend unavailable: ' . $backend_reason
+    };
+}
+if ( $backend eq qw| http | ) {
+    <[base.logs]>->(
+        0, '[resume_analysis] http backend not supported, use analyze_image'
+    );
+    return {
+        'mode' => qw| false |,
+        'data' =>
+            'resume_analysis requires cli backend, use analyze_image for http'
+    };
+}
+
 ## Spawn vision CLI process for continuation
 my $binary      = <lm-vision.binary>;
 my $model_path  = <lm-vision.vision_model_path>;
@@ -189,8 +211,8 @@ $job->{'err_io'} = <[event.add_io]>->(
 );
 return { 'mode' => 'deferred' };
 
-#,,.,,...,,.,,.,.,,.,,.,,,...,...,,,.,,,,,..,,..,,...,...,,,.,..,,,..,,.,,,,,,
-#LKDVA37FFTPJ6RSGA2WC4QVD7V2RXCPWHMIJUSKUTY2YJ5PPXCBSLCZW2R6LOKSNNT2JUSILOL74U
-#\\\|LI7I3SYTYDWTPHLWUBIOA4SN37JU25XJNATWVDRD6ASAFYUODLZ \ / AMOS7 \ YOURUM ::
-#\[7]TLJKZYNTB2UPCQXXDJFVTTGTNGBTBVIQQ3I6O6OHV3DKEUH2KKBQ 7  DATA SIGNATURE ::
+#,,..,,,.,,.,,,.,,.,,,..,,,,,,.,.,.,,,,..,.,,,..,,...,.,.,...,,,,,..,,..,,.,,,
+#IL7WJ2CLPUNJ6K7BQPGFNDO5CIWTEXZBBY2AXVEPLCPXUYMJMLGD26SWCSUM6UFZYRMW3RTN7SQ4C
+#\\\|7DHO4O7QJVMKVA3R2VDOMDTN7HMXK7ZZRL6OIIY2BM2SBYBV2BU \ / AMOS7 \ YOURUM ::
+#\[7]TB642JKIQKEBCAEOHJBG35TFSZLSUAJSVFROKZUUV5VGQRII4KCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

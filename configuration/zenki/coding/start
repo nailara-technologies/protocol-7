@@ -4,17 +4,17 @@
 [load_config_file:'shared-params']
 [zenka.load_sub_list]
 
-access.cmd.usr.cube = commands heart reload verify-instance \
-                      list show-buffer buffer-erase buffer-erase-level \
-                      budget status submit get-result analyze_and_extract \
-                      complete-analysis resume-analysis ask-reply switch-model \
-                      show-prompt dump-env list-subs \
+access.cmd.usr.cube = commands heart reload verify-instance list show-buffer \
+                      buffer-erase buffer-erase-level budget status \
+                      inference-status submit get-result analyze_and_extract \
+                      complete-analysis resume-analysis ask-reply \
+                      switch-model show-prompt dump-env list-subs \
                       vision-parser.analyze_and_extract vision-parser.status \
                       infer query test-inference clear-registry clear-cache \
-                      receive-multiline staged-diff staged-clear clear-applied \
-                      apply-staged \
-                      tree-read tree-list tree-write \
-                      get set dump \## <-- development commands to access %data. ##
+                      receive-multiline staged-diff staged-clear \
+                      clear-applied apply-staged tree-read tree-list \
+                      tree-write get set dump ## <-- development commands
+##                                                   to access %data.  ##
 
 system.verbosity.zenka_buffer  = 2  ##  memory ring buffer verbosity   ##
 system.verbosity.zenka_console = 2  ##  console [debugging] verbosity  ##
@@ -30,7 +30,8 @@ coding.cfg.allow_chmod_apply  = yes  ## chmod g+w target files during apply ##
 inference.backend.lib_path = /data/source/ik_llama.cpp
 inference.backend.gpu.enabled = yes
 inference.backend.gpu.binary = /data/source/ik_llama.cpp/llama-server-cuda-fa
-inference.backend.gpu.vram_threshold = 3221225472  ## 3GB in bytes [Gemma3 Glitter is 2.21GB] ##
+inference.backend.gpu.vram_threshold = 3221225472  ## 3GB in bytes
+##                                            [ Gemma3 Glitter is 2.21GB ] ##
 inference.backend.gpu.gpu_layers = 33  ## Full offload for RTX 3060 ##
 
 inference.backend.cpu.enabled = yes
@@ -38,8 +39,11 @@ inference.backend.cpu.binary = /data/source/ik_llama.cpp/llama-server-cpu
 
 ### [ CURRENT DEFAULT MODELS ]
 ##
-inference.backend.gpu.model_id = MBZAAII:ZRCGL5Q  ## Qwen Qwen3.5 9B Q6_K ##
-inference.backend.cpu.model_id = MBZAAII:ZRCGL5Q  ## Qwen Qwen3.5 9B Q6_K ##
+
+### Qwen3.5-9B-Uncensored-Aggressive Q8 ###
+##
+inference.backend.gpu.model_id = YHIIJ5I:I7MZ3UI
+inference.backend.cpu.model_id = YHIIJ5I:I7MZ3UI
 
 inference.backend.cpu.threads = 8  ## Use system thread count ##
 
@@ -60,7 +64,7 @@ inference.model.seed = 0  ## 0 = harmonic seed from ntime+fortuna, >0 = fixed ##
 
 ### [ CRASHING INFERENCE SERVER - NOT LOADING ] ###
 ##
-inference.model.amos_id = MBZAAII:ZRCGL5Q  ## Qwen Qwen3.5 9B Q6_K ##
+inference.model.amos_id = YHIIJ5I:I7MZ3UI  ## Qwen3.5-9B-Uncensored-Aggressive Q8 ##
 
 inference.model.path = null  ## Resolved during init via network request ##
 
@@ -91,8 +95,8 @@ plugins.load = plugin.storage.inference plugin.storage.util.inference
 
 [zenka.loop]
 
-#,,,,,.,.,.,,,,..,,.,,..,,,.,,...,,..,.,,,..,,..,,...,...,,.,,.,,,.,.,...,.,,,
-#FC4PWHNCHMGYCYZHHFXUWJQF4PKF6EIASFJ2JFKSX2USJMERGC7BDTZDLCA43OFBGVADQYIIGOV3K
-#\\\|ODYEL6R4G3CUHO3O4XGDCT35KWU7HPCJXXKOVV5U63BE2X56DFI \ / AMOS7 \ YOURUM ::
-#\[7]RIXQTORMC7IXUOENFXK27MM5VSMFB2HT2AFRZYF5C53BPJYPFEBI 7  DATA SIGNATURE ::
+#,,,,,.,.,.,,,,,,,,..,,.,,,..,...,,,,,,,.,,..,..,,...,...,.,.,..,,,,,,,.,,..,,
+#7CVZEKP34OI3M3IXGTZCJQ2ZK4UISMSW7YHDRK7T2LWBHC6ULDSXCJBPGBND7WGOOBRITKTMTZN4W
+#\\\|WJQMEQ64YGRX6VHEZIZC5UAN74LN4VRDSKA4Q6QKSTOSIAY6ZMT \ / AMOS7 \ YOURUM ::
+#\[7]FUWVINXTTLZX2XZFUJKPXNCK6LRACHXMNJJ5CUS4YM2KDKVUHSBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
