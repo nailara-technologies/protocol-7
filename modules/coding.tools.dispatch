@@ -278,7 +278,6 @@ my %dispatch = (
         my $abs_path = "$root/$path";
 
         ## validate path stays within project [ resolve symlinks ] ##
-        use Cwd qw| abs_path |;
         my $real_path = Cwd::abs_path($abs_path) // '';
         my $real_root = Cwd::abs_path($root)     // '';
         return 'error: path escapes project root'
@@ -455,8 +454,8 @@ return {
     'content' => $content,
 };
 
-#,,,,,...,..,,.,,,,..,.,.,,..,,,.,.,,,,..,,,.,..,,...,...,...,,,,,,..,..,,,..,
-#3HFRGLDTT35R4BHYKLEAUPP6PXQTUUK56NPIILTJ6AMRQCTGMPYKW7WHM5VFLGZ3X3SWPRQQFIK3O
-#\\\|RTUNMJXCQ7AY7EIOAQHFPOJTBRYQDZG2L3E5TY65B7J6DSVXRBV \ / AMOS7 \ YOURUM ::
-#\[7]B5H6C45OE4TABDZYWAWOB3ATH2HVUDXIYYYKTHYJXT3XOLGWNCDA 7  DATA SIGNATURE ::
+#,,.,,,.,,..,,,..,,,,,.,,,,.,,.,,,,.,,..,,..,,..,,...,...,..,,.,,,,..,,..,,,,,
+#GYVE4U3OV4FC5GBECUJITYRXB6WA2SXJXVU4QALLMLY6K3JKQQLGTGRPU4NY3K4SLDJNT4N7CPZT6
+#\\\|DTK2D4UIET5BWXQUP5ZNDQNF5RUK2YLG35SGNUGZKYA4433N6GO \ / AMOS7 \ YOURUM ::
+#\[7]WNK3WN52SSIIMDFA7EGJ76JIYUPXJECTXI7O752WXWYXEJ6KW6CA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

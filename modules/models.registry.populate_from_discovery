@@ -64,7 +64,8 @@ foreach my $model ( $discovered->@* ) {
         size_gb       => $model->{'size_gb'}      // 0,
         quantization  => $model->{'quantization'} // 'unknown',
         tier          => $model->{'tier'},
-        is_vision     => $model->{'is_vision'} // FALSE,
+        is_vision     => $model->{'is_vision'}   // FALSE,
+        mmproj_path   => $model->{'mmproj_path'} // '',
         source        => qw| discovered |,
         registered_at => <[base.time]>->(3)
     };
@@ -76,8 +77,8 @@ foreach my $model ( $discovered->@* ) {
 
 return { 'success' => TRUE, 'added' => $added_count };
 
-#,,,,,.,,,.,.,...,,.,,,..,...,,.,,...,.,.,..,,..,,...,...,..,,,..,,,,,,..,,,.,
-#RFETQZALKJ7FUPSXANCZCG32LGZAZ6KOJHPUXZR4ERPKWCBCMH4XR4OSTVD7M3GCHC2IJTGPFGNPC
-#\\\|4CTXH62XEM4UQLPD7W2SUIL77CV6OCRBYLPIMZOGGDKWDFS5455 \ / AMOS7 \ YOURUM ::
-#\[7]QPPMBVZF5P45OHLQNLCU4RE5LCW7OGUGHSUZDDSIH76VC33RJGBI 7  DATA SIGNATURE ::
+#,,..,,.,,,.,,,,.,.,,,,,.,.,.,,,,,,,,,,..,.,.,..,,...,...,..,,,,.,,..,,,,,,,.,
+#2ZTUYJZHZIKTILQUQTV4YZ47L4HVZRDZS4Z5F3JA2RX336DNUSMI64X3YI5YY6IAGSJZV3IT5WZQG
+#\\\|WI5WCQCC32MXMRXY3CMHFBHRKTIKZQTZNVTE4CWJWS4IXEXMRSZ \ / AMOS7 \ YOURUM ::
+#\[7]RP5EJTF62UJ7YFYZNCXSDVWJT3E2LRZISBQRNKMSNHNXFOQOTWAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

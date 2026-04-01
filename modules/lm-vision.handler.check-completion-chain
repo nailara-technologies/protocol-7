@@ -151,6 +151,33 @@ if ( $meta_job->{'resume_count'} > 1 ) {
         .= " [Please continue and provide more comprehensive detail]";
 }
 
+my ( $backend, $backend_reason ) = <[lm-vision.select_backend]>->();
+if ( $backend eq qw| unavailable | ) {
+    <[base.logs]>->(
+        0, '[check-completion-chain] backend unavailable: %s',
+        $backend_reason
+    );
+    <[base.callback.cmd_reply]>->(
+        $meta_job->{'reply_id'},
+        {   'mode' => qw| false |,
+            'data' => 'vision backend unavailable: ' . $backend_reason
+        }
+    );
+    return;
+}
+if ( $backend eq qw| http | ) {
+    <[base.logs]>->(
+        0, '[check-completion-chain] http backend not supported in chain'
+    );
+    <[base.callback.cmd_reply]>->(
+        $meta_job->{'reply_id'},
+        {   'mode' => qw| false |,
+            'data' => 'completion chain requires cli backend'
+        }
+    );
+    return;
+}
+
 # Build continuation command
 my $binary      = <lm-vision.binary>;
 my $model_path  = <lm-vision.vision_model_path>;
@@ -286,8 +313,8 @@ $continuation_job->{'err_io'} = <[event.add_io]>->(
     }
 );
 
-#,,,,,..,,,,,,,.,,,.,,.,,,,.,,,.,,,.,,.,,,,.,,..,,...,...,.,.,.,.,..,,...,.,,,
-#BXIBBMDGAJATCWGTFC7SVZYGMB5DAKYKUJLMDYD3KHARBKJROEQAJV3RA66GSZWKTFK4N36HKKPFK
-#\\\|TNBS4TS6VGLWBWGO3WSTRHDDMNL42W66GLRMMNUO3VPXK6MHFGS \ / AMOS7 \ YOURUM ::
-#\[7]7BN63J6RZMCCDIPGCGP7WHDIHPIODP6N3GH5VHRFWJJJG2YU44CA 7  DATA SIGNATURE ::
+#,,,.,,.,,,.,,.,,,,,,,.,,,,.,,,,.,...,,..,..,,..,,...,...,,,.,..,,,.,,.,,,.,,,
+#U4NJACL446VPSAVLQECTJBVGOGJOD4O2RI6AAKQHUSIXU2BMFAROR4CC63XVUWZN2X6QSJUMHMHIC
+#\\\|66Q6QHCQKIEUJIW2H7YCHXXXHBKXNOKIYIGMYEU4K5HWLVU2BAJ \ / AMOS7 \ YOURUM ::
+#\[7]D43FBUMUALNY3XQKS5R3SID3KFJJAW3MUHW4H65JJAI7LWZN6MCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

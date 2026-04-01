@@ -20,7 +20,8 @@ unless ( -f $image_path ) {
 
 ## Create meta-job to track the completion chain
 ## Initialize completion jobs store if needed
-<lm-vision.complete_analysis_jobs> //= {};
+<lm-vision.complete_analysis_jobs> = {}
+    unless defined <lm-vision.complete_analysis_jobs>;
 
 my $meta_id  = <[base.gen_id]>->(<lm-vision.complete_analysis_jobs>);
 my $meta_job = {
@@ -42,6 +43,29 @@ my $meta_job = {
     1, "[complete-analysis] created meta-job=%s for auto-resume chain",
     $meta_id
 );
+
+my ( $backend, $backend_reason ) = <[lm-vision.select_backend]>->();
+if ( $backend eq qw| unavailable | ) {
+    <[base.logs]>->(
+        0, '[complete-analysis] backend unavailable: %s',
+        $backend_reason
+    );
+    return {
+        'mode' => qw| false |,
+        'data' => 'vision backend unavailable: ' . $backend_reason
+    };
+}
+if ( $backend eq qw| http | ) {
+    <[base.logs]>->(
+        0,
+        '[complete-analysis] http backend not supported, use analyze_image'
+    );
+    return {
+        'mode' => qw| false |,
+        'data' =>
+            'complete-analysis requires cli backend, use analyze_image for http'
+    };
+}
 
 ## Spawn initial analysis via lm-vision.analyze_image internally
 ## We need to call it as a deferred handler, so manually spawn the analysis
@@ -176,8 +200,8 @@ $job->{'err_io'} = <[event.add_io]>->(
 
 return { 'mode' => 'deferred' };
 
-#,,.,,.,,,.,,,.,,,,..,,,,,,..,,..,,,,,,..,,..,..,,...,...,.,.,.,.,,.,,.,,,,,.,
-#DDKFRH2SEJEX4TCPAN3HR4ZKA3SQKMZTJPW7BZPDAVXX7EI5MOBAUONHQCD4OAANSSNOTI7B2Q6NC
-#\\\|DLREBSVXY3BENAV4QVHL2SOG3TBCNCAJ2GV5EOT6YFO3U27VY6R \ / AMOS7 \ YOURUM ::
-#\[7]XQQY5NOS5JZLX3RXYJP22CQ6AR3PAWKWNJWSNIGWPYK76BILGSAI 7  DATA SIGNATURE ::
+#,,,.,,,,,.,.,,,.,...,,,,,,..,,..,..,,.,.,,..,..,,...,..,,.,,,...,,.,,,..,..,,
+#IOZS3GSVOFSANK3CDCAETXS4I7SMB7UFGCMLCCUZ3XRTTYVF565VGNVKUKN5KGQTVJEIGLLTBZG7A
+#\\\|AA4OHEIC656HD6EFSNVMMHPHWTNZZIGCE5FD4YX4FW4E6WHXY2Y \ / AMOS7 \ YOURUM ::
+#\[7]BO7YRPY7DNRJMMFN6HXHGK4OSMCPUJ4ZBRHKQJ6XSLWT6IHMK2DA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

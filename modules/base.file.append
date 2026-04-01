@@ -1,7 +1,7 @@
 ## [:< ##
 
-# name  = base.file.append
-# descr = appending to a file in :raw mode [ creates if missing ]
+# name = base.file.append
+# descr = append content to existing file
 
 my $write_file_path = shift // '';
 my @file_content    = @ARG;
@@ -12,17 +12,11 @@ if ( not length $write_file_path ) {
     return undef;
 } elsif ( not open( $fh, qw| >> |, $write_file_path ) ) {
     <[base.s_warn]>->(
-        "cannot open '%s' for writing [ %s ] <{C1}>",
+        "cannot open '%s' for appending [ %s ] <{C1}>",
         $write_file_path, <[base.str.os_err]>
     );
     return undef;
 }
-
-binmode( $fh, qw| :raw | )
-    or <[base.s_warn]>->(
-    'binmode : %s <{C1}>',
-    $write_file_path, <[base.str.os_err]>
-    );
 
 if ( @file_content > 1 ) {
     print {$fh} @file_content;
@@ -36,18 +30,17 @@ if ( @file_content > 1 ) {
     warn 'file content parameter is undefined <{C1}>';
 }
 
-if ( not close $fh ) {
+if ( not close($fh) ) {
     <[base.s_warn]>->(
         'close [ %s ] : %s <{C1}>',
         $write_file_path, <[base.str.os_err]>
     );
     return undef;
 }
-
 return TRUE;    ## true ##
 
-#,,,,,.,,,,.,,,,.,.,.,,..,..,,,.,,.,,,,.,,,,,,..,,...,..,,..,,.,,,,,,,,..,,,.,
-#Z73A3OLQSCGSEDRTOHCKW7WF75KV4QVHZ73YPPZZHCFDNNM5WW2HKAMU42764ETEJCDV7DCLVAYGW
-#\\\|MBETEQDROFSTCI22Z6JGI7ZNIVZJTQ33XTIYFERHT2OW7PTF76W \ / AMOS7 \ YOURUM ::
-#\[7]7XZ23XCKDRCN2XZ4KB53P37B4VCDZV3QHCQGJ4OI6Z2NOFKRYMDQ 7  DATA SIGNATURE ::
+#,,,,,,,.,,,,,,.,,...,,,,,,..,..,,.,.,..,,.,,,.,.,...,...,..,,,,,,.,,,.,.,,.,,
+#COLQVCUQ4CNK4WWXI7KWOTZHXRYPU5QSXPCLQW6FPQIDX23F7LPVZPXY7X2WKTD6EKKNDWYBMOQ3Q
+#\\\|3QFU3UPCANRCS5Z2DVNDZY2BQAV5U6NZQWRGBXSVER6U2IK3QLT \ / AMOS7 \ YOURUM ::
+#\[7]TUKBGSMDDH4YXE4FQTX4DXKZCOXSKWIH2C7UCWCXF6NLK45TL2CQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -4,33 +4,32 @@
 
                 access.cmd.usr.*  =  commands clear heart when-present \
                                      whoami present since present-p7-log \
-                                     localtime time p7-log.append *.subname  \
+                                     localtime time p7-log.append *.subname \
                                      timestamp ntime-dec amos-chksum \
-                                     epoch-num epoch_v7 elf-chksum \
-                                     close exit ptl-ver src-ver rel-ver \
-                                     reply-encoding-mode \
-                                     X-11.get_display X-11.get_geometry \
+                                     epoch-num epoch_v7 elf-chksum close \
+                                     exit ptl-ver src-ver rel-ver \
+                                     reply-encoding-mode X-11.get_display \
+                                     X-11.get_geometry \
                                      tile-groups.get_geometry \
                                      tile-groups.assign_window \
                                      tile-groups.get_coordinates \
                                      X-11.get_orientation \
                                      X-11.get_screen_size \
                                      X-11.get_stack_order \
-                                     v7.background_zenka \
-                                     loaded-configs \
-                                     v7.notify_online \
-                                     v7.restart_own-zenka \
+                                     v7.background_zenka loaded-configs \
+                                     v7.notify_online v7.restart_own-zenka \
                                      protocol-7-menu.menu-update-notify
 
 
                access.cmd.usr.v7  =  heart *.heart session-key \
                                      ondemand-zenka set-initialized \
                                      *.verify-instance \
-                                     system.report-X-11-error \
-                                     models.status models.reload models.maintenance \
+                                     system.report-X-11-error models.status \
+                                     models.reload models.maintenance \
                                      models.discover models.statistics \
                                      models.get_model models.find_models \
-                                     models.recommend models.record_invocation \
+                                     models.recommend \
+                                     models.record_invocation \
                                      models.cost_analysis
 
             access.cmd.usr.nodes  =  discover.host_details
@@ -176,20 +175,29 @@
        access.cmd.usr.image2html  =  X-11.bg_color
 
           access.cmd.usr.lm-vision = whoami present timestamp ntime-dec \
-                                     models.get_model_path models.discover models.get_entry \
-                                     models.find_alternative models.record_invocation \
-                                     models.statistics v7.register_child close exit
+                                     models.get_model_path models.discover \
+                                     models.get_entry \
+                                     models.find_alternative \
+                                     models.record_invocation \
+                                     models.statistics v7.register_child \
+                                     close exit coding.inference-status \
+                                     v7.notify_online
 
             access.cmd.usr.coding  = lm-vision.analyze_image \
-                                     models.get_model_path models.get_path_by_amos \
-                                     models.list_all models.discover \
-                                     models.recommend models.get_entry models.get_model \
-                                     models.record_invocation models.statistics \
-                                     models.substitute_template models.conversation_create \
-                                     models.conversation_add_turn models.find_alternative \
-                                     models.conversation_get_context v7.register_child \
-                                     task.queue task.show task.claim \
-                                     task.complete task.fail task.reset
+                                     models.get_model_path \
+                                     models.get_path_by_amos models.list_all \
+                                     models.discover models.recommend \
+                                     models.get_entry models.get_model \
+                                     models.record_invocation \
+                                     models.statistics \
+                                     models.substitute_template \
+                                     models.conversation_create \
+                                     models.conversation_add_turn \
+                                     models.find_alternative \
+                                     models.conversation_get_context \
+                                     v7.register_child task.queue task.show \
+                                     task.claim task.complete task.fail \
+                                     task.reset
 
            access.cmd.usr.models  =  v7.register_child coding.ask-reply \
                                      kimi.ask-reply \
@@ -246,14 +254,17 @@
                                      tile-groups.get_subconfig \
                                      rss-ticker.resend_update
 
-       access.cmd.usr.amos-term  =  amos-term.list_attachments amos-term.attach_buffer \
+       access.cmd.usr.amos-term  =   amos-term.list_attachments \
+                                     amos-term.attach_buffer \
                                      amos-term.mount-9p \
-                                     amos-term.window-create amos-term.window-open \
-                                     amos-term.window-close amos-term.window-destroy \
+                                     amos-term.window-create \
+                                     amos-term.window-open \
+                                     amos-term.window-close \
+                                     amos-term.window-destroy \
                                      amos-term.list-windows
 
-#,,..,,,,,,,.,...,.,,,...,...,.,,,,,.,.,.,,..,..,,...,...,.,,,,,,,,,,,,,.,,.,,
-#UT6RHMZ5AHIEFCLUCBWMGMBH4ERJMD777H3FA43O4K4MJAJB2Q7ON6W354M7JJ2GQRR3Q36HQ56YE
-#\\\|IUJ6VP4MUNE5JMNMDFGJXKNKCIEBXQZNHHQHCEYRDXAQ2INUDLH \ / AMOS7 \ YOURUM ::
-#\[7]AH2BDZMRSDXY3H7LFAQUM4CQSZAEHKGT7TGV6JNKCMTTD4GP6UBI 7  DATA SIGNATURE ::
+#,,,.,,,.,,.,,...,..,,..,,,,.,,,,,,.,,,,.,..,,..,,...,...,...,,.,,...,..,,,,,,
+#56Z7266SUM6Y442FG3AKTIBOXYCFCF7GLDNSUTIVTFPB4RRLYB7EWEA4VCFJ755VHZX3LHGA3PWHQ
+#\\\|P4LCCJRJAABECZLAGHTAMW5IRGH3EHOVQDMQOBKNGIAQZVCHQKQ \ / AMOS7 \ YOURUM ::
+#\[7]BUVDZOZSF4HP5ENLVNLLKVD62CAESJC6NDVIBLUEGWZA4MOZX6AI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

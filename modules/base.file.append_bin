@@ -1,0 +1,53 @@
+## [:< ##
+
+# name = base.file.append_bin
+# descr = append content to existing file in raw mode
+
+my $write_file_path = shift // '';
+my @file_content    = @ARG;
+
+my $fh;
+if ( not length $write_file_path ) {
+    warn 'expected filename <{C1}>';
+    return undef;
+} elsif ( not open( $fh, qw| >> |, $write_file_path ) ) {
+    <[base.s_warn]>->(
+        "cannot open '%s' for appending [ %s ] <{C1}>",
+        $write_file_path, <[base.str.os_err]>
+    );
+    return undef;
+}
+
+binmode( $fh, qw| :raw | )
+    or <[base.s_warn]>->(
+    'binmode : %s <{C1}>',
+    $write_file_path, <[base.str.os_err]>
+    );
+
+if ( @file_content > 1 ) {
+    print {$fh} @file_content;
+} elsif ( @file_content and ref $file_content[0] eq qw| ARRAY | ) {
+    print {$fh} $file_content[0]->@*;
+} elsif ( @file_content and ref $file_content[0] eq qw| SCALAR | ) {
+    print {$fh} $file_content[0]->$*;
+} elsif ( @file_content and defined $file_content[0] ) {
+    print {$fh} $file_content[0];
+} else {
+    warn 'file content parameter is undefined <{C1}>';
+}
+
+if ( not close $fh ) {
+    <[base.s_warn]>->(
+        'close [ %s ] : %s <{C1}>',
+        $write_file_path, <[base.str.os_err]>
+    );
+    return undef;
+}
+
+return TRUE;    ## true ##
+
+#,,,,,..,,.,,,.,,,..,,,,.,..,,,,.,,,.,,,,,,,,,.,.,...,...,,,,,..,,,,.,,,.,,..,
+#ETOOQCZT64FHREAFXMIPQKZ3FJSAYKQONRJPNWWIH4NUVGGRUSBY62TAG42KD65H5TR4TJ77VLV44
+#\\\|34YCIOT4WDAZ6VLZA6W3E7B7YMNL7BVVXSFT5XRHGKCWH3T2FSX \ / AMOS7 \ YOURUM ::
+#\[7]SORODH74KY2UAKI6OR666U5PDIQQKMBHQVZ6TL5333DD6MZGLUDQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -54,11 +54,12 @@ if ( $spawn_params->{'gpu_enabled'} ) {
 
     # Spawn server asynchronously - don't wait for readiness
     my $gpu_result = <[coding.spawn_inference_server]>->(
-        {   'backend'    => 'gpu',
-            'binary'     => $gpu_binary,
-            'port'       => $gpu_port,
-            'model_path' => $model_path,
-            'gpu_layers' => $gpu_layers
+        {   'backend'     => 'gpu',
+            'binary'      => $gpu_binary,
+            'port'        => $gpu_port,
+            'model_path'  => $model_path,
+            'mmproj_path' => <inference.model.mmproj_path> // '',
+            'gpu_layers'  => $gpu_layers
         }
     );
 
@@ -85,8 +86,8 @@ if ( $spawn_params->{'gpu_enabled'} ) {
 
 return TRUE;
 
-#,,..,,.,,,..,,..,,.,,,..,...,,.,,,..,,.,,..,,..,,...,...,,,,,,..,.,.,...,.,.,
-#ZWIX5RAVKTXJSATOFXETDIQPR7AARODHRJ5K6W53HQTTF2ZEYCOERNJZNASO64QIHY3JKZX7HFBTS
-#\\\|TUKLJEIT5RVYO7ZMBVAWRKY3LILVV57H5IYFAL4NPKXFM2MQMJV \ / AMOS7 \ YOURUM ::
-#\[7]NCI2PZBBOD7K3UERJBBDQH6BPU3ZNVWMNCYQRYIKMJ4F4ASG7SAQ 7  DATA SIGNATURE ::
+#,,..,,.,,,.,,,.,,,,,,,,.,..,,...,..,,...,..,,..,,...,...,,,.,,..,.,.,,..,.,.,
+#6GG3KN5H6HZWJ2EQMMXFFGGKSJRRZDPJE6L22HVA4RBW6D3AT3Q4BWAPEBJVHB4CFW5QT5OZSIZ7O
+#\\\|W34MMQWVDFBCZB5ZCPS5AIGQJE2GA6GTY5IVCRETQL7G5L3PB5V \ / AMOS7 \ YOURUM ::
+#\[7]ATHBWTZPR5OKCOQNIV2GFLWDWP6LHCLCN66K4UM24ECV2N4E56AI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
