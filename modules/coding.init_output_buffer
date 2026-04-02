@@ -1,0 +1,37 @@
+## [:< ##
+
+# name  = coding.init_output_buffer
+# descr = initialize output buffer for observing model interactions
+
+##  model output observation buffer  ##
+##  used to capture and analyze model behavior, detect patterns  ##
+
+<buffer.model_output.max_size> //= 128 * 1024;    ## 128K buffer ##
+
+my $buffer_name = 'model_output';
+
+##  check if re-initializing  ##
+my $is_init
+    = defined $data{'buffer'}{$buffer_name}{'data'}
+    ? qw| re-init |
+    : qw| init |;
+
+##  add header line  ##
+<[base.buffer.add_line]>->(
+    $buffer_name,
+    sprintf(
+        '.:[ %s | coding model output buffer %s ]:.',
+        <[base.time]>->(2), $is_init
+    )
+);
+
+##  add empty line for spacing  ##
+<[base.buffer.add_line]>->( $buffer_name, '' );
+
+return TRUE;
+
+#,,.,,.,.,...,..,,.,.,..,,,,,,.,.,,,.,,..,.,.,..,,...,...,...,...,.,,,.,,,.,.,
+#DBVTVQYRI4KJFCUN3W44NWZMWTN2LTLCIQD6PT7EEIM37WASXQDHDGSGDFW6ZP3KJP2XN4TWVERFQ
+#\\\|MPNSFYQFCVIGNSV2WWU7OPX4ZYN5EKNE7TVOQMXIE7CMQ36PKQI \ / AMOS7 \ YOURUM ::
+#\[7]FSHZSI2I47ZD5MY7KWXBMIGPJR3KKMEPAF6YEEDRU6VXOCWGLSCI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

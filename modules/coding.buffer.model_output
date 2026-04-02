@@ -1,0 +1,38 @@
+## [:< ##
+
+# name  = coding.buffer.model_output
+# descr = log model output to observation buffer
+
+my $content = shift // '';
+my $context = shift // {};
+
+return FALSE unless length $content;
+
+my $buffer_name = 'model_output';
+
+##  add timestamp and round info  ##
+my $round = $context->{'round'} // '?';
+my $tool  = $context->{'tool'}  // 'none';
+
+my $prefix = sprintf( '[R%s|%s]', $round, $tool );
+
+##  truncate if too long  ##
+my $max_line = 200;
+if ( length $content > $max_line ) {
+    $content = substr( $content, 0, $max_line ) . '...';
+}
+
+##  clean newlines  ##
+$content =~ s|\n| / |g;
+$content =~ s|\r||g;
+
+##  add to buffer  ##
+<[base.buffer.add_line]>->( $buffer_name, "$prefix $content" );
+
+return TRUE;
+
+#,,.,,.,.,...,,,.,.,,,,,,,..,,,..,.,,,..,,,,.,..,,...,...,.,.,,.,,.,.,.,.,..,,
+#JFHGECC2IBW7WLTKEYGMQREM6K42IU6TQPVWWSJSBIXDBXIXFOOMURUOVT6JENS7Q6DG6OBK6QVTG
+#\\\|MRUT5O7EDRRRVPXR6RHN2NKG4WV5DRLUFMMEJJX4DQIRSZRSJUS \ / AMOS7 \ YOURUM ::
+#\[7]XXF44ITCV3BK2FI6N27TXBSENHODPFRRNUPVBIADYCTEA5MDRYDI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

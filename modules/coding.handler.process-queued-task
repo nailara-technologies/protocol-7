@@ -360,6 +360,17 @@ INFERENCE_LOOP:
             }
         }
 
+        ## log request to model output buffer ##
+        if ( exists $code{'coding.buffer.model_output'} ) {
+            my $last_msg = $messages[-1];
+            <[coding.buffer.model_output]>->(
+                $last_msg->{'content'} // '[tool result]',
+                {   'round' => $tool_round,
+                    'tool'  => 'input',
+                }
+            );
+        }
+
         ## build request body ##
         my %request = (
             model       => $model_id,
@@ -460,6 +471,17 @@ INFERENCE_LOOP:
         my $choice  = $decoded->{'choices'}[0];
         my $message = $choice->{'message'} // {};
         $finish_reason_val = $choice->{'finish_reason'} // 'stop';
+
+        ## log model response to output buffer ##
+        if ( exists $code{'coding.buffer.model_output'} ) {
+            my $model_content = $message->{'content'} // '[tool_calls]';
+            <[coding.buffer.model_output]>->(
+                $model_content,
+                {   'round' => $tool_round,
+                    'tool'  => 'model',
+                }
+            );
+        }
 
         ## check for tool calls ##
         if (    $finish_reason_val eq 'tool_calls'
@@ -772,8 +794,8 @@ if ( length $response_text
 ## return result hashref for jobqueue callback ##
 return { success => TRUE, result => $response_text, task_id => $task_id };
 
-#,,,,,.,,,,,.,..,,...,,.,,.,.,.,,,...,,,.,,,.,..,,...,...,.,.,...,,,,,.,,,,.,,
-#3TEIJ7C34TSQ2TFTJW53WV2VEW3EPSZDQZ2DT7GGZQ4RI22G4DEMDZ6QVVDR7AXMY4UDJHSFTNYPW
-#\\\|BP7GJF4DXE4NNQUME6RU7VWHG47ZVPPPZRPLYBGGZETU2OFNKZV \ / AMOS7 \ YOURUM ::
-#\[7]EZYW7CWSZER5NGGGN7RV27QWMFWKCFEFWHYKB4W5X3SFOBI6WQCQ 7  DATA SIGNATURE ::
+#,,..,...,.,.,..,,.,.,,,,,..,,,,.,...,,,.,...,..,,...,..,,...,,,.,..,,...,,.,,
+#THFBOMMESPFQUHVBAXFPAWPYLTEA73BW4WMYXJFRPUVOS6KQEGHKUP36TPYVMKOE77JS5OEDZONGO
+#\\\|XN7MPTOD2CLUTHCMWWSAOFXOTX7FS72SCXYRMYK5FRBFVOYAPJG \ / AMOS7 \ YOURUM ::
+#\[7]IGM243DCJNP5KQCIJGSWLL7VEWEFJ6NQXITD5YQJSPFT6DOHKWAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
