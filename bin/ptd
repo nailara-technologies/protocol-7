@@ -43,6 +43,14 @@ my @ptd_args = qw|
 ##
 ###
 
+##  EXCLUSION PATTERN  ##
+##  - editor backup files (~)
+##  - documentation (.md .asc)
+##  - config/data files (.yaml .yml)
+##
+my @exclude_pattern = qw|  ~  .md  .yaml  .yml  .asc  |;
+##
+
 @ptd_args = grep { $ARG ne qw| -utf8 | } @ptd_args if $no_utf8;
 
 ## check-only mode : discard output, no backup, no in-place modification ##
@@ -67,7 +75,8 @@ die ":\n:: < ptd > : 'perltidy' executable not found in current path .,\n\n"
     or not -x $ptd_bin;
 
 ##
-my @clean_argv = grep { !m|.+~$| } @ARGV;    ### remove backup files ###
+my @clean_argv
+    = grep { !m{^@exclude_pattern} } @ARGV;    ### remove excluded files ###
 ##
 ## filter filenames for protocol-7 \ perl code ##
 #
@@ -195,8 +204,8 @@ sub show_progress {
         $perc_chars, $filename );
 }
 
-#,,.,,..,,,.,,.,.,,,,,,,.,,,.,,.,,...,..,,,..,..,,...,...,,.,,...,,..,,,,,...,
-#CO7V4IRDSMEE7TPNZ7U7GHJVT3H7TDOZMMSZIH2HPDNDM3D4CF5HTYATEHTE27RLHREWLLNNQHZNW
-#\\\|HWYF76IYAPLW7XVSNQ7V5ORP2JO3S5FQYZWSPF7MD5X463F57AT \ / AMOS7 \ YOURUM ::
-#\[7]C23FCOHIS2NCAU3IAAFPJSLLURFRZOP5ERHRSV7W4DIDLUUZFMAQ 7  DATA SIGNATURE ::
+#,,.,,.,.,...,,..,.,,,..,,.,,,..,,.,.,,,.,,,,,..,,...,.,.,.,.,,.,,,,.,..,,,,.,
+#VZVPLYYTVX7E2CD52XO6XNDCKOOIN2VCZVVTX62D5RM2JCY77OWL67OJGJ2YTHXYNRLIBSDSSA7PC
+#\\\|W22VKA6XGAMJJWNA6MUNBYKYHQJNNIDULRH3RPYYYSCB6B43HQQ \ / AMOS7 \ YOURUM ::
+#\[7]OQFEHAV4O2EX7D4HKKSNDDDLGMIRVT6XXSSVRQKRPSJMX4V7IMCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
