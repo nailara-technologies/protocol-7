@@ -1,0 +1,68 @@
+## [:< ##
+
+# name  = coding.last-compaction
+# descr = display last context compaction before/after state
+
+my $compaction = <coding.compaction.last> // {};
+
+if ( !%{$compaction} ) {
+    return "no compaction recorded this session\n";
+}
+
+my $output = '';
+
+$output .= ".:[ COMPACTION REPORT ]:.\n";
+$output .= ":\n";
+$output .= sprintf ": timestamp : %s\n", <[base.time]>->(2);
+$output .= sprintf ": round     : %s\n", $compaction->{'round'} // 'unknown';
+$output .= sprintf ": threshold : %d tokens\n",
+    $compaction->{'threshold'} // 0;
+$output .= ":\n";
+
+## before state ##
+$output .= ".:[ BEFORE ]:.\n";
+$output .= ":\n";
+$output .= sprintf ": total messages : %d\n",
+    $compaction->{'before_count'} // 0;
+$output .= sprintf ": est. tokens    : %d\n",
+    $compaction->{'before_tokens'} // 0;
+$output .= ":\n";
+
+## compacted range ##
+if ( $compaction->{'compacted_count'} ) {
+    $output .= sprintf ": compacted msgs : %d [rounds %d..%d]\n",
+        $compaction->{'compacted_count'},
+        $compaction->{'first_round'} // 0,
+        $compaction->{'last_round'}  // 0;
+    $output .= ":\n";
+}
+
+## after state ##
+$output .= ".:[ AFTER ]:.\n";
+$output .= ":\n";
+$output .= sprintf ": total messages : %d\n",
+    $compaction->{'after_count'} // 0;
+$output .= sprintf ": est. tokens    : %d\n",
+    $compaction->{'after_tokens'} // 0;
+$output .= ":\n";
+
+## summary preview ##
+if ( $compaction->{'summary'} ) {
+    $output .= ".:[ SUMMARY PREVIEW ]:.\n";
+    $output .= ":\n";
+    my $preview = $compaction->{'summary'};
+    $preview =~ s/^/[ /mg;
+    $preview =~ s/$/ ]/mg;
+    $output .= $preview;
+    $output .= "\n:\n";
+}
+
+$output .= ".:.\n";
+
+return $output;
+
+#,,..,...,,.,,,,.,,,.,..,,..,,.,.,,,.,,..,..,,..,,...,...,...,,,,,,,.,,,,,.,.,
+#HXSHRJEXSMLEHG56DQJ7PCM3TE2EZMKWCIIQFNO5X2VZAOQQIZGHNSOTTALCU7UT7DMHDJ5SRUJQE
+#\\\|SQ623GSZHLIXI44JDHNTWU3UMH5H6BR4V64FGQ7ONZXKIBV73VU \ / AMOS7 \ YOURUM ::
+#\[7]OZEJIBQVLYAOWUHRGH247KY7QFIB4ASO7GJUXD4WVZRXGIC2WQAY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
