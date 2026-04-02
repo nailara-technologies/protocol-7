@@ -197,8 +197,9 @@ if ( $backend eq qw| cpu | ) {
 # No warmup to start faster
 push @cmd, qw| --no-warmup |;
 
-# Enable jinja template engine for tool calling support
-push @cmd, qw| --jinja |;
+# Note: --jinja disabled - we do manual tool calling, not server-side
+# This prevents Jinja template errors when model outputs {{ patterns
+# push @cmd, qw| --jinja |;
 
 ## harmonic seed [ configurable fixed seed or generated from ntime+fortuna ] ##
 my $fixed_seed = <inference.model.seed> // 0;
@@ -310,8 +311,8 @@ return {
     'port'    => $port
 };
 
-#,,,,,..,,.,.,,.,,..,,...,.,,,,.,,,.,,,,.,.,.,..,,...,...,...,.,.,,..,.,,,,.,,
-#7GRC4SHBHNJFJ4SKDEFHO5ENOFW5FCNA4VVUEW4CVEHXAWJVALPFUOGQOT4FTWVN6PBJE5U45X42Q
-#\\\|EYADUN6DQLUKLW7V5JTQ44JUO2TYHBVC42D6XC3O7MLNL5IJZIW \ / AMOS7 \ YOURUM ::
-#\[7]PNYQ2ORCWS7KKNNBURHNYYHQHOBWGUFU2BRP4JXWEF5UF36DMMCQ 7  DATA SIGNATURE ::
+#,,,.,...,,,.,...,.,.,,..,..,,.,,,,..,.,.,,.,,..,,...,..,,...,,..,,,.,,,,,,..,
+#4I4LGJO5DRZZQTES6ZPGZZNV6B6A62C2HP45ZIPHNZZN6HNEW6OQUP6UOECDCYYVQ7NPJJYI3TGAK
+#\\\|X5NZMR4JHVSSCR775U6WLI6EGXZLSI6ATEDAWK2EVDE5HHHTMPY \ / AMOS7 \ YOURUM ::
+#\[7]BB7JPI4PAFFJQCQ3TMEC4CFLH4RR2KDTKQKAC34SZOS3Y7LC3ICY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
