@@ -53,7 +53,7 @@ my $workspace_dir = "$task_dir/workspace";
 return { 'mode' => qw| false |, 'data' => 'no workspace' }
     unless -d $workspace_dir;
 
-my @files = <[file.glob]>->("$workspace_dir/*.md");
+my @files = <[file.glob]>->("$workspace_dir/*.md")->@*;
 my %sections;
 
 for my $file (@files) {
@@ -71,8 +71,8 @@ return {
     }
 };
 
-#,,.,,...,...,,..,,,,,,,.,..,,...,.,.,.,.,.,,,.,.,...,...,...,...,,.,,.,,,,,.,
-#6SVVDA3TTNFHOI52J7JA2AF4PBMHSD5CVVZT2OMLWTAYF4IZ6IY422KIUSCHMUGBAKA35J5RZACWS
-#\\\|SW6TQOGQO374ZORJHMWKD2LE6AGVKRHRTF4MDKMTCNGOXPQ3OKG \ / AMOS7 \ YOURUM ::
-#\[7]I55USADQU3YNBOE36NP3MFXDCP6F76R53LDTGOU3YY5T32SUU4AA 7  DATA SIGNATURE ::
+#,,..,.,,,,..,...,,..,,,,,,..,.,.,,.,,.,,,,,.,.,.,...,...,..,,.,,,,.,,.,.,,,.,
+#2UMHJQZCZOOOQCX54PTM6R7EAAY5WCWAO52RZSTQOOOIKPI55ZXTSRKSQPGGU4SCRNIY6YIGXVGOA
+#\\\|MDVYPUECGBCO2I7WDL7YSTPCCUCCARR34VQSRWE4E6ISYYJR5PZ \ / AMOS7 \ YOURUM ::
+#\[7]A7ULASX57B7TWWRE7AG5MBKHJVS6SNMM5GIECUQFKQVVTPKRJWAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

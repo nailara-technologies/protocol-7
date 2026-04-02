@@ -10,7 +10,7 @@ $max_results //= 20;
 my $base_dir = <[file.zenka_dir.data_path]> . '/notes';
 return { 'mode' => qw| true |, 'data' => [] } unless -d $base_dir;
 
-my @task_dirs = <[file.glob]>->("$base_dir/*/");
+my @task_dirs = <[file.glob]>->("$base_dir/*")->@*;
 my @results;
 
 for my $task_dir (@task_dirs) {
@@ -67,8 +67,8 @@ return {
     'data' => \@results,
 };
 
-#,,,,,...,,.,,...,.,.,,,.,..,,,,,,,.,,,..,,,,,.,.,...,..,,..,,.,,,.,.,...,,,.,
-#NQCG2QDXQYATOVLXFJ4NKRSX4MUOA2JY46TDQC3IYAH3A75BXBC7NDLPW64TSJOTZWKFDDGAUB6AI
-#\\\|BLFPY4AZOGW6WRDTAQVIW6LFNS5SPZYH5Q3GJSOLWGSVAJP7J4O \ / AMOS7 \ YOURUM ::
-#\[7]AEJLC5XLD24QQHXXZOQ5PRVSEUUVKPLJYSYMLKIWY3VZBE66HOCI 7  DATA SIGNATURE ::
+#,,..,..,,..,,,.,,..,,.,,,.,,,..,,,..,,,,,.,,,.,.,...,...,.,.,.,.,.,.,,,,,,.,,
+#PE2MISZ7KLSJOJQHMIWQJWTYPLNRW5RYBBFZJSMA6EX6QYNVBMJVIXSEVYVDT3KTHOYANA2WHB7WE
+#\\\|6N5HVOUZO7T234DLPSKDMXQRUSBZWEOVP4QI7XYKJRRA7FPGVAX \ / AMOS7 \ YOURUM ::
+#\[7]SERCFB2BW4ZLEZXL4CZF3RFFDNG3DD2EQ3SSMCEFCDF47Z3UXUCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
