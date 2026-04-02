@@ -65,6 +65,7 @@ unless ( defined $task ) {
 <coding.tool_loop.stop>         = FALSE;
 <coding.tool_loop.stop_reason>  = '';
 <coding.tool_loop.stop_summary> = '';
+<coding.loop_detect_count>      = 0;
 
 ## assemble prompt and message array [ shared with show-prompt ] ##
 my $assembled    = <[coding.prompt.assemble]>->($task);
@@ -182,7 +183,7 @@ my $finish_reason_val = 'stop';
 my $http_error;
 my $max_tool_rounds = 777;
 my $tool_round      = 0;
-my $server_retries  = 5;   ## retries for transient server/connection errors ##
+my $server_retries  = 5;  ## retries for transient server/connection errors ##
 
 ## context size tracking for compaction ##
 my $context_limit     = <inference.model.context_length> // 16384;
@@ -326,6 +327,36 @@ INFERENCE_LOOP:
                         scalar @messages
                     );
                 }
+
+                ## truncate protected messages only if still over threshold ##
+                ## after compaction [ allows 10K+ file reads when under limit ] ##
+                my $after_chars = 0;
+                $after_chars += length( $_->{'content'} // '' ) for @messages;
+                my $after_tokens
+                    = int( ( $after_chars * 1.4 ) / $chars_per_token );
+
+                if ( $after_tokens > $compact_threshold * 0.8 ) {
+                    my $max_protected_chars = 8000;    ## ~2500 tokens each ##
+                    for my $i ( $protect_end .. $#messages ) {
+                        my $content = $messages[$i]->{'content'} // '';
+                        if ( length $content > $max_protected_chars ) {
+                            my $truncated
+                                = substr( $content, 0, $max_protected_chars );
+                            $truncated
+                                .= "\n\n... [ truncated "
+                                . ( length($content) - $max_protected_chars )
+                                . " chars ]";
+                            $messages[$i]->{'content'} = $truncated;
+                            <[base.logs]>->(
+                                2,
+                                "::working:: truncated msg %d to %d chars [still %d tokens est]",
+                                $i,
+                                $max_protected_chars,
+                                $after_tokens
+                            );
+                        }
+                    }
+                }
             }
         }
 
@@ -398,7 +429,7 @@ INFERENCE_LOOP:
 
         <[base.logs]>->(
             1,
-            "::working:: :%03d: msgs=%d est_tokens=%d:%d:%d [CTX:%d%%]",
+            "::working:: :%03d: msgs=%d <T:%d:%d:%d> [CTX:%d%%]",
             $tool_round,
             scalar @messages,
             $est_tokens,
@@ -434,15 +465,18 @@ INFERENCE_LOOP:
                 || $detail =~ m|namespace\(|i;
             my $is_timeout = $status =~ m|timeout|i
                 || $status =~ m|^5\d\d|;
-            my $is_conn_err = $detail =~ m|Connection refused|i
+            my $is_conn_err
+                = $detail  =~ m|Connection refused|i
                 || $detail =~ m|Can't connect|i
                 || $detail =~ m|connect.*failed|i;
 
-            if ( ( $is_jinja_err or $is_timeout or $is_conn_err ) 
+            if ( ( $is_jinja_err or $is_timeout or $is_conn_err )
                 and $server_retries > 0 ) {
                 $server_retries--;
-                my $err_type = $is_jinja_err ? 'jinja template' 
-                    : $is_conn_err ? 'connection' : 'server';
+                my $err_type
+                    = $is_jinja_err ? 'jinja template'
+                    : $is_conn_err  ? 'connection'
+                    :                 'server';
                 <[base.logs]>->(
                     1,         "::working:: %s error [ retrying, %d left ]",
                     $err_type, $server_retries
@@ -455,7 +489,8 @@ INFERENCE_LOOP:
                 }
                 ## for connection errors, yield to event loop to allow server restart ##
                 if ($is_conn_err) {
-                    <[event.once]>->(2.0);  ## yield for server restart processing ##
+                    <[event.once]>->(2.0)
+                        ;    ## yield for server restart processing ##
                 } else {
                     <[base.sleep]>->( $is_timeout ? 2 : 0.5 );
                 }
@@ -485,8 +520,15 @@ INFERENCE_LOOP:
         my $message = $choice->{'message'} // {};
         $finish_reason_val = $choice->{'finish_reason'} // 'stop';
 
-        ## log model response to output buffer ##
+        ## sanitize model response content for jinja safety ##
         my $model_content = $message->{'content'} // '[tool_calls]';
+        $model_content =~ s|\{\{|\\{\\{|g;    ## escape {{ ##
+        $model_content =~ s|\{%|\\{%|g;       ## escape {% ##
+        $model_content
+            =~ s|namespace\s*\(|namespace_(|g;    ## break namespace( ##
+        $message->{'content'} = $model_content;
+
+        ## log model response to output buffer ##
         <[coding.buffer.model_output]>->(
             $model_content,
             {   'round' => $tool_round,
@@ -499,6 +541,17 @@ INFERENCE_LOOP:
             and ref $message->{'tool_calls'} eq qw| ARRAY |
             and $message->{'tool_calls'}->@* ) {
             $tool_round++;
+
+            ## sanitize tool call arguments for jinja safety ##
+            for my $tc ( $message->{'tool_calls'}->@* ) {
+                my $args = $tc->{'function'}->{'arguments'} // '';
+                if ( length $args ) {
+                    $args =~ s|\{\{|\\{\\{|g;
+                    $args =~ s|\{%|\\{%|g;
+                    $args =~ s|namespace\s*\(|namespace_(|g;
+                    $tc->{'function'}->{'arguments'} = $args;
+                }
+            }
 
             ## append assistant message with tool calls to conversation ##
             push @messages, $message;
@@ -527,6 +580,18 @@ INFERENCE_LOOP:
                     $loop_check->{'score'}   // 0,
                     $loop_check->{'message'} // 'unknown'
                 );
+
+                ## Track consecutive loop detections ##
+                <coding.loop_detect_count>++;
+                if ( <coding.loop_detect_count> >= 3 ) {
+                    <[base.logs]>->(
+                        0,
+                        "::working:: loop persisted after 3 warnings, forcing stop"
+                    );
+                    $http_error
+                        = 'loop detected: task stopped after repeated warnings';
+                    last INFERENCE_LOOP;
+                }
 
                 ## Inject escalation warning as system message ##
                 push @messages,
@@ -572,6 +637,9 @@ INFERENCE_LOOP:
                     };
 
                 $assertion_injected = 1;
+            } else {
+                ## No loop pattern detected - reset counter ##
+                <coding.loop_detect_count> = 0;
             }
 
             ## dispatch each tool call ##
@@ -599,14 +667,15 @@ INFERENCE_LOOP:
                 ## sanitize tool result content for jinja safety ##
                 my $tool_content = $tool_result->{'content'} // '';
                 $tool_content =~ s|\{\{|\\{\\{|g;    ## escape {{ ##
-                $tool_content =~ s|\{%|\\{%|g;      ## escape {% ##
-                $tool_content =~ s|namespace\s*\(|namespace_(|g;  ## break namespace( ##
-                
+                $tool_content =~ s|\{%|\\{%|g;       ## escape {% ##
+                $tool_content
+                    =~ s|namespace\s*\(|namespace_(|g;  ## break namespace( ##
+
                 ## append tool result as tool role message ##
                 push @messages,
                     {
                     'role'         => 'tool',
-                    'tool_call_id' => $tc->{'id'}               // '',
+                    'tool_call_id' => $tc->{'id'} // '',
                     'content'      => $tool_content,
                     };
             }
@@ -806,8 +875,8 @@ if ( length $response_text
 ## return result hashref for jobqueue callback ##
 return { success => TRUE, result => $response_text, task_id => $task_id };
 
-#,,.,,.,,,,..,.,,,,.,,.,,,,,,,,,,,,..,.,.,,.,,..,,...,...,,.,,,,.,.,,,,..,..,,
-#JABGJ65GYXDHRRVLCD6D2F55MRFOATIEWYO2VNYU6KP4POMUO7GGTOG2KZ6U5ZVHZR4ZIQ7R7E52G
-#\\\|RHGEODZG27QOO7NYIO7KD57RCNJ3KEQVK6A64PKQBW7W2QL3NSJ \ / AMOS7 \ YOURUM ::
-#\[7]6U3YHE52PI7236XPU3FKS3IWDHXBPCGRTKVTSNVX223GP4UGSMCI 7  DATA SIGNATURE ::
+#,,.,,,,,,...,,.,,,,.,,,,,,,,,,,,,.,,,.,,,,..,..,,...,...,.,,,,,,,,..,.,.,,.,,
+#SI6D7GOBRRR5XUHKZ7BCWFY5TQGRRPRSRNEBP4K4I55CP5GYYDYDO5LFMHGU4IZ3YNWKVI42E7MN6
+#\\\|JGMHOC7BFO2BZEEIDU52ECWHTKY5OJYB2CP47RYUDGIYSDP63L7 \ / AMOS7 \ YOURUM ::
+#\[7]OSB76RHAEEYUAL5Z3RV744CB3SQRJXWISAUUDT44MNLPWISJGICI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

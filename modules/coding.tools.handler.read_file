@@ -5,7 +5,9 @@
 my $args = shift // {};
 
 return unless exists $code{'context.file'};
-return $code{'context.file'}->(
+
+## get file content first ##
+my $result = $code{'context.file'}->(
     {   'path'      => $args->{'path'}      // '',
         'budget'    => $args->{'budget'}    // 2000,
         'from_line' => $args->{'from_line'} // 1,
@@ -13,8 +15,40 @@ return $code{'context.file'}->(
     }
 );
 
-#,,.,,.,,,.,,,,..,..,,...,.,.,,..,.,,,,.,,,,.,..,,...,...,,..,.,,,..,,.,.,..,,
-#2C7ZQ4NUNFM72HA55GWRAG7RSHXVBRGXW4MO2RGZ7S674DEIJ7ERMIIAOXG4COQAUL3LTF53NILTI
-#\\\|YQPEQQZH4QNVC3HXZVTZ7ICTWHGRB6UYK4EOOU5TBJ6GCVBBKON \ / AMOS7 \ YOURUM ::
-#\[7]YSGQYZ7JJKLQAQZUQIM6NPYX6PKHSEVEXRJVU2KVILJ66POEO2DQ 7  DATA SIGNATURE ::
+## apply offset/length pagination if requested ##
+my $offset = $args->{'offset'} // 0;
+my $length = $args->{'length'} // 0;
+
+if ( $offset > 0 || $length > 0 ) {
+    ## extract content from result ##
+    if ( ref $result && $result =~ m|\.:\[ .* \]:\.\n\n(.*)|s ) {
+        my $content      = $1;
+        my $total_length = length $content;
+
+        ## apply offset ##
+        if ( $offset > 0 ) {
+            $content = substr( $content, $offset );
+        }
+
+        ## apply length limit ##
+        if ( $length > 0 && length $content > $length ) {
+            $content = substr( $content, 0, $length );
+            $content
+                .= "\n\n... [ truncated, "
+                . ( $total_length - $offset - $length )
+                . " chars remaining ]";
+        }
+
+        ## rebuild result with pagination info ##
+        $result
+            =~ s|\.:\[ .* \]:\.\n\n.*|.: [ content offset=$offset length=" . length($content) . " total=$total_length ]:.\n\n$content|s;
+    }
+}
+
+return $result;
+
+#,,,,,,..,,,,,.,,,..,,...,,,.,,,.,.,,,,..,.,,,..,,...,..,,,,,,,.,,.,.,,,.,,.,,
+#XKM26FWP2APXE7HSTYPMK77JXLNZAYMARZM4LXFWR7NQMQ4AP27LZQ3DDUPMIM5BCW2OXSYGZGPSK
+#\\\|M3KWUKI4TAYEMMY3PWHW7FJQFQBEYQOSV3JIMXL2WPS3CFE77MM \ / AMOS7 \ YOURUM ::
+#\[7]6AUWUXYR6DFNMFAAX3ZBYAFWATU7DAWDX5XBOPBCOZZHIKQRC6BQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

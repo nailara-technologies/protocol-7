@@ -1,0 +1,43 @@
+## [:< ##
+
+# name  = coding.cmd.list-tools
+# descr = list available tools with names and descriptions
+
+my $filter = $call->{'args'} // '';
+
+## get tool definitions ##
+my $tools = [];
+if ( exists $code{'coding.tools.definitions'} ) {
+    $tools = $code{'coding.tools.definitions'}->();
+}
+
+## build formatted list ##
+my $output = ".:[ available tools ]:.\n\n";
+
+my $count = 0;
+for my $tool ( sort { $a->{'function'}{'name'} cmp $b->{'function'}{'name'} }
+    @$tools ) {
+    my $name = $tool->{'function'}{'name'}        // 'unknown';
+    my $desc = $tool->{'function'}{'description'} // 'no description';
+
+    ## apply filter if specified ##
+    if ( length $filter ) {
+        next unless $name =~ m|$filter|i or $desc =~ m|$filter|i;
+    }
+
+    $output .= sprintf "  %-25s  %s\n", $name, $desc;
+    $count++;
+}
+
+$output .= "\n.:[ $count tools listed ]:.\n";
+
+return {
+    'mode' => qw| size |,
+    'data' => $output
+};
+
+#,,.,,,..,.,.,,,,,.,,,.,,,,,.,,,.,..,,,.,,,.,,.,.,...,...,,..,,,.,.,,,.,.,.,,,
+#2CDXS2FFMGXWTBG4LGYJJK3SQ2HM3AO5FPMSFQRVOYSZYWNZKNSADPRJL7NAEAQFCV5ZTXTTSR4KC
+#\\\|7YISB6C4DUUPWM6LFW3RBNT2HETCR3PIT62ETCZTJOLMC35MB4E \ / AMOS7 \ YOURUM ::
+#\[7]ZOJJMWDT7TAXEQXBWJZ2EQQU5UBMC7GGKZA6YS2DQTM7UPYJH2BA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
