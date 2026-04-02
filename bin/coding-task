@@ -8,14 +8,15 @@
 ##   echo "prompt" | bin/coding-task
 ##   bin/coding-task -file task.md        ## read prompt from file
 ##   bin/coding-task -wait "prompt"       ## wait for result (blocking)
-##
+##   bin/coding-task                      ## interactive mode with readline
 
 use strict;
 use warnings;
 use Crypt::Misc qw| encode_b32r |;
 
-my $prompt = '';
-my $wait   = 0;
+my $prompt       = '';
+my $wait         = 0;
+my $use_readline = 0;
 
 ## parse args ##
 while ( my $arg = shift @ARGV ) {
@@ -36,7 +37,11 @@ while ( my $arg = shift @ARGV ) {
           -wait         block and wait for result (default: submit and exit)
           -help         show this help
 
-        if no prompt arg, reads from stdin.
+        if no prompt arg:
+          - checks X11 selection (if xsel available)
+          - reads from stdin if piped
+          - interactive readline mode if TTY
+
         prompt is base32r-encoded to avoid protocol framing issues.
 
         examples:
@@ -51,24 +56,79 @@ while ( my $arg = shift @ARGV ) {
     }
 }
 
-## read from stdin if no prompt yet ##
+## get input from various sources ##
 unless ( length $prompt ) {
-    if ( -t STDIN ) {
-        print ":: enter prompt [ ctrl-d to submit ]:\n";
+
+    # Try X11 selection first (like vc_commit)
+    if ( -x '/usr/bin/xsel' ) {
+        my $selection = qx| /usr/bin/xsel -o 2>/dev/null |;
+        if ( defined $selection && length $selection > 0 ) {
+            chomp $selection;
+            $prompt = $selection;
+            print ":: using X11 selection\n" if -t STDERR;
+        }
     }
-    local $/;
-    $prompt = <STDIN> // '';
+
+    # If still no prompt, check stdin
+    unless ( length $prompt ) {
+        if ( -t STDIN ) {
+
+            # Interactive mode - use readline like vc_commit
+            $use_readline = 1;
+        } else {
+
+            # Piped input
+            local $/;
+            $prompt = <STDIN> // '';
+        }
+    }
 }
 
-chomp $prompt;
+## interactive mode with readline ##
+if ( $use_readline && !length $prompt ) {
+    require Term::ReadLine;
+
+    my $term = Term::ReadLine->new('coding-task');
+    $term->ornaments('mh,md') if $term->can('ornaments');
+    $term->enableUTF8()       if $term->can('enableUTF8');
+
+    print ":: enter coding task prompt (Ctrl-D to cancel):\n";
+
+    my $min_len   = 5;
+    my $max_len   = 4000;
+    my $last_line = '';
+
+    while ( not length $prompt ) {
+        my $line = $term->readline( ' :. ', $last_line );
+
+        last unless defined $line;    # Ctrl-D
+
+        $term->add_history($line) if $line ne $last_line;
+
+        my $len = length $line;
+        if ( $len < $min_len ) {
+            print ":: prompt too short (min $min_len chars)\n" if $len > 0;
+        } elsif ( $len > $max_len ) {
+            print ":: prompt too long (max $max_len chars)\n";
+        } else {
+            $prompt = $line;
+        }
+        $last_line = $line;
+    }
+
+    print "\n" unless length $prompt;
+}
+
+chomp $prompt if length $prompt;
 
 die ":: empty prompt\n" unless length $prompt;
 
 ## encode ##
 my $encoded = encode_b32r($prompt);
 
-## build command ##
-my $cmd = "p7c coding.submit '${encoded}'";
+## build command with B32: prefix ##
+my $cmd = sprintf "p7c coding.submit 'B32:%s'", $encoded;
+$cmd .= ' -wait' if $wait;
 
 ## show summary ##
 my $preview = substr( $prompt, 0, 80 );
@@ -80,8 +140,8 @@ printf ":: encoded: %d bytes → %d b32r chars\n",
 ## dispatch ##
 exec $cmd;
 
-#,,.,,.,,,.,.,.,.,.,,,,..,,,.,.,,,...,,,.,.,,,..,,...,...,...,.,.,,.,,...,,.,,
-#BLS7HVH2AYKHE5JYG45Q2YOPUPUX4QFRLLRTAJLVAERZ7LC62DRTOM5CJGUSPJVTMJKV23PHWXCQ4
-#\\\|DWH2WRISEPOBIFBRWGSJMCT2LBHO2457OTF57Y3GFGUPYPAF6AY \ / AMOS7 \ YOURUM ::
-#\[7]HCOE2NISRWYCAXEVK7CCJ2ZTIBZFSGER45H3XHLYJCS2CQB642BA 7  DATA SIGNATURE ::
+#,,.,,,,,,,..,,,,,,,.,,.,,,..,.,.,,.,,,,.,.,,,.,.,...,...,,.,,.,,,...,...,..,,
+#6LDODR42WZPULN2YI4L3GD55ITXPAMV33I6DBA4N3QI676LOAHKBWEJ5BAXMFN3Y5R7DFB4JMFBDK
+#\\\|I7F7QSXHV4NFDYD633ATRPCUF7OTKQN7SGVEA2H5AJ6GVVSZYN3 \ / AMOS7 \ YOURUM ::
+#\[7]VGFNS6OJREMPKVBYZ5RFOXEJ6XYQYPORWQ3UESYLLJ4VP3M5FIAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

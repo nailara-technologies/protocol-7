@@ -202,6 +202,9 @@ eval {
 INFERENCE_LOOP:
     while ( $tool_round <= $max_tool_rounds ) {
 
+        ## check for and process event loop activity ##
+        <[event.once]>->(0.07);
+
         ## context compaction: estimate size, compact if approaching limit ##
         if ( $tool_round > 2 and @messages > 4 ) {
             my $total_chars = 0;
@@ -361,15 +364,13 @@ INFERENCE_LOOP:
         }
 
         ## log request to model output buffer ##
-        if ( exists $code{'coding.buffer.model_output'} ) {
-            my $last_msg = $messages[-1];
-            <[coding.buffer.model_output]>->(
-                $last_msg->{'content'} // '[tool result]',
-                {   'round' => $tool_round,
-                    'tool'  => 'input',
-                }
-            );
-        }
+        my $last_msg = $messages[-1];
+        <[coding.buffer.model_output]>->(
+            $last_msg->{'content'} // '[tool result]',
+            {   'round' => $tool_round,
+                'tool'  => 'input',
+            }
+        );
 
         ## build request body ##
         my %request = (
@@ -473,21 +474,18 @@ INFERENCE_LOOP:
         $finish_reason_val = $choice->{'finish_reason'} // 'stop';
 
         ## log model response to output buffer ##
-        if ( exists $code{'coding.buffer.model_output'} ) {
-            my $model_content = $message->{'content'} // '[tool_calls]';
-            <[coding.buffer.model_output]>->(
-                $model_content,
-                {   'round' => $tool_round,
-                    'tool'  => 'model',
-                }
-            );
-        }
+        my $model_content = $message->{'content'} // '[tool_calls]';
+        <[coding.buffer.model_output]>->(
+            $model_content,
+            {   'round' => $tool_round,
+                'tool'  => 'model',
+            }
+        );
 
         ## check for tool calls ##
         if (    $finish_reason_val eq 'tool_calls'
             and ref $message->{'tool_calls'} eq qw| ARRAY |
-            and $message->{'tool_calls'}->@*
-            and exists $code{'coding.tools.dispatch'} ) {
+            and $message->{'tool_calls'}->@* ) {
             $tool_round++;
 
             ## append assistant message with tool calls to conversation ##
@@ -501,70 +499,67 @@ INFERENCE_LOOP:
             my $loop_check         = qw| false |;
             my $assertion_injected = 0;
 
-            if ( exists $code{'coding.tool.detect_loop'} ) {
-                $loop_check = <[coding.tool.detect_loop]>->(
-                    $task, $message->{'tool_calls'}, 'suspicion'
+            $loop_check = <[coding.tool.detect_loop]>->(
+                $task, $message->{'tool_calls'}, 'suspicion'
+            );
+
+            ## Handle direct escalation (high-confidence patterns) ##
+            if (ref $loop_check eq qw| HASH |
+                and (  $loop_check->{'skip_assert'}
+                    or $loop_check->{'escalate_direct'} )
+            ) {
+
+                <[base.logs]>->(
+                    0,
+                    "::working:: loop detected [score %.1f]: %s",
+                    $loop_check->{'score'}   // 0,
+                    $loop_check->{'message'} // 'unknown'
                 );
 
-                ## Handle direct escalation (high-confidence patterns) ##
-                if (ref $loop_check eq qw| HASH |
-                    and (  $loop_check->{'skip_assert'}
-                        or $loop_check->{'escalate_direct'} )
-                ) {
+                ## Inject escalation warning as system message ##
+                push @messages,
+                    {
+                    'role'    => 'system',
+                    'content' => $loop_check->{'warning'}
+                        // $loop_check->{'message'}
+                    };
+            }
+            ## Handle assertion request (polling-allowed patterns) ##
+            elsif ( ref $loop_check eq qw| HASH |
+                and $loop_check->{'request_assertion'} ) {
 
-                    <[base.logs]>->(
-                        0,
-                        "::working:: loop detected [score %.1f]: %s",
-                        $loop_check->{'score'}   // 0,
-                        $loop_check->{'message'} // 'unknown'
-                    );
+                my $pattern = $loop_check->{'pattern'}    // 'unknown';
+                my $score   = $loop_check->{'score'}      // 0;
+                my $conf    = $loop_check->{'confidence'} // 0;
 
-                    ## Inject escalation warning as system message ##
-                    push @messages,
-                        {
-                        'role'    => 'system',
-                        'content' => $loop_check->{'warning'}
-                            // $loop_check->{'message'}
-                        };
-                }
-                ## Handle assertion request (polling-allowed patterns) ##
-                elsif ( ref $loop_check eq qw| HASH |
-                    and $loop_check->{'request_assertion'} ) {
+                <[base.logs]>->(
+                    1, "::working:: loop suspicion [%.1f, %s] - assertion",
+                    $score, $pattern
+                );
 
-                    my $pattern = $loop_check->{'pattern'}    // 'unknown';
-                    my $score   = $loop_check->{'score'}      // 0;
-                    my $conf    = $loop_check->{'confidence'} // 0;
+                ## Build assertion prompt ##
+                my $assert_prompt = sprintf(
+                    "[LOOP ASSERTION REQUEST]\n\n"
+                        . "Pattern '%s' detected (conf: %d%%)\n"
+                        . "Recent: %s | Score: %.1f\n\n"
+                        . "Self-assess: Are you looping? Reply:\n"
+                        . "LOOPING | NOT_LOOPING | UNCLEAR",
+                    $pattern,
+                    int( $conf * 100 ),
+                    join( ' → ',
+                        @{ $loop_check->{'history_snapshot'} // [] } ),
+                    $score
+                );
 
-                    <[base.logs]>->(
-                        1,
-                        "::working:: loop suspicion [%.1f, %s] - assertion",
-                        $score, $pattern
-                    );
+                ## Inject as tool result ##
+                push @messages,
+                    {
+                    'role'         => 'tool',
+                    'tool_call_id' => 'loop_assert_' . $tool_round,
+                    'content'      => $assert_prompt,
+                    };
 
-                    ## Build assertion prompt ##
-                    my $assert_prompt = sprintf(
-                        "[LOOP ASSERTION REQUEST]\n\n"
-                            . "Pattern '%s' detected (conf: %d%%)\n"
-                            . "Recent: %s | Score: %.1f\n\n"
-                            . "Self-assess: Are you looping? Reply:\n"
-                            . "LOOPING | NOT_LOOPING | UNCLEAR",
-                        $pattern,
-                        int( $conf * 100 ),
-                        join( ' → ',
-                            @{ $loop_check->{'history_snapshot'} // [] } ),
-                        $score
-                    );
-
-                    ## Inject as tool result ##
-                    push @messages,
-                        {
-                        'role'         => 'tool',
-                        'tool_call_id' => 'loop_assert_' . $tool_round,
-                        'content'      => $assert_prompt,
-                        };
-
-                    $assertion_injected = 1;
-                }
+                $assertion_injected = 1;
             }
 
             ## dispatch each tool call ##
@@ -666,7 +661,7 @@ INFERENCE_LOOP:
             ## yield to event loop between tool rounds ##
             ## allows network commands [ show-buffer, get-result ] to be ##
             ## processed while inference is running ##
-            <[event.once]>->(0.0007);
+            <[event.once]>->(0.07);
 
             next INFERENCE_LOOP;
         }
@@ -677,8 +672,7 @@ INFERENCE_LOOP:
         ##============================================================##
         ## PROCESS ASSERTION RESPONSE (if assertion was requested)    ##
         ##============================================================##
-        if (    exists $code{'coding.tool.detect_loop'}
-            and $task->{'execution'}->{'loop_detection'}
+        if (    $task->{'execution'}->{'loop_detection'}
             and
             $task->{'execution'}->{'loop_detection'}->{'assertion_pending'} )
         {
@@ -794,8 +788,8 @@ if ( length $response_text
 ## return result hashref for jobqueue callback ##
 return { success => TRUE, result => $response_text, task_id => $task_id };
 
-#,,..,...,.,.,..,,.,.,,,,,..,,,,.,...,,,.,...,..,,...,..,,...,,,.,..,,...,,.,,
-#THFBOMMESPFQUHVBAXFPAWPYLTEA73BW4WMYXJFRPUVOS6KQEGHKUP36TPYVMKOE77JS5OEDZONGO
-#\\\|XN7MPTOD2CLUTHCMWWSAOFXOTX7FS72SCXYRMYK5FRBFVOYAPJG \ / AMOS7 \ YOURUM ::
-#\[7]IGM243DCJNP5KQCIJGSWLL7VEWEFJ6NQXITD5YQJSPFT6DOHKWAI 7  DATA SIGNATURE ::
+#,,,.,,..,.,,,,.,,,.,,..,,...,.,,,.,,,,..,...,..,,...,...,...,,..,.,,,,,.,.,.,
+#AGUOTFNJIYQ76EHPLY6FSKLFJVGC6QXCFTRZZPETO7I6YQZEQKNUJK5GYINK2T5EAFTB2ZTEJHLPE
+#\\\|SUJU7ZPCVBPIKTKMFWMT3Q2P3QSLW5THP6OY2WHOQ3RTRLNANXT \ / AMOS7 \ YOURUM ::
+#\[7]YYT2EHLJQHL6SIGPI5I7WWDTLTCNLOL6U3HPSBEVM254PC25S2BI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

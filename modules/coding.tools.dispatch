@@ -1,7 +1,7 @@
 ## [:< ##
 
 # name  = coding.tools.dispatch
-# descr = execute tool call and return result string
+# descr = execute tool call and return result string [edited]
 
 my $tool_call = shift // {};
 
@@ -417,10 +417,49 @@ if ( not exists $dispatch{$name} and not exists $code{$handler_mod} ) {
     };
 }
 
-my $raw_result
-    = exists $dispatch{$name}
-    ? $dispatch{$name}->()
-    : $code{$handler_mod}->($args);
+my $raw_result;
+if ( exists $dispatch{$name} ) {
+    if ( not defined $dispatch{$name} ) {
+        return {
+            'id'      => $call_id,
+            'role'    => 'tool',
+            'content' => "error: dispatch entry for '$name' is undefined",
+        };
+    }
+    $raw_result = $dispatch{$name}->();
+} elsif ( exists $code{$handler_mod} ) {
+    if ( not defined $code{$handler_mod} ) {
+        return {
+            'id'      => $call_id,
+            'role'    => 'tool',
+            'content' =>
+                "error: handler '$handler_mod' exists but is undefined",
+        };
+    }
+    ## wrap handler call with eval to catch errors ##
+    $raw_result = eval { $code{$handler_mod}->($args) };
+    if ($@) {
+        my $err = $@;
+        <[base.logs]>->(
+            0,            ':. tools.dispatch: %s failed: %s',
+            $handler_mod, $err
+        );
+        return {
+            'id'      => $call_id,
+            'role'    => 'tool',
+            'content' => sprintf(
+                "error: handler '%s' crashed: %s",
+                $handler_mod, $err
+            ),
+        };
+    }
+} else {
+    return {
+        'id'      => $call_id,
+        'role'    => 'tool',
+        'content' => "error: handler for '$name' not loaded",
+    };
+}
 
 ## normalize result to string ##
 my $content;
@@ -437,25 +476,9 @@ if ( not defined $raw_result ) {
         $content
             = JSON::PP->new->utf8->pretty->canonical->encode($raw_result);
     }
-} elsif ( ref $raw_result ) {
-    $content = JSON::PP->new->utf8->pretty->canonical->encode($raw_result);
-} else {
-    $content = $raw_result;
-}
 
-<[base.logs]>->(
-    2,     ':. tools.dispatch: %s → %d chars',
-    $name, length($content)
-);
-
-return {
-    'id'      => $call_id,
-    'role'    => 'tool',
-    'content' => $content,
-};
-
-#,,.,,,.,,..,,,..,,,,,.,,,,.,,.,,,,.,,..,,..,,..,,...,...,..,,.,,,,..,,..,,,,,
-#GYVE4U3OV4FC5GBECUJITYRXB6WA2SXJXVU4QALLMLY6K3JKQQLGTGRPU4NY3K4SLDJNT4N7CPZT6
-#\\\|DTK2D4UIET5BWXQUP5ZNDQNF5RUK2YLG35SGNUGZKYA4433N6GO \ / AMOS7 \ YOURUM ::
-#\[7]WNK3WN52SSIIMDFA7EGJ76JIYUPXJECTXI7O752WXWYXEJ6KW6CA 7  DATA SIGNATURE ::
+#,,..,.,.,,,.,,.,,,.,,,,,,.,.,,.,,.,,,...,..,,.,.,...,...,,,.,,,.,...,,,,,..,,
+#UWKUWEZYAGFFKJ7ZTEIBP7LT7X2FIIUT523UGWYE5TRMAW3ZAYYM74KDX5RIG27EZONWVXKEIFUSO
+#\\\|Y7NXUWV56VJZKUZKVMZL7BBGGOL3MIX2GOVECCR6ERGRFZDWPUP \ / AMOS7 \ YOURUM ::
+#\[7]EQICG5B4IUIJVNVUB7SBPFPZQFS57VNE7CDL7UZG5DW6DOE2FWAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

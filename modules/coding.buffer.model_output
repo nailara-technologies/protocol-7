@@ -8,18 +8,18 @@ my $context = shift // {};
 
 return FALSE unless length $content;
 
-my $buffer_name = 'model_output';
+my $buffer_name = qw| model_output |;
 
 ##  add timestamp and round info  ##
-my $round = $context->{'round'} // '?';
-my $tool  = $context->{'tool'}  // 'none';
+my $round = $context->{'round'} // qw| ? |;
+my $tool  = $context->{'tool'}  // qw| none |;
 
 my $prefix = sprintf( '[R%s|%s]', $round, $tool );
 
 ##  truncate if too long  ##
 my $max_line = 200;
 if ( length $content > $max_line ) {
-    $content = substr( $content, 0, $max_line ) . '...';
+    $content = substr( $content, 0, $max_line ) . '.,.';
 }
 
 ##  clean newlines  ##
@@ -31,8 +31,8 @@ $content =~ s|\r||g;
 
 return TRUE;
 
-#,,.,,.,.,...,,,.,.,,,,,,,..,,,..,.,,,..,,,,.,..,,...,...,.,.,,.,,.,.,.,.,..,,
-#JFHGECC2IBW7WLTKEYGMQREM6K42IU6TQPVWWSJSBIXDBXIXFOOMURUOVT6JENS7Q6DG6OBK6QVTG
-#\\\|MRUT5O7EDRRRVPXR6RHN2NKG4WV5DRLUFMMEJJX4DQIRSZRSJUS \ / AMOS7 \ YOURUM ::
-#\[7]XXF44ITCV3BK2FI6N27TXBSENHODPFRRNUPVBIADYCTEA5MDRYDI 7  DATA SIGNATURE ::
+#,,,,,,.,,,,.,,..,,.,,...,,..,,,,,,.,,,,.,,.,,..,,...,...,..,,,.,,.,,,,,.,,..,
+#CLX6XZLAEW3HFAUJZWV6Z2C4WQ6BSUBPQ7LQVM7GQYJBZ7CVSND3HYGNHVTPIGCVTY6BJKJKY433Y
+#\\\|LNVFJX5TSRST6UADPMFWASHR67MJ323GXSZXIVTQXHNPGA2ATFH \ / AMOS7 \ YOURUM ::
+#\[7]2XTCFPO2ODHIQJZALJWDMH2X3A7MHEPSP2XAUJYR75KJPJTQYKBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
