@@ -121,6 +121,34 @@ Orchestration engine for ML tasks with async inference spawning:
 - **`coding.complete-analysis`**: Multi-turn task submission and resumption
 - **`llm.service.consensus_vote`**: Multi-model voting and response aggregation
 
+**Coding Zenka Commands:**
+```bash
+# List available tools with descriptions
+p7c coding.list-tools [filter]
+
+# Call a tool directly
+p7c coding.call-tool <tool_name> [json_args]
+
+# Submit a task
+p7c coding.submit "prompt text"
+echo "prompt" | p7c coding.submit
+
+# Check task status/result
+p7c coding.get-result <task_id>
+```
+
+**Common Tools:**
+- `read_file`: Read file with line range and pagination (`offset`, `length`)
+- `search_code`: Grep search with pagination (`max_results`, `offset`)
+- `ncode_search`: Full codebase search with pagination
+- `write_new_file`: Create new file
+- `edit_file`: Apply line-based edits
+- `replace_in_file`: Content-based replacement
+- `list_modules`: List modules in namespace
+- `module_deps`: Show module dependencies
+- `note_write/note_read/note_list`: Task note management
+- `tree_read/tree_write`: Data tree operations
+
 #### Module Organization & Dependencies
 - **Zenka-specific modules**: Each zenka has its own namespace (e.g., `cube.*`, `httpd.*`, `weather.*`)
 - **Shared modules**: Generic functionality gets descriptive names for reuse across zenki
