@@ -421,6 +421,18 @@ INFERENCE_LOOP:
             $request{'tool_choice'} = 'auto';
         }
 
+        ## sanitize all message content before sending to prevent Jinja errors ##
+        for my $msg ( $request{'messages'}->@* ) {
+            my $content = $msg->{'content'} // '';
+            ## use unicode lookalikes to break Jinja parsing on server ##
+            $content =~ s|\{\{|｛｛|g;
+            $content =~ s|\}\}|｝｝|g;
+            $content =~ s|\{%|｛%|g;
+            $content =~ s|%\}|%｝|g;
+            $content =~ s|namespace\s*\(|namespace_(|g;
+            $msg->{'content'} = $content;
+        }
+
         my $body = $json->encode( \%request );
 
         ## estimate token usage for monitoring ##
@@ -885,8 +897,8 @@ if ( length $response_text
 ## return result hashref for jobqueue callback ##
 return { success => TRUE, result => $response_text, task_id => $task_id };
 
-#,,.,,.,,,.,.,.,,,...,,,.,,,.,,.,,,,,,,,,,.,.,..,,...,.,.,.,.,.,,,.,,,,.,,.,,,
-#IANGLASHGCOAGANMLDBTX27CFS7PSV7ZXFNIHOTWKGJXYLZ4BDJ6BIDQTBOFO3FLCK2EBKPDGWHDY
-#\\\|WA46BLHGUX6X6IK72SJBA2ARDALIRHO53DVZHOKYUQF5O2QWQIJ \ / AMOS7 \ YOURUM ::
-#\[7]GBMPSS5LRVB5HM7SS4HJULVHUS77DAJWWKPG55JDBN7336JVSKDI 7  DATA SIGNATURE ::
+#,,,.,,.,,..,,,..,,..,,..,.,,,...,..,,,,.,.,,,..,,...,...,.,.,,,,,..,,,.,,...,
+#ROM6J2PGRZPH5IRLU2LPJYC6WP5KP5TKITGLRD7VU3REV4SCVQWUD3ZPBKEKGQSTE4BX3XQ5EPCYY
+#\\\|5DSQV6N5L5UBRHNDZUMDYYG73BPCN4MKHJZHE7I7O72EDX7YDZ2 \ / AMOS7 \ YOURUM ::
+#\[7]FHCLXNYNWTUIG76NOBONACR4JUKSSEFMI2X6AIBIAOVHJUOSM4AQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
