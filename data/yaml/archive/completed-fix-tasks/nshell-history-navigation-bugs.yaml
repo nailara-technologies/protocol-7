@@ -8,6 +8,9 @@ overview:
   The nshell zenka has two related history navigation bugs that need investigation
   and proper fixes. Previous partial fix addressed session startup only.
 
+status: completed
+completed_at: 2026-03-31
+
 bugs:
   - id: 1
     name: Arrow-up skips last history entry
@@ -16,15 +19,15 @@ bugs:
       is skipped/ignored. Previous fix (496E91F3) only worked for session startup.
       Bug reappears after commands are sent during the session.
     affected_module: nshell.history.arrow_up
-    status: partially_fixed
+    status: fixed
     
   - id: 2
     name: Ctrl+O progression direction reversed
     description: |
       Ctrl+O for history progression goes backwards instead of forwards.
       Should navigate forward through history but currently goes backward.
-    affected_module: nshell.history.ctrl_o  # or similar
-    status: open
+    affected_module: nshell.handler.ctrl_o_cycle
+    status: fixed
 
 previous_fix:
   commit: 496E91F34B5105043EB72D60565C5934D7F4AB75
@@ -78,10 +81,28 @@ related_modules:
   - nshell.*
   - Any terminal/input handling modules
 
+completion_summary:
+  model: Qwen 3.5 9B Claude Opus 4.6 Reasoning Distilled v2
+  task_id: DMWCDOI
+  result: successful
+  notes: |
+    Model successfully identified and fixed both bugs:
+    - Ctrl+O direction fix: changed $cur_index - 1 to $cur_index + 1
+    - Arrow_up index fix: changed @array to @array - 1 for last entry
+    
+    Human identified missing piece:
+    - Reset current_history_index = -1 after history_add in nshell.editor.process
+    
+    All acceptance criteria met:
+    - Arrow-up shows most recent command first, always
+    - Subsequent arrow-ups navigate backward correctly
+    - Ctrl+O navigates forward through history
+    - Works from session start and after any number of sent commands
+
 ## [data checksum: 7KQ6RJ3YQU======] ##
 
-#,,.,,...,...,,..,,,,,,,.,,.,,...,,..,.,,,..,,..,,...,...,,,,,...,.,.,..,,,,.,
-#FDCAO4U56IR4U47U4BTTVS3YCYDQ4RLBJRAIFIPZ2DYFYHBIYOLOJWSKJZKY4OGBKQVQUIEA2AWCO
-#\\\|7DLWYTBSKVXKUVPVQVPWPLWM4REHHUV62PSPX6N3XZCRZ3E7C6A \ / AMOS7 \ YOURUM ::
-#\[7]4BVT3FQPKCGV5UP2FL5Q7C6TCJAZGIUXXG74LMS2XCORJ6IK6QDA 7  DATA SIGNATURE ::
+#,,,,,,,.,,..,.,.,.,.,,.,,...,,.,,...,,..,,.,,..,,...,...,,,,,.,.,,,.,.,.,...,
+#FPXBTW2SS7ZWUHBGKEKVDLA43V2A3E52Y2F32P66ALV6NW6XEPWVW3XJHKW6DUXB2R44I6MGDYQQK
+#\\\|IF2TYM3OYRPVJ7YVBDTUZCMPOWROVDJCHOPNRPD3OYNOVPBZUSN \ / AMOS7 \ YOURUM ::
+#\[7]IOYZ4KWZKMSO5VWTLFZO44J5VVN7VKU5KQXX5KFDIKCJZJZI4MBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
