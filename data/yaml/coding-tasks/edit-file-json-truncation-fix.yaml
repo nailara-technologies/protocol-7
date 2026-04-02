@@ -1,0 +1,90 @@
+## [:< ##
+
+# Task: Fix edit_file JSON truncation issue
+# Priority: high
+# Impact: Prevents model from making large edits
+
+overview:
+  When the model generates large edit_file tool calls, the JSON response
+  gets truncated due to token limits. This causes parse errors and failed
+  edits. The model then has to fall back to replace_in_file or smaller edits.
+
+observed_behavior:
+  - Model generates edit_file with many edits
+  - JSON truncated at character 1232 with "(end of string)"
+  - Error: "JSON parse error for edit_file: , or } expected"
+  - Model falls back to replace_in_file (less precise)
+
+root_cause:
+  The edit_file tool accepts an array of edits in JSON format.
+  Large multi-edit operations exceed the typical token generation window,
+  causing the response to be cut off mid-JSON.
+
+proposed_solutions:
+  solution_1:
+    name: Increase max_tokens for tool-heavy tasks
+    description: |
+      Dynamically increase max_tokens when model is likely to use
+      edit_file with many edits (based on context size or explicit flag)
+    pros: Simple, minimal code changes
+    cons: Uses more tokens, does not solve fundamental limit
+
+  solution_2:
+    name: Implement chunked edit_file
+    description: |
+      Add batch/chunk parameters to edit_file:
+      - Process edits in smaller batches
+      - Return continuation token for next batch
+      - Model calls edit_file multiple times with :continue: flag
+    pros: Handles arbitrary edit sizes
+    cons: More complex protocol, requires state management
+
+  solution_3:
+    name: Add edit_file streaming/pagination
+    description: |
+      Similar to list_files pagination:
+      - Add offset/length to edit specification
+      - Model can edit file in sections
+    pros: Familiar pattern (consistent with other tools)
+    cons: Still may hit limits with complex single-section edits
+
+  solution_4:
+    name: Detect truncation and auto-retry with smaller batches
+    description: |
+      In coding.tools.dispatch, when JSON parse fails due to truncation:
+      - Detect the specific error pattern
+      - Return helpful error suggesting smaller batches
+      - Model can automatically retry with fewer edits
+    pros: Transparent to model, no protocol changes
+    cons: Wasted generation, slower
+
+recommended_approach:
+  Primary: Solution 2 (chunked edit_file) for robustness
+  Fallback: Solution 4 (auto-retry guidance) for immediate help
+
+files_to_modify:
+  - modules/coding.tools.dispatch
+  - modules/coding.tools.handler.edit_file
+  - modules/coding.handler.process-queued-task (token management)
+
+acceptance_criteria:
+  - edit_file handles 50+ edits without truncation
+  - Clear error messages when batches too large
+  - Automatic retry mechanism or batch splitting
+  - Documentation updated with best practices
+  - No breaking changes to existing single-edit calls
+
+testing_approach:
+  - Create test file requiring 20+ line edits
+  - Verify model can complete all edits successfully
+  - Measure token usage vs success rate
+
+related:
+  - modules/coding.tools.handler.replace_in_file (fallback tool)
+  - Recent observation: "JSON parse error for edit_file" in task logs
+
+#,,.,,.,,,.,,,.,,,.,,,,,.,,,.,.,.,...,.,.,,.,,..,,...,...,.,,,,,.,..,,,,.,,..,
+#NRBVUG27ANLAAHIJPQDD2TQZRKFNW2X6RHG57SBJGTJ3FEMTSA2VHDXVTZKR7H46WP3HJOEYWTMGW
+#\\\|F7HCRCEMVWTK3BYWLF443WKVOG63QSF5E66UPO7XNV3XXIOU2G5 \ / AMOS7 \ YOURUM ::
+#\[7]LMTTPZJAIMK3QKS6JJFVNMXRDTIVA35VWT6DXZ43JLH6LCK3EKBA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
