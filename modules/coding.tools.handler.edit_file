@@ -1,0 +1,120 @@
+## [:< ##
+
+# name  = coding.tools.handler.edit_file
+# descr = Handle edit_file tool with chunked edit support
+# param = $args hashref with path, edits, apply, batch_size, continue
+
+my $args = shift // {};
+
+## extract parameters ##
+my $path       = $args->{'path'}       // return 'error: path required';
+my $edits      = $args->{'edits'}      // return 'error: edits required';
+my $apply      = $args->{'apply'}      // 1;
+my $batch_size = $args->{'batch_size'} // 25; ## default 25 edits per batch ##
+my $continue   = $args->{'continue'} // 0;  ## edit offset for continuation ##
+
+## resolve file path ##
+my $root     = <system.root_path>;
+my $abs_path = "$root/$path";
+return "error: path not in repository: $path"
+    unless $abs_path =~ m|^\Q$root\E/|;
+return "error: file not found: $path" unless -f $abs_path;
+
+## load file content ##
+my $content_ref = <[file.slurp]>->($abs_path);
+return "error: cannot read file: $path" unless defined $content_ref;
+my @lines = split /\n/, $content_ref->$*, -1;
+
+## parse edits ##
+my @all_edits;
+if ( ref $edits eq qw| ARRAY | ) {
+    @all_edits = @$edits;
+} elsif ( !ref $edits && length $edits ) {
+    ## try to parse as JSON string ##
+    my $parsed = eval { JSON::PP::decode_json($edits) };
+    @all_edits = @$parsed if defined $parsed && ref $parsed eq qw| ARRAY |;
+}
+
+my $edit_count = scalar @all_edits;
+return "error: no valid edits found" unless $edit_count > 0;
+
+## handle chunked editing ##
+my $batch_num = 1;
+my $start_idx = 0;
+
+if ( $continue > 0 ) {
+    $start_idx = int($continue);
+    $start_idx = $edit_count if $start_idx > $edit_count;
+    $batch_num = int( $start_idx / $batch_size ) + 1;
+}
+
+my $end_idx
+    = ( $start_idx + $batch_size < $edit_count )
+    ? $start_idx + $batch_size
+    : $edit_count;
+my @batch_edits = @all_edits[ $start_idx .. $end_idx - 1 ];
+
+## apply edits (in reverse line order to preserve line numbers) ##
+my @preview;
+my $errors = 0;
+
+for my $edit ( sort { $b->{'line'} <=> $a->{'line'} } @batch_edits ) {
+    my $ln  = $edit->{'line'} // next;
+    my $old = $edit->{'old'}  // '';
+    my $new = $edit->{'new'}  // '';
+
+    ## validate line number ##
+    if ( $ln < 1 || $ln > scalar @lines ) {
+        push @preview, sprintf "line %d: OUT OF RANGE [1..%d]", $ln,
+            scalar @lines;
+        $errors++;
+        next;
+    }
+
+    my $actual = $lines[ $ln - 1 ];
+
+    ## check for match if old text provided ##
+    if ( length $old ) {
+        my $actual_trim = $actual;
+        my $old_trim    = $old;
+        $actual_trim =~ s|^\s+||;
+        $actual_trim =~ s|\s+$||;
+        $old_trim    =~ s|^\s+||;
+        $old_trim    =~ s|\s+$||;
+
+        if ( $actual_trim ne $old_trim ) {
+            push @preview,
+                sprintf "line %d: MISMATCH\n  expected: %s\n  actual:   %s",
+                $ln, $old, $actual;
+            $errors++;
+            next;
+        }
+    }
+
+    push @preview, sprintf "line %d: %s\n     --> %s", $ln, $actual, $new;
+    $lines[ $ln - 1 ] = $new if $apply && !$errors;
+}
+
+## save if applying ##
+if ( $apply && !$errors ) {
+    my $new_content = join "\n", @lines;
+    my $result      = <[file.write]>->( $abs_path, \$new_content );
+    return "error: failed to write file: $result" unless $result;
+}
+
+## prepare result ##
+my $has_more      = $end_idx < $edit_count;
+my $next_continue = $has_more ? $end_idx : '';
+
+my $status = $apply ? ( $errors ? 'ERRORS' : 'APPLIED' ) : 'PREVIEW';
+
+return sprintf "## %s batch %d [%d/%d edits] %s ##\n%s",
+    $status, $batch_num, scalar(@batch_edits), $edit_count,
+    ( $has_more ? "\n[more: continue=$next_continue]" : "" ),
+    join "\n", @preview;
+
+#,,,,,,.,,.,.,...,.,,,...,,,.,..,,...,.,,,...,.,.,...,...,,..,,..,.,.,,..,,,,,
+#G7I4BTRZACAHF6AH5P6F7ZJVEGUYSZ4D3VJMB6FTXG2ND4H37M6H5HOM6Y6E445DBESFVD4SBZD2Q
+#\\\|BF4WXYNM2GGVZYU5I23ZAMYAS52KVGKCAGNEAOERLVSADAYQQXC \ / AMOS7 \ YOURUM ::
+#\[7]IEFIUV4WQITOS56WXJM774AJT566BHCM5MS24P3BS52MMIPLEGBQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

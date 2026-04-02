@@ -286,9 +286,13 @@ my %dispatch = (
     },
 
     'edit_file' => sub {
-        my $path  = $args->{'path'}  // return 'path required';
-        my $edits = $args->{'edits'} // return 'edits required';
-        my $apply = $args->{'apply'} // 1;    ## default: apply ##
+        ## extract parameters with chunked editing support ##
+        my $path       = $args->{'path'}  // return 'path required';
+        my $edits      = $args->{'edits'} // return 'edits required';
+        my $apply      = $args->{'apply'} // 1;
+        my $batch_size = $args->{'batch_size'}
+            // 25;    ## default 25 edits per batch ##
+        my $continue = $args->{'continue'} // 0; ## offset for continuation ##
 
         my $root     = <system.root_path>;
         my $abs_path = "$root/$path";
@@ -313,6 +317,19 @@ my %dispatch = (
         return 'error: edits must be an array'
             unless ref $edit_list eq qw| ARRAY |;
 
+        ## chunked editing: calculate batch range ##
+        my $edit_count = scalar @$edit_list;
+        my $start_idx  = ( $continue > 0 ) ? $continue : 0;
+        $start_idx = $edit_count if $start_idx > $edit_count;
+        my $end_idx
+            = ( $start_idx + $batch_size < $edit_count )
+            ? $start_idx + $batch_size
+            : $edit_count;
+
+        ## slice the batch ##
+        my @batch_edits = @$edit_list[ $start_idx .. $end_idx - 1 ];
+        my $has_more    = $end_idx < $edit_count;
+
         ## read current file [ prefer staged version for accumulation ] ##
         my $stage_name = $path;
         $stage_name =~ s|/|__|g;
@@ -323,10 +340,10 @@ my %dispatch = (
         return 'error: cannot read file' unless defined $content_ref;
         my @lines = split /\n/, $content_ref->$*, -1;
 
-        ## validate and apply edits ##
+        ## validate and apply edits (reverse order to preserve line numbers) ##
         my @preview;
         my $errors = 0;
-        for my $edit ( sort { $b->{'line'} <=> $a->{'line'} } @$edit_list ) {
+        for my $edit ( sort { $b->{'line'} <=> $a->{'line'} } @batch_edits ) {
             my $ln  = $edit->{'line'} // next;
             my $old = $edit->{'old'}  // '';
             my $new = $edit->{'new'}  // '';
@@ -385,8 +402,10 @@ my %dispatch = (
                         sprintf "restore %04o %s\n",
                         $mode_restore, $abs_path;
                 }
-                return sprintf "applied %d edits to %s\n%s",
-                    scalar @$edit_list, $path, join "\n", @preview;
+                return sprintf "applied %d/%d edits to %s%s\n%s",
+                    scalar(@batch_edits), $edit_count, $path,
+                    ( $has_more ? " [continue=$end_idx for more]" : "" ),
+                    join "\n", @preview;
             }
             ## stage to zenka dir when no write access ##
             <[file.zenka_dir.write]>->(
@@ -396,15 +415,19 @@ my %dispatch = (
                 1, ':. edit_file: staged %s [ no write access ]', $path
             );
             return
-                sprintf "staged %d edits for %s [ no write access ]\n"
+                sprintf "staged %d/%d edits for %s [ no write access ]%s\n"
                 . "staged at: %s\n%s",
-                scalar @$edit_list, $path, $stage_rel,
+                scalar(@batch_edits), $edit_count, $path,
+                ( $has_more ? " [continue=$end_idx for more]" : "" ),
+                $stage_rel,
                 join "\n", @preview;
         }
 
         my $mode = $apply ? 'BLOCKED' : 'PREVIEW';
-        return sprintf "## %s [ %d edits, %d errors ] ##\n%s",
-            $mode, scalar @$edit_list, $errors, join "\n", @preview;
+        return sprintf "## %s [ %d/%d edits, %d errors ]%s ##\n%s",
+            $mode, scalar(@batch_edits), $edit_count, $errors,
+            ( $has_more ? " [continue=$end_idx for more]" : "" ),
+            join "\n", @preview;
     },
 
     ## record_question / record_suggestion → shared observation handler ##
@@ -509,8 +532,8 @@ return {
     'content' => $content,
 };
 
-#,,,,,,..,.,.,,..,..,,,.,,.,.,.,,,,.,,,.,,,,,,..,,...,...,.,.,,..,,,,,,.,,,.,,
-#ZB37X72F2NQX3PY4FEEZURLV6F3FR2FSJ2PGXELVBEEHCQGT4KK2IKD6W7DXB63QMHIRF4MQTTCGU
-#\\\|4F2VZL6ZPQUXWLJFATMX5TSCXLYBEKLLKNSNLO2D7FAUI4HZDPP \ / AMOS7 \ YOURUM ::
-#\[7]OEHULVQ7OIH7FF4R44GOOATZDYM6ADXDX37L2D4C5FVPDNDB5WDQ 7  DATA SIGNATURE ::
+#,,,.,,,.,.,.,,.,,.,,,.,,,..,,..,,,.,,.,,,..,,..,,...,..,,.,.,.,.,...,,..,,,,,
+#M6SMERRTZWADAYPMDOVV2HJHW2LC4MTD4NGJMWYPM2XRREQMONPV2ALAZ6V22ECAFQJ4JPELTS4XQ
+#\\\|KRMVZG5E5XKUQSH4EXVBZHQVO6LGA3CKWL5AYFS43IB2BMUT76Q \ / AMOS7 \ YOURUM ::
+#\[7]FQ6HEGAX4P7NVGIB5UNLAUORGECUESHYW6CXMZFYRKFV6QPQLYCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
