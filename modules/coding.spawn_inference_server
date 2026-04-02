@@ -128,6 +128,21 @@ if ( $backend eq qw| gpu | ) {
         next unless length $proc;
         my ($pid) = $proc =~ m|^(\d+)|;
         next if $pid && $pid == $own_pid;
+
+        ## Skip defunct (zombie) processes - they're dead but not reaped ##
+        if ($pid) {
+            my $stat_file = "/proc/$pid/stat";
+            if ( open my $fh, '<', $stat_file ) {
+                my $stat = <$fh>;
+                close($fh);
+                ## Defunct/zombie processes have 'Z' state in stat ##
+                ## stat format: pid (comm) state ppid ... ##
+                if ( $stat && $stat =~ m|^\d+\s+\([^)]+\)\s+Z| ) {
+                    next;    ## Skip zombies ##
+                }
+            }
+        }
+
         push @foreign_procs, $proc;
     }
     if (@foreign_procs) {
@@ -310,8 +325,8 @@ return {
     'port'    => $port
 };
 
-#,,,,,..,,.,.,,.,,..,,...,.,,,,.,,,.,,,,.,.,.,..,,...,...,...,.,.,,..,.,,,,.,,
-#7GRC4SHBHNJFJ4SKDEFHO5ENOFW5FCNA4VVUEW4CVEHXAWJVALPFUOGQOT4FTWVN6PBJE5U45X42Q
-#\\\|EYADUN6DQLUKLW7V5JTQ44JUO2TYHBVC42D6XC3O7MLNL5IJZIW \ / AMOS7 \ YOURUM ::
-#\[7]PNYQ2ORCWS7KKNNBURHNYYHQHOBWGUFU2BRP4JXWEF5UF36DMMCQ 7  DATA SIGNATURE ::
+#,,..,...,...,.,,,,..,,..,.,.,.,,,..,,,,,,,..,..,,...,...,..,,..,,.,,,,..,,..,
+#IVNTQIHSPIRVDFDLMIDI3APRAYCZOKB2PSD35AH2YTGVTD5AKW5SOGRTYJLG5IP4T7FVFV6WL7KQ4
+#\\\|3AGGVVGJTOE3PHTXMM6ZHVGWFAH7EYBT36HMKW5BSP5SN7MASLJ \ / AMOS7 \ YOURUM ::
+#\[7]QTNH3TXKW3WCJKLW7I4ACNIJTFJGSWQCU7DXC7C7VONSKKB3TGAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

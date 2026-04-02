@@ -93,11 +93,30 @@ if ( $meta && defined $meta->{'general.file_type'} ) {
     return wantarray ? ( $clean_filename, $quant ) : $clean_filename;
 }
 
-## Strategy 5: Fallback to cleaned filename only
+## Strategy 5: Try parent directory name if it looks like a model name
+## e.g., "/path/Qwen3.5-9B-Claude-Distilled-v2-GGUF/model-Q8.gguf"
+my $parent_name = '';
+if ( $file_path =~ m|/([^/]+)-GGUF/[^/]+\.gguf$|i ) {
+    $parent_name = $1;
+    $parent_name =~ s|-| |g;
+    $parent_name =~ s|_| |g;
+    $parent_name =~ s|\s+| |g;
+    $parent_name =~ s{^\s+|\s+$}{}g;
+    ## Append quantization if extracted from filename
+    my $parent_quant;
+    if ( $clean_filename =~ m|([IQ][0-8](?:_[A-Z0-9_]+)?)|i ) {
+        $parent_quant = uc($1);
+        $parent_name .= ' ' . $parent_quant;
+    }
+    return wantarray ? ( $parent_name, $parent_quant ) : $parent_name
+        if length($parent_name) > 5;
+}
+
+## Strategy 6: Fallback to cleaned filename only
 return $clean_filename;
 
-#,,,,,.,.,.,,,,,.,,,,,,,.,,.,,.,,,,..,,.,,.,.,..,,...,..,,...,...,..,,,,,,,.,,
-#GNJRC4GBKYJIMOXYS373QR73WZKIGFZPK2KLS54UR6QPDVRROAB42PKHWUHSZU43MMTZWYFLN3C2Y
-#\\\|U4C2H57SUD4IQZ3PCFUITATS5TOJQ7SJPPJU7LD6RUWLRRXNHZU \ / AMOS7 \ YOURUM ::
-#\[7]I23IYQPOVAXH2FZE5V3AJYRKRTRMIVI6D5JJU4YANPAFMMS6WECQ 7  DATA SIGNATURE ::
+#,,.,,,,,,,,.,.,.,.,.,,..,,,.,...,.,,,..,,.,.,..,,...,...,...,.,,,,.,,,.,,,.,,
+#BRVTRABHULSW4IWGDCPCQKVF2X5TTP3BSPVKEDZYHJNW454RRW6ZA7R4DANJESNM2T5EJQFOVGPE6
+#\\\|YYBQTWODFFRDHAE5QGKRVN3WYCU23SXXBSDJGJU4QQAC5OWI7NF \ / AMOS7 \ YOURUM ::
+#\[7]PCZ5O732HFN7QNNOTV7TDMA2ITODCICJ4S2CSQJKOZDW45QRTCDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

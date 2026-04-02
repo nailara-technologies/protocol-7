@@ -52,6 +52,13 @@ if ( defined $call->{'param'} && ref $call->{'param'} eq qw| HASH | ) {
 return { 'mode' => qw| false |, 'data' => "work request required\n" }
     if !length($request_str);
 
+## Validate request isn't empty after decoding
+return {
+    'mode' => qw| false |,
+    'data' => "work request required after decoding\n"
+    }
+    if !length($request_str);
+
 # Parse the work request using task intake module
 my $intake_result = <[coding.task.intake]>->($request_str);
 
@@ -120,8 +127,8 @@ return {
     'data' => $response
 };
 
-#,,,,,.,.,...,..,,...,,,.,...,,.,,,.,,,.,,,.,,..,,...,...,...,...,,.,,,,,,.,.,
-#AAHVOGW5UC5MRNYKTFR7XOIUSEMU3GA6BGZRT55YWUMWGXLLKCILSPWQSG2GKA2ND6ECHTKR6Y7HU
-#\\\|UXLWRXMEDD7VHMYDAJZ3ROFIGABJSYQ4MEBCS4S7DOX6XSZXQYK \ / AMOS7 \ YOURUM ::
-#\[7]MABYWRVBPJMUTD6PQDA2MYX47PEMQOHWIVVSCNHHVKAF63K7QUBI 7  DATA SIGNATURE ::
+#,,.,,,..,,.,,..,,..,,..,,...,,..,.,,,...,.,,,..,,...,...,.,,,.,.,,,,,.,,,,..,
+#AIXE2YI4UPBM4ZVOIC73HDDOJUWRLJ7BSIRZ6N36DWNCW2GMXDX2BIHUHH6MUDHDQTJCJDY22F32A
+#\\\|QISHYYPUBETZWBJNF3RTDFINTB6D5AJ4EENFOWA3URMJV7MCFCG \ / AMOS7 \ YOURUM ::
+#\[7]JH3DDCDOYZB7VL6MENE5XREA3K3H6DZBHDQVRRBKLZK3OGYE7ECI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

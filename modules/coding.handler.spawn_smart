@@ -94,7 +94,15 @@ if ($force) {
                     $backend,
                     $old_pid
                 );
-                ## brief wait for gpu driver to release vram after sigkill ##
+                ## Wait for process to exit and reap zombie (max 2 seconds) ##
+                my $wait_count = 0;
+                while ( kill( 0, $old_pid ) && $wait_count < 20 ) {
+                    select( undef, undef, undef, 0.1 );
+                    <[base.waitpid]>->($old_pid)
+                        ;    ## Reap if zombie [WNOHANG] ##
+                    $wait_count++;
+                }
+                ## brief additional wait for gpu driver to release vram ##
                 select( undef, undef, undef, 0.3 ) if $backend eq 'gpu';
             }
         }
@@ -222,8 +230,8 @@ if ( defined $model_path && -f $model_path ) {
 
 return FALSE;
 
-#,,..,,.,,,.,,,,.,,,,,,,,,,..,,.,,,.,,,..,.,,,.,.,...,...,.,,,..,,..,,...,,,.,
-#AAMHI3WP64PZJEAEJQWOD4OF27I734FGUIMLKUSVQ4KBNPUJXDNZBWK42HUA4ZZVXVIZTZGFMAIJ4
-#\\\|M3ZT6BIBRW6OLQ25GEHWB53EFRZQPHOYJTMZXW43OPBADKHYG6I \ / AMOS7 \ YOURUM ::
-#\[7]7RC5WGGZADJRCV47S3BBK7BSUORTOIIZMFC52KTZ3XBRMRQADGDI 7  DATA SIGNATURE ::
+#,,,,,,..,,,.,,,.,,,,,.,,,..,,,.,,...,,..,...,.,.,...,.,.,.,,,,,,,.,.,,.,,,..,
+#74KQH5PYHNO2RGGQ24MLPTJELJBCFXRV2AXX5RLCQS6RCAYFIWYJ3E77NTXJUOEGDTTNUHOADRHOS
+#\\\|7OCAREJ2FWWRKOQZLKSMFTLDUZ3JAHDBUG3CLF6ZU67N4UZAZWB \ / AMOS7 \ YOURUM ::
+#\[7]OTPMDGCI4SX3J7HSAAU3TYR3PNK4EBLEMXSCZDOX5Q7WR4UPPSDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

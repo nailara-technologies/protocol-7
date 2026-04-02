@@ -77,9 +77,29 @@ Items are categorized and can be claimed by prefixing with `[IN PROGRESS]` or `[
 - [DONE] Create `list-tools` and `call-tool` commands
 - [DONE] Create `module-health-audit` template
 - [DONE] Add git wrapper to enforce signature policy
+- [DONE] Add identical response detection to catch stuck models
+- [DONE] Include round/context info in compaction summaries
+- [DONE] Fix cumulative score window (8 entries instead of 32)
 
-#,,,.,,..,,..,..,,.,.,,,.,,,.,.,.,,,.,..,,.,,,..,,...,...,.,.,.,.,,,,,..,,,,.,
-#27EJXLQURJZPEPDIMK6IYYGNGCL6LWRBZWFHVB44EAIJKV7IX5WQ5O6EN7ORAZ3WIDZO7SZ3DJMQG
-#\\\|LN2MBRA6WPTMSUM7YH6BDJ3CGH5Q5BYD4EVOTRDBC7UNMMC2F6R \ / AMOS7 \ YOURUM ::
-#\[7]GT7MOVFINRA3SW754NLKFAWKLH57BT4YOCFVYAMPT77GSV7DOGBQ 7  DATA SIGNATURE ::
+## Lessons Learned
+
+### Task Scoping
+- **Broad tasks cause loops**: "Analyze coding.* namespace" → 473 rounds, hallucinations
+- **Focused tasks complete quickly**: "Analyze coding.cmd.submit module" → 4 rounds, perfect results
+- **Always specify deliverables**: "Suggest ONE improvement" vs open-ended analysis
+
+### Loop Detection Patterns
+- Tool-call patterns alone aren't enough
+- Identical model responses are a key signal of stuck models
+- Context compaction without round info confuses models (they think "just started")
+
+### Model Behavior
+- Models hallucinate when given too much freedom (invented `canonical_cpp`, `canonical_fortran`, etc.)
+- Repetitive identical responses indicate the model has stopped reasoning
+- Clear constraints prevent runaway tasks
+
+#,,.,,,,,,.,,,.,.,.,.,,..,..,,..,,.,.,..,,.,.,..,,...,...,,..,.,,,..,,,,,,,..,
+#FICGYWJ4GLBJ6X53B25XGFRICY7542UE46GFJK2XJLYOVLNEESCKWE55NOOJAOQI5HUT3D5FFQVMC
+#\\\|EVLLVZB5BXVSCBUULCLWDQT32XGTIAANSHQVOQQ7J5PTSAM6OYW \ / AMOS7 \ YOURUM ::
+#\[7]KWPBK45VT3GXNXE2EAGF6U3ATHUYDJBW3YXAGRNFF25LWAIIHCBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
