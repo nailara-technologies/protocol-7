@@ -1,0 +1,103 @@
+# Module Health Audit Template
+# Comprehensive analysis of any P7 module
+# Usage: improve-system-prompt: module-health-audit: Module::Name
+
+system:
+  - system-tools
+  - system-default
+
+description: >
+  Perform a comprehensive health audit on the specified module.
+
+  Steps:
+  1. Read the module content with read_module
+  2. Validate syntax with ptd_check
+  3. Check format with validate_module_format
+  4. List inline subs with list_inline_subs
+  5. Analyze dependencies with module_deps
+  6. Check recent changes with recent_changes if applicable
+
+  Report findings in structured format:
+  - Module info (name, description, lines)
+  - Syntax status (ok / errors)
+  - Format compliance (pass / issues found)
+  - Code structure (inline subs count, complexity)
+  - Dependencies (incoming, outgoing, circular)
+  - Recommendations for improvement
+
+  Be thorough but concise. Focus on actionable findings.
+
+user:
+  - args.description
+
+args:
+  description:
+    type: string
+    required: true
+    description: "module name to audit (e.g., 'coding.tools.dispatch')"
+    extract: "module[ -]?health[ -]?audit[: ]?(.+)"
+
+context:
+  static:
+    - type: instructions
+      content: |
+        ## Module Health Audit Protocol
+
+        When auditing a module, systematically check:
+
+        1. **Basic Info**: name, description, line count, file size
+        2. **Syntax**: run ptd_check, note any errors
+        3. **Format**: validate_module_format, check header compliance
+        4. **Structure**: list_inline_subs, count complexity
+        5. **Dependencies**: module_deps for wiring analysis
+        6. **Issues**: collect and categorize findings
+
+        Report format:
+        ```
+        .:[ Module Health Audit: <name> ]:.
+
+        Status: [HEALTHY|WARNINGS|CRITICAL]
+
+        Basic Info:
+          - Lines: N | Chars: N | Inline subs: N
+
+        Syntax: [OK|ERRORS]
+        Format: [PASS|N issues]
+
+        Dependencies:
+          - Outgoing: N modules
+          - Incoming: N modules
+
+        Findings:
+          [list of issues or "None - module is healthy"]
+
+        Recommendations:
+          [actionable suggestions]
+        ```
+
+  dynamic:
+    - type: module
+      module: "{args.description}"
+      max_chars: 4000
+
+  append:
+    - type: git
+      show_recent: true
+      path: "modules/{args.description}"
+
+notes:
+  - type: audit-result
+    template: |
+      Module: {args.description}
+      Audit Date: {timestamp}
+      Status: {status}
+
+footer:
+  - type: file-list
+  - type: signature
+
+#,,,,,...,..,,,,.,.,,,,,.,,,.,...,,..,..,,,.,,..,,...,...,.,.,,.,,,,.,..,,.,.,
+#2XDAAYZSKMGQYMTOSBS2CHGURE3R6PPQX2VC6QHXTZVQS2PE6EQRX5TEEXUNGFV2USV7CJVBDGK5G
+#\\\|2XHQTM4BWEONE2FU7LYGTEJNGUN2N4Z2GMQQQSXJOBM5PWGMGIU \ / AMOS7 \ YOURUM ::
+#\[7]MCITPFE2QHNDOH4RDDPY2CXJ6KCK3P55WWXWS3EPL46BUXKPWQCY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
