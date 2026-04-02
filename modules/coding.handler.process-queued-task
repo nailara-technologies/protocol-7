@@ -326,6 +326,40 @@ INFERENCE_LOOP:
             }
         }
 
+        ## sanitize messages for jinja2 safety ##
+        ## only match actual jinja template patterns, not perl hashrefs ##
+        my $jinja_var   = qr|\{\{\s*[a-zA-Z_]\w*\s*\}\}|;      ## {{ var }} ##
+        my $jinja_block = qr{%\s*(?:if|for|set|include)\s};    ## {% tag ##
+        my $jinja_ns = qr|namespace\s*\(\s*value\s*=|;  ## namespace(value= ##
+
+        for my $msg (@messages) {
+            my $content  = $msg->{'content'} // '';
+            my $detected = '';
+
+            if ( $content =~ $jinja_var ) {
+                $detected = 'jinja_var';
+            } elsif ( $content =~ $jinja_block ) {
+                $detected = 'jinja_block';
+            } elsif ( $content =~ $jinja_ns ) {
+                $detected = 'jinja_ns';
+            }
+
+            if ($detected) {
+                ## log snippet for false positive analysis ##
+                my $snippet = $content;
+                $snippet =~ s|\s+| |g;
+                $snippet = substr( $snippet, 0, 80 );
+                <[base.logs]>->(
+                    2,         "::working:: sanitized %s [ %s ]",
+                    $detected, $snippet
+                );
+                ## escape braces to prevent template errors ##
+                $content =~ s|\{\{|\[\{|g;
+                $content =~ s|\}\}|\}\]|g;
+                $msg->{'content'} = $content;
+            }
+        }
+
         ## build request body ##
         my %request = (
             model       => $model_id,
@@ -380,8 +414,10 @@ INFERENCE_LOOP:
             }
 
             ## detect retryable errors ##
-            my $is_jinja_err = $detail =~ m|item pairs from a mapping|
-                || $detail =~ m|jinja|i;
+            my $is_jinja_err
+                = $detail  =~ m|item pairs from a mapping|
+                || $detail =~ m|jinja|i
+                || $detail =~ m|namespace\(|i;
             my $is_timeout = $status =~ m|timeout|i
                 || $status =~ m|^5\d\d|;
 
@@ -736,8 +772,8 @@ if ( length $response_text
 ## return result hashref for jobqueue callback ##
 return { success => TRUE, result => $response_text, task_id => $task_id };
 
-#,,..,,,,,.,.,...,..,,..,,,,.,,.,,,..,.,.,,,.,..,,...,...,,.,,..,,...,,.,,..,,
-#5OUNQBQTXLRDGDB7DJTPRWDTV3Q3DST2MMJJ6QFOZY3CU6SVV4PI3CD3JGIUGDIWDK7RV6XTGCYP2
-#\\\|QFMWKAPLQH7BMXMQQY7PW6STNR5EQN65C7TS44DNWA5XCZE3REZ \ / AMOS7 \ YOURUM ::
-#\[7]ZV33ZUZSNTV6V2BXYNOYB6Y57PITBRIMDG2R46B6DSJL56LMPUDA 7  DATA SIGNATURE ::
+#,,,,,.,,,,,.,..,,...,,.,,.,.,.,,,...,,,.,,,.,..,,...,...,.,.,...,,,,,.,,,,.,,
+#3TEIJ7C34TSQ2TFTJW53WV2VEW3EPSZDQZ2DT7GGZQ4RI22G4DEMDZ6QVVDR7AXMY4UDJHSFTNYPW
+#\\\|BP7GJF4DXE4NNQUME6RU7VWHG47ZVPPPZRPLYBGGZETU2OFNKZV \ / AMOS7 \ YOURUM ::
+#\[7]EZYW7CWSZER5NGGGN7RV27QWMFWKCFEFWHYKB4W5X3SFOBI6WQCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
