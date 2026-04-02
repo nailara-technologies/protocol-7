@@ -104,13 +104,13 @@ if ( !$queue_result->{success} ) {
 
 my $response
     = "task:"
-    . $routed_task->{id}
+    . ( $routed_task->{id} // 'unknown' )
     . "|type:"
-    . $routed_task->{type}
+    . ( $routed_task->{type} // 'unknown' )
     . "|complexity:"
-    . $routed_task->{analysis}->{complexity}
+    . ( $routed_task->{analysis}->{complexity} // 'unknown' )
     . "|routed:"
-    . $routed_task->{analysis}->{routed_to}
+    . ( $routed_task->{analysis}->{routed_to} // 'unknown' )
     . "|tokens:"
     . ( $routed_task->{execution}->{estimated_tokens}
         // $routed_task->{analysis}->{estimated_tokens} // 'unknown' ) . "\n";
@@ -120,8 +120,8 @@ return {
     'data' => $response
 };
 
-#,,,.,...,.,,,...,,,.,,,,,,.,,,.,,.,,,,,,,.,.,..,,...,...,,..,..,,,,,,,,.,..,,
-#77CY4N6VQ4JRACA2RFXY7PJ2RPED37K36TNQSA4Q4K3JCJIVQOUE5PA5YGR3NI5H4HUUMIAJD4V36
-#\\\|O35TAYRTF44J5TMQNDOK7RYXVFIFTH336HSQSKJFKJMAF6ULFSQ \ / AMOS7 \ YOURUM ::
-#\[7]PG3NDUZIVOXUHBWT5V57YVLOBH2ZQ2SU2TA2OCLHSUSZK65U7KCI 7  DATA SIGNATURE ::
+#,,,,,.,.,...,..,,...,,,.,...,,.,,,.,,,.,,,.,,..,,...,...,...,...,,.,,,,,,.,.,
+#AAHVOGW5UC5MRNYKTFR7XOIUSEMU3GA6BGZRT55YWUMWGXLLKCILSPWQSG2GKA2ND6ECHTKR6Y7HU
+#\\\|UXLWRXMEDD7VHMYDAJZ3ROFIGABJSYQ4MEBCS4S7DOX6XSZXQYK \ / AMOS7 \ YOURUM ::
+#\[7]MABYWRVBPJMUTD6PQDA2MYX47PEMQOHWIVVSCNHHVKAF63K7QUBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
