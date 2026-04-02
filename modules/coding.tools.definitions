@@ -36,6 +36,16 @@ if ( exists $code{'context.file'} ) {
                         'type'        => 'integer',
                         'description' => 'token budget [ default 2000 ]'
                     },
+                    'offset' => {
+                        'type'        => 'integer',
+                        'description' =>
+                            'character offset to start reading [ default 0 ]'
+                    },
+                    'length' => {
+                        'type'        => 'integer',
+                        'description' =>
+                            'max characters to read [ default 8000 ]'
+                    },
                 },
                 'required' => ['path'],
             },
@@ -276,6 +286,11 @@ push @tools,
                     'type'        => 'integer',
                     'description' => 'max matching lines [ default 30 ]'
                 },
+                'offset' => {
+                    'type'        => 'integer',
+                    'description' =>
+                        'skip first N results for pagination [ default 0 ]'
+                },
             },
             'required' => ['pattern'],
         },
@@ -328,6 +343,11 @@ push @tools,
                 'max_results' => {
                     'type'        => 'integer',
                     'description' => 'max output lines [ default 50 ]'
+                },
+                'offset' => {
+                    'type'        => 'integer',
+                    'description' =>
+                        'skip first N results for pagination [ default 0 ]'
                 },
             },
             'required' => ['query'],
@@ -935,8 +955,8 @@ if ( exists $code{'coding.tools.handler.decode_base32'} ) {
 
 return \@tools;
 
-#,,,,,,..,,.,,,..,...,,..,.,,,,.,,...,..,,.,,,..,,...,...,...,.,,,...,...,,..,
-#Y7QF5E4NXSAVCRAWBXBDC7CESVONZSCL7NCZJQX2BD3LN5DFENX2OZXBAFK2QIMNWYPNDW2FAJ6EM
-#\\\|7EZVP4RVKEYZYN434C3ZECROY55B4XDVQCK65QQJZ7LZFS4YYEG \ / AMOS7 \ YOURUM ::
-#\[7]DTV676GNPPQRLFT5PBDZATPE7V635CNWNWLQOGD3ORQEUSLEAEAY 7  DATA SIGNATURE ::
+#,,,,,,..,.,.,,,.,,.,,...,,,,,..,,,,.,,..,,.,,..,,...,..,,...,.,,,,..,,,.,.,.,
+#4JGPUHFJDV22LIUXVXCFMCJGNNLTPEMGDD6NFD7NF7PTRVYBCBZNNGOWBYGPPOYHRO6WOGXG5D6ZU
+#\\\|QJZJ2F4SH4YUSTDREDCLKONAW77MD2JBSONI64SJBOJUZLIHGYS \ / AMOS7 \ YOURUM ::
+#\[7]5AIO7MJ5E3T2F6W4ATFCUKUKZMKQLUJHJJJQN2LNYFPCIXQG5MDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
