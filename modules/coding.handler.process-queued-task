@@ -294,6 +294,27 @@ INFERENCE_LOOP:
                         'content' => $summary,
                         };
 
+                    ## store compaction data for later analysis ##
+                    my $after_chars = 0;
+                    $after_chars += length( $_->{'content'} // '' )
+                        for @messages;
+
+                    <coding.compaction.last> = {
+                        'round'        => $tool_round,
+                        'threshold'    => $compact_threshold,
+                        'before_count' => scalar(@messages)
+                            + $protect_end
+                            - $protect_start,
+                        'before_tokens' => $est_tokens,
+                        'after_count'   => scalar @messages,
+                        'after_tokens'  =>
+                            int( ( $after_chars * 1.4 ) / $chars_per_token ),
+                        'compacted_count' => $protect_end - $protect_start,
+                        'first_round'     => $protect_start - 2,
+                        'last_round'      => $protect_end - 2,
+                        'summary'         => substr( $summary, 0, 2000 ),
+                    };
+
                     <[base.logs]>->(
                         1,
                         "::working:: compacted %d msgs → 1 "
@@ -715,8 +736,8 @@ if ( length $response_text
 ## return result hashref for jobqueue callback ##
 return { success => TRUE, result => $response_text, task_id => $task_id };
 
-#,,,,,,.,,.,,,..,,,,.,,,.,,..,...,,,,,,..,.,.,..,,...,...,,..,,.,,...,...,.,,,
-#ITJNHW7F5V2GZVGOYJRZYW4TT726XJD6Z5KFZNEPIIQ4DCOFXR2C4M7NYFPPIOFWNUAQ5UPWE4WOY
-#\\\|ULZOJCTPO5BWTUJFPY3ZRXAS54LP6GHVGTCXDLEBB7LNQQMYWIP \ / AMOS7 \ YOURUM ::
-#\[7]NN47BM3VDNAFNNXFNUNN3KKJ3TFDQ36NKCSCWXJ3D34TAWQYROBY 7  DATA SIGNATURE ::
+#,,..,,,,,.,.,...,..,,..,,,,.,,.,,,..,.,.,,,.,..,,...,...,,.,,..,,...,,.,,..,,
+#5OUNQBQTXLRDGDB7DJTPRWDTV3Q3DST2MMJJ6QFOZY3CU6SVV4PI3CD3JGIUGDIWDK7RV6XTGCYP2
+#\\\|QFMWKAPLQH7BMXMQQY7PW6STNR5EQN65C7TS44DNWA5XCZE3REZ \ / AMOS7 \ YOURUM ::
+#\[7]ZV33ZUZSNTV6V2BXYNOYB6Y57PITBRIMDG2R46B6DSJL56LMPUDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
