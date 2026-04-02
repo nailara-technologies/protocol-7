@@ -3,27 +3,76 @@ name: system-tools
 descr: tool usage documentation for inference with tool calling
 sections:
   - static: |
-      ## tools ##
-      you have tools available to inspect the codebase during your analysis.
-      use them when you need more context before answering:
-      - read_file(path) — read file content with optional line range and token budget
+      ## available tools ##
+      
+      you have 30+ tools available to inspect the codebase and manage tasks:
+      
+      ### file operations ###
+      - read_file(path, offset, length) — read file content with pagination
       - read_module(module) — read P7 module with description and metadata
-      - list_modules(namespace) — discover modules in a namespace [ e.g. coding, context ]
-      - module_deps(module) — find what a module calls and what calls it
-      - recent_changes() — recent git changes with file stats
-      - recent_errors(filter) — recent error log entries
+      - list_modules(namespace) — discover modules in a namespace
       - list_files(root, pattern) — directory listing with optional filter
-      - extract_file(path, extract) — smart extraction: header, functions, or pattern match
-
-      call tools when the question requires seeing code you have not been shown.
-      prefer read_module for P7 modules, read_file for other files.
-      use list_modules or list_files to discover before reading.
+      - extract_file(path, extract) — smart extraction: header, functions, pattern
+      
+      ### code analysis ###
+      - search_code(query, offset, max_results) — search file contents with pagination
+      - ncode_search(pattern, offset, max_results) — search with AMOS ncode patterns
+      - module_deps(module) — find what a module calls and what calls it
+      - dep_graph(module) — generate dependency graph for a module
+      - list_inline_subs(module) — list inline subs in a module
+      
+      ### validation & formatting ###
+      - validate_module_format(module) — check P7 module signature/format
+      - ptd_check(path) — check PTD (Protocol-7 Data) file validity
+      - ptd_format(path) — format/normalize PTD files
+      - validate_module(module) — full module validation
+      
+      ### data & state ###
+      - tree_read(path) — read from %data tree
+      - tree_write(path, value) — write to %data tree
+      - tree_list(path) — list keys in %data tree
+      - get_current_time() — get current system time
+      - decode_base32(input) — decode base32-encoded strings
+      
+      ### task management & notes ###
+      - note_write(section, content) — write to task notes workspace
+      - note_read(task_id, level) — read notes at L1/L2/L3 detail
+      - note_list(filter_tag, max_results) — list available note trees
+      - note_search(query, search_level, max_results) — search notes by keyword
+      - note_summarize(task_id, level) — generate summary of task notes
+      - record_question(question) — record a question for later research
+      - record_suggestion(suggestion) — record a suggestion for improvement
+      - task_complete(summary) — mark task as complete with summary
+      - escalate(reason) — escalate to human operator
+      
+      ### git & history ###
+      - recent_changes(limit) — recent git changes with file stats
+      - recent_errors(filter, limit) — recent error log entries
+      
+      ### usage guidelines ###
+      - call tools when you need more context before answering
+      - prefer read_module for P7 modules, read_file for other files
+      - use list_modules or list_files to discover before reading
+      - use search_code/ncode_search to find relevant code patterns
+      - use note_* tools to persist findings across tasks
+      - use pagination (offset) for large files or search results
+      
+      ### important: output restrictions ###
+      - never use jinja2 syntax: {{ var }}, {% tag %}, or namespace() calls
+      - the inference server uses jinja2 and will fail on such output
+      - use plain text descriptions instead of template syntax
     priority: 1
     budget_pct: 100
     label: available tools
 
-#,,.,,,,,,,,.,,..,,..,,..,.,.,..,,...,,.,,..,,..,,...,...,,..,,.,,,,,,,,,,,,,,
-#3FPQPUOZSA47WZYTJPHK4NCRX7R54JEGRON557DJAKXPK6YG7KN2CJSRUTXWKKMDPNF2HDBYTLIMU
-#\\\|TZDK7MU77CJ52P6EUJQZSX5EK5SEACCWIB65LCKIKKM2XKVZB6X \ / AMOS7 \ YOURUM ::
-#\[7]5MQMIHHOSBF52AE7IEBNAER4M7SW4W6MDYJOXS4OJP4ZKVBMJCBA 7  DATA SIGNATURE ::
+#,,.,,,,,,,,.,,..,,..,,..,.,.,..,,...,,..,..,,..,,...,...,,..,,.,,,,,,,,,,,,,,,
+#K3QZQO5TYUZW4Y2J3X4K5Q7L7X5Y3J2X4K5Q7L7X5Y3J2X4K5Q7L7X5Y3J2X4K5Q7L7X5Y3J2
+#\\|NEW_SIGNATURE_PLACEHOLDER\\\\\\\\\\\\\\\\\\\ / AMOS7 \ YOURUM ::
+#\[7]SIGNATURE_PLACEHOLDER______________________________________________ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+
+#,,..,,.,,,.,,.,.,,.,,.,.,,,.,,..,,..,,..,,,,,..,,...,..,,...,...,,.,,,.,,,,,,
+#O7FDJRRTEBR3M2MMSCSBARDDFUBINU2A7TYWSHX4FB3GODEKW7EQCP3CGWAMWJD675ZOYPXERI6D4
+#\\\|647YNP2PELGV7HFQAK5YFSSVJP6SKHLNSUVFV7UEBMMTM2AD4VA \ / AMOS7 \ YOURUM ::
+#\[7]APC7MBGYUXLS65S5QPTFZ2V5H5LNSCNHVQ76X33DYWFDKHOA24AY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
