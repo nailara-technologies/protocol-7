@@ -1,0 +1,85 @@
+#!/usr/bin/env perl
+## [:< ##
+#  bin/ai-scripts/validate - quick module validation
+## ]:> ##
+
+use strict;
+use warnings;
+
+my $module = shift @ARGV;
+
+if ( !$module || $module =~ m{^(-h|-?-help|help)$} ) {
+    print <<'HELP';
+validate - quick module validation
+
+USAGE:
+  validate <module.name>
+
+EXAMPLES:
+  validate coding.validate.module
+  validate note.search
+  validate file.zenka_dir.data_path
+
+Checks performed:
+  ✓ Syntax validation (ptd -c)
+  ✓ Header format (## [:< ##)
+  ✓ Metadata fields (name, descr)
+  ✓ No forbidden 'sub {' declarations
+  ✓ Correct bracket syntax (<[name]>->)
+  ✓ Proper logging (base.logs not base.log)
+  ✓ Signature footer present
+  ✓ Whitelist registration
+
+HELP
+    exit $module ? 0 : 1;
+}
+
+##  dispatch validation  ##
+my $result = p7_dispatch( 'coding.tools.handler.validate_module',
+    { module => $module, } );
+
+print $result->{'data'};
+exit( $result->{'mode'} eq 'true' ? 0 : 1 );
+
+##  dispatch to coding zenka via p7c  ##
+sub p7_dispatch {
+    my ( $handler, $args ) = @_;
+
+    my $json = encode_json(
+        {   function => {
+                name      => $handler,
+                arguments => $args,
+            }
+        }
+    );
+
+    $json =~ s/'/'\\''/g;
+
+    my $output = qx{p7c coding dispatch-tool '$json' 2>&1};
+
+    if ( $? != 0 ) {
+        return { mode => 'false', data => "p7c failed: $output" };
+    }
+
+    return decode_json($output)
+        || {
+        mode => 'false',
+        data => 'invalid JSON response'
+        };
+}
+
+sub encode_json {
+    require JSON::PP;
+    JSON::PP::encode_json(shift);
+}
+
+sub decode_json {
+    my ($str) = @_;
+    eval { JSON::PP::decode_json($str) };
+}
+
+#,,,,,,,,,,,,,,,.,.,,,.,.,.,,,,.,,,.,,,,,,,,.,..,,...,...,...,,..,,.,,...,,..,
+#Z3YFDMJD35RSXDNM2Q4SS2SGDYRBW6YGKKBHCT6LECI563TZTCI7JVKVUUMLRZCGHSU2ITRZZIDFE
+#\\\|VXZQCJQ5D6D4MQD333XFUDV6W447RMWRNRBODZ2ZAWXPPZSWA3A \ / AMOS7 \ YOURUM ::
+#\[7]LUVUCMXMMQCBFD6V3IJIYQYIDWNCUNIHEPEJOQYVDSEU4HDE42AI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

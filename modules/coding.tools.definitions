@@ -885,10 +885,34 @@ if ( exists $code{'coding.tools.handler.note_search'} ) {
         };
 }
 
+## validate_module — check module for errors before commit ##
+if ( exists $code{'coding.tools.handler.validate_module'} ) {
+    push @tools,
+        {
+        'type'     => 'function',
+        'function' => {
+            'name'        => 'validate_module',
+            'description' =>
+                'validate P7 module for common errors and format issues'
+                . ' [ run before declaring task complete ]',
+            'parameters' => {
+                'type'       => 'object',
+                'properties' => {
+                    'module' => {
+                        'type'        => 'string',
+                        'description' => 'module name to validate'
+                    },
+                },
+                'required' => ['module'],
+            },
+        },
+        };
+}
+
 return \@tools;
 
-#,,,.,.,.,,..,..,,...,...,,,.,.,.,...,,..,,,,,..,,...,...,,..,.,,,..,,.,.,,.,,
-#PPOYO27D53RCDQ5D2PHQMVQPQNJXBKZS546GABBLFBI3DBNNWNJ66MUZAVNARVAS26V74IQN55X2S
-#\\\|E6KKWZYUPH6YLXDOJTAKH7VSZFRZNK523QQ5KEC642HJSOMDG46 \ / AMOS7 \ YOURUM ::
-#\[7]K5UQUAIV4ZCI7DHMBDI3ORU25NJLHOLH7LD7WNDRY2FBCK4F5CBA 7  DATA SIGNATURE ::
+#,,.,,,..,,.,,,,.,,.,,,..,,,.,.,,,,.,,,,,,,,.,..,,...,..,,,..,,..,.,,,..,,..,,
+#3WP7KPDVL5SLBGSQ7CP7PVR652UCUBPOW7TGVUBEXBS7TONTA3BHAXLH6WLUQ5HGY5AUYSKYIMY7K
+#\\\|HZRUNAJ2QYG67TXGVKAR55GFOAVQAVXV4OB6P4VQRCXF7EK5CEY \ / AMOS7 \ YOURUM ::
+#\[7]QIJDS7ERFAI6XVFZHEY5BN6OTW6XFUARARXXGRSJSEIYTQCQE2DY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
