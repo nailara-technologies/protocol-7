@@ -1,7 +1,7 @@
 ## [:< ##
 
 # name  = coding.tools.dispatch
-# descr = execute tool call and return result string [edited]
+# descr = execute tool call and return result string
 
 my $tool_call = shift // {};
 
@@ -476,9 +476,25 @@ if ( not defined $raw_result ) {
         $content
             = JSON::PP->new->utf8->pretty->canonical->encode($raw_result);
     }
+} elsif ( ref $raw_result ) {
+    $content = JSON::PP->new->utf8->pretty->canonical->encode($raw_result);
+} else {
+    $content = $raw_result;
+}
 
-#,,..,.,.,,,.,,.,,,.,,,,,,.,.,,.,,.,,,...,..,,.,.,...,...,,,.,,,.,...,,,,,..,,
-#UWKUWEZYAGFFKJ7ZTEIBP7LT7X2FIIUT523UGWYE5TRMAW3ZAYYM74KDX5RIG27EZONWVXKEIFUSO
-#\\\|Y7NXUWV56VJZKUZKVMZL7BBGGOL3MIX2GOVECCR6ERGRFZDWPUP \ / AMOS7 \ YOURUM ::
-#\[7]EQICG5B4IUIJVNVUB7SBPFPZQFS57VNE7CDL7UZG5DW6DOE2FWAI 7  DATA SIGNATURE ::
+<[base.logs]>->(
+    2,     ':. tools.dispatch: %s → %d chars',
+    $name, length($content)
+);
+
+return {
+    'id'      => $call_id,
+    'role'    => 'tool',
+    'content' => $content,
+};
+
+#,,,,,,,.,,..,,.,,..,,.,.,,.,,,..,,.,,,..,,..,..,,...,...,..,,,.,,,,.,,,.,,,.,
+#J66JALSSQKNOSNXYGRFC3FDGFNM4GNMQDQOTTOI74P66WXAKGGDJPLXI7WMPK5TGXZTX4N6MDBQIY
+#\\\|F3NZKS6JBPSUZPVMBWDSLZZXBBX32GOSBLN63QAOTKIYIJUAUWG \ / AMOS7 \ YOURUM ::
+#\[7]AZ72RYXM7ETFEIJKG7IDHNR3R7JYXXBF6JEUMZBXQB5MGKOOEUDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
