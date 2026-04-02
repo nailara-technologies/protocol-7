@@ -1,0 +1,189 @@
+#!/usr/bin/env perl
+## [:< ##
+#  bin/ai-scripts/note - simplified note system access for AI assistants
+## ]:> ##
+
+use strict;
+use warnings;
+
+my $cmd = shift @ARGV // 'help';
+
+my %handlers = (
+    'write'  => \&cmd_write,
+    'w'      => \&cmd_write,
+    'read'   => \&cmd_read,
+    'r'      => \&cmd_read,
+    'list'   => \&cmd_list,
+    'ls'     => \&cmd_list,
+    'search' => \&cmd_search,
+    's'      => \&cmd_search,
+    'help'   => \&cmd_help,
+    'h'      => \&cmd_help,
+);
+
+if ( exists $handlers{$cmd} ) {
+    $handlers{$cmd}->(@ARGV);
+} else {
+    print "Unknown command: $cmd\n";
+    cmd_help();
+    exit 1;
+}
+
+##  write: add a note to current task  ##
+sub cmd_write {
+    my ( $section, @content ) = @_;
+
+    if ( !$section || !@content ) {
+        print "Usage: note write <section> <content>\n";
+        print
+            "Example: note write finding 'socket timeout issue in line 45'\n";
+        exit 1;
+    }
+
+    my $content = join( ' ', @content );
+
+    ##  call p7c to dispatch note_write  ##
+    my $result = p7_dispatch(
+        'coding.tools.handler.note_write',
+        {   section => $section,
+            content => $content,
+        }
+    );
+
+    print $result->{'mode'} eq 'true'
+        ? "Note saved to section '$section'\n"
+        : "Failed: $result->{'data'}\n";
+}
+
+##  read: retrieve notes  ##
+sub cmd_read {
+    my ( $task_id, $level ) = @_;
+
+    $level //= 'L3';
+
+    my $result = p7_dispatch(
+        'coding.tools.handler.note_read',
+        {   task_id => $task_id,
+            level   => $level,
+        }
+    );
+
+    if ( $result->{'mode'} eq 'true' ) {
+        print $result->{'data'};
+    } else {
+        print "Failed: $result->{'data'}\n";
+    }
+}
+
+##  list: show available notes  ##
+sub cmd_list {
+    my ($tag) = @_;
+
+    my $result = p7_dispatch( 'coding.tools.handler.note_list',
+        { tag => $tag // '', } );
+
+    if ( $result->{'mode'} eq 'true' ) {
+        print $result->{'data'};
+    } else {
+        print "Failed: $result->{'data'}\n";
+    }
+}
+
+##  search: find notes by keyword  ##
+sub cmd_search {
+    my ( $query, $level ) = @_;
+
+    if ( !$query ) {
+        print "Usage: note search <query> [level]\n";
+        print "Example: note search 'socket timeout'\n";
+        print "         note search 'transport' L2\n";
+        exit 1;
+    }
+
+    my $result = p7_dispatch(
+        'coding.tools.handler.note_search',
+        {   query        => $query,
+            search_level => $level // 'all',
+        }
+    );
+
+    if ( $result->{'mode'} eq 'true' ) {
+        print $result->{'data'};
+    } else {
+        print "Failed: $result->{'data'}\n";
+    }
+}
+
+##  help: show usage  ##
+sub cmd_help {
+    print <<'HELP';
+note - simplified note system access
+
+USAGE:
+  note write <section> <content>   Add note to current task
+  note read [task_id] [L1|L2|L3]   Read notes (default: current, L3)
+  note list [tag]                  List available notes
+  note search <query> [level]      Search notes (level: all|L1|L2|L3|meta)
+
+ALIASES:
+  w = write, r = read, ls = list, s = search, h = help
+
+EXAMPLES:
+  note write todo "implement error handler"
+  note finding "root cause: race condition in init"
+  note search "transport"
+  note search "socket" L2
+  note list
+  note read abc123 L1
+
+HELP
+}
+
+##  dispatch to coding zenka via p7c  ##
+sub p7_dispatch {
+    my ( $handler, $args ) = @_;
+
+    my $json = encode_json(
+        {   function => {
+                name      => $handler,
+                arguments => $args,
+            }
+        }
+    );
+
+    ##  escape for shell  ##
+    $json =~ s/'/'\\''/g;
+
+    my $output = qx{p7c coding dispatch-tool '$json' 2>&1};
+
+    if ( $? != 0 ) {
+        return { mode => 'false', data => "p7c failed: $output" };
+    }
+
+    return decode_json($output)
+        || {
+        mode => 'false',
+        data => 'invalid JSON response'
+        };
+}
+
+##  simple JSON encode/decode (or use JSON::PP)  ##
+sub encode_json {
+    my ($data) = @_;
+
+    require JSON::PP;
+    return JSON::PP::encode_json($data);
+}
+
+sub decode_json {
+    my ($str) = @_;
+
+    require JSON::PP;
+    return eval { JSON::PP::decode_json($str) };
+}
+
+#,,..,,,,,.,.,...,,..,,,,,,.,,,,.,...,,,.,.,.,..,,...,...,,.,,..,,...,..,,,,,,
+#BYHW6RPZNV4VB67WJKKJQNAE3VXQYF2SBBY2DMRILWYMOJYO6MY6OC6SXW2DGVFUKT2JT56N7ZRFM
+#\\\|42IMJ7TQITZC26VA6EA7IATIXH5UZR5722S72BC2CTV32ETCV4O \ / AMOS7 \ YOURUM ::
+#\[7]2MCP4L2CXI4CWHJESET3W57FP7D5I3OAWJD7B2NIHAVUEOTIAQDI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

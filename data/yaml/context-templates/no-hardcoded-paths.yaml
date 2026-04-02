@@ -1,0 +1,45 @@
+---
+name: no-hardcoded-paths
+descr: avoid hardcoded directory paths, use system variables instead
+sections:
+  - static: |
+      ## path conventions ##
+      
+      do not hardcode directory paths. use system variables instead:
+      
+      | instead of | use |
+      |------------|-----|
+      | `modules/` | `<system.code_path>` |
+      | `configuration/` | `<system.cfg_path>` |
+      | project root | `<system.root_path>` |
+      
+      ## examples ##
+      
+      wrong:
+        my $path = "$root/modules/$module";  # hardcoded
+        my $path = catfile($root, 'modules', $module);  # still hardcoded
+      
+      right:
+        my $path = catfile(<system.code_path>, $module);
+      
+      ## loading modules dynamically ##
+      
+      if you need to check if a file exists before loading:
+        my $module_path = catfile(<system.code_path>, $module_name);
+      
+      ## whitelist and config paths ##
+      
+      for configuration files:
+        my $cfg_file = catfile(<system.cfg_path>, 'zenki', $zenka_name, 'start');
+    priority: 2
+    budget_pct: 100
+    label: path conventions
+
+#,,.,,,,,,,,.,,..,,..,,..,.,.,..,,...,,.,,..,,..,,...,...,,..,.,,,,,,,,,,,,,,,,
+#PLACEHOLDER_SIGNATURE_WILL_BE_FIXED_BY_PRE_COMMIT
+
+#,,,.,.,,,,..,,.,,,,,,,.,,,,.,,,.,,.,,...,,..,..,,...,..,,..,,.,.,.,.,...,.,.,
+#L4HFBEJZHCVXBMGYEH3II7JYFFENJMLVQTABZ6725DCBI3GPBS6QRPYZPLENPLRDOJNWSHU7BRDTK
+#\\\|EO2PY2VJ35TD2X3FZMDECOMDP432AFLDED7CWMQ32B4DKOQJ7AH \ / AMOS7 \ YOURUM ::
+#\[7]UQVL3NCARBL6ICKQYNPYWOWIETW3HPW4MKTGW2K63GVA5O4DOMCY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
