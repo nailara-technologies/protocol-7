@@ -197,11 +197,23 @@ my $ld_state = $task->{'execution'}->{'loop_detection'} //= {
 
 if ( $phase eq 'suspicion' ) {
 
-    ## Extract tool names from current batch ##
-    my @current_names
-        = map { $_->{'function'}->{'name'} // $_->{'name'} // '?' }
-        @$tool_calls;
-    my $tool_key = join( ',', @current_names );
+    ## Extract tool names and arguments from current batch ##
+    my @current_keys;
+    for my $tc (@$tool_calls) {
+        my $name = $tc->{'function'}->{'name'} // $tc->{'name'} // '?';
+        my $args = $tc->{'function'}->{'arguments'} // {};
+        ## include argument hash to distinguish different calls ##
+        my $arg_sig = '';
+        if ( ref $args eq qw| HASH | && keys %$args ) {
+            ## sort keys for consistent hashing ##
+            $arg_sig = ':'
+                . join( ',',
+                map { "$_=" . ( $args->{$_} // '' ) }
+                sort keys %$args );
+        }
+        push @current_keys, $name . $arg_sig;
+    }
+    my $tool_key = join( '|', @current_keys );
 
     ## Update history ##
     push @{ $ld_state->{'tool_history'} }, $tool_key;
@@ -422,8 +434,8 @@ elsif ( $phase eq 'escalation' ) {
 ## Unknown phase ##
 return qw| false |;
 
-#,,,.,,,.,,.,,...,,.,,,,.,...,,,.,,,.,..,,,,.,.,.,...,...,.,.,,..,,..,,..,.,.,
-#W3WN5Y5LUXIK3EHP3TWJRZOA4N4HF7EJE6RXKET7GEV4BAVROMMBEL6CCQOMZBDE43W4PBGSIPFW4
-#\\\|INPUCFCHEHM4LZRKM3SHCF2G7J2COD7EFF7IACBJMI5F7QJIR33 \ / AMOS7 \ YOURUM ::
-#\[7]L5GIRLXFSHWXT35YS55OFHITOTWRI6G47UXJ6GI2ZWKM5DHAPWDQ 7  DATA SIGNATURE ::
+#,,,,,...,..,,.,,,..,,,.,,...,,,,,,,,,.,.,..,,.,.,...,..,,..,,.,.,.,,,,.,,...,
+#RYHNKC24CBE3S4QWFXDMJCTBNLG7KENFW4GDWUY5JP3BGYC4EQOJNRRND45NTAY4FXOUQJ4VTM46E
+#\\\|RHCREHVHQBMFVWNTHP4JN3RHESAZ76UCGKF6UHOHZIC5WYOHGZI \ / AMOS7 \ YOURUM ::
+#\[7]4BQLH6WGFAQMMCCHSDE3GJ63FCCMTC5PYNCPZ4JJ6TAH362TRECY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
