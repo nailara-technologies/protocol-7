@@ -1,0 +1,117 @@
+## [:< ##
+
+# Task: Add git_restore_file and strip_trailing_spaces tools
+# Priority: high
+# Type: feature
+
+overview:
+  Add two new tools to the coding zenka to handle common file operations
+  safely without corrupting module files.
+
+tool_1:
+  name: git_restore_file
+  description: |
+    Safely restore a file from git to recover from corruption or unwanted changes.
+    Uses git checkout or git restore to revert file to committed state.
+    
+  usage: |
+    git_restore_file <path> [--staged] [--source=<commit>]
+    
+  parameters:
+    path: Relative path from repo root (e.g., "modules/coding.tools.dispatch")
+    --staged: Restore from staged version (git restore --staged)
+    --source=<commit>: Restore from specific commit (default: HEAD)
+    
+  examples:
+    - git_restore_file "modules/coding.tools.dispatch"
+      # Restore to last committed version
+      
+    - git_restore_file "modules/coding.tools.dispatch" --staged
+      # Unstage changes, restore to HEAD
+      
+    - git_restore_file "modules/coding.tools.dispatch" --source=HEAD~1
+      # Restore to previous commit
+      
+  safety_checks:
+    - Verify path is within git repository
+    - Check file exists in git (tracked)
+    - Warn if file has uncommitted changes (show diff summary)
+    - Confirm before destructive operation
+    - Return error if file is not tracked by git
+    
+  returns:
+    success: "Restored <path> to <commit>"
+    error: "File not tracked: <path>" | "Path outside repo: <path>"
+    
+  implementation_notes:
+    - Use Git::Wrapper Perl module for git operations
+    - Check git status before/after
+    - Log operation for audit trail
+
+tool_2:
+  name: strip_trailing_spaces
+  description: |
+    Safely strip trailing whitespace from files without corrupting
+    structure or signatures. Only affects lines with trailing spaces,
+    does not reformat or modify content otherwise.
+    
+  usage: |
+    strip_trailing_spaces <path> [--check-only]
+    
+  parameters:
+    path: File path or directory (recursively processes .pm, .pl, .t files)
+    --check-only: Report what would be changed without modifying
+    
+  examples:
+    - strip_trailing_spaces "modules/coding.tools.dispatch"
+      # Remove trailing spaces from file
+      
+    - strip_trailing_spaces "modules/" --check-only
+      # Report all files with trailing spaces
+      
+  safety_checks:
+    - Only modify lines ending with [ \t]+$
+    - Preserve file permissions
+    - Preserve signatures (don't modify signed content structure)
+    - Handle binary files safely (skip them)
+    - Warn if file would become unsigned (re-signature needed)
+    
+  implementation_notes:
+    - Read file line by line
+    - Use s|[ \t]+$|| regex per line
+    - Write back only if changes made
+    - Return count of lines modified
+    - For directories: find all code files, process each
+    
+  returns:
+    success: "Stripped <N> lines in <path>"
+    unchanged: "No trailing spaces found in <path>"
+    error: "Cannot read: <path>" | "Binary file skipped: <path>"
+
+motivation:
+  The model accidentally corrupted coding.tools.dispatch by:
+  1. Using an external tool that stripped trailing spaces
+  2. The stripping caused line duplication in the file
+  3. Model didn't know how to safely restore from git
+  
+  These tools would have prevented the issue and enabled recovery.
+
+files_to_modify:
+  - modules/coding.tools.dispatch (add to dispatch table)
+  - modules/coding.tools.handler.git_restore_file (new)
+  - modules/coding.tools.handler.strip_trailing_spaces (new)
+
+acceptance_criteria:
+  - git_restore_file safely restores files from git
+  - strip_trailing_spaces only removes trailing whitespace
+  - Both tools have proper error handling and safety checks
+  - Tools are documented with examples
+  - No corruption of signed files when stripping spaces
+
+## [data checksum: 8MR9UM6YTX======] ##
+
+#,,..,.,,,..,,..,,..,,.,,,.,.,..,,,,,,,.,,..,,..,,...,...,...,,..,,,,,,..,,..,
+#XHM7ASKFUULY3BZD65CN2UO76YECBOXTD7ICZMRYF7B4WULPDWAMWJIFA5NVXNCSCAM5HVS4XC23G
+#\\\|FGTNF65Z5DYGWLSRT4TBYNV6GTDOQCUFMSIGQ4MGSSOCNHGETOB \ / AMOS7 \ YOURUM ::
+#\[7]GM2SNC52P66OC5TFRUZJMKBJPY7ULZPN5YNJASLSYN5UTQV3NCCA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
