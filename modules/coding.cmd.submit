@@ -16,8 +16,8 @@ if ( defined $call->{'param'} && ref $call->{'param'} eq qw| HASH | ) {
         // $call->{'param'}->{'question'}
         // $call->{'param'}->{'description'} // '';
 
-    # Auto-detect and decode BASE32-encoded parameters (pattern: ^[2-7A-Z]+$)
-    if ( $request_str =~ /^[2-7A-Z]+$/ ) {
+   # Auto-detect and decode BASE32-encoded parameters (pattern: ^[2-7A-Z]+=*$)
+    if ( $request_str =~ /^[2-7A-Z]+=*$/ ) {
         my $decoded = decode_b32r($request_str);
         if ( defined $decoded && length $decoded ) {
             $request_str = $decoded;
@@ -32,7 +32,7 @@ if ( defined $call->{'param'} && ref $call->{'param'} eq qw| HASH | ) {
 
         # Auto-detect and decode BASE32-encoded body data
         my $body = $call->{'data'};
-        if ( $body =~ /^[2-7A-Z]+$/ ) {
+        if ( $body =~ /^[2-7A-Z]+=*$/ ) {
             my $decoded = decode_b32r($body);
             if ( defined $decoded && length $decoded ) {
                 $body = $decoded;
@@ -119,8 +119,8 @@ return {
     'data' => $response
 };
 
-#,,.,,.,,,...,,,.,...,,,.,,,,,.,,,..,,,,,,,,,,..,,...,...,,,,,,,.,..,,...,,,.,
-#YQGLNVUJFM75CBEMK5IKFCJ32KQAOIXIKCNLMKA6W7EFKAX2DJUB27PNFOCK6BRCOIDVEKWYVSTDO
-#\\\|L4J7MYCHVCZTT5UINVSIYXKL27EDSLFJUDA4QEBU2SCSGQQ2JKJ \ / AMOS7 \ YOURUM ::
-#\[7]SOLSCFCFC6VYFKRH5DKLAKMN4ZGA5WAYQYKPQDRPFARIC6VYQCCQ 7  DATA SIGNATURE ::
+#,,..,.,.,.,.,..,,,,,,,..,,,.,.,,,,,,,,,.,,..,..,,...,...,.,,,,,.,.,,,...,...,
+#7XQV3D7CFVU77UNQGUNBFQMFJVZLAWOWHENHKTMSJRZOIQCRTPP6QHMOCFZ7XY5UJW5K2TM2H3GPS
+#\\\|L5LCRQMSAA6CLNB72SHPLRPKO244GIPFUIJDZRDPTOVQFIXIXMQ \ / AMOS7 \ YOURUM ::
+#\[7]CPJ5S4TW5UEE5QH6TV4K4YLRRUKEVUIPEX4XXW76MTDNBHZYNACY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

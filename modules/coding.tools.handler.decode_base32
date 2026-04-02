@@ -1,0 +1,41 @@
+## [:< ##
+
+# name  = coding.tools.handler.decode_base32
+# descr = decode base32/base32r encoded strings
+
+my $tool_call = shift // {};
+
+my $args = $tool_call->{'function'}->{'arguments'} // {};
+
+my $encoded = $args->{'encoded'} // '';
+
+return { 'mode' => qw| false |, 'data' => 'encoded parameter required' }
+    unless length $encoded;
+
+## clean the input ##
+$encoded =~ s|\s+||g;    ## remove whitespace
+
+## try standard base32 ##
+my $decoded = eval { decode_b32r($encoded) };
+
+if ( $@ || !defined $decoded || !length $decoded ) {
+    return {
+        'mode' => qw| false |,
+        'data' => "failed to decode: invalid base32 string"
+    };
+}
+
+return {
+    'mode' => qw| true |,
+    'data' => {
+        'encoded' => $encoded,
+        'decoded' => $decoded,
+        'length'  => length $decoded,
+    }
+};
+
+#,,..,.,,,,..,..,,.,.,.,,,,,.,...,,,.,.,.,.,.,.,.,...,...,,,,,.,,,,,.,.,,,,,,,
+#K23SZ6GHGBBFEQQSMH4VDMDWE33DQBPALODPQUKWKYHKFE47BMDGTHFOVOZSQYBOS2N5PJDC53AJO
+#\\\|BNM6GKAEY3JJMGGOYHBTYHKN33F6IYQSODRAGW7YJMRLH5PVOG6 \ / AMOS7 \ YOURUM ::
+#\[7]XBL3XWPJ7QODYTY3RVNHUZ3UBQUOXF7CXME3OCZ3A52W3PL3VOCA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
