@@ -1,0 +1,91 @@
+## [:< ##
+
+# Task: Add coding.inject-message and coding.wait-done commands
+# Priority: medium
+# Type: feature
+
+overview:
+  Two new commands to improve coding zenka task management and intervention
+  capabilities. These enable better human oversight and coordination with
+  long-running tasks.
+
+command_1:
+  name: coding.inject-message
+  description: |
+    Inject a user message or hint into an active task's conversation.
+    Useful for:
+    - Correcting minor issues without stopping the task
+    - Providing hints when model is stuck or confused
+    - Guiding direction mid-task
+    
+  usage: |
+    coding.inject-message <task-id> <message>
+    
+  example: |
+    coding.inject-message task-G2WMTVI "The file was modified externally, 
+                                         re-read it before continuing"
+    
+  implementation_notes:
+    - Message appears as a user role message in the conversation
+    - Model sees it at next inference round
+    - Should not interrupt current tool execution
+    - Queued if model is mid-generation
+    
+  affected_modules:
+    - coding.task.queue management
+    - coding.handler.process-queued-task (message injection point)
+    - coding.cmd.inject-message (new command)
+
+command_2:
+  name: coding.wait-done
+  description: |
+    Blocking wait for task completion with result reporting.
+    Useful for:
+    - Scripts waiting for task completion
+    - CI/CD integration
+    - Sequential task dependencies
+    
+  usage: |
+    coding.wait-done <task-id> [timeout-seconds]
+    
+  returns:
+    success: |
+      mode: true
+      data: <completion message from model>
+    failure: |
+      mode: false  
+      data: "task failed: <reason>" | "task not found" | "timeout"
+      
+  example: |
+    coding.wait-done task-G2WMTVI 300
+    -> waits up to 5 minutes, returns result or timeout
+    
+  implementation_notes:
+    - Blocks until task completes, fails, or timeout
+    - Polls task status or uses event notification
+    - Optional timeout parameter (default: 300s)
+    - Returns immediately if task already done
+    
+  affected_modules:
+    - coding.task.status tracking
+    - coding.cmd.wait-done (new command)
+    - May need event/notification system
+
+acceptance_criteria:
+  - coding.inject-message successfully adds message to active task
+  - Model receives injected message at next opportunity
+  - coding.wait-done blocks correctly and returns accurate status
+  - Timeout handling works for both commands
+  - Documentation and examples provided
+  - No breaking changes to existing task flow
+
+related_ideas:
+  - coding.task.status <task-id> - non-blocking status check
+  - coding.task.cancel <task-id> - graceful task cancellation
+## [data checksum: 9MR8TL5XSW======] ##
+
+#,,..,.,.,,.,,,,.,.,,,,.,,..,,,,,,.,,,.,,,..,,..,,...,...,..,,..,,,.,,,..,..,,
+#EKUJEENRYDA7VAKM7OLNIBDYLOJ24NQLAIOYF37L6BMP6K2BCCNBVFRF737V6ZM2EUEBK4OTHVEQE
+#\\\|DZH6XAW5WVNEK45WYQL2EZZDSR4YTL4YJFBPKBEVV2PMTC2MUFL \ / AMOS7 \ YOURUM ::
+#\[7]MOULQKMD5YSJ3GMVBRPUUAZRIQGDRHKRUKGL4TU6CKSNWNVJXIDQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
