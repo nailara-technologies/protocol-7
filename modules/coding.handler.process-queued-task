@@ -388,8 +388,10 @@ INFERENCE_LOOP:
                     $detected, $snippet
                 );
                 ## escape braces to prevent template errors ##
-                $content =~ s|\{\{|\[\{|g;
-                $content =~ s|\}\}|\}\]|g;
+                $content =~ s|\{\{|｛｛|g;
+                $content =~ s|\}\}|｝｝|g;
+                $content =~ s|\{%|｛%|g;
+                $content =~ s|%\}|%｝|g;
                 ## break namespace( pattern to prevent template interpretation ##
                 $content =~ s|namespace\s*\(|namespace_(|g;
                 $msg->{'content'} = $content;
@@ -522,8 +524,10 @@ INFERENCE_LOOP:
 
         ## sanitize model response content for jinja safety ##
         my $model_content = $message->{'content'} // '[tool_calls]';
-        $model_content =~ s|\{\{|\\{\\{|g;    ## escape {{ ##
-        $model_content =~ s|\{%|\\{%|g;       ## escape {% ##
+        $model_content =~ s|\{\{|｛｛|g;  ## replace {{ with fullwidth braces ##
+        $model_content =~ s|\}\}|｝｝|g;  ## replace }} with fullwidth braces ##
+        $model_content =~ s|\{%|｛%|g;   ## replace {% with mixed braces ##
+        $model_content =~ s|%\}|%｝|g;   ## replace %} with mixed braces ##
         $model_content
             =~ s|namespace\s*\(|namespace_(|g;    ## break namespace( ##
         $message->{'content'} = $model_content;
@@ -666,8 +670,14 @@ INFERENCE_LOOP:
 
                 ## sanitize tool result content for jinja safety ##
                 my $tool_content = $tool_result->{'content'} // '';
-                $tool_content =~ s|\{\{|\\{\\{|g;    ## escape {{ ##
-                $tool_content =~ s|\{%|\\{%|g;       ## escape {% ##
+                $tool_content
+                    =~ s|\{\{|｛｛|g;    ## replace {{ with fullwidth braces ##
+                $tool_content
+                    =~ s|\}\}|｝｝|g;    ## replace }} with fullwidth braces ##
+                $tool_content
+                    =~ s|\{%|｛%|g;     ## replace {% with mixed braces ##
+                $tool_content
+                    =~ s|%\}|%｝|g;     ## replace %} with mixed braces ##
                 $tool_content
                     =~ s|namespace\s*\(|namespace_(|g;  ## break namespace( ##
 
@@ -875,8 +885,8 @@ if ( length $response_text
 ## return result hashref for jobqueue callback ##
 return { success => TRUE, result => $response_text, task_id => $task_id };
 
-#,,.,,,,,,...,,.,,,,.,,,,,,,,,,,,,.,,,.,,,,..,..,,...,...,.,,,,,,,,..,.,.,,.,,
-#SI6D7GOBRRR5XUHKZ7BCWFY5TQGRRPRSRNEBP4K4I55CP5GYYDYDO5LFMHGU4IZ3YNWKVI42E7MN6
-#\\\|JGMHOC7BFO2BZEEIDU52ECWHTKY5OJYB2CP47RYUDGIYSDP63L7 \ / AMOS7 \ YOURUM ::
-#\[7]OSB76RHAEEYUAL5Z3RV744CB3SQRJXWISAUUDT44MNLPWISJGICI 7  DATA SIGNATURE ::
+#,,.,,.,,,.,.,.,,,...,,,.,,,.,,.,,,,,,,,,,.,.,..,,...,.,.,.,.,.,,,.,,,,.,,.,,,
+#IANGLASHGCOAGANMLDBTX27CFS7PSV7ZXFNIHOTWKGJXYLZ4BDJ6BIDQTBOFO3FLCK2EBKPDGWHDY
+#\\\|WA46BLHGUX6X6IK72SJBA2ARDALIRHO53DVZHOKYUQF5O2QWQIJ \ / AMOS7 \ YOURUM ::
+#\[7]GBMPSS5LRVB5HM7SS4HJULVHUS77DAJWWKPG55JDBN7336JVSKDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
