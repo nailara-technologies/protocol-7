@@ -11,32 +11,32 @@ if ( defined $call->{'param'} && ref $call->{'param'} eq qw| HASH | ) {
         // $call->{'param'}->{'question'}
         // $call->{'param'}->{'description'} // '';
 
-    if ( $request_str =~ /^[2-7A-Z]+$/ ) {
+    if ( $request_str =~ m|^[2-7A-Z]+$| ) {
         my $decoded = decode_b32r($request_str);
         $request_str = $decoded if defined $decoded && length $decoded;
     }
 
-    $request_str =~ s/\\n/\n/g;
+    $request_str =~ s|\\n|\n|g;
 
     if ( defined $call->{'data'} && length $call->{'data'} ) {
         my $body = $call->{'data'};
-        if ( $body =~ /^[2-7A-Z]+$/ ) {
+        if ( $body =~ m|^[2-7A-Z]+$| ) {
             my $decoded = decode_b32r($body);
             $body = $decoded if defined $decoded && length $decoded;
         }
-        $body =~ s/\\n/\n/g;
+        $body =~ s|\\n|\n|g;
         $request_str .= "\nContext:\n" . $body;
     }
 } else {
     $request_str = $call->{'args'} // '';
 
-    if ( $request_str =~ /^[2-7A-Z]+$/ ) {
+    if ( $request_str =~ m|^[2-7A-Z]+$| ) {
         my $decoded = decode_b32r($request_str);
         $request_str = $decoded if defined $decoded && length $decoded;
     }
 }
 
-return { 'mode' => qw| false |, 'data' => "request string required\n" }
+return { 'mode' => qw| false |, 'data' => "request string required" }
     if !length($request_str);
 
 ## run through task intake to get parsed description ##
@@ -138,8 +138,8 @@ $output .= sprintf ".:[ total prompt size: %d chars ]:.\n",
 
 return { 'mode' => qw| size |, 'data' => $output };
 
-#,,,.,..,,..,,,,.,,..,.,.,,.,,..,,,,,,...,..,,..,,...,...,,..,,..,.,,,,,.,,..,
-#75E33QTMEQVHWSII5QBVWDKX4HLPNVC43L6SZGZPUWROMJO3V6YSTOMDID7Z75ZSKWZ2D3JIJFFLW
-#\\\|A5D5DPL2RGVCIAUY5MWQGTB4HB7HBDONDSQFB6LXVCAOAZSUUE5 \ / AMOS7 \ YOURUM ::
-#\[7]F66QH5OABINL2OHTKDDBCLPKZLYLHYIC74LKDUFHPSG4QEBTQ6BI 7  DATA SIGNATURE ::
+#,,,.,..,,...,,,.,,,,,...,,,,,,,.,,.,,...,..,,..,,...,...,,..,,.,,,.,,,,.,,..,
+#ZWB6TTMPLPKJUZX3CCW24A7OK4NUGEH3TGKNSEATCGS6S2CMII4B25WNVKRZ5A3P3CPER54JX3FDK
+#\\\|GXRSWZPYALTCOLWYNN64L3ZAR5FEWM74GWXP6OHLVFPYZH73FJ6 \ / AMOS7 \ YOURUM ::
+#\[7]XHUXGLH3YGDDV3O6YPV5WFVZ6PAIOEX7REELU6J2RG6JHSFLEWCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

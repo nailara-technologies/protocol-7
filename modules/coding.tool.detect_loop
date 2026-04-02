@@ -38,18 +38,20 @@ return qw| false | unless ref $tool_calls eq qw| ARRAY |;
 ##----------------------------------------------------------------------------##
 
 my %tool_loop_weights = (
-    'read_module' => 0.6,
-    'tree_read'   => 0.7,
-    'grep'        => 0.3,
-    'search_web'  => 0.2,
-    'fetch_url'   => 0.2,
-    'shell'       => 0.8,
-    'write_file'  => 0.4,
-    'str_replace' => 0.4,
-    'read_file'   => 0.5,
-    'agent'       => 0.5,
-    'spawn_agent' => 0.5,
-    'default'     => 0.5,
+    'read_module'  => 0.6,
+    'tree_read'    => 0.7,
+    'grep'         => 0.3,
+    'search_web'   => 0.2,
+    'fetch_url'    => 0.2,
+    'shell'        => 0.8,
+    'write_file'   => 0.4,
+    'str_replace'  => 0.4,
+    'read_file'    => 0.5,
+    'agent'        => 0.5,
+    'spawn_agent'  => 0.5,
+    'search_code'  => 0.7,    ## high - often loops on same pattern ##
+    'ncode_search' => 0.7,    ## high - often loops on same query ##
+    'default'      => 0.5,
 );
 
 ##----------------------------------------------------------------------------##
@@ -124,11 +126,32 @@ my @pattern_registry = (
             for my $h (@last5) { return 0 if $h ne $first; }
 
             ## Weighted threshold - high-weight tools trigger sooner ##
+            ## search_code/ncode_search trigger at lower threshold ##
             my $weight = $weights->{$first} // 0.5;
             return $weight >= 0.6 ? 1 : 0;
         },
         'confidence'    => 0.6,
         'allow_polling' => 1,
+    },
+
+    ## Pattern: Same tool with same parameters (definite loop)                ##
+    {   'name'     => 'identical_calls',
+        'priority' => 2,
+        'min_hits' => 4,
+        'check'    => sub {
+            my ( $history, $weights ) = @_;
+            return 0 unless @$history >= 4;
+
+            ## Check last 4 are identical (includes full tool key with params) ##
+            my @last4 = @$history[ -4 .. -1 ];
+            my $first = $last4[0];
+            for my $h (@last4) { return 0 if $h ne $first; }
+
+            ## Any tool with 4 identical calls is looping ##
+            return 1;
+        },
+        'confidence'    => 0.85,
+        'allow_polling' => 0,
     },
 
     ## Pattern: High frequency read operations (research spiral)              ##
@@ -399,8 +422,8 @@ elsif ( $phase eq 'escalation' ) {
 ## Unknown phase ##
 return qw| false |;
 
-#,,,,,...,..,,,.,,,,.,,,.,,,.,.,.,.,.,,,.,.,,,.,.,...,...,..,,,,,,..,,.,,,,,.,
-#K54YQ6AFZ4IH4P7E7II735D6OXBXB6LAGMLCUY7G6B2GFBNQYZ62ENJWNGLKJO2NAZRDKLP6MUEB6
-#\\\|BHDW3U7WXEI5MRD45CBZPIXKJ5AMBQ7ULCHPI34DBKUQF4QGJPX \ / AMOS7 \ YOURUM ::
-#\[7]3NYMR3EBGOPBI4A5LG5S3LP5CUM2GLWHBQD26OKEGDQFZFZDKECY 7  DATA SIGNATURE ::
+#,,,.,,,.,,.,,...,,.,,,,.,...,,,.,,,.,..,,,,.,.,.,...,...,.,.,,..,,..,,..,.,.,
+#W3WN5Y5LUXIK3EHP3TWJRZOA4N4HF7EJE6RXKET7GEV4BAVROMMBEL6CCQOMZBDE43W4PBGSIPFW4
+#\\\|INPUCFCHEHM4LZRKM3SHCF2G7J2COD7EFF7IACBJMI5F7QJIR33 \ / AMOS7 \ YOURUM ::
+#\[7]L5GIRLXFSHWXT35YS55OFHITOTWRI6G47UXJ6GI2ZWKM5DHAPWDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
