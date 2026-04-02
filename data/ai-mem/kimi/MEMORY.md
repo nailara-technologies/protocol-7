@@ -1,5 +1,64 @@
 # Kimi Development Memory - Protocol-7
 
+> ⚠️ **CRITICAL COMMIT POLICY**: Never commit without valid version number (run `./bin/dev/update-version`) and proper signatures (run `bin/Protocol-7 sourcecode update-signatures`). Use `--no-verify` only in emergencies.
+
+## Coding Zenka Fixes (April 2025)
+
+### Summary
+Major fixes to tool dispatch, error handling, and context management.
+
+### Key Changes
+
+**1. Jinja Template Sanitization**
+- Problem: Model outputs `namespace(value=0)` triggered server errors
+- Fix: Sanitize `{{`, `{%`, and `namespace(` patterns in:
+  - Tool call arguments before storing
+  - Tool result content before adding to context
+  - Model responses before storing in history
+- Files: `coding.handler.process-queued-task`
+
+**2. Note Handler Fixes**
+- Problem: `note.list` and `note.read` returned references-to-references
+- Fix: Changed `\\@results` to `\@results`, `\\%sections` to `\%sections`
+- Files: `note.list`, `note.read`
+
+**3. File Module Namespace Fix**
+- Problem: `file.*` modules existed but weren't loaded (overwritten by swap)
+- Fix: Renamed to `base.file.*` to use swap mechanism properly
+- Files: `file.basename`, `file.glob`, `file.path.make_dir`, `file.read`, `file.write`
+
+**4. Loop Detection Improvements**
+- Added forced stop after 3 consecutive loop warnings
+- Reset counter when no loop detected
+- Variable: `coding.loop_detect_count`
+
+**5. Context Compaction**
+- Truncate protected messages >8000 chars when still over threshold
+- Prevents 114% CTX from accumulating large messages
+
+**6. New Commands**
+- `list-tools`: List available tools with descriptions
+- `call-tool`: Direct tool execution
+- `module-health-audit`: Comprehensive module analysis template
+
+**7. Pagination Support**
+- `read_file`: `offset` and `length` parameters
+- `search_code`: `offset` parameter
+- `ncode_search`: `offset` parameter
+
+**8. Connection Error Handling**
+- Increased retries: 2 → 5
+- Detect "Connection refused" errors
+- Use `event.once(2.0)` to yield for server restart
+
+### Test Results
+- Total Tools Tested: 50+
+- Working: 41
+- With Issues: 9
+- Crashing: 0 ✅
+
+---
+
 ## NShell Ctrl+O Cycle Fixes (February 2025)
 
 ### Bugs Fixed
@@ -1305,8 +1364,8 @@ p7c kimi-web.list_agents
 
 ---
 
-#,,.,,.,.,,,.,,.,,...,,,.,,,.,.,.,.,,,..,,.,.,.,.,...,...,.,.,...,,,,,.,.,.,.,
-#FLXKL2L23USIQDAWSNVMWSEPJLD2G7CV64XUOWPPTWFL3YEGH3AAIEFLP5FQZZLFBTLZF7P55NMLW
-#\\\|QNWYGFGP2EQDCQ6U7ABYDEIQSFBVG5XJ2EIP3CBXRT7ROJ3AOJI \ / AMOS7 \ YOURUM ::
-#\[7]65HJYCVDLYFDBMLDLBSRPS62BXFHF3MKYY7FVBS6PQSO2VTPTWBI 7  DATA SIGNATURE ::
+#,,.,,,,.,..,,,,.,,,,,.,,,..,,...,.,,,,..,,,,,.,.,...,...,,,.,...,.,.,.,,,...,
+#6DXTDC5SUUKHIJJGIUJ4JMUMW2VDY4GNBEHJ3SMK7646AYECVBT3HKBJ3XDGUQ663TRKMZJMF4BAE
+#\\\|VVSG2MTW4LXGUS4XYXYCA5OTNNHXT3ADIJM4GOWCYHZTHZMKTTC \ / AMOS7 \ YOURUM ::
+#\[7]AJME3T2CRJZMEO4JMQTMUZBJH2QRHRVOASY7DEEKOEVYBJ2AICCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
