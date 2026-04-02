@@ -98,6 +98,7 @@ my %dispatch = (
         my $pattern     = $args->{'pattern'}     // return 'pattern required';
         my $scope       = $args->{'scope'}       // qw| modules |;
         my $max_results = $args->{'max_results'} // 30;
+        my $offset      = $args->{'offset'}      // 0;
 
         my $root = <system.root_path>;
         my @dirs;
@@ -111,11 +112,14 @@ my %dispatch = (
 
         my $output  = '';
         my $count   = 0;
+        my $skipped = 0;
         my $dir_str = join ' ', @dirs;
 
         ## safe pattern — escape shell, run grep ##
-        my @cmd
-            = ( 'grep', '-rn', '--include=*', '-m', '200', $pattern, @dirs );
+        my @cmd = (
+            'grep',   '-rn', '--include=*', '-m', 200 + $offset,
+            $pattern, @dirs
+        );
 
         ## capture stderr to tmpfile to avoid pipe deadlock ##
         my $err_file = "/var/protocol-7/coding/state/.search_err.$$";
@@ -123,6 +127,11 @@ my %dispatch = (
             map { quotemeta $ARG } @cmd ]} 2>$err_file"
         ) {
             while ( my $line = <$fh> ) {
+                ## skip offset lines for pagination ##
+                if ( $skipped < $offset ) {
+                    $skipped++;
+                    next;
+                }
                 last if $count >= $max_results;
                 ## strip root prefix for readability ##
                 $line =~ s|^\Q$root/\E||;
@@ -219,6 +228,7 @@ my %dispatch = (
     'ncode_search' => sub {
         my $query       = $args->{'query'}       // return 'query required';
         my $max_results = $args->{'max_results'} // 50;
+        my $offset      = $args->{'offset'}      // 0;
 
         ## validate query — alphanumeric, dots, underscores, hyphens ##
         ## reject shell metacharacters ##
@@ -231,8 +241,9 @@ my %dispatch = (
         my $root = <system.root_path>;
         my @cmd = ( "$root/bin/ncode", '-no-color', 'search', 'all', $query );
 
-        my $output = '';
-        my $count  = 0;
+        my $output  = '';
+        my $count   = 0;
+        my $skipped = 0;
 
         ## capture stderr to tmpfile to avoid pipe deadlock ##
         my $err_file = "/var/protocol-7/coding/state/.ncode_err.$$";
@@ -240,6 +251,11 @@ my %dispatch = (
             map { quotemeta $ARG } @cmd ]} 2>$err_file"
         ) {
             while ( my $line = <$fh> ) {
+                ## skip offset lines for pagination ##
+                if ( $skipped < $offset ) {
+                    $skipped++;
+                    next;
+                }
                 last if $count >= $max_results;
                 $output .= $line;
                 $count++;
@@ -493,8 +509,8 @@ return {
     'content' => $content,
 };
 
-#,,,,,,,.,,..,,.,,..,,.,.,,.,,,..,,.,,,..,,..,..,,...,...,..,,,.,,,,.,,,.,,,.,
-#J66JALSSQKNOSNXYGRFC3FDGFNM4GNMQDQOTTOI74P66WXAKGGDJPLXI7WMPK5TGXZTX4N6MDBQIY
-#\\\|F3NZKS6JBPSUZPVMBWDSLZZXBBX32GOSBLN63QAOTKIYIJUAUWG \ / AMOS7 \ YOURUM ::
-#\[7]AZ72RYXM7ETFEIJKG7IDHNR3R7JYXXBF6JEUMZBXQB5MGKOOEUDI 7  DATA SIGNATURE ::
+#,,,,,,..,.,.,,..,..,,,.,,.,.,.,,,,.,,,.,,,,,,..,,...,...,.,.,,..,,,,,,.,,,.,,
+#ZB37X72F2NQX3PY4FEEZURLV6F3FR2FSJ2PGXELVBEEHCQGT4KK2IKD6W7DXB63QMHIRF4MQTTCGU
+#\\\|4F2VZL6ZPQUXWLJFATMX5TSCXLYBEKLLKNSNLO2D7FAUI4HZDPP \ / AMOS7 \ YOURUM ::
+#\[7]OEHULVQ7OIH7FF4R44GOOATZDYM6ADXDX37L2D4C5FVPDNDB5WDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

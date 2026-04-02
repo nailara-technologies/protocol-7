@@ -161,20 +161,19 @@ my @tools = (
             'properties' => {
                 'template' => {
                     'type'        => 'string',
-                    'description' =>
-                        'optional context template '
+                    'description' => 'optional context template '
                         . '[ e.g. "code-review", "integrate-recent" ]'
                 },
                 'work_dir' => {
                     'type'        => 'string',
-                    'description' =>
-                        'working directory for agent '
+                    'description' => 'working directory for agent '
                         . '[ default: system root path ]'
                 },
                 'priority' => {
                     'type'        => 'integer',
-                    'description' => 'scheduling priority (1-10, lower=higher)',
-                    'default'     => 5
+                    'description' =>
+                        'scheduling priority (1-10, lower=higher)',
+                    'default' => 5
                 }
             },
             'additionalProperties' => \0
@@ -188,8 +187,7 @@ my @tools = (
             'properties' => {
                 'status' => {
                     'type'        => 'string',
-                    'description' =>
-                        'optional status filter '
+                    'description' => 'optional status filter '
                         . '[ ready | starting | error ]'
                 }
             },
@@ -197,8 +195,7 @@ my @tools = (
         }
     },
     {   'name'        => 'p7_agent_dispatch',
-        'description' =>
-            'send work to a specific kimi-web sub-agent. '
+        'description' => 'send work to a specific kimi-web sub-agent. '
             . 'blocks until complete or timeout.',
         'inputSchema' => {
             'type'       => 'object',
@@ -229,8 +226,7 @@ my @tools = (
             'properties' => {
                 'template' => {
                     'type'        => 'string',
-                    'description' =>
-                        'template name '
+                    'description' => 'template name '
                         . '[ e.g. "integrate-recent", "review-deep" ]'
                 },
                 'vars' => {
@@ -258,6 +254,44 @@ my @tools = (
                 }
             },
             'required'             => ['zenka_name'],
+            'additionalProperties' => \0
+        }
+    },
+    {   'name'        => 'p7_list_tools',
+        'description' =>
+            'list available coding tools with names and descriptions. '
+            . 'optionally filter by keyword.',
+        'inputSchema' => {
+            'type'       => 'object',
+            'properties' => {
+                'filter' => {
+                    'type'        => 'string',
+                    'description' =>
+                        'optional keyword filter for tool names/descriptions'
+                }
+            },
+            'additionalProperties' => \0
+        }
+    },
+    {   'name'        => 'p7_call_tool',
+        'description' =>
+            'call a specific coding tool directly and return its output. '
+            . 'useful for testing tools or accessing tool functionality '
+            . 'without creating a full task.',
+        'inputSchema' => {
+            'type'       => 'object',
+            'properties' => {
+                'tool_name' => {
+                    'type'        => 'string',
+                    'description' =>
+                        'name of the tool to call [ e.g. "read_file", "search_code" ]'
+                },
+                'arguments' => {
+                    'type'        => 'object',
+                    'description' => 'tool arguments as a JSON object'
+                }
+            },
+            'required'             => ['tool_name'],
             'additionalProperties' => \0
         }
     },
@@ -361,6 +395,10 @@ sub handle_tools_call {
         tool_template_resolve( $id, $args );
     } elsif ( $name eq 'p7_zenka_start' ) {
         tool_zenka_start( $id, $args );
+    } elsif ( $name eq 'p7_list_tools' ) {
+        tool_list_tools( $id, $args );
+    } elsif ( $name eq 'p7_call_tool' ) {
+        tool_call_tool( $id, $args );
     } else {
         send_error( $id, -32602, "unknown tool: $name" );
     }
@@ -734,7 +772,8 @@ sub tool_agent_dispatch {
     ## collapse newlines for single-line IPC ##
     ( my $safe_prompt = $prompt ) =~ s{\n}{ }g;
 
-    my $cmd = "kimi-web.dispatch agent_id=$agent_id prompt=\"$safe_prompt\" timeout=$timeout";
+    my $cmd
+        = "kimi-web.dispatch agent_id=$agent_id prompt=\"$safe_prompt\" timeout=$timeout";
 
     my ( $ok, $response ) = cube_command($cmd);
     send_tool_result( $id, $response, $ok ? 0 : 1 );
@@ -769,6 +808,40 @@ sub tool_zenka_start {
     send_tool_result( $id, $response, $ok ? 0 : 1 );
 }
 
+sub tool_list_tools {
+    my ( $id, $args ) = @ARG;
+
+    my $filter = $args->{'filter'} // '';
+    my $cmd    = 'coding.list-tools';
+    $cmd .= " $filter" if length $filter;
+
+    my ( $ok, $response ) = cube_command($cmd);
+    send_tool_result( $id, $response, $ok ? 0 : 1 );
+}
+
+sub tool_call_tool {
+    my ( $id, $args ) = @ARG;
+
+    my $tool_name = $args->{'tool_name'} // '';
+    my $tool_args = $args->{'arguments'} // {};
+
+    if ( not length $tool_name ) {
+        return send_tool_result( $id, 'tool_name is required', 1 );
+    }
+
+    ## encode arguments as JSON if provided ##
+    my $args_json = '{}';
+    if ( ref $tool_args eq 'HASH' and keys %$tool_args ) {
+        $args_json = encode_json($tool_args);
+        ## escape for shell safety ##
+        $args_json =~ s{"}{\\"}g;
+    }
+
+    my $cmd = "coding.call-tool $tool_name $args_json";
+    my ( $ok, $response ) = cube_command($cmd);
+    send_tool_result( $id, $response, $ok ? 0 : 1 );
+}
+
 ## =========================================================================
 ## logging [ stderr only — stdout is mcp protocol ]
 ## =========================================================================
@@ -779,8 +852,8 @@ sub log_msg {
     printf STDERR "[mcp-server-p7] %s\n", $msg;
 }
 
-#,,,,,.,,,,,.,,,.,,.,,,.,,,..,...,.,,,,.,,.,,,..,,...,...,.,.,,.,,.,.,.,,,,,,,
-#ES3HT2FIVDVYAKE7EXOH2J6QGIJ4VXNZHJZCTLUMVVMXRQXHKT6F2LRGQRCDY2MJ6FVNDUXDSMOBS
-#\\\|R35FHTAGSK3T6NHDIMOHZPMBULQ6YGP5UXWRBBI425Y52DJVACX \ / AMOS7 \ YOURUM ::
-#\[7]ZAKUBQPHY5M7EF3AK5A4AVW5IR5KABYB5BUL7NR2UW4UA733JGCI 7  DATA SIGNATURE ::
+#,,.,,,,.,.,.,,.,,,,.,...,...,...,,..,,..,,.,,..,,...,...,...,..,,..,,,.,,,,.,
+#SEYKDZYEEJPCK6RMNXXXAUAD7BYJU2YXMXIUEQ76JM3XRYJCVJCWPZWZH23YJQ2TE3G6QD2AF22FG
+#\\\|DK2JH5NQUBFYPDOJUVYKN2ZXGT3UASVMOODLKE3AFPZPEWKRKMQ \ / AMOS7 \ YOURUM ::
+#\[7]TAZQUDDSMEIKHX3XLKVCXP6XBSHAFCWMQF3F2AORG36FNSYH44BA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
