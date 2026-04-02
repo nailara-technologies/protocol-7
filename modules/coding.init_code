@@ -315,6 +315,59 @@ my $cpu_port = <inference.backend.cpu.port> // 8001;
 
 <coding.state.initialized> = TRUE;
 
+## validate tool dispatch table at init time [ catch errors early ]
+if ( exists $code{'coding.tools.definitions'} ) {
+    my @missing_dispatch;
+    my @undefined_dispatch;
+
+    ## tools handled directly in coding.tools.dispatch [ not via handler modules ] ##
+    my %dispatch_table_tools = map { $_ => 1 } qw(
+        list_files search_code dep_graph ncode_search edit_file
+        record_question record_suggestion
+    );
+
+    ## get list of defined tools ##
+    my $tools_ref = $code{'coding.tools.definitions'}->();
+    if ( ref $tools_ref eq qw| ARRAY | ) {
+        for my $tool (@$tools_ref) {
+            my $name = $tool->{'function'}->{'name'} // next;
+
+            ## skip tools handled directly in dispatch table ##
+            next if exists $dispatch_table_tools{$name};
+
+            ## check if handler exists in code registry ##
+            my $handler_mod = "coding.tools.handler.$name";
+            if ( not exists $code{$handler_mod} ) {
+                push @missing_dispatch, $name;
+            } elsif ( not defined $code{$handler_mod} ) {
+                push @undefined_dispatch, $name;
+            }
+        }
+    }
+
+    if (@missing_dispatch) {
+        <[base.logs]>->(
+            0,
+            '[init] tools without handlers: %s',
+            join( ', ', sort @missing_dispatch )
+        );
+    }
+    if (@undefined_dispatch) {
+        <[base.logs]>->(
+            0,
+            '[init] tools with undefined dispatch: %s',
+            join( ', ', sort @undefined_dispatch )
+        );
+    }
+    if ( not @missing_dispatch and not @undefined_dispatch ) {
+        <[base.logs]>->(
+            2,
+            '[init] all %d tools have valid handlers',
+            scalar @$tools_ref
+        );
+    }
+}
+
 ## fetch fresh model discovery from models zenka
 ## [ init_reports fires when cube is ready to route ]
 if ( not $already_initialized ) {
@@ -349,8 +402,8 @@ if ( not $already_initialized ) {
 
 return 0;
 
-#,,..,.,.,.,.,..,,.,.,.,.,,.,,,,.,.,,,,..,,,.,..,,...,...,.,.,..,,.,.,.,.,.,,,
-#W7U25IAM7QVGJLIBPJ5MEWM5HFMJSVMLKSDYUV3POBXRB6DQVILES74RDRW7X4DH6IGXNPVZVCKIA
-#\\\|H2MJDSAI24IIHVJUV4TCKEQDICX4DCIC4SQQQFQ6OEVVXL4VTM7 \ / AMOS7 \ YOURUM ::
-#\[7]IMGYKMURLBWUBZZO6CF2KTHGSUGWAIVSPAOQM534T4QWYRFUUGAQ 7  DATA SIGNATURE ::
+#,,,.,,,.,,.,,...,,,,,,,,,,.,,.,,,,,.,,,,,...,.,.,...,..,,...,,,.,,.,,.,.,...,
+#FYEJZPN7PUMEOT4FNTRESNEUVEMKUDSLQMBOHKOAW5Y77ZQW42MMB2XO7HXO4NKVU2DIUGDYJ5WGI
+#\\\|SYCTVOPR4BCTTWPSZ5BVUZ5HVFTBXBX4UNIANLQ75K5BI2BCJQC \ / AMOS7 \ YOURUM ::
+#\[7]LIXOMBA4GJXA4NXF5WJZP3ZXUQOSMZ7S57YPI77T3BYUPON7BKAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
