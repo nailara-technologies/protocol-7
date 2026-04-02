@@ -109,6 +109,8 @@ if ( $action eq 'newline' ) {
     if ( length $result ) {
         my @lines = split "\n", $result;
         AMOS7::TERM::history_add(@lines);
+        ## reset history index so arrow_up starts from newest entry
+        $state_ref->{'current_history_index'} = -1;
     } else {
         ## redraw cursor on empty submit
         print $colors{'p7_fg_0003'} . "_\r";
@@ -121,8 +123,8 @@ if ( $action eq 'newline' ) {
 ## Unknown action - ignore
 return undef;
 
-#,,.,,..,,,,.,..,,.,.,...,,..,.,.,,..,,,.,,..,.,.,...,...,..,,...,,,,,,.,,,..,
-#MV6SZ5OEEIEF33TMDOGQ2B37IC6R6JSS7IIQSJFOYKYA4OOC6CZVVPV24WEHO6XYZWSELTSTG2COE
-#\\\|FYHCQ7Z66TLJYFJXKTHI5P3YJPDORW4OYM375CK2VEA27DJAXB7 \ / AMOS7 \ YOURUM ::
-#\[7]7CLRNVTL7KW5HGMRSBK5M2SXQOEW3D2ZW6MWESO7GXQNNJK3ZOCY 7  DATA SIGNATURE ::
+#,,,.,..,,,,,,..,,,..,.,.,,.,,,,,,,,,,,,.,.,,,.,.,...,...,,,,,..,,,.,,.,.,,.,,
+#7W2JL6MQQCSVDEOSKRYEVF66DTMRRG6T7WJHF7WMQ7HXH6U4PLHPS5N2QQ7I4R2AA724EKFPMOSNA
+#\\\|RYDSFQAIULS4UDZYAIE4KFSEYA57QUDKPJHXH4IUYZKKYCAHSNU \ / AMOS7 \ YOURUM ::
+#\[7]ILN74LC2EUINHQZ6IWRDFMYSFODSPA5Z2J2DJLB2UXHVCWAKS6BA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
