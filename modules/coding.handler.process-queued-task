@@ -182,7 +182,7 @@ my $finish_reason_val = 'stop';
 my $http_error;
 my $max_tool_rounds = 777;
 my $tool_round      = 0;
-my $server_retries  = 2;   ## retries for transient server errors [ jinja ] ##
+my $server_retries  = 5;   ## retries for transient server/connection errors ##
 
 ## context size tracking for compaction ##
 my $context_limit     = <inference.model.context_length> // 16384;
@@ -359,6 +359,8 @@ INFERENCE_LOOP:
                 ## escape braces to prevent template errors ##
                 $content =~ s|\{\{|\[\{|g;
                 $content =~ s|\}\}|\}\]|g;
+                ## break namespace( pattern to prevent template interpretation ##
+                $content =~ s|namespace\s*\(|namespace_(|g;
                 $msg->{'content'} = $content;
             }
         }
@@ -432,10 +434,15 @@ INFERENCE_LOOP:
                 || $detail =~ m|namespace\(|i;
             my $is_timeout = $status =~ m|timeout|i
                 || $status =~ m|^5\d\d|;
+            my $is_conn_err = $detail =~ m|Connection refused|i
+                || $detail =~ m|Can't connect|i
+                || $detail =~ m|connect.*failed|i;
 
-            if ( ( $is_jinja_err or $is_timeout ) and $server_retries > 0 ) {
+            if ( ( $is_jinja_err or $is_timeout or $is_conn_err ) 
+                and $server_retries > 0 ) {
                 $server_retries--;
-                my $err_type = $is_jinja_err ? 'jinja template' : 'server';
+                my $err_type = $is_jinja_err ? 'jinja template' 
+                    : $is_conn_err ? 'connection' : 'server';
                 <[base.logs]>->(
                     1,         "::working:: %s error [ retrying, %d left ]",
                     $err_type, $server_retries
@@ -446,7 +453,12 @@ INFERENCE_LOOP:
                         if @messages
                         and ( $messages[-1]->{'role'} // '' ) eq 'assistant';
                 }
-                <[base.sleep]>->( $is_timeout ? 2 : 0.5 );
+                ## for connection errors, yield to event loop to allow server restart ##
+                if ($is_conn_err) {
+                    <[event.once]>->(2.0);  ## yield for server restart processing ##
+                } else {
+                    <[base.sleep]>->( $is_timeout ? 2 : 0.5 );
+                }
                 next INFERENCE_LOOP;
             }
 
@@ -584,12 +596,18 @@ INFERENCE_LOOP:
                     }
                 }
 
+                ## sanitize tool result content for jinja safety ##
+                my $tool_content = $tool_result->{'content'} // '';
+                $tool_content =~ s|\{\{|\\{\\{|g;    ## escape {{ ##
+                $tool_content =~ s|\{%|\\{%|g;      ## escape {% ##
+                $tool_content =~ s|namespace\s*\(|namespace_(|g;  ## break namespace( ##
+                
                 ## append tool result as tool role message ##
                 push @messages,
                     {
                     'role'         => 'tool',
                     'tool_call_id' => $tc->{'id'}               // '',
-                    'content'      => $tool_result->{'content'} // '',
+                    'content'      => $tool_content,
                     };
             }
 
@@ -788,8 +806,8 @@ if ( length $response_text
 ## return result hashref for jobqueue callback ##
 return { success => TRUE, result => $response_text, task_id => $task_id };
 
-#,,,.,,..,.,,,,.,,,.,,..,,...,.,,,.,,,,..,...,..,,...,...,...,,..,.,,,,,.,.,.,
-#AGUOTFNJIYQ76EHPLY6FSKLFJVGC6QXCFTRZZPETO7I6YQZEQKNUJK5GYINK2T5EAFTB2ZTEJHLPE
-#\\\|SUJU7ZPCVBPIKTKMFWMT3Q2P3QSLW5THP6OY2WHOQ3RTRLNANXT \ / AMOS7 \ YOURUM ::
-#\[7]YYT2EHLJQHL6SIGPI5I7WWDTLTCNLOL6U3HPSBEVM254PC25S2BI 7  DATA SIGNATURE ::
+#,,.,,.,,,,..,.,,,,.,,.,,,,,,,,,,,,..,.,.,,.,,..,,...,...,,.,,,,.,.,,,,..,..,,
+#JABGJ65GYXDHRRVLCD6D2F55MRFOATIEWYO2VNYU6KP4POMUO7GGTOG2KZ6U5ZVHZR4ZIQ7R7E52G
+#\\\|RHGEODZG27QOO7NYIO7KD57RCNJ3KEQVK6A64PKQBW7W2QL3NSJ \ / AMOS7 \ YOURUM ::
+#\[7]6U3YHE52PI7236XPU3FKS3IWDHXBPCGRTKVTSNVX223GP4UGSMCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
