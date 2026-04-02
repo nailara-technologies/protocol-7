@@ -109,12 +109,27 @@ if ( exists $code{'context.template.load'} ) {
     my $template_dir = "$root/"
         . ( <context.cfg.template_dir> // 'data/yaml/context-templates' );
 
+    ## first: check if task_type itself is a template [ e.g. improve-system-prompt ] ##
+    if ( $task_type =~ m{^[\w-]+$} ) {
+        my $type_template_path = "$template_dir/$task_type.yaml";
+        if ( -f $type_template_path && $task_type !~ m{^system-} ) {
+            $selected_template = $task_type;
+            <[base.logs]>->(
+                1,
+                ':. prompt.assemble: matched template from task_type [ %s ]',
+                $task_type
+            );
+        }
+    }
+
     ## extract candidate words from prompt ##
     my @words = $prompt =~ m{([\w][\w-]*[\w])}g;
 
     ## check each word against template files ##
     ## longer matches first [ self-improve before self ] ##
+    ## skip if already matched from task_type ##
     for my $candidate ( sort { length($b) <=> length($a) } @words ) {
+        last if $selected_template ne 'system-default';
         next if $candidate =~ m{^system-};    ## skip system templates ##
         my $tpl_path = "$template_dir/$candidate.yaml";
         if ( -f $tpl_path ) {
@@ -238,8 +253,8 @@ return {
     'hooks'        => $hooks,
 };
 
-#,,,,,..,,,,.,,,,,,,,,,,,,,,.,,.,,,..,,,,,,,,,..,,...,...,.,,,.,.,,.,,.,.,.,,,
-#P4ZSZPR4S5X2OAG3SEWPGORFPFYW2P36SZ7HZ6YZCJJRJGFUISWXSZJRR77G42PLRDJN3AFFWI4DK
-#\\\|726SMB4H45XHZFVJN67H6O3B3CLN6IWZGRF7ZE7B4STDBTRB4ZI \ / AMOS7 \ YOURUM ::
-#\[7]WNJR6VPZRIKYFI2T4UJFRB3WRPJHQO7WWNQW2FHMG4KLV63WW4DA 7  DATA SIGNATURE ::
+#,,,.,,.,,,,.,,..,,..,,,.,.,.,,,.,...,.,.,..,,..,,...,...,,,.,,.,,,.,,,,.,...,
+#6TIOEYA4NCPS65KOKYU7Y5BBBNPZLMMRSBXPSJ6VRHPOLTP54HWMCI3RDTDQ2XQSY5JVM5KFTZZXK
+#\\\|HJZC3RSMZIZ7Z37FOHF5BHFYOEA772LFVWMC5PN6GWLSKHBFUTT \ / AMOS7 \ YOURUM ::
+#\[7]CNFM4TPO4O5TOLKDMURGX5745CICV7XPDXJQZXAB3T2BS26P62AA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
