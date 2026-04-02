@@ -36,8 +36,9 @@ if ( $state_ref->{'current_history_index'} >= 0 ) {
 } else {
     ## [ not in tracked history - start from newest entry (last in array) ]
     if (@AMOS7::TERM::history_entries) {
-        my $attempts     = 0;
-        my $search_index = @AMOS7::TERM::history_entries;    ##['-0']##
+        my $attempts = 0;
+        my $search_index
+            = @AMOS7::TERM::history_entries - 1; ## Fixed: start at last entry
 
         while ( $attempts < @AMOS7::TERM::history_entries ) {
             if (   $search_index >= 0
@@ -88,8 +89,8 @@ $state_ref->{'current_mode'} = 2;    # VIEWING_HISTORY
 
 return;
 
-#,,.,,..,,.,.,,,,,,,,,,,.,,.,,,,,,,..,,,.,.,,,.,.,...,...,,,.,...,,.,,,..,...,
-#LZR7OVL3UM3XKZ4QB7I5O4TCSSAUNKDQK5Y4L7TTBUWNZKVTWGY26WBFL5YFNG5X7QSOYZ3CL6MEC
-#\\\|S3W5U53I4ULI6BIJQZDM2TKHA6NXNDG3KL7KOHWUFAQKJKWACGB \ / AMOS7 \ YOURUM ::
-#\[7]KBMXV5RRZX4SVNZ5K3MHFNJJ6JZC6NXVC4223ZDURWPBGTXO66CY 7  DATA SIGNATURE ::
+#,,..,...,,,.,,,,,,,.,..,,,.,,,,,,,,,,,.,,..,,.,.,...,...,..,,,.,,..,,,,.,.,.,
+#FCE3RVFGGKYAGANWI67JYYLQ5LMARFULFRVR365FY4QHPUNPLBHUOHMCPZOMBGZ7CRQY2KH5XOQWY
+#\\\|4FLIDKDNTJXCCKYFZ2Y3NOHGPUQ4MI7L3QTH54UP6KKVODJTVGH \ / AMOS7 \ YOURUM ::
+#\[7]SLXG4F67DMA2U7JZL3M455G3GUCBWXYGPOKYFCDYQH4W6RZO4OAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
