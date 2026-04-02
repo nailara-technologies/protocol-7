@@ -1,0 +1,87 @@
+#!/usr/bin/perl
+
+## coding-task — submit prompt to coding zenka via p7c with base32r encoding ##
+##
+## usage:
+##   bin/coding-task "short prompt here"
+##   bin/coding-task < prompt-file.txt
+##   echo "prompt" | bin/coding-task
+##   bin/coding-task -file task.md        ## read prompt from file
+##   bin/coding-task -wait "prompt"       ## wait for result (blocking)
+##
+
+use strict;
+use warnings;
+use Crypt::Misc qw| encode_b32r |;
+
+my $prompt = '';
+my $wait   = 0;
+
+## parse args ##
+while ( my $arg = shift @ARGV ) {
+    if ( $arg eq '-file' ) {
+        my $file = shift @ARGV // die ":: -file requires a path\n";
+        open my $fh, '<', $file or die ":: cannot read $file: $!\n";
+        local $/;
+        $prompt = <$fh>;
+        close $fh;
+    } elsif ( $arg eq '-wait' ) {
+        $wait = 1;
+    } elsif ( $arg eq '-help' or $arg eq '--help' ) {
+        print <<~'USAGE';
+        usage: coding-task [options] [prompt]
+
+        options:
+          -file PATH    read prompt from file
+          -wait         block and wait for result (default: submit and exit)
+          -help         show this help
+
+        if no prompt arg, reads from stdin.
+        prompt is base32r-encoded to avoid protocol framing issues.
+
+        examples:
+          coding-task "review module coding.validate.module"
+          coding-task "improve-system-prompt: add note_search guidance"
+          echo "fix bug in file.read" | coding-task
+          coding-task -file task-description.md -wait
+        USAGE
+        exit 0;
+    } elsif ( not length $prompt ) {
+        $prompt = $arg;
+    }
+}
+
+## read from stdin if no prompt yet ##
+unless ( length $prompt ) {
+    if ( -t STDIN ) {
+        print ":: enter prompt [ ctrl-d to submit ]:\n";
+    }
+    local $/;
+    $prompt = <STDIN> // '';
+}
+
+chomp $prompt;
+
+die ":: empty prompt\n" unless length $prompt;
+
+## encode ##
+my $encoded = encode_b32r($prompt);
+
+## build command ##
+my $cmd = "p7c coding.submit '${encoded}'";
+
+## show summary ##
+my $preview = substr( $prompt, 0, 80 );
+$preview .= '...' if length $prompt > 80;
+printf ":: prompt: %s\n", $preview;
+printf ":: encoded: %d bytes → %d b32r chars\n",
+    length($prompt), length($encoded);
+
+## dispatch ##
+exec $cmd;
+
+#,,.,,.,,,.,.,.,.,.,,,,..,,,.,.,,,...,,,.,.,,,..,,...,...,...,.,.,,.,,...,,.,,
+#BLS7HVH2AYKHE5JYG45Q2YOPUPUX4QFRLLRTAJLVAERZ7LC62DRTOM5CJGUSPJVTMJKV23PHWXCQ4
+#\\\|DWH2WRISEPOBIFBRWGSJMCT2LBHO2457OTF57Y3GFGUPYPAF6AY \ / AMOS7 \ YOURUM ::
+#\[7]HCOE2NISRWYCAXEVK7CCJ2ZTIBZFSGER45H3XHLYJCS2CQB642BA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

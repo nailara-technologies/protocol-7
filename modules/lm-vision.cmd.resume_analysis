@@ -63,7 +63,7 @@ if ($additional_prompt) {
     $continuation_prompt .= "\n\nAdditional request: " . $additional_prompt;
 }
 
-my ( $backend, $backend_reason ) = <[lm-vision.select_backend]>->();
+my ( $backend, $backend_reason ) = <[lm-vision.select_backend]>;
 if ( $backend eq qw| unavailable | ) {
     <[base.logs]>->(
         0, '[resume_analysis] backend unavailable: %s',
@@ -211,8 +211,8 @@ $job->{'err_io'} = <[event.add_io]>->(
 );
 return { 'mode' => 'deferred' };
 
-#,,..,,,.,,.,,,.,,.,,,..,,,,,,.,.,.,,,,..,.,,,..,,...,.,.,...,,,,,..,,..,,.,,,
-#IL7WJ2CLPUNJ6K7BQPGFNDO5CIWTEXZBBY2AXVEPLCPXUYMJMLGD26SWCSUM6UFZYRMW3RTN7SQ4C
-#\\\|7DHO4O7QJVMKVA3R2VDOMDTN7HMXK7ZZRL6OIIY2BM2SBYBV2BU \ / AMOS7 \ YOURUM ::
-#\[7]TB642JKIQKEBCAEOHJBG35TFSZLSUAJSVFROKZUUV5VGQRII4KCQ 7  DATA SIGNATURE ::
+#,,..,,..,,..,..,,,..,.,.,,..,...,...,,,.,,,,,..,,...,...,..,,.,,,.,,,.,.,...,
+#C4CVMD3NLWAW5OR5TIDQK4QULN6G6DYLBHOZN5ZJPCPIC2IQDLQPNNNMKATZCTMF24CI2PO2QSXK4
+#\\\|F4TSULJJCKNUNNUGXNN47JOADXEBWE4KV3Z4PV33R53NMLHFJA2 \ / AMOS7 \ YOURUM ::
+#\[7]Q3UWSWNMPKZWY4VB5HMLURS4T6TKASYL5VAGPPTLAJFD4SJ746DY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

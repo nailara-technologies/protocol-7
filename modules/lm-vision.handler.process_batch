@@ -16,7 +16,7 @@ return unless scalar @$batch > 0;
 my $batch_timer_ref;
 $batch_timer_ref = <lm-vision.batch_timer>;
 
-my ( $backend, $backend_reason ) = <[lm-vision.select_backend]>->();
+my ( $backend, $backend_reason ) = <[lm-vision.select_backend]>;
 if ( $backend eq qw| unavailable | ) {
     <[base.logs]>->(
         0, '[process_batch] backend unavailable: %s',
@@ -180,8 +180,8 @@ $batch_job->{'err_io'} = <[event.add_io]>->(
 # Clear batch queue for next batch
 @$batch = ();
 
-#,,,.,.,.,,.,,,,.,...,.,,,,,,,...,,,,,,,,,.,,,..,,...,...,...,..,,.,,,..,,,.,,
-#UZGTANLC7U7XGAJYBSZITU74KBCXXC7ALDP7HZBYJ6CTDFJJUYOFLZZHU6JIHGZG5G2G2IGQ2TFVI
-#\\\|AZH3HSQRNKYOWOXXIYCRXHSM357GPMQC7V5SVD3XEMHUDDF27XE \ / AMOS7 \ YOURUM ::
-#\[7]ZIFBP3NEJVFQ3GGA46DJH26FTVS3JVYAHBE54DPX6IMDXAXBZSDI 7  DATA SIGNATURE ::
+#,,..,,,,,,.,,..,,...,.,,,.,,,,,.,.,,,,..,,.,,..,,...,.,.,...,..,,,..,,.,,.,.,
+#54PNJKNMZQA35KSKKIS7DMQSHWMAYO7Z4RZKTMGVZHX4NB3YDUKYRUFXWAYHWF242CTVZXLYWXIDO
+#\\\|LQXLS3J6663MZQ2JZVYYTTPM2SQ5452R2BGTWACN2NO22TETJZW \ / AMOS7 \ YOURUM ::
+#\[7]66W3EY7Y47BNMZ552EQMRCPXGAJDAKZFUBF7VLC7VPYPBIPYK4BA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
