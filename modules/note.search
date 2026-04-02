@@ -15,7 +15,7 @@ return { 'mode' => qw| false |, 'data' => 'empty query' }
 my $base_dir = <[file.zenka_dir.data_path]> . '/notes';
 return { 'mode' => qw| true |, 'data' => [] } unless -d $base_dir;
 
-my @task_dirs = <[file.glob]>->("$base_dir/*/");
+my @task_dirs = <[file.glob]>->("$base_dir/*")->@*;
 my @matches;
 
 QUERY:
@@ -91,7 +91,7 @@ for my $task_dir (@task_dirs) {
     if ( $search_level =~ m{^(all|L3)$} ) {
         my $workspace_dir = "$task_dir/workspace";
         if ( -d $workspace_dir ) {
-            my @md_files = <[file.glob]>->("$workspace_dir/*.md");
+            my @md_files = <[file.glob]>->("$workspace_dir/*.md")->@*;
             my @l3_matches;
 
             for my $md_file (@md_files) {
@@ -129,8 +129,8 @@ return {
     'query' => $query,
 };
 
-#,,,,,,..,..,,.,,,,,.,,..,,.,,..,,..,,.,,,.,.,..,,...,..,,,,.,..,,,,.,,..,...,
-#IQCPMRM2RASWYZLDFMGXUQVVAMAP7VAO7VIYSCKAWKLQKQ4Y5Q6I6GMLLLQNJACED6F3OLEE7IMIE
-#\\\|247V6JAYLXD6N3ANSQ7NMV6YBAX6GSEFYWUD2VMIRAOQEJ6SNSQ \ / AMOS7 \ YOURUM ::
-#\[7]FIZFBNIJKYWHT3QR2F7TTOZLJSRBR4O763NHXDGUXANA2SHZKEAY 7  DATA SIGNATURE ::
+#,,,,,,..,,..,,,.,,..,..,,.,.,,.,,.,,,.,.,.,,,..,,...,...,,..,.,.,.,,,,,.,...,
+#LK7WVPQTEVKHE35TLCGRIAQESW6EDCN7MNOYOG4FHWSTHO4XO4QLXZ4VYQTRPT7THSVRKHMJL5ACI
+#\\\|UVP2LBBKT23ALKJZPXJXET6LEKB47QMDS6SSVPGZ2AWNH7E26FE \ / AMOS7 \ YOURUM ::
+#\[7]GRZMU54MLSDJ4W5EXVACTE3X2BF2R2OYCZLVOMRVMGIT7ZRLKSCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
