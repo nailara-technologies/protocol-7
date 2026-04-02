@@ -1,0 +1,137 @@
+## [:< ##
+
+# name  = coding.validate.module
+# descr = validate P7 module for common errors and format issues
+
+my $module = shift // '';
+
+return { 'mode' => qw| false |, 'data' => 'module name required' }
+    unless length $module;
+
+my @errors;
+my @warnings;
+
+## 1. Check module file exists ##
+my $module_path = catfile( <system.code_path>, $module );
+
+if ( !-f $module_path ) {
+    push @errors, "module file not found: $module_path";
+    return { 'mode' => qw| false |, 'errors' => \@errors };
+}
+
+my $content = <[file.read]>->($module_path);
+
+## 2. Header format check ##
+if ( $content !~ m|^## \[:< ##|m ) {
+    push @errors, "missing or invalid header format [ expected '## [:< ##' ]";
+}
+
+## 3. Metadata fields ##
+if ( $content !~ m|^# name\s+=\s+(.+)$|m ) {
+    push @errors, "missing or invalid metadata field 'name'";
+} elsif ( $1 ne $module ) {
+    push @warnings, "metadata name '$1' doesn't match module '$module'";
+}
+
+if ( $content !~ m|^# descr\s+=\s+(.+)$|m ) {
+    push @errors, "missing or invalid metadata field 'descr'";
+}
+
+## 4. Check for sub {} declarations [ forbidden in P7 ] ##
+if ( $content =~ m|^\s*sub\s+\{|m ) {
+    push @errors, "forbidden 'sub {' declaration found [ use inline blocks ]";
+}
+
+## 5. Check for incorrect bracket syntax ##
+my $bracket_errors = 0;
+while ( $content =~ m|<\[([^>]+?)(?!\]->)|g ) {
+    my $after      = pos($content);
+    my $next_chars = substr( $content, $after, 3 );
+    if ( $next_chars !~ m|^]->| ) {
+        $bracket_errors++;
+    }
+}
+if ($bracket_errors) {
+    push @errors,
+        "found $bracket_errors incorrect bracket syntax"
+        . " [ use bracket-angle syntax ]";
+}
+
+## 6. Check for base.log vs base.logs ##
+my $log_count = 0;
+$log_count++ while ( $content =~ m|<\[base\.log\]>->|g );
+if ($log_count) {
+    push @errors,
+        "found $log_count calls to 'base.log' [ use 'base.logs' instead ]";
+}
+
+## 7. Check qw syntax [ should use || not () or // ] ##
+if ( $content =~ m|\bqw\s*\(| || $content =~ m|\bqw\s*/| ) {
+    push @warnings,
+        "qw should use pipe delimiters: qw| word | not qw() or qw//";
+}
+
+## 8. Check for 1/0 instead of TRUE/FALSE ##
+if ( $content =~ m|\breturn\s+1\s*;| || $content =~ m|\breturn\s+0\s*;| ) {
+    push @warnings, "consider using TRUE/FALSE constants instead of 1/0";
+}
+
+## 9. Check return format ##
+if (   $content =~ m|\breturn\s*\{\s*['"]mode['"]\s*=>|i
+    || $content =~ m|\breturn\s*\{\s*mode\s*=>| ) {
+    if ( $content !~ m|return\s*\{\s*mode\s*=>\s*qw\|| ) {
+        push @warnings,
+            "return format should use: { 'mode' => qw| true |, 'data' => ... }";
+    }
+}
+
+## 10. Check signature footer present ##
+if ( $content !~ m|#,,\.,.*,,| ) {
+    push @errors, "missing signature footer";
+}
+
+## 11. Check whitelist registration ##
+my $zenka_name     = <system.zenka.name> // 'unknown';
+my $whitelist_path = catfile( <system.conf_path>, qw| zenki |,
+    $zenka_name, 'subroutine.white-list' );
+
+if ( -f $whitelist_path ) {
+    my $wl_content = <[file.read]>->($whitelist_path);
+    if ( $wl_content !~ m|^$module$|m ) {
+        push @warnings, "module not found in subroutine whitelist";
+    }
+}
+
+## 12. Syntax check with ptd [ if available ] ##
+my $ptd_bin = catfile( <system.root_path>, qw| bin ptd | );
+if ( -x $ptd_bin ) {
+    my $check_result = qx|$ptd_bin -c "$module_path" 2>&1|;
+    if ( $? != 0 ) {
+        chomp $check_result;
+        push @errors, "ptd syntax check failed: $check_result";
+    }
+}
+
+## Build result ##
+my $result = {
+    'module'   => $module,
+    'path'     => $module_path,
+    'valid'    => ( @errors ? 0 : 1 ),
+    'errors'   => \@errors,
+    'warnings' => \@warnings,
+    'summary'  => sprintf(
+        "%s: %d errors, %d warnings",
+        $module, scalar(@errors), scalar(@warnings)
+    ),
+};
+
+return {
+    'mode' => $result->{'valid'} ? qw| true | : qw| false |,
+    'data' => $result,
+};
+
+#,,,,,,.,,,..,,,.,..,,,,.,,..,,,,,.,,,,.,,.,.,..,,...,...,...,.,.,..,,,..,..,,
+#EAQ5X342SWNGKVQQ5NCCX3LRP6WCAJ23SKXKATEBGQ2EJTUAF7GKNS7UNYC6L4IDBVP3DK33ZHERG
+#\\\|Y7XXMVO4CU5VKG2ADPU4K2HZFYAHLCAG36KUWO2TQVYLKOQQKWM \ / AMOS7 \ YOURUM ::
+#\[7]2YSH76GAUM3CPA75X3C77RVE746CV5A4Y4HZVAY7RRF463GMP6AA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

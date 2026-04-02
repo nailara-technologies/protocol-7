@@ -1,0 +1,64 @@
+## [:< ##
+
+# name  = coding.tools.handler.validate_module
+# descr = dispatch validate_module tool call to coding.validate.module
+
+my $tool_call = shift // {};
+
+my $args = $tool_call->{'function'}->{'arguments'} // {};
+
+## extract parameters ##
+my $module = $args->{'module'} // '';
+
+## validate module name ##
+return { 'mode' => qw| false |, 'data' => 'module parameter required' }
+    unless length $module;
+
+## call the validate module ##
+my $result = <[coding.validate.module]>->($module);
+
+## format response ##
+my $data = $result->{'data'};
+
+if ( !$data->{'valid'} ) {
+    my $output = "Validation FAILED for '$module':\n\n";
+
+    if ( @{ $data->{'errors'} } ) {
+        $output .= "ERRORS:\n";
+        for my $err ( @{ $data->{'errors'} } ) {
+            $output .= "  ✗ $err\n";
+        }
+        $output .= "\n";
+    }
+
+    if ( @{ $data->{'warnings'} } ) {
+        $output .= "WARNINGS:\n";
+        for my $warn ( @{ $data->{'warnings'} } ) {
+            $output .= "  ⚠ $warn\n";
+        }
+    }
+
+    return { 'mode' => qw| false |, 'data' => $output };
+} else {
+    my $output = "Validation PASSED for '$module'\n";
+
+    if ( @{ $data->{'warnings'} } ) {
+        $output .= "\nWARNINGS:\n";
+        for my $warn ( @{ $data->{'warnings'} } ) {
+            $output .= "  ⚠ $warn\n";
+        }
+    } else {
+        $output .= "No issues found.\n";
+    }
+
+    return { 'mode' => qw| true |, 'data' => $output };
+}
+
+#,,.,,,..,.,.,,..,,,,..,,.,.,.,,,..,,.,.,,.,,.,.,,,..,,..,.,.,,,.,.,,.,.,.,,,.
+#PLACEHOLDER_SIGNATURE_WILL_BE_FIXED_BY_PRE_COMMIT
+
+#,,,,,,,.,,..,.,.,,.,,.,,,.,.,,,.,,,,,.,,,,..,..,,...,...,..,,..,,,,,,...,,,.,
+#5SX6QHVX4E3YVYCSQAMMK2FMYGSBC46UQXZSVSUPCKK65KBHSN5LMAGWLB2KTSY5EZ4TOHTEYPAIK
+#\\\|J27IMYX6PBXUHEF6P33W7MFWJ6WKE3LAOLFJXACTDHXZ6VB3C25 \ / AMOS7 \ YOURUM ::
+#\[7]4JAEIXLYEUJ62GOLQ247SC5CAYQBVTSH3TRV5MPURPVSVIRDQ2AQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
