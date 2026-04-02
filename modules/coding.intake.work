@@ -13,6 +13,19 @@ if ( ref($request) eq qw| HASH | ) {
     return $request if exists $request->{'id'};
 } elsif ( not length ref $request ) {
 
+    # Plain string - check for B32: prefix or pure base32 encoding
+    if ( $request =~ s/^B32:// ) {
+
+        # Explicit B32: prefix - decode the rest
+        my $decoded = eval { decode_b32r($request) };
+        $request = $decoded if defined $decoded && length $decoded;
+    } elsif ( $request =~ /^[2-7A-Z]+=*$/ ) {
+
+        # Legacy: pure base32 string (for backward compatibility)
+        my $decoded = eval { decode_b32r($request) };
+        $request = $decoded if defined $decoded && length $decoded;
+    }
+
     # Plain string - parse as command
     $request = <[coding.intake.parse_command_string]>->($request);
 } else {
@@ -83,8 +96,8 @@ return {
     message => sprintf( "Task ingested: %s", $task->{'id'} )
 };
 
-#,,,.,..,,..,,.,.,...,,.,,...,.,.,,..,...,,..,..,,...,...,,.,,,,,,.,.,...,...,
-#XMKFTN276RV3723ZFAVYTHTUTV6SUDPKZ5X3Q4PDGOB6NVNHW6MTX3TOMN2NKLKQBG5FAZOTA4MPU
-#\\\|HDMD635REQXCSWVOPG4NLSEFKZGT2QJOFFUUWF2RWZ462WEEUD3 \ / AMOS7 \ YOURUM ::
-#\[7]EFIKO3434LVRCFAYEXIO7FXJ655DRWLCBQPR7OOIUREU6CPZZGBQ 7  DATA SIGNATURE ::
+#,,..,..,,,..,,..,..,,,.,,.,.,,..,...,..,,,.,,..,,...,...,,,.,,.,,,,,,,.,,,,.,
+#NPTMRLQKK73YKNSYE4ZRZTVK37JPD2T47RKJWFE2TYTWVI2W3QXQSYE3MTVHKJSLV2PJMX7X3NQGE
+#\\\|HXALSMQI3PV7QEXKEE6HMFA6IP3JUYXIUI722VALY3XCK6JNU3P \ / AMOS7 \ YOURUM ::
+#\[7]B2QDJFACCXEGLZY4SCTG3ZLS525Y2RRBU35MGDX46YEBW277O6CY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
