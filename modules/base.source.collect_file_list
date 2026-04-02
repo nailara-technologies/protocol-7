@@ -221,10 +221,19 @@ my @source_paths
     grep { !m{/\.|~$} } @all_files;
 
 ## exclusion patterns [ !..,* ] ##
+## supports $ at end for end-of-string anchor ##
 
 foreach my $pattern_str ( grep {m|^\!|} $copy_sources->@* ) {
     $pattern_str =~ s|^\!||;
-    @source_paths = grep { !m|\Q$pattern_str\E| } @source_paths;
+
+    ## check for $ anchor at end (literal $ in pattern) ##
+    if ( $pattern_str =~ s|\$$|| ) {
+        ## has $ anchor - use end-of-string matching ##
+        @source_paths = grep { !m|\Q$pattern_str\E$| } @source_paths;
+    } else {
+        ## no anchor - match anywhere ##
+        @source_paths = grep { !m|\Q$pattern_str\E| } @source_paths;
+    }
 }
 
 @source_paths = uniq <[base.sort]>->(@source_paths);
@@ -253,8 +262,8 @@ NXT_PATH:
 
 return @source_paths;
 
-#,,..,,.,,,.,,.,,,...,...,.,,,.,.,,.,,,,.,.,.,..,,...,...,.,.,,,.,,..,.,.,.,.,
-#C4DEXEU5IROC43DJYQLLVW7T3XJEKN5SKRJUQLWFNQFXIUDBH2BY3BZVRRYVJNR32JOFG7JUVY3JY
-#\\\|UGGI3ORMRU4MTKVFZ3E4LV4ICSGNBTZZFRVHH4ZSKLX6ZNWTDSX \ / AMOS7 \ YOURUM ::
-#\[7]JNV4DJUQCLO7U7R4N35VPWVL5WWZQXHG3NGBERRWPCLCF5ARTGAY 7  DATA SIGNATURE ::
+#,,,,,.,.,,,.,,.,,,.,,,,,,,,.,.,,,.,.,.,,,...,..,,...,...,,,,,.,.,..,,.,.,.,,,
+#ZEPMIG6AM2TW4WHCIJXXCAFJDFUEOFUQTKXEMQ46TB54OPXBJALCFTJ6EPFX43AFRYI2Y2QGVDJXM
+#\\\|2X4JLICE7WC5HH62OMPAFSPISQ2CXT5RVDKT5XPQCXXIIXGTE7O \ / AMOS7 \ YOURUM ::
+#\[7]UKXMTQTAZWU3ZYYDJIW3BPCI2SDVPBFKU7XRHEKJCXHT3N342WCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
