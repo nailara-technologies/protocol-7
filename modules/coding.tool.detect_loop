@@ -135,24 +135,25 @@ my @pattern_registry = (
     },
 
     ## Pattern: Same tool with same parameters (definite loop)                ##
-    {   'name'     => 'identical_calls',
-        'priority' => 2,
-        'min_hits' => 4,
-        'check'    => sub {
-            my ( $history, $weights ) = @_;
-            return 0 unless @$history >= 4;
-
-            ## Check last 4 are identical (includes full tool key with params) ##
-            my @last4 = @$history[ -4 .. -1 ];
-            my $first = $last4[0];
-            for my $h (@last4) { return 0 if $h ne $first; }
-
-            ## Any tool with 4 identical calls is looping ##
-            return 1;
-        },
-        'confidence'    => 0.85,
-        'allow_polling' => 0,
-    },
+    ## DISABLED: Batched tool calls cause false positives                      ##
+# {   'name'     => 'identical_calls',
+#     'priority' => 2,
+#     'min_hits' => 4,
+#     'check'    => sub {
+#         my ( $history, $weights ) = @_;
+#         return 0 unless @$history >= 4;
+#
+#         ## Check last 4 are identical (includes full tool key with params) ##
+#         my @last4 = @$history[ -4 .. -1 ];
+#         my $first = $last4[0];
+#         for my $h (@last4) { return 0 if $h ne $first; }
+#
+#         ## Any tool with 4 identical calls is looping ##
+#         return 1;
+#     },
+#     'confidence'    => 0.85,
+#     'allow_polling' => 0,
+# },
 
     ## Pattern: High frequency read operations (research spiral)              ##
     {   'name'     => 'research_spiral',
@@ -224,9 +225,11 @@ if ( $phase eq 'suspicion' ) {
     my $history = $ld_state->{'tool_history'};
     my @matched_patterns;
 
-    ## Calculate cumulative loop score based on weights ##
+    ## Calculate cumulative loop score from LAST 8 entries only ##
+    ## This prevents old patterns from inflating the score indefinitely ##
     my $cumulative_score = 0;
-    for my $h (@$history) {
+    my @recent           = @$history > 8 ? @$history[ -8 .. -1 ] : @$history;
+    for my $h (@recent) {
         my @tools = split /,/, $h;
         for my $t (@tools) {
             $cumulative_score += $tool_loop_weights{$t}
@@ -434,8 +437,8 @@ elsif ( $phase eq 'escalation' ) {
 ## Unknown phase ##
 return qw| false |;
 
-#,,,,,...,..,,.,,,..,,,.,,...,,,,,,,,,.,.,..,,.,.,...,..,,..,,.,.,.,,,,.,,...,
-#RYHNKC24CBE3S4QWFXDMJCTBNLG7KENFW4GDWUY5JP3BGYC4EQOJNRRND45NTAY4FXOUQJ4VTM46E
-#\\\|RHCREHVHQBMFVWNTHP4JN3RHESAZ76UCGKF6UHOHZIC5WYOHGZI \ / AMOS7 \ YOURUM ::
-#\[7]4BQLH6WGFAQMMCCHSDE3GJ63FCCMTC5PYNCPZ4JJ6TAH362TRECY 7  DATA SIGNATURE ::
+#,,.,,,,,,.,.,,..,,..,.,,,,..,.,.,.,,,,,.,.,.,.,.,...,...,..,,.,,,..,,.,,,,..,
+#TLOWBPBUGEGPK6TXG345ZJC4T44Z35FFHDMGLVRKQGRRFSSSI7SYAFZ4HJ7RCIX76O76E4BOQIVC6
+#\\\|EMICPQAKKM5JLRN3ZUKTW7Q5ABNJCBMLSZXWTX567EZ7WVGI7W2 \ / AMOS7 \ YOURUM ::
+#\[7]HRH46ZU6MM57O5YTC6YKAGOVFKTZIWFRZXEI2665MP4PAIXRYCDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
