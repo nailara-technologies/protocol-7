@@ -1,0 +1,112 @@
+## [:< ##
+
+# name  = coding.cmd.match-template
+# descr = debug template matching for a given request string
+# param = <request_string>
+
+my $request_str;
+
+if ( defined $call->{'param'} && ref $call->{'param'} eq qw| HASH | ) {
+    $request_str //= $call->{'param'}->{'request'}
+        // $call->{'param'}->{'question'}
+        // $call->{'param'}->{'description'} // '';
+
+    if ( $request_str =~ m|^[2-7A-Z]+$| ) {
+        my $decoded = decode_b32r($request_str);
+        $request_str = $decoded if defined $decoded && length $decoded;
+    }
+
+    $request_str =~ s|\\n|\n|g;
+} else {
+    $request_str = $call->{'args'} // '';
+}
+
+return { 'mode' => qw| false |, 'data' => "request string required" }
+    if !length($request_str);
+
+## run through task intake to get parsed task ##
+my $intake_result = <[coding.task.intake]>->($request_str);
+return {
+    'mode'  => qw| false |,
+    'data'  => "intake failed: $intake_result->{error}"
+} if !$intake_result->{'success'};
+
+my $task = $intake_result->{'task'};
+my $task_type = $task->{'metadata'}->{'raw_request'}->{'type'} // '';
+my $prompt = $task->{'request'}->{'description'} // '';
+
+## now replicate template matching logic ##
+my $selected_template = 'system-default';
+my $match_source = 'default';
+
+if ( exists $code{'context.template.load'} ) {
+    my $root = <system.root_path>;
+    my $template_dir = "$root/"
+        . ( <context.cfg.template_dir> // 'data/yaml/context-templates' );
+
+    ## check 1: task_type as template ##
+    if ( $task_type =~ m{^[\w-]+$} ) {
+        my $type_template_path = "$template_dir/$task_type.yaml";
+        if ( -f $type_template_path && $task_type !~ m{^system-} ) {
+            $selected_template = $task_type;
+            $match_source = 'task_type';
+        }
+    }
+
+    ## check 2: words from prompt (if no task_type match) ##
+    if ( $selected_template eq 'system-default' ) {
+        my @words = $prompt =~ m{([\w][\w-]*[\w])}g;
+
+        for my $candidate ( sort { length($b) <=> length($a) } @words ) {
+            next if $candidate =~ m{^system-};
+            my $tpl_path = "$template_dir/$candidate.yaml";
+            if ( -f $tpl_path ) {
+                $selected_template = $candidate;
+                $match_source = 'prompt_word';
+                last;
+            }
+        }
+
+        ## check 3: hyphenated versions ##
+        if ( $selected_template eq 'system-default' ) {
+            for my $candidate (@words) {
+                my $hyph = $candidate;
+                $hyph =~ s|\.|-|g;
+                next if $hyph eq $candidate;
+                next if $hyph =~ m{^system-};
+                my $tpl_path = "$template_dir/$hyph.yaml";
+                if ( -f $tpl_path ) {
+                    $selected_template = $hyph;
+                    $match_source = 'dot_to_hyphen';
+                    last;
+                }
+            }
+        }
+    }
+}
+
+## format as readable output ##
+my $output = sprintf "\n.:[ TEMPLATE MATCH RESULT ]:.\n";
+$output .= ":\n";
+$output .= sprintf ": input            : %s\n",
+    substr( $request_str, 0, 60 ) . '...';
+$output .= sprintf ": task_type        : %s\n", $task_type || '(none)';
+$output .= sprintf ": prompt (first 50): %s\n",
+    substr( $prompt, 0, 50 ) . '...';
+$output .= ":\n";
+$output .= sprintf ": matched_template : %s\n", $selected_template;
+$output .= sprintf ": match_source     : %s\n", $match_source;
+$output .= sprintf ": template_exists  : %s\n",
+    $selected_template ne 'system-default' ? 'yes' : 'no';
+$output .= ":.\n\n";
+
+return {
+    'mode' => qw| size |,
+    'data' => $output,
+};
+
+#,,,.,,,.,,,.,,,.,,.,,..,,...,..,,.,,,,,.,..,,..,,...,...,,..,,,.,,.,,..,,,..,
+#4WAN2SYEZUYZPFIES6WZP5BQW2O3GJ2VLXPVF36OI2D3EILGXN7GCHYV5XYUURML4CS7C74SXCA4U
+#\\\|SK42MURERN4UGYHU3LL7CP2JTO22RF5L2KDXC4AKNYNH5GDUIS3 \ / AMOS7 \ YOURUM ::
+#\[7]2OCPLKXPIQLQVAWCMXAI4ZSKCHRKDICFW7TVTWZ2KV7GVKL666AQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
