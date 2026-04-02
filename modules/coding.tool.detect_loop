@@ -16,9 +16,10 @@
 ##                                                                            ##
 ##============================================================================##
 
-my ( $task, $tool_calls, $phase ) = @ARG;
+my ( $task, $tool_calls, $phase, $model_content ) = @ARG;
 
-$phase //= 'suspicion';
+$phase         //= 'suspicion';
+$model_content //= '';
 
 return qw| false | unless ref $task eq qw| HASH |;
 return qw| false | unless ref $tool_calls eq qw| ARRAY |;
@@ -174,6 +175,31 @@ my @pattern_registry = (
         'confidence'    => 0.5,
         'allow_polling' => 1,
     },
+
+    ## Pattern: Identical model responses (stuck in repetitive output)        ##
+    {   'name'     => 'identical_response',
+        'priority' => 1,
+        'min_hits' => 5,
+        'check'    => sub {
+            my ( $history, $weights, $ld_state ) = @_;
+            my $rh = $ld_state->{'response_history'} // [];
+            return 0 unless @$rh >= 5;
+
+            ## Check last 5 responses are identical ##
+            my @last5 = @$rh[ -5 .. -1 ];
+            my $first = $last5[0];
+            return 0 unless length($first) > 20;  ## Ignore short responses ##
+
+            for my $r (@last5) {
+                return 0 if $r ne $first;
+            }
+
+            ## Same response repeated 5+ times indicates stuck model ##
+            return 1;
+        },
+        'confidence'    => 0.9,
+        'allow_polling' => 0,
+    },
 );
 
 ##----------------------------------------------------------------------------##
@@ -182,6 +208,7 @@ my @pattern_registry = (
 
 my $ld_state = $task->{'execution'}->{'loop_detection'} //= {
     'tool_history'       => [],
+    'response_history'   => [],    ## Track model response text ##
     'suspicion_count'    => 0,
     'assertion_pending'  => 0,
     'assertion_results'  => [],
@@ -222,6 +249,14 @@ if ( $phase eq 'suspicion' ) {
         scalar( @{ $ld_state->{'tool_history'} } ) - 32
         if @{ $ld_state->{'tool_history'} } > 32;
 
+    ## Track model response text for identical response detection ##
+    if ( length $model_content ) {
+        push @{ $ld_state->{'response_history'} }, $model_content;
+        splice @{ $ld_state->{'response_history'} }, 0,
+            scalar( @{ $ld_state->{'response_history'} } ) - 16
+            if @{ $ld_state->{'response_history'} } > 16;
+    }
+
     my $history = $ld_state->{'tool_history'};
     my @matched_patterns;
 
@@ -242,7 +277,8 @@ if ( $phase eq 'suspicion' ) {
     for my $pattern (@pattern_registry) {
         next unless @$history >= $pattern->{'min_hits'};
 
-        if ( $pattern->{'check'}->( $history, \%tool_loop_weights ) ) {
+        if ( $pattern->{'check'}->( $history, \%tool_loop_weights, $ld_state )
+        ) {
             push @matched_patterns, $pattern;
 
             <[base.logs]>->(
@@ -437,8 +473,8 @@ elsif ( $phase eq 'escalation' ) {
 ## Unknown phase ##
 return qw| false |;
 
-#,,.,,,,,,.,.,,..,,..,.,,,,..,.,.,.,,,,,.,.,.,.,.,...,...,..,,.,,,..,,.,,,,..,
-#TLOWBPBUGEGPK6TXG345ZJC4T44Z35FFHDMGLVRKQGRRFSSSI7SYAFZ4HJ7RCIX76O76E4BOQIVC6
-#\\\|EMICPQAKKM5JLRN3ZUKTW7Q5ABNJCBMLSZXWTX567EZ7WVGI7W2 \ / AMOS7 \ YOURUM ::
-#\[7]HRH46ZU6MM57O5YTC6YKAGOVFKTZIWFRZXEI2665MP4PAIXRYCDA 7  DATA SIGNATURE ::
+#,,.,,...,,,,,,,,,.,,,..,,..,,,..,..,,...,..,,.,.,...,...,...,.,.,,,,,..,,,,.,
+#57MWQMLWNLLXO2MK3R3MPBQF7APNLOZHBAKJ4FW5RB3Q6SCFUSWMHIM7X4PJRH5UMPOVZF2E2GIZQ
+#\\\|QFSX7YHISYMK4M4RDUJDVSJ3K7JAIVUYYJMEOY4IHAJHRHJENMU \ / AMOS7 \ YOURUM ::
+#\[7]777XTSVE4E6SPNFWBHOEJMHI6WHIKTD57BXNXLA3DGANBPRZBYDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
