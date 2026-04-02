@@ -1,0 +1,34 @@
+#!/bin/bash
+# Git wrapper - blocks --no-verify to enforce signature policy
+# Real git: /usr/bin/git
+
+# Check for --no-verify or -n in commit commands
+for arg in "$@"; do
+    if [[ "$arg" == "--no-verify" ]] || [[ "$arg" == "-n" ]]; then
+        # Check if this is a commit command
+        for cmd_arg in "$@"; do
+            if [[ "$cmd_arg" == "commit" ]]; then
+                echo "⚠️  ERROR: --no-verify is blocked by project policy" >&2
+                echo "" >&2
+                echo "The project requires proper version numbers and signatures." >&2
+                echo "" >&2
+                echo "To fix: ask the user to run the appropriate update command:" >&2
+                echo "  ./bin/dev/update-version              # Update version number" >&2
+                echo "  bin/Protocol-7 sourcecode update-signatures  # Sign files" >&2
+                echo "" >&2
+                echo "If you absolutely must bypass [emergency only], use the full path:" >&2
+                echo "  /usr/bin/git commit --no-verify ..." >&2
+                exit 1
+            fi
+        done
+    fi
+done
+
+# Pass through to real git
+exec /usr/bin/git "$@"
+
+#,,.,,..,,,..,..,,.,.,.,.,..,,..,,...,,,.,.,.,..,,...,...,...,.,.,,.,,.,,,,,.,
+#YAFSSKMSOT36DSJWMCMDVZASSVHOQM2YRNFOFPKSOZTNBEJIZAPKQ4UCDOEVGQOM5EUVPJUDUB3CS
+#\\\|GDK7H4FUEL3KXR4ESZQUYNLBFVVMDBANAPZD3ZT5M6LNHHHRB5F \ / AMOS7 \ YOURUM ::
+#\[7]4V2XJY76NKVZ3LPT7RC4W6LNA4WGDL2DEZJ52ULWQMGT3UGGZCBY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
