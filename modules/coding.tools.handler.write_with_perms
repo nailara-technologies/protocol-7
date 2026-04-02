@@ -1,0 +1,46 @@
+## [:< ##
+
+# name  = coding.tools.handler.write_with_perms
+# descr = Write file content with automatic permission handling via chmod child
+# param = $file_path, $content_ref
+# return = (success_boolean, error_message_or_undef)
+
+my $file_path   = shift // return ( 0, 'file path required' );
+my $content_ref = shift // return ( 0, 'content required' );
+
+return ( 0, 'content must be scalar reference' )
+    unless ref $content_ref eq qw| SCALAR |;
+
+## use privileged chmod child if file not writable ##
+my $chmod_fh = <coding.chmod_child.w_fh>;
+my $mode_restore;
+
+if ( -f $file_path and !-w $file_path and defined $chmod_fh ) {
+    my $cur_mode = ( stat $file_path )[2] // 0644;
+    $cur_mode &= 07777;
+    print {$chmod_fh} "gw $file_path\n";
+    select undef, undef, undef, 0.01;    ## yield for child ##
+    $mode_restore = $cur_mode if -w $file_path;
+}
+
+if ( -w $file_path ) {
+    ## write the file ##
+    my $result = <[file.put]>->( $file_path, $content_ref );
+
+    ## restore original permissions via chmod child ##
+    if ( defined $mode_restore and defined $chmod_fh ) {
+        print {$chmod_fh}
+            sprintf "restore %04o %s\n",
+            $mode_restore, $file_path;
+    }
+
+    return $result ? ( 1, undef ) : ( 0, 'write failed' );
+}
+
+return ( 0, 'permission denied: cannot make file writable' );
+
+#,,.,,.,.,,.,,,.,,.,.,,,,,,,.,...,...,.,.,.,.,.,.,...,..,,..,,...,,,,,,,,,..,,
+#FEIQMYEL5PVGMQUIPN2NDZWSQBKFBXRX53AD6IZRLHFSME6URBEL5PJCKTD65ACCGZWN4PBZSBVQW
+#\\\|MCZ6SQ2IWN3RGPUV6W4AWNVV22DZ4E255GGWUZHHJSF54IEA373 \ / AMOS7 \ YOURUM ::
+#\[7]SSYSZULTBNHXRLDEXZLWT2MM5Y433ULVJ3W7A3AVFVBJWUAINICI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
