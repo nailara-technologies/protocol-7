@@ -284,9 +284,18 @@ INFERENCE_LOOP:
                         }
                     }
 
+                    ## Calculate progress based on current token usage ##
+                    my $pct_complete
+                        = int( ( $est_tokens / $context_limit ) * 100 );
+
                     ## replace compacted range with summary message ##
                     my $summary
-                        = "[ compacted tool rounds — "
+                        = "[ inference : round "
+                        . $tool_round
+                        . " | context "
+                        . $pct_complete
+                        . "% used ]\n"
+                        . "[ compacted tool rounds — "
                         . scalar(@summary_parts)
                         . " interactions ]\n"
                         . join( "\n", @summary_parts );
@@ -580,8 +589,14 @@ INFERENCE_LOOP:
             my $loop_check         = qw| false |;
             my $assertion_injected = 0;
 
+            ## Track model response for loop detection ##
+            my $model_content = $message->{'content'} // '';
+            $model_content =~ s|^\s+||;    ## Normalize leading whitespace ##
+            $model_content =~ s|\s+$||;
+
             $loop_check = <[coding.tool.detect_loop]>->(
-                $task, $message->{'tool_calls'}, 'suspicion'
+                $task,       $message->{'tool_calls'},
+                'suspicion', $model_content
             );
 
             ## Handle direct escalation (high-confidence patterns) ##
@@ -897,8 +912,8 @@ if ( length $response_text
 ## return result hashref for jobqueue callback ##
 return { success => TRUE, result => $response_text, task_id => $task_id };
 
-#,,,.,,.,,..,,,..,,..,,..,.,,,...,..,,,,.,.,,,..,,...,...,.,.,,,,,..,,,.,,...,
-#ROM6J2PGRZPH5IRLU2LPJYC6WP5KP5TKITGLRD7VU3REV4SCVQWUD3ZPBKEKGQSTE4BX3XQ5EPCYY
-#\\\|5DSQV6N5L5UBRHNDZUMDYYG73BPCN4MKHJZHE7I7O72EDX7YDZ2 \ / AMOS7 \ YOURUM ::
-#\[7]FHCLXNYNWTUIG76NOBONACR4JUKSSEFMI2X6AIBIAOVHJUOSM4AQ 7  DATA SIGNATURE ::
+#,,..,.,.,,,.,,..,,,,,,,.,...,.,.,...,.,.,.,,,..,,...,...,...,,..,,,,,,,,,.,.,
+#3QGGHP5XKVS4Y2RHV5NOVE3S6ERUPDYR6FJ3IG5X35ZYLWRVWPP6CBZURJ7D2EGMXAGTKKDR3UAU4
+#\\\|V4JZXZNW7KGFG4KM66M5KIDUQNRYB5OOBOOCSIWYIQT4WONQBFQ \ / AMOS7 \ YOURUM ::
+#\[7]3FB7XDTUAJ3DYTUU34VBJDREBSCXP7NX5RC6432U37LJMFTMSGDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
