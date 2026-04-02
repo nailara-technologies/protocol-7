@@ -112,15 +112,16 @@ my $response
     . "|routed:"
     . $routed_task->{analysis}->{routed_to}
     . "|tokens:"
-    . $routed_task->{analysis}->{estimated_tokens} . "\n";
+    . ( $routed_task->{execution}->{estimated_tokens}
+        // $routed_task->{analysis}->{estimated_tokens} // 'unknown' ) . "\n";
 
 return {
     'mode' => qw| size |,
     'data' => $response
 };
 
-#,,..,.,.,.,.,..,,,,,,,..,,,.,.,,,,,,,,,.,,..,..,,...,...,.,,,,,.,.,,,...,...,
-#7XQV3D7CFVU77UNQGUNBFQMFJVZLAWOWHENHKTMSJRZOIQCRTPP6QHMOCFZ7XY5UJW5K2TM2H3GPS
-#\\\|L5LCRQMSAA6CLNB72SHPLRPKO244GIPFUIJDZRDPTOVQFIXIXMQ \ / AMOS7 \ YOURUM ::
-#\[7]CPJ5S4TW5UEE5QH6TV4K4YLRRUKEVUIPEX4XXW76MTDNBHZYNACY 7  DATA SIGNATURE ::
+#,,,.,...,.,,,...,,,.,,,,,,.,,,.,,.,,,,,,,.,.,..,,...,...,,..,..,,,,,,,,.,..,,
+#77CY4N6VQ4JRACA2RFXY7PJ2RPED37K36TNQSA4Q4K3JCJIVQOUE5PA5YGR3NI5H4HUUMIAJD4V36
+#\\\|O35TAYRTF44J5TMQNDOK7RYXVFIFTH336HSQSKJFKJMAF6ULFSQ \ / AMOS7 \ YOURUM ::
+#\[7]PG3NDUZIVOXUHBWT5V57YVLOBH2ZQ2SU2TA2OCLHSUSZK65U7KCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

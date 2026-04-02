@@ -26,9 +26,22 @@ for my $arg (@ARGV) {
         if $arg eq qw| -bypass-sig-check | || $arg eq qw| -b |;
 }
 
+my $skipping_disabled = 1;         ## currently disabled [ LLM-behaviour.., ]
+
 my $skip_version_check   = $ENV{'SKIP_VERSION_CHECK'}   // 0;
 my $skip_signature_check = $ENV{'SKIP_SIGNATURE_CHECK'} // 0;
 my $skip_descr_check     = $ENV{'SKIP_DESCR_CHECK'}     // 0;
+
+if ( $skipping_disabled
+    and ( $skip_version_check || $skip_signature_check || $skip_descr_check )
+) {
+    print STDERR "\n";
+    print STDERR "${fg}::\n";
+    print STDERR "${fg}:: $bl${rd}[ SKIPPING DISABLED "
+        . "- PLEASE ASK USER TO UPDATE ]$rst\n";
+    print STDERR "${fg}::\n";
+    exit(255);
+}
 
 ## Get repository root
 my $git_dir   = abs_path($RealBin);
@@ -263,8 +276,8 @@ unless ($skip_signature_check) {
 print ":\n: done.\n:\n";
 exit 0;
 
-#,,..,,.,,..,,,,,,.,,,,,,,,,.,,,,,,,.,,,,,.,,,..,,...,...,..,,.,.,,,,,,,,,,..,
-#G4TVDAHRBG5SQZKEDIGFOJR435JW4JTHMKDIW3KOZKI4MSSTPRKG37AZ45ROAUEDBHNWVEIRHZJZK
-#\\\|WUZ6UGIHTWNQKQDZBGFZH6QESXB2P6IJI6BKKIUZMNPLHNQW6XE \ / AMOS7 \ YOURUM ::
-#\[7]JJ3NN5MNBUDZTBBRVYS4ZKVLQJWJ55MO5YIQJNDLOLINOWP2RKCY 7  DATA SIGNATURE ::
+#,,,,,,,.,,,,,.,,,.,.,...,,..,...,,,.,.,.,,.,,..,,...,..,,..,,,,,,...,,.,,.,.,
+#ZN3DJ2HJ6FDNKMEQPSDY5KFKIZMBBEJS7A6BRAPBGO5AQ4IYWB7STOCBQSSDDG4MJF5SSIN2UM76W
+#\\\|XQGSSDEPULHHLHE627YAHHS256Y43ULAD4LC4DNBHRUEQUGIHWL \ / AMOS7 \ YOURUM ::
+#\[7]ADRXOLMVH3E3EO7M5O2IMCJ6AT3MW73HGSJFUXQLYBVMQ3VFWYBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
