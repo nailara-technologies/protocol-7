@@ -1,0 +1,87 @@
+## [:< ##
+
+# Task: Debug nshell zenka history navigation bugs
+# Priority: high
+# Related: commit 496E91F34B5105043EB72D60565C5934D7F4AB75
+
+overview:
+  The nshell zenka has two related history navigation bugs that need investigation
+  and proper fixes. Previous partial fix addressed session startup only.
+
+bugs:
+  - id: 1
+    name: Arrow-up skips last history entry
+    description: |
+      When pressing arrow-up to navigate command history, the most recent entry
+      is skipped/ignored. Previous fix (496E91F3) only worked for session startup.
+      Bug reappears after commands are sent during the session.
+    affected_module: nshell.history.arrow_up
+    status: partially_fixed
+    
+  - id: 2
+    name: Ctrl+O progression direction reversed
+    description: |
+      Ctrl+O for history progression goes backwards instead of forwards.
+      Should navigate forward through history but currently goes backward.
+    affected_module: nshell.history.ctrl_o  # or similar
+    status: open
+
+previous_fix:
+  commit: 496E91F34B5105043EB72D60565C5934D7F4AB75
+  message: "repaired off-by one history navigation bug in 'nshell.history.arrow_up'"
+  limitation: Only fixed for session startup, not during active session
+
+files_to_investigate:
+  - modules/nshell.history.arrow_up
+  - modules/nshell.history.*  # all history-related modules
+  - modules/nshell.input.handler  # may handle key bindings
+  - modules/nshell.session.init  # session state initialization
+  - modules/nshell.cmd.send  # where commands are processed
+
+debugging_approach:
+  - step: 1
+    task: Reproduce both bugs consistently
+    details: |
+      - Start fresh nshell session
+      - Type and send several commands
+      - Test arrow-up navigation (should show last command first)
+      - Test Ctrl+O progression direction
+      
+  - step: 2
+    task: Trace history index/state management
+    details: |
+      - Find where history cursor/index is stored
+      - Check initialization vs post-command state
+      - Look for index increment/decrement logic
+      
+  - step: 3
+    task: Compare working vs broken states
+    details: |
+      - Session startup (works) vs after sending commands (broken)
+      - Find state divergence point
+      
+  - step: 4
+    task: Implement proper fix
+    details: |
+      - Fix should work for both startup and mid-session
+      - Ensure Ctrl+O direction is correct
+      - Test edge cases (empty history, single entry, wrap-around)
+
+acceptance_criteria:
+  - Arrow-up shows most recent command first, always
+  - Subsequent arrow-ups navigate backward through history correctly
+  - Ctrl+O navigates forward through history (opposite of arrow-up)
+  - Works from session start and after any number of sent commands
+  - No off-by-one errors in index calculations
+
+related_modules:
+  - nshell.*
+  - Any terminal/input handling modules
+
+## [data checksum: 7KQ6RJ3YQU======] ##
+
+#,,.,,...,...,,..,,,,,,,.,,.,,...,,..,.,,,..,,..,,...,...,,,,,...,.,.,..,,,,.,
+#FDCAO4U56IR4U47U4BTTVS3YCYDQ4RLBJRAIFIPZ2DYFYHBIYOLOJWSKJZKY4OGBKQVQUIEA2AWCO
+#\\\|7DLWYTBSKVXKUVPVQVPWPLWM4REHHUV62PSPX6N3XZCRZ3E7C6A \ / AMOS7 \ YOURUM ::
+#\[7]4BVT3FQPKCGV5UP2FL5Q7C6TCJAZGIUXXG74LMS2XCORJ6IK6QDA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
