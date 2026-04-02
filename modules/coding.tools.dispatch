@@ -443,6 +443,17 @@ my %dispatch = (
         return $code{'coding.tools.handler.record_observation'}->($args);
     },
 
+    'git_restore_file' => sub {
+        return unless exists $code{'coding.tools.handler.git_restore_file'};
+        return $code{'coding.tools.handler.git_restore_file'}->($args);
+    },
+
+    'strip_trailing_spaces' => sub {
+        return
+            unless exists $code{'coding.tools.handler.strip_trailing_spaces'};
+        return $code{'coding.tools.handler.strip_trailing_spaces'}->($args);
+    },
+
 );
 
 ## look up and execute — dispatch table first, then handler modules ##
@@ -532,8 +543,8 @@ return {
     'content' => $content,
 };
 
-#,,,.,,,.,.,.,,.,,.,,,.,,,..,,..,,,.,,.,,,..,,..,,...,..,,.,.,.,.,...,,..,,,,,
-#M6SMERRTZWADAYPMDOVV2HJHW2LC4MTD4NGJMWYPM2XRREQMONPV2ALAZ6V22ECAFQJ4JPELTS4XQ
-#\\\|KRMVZG5E5XKUQSH4EXVBZHQVO6LGA3CKWL5AYFS43IB2BMUT76Q \ / AMOS7 \ YOURUM ::
-#\[7]FQ6HEGAX4P7NVGIB5UNLAUORGECUESHYW6CXMZFYRKFV6QPQLYCI 7  DATA SIGNATURE ::
+#,,,,,,,,,.,.,,..,,..,...,...,.,.,.,,,.,,,.,,,..,,...,...,...,,..,,,,,.,,,.,,,
+#QLIKPNTMWBEHTADR2W4I4AYA4NSZZBNTH57TZZVQIG4R2OZ6OKUDWMUTR5BX367LKYGXJITLXW6PA
+#\\\|XTLPDYDHI3IVNAZANQYLQV6C6IZG23DEUJHE4NJZTG5AWRPVPN7 \ / AMOS7 \ YOURUM ::
+#\[7]YVS5W2CW3ZNSCC3YCBJIWY3FA62YFTACK4YE5IN7RBXZYFMZRGDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

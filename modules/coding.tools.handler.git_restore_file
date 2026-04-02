@@ -1,0 +1,133 @@
+## [:< ##
+
+# name  = coding.tools.handler.git_restore_file
+# descr = safely restore a file from git to recover from corruption or changes
+
+my $args   = shift             // {};
+my $path   = $args->{'path'}   // '';
+my $staged = $args->{'staged'} // 0;
+my $source = $args->{'source'} // 'HEAD';
+
+## ensure source is properly formatted ##
+$source = $source if ref $source eq qw| HASH |;
+$source = '' unless length $source;
+
+## validate path parameter ##
+return 'error: path required' unless length $path;
+
+## get absolute path ##
+my $root     = <system.root_path>;
+my $abs_path = $root . '/' . $path;
+
+## check path exists ##
+unless ( -f $abs_path ) {
+    <[base.logs]>->( 2, ':. git_restore_file: %s does not exist', $path );
+    return {
+        'mode' => qw| false |,
+        'data' => "File not found: $path",
+    };
+}
+
+## check if path is within git repository ##
+my $git_root = Cwd::abs_path($root);
+unless ( -d "$git_root/.git" ) {
+    <[base.logs]>
+        ->( 2, ':. git_restore_file: not a git repo: %s', $git_root );
+    return {
+        'mode' => qw| false |,
+        'data' => "Path outside git repository: $path",
+    };
+}
+
+## check if file is tracked by git ##
+my $tracked = `cd "$git_root" && git ls-files -s "$path" 2>/dev/null`;
+if ( not length $tracked ) {
+    <[base.logs]>->( 2, ':. git_restore_file: %s not tracked', $path );
+    return {
+        'mode' => qw| false |,
+        'data' => "File not tracked: $path",
+    };
+}
+
+## show current status of file ##
+my $status = `cd "$git_root" && git status -s "$path" 2>/dev/null`;
+if ( length $status ) {
+    my $msg = "Current status: $status\n";
+    $msg .= "Diff summary: ";
+    my $diff = `cd "$git_root" && git diff --stat "$path" 2>/dev/null`;
+    if ( length $diff ) {
+        $msg .= $diff;
+    }
+    <[base.logs]>->(
+        2, ':. git_restore_file: %s has uncommitted changes', $path
+    );
+    <[base.logs]>->(
+        1, ':. git_restore_file: %s [ uncommitted changes detected ]', $path
+    );
+    $msg .= "Run 'git diff' to see full diff.";
+    return {
+        'mode' => qw| true |,
+        'data' => $msg,
+    };
+}
+
+## perform restore based on source ##
+my $commit_ref = $source;
+if ( $source eq qw| HEAD | ) {
+    $commit_ref = 'HEAD';
+} elsif ( $source =~ m|^\d{7,40}$| ) {
+    $commit_ref = $source;
+} else {
+    $commit_ref = $source;
+}
+
+## run git restore command ##
+my $cmd = "cd \"$git_root\" && git restore --source=$commit_ref";
+$cmd .= " --staged" if $staged;
+$cmd .= " \"$path\"";
+
+my $result = ` $cmd 2>&1 `;
+chomp $result if defined $result;
+my $ret = $?;
+
+if ( $ret && $ret >> 8 != 0 ) {
+    my $err = $result // 'unknown error';
+    <[base.logs]>->(
+        0,     ':. git_restore_file: %s restore failed: %s',
+        $path, $err
+    );
+    return {
+        'mode' => qw| false |,
+        'data' => "Restore failed: $path\n$err",
+    };
+}
+
+## verify restore succeeded ##
+my $new_status = `cd "$git_root" && git status -s "$path" 2>/dev/null`;
+if ( length $new_status ) {
+    <[base.logs]>->(
+        1,
+        ':. git_restore_file: %s partially restored [ residual changes: %s ]',
+        $path,
+        $new_status
+    );
+    return {
+        'mode' => qw| true |,
+        'data' => "Restored partially. Residual: $new_status",
+    };
+}
+
+## success ##
+my $msg = "Restored $path to $commit_ref";
+<[base.logs]>->( 1, ':. git_restore_file: %s', $msg );
+
+return {
+    'mode' => qw| true |,
+    'data' => $msg,
+};
+
+#,,,,,,.,,,.,,,,,,,.,,,,.,..,,,,,,.,,,,.,,.,,,..,,...,...,...,,..,,,,,,,,,,,.,
+#NWRFS62YUAKM27YWJ6B4R4UMNW2S2E3QLOZ5VJMLFI5XBNAAYJ2BFL6XZ5A2IQOBZZTJ27SETS2HS
+#\\\|G5TVEV7RDXKTKIZBPS2SUA5QTTEIIVO3FP5NASMH7UKJF3Z3DOK \ / AMOS7 \ YOURUM ::
+#\[7]3NWVSADI3DIHOWZO24FWJPHYB64AHJPLVOFJ4TYG6HSAWRLU46BQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

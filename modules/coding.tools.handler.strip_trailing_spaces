@@ -1,0 +1,142 @@
+## [:< ##
+
+# name  = coding.tools.handler.strip_trailing_spaces
+# descr = safely strip trailing whitespace from files
+#         without corrupting structure
+
+my $args       = shift                 // {};
+my $path       = $args->{'path'}       // '';
+my $check_only = $args->{'check_only'} // 0;
+
+## ensure path is properly formatted ##
+$path = $path if ref $path eq qw| HASH |;
+$path = '' unless length $path;
+
+## check if path exists ##
+my $root     = <system.root_path>;
+my $abs_path = $root . '/' . $path;
+
+## handle directory paths ##
+if ( -d $abs_path ) {
+    my @files = <[file.zenka_dir.load]>->("$path");
+    return {
+        'mode' => qw| false |,
+        'data' => "Directory not found: $path",
+        }
+        unless @files;
+
+    my $total_lines   = 0;
+    my $changed_files = 0;
+    my @summary;
+
+    for my $file (@files) {
+        my $full_path = "$abs_path/$file";
+        next unless -f $full_path;
+
+        my $result = _strip_trailing_spaces( $full_path, $check_only );
+        my ( $lines, $changed, $type ) = @$result;
+
+        if ( length $type ) {
+            push @summary, sprintf "Binary: %s (skipped)", $file;
+        } elsif ($changed) {
+            $changed_files++;
+            push @summary, sprintf "Changed: %s (%d lines)", $file, $lines;
+        } else {
+            push @summary, sprintf "Clean:   %s", $file;
+        }
+        $total_lines += $lines;
+    }
+
+    return {
+        'mode' => qw| true |,
+        'data' => sprintf(
+            "Processed %d files: %d changed,"
+                . " %d clean.\nTotal lines: %d\n\n%s",
+            scalar @files,                  $changed_files,
+            scalar @files - $changed_files, $total_lines,
+            join "\n",                      @summary
+        ),
+    };
+}
+
+## handle file paths ##
+my $result = _strip_trailing_spaces( $abs_path, $check_only );
+my ( $lines, $changed, $type ) = @$result;
+
+return {
+    'mode' => qw| true |,
+    'data' => length $type ? "Binary file skipped: $path"
+    : ( $changed ? "Stripped $lines lines in $path"
+        : "No trailing spaces found in $path"
+    ),
+    }
+    if defined $result;
+
+return {
+    'mode' => qw| false |,
+    'data' => "Cannot read: $path",
+};
+
+## internal: strip trailing whitespace from a single file ##
+sub _strip_trailing_spaces {
+    my ( $file, $check_only ) = @_;
+
+    ## check file type ##
+    if ( -T $file ) {
+        ## text file - process normally ##
+    } else {
+        return [ 0, 0, 'Binary file skipped' ];
+    }
+
+    ## read file content ##
+    my $content_ref = <[file.slurp]>->($file);
+    return [ 0, 0, 'Cannot read: ' . $file ] unless defined $content_ref;
+
+    ## count and remove trailing whitespace ##
+    my @lines = split /\n/, $content_ref->$*, -1;
+
+    my $trailing_count = 0;
+    my $changed        = 0;
+
+    for my $i ( 0 .. $#lines ) {
+        my $line    = $lines[$i];
+        my $trimmed = $line;
+        $trimmed =~ s|[ \t]+$||;
+
+        if ( length $trimmed ne length $line ) {
+            $trailing_count++;
+            $changed = 1;
+            $lines[$i] = $trimmed;
+        }
+    }
+
+    if ( $changed && !$check_only ) {
+        ## write back only if changed ##
+        my $new_content = join "\n", @lines;
+        my ( $success, $error )
+            = <[coding.tools.handler.write_with_perms]>->(
+            $file, \$new_content
+            );
+        if ($success) {
+            <[base.logs]>->(
+                2, ':. strip_trailing_spaces: %s modified', $file
+            );
+        } else {
+            <[base.logs]>->(
+                0,     ':. strip_trailing_spaces: %s write failed: %s',
+                $file, $error // 'unknown error'
+            );
+            return [ 0, 0, "Write failed: $error" ];
+        }
+    } elsif ( !$changed ) {
+        <[base.logs]>->( 3, ':. strip_trailing_spaces: %s unchanged', $file );
+    }
+
+    return [ $trailing_count, $changed, '' ];
+}
+
+#,,.,,,,.,,.,,,.,,.,,,,..,...,.,,,,.,,,.,,,,.,..,,...,...,,..,..,,..,,,..,...,
+#2Y5NIY77Y4TL2F2TQODD5Q7FUY2DPCIHJ4SPNNASNS5OTUMJFBJ74JS5JMB7DBEA5AHZSRTGS7YMC
+#\\\|P7ECEGCWPH2O4ACBMW25OXHD5BGPM2HWCKZ43OIA2VPVASLXQFL \ / AMOS7 \ YOURUM ::
+#\[7]25GXNB7PZZU4PTJZPRLDYSPD7NNFKA5LJVXYQ2PXIPU3WW6SNGCI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
