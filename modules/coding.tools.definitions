@@ -909,10 +909,34 @@ if ( exists $code{'coding.tools.handler.validate_module'} ) {
         };
 }
 
+## decode_base32 — decode base32/base32r encoded strings ##
+if ( exists $code{'coding.tools.handler.decode_base32'} ) {
+    push @tools,
+        {
+        'type'     => 'function',
+        'function' => {
+            'name'        => 'decode_base32',
+            'description' => 'decode base32 or base32r encoded strings'
+                . ' [ useful for encoded identifiers, checksums ]',
+            'parameters' => {
+                'type'       => 'object',
+                'properties' => {
+                    'encoded' => {
+                        'type'        => 'string',
+                        'description' =>
+                            'base32 encoded string [ e.g. NFWXA4T... ]'
+                    },
+                },
+                'required' => ['encoded'],
+            },
+        },
+        };
+}
+
 return \@tools;
 
-#,,.,,,..,,.,,,,.,,.,,,..,,,.,.,,,,.,,,,,,,,.,..,,...,..,,,..,,..,.,,,..,,..,,
-#3WP7KPDVL5SLBGSQ7CP7PVR652UCUBPOW7TGVUBEXBS7TONTA3BHAXLH6WLUQ5HGY5AUYSKYIMY7K
-#\\\|HZRUNAJ2QYG67TXGVKAR55GFOAVQAVXV4OB6P4VQRCXF7EK5CEY \ / AMOS7 \ YOURUM ::
-#\[7]QIJDS7ERFAI6XVFZHEY5BN6OTW6XFUARARXXGRSJSEIYTQCQE2DY 7  DATA SIGNATURE ::
+#,,,,,,..,,.,,,..,...,,..,.,,,,.,,...,..,,.,,,..,,...,...,...,.,,,...,...,,..,
+#Y7QF5E4NXSAVCRAWBXBDC7CESVONZSCL7NCZJQX2BD3LN5DFENX2OZXBAFK2QIMNWYPNDW2FAJ6EM
+#\\\|7EZVP4RVKEYZYN434C3ZECROY55B4XDVQCK65QQJZ7LZFS4YYEG \ / AMOS7 \ YOURUM ::
+#\[7]DTV676GNPPQRLFT5PBDZATPE7V635CNWNWLQOGD3ORQEUSLEAEAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
