@@ -9,15 +9,38 @@ my $name = shift;
 
 return 1 unless defined $name;
 return 1 if length($name) == 0;
+return 1 if length($name) < 3;         # Too short to be meaningful
+return 1 if length($name) > 100;       # Too long, likely garbage
 return 1 if $name =~ m|^[.\s]+$|;      # Just dots/spaces
 return 1 if $name =~ m|\\|;            # Windows backslash
 return 1 if $name =~ m|^[A-Za-z]:|;    # Drive letter
 return 1 if $name =~ m|:\\\\[^\\]|;    # Windows path pattern
 
+## Detect random alphanumeric strings (like "909Acke7", "AbCdEf12")
+## Pattern: contains mixed case letters + numbers without spaces/words
+return 1 if $name =~ m|^[a-z]*\d+[a-z]*\d+[a-z]*$|i && length($name) < 15;
+
+## Detect generic tool signatures without model identifiers
+## e.g., "Unsloth Gguf", "LlamaCpp Model", "Converted Gguf"
+return 1 if $name =~ m|^\s*unsloth\s*\w*\s*$|i;
+return 1 if $name =~ m|^\s*llamacpp\s*\w*\s*$|i;
+return 1 if $name =~ m|^\s*convert\s*\w*\s*$|i;
+return 1 if $name =~ m|^\s*export\s*\w*\s*$|i;
+return 1 if $name =~ m|^\s*merge\w*\s*$|i;
+return 1 if $name =~ m|^\s*quant\s*\w*\s*$|i;
+return 1 if $name =~ m|^\s*unsloth\s+gguf|i;
+return 1 if $name =~ m|^\s*unsloth\s+model|i;
+return 1 if $name =~ m|^\s*unsloth\s+export|i;
+return 1 if $name =~ m|^\s*llamacpp\s+gguf|i;
+return 1 if $name =~ m|^\s*llamacpp\s+model|i;
+
+## Contains random-looking hash-like patterns (mixed alphanum without meaning)
+return 1 if $name =~ m|\b[a-f0-9]{8,}\b|i;    # hex-like sequences
+
 return 0;
 
-#,,..,.,,,,.,,...,,,.,,.,,...,.,.,...,,.,,,..,..,,...,...,,..,,,,,,..,,..,,,.,
-#MZUB7JIGY3DDFIAKQUQC6WV454RKOLNTCNP74MRJVZETUJV2EOCJH6HLRYVTEWQQ5FMH3DKP2PZSI
-#\\\|P2Q26X5CE6WRHHO7K37HICVXJ74G3BHBVAERWMFAHRINEOZEMDO \ / AMOS7 \ YOURUM ::
-#\[7]BDESECFNONDFQNCQANX7WNPS7PGNQT6KVDIOABKQB6GZEXUN5OAQ 7  DATA SIGNATURE ::
+#,,,.,.,,,,,,,..,,...,,.,,,.,,...,,.,,.,.,,,,,.,.,...,.,.,.,,,,,,,,..,,,.,..,,
+#APJTRFLDXQZVDW3TTRG3SD3L4D33TKPR6TL5463ZCQRZMV7BSOE52MP4TTNXRYZ5IA2LBXD4GZ62Q
+#\\\|MFBL6ABHL3VSHVA2QN6MGJY25TEM7246UKPVBGA5ISW55S7J7YS \ / AMOS7 \ YOURUM ::
+#\[7]B7WFXCPCTIXP5PQETWJUVMSSR7OEKKP3JLCZST54VAZTN7LD34CQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
