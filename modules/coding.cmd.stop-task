@@ -1,0 +1,49 @@
+## [:< ##
+
+# name  = coding.cmd.stop-task
+# descr = stop a running coding task
+# param = [task_id]
+
+my $args_str  = $call->{'args'} // '';
+my ($task_id) = split m{ +}, $args_str, 2;
+
+## if no task_id provided, use current active task ##
+if ( not defined $task_id or not length $task_id ) {
+    my $aref_active = <coding.task.active> // [];
+    if ( $aref_active->@* ) {
+        $task_id = $aref_active->[0];
+    } else {
+        return { 'mode' => qw| false |, 'data' => 'no active task to stop' };
+    }
+}
+
+## lookup task in queue ##
+my $task = <coding.task.queue>->{$task_id};
+
+return { 'mode' => qw| false |, 'data' => "task not found: $task_id" }
+    unless defined $task;
+
+## check task is actually running ##
+my $status = $task->{'execution'}->{'status'} // 'unknown';
+
+return {
+    'mode' => qw| false |,
+    'data' => "task not running (status: $status)"
+    }
+    unless $status eq qw| in_progress |;
+
+## set stop flag ##
+$task->{'stop_requested'} = 1;
+
+<[base.logs]>->( 1, "stop-task: stop requested for %s", $task_id );
+
+return {
+    'mode' => qw| true |,
+    'data' => "stop requested for task $task_id"
+};
+
+#,,,,,..,,...,,,,,...,.,.,,,.,,,.,,..,.,,,,,.,.,.,...,...,...,,,,,.,.,...,,.,,
+#T3LEQDHG2GC4QUFFB5QHD5QDD4BEDGLF3SXLVGAYTSGUCKNBHSV6FPTZAK7DV7CKYMAEPKBTT2TYW
+#\\\|KOCPKVOSLAU4UPQ5Z7IMKBXB2HMKXXI7MAGADF2TFRJPZAMNBWC \ / AMOS7 \ YOURUM ::
+#\[7]ISVNHZQAVDEQFTJUBDVPPIOF4OT44FBRBIHRT4VCEBCYKP5LBKDQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
