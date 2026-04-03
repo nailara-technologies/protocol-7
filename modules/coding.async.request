@@ -1,0 +1,154 @@
+## [:< ##
+
+# name  = coding.async.request
+# descr = Initiate async inference request with streaming
+# purpose = Phase 2: Start non-blocking inference, return immediately
+
+my ( $task_id, $request_body, $job_id ) = @ARG;
+
+return { success => FALSE, error => 'task_id required' }
+    unless defined $task_id;
+return { success => FALSE, error => 'request_body required' }
+    unless defined $request_body;
+
+## get task info ##
+my $task = <coding.task.queue>->{$task_id};
+return { success => FALSE, error => "task not found: $task_id" }
+    unless defined $task;
+
+## determine backend ##
+my $backend = $task->{'analysis'}->{'routed_to'} // 'gpu';
+my $port
+    = $backend eq 'cpu'
+    ? ( <inference.backend.cpu.port> // 8001 )
+    : ( <inference.backend.gpu.port> // 8000 );
+
+my $url = "http://127.0.0.1:${port}/v1/chat/completions";
+
+## store async state ##
+<[coding.async.state_manager]>->(
+    'set', $task_id,
+    {   job_id        => $job_id,
+        task_id       => $task_id,
+        backend       => $backend,
+        port          => $port,
+        start_time    => <[base.time]>->(3),
+        mode          => 'streaming',
+        chunk_context => {},
+    }
+);
+
+## setup callbacks ##
+my $callbacks = {
+    on_header => sub {
+        my ($headers) = @_;
+        <[base.logs]>->(
+            2,        "async.request: headers received for %s [HTTP %s]",
+            $task_id, $headers->{'Status'}
+        );
+    },
+
+    on_chunk => sub {
+        my ($data) = @_;
+
+        ## process chunk ##
+        my $state = <[coding.async.state_manager]>->( 'get', $task_id );
+        return unless defined $state;
+
+        my $context = $state->{'chunk_context'} // {};
+        $context->{'round'} = $state->{'tool_round'} // 0;
+
+        ## call chunk handler ##
+        $context
+            = <[coding.async.chunk_handler]>->( $task_id, $data, $context );
+
+        ## update state ##
+        $state->{'chunk_context'} = $context;
+        <[coding.async.state_manager]>->( 'set', $task_id, $state );
+
+        ## check for completion ##
+        if ( defined $context->{'finish_reason'} ) {
+            ## inference round complete ##
+            $state->{'response_text'} = $context->{'content'};
+            $state->{'finish_reason'} = $context->{'finish_reason'};
+            $state->{'tool_calls'}    = $context->{'tool_calls'};
+            <[coding.async.state_manager]>->( 'set', $task_id, $state );
+        }
+    },
+
+    on_complete => sub {
+        my ($http_state) = @_;
+
+        <[base.logs]>->(
+            1,
+            "async.request: inference complete for %s [%d bytes, %d chunks]",
+            $task_id,
+            $http_state->{'bytes_received'},
+            $http_state->{'chunks_received'}
+        );
+
+        ## finalize and complete ##
+        my $state = <[coding.async.state_manager]>->( 'get', $task_id );
+        return unless defined $state;
+
+        my $result = {
+            success       => TRUE,
+            result        => $state->{'response_text'},
+            finish_reason => $state->{'finish_reason'} // 'stop',
+            tool_calls    => $state->{'tool_calls'},
+        };
+
+        ## call async completion ##
+        <[coding.async.complete]>->( $task_id, $result );
+    },
+
+    on_error => sub {
+        my ($error) = @_;
+
+        <[base.logs]>->(
+            0,        "async.request: error for %s: %s",
+            $task_id, $error
+        );
+
+        ## fail the task ##
+        my $result = {
+            success => FALSE,
+            error   => $error,
+        };
+
+        <[coding.async.complete]>->( $task_id, $result );
+    },
+
+    check_stop => sub {
+        my $task = <coding.task.queue>->{$task_id};
+        return $task->{'stop_requested'} // FALSE;
+    },
+
+    timeout => 300,    # 5 minutes max
+};
+
+## start HTTP request (returns immediately) ##
+my $http_result
+    = <[coding.async.http_client]>->( $url, $request_body, $callbacks );
+
+if ( !$http_result->{'success'} ) {
+    ## immediate error ##
+    <[coding.async.complete]>->(
+        $task_id, { success => FALSE, error => $http_result->{'error'} }
+    );
+    return { success => FALSE, error => $http_result->{'error'} };
+}
+
+<[base.logs]>->( 1, "async.request: streaming started for %s", $task_id );
+
+return {
+    success => TRUE,
+    task_id => $task_id,
+    mode    => 'streaming',
+};
+
+#,,,.,,.,,...,,,,,,,.,,,,,,.,,..,,,.,,.,.,..,,.,.,...,...,..,,,,,,...,...,,,,,
+#2XEVD2LPT5RQOOC4PLRRWFPLMJYI2ALHNJYHWVEXNEJRUQ3BFSGZPY6X6VA7IA6IBRCYHS3GJA762
+#\\\|JRQFZJXCHMQ4TW2TPQHTPXUTP6VHXMQHIVBMVEPH5D62QHF42KL \ / AMOS7 \ YOURUM ::
+#\[7]IMXI3Y3WMIGWSY2GHP5LVSTV4PP5FVG5SVKPPMRU5MQJ6XG7O6AA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

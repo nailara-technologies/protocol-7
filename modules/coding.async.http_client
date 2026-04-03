@@ -1,0 +1,153 @@
+## [:< ##
+
+# name  = coding.async.http_client
+# descr = AnyEvent-based streaming HTTP client for inference
+# purpose = Phase 2: Non-blocking HTTP with chunked response handling
+
+## modules loaded via coding.init_code: AnyEvent, AnyEvent::HTTP, JSON::XS
+
+my ( $url, $body, $callbacks ) = @ARG;
+
+return { success => FALSE, error => 'url required' }  unless defined $url;
+return { success => FALSE, error => 'body required' } unless defined $body;
+return { success => FALSE, error => 'callbacks hashref required' }
+    unless ref($callbacks) eq 'HASH';
+
+my $cv = AnyEvent->condvar;
+
+## parse body ##
+my $json     = JSON::XS->new->utf8->canonical;
+my $body_str = ref($body) ? $json->encode($body) : $body;
+
+## track state ##
+my $state = {
+    'bytes_received'  => 0,
+    'chunks_received' => 0,
+    'buffer'          => '',
+    'last_activity'   => <[base.time]>->(3),
+    'content_type'    => undef,
+    'content_length'  => undef,
+    'status_code'     => undef,
+    'completed'       => FALSE,
+};
+
+## setup timeout watcher ##
+my $timeout_sec = $callbacks->{'timeout'} // 300;
+my $timeout_watcher;
+
+my $check_timeout = sub {
+    my $elapsed = <[base.time]>->(3) - $state->{'last_activity'};
+    if ( $elapsed > $timeout_sec ) {
+        $callbacks->{'on_error'}->("timeout after ${elapsed}s")
+            if exists $callbacks->{'on_error'};
+        $cv->send( { success => FALSE, error => 'timeout' } );
+    }
+};
+
+$timeout_watcher = AnyEvent->timer(
+    after    => $timeout_sec,
+    interval => 5,
+    cb       => $check_timeout,
+);
+
+## make request ##
+http_request(
+    'POST'  => $url,
+    headers => { 'Content-Type' => 'application/json', },
+    body    => $body_str,
+
+    ## on_header: called when headers received ##
+    sub {
+        my ($headers) = @_;
+        $state->{'status_code'}    = $headers->{'Status'};
+        $state->{'content_type'}   = $headers->{'content-type'};
+        $state->{'content_length'} = $headers->{'content-length'};
+        $state->{'last_activity'}  = <[base.time]>->(3);
+
+        ## check for HTTP error ##
+        if ( $headers->{'Status'} !~ m{^2} ) {
+            $callbacks->{'on_error'}->( "HTTP " . $headers->{'Status'} )
+                if exists $callbacks->{'on_error'};
+            return;    # abort
+        }
+
+        ## notify header received ##
+        $callbacks->{'on_header'}->($headers)
+            if exists $callbacks->{'on_header'};
+
+        return 1;    # continue receiving body
+    },
+
+    ## on_body: called per chunk ##
+    sub {
+        my ( $chunk, $headers ) = @_;
+        $state->{'last_activity'} = <[base.time]>->(3);
+        $state->{'bytes_received'} += length($chunk);
+        $state->{'chunks_received'}++;
+
+        ## accumulate buffer ##
+        $state->{'buffer'} .= $chunk;
+
+        ## process complete JSON lines (NDJSON format) ##
+        while ( $state->{'buffer'} =~ s{^(.+)\r?\n}{} ) {
+            my $line = $1;
+            next unless length($line);
+
+            ## parse JSON ##
+            my $data = eval { $json->decode($line) };
+            if ($@) {
+                ## not valid JSON yet, put back ##
+                $state->{'buffer'} = $line . "\n" . $state->{'buffer'};
+                last;
+            }
+
+            ## notify chunk received ##
+            $callbacks->{'on_chunk'}->($data)
+                if exists $callbacks->{'on_chunk'};
+        }
+
+        ## check for stop request ##
+        if ( $callbacks->{'check_stop'} && $callbacks->{'check_stop'}->() ) {
+            $callbacks->{'on_error'}->('stop requested')
+                if exists $callbacks->{'on_error'};
+            return;    # abort
+        }
+
+        return 1;      # continue
+    },
+
+    ## on_complete: called when done ##
+    sub {
+        my ( $body, $headers ) = @_;
+        $state->{'completed'} = TRUE;
+        $timeout_watcher->cancel if defined $timeout_watcher;
+
+        ## process any remaining buffer ##
+        if ( length( $state->{'buffer'} ) ) {
+            my $data = eval { $json->decode( $state->{'buffer'} ) };
+            if ( defined $data ) {
+                $callbacks->{'on_chunk'}->($data)
+                    if exists $callbacks->{'on_chunk'};
+            }
+        }
+
+        ## notify completion ##
+        $callbacks->{'on_complete'}->($state)
+            if exists $callbacks->{'on_complete'};
+
+        $cv->send( { success => TRUE, state => $state } );
+    }
+);
+
+## return immediately - caller uses condvar or callbacks ##
+return {
+    success => TRUE,
+    condvar => $cv,
+    state   => $state,
+};
+
+#,,,.,.,,,...,.,,,..,,...,.,.,.,,,,,.,,.,,,.,,.,.,...,...,...,..,,,.,,..,,..,,
+#NIVU2IID6K4TQZ3OS3NKONNCLQQLQTEXZ6ZZJTJJZ4MS2GVB7NNLLC5PMMXWLCPRS3UASYTJYUDI2
+#\\\|X3KGYEUR2PBI7XKXQDSRDHVHUOQ7TKLZ3IPZFRA6CMZUCNIMJET \ / AMOS7 \ YOURUM ::
+#\[7]WT7PGNT2JOKHGP67T5QKCMMYTC2KMWFPVEE6YFR2T6NW3E6YLUCI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
