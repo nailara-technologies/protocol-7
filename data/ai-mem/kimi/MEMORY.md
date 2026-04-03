@@ -2,10 +2,67 @@
 
 > ⚠️ **CRITICAL COMMIT POLICY**: Never commit without valid version number (run `./bin/dev/update-version`) and proper signatures (run `bin/Protocol-7 sourcecode update-signatures`). Use `--no-verify` only in emergencies.
 
+## Coding Zenka Infrastructure Commands (March 2026)
+
+### New Commands Added
+
+**`coding.inject-message <task_id> <message>`**
+- Injects a user message into an active coding task's conversation
+- Message appears as user role in next inference round
+- Implementation: Adds to `$task->{'injected_messages'}` array
+- Processing: `coding.handler.process-queued-task` checks after event yield
+- Use case: Human intervention, hints, corrections without stopping task
+
+**`coding.wait-done <task_id> [timeout]`**
+- Blocks until task completes, fails, or timeout
+- Timeout is optional; 0 or omitted = wait indefinitely (tasks can run very long)
+- Returns: `{mode: true, data: result}` on success, `{mode: false, data: error}` on failure
+- Fails immediately if task not found
+- Note: During active inference, event loop doesn't yield for polling (architectural constraint)
+
+### Files Added/Modified
+- `modules/coding.cmd.inject-message` - new command
+- `modules/coding.cmd.wait-done` - new command
+- `modules/coding.handler.process-queued-task` - injection point after event yield
+- `modules/coding.file.strip_trailing_spaces` - extracted helper
+- `modules/coding.tools.handler.strip_trailing_spaces` - use extracted helper
+- `modules/base.list.subroutines` - register new modules
+- `configuration/zenki/coding/start` - command access permissions
+
+---
+
 ## Coding Zenka Fixes (April 2025)
 
 ### Summary
 Major fixes to tool dispatch, error handling, and context management.
+
+### Recent Fixes (March 2026)
+
+**1. Model Name Garbage Detection**
+- Problem: GGUF metadata contained garbage names like "Unsloth Gguf 909Acke7"
+- Fix: Detect tool signatures and random patterns, fallback to parent directory name
+- Files: `models.gguf.file.is_garbage_name`, `models.gguf.file.extract_name`
+
+**2. GPU Spawn Zombie Process Handling**
+- Problem: Zombie processes blocked foreign process detection
+- Fix: Check `/proc/$pid/stat` for 'Z' state and skip zombies, add `waitpid` reaping
+- Files: `coding.handler.spawn_smart`, `coding.spawn_inference_server`
+
+**3. Edit File Chunked Support**
+- Added `batch_size` (default 25) and `continue` (offset) parameters
+- Prevents JSON truncation on large edit sets
+- Returns "[continue=N for more]" hint when more edits remain
+- Files: `coding.tools.dispatch`
+
+**4. NShell History Navigation**
+- Fixed `arrow_up` off-by-one error in history index
+- Added `current_history_index` reset after command execution
+- Files: `nshell.input.arrow_up`, `nshell.cmd.execute`
+
+**5. Git Tools Added**
+- `git_restore_file`: Restore files from git with change detection
+- `strip_trailing_spaces`: Remove trailing whitespace with permission handling
+- `write_with_perms`: Helper for permission-aware file writes via chmod child
 
 ### Key Changes
 
@@ -1364,8 +1421,8 @@ p7c kimi-web.list_agents
 
 ---
 
-#,,.,,,,.,..,,,,.,,,,,.,,,..,,...,.,,,,..,,,,,.,.,...,...,,,.,...,.,.,.,,,...,
-#6DXTDC5SUUKHIJJGIUJ4JMUMW2VDY4GNBEHJ3SMK7646AYECVBT3HKBJ3XDGUQ663TRKMZJMF4BAE
-#\\\|VVSG2MTW4LXGUS4XYXYCA5OTNNHXT3ADIJM4GOWCYHZTHZMKTTC \ / AMOS7 \ YOURUM ::
-#\[7]AJME3T2CRJZMEO4JMQTMUZBJH2QRHRVOASY7DEEKOEVYBJ2AICCA 7  DATA SIGNATURE ::
+#,,,,,,.,,,.,,...,,.,,,,,,..,,,.,,,,,,..,,.,,,.,.,...,...,...,.,,,..,,...,,,.,
+#L2JAB3RKLFVNHKGWXTUW6I6ITKM2ED4L5K5ZB4FP6QU35X3PE6O2P3NJ4BWFT7EDILRR4SR2BHMPO
+#\\\|FERSEVCHUDBHZD6GA33GP32GVCX73QK5RMLC7TOS6S4363VD7FT \ / AMOS7 \ YOURUM ::
+#\[7]24MLHOOYF4W763LF3K54EABVKRLS55L4QIRQ2KAHOUISNT2JAMDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
