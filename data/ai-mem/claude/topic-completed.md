@@ -88,6 +88,23 @@ saves via `yaml_save`
 - switch-model: auto backend (gpu first, cpu fallback); kill old server before VRAM check;
   0.3s wait for GPU driver VRAM release; use provided model_path directly in spawn_smart
 
+## Async HTTP streaming infrastructure (Apr 2 2026) — commits `8b237edc2` area
+Full async inference pipeline for coding zenka committed:
+- `coding.async.http_client` — non-blocking HTTP with event-based I/O
+- `coding.handler.http_io` — SSE chunk parsing, chunked encoding support
+- `coding.async.chunk_handler` — extract content/reasoning_content from deltas
+- `coding.async.state_machine` — 7 states (STREAMING, TOOL_EXEC, USER_INPUT, SUBTASK, PAUSED, COMPLETE, ERROR)
+- `coding.async.tool_executor` — dispatch tool calls, collect results, resume streaming
+- `coding.buffer.model_output` — chat-like formatting with box drawing
+- `coding.callback.http_complete` — debug logging added for tool loop investigation
+Basic streaming works. Tool execution loop broken (tasks complete after first response).
+See `topic-async-tool-loop-debug.md` for full debug state.
+
+Also completed: vision system overhaul (shared HTTP backend, OOM protection, mmproj detection),
+inference server crash detection + auto-restart, retry on timeout/5xx, intelligent loop detection,
+B32: prefix handling fix in single-line mode, Jinja template sanitization, NShell history nav fix,
+zenki-create/zenki-feature-port/footer-cleanup templates added.
+
 ## Coding zenka self-improvement cycle (Mar 29 2026)
 - Inline sub extraction: context.* (9 subs → 8 modules, manual), plugin.storage.cluster.* (6 subs → 5 modules, autonomous)
 - Pager extraction failed (wrong structure, edit mismatches) → diagnosed → refined template + new tools
@@ -101,8 +118,8 @@ saves via `yaml_save`
 - Commits: c0f31ed72 (context extraction + hardening), 774836862 (template v1),
   638686882 (template v2 = commit 7000), bbb9fd34b (new tools), 2e13d3817 (autonomous extraction)
 
-#,,.,,,..,.,.,,..,.,,,,,,,,..,.,.,,..,...,,..,..,,...,...,,..,...,,.,,,.,,,,.,
-#VARPBOPRUBXCAAOXOOIHVH5L6ZURWC4IKIQPAZAS2PTSBDPDAFRUYSWEJODY2AURDPNXNVNUJ7XM4
-#\\\|YIGVG43RKSJXV2O6JL5AZV5PRJ32OMKVN2WBVSR5L2VGNVZ43ET \ / AMOS7 \ YOURUM ::
-#\[7]FOJ7Q5RTSB4PAPPP6OAP7XGQ66SYNEVULYU4MW6PLKP2YELBVKBI 7  DATA SIGNATURE ::
+#,,,.,,..,.,,,,.,,,,.,,.,,,..,,,.,..,,,.,,,,,,..,,...,...,..,,.,,,...,..,,..,,
+#YUUIZKLKEWGIQJNK43LYIAUC45HZFBZMNWUVIBXG35PD5FUMR3ZJHYXHQQM3OGULHXN6J3E46FPJC
+#\\\|SD75N3TO73EG6GB4KA2OURO57TDK7QS7QOA3ILSOIUWCIRWPXLQ \ / AMOS7 \ YOURUM ::
+#\[7]PU4E2O6RQIRDHZFZWZWGPYHHM5QPAPY23LHRVCJXJKZXQPJII6BI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

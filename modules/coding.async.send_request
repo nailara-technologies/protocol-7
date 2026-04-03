@@ -31,6 +31,24 @@ if ( @{ $state->{'tool_results'} // [] } ) {
     push @messages, @{ $state->{'tool_results'} };
 }
 
+## increment round counter (use 'round' key matching state_machine) ##
+my $round = ( $state->{'round'} // 0 ) + 1;
+if ( $round > 10 ) {
+    <[base.logs]>
+        ->( 0, "send_request: max rounds exceeded for %s", $task_id );
+    <[coding.async.fail_task]>->( $task_id, 'max rounds exceeded' );
+    return { success => FALSE, error => 'max rounds exceeded' };
+}
+
+<[coding.async.state_manager]>->(
+    'set', $task_id,
+    {   'round'         => $round,
+        'content'       => '',
+        'tool_calls'    => [],
+        'finish_reason' => undef,
+    }
+);
+
 ## build request body ##
 my $request_body = {
     'model'    => 'default',
@@ -43,8 +61,8 @@ my $request_body = {
 return
     <[coding.async.request]>->( $task_id, $request_body, $state->{'job_id'} );
 
-#,,.,,,.,,...,..,,.,.,.,.,,.,,,,,,,,,,..,,,,.,..,,...,..,,..,,..,,.,,,,..,..,,
-#5QHEV3GBJJKM5SW6267E6UMY5PVPGL7GXFK6HKTMQ34CCM4O7VBPE2C4CO6CYVCF4F4UELGSSPRYW
-#\\\|ZNCPBKTY2Z2T3VSEJKK3AEPEASBN6OJJWESNEL4BH3OGV2RJSOX \ / AMOS7 \ YOURUM ::
-#\[7]CZU7JIEQLR7FTWP2HR6XURLRGRKT3LOISPXFXKY25THYBM6H4WCY 7  DATA SIGNATURE ::
+#,,..,,.,,.,.,,,,,...,,,.,,..,,.,,...,,.,,,..,..,,...,...,,.,,,..,,,.,...,,.,,
+#5IWRPP4OSXWJRUOSG72IT6Q6GFYITSSMEJYD7BM7BTP42UNBO33HE5IXL4MKMWNIXVH3DGPIGLNBY
+#\\\|Z4P3GJUTPHX3M4SWTPZAAWQ7Y6KYI4X4IWBP2XUP4N2C3KV5R74 \ / AMOS7 \ YOURUM ::
+#\[7]U4YG5ZM7DLY6RDGLHI6GVWEQMV5IQECAKHQBYGEZZGCQFOC7BGBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
