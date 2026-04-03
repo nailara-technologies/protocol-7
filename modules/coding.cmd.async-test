@@ -1,0 +1,63 @@
+## [:< ##
+
+# name  = coding.cmd.async-test
+# descr = manually test async completion flow (development only)
+# param = <task_id> <success|fail> [message]
+# note  = Will be removed when async flow is fully working
+
+my $args_str = $call->{'args'} // '';
+my ( $task_id, $outcome, $message ) = split m{ +}, $args_str, 3;
+
+return { 'mode' => qw| false |, 'data' => 'task_id required' }
+    unless defined $task_id and length $task_id;
+
+return { 'mode' => qw| false |, 'data' => 'outcome required (success|fail)' }
+    unless defined $outcome and $outcome =~ m{^(success|fail)$};
+
+## lookup task ##
+my $task = <coding.task.queue>->{$task_id};
+
+return { 'mode' => qw| false |, 'data' => "task not found: $task_id" }
+    unless defined $task;
+
+## check task has async state ##
+my $async_state = <[coding.async.state_manager]>->( 'get', $task_id );
+
+return { 'mode' => qw| false |, 'data' => "task $task_id not in async mode" }
+    unless defined $async_state;
+
+## build result ##
+my $result;
+if ( $outcome eq 'success' ) {
+    $result = {
+        success => TRUE,
+        result  => $message // "[async-test] mock success for $task_id",
+    };
+} else {
+    $result = {
+        success => FALSE,
+        error   => $message // "[async-test] mock failure for $task_id",
+    };
+}
+
+## call async completion ##
+my $completion = <[coding.async.complete]>->( $task_id, $result );
+
+if ( $completion->{'success'} ) {
+    return {
+        'mode' => qw| true |,
+        'data' => "async completion triggered for $task_id"
+    };
+} else {
+    return {
+        'mode' => qw| false |,
+        'data' => "async completion failed: "
+            . ( $completion->{'error'} // 'unknown' )
+    };
+}
+
+#,,..,.,.,,,,,...,,..,.,.,,.,,...,,,.,,..,.,.,.,.,...,...,...,,..,.,.,.,,,..,,
+#L24OKQUIWMEMMCMVJ7RIP7BO36NK7H6STGHWJW4V4RLSGYIH7WRVZHFM4GHVKOSHGVAH6PWHX22WC
+#\\\|YAWDACOYMQD5MDSC6Z5O2ZKKJAH77GFKEA5NUZUTHJH5H6XHIGD \ / AMOS7 \ YOURUM ::
+#\[7]S3P23OF5TXWTQATHQFLGSDHV5GTRI3VL46ZTIAES54MM5BEJA2DA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
