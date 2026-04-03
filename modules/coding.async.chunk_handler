@@ -4,7 +4,7 @@
 # descr = Handle streaming chunks from llama-server inference
 # purpose = Phase 2: Process NDJSON chunks, update buffers, extract completion
 
-use JSON::XS;
+## JSON::XS loaded via coding.init_code
 
 my ( $task_id, $chunk_data, $context ) = @ARG;
 
@@ -58,8 +58,8 @@ if ( defined $choice->{'finish_reason'} ) {
 ## return context for next chunk ##
 return $context;
 
-#,,,,,,..,,..,.,.,.,.,,,.,.,,,,,.,...,..,,,,.,.,.,...,...,...,..,,..,,.,,,...,
-#6VEBYMB53DHCQ7KKAJAV6APEVZ43GHHVKAQRKYN3QCU2EDAGOHMWFGUFZCDVKUS2GKPALNU4CVFIW
-#\\\|IOCWVLTRP2LK2P3JULFTFSKLTSU7QMPPCKS4XES4QX2P6OWWPF4 \ / AMOS7 \ YOURUM ::
-#\[7]HGWHRMBIEYMV7D2SQUUPQAG36AUAEA5PKD4WXDZDSQMT3NIPTGBQ 7  DATA SIGNATURE ::
+#,,,.,..,,,,.,..,,,.,,...,,.,,...,...,.,.,,,.,.,.,...,...,...,,,,,.,,,..,,,,.,
+#HDTFTZEA4AEIPBM5DJE7LUR5F3AEEPGB5P7EILPHIIM4W4WRQSWENOUDEUPAZCFOKOOW3OFJCQBH2
+#\\\|CVIDEXQL7OLWSI3ENIYE6VDNGCHGAAWYSBMSL7REOKJGUGDDWSW \ / AMOS7 \ YOURUM ::
+#\[7]FLCHXQ3E7DTU7HULRSP42DMFFKWY3UWV3HYKO56LCLBFCXGMNCAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
