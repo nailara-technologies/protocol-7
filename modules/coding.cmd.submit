@@ -47,6 +47,19 @@ if ( defined $call->{'param'} && ref $call->{'param'} eq qw| HASH | ) {
 
     # Single-line mode - request is in args
     $request_str = $call->{'args'} // '';
+
+    # Handle B32: prefix for base32-encoded single-line requests
+    if ( $request_str =~ s/^B32:// ) {
+        my $decoded = eval { decode_b32r($request_str) };
+        if ( defined $decoded && length $decoded ) {
+            $request_str = $decoded;
+        } else {
+            return {
+                'mode' => qw| false |,
+                'data' => "Failed to decode B32 payload\n"
+            };
+        }
+    }
 }
 
 return { 'mode' => qw| false |, 'data' => "work request required\n" }
@@ -127,8 +140,8 @@ return {
     'data' => $response
 };
 
-#,,.,,,..,,.,,..,,..,,..,,...,,..,.,,,...,.,,,..,,...,...,.,,,.,.,,,,,.,,,,..,
-#AIXE2YI4UPBM4ZVOIC73HDDOJUWRLJ7BSIRZ6N36DWNCW2GMXDX2BIHUHH6MUDHDQTJCJDY22F32A
-#\\\|QISHYYPUBETZWBJNF3RTDFINTB6D5AJ4EENFOWA3URMJV7MCFCG \ / AMOS7 \ YOURUM ::
-#\[7]JH3DDCDOYZB7VL6MENE5XREA3K3H6DZBHDQVRRBKLZK3OGYE7ECI 7  DATA SIGNATURE ::
+#,,.,,.,.,,,.,.,,,,,.,.,,,,,.,.,.,,,,,.,.,,,,,..,,...,..,,.,,,...,,.,,,.,,,,.,
+#S5UH63XNWBHFSBTSZQSOKFDUMYDOAJZC652DA2XR2BDHGYHXEUMLBIHYDJVIB4PTKV2GDFBIRIUZI
+#\\\|IQGABW6P3M2GMKNHZNOD36OXZRQBVNO7G7MTQH4KUVZGPFWUSX5 \ / AMOS7 \ YOURUM ::
+#\[7]AQIFP2OB2V2PE6BI6GB6A3GFO6N36DPY4EOD2E4QLYE6GRKLESAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

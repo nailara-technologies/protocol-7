@@ -127,19 +127,28 @@ my $callbacks = {
     timeout => 300,    # 5 minutes max
 };
 
+<[base.logs]>
+    ->( 1, "async.request: connecting to %s for %s", $url, $task_id );
+
 ## start HTTP request (returns immediately) ##
 my $http_result
     = <[coding.async.http_client]>->( $url, $request_body, $callbacks );
 
 if ( !$http_result->{'success'} ) {
     ## immediate error ##
+    <[base.logs]>->(
+        0,        "async.request: immediate error for %s: %s",
+        $task_id, $http_result->{'error'}
+    );
     <[coding.async.complete]>->(
         $task_id, { success => FALSE, error => $http_result->{'error'} }
     );
     return { success => FALSE, error => $http_result->{'error'} };
 }
 
-<[base.logs]>->( 1, "async.request: streaming started for %s", $task_id );
+<[base.logs]>->(
+    1, "async.request: http_client returned success for %s", $task_id
+);
 
 return {
     success => TRUE,
@@ -147,8 +156,8 @@ return {
     mode    => 'streaming',
 };
 
-#,,,.,,.,,...,,,,,,,.,,,,,,.,,..,,,.,,.,.,..,,.,.,...,...,..,,,,,,...,...,,,,,
-#2XEVD2LPT5RQOOC4PLRRWFPLMJYI2ALHNJYHWVEXNEJRUQ3BFSGZPY6X6VA7IA6IBRCYHS3GJA762
-#\\\|JRQFZJXCHMQ4TW2TPQHTPXUTP6VHXMQHIVBMVEPH5D62QHF42KL \ / AMOS7 \ YOURUM ::
-#\[7]IMXI3Y3WMIGWSY2GHP5LVSTV4PP5FVG5SVKPPMRU5MQJ6XG7O6AA 7  DATA SIGNATURE ::
+#,,,.,,,,,,..,,,,,...,..,,,,,,,,.,,.,,,..,,,.,.,.,...,...,,.,,..,,.,,,.,.,,,.,
+#2TVZ2D5IXLEO34TI2VSINOVHXRLMJWBTE64ROQD4PSGXPPOYPOWE7L5NSAQPHYBO523ELSEF52LT4
+#\\\|YJHUSTSFDQ46ROZ3CFREYGKPOCV5YXYPXQRBULEGKCJSBOEZJC6 \ / AMOS7 \ YOURUM ::
+#\[7]NYJ3NRTY4JQI6OAN4M4QMV43FZ3SAGEQKE2FYDIV5MOZAVY6AAAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
