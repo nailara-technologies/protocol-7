@@ -29,7 +29,7 @@ use vars qw| @EXPORT $VERSION |;
     load_source
     save_source
     $VERSION
-|;
+    |;
 
 our $VERSION = qw| AMOS7::Backup-VERSION.ZK4M9P1 |;
 
@@ -83,9 +83,9 @@ sub check_path {
                 if ($verbose) {
                     print ": directory created : $current_path_short\n";
                 }
-            }
-            else {
-                die ":: cannot create directory '$current_path' : \l$OS_ERROR ::\n";
+            } else {
+                die
+                    ":: cannot create directory '$current_path' : \l$OS_ERROR ::\n";
             }
         }
     }
@@ -100,14 +100,14 @@ sub create_dir {
 
     if ( $full_path =~ /^(.+)\/([^\/]+)$/ ) {
         ( $parent_dir, $new_dir ) = ( $1, $2 );
-    }
-    else {
+    } else {
         die
             ":: create_dir() : directory argument should include full path ::\n";
     }
 
     if ( !-d $parent_dir ) {
-        die ":: create_dir() : parent directory '$parent_dir' does not exist ::\n";
+        die
+            ":: create_dir() : parent directory '$parent_dir' does not exist ::\n";
     }
 
     if ( !-d $full_path ) {
@@ -116,12 +116,10 @@ sub create_dir {
                 print ": directory '$full_path' created :\n";
             }
             return TRUE;
-        }
-        else {
+        } else {
             die ":: cannot create directory '$full_path' : \l$OS_ERROR ::\n";
         }
-    }
-    else {
+    } else {
         if ($verbose) {
             print ": directory '$full_path' already exists :\n";
         }
@@ -140,9 +138,9 @@ sub clean_dir {
                 print ": directory removed : $directory_path\n";
             }
             return TRUE;
-        }
-        else {
-            die ":: clean_dir() : removing directory '$directory_path' failed : \l$OS_ERROR ::\n";
+        } else {
+            die
+                ":: clean_dir() : removing directory '$directory_path' failed : \l$OS_ERROR ::\n";
         }
     }
 
@@ -272,15 +270,15 @@ sub save_metadata {
                     $file_key = $first_key . '.'
                         . $meta_data->{$first_key}{$second_key};
                     push( @file_data, "$file_key $second_key\n" );
-                }
-                else {
+                } else {
                     $file_key = $first_key . '.' . $second_key;
                     push( @file_data,
-                        "$file_key " . $meta_data->{$first_key}{$second_key} . "\n" );
+                              "$file_key "
+                            . $meta_data->{$first_key}{$second_key}
+                            . "\n" );
                 }
             }
-        }
-        else {
+        } else {
             push( @file_data,
                 "$file_key = " . $meta_data->{$first_key} . "\n" );
         }
@@ -298,12 +296,11 @@ sub save_metadata {
                 }
                 print ":: backup metadata saved to $file_name_short ::\n\n";
             }
+        } else {
+            die
+                ":: cannot open backup metadata file '$file_name' : \l$OS_ERROR ::\n";
         }
-        else {
-            die ":: cannot open backup metadata file '$file_name' : \l$OS_ERROR ::\n";
-        }
-    }
-    else {
+    } else {
         die ':: save_metadata() :: nothing to save ::';
     }
 }
@@ -323,13 +320,13 @@ sub load_metadata {
         }
 
         open( my $META_FILE, '<', $file_name )
-            or die " :: cannot open metadata file '$file_name' : \l$OS_ERROR ::\n";
+            or die
+            " :: cannot open metadata file '$file_name' : \l$OS_ERROR ::\n";
 
         @metadata_file = <$META_FILE>;
         close($META_FILE);
 
-    }
-    elsif ( $file_name =~ m{backup\..+\.tar.gz$} ) {
+    } elsif ( $file_name =~ m{backup\..+\.tar.gz$} ) {
         my $archive_content = qx| tar ztf $file_name |;
 
         # find the actual path of the metadata file in the archive
@@ -343,9 +340,9 @@ sub load_metadata {
 
         my $file_contents = qx| tar zxf $file_name $metadata_filename -O |;
         @metadata_file = split( m|\n|, $file_contents );
-    }
-    else {
-        die ":: load_metadata() : unsupported file format for '$file_name' ::\n";
+    } else {
+        die
+            ":: load_metadata() : unsupported file format for '$file_name' ::\n";
     }
 
     foreach my $data_line (@metadata_file) {
@@ -353,11 +350,9 @@ sub load_metadata {
 
         if ( $data_line =~ m|^([^\.]+)\s(.*)$| ) {
             $meta_data{$1} = $2;
-        }
-        elsif ( $data_line =~ m|^([^\.]+)\.([^\.]+)\s(.*)$| ) {
+        } elsif ( $data_line =~ m|^([^\.]+)\.([^\.]+)\s(.*)$| ) {
             $meta_data{$1}{$2} = $3;
-        }
-        else {
+        } else {
             die " :: invalid syntax in meta data file : '$data_line' ::\n";
         }
     }
@@ -375,7 +370,7 @@ sub pack_backup {
     my $backup_dir  = shift;
     my $backup_file = shift;
     my $cut_path    = shift;
-    my $pack_dir    = shift // ($ENV{'HOME'} . '/.code/current_backup/');
+    my $pack_dir    = shift // ( $ENV{'HOME'} . '/.code/current_backup/' );
 
     if ($verbose) {
         my $backup_file_short = $backup_file;
@@ -386,7 +381,8 @@ sub pack_backup {
     }
 
     my $current_dir = Cwd::getcwd();
-    chdir($pack_dir) or die ":: cannot change to $pack_dir : \l$OS_ERROR ::\n";
+    chdir($pack_dir)
+        or die ":: cannot change to $pack_dir : \l$OS_ERROR ::\n";
 
     my $pack_results = qx| tar czvvf $backup_file . |;
     chmod( 0400, $backup_file );
@@ -405,10 +401,10 @@ sub pack_backup {
 ##[ MAIN BACKUP CREATION ]####################################################
 
 sub create_backup {
-    my $backup_source = shift;    # the sourcecode hash of files to be backed up
-    my $backup_metadata = shift;  # hashref to metadata
-    my $modified_source = shift;  # modified source [if exists]
-    my $work_path = shift // ($ENV{'HOME'} . '/.code/');
+    my $backup_source = shift;  # the sourcecode hash of files to be backed up
+    my $backup_metadata = shift;    # hashref to metadata
+    my $modified_source = shift;    # modified source [if exists]
+    my $work_path       = shift // ( $ENV{'HOME'} . '/.code/' );
 
     die "first argument to create_backup() expected a hash reference"
         if ref($backup_source) ne qw| HASH |;
@@ -452,8 +448,7 @@ sub create_backup {
 
     # Add checksums of original source
     if ( ref($modified_source) eq qw| HASH | ) {
-        $backup_metadata->{'original_bmw'}
-            = create_checksums($backup_source);
+        $backup_metadata->{'original_bmw'} = create_checksums($backup_source);
     }
 
     if ($verbose) {
@@ -479,10 +474,12 @@ sub create_backup {
             sleep 1;
         }
 
-        $backup_file = 'backup.' . $operation_type . &timestamp_string . '.tar.gz';
+        $backup_file
+            = 'backup.' . $operation_type . &timestamp_string . '.tar.gz';
     }
 
-    pack_backup( $backup_dir, $backup_dir . $backup_file, $work_path, $pack_dir );
+    pack_backup( $backup_dir, $backup_dir . $backup_file,
+        $work_path, $pack_dir );
 
     clean_dir($pack_dir);
 
@@ -505,10 +502,12 @@ sub restore_backup {
 
     # Create temp directory for extraction
     my $temp_dir = $target_root . 'restore_temp_' . time();
-    mkdir($temp_dir) or die ":: cannot create temp directory : \l$OS_ERROR ::\n";
+    mkdir($temp_dir)
+        or die ":: cannot create temp directory : \l$OS_ERROR ::\n";
 
     # Determine archive type and extract
-    my $extract_cmd = $backup_file =~ /\.tar\.xz$/
+    my $extract_cmd
+        = $backup_file =~ /\.tar\.xz$/
         ? "cd $temp_dir && tar -xJf $backup_file"
         : "cd $temp_dir && tar -xzf $backup_file";
 
@@ -538,9 +537,9 @@ sub restore_backup {
 ##[ HELPER FUNCTIONS ]########################################################
 
 sub _add_path {
-    my $prefix  = shift;
+    my $prefix    = shift;
     my $file_hash = shift;
-    my $new_hash = {};
+    my $new_hash  = {};
 
     foreach my $filepath ( keys %$file_hash ) {
         my $newpath = $prefix . $filepath;
@@ -554,14 +553,9 @@ sub _add_path {
 ##[ END OF MODULE ]###########################################################
 
 1;
-:
-#PLACEHOLDER_FOR_AMOS7_SIGNATURE_LINE_1
-#\\\|PLACEHOLDER_FOR_AMOS7_SIGNATURE_LINE_2
-#\[7]PLACEHOLDER_FOR_AMOS7_SIGNATURE_LINE_3
-#::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
-#,,,,,..,,,,,,...,,..,,.,,,,,,,,.,.,.,,.,,...,..,,...,..,,.,,,,.,,.,.,.,,,.,,,
-#GH3WTQ4SPATCD75LSGQU35SIKZXECUGYJI2M2M6CIZ4DHXULP7S52FZUV327GZP6U5QKABENFKLGI
-#\\\|UN7O25KEYQKACU6A3EIDUSYUHUXLP6ZUH4PSC4TR4EHYHNRVJX5 \ / AMOS7 \ YOURUM ::
-#\[7]LTVIS5USE325IXRJ6SKORDZHVGY7AYEQAROPY2C33TGQN6M46GBI 7  DATA SIGNATURE ::
+#,,,.,.,.,,.,,,,.,,.,,,.,,..,,.,.,..,,,..,,,.,..,,...,.,.,.,.,,..,..,,,.,,,,,,
+#2YWGXXFNV5PZM3WMX5JTMMDLK2PVJRNHAJXS4CMI27JOO5CQ4LHGETEEOVATZRMQ5VGBSNKUDKKXU
+#\\\|HH3J4FYGSD7VNOT3V5TYIWZU4LJW3CRPXOXI65R275PAUXICDTD \ / AMOS7 \ YOURUM ::
+#\[7]GIWSSVNOUB2AOEVT5TMQE2BHZ3HHPO7IIHCLJZQDXRDGWOSK6SDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

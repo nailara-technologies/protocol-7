@@ -17,9 +17,9 @@ return { success => FALSE, error => "task not found: $task_id" }
     unless defined $task;
 
 ## determine backend ##
-my $backend = $task->{'analysis'}->{'routed_to'} // 'gpu';
+my $backend = $task->{'analysis'}->{'routed_to'} // qw| gpu |;
 my $port
-    = $backend eq 'cpu'
+    = $backend eq qw| cpu |
     ? ( <inference.backend.cpu.port> // 8001 )
     : ( <inference.backend.gpu.port> // 8000 );
 
@@ -27,114 +27,38 @@ my $url = "http://127.0.0.1:${port}/v1/chat/completions";
 
 ## store async state ##
 <[coding.async.state_manager]>->(
-    'set', $task_id,
+    qw| set |,
+    $task_id,
     {   job_id        => $job_id,
         task_id       => $task_id,
         backend       => $backend,
         port          => $port,
         start_time    => <[base.time]>->(3),
-        mode          => 'streaming',
+        mode          => qw| streaming |,
         chunk_context => {},
     }
 );
 
-## setup callbacks ##
+## initialize state machine for tool execution loop ##
+<[coding.async.state_machine]>->(
+    qw| init |,
+    $task_id,
+    {   messages => $request_body->{'messages'} // [],
+        tools    => $request_body->{'tools'}    // [],
+        backend  => $backend,
+        port     => $port,
+    }
+);
+
+## setup callbacks — extracted to coding.callback.* modules ##
 my $callbacks = {
-    on_header => sub {
-        my ($headers) = @_;
-        <[base.logs]>->(
-            2,        "async.request: headers received for %s [HTTP %s]",
-            $task_id, $headers->{'Status'}
-        );
-    },
-
-    on_chunk => sub {
-        my ($data) = @_;
-
-        ## process chunk ##
-        my $state = <[coding.async.state_manager]>->( 'get', $task_id );
-        return unless defined $state;
-
-        my $context = $state->{'chunk_context'} // {};
-        $context->{'round'} = $state->{'tool_round'} // 0;
-
-        ## call chunk handler ##
-        $context
-            = <[coding.async.chunk_handler]>->( $task_id, $data, $context );
-
-        ## update state ##
-        $state->{'chunk_context'} = $context;
-        <[coding.async.state_manager]>->( 'set', $task_id, $state );
-
-        ## check for completion ##
-        if ( defined $context->{'finish_reason'} ) {
-            ## inference round complete ##
-            $state->{'response_text'} = $context->{'content'};
-            $state->{'finish_reason'} = $context->{'finish_reason'};
-            $state->{'tool_calls'}    = $context->{'tool_calls'};
-            <[coding.async.state_manager]>->( 'set', $task_id, $state );
-        }
-    },
-
-    on_complete => sub {
-        my ($http_state) = @_;
-
-        <[base.logs]>->(
-            1,
-            "async.request: inference complete for %s [%d bytes, %d chunks]",
-            $task_id,
-            $http_state->{'bytes_received'},
-            $http_state->{'chunks_received'}
-        );
-
-        ## finalize and complete ##
-        my $state = <[coding.async.state_manager]>->( 'get', $task_id );
-        return unless defined $state;
-
-        my $result = {
-            success       => TRUE,
-            result        => $state->{'response_text'},
-            finish_reason => $state->{'finish_reason'} // 'stop',
-            tool_calls    => $state->{'tool_calls'},
-        };
-
-        ## log final response to model output buffer ##
-        if ( length( $result->{'result'} ) ) {
-            <[coding.buffer.model_output]>->(
-                $result->{'result'},
-                {   'round' => $state->{'chunk_context'}{'round'} // 0,
-                    'tool'  => 'model',
-                }
-            );
-        }
-
-        ## call async completion ##
-        <[coding.async.complete]>->( $task_id, $result );
-    },
-
-    on_error => sub {
-        my ($error) = @_;
-
-        <[base.logs]>->(
-            0,        "async.request: error for %s: %s",
-            $task_id, $error
-        );
-
-        ## fail the task ##
-        my $result = {
-            success => FALSE,
-            error   => $error,
-        };
-
-        <[coding.async.complete]>->( $task_id, $result );
-    },
-
-    check_stop => sub {
-        my $task = <coding.task.queue>->{$task_id};
-        return $task->{'stop_requested'} // FALSE;
-    },
-
-    timeout => 300,    # 5 minutes max
+    on_header => sub { <[coding.callback.http_header]>->( $task_id, @ARG ) },
+    on_chunk  => sub { <[coding.callback.http_chunk]>->( $task_id, @ARG ) },
+    on_complete =>
+        sub { <[coding.callback.http_complete]>->( $task_id, @ARG ) },
+    on_error   => sub { <[coding.callback.http_error]>->( $task_id, @ARG ) },
+    check_stop => sub { <[coding.callback.http_check_stop]>->($task_id) },
+    timeout    => 300,    # 5 minutes max
 };
 
 <[base.logs]>
@@ -147,7 +71,7 @@ my $http_result
 if ( !$http_result->{'success'} ) {
     ## immediate error ##
     <[base.logs]>->(
-        0,        "async.request: immediate error for %s: %s",
+        0,        "async.request : immediate error for %s : %s",
         $task_id, $http_result->{'error'}
     );
     <[coding.async.complete]>->(
@@ -163,11 +87,11 @@ if ( !$http_result->{'success'} ) {
 return {
     success => TRUE,
     task_id => $task_id,
-    mode    => 'streaming',
+    mode    => qw| streaming |,
 };
 
-#,,,.,..,,..,,,.,,...,,..,,,.,...,,.,,,,,,,,.,.,.,...,..,,...,,..,,..,,..,..,,
-#BTLECANY6QAKG3XKB2XG7AMVZGBX7R34HDMS7GRKRD2GAEEMI2RWPUDHRFOOOYTWGVPH3457KV3E2
-#\\\|JNEIYR5HVINOJUSREXEQGJSCPOA5JPUND2YPX5PTJ6VIZVSCYOE \ / AMOS7 \ YOURUM ::
-#\[7]ZO62463NXZQHFHTC4P5LD23EUFLXNKGGUPPREHXVNKTF6HXLJMAA 7  DATA SIGNATURE ::
+#,,.,,.,.,,.,,.,.,..,,.,,,.,.,,,,,,,,,,.,,,,,,..,,...,...,...,,.,,,.,,,,.,,,,,
+#BTVU7ISS7VZP2USQRUJ52U6XYORIXFOH4XQXMKP7URCKGR7S47QNVAEFPQAAZRABE6GZVLGEJOMY6
+#\\\|ITWZXHYDTV3LTKZLNZONT3FA6CIV7F5KGHK7SSADEJEGGOGKNH2 \ / AMOS7 \ YOURUM ::
+#\[7]DZMGYH67ZHFYUQ35DXBHPXHMKUJDRZDNINYFYE5RRHO6MQIDHQAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
