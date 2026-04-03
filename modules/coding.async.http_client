@@ -19,6 +19,9 @@ my $cv = AnyEvent->condvar;
 my $json     = JSON::XS->new->utf8->canonical;
 my $body_str = ref($body) ? $json->encode($body) : $body;
 
+## JSON decoder for responses ##
+my $json_decoder = JSON::XS->new->utf8;
+
 ## track state ##
 my $state = {
     'bytes_received'  => 0,
@@ -64,9 +67,18 @@ http_request(
         $state->{'content_length'} = $headers->{'content-length'};
         $state->{'last_activity'}  = <[base.time]>->(3);
 
+        <[base.logs]>->(
+            1,
+            "async.http_client: headers received - Status: %s",
+            $headers->{'Status'} // 'undef'
+        );
+
         ## check for HTTP error ##
-        if ( $headers->{'Status'} !~ m{^2} ) {
-            $callbacks->{'on_error'}->( "HTTP " . $headers->{'Status'} )
+        if ( !$headers->{'Status'} || $headers->{'Status'} !~ m{^2} ) {
+            my $error
+                = "HTTP error: " . ( $headers->{'Status'} // 'no status' );
+            <[base.logs]>->( 0, "async.http_client: %s", $error );
+            $callbacks->{'on_error'}->($error)
                 if exists $callbacks->{'on_error'};
             return;    # abort
         }
@@ -94,7 +106,7 @@ http_request(
             next unless length($line);
 
             ## parse JSON ##
-            my $data = eval { $json->decode($line) };
+            my $data = eval { $json_decoder->decode($line) };
             if ($@) {
                 ## not valid JSON yet, put back ##
                 $state->{'buffer'} = $line . "\n" . $state->{'buffer'};
@@ -120,11 +132,32 @@ http_request(
     sub {
         my ( $body, $headers ) = @_;
         $state->{'completed'} = TRUE;
-        $timeout_watcher->cancel if defined $timeout_watcher;
+        $timeout_watcher->cancel()
+            if defined $timeout_watcher && $timeout_watcher->can('cancel');
+
+        ## check for connection-level errors ##
+        if ( !$state->{'status_code'} && $headers->{'Status'} ) {
+            <[base.logs]>->(
+                0,
+                "async.http_client: connection error - Status: %s, Reason: %s",
+                $headers->{'Status'},
+                $headers->{'Reason'} // 'unknown'
+            );
+            $callbacks->{'on_error'}->( "Connection failed: "
+                    . ( $headers->{'Reason'} // 'unknown' ) )
+                if exists $callbacks->{'on_error'};
+            $cv->send(
+                {   success => FALSE,
+                    error   => $headers->{'Reason'},
+                    state   => $state
+                }
+            );
+            return;
+        }
 
         ## process any remaining buffer ##
         if ( length( $state->{'buffer'} ) ) {
-            my $data = eval { $json->decode( $state->{'buffer'} ) };
+            my $data = eval { $json_decoder->decode( $state->{'buffer'} ) };
             if ( defined $data ) {
                 $callbacks->{'on_chunk'}->($data)
                     if exists $callbacks->{'on_chunk'};
@@ -146,8 +179,8 @@ return {
     state   => $state,
 };
 
-#,,,.,.,,,...,.,,,..,,...,.,.,.,,,,,.,,.,,,.,,.,.,...,...,...,..,,,.,,..,,..,,
-#NIVU2IID6K4TQZ3OS3NKONNCLQQLQTEXZ6ZZJTJJZ4MS2GVB7NNLLC5PMMXWLCPRS3UASYTJYUDI2
-#\\\|X3KGYEUR2PBI7XKXQDSRDHVHUOQ7TKLZ3IPZFRA6CMZUCNIMJET \ / AMOS7 \ YOURUM ::
-#\[7]WT7PGNT2JOKHGP67T5QKCMMYTC2KMWFPVEE6YFR2T6NW3E6YLUCI 7  DATA SIGNATURE ::
+#,,,,,,.,,,,,,...,,.,,,,.,,,,,..,,,,,,..,,,,.,.,.,...,...,...,...,...,,..,.,,,
+#3PYMIWNPU2ZBWKKFLEVKE7VJM346IE7TQDZYVFKYHEH2CXIR6XRH4WYEDKMYRUENS77WEBY2ROGZE
+#\\\|JRUUFZPJJ45GITADILSVNXV3MBQB4YZKCZ2EDFTXOSEWR652LYO \ / AMOS7 \ YOURUM ::
+#\[7]IW7G55DDT4THHTLEQJXXIUEFNHZGXKOZNCLSDVG4AY4JGSZVH2AQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
