@@ -19,6 +19,7 @@ return [ qw[
         base.init
         base.fork
         base.exit
+        base.call
         vterm.cell
         ssl.server
         ssl.client
@@ -1177,6 +1178,7 @@ return [ qw[
         coding.cmd.staged-diff
         coding.cmd.show-prompt
         coding.cmd.clear-cache
+        coding.async.fail_task
         coding.analyze.process
         channels.mapping.apply
         channels.cmd.test-strm
@@ -1695,6 +1697,7 @@ return [ qw[
         coding.cmd.match-template
         coding.cmd.inject-message
         coding.cmd.clear-registry
+        coding.async.send_request
         coding.async.http_cleanup
         coding.analyze.complexity
         channels.util.yaml_encode
@@ -1868,9 +1871,14 @@ return [ qw[
         coding.context.read_module
         coding.cmd.resume-analysis
         coding.cmd.last-compaction
+        coding.callback.http_error
+        coding.callback.http_chunk
         coding.buffer.model_output
         coding.budget.track_tokens
+        coding.async.tool_executor
         coding.async.state_manager
+        coding.async.state_machine
+        coding.async.complete_task
         coding.async.chunk_handler
         channels.memory-sync.fetch
         base.warnings.from_bitmask
@@ -2038,6 +2046,7 @@ return [ qw[
         coding.helper.budget_status
         coding.handler.http_timeout
         coding.cmd.inference-status
+        coding.callback.http_header
         channels.cmd.test-strm-size
         channels.cmd.channels-since
         base.zenki.report_child_pid
@@ -2342,6 +2351,7 @@ return [ qw[
         coding.handler.restart_server
         coding.handler.deferred_reply
         coding.event.on_task_complete
+        coding.callback.http_complete
         channels.subscription.mapping
         channels.subscription.manager
         channels.cmd.ai-review-submit
@@ -2619,6 +2629,7 @@ return [ qw[
         coding.handler.system_mem_reply
         coding.handler.spawn_path_reply
         coding.handler.model_path_reply
+        coding.callback.http_check_stop
         channels.util.extract_json_path
         channels.memory-sync.batch-send
         channels.content-discovery.init
@@ -3419,8 +3430,8 @@ return [ qw[
     ]
 ];
 
-#,,,.,,..,,.,,.,.,.,.,,.,,.,,,,.,,,.,,...,...,.,.,...,...,,..,...,...,...,,.,,
-#44PGFPEVYTCDL3NSJ7RJD4YTF75D72OHNURJEE3UAOT5E2W3TGN7HGENDY7KOWRMM5XKSCLXPIWGU
-#\\\|D24G2JJRY2ZTMVCUEVAL7JXYVAFDL7CSSTLOOLFY4KXDJEXKBR6 \ / AMOS7 \ YOURUM ::
-#\[7]B4QWS3V5BVK2CHVHI737DKKOQ7PU4TNJKQQOW76OKV4JIP4HGKCA 7  DATA SIGNATURE ::
+#,,.,,,..,,,,,.,.,,.,,.,,,,..,,.,,..,,..,,,..,.,.,...,...,,..,,..,,,,,...,,.,,
+#FDDJY6USNDK6CIUKRIYAIDNYDGXSMKHLUC4MNDJ7PSPAWA74JVJPAIDEJXX2PQRL7ZJTOXQCUIBI4
+#\\\|7CTT74AAQTODVMTTCNN5WSHEGNZ6I5J55I4SVSC3UAU2DQZTCZO \ / AMOS7 \ YOURUM ::
+#\[7]XFWKXB4THFMPSX367PLTXQKLBGDP734EMUTPMCNGHYTYHNQ7V6BI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,0 +1,50 @@
+## [:< ##
+
+# name  = coding.async.send_request
+# descr = send next inference request after tool execution
+
+my ($task_id) = @ARG;
+
+return { success => FALSE, error => 'task_id required' }
+    unless defined $task_id;
+
+## get state machine state ##
+my $state = <[coding.async.state_machine]>->( qw| get |, $task_id );
+return { success => FALSE, error => "no state for $task_id" }
+    unless defined $state;
+
+## build messages for next round ##
+my @messages = @{ $state->{'messages'} // [] };
+
+## add assistant response with tool calls ##
+if ( @{ $state->{'tool_calls'} // [] } ) {
+    push @messages,
+        {
+        'role'       => 'assistant',
+        'content'    => $state->{'content'} // '',
+        'tool_calls' => $state->{'tool_calls'},
+        };
+}
+
+## add tool results ##
+if ( @{ $state->{'tool_results'} // [] } ) {
+    push @messages, @{ $state->{'tool_results'} };
+}
+
+## build request body ##
+my $request_body = {
+    'model'    => 'default',
+    'messages' => \@messages,
+    'stream'   => 1,
+    'tools'    => $state->{'tools'},
+};
+
+## start new async request ##
+return
+    <[coding.async.request]>->( $task_id, $request_body, $state->{'job_id'} );
+
+#,,.,,,.,,...,..,,.,.,.,.,,.,,,,,,,,,,..,,,,.,..,,...,..,,..,,..,,.,,,,..,..,,
+#5QHEV3GBJJKM5SW6267E6UMY5PVPGL7GXFK6HKTMQ34CCM4O7VBPE2C4CO6CYVCF4F4UELGSSPRYW
+#\\\|ZNCPBKTY2Z2T3VSEJKK3AEPEASBN6OJJWESNEL4BH3OGV2RJSOX \ / AMOS7 \ YOURUM ::
+#\[7]CZU7JIEQLR7FTWP2HR6XURLRGRKT3LOISPXFXKY25THYBM6H4WCY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

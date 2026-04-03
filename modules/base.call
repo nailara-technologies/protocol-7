@@ -1,0 +1,26 @@
+## [:< ##
+
+# name  = base.call
+# descr = utility wrapper for calling modules with named action interface
+
+my ( $module, $action, @args ) = @ARG;
+
+return { success => FALSE, error => 'module name required' }
+    unless defined $module;
+
+$action //= qw| get |;
+
+## call the module ##
+my $coderef = $code{$module};
+return { success => FALSE, error => "module not found: $module" }
+    unless defined $coderef && ref $coderef eq qw| CODE |;
+
+my $result = $coderef->( $action, @args );
+
+return $result;
+
+#,,.,,,.,,,..,,,.,.,.,,,,,.,,,.,,,...,,,,,.,.,..,,...,...,.,,,.,,,,,,,..,,...,
+#EKXSSHXEAQJMWXBHPK43K6S5PTXV2FHA3TEITANYHZAME3RYZX5JWEEPJR2NSGVWPB4IAXBWWVTRG
+#\\\|WAF4CHQOQ5OXDREVNNT6A5IMSSLEQ2FB25S4MCAABGXUEXTSS7W \ / AMOS7 \ YOURUM ::
+#\[7]5WRGOYQYZDKAYSO2CA5JE4KGJWRW6ZLNFTLFFXRJLGOL5XUQSOCA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

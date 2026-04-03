@@ -1,0 +1,26 @@
+## [:< ##
+
+# name  = coding.async.fail_task
+# descr = wrapper for failing async task (state machine interface)
+
+my ( $task_id, $error ) = @ARG;
+
+return { success => FALSE, error => 'task_id required' }
+    unless defined $task_id;
+
+$error //= 'unknown error';
+
+## build error result ##
+my $result = {
+    success => FALSE,
+    error   => $error,
+};
+
+## call completion handler with error ##
+return <[coding.async.complete]>->( $task_id, $result );
+
+#,,..,,..,..,,.,,,,,,,,.,,..,,,,.,.,.,.,.,,,,,..,,...,...,,,,,,.,,.,.,...,,..,
+#23Y46TJHILFLXCV7M5PK4CYGHEWXYDWY244NJY7HEB26YF6KUYWAFIAUXCEHAS2LYULUXTS657UK4
+#\\\|KR4WUE3NQQOH6DF7HQYYCIGCGQDAWK4GLFFVFTNM5RVXAFV5BIX \ / AMOS7 \ YOURUM ::
+#\[7]6JRE2Z6WKSBPDI7UHJCLBAQCRFIRJGC6IBSRSG4XA6LNC3Q3JYCY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

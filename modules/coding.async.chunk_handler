@@ -32,9 +32,30 @@ my $delta   = $choice->{'delta'}  // {};
 my $content = $delta->{'content'} // $delta->{'reasoning_content'} // '';
 
 ## handle tool calls in delta ##
+## streaming tool_calls come in partial chunks by index, need to merge ##
 if ( exists $delta->{'tool_calls'}
     && ref( $delta->{'tool_calls'} ) eq 'ARRAY' ) {
-    push $context->{'tool_calls'}->@*, $delta->{'tool_calls'}->@*;
+    foreach my $tc ( $delta->{'tool_calls'}->@* ) {
+        my $idx = $tc->{'index'} // 0;
+        ## initialize tool call structure if new ##
+        if ( !$context->{'tool_calls'}[$idx] ) {
+            $context->{'tool_calls'}[$idx] = {
+                'id'       => $tc->{'id'},
+                'type'     => $tc->{'type'} // 'function',
+                'function' => { 'name' => '', 'arguments' => '' },
+            };
+        }
+        ## merge partial data ##
+        my $existing = $context->{'tool_calls'}[$idx];
+        $existing->{'id'} //= $tc->{'id'};
+        if ( defined $tc->{'function'}{'name'} ) {
+            $existing->{'function'}{'name'} = $tc->{'function'}{'name'};
+        }
+        if ( defined $tc->{'function'}{'arguments'} ) {
+            $existing->{'function'}{'arguments'}
+                .= $tc->{'function'}{'arguments'};
+        }
+    }
 }
 
 ## accumulate content ##
@@ -102,8 +123,8 @@ if ( defined $choice->{'finish_reason'} ) {
 
 return $context;
 
-#,,..,..,,...,,,.,,..,..,,.,.,..,,,.,,,..,.,.,.,.,...,...,..,,.,.,,,.,.,.,,.,,
-#3CHW23ZRJOPCDTIVNAHWYCUORGKLF63GFSRUUXLMAHOYRUGKQVHNLPYXTOKU6GSPOPGOQHBFCNSIK
-#\\\|RZ7OHNUHUTNJZA4EP52RKVFQZMZ5MZZSRETSH2R5ZSDFVOB6QY4 \ / AMOS7 \ YOURUM ::
-#\[7]6U7DCZPFDH4U7MH3KWWZMPGZ2OZPHQG5F7VFFHWDIB6MYYLUD6AQ 7  DATA SIGNATURE ::
+#,,.,,...,.,.,,,.,.,.,.,.,...,,..,...,,,,,,..,.,.,...,...,,.,,,..,,,,,.,.,...,
+#VH2Z6M4ODA7OP2XLXS756EATQB4VKG53LOWFUB5PB4KHCDGTSG2G2MNJOIWKNMF7MNAU3RDVIFBCO
+#\\\|JA55ULCHMGVO7EIXCO6M3WX24GBERSSJ3E3F2TRQBAKCTHP2EUI \ / AMOS7 \ YOURUM ::
+#\[7]65VSUOMCZVOSZYHP6XCQIG7RZUSDT6SZU43RRF5W4TXBYCBAHEBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
