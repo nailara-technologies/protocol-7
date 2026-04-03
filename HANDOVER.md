@@ -1,84 +1,121 @@
-# Session Handover — 2026-03-30
+# Session Handover — 2026-04-01
 
 ## What Just Happened
 
-Massive technical debt cleanup across 3 sessions:
-- **Inline sub extraction complete**: all pager.*, plugin.storage.*, context.* namespaces
-  cleaned — 45+ subs extracted to .util.* modules with source call sites updated
-- **Coding zenka tool loop hardened**: task_complete + escalate stop signals prevent
-  infinite loops, record_question/record_suggestion collect off-band observations
-- **extract-inline-subs template** refined through 8+ autonomous tasks — handles return
-  sub unwrap, one-call-per-round, task_complete, known pitfalls documented
-- **Loader crash fixes**: removed 5 .disabled modules, fixed regex/interpolation/log bugs
-- **Observations stash working**: JSONL at /var/protocol-7/coding/observations/
+### Async HTTP Streaming Infrastructure (Major)
+Completed full async inference pipeline for coding zenka:
+- `coding.async.http_client` — non-blocking HTTP with event-based I/O
+- `coding.handler.http_io` — SSE chunk parsing, chunked encoding support
+- `coding.async.chunk_handler` — extract content/reasoning_content from deltas
+- `coding.async.state_machine` — manage streaming → tool_exec → streaming loop
+  - States: STREAMING, TOOL_EXEC, USER_INPUT, SUBTASK, PAUSED, COMPLETE, ERROR
+  - Validated transitions with history tracking
+  - Pause/resume support for rate limiting, user confirmation, subtask spawning
+- `coding.async.tool_executor` — dispatch tool calls, collect results, resume streaming
+- `coding.buffer.model_output` — chat-like formatting with box drawing
 
-## What Needs Doing — Functionality Upgrades
+Enables true async task multiplexing: multiple concurrent inference streams
+without blocking the event loop.
 
-### 1. Namespace Tree Intelligence — Layer 1: Tree Read/Write Tools
-**Priority: high** | **Where**: coding zenka tools + context-tree modules
+### Tree Tools Layer 1 (Complete)
+Exposed %data namespace to coding zenka:
+- `coding.tools.handler.tree_read` / `coding.cmd.tree-read`
+- `coding.tools.handler.tree_write` / `coding.cmd.tree-write`
+- `coding.tools.handler.tree_list` / `coding.cmd.tree-list`
 
-The unified namespace tree vision is documented but nothing is built yet.
-Layer 1 = give the model tools to read and write the tree:
-- `tree_read` — read a branch or node from %data / context-tree
-- `tree_write` — write/update a node
-- `tree_list` — list children of a branch
-- `tree_search` — find nodes matching a pattern
+Wraps existing `base.resolve_key` / `base.set_key` infrastructure.
 
-This enables the model to build persistent knowledge outside its context window.
-See: `memory/topic-namespace-tree-intelligence.md` for full architecture.
+### Context Template System (Complete)
+63 templates in `data/yaml/context-templates/`:
+- Template resolution with budget allocation
+- Context providers: git.recent_changes, task.active, modules.list
+- Dynamic system messages for kimi_web and coding zenka
 
-### 2. Task Zenka State Machine Expansion
-**Priority: high** | **Where**: task zenka modules, models.task.*
+### Vision System Overhaul
+- Shared HTTP backend for all vision operations
+- OOM protection and adaptive polling
+- mmproj detection fixes for vision models
+
+### Infrastructure Hardening
+- Inference server crash detection and auto-restart
+- Retry on timeout/5xx errors in inference loop
+- Intelligent loop detection with model assertion
+- Task stop signals: `task_complete` (clean exit), `escalate` (human handover)
+
+### kimi-web Zenka (Complete)
+Child-bearing zenka for spawning kimi-cli web sub-agents:
+- Agent registry with health tracking
+- Parallel inference dispatch
+- Graceful shutdown with context preservation
+
+### Templates Added
+Autonomous task templates for self-directed work:
+- `extract-inline-subs` — return sub unwrap, one-call-per-round
+- `namespace-audit`, `sub-task-decompose`, `tree-explore`
+- `review-and-improve`, `autonomous-direction`, `integrate-recent`
+- `p7-style-enforce`, `header-tags-fix`, `fix-format-issues`
+- `git-diff-review`, `regex-style-fix`, `param-validation-fix`
+- `error-resilience`, `cross-namespace-wiring`
+- `observations-triage`, `post-task-verify`
+- `zenki-create`, `zenki-feature-port`, `footer-cleanup`
+
+### Bug Fixes
+- NShell history navigation off-by-one (Ctrl+O cycle)
+- Plugin initialization order (load_plugins before init_modules)
+- pager.source.file-list regex crash
+- B32: prefix handling in single-line mode
+- Jinja template sanitization (namespace() outputs)
+
+## What Needs Doing
+
+### 1. Async HTTP Integration Testing
+**Priority: high** | **Where**: coding zenka
+
+New async infrastructure is committed but needs real-world testing:
+- Test streaming with Qwen3.5 (reasoning_content + content)
+- Verify tool execution loop: streaming → tool_exec → streaming
+- Test STATE_PAUSED for rate limiting scenarios
+- Validate concurrent task multiplexing
+
+### 2. Namespace Tree Intelligence — Layer 2
+**Priority: high** | **Where**: context-tree modules
+
+Layer 1 (tree_read/write/list) is complete. Layer 2 = search and intelligence:
+- `tree_search` — find nodes matching pattern
+- `tree_diff` — compare branches across time
+- `tree_prune` — archive old branches
+- Persistent storage: Tie::Dir or similar for %data persistence
+
+See: `memory/topic-namespace-tree-intelligence.md`
+
+### 3. Task Zenka State Machine Expansion
+**Priority: high** | **Where**: task zenka modules
 
 Current: pending -> claimed -> done/failed
 Target: open -> assigned -> in_progress -> blocked -> review -> completed -> archived
 
-Key missing pieces:
-- `task.next` — autonomous work routing (pick best next task)
-- `task.handover` — session context packaging for continuity
+Missing:
+- `task.next` — autonomous work routing
+- `task.handover` — session context packaging
 - File watcher for external yaml changes
 
-See: `memory/topic-task-coordination.md`
-
-### 3. Coding Zenka Verbosity Reset
-**Priority: quick** | **Where**: configuration/zenki/coding/start
-
-Verbosity is at 3 (debug) from loop diagnosis. Revert to 2 after confirming
-no remaining issues.
-
-### 4. Coding Zenka Tool Refinements
-**Priority: medium** | **Where**: coding.tools.*
-
-From observations stash and tool-suggestions memory:
-- replace_in_file dry_run mode (preview before commit)
-- replace_in_file line_numbers in result
-- ptd_check integration into extraction workflow
-- Batch validation for multiple modules
-
-### 5. Multi-Model Consensus Testing
+### 4. Multi-Model Consensus Testing
 **Priority: medium** | **Where**: llm.service.consensus_vote.*
 
-Modules extracted (commit 526d91760) but untested. Needs:
+Modules extracted but untested. Needs:
 - Real model provider wiring
 - 5-of-7 algorithm group testing
 - Integration with task dispatch
 
-### 6. Signature System Bugs
-**Priority: low-medium** | **Where**: bin/Protocol-7 sourcecode
+### 5. Self-Improving Loop Closure
+**Priority: vision** | **Where**: llm coordination zenka
 
-- **missing-endline bug**: footer glues to last code line when file lacks trailing
-  newline. pre-commit rejects as "no separator endline"
-- **Variant B oscillation**: double-footer on never-signed non-empty files
-
-### 7. Self-Improving Loop Closure
-**Priority: vision** | **Where**: llm coordination zenka (not yet built)
-
-The coding zenka can now: extract, review, observe, self-fix, and stop cleanly.
-Next step toward autonomous operation:
-- Token budget awareness (21% weekly remaining, resets Friday)
-- Session-limit tracking and reset schedules
+Current: coding zenka can extract, review, observe, self-fix, stop cleanly
+Next steps:
+- Token budget awareness
+- Session-limit tracking
 - Affinity-based routing (kimi=sustained impl, claude=design/review)
-- task.next picking work autonomously between sessions
+- task.next picking work autonomously
 
 ## Coding Zenka Task Submission
 
@@ -87,7 +124,7 @@ Next step toward autonomous operation:
 p7c coding.submit ':template: <name>' ':context: modules/<file>' ':description: <text>' ':priority: 5'
 
 ## available templates
-ls data/yaml/context-templates/   # extract-inline-subs, whats-next, cmd-style-fix, etc.
+ls data/yaml/context-templates/   # 63+ templates
 
 ## check task status
 p7c coding.queue
@@ -97,11 +134,9 @@ p7c coding.show <task-id>
 ## Key Files for Next Session
 
 - `CLAUDE.md` — full system reference
-- `memory/MEMORY.md` — persistent context index
-- `memory/topic-namespace-tree-intelligence.md` — tree architecture vision
-- `memory/topic-task-coordination.md` — task dispatch state + roadmap
-- `memory/topic-self-improving-system.md` — autonomous operation vision
+- `ai-mem/kimi/MEMORY.md` — persistent context index
+- `memory/topic-namespace-tree-intelligence.md` — tree architecture
+- `memory/topic-task-coordination.md` — task dispatch roadmap
+- `modules/coding.async.state_machine` — async inference state machine
+- `modules/coding.async.http_client` — non-blocking HTTP
 - `data/yaml/context-templates/` — all coding zenka templates
-- `modules/coding.tools.definitions` — 22 tool schemas
-- `modules/coding.tools.dispatch` — tool dispatch routing
-- `modules/coding.handler.process-queued-task` — inference loop with stop signals
