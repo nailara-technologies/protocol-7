@@ -12,6 +12,10 @@ my $first_init          = $already_initialized ? FALSE : TRUE; ## ^ inverse ##
 ## load all additionally used perl modules ##
 #
 <[base.perlmod.load]>->(qw| JSON::XS |);
+
+## Phase 2: Async streaming support ##
+map { <[base.perlmod.load]>->($_) } qw| AnyEvent AnyEvent::HTTP |;
+
 map { <[base.perlmod.autoload]>->($_) }
     qw| IPC::Open3 YAML::XS FreezeThaw Fcntl Cwd |;
 
@@ -406,8 +410,8 @@ if ( not $already_initialized ) {
 
 return 0;
 
-#,,.,,.,,,,,,,,,.,,..,.,.,..,,.,.,,.,,...,..,,.,.,...,..,,...,,.,,.,.,.,.,.,.,
-#547RZ7W5J22GOW2RPQ4MMV4E37PQY5SUGXVVIKMHNRB7J4SSIJBV73QAYYFJEPLPWEOR53MBOLCGQ
-#\\\|CE2PUYT5CTMUGCVYZGL654BPDKAWVCO7XDLNXFF2QXPTTLPVTHV \ / AMOS7 \ YOURUM ::
-#\[7]7VISXENQAGKEKLZNJO4OAIKTAQXTBFJLAGRVUKVJ3QCCUSXLRWCI 7  DATA SIGNATURE ::
+#,,,.,.,.,...,.,.,,,.,,,.,..,,,,,,..,,,,,,...,.,.,...,..,,..,,,..,,,,,.,.,.,,,
+#XDQLODYLJ4JFY4JTFG35U6GVOQOUJDHX3F2YYXAQ4Y4M26A2IB7HEGKACQX64I4LJA4JB6HIIZNKY
+#\\\|W7OVISSPPGAMK2JY3XQNH3YVPJMQX6LMLD3TBT5NBJCI7YJNQIF \ / AMOS7 \ YOURUM ::
+#\[7]BTKMWTUH3YLASTKAELIRLJSXUULZHDHLRFRN2USP67VXALKWSWCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

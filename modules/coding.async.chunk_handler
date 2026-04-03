@@ -1,0 +1,65 @@
+## [:< ##
+
+# name  = coding.async.chunk_handler
+# descr = Handle streaming chunks from llama-server inference
+# purpose = Phase 2: Process NDJSON chunks, update buffers, extract completion
+
+use JSON::XS;
+
+my ( $task_id, $chunk_data, $context ) = @ARG;
+
+return unless defined $task_id && defined $chunk_data;
+
+## context holds accumulated state ##
+$context                    //= {};
+$context->{'content'}       //= '';
+$context->{'tool_calls'}    //= [];
+$context->{'finish_reason'} //= undef;
+$context->{'chunk_num'}     //= 0;
+
+$context->{'chunk_num'}++;
+
+## llama-server returns OpenAI-compatible format ##
+## { choices: [ { delta: { content: '...' }, finish_reason: ... } ] } ##
+
+my $choice = $chunk_data->{'choices'}->[0];
+return unless defined $choice;
+
+## extract delta content ##
+my $delta   = $choice->{'delta'}  // {};
+my $content = $delta->{'content'} // '';
+my $role    = $delta->{'role'}    // '';
+
+## handle tool calls in delta ##
+if ( exists $delta->{'tool_calls'}
+    && ref( $delta->{'tool_calls'} ) eq 'ARRAY' ) {
+    push $context->{'tool_calls'}->@*, $delta->{'tool_calls'}->@*;
+}
+
+## accumulate content ##
+if ( length($content) ) {
+    $context->{'content'} .= $content;
+
+    ## update model output buffer in real-time ##
+    <[coding.buffer.model_output]>->(
+        $content,
+        {   'round' => $context->{'round'} // 0,
+            'tool'  => 'stream_chunk',
+            'chunk' => $context->{'chunk_num'},
+        }
+    );
+}
+
+## check for finish ##
+if ( defined $choice->{'finish_reason'} ) {
+    $context->{'finish_reason'} = $choice->{'finish_reason'};
+}
+
+## return context for next chunk ##
+return $context;
+
+#,,,,,,..,,..,.,.,.,.,,,.,.,,,,,.,...,..,,,,.,.,.,...,...,...,..,,..,,.,,,...,
+#6VEBYMB53DHCQ7KKAJAV6APEVZ43GHHVKAQRKYN3QCU2EDAGOHMWFGUFZCDVKUS2GKPALNU4CVFIW
+#\\\|IOCWVLTRP2LK2P3JULFTFSKLTSU7QMPPCKS4XES4QX2P6OWWPF4 \ / AMOS7 \ YOURUM ::
+#\[7]HGWHRMBIEYMV7D2SQUUPQAG36AUAEA5PKD4WXDZDSQMT3NIPTGBQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

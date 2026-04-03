@@ -3,7 +3,9 @@
 # name  = coding.task.execute
 # descr = execute a coding task from jobqueue callback
 # purpose = bridge jobqueue execution to coding task processing
-#         = Phase 1: add async mode support (default: blocking)
+#         = Phase 2: async streaming support (default: blocking)
+
+## JSON::XS loaded via coding.init_code
 
 my $params          = shift;
 my $job_id          = $params->{'job_id'};
@@ -66,28 +68,72 @@ push $aref_active->@*, $task_id;
 
 <[base.logs]>->( 2, "coding.task.execute: starting task %s", $task_id );
 
-## Phase 1: Check for async mode ##
+## Phase 2: Check for async mode ##
 my $async_mode = <coding.async.enabled> // FALSE;
 
 if ($async_mode) {
-    ## ASYNC MODE: Store state and defer ##
+    ## ASYNC MODE: Build request and start streaming ##
     <[base.logs]>->( 1, "coding.task.execute: async mode for %s", $task_id );
 
-    ## Store state for later completion ##
-    <[coding.async.state_manager]>->(
-        'set', $task_id,
-        {   job_id     => $job_id,
-            task_id    => $task_id,
-            start_time => <[base.time]>->(3),
-            mode       => 'async_pending',
-        }
-    );
+    ## Assemble prompt and check cache ##
+    my $assembled    = <[coding.prompt.assemble]>->($task);
+    my $backend_info = $assembled->{'backend_info'};
 
-    ## TODO: Phase 2 - Start actual async HTTP request here
-    ## For now, fall through to blocking mode (functional state)
-    <[base.logs]>->(
-        1, "coding.task.execute: async not fully impl, using blocking"
-    );
+    unless ( $backend_info->{'available'} ) {
+        <[base.logs]>->(
+            0,
+            "coding.task.execute: backend not available : %s",
+            $backend_info->{'error'} // 'unknown'
+        );
+        $task->{'execution'}->{'status'} = 'failed';
+        $task->{'execution'}->{'error'}  = $backend_info->{'error'}
+            // 'backend unavailable';
+        <[jobqueue.move_job]>->( $job_id, 'error' );
+        <[coding.task.fail]>->( $task_id, $task->{'execution'}->{'error'} );
+        return { success => FALSE, error => $task->{'execution'}->{'error'} };
+    }
+
+    ## Update task with routing info ##
+    $task->{'execution'}->{'backend'}    = $backend_info->{'backend'};
+    $task->{'execution'}->{'port'}       = $backend_info->{'port'};
+    $task->{'execution'}->{'model_used'} = $backend_info->{'model'};
+
+    ## Build request body ##
+    my $request_body = {
+        model       => $backend_info->{'model'},
+        messages    => $assembled->{'messages'},
+        max_tokens  => <inference.model.max_tokens>  // 4096,
+        temperature => <inference.model.temperature> // 0.7,
+        stream      => JSON::XS::true,    ## Enable streaming ##
+    };
+
+    ## Add tools if available ##
+    if ( defined $assembled->{'tools'} && $assembled->{'tools'}->@* ) {
+        $request_body->{'tools'}       = $assembled->{'tools'};
+        $request_body->{'tool_choice'} = 'auto';
+    }
+
+    ## Start async streaming request ##
+    my $async_result
+        = <[coding.async.request]>->( $task_id, $request_body, $job_id );
+
+    if ( !$async_result->{'success'} ) {
+        ## Async start failed, fall back to blocking ##
+        <[base.logs]>->(
+            0,
+            "coding.task.execute: async start failed, using blocking: %s",
+            $async_result->{'error'} // 'unknown'
+        );
+        ## Fall through to blocking mode below ##
+    } else {
+        ## Async started successfully ##
+        <[base.logs]>->(
+            1, "coding.task.execute: async streaming started for %s",
+            $task_id
+        );
+        ## Return deferred - completion handled by async callbacks ##
+        return { success => TRUE, mode => 'deferred', task_id => $task_id };
+    }
 }
 
 ## BLOCKING MODE: Call the actual inference processor ##
@@ -119,8 +165,8 @@ if ($async_mode) {
 
 return $result;
 
-#,,,.,,,.,,..,...,,..,..,,,,.,,.,,..,,,..,.,.,.,.,...,...,,,,,..,,,,,,,,,,,,,,
-#7M37H5N4HJ57ZENVS43BWKQPIRSYY6YWFSV3THZTH577CLDFHQYOVMPOFICJ6DMAZEZ4PWXXHIJXE
-#\\\|7KBAJAQV5Y2EDZX64PZD4DG4N2UL6C2WZ4MNTEOHIQHWITYJJ7Q \ / AMOS7 \ YOURUM ::
-#\[7]ZJO75JBUGX2IIMIFD62SLE4CJO2JQK56VFHVY6NENNZIUVLDASAY 7  DATA SIGNATURE ::
+#,,..,.,,,,.,,,,,,,,,,..,,,.,,..,,...,,,,,,.,,.,.,...,..,,..,,,.,,...,.,,,.,.,
+#OOZRCYHHSYKGGZBVASQLYMJZ2RAFM6K4RTLMIOLNFU7G4KT5K3M5WKVUAJ3CAI55JQ3BMT54EM2UK
+#\\\|BTQCLTCAREPPFEQLWVKONSI5S535HWWSZMTG5XECBMEDOCCT5NW \ / AMOS7 \ YOURUM ::
+#\[7]N6UZGQ2OF3E5UOPJZKCNQU3JF4Q6Q4KGTHGTPZ6QTJVXZYJXJEBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
