@@ -1,6 +1,6 @@
 ## [:< ##
 
-package AMOS7::Metadata;    ###################################################
+package AMOS7::Metadata;   ###################################################
 
 use v5.24;
 use strict;
@@ -28,7 +28,7 @@ use vars qw| @EXPORT $VERSION |;
     $VERSION
     $METADATA_START
     $METADATA_END
-|;
+    |;
 
 our $VERSION = qw| AMOS7::Metadata-VERSION.YT9K8L2 |;
 
@@ -51,7 +51,7 @@ sub parse_inline_metadata {
     return $metadata if not defined $source_code or not length $source_code;
 
     # Find metadata blocks marked by ## [:< command-metadata ... ## ]>
-    my @lines = split /\n/, $source_code;
+    my @lines       = split /\n/, $source_code;
     my $in_metadata = FALSE;
     my @metadata_lines;
 
@@ -59,8 +59,7 @@ sub parse_inline_metadata {
         if ( $line =~ $METADATA_START ) {
             $in_metadata = TRUE;
             next;
-        }
-        elsif ( $line =~ $METADATA_END ) {
+        } elsif ( $line =~ $METADATA_END ) {
             $in_metadata = FALSE;
             last;
         }
@@ -74,6 +73,7 @@ sub parse_inline_metadata {
 
     # Parse metadata lines (format: #  key = value)
     foreach my $line (@metadata_lines) {
+
         # Match: # key = value
         if ( $line =~ m/^\s*#\s+(\w+)\s*=\s*(.*)/ ) {
             my $key   = $1;
@@ -88,18 +88,15 @@ sub parse_inline_metadata {
 
                 # tags can be comma-separated
                 $metadata->{'tags'} = [ split /\s*,\s*/, $value ];
-            }
-            elsif ( $key eq 'examples' ) {
+            } elsif ( $key eq 'examples' ) {
 
                 # examples might span multiple lines, just store first
                 if ( not exists $metadata->{'examples'} ) {
                     $metadata->{'examples'} = [$value];
-                }
-                else {
+                } else {
                     push @{ $metadata->{'examples'} }, $value;
                 }
-            }
-            else {
+            } else {
 
                 # single value fields
                 $metadata->{$key} = $value;
@@ -118,19 +115,18 @@ sub find_metadata_blocks {
 
     return @blocks if not defined $source_code or not length $source_code;
 
-    my @lines = split /\n/, $source_code;
+    my @lines    = split /\n/, $source_code;
     my $in_block = FALSE;
     my @block_lines;
     my $block_start = 0;
 
     for ( my $i = 0; $i < @lines; $i++ ) {
         if ( $lines[$i] =~ $METADATA_START ) {
-            $in_block     = TRUE;
-            $block_start  = $i;
-            @block_lines  = ();
+            $in_block    = TRUE;
+            $block_start = $i;
+            @block_lines = ();
             next;
-        }
-        elsif ( $lines[$i] =~ $METADATA_END ) {
+        } elsif ( $lines[$i] =~ $METADATA_END ) {
             $in_block = FALSE;
             if (@block_lines) {
                 push @blocks,
@@ -174,14 +170,12 @@ sub parse_module_command {
             $name =~ s/^\s+//;
             $name =~ s/\s+$//;
             $metadata->{'command'} = $name;
-        }
-        elsif ( $line =~ /^\s*#\s+param\s*=\s*(.+)$/ ) {
+        } elsif ( $line =~ /^\s*#\s+param\s*=\s*(.+)$/ ) {
             my $param = $1;
             $param =~ s/^\s+//;
             $param =~ s/\s+$//;
             $metadata->{'param'} = $param;
-        }
-        elsif ( $line =~ /^\s*#\s+descr\s*=\s*(.+)$/ ) {
+        } elsif ( $line =~ /^\s*#\s+descr\s*=\s*(.+)$/ ) {
             my $descr = $1;
             $descr =~ s/^\s+//;
             $descr =~ s/\s+$//;
@@ -196,14 +190,15 @@ sub parse_module_command {
 
 sub build_command_registry {
     my $zenka_root = shift;    # path to configuration/zenki
-    my $root_path = shift;     # path to protocol-7 root (optional)
-    my $registry = {};
+    my $root_path  = shift;    # path to protocol-7 root (optional)
+    my $registry   = {};
 
     return $registry if not defined $zenka_root or not -d $zenka_root;
 
     ## Scan zenka source directories for inline metadata
     opendir( my $ZENKA_DIR, $zenka_root ) or return $registry;
-    my @zenka_names = grep { -d "$zenka_root/$_" and !/^\./ } readdir($ZENKA_DIR);
+    my @zenka_names
+        = grep { -d "$zenka_root/$_" and !/^\./ } readdir($ZENKA_DIR);
     closedir($ZENKA_DIR);
 
     foreach my $zenka_name (@zenka_names) {
@@ -211,8 +206,8 @@ sub build_command_registry {
         next if not -d $source_dir;
 
         opendir( my $SRC_DIR, $source_dir ) or next;
-        my @files = grep { /\.(pl|pm)$/ and -f "$source_dir/$_" }
-            readdir($SRC_DIR);
+        my @files
+            = grep { /\.(pl|pm)$/ and -f "$source_dir/$_" } readdir($SRC_DIR);
         closedir($SRC_DIR);
 
         foreach my $file (@files) {
@@ -249,7 +244,8 @@ sub build_command_registry {
 
     if ( defined $root_path and -d "$root_path/modules" ) {
         opendir( my $MOD_DIR, "$root_path/modules" ) or return $registry;
-        my @module_files = grep { /\.console\./ and -f "$root_path/modules/$_" }
+        my @module_files
+            = grep { /\.console\./ and -f "$root_path/modules/$_" }
             readdir($MOD_DIR);
         closedir($MOD_DIR);
 
@@ -276,9 +272,9 @@ sub build_command_registry {
 ##[ SEARCH REGISTRY ]#########################################################
 
 sub search_registry {
-    my $registry  = shift;
-    my $pattern   = shift;
-    my $results   = {};
+    my $registry = shift;
+    my $pattern  = shift;
+    my $results  = {};
 
     return $results if not defined $registry or not defined $pattern;
 
@@ -367,15 +363,15 @@ sub registry_to_json {
 
         if ( exists $entry->{'descr'} ) {
             my $descr = $entry->{'descr'};
-            $descr =~ s/\\/\\\\/g;  # escape backslashes first
-            $descr =~ s/"/\\"/g;    # then escape quotes
+            $descr =~ s/\\/\\\\/g;    # escape backslashes first
+            $descr =~ s/"/\\"/g;      # then escape quotes
             $entry_json .= qq|    "description": "$descr",\n|;
         }
 
         if ( exists $entry->{'usage'} ) {
             my $usage = $entry->{'usage'};
-            $usage =~ s/\\/\\\\/g;  # escape backslashes first
-            $usage =~ s/"/\\"/g;    # then escape quotes
+            $usage =~ s/\\/\\\\/g;    # escape backslashes first
+            $usage =~ s/"/\\"/g;      # then escape quotes
             $entry_json .= qq|    "usage": "$usage",\n|;
         }
 
@@ -443,14 +439,9 @@ sub registry_to_yaml {
 ##[ END OF MODULE ]###########################################################
 
 1;
-:
-#PLACEHOLDER_FOR_AMOS7_SIGNATURE_LINE_1
-#\\\|PLACEHOLDER_FOR_AMOS7_SIGNATURE_LINE_2
-#\[7]PLACEHOLDER_FOR_AMOS7_SIGNATURE_LINE_3
-#::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
-#,,,,,,..,.,,,.,,,,..,,,.,..,,..,,,,,,,,.,,,,,..,,...,...,,,.,,,,,,..,,..,,,.,
-#LA7F522D54MWKKODZ7Q6EUJJ7OSWSFKLOWKAQ7Q2NNLJNN2FCWVJWMBPSM63RXSVJ3SYI7DXNMDUO
-#\\\|FLHW4OEEODKEKS2CERR5DMYIR6OZSG56ZEQAMPSCRFTZ64OKF2X \ / AMOS7 \ YOURUM ::
-#\[7]ZEMS6NZBRQ6XN7OQGLIBGT7AQYWCND5UJXFGH3SPEWH355GXO6AQ 7  DATA SIGNATURE ::
+#,,.,,,.,,..,,,,,,,..,.,,,,,.,.,.,.,.,,,.,...,..,,...,...,,..,.,.,.,,,,,.,.,.,
+#W6ESWUYUMCMXAGR4NYKWWCLT2VSUW37SDBD22IYWB6BJD55OQUJQR6IXJIHVF4XCJM3H3H6OROIX2
+#\\\|6TBRAS7F7HUAI6M6PFSZ63EY3PTTEPA63JVBA5KGLA5NVONP22H \ / AMOS7 \ YOURUM ::
+#\[7]6WPPPAZT3P36T6UNUDDCQXG74VZNVIFNMPDJMSX77BKNZHNT2SAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

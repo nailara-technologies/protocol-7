@@ -1,0 +1,46 @@
+## [:< ##
+
+# name  = coding.callback.http_complete
+# descr = HTTP streaming complete callback
+
+my ( $task_id, $http_state ) = @ARG;
+
+<[base.logs]>->(
+    1,
+    "async.request: inference complete for %s [%d bytes, %d chunks]",
+    $task_id,
+    $http_state->{'bytes_received'},
+    $http_state->{'chunks_received'}
+);
+
+## finalize and complete ##
+my $state = <[coding.async.state_manager]>->( qw| get |, $task_id );
+return unless defined $state;
+
+my $result = {
+    success       => TRUE,
+    result        => $state->{'response_text'},
+    finish_reason => $state->{'finish_reason'} // qw| stop |,
+    tool_calls    => $state->{'tool_calls'},
+};
+
+## log final response to model output buffer ##
+if ( length( $result->{'result'} ) ) {
+    <[coding.buffer.model_output]>->(
+        $result->{'result'},
+        {   'round' => $state->{'chunk_context'}{'round'} // 0,
+            'tool'  => qw| model |,
+        }
+    );
+}
+
+## call async completion ##
+<[coding.async.complete]>->( $task_id, $result );
+
+return;
+
+#,,,.,...,...,..,,..,,.,.,,.,,.,,,,..,.,,,,..,..,,...,...,.,.,,.,,,,.,...,.,.,
+#IHOSEB7IQCUJVR5I4ZYM6OM5DB7324ZHTZKTDMVM3QBI3VLNGGFOUBA4VCDSMD5RBHL4CTNV5QHIS
+#\\\|SDV2UBXMKOWJVYIXZQOKYUDRTK2ENAVLY72IFTGSSOD4IQQ4FFZ \ / AMOS7 \ YOURUM ::
+#\[7]76CEQEEO6FKCFHCGB36QSV7SDIXIYQOTBUJSE6VPVV4EEZSCX6AY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -66,10 +66,30 @@ if ($strip) {    ##  NOTE :  also matches\strips old type \ multiple  ##
     # instead of signatures By removing them upfront, we prevent them from
     # being matched before real signatures
     my $pl_str = qw| PLACEHOLDER |;
+    ## old format: block ending with #[:]{70,80}
     if ( $src_ref->$*
         =~ s|\n?#[\.,]{70,85}\n(?:#[^\n]*$pl_str[^\n]*\n)+#[:]{70,80}\n?||sg )
     {
-        <[base.logs]>->( 3, ': stripped %s stub footers from file', $pl_str );
+        <[base.logs]>->(
+            3, ': stripped %s stub footers (old format) from file', $pl_str
+        );
+    }
+    ## new format: two-line footer (pipe-line and bracket-7-line)
+    ## matches complete stub: comma-line + checksum + PLACEHOLDER lines + colon-line
+    if ( $src_ref->$*
+        =~ s{\n?#[,\.]+\n#[A-Z0-9]{60,100}\n#+\\+\|PLACEHOLDER[^\n]*\n#+\\+\[7]PLACEHOLDER[^\n]*\n#:+}{}sg
+    ) {
+        <[base.logs]>->(
+            3, ': stripped %s stub footers (new format)', $pl_str
+        );
+    }
+    ## AMOS7 perl module format: bare placeholder line + pipe + bracket-7 + colon
+    if ( $src_ref->$*
+        =~ s{\n?#PLACEHOLDER_FOR_AMOS7_SIGNATURE_LINE_1\n#+\\+\|PLACEHOLDER_FOR_AMOS7_SIGNATURE_LINE_2\n#+\\+\[7]PLACEHOLDER_FOR_AMOS7_SIGNATURE_LINE_3\n#:+}{}sg
+    ) {
+        <[base.logs]>->(
+            3, ': stripped AMOS7 perl module stub footers', $pl_str
+        );
     }
 
     # Define signature patterns for standard extraction
@@ -746,8 +766,8 @@ if ( $mode eq qw| repair | ) {
 
 return $footer_data;
 
-#,,,,,,,.,.,,,..,,..,,,,.,.,.,,,.,..,,,.,,...,..,,...,...,.,.,.,,,.,,,..,,,,,,
-#BADSK7OZSORZZ5MXYWTOTD4HV5CY7K22UHXWSATQ3ILLIHSB275TJV3A3NUT4WFP5TRSKGSALY7K2
-#\\\|WYPDQ55ZPYUARCMG2QRI4M4TPJDHT6WQJNEZJIQDY5R47BF5HQZ \ / AMOS7 \ YOURUM ::
-#\[7]ZV3KIC2VLTKTFFW67Z4FWYEIA6QUIQVWMITPRCFYU3A2S333BSCQ 7  DATA SIGNATURE ::
+#,,,.,.,.,.,,,...,.,,,,,,,.,,,...,,..,,.,,..,,..,,...,...,.,,,,,,,...,,..,,..,
+#WFBCIARLXRHFPDJGNKY7EI4NWCEQYWOCTEH5LXGQ4KTIB2ETL7C4SIRQSIEMUUAVSFTKC2WFZYJ5Y
+#\\\|HQQVWVPSOSFOJ5AZ4J5VNSLHD3EASL7LXUT24GFCYLDZQ7DGP3F \ / AMOS7 \ YOURUM ::
+#\[7]BXLTZ55Z64VGICWDMLWTETS5Q7EZFH4Q424ZOV6AP66BGLZ4OYDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

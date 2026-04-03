@@ -66,7 +66,7 @@ my @pattern_registry = (
         'priority' => 1,
         'min_hits' => 6,
         'check'    => sub {
-            my ( $history, $weights ) = @_;
+            my ( $history, $weights ) = @ARG;
             return 0 unless @$history >= 6;
 
             my @last6 = @$history[ -6 .. -1 ];
@@ -91,7 +91,7 @@ my @pattern_registry = (
         'priority' => 2,
         'min_hits' => 9,
         'check'    => sub {
-            my ( $history, $weights ) = @_;
+            my ( $history, $weights ) = @ARG;
             return 0 unless @$history >= 9;
 
             my @last9 = @$history[ -9 .. -1 ];
@@ -119,7 +119,7 @@ my @pattern_registry = (
         'priority' => 3,
         'min_hits' => 5,
         'check'    => sub {
-            my ( $history, $weights ) = @_;
+            my ( $history, $weights ) = @ARG;
             return 0 unless @$history >= 5;
 
             my @last5 = @$history[ -5 .. -1 ];
@@ -141,7 +141,7 @@ my @pattern_registry = (
 #     'priority' => 2,
 #     'min_hits' => 4,
 #     'check'    => sub {
-#         my ( $history, $weights ) = @_;
+#         my ( $history, $weights ) = @ARG;
 #         return 0 unless @$history >= 4;
 #
 #         ## Check last 4 are identical (includes full tool key with params) ##
@@ -161,7 +161,7 @@ my @pattern_registry = (
         'priority' => 4,
         'min_hits' => 12,
         'check'    => sub {
-            my ( $history, $weights ) = @_;
+            my ( $history, $weights ) = @ARG;
             return 0 unless @$history >= 12;
 
             my @last12     = @$history[ -12 .. -1 ];
@@ -181,7 +181,7 @@ my @pattern_registry = (
         'priority' => 1,
         'min_hits' => 5,
         'check'    => sub {
-            my ( $history, $weights, $ld_state ) = @_;
+            my ( $history, $weights, $ld_state ) = @ARG;
             my $rh = $ld_state->{'response_history'} // [];
             return 0 unless @$rh >= 5;
 
@@ -473,8 +473,8 @@ elsif ( $phase eq 'escalation' ) {
 ## Unknown phase ##
 return qw| false |;
 
-#,,.,,...,,,,,,,,,.,,,..,,..,,,..,..,,...,..,,.,.,...,...,...,.,.,,,,,..,,,,.,
-#57MWQMLWNLLXO2MK3R3MPBQF7APNLOZHBAKJ4FW5RB3Q6SCFUSWMHIM7X4PJRH5UMPOVZF2E2GIZQ
-#\\\|QFSX7YHISYMK4M4RDUJDVSJ3K7JAIVUYYJMEOY4IHAJHRHJENMU \ / AMOS7 \ YOURUM ::
-#\[7]777XTSVE4E6SPNFWBHOEJMHI6WHIKTD57BXNXLA3DGANBPRZBYDY 7  DATA SIGNATURE ::
+#,,,,,.,,,,..,.,.,...,,,.,..,,.,,,,,.,,,,,,,,,.,.,...,..,,...,..,,,,.,.,.,,.,,
+#GZO47O3AEZOULMQKYBUNTONYKIDGQKIUCRDDV3IR52DRKIXLCL5EQNYPWWQTK5A2NHF2ZZLYMSQ2C
+#\\\|XBCM2WWIMBFXSK2KJWK23LVENQ3UD2MJKOQMVOQLQEFWSORWGZN \ / AMOS7 \ YOURUM ::
+#\[7]6YAD6DRTKR3S2NOGLM5HM4DJOVQTW3OGAX7ULI4PZ3DVAL5PHWCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

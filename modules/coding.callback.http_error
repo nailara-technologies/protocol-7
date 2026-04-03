@@ -1,0 +1,24 @@
+## [:< ##
+
+# name  = coding.callback.http_error
+# descr = HTTP streaming error callback
+
+my ( $task_id, $error ) = @ARG;
+
+<[base.logs]>->( 0, "async.request: error for %s: %s", $task_id, $error );
+
+## fail the task ##
+my $result = {
+    success => FALSE,
+    error   => $error,
+};
+
+<[coding.async.complete]>->( $task_id, $result );
+
+return;
+
+#,,,.,,..,,.,,.,,,.,.,,.,,..,,,..,.,.,,..,,,.,..,,...,...,..,,...,..,,...,,..,
+#764O6VN5OVYFD43V4QO25OSDPK62CDCPYPGQN6JN4HOKSVWDKXBLDSGRG4O3GSEHJPXJP3SSWXBXU
+#\\\|2BJQWGAYTAH4X2GKOVVRV45IWW6ZWMFTOVXFHDLGJME5QHQ5GFL \ / AMOS7 \ YOURUM ::
+#\[7]SPBVTBEFP37BMJCNKBV6RJM3S2M4R7LH4G6XX64N4NI7BKHRP6BA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

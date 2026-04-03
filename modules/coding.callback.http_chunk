@@ -1,0 +1,37 @@
+## [:< ##
+
+# name  = coding.callback.http_chunk
+# descr = HTTP streaming chunk received callback
+
+my ( $task_id, $data ) = @ARG;
+
+## process chunk ##
+my $state = <[coding.async.state_manager]>->( qw| get |, $task_id );
+return unless defined $state;
+
+my $context = $state->{'chunk_context'} // {};
+$context->{'round'} = $state->{'tool_round'} // 0;
+
+## call chunk handler ##
+$context = <[coding.async.chunk_handler]>->( $task_id, $data, $context );
+
+## update state ##
+$state->{'chunk_context'} = $context;
+<[coding.async.state_manager]>->( qw| set |, $task_id, $state );
+
+## check for completion ##
+if ( defined $context->{'finish_reason'} ) {
+    ## inference round complete ##
+    $state->{'response_text'} = $context->{'content'};
+    $state->{'finish_reason'} = $context->{'finish_reason'};
+    $state->{'tool_calls'}    = $context->{'tool_calls'};
+    <[coding.async.state_manager]>->( qw| set |, $task_id, $state );
+}
+
+return;
+
+#,,,,,.,,,.,.,,,,,.,,,,,,,,,.,,.,,,,,,..,,..,,..,,...,..,,,.,,,,.,,,.,..,,,,.,
+#UQXMRNBIEO54RGIKRI46YYTUWDPL5XKJDURE3VWXEVZ4R4P3UV47L2NMD7ET6SR44TX2EBLEDP4WY
+#\\\|XJV4VN4INHZKKIJYNRWV5C4JYKEKGG4APT4GXSSVYYAAZW6JEQE \ / AMOS7 \ YOURUM ::
+#\[7]NBG5EWSOURAPDQ5MPHPDAO3ZF4QY6C73FRIQ4LCCVIUES54GGECA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
