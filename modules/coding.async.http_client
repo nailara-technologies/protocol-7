@@ -1,10 +1,8 @@
 ## [:< ##
 
 # name  = coding.async.http_client
-# descr = AnyEvent-based streaming HTTP client for inference
+# descr = HTTP streaming client using Protocol-7 event system
 # purpose = Phase 2: Non-blocking HTTP with chunked response handling
-
-## modules loaded via coding.init_code: AnyEvent, AnyEvent::HTTP, JSON::XS
 
 my ( $url, $body, $callbacks ) = @ARG;
 
@@ -13,174 +11,112 @@ return { success => FALSE, error => 'body required' } unless defined $body;
 return { success => FALSE, error => 'callbacks hashref required' }
     unless ref($callbacks) eq 'HASH';
 
-my $cv = AnyEvent->condvar;
+## Parse URL ##
+my ( $host, $port, $path ) = $url =~ m{^http://([^:/]+)(?::(\d+))?(/?.*)$};
+$port //= 80;
+$path = '/' if !length($path);
 
-## parse body ##
+## Parse body ##
 my $json     = JSON::XS->new->utf8->canonical;
 my $body_str = ref($body) ? $json->encode($body) : $body;
 
-## JSON decoder for responses ##
-my $json_decoder = JSON::XS->new->utf8;
+## Build HTTP request ##
+my $request
+    = sprintf( "POST %s HTTP/1.1\r\n"
+        . "Host: %s:%d\r\n"
+        . "Content-Type: application/json\r\n"
+        . "Content-Length: %d\r\n"
+        . "Accept: application/json\r\n"
+        . "Connection: close\r\n" . "\r\n" . "%s",
+    $path, $host, $port, length($body_str), $body_str );
 
-## track state ##
+## Create blocking socket for connection ##
+my $sock = IO::Socket::IP->new(
+    PeerHost => $host,
+    PeerPort => $port,
+    Type     => SOCK_STREAM(),
+    Timeout  => 10,
+);
+
+if ( !$sock ) {
+    my $error = sprintf "Failed to connect to %s:%d :%s", $host, $port,
+        <[base.str.os_err]>;
+    <[base.logs]>->( 0, "async.http_client : %s", $error );
+    $callbacks->{'on_error'}->($error) if exists $callbacks->{'on_error'};
+    return { success => FALSE, error => $error };
+}
+
+## Set non-blocking for event loop integration ##
+## Write request (blocking is fine for localhost) ##
+my $written = syswrite( $sock, $request );
+if ( !defined $written || $written != length($request) ) {
+    my $error = "Failed to write request: $!";
+    <[base.logs]>->( 0, "async.http_client: %s", $error );
+    $callbacks->{'on_error'}->($error) if exists $callbacks->{'on_error'};
+    close($sock);
+    return { success => FALSE, error => $error };
+}
+
+<[base.logs]>->( 2, "async.http_client: wrote %d bytes", $written );
+
+## Set socket to non-blocking for event loop ##
+use Fcntl qw| F_GETFL F_SETFL O_NONBLOCK |;
+my $flags = fcntl( $sock, F_GETFL, 0 );
+if ( defined $flags ) {
+    fcntl( $sock, F_SETFL, $flags | O_NONBLOCK )
+        or <[base.logs]>->(
+        0, "async.http_client: failed to set non-blocking: %s", $!
+        );
+}
+
+## Set up connection state ##
 my $state = {
+    'sock'            => $sock,
+    'buffer'          => '',
+    'headers_parsed'  => FALSE,
+    'status_code'     => undef,
+    'content_type'    => undef,
     'bytes_received'  => 0,
     'chunks_received' => 0,
-    'buffer'          => '',
     'last_activity'   => <[base.time]>->(3),
-    'content_type'    => undef,
-    'content_length'  => undef,
-    'status_code'     => undef,
+    'callbacks'       => $callbacks,
+    'json_decoder'    => JSON::XS->new->utf8,
     'completed'       => FALSE,
 };
 
-## setup timeout watcher ##
-my $timeout_sec = $callbacks->{'timeout'} // 300;
-my $timeout_watcher;
-
-my $check_timeout = sub {
-    my $elapsed = <[base.time]>->(3) - $state->{'last_activity'};
-    if ( $elapsed > $timeout_sec ) {
-        $callbacks->{'on_error'}->("timeout after ${elapsed}s")
-            if exists $callbacks->{'on_error'};
-        $cv->send( { success => FALSE, error => 'timeout' } );
-    }
-};
-
-$timeout_watcher = AnyEvent->timer(
-    after    => $timeout_sec,
-    interval => 5,
-    cb       => $check_timeout,
-);
-
-## make request ##
-http_request(
-    'POST'  => $url,
-    headers => { 'Content-Type' => 'application/json', },
-    body    => $body_str,
-
-    ## on_header: called when headers received ##
-    sub {
-        my ($headers) = @_;
-        $state->{'status_code'}    = $headers->{'Status'};
-        $state->{'content_type'}   = $headers->{'content-type'};
-        $state->{'content_length'} = $headers->{'content-length'};
-        $state->{'last_activity'}  = <[base.time]>->(3);
-
-        <[base.logs]>->(
-            1,
-            "async.http_client: headers received - Status: %s",
-            $headers->{'Status'} // 'undef'
-        );
-
-        ## check for HTTP error ##
-        if ( !$headers->{'Status'} || $headers->{'Status'} !~ m{^2} ) {
-            my $error
-                = "HTTP error: " . ( $headers->{'Status'} // 'no status' );
-            <[base.logs]>->( 0, "async.http_client: %s", $error );
-            $callbacks->{'on_error'}->($error)
-                if exists $callbacks->{'on_error'};
-            return;    # abort
-        }
-
-        ## notify header received ##
-        $callbacks->{'on_header'}->($headers)
-            if exists $callbacks->{'on_header'};
-
-        return 1;    # continue receiving body
-    },
-
-    ## on_body: called per chunk ##
-    sub {
-        my ( $chunk, $headers ) = @_;
-        $state->{'last_activity'} = <[base.time]>->(3);
-        $state->{'bytes_received'} += length($chunk);
-        $state->{'chunks_received'}++;
-
-        ## accumulate buffer ##
-        $state->{'buffer'} .= $chunk;
-
-        ## process complete JSON lines (NDJSON format) ##
-        while ( $state->{'buffer'} =~ s{^(.+)\r?\n}{} ) {
-            my $line = $1;
-            next unless length($line);
-
-            ## parse JSON ##
-            my $data = eval { $json_decoder->decode($line) };
-            if ($@) {
-                ## not valid JSON yet, put back ##
-                $state->{'buffer'} = $line . "\n" . $state->{'buffer'};
-                last;
-            }
-
-            ## notify chunk received ##
-            $callbacks->{'on_chunk'}->($data)
-                if exists $callbacks->{'on_chunk'};
-        }
-
-        ## check for stop request ##
-        if ( $callbacks->{'check_stop'} && $callbacks->{'check_stop'}->() ) {
-            $callbacks->{'on_error'}->('stop requested')
-                if exists $callbacks->{'on_error'};
-            return;    # abort
-        }
-
-        return 1;      # continue
-    },
-
-    ## on_complete: called when done ##
-    sub {
-        my ( $body, $headers ) = @_;
-        $state->{'completed'} = TRUE;
-        $timeout_watcher->cancel()
-            if defined $timeout_watcher && $timeout_watcher->can('cancel');
-
-        ## check for connection-level errors ##
-        if ( !$state->{'status_code'} && $headers->{'Status'} ) {
-            <[base.logs]>->(
-                0,
-                "async.http_client: connection error - Status: %s, Reason: %s",
-                $headers->{'Status'},
-                $headers->{'Reason'} // 'unknown'
-            );
-            $callbacks->{'on_error'}->( "Connection failed: "
-                    . ( $headers->{'Reason'} // 'unknown' ) )
-                if exists $callbacks->{'on_error'};
-            $cv->send(
-                {   success => FALSE,
-                    error   => $headers->{'Reason'},
-                    state   => $state
-                }
-            );
-            return;
-        }
-
-        ## process any remaining buffer ##
-        if ( length( $state->{'buffer'} ) ) {
-            my $data = eval { $json_decoder->decode( $state->{'buffer'} ) };
-            if ( defined $data ) {
-                $callbacks->{'on_chunk'}->($data)
-                    if exists $callbacks->{'on_chunk'};
-            }
-        }
-
-        ## notify completion ##
-        $callbacks->{'on_complete'}->($state)
-            if exists $callbacks->{'on_complete'};
-
-        $cv->send( { success => TRUE, state => $state } );
+## Register socket for read handling ##
+my $io_watcher = <[event.add_io]>->(
+    {   'fd'      => $sock,
+        'handler' => qw| coding.handler.http_io |,
+        'data'    => $state,
+        ## Default poll is 'r' (read) ##
     }
 );
 
-## return immediately - caller uses condvar or callbacks ##
+## Set up timeout ##
+my $timeout_sec     = $callbacks->{'timeout'} // 300;
+my $timeout_watcher = <[event.add_timer]>->(
+    {   'after'   => $timeout_sec,
+        'handler' => 'coding.handler.http_timeout',
+        'data'    => { state => $state, io_watcher => $io_watcher },
+    }
+);
+
+$state->{'io_watcher'}      = $io_watcher;
+$state->{'timeout_watcher'} = $timeout_watcher;
+
+<[base.logs]>->(
+    1,     "async.http_client: connection established to %s:%d",
+    $host, $port
+);
+
 return {
     success => TRUE,
-    condvar => $cv,
     state   => $state,
 };
 
-#,,,,,,.,,,,,,...,,.,,,,.,,,,,..,,,,,,..,,,,.,.,.,...,...,...,...,...,,..,.,,,
-#3PYMIWNPU2ZBWKKFLEVKE7VJM346IE7TQDZYVFKYHEH2CXIR6XRH4WYEDKMYRUENS77WEBY2ROGZE
-#\\\|JRUUFZPJJ45GITADILSVNXV3MBQB4YZKCZ2EDFTXOSEWR652LYO \ / AMOS7 \ YOURUM ::
-#\[7]IW7G55DDT4THHTLEQJXXIUEFNHZGXKOZNCLSDVG4AY4JGSZVH2AQ 7  DATA SIGNATURE ::
+#,,,,,,..,,.,,...,,.,,,..,,..,...,,,,,,.,,,,.,.,.,...,...,,..,,..,,..,,.,,,.,,
+#E4AZCPWONEQP4RBEY4LFFQFLCPEJKZPYFO3WCL5DMSCJVPE4FIJWOXTTTZUP325R6T3Q6425QOZ6I
+#\\\|GRB4YNXLKPLV5AKDS5SQAC4GRPH74C5ZM5YVNIDBGH74FYQ63NN \ / AMOS7 \ YOURUM ::
+#\[7]ENEXAIHJVFDB22TF3WL5HUOQN4HFY7UTMJHPTSX6MKSSW4X4DSBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

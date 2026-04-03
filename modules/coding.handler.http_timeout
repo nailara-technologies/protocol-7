@@ -1,0 +1,27 @@
+## [:< ##
+
+# name  = coding.handler.http_timeout
+# descr = Handle HTTP request timeout
+# purpose = Clean up and report timeout error
+
+my $event     = shift->w;
+my $data      = $event->data;
+my $state     = $data->{'state'};
+my $callbacks = $state->{'callbacks'};
+
+<[base.logs]>->(
+    0,
+    "async.http_timeout: request timed out after %d seconds",
+    <[base.time]>->(3) - $state->{'last_activity'}
+);
+
+my $error = "Request timeout";
+$callbacks->{'on_error'}->($error) if exists $callbacks->{'on_error'};
+
+<[coding.async.http_cleanup]>->($state);
+
+#,,,.,,..,,..,,,,,,,,,.,,,,,.,..,,.,,,,..,..,,.,.,...,...,,..,.,.,,.,,,,.,,,,,
+#YGN7ETUAZYOJFID7KY764NW2LHUDPTDEOMUF2DLCCFHJQ7Y64NWDAPYFG3JU2KECD57EHPSDBQ5NW
+#\\\|YWHKZRSCEZJ3TFV2W64FYHR26L4R54KNKSEVU6NLSTSR7KY4FOW \ / AMOS7 \ YOURUM ::
+#\[7]OS4BNKFGJJWJRKXHWKKUXRO7T7I5YHZNIXSPWK746KXOINP47SBY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,0 +1,267 @@
+## [:< ##
+
+# name  = coding.async.state_machine
+# descr = Async inference state machine with user input and subtask support
+# purpose = Manage: streaming → tool_exec | user_input | subtask | paused → streaming → complete
+
+my ( $action, $task_id, $data ) = @ARG;
+
+## state definitions ##
+use constant {
+    STATE_STREAMING  => 'streaming',    # receiving response from model
+    STATE_TOOL_EXEC  => 'tool_exec',    # executing tool calls
+    STATE_USER_INPUT => 'user_input',   # waiting for user response
+    STATE_SUBTASK    => 'subtask',      # waiting for subtask completion
+    STATE_PAUSED     => 'paused',       # temporarily halted (rate limit, etc)
+    STATE_COMPLETE   => 'complete',     # final answer received
+    STATE_ERROR      => 'error',        # something went wrong
+};
+
+## valid state transitions ##
+my %TRANSITIONS = (
+    STATE_STREAMING() => {
+        'finish_tool_calls' => STATE_TOOL_EXEC,
+        'needs_user'        => STATE_USER_INPUT,
+        'spawn_subtask'     => STATE_SUBTASK,
+        'pause'             => STATE_PAUSED,
+        'finish_stop'       => STATE_COMPLETE,
+        'error'             => STATE_ERROR,
+    },
+    STATE_TOOL_EXEC() => {
+        'tools_done'    => STATE_STREAMING,
+        'needs_user'    => STATE_USER_INPUT,
+        'spawn_subtask' => STATE_SUBTASK,
+        'pause'         => STATE_PAUSED,
+        'error'         => STATE_ERROR,
+    },
+    STATE_USER_INPUT() => {
+        'user_responded' => STATE_STREAMING,
+        'pause'          => STATE_PAUSED,
+        'timeout'        => STATE_ERROR,
+        'cancelled'      => STATE_ERROR,
+    },
+    STATE_SUBTASK() => {
+        'subtask_done'  => STATE_STREAMING,
+        'subtask_error' => STATE_ERROR,
+        'pause'         => STATE_PAUSED,
+        'timeout'       => STATE_ERROR,
+    },
+    STATE_PAUSED() => {
+        'resume'    => STATE_STREAMING,
+        'cancelled' => STATE_ERROR,
+        'timeout'   => STATE_ERROR,
+    },
+);
+
+## get current state ##
+if ( $action eq 'get' ) {
+    return <coding.async.task_state>->{$task_id} // {};
+}
+
+## set/merge state ##
+elsif ( $action eq 'set' ) {
+    my $state = <coding.async.task_state>->{$task_id} // {};
+
+    foreach my $key ( keys %$data ) {
+        $state->{$key} = $data->{$key};
+    }
+
+    <coding.async.task_state>->{$task_id} = $state;
+
+    if ( defined $data->{'state'} ) {
+        <[base.logs]>->(
+            2,        "async.state_machine: task %s → %s",
+            $task_id, $data->{'state'}
+        );
+    }
+
+    return $state;
+}
+
+## initialize new task ##
+elsif ( $action eq 'init' ) {
+    my $initial = {
+        'task_id'       => $task_id,
+        'state'         => STATE_STREAMING,
+        'round'         => 0,
+        'messages'      => $data->{'messages'} // [],
+        'tools'         => $data->{'tools'}    // [],
+        'content'       => '',
+        'tool_calls'    => [],
+        'pending_tools' => [],
+        'awaiting_user' => FALSE,
+        'subtask_id'    => undef,
+        'backend'       => $data->{'backend'} // 'gpu',
+        'port'          => $data->{'port'}    // 8000,
+        'start_time'    => <[base.time]>->(3),
+        'history'       => [],                   # state transition history
+    };
+
+    <coding.async.task_state>->{$task_id} = $initial;
+
+    <[base.logs]>->(
+        2,
+        "async.state_machine: init task %s [%d messages, %d tools]",
+        $task_id,
+        scalar( @{ $initial->{'messages'} } ),
+        scalar( @{ $initial->{'tools'} } )
+    );
+
+    return $initial;
+}
+
+## cleanup ##
+elsif ( $action eq 'cleanup' ) {
+    delete <coding.async.task_state>->{$task_id};
+    <[base.logs]>->( 2, "async.state_machine: cleanup task %s", $task_id );
+    return { success => TRUE };
+}
+
+## validate and perform transition ##
+elsif ( $action eq 'transition' ) {
+    my $state   = <coding.async.task_state>->{$task_id} // {};
+    my $current = $state->{'state'}                     // STATE_ERROR;
+    my $event   = $data->{'event'};
+
+    ## lookup valid transition ##
+    my $new_state = $TRANSITIONS{$current}->{$event};
+
+    if ( !defined $new_state ) {
+        <[base.logs]>->(
+            0,        "async.state_machine: invalid transition %s --%s→ ?",
+            $current, $event
+        );
+        return $state;
+    }
+
+    ## record transition ##
+    push @{ $state->{'history'} },
+        {
+        'from'  => $current,
+        'to'    => $new_state,
+        'event' => $event,
+        'time'  => <[base.time]>->(3),
+        };
+
+    ## update state ##
+    $state->{'state'} = $new_state;
+    <coding.async.task_state>->{$task_id} = $state;
+
+    <[base.logs]>->(
+        2, "async.state_machine: task %s %s --%s→ %s",
+        $task_id, $current, $event, $new_state
+    );
+
+    ## trigger appropriate handler ##
+    if ( $new_state eq STATE_TOOL_EXEC ) {
+        $state->{'pending_tools'} = $data->{'tool_calls'} // [];
+        <coding.async.task_state>->{$task_id} = $state;
+        <[coding.async.tool_executor]>->($task_id);
+    } elsif ( $new_state eq STATE_STREAMING && $event eq 'tools_done' ) {
+        $state->{'round'}++;
+        $state->{'content'}      = '';
+        $state->{'tool_calls'}   = [];
+        $state->{'tool_results'} = $data->{'tool_results'} // [];
+        <coding.async.task_state>->{$task_id} = $state;
+        <[coding.async.send_request]>->($task_id);
+    } elsif ( $new_state eq STATE_STREAMING && $event eq 'user_responded' ) {
+        $state->{'round'}++;
+        $state->{'content'} = '';
+        push @{ $state->{'messages'} },
+            {
+            'role'    => 'user',
+            'content' => $data->{'user_message'},
+            };
+        <coding.async.task_state>->{$task_id} = $state;
+        <[coding.async.send_request]>->($task_id);
+    } elsif ( $new_state eq STATE_STREAMING && $event eq 'resume' ) {
+        ## resume from pause - continue with existing state
+        <[base.logs]>->(
+            2, "async.state_machine: task %s resuming from pause", $task_id
+        );
+        <coding.async.task_state>->{$task_id} = $state;
+        <[coding.async.send_request]>->($task_id);
+    } elsif ( $new_state eq STATE_COMPLETE ) {
+        $state->{'final_content'} = $data->{'content'} // $state->{'content'};
+        <coding.async.task_state>->{$task_id} = $state;
+        <[coding.async.complete_task]>->($task_id);
+    } elsif ( $new_state eq STATE_ERROR ) {
+        $state->{'error'} = $data->{'error'} // 'unknown error';
+        <coding.async.task_state>->{$task_id} = $state;
+        <[coding.async.fail_task]>->( $task_id, $state->{'error'} );
+    } elsif ( $new_state eq STATE_USER_INPUT ) {
+        $state->{'awaiting_user'} = TRUE;
+        $state->{'user_prompt'} = $data->{'prompt'} // 'Waiting for input...';
+        <coding.async.task_state>->{$task_id} = $state;
+        ## notify that we're waiting for user ##
+        <[base.logs]>->(
+            1, "async.state_machine: task %s waiting for user input", $task_id
+        );
+    } elsif ( $new_state eq STATE_SUBTASK ) {
+        $state->{'subtask_id'} = $data->{'subtask_id'};
+        <coding.async.task_state>->{$task_id} = $state;
+        ## subtask completion will trigger transition back ##
+    } elsif ( $new_state eq STATE_PAUSED ) {
+        $state->{'pause_reason'} = $data->{'reason'} // 'paused';
+        $state->{'resume_event'} = $data->{'resume_event'};
+        <coding.async.task_state>->{$task_id} = $state;
+        <[base.logs]>->(
+            2,        "async.state_machine: task %s paused (%s)",
+            $task_id, $state->{'pause_reason'}
+        );
+    }
+
+    return $state;
+}
+
+## pause task ##
+elsif ( $action eq 'pause' ) {
+    return <[base.call]>->(
+        'coding.async.state_machine',
+        'transition',
+        $task_id,
+        {   'event'        => 'pause',
+            'reason'       => $data->{'reason'},
+            'resume_event' => $data->{'resume_event'}
+        }
+    );
+}
+
+## resume paused task ##
+elsif ( $action eq 'resume' ) {
+    my $state = <coding.async.task_state>->{$task_id} // {};
+
+    if ( $state->{'state'} ne STATE_PAUSED ) {
+        <[base.logs]>->(
+            0, "async.state_machine: cannot resume task %s (not paused)",
+            $task_id
+        );
+        return $state;
+    }
+
+    return <[base.call]>->(
+        'coding.async.state_machine', 'transition', $task_id,
+        { 'event' => 'resume', %$data }
+    );
+}
+
+## get state constants ##
+elsif ( $action eq 'constants' ) {
+    return {
+        'STREAMING'  => STATE_STREAMING,
+        'TOOL_EXEC'  => STATE_TOOL_EXEC,
+        'USER_INPUT' => STATE_USER_INPUT,
+        'SUBTASK'    => STATE_SUBTASK,
+        'PAUSED'     => STATE_PAUSED,
+        'COMPLETE'   => STATE_COMPLETE,
+        'ERROR'      => STATE_ERROR,
+    };
+}
+
+return { error => "unknown action: $action" };
+
+#,,..,,,,,.,.,,,.,.,.,,,,,.,.,,,.,,,,,.,.,,,,,.,.,...,...,,,,,.,,,...,,,,,,.,,
+#XDR5ADK2NP4VWOO3NIEYKFEZRJSTHD7ACT2AGZCUWJPMU4Y5JELR2ULAUQKVFQFKGPGISR6HK3NAI
+#\\\|UNWVKCIZ5225N6OQ5XJFBUK2QPOMMHKJSOHIHXRV4JSJMVGZ7WM \ / AMOS7 \ YOURUM ::
+#\[7]6PQRUIR2R376HRYLZL6L7SSAKB44FTJAFYTCDMGDAPHZ3JBL6UDA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
