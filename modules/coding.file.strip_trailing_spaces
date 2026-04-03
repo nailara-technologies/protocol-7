@@ -1,0 +1,61 @@
+## [:< ##
+
+# name  = coding.file.strip_trailing_spaces
+# descr = strip trailing whitespace from a single file (helper)
+
+my ( $file, $check_only ) = @ARG;
+
+## check file type ##
+if ( -T $file ) {
+    ## text file - process normally ##
+} else {
+    return [ 0, 0, 'Binary file skipped' ];
+}
+
+## read file content ##
+my $content_ref = <[file.slurp]>->($file);
+return [ 0, 0, 'Cannot read: ' . $file ] unless defined $content_ref;
+
+## count and remove trailing whitespace ##
+my @lines = split /\n/, $content_ref->$*, -1;
+
+my $trailing_count = 0;
+my $changed        = 0;
+
+for my $i ( 0 .. $#lines ) {
+    my $line    = $lines[$i];
+    my $trimmed = $line;
+    $trimmed =~ s|[ \t]+$||;
+
+    if ( length $trimmed ne length $line ) {
+        $trailing_count++;
+        $changed = 1;
+        $lines[$i] = $trimmed;
+    }
+}
+
+if ( $changed && !$check_only ) {
+    ## write back only if changed ##
+    my $new_content = join "\n", @lines;
+    my ( $success, $error )
+        = <[coding.tools.handler.write_with_perms]>->( $file, \$new_content );
+    if ($success) {
+        <[base.logs]>->( 2, ':. strip_trailing_spaces: %s modified', $file );
+    } else {
+        <[base.logs]>->(
+            0,     ':. strip_trailing_spaces: %s write failed: %s',
+            $file, $error // 'unknown error'
+        );
+        return [ 0, 0, "Write failed: $error" ];
+    }
+} elsif ( !$changed ) {
+    <[base.logs]>->( 3, ':. strip_trailing_spaces: %s unchanged', $file );
+}
+
+return [ $trailing_count, $changed, '' ];
+
+#,,..,..,,,..,,..,..,,.,.,,..,.,,,.,,,.,.,,.,,.,.,...,...,,.,,.,.,,.,,,,,,...,
+#JGWO23LAFNNPR2BMZVNEEWADB4FGR5LZ4DAVYOYOBCAR5V4G5LBI3ASSJWUXZM7WPOYPQUJXFHW2K
+#\\\|RJVR7ZD2JFDW4DPLELGOYOJCKWXLUBMTGZO4GEWN44CTHKKY245 \ / AMOS7 \ YOURUM ::
+#\[7]QZCQOQJYUEYS6PE3XJNEVHGMHKUSAPS3H2Q22NTXPJRSAADD6UCA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

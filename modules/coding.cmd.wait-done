@@ -1,0 +1,76 @@
+## [:< ##
+
+# name  = coding.cmd.wait-done
+# descr = block until task completes or timeout
+# param = <task_id> [timeout-seconds]
+
+my $args_str = $call->{'args'} // '';
+my ( $task_id, $timeout ) = split m{ +}, $args_str, 2;
+
+## validate timeout (0 or undef = no timeout, wait indefinitely) ##
+$timeout = defined $timeout ? int($timeout) : 0;
+$timeout = 0 if $timeout < 0;
+
+return { 'mode' => qw| false |, 'data' => 'task_id required' }
+    unless defined $task_id and length $task_id;
+
+my $poll_interval = 0.5;             ## check every 500ms ##
+my $elapsed       = 0;
+my $start_time    = <[base.time]>;
+
+my $timeout_str = $timeout > 0 ? "${timeout}s" : "no timeout";
+<[base.logs]>->(
+    1,        "wait-done: waiting for %s (timeout=%s)",
+    $task_id, $timeout_str
+);
+
+while (1) {
+    my $task = <coding.task.queue>->{$task_id};
+
+    ## task not found ##
+    return { 'mode' => qw| false |, 'data' => "task not found: $task_id" }
+        unless defined $task;
+
+    my $status = $task->{'execution'}->{'status'} // 'unknown';
+
+    ## task completed ##
+    if ( $status eq qw| completed | ) {
+        my $result = $task->{'execution'}->{'result'} // '';
+        <[base.logs]>->( 1, "wait-done: %s completed", $task_id );
+        return { 'mode' => qw| true |, 'data' => $result };
+    }
+
+    ## task failed ##
+    if ( $status eq qw| failed | ) {
+        my $error = $task->{'execution'}->{'error'} // 'unknown error';
+        <[base.logs]>->( 1, "wait-done: %s failed - %s", $task_id, $error );
+        return { 'mode' => qw| false |, 'data' => "task failed: $error" };
+    }
+
+    ## check timeout (0 = no timeout, wait indefinitely) ##
+    if ( $timeout > 0 ) {
+        $elapsed = <[base.time]> - $start_time;
+        if ( $elapsed >= $timeout ) {
+            <[base.logs]>->(
+                1,        "wait-done: %s timeout after %.1fs",
+                $task_id, $elapsed
+            );
+            return {
+                'mode' => qw| false |,
+                'data' => "timeout after ${elapsed}s"
+            };
+        }
+    }
+
+    ## yield to event loop ##
+    <[event.once]>->($poll_interval);
+}
+
+## unreachable ##
+return { 'mode' => qw| false |, 'data' => 'wait loop exited unexpectedly' };
+
+#,,,,,,.,,,,,,,,.,,,,,,,.,...,.,.,.,.,,,.,...,.,.,...,...,,.,,,.,,,.,,,.,,,,.,
+#MXARY5WKPLBKMTJQUUYWLCRFDEQFP3ZYLIBMBUQ7AN6MO4VPPMNKGTI5EGU2RDVIJBKEXBLIN6D2C
+#\\\|G6JLU2Z7TDWRSI2XXPVR4RFWE2GZ6MHYORXGCUKKHGI6OCCDBT3 \ / AMOS7 \ YOURUM ::
+#\[7]Z45YEO4MJGDJUY3ALXHJYXXATDHPRZZQQJ75DX7ZNQHJ4ZPSHCBY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
