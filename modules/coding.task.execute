@@ -3,6 +3,7 @@
 # name  = coding.task.execute
 # descr = execute a coding task from jobqueue callback
 # purpose = bridge jobqueue execution to coding task processing
+#         = Phase 1: add async mode support (default: blocking)
 
 my $params          = shift;
 my $job_id          = $params->{'job_id'};
@@ -65,7 +66,31 @@ push $aref_active->@*, $task_id;
 
 <[base.logs]>->( 2, "coding.task.execute: starting task %s", $task_id );
 
-## call the actual inference processor ##
+## Phase 1: Check for async mode ##
+my $async_mode = <coding.async.enabled> // FALSE;
+
+if ($async_mode) {
+    ## ASYNC MODE: Store state and defer ##
+    <[base.logs]>->( 1, "coding.task.execute: async mode for %s", $task_id );
+
+    ## Store state for later completion ##
+    <[coding.async.state_manager]>->(
+        'set', $task_id,
+        {   job_id     => $job_id,
+            task_id    => $task_id,
+            start_time => <[base.time]>->(3),
+            mode       => 'async_pending',
+        }
+    );
+
+    ## TODO: Phase 2 - Start actual async HTTP request here
+    ## For now, fall through to blocking mode (functional state)
+    <[base.logs]>->(
+        1, "coding.task.execute: async not fully impl, using blocking"
+    );
+}
+
+## BLOCKING MODE: Call the actual inference processor ##
 ## expects: { params => { task_id => ... } } for jobqueue callback mode ##
 my $result = <[coding.handler.process-queued-task]>
     ->( { 'params' => { 'task_id' => $task_id } } );
@@ -87,10 +112,15 @@ if ( defined $result && $result->{'success'} ) {
     <[coding.task.fail]>->( $task_id, $error_msg );
 }
 
+## Clean up async state if we were in async mode ##
+if ($async_mode) {
+    <[coding.async.state_manager]>->( 'delete', $task_id );
+}
+
 return $result;
 
-#,,,.,...,.,,,,.,,.,,,...,,..,..,,..,,,,,,,.,,.,.,...,...,..,,...,,,,,,,,,,..,
-#J7JE7CX2OZFWS44QO42NBVXHUY3HGGNZYCJJCVVKA4I2MBLIZ2UZT6CTSJCGTZVBCEIGJEK6TRLVI
-#\\\|KTVL7CN5K3S3VE6NSCC5FI27QGYEZETXLJ36JTTM6JIRMRFSGUC \ / AMOS7 \ YOURUM ::
-#\[7]BG77I27BCV4QKT7SR73Z3ESEUR2QVC5SYDISRV5TQG62G5EZPODA 7  DATA SIGNATURE ::
+#,,,.,,,.,,..,...,,..,..,,,,.,,.,,..,,,..,.,.,.,.,...,...,,,,,..,,,,,,,,,,,,,,
+#7M37H5N4HJ57ZENVS43BWKQPIRSYY6YWFSV3THZTH577CLDFHQYOVMPOFICJ6DMAZEZ4PWXXHIJXE
+#\\\|7KBAJAQV5Y2EDZX64PZD4DG4N2UL6C2WZ4MNTEOHIQHWITYJJ7Q \ / AMOS7 \ YOURUM ::
+#\[7]ZJO75JBUGX2IIMIFD62SLE4CJO2JQK56VFHVY6NENNZIUVLDASAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

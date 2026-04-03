@@ -1,0 +1,60 @@
+## [:< ##
+
+# name  = coding.async.complete
+# descr = handle completion of async coding task
+# purpose = Phase 1: Callback when deferred inference finishes
+
+my ( $task_id, $result ) = @ARG;
+
+return { success => FALSE, error => 'task_id required' }
+    unless defined $task_id;
+
+## retrieve stored state ##
+my $state = <[coding.async.state_manager]>->( 'get', $task_id );
+
+return { success => FALSE, error => "no state for task $task_id" }
+    unless defined $state;
+
+my $job_id = $state->{'job_id'};
+
+## clean up async state ##
+<[coding.async.state_manager]>->( 'delete', $task_id );
+
+## handle completion (mirrors coding.task.execute logic) ##
+if ( defined $result && $result->{'success'} ) {
+    my $result_text = $result->{'result'} // '';
+
+    ## move job to completed ##
+    <[jobqueue.move_job]>->( $job_id, 'completed' )
+        if defined $job_id;
+
+    ## complete the task ##
+    <[coding.task.complete]>->( $task_id, $result_text );
+
+    <[base.logs]>->( 2, "async.complete: task %s completed", $task_id );
+
+    return { success => TRUE, task_id => $task_id };
+} else {
+    my $error_msg = $result->{'error'} // 'unknown error';
+    my $err_short = <[base.parser.center_ellipse_string]>->( $error_msg, 72 );
+
+    <[base.logs]>->(
+        0,        "async.complete: task %s failed: %s",
+        $task_id, $err_short
+    );
+
+    ## move job to error ##
+    <[jobqueue.move_job]>->( $job_id, 'error' )
+        if defined $job_id;
+
+    ## fail the task ##
+    <[coding.task.fail]>->( $task_id, $error_msg );
+
+    return { success => FALSE, error => $error_msg, task_id => $task_id };
+}
+
+#,,..,,.,,...,,,.,.,,,.,,,.,,,,.,,...,..,,.,,,.,.,...,...,..,,...,,..,.,.,,.,,
+#JG5EC54ST54YU6HEAJMFHCWXDK7OXYT24LEHO4LL4MFR56NL2D7PITGRAMKQOEISE5HLFCVB7NFIW
+#\\\|ZYIPDUAFPMO6FLIRRD4GBNIT5ENTMEK7J2ENHGICQR2SKH2XVUQ \ / AMOS7 \ YOURUM ::
+#\[7]O3VVWFD7AZOETHBMC556YABSE6K4KGZQO4BF5JSQHRXLUKTA6OCQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
