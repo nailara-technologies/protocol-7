@@ -1,0 +1,37 @@
+## [:< ##
+
+# name  = coding.async.http_cleanup
+# descr = Clean up HTTP connection resources
+# purpose = Remove I/O watchers and close socket
+
+my ($state) = @ARG;
+
+return unless defined $state;
+
+## Cancel timeout watcher ##
+if ( defined $state->{'timeout_watcher'} ) {
+    eval { $state->{'timeout_watcher'}->cancel() };
+    delete $state->{'timeout_watcher'};
+}
+
+## Remove I/O watcher ##
+if ( defined $state->{'io_watcher'} ) {
+    eval { $state->{'io_watcher'}->cancel() };
+    delete $state->{'io_watcher'};
+}
+
+## Close socket ##
+if ( defined $state->{'sock'} ) {
+    eval { $state->{'sock'}->close() };
+    delete $state->{'sock'};
+}
+
+<[base.logs]>->( 2, "async.http_cleanup: resources cleaned up" );
+
+return { success => TRUE };
+
+#,,.,,,,,,,.,,...,..,,,,.,,,.,.,.,,,,,..,,,,,,.,.,...,...,.,.,,..,,,,,,,,,,.,,
+#ZCQ6KNMPD64W66UBNDBTPDR2VS4IPVWOP3KHTMQBCHC4GPQT4IHB66TQUXNBMPUT7GB77O6IXHPMA
+#\\\|OTS34RENR5Z7ESKOPTWWKL6S64GY6VO7CXJOZ2W2DSW5FZRZTK7 \ / AMOS7 \ YOURUM ::
+#\[7]4MQAYQBJLOL2Y4R6I3AHUTYRDG25BJB3MLUG4LVM35BX3YVZSWAA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

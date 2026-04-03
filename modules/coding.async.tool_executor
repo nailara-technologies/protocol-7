@@ -1,0 +1,132 @@
+## [:< ##
+
+# name  = coding.async.tool_executor
+# descr = Execute tool calls asynchronously and trigger next request
+# purpose = Phase 2+3: Tool execution loop for async mode
+
+my ($task_id) = @ARG;
+
+return unless defined $task_id;
+
+## get state ##
+my $state = <[coding.async.state_machine]>->( 'get', $task_id );
+return unless defined $state;
+
+my $tool_calls = $state->{'pending_tools'} // [];
+my $round      = $state->{'round'}         // 0;
+
+<[base.logs]>->(
+    2, "async.tool_executor: task %s round %d executing %d tools",
+    $task_id, $round, scalar(@$tool_calls)
+);
+
+## no tools to execute ##
+if ( !@$tool_calls ) {
+    <[base.logs]>->(
+        1, "async.tool_executor: no tools, skipping to next request"
+    );
+    <[coding.async.state_machine]>->(
+        $task_id, 'transition', { 'event' => 'tools_done' }
+    );
+    return { success => TRUE, tool_results => [] };
+}
+
+## execute each tool call (sequentially for simplicity) ##
+my @tool_results;
+my @tool_summaries;
+
+foreach my $tc (@$tool_calls) {
+    my $tool_name = $tc->{'function'}->{'name'}      // '?';
+    my $args_str  = $tc->{'function'}->{'arguments'} // '{}';
+    my $call_id   = $tc->{'id'}                      // '';
+
+    <[base.logs]>->(
+        2,          "async.tool_executor: calling %s [id=%s]",
+        $tool_name, $call_id
+    );
+
+    ## parse arguments ##
+    my $args = eval { JSON::PP::decode_json($args_str) } // {};
+
+    ## sanitize malformed arguments ##
+    if ( $@ || ref $args ne 'HASH' ) {
+        <[base.logs]>->(
+            0, "async.tool_executor: malformed args for %s", $tool_name
+        );
+        $args = {};
+    }
+
+    ## dispatch tool call ##
+    my $tool_result;
+    eval {
+        $tool_result = <[coding.tools.dispatch]>->(
+            $tool_name, $args, { 'round' => $round, 'task_id' => $task_id }
+        );
+    };
+
+    if ($@) {
+        <[base.logs]>->(
+            0,          "async.tool_executor: tool %s failed: %s",
+            $tool_name, $@
+        );
+        $tool_result = { error => "Tool execution failed: $@" };
+    }
+
+    ## format result ##
+    my $result_content
+        = defined $tool_result->{'data'}
+        ? $tool_result->{'data'}
+        : ( $tool_result->{'error'} // 'unknown result' );
+
+    ## truncate if too long ##
+    my $max_result = 10000;    # ~2500 tokens
+    if ( length($result_content) > $max_result ) {
+        $result_content
+            = substr( $result_content, 0, $max_result )
+            . "\n\n[result truncated due to length]";
+    }
+
+    ## build tool result message ##
+    my $tool_result_msg = {
+        'role'         => 'tool',
+        'tool_call_id' => $call_id,
+        'content'      => $result_content,
+    };
+
+    push @tool_results, $tool_result_msg;
+
+    ## summary for logging ##
+    my $snippet = substr( $result_content, 0, 60 );
+    $snippet =~ s|\n| |g;
+    push @tool_summaries, sprintf( "%s=%s", $tool_name, $snippet );
+}
+
+<[base.logs]>->(
+    2,                     "async.tool_executor: completed %d tools [%s]",
+    scalar(@tool_results), join( ', ', @tool_summaries )
+);
+
+## update state with tool results ##
+$state = <[coding.async.state_machine]>->(
+    'set', $task_id,
+    {   'tool_results'  => \@tool_results,
+        'pending_tools' => [],
+    }
+);
+
+## transition back to streaming ##
+<[coding.async.state_machine]>->(
+    $task_id,
+    'transition',
+    {   'event'        => 'tools_done',
+        'tool_results' => \@tool_results,
+    }
+);
+
+return { success => TRUE, tool_results => \@tool_results };
+
+#,,,.,,..,,,.,,.,,..,,..,,,..,,,.,,,.,,.,,...,.,.,...,...,..,,...,.,,,...,.,.,
+#AQTE5WCGSEAKXEMFHQGVKRGVXMHRLWXW7YT6JBKSIKUD7QUO4ISRFD6FTBPPJP3GKLHMB3IHQVBEU
+#\\\|YEN3ITANCD2QE5VXPLZ32VHNQSLWKT737O3NXJUSBCNFL5IVR6L \ / AMOS7 \ YOURUM ::
+#\[7]SRUFLD5L3CHZF4G2O2IH32MBX3TZQCKHONSUZVWSIE3AQ23VMYCI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
