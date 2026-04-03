@@ -1,0 +1,32 @@
+## [:< ##
+
+# name  = coding.async.state_manager
+# descr = manage state for async/deferred coding tasks
+# purpose = Phase 1: Store and retrieve task state for deferred execution
+
+my $action  = shift // 'get';
+my $task_id = shift;
+
+return undef unless defined $task_id;
+
+if ( $action eq 'get' ) {
+    return <coding.async.task_state>->{$task_id};
+} elsif ( $action eq 'set' ) {
+    my $state = shift // {};
+    <coding.async.task_state>->{$task_id} = $state;
+    return $state;
+} elsif ( $action eq 'delete' ) {
+    return delete <coding.async.task_state>->{$task_id};
+} elsif ( $action eq 'exists' ) {
+    return exists <coding.async.task_state>->{$task_id} ? TRUE : FALSE;
+} elsif ( $action eq 'list' ) {
+    return [ keys <coding.async.task_state>->%* ];
+}
+
+return undef;
+
+#,,,.,,..,,,,,..,,,,,,...,,,.,,,.,..,,,.,,...,.,.,...,...,...,...,,..,,.,,..,,
+#GKPQINBGUQZ3XF4LILMAEEV32BWSB25R6P5LY6IVZOX4EFI2GBB36IAHWQV2BTWUFQTN7K37LVC2U
+#\\\|5RCZDLWI3NCKPDHGK6PVKOLHAIEOQO6O7WTNPO76HX5DMGRV7QK \ / AMOS7 \ YOURUM ::
+#\[7]G2M4CPV5XBYZIHP5XA3QYA7H3UAKYHDAALL3MKC3OMVVPJEA6UAQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
