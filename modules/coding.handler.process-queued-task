@@ -206,6 +206,27 @@ INFERENCE_LOOP:
         ## check for and process event loop activity ##
         <[event.once]>->(0.07);
 
+        ## check for injected messages from coding.cmd.inject-message ##
+        if ( ref $task->{'injected_messages'} eq qw| ARRAY |
+            and $task->{'injected_messages'}->@* ) {
+            my @injected = $task->{'injected_messages'}->@*;
+            $task->{'injected_messages'} = [];
+
+            for my $im (@injected) {
+                push @messages,
+                    {
+                    'role'    => $im->{'role'}    // qw| user |,
+                    'content' => $im->{'content'} // ''
+                    };
+            }
+
+            <[base.logs]>->(
+                1,
+                "::working:: injected %d message(s) from external source",
+                scalar @injected
+            );
+        }
+
         ## context compaction: estimate size, compact if approaching limit ##
         if ( $tool_round > 2 and @messages > 4 ) {
             my $total_chars = 0;
@@ -912,8 +933,8 @@ if ( length $response_text
 ## return result hashref for jobqueue callback ##
 return { success => TRUE, result => $response_text, task_id => $task_id };
 
-#,,..,.,.,,,.,,..,,,,,,,.,...,.,.,...,.,.,.,,,..,,...,...,...,,..,,,,,,,,,.,.,
-#3QGGHP5XKVS4Y2RHV5NOVE3S6ERUPDYR6FJ3IG5X35ZYLWRVWPP6CBZURJ7D2EGMXAGTKKDR3UAU4
-#\\\|V4JZXZNW7KGFG4KM66M5KIDUQNRYB5OOBOOCSIWYIQT4WONQBFQ \ / AMOS7 \ YOURUM ::
-#\[7]3FB7XDTUAJ3DYTUU34VBJDREBSCXP7NX5RC6432U37LJMFTMSGDI 7  DATA SIGNATURE ::
+#,,,,,,,.,..,,,.,,,,,,.,.,..,,,.,,.,,,.,.,,,.,..,,...,..,,...,,..,...,..,,,,,,
+#5AYRWADUIG5K3XEDIAD5OG44MOKBRKTXA3DLAZUENDUQIP74PYQ5YAFHKFRZWPSAY7AND24YSE7WG
+#\\\|J2CWCE2MHJ6HSEFCFRLMJHFPUVIFL2LTZKAJPDTMRTQQQIU2WQT \ / AMOS7 \ YOURUM ::
+#\[7]V2NV7O46XRIYKIC4PJYLOTVTEDYBAQXC7CEEJ4CKK5TFU7KC7SBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

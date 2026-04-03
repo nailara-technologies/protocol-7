@@ -1,0 +1,56 @@
+## [:< ##
+
+# name  = coding.cmd.inject-message
+# descr = inject a user message into an active coding task
+# param = <task_id> <message>
+
+my $args_str = $call->{'args'} // '';
+my ( $task_id, $message ) = split m{ +}, $args_str, 2;
+
+return { 'mode' => qw| false |, 'data' => 'task_id required' }
+    unless defined $task_id and length $task_id;
+
+return { 'mode' => qw| false |, 'data' => 'message required' }
+    unless defined $message and length $message;
+
+## lookup task in queue ##
+my $task = <coding.task.queue>->{$task_id};
+
+return { 'mode' => qw| false |, 'data' => "task not found: $task_id" }
+    unless defined $task;
+
+## check task is active ##
+my $status = $task->{'execution'}->{'status'} // 'unknown';
+
+return {
+    'mode' => qw| false |,
+    'data' => "task not active (status: $status)"
+    }
+    unless $status eq qw| in_progress | or $status eq qw| pending |;
+
+## initialize injected_messages array if needed ##
+$task->{'injected_messages'} //= [];
+
+## add message to injection queue ##
+push $task->{'injected_messages'}->@*,
+    {
+    'content'     => $message,
+    'injected_at' => <[base.time]>->(3),
+    'role'        => qw| user |
+    };
+
+<[base.logs]>->(
+    1,        "inject-message: queued for %s [%d pending]",
+    $task_id, scalar $task->{'injected_messages'}->@*
+);
+
+return {
+    'mode' => qw| true |,
+    'data' => "message queued for task $task_id"
+};
+
+#,,.,,,,.,,,,,...,.,.,,,,,.,.,,,.,...,,..,.,,,.,.,...,...,..,,,..,,,.,...,,..,
+#ABMGGLXO3ZSXTH76KTVW46VWPM2EVQDRAPF4CGYSTVAZEGJ5ZL4Z66ESIDZMIXHJTXUBSO5NLKTSG
+#\\\|LO4DDICCWKSHQGYY5DVAD6S765UQ5MZT3TESX45UPGVTNVLEYFZ \ / AMOS7 \ YOURUM ::
+#\[7]QKSICS2NDXHES4PZNOYWT2ANMUF5TO5ETEICZJXUGX7WIUGR7IAQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
