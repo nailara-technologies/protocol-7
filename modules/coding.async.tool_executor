@@ -26,7 +26,7 @@ if ( !@$tool_calls ) {
         1, "async.tool_executor: no tools, skipping to next request"
     );
     <[coding.async.state_machine]>->(
-        $task_id, 'transition', { 'event' => 'tools_done' }
+        'transition', $task_id, { 'event' => 'tools_done' }
     );
     return { success => TRUE, tool_results => [] };
 }
@@ -58,6 +58,10 @@ foreach my $tc (@$tool_calls) {
 
     ## dispatch tool call ##
     my $tool_result;
+    <[base.logs]>->(
+        2,          "tool_executor: dispatching %s with args: %s",
+        $tool_name, join( ', ', keys %$args ) || 'no args'
+    );
     eval {
         $tool_result = <[coding.tools.dispatch]>->(
             $tool_name, $args, { 'round' => $round, 'task_id' => $task_id }
@@ -70,13 +74,28 @@ foreach my $tc (@$tool_calls) {
             $tool_name, $@
         );
         $tool_result = { error => "Tool execution failed: $@" };
+    } else {
+        <[base.logs]>->(
+            2, "tool_executor: tool %s result type: %s",
+            $tool_name, ( defined $tool_result ? ref $tool_result : 'undef' )
+        );
     }
 
     ## format result ##
-    my $result_content
-        = defined $tool_result->{'data'}
-        ? $tool_result->{'data'}
-        : ( $tool_result->{'error'} // 'unknown result' );
+    my $result_content;
+    if ( defined $tool_result && ref $tool_result eq 'HASH' ) {
+        $result_content = $tool_result->{'data'} // $tool_result->{'error'}
+            // 'empty result';
+    } else {
+        $result_content = 'tool returned invalid result: '
+            . ( defined $tool_result ? ref $tool_result : 'undef' );
+        <[base.logs]>->(
+            0,
+            "async.tool_executor: tool %s returned invalid result type: %s",
+            $tool_name,
+            ( defined $tool_result ? ref $tool_result : 'undef' )
+        );
+    }
 
     ## truncate if too long ##
     my $max_result = 10000;    # ~2500 tokens
@@ -116,8 +135,8 @@ $state = <[coding.async.state_machine]>->(
 
 ## transition back to streaming ##
 <[coding.async.state_machine]>->(
-    $task_id,
     'transition',
+    $task_id,
     {   'event'        => 'tools_done',
         'tool_results' => \@tool_results,
     }
@@ -125,8 +144,8 @@ $state = <[coding.async.state_machine]>->(
 
 return { success => TRUE, tool_results => \@tool_results };
 
-#,,,.,,..,,,.,,.,,..,,..,,,..,,,.,,,.,,.,,...,.,.,...,...,..,,...,.,,,...,.,.,
-#AQTE5WCGSEAKXEMFHQGVKRGVXMHRLWXW7YT6JBKSIKUD7QUO4ISRFD6FTBPPJP3GKLHMB3IHQVBEU
-#\\\|YEN3ITANCD2QE5VXPLZ32VHNQSLWKT737O3NXJUSBCNFL5IVR6L \ / AMOS7 \ YOURUM ::
-#\[7]SRUFLD5L3CHZF4G2O2IH32MBX3TZQCKHONSUZVWSIE3AQ23VMYCI 7  DATA SIGNATURE ::
+#,,.,,..,,,.,,,,,,.,.,..,,.,,,.,,,.,,,,..,,..,.,.,...,..,,.,.,,.,,,,,,,..,..,,
+#L7VUVVRZQZWFMB4VUD5CRJKOTZ7PBZBN76J2BRB6TH35JBR5KV44PDJKX7CH22NHXAXUJYCISP6JO
+#\\\|Y76T2CYQ2RJF3RWU46GW2MBWZ6RAHG645CXHHUS57GLF2SDN4SC \ / AMOS7 \ YOURUM ::
+#\[7]E2UXZ5OISTZR3KSLIR2Q6UTZ3Y4GZUMZSABYDB3DBCV4PZXT7YBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

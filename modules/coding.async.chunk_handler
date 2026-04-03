@@ -78,30 +78,46 @@ if ( defined $choice->{'finish_reason'} ) {
         ## model wants to use tools ##
         if ( @{ $context->{'tool_calls'} } ) {
             <[coding.async.state_machine]>->(
-                $task_id,
                 'transition',
+                $task_id,
                 {   'event'      => 'finish_tool_calls',
                     'tool_calls' => $context->{'tool_calls'},
                 }
             );
         }
     } elsif ( $finish eq 'stop' || $finish eq 'end_turn' ) {
-        ## normal completion ##
-        <[coding.async.state_machine]>->(
-            $task_id,
-            'transition',
-            {   'event'   => 'finish_stop',
-                'content' => $context->{'content'},
-            }
-        );
+        ## check if we have tool calls even on stop (model quirk) ##
+        if ( @{ $context->{'tool_calls'} // [] } ) {
+            <[base.logs]>->(
+                1,
+                "chunk_handler: finish_reason=stop but %d tool_calls pending",
+                scalar( @{ $context->{'tool_calls'} } )
+            );
+            <[coding.async.state_machine]>->(
+                'transition',
+                $task_id,
+                {   'event'      => 'finish_tool_calls',
+                    'tool_calls' => $context->{'tool_calls'},
+                }
+            );
+        } else {
+            ## normal completion ##
+            <[coding.async.state_machine]>->(
+                'transition',
+                $task_id,
+                {   'event'   => 'finish_stop',
+                    'content' => $context->{'content'},
+                }
+            );
+        }
     } elsif ( $finish eq 'length' ) {
         ## max tokens reached ##
         <[base.logs]>->(
             1, "chunk_handler: max tokens reached for %s", $task_id
         );
         <[coding.async.state_machine]>->(
-            $task_id,
             'transition',
+            $task_id,
             {   'event'   => 'finish_stop',
                 'content' => $context->{'content'},
             }
@@ -112,8 +128,8 @@ if ( defined $choice->{'finish_reason'} ) {
             0, "chunk_handler: content filtered for %s", $task_id
         );
         <[coding.async.state_machine]>->(
-            $task_id,
             'transition',
+            $task_id,
             {   'event' => 'error',
                 'error' => 'Content filtered by safety system',
             }
@@ -123,8 +139,8 @@ if ( defined $choice->{'finish_reason'} ) {
 
 return $context;
 
-#,,.,,...,.,.,,,.,.,.,.,.,...,,..,...,,,,,,..,.,.,...,...,,.,,,..,,,,,.,.,...,
-#VH2Z6M4ODA7OP2XLXS756EATQB4VKG53LOWFUB5PB4KHCDGTSG2G2MNJOIWKNMF7MNAU3RDVIFBCO
-#\\\|JA55ULCHMGVO7EIXCO6M3WX24GBERSSJ3E3F2TRQBAKCTHP2EUI \ / AMOS7 \ YOURUM ::
-#\[7]65VSUOMCZVOSZYHP6XCQIG7RZUSDT6SZU43RRF5W4TXBYCBAHEBY 7  DATA SIGNATURE ::
+#,,,,,,,.,,,.,,.,,,,,,..,,.,,,..,,..,,.,.,,.,,.,.,...,...,...,,.,,..,,...,,.,,
+#WLRN6VGAAPSF4LYOVJICFLGAHDTH5ZBZWRRK3YVIN3PTJHU6NZE5XQGH724WQ3UY5MEVDJNWDPV3W
+#\\\|LNJZVMNBOG4W3EQMDDLV4H7FX2AIUMZ444WERL5RQ7OIGRY5GGU \ / AMOS7 \ YOURUM ::
+#\[7]GJG4ATGLIUPAWMXJAQBAMGJZNGNP2J2P4F7XR6SN3CYMPBMQLYBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

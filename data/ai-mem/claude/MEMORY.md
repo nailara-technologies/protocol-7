@@ -32,6 +32,7 @@
 - `topic-tool-suggestions.md` — LLM-suggested tools/improvements, prioritized; implemented/deferred/sources
 - `topic-namespace-tree-intelligence.md` — the tree IS the intelligence: unified namespace for
   code/data/state/history/planning, branch summarization, universal off-band access
+- `topic-async-tool-loop-debug.md` — CRITICAL: async tool exec loop broken, tasks complete after 1st msg
 
 ## File Creation Notes (CRITICAL)
 - **Never add** the single-line `#,,.,,,...` stub at end of new files
@@ -90,9 +91,16 @@
 - $ARG preservation reminder added to all 12 code-editing templates (local model regresses this)
 - Verbosity reduced to 2 in zenki/coding/start
 
+### Completed (Apr 2 2026) — details in `topic-completed.md`
+- Async HTTP streaming infrastructure: http_client, handler.http_io, chunk_handler, state_machine
+- tool_executor, buffer.model_output, callback.http_complete — all committed
+- Vision system overhaul, inference crash detect/restart, retry on timeout/5xx
+- B32 prefix fix, Jinja sanitization, NShell history fix, 3 new templates
+
 ### Active / Partial
-- **namespace tree as intelligence layer**: unified tree for code/data/state/history/planning,
-  branch summarization, off-band access — see `topic-namespace-tree-intelligence.md`
+- **CRITICAL: async tool execution loop** — streaming works but tool loop broken,
+  tasks complete after first response — see `topic-async-tool-loop-debug.md`
+- **namespace tree as intelligence layer**: see `topic-namespace-tree-intelligence.md`
 - **deferred compilation stubs** (Mar 15): partial — deeper namespace/phase work pending
 - **task coordination architecture**: see `topic-task-coordination.md` for full state + roadmap
 - **multi-model consensus**: llm.service.consensus_vote modules extracted but untested
@@ -235,8 +243,8 @@
 - Pattern: `my @non_num = grep { defined $data_ref->{$ARG}->{$key} and not looks_like_number(...) } keys $data_ref->%*`
 - Global `$SIG{__WARN__}` exists — if wrapping warn handler, capture `$prev_warn = $SIG{__WARN__}` first and call through
 
-#,,,,,.,,,,.,,.,.,.,.,,.,,..,,,.,,,.,,,,.,,,.,..,,...,...,,.,,,..,.,,,.,.,,,,,
-#R2NPMFEOL5RC6DN6LLDDUTAXYIZAZINYR5S4BPPGMZJQ4GHLUNKT4ZKXGVPLHUKVRUG6QY4VVZMIK
-#\\\|GN24K2TMTXS6GUMRS77PAYDKNETXNEOSOIYKD3FKA3EETYGV2OB \ / AMOS7 \ YOURUM ::
-#\[7]VD3A432JTXEHAGXW44SUFAKJUINLGHIDLPTZUJRSXGOGHUP5I2BI 7  DATA SIGNATURE ::
+#,,.,,.,,,..,,.,.,,.,,,,,,.,,,,,.,.,,,,.,,.,.,..,,...,...,..,,,.,,..,,..,,,.,,
+#U2YHKUDRHSLM4WC4G2KGRGL33HZDFLYN46RFIW3MS5MKRJ47TNY6TJZ7QUWX7SLZHX4D47HEEV5SQ
+#\\\|PVW6MBB4TJLAJ2QBJIKHBYLKGWKT3JLHBYHDOG32VEZ3YLJ6HQU \ / AMOS7 \ YOURUM ::
+#\[7]7OWP3RDC4SS3JNSVC3YCOYYVSX66RBN5T2RU3DYFK2YY3XRWJQBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,4 +1,4 @@
-# Session Handover — 2026-04-01
+# Session Handover — 2026-04-02
 
 ## What Just Happened
 
@@ -66,14 +66,107 @@ Autonomous task templates for self-directed work:
 - B32: prefix handling in single-line mode
 - Jinja template sanitization (namespace() outputs)
 
+## CRITICAL: Async Tool Execution Loop Broken
+
+**Status**: Infrastructure committed, basic streaming works, tool loop fails  
+**Issue**: Tasks complete after first response instead of executing tools and continuing  
+**Files**: `modules/coding.async.*`, `modules/coding.callback.http_*`, `modules/coding.handler.http_io`
+
+### Current Behavior
+- Async mode streams response correctly (chunks received, parsed)
+- Model responds with text OR generates tool_calls in delta chunks
+- `http_complete` callback fires, task completes immediately
+- Tool execution loop never triggered
+
+### Expected Flow
+```
+STREAMING → (finish_reason=tool_calls) → TOOL_EXEC → execute tools → 
+STREAMING (new request with tool results) → (finish_reason=stop) → COMPLETE
+```
+
+### Suspected Issues
+
+1. **chunk_handler tool call accumulation**: 
+   - Streaming tool_calls come in partial chunks by index
+   - Current code merges by index but may have edge cases
+   - Need to verify accumulated tool_calls are valid and complete
+
+2. **http_complete completion logic**:
+   - Added check for `finish_reason eq 'tool_calls'` to defer completion
+   - May not be working - debug logs don't appear
+   - State machine transition may not be triggered
+
+3. **State machine not driving the loop**:
+   - `STATE_TOOL_EXEC` handler should call `coding.async.tool_executor`
+   - Tool executor dispatches tools, then transitions back to `STREAMING`
+   - `tools_done` event should trigger `send_request` for next round
+   - Something in this chain is broken
+
+4. **Callback registration**:
+   - `coding.callback.http_*` modules extracted from inline subs
+   - Wrappers in `coding.async.request` may not be calling correctly
+   - Verify callbacks are actually invoked (add debug logging)
+
+### Debug Steps Needed
+
+1. Add verbose logging to `chunk_handler` to verify tool_calls accumulation
+2. Add logging to `http_complete` to see finish_reason and tool_calls count
+3. Verify `state_machine.transition` is called with `finish_tool_calls` event
+4. Check if `tool_executor` is invoked and completes successfully
+5. Verify `send_request` builds correct message history with tool results
+
+### Files Modified (need signing to test)
+- `modules/coding.callback.http_complete` — debug logging added
+- `modules/coding.async.chunk_handler` — tool call merging
+- `modules/coding.async.request` — uses extracted callbacks
+
+### Testing
+
+**Enable async mode (required before each test):**
+```bash
+# Enable async mode - REQUIRED or it falls back to blocking mode
+p7c coding.tree-write coding.async.enabled 1
+
+# Verify it's enabled
+p7c 'coding.tree-read coding.async.enabled'
+```
+
+**Submit test task:**
+```bash
+# Task that should trigger tool use
+p7c coding.submit 'read file README.md and summarize'
+
+# Or with template
+p7c coding.submit ':template: code-review' ':context: modules/coding.async.request'
+```
+
+**Monitor execution:**
+```bash
+# Watch for tool execution in logs (in another terminal)
+tail -f /dev/shm/.7/STDOUT/NIW7OAQ | grep -E "tool_calls|state_machine|tool_exec|finish_reason"
+
+# Check task status
+p7c coding.status
+p7c 'coding.tree-read coding.task.queue.<task-id>.execution'
+
+# Get result when done
+p7c coding.get-result <task-id>
+```
+
+**Expected behavior when working:**
+- Task shows `status: in_progress` while tools execute
+- Log shows `state_machine` transition events
+- Multiple inference rounds (streaming → tool_exec → streaming)
+- Final result appears after all tools complete
+
 ## What Needs Doing
 
-### 1. Async HTTP Integration Testing
-**Priority: high** | **Where**: coding zenka
+### 1. Async HTTP Integration Testing → DEBUG AND FIX TOOL LOOP
+**Priority: CRITICAL** | **Where**: coding zenka
 
-New async infrastructure is committed but needs real-world testing:
-- Test streaming with Qwen3.5 (reasoning_content + content)
-- Verify tool execution loop: streaming → tool_exec → streaming
+New async infrastructure is committed but **tool execution loop is broken**:
+- ✅ Streaming with Qwen3.5 works (reasoning_content + content)
+- ❌ Tool execution loop: streaming → tool_exec → streaming (BROKEN)
 - Test STATE_PAUSED for rate limiting scenarios
 - Validate concurrent task multiplexing
 
@@ -133,10 +226,26 @@ p7c coding.show <task-id>
 
 ## Key Files for Next Session
 
+### Async Debugging (PRIORITY)
+- `modules/coding.async.state_machine` — state transitions, verify TOOL_EXEC handler
+- `modules/coding.async.chunk_handler` — tool call accumulation from streaming chunks
+- `modules/coding.callback.http_complete` — should defer completion when tool_calls pending
+- `modules/coding.async.request` — callback setup, verify wrappers call extracted modules
+- `modules/coding.async.tool_executor` — tool dispatch, results collection
+- `modules/coding.async.send_request` — builds follow-up request with tool results
+
+### Documentation
 - `CLAUDE.md` — full system reference
 - `ai-mem/kimi/MEMORY.md` — persistent context index
 - `memory/topic-namespace-tree-intelligence.md` — tree architecture
 - `memory/topic-task-coordination.md` — task dispatch roadmap
-- `modules/coding.async.state_machine` — async inference state machine
-- `modules/coding.async.http_client` — non-blocking HTTP
 - `data/yaml/context-templates/` — all coding zenka templates
+
+### Notes for Claude
+The async infrastructure is 90% complete. The issue is likely in the handoff between:
+1. HTTP completion detecting tool_calls
+2. State machine transitioning to TOOL_EXEC
+3. Tool executor running and transitioning back
+4. New inference request being sent
+
+Look for: missing state machine calls, incorrect finish_reason checks, callback wrappers not working.
