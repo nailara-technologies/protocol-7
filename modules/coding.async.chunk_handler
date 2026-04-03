@@ -1,16 +1,13 @@
 ## [:< ##
 
 # name  = coding.async.chunk_handler
-# descr = Handle streaming chunks from llama-server inference
-# purpose = Phase 2: Process NDJSON chunks, update buffers, extract completion
-
-## JSON::XS loaded via coding.init_code
+# descr = Handle streaming chunks with state machine integration
+# purpose = Phase 2/3: Process chunks, detect tool calls, trigger transitions
 
 my ( $task_id, $chunk_data, $context ) = @ARG;
 
-return unless defined $task_id && defined $chunk_data;
+return $context unless defined $task_id && defined $chunk_data;
 
-## context holds accumulated state ##
 $context                    //= {};
 $context->{'content'}       //= '';
 $context->{'tool_calls'}    //= [];
@@ -19,16 +16,20 @@ $context->{'chunk_num'}     //= 0;
 
 $context->{'chunk_num'}++;
 
-## llama-server returns OpenAI-compatible format ##
-## { choices: [ { delta: { content: '...' }, finish_reason: ... } ] } ##
+## validate chunk is hash ##
+my $type = ref($chunk_data) || 'SCALAR';
+if ( $type ne 'HASH' ) {
+    ## skip non-hash chunks (hex values that slipped through) ##
+    return $context;
+}
 
+## extract choice ##
 my $choice = $chunk_data->{'choices'}->[0];
-return unless defined $choice;
+return $context unless defined $choice;
 
 ## extract delta content ##
 my $delta   = $choice->{'delta'}  // {};
-my $content = $delta->{'content'} // '';
-my $role    = $delta->{'role'}    // '';
+my $content = $delta->{'content'} // $delta->{'reasoning_content'} // '';
 
 ## handle tool calls in delta ##
 if ( exists $delta->{'tool_calls'}
@@ -39,27 +40,70 @@ if ( exists $delta->{'tool_calls'}
 ## accumulate content ##
 if ( length($content) ) {
     $context->{'content'} .= $content;
-
-    ## update model output buffer in real-time ##
-    <[coding.buffer.model_output]>->(
-        $content,
-        {   'round' => $context->{'round'} // 0,
-            'tool'  => 'stream_chunk',
-            'chunk' => $context->{'chunk_num'},
-        }
-    );
 }
 
-## check for finish ##
+## check for finish reason ##
 if ( defined $choice->{'finish_reason'} ) {
-    $context->{'finish_reason'} = $choice->{'finish_reason'};
+    my $finish = $choice->{'finish_reason'};
+    $context->{'finish_reason'} = $finish;
+
+    <[base.logs]>->(
+        2,        "chunk_handler: task %s finish_reason=%s",
+        $task_id, $finish
+    );
+
+    ## determine next state based on finish_reason ##
+    if ( $finish eq 'tool_calls' || $finish eq 'function_call' ) {
+        ## model wants to use tools ##
+        if ( @{ $context->{'tool_calls'} } ) {
+            <[coding.async.state_machine]>->(
+                $task_id,
+                'transition',
+                {   'event'      => 'finish_tool_calls',
+                    'tool_calls' => $context->{'tool_calls'},
+                }
+            );
+        }
+    } elsif ( $finish eq 'stop' || $finish eq 'end_turn' ) {
+        ## normal completion ##
+        <[coding.async.state_machine]>->(
+            $task_id,
+            'transition',
+            {   'event'   => 'finish_stop',
+                'content' => $context->{'content'},
+            }
+        );
+    } elsif ( $finish eq 'length' ) {
+        ## max tokens reached ##
+        <[base.logs]>->(
+            1, "chunk_handler: max tokens reached for %s", $task_id
+        );
+        <[coding.async.state_machine]>->(
+            $task_id,
+            'transition',
+            {   'event'   => 'finish_stop',
+                'content' => $context->{'content'},
+            }
+        );
+    } elsif ( $finish eq 'content_filter' ) {
+        ## content blocked ##
+        <[base.logs]>->(
+            0, "chunk_handler: content filtered for %s", $task_id
+        );
+        <[coding.async.state_machine]>->(
+            $task_id,
+            'transition',
+            {   'event' => 'error',
+                'error' => 'Content filtered by safety system',
+            }
+        );
+    }
 }
 
-## return context for next chunk ##
 return $context;
 
-#,,,.,..,,,,.,..,,,.,,...,,.,,...,...,.,.,,,.,.,.,...,...,...,,,,,.,,,..,,,,.,
-#HDTFTZEA4AEIPBM5DJE7LUR5F3AEEPGB5P7EILPHIIM4W4WRQSWENOUDEUPAZCFOKOOW3OFJCQBH2
-#\\\|CVIDEXQL7OLWSI3ENIYE6VDNGCHGAAWYSBMSL7REOKJGUGDDWSW \ / AMOS7 \ YOURUM ::
-#\[7]FLCHXQ3E7DTU7HULRSP42DMFFKWY3UWV3HYKO56LCLBFCXGMNCAQ 7  DATA SIGNATURE ::
+#,,..,..,,...,,,.,,..,..,,.,.,..,,,.,,,..,.,.,.,.,...,...,..,,.,.,,,.,.,.,,.,,
+#3CHW23ZRJOPCDTIVNAHWYCUORGKLF63GFSRUUXLMAHOYRUGKQVHNLPYXTOKU6GSPOPGOQHBFCNSIK
+#\\\|RZ7OHNUHUTNJZA4EP52RKVFQZMZ5MZZSRETSH2R5ZSDFVOB6QY4 \ / AMOS7 \ YOURUM ::
+#\[7]6U7DCZPFDH4U7MH3KWWZMPGZ2OZPHQG5F7VFFHWDIB6MYYLUD6AQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

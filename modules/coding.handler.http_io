@@ -1,0 +1,179 @@
+## [:< ##
+
+# name  = coding.handler.http_io
+# descr = HTTP I/O handler for async streaming client
+# purpose = Handle socket I/O for HTTP request/response
+
+my $event = shift->w;
+my $state = $event->data;
+
+my $sock      = $state->{'sock'};
+my $callbacks = $state->{'callbacks'};
+
+## Read response ##
+my $buffer;
+my $bytes = sysread( $sock, $buffer, 8192 );
+
+if ( !defined $bytes && ( $!{EAGAIN} || $!{EWOULDBLOCK} ) ) {
+    ## No data available yet, wait for next event ##
+    return;
+}
+
+if ( defined $bytes && $bytes > 0 ) {
+    $state->{'last_activity'} = <[base.time]>->(3);
+    $state->{'bytes_received'} += $bytes;
+    $state->{'buffer'} .= $buffer;
+
+    <[base.logs]>->(
+        2,      "async.http_io: received %d bytes (total: %d)",
+        $bytes, $state->{'bytes_received'}
+    );
+
+    ## Debug: show raw buffer preview ##
+    my $preview = substr( $state->{'buffer'}, 0, 100 );
+    $preview =~ s/\n/\\n/g;
+    $preview =~ s/\r/\\r/g;
+    <[base.logs]>->( 2, "async.http_io: buffer preview [%s]", $preview );
+
+    ## Parse headers if not yet done ##
+    if ( !$state->{'headers_parsed'} ) {
+        if ( $state->{'buffer'} =~ s/^(.+?)\r?\n\r?\n//s ) {
+            my $header_text = $1;
+            my @lines       = split( /\r?\n/, $header_text );
+
+            ## Parse status line ##
+            my $status_line = shift @lines;
+            if ( $status_line =~ m{HTTP/\d\.\d\s+(\d+)\s*(.*)} ) {
+                my $code = $1 // '???';
+                $state->{'status_code'}    = $code;
+                $state->{'status_message'} = $2 // '';
+
+                <[base.logs]>->( 1, "async.http_io: HTTP %s", $code );
+
+                if ( $state->{'status_code'} !~ m{^2} ) {
+                    my $error = "HTTP error: " . $state->{'status_code'};
+                    $callbacks->{'on_error'}->($error)
+                        if exists $callbacks->{'on_error'};
+                    <[coding.async.http_cleanup]>->($state);
+                    return;
+                }
+
+                $callbacks->{'on_header'}
+                    ->( { Status => $state->{'status_code'} } )
+                    if exists $callbacks->{'on_header'};
+            }
+
+            ## Parse headers ##
+            foreach my $line (@lines) {
+                if ( $line =~ /^([^:]+):\s*(.+)/ ) {
+                    $state->{'headers'}{ lc($1) } = $2;
+                }
+            }
+
+            $state->{'headers_parsed'} = TRUE;
+        }
+    }
+
+    ## Process body data (SSE format: data: {...}) ##
+    if ( $state->{'headers_parsed'} ) {
+        while ( $state->{'buffer'} =~ s/^([^\r\n]*)\r?\n// ) {
+            my $line = $1;
+            next unless length($line);
+
+            ## Skip hex chunk size lines (chunked encoding) - strip \r first ##
+            $line =~ s/\r$//;
+            next if $line =~ /^[0-9a-fA-F]+$/;
+
+            ## Skip SSE headers and empty lines ##
+            next if $line =~ /^:$/;         # Keep-alive comment
+            next if $line =~ /^event:/i;    # Event type header
+            next if $line =~ /^id:/i;       # Event ID
+
+            <[base.logs]>
+                ->( 2, "async.http_io: processing line [%s]", $line );
+
+            ## Extract data from SSE format ##
+            my $json_str;
+            if ( $line =~ /^data:\s*(.+)/ ) {
+                $json_str = $1;
+            } else {
+                ## Try parsing as raw JSON (fallback) ##
+                $json_str = $line;
+            }
+
+            ## Handle [DONE] marker ##
+            if ( $json_str eq '[DONE]' ) {
+                <[base.logs]>->( 2, "async.http_io: received [DONE]" );
+                next;
+            }
+
+            ## Skip empty JSON strings ##
+            next unless length($json_str);
+
+            $state->{'chunks_received'}++;
+
+            ## Parse JSON ##
+            my $data = eval { $state->{'json_decoder'}->decode($json_str) };
+            if ($@) {
+                <[base.logs]>->(
+                    0,         "async.http_io: JSON parse error [%s]: %s",
+                    $json_str, $@ // 'unknown'
+                );
+                next;
+            }
+
+            ## Debug: log data type ##
+            if ( $state->{'chunks_received'} < 3 ) {
+                my $type = ref($data) || 'SCALAR';
+                <[base.logs]>->(
+                    2, "async.http_io: decoded data type=%s", $type
+                );
+            }
+
+            ## Call on_chunk callback ##
+            if ( exists $callbacks->{'on_chunk'} ) {
+                <[base.logs]>->(
+                    2, "async.http_io: calling on_chunk callback"
+                );
+                $callbacks->{'on_chunk'}->($data);
+            }
+        }
+    }
+
+    ## Return and wait for more data ##
+    return;
+}
+
+if ( defined $bytes && $bytes == 0 ) {
+    ## EOF - connection closed ##
+    <[base.logs]>->( 1, "async.http_io: connection closed (EOF)" );
+
+    ## Process any remaining data in buffer ##
+    if ( length( $state->{'buffer'} ) ) {
+        my $data
+            = eval { $state->{'json_decoder'}->decode( $state->{'buffer'} ) };
+        if ( defined $data ) {
+            $callbacks->{'on_chunk'}->($data)
+                if exists $callbacks->{'on_chunk'};
+        }
+    }
+
+    ## Complete ##
+    $state->{'completed'} = TRUE;
+    $callbacks->{'on_complete'}->($state)
+        if exists $callbacks->{'on_complete'};
+    <[coding.async.http_cleanup]>->($state);
+    return;
+}
+
+## Read error ##
+my $error = "Read error: $!";
+<[base.logs]>->( 0, "async.http_io: %s", $error );
+$callbacks->{'on_error'}->($error) if exists $callbacks->{'on_error'};
+<[coding.async.http_cleanup]>->($state);
+
+#,,..,,,,,,.,,.,.,.,.,..,,..,,,..,...,.,.,...,.,.,...,...,...,.,,,.,,,,,,,.,.,
+#74SYRE7GXX5XOGH6ORFDVVQYRJO6PCD5S6UICG4WBEB7IK4KJTGK3DXT4TGSINK5OUVMBF3AYXLV6
+#\\\|RZXDKAUOT27DX2GVTE6TOMO6KZSYA3T7AD7UZRY3E4TGCONAHSN \ / AMOS7 \ YOURUM ::
+#\[7]6VGZWG2CNKGOWMVGN4N2OIARFGAZDTIL5SE4VCGZPB6AGPTWK4AQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

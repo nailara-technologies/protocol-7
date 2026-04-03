@@ -98,6 +98,16 @@ my $callbacks = {
             tool_calls    => $state->{'tool_calls'},
         };
 
+        ## log final response to model output buffer ##
+        if ( length( $result->{'result'} ) ) {
+            <[coding.buffer.model_output]>->(
+                $result->{'result'},
+                {   'round' => $state->{'chunk_context'}{'round'} // 0,
+                    'tool'  => 'model',
+                }
+            );
+        }
+
         ## call async completion ##
         <[coding.async.complete]>->( $task_id, $result );
     },
@@ -156,8 +166,8 @@ return {
     mode    => 'streaming',
 };
 
-#,,,.,,,,,,..,,,,,...,..,,,,,,,,.,,.,,,..,,,.,.,.,...,...,,.,,..,,.,,,.,.,,,.,
-#2TVZ2D5IXLEO34TI2VSINOVHXRLMJWBTE64ROQD4PSGXPPOYPOWE7L5NSAQPHYBO523ELSEF52LT4
-#\\\|YJHUSTSFDQ46ROZ3CFREYGKPOCV5YXYPXQRBULEGKCJSBOEZJC6 \ / AMOS7 \ YOURUM ::
-#\[7]NYJ3NRTY4JQI6OAN4M4QMV43FZ3SAGEQKE2FYDIV5MOZAVY6AAAY 7  DATA SIGNATURE ::
+#,,,.,..,,..,,,.,,...,,..,,,.,...,,.,,,,,,,,.,.,.,...,..,,...,,..,,..,,..,..,,
+#BTLECANY6QAKG3XKB2XG7AMVZGBX7R34HDMS7GRKRD2GAEEMI2RWPUDHRFOOOYTWGVPH3457KV3E2
+#\\\|JNEIYR5HVINOJUSREXEQGJSCPOA5JPUND2YPX5PTJ6VIZVSCYOE \ / AMOS7 \ YOURUM ::
+#\[7]ZO62463NXZQHFHTC4P5LD23EUFLXNKGGUPPREHXVNKTF6HXLJMAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

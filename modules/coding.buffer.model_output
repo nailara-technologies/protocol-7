@@ -1,7 +1,7 @@
 ## [:< ##
 
 # name  = coding.buffer.model_output
-# descr = log model output to observation buffer
+# descr = log model output to observation buffer with chat-like formatting
 
 my $content = shift // '';
 my $context = shift // {};
@@ -10,29 +10,64 @@ return FALSE unless length $content;
 
 my $buffer_name = qw| model_output |;
 
-##  add timestamp and round info  ##
+##  context info  ##
 my $round = $context->{'round'} // qw| ? |;
 my $tool  = $context->{'tool'}  // qw| none |;
 
-my $prefix = sprintf( '[R%s|%s]', $round, $tool );
+##  format based on message type  ##
+my @lines;
 
-##  truncate if too long  ##
-my $max_line = 200;
-if ( length $content > $max_line ) {
-    $content = substr( $content, 0, $max_line ) . '.,.';
+if ( $tool eq 'stream_chunk' ) {
+    ##  stream chunks: clean output, no prefixes  ##
+    $content =~ s|\r||g;
+    @lines = split( /\n/, $content );
+} elsif ( $tool eq 'input' ) {
+    ##  user input: highlighted header  ##
+    my $header = sprintf( '┌──[ user | round %s ]%s', $round, '─' x 40 );
+    push @lines, $header;
+    $content =~ s|\r||g;
+    my @content_lines = split( /\n/, $content );
+    foreach my $line (@content_lines) {
+        push @lines, "│ $line";
+    }
+    push @lines, '└' . '─' x 50;
+} elsif ( $tool eq 'model' ) {
+    ##  model response: highlighted header  ##
+    my $header = sprintf( '┌──[ assistant | round %s ]%s', $round, '─' x 36 );
+    push @lines, $header;
+    $content =~ s|\r||g;
+    my @content_lines = split( /\n/, $content );
+    foreach my $line (@content_lines) {
+        push @lines, "│ $line";
+    }
+    push @lines, '└' . '─' x 50;
+} else {
+    ##  other tools: simple prefix  ##
+    my $prefix = sprintf( '[%s|%s]', $round, $tool );
+    $content =~ s|\r||g;
+    my @content_lines = split( /\n/, $content );
+    foreach my $line (@content_lines) {
+        push @lines, "$prefix $line";
+    }
 }
 
-##  clean newlines  ##
-$content =~ s|\n| / |g;
-$content =~ s|\r||g;
+##  truncate long lines  ##
+my $max_line = 200;
+foreach my $line (@lines) {
+    if ( length $line > $max_line ) {
+        $line = substr( $line, 0, $max_line ) . '.,.';
+    }
+}
 
 ##  add to buffer  ##
-<[base.buffer.add_line]>->( $buffer_name, "$prefix $content" );
+foreach my $line (@lines) {
+    <[base.buffer.add_line]>->( $buffer_name, $line );
+}
 
 return TRUE;
 
-#,,,,,,.,,,,.,,..,,.,,...,,..,,,,,,.,,,,.,,.,,..,,...,...,..,,,.,,.,,,,,.,,..,
-#CLX6XZLAEW3HFAUJZWV6Z2C4WQ6BSUBPQ7LQVM7GQYJBZ7CVSND3HYGNHVTPIGCVTY6BJKJKY433Y
-#\\\|LNVFJX5TSRST6UADPMFWASHR67MJ323GXSZXIVTQXHNPGA2ATFH \ / AMOS7 \ YOURUM ::
-#\[7]2XTCFPO2ODHIQJZALJWDMH2X3A7MHEPSP2XAUJYR75KJPJTQYKBI 7  DATA SIGNATURE ::
+#,,.,,,..,,,,,,,,,.,.,..,,.,.,,..,,,.,,,,,,,,,..,,...,...,.,.,...,,..,.,,,..,,
+#BJ3BZRB2GUUO3URELMBTFDJK4FLDEWPAHAXYKHWHIGZVALPV5ZWUBSFAHZX5SA4UCYXWFCX6T5O44
+#\\\|XYDFTOSO5KZA6R3CCMCNZ5VGTOKST6QAILWXALMGOO73SHKCLAJ \ / AMOS7 \ YOURUM ::
+#\[7]NIF5MGXTGC7OICQ7FO6C6BJEGYPS4YEQIV4IWUWX3KQ6E6UZCEAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
