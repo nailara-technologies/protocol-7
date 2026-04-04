@@ -55,11 +55,17 @@ my $tools = $state->{'tools'} // [];
     scalar(@$tools), $task_id
 );
 
+## get inference parameters (matching blocking version) ##
+my $max_tokens  = <inference.model.max_tokens>  // 7777;
+my $temperature = <inference.model.temperature> // 0.7;
+
 my $request_body = {
-    'model'    => 'default',
-    'messages' => \@messages,
-    'stream'   => 1,
-    'tools'    => $tools,
+    'model'       => 'default',
+    'messages'    => \@messages,
+    'stream'      => 1,
+    'tools'       => $tools,
+    'max_tokens'  => $max_tokens,
+    'temperature' => $temperature,
 };
 
 ## debug: log first message structure to diagnose HTTP 500 ##
@@ -82,8 +88,8 @@ if (@messages) {
 return
     <[coding.async.request]>->( $task_id, $request_body, $state->{'job_id'} );
 
-#,,..,..,,,,.,.,,,.,.,,.,,..,,,..,...,,.,,.,.,..,,...,...,...,..,,,..,,..,.,.,
-#DYMGPVOEZ2JFKVRWXPKZRGMX23MFWAQ6K7Q6OFLWHIWR6SHKTZGBKR6GSKUIP52T7EYPPPGN5EAQO
-#\\\|QTEYDTUUOKHWOAGORIOXPKQNVJ3EBZSNMTKM3RBVJKT5KO7I4UW \ / AMOS7 \ YOURUM ::
-#\[7]VJRYEOKGWXOZD7O3QCHF37TQBSVF2FN6KK4OZ5ZCPYIR2E35NGAQ 7  DATA SIGNATURE ::
+#,,.,,,,,,,.,,..,,,,.,...,,,.,,.,,,..,..,,,,,,..,,...,...,...,..,,,,,,..,,,.,,
+#4ZSM3LS2HYH264CAFEJRQKWFZDQFQCEFE5DDHZUI475H5GQCNDPXLTGQ2HJSZLKAWQQ2SNADAS6X6
+#\\\|HUU4OVIVNRWH5BQTDTXKTBQD73N3YIBYBMYBIOYGQXU7IS5L4GM \ / AMOS7 \ YOURUM ::
+#\[7]K5CGUFWCZULIW3SHDZSIR4AS5X3G3LCCPYHBG2MMKBKUG7GZO4BQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
