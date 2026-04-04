@@ -13,6 +13,9 @@ my $state = <[coding.async.state_machine]>->( qw| get |, $task_id );
 return { success => FALSE, error => "no state for $task_id" }
     unless defined $state;
 
+## compact context if approaching token limit ##
+<[coding.async.compact_context]>->($task_id);
+
 ## messages already built by state_machine transition handler ##
 ## just use the accumulated conversation from state ##
 my @messages = @{ $state->{'messages'} // [] };
@@ -97,8 +100,8 @@ if (@messages) {
 return
     <[coding.async.request]>->( $task_id, $request_body, $state->{'job_id'} );
 
-#,,,,,.,,,.,.,,..,,,,,.,,,...,,,,,.,.,,..,,.,,..,,...,...,.,.,...,,.,,...,,,,,
-#JL5VMXAMJCC6J6U5USM4RJ3WA5KEEEMI6XR4VDTO2WSFXFXA5ALA3MX5SVSBBCFQZCMMT4DPKKASO
-#\\\|6F3A6LTEOMV5NB6PNWIIGRIGUCUDFSCF6T72KME5YVY6A5SD2DO \ / AMOS7 \ YOURUM ::
-#\[7]I2E6VJME3QTM5LFKD3RFFDAWLOCUTASTUYCLBBXBJO34U2DDMYDQ 7  DATA SIGNATURE ::
+#,,,.,.,,,,,,,.,,,...,,..,..,,...,,,.,.,,,.,.,..,,...,...,.,,,.,,,,.,,...,,.,,
+#5JRXIS4LRMR6ZAY3ZBTU7BA6GAJHDMFW6YMSKUY4RAU5RS5FACBZ3753EEVEELVK27CTF3I3ZYD4G
+#\\\|KJJVJ2NV7NP7VEYV5JQPGTTK2YUBUST4PQELYCMVPOIWOVFLY5N \ / AMOS7 \ YOURUM ::
+#\[7]EP3W2G432UQPS2OQTSYVRII2LEQAAUHWEGYDK6NUQ23Q4GLX42BY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

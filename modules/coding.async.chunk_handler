@@ -28,8 +28,15 @@ my $choice = $chunk_data->{'choices'}->[0];
 return $context unless defined $choice;
 
 ## extract delta content [ fallback to message for non-sse responses ] ##
-my $delta   = $choice->{'delta'}  // $choice->{'message'}          // {};
-my $content = $delta->{'content'} // $delta->{'reasoning_content'} // '';
+my $delta = $choice->{'delta'} // $choice->{'message'} // {};
+
+## prefer content, fall back to reasoning_content if content is empty ##
+## note: content="" is defined but empty — use length check not // ##
+my $content = $delta->{'content'} // '';
+if ( !length($content) && length( $delta->{'reasoning_content'} // '' ) ) {
+    $content = $delta->{'reasoning_content'};
+    $context->{'has_reasoning_content'} = TRUE;
+}
 
 ## handle tool calls in delta ##
 ## streaming tool_calls come in partial chunks by index, need to merge ##
@@ -111,14 +118,35 @@ if ( defined $choice->{'finish_reason'} ) {
                 }
             );
         } else {
-            ## normal completion ##
-            <[coding.async.state_machine]>->(
-                'transition',
-                $task_id,
-                {   'event'   => 'finish_stop',
-                    'content' => $context->{'content'},
-                }
-            );
+            ## check for xml tool calls in content [ model quirk ] ##
+            ## models emit <tool_call><function=name>... in content ##
+            ## or reasoning_content instead of structured tool_calls ##
+            my $xml_tools
+                = <[coding.parse.xml_tool_calls]>->( $context->{'content'} );
+            if ( @{$xml_tools} ) {
+                <[base.logs]>->(
+                    1,
+                    "chunk_handler: extracted %d xml tool_calls from content",
+                    scalar( @{$xml_tools} )
+                );
+                <[coding.async.state_machine]>->(
+                    'transition',
+                    $task_id,
+                    {   'event'      => 'finish_tool_calls',
+                        'tool_calls' => $xml_tools,
+                        'content'    => $context->{'content'},
+                    }
+                );
+            } else {
+                ## normal completion ##
+                <[coding.async.state_machine]>->(
+                    'transition',
+                    $task_id,
+                    {   'event'   => 'finish_stop',
+                        'content' => $context->{'content'},
+                    }
+                );
+            }
         }
     } elsif ( $finish eq 'length' ) {
         ## max tokens reached ##
@@ -149,8 +177,8 @@ if ( defined $choice->{'finish_reason'} ) {
 
 return $context;
 
-#,,,,,,.,,,,,,,,,,.,.,,,.,,,,,,,.,,,,,,,.,...,.,.,...,..,,.,.,,.,,.,.,,.,,..,,
-#GYIB4NULJEHLH6JV5IEWUSZIVFRKMUTY2OU4VWRHOTX2R6H5SNFHTV3RJ7CJZ6HUFW5AGODCNIY7Q
-#\\\|YD5FJBOXDKEBNP4DDDXUSANW5I23UILOJZI6OSABRGVBH34COPL \ / AMOS7 \ YOURUM ::
-#\[7]4357UBL2DAOPDWJLED2LNDPL57FRJC6CR3MOL5WXUMQEFGOFJCBY 7  DATA SIGNATURE ::
+#,,..,..,,...,.,,,,,.,...,,,.,,.,,.,.,..,,,..,.,.,...,...,..,,,..,.,,,...,..,,
+#3SXXUGKY6MN37KJY6RZVUIHW2BMA4XUPOUQZAWJOOH7RBFEOQYIMBO4YS5Q5TQBHH5FUVUEIVZPCG
+#\\\|3IWBJC34JHF55LFK6NWZJK4TM5NC3LIPGHKNROEFTT3WQ2FEXHN \ / AMOS7 \ YOURUM ::
+#\[7]JINKXNFBQJSELANGPO35C4KDFR3B3YNNFCKPFF6AARNWXROBD6CI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
