@@ -159,10 +159,16 @@ elsif ( $action eq 'transition' ) {
         );
         ## store content from chunk_handler ##
         $state->{'content'} = $data->{'content'} // $state->{'content'} // '';
+        ## strip xml tool call markup from content before output ##
+        my $display_content = $state->{'content'};
+        $display_content =~ s|</?tool_call>\s*||g;
+        $display_content =~ s|<function\s*=\s*\w+\s*>.*?</function>||gs;
+        $display_content =~ s|^\s+||;
+        $display_content =~ s|\s+$||;
         ## write model response to output buffer [ before tool execution ] ##
-        if ( length( $state->{'content'} // '' ) ) {
+        if ( length($display_content) ) {
             <[coding.buffer.model_output]>->(
-                $state->{'content'},
+                $display_content,
                 {   'round' => $state->{'round'} // 0,
                     'tool'  => qw| model |,
                 }
@@ -237,6 +243,84 @@ elsif ( $action eq 'transition' ) {
             = [];    ## cleared now that we have assistant msg
         $state->{'tool_calls'}   = [];    ## also clear any stale tool_calls
         $state->{'tool_results'} = $data->{'tool_results'} // [];
+
+        ## loop detection [ matches blocking version ] ##
+        my $task = <coding.task.queue>->{$task_id};
+        if ( defined $task && @{$tool_calls} ) {
+            my $model_content = $state->{'content'} // '';
+            $model_content =~ s|^\s+||;
+            $model_content =~ s|\s+$||;
+
+            my $loop_check = <[coding.tool.detect_loop]>->(
+                $task, $tool_calls, 'suspicion', $model_content
+            );
+
+            if (ref $loop_check eq qw| HASH |
+                and (  $loop_check->{'skip_assert'}
+                    or $loop_check->{'escalate_direct'} )
+            ) {
+                <[base.logs]>->(
+                    0,
+                    "state_machine: loop detected [score %.1f]: %s",
+                    $loop_check->{'score'}   // 0,
+                    $loop_check->{'message'} // 'unknown'
+                );
+
+                <coding.loop_detect_count> //= 0;
+                <coding.loop_detect_count>++;
+                if ( <coding.loop_detect_count> >= 3 ) {
+                    <[base.logs]>->(
+                        0,
+                        "state_machine: loop persisted after 3 warnings, forcing stop"
+                    );
+                    <coding.async.task_state>->{$task_id} = $state;
+                    <[coding.async.fail_task]>->(
+                        $task_id,
+                        'loop detected: task stopped after repeated warnings'
+                    );
+                    return $state;
+                }
+
+                ## inject escalation warning ##
+                push @{ $state->{'messages'} },
+                    {
+                    'role'    => 'system',
+                    'content' => $loop_check->{'warning'}
+                        // $loop_check->{'message'},
+                    };
+            } elsif ( ref $loop_check eq qw| HASH |
+                and $loop_check->{'request_assertion'} ) {
+                <[base.logs]>->(
+                    1,
+                    "state_machine: loop suspicion [%.1f, %s] - assertion",
+                    $loop_check->{'score'}   // 0,
+                    $loop_check->{'pattern'} // 'unknown'
+                );
+                ## inject assertion prompt as tool result ##
+                my $assert_prompt = sprintf(
+                    "[LOOP ASSERTION REQUEST]\n\n"
+                        . "Pattern '%s' detected (conf: %d%%)\n"
+                        . "Recent: %s | Score: %.1f\n\n"
+                        . "Self-assess: Are you looping? Reply:\n"
+                        . "LOOPING | NOT_LOOPING | UNCLEAR",
+                    $loop_check->{'pattern'} // 'unknown',
+                    int( ( $loop_check->{'confidence'} // 0 ) * 100 ),
+                    join( ' → ',
+                        @{ $loop_check->{'history_snapshot'} // [] } ),
+                    $loop_check->{'score'} // 0
+                );
+                push @{ $state->{'messages'} },
+                    {
+                    'role'         => 'tool',
+                    'tool_call_id' => 'loop_assert_' . $state->{'round'},
+                    'content'      => $assert_prompt,
+                    };
+            } else {
+                ## no loop pattern — reset counter ##
+                <coding.loop_detect_count> = 0;
+            }
+        }
+
         <coding.async.task_state>->{$task_id} = $state;
         <[coding.async.send_request]>->($task_id);
     } elsif ( $new_state eq STATE_STREAMING && $event eq 'user_responded' ) {
@@ -258,10 +342,16 @@ elsif ( $action eq 'transition' ) {
         <[coding.async.send_request]>->($task_id);
     } elsif ( $new_state eq STATE_COMPLETE ) {
         $state->{'final_content'} = $data->{'content'} // $state->{'content'};
+        ## strip xml tool call markup if present ##
+        my $final_display = $state->{'final_content'};
+        $final_display =~ s|</?tool_call>\s*||g;
+        $final_display =~ s|<function\s*=\s*\w+\s*>.*?</function>||gs;
+        $final_display =~ s|^\s+||;
+        $final_display =~ s|\s+$||;
         ## write final response to model output buffer ##
-        if ( length( $state->{'final_content'} ) ) {
+        if ( length($final_display) ) {
             <[coding.buffer.model_output]>->(
-                $state->{'final_content'},
+                $final_display,
                 {   'round' => $state->{'round'} // 0,
                     'tool'  => qw| model |,
                 }
@@ -345,8 +435,8 @@ elsif ( $action eq 'constants' ) {
 
 return { error => sprintf "unknown action : '%s'", $action };
 
-#,,,,,,,,,,..,,.,,,..,,..,,,,,,..,...,,..,..,,.,.,...,.,.,,..,..,,,.,,..,,...,
-#FT4UPGZWJL6UXO54R3GFT63H6VQ4AWAX5AT5NYSMXQKR2HVAORXLV4MBZ27XBYEKZHW6YRO4C5V4G
-#\\\|2KEZTYN7C3DWNVR6BH25Y5ANAB5ZRYRANDC5ELHY7EA74ZWK35A \ / AMOS7 \ YOURUM ::
-#\[7]BIJEZYNQPMIFEETIZYM2HUZXUB3GBCCXO5FWKBVWSDJLG5YCPKAA 7  DATA SIGNATURE ::
+#,,..,.,.,,.,,.,,,..,,..,,,.,,.,.,...,.,.,,.,,.,.,...,...,..,,,..,..,,...,...,
+#SQLCDCOMSKQ6EETQ3NDXT2ACRMHZ4YYXOJKV6J6PZDVHOGCDQ3R6WJ6SRR25GZZHPWEZSG3XNPGMM
+#\\\|RMZ6FEKXH53QPJL23UEN3YBFQYJQPMWLTMWYWWAN5TDFSG24GNT \ / AMOS7 \ YOURUM ::
+#\[7]4CVJK6R2VXBTGAO6WE3K6CY5HDYCJBRCRELCTGKGFKBLKOPOYKDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
