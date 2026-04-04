@@ -166,14 +166,6 @@ foreach my $tc (@$tool_calls) {
         );
     }
 
-    ## truncate if too long ##
-    my $max_result = 10000;    # ~2500 tokens
-    if ( length($result_content) > $max_result ) {
-        $result_content
-            = substr( $result_content, 0, $max_result )
-            . "\n\n[result truncated due to length]";
-    }
-
     ## build tool result message ##
     my $tool_result_msg = {
         'role'         => 'tool',
@@ -219,8 +211,8 @@ $state = <[coding.async.state_machine]>->(
 
 return { success => TRUE, tool_results => \@tool_results };
 
-#,,,.,..,,.,,,,..,.,.,,,,,,.,,..,,,.,,.,,,,,.,.,.,...,...,...,,,.,,.,,,..,...,
-#FXLEZN7OYLAFY3EESVMXXDAILEAWWRN3YVISI34Q7PE6YLACUAPRGIPSEB5FBCPHMKS3DBJLHYQCK
-#\\\|6R5XAGF4B4CM7HWEFHGZ6PECAI2SJR6IPKWHUAX5WJTQUDDP4RT \ / AMOS7 \ YOURUM ::
-#\[7]P6FF24ZCM6WN3UFWWJFC5AR3GLDRDXN5Y6NL4H335SPIGL4ALUBA 7  DATA SIGNATURE ::
+#,,.,,,.,,,,.,...,.,,,,,,,,,.,.,.,.,.,,..,...,.,.,...,...,,..,,..,,,,,.,.,,,,,
+#VP6CMONGVWINIFA2FQDGEM3VHSNPLGEJZHZ64ZT3EQN3X6VLMPKPVEXWHBLPG2OC3EF7TUGVLM7XU
+#\\\|GUF3ONPW2DYTLHAEMDHYEAGWTBDVWLB5KVCKUQO5DG4RQQ77QF6 \ / AMOS7 \ YOURUM ::
+#\[7]6D3TCIJ4DE6ARIHE2P3GDWEV4XKXQJ6FYQRO6AQSELJUGQCZOCAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -74,30 +74,8 @@ if (@$tools) {
     $request_body->{'tool_choice'} = 'auto';
 }
 
-## sanitize message content for jinja2 safety [ matches blocking version ] ##
-## tool results with code often contain {{ }}, {% %} patterns that crash ##
-## the server's jinja template engine or silently mangle the prompt ##
-for my $msg (@messages) {
-    my $content = $msg->{'content'} // '';
-    $content =~ s|\{\{|｛｛|g;
-    $content =~ s|\}\}|｝｝|g;
-    $content =~ s|\{%|｛%|g;
-    $content =~ s|%\}|%｝|g;
-    $content =~ s|namespace\s*\(|namespace_(|g;
-    $msg->{'content'} = $content;
-    ## also sanitize tool call arguments ##
-    if ( ref $msg->{'tool_calls'} eq qw| ARRAY | ) {
-        for my $tc ( $msg->{'tool_calls'}->@* ) {
-            my $args = $tc->{'function'}->{'arguments'} // '';
-            if ( length $args ) {
-                $args =~ s|\{\{|\\{\\{|g;
-                $args =~ s|\{%|\\{%|g;
-                $args =~ s|namespace\s*\(|namespace_(|g;
-                $tc->{'function'}->{'arguments'} = $args;
-            }
-        }
-    }
-}
+## sanitize messages for jinja2 safety ##
+<[coding.sanitize.jinja_messages]>->( \@messages );
 
 ## debug: log first message structure to diagnose HTTP 500 ##
 if (@messages) {
@@ -119,8 +97,8 @@ if (@messages) {
 return
     <[coding.async.request]>->( $task_id, $request_body, $state->{'job_id'} );
 
-#,,.,,...,,,.,,..,.,.,,..,.,.,.,.,,.,,...,...,..,,...,...,..,,,..,,,,,,.,,.,.,
-#GKMMFJOK3GCOZ6SOUVGBMZLEGBG4YJHYHEZ4HEIFAKF6LQVHFDRRIXA2Z2NR45O6D34HKEIPU236I
-#\\\|EOLNQD45JOIWOQSJK7BAVLI7RZBVZPTWJEMNASCEV53HQBTBIFB \ / AMOS7 \ YOURUM ::
-#\[7]73S5LYIUXKDTJ3QFWPRWJK7FOYUT5RA7S5QFWD3F5CMBDXQH2YDY 7  DATA SIGNATURE ::
+#,,,,,.,,,.,.,,..,,,,,.,,,...,,,,,.,.,,..,,.,,..,,...,...,.,.,...,,.,,...,,,,,
+#JL5VMXAMJCC6J6U5USM4RJ3WA5KEEEMI6XR4VDTO2WSFXFXA5ALA3MX5SVSBBCFQZCMMT4DPKKASO
+#\\\|6F3A6LTEOMV5NB6PNWIIGRIGUCUDFSCF6T72KME5YVY6A5SD2DO \ / AMOS7 \ YOURUM ::
+#\[7]I2E6VJME3QTM5LFKD3RFFDAWLOCUTASTUYCLBBXBJO34U2DDMYDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
