@@ -62,11 +62,16 @@ my $temperature = <inference.model.temperature> // 0.7;
 my $request_body = {
     'model'       => 'default',
     'messages'    => \@messages,
-    'stream'      => 1,
-    'tools'       => $tools,
+    'stream'      => \1,
     'max_tokens'  => $max_tokens,
     'temperature' => $temperature,
 };
+
+## add tools if available [ matches task.execute logic ] ##
+if (@$tools) {
+    $request_body->{'tools'}       = $tools;
+    $request_body->{'tool_choice'} = 'auto';
+}
 
 ## debug: log first message structure to diagnose HTTP 500 ##
 if (@messages) {
@@ -88,8 +93,8 @@ if (@messages) {
 return
     <[coding.async.request]>->( $task_id, $request_body, $state->{'job_id'} );
 
-#,,.,,,,,,,.,,..,,,,.,...,,,.,,.,,,..,..,,,,,,..,,...,...,...,..,,,,,,..,,,.,,
-#4ZSM3LS2HYH264CAFEJRQKWFZDQFQCEFE5DDHZUI475H5GQCNDPXLTGQ2HJSZLKAWQQ2SNADAS6X6
-#\\\|HUU4OVIVNRWH5BQTDTXKTBQD73N3YIBYBMYBIOYGQXU7IS5L4GM \ / AMOS7 \ YOURUM ::
-#\[7]K5CGUFWCZULIW3SHDZSIR4AS5X3G3LCCPYHBG2MMKBKUG7GZO4BQ 7  DATA SIGNATURE ::
+#,,..,,,,,.,,,,..,.,,,.,,,.,.,,,.,.,.,..,,.,.,..,,...,...,,,,,.,,,,,,,...,.,.,
+#FWDKEJSZI6DIM3XMPNDIQSZAHTGMZQEP3SAH5HI2TVAFQ5OAPHL4PALDIENGYKNLOL4NGT56DUYME
+#\\\|IBA6KER3M6DW22XGHOGQZWZXVVNC6LYIK3ZEPMGOQQ3LTLL5SN2 \ / AMOS7 \ YOURUM ::
+#\[7]ACC67RH5DSW27J7MPB5EITU4LW4FXTGKNPZQSCVHLQQ6IPMBHCAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
