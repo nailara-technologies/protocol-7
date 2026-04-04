@@ -53,12 +53,28 @@ my $request_body = {
     'tools'    => $state->{'tools'},
 };
 
+## debug: log first message structure to diagnose HTTP 500 ##
+if (@messages) {
+    my $first_tool
+        = ( grep { $_->{'role'} eq 'assistant' && $_->{'tool_calls'} }
+            @messages )[0];
+    if ($first_tool) {
+        my @tc_ids = map { $_->{'id'} // 'NO_ID' }
+            @{ $first_tool->{'tool_calls'} // [] };
+        <[base.logs]>->(
+            2,
+            "send_request: assistant has tool_calls with ids: [%s]",
+            join( ', ', @tc_ids )
+        );
+    }
+}
+
 ## start new async request ##
 return
     <[coding.async.request]>->( $task_id, $request_body, $state->{'job_id'} );
 
-#,,.,,,.,,,,,,,,,,.,.,..,,.,,,,,.,,..,...,.,.,..,,...,...,..,,...,..,,,..,,,,,
-#RHDCIKVTZ2ROULH5V3LND3F6Z252IALZXTHHIEVJJYJJWFJQQ6AYST7AKV7PSTNGZL3P7SBZMIMYE
-#\\\|SGTFJQO3IDHZGP3WR3AWV5FXTOZXCUEVKKIUGGCTKOQCQIHUOFN \ / AMOS7 \ YOURUM ::
-#\[7]5YAYUWJKUACJMJJ3EDLOBH4PFIIH7ODTY7QRBTYEVG3YSS2JL6DQ 7  DATA SIGNATURE ::
+#,,.,,..,,...,.,,,,..,.,.,..,,,,.,,,.,.,.,,..,..,,...,...,,,.,,,,,,,.,,..,,..,
+#EQ4FJSWRAHAF2HBOVXAUSHXTPNU7SVPWUW4U2AMVO2JI3XRPL7APESCIZG4I3DMYDLDBEECELP63E
+#\\\|XIHJPWHVGHKICJ347N4SMUVPME3GMJX7WMCV2BUHPGP2SH34VCT \ / AMOS7 \ YOURUM ::
+#\[7]X72DZVNW2M447EFNJPG3DHCAYBHSCRJDVW57KRFCXLQHL4ZQHODA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
