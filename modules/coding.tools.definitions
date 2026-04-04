@@ -371,9 +371,15 @@ push @tools,
                     'description' => 'file path relative to project root'
                 },
                 'edits' => {
-                    'type'        => 'string',
-                    'description' => 'edit instructions as JSON array:'
-                        . ' [{"line":N,"old":"text","new":"text"}]'
+                    'description' => 'edit instructions as array of objects:'
+                        . ' [{"line":N,"old":"text","new":"text"}, ...]'
+                        . ' [can be array or JSON string]',
+                    'anyOf' => [
+                        {   'type'  => 'array',
+                            'items' => { 'type' => 'object' }
+                        },
+                        { 'type' => 'string' }
+                    ]
                 },
                 'apply' => {
                     'type'        => 'boolean',
@@ -955,8 +961,8 @@ if ( exists $code{'coding.tools.handler.decode_base32'} ) {
 
 return \@tools;
 
-#,,,,,,..,.,.,,,.,,.,,...,,,,,..,,,,.,,..,,.,,..,,...,..,,...,.,,,,..,,,.,.,.,
-#4JGPUHFJDV22LIUXVXCFMCJGNNLTPEMGDD6NFD7NF7PTRVYBCBZNNGOWBYGPPOYHRO6WOGXG5D6ZU
-#\\\|QJZJ2F4SH4YUSTDREDCLKONAW77MD2JBSONI64SJBOJUZLIHGYS \ / AMOS7 \ YOURUM ::
-#\[7]5AIO7MJ5E3T2F6W4ATFCUKUKZMKQLUJHJJJQN2LNYFPCIXQG5MDY 7  DATA SIGNATURE ::
+#,,,.,,,,,,..,,..,,,.,.,,,..,,...,.,,,,.,,,..,..,,...,..,,.,,,.,,,.,.,.,,,.,.,
+#7ICXW4XFRSQRAPXD4VUSZMY2TXE6FEF2JDVJFGRFVDYZASA25LHUCRUHOEZ7NAASEVC5NCKZON2ZK
+#\\\|NMBXNDYF6TIJ7CIYSLHOLNPGNYGCECJAOMSFFQQMKS6JB6772TY \ / AMOS7 \ YOURUM ::
+#\[7]RMRU52FOQIYIZ35GZXOXYVDBX2FFEIQG75FGKR34STXRZGVDIWAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
