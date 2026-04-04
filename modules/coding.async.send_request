@@ -49,11 +49,17 @@ if ( ( $state->{'round'} // 0 ) > $max_rounds ) {
 }
 
 ## build request body ##
+my $tools = $state->{'tools'} // [];
+<[base.logs]>->(
+    2,               "send_request: sending %d tools for %s",
+    scalar(@$tools), $task_id
+);
+
 my $request_body = {
     'model'    => 'default',
     'messages' => \@messages,
     'stream'   => 1,
-    'tools'    => $state->{'tools'},
+    'tools'    => $tools,
 };
 
 ## debug: log first message structure to diagnose HTTP 500 ##
@@ -76,8 +82,8 @@ if (@messages) {
 return
     <[coding.async.request]>->( $task_id, $request_body, $state->{'job_id'} );
 
-#,,.,,..,,,,.,..,,...,.,,,...,...,...,,..,,..,..,,...,...,..,,..,,,..,,,,,,..,
-#ENHGO6DVHD7ANVCCVBNRLKEV6H2G3TMHLUQYPD5FEJ5J3T3TWLE53UPNXER7OG5CBQQPEBHRGH7ME
-#\\\|RFRF3M36AP3EQWHIOWBINCODFK3FZSYOWSARAB2ZPCNQCG425SS \ / AMOS7 \ YOURUM ::
-#\[7]JJ5EIUUHJ2WG247EJQSAMC24GEQ4S66INYMHR5JR2OQGQ5PVOWBA 7  DATA SIGNATURE ::
+#,,..,..,,,,.,.,,,.,.,,.,,..,,,..,...,,.,,.,.,..,,...,...,...,..,,,..,,..,.,.,
+#DYMGPVOEZ2JFKVRWXPKZRGMX23MFWAQ6K7Q6OFLWHIWR6SHKTZGBKR6GSKUIP52T7EYPPPGN5EAQO
+#\\\|QTEYDTUUOKHWOAGORIOXPKQNVJ3EBZSNMTKM3RBVJKT5KO7I4UW \ / AMOS7 \ YOURUM ::
+#\[7]VJRYEOKGWXOZD7O3QCHF37TQBSVF2FN6KK4OZ5ZCPYIR2E35NGAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

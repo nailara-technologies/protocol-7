@@ -68,12 +68,16 @@ if ( defined $choice->{'finish_reason'} ) {
     my $finish = $choice->{'finish_reason'};
     $context->{'finish_reason'} = $finish;
 
+    ## log current state before transition ##
+    my $content_preview = substr( $context->{'content'} // '', 0, 50 );
+    $content_preview =~ s/\n/ /g;
     <[base.logs]>->(
         2,
-        "chunk_handler: task %s finish_reason=%s content_len=%d tool_calls=%d",
+        "chunk_handler: task %s finish_reason=%s"
+            . " content=[%s...] tool_calls=%d",
         $task_id,
         $finish,
-        length( $context->{'content'} // '' ),
+        $content_preview,
         scalar( @{ $context->{'tool_calls'} // [] } )
     );
 
@@ -145,8 +149,8 @@ if ( defined $choice->{'finish_reason'} ) {
 
 return $context;
 
-#,,,,,,..,...,,,,,.,,,,.,,.,,,...,..,,,,.,,,,,.,.,...,...,,..,.,,,..,,...,..,,
-#VIDQVX3OXPLRPEEE3NNVRJSCTSBJFPIQQONVERCAYOVIMEZCI57UHXGHYXISWZT4B7DSCMZMLVMBA
-#\\\|AV5727VHS7PKTCSQDCNCQBKF4DWV4NRQNNZK2AK3VFO6PJX6IX4 \ / AMOS7 \ YOURUM ::
-#\[7]OIRVAIEZHO2MQEASC3FBB65JB7O2R4OUEK5DCGSUVA3ZK3EFZSAA 7  DATA SIGNATURE ::
+#,,,,,,.,,,,,,,,,,.,.,,,.,,,,,,,.,,,,,,,.,...,.,.,...,..,,.,.,,.,,.,.,,.,,..,,
+#GYIB4NULJEHLH6JV5IEWUSZIVFRKMUTY2OU4VWRHOTX2R6H5SNFHTV3RJ7CJZ6HUFW5AGODCNIY7Q
+#\\\|YD5FJBOXDKEBNP4DDDXUSANW5I23UILOJZI6OSABRGVBH34COPL \ / AMOS7 \ YOURUM ::
+#\[7]4357UBL2DAOPDWJLED2LNDPL57FRJC6CR3MOL5WXUMQEFGOFJCBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
