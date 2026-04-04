@@ -114,30 +114,8 @@ if ($async_mode) {
         $request_body->{'tool_choice'} = 'auto';
     }
 
-    ## sanitize message content for jinja2 safety [ matches blocking version ] ##
-    ## tool results with code often contain {{ }}, {% %} patterns that crash ##
-    ## the server's jinja template engine or silently mangle the prompt ##
-    for my $msg ( @{ $request_body->{'messages'} } ) {
-        my $content = $msg->{'content'} // '';
-        $content =~ s|\{\{|｛｛|g;
-        $content =~ s|\}\}|｝｝|g;
-        $content =~ s|\{%|｛%|g;
-        $content =~ s|%\}|%｝|g;
-        $content =~ s|namespace\s*\(|namespace_(|g;
-        $msg->{'content'} = $content;
-        ## also sanitize tool call arguments ##
-        if ( ref $msg->{'tool_calls'} eq qw| ARRAY | ) {
-            for my $tc ( $msg->{'tool_calls'}->@* ) {
-                my $args = $tc->{'function'}->{'arguments'} // '';
-                if ( length $args ) {
-                    $args =~ s|\{\{|\\{\\{|g;
-                    $args =~ s|\{%|\\{%|g;
-                    $args =~ s|namespace\s*\(|namespace_(|g;
-                    $tc->{'function'}->{'arguments'} = $args;
-                }
-            }
-        }
-    }
+    ## sanitize messages for jinja2 safety ##
+    <[coding.sanitize.jinja_messages]>->( $request_body->{'messages'} );
 
     ## Start async streaming request ##
     my $async_result
@@ -191,8 +169,8 @@ if ($async_mode) {
 
 return $result;
 
-#,,.,,.,.,,..,,,,,.,.,,,.,,,.,.,,,,,.,.,.,,.,,.,.,...,...,,..,.,,,,,.,...,.,.,
-#NU2W4VKEXPCEMYXJQ2HT5KA2FRN3N4NUFO75ASYBYHJEKCMBZLB5B5OQTU6CP7RPNQZJCWXSPUX3G
-#\\\|XV7AJBSNQXKQUPYJQJGO23O6TT5T63GSHF5Q6FZPHKAX6VDBBHS \ / AMOS7 \ YOURUM ::
-#\[7]JZV57Q652SP2TQTTLKBTEMIFTHJYKBKEWDTXCX2NWOR6HQOWIUCA 7  DATA SIGNATURE ::
+#,,..,,.,,..,,.,.,...,,,.,.,,,.,.,...,.,,,.,.,.,.,...,...,.,,,,.,,,..,,,,,.,,,
+#OHRTOAPAPMUB5V7GYUO5DGLOA564LWQ5NOUFKL5JWQ7UME6WBVB5E6BPSNLAGE6FHG2RQ5RAZGWUQ
+#\\\|AZNXWH3A75IPDTRKBRRGRNDEQTYG6NDMJSOSODSVROAEK2NDLCP \ / AMOS7 \ YOURUM ::
+#\[7]GQWFPUBCHS2TLJTROMISMHJMMZTHYI4XDGZGHGMWCLDUYH2X26BI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

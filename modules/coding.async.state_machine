@@ -175,17 +175,39 @@ elsif ( $action eq 'transition' ) {
         $state->{'round'}++;
         ## add assistant message with tool_calls to conversation ##
         ## tool_calls passed from tool_executor in transition data ##
-        my $tool_calls = $data->{'tool_calls'} // [];
+        my $tool_calls   = $data->{'tool_calls'}   // [];
+        my $tool_results = $data->{'tool_results'} // [];
         if ( @{$tool_calls} ) {
             <[base.logs]>->(
                 1,
                 "state_machine: adding assistant msg with %d tool_calls",
                 scalar( @{$tool_calls} )
             );
-            ## must include tool_calls in assistant message ##
-            ## matches blocking version [ process-queued-task line 618 ] ##
-            ## without tool_calls, role=tool messages are orphaned and ##
-            ## the model loses context that it can/should use tools ##
+            ## sanitize arguments for jinja safety ##
+            ## server requires: key present, type string, valid json ##
+            ## server parses json string to dict for jinja iteration ##
+            ## concatenated json [ model error ] crashes the parser ##
+            ## matches blocking version [ process-queued-task 726-731 ] ##
+            for my $tc ( @{$tool_calls} ) {
+                my $args = $tc->{'function'}->{'arguments'} // '{}';
+                if ( !ref $args && length $args ) {
+                    my $parsed = eval { JSON::PP::decode_json($args) };
+                    ## handle concatenated json objects [ model error ] ##
+                    if ( !defined $parsed
+                        && $args =~ m/^\s*(\{.*?\})\s*\{/s ) {
+                        $parsed = eval { JSON::PP::decode_json($1) };
+                    }
+                    if ( defined $parsed && ref $parsed eq 'HASH' ) {
+                        ## re-encode as clean json string ##
+                        $tc->{'function'}->{'arguments'}
+                            = JSON::PP::encode_json($parsed);
+                    } else {
+                        $tc->{'function'}->{'arguments'} = '{}';
+                    }
+                } else {
+                    $tc->{'function'}->{'arguments'} = '{}';
+                }
+            }
             push @{ $state->{'messages'} },
                 {
                 'role'       => 'assistant',
@@ -198,17 +220,8 @@ elsif ( $action eq 'transition' ) {
             );
         }
         ## add tool results to conversation ##
-        if ( @{ $data->{'tool_results'} // [] } ) {
-            push @{ $state->{'messages'} }, @{ $data->{'tool_results'} };
-            ## log tool result summary ##
-            foreach my $tr ( @{ $data->{'tool_results'} } ) {
-                <[base.logs]>->(
-                    2,
-                    "state_machine: added tool result id=%s len=%d",
-                    $tr->{'tool_call_id'} // 'no_id',
-                    length( $tr->{'content'} // '' )
-                );
-            }
+        if ( @{$tool_results} ) {
+            push @{ $state->{'messages'} }, @{$tool_results};
         }
         ## verify message roles after adding ##
         my @roles = map { $_->{'role'} } @{ $state->{'messages'} // [] };
@@ -332,8 +345,8 @@ elsif ( $action eq 'constants' ) {
 
 return { error => sprintf "unknown action : '%s'", $action };
 
-#,,,,,.,,,,,,,..,,,,.,.,.,,,,,.,,,.,,,,,,,,.,,.,.,...,...,.,.,,.,,,,,,,,.,,,.,
-#DWDUXXU6JONVGWF5IYIW6SMENAOM2C5X4KNTG4TILL36XGBMGIIIOPIBNBEZVG22S65DZ37KDC3CE
-#\\\|OKQ7262NIE5YP5IWMKRNOBQZGSKTWFLSP75IBXLL35NWEGEMAFG \ / AMOS7 \ YOURUM ::
-#\[7]QS5ARW72E5JTPBTLGE7SK5BPHM5V4N7VHN46SZ3EVORFFIGBH6CA 7  DATA SIGNATURE ::
+#,,,,,,,,,,..,,.,,,..,,..,,,,,,..,...,,..,..,,.,.,...,.,.,,..,..,,,.,,..,,...,
+#FT4UPGZWJL6UXO54R3GFT63H6VQ4AWAX5AT5NYSMXQKR2HVAORXLV4MBZ27XBYEKZHW6YRO4C5V4G
+#\\\|2KEZTYN7C3DWNVR6BH25Y5ANAB5ZRYRANDC5ELHY7EA74ZWK35A \ / AMOS7 \ YOURUM ::
+#\[7]BIJEZYNQPMIFEETIZYM2HUZXUB3GBCCXO5FWKBVWSDJLG5YCPKAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
