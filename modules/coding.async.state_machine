@@ -8,13 +8,13 @@ my ( $action, $task_id, $data ) = @ARG;
 
 ## state definitions ##
 use constant {
-    STATE_STREAMING  => 'streaming',    # receiving response from model
-    STATE_TOOL_EXEC  => 'tool_exec',    # executing tool calls
-    STATE_USER_INPUT => 'user_input',   # waiting for user response
-    STATE_SUBTASK    => 'subtask',      # waiting for subtask completion
-    STATE_PAUSED     => 'paused',       # temporarily halted (rate limit, etc)
-    STATE_COMPLETE   => 'complete',     # final answer received
-    STATE_ERROR      => 'error',        # something went wrong
+    STATE_STREAMING  => qw| streaming  |,    # receiving response from model
+    STATE_TOOL_EXEC  => qw| tool_exec  |,    # executing tool calls
+    STATE_USER_INPUT => qw| user_input |,    # waiting for user response
+    STATE_SUBTASK    => qw|  subtask  |,     # waiting for subtask completion
+    STATE_PAUSED     => qw|   paused  |, # temporarily halted [rate limit,..,]
+    STATE_COMPLETE   => qw|  complete |, # final answer received
+    STATE_ERROR      => qw|   error   |, # something went wrong
 };
 
 ## valid state transitions ##
@@ -209,8 +209,11 @@ elsif ( $action eq 'transition' ) {
         ## verify message roles after adding ##
         my @roles = map { $_->{'role'} } @{ $state->{'messages'} // [] };
         <[base.logs]>->(
-            1, "state_machine: round %d has %d messages roles=[%s]",
-            $state->{'round'}, scalar(@roles), join( ',', @roles )
+            1,
+            "state_machine: round %d has %d messages roles=[%s]",
+            $state->{'round'},
+            scalar(@roles),
+            join( ',', map { uc( substr( $ARG, 0, 1 ) ) } @roles )
         );
         $state->{'content'} = '';
         $state->{'pending_tools'}
@@ -255,11 +258,12 @@ elsif ( $action eq 'transition' ) {
         <[coding.async.fail_task]>->( $task_id, $state->{'error'} );
     } elsif ( $new_state eq STATE_USER_INPUT ) {
         $state->{'awaiting_user'} = TRUE;
-        $state->{'user_prompt'} = $data->{'prompt'} // 'Waiting for input...';
+        $state->{'user_prompt'} = $data->{'prompt'} // 'waiting for input.,';
         <coding.async.task_state>->{$task_id} = $state;
         ## notify that we're waiting for user ##
         <[base.logs]>->(
-            1, "async.state_machine: task %s waiting for user input", $task_id
+            1, "async.state_machine: task %s" . " waiting for user input",
+            $task_id
         );
     } elsif ( $new_state eq STATE_SUBTASK ) {
         $state->{'subtask_id'} = $data->{'subtask_id'};
@@ -270,7 +274,7 @@ elsif ( $action eq 'transition' ) {
         $state->{'resume_event'} = $data->{'resume_event'};
         <coding.async.task_state>->{$task_id} = $state;
         <[base.logs]>->(
-            2,        "async.state_machine: task %s paused (%s)",
+            2,        "async.state_machine: task %s paused [%s]",
             $task_id, $state->{'pause_reason'}
         );
     }
@@ -297,7 +301,7 @@ elsif ( $action eq 'resume' ) {
 
     if ( $state->{'state'} ne STATE_PAUSED ) {
         <[base.logs]>->(
-            0, "async.state_machine: cannot resume task %s (not paused)",
+            0, "async.state_machine: cannot resume task %s [not paused]",
             $task_id
         );
         return $state;
@@ -322,10 +326,10 @@ elsif ( $action eq 'constants' ) {
     };
 }
 
-return { error => "unknown action: $action" };
+return { error => sprintf "unknown action : '%s'", $action };
 
-#,,.,,...,...,...,,,.,..,,.,.,...,,,,,.,.,..,,.,.,...,...,,.,,,,.,,,,,.,,,,..,
-#A43TV2RT33OZBWN3LC4OGRW74C3ZX426HHLPJ6P7HFJPKEDYBMVL3JSH6727X446PXTGTFN4NYWFO
-#\\\|TH35WHQSDC376IL3XTEM4QTURASGTKP2LM77R6YHBF5KPFLW5RP \ / AMOS7 \ YOURUM ::
-#\[7]UOJAUR2FKHA372WZFRADKVWNH4HHFKP3D43PVKL2KDCVGUZELQBI 7  DATA SIGNATURE ::
+#,,.,,.,.,,,,,,,,,,,,,..,,,,.,.,.,,..,,.,,...,.,.,...,...,.,,,...,,.,,.,.,...,
+#ETTWE6MRGLMEEJPXHN2X3ZQACCXCXP4FLJY2BZDFXJLC2GU2DCWV7EJBK5SIPJ3HW7LXM5M76ZWBO
+#\\\|Z4RQXLMX64O6EW4N5WONI426X2FOI744Q43R5CCJEGIIFAX3MX4 \ / AMOS7 \ YOURUM ::
+#\[7]7MINX6LNBW5ZSSJNXOD5XABMKG546TRMW74FLSQG5JSHFBCJVEBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
