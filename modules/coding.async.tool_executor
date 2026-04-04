@@ -40,6 +40,7 @@ if ( !@$tool_calls ) {
 my @tool_results;
 my @tool_summaries;
 
+my $idx = 0;
 foreach my $tc (@$tool_calls) {
     ## check for stop request between tools ##
     my $task_ref = <coding.task.queue>->{$task_id};
@@ -54,6 +55,14 @@ foreach my $tc (@$tool_calls) {
     my $tool_name = $tc->{'function'}->{'name'}      // '?';
     my $args_str  = $tc->{'function'}->{'arguments'} // '{}';
     my $call_id   = $tc->{'id'}                      // '';
+
+    ## generate synthetic call_id if missing (model didn't provide one) ##
+    if ( !length($call_id) ) {
+        $call_id = sprintf( "call_%s_%d", $task_id, $idx );
+        <[base.logs]>->(
+            1, "tool_executor: generated synthetic call_id %s", $call_id
+        );
+    }
 
     <[base.logs]>->(
         2,          "async.tool_executor: calling %s [id=%s]",
@@ -147,10 +156,15 @@ foreach my $tc (@$tool_calls) {
 
     push @tool_results, $tool_result_msg;
 
+    ## update tool call id in pending_tools (for assistant message) ##
+    $tc->{'id'} = $call_id;
+
     ## summary for logging ##
     my $snippet = substr( $result_content, 0, 60 );
     $snippet =~ s|\n| |g;
     push @tool_summaries, sprintf( "%s=%s", $tool_name, $snippet );
+
+    $idx++;
 }
 
 <[base.logs]>->(
@@ -178,8 +192,8 @@ $state = <[coding.async.state_machine]>->(
 
 return { success => TRUE, tool_results => \@tool_results };
 
-#,,,,,.,,,,,.,..,,..,,.,.,,,.,..,,,..,...,,,.,.,.,...,...,,.,,.,.,...,..,,,.,,
-#XPO6DMJ2L5PAGBNUEPIVKSXUR5MWQ3I2DZ5WMFOULHHNBHSDNUXBD6BJT5JCVAEN6ZPGSJCGTDZBC
-#\\\|VVRBTJV5A54NFLDRQKVOC52XU443ZDZPYPB26JQLOGRTSIJ5GD2 \ / AMOS7 \ YOURUM ::
-#\[7]E3X72CW7GVDR5BEGXW4SV5YYXK3PIJRNITBDS6L5OVLCVWVMKECY 7  DATA SIGNATURE ::
+#,,,,,,,.,.,,,,,.,.,.,..,,,,.,..,,..,,.,.,,..,.,.,...,...,...,,..,,,.,,,.,.,,,
+#2QYCHK4SYG6YWFZXFSQMUXIFOO5D4JCHMIY2SJZZWDWZDHAR747XZZEO7GG2SYOIX56QXENCDAMCM
+#\\\|ZNHAVTT263Y3LHTHEQULNXY3DMRPSDR2K2LQBOEVOIT3ISADE3W \ / AMOS7 \ YOURUM ::
+#\[7]5Y2SQCO4BB2HVWUAM2PKHQTVIZ5GLT5CYP6733VMO5IYOZYKIICI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
