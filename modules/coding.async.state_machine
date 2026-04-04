@@ -197,11 +197,13 @@ elsif ( $action eq 'transition' ) {
             for my $tc ( @{$tool_calls} ) {
                 my $args = $tc->{'function'}->{'arguments'} // '{}';
                 if ( !ref $args && length $args ) {
-                    my $parsed = eval { JSON::PP::decode_json($args) };
+                    my $parsed
+                        = eval { JSON::PP->new->utf8(0)->decode($args) };
                     ## handle concatenated json objects [ model error ] ##
                     if ( !defined $parsed
                         && $args =~ m/^\s*(\{.*?\})\s*\{/s ) {
-                        $parsed = eval { JSON::PP::decode_json($1) };
+                        $parsed
+                            = eval { JSON::PP->new->utf8(0)->decode($1) };
                     }
                     if ( defined $parsed && ref $parsed eq 'HASH' ) {
                         ## re-encode as clean json string ##
@@ -435,8 +437,8 @@ elsif ( $action eq 'constants' ) {
 
 return { error => sprintf "unknown action : '%s'", $action };
 
-#,,..,.,.,,.,,.,,,..,,..,,,.,,.,.,...,.,.,,.,,.,.,...,...,..,,,..,..,,...,...,
-#SQLCDCOMSKQ6EETQ3NDXT2ACRMHZ4YYXOJKV6J6PZDVHOGCDQ3R6WJ6SRR25GZZHPWEZSG3XNPGMM
-#\\\|RMZ6FEKXH53QPJL23UEN3YBFQYJQPMWLTMWYWWAN5TDFSG24GNT \ / AMOS7 \ YOURUM ::
-#\[7]4CVJK6R2VXBTGAO6WE3K6CY5HDYCJBRCRELCTGKGFKBLKOPOYKDQ 7  DATA SIGNATURE ::
+#,,..,,,,,,,,,...,...,,..,,..,,,,,,.,,.,,,,..,.,.,...,...,.,.,.,.,,,.,,.,,,,.,
+#VZBNNHZJBEBRZNL5VGRITBFILJD4IN5P26FCIWPNKY25G6ABYMLT55FLVES7YBEFV3X4EX7QCXHRI
+#\\\|MFNJPJJGAPU23ETGEVLKDRWXPZAWQQLDK3K56D3VUIXCWTWTIMO \ / AMOS7 \ YOURUM ::
+#\[7]C5IAZPFOPX5YVYH7BQOUPBFZ3HRM4FRGRDENKFZPPVNRVBWEYQAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
