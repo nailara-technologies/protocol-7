@@ -1,0 +1,49 @@
+## [:< ##
+
+# name  = coding.sanitize.jinja_messages
+# descr = sanitize message array for jinja2 template safety
+
+## sanitize all messages in-place for jinja2 template safety ##
+## prevents ik_llama.cpp jinja engine from crashing on {{ }}, {% %} ##
+## and namespace( ) patterns in message content and tool call arguments ##
+
+my ($messages) = @ARG;
+
+return unless ref $messages eq qw| ARRAY |;
+
+for my $msg ( @{$messages} ) {
+
+    ## sanitize message content ##
+    my $content = $msg->{'content'} // '';
+    if ( length $content ) {
+        $content =~ s|\{\{|｛｛|g;
+        $content =~ s|\}\}|｝｝|g;
+        $content =~ s|\{%|｛%|g;
+        $content =~ s|%\}|%｝|g;
+        $content =~ s|namespace\s*\(|namespace_(|g;
+        $msg->{'content'} = $content;
+    }
+
+    ## sanitize tool call arguments ##
+    if ( ref $msg->{'tool_calls'} eq qw| ARRAY | ) {
+        for my $tc ( $msg->{'tool_calls'}->@* ) {
+            my $args = $tc->{'function'}->{'arguments'} // '';
+            ## skip if arguments already decoded to hashref ##
+            next if ref $args;
+            if ( length $args ) {
+                $args =~ s|\{\{|\\{\\{|g;
+                $args =~ s|\{%|\\{%|g;
+                $args =~ s|namespace\s*\(|namespace_(|g;
+                $tc->{'function'}->{'arguments'} = $args;
+            }
+        }
+    }
+}
+
+return;
+
+#,,..,,.,,.,.,.,.,,..,,.,,,,,,.,.,.,.,,,,,,,,,.,.,...,...,..,,..,,..,,..,,,,,,
+#7VSIB6QZTHGQH277VDA4JMWTP5AJT6HCZ6OWMLLFSJUKCANUC7WNUUSNTT2J465NROQQCHH3TPANO
+#\\\|MYIJGM5IUD4JDKS2ZROBO4KMAYSK2VHMHJU33W4ZVTCE7JUHDAT \ / AMOS7 \ YOURUM ::
+#\[7]DWFGAQ7LCE5AYTDLMAFPOQQZGGT6NFMTWXCKUB7ZVR7XIVVZ7ICY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

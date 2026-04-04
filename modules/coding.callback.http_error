@@ -20,6 +20,24 @@ if (   $error =~ m{HTTP error:\s*5\d\d|timeout|connection closed}i
         $task_id, $retry_count, $max_retries
     );
 
+    ## server 500 with tool_calls: strip tool_calls from assistant msgs ##
+    ## matches blocking version [ process-queued-task lines 544-548 ] ##
+    ## jinja template cannot handle tool_calls arguments as strings ##
+    ## model keeps content and tool results for context ##
+    if ( $error =~ m{HTTP error:\s*500}i ) {
+        my $msgs = $state->{'messages'} // [];
+        for my $msg ( @{$msgs} ) {
+            if ( ( $msg->{'role'} // '' ) eq 'assistant'
+                and ref $msg->{'tool_calls'} eq qw| ARRAY | ) {
+                <[base.logs]>->(
+                    1,
+                    "http_error: stripping tool_calls from assistant msg for retry"
+                );
+                delete $msg->{'tool_calls'};
+            }
+        }
+    }
+
     ## update retry count ##
     <[coding.async.state_manager]>->(
         'set', $task_id, { retry_count => $retry_count }
@@ -46,8 +64,8 @@ my $result = {
 
 return;
 
-#,,..,,,.,,..,...,.,,,.,,,,,.,.,.,,,,,,..,.,,,..,,...,...,,..,,.,,,,.,.,.,.,,,
-#RCPT2QKITQQQEUBHJKG3ERDALHVMMQ5SSHQYIX5IZWYZDXK2JVKAT3BRMAVTTTPJNUM75PID3H7TW
-#\\\|BHAC4TUUWGHD2XTF5DWLZU5EUPTL4K4QTVIBCNUQ7KI3JL6OYVU \ / AMOS7 \ YOURUM ::
-#\[7]3H2BSCH6ULWOSXMWSFQNQSUD3WLGMXLTQRYAQJKHH3VLQAERF6BQ 7  DATA SIGNATURE ::
+#,,,.,..,,.,,,,,,,,,.,,..,,,.,.,.,,,,,...,,.,,..,,...,...,,,.,,,,,,.,,..,,,,.,
+#F3AKQQI4VRFVHYBZ7PNLXVCNY7U2BGS3TXQP5OBEM63R4DWGFPURCLT27MPVBEISWPY552EZKAX4Q
+#\\\|ILWAE3YYLQIL3IFUCKO2WQT46OSXNRGZSJ4KOMNSWUIBHHHXDAO \ / AMOS7 \ YOURUM ::
+#\[7]JTNIC7YNHOVPG5HFHOR6KXHAGH2UIB3RHZ5TZXHCSJS5VTFVQ4AY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

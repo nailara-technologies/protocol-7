@@ -4,8 +4,8 @@
 # descr = Retry handler for failed HTTP requests
 
 ## timer callbacks receive watcher object, extract data from it ##
-my $watcher = shift;
-my $task_id = $watcher->data;
+## timer event handler: shift gives event object, ->w gives watcher ##
+my $task_id = shift->w->data;
 
 return unless defined $task_id && !ref $task_id;
 
@@ -14,8 +14,8 @@ return unless defined $task_id && !ref $task_id;
 
 return;
 
-#,,..,,,.,,,.,,..,,,.,.,.,.,.,,,.,,,.,...,.,.,.,.,...,...,..,,..,,.,.,,,,,,..,
-#XVJ762UUA5V7T47EBHLKXCGXQSITNDATYW5EUSLW3GVNBPD7NAYFQSSXZLZWWA2N6H2F3PGS5JYAK
-#\\\|YLES37CWT7SQ4ZNDYABI3ZDPU3VKKOR2A24AUX2ZW7LKEHWIV3U \ / AMOS7 \ YOURUM ::
-#\[7]HNLRDQKNIUFD5WBDHP626G2A4OZHUUOLFS7746KS3CPPPGAGPECI 7  DATA SIGNATURE ::
+#,,,,,..,,,.,,...,...,,,.,.,.,,,.,...,,..,..,,.,.,...,...,...,,.,,,..,.,.,,.,,
+#2E2XIWK6YYJCCPQTRKVKKJBXLJSJET65SQGXFACT4374OFWWRZSJ6TWJTPHFMRBSCLYRJ2SJHF3JU
+#\\\|Y4JORYGZMXG574OUW4ZJPY4S7OX2JQRHZP43AVDH2TGIRZRQ2A2 \ / AMOS7 \ YOURUM ::
+#\[7]FATBXNRS5ONNHPR76FDHFK5HCYZWNB6RCC3FYMVXMITKLLBHFIAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
