@@ -132,7 +132,7 @@ $after_chars += length( $ARG->{'content'} // '' ) for @{$messages};
 my $after_tokens = int( ( $after_chars * 1.4 ) / $chars_per_token );
 
 if ( $after_tokens > $compact_threshold * 0.8 ) {
-    my $max_protected_chars = 8000;
+    my $max_protected_chars = 32000;
     my $new_protect_end     = scalar( @{$messages} ) - $keep_recent_msgs;
     for my $i ( $new_protect_end .. $#{$messages} ) {
         my $content = $messages->[$i]->{'content'} // '';
@@ -148,8 +148,8 @@ if ( $after_tokens > $compact_threshold * 0.8 ) {
 
 return;
 
-#,,..,...,,,,,...,,.,,,..,.,,,.,.,,..,..,,.,,,.,.,...,...,,.,,,.,,,,.,,,,,..,,
-#53XW2OCXCM765JZWYO4AG5RH2Z353OX4XV6TJE2A2TBXRLCGRLFY6K3DHI5NMMTX5SY7FNVUZN6HM
-#\\\|UHUCSWUCSOFSVB77QKYK65CHBAKOT7YRAZUVE5WI2P4QRBFEFQZ \ / AMOS7 \ YOURUM ::
-#\[7]GRLV4BCMVTTZYJRZHZ7R4BANZTWWDPVSNLQ7LXQK34BX3H7JZWDA 7  DATA SIGNATURE ::
+#,,..,.,.,,..,..,,,..,.,.,.,,,.,.,..,,,..,...,.,.,...,...,.,,,.,,,,,,,.,.,,,,,
+#QJCPYRX5XCQS4ZPQI7UD4RWRDSMAV5HHGEYNRD7C7FSAD6724MDGFXLYV3G4CZTEOCCFOWN3W4XWQ
+#\\\|2SXN7D7DQJGO3WEOQKNNX3SVU663NZRZ5ONJGNB3N6UDQMLUXUQ \ / AMOS7 \ YOURUM ::
+#\[7]N6IFDUSAJIRJRF2F3ACARS3WIUQJ77IRPC3VM5RXCKKHNLIEXACI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

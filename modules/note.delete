@@ -1,0 +1,93 @@
+## [:< ##
+
+# name  = note.delete
+# descr = delete note section or entire task notes
+
+my ( $task_id, $section ) = @ARG;
+
+$task_id //= <system.task_id> // 'unknown';
+
+my $base_dir = <[file.zenka_dir.data_path]> . "/notes/$task_id";
+
+return { 'mode' => qw| false |, 'data' => "task not found: $task_id" }
+    unless -d $base_dir;
+
+## delete single section if specified ##
+if ( defined $section && length $section ) {
+    $section =~ s|[^a-zA-Z0-9._-]|_|g;
+    my $workspace_dir = "$base_dir/workspace";
+    my $note_file     = "$workspace_dir/$section.md";
+
+    return { 'mode' => qw| false |, 'data' => "section not found: $section" }
+        unless -f $note_file;
+
+    unlink $note_file
+        or return {
+        'mode' => qw| false |,
+        'data' => "failed to delete: $section"
+        };
+
+    ## remove tags for this section from meta ##
+    my $meta_file = "$base_dir/.meta";
+    if ( -f $meta_file ) {
+        my $meta
+            = eval { JSON::PP::decode_json( <[file.read]>->($meta_file) ) };
+        if ( ref $meta eq qw| HASH | && ref $meta->{'tags'} eq qw| HASH | ) {
+            delete $meta->{'tags'}{$section};
+            $meta->{'last_update'} = <[base.time]>->(3);
+            <[file.write]>->( $meta_file, JSON::PP::encode_json($meta) );
+        }
+    }
+
+    <[base.logs]>->(
+        1,        "note.delete: section '%s' from %s",
+        $section, $task_id
+    );
+
+    return {
+        'mode' => qw| true |,
+        'data' => {
+            'section' => $section,
+            'task_id' => $task_id,
+            'message' => "deleted section '$section' from $task_id",
+        }
+    };
+}
+
+## delete entire task notes ##
+my @files = <[file.glob]>->("$base_dir/workspace/*.md")->@*;
+my $count = scalar @files;
+
+## remove workspace files ##
+for my $file (@files) {
+    unlink $file;
+}
+
+## remove meta and summaries ##
+for my $f (qw| .meta summary.short summary.long |) {
+    unlink "$base_dir/$f" if -f "$base_dir/$f";
+}
+
+## remove workspace dir and task dir if empty ##
+rmdir "$base_dir/workspace" if -d "$base_dir/workspace";
+rmdir $base_dir;
+
+<[base.logs]>->(
+    1,        "note.delete: all notes for %s [ %d sections ]",
+    $task_id, $count
+);
+
+return {
+    'mode' => qw| true |,
+    'data' => {
+        'task_id' => $task_id,
+        'deleted' => $count,
+        'message' => "deleted all notes for $task_id ($count sections)",
+    }
+};
+
+#,,.,,..,,..,,,,,,,,.,,,.,..,,.,.,..,,..,,,..,.,.,...,...,,,,,.,.,.,,,,,.,,..,
+#ULC4WEZRJOGRIRBU6WCAUFHGMWQJIHZDMI5DWVOHPOJ7ULWOI2LZV7FYXHIANEFKNSSSAN2MSR3CQ
+#\\\|RX64OOHPZJ5SLTVK3PXBIPYQ5IVXVBVNNHPHMFZU26MZRHBRYJU \ / AMOS7 \ YOURUM ::
+#\[7]CCAYKXFUHRLE5IRWGOLQXVSHNPNS6NJQXLPQVPDWZUF5MGXZBYDI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

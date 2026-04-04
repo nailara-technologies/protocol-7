@@ -911,6 +911,35 @@ if ( exists $code{'coding.tools.handler.note_search'} ) {
         };
 }
 
+## note_delete — remove note section or entire task notes ##
+if ( exists $code{'coding.tools.handler.note_delete'} ) {
+    push @tools,
+        {
+        'type'     => 'function',
+        'function' => {
+            'name'        => 'note_delete',
+            'description' => 'delete a note section or all notes for a task'
+                . ' [ clean up old or irrelevant notes ]',
+            'parameters' => {
+                'type'       => 'object',
+                'properties' => {
+                    'section' => {
+                        'type'        => 'string',
+                        'description' => 'section name to delete'
+                            . ' [ omit to delete all task notes ]'
+                    },
+                    'task_id' => {
+                        'type'        => 'string',
+                        'description' =>
+                            'task id [ defaults to current task ]'
+                    },
+                },
+                'required' => [],
+            },
+        },
+        };
+}
+
 ## validate_module — check module for errors before commit ##
 if ( exists $code{'coding.tools.handler.validate_module'} ) {
     push @tools,
@@ -961,8 +990,8 @@ if ( exists $code{'coding.tools.handler.decode_base32'} ) {
 
 return \@tools;
 
-#,,,.,,,,,,..,,..,,,.,.,,,..,,...,.,,,,.,,,..,..,,...,..,,.,,,.,,,.,.,.,,,.,.,
-#7ICXW4XFRSQRAPXD4VUSZMY2TXE6FEF2JDVJFGRFVDYZASA25LHUCRUHOEZ7NAASEVC5NCKZON2ZK
-#\\\|NMBXNDYF6TIJ7CIYSLHOLNPGNYGCECJAOMSFFQQMKS6JB6772TY \ / AMOS7 \ YOURUM ::
-#\[7]RMRU52FOQIYIZ35GZXOXYVDBX2FFEIQG75FGKR34STXRZGVDIWAQ 7  DATA SIGNATURE ::
+#,,.,,,,,,...,..,,,,.,...,,,,,..,,..,,,.,,,.,,..,,...,..,,.,.,,,.,.,,,,..,,.,,
+#IU33MEA7XVUXJRHM6T5JKJYFO2KD7KI7DDT6Q46EUSYIWKNA55XLZKZGFWMRFKG5MSG7O2QVQ3VMG
+#\\\|ZRIY5BBGMADJGADSYZHZ7PZI7Q7JGEU4OUV4IC5SNB2GR2FU2L7 \ / AMOS7 \ YOURUM ::
+#\[7]PBUN73YRXPLJS6WFWM2IM365DTMOUP2X3PRUY7OWQXZVU6YI2WDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
