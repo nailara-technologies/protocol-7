@@ -1,0 +1,22 @@
+## [:< ##
+
+# name  = coding.callback.retry_request
+# descr = Retry handler for failed HTTP requests
+
+my ($data) = @ARG;
+
+## data comes from timer as hashref with 'data' key containing task_id ##
+my $task_id = ref $data eq 'HASH' ? $data->{'data'} : $data;
+
+return unless defined $task_id;
+
+<[base.logs]>->( 2, "retry_request: executing retry for %s", $task_id );
+<[coding.async.send_request]>->($task_id);
+
+return;
+
+#,,..,,..,...,.,.,.,.,,.,,,.,,,..,,.,,.,.,..,,.,.,...,...,,,,,,.,,,,,,,..,,,.,
+#CFIQUSXBWRNWMFRKEMJOEVL37MBKCOGT432WTZ7UFKHEFYX4NGK25HH2AWJ262Q7OF2DUJXJY2SVM
+#\\\|3VRCYQXCQSQZPV6PV6R6UCU6UDVG5K4FUBQGCZN3VXXVFZHO5AS \ / AMOS7 \ YOURUM ::
+#\[7]KHTMEQSL5Q7W467KMMBJ6VPMLWYWRW3ZJUIFJ7EIOWHJUBG55WDY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
