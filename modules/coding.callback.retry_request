@@ -3,20 +3,19 @@
 # name  = coding.callback.retry_request
 # descr = Retry handler for failed HTTP requests
 
-my ($data) = @ARG;
+## timer callbacks receive watcher object, extract data from it ##
+my $watcher = shift;
+my $task_id = $watcher->data;
 
-## data comes from timer as hashref with 'data' key containing task_id ##
-my $task_id = ref $data eq 'HASH' ? $data->{'data'} : $data;
-
-return unless defined $task_id;
+return unless defined $task_id && !ref $task_id;
 
 <[base.logs]>->( 2, "retry_request: executing retry for %s", $task_id );
 <[coding.async.send_request]>->($task_id);
 
 return;
 
-#,,..,,..,...,.,.,.,.,,.,,,.,,,..,,.,,.,.,..,,.,.,...,...,,,,,,.,,,,,,,..,,,.,
-#CFIQUSXBWRNWMFRKEMJOEVL37MBKCOGT432WTZ7UFKHEFYX4NGK25HH2AWJ262Q7OF2DUJXJY2SVM
-#\\\|3VRCYQXCQSQZPV6PV6R6UCU6UDVG5K4FUBQGCZN3VXXVFZHO5AS \ / AMOS7 \ YOURUM ::
-#\[7]KHTMEQSL5Q7W467KMMBJ6VPMLWYWRW3ZJUIFJ7EIOWHJUBG55WDY 7  DATA SIGNATURE ::
+#,,..,,,.,,,.,,..,,,.,.,.,.,.,,,.,,,.,...,.,.,.,.,...,...,..,,..,,.,.,,,,,,..,
+#XVJ762UUA5V7T47EBHLKXCGXQSITNDATYW5EUSLW3GVNBPD7NAYFQSSXZLZWWA2N6H2F3PGS5JYAK
+#\\\|YLES37CWT7SQ4ZNDYABI3ZDPU3VKKOR2A24AUX2ZW7LKEHWIV3U \ / AMOS7 \ YOURUM ::
+#\[7]HNLRDQKNIUFD5WBDHP626G2A4OZHUUOLFS7746KS3CPPPGAGPECI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
