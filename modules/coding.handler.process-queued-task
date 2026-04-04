@@ -381,7 +381,7 @@ INFERENCE_LOOP:
                     = int( ( $after_chars * 1.4 ) / $chars_per_token );
 
                 if ( $after_tokens > $compact_threshold * 0.8 ) {
-                    my $max_protected_chars = 8000;    ## ~2500 tokens each ##
+                    my $max_protected_chars = 32000;  ## ~10000 tokens each ##
                     for my $i ( $protect_end .. $#messages ) {
                         my $content = $messages[$i]->{'content'} // '';
                         if ( length $content > $max_protected_chars ) {
@@ -970,8 +970,8 @@ if ( length $response_text
 ## return result hashref for jobqueue callback ##
 return { success => TRUE, result => $response_text, task_id => $task_id };
 
-#,,,,,,.,,..,,,.,,.,,,.,,,,..,,,.,.,,,,,,,,,.,..,,...,...,,,.,,,,,...,,,,,,.,,
-#NFTEI6W2ZU7PNPXXWZ6T2E4J44AI74T2LFEZ47GQQXHLEZCZM6UPIKFLBYRQKTGMQ42DEMXI2ASAC
-#\\\|3IKG3LZUPREI5Z4WSAXWAEVFD3JDKRQLUEM5V6P5ZKZUYQW7QOV \ / AMOS7 \ YOURUM ::
-#\[7]B5DQGHWY6JJWK333C4NC7QNDMHQBHT2J3MZHGGDP3P63WBE3OAAY 7  DATA SIGNATURE ::
+#,,,,,,..,..,,,,.,.,,,,,,,,,,,,,.,,,,,,,,,,..,..,,...,.,.,,,,,,,,,.,,,.,.,..,,
+#6WI4O3I47A5N3KXRIGLPF7N6ONSSBF6CX4BLMUHYFAPCUBD6LGLHL4FR2A2DPMMZ2CZY26O7PIXVM
+#\\\|FIGZ7XDXUZYTG2WJAELOXIHSB3EAZHQNSHXYP3RM6JKURQMIAKY \ / AMOS7 \ YOURUM ::
+#\[7]RS7RU32LNO7ZHELU3WLLFQUYUU5M2U6KVVAEKRN6NZLD3NVYPABA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
