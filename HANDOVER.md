@@ -126,6 +126,23 @@ my $tool_calls = $data->{'tool_calls'} // [];  # expects from data, may be empty
 - Set in `modules/coding.init_code`: `<coding.async.max_rounds> //= 50`
 - Used in `send_request`: `my $max_rounds = <coding.async.max_rounds> // 50`
 
+### Bug #5: Task Result Empty Despite Correct Buffer (FIXED)
+**Location**: `modules/coding.async.complete_task` line 19  
+**Issue**: Result retrieval used `//` (defined-or) which doesn't fall through on empty strings
+```perl
+# BUG: response_text = '' (defined but empty), so returns '' not final_content
+result => $state->{'response_text'} // $state->{'final_content'} // ...
+```
+**Fix**: Use `||` (logical or) which treats empty string as falsy:
+```perl
+# FIXED: prioritizes final_content, falls through properly
+my $result_text = $state->{'final_content'}
+    || $state->{'content'}
+    || $state->{'response_text'}
+    || '';
+```
+**Result**: `coding.get-result` now returns actual task output instead of empty string
+
 ### Debug Log Pattern to Watch For
 ```
 # BAD — missing assistant:
@@ -161,35 +178,25 @@ tail -f /dev/shm/.7/STDOUT/NIW7OAQ | grep -E "tool_calls|state_machine|send_requ
 
 ## What Needs Doing
 
-### 1. Async HTTP Integration → CRITICAL BUG FIXES
+### 1. Async HTTP Integration → STABILIZATION
 **Priority: CRITICAL** | **Where**: coding zenka
 
-**Fixed:**
+**All Critical Bugs Fixed:**
 - ✅ **Bug #1**: Duplicate round increment (removed from send_request)
+- ✅ **Bug #2/#3**: Assistant message with `tool_calls` now correctly added to conversation history (Claude Opus fixed data flow)
 - ✅ **Bug #4**: Hardcoded round limit → now configurable (`coding.async.max_rounds`, default 50)
+- ✅ **Bug #5**: Task result empty despite correct buffer → fixed `//` vs `||` operator bug in complete_task
 
-**Still broken — FIX NEEDED:**
-- 🔥 **Bug #2/#3**: Assistant message with `tool_calls` NOT being added to conversation history
+**Status**: Tool execution loop working end-to-end:
+- Tasks complete with correct results (verified: `coding.get-result` returns actual output)
+- Message history properly includes assistant with tool_calls
+- Round counter increments correctly (+1 per cycle)
+- Buffer shows correct model output
 
-**Debug this:**
-1. Check `tool_executor` passes `tool_calls` in transition data:
-   ```perl
-   <[coding.async.state_machine]>->('transition', $task_id, {
-       'event' => 'tools_done',
-       'tool_results' => \@tool_results,
-       'tool_calls' => $tool_calls,  # MUST be present
-   });
-   ```
-
-2. Check `state_machine` receives it in `$data`:
-   ```perl
-   my $tool_calls = $data->{'tool_calls'} // [];
-   <[base.logs]>->(1, "tool_calls count: %d", scalar(@$tool_calls));
-   ```
-
-3. Verify log shows roles=[system,user,**assistant**,tool,tool] not missing assistant
-
-4. If empty, trace back to find where data is lost (chunk_handler? tool_executor?)
+**Remaining work**:
+- Test edge cases (multi-tool calls, errors, rate limiting)
+- Monitor for any remaining state management issues
+- Consider removing blocking mode fallback once stable
 
 ### 2. Namespace Tree Intelligence — Layer 2
 **Priority: high** | **Where**: context-tree modules

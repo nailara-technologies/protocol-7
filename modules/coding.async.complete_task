@@ -14,10 +14,15 @@ return { success => FALSE, error => "no state for $task_id" }
     unless defined $state;
 
 ## build result from state ##
+## note: use || instead of // because fields may be defined but empty '' ##
+my $result_text
+    = $state->{'final_content'}
+    || $state->{'content'}
+    || $state->{'response_text'}
+    || '';
 my $result = {
-    success => TRUE,
-    result => $state->{'response_text'} // $state->{'final_content'}
-        // $state->{'content'} // '',
+    success       => TRUE,
+    result        => $result_text,
     finish_reason => $state->{'finish_reason'} // qw| stop |,
     tool_calls    => $state->{'tool_calls'},
 };
@@ -25,8 +30,8 @@ my $result = {
 ## call actual completion handler ##
 return <[coding.async.complete]>->( $task_id, $result );
 
-#,,,,,.,,,..,,.,.,,.,,,..,,..,,..,.,,,..,,.,,,.,.,...,...,.,,,.,,,,,.,,..,.,,,
-#GMJNFSK452PQMPZTQ3PCO2MAEL43ZK3VTUXVXTDU5GUQTF3J4G7AB7MDANWUMSUEAADLYO3MV5IMA
-#\\\|XFDXDDD4TOHNPBBGAJO2LMS6Z3LNHFZOXPU4SPT3CFYZX2CY2G2 \ / AMOS7 \ YOURUM ::
-#\[7]4M6Q4G2WD3VX7DLSPCFQYU53ZVDIQ7AU5XPGD2L32LAVZ5DFUEDI 7  DATA SIGNATURE ::
+#,,..,,..,..,,,,,,,,,,,..,,.,,.,.,,,.,,.,,.,.,.,.,...,...,...,,..,...,,,.,...,
+#I2D6UZI3KN5Z5KTTZXIFFQKOW4MVOOENDP36Q74KHEGC4XY5CAOP2HHY5WLCQJ6KSEUBHOR5WEJTM
+#\\\|MMLMX5FYKAKWLASOJX6UMI5KEFXKDCYZCG2EAPSNU6DE44JMRXT \ / AMOS7 \ YOURUM ::
+#\[7]GQWXWJ6JEFCGNOBACIIZAQN4IZIRGWRA4VOJ3D7ZYRWJ3TDUO2CA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
