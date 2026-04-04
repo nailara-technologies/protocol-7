@@ -70,12 +70,22 @@ foreach my $tc (@$tool_calls) {
     );
 
     ## parse arguments ##
-    my $args = eval { JSON::PP::decode_json($args_str) } // {};
+    my $args = eval { JSON::PP::decode_json($args_str) };
 
     ## sanitize malformed arguments ##
-    if ( $@ || ref $args ne 'HASH' ) {
+    if ( $EVAL_ERROR || ref $args ne qw| HASH | ) {
+        my $err
+            = $EVAL_ERROR
+            ? sprintf( "JSON parse error : %s", <[base.str.eval_error]> ),
+            : "expected object, got " . ref($args);
+        ## truncate long args_str for logging ##
+        my $args_preview
+            = length($args_str) > 100
+            ? substr( $args_str, 0, 100 ) . '...'
+            : $args_str;
         <[base.logs]>->(
-            0, "async.tool_executor: malformed args for %s", $tool_name
+            0, "async.tool_executor: malformed args for %s: %s [args=%s]",
+            $tool_name, $err, $args_preview
         );
         $args = {};
     }
@@ -101,7 +111,10 @@ foreach my $tc (@$tool_calls) {
             0,          "async.tool_executor: tool %s died: %s",
             $tool_name, $@
         );
-        $tool_result = { error => "Tool execution died: $@" };
+        $tool_result = {
+            error => "Tool execution died: %s",
+            <[base.str.eval_error]>
+        };
     } elsif ( !defined $tool_result ) {
         <[base.logs]>->(
             0, "async.tool_executor: tool %s returned undef", $tool_name
@@ -184,7 +197,7 @@ $state = <[coding.async.state_machine]>->(
 <[coding.async.state_machine]>->(
     'transition',
     $task_id,
-    {   'event'      => 'tools_done',
+    {   'event'      => qw| tools_done |,
         'tool_calls' => $tool_calls,  ## original tool calls for assistant msg
         'tool_results' => \@tool_results,
     }
@@ -192,8 +205,8 @@ $state = <[coding.async.state_machine]>->(
 
 return { success => TRUE, tool_results => \@tool_results };
 
-#,,,,,,,.,.,,,,,.,.,.,..,,,,.,..,,..,,.,.,,..,.,.,...,...,...,,..,,,.,,,.,.,,,
-#2QYCHK4SYG6YWFZXFSQMUXIFOO5D4JCHMIY2SJZZWDWZDHAR747XZZEO7GG2SYOIX56QXENCDAMCM
-#\\\|ZNHAVTT263Y3LHTHEQULNXY3DMRPSDR2K2LQBOEVOIT3ISADE3W \ / AMOS7 \ YOURUM ::
-#\[7]5Y2SQCO4BB2HVWUAM2PKHQTVIZ5GLT5CYP6733VMO5IYOZYKIICI 7  DATA SIGNATURE ::
+#,,.,,.,.,,,,,,,.,,,,,,,.,..,,..,,,,.,...,..,,.,.,...,..,,.,,,.,,,,,,,.,,,.,,,
+#AUYT5I75JDXC2ZTNHQRELSKPIQXAQYTEWDY3Y4T4ZVJFHXJX7FB2OQDJCXBXEQUPGHYUXSSQKQQJA
+#\\\|LOEYIS2MR6I52R27SXRYFUIIYSF5STVYNASJHY4LT7HDKLH5JC7 \ / AMOS7 \ YOURUM ::
+#\[7]BIBACMBOFFXQKCUYLQDSTN7B4GXALCYX7Q2UUIPM2ZX6XL3YU6BI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
