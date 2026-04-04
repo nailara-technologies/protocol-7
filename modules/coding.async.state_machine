@@ -182,13 +182,15 @@ elsif ( $action eq 'transition' ) {
                 "state_machine: adding assistant msg with %d tool_calls",
                 scalar( @{$tool_calls} )
             );
-            ## llama-server workaround: skip tool_calls, only content ##
-            ## llama-server's Jinja template fails on tool_calls format ##
-            ## The model will infer tool use from tool results ##
+            ## must include tool_calls in assistant message ##
+            ## matches blocking version [ process-queued-task line 618 ] ##
+            ## without tool_calls, role=tool messages are orphaned and ##
+            ## the model loses context that it can/should use tools ##
             push @{ $state->{'messages'} },
                 {
-                'role'    => 'assistant',
-                'content' => $state->{'content'} // '(tool call)',
+                'role'       => 'assistant',
+                'content'    => $state->{'content'} // '',
+                'tool_calls' => $tool_calls,
                 };
         } else {
             <[base.logs]>->(
@@ -330,8 +332,8 @@ elsif ( $action eq 'constants' ) {
 
 return { error => sprintf "unknown action : '%s'", $action };
 
-#,,,,,.,.,,..,.,,,.,,,,.,,...,,.,,,..,,..,..,,.,.,...,...,,..,,,.,...,..,,...,
-#GYH2E7L4LSYBLMGGLERLAQTCCJSZKBWLIFMFWFE7BVDZ7YUGDW3LB47LWIMYMJAKCGACMGGK4SPVE
-#\\\|UFJQWCKABXUOOR4OUBBSA4LCKQJAQPSY573ABCKGWBIPWMRH4Q6 \ / AMOS7 \ YOURUM ::
-#\[7]RCD7GC3TRZ5GIGMBIDK7HQVGE4DUW6MXGDS3DL6Y36KIIH22L2DA 7  DATA SIGNATURE ::
+#,,,,,.,,,,,,,..,,,,.,.,.,,,,,.,,,.,,,,,,,,.,,.,.,...,...,.,.,,.,,,,,,,,.,,,.,
+#DWDUXXU6JONVGWF5IYIW6SMENAOM2C5X4KNTG4TILL36XGBMGIIIOPIBNBEZVG22S65DZ37KDC3CE
+#\\\|OKQ7262NIE5YP5IWMKRNOBQZGSKTWFLSP75IBXLL35NWEGEMAFG \ / AMOS7 \ YOURUM ::
+#\[7]QS5ARW72E5JTPBTLGE7SK5BPHM5V4N7VHN46SZ3EVORFFIGBH6CA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

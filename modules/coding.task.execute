@@ -104,13 +104,39 @@ if ($async_mode) {
         messages    => $assembled->{'messages'},
         max_tokens  => <inference.model.max_tokens>  // 4096,
         temperature => <inference.model.temperature> // 0.7,
-        stream      => JSON::XS::true,    ## Enable streaming ##
+        ## no stream — server returns full JSON with tool_calls ##
+        ## async I/O reads response non-blocking via event loop ##
     };
 
     ## Add tools if available ##
     if ( defined $assembled->{'tools'} && $assembled->{'tools'}->@* ) {
         $request_body->{'tools'}       = $assembled->{'tools'};
         $request_body->{'tool_choice'} = 'auto';
+    }
+
+    ## sanitize message content for jinja2 safety [ matches blocking version ] ##
+    ## tool results with code often contain {{ }}, {% %} patterns that crash ##
+    ## the server's jinja template engine or silently mangle the prompt ##
+    for my $msg ( @{ $request_body->{'messages'} } ) {
+        my $content = $msg->{'content'} // '';
+        $content =~ s|\{\{|｛｛|g;
+        $content =~ s|\}\}|｝｝|g;
+        $content =~ s|\{%|｛%|g;
+        $content =~ s|%\}|%｝|g;
+        $content =~ s|namespace\s*\(|namespace_(|g;
+        $msg->{'content'} = $content;
+        ## also sanitize tool call arguments ##
+        if ( ref $msg->{'tool_calls'} eq qw| ARRAY | ) {
+            for my $tc ( $msg->{'tool_calls'}->@* ) {
+                my $args = $tc->{'function'}->{'arguments'} // '';
+                if ( length $args ) {
+                    $args =~ s|\{\{|\\{\\{|g;
+                    $args =~ s|\{%|\\{%|g;
+                    $args =~ s|namespace\s*\(|namespace_(|g;
+                    $tc->{'function'}->{'arguments'} = $args;
+                }
+            }
+        }
     }
 
     ## Start async streaming request ##
@@ -165,8 +191,8 @@ if ($async_mode) {
 
 return $result;
 
-#,,..,.,,,,.,,,,,,,,,,..,,,.,,..,,...,,,,,,.,,.,.,...,..,,..,,,.,,...,.,,,.,.,
-#OOZRCYHHSYKGGZBVASQLYMJZ2RAFM6K4RTLMIOLNFU7G4KT5K3M5WKVUAJ3CAI55JQ3BMT54EM2UK
-#\\\|BTQCLTCAREPPFEQLWVKONSI5S535HWWSZMTG5XECBMEDOCCT5NW \ / AMOS7 \ YOURUM ::
-#\[7]N6UZGQ2OF3E5UOPJZKCNQU3JF4Q6Q4KGTHGTPZ6QTJVXZYJXJEBQ 7  DATA SIGNATURE ::
+#,,.,,.,.,,..,,,,,.,.,,,.,,,.,.,,,,,.,.,.,,.,,.,.,...,...,,..,.,,,,,.,...,.,.,
+#NU2W4VKEXPCEMYXJQ2HT5KA2FRN3N4NUFO75ASYBYHJEKCMBZLB5B5OQTU6CP7RPNQZJCWXSPUX3G
+#\\\|XV7AJBSNQXKQUPYJQJGO23O6TT5T63GSHF5Q6FZPHKAX6VDBBHS \ / AMOS7 \ YOURUM ::
+#\[7]JZV57Q652SP2TQTTLKBTEMIFTHJYKBKEWDTXCX2NWOR6HQOWIUCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
