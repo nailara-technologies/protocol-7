@@ -12,7 +12,7 @@ my $state       = <[coding.async.state_manager]>->( 'get', $task_id );
 my $retry_count = $state->{'retry_count'} // 0;
 my $max_retries = 3;
 
-if (   $error =~ m{HTTP error:\s*(5\d\d|timeout)}i
+if (   $error =~ m{HTTP error:\s*5\d\d|timeout|connection closed}i
     && $retry_count < $max_retries ) {
     $retry_count++;
     <[base.logs]>->(
@@ -46,8 +46,8 @@ my $result = {
 
 return;
 
-#,,,.,...,.,,,,..,,,.,...,.,.,..,,.,.,.,,,,.,,..,,...,..,,.,,,,,.,,..,,.,,..,,
-#N36M6V67IPKHVGEXGBYRFNXDQVNWP5LSHTLUV7WQFNMYEP2CLSYIXE6VV2T6VFLOMMD72YWDA2M2U
-#\\\|JK5BLFUJCJ6J7KAI4T4GHMSSAIHK6MXUUWTTBK7CZCZNNSPLMZA \ / AMOS7 \ YOURUM ::
-#\[7]RPVAN5D5HZM3QT5QATSRXQKTGQHP53U7R7RVC7LQCJNFEMO47UCY 7  DATA SIGNATURE ::
+#,,..,,,.,,..,...,.,,,.,,,,,.,.,.,,,,,,..,.,,,..,,...,...,,..,,.,,,,.,.,.,.,,,
+#RCPT2QKITQQQEUBHJKG3ERDALHVMMQ5SSHQYIX5IZWYZDXK2JVKAT3BRMAVTTTPJNUM75PID3H7TW
+#\\\|BHAC4TUUWGHD2XTF5DWLZU5EUPTL4K4QTVIBCNUQ7KI3JL6OYVU \ / AMOS7 \ YOURUM ::
+#\[7]3H2BSCH6ULWOSXMWSFQNQSUD3WLGMXLTQRYAQJKHH3VLQAERF6BQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

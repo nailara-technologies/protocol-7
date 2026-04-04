@@ -9,6 +9,13 @@ my $data      = $event->data;
 my $state     = $data->{'state'};
 my $callbacks = $state->{'callbacks'};
 
+## skip if already completed [ timer event queued before cleanup ] ##
+if ( $state->{'completed'} || !defined $state->{'sock'} ) {
+    <[base.logs]>
+        ->( 2, "async.http_timeout: skipping [ already completed ]" );
+    return;
+}
+
 <[base.logs]>->(
     0,
     "async.http_timeout: request timed out after %d seconds",
@@ -20,8 +27,8 @@ $callbacks->{'on_error'}->($error) if exists $callbacks->{'on_error'};
 
 <[coding.async.http_cleanup]>->($state);
 
-#,,,.,,..,,..,,,,,,,,,.,,,,,.,..,,.,,,,..,..,,.,.,...,...,,..,.,.,,.,,,,.,,,,,
-#YGN7ETUAZYOJFID7KY764NW2LHUDPTDEOMUF2DLCCFHJQ7Y64NWDAPYFG3JU2KECD57EHPSDBQ5NW
-#\\\|YWHKZRSCEZJ3TFV2W64FYHR26L4R54KNKSEVU6NLSTSR7KY4FOW \ / AMOS7 \ YOURUM ::
-#\[7]OS4BNKFGJJWJRKXHWKKUXRO7T7I5YHZNIXSPWK746KXOINP47SBY 7  DATA SIGNATURE ::
+#,,..,,,.,.,.,...,...,.,,,,.,,,,.,,.,,.,,,.,.,.,.,...,...,,.,,.,,,.,,,,,.,,,.,
+#ZHCANHAZS7VKAILITVKYMGESPTSEEU5YQ5IFOVV2WNYGO26PUDZWYQMI62GC2WMR57GY3KDRJJ53W
+#\\\|FJMYM4WOAMWEEL7VW5Q3KIB6TC6D4LM6YJMPROZ4IBUA4HVEJVW \ / AMOS7 \ YOURUM ::
+#\[7]U44ZQAV7Z7MW5PLBWEZQVP6VZVECFQ5WIBOJ75QTYQJX7EUZBABQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

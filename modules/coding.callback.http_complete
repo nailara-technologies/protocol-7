@@ -108,12 +108,9 @@ if ( $sm_state eq 'streaming' ) {
                 0, "http_complete: task %s connection closed with no data",
                 $task_id
             );
-            <[coding.async.state_machine]>->(
-                'transition',
-                $task_id,
-                {   'event' => 'error',
-                    'error' => 'connection closed with no data'
-                }
+            ## route through http_error for retry support ##
+            <[coding.callback.http_error]>->(
+                $task_id, 'connection closed with no data'
             );
         }
     }
@@ -122,8 +119,8 @@ if ( $sm_state eq 'streaming' ) {
 
 return;
 
-#,,.,,.,,,,,,,,,.,...,.,,,,.,,.,.,,..,...,.,.,..,,...,...,...,.,.,...,,,,,..,,
-#WD35RKRWZFXYX5LUTWZNUPX2TYDNABNPUGG66TLWK7CKTB5TJJFIIBABDDDEV5VHG76DEDMQJF7WW
-#\\\|XBGWNCXL6F437J7PNBNKBA4ZMMQIXQ233HYVNF5YWQYVKEBMW32 \ / AMOS7 \ YOURUM ::
-#\[7]NJC4WW2NNROMTPX25RQKVFP6LYYK5TD7RQ3IZP6I5FJECNLSUWCQ 7  DATA SIGNATURE ::
+#,,.,,,..,,.,,,..,.,,,,.,,,,,,,,,,...,..,,...,..,,...,...,.,,,,..,,..,,..,,,.,
+#XQHFP7P6A62GK6VOWOOAHUAXP5EJ5RXOIK5OIOHEWMIXEQNKJT4THAOWXQZT5DTIJPQSXHVZXZ6EK
+#\\\|MX7JKTVGHO3EV7DMPSWOG6J23C5J4Y5CAWYRGLB5RIE5NHNLHLK \ / AMOS7 \ YOURUM ::
+#\[7]GJJXCJWAEPW3GPHOSMM7IQF2ZF4KYXG4BP5MYSBTJ4L4AJ6DR6AI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
