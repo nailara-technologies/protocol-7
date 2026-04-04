@@ -1,0 +1,32 @@
+## [:< ##
+
+# name  = coding.tools.handler.note_update
+# descr = update/replace content in an existing note section
+
+my $args = shift // {};
+
+my $section = $args->{'section'} // '';
+my $content = $args->{'content'} // '';
+my $task_id = $args->{'task_id'} // '';
+
+return { 'content' => 'section and content required' }
+    unless length $section && length $content;
+
+## auto-initialize if needed ##
+my $base_dir = <[file.zenka_dir.data_path]> . '/notes';
+<[note.init]>->($task_id) unless -d "$base_dir/$task_id";
+
+## call backend to update section ##
+my $result = <[note.update]>->( $section, $content, $task_id );
+
+return {
+      'content' => $result->{'mode'} eq qw| true |
+    ? "Updated section '$section' (" . $result->{'data'}{'bytes'} . " bytes)"
+    : "Failed: " . ( $result->{'data'} // 'unknown' ),
+};
+
+#,,,.,.,.,,..,.,.,...,,..,..,,..,,,,,,,..,...,.,.,...,...,,..,.,,,...,..,,..,,
+#37BCNWPBK6UXFIU7HXHZY6I4BEEFDEXK2JPN2CO2DNILMPB7W7BSPBES33NPPPPZ5KUYC3LKLGEBU
+#\\\|DHL5MQ7I4TT6OCYOBPCJ4LRY3G24NEJ2WDV2GEAEQC2DDCKHSO4 \ / AMOS7 \ YOURUM ::
+#\[7]CFTKKWS7OQZZ4OEKRPLA5KOKNIYTHFGOJT6YWAF4IWIO5HVYHIBA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
