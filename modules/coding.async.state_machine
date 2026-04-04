@@ -182,11 +182,13 @@ elsif ( $action eq 'transition' ) {
                 "state_machine: adding assistant msg with %d tool_calls",
                 scalar( @{$tool_calls} )
             );
+            ## llama-server workaround: skip tool_calls, only content ##
+            ## llama-server's Jinja template fails on tool_calls format ##
+            ## The model will infer tool use from tool results ##
             push @{ $state->{'messages'} },
                 {
-                'role'       => 'assistant',
-                'content'    => $state->{'content'} // '',
-                'tool_calls' => $tool_calls,
+                'role'    => 'assistant',
+                'content' => $state->{'content'} // '(tool call)',
                 };
         } else {
             <[base.logs]>->(
@@ -328,8 +330,8 @@ elsif ( $action eq 'constants' ) {
 
 return { error => sprintf "unknown action : '%s'", $action };
 
-#,,.,,.,.,,,,,,,,,,,,,..,,,,.,.,.,,..,,.,,...,.,.,...,...,.,,,...,,.,,.,.,...,
-#ETTWE6MRGLMEEJPXHN2X3ZQACCXCXP4FLJY2BZDFXJLC2GU2DCWV7EJBK5SIPJ3HW7LXM5M76ZWBO
-#\\\|Z4RQXLMX64O6EW4N5WONI426X2FOI744Q43R5CCJEGIIFAX3MX4 \ / AMOS7 \ YOURUM ::
-#\[7]7MINX6LNBW5ZSSJNXOD5XABMKG546TRMW74FLSQG5JSHFBCJVEBI 7  DATA SIGNATURE ::
+#,,,,,.,.,,..,.,,,.,,,,.,,...,,.,,,..,,..,..,,.,.,...,...,,..,,,.,...,..,,...,
+#GYH2E7L4LSYBLMGGLERLAQTCCJSZKBWLIFMFWFE7BVDZ7YUGDW3LB47LWIMYMJAKCGACMGGK4SPVE
+#\\\|UFJQWCKABXUOOR4OUBBSA4LCKQJAQPSY573ABCKGWBIPWMRH4Q6 \ / AMOS7 \ YOURUM ::
+#\[7]RCD7GC3TRZ5GIGMBIDK7HQVGE4DUW6MXGDS3DL6Y36KIIH22L2DA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
