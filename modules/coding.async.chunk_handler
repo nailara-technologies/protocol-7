@@ -27,8 +27,8 @@ if ( $type ne 'HASH' ) {
 my $choice = $chunk_data->{'choices'}->[0];
 return $context unless defined $choice;
 
-## extract delta content ##
-my $delta   = $choice->{'delta'}  // {};
+## extract delta content [ fallback to message for non-sse responses ] ##
+my $delta   = $choice->{'delta'}  // $choice->{'message'}          // {};
 my $content = $delta->{'content'} // $delta->{'reasoning_content'} // '';
 
 ## handle tool calls in delta ##
@@ -69,8 +69,12 @@ if ( defined $choice->{'finish_reason'} ) {
     $context->{'finish_reason'} = $finish;
 
     <[base.logs]>->(
-        2,        "chunk_handler: task %s finish_reason=%s",
-        $task_id, $finish
+        2,
+        "chunk_handler: task %s finish_reason=%s content_len=%d tool_calls=%d",
+        $task_id,
+        $finish,
+        length( $context->{'content'} // '' ),
+        scalar( @{ $context->{'tool_calls'} // [] } )
     );
 
     ## determine next state based on finish_reason ##
@@ -82,6 +86,7 @@ if ( defined $choice->{'finish_reason'} ) {
                 $task_id,
                 {   'event'      => 'finish_tool_calls',
                     'tool_calls' => $context->{'tool_calls'},
+                    'content'    => $context->{'content'},
                 }
             );
         }
@@ -98,6 +103,7 @@ if ( defined $choice->{'finish_reason'} ) {
                 $task_id,
                 {   'event'      => 'finish_tool_calls',
                     'tool_calls' => $context->{'tool_calls'},
+                    'content'    => $context->{'content'},
                 }
             );
         } else {
@@ -139,8 +145,8 @@ if ( defined $choice->{'finish_reason'} ) {
 
 return $context;
 
-#,,,,,,,.,,,.,,.,,,,,,..,,.,,,..,,..,,.,.,,.,,.,.,...,...,...,,.,,..,,...,,.,,
-#WLRN6VGAAPSF4LYOVJICFLGAHDTH5ZBZWRRK3YVIN3PTJHU6NZE5XQGH724WQ3UY5MEVDJNWDPV3W
-#\\\|LNJZVMNBOG4W3EQMDDLV4H7FX2AIUMZ444WERL5RQ7OIGRY5GGU \ / AMOS7 \ YOURUM ::
-#\[7]GJG4ATGLIUPAWMXJAQBAMGJZNGNP2J2P4F7XR6SN3CYMPBMQLYBA 7  DATA SIGNATURE ::
+#,,,,,,..,...,,,,,.,,,,.,,.,,,...,..,,,,.,,,,,.,.,...,...,,..,.,,,..,,...,..,,
+#VIDQVX3OXPLRPEEE3NNVRJSCTSBJFPIQQONVERCAYOVIMEZCI57UHXGHYXISWZT4B7DSCMZMLVMBA
+#\\\|AV5727VHS7PKTCSQDCNCQBKF4DWV4NRQNNZK2AK3VFO6PJX6IX4 \ / AMOS7 \ YOURUM ::
+#\[7]OIRVAIEZHO2MQEASC3FBB65JB7O2R4OUEK5DCGSUVA3ZK3EFZSAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

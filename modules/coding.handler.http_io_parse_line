@@ -1,0 +1,68 @@
+## [:< ##
+
+# name  = coding.handler.http_io_parse_line
+# descr = parse a single SSE or raw JSON line from HTTP stream
+
+my ( $line, $state, $callbacks ) = @ARG;
+
+return unless length($line);
+
+## strip trailing \r ##
+$line =~ s/\r$//;
+
+## skip hex chunk size lines [ chunked encoding ] ##
+return if $line =~ /^[0-9a-fA-F]+$/;
+
+## skip SSE headers and empty lines ##
+return if $line =~ /^:$/;         # keep-alive comment
+return if $line =~ /^event:/i;    # event type header
+return if $line =~ /^id:/i;       # event ID
+
+<[base.logs]>->( 2, "async.http_io: processing line [%s]", $line );
+
+## extract data from SSE format ##
+my $json_str;
+if ( $line =~ /^data:\s*(.+)/ ) {
+    $json_str = $1;
+} else {
+    ## try parsing as raw JSON [ fallback ] ##
+    $json_str = $line;
+}
+
+## handle [DONE] marker ##
+return if $json_str eq '[DONE]';
+
+## skip empty JSON strings ##
+return unless length($json_str);
+
+$state->{'chunks_received'}++;
+
+## parse JSON ##
+my $data = eval { $state->{'json_decoder'}->decode($json_str) };
+if ($@) {
+    <[base.logs]>->(
+        0,         "async.http_io: JSON parse error [%s]: %s",
+        $json_str, $@ // 'unknown'
+    );
+    return;
+}
+
+## debug: log data type ##
+if ( $state->{'chunks_received'} < 3 ) {
+    my $type = ref($data) || qw| SCALAR |;
+    <[base.logs]>->( 2, "async.http_io: decoded data type=%s", $type );
+}
+
+## call on_chunk callback ##
+if ( exists $callbacks->{'on_chunk'} ) {
+    <[base.logs]>->( 2, "async.http_io: calling on_chunk callback" );
+    $callbacks->{'on_chunk'}->($data);
+}
+
+return;
+
+#,,..,,,.,..,,.,.,..,,.,,,,..,,,.,,..,,..,,,,,.,.,...,...,.,,,..,,...,..,,.,.,
+#AGPF4OZ7NWK244NKAAVDY345QXM6KD5HOJKMYTO4NXCZVIZCOM4GPW2JLZAGBFW2ZEIRML426PTBW
+#\\\|ZRTPQ66F7L2SKD7KB656ZWB2LPAKQMNCLUOBYSNS2APM7CO4DR3 \ / AMOS7 \ YOURUM ::
+#\[7]OF7TUDP5ZNQB3SG6HK6ATTW3BZAUVKO37FMHXFRH5HBY3HOOXGBA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

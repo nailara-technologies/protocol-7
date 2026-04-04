@@ -3,7 +3,7 @@
 # name  = coding.callback.http_complete
 # descr = HTTP streaming complete callback
 
-my ( $task_id, $http_state ) = @ARG;
+my ( $task_id, $http_state, $req_seq ) = @ARG;
 
 <[base.logs]>->(
     1,
@@ -23,6 +23,16 @@ if ( !defined $state ) {
     return;
 }
 
+## check if this is a stale callback from a previous connection ##
+my $current_seq = $state->{'request_seq'} // 0;
+if ( defined $req_seq && $req_seq != $current_seq ) {
+    <[base.logs]>->(
+        2, "http_complete: stale callback for %s [ seq %d != %d ], ignoring",
+        $task_id, $req_seq, $current_seq
+    );
+    return;
+}
+
 my $sm_state = $state->{'state'} // '';
 
 <[base.logs]>->(
@@ -34,22 +44,11 @@ my $sm_state = $state->{'state'} // '';
     scalar( @{ $state->{'tool_calls'} // [] } )
 );
 
-## write response to model output buffer (unless empty or tool calls pending) ##
-if ( length( $state->{'response_text'} ) && $sm_state ne 'tool_exec' ) {
-    <[coding.buffer.model_output]>->(
-        $state->{'response_text'},
-        {   'round' => $state->{'chunk_context'}{'round'} // 0,
-            'tool'  => 'model',
-        }
-    );
-}
-
-## state machine drives all transitions — defer unless no transition happened ##
-if ( $sm_state eq 'tool_exec' || $sm_state eq 'streaming' ) {
-    ## tool loop in progress or new round started — do not interfere ##
+## state machine drives all transitions — check what happened ##
+if ( $sm_state eq 'tool_exec' ) {
+    ## tool execution in progress — do not interfere ##
     <[base.logs]>->(
-        2, "http_complete: task %s state=%s, deferring to state machine",
-        $task_id, $sm_state
+        2, "http_complete: task %s in tool_exec, deferring", $task_id
     );
     return;
 }
@@ -63,10 +62,68 @@ if ( $sm_state eq 'complete' || $sm_state eq 'error' ) {
     return;
 }
 
+if ( $sm_state eq 'streaming' ) {
+    ## connection closed while still streaming [ current request ] ##
+    ## no finish_reason received — try to recover ##
+    my $content = $state->{'response_text'} // $state->{'content'} // '';
+    if ( length($content) ) {
+        ## got partial response — complete with what we have ##
+        <[base.logs]>->(
+            1,
+            "http_complete: task %s connection closed with partial response [ %d bytes ]",
+            $task_id,
+            length($content)
+        );
+        <[coding.async.state_machine]>->(
+            'transition', $task_id,
+            { 'event' => 'finish_stop', 'content' => $content }
+        );
+    } else {
+        ## no content at all — check for non-sse response body ##
+        my $body = $http_state->{'body'} // '';
+        if ( length($body) ) {
+            <[base.logs]>->(
+                1,
+                "http_complete: task %s non-sse response [ %d bytes ], completing",
+                $task_id,
+                length($body)
+            );
+            ## try to extract content from json response ##
+            my $parsed = eval { JSON::PP::decode_json($body) };
+            if ( defined $parsed && ref $parsed eq 'HASH' ) {
+                my $text = $parsed->{'choices'}[0]{'message'}{'content'}
+                    // '';
+                <[coding.async.state_machine]>->(
+                    'transition', $task_id,
+                    { 'event' => 'finish_stop', 'content' => $text }
+                );
+            } else {
+                <[coding.async.state_machine]>->(
+                    'transition', $task_id,
+                    { 'event' => 'finish_stop', 'content' => $body }
+                );
+            }
+        } else {
+            <[base.logs]>->(
+                0, "http_complete: task %s connection closed with no data",
+                $task_id
+            );
+            <[coding.async.state_machine]>->(
+                'transition',
+                $task_id,
+                {   'event' => 'error',
+                    'error' => 'connection closed with no data'
+                }
+            );
+        }
+    }
+    return;
+}
+
 return;
 
-#,,..,...,,,,,,,.,,..,.,,,,.,,,..,.,.,..,,.,,,..,,...,...,,.,,.,,,.,.,.,,,,,,,
-#5OBCMQ7AGFTM2HURGFI24J35EQOJ5ZJAPD4G4RJOWWFRTRWYTHTBEPVIHVOABIEUAMSTZJ7HFNQVW
-#\\\|Q2PID7XYZ3M54DP3JMNNZWPPYWGNG7RRIRETD7HYI746D5RCH2T \ / AMOS7 \ YOURUM ::
-#\[7]DST2243YRG57TOKAP7AQ6HGOF3XDLR3LJKPHABLJZCCAN2Q5GYCQ 7  DATA SIGNATURE ::
+#,,.,,.,,,,,,,,,.,...,.,,,,.,,.,.,,..,...,.,.,..,,...,...,...,.,.,...,,,,,..,,
+#WD35RKRWZFXYX5LUTWZNUPX2TYDNABNPUGG66TLWK7CKTB5TJJFIIBABDDDEV5VHG76DEDMQJF7WW
+#\\\|XBGWNCXL6F437J7PNBNKBA4ZMMQIXQ233HYVNF5YWQYVKEBMW32 \ / AMOS7 \ YOURUM ::
+#\[7]NJC4WW2NNROMTPX25RQKVFP6LYYK5TD7RQ3IZP6I5FJECNLSUWCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
