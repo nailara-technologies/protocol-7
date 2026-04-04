@@ -25,18 +25,28 @@ my $content_ref = <[file.slurp]>->($abs_path);
 return "error: cannot read file: $path" unless defined $content_ref;
 my @lines = split /\n/, $content_ref->$*, -1;
 
-## parse edits ##
+## parse edits [accepts array ref or JSON string] ##
 my @all_edits;
 if ( ref $edits eq qw| ARRAY | ) {
     @all_edits = @$edits;
 } elsif ( !ref $edits && length $edits ) {
     ## try to parse as JSON string ##
     my $parsed = eval { JSON::PP::decode_json($edits) };
-    @all_edits = @$parsed if defined $parsed && ref $parsed eq qw| ARRAY |;
+    if ($@) {
+        return "error: edits JSON parse error: $@";
+    }
+    if ( defined $parsed && ref $parsed eq qw| ARRAY | ) {
+        @all_edits = @$parsed;
+    } else {
+        return "error: edits must be an array, got: "
+            . ( ref $parsed || 'scalar' );
+    }
 }
 
 my $edit_count = scalar @all_edits;
-return "error: no valid edits found" unless $edit_count > 0;
+return
+    "error: no valid edits found - provide array of {line, old, new} objects"
+    unless $edit_count > 0;
 
 ## handle chunked editing ##
 my $batch_num = 1;
@@ -113,8 +123,8 @@ return sprintf "## %s batch %d [%d/%d edits] %s ##\n%s",
     ( $has_more ? "\n[more: continue=$next_continue]" : "" ),
     join "\n", @preview;
 
-#,,,,,,.,,.,.,...,.,,,...,,,.,..,,...,.,,,...,.,.,...,...,,..,,..,.,.,,..,,,,,
-#G7I4BTRZACAHF6AH5P6F7ZJVEGUYSZ4D3VJMB6FTXG2ND4H37M6H5HOM6Y6E445DBESFVD4SBZD2Q
-#\\\|BF4WXYNM2GGVZYU5I23ZAMYAS52KVGKCAGNEAOERLVSADAYQQXC \ / AMOS7 \ YOURUM ::
-#\[7]IEFIUV4WQITOS56WXJM774AJT566BHCM5MS24P3BS52MMIPLEGBQ 7  DATA SIGNATURE ::
+#,,,,,.,,,..,,,..,,,,,,,.,.,.,,,.,.,,,..,,.,,,.,.,...,...,...,,..,.,,,,..,,,,,
+#DBKOZOHNEAWSJOXK5JWZRAG6MYZUYWO6VRZVIWX5EUH3JXCNU6PWNX4ZL24PGFHBQ6A3J34APLVYI
+#\\\|DL7VMKOTMTLBRI4VWRP6TCVASCMALXP7RDAQPKYJCYHCKPPE3XU \ / AMOS7 \ YOURUM ::
+#\[7]5NTHVV5NKDQSGX6QONJ23D56T3RCQ2A4MC2BI3GVTX6OXMEIQQAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
