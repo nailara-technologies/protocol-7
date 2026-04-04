@@ -7,6 +7,35 @@ my ( $task_id, $error ) = @ARG;
 
 <[base.logs]>->( 0, "async.request: error for %s: %s", $task_id, $error );
 
+## check for retryable errors (HTTP 500, timeouts) ##
+my $state       = <[coding.async.state_manager]>->( 'get', $task_id );
+my $retry_count = $state->{'retry_count'} // 0;
+my $max_retries = 3;
+
+if (   $error =~ m{HTTP error:\s*(5\d\d|timeout)}i
+    && $retry_count < $max_retries ) {
+    $retry_count++;
+    <[base.logs]>->(
+        1, "async.request: retrying %s (attempt %d/%d)",
+        $task_id, $retry_count, $max_retries
+    );
+
+    ## update retry count ##
+    <[coding.async.state_manager]>->(
+        'set', $task_id, { retry_count => $retry_count }
+    );
+
+    ## retry after short delay (100ms) ##
+    <[event.add_timer]>->(
+        {   'after'   => 0.1,
+            'handler' => sub {
+                <[coding.async.send_request]>->($task_id);
+            }
+        }
+    );
+    return;
+}
+
 ## fail the task ##
 my $result = {
     success => FALSE,
@@ -17,8 +46,8 @@ my $result = {
 
 return;
 
-#,,,.,,..,,.,,.,,,.,.,,.,,..,,,..,.,.,,..,,,.,..,,...,...,..,,...,..,,...,,..,
-#764O6VN5OVYFD43V4QO25OSDPK62CDCPYPGQN6JN4HOKSVWDKXBLDSGRG4O3GSEHJPXJP3SSWXBXU
-#\\\|2BJQWGAYTAH4X2GKOVVRV45IWW6ZWMFTOVXFHDLGJME5QHQ5GFL \ / AMOS7 \ YOURUM ::
-#\[7]SPBVTBEFP37BMJCNKBV6RJM3S2M4R7LH4G6XX64N4NI7BKHRP6BA 7  DATA SIGNATURE ::
+#,,,.,...,,.,,..,,.,.,,.,,..,,..,,.,.,,.,,,,,,..,,...,...,,.,,,..,.,.,,.,,..,,
+#LMFZ2RUQEMUQJARJZTJK6HAGX4FRTTXJ2YJK43JVLW5UAA542X5FSGFIAIXZSXZER2SFLSEJ3UNVY
+#\\\|WABDJXM5KMU6JOISRK2RGN5SNEMUCIDW3LQP26GJCMFPKSGUKIR \ / AMOS7 \ YOURUM ::
+#\[7]ACP2QBFZOM7RVA6C3SJFZCZGKFJD663MGPKXDIJF4YC3E7KFIICQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -54,6 +54,15 @@ if ( defined $bytes && $bytes > 0 ) {
 
                 if ( $state->{'status_code'} !~ m{^2} ) {
                     my $error = "HTTP error: " . $state->{'status_code'};
+                    ## capture response body for debugging ##
+                    if ( length( $state->{'buffer'} ) > 0 ) {
+                        my $body = $state->{'buffer'};
+                        $body =~ s/^\s+|\s+$//g;
+                        $body = substr( $body, 0, 200 )
+                            if length($body) > 200;
+                        <[base.logs]>
+                            ->( 0, "http_io: error body: %s", $body );
+                    }
                     $callbacks->{'on_error'}->($error)
                         if exists $callbacks->{'on_error'};
                     <[coding.async.http_cleanup]>->($state);
@@ -134,8 +143,8 @@ my $error = "Read error: $!";
 $callbacks->{'on_error'}->($error) if exists $callbacks->{'on_error'};
 <[coding.async.http_cleanup]>->($state);
 
-#,,,,,..,,,.,,..,,,,,,,.,,.,.,,,.,.,.,,.,,,.,,.,.,...,..,,.,.,.,.,.,.,,,,,.,.,
-#7BZQFYJWVIZJSYETM3JN7C6GKEFKFZAPZEL6BBMR4OFSTTXOLJQYCFHMDAZCWCKF6NFAZXIKSWDDY
-#\\\|SU3CU7MKQTP3HURNKQZR43VP7TC4VB2C4SPGHTFG3D7TQ7FFFPQ \ / AMOS7 \ YOURUM ::
-#\[7]U3OI7AZQUOSTZYT7X26BEQBYGVRFI7Z5JRX45EDM6UKPCMWGTUBQ 7  DATA SIGNATURE ::
+#,,..,,,,,,.,,,.,,...,..,,.,,,,.,,,..,.,.,.,.,.,.,...,...,,,,,...,,,.,.,.,.,.,
+#X4KP5RUYERHL7SYXUYGH6OYLVIGU5HFUT4QWGIGV5RGER5MJ6FEPB32ZK2P4IVKAGKHMFDXFAX5PS
+#\\\|G67Y74U5OOCOEM3LM64ESYZ7ROTYLGXSSQR5Q2HE3G3VCIXK7Y4 \ / AMOS7 \ YOURUM ::
+#\[7]RLJGWMQH5ZDZOZ23BXGAAA3FM6WTYN4ULSFKHAFPBE3GI75R5KDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
