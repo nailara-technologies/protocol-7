@@ -32,7 +32,7 @@
 - `topic-tool-suggestions.md` — LLM-suggested tools/improvements, prioritized; implemented/deferred/sources
 - `topic-namespace-tree-intelligence.md` — the tree IS the intelligence: unified namespace for
   code/data/state/history/planning, branch summarization, universal off-band access
-- `topic-async-tool-loop-debug.md` — CRITICAL: async tool exec loop broken, tasks complete after 1st msg
+- `topic-async-tool-loop-debug.md` — RESOLVED: async tool loop fixes, XML parsing, root cause chain
 
 ## File Creation Notes (CRITICAL)
 - **Never add** the single-line `#,,.,,,...` stub at end of new files
@@ -97,9 +97,17 @@
 - Vision system overhaul, inference crash detect/restart, retry on timeout/5xx
 - B32 prefix fix, Jinja sanitization, NShell history fix, 3 new templates
 
+### Completed (Apr 2-4 2026) — async tool loop resolution
+- Async tool loop RESOLVED: 29+ rounds, 30+ tools verified by model autonomously
+- XML tool call parser (coding.parse.xml_tool_calls) — root cause: model emits XML in reasoning_content
+- reasoning_content fallback fix (empty string is defined, use length not //)
+- Context compaction (coding.async.compact_context) matching blocking version
+- Loop detection ported to async state_machine (detect_loop + assertion + force-stop)
+- XML markup stripping from output buffer display
+- Shared jinja sanitization (coding.sanitize.jinja_messages)
+- Jinja-safe argument re-encoding, retry on 500/timeout, tool_calls stripping
+
 ### Active / Partial
-- **CRITICAL: async tool execution loop** — streaming works but tool loop broken,
-  tasks complete after first response — see `topic-async-tool-loop-debug.md`
 - **namespace tree as intelligence layer**: see `topic-namespace-tree-intelligence.md`
 - **deferred compilation stubs** (Mar 15): partial — deeper namespace/phase work pending
 - **task coordination architecture**: see `topic-task-coordination.md` for full state + roadmap
@@ -243,8 +251,8 @@
 - Pattern: `my @non_num = grep { defined $data_ref->{$ARG}->{$key} and not looks_like_number(...) } keys $data_ref->%*`
 - Global `$SIG{__WARN__}` exists — if wrapping warn handler, capture `$prev_warn = $SIG{__WARN__}` first and call through
 
-#,,.,,.,,,..,,.,.,,.,,,,,,.,,,,,.,.,,,,.,,.,.,..,,...,...,..,,,.,,..,,..,,,.,,
-#U2YHKUDRHSLM4WC4G2KGRGL33HZDFLYN46RFIW3MS5MKRJ47TNY6TJZ7QUWX7SLZHX4D47HEEV5SQ
-#\\\|PVW6MBB4TJLAJ2QBJIKHBYLKGWKT3JLHBYHDOG32VEZ3YLJ6HQU \ / AMOS7 \ YOURUM ::
-#\[7]7OWP3RDC4SS3JNSVC3YCOYYVSX66RBN5T2RU3DYFK2YY3XRWJQBI 7  DATA SIGNATURE ::
+#,,.,,,,.,,..,,,,,.,,,,.,,.,,,..,,.,,,,..,,,.,..,,...,...,.,.,,,,,,.,,.,,,,..,
+#NRJWFIILJHCZKSDKYXZZTVFJQPG7OQWUDYEJSUDKSROD2PJX2ASF3X4PQJRKV4H7JLWY5TZNIDDFA
+#\\\|VZU7OH735WLME6CJ5RLXNGK44MVL6L5IF4WGES6DG6Z2PYXU6SP \ / AMOS7 \ YOURUM ::
+#\[7]UQIE355OK4SPJOKQ3WXAGNB57A6QTMIDYNPB62AYWYF75G3QAYCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
