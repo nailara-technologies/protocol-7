@@ -1,0 +1,85 @@
+## [:< ##
+
+# name  = coding.parse.xml_tool_calls
+# descr = parse xml-format tool calls from model content or reasoning_content
+# purpose = models emit <tool_call><function=name><parameter=k>v</parameter></function>
+#           instead of structured tool_calls — extract as structured array
+
+my ($text) = @ARG;
+
+return [] unless defined $text && length $text;
+
+my @tool_calls;
+my $call_idx = 0;
+
+## match each <tool_call>...</tool_call> or bare <function=...> block ##
+## pattern: <tool_call>\n<function=NAME>\n<parameter=K>\nV\n</parameter>\n</function>
+## also handles: content before/after, optional whitespace, missing </tool_call> ##
+
+while (
+    $text =~ m{
+        (?:<tool_call>\s*)?          ## optional <tool_call> wrapper
+        <function\s*=\s*(\w+)\s*>    ## <function=TOOL_NAME>
+        (.*?)                        ## parameters block
+        </function>                  ## closing tag
+        (?:\s*</tool_call>)?         ## optional closing wrapper
+    }gsx
+) {
+    my $tool_name  = $1;
+    my $params_raw = $2;
+
+    ## extract parameters ##
+    my %params;
+    while (
+        $params_raw =~ m{
+            <parameter\s*=\s*(\w+)\s*>   ## <parameter=KEY>
+            (.*?)                         ## value
+            </parameter>                  ## closing tag
+        }gsx
+    ) {
+        my $key = $1;
+        my $val = $2;
+        ## trim leading/trailing whitespace from value ##
+        $val =~ s|^\s+||;
+        $val =~ s|\s+$||;
+        $params{$key} = $val;
+    }
+
+    ## build structured tool call ##
+    my $call_id = sprintf( 'xmlcall_%d_%d', $$, $call_idx );
+    push @tool_calls,
+        {
+        'id'       => $call_id,
+        'type'     => 'function',
+        'function' => {
+            'name'      => $tool_name,
+            'arguments' => JSON::PP::encode_json( \%params ),
+        },
+        };
+
+    $call_idx++;
+}
+
+if (@tool_calls) {
+    <[base.logs]>->(
+        1,
+        "parse.xml_tool_calls: extracted %d tool calls from xml content",
+        scalar @tool_calls
+    );
+    for my $tc (@tool_calls) {
+        <[base.logs]>->(
+            2,
+            "parse.xml_tool_calls: %s(%s)",
+            $tc->{'function'}->{'name'},
+            substr( $tc->{'function'}->{'arguments'}, 0, 80 )
+        );
+    }
+}
+
+return \@tool_calls;
+
+#,,..,,..,...,..,,.,,,,,,,,,,,,,.,.,,,,,,,.,,,.,.,...,...,...,,..,,,,,,,,,..,,
+#MP6DEK43TI7IQQAUAJEXD7UCL43Z5JI6OOMI3LCQPGVL4HYCNUOO3HOGKTZVITSKSWWBSQB56IWYU
+#\\\|76MSWIEZXGH47IKSUBLBZHLMWGBFGVRRQPU7WA4T72ZWMI67RMW \ / AMOS7 \ YOURUM ::
+#\[7]C57ZS5WZ65TT2ZTCBAGVGT6FVGG3VWCOADKT6RAMJ4Z2OZJR2KAA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

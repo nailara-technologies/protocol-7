@@ -597,6 +597,28 @@ INFERENCE_LOOP:
             }
         );
 
+        ## check for xml tool calls in content [ model quirk ] ##
+        ## models emit <tool_call><function=name>... in content or ##
+        ## reasoning_content instead of structured tool_calls ##
+        if (   $finish_reason_val ne 'tool_calls'
+            or ref( $message->{'tool_calls'} ) ne qw| ARRAY |
+            or !$message->{'tool_calls'}->@* ) {
+            my $xml_src = $message->{'content'} // '';
+            if ( !length($xml_src) ) {
+                $xml_src = $message->{'reasoning_content'} // '';
+            }
+            my $xml_tools = <[coding.parse.xml_tool_calls]>->($xml_src);
+            if ( @{$xml_tools} ) {
+                <[base.logs]>->(
+                    1,
+                    "::working:: extracted %d xml tool_calls from content",
+                    scalar( @{$xml_tools} )
+                );
+                $message->{'tool_calls'} = $xml_tools;
+                $finish_reason_val = 'tool_calls';
+            }
+        }
+
         ## check for tool calls ##
         if (    $finish_reason_val eq 'tool_calls'
             and ref $message->{'tool_calls'} eq qw| ARRAY |
@@ -948,8 +970,8 @@ if ( length $response_text
 ## return result hashref for jobqueue callback ##
 return { success => TRUE, result => $response_text, task_id => $task_id };
 
-#,,,,,,,,,,.,,.,,,,,,,...,,..,..,,...,..,,..,,..,,...,...,,,.,...,.,,,,,,,,.,,
-#G74TKZBE4WL5BPHWNNEL2CRBXQDUV4TBT6KKPNGE3PRJUKZNQKJCOPGXJELMFZF7BRNVIGKZDYCJO
-#\\\|HZKX6FU5D6QFMN4VZHYGRTR6ONTUI6IYMU2XCU4SYBYILMTH4Z2 \ / AMOS7 \ YOURUM ::
-#\[7]SMERCRZFHUEK6SB2JPEHGDQJQMERRUVYYVONSOFJ4ANS77KP74DA 7  DATA SIGNATURE ::
+#,,,,,,.,,..,,,.,,.,,,.,,,,..,,,.,.,,,,,,,,,.,..,,...,...,,,.,,,,,...,,,,,,.,,
+#NFTEI6W2ZU7PNPXXWZ6T2E4J44AI74T2LFEZ47GQQXHLEZCZM6UPIKFLBYRQKTGMQ42DEMXI2ASAC
+#\\\|3IKG3LZUPREI5Z4WSAXWAEVFD3JDKRQLUEM5V6P5ZKZUYQW7QOV \ / AMOS7 \ YOURUM ::
+#\[7]B5DQGHWY6JJWK333C4NC7QNDMHQBHT2J3MZHGGDP3P63WBE3OAAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
