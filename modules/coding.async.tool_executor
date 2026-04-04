@@ -72,6 +72,20 @@ foreach my $tc (@$tool_calls) {
     ## parse arguments ##
     my $args = eval { JSON::PP::decode_json($args_str) };
 
+    ## handle concatenated JSON objects (model error) ##
+    if ( $EVAL_ERROR && $args_str =~ m/^\s*\{.*\}\s*\{/s ) {
+        ## multiple objects concatenated - try to extract first valid one ##
+        if ( $args_str =~ m/^\s*(\{.*?\})\s*(?:\{|\z)/s ) {
+            my $first_obj = $1;
+            $args = eval { JSON::PP::decode_json($first_obj) };
+            <[base.logs]>->(
+                1,
+                "tool_executor: extracted first JSON object from concatenated args for %s",
+                $tool_name
+            ) unless $EVAL_ERROR;
+        }
+    }
+
     ## sanitize malformed arguments ##
     if ( $EVAL_ERROR || ref $args ne qw| HASH | ) {
         my $err
@@ -205,8 +219,8 @@ $state = <[coding.async.state_machine]>->(
 
 return { success => TRUE, tool_results => \@tool_results };
 
-#,,,.,,..,.,.,,,.,..,,..,,,..,,,,,.,,,...,..,,.,.,...,...,...,,,.,...,.,.,...,
-#VBXHE3F35NUA5DAXSGJ36PBHRLNGF5TDN674BC6LYHJC7FBAGIDDTH447JSJFKLLYDTG6DBCEIX2C
-#\\\|MT7LRH7F7LM27MGGQTUUTUGRRIP5O4DHSASRW77COP634KXAM7F \ / AMOS7 \ YOURUM ::
-#\[7]ZTC3HGPI64YWPARSGIPIX2NHUHGDDO32VBLG6UMKMIEQOYIKL6BA 7  DATA SIGNATURE ::
+#,,,.,..,,.,,,,..,.,.,,,,,,.,,..,,,.,,.,,,,,.,.,.,...,...,...,,,.,,.,,,..,...,
+#FXLEZN7OYLAFY3EESVMXXDAILEAWWRN3YVISI34Q7PE6YLACUAPRGIPSEB5FBCPHMKS3DBJLHYQCK
+#\\\|6R5XAGF4B4CM7HWEFHGZ6PECAI2SJR6IPKWHUAX5WJTQUDDP4RT \ / AMOS7 \ YOURUM ::
+#\[7]P6FF24ZCM6WN3UFWWJFC5AR3GLDRDXN5Y6NL4H335SPIGL4ALUBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
