@@ -8,9 +8,14 @@ my ($task_id) = @ARG;
 
 return unless defined $task_id;
 
+<[base.logs]>->( 1, "tool_executor: STARTING for %s", $task_id );
+
 ## get state ##
 my $state = <[coding.async.state_machine]>->( 'get', $task_id );
-return unless defined $state;
+if ( !defined $state ) {
+    <[base.logs]>->( 0, "tool_executor: no state for %s", $task_id );
+    return;
+}
 
 my $tool_calls = $state->{'pending_tools'} // [];
 my $round      = $state->{'round'}         // 0;
@@ -36,6 +41,16 @@ my @tool_results;
 my @tool_summaries;
 
 foreach my $tc (@$tool_calls) {
+    ## check for stop request between tools ##
+    my $task_ref = <coding.task.queue>->{$task_id};
+    if ( defined $task_ref && $task_ref->{'stop_requested'} ) {
+        <[base.logs]>->(
+            1, "tool_executor: stop requested, aborting after %d tools",
+            scalar(@tool_results)
+        );
+        last;
+    }
+
     my $tool_name = $tc->{'function'}->{'name'}      // '?';
     my $args_str  = $tc->{'function'}->{'arguments'} // '{}';
     my $call_id   = $tc->{'id'}                      // '';
@@ -57,23 +72,32 @@ foreach my $tc (@$tool_calls) {
     }
 
     ## dispatch tool call ##
+    ## coding.tools.dispatch expects a single hashref with function.* keys ##
     my $tool_result;
+    my $tool_call = {
+        'function' => {
+            'name'      => $tool_name,
+            'arguments' => $args,
+        },
+        'id' => $call_id,
+    };
     <[base.logs]>->(
         2,          "tool_executor: dispatching %s with args: %s",
         $tool_name, join( ', ', keys %$args ) || 'no args'
     );
-    eval {
-        $tool_result = <[coding.tools.dispatch]>->(
-            $tool_name, $args, { 'round' => $round, 'task_id' => $task_id }
-        );
-    };
+    eval { $tool_result = <[coding.tools.dispatch]>->($tool_call); };
 
     if ($@) {
         <[base.logs]>->(
-            0,          "async.tool_executor: tool %s failed: %s",
+            0,          "async.tool_executor: tool %s died: %s",
             $tool_name, $@
         );
-        $tool_result = { error => "Tool execution failed: $@" };
+        $tool_result = { error => "Tool execution died: $@" };
+    } elsif ( !defined $tool_result ) {
+        <[base.logs]>->(
+            0, "async.tool_executor: tool %s returned undef", $tool_name
+        );
+        $tool_result = { error => 'Tool returned undef' };
     } else {
         <[base.logs]>->(
             2, "tool_executor: tool %s result type: %s",
@@ -84,8 +108,17 @@ foreach my $tc (@$tool_calls) {
     ## format result ##
     my $result_content;
     if ( defined $tool_result && ref $tool_result eq 'HASH' ) {
-        $result_content = $tool_result->{'data'} // $tool_result->{'error'}
-            // 'empty result';
+        ## coding.tools.dispatch returns 'content', not 'data' ##
+        $result_content = $tool_result->{'content'}
+            // $tool_result->{'error'} // 'empty result';
+        <[base.logs]>->(
+            2,          "tool_executor: %s result keys: %s",
+            $tool_name, join( ', ', sort keys %$tool_result )
+        );
+        <[base.logs]>->(
+            2,          "tool_executor: %s content length: %d",
+            $tool_name, length($result_content)
+        );
     } else {
         $result_content = 'tool returned invalid result: '
             . ( defined $tool_result ? ref $tool_result : 'undef' );
@@ -125,27 +158,28 @@ foreach my $tc (@$tool_calls) {
     scalar(@tool_results), join( ', ', @tool_summaries )
 );
 
-## update state with tool results ##
+## update state with tool results (keep pending_tools for state_machine) ##
 $state = <[coding.async.state_machine]>->(
     'set', $task_id,
-    {   'tool_results'  => \@tool_results,
-        'pending_tools' => [],
+    {   'tool_results' => \@tool_results,
+        ## pending_tools kept for state_machine to build assistant message
     }
 );
 
-## transition back to streaming ##
+## transition back to streaming (pass tool_calls for assistant message) ##
 <[coding.async.state_machine]>->(
     'transition',
     $task_id,
-    {   'event'        => 'tools_done',
+    {   'event'      => 'tools_done',
+        'tool_calls' => $tool_calls,  ## original tool calls for assistant msg
         'tool_results' => \@tool_results,
     }
 );
 
 return { success => TRUE, tool_results => \@tool_results };
 
-#,,.,,..,,,.,,,,,,.,.,..,,.,,,.,,,.,,,,..,,..,.,.,...,..,,.,.,,.,,,,,,,..,..,,
-#L7VUVVRZQZWFMB4VUD5CRJKOTZ7PBZBN76J2BRB6TH35JBR5KV44PDJKX7CH22NHXAXUJYCISP6JO
-#\\\|Y76T2CYQ2RJF3RWU46GW2MBWZ6RAHG645CXHHUS57GLF2SDN4SC \ / AMOS7 \ YOURUM ::
-#\[7]E2UXZ5OISTZR3KSLIR2Q6UTZ3Y4GZUMZSABYDB3DBCV4PZXT7YBQ 7  DATA SIGNATURE ::
+#,,,,,.,,,,,.,..,,..,,.,.,,,.,..,,,..,...,,,.,.,.,...,...,,.,,.,.,...,..,,,.,,
+#XPO6DMJ2L5PAGBNUEPIVKSXUR5MWQ3I2DZ5WMFOULHHNBHSDNUXBD6BJT5JCVAEN6ZPGSJCGTDZBC
+#\\\|VVRBTJV5A54NFLDRQKVOC52XU443ZDZPYPB26JQLOGRTSIJ5GD2 \ / AMOS7 \ YOURUM ::
+#\[7]E3X72CW7GVDR5BEGXW4SV5YYXK3PIJRNITBDS6L5OVLCVWVMKECY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

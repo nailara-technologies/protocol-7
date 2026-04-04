@@ -12,7 +12,12 @@ return undef unless defined $task_id;
 if ( $action eq 'get' ) {
     return <coding.async.task_state>->{$task_id};
 } elsif ( $action eq 'set' ) {
-    my $state = shift // {};
+    my $updates = shift                                 // {};
+    my $state   = <coding.async.task_state>->{$task_id} // {};
+    ## merge updates into existing state ##
+    foreach my $key ( keys %$updates ) {
+        $state->{$key} = $updates->{$key};
+    }
     <coding.async.task_state>->{$task_id} = $state;
     return $state;
 } elsif ( $action eq 'delete' ) {
@@ -25,8 +30,8 @@ if ( $action eq 'get' ) {
 
 return undef;
 
-#,,,.,,..,,,,,..,,,,,,...,,,.,,,.,..,,,.,,...,.,.,...,...,...,...,,..,,.,,..,,
-#GKPQINBGUQZ3XF4LILMAEEV32BWSB25R6P5LY6IVZOX4EFI2GBB36IAHWQV2BTWUFQTN7K37LVC2U
-#\\\|5RCZDLWI3NCKPDHGK6PVKOLHAIEOQO6O7WTNPO76HX5DMGRV7QK \ / AMOS7 \ YOURUM ::
-#\[7]G2M4CPV5XBYZIHP5XA3QYA7H3UAKYHDAALL3MKC3OMVVPJEA6UAQ 7  DATA SIGNATURE ::
+#,,..,,,.,...,,..,..,,,,.,.,.,,,,,,,.,..,,.,,,.,.,...,...,.,.,...,.,.,.,.,..,,
+#Y7O7R6Y6MZWMIMCOFNZAPRSKHN37FIISGMPH7QPC54RDVPT6WOB3UX5Y7N57K5V657ML4KT6OTJV6
+#\\\|HEMGXV5NNMCAM3OH54APGNZVBIXTLAM7HPIV7ZUTPWTGRC3C2X2 \ / AMOS7 \ YOURUM ::
+#\[7]LLXP5TWXSJQPERGA62IRAP3MMOXHEQRHRMI5QGCBXHMSDXJYNOAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

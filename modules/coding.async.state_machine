@@ -154,13 +154,68 @@ elsif ( $action eq 'transition' ) {
 
     ## trigger appropriate handler ##
     if ( $new_state eq STATE_TOOL_EXEC ) {
+        <[base.logs]>->(
+            1, "state_machine: calling tool_executor for %s", $task_id
+        );
+        ## store content from chunk_handler ##
+        $state->{'content'} = $data->{'content'} // $state->{'content'} // '';
+        ## write model response to output buffer [ before tool execution ] ##
+        if ( length( $state->{'content'} // '' ) ) {
+            <[coding.buffer.model_output]>->(
+                $state->{'content'},
+                {   'round' => $state->{'round'} // 0,
+                    'tool'  => qw| model |,
+                }
+            );
+        }
         $state->{'pending_tools'} = $data->{'tool_calls'} // [];
         <coding.async.task_state>->{$task_id} = $state;
         <[coding.async.tool_executor]>->($task_id);
     } elsif ( $new_state eq STATE_STREAMING && $event eq 'tools_done' ) {
         $state->{'round'}++;
-        $state->{'content'}      = '';
-        $state->{'tool_calls'}   = [];
+        ## add assistant message with tool_calls to conversation ##
+        ## tool_calls passed from tool_executor in transition data ##
+        my $tool_calls = $data->{'tool_calls'} // [];
+        if ( @{$tool_calls} ) {
+            <[base.logs]>->(
+                1,
+                "state_machine: adding assistant msg with %d tool_calls",
+                scalar( @{$tool_calls} )
+            );
+            push @{ $state->{'messages'} },
+                {
+                'role'       => 'assistant',
+                'content'    => $state->{'content'} // '',
+                'tool_calls' => $tool_calls,
+                };
+        } else {
+            <[base.logs]>->(
+                0, "state_machine: NO tool_calls in transition data!"
+            );
+        }
+        ## add tool results to conversation ##
+        if ( @{ $data->{'tool_results'} // [] } ) {
+            push @{ $state->{'messages'} }, @{ $data->{'tool_results'} };
+            ## log tool result summary ##
+            foreach my $tr ( @{ $data->{'tool_results'} } ) {
+                <[base.logs]>->(
+                    2,
+                    "state_machine: added tool result id=%s len=%d",
+                    $tr->{'tool_call_id'} // 'no_id',
+                    length( $tr->{'content'} // '' )
+                );
+            }
+        }
+        ## verify message roles after adding ##
+        my @roles = map { $_->{'role'} } @{ $state->{'messages'} // [] };
+        <[base.logs]>->(
+            1, "state_machine: round %d has %d messages roles=[%s]",
+            $state->{'round'}, scalar(@roles), join( ',', @roles )
+        );
+        $state->{'content'} = '';
+        $state->{'pending_tools'}
+            = [];    ## cleared now that we have assistant msg
+        $state->{'tool_calls'}   = [];    ## also clear any stale tool_calls
         $state->{'tool_results'} = $data->{'tool_results'} // [];
         <coding.async.task_state>->{$task_id} = $state;
         <[coding.async.send_request]>->($task_id);
@@ -183,6 +238,15 @@ elsif ( $action eq 'transition' ) {
         <[coding.async.send_request]>->($task_id);
     } elsif ( $new_state eq STATE_COMPLETE ) {
         $state->{'final_content'} = $data->{'content'} // $state->{'content'};
+        ## write final response to model output buffer ##
+        if ( length( $state->{'final_content'} ) ) {
+            <[coding.buffer.model_output]>->(
+                $state->{'final_content'},
+                {   'round' => $state->{'round'} // 0,
+                    'tool'  => qw| model |,
+                }
+            );
+        }
         <coding.async.task_state>->{$task_id} = $state;
         <[coding.async.complete_task]>->($task_id);
     } elsif ( $new_state eq STATE_ERROR ) {
@@ -260,8 +324,8 @@ elsif ( $action eq 'constants' ) {
 
 return { error => "unknown action: $action" };
 
-#,,..,,,,,.,.,,,.,.,.,,,,,.,.,,,.,,,,,.,.,,,,,.,.,...,...,,,,,.,,,...,,,,,,.,,
-#XDR5ADK2NP4VWOO3NIEYKFEZRJSTHD7ACT2AGZCUWJPMU4Y5JELR2ULAUQKVFQFKGPGISR6HK3NAI
-#\\\|UNWVKCIZ5225N6OQ5XJFBUK2QPOMMHKJSOHIHXRV4JSJMVGZ7WM \ / AMOS7 \ YOURUM ::
-#\[7]6PQRUIR2R376HRYLZL6L7SSAKB44FTJAFYTCDMGDAPHZ3JBL6UDA 7  DATA SIGNATURE ::
+#,,.,,...,...,...,,,.,..,,.,.,...,,,,,.,.,..,,.,.,...,...,,.,,,,.,,,,,.,,,,..,
+#A43TV2RT33OZBWN3LC4OGRW74C3ZX426HHLPJ6P7HFJPKEDYBMVL3JSH6727X446PXTGTFN4NYWFO
+#\\\|TH35WHQSDC376IL3XTEM4QTURASGTKP2LM77R6YHBF5KPFLW5RP \ / AMOS7 \ YOURUM ::
+#\[7]UOJAUR2FKHA372WZFRADKVWNH4HHFKP3D43PVKL2KDCVGUZELQBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

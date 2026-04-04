@@ -163,7 +163,8 @@ if ( defined $saved_budget_ref && length $saved_budget_ref->$* ) {
 
 # Phase 1: Async/Deferred Reply Configuration
 <coding.async.enabled>    //= FALSE;    # Default: blocking mode for stability
-<coding.async.task_state> //= {};       # Store state for deferred tasks
+<coding.async.max_rounds> //= 50; # Max inference rounds per task (tool loops)
+<coding.async.task_state> //= {}; # Store state for deferred tasks
 
 # Schedule inference server spawning asynchronously [ to not block init ]
 <[base.logs]>->( 1, 'scheduling inference server spawning..' )
@@ -412,8 +413,8 @@ if ( not $already_initialized ) {
 
 return 0;
 
-#,,..,.,.,..,,,,.,.,.,,,,,..,,...,,.,,,..,,..,.,.,...,...,.,.,.,,,...,,..,.,.,
-#EFSVUJSC6KTKM6G46TQGODJIC6RT2GFIWLPOSPUV62CF7KVKGPX23GY7KL453W6UYKLIG76FMBUJM
-#\\\|IFRMNN7GG5VELOQCEIZJF47W32YAHNZPTKP3PAF5S5Y67XZYLLY \ / AMOS7 \ YOURUM ::
-#\[7]RF5HITSGIFQEXEPFAVSUSGQTDS554TZGFXZY2PJSY2GVU6MSGKCA 7  DATA SIGNATURE ::
+#,,,.,..,,,..,..,,,,,,,.,,..,,,..,.,,,...,..,,.,.,...,...,.,,,,,.,,,.,..,,.,,,
+#EBQWAZIWQHPZ4S3WZW2BYEMHEMXGKWUCB5YZUCTGSBVDNEI5QYGTLKTV7BYUM3QROABDM66P24X3M
+#\\\|VAJAYKA7WQCRJEWESJAN7PG3MCF6VTE7VIFJXR6MF2YYEPHZ4PM \ / AMOS7 \ YOURUM ::
+#\[7]2MO66SI2XXL525ZV6NJXSQAEAAPJ6KCH3IN3VJGPUOOSJ7KDUWCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

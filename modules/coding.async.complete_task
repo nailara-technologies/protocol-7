@@ -15,8 +15,9 @@ return { success => FALSE, error => "no state for $task_id" }
 
 ## build result from state ##
 my $result = {
-    success       => TRUE,
-    result        => $state->{'response_text'} // '',
+    success => TRUE,
+    result => $state->{'response_text'} // $state->{'final_content'}
+        // $state->{'content'} // '',
     finish_reason => $state->{'finish_reason'} // qw| stop |,
     tool_calls    => $state->{'tool_calls'},
 };
@@ -24,8 +25,8 @@ my $result = {
 ## call actual completion handler ##
 return <[coding.async.complete]>->( $task_id, $result );
 
-#,,.,,.,,,,,.,,.,,,.,,...,,,,,...,,..,..,,,,,,.,.,...,..,,..,,...,.,.,..,,..,,
-#VFKZR22AIPLFAPWGHXICJCGVNAFZXMSCD6XMG6J3NAFXHXTYT6ZYPXUUTXVXYCQK7OLMSJBZXIYOS
-#\\\|V65YFV72Y6YIJVRMPC6BJXROJWSRM64JWTTJG3I6N2DJ7QA7WN5 \ / AMOS7 \ YOURUM ::
-#\[7]3RSGLSYAXW7KJUOIWUNTXK73QCG3BQCVZUNJE57RTHLSTKJFTMAQ 7  DATA SIGNATURE ::
+#,,,,,.,,,..,,.,.,,.,,,..,,..,,..,.,,,..,,.,,,.,.,...,...,.,,,.,,,,,.,,..,.,,,
+#GMJNFSK452PQMPZTQ3PCO2MAEL43ZK3VTUXVXTDU5GUQTF3J4G7AB7MDANWUMSUEAADLYO3MV5IMA
+#\\\|XFDXDDD4TOHNPBBGAJO2LMS6Z3LNHFZOXPU4SPT3CFYZX2CY2G2 \ / AMOS7 \ YOURUM ::
+#\[7]4M6Q4G2WD3VX7DLSPCFQYU53ZVDIQ7AU5XPGD2L32LAVZ5DFUEDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -3,35 +3,44 @@
 # name  = coding.callback.http_chunk
 # descr = HTTP streaming chunk received callback
 
-my ( $task_id, $data ) = @ARG;
+my ( $task_id, $req_seq, $data ) = @ARG;
 
 ## process chunk ##
 my $state = <[coding.async.state_manager]>->( qw| get |, $task_id );
 return unless defined $state;
 
+## reject stale chunks from old connections ##
+my $current_seq = $state->{'request_seq'} // 0;
+if ( defined $req_seq && $req_seq != $current_seq ) {
+    <[base.logs]>->(
+        2, "http_chunk: stale chunk for %s [ seq %d != %d ], ignoring",
+        $task_id, $req_seq, $current_seq
+    );
+    return;
+}
+
 my $context = $state->{'chunk_context'} // {};
 $context->{'round'} = $state->{'round'} // 0;
 
 ## call chunk handler ##
+## note: chunk_handler may trigger state_machine transitions synchronously ##
+## which can start a new round — do not overwrite state after finish_reason ##
 $context = <[coding.async.chunk_handler]>->( $task_id, $data, $context );
 
-## update state ##
-$state->{'chunk_context'} = $context;
-<[coding.async.state_manager]>->( qw| set |, $task_id, $state );
-
-## check for completion ##
 if ( defined $context->{'finish_reason'} ) {
-    ## inference round complete ##
-    $state->{'response_text'} = $context->{'content'};
-    $state->{'finish_reason'} = $context->{'finish_reason'};
-    $state->{'tool_calls'}    = $context->{'tool_calls'};
-    <[coding.async.state_manager]>->( qw| set |, $task_id, $state );
+    ## state machine already handled the transition inside chunk_handler ##
+    ## content passed via transition data — do not write stale fields here ##
+    ## [ async.request may have already reset state for the next round ] ##
+    return;
 }
+
+## update chunk context for next chunk [ only during streaming ] ##
+$state->{'chunk_context'} = $context;
 
 return;
 
-#,,.,,,,.,.,.,...,,,.,...,.,,,..,,..,,,.,,.,.,..,,...,...,...,...,.,.,..,,,,,,
-#CQHJ7U3CBJL26NY2OGECX6VEDRJ2OPQ3MPBXSOGDFDYBBB3DBLTQNTNFE7WEAQTVOSJKRLU5CIQCO
-#\\\|DV2TQGJSNZYHTXNPM3MBLNM3B4G6VN5EU3Z4UW3EVIXICEOGHXM \ / AMOS7 \ YOURUM ::
-#\[7]26SJYMETKHBJFRYAKHNUF7SRTYSAMCLZS5XGZIMIEFOHM32Z22DQ 7  DATA SIGNATURE ::
+#,,,.,,..,,..,,,.,,.,,.,,,.,,,..,,.,,,.,,,,,.,..,,...,...,,..,,,.,..,,...,...,
+#5COXSX3GM2U4CWMBOH7MP4VHH2VTHSXJFX7KUSAP6NQNUBJYFWG3QXO3CJ3CVM6XMAEIVG47R5T42
+#\\\|R3227TGTDG7LCSCBWRC4SQJ4QNYLBPVHDNLGT7RE4TBOIDFBP2H \ / AMOS7 \ YOURUM ::
+#\[7]V3UMBN62CM6MU7QOU4LPYRXUWZTG6POZE5CKW22YI7MUHNYHYCCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -25,37 +25,54 @@ my $port
 
 my $url = "http://127.0.0.1:${port}/v1/chat/completions";
 
-## store async state ##
-<[coding.async.state_manager]>->(
-    qw| set |,
-    $task_id,
-    {   job_id        => $job_id,
-        task_id       => $task_id,
-        backend       => $backend,
-        port          => $port,
-        start_time    => <[base.time]>->(3),
-        mode          => qw| streaming |,
-        chunk_context => {},
-    }
-);
+## check if state already exists [ follow-up round ] ##
+my $existing = <coding.async.task_state>->{$task_id};
+if ( defined $existing && defined $existing->{'state'} ) {
+    ## follow-up request: reset chunk fields only, preserve state machine ##
+    $existing->{'chunk_context'} = {};
+    $existing->{'response_text'} = '';
+    $existing->{'finish_reason'} = undef;
+    $existing->{'content'}       = '';
+    $existing->{'tool_calls'}    = [];
+} else {
+    ## first request: full init ##
+    <[coding.async.state_manager]>->(
+        qw| set |,
+        $task_id,
+        {   job_id        => $job_id,
+            task_id       => $task_id,
+            backend       => $backend,
+            port          => $port,
+            start_time    => <[base.time]>->(3),
+            mode          => qw| streaming |,
+            chunk_context => {},
+        }
+    );
 
-## initialize state machine for tool execution loop ##
-<[coding.async.state_machine]>->(
-    qw| init |,
-    $task_id,
-    {   messages => $request_body->{'messages'} // [],
-        tools    => $request_body->{'tools'}    // [],
-        backend  => $backend,
-        port     => $port,
-    }
-);
+    <[coding.async.state_machine]>->(
+        qw| init |,
+        $task_id,
+        {   messages => $request_body->{'messages'} // [],
+            tools    => $request_body->{'tools'}    // [],
+            backend  => $backend,
+            port     => $port,
+        }
+    );
+}
+
+## increment request sequence [ used to detect stale callbacks ] ##
+my $state_ref = <coding.async.task_state>->{$task_id} // {};
+my $req_seq   = ( $state_ref->{'request_seq'} // 0 ) + 1;
+$state_ref->{'request_seq'} = $req_seq;
 
 ## setup callbacks — extracted to coding.callback.* modules ##
 my $callbacks = {
     on_header => sub { <[coding.callback.http_header]>->( $task_id, @ARG ) },
-    on_chunk  => sub { <[coding.callback.http_chunk]>->( $task_id, @ARG ) },
-    on_complete =>
-        sub { <[coding.callback.http_complete]>->( $task_id, @ARG ) },
+    on_chunk  =>
+        sub { <[coding.callback.http_chunk]>->( $task_id, $req_seq, @ARG ) },
+    on_complete => sub {
+        <[coding.callback.http_complete]>->( $task_id, @ARG, $req_seq );
+    },
     on_error   => sub { <[coding.callback.http_error]>->( $task_id, @ARG ) },
     check_stop => sub { <[coding.callback.http_check_stop]>->($task_id) },
     timeout    => 300,    # 5 minutes max
@@ -90,8 +107,8 @@ return {
     mode    => qw| streaming |,
 };
 
-#,,.,,.,.,,.,,.,.,..,,.,,,.,.,,,,,,,,,,.,,,,,,..,,...,...,...,,.,,,.,,,,.,,,,,
-#BTVU7ISS7VZP2USQRUJ52U6XYORIXFOH4XQXMKP7URCKGR7S47QNVAEFPQAAZRABE6GZVLGEJOMY6
-#\\\|ITWZXHYDTV3LTKZLNZONT3FA6CIV7F5KGHK7SSADEJEGGOGKNH2 \ / AMOS7 \ YOURUM ::
-#\[7]DZMGYH67ZHFYUQ35DXBHPXHMKUJDRZDNINYFYE5RRHO6MQIDHQAQ 7  DATA SIGNATURE ::
+#,,,.,.,.,.,,,,.,,..,,.,,,...,,,,,.,,,..,,..,,..,,...,...,.,,,..,,,..,...,.,,,
+#WAIJP5UXD7X733JV2REF4OFCX4QO6VMTCGAEE446TJSIHWZIE3KUFJBOORIOESNEVFQZJVALP3LFG
+#\\\|UVTB3WG6FK4B76K5SFIQWI6VMQGHPVV6FFNBFFE7FO4QBHITRXJ \ / AMOS7 \ YOURUM ::
+#\[7]LJ72YZSUK6XO64IQXCIHAFUX6XVSHVFADNYG4GMTBBY7MUQCUADY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
