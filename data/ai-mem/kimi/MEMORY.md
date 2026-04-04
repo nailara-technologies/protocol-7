@@ -1426,3 +1426,32 @@ p7c kimi-web.list_agents
 #\\\|FERSEVCHUDBHZD6GA33GP32GVCX73QK5RMLC7TOS6S4363VD7FT \ / AMOS7 \ YOURUM ::
 #\[7]24MLHOOYF4W763LF3K54EABVKRLS55L4QIRQ2KAHOUISNT2JAMDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+
+## 2026-04-02 — Bug #5 Fixed: Empty Task Result
+
+**Issue**: Tasks completed with `result_len=0` despite correct output in buffer.
+
+**Root cause**: `coding.async.complete_task` used `//` (defined-or):
+```perl
+# BUG: response_text = '' (defined), so returns '' not final_content
+result => $state->{'response_text'} // $state->{'final_content'} // ...
+```
+
+**Fix**: Use `||` (logical or) for proper empty-string handling:
+```perl
+my $result_text = $state->{'final_content'}
+    || $state->{'content'}
+    || $state->{'response_text'}
+    || '';
+```
+
+**Lesson**: `//` checks definedness, `||` checks truthiness. For string fields
+that may be empty, use `||` for fallback chains.
+
+**Status**: All 5 async bugs now fixed. Tool loop working end-to-end.
+
+#,,,.,...,.,.,.,,,...,...,..,,..,,.,.,.,.,,..,..,,...,...,..,,,.,,,,,,,..,..,,
+#APXR7VEL3A7PFFD7GMJ7KQB7ENTZFNWZ2GGZ2U5EHHDWWIOTIRAUL6VSULVOKMXZ4OVVXNQ5ZY6V4
+#\\\|LAHATTK5ZNT25L7MVI4Z2O436HOZWAAIATHDKPS5MNI54G2Q5JJ \ / AMOS7 \ YOURUM ::
+#\[7]HFCQT25MPF4KNZTBGUGOT5QE7IGBPGI6OJYRYYNACNHGJYX5FABI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
