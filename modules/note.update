@@ -1,0 +1,55 @@
+## [:< ##
+
+# name  = note.update
+# descr = replace content in an existing note section
+
+my ( $section, $content, $task_id ) = @ARG;
+
+return { 'mode' => qw| false |, 'data' => 'section required' }
+    unless defined $section && length $section;
+
+return { 'mode' => qw| false |, 'data' => 'content required' }
+    unless defined $content && length $content;
+
+$task_id //= <system.task_id> // 'unknown';
+my $workspace_dir
+    = <[file.zenka_dir.data_path]> . "/notes/$task_id/workspace";
+
+## ensure workspace exists ##
+<[file.path.make_dir]>->($workspace_dir) unless -d $workspace_dir;
+
+## sanitize section name ##
+$section =~ s|[^a-zA-Z0-9._-]|_|g;
+my $note_file = "$workspace_dir/$section.md";
+
+## replace entire section with timestamp header ##
+my $timestamp = <[base.time]>->(2);
+my $entry     = "## $timestamp [ updated ] ##\n\n$content\n";
+
+<[file.write]>->( $note_file, $entry );
+
+## update meta ##
+my $meta_file = <[file.zenka_dir.data_path]> . "/notes/$task_id/.meta";
+if ( -f $meta_file ) {
+    my $meta = eval { JSON::PP::decode_json( <[file.read]>->($meta_file) ) };
+    if ( ref $meta eq qw| HASH | ) {
+        $meta->{'last_update'} = <[base.time]>->(3);
+        <[file.write]>->( $meta_file, JSON::PP::encode_json($meta) );
+    }
+}
+
+<[base.logs]>->(
+    2, "note.update: section '%s' for %s [ %d bytes ]",
+    $section, $task_id, length $entry
+);
+
+return {
+    'mode' => qw| true |,
+    'data' => { 'section' => $section, 'bytes' => length $entry }
+};
+
+#,,,,,.,,,,,.,...,.,.,,..,,,,,.,.,,,,,..,,,..,.,.,...,...,...,..,,..,,..,,..,,
+#L7CMQKS7OSQTVHSN3GTMWN3U5ZOPUQAJGZSE77FT7HSLMLWV3WYHSGCTBZTSHEJ6BEBA5WLGT2RKQ
+#\\\|F4FT3N5LHRXIUYMMDMBQCJATCIA3MO75RHLO7VL2B3ALEMRN424 \ / AMOS7 \ YOURUM ::
+#\[7]RJ3BDQWPDXXDLYH4VJ42SZBLV5QOU33URVTFLCISVH6GUP5FFECI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
