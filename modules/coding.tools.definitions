@@ -911,6 +911,39 @@ if ( exists $code{'coding.tools.handler.note_search'} ) {
         };
 }
 
+## note_update — replace content in an existing note section ##
+if ( exists $code{'coding.tools.handler.note_update'} ) {
+    push @tools,
+        {
+        'type'     => 'function',
+        'function' => {
+            'name'        => 'note_update',
+            'description' => 'replace content in an existing note section'
+                . ' [ does not append, replaces entire section ]',
+            'parameters' => {
+                'type'       => 'object',
+                'properties' => {
+                    'section' => {
+                        'type'        => 'string',
+                        'description' => 'section name to update'
+                    },
+                    'content' => {
+                        'type'        => 'string',
+                        'description' =>
+                            'new content (replaces entire section)'
+                            . ' [ timestamp header added automatically ]'
+                    },
+                    'task_id' => {
+                        'type'        => 'string',
+                        'description' => 'task ID [ default: current task ]'
+                    },
+                },
+                'required' => [ 'section', 'content' ],
+            },
+        },
+        };
+}
+
 ## note_delete — remove note section or entire task notes ##
 if ( exists $code{'coding.tools.handler.note_delete'} ) {
     push @tools,
@@ -990,8 +1023,8 @@ if ( exists $code{'coding.tools.handler.decode_base32'} ) {
 
 return \@tools;
 
-#,,.,,,,,,...,..,,,,.,...,,,,,..,,..,,,.,,,.,,..,,...,..,,.,.,,,.,.,,,,..,,.,,
-#IU33MEA7XVUXJRHM6T5JKJYFO2KD7KI7DDT6Q46EUSYIWKNA55XLZKZGFWMRFKG5MSG7O2QVQ3VMG
-#\\\|ZRIY5BBGMADJGADSYZHZ7PZI7Q7JGEU4OUV4IC5SNB2GR2FU2L7 \ / AMOS7 \ YOURUM ::
-#\[7]PBUN73YRXPLJS6WFWM2IM365DTMOUP2X3PRUY7OWQXZVU6YI2WDQ 7  DATA SIGNATURE ::
+#,,,.,,,.,,..,,.,,.,,,,,.,,..,...,...,,,,,,.,,..,,...,...,..,,..,,..,,,,.,...,
+#AI2LHJ5CK5CBBUAGOOKMOTL3TEHN5RXLF4DHNDM2FC6DHMEYBCMBMVUP2RO67GIF7UNCCAC2PUH6S
+#\\\|ICOKTMRB4RYDVRFY5RUIED2CFBEKAP5JJNN2LMDSCJRZKAP5THT \ / AMOS7 \ YOURUM ::
+#\[7]E35SN25NCKACIKRKIE6RSFHQGZ5K75QIXXBY5FJFJS2TVBREDQAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
