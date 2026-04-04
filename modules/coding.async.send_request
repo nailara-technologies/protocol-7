@@ -13,41 +13,37 @@ my $state = <[coding.async.state_machine]>->( qw| get |, $task_id );
 return { success => FALSE, error => "no state for $task_id" }
     unless defined $state;
 
-## build messages for next round ##
+## messages already built by state_machine transition handler ##
+## just use the accumulated conversation from state ##
 my @messages = @{ $state->{'messages'} // [] };
+## log message roles for debugging ##
+my @roles = map { $_->{'role'} } @messages;
+<[base.logs]>->(
+    1,        "send_request: task=%s round=%d messages=%d roles=[%s]",
+    $task_id, $state->{'round'} // 0,
+    scalar(@messages), join( ',', @roles )
+);
 
-## add assistant response with tool calls ##
-if ( @{ $state->{'tool_calls'} // [] } ) {
-    push @messages,
-        {
-        'role'       => 'assistant',
-        'content'    => $state->{'content'} // '',
-        'tool_calls' => $state->{'tool_calls'},
-        };
+## check for stop request ##
+my $task = <coding.task.queue>->{$task_id};
+if ( defined $task && $task->{'stop_requested'} ) {
+    <[base.logs]>->(
+        1, "send_request: stop requested for %s, completing", $task_id
+    );
+    <[coding.async.complete_task]>->($task_id);
+    return { success => TRUE, stopped => TRUE };
 }
 
-## add tool results ##
-if ( @{ $state->{'tool_results'} // [] } ) {
-    push @messages, @{ $state->{'tool_results'} };
-}
-
-## increment round counter (use 'round' key matching state_machine) ##
-my $round = ( $state->{'round'} // 0 ) + 1;
-if ( $round > 10 ) {
-    <[base.logs]>
-        ->( 0, "send_request: max rounds exceeded for %s", $task_id );
+## check round limit ##
+my $max_rounds = <coding.async.max_rounds> // 50;
+if ( ( $state->{'round'} // 0 ) > $max_rounds ) {
+    <[base.logs]>->(
+        0, "send_request: max rounds exceeded (%d > %d) for %s",
+        $state->{'round'}, $max_rounds, $task_id
+    );
     <[coding.async.fail_task]>->( $task_id, 'max rounds exceeded' );
     return { success => FALSE, error => 'max rounds exceeded' };
 }
-
-<[coding.async.state_manager]>->(
-    'set', $task_id,
-    {   'round'         => $round,
-        'content'       => '',
-        'tool_calls'    => [],
-        'finish_reason' => undef,
-    }
-);
 
 ## build request body ##
 my $request_body = {
@@ -61,8 +57,8 @@ my $request_body = {
 return
     <[coding.async.request]>->( $task_id, $request_body, $state->{'job_id'} );
 
-#,,..,,.,,.,.,,,,,...,,,.,,..,,.,,...,,.,,,..,..,,...,...,,.,,,..,,,.,...,,.,,
-#5IWRPP4OSXWJRUOSG72IT6Q6GFYITSSMEJYD7BM7BTP42UNBO33HE5IXL4MKMWNIXVH3DGPIGLNBY
-#\\\|Z4P3GJUTPHX3M4SWTPZAAWQ7Y6KYI4X4IWBP2XUP4N2C3KV5R74 \ / AMOS7 \ YOURUM ::
-#\[7]U4YG5ZM7DLY6RDGLHI6GVWEQMV5IQECAKHQBYGEZZGCQFOC7BGBA 7  DATA SIGNATURE ::
+#,,.,,,.,,,,,,,,,,.,.,..,,.,,,,,.,,..,...,.,.,..,,...,...,..,,...,..,,,..,,,,,
+#RHDCIKVTZ2ROULH5V3LND3F6Z252IALZXTHHIEVJJYJJWFJQQ6AYST7AKV7PSTNGZL3P7SBZMIMYE
+#\\\|SGTFJQO3IDHZGP3WR3AWV5FXTOZXCUEVKKIUGGCTKOQCQIHUOFN \ / AMOS7 \ YOURUM ::
+#\[7]5YAYUWJKUACJMJJ3EDLOBH4PFIIH7ODTY7QRBTYEVG3YSS2JL6DQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
