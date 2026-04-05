@@ -973,6 +973,172 @@ if ( exists $code{'coding.tools.handler.note_delete'} ) {
         };
 }
 
+## note_tag — add tags to a note section ##
+if ( exists $code{'coding.tools.handler.note_tag'} ) {
+    push @tools,
+        {
+        'type'     => 'function',
+        'function' => {
+            'name'        => 'note_tag',
+            'description' => 'add tags to a note section'
+                . ' [ organize notes with keyword tags ]',
+            'parameters' => {
+                'type'       => 'object',
+                'properties' => {
+                    'section' => {
+                        'type'        => 'string',
+                        'description' => 'section name to tag'
+                    },
+                    'tags' => {
+                        'type'        => 'string',
+                        'description' =>
+                            'comma-separated tags [ e.g. bug,urgent,auth ]'
+                    },
+                    'task_id' => {
+                        'type'        => 'string',
+                        'description' =>
+                            'task id [ defaults to current task ]'
+                    },
+                },
+                'required' => [ 'section', 'tags' ],
+            },
+        },
+        };
+}
+
+## note_recent — list recent notes across all tasks ##
+if ( exists $code{'coding.tools.handler.note_recent'} ) {
+    push @tools,
+        {
+        'type'     => 'function',
+        'function' => {
+            'name'        => 'note_recent',
+            'description' => 'list recent notes across all tasks'
+                . ' [ sorted by last update, shows preview ]',
+            'parameters' => {
+                'type'       => 'object',
+                'properties' => {
+                    'count' => {
+                        'type'        => 'integer',
+                        'description' =>
+                            'max entries to return [ default 10 ]'
+                    },
+                    'section' => {
+                        'type'        => 'string',
+                        'description' =>
+                            'filter to specific section name [ optional ]'
+                    },
+                },
+                'required' => [],
+            },
+        },
+        };
+}
+
+## note_filter — multi-criteria filtering across notes ##
+if ( exists $code{'coding.tools.handler.note_filter'} ) {
+    push @tools,
+        {
+        'type'     => 'function',
+        'function' => {
+            'name'        => 'note_filter',
+            'description' => 'filter notes by tag, section, date, or task'
+                . ' [ combine criteria for targeted search ]',
+            'parameters' => {
+                'type'       => 'object',
+                'properties' => {
+                    'tag' => {
+                        'type'        => 'string',
+                        'description' => 'filter by tag name'
+                    },
+                    'section' => {
+                        'type'        => 'string',
+                        'description' =>
+                            'filter by section name pattern [ regex ]'
+                    },
+                    'after' => {
+                        'type'        => 'string',
+                        'description' =>
+                            'only notes updated after this timestamp'
+                    },
+                    'task_id' => {
+                        'type'        => 'string',
+                        'description' =>
+                            'filter to specific task [ optional ]'
+                    },
+                },
+                'required' => [],
+            },
+        },
+        };
+}
+
+## note_history — show modification history for a section ##
+if ( exists $code{'coding.tools.handler.note_history'} ) {
+    push @tools,
+        {
+        'type'     => 'function',
+        'function' => {
+            'name'        => 'note_history',
+            'description' => 'show modification history for a note section'
+                . ' [ timestamps and previews of past entries ]',
+            'parameters' => {
+                'type'       => 'object',
+                'properties' => {
+                    'section' => {
+                        'type'        => 'string',
+                        'description' => 'section name to check history'
+                    },
+                    'task_id' => {
+                        'type'        => 'string',
+                        'description' =>
+                            'task id [ defaults to current task ]'
+                    },
+                    'count' => {
+                        'type'        => 'integer',
+                        'description' => 'max history entries [ default 5 ]'
+                    },
+                },
+                'required' => ['section'],
+            },
+        },
+        };
+}
+
+## note_merge — combine notes from multiple sections or tasks ##
+if ( exists $code{'coding.tools.handler.note_merge'} ) {
+    push @tools,
+        {
+        'type'     => 'function',
+        'function' => {
+            'name'        => 'note_merge',
+            'description' => 'merge notes from multiple sections into one'
+                . ' [ combine findings across tasks or sections ]',
+            'parameters' => {
+                'type'       => 'object',
+                'properties' => {
+                    'sources' => {
+                        'type'        => 'string',
+                        'description' => 'comma-separated source specs'
+                            . ' [ "section" or "task_id:section" ]'
+                    },
+                    'target_section' => {
+                        'type'        => 'string',
+                        'description' =>
+                            'target section name for merged content'
+                    },
+                    'task_id' => {
+                        'type'        => 'string',
+                        'description' =>
+                            'target task id [ defaults to current task ]'
+                    },
+                },
+                'required' => [ 'sources', 'target_section' ],
+            },
+        },
+        };
+}
+
 ## validate_module — check module for errors before commit ##
 if ( exists $code{'coding.tools.handler.validate_module'} ) {
     push @tools,
@@ -1023,8 +1189,8 @@ if ( exists $code{'coding.tools.handler.decode_base32'} ) {
 
 return \@tools;
 
-#,,,.,,,.,,..,,.,,.,,,,,.,,..,...,...,,,,,,.,,..,,...,...,..,,..,,..,,,,.,...,
-#AI2LHJ5CK5CBBUAGOOKMOTL3TEHN5RXLF4DHNDM2FC6DHMEYBCMBMVUP2RO67GIF7UNCCAC2PUH6S
-#\\\|ICOKTMRB4RYDVRFY5RUIED2CFBEKAP5JJNN2LMDSCJRZKAP5THT \ / AMOS7 \ YOURUM ::
-#\[7]E35SN25NCKACIKRKIE6RSFHQGZ5K75QIXXBY5FJFJS2TVBREDQAI 7  DATA SIGNATURE ::
+#,,.,,...,,..,.,,,..,,.,.,,.,,.,.,,.,,..,,.,.,..,,...,...,...,...,..,,.,.,..,,
+#KH67AFTZEXGRHV6DE54JYFWXI4ACECBYP5EDLGZ6EIOIXTZKVJTHUQKFREYYRZJCL6JOBQWS4SAN2
+#\\\|XN4MRZCR4EYFTLBT5QUMJWRJVJ7D5ZN5BLUBWC5RKG2YW46732T \ / AMOS7 \ YOURUM ::
+#\[7]5Z3TARIK4QRGLDSZEURV2A2YWHKBE4TKJIYUURU5GNIASPNG7GAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

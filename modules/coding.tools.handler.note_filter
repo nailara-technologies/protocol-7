@@ -1,0 +1,31 @@
+## [:< ##
+
+# name  = coding.tools.handler.note_filter
+# descr = multi-criteria filtering across notes
+
+my $args = shift // {};
+
+my $tag     = $args->{'tag'}     // '';
+my $section = $args->{'section'} // '';
+my $after   = $args->{'after'}   // '';
+my $task_id = $args->{'task_id'} // '';
+
+## call backend with undef for empty filters ##
+my $result = <[note.filter]>->(
+    length $tag     ? $tag     : undef,
+    length $section ? $section : undef,
+    length $after   ? $after   : undef,
+    length $task_id ? $task_id : undef,
+);
+
+return {
+    'content' => $result->{'mode'} ne qw| false |
+    ? $result->{'data'}
+    : "Failed: " . ( $result->{'data'} // 'unknown' ),
+};
+
+#,,,.,,,,,,,.,..,,,,.,.,,,,,,,..,,...,..,,..,,.,.,...,...,,..,,,.,.,,,...,,.,,
+#GNXHNYC5FBJNJR75TLOFITSXMLXFFKNWYEVY54WMQXT2QHISC2J7DRSZCWOMATLBTIIQ5WLLVHCCO
+#\\\|MVOGTDI2O5LRCXYTLEB4TUCSSEHI2IODK3WFTVXXGNBBJCWFSF3 \ / AMOS7 \ YOURUM ::
+#\[7]FTBKAYDRGO4JXL7UDN7Q5EBZNLDRJVCHNKLIGLNIHTVCOM6G4WCI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

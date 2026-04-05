@@ -33,6 +33,7 @@
 - `topic-namespace-tree-intelligence.md` — the tree IS the intelligence: unified namespace for
   code/data/state/history/planning, branch summarization, universal off-band access
 - `topic-async-tool-loop-debug.md` — RESOLVED: async tool loop fixes, XML parsing, root cause chain
+- `feedback-list-return-format.md` — list backends: mode 'size' + formatted string, not arrayref
 
 ## File Creation Notes (CRITICAL)
 - **Never add** the single-line `#,,.,,,...` stub at end of new files
@@ -106,6 +107,13 @@
 - XML markup stripping from output buffer display
 - Shared jinja sanitization (coding.sanitize.jinja_messages)
 - Jinja-safe argument re-encoding, retry on 500/timeout, tool_calls stripping
+
+### Completed (Apr 5 2026) — notes tools expansion
+- Notes system expanded from 7 to 12 tools: note_tag, note_recent, note_filter, note_history, note_merge
+- 5 backends + 5 handlers + 5 tool definitions, all tested via MCP
+- Bug fix: note.filter crash — `$meta->{'tags'}` needs `ref eq 'HASH'` guard, not `//`
+- Bug fix: note.tag same defensive type check
+- List-type backends use `{ mode => 'size', data => $formatted_string }` pattern
 
 ### Active / Partial
 - **namespace tree as intelligence layer**: see `topic-namespace-tree-intelligence.md`
@@ -251,8 +259,8 @@
 - Pattern: `my @non_num = grep { defined $data_ref->{$ARG}->{$key} and not looks_like_number(...) } keys $data_ref->%*`
 - Global `$SIG{__WARN__}` exists — if wrapping warn handler, capture `$prev_warn = $SIG{__WARN__}` first and call through
 
-#,,.,,,,.,,..,,,,,.,,,,.,,.,,,..,,.,,,,..,,,.,..,,...,...,.,.,,,,,,.,,.,,,,..,
-#NRJWFIILJHCZKSDKYXZZTVFJQPG7OQWUDYEJSUDKSROD2PJX2ASF3X4PQJRKV4H7JLWY5TZNIDDFA
-#\\\|VZU7OH735WLME6CJ5RLXNGK44MVL6L5IF4WGES6DG6Z2PYXU6SP \ / AMOS7 \ YOURUM ::
-#\[7]UQIE355OK4SPJOKQ3WXAGNB57A6QTMIDYNPB62AYWYF75G3QAYCQ 7  DATA SIGNATURE ::
+#,,..,,.,,,..,,,.,,..,,.,,,..,,,.,,,.,,..,.,.,..,,...,...,.,.,..,,.,,,,..,..,,
+#HFLXBHOU42MCDIMKRBOJ5JZSFDHF6UQOREZY4VX67NF5RQDIGVTZOZPFEYDZATHYMS5MM7XHAKD4U
+#\\\|CTYHXSICB5IJIEEYWXBH6JF4MWEMISDHJDT45LP3AMLKNMZMMWU \ / AMOS7 \ YOURUM ::
+#\[7]7SSSEEEH3OBRMXNZF5YRAWOYV2T7FEZXNRWIHOAQRSEY3L7GGUDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

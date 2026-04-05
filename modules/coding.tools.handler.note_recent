@@ -1,0 +1,24 @@
+## [:< ##
+
+# name  = coding.tools.handler.note_recent
+# descr = list recent notes across all tasks
+
+my $args = shift // {};
+
+my $count   = $args->{'count'}   // 10;
+my $section = $args->{'section'} // '';
+
+## call backend ##
+my $result = <[note.recent]>->( $count, length $section ? $section : undef );
+
+return {
+    'content' => $result->{'mode'} ne qw| false |
+    ? $result->{'data'}
+    : "Failed: " . ( $result->{'data'} // 'unknown' ),
+};
+
+#,,..,,..,,..,.,,,,,.,,..,..,,,,.,,.,,,.,,,,.,.,.,...,...,.,.,...,,..,,,.,...,
+#QH2BGCOKFWB2DCBEJB4RBZUGC36MIK7IGLZ3RFTB5HHJBI5QX6NSCNGAJU6SRETWWCRFEQTSAGEGI
+#\\\|JQHVIKUSARSBFE5IQWDUSDFW72DBBKPL5D7YF352ZNOOV7A566Z \ / AMOS7 \ YOURUM ::
+#\[7]27PCQSIDFHGW7R5YGPTIGUCTNKYB4P72MHLFZ4BKLG5QLAOLMSDI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
