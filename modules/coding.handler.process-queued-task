@@ -597,24 +597,27 @@ INFERENCE_LOOP:
             }
         );
 
-        ## check for xml tool calls in content [ model quirk ] ##
-        ## models emit <tool_call><function=name>... in content or ##
-        ## reasoning_content instead of structured tool_calls ##
+        ## check for tool calls in content [ model quirk ] ##
+        ## models emit tool calls as xml or json in content ##
         if (   $finish_reason_val ne 'tool_calls'
             or ref( $message->{'tool_calls'} ) ne qw| ARRAY |
             or !$message->{'tool_calls'}->@* ) {
-            my $xml_src = $message->{'content'} // '';
-            if ( !length($xml_src) ) {
-                $xml_src = $message->{'reasoning_content'} // '';
+            my $tc_src = $message->{'content'} // '';
+            if ( !length($tc_src) ) {
+                $tc_src = $message->{'reasoning_content'} // '';
             }
-            my $xml_tools = <[coding.parse.xml_tool_calls]>->($xml_src);
-            if ( @{$xml_tools} ) {
+            my $parsed_tools = <[coding.parse.xml_tool_calls]>->($tc_src);
+            ## fallback: try json tool calls ##
+            if ( !@{$parsed_tools} ) {
+                $parsed_tools = <[coding.parse.json_tool_calls]>->($tc_src);
+            }
+            if ( @{$parsed_tools} ) {
                 <[base.logs]>->(
                     1,
-                    "::working:: extracted %d xml tool_calls from content",
-                    scalar( @{$xml_tools} )
+                    "::working:: extracted %d tool_calls from content",
+                    scalar( @{$parsed_tools} )
                 );
-                $message->{'tool_calls'} = $xml_tools;
+                $message->{'tool_calls'} = $parsed_tools;
                 $finish_reason_val = 'tool_calls';
             }
         }
@@ -970,8 +973,8 @@ if ( length $response_text
 ## return result hashref for jobqueue callback ##
 return { success => TRUE, result => $response_text, task_id => $task_id };
 
-#,,,,,,..,..,,,,.,.,,,,,,,,,,,,,.,,,,,,,,,,..,..,,...,.,.,,,,,,,,,.,,,.,.,..,,
-#6WI4O3I47A5N3KXRIGLPF7N6ONSSBF6CX4BLMUHYFAPCUBD6LGLHL4FR2A2DPMMZ2CZY26O7PIXVM
-#\\\|FIGZ7XDXUZYTG2WJAELOXIHSB3EAZHQNSHXYP3RM6JKURQMIAKY \ / AMOS7 \ YOURUM ::
-#\[7]RS7RU32LNO7ZHELU3WLLFQUYUU5M2U6KVVAEKRN6NZLD3NVYPABA 7  DATA SIGNATURE ::
+#,,,.,,.,,,,.,...,,,,,.,,,,.,,.,,,,.,,.,.,..,,..,,...,...,,..,.,.,,,,,..,,,..,
+#MY55ID2IXO5WHHUMIWOOBPKKQWZC2ZF4RTAIOKPMYHBQBH2KRJ5R5OMVDGOP7EQVK2AA2WTJQ5OWM
+#\\\|U6MORU2R366CQD4XGGXYG7RJDYVYSGQLREGDUIGAGHOZMWHCKPV \ / AMOS7 \ YOURUM ::
+#\[7]PI4FSZW7U3EDRHAY2ZE2CUP4WDQOQBZ6AIQ66ERLN3SV4LLO3SCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

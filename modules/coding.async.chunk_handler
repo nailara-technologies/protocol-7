@@ -118,22 +118,29 @@ if ( defined $choice->{'finish_reason'} ) {
                 }
             );
         } else {
-            ## check for xml tool calls in content [ model quirk ] ##
-            ## models emit <tool_call><function=name>... in content ##
-            ## or reasoning_content instead of structured tool_calls ##
-            my $xml_tools
+            ## check for tool calls in content [ model quirk ] ##
+            ## models emit tool calls as xml or json in content ##
+            ## instead of structured tool_calls array ##
+            my $parsed_tools
                 = <[coding.parse.xml_tool_calls]>->( $context->{'content'} );
-            if ( @{$xml_tools} ) {
+
+            ## fallback: try json tool calls if xml found nothing ##
+            if ( !@{$parsed_tools} ) {
+                $parsed_tools = <[coding.parse.json_tool_calls]>
+                    ->( $context->{'content'} );
+            }
+
+            if ( @{$parsed_tools} ) {
                 <[base.logs]>->(
                     1,
-                    "chunk_handler: extracted %d xml tool_calls from content",
-                    scalar( @{$xml_tools} )
+                    "chunk_handler: extracted %d tool_calls from content",
+                    scalar( @{$parsed_tools} )
                 );
                 <[coding.async.state_machine]>->(
                     'transition',
                     $task_id,
                     {   'event'      => 'finish_tool_calls',
-                        'tool_calls' => $xml_tools,
+                        'tool_calls' => $parsed_tools,
                         'content'    => $context->{'content'},
                     }
                 );
@@ -177,8 +184,8 @@ if ( defined $choice->{'finish_reason'} ) {
 
 return $context;
 
-#,,..,..,,...,.,,,,,.,...,,,.,,.,,.,.,..,,,..,.,.,...,...,..,,,..,.,,,...,..,,
-#3SXXUGKY6MN37KJY6RZVUIHW2BMA4XUPOUQZAWJOOH7RBFEOQYIMBO4YS5Q5TQBHH5FUVUEIVZPCG
-#\\\|3IWBJC34JHF55LFK6NWZJK4TM5NC3LIPGHKNROEFTT3WQ2FEXHN \ / AMOS7 \ YOURUM ::
-#\[7]JINKXNFBQJSELANGPO35C4KDFR3B3YNNFCKPFF6AARNWXROBD6CI 7  DATA SIGNATURE ::
+#,,..,,,.,..,,,..,,,.,,,,,..,,...,.,.,,.,,,,.,.,.,...,..,,,..,,,.,.,,,,..,.,.,
+#HDDSGSC6A3J5Q6NOE76VX53XPTP4RLHJBZ6TT6CMMKPK3O2OXD2GO3BRPYHDHMU6BG5OPH4B4WFKY
+#\\\|XHRQUIG2Y3YZZKEUPQ4AL3YVAG4U6O5ZSP6OJSWR57WD636ZDP7 \ / AMOS7 \ YOURUM ::
+#\[7]IHRZ5O2FSIGH5GFFOCCJ5Q3SFA2KM6LDOCWTYPQNL6JLCX7VVUDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
