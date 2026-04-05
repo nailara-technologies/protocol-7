@@ -251,32 +251,37 @@ sub download_models {
 }
 
 sub get_hf_repo_files {
-    my ( $ua, $repo ) = @_;
-    my $api_url  = "https://huggingface.co/api/models/$repo";
+    my ( $ua, $repo, $revision ) = @_;
+    $revision //= 'main';
+    my $api_url = "https://huggingface.co/api/models/$repo";
+    $api_url .= "?revision=$revision" if $revision ne 'main';
     my $response = $ua->get($api_url);
     return () unless $response->is_success;
     my $data = eval { JSON::PP::decode_json( $response->decoded_content ) };
     return () if $@;
-    return map { $_->{rfilename} }
-        grep { $_->{rfilename} =~ /\.(safetensors|ckpt|bin)$/i }
-        @{ $data->{siblings} // [] };
+    return map { $_->{'rfilename'} }
+        grep { $_->{'rfilename'} =~ /\.(safetensors|ckpt|bin|pt)$/i }
+        @{ $data->{'siblings'} // [] };
 }
 
 sub get_all_hf_repo_files {
-    my ( $ua, $repo ) = @_;
-    my $api_url  = "https://huggingface.co/api/models/$repo";
+    my ( $ua, $repo, $revision ) = @_;
+    $revision //= 'main';
+    my $api_url = "https://huggingface.co/api/models/$repo";
+    $api_url .= "?revision=$revision" if $revision ne 'main';
     my $response = $ua->get($api_url);
     return () unless $response->is_success;
     my $data = eval { JSON::PP::decode_json( $response->decoded_content ) };
     return () if $@;
-    ## return all non-hidden files (skip .gitattributes etc.)
-    return map { $_->{rfilename} }
-        grep { $_->{rfilename} !~ m|^\.| } @{ $data->{siblings} // [] };
+    ## return all non-hidden files (skip .gitattributes etc.) ##
+    return map { $_->{'rfilename'} }
+        grep { $_->{'rfilename'} !~ m|^\.| } @{ $data->{'siblings'} // [] };
 }
 
 sub download_diffusers_model {
-    my ( $ua, $repo, $dest_dir, $expected_size ) = @_;
-    my @files = get_all_hf_repo_files( $ua, $repo );
+    my ( $ua, $repo, $dest_dir, $expected_size, $revision ) = @_;
+    $revision //= 'main';
+    my @files = get_all_hf_repo_files( $ua, $repo, $revision );
 
     unless (@files) {
         print "  ✗ Could not list repo files\n";
@@ -289,7 +294,7 @@ sub download_diffusers_model {
 
     my ( $ok, $fail ) = ( 0, 0 );
     for my $filename (@files) {
-        my $url      = "https://huggingface.co/$repo/resolve/main/$filename";
+        my $url = "https://huggingface.co/$repo/resolve/$revision/$filename";
         my $out_path = "$dest_dir/$filename";
         make_path( dirname($out_path), { verbose => 0 } );
 
@@ -314,12 +319,13 @@ sub download_diffusers_model {
 
 sub download_from_hf_repo {
     my ( $ua, $url_info, $filepath, $expected_size, $model ) = @_;
-    my $repo       = $url_info->{repo};
-    my $model_name = $url_info->{model_name};
+    my $repo       = $url_info->{'repo'};
+    my $revision   = $url_info->{'revision'} // 'main';
+    my $model_name = $url_info->{'model_name'};
     my $outdir     = dirname($filepath);
 
-    ## query HF API for actual file list, split top-level vs component paths
-    my @all_files  = get_hf_repo_files( $ua, $repo );
+    ## query HF API for actual file list, split top-level vs component paths ##
+    my @all_files  = get_hf_repo_files( $ua, $repo, $revision );
     my @top_files  = grep { !m|/| } @all_files;
     my @comp_files = grep {m|/|} @all_files;
 
@@ -328,7 +334,8 @@ sub download_from_hf_repo {
             . scalar(@top_files)
             . " top-level model file(s) via API\n";
         for my $filename (@top_files) {
-            my $url = "https://huggingface.co/$repo/resolve/main/$filename";
+            my $url
+                = "https://huggingface.co/$repo/resolve/$revision/$filename";
             my $out_path = "$outdir/$filename";
             print "  Trying: $url\n";
             my $success
@@ -336,15 +343,15 @@ sub download_from_hf_repo {
             return 1 if $success;
         }
     } elsif (@comp_files) {
-        ## repo is diffusers-format — download full directory tree
-        ## use stored path (UUID) if available, otherwise model name
-        my $dest_name = $model->{path} // $model_name;
+        ## repo is diffusers-format — download full directory tree ##
+        ## use stored path (UUID) if available, otherwise model name ##
+        my $dest_name = $model->{'path'} // $model_name;
         my $dest_dir  = "$OUTPUT_DIR/$dest_name";
         return download_diffusers_model( $ua, $repo, $dest_dir,
-            $expected_size );
+            $expected_size, $revision );
     }
 
-    ## fall back to guessing common filenames (covers API failure + empty repo)
+    ## fall back to guessing common filenames (covers API failure + empty repo) ##
     my @filenames_to_try = (
         "$model_name.safetensors",             "model.safetensors",
         "diffusion_pytorch_model.safetensors", "pytorch_model.safetensors",
@@ -354,7 +361,7 @@ sub download_from_hf_repo {
     }
 
     for my $filename (@filenames_to_try) {
-        my $url = "https://huggingface.co/$repo/resolve/main/$filename";
+        my $url = "https://huggingface.co/$repo/resolve/$revision/$filename";
         print "  Trying: $url\n";
         my $success = download_file( $ua, $url, $filepath, $expected_size );
         return 1 if $success;
@@ -473,16 +480,19 @@ sub get_download_url {
     }
 
     ## HuggingFace repo ID - construct download URL for main model file
-    if ( $m->{source_type} eq 'hf_repo_id' ) {
-        my $repo = $m->{source};
-        ## Try common model file patterns
-        ## Return repo info - actual file discovery happens in download
+    if ( $m->{'source_type'} eq 'hf_repo_id' ) {
+        my $source = $m->{'source'};
+        ## invokeai appends ::variant to encode branch/revision ##
+        ## e.g. InvokeAI/clip-vit-large-patch14-text-encoder::bfloat16 ##
+        my ( $repo, $revision ) = split /::/, $source, 2;
+        $revision //= 'main';
         return {
-            type       => 'hf_repo',
-            repo       => $repo,
-            model_name => $m->{name},
-            path       => $m->{path},
-            format     => $m->{format}
+            'type'       => 'hf_repo',
+            'repo'       => $repo,
+            'revision'   => $revision,
+            'model_name' => $m->{'name'},
+            'path'       => $m->{'path'},
+            'format'     => $m->{'format'},
         };
     }
 
@@ -539,12 +549,12 @@ sub usage {
 usage: invoke-model-recover [options] [model_name...]
 
 options:
-    --list          list all models grouped by type (default)
-    --dry-run       check what needs recovery, no download
-    --download      download missing main models
-    --batch         download all missing non-main types (vae, lora, controlnet, ...)
-    --type TYPE     filter by type, comma-separated (e.g. vae,lora,controlnet)
-    --help          show this help
+    -list          list all models grouped by type (default)
+    -dry-run       check what needs recovery, no download
+    -download      download missing main models
+    -batch         download all missing non-main types (vae, lora, controlnet, ...)
+    -type TYPE     filter by type, comma-separated (e.g. vae,lora,controlnet)
+    -help          show this help
 
 environment:
     INVOKE_DB           path to invokeai.db (default: ~/.invokeai/db/invokeai.db)
@@ -552,17 +562,17 @@ environment:
     HF_TOKEN            huggingface api token
 
 examples:
-    invoke-model-recover                         # list all models grouped by type
-    invoke-model-recover --batch                 # download all non-main types
-    invoke-model-recover --download              # download missing main models
-    invoke-model-recover --type vae --download   # download only vae models
-    invoke-model-recover --dry-run my-model      # check specific model
+    invoke-model-recover                        # list all models grouped by type
+    invoke-model-recover -batch                 # download all non-main types
+    invoke-model-recover -download              # download missing main models
+    invoke-model-recover -type vae -download    # download only vae models
+    invoke-model-recover -dry-run my-model      # check specific model
 USAGE
     exit(0);
 }
 
-#,,,.,,,.,...,,..,.,.,.,.,,..,,,,,.,,,,,,,,.,,.,.,...,...,,.,,,.,,...,...,.,.,
-#ALCE75FSSZUINPL2ERU3PQRGVPZ7OAYOUQWJ22ZKJCXTXW6CVJ2K5OYM4VFESFCZSGH36CWTOPULM
-#\\\|DEXR7KFTPGX4O47AS4UBJOQZFIQWG562W5PD4N3F36745GTKL5P \ / AMOS7 \ YOURUM ::
-#\[7]7GE47MT6TCJJDNORXGH3CNVGSBDWQTQDHHPRP3TCSS5ZSCZBUYAA 7  DATA SIGNATURE ::
+#,,,.,,,,,.,.,.,.,,.,,,,,,...,...,,,,,...,...,.,.,...,...,.,,,..,,.,.,,,,,...,
+#HOINC5LHRYRHTJGOXM533U2R7GBYZG3ZE23A7B7WUSNVSCHJ7BP6RQTNLGW6OFEMVGD66JITK44TY
+#\\\|IRCBWKLCEFX4CBEQCW6JNHIXXXV5X7CSUUOZYERTNWXWV674WFV \ / AMOS7 \ YOURUM ::
+#\[7]47UUJYLP5HBBR2AJERP72WGAUG2HNE763AWBHIDTIDKK5AZRZGDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
