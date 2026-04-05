@@ -201,6 +201,26 @@ $state = <[coding.async.state_machine]>->(
     }
 );
 
+## check if task_complete or escalate was called during tool execution ##
+if (<coding.tool_loop.stop>) {
+    my $stop_reason  = <coding.tool_loop.stop_reason>  // 'task_complete';
+    my $stop_summary = <coding.tool_loop.stop_summary> // 'task completed';
+    ## reset flags ##
+    <coding.tool_loop.stop>         = FALSE;
+    <coding.tool_loop.stop_reason>  = undef;
+    <coding.tool_loop.stop_summary> = undef;
+    <[base.logs]>->(
+        1,            "tool_executor: stop flag set [%s], completing task %s",
+        $stop_reason, $task_id
+    );
+    ## set final content from stop summary ##
+    <[coding.async.state_machine]>->(
+        'set', $task_id, { 'final_content' => $stop_summary }
+    );
+    <[coding.async.complete_task]>->($task_id);
+    return { success => TRUE, tool_results => \@tool_results };
+}
+
 ## transition back to streaming (pass tool_calls for assistant message) ##
 <[coding.async.state_machine]>->(
     'transition',
@@ -213,8 +233,8 @@ $state = <[coding.async.state_machine]>->(
 
 return { success => TRUE, tool_results => \@tool_results };
 
-#,,,,,..,,,,,,,.,,.,.,,,.,...,,..,,..,,..,,,,,.,.,...,...,,,.,...,.,.,,..,..,,
-#F7OD4WPBDFSYNAF4NTGVZQA4VORTCJDMJX2SK5MVEPOKTYL7HHKO342MPAZ3UPN5OVSLFTJVIS766
-#\\\|X7YPO42KQ74YYPNUXJFXO3LFZZBYW7GXWSWNB34JHRKQA4CYSQE \ / AMOS7 \ YOURUM ::
-#\[7]7BHPBPEDQFNHR4DBH75EPJ2P2KOFTWOHVVAKVUG3HYTR4RVCF2BQ 7  DATA SIGNATURE ::
+#,,..,..,,.,,,.,.,.,,,,,.,,..,...,.,.,,.,,.,.,.,.,...,...,...,.,,,,.,,.,.,.,.,
+#ITL65YHEWDIGRDPTIPO2DXJGVST5RQTDCSE6UOK33FX3YZWP56LDORMXE4MI7K5QZSE7OOJKHDBLU
+#\\\|KNN5UVAALICT6IX6IZYBJOOWUFQIA4IG32E6MDOPWRN7I65XYPZ \ / AMOS7 \ YOURUM ::
+#\[7]4KCKECQTHMTCEEK6LIOPCEQBWQ3KPGDEY672H57XV6Z2RKPQLICA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
