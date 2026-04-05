@@ -1,0 +1,81 @@
+## [:< ##
+
+# name  = coding.parse.json_tool_calls
+# descr = parse json-format tool calls from model content
+# purpose = models emit {"name": "tool", "arguments": {...}} in content
+#           instead of structured tool_calls — extract as structured array
+
+my ($text) = @ARG;
+
+return [] unless defined $text && length $text;
+
+my @tool_calls;
+my $call_idx = 0;
+
+## match json objects that look like tool calls ##
+## pattern: {"name": "tool_name", "arguments": {...}} ##
+## also handles: {"tool_name", "arguments": {...}} (malformed but common) ##
+
+while (
+    $text =~ m{
+        \{                                  ## opening brace
+        \s*
+        (?:
+            "name"\s*:\s*"(\w+)"            ## {"name": "tool_name" ...}
+            |
+            "(\w+)"                         ## {"tool_name" ...} (malformed)
+        )
+        \s*[,:]?\s*                         ## separator
+        "arguments"\s*:\s*                  ## "arguments":
+        (\{[^{}]*(?:\{[^{}]*\}[^{}]*)*\})  ## nested json object (1 level deep)
+        \s*
+        \}                                  ## closing brace
+    }gsx
+) {
+    my $tool_name = $1 // $2;
+    my $args_json = $3;
+
+    next unless defined $tool_name && length $tool_name;
+
+    ## validate args_json is parseable ##
+    my $parsed = eval { JSON::PP::decode_json($args_json) };
+    next unless defined $parsed && ref $parsed eq qw| HASH |;
+
+    ## build structured tool call ##
+    my $call_id = sprintf( 'jsoncall_%d_%d', $$, $call_idx );
+    push @tool_calls,
+        {
+        'id'       => $call_id,
+        'type'     => 'function',
+        'function' => {
+            'name'      => $tool_name,
+            'arguments' => $args_json,
+        },
+        };
+
+    $call_idx++;
+}
+
+if (@tool_calls) {
+    <[base.logs]>->(
+        1,
+        "parse.json_tool_calls: extracted %d tool calls from json content",
+        scalar @tool_calls
+    );
+    for my $tc (@tool_calls) {
+        <[base.logs]>->(
+            2,
+            "parse.json_tool_calls: %s(%s)",
+            $tc->{'function'}->{'name'},
+            substr( $tc->{'function'}->{'arguments'}, 0, 80 )
+        );
+    }
+}
+
+return \@tool_calls;
+
+#,,,,,.,,,,..,...,.,,,,,,,...,,,,,...,,..,,..,.,.,...,...,.,,,,.,,...,,.,,,,,,
+#2GZWJTOW2OS74BZEJTDIYGHJZ4YJADGD7U5DUHQJ67CEQKZQXNJHOCQHIZNNDNVEL4NXX3CDEREHU
+#\\\|RKUX6TZXTU5YL7ZZWHUIRGAMDRHXOJUJ2FKNKPDGJPW7D3V42PZ \ / AMOS7 \ YOURUM ::
+#\[7]KHXXP7OYWBZVRJLOGDNTGPDFKV2AHH4HHZWPJ4X7OUYJBXIXMIAY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
