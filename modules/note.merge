@@ -1,0 +1,115 @@
+## [:< ##
+
+# name  = note.merge
+# descr = combine notes from multiple sections or tasks
+
+my ( $source_specs, $target_section, $target_task_id ) = @ARG;
+
+return { 'mode' => qw| false |, 'data' => 'source_specs required' }
+    unless defined $source_specs && length $source_specs;
+
+return { 'mode' => qw| false |, 'data' => 'target_section required' }
+    unless defined $target_section && length $target_section;
+
+$target_task_id //= <system.task_id> // 'unknown';
+
+## sanitize target section ##
+$target_section =~ s|[^a-zA-Z0-9._-]|_|g;
+
+my $notes_base = <[file.zenka_dir.data_path]> . '/notes';
+
+## parse source specs: comma-separated "section" or "task_id:section" ##
+my @sources;
+for my $spec ( split /\s*,\s*/, $source_specs ) {
+    next unless length $spec;
+    if ( $spec =~ m|^([^:]+):(.+)$| ) {
+        push @sources, { 'task_id' => $1, 'section' => $2 };
+    } else {
+        push @sources, { 'task_id' => $target_task_id, 'section' => $spec };
+    }
+}
+
+return { 'mode' => qw| false |, 'data' => 'no valid source specs' }
+    unless @sources;
+
+## validate all sources exist ##
+my @source_content;
+for my $src (@sources) {
+    my $tid = $src->{'task_id'};
+    my $sec = $src->{'section'};
+    $sec =~ s|[^a-zA-Z0-9._-]|_|g;
+
+    my $workspace_dir = "$notes_base/$tid/workspace";
+    return {
+        'mode' => qw| false |,
+        'data' => "source not found: $tid/$sec"
+        }
+        unless -d $workspace_dir && -f "$workspace_dir/$sec.md";
+
+    my $content = <[file.read]>->("$workspace_dir/$sec.md");
+    push @source_content,
+        {
+        'task_id' => $tid,
+        'section' => $sec,
+        'content' => $content,
+        };
+}
+
+## build merged content ##
+my @merged;
+for my $src (@source_content) {
+    push @merged,
+        sprintf( "## merged from %s/%s ##\n",
+        $src->{'task_id'}, $src->{'section'} );
+    push @merged, $src->{'content'};
+    push @merged, "\n---\n";
+}
+
+my $merged_str = join( '', @merged );
+
+## ensure target workspace exists ##
+my $target_ws = "$notes_base/$target_task_id/workspace";
+<[file.path.make_dir]>->($target_ws) unless -d $target_ws;
+
+## write merged file ##
+my $target_file = "$target_ws/$target_section.md";
+<[file.write]>->( $target_file, $merged_str );
+
+## update meta ##
+my $meta_file = "$notes_base/$target_task_id/.meta";
+my $meta      = {};
+if ( -f $meta_file ) {
+    $meta = eval { JSON::PP::decode_json( <[file.read]>->($meta_file) ) };
+    $meta = {} unless ref $meta eq qw| HASH |;
+}
+$meta->{'last_update'} = <[base.time]>->(3);
+<[file.write]>->( $meta_file, JSON::PP::encode_json($meta) );
+
+my @source_names
+    = map { sprintf( "%s/%s", $ARG->{'task_id'}, $ARG->{'section'} ) }
+    @source_content;
+
+<[base.logs]>->(
+    2,
+    "note.merge: merged %d sources into %s/%s [ %d bytes ]",
+    scalar @source_names,
+    $target_task_id, $target_section, length $merged_str,
+);
+
+return {
+    'mode' => qw| true |,
+    'data' => sprintf(
+        "merged %d sources into '%s' for %s [ %d bytes ]: %s",
+        scalar @source_names,
+        $target_section,
+        $target_task_id,
+        length $merged_str,
+        join( ', ', @source_names ),
+    ),
+};
+
+#,,,,,,..,,,.,.,,,...,,..,..,,,..,.,,,,.,,.,,,.,.,...,..,,.,,,.,.,,,,,...,.,,,
+#4LIBODLOALGMN5TZZMOSEA2LSC6RIPXJYOEMDILEU5IRDCK6IB5LVOWOD6FQSWQB64OAQEAE4UOUK
+#\\\|F44EHKA3PPYQWKKLMRSIQIISD7M3WXSM5IWVEQGLT375UQD25RT \ / AMOS7 \ YOURUM ::
+#\[7]LUIO5FUUCUXS6EHN5PUNNFQQ5UUMDQKSKOLKAF4IEROBGLXFSCAA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
