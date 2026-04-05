@@ -152,6 +152,16 @@ elsif ( $action eq 'transition' ) {
         $task_id, $current, $event, $new_state
     );
 
+    ## regex for json tool call markup stripping ##
+    my $json_tc_re = qr|
+        \{"(?:name"\s*:\s*")?    ## {"name": " or bare {"
+        \w+"\s*[,:]?\s*          ## tool_name",
+        "arguments"\s*:\s*       ## "arguments":
+        \{[^{}]*                 ## { simple args
+        (?:\{[^{}]*\}[^{}]*)*    ## nested one level
+        \}\s*\}                  ## close both braces
+    |xs;
+
     ## trigger appropriate handler ##
     if ( $new_state eq STATE_TOOL_EXEC ) {
         <[base.logs]>->(
@@ -161,8 +171,11 @@ elsif ( $action eq 'transition' ) {
         $state->{'content'} = $data->{'content'} // $state->{'content'} // '';
         ## strip xml tool call markup from content before output ##
         my $display_content = $state->{'content'};
+        ## strip xml tool call markup ##
         $display_content =~ s|</?tool_call>\s*||g;
         $display_content =~ s|<function\s*=\s*\w+\s*>.*?</function>||gs;
+        ## strip json tool call markup ##
+        $display_content =~ s{$json_tc_re}{}g;
         $display_content =~ s|^\s+||;
         $display_content =~ s|\s+$||;
         ## write model response to output buffer [ before tool execution ] ##
@@ -344,10 +357,11 @@ elsif ( $action eq 'transition' ) {
         <[coding.async.send_request]>->($task_id);
     } elsif ( $new_state eq STATE_COMPLETE ) {
         $state->{'final_content'} = $data->{'content'} // $state->{'content'};
-        ## strip xml tool call markup if present ##
+        ## strip tool call markup if present ##
         my $final_display = $state->{'final_content'};
         $final_display =~ s|</?tool_call>\s*||g;
         $final_display =~ s|<function\s*=\s*\w+\s*>.*?</function>||gs;
+        $final_display =~ s{$json_tc_re}{}g;
         $final_display =~ s|^\s+||;
         $final_display =~ s|\s+$||;
         ## write final response to model output buffer ##
@@ -437,8 +451,8 @@ elsif ( $action eq 'constants' ) {
 
 return { error => sprintf "unknown action : '%s'", $action };
 
-#,,..,,,,,,,,,...,...,,..,,..,,,,,,.,,.,,,,..,.,.,...,...,.,.,.,.,,,.,,.,,,,.,
-#VZBNNHZJBEBRZNL5VGRITBFILJD4IN5P26FCIWPNKY25G6ABYMLT55FLVES7YBEFV3X4EX7QCXHRI
-#\\\|MFNJPJJGAPU23ETGEVLKDRWXPZAWQQLDK3K56D3VUIXCWTWTIMO \ / AMOS7 \ YOURUM ::
-#\[7]C5IAZPFOPX5YVYH7BQOUPBFZ3HRM4FRGRDENKFZPPVNRVBWEYQAQ 7  DATA SIGNATURE ::
+#,,.,,.,,,.,,,,,,,,,,,,,.,...,,,,,,..,.,,,,,,,.,.,...,...,,,.,...,,,,,..,,..,,
+#SMD5WXBDWLKMGBVMXBAEQWMGDYVLXN3FDKCCYIWMRG5FSCS6YHFBSJBFZT2PJEBOFIIMEYQM2LDZE
+#\\\|MWGJV3ZM6HEZC3JYEULC2D2HBLT72PIMRXMZ7XK3C73TNKCJ2CS \ / AMOS7 \ YOURUM ::
+#\[7]62URMJFIAUNXTJTQ3MESEJFMV7FRXE3FZ7ZGBOOYZ4DSPHVUD2DA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
