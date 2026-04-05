@@ -1,8 +1,8 @@
 #!/usr/bin/perl
 ## [:< ##
 # name  = invoke-model-recover
-# descr = Recover deleted Invoke.ai models from database metadata
-# usage = invoke-model-recover [-dry-run|-download] [model_name...]
+# descr = recover invoke.ai models from database metadata — all types
+# usage = invoke-model-recover [--batch|--download|--dry-run] [--type TYPE] [name...]
 
 use strict;
 use warnings;
@@ -16,11 +16,15 @@ use LWP::UserAgent;
 use File::Path qw(make_path);
 use File::Basename;
 
-my ( $opt_dry_run, $opt_download, $opt_list, $opt_help );
+my ($opt_dry_run, $opt_download, $opt_batch,
+    $opt_list,    $opt_type,     $opt_help
+);
 GetOptions(
     'dry-run'  => \$opt_dry_run,
     'download' => \$opt_download,
+    'batch'    => \$opt_batch,
     'list'     => \$opt_list,
+    'type=s'   => \$opt_type,
     'help'     => \$opt_help,
 ) or usage();
 
@@ -32,34 +36,53 @@ my $OUTPUT_DIR = $ENV{'INVOKE_MODELS_DIR'}
 my $HF_TOKEN = $ENV{'HF_TOKEN'} // read_hf_token_from_invoke()
     // read_hf_token_from_lmstudio();
 
-## Query database for lost models
+## query database for all models ##
 my $models = query_database();
 
-if ($opt_list) {
-    list_models($models);
+## filter by --type if specified ##
+if ($opt_type) {
+    my %types = map { $_ => 1 } split /,/, $opt_type;
+    $models = [ grep { $types{ $_->{'type'} // '' } } @$models ];
+}
+
+## filter by name if specified ##
+if (@ARGV) {
+    my %wanted = map { $_ => 1 } @ARGV;
+    $models = [ grep { $wanted{ $_->{'name'} } } @$models ];
+}
+
+## --batch: non-main types only ##
+if ($opt_batch) {
+    my $batch_models
+        = [ grep { ( $_->{'type'} // '' ) ne 'main' } @$models ];
+    download_models($batch_models);
     exit(0);
 }
 
-## Filter by name if specified
-if (@ARGV) {
-    my %wanted = map { $_ => 1 } @ARGV;
-    $models = [ grep { $wanted{ $_->{name} } } @$models ];
+## default: list ##
+if ( !$opt_dry_run && !$opt_download ) {
+    list_models($models);
+    exit(0);
 }
 
 if ($opt_dry_run) {
     dry_run($models);
 } elsif ($opt_download) {
     download_models($models);
-} else {
-    usage();
 }
 
 ##===========================================================================##
 
 sub query_database {
-    my $cmd
-        = qq{sqlite3 "$DB_FILE" ".mode json" "SELECT name, source, source_type, json_extract(config, '\$.description') as description, json_extract(config, '\$.file_size') as size, json_extract(config, '\$.path') as path, json_extract(config, '\$.format') as format FROM models WHERE type='main' ORDER BY name;" 2>/dev/null};
+    my $sql
+        = "SELECT name, type, source, source_type,"
+        . " json_extract(config, '\$.description') as description,"
+        . " json_extract(config, '\$.file_size') as size,"
+        . " json_extract(config, '\$.path') as path,"
+        . " json_extract(config, '\$.format') as format"
+        . " FROM models ORDER BY type, name;";
 
+    my $cmd  = qq{sqlite3 "$DB_FILE" ".mode json" "$sql" 2>/dev/null};
     my $json = `$cmd`;
     unless ($json) {
         die "Cannot query database: $DB_FILE\n"
@@ -76,25 +99,48 @@ sub query_database {
 
 sub list_models {
     my ($models) = @_;
-    my $total_size = 0;
 
-    print "Models found in database:\n";
-    print "=" x 80 . "\n";
-    printf "%-40s %10s %s\n", "Name", "Size", "Source Type";
-    print "-" x 80 . "\n";
-
+    ## group by type ##
+    my %by_type;
     for my $m (@$models) {
-        my $size = human_size( $m->{size} // 0 );
-        $total_size += ( $m->{size} // 0 );
-        printf "%-40s %10s %s\n",
-            substr( $m->{name}, 0, 38 ),
-            $size,
-            $m->{source_type};
+        push @{ $by_type{ $m->{'type'} // 'unknown' } }, $m;
     }
 
-    print "=" x 80 . "\n";
-    printf "Total: %d models, %s\n", scalar(@$models),
-        human_size($total_size);
+    ## main first, rest alphabetical ##
+    my @order = ( 'main', sort grep { $_ ne 'main' } keys %by_type );
+
+    my ( $grand_count, $grand_size ) = ( 0, 0 );
+
+    for my $type (@order) {
+        next unless exists $by_type{$type};
+        my @ms       = @{ $by_type{$type} };
+        my $grp_size = 0;
+
+        print "\n [ $type ]\n";
+        print " " . "-" x 72 . "\n";
+        printf "  %-40s %10s  %s\n", 'name', 'size', 'source_type';
+        print " " . "-" x 72 . "\n";
+
+        for my $m ( sort { $a->{'name'} cmp $b->{'name'} } @ms ) {
+            my $size = human_size( $m->{'size'} // 0 );
+            $grp_size += ( $m->{'size'} // 0 );
+            printf "  %-40s %10s  %s\n",
+                substr( $m->{'name'}, 0, 38 ),
+                $size,
+                $m->{'source_type'} // '-';
+        }
+
+        printf "  %d file%s, %s total\n",
+            scalar @ms, ( scalar @ms == 1 ? '' : 's' ),
+            human_size($grp_size);
+        $grand_count += scalar @ms;
+        $grand_size  += $grp_size;
+    }
+
+    print "\n " . "=" x 72 . "\n";
+    printf " %d models, %s total\n", $grand_count, human_size($grand_size);
+    print
+        " run --batch to download all non-main types, --download for main\n";
 }
 
 sub dry_run {
@@ -321,16 +367,22 @@ sub download_from_hf_repo {
 sub get_filename {
     my ($m) = @_;
 
-    ## Extract filename from source
-    if ( $m->{source} =~ m|/([^/]+\.safetensors)$| ) {
-        return $1;
-    }
-    if ( $m->{source} =~ m|/([^/]+\.ckpt)$| ) {
-        return $1;
+    ## use stored path if it looks like a relative filename ##
+    if (   $m->{'path'}
+        && $m->{'path'} !~ m|^/|
+        && $m->{'path'} =~ /\.\w+$/ ) {
+        return $m->{'path'};
     }
 
-    ## Default to name with safetensors extension
-    return "$m->{name}.safetensors";
+    ## extract from source url ##
+    for my $ext (qw( safetensors ckpt bin pt gguf )) {
+        if ( ( $m->{'source'} // '' ) =~ m|/([^/?]+\.$ext)|i ) {
+            return $1;
+        }
+    }
+
+    ## fallback to name ##
+    return "$m->{'name'}.safetensors";
 }
 
 sub read_hf_token_from_lmstudio {
@@ -484,31 +536,33 @@ sub human_size {
 
 sub usage {
     print <<'USAGE';
-Usage: invoke-model-recover [-dry-run|-download] [model_name...]
+usage: invoke-model-recover [options] [model_name...]
 
-Commands:
-    -list       List all models from database
-    -dry-run    Check what needs recovery (no download)
-    -download   Download missing models
+options:
+    --list          list all models grouped by type (default)
+    --dry-run       check what needs recovery, no download
+    --download      download missing main models
+    --batch         download all missing non-main types (vae, lora, controlnet, ...)
+    --type TYPE     filter by type, comma-separated (e.g. vae,lora,controlnet)
+    --help          show this help
 
-Environment:
-    INVOKE_DB          Path to invokeai.db (default: ~/.invokeai/db/invokeai.db)
-    INVOKE_MODELS_DIR  Output directory (default: /mnt/ext-xfs-data/models-invoke)
+environment:
+    INVOKE_DB           path to invokeai.db (default: ~/.invokeai/db/invokeai.db)
+    INVOKE_MODELS_DIR   output directory   (default: /mnt/ext-xfs-data/models-invoke)
+    HF_TOKEN            huggingface api token
 
-Examples:
-    invoke-model-recover -list                    # Show all models
-    invoke-model-recover -dry-run                 # Check what needs recovery
-    invoke-model-recover -download                # Download all missing
-    invoke-model-recover -download kittens        # Recover specific model
-
-Note: Only models with direct URLs can be auto-downloaded.
-      HuggingFace repo IDs need manual download.
+examples:
+    invoke-model-recover                         # list all models grouped by type
+    invoke-model-recover --batch                 # download all non-main types
+    invoke-model-recover --download              # download missing main models
+    invoke-model-recover --type vae --download   # download only vae models
+    invoke-model-recover --dry-run my-model      # check specific model
 USAGE
     exit(0);
 }
 
-#,,,.,.,,,.,,,,,.,..,,,.,,.,.,,..,.,.,,,,,,.,,.,.,...,..,,,..,.,,,,.,,...,,,.,
-#RNJCMQC23USJPR3C44N5AN6WR2WRNW5M35MIE24LFTGLXIDJSJETFNI5UJKJ6WYGIQX34CJ443FPS
-#\\\|V56LCO4BB5NXCI7DT26MNKJ72G3LFGVLTLHMKLQFOJY44MQRU7O \ / AMOS7 \ YOURUM ::
-#\[7]LUAFLMEMHEY6FZSZRKCHGESCMYVXPJJG7IBPUMHGTTNI46GQ5MAI 7  DATA SIGNATURE ::
+#,,,.,,,.,...,,..,.,.,.,.,,..,,,,,.,,,,,,,,.,,.,.,...,...,,.,,,.,,...,...,.,.,
+#ALCE75FSSZUINPL2ERU3PQRGVPZ7OAYOUQWJ22ZKJCXTXW6CVJ2K5OYM4VFESFCZSGH36CWTOPULM
+#\\\|DEXR7KFTPGX4O47AS4UBJOQZFIQWG562W5PD4N3F36745GTKL5P \ / AMOS7 \ YOURUM ::
+#\[7]7GE47MT6TCJJDNORXGH3CNVGSBDWQTQDHHPRP3TCSS5ZSCZBUYAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
