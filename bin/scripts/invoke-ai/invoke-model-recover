@@ -58,7 +58,7 @@ if ($opt_dry_run) {
 
 sub query_database {
     my $cmd
-        = qq{sqlite3 "$DB_FILE" ".mode json" "SELECT name, source, source_type, json_extract(config, '\$.description') as description, json_extract(config, '\$.file_size') as size FROM models WHERE type='main' ORDER BY name;" 2>/dev/null};
+        = qq{sqlite3 "$DB_FILE" ".mode json" "SELECT name, source, source_type, json_extract(config, '\$.description') as description, json_extract(config, '\$.file_size') as size, json_extract(config, '\$.path') as path, json_extract(config, '\$.format') as format FROM models WHERE type='main' ORDER BY name;" 2>/dev/null};
 
     my $json = `$cmd`;
     unless ($json) {
@@ -185,7 +185,7 @@ sub download_models {
         if ( ref $url_info eq 'HASH' && $url_info->{type} eq 'hf_repo' ) {
             ## HuggingFace repo - need to find model file
             $success = download_from_hf_repo( $ua, $url_info, $filepath,
-                $m->{size} );
+                $m->{size}, $m );
         } else {
             ## Direct URL
             print "  From: $url_info\n";
@@ -204,27 +204,112 @@ sub download_models {
         "Complete: $downloaded downloaded, $skipped skipped, $failed failed\n";
 }
 
+sub get_hf_repo_files {
+    my ( $ua, $repo ) = @_;
+    my $api_url  = "https://huggingface.co/api/models/$repo";
+    my $response = $ua->get($api_url);
+    return () unless $response->is_success;
+    my $data = eval { JSON::PP::decode_json( $response->decoded_content ) };
+    return () if $@;
+    return map { $_->{rfilename} }
+        grep { $_->{rfilename} =~ /\.(safetensors|ckpt|bin)$/i }
+        @{ $data->{siblings} // [] };
+}
+
+sub get_all_hf_repo_files {
+    my ( $ua, $repo ) = @_;
+    my $api_url  = "https://huggingface.co/api/models/$repo";
+    my $response = $ua->get($api_url);
+    return () unless $response->is_success;
+    my $data = eval { JSON::PP::decode_json( $response->decoded_content ) };
+    return () if $@;
+    ## return all non-hidden files (skip .gitattributes etc.)
+    return map { $_->{rfilename} }
+        grep { $_->{rfilename} !~ m|^\.| } @{ $data->{siblings} // [] };
+}
+
+sub download_diffusers_model {
+    my ( $ua, $repo, $dest_dir, $expected_size ) = @_;
+    my @files = get_all_hf_repo_files( $ua, $repo );
+
+    unless (@files) {
+        print "  ✗ Could not list repo files\n";
+        return 0;
+    }
+
+    print "  Downloading diffusers model ("
+        . scalar(@files)
+        . " files) to: $dest_dir\n";
+
+    my ( $ok, $fail ) = ( 0, 0 );
+    for my $filename (@files) {
+        my $url      = "https://huggingface.co/$repo/resolve/main/$filename";
+        my $out_path = "$dest_dir/$filename";
+        make_path( dirname($out_path), { verbose => 0 } );
+
+        ## skip if already present
+        if ( -f $out_path && -s $out_path > 0 ) {
+            print "  • $filename (already have)\n";
+            $ok++;
+            next;
+        }
+
+        print "  ↓ $filename\n";
+        my $success = download_file( $ua, $url, $out_path, undef );
+        $success ? $ok++ : $fail++;
+    }
+
+    print "  "
+        . ( $fail ? "✗" : "✓" )
+        . " $ok/${\scalar @files} files downloaded"
+        . ( $fail ? ", $fail failed" : '' ) . "\n";
+    return $fail == 0 ? 1 : 0;
+}
+
 sub download_from_hf_repo {
-    my ( $ua, $url_info, $filepath, $expected_size ) = @_;
+    my ( $ua, $url_info, $filepath, $expected_size, $model ) = @_;
     my $repo       = $url_info->{repo};
     my $model_name = $url_info->{model_name};
+    my $outdir     = dirname($filepath);
 
-    ## Try to construct download URL for common model filenames
+    ## query HF API for actual file list, split top-level vs component paths
+    my @all_files  = get_hf_repo_files( $ua, $repo );
+    my @top_files  = grep { !m|/| } @all_files;
+    my @comp_files = grep {m|/|} @all_files;
+
+    if (@top_files) {
+        print "  Found "
+            . scalar(@top_files)
+            . " top-level model file(s) via API\n";
+        for my $filename (@top_files) {
+            my $url = "https://huggingface.co/$repo/resolve/main/$filename";
+            my $out_path = "$outdir/$filename";
+            print "  Trying: $url\n";
+            my $success
+                = download_file( $ua, $url, $out_path, $expected_size );
+            return 1 if $success;
+        }
+    } elsif (@comp_files) {
+        ## repo is diffusers-format — download full directory tree
+        ## use stored path (UUID) if available, otherwise model name
+        my $dest_name = $model->{path} // $model_name;
+        my $dest_dir  = "$OUTPUT_DIR/$dest_name";
+        return download_diffusers_model( $ua, $repo, $dest_dir,
+            $expected_size );
+    }
+
+    ## fall back to guessing common filenames (covers API failure + empty repo)
     my @filenames_to_try = (
         "$model_name.safetensors",             "model.safetensors",
         "diffusion_pytorch_model.safetensors", "pytorch_model.safetensors",
     );
-
-    ## If model name looks like it has version, try variations
     if ( $model_name =~ /^(.*?)_v?\d+/ ) {
-        my $base = $1;
-        push @filenames_to_try, "$base.safetensors";
+        push @filenames_to_try, "$1.safetensors";
     }
 
     for my $filename (@filenames_to_try) {
         my $url = "https://huggingface.co/$repo/resolve/main/$filename";
         print "  Trying: $url\n";
-
         my $success = download_file( $ua, $url, $filepath, $expected_size );
         return 1 if $success;
     }
@@ -275,26 +360,36 @@ sub read_hf_token_from_lmstudio {
 }
 
 sub read_hf_token_from_invoke {
-    ## Try to read HF token from Invoke.ai config locations
-    ## Check invokeai.yaml for remote_api_tokens section
-    my $invoke_yaml = "$ENV{HOME}/invokeai/invokeai.yaml";
-    if ( -f $invoke_yaml ) {
-        open( my $fh, '<', $invoke_yaml ) or return undef;
+    ## try invokeai.yaml — supports both ~/invokeai/ and ~/.invokeai/ locations
+    for my $invoke_yaml (
+        "$ENV{HOME}/.invokeai/invokeai.yaml",
+        "$ENV{HOME}/invokeai/invokeai.yaml",
+    ) {
+        next unless -f $invoke_yaml;
+        open( my $fh, '<', $invoke_yaml ) or next;
         my $content = do { local $/; <$fh> };
         close($fh);
-        ## Look for huggingface token in various formats
-        if ( $content =~ /huggingface[:\s]+["']?([hf_][a-zA-Z0-9_-]+)/i ) {
+        ## match remote_api_tokens entry with huggingface url_regex
+        ## yaml structure: url_regex: huggingface.co\n  token: hf_xxx
+        if ( $content
+            =~ /url_regex[^\n]*huggingface[^\n]*\n\s*token:\s*(\S+)/i ) {
+            return $1;
+        }
+        ## fallback: any bare token: hf_xxx line
+        if ( $content =~ /^\s*token:\s*(hf_[a-zA-Z0-9_-]+)/m ) {
             return $1;
         }
     }
 
-    ## Check database for stored credentials
+    ## check database — client_state.data is JSON blob in newer invokeai
     my $db_file = "$ENV{HOME}/.invokeai/db/invokeai.db";
     if ( -f $db_file ) {
         my $token
-            = `sqlite3 "$db_file" "SELECT value FROM client_state WHERE key LIKE '%huggingface%' OR key LIKE '%hf_token%' LIMIT 1;" 2>/dev/null`;
+            = `sqlite3 "$db_file" "SELECT data FROM client_state LIMIT 1;" 2>/dev/null`;
         chomp($token);
-        return $token if $token && length($token) > 10;
+        if ( $token && $token =~ /(hf_[a-zA-Z0-9_-]{10,})/ ) {
+            return $1;
+        }
     }
 
     ## Check systemd service environment
@@ -330,7 +425,13 @@ sub get_download_url {
         my $repo = $m->{source};
         ## Try common model file patterns
         ## Return repo info - actual file discovery happens in download
-        return { type => 'hf_repo', repo => $repo, model_name => $m->{name} };
+        return {
+            type       => 'hf_repo',
+            repo       => $repo,
+            model_name => $m->{name},
+            path       => $m->{path},
+            format     => $m->{format}
+        };
     }
 
     return undef;
@@ -340,9 +441,10 @@ sub download_file {
     my ( $ua, $url, $filepath, $expected_size ) = @_;
     my $tmpfile = "$filepath.tmp";
 
+    make_path( dirname($tmpfile), { verbose => 0 } );
     my $response = $ua->get( $url, ':content_file' => $tmpfile );
 
-    if ( $response->is_success ) {
+    if ( $response->is_success && -f $tmpfile ) {
         my $size = -s $tmpfile;
 
         ## Verify size (within 1% tolerance)
@@ -358,7 +460,11 @@ sub download_file {
         print "    ✓ Complete (" . human_size($size) . ")\n";
         return 1;
     } else {
-        print "    ✗ Failed: " . $response->status_line . "\n";
+        my $reason
+            = !$response->is_success
+            ? $response->status_line
+            : 'file not written';
+        print "    ✗ Failed: $reason\n";
         unlink($tmpfile) if -f $tmpfile;
         return 0;
     }
@@ -401,8 +507,8 @@ USAGE
     exit(0);
 }
 
-#,,..,.,,,..,,,,.,,,.,,,.,,..,,.,,,,.,,,.,..,,.,.,...,...,...,,,.,,.,,,,,,,,,,
-#J54ALSXHKIWOGUDIJ4DV7S65ZTR3ODL7FC3UGL3DZLGVVYDEG7IRQG3QYM74SAFC54B4DN4J2BUKE
-#\\\|OXX6TUIPLXJ3KQ374WPHKDDTKCLKMVMFVQ5QNAZLGRKK6JIJCDS \ / AMOS7 \ YOURUM ::
-#\[7]UCRQEFCY755C5CJPQCIRWURU2NMBEYSNFWNTEN5WDY6TRUZZ7UCI 7  DATA SIGNATURE ::
+#,,,.,.,,,.,,,,,.,..,,,.,,.,.,,..,.,.,,,,,,.,,.,.,...,..,,,..,.,,,,.,,...,,,.,
+#RNJCMQC23USJPR3C44N5AN6WR2WRNW5M35MIE24LFTGLXIDJSJETFNI5UJKJ6WYGIQX34CJ443FPS
+#\\\|V56LCO4BB5NXCI7DT26MNKJ72G3LFGVLTLHMKLQFOJY44MQRU7O \ / AMOS7 \ YOURUM ::
+#\[7]LUAFLMEMHEY6FZSZRKCHGESCMYVXPJJG7IBPUMHGTTNI46GQ5MAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
