@@ -1,0 +1,100 @@
+## [:< ##
+
+# name  = coding.tools.handler.remove_file
+# descr = move file to trash directory [ recoverable delete ]
+
+my $args = shift // {};
+
+my $path   = $args->{'path'}   // '';
+my $reason = $args->{'reason'} // 'no reason given';
+
+return { 'content' => 'path required' }
+    unless length $path;
+
+my $root      = <system.root_path>;
+my $real_root = Cwd::abs_path($root) // '';
+
+## resolve path ##
+my $abs_path  = "$root/$path";
+my $real_path = Cwd::abs_path($abs_path) // '';
+
+return { 'content' => 'error: path escapes project root' }
+    if !length $real_path
+    or index( $real_path, "$real_root/" ) != 0;
+
+return { 'content' => "error: file not found: $path" }
+    unless -f $real_path;
+
+## safety: refuse to delete critical files ##
+my @protected = qw| CLAUDE.md bin/Protocol-7 |;
+for my $p (@protected) {
+    if ( $real_path eq Cwd::abs_path("$root/$p") ) {
+        return {
+            'content' => "error: refusing to delete protected file: $p" };
+    }
+}
+
+## prepare trash directory ##
+my $trash_base = '/var/protocol-7/coding/trash';
+<[file.path.make_dir]>->($trash_base) unless -d $trash_base;
+
+## create timestamped backup name ##
+my $timestamp  = <[base.time]>->(3);
+my $basename   = <[file.basename]>->($real_path);
+my $trash_name = sprintf( '%s.%s', $basename, $timestamp );
+my $trash_path = "$trash_base/$trash_name";
+
+## unlink needs write on parent directory ##
+my $file_dir = $real_path =~ s|/[^/]+$||r;
+
+## use chmod child for directory permissions ##
+my $chmod_fh = <coding.chmod_child.w_fh>;
+my $restore_mode;
+
+if ( defined $chmod_fh && !-w $file_dir ) {
+    $restore_mode = ( stat $file_dir )[2] // 0755;
+    $restore_mode &= 07777;
+    print {$chmod_fh} "gwd $file_dir\n";
+    select undef, undef, undef, 0.02;
+}
+
+## copy to trash before removing ##
+my $content = <[file.read]>->($real_path);
+<[file.put]>->( $trash_path, \$content );
+
+if ( !-f $trash_path ) {
+    return { 'content' => 'error: failed to create backup in trash' };
+}
+
+## remove original ##
+my $ok  = unlink $real_path;
+my $err = <[base.str.os_err]>;
+
+## restore directory permissions ##
+if ( defined $restore_mode && defined $chmod_fh ) {
+    print {$chmod_fh} sprintf "restore %04o %s\n", $restore_mode, $file_dir;
+}
+
+if ($ok) {
+    <[base.logs]>->(
+        1, ':. remove_file: %s -> trash/%s [ %s ]',
+        $path, $trash_name, $reason
+    );
+    return {
+        'content' => sprintf(
+            "removed %s [ backed up to trash/%s, reason: %s ]",
+            $path, $trash_name, $reason
+        ),
+    };
+}
+
+<[base.logs]>->( 0, ':. remove_file: unlink failed %s : %s', $path, $err );
+
+return { 'content' =>
+        "error: delete failed: $err [ backup exists at trash/$trash_name ]" };
+
+#,,,.,,,.,,,,,...,,.,,.,,,.,,,.,.,.,.,..,,.,,,.,.,...,...,...,,.,,...,,,.,.,,,
+#HQN4MGPOOQCUTQMVDUSCCV7MCMIRR3X5Y3FDAMSFMLHLXMFEX76IKR2ZBFTUG7KFFQBCVBVSDO5I4
+#\\\|RR5IS37KZFN2HSVVMWH35QYJ62R76LCMTG66OVHDSQXS3FVCM22 \ / AMOS7 \ YOURUM ::
+#\[7]IN5IJW4DU464HPC66CAYVE3PGO2474NWASJAALMLQD4AF2VBOQDA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

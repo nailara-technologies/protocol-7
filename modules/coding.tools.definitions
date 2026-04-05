@@ -730,6 +730,64 @@ push @tools,
     },
     };
 
+## file_rename — rename or move a file within the project ##
+if ( exists $code{'coding.tools.handler.file_rename'} ) {
+    push @tools,
+        {
+        'type'     => 'function',
+        'function' => {
+            'name'        => 'file_rename',
+            'description' => 'rename or move a file within the project'
+                . ' [ both paths must stay inside project root ]',
+            'parameters' => {
+                'type'       => 'object',
+                'properties' => {
+                    'source' => {
+                        'type'        => 'string',
+                        'description' =>
+                            'current file path relative to project root'
+                    },
+                    'target' => {
+                        'type'        => 'string',
+                        'description' =>
+                            'new file path relative to project root'
+                    },
+                },
+                'required' => [ 'source', 'target' ],
+            },
+        },
+        };
+}
+
+## remove_file — move file to trash [ recoverable delete ] ##
+if ( exists $code{'coding.tools.handler.remove_file'} ) {
+    push @tools,
+        {
+        'type'     => 'function',
+        'function' => {
+            'name'        => 'remove_file',
+            'description' =>
+                'delete a file by moving it to trash [ recoverable ]'
+                . ' [ use for cleanup of obsolete or generated files ]',
+            'parameters' => {
+                'type'       => 'object',
+                'properties' => {
+                    'path' => {
+                        'type'        => 'string',
+                        'description' => 'file path relative to project root'
+                    },
+                    'reason' => {
+                        'type'        => 'string',
+                        'description' =>
+                            'reason for deletion [ logged for audit ]'
+                    },
+                },
+                'required' => ['path'],
+            },
+        },
+        };
+}
+
 ## write_new_file — create a new file [ refuses to overwrite ] ##
 push @tools,
     {
@@ -1189,8 +1247,8 @@ if ( exists $code{'coding.tools.handler.decode_base32'} ) {
 
 return \@tools;
 
-#,,.,,...,,..,.,,,..,,.,.,,.,,.,.,,.,,..,,.,.,..,,...,...,...,...,..,,.,.,..,,
-#KH67AFTZEXGRHV6DE54JYFWXI4ACECBYP5EDLGZ6EIOIXTZKVJTHUQKFREYYRZJCL6JOBQWS4SAN2
-#\\\|XN4MRZCR4EYFTLBT5QUMJWRJVJ7D5ZN5BLUBWC5RKG2YW46732T \ / AMOS7 \ YOURUM ::
-#\[7]5Z3TARIK4QRGLDSZEURV2A2YWHKBE4TKJIYUURU5GNIASPNG7GAA 7  DATA SIGNATURE ::
+#,,.,,,..,,.,,,..,,..,.,,,.,.,.,.,...,,,.,.,.,..,,...,...,.,.,..,,,.,,,..,,..,
+#FK2VFXKQTFEG3NTSFJ47SEPCKW4ET4I3W72SL76BK5GPC3CFFPXPYB23TGOIODNOAGIPGOOHYAQ5G
+#\\\|E25BRAHMM2Z6KQ5VNICASQWCPPDX4SWCRR6MC4TZPPWXWDI4FAU \ / AMOS7 \ YOURUM ::
+#\[7]XVGDS4EZGKUBY7F6LQYDC4UM5FVURHD2TZ5I25KMJNHVWXS3PCDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

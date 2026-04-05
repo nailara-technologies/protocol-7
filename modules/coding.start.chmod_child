@@ -51,6 +51,14 @@ while ( my \$line = <STDIN> ) {
         next if not defined \$gid or \$gid != \$admin_gid;
         my \$cur = ( stat \$path )[2] & 07777;
         chmod( \$cur | 0020, \$path );
+    } elsif ( \$line =~ m|^gwd (.+)\$| ) {
+        ## grant group-write on directory ##
+        my \$path = \$1;
+        next if not -d \$path;
+        my \$gid = ( stat \$path )[5];
+        next if not defined \$gid or \$gid != \$admin_gid;
+        my \$cur = ( stat \$path )[2] & 07777;
+        chmod( \$cur | 0020, \$path );
     } elsif ( \$line =~ m|^create (.+)\$| ) {
         my \$path = \$1;
         next if -e \$path;
@@ -66,7 +74,7 @@ while ( my \$line = <STDIN> ) {
         }
     } elsif ( \$line =~ m|^restore (\\d+) (.+)\$| ) {
         my ( \$mode, \$path ) = ( oct(\$1), \$2 );
-        next if not -f \$path;
+        next if not -e \$path;
         chmod( \$mode, \$path );
     }
 }
@@ -88,8 +96,8 @@ EOT
     <coding.chmod_child.pid>, $admin_group, $admin_gid
 );
 
-#,,..,,.,,,.,,,..,,,.,.,,,..,,,..,,..,.,,,.,,,.,.,...,...,,,,,,..,..,,...,,.,,
-#FUHUO4MVOVGPL3EYW4LPKEKX7N323C37PIVRYISJKUY3HI7LOKMRRH2GUJT7Q6R3TBPDMBGKT7GHU
-#\\\|FJQWG4IOITQFCPM3EFG4I4ACWXZS26OXH66VBHSHCPUBZNVF7EL \ / AMOS7 \ YOURUM ::
-#\[7]VJTNCJ3YH4OBKJS62GLNWGQM5KNOEJTNWUX5K4DQL3O2FG4FQIBQ 7  DATA SIGNATURE ::
+#,,.,,.,,,.,,,.,.,.,,,,,.,,,.,...,,.,,,,,,,,,,.,.,...,...,.,.,..,,..,,..,,,..,
+#33Q6SGNNYTW72AAA4XI5G2NQ44S2AHZWGR2RUAS3J7URQSE6ZLRVZIBLAZDFEIWKINDGCWAGTF5G6
+#\\\|QM3JGJ5X2C54PQVGZZJIE7XDK57ZJPYKYMZZ4RDYZJPJ3QVDOVN \ / AMOS7 \ YOURUM ::
+#\[7]6KLRHCEOHSY2MM7INV6ZU2BS2RIY6RG4EG26UBG4FQKVND3VFWCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
