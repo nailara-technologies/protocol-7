@@ -1,0 +1,102 @@
+## [:< ##
+
+# name  = note.history
+# descr = show modification history for a note section
+
+my ( $section, $task_id, $count ) = @ARG;
+
+return { 'mode' => qw| false |, 'data' => 'section required' }
+    unless defined $section && length $section;
+
+$count //= 5;
+
+$task_id //= <system.task_id> // 'unknown';
+my $workspace_dir
+    = <[file.zenka_dir.data_path]> . "/notes/$task_id/workspace";
+
+return { 'mode' => qw| false |, 'data' => "task not found: $task_id" }
+    unless -d $workspace_dir;
+
+## sanitize section name ##
+$section =~ s|[^a-zA-Z0-9._-]|_|g;
+my $note_file = "$workspace_dir/$section.md";
+
+return { 'mode' => qw| false |, 'data' => "section not found: $section" }
+    unless -f $note_file;
+
+my $content = <[file.read]>->($note_file);
+
+## split on --- separator ##
+my @entries;
+my $current_entry = '';
+my @lines         = split /\n/, $content;
+
+for my $line (@lines) {
+    if ( $line =~ m|^---$| && length $current_entry ) {
+        if (
+            $current_entry =~ m|^## (\d{4}-\d{2}-\d{2}\s+\d{2}:\d{2}:\d{2})| )
+        {
+            my $timestamp = $1;
+            my $preview   = $current_entry;
+            $preview =~ s|[\x00-\x08\x0b\x0c\x0e-\x1f\x7f]||g;
+            $preview = substr( $preview, 0, 100 );
+            push @entries,
+                {
+                'timestamp' => $timestamp,
+                'preview'   => $preview,
+                };
+        }
+        $current_entry = '';
+    } else {
+        $current_entry .= "$line\n";
+    }
+}
+
+## handle last entry ##
+if ( length $current_entry
+    && $current_entry =~ m|^## (\d{4}-\d{2}-\d{2}\s+\d{2}:\d{2}:\d{2})| ) {
+    my $timestamp = $1;
+    my $preview   = $current_entry;
+    $preview =~ s|[\x00-\x08\x0b\x0c\x0e-\x1f\x7f]||g;
+    $preview = substr( $preview, 0, 100 );
+    push @entries,
+        {
+        'timestamp' => $timestamp,
+        'preview'   => $preview,
+        };
+}
+
+## reverse to get newest first ##
+@entries = reverse @entries;
+
+## limit to count ##
+splice @entries, $count if @entries > $count;
+
+## format as string result ##
+my @lines_out;
+for my $entry (@entries) {
+    push @lines_out,
+        sprintf( "[%s] %s",
+        $entry->{'timestamp'} // '?',
+        $entry->{'preview'}   // '',
+        );
+}
+
+my $result_str = join( "\n", @lines_out );
+
+<[base.logs]>->(
+    3,
+    "note.history: returned %d entries for %s",
+    scalar @entries, $section
+);
+
+return {
+    'mode' => qw| size |,
+    'data' => length $result_str ? $result_str : 'no history entries found',
+};
+
+#,,..,.,.,,,,,,..,..,,.,,,,.,,,,,,...,,.,,.,,,.,.,...,...,.,,,..,,.,,,.,,,..,,
+#VP7RLUBX5R2M2U3QURLF7IWJOVA4GW6WVIPXIHK7OW3JGXMXQVYA7WJDAI426LZFRE6SDPLB26M3K
+#\\\|3BF7NNHMGJ3RE76ZOTVQKCBXIS2R6VRW5FU52WIUXUB65DFEBVF \ / AMOS7 \ YOURUM ::
+#\[7]2OQMGJ47ZWS7OF3CSY6YYVTUE5VSLCS75WHS3Z6ZPGICOK2ZTAAI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,0 +1,86 @@
+## [:< ##
+
+# name  = note.recent
+# descr = list recent notes across all tasks
+
+my ( $count, $section_filter ) = @ARG;
+
+$count //= 10;
+
+my $notes_base = <[file.zenka_dir.data_path]> . '/notes';
+
+return { 'mode' => qw| false |, 'data' => 'notes base not found' }
+    unless -d $notes_base;
+
+my @entries;
+
+## scan all task directories ##
+my @task_dirs = <[file.glob]>->("$notes_base/*")->@*;
+for my $task_dir (@task_dirs) {
+    next unless -d $task_dir;
+    my $task_id = <[file.basename]>->($task_dir);
+    next unless length $task_id;
+
+    my $meta_file = "$task_dir/.meta";
+    next unless -f $meta_file;
+
+    my $meta
+        = eval { JSON::PP::decode_json( <[file.read]>->($meta_file) ) };
+    next unless ref $meta eq qw| HASH | && defined $meta->{'last_update'};
+
+    my $workspace_dir = "$task_dir/workspace";
+    next unless -d $workspace_dir;
+
+    my @section_files = <[file.glob]>->("$workspace_dir/*.md")->@*;
+    for my $section_file (@section_files) {
+        next unless -f $section_file;
+        my $sec = <[file.basename]>->($section_file);
+        $sec =~ s|\.md$||;
+        next unless length $sec;
+        next if defined $section_filter && $sec ne $section_filter;
+
+        ## read preview ##
+        my $preview = <[file.read]>->($section_file);
+        $preview = substr( $preview, 0, 80 );
+        $preview =~ s|\n| |g;
+
+        push @entries,
+            {
+            'task_id'     => $task_id,
+            'section'     => $sec,
+            'last_update' => $meta->{'last_update'},
+            'preview'     => $preview,
+            };
+    }
+}
+
+## sort by last_update descending ##
+@entries
+    = sort { ( $b->{'last_update'} // 0 ) <=> ( $a->{'last_update'} // 0 ) }
+    @entries;
+
+## limit to count ##
+splice @entries, $count if @entries > $count;
+
+## format as string result ##
+my @lines;
+for my $entry (@entries) {
+    push @lines,
+        sprintf( "%s/%s [%s] %s",
+        $entry->{'task_id'},            $entry->{'section'},
+        $entry->{'last_update'} // '?', $entry->{'preview'} // '',
+        );
+}
+
+my $result_str = join( "\n", @lines );
+
+return {
+    'mode' => qw| size |,
+    'data' => length $result_str ? $result_str : 'no recent notes found',
+};
+
+#,,.,,.,.,,,,,,,.,.,,,...,,,.,..,,,..,,..,,.,,.,.,...,..,,.,.,...,,..,,,.,,.,,
+#INTJLADHS4PAT2INLY4WUHKTADZ3TWDOOV55SBEAGOQZLODVJKPRSLLK2W3LWJGT2ZUKHCBNE2OZQ
+#\\\|L55E7M2RSR2MM77HVEGXEXGQHE3CS5KD3XOAO2HZUAHAVANHUV4 \ / AMOS7 \ YOURUM ::
+#\[7]WLWLOWISVVNHOARVNQWCGGTYSS7XQMBWYNIERDDMOLVGBNOJOIAA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

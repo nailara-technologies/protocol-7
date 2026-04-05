@@ -1,0 +1,103 @@
+## [:< ##
+
+# name  = note.filter
+# descr = multi-criteria filtering across notes
+
+my ( $tag, $section, $after, $task_id ) = @ARG;
+
+my $notes_base = <[file.zenka_dir.data_path]> . '/notes';
+
+return { 'mode' => qw| false |, 'data' => 'notes base not found' }
+    unless -d $notes_base;
+
+my @results;
+
+## build section map from all tasks ##
+my @task_dirs = <[file.glob]>->("$notes_base/*")->@*;
+for my $task_dir (@task_dirs) {
+    next unless -d $task_dir;
+    my $tid = <[file.basename]>->($task_dir);
+    next unless length $tid;
+
+    ## task_id filter ##
+    next if defined $task_id && $tid ne $task_id;
+
+    my $meta_file = "$task_dir/.meta";
+    next unless -f $meta_file;
+
+    my $meta
+        = eval { JSON::PP::decode_json( <[file.read]>->($meta_file) ) };
+    next unless ref $meta eq qw| HASH | && defined $meta->{'last_update'};
+
+    ## after date filter ##
+    next if defined $after && $meta->{'last_update'} <= $after;
+
+    my $workspace_dir = "$task_dir/workspace";
+    next unless -d $workspace_dir;
+
+    my $tags = ref $meta->{'tags'} eq qw| HASH | ? $meta->{'tags'} : {};
+
+    my @section_files = <[file.glob]>->("$workspace_dir/*.md")->@*;
+    for my $section_file (@section_files) {
+        next unless -f $section_file;
+        my $sec = <[file.basename]>->($section_file);
+        $sec =~ s|\.md$||;
+        next unless length $sec;
+
+        ## section pattern filter ##
+        next if defined $section && $sec !~ m|$section|i;
+
+        ## tag filter ##
+        my $sec_tags = $tags->{$sec} // [];
+        next if defined $tag && !grep { $ARG eq lc $tag } @{$sec_tags};
+
+        ## read preview ##
+        my $preview = <[file.read]>->($section_file);
+        $preview = substr( $preview, 0, 60 );
+        $preview =~ s|\n| |g;
+
+        push @results,
+            {
+            'task_id'     => $tid,
+            'section'     => $sec,
+            'last_update' => $meta->{'last_update'},
+            'tags'        => $sec_tags,
+            'preview'     => $preview,
+            };
+    }
+}
+
+## sort by last_update descending ##
+@results
+    = sort { ( $b->{'last_update'} // 0 ) <=> ( $a->{'last_update'} // 0 ) }
+    @results;
+
+## format as string result ##
+my @lines;
+for my $entry (@results) {
+    my $tag_str
+        = @{ $entry->{'tags'} }
+        ? ' [' . join( ',', @{ $entry->{'tags'} } ) . ']'
+        : '';
+    push @lines,
+        sprintf( "%s/%s [%s]%s %s",
+        $entry->{'task_id'}, $entry->{'section'},
+        $entry->{'last_update'} // '?',
+        $tag_str, $entry->{'preview'} // '',
+        );
+}
+
+my $result_str = join( "\n", @lines );
+
+<[base.logs]>->( 3, "note.filter: returned %d sections", scalar @results );
+
+return {
+    'mode' => qw| size |,
+    'data' => length $result_str ? $result_str : 'no matching notes found',
+};
+
+#,,,.,,.,,,.,,,.,,,.,,,.,,,.,,.,,,..,,.,.,,.,,.,.,...,...,.,,,,,.,...,,..,.,,,
+#RLRG2NQDP3PBHC3RVFZFWJMZ7V2RRNR3PUEVNL2YOLG3A232G2NZP7XKCVWPAH57TJPNM7NGNS6TK
+#\\\|FHAEZJIV2P2FYEB2YI2DVE53CE32YZX5ZYCHJ47UZQNNYL2GNRL \ / AMOS7 \ YOURUM ::
+#\[7]7KMCM6WV6HMKJJUIE74UJAZO7V6PUKOPKKFCHHI5UXSFHHWYYOCA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

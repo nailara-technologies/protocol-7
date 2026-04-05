@@ -1,0 +1,30 @@
+## [:< ##
+
+# name  = coding.tools.handler.note_history
+# descr = show modification history for a note section
+
+my $args = shift // {};
+
+my $section = $args->{'section'} // '';
+my $task_id = $args->{'task_id'} // '';
+my $count   = $args->{'count'}   // 5;
+
+return { 'content' => 'section required' }
+    unless length $section;
+
+## call backend ##
+my $result = <[note.history]>->(
+    $section, length $task_id ? $task_id : undef, $count,
+);
+
+return {
+    'content' => $result->{'mode'} ne qw| false |
+    ? $result->{'data'}
+    : "Failed: " . ( $result->{'data'} // 'unknown' ),
+};
+
+#,,.,,.,.,,..,.,.,,..,,..,..,,,,.,.,.,,,.,,..,.,.,...,...,,,.,,,.,.,,,...,,,.,
+#YYHGPKPRHGSVZLQ7CJWFRURKJUB2TAL2Y6TZ563H56TBMJNJ2OUPTQNJQST6OXTDM364D2F4D4I6Q
+#\\\|7DE45JUZ7QKFJA64CL6M5YHWKTA3JNDMO2DJCQNKGWGMTQUTQNE \ / AMOS7 \ YOURUM ::
+#\[7]GY3CTIF3VXTDDB4EMCQMJGX6WASQTBLNFAQ3PZUFQGKEXDYJ7ICY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

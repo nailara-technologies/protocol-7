@@ -1,0 +1,29 @@
+## [:< ##
+
+# name  = coding.tools.handler.note_tag
+# descr = add tags to a note section
+
+my $args = shift // {};
+
+my $section = $args->{'section'} // '';
+my $tags    = $args->{'tags'}    // '';
+my $task_id = $args->{'task_id'} // '';
+
+return { 'content' => 'section and tags required' }
+    unless length $section && length $tags;
+
+## call backend ##
+my $result
+    = <[note.tag]>->( $section, $tags, length $task_id ? $task_id : undef );
+
+return {
+    'content' => $result->{'mode'} eq qw| true |
+    ? $result->{'data'}{'message'}
+    : "Failed: " . ( $result->{'data'} // 'unknown' ),
+};
+
+#,,,.,...,.,.,,.,,,,.,,..,,.,,.,,,,..,.,,,...,.,.,...,...,,,,,..,,.,,,.,,,...,
+#DUPN5EQ4MVWCGMTG2WUNS2SED5N3YPJ7O6GDZXTRU7AJFVSCPW3EE2YHJYK2YWCCMPST2K7UYO5MI
+#\\\|3T4N47QXUGWDPSRMELDBZWL66CMBCZ6G7S24IJ6F4HVF6CHOBQO \ / AMOS7 \ YOURUM ::
+#\[7]BKYBCBZOBQHJ73EZZ5SG4RU6GVF7MSRQVFH7UCY67C2FLM3I2KDQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

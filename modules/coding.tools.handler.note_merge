@@ -1,0 +1,29 @@
+## [:< ##
+
+# name  = coding.tools.handler.note_merge
+# descr = combine notes from multiple sections or tasks
+
+my $args = shift // {};
+
+my $sources = $args->{'sources'}        // '';
+my $target  = $args->{'target_section'} // '';
+my $task_id = $args->{'task_id'}        // '';
+
+return { 'content' => 'sources and target_section required' }
+    unless length $sources && length $target;
+
+## call backend ##
+my $result = <[note.merge]>
+    ->( $sources, $target, length $task_id ? $task_id : undef, );
+
+return {
+    'content' => $result->{'mode'} eq qw| true |
+    ? $result->{'data'}
+    : "Failed: " . ( $result->{'data'} // 'unknown' ),
+};
+
+#,,..,.,,,.,,,,,,,,,.,,,,,,,,,..,,.,,,,.,,.,,,.,.,...,...,.,,,,,.,...,.,,,,..,
+#2INIJTV3GEMZCZHSPN2ZI6AXKWK5CCMXGC6G76O5JWHDEX27WL2OW5IMRJIDTIX3ZWYOBMNX6U6GS
+#\\\|TDVBEYSA627LJPZTQ5IC5ZFBRZQL4MXWZQCVA55KHF6WZEHL3TT \ / AMOS7 \ YOURUM ::
+#\[7]BJDV6SJYWKCTHEGB6VHM5KSNFCFQQIBV4RX6ZNAHBWSEPKXX7ECQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

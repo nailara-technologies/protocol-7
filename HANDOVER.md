@@ -1,6 +1,23 @@
-# Session Handover — 2026-04-04
+# Session Handover — 2026-04-05
 
 ## What Just Happened
+
+### Notes Tools Expansion — COMPLETE
+Expanded the coding zenka notes system from 7 to 12 tools. All tools tested via MCP.
+
+**New backends** (5): `note.tag`, `note.recent`, `note.filter`, `note.history`, `note.merge`
+**New handlers** (5): `coding.tools.handler.note_{tag,recent,filter,history,merge}`
+**Tool definitions**: 5 new entries in `coding.tools.definitions`
+
+**Implementation notes:**
+- Backends for list-type results use `{ mode => 'size', data => $formatted_string }` NOT arrayref
+- `$meta->{'tags'}` needs type guard (`ref eq 'HASH'`), not just `//` — legacy data may not be hashref
+- Local model (Qwen 3.5 9B) generated initial backends but consistently produced bugs:
+  missing headers, bare `basename()`, hash deref `$info{'key'}` instead of `$info->{'key'}`,
+  wrong return formats. All backends were rewritten or heavily fixed by Claude.
+- Model also couldn't find whitelist path or write to large files (tool definitions)
+
+**Task file**: `data/md/coding-tasks/notes-tools-expansion.md` — all 7 tools complete
 
 ### Async Tool Execution Loop — RESOLVED (Multi-Session Effort)
 The async coding zenka tool execution loop is now fully working. Model autonomously
