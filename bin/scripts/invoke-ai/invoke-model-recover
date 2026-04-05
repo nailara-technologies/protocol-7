@@ -251,10 +251,8 @@ sub download_models {
 }
 
 sub get_hf_repo_files {
-    my ( $ua, $repo, $revision ) = @_;
-    $revision //= 'main';
-    my $api_url = "https://huggingface.co/api/models/$repo";
-    $api_url .= "?revision=$revision" if $revision ne 'main';
+    my ( $ua, $repo ) = @_;
+    my $api_url  = "https://huggingface.co/api/models/$repo";
     my $response = $ua->get($api_url);
     return () unless $response->is_success;
     my $data = eval { JSON::PP::decode_json( $response->decoded_content ) };
@@ -265,10 +263,8 @@ sub get_hf_repo_files {
 }
 
 sub get_all_hf_repo_files {
-    my ( $ua, $repo, $revision ) = @_;
-    $revision //= 'main';
-    my $api_url = "https://huggingface.co/api/models/$repo";
-    $api_url .= "?revision=$revision" if $revision ne 'main';
+    my ( $ua, $repo ) = @_;
+    my $api_url  = "https://huggingface.co/api/models/$repo";
     my $response = $ua->get($api_url);
     return () unless $response->is_success;
     my $data = eval { JSON::PP::decode_json( $response->decoded_content ) };
@@ -279,9 +275,12 @@ sub get_all_hf_repo_files {
 }
 
 sub download_diffusers_model {
-    my ( $ua, $repo, $dest_dir, $expected_size, $revision ) = @_;
-    $revision //= 'main';
-    my @files = get_all_hf_repo_files( $ua, $repo, $revision );
+    my ( $ua, $repo, $dest_dir, $expected_size, $subfolder ) = @_;
+    my @files = get_all_hf_repo_files( $ua, $repo );
+    ## filter to subfolder if specified ##
+    if ( defined $subfolder ) {
+        @files = grep {m|^\Q$subfolder\E/|} @files;
+    }
 
     unless (@files) {
         print "  ✗ Could not list repo files\n";
@@ -294,7 +293,7 @@ sub download_diffusers_model {
 
     my ( $ok, $fail ) = ( 0, 0 );
     for my $filename (@files) {
-        my $url = "https://huggingface.co/$repo/resolve/$revision/$filename";
+        my $url      = "https://huggingface.co/$repo/resolve/main/$filename";
         my $out_path = "$dest_dir/$filename";
         make_path( dirname($out_path), { verbose => 0 } );
 
@@ -320,12 +319,19 @@ sub download_diffusers_model {
 sub download_from_hf_repo {
     my ( $ua, $url_info, $filepath, $expected_size, $model ) = @_;
     my $repo       = $url_info->{'repo'};
-    my $revision   = $url_info->{'revision'} // 'main';
+    my $subfolder  = $url_info->{'subfolder'};    ## undef if no :: present
     my $model_name = $url_info->{'model_name'};
     my $outdir     = dirname($filepath);
 
-    ## query HF API for actual file list, split top-level vs component paths ##
-    my @all_files  = get_hf_repo_files( $ua, $repo, $revision );
+    ## query HF API for file list (always main branch) ##
+    my @all_files = get_hf_repo_files( $ua, $repo );
+
+    ## if subfolder set, filter to files within it ##
+    ## :: means subdir, not git revision — urls always use resolve/main/ ##
+    if ( defined $subfolder ) {
+        @all_files = grep {m|^\Q$subfolder\E/|} @all_files;
+    }
+
     my @top_files  = grep { !m|/| } @all_files;
     my @comp_files = grep {m|/|} @all_files;
 
@@ -334,8 +340,7 @@ sub download_from_hf_repo {
             . scalar(@top_files)
             . " top-level model file(s) via API\n";
         for my $filename (@top_files) {
-            my $url
-                = "https://huggingface.co/$repo/resolve/$revision/$filename";
+            my $url = "https://huggingface.co/$repo/resolve/main/$filename";
             my $out_path = "$outdir/$filename";
             print "  Trying: $url\n";
             my $success
@@ -347,21 +352,25 @@ sub download_from_hf_repo {
         ## use stored path (UUID) if available, otherwise model name ##
         my $dest_name = $model->{'path'} // $model_name;
         my $dest_dir  = "$OUTPUT_DIR/$dest_name";
+        ## pass subfolder so diffusers download uses correct paths ##
         return download_diffusers_model( $ua, $repo, $dest_dir,
-            $expected_size, $revision );
+            $expected_size, $subfolder );
     }
 
     ## fall back to guessing common filenames (covers API failure + empty repo) ##
+    my $prefix           = defined $subfolder ? "$subfolder/" : '';
     my @filenames_to_try = (
-        "$model_name.safetensors",             "model.safetensors",
-        "diffusion_pytorch_model.safetensors", "pytorch_model.safetensors",
+        "${prefix}$model_name.safetensors",
+        "${prefix}model.safetensors",
+        "${prefix}diffusion_pytorch_model.safetensors",
+        "${prefix}pytorch_model.safetensors",
     );
     if ( $model_name =~ /^(.*?)_v?\d+/ ) {
-        push @filenames_to_try, "$1.safetensors";
+        push @filenames_to_try, "${prefix}$1.safetensors";
     }
 
     for my $filename (@filenames_to_try) {
-        my $url = "https://huggingface.co/$repo/resolve/$revision/$filename";
+        my $url = "https://huggingface.co/$repo/resolve/main/$filename";
         print "  Trying: $url\n";
         my $success = download_file( $ua, $url, $filepath, $expected_size );
         return 1 if $success;
@@ -482,14 +491,14 @@ sub get_download_url {
     ## HuggingFace repo ID - construct download URL for main model file
     if ( $m->{'source_type'} eq 'hf_repo_id' ) {
         my $source = $m->{'source'};
-        ## invokeai appends ::variant to encode branch/revision ##
-        ## e.g. InvokeAI/clip-vit-large-patch14-text-encoder::bfloat16 ##
-        my ( $repo, $revision ) = split /::/, $source, 2;
-        $revision //= 'main';
+        ## invokeai appends ::subfolder to select a subdirectory, not a git ref ##
+        ## e.g. InvokeAI/clip-vit-large-patch14-text-encoder::bfloat16 means ##
+        ##      the bfloat16/ subdirectory within the main branch of the repo  ##
+        my ( $repo, $subfolder ) = split /::/, $source, 2;
         return {
             'type'       => 'hf_repo',
             'repo'       => $repo,
-            'revision'   => $revision,
+            'subfolder'  => $subfolder,       ## undef if no :: present
             'model_name' => $m->{'name'},
             'path'       => $m->{'path'},
             'format'     => $m->{'format'},
@@ -504,12 +513,39 @@ sub download_file {
     my $tmpfile = "$filepath.tmp";
 
     make_path( dirname($tmpfile), { verbose => 0 } );
-    my $response = $ua->get( $url, ':content_file' => $tmpfile );
 
-    if ( $response->is_success && -f $tmpfile ) {
+    ## resume partial download if .tmp exists ##
+    my $offset = ( -f $tmpfile ) ? ( -s $tmpfile ) : 0;
+
+    if ( $offset > 0 ) {
+        print "    resuming from " . human_size($offset) . "\n";
+    }
+
+    open my $fh, $offset ? '>>' : '>', $tmpfile
+        or do { print "    ✗ Cannot open tmpfile: $!\n"; return 0 };
+
+    my %extra_headers = $offset ? ( 'Range' => "bytes=$offset-" ) : ();
+
+    my $response = $ua->get( $url, %extra_headers,
+        ':content_cb' => sub { print $fh $_[0] }, );
+    close $fh;
+
+    ## server ignored range request — restart from scratch ##
+    if ( $offset > 0 && $response->code == 200 ) {
+        print "    server does not support resume, restarting\n";
+        unlink $tmpfile;
+        open $fh, '>', $tmpfile
+            or do { print "    ✗ Cannot open tmpfile: $!\n"; return 0 };
+        $response
+            = $ua->get( $url, ':content_cb' => sub { print $fh $_[0] } );
+        close $fh;
+    }
+
+    if ( ( $response->is_success || $response->code == 206 ) && -f $tmpfile )
+    {
         my $size = -s $tmpfile;
 
-        ## Verify size (within 1% tolerance)
+        ## verify size (within 1% tolerance) ##
         if ( $expected_size
             && abs( $size - $expected_size ) > $expected_size * 0.01 ) {
             print "    Warning: Size mismatch (got "
@@ -571,8 +607,8 @@ USAGE
     exit(0);
 }
 
-#,,,.,,,,,.,.,.,.,,.,,,,,,...,...,,,,,...,...,.,.,...,...,.,,,..,,.,.,,,,,...,
-#HOINC5LHRYRHTJGOXM533U2R7GBYZG3ZE23A7B7WUSNVSCHJ7BP6RQTNLGW6OFEMVGD66JITK44TY
-#\\\|IRCBWKLCEFX4CBEQCW6JNHIXXXV5X7CSUUOZYERTNWXWV674WFV \ / AMOS7 \ YOURUM ::
-#\[7]47UUJYLP5HBBR2AJERP72WGAUG2HNE763AWBHIDTIDKK5AZRZGDQ 7  DATA SIGNATURE ::
+#,,..,..,,.,.,,.,,.,.,..,,.,.,,,,,.,,,.,.,..,,.,.,...,...,...,.,,,,.,,,..,,,,,
+#UVMWXLJ2XPUDI5OY4WCF66AK4E7IZQ3M7MBV4EPZGSKUQYIZREYNMVGT7QLMTBDMIWZDCDHHZEA7C
+#\\\|LQL4YTX42HLLZMAONSFZIGMIIOQXGXZHMVNM5SLZXPOUBSPZDK6 \ / AMOS7 \ YOURUM ::
+#\[7]3GXUH2LZMFXI443OFZO6367PD2QWKASBGIRYBHZHP732S2UMVQCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
