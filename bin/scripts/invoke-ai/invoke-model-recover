@@ -323,11 +323,19 @@ sub download_from_hf_repo {
     my $model_name = $url_info->{'model_name'};
     my $outdir     = dirname($filepath);
 
+    ## :: can mean either a subdirectory OR a specific filename ##
+    ## if it ends with a model extension, download it directly ##
+    if ( defined $subfolder
+        && $subfolder =~ /\.(safetensors|ckpt|bin|pt|gguf)$/i ) {
+        my $url = "https://huggingface.co/$repo/resolve/main/$subfolder";
+        print "  Direct file: $url\n";
+        return download_file( $ua, $url, $filepath, $expected_size );
+    }
+
     ## query HF API for file list (always main branch) ##
     my @all_files = get_hf_repo_files( $ua, $repo );
 
-    ## if subfolder set, filter to files within it ##
-    ## :: means subdir, not git revision — urls always use resolve/main/ ##
+    ## if subfolder set, filter to files within that subdirectory ##
     if ( defined $subfolder ) {
         @all_files = grep {m|^\Q$subfolder\E/|} @all_files;
     }
@@ -607,8 +615,8 @@ USAGE
     exit(0);
 }
 
-#,,,,,..,,...,,..,,.,,..,,,..,,,,,,..,.,,,,,.,.,.,...,..,,,.,,.,,,,,.,,,.,.,.,
-#HJGJOV5ZU6J7YTK6IJ67W3HEYRDFKDGJEGMCZYAC73HXD54LGRJZ2WMEDCORHSUFN4KIKPG7CSKNM
-#\\\|T2EUSWUN7WWIZKNHKTBKJRST5SWMZA32SKLCYUOCHTZ724FHESB \ / AMOS7 \ YOURUM ::
-#\[7]A27WQXYAXDJ62O23NQDN4NGEHYGPOY6POZVOPXWEAZZVTIXG44BY 7  DATA SIGNATURE ::
+#,,,.,.,,,,,.,,..,,..,,,.,,,.,,.,,,..,,,.,.,,,.,.,...,..,,,..,...,,..,...,,,.,
+#4DQJRB73CL5FDOJMEDPIUCO7UXI2MRTQJ5OOZ7ZSCHRTFPINIF6ZK6ANRNZRKGLWRNEXRIHRCRTAY
+#\\\|2UBC6G6HS23EWVAKCAJ7PY3JLOOB2OB2LRZT27TWEZSKTZVZZBB \ / AMOS7 \ YOURUM ::
+#\[7]LVAWDILQABUXIZP7AXL33E6CP7LFNEFYZ555FH4342OMN5LJHADA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
