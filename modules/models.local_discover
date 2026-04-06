@@ -72,11 +72,13 @@ foreach my $scan_dir (@$scan_paths) {
 
                 say STDERR $filename;
 
-                ## Detect vision models by filename
+                ## detect vision models — three methods in order ##
                 my $is_vision = 0;
-                $is_vision = 1 if $filename =~ m{vl|vision}i;
 
-                ## Check for companion mmproj file in same directory
+                ## 1. filename pattern ##
+                $is_vision = 1 if $filename =~ m{vl|vision|vlm}i;
+
+                ## 2. companion mmproj file in same directory ##
                 my $mmproj_path = '';
                 my $model_dir   = $file_path;
                 $model_dir =~ s|/[^/]+$||;
@@ -84,6 +86,30 @@ foreach my $scan_dir (@$scan_paths) {
                 if (@mmproj_files) {
                     $mmproj_path = $mmproj_files[0];
                     $is_vision   = 1;
+                }
+
+                ## 3. scan gguf metadata header for embedded vision encoder ##
+                ## newer models bundle clip/vision encoder in a single gguf   ##
+                if ( !$is_vision && open( my $gfh, '<:raw', $file_path ) ) {
+                    my $header;
+                    read( $gfh, $header, 65536 );  ## first 64 KB is enough ##
+                    close($gfh);
+                    if ( defined $header
+                        && $header =~ /clip\.|vision_encoder|has_vision/i ) {
+                        $is_vision = 1;
+                    }
+                }
+
+                ## 4. check config.json for image_token_id ##
+                ## present in multimodal architectures even without mmproj ##
+                if ( !$is_vision ) {
+                    my $cfg_path = "$model_dir/config.json";
+                    if ( -f $cfg_path
+                        && open( my $cfh, '<:utf8', $cfg_path ) ) {
+                        my $cfg = do { local $/; <$cfh> };
+                        close($cfh);
+                        $is_vision = 1 if $cfg =~ /"image_token_id"/;
+                    }
                 }
 
                 ## Extract model family from path
@@ -133,8 +159,8 @@ return {
     'scanned_paths' => $scan_paths,
 };
 
-#,,,.,.,.,...,,,.,,..,..,,...,.,.,.,,,,,.,,,,,.,.,...,...,,..,..,,,.,,,,.,,..,
-#CAVNKAX5HJY367NI7GJ3ORC5SUP6JENOUHUJQO6GQXASANIPGDH36S2JLZ3ALY7SMPXFAEDLOTLIS
-#\\\|7BZBFASJHHX7T6MNHIFGTSTCTGOFJBTGT2UJGYV67ZHXEMRLNAH \ / AMOS7 \ YOURUM ::
-#\[7]SA5LFSQRMXHO5W7SWM5QJV7DLQQDS2OQEZZJ3CPP76HYETHYTCAI 7  DATA SIGNATURE ::
+#,,..,..,,.,,,,..,.,.,,.,,,.,,,.,,,.,,,,.,,,,,.,.,...,...,,..,,,.,.,.,..,,.,,,
+#3ZCVKIBA7UKHVFRCKUX3BKMXJIGVGF43EFOE346BAQV3ASQDZS6VX4SW4BQLX7Y256QCG5N7Q4QIU
+#\\\|MDHMZALLLUOFBHPERD6XRPGG6EYXQ5CBK4AYZ7TOHEPQRBJUOL4 \ / AMOS7 \ YOURUM ::
+#\[7]37ZNEC7HDRLKMTTU5LZDAKVD3J6EIDN3J7V7QUMZM6KBCAYEB4BA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
