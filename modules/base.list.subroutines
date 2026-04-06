@@ -650,6 +650,7 @@ return [ qw[
         letsencr.cmd.revoke
         letsencr.cmd.enroll
         kimi.session.create
+        kimi.intake.process
         keys.console.rename
         keys.console.remove
         keys.console.create
@@ -791,6 +792,8 @@ return [ qw[
         models.cfg.tab_width
         lm-vision.cmd.status
         kimi.wire.initialize
+        kimi.task.queue_next
+        kimi.task.queue_fail
         kimi.cmd.new-session
         keys.console.enc-key
         keys.console.dec-key
@@ -956,6 +959,7 @@ return [ qw[
         models.cmd.task_chain
         models.cmd.statistics
         menu-commands.cmd.add
+        kimi.task.queue_clear
         kimi.cmd.session-info
         kimi-web.cmd.dispatch
         keys.read_key_archive
@@ -1143,6 +1147,7 @@ return [ qw[
         logo-display.init_code
         letsencr.child.get_jwk
         letsencr.base.pre_init
+        kimi.task.queue_status
         keys.console.duplicate
         io.ip.tcp.output.close
         index.cmd.add-wordlist
@@ -1315,6 +1320,7 @@ return [ qw[
         letsencr.child.acme_new
         letsencr.base.post_init
         letsencr.base.init_code
+        kimi.task.queue_enqueue
         kimi.handler.ws_message
         keys.console.github-pat
         jobqueue.queue_template
@@ -1497,6 +1503,7 @@ return [ qw[
         letsencr.extract_aia_url
         letsencr.child.init_code
         letsencr.base.check_dirs
+        kimi.task.queue_complete
         kimi.handler.pre_connect
         kimi-web.cmd.spawn_agent
         kimi-web.cmd.list_agents
@@ -1669,6 +1676,7 @@ return [ qw[
         letsencr.parent.init_code
         letsencr.child.create_jws
         letsencr.child.acme_renew
+        kimi.helper.task_priority
         jobqueue.priorities_table
         jobqueue.joblist_template
         io.unix.socket.input.open
@@ -2004,6 +2012,7 @@ return [ qw[
         lm-vision.cmd.get_debug_log
         lm-vision.cmd.analyze_image
         letsencr.child.generate_csr
+        kimi.event.on_task_complete
         kimi.connect.schedule_retry
         keys.write_key_archive_file
         keys.console.get-sp-pub-key
@@ -2719,6 +2728,7 @@ return [ qw[
         letsencr.child.acme_http_request
         letsencr.child.acme_create_order
         kimi.session.reset_and_reconnect
+        kimi.handler.process-queued-task
         kimi-web.internal.http_post_sync
         keys.console.keys-backup-archive
         image2html.base.write_image_html
@@ -3452,8 +3462,8 @@ return [ qw[
     ]
 ];
 
-#,,,.,.,.,,.,,,..,..,,..,,..,,..,,,.,,...,.,.,.,.,...,...,...,,,,,...,,..,,..,
-#JQLKSUNEHQYL7KQPTK7UWHBTFXYHU2K62FWJKSS5R67LH47J6ZMVUXRFTNND6FTFKCCQ2N4ANAWXI
-#\\\|7ZQFKGKGGIY4KFAGY5RL5L4NF6EGYSASQTK45CW3WEWZPP6KEFD \ / AMOS7 \ YOURUM ::
-#\[7]IDD7Z6MX2DF2UHEJQCZMK6CMYSO32PMFNLAE46KYIPHXIU6RNCBQ 7  DATA SIGNATURE ::
+#,,..,...,,..,,,,,...,,.,,..,,..,,..,,,..,,,,,.,.,...,..,,.,.,.,.,.,,,,..,,.,,
+#5VYRUY5VMWFK53UZD2KNAQYLRFGKIJMCVOR7DS3GRYDQ3BSD5KRR3NTZOCE6U6X5CIDKP2MIGW4V6
+#\\\|6REUDB3PV243IZQZZNEBFFJT7KXOEWQUTXPZ5BWESPAZRTHSLCZ \ / AMOS7 \ YOURUM ::
+#\[7]WFR2K566RRRWB3PYD6BXFFUKW7NXG75FNZ6S347JKDXJFPHIE4DY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

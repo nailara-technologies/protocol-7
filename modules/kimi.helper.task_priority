@@ -1,0 +1,35 @@
+## [:< ##
+
+# name = kimi.helper.task_priority
+# descr = calculate priority for kimi task based on type and parameters
+# purpose = helper: map task types to jobqueue priority values
+
+my ( $task_type, $params ) = @ARG;
+
+$task_type //= 'general';
+$params    //= {};
+
+## map task types to base priority scores [ lower = higher priority ] ##
+my %type_priority = (
+    'critical' => -3,
+    'high'     => -1,
+    'general'  =>  0,
+    'analysis' =>  0,
+    'review'   =>  1,
+    'low'      =>  2,
+);
+
+my $priority = $type_priority{$task_type} // 0;
+
+## adjust for urgency or size ##
+$priority -= 2 if exists $params->{'urgent'} && $params->{'urgent'};
+$priority += 1
+    if exists $params->{'size'} && $params->{'size'} eq 'large';
+
+return $priority;
+
+#,,.,,,..,.,.,,,,,,,.,.,,,,..,,..,,.,,.,,,.,,,.,.,...,...,,..,.,,,,..,,,,,...,
+#ITIY6GZ7K2TATDP3R5Y74EWPBSVGSD2PVGJPXJE4GR2AXT6P7L5R3M66HWGFC4C53U73PLXNZTIKA
+#\\\|3RGXPV3CKFUVAFZCR4P7V366CZVHW73GDCPTVCHTYURXSJG2UMF \ / AMOS7 \ YOURUM ::
+#\[7]YNTMRAROH4C62YOGS3WAU5R2H6EPQWM2EPN6LUGUY4U5GTTHW6DQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
