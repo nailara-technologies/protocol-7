@@ -65,10 +65,14 @@ splice @entries, $count if @entries > $count;
 ## format as string result ##
 my @lines;
 for my $entry (@entries) {
+    my $age
+        = defined $entry->{'last_update'}
+        ? <[base.parser.duration]>->( $entry->{'last_update'} ) . ' ago'
+        : '?';
     push @lines,
         sprintf( "%s/%s [%s] %s",
-        $entry->{'task_id'},            $entry->{'section'},
-        $entry->{'last_update'} // '?', $entry->{'preview'} // '',
+        $entry->{'task_id'}, $entry->{'section'},
+        $age,                $entry->{'preview'} // '',
         );
 }
 
@@ -79,8 +83,8 @@ return {
     'data' => length $result_str ? $result_str : 'no recent notes found',
 };
 
-#,,.,,.,.,,,,,,,.,.,,,...,,,.,..,,,..,,..,,.,,.,.,...,..,,.,.,...,,..,,,.,,.,,
-#INTJLADHS4PAT2INLY4WUHKTADZ3TWDOOV55SBEAGOQZLODVJKPRSLLK2W3LWJGT2ZUKHCBNE2OZQ
-#\\\|L55E7M2RSR2MM77HVEGXEXGQHE3CS5KD3XOAO2HZUAHAVANHUV4 \ / AMOS7 \ YOURUM ::
-#\[7]WLWLOWISVVNHOARVNQWCGGTYSS7XQMBWYNIERDDMOLVGBNOJOIAA 7  DATA SIGNATURE ::
+#,,.,,...,,,,,...,,,.,,..,...,.,,,,,.,..,,,..,.,.,...,...,.,.,...,.,,,,,,,..,,
+#WEQBBNJATS4JTSDKTOOYD6DB4LFBTQDKEPJB5LGNNREYKWC2UGH64TSGOWCXZTE6AZCKTCXWHKG3A
+#\\\|4H56PMHNOHAX7WJPUERYLM4GGYVWXRX7UH6FLSKZ4MBGKJ3EJRX \ / AMOS7 \ YOURUM ::
+#\[7]UBZCIQZXEHPZTPYN73KMZ5DHTKLETVCXFMSUYK2W63TBRK56VMDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
