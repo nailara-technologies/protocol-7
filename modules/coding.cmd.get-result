@@ -12,8 +12,25 @@ return { 'mode' => qw| false |, 'data' => 'task_id required' }
 # Look up task in queue
 my $task = <coding.task.queue>->{$task_id};
 
-return { 'mode' => qw| false |, 'data' => "task not found: $task_id" }
-    unless defined $task;
+## not in memory — check disk (survives idle shutdown) ##
+if ( !defined $task ) {
+    my $result_sref
+        = <[file.zenka_dir.load]>->( "results/$task_id", ':encoding(UTF-8)' );
+    if ( defined $result_sref ) {
+        my $result   = $result_sref->$* // '';
+        my $stripped = $result;
+        $stripped =~ s/\n$//;
+        my $newlines = ( $stripped =~ tr/\n// );
+        if ( $newlines == 0 ) {
+            $result =~ s/\n$//;
+            return { 'mode' => qw| true |, 'data' => $result };
+        } else {
+            $result .= "\n" if $result !~ /\n$/;
+            return { 'mode' => qw| size |, 'data' => $result };
+        }
+    }
+    return { 'mode' => qw| false |, 'data' => "task not found: $task_id" };
+}
 
 my $status = $task->{'execution'}->{'status'} // 'unknown';
 
@@ -55,8 +72,8 @@ if ( $status eq 'completed' ) {
     };
 }
 
-#,,,,,,,.,..,,,.,,...,,.,,,,,,.,.,,.,,,,.,,,.,.,.,...,...,..,,,..,,..,,.,,.,,,
-#VPWVXAVBKTZHUX7LGJMDK2SUC5GGTIKBOET3EGWBLLMY63YYRPMXL25UDRWU336ISFH222RIIBHZ6
-#\\\|PL2I3BWRUFON2ESRU2WI6X4UON6IPDLBLXHYQXRF6CVYV6JF6KS \ / AMOS7 \ YOURUM ::
-#\[7]3GMDGDIWEREK4I6DG4V7VLLI2ANFW5546J6ISHZ5KJ2FQRUDNIAA 7  DATA SIGNATURE ::
+#,,.,,,.,,,..,,,.,...,.,,,,..,..,,,,.,.,,,..,,.,.,...,...,,..,...,,,,,..,,,,.,
+#FTUXE5QEO36QXSR3AHY6WPKKBDPPNXLCGDUQNGRIRYST5QE2YPY6RBDX4D4AO3MAZSUJKNXYEI5BO
+#\\\|A2P6LZ47KUFU4HSFDDDC74LRTEATMZDKFULGV5WUEMXBD2XGQMV \ / AMOS7 \ YOURUM ::
+#\[7]27OMWCIJXENH3TA33MHP27BB4ZWAYRNM2275UHGG6J2AE7JZUMAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
