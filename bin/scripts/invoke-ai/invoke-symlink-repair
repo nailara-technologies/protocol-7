@@ -1,0 +1,229 @@
+#!/usr/bin/perl
+## [:< ##
+# name  = invoke-symlink-repair
+# descr = create verbose-path symlinks for invoke.ai uuid-based model storage
+# usage = invoke-symlink-repair [--dry-run] [--type TYPE] [name...]
+#
+# invoke.ai loads models from {base}/{type}/{name}[.ext] paths, but the
+# recover script downloads them to {uuid}/ paths. this script creates the
+# symlinks that bridge them.
+#
+# diffusers models (dirs): {base}/{type}/{name}  ->  {uuid}
+# single-file models:      {base}/{type}/{name}.safetensors  ->  {uuid}/{file}
+
+use strict;
+use warnings;
+use utf8;
+use v5.24;
+use open ':std', ':encoding(UTF-8)';
+
+use JSON::PP;
+use Getopt::Long;
+use File::Path qw(make_path);
+use File::Basename;
+use URI::Escape qw(uri_unescape uri_escape_utf8);
+
+my ( $opt_dry_run, $opt_type, $opt_help, $opt_verbose );
+GetOptions(
+    'dry-run' => \$opt_dry_run,
+    'type=s'  => \$opt_type,
+    'verbose' => \$opt_verbose,
+    'help'    => \$opt_help,
+) or usage();
+
+usage() if $opt_help;
+
+my $DB_FILE    = $ENV{'INVOKE_DB'} // "$ENV{HOME}/.invokeai/db/invokeai.db";
+my $MODELS_DIR = $ENV{'INVOKE_MODELS_DIR'}
+    // '/mnt/ext-xfs-data/models-invoke';
+
+## skip types that use non-standard paths (windows paths, web urls, etc.) ##
+my %SKIP_TYPES = map { $_ => 1 } qw(
+    spandrel_image_to_image
+    unknown
+);
+
+## base aliases: create symlinks under ALL of these path prefixes ##
+## invoke may check multiple locations depending on version / config ##
+my %BASE_ALIASES = (
+    'sd-1'         => [qw( sd-1  sd-1.5 )],
+    'sdxl'         => [qw( sdxl )],
+    'sd-2'         => [qw( sd-2 )],
+    'sd-3'         => [qw( sd-3 )],
+    'flux'         => [qw( flux )],
+    'any'          => [qw( any )],
+    'sdxl-refiner' => [qw( sdxl-refiner )],
+);
+
+## query all models from database ##
+my $sql
+    = "SELECT name, type, source, source_type,"
+    . " json_extract(config, '\$.path') as path,"
+    . " json_extract(config, '\$.format') as format,"
+    . " json_extract(config, '\$.base') as base"
+    . " FROM models ORDER BY type, name;";
+
+my $cmd  = qq{sqlite3 "$DB_FILE" ".mode json" "$sql" 2>/dev/null};
+my $json = `$cmd`;
+unless ($json) {
+    die "cannot query database: $DB_FILE\n";
+}
+
+my $models = eval { JSON::PP::decode_json($json) };
+die "failed to parse db output: $@\n" if $@;
+
+## apply filters ##
+if ($opt_type) {
+    my %types = map { $_ => 1 } split /,/, $opt_type;
+    $models = [ grep { $types{ $_->{'type'} // '' } } @$models ];
+}
+if (@ARGV) {
+    my %wanted = map { $_ => 1 } @ARGV;
+    $models = [ grep { $wanted{ $_->{'name'} } } @$models ];
+}
+
+## remove types with non-standard paths ##
+$models = [ grep { !$SKIP_TYPES{ $_->{'type'} // 'unknown' } } @$models ];
+
+## also skip models where path looks like a windows or absolute path ##
+$models = [
+    grep {
+        my $p = $_->{'path'} // '';
+        $p !~ m|^[A-Za-z]:[\\/]|           ## windows drive letter
+            && $p !~ m|^/|                 ## absolute unix path
+            && $p ne ''
+    } @$models
+];
+
+print "Models directory: $MODELS_DIR\n";
+print "Database:         $DB_FILE\n";
+print "Dry run: YES\n" if $opt_dry_run;
+print "=" x 72 . "\n";
+
+my ( $created, $exists, $skipped, $missing_target ) = ( 0, 0, 0, 0 );
+
+for my $m (
+    sort { $a->{'type'} cmp $b->{'type'} || $a->{'name'} cmp $b->{'name'} }
+    @$models ) {
+    my $name     = uri_unescape( $m->{'name'} // '' );
+    my $type     = $m->{'type'}   // 'unknown';
+    my $base     = $m->{'base'}   // 'any';
+    my $format   = $m->{'format'} // '';
+    my $path_raw = $m->{'path'}   // '';  ## as stored in db (may contain %xx)
+
+    ## determine if this is a directory (diffusers) or single-file model ##
+    my $is_dir = ( $format eq 'diffusers' );
+
+    ## uuid target + link names ##
+    ## files may be stored with literal %xx in their names (invoke stores them  ##
+    ## that way), so we check both raw and decoded target paths and use the one ##
+    ## that actually exists; we also create symlinks under both name variants.  ##
+    my ( $target, @link_names );
+
+    if ($is_dir) {
+        $target     = "$MODELS_DIR/$path_raw";
+        @link_names = ($name);
+    } else {
+        if ( $path_raw =~ m|^([0-9a-f-]{36})/(.+)$|i ) {
+            my ( $uuid, $filename_raw ) = ( $1, $2 );
+            my $filename_dec = uri_unescape($filename_raw);
+
+            ## use whichever target path exists on disk ##
+            my $t_dec = "$MODELS_DIR/$uuid/$filename_dec";
+            my $t_raw = "$MODELS_DIR/$uuid/$filename_raw";
+            $target = ( -e $t_dec || -l $t_dec ) ? $t_dec : $t_raw;
+
+            ## deduplicate: create symlinks for both variants if they differ ##
+            my %seen;
+            @link_names
+                = grep { !$seen{$_}++ } ( $filename_dec, $filename_raw );
+        } else {
+            warn "  skipping '$name': unexpected path format: $path_raw\n"
+                if $opt_verbose;
+            $skipped++;
+            next;
+        }
+    }
+
+    ## check if target exists ##
+    unless ( -e $target || -l $target ) {
+        printf "  ✗ target missing: %s/%s  [%s]\n", $base, $type, $name
+            if $opt_verbose;
+        $missing_target++;
+        next;
+    }
+
+    ## create symlink under every base alias x every name variant ##
+    my @bases = @{ $BASE_ALIASES{$base} // [$base] };
+
+    for my $link_base (@bases) {
+        for my $lname (@link_names) {
+            my $link_path = "$MODELS_DIR/$link_base/$type/$lname";
+
+            if ( -e $link_path || -l $link_path ) {
+                printf "  • exists: %s/%s/%s\n", $link_base, $type, $lname
+                    if $opt_verbose;
+                $exists++;
+                next;
+            }
+
+            my $link_dir = dirname($link_path);
+            unless ($opt_dry_run) {
+                make_path( $link_dir, { verbose => 0 } );
+                symlink( $target, $link_path )
+                    or do {
+                    warn "  ✗ symlink failed: $link_path -> $target: $!\n";
+                    $skipped++;
+                    next;
+                    };
+            }
+
+            printf "  %s %s/%s/%s\n      -> %s\n",
+                $opt_dry_run ? '[would link]' : '✓ linked',
+                $link_base, $type, $lname,
+                $target;
+            $created++;
+        }
+    }
+}
+
+print "=" x 72 . "\n";
+printf "Summary: %d %s, %d already exist, %d target missing, %d skipped\n",
+    $created,
+    $opt_dry_run ? 'would create' : 'created',
+    $exists, $missing_target, $skipped;
+print "Run with --verbose to see all entries.\n" unless $opt_verbose;
+
+##===========================================================================##
+
+sub usage {
+    print <<'USAGE';
+usage: invoke-symlink-repair [options] [model_name...]
+
+creates {base}/{type}/{name} symlinks pointing to uuid-based model directories,
+bridging the gap between invoke.ai's expected path structure and uuid storage.
+
+options:
+    --dry-run      show what would be done, no changes
+    --type TYPE    filter by model type, comma-separated (e.g. lora,main,vae)
+    --verbose      show all entries including already-existing ones
+    --help         show this help
+
+environment:
+    INVOKE_DB           path to invokeai.db (default: ~/.invokeai/db/invokeai.db)
+    INVOKE_MODELS_DIR   models directory    (default: /mnt/ext-xfs-data/models-invoke)
+
+examples:
+    invoke-symlink-repair --dry-run           # preview all symlinks
+    invoke-symlink-repair                     # create all missing symlinks
+    invoke-symlink-repair --type lora,vae     # only lora and vae types
+    invoke-symlink-repair --verbose           # show every model including existing
+USAGE
+    exit(0);
+}
+
+#,,,.,,,,,.,,,,,,,,,.,,.,,.,.,...,,.,,.,.,..,,..,,...,...,,,.,..,,,..,...,,,.,
+#B3OLT4NPECQ7C36ITODEKHQDAEZZV3VXVIRT4TC4JMDB2MZK4GBNBBRORT3CLCK4MHJVZWUCC6IW4
+#\\\|THTRXGJUWD75YY2MBG4VD7R7IB3SWRZHFM3LLZFU44ADWGPHA2A \ / AMOS7 \ YOURUM ::
+#\[7]JSBAMFQUEIKHACIUUK2U4ZYU2AQVCE7UABND3W2B7PUSPGD6ZQCQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

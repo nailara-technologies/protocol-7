@@ -332,7 +332,21 @@ sub download_from_hf_repo {
         return download_file( $ua, $url, $filepath, $expected_size );
     }
 
-    ## query HF API for file list (always main branch) ##
+    ## diffusers-format models (bare uuid path) need ALL repo files — ##
+    ## not just model weights — so invoke can read config.json etc.   ##
+    my $is_diffusers = ( ( $url_info->{'format'} // '' ) eq 'diffusers'
+            || ( $model->{'path'} // '' ) =~ /^[0-9a-f]{8}-[0-9a-f]{4}-/i );
+
+    if ($is_diffusers) {
+        my $dest_name = $model->{'path'} // $model_name;
+        my $dest_dir  = "$OUTPUT_DIR/$dest_name";
+        print
+            "  Diffusers model — downloading all repo files to: $dest_dir\n";
+        return download_diffusers_model( $ua, $repo, $dest_dir,
+            $expected_size, $subfolder );
+    }
+
+    ## query HF API for model-file list ##
     my @all_files = get_hf_repo_files( $ua, $repo );
 
     ## if subfolder set, filter to files within that subdirectory ##
@@ -391,11 +405,17 @@ sub download_from_hf_repo {
 sub get_filename {
     my ($m) = @_;
 
-    ## use stored path if it looks like a relative filename ##
+    ## use stored path if it looks like a relative filename (has extension) ##
     if (   $m->{'path'}
         && $m->{'path'} !~ m|^/|
         && $m->{'path'} =~ /\.\w+$/ ) {
         return $m->{'path'};
+    }
+
+    ## bare uuid path = diffusers dir model; route download into uuid subdir ##
+    ## so the file lands at OUTPUT_DIR/{uuid}/model.safetensors, not the root ##
+    if ( $m->{'path'} && $m->{'path'} =~ /^[0-9a-f]{8}-[0-9a-f]{4}-/i ) {
+        return "$m->{'path'}/model.safetensors";
     }
 
     ## extract from source url ##
@@ -526,7 +546,8 @@ sub download_file {
     my $offset = ( -f $tmpfile ) ? ( -s $tmpfile ) : 0;
 
     ## .tmp already complete — just rename and return ##
-    if ( $offset > 0 && $expected_size
+    if (   $offset > 0
+        && $expected_size
         && $offset >= $expected_size * 0.99 ) {
         rename( $tmpfile, $filepath ) or die "Cannot rename: $!";
         print "    ✓ Already complete (" . human_size($offset) . ")\n";
@@ -537,7 +558,7 @@ sub download_file {
         print "    resuming from " . human_size($offset) . "\n";
     }
 
-    open my $fh, $offset ? '>>' : '>', $tmpfile
+    open my $fh, $offset ? '>>:raw' : '>:raw', $tmpfile
         or do { print "    ✗ Cannot open tmpfile: $!\n"; return 0 };
 
     my %extra_headers = $offset ? ( 'Range' => "bytes=$offset-" ) : ();
@@ -550,7 +571,7 @@ sub download_file {
     if ( $offset > 0 && $response->code == 200 ) {
         print "    server does not support resume, restarting\n";
         unlink $tmpfile;
-        open $fh, '>', $tmpfile
+        open $fh, '>:raw', $tmpfile
             or do { print "    ✗ Cannot open tmpfile: $!\n"; return 0 };
         $response
             = $ua->get( $url, ':content_cb' => sub { print $fh $_[0] } );
@@ -623,8 +644,8 @@ USAGE
     exit(0);
 }
 
-#,,,.,.,,,,.,,...,...,.,,,,,.,.,.,.,,,...,.,,,.,.,...,...,.,,,.,.,.,,,.,,,,,.,
-#YSQNCZVE6X7YNGDDAFTH7VV7NGLOESBONZHUXUWZO6DG4VCBZ6VEZFWOIUCFMSQOMZO2DZ3GRN2TW
-#\\\|5FJQPRVJ5772VG3J5DZAMLYNU7RG3Z7MNSEHDT6BRDLNCWTGP4I \ / AMOS7 \ YOURUM ::
-#\[7]PXO62XNQNMEX2ZURC5OOJQWSHNVVIL4GBB5OUH3MZO4YG7IUTEDY 7  DATA SIGNATURE ::
+#,,,.,,,,,.,.,,,.,...,...,...,.,,,.,,,,..,.,.,.,.,...,...,.,,,,,,,..,,...,...,
+#QZ4MDZMDGRQSJDOF32VSZTWU2BVFSI3JQ2ISKB7P4AIKR35VNFB2YCQQXZVWTHBOMHEAP4C4EW4XG
+#\\\|2I6TMEIND2NSHSBVPVPIVULZZOJIDXMBO7KUO3AQPDDSTMQ36CT \ / AMOS7 \ YOURUM ::
+#\[7]6WALQSHXQ2DRKYJUTR3EOHO7TOIXRCYGGPR5HHYEHR2ANHDBISBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
