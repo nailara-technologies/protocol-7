@@ -525,6 +525,14 @@ sub download_file {
     ## resume partial download if .tmp exists ##
     my $offset = ( -f $tmpfile ) ? ( -s $tmpfile ) : 0;
 
+    ## .tmp already complete — just rename and return ##
+    if ( $offset > 0 && $expected_size
+        && $offset >= $expected_size * 0.99 ) {
+        rename( $tmpfile, $filepath ) or die "Cannot rename: $!";
+        print "    ✓ Already complete (" . human_size($offset) . ")\n";
+        return 1;
+    }
+
     if ( $offset > 0 ) {
         print "    resuming from " . human_size($offset) . "\n";
     }
@@ -615,8 +623,8 @@ USAGE
     exit(0);
 }
 
-#,,,.,.,,,,,.,,..,,..,,,.,,,.,,.,,,..,,,.,.,,,.,.,...,..,,,..,...,,..,...,,,.,
-#4DQJRB73CL5FDOJMEDPIUCO7UXI2MRTQJ5OOZ7ZSCHRTFPINIF6ZK6ANRNZRKGLWRNEXRIHRCRTAY
-#\\\|2UBC6G6HS23EWVAKCAJ7PY3JLOOB2OB2LRZT27TWEZSKTZVZZBB \ / AMOS7 \ YOURUM ::
-#\[7]LVAWDILQABUXIZP7AXL33E6CP7LFNEFYZ555FH4342OMN5LJHADA 7  DATA SIGNATURE ::
+#,,,.,.,,,,.,,...,...,.,,,,,.,.,.,.,,,...,.,,,.,.,...,...,.,,,.,.,.,,,.,,,,,.,
+#YSQNCZVE6X7YNGDDAFTH7VV7NGLOESBONZHUXUWZO6DG4VCBZ6VEZFWOIUCFMSQOMZO2DZ3GRN2TW
+#\\\|5FJQPRVJ5772VG3J5DZAMLYNU7RG3Z7MNSEHDT6BRDLNCWTGP4I \ / AMOS7 \ YOURUM ::
+#\[7]PXO62XNQNMEX2ZURC5OOJQWSHNVVIL4GBB5OUH3MZO4YG7IUTEDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
