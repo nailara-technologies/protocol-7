@@ -40,6 +40,18 @@ push $aref_completed->@*, $task_id;
 
 <[base.logs]>->( 2, "task completed : %s", $task_id );
 
+## persist result to disk for recovery after idle shutdown ##
+if ( defined $result && length $result ) {
+    my $written = <[file.zenka_dir.write]>->(
+        "results/$task_id", \$result, '>', 0640, ':encoding(UTF-8)'
+    );
+    if ( defined $written ) {
+        <[base.logs]>->( 2, "task result saved to disk : %s", $task_id );
+    } else {
+        <[base.logs]>->( 0, "task result save failed : %s", $task_id );
+    }
+}
+
 # Trigger task completion event handler (checks for auto-resume)
 <[coding.event.on_task_complete]>->( $task_id, $result );
 
@@ -50,8 +62,8 @@ return {
     message => "task completed : $task_id"
 };
 
-#,,,.,.,.,,..,...,..,,.,.,.,,,,.,,,.,,.,,,,..,..,,...,...,...,.,,,,,.,..,,.,.,
-#JAINKRXNYYWO4ZSSDBTDQPYQFOI4PBNDQ4PHOZ4L4ISSDDQXWLKAME2XKFCUNXTQR4TPDT7NCQRUY
-#\\\|R2G2D4Z4INRUWABKJCLHUBEZ6AUHCHQWC67LDRAXEFWGSEX5QHR \ / AMOS7 \ YOURUM ::
-#\[7]OYG7FPCBHOLTZTDGRVBKYJSH7E6SJ5HOYZUUVST6UQDB5LIP76DQ 7  DATA SIGNATURE ::
+#,,,.,..,,..,,,..,.,.,,,,,,,.,,..,,.,,.,.,...,..,,...,...,..,,,,.,,,.,,.,,,,.,
+#OWRVGU6YC27KMUTJXMBEMR4EN6ELXZUMLZDOMBMX7O5MM7AZPTRXPA53HOE526RCXINH2TEQQIZHE
+#\\\|D2I465GVAXOD4LX64QXFKJXWNPK74XCDE6WE763GTDIKPIITOKJ \ / AMOS7 \ YOURUM ::
+#\[7]Q7KTLSCDSK4D7MD5QOP7NTHYLYPZUOBYAWCNNQ2J6GARVZVK6OAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
