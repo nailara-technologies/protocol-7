@@ -66,8 +66,18 @@ my %dispatch = (
 
     'list_files' => sub {
         return unless exists $code{'pager.source.file-list'};
+        ## resolve relative root against project root ##
+        my $req_root = $args->{'root'} // '';
+        my $abs_root
+            = length($req_root)
+            ? (
+              $req_root =~ m|^/|
+            ? $req_root
+            : <system.root_path> . '/' . $req_root
+            )
+            : <system.root_path>;
         my $source = $code{'pager.source.file-list'}->(
-            {   'root'      => $args->{'root'}      // <system.root_path>,
+            {   'root'      => $abs_root,
                 'pattern'   => $args->{'pattern'}   // '',
                 'recursive' => $args->{'recursive'} // 1,
             }
@@ -543,8 +553,8 @@ return {
     'content' => $content,
 };
 
-#,,,,,,,,,.,.,,..,,..,...,...,.,.,.,,,.,,,.,,,..,,...,...,...,,..,,,,,.,,,.,,,
-#QLIKPNTMWBEHTADR2W4I4AYA4NSZZBNTH57TZZVQIG4R2OZ6OKUDWMUTR5BX367LKYGXJITLXW6PA
-#\\\|XTLPDYDHI3IVNAZANQYLQV6C6IZG23DEUJHE4NJZTG5AWRPVPN7 \ / AMOS7 \ YOURUM ::
-#\[7]YVS5W2CW3ZNSCC3YCBJIWY3FA62YFTACK4YE5IN7RBXZYFMZRGDQ 7  DATA SIGNATURE ::
+#,,.,,...,,.,,,.,,.,,,...,,..,..,,...,.,,,.,,,..,,...,...,...,,,.,..,,..,,.,.,
+#HPXHPL372OIIKDGFYWTFHSZ3NL2IRMMSGVEUSOJRFBIKUVVSLDSPHC7U6MQARRLZMJ3PFXIXCRF7S
+#\\\|FE6DVRPGQNGFWRVEUPRPIEJRK7N65IEOLYFIYSSOX7OO4STIVTX \ / AMOS7 \ YOURUM ::
+#\[7]FBCCN3VVEYBBSI3EEWAL3MWIV3CMWPTBOLSGXHYTAYVB2677PMCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
