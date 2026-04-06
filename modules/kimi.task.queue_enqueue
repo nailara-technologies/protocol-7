@@ -1,0 +1,53 @@
+## [:< ##
+
+# name = kimi.task.queue_enqueue
+# descr = add task to queue with duplicate detection
+# purpose = queue operation: store and track new work
+
+my ($task) = @ARG;
+
+return { success => FALSE, error => 'task must be a hashref' }
+    unless ref($task) eq qw| HASH |;
+
+return { success => FALSE, error => 'task must have id' }
+    unless exists $task->{'id'};
+
+my $task_id = $task->{'id'};
+
+## get persistent storage refs ##
+my $queue_href   = <kimi.task.queue>   //= {};
+my $aref_pending = <kimi.task.pending> //= [];
+
+## prevent duplicates ##
+if ( exists $queue_href->{$task_id} ) {
+    return {
+        success       => FALSE,
+        error         => "task already in queue: $task_id",
+        existing_task => $queue_href->{$task_id}
+    };
+}
+
+## store task in kimi queue ##
+$queue_href->{$task_id} = {
+    %$task,
+    queued_at      => <[base.time]>->(3),
+    queue_position => scalar( $aref_pending->@* )
+};
+
+## add to pending list ##
+push $aref_pending->@*, $task_id;
+
+<[base.logs]>->( 2, "kimi task enqueued : %s", $task_id );
+
+return {
+    success    => TRUE,
+    task_id    => $task_id,
+    queue_size => scalar( $aref_pending->@* ),
+    message    => "task enqueued: $task_id"
+};
+
+#,,..,...,..,,..,,..,,,.,,...,,,.,,,,,,,,,,,.,.,.,...,..,,,..,..,,.,,,,..,.,.,
+#GRJNE42BMOEXZAEMFJKSC33BYS7PKYC3CXERJMKBV5NRU7755QHFC7TO36U4B2GX6RNZGGWQWRZFO
+#\\\|NOPGXE4J7CDQNRL3SHDZAM3UPCAUW25GEGJ3ZNUAJWEPEID4TNG \ / AMOS7 \ YOURUM ::
+#\[7]CV6CUSEQXWYDVN664JTWNQY65KP6F76TPRALYEPSPPBVZ6XLFSDI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

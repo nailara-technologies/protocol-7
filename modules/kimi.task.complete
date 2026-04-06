@@ -31,9 +31,11 @@ $task->{'execution'}->{'completed'} = <[base.time]>->(3);
 
 # Move task to completed list
 my $aref_pending   = <kimi.task.pending>;
+my $aref_active    = <kimi.task.active>;
 my $aref_completed = <kimi.task.completed>;
 
 $aref_pending->@* = grep { $ARG ne $task_id } $aref_pending->@*;
+$aref_active->@*  = grep { $ARG ne $task_id } $aref_active->@*;
 push $aref_completed->@*, $task_id;
 
 <[base.logs]>->( 2, "task completed : %s", $task_id );
@@ -56,8 +58,8 @@ return {
     message => "task completed : $task_id"
 };
 
-#,,,.,..,,.,,,...,..,,..,,.,.,,,.,,,.,...,,,,,..,,...,...,,,,,..,,.,,,,..,,..,
-#OQY2DZ4WVZ2QSNIAB4323RDVI7RBX7QLGP4L24IPFUAF4MLLK5VXJVEOOLJT4LWTA7JCR4JWK5ZC6
-#\\\|7LK25P4IFMAFGYTT476VYOYYFHOJFOAB2ETRGPON5UH37TDHY67 \ / AMOS7 \ YOURUM ::
-#\[7]6HXEBCXXGFULTE3OV5EH4TYMTZHIIFDAT5STZE3TZ4SGCFXOGYCQ 7  DATA SIGNATURE ::
+#,,.,,,.,,...,,..,,.,,..,,,..,,..,,,.,...,..,,..,,...,..,,,..,,..,.,,,.,,,,,,,
+#RQOESE2J7KEDH4MIZYLEC3NMJHL2BPJE6VDE3R4DWBAJDG27PFEI2HWEJK3PLKTLNXMND55INZUVW
+#\\\|WSIG2BOD65N2LONDOGWN4MOOEO5X7OPIEHIFIPCJZNW5OFUWLJY \ / AMOS7 \ YOURUM ::
+#\[7]SBSE76FYJV7VECOFYALVDIPEZE44QKWUSHJDHAZB7S7INN4RFMBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

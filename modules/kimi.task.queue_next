@@ -1,0 +1,57 @@
+## [:< ##
+
+# name = kimi.task.queue_next
+# descr = get next pending task respecting priority order
+# purpose = queue operation: retrieve work in priority order
+
+## get persistent storage refs ##
+my $queue_href   = <kimi.task.queue>;
+my $aref_pending = <kimi.task.pending>;
+my $aref_active  = <kimi.task.active>;
+
+my @available;
+
+foreach my $task_id ( $aref_pending->@* ) {
+    my $task = $queue_href->{$task_id};
+    next unless ( $task->{'execution'}->{'status'} // '' ) eq qw| pending |;
+
+    my $task_type = $task->{'type'} // 'general';
+    my $priority  = <[kimi.helper.task_priority]>->( $task_type, $task );
+
+    push @available, { id => $task_id, task => $task, priority => $priority };
+}
+
+## sort by priority (lowest number = highest priority) ##
+my @sorted = sort { $a->{'priority'} <=> $b->{'priority'} } @available;
+
+if (@sorted) {
+    my $next    = $sorted[0];
+    my $task_id = $next->{'id'};
+    my $task    = $next->{'task'};
+
+    $task->{'execution'}->{'status'}  = qw| in_progress |;
+    $task->{'execution'}->{'started'} = <[base.time]>->(3);
+
+    $aref_pending->@* = grep { $ARG ne $task_id } $aref_pending->@*;
+    push $aref_active->@*, $task_id;
+
+    <[base.logs]>->( 2, "kimi task next : %s", $task_id );
+
+    return {
+        success         => TRUE,
+        task            => $task,
+        queue_remaining => scalar( $aref_pending->@* )
+    };
+}
+
+return {
+    success    => FALSE,
+    error      => 'no available tasks in queue',
+    queue_size => scalar( $aref_pending->@* )
+};
+
+#,,..,,..,,,,,.,,,,.,,,.,,,.,,...,...,,.,,.,.,.,.,...,...,...,,,.,,,.,,..,.,,,
+#C74VNQLMPJQBXSDV5QBL5P7MZS3APJAPD7CCHLILU5B76NEGLLNG4CB5YJ5AAIXAD6EVWUQDWNRIW
+#\\\|TPTDK7EFV6ADKDCF4RWZXQ7SWOZDBBOVZB43F3XTMIYTIQCRXDX \ / AMOS7 \ YOURUM ::
+#\[7]5AYG3GKX662NGFDA5ATPVJCHSQMS3R2KWOKUZI6RVDGZY245OGDY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,0 +1,48 @@
+## [:< ##
+
+# name = kimi.task.queue_status
+# descr = get status of specific task or queue statistics
+# purpose = queue operation: report task|queue state
+
+my $task_id = shift;
+
+## get persistent storage refs ##
+my $queue_href     = <kimi.task.queue>     //= {};
+my $aref_pending   = <kimi.task.pending>   //= [];
+my $aref_active    = <kimi.task.active>    //= [];
+my $aref_completed = <kimi.task.completed> //= [];
+my $aref_failed    = <kimi.task.failed>    //= [];
+
+## specific task requested ##
+if ( defined $task_id ) {
+    return { success => FALSE, error => "task not found: '$task_id'" }
+        unless exists $queue_href->{$task_id};
+
+    my $task = $queue_href->{$task_id};
+
+    return {
+        success   => TRUE,
+        task_id   => $task_id,
+        status    => $task->{'execution'}->{'status'},
+        started   => $task->{'execution'}->{'started'},
+        completed => $task->{'execution'}->{'completed'},
+        result    => $task->{'execution'}->{'result'},
+    };
+}
+
+## general queue statistics ##
+return {
+    success       => TRUE,
+    total_tasks   => scalar( keys $queue_href->%* ),
+    pending       => scalar( $aref_pending->@* ),
+    in_progress   => scalar( $aref_active->@* ),
+    completed     => scalar( $aref_completed->@* ),
+    failed        => scalar( $aref_failed->@* ),
+    queue_updated => <[base.time]>->(3)
+};
+
+#,,..,.,,,...,,,.,.,,,,..,.,.,,..,,..,..,,..,,.,.,...,...,...,...,,,.,,,,,..,,
+#JB6LVG2M2L3ERTCNE44EJO6OKGX4YYSR5FX446FWYCYSNR6OZPUIWNODXQ74SQU73J3VF6WZYE2PK
+#\\\|3CCD7M4A6OBMAB5ABS3O4YCLEQUUO4AWEXN6DKPOGWLODPWDRO2 \ / AMOS7 \ YOURUM ::
+#\[7]GZKDLBRPUWG3IEGVSSLDH7VS27SKORKGIXT7W4LVZVZTF2NZE2CA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

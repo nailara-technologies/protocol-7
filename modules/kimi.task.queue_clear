@@ -1,0 +1,32 @@
+## [:< ##
+
+# name = kimi.task.queue_clear
+# descr = remove completed tasks from queue history
+# purpose = queue operation: clean up finished work
+
+<kimi.task.queue>     //= {};
+<kimi.task.completed> //= [];
+
+my $cleared = scalar <kimi.task.completed>->@*;
+
+## remove completed tasks from queue ##
+foreach my $task_id ( <kimi.task.completed>->@* ) {
+    delete <kimi.task.queue>->{$task_id};
+}
+
+## clear completed list ##
+<kimi.task.completed> = [];
+
+<[base.logs]>->( 1, "kimi: cleared %d completed tasks", $cleared );
+
+return {
+    success   => TRUE,
+    cleared   => $cleared,
+    remaining => scalar( keys <kimi.task.queue>->%* )
+};
+
+#,,,,,.,.,..,,.,,,,,.,,,.,,..,,,,,,,,,.,,,,..,.,.,...,...,.,.,,,.,,,,,,,.,.,,,
+#JNIZCJTFSOIJJSCZR7XPLR3JIBVM7XECBBHTVBYZZAIPN25WJGD6HMARN2UFN2MQYGW2QATPEHJJE
+#\\\|6FZCNSYB2XEODHCNXFWW5YCMCE2UHWU7FL7OQEZ775OOZY4NVCS \ / AMOS7 \ YOURUM ::
+#\[7]KXL2T4IGOXUEVOEZAPGQBR2WWMNDWF6DRN2SNZMQSWW4VVRXGCCY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

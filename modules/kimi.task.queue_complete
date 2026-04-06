@@ -1,0 +1,40 @@
+## [:< ##
+
+# name = kimi.task.queue_complete
+# descr = mark task as completed and move to completed list
+# purpose = queue operation: finalize successful work
+
+my ( $task_id, $result, $success ) = @ARG;
+
+## get persistent storage refs ##
+my $queue_href     = <kimi.task.queue>;
+my $aref_active    = <kimi.task.active>;
+my $aref_completed = <kimi.task.completed>;
+
+return { success => FALSE, error => "task not found: $task_id" }
+    unless exists $queue_href->{$task_id};
+
+my $task = $queue_href->{$task_id};
+
+$task->{'execution'}->{'status'}    = qw| completed |;
+$task->{'execution'}->{'completed'} = <[base.time]>->(3);
+$task->{'execution'}->{'result'}    = $result if defined $result;
+$task->{'execution'}->{'success'}   = $success // TRUE;
+
+## move from active to completed ##
+$aref_active->@* = grep { $ARG ne $task_id } $aref_active->@*;
+push $aref_completed->@*, $task_id;
+
+<[base.logs]>->( 1, "kimi task completed : %s", $task_id );
+
+return {
+    success => TRUE,
+    task_id => $task_id,
+    message => "task completed: $task_id"
+};
+
+#,,,.,.,.,,..,,..,,..,,,,,,.,,.,.,...,.,.,,..,.,.,...,..,,...,...,,..,..,,...,
+#HKZKACX46KHYG5T2JKF2SL6HOICCUS3V3FKEPALEVSLEZG4SW7ZUN3O2XRYXU4YGLK7LFI5PZ4BEW
+#\\\|TWI6RMKLTHZIUXOOT2HLWRGNM7DXP6AITLIJA44ZTPMYRY6GLUC \ / AMOS7 \ YOURUM ::
+#\[7]UX6DX5TNAWZKEI5CTJVC6SFQ6CKTE6TGPJOLGTVKQO6MD67HAOAQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
