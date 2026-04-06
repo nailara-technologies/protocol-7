@@ -1,0 +1,61 @@
+## [:< ##
+
+# name = kimi.intake.process
+# descr = parse and structure incoming kimi work requests
+# purpose = intake: accept text prompt and create queued task
+
+my ($input) = @ARG;
+
+## accept hashref with prompt or plain string ##
+my $prompt;
+if ( ref($input) eq qw| HASH | ) {
+    $prompt = $input->{'prompt'} // $input->{'description'}
+        // $input->{'text'} // '';
+} else {
+    $prompt = $input // '';
+}
+
+return { success => FALSE, error => 'prompt required' }
+    unless length $prompt;
+
+## generate task id from content + timestamp ##
+my $raw_id  = sprintf( '%s:%d', $prompt, <[base.time]>->(3) );
+my $task_id = uc(
+    substr(
+        unpack( 'H*', pack( 'N', int( <[base.time]>->(3) * 1000 ) ) ),
+        0, 7
+    )
+);
+
+my $task = {
+    id   => $task_id,
+    type => ( ref($input) eq qw| HASH | ? $input->{'type'} : undef )
+        // 'general',
+    prompt    => $prompt,
+    request   => { description => $prompt },
+    execution => {
+        status    => qw| pending |,
+        started   => undef,
+        completed => undef,
+        result    => undef,
+        success   => undef,
+        error     => undef,
+    },
+};
+
+my $result = <[kimi.task.queue_enqueue]>->($task);
+
+return $result if !$result->{'success'};
+
+return {
+    success => TRUE,
+    task    => $task,
+    task_id => $task_id,
+    message => "task ingested: $task_id"
+};
+
+#,,,.,,..,..,,..,,..,,,..,,,.,,,.,.,,,.,.,.,,,.,.,...,...,...,.,,,,.,,,.,,,..,
+#J22QJJBRE6KHOZTFHZSSQDJYAM46PMTT52V7LMSZC75YACBECMJUT74OU5CU4WQEC334OYCWKT4BM
+#\\\|ZBKV4JL47Z7SILPCTL4ULR2CZB2K7OWGUEVYCD7AUNMG7HUXWMF \ / AMOS7 \ YOURUM ::
+#\[7]M72WZZ5PVZGBBTRQSFDVWJZQELWF4LHFYDF5BYWM4PVWAGIZI4DQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

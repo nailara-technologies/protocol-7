@@ -1,0 +1,70 @@
+## [:< ##
+
+# name  = kimi.handler.process-queued-task
+# descr = submit queued kimi task as a prompt to kimi-web
+# purpose = bridge jobqueue execution to kimi websocket prompt dispatch
+# note  = async: returns immediately; result arrives via TurnEnd in ws_message
+
+my $params  = shift                            // {};
+my $task_id = $params->{'params'}->{'task_id'} // '';
+
+return { success => FALSE, error => 'task_id required' }
+    unless length $task_id;
+
+## get task from kimi queue ##
+my $task = <kimi.task.queue>->{$task_id};
+return { success => FALSE, error => "task not found: $task_id" }
+    unless defined $task;
+
+## extract prompt text ##
+my $prompt = $task->{'prompt'} // $task->{'request'}->{'description'} // '';
+
+unless ( length $prompt ) {
+    <[base.logs]>->(
+        0, "kimi.handler.process-queued-task: no prompt in task %s", $task_id
+    );
+    return { success => FALSE, error => "no prompt in task $task_id" };
+}
+
+## check kimi is connected and ready ##
+unless ( <kimi.ws.connected> and <kimi.ws.status> eq qw| ready | ) {
+    <[base.logs]>->(
+        1,
+        "kimi.handler.process-queued-task: not ready [status=%s] — deferring task %s",
+        ( <kimi.ws.status> // 'disconnected' ),
+        $task_id
+    );
+    return {
+        success => FALSE,
+        error   => sprintf( 'kimi not ready [status=%s]',
+            <kimi.ws.status> // 'disconnected' )
+    };
+}
+
+## submit prompt — completion arrives via TurnEnd in ws_message ##
+my $msg_id = <[kimi.wire.prompt]>->( $prompt, undef );
+
+unless ( defined $msg_id ) {
+    <[base.logs]>->(
+        0, "kimi.handler.process-queued-task: kimi.wire.prompt failed for %s",
+        $task_id
+    );
+    return { success => FALSE, error => 'kimi.wire.prompt failed' };
+}
+
+## tag pending entry with task_id so TurnEnd can complete the task ##
+<kimi.wire.pending>->{$msg_id}->{'task_id'} = $task_id;
+
+<[base.logs]>->(
+    1,        "kimi.handler.process-queued-task: submitted task %s [msg=%s]",
+    $task_id, $msg_id
+);
+
+## return deferred — actual result arrives via TurnEnd ##
+return { success => TRUE, deferred => TRUE, result => '' };
+
+#,,.,,,,,,.,.,.,.,..,,.,,,,..,.,,,.,.,,..,,.,,.,.,...,...,,..,.,,,,..,.,.,.,.,
+#IKMAWQNYB7OWHBYMHL6WKVORTVDFGXGJ726QFDC6V2ZUR4QGRFY2P3WHCRSEVZRE33E5HR2PFWR5U
+#\\\|CULVPDYLF2I5IMCT2SK6ELW75E4FMBHIYY24YPYXBLMSK5SSPHH \ / AMOS7 \ YOURUM ::
+#\[7]VUQUTJIKO5NCV4XB57CLICRA52LOBRU2UCTNSXC4XAZWWYL4JUCQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

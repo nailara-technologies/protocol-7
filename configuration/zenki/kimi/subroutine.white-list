@@ -147,6 +147,7 @@ base.clean_hashref
 websocket.init_code
 plugin.auth.twofish
 kimi.session.create
+kimi.intake.process
 io.ip.tcp.init_code
 base.utf8.clean_str
 base.str.eval_error
@@ -166,6 +167,8 @@ base.event.pre_init
 base.diff.hash_keys
 base.calc_unix_path
 kimi.wire.initialize
+kimi.task.queue_next
+kimi.task.queue_fail
 kimi.cmd.new-session
 io.ip.tcp.input.open
 format.yaml.pre_init
@@ -191,6 +194,7 @@ base.devmod.dump_var
 base.cmd.show-buffer
 base.buffer.add_line
 auth.zenka.init_code
+kimi.task.queue_clear
 kimi.cmd.session-info
 jobqueue.get_job_data
 format.yaml.load_file
@@ -215,6 +219,7 @@ base.console.commands
 base.cmd.buffer-erase
 base.balanced-average
 websocket.handler.read
+kimi.task.queue_status
 crypt.C25519.sign_keys
 crypt.C25519.sign_data
 crypt.C25519.post_init
@@ -231,6 +236,7 @@ base.comp-int.is_valid
 base.call_online_hooks
 auth.unix.authenticate
 protocol.sftp.init_code
+kimi.task.queue_enqueue
 kimi.handler.ws_message
 io.unix.socket.end_code
 crypt.C25519.write_keys
@@ -257,6 +263,7 @@ base.auth.set_zenka_key
 auth.zenka.authenticate
 protocol.https.init_code
 plugin.auth.auth-keypair
+kimi.task.queue_complete
 kimi.handler.pre_connect
 io.unix.socket.init_code
 crypt.C25519.verify_sign
@@ -275,6 +282,7 @@ base.file.strip_path_str
 base.cmd.verify-instance
 base.chk-sum.bmw.L13-str
 base.check_cfg_cmd_alias
+kimi.helper.task_priority
 io.unix.socket.input.open
 crypt.C25519.load_keypair
 base.sourcecode.init_code
@@ -316,6 +324,7 @@ base.handler.session_error
 base.event.io_idle_restart
 base.check_dependency_dirs
 net.read_linewise_estimated
+kimi.event.on_task_complete
 kimi.connect.schedule_retry
 io.unix.socket.output.close
 crypt.C25519.sign_file_list
@@ -389,6 +398,7 @@ base.warnings.compact_statehash
 base.p7refs.gen_template_chksum
 base.buffer.local_logfile_write
 kimi.session.reset_and_reconnect
+kimi.handler.process-queued-task
 crypt.C25519.name_from_skey_name
 crypt.C25519.load_all_signatures
 crypt.C25519.key_signatures_list
@@ -487,8 +497,8 @@ auth.callback.cap-neg.declare-strm-size-support
 protocol.protocol-7.protocol-version-path-set-up
 base.log.send-buffer.reply-handler.notify-online
 
-#,,,.,.,,,,..,..,,,,,,,,,,,,,,..,,,,,,...,.,,,..,,...,...,,.,,.,.,,.,,.,.,.,.,
-#Y7FCNBW62LGM4RSEAT7NLLH5O53SUBIOUSHOOJ4NTPTCMHQ37LQAYMX3EBBL23L4F5LIER5EVZE6U
-#\\\|M52BVQP4VZRIPT25TG44OZHONH4N7EJWDCETAMSUO7MYJZ66GEE \ / AMOS7 \ YOURUM ::
-#\[7]KB5CHEXMOGS455RWE3IBKR67H65LTTE3UFCFBURDYTRRGCX7GKBA 7  DATA SIGNATURE ::
+#,,,,,,,.,,,,,,,,,.,.,..,,,,.,...,.,.,...,.,.,..,,...,..,,,.,,.,.,,..,..,,..,,
+#V3HIPAQQRAQWQZ2XENMM7YJYEAXVNJSMXHF3WNNCN4MK3QOOSOOH5ZHK6RJXKHJBFY5OIDCZJOKBM
+#\\\|UL4KPFLZVY7I7I3GSTW64BRQFM2573IGBINHMWL4UBTPT2SIYSJ \ / AMOS7 \ YOURUM ::
+#\[7]W5TM4TK2DSKPMY46SOET62ZQX3ESHARHBGH7JXI6TYEB4AW5L6CY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,0 +1,44 @@
+## [:< ##
+
+# name = kimi.task.queue_fail
+# descr = mark task as failed and move to failed list
+# purpose = queue operation: record task failure with error
+
+my ( $task_id, $error ) = @ARG;
+
+## get persistent storage refs ##
+my $queue_href  = <kimi.task.queue>;
+my $aref_active = <kimi.task.active>;
+my $aref_failed = <kimi.task.failed> //= [];
+
+return { success => FALSE, error => "task not found: $task_id" }
+    unless exists $queue_href->{$task_id};
+
+my $task = $queue_href->{$task_id};
+
+$task->{'execution'}->{'status'}    = qw| failed |;
+$task->{'execution'}->{'completed'} = <[base.time]>->(3);
+$task->{'execution'}->{'success'}   = FALSE;
+$task->{'execution'}->{'error'}     = $error // 'unknown error';
+
+## move from active to failed ##
+$aref_active->@* = grep { $ARG ne $task_id } $aref_active->@*;
+push $aref_failed->@*, $task_id;
+
+<[base.logs]>->(
+    0, "kimi task failed : %s : %s",
+    $task_id, ( $error // 'unknown error' )
+);
+
+return {
+    success => TRUE,
+    task_id => $task_id,
+    error   => $error,
+    message => "task failed: $task_id"
+};
+
+#,,..,..,,...,..,,,..,,,,,,.,,...,,,,,,.,,..,,.,.,...,...,...,.,.,,.,,.,.,.,,,
+#W4BXOQKCBXR2L6UQ227ANVKSIWKFNKJOZFDSZYYAHZVVSKPPCJ7GV55UKWFQQBZODDZVNLEHJPXJE
+#\\\|PLYGNZDCFBVSDOVNY555SJR3QHARMDRSX3POKY36JUTXJDPZDVG \ / AMOS7 \ YOURUM ::
+#\[7]PY4MOECSSXJVHABIYVPNRQHCOJWHNSP3APWCGCBKT645MKB2W2DI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

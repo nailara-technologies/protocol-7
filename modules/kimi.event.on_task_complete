@@ -1,0 +1,39 @@
+## [:< ##
+
+# name  = kimi.event.on_task_complete
+# descr = event callback triggered when a kimi task completes
+# purpose = post-completion hooks: deferred replies, follow-up actions
+
+my ( $task_id, $result ) = @ARG;
+
+unless ( defined $task_id && length $task_id ) {
+    <[base.logs]>->( 0, "kimi.event.on_task_complete: task_id required" );
+    return TRUE;
+}
+
+<[base.logs]>->(
+    2,        "kimi.event.on_task_complete: task %s completed [ %d bytes ]",
+    $task_id, length( $result // '' )
+);
+
+## check for deferred replies waiting on this task ##
+my $deferred_replies = $data{'kimi'}{'deferred_replies'} // {};
+foreach my $deferred_id ( keys %$deferred_replies ) {
+    my $deferred = $deferred_replies->{$deferred_id};
+    next unless defined $deferred && $deferred->{'task_id'} eq $task_id;
+    <[base.logs]>->(
+        2, "kimi.event.on_task_complete: triggering deferred reply %s",
+        $deferred_id
+    );
+    <[coding.handler.deferred_reply]>->($deferred_id)
+        if exists $code{'coding.handler.deferred_reply'};
+    last;
+}
+
+return TRUE;
+
+#,,,.,.,.,.,.,...,,,,,,..,,..,,..,,,.,.,.,,,.,.,.,...,...,,..,,..,,..,,.,,,,,,
+#MSGUHEKBTNJNNO6IA2HLX5DT2LUMBMBPJCJAPAXUQYGWDF2NRLWGWMMW7F7PYDKI6AYUSLWL34I4Y
+#\\\|PMYC5AQCAZW4TSUSVPK44VI3SRCKH6B3CUV4WVZRFURPMLQDW6C \ / AMOS7 \ YOURUM ::
+#\[7]JW7HQBXCKJBKAYJV2ZXYJAUGENAKD5OZEHR2TMRJ2Q6VDJN6PIAI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
