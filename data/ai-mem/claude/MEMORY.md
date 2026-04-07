@@ -7,6 +7,8 @@
 - `topic-patterns.md` — event handler, fork-child, standalone zenka, pipe-open, inference server
 - `topic-completed.md` — session summaries with details
 - `topic-invoke-model-management.md` — uuid vs verbose paths, config.json requirement, :raw binary writes, partial download traps
+- `topic-invoke-model-manager.md` — planned Term::Clui manager: safe delete, archive/restore, collection profiles, image provenance, zenka evolution path
+- `topic-image-archive-system.md` — vision-scored tiered storage: thumbnail+metadata = full image, pngquant tiers, defect scoring, model↔image dependency graph, 63GB+ savings
 - `topic-harmonic-mathematics.md` — generator 076923, quadratic residues, cube geometry,
   spiral topology, 4-crossing consent protocol, CCW matrix routing, heartbeat encoding
 - `topic-vterm.md` — vterm module system: cell format, consensus algorithm, review findings
@@ -260,8 +262,8 @@
 - Pattern: `my @non_num = grep { defined $data_ref->{$ARG}->{$key} and not looks_like_number(...) } keys $data_ref->%*`
 - Global `$SIG{__WARN__}` exists — if wrapping warn handler, capture `$prev_warn = $SIG{__WARN__}` first and call through
 
-#,,,,,,..,..,,.,.,...,,,.,,,.,,.,,.,.,,,.,..,,..,,...,...,.,.,.,,,,..,,,,,.,.,
-#S5DSA4DBJVF36KGEYGP2KKSCUASKBGD6JO7HRRVGI2U4BAVAJIQA3D4IU2EOAAWIAKLRTYDYSMOBG
-#\\\|FFMI2OOEYVUBAFLV3WJKFYAJC5U4WX4VE6BGJSA6ASBMWACLSDT \ / AMOS7 \ YOURUM ::
-#\[7]JNTHDGNDDEG6ECYHOJBUVCU2FUMC3QSPQE62TACMDGWMPO456KDY 7  DATA SIGNATURE ::
+#,,..,.,,,,,,,,,,,,.,,.,,,..,,,,.,..,,..,,,..,..,,...,...,,,,,.,.,,,,,.,.,..,,
+#53SWQWT5ETOOF37AQZR7G6LWE5UUJOUG2TN5EAOTRAWSKDEQOSFWC7W4BXIA6LOQKNO6GZQK35Y7K
+#\\\|XBA6HGESM2PRK5AHG5BWIHLORCRDSOK3GFJYVTAI5NLGMYAV3DY \ / AMOS7 \ YOURUM ::
+#\[7]UUL4QWI7VADCBMGG255U3AGBTROEWMIYNYU5C7HONALI5S3SZEDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
