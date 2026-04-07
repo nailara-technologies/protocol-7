@@ -6,6 +6,7 @@
 - `topic-tls-acme.md` — SNI/SSL internals, ACME/letsencr details, cert discovery
 - `topic-patterns.md` — event handler, fork-child, standalone zenka, pipe-open, inference server
 - `topic-completed.md` — session summaries with details
+- `topic-invoke-model-management.md` — uuid vs verbose paths, config.json requirement, :raw binary writes, partial download traps
 - `topic-harmonic-mathematics.md` — generator 076923, quadratic residues, cube geometry,
   spiral topology, 4-crossing consent protocol, CCW matrix routing, heartbeat encoding
 - `topic-vterm.md` — vterm module system: cell format, consensus algorithm, review findings
@@ -259,8 +260,8 @@
 - Pattern: `my @non_num = grep { defined $data_ref->{$ARG}->{$key} and not looks_like_number(...) } keys $data_ref->%*`
 - Global `$SIG{__WARN__}` exists — if wrapping warn handler, capture `$prev_warn = $SIG{__WARN__}` first and call through
 
-#,,..,,.,,,..,,,.,,..,,.,,,..,,,.,,,.,,..,.,.,..,,...,...,.,.,..,,.,,,,..,..,,
-#HFLXBHOU42MCDIMKRBOJ5JZSFDHF6UQOREZY4VX67NF5RQDIGVTZOZPFEYDZATHYMS5MM7XHAKD4U
-#\\\|CTYHXSICB5IJIEEYWXBH6JF4MWEMISDHJDT45LP3AMLKNMZMMWU \ / AMOS7 \ YOURUM ::
-#\[7]7SSSEEEH3OBRMXNZF5YRAWOYV2T7FEZXNRWIHOAQRSEY3L7GGUDI 7  DATA SIGNATURE ::
+#,,,,,,..,..,,.,.,...,,,.,,,.,,.,,.,.,,,.,..,,..,,...,...,.,.,.,,,,..,,,,,.,.,
+#S5DSA4DBJVF36KGEYGP2KKSCUASKBGD6JO7HRRVGI2U4BAVAJIQA3D4IU2EOAAWIAKLRTYDYSMOBG
+#\\\|FFMI2OOEYVUBAFLV3WJKFYAJC5U4WX4VE6BGJSA6ASBMWACLSDT \ / AMOS7 \ YOURUM ::
+#\[7]JNTHDGNDDEG6ECYHOJBUVCU2FUMC3QSPQE62TACMDGWMPO456KDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

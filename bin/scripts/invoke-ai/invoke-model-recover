@@ -146,40 +146,62 @@ sub list_models {
 sub dry_run {
     my ($models) = @_;
     my ( $total, $have, $missing ) = ( 0, 0, 0 );
-    my $total_size = 0;
+    my ( $missing_size, $have_size ) = ( 0, 0 );
 
     print "DRY RUN - Checking what needs recovery:\n";
     print "=" x 80 . "\n";
 
     for my $m (@$models) {
         $total++;
-        my $filename = get_filename($m);
-        my $filepath = "$OUTPUT_DIR/$filename";
-        $total_size += ( $m->{size} // 0 );
+        my $db_size = $m->{size} // 0;
 
-        if ( -f $filepath ) {
-            my $size = -s $filepath;
-            if ( $size >= ( $m->{size} // 0 ) * 0.99 ) {
-                print "✓ $m->{name} (already have: "
-                    . human_size($size) . ")\n";
-                $have++;
-            } else {
-                print "~ $m->{name} (partial: "
-                    . human_size($size) . "/"
-                    . human_size( $m->{size} ) . ")\n";
-                $missing++;
+        ## for bare-uuid (diffusers dir) models, measure the whole directory ##
+        ## get_filename returns {uuid}/model.safetensors for download routing, ##
+        ## but the real content may be a full multi-file diffusers tree        ##
+        my ( $exists, $actual_size );
+        if ( ( $m->{'path'} // '' )
+            =~ /^([0-9a-f]{8}-[0-9a-f]{4}-[^\s\/]+)$/i ) {
+            my $dir = "$OUTPUT_DIR/$1";
+            if ( -d $dir ) {
+                $actual_size = dir_size($dir);
+                $exists      = 1;
             }
         } else {
-            print "✗ $m->{name} (MISSING: "
-                . human_size( $m->{size} ) . ")\n";
+            my $filename = get_filename($m);
+            my $filepath = "$OUTPUT_DIR/$filename";
+            if ( -f $filepath ) {
+                $actual_size = -s $filepath;
+                $exists      = 1;
+            }
+        }
+
+        if ($exists) {
+            if ( $actual_size >= $db_size * 0.99 ) {
+                print "✓ $m->{name} (already have: "
+                    . human_size($actual_size) . ")\n";
+                $have++;
+                $have_size += $actual_size;
+            } else {
+                print "~ $m->{name} (partial: "
+                    . human_size($actual_size) . "/"
+                    . human_size($db_size) . ")\n";
+                $missing++;
+                $missing_size += $db_size;
+            }
+        } else {
+            print "✗ $m->{name} (MISSING: " . human_size($db_size) . ")\n";
             print "  Source: $m->{source}\n";
             $missing++;
+            $missing_size += $db_size;
         }
     }
 
     print "=" x 80 . "\n";
     print "Summary: $total total, $have have, $missing need download\n";
-    print "Total size to download: " . human_size($total_size) . "\n";
+    print "Already on disk:      " . human_size($have_size) . "\n";
+    print "Still to download:    "
+        . human_size($missing_size)
+        . "  (db metadata — actual may differ)\n";
     print "\nRun with -download to fetch missing models.\n";
 }
 
@@ -605,6 +627,24 @@ sub download_file {
     }
 }
 
+sub dir_size {
+    my ($dir) = @_;
+    my $total = 0;
+    if ( opendir my $dh, $dir ) {
+        while ( my $entry = readdir $dh ) {
+            next if $entry eq '.' || $entry eq '..';
+            my $path = "$dir/$entry";
+            if ( -f $path ) {
+                $total += -s $path;
+            } elsif ( -d $path ) {
+                $total += dir_size($path);
+            }
+        }
+        closedir $dh;
+    }
+    return $total;
+}
+
 sub human_size {
     my ($bytes) = @_;
     return '0 B' unless $bytes;
@@ -644,8 +684,8 @@ USAGE
     exit(0);
 }
 
-#,,,.,,,,,.,.,,,.,...,...,...,.,,,.,,,,..,.,.,.,.,...,...,.,,,,,,,..,,...,...,
-#QZ4MDZMDGRQSJDOF32VSZTWU2BVFSI3JQ2ISKB7P4AIKR35VNFB2YCQQXZVWTHBOMHEAP4C4EW4XG
-#\\\|2I6TMEIND2NSHSBVPVPIVULZZOJIDXMBO7KUO3AQPDDSTMQ36CT \ / AMOS7 \ YOURUM ::
-#\[7]6WALQSHXQ2DRKYJUTR3EOHO7TOIXRCYGGPR5HHYEHR2ANHDBISBI 7  DATA SIGNATURE ::
+#,,.,,...,.,,,,,.,.,.,,,.,,..,..,,,.,,,,,,,.,,.,.,...,..,,...,,,,,,..,,,,,,..,
+#O4GNKPZEZ4YXIOLNCQLJDG42CZ5NYZN57F7GXZJFAT4DRNAFBL2ZI57GMQPIE2ASZNX72U2BCXOO4
+#\\\|5A5XRJKIM2QD6GZAHFVFI7RFZ44PSBZBUTKHRF2CCWYB6XW3HL4 \ / AMOS7 \ YOURUM ::
+#\[7]BTQ5MYULW4C73TC5TGMVNUTLVZFBA2MVYSOXRCLMM3TBFFCXZ4DA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
