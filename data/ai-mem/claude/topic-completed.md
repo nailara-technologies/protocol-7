@@ -118,8 +118,24 @@ zenki-create/zenki-feature-port/footer-cleanup templates added.
 - Commits: c0f31ed72 (context extraction + hardening), 774836862 (template v1),
   638686882 (template v2 = commit 7000), bbb9fd34b (new tools), 2e13d3817 (autonomous extraction)
 
-#,,,.,,..,.,,,,.,,,,.,,.,,,..,,,.,..,,,.,,,,,,..,,...,...,..,,.,,,...,..,,..,,
-#YUUIZKLKEWGIQJNK43LYIAUC45HZFBZMNWUVIBXG35PD5FUMR3ZJHYXHQQM3OGULHXN6J3E46FPJC
-#\\\|SD75N3TO73EG6GB4KA2OURO57TDK7QS7QOA3ILSOIUWCIRWPXLQ \ / AMOS7 \ YOURUM ::
-#\[7]PU4E2O6RQIRDHZFZWZWGPYHHM5QPAPY23LHRVCJXJKZXQPJII6BI 7  DATA SIGNATURE ::
+## invoke model recovery + adapter design (Apr 7-8 2026)
+- `bin/scripts/invoke-ai/invoke-symlink-repair` (new): queries invokeai.db, creates {base}/{type}/{name}→uuid
+  symlinks, sd-1+sd-1.5 dual aliases, decoded+%xx filename variants, --dry-run/--type/--verbose
+- `invoke-model-recover` 4 fixes: (1) UUID path → {uuid}/model.safetensors destination, (2) diffusers
+  always use download_diffusers_model (fetches config.json — required for correct architecture init),
+  (3) binary writes use `:raw` mode (UTF-8 global pragma was corrupting; 5GB→7.5GB symptom),
+  (4) dry_run: separate missing/have sizes, dir_size() for whole UUID dirs
+- UUID alias symlink: 2fd93aa6→7fe3f986 for stale DB reference (IP Adapter SD1.5 Image Encoder)
+- 35GB corrupted/duplicate files deleted; 70GB→252GB free on /mnt/ext-xfs-data
+- Design docs: MODELS-PATH-ADAPTERS.md (storage adapter plugin system, 4-step impl order),
+  TERMINAL-ZENKA-ARCHITECTURE.md (UI adapter system, curses/web/gtk3/sdl, abstract action protocol),
+  TASK-invoke-adapter-step1.md (concrete first task: extract scripts → modules.storage.adapter.invoke.*)
+- CONVENTIONS.yaml: colon_keywords section added (:flag: not --flag in p7 contexts)
+- philosophy: ETERNAL-TEMPLATE-KITTEN.md (deduplication tree crystallizes truth, kitten as template process)
+- Commits: 98743c227 through 30bbd31b4 + fe3d3a295
+
+#,,,,,,,.,,,,,.,,,,..,.,,,.,,,,.,,,..,.,,,.,,,..,,...,...,.,,,..,,.,,,.,,,,,,,
+#HZLR6OZ6CJLJUO5T55GOHWDY3NJQN2IBT6J46FRN6STLXGAXDI6JFV44EV2IPY656YOCQY2YUR4LI
+#\\\|TYU2UCRDIFCZKZMVI7WL42RLHGLI3TW5HWTLPOOEM66DQS55P5Y \ / AMOS7 \ YOURUM ::
+#\[7]C3OCTYRSJCUIXMF72GVRZRYXU6QBWXORPD3BIGHX336CVJXCQGBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
