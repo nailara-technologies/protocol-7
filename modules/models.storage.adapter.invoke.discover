@@ -1,0 +1,91 @@
+## [:< ##
+
+# name  = models.storage.adapter.invoke.discover
+# descr = query invokeai.db and return list of model records
+
+# [ input: optional hashref with db_path override ]
+# [ output: arrayref of model hashrefs ]
+
+my $params = $ARG // {};
+
+# determine db path from config, params, or default
+my $db_path = $params->{'db_path'}
+    // $data{'models'}{'cfg'}{'external.models.invokeai.db'}
+    // "$ENV{'HOME'}/.invokeai/db/invokeai.db";
+
+# check if db exists
+unless ( -f $db_path ) {
+    <[base.logs]>->( 0, "discover: db not found [ %s ]", $db_path );
+    return [];
+}
+
+# query database for all models
+my $sql
+    = "SELECT name, type, source, source_type,"
+    . " json_extract(config, '\$.description') as description,"
+    . " json_extract(config, '\$.file_size') as size,"
+    . " json_extract(config, '\$.path') as path,"
+    . " json_extract(config, '\$.format') as format,"
+    . " json_extract(config, '\$.base') as base"
+    . " FROM models ORDER BY type, name;";
+
+my $cmd  = qq{sqlite3 "$db_path" ".mode json" "$sql" 2>/dev/null};
+my $json = qx{$cmd};
+
+unless ($json) {
+    <[base.logs]>->( 0, "discover: failed to query db [ %s ]", $db_path );
+    return [];
+}
+
+my $models = eval { JSON::PP::decode_json($json) };
+if ($@) {
+    <[base.logs]>->( 0, "discover: failed to parse json [ %s ]", $@ );
+    return [];
+}
+
+# skip types that use non-standard paths
+my %skip_types = map { $_ => 1 } qw(
+    spandrel_image_to_image
+    unknown
+);
+
+# filter models
+my @filtered;
+for my $m (@$models) {
+    my $path = $m->{'path'} // '';
+    my $type = $m->{'type'} // 'unknown';
+
+    # skip certain types
+    next if $skip_types{$type};
+
+    # skip windows paths (drive letter)
+    next if $path =~ m|^[A-Za-z]:[\\/]|;
+
+    # skip absolute unix paths
+    next if $path =~ m|^/|;
+
+    # skip empty paths
+    next if $path eq '';
+
+    push @filtered,
+        {
+        'name'        => $m->{'name'},
+        'type'        => $type,
+        'base'        => $m->{'base'}   // 'any',
+        'format'      => $m->{'format'} // '',
+        'path'        => $path,
+        'size'        => $m->{'size'}        // 0,
+        'source'      => $m->{'source'}      // '',
+        'source_type' => $m->{'source_type'} // '',
+        };
+}
+
+<[base.logs]>->( 2, "discover: found %d models", scalar @filtered );
+
+return \@filtered;
+
+#,,,,,.,.,,..,,.,,.,,,.,,,.,.,,,,,.,.,.,.,...,.,.,...,...,..,,,.,,,,,,..,,,.,,
+#FXR3OEYRT7BT7MUGVCVHJDUGNJW4FZUFKASAC235DXR277A5IP6UQLFGWRU3YV3DVQCHPD7KHEDGS
+#\\\|5MRZT7MQV547234JTHS3EIEQKXTLPMGUESPZMQLPCFNACJW7QND \ / AMOS7 \ YOURUM ::
+#\[7]3YK2NKFTQDGE3KMZMMIPAPKKPBCEW3ZIRRWCNYRZDRPTGQAX76AI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

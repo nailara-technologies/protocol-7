@@ -1,0 +1,37 @@
+## [:< ##
+
+# name  = models.cmd.adapter-resolve
+# descr = cmd: resolve a model name to its on-disk path
+
+my ( $host, $model_name ) = split m|\s+|, $call->{'args'} // '', 2;
+$host       //= 'invoke';
+$model_name //= '';
+
+if ( $host eq 'invoke' ) {
+    my $records = <[models.storage.adapter.invoke.discover]>->();
+    my ($rec) = grep { $_->{'name'} eq $model_name } @{ $records // [] };
+    if ($rec) {
+        my $path = <[models.storage.adapter.invoke.resolve]>->($rec);
+        if ($path) {
+            print "$path\n";
+        } else {
+            <[base.logs]>->(
+                0, "model not found on disk [ %s ]", $model_name
+            );
+        }
+    } else {
+        <[base.logs]>->( 0, "model not in db [ %s ]", $model_name );
+    }
+} else {
+    <[base.logs]>->( 0, "unknown adapter [ %s ]", $host );
+}
+
+return;
+
+#,,.,,,,.,.,.,...,,,,,.,,,,,.,,.,,.,,,...,...,..,,...,...,.,,,,..,,.,,.,.,.,,,
+
+#,,,,,..,,.,.,..,,...,,.,,,..,,..,,,.,,..,.,,,..,,...,...,...,.,,,...,..,,,.,,
+#QZLF6GHRGWFCITHZW7C6CADYKWBLXIQMTZTN77EEF57RVKA36IFGGTLE4ZRHP6CMKAUBPPUZJJLI2
+#\\\|L23UVGJMCPAAXXWRGYOGZLAO6S7UT2UUZHZBV2G6DI57SH72MWW \ / AMOS7 \ YOURUM ::
+#\[7]ZTHQ3D2EBYAGZELOZHJA6EERWILUPCRLIJ3KEKSWCWP6OZ323MAQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
