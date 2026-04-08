@@ -65,6 +65,25 @@ protocol7_specific:
     pattern: "ctrl_o_* for ctrl-o related state"
     example: "ctrl_o_start_position, ctrl_o_iteration_count"
 
+  colon_keywords:
+    description: "flags and intent markers use :keyword: colon-bracket syntax"
+    rationale: >
+      visually distinguishes functional intent from regular parameters or
+      variable content — readable at a glance in code, command strings,
+      network messages, and documentation. consistent across all contexts
+      since the web-browser zenka normalizes this as the p7 flag vocabulary.
+      any zenka in a routing chain can recognize and act on :keyword: tokens
+      without separate flag-parsing logic, and without ambiguity about
+      whether something is a mode flag or a data value.
+    rules:
+      - "single flags: :dry-run:, :verbose:, :force:"
+      - "typed flags: :action:scroll_down:, :action:filter:"
+      - "never use --flag or -f style in p7 command arguments"
+      - "llm-generated commands must use :flag: not --flag"
+    examples:
+      bad:  "p7c models.adapter.repair invoke --dry-run --verbose"
+      good: "p7c models.adapter.repair invoke :dry-run: :verbose:"
+
   # to be expanded with:
   # - return value conventions
   # - error handling patterns
@@ -90,8 +109,8 @@ llm_integration:
       - "periodic reminder for long multi-turn conversations"
       - "explicit style reset if code quality diverges"
 
-#,,..,,,,,,..,,,,,,.,,,.,,,,,,..,,...,,,.,,,.,..,,...,...,,,,,,,,,,.,,..,,.,,,
-#L6KN76LHKJH33Y33ZKFHFUZMWNHMYMSIEQMBWJH5UMYMLBYMZQVSTYERIB4ZQVD2RBCFIJCWSPFGI
-#\\\|OROV5QVWWPMOZHXMPUSCAMDUA25OKYAKFFTDFMYYQSGQNBZ3NDR \ / AMOS7 \ YOURUM ::
-#\[7]3IR2T7LQUHQNEFL7LND4NSCCZH5WE75DIPLKFWP3KIZUMOA3A6BA 7  DATA SIGNATURE ::
+#,,..,,,,,,.,,.,.,,,.,.,,,,..,,,,,..,,..,,..,,..,,...,...,...,.,.,.,.,,,.,,.,,
+#6EWMAC4CH26CHJYDNQ3XICXD2RYKXGXKNJU53LTLP6232XI4PSTG5OYA4PTIF6F6INZXIKICSG4OG
+#\\\|AJPU27FCAARLHJDWKX6QH7YU2OVMKM3CT2UH6YZXOIUVSYEHBIH \ / AMOS7 \ YOURUM ::
+#\[7]VZQES7DHPY4IKOSWZCF65IIQOYG7CBRKJ54ACLZHTB2RBSRSP2BY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
