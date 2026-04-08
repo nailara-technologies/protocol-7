@@ -1421,12 +1421,6 @@ p7c kimi-web.list_agents
 
 ---
 
-#,,,,,,.,,,.,,...,,.,,,,,,..,,,.,,,,,,..,,.,,,.,.,...,...,...,.,,,..,,...,,,.,
-#L2JAB3RKLFVNHKGWXTUW6I6ITKM2ED4L5K5ZB4FP6QU35X3PE6O2P3NJ4BWFT7EDILRR4SR2BHMPO
-#\\\|FERSEVCHUDBHZD6GA33GP32GVCX73QK5RMLC7TOS6S4363VD7FT \ / AMOS7 \ YOURUM ::
-#\[7]24MLHOOYF4W763LF3K54EABVKRLS55L4QIRQ2KAHOUISNT2JAMDY 7  DATA SIGNATURE ::
-#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
-
 ## 2026-04-02 — Bug #5 Fixed: Empty Task Result
 
 **Issue**: Tasks completed with `result_len=0` despite correct output in buffer.
@@ -1450,8 +1444,8 @@ that may be empty, use `||` for fallback chains.
 
 **Status**: All 5 async bugs now fixed. Tool loop working end-to-end.
 
-#,,,.,...,.,.,.,,,...,...,..,,..,,.,.,.,.,,..,..,,...,...,..,,,.,,,,,,,..,..,,
-#APXR7VEL3A7PFFD7GMJ7KQB7ENTZFNWZ2GGZ2U5EHHDWWIOTIRAUL6VSULVOKMXZ4OVVXNQ5ZY6V4
-#\\\|LAHATTK5ZNT25L7MVI4Z2O436HOZWAAIATHDKPS5MNI54G2Q5JJ \ / AMOS7 \ YOURUM ::
-#\[7]HFCQT25MPF4KNZTBGUGOT5QE7IGBPGI6OJYRYYNACNHGJYX5FABI 7  DATA SIGNATURE ::
+#,,,.,...,.,.,..,,,,.,.,,,,,,,,..,.,,,..,,.,,,..,,...,..,,...,.,,,,,.,...,...,
+#HVTJ3CCM3XDJS5T4VIUZCQLKXUP643TUDQOP2RF3WKLMLNQLHYWHIFDHUVKTEMOXGGGEGH4OBPALM
+#\\\|W64ZD22M2ALYXHWGHT5JHKPXOY5TGQ2MRRDKEP7DWPQSWW72LQQ \ / AMOS7 \ YOURUM ::
+#\[7]JLB36ULIQ3DUCD4QYXFLI4DPLVYKKRQJUFH53KJD43QP2KWH6ACY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
