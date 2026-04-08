@@ -1,0 +1,42 @@
+## [:< ##
+
+# name  = models.storage.adapter.invoke.resolve
+# descr = resolve invoke model record to absolute on-disk path
+
+# [ input: $ARG = model record hashref ]
+# [ output: absolute path string if found on disk, undef if not ]
+
+my $root = $data{'models'}{'cfg'}{'external.models.invokeai.path'}
+    // '/mnt/ext-xfs-data/models-invoke';
+
+my $path = $ARG->{'path'} // return undef;
+
+## bare uuid -> diffusers directory ##
+if ( $path
+    =~ /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i ) {
+    return -d "$root/$path" ? "$root/$path" : undef;
+}
+
+## uuid/filename -> single file, try decoded and raw variants ##
+if ( $path
+    =~ m{^([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})/(.+)$}i
+) {
+    my ( $uuid, $filename_raw ) = ( $1, $2 );
+
+    # autoload URI::Escape if not present
+    eval { require URI::Escape; 1 } or return undef;
+
+    my $filename_decoded = URI::Escape::uri_unescape($filename_raw);
+    for my $fn ( $filename_decoded, $filename_raw ) {
+        return "$root/$uuid/$fn" if -f "$root/$uuid/$fn";
+    }
+    return undef;
+}
+
+return undef;
+
+#,,.,,.,.,,.,,..,,..,,...,,,.,.,,,,,.,.,.,...,.,.,...,...,.,.,,,,,,.,,..,,,..,
+#A4WORC5TTDT5ZUSKXYGHFDGHAVNMUQACI7IUJVLAR44TOKREXVZQROZUHU7VCI2CSK2TXCDYGAUFM
+#\\\|5QENE465FLFVI3L57MVO2Z4RIVSGRHIDE6JKVFZX5PXJKES2CNN \ / AMOS7 \ YOURUM ::
+#\[7]JZDKQT5X2XSGUPJXGLMSPV2LXW6NVDPWCQKV575DXB3RJU54W6BY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

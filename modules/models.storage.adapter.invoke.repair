@@ -1,0 +1,144 @@
+## [:< ##
+
+# name  = models.storage.adapter.invoke.repair
+# descr = create verbose-path symlinks for invoke model storage
+
+my $params = $ARG // {};
+
+my $dry_run     = $params->{'dry_run'} // 0;
+my $type_filter = $params->{'type'};           # optional filter
+my $records     = $params->{'records'};        # optional pre-fetched records
+
+# [ fetch records if not provided ]
+if ( !$records ) {
+    $records = <[models.storage.adapter.invoke.discover]>->();
+}
+
+$records //= [];
+
+# [ apply type filter if specified ]
+if ($type_filter) {
+    $records = [ grep { ( $_->{'type'} // '' ) eq $type_filter } @$records ];
+}
+
+# [ base aliases: create symlinks under ALL of these path prefixes ]
+my %BASE_ALIASES = (
+    'sd-1'         => [ 'sd-1', 'sd-1.5' ],
+    'sdxl'         => ['sdxl'],
+    'sd-2'         => ['sd-2'],
+    'sd-3'         => ['sd-3'],
+    'flux'         => ['flux'],
+    'any'          => ['any'],
+    'sdxl-refiner' => ['sdxl-refiner'],
+);
+
+my $root = $data{'models'}{'cfg'}{'external.models.invokeai.path'}
+    // '/mnt/ext-xfs-data/models-invoke';
+
+# autoload URI::Escape if not present
+eval { require URI::Escape; 1 };
+my $has_uri_escape = !$@;
+
+my ( $created, $skipped, $missing, $failed ) = ( 0, 0, 0, 0 );
+
+for my $rec (
+    sort { $a->{'type'} cmp $b->{'type'} || $a->{'name'} cmp $b->{'name'} }
+    @$records ) {
+
+    my $name
+        = $has_uri_escape
+        ? URI::Escape::uri_unescape( $rec->{'name'} // '' )
+        : ( $rec->{'name'} // '' );
+    my $type     = $rec->{'type'}   // 'unknown';
+    my $base     = $rec->{'base'}   // 'any';
+    my $format   = $rec->{'format'} // '';
+    my $path_raw = $rec->{'path'}   // '';
+
+    # determine if this is a directory (diffusers) or single-file model
+    my $is_dir = ( $format eq 'diffusers' );
+
+    # uuid target + link names
+    my ( $target, @link_names );
+
+    if ($is_dir) {
+        $target     = "$root/$path_raw";
+        @link_names = ($name);
+    } else {
+        if ( $path_raw
+            =~ m{^([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})/(.+)$}i
+        ) {
+            my ( $uuid, $filename_raw ) = ( $1, $2 );
+            my $filename_decoded
+                = $has_uri_escape
+                ? URI::Escape::uri_unescape($filename_raw)
+                : $filename_raw;
+
+            # use whichever target path exists on disk
+            my $t_dec = "$root/$uuid/$filename_decoded";
+            my $t_raw = "$root/$uuid/$filename_raw";
+            $target = ( -e $t_dec || -l $t_dec ) ? $t_dec : $t_raw;
+
+            # deduplicate: create symlinks for both variants if they differ
+            my %seen;
+            @link_names
+                = grep { !$seen{$_}++ } ( $filename_decoded, $filename_raw );
+        } else {
+            $skipped++;
+            next;
+        }
+    }
+
+    # check if target exists
+    unless ( -e $target || -l $target ) {
+        $missing++;
+        next;
+    }
+
+    # create symlink under every base alias x every name variant
+    my @bases = @{ $BASE_ALIASES{$base} // [$base] };
+
+    for my $link_base (@bases) {
+        for my $lname (@link_names) {
+            my $link_path = "$root/$link_base/$type/$lname";
+
+            if ( -e $link_path || -l $link_path ) {
+                $skipped++;
+                next;
+            }
+
+            my $link_dir = $link_path;
+            $link_dir =~ s|/[^/]+$||;
+
+            unless ($dry_run) {
+                File::Path::make_path( $link_dir, { verbose => 0 } );
+                symlink( $target, $link_path )
+                    or do {
+                    $failed++;
+                    next;
+                    };
+            }
+
+            $created++;
+        }
+    }
+}
+
+my $result = {
+    'created' => $created,
+    'skipped' => $skipped,
+    'missing' => $missing,
+    'failed'  => $failed,
+};
+
+<[base.logs]>->(
+    1, "repair complete: created=%d skipped=%d missing=%d failed=%d",
+    $created, $skipped, $missing, $failed
+);
+
+return $result;
+
+#,,,.,,..,,..,.,,,,,,,,..,.,,,,,,,,.,,...,.,,,.,.,...,...,.,.,,..,.,.,.,.,.,,,
+#NKYQWXNDSO322NEQQJBFRXIL72ABHQTJX6P5QVPWG3GFFAI57BDQRLFJXFFTKDUD73HGOXNNWYTM6
+#\\\|VNQ5APDLNXDJBGXFDRLOUO5YZNS5FGVXVZ2P35NY2VG2GNYYK3C \ / AMOS7 \ YOURUM ::
+#\[7]5MZUDUQXDNOK5GWKARFNOPLGNDCOKR72DEDH6CHUE6EBYGN3COCQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

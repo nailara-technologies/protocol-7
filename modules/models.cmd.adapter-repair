@@ -1,0 +1,34 @@
+## [:< ##
+
+# name  = models.cmd.adapter-repair
+# descr = cmd: repair path structure for a host adapter
+
+my @tokens  = split m|\s+|, $call->{'args'} // '';
+my $host    = shift @tokens // 'invoke';
+my %flags   = map { $_ => 1 } @tokens;
+my $dry_run = $flags{':dry-run:'} ? 1 : 0;
+
+if ( $host eq 'invoke' ) {
+    my $result = <[models.storage.adapter.invoke.repair]>
+        ->( { dry_run => $dry_run, } );
+    <[base.logs]>->(
+        1,
+        "adapter-repair [ invoke ] : created=%d skipped=%d missing=%d failed=%d",
+        $result->{'created'},
+        $result->{'skipped'},
+        $result->{'missing'},
+        $result->{'failed'}
+    );
+} else {
+    <[base.logs]>->( 0, "unknown adapter [ %s ]", $host );
+}
+
+return;
+
+#,,.,,,,.,.,.,...,,,,,.,,,,,.,,.,,.,,,...,...,..,,...,...,.,,,,..,,.,,.,.,.,,,
+
+#,,,,,.,.,.,.,,..,,..,,.,,,..,,..,,.,,,,.,...,..,,...,..,,...,.,,,...,.,.,,.,,
+#I6323IRDMQZTX5MXGJ2L735JQGVVM56RT233N7J3JLACSGJRZZPATP3KAQFSI2ZPGDZN4APL4FIFI
+#\\\|7WTKB3CCN76ZBVBRMY2XQPNYO745WTWXFVDIRFMMMX4DXYEX3O2 \ / AMOS7 \ YOURUM ::
+#\[7]7RXU3CM5N7OVNHS7FAWIRLM6G25ULNFHMJ3FB3UBWGPDJATCWWBA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

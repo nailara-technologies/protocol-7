@@ -1,0 +1,28 @@
+## [:< ##
+
+# name  = models.cmd.adapter-discover
+# descr = cmd: list models from a host adapter
+
+my $host = $call->{'args'} // 'invoke';
+
+if ( $host eq 'invoke' ) {
+    my $records = <[models.storage.adapter.invoke.discover]>->();
+    my $count   = scalar @{ $records // [] };
+    <[base.logs]>->( 1, "adapter-discover [ invoke ] : %d models", $count );
+    for my $rec ( @{ $records // [] } ) {
+        printf "%-10s %-8s %-12s %s\n",
+            $rec->{'type'}, $rec->{'base'}, $rec->{'format'}, $rec->{'name'};
+    }
+} else {
+    <[base.logs]>->( 0, "unknown adapter [ %s ]", $host );
+}
+
+return;
+
+#,,.,,,,.,.,.,...,,,,,.,,,,,.,,.,,.,,,...,...,..,,...,...,.,,,,..,,.,,.,.,.,,,
+
+#,,,,,,..,,,.,,,,,.,.,,..,.,,,,,,,,..,.,.,..,,..,,...,...,...,...,,,.,...,.,,,
+#QPKZDX7GMZY24SSEXM2EPNXUDC7B7YY7KVWQ2QVRMJKQX2WFHPGVREQECLM4ZQCOPZIQRTUYPGED6
+#\\\|VUV73ZZHCHG6PLRN7H6NJCPLS65LKC2PKZGXXV5LQSTNDMFPVUZ \ / AMOS7 \ YOURUM ::
+#\[7]NBYLISR6ZRJPTYN7RFHPZWLSQLQEPSHUKKIWHHX7O665W4BSL2BY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
