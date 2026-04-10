@@ -1,0 +1,24 @@
+## [:< ##
+
+# name  = models.cmd.adapter-export
+# descr = export model collection snapshot for an adapter
+
+my ( $host, $output_path ) = split m|\s+|, $call->{'args'} // '', 2;
+$host //= 'invoke';
+
+my $result;
+if ( $host eq 'invoke' ) {
+    $result = <[models.storage.adapter.invoke.export]>
+        ->( { 'output_path' => $output_path } );
+    my $out = sprintf "exported %d models (%d on disk, %d missing) -> %s\n",
+        $result->{'total'},   $result->{'on_disk'},
+        $result->{'missing'}, $result->{'path'};
+    return { 'mode' => qw| size |, 'data' => $out };
+}
+return { 'mode' => qw| false | };
+
+#,,.,,..,,,,,,.,,,.,,,,,,,,,.,.,.,.,,,,,.,.,,,..,,...,...,.,,,.,,,.,.,.,.,,,,,
+#6GKSUQA3FW22QVW3FMOUEAAMHOXZUS3NDHWY7LKUIKSKJ5QZPDJ7UVFLJNSM2EYWLE6SR4OQL27U4
+#\\\|F3677LN3PCBMGGRCKN7FJOYZJQAQJWVSHWNTYW5EDRGGJJ6VXQS \ / AMOS7 \ YOURUM ::
+#\[7]EQWEM5VU4BSC2S2XHFMJC27GZZ5HAHCAJPS4JK235TKYFLUSKKDA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
