@@ -1,0 +1,75 @@
+## [:< ##
+
+# name  = invoke-web.init_code
+# descr = invoke-web zenka initialization
+
+## load required modules [ one at a time per base.perlmod.autoload ]
+map { <[base.perlmod.autoload]>->($ARG) } qw| IPC::Open3 Symbol Fcntl |;
+
+## initialize state
+$data{'invoke-web'}{'status'} = 'idle';
+$data{'invoke-web'}{'pid'}    = undef;
+$data{'invoke-web'}{'url'}
+    = $data{'invoke-web'}{'external.models.invokeai.url'}
+    // 'http://127.0.0.1:9090';
+$data{'invoke-web'}{'binary'}
+    = '/home/taeki/miniconda3/envs/invokeai/bin/invokeai-web';
+$data{'invoke-web'}{'root'}         = '/home/taeki/.invokeai';
+$data{'invoke-web'}{'output'}       = '';
+$data{'invoke-web'}{'ready_logged'} = FALSE;
+$data{'invoke-web'}{'crash_logged'} = FALSE;
+
+## check for orphan invoke.ai process from previous run
+my $saved_ref = <[file.zenka_dir.load]>->('state/invokeai.pid');
+if ( defined $saved_ref ) {
+    my ( $saved_pid, $saved_bin ) = split m|\n|, $saved_ref->$*;
+    $saved_pid //= '';
+    $saved_bin //= '';
+    if ( $saved_pid =~ m|^\d+$| and kill( 0, $saved_pid ) ) {
+        ## verify process name matches before adopting
+        my $proc_cmd = '';
+        if ( open my $cfh, '<', "/proc/$saved_pid/cmdline" ) {
+            local $/;
+            $proc_cmd = <$cfh>;
+            close $cfh;
+        }
+        if ( $proc_cmd =~ m|invokeai-web| ) {
+            ## adopt orphan process
+            $data{'invoke-web'}{'pid'}        = $saved_pid;
+            $data{'invoke-web'}{'status'}     = 'running';
+            $data{'invoke-web'}{'start_time'} = <[base.time]>->(3);
+            <[base.zenki.report_child_pid]>->($saved_pid);
+            <[base.logs]>->(
+                1, 'adopted orphan invoke.ai process [pid:%d]', $saved_pid
+            );
+        } else {
+            ## stale pid file — process is not invokeai-web
+            <[file.zenka_dir.unlink_file]>->( 'state/invokeai.pid', TRUE );
+            <[base.logs]>->(
+                2, 'removed stale pid file [pid:%s]', $saved_pid
+            );
+        }
+    } else {
+        ## pid not running — remove stale file
+        <[file.zenka_dir.unlink_file]>->( 'state/invokeai.pid', TRUE );
+    }
+}
+
+## schedule periodic health check timer [ every 30 seconds ]
+<[event.add_timer]>->(
+    {   'after'    => 30,
+        'interval' => 30,
+        'repeat'   => TRUE,
+        'handler'  => 'invoke-web.handler.check_health',
+    }
+);
+
+<[base.logs]>->( 1, 'invoke-web zenka initialized' );
+
+0;
+
+#,,,.,.,,,,,.,,,,,,..,..,,...,,.,,,,.,,.,,,.,,..,,...,...,..,,,,,,,.,,,,,,,,.,
+#QIRN7ZCZY5FEUOJ6D6XFU3MLFR2HNFVDWXHFEUYPUJTGH32XDPI2RQRSVB2MTJHKJBYKPB4DBUQ76
+#\\\|YKBPPJSW5JFK35QFJPPOWEBRAFUEWR6DHDOJOAH26ZQNETMV3OF \ / AMOS7 \ YOURUM ::
+#\[7]LRDF7S3X6BTSP6C4ELX462J633BDLH32NLL4IW3VQKJQBHGGFCAY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
