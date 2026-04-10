@@ -1,0 +1,231 @@
+## [:< ##
+
+# name  = terminal.curses_ui.app.models
+# descr = standalone curses model manager application
+
+<[base.perlmod.load]>->('Curses::UI')
+    if not <[base.perlmod.loaded]>->('Curses::UI');
+
+## discover all models
+my $models = <[models.storage.adapter.discover_all]> // [];
+
+unless (@$models) {
+    <[base.logs]>->( 0, "app.models: no models found" );
+    return undef;
+}
+
+## build curses application
+my $cui = Curses::UI->new(
+    -clear_on_exit => TRUE,
+    -color_support => TRUE,
+);
+
+<[terminal.curses_ui.load_lang]>->( $cui->lang );
+
+my $win = $cui->add(
+    'main', 'Window',
+    -border => TRUE,
+    -title  => 'protocol-7 model manager',
+    -bfg    => 'blue',
+);
+
+## format display rows from model records
+my @labels;
+my @values;
+for my $i ( 0 .. $#$models ) {
+    my $rec = $models->[$i];
+    push @labels, sprintf "%-12s %-8s %-12s %s",
+        $rec->{'type'}   // '',
+        $rec->{'base'}   // '',
+        $rec->{'format'} // '',
+        $rec->{'name'}   // '';
+    push @values, $i;
+}
+
+my $filter_text = '';
+my @filtered    = @values;
+
+## build listbox
+my $listbox = $win->add(
+    'list', 'Listbox',
+    -values     => \@filtered,
+    -labels     => { map { $ARG => $labels[$ARG] } @filtered },
+    -border     => TRUE,
+    -title      => sprintf( '%d models', scalar @$models ),
+    -bfg        => 'blue',
+    -fg         => 'white',
+    -bg         => 'blue',
+    -vscrollbar => TRUE,
+    -y          => 0,
+    -height     => $win->height - 2,
+);
+
+## status line
+my $status = $win->add(
+    'status', 'Label',
+    -text  => ' q:quit  d:detail  r:repair  R:refresh  /:filter  ?:help',
+    -y     => -1,
+    -fg    => 'cyan',
+    -bg    => 'blue',
+    -width => -1,
+);
+
+## helper: refresh list display after filter change
+my $refresh_list = sub {
+    $listbox->values( \@filtered );
+    $listbox->labels( { map { $ARG => $labels[$ARG] } @filtered } );
+    $listbox->title(
+        sprintf '%d/%d models',
+        scalar @filtered,
+        scalar @$models
+    );
+    $listbox->draw(TRUE);
+};
+
+## helper: show detail for selected model
+my $show_detail = sub {
+    my $sel = $listbox->get_active_value;
+    return unless defined $sel;
+    my $rec = $models->[$sel];
+
+    ## format detail text
+    my $size_str;
+    my $size_gb = $rec->{'size_gb'} // 0;
+    if ($size_gb) {
+        $size_str = sprintf "%.2f GB", $size_gb;
+    } else {
+        $size_str = 'unknown';
+    }
+
+    my $text   = '';
+    my @fields = (
+        [ 'name',        $rec->{'name'}   // '' ],
+        [ 'type',        $rec->{'type'}   // '' ],
+        [ 'base',        $rec->{'base'}   // '' ],
+        [ 'format',      $rec->{'format'} // '' ],
+        [ 'path',        $rec->{'path'}   // '' ],
+        [ 'size',        $size_str ],
+        [ 'source',      $rec->{'source'}      // '' ],
+        [ 'source_type', $rec->{'source_type'} // '' ],
+    );
+
+    push @fields, [ 'adapter', $rec->{'adapter'} ]
+        if defined $rec->{'adapter'} and length $rec->{'adapter'};
+    push @fields, [ 'quant', $rec->{'quantization'} // '' ]
+        if defined $rec->{'quantization'} and length $rec->{'quantization'};
+
+    for my $f (@fields) {
+        $text .= sprintf "  %-14s %s\n", "$f->[0]:", $f->[1];
+    }
+
+    ## show detail in dialog
+    $cui->dialog(
+        -title   => $rec->{'name'} // 'detail',
+        -message => $text,
+    );
+};
+
+## key bindings
+
+## quit
+$cui->set_binding( sub { $cui->mainloopExit }, 'q' );
+$cui->set_binding( sub { $cui->mainloopExit }, "\e" );
+
+## detail
+$listbox->set_binding( $show_detail, 'd' );
+$listbox->set_binding( $show_detail, "\n" );
+
+## repair selected model adapter
+$listbox->set_binding(
+    sub {
+        my $sel = $listbox->get_active_value;
+        return unless defined $sel;
+        my $rec     = $models->[$sel];
+        my $adapter = $rec->{'adapter'} // '';
+        if ( $adapter eq 'invoke' ) {
+            <[models.storage.adapter.invoke.repair]>->($rec);
+        } elsif ( $adapter eq 'lmstudio' ) {
+            <[models.storage.adapter.lmstudio.repair]>->($rec);
+        }
+        $cui->dialog(
+            -title   => 'repair',
+            -message => sprintf( "repair requested for [ %s ]",
+                $rec->{'name'} // 'unknown' ),
+        );
+    },
+    'r'
+);
+
+## refresh — re-discover all models
+$listbox->set_binding(
+    sub {
+        $models = <[models.storage.adapter.discover_all]> // [];
+
+        ## rebuild labels and values
+        @labels = ();
+        @values = ();
+        for my $i ( 0 .. $#$models ) {
+            my $rec = $models->[$i];
+            push @labels, sprintf "%-12s %-8s %-12s %s",
+                $rec->{'type'}   // '',
+                $rec->{'base'}   // '',
+                $rec->{'format'} // '',
+                $rec->{'name'}   // '';
+            push @values, $i;
+        }
+
+        $filter_text = '';
+        @filtered    = @values;
+        $refresh_list->();
+        $status->text(' [ refreshed ]');
+        $status->draw(TRUE);
+    },
+    'R'
+);
+
+## filter
+$cui->set_binding(
+    sub {
+        my $input = $cui->question( -question => 'filter:' );
+        return unless defined $input;
+        $filter_text = lc $input;
+        if ( length $filter_text ) {
+            @filtered = grep { index( lc $labels[$ARG], $filter_text ) >= 0 }
+                @values;
+        } else {
+            @filtered = @values;
+        }
+        $refresh_list->();
+    },
+    '/'
+);
+
+## help
+$cui->set_binding(
+    sub {
+        $cui->dialog(
+            -title   => 'keybindings',
+            -message => join( "\n",
+                '  j/k     : navigate up/down',
+                '  enter/d : show model detail',
+                '  /       : filter models',
+                '  r       : repair selected model',
+                '  R       : refresh model list',
+                '  q/esc   : quit',
+            ),
+        );
+    },
+    '?'
+);
+
+$listbox->focus;
+$cui->mainloop;
+$cui->leave_curses;
+
+return TRUE;
+
+#,,..,,..,...,..,,.,,,,..,,,,,,..,,..,,.,,.,,,..,,...,...,...,...,.,.,.,,,,.,,
+#PT7YU4ATNWDLYYWGLAB55KRRYBWDVJ7LQJVPWVDRXRBWB3CTXPVNDV2C6ZDFVHHNPBGZHSSDNXGF6
+#\\\|5HRLXZHCWBFFGSWDSXIXTT5QOBE4LD7GYVATIPJEVWUPL7RBEYB \ / AMOS7 \ YOURUM ::
+#\[7]EIORTRGKACOOWCXIHWSCKGAJGW53OBOBAVDLEPDZH3D7ZOMEZMAA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
