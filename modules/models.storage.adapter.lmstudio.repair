@@ -1,0 +1,91 @@
+## [:< ##
+
+# name  = models.storage.adapter.lmstudio.repair
+# descr = validate gguf headers and report corrupt or incomplete files
+
+# [ input: $ARG = optional hashref with dry_run, root_path ]
+# [ output: hashref { valid => N, corrupt => N, missing => N } ]
+
+my $params = $ARG // {};
+
+my $dry_run = $params->{'dry_run'} // 0;
+my $root    = $params->{'root_path'}
+    // $data{'models'}{'cfg'}{'external.models.lmstudio.path'}
+    // '/mnt/ext-xfs-data/models-lmstudio';
+
+# [ scan for all .gguf files ]
+my @gguf_files;
+
+if ( opendir my $dh, $root ) {
+    while ( my $author = readdir $dh ) {
+        next if $author eq '.' || $author eq '..';
+        my $author_path = "$root/$author";
+        next unless -d $author_path;
+
+        if ( opendir my $model_dh, $author_path ) {
+            while ( my $model_dir = readdir $model_dh ) {
+                next if $model_dir eq '.' || $model_dir eq '..';
+                my $model_path = "$author_path/$model_dir";
+                next unless -d $model_path;
+
+                if ( opendir my $file_dh, $model_path ) {
+                    while ( my $file = readdir $file_dh ) {
+                        next unless $file =~ /\.gguf$/i;
+                        push @gguf_files, "$model_path/$file";
+                    }
+                    closedir $file_dh;
+                }
+            }
+            closedir $model_dh;
+        }
+    }
+    closedir $dh;
+}
+
+my ( $valid, $corrupt, $missing ) = ( 0, 0, 0 );
+
+for my $path (@gguf_files) {
+    unless ( -f $path ) {
+        $missing++;
+        next;
+    }
+
+    # read first 4 bytes and check magic
+    if ( open my $fh, '<:raw', $path ) {
+        my $buf;
+        my $n = read( $fh, $buf, 4 );
+        close($fh);
+
+        if ( $n == 4 && $buf eq 'GGUF' ) {
+            $valid++;
+        } else {
+            $corrupt++;
+            <[base.logs]>->( 0, "repair: corrupt file [ %s ]", $path );
+        }
+    } else {
+        $corrupt++;
+        <[base.logs]>->( 0, "repair: cannot read [ %s ]", $path );
+    }
+}
+
+<[base.logs]>->(
+    1, "repair: valid=%d corrupt=%d missing=%d",
+    $valid, $corrupt, $missing
+);
+
+return {
+    valid   => $valid,
+    corrupt => $corrupt,
+    missing => $missing,
+};
+
+#KSCUBQNNXZRENORIJJ4CGQZMA5OY6ZB2Z3CSQKV6ZEV5Z7X6OJICLLXHP6JNEASOSEB2SGSNH4HM6
+#\\\|DVQ24VTG4VYUJ52HQATFVHD34YTHY5XIY2N35JT7OCY2Z3KGITO \ / AMOS7 \ YOURUM ::
+#\[7]NWJE2UGYKZBWDJTEKGI4KWQEP5M5W3NU2K3VOFE25KTFJ6ELJSCQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+
+#,,,,,.,.,,,,,..,,..,,.,,,.,,,..,,,.,,.,.,..,,..,,...,..,,.,.,,..,,.,,,,.,,,.,
+#CSIZWA2B5U2HBCU3PTEBCLWB7AOGH5QGPRJCAHQUWVB67KDXQPWIPRBRUG3D4CLPG7LO2IRKYF2P6
+#\\\|DJIWR4FITLQS2CJCVK4GVKYRWE7JGJU6U3MLMLUFUV3IEFE6PNZ \ / AMOS7 \ YOURUM ::
+#\[7]RAI4CXP3OYZI43KFNFKPU7DKIZG7NIFF2KWVVN6OPQJ3X7PYBCDQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
