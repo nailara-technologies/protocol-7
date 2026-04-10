@@ -13,13 +13,22 @@ my $display_search = sub {    ### <-- extract subroutine [LLL]
         ? $colors{'p7_fg_0003'}     # Green = add to history
         : $colors{'p7_fg_0004'};    # Blue = no-history mode
 
-    printf "\r\e[K%s[search: %s ] ", $prompt_color, $term;
+    my $prefix    = sprintf '[search: %s ] ', $term;
+    my $term_cols = $data{'nshell'}{'cfg'}{'term_cols'}
+        // ( eval { ( AMOS7::TERM::terminal_size() )[0] } // 80 );
+    my $avail = $term_cols - length($prefix) - 1;
+
+    printf "\r\e[K%s%s", $prompt_color, $prefix;
     if (   $state_ref->{'search_results'}->@*
         && $state_ref->{'search_index'} < $state_ref->{'search_results'}->@* )
     {
-        print $colors{'p7_fg_0004'}
-            . $state_ref->{'search_results'}
+        my $match = $state_ref->{'search_results'}
             ->[ $state_ref->{'search_index'} ];
+        ## truncate long matches to fit terminal width
+        if ( $avail > 0 and length($match) > $avail ) {
+            $match = substr( $match, 0, $avail - 1 ) . '>';
+        }
+        print $colors{'p7_fg_0004'} . $match;
     }
     print "\e[K\e[0m";
     STDOUT->flush();
@@ -121,14 +130,20 @@ if ( $key eq "\x0f" ) {    # Ctrl+O
         ## Load selected command into editor for execution
         AMOS7::TERM::editor_load( $editor, $selected );
 
-        ## Print command for execution
-        printf "\r\e[K%s%s\n", $colors{'p7_fg_0004'}, $selected;
+        ## print command for execution [ truncate to terminal width ]
+        my $tw = $data{'nshell'}{'cfg'}{'term_cols'}
+            // ( eval { ( AMOS7::TERM::terminal_size() )[0] } // 80 );
+        my $disp = $selected;
+        if ( length($disp) >= $tw ) {
+            $disp = substr( $disp, 0, $tw - 2 ) . '>';
+        }
+        printf "\r\e[K%s%s\n", $colors{'p7_fg_0004'}, $disp;
         STDOUT->flush();
 
         $state_ref->{'display_buffer'}      = '';
         $state_ref->{'show_cursor_on_call'} = TRUE;
 
-        ## Signal to execute [ next input will be in VIEWING_HISTORY mode ]
+        ## signal to execute [ next input will be in VIEWING_HISTORY mode ]
         return 2;
     }
     return 0;
@@ -220,13 +235,20 @@ if ( $key eq "\r" or $key eq "\n" ) {
         $state_ref->{'current_mode'}           = 0;  # NORMAL
 
         AMOS7::TERM::editor_load( $editor, $selected );
-        ## Clear search prompt and display selected command
-        printf "\r\e[K%s%s\n", $colors{'p7_fg_0004'}, $selected;
+        ## clear search prompt and display selected command
+        ## [ truncate to terminal width ]
+        my $tw = $data{'nshell'}{'cfg'}{'term_cols'}
+            // ( eval { ( AMOS7::TERM::terminal_size() )[0] } // 80 );
+        my $disp = $selected;
+        if ( length($disp) >= $tw ) {
+            $disp = substr( $disp, 0, $tw - 2 ) . '>';
+        }
+        printf "\r\e[K%s%s\n", $colors{'p7_fg_0004'}, $disp;
         STDOUT->flush();
         $state_ref->{'display_buffer'}      = '';
-        $state_ref->{'show_cursor_on_call'} = 1;     # TRUE
+        $state_ref->{'show_cursor_on_call'} = 1;    # TRUE
 
-        return 2;    ## Signal to return selected command
+        return 2;    ## signal to return selected command
     }
     return 0;
 }
@@ -400,8 +422,8 @@ $display_search->( $state_ref->{'search_term'} );
 
 return 0;    ## Continue in search mode
 
-#,,..,.,.,,..,,,.,,,,,,.,,..,,.,,,...,,,,,..,,.,.,...,..,,.,.,,,.,.,,,,,,,,..,
-#5YC6KTGUAELXWRCX2BKDEHGNBIKGB5PX52EVLDIN7XUKTTJY5UOAT5ZD45PL4ACS5EN6IOQS7CRMG
-#\\\|FXP7JC2MTAM4XK2XJGR5GTVD5X3BXMWMF72Q56LMK3AN5JN5ZBK \ / AMOS7 \ YOURUM ::
-#\[7]2EO2V3YSDCVOLP37IQS5FHWZH5UOENXVFL7YOGGUJP3XIUOC6GDY 7  DATA SIGNATURE ::
+#,,..,,..,,,.,,.,,,.,,.,.,,,,,...,,,,,..,,.,.,.,.,...,..,,,..,..,,..,,.,.,,..,
+#WB72JBVIHCDDUY3SIH2VNJ4NSLDXCMUYQ3GZTPR62RB5PNF34OTLURXF76SY3P65BG272BRTPFFIY
+#\\\|BT7P3TG6CIBVQDT7STE5VUCZPTE3DEHIJMSNJQCAVDSATLIHONP \ / AMOS7 \ YOURUM ::
+#\[7]T2KECGDD4VP7U6SOCOQZ7X5FKMOTD2P7E4SSKLD3PHISP6P4UICQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

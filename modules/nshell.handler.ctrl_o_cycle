@@ -17,9 +17,15 @@ if ( ( $state_ref->{'ctrl_o_start_position'} // -1 ) < 0 ) {
     $state_ref->{'ctrl_o_entries_added'}  = 0;
 }
 
-## [ print command for execution — restore p7_fg_0004 after reset ]
+## [ print command for execution — truncate to terminal width ]
+my $term_cols = $data{'nshell'}{'cfg'}{'term_cols'}
+    // ( eval { ( AMOS7::TERM::terminal_size() )[0] } // 80 );
+my $disp_cmd = $cmd;
+if ( length($disp_cmd) >= $term_cols ) {
+    $disp_cmd = substr( $disp_cmd, 0, $term_cols - 2 ) . '>';
+}
 printf "\r\e[K%s%s\e[0m%s\n",
-    $colors{'p7_fg_0004'}, $cmd, $colors{'p7_fg_0004'};
+    $colors{'p7_fg_0004'}, $disp_cmd, $colors{'p7_fg_0004'};
 STDOUT->flush();
 
 ## [ add to history ]
@@ -27,28 +33,25 @@ my @lines = split "\n", $cmd;
 AMOS7::TERM::history_add(@lines);
 $state_ref->{'ctrl_o_entries_added'}++;
 
-## [ find next FOLDER entry with duplicate      ]
-## [ skipping —  ctrl+o goes forward (toward 0) ]
+## [ find next entry — ctrl+o advances toward newer (higher index) ]
+## [ duplicate skipping ]
 my $next_index = -1;
 my $next_lines = undef;
 my $attempts   = 0;
-my $search_idx = $cur_index + 1;   ## Fixed: go forward toward 0, not backward
+my $search_idx = $cur_index + 1;    ## toward newer entries (higher = newer)
 
 while ( $attempts < scalar @AMOS7::TERM::history_entries ) {
     last if $search_idx >= scalar @AMOS7::TERM::history_entries;
-    if (   $search_idx >= 0
-        && $search_idx < scalar @AMOS7::TERM::history_entries ) {
-        my $entry = $AMOS7::TERM::history_entries[$search_idx];
-        if ( ref($entry) eq qw| ARRAY | && $entry->[1] ) {
-            my $entry_text = join "\n", $entry->[1]->@*;
-            if ( $entry_text ne $cmd ) {
-                $next_index = $search_idx;
-                $next_lines = $entry->[1];
-                last;
-            }
+    my $entry = $AMOS7::TERM::history_entries[$search_idx];
+    if ( ref($entry) eq qw| ARRAY | && $entry->[1] ) {
+        my $entry_text = join "\n", $entry->[1]->@*;
+        if ( $entry_text ne $cmd ) {
+            $next_index = $search_idx;
+            $next_lines = $entry->[1];
+            last;
         }
     }
-    $search_idx--;
+    $search_idx++;
     $attempts++;
 }
 
@@ -98,8 +101,8 @@ if ( defined $next_lines ) {
 
 return $cmd;
 
-#,,..,,,.,.,.,,,,,.,,,,..,,,.,...,,,,,..,,.,.,.,.,...,...,..,,,,,,...,..,,,.,,
-#JU62R7DANJ5RJROAPKGQA5TWMK52E7DGDSNMXLTYXABXY3IIAS2Q6SIDLW34XHE3L3YC3ZGLFEEI2
-#\\\|RCAWV76PFXSRG3MPXO3MHFK3RV5OT7TPBPITTAEGKHGUVNEG7JH \ / AMOS7 \ YOURUM ::
-#\[7]SYC4B35PM4AX3YVTW32RUSGMUH7RCY75CLZ667BB3NTEBQ2VNYDI 7  DATA SIGNATURE ::
+#,,,,,.,.,.,.,.,.,,,.,.,,,,.,,,.,,..,,...,..,,.,.,...,...,..,,,.,,.,.,,.,,,,,,
+#QZYTQ4LUZF5CO3WOW6RGB5GFV7LKXIIUR6DMM3GYWFDKNCEDAKBLOSYA3272UIXJSHETRTONSMO6K
+#\\\|HFCHQ7IARZH6SRPTCTZT4KYV77QY4CRVIDSEXMJTDITLXQEIBUQ \ / AMOS7 \ YOURUM ::
+#\[7]JFIBCE3B7MLV4XTHT74C5VJDXIVBDW4J2SZJGTUKKZ5SJKWHPKDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
