@@ -1,0 +1,38 @@
+## [:< ##
+
+# name  = models.cmd.adapter-lmstudio-resolve
+# descr = cmd: resolve a model name to its on-disk path
+
+my $model_name = $call->{'args'} // '';
+
+if ( !$model_name ) {
+    <[base.logs]>->( 0, "usage: adapter-lmstudio-resolve <model_name>" );
+    return;
+}
+
+my $records = <[models.storage.adapter.lmstudio.discover]>->();
+my ($rec) = grep { $_->{'name'} eq $model_name } @{ $records // [] };
+
+if ($rec) {
+    my $path = <[models.storage.adapter.lmstudio.resolve]>->($rec);
+    if ($path) {
+        print "$path\n";
+    } else {
+        <[base.logs]>->( 0, "model not found on disk [ %s ]", $model_name );
+    }
+} else {
+    <[base.logs]>->( 0, "model not found [ %s ]", $model_name );
+}
+
+return;
+
+#AZVN5HKQHJH7TJ5V5IPXGZ36237XPKYLLU5C32G4Q6XK5MLVMDJZVR4FLV7JBGTV5ZYPSBTYX2SA6
+#\\\|FEGYW5FBWKOF7QJQOTOI3JAVQTA35S6R3F3BHBGRNNLLT7FT2TH \ / AMOS7 \ YOURUM ::
+#\[7]ICXFPOGC4P3WWEOB7MP5SDZIEPA7LOPRXEH4LSTHW2SGFUPUPKCY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+
+#,,,,,.,,,,,.,,..,..,,,.,,.,.,,,,,..,,,..,.,,,..,,...,...,.,,,,,.,...,,.,,,,.,
+#VGVV2A6MOSO2BRB4CW5YQ2UFKMCBAUTWQH2Q2ZOES2ENSXNFKM7JCD4ZVRC6CMYGDLNKVS5DAPNFY
+#\\\|GCUVKFITRVLQFO7O4ORCNJBNZ7FHX6RDEX7CREG56NXSYO6OHZD \ / AMOS7 \ YOURUM ::
+#\[7]RTA7LDWDZDC7QMKVYLY5AW42TOYYPBSJJQVMJAKIAMVDWS63UOBQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
