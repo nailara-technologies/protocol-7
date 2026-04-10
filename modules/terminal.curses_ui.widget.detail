@@ -1,0 +1,98 @@
+## [:< ##
+
+# name  = terminal.curses_ui.widget.detail
+# descr = curses detail widget — single model record display
+
+## [ input: $ARG = { record => \%model, title => $str } ]
+
+my $params = $ARG // {};
+
+my $record = $params->{'record'};
+my $title  = $params->{'title'} // 'model detail';
+
+return undef unless ref $record eq 'HASH';
+
+## format size as human-readable
+my $size_raw = $record->{'size'} // $record->{'size_gb'} // 0;
+my $size_str;
+if ( $record->{'size_gb'} ) {
+    $size_str = sprintf "%.2f GB", $record->{'size_gb'};
+} elsif ( $size_raw >= 1_073_741_824 ) {
+    $size_str = sprintf "%.2f GB", $size_raw / 1_073_741_824;
+} elsif ( $size_raw >= 1_048_576 ) {
+    $size_str = sprintf "%.2f MB", $size_raw / 1_048_576;
+} elsif ( $size_raw >= 1024 ) {
+    $size_str = sprintf "%.2f KB", $size_raw / 1024;
+} elsif ( $size_raw > 0 ) {
+    $size_str = sprintf "%d B", $size_raw;
+} else {
+    $size_str = 'unknown';
+}
+
+## build display text
+my @fields = (
+    [ 'name',        $record->{'name'}   // '' ],
+    [ 'type',        $record->{'type'}   // '' ],
+    [ 'base',        $record->{'base'}   // '' ],
+    [ 'format',      $record->{'format'} // '' ],
+    [ 'path',        $record->{'path'}   // '' ],
+    [ 'size',        $size_str ],
+    [ 'source',      $record->{'source'}      // '' ],
+    [ 'source_type', $record->{'source_type'} // '' ],
+);
+
+## optional fields
+push @fields, [ 'adapter', $record->{'adapter'} ]
+    if defined $record->{'adapter'} and length $record->{'adapter'};
+push @fields, [ 'quant', $record->{'quantization'} // $record->{'quant'} ]
+    if defined( $record->{'quantization'} // $record->{'quant'} );
+
+my $text = '';
+for my $field (@fields) {
+    $text .= sprintf "  %-14s %s\n", "$field->[0]:", $field->[1];
+}
+
+## build curses UI
+<[base.perlmod.load]>->('Curses::UI')
+    if not <[base.perlmod.loaded]>->('Curses::UI');
+
+my $cui = Curses::UI->new(
+    -clear_on_exit => TRUE,
+    -color_support => TRUE,
+);
+
+<[terminal.curses_ui.load_lang]>->( $cui->lang );
+
+my $win = $cui->add(
+    'main', 'Window',
+    -border => TRUE,
+    -title  => $title,
+    -bfg    => 'blue',
+);
+
+$win->add(
+    'viewer', 'TextViewer',
+    -text       => $text,
+    -border     => TRUE,
+    -title      => $record->{'name'} // 'detail',
+    -bfg        => 'blue',
+    -fg         => 'white',
+    -bg         => 'blue',
+    -vscrollbar => TRUE,
+    -wrapping   => TRUE,
+);
+
+## quit bindings
+$cui->set_binding( sub { $cui->mainloopExit }, 'q' );
+$cui->set_binding( sub { $cui->mainloopExit }, "\e" );
+
+$cui->mainloop;
+$cui->leave_curses;
+
+return TRUE;
+
+#,,.,,,,,,,,,,..,,.,,,.,,,.,.,,..,...,...,.,.,..,,...,...,..,,,.,,..,,..,,..,,
+#FQLX4JS7TK7JFCTLG3QUR43CRJIT44JB7OVFOYH7UFB2ELGRQJSGEFR7OFSRH66UJJ63UIFGXWHDY
+#\\\|GSKB6TCK6DNMGSEIKED7BMO3NBQBP24INEHDUSPE37X3UEJHUTL \ / AMOS7 \ YOURUM ::
+#\[7]QTEOFZOL6N4UEUKOHBUUYQXQCQ6K4EGMCVMRIAJSX3NAJPRFWECA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

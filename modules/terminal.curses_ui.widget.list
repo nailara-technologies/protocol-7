@@ -1,0 +1,120 @@
+## [:< ##
+
+# name  = terminal.curses_ui.widget.list
+# descr = curses list widget — paginated filterable model list
+
+## [ input: $ARG = { items => \@records, title => $str, on_select => \&cb } ]
+## [ output: selected record hashref or undef if cancelled ]
+
+my $params = $ARG // {};
+
+my $items     = $params->{'items'} // [];
+my $title     = $params->{'title'} // 'model list';
+my $on_select = $params->{'on_select'};
+
+return undef unless @$items;
+
+## format display rows
+my @labels;
+my %index_map;
+for my $i ( 0 .. $#$items ) {
+    my $rec   = $items->[$i];
+    my $label = sprintf "%-12s %-8s %-12s %s",
+        $rec->{'type'}   // '',
+        $rec->{'base'}   // '',
+        $rec->{'format'} // '',
+        $rec->{'name'}   // '';
+    push @labels, $label;
+    $index_map{$i} = $rec;
+}
+
+## build curses UI
+<[base.perlmod.load]>->('Curses::UI')
+    if not <[base.perlmod.loaded]>->('Curses::UI');
+
+my $cui = Curses::UI->new(
+    -clear_on_exit => TRUE,
+    -color_support => TRUE,
+);
+
+<[terminal.curses_ui.load_lang]>->( $cui->lang );
+
+my $win = $cui->add(
+    'main', 'Window',
+    -border => TRUE,
+    -title  => $title,
+    -bfg    => 'blue',
+);
+
+my $selected_record;
+my $filter_text      = '';
+my @filtered_indices = ( 0 .. $#labels );
+
+## build listbox
+my $listbox = $win->add(
+    'list', 'Listbox',
+    -values     => \@filtered_indices,
+    -labels     => { map { $ARG => $labels[$ARG] } @filtered_indices },
+    -border     => TRUE,
+    -title      => sprintf( '%d models', scalar @$items ),
+    -bfg        => 'blue',
+    -fg         => 'white',
+    -bg         => 'blue',
+    -vscrollbar => TRUE,
+);
+
+## quit binding
+$cui->set_binding( sub { $cui->mainloopExit }, 'q' );
+$cui->set_binding( sub { $cui->mainloopExit }, "\e" );
+
+## select binding
+$listbox->set_binding(
+    sub {
+        my $sel = $listbox->get_active_value;
+        return unless defined $sel;
+        $selected_record = $index_map{$sel};
+        if ( ref $on_select eq 'CODE' ) {
+            $on_select->($selected_record);
+        }
+        $cui->mainloopExit;
+    },
+    "\n"
+);
+
+## filter binding
+$cui->set_binding(
+    sub {
+        my $input = $cui->question( -question => 'filter:' );
+        return unless defined $input;
+        $filter_text = lc $input;
+        my @new_indices;
+        for my $i ( 0 .. $#labels ) {
+            push @new_indices, $i
+                if index( lc $labels[$i], $filter_text ) >= 0;
+        }
+        @filtered_indices = @new_indices;
+        $listbox->values( \@filtered_indices );
+        $listbox->labels(
+            { map { $ARG => $labels[$ARG] } @filtered_indices } );
+        $listbox->title(
+            sprintf '%d/%d models',
+            scalar @filtered_indices,
+            scalar @$items
+        );
+        $listbox->draw(TRUE);
+    },
+    '/'
+);
+
+$listbox->focus;
+$cui->mainloop;
+
+$cui->leave_curses;
+
+return $selected_record;
+
+#,,,.,...,,..,...,,.,,,.,,.,,,,..,.,.,.,.,,..,..,,...,...,..,,..,,..,,...,...,
+#22N45XOEPK5EJQZQ43LQ6XVATBM4OHMEUK33JBXJHJI7GIPYOXOR65XW3XOY3BTDKNHBQGFRXCIXK
+#\\\|3BZLSLTVCQZLFKSMR7IMSIGIMX4VWJUGWUPNWGTQQQPWUFEZE5X \ / AMOS7 \ YOURUM ::
+#\[7]FAR4GGUZ5WSISQUH7AUEBW2HNKFEXW3NE4UFMZFII3FHMIXHM4DQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
