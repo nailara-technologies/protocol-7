@@ -1,0 +1,105 @@
+## [:< ##
+
+# name  = models.storage.adapter.invoke.import
+# descr = restore invoke model collection from yaml snapshot
+
+my $params = $ARG // {};
+
+my $snapshot_path = $params->{'snapshot_path'} // '';
+my $dry_run       = $params->{'dry_run'}       // 0;
+
+unless ( $snapshot_path && -f $snapshot_path ) {
+    <[base.logs]>->( 0, "import: snapshot not found [ %s ]", $snapshot_path );
+    return { 'have' => 0, 'missing' => 0, 'queued' => 0 };
+}
+
+my $yaml;
+eval {
+    require YAML::PP;
+    my $yp = YAML::PP->new;
+    $yaml = $yp->load_file($snapshot_path);
+    1;
+} or do {
+    eval {
+        require YAML::XS;
+        open my $fh, '<:utf8', $snapshot_path
+            or die "cannot open file";
+        local $/;
+        $yaml = YAML::XS::Load(<$fh>);
+        close $fh;
+        1;
+    } or do {
+        <[base.logs]>->(
+            0,
+            "import: failed to parse yaml [ %s ]",
+            $@ // 'unknown'
+        );
+        return { 'have' => 0, 'missing' => 0, 'queued' => 0 };
+    };
+};
+
+unless ($yaml) {
+    <[base.logs]>->( 0, "import: failed to load snapshot" );
+    return { 'have' => 0, 'missing' => 0, 'queued' => 0 };
+}
+
+# [ validate adapter field ]
+my $adapter = $yaml->{'adapter'} // '';
+unless ( $adapter eq 'invoke' ) {
+    <[base.logs]>->(
+        0, "import: adapter mismatch [ expected=invoke, got=%s ]", $adapter
+    );
+    return { 'have' => 0, 'missing' => 0, 'queued' => 0 };
+}
+
+my $models = $yaml->{'models'} // [];
+my ( $have, $missing, $queued ) = ( 0, 0, 0 );
+
+for my $model (@$models) {
+    my $rec = {
+        'name'   => $model->{'name'},
+        'path'   => $model->{'path'},
+        'type'   => $model->{'type'},
+        'base'   => $model->{'base'}   // 'any',
+        'format' => $model->{'format'} // '',
+        'size'   => $model->{'size'}   // 0,
+    };
+
+    my $abs_path = <[models.storage.adapter.invoke.resolve]>->($rec);
+
+    if ($abs_path) {
+        $have++;
+        next;
+    }
+
+    $missing++;
+
+    if ($dry_run) {
+        <[base.logs]>->(
+            2, "import: would download [ %s ]",
+            $model->{'name'}
+        );
+    } else {
+        <[base.logs]>->(
+            2, "import: queued for download [ %s ]",
+            $model->{'name'}
+        );
+
+        # [ stub - actual download via install module is async ]
+        # [ wiring to async install is a follow-up task ]
+        $queued++;
+    }
+}
+
+<[base.logs]>->(
+    1, "import: have=%d missing=%d queued=%d",
+    $have, $missing, $queued
+);
+
+return { 'have' => $have, 'missing' => $missing, 'queued' => $queued };
+
+#,,..,...,,.,,.,,,...,,..,..,,,..,.,,,.,.,...,..,,...,...,...,.,,,,,.,,,.,,,.,
+#XMNRHA7KR2RK4QHDAXQDC2ZPHTPWULZKGIC2UKC2SHEU5OZREMM3DSZDBXCDM3ZXKM7B4VE3KRMZG
+#\\\|J7TBGKXPMAEXPPVHYSYJQ2VP34PYWSEV3CFMXFLGC4QSNCY2ZOM \ / AMOS7 \ YOURUM ::
+#\[7]7CNMXJRJPCYUCT7VSNNIASFSTN3DQ2EE7FLK6XHZRRYCQ37LJMAA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,0 +1,26 @@
+## [:< ##
+
+# name  = models.cmd.adapter-import
+# descr = cmd: restore model collection from snapshot
+
+my @tokens   = split m|\s+|, $call->{'args'} // '';
+my $host     = shift @tokens // 'invoke';
+my %flags    = map { $_ => 1 } @tokens;
+my $snapshot = ( grep { !m|^:| } @tokens )[0] // '';
+my $dry_run  = $flags{':dry-run:'} ? 1 : 0;
+
+my $result;
+if ( $host eq 'invoke' ) {
+    $result = <[models.storage.adapter.invoke.import]>
+        ->( { 'snapshot_path' => $snapshot, 'dry_run' => $dry_run } );
+    my $out = sprintf "have=%d missing=%d queued=%d\n",
+        $result->{'have'}, $result->{'missing'}, $result->{'queued'};
+    return { 'mode' => qw| size |, 'data' => $out };
+}
+return { 'mode' => qw| false | };
+
+#,,..,..,,.,.,...,,,,,...,,,,,..,,..,,.,.,,,.,..,,...,...,,.,,.,,,.,,,,..,...,
+#2NDUDG6OLJV2KRPTEBEQF4JMNMIFNYHFT2XQ2MD7DBYHNM7Y3LSH5PNPMDPDDTPWCZCRXLVF7353M
+#\\\|6JJNO72SYFMXXFFEVFJH2AHWO4UMZRZQKVB6BACFRXB5NYB3DAZ \ / AMOS7 \ YOURUM ::
+#\[7]O2GYT6N2T2CBY5V2BYXLMDU3P7PWAWCZJLUTFNZRFTY6FXOO2CDQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
