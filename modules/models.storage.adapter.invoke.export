@@ -1,0 +1,118 @@
+## [:< ##
+
+# name  = models.storage.adapter.invoke.export
+# descr = export invoke model collection to portable yaml snapshot
+
+my $params = $ARG // {};
+
+my $output_path = $params->{'output_path'}
+    // sprintf( '/tmp/invoke-models-%s.yaml',
+    <[base.parser.timestamp]>->('date') );
+
+my $records = $params->{'records'};
+unless ($records) {
+    $records = <[models.storage.adapter.invoke.discover]>->();
+}
+
+my $root = $data{'models'}{'external.models.invokeai.path'}
+    // '/mnt/ext-xfs-data/models-invoke';
+
+my @models;
+my ( $on_disk, $missing ) = ( 0, 0 );
+
+for my $rec (@$records) {
+    my $abs_path   = <[models.storage.adapter.invoke.resolve]>->($rec);
+    my $is_on_disk = $abs_path ? 1 : 0;
+    $is_on_disk ? $on_disk++ : $missing++;
+
+    my $sha256 = '';
+    if ( $abs_path && -f $abs_path ) {
+        my $sum_output = `sha256sum "$abs_path" 2>/dev/null`;
+        if ( $sum_output && $sum_output =~ /^([a-f0-9]{64})\s/i ) {
+            $sha256 = $1;
+        }
+    } elsif ( $abs_path && -d $abs_path ) {
+
+        # [ diffusers dir - compute manifest hash ]
+        my $manifest = "$abs_path/model_index.json";
+        if ( -f $manifest ) {
+            my $sum_output = `sha256sum "$manifest" 2>/dev/null`;
+            if ( $sum_output && $sum_output =~ /^([a-f0-9]{64})\s/i ) {
+                $sha256 = $1;
+            }
+        }
+    }
+
+    push @models,
+        {
+        'name'        => $rec->{'name'},
+        'type'        => $rec->{'type'},
+        'base'        => $rec->{'base'}   // 'any',
+        'format'      => $rec->{'format'} // '',
+        'path'        => $rec->{'path'},
+        'size'        => $rec->{'size'}        // 0,
+        'source'      => $rec->{'source'}      // '',
+        'source_type' => $rec->{'source_type'} // '',
+        'sha256'      => $sha256,
+        'on_disk'     => $is_on_disk,
+        };
+}
+
+my $snapshot = {
+    'generated'   => <[base.time]>->(3),
+    'adapter'     => 'invoke',
+    'model_count' => scalar @models,
+    'models'      => \@models,
+};
+
+# [ ensure parent dir exists ]
+my $parent_dir = $output_path;
+$parent_dir =~ s|/[^/]+$||;
+if ( $parent_dir && $parent_dir ne $output_path && !-d $parent_dir ) {
+    system( 'mkdir', '-p', $parent_dir );
+}
+
+my $yaml = '';
+eval {
+    require YAML::PP;
+    my $yp = YAML::PP->new;
+    $yaml = $yp->dump_string($snapshot);
+    1;
+} or do {
+    eval {
+        require YAML::XS;
+        $yaml = YAML::XS::Dump($snapshot);
+        1;
+    } or do {
+        <[base.logs]>->( 0, "export: failed to load yaml module" );
+        return undef;
+    };
+};
+
+open my $fh, '>:utf8', $output_path
+    or do {
+    <[base.logs]>->( 0, "export: cannot write [ %s ]", $output_path );
+    return undef;
+    };
+print $fh $yaml;
+close $fh;
+
+<[base.logs]>->(
+    1,
+    "exported %d models (%d on disk, %d missing) -> %s",
+    scalar @models,
+    $on_disk, $missing, $output_path
+);
+
+return {
+    'path'    => $output_path,
+    'total'   => scalar @models,
+    'on_disk' => $on_disk,
+    'missing' => $missing
+};
+
+#,,,.,.,.,,,,,.,,,...,..,,,,.,.,,,,.,,,,,,..,,..,,...,...,,.,,,,,,,.,,...,,..,
+#24G7GJXTQK7ESXYV7GSUQ4VGH27PLHFRZ7L2NTXOWUTHA3A4YQH3KMFAPIND46QI475YL5JQKKUF4
+#\\\|R45SFDTRMVN5J4WP5JWH4EG6MY7KLSW4NJGQIMWRELDKXU5WPMU \ / AMOS7 \ YOURUM ::
+#\[7]LGFLXS5IFU5E5AGA3HEZQEC6NPXAWOI42GGRLWLZKS2JPAIYVKCY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
