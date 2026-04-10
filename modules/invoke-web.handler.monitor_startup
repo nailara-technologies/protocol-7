@@ -1,0 +1,58 @@
+## [:< ##
+
+# name  = invoke-web.handler.monitor_startup
+# descr = monitor invoke.ai startup output and detect readiness or crash
+
+my $event        = shift->w;
+my $handler_data = $event->data;
+my $expected_pid = $handler_data->{'pid'};
+
+## stale watcher guard
+if ( !defined $data{'invoke-web'}{'pid'}
+    || $data{'invoke-web'}{'pid'} != $expected_pid ) {
+    $event->cancel if $event->is_active;
+    return;
+}
+
+## non-blocking read
+my $read_fh = $event->fd;
+my $bytes
+    = <[base.s_read]>->( $read_fh, \$data{'invoke-web'}{'output'}, 4096 );
+
+## check for readiness indicators
+my $output = $data{'invoke-web'}{'output'} // '';
+if ( $output =~ m{uvicorn running on|application startup complete}i ) {
+    unless ( $data{'invoke-web'}{'ready_logged'} ) {
+        $data{'invoke-web'}{'status'}       = 'running';
+        $data{'invoke-web'}{'ready_logged'} = TRUE;
+        <[base.logs]>->(
+            1,
+            'invoke.ai ready at %s',
+            $data{'invoke-web'}{'url'}
+        );
+    }
+}
+
+## EOF handling
+if ( $bytes <= 0 ) {
+    close($read_fh);
+    $event->cancel if $event->is_active;
+
+    if (   !$data{'invoke-web'}{'ready_logged'}
+        && !$data{'invoke-web'}{'crash_logged'} ) {
+        $data{'invoke-web'}{'crash_logged'} = TRUE;
+        $data{'invoke-web'}{'status'}       = 'crashed';
+        <[base.logs]>->( 0, 'invoke.ai crashed before ready' );
+
+        ## log last lines for diagnosis
+        my @lines = grep { length $ARG } split /\n/, $output;
+        my @tail  = @lines > 5 ? @lines[ -5 .. -1 ] : @lines;
+        <[base.logs]>->( 0, ':. %s', $ARG ) for @tail;
+    }
+}
+
+#,,,,,.,,,,,.,,,.,,,.,,,.,..,,,..,,,.,,..,...,..,,...,..,,...,.,,,..,,,,.,.,,,
+#4VJ5U26JODZH7CWQJQ6WPHZPXZ5G23EJOIBFMEKLZQPUL5T25S4WUAVF3DR5DEUNJTJD4SYGHTDLO
+#\\\|2Q5CPCLQB7FOR4BLK62NCXKEM6EJLIFSSGC2NUD466JK4SKOSUX \ / AMOS7 \ YOURUM ::
+#\[7]IPXG55NZ4PX7PMIHSWZUUBHXO6TA46LAWCBOR5QU6PIXXY6RV6DY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

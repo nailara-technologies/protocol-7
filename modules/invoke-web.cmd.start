@@ -1,0 +1,105 @@
+## [:< ##
+
+# name  = invoke-web.cmd.start
+# descr = cmd: start the invoke.ai web server process
+
+my $status = $data{'invoke-web'}{'status'} // 'idle';
+my $pid    = $data{'invoke-web'}{'pid'};
+
+## already running or starting — report and return
+if ( $status eq 'running' or $status eq 'starting' ) {
+    return {
+        mode => qw| size |,
+        data => sprintf(
+            "invoke.ai already %s [pid:%s]\n", $status, $pid // '-'
+        )
+    };
+}
+
+my $binary = $data{'invoke-web'}{'binary'};
+my $root   = $data{'invoke-web'}{'root'};
+
+## verify binary exists [ cannot use -x since it runs as taeki ]
+unless ( -e $binary ) {
+    <[base.logs]>->( 0, 'binary not found [ %s ]', $binary );
+    return { mode => qw| size |, data => "error: binary not found\n" };
+}
+
+## build spawn command
+my @cmd = ( 'sudo', '-u', 'taeki', $binary, "--root=$root" );
+
+## spawn via IPC::Open3
+my ( $stdout_fh, $stderr_fh );
+$stderr_fh = Symbol::gensym();
+
+my $child_pid
+    = eval { IPC::Open3::open3( undef, $stdout_fh, $stderr_fh, @cmd ) };
+
+if ( !$child_pid || $EVAL_ERROR ) {
+    <[base.logs]>->(
+        0,
+        'failed to spawn invoke.ai [ %s ]',
+        $EVAL_ERROR // 'unknown'
+    );
+    return {
+        mode => qw| size |,
+        data => sprintf( "error: spawn failed [ %s ]\n",
+            $EVAL_ERROR // 'unknown' )
+    };
+}
+
+## set pipes to non-blocking
+for my $pipe_fh ( $stdout_fh, $stderr_fh ) {
+    my $flags = fcntl( $pipe_fh, Fcntl::F_GETFL(), 0 );
+    fcntl( $pipe_fh, Fcntl::F_SETFL(), $flags | Fcntl::O_NONBLOCK() )
+        if defined $flags;
+}
+
+## update state
+$data{'invoke-web'}{'pid'}          = $child_pid;
+$data{'invoke-web'}{'status'}       = 'starting';
+$data{'invoke-web'}{'start_time'}   = <[base.time]>->(3);
+$data{'invoke-web'}{'output'}       = '';
+$data{'invoke-web'}{'ready_logged'} = FALSE;
+$data{'invoke-web'}{'crash_logged'} = FALSE;
+$data{'invoke-web'}{'io_stdout'}    = $stdout_fh;
+$data{'invoke-web'}{'io_stderr'}    = $stderr_fh;
+
+## persist pid for orphan detection
+<[file.zenka_dir.write]>->( 'state/invokeai.pid', \"$child_pid\n$binary\n" );
+
+## report child pid to v7
+<[base.zenki.report_child_pid]>->($child_pid);
+
+## register I/O watchers for startup monitoring
+my $watcher_out = <[event.add_io]>->(
+    {   'fd'      => $stdout_fh,
+        'handler' => 'invoke-web.handler.monitor_startup',
+        'data'    => { 'pid' => $child_pid },
+        'poll'    => qw| re |,
+    }
+);
+
+my $watcher_err = <[event.add_io]>->(
+    {   'fd'      => $stderr_fh,
+        'handler' => 'invoke-web.handler.monitor_startup',
+        'data'    => { 'pid' => $child_pid },
+        'poll'    => qw| re |,
+    }
+);
+
+$data{'invoke-web'}{'watcher_stdout'} = $watcher_out;
+$data{'invoke-web'}{'watcher_stderr'} = $watcher_err;
+
+<[base.logs]>->( 1, 'invoke.ai starting [pid:%d]', $child_pid );
+
+return {
+    mode => qw| size |,
+    data => sprintf( "invoke.ai starting [pid:%d]\n", $child_pid )
+};
+
+#,,,.,,,.,.,.,,.,,.,,,..,,.,,,,,.,.,.,,.,,,..,..,,...,..,,,,,,,,.,.,,,..,,,,.,
+#SNSGSQRYN7D6LDO7Q33BWVJFSEYBYRULS62SOVGWTNXLI4GOUBPH3MEVIPLLRKRBJR3HEGTED7EBO
+#\\\|WCZ4BTWGWMPFM55JXX5HBCAQY6XZHUBPUFV26PEJU5QN7BZHDYY \ / AMOS7 \ YOURUM ::
+#\[7]3CBQ5E7KNTYWKL4XLN6WM4CJ3JD7R2EIUSQ4LHLYCRILJEL4PMCI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
