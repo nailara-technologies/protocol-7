@@ -1,0 +1,107 @@
+## [:< ##
+
+# name  = models.storage.adapter.lmstudio.discover
+# descr = scan lmstudio model dir and return list of model records
+
+# [ input: $ARG = optional hashref with root_path override ]
+# [ output: arrayref of model hashrefs ]
+
+my $params = $ARG // {};
+
+# determine root path from config, params, or default
+my $root = $params->{'root_path'}
+    // $data{'models'}{'cfg'}{'external.models.lmstudio.path'}
+    // '/mnt/ext-xfs-data/models-lmstudio';
+
+# [ scan for all .gguf files ]
+my @gguf_files;
+
+if ( opendir my $dh, $root ) {
+    while ( my $author = readdir $dh ) {
+        next if $author eq '.' || $author eq '..';
+        my $author_path = "$root/$author";
+        next unless -d $author_path;
+
+        if ( opendir my $model_dh, $author_path ) {
+            while ( my $model_dir = readdir $model_dh ) {
+                next if $model_dir eq '.' || $model_dir eq '..';
+                my $model_path = "$author_path/$model_dir";
+                next unless -d $model_path;
+
+                if ( opendir my $file_dh, $model_path ) {
+                    while ( my $file = readdir $file_dh ) {
+                        next unless $file =~ /\.gguf$/i;
+                        push @gguf_files,
+                            {
+                            path   => "$model_path/$file",
+                            rel    => "$author/$model_dir/$file",
+                            author => $author,
+                            };
+                    }
+                    closedir $file_dh;
+                }
+            }
+            closedir $model_dh;
+        }
+    }
+    closedir $dh;
+}
+
+# [ build model records ]
+my @records;
+
+for my $info (@gguf_files) {
+    my $path     = $info->{'path'};
+    my $rel      = $info->{'rel'};
+    my $basename = $path;
+    $basename =~ s|.*/||;
+    $basename =~ s|\.gguf$||i;
+
+    # skip garbage names
+    next if <[models.gguf.file.is_garbage_name]>->($basename);
+
+    # extract metadata and name
+    my $meta = <[models.gguf.file.extract_metadata]>->($path);
+    my $name = <[models.gguf.file.extract_name]>->($path);
+
+    # extract quantization from file_type
+    my $quant = 'unknown';
+    if ( $meta && defined $meta->{'general.file_type'} ) {
+        $quant = <[models.gguf.file.file_type_to_quant]>
+            ->( $meta->{'general.file_type'} );
+    }
+
+    # determine base architecture from metadata
+    my $base = 'unknown';
+    if ( $meta && $meta->{'general.architecture'} ) {
+        $base = $meta->{'general.architecture'};
+    }
+
+    push @records,
+        {
+        name        => $name || $basename,
+        type        => 'main',
+        base        => $base,
+        format      => 'gguf',
+        path        => $rel,
+        size        => -s $path,
+        quant       => $quant,
+        source      => '',
+        source_type => 'file',
+        };
+}
+
+<[base.logs]>->( 2, "lmstudio.discover: found %d models", scalar @records );
+
+return \@records;
+
+#27B32UISRE6AIU7SLBPV75C5ZLQG36NJEXBGSPCLSH3IZ2ICWTXQP6423JNHM4DV36RBRMSNFZHGI
+#\\\|JWGUMF67AUORW7LZSTRFNBL67F7CNQ7B7KVE7B3CPJJMUL7CM4V \ / AMOS7 \ YOURUM ::
+#\[7]T3ARPOB7WOWG2JSZHLCWE6NWS5EYDN5C5LBH6O7RCSX3NXYGQGBQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+
+#,,..,..,,.,,,,..,.,,,,..,..,,,,,,,,,,..,,,..,..,,...,..,,,..,.,.,...,.,,,.,.,
+#4DEGIIHMLLIVUN2HZS3SZL5AV3P4RQQSQHLP5W4OVRISTDSTVHL44EW4DOAJYBEYN6RAANAMJOUHU
+#\\\|5BAVP6GPX7XNQHQI3TZSIETOEJB3XZ6GTTGOHNZWQT2KGT3EJIX \ / AMOS7 \ YOURUM ::
+#\[7]BJBRTU5PM3Q6NH6WDFRQWCQ4PYAIFQ475XAJ3ILF57G6L22MQMAA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

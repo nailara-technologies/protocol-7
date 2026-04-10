@@ -1,0 +1,241 @@
+## [:< ##
+
+# name  = models.storage.adapter.lmstudio.install
+# descr = download a model from huggingface into lmstudio storage
+
+# [ input: $ARG = hashref with repo, filename (optional), author, dry_run ]
+# [ output: hashref { success => 0|1, path => $path, error => $error } ]
+
+use LWP::UserAgent;
+use File::Path qw(make_path);
+use File::Basename;
+
+my $params = $ARG // {};
+
+my $repo = $params->{'repo'} // return { success => 0, error => 'no repo' };
+my $filename = $params->{'filename'};
+my $author   = $params->{'author'}  // ( split m|/|, $repo, 2 )[0];
+my $dry_run  = $params->{'dry_run'} // 0;
+
+my $root = $data{'models'}{'cfg'}{'external.models.lmstudio.path'}
+    // '/mnt/ext-xfs-data/models-lmstudio';
+
+# [ get hf token from lmstudio config ]
+my $hf_token;
+my $lmstudio_config = "$ENV{'HOME'}/.cache/lm-studio/config.json";
+if ( -f $lmstudio_config ) {
+    if ( open my $fh, '<', $lmstudio_config ) {
+        my $content = do { local $/; <$fh> };
+        close($fh);
+        if ( $content =~ /"hfToken"\s*:\s*"([^"]+)"/ ) {
+            $hf_token = $1;
+        }
+    }
+}
+
+# fallback: check lmstudio .env
+if ( !$hf_token ) {
+    my $env_file = "$ENV{'HOME'}/.config/lmstudio/.env";
+    if ( -f $env_file ) {
+        if ( open my $fh, '<', $env_file ) {
+            while (<$fh>) {
+                if (/HF_TOKEN[=:](.+)/) {
+                    $hf_token = $1;
+                    last;
+                }
+            }
+            close($fh);
+        }
+    }
+}
+
+# fallback: check hf hub token location
+if ( !$hf_token ) {
+    my $hf_token_file = "$ENV{'HOME'}/.cache/huggingface/token";
+    if ( -f $hf_token_file ) {
+        if ( open my $fh, '<', $hf_token_file ) {
+            $hf_token = do { local $/; <$fh> };
+            chomp($hf_token);
+            close($fh);
+        }
+    }
+}
+
+my $ua = LWP::UserAgent->new(
+    timeout => 600,
+    agent   => 'lmstudio-install/1.0',
+);
+
+if ($hf_token) {
+    $ua->default_header( 'Authorization' => "Bearer $hf_token" );
+}
+
+# [ helper: get repo files from hf api ]
+my $get_repo_files = sub {
+    my ($repo_id) = @_;
+    my $api_url   = "https://huggingface.co/api/models/$repo_id";
+    my $response  = $ua->get($api_url);
+    return () unless $response->is_success;
+    my $data = eval { JSON::PP::decode_json( $response->decoded_content ) };
+    return () if $@;
+    return map { $_->{'rfilename'} }
+        grep { $_->{'rfilename'} =~ /\.gguf$/i }
+        @{ $data->{'siblings'} // [] };
+};
+
+# [ helper: download file with resume support ]
+my $download_file = sub {
+    my ( $url, $filepath, $expected_size ) = @_;
+    my $tmpfile = "$filepath.tmp";
+
+    make_path( dirname($tmpfile), { verbose => 0 } );
+
+    # resume partial download if .tmp exists
+    my $offset = ( -f $tmpfile ) ? ( -s $tmpfile ) : 0;
+
+    # .tmp already complete - rename and return
+    if ( $offset > 0 && $expected_size && $offset >= $expected_size * 0.99 ) {
+        rename( $tmpfile, $filepath ) or return 0;
+        return 1;
+    }
+
+    # [ CRITICAL: use :raw mode for binary files ]
+    open my $fh, $offset ? '>>:raw' : '>:raw', $tmpfile
+        or return 0;
+
+    my %extra_headers = $offset ? ( 'Range' => "bytes=$offset-" ) : ();
+
+    my $response = $ua->get( $url, %extra_headers,
+        ':content_cb' => sub { print $fh $_[0] }, );
+    close $fh;
+
+    # server ignored range request - restart from scratch
+    if ( $offset > 0 && $response->code == 200 ) {
+        unlink $tmpfile;
+        open $fh, '>:raw', $tmpfile or return 0;
+        $response
+            = $ua->get( $url, ':content_cb' => sub { print $fh $_[0] } );
+        close $fh;
+    }
+
+    if ( ( $response->is_success || $response->code == 206 )
+        && -f $tmpfile ) {
+        my $size = -s $tmpfile;
+
+        # warn if file is smaller than expected
+        if ( $expected_size && $size < $expected_size * 0.99 ) {
+            <[base.logs]>->(
+                0, "install: possibly truncated [ %s ]", $filepath
+            );
+        }
+
+        rename( $tmpfile, $filepath ) or return 0;
+        return 1;
+    } else {
+        unlink($tmpfile) if -f $tmpfile;
+        return 0;
+    }
+};
+
+# [ determine files to download ]
+my @files_to_download;
+
+if ($filename) {
+
+    # single file specified
+    @files_to_download = ($filename);
+} else {
+
+    # list repo and select best file
+    my @gguf_files = $get_repo_files->($repo);
+
+    unless (@gguf_files) {
+        return { success => 0, error => 'no .gguf files found in repo' };
+    }
+
+    # prefer Q4_K_M if present
+    my ($preferred) = grep {/Q4_K_M/i} @gguf_files;
+    if ($preferred) {
+        @files_to_download = ($preferred);
+    } else {
+
+        # take the largest file
+        my $largest  = '';
+        my $max_size = 0;
+        for my $f (@gguf_files) {
+
+            # we don't know size without api call, use filename as heuristic
+            # prefer files that look like main model files
+            if ( length($f) > length($largest) ) {
+                $largest = $f;
+            }
+        }
+        @files_to_download = ($largest);
+    }
+}
+
+if ($dry_run) {
+    return {
+        success => 1,
+        files   => \@files_to_download,
+        dest    => "$root/$author",
+    };
+}
+
+# [ download files ]
+my $repo_name = ( split m|/|, $repo, 2 )[1] // $repo;
+$repo_name =~ s|/.*$||;    # remove any subfolder suffix
+
+my $dest_dir = "$root/$author/$repo_name";
+make_path( $dest_dir, { verbose => 0 } );
+
+my ( $ok, $fail ) = ( 0, 0 );
+my @downloaded;
+
+for my $file (@files_to_download) {
+    my $url      = "https://huggingface.co/$repo/resolve/main/$file";
+    my $out_path = "$dest_dir/$file";
+
+    # skip if already exists
+    if ( -f $out_path && -s $out_path > 0 ) {
+        <[base.logs]>->( 2, "install: already have [ %s ]", $file );
+        push @downloaded, $out_path;
+        $ok++;
+        next;
+    }
+
+    <[base.logs]>->( 1, "install: downloading [ %s ]", $file );
+
+    my $success = $download_file->( $url, $out_path, undef );
+    if ($success) {
+        push @downloaded, $out_path;
+        $ok++;
+    } else {
+        $fail++;
+    }
+}
+
+if ( $ok && !$fail ) {
+    return {
+        success  => 1,
+        files    => \@downloaded,
+        dest_dir => $dest_dir,
+    };
+} else {
+    return {
+        success => 0,
+        error   => "$fail files failed to download",
+        files   => \@downloaded,
+    };
+}
+
+#GMMDLL5RFHKLLULNXYBORGJQQUV33OXKMMXMJKT7RIQAZ735S3A4XUZ4ONW5NKU3ZYAJYKH4RS3L4
+#\\\|NTLHHVUDQQEYQENLQOOBIHUCTHWQEZHYDETHM2S7SFXGZ3ARTWR \ / AMOS7 \ YOURUM ::
+#\[7]TG5LAXMVABT7WCHSI7BWEPGO6P3VL66TRQACJKD72HOQUG6X3ICA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+
+#,,.,,,,.,,,.,,,,,.,,,..,,...,.,.,...,...,,..,..,,...,...,,,.,.,.,,,,,..,,,..,
+#KEISBWUNSKOV62KCXAORO2F7PLEH7MVQWZR6YGJNPKBQBP6T5JRQHOAVB2UUQ4BI2Y7VUKH7MLT5C
+#\\\|M67SS3F6UMJWA4JWCMWYJNYCJDWB5NHPVID2VUUWGOJ7PPRVRMB \ / AMOS7 \ YOURUM ::
+#\[7]JPDTAWEPGV7WXHJEXOE24SQAMYSYLLSWLUTSVSUFVD7PH5XI5EBQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
