@@ -656,6 +656,7 @@ return [ qw[
         keys.console.create
         jobqueue.remove_job
         io.ip.tcp.init_code
+        invoke-web.cmd.stop
         httpsd.self_restart
         httpd.send_raw_html
         httpd.scan_site_dir
@@ -799,6 +800,8 @@ return [ qw[
         keys.console.dec-key
         io.ssl.ip.input.open
         io.ip.tcp.input.open
+        invoke-web.init_code
+        invoke-web.cmd.start
         impressive.parse_bin
         impressive.init_code
         impressive.cmd.pause
@@ -971,6 +974,8 @@ return [ qw[
         io.ssl.ip.input.close
         io.ip.tcp.output.open
         io.ip.tcp.input.close
+        invoke-web.cmd.status
+        invoke-web.cmd.health
         impressive.cmd.status
         impressive.cmd.resume
         image-quality.analyze
@@ -1151,6 +1156,7 @@ return [ qw[
         kimi.task.queue_status
         keys.console.duplicate
         io.ip.tcp.output.close
+        invoke-web.cmd.restart
         index.cmd.add-wordlist
         impressive.open_window
         impressive.cmd.version
@@ -2625,6 +2631,7 @@ return [ qw[
         letsencr.child.encode_base64url
         letsencr.child.cmd.repair-chain
         kimi-web.internal.http_get_sync
+        invoke-web.handler.check_health
         image2html.base.write_stub_page
         image2html.base.fork_conv_child
         image-quality.vision.subprocess
@@ -2953,6 +2960,7 @@ return [ qw[
         kimi-web.bridge.ensure_local_agent
         keys.select_archive_path.term_Clui
         jobqueue.event.register_job_queues
+        invoke-web.handler.monitor_startup
         image2html.child.cmd.convert_image
         httpsd.discover_active_certificate
         httpsd.check_certificate_available
@@ -3485,8 +3493,8 @@ return [ qw[
     ]
 ];
 
-#,,.,,...,,..,,..,,..,.,.,...,,.,,...,..,,...,.,.,...,...,..,,.,.,,.,,..,,.,.,
-#F76OPJS3URPD7MGCW4EA45RPBHQABWTQ52FFVSB6SUHOKS6WG3EVGQ3UVVDGX3AXWMAE3T5KVEARO
-#\\\|ULLGZIPIU47ZPFMFHRPSAROOXF32PCAYPSVNT7R2WYFZVWIEWYL \ / AMOS7 \ YOURUM ::
-#\[7]YXF52YHUADI2NUVJMY2AI24PR7FKXL3JMILGWYU7X32AQLZX4QBQ 7  DATA SIGNATURE ::
+#,,..,.,,,,..,,.,,.,.,...,,,.,,,.,,,,,,..,.,.,.,.,...,..,,.,.,,,.,,,,,,,,,..,,
+#7JQMAIW6IUWBBKUG6KNP2Z35H6IMYCKGX3GLFHV2OUGVGX3MPGIHUMPYPGJL5RE7BTW4TW2MOR2JS
+#\\\|IHMYGLKBDDZVNI4YEM7AQXCGDNHRZD3XTEIIMCIDGY3MEVMCHPZ \ / AMOS7 \ YOURUM ::
+#\[7]3NTGQXBXW57JUVBZQ23X6XGHA4JHFYJUFIYCGQ3OAVRUTAARNKCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

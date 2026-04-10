@@ -1,0 +1,30 @@
+## [:< ##
+
+# name  = invoke-web.cmd.health
+# descr = cmd: check invoke.ai HTTP health endpoint
+
+<[base.perlmod.autoload]>->('LWP::UserAgent');
+
+my $url = $data{'invoke-web'}{'url'} // 'http://127.0.0.1:9090';
+
+my $ua       = LWP::UserAgent->new( timeout => 3 );
+my $response = $ua->get("$url/api/v1/app/version");
+
+if ( $response->is_success ) {
+    my $body = $response->decoded_content // '';
+    return {
+        mode => qw| size |,
+        data => sprintf( "healthy: %s\n", $body )
+    };
+} else {
+    return {
+        mode => qw| size |,
+        data => sprintf( "unreachable: %s\n", $response->status_line )
+    };
+}
+
+#,,..,,..,,..,...,,.,,,.,,,,,,,,.,,,,,,,,,.,.,..,,...,...,,,.,.,,,,,.,,..,,.,,
+#JDYY52G5SRQLZE6RRNPJGVBWXV2ULDHMPINBFTE7Z3AVRP62OSWCHMUIV5ZIW5R7E6BE52LU7ZKA4
+#\\\|ALWJFF53NZA2EJNHKZC7PCXZEBSVYN6237VDHV6XH23SSBST3B5 \ / AMOS7 \ YOURUM ::
+#\[7]4LTKI6CUMYH7WZLBFRZUP6XRZJWQDLLE56VJ36VFZ7BKNA4WE6CQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

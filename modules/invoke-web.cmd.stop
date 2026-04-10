@@ -1,0 +1,51 @@
+## [:< ##
+
+# name  = invoke-web.cmd.stop
+# descr = cmd: stop the invoke.ai web server process
+
+my $pid = $data{'invoke-web'}{'pid'};
+
+unless ( defined $pid and kill( 0, $pid ) ) {
+    return { mode => qw| size |, data => "invoke.ai is not running\n" };
+}
+
+## cancel I/O watchers
+for my $key (qw| watcher_stdout watcher_stderr |) {
+    my $w = $data{'invoke-web'}{$key};
+    $w->cancel if defined $w and $w->is_active;
+}
+
+## close I/O pipes
+for my $key (qw| io_stdout io_stderr |) {
+    my $fh = $data{'invoke-web'}{$key};
+    close($fh) if defined $fh;
+}
+
+## send SIGTERM first
+kill( 'TERM', $pid );
+$data{'invoke-web'}{'status'} = 'stopping';
+
+<[base.logs]>->( 1, 'sent SIGTERM to invoke.ai [pid:%d]', $pid );
+
+## schedule SIGKILL fallback after 10 seconds
+<[event.add_timer]>->(
+    {   'after'   => 10,
+        'handler' => 'invoke-web.handler.check_health',
+    }
+);
+
+## clean up state
+<[file.zenka_dir.unlink_file]>->( 'state/invokeai.pid', TRUE );
+$data{'invoke-web'}{'pid'}    = undef;
+$data{'invoke-web'}{'status'} = 'idle';
+
+return {
+    mode => qw| size |,
+    data => sprintf( "invoke.ai stopping [pid:%d sent SIGTERM]\n", $pid )
+};
+
+#,,,,,.,.,..,,..,,..,,,,,,...,..,,.,.,,,.,,.,,..,,...,...,,,,,...,..,,,.,,,,,,
+#H4VVXQZO65TAKGIPWHNDBV55QZ64JHE7JTPGJGPYFMGLN33KPH6FL3OLGRDDUDAFPJ5TOSEZZBXKG
+#\\\|UE4XJ6VMBMORK5AU2SO7I4KEWR6W4FYWD4YJH6L2FSPEVSSZV53 \ / AMOS7 \ YOURUM ::
+#\[7]2KRFW74MN7HHXEUMARAUK4DTCUGDZXG7U7COXYOPZZ2M2B4LTUAY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
