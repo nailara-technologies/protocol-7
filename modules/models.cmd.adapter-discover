@@ -3,26 +3,34 @@
 # name  = models.cmd.adapter-discover
 # descr = cmd: list models from a host adapter
 
-my $host = $call->{'args'} // 'invoke';
+my $host = $call->{'args'} // qw| invoke |;
 
-if ( $host eq 'invoke' ) {
-    my $records = <[models.storage.adapter.invoke.discover]>->();
+my $out = "";
+
+if ( $host eq qw| invoke | ) {
+    my $records = <[models.storage.adapter.invoke.discover]>;
     my $count   = scalar @{ $records // [] };
     <[base.logs]>->( 1, "adapter-discover [ invoke ] : %d models", $count );
     for my $rec ( @{ $records // [] } ) {
-        printf "%-10s %-8s %-12s %s\n",
+        $out .= sprintf "%-10s %-8s %-12s %s\n",
+            $rec->{'type'}, $rec->{'base'}, $rec->{'format'}, $rec->{'name'};
+    }
+} elsif ( $host eq qw| lmstudio | ) {
+    my $records = <[models.storage.adapter.lmstudio.discover]>;
+    my $count   = scalar @{ $records // [] };
+    <[base.logs]>->( 1, "adapter-discover [ lmstudio ] : %d models", $count );
+    for my $rec ( @{ $records // [] } ) {
+        $out .= sprintf "%-10s %-8s %-12s %s\n",
             $rec->{'type'}, $rec->{'base'}, $rec->{'format'}, $rec->{'name'};
     }
 } else {
     <[base.logs]>->( 0, "unknown adapter [ %s ]", $host );
 }
 
-return;
+return { mode => qw| size |, data => $out };
 
-#,,.,,,,.,.,.,...,,,,,.,,,,,.,,.,,.,,,...,...,..,,...,...,.,,,,..,,.,,.,.,.,,,
-
-#,,,,,,..,,,.,,,,,.,.,,..,.,,,,,,,,..,.,.,..,,..,,...,...,...,...,,,.,...,.,,,
-#QPKZDX7GMZY24SSEXM2EPNXUDC7B7YY7KVWQ2QVRMJKQX2WFHPGVREQECLM4ZQCOPZIQRTUYPGED6
-#\\\|VUV73ZZHCHG6PLRN7H6NJCPLS65LKC2PKZGXXV5LQSTNDMFPVUZ \ / AMOS7 \ YOURUM ::
-#\[7]NBYLISR6ZRJPTYN7RFHPZWLSQLQEPSHUKKIWHHX7O665W4BSL2BY 7  DATA SIGNATURE ::
+#,,..,,..,.,,,..,,,,,,,,,,,.,,,.,,.,,,.,.,..,,..,,...,...,...,...,.,,,.,.,...,
+#Z74MVGNHBP5UWTWMGTSVHFV4Q7324DS5FQFTQ55B7OWIN5ACFKFSQKA7P42SZW7DFKINQIOMZAMCY
+#\\\|NLDS7L36RMYJ3FX24M54SHR7O6UO6AYLEIM7JCSS7FMRN7SRAS6 \ / AMOS7 \ YOURUM ::
+#\[7]ZBCNAELN3VU5AV2G4DFH7E2IKH4WY5RJ5ITNJGU6YI4TJAIS7EDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -3,25 +3,21 @@
 # name  = models.cmd.adapter-lmstudio-discover
 # descr = cmd: list models from lmstudio adapter
 
-my $records = <[models.storage.adapter.lmstudio.discover]>->();
+my $records = <[models.storage.adapter.lmstudio.discover]>;
 my $count   = scalar @{ $records // [] };
 
 <[base.logs]>->( 1, "adapter-lmstudio-discover: %d models", $count );
 
+my $out = "";
 for my $rec ( @{ $records // [] } ) {
-    printf "%-10s %-8s %-12s %s\n",
+    $out .= sprintf "%-10s %-8s %-12s %s\n",
         $rec->{'type'}, $rec->{'base'}, $rec->{'format'}, $rec->{'name'};
 }
 
-return;
+return { mode => qw| size |, data => $out };
 
-#EOYI4G74INCQ5BQGDOKCNL52LA37ALROKR2I552OEERHS2IOXWZ23W3PTYUMZST3FCTPGA3G22SBC
-#\\\|3J7PFUGS3DGQMX5Y6ZKFKOJQ3MPNKO5P2TB3CQV2KKPZLTSGCWZ \ / AMOS7 \ YOURUM ::
-#\[7]JIHJWM3HBLCDYNR5BAQIW2NZRKUFCW3ZI2NR4GRRZZYOBFUAO4AI 7  DATA SIGNATURE ::
-#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
-
-#,,.,,.,,,,,.,,,.,,..,,..,,,,,.,.,...,,,.,,,,,..,,...,...,.,,,...,,,.,..,,..,,
-#XKKENL76K43OLBHXJUPBVHYXKMQKNFUZXTWLOCMKGH27OVZNBZLCPABOHH45R7IJ24WFURUDODODA
-#\\\|4BRHP23NFZQ45GS4663VAOUULKUS5GVWKXCLEQJ6G2J574JHZOB \ / AMOS7 \ YOURUM ::
-#\[7]SIWH25MBEMQP3VHN6V7TYEWTLZTEG5HS6TEYPQRIERPJHDDJMUCA 7  DATA SIGNATURE ::
+#,,,,,,,,,,,.,,..,,,.,,..,.,,,.,,,..,,,..,.,.,..,,...,...,..,,.,.,.,,,...,...,
+#2AIYYTIW7R7D4WV3HDYW7KBY57WID5TGE4O55FO5YUECDH5PAFDG4GQBAW26JQRIZBKXFPY435JQI
+#\\\|7IRAOIB5OCCNMO6COQWB4WE5MHPYG5FEJN26HZM2NFW7SIPH56K \ / AMOS7 \ YOURUM ::
+#\[7]DCV6AK5QXFIOLYBMUSDDOJMZFMFGNKPP2K2PSS3TSK4VKM6SKABQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -8,9 +8,7 @@ my $discovered = shift;
 
 # If no discovered models provided, discover them
 unless ( $discovered && ref($discovered) eq qw| ARRAY | ) {
-    $discovered = <[models.storage.discover_directory]>->(
-        qw| /mnt/ext-xfs-data/models-lmstudio |, TRUE    ## [LLL] fix path
-    ) // [];
+    $discovered = <[models.storage.adapter.discover_all]> // [];
 }
 
 my $registry = <models.registry> // {};
@@ -77,8 +75,8 @@ foreach my $model ( $discovered->@* ) {
 
 return { 'success' => TRUE, 'added' => $added_count };
 
-#,,..,,.,,,.,,,,.,.,,,,,.,.,.,,,,,,,,,,..,.,.,..,,...,...,..,,,,.,,..,,,,,,,.,
-#2ZTUYJZHZIKTILQUQTV4YZ47L4HVZRDZS4Z5F3JA2RX336DNUSMI64X3YI5YY6IAGSJZV3IT5WZQG
-#\\\|WI5WCQCC32MXMRXY3CMHFBHRKTIKZQTZNVTE4CWJWS4IXEXMRSZ \ / AMOS7 \ YOURUM ::
-#\[7]RP5EJTF62UJ7YFYZNCXSDVWJT3E2LRZISBQRNKMSNHNXFOQOTWAY 7  DATA SIGNATURE ::
+#,,.,,.,.,,,.,.,.,,..,.,.,..,,.,,,,,.,...,...,..,,...,..,,,..,...,,,,,,,,,,.,,
+#QXMCDJTU7RV32RLYGOLKD4E4FXM5NOL35S6MVCT43F3OGYNDZWLHIG65RPKPOXGL353ECZTJHHHVO
+#\\\|DRJXO4REUUOS2OC5VK2XOPMI5CHJNSZGEDZBGRX7KL4DPQCFNUT \ / AMOS7 \ YOURUM ::
+#\[7]UYMSB2APAU4G2YS4YFWPH4AYAPK6PG5YYBAGXGITVKVKVU6BWWCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -8,27 +8,27 @@ my $host    = shift @tokens // 'invoke';
 my %flags   = map { $_ => 1 } @tokens;
 my $dry_run = $flags{':dry-run:'} ? 1 : 0;
 
+my $out = "";
+
 if ( $host eq 'invoke' ) {
     my $result = <[models.storage.adapter.invoke.repair]>
-        ->( { dry_run => $dry_run, } );
-    <[base.logs]>->(
-        1,
-        "adapter-repair [ invoke ] : created=%d skipped=%d missing=%d failed=%d",
-        $result->{'created'},
-        $result->{'skipped'},
-        $result->{'missing'},
-        $result->{'failed'}
-    );
+        ->( { dry_run => $dry_run } );
+    $out = sprintf "created=%d skipped=%d missing=%d failed=%d\n",
+        $result->{'created'}, $result->{'skipped'},
+        $result->{'missing'}, $result->{'failed'};
+} elsif ( $host eq 'lmstudio' ) {
+    my $result = <[models.storage.adapter.lmstudio.repair]>
+        ->( { dry_run => $dry_run } );
+    $out = sprintf "valid=%d corrupt=%d missing=%d\n",
+        $result->{'valid'}, $result->{'corrupt'}, $result->{'missing'};
 } else {
     <[base.logs]>->( 0, "unknown adapter [ %s ]", $host );
 }
 
-return;
+return { mode => qw| size |, data => $out };
 
-#,,.,,,,.,.,.,...,,,,,.,,,,,.,,.,,.,,,...,...,..,,...,...,.,,,,..,,.,,.,.,.,,,
-
-#,,,,,.,.,.,.,,..,,..,,.,,,..,,..,,.,,,,.,...,..,,...,..,,...,.,,,...,.,.,,.,,
-#I6323IRDMQZTX5MXGJ2L735JQGVVM56RT233N7J3JLACSGJRZZPATP3KAQFSI2ZPGDZN4APL4FIFI
-#\\\|7WTKB3CCN76ZBVBRMY2XQPNYO745WTWXFVDIRFMMMX4DXYEX3O2 \ / AMOS7 \ YOURUM ::
-#\[7]7RXU3CM5N7OVNHS7FAWIRLM6G25ULNFHMJ3FB3UBWGPDJATCWWBA 7  DATA SIGNATURE ::
+#,,.,,.,.,..,,..,,...,,.,,.,,,,,,,,,,,,,.,,..,..,,...,..,,.,,,,,,,.,.,.,.,,,,,
+#A62R6SFQYZH6TJ2YQHL4K5JEUWURRSMUCZMF4EHWTO3YX2DBEBAQMNJ52BSCCO7MTI62346S3T5NY
+#\\\|74QY3OKN7B67SMLW2IZNAGGFJTDVTXCZIAHFHM6HQR6S63AKKDH \ / AMOS7 \ YOURUM ::
+#\[7]GUINP7PCCXQPHHM2XAOGLMGYL3SL6P5YMVMAHLYKRJXTRPS7LIAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

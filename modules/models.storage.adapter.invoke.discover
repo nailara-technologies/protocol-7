@@ -11,6 +11,7 @@ my $params = $ARG // {};
 # determine db path from config, params, or default
 my $db_path = $params->{'db_path'}
     // $data{'models'}{'cfg'}{'external.models.invokeai.db'}
+    // ( glob('/home/*/.invokeai/db/invokeai.db') )[0]
     // "$ENV{'HOME'}/.invokeai/db/invokeai.db";
 
 # check if db exists
@@ -84,8 +85,8 @@ for my $m (@$models) {
 
 return \@filtered;
 
-#,,,,,.,.,,..,,.,,.,,,.,,,.,.,,,,,.,.,.,.,...,.,.,...,...,..,,,.,,,,,,..,,,.,,
-#FXR3OEYRT7BT7MUGVCVHJDUGNJW4FZUFKASAC235DXR277A5IP6UQLFGWRU3YV3DVQCHPD7KHEDGS
-#\\\|5MRZT7MQV547234JTHS3EIEQKXTLPMGUESPZMQLPCFNACJW7QND \ / AMOS7 \ YOURUM ::
-#\[7]3YK2NKFTQDGE3KMZMMIPAPKKPBCEW3ZIRRWCNYRZDRPTGQAX76AI 7  DATA SIGNATURE ::
+#,,,.,,,.,,,.,...,,.,,.,.,.,,,.,,,,..,...,.,.,.,.,...,...,...,..,,...,..,,,,,,
+#5WLINQ5YZ4TJ6VKH37DYERBKEYLS7OFNGPALAWVQFD5Y5T3QSYJXXKGT4SXEIMB2KZL7QXPA64UJ6
+#\\\|AACIUZ5WQCLE26NNY7KEZNG4PKDT5YBA2CGWOZ7FDK56WCARWN7 \ / AMOS7 \ YOURUM ::
+#\[7]DSRRC7MWNOPUFQPPCR2MSS6XOJNMQU5434VV5J42K6TJYMLOCYDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
