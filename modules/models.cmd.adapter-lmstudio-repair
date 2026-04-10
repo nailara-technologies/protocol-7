@@ -10,20 +10,13 @@ my $dry_run = $flags{':dry-run:'} ? 1 : 0;
 my $result
     = <[models.storage.adapter.lmstudio.repair]>->( { dry_run => $dry_run } );
 
-<[base.logs]>->(
-    1, "adapter-lmstudio-repair: valid=%d corrupt=%d missing=%d",
-    $result->{'valid'}, $result->{'corrupt'}, $result->{'missing'}
-);
+my $out = sprintf "valid=%d corrupt=%d missing=%d\n",
+    $result->{'valid'}, $result->{'corrupt'}, $result->{'missing'};
 
-return;
+return { mode => qw| size |, data => $out };
 
-#762OYWWSPUFW5BMIQ4PEEE7D6UJO2FJZM3FTBIJJC3GYUKIECQYXEWPENR6SGS65HA6LH6KRFJ3Z4
-#\\\|E6FBK5GGC2MUP55DWTU55SRSSTNWMJQKS3IZGVTNGR2X7CUAU5F \ / AMOS7 \ YOURUM ::
-#\[7]ZF2RASMTDR2AQGYRKZFNJDSOXGKIREMSV4EKDGRGQGAFQFXIPSBI 7  DATA SIGNATURE ::
-#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
-
-#,,,,,.,.,...,.,.,.,.,,,.,,..,,..,...,.,.,.,,,..,,...,...,,.,,,.,,.,,,,,.,...,
-#TKW3Z5KQE7DYZLASJIQX35NIJRIPTMGLHD4SH2OEFNXBDKT5LT6AVLEFBIRO6YSVFFHUB2PQS4UR6
-#\\\|5N2OFVWPMPJECMZCKH35RXRH7P7MCDT72CFMFA56KRABRNA36I5 \ / AMOS7 \ YOURUM ::
-#\[7]74YD7SHBVPRK6MZVXS3DUHS72UNYP2RV5UTMDPMELWH5VYPXBSBQ 7  DATA SIGNATURE ::
+#,,,,,..,,,,,,.,.,,.,,,.,,,,.,...,,,,,,..,,.,,..,,...,,..,,,,,,,.,,,.,,..,.,,,
+#QX5S3EJHEFJEY2QKSBBYA4WU6PUWEQCFHJNIIXPWNO6WDYEGJVRGY4U4ELOH6OWATOCUSBMA6WQYK
+#\\\|ASAGPP6V4WNHQZQFVE6XYVPBIJZQPBBUCCUDJH7YOGAZBYZWMQA \ / AMOS7 \ YOURUM ::
+#\[7]OCXHWHUYJCJDHHHI6GOEVCVASKNVNUJDJ6XCGBX5ZBLN4YTQAYAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

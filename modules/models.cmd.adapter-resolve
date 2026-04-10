@@ -7,13 +7,16 @@ my ( $host, $model_name ) = split m|\s+|, $call->{'args'} // '', 2;
 $host       //= 'invoke';
 $model_name //= '';
 
+my $out = "";
+
 if ( $host eq 'invoke' ) {
-    my $records = <[models.storage.adapter.invoke.discover]>->();
+    my $records = <[models.storage.adapter.invoke.discover]>;
     my ($rec) = grep { $_->{'name'} eq $model_name } @{ $records // [] };
     if ($rec) {
         my $path = <[models.storage.adapter.invoke.resolve]>->($rec);
         if ($path) {
-            print "$path\n";
+            $out = "$path
+";
         } else {
             <[base.logs]>->(
                 0, "model not found on disk [ %s ]", $model_name
@@ -22,16 +25,23 @@ if ( $host eq 'invoke' ) {
     } else {
         <[base.logs]>->( 0, "model not in db [ %s ]", $model_name );
     }
+} elsif ( $host eq 'lmstudio' ) {
+    my $records = <[models.storage.adapter.lmstudio.discover]>;
+    my ($rec) = grep { $_->{'name'} eq $model_name } @{ $records // [] };
+    if ($rec) {
+        my $path = <[models.storage.adapter.lmstudio.resolve]>->($rec);
+        $reply = "$path\n" if $path;
+    } else {
+        <[base.logs]>->( 0, "model not in lmstudio [ %s ]", $model_name );
+    }
 } else {
     <[base.logs]>->( 0, "unknown adapter [ %s ]", $host );
 }
 
-return;
+return { mode => qw| size |, data => $out };
 
-#,,.,,,,.,.,.,...,,,,,.,,,,,.,,.,,.,,,...,...,..,,...,...,.,,,,..,,.,,.,.,.,,,
-
-#,,,,,..,,.,.,..,,...,,.,,,..,,..,,,.,,..,.,,,..,,...,...,...,.,,,...,..,,,.,,
-#QZLF6GHRGWFCITHZW7C6CADYKWBLXIQMTZTN77EEF57RVKA36IFGGTLE4ZRHP6CMKAUBPPUZJJLI2
-#\\\|L23UVGJMCPAAXXWRGYOGZLAO6S7UT2UUZHZBV2G6DI57SH72MWW \ / AMOS7 \ YOURUM ::
-#\[7]ZTHQ3D2EBYAGZELOZHJA6EERWILUPCRLIJ3KEKSWCWP6OZ323MAQ 7  DATA SIGNATURE ::
+#,,,.,...,.,.,.,,,.,.,.,,,.,,,,.,,,..,,.,,,..,..,,...,...,,,.,,..,,.,,.,.,.,.,
+#R7E5ESDBBK7Q7OAOTYEO3VTRY4KPCQXNOQ3FXLUWQT5NWWDXS7BRC66BWA5A6OG2O67VSBPKG532E
+#\\\|3FNDVD25MZAWBCA4OZ4QQS2UX6ZIAPZQBO6R3Z3TUD34TDNT5RX \ / AMOS7 \ YOURUM ::
+#\[7]JAMKFYH5Z64KERGO3AMCKN46AUNS3QDIRBUCLMISVPOER5SXQMDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

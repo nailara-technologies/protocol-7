@@ -1,0 +1,74 @@
+## [:< ##
+
+# name  = models.storage.adapter.discover_all
+# descr = call all active adapters and return merged model record list
+
+# [ input: $ARG = optional hashref { adapters => ['invoke','lmstudio'] } ]
+# [ output: arrayref of normalized model hashrefs ]
+
+my $params = $ARG // {};
+
+my @adapters = @{ $params->{'adapters'} // [qw( invoke lmstudio )] };
+my @all;
+
+for my $adapter (@adapters) {
+    my $records;
+    if ( $adapter eq 'invoke' ) {
+        $records = <[models.storage.adapter.invoke.discover]> // [];
+    } elsif ( $adapter eq 'lmstudio' ) {
+        $records = <[models.storage.adapter.lmstudio.discover]> // [];
+    } else {
+        <[base.logs]>
+            ->( 1, "discover_all: unknown adapter [ %s ]", $adapter );
+        next;
+    }
+
+    # normalize each record to registry format
+    for my $rec (@$records) {
+
+        # resolve to absolute path
+        my $abs_path;
+        if ( $adapter eq 'invoke' ) {
+            $abs_path = <[models.storage.adapter.invoke.resolve]>->($rec);
+        } elsif ( $adapter eq 'lmstudio' ) {
+            $abs_path = <[models.storage.adapter.lmstudio.resolve]>->($rec);
+        }
+        next unless defined $abs_path;    # skip if not on disk
+
+        my $size_bytes = $rec->{'size'} // 0;
+        my $size_gb
+            = $size_bytes > 0
+            ? sprintf( "%.2f", $size_bytes / 1_073_741_824 )
+            : 0;
+
+        push @all,
+            {
+            'name'         => $rec->{'name'} // '',
+            'path'         => $abs_path,
+            'size_gb'      => $size_gb,
+            'quantization' => $rec->{'quant'}  // 'unknown',
+            'format'       => $rec->{'format'} // '',
+            'base'         => $rec->{'base'}   // 'unknown',
+            'type'         => $rec->{'type'}   // 'main',
+            'adapter'      => $adapter,
+            'source'       => $rec->{'source'}      // '',
+            'source_type'  => $rec->{'source_type'} // '',
+            'tier'         => $adapter,
+            'is_vision'    => 0,
+            'mmproj_path'  => '',
+            };
+    }
+}
+
+<[base.logs]>->(
+    2,           "discover_all: %d models across %d adapters",
+    scalar @all, scalar @adapters
+);
+
+return \@all;
+
+#,,,.,..,,,,,,,.,,,..,,.,,..,,,,,,,.,,,,.,...,..,,...,..,,...,.,,,.,,,,..,.,,,
+#2YV4UY5ZPP6U2MPXN3YZUR3H2SA4WK5VXJGRIB7S5PCH3SS2T4ZPUV23Q2VDBJGKWWOAQPFPVOVIC
+#\\\|OVGPL6VAF4A35U44CL4BWICFNQGDA5M3E5ZM5LLGC7DCQLGDW3E \ / AMOS7 \ YOURUM ::
+#\[7]WLQQC4OC5IVXX3F2NODGTUUEVFDG7WS4ZHBQVKQHBSE6LRBHDEDQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
