@@ -1,0 +1,32 @@
+## [:< ##
+
+# name  = invoke.cmd.status
+# descr = show invoke zenka status and invoke.ai reachability
+
+my $url     = $data{'invoke'}{'url'}           // '-';
+my $model   = $data{'invoke'}{'default_model'} // '-';
+my $pending = scalar keys %{ $data{'invoke'}{'jobs'} // {} };
+
+## live reachability check
+my $ua      = LWP::UserAgent->new( timeout => 3 );
+my $resp    = $ua->get("$url/api/v1/app/version");
+my $version = '-';
+my $reach   = 'unreachable';
+if ( $resp->is_success ) {
+    my $ver_data = eval { JSON::decode_json( $resp->decoded_content ) };
+    $version = $ver_data->{'version'} // '-';
+    $reach   = 'ok';
+}
+
+my $out
+    = sprintf "invoke.ai : %s\nversion   : %s\nurl     "
+    . "  : %s\nmodel     : %s\njobs      : %d tracked\n",
+    $reach, $version, $url, $model, $pending;
+
+return { mode => qw| size |, data => $out };
+
+#,,,.,,,,,...,.,.,.,,,..,,,,.,...,...,,.,,.,.,..,,...,..,,.,,,,,.,,..,...,,.,,
+#Z67OT3OC7RF6GN4ASMHFDEMR66K5NCXYNKC4NOGLNBKDLC5YJ5Z2SDUYFLGOOEOBGMFENFHMU2F4U
+#\\\|5UUDKJAMRS5RCUPY44FEK3HAMEHKRI44WG5SSHFHRQ3FWEVAA6W \ / AMOS7 \ YOURUM ::
+#\[7]JW2GQTFODKCAY7FAS2FBRTC6SLXOKBOWKBDIOX5ECLV76FUF4ICA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

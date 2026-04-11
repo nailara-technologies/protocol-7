@@ -1,0 +1,71 @@
+## [:< ##
+
+# name  = invoke.cmd.cancel
+# descr = cancel a job by item_id, or all pending jobs
+
+my $target = $call->{'args'} // '';
+$target =~ s|^\s+||;
+$target =~ s|\s+$||;
+
+my $url = $data{'invoke'}{'url'};
+my $ua  = LWP::UserAgent->new( timeout => 10 );
+
+if ( !length $target or $target eq 'all' ) {
+    ## cancel all — collect batch_ids from tracked jobs
+    my @batch_ids = map { $ARG->{'batch_id'} }
+        values %{ $data{'invoke'}{'jobs'} // {} };
+
+    unless (@batch_ids) {
+        return { mode => qw| false |, data => 'no tracked jobs to cancel' };
+    }
+
+    my $body = JSON::encode_json( { 'batch_ids' => \@batch_ids } );
+    my $req  = HTTP::Request->new(
+        PUT => "$url/api/v1/queue/default/cancel_by_batch_ids" );
+    $req->header( 'Content-Type' => 'application/json' );
+    $req->content($body);
+    my $resp = $ua->request($req);
+
+    $data{'invoke'}{'jobs'} = {};
+
+    return $resp->is_success
+        ? { mode => qw| true |, data => 'cancelled all jobs' }
+        : {
+        mode => qw| false |,
+        data => sprintf( 'cancel failed [ %s ]', $resp->status_line )
+        };
+}
+
+## cancel specific item — find its batch_id
+my $job = $data{'invoke'}{'jobs'}{$target};
+unless ($job) {
+    return {
+        mode => qw| false |,
+        data => sprintf( 'unknown item_id [ %s ]', $target )
+    };
+}
+
+my $body = JSON::encode_json( { 'batch_ids' => [ $job->{'batch_id'} ] } );
+my $req  = HTTP::Request->new(
+    PUT => "$url/api/v1/queue/default/cancel_by_batch_ids" );
+$req->header( 'Content-Type' => 'application/json' );
+$req->content($body);
+my $resp = $ua->request($req);
+
+delete $data{'invoke'}{'jobs'}{$target};
+
+return $resp->is_success
+    ? {
+    mode => qw| true |,
+    data => sprintf( 'cancelled item %s', $target )
+    }
+    : {
+    mode => qw| false |,
+    data => sprintf( 'cancel failed [ %s ]', $resp->status_line )
+    };
+
+#,,.,,,..,,.,,,,.,,,.,,..,...,.,.,,.,,,..,,..,..,,...,..,,,,,,,.,,...,.,,,,.,,
+#BY2PGTLWC5CUHL2LKVJCMG5E45BUS6KL2BUND3H67W227AL5HK6ZVZ43J4CRAJ456YA5WUION4E2M
+#\\\|OBSSTZDLHZDRHKQZGV6QCZWOT3RWPYLRLAMGAIMUVJQTRVS6N7L \ / AMOS7 \ YOURUM ::
+#\[7]KXNOOZ6JK62AVVK3ZXF3DIWXQL4AINAQ5BRRT4KYRMUHFMZ4QQCQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

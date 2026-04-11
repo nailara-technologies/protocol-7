@@ -1,0 +1,113 @@
+## [:< ##
+
+# name  = invoke.cmd.generate
+# descr = submit an image generation request to invoke.ai
+
+my $args = $call->{'args'} // '';
+
+## parse arguments — key=value mode or plain prompt
+my %params;
+if ( $args =~ m|=| ) {
+    ## key=value parsing [ prompt=... model=... steps=... seed=... ]
+    while ( $args =~ m|(\w+)=(\S+(?:\s+(?!\w+=)\S+)*)|g ) {
+        $params{$1} = $2;
+    }
+} else {
+    $params{'prompt'} = $args;
+}
+
+my $prompt = $params{'prompt'} // '';
+unless ( length $prompt ) {
+    return { mode => qw| false |, data => 'usage: generate <prompt>' };
+}
+
+## check invoke.ai is reachable before building graph
+my $url  = $data{'invoke'}{'url'};
+my $ua   = LWP::UserAgent->new( timeout => 5 );
+my $ping = $ua->get("$url/api/v1/app/version");
+unless ( $ping->is_success ) {
+    return {
+        mode => qw| false |,
+        data => 'invoke.ai not reachable'
+            . ' [ start with: p7c invoke-web.start ]'
+    };
+}
+
+## look up model key if not cached
+my $model_name = $params{'model'} // $data{'invoke'}{'default_model'};
+my $model_info = $data{'invoke'}{'model_cache'}{$model_name};
+unless ($model_info) {
+    ## query invoke.ai for available models
+    my $models_resp = $ua->get("$url/api/v1/models/?model_type=main");
+    if ( $models_resp->is_success ) {
+        my $models_data = JSON::decode_json( $models_resp->decoded_content );
+        for my $m ( @{ $models_data->{'models'} // [] } ) {
+            next unless ( $m->{'name'} // '' ) eq $model_name;
+            $model_info = { key => $m->{'key'}, base => $m->{'base'} };
+            $data{'invoke'}{'model_cache'}{$model_name} = $model_info;
+            last;
+        }
+    }
+    unless ($model_info) {
+        return {
+            mode => qw| false |,
+            data =>
+                sprintf( 'model not found in invoke.ai [ %s ]', $model_name )
+        };
+    }
+}
+
+## build graph and submit
+my $graph_body = <[invoke.api.build_graph]>->(
+    {   prompt     => $prompt,
+        seed       => $params{'seed'}   // <[base.prng.harmonic_seed]>,
+        steps      => $params{'steps'}  // 30,
+        cfg        => $params{'cfg'}    // 7.0,
+        width      => $params{'width'}  // 1024,
+        height     => $params{'height'} // 1024,
+        model_key  => $model_info->{'key'},
+        model_base => $model_info->{'base'},
+    }
+);
+
+my $body_json = JSON::encode_json($graph_body);
+my $req
+    = HTTP::Request->new( POST => "$url/api/v1/queue/default/enqueue_batch" );
+$req->header( 'Content-Type' => 'application/json' );
+$req->content($body_json);
+my $submit_resp = LWP::UserAgent->new( timeout => 30 )->request($req);
+
+unless ( $submit_resp->is_success ) {
+    return {
+        mode => qw| false |,
+        data => sprintf( 'submit failed [ %s ]', $submit_resp->status_line )
+    };
+}
+
+my $result   = JSON::decode_json( $submit_resp->decoded_content );
+my $batch_id = $result->{'batch'}{'batch_id'}       // '';
+my $item_id  = ( $result->{'item_ids'} // [] )->[0] // '';
+
+## store job for poll_jobs to track
+$data{'invoke'}{'jobs'}{$item_id} = {
+    'batch_id'  => $batch_id,
+    'prompt'    => $prompt,
+    'model'     => $model_name,
+    'queued_at' => <[base.time]>->(3),
+    'status'    => 'pending',
+};
+
+<[base.logs]>
+    ->( 1, 'invoke: queued [item:%s batch:%s]', $item_id, $batch_id );
+
+return {
+    mode => qw| true |,
+    data => sprintf( 'queued [item:%s] — poll with: p7c invoke.queue-status',
+        $item_id )
+};
+
+#,,,,,,..,...,,.,,.,,,,..,,.,,,..,,,,,.,.,...,..,,...,..,,.,,,.,.,,,,,,.,,.,.,
+#P3R7ADFQOB5CXL26XD5TGBGUP3MSAFKGZMVYRVKLULY5CCXG5DMB6WRNBO7VJW57OPFJP7Q76EICC
+#\\\|EPADATSKSQ6HI4HBZ4QT72HUGT3AJBOCY7JFD5QPP4PKEUTUQ24 \ / AMOS7 \ YOURUM ::
+#\[7]N2T4YPJA7K4PWL5E4HAJZGL3YSPD53GWLQEZLEKOX7SZ4MZPPIAA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

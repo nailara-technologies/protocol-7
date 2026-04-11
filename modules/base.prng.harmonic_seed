@@ -1,0 +1,41 @@
+## [:< ##
+
+# name  = base.prng.harmonic_seed
+# descr = generate harmonically true random numeric seed
+
+my $max_val     = shift // 2**31;
+my $num_range   = qw| 01234577790 |;
+my $id_length   = length($max_val) + 1;
+my $max_retries = 4096;
+
+( my $nums_except_0 = $num_range ) =~ s|0||g;    ## skip prefix '0' ##
+
+my $seed;
+my $retries = 0;
+
+while (1) {
+    $seed = join( '',
+        <base.prng.fortuna>->string_from( $nums_except_0, 1 ),
+        <base.prng.fortuna>->string_from( $num_range,     $id_length - 1 ) );
+
+    ## clamp to max value
+    $seed = $seed % $max_val if $seed >= $max_val;
+
+    last if AMOS7::Assert::Truth::is_true($seed);
+
+    if ( ++$retries >= $max_retries ) {
+        <[base.logs]>->(
+            0, 'harmonic_seed: max retries [%d], using raw seed',
+            $max_retries
+        );
+        last;
+    }
+}
+
+return $seed;
+
+#,,..,...,.,,,,.,,.,,,.,.,,.,,,,,,,.,,...,.,,,..,,...,...,,,,,.,,,,.,,.,,,..,,
+#5OXU4SSKKLYBSUBLOLHBINUVUN6546JV5XZEJ62SU3Q26JYAG23Z67J6RCHJ3JQLJ4BH53WATZYHI
+#\\\|LSMELGXPATUY6JEVO4DFQ2NW7TJ5EHUSQWDKQUVNM4OWYYJ45VU \ / AMOS7 \ YOURUM ::
+#\[7]BTVWYFZCOM56GDUZT4WBV7NMZ442FRYQOPUHGDHTXMHB5JLSJEDI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -299,6 +299,7 @@ return [ qw[
         kimi.task.intake
         kimi.cmd.approve
         jobqueue.add_job
+        invoke.init_code
         httpsd.post_init
         httpsd.init_code
         httpsd.cmd.drain
@@ -404,6 +405,9 @@ return [ qw[
         jobqueue.pre_init
         jobqueue.move_job
         jobqueue.exec_job
+        invoke.cmd.status
+        invoke.cmd.health
+        invoke.cmd.cancel
         httpd.json.encode
         httpd.json.decode
         fs.cmd.is_mounted
@@ -656,6 +660,7 @@ return [ qw[
         keys.console.create
         jobqueue.remove_job
         io.ip.tcp.init_code
+        invoke.cmd.generate
         invoke-web.cmd.stop
         httpsd.self_restart
         httpd.send_raw_html
@@ -1156,6 +1161,8 @@ return [ qw[
         kimi.task.queue_status
         keys.console.duplicate
         io.ip.tcp.output.close
+        invoke.cmd.list-images
+        invoke.api.build_graph
         invoke-web.cmd.restart
         index.cmd.add-wordlist
         impressive.open_window
@@ -1334,6 +1341,7 @@ return [ qw[
         io.unix.socket.end_code
         io.ssl.ip.input.connect
         io.ip.tcp.input.connect
+        invoke.cmd.queue-status
         impressive.get_playlist
         image-quality.init_code
         httpd.system.network_io
@@ -1383,6 +1391,7 @@ return [ qw[
         base.strip_chksum_lines
         base.start.unlink_child
         base.session.init_state
+        base.prng.harmonic_seed
         base.perlmods.init_code
         base.path.clean_symlink
         base.parser.yes_no_bool
@@ -1517,6 +1526,7 @@ return [ qw[
         keys.select_archive_path
         keys.console.remove-type
         io.unix.socket.init_code
+        invoke.handler.poll_jobs
         impressive.check_tmp_dir
         httpsd.create_ssl_socket
         httpsd.cmd.socket-status
@@ -3493,8 +3503,8 @@ return [ qw[
     ]
 ];
 
-#,,..,.,,,,..,,.,,.,.,...,,,.,,,.,,,,,,..,.,.,.,.,...,..,,.,.,,,.,,,,,,,,,..,,
-#7JQMAIW6IUWBBKUG6KNP2Z35H6IMYCKGX3GLFHV2OUGVGX3MPGIHUMPYPGJL5RE7BTW4TW2MOR2JS
-#\\\|IHMYGLKBDDZVNI4YEM7AQXCGDNHRZD3XTEIIMCIDGY3MEVMCHPZ \ / AMOS7 \ YOURUM ::
-#\[7]3NTGQXBXW57JUVBZQ23X6XGHA4JHFYJUFIYCGQ3OAVRUTAARNKCQ 7  DATA SIGNATURE ::
+#,,.,,,..,,,.,...,..,,...,,.,,,.,,,..,,,.,,..,.,.,...,.,,,,..,...,,..,...,.,,,
+#5SFY3QNSYML7TQX3D4Y2XVP62CVHIR6XM4THDC6WETFNJNGD4US7O7HB3RAUY3ZMRIIHDKHISVUAI
+#\\\|5PNYYSYXLDU3YR6QLVZOFHQMIQSE7TCNYG46GSCAUVZ272GE4NW \ / AMOS7 \ YOURUM ::
+#\[7]WSPRZW2MACYR2YUF35F23HGXSFW5VWWINNXMBPH57RAOQX6ZZ6BI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
