@@ -1,0 +1,42 @@
+## [:< ##
+
+# name  = invoke.cmd.queue-status
+# descr = show invoke.ai queue status and tracked jobs
+
+my $url = $data{'invoke'}{'url'};
+my $ua  = LWP::UserAgent->new( timeout => 5 );
+my $out = '';
+
+## live queue stats from invoke.ai
+my $resp = $ua->get("$url/api/v1/queue/default/status");
+if ( $resp->is_success ) {
+    my $s = JSON::decode_json( $resp->decoded_content );
+    $out
+        .= sprintf
+        "queue : pending=%d in_progress=%d completed=%d failed=%d\n",
+        $s->{'pending'}   // 0, $s->{'in_progress'} // 0,
+        $s->{'completed'} // 0, $s->{'failed'}      // 0;
+} else {
+    $out .= "queue : invoke.ai unreachable\n";
+}
+
+## tracked jobs in this session
+my $jobs = $data{'invoke'}{'jobs'} // {};
+if ( keys %$jobs ) {
+    $out .= "\ntracked jobs:\n";
+    for my $item_id ( sort keys %$jobs ) {
+        my $j = $jobs->{$item_id};
+        $out .= sprintf "  item:%-8s  %-12s  %s\n",
+            $item_id, $j->{'status'} // '-', $j->{'prompt'} // '';
+    }
+} else {
+    $out .= "no tracked jobs this session\n";
+}
+
+return { mode => qw| size |, data => $out };
+
+#,,.,,.,,,,.,,.,.,...,,,.,,,,,,,,,...,...,,.,,..,,...,...,.,,,..,,...,.,,,,.,,
+#4NDUVBIULZSKKXKUTFZYXGCWMMSGLOSWQ75N2PHI46U5I7NLYZQM46FU2547HJXUMOVCUT7KUUFSC
+#\\\|EBX6AAZ2X35SLAGOV6JRQTZ6UTBEYFUNDBCU6W5PV2JGT5AY255 \ / AMOS7 \ YOURUM ::
+#\[7]KJCJ3QN6BSK7PBCKUBZI3AHORQGUYUGHTRANXNBJCCAR4SXSCOAI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

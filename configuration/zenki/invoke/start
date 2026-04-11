@@ -1,0 +1,39 @@
+
+.:[ invoke.ai image generation api client zenka ]:.
+
+[load_config_file:'shared-params']
+[load_config_file:'external-inference-models']
+
+system.verbosity.zenka_buffer  = 2
+system.verbosity.zenka_logfile = 2
+system.verbosity.zenka_console = 2
+
+start.on-demand    = 1
+restart.disabled   = 1
+heartbeat.disabled = 1
+
+## idle timeout: 5 minutes ##
+[base.zenki.set_ondemand_timeout:300]
+
+access.cmd.usr.cube = heart verify-instance commands reload \
+                      show-buffer show-access \
+                      generate queue-status cancel list-images status health
+
+modules.load = auth net protocol io.unix invoke
+
+[load_modules:<modules.load>]
+[init_modules]
+
+[root.drop_privs:<system.amos-zenka-user>]
+
+[base.net.connect:'unix']
+
+[get_session_id]
+
+[zenka.loop]
+
+#,,..,,.,,,,,,,.,,,,.,.,,,.,,,...,...,..,,,,.,..,,...,...,.,.,,..,,..,..,,,.,,
+#QAO5LYXYL4BSO5UJ2M2HNWDQRNAWIKXQKOZQJKGGLOQ3VMIFFBXQFVZ3VFOJIH3J7SINPRAA3RZXO
+#\\\|4RNM77UHZN7IZ4PHV7FDWI3GMMFVY2BZDS26WZ2HV5VPY5RJCDW \ / AMOS7 \ YOURUM ::
+#\[7]VIE262KAE6C3WBX5U42DBEZVNDFC7VSIGL7N652AVAAJCA7IYKAA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
