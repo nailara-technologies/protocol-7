@@ -199,6 +199,21 @@ and which parameter positions are harmonically over- or under-represented, all f
 the same view that is also the navigation interface.
 
 
+### grid-hardnode cursor model
+
+full spec: `design/GRID-HARDNODE-CURSOR-MODEL.md`
+
+the primary navigation primitive for the graphics-matrix zenka. merges distributed
+terminal interface, vector wireframe rendering, matrix-space navigation, and
+psychedelic harmonic realtime visualization — not by design combination but because
+all four independently arrived at the same geometric truth: a cursor is a position
+with reach, rendered honestly.
+
+reference implementation already exists:
+`data/html/visual.v7.ax/grid-v14-layered.refactored.html`
+screenshots: `data/gfx/cubic-space-topology/`
+
+
 ### relation to opencv plan
 
 the opencv zenka plan (`design/OPENCV-ZENKA-PLAN.md`) becomes the implementation guide
@@ -348,6 +363,52 @@ intrinsically self-documenting as a visual representation of the network's own s
 
 ---
 
+## initiative H — checksum-based storage and routing
+
+**goal**: content-addressed storage and checksum routing as the enabling layer for
+all reference-based features — cross-mapped curves, influence gradients, style layer
+addressing, element deduplication — without redundant complexity.
+
+**core insight**: passing a checksum reference IS transferring data between segmented
+storage regions. the checksum IS the address. same content = same checksum = single
+storage location. no duplication, no complex routing tables — a reference costs nothing
+extra regardless of how many nodes hold it.
+
+**existing design corpus** (ready for implementation):
+```
+UNIFYING-PRINCIPLE-CHECKSUM-COORDINATES.md   — checksum as coordinate system
+CHECKSUM-CLUSTER-MAP.md                      — proximity/temporal/semantic/harmonic clusters
+CHECKSUM-ROUTING-SECURITY-DEPTH.md           — routing security model
+VISION-TIMESTAMP-CHECKSUM-DUALITY.md         — time + checksum together as address
+phase-2-indexer-checksum-filesystem.yaml     — filesystem layout + dedup properties
+context-tree-checksum-addressing.md          — context tree wiring
+checksum-route-binary-framing*.md            — binary framing + harmonic foundations
+topic-checksum-addressing.md (memory)        — universal routing primitive summary
+```
+
+**P7REF format**: `TYPE:CHKSUM7:ADDR_B32` — 7-char AMOS checksum as universal coordinate.
+every entity (model, element, task, node, style layer, lattice position) is a group of
+default size 1. scaling to multi-member groups changes membership, not dispatch logic.
+
+**what it enables without adding complexity**:
+- element records in vision pipeline addressed by checksum — B1-B5 store once, reference everywhere
+- style fingerprints (104-dim vectors) content-addressed — identical style = same checksum = instant dedup
+- cross-mapped curve endpoints are checksum pairs — the curve IS the relationship between two addresses
+- reference counts are checksum occurrence counts in the cluster index — already maintained
+- influence gradient = weighted sum of reference counts, computable from cluster index alone
+- palette lattice positions addressable by checksum — `graphics-matrix.lattice.get CHKSUM7` routes directly
+- interchange between zenki: pass checksum, receiver fetches from content store — zero-copy transfer
+
+**relation to G (graphics-matrix zenka)**: the visual navigation surface routes by checksum.
+selecting a node in the visual issues a checksum-addressed command. the cross-mapped curves
+are rendered from cluster membership — same data structure, different rendering angle.
+
+implementation starts with the phase-2 indexer (checksum filesystem) as storage backend,
+then wires cluster types into the vision pipeline namespaces.
+
+
+---
+
 ## longer horizon
 
 these follow naturally from the initiatives above but are not yet
@@ -409,8 +470,8 @@ D3 (lmstudio inference)  ·  independent, low priority
 E1-E3 (bugs)  ·  independent, opportunistic
 ```
 
-#,,.,,,.,,,.,,,..,..,,.,,,,.,,,..,..,,,,,,,.,,..,,...,...,..,,...,...,,,,,,..,
-#OJXKBNCDXXX47NL47K3XWGF573J3UXVLDIYF3UQILNAUHTXGPVDULSIMCLZOWDHX43ESLJTZIOO5G
-#\\\|NOPLTPUTKMVJRIPP5FVOB7T6XQ6QYOTZEU4E23MTTWFHGNACBDA \ / AMOS7 \ YOURUM ::
-#\[7]L6XMCCOI33P667UI6FPZHPP4CP3VCV7ZFIQEE2ZALDDZEGGUT4BY 7  DATA SIGNATURE ::
+#,,,,,..,,...,,,.,,,.,...,,.,,,,.,,..,.,,,,,,,..,,...,...,...,,.,,,,.,,,,,.,.,
+#LTX4J4FH6THWFBY7SUCVPDZLDUAYPHV7YEGJDP5AD34D2W7BLZYIEJNTAPHYHW6BGTPXYS4HRYMZI
+#\\\|R74R7M3TGXIIIHFX5XI5PHZSF7Q6R2CAH4IWUY4E5FLKF4KGXCQ \ / AMOS7 \ YOURUM ::
+#\[7]OSVFMPPN5I2YCXDS536YCPTUXWRB2UEN2Z5A2UFP4KN3Q4WTQGCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
