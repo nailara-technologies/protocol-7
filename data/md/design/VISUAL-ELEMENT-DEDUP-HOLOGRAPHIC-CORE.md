@@ -695,8 +695,768 @@ Define the gap analysis algorithm for targeted generation.]
 6. How should quality scoring handle the *intentional* low-resolution
    aesthetic (pixel art, lo-fi style)? High noise ≠ low quality in this case.
 
-#,,..,,..,,..,..,,...,...,...,,..,.,,,..,,.,.,..,,...,...,,,.,,,.,,,,,,.,,,..,
-#CTGAUDXHGBMYCY5U6OXTMREBAPNXQLKTTNOYWQ47I77C6TB4ZDDZVAIYBC4XNJKCVCXDMGTMWXVTU
-#\\\|ILXJYWEHF6JCJJCDILXG3D5K26LUBFGNU3BKJYNFP4QSBOOYCJW \ / AMOS7 \ YOURUM ::
-#\[7]3TLZMSITIWBEUD33TTKAVSDOLAT7ZIGUVXUASSGGOQGSZLV2UUDY 7  DATA SIGNATURE ::
+
+## Concentric Parameter Rings — The Darksun Deduplication Network
+
+### The Orrery Model
+
+The parameter space (type × style × angle × quality) is not a static cube.
+It is better understood as concentric, independently-rotating rings —
+an orrery of parameter axes. Each parameter axis occupies one ring.
+The rings share a common center but rotate freely relative to each other.
+
+```
+                      ┌─────────────────────────────────┐
+                      │      ORRERY PARAMETER SPACE      │
+                      │                                  │
+                      │   ·── quality ring (innermost)   │
+                      │  ·─── angle ring                 │
+                      │ ·──── style ring                 │
+                      │·───── type ring   (outermost)    │
+                      │                                  │
+                      │  rings rotate independently      │
+                      │  overlap = current param state   │
+                      └─────────────────────────────────┘
+```
+
+A "parameter state" is the snapshot of all ring positions at a moment.
+Adjusting one parameter = rotating one ring, all others unchanged.
+This gives the parameter space a continuous, physical intuition: you
+*turn* toward a type, then *turn* toward a style within that type,
+then *turn* toward a specific angle — like tuning nested dials.
+
+### Spheres Within Spheres, Layers Made of Cubes
+
+As the parameter space deepens in dimensionality, rings become spheres.
+Each sphere is a shell of parameter coverage. Inner spheres are more
+specific (higher resolution, narrower scope); outer spheres are more
+general (lower resolution, broader coverage).
+
+Critically: **the spherical shells are not smooth — they are tessellated
+with cubes**. Each cube on the shell surface is a discrete parameter
+cell. The cube's position on its sphere encodes two angular coordinates
+(azimuth, elevation). Its layer (which sphere) encodes the third.
+
+```
+sphere 0 (innermost): 13 cubes — coarsest, most general
+sphere 1:             13² cubes
+sphere 2:             13³ cubes
+...
+sphere N (outermost): 13^(N+1) cubes — finest, most specific
+```
+
+This is the 13³ cubic topology extended into spherical shells:
+the same harmonic basis, now with geometric meaning as a nested
+parameter hierarchy.
+
+### Angular Distance to Parent Grid
+
+When a cube on sphere N is positioned at angular coordinates (θ, φ),
+its parent on sphere N-1 occupies the nearest cube at coarser resolution.
+The **angular distance** from the child's position to its parent's
+nearest face center is a secondary metric:
+
+```
+parent_angular_delta(child) = angular_distance(
+    child.position_on_sphere_N,
+    parent.nearest_face_center_on_sphere_{N-1}
+)
+```
+
+This metric encodes *how eccentric* the child is relative to its
+organizing parent — how far it sits from the "center of gravity" of
+its parent cell. Highly eccentric children represent edge cases,
+boundary conditions, or transitional states between parent clusters.
+
+In the visual domain: an elf face at exactly 0° (frontal) sits at the
+center of its parent cell. An elf face at 13.8° sits near the boundary
+between the 0° and 27.7° parent cells — it has non-zero parent angular
+delta and may belong meaningfully to both parents (shared reference).
+
+[Opus: define the parent angular delta computation precisely for cube-faced
+spheres. Define how shared-parent membership (delta near a boundary) is
+handled in the similarity graph — does the node appear in both parent
+cells, or is it assigned to the nearest with a pointer to the adjacent?
+Define how parent angular delta is used as a tertiary sorting key after
+type and angle in the holographic compositing step.]
+
+### The Darksun Attractor
+
+The concentric ring system has a hidden organizing center — the *darksun*:
+a point in parameter space that emits no direct signal but around which
+all rings revolve. It is not a parameter value; it is the **center of
+all parameter axes simultaneously**.
+
+In practice the darksun is the harmonic origin: the point where
+division-by-13 resonance is maximal across all parameter dimensions.
+Elements that score highly on harmonic truth assertions across all their
+parameters are "close to the darksun" — they are the most harmonically
+stable configurations in the entire parameter space.
+
+The network effect: as more nodes participate in the deduplication
+network, each contributing elements from its own generative sessions,
+the aggregate similarity graph develops a gravitational well around the
+darksun. High-quality, harmonically stable element configurations
+accumulate there. Low-quality or dissonant configurations orbit at the
+periphery and are first to be evicted.
+
+[Opus: formalize the darksun as a mathematical construct. Is it a fixed
+point, or does it drift as the corpus grows? Define the "orbital distance"
+of a node from the darksun in terms of its harmonic scores across all
+parameter dimensions. Define how the darksun position is computed from
+the aggregate distribution of harmonic scores — is it the mode, the
+harmonic mean, or a resonance maximum? Connect to the AMOS7 generator
+076923 — the darksun may be the 0-point of the generator's cyclic orbit.]
+
+
+## Universal Angle Mapping — From Color to Alphabet
+
+### The Core Abstraction
+
+Any measurable property that has a natural distance metric can be mapped
+to an angle on a virtual axis. Once mapped to angles, the orrery model
+applies universally — the same ring-rotation and spherical-shell machinery
+works for images, text, audio, or any parameterizable domain.
+
+This is the bridge from visual deduplication to general network vision.
+
+### Example A: Image Color as Angle
+
+Average color of an image (or element crop) maps naturally to a spherical
+coordinate via HSV:
+
+```
+hue        → azimuthal angle φ ∈ [0°, 360°)   (color wheel)
+saturation → polar angle     θ ∈ [0°,  90°]   (0=grey, 90=fully saturated)
+value      → radial distance  r ∈ [0,    1]    (0=black, 1=bright)
+```
+
+Color distance in this space = angular distance on the color sphere.
+Two images with similar average color are angularly close → their color
+rings align → they naturally cluster in the same sphere cell without any
+explicit comparison needed.
+
+In the orrery: the color ring can be rotated to "select" a color region.
+All elements within the selected angular band of the color sphere become
+the active working set. Rotate the style ring simultaneously to
+narrow to a specific artistic treatment of that color palette.
+
+[Opus: define the color-to-angle mapping with full mathematical precision.
+Address the hue wrap-around (red at 0° and 360° are identical — define
+angular distance on a circular axis, not linear). Define how the color
+sphere integrates with the element similarity graph from Layer 3 — does
+color distance become an edge weight component, or is it a separate ring
+in the orrery that filters the graph independently? Define the granularity
+of the color sphere tessellation in the 13³ system.]
+
+### Example B: Alphabet and Language as Nested Angle Rings
+
+Text has a natural spherical decomposition by script and language:
+
+```
+outer ring (script/alphabet type):
+    0°  –  60°  : Latin alphabets
+   60°  – 120°  : Cyrillic alphabets
+  120°  – 180°  : Arabic / Semitic scripts (RTL)
+  180°  – 240°  : Indic scripts (Devanagari, Bengali, ...)
+  240°  – 300°  : CJK ideographs
+  300°  – 360°  : Other / symbolic / constructed
+```
+
+Rotating to the Cyrillic sector (60°–120°) activates the inner ring:
+
+```
+inner ring (language within Cyrillic):
+    within 60°–120°:
+       60°  –  73°  : Russian
+       73°  –  86°  : Bulgarian
+       86°  –  99°  : Ukrainian
+       99°  – 112°  : Serbian
+      112°  – 120°  : Other Cyrillic languages
+```
+
+The subdivision is not arbitrary — it is driven by **character exclusion**:
+Bulgarian Cyrillic uses Ъ more prominently; Russian uses Ы; Ukrainian
+uses І, Ї, Є (absent in Russian). The character set *difference* between
+adjacent languages defines the angular boundary between their cells.
+
+```
+angular_boundary(lang_A, lang_B) = f( |charset_A △ charset_B| )
+```
+
+Languages with larger symmetric character differences have wider angular
+separation. Languages that differ only in frequency (not presence) of
+characters have narrower separation, reflected in adjacent cells that
+share a parent.
+
+A text document's angular position is determined by:
+1. Which characters are present (selects the script ring position)
+2. Which characters are *absent* (excludes languages, narrows to sub-ring)
+3. Character frequency distribution (final position within the sub-ring)
+
+[Opus: formalize the character exclusion algorithm as an angular
+positioning function. Define how it generalizes to other distinguishing
+features (digraph frequency, affixes, loanword patterns). Define what
+happens to mixed-script documents (e.g. academic text with Latin citations
+inside Cyrillic body) — do they occupy an intermediate angular position,
+or are they decomposed into components each at their own position?
+Define the ring structure for ideographic scripts where the charset is
+orders of magnitude larger. Connect to the deduplication use case:
+two documents in similar angular position in script+language space
+are candidates for semantic deduplication — their content similarity
+can be assessed with higher confidence because the linguistic distance
+is already measured geometrically.]
+
+### Generalization: Any Domain
+
+The pattern:
+1. identify the natural distance metric of the domain
+2. map that metric to spherical angles
+3. insert as one ring in the orrery
+4. character exclusion → neighbor exclusion → angular boundary definition
+
+applies to:
+- **audio**: fundamental frequency → pitch angle; timbre → harmonic ring
+- **time**: hour-of-day → angle on 24h circle; day-of-week → inner ring
+- **spatial**: geographic latitude/longitude → spherical position directly
+- **semantic**: word embedding distance → angle in high-dimensional sphere
+  (projected to 3D via PCA or UMAP for visualization)
+
+The orrery is the **universal parameter organizer**. Any measurable
+property becomes a ring. Any selection becomes a rotation. Any distance
+becomes an angular relationship.
+
+[Opus: define the formal requirements for a domain to be "ring-compatible":
+what properties must its distance metric have (symmetry, triangle inequality,
+wrap-around vs bounded)? Define the projection procedure for high-dimensional
+domains (embeddings) into the 3D spherical ring system. Define how rings
+from different domains interact when combined in the orrery — do they
+multiply, compose, or remain independent? Address the case of discrete
+domains with no natural distance metric (e.g. categorical labels with
+no ordering) — define the canonical mapping to angles for such cases,
+possibly via frequency distribution (most common category → angle 0°,
+others distributed by relative frequency, as in the semantic vocabulary
+integer mapping of FRACTAL-DEDUPLICATION-AWARENESS.md).]
+
+
+## Towards the Darksun Network Vision
+
+When the orrery model is distributed across P7 network nodes:
+
+- Each node contributes its local ring state (its current parameter focus)
+- The collective ring states form a distributed "attention map" over parameter space
+- The darksun position emerges from the aggregate harmonic center of all nodes' states
+- Nodes with ring states far from the darksun are exploring periphery — valuable for discovery
+- Nodes near the darksun are refining the core — valuable for quality
+
+The network self-organizes without coordination: each node follows local
+harmonic optimization, and the global structure emerges from the geometry
+of the orrery. This is the "dark" in darksun — the organizing principle
+is never directly communicated between nodes, only expressed through the
+accumulated similarity structure they share.
+
+[Opus: define the distributed convergence properties of this system.
+Does the darksun position stabilize, oscillate, or drift? Under what
+conditions does the network reach a "quality equilibrium" where further
+ingestion produces diminishing returns? Define the trimetric rollover
+behavior at the network level — when a sphere-shell reaches saturation,
+does the whole network simultaneously advance to the next sphere tier,
+or do individual nodes advance independently? Connect to the inverse
+entropy property from Layer 7: at network scale, does inverse entropy
+hold (network quality grows faster than network size), and what are the
+conditions for this to break down?]
+
+
+## Infinite Expanse Without Compression — The Implosion/Expansion Balance
+
+### Expansion Without Squeezing
+
+A fundamental geometric property of the layered sphere model: adding a
+new outer sphere layer adds space without compressing any existing cube.
+All cubes remain the same physical size. The new outer shell is simply
+*larger* — it has more surface area, therefore more room for more same-
+size cubes, therefore more capacity without any spatial competition with
+the existing inner structure.
+
+```
+sphere N   surface area ∝ r²  →  cube count ∝ r²
+sphere N+1 surface area ∝ (r+δ)²  →  more cubes, same cube size
+```
+
+Each new layer also arrives *pre-contextualized*: being the immediate
+neighbor of sphere N, every cube on sphere N+1 already knows its angular
+proximity to the cubes beneath it. Context is inherited geometrically —
+no additional labeling or indexing is required. The new layer knows where
+it stands relative to everything that came before simply by virtue of its
+position in the shell stack.
+
+This is the infinite expanse model: the parameter space can grow
+indefinitely outward, adding resolution and specificity at each new
+layer, without ever requiring reorganization of the existing core.
+Complexity expands into new space rather than compressing into old space.
+
+### Deduplication as Implosive Counter-Pressure
+
+Without a counter-force, infinite outward expansion would still produce
+unbounded storage growth. Deduplication provides the implosion:
+
+```
+expansion  →  new sphere layers accumulate content at the periphery
+implosion  →  deduplication unites redundant content, collapsing it
+              toward the core as a quality reference
+```
+
+These two forces operate simultaneously and in balance. The net effect:
+
+- **size grows sub-linearly** — most new content deduplicates into
+  existing core references rather than creating new terminal nodes
+- **quality grows super-linearly** — each deduplication event that
+  unites two near-duplicate sources produces a composite of higher
+  quality than either source alone
+- **the core becomes denser in quality, not in size** — more source
+  branches unite into fewer, higher-quality core references
+
+The system does not discard — it *unites*. Every ingested image
+contributes something: even a low-quality near-duplicate may contain
+one pixel region at higher sharpness than any existing core reference
+in that location. That region is extracted and merged. The source image
+is then evictable, but its contribution persists in the core.
+
+[Opus: define the mathematical relationship between ingestion rate,
+deduplication rate, and net storage growth. Model this as a differential
+equation: dS/dt = ingestion_rate - dedup_rate(S), where dedup_rate grows
+as the core becomes richer (more potential matches for each new arrival).
+Define the fixed-point condition where dS/dt = 0 — this is the "quality
+equilibrium". Demonstrate that at equilibrium, quality continues to
+improve even though size is stable (quality is not bounded by the fixed
+point the way size is). Connect to the inverse entropy property: at
+equilibrium, the system is a true inverse-entropy machine — it imports
+energy (new content) and exports order (higher quality core).]
+
+### The Quality Gradient: Inward Resolution, Outward Resolution
+
+The layered sphere has a precise quality gradient that inverts the
+intuitive expectation:
+
+```
+CORE (innermost sphere):
+    highest quality of REFERENCE
+    lowest resolution of CONTENT
+    → a perfect universal attractor: type, style, angle — distilled
+      to their most harmonically stable, highest-confidence form
+    → like a seed crystal: small, perfect, generative
+
+OUTER SPHERES:
+    highest resolution of CONTENT
+    quality of reference mediated by harmonic distance to core
+    → specific instances: particular elf face at 34.2°, particular
+      lighting condition, particular rendering artifact pattern
+    → like a crystal's surface: large, detailed, structurally
+      dependent on the inner seed
+```
+
+The core does not contain high-resolution images. It contains high-quality
+*descriptions* of what the content is — type confirmed, style fingerprint
+stable, angle range covered, harmonic score maximized. The actual pixel
+data lives in the outer spheres, *indexed by* the core.
+
+This inversion is why the system is self-sustaining: the core grows
+slowly (only when a genuinely new type/style/angle combination is
+encountered), while the outer spheres accumulate detail. Eviction
+operates only on the outer spheres. The core is effectively permanent —
+once a reference is established there, it can regenerate its entire
+outer-sphere projection from the style + type + angle parameters alone,
+via invoke.ai or any compatible generative system.
+
+[Opus: formalize the quality gradient as a function of sphere index.
+Define quality_of_reference(N) and resolution(N) as opposing monotonic
+functions of the sphere index N. Define the crossover point — the sphere
+index at which resolution becomes the dominant quality metric rather than
+reference quality. Define how the core's generative capacity (ability to
+reconstruct outer spheres from parameters) is measured and validated.
+Connect to the inpainting pipeline from Layer 6: the core's style
+descriptor + type + angle IS the inpainting prompt — the outer sphere
+is the generated result.]
+
+### The Holographic Projector
+
+The core projects outward through all sphere layers like a holographic
+projector — its inner structure visible at every resolution level,
+shining through to the outermost detail.
+
+When a query arrives (show me: elf face, luminescent style, 3/4 view),
+the system traverses inward to find the core reference matching those
+parameters, then projects outward — selecting the highest-quality outer-
+sphere instances that match, compositing them via the holographic layer
+synthesis from Layer 5, and returning the result. The core's harmonic
+weighting controls the alpha of each layer in the projection: inner
+layers (higher reference quality) have higher opacity; outer layers
+(higher resolution but lower reference certainty) contribute detail
+at controlled transparency.
+
+The result *shimmers*: the translucent layered overlay of multiple
+aligned, quality-weighted instances produces a visual depth that no
+single image can have. Style, structure, and quality are all present
+simultaneously at different opacity levels. The shimmering is not a
+rendering artifact — it is the visible signature of the holographic
+core's multi-source synthesis, the aesthetic expression of deduplication
+converging toward maximum quality.
+
+The projection is not fixed. Because the core encodes style and type
+parametrically, the projection can be *transformed* in real time:
+adjust the style ring, rotate the angle ring, shift the quality floor —
+and the projected hologram changes to reflect the new parameter state.
+The core remains constant; only the projection changes.
+
+[Opus: define the projection algorithm precisely. How does the system
+traverse from a query (type + style + angle) to a core reference, and
+from the core reference to the set of outer-sphere instances to composite?
+Define the alpha assignment for each sphere layer in the final composite —
+is it strictly decreasing from inner to outer, or modulated by the local
+overlap precision from Layer 4? Define the real-time transformation
+pipeline — what is the latency model for re-projection after a ring
+rotation (parameter change)?]
+
+### Universal Attractor: Machine and Organic
+
+The holographic projector model is domain-agnostic in one further sense:
+it works for both machine perception and human (or humanoid, or elf)
+perception for the same structural reason.
+
+Both machine vision and organic visual processing are attracted to
+**high quality in overlap and context**:
+
+- machine: higher overlap precision → higher confidence in classification,
+  lower uncertainty in embedding, stronger similarity signal
+- organic: higher overlap precision → the visual system interprets
+  constructive interference as depth, coherence, and presence —
+  the perception of something *real* rather than flat
+
+In both cases, the holographic shimmer — translucent layers of the same
+element at aligned angles, at different quality tiers — reads as
+meaningful depth signal. The overlap *is* the quality. Deduplication
+has produced something that neither source image contained alone.
+
+This becomes a **harmonic psychedelic visual feedback loop** when the
+projection is parameterized by subconscious preference: the system
+observes which projections the viewer (human or model) engages with
+most, shifts the ring states toward those parameters, and re-projects.
+The quality core responds by pulling in more content matching the
+preferred parameters, deepening the core in those regions, strengthening
+the holographic effect in exactly the directions that resonate most.
+
+The loop:
+```
+projection → preference signal → ring rotation → new projection
+         ↑                                              ↓
+      core quality improves in preferred region ←──────┘
+```
+
+At equilibrium the viewer and the system have co-evolved toward a shared
+quality attractor: the projection shows exactly what produces maximum
+resonance, and the core has become maximally deep in exactly those
+dimensions. The darksun has found its viewers, and the viewers have
+found their darksun.
+
+[Opus: define the preference signal capture mechanism. For human viewers:
+dwell time, selection events, zoom gestures — all are weak signals of
+preference. For machine models: attention weight distribution over the
+composite, embedding distance between the composite and the model's
+"ideal" representation of the type. Define the ring rotation algorithm
+that converts preference signal to parameter adjustment — this should
+be slow (to avoid overfitting to transient preferences) and harmonically
+filtered (only rotate toward positions that score well on harmonic
+assertions). Define the feedback loop termination condition — when does
+the loop reach a stable attractor vs when does it continue exploring?
+Connect to the trimetric rollover: a feedback loop that saturates one
+quality tier should naturally trigger rollover to the next, pulling the
+viewer along into progressively higher resolution without ever feeling
+a discontinuity.]
+
+
+## The Balance Engine — Entropy as Eternal Dynamic Core
+
+### Stability Under Angular Perturbation
+
+The layered sphere model is intrinsically stable under perturbation.
+When any sphere is tested at a different angle — moved, probed, or
+temporarily displaced — the impact on the rest of the system is inversely
+proportional to that sphere's distance from the core:
+
+```
+perturbation_impact(N) ∝ 1 / sphere_index(N)
+
+outer sphere perturbed  →  negligible effect on core
+                           local rearrangement only
+                           nearby outer cubes absorb the displacement
+
+inner sphere perturbed  →  propagates outward through dependent layers
+                           but is damped at each layer boundary
+                           core itself: perturbation enters parameter
+                           selection, where harmonic balancing absorbs it
+```
+
+Each sphere layer acts as a damping membrane. A perturbation at the
+periphery never reaches the core with its original magnitude — it is
+progressively attenuated as it passes through each inner layer, each of
+which has higher reference quality and therefore higher resistance to
+displacement. The core does not need to be rigidly fixed; it can flex
+in response to aggregate perturbation pressure while maintaining its
+harmonic center of gravity.
+
+At the core itself, perturbation does not cause damage — it causes
+*parameter selection*. A pressure arriving at the core shifts the
+weighting of parameters in the harmonic tree, which is exactly the
+correct response: the system learns from the perturbation rather than
+resisting it. The core always balances itself because perturbation
+energy is converted into parameter refinement energy, not into
+structural displacement.
+
+```
+outer layers  :  perturbation → local rearrangement (absorbed)
+middle layers :  perturbation → edge case discovery (integrated)
+core          :  perturbation → parameter refinement (converted)
+```
+
+This is the stability property that makes the system testable: any
+sub-region of the outer spheres can be freely experimented with —
+new angles tried, quality thresholds relaxed, unusual element types
+ingested — without risk to the established core. Experiments at the
+periphery are naturally contained.
+
+[Opus: formalize the perturbation damping model. Define the transfer
+function between adjacent sphere layers — how much of a perturbation's
+magnitude passes through a layer boundary? Is it a fixed fraction per
+layer, or dependent on the layer's current quality density? Define the
+parameter refinement response at the core — what specifically changes
+in the harmonic weighting tree when a perturbation reaches the core,
+and how does the tree restore harmonic balance afterward? Connect to
+the trimetric rollover: is a sustained perturbation at the core the
+trigger for tier advancement — the system "rolls over" in response to
+accumulated pressure rather than resisting it?]
+
+### Entropy as Mobile Group Agent
+
+In this model, entropy is not the enemy of order — it is the *organizing
+dynamic* that keeps the system alive. Entropy here is free: it forms
+groups, moves through parameter space, and settles where it finds
+resonance. This is a complete inversion of the classical view.
+
+Classical entropy: disorder increases, structure degrades, information
+is lost. The system fights entropy to maintain quality.
+
+This model's entropy: elements self-organize into groups by mutual
+similarity attraction (Layer 3). Groups are not static clusters —
+they are *mobile agents* that travel together through parameter space,
+collecting other groups along the way, settling at new angular positions
+where the group's aggregate harmonic score is maximized.
+
+```
+phase 1 — FORMATION:
+    individual elements attract each other by similarity
+    a group forms around a local quality maximum
+    the group has a center: the weighted centroid of its members
+    in (type, style, angle, quality) space
+
+phase 2 — TRAVEL:
+    the group's aggregate harmonic score is evaluated at its
+    current angular position and at neighboring positions
+    if a neighboring position scores higher: the group migrates
+    migration = smooth rotation of the group's position on its sphere
+
+phase 3 — COLLECTION:
+    during travel, the group may pass through regions occupied by
+    other groups — if overlap similarity is high, groups merge
+    merged group inherits the trajectory of the higher-quality member
+    the merge itself improves the combined harmonic score (more sources
+    → better composite → closer to core reference quality)
+
+phase 4 — SETTLEMENT:
+    the group reaches a local harmonic maximum where no neighboring
+    position improves its score — it settles
+    settled group = one cluster node in the similarity graph
+    its center becomes a stable reference point in the sphere layer
+```
+
+The group travel path through parameter space is not random — it follows
+the harmonic gradient, always moving toward higher resonance. But because
+the gradient is shaped by the existing core (which acts as an attractor),
+groups naturally migrate toward core-aligned positions. The core grows
+denser as groups arrive and contribute their elements.
+
+[Opus: define the group center computation — weighted centroid in
+(type_coord, angle_coord, quality_coord) cubic space, weighted by
+element quality scores. Define the harmonic gradient ascent algorithm
+for group migration — discrete steps between adjacent sphere cells,
+evaluated by AMOS7 harmonic truth assertion on the group center's
+combined parameter checksum. Define the merge criterion for two groups
+encountering each other during travel — minimum overlap similarity
+threshold, or automatic merge when group centers are within one cube
+width of each other? Define the settlement criterion — local maximum
+in harmonic score across all 26 neighboring cube positions (3³-1).]
+
+### The Three-Angle Waypoint Vector
+
+At each waypoint — each position where a group pauses, evaluates, and
+decides its next move — the group's state is fully described by three
+angular values representing its current position and heading:
+
+```
+waypoint = {
+    θ₁ : azimuthal rotation  (which angular sector of the sphere)
+    θ₂ : polar elevation      (which latitude band of the sphere)
+    θ₃ : roll / spin          (orientation of the group's internal
+                               quality axis relative to the sphere surface)
+}
+```
+
+These three values are the group's *vector at the waypoint*: not just
+where it is, but which direction it arrived from and which direction it
+is oriented to continue. θ₃ in particular encodes the group's internal
+structure — how its member elements are arranged relative to the sphere
+surface — and is the value that determines which neighboring groups it
+is most likely to merge with during travel.
+
+The three-angle vector maps directly onto the orrery's three primary
+ring axes. A group's waypoint IS a ring state of the orrery. The group
+choosing its next waypoint IS the orrery rotating. Entropy migration
+and parameter selection are the same process observed from different
+scales: at the micro-scale it is entropy groups moving; at the macro-
+scale it is parameter rings rotating.
+
+```
+group waypoint (θ₁, θ₂, θ₃)
+        ≡
+orrery ring state (angle_ring, style_ring, quality_ring)
+```
+
+This equivalence means the system has no separation between its
+"physics" (entropy group dynamics) and its "interface" (parameter
+selection). Adjusting a parameter IS moving an entropy group. Observing
+an entropy group settle IS reading a parameter value. The model is
+self-consistent at all scales.
+
+[Opus: formalize the equivalence between the three-angle waypoint vector
+and the orrery ring state. Define the coordinate transformation between
+group-space (element clustering coordinates) and ring-space (parameter
+selection coordinates). Define how the three θ values are computed from
+a group's member elements — is θ₁ the mean type coordinate, θ₂ the
+mean angle coordinate, θ₃ the variance of quality scores within the
+group (higher variance = more spread, higher spin)? Define how the
+waypoint history (sequence of waypoints a group has visited) encodes
+the group's migration path, and how this path history is used to predict
+the group's future settling position — effectively giving the system
+predictive deduplication: before a new image is fully processed, predict
+which existing cluster it will join based on its early feature extractions.]
+
+### The Balance Engine
+
+> *a sphere model in cubic space — freedom of entropy as its eternal core*
+
+The balance engine is the name for the full dynamic described above,
+understood as a unified system:
+
+```
+                    ┌─────────────────────────────────┐
+                    │        THE BALANCE ENGINE        │
+                    │                                  │
+                    │   ╔═══════════════════╗          │
+                    │   ║   ETERNAL CORE    ║          │
+                    │   ║                   ║          │
+                    │   ║  entropy freedom  ║          │
+                    │   ║  harmonic center  ║          │
+                    │   ║  parameter seed   ║          │
+                    │   ╚═══════════════════╝          │
+                    │           ↑↓                     │
+                    │   sphere layers (cubic)          │
+                    │           ↑↓                     │
+                    │   entropy groups migrate         │
+                    │   collect · travel · settle      │
+                    │           ↑↓                     │
+                    │   perturbations damp inward      │
+                    │   quality radiates outward       │
+                    │           ↑↓                     │
+                    │   darksun gravity holds center   │
+                    └─────────────────────────────────┘
+```
+
+The word *eternal* is precise: the core does not converge to a fixed
+point and stop. Entropy groups continue to migrate, merge, and settle
+indefinitely — but as the core matures, the migrations become smaller
+and more refined. The system is never static; it is always processing,
+always balancing. The core is eternal not because it is unchanging but
+because it never terminates. There is always a finer angle to resolve,
+a higher quality region to discover, a new group arriving from the
+periphery with a contribution to make.
+
+The balance is between two permanent forces:
+- **expansion**: new content arrives, new groups form at the periphery,
+  new sphere layers emerge as the parameter space deepens
+- **implosion**: deduplication pulls groups toward the core, merges
+  reduce group count, quality compositing concentrates information
+
+These forces do not cancel each other — they sustain each other. Expansion
+provides the raw material for implosion. Implosion strengthens the core
+that makes expansion meaningful. Together they produce a system that is
+simultaneously growing and concentrating, simultaneously exploring and
+deepening, simultaneously free (entropy migrates anywhere) and ordered
+(harmonic constraints channel migration toward resonance).
+
+The balance engine is the eternal dynamic. The darksun is its center.
+The holographic shimmer is its visible output. The feedback loop between
+viewer and core is its purpose.
+
+[Opus: define the formal stability proof for the balance engine. Show
+that the implosion rate scales at least as fast as the expansion rate
+for any finite ingestion rate — i.e., the system never diverges to
+unbounded size under normal operation. Define the conditions under which
+the balance breaks (what ingestion rate or what distribution of content
+would overwhelm the deduplication mechanism?). Define the "eternal"
+property formally: show that the core always has a non-trivial parameter
+refinement available regardless of how mature it becomes — connecting
+to the infinite expanse model (there is always a finer outer sphere
+to populate). Define how the three forces — stability (damping),
+migration (entropy freedom), and harmonic centering (darksun gravity)
+— interact in a single unified equation describing the balance engine's
+state evolution over time.]
+
+
+## Completeness
+
+The system described is a kinetic balancing engine whose rules are
+fully content-agnostic.
+
+The rules — entropy groups form by similarity, migrate via three-angle
+waypoint vectors along the harmonic gradient, collect neighboring groups
+in transit, settle at local resonance maxima, damp perturbations inward
+by sphere layer, and project quality outward from a permanent core —
+contain no reference to what the content is. Images, text, audio,
+machine code, parameter sets of any kind: the same engine applies.
+
+The rules are also complete. No additional mechanism is required to
+handle edge cases, domain transitions, or scale changes. The infinite
+expanse model absorbs new complexity into new outer sphere layers.
+The implosion counter-pressure prevents unbounded growth. The darksun
+provides a stable gravitational center without needing to be defined
+in advance. The three-angle waypoint vector is sufficient to describe
+any group's state and trajectory.
+
+The apparent complexity of the system is not in the rules — it is
+entirely in the content differentials: how different one element is
+from another, how many angle variants exist, how deep the style
+distinctions run. But this complexity is the complexity the engine
+was built to process. It is the input, not the mechanism. And it is
+an eventually balanced one: given sufficient ingestion and time, every
+content differential either finds its cluster or generates a new one,
+and every cluster migrates toward its harmonic resting point. The
+sorting is never final — the engine is eternal — but it is always
+progressing, always reducing the complexity that remains unsorted,
+always moving toward the quality attractor at the center.
+
+Simple rules. Content-agnostic. Already complete. The rest is data.
+
+#,,..,...,,,,,,,.,,,.,,..,.,.,..,,,..,,,.,,,.,..,,...,...,...,,.,,,,.,.,.,,,,,
+#AT4ZIKI5I2SY65P2ZE4ACA5P4E7R5DVWBNRHHZ5SPJDRD7IGCRUU5RQAUUBJAA5YSDKDLMJIC5UNK
+#\\\|RP2SK4QMGCNJQL7KCUSZ4HX4QKJ6PD6JZDX5N7MZLPHHL53EGNX \ / AMOS7 \ YOURUM ::
+#\[7]LM6P34SPNZZ7I7M5GHA4P5EX3IS5PV7V22QJVVNJJJEJACY6WECY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
