@@ -1,0 +1,55 @@
+## [:< ##
+
+# name  = invoke.init_code
+# descr = invoke zenka initialization
+
+## load required modules [ one at a time per base.perlmod.autoload ]
+map { <[base.perlmod.autoload]>->($ARG) } qw| LWP::UserAgent JSON |;
+
+## initialize state
+$data{'invoke'}{'status'} = 'idle';
+$data{'invoke'}{'url'}    = $data{'invoke'}{'external.models.invokeai.url'}
+    // 'http://127.0.0.1:9090';
+$data{'invoke'}{'outputs_dir'} = '/home/taeki/.invokeai/outputs/images';
+$data{'invoke'}{'default_model'}
+    = $data{'invoke'}{'external.models.invokeai.default_model'}
+    // 'stable-diffusion-xl-base-1.0';
+$data{'invoke'}{'jobs'}        = {};
+$data{'invoke'}{'model_cache'} = {};
+
+## quick health check — non-fatal if invoke.ai is not running yet
+my $url  = $data{'invoke'}{'url'};
+my $ua   = LWP::UserAgent->new( timeout => 3 );
+my $resp = $ua->get("$url/api/v1/app/version");
+if ( $resp->is_success ) {
+    my $ver_data = eval { JSON::decode_json( $resp->decoded_content ) };
+    my $ver      = $ver_data->{'version'} // 'unknown';
+    <[base.logs]>->(
+        1,    'invoke.ai reachable at %s [version: %s]',
+        $url, $ver
+    );
+} else {
+    <[base.logs]>->(
+        1, 'invoke.ai not reachable at %s — start invoke-web zenka first',
+        $url
+    );
+}
+
+## schedule job poll timer [ every 3 seconds ]
+<[event.add_timer]>->(
+    {   'after'    => 5,
+        'interval' => 3,
+        'repeat'   => TRUE,
+        'handler'  => 'invoke.handler.poll_jobs',
+    }
+);
+
+<[base.logs]>->( 1, 'invoke zenka initialized' );
+
+0;
+
+#,,,,,...,,.,,,.,,.,.,,,.,,.,,,,,,...,.,.,.,.,..,,...,...,...,...,...,.,.,...,
+#GYQEEELFF3UOONV6YZHAZM4IVAGU2OED77FU7EWRLEWQ3OJ6SVPJMFHVBLO4OQ4OLHXTCAP5NISYK
+#\\\|BZD3YLVWG24EEKCUIJZMBDVLFKF24J57QZGDHNSOPEAJOENNAB2 \ / AMOS7 \ YOURUM ::
+#\[7]RDXUSIP7X2FA544K4J4CPPAESHI3IJXRYPSVEWAJO6GIFVDBKICA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

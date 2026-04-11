@@ -1,0 +1,65 @@
+## [:< ##
+
+# name  = invoke.handler.poll_jobs
+# descr = periodic timer: poll invoke.ai for job completion
+
+## called every 3 seconds by repeating timer
+my $jobs = $data{'invoke'}{'jobs'} // {};
+return unless keys %$jobs;
+
+my $url = $data{'invoke'}{'url'};
+my $ua  = LWP::UserAgent->new( timeout => 5 );
+
+for my $item_id ( keys %$jobs ) {
+    my $job = $jobs->{$item_id};
+    next if ( $job->{'status'} // '' ) =~ m{^(?:completed|failed|canceled)$};
+
+    my $resp = $ua->get("$url/api/v1/queue/default/i/$item_id");
+    unless ( $resp->is_success ) {
+        <[base.logs]>->( 2, 'invoke: poll failed for item %s', $item_id );
+        next;
+    }
+
+    my $item   = JSON::decode_json( $resp->decoded_content );
+    my $status = $item->{'status'} // 'pending';
+
+    $job->{'status'} = $status;
+
+    if ( $status eq 'completed' ) {
+        my $image_name
+            = eval { $item->{'output'}{'image'}{'image_name'} } // '';
+        my $outputs_dir = $data{'invoke'}{'outputs_dir'};
+        my $image_path  = "$outputs_dir/$image_name";
+
+        <[base.logs]>->(
+            1,        'invoke: item %s complete [ %s ]',
+            $item_id, $image_name
+        );
+
+        ## log elapsed time
+        if ( defined $job->{'queued_at'} ) {
+            my $elapsed = <[base.time]>->(3) - $job->{'queued_at'};
+            <[base.logs]>->( 1, ':. elapsed: %.1fs', $elapsed );
+        }
+
+        delete $data{'invoke'}{'jobs'}{$item_id};
+
+    } elsif ( $status eq 'failed' ) {
+        my $error = $item->{'error'} // 'unknown error';
+        <[base.logs]>->(
+            0,        'invoke: item %s failed [ %s ]',
+            $item_id, $error
+        );
+        delete $data{'invoke'}{'jobs'}{$item_id};
+
+    } elsif ( $status eq 'canceled' ) {
+        delete $data{'invoke'}{'jobs'}{$item_id};
+    }
+    ## pending/in_progress: leave in jobs hash, poll again next tick
+}
+
+#,,,,,,..,.,.,,,.,,,,,..,,,..,...,,,,,..,,...,..,,...,..,,...,.,,,,..,.,,,...,
+#SIJRYFT2OCZ2CC6VJEONNOHELRVM6TYNILCTVKSD5MQM6SVX56JNH43QNYWTR3OD3NZCXUGYYTTOY
+#\\\|O7YYRZOHS5233E5TNAZYU6CO5XUPWOZFXNQYJMXRKE2FC22ADR2 \ / AMOS7 \ YOURUM ::
+#\[7]R4LVTGIXGJWRKFNPHQU2ZBRV7C5WZTL2R7YCNMMC424QEEIYS4AI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
