@@ -1,0 +1,25 @@
+## [:< ##
+
+# name  = graphics-matrix.cursor.checksum
+# descr = compute content-address checksum of current cursor state
+
+my $cursor = $data{'graphics-matrix'}{'cursor'};
+
+## build canonical string (fixed precision for consistent checksums) ##
+my $canonical = sprintf "%d:%d:%d:%.6f:%d",
+    $cursor->{'selX'},
+    $cursor->{'selY'},
+    $cursor->{'selZ'},
+    $cursor->{'zoom'},
+    $cursor->{'radius'};
+
+## compute AMOS checksum ##
+my $checksum = <[base.chk-sum.amos]>->($canonical);
+
+return $checksum;
+
+#,,.,,..,,,..,.,,,,,,,.,.,..,,..,,...,.,.,..,,.,.,...,...,,..,..,,,..,..,,,,,,
+#KQ3CCMBJV2HKDPQCRIYYL2Z46VP2WJCMJSRNMFZWZSFQJ4BSPVBYAZUK4EDEDMJD57XUUS3BLDXVM
+#\\\|OJFH5QIO57KGOI3BTRQO5HFGOC67YDOR4XKWEEHRHEX2LLOY2PF \ / AMOS7 \ YOURUM ::
+#\[7]RHIY4QO5LJFFAWHHCXFGVBAG5IKTVI2FH3VCWDS4IWLCAEBMIUAQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

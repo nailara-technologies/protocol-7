@@ -1,0 +1,24 @@
+## [:< ##
+
+# name  = graphics-matrix.cmd.cursor-state
+# descr = return cursor state as structured data for other zenki
+
+my $cursor = <[graphics-matrix.cursor.position]>;
+my $chk    = <[graphics-matrix.cursor.checksum]>;
+
+## format as key=value pairs for easy parsing ##
+my $out = sprintf "selX=%d selY=%d selZ=%d zoom=%.2f radius=%d chk=%s",
+    $cursor->{'selX'},
+    $cursor->{'selY'},
+    $cursor->{'selZ'},
+    $cursor->{'zoom'},
+    $cursor->{'radius'},
+    $chk;
+
+return { qw| mode | => qw| size |, qw| data | => "$out\n" };
+
+#,,,.,,..,,.,,,,,,,,.,,,.,,.,,,..,,,.,,.,,,..,.,.,...,...,,,,,.,.,,,,,.,,,,,,,
+#N5EMYZM33D5QDVQE24BXLIHCRMQR2R4A5QWPID7WO5SDIV75BIKM2X4YWAXGQ5WE26HCV3KH3IQDO
+#\\\|34M7LK3FMZJZTLO53HYCIQS2JUVB42Y2D2FCBUVRFQFXAQWHLR7 \ / AMOS7 \ YOURUM ::
+#\[7]VKSODZRTCQJJRJ4QQRMKMSWUI7PSWP25GS365MY72IPB2HVD7EBI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
