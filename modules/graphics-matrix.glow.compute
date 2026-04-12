@@ -1,0 +1,82 @@
+## [:< ##
+
+# name  = graphics-matrix.glow.compute
+# descr = compute glow intensity per distance shell from reference counts
+
+my $params = shift // {};
+
+## accept counts => { hop => reference_count } ##
+my $counts = $params->{'counts'} // {};
+
+## simulated data for testing if no counts provided ##
+if ( not %$counts ) {
+    ## echo topology constants: 100, 63, 27, 13 ##
+    $counts = {
+        0 => 100,
+        1 => 63,
+        2 => 27,
+        3 => 13,
+    };
+}
+
+my $glow    = $data{'graphics-matrix'}{'glow'};
+my $falloff = $glow->{'falloff'};
+my $base    = $glow->{'base_intensity'};
+
+## find max hop for linear falloff normalization ##
+my $max_hop = 0;
+for my $hop ( keys %$counts ) {
+    $max_hop = $hop if $hop > $max_hop;
+}
+$max_hop = 1 if $max_hop < 1;    ## avoid division by zero ##
+
+## compute intensity for each hop ##
+for my $hop ( sort { $a <=> $b } keys %$counts ) {
+    my $count     = $counts->{$hop} // 0;
+    my $intensity = 0.0;
+
+    if ( $falloff eq 'inverse' ) {
+        ## intensity = count / (hop + 1) ##
+        $intensity = $count / ( $hop + 1 );
+    } elsif ( $falloff eq 'inverse_square' ) {
+        ## intensity = count / (hop + 1)^2 ##
+        $intensity = $count / ( ( $hop + 1 )**2 );
+    } elsif ( $falloff eq 'linear' ) {
+        ## intensity = count * (1 - hop / max_hop) ##
+        $intensity = $count * ( 1 - $hop / $max_hop );
+    }
+
+    ## normalize to 0.0 - 1.0 range ##
+    $intensity = 0.0 if $intensity < 0;
+    $intensity = 1.0 if $intensity > 1;
+
+    ## apply base intensity multiplier ##
+    $intensity *= $base;
+
+    ## clamp again after base multiplier ##
+    $intensity = 0.0 if $intensity < 0;
+    $intensity = 1.0 if $intensity > 1;
+
+    ## store in glow state ##
+    $glow->{'shells'}{$hop} = {
+        qw| count     | => $count,
+        qw| intensity | => sprintf( '%.5f', $intensity ),
+    };
+}
+
+## mark glow as active after computation ##
+$glow->{'active'} = 1;
+
+## return copy of full glow state ##
+return {
+    qw| base_intensity | => $glow->{'base_intensity'},
+    qw| falloff        | => $glow->{'falloff'},
+    qw| shells         | => { %{ $glow->{'shells'} } },
+    qw| active         | => $glow->{'active'},
+};
+
+#,,,.,,.,,,,.,...,.,.,,,,,,..,,,.,...,,,,,...,.,.,...,.,.,.,.,..,,...,.,.,,..,
+#IFKKWYOMBFIEKSQW4YDQULZFLXNZEWHOCFE5MFBRFZ4K4OB7XCREC3ELK4RP5QGCBPEV3JP2VOYYA
+#\\\|O4J65UBNIUZWXDADFBIJYDHTOSNIO4JCYAOBIIPFI3LLBEYMTRS \ / AMOS7 \ YOURUM ::
+#\[7]GX5KCJSRZPOHH63HYGMTVOWR5YRMFGDYU67ZKCXAT3HWXEVYJ6AA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
