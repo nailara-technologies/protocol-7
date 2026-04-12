@@ -1,0 +1,54 @@
+## [:< ##
+
+# name  = graphics-matrix.cursor.set
+# descr = set cursor to absolute position
+
+my $params = shift // {};
+
+my $cursor = $data{'graphics-matrix'}{'cursor'};
+
+## update selX/selY/selZ if defined ##
+$cursor->{'selX'} = $params->{'selX'} if defined $params->{'selX'};
+$cursor->{'selY'} = $params->{'selY'} if defined $params->{'selY'};
+$cursor->{'selZ'} = $params->{'selZ'} if defined $params->{'selZ'};
+
+## validate and update zoom (must be > 0) ##
+if ( defined $params->{'zoom'} ) {
+    return { qw| mode | => qw| false |, qw| data | => 'zoom must be > 0' }
+        if $params->{'zoom'} <= 0;
+    $cursor->{'zoom'} = $params->{'zoom'};
+}
+
+## validate and update radius (must be >= 0 integer) ##
+if ( defined $params->{'radius'} ) {
+    return { qw| mode | => qw| false |, qw| data | => 'radius must be >= 0' }
+        if $params->{'radius'} < 0;
+    return {
+        qw| mode | => qw| false |,
+        qw| data | => 'radius must be integer'
+        }
+        if int( $params->{'radius'} ) != $params->{'radius'};
+    $cursor->{'radius'} = $params->{'radius'};
+}
+
+<[base.logs]>->(
+    2,                 'cursor.set -> [%d,%d,%d] zoom=%.2f radius=%d',
+    $cursor->{'selX'}, $cursor->{'selY'},
+    $cursor->{'selZ'}, $cursor->{'zoom'},
+    $cursor->{'radius'}
+);
+
+## return full state (shallow copy) ##
+return {
+    qw| selX   | => $cursor->{'selX'},
+    qw| selY   | => $cursor->{'selY'},
+    qw| selZ   | => $cursor->{'selZ'},
+    qw| zoom   | => $cursor->{'zoom'},
+    qw| radius | => $cursor->{'radius'}
+};
+
+#,,,,,..,,..,,.,.,..,,...,.,.,...,.,,,..,,,,.,.,.,...,...,,,,,.,.,,..,,,,,,..,
+#X5GETKZFIWJN6TMA5A2XEEKCY5X7ZNZSNZNDINK3YXFCCDKHCXKNDZ3M7NOVRYIA3HWI6UQQY5XG6
+#\\\|TIQR4XJAINVPJNOMBKNW63DHSG3GAENKOZFASJGXNK6KF2JLBER \ / AMOS7 \ YOURUM ::
+#\[7]BP7G3H5WHYKP4LUSGFNPGMIPMI3LPSIPMCU5GQZFZ3EMYZYY3YAI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

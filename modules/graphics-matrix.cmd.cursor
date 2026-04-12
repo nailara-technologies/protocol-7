@@ -1,0 +1,141 @@
+## [:< ##
+
+# name  = graphics-matrix.cmd.cursor
+# descr = query or move the grid-hardnode cursor
+
+my $args = $call->{'args'} // '';
+
+## parse command ##
+my @tokens = split( / +/, $args );
+my $cmd    = $tokens[0] // '';
+
+my $cursor;
+
+if ( $cmd eq '' ) {
+
+    ## no args - show current position ##
+    $cursor = <[graphics-matrix.cursor.position]>;
+
+} elsif ( $cmd eq 'move' ) {
+
+    ## relative move: move dx dy dz ##
+    return {
+        qw| mode | => qw| false |,
+        qw| data | => 'usage: cursor move <dx> <dy> <dz>'
+        }
+        if @tokens < 4;
+
+    my ( $dx, $dy, $dz ) = @tokens[ 1, 2, 3 ];
+
+    ## validate integers ##
+    return { qw| mode | => qw| false |, qw| data | => 'dx must be integer' }
+        if $dx !~ m/^-?\d+$/;
+    return { qw| mode | => qw| false |, qw| data | => 'dy must be integer' }
+        if $dy !~ m/^-?\d+$/;
+    return { qw| mode | => qw| false |, qw| data | => 'dz must be integer' }
+        if $dz !~ m/^-?\d+$/;
+
+    $cursor = <[graphics-matrix.cursor.move]>->(
+        {   qw| dx | => int($dx),
+            qw| dy | => int($dy),
+            qw| dz | => int($dz)
+        }
+    );
+
+    ## get full state after move ##
+    my $full = <[graphics-matrix.cursor.position]>;
+    $cursor->{'zoom'}   = $full->{'zoom'};
+    $cursor->{'radius'} = $full->{'radius'};
+
+} elsif ( $cmd eq 'set' ) {
+
+    ## absolute position: set x y z ##
+    return {
+        qw| mode | => qw| false |,
+        qw| data | => 'usage: cursor set <x> <y> <z>'
+        }
+        if @tokens < 4;
+
+    my ( $x, $y, $z ) = @tokens[ 1, 2, 3 ];
+
+    ## validate integers ##
+    return { qw| mode | => qw| false |, qw| data | => 'x must be integer' }
+        if $x !~ m/^-?\d+$/;
+    return { qw| mode | => qw| false |, qw| data | => 'y must be integer' }
+        if $y !~ m/^-?\d+$/;
+    return { qw| mode | => qw| false |, qw| data | => 'z must be integer' }
+        if $z !~ m/^-?\d+$/;
+
+    $cursor = <[graphics-matrix.cursor.set]>->(
+        {   qw| selX | => int($x),
+            qw| selY | => int($y),
+            qw| selZ | => int($z)
+        }
+    );
+
+} elsif ( $cmd eq 'zoom' ) {
+
+    ## set zoom level: zoom level ##
+    return {
+        qw| mode | => qw| false |,
+        qw| data | => 'usage: cursor zoom <level>'
+        }
+        if @tokens < 2;
+
+    my $level = $tokens[1];
+
+    return {
+        qw| mode | => qw| false |,
+        qw| data | => 'zoom must be positive number'
+        }
+        if $level !~ m/^\d+(?:\.\d+)?$/;
+
+    $cursor
+        = <[graphics-matrix.cursor.set]>->( { qw| zoom | => $level + 0 } );
+
+} elsif ( $cmd eq 'radius' ) {
+
+    ## set radius: radius N ##
+    return {
+        qw| mode | => qw| false |,
+        qw| data | => 'usage: cursor radius <N>'
+        }
+        if @tokens < 2;
+
+    my $n = $tokens[1];
+
+    return {
+        qw| mode | => qw| false |,
+        qw| data | => 'radius must be non-negative integer'
+        }
+        if $n !~ m/^\d+$/;
+
+    $cursor = <[graphics-matrix.cursor.set]>->( { qw| radius | => int($n) } );
+
+} else {
+
+    return {
+        qw| mode | => qw| false |,
+        qw| data | => "unknown cursor command: $cmd"
+    };
+}
+
+## get checksum for display ##
+my $chk = <[graphics-matrix.cursor.checksum]>;
+
+## format output ##
+my $out = sprintf "cursor [%d,%d,%d] zoom=%.2f radius=%d chk=%s",
+    $cursor->{'selX'},
+    $cursor->{'selY'},
+    $cursor->{'selZ'},
+    $cursor->{'zoom'},
+    $cursor->{'radius'},
+    $chk;
+
+return { qw| mode | => qw| size |, qw| data | => $out };
+
+#,,.,,,,.,,,,,,..,.,,,,,,,,.,,...,.,.,..,,,.,,.,.,...,.,,,,,.,.,,,...,...,..,,
+#HXJZD6V5OC7Y37KVOEWA4CAIII74USLLT72VJUP42GDV6S46NXO6PGHFXO4MRFUDD2IMWQ5U7W346
+#\\\|23MLZBUI53LVZJ4ZF3OJ2DABJLOUN3SSRLOMK3ZEFTGFVPBSTWS \ / AMOS7 \ YOURUM ::
+#\[7]X4P7UYRRP4TN372YH52OKDB2XUWGMQU4NWUQZQY4XN2UQ2Z5TGAA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
