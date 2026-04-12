@@ -130,6 +130,52 @@ depends on B1-B5 proven locally first
 
 ## initiative G — graphics-matrix zenka
 
+**status**: existing zenka — extends, not creates.
+
+**existing infrastructure** (tested, load-bearing):
+```
+configuration/zenki/graphics-matrix/start     — full start file, wired to cube
+modules/graphics-matrix.init_code             — cache dir, permissions, Graphics::Magick
+modules/graphics-matrix.cmd.assert-similarity — similarity assertion command
+modules/graphics-matrix.cmd.filter-c2a        — color-to-alpha filter
+modules/graphics-matrix.cmd.filter-rep-col    — replace color filter
+modules/graphics-matrix.filter.*              — alpha, c-to-a, rep-col backends
+modules/graphics-matrix.guess_bg_color        — background color detection
+```
+
+**existing visual pipeline** (untested, freely adjustable):
+```
+modules/graphics.matrix.visual.cubic-sort     — 5-phase: classify → group → cluster → batch → layers
+modules/graphics.matrix.visual.sphere         — sphere classification 0-6, cubic coord calc
+modules/graphics.matrix.visual.cubic-layers   — hierarchical sphere layer builder
+modules/graphics.matrix.visual.build-cubic-grid — cubic grid construction
+modules/graphics.matrix.visual.classify-all   — image classification pipeline
+modules/graphics.matrix.visual.find-clusters  — similarity cluster detection
+modules/graphics.matrix.visual.group-spheres  — sphere grouping
+modules/graphics.matrix.visual.group-by-color — color-based grouping
+modules/graphics.matrix.visual.group-by-proximity — spatial proximity grouping
+modules/graphics.matrix.visual.cluster-center — cluster centroid calculation
+modules/graphics.matrix.visual.color          — color utilities
+modules/graphics.matrix.visual.extract-color  — color extraction
+modules/graphics.matrix.visual.extract-palette — palette extraction
+modules/graphics.matrix.visual.detect-resolution — resolution detection
+modules/graphics.matrix.visual.similarity     — similarity scoring
+modules/graphics.matrix.visual.phash          — perceptual hash
+modules/graphics.matrix.visual.hamming        — hamming distance
+modules/graphics.matrix.visual.vision-batches — lm-vision batch preparation
+modules/graphics.matrix.visual.sphere-stats   — sphere statistics
+modules/graphics.matrix.visual.generate-batch-id — batch ID generation
+```
+
+**existing 3D cursor** (untested, freely adjustable):
+```
+modules/graphics-3d.init_code                 — 8×7×13 voxel space (729=9³), GTK3/Cairo 60fps
+modules/graphics-3d.render.cursor             — cursor render with translucency curves
+modules/graphics-3d.calc.cursor-translucency  — 6 curve profiles (sigmoid, sine, gaussian, ...)
+modules/graphics-3d.handler.cursor_navigate   — 3D navigation with wrap-around
+modules/graphics-3d.cfg.cursor                — cursor configuration
+```
+
 **goal**: central index-and-transform hub for all visual and topological data in P7.
 the visual equivalent of the index zenka — everything graphic wires into it, and the
 relationship is bidirectional from the start.
@@ -439,6 +485,313 @@ infrastructure being stable.
 
 ---
 
+## initiative P — povray zenka
+
+**status**: existing stub — start file wired, init_code placeholder.
+
+**existing infrastructure**:
+```
+configuration/zenki/povray/start   — full start file (auth, net, unix, zenka loop)
+                                     wildcard filter command access
+modules/povray.init_code           — stub (0;), ready for implementation
+```
+
+**goal**: raytracing as a P7 network service. povray scenes templated from live
+data, rendered on demand, cached by checksum — the reproducible precision of
+raytracing as a composable network primitive.
+
+### what it provides
+
+- **topology visualization**: the 8×63+void grid, sphere layers, cross-mapped
+  curves — rendered as precise 3D scenes from actual namespace state.
+  the same grid that grid-v14 renders in canvas, povray renders with raytraced
+  lighting, shadows, reflections. not a different visualization — the same data,
+  different rendering fidelity.
+
+- **ambient cube displays**: dot-matrix style displays built from cube primitives,
+  positioned precisely in 3D space. location-aware: a display's position in the
+  scene IS its lattice address. the display content is supplied as PNG texture,
+  updated live from namespace state.
+
+- **location-precise projections**: projected images placed at exact 3D coordinates
+  with the projected image supplied as PNG. precision is inherent — povray scenes
+  are mathematically exact, not approximated. projection geometry matches the
+  cubic topology natively.
+
+- **scene templates from live data**: povray .pov files generated from namespace
+  tree state. the scene description IS the data — camera position = cursor
+  position, object placement = cell addresses, material properties = reference
+  counts and glow intensity. template → data injection → render → cache.
+
+### distributed rendering
+
+in a broader network context, povray becomes a distributed workload:
+
+- **slice rendering**: a scene can be split into horizontal slices, each rendered
+  by a different node. the inverse plus sign's 12 transport channels distribute
+  slices to available povray instances across the network. each node renders its
+  slice and returns the result. assembly is a simple vertical concatenation.
+
+- **checksum-cached results**: rendered frames are content-addressed. same scene
+  state = same checksum = cached result. a frame only re-renders when the
+  underlying data changes. for stable topology regions (mature, high-quality
+  composites), the rendered view is effectively free — cached indefinitely,
+  served at memory speed.
+
+- **raytracing without latency**: the combination of distributed rendering and
+  aggressive checksum caching means that in steady state, the raytraced view
+  is served from cache almost always. re-rendering happens incrementally —
+  only the cells that changed since last frame need new slices. the perceptual
+  result: raytraced quality at interactive speed, because most of the image
+  is already computed and cached.
+
+### relation to G (graphics-matrix zenka)
+
+povray is a rendering backend for the graphics-matrix zenka, not a replacement.
+the graphics-matrix provides the data model (namespace positions, reference
+counts, glow intensities); povray provides one rendering path. grid-v14 canvas
+is another rendering path. terminal block cursor is a third. all three render
+the same data at different fidelities:
+
+```
+terminal (2D)  →  block cursor in character matrix    (lowest fidelity, fastest)
+canvas (3D)    →  grid-v14 wireframe with glow        (mid fidelity, interactive)
+povray (3D)    →  raytraced scene with full lighting  (highest fidelity, cached)
+```
+
+the three form a fidelity gradient. the user navigates in canvas (interactive
+speed), and the povray view renders in the background for the current viewport.
+when the user pauses or selects a region, the cached raytraced view is available
+immediately if the data hasn't changed. the transition from wireframe to
+raytraced is seamless — same geometry, same positions, different rendering.
+
+
+---
+
+## visual surface infrastructure — web-browser + X-11 zenki
+
+**status**: production-quality — 170+ modules, deployed and tested.
+
+these are not new initiatives — they are **existing infrastructure** that
+enables the rendering pipeline for G, P, and B without additional work.
+
+### web-browser zenka (78 modules)
+
+```
+configuration/zenki/web-browser/start        — WebKit2/GTK3 kiosk browser
+modules/web-browser.init_code                — WebKit2 4.0, transparency, GPU awareness
+modules/web-browser.cmd.load_uri             — load URL from P7 command
+modules/web-browser.cmd.run_js               — execute JavaScript from P7 command
+modules/web-browser.cmd.switch               — switch between views
+modules/web-browser.handler.fade_in_view     — translucent view transitions
+modules/web-browser.handler.swap_views       — multi-layer view swapping
+modules/web-browser.handler.auto_scroll      — automatic scrolling with speed control
+modules/web-browser.cmd.start_slideshow      — kiosk-mode slideshow
+modules/web-browser.calc_zoom_level          — zoom control
+modules/web-browser.handler.gpu_load_reply   — GPU load awareness
++ 67 more modules (callbacks, handlers, commands, setup)
+```
+
+**what it already does**:
+- multi-layered rendering with translucency between foreground/background views
+- smooth fade transitions between web pages
+- JavaScript execution from P7 commands (run_js → direct parameter control)
+- kiosk-mode lockdown (no user interaction unless enabled)
+- GPU load monitoring with auto-slowdown
+- dark blue background (#000013) — protocol-native
+
+### X-11 zenka (95+ modules)
+
+```
+configuration/zenki/X-11/start               — full X11 server management
+configuration/zenki/X-11-pointer/start       — cursor control sub-zenka
+modules/X-11.init_code                       — X11 connection, display init
+modules/X-11.cmd.set_opacity                 — per-window opacity control
+modules/X-11.cmd.set_geometry                — window positioning
+modules/X-11.cmd.get_screen_size             — display geometry
+modules/X-11.cmd.raise_window                — window stacking
+modules/X-11.cmd.hide_window / unhide_window — visibility control
+modules/X-11.cmd.gpu_load                    — GPU load monitoring
+modules/X-11.cmd.rotate-screen               — display rotation
+modules/X-11.set_background_image            — background with checksum cache
+modules/X-11.handler.global_hotkeys          — hotkey system
+modules/X-11.cmd.wait_visible                — window visibility detection
++ 80 more modules (DPMS, backgrounds, WM, pointer, display state)
+```
+
+### tile-groups zenka (42 modules, formerly 'layout')
+
+```
+modules/tile-groups.init_code                — tile group config loader, checksum validation
+modules/tile-groups.cmd.switch-tile-group    — switch between tile configurations
+modules/tile-groups.cmd.add_overlay          — add translucent overlay layer
+modules/tile-groups.cmd.remove_overlay       — remove overlay layer
+modules/tile-groups.cmd.sort_layers          — reorder layer stacking
+modules/tile-groups.cmd.assign_window        — assign window to tile position
+modules/tile-groups.cmd.get-layer            — query layer state
+modules/tile-groups.cmd.get_geometry         — tile geometry calculation
+modules/tile-groups.process-tile-group       — tile group activation engine
+modules/tile-groups.merge_multiple           — multi-config merge
+modules/tile-groups.callback.poll_tile_color — tile activity monitoring
+modules/tile-groups.gpu_alerts.*             — GPU load alert system
++ 30 more modules (handlers, setup, coordinates, transitions)
+```
+
+**what it already does**:
+- tile group configurations with named presets and hot-switching
+- overlay layers with independent control (add, remove, sort)
+- window-to-tile assignment with geometry calculation
+- tile activity monitoring (color polling, inactive timeout detection)
+- configuration persistence with restore-on-restart (timeout-aware)
+- GPU load alerts with auto-speed adjustment
+- signal handling for graceful transitions
+
+### compton + openbox (10 modules)
+
+```
+modules/compton.init_code / compton.startup  — X11 compositor (picom)
+modules/openbox.init_code / openbox.start_wm — window manager with P7 control
+```
+
+together with tile-groups, these provide **full composited desktop control**:
+openbox manages windows, compton composites them with transparency and
+transitions, tile-groups orchestrates the layout and layer stacking — all
+controlled through P7 commands. layers and transitions included.
+
+### the rendering stack (already assembled)
+
+the full stack from bottom to top:
+
+```
+X-11 zenka          →  display server (real or xvfb virtual)
+openbox             →  window management
+compton             →  compositing (transparency, shadows, transitions)
+tile-groups         →  layout orchestration (tiles, overlays, layer sorting)
+web-browser         →  rendering surface (WebKit2, multi-view, translucency)
+grid-v14.html       →  cubic space visualization (canvas, 6 zoom layers)
+graphics-matrix     →  data model (namespace → visual state)
+```
+
+the result: **a P7-controlled composited desktop that can render existing
+visualizations as live visual feedback right now**. every layer is independently
+controllable through P7 commands. overlays are composited with translucency.
+transitions between configurations are smooth.
+
+```
+namespace state → graphics-matrix → grid-v14.html → web-browser → tile-groups
+                                                         ↕              ↕
+                                            JS execution from      layer control
+                                            P7 commands             overlay add/remove
+                                            (navigation)            (compositing)
+```
+
+### the live data bridge — backend infrastructure
+
+the rendering stack has a frontend (grid-v14 in web-browser). the backend
+is equally complete:
+
+**data zenka** (108 modules):
+```
+modules/data.channel.shm.*    — SHM channels (create, read, write, poll)
+modules/data.cmd.mount-cube   — cube-routed namespace mount
+modules/data.cmd.mount-visual — visual data mount
+modules/data.get / data.set   — namespace tree read/write
+modules/data.get.classify_path — path classification
++ fs mounts, hash paths, permissions, array/hash access
+```
+
+**httpd + httpsd** (91 modules):
+```
+async HTTP/HTTPS serving, file transfer, range requests,
+benchmark system, diagnostic tools — all production-deployed
+httpsd live on pri.v7.ax with non-blocking SSL accept
+```
+
+**web zenka** (25 modules):
+```
+modules/web.cmd.render-template — template rendering
+modules/web.cmd.process-template-ipc — IPC template processing
+modules/web.assets.*  — asset registry with status tracking
+```
+
+**websocket** (4 modules, fresh):
+```
+modules/websocket.init_code   — client subsystem init
+modules/websocket.connect     — ws:// connect with HTTP upgrade handshake
+modules/websocket.handler.read — non-blocking read handler
+modules/websocket.send        — frame send
+```
+
+**the complete loop**:
+```
+namespace change → data zenka → websocket.send → grid-v14 JS
+                                                      ↓
+                                             grid renders updated glow
+                                                      ↓
+                                             user navigates (cursor move)
+                                                      ↓
+                                             JS → websocket → P7 command
+                                                      ↓
+                                             graphics-matrix.cursor.move
+                                                      ↓
+                                             namespace update → data zenka → ...
+```
+
+the live data bridge is a websocket connection between existing components.
+grid-v14 already renders the cubic space — it just needs to receive namespace
+state updates via websocket instead of using static data. the websocket
+modules handle the transport. the data zenka provides the state. the httpd
+serves the page. the web-browser renders it. the loop closes.
+
+no new infrastructure is needed. the bridge is wiring, not building.
+
+this stack is a **precision-bound compositing surface**: each layer contributes
+functionality gained cheaply from the physical rendering. layers can be
+overlaid with controlled translucency. the web-browser's multi-view system
+already supports this — foreground and background views with independent
+opacity, smooth transitions between them.
+
+### space as computation
+
+the reason this rendering stack matters beyond UI: **physical space is the
+computation**. instead of logically abstracting and tracking all relationships
+in data structures (expensive, complex, unbounded), the system renders them
+into spatial form and **measures what it sees**.
+
+```
+traditional approach:
+    maintain abstract relationship graph  →  expensive
+    query graph for patterns              →  complex
+    track changes across all edges        →  unbounded
+
+spatial approach:
+    render relationships as visual overlay  →  cheap (GPU-native)
+    measure the rendered result             →  cheap (pixel comparison)
+    the merging logic tells you what you're measuring
+    the perspective tells you what you're querying
+```
+
+3D space is the meeting place and equal-scale translation canvas. perspectives
+and visual overlays are the actual computation tools. CPUs and GPUs handle
+rendering and pixel measurement at trivially low cost compared to maintaining
+an abstract relationship graph — because the spatial structure does the
+bookkeeping for free. the grid is not a visualization of the computation;
+the grid IS the computation. rendering it is cheaper than abstracting it.
+
+each rendering layer in the stack (terminal, canvas, povray, web-browser
+composite) is a different **measurement instrument**:
+- terminal: measures position and presence (binary: cursor here or not)
+- canvas: measures density and distance (continuous: glow intensity)
+- povray: measures geometry and reflection (precise: raytraced interaction)
+- composite overlay: measures relationship (what overlaps when two layers merge)
+
+the logic of how you composed the overlay defines what you're measuring.
+this is visual computation: the rendering IS the query, the perspective IS
+the filter, and spatial proximity IS relationship detection.
+
+
+---
+
 ## dependency graph (simplified)
 
 ```
@@ -450,6 +803,9 @@ A1 (graph validation)
     └─→ B4 (inpainting pipeline)
 
 G (graphics-matrix zenka)  ←→  all visual initiatives (bidirectional)
+    │                          EXISTING: start file, init_code, filters,
+    │                          visual pipeline (cubic-sort, spheres, clusters),
+    │                          3D cursor (8×7×13, translucency, navigation)
     │
     ├─→ B1 (element detection)
     │       └─→ B2 (similarity graph)
@@ -461,17 +817,32 @@ G (graphics-matrix zenka)  ←→  all visual initiatives (bidirectional)
     ├─→ F (style topology layers)
     │       └─→ B4 (inpainting with style-conditioned prompts)
     │
+    ├─→ P (povray zenka)  ←→  G (bidirectional: data model ↔ rendering)
+    │       EXISTING: start file, stub init_code
+    │       distributed slice rendering, checksum-cached frames
+    │
     └─→ palette lattice visualization  →  F intermediate layer targeting
 
+RENDERING STACK (existing, enables G + P + B visuals):
+    X-11 zenka (95+ modules)  →  display management, xvfb virtual display
+    web-browser zenka (78 modules)  →  WebKit2 rendering surface, multi-layer
+    tile-groups (42 modules)  →  composited tiling, overlays, layer sorting
+    compton (4 modules)  →  X11 compositor (transparency, shadows, transitions)
+    openbox (6 modules)  →  window manager with P7 command control
+    grid-v14.html  →  already-functional cubic space visualization
+    screenshot zenka  →  frame capture
+    = full composited desktop stack, all P7-command-controlled
+
 C (opencv zenka plan)  →  absorbed into G as feature detection phase
+H (checksum routing)   →  enables G, P, B1-B5 content addressing
 
 A2 (invoke-install)  ·  independent, any time
 D3 (lmstudio inference)  ·  independent, low priority
 E1-E3 (bugs)  ·  independent, opportunistic
 ```
 
-#,,,,,..,,...,,,.,,,.,...,,.,,,,.,,..,.,,,,,,,..,,...,...,...,,.,,,,.,,,,,.,.,
-#LTX4J4FH6THWFBY7SUCVPDZLDUAYPHV7YEGJDP5AD34D2W7BLZYIEJNTAPHYHW6BGTPXYS4HRYMZI
-#\\\|R74R7M3TGXIIIHFX5XI5PHZSF7Q6R2CAH4IWUY4E5FLKF4KGXCQ \ / AMOS7 \ YOURUM ::
-#\[7]OSVFMPPN5I2YCXDS536YCPTUXWRB2UEN2Z5A2UFP4KN3Q4WTQGCY 7  DATA SIGNATURE ::
+#,,..,.,,,..,,,.,,...,.,.,,..,..,,,.,,..,,.,,,..,,...,...,.,,,,,,,,..,,,,,,..,
+#RHR3ZYEJU7WK6Z4WGFETU2Z6X4ER7U3VN2I756MZCYSF2S66BOUR2HJZLADRPPHLCQM5QMGDUQAQK
+#\\\|3AS3TVZZCZ2DMPGUWLERGMKVE6ETIXTUIMJ4MMRELKIABLQTZHK \ / AMOS7 \ YOURUM ::
+#\[7]HGSLQMULQIHR2LBDIWDZMALKK53UAY3TAMOXZKKL4TTG7V6NTUCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
