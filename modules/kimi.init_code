@@ -49,8 +49,13 @@ if ( not defined <kimi.session_id> ) {
 ## reconnect state
 <kimi.reconnect.grace_timer> //= undef;    ## cancellable timer ref
 
-## task state [ models zenka dispatches via kimi.ask-reply, no polling needed ]
+## task queue state ##
 <kimi.task.active_id> //= undef;    ## task id currently being processed
+<kimi.task.queue>     //= {};       ## task_id => task hashref
+<kimi.task.pending>   //= [];       ## task ids awaiting execution
+<kimi.task.active>    //= [];       ## task ids in progress
+<kimi.task.completed> //= [];       ## task ids finished
+<kimi.task.failed>    //= [];       ## task ids that failed
 
 ## tool approval state
 <kimi.approval.pending>      //= {};     ## { $request_id => { action, ... } }
@@ -96,8 +101,8 @@ if ( not keys %{<kimi.approval.responded>} ) {
 
 return TRUE;
 
-#,,..,,..,,.,,.,.,,,,,..,,,..,.,,,,..,.,.,..,,..,,...,...,,.,,..,,..,,..,,.,,,
-#JSF56RZ4TAUGWGXJA3LVTPGJ2LLS43QNWVULSV3OVGK4ZOZGXZSFD3MGFKYXUOU5FENNOQVMYEXLK
-#\\\|P24Y627QSAVRJGUKJCJKVH3YLL6SQS2VG6KPFAW3UMESUZH3ZHP \ / AMOS7 \ YOURUM ::
-#\[7]5J66WPKP6PYWJJTV3PYAA2RGAGZEDZZ3M2YYVDEAPWG4GBCDGYDI 7  DATA SIGNATURE ::
+#,,..,.,.,,..,..,,...,.,,,,,,,,.,,.,,,,,,,.,.,..,,...,...,...,,,,,,,,,.,.,.,.,
+#LJG3VANTPQ6E4WTRHNA3KKE2BC5PZHQIMNA3MCAYPYVWUFC556QJ37PUCUUOKGJGP6TCLWFYK7LI4
+#\\\|EJG6UAWGT74DIQANH6ASJWPFFUV35JGUUB5BHU7LTNLQAVCR2EL \ / AMOS7 \ YOURUM ::
+#\[7]7KVZCZZ3YNZJNHU7U4WQGEXQFSO5HT7XSEQH3CIRODQ2B6P5JGCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
