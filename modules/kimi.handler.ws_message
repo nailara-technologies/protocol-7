@@ -133,8 +133,33 @@ if ( $method eq qw| history_complete | ) {
         ## dispatch deferred prompt if ready [ init path handles its own ]
         if ( <kimi.ws.status> eq qw| ready |
             and defined <kimi.next.deferred> ) {
-            my $def = delete <kimi.next.deferred>;
-            <[kimi.wire.prompt]>->( $def->{'prompt'}, $def->{'reply_id'} );
+            my $def         = delete <kimi.next.deferred>;
+            my $def_task_id = $def->{'task_id'};
+
+            ## activate task before sending prompt ##
+            if ( defined $def_task_id ) {
+                <kimi.task.active_id> = $def_task_id;
+                my $task = <kimi.task.queue>->{$def_task_id};
+                if ( defined $task ) {
+                    $task->{'execution'}->{'status'}  = qw| in_progress |;
+                    $task->{'execution'}->{'started'} = <[base.time]>->(3);
+                }
+                my $aref_pending = <kimi.task.pending> //= [];
+                my $aref_active  = <kimi.task.active>  //= [];
+                $aref_pending->@*
+                    = grep { $ARG ne $def_task_id } $aref_pending->@*;
+                push $aref_active->@*, $def_task_id;
+            }
+
+            my $def_msg_id
+                = <[kimi.wire.prompt]>
+                ->( $def->{'prompt'}, $def->{'reply_id'} );
+
+            ## inject task_id for TurnEnd completion detection ##
+            if ( defined $def_msg_id and defined $def_task_id ) {
+                <kimi.wire.pending>->{$def_msg_id}->{'task_id'}
+                    = $def_task_id;
+            }
         }
         return;
     }
@@ -188,7 +213,11 @@ if ( $method eq qw| event | ) {
             ## check if this was a task submission
             my $task_id = $pend->{'task_id'} // '';
             if ( length($task_id) and defined <kimi.task.active_id> ) {
-                ## complete the task [ collapse newlines for single-line ipc ]
+
+                ## update local kimi queue state ##
+                <[kimi.task.complete]>->( $task_id, $response );
+
+                ## notify external task zenka if available ##
                 ( my $safe_response = $response ) =~ s{\n}{ }g;
                 <[protocol-7.route-send]>->(
                     {   'command'   => 'task.complete',
@@ -284,9 +313,34 @@ if ( not length($method) and length($msg_id) ) {
 
             ## dispatch deferred prompt after fresh session ready
             if ( defined <kimi.next.deferred> ) {
-                my $def = delete <kimi.next.deferred>;
-                <[kimi.wire.prompt]>
-                    ->( $def->{'prompt'}, $def->{'reply_id'} );
+                my $def         = delete <kimi.next.deferred>;
+                my $def_task_id = $def->{'task_id'};
+
+                ## activate task before sending prompt ##
+                if ( defined $def_task_id ) {
+                    <kimi.task.active_id> = $def_task_id;
+                    my $task = <kimi.task.queue>->{$def_task_id};
+                    if ( defined $task ) {
+                        $task->{'execution'}->{'status'} = qw| in_progress |;
+                        $task->{'execution'}->{'started'}
+                            = <[base.time]>->(3);
+                    }
+                    my $aref_pending = <kimi.task.pending> //= [];
+                    my $aref_active  = <kimi.task.active>  //= [];
+                    $aref_pending->@*
+                        = grep { $ARG ne $def_task_id } $aref_pending->@*;
+                    push $aref_active->@*, $def_task_id;
+                }
+
+                my $def_msg_id = <[kimi.wire.prompt]>->(
+                    $def->{'prompt'}, $def->{'reply_id'}
+                );
+
+                ## inject task_id for TurnEnd completion detection ##
+                if ( defined $def_msg_id and defined $def_task_id ) {
+                    <kimi.wire.pending>->{$def_msg_id}->{'task_id'}
+                        = $def_task_id;
+                }
             }
 
             if ( not <kimi.session.acquired> ) {
@@ -347,8 +401,8 @@ if ( not length($method) and length($msg_id) ) {
     }
 }
 
-#,,..,.,,,,..,,..,,,.,.,,,..,,.,.,,.,,...,..,,.,.,...,...,..,,,..,..,,.,,,..,,
-#6LCQXTLPKKCYGC3ALAJUPTX37L5UYN7PZKEMBLQM4R7N3VRTBZ7GDXFDOZA62IVSXLAHEIZKVX4PC
-#\\\|4X4JHC6KWS5GPL2PTFUCRNWGBXYWKMSRNIYSZUC7LW6QXRMIXRD \ / AMOS7 \ YOURUM ::
-#\[7]5PAKLE7O2BDEAKFL5MZMOQVCEGKLZO5G4OCXJE3S6R2DHBSEGQAA 7  DATA SIGNATURE ::
+#,,,,,,,,,,,,,,,.,.,.,.,,,,,,,,.,,,,,,..,,...,.,.,...,...,..,,.,.,,..,,,,,,..,
+#ZH7TB6NQMFMXYF46RZCTAR7V6QPHUKV7A3CQERANRJ6GX2AIR5J2SBB7GY3UUZV2GDCFTRYHNZXHM
+#\\\|KX7ITW2X4GYMQQGNAMTBWCMYSSSQZ6P7J2GXFNGYCOQAEXRIWBX \ / AMOS7 \ YOURUM ::
+#\[7]H3H4UORUREEWENOBUGY22RMUPM5CEWZJMHNMKOMEK77T7XNK4WBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

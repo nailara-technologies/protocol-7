@@ -44,15 +44,17 @@ $queue_href->{$task_id} = {
 ## add to pending list ##
 push $aref_pending->@*, $task_id;
 
-## step 2: check budget before enqueueing ##
-my $budget_status = <kimi.budget.check_budget>->( $task, 'enqueue' );
+## step 2: check budget before enqueueing [ if wired ] ##
+if ( defined <kimi.budget.check_budget> ) {
+    my $budget_status = <kimi.budget.check_budget>->( $task, 'enqueue' );
 
-unless ( $budget_status->{success} ) {
-    <[base.logs]>->(
-        2,        "kimi.task.enqueue: budget check failed for %s: %s",
-        $task_id, $budget_status->{error}
-    );
-    return $budget_status;
+    unless ( $budget_status->{success} ) {
+        <[base.logs]>->(
+            2,        "kimi.task.enqueue: budget check failed for %s: %s",
+            $task_id, $budget_status->{error}
+        );
+        return $budget_status;
+    }
 }
 
 ## determine task priority ##
@@ -79,13 +81,15 @@ unless ( defined $job_id ) {
 
 <[base.logs]>->( 2, "task enqueued : %s [job_id=%s]", $task_id, $job_id );
 
-# Update budget tracking
-<kimi.budget.track_tokens>->(
-    {   'service'     => 'kimi.task.enqueue',
-        'tokens_used' => 1,                     # base overhead
-        'type'        => 'enqueue',
-    }
-);
+## update budget tracking [ if wired ] ##
+if ( defined <kimi.budget.track_tokens> ) {
+    <kimi.budget.track_tokens>->(
+        {   'service'     => 'kimi.task.enqueue',
+            'tokens_used' => 1,
+            'type'        => 'enqueue',
+        }
+    );
+}
 
 return {
     success    => TRUE,
@@ -95,8 +99,8 @@ return {
     message    => "task enqueued: $task_id"
 };
 
-#,,,.,.,,,...,...,,.,,.,.,,,,,,,,,.,.,,,,,,..,..,,...,...,,.,,...,.,.,..,,,..,
-#6YWPACBQISBIMG5XHGJO4VL42UTCOPXMXVBOKXZPYQONS4ULYKLIUT3LP6752XHA2HSKPECM7ZV76
-#\\\|ZJIPWGJNIJQH6RCQGPAMC2FHPIPLASR6OB5SFADPTBTHMX53GCY \ / AMOS7 \ YOURUM ::
-#\[7]56DYCCVLUMGNQFU7FKIZFJJIIU672T6OWROVVT3DTZUEZRSQRMCY 7  DATA SIGNATURE ::
+#,,.,,,..,,,,,.,,,,..,...,...,..,,,..,.,,,,.,,..,,...,...,,.,,,,.,,.,,.,.,,.,,
+#I3ZCZPEIZHO6C6XRDOQQACQ2Z3HS2ZIHVWF5UKOAQLK36GNJLMOP3TDOTWKATFLSAB2RFGW6G3FPC
+#\\\|7C65SC4HSLTAIDYSA64PRPQ3XJXXAQBODKCJDIKKVUDAAPLNSY4 \ / AMOS7 \ YOURUM ::
+#\[7]7Z7LR6JD33CHYTE46PLAS7RV42I4UROPJFVHGUC3HNUWW4OWDCDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

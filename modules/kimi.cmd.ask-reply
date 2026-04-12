@@ -28,10 +28,16 @@ if ( $prompt =~ m{^[2-9A-Z]+$} ) {
 }
 
 if ($wants_next) {
+    ## create task entry before deferring ##
+    my $def_intake = <[kimi.intake.process]>->( { 'prompt' => $prompt } );
+    my $def_task_id
+        = $def_intake->{'success'} ? $def_intake->{'task_id'} : undef;
+
     ## store deferred prompt for post-reconnect dispatch
     <kimi.next.deferred> = {
         'prompt'   => $prompt,
-        'reply_id' => $call->{'reply_id'}
+        'reply_id' => $call->{'reply_id'},
+        'task_id'  => $def_task_id
     };
     ## trigger session reset + reconnect
     <[kimi.session.reset_and_reconnect]>;
@@ -40,9 +46,15 @@ if ($wants_next) {
 
 ## reconnect on demand if disconnected [ idle disconnect or first use ]
 if ( not <kimi.ws.connected> or <kimi.ws.status> eq qw| disconnected | ) {
+    ## create task entry before deferring ##
+    my $def_intake = <[kimi.intake.process]>->( { 'prompt' => $prompt } );
+    my $def_task_id
+        = $def_intake->{'success'} ? $def_intake->{'task_id'} : undef;
+
     <kimi.next.deferred> = {
         'prompt'   => $prompt,
-        'reply_id' => $call->{'reply_id'}
+        'reply_id' => $call->{'reply_id'},
+        'task_id'  => $def_task_id
     };
     <[kimi.connect]>;
     return { 'mode' => qw| deferred | };
@@ -57,20 +69,52 @@ unless ( <kimi.ws.status> eq qw| ready | ) {
 
 my $reply_id = $call->{'reply_id'};
 
+## create task entry for queue tracking ##
+my $intake_result = <[kimi.intake.process]>->( { 'prompt' => $prompt } );
+my $task_id;
+if ( $intake_result->{'success'} ) {
+    $task_id = $intake_result->{'task_id'};
+    <kimi.task.active_id> = $task_id;
+
+    ## mark as in_progress ##
+    my $task = <kimi.task.queue>->{$task_id};
+    if ( defined $task ) {
+        $task->{'execution'}->{'status'}  = qw| in_progress |;
+        $task->{'execution'}->{'started'} = <[base.time]>->(3);
+    }
+
+    ## move from pending to active ##
+    my $aref_pending = <kimi.task.pending> //= [];
+    my $aref_active  = <kimi.task.active>  //= [];
+    $aref_pending->@* = grep { $ARG ne $task_id } $aref_pending->@*;
+    push $aref_active->@*, $task_id;
+}
+
 my $msg_id = <[kimi.wire.prompt]>->( $prompt, $reply_id );
 
-return { 'mode' => qw| false |, 'data' => 'kimi.wire.prompt failed' }
-    unless defined $msg_id;
+unless ( defined $msg_id ) {
+    ## roll back task state on prompt failure ##
+    if ( defined $task_id ) {
+        <kimi.task.active_id> = undef;
+        <[kimi.task.queue_fail]>->( $task_id, 'wire.prompt failed' );
+    }
+    return { 'mode' => qw| false |, 'data' => 'kimi.wire.prompt failed' };
+}
+
+## inject task_id into pending entry for TurnEnd completion detection ##
+if ( defined $task_id ) {
+    <kimi.wire.pending>->{$msg_id}->{'task_id'} = $task_id;
+}
 
 <[base.logs]>->(
-    2,       '[ask-reply] submitted [ msg_id=%s reply_id=%s ]',
-    $msg_id, $reply_id
+    2, '[ask-reply] submitted [ msg_id=%s reply_id=%s task=%s ]',
+    $msg_id, $reply_id, $task_id // 'none'
 );
 
 return { 'mode' => qw| deferred | };
 
-#,,..,,..,,,,,,,,,...,.,.,,,.,,.,,,,.,,,,,,,.,.,.,...,..,,..,,.,.,,,.,,..,,,,,
-#T67XF3HMHYHROK3FDKEXXSWELCWQ4E7A2JFGLQNISNHG3JHWORUZXTS2YSJEU7VOQA2TBHMHZLXD2
-#\\\|374ZOZ5GR3RH7HHED7RZJGZJH27XM5F6REGBX4UNZU6ODZHR2EV \ / AMOS7 \ YOURUM ::
-#\[7]EOQZ4A2SW3B7CA6UPVWTA5YCCTXZZHUOU44VZSLYOX52GUMHQKCI 7  DATA SIGNATURE ::
+#,,,.,,.,,,,,,..,,.,,,..,,...,,.,,..,,,..,..,,.,.,...,...,...,...,..,,,,,,...,
+#NUGV632O6EU7AMJMPM2BFHGADK7H6KNILGAMILEOATUQYGNQ3BSWBFMABQ6LUGLGRKNXIBX63M4HC
+#\\\|5D256NSQUF4PS7I2REZJ5ZFKYDWIX343IDVA76GW4YO5AYZGQOS \ / AMOS7 \ YOURUM ::
+#\[7]6SXT2ZI6SWIXY4FCD2AZJLVDYBJGMOAB3NYMFVSE73BEQLI2LUDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -40,13 +40,15 @@ push $aref_completed->@*, $task_id;
 
 <[base.logs]>->( 2, "task completed : %s", $task_id );
 
-# Update budget tracking
-<kimi.budget.track_tokens>->(
-    {   'service'     => 'kimi.task.complete',
-        'tokens_used' => 1,                      # base overhead
-        'type'        => 'complete',
-    }
-);
+## update budget tracking [ if wired ] ##
+if ( defined <kimi.budget.track_tokens> ) {
+    <kimi.budget.track_tokens>->(
+        {   'service'     => 'kimi.task.complete',
+            'tokens_used' => 1,
+            'type'        => 'complete',
+        }
+    );
+}
 
 # Trigger task completion event handler (checks for auto-resume)
 <[kimi.event.on_task_complete]>->( $task_id, $result );
@@ -58,8 +60,8 @@ return {
     message => "task completed : $task_id"
 };
 
-#,,.,,,.,,...,,..,,.,,..,,,..,,..,,,.,...,..,,..,,...,..,,,..,,..,.,,,.,,,,,,,
-#RQOESE2J7KEDH4MIZYLEC3NMJHL2BPJE6VDE3R4DWBAJDG27PFEI2HWEJK3PLKTLNXMND55INZUVW
-#\\\|WSIG2BOD65N2LONDOGWN4MOOEO5X7OPIEHIFIPCJZNW5OFUWLJY \ / AMOS7 \ YOURUM ::
-#\[7]SBSE76FYJV7VECOFYALVDIPEZE44QKWUSHJDHAZB7S7INN4RFMBY 7  DATA SIGNATURE ::
+#,,..,.,.,.,.,..,,.,.,.,,,.,.,...,...,.,.,,.,,..,,...,...,.,.,,,.,.,.,,.,,,..,
+#RJK2IAHRWQLZSPURHNIMBQMTBKJ4BXZBFOM66AH7ELMFSDKRM5PE54T76DGT2AYC4ZPYAZYA7663K
+#\\\|XG7WMSIZLAI3OBOHNCUZLNXGG4YCWEVOCCLGHQSH23LU3DE6CL4 \ / AMOS7 \ YOURUM ::
+#\[7]EWDNN3EB4LKNEUXFVT3PQHZ55VAWKNF74WDRBAVNBGDE563VU2DY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
