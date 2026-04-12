@@ -26,13 +26,15 @@ return {
 # Move job to error queue
 <[jobqueue.move_job]>->( $job_id, 'error' );
 
-# Update budget tracking
-<kimi.budget.track_tokens>->(
-    {   'service'     => 'kimi.task.fail',
-        'tokens_used' => 1,                  # base overhead
-        'type'        => 'fail',
-    }
-);
+## update budget tracking [ if wired ] ##
+if ( defined <kimi.budget.track_tokens> ) {
+    <kimi.budget.track_tokens>->(
+        {   'service'     => 'kimi.task.fail',
+            'tokens_used' => 1,
+            'type'        => 'fail',
+        }
+    );
+}
 
 return {
     success => TRUE,
@@ -42,8 +44,8 @@ return {
     message => "task failed : $job_id"
 };
 
-#,,,.,,..,.,.,,..,...,..,,,,.,.,,,.,,,,.,,.,.,..,,...,...,,,.,...,,,,,..,,.,.,
-#HN7JOALPJC6YSWEW2VKTEA6NJGJFXDY6EELTINXQAPRFVZM2FLBKKI2F5BHD6W3PIQM5B2ZDRC2NW
-#\\\|SBKOJ24LIUXCLWGHU34ODJSRU4ADZB3YPHHDEBVQBKZPDAJASYB \ / AMOS7 \ YOURUM ::
-#\[7]AFN3OOPLJ4DAIUYRO52KESCI7JI33Y6PLGJLHIKHYW5FWORRAQDY 7  DATA SIGNATURE ::
+#,,..,..,,..,,,..,.,,,..,,.,.,...,.,.,,..,..,,..,,...,...,...,.,,,.,,,..,,.,.,
+#TRDBRWT2GEYSYB7Q7RYL3COEW5RHQ4PIFEADVLABKRW5T2S7D3OKLKD3AJUE7ONVD2WG45TAYPKUW
+#\\\|DXVD4FNV46M3NBCUULR2V46MGVI7K42EWOWJFVIP4UC3DZ7UN6S \ / AMOS7 \ YOURUM ::
+#\[7]VIQ6VU7U6ROHE6B454TIIIP2NQ3ZLS3DTGVYVGFUUCONKRR5Z2BQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
