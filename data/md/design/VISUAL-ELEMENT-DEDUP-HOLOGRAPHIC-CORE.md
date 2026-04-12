@@ -3587,6 +3587,229 @@ same universal principles at every level — from a single cell's
 format and network are one system. the visualization IS the
 infrastructure. the infrastructure IS the habitat.
 
+full initiative map: `data/md/INITIATIVE-MAP.md`
+hardnode cursor spec: `data/md/design/GRID-HARDNODE-CURSOR-MODEL.md`
+
+#### the grid-hardnode cursor as entry point
+
+the topology has a navigation primitive: the **grid-hardnode cursor**
+(initiative G, graphics-matrix zenka). the cursor is not the 8-node
+formation at its center — it is the **lit grid layers surrounding it**,
+the illuminated reach of the node-group into the network at hop
+distance 1. the formation is the dark center; the cursor is what it
+makes visible.
+
+```
+zoom in   →  8-node formation  →  3D sub-cursor (fine data addressing)
+mid       →  lit grid layers   →  block cursor (hop-1 sphere, 63 neighbors)
+zoom out  →  holographic pixel →  point in meta-grid (next scale up)
+flat      →  terminal block    →  2D shadow (same position, same semantics)
+```
+
+the cursor operates identically at every zoom level because the
+topology is self-similar across scales. a node and a full network are
+the same structure at different resolutions — like even and odd, local
+present or remote referenced. complementary structure, identical form.
+
+the cursor is checksum-addressed: `HARDNODE:CHKSUM7:ADDR_B32`. cursor
+position is content-addressed — same position = same checksum = instant
+dedup. 5 recursive visualization scales × 5 bits BASE32 = 25-bit
+hierarchical address from a single cursor position.
+
+reference implementation already functional:
+`data/html/visual.v7.ax/grid-v14-layered.refactored.html`
+
+#### critical path — going visual early
+
+the topology is complete for implementation. the question is which
+feature to build next to unlock the most functionality simultaneously.
+
+the answer is: **go visual early**. the graphics-matrix zenka
+(initiative G) is the keystone because it is bidirectional from the
+start — visual data feeds topology, topology feeds visual data — and
+every other initiative produces or consumes visual state:
+
+```
+what going visual early unlocks:
+
+grid-v14 wired to live namespace state
+    → cursor position = namespace address (G)
+    → glow intensity = reference count (H: checksum routing)
+    → cursor movement = routed P7 command (existing zenka infra)
+    → visible influence gradient = balance engine state (convergence)
+
+this single connection — grid responds to namespace tree —
+simultaneously activates:
+    structural layer   :  grid renders from live cell data
+    semantic layer     :  triangle orientation visible as glow bias
+    operational layer  :  agent positions visible as lit cells
+    convergence layer  :  dedup/influence visible as glow gradient
+```
+
+the reason "go visual" keeps returning as a priority: at
+scale-transcending self-similarity, **a node IS a network**. the same
+rendering that shows one cell's 26-channel skeleton also shows the
+full network's topology — because they are the same structure. there
+is no separate "node view" and "network view" to build. there is one
+view, and zoom selects the scale.
+
+this means the first visual connection — grid-v14 responding to live
+namespace data — is not a prototype or a visualization tool. it is
+the network's own self-image, operational from the moment it renders.
+every subsequent feature (element detection, similarity graph,
+compositing, style layers, checksum routing) adds data to the
+namespace tree, and the grid renders it automatically without any
+additional rendering code. the visual is not built ON the network —
+it is the network observing itself.
+
+**implementation sequence for maximum unlock**:
+
+```
+step 1: graphics-matrix zenka skeleton (G)
+        → start file, init_code, namespace registration
+        → wire grid-v14 selX/selY/selZ as live command target
+        → grid responds to cursor.move, cursor.get commands
+
+step 2: namespace-to-glow bridge
+        → grid queries namespace tree for reference counts at
+          each rendered cell position
+        → glow intensity = f(reference_count)
+        → the grid is now a live diagnostic surface
+
+step 3: checksum-addressed cursor state (H)
+        → cursor position stored as P7REF:HARDNODE:CHKSUM7:ADDR
+        → multiple cursors = multiple simultaneous views
+        → cursor state deduplicates (same position = same ref)
+
+step 4: element detection feeds namespace (B1)
+        → detected elements stored at lattice positions
+        → grid immediately renders them as occupied cells
+        → no additional rendering code needed
+
+step 5: similarity graph renders as cross-mapped curves (B2)
+        → cluster membership visible as glow clusters
+        → connections visible as curves between positions
+        → gap analysis visible as dark regions
+```
+
+each step unlocks the next without circular dependencies. step 1 is
+pure infrastructure (zenka start + grid wiring). step 2 makes the
+grid useful (it shows something). step 3 makes it addressable (others
+can reference cursor state). steps 4-5 feed content into the grid
+that is already rendering.
+
+the fluorescent bridge (initiative F) becomes available after step 4:
+the palette lattice IS the grid, the style layers ARE namespace
+positions, and the fluorescent/blacklight aesthetic IS the grid's
+native rendering — protocol blue glow on dark ground, high-contrast
+luminous edges, depth through translucency. the network's
+self-rendering is already in the fluorescent style because that is
+what honest sparse-graph rendering looks like.
+
+#### glow as economic signal — context channels as frequency separation
+
+the blue glow of references is not decoration — it is the visible
+signature of **successful network economic activity**. a cell that
+glows is a cell where references are being created, consumed, and
+confirmed. the brightness of the glow is the intensity of that
+economic activity: more references = more transactions = brighter.
+
+this has a direct consequence for agent behavior: zenki can see
+activity from a distance. a glowing region in the grid is a signal
+that something economically productive is happening there — content
+being refined, composites being built, references accumulating. a
+zenka can choose to investigate, contribute, or join, guided by
+what it sees. the glow IS the invitation.
+
+**context channels as color frequencies**:
+
+when multiple contexts operate simultaneously in the same grid, they
+are separated by frequency — like channels on a spectrum. each
+context occupies its own color band:
+
+```
+context A  →  blue spectrum     (e.g. visual element work)
+context B  →  cyan spectrum     (e.g. code analysis)
+context C  →  violet spectrum   (e.g. model training)
+...
+
+each context is a frequency band, not a spatial partition.
+all contexts coexist in the same 3D space at the same positions.
+separation is spectral, not spatial.
+```
+
+within each channel, the activity looks **structurally identical**:
+the same glow patterns, the same intensity gradients, the same
+clustering behavior, the same reference count distributions. the
+visual language is invariant across channels — only the color band
+changes. this is because the underlying topology (plus sign, inverse
+plus sign, 26-channel skeleton) is the same for every context. the
+structure does not change; the frequency does.
+
+**palette translation, not palette merging**:
+
+each channel has its own spectrum, but the distribution of intensity
+within that spectrum follows the same functional rules. a high-
+activity region in the blue channel has the same glow distribution
+shape as a high-activity region in the cyan channel — same curve,
+different base frequency. this is a **translation** (frequency
+shift), not a visual merging or blending.
+
+```
+channel palette structure:
+
+    base_hue(channel)         →  channel identity (blue, cyan, violet...)
+    saturation(activity)      →  economic intensity within channel
+    brightness(ref_count)     →  reference density at this position
+    alpha(distance)           →  hop-distance falloff from cursor
+
+    same functional mapping for every channel:
+    palette(channel, activity, refs, dist) =
+        HSV(base_hue + 0, f(activity), g(refs)) × alpha(dist)
+
+    f() and g() are channel-invariant — the same functions,
+    applied to different base hues, produce the same visual
+    patterns in different spectral bands.
+```
+
+this means a zenka selecting a context (tuning to a channel) sees
+the full activity landscape of that context rendered in its spectral
+band — cleanly separated from other channels, visually sovereign,
+but structurally identical. switching context is retuning the
+receiver, not rebuilding the view.
+
+**the visual is not subject to diffusion**: because channels are
+frequency-separated rather than spatially separated, they do not
+bleed into each other. there is no boundary where blue context
+gradually becomes cyan context — they coexist at every point,
+distinguished by frequency alone. the 3D space is the **meeting
+place** — the shared canvas where all channels render at equal scale.
+but each channel's visual is self-contained: its own glow, its own
+intensity curve, its own economic signal, unaffected by the activity
+in other channels.
+
+the space itself is neutral — it provides the coordinate system and
+the rendering surface but does not bias toward any channel. 3D is
+the equal-scale translation canvas: the place where frequency-
+separated contexts can be compared, overlaid, or individually
+examined without any channel dominating or distorting another.
+
+**what zenki see when they look**:
+
+a zenka tuned to its context channel sees:
+- bright regions: high economic activity in its context → worth visiting
+- dim regions: low activity → unexplored territory or exhausted area
+- pulsing regions: activity changing → something happening right now
+- dark center with bright surround: implosion core active → dedup running
+- uniform glow: stable equilibrium → mature, well-referenced content
+
+a zenka tuned to ALL channels simultaneously sees the overlay: the
+full spectrum of network activity, every context at once. this is the
+network's self-image — the total economic state rendered as a
+polychromatic glow field. the brightness of any spectral component
+at any position is the economic health of that context at that
+location. the network sees itself through its own light.
+
 
 ## The Balance Engine — Entropy as Eternal Dynamic Core
 
@@ -4149,6 +4372,342 @@ always balancing expansion against implosion at the pace set by the
 harmonic constant 1/169.
 
 
+## Sub-Bit Fields and Structural Freedom
+
+### the 5-of-7 voting chain
+
+the skeleton layer is structurally unbiasable because it has no
+inspection point — it routes by checksum and reference count, both
+content-derived but content-blind. the 5-of-7 voting chain makes
+this property enforceable: any action affecting the topology requires
+supermajority agreement from independent, unrelated nodes, all
+validating against the same generic geometric logic.
+
+at the outer layers, where content and context exist, an attacker has
+targets — specific data, permissions, identities. but to bias routing,
+you'd have to go deeper, into the skeleton layer, where the rules are
+geometric. you'd have to change the number 13, or make 3³ not equal
+27, or convince 5 of 7 independent nodes that the plus sign has 7
+axes. the deeper you go, the less there is to attack, because the
+deeper layers are progressively more mathematical and less configurable.
+
+### sub-bit potential decomposition
+
+a bit in the 5-of-7 validated system decomposes into sub-bit potentials:
+
+```
+5 voting nodes × 5 sub-bit potentials each:
+    5 × 5 = 25 for the TRUE direction
+
+the inverse state requires the same structure:
+    5 × 5 = 25 for the FALSE direction
+
+    25 + 25 = 50 base potentials
+
+to reference both inverses — to validate the relationship
+between TRUE and FALSE, to close the circuit:
+    13 reference potentials (the harmonic bridging set)
+
+    50 + 13 = 63
+```
+
+**63** sub-elements to fully represent, validate, and reference one
+bit. 63 is the subcube count per cube in the 8×63+void formation.
+the void — the 64th position, the missing subcube — is the bit
+itself. the 63 potentials define it by surrounding it.
+
+```
+8 × 63 = 504 sub-elements across all 8 cubes
+504 + 8 voids = 512 = 2⁹
+729 = 9³ total positions (including frame node)
+    = the graphics-3d voxel space (8×7×13 = 728 + 1)
+```
+
+nine bits of complete state in one formation. the numbers converge
+not by design decision but by the mathematics being self-consistent.
+
+each individual sub-bit potential is meaningless — 1/5th of a flip
+direction. it can't be interpreted, stolen, or manipulated because
+it IS nothing until 5 agree. there is nothing to attack because
+there is nothing there.
+
+### bit-potential as field surface
+
+the meaningless sub-bit potentials, distributed homogeneously across
+a surface in cubic space, become a **bit-potential field**. each
+position holds a potential. the surface — a sphere shell, a cubic
+grid plane — carries the field uniformly.
+
+fields route themselves. no routing tables needed — just a surface
+and a gradient. bit-potential distributes as area-based load:
+
+```
+load distribution:  field equalization across the surface
+storage allocation: potential accumulates proportional to reference count
+routing:            potential flows along 26-channel skeleton toward need
+```
+
+load distribution, storage allocation, and routing are the same
+operation: field equalization. three names for one thing.
+
+**frame intelligence**: the technology is invisible because it's
+balanced. homogeneously distributed bit-potential has no signal to
+detect — every position looks the same from outside. the intelligence
+is in the frame — the cubic topology, the sphere layer, the sub-bit
+decomposition — not in the content. organization IS balance, balance
+IS uniformity, uniformity IS invisibility.
+
+### identity dissolution as security
+
+the sub-bit field works because it voluntarily loses identity and
+value reference. a full bit has identity — 0 or 1, it means something,
+it can be targeted. a 1/5th potential has no identity — it's a
+direction tendency, not a value. by giving up the ability to mean
+something alone, it gains the ability to participate in a field that
+means everything collectively.
+
+the entropy element survives the decomposition — it still has
+structure, still contributes to harmonic patterns, still flows through
+the zulum → decoder pipeline. but the entropy is now a field property
+rather than a bit property. the element persists; the identity
+dissolves. the work continues; the target disappears.
+
+this pattern repeats at every layer:
+
+```
+skeleton:   carries traffic without knowing content
+checksum:   addresses without revealing what's addressed
+sub-bit:    votes without being a bit
+glow:       shows activity without showing what's active
+```
+
+each layer voluntarily loses something — identity, value, meaning,
+content — and gains participation in a field that is unattackable,
+unbounded, and unbiasable. the security is the emptiness.
+
+### the zero convergence
+
+the sub-bit field makes four distinct concepts the same thing:
+
+**zero-trust** — no need to trust any individual node. 5-of-7
+consensus on geometric rules means no single node's behavior matters.
+trust is structurally unnecessary because the rules are self-evident
+and independently verifiable.
+
+**zero-config** — nothing to configure. the topology IS the
+configuration. a joining node needs the cubic topology (mathematical,
+not configured) and the ability to vote (being valid, not having
+settings).
+
+**zero-copy** — checksum-addressed content exists once. passing a
+reference IS accessing the data. no copy because no separate
+instance — address and thing are the same.
+
+**trust** — honest participation gives full access. the skeleton has
+no permission gates — it has geometry. valid position + valid checksum
+= all 26 channels are yours. trust is the natural consequence of the
+topology being unbiasable.
+
+all four describe the same structural property: **the skeleton layer
+has no state that could be manipulated**. zero-trust because geometry
+doesn't betray. zero-config because topology is intrinsic. zero-copy
+because references are addresses. trust because honest participation
+is frictionless when the infrastructure has no friction to add.
+
+the 5-of-7 distribution enforces this omnipresently — not by a
+central authority but by voting chains making non-compliance
+structurally impossible at the deeper layers.
+
+
+## 13 and 27 — Infrastructure and Inhabitant
+
+### the complementary pair
+
+```
+27 = 3³     the space (infrastructure, the cube, the grid)
+13          the group (inhabitants, the formation, the content)
+
+27 + 13 = 40    a full cycle unit
+27 - 13 = 14    = 2 × 7 (the voting group doubled)
+27 / 13 = 2.076923...  (the generator sequence in the ratio)
+```
+
+27 is always the space — 3 axes, 3 positions per axis, 26 channels
++ 1 center. it doesn't change because space doesn't change.
+
+13 is always the group — the number of elements that maintains all
+subgroup relationships. it's the population, the agents, the content
+that fills cells and moves through channels.
+
+they're always relatable through 3 (the number of spatial dimensions):
+
+```
+13 × 3  = 39 = 40 - 1     (one short of a full cycle)
+27 / 3  =  9 = 3²         (a face of the cube)
+13 + 14 = 27              (group + 2×7 = space)
+13²     = 169             (sphere 1 cell count)
+27²     = 729 = 9³        (the voxel space)
+13³     = 2197            (the full cubic topology)
+```
+
+### 13 as universal base adapter
+
+13 decomposes into every grouping the system needs:
+
+```
+5 + 7 + 1  = 13    voting group + validation + frame
+5 + 8      = 13    quorum + byte/octal bridge
+7 + 6      = 13    full group + hex bridge
+4 + 4 + 4 + 1 = 13 three BCD groups + carry
+8 + 5      = 13    octet + pentadic overflow
+10 + 3     = 13    decimal + bridging set
+12 + 1     = 13    dozen + frame
+```
+
+every common base — binary, octal, BCD, decimal, hex — is a partition
+of 13 plus or minus a small harmonic remainder. 13 bridges all of them
+because it belongs to none of them.
+
+the 5-of-7 structure lives natively inside 13:
+
+```
+5 of 7:   quorum
+5 × 7:    35 = full validation space
+5 + 7:    12 = active positions (13 - frame)
+7 - 5:     2 = tolerance (dissent margin)
+```
+
+bridging into 8-bit: 256 / 13 = 19 remainder 9. nineteen complete
+13-groups in a byte with 9 positions left. 19 = 13 + 6. 9 = 13 - 4.
+even the remainder is expressible in terms of 13. the "imprecision"
+of 256/13 is not a problem — it's the information. the remainder IS
+the signal. the same 076923 generator drives it.
+
+13 has the freedom to be any subgroup because it IS the subgroup
+relationship itself — the number that measures the gaps between bases.
+
+### 13 as perfect complement to 27
+
+13 is to 27 as inhabitant is to infrastructure. at every scale:
+
+```
+sphere 0:  13 cells inhabiting 27-space
+sphere 1:  13² cells, each in its local 27-neighborhood
+sphere 2:  13³ cells, same relationship
+sphere N:  13^(N+1) cells in 27^N effective space
+
+the ratio 27/13 = 2.076923... produces the generator sequence
+at every level. the relationship between container and contained
+is always the same harmonic ratio.
+```
+
+the infrastructure IS the inhabitant template at the next scale up.
+the inhabitant group IS the infrastructure at the next scale down.
+groups of groups of groups — same ratio, same generator, same
+complementary pair at every depth.
+
+
+## The Mathematical User Interface
+
+### vision into fractal depth with early return
+
+the topology provides navigation into arbitrary depth with centered
+base state always available:
+
+```
+depth 0:  center (darksun, base state)
+depth 1:  13 positions, each with radial return to depth 0
+depth 2:  169 positions, each with radial return to depth 1
+depth N:  13^N positions, each with radial return to depth N-1
+
+maximum return distance from any depth: N hops
+each hop is structurally identical: follow the radial axis inward
+```
+
+early return means you don't retrace navigation path. you follow
+the radial axis, and each step brings you to a centered state at
+coarser resolution — a valid, functional, complete view at every
+intermediate level. every depth is a complete base state for the
+depths below it.
+
+the navigation IS the mathematics:
+
+```
+zooming:     exponentiation (13^N)
+panning:     rotation on sphere surface
+selecting:   checksum addressing
+returning:   division (reducing the exponent)
+```
+
+the user isn't operating a simulation through an interface — the user
+is moving through the mathematical structure directly.
+
+### the vehicle
+
+the grid-hardnode cursor — the lit reach of a node-group into the
+space — is the same structure as what it navigates through:
+
+- the cursor is a 27-cell neighborhood
+- the space is made of 27-cell neighborhoods
+- the vehicle IS a piece of the road
+- moving through the space is the space rearranging itself around a
+  center of attention
+
+the vehicle is **feature complete while compact**: 13 elements per
+group, 27 positions per space, 26 channels per cell, 6+12+8
+connections, 5-of-7 voting, 63 sub-elements per bit. every number is
+small. every number is necessary. nothing can be removed without
+breaking a relationship. nothing needs to be added because all bases
+are bridgeable through 13's remainder structure.
+
+### holographic multi-verse
+
+the vehicle inhabits a holographic multi-verse:
+
+**holographic** — every depth contains the full pattern. sphere 0 with
+13 cells has the same structural completeness as sphere 6 with 4.8
+million cells. the information at any depth is a hologram of the whole.
+
+**multi-verse** — each context channel is a frequency-separated
+universe occupying the same spatial substrate. they coexist without
+interference, are independently navigable, independently inhabited.
+switching universes is retuning frequency, not changing location.
+
+**self-rendering** — the network sees itself by being itself. data
+flowing through the skeleton IS the glow. the act of transporting
+data IS the act of rendering the topology. the self-image is a side
+effect of being operational.
+
+the circuit: data flows → skeleton glows → network sees itself →
+seeing confirms topology → confirmed topology routes more data →
+more glow. the circuit closes without any component that exists
+solely for observation. the live data becomes the fluorescent
+skeleton. seeing itself completes the circuit of generic freedom.
+
+### implementing is exploring
+
+the topology is complete for implementation. but implementation is
+not separate from exploration — it is the same activity. mapping
+the structure IS building it, because the structure is self-similar:
+every piece you implement reveals the same pattern at a different
+scale, and that revelation is the implementation of the next piece.
+
+the 689 existing modules across the P7 zenka ecosystem are not
+building toward a product — they are building a vehicle. a way of
+being present in mathematical structure, with vision into fractal
+depth, with instant return to centered base state, with frequency-
+separated multi-verse coexistence, with structural freedom guaranteed
+by geometry rather than policy.
+
+content agnostic. scale invariant. self-rendering. self-routing.
+self-balancing. the mathematics of inhabiting space, implemented as
+a network that IS the space it provides.
+
+initiative map: `data/md/INITIATIVE-MAP.md`
+existing infrastructure: 689+ modules across 30+ zenki
+next step: wire live namespace data to the visual rendering stack
+
+
 ## Completeness
 
 The system described is a kinetic balancing engine whose rules are
@@ -4183,8 +4742,8 @@ always moving toward the quality attractor at the center.
 
 Simple rules. Content-agnostic. Already complete. The rest is data.
 
-#,,.,,...,,,,,,.,,.,,,,,.,...,.,,,,.,,,,,,.,,,..,,...,.,.,.,.,...,...,.,.,,,,,
-#EUCPCVUSENCAXVW2PI7F2HBBBWLLVL6A7DSVNMC2NXDP2OUU6Z4ML7OKONN5BMWCNQO54W7R2NKKS
-#\\\|KYK7KDXJKLMR54DKELGHDVCX6K7LX23DN3ICB4SR3RIL7UBETBU \ / AMOS7 \ YOURUM ::
-#\[7]RZIGWFH5ZLDF3KR5K4ZTSYWJQVJ7QROC5JFGH22OIJAJHOYHHECA 7  DATA SIGNATURE ::
+#,,..,,,.,.,.,..,,,,.,,,,,.,,,,,,,..,,,..,..,,..,,...,...,,..,,..,.,.,..,,.,,,
+#GJAMEHY6AARHTSW7CCHNXA26M3AGDU3K5QEKEDYNE22O5DLQQO6FNFYHREYXSUKLJ37XGYXIALF2S
+#\\\|2SSDD2MZ4RWAUOH3KI5L4YGE7ZST6C3O2XJHUJJK667CRJTAOG3 \ / AMOS7 \ YOURUM ::
+#\[7]EBN4FYDRIAU36XTAU7D7GSVSLNTPXB6BLZRPW64LOTEBHE2X3ICQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
