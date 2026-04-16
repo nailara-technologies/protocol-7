@@ -119,6 +119,12 @@
 - Bug fix: note.tag same defensive type check
 - List-type backends use `{ mode => 'size', data => $formatted_string }` pattern
 
+### Completed (Apr 16 2026) — graphics-matrix critical path
+- 36 new modules across 6 kimi tasks: cursor, glow, channels, address, cells, graph
+- Full pipeline: cells → graph edges → clusters → survey → glow → channels → color
+- Design: spatial tuning, division-13-table frequency mapping, magenta as alpha channel
+- Details in `topic-completed.md`
+
 ### Active / Partial
 - **namespace tree as intelligence layer**: see `topic-namespace-tree-intelligence.md`
 - **deferred compilation stubs** (Mar 15): partial — deeper namespace/phase work pending
@@ -265,8 +271,8 @@
 - Pattern: `my @non_num = grep { defined $data_ref->{$ARG}->{$key} and not looks_like_number(...) } keys $data_ref->%*`
 - Global `$SIG{__WARN__}` exists — if wrapping warn handler, capture `$prev_warn = $SIG{__WARN__}` first and call through
 
-#,,.,,.,.,...,.,,,..,,,,,,...,,.,,,.,,,..,,,,,..,,...,...,..,,,.,,,.,,...,..,,
-#QTX2ODTI7XXVVVB7QB2LIUH2BQDCJKN4WHNEHJJTJELROYSFAILLJVDRRVXTOO3LXFGEFSEWP5IVM
-#\\\|GA4LNDFO25QMKN6YN262AW76VC22ZK25FSXL4C7WXDQ32N2HM3O \ / AMOS7 \ YOURUM ::
-#\[7]5R7KPPLYDLGPFSU6N2K7TJ5LWEOOKFROGTSGNDMXBS6JUXOBBACY 7  DATA SIGNATURE ::
+#,,,.,...,.,.,,.,,.,,,,..,.,.,,..,,..,,,.,,.,,..,,...,...,.,,,,..,.,,,,,,,.,.,
+#TFLEBOWFVC37DH6PADYHXMKGEOBN3HJTJDQLMST27VRAALJLFKABA3LXEXXX5TADMHJCZV7MCH2UI
+#\\\|56RJZCYD4AVOY6MKAWQBAV7NTYLAK3K6L4YF7OYLTO2HW3IMWP7 \ / AMOS7 \ YOURUM ::
+#\[7]5E2NRDSU4BVXB4RIEOM2NQSGESFIRWDLGRPRLH3WVAABX4A5Q4DA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
