@@ -1,0 +1,34 @@
+## [:< ##
+
+# name  = graphics-matrix.channel.palette
+# descr = generate full palette for current channel from glow shells
+
+my $glow   = $data{'graphics-matrix'}{'glow'};
+my $shells = $glow->{'shells'};
+my @palette;
+
+for my $hop ( sort { $a <=> $b } keys %$shells ) {
+    my $shell     = $shells->{$hop};
+    my $intensity = $shell->{'intensity'} // 0.0;
+
+    my $color = <[graphics-matrix.channel.translate]>->(
+        {   qw| intensity | => $intensity,
+            qw| channel   | => $data{'graphics-matrix'}{'channel'}{'active'},
+        }
+    );
+
+    push @palette,
+        {
+        qw| hop |       => int($hop),
+        qw| intensity | => $intensity,
+        qw| color |     => $color,
+        };
+}
+
+return \@palette;
+
+#,,,.,,,.,,.,,.,,,,.,,...,.,.,,,.,,..,,,.,,,,,..,,...,...,..,,...,.,.,.,,,,.,,
+#L2MUNGL4CXA7ROUDIRW45J2CZ6QXXVS4CFQQ3WPK7FAOBKLJ4UY2AW4GPPU5K6J4N5NXPBW37FZEU
+#\\\|GODGNGIQDTYS22WWL4IZBYZ3D4KE3ECF6XBEZBPAG4LDGFLURD6 \ / AMOS7 \ YOURUM ::
+#\[7]FIGXAQTTDVNQXJRXXL4ZMWRQEMYDVGC6WNJCQQXVXMIH2AMALABY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

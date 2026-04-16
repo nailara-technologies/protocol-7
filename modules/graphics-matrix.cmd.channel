@@ -1,0 +1,117 @@
+## [:< ##
+
+# name  = graphics-matrix.cmd.channel
+# descr = select and display context channel state
+
+my $args = $call->{'args'} // '';
+
+## parse command ##
+my @tokens = split( / +/, $args );
+my $cmd    = $tokens[0] // '';
+
+my $channel_data = $data{'graphics-matrix'}{'channel'};
+my $channels     = $channel_data->{'channels'};
+my $active       = $channel_data->{'active'};
+
+if ( $cmd eq '' ) {
+
+    ## no args - show active channel and all channels ##
+    my $out = sprintf "channel [%s] %s\n",
+        $channels->{$active}{'label'},
+        $channels->{$active}{'name'};
+
+    for my $i ( sort { $a <=> $b } keys %$channels ) {
+        my $ch     = $channels->{$i};
+        my $marker = ( $i == $active ) ? ' ← active' : '';
+        $out .= sprintf "  %s  %s%s\n",
+            $ch->{'label'}, $ch->{'name'}, $marker;
+    }
+
+    return { qw| mode | => qw| size |, qw| data | => $out };
+
+} elsif ( $cmd eq 'select' ) {
+
+    return {
+        qw| mode | => qw| false |,
+        qw| data | => 'usage: channel select <0-4|f0-f4>'
+        }
+        if @tokens < 2;
+
+    my $selector = $tokens[1];
+    my $result   = <[graphics-matrix.channel.select]>->($selector);
+
+    return $result if $result->{'mode'} eq qw| false |;
+
+    my $out = sprintf "channel selected: %s [%s]",
+        $result->{'label'}, $result->{'name'};
+
+    return { qw| mode | => qw| size |, qw| data | => $out };
+
+} elsif ( $cmd eq 'palette' ) {
+
+    my $palette = <[graphics-matrix.channel.palette]>;
+    my $ch      = $channels->{$active};
+
+    my $out = sprintf "channel %s [%s] ", $ch->{'label'}, $ch->{'name'};
+
+    if ( $ch->{'alpha'} ) {
+        $out .= "alpha (bridge)\n";
+        for my $entry (@$palette) {
+            $out .= sprintf "  hop %d : alpha=%.2f  intensity=%.2f\n",
+                $entry->{'hop'},
+                $entry->{'color'}{'alpha'},
+                $entry->{'intensity'};
+        }
+    } else {
+        my $color_name = qw| blue |;
+        $color_name = qw| violet | if $ch->{'hue_base'} == 270;
+        $color_name = qw| cyan |   if $ch->{'hue_base'} == 200;
+        $color_name = qw| teal |   if $ch->{'hue_base'} == 160;
+
+        $out .= sprintf "hue=%d (%s)\n", $ch->{'hue_base'}, $color_name;
+
+        for my $entry (@$palette) {
+            $out .= sprintf "  hop %d : %s  intensity=%.2f\n",
+                $entry->{'hop'},
+                $entry->{'color'}{'hex'},
+                $entry->{'intensity'};
+        }
+    }
+
+    return { qw| mode | => qw| size |, qw| data | => $out };
+
+} elsif ( $cmd eq 'list' ) {
+
+    my $out = '';
+    for my $i ( sort { $a <=> $b } keys %$channels ) {
+        my $ch     = $channels->{$i};
+        my $marker = ( $i == $active ) ? ' ← active' : '';
+        if ( $ch->{'alpha'} ) {
+            $out .= sprintf "%s  %-14s alpha    (bridge)%s\n",
+                $ch->{'label'}, $ch->{'name'}, $marker;
+        } else {
+            my $color_name = qw| blue |;
+            $color_name = qw| violet | if $ch->{'hue_base'} == 270;
+            $color_name = qw| cyan |   if $ch->{'hue_base'} == 200;
+            $color_name = qw| teal |   if $ch->{'hue_base'} == 160;
+            $out .= sprintf "%s  %-14s hue=%-4d (%s)%s\n",
+                $ch->{'label'}, $ch->{'name'},
+                $ch->{'hue_base'}, $color_name, $marker;
+        }
+    }
+
+    return { qw| mode | => qw| size |, qw| data | => $out };
+
+} else {
+
+    return {
+        qw| mode | => qw| false |,
+        qw| data | => "unknown channel command: $cmd"
+    };
+}
+
+#,,,,,,.,,,..,.,,,...,,,.,...,,,,,.,,,,,,,,.,,..,,...,...,.,,,.,,,,,,,..,,,,.,
+#L6PPOIPAZ6R7DMCBBINPH6LPH6E5GCBPGG62BZO2IMRCMTCQZY4QQRN6BW6WNUFFZSF2XGWWNFEPO
+#\\\|AMZWAU4HKGQ7QLMYF2GSPN6EJXKEKCFIJ4ARFTUHUMKOFQQYC2H \ / AMOS7 \ YOURUM ::
+#\[7]XY74RZ7MQOD7ODNVDRCZV4PG3C2F7VHPPIH2GCTVMNHUOQXU3GCI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
