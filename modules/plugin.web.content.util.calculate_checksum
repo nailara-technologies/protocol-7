@@ -1,0 +1,19 @@
+## [:< ##
+
+# name = plugin.web.content.util.calculate_checksum
+# descr = compute elf checksum for file
+
+my $file_path = shift;
+
+return 'n/a' unless -f $file_path and -r $file_path;
+
+## use elf.vax-BASE32 checksum ##
+my $checksum = <[chk-sum.elf.vax-BASE32]>->($file_path);
+
+return $checksum // 'error';
+
+#,,,.,,.,,..,,,..,...,,..,.,.,..,,,.,,,.,,.,,,..,,...,...,,,,,,..,.,.,...,.,.,
+#E4C4P5CT3POCES35XJEII422LN4IO6NSJFQLHNRUQNDH3SBRMIZLXA4AAEVOZJCQITQFR7JJO6IN2
+#\\\|BFNVFM3AJSVLMH7EBODN36W5OWRMF7FGGWX5BLZM5SGMC6XS5WE \ / AMOS7 \ YOURUM ::
+#\[7]UDLFOGWNZFRHGCJXIYKXCUOZ634X62AEAORAZ2BTR4YSK4NTNGCI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

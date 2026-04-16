@@ -1,0 +1,74 @@
+## [:< ##
+
+# name = plugin.web.content.util.generate_submenu
+# descr = recursive submenu html generation
+
+my $base_dir        = shift;
+my $parent_path     = shift;
+my $current_path    = shift;
+my $depth_remaining = shift;
+my $level           = shift;
+
+return '' if $depth_remaining <= 0;
+
+## scan subdirectory ##
+my $scan = <[web.scan_directory]>->( $base_dir, $parent_path, {} );
+return '' if $scan->{status} ne qw| success |;
+
+my @items = @{ $scan->{items} };
+return '' unless @items;
+
+my @html;
+push @html, qq|    <ul class="menu-level-$level submenu">|;
+
+foreach my $item (@items) {
+    ## only show directories and index files ##
+    next if $item->{type} eq 'file' and !$item->{is_index};
+
+    my $item_path = $item->{path};
+    my $is_active = (
+               $current_path eq $item_path
+            or $current_path =~ m|^\Q$item_path\E/|
+    );
+
+    my $css_class = 'menu-item submenu-item';
+    $css_class .= ' active'  if $is_active;
+    $css_class .= ' current' if $current_path eq $item_path;
+
+    my $display = $item->{display_name};
+    $display =~ s|_| |g;
+
+    push @html, qq|      <li class="$css_class">|;
+
+    if ($is_active) {
+        push @html,
+            qq|        <a href="/$item_path"|
+            . qq| class="menu-link active"><strong>$display</strong></a>|;
+    } else {
+        push @html,
+            qq|        <a href="/$item_path" class="menu-link">$display</a>|;
+    }
+
+    ## recursively expand if directory and in current path ##
+    if (    $item->{type} eq 'dir'
+        and $is_active
+        and $depth_remaining > 1 ) {
+        my $submenu = <[plugin.web.content.util.generate_submenu]>->(
+            $base_dir, $item_path, $current_path, $depth_remaining - 1,
+            $level + 1
+        );
+        push @html, $submenu if length($submenu);
+    }
+
+    push @html, qq|      </li>|;
+}
+
+push @html, qq|    </ul>|;
+
+return join( "\n", @html );
+
+#,,.,,,,.,..,,,,,,...,,,,,...,,,,,..,,,,,,.,.,..,,...,...,,.,,,,,,,,,,..,,,.,,
+#UZQR7RDMIX5ZXQ5NVZJ7TUJ4KGB7MCRVTLBFGYVOCIPNMMLI4W3O3H5B2L7SJ3L63C2VH25VY4X7I
+#\\\|RWFRGZ27BRV4GUITFV3MB6DTJPDW2L5UGNEHD7EVUQXX7CN5BGU \ / AMOS7 \ YOURUM ::
+#\[7]3P7DUOU3A5T3XCYBPHENNSW6QJFK3GHGPBN4XCOMK5QP6DMQCMCY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

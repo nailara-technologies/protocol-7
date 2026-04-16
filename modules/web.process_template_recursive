@@ -58,17 +58,18 @@ my $parsed_content = <[base.parser.pattern_split]>->(
     sub {
         my ( $before, $after, $captured ) = @_;
 
-        ## $captured contains the command string without <[ ]> delimiters ##
+        ## $captured is a scalar ref from pattern_split — dereference ##
+        my $cmd_str = ref($captured) eq qw| SCALAR | ? $$captured : $captured;
         my $cmd_id = sprintf( '%s_cmd_%03d', $template_id, $command_index++ );
 
         push @commands,
             {
             id     => $cmd_id,
-            raw    => $captured,
+            raw    => $cmd_str,
             result => undef,
             status => qw| pending |,
             depth  => $depth + 1,
-            nested => ( $captured =~ /<\[/ ? 1 : 0 ),
+            nested => ( $cmd_str =~ /<\[/ ? 1 : 0 ),
             };
 
         ## Return placeholder that will be replaced with command result ##
@@ -146,6 +147,14 @@ foreach my $cmd (@commands) {
     }
 }
 
+## convert parsed content from array ref to string before substitution ##
+## base.parser.pattern_split returns array ref with scalar refs ##
+if ( ref($parsed_content) eq 'ARRAY' ) {
+    my @deref
+        = map { ref($ARG) eq 'SCALAR' ? $$ARG : $ARG } @{$parsed_content};
+    $parsed_content = join( '', @deref );
+}
+
 ## Step 5: Substitute command results back into template ##
 foreach my $cmd (@commands) {
     my $placeholder = "<<COMMAND:$cmd->{id}>>";
@@ -174,16 +183,7 @@ if ( $parsed_content =~ /<\[/ and $depth < $max_depth - 1 ) {
     );
 }
 
-## Ensure content is a string, not an array or array of refs ##
-## base.parser.pattern_split returns array ref
-## with scalar refs to text fragments ##
 my $final_content = $parsed_content;
-if ( ref($final_content) eq 'ARRAY' ) {
-    ## Dereference ALL elements
-    ## (they're all scalar refs from pattern_split) ##
-    my @deref = map { ref($_) ? $$_ : $_ } @{$final_content};
-    $final_content = join( '', @deref );
-}
 
 return {
     status  => qw| success |,
@@ -191,8 +191,8 @@ return {
     depth   => $depth,
 };
 
-#,,,,,,.,,,,.,.,,,.,,,,.,,..,,,,,,,..,,..,.,,,..,,...,...,,..,.,.,.,.,...,...,
-#SXLBJPYOOS3FMHIJ5BDPLRU4CFWBH4ES7MB6YLZFXPQT7IJT347O6SGUQTHJ6FZ2HVKYSZR3WZWKG
-#\\\|R2ECD2OWBSBGF4SMZGOJHMTXEHSRMGIS6EBU6VEXES3BRG6CPCE \ / AMOS7 \ YOURUM ::
-#\[7]GPS4HKQ4QVEKZ2NH67LZIBUTUJB3K7Z6D3OBR3PXLLFVNDHOGEDI 7  DATA SIGNATURE ::
+#,,..,.,,,,..,.,.,,.,,,..,,..,.,,,,,,,,,,,,.,,..,,...,...,..,,,,.,..,,.,.,,.,,
+#4QTKFX54YH77PYCZN6ETXY6H7OSMY2P7YBJJ3TYW6AX4AVTSPPP2TMI2G6Y3V6PUQVB6MMC23B52W
+#\\\|YUEJP4EEPW5PS5TI3TQ6TBS4GR7RCFXDJF3OBPVBJAOKIU6JXEP \ / AMOS7 \ YOURUM ::
+#\[7]KUDOFLTN5VWOXWXAZUI6DZTHVVH2PCYJQDKX7AA5WEJR2ZBON2CQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

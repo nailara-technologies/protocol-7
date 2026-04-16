@@ -1,0 +1,25 @@
+## [:< ##
+
+# name = plugin.web.content.util.format_size
+# descr = format bytes to human-readable string
+
+my $bytes = shift;
+
+return '0 B' if $bytes == 0;
+
+my @units = qw( B KB MB GB TB );
+my $unit  = 0;
+my $size  = $bytes;
+
+while ( $size >= 1024 and $unit < @units - 1 ) {
+    $size /= 1024;
+    $unit++;
+}
+
+return sprintf( '%.1f %s', $size, $units[$unit] );
+
+#,,,.,,.,,...,,.,,,..,.,.,.,,,.,.,...,,,,,.,.,..,,...,...,..,,,.,,.,.,,,,,...,
+#MPZ7NQSJOSV7QD5TWAPPSY2X2PYHCODELOPGQARXDGVIONLRDMRA2CSN2O4OQ4LQXHFC5QJPS3XCI
+#\\\|VJTK4AIKGUORQHG3PZOH4BNH26RKRD2P4VNXCNYTAYYIXFERWEX \ / AMOS7 \ YOURUM ::
+#\[7]ITF4CMPGI7RIW6T5JVHNETNLLWD3PR6ORDU6HFU4E5INH3RLVSBA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

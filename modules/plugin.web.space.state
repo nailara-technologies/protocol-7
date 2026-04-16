@@ -1,0 +1,76 @@
+## [:< ##
+
+# name  = plugin.web.space.state
+# descr = return current spatial state as html fragment for template embedding
+
+my $section = shift // qw| summary |;
+
+my $cache  = <web.space.cache>;
+my $source = <web.space.cfg.data_source> // qw| unconfigured |;
+
+my $age   = time() - ( $cache->{'timestamp'} // 0 );
+my $state = $cache->{'state'} // {};
+
+## summary section — default ##
+if ( $section eq qw| summary | ) {
+
+    my $cursor = $state->{'cursor'} // {};
+    my $cx     = $cursor->{'selX'}  // qw| - |;
+    my $cy     = $cursor->{'selY'}  // qw| - |;
+    my $cz     = $cursor->{'selZ'}  // qw| - |;
+
+    my $cells    = $state->{'cells'}    // 0;
+    my $edges    = $state->{'edges'}    // 0;
+    my $clusters = $state->{'clusters'} // 0;
+    my $channel  = $state->{'channel'}  // qw| - |;
+
+    my @lines;
+    push @lines, '<div class="space-state">';
+    push @lines,
+          sprintf '  <div class="state-row">'
+        . '<span class="label">source</span>'
+        . '<span class="value">%s</span></div>', $source;
+    push @lines,
+          sprintf '  <div class="state-row">'
+        . '<span class="label">cursor</span>'
+        . '<span class="value">[%s,%s,%s]</span></div>', $cx, $cy, $cz;
+    push @lines,
+          sprintf '  <div class="state-row">'
+        . '<span class="label">cells</span>'
+        . '<span class="value">%s</span></div>', $cells;
+    push @lines,
+          sprintf '  <div class="state-row">'
+        . '<span class="label">edges</span>'
+        . '<span class="value">%s</span></div>', $edges;
+    push @lines,
+          sprintf '  <div class="state-row">'
+        . '<span class="label">clusters</span>'
+        . '<span class="value">%s</span></div>', $clusters;
+    push @lines,
+          sprintf '  <div class="state-row">'
+        . '<span class="label">channel</span>'
+        . '<span class="value">%s</span></div>', $channel;
+    push @lines,
+          sprintf '  <div class="state-row">'
+        . '<span class="label">cache age</span>'
+        . '<span class="value">%ds</span></div>', $age;
+    push @lines, '</div>';
+
+    return join( "\n", @lines );
+
+} elsif ( $section eq qw| json | ) {
+
+    ## raw json dump of cached state — for javascript consumption ##
+    my $json = eval { JSON::XS::encode_json($state) } // '{}';
+    return sprintf '<script>window.spaceState = %s;</script>', $json;
+
+} else {
+
+    return sprintf '<!-- unknown space section: %s -->', $section;
+}
+
+#,,,,,.,,,.,.,,,.,.,.,..,,..,,..,,,,.,,.,,,.,,..,,...,...,...,.,.,...,.,,,,.,,
+#DMIIYXHO5WFDWUYVAY5UGOMRLWZQRHDPPYA5FMCG3HEOCHRYC4WB3CW6N7JHYVYW4TVIO3SQK3LCA
+#\\\|EHA6H53RPQYLATS5ZC4OWZJRLYWT4P4QDF2SD25X5QSHGRAESEN \ / AMOS7 \ YOURUM ::
+#\[7]C4Q346VSDYWJTLDJVBEFAXLQLSCB4NRRLM5DGIKJPDISD6MYISBA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
