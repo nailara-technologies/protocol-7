@@ -1,0 +1,61 @@
+## [:< ##
+
+# name  = graphics-matrix.channel.init
+# descr = initialize context channel state
+
+## set up channel state with 5 frequencies ##
+$data{'graphics-matrix'}{'channel'} = {
+    qw| active   | => <graphics-matrix.channel.default> // 0,
+    qw| count    | => 5,
+    qw| channels | => {
+        0 => {
+            qw| name     | => qw| base |,
+            qw| angle    | => 0,
+            qw| plane    | => qw| reference |,
+            qw| hue_base | => 240,
+            qw| label    | => qw| f0 |,
+        },
+        1 => {
+            qw| name     | => qw| xy-rotation |,
+            qw| angle    | => 45,
+            qw| plane    | => qw| XY |,
+            qw| hue_base | => 270,
+            qw| label    | => qw| f1 |,
+        },
+        2 => {
+            qw| name     | => qw| xz-rotation |,
+            qw| angle    | => 45,
+            qw| plane    | => qw| XZ |,
+            qw| hue_base | => 200,
+            qw| label    | => qw| f2 |,
+        },
+        3 => {
+            qw| name     | => qw| yz-rotation |,
+            qw| angle    | => 45,
+            qw| plane    | => qw| YZ |,
+            qw| hue_base | => 160,
+            qw| label    | => qw| f3 |,
+        },
+        4 => {
+            qw| name     | => qw| diagonal |,
+            qw| angle    | => 45,
+            qw| plane    | => qw| body-diagonal |,
+            qw| hue_base | => 300,
+            qw| alpha    | => 1,
+            qw| label    | => qw| f4 |,
+        },
+    },
+};
+
+my $channel = $data{'graphics-matrix'}{'channel'};
+
+<[base.logs]>->(
+    2,                   'channels initialized [%d channels, active=%s]',
+    $channel->{'count'}, $channel->{'active'}
+);
+
+#,,,,,...,,..,,,,,,,,,.,.,,,,,..,,..,,,,,,...,..,,...,...,.,.,,.,,,.,,,,,,.,.,
+#WYICXULRT453Q5V5ZORCJEOPIDXNKWNMJ3GBJ622CEHVLGKYLVZS2NXC77MH5ZH2OYWRBYSTNPMDO
+#\\\|HSUFDXV5O7CIAPJWMGFPDQZGYIIMALMJWHDTHXQMYEEIVHHBZFV \ / AMOS7 \ YOURUM ::
+#\[7]ZRIPBK4GEW7OZEDKTHJNUCQCB2PUXIVZBM7TWU73GNZIEGYWT2CA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
