@@ -1,5 +1,26 @@
 # Completed Work Sessions
 
+## graphics-matrix critical path — 36 modules in 6 kimi tasks (Apr 16 2026)
+Full critical path implemented via kimi task dispatch (bin/kimi-task -next):
+- Task 1 (82bbf70): cursor namespace bridge — 7 modules (cursor.init/move/position/set/checksum, cmd.cursor, cmd.cursor-state)
+- Task 2 (60a267a): glow intensity layer — 4 modules (glow.init/compute/query, cmd.glow)
+- Task 3 (8bca17e): context channel frequency separation — 6 modules (channel.init/select/current/translate/palette, cmd.channel)
+  - f4 (diagonal/hyperspace) = alpha/mask channel, not opaque; magenta = transparency bridge
+  - Convert::Color::HSV used (not manual HSV→RGB), autoloaded in init_code
+- Task 4 (b990d6f): address resolution layer — 5 modules (address.init/register/resolve/encode, cmd.address)
+  - 6 addressing schemes: decimal, checksum, directional routing, octal-7, base32, channel-qualified
+  - Dual kimi session coordination via TASK.md (archived)
+- Task 5 (bd672fb): lattice cell storage — 7 modules (cell.init/place/remove/query/survey/list, cmd.cell)
+  - Glow bridge: cell.survey counts refs by hop → glow.compute → channel.translate → color
+- Task 6 (60e0f9b): similarity graph — 7 modules (graph.init/connect/disconnect/neighbors/cluster/survey, cmd.graph)
+  - Edge-weighted survey: connected cells contribute refs*weight, cluster boost 0.3, base 0.1
+
+Design additions: spatial tuning section (364° circle, 7-zenki formation, palette translation,
+snake game data flow, hyperspace channels, division-13-table as frequency generator, magenta as alpha)
+
+Issues found: kimi auto-approval regression (some tool calls need manual approval in web UI);
+bin/kimi-task without -next returns cached output but session keeps working in background
+
 ## kimi session management + task dispatch hardening (Mar 23 2026)
 New modules: `kimi.session.create` (extracted REST session creation), `kimi.session.reset_and_reconnect`
 (fresh session for `:next:` prefix), `models.handler.notify-online-reply` (dispatch after online confirm).
@@ -134,8 +155,8 @@ zenki-create/zenki-feature-port/footer-cleanup templates added.
 - philosophy: ETERNAL-TEMPLATE-KITTEN.md (deduplication tree crystallizes truth, kitten as template process)
 - Commits: 98743c227 through 30bbd31b4 + fe3d3a295
 
-#,,,,,,,.,,,,,.,,,,..,.,,,.,,,,.,,,..,.,,,.,,,..,,...,...,.,,,..,,.,,,.,,,,,,,
-#HZLR6OZ6CJLJUO5T55GOHWDY3NJQN2IBT6J46FRN6STLXGAXDI6JFV44EV2IPY656YOCQY2YUR4LI
-#\\\|TYU2UCRDIFCZKZMVI7WL42RLHGLI3TW5HWTLPOOEM66DQS55P5Y \ / AMOS7 \ YOURUM ::
-#\[7]C3OCTYRSJCUIXMF72GVRZRYXU6QBWXORPD3BIGHX336CVJXCQGBI 7  DATA SIGNATURE ::
+#,,.,,..,,,,,,...,..,,..,,,..,..,,..,,,.,,.,.,..,,...,...,,..,.,,,,,.,.,,,,.,,
+#V47IRHWGVF2VGR6WELZG3YNF2WU23W6MAW2EGUOVNF3CUSYQU225K2LRJYTRXFRL4S6YV6J3QAIWC
+#\\\|W4MY5DAMOAQHYJKKPGB7DOE3RSFHCDQXXATOE764PIHCCDNMC6R \ / AMOS7 \ YOURUM ::
+#\[7]EOJV7P76JU63GZKHEB7AA4M3L5R3TG4LVV4QQFYMPYH6ZXXCAKAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
