@@ -1,0 +1,47 @@
+## [:< ##
+
+# name  = graphics-matrix.graph.disconnect
+# descr = remove an edge between two cells
+
+my $params = shift // {};
+
+my $a = $params->{'a'};
+my $b = $params->{'b'};
+
+return { qw| mode | => qw| false |, qw| data | => 'cell a required' }
+    if not defined $a or not length $a;
+return { qw| mode | => qw| false |, qw| data | => 'cell b required' }
+    if not defined $b or not length $b;
+
+## resolve address strings to cell keys ##
+if ( $a !~ m|^-?\d+:-?\d+:-?\d+$| ) {
+    my $resolved = <[graphics-matrix.address.resolve]>->($a);
+    return $resolved if $resolved->{'mode'} eq qw| false |;
+    $a = sprintf "%d:%d:%d",
+        $resolved->{'selX'}, $resolved->{'selY'}, $resolved->{'selZ'};
+}
+
+if ( $b !~ m|^-?\d+:-?\d+:-?\d+$| ) {
+    my $resolved = <[graphics-matrix.address.resolve]>->($b);
+    return $resolved if $resolved->{'mode'} eq qw| false |;
+    $b = sprintf "%d:%d:%d",
+        $resolved->{'selX'}, $resolved->{'selY'}, $resolved->{'selZ'};
+}
+
+my $edge_key = join( '|', sort( $a, $b ) );
+my $graph    = $data{'graphics-matrix'}{'graph'};
+my $removed  = 0;
+
+if ( exists $graph->{'edges'}{$edge_key} ) {
+    delete $graph->{'edges'}{$edge_key};
+    $graph->{'count'}--;
+    $removed = 1;
+}
+
+return { qw| removed | => $removed };
+
+#,,,.,,..,,..,,..,.,.,,,,,...,.,,,,.,,,,.,...,..,,...,..,,.,.,.,,,,,,,,,.,.,.,
+#462ZCLQT3JKUTNYJGIEN5I23GIVYO35ZAQBWDKJTXIIOUFSY5WUCJSD6N2ECWI4MPP23TT5VEHXXY
+#\\\|OQKC3PRNHNKUFECV56H55RGICLDTVL72VZHDDW5BF5FSDJYUANW \ / AMOS7 \ YOURUM ::
+#\[7]EHV6GUA45Y4TLMUCBMFDCJ6JXP7F7AVPBIG5NCV3F2L63DSWQQAA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

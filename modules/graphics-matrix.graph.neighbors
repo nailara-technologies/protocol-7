@@ -1,0 +1,57 @@
+## [:< ##
+
+# name  = graphics-matrix.graph.neighbors
+# descr = find all cells connected to a given cell
+
+my $input = shift // '';
+
+my $key;
+
+if ( ref($input) eq qw| HASH | ) {
+    $key = sprintf "%d:%d:%d",
+        $input->{'selX'}, $input->{'selY'}, $input->{'selZ'};
+} elsif ( $input =~ m|^-?\d+:-?\d+:-?\d+$| ) {
+    $key = $input;
+} elsif ( length $input ) {
+    my $resolved = <[graphics-matrix.address.resolve]>->($input);
+    return [] if $resolved->{'mode'} eq qw| false |;
+    $key = sprintf "%d:%d:%d",
+        $resolved->{'selX'}, $resolved->{'selY'}, $resolved->{'selZ'};
+} else {
+    my $cursor = <[graphics-matrix.cursor.position]>;
+    $key = sprintf "%d:%d:%d",
+        $cursor->{'selX'}, $cursor->{'selY'}, $cursor->{'selZ'};
+}
+
+my @results;
+my $edges = $data{'graphics-matrix'}{'graph'}{'edges'};
+
+for my $edge_key ( keys %$edges ) {
+    my $edge = $edges->{$edge_key};
+    if ( $edge->{'a'} eq $key ) {
+        push @results,
+            {
+            qw| cell     | => $edge->{'b'},
+            qw| weight   | => $edge->{'weight'},
+            qw| edge_key | => $edge_key,
+            };
+    } elsif ( $edge->{'b'} eq $key ) {
+        push @results,
+            {
+            qw| cell     | => $edge->{'a'},
+            qw| weight   | => $edge->{'weight'},
+            qw| edge_key | => $edge_key,
+            };
+    }
+}
+
+## sort by weight descending ##
+@results = sort { $b->{'weight'} <=> $a->{'weight'} } @results;
+
+return \@results;
+
+#,,,.,.,,,.,,,,..,..,,...,,,.,,,.,.,.,.,.,.,,,..,,...,...,.,,,,..,...,,.,,,,,,
+#37TTRQDDHMTGLHCWZ22ABNELEHCEHYLYL3FIERWO4O45AHK5M5WWIFXAY57NJCR6356N4TTUXTKV2
+#\\\|56NSOXJE2GA2FOYXVTGUCJODO3PXLFB7C2BAVRZSV6A36UUKK5Q \ / AMOS7 \ YOURUM ::
+#\[7]C6ITTVLMEWQ5FR6QKGHCPXKZFDJ66EKBKU2K4CLKC2HVVL5QBKDA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

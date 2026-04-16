@@ -1,0 +1,115 @@
+## [:< ##
+
+# name  = graphics-matrix.graph.cluster
+# descr = auto-cluster connected cells by edge weight
+
+my $params    = shift                  // {};
+my $threshold = $params->{'threshold'} // 0.55;
+
+my $graph = $data{'graphics-matrix'}{'graph'};
+my $edges = $graph->{'edges'};
+my $cells = $data{'graphics-matrix'}{'cell'}{'cells'};
+
+## clear old clusters ##
+$graph->{'clusters'} = {};
+
+## build adjacency list for cells with edges >= threshold ##
+my %adj;
+for my $edge_key ( keys %$edges ) {
+    my $edge = $edges->{$edge_key};
+    next if $edge->{'weight'} < $threshold;
+    push @{ $adj{ $edge->{'a'} } }, $edge->{'b'};
+    push @{ $adj{ $edge->{'b'} } }, $edge->{'a'};
+}
+
+my %visited;
+my $seq = 1;
+
+## include all occupied cells, even isolated ones ##
+my @all_cells = keys %$cells;
+
+for my $start (@all_cells) {
+    next if $visited{$start};
+
+    ## bfs to find connected component ##
+    my @members;
+    my @queue = ($start);
+    $visited{$start} = 1;
+
+    while (@queue) {
+        my $current = shift @queue;
+        push @members, $current;
+        for my $neighbor ( @{ $adj{$current} // [] } ) {
+            next if $visited{$neighbor};
+            $visited{$neighbor} = 1;
+            push @queue, $neighbor;
+        }
+    }
+
+    my $cluster_id = sprintf 'c%03d', $seq++;
+
+    ## find center: member with highest total edge weight sum ##
+    my $center     = $members[0];
+    my $max_weight = 0;
+
+    for my $member (@members) {
+        my $total = 0;
+        for my $edge_key ( keys %$edges ) {
+            my $edge = $edges->{$edge_key};
+            next if $edge->{'weight'} < $threshold;
+            if ( $edge->{'a'} eq $member or $edge->{'b'} eq $member ) {
+                $total += $edge->{'weight'};
+            }
+        }
+        if ( $total > $max_weight ) {
+            $max_weight = $total;
+            $center     = $member;
+        }
+    }
+
+    ## compute average internal edge weight ##
+    my $internal_sum   = 0;
+    my $internal_count = 0;
+
+    for my $i ( 0 .. $#members ) {
+        for my $j ( $i + 1 .. $#members ) {
+            my $pair_key = join( '|', sort( $members[$i], $members[$j] ) );
+            if ( exists $edges->{$pair_key} ) {
+                $internal_sum   += $edges->{$pair_key}{'weight'};
+                $internal_count += 1;
+            }
+        }
+    }
+
+    my $avg_weight
+        = $internal_count > 0
+        ? $internal_sum / $internal_count
+        : 0.0;
+
+    $graph->{'clusters'}{$cluster_id} = {
+        qw| id      | => $cluster_id,
+        qw| members | => \@members,
+        qw| center  | => $center,
+        qw| weight  | => $avg_weight,
+    };
+}
+
+my $cluster_count = scalar keys %{ $graph->{'clusters'} };
+my $cell_count    = scalar @all_cells;
+
+<[base.logs]>->(
+    1,              'graph.cluster: %d clusters from %d cells',
+    $cluster_count, $cell_count
+);
+
+return {
+    qw| clusters  | => $cluster_count,
+    qw| cells     | => $cell_count,
+    qw| threshold | => $threshold,
+};
+
+#,,..,...,...,...,..,,,..,,,,,,,.,.,,,,,.,,.,,..,,...,...,...,.,.,,.,,..,,.,,,
+#UYVWO3Z4JHLC6KSRR4UTX2IZ3Q7KUENMPAYPZMMCTCYUEQHQIBJDJHK7FTZZ3XBHQTW7RYNRMKUYK
+#\\\|RHYTG2PTKC5JDM4KEE3JXNGWTDDG5QIPYSSG7VC5UPRG2TGRSSL \ / AMOS7 \ YOURUM ::
+#\[7]K52GPXMXK7TKOO7ATTIDAUJLDMWIQHB33N2L6WKJLOBG3D5FPICQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

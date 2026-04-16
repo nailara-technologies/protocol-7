@@ -1,0 +1,76 @@
+## [:< ##
+
+# name  = graphics-matrix.graph.connect
+# descr = create or update an edge between two cells
+
+my $params = shift // {};
+
+my $a      = $params->{'a'};
+my $b      = $params->{'b'};
+my $weight = $params->{'weight'} // 0.5;
+my $type   = $params->{'type'}   // 'similarity';
+
+return { qw| mode | => qw| false |, qw| data | => 'cell a required' }
+    if not defined $a or not length $a;
+return { qw| mode | => qw| false |, qw| data | => 'cell b required' }
+    if not defined $b or not length $b;
+
+## resolve address strings to cell keys ##
+if ( $a !~ m|^-?\d+:-?\d+:-?\d+$| ) {
+    my $resolved = <[graphics-matrix.address.resolve]>->($a);
+    return $resolved if $resolved->{'mode'} eq qw| false |;
+    $a = sprintf "%d:%d:%d",
+        $resolved->{'selX'}, $resolved->{'selY'}, $resolved->{'selZ'};
+}
+
+if ( $b !~ m|^-?\d+:-?\d+:-?\d+$| ) {
+    my $resolved = <[graphics-matrix.address.resolve]>->($b);
+    return $resolved if $resolved->{'mode'} eq qw| false |;
+    $b = sprintf "%d:%d:%d",
+        $resolved->{'selX'}, $resolved->{'selY'}, $resolved->{'selZ'};
+}
+
+## verify both cells exist ##
+my $cells = $data{'graphics-matrix'}{'cell'}{'cells'};
+return { qw| mode | => qw| false |, qw| data | => "cell $a not found" }
+    if not exists $cells->{$a};
+return { qw| mode | => qw| false |, qw| data | => "cell $b not found" }
+    if not exists $cells->{$b};
+
+## canonical edge key ##
+my $edge_key = join( '|', sort( $a, $b ) );
+
+my $graph = $data{'graphics-matrix'}{'graph'};
+my $edges = $graph->{'edges'};
+
+if ( exists $edges->{$edge_key} ) {
+    my $edge = $edges->{$edge_key};
+    $edge->{'weight'} = $weight if $weight > $edge->{'weight'};
+    <[base.logs]>->(
+        2,  'graph.connect [%s] — [%s] weight=%.2f',
+        $a, $b, $edge->{'weight'}
+    );
+    return $edge;
+}
+
+my $edge = {
+    qw| a       | => $a,
+    qw| b       | => $b,
+    qw| weight  | => $weight,
+    qw| type    | => $type,
+    qw| created | => time(),
+};
+
+$edges->{$edge_key} = $edge;
+$graph->{'count'}++;
+
+<[base.logs]>
+    ->( 2, 'graph.connect [%s] — [%s] weight=%.2f', $a, $b, $weight );
+
+return $edge;
+
+#,,.,,,..,,,,,,..,,.,,,,,,,,.,,,.,.,.,.,,,,.,,..,,...,..,,.,.,..,,,,,,.,,,,..,
+#V4NEKWRESPMG7EERVYYPMNX7PHFCBTMOWOITTN2QXFO23SUXUVQGMV4QTYKBVHERC4SEM76QEIBMY
+#\\\|534VKX75QIN5CBTJOEGPDCCSUK6YENWGFKFQIA3PYY2FXV5BWGW \ / AMOS7 \ YOURUM ::
+#\[7]S2JCUNLBBRWTIH73J34JDC6H5EBTEQMZXC2N7BO4PKOO5PIMY2DY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
