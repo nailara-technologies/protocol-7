@@ -1,7 +1,7 @@
 ## [:< ##
 
-# name = web.process_template_ipc
-# descr = IPC command handler for processing templates from httpd zenka
+# name  = web.process_template_ipc
+# descr = processing templates from httpd zenka
 # args  = template_id:template_content_b32r:meta_vars_b32r:session_id
 
 my $args_str = shift // '';
@@ -93,52 +93,33 @@ my $prev_avg = <web.metrics>->{avg_processing_time_ms};
     <web.templates.processed>;
 
 if ( $result->{status} eq qw| success | ) {
-    my $content  = $result->{content};
-    my $ref_type = ref($content);
+    my $content = $result->{content};
 
-    <[base.log]>->( 0, "ipc : result content ref type=[$ref_type]" );
-
-    ## If content is an array reference, join it into a string ##
-    if ( $ref_type eq 'ARRAY' ) {
-        <[base.log]>->(
-            0, "ipc : array has " . scalar( @{$content} ) . " elements"
-        );
-        <[base.log]>->(
-            0, "ipc : first element type=[" . ref( $content->[0] ) . "]"
-        ) if @{$content};
-        <[base.log]>->(
-            0,
-            "ipc : first element value=["
-                . substr( $content->[0], 0, 50 ) . "]"
-        ) if @{$content};
-
-        ## Dereference any scalar refs in the array ##
-        my @deref = map { ref($_) eq 'SCALAR' ? $$_ : $_ } @{$content};
+    ## safety: dereference if not a plain string ##
+    if ( ref($content) eq qw| ARRAY | ) {
+        my @deref
+            = map { ref($ARG) eq qw| SCALAR | ? $$ARG : $ARG } @{$content};
         $content = join( '', @deref );
-    } elsif ( $ref_type eq 'SCALAR' ) {
-        $content = $$content;    ## Dereference scalar ref
+    } elsif ( ref($content) eq qw| SCALAR | ) {
+        $content = $$content;
     }
 
-    <[base.log]>->(
-        0,
-        "ipc : after processing ref type=["
-            . ref($content)
-            . "] length="
-            . length($content)
+    <[base.logs]>->(
+        2, "template %s completed in %.1fms [ depth %d, %d bytes ]",
+        $template_id, $elapsed_ms, $result->{depth}, length($content)
     );
 
-    <[base.log]>->(
-        2,
-        sprintf(
-            "web.process-template-ipc: completed $template_id"
-                . " in %.2fms (depth: %d, size: %d bytes)",
-            $elapsed_ms, $result->{depth}, length($content)
-        )
-    );
+    ## check for template-set content-type override ##
+    my $content_type_override = <web.template.response_content_type>;
+    <web.template.response_content_type> = undef; ## clear for next request ##
 
-    ## Return processed content as size response
-    ## (lowercase for multi-line support) ##
-    ## This will send the content back to httpd via IPC ##
+    ## prepend content-type header when override is set ##
+    if ( defined $content_type_override
+        and length $content_type_override ) {
+        $content = "content-type:$content_type_override\n\n$content";
+    }
+
+    ## return processed content as size response ##
     return {
         'mode' => qw| size |,
         'data' => $content
@@ -158,8 +139,8 @@ if ( $result->{status} eq qw| success | ) {
     };
 }
 
-#,,,.,..,,.,,,.,,,,,.,.,.,,.,,..,,,,.,.,.,..,,..,,...,...,.,,,,.,,,..,,..,,.,,
-#2YR7OE3TRVFMJNFJ25IFLSQBWUFCL3ZN6J7SZR6BYKXVHV4GL2GRU65IH47MRWADBLZE42YIYHCY2
-#\\\|AOCFHSVRJMZXKJCHYRDDN2J4LLWA3TT7J3P43EXSOHELJJ2L7UC \ / AMOS7 \ YOURUM ::
-#\[7]QCNCNYARO4KM5OLFELTQJLBKUFMGLA5SLNXW6QM5AWHEUOWK4UDY 7  DATA SIGNATURE ::
+#,,..,.,.,,,,,...,.,.,,.,,..,,...,...,,..,,.,,..,,...,...,,..,...,.,.,,.,,,,,,
+#6MWQF2S53G52UH2THSHALZHNPBGARG2VSUNHCUA4CTAG5CXDY23H6UNXSNNQWYEZDIOT72PLP6L2S
+#\\\|XABGJI3QTOVX2SWCYWHKXCN72L2KKECHRFEUTDZCBHKFRZT22H2 \ / AMOS7 \ YOURUM ::
+#\[7]4JZFNU2R2RJSMX4FTEQBNOMR4I5WXPINO6DWKQ5GXTMYCV3ZOQAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
