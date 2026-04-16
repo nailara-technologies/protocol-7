@@ -1,0 +1,70 @@
+## [:< ##
+
+# name  = graphics-matrix.address.register
+# descr = register a position in the address registry
+
+my $params = shift // {};
+
+my $pos = $params->{'position'} // return {
+    qw| mode | => qw| false |,
+    qw| data | => 'position required'
+};
+
+## ensure coordinates exist ##
+my ( $selX, $selY, $selZ )
+    = ( $pos->{'selX'}, $pos->{'selY'}, $pos->{'selZ'} );
+return { qw| mode | => qw| false |, qw| data | => 'coordinates required' }
+    if not defined $selX
+    or not defined $selY
+    or not defined $selZ;
+
+my $chk = $params->{'checksum'};
+
+## compute checksum if not provided ##
+if ( not defined $chk ) {
+    my $cursor    = $data{'graphics-matrix'}{'cursor'};
+    my $zoom      = $params->{'zoom'}   // $cursor->{'zoom'}   // 1.0;
+    my $radius    = $params->{'radius'} // $cursor->{'radius'} // 1;
+    my $canonical = sprintf "%d:%d:%d:%.6f:%d",
+        $selX, $selY, $selZ, $zoom, $radius;
+    $chk = <[base.chk-sum.amos]>->($canonical);
+}
+
+my $registry = $data{'graphics-matrix'}{'address'};
+
+## store checksum mapping ##
+$registry->{'checksum'}{$chk} = {
+    qw| selX | => $selX,
+    qw| selY | => $selY,
+    qw| selZ | => $selZ,
+};
+
+## store label mapping if provided ##
+my $label = $params->{'label'};
+if ( defined $label and length $label ) {
+    $registry->{'label'}{$label} = {
+        qw| selX | => $selX,
+        qw| selY | => $selY,
+        qw| selZ | => $selZ,
+    };
+}
+
+<[base.logs]>->(
+    3,    'address.register [%s] → [%d,%d,%d]',
+    $chk, $selX, $selY, $selZ
+);
+
+return {
+    qw| checksum | => $chk,
+    qw| position | => {
+        qw| selX | => $selX,
+        qw| selY | => $selY,
+        qw| selZ | => $selZ,
+    }
+};
+
+#,,,.,.,.,,,.,,,.,,..,,,.,...,.,.,.,.,,..,,..,..,,...,...,...,,,.,...,,.,,,,.,
+#6JLCC6VDTBACNHDBBP2KOQMQL5YLX2LG44VG3VXKYJTATOPEM6EB6YKUJAYANVVBU7H36EKKPRRPC
+#\\\|K46EMAARHFWXBC644JJEFIJNY5H3LLZ4Q4FQHIO6PL4MRW6BHHZ \ / AMOS7 \ YOURUM ::
+#\[7]26DYR55P5XLVWJZ5AOH4NAE2IREABQJCJ76GPDRZ7ZYF7Y6RNABI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -22,6 +22,16 @@ $cursor->{'selZ'} += $params->{'dz'} // 0;
     $cursor->{'selZ'}
 );
 
+## register position in address registry ##
+<[graphics-matrix.address.register]>->(
+    {   qw| position | => {
+            qw| selX | => $cursor->{'selX'},
+            qw| selY | => $cursor->{'selY'},
+            qw| selZ | => $cursor->{'selZ'},
+        },
+    }
+);
+
 ## return new position (shallow copy) ##
 return {
     qw| selX | => $cursor->{'selX'},
@@ -29,8 +39,8 @@ return {
     qw| selZ | => $cursor->{'selZ'}
 };
 
-#,,.,,,,,,.,.,,,,,.,,,,,,,.,.,,,,,..,,,,,,.,,,.,.,...,..,,..,,,..,..,,...,.,.,
-#X4BTFNSYCSR2LJYZMYKXXU7HNI3J24JU6HSQ2WMIJZKE23BWFODLQKJKOOQKB7I7E6I5UN6D4QO7S
-#\\\|KPLUKLGYC6T5K2V5ADUUYE2AXNBLH2N2LQ2CI4UNEZXY5OIKYPH \ / AMOS7 \ YOURUM ::
-#\[7]GT4SMVUN6WZ5JMKKI2Y3OTNVQIQ3CNXGBARDUBK3MCCF3M2PLKCY 7  DATA SIGNATURE ::
+#,,,,,.,,,.,.,...,.,,,,..,,,,,..,,..,,,,,,,,.,.,.,...,...,,.,,.,.,,,.,..,,..,,
+#YPOLZU2MK6V2DVUEOIZOFXIW3IZ5IK7RYCLT3P45MVBQEYMROZOUF7Y7GONYAP36THZGOJVFF7IEK
+#\\\|VLKQSDJVRNCUVKBAYSXXG4HDUZYYQTFQHZQGRPG5IG663QTZW25 \ / AMOS7 \ YOURUM ::
+#\[7]RNYKHHZN2KTVLPBJDKD4VG6ID5CHANZSC53YLJSLZHDH25OCCECQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -38,6 +38,16 @@ if ( defined $params->{'radius'} ) {
     $cursor->{'radius'}
 );
 
+## register position in address registry ##
+<[graphics-matrix.address.register]>->(
+    {   qw| position | => {
+            qw| selX | => $cursor->{'selX'},
+            qw| selY | => $cursor->{'selY'},
+            qw| selZ | => $cursor->{'selZ'},
+        },
+    }
+);
+
 ## return full state (shallow copy) ##
 return {
     qw| selX   | => $cursor->{'selX'},
@@ -47,8 +57,8 @@ return {
     qw| radius | => $cursor->{'radius'}
 };
 
-#,,,,,..,,..,,.,.,..,,...,.,.,...,.,,,..,,,,.,.,.,...,...,,,,,.,.,,..,,,,,,..,
-#X5GETKZFIWJN6TMA5A2XEEKCY5X7ZNZSNZNDINK3YXFCCDKHCXKNDZ3M7NOVRYIA3HWI6UQQY5XG6
-#\\\|TIQR4XJAINVPJNOMBKNW63DHSG3GAENKOZFASJGXNK6KF2JLBER \ / AMOS7 \ YOURUM ::
-#\[7]BP7G3H5WHYKP4LUSGFNPGMIPMI3LPSIPMCU5GQZFZ3EMYZYY3YAI 7  DATA SIGNATURE ::
+#,,,.,,..,,.,,...,..,,...,,,.,..,,.,,,...,,.,,.,.,...,..,,,.,,,..,.,,,,.,,,..,
+#MTGS4SLVS7VPGAYPVNDHKGA4QQYNEP3V6GQCQMPQ4TMMEIOFLR33Q6LP3XZXELL2ROISREW6VWTXW
+#\\\|UNJGNRQ45PIAAEDW66HVDKUCCRGWWMAHZEF2UIVEWKI5HVL4ARH \ / AMOS7 \ YOURUM ::
+#\[7]FA7VMVIZTI3FSIV3GDFH3VZYSGYWHW65XGSDW5OEGALG27E6UMBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

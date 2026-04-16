@@ -1,0 +1,64 @@
+## [:< ##
+
+# name  = graphics-matrix.address.encode
+# descr = encode grid position in a specific addressing scheme
+
+my $params = shift // {};
+
+my $scheme = $params->{'scheme'}
+    or return { qw| mode | => qw| false |, qw| data | => 'scheme required' };
+
+my $cursor = $data{'graphics-matrix'}{'cursor'};
+my $pos    = $params->{'position'} // {};
+
+my ( $selX, $selY, $selZ ) = (
+    $pos->{'selX'} // $cursor->{'selX'},
+    $pos->{'selY'} // $cursor->{'selY'},
+    $pos->{'selZ'} // $cursor->{'selZ'}
+);
+
+my $zoom   = $pos->{'zoom'}   // $cursor->{'zoom'}   // 1.0;
+my $radius = $pos->{'radius'} // $cursor->{'radius'} // 1;
+
+if ( $scheme eq qw| decimal | ) {
+    return sprintf "%d,%d,%d", $selX, $selY, $selZ;
+
+} elsif ( $scheme eq qw| checksum | ) {
+    my $canonical = sprintf "%d:%d:%d:%.6f:%d",
+        $selX, $selY, $selZ, $zoom, $radius;
+    my $chk = <[base.chk-sum.amos]>->($canonical);
+
+    ## register in address registry ##
+    <[graphics-matrix.address.register]>->(
+        {   qw| position | => {
+                qw| selX | => $selX,
+                qw| selY | => $selY,
+                qw| selZ | => $selZ,
+            },
+            qw| checksum | => $chk,
+        }
+    );
+
+    return $chk;
+
+} elsif ( $scheme eq qw| octal7 | ) {
+    return sprintf "o7:%02o.%02o.%02o", $selX, $selY, $selZ;
+
+} elsif ( $scheme eq qw| base32 | ) {
+    my $packed = pack( 'CCC', $selX, $selY, $selZ );
+    my $b32    = Crypt::Misc::encode_b32r($packed);
+    $b32 =~ s/=+$//;
+    return sprintf "b32:%s", $b32;
+
+} else {
+    return {
+        qw| mode | => qw| false |,
+        qw| data | => "unknown encoding scheme: $scheme"
+    };
+}
+
+#,,,.,.,,,,,.,.,.,.,.,.,.,.,.,,,,,,,,,,..,,,.,..,,...,...,..,,,..,,,.,.,.,...,
+#CLG4K3QMJSY7KPZVMQQFEB5SQSLQ2YIMPDE5QNU75Q6XZYOETZTKMEHNSBBG5K55V6BA737LF4BWE
+#\\\|6ZRDJ66FTYYOCK2TALOZWVC2N6IWHO6NWZOV264MCZUWAHTAWFT \ / AMOS7 \ YOURUM ::
+#\[7]NBTXXMHHWUJZ3HRV4P2RR2ZMMOWPAGSQOTZPIK3D4AD62ZJ2U4BY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

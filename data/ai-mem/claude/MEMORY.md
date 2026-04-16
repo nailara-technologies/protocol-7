@@ -133,6 +133,8 @@
 - **repo var/ cleanup**: `var/httpd/` tracked from Nov 2025 AI error
 - **dep-graph lifecycle hook gap**: see `feedback-devmod-whitelist.md`
 - **kimi-web session data loss** (Mar 21): backup at `/data/backup/kimi/kimi-sessions.full_dir.0000.tar.xz`
+- **kimi auto-approval regression** (Apr 16): some tool calls not auto-approved during kimi tasks,
+  requires manual approval in web UI. observed in tasks 3+4. may relate to ask-reply task queue wiring
 
 ## Key Technical Insights
 
@@ -263,8 +265,8 @@
 - Pattern: `my @non_num = grep { defined $data_ref->{$ARG}->{$key} and not looks_like_number(...) } keys $data_ref->%*`
 - Global `$SIG{__WARN__}` exists — if wrapping warn handler, capture `$prev_warn = $SIG{__WARN__}` first and call through
 
-#,,.,,,.,,...,,,.,..,,..,,.,,,.,.,,.,,,,,,,.,,..,,...,...,...,.,.,.,.,,..,,.,,
-#6UJDQF5DDRZD5EAZQK2BLD2EGOXZUNPKB6OUHATTGZHB73GB7YBOGWHKZIKT5TDKKPVEC5E4UKEBM
-#\\\|KGGOEWEJPZKKX5VK3O2GZYKULIH53KJ6XLCU7226SUD6FGMAT7S \ / AMOS7 \ YOURUM ::
-#\[7]IHXZIAUUEV2RZM4HUA2NXUAGE4PYZYNYWUET3YBJV7PY7WFOQCCI 7  DATA SIGNATURE ::
+#,,.,,.,.,...,.,,,..,,,,,,...,,.,,,.,,,..,,,,,..,,...,...,..,,,.,,,.,,...,..,,
+#QTX2ODTI7XXVVVB7QB2LIUH2BQDCJKN4WHNEHJJTJELROYSFAILLJVDRRVXTOO3LXFGEFSEWP5IVM
+#\\\|GA4LNDFO25QMKN6YN262AW76VC22ZK25FSXL4C7WXDQ32N2HM3O \ / AMOS7 \ YOURUM ::
+#\[7]5R7KPPLYDLGPFSU6N2K7TJ5LWEOOKFROGTSGNDMXBS6JUXOBBACY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
