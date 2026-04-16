@@ -1,0 +1,107 @@
+## [:< ##
+
+# name  = graphics-matrix.address.resolve
+# descr = resolve any addressing scheme to grid coordinates
+
+my $input = shift // '';
+
+my $channel;
+my $scheme;
+
+## strip leading/trailing whitespace ##
+$input =~ s|^\s+||;
+$input =~ s|\s+$||;
+
+## detect and extract channel qualifier ##
+if ( $input =~ m|@| ) {
+    my ( $ch_prefix, $rest ) = split( m|@|, $input, 2 );
+    $channel = <[graphics-matrix.channel.select]>->($ch_prefix);
+    return $channel if $channel->{'mode'} eq qw| false |;
+    $input = $rest;
+}
+
+my $cursor = $data{'graphics-matrix'}{'cursor'};
+my ( $selX, $selY, $selZ )
+    = ( $cursor->{'selX'}, $cursor->{'selY'}, $cursor->{'selZ'} );
+
+## 1. directional routing ##
+if ( $input =~ m|^[UDLR]\d+$| and length $input >= 2 and length $input <= 3 )
+{
+    my ( $dir, $hop ) = ( substr( $input, 0, 1 ), substr( $input, 1 ) );
+    $scheme = qw| route |;
+    if    ( $dir eq qw| U | ) { $selY += $hop }
+    elsif ( $dir eq qw| D | ) { $selY -= $hop }
+    elsif ( $dir eq qw| L | ) { $selX -= $hop }
+    elsif ( $dir eq qw| R | ) { $selX += $hop }
+}
+
+## 2. checksum lookup ##
+elsif ( $input =~ m|^[A-Z0-9]{7}$| ) {
+    my $registry = $data{'graphics-matrix'}{'address'}{'checksum'}{$input};
+    return { qw| mode | => qw| false |, qw| data | => 'checksum not found' }
+        if not defined $registry;
+    $scheme = qw| checksum |;
+    $selX   = $registry->{'selX'};
+    $selY   = $registry->{'selY'};
+    $selZ   = $registry->{'selZ'};
+}
+
+## 3. octal-7 packed ##
+elsif ( $input =~ m|^o7:([0-7]{2})\.([0-7]{2})\.([0-7]{2})$| ) {
+    $scheme = qw| octal7 |;
+    $selX   = oct($1);
+    $selY   = oct($2);
+    $selZ   = oct($3);
+}
+
+## 4. base32 label ##
+elsif ( $input =~ m|^b32:([A-Z2-7]+=*)$| ) {
+    my $encoded = $1;
+    $scheme = qw| base32 |;
+    my $decoded = eval { Crypt::Misc::decode_b32r($encoded) };
+    return {
+        qw| mode | => qw| false |,
+        qw| data | => 'invalid base32 label'
+        }
+        if $@
+        or not defined $decoded
+        or length($decoded) != 3;
+    ( $selX, $selY, $selZ ) = unpack( qw| CCC |, $decoded );
+}
+
+## 5. decimal coordinates ##
+elsif ($input =~ m|^-?\d+\s+-?\d+\s+-?\d+$|
+    or $input =~ m|^-?\d+,-?\d+,-?\d+$| ) {
+    $scheme = qw| decimal |;
+    $input =~ s|,| |g;
+    my @coords = split( m|\s+|, $input );
+    ( $selX, $selY, $selZ ) = @coords;
+}
+
+## 6. label lookup ##
+else {
+    my $registry = $data{'graphics-matrix'}{'address'}{'label'}{$input};
+    return {
+        qw| mode | => qw| false |,
+        qw| data | => 'unknown address format'
+        }
+        if not defined $registry;
+    $scheme = qw| label |;
+    $selX   = $registry->{'selX'};
+    $selY   = $registry->{'selY'};
+    $selZ   = $registry->{'selZ'};
+}
+
+return {
+    qw| selX    | => int($selX),
+    qw| selY    | => int($selY),
+    qw| selZ    | => int($selZ),
+    qw| scheme  | => $scheme,
+    qw| channel | => defined $channel ? $channel->{'label'} : undef,
+};
+
+#,,,,,..,,,.,,,,,,,..,..,,,,,,,..,...,...,,..,..,,...,...,...,,.,,,,.,.,.,,.,,
+#O3GEEB7SKWSU6KF6LR3VHAS7CTDNPPGE6PGV4HQMSV65FCGTUPKNZBJPYV3QISKVDBDGG7MQONO76
+#\\\|3ML2CSPWLMF6XI72GQS5SO7F3A7W5TN553SUGHIORPWSJCPGUQT \ / AMOS7 \ YOURUM ::
+#\[7]HPZ6XLYBLTNQU3RT5XIUPPFIZYHN6DJUWUHIIG42CJPQCEE2OMAI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
