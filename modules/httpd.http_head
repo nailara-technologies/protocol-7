@@ -38,6 +38,12 @@ if ( defined $http_host and defined $base_dir ) {
         }
     }
 
+    ## route .tmpl files through template processor ##
+    ## reply handler will omit body for HEAD ##
+    if ( -f $file_path and $file_path =~ m{\.tmpl$} ) {
+        return <[httpd.process_template]>->( $id, $file_path );
+    }
+
     if ( -f $file_path ) {
 
         ## 204 ## [ OPTIONS, .., ] ##
@@ -132,8 +138,8 @@ if ( defined $http_host and defined $base_dir ) {
 return <[httpd.send_error_page]>->( $id, 404 )         ## 'Not Found'
     if not defined $file_path or !-f $file_path;
 
-#,,,,,...,,,,,..,,...,...,,,,,,..,..,,...,,,.,..,,...,.,.,.,.,,,.,..,,,,,,...,
-#4Z4CLLHIJEHLQABCNQOMFMMPMXQTZLQX4D2275YH6KAKI2V2KZG3MFSCITXQUR2GTEYJ4FSESHMPK
-#\\\|IVS7ZXF4MRF3TFF5MP7UXJARBCMQQEEY47UT2F3DRGZTNVFB36L \ / AMOS7 \ YOURUM ::
-#\[7]LLNIL4B54N2HDYYFG3YDIPQMRRVECVMA5LFTCG5RGG2GTMPPC2DY 7  DATA SIGNATURE ::
+#,,,,,,,,,,.,,,,.,.,.,,.,,.,,,...,.,.,.,.,.,,,..,,...,...,.,.,,..,,,.,.,.,,,.,
+#EVVV365FGUYMRBDP6N3OS3XNT7WCZ6GTHJ4KM2G7U3XPSEEXI6O5CPO5O2BDZBZCEPA3POFKW7C3Y
+#\\\|HO4CRGLYDHPIDLLVCIL26PHRL6APVK4R5XKEJK23SS6R4VHGP65 \ / AMOS7 \ YOURUM ::
+#\[7]5RRR246GVPTSG2V37E2E2DZWC5YAYQC46WJXWRH2E4I3FIIE52DY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

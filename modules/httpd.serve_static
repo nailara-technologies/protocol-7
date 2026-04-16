@@ -173,6 +173,15 @@ if ( not $file_exists ) {
     return $result;
 }
 
+## route .tmpl files to template processor [ not just index.tmpl ] ##
+if ( $file_path =~ m{\.tmpl$} ) {
+    <[base.logs]>->(
+        2,           "[%s] routing .tmpl file to template processor : '%s'",
+        $session_id, $file_path
+    );
+    return <[httpd.process_template]>->( $session_id, $file_path );
+}
+
 ## Note: Skip -r check as it may fail in SSL socket context File permissions
 ## will be checked when we attempt to open the file [line 182+] If file is
 ## not readable, open() will fail and we'll return 500 error
@@ -285,8 +294,8 @@ return <[httpd.download_init]>->(
     }
 );
 
-#,,.,,.,.,,.,,.,,,,..,,.,,,,.,,.,,,..,,.,,,.,,..,,...,...,..,,,..,.,,,,.,,,,.,
-#HGI44B2SAOO6YDLFB2M67MTJBOZPAWTZBORJFCBFUNHIIHZ7XW7TOEXYG344UQ4XJZUXP4KSSRCBK
-#\\\|SAQQANLZSF3WFUSDSBLE6STWX37DNTVA3Y3I25BUOIWKEVQUYD2 \ / AMOS7 \ YOURUM ::
-#\[7]ML6FZMJCHTWCTY6IB3LESSGGQ5ZKJAV2FOXNT5MN3GIQLS6G3EAI 7  DATA SIGNATURE ::
+#,,.,,,..,,.,,.,.,..,,,,,,..,,,,.,,.,,,,,,.,.,..,,...,...,.,.,,..,,,.,,,.,,.,,
+#6HEHFS3I47T5LJ2YCL7BFY6DQ52U3QAGNRZQJ5MDTHWLRZPVTLGQ7VCNUQV2GKDBL3S62Z67ZCAVC
+#\\\|SHJCWJJGN42NX7L2VSQCZUGT542X5SXFHLVCA34JSBBRLDOAEN2 \ / AMOS7 \ YOURUM ::
+#\[7]RRAX3QQ6CXNHKSUWNFFOX3O5UTAKHDTVTWWQGCU2QGS2GT3FXSBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

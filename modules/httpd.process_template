@@ -11,13 +11,13 @@ die "expected template file path argument" if !length($template_path);
 die "template file not found"              if !-f $template_path;
 my $response_params = $session->{'response'}->{'params'};
 my $content_date    = time2str( int( $session->{'start_time'} ) );
-my $content_type    = 'text/plain';
-$content_type = 'text/html' if $template_path =~ /\.(html|tmpl)$/;
+my $content_type    = qw| text/plain |;
+$content_type = qw| text/html | if $template_path =~ m{\.(html|tmpl)$};
 
 # LLL: ;charset=...
 
 <[base.log]>->(
-    1, "[process_template] $template_path (offloading to web zenka)"
+    1, "[process_template] $template_path [offloading to web zenka]"
 );
 
 ## Load template content ##
@@ -50,7 +50,7 @@ my $meta_vars = $session->{'meta'} // {};
 
 ## Serialize meta variables for IPC transmission ##
 ## Encode meta vars as JSON then base32r to avoid delimiter conflicts
-my $meta_json = <[httpd.json.encode]>->($meta_vars) // '{}';
+my $meta_json = <[httpd.json.encode]>->($meta_vars) // qw| {} |;
 my $meta_b32r = encode_b32r($meta_json);
 
 ## Encode template content as base32r to avoid colon delimiter conflicts in IPC
@@ -58,9 +58,9 @@ my $template_b32r = encode_b32r($template_content);
 
 <[base.log]>->(
     2,
-    "[$session_id] offloading template to web zenka: $template_id ("
+    "[$session_id] offloading template to web zenka: $template_id ["
         . length($template_content)
-        . " bytes)"
+        . " bytes]"
 );
 
 ## Send template to web zenka for recursive processing ##
@@ -87,8 +87,8 @@ my $template_b32r = encode_b32r($template_content);
 
 return 1;    ## Keep connection alive, waiting for web zenka reply ##
 
-#,,.,,.,.,.,,,,,.,.,,,,,.,,,.,.,.,,,.,...,.,.,..,,...,..,,..,,...,,,.,...,...,
-#SEMXSNBRKQEWF37IICMUQMNSP4OH6Z4GP73WJC3NAXGAEY45XVOBCYG3FR2UFBBFYGQ3AY63XVO5K
-#\\\|7XCKSGJTFRFXY5EVA3WTMX7DNMTVJLJI2QIU3X5YFG6R2EI5ICX \ / AMOS7 \ YOURUM ::
-#\[7]66JZQ3ZBMK5YZZ3VTC66B3TY5VZGYSH7ZHRKVXI66CKUQRNM6ECY 7  DATA SIGNATURE ::
+#,,.,,,,,,,,,,..,,,,.,,,.,...,..,,,,,,.,.,.,.,..,,...,...,,..,,.,,.,,,,,,,.,,,
+#ASYBPG6NIA65UN4CZIXDZ5B6E2G6Y6P7FHDXZ3VDVF7P5UJDDMVMK6N5B23HNHITRHCCFVYEGA6BQ
+#\\\|WYUJ67P3SPZZLV5COZ7DQXM6A7JFHI5Y6H3BFXQYGCFZDCBLOX4 \ / AMOS7 \ YOURUM ::
+#\[7]ZLN7FJEZ52BWFHNKZNXVD7M2C2BL4KGLFHVPXL3VCVRRRK3T7KDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

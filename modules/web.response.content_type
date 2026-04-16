@@ -1,0 +1,27 @@
+## [:< ##
+
+# name  = web.response.content_type
+# descr = template command to override response content-type
+
+my $type = shift // '';
+
+## validate basic mime format [ type/subtype ] ##
+if ( $type !~ m|^[\w\-]+/[\w\-+.]+$| ) {
+    <[base.log]>->(
+        1, "web.response.content_type : invalid mime type '$type'"
+    );
+    return '';    ## no template output ##
+}
+
+<[base.log]>->( 2, "web.response.content_type : set to '$type'" );
+
+## store for process_template_ipc to pick up ##
+<web.template.response_content_type> = $type;
+
+return '';    ## no template output ##
+
+#,,,.,..,,.,,,,.,,.,,,,.,,,,,,,..,..,,.,.,,.,,..,,...,...,...,,.,,.,.,..,,,.,,
+#R6XRCKNM3VAS4T2DDOXJXA57VK3ZBXOAMBG32T476CEETI4JEOPNIK4QAKOOT2PZDXOTLLQKEI5IQ
+#\\\|BSQJZIFXXFJ26KVBCR633EXIM4JEM5BYYBYWINDBXYNYVHW2PJO \ / AMOS7 \ YOURUM ::
+#\[7]44HOVOLEBZKK23S5RZSS5NWFMOORBFKASIOIRVJDBPTXUM63VQCA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
