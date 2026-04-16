@@ -1,0 +1,183 @@
+## [:< ##
+
+# name  = graphics-matrix.cmd.address
+# descr = resolve, encode, and manage cursor addresses
+
+my $args = $call->{'args'} // '';
+
+## parse command ##
+my @tokens = split( / +/, $args );
+my $cmd    = $tokens[0] // '';
+
+if ( $cmd eq '' ) {
+
+    ## no args - show all encodings of current position ##
+    my $cursor = <[graphics-matrix.cursor.position]>;
+    my $chk    = <[graphics-matrix.address.encode]>
+        ->( { qw| scheme | => qw| checksum | } );
+    my $decimal = <[graphics-matrix.address.encode]>
+        ->( { qw| scheme | => qw| decimal | } );
+    my $octal7 = <[graphics-matrix.address.encode]>
+        ->( { qw| scheme | => qw| octal7 | } );
+    my $base32 = <[graphics-matrix.address.encode]>
+        ->( { qw| scheme | => qw| base32 | } );
+
+    my $channel_data = $data{'graphics-matrix'}{'channel'};
+    my $active       = $channel_data->{'active'};
+    my $label        = $channel_data->{'channels'}{$active}{'label'};
+
+    my $out = sprintf "address [%d,%d,%d] chk=%s\n",
+        $cursor->{'selX'}, $cursor->{'selY'}, $cursor->{'selZ'}, $chk;
+    $out .= sprintf "  decimal  : %s\n",    $decimal;
+    $out .= sprintf "  octal-7  : %s\n",    $octal7;
+    $out .= sprintf "  base32   : %s\n",    $base32;
+    $out .= sprintf "  channel  : %s@%s\n", $label, $decimal;
+
+    return { qw| mode | => qw| size |, qw| data | => $out };
+
+} elsif ( $cmd eq 'resolve' ) {
+
+    return {
+        qw| mode | => qw| false |,
+        qw| data | => 'usage: address resolve <addr>'
+        }
+        if @tokens < 2;
+
+    my $addr   = join( ' ', @tokens[ 1 .. $#tokens ] );
+    my $result = <[graphics-matrix.address.resolve]>->($addr);
+
+    return $result if $result->{'mode'} eq qw| false |;
+
+    my $out = sprintf "resolved [%d,%d,%d] scheme=%s",
+        $result->{'selX'}, $result->{'selY'}, $result->{'selZ'},
+        $result->{'scheme'};
+    $out .= sprintf " channel=%s", $result->{'channel'}
+        if defined $result->{'channel'};
+
+    return { qw| mode | => qw| size |, qw| data | => $out };
+
+} elsif ( $cmd eq 'encode' ) {
+
+    return {
+        qw| mode | => qw| false |,
+        qw| data | => 'usage: address encode <scheme>'
+        }
+        if @tokens < 2;
+
+    my $scheme = $tokens[1];
+    my $result
+        = <[graphics-matrix.address.encode]>->( { qw| scheme | => $scheme } );
+
+    return $result
+        if ref($result) eq qw| HASH | and $result->{'mode'} eq qw| false |;
+
+    return { qw| mode | => qw| size |, qw| data | => $result };
+
+} elsif ( $cmd eq 'goto' ) {
+
+    return {
+        qw| mode | => qw| false |,
+        qw| data | => 'usage: address goto <addr>'
+        }
+        if @tokens < 2;
+
+    my $addr   = join( ' ', @tokens[ 1 .. $#tokens ] );
+    my $result = <[graphics-matrix.address.resolve]>->($addr);
+
+    return $result if $result->{'mode'} eq qw| false |;
+
+    ## set channel if channel-qualified ##
+    if ( defined $result->{'channel'} ) {
+        <[graphics-matrix.channel.select]>->( $result->{'channel'} );
+    }
+
+    ## move cursor ##
+    <[graphics-matrix.cursor.set]>->(
+        {   qw| selX | => $result->{'selX'},
+            qw| selY | => $result->{'selY'},
+            qw| selZ | => $result->{'selZ'},
+        }
+    );
+
+    ## register new position ##
+    <[graphics-matrix.address.register]>->(
+        {   qw| position | => {
+                qw| selX | => $result->{'selX'},
+                qw| selY | => $result->{'selY'},
+                qw| selZ | => $result->{'selZ'},
+            },
+        }
+    );
+
+    my $cursor = <[graphics-matrix.cursor.position]>;
+    my $chk    = <[graphics-matrix.cursor.checksum]>;
+    my $out    = sprintf "goto [%d,%d,%d] chk=%s",
+        $cursor->{'selX'}, $cursor->{'selY'}, $cursor->{'selZ'}, $chk;
+
+    return { qw| mode | => qw| size |, qw| data | => $out };
+
+} elsif ( $cmd eq 'label' ) {
+
+    return {
+        qw| mode | => qw| false |,
+        qw| data | => 'usage: address label <name>'
+        }
+        if @tokens < 2;
+
+    my $name   = $tokens[1];
+    my $cursor = <[graphics-matrix.cursor.position]>;
+
+    <[graphics-matrix.address.register]>->(
+        {   qw| position | => {
+                qw| selX | => $cursor->{'selX'},
+                qw| selY | => $cursor->{'selY'},
+                qw| selZ | => $cursor->{'selZ'},
+            },
+            qw| label | => $name,
+        }
+    );
+
+    my $out = sprintf "label '%s' → [%d,%d,%d]",
+        $name, $cursor->{'selX'}, $cursor->{'selY'}, $cursor->{'selZ'};
+
+    return { qw| mode | => qw| size |, qw| data | => $out };
+
+} elsif ( $cmd eq 'labels' ) {
+
+    my $registry = $data{'graphics-matrix'}{'address'}{'label'};
+    my $out      = '';
+
+    for my $name ( sort keys %$registry ) {
+        my $pos = $registry->{$name};
+        $out .= sprintf "%s → [%d,%d,%d]\n",
+            $name, $pos->{'selX'}, $pos->{'selY'}, $pos->{'selZ'};
+    }
+
+    $out = "no labels registered\n" if not length $out;
+
+    return { qw| mode | => qw| size |, qw| data | => $out };
+
+} elsif ( $cmd eq 'registry' ) {
+
+    my $chk_count
+        = scalar keys %{ $data{'graphics-matrix'}{'address'}{'checksum'} };
+    my $label_count
+        = scalar keys %{ $data{'graphics-matrix'}{'address'}{'label'} };
+    my $out = sprintf "address registry: %d checksums, %d labels\n",
+        $chk_count, $label_count;
+
+    return { qw| mode | => qw| size |, qw| data | => $out };
+
+} else {
+
+    return {
+        qw| mode | => qw| false |,
+        qw| data | => "unknown address command: $cmd"
+    };
+}
+
+#,,.,,...,,,,,..,,...,..,,,..,,,.,,..,,,.,,..,..,,...,..,,,,.,..,,..,,.,,,..,,
+#DBKANXW3J3LGTETTYGTJ2P7FKXYHV4TDNEUTCW3XUXOQJNLDWWOYSJHORESODCPGAIKUUQ5QS2PFS
+#\\\|FDEMUFKA3MCMIFYSHXDQYDUZYIA2NLMDFI6NCT6CWW4KDWRK43X \ / AMOS7 \ YOURUM ::
+#\[7]CF4LWI5JOWRTO5L3W77V4L2FE2DLBPXRV43MPYQEJD3Y4NSM7IDA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
