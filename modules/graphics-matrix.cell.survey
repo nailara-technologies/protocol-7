@@ -1,0 +1,46 @@
+## [:< ##
+
+# name  = graphics-matrix.cell.survey
+# descr = survey occupied cells by hop distance from cursor
+
+my $params = shift // {};
+
+## default center to cursor position ##
+my $center = $params->{'center'} // <[graphics-matrix.cursor.position]>;
+my $radius = $params->{'radius'} // $center->{'radius'}
+    // $data{'graphics-matrix'}{'cursor'}{'radius'} // 0;
+
+my ( $cx, $cy, $cz )
+    = ( $center->{'selX'}, $center->{'selY'}, $center->{'selZ'} );
+
+my $counts = {};
+my $total  = 0;
+
+my $cells = $data{'graphics-matrix'}{'cell'}{'cells'};
+
+for my $key ( keys %$cells ) {
+    my $cell = $cells->{$key};
+    my ( $x, $y, $z ) = (
+        $cell->{'position'}{'selX'},
+        $cell->{'position'}{'selY'},
+        $cell->{'position'}{'selZ'},
+    );
+
+    my $hop = abs( $x - $cx ) + abs( $y - $cy ) + abs( $z - $cz );
+
+    next if $radius > 0 and $hop > $radius;
+
+    $counts->{$hop} += $cell->{'refs'};
+    $total += $cell->{'refs'};
+}
+
+return {
+    qw| counts | => $counts,
+    qw| total  | => $total,
+};
+
+#,,.,,...,,..,.,.,...,,.,,..,,,,,,...,...,,.,,..,,...,...,,,.,,.,,,,.,,..,.,.,
+#YLXJJ4FSXRTSNS3UJTHUCBZEGOTVQQHATFFFAPNOBYO7JJVWAGAXBYHT4VCKYQ4AJL2ZFVDBV4AMG
+#\\\|4TV55CVVNGBG3SFOVDLAP63V6QZ4IL2HX46WFFY4D6KDWWAIGX3 \ / AMOS7 \ YOURUM ::
+#\[7]APSQKIJKO34EJIKTZFBNMGZFJNGTULONIVOVFOBOAM5GTO225YCY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
