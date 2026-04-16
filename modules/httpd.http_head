@@ -30,9 +30,12 @@ if ( defined $http_host and defined $base_dir ) {
     ) if $http_host ne $session->{'http'}{'request'}{'host'};
     $file_path = join( '', $base_dir, $http_uri );
     $file_path =~ s|/$||;
-    if ( -d $file_path ) {    # LLL: support !html index
-        $file_path .= qw| /index.html |
-            if -f join( qw| / |, $file_path, qw| index.html | );
+    if ( -d $file_path ) {
+        if ( -f join( qw| / |, $file_path, qw| index.html | ) ) {
+            $file_path .= qw| /index.html |;
+        } elsif ( -f join( qw| / |, $file_path, qw| index.tmpl | ) ) {
+            $file_path .= qw| /index.tmpl |;
+        }
     }
 
     if ( -f $file_path ) {
@@ -89,6 +92,7 @@ if ( defined $http_host and defined $base_dir ) {
         };
 
         my $content_type = $meta->{$path_etag}->{'content_type'};
+        $content_type //= 'text/html' if $file_path =~ /\.tmpl$/;
 
         if ( defined $request->{'headers'}->{'if-none-match'}
             and $request->{'headers'}->{'if-none-match'} eq
@@ -128,8 +132,8 @@ if ( defined $http_host and defined $base_dir ) {
 return <[httpd.send_error_page]>->( $id, 404 )         ## 'Not Found'
     if not defined $file_path or !-f $file_path;
 
-#,,,.,..,,,,.,,,.,.,,,,,.,,,,,,,,,,..,,.,,..,,..,,...,...,..,,...,,.,,...,..,,
-#DPCWRAO26LELBAPG7A524VMQCWGESNPL7ZM3MSAZSTKXWL4MDTANR3LU3DNJUH3MVD24IXB6FZWWG
-#\\\|BUZ4ZN2NC7V3XPEDGQZXBVVS5BM5LTCLW4JOBVRS5AAT5X6EVAX \ / AMOS7 \ YOURUM ::
-#\[7]QJFY6PI7RRGTSQWPWZUDP6LIIOIIDDO223T5LN2YPR7ERTI7EGDA 7  DATA SIGNATURE ::
+#,,,,,...,,,,,..,,...,...,,,,,,..,..,,...,,,.,..,,...,.,.,.,.,,,.,..,,,,,,...,
+#4Z4CLLHIJEHLQABCNQOMFMMPMXQTZLQX4D2275YH6KAKI2V2KZG3MFSCITXQUR2GTEYJ4FSESHMPK
+#\\\|IVS7ZXF4MRF3TFF5MP7UXJARBCMQQEEY47UT2F3DRGZTNVFB36L \ / AMOS7 \ YOURUM ::
+#\[7]LLNIL4B54N2HDYYFG3YDIPQMRRVECVMA5LFTCG5RGG2GTMPPC2DY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
