@@ -12,7 +12,7 @@ die "template file not found"              if !-f $template_path;
 my $response_params = $session->{'response'}->{'params'};
 my $content_date    = time2str( int( $session->{'start_time'} ) );
 my $content_type    = 'text/plain';
-$content_type = 'text/html' if $template_path =~ /\.html/;
+$content_type = 'text/html' if $template_path =~ /\.(html|tmpl)$/;
 
 # LLL: ;charset=...
 
@@ -87,8 +87,8 @@ my $template_b32r = encode_b32r($template_content);
 
 return 1;    ## Keep connection alive, waiting for web zenka reply ##
 
-#,,..,..,,,,.,,,.,.,.,...,..,,,,,,,..,.,,,,,,,..,,...,...,..,,,,,,...,,,.,,,,,
-#YEYO2ZIFCRC7NKRCCUF5XQN3GTQAAJHHQ4NBNYFJAI6ZGYHV67BUYBOOWIRKBCI6L2UYFSLQOICS6
-#\\\|DZQQUCI63ZHWLKWW4FCSSBT26AC43XNYSRKGDA3BKTER3IC53WF \ / AMOS7 \ YOURUM ::
-#\[7]MT2WT7AAUZML2S43VBFZIT4VHNA5WIHYHA34UBOAQIV5XERQ5KAY 7  DATA SIGNATURE ::
+#,,.,,.,.,.,,,,,.,.,,,,,.,,,.,.,.,,,.,...,.,.,..,,...,..,,..,,...,,,.,...,...,
+#SEMXSNBRKQEWF37IICMUQMNSP4OH6Z4GP73WJC3NAXGAEY45XVOBCYG3FR2UFBBFYGQ3AY63XVO5K
+#\\\|7XCKSGJTFRFXY5EVA3WTMX7DNMTVJLJI2QIU3X5YFG6R2EI5ICX \ / AMOS7 \ YOURUM ::
+#\[7]66JZQ3ZBMK5YZZ3VTC66B3TY5VZGYSH7ZHRKVXI66CKUQRNM6ECY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
