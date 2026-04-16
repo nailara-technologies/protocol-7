@@ -4708,6 +4708,229 @@ existing infrastructure: 689+ modules across 30+ zenki
 next step: wire live namespace data to the visual rendering stack
 
 
+## Spatial Tuning — Frequency Selection Through Geometric Angle
+
+### the 364-degree circle
+
+the circle has 364 degrees, not 360. this is not calendar mysticism — it is
+a geometric statement. 364 = 28 × 13 = 7 × 52 = 7 × 4 × 13. every factor
+is already native to the system.
+
+consider a circle inscribed in a square with 4 smaller circles fitting into
+the corners. five circles total — the 5 of 7. the primary circle represents
+the base frequency (0° reference grid). each corner circle represents a 45°
+rotation in one of the available planes:
+
+```
+frequency    geometric source              rotation plane
+─────────────────────────────────────────────────────────────
+f0           primary circle / base grid    0° (reference)
+f1           corner circle 1               45° in XY plane
+f2           corner circle 2               45° in XZ plane
+f3           corner circle 3               45° in YZ plane
+f4           corner / hyperspace diagonal  45° in all three (body diagonal)
+```
+
+three orthogonal 45° rotations — one per plane of the 3 space axes, already
+present in the 4-axis structure — plus the body diagonal = 4 minor circles.
+plus the base = 5 selectable channels.
+
+the ratio between primary and corner circle radius is 1/(√2 - 1) = √2 + 1
+≈ 2.414 — the diagonal scaling factor plus one. a cube rotated 45° has its
+vertices at distance √2 from the axis. the rotated grid has effective edge
+length √2 to still tile with the base grid. base grid and rotated grid
+interlock as two body-centered cubic sublattices. together they form the
+8-vertex cube: 4 from each grid orientation.
+
+the 4 extra degrees beyond 360 are not error — they are the overlap coverage
+from the corner circles extending past the primary's circumference. the
+shift-change in the dancing zenki formation creates exactly this overlap:
+continuous coverage with no gap, because the ascending and descending zenki
+overlap their duty cycles by one phase.
+
+364 = 360 + 4 corner overlaps. 364/13 = 28 = a perfect number. the circle
+closes through 13, not through 10 or 12.
+
+
+### the 7-zenki formation as spatial tuner
+
+the 5-of-7 dancing kittens formation maps directly onto the 5-frequency
+spatial tuning model:
+
+```
+role          count   spatial function            frequency relationship
+──────────────────────────────────────────────────────────────────────────
+setup zenka   1       opens session, selects      channel tuner — picks
+                      the viewing angle           which rotation angle
+                                                  the group operates at
+
+ground zenki  5       feeding / voting /          workers at the selected
+                      processing at the chosen    frequency — they see data
+                      frequency                   through the established
+                                                  channel filter
+
+collector     1       talks to leader via         body diagonal — the √2
+zenka                 hyperspace channels,        shortcut that intersects
+                      faster than travel          all 5 frequencies, which
+                                                  is why it routes faster
+```
+
+the setup zenka is "below" the node branch — it precedes the work, located
+within the cube of which the pyramid of 3 edge-spheres + 1 diagonal-sphere
+is the visible structure. it establishes the hyperspace channel before the 5
+workers begin operating. the collector zenka is also "below" — it operates
+across frequencies simultaneously on the body diagonal, collecting results
+from any channel without being bound to one.
+
+three spheres represent a cube edge — the 3 orthogonal axes of the visible
+grid. the 4th sphere floats above the pyramid formed by the first three —
+it is the diagonal branch, the hyperspace connection. this is the geometry
+of a single node in the 5-of-7 branch structure.
+
+
+### frequency selection as palette translation
+
+selecting a channel = choosing which rotation angle you observe the same
+grid from. the data does not change. the viewing angle does. same structure,
+different perspective, different visible subset.
+
+this is why context channels are palette translation, not merging:
+
+- each channel is a 45° rotation of the same grid
+- the same glow intensities, the same reference counts
+- but the palette maps luminosity to a different spectral band
+- channel f0 sees blue glow, channel f1 sees the same activity as violet
+- the distribution within each palette is identical — only the base hue shifts
+- this is a rotation in color space matching the rotation in grid space
+
+no information is lost. no mixing occurs. switching channels is rotating
+the spectral filter. two zenki on different channels see the same economic
+activity rendered in different palettes — they can compare without confusion
+because the structure is preserved across rotation.
+
+
+### the snake game as data flow
+
+"all data is travelling" — zenki move through the grid like the snake game.
+the 5 ground zenki feed sequentially: each works at a position until
+saturated, then cycles. the spiral shift-change means the formation moves
+as a unit through space, consuming work and leaving results.
+
+the collector zenka on the hyperspace diagonal sees the snake from above —
+it tracks the formation's trajectory across frequencies, maintaining session
+continuity for the workers while they process. the setup zenka at the tail
+ensures new positions are prepared before the snake reaches them.
+
+this is the dancing kittens algorithm as a spatial traversal:
+
+```
+cycle 1:  ground zenki feed at positions [A B C D E]
+          ring zenki [R1 R2] on overwatch (opposed, CCW)
+          collector routes results via body diagonal
+
+cycle 2:  longest-feeding zenka (A) ascends to ring
+          ring zenka (R1) descends to ground
+          formation shifts: [R1 B C D E], ring [A R2]
+          setup zenka has already prepared position F
+
+cycle 3:  [R1 B C D E] → [R1 B C D R2], A ascending with results
+          formation advances one position in the grid
+          continuous coverage: always one ring zenka remaining
+```
+
+the 4° overlap per cycle ensures no blind spot during shift-change.
+the snake never has a gap in its body.
+
+
+### hyperspace channels and the √2 shortcut
+
+the first hyperspace grid is a cube grid mounted at 45° to the base grid.
+it is √2 times larger to match edges — its vertices sit at the face centers
+of the base grid's cubes. this is the body-centered cubic (BCC) lattice:
+the most efficient packing for equal spheres in 3D.
+
+the collector zenka uses this rotated grid as its transport layer. because
+the hyperspace grid edge is √2 ≈ 1.414 times the base grid edge, messages
+on the diagonal channel cover more ground per hop — "faster than travel"
+on the base grid. this is not magic; it is the geometric fact that the
+diagonal of a unit cube is √3 ≈ 1.732, and the face diagonal is √2.
+
+the 5 selectable frequencies are the 5 orientations from which the same
+BCC lattice can be viewed as a regular cubic grid. the setup zenka selects
+one. the workers operate at that orientation. the collector uses the lattice
+itself — orientation-independent — which is why it can bridge between any
+two channels without switching.
+
+the diagonal channel's assigned hue is magenta (300°). in the protocol-7
+color system, magenta is not an opaque color — it is a mask or alpha color,
+meaning it is invisible: a transparency layer that bridges to a different
+color spectrum, or to two neighbouring spectra simultaneously. this is
+exactly what the collector zenka does. it does not have its own viewing
+angle — it sees through to the channels it connects.
+
+on the hue wheel, 300° sits between violet (270°, f1/XY-rotation) and
+blue (240°, f0/base) — literally between two neighbouring channel spectra.
+the collector's "color" is the blend of what it bridges. rendering channel
+f4 does not produce an opaque palette like f0-f3; it produces alpha — a
+window into the layer beneath or a composite of the two nearest channels.
+
+this means the palette translation for f4 behaves differently:
+- f0-f3: intensity → HSV with opaque hue → visible RGB color
+- f4: intensity → alpha/transparency value → reveals underlying layers
+
+in the deduplication context, alpha carries a deeper meaning: "inheriting
+from" or "no local difference to". a cell on channel f4 with high alpha
+is saying "i am the same as what is below me — i add nothing new here."
+this is the collector's nature: it does not generate content, it aggregates
+and relays what the worker channels produce. high intensity on f4 means
+high transparency — maximal inheritance from the underlying layers.
+
+the 5 ground channels are 4 opaque frequencies + 1 transparent bridge.
+the setup zenka (below, not a channel) tunes which frequency is active.
+the collector (f4, diagonal) is always transparent — always bridging.
+
+reference: `data/md/protocol-7-knowledge/03_NETWORK_PROTOCOLS/HYPERSPACE_INFERENCE_ROUTING.md`
+reference: dancing kittens formation — chat capture line 37896+
+
+### division-13-table as spatial frequency generator
+
+the algorithm in `bin/dev/division-13-table` (seed=1, `$Z <<= 4; $Z /= 13;
+$Z <<= is_true($Z) ? 2 : 1`) produces a 64-bit word split into three fields:
+
+    42 bits : main entropy payload
+     7 bits : decoded protocol type — routing, text, document, graphical
+    15 bits : auxiliary precision
+
+the 7-bit decoded field generates 5 protocol types from pure arithmetic:
+
+    type 00 : directional routing — UP/LEFT/RIGHT/DOWN with hop count
+    type 010 : BASE32 text payload — 5 bits → 32 ASCII characters
+    type 0110 : monochrome document header
+    type 0111 : color document header — depth 8..24 bits
+    type 1 : graphical 5x7 pixel matrix — color ops + alpha
+
+5 protocol types from 7 bits mirrors the 5 selectable frequencies from the
+spatial tuning geometry. the directional routing type maps directly onto grid
+navigation: the same UP/LEFT/RIGHT/DOWN + hop count that cursor movement uses.
+the graphical type (5x7 matrix) is the cell resolution the vterm renders into.
+
+the harmonic filter `is_true($Z)` acts as the tuning gate — iterations that
+fail the truth test are skipped (`goto RECALC`), analogous to the setup zenka
+selecting which frequency the worker zenki operate at. what passes through
+is the harmonically valid subset: the signal extracted from potential.
+
+the adaptive shift (`<<= 2` when true, `<<= 1` when false) is the
+mechanism that keeps the generator on-resonance. it is the same principle
+as the palette translation layer: same data, different viewing angle,
+different spectral output — but the underlying harmonic structure preserved.
+
+reference: `bin/dev/division-13-table` — source algorithm with decoded_bits()
+reference: `data/md/research/holographic-cubic-topology-research-2026-01-13.md`
+    — section "Practical Implementation: Division by 13 Protocol Engine"
+reference: `data/md/philosophy/HARMONIC-ENTROPY-INFORMATION-TRANSFER-RESEARCH.md`
+    — bit structure analysis and protocol decoder table
+
+
 ## Completeness
 
 The system described is a kinetic balancing engine whose rules are
@@ -4742,8 +4965,8 @@ always moving toward the quality attractor at the center.
 
 Simple rules. Content-agnostic. Already complete. The rest is data.
 
-#,,..,,,.,.,.,..,,,,.,,,,,.,,,,,,,..,,,..,..,,..,,...,...,,..,,..,.,.,..,,.,,,
-#GJAMEHY6AARHTSW7CCHNXA26M3AGDU3K5QEKEDYNE22O5DLQQO6FNFYHREYXSUKLJ37XGYXIALF2S
-#\\\|2SSDD2MZ4RWAUOH3KI5L4YGE7ZST6C3O2XJHUJJK667CRJTAOG3 \ / AMOS7 \ YOURUM ::
-#\[7]EBN4FYDRIAU36XTAU7D7GSVSLNTPXB6BLZRPW64LOTEBHE2X3ICQ 7  DATA SIGNATURE ::
+#,,..,.,,,,,,,,..,,,.,...,,,,,,,,,..,,,..,.,.,..,,...,...,,.,,...,.,,,..,,,,.,
+#P7KT7NCUZ7HVS24AJGT5MBJT72332CCCJMHHHM46Y2DDHYT4ZMDLP5K5643KWGOTMAHZEMOIWUSMA
+#\\\|CMUHOYEX2PTDQ5YPWJYE6VE43QZTOC4AHMUE72JW65YIZHHVDBQ \ / AMOS7 \ YOURUM ::
+#\[7]3XAODWQT5ZV5SEXERIQ3K7VOFUZZJPLYYFTTP62OUJ26A35OOCAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
