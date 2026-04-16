@@ -1,7 +1,7 @@
 ## [:< ##
 
 # name = web.cmd.process_template_ipc
-# descr = IPC command handler - wrapper for web.process_template_ipc
+# descr = IPC command wrapper for template processing
 # args  = template_id:template_content_b32r:meta_vars_b32r:session_id
 
 ## Commands receive a hash ref with args directly ##
@@ -11,22 +11,11 @@ my $args_str = $hash_ref->{'args'} // '';
 ## Call the actual implementation (returns hash ref) ##
 my $result = <[web.process_template_ipc]>->($args_str);
 
-## Debug logging ##
-<[base.log]>->(
-    0,
-    "wrapper : mode="
-        . ( $result->{'mode'} // 'unknown' )
-        . ", data type="
-        . ref( $result->{'data'} )
-        . ", length="
-        . ( defined $result->{'data'} ? length( $result->{'data'} ) : 0 )
-);
-
 ## Return hash ref directly ##
 return $result;
 
-#,,..,..,,,,.,,.,,...,.,,,,.,,.,.,,.,,,,,,.,.,..,,...,..,,,.,,.,.,,,,,.,.,,.,,
-#73M4FPTEVMBO5QFOOWECDDYI6HBRD3NZKNGPA2N5NG3FOJDZAHMI3NEZLQ2SPUZ7TL7FYQCGEYBL6
-#\\\|TEVAWK2CDEQ2VBFIOPHQOVTO6ERNVAYCLDLOAI4GAD6J723JDAH \ / AMOS7 \ YOURUM ::
-#\[7]CKZFGTETCYXDOZJNIRYKS37DJBMRR4CY35WEZVN3MU7JROK5DEDA 7  DATA SIGNATURE ::
+#,,.,,.,.,,.,,,,,,..,,,,.,..,,,.,,..,,.,,,,,,,..,,...,...,,,,,,,.,,,,,...,.,,,
+#TAXMTHZMQCNDTT3UUM75YQVE3XMB55APK3KACB5JNCR4G3GBZI5GXAIDJAWOU6WWCL7SZDTHRGAO4
+#\\\|CF2ZTNOVB7FP5Z4X7BYWD3KEKMHYADA7W5QLCZYD4SXD6MN3GSN \ / AMOS7 \ YOURUM ::
+#\[7]SUVQYCLEL3RNW5OOLIT67GMM4CV5YA6OS5JFFFOD6G6IIXIXFECY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
