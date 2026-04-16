@@ -1,0 +1,70 @@
+## [:< ##
+
+# name  = graphics-matrix.cell.remove
+# descr = remove an element reference from a grid position
+
+my $params = shift // {};
+
+## default to cursor position if none provided ##
+my $pos = $params->{'position'} // <[graphics-matrix.cursor.position]>;
+
+my ( $selX, $selY, $selZ )
+    = ( $pos->{'selX'}, $pos->{'selY'}, $pos->{'selZ'} );
+
+return { qw| mode | => qw| false |, qw| data | => 'coordinates required' }
+    if not defined $selX
+    or not defined $selY
+    or not defined $selZ;
+
+my $key = sprintf "%d:%d:%d", $selX, $selY, $selZ;
+
+my $cell_store = $data{'graphics-matrix'}{'cell'};
+my $cells      = $cell_store->{'cells'};
+
+if ( not exists $cells->{$key} ) {
+    <[base.logs]>->(
+        2, 'cell.remove [%d,%d,%d] refs=%d',
+        $selX, $selY, $selZ, 0
+    );
+    return { qw| removed | => 0, qw| refs | => 0 };
+}
+
+my $cell = $cells->{$key};
+my $refs = $cell->{'refs'};
+
+if ( $params->{'clear'} ) {
+    delete $cells->{$key};
+    $cell_store->{'count'}--;
+    <[base.logs]>->(
+        2, 'cell.remove [%d,%d,%d] refs=%d',
+        $selX, $selY, $selZ, 0
+    );
+    return { qw| removed | => 1, qw| refs | => 0 };
+}
+
+$refs--;
+$cell->{'refs'}     = $refs;
+$cell->{'modified'} = time();
+
+if ( $refs <= 0 ) {
+    delete $cells->{$key};
+    $cell_store->{'count'}--;
+    <[base.logs]>->(
+        2, 'cell.remove [%d,%d,%d] refs=%d',
+        $selX, $selY, $selZ, 0
+    );
+    return { qw| removed | => 1, qw| refs | => 0 };
+}
+
+<[base.logs]>->(
+    2, 'cell.remove [%d,%d,%d] refs=%d',
+    $selX, $selY, $selZ, $refs
+);
+
+return { qw| removed | => 1, qw| refs | => $refs };
+
+#,,,,,.,.,.,,,.,,,,.,,,,,,,.,,,..,,.,,,.,,.,,,..,,...,..,,,.,,..,,...,...,..,,
+#TVYPMPXNUHVU3MJVSUEXY5VRN6HXY4Z24ETD2KJ4JXO7GAHTEATXCYA242KNJAVT3T2CDGAITYEOM
+#\\\|7OC6I27F7ROLCC7WXP35BR2DFVXMJXFOU4I3RUNP724F5Z2XXWW \ / AMOS7 \ YOURUM ::
+#\[7]I65E4IMMBZUYNHQJMGMFQKN3N5HL2Q6CRB73MLAUCE2HHPMVGKDI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
