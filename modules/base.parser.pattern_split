@@ -100,6 +100,10 @@ $pattern_cpy =~ s|\)$||u;           # Remove trailing paren
 
 my @capture_grp_matches
     = $pattern_cpy =~ m|(*nlb:\\)(\([^\)]*(*nlb:\\)\))|gsu;
+
+## filter out non-capturing groups [ (?:...) (?=...) (?!...) (?<...) etc. ] ##
+@capture_grp_matches = grep { $ARG !~ m|^\(\?| } @capture_grp_matches;
+
 my $capture_grp_count = scalar @capture_grp_matches;
 
 undef @capture_grp_matches;
@@ -147,8 +151,8 @@ undef @$result_aref;
 
 return $extended_result;
 
-#,,,.,...,.,,,..,,.,,,,,,,,.,,.,.,,,,,.,,,...,..,,...,...,...,...,...,...,,,,,
-#VMQMXXOJ7C3GTFBDQEW44KBNLS2PGHQXET3OABGJDKI53BYCZCZGNZNMDE2JEXY4TEHQNTTFPZEY6
-#\\\|3WCDTYNFHDNWT7YJS5J5QQNHOCKINL3YMESQEMSIIHZD4HZBV2W \ / AMOS7 \ YOURUM ::
-#\[7]KVDJ4JM7FWGLEL3RL3C2NQXW2CNFCCN4G45GUBUYH3FNR3EMQADI 7  DATA SIGNATURE ::
+#,,.,,,.,,..,,,..,.,,,,,.,.,,,,,.,,.,,,..,,..,..,,...,...,.,.,.,.,,,.,,..,,..,
+#DSTRL2IV4FMHPYZHPOPGDHKMO4M4MX3GNTPWURIY75VZ5WJRHRWBYGOJG5ATMJYDGG5PWPBBO73KE
+#\\\|2PEFBY7DBG6MW53PVOCSKKAAYA22P26TBRI2DRHXQRB5SR4VLTE \ / AMOS7 \ YOURUM ::
+#\[7]GRNOPB4I7NYZ5PMWVRS2QZLSOJC2UMFZR346CGA6F5PRGRWM4MDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
