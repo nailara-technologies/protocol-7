@@ -1,0 +1,81 @@
+## [:< ##
+
+# name  = graphics-matrix.graph.survey
+# descr = survey cells with graph-weighted influence
+
+my $params = shift // {};
+
+## default center to cursor position ##
+my $center = $params->{'center'} // <[graphics-matrix.cursor.position]>;
+my $radius = $params->{'radius'} // $center->{'radius'}
+    // $data{'graphics-matrix'}{'cursor'}{'radius'} // 0;
+
+my ( $cx, $cy, $cz )
+    = ( $center->{'selX'}, $center->{'selY'}, $center->{'selZ'} );
+
+my $center_key = sprintf "%d:%d:%d", $cx, $cy, $cz;
+
+## get neighbors of center cell ##
+my $neighbors        = <[graphics-matrix.graph.neighbors]>->($center_key);
+my %neighbor_weights = map { $ARG->{'cell'} => $ARG->{'weight'} } @$neighbors;
+
+## find cluster membership of center cell ##
+my $clusters       = $data{'graphics-matrix'}{'graph'}{'clusters'};
+my $center_cluster = undef;
+
+for my $cid ( keys %$clusters ) {
+    my $members = $clusters->{$cid}{'members'};
+    for my $member (@$members) {
+        if ( $member eq $center_key ) {
+            $center_cluster = $cid;
+            last;
+        }
+    }
+    last if defined $center_cluster;
+}
+
+my $counts = {};
+my $total  = 0;
+my $cells  = $data{'graphics-matrix'}{'cell'}{'cells'};
+
+for my $key ( keys %$cells ) {
+    my $cell = $cells->{$key};
+    my ( $x, $y, $z ) = (
+        $cell->{'position'}{'selX'},
+        $cell->{'position'}{'selY'},
+        $cell->{'position'}{'selZ'},
+    );
+
+    my $hop = abs( $x - $cx ) + abs( $y - $cy ) + abs( $z - $cz );
+
+    next if $radius > 0 and $hop > $radius;
+
+    my $refs   = $cell->{'refs'} // 0;
+    my $factor = 0.1;                    ## base factor ##
+
+    if ( exists $neighbor_weights{$key} ) {
+        $factor = $neighbor_weights{$key};
+    } elsif ( defined $center_cluster ) {
+        for my $member ( @{ $clusters->{$center_cluster}{'members'} } ) {
+            if ( $member eq $key ) {
+                $factor = 0.3;    ## cluster boost ##
+                last;
+            }
+        }
+    }
+
+    my $contribution = $refs * $factor;
+    $counts->{$hop} += $contribution;
+    $total += $contribution;
+}
+
+return {
+    qw| counts | => $counts,
+    qw| total  | => $total,
+};
+
+#,,..,...,,,.,..,,.,.,...,..,,,,,,,..,,.,,,,,,..,,...,...,.,.,,,,,..,,...,...,
+#X7OIE3MKTHXEMNDE3MNI5MNN6DLV54KCUY5ZMSWYNG4Q5DXGLNURDJYF5ZSVEHJ4GZEYWNVKU3H7Q
+#\\\|H2BCV5R2MSTSQ35EGYG54NFISA5OH4ZES2EUCXEDZZJHUYLLE22 \ / AMOS7 \ YOURUM ::
+#\[7]GGYUBGZ7UUPPGDMOPXHUQRP7267HER7LPI4TBIV4L7A2EO7BFYBI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

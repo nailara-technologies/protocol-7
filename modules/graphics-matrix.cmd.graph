@@ -1,0 +1,183 @@
+## [:< ##
+
+# name  = graphics-matrix.cmd.graph
+# descr = manage similarity graph and visualize connections
+
+my $args = $call->{'args'} // '';
+
+## parse command ##
+my @tokens = split( / +/, $args );
+my $cmd    = $tokens[0] // '';
+
+if ( $cmd eq '' ) {
+
+    ## no args - show graph stats ##
+    my $graph = $data{'graphics-matrix'}{'graph'};
+    my $out   = sprintf "graph: %d edges, %d clusters\n",
+        $graph->{'count'} // 0,
+        scalar( keys %{ $graph->{'clusters'} // {} } );
+    return { qw| mode | => qw| size |, qw| data | => $out };
+
+} elsif ( $cmd eq qw| connect | ) {
+
+    return {
+        qw| mode | => qw| false |,
+        qw| data | => 'usage: graph connect <a> <b> [weight]'
+        }
+        if @tokens < 3;
+
+    my $a = $tokens[1];
+    my $b = $tokens[2];
+    my $w = $tokens[3] // 0.5;
+
+    my $result = <[graphics-matrix.graph.connect]>
+        ->( { qw| a | => $a, qw| b | => $b, qw| weight | => $w } );
+    return $result
+        if ref($result) eq qw| HASH | and $result->{'mode'} eq qw| false |;
+
+    my $out = sprintf "connected [%s] — [%s] weight=%.2f\n",
+        $result->{'a'}, $result->{'b'}, $result->{'weight'};
+    return { qw| mode | => qw| size |, qw| data | => $out };
+
+} elsif ( $cmd eq qw| disconnect | ) {
+
+    return {
+        qw| mode | => qw| false |,
+        qw| data | => 'usage: graph disconnect <a> <b>'
+        }
+        if @tokens < 3;
+
+    my $result = <[graphics-matrix.graph.disconnect]>
+        ->( { qw| a | => $tokens[1], qw| b | => $tokens[2] } );
+    my $out = sprintf "disconnect %s\n",
+        $result->{'removed'} ? 'ok' : 'not found';
+    return { qw| mode | => qw| size |, qw| data | => $out };
+
+} elsif ( $cmd eq qw| neighbors | ) {
+
+    my $target = @tokens > 1 ? $tokens[1] : '';
+    my $list   = <[graphics-matrix.graph.neighbors]>->($target);
+
+    my $out;
+    if ( length $target ) {
+        my $t = $target;
+        $t =~ s|:|,|g;
+        $out = "neighbors of [$t]:\n";
+    } else {
+        my $cursor = <[graphics-matrix.cursor.position]>;
+        $out = sprintf "neighbors of [%d,%d,%d]:\n",
+            $cursor->{'selX'}, $cursor->{'selY'}, $cursor->{'selZ'};
+    }
+
+    for my $item (@$list) {
+        my $coord = $item->{'cell'};
+        $coord =~ s|:|,|g;
+        $out .= sprintf "  [%s]  weight=%.2f\n", $coord, $item->{'weight'};
+    }
+
+    return { qw| mode | => qw| size |, qw| data | => $out };
+
+} elsif ( $cmd eq qw| cluster | ) {
+
+    my $threshold = @tokens > 1 ? $tokens[1] : 0.55;
+    my $result    = <[graphics-matrix.graph.cluster]>
+        ->( { qw| threshold | => $threshold } );
+
+    my $out = sprintf "%d clusters (threshold=%.2f):\n",
+        $result->{'clusters'}, $result->{'threshold'};
+
+    my $graph = $data{'graphics-matrix'}{'graph'};
+    my @cids  = sort keys %{ $graph->{'clusters'} };
+    for my $cid (@cids) {
+        my $c      = $graph->{'clusters'}{$cid};
+        my $center = $c->{'center'};
+        $center =~ s|:|,|g;
+        $out .= sprintf "  %s: %d member%s, center=[%s], avg=%.2f\n",
+            $cid,
+            scalar( @{ $c->{'members'} } ),
+            ( scalar( @{ $c->{'members'} } ) == 1 ? '' : 's' ),
+            $center,
+            $c->{'weight'};
+    }
+
+    return { qw| mode | => qw| size |, qw| data | => $out };
+
+} elsif ( $cmd eq qw| clusters | ) {
+
+    my $graph = $data{'graphics-matrix'}{'graph'};
+    my @cids  = sort keys %{ $graph->{'clusters'} // {} };
+
+    my $out = sprintf "%d cluster%s:\n",
+        scalar(@cids), ( scalar(@cids) == 1 ? '' : 's' );
+
+    for my $cid (@cids) {
+        my $c      = $graph->{'clusters'}{$cid};
+        my $center = $c->{'center'};
+        $center =~ s|:|,|g;
+        $out .= sprintf "  %s: %d member%s, center=[%s], avg=%.2f\n",
+            $cid,
+            scalar( @{ $c->{'members'} } ),
+            ( scalar( @{ $c->{'members'} } ) == 1 ? '' : 's' ),
+            $center,
+            $c->{'weight'};
+    }
+
+    return { qw| mode | => qw| size |, qw| data | => $out };
+
+} elsif ( $cmd eq qw| survey | ) {
+
+    my $survey = <[graphics-matrix.graph.survey]>;
+    <[graphics-matrix.glow.compute]>
+        ->( { qw| counts | => $survey->{'counts'} } );
+
+    my $glow = $data{'graphics-matrix'}{'glow'};
+    my $out  = sprintf "graph survey [total=%.2f]\n", $survey->{'total'} // 0;
+
+    if ( %{ $glow->{'shells'} } ) {
+        for my $hop ( sort { $a <=> $b } keys %{ $glow->{'shells'} } ) {
+            my $shell     = $glow->{'shells'}{$hop};
+            my $count     = $shell->{'count'}     // 0;
+            my $intensity = $shell->{'intensity'} // 0.0;
+            my $bar       = '█' x int( $intensity * 20 + 0.5 );
+            $out .= sprintf "  hop %d : count=%-6.2f intensity=%.2f  %s\n",
+                $hop, $count, $intensity, $bar;
+        }
+    } else {
+        $out .= "  [no shells computed]\n";
+    }
+
+    return { qw| mode | => qw| size |, qw| data | => $out };
+
+} elsif ( $cmd eq qw| edges | ) {
+
+    my $graph     = $data{'graphics-matrix'}{'graph'};
+    my @edge_keys = sort keys %{ $graph->{'edges'} // {} };
+
+    my $out = sprintf "%d edge%s:\n",
+        scalar(@edge_keys), ( scalar(@edge_keys) == 1 ? '' : 's' );
+
+    for my $edge_key (@edge_keys) {
+        my $e  = $graph->{'edges'}{$edge_key};
+        my $ca = $e->{'a'};
+        my $cb = $e->{'b'};
+        $ca =~ s|:|,|g;
+        $cb =~ s|:|,|g;
+        $out .= sprintf "  [%s] — [%s]  w=%.2f  (%s)\n",
+            $ca, $cb, $e->{'weight'}, $e->{'type'};
+    }
+
+    return { qw| mode | => qw| size |, qw| data | => $out };
+
+} else {
+
+    return {
+        qw| mode | => qw| false |,
+        qw| data | => "unknown graph command: $cmd"
+    };
+}
+
+#,,,,,.,,,,,.,,..,...,.,.,,..,.,,,...,,..,,.,,..,,...,..,,...,.,.,.,,,,..,,.,,
+#BPKVY6PXLG3LPI6EGU4APA45XOSNVXELIHYWBTNU2V26ZVLVICOKTW3BAEXRBLZMZEKPANJXJOFCS
+#\\\|SP6CD4B3ZOY2JCPKLNQDBCOLESVGUUBC7LV4YCH4VIGTMETWKMD \ / AMOS7 \ YOURUM ::
+#\[7]EB4NPLRUJWNKMINDT3AEXJDDNAWPNDKVICSWO7WWSIBDWELT7SBQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
