@@ -1,0 +1,47 @@
+## [:< ##
+
+# name  = graphics-matrix.channel.select
+# descr = select active context channel by index or label
+
+my $selector = shift // 0;
+
+my $channel_data = $data{'graphics-matrix'}{'channel'};
+my $channels     = $channel_data->{'channels'};
+my $index;
+
+## accept numeric index or label string ##
+if ( $selector =~ m/^\d+$/ ) {
+    $index = int($selector);
+} else {
+    ## look up index by label ##
+    for my $i ( keys %$channels ) {
+        if ( $channels->{$i}{'label'} eq $selector ) {
+            $index = int($i);
+            last;
+        }
+    }
+}
+
+## validate channel index ##
+return {
+    qw| mode | => qw| false |,
+    qw| data | => 'invalid channel selector'
+    }
+    if not defined $index
+    or $index < 0
+    or $index >= $channel_data->{'count'};
+
+$channel_data->{'active'} = $index;
+
+<[base.logs]>->(
+    2,      'channel.select → %s [%s]',
+    $index, $channels->{$index}{'name'}
+);
+
+return { %{ $channels->{$index} } };
+
+#,,,.,.,,,,..,,.,,,..,,,,,.,.,.,.,...,,..,.,.,..,,...,...,,..,.,.,.,,,,,,,,,,,
+#EG3SC6AMTXY5XWST5JJNF2G3LGHPAUBN62ASKS57QCDWU5MGMPJJUMQTV7L325AHIAAVGYPFGEG2M
+#\\\|JNW4MB6HY3VP7YUTCYKWBDOPZT4O4YTFY7K2MAGRHASIRTXLRTH \ / AMOS7 \ YOURUM ::
+#\[7]UMT5OLRATW5SIA3FALKFDRWJR3NYOFUNI3JT4KLB3YGSQWKP34AA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
