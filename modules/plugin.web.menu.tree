@@ -70,9 +70,9 @@ foreach my $item ( @{ $root_scan->{items} } ) {
     if (    $item->{type} eq 'dir'
         and $first_segment eq $item->{name}
         and $max_depth > 1 ) {
-        my $submenu_html
-            = _generate_submenu( $base_dir, $item_path, $current_path,
-            $max_depth - 1, 1 );
+        my $submenu_html = <[plugin.web.content.util.generate_submenu]>->(
+            $base_dir, $item_path, $current_path, $max_depth - 1, 1
+        );
         push @html_lines, $submenu_html if length($submenu_html);
     }
 
@@ -93,71 +93,8 @@ my $menu_html = join( "\n", @html_lines );
 
 return $menu_html;
 
-## Recursive submenu generation ##
-sub _generate_submenu {
-    my ( $base_dir, $parent_path, $current_path, $depth_remaining, $level )
-        = @_;
-
-    return '' if $depth_remaining <= 0;
-
-    ## Scan subdirectory ##
-    my $scan = <[web.scan_directory]>->( $base_dir, $parent_path, {} );
-    return '' if $scan->{status} ne qw| success |;
-
-    my @items = @{ $scan->{items} };
-    return '' unless @items;
-
-    my @html;
-    push @html, qq|    <ul class="menu-level-$level submenu">|;
-
-    foreach my $item (@items) {
-        ## Only show directories and index files ##
-        next if $item->{type} eq 'file' and !$item->{is_index};
-
-        my $item_path = $item->{path};
-        my $is_active = (
-                   $current_path eq $item_path
-                or $current_path =~ m|^\Q$item_path\E/|
-        );
-
-        my $css_class = 'menu-item submenu-item';
-        $css_class .= ' active'  if $is_active;
-        $css_class .= ' current' if $current_path eq $item_path;
-
-        my $display = $item->{display_name};
-        $display =~ s|_| |g;
-
-        push @html, qq|      <li class="$css_class">|;
-
-        if ($is_active) {
-            push @html,
-                qq|        <a href="/$item_path" class="menu-link active"><strong>$display</strong></a>|;
-        } else {
-            push @html,
-                qq|        <a href="/$item_path" class="menu-link">$display</a>|;
-        }
-
-        ## Recursively expand if directory and in current path ##
-        if (    $item->{type} eq 'dir'
-            and $is_active
-            and $depth_remaining > 1 ) {
-            my $submenu
-                = _generate_submenu( $base_dir, $item_path, $current_path,
-                $depth_remaining - 1,
-                $level + 1 );
-            push @html, $submenu if length($submenu);
-        }
-
-        push @html, qq|      </li>|;
-    }
-
-    push @html, qq|    </ul>|;
-
-    return join( "\n", @html );
-}
-
-#,,,,,..,,...,.,.,,.,,,,,,...,.,.,.,,,,..,.,.,..,,...,...,..,,...,...,...,...,
-#XOHAMVH4FRN53OPWALESP53GGMMPHSRFG7TW5UR4MRSSXE7LS2JYRBNENGYUKP5WTDENIAQW24DNQ
-#\\\|C2U2OGBIUPR6P7SMLOUT4XSNVAFXG2NMLYOTCWAWQRRADMRUZDM \ / AMOS7 \ YOURUM ::
-#\[7]GKFKRDYG4V75NUTYNZ7B5LYVEY2XCKULXUSPGCHSSREO5K27UUAI 7  DATA SIGNATURE ::
+#,,.,,,..,.,,,.,,,..,,..,,...,,.,,.,.,,,.,.,,,..,,...,...,,,.,.,.,...,.,,,..,,
+#PW34QCT5P4NR3FUNVMLRZ3EZSPUT7THOBX443TPYRYBSXXYPS6A3S7WVT4KIBWP6XVLJNBJTCOQZ4
+#\\\|3IW7727F4DCRB5OVPO45G3R5LQAJQ3XU35UGG3XWEMRONYYODHW \ / AMOS7 \ YOURUM ::
+#\[7]LMO57RYNKHFRD4DICIOWYB4SCDLWTUE2AABNAQOOCMZKV5XKCKDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

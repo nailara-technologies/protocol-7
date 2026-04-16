@@ -1,0 +1,43 @@
+## [:< ##
+
+# name  = plugin.web.space.handler.state_reply
+# descr = handle async reply from data source zenka
+
+my $reply = shift;
+
+my $params = $reply->{'params'}            // {};
+my $field  = $params->{'field'}            // return;
+my $data_r = $reply->{'call_args'}{'args'} // '';
+
+my $cache = <web.space.cache>;
+my $state = $cache->{'state'};
+
+if ( $field eq qw| cursor | ) {
+    ## parse cursor-state reply: "selX,selY,selZ zoom radius" ##
+    if ( $data_r =~ m|(\d+),(\d+),(\d+)| ) {
+        $state->{'cursor'} = {
+            qw| selX | => $1,
+            qw| selY | => $2,
+            qw| selZ | => $3,
+        };
+    }
+} elsif ( $field eq qw| graph | ) {
+    ## parse graph stats reply: "graph: N edges, M clusters" ##
+    if ( $data_r =~ m|(\d+)\s+edges.*?(\d+)\s+clusters| ) {
+        $state->{'edges'}    = $1;
+        $state->{'clusters'} = $2;
+    }
+}
+
+$cache->{'timestamp'} = time();
+$cache->{'source'}    = <web.space.cfg.data_source> // qw| unknown |;
+
+<[base.log]>->( 2, 'plugin.web.space : updated %s from reply', $field );
+
+return 0;
+
+#,,.,,,,.,,,.,,,.,...,.,.,,..,,,,,,,,,..,,..,,..,,...,.,.,.,,,,,,,,,,,..,,,..,
+#HMIPYEM2FS4UWDRXEMGJU4ULTPAQ3UWQOTXIAPTA5CIOHKVFEBK5FA4FGOZQ2TIKD6ZJEAHRDUG6I
+#\\\|KSMUAVJBVVNRZDPD7GADO5F4UFIMGYLO7RNHUYWVLRSYWNP5DB7 \ / AMOS7 \ YOURUM ::
+#\[7]G3DAXUPHQVS5F3OG3H6A52RGBZRIPKWJ3OYWC2BKUJACF6CUXQDA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

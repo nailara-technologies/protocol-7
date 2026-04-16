@@ -80,7 +80,7 @@ foreach my $item (@items) {
     $name =~ s|_| |g;
 
     ## Format size ##
-    my $size_str = _format_size($size);
+    my $size_str = <[plugin.web.content.util.format_size]>->($size);
 
     ## Format date ##
     my ( $sec, $min, $hour, $mday, $mon, $year ) = localtime($mtime);
@@ -128,7 +128,8 @@ foreach my $item (@items) {
     ## Checksum column (if enabled) ##
     if ($show_checksums) {
         if ( $type eq 'file' ) {
-            my $checksum = _calculate_checksum( $item->{full_path} );
+            my $checksum = <[plugin.web.content.util.calculate_checksum]>
+                ->( $item->{full_path} );
             push @html,
                 qq|    <td class="dirlist-checksum"><code>$checksum</code></td>|;
         } else {
@@ -147,38 +148,8 @@ my $listing_html = join( "\n", @html );
 
 return $listing_html;
 
-## Helper: Format file size ##
-sub _format_size {
-    my $bytes = shift;
-
-    return '0 B' if $bytes == 0;
-
-    my @units = qw( B KB MB GB TB );
-    my $unit  = 0;
-    my $size  = $bytes;
-
-    while ( $size >= 1024 and $unit < @units - 1 ) {
-        $size /= 1024;
-        $unit++;
-    }
-
-    return sprintf( '%.1f %s', $size, $units[$unit] );
-}
-
-## Helper: Calculate file checksum ##
-sub _calculate_checksum {
-    my $file_path = shift;
-
-    return 'n/a' unless -f $file_path and -r $file_path;
-
-    ## Use elf.vax-BASE32 checksum ##
-    my $checksum = <[chk-sum.elf.vax-BASE32]>->($file_path);
-
-    return $checksum // 'error';
-}
-
-#,,,,,.,.,.,,,,,.,..,,,,,,,..,.,,,.,.,,,,,.,,,..,,...,...,...,,..,,,.,,..,,..,
-#7MIKJQS55Y7SD4TFYF2Y25PCBVAL3JMX4T77GF7UXTYC5EFYFCDU7WDDOG44TRI627CQ24C7OQLOC
-#\\\|4LEFGIYM33GGPNI3ICQJXMNGUTSPSKHXCIN77UCI2TSMP7AMPJE \ / AMOS7 \ YOURUM ::
-#\[7]SLBIW3YGPZVDZN3R77OAH45HXQ7CZHICQOIJFENZFUE7ZFN5JEBY 7  DATA SIGNATURE ::
+#,,..,.,,,,..,,,.,,..,,.,,,..,.,.,...,,.,,.,,,..,,...,...,..,,.,.,,..,..,,,..,
+#QCRT4M4UWJUZK2BYYZFKJ32RUEN4GBXBL5RMO77G4WMSH7JA7UF347NP24QCFMUN33XLG6XYOPYNU
+#\\\|MEMDOVBKLUSEMMBWR76E3R36FZKIRY5TYWPQIGMXOVUHRBDAYT5 \ / AMOS7 \ YOURUM ::
+#\[7]NAPE7X7VE764FCGATHG3OWRBCKTBKEPOA5C6GSXN5WNFYRTHN4BQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,0 +1,38 @@
+## [:< ##
+
+# name  = plugin.web.space.fetch
+# descr = async fetch spatial state from data source zenka
+
+my $source = <web.space.cfg.data_source> // return;
+
+<[base.log]>->( 2, 'plugin.web.space.fetch : requesting from %s', $source );
+
+## request cursor position ##
+<[protocol-7.command.send.local]>->(
+    {   qw| command |   => "$source.cursor-state",
+        qw| call_args | => { qw| args | => '' },
+        qw| reply |     => {
+            qw| handler | => qw| plugin.web.space.handler.state_reply |,
+            qw| params |  => { qw| field | => qw| cursor | },
+        }
+    }
+);
+
+## request graph stats ##
+<[protocol-7.command.send.local]>->(
+    {   qw| command |   => "$source.graph",
+        qw| call_args | => { qw| args | => '' },
+        qw| reply |     => {
+            qw| handler | => qw| plugin.web.space.handler.state_reply |,
+            qw| params |  => { qw| field | => qw| graph | },
+        }
+    }
+);
+
+return 1;
+
+#,,..,...,,.,,,.,,.,,,,,.,...,.,.,.,,,...,,,.,..,,...,...,...,,.,,..,,,.,,.,,,
+#CL6I6L3HJICPNWTLVO2IHA7HGZUOH47LCCSFOF4PM7B6QNGQRFXXDUESKKUAPMGYXT6WZOKF4I53W
+#\\\|2KITCBEKA2QXR7ZU2SHTSIFUVYWZZJ7UDFR55VNS4NX6QR5ADTK \ / AMOS7 \ YOURUM ::
+#\[7]JHQ5RQQEDPDGC7URPUGOL3MT2QVDV7CX7XAQLOSAI5NDCQPNAICA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
