@@ -1,0 +1,173 @@
+## [:< ##
+
+# name  = graphics-matrix.cmd.cell
+# descr = place, query, and manage lattice cells
+
+my $args = $call->{'args'} // '';
+
+## parse command ##
+my @tokens = split( / +/, $args );
+my $cmd    = $tokens[0] // '';
+
+if ( $cmd eq '' ) {
+
+    ## no args - show cell at cursor position ##
+    my $cell = <[graphics-matrix.cell.query]>;
+    return cell_output($cell);
+
+} elsif ( $cmd eq qw| place | ) {
+
+    my $pos;
+    if ( @tokens > 1 ) {
+        my $addr     = join( ' ', @tokens[ 1 .. $#tokens ] );
+        my $resolved = <[graphics-matrix.address.resolve]>->($addr);
+        return $resolved if $resolved->{'mode'} eq qw| false |;
+        $pos = $resolved;
+    }
+    my $cell = <[graphics-matrix.cell.place]>
+        ->( defined $pos ? { qw| position | => $pos } : {} );
+    return $cell if ref($cell) eq qw| HASH | and $cell->{'mode'};
+    return cell_output($cell);
+
+} elsif ( $cmd eq qw| remove | ) {
+
+    my $pos;
+    if ( @tokens > 1 ) {
+        my $addr     = join( ' ', @tokens[ 1 .. $#tokens ] );
+        my $resolved = <[graphics-matrix.address.resolve]>->($addr);
+        return $resolved if $resolved->{'mode'} eq qw| false |;
+        $pos = $resolved;
+    }
+    my $result = <[graphics-matrix.cell.remove]>
+        ->( defined $pos ? { qw| position | => $pos } : {} );
+    my $out = sprintf "remove %s", $result->{'removed'} ? 'ok' : 'not found';
+    $out .= sprintf " (refs=%d)", $result->{'refs'};
+    return { qw| mode | => qw| size |, qw| data | => $out };
+
+} elsif ( $cmd eq qw| clear | ) {
+
+    my $pos;
+    if ( @tokens > 1 ) {
+        my $addr     = join( ' ', @tokens[ 1 .. $#tokens ] );
+        my $resolved = <[graphics-matrix.address.resolve]>->($addr);
+        return $resolved if $resolved->{'mode'} eq qw| false |;
+        $pos = $resolved;
+    }
+    my $result = <[graphics-matrix.cell.remove]>->(
+        {   qw| clear | => 1,
+            ( defined $pos ? ( qw| position | => $pos ) : () ),
+        }
+    );
+    my $out = sprintf "clear %s", $result->{'removed'} ? 'ok' : 'not found';
+    return { qw| mode | => qw| size |, qw| data | => $out };
+
+} elsif ( $cmd eq qw| query | ) {
+
+    return {
+        qw| mode | => qw| false |,
+        qw| data | => 'usage: cell query <addr>'
+        }
+        if @tokens < 2;
+
+    my $addr = join( ' ', @tokens[ 1 .. $#tokens ] );
+    my $cell = <[graphics-matrix.cell.query]>->($addr);
+    return $cell
+        if ref($cell) eq qw| HASH | and $cell->{'mode'} eq qw| false |;
+    return cell_output($cell);
+
+} elsif ( $cmd eq qw| survey | ) {
+
+    my $survey = <[graphics-matrix.cell.survey]>;
+    <[graphics-matrix.glow.compute]>
+        ->( { qw| counts | => $survey->{'counts'} } );
+
+    ## format output like cmd.glow ##
+    my $glow = $data{'graphics-matrix'}{'glow'};
+    my $out  = sprintf "cell survey [total=%d]\n", $survey->{'total'} // 0;
+
+    if ( %{ $glow->{'shells'} } ) {
+        for my $hop ( sort { $a <=> $b } keys %{ $glow->{'shells'} } ) {
+            my $shell     = $glow->{'shells'}{$hop};
+            my $count     = $shell->{'count'}     // 0;
+            my $intensity = $shell->{'intensity'} // 0.0;
+            my $bar       = '█' x int( $intensity * 20 + 0.5 );
+            $out .= sprintf "  hop %d : count=%-4d intensity=%.2f  %s\n",
+                $hop, $count, $intensity, $bar;
+        }
+    } else {
+        $out .= "  [no shells computed]\n";
+    }
+
+    return { qw| mode | => qw| size |, qw| data | => $out };
+
+} elsif ( $cmd eq qw| list | ) {
+
+    my $cursor = <[graphics-matrix.cursor.position]>;
+    my $list   = <[graphics-matrix.cell.list]>->(
+        {   qw| center | => {
+                qw| selX | => $cursor->{'selX'},
+                qw| selY | => $cursor->{'selY'},
+                qw| selZ | => $cursor->{'selZ'},
+            },
+        }
+    );
+
+    my $count  = scalar @$list;
+    my $radius = $cursor->{'radius'} // 0;
+    my $out    = sprintf "%d occupied cell%s within radius %d:\n",
+        $count, ( $count == 1 ? '' : 's' ), $radius;
+
+    for my $item (@$list) {
+        my $coord = $item->{'key'};
+        $coord =~ s|:|,|g;
+        $out .= sprintf "  [%s]  refs=%d  hop=%d  chk=%s\n",
+            $coord,
+            $item->{'refs'},
+            $item->{'distance'},
+            $item->{'checksum'} // qw| - |;
+    }
+
+    return { qw| mode | => qw| size |, qw| data | => $out };
+
+} elsif ( $cmd eq qw| count | ) {
+
+    my $count = $data{'graphics-matrix'}{'cell'}{'count'};
+    my $out   = sprintf "%d occupied cell%s\n",
+        $count, ( $count == 1 ? '' : 's' );
+    return { qw| mode | => qw| size |, qw| data | => $out };
+
+} else {
+
+    return {
+        qw| mode | => qw| false |,
+        qw| data | => "unknown cell command: $cmd"
+    };
+}
+
+## cell output formatter ##
+sub cell_output {
+    my $cell = shift;
+    my $pos  = $cell->{'position'};
+    my $out;
+    if ( $cell->{'empty'} ) {
+        $out = sprintf "cell [%d,%d,%d] empty\n",
+            $pos->{'selX'}, $pos->{'selY'}, $pos->{'selZ'};
+    } else {
+        $out = sprintf "cell [%d,%d,%d] refs=%d chk=%s\n",
+            $pos->{'selX'}, $pos->{'selY'}, $pos->{'selZ'},
+            $cell->{'refs'}, $cell->{'checksum'};
+        $out .= sprintf "  elements: %d\n",
+            scalar( @{ $cell->{'elements'} } );
+        $out .= sprintf "  created: %s\n",
+            scalar( localtime( $cell->{'created'} ) );
+        $out .= sprintf "  modified: %s\n",
+            scalar( localtime( $cell->{'modified'} ) );
+    }
+    return { qw| mode | => qw| size |, qw| data | => $out };
+}
+
+#,,..,.,.,..,,..,,.,.,,..,..,,...,,..,,,.,,,,,..,,...,...,...,,,.,,,,,..,,...,
+#S3LO5YCDTKNPQNTPWFXZSXSNXIDXMSLJVUYSBXYTJXENACXLAFT73PGGXY7Q4U5DOMDLDHR23PQEK
+#\\\|NX2C6MNCUEXJDT6NMY5VSSU2H52ZILD5NGJ4DJCALXI23NT2VAW \ / AMOS7 \ YOURUM ::
+#\[7]XZ4BGA7XLIMQ7NTHKZOKCYXPACE7Y4IEXMTOZV4AIFPH2ZDHLYBQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

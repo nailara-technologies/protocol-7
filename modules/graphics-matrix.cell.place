@@ -1,0 +1,76 @@
+## [:< ##
+
+# name  = graphics-matrix.cell.place
+# descr = place an element at a grid position
+
+my $params = shift // {};
+
+## default to cursor position if none provided ##
+my $pos = $params->{'position'} // <[graphics-matrix.cursor.position]>;
+
+my ( $selX, $selY, $selZ )
+    = ( $pos->{'selX'}, $pos->{'selY'}, $pos->{'selZ'} );
+
+return { qw| mode | => qw| false |, qw| data | => 'coordinates required' }
+    if not defined $selX
+    or not defined $selY
+    or not defined $selZ;
+
+my $key = sprintf "%d:%d:%d", $selX, $selY, $selZ;
+
+my $cell_store = $data{'graphics-matrix'}{'cell'};
+my $cells      = $cell_store->{'cells'};
+my $now        = time();
+
+if ( exists $cells->{$key} ) {
+    my $cell = $cells->{$key};
+    $cell->{'refs'}++;
+    push @{ $cell->{'elements'} }, $params->{'element'} // {};
+    $cell->{'modified'} = $now;
+    <[base.logs]>->(
+        2, 'cell.place [%d,%d,%d] refs=%d',
+        $selX, $selY, $selZ, $cell->{'refs'}
+    );
+    return $cell;
+}
+
+## new cell - register address and create ##
+my $reg = <[graphics-matrix.address.register]>->(
+    {   qw| position | => {
+            qw| selX | => $selX,
+            qw| selY | => $selY,
+            qw| selZ | => $selZ,
+        },
+    }
+);
+
+my $element = $params->{'element'} // {};
+my $label   = $params->{'label'};
+
+$element->{'label'} = $label if defined $label and length $label;
+
+my $cell = {
+    qw| position | => {
+        qw| selX | => $selX,
+        qw| selY | => $selY,
+        qw| selZ | => $selZ,
+    },
+    qw| refs     | => 1,
+    qw| elements | => [$element],
+    qw| checksum | => $reg->{'checksum'},
+    qw| created  | => $now,
+    qw| modified | => $now,
+};
+
+$cells->{$key} = $cell;
+$cell_store->{'count'}++;
+
+<[base.logs]>->( 2, 'cell.place [%d,%d,%d] refs=%d', $selX, $selY, $selZ, 1 );
+
+return $cell;
+
+#,,,,,,,,,,..,.,.,,,,,..,,,.,,...,...,...,.,.,..,,...,.,.,.,,,.,,,,,,,,..,..,,
+#FGCA36KKRZV6U47KCRQNPLVK3KCTXJ2WDOCR2RKCU33TKQWCER6MPSIKM2SXFKAUJDOC7ZAC6FUGO
+#\\\|LHBCPZDCRNKDH4QR6LY25TM4WPK7ELW5RQHUBGN2JY5GU3XFAIU \ / AMOS7 \ YOURUM ::
+#\[7]ULT3VK3X55EMQ4PBPFQA2T4DY2EQANLNGJ7G3IIKZH3ZY5JPXODI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

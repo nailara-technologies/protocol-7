@@ -1,0 +1,72 @@
+## [:< ##
+
+# name  = graphics-matrix.cell.list
+# descr = list occupied cells with optional filtering
+
+my $params = shift // {};
+
+my $center = $params->{'center'};
+my $radius = $params->{'radius'} // 0;
+my $limit  = $params->{'limit'}  // 20;
+my $sort   = $params->{'sort'}   // qw| distance |;
+
+my ( $cx, $cy, $cz );
+if ( defined $center ) {
+    ( $cx, $cy, $cz )
+        = ( $center->{'selX'}, $center->{'selY'}, $center->{'selZ'} );
+}
+
+my $cells = $data{'graphics-matrix'}{'cell'}{'cells'};
+my @results;
+
+for my $key ( keys %$cells ) {
+    my $cell = $cells->{$key};
+
+    my ( $x, $y, $z ) = (
+        $cell->{'position'}{'selX'},
+        $cell->{'position'}{'selY'},
+        $cell->{'position'}{'selZ'},
+    );
+
+    my $distance = 0;
+    if ( defined $center ) {
+        $distance = abs( $x - $cx ) + abs( $y - $cy ) + abs( $z - $cz );
+        next if $radius > 0 and $distance > $radius;
+    }
+
+    push @results,
+        {
+        qw| key      | => $key,
+        qw| refs     | => $cell->{'refs'},
+        qw| distance | => $distance,
+        qw| elements | => scalar( @{ $cell->{'elements'} } ),
+        qw| checksum | => $cell->{'checksum'},
+        };
+}
+
+## sort results ##
+if ( $sort eq qw| refs | ) {
+    @results = sort { $b->{'refs'} <=> $a->{'refs'} } @results;
+} elsif ( $sort eq qw| recent | ) {
+    @results = sort {
+        ( $cells->{ $b->{'key'} }{'modified'} // 0 )
+            <=> ( $cells->{ $a->{'key'} }{'modified'} // 0 )
+    } @results;
+} else {
+    ## default: distance ##
+    @results = sort {
+               $a->{'distance'} <=> $b->{'distance'}
+            or $a->{'key'} cmp $b->{'key'}
+    } @results;
+}
+
+## apply limit ##
+splice @results, $limit if scalar @results > $limit;
+
+return \@results;
+
+#,,,,,.,,,...,...,,,,,,.,,,.,,,..,,..,.,.,,,.,..,,...,..,,.,,,.,,,.,.,...,.,.,
+#T67DDC5LJW6KMA6L7DGQL47E4KHMI3NY5AX7ZMIYSP3VTDOCGEHEW6XL2RVAOIVW3Y5U7HOKVGDQ4
+#\\\|7KKFDGHYHNWUNEUGUBJZ5LMO3JZYQI7HBHJRHGCEYGCS65BHQEE \ / AMOS7 \ YOURUM ::
+#\[7]YRHAGNH5FDC3YJLZBMBAAV55X3WVYL4MNQ2BOJXORWEU5X3GUKDI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

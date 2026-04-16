@@ -1,0 +1,58 @@
+## [:< ##
+
+# name  = graphics-matrix.cell.query
+# descr = query cell state at a grid position
+
+my $input = shift // '';
+
+my $pos;
+
+if ( ref($input) eq qw| HASH | and defined $input->{'position'} ) {
+    $pos = $input->{'position'};
+} elsif ( ref($input) eq qw| HASH | and scalar keys %$input ) {
+    ## hashref without explicit position - use as position directly ##
+    $pos = $input;
+} elsif ( length $input ) {
+    ## string address - resolve it ##
+    my $resolved = <[graphics-matrix.address.resolve]>->($input);
+    return $resolved if $resolved->{'mode'} eq qw| false |;
+    $pos = $resolved;
+} else {
+    ## empty input - default to cursor ##
+    $pos = <[graphics-matrix.cursor.position]>;
+}
+
+my ( $selX, $selY, $selZ )
+    = ( $pos->{'selX'}, $pos->{'selY'}, $pos->{'selZ'} );
+
+return { qw| mode | => qw| false |, qw| data | => 'coordinates required' }
+    if not defined $selX
+    or not defined $selY
+    or not defined $selZ;
+
+my $key = sprintf "%d:%d:%d", $selX, $selY, $selZ;
+
+my $cells = $data{'graphics-matrix'}{'cell'}{'cells'};
+
+if ( exists $cells->{$key} ) {
+    my $cell = $cells->{$key};
+    my $copy = {%$cell};
+    $copy->{'position'} = { %{ $cell->{'position'} } };
+    $copy->{'elements'} = [ @{ $cell->{'elements'} } ];
+    return $copy;
+}
+
+return {
+    qw| empty    | => 1,
+    qw| position | => {
+        qw| selX | => $selX,
+        qw| selY | => $selY,
+        qw| selZ | => $selZ,
+    },
+};
+
+#,,.,,,,,,.,.,.,,,.,.,.,,,...,,..,...,,,,,...,..,,...,...,,,,,..,,,,.,..,,..,,
+#EY5EY52MM4QVH5ZBEQ5LG44FWOFKN6BDC5E3W2VOQZUBZMUEQ2HVIUJMBPQICBNYBVHR5PUVYIKIE
+#\\\|2RIAQ2GKW6GZSSRLHILMX5SDFI7FNASXER5DO7TGX4FNF4BUUVS \ / AMOS7 \ YOURUM ::
+#\[7]GOONYFPCOB3ZOFTUEG45JDZQ6OHWWQWWEMKLVIDCL4QJFIH4QWDY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
