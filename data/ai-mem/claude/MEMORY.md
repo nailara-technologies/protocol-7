@@ -38,6 +38,7 @@
   code/data/state/history/planning, branch summarization, universal off-band access
 - `topic-async-tool-loop-debug.md` — RESOLVED: async tool loop fixes, XML parsing, root cause chain
 - `feedback-list-return-format.md` — list backends: mode 'size' + formatted string, not arrayref
+- `topic-searchable-index-and-visualization.md` — checksum-indexed dataspace, space.v7.ax/source.v7.ax, index/file zenki
 
 ## File Creation Notes (CRITICAL)
 - **Never add** the single-line `#,,.,,,...` stub at end of new files
@@ -124,6 +125,19 @@
 - Full pipeline: cells → graph edges → clusters → survey → glow → channels → color
 - Design: spatial tuning, division-13-table frequency mapping, magenta as alpha channel
 - Details in `topic-completed.md`
+
+### Completed (Apr 16-17 2026) — web template pipeline + space.v7.ax
+- pattern_split capture group fix: non-capturing groups (?<!...) miscounted, filtered with grep
+- web template pipeline: httpd → web zenka → process_template_recursive → plugin commands → HTML
+- space.v7.ax vhost: plugin.web.space.* modules (init_code, state, fetch, handler.state_reply)
+- content-type override: web.response.content_type template command, IPC header prefix, reply extraction
+- .tmpl routing: serve_static + http_head route all .tmpl files through template processor
+- HEAD for templates: full render for correct Content-Length/Content-Type, body suppressed
+- inline sub extraction (kimi): 3 util modules from plugin.web.content.dirlist + menu.tree
+- httpd template content-type: .tmpl matched as text/html, kimi task
+- log cleanup: removed level-0 debug scaffolding from IPC/reply handler, switched to base.logs
+- $data shadowing fix: renamed to $reply_content in httpd.handler.web_template_reply
+- plugin init naming: plugin.web.space.init → init_code for lifecycle hook discovery
 
 ### Active / Partial
 - **namespace tree as intelligence layer**: see `topic-namespace-tree-intelligence.md`
@@ -271,8 +285,8 @@
 - Pattern: `my @non_num = grep { defined $data_ref->{$ARG}->{$key} and not looks_like_number(...) } keys $data_ref->%*`
 - Global `$SIG{__WARN__}` exists — if wrapping warn handler, capture `$prev_warn = $SIG{__WARN__}` first and call through
 
-#,,,.,...,.,.,,.,,.,,,,..,.,.,,..,,..,,,.,,.,,..,,...,...,.,,,,..,.,,,,,,,.,.,
-#TFLEBOWFVC37DH6PADYHXMKGEOBN3HJTJDQLMST27VRAALJLFKABA3LXEXXX5TADMHJCZV7MCH2UI
-#\\\|56RJZCYD4AVOY6MKAWQBAV7NTYLAK3K6L4YF7OYLTO2HW3IMWP7 \ / AMOS7 \ YOURUM ::
-#\[7]5E2NRDSU4BVXB4RIEOM2NQSGESFIRWDLGRPRLH3WVAABX4A5Q4DA 7  DATA SIGNATURE ::
+#,,,,,,..,..,,...,,,.,,.,,.,,,.,,,,,.,.,,,,,,,..,,...,...,..,,,,,,,..,...,,..,
+#25BZW5L3SPRUXRLDXPXN2LHS6KB6UPM3B3SJX7XIOLKAFMGIIF62LDWQZR7G2KWM5S3KAOOS2ZDRW
+#\\\|WVRZYUZJB63QZQVSK6VRZ2HL3TKEL2MU6OAXI32AZMG35KXRM7K \ / AMOS7 \ YOURUM ::
+#\[7]MICCX3D6XNTJDEFAFN6NCZE5YJNMJOSTGG3IQAUC2ST7ITSX26BY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
