@@ -28,12 +28,14 @@ Protocol-7 is a **multi-agent system** (zenki) built in Perl with:
 - **`data/lib-path/pm/AMOS7/`** - AMOS7 Perl modules (checksums, truth, crypto)
 
 ### Recent Work (Check These for Context)
-- **`modules/models.*`** - Multi-model chat backend routing + memory system
-- **`modules/models.memory.*`** - Just implemented! Persistent storage with collision-free checksums
-- **`modules/coding.*`** - Async ML inference orchestration
-- **`modules/httpd.*`** - Async HTTP server
+- **`modules/coding.*`** - Async ML inference orchestration with tool loop
+- **`modules/httpd.*`** - Async HTTP server with template rendering
 - **`modules/httpsd.*`** - HTTPS server with Let's Encrypt integration
-- **`modules/letsencr.*`** - ACME client (RS256, not EdDSA!)
+- **`modules/web.*`** - Template processing pipeline (process_template_recursive, IPC)
+- **`modules/plugin.web.*`** - Web plugins (space visualization, content utilities)
+- **`modules/graphics-matrix.*`** - 36+ modules: cursor, glow, channels, cells, graph
+- **`modules/kimi.*`** - Kimi zenka (websocket, task queue, JSON tools)
+- **`modules/task.*`** - Task coordination between kimi/coding/models
 
 ## Where to Look First (By Task Type)
 
@@ -105,7 +107,7 @@ p7c 'list sessions'                                    # See active zenki
 p7c -c modules/module.name                             # Syntax check protocol-7 module
 ```
 
-**Note**: Use `p7c -c` not `perl -c` for syntax checking. Protocol-7 modules use `<[...]>` syntax that requires transformation before Perl can parse them.
+**Note**: Use `ptd -c` not `perl -c` for syntax checking. Protocol-7 modules use `<[...]>` syntax that requires transformation before Perl can parse them.
 
 ### Git Workflow (CRITICAL: Respect Pre-Commit Hooks!)
 
@@ -136,54 +138,30 @@ git commit -m "message"
 - File: `configuration/protocol-7.src-ver`
 - Must match: `git rev-list --count hub/base..HEAD`
 
-## Current Session Context (2026-02-20)
+## Current State (2026-04-17)
 
-### Just Completed
-- ✅ **Memory System** (`modules/models.memory.*`)
-  - Collision-free checksums using AMOS7::TEMPLATE
-  - Tie::Dir integration for file checking
-  - 6 functions: add, show, append, exists, name, del
-  - Storage: `/var/protocol-7/models/memory/CHECKSUM.TIMESTAMP`
+### Infrastructure — Working
+- **web template pipeline**: httpd → web zenka → process_template_recursive → plugin commands → HTML
+- **content-type override**: templates can set response mime type via `<[web.response.content_type:...]>`
+- **space.v7.ax**: spatial visualization vhost with template rendering, plugin.web.space.* modules
+- **coding zenka**: async tool loop with 50+ templates, 16+ tools, context compaction
+- **kimi zenka**: websocket client, task queue, JSON tools, auto-approval, session management
+- **task zenka**: coordination between kimi/coding/models for task dispatch
+- **MCP server**: Claude Code integration via mcp__protocol-7__* tools
+- **graphics-matrix**: 36+ modules for spatial data (cursor, glow, channels, cells, graph)
 
-### Prior Work (Reference These)
-- Backend routing for multi-model chat (kimi/llama/claude)
-- RS256 ACME implementation for Let's Encrypt
-- HTTPS server with SNI support
-- Async HTTP server with non-blocking I/O
+### Active Direction
+- **searchable checksum-indexed dataspace**: nodes as single base32 characters in namespace grid
+- **index zenka**: planned — checksum-path index with anonymizing algorithm
+- **source.v7.ax**: planned — code browsing and search UI
+- **UI-first approach**: visualization drives index requirements, templates as generic interface
 
-### Next Steps (Suggestions)
-
-**Completed (2026-02-20):**
-- ✅ Chat buffer integration: `[:memory:CHECKSUM]` expansion working
-- ✅ Memory system fully implemented with collision detection
-
-**High Priority:**
-1. **Local model chat integration** (IN PROGRESS - use coding zenka!)
-   - Issue: Local backend is fully async, chat needs sync responses
-   - Current: `models.backend.local.invoke_sync` started but blocks event loop
-   - Problem: Using `select()` for polling blocks entire models zenka → timeout
-   - **SOLUTION**: Route through coding zenka's existing async infrastructure!
-   - Coding zenka already has child processes for inference with async→sync bridging
-   - Files to check:
-     - `modules/coding.cmd.submit` - task submission interface
-     - `modules/coding.task.*` - task queue system
-     - `modules/coding.spawn_inference_server` - llama-server management
-     - `modules/coding.handler.*` - async response handlers
-   - Binary: `/data/source/ik_llama.cpp/llama-server-cuda-fa` (exists)
-   - Models: 20+ models registered, see `p7c 'models.list models'`
-   - Approach: Create simple chat→coding adapter or use coding.cmd.submit directly
-   - Started: `modules/models.backend.coding.invoke` (basic structure)
-
-2. **Filesystem-driven model discovery** (refactor needed)
-   - Remove hardcoded paths like `/data/source/ik_llama.cpp/`
-   - Discover binaries dynamically from filesystem
-   - Make it more Protocol-7 style (less hardcoding, more discovery)
-
-3. **Kimi-coding integration**: Connect Kimi model with coding zenka for task orchestration
-
-4. **Memory management**: Add list/search commands for memory items
-
-5. **Vision model detection fix**: Qwen3-VL-8B shows "no" for vision support (should be "yes")
+### Key Patterns Since Feb 2026
+- **kimi task dispatch**: write task file to `data/md/coding-tasks/`, run `bin/kimi-task <file>`
+- **plugin system**: `plugin.web.*` namespace loaded via `[load_plugins]`, reloadable separately
+- **inline sub extraction**: modules must not contain `sub {}` — each file IS the subroutine
+- **template commands**: `<[module.name:arg]>` in .tmpl files, processed by web zenka
+- **base.parser.pattern_split**: callback receives SCALAR REFS, dereference with `$$captured`
 
 ## Tips for Kimi Specifically
 
@@ -265,4 +243,4 @@ ai-mem/
 
 ---
 
-**Welcome to Protocol-7, Kimi!** You've got good instincts - trust them and explore. The code is holographic: understanding one part illuminates the whole. 🌟
+**Welcome to Protocol-7, Kimi!** Trust your instincts and explore. The code is holographic: understanding one part illuminates the whole.
