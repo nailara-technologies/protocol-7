@@ -39,6 +39,7 @@
 - `topic-async-tool-loop-debug.md` — RESOLVED: async tool loop fixes, XML parsing, root cause chain
 - `feedback-list-return-format.md` — list backends: mode 'size' + formatted string, not arrayref
 - `topic-searchable-index-and-visualization.md` — checksum-indexed dataspace, space.v7.ax/source.v7.ax, index/file zenki
+- `feedback-web-serialization-and-inlining.md` — parallel JSON+YAML data endpoints, inline CSS/JS for offline-viewable native-app-like reliability
 
 ## File Creation Notes (CRITICAL)
 - **Never add** the single-line `#,,.,,,...` stub at end of new files
@@ -285,8 +286,8 @@
 - Pattern: `my @non_num = grep { defined $data_ref->{$ARG}->{$key} and not looks_like_number(...) } keys $data_ref->%*`
 - Global `$SIG{__WARN__}` exists — if wrapping warn handler, capture `$prev_warn = $SIG{__WARN__}` first and call through
 
-#,,,,,,..,..,,...,,,.,,.,,.,,,.,,,,,.,.,,,,,,,..,,...,...,..,,,,,,,..,...,,..,
-#25BZW5L3SPRUXRLDXPXN2LHS6KB6UPM3B3SJX7XIOLKAFMGIIF62LDWQZR7G2KWM5S3KAOOS2ZDRW
-#\\\|WVRZYUZJB63QZQVSK6VRZ2HL3TKEL2MU6OAXI32AZMG35KXRM7K \ / AMOS7 \ YOURUM ::
-#\[7]MICCX3D6XNTJDEFAFN6NCZE5YJNMJOSTGG3IQAUC2ST7ITSX26BY 7  DATA SIGNATURE ::
+#,,.,,,.,,..,,,,,,,,,,...,,..,,..,,..,..,,.,,,..,,...,...,...,.,.,,.,,,,,,.,.,
+#FR6GND7EKMMVXRNWLVKUS5WLSM5DSBGTO4RA6XISHTOU5OTUHRKNXSSK2UR5CFJTQT5HTG3BYA5A4
+#\\\|AWR3KCM4YW7ZGYVTCJT5MK3C2HXRZ7WXH7UUVMOHC3UBB5ZUUYU \ / AMOS7 \ YOURUM ::
+#\[7]ABMJHSJO6G7KUJZNSPFS7MVCRV77Q6YUMD4FVSYWKWBMXJPARCCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
