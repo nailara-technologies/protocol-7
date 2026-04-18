@@ -1,0 +1,81 @@
+## [:< ##
+
+# name  = plugin.web.space.grid.scan
+# descr = walk target directory and populate grid cache with gen_path coordinates
+
+my $target_dir = <web.space.grid.cfg.target_dir> // qw| data/md/design |;
+my $base_path  = $target_dir;
+
+## resolve relative path against project root if needed ##
+if ( index( $target_dir, qw| / | ) != 0 ) {
+    my $root = <system.root_path> // $ENV{'PWD'} // qw| . |;
+    $base_path = "$root/$target_dir";
+}
+
+## ensure directory exists ##
+if ( not -d $base_path ) {
+    <[base.log]>->(
+        0, 'plugin.web.space.grid.scan : target dir not found: %s', $base_path
+    );
+    return;
+}
+
+my @cells;
+my @dirs_to_scan = ($base_path);
+
+## manual directory recursion [ no File::Find needed ] ##
+while ( my $current_dir = shift @dirs_to_scan ) {
+    opendir my $dh, $current_dir
+        or next;
+
+    my @entries = readdir $dh;
+    closedir $dh;
+
+    foreach my $entry (@entries) {
+        next if $entry eq '.' or $entry eq '..';
+
+        my $full_path = "$current_dir/$entry";
+
+        if ( -d $full_path ) {
+            push @dirs_to_scan, $full_path;
+        } elsif ( -f $full_path ) {
+            my $rel_path = $full_path;
+            $rel_path =~ s|^$base_path/||;
+
+            my $seed = $full_path;
+            my $gen_path
+                = eval { <[index.gen_path]>->($seed) } // qw| error |;
+
+            my ( $size, $mtime ) = ( stat($full_path) )[ 7, 9 ];
+
+            push @cells,
+                {
+                qw| path     | => $full_path,
+                qw| rel_path | => $rel_path,
+                qw| gen_path | => $gen_path,
+                qw| size     | => $size  // 0,
+                qw| mtime    | => $mtime // 0,
+                };
+        }
+    }
+}
+
+my $cache = <web.space.grid.cache> // {};
+
+$cache->{'target_dir'} = $target_dir;
+$cache->{'file_count'} = scalar @cells;
+$cache->{'cells'}      = \@cells;
+$cache->{'timestamp'}  = time();
+
+<[base.log]>->(
+    2,              'plugin.web.space.grid.scan : scanned %s files in %s',
+    scalar(@cells), $target_dir
+);
+
+return $cache;
+
+#,,..,,.,,,.,,..,,.,.,.,,,...,..,,,,.,,,.,,..,..,,...,...,,,.,.,.,.,.,,.,,.,,,
+#XQK2WDV5V27KL4ADXO7SKIPPOFKBZCCOIMM3BRI6M7AEHLKDTE7HWKF6IC5NO5AD3RQKUB2AACTRU
+#\\\|G6BXNWIHFSLGN4KRQIHFKUFB63URYFJA2QBKL3MTVDQ2BNPPV6K \ / AMOS7 \ YOURUM ::
+#\[7]JOSDZAGTW7YGXENAVG735DLWWASO4ZFUKKWQRHWULMCB77NPOUBI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
