@@ -153,7 +153,8 @@ if ( $arg eq qw| init | or $arg eq qw| all | ) {
 
     ##  if above call leaves entries, assume not defined or error state  ##
     $modules_init_success = FALSE
-        if <[base.is_defined_recursive]>->(qw| base.subroutines.referenced |);
+        if ref <base.subroutines.referenced> eq qw| HASH |
+        and scalar keys %{ <base.subroutines.referenced> };
 
     if ($modules_init_success) {
 
@@ -195,8 +196,8 @@ delete <system.reload>;    ## completed ##
 $reply->{'mode'} = qw| data |;
 $reply->{'data'} .= $reply_footer;
 
-#,,.,,,..,..,,,..,,.,,.,,,,..,.,.,,,.,...,.,.,..,,...,...,..,,...,,,,,,..,...,
-#HSDFXLJZWJGPQ2ATCL3XHYQB7WZ2YM6E42SGSKLP2CNJUILGK2QJOVACBAC765YHYRNXPRKURHVBO
-#\\\|4R5KUKS64CG2CLJZBOVPGLTSBCJBOP4JLYPKBMDHK2MPONNM67I \ / AMOS7 \ YOURUM ::
-#\[7]WOOPXE7ZDHUDRQN53W5YKWE6AWODMVTR32H26IOSQNJHFKWL6IAY 7  DATA SIGNATURE ::
+#,,..,,..,,,.,...,..,,...,..,,..,,.,,,,.,,...,..,,...,...,..,,...,,.,,,..,,.,,
+#UTS7U3OI5H6CJNJGZ4XLZROIEUF3MWE4YS6BFCVRZQCR6E5KNFTNRMSQSA67VWPYAING7TI7EWWDS
+#\\\|HM5WDUOPUKRYLIRBOXMFVGWS45WSBSMGSM6HTEE364JCSIJ3FFX \ / AMOS7 \ YOURUM ::
+#\[7]MRMYHDS6F77UZZV4J4UNS3CFLZHAOGIMICRN2S42DFMMKDYKFUAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
