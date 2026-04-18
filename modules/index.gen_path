@@ -32,7 +32,7 @@ while ( !@path_structure ) {
         );
         push( @path_structure, $dir_name )
             if    ## truth filtering names ##
-            is_true( $dir_name, join ' ', @truth_elf_mode_filter );
+            is_true( $dir_name, 0, 1, @truth_elf_mode_filter );
     }
     if ( @path_structure < $minimum_subdir_count ) {
         my $path_reseed = join( '', reverse sort ( @checksums, $$s_ref ) );
@@ -43,8 +43,8 @@ while ( !@path_structure ) {
 
 return join qw| / |, @path_structure;
 
-#,,.,,,..,,,.,,..,..,,,.,,,,.,..,,...,,,,,..,,..,,...,...,.,,,.,,,,..,.,.,..,,
-#KVFDNYB25ZODO42HETMLXZY5X6U5JJ7HUN4T53NIWMQSRELSNW22CHPDFSO76HY7NORU4O7CSDHEU
-#\\\|4I2HZAHDYP74IHQVTTAGC7TYRFQ4WZLZB3G6RBQSFGODFRGQ7BY \ / AMOS7 \ YOURUM ::
-#\[7]EX5S7QMYU2SUJRYJOPKEEV2NDH2MT36GXZOCGQN7U2UVQKRPQ2CA 7  DATA SIGNATURE ::
+#,,..,,..,,.,,,,.,.,,,,.,,,.,,,,.,...,...,..,,..,,...,.,.,.,.,,,,,,,,,,,,,..,,
+#XBX7CWNQENFZIRDXFULO3E3YPLK4AFJJRKE7RQTPSDNHPMVGMXZ4EJ7E5KXH7EFFJNWE226IBSKBS
+#\\\|BJOZTIFX7PQFFSSDJ5P4CGYQPNCYJJO5O3JUEQIQK764X3NFPVN \ / AMOS7 \ YOURUM ::
+#\[7]P72ZZNU5ERF4SXQ362WACF5UEUREYKP5LAUST43BE73RF7GW56AY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

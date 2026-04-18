@@ -46,15 +46,19 @@ while ( my $current_dir = shift @dirs_to_scan ) {
             my $gen_path
                 = eval { <[index.gen_path]>->($seed) } // qw| error |;
 
-            my ( $size, $mtime ) = ( stat($full_path) )[ 7, 9 ];
+            ##  bin/Protocol-7 does 'use File::stat' globally — shadows  ##
+            ##  the builtin ; use the OO form like the rest of P7 does  ##
+            my $st    = File::stat::stat($full_path);
+            my $size  = $st ? $st->size  : 0;
+            my $mtime = $st ? $st->mtime : 0;
 
             push @cells,
                 {
                 qw| path     | => $full_path,
                 qw| rel_path | => $rel_path,
                 qw| gen_path | => $gen_path,
-                qw| size     | => $size  // 0,
-                qw| mtime    | => $mtime // 0,
+                qw| size     | => $size,
+                qw| mtime    | => $mtime,
                 };
         }
     }
@@ -74,8 +78,8 @@ $cache->{'timestamp'}  = time();
 
 return $cache;
 
-#,,..,,.,,,.,,..,,.,.,.,,,...,..,,,,.,,,.,,..,..,,...,...,,,.,.,.,.,.,,.,,.,,,
-#XQK2WDV5V27KL4ADXO7SKIPPOFKBZCCOIMM3BRI6M7AEHLKDTE7HWKF6IC5NO5AD3RQKUB2AACTRU
-#\\\|G6BXNWIHFSLGN4KRQIHFKUFB63URYFJA2QBKL3MTVDQ2BNPPV6K \ / AMOS7 \ YOURUM ::
-#\[7]JOSDZAGTW7YGXENAVG735DLWWASO4ZFUKKWQRHWULMCB77NPOUBI 7  DATA SIGNATURE ::
+#,,,,,,..,...,,,.,,..,.,.,,.,,,,,,,,,,,,,,,,.,..,,...,...,,,.,,..,.,,,.,,,.,.,
+#L4UOVAAUWFS6I2QF4ZYR5VQ4VIKHUE3ZWLX6NIY7W22YLQDMRTLMRKE5XREPQIXDQQ363UHP566CY
+#\\\|3I7IDB5IOXL3XTUG2BWPBXW2LMR54CI6ZPWKDQTUYJSYCLSWDPE \ / AMOS7 \ YOURUM ::
+#\[7]RKYH5MENLJCSIVSI73BXIDG667RWHVH26NYNI6IDQXQ23RUT56DY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
