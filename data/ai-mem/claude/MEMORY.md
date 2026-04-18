@@ -40,6 +40,7 @@
 - `feedback-list-return-format.md` — list backends: mode 'size' + formatted string, not arrayref
 - `topic-searchable-index-and-visualization.md` — checksum-indexed dataspace, space.v7.ax/source.v7.ax, index/file zenki
 - `feedback-web-serialization-and-inlining.md` — parallel JSON+YAML data endpoints, inline CSS/JS for offline-viewable native-app-like reliability
+- `feedback-file-stat-shadowing.md` — bin/Protocol-7 `use File::stat` shadows builtin stat; always use `File::stat::stat($p)->size/mtime` in modules
 
 ## File Creation Notes (CRITICAL)
 - **Never add** the single-line `#,,.,,,...` stub at end of new files
@@ -286,8 +287,8 @@
 - Pattern: `my @non_num = grep { defined $data_ref->{$ARG}->{$key} and not looks_like_number(...) } keys $data_ref->%*`
 - Global `$SIG{__WARN__}` exists — if wrapping warn handler, capture `$prev_warn = $SIG{__WARN__}` first and call through
 
-#,,.,,,.,,..,,,,,,,,,,...,,..,,..,,..,..,,.,,,..,,...,...,...,.,.,,.,,,,,,.,.,
-#FR6GND7EKMMVXRNWLVKUS5WLSM5DSBGTO4RA6XISHTOU5OTUHRKNXSSK2UR5CFJTQT5HTG3BYA5A4
-#\\\|AWR3KCM4YW7ZGYVTCJT5MK3C2HXRZ7WXH7UUVMOHC3UBB5ZUUYU \ / AMOS7 \ YOURUM ::
-#\[7]ABMJHSJO6G7KUJZNSPFS7MVCRV77Q6YUMD4FVSYWKWBMXJPARCCI 7  DATA SIGNATURE ::
+#,,,,,,.,,.,,,,.,,,..,...,...,,,,,.,.,.,,,,,,,..,,...,...,...,.,.,.,,,,.,,..,,
+#E2IZXLZ3D6IBT4FG3IG2KT4X7CFY5GEJ444YZ5756TR4GAYQSTAC3IE7LMDBYWPFX2IZTEEONA6AK
+#\\\|RNQC4U34NNAIJI27MJKXLLFMPZHCK3GIF5Y255U5MRL6PBX45T7 \ / AMOS7 \ YOURUM ::
+#\[7]TAL2W3CACLOZXR64I5OXWEZ7NF44C7HVZBBLOM54NI2CSKEB2WAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
