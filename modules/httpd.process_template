@@ -13,25 +13,23 @@ my $response_params = $session->{'response'}->{'params'};
 my $content_date    = time2str( int( $session->{'start_time'} ) );
 my $content_type    = qw| text/plain |;
 $content_type = qw| text/html | if $template_path =~ m{\.(html|tmpl)$};
+my $site_dir = <httpd.site_dir>;
+( my $template_path_rel = $template_path ) =~ s{$site_dir/*}{};
 
 # LLL: ;charset=...
 
-<[base.log]>->(
-    1, "[process_template] $template_path [offloading to web zenka]"
-);
+<[base.logs]>->( 1, '[%s] <-- < web zenka >', $template_path_rel );
 
 ## Load template content ##
-my $template_content = <[file.slurp]>->($template_path);
+my $template_content = <[file.slurp]>->($template_path)->$*;
 
 unless ( defined $template_content ) {
-    <[base.log]>->(
-        0, "[$session_id] failed to read template: $template_path"
+    <[base.logs]>->(
+        0,           "[%d] failed to read template : %s",
+        $session_id, $template_path
     );
     return <[httpd.send_error_page]>->( $session_id, 500 );
 }
-
-## Dereference if file.slurp returned a scalar reference ##
-$template_content = $$template_content if ref($template_content) eq 'SCALAR';
 
 ## Store template processing state in session ##
 $session->{'content'} = {
@@ -41,9 +39,10 @@ $session->{'content'} = {
     'template_path' => $template_path,
 };
 
-## Generate unique template ID for tracking ##
-my $template_id = sprintf( 'httpd_%s_%d',
-    <[chk-sum.elf.vax-BASE32]>->($template_path), time() );
+## Generate unique template ID for tracking ## [LLL] improve algorithm [LLL]
+my $template_id = sprintf( qw| httpd_%s_%d |,
+    <[chk-sum.elf.vax-BASE32]>->($template_path),
+    <[base.time]> );
 
 ## Prepare meta variables from session ##
 my $meta_vars = $session->{'meta'} // {};
@@ -53,21 +52,20 @@ my $meta_vars = $session->{'meta'} // {};
 my $meta_json = <[httpd.json.encode]>->($meta_vars) // qw| {} |;
 my $meta_b32r = encode_b32r($meta_json);
 
-## Encode template content as base32r to avoid colon delimiter conflicts in IPC
+## Encode template content as base32r to
+## avoid colon delimiter conflicts in IPC
 my $template_b32r = encode_b32r($template_content);
 
-<[base.log]>->(
-    2,
-    "[$session_id] offloading template to web zenka: $template_id ["
-        . length($template_content)
-        . " bytes]"
+<[base.logs]>->(
+    2, "[%d] offloading template to web zenka : %s [%03d bytes]",
+    $session_id, $template_id, length($template_content)
 );
 
 ## Send template to web zenka for recursive processing ##
 <[protocol-7.command.send.local]>->(
     {   'command'   => qw| cube.web.process_template_ipc |,
         'call_args' => {
-            'args' => join( ':',
+            'args' => join( qw| : |,
                 $template_id, $template_b32r, $meta_b32r, $session_id )
         },
         'reply' => {
@@ -80,15 +78,15 @@ my $template_b32r = encode_b32r($template_content);
     }
 );
 
-<[base.log]>->(
-    3,
-    "[$session_id] template processing request sent to web zenka: $template_id"
+<[base.logs]>->(
+    3,           "[%d] template processing request sent to web zenka [%s]",
+    $session_id, $template_id
 );
 
 return 1;    ## Keep connection alive, waiting for web zenka reply ##
 
-#,,.,,,,,,,,,,..,,,,.,,,.,...,..,,,,,,.,.,.,.,..,,...,...,,..,,.,,.,,,,,,,.,,,
-#ASYBPG6NIA65UN4CZIXDZ5B6E2G6Y6P7FHDXZ3VDVF7P5UJDDMVMK6N5B23HNHITRHCCFVYEGA6BQ
-#\\\|WYUJ67P3SPZZLV5COZ7DQXM6A7JFHI5Y6H3BFXQYGCFZDCBLOX4 \ / AMOS7 \ YOURUM ::
-#\[7]ZLN7FJEZ52BWFHNKZNXVD7M2C2BL4KGLFHVPXL3VCVRRRK3T7KDQ 7  DATA SIGNATURE ::
+#,,.,,,.,,.,,,,,,,,,.,..,,,.,,...,,..,,.,,...,..,,...,...,.,.,,,.,,,,,.,.,,..,
+#6VV72JPXUF22LDCGGBHC4Z6D6OQSFTNQPSI25SLEIREQKMVZCYZ2EEYQG4TM7WHHICY4WN22PJ2RY
+#\\\|CSF7ILUWN3V6KQSFAN34XVV75LSPNXQMSRHWIOV4NRDK6VTZMCZ \ / AMOS7 \ YOURUM ::
+#\[7]2YCCS7FVGX6QYBMDBO7MNVQGXLXNF5BUJ3QZOT2AHCVSNWBKCWDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
