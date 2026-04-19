@@ -1,0 +1,66 @@
+## [:< ##
+
+# name  = plugin.web.space.index.cmd.rebuild
+# descr = rebuild of the persistent code repository index
+
+## protect against re-entry ##
+if ( <web.space.index.running> ) {
+    return {
+        qw| mode | => qw| false |,
+        qw| data | => 'index rebuild already in progress'
+    };
+}
+
+<web.space.index.running> = 1;
+
+my $start_time = <[base.time]>->(4);
+
+## scan ##
+my $scan_result = eval { <[plugin.web.space.index.scan]>->() };
+if ( $EVAL_ERROR or not defined $scan_result ) {
+    <web.space.index.running> = 0;
+    return {
+        qw| mode | => qw| false |,
+        qw| data | => sprintf( 'scan failed: %s', $EVAL_ERROR // qw| unknown | )
+    };
+}
+
+## persist ##
+my $persist_ok = eval { <[plugin.web.space.index.persist]>->() };
+if ( $EVAL_ERROR or not $persist_ok ) {
+    <web.space.index.running> = 0;
+    return {
+        qw| mode | => qw| false |,
+        qw| data | => sprintf(
+            'persist failed: %s', $EVAL_ERROR // qw| unknown |
+        )
+    };
+}
+
+my $duration_ms = int(
+    ( <[base.time]>->(4) - $start_time ) * 1000
+);
+
+my $persist_dir = <web.space.index.cfg.persist_dir> // qw| space-index |;
+my $zenka_data_path = eval { <[file.zenka_dir.data_path]>->() } // qw| /var/protocol-7/web |;
+
+<web.space.index.running> = 0;
+
+return {
+    qw| mode | => qw| true |,
+    qw| data | => JSON::XS::encode_json(
+        {   qw| file_count  | => $scan_result->{'file_count'} // 0,
+            qw| duration_ms | => $duration_ms,
+            qw| persist_paths | => [
+                "$zenka_data_path/$persist_dir/modules.json",
+                "$zenka_data_path/$persist_dir/modules.yaml",
+            ],
+        }
+    )
+};
+
+#,,..,.,.,..,,,,.,,.,,...,,,.,,..,,,.,,,.,.,.,..,,...,...,...,,.,,.,.,,,.,,,,,
+#MP4KAUTDJ5MLARPMFEMY3UNWSE6TSWIPYXIP7TZY446NPOUT6WOWP7O7JZSIBLNPYUHFXNIJWIG5C
+#\\\|M2FJSRLKO6HAI2H6EJOEXJAJTBTE5WBUGHEVKNFR5IZGDX4EJ7P \ / AMOS7 \ YOURUM ::
+#\[7]YSLAVVTDBFPV7FKAM3MTIXVKEM5FQWI5NC4NENBP76J2SUL632AA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
