@@ -1,0 +1,98 @@
+## [:< ##
+
+# name  = base.cmd.cancel-stream
+# descr = cancel outbound reply stream for given cmd_id
+# note  = does excise un-drained frames when present
+# param = <cmd_id>
+
+my $sid      = $call->{'session_id'};
+my $args     = $call->{'args'} // '';
+my $cmd_id   = $args =~ m|^\s*(\d+)\s*$| ? 0 + $1 : undef;
+
+return {
+    'mode' => qw| false |,
+    'data' => 'usage : cancel-stream <cmd_id>'
+    }
+    if not defined $cmd_id or $cmd_id == 0;
+
+my $session = $data{'session'}{$sid};
+
+##  walk the deque once ; compute absolute offsets ; note hits  ##
+my $deque   = $session->{'obs_deque'} // [];
+my $offset  = 0;
+my @hits;      ##  array of { idx, offset, byte_len }  ##
+
+for ( my $idx = 0 ; $idx < $deque->@* ; $idx++ ) {
+
+    my $rec = $deque->[$idx];
+
+    if ( $rec->{'cmd_id'} == $cmd_id ) {
+        push @hits,
+            {
+            'idx'      => $idx,
+            'offset'   => $offset,
+            'byte_len' => $rec->{'byte_len'},
+            };
+    }
+
+    $offset += $rec->{'byte_len'};
+}
+
+if ( not @hits ) {
+    return {
+        'mode' => qw| false |,
+        'data' => sprintf(
+            'no active stream transfer [ cmd_id %d ]', $cmd_id
+        ),
+    };
+}
+
+##  excise back-to-front so earlier offsets stay valid  ##
+my $output_ref = \$session->{'buffer'}->{'output'};
+my $excised    = 0;
+
+for my $hit ( reverse @hits ) {
+
+    substr $output_ref->$*,
+        $hit->{'offset'}, $hit->{'byte_len'}, '';
+
+    $excised += $hit->{'byte_len'};
+}
+
+##  remove the deque records [ also back-to-front for stable indices ]  ##
+for my $hit ( reverse @hits ) {
+    splice $deque->@*, $hit->{'idx'}, 1;
+}
+
+delete $session->{'obs_deque'} if not $deque->@*;
+
+##  sender-side stream state [ if any ]  ##
+delete $session->{'streams'}{$cmd_id}
+    if defined $session->{'streams'}
+    and ref $session->{'streams'} eq qw| HASH |;
+
+delete $session->{'route'}{$cmd_id}
+    if defined $session->{'route'}
+    and ref $session->{'route'} eq qw| HASH |;
+
+<[base.logs]>->(
+    2,
+    '[%d] cancel-stream cmd_id=%d : excised %d bytes [ %d frame%s ]',
+    $sid, $cmd_id, $excised, scalar(@hits),
+    <[base.cnt_s]>->( scalar @hits ),
+);
+
+return {
+    'mode' => qw| true |,
+    'data' => sprintf(
+        'stream cancelled [ cmd_id %d : %d bytes %d frame%s excised ]',
+        $cmd_id, $excised, scalar(@hits),
+        <[base.cnt_s]>->( scalar @hits ),
+    ),
+};
+
+#,,.,,,,,,...,,.,,...,.,,,,,.,.,.,..,,..,,.,,,..,,...,..,,,,,,,.,,...,,..,,..,
+#7K47KUUBWW6OXOT4XVGTUNKZAPLR5HRLERJC64LRV63DXKM5AHQVWUSLP47NCFW4H2V6PC2WERSSK
+#\\\|BP2VCATUKC22EEFYROG4OL4N4JNZSKEKSV3BQFC622KXV6FT3MT \ / AMOS7 \ YOURUM ::
+#\[7]KOQ4IUYVEHKSIBFTXKTVUFHLTFRFEPGVJHA36O7XKRPUA5EOQ2DI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
