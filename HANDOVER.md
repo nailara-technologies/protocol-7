@@ -1,3 +1,139 @@
+# Session Handover — 2026-04-18
+
+> **Previous session**: 2026-04-05 — see bottom of file for archived notes.
+
+## What Just Happened
+
+### Searchable Index Build Pipeline — IMPLEMENTED, BLOCKED ON ASYNC
+Implementation of section 5.2 of `SEARCHABLE-INDEX-SESSION-STATE.md` — persistent, checksummed, on-demand code repository indexing for `space.v7.ax`.
+
+**New modules** (6):
+- `plugin.web.space.index.init_code` — cache init, cfg defaults, restore from disk
+- `plugin.web.space.index.scan` — manual dir walk, BMW 512-bit checksum, gen_path, stats
+- `plugin.web.space.index.persist` — atomic JSON+YAML write via `file.zenka_dir.write`
+- `plugin.web.space.index.load` — restore cache from persisted JSON on startup
+- `plugin.web.space.index.cmd.rebuild` — on-demand `web.index-rebuild` trigger
+- `plugin.web.space.index` — template command with `summary`, `json`, `json-raw`, `yaml-raw` sections
+
+**Templates**:
+- `/var/httpd/space.v7.ax/index.json.tmpl` — JSON API endpoint
+- `/var/httpd/space.v7.ax/index.yaml.tmpl` — YAML API endpoint
+- `/var/httpd/space.v7.ax/index.tmpl` — updated with `plugin.web.space.index:summary` block
+
+**Runtime verified**:
+- `web.index-rebuild` completes in ~5.5s, indexes 3548 files
+- Persists to `/var/protocol-7/web/space-index/modules.json` (~1MB)
+- Idempotent: two consecutive rebuilds with no file changes produce identical output
+
+**Bug fix applied** — `index.gen_path` list context leak:
+- Root cause: `map { <[chk-sum.amos]>->(...) }` evaluates in list context, so `amos_chksum` returned `($encoded, $numerical)` — the numerical value (e.g. `559104`, `57601`) is shorter than 7 chars, causing `substr outside of string` warnings
+- Fix: `map { scalar <[chk-sum.amos]>->(...) }` — forces scalar context, only base32 encoded string returned
+- Affects 2 files out of 3548 when seeded with BMW checksums (rare but consistent)
+
+---
+
+## What Is Blocking Us
+
+### HTTP Endpoint Timeouts — CRITICAL
+**Symptom**: Requesting `http://space.v7.ax/index.json` causes httpd zenka to hang for 23s, then get SIGTERM'd by cube timeout watchdog and restarted.
+
+**Log chain**:
+```
+httpd : [NNNN] static file route [default]
+httpd : [NNNN] serve_static : request : '/index.json'
+httpd : [space.v7.ax/index.json.tmpl] <-- < web zenka >
+: instance X [ httpd ] response timeout , retrying ,
+: instance X [ httpd ] response timeout `:|
+: instance X ['httpd']   online --> error
+: : <TERM> instance PID NNNN
+```
+
+**Root cause**: `httpd.process_template` dispatches to the **web zenka** for template rendering. The web zenka processes `<[plugin.web.space.index:json-raw]>` synchronously. Inside that template command, the current on-disk code does:
+```perl
+<web.space.index.json_cached>
+    = eval { JSON::XS::encode_json($payload) } // '{}';
+require YAML::XS;
+<web.space.index.yaml_cached>
+    = eval { YAML::XS::Dump($payload) } // "--- {}\n";
+```
+
+Both `JSON::XS::encode_json` and `YAML::XS::Dump` of 3548-cell payload are **blocking CPU-intensive operations** that stall the web zenka's single event loop. The httpd zenka is waiting for a reply from web zenka via IPC. Web zenka never replies in time → httpd timeout → SIGTERM → restart.
+
+**Why pre-encoding during scan doesn't help** (currently):
+The pre-encoded values are stored in `<web.space.index.json_cached>` and `<web.space.index.yaml_cached>`, but `JSON::XS::encode_json` in `scan` and `load` is STILL blocking on 3548 cells during rebuild/load. The HTTP request then asks for `json-raw` which returns the cached string instantly — but if a rebuild is running concurrently, or if the web zenka is busy with the blocking encode, the httpd request starves.
+
+**The real fix needed**: Make the scan/load/rebuild chain **non-blocking** or move the heavy serialization off the web zenka's event loop.
+
+---
+
+## What Needs Doing
+
+### 1. Non-Blocking Serialization for Index Pipeline
+**Priority: critical** | **Where**: `plugin.web.space.index.scan`, `plugin.web.space.index.load`, `plugin.web.space.index.persist`
+
+Options to explore:
+- **Async file I/O**: Replace `chk-sum.bmw.filesum` (blocking `addfile` on 3548 files) with event-based chunked reads. `base.chk-sum.bmw.filesum` itself has a note: `this will block on large files --> event based async. method ..,`
+- **Offload to worker/callback**: Use `base.callback` or `base.timer` to run scan in background, store result when done. HTTP endpoints serve stale cache during rebuild.
+- **Incremental/ streaming JSON**: Build JSON string incrementally per cell instead of `encode_json($payload)` on giant hashref.
+- **YAML fallback without YAML::XS**: `YAML::XS::Dump` is unreliable at runtime (sometimes undefined despite `require YAML::XS`). Manual YAML string construction works but is fragile. Consider skipping YAML entirely or using a lightweight serializer.
+
+**Important constraints**:
+- `bin/Protocol-7` does `use File::stat` globally — must use `File::stat::stat($path)->size/->mtime` OO form
+- `JSON::XS` is available via `web.init_code` autoload
+- `YAML::XS::Dump` is NOT reliably available at runtime — persist/load must handle failure gracefully
+- `file.zenka_dir.write` / `file.zenka_dir.load` are the correct persistence paths (web zenka runs as `protocol-7` user, cannot write arbitrary project paths)
+
+### 2. HTTP Endpoint Verification
+**Priority: high** | **Where**: `/var/httpd/space.v7.ax/index.{json,yaml}.tmpl`
+
+Once non-blocking, verify:
+- `NO_PROXY=space.v7.ax curl http://space.v7.ax/index.json` returns valid JSON instantly
+- `NO_PROXY=space.v7.ax curl http://space.v7.ax/index.yaml` returns valid YAML instantly
+- `http://space.v7.ax/` renders summary block without delay
+- Concurrent rebuild + HTTP request does not crash httpd zenka
+
+### 3. `index.gen_path` Hardening
+**Priority: medium** | **Where**: `modules/index.gen_path`
+
+The `scalar` fix is applied but the module still has a pre-existing validation gap:
+- It assumes 7-char AMOS checksum output without validating
+- Could be made more robust by checking `length($checksum) >= 7` before `substr` loops
+- Reseed loop `while (!@path_structure)` could theoretically infinite-loop on pathological input
+
+### 4. Grid + Index Coordination
+**Priority: medium** | **Where**: `plugin.web.space.grid.scan`, `plugin.web.space.index.scan`
+
+Both scan modules exist but are independent:
+- Grid scans `data/md/design` for content-addressed paths (seeded by file path)
+- Index scans `modules` for BMW checksums + gen_path (seeded by checksum)
+- Consider unified scan scheduler to avoid duplicate directory walks
+- Grid scan also calls `index.gen_path` — verify it doesn't trigger the same list-context bug (it passes plain strings, not checksums, so numerical return values weren't an issue there)
+
+---
+
+## Key Files
+
+### Index Pipeline
+- `modules/plugin.web.space.index.init_code`
+- `modules/plugin.web.space.index.scan`
+- `modules/plugin.web.space.index.persist`
+- `modules/plugin.web.space.index.load`
+- `modules/plugin.web.space.index.cmd.rebuild`
+- `modules/plugin.web.space.index`
+- `modules/index.gen_path` (fixed list-context bug)
+
+### Templates
+- `/var/httpd/space.v7.ax/index.tmpl`
+- `/var/httpd/space.v7.ax/index.json.tmpl`
+- `/var/httpd/space.v7.ax/index.yaml.tmpl`
+
+### Documentation
+- `data/md/design/SEARCHABLE-INDEX-SESSION-STATE.md` — section 5.2
+- `data/md/coding-tasks/space-index-build-pipeline.md`
+- `data/md/coding-tasks/space-index-grid-endpoint.md`
+
+---
+
 # Session Handover — 2026-04-05
 
 ## What Just Happened
