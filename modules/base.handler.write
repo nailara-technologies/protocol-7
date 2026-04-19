@@ -63,6 +63,9 @@ if ( fileno $session->{'handle'} ) {
 
             substr( $session->{'buffer'}->{'output'}, 0, $size_written, '' );
 
+            <[base.stream.advance_drain]>->( $id, $size_written )
+                if defined $session->{'obs_deque'};
+
             ## Recalculate write size for next iteration [ using byte length,
             ## not character count ]
 
@@ -129,8 +132,8 @@ $session->{'shutdown'} = 1 if !$write_size and $session->{'flush_shutdown'};
 
 return FALSE;
 
-#,,..,..,,,,,,..,,..,,,.,,,..,.,.,,,,,,,.,.,,,..,,...,...,,,.,.,,,.,,,.,,,,.,,
-#HFTORW4Q3IONVP4U66G3MUFNH3PADVIUSJZQ2WQVFSWX6B6QCXGNOEGCGL4L3JGUQ43HT34GBIHDI
-#\\\|TLTTU4GY7O2S6G44OHDJFP5W6QPN2QRTI4I6MHPANXMRAUZQBVY \ / AMOS7 \ YOURUM ::
-#\[7]P3NTQ47QEPDMQCBG42V35AZGQMWPRXLG5QGPT7IFKKOHX3GVSIDI 7  DATA SIGNATURE ::
+#,,.,,,..,...,,,,,.,,,.,.,,,,,.,.,,.,,,,,,,..,..,,...,...,...,,.,,.,,,,..,.,.,
+#O4SFV75HRSQVDCCKL4ISHMIGAMOFU6EG2IMX4TI3R3PCAOFWSMMRXXTTFH45E6ZXFT4MUWWP4SSKK
+#\\\|J6W5V6S3YJV2N7GRSJQ6QWA2DW7KCIQLFOADWL3AP7AW6DX7BLZ \ / AMOS7 \ YOURUM ::
+#\[7]RLZR7WH6ZSBA6THHN34QR73JMBOPLKT3MSIURM4P67JZCFDW6ICA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

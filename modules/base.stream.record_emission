@@ -1,0 +1,29 @@
+## [:< ##
+
+# name  = base.stream.record_emission
+# descr = record an outbound-stream emission for possible later cancellation
+# param = ( session_id, cmd_id, byte_len, type )
+
+my ( $sid, $cmd_id, $byte_len, $type ) = @ARG;
+
+return if not defined $sid    or not exists $data{'session'}{$sid};
+return if not defined $cmd_id or $cmd_id !~ m|^\d+$| or $cmd_id == 0;
+return if not defined $byte_len or $byte_len < 1;
+
+my $session = $data{'session'}{$sid};
+$session->{'obs_deque'} //= [];
+
+push $session->{'obs_deque'}->@*,
+    {
+    'cmd_id'   => 0 + $cmd_id,
+    'byte_len' => 0 + $byte_len,
+    'type'     => $type // 'SIZE',
+    };
+
+return;
+
+#,,..,..,,,..,.,.,...,,..,,,,,,.,,...,,,,,.,,,..,,...,...,.,.,,.,,,,,,,..,.,.,
+#PQVU32XB6DQESLVPXXCF7OUTCPPYPNCUP4ZQUUCIDKRY5ZL2OMF5H24DQOVLONKMD773ZAJFMXVGQ
+#\\\|W3HOEFPX76OUFH6YJZ4XXULRBFZU3LURQVCL3PLRMUW2QYCONMV \ / AMOS7 \ YOURUM ::
+#\[7]XQG373OZCUVVZR2ZUYRN6TEXV5WKMBTRD6S2HUTEEML7JWN566CY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

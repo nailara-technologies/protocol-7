@@ -1,0 +1,38 @@
+## [:< ##
+
+# name  = base.stream.advance_drain
+# descr = consume N drained bytes from the head of the outbound-stream deque
+
+my ( $sid, $bytes ) = @ARG;
+
+return if not defined $sid or not exists $data{'session'}{$sid};
+return if not defined $bytes or $bytes < 1;
+
+my $deque = $data{'session'}{$sid}{'obs_deque'};
+return if not defined $deque or not $deque->@*;
+
+my $remaining = 0 + $bytes;
+
+while ( $remaining > 0 and $deque->@* ) {
+
+    my $head = $deque->[0];
+
+    if ( $head->{'byte_len'} <= $remaining ) {
+        $remaining -= $head->{'byte_len'};
+        shift $deque->@*;
+    } else {
+        $head->{'byte_len'} -= $remaining;
+        $remaining = 0;
+    }
+}
+
+delete $data{'session'}{$sid}{'obs_deque'}
+    if not $deque->@*;
+
+return;
+
+#,,,,,,,.,,,,,,,.,..,,..,,,,.,...,.,,,.,.,.,.,..,,...,...,,..,,,,,.,.,,,.,.,,,
+#ZDU3LXJTUGYWZH655FU4ZRKBDBLSHXCJY6BYU7JAFUYW74XS7BOB3FO6WW7JDXBFEFBV4RAIUPV42
+#\\\|Z6J3LSVFHX4LAMB42IZ3GJJXJULPYHXXWQFRJVCZ4O4XIHEYPRO \ / AMOS7 \ YOURUM ::
+#\[7]ET2CPP6DZ5PYBPSAV3HVYDURIE2J2364EBW6U6M3SCJD3FWDWSBQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
