@@ -1,0 +1,75 @@
+## [:< ##
+
+# name  = plugin.web.space.index
+# descr = return current index state as html fragment for template embedding
+
+my $section = shift // qw| summary |;
+
+## ensure cache and config exist [ init_code may not have run ] ##
+eval {
+    <web.space.index.cache> //= {
+        qw| target_dir | => qw| unknown |,
+        qw| file_count | => 0,
+        qw| cells      | => [],
+        qw| timestamp  | => 0,
+    };
+    <web.space.index.cfg.target_dir>  //= qw| modules |;
+    <web.space.index.cfg.persist_dir> //= qw| space-index |;
+};
+return sprintf '<!-- index init error: %s -->', $@ if $@;
+
+my $cache = <web.space.index.cache>;
+
+my $target_dir = $cache->{'target_dir'} // qw| unknown |;
+my $file_count = $cache->{'file_count'} // 0;
+my $cells      = $cache->{'cells'}      // [];
+my $timestamp  = $cache->{'timestamp'}  // 0;
+my $age        = time() - ( $timestamp // 0 );
+
+my $persist_dir = <web.space.index.cfg.persist_dir> // qw| space-index |;
+
+## summary section — default ##
+if ( $section eq qw| summary | ) {
+
+    my @lines;
+    push @lines, '<div class="space-state">';
+    push @lines,
+          sprintf '  <div class="state-row">'
+        . '<span class="label">target dir</span>'
+        . '<span class="value">%s</span></div>', $target_dir;
+    push @lines,
+          sprintf '  <div class="state-row">'
+        . '<span class="label">file count</span>'
+        . '<span class="value">%s</span></div>', $file_count;
+    push @lines,
+          sprintf '  <div class="state-row">'
+        . '<span class="label">cache age</span>'
+        . '<span class="value">%ds</span></div>', $age;
+    push @lines,
+          sprintf '  <div class="state-row">'
+        . '<span class="label">persist dir</span>'
+        . '<span class="value">%s</span></div>', $persist_dir;
+    push @lines, '</div>';
+
+    return join( "\n", @lines );
+
+} elsif ( $section eq qw| json | ) {
+
+    ## json wrapped in script tag — for inline javascript consumption ##
+    my $json = <web.space.index.json_cached> // '{}';
+    return sprintf '<script>window.spaceIndex = %s;</script>', $json;
+
+} elsif ( $section eq qw| json-raw | ) {
+
+    ## raw json — for api endpoints with content-type override ##
+    return <web.space.index.json_cached> // '{}';
+
+} elsif ( $section eq qw| yaml-raw | ) {
+
+    ## raw yaml — for perl clients and humans ##
+    return <web.space.index.yaml_cached> // "--- {}\n";
+
+} else {
+
+    return sprintf '<!-- unknown index section: %s -->', $section;
+}

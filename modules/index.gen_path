@@ -12,7 +12,7 @@ my @truth_elf_mode_filter = qw| 7 9 |;
 $s_ref = \"$s_ref" if ref($s_ref) eq '';
 
 while ( !@path_structure ) {
-    my @checksums = map { <[chk-sum.amos]>->( $s_ref, $ARG ) } @subdir_modes;
+    my @checksums = map { scalar <[chk-sum.amos]>->( $s_ref, $ARG ) } @subdir_modes;
 
 ##                                                                     ##
 ##   splitting amos-chksum entropy into anti-entropic directory tree   ##

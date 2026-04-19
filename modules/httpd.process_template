@@ -61,14 +61,19 @@ my $template_b32r = encode_b32r($template_content);
     $session_id, $template_id, length($template_content)
 );
 
+my $template_args
+    = join( qw| : |, $template_id, $template_b32r, $meta_b32r, $session_id );
+
+<[base.logs]>->(
+    2,           "[%d] :. template args '%s' .:",
+    $session_id, $template_args
+);
+
 ## Send template to web zenka for recursive processing ##
 <[protocol-7.command.send.local]>->(
     {   'command'   => qw| cube.web.process_template_ipc |,
-        'call_args' => {
-            'args' => join( qw| : |,
-                $template_id, $template_b32r, $meta_b32r, $session_id )
-        },
-        'reply' => {
+        'call_args' => { 'args' => $template_args },
+        'reply'     => {
             'handler' => qw| httpd.handler.web_template_reply |,
             'params'  => {
                 'client_sid'  => $session_id,
