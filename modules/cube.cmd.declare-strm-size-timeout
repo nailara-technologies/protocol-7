@@ -1,12 +1,12 @@
 ## [:< ##
 
 # name  = cube.cmd.declare-strm-size-timeout
-# descr = update strm-size timeout for session (runtime adjustment)
+# descr = update strm-size timeout for session [runtime]
 # param = <timeout_seconds>
 
 my $param   = shift;
-my $sid     = $param->{'sid'};
-my $timeout = $param->{'args_list'}[0];
+my $sid     = $param->{'session_id'};
+my $timeout = ( split /\s+/, $param->{'args'} // '' )[0];
 
 return { mode => 'false', data => 'timeout required' }
     unless defined $timeout and $timeout =~ m/^\d+$/;
@@ -23,8 +23,8 @@ return {
     data => sprintf( 'timeout set to %ds', $timeout )
 };
 
-#,,..,..,,..,,,..,,,.,,,,,..,,,,,,..,,.,,,,,.,..,,...,...,..,,,..,.,,,,,,,,.,,
-#FCEERS2YCG3Q4EHKNWIL4VEFN52UQTMUPOIK22CMXFUX3DBYDDQHOXXCIHTCKUIKAPDNDBH4WDURG
-#\\\|ZCXX5U6WPLQIFZFFYBBNOVB2WE7FRJURCVJFXVBBU7FKYT3XL2R \ / AMOS7 \ YOURUM ::
-#\[7]CYVW3RVCWLIX6Q6EPLXILLYYSXZ6OKUFJWYUDOZ57YCGW4A3EIDA 7  DATA SIGNATURE ::
+#,,.,,.,,,...,..,,,.,,,,,,...,,..,,,,,.,,,,,,,..,,...,...,.,.,...,,,,,,..,,.,,
+#2LQXR3UVODXEHSLVPZXJRYCVNXL4UBKJMSNCCCYR5KIOZPTRJTF4T3PHF46XHAVSQ7IO3KFZXXHLI
+#\\\|S5EGC6WWRTQVFKSQPYAGDJVAZHQZM3CRESNLFSOZYIDMUQEMIRR \ / AMOS7 \ YOURUM ::
+#\[7]GDTQPFY2TLISZYJWIWCHNZTYQZIYTG3D5VNPS2WUHKYU3MMYFKAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

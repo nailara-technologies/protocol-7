@@ -1462,6 +1462,8 @@ UNKNOWN_TYPE_HANDLED:
                         my $chunk_size = <protocol.strm_size.packet_size>
                             // 8192;
 
+                        my $_stream_before = bytes::length( $output->$* );
+
                         ## STRM-SIZE open ##
                         $output->$* .= sprintf "%sSTRM-SIZE open %d\n",
                             $cmd_id_str, $count;
@@ -1482,6 +1484,12 @@ UNKNOWN_TYPE_HANDLED:
                         $output->$* .= sprintf "%sSTRM-SIZE close\n",
                             $cmd_id_str;
 
+                        <[base.stream.record_emission]>->(
+                            $id, $cmd_id,
+                            bytes::length( $output->$* ) - $_stream_before,
+                            'STRM-SIZE',
+                        );
+
                         <[base.logs]>->(
                             2,   '[%d] STRM-SIZE sent : %d bytes in chunks',
                             $id, $count
@@ -1498,9 +1506,15 @@ UNKNOWN_TYPE_HANDLED:
 
                     } else {
                         ## SIZE mode [ default ]: count bytes ##
+                        my $_stream_before = bytes::length( $output->$* );
                         $output->$* .= <[base.sprint_t]>->(
                             qw| X3QVAWA |, $cmd_id_str,
                             $count,        $data_to_send
+                        );
+                        <[base.stream.record_emission]>->(
+                            $id, $cmd_id,
+                            bytes::length( $output->$* ) - $_stream_before,
+                            'SIZE',
                         );
                     }
 
@@ -1942,8 +1956,8 @@ UNKNOWN_CMD_GLOBAL_HANDLED:
 
 return 0;        ## comand complete ##
 
-#,,..,,.,,,..,.,,,.,,,,,.,,,,,,,.,,,.,,.,,.,.,..,,...,...,.,.,.,.,...,,,,,...,
-#FOS743IJRNH76O4VSKVJ2JUF6FVR7IWD3O2KWR6TK44QA3Z6XAWW7VW7TMIGSSQCZW5Y3J4NIRL4O
-#\\\|N2NCAE7DHKOWV6QAOVY46ZTWMOQ6OSU65C4ONZJ46WANXBA5VZR \ / AMOS7 \ YOURUM ::
-#\[7]S35ZNCHTJXKV2ZH7YEUSWPCLQ63H267AT736ZVJBNUSNBCN3BGCY 7  DATA SIGNATURE ::
+#,,,.,,..,.,.,,.,,,,.,.,,,,,.,.,.,..,,,.,,,,.,..,,...,...,.,,,,,,,,..,...,,..,
+#QQFQNG3UFUZDI3HTAJEUHMAR74XWOC35I7QR5JUJ6L2TKLLAWZKYYVTD4AFBJ7UGD5726AFN6WBXC
+#\\\|FLRMJJNR5CXXDEMSIYTLJMV6DYQBYCT6AGNTRTJBYGY6UVSY5NR \ / AMOS7 \ YOURUM ::
+#\[7]AG56AEOLTCELH3NKRTUXUTV4YSDLSORHMO7FA42AGT4NJ63YEWAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
