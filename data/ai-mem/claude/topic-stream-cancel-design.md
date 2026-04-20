@@ -92,20 +92,21 @@ no explicit recursive forwarding needed.
 1. **pass 1** [ done ] — base.cmd.cancel-stream + sticky cancel gate
    + base.stream.{open,push,close,gate,emit} wrapper API
    + mod-test.cmd.strm-{start,stop} + handler.strm-tick for e2e testing
-2. **pass 2** — wire `(<cmd_id>)!TERM!\n` in base.handler.command receiver
-   side; propagate through cube route translation; set sticky cancel flag
-   at source
-3. **pass 3** — cube-side trigger: on orphan-route detection, emit !TERM!
-   back to source; on session close, proactively terminate each in-flight
-   route
+2. **pass 2** [ done ] — wire `(<cmd_id>)!TERM!\n` in base.handler.command
+   receiver side; propagate through cube route translation; set sticky
+   cancel flag at source
+3. **pass 3** [ done ] — orphan-route detection in unknown-route handler:
+   set `stream_cancelled{$cmd_id}` on sender session for both complete and
+   incomplete payload cases; logged at level 1 with cmd/route_id
+   session-close proactive teardown: deferred (not yet implemented)
 
 ## known open question
 
 `base.cmd.*` vs `cube.cmd.*` namespace — leaning `base.cmd.cancel-stream`
 so any zenka with streams can implement it consistently.
 
-#,,,.,,,.,..,,,..,...,.,.,,.,,,,.,...,.,,,,,,,..,,...,..,,...,,,.,,,,,...,.,,,
-#DDP7RA35UEKYSBFRHOZDRJ4RTE3UTCZW2MDMU52M67HYNNLUVAL4MCGHXQMS3DQU4M4TWVBGDKGTC
-#\\\|N4HXFM2UJDUXTHU4QGR26YXXAZ6KYHHDPUNWHXSTM7XF4X7F6U6 \ / AMOS7 \ YOURUM ::
-#\[7]Z4KV7JZ4K72VGSDKO27NDEGGO4JCJYF7MH4WZ5AD4QVOZN5R6YDI 7  DATA SIGNATURE ::
+#,,.,,...,,,,,..,,...,,,,,...,,..,.,.,,.,,,,,,..,,...,...,..,,,.,,,.,,,.,,..,,
+#CVV4Z2BBUPSJJT6UG6D6NLJHSPENKN4C2FUW2P6ONMZ7RJWMV54Y37RDUTRSDP7HLJNY5HYANFF3I
+#\\\|ENFRK5XJP2DOXXVD6HPGDUD6N2YQ4TUYBV5NU5SHDLRPPLXXPIS \ / AMOS7 \ YOURUM ::
+#\[7]NW4GGAKZSMMR2XFIBQKWMZNMPZMVBDFSWDGUP6BVA637OISA6CBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
