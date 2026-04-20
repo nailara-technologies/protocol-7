@@ -1,0 +1,95 @@
+task:
+  id: strm-relay-term-propagation
+  title: "stream cancel : relay upstream !TERM! propagation"
+  description: |
+    When a relay zenka's base.stream.push returns 0 (gated off because the
+    downstream route was cancelled), it currently stops emitting but does not
+    notify its own upstream source. This means in a multi-hop chain
+    A → relay → B, when B's session closes, the relay stops but A keeps
+    producing indefinitely.
+
+    The fix: when base.stream.push returns 0, the caller (relay producer)
+    should emit  (<src_cmd_id>)!TERM!\n  back to its upstream source session
+    so the cancellation unwinds the chain hop by hop.
+
+    This behaviour must be configurable per stream handle because:
+    - relay zenki: WANT upstream propagation (default on)
+    - terminal producers (e.g. mod-test.handler.strm-tick): do NOT want to
+      emit !TERM! anywhere, just stop their own timer (default off, or
+      not applicable because they have no upstream)
+
+  scope:
+    primary: modules/base.stream.push
+    related:
+      - modules/base.stream.gate
+      - modules/base.stream.open
+      - modules/base.handler.command
+      - modules/mod-test.handler.strm-tick
+
+  background: |
+    Stream handle structure (set by base.stream.open):
+      $session->{'streams'}{$cmd_id} = {
+        sid        => $sid,
+        cmd_id     => $cmd_id,
+        producer   => TRUE,
+        handle     => { sid => $sid, cmd_id => $cmd_id },
+        ... (total, sent, etc.)
+      }
+
+    Route structure (in %data):
+      $data{'route'}{$route_id} = {
+        source => { sid => $src_sid, cmd_id => $src_cmd_id },
+        target => { sid => $tgt_sid, cmd_id => $tgt_cmd_id },
+      }
+
+    Session route map (per session):
+      $session->{'route'}{$cmd_id} = $route_id
+
+    Sticky cancel flag checked by base.stream.gate:
+      $session->{'stream_cancelled'}{$cmd_id}   (TRUE = stop)
+
+    Session flag for implicit !TERM! target (already implemented):
+      $session->{'stream_term_implicit'}   (default TRUE)
+
+    !TERM! frame format (receiver → sender):
+      (<cmd_id>)!TERM!\n          (no reason when propagating upstream)
+
+    Reason strings must NOT be forwarded (side-channel rule).
+
+  implementation_plan: |
+    1. Add optional 'upstream' key to the stream handle at open time:
+         upstream => { sid => $src_sid, cmd_id => $src_cmd_id }
+       This is populated by the relay zenka when it opens a stream on behalf
+       of a routed command. For terminal producers it is left undef.
+
+    2. In base.stream.push, after gate returns 0 (cancel), check:
+         if defined $handle->{'upstream'} and $handle->{'upstream'}{'sid'}
+       If set, write  (<src_cmd_id>)!TERM!\n  to the upstream session's
+       output buffer and log at level 1:
+         [%d] stream push gated : emitting !TERM! upstream sid=%d cmd_id=%d
+
+    3. Add a session-level flag  stream_relay_term  (default TRUE) that gates
+       the upstream emission. Relay zenki that manage multiple concurrent
+       streams can set it per-session or per-handle as needed.
+
+    4. Do NOT change mod-test.handler.strm-tick or any terminal producer —
+       they have no upstream key so the new code path is never taken.
+
+    5. Syntax-check all modified modules with  ptd -c <module>  before
+       reporting done.
+
+  acceptance: |
+    - base.stream.push emits !TERM! upstream when handle has upstream key
+      and push is gated off
+    - terminal producers (no upstream key) are unaffected
+    - stream_relay_term session flag (default TRUE) can suppress emission
+    - all modified modules pass  ptd -c  syntax check
+    - no changes to mod-test.* modules
+</content>
+</invoke>
+
+#,,,,,...,.,,,..,,,,,,,..,,.,,,,.,.,,,,,.,,,,,...,...,...,.,.,,.,,.,,,,,.,..,,
+#P66MRRK6IHSOSNENYO2RDQ2DCDIDTX6ZNSJNVYAV3UBF2M2CWFIBFWCC2OWUIREARUVUGOYKIL2IQ
+#\\\|L46R66R5PDYYE7YBWOQ4J4EBEPKTPG6IBTJ4DUPCNOTGDJN3URB \ / AMOS7 \ YOURUM ::
+#\[7]TLEEYJRPODXSGL2L42ZT5YGD7C2C6O6DBTG3TY7IUUEIFHKDZWAY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
