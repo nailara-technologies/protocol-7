@@ -9,10 +9,11 @@
 
 my $arg = shift;
 
-my $sid    = $arg->{'sid'};
-my $cmd_id = $arg->{'cmd_id'};
-my $type   = uc( $arg->{'type'} // qw| STRM | );
-my $total  = $arg->{'total'};
+my $sid      = $arg->{'sid'};
+my $cmd_id   = $arg->{'cmd_id'};
+my $type     = uc( $arg->{'type'} // qw| STRM | );
+my $total    = $arg->{'total'};
+my $upstream = $arg->{'upstream'};
 
 if ( $type ne qw| STRM | and $type ne qw| STRM-SIZE | ) {
     <[base.logs]>->( 0, 'base.stream.open : invalid type [ %s ]', $type );
@@ -56,14 +57,15 @@ $session->{'buffer'}->{'output'} .= $frame;
 <[base.stream.record_emission]>->( $sid, $cmd_id, $written, $type );
 
 return {
-    'sid'    => $sid,
-    'cmd_id' => $cmd_id,
-    'type'   => $type,
-    'total'  => 0 + $total,
+    'sid'      => $sid,
+    'cmd_id'   => $cmd_id,
+    'type'     => $type,
+    'total'    => 0 + $total,
+    'upstream' => $upstream,
 };
 
-#,,,.,,,,,..,,...,.,,,..,,...,.,,,,..,.,.,,.,,..,,...,...,,,.,.,,,.,,,,,.,,,,,
-#5ZBFZMYC3YMBN5CNK4ADG2QP6NFSIQL6RVA4POJZJYEFFBKJ5EMYDZE5DI7UGXANHU2QFC5CPDXCU
-#\\\|3G4IRLDQGOB2B63GZSURGEGMEIQJKEO2MKFZQ35U27H47MW7D5P \ / AMOS7 \ YOURUM ::
-#\[7]EIVTYQ2BLIONC7BGVSNWEBPFT3R62ISIWTAV7MDG4H6MZWH3LEAQ 7  DATA SIGNATURE ::
+#,,.,,..,,,,,,...,,,,,,,.,,,,,,.,,,,.,...,,,,,..,,...,.,.,...,.,,,,,.,..,,,,,,
+#D3EHMWBMZTZ2QELYBFCAFSM6W6QIEBHFWC3WH77HX4MIRUJYPMCNASUIUTBEZ565KGKH5TTQWMUTI
+#\\\|ROCMXFTRZZ36TTN4X4XW3O5DTBV2GKXNJKNFTDWCL2VKGUADQZN \ / AMOS7 \ YOURUM ::
+#\[7]JKGICOFNSOXTRCRMOOYNWAUE2JF5LC3YBK3HOVBXHW5ABZXJZEDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
