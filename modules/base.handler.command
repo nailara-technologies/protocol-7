@@ -309,6 +309,23 @@ elsif ( $input->$* =~ m,^((\($re->{cmd_id}\)|) *CHRSIZE +(0*\d+)\n),o ) {
     }
 }
 
+##[ PARSE \ !TERM! BACKCHANNEL ]##############################################
+
+elsif ( $input->$*
+    =~ s,^((\($re->{cmd_id}\)|) *!TERM!(?:[ \t]+([^\n]*))?)[ \t]*\n,,o ) {
+
+    $event->w->start;
+
+    my $cmd_id_str = ${^CAPTURE}[1] // '';
+    my $reason_str = ${^CAPTURE}[2] // '';
+
+    $cmd_id
+        = $cmd_id_str =~ m|^\(($re->{cmd_id})\)$|o ? 0 + ${^CAPTURE}[0] : 0;
+    $cmd                 = q|!TERM!|;
+    $command_mode        = 1;
+    $call_args->{'args'} = $reason_str;
+}
+
 ##[ CLEAN-UP CMD LINE ]#######################################################
 
 elsif ( $input->$* =~ s|^[ \t\n]+||sg ) {
@@ -478,6 +495,64 @@ $cmd_usr_str = sprintf qw| %s%s |, $data{'session'}{$_m1}{'user'}, $_m2
     and $_m2 = ${^CAPTURE}[1]
     and exists $data{'session'}{$_m1}
     and $data{'session'}{$_m1}{'user'} =~ $re->{'usr'};
+
+##[ COMMAND REPLY \ !TERM! BACKCHANNEL ]######################################
+
+if ( $cmd eq q|!TERM!| ) {
+
+    my $reason = $call_args->{'args'} // '';
+
+    ##  cmd_id required : no stream without one ; log and drop  ##
+    if ( $cmd_id == 0 ) {
+        <[base.logs]>->( 1, '[%d] !TERM! ignored : no cmd_id', $id );
+        $event->w->start;
+        return 0;
+    }
+
+    ##  routed case : active route exists → translate and cancel at source  ##
+    if (   defined $session->{'route'}->{$cmd_id}
+        && defined $data{'route'}->{ $session->{'route'}->{$cmd_id} } ) {
+
+        my $route      = $data{'route'}->{ $session->{'route'}->{$cmd_id} };
+        my $src_sid    = $route->{'source'}->{'sid'};
+        my $src_cmd_id = $route->{'source'}->{'cmd_id'};
+
+        if (   defined $src_sid
+            && exists $data{'session'}{$src_sid}
+            && $src_cmd_id > 0 ) {
+
+            $data{'session'}{$src_sid}{'stream_cancelled'}{$src_cmd_id} = 1;
+
+            <[base.logs]>->(
+                1, '[%d] !TERM! cmd_id=%d -> src_sid=%d src_cmd_id=%d [ %s ]',
+                $id, $cmd_id, $src_sid, $src_cmd_id, $reason
+            );
+        }
+
+        ##  local producer : active stream registered for this cmd_id  ##
+    } elsif ( ref $session->{'streams'} eq qw| HASH |
+        && ref $session->{'streams'}->{$cmd_id} eq qw| HASH |
+        && $session->{'streams'}->{$cmd_id}->{'producer'} ) {
+
+        $session->{'stream_cancelled'}{$cmd_id} = 1;
+
+        <[base.logs]>->(
+            1,   '[%d] !TERM! cmd_id=%d local [ %s ]',
+            $id, $cmd_id, $reason
+        );
+
+    } else {
+
+        ##  no active stream for this cmd_id : log and drop  ##
+        <[base.logs]>->(
+            1,   '[%d] !TERM! ignored : no active stream [ cmd_id %d ]',
+            $id, $cmd_id
+        );
+    }
+
+    $event->w->start;
+    return 0;    ##  command complete  ##
+}
 
 ##[ COMMAND REPLY \ MATCH TYPE ]##############################################
 
@@ -1986,8 +2061,8 @@ UNKNOWN_CMD_GLOBAL_HANDLED:
 
 return 0;        ## comand complete ##
 
-#,,.,,.,.,,,,,,..,,..,,..,...,.,,,.,,,,,,,...,..,,...,...,.,.,.,,,.,,,,,.,,,.,
-#KRTPSLGSWAIP2BZB5ZPYCVHXN7AXP67YPWWJEGAEG3MYSQJICUXVUAAFDA7CYSFUQK7FVBQQG4R64
-#\\\|VEZEFHYHOITXVEIJ4HBOXXUNULOTDZPOTXB5Q6TAD24J653RKRR \ / AMOS7 \ YOURUM ::
-#\[7]GMH5AK4OVDI4NKGQQX6QIE6C6AWR42IQEZNASK5577ZA7HG4OWCY 7  DATA SIGNATURE ::
+#,,,,,..,,..,,..,,.,,,..,,...,..,,,,,,,..,.,,,..,,...,..,,,.,,..,,,,.,,,.,,,.,
+#HWI3PZHHTN6QDGO2URGPFNUK3JGXDCYGKFEDIGDB3QJUSZVSSTSJTT7KEFY4H4I7YEX5WLFN4N2Z6
+#\\\|OKKXUTUTMBUGPVSXJKEZBRGG7SGQQRZIQYP4GXGI3G6ORYENIEV \ / AMOS7 \ YOURUM ::
+#\[7]O3ZNSCT5B23UBPSA55GCDGYXTDNEVLQMB7ROCL7MQD6RPEZDYMDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
