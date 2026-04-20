@@ -14,13 +14,18 @@ foreach my $s_cid (@route_cids) {
     my $s_cid     = $data{'route'}{$route_id}{'source'}{'cmd_id'};
     my $reply_str = $s_cid ? "($s_cid)" : '';
     $reply_str .= "FALSE command route collapsed\n";
-    $data{'session'}{$s_sid}{'buffer'}{'output'} .= $reply_str
-        if exists $data{'session'}{$s_sid};
+    if ( exists $data{'session'}{$s_sid} ) {
+        $data{'session'}{$s_sid}{'buffer'}{'output'} .= $reply_str;
+
+        ##  set sticky stream cancel so producer's next push returns 0  ##
+        $data{'session'}{$s_sid}{'stream_cancelled'}{$s_cid} = TRUE
+            if $s_cid > 0;
+    }
     delete $data{'route'}{$route_id};
 }
 
-#,,,,,,,,,,,.,..,,,.,,,..,..,,,.,,..,,.,.,..,,..,,...,...,...,,,.,,.,,..,,,,,,
-#5N5N76QZ4HMTCONT4L5NVQMP3XODJHU3P7QRZ3MWDAVNN22GLRA64KNME3YCIYOIUQA5IVYRCY2D6
-#\\\|UFKNFKKL4LDNQIR54SXQ3COGYDBTDHA6RZBABNTEP5GPBXOFLB4 \ / AMOS7 \ YOURUM ::
-#\[7]WMILLYFA77FSXOTNHF6DBYLTRYP2E25HGCM3FTUUKRSAD7H7EOBQ 7  DATA SIGNATURE ::
+#,,,.,.,,,..,,,..,...,..,,,,,,,,.,,.,,,,.,..,,..,,...,...,,,,,...,,,,,,.,,,..,
+#AGW5ZY4B2XJJUN3ASCDN3P5K6M5QBAOTMSWSZCMWJGR5KBPW7WUGGVOI4Q4FFOWGDMEMBU3CP56FC
+#\\\|OUVIDTZQUKEVYWZJG7JHAHVJGKT4UN5D57RKCC3H6TDDQJSHURP \ / AMOS7 \ YOURUM ::
+#\[7]ZIUJE555B7FRX5IBC5PM5RCMF7E2SKBJKGRZFOEF5NH7FU7FLSBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
