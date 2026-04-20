@@ -521,7 +521,8 @@ if ( $cmd eq q|!TERM!| ) {
             && exists $data{'session'}{$src_sid}
             && $src_cmd_id > 0 ) {
 
-            $data{'session'}{$src_sid}{'stream_cancelled'}{$src_cmd_id} = 1;
+            $data{'session'}{$src_sid}{'stream_cancelled'}{$src_cmd_id}
+                = TRUE;
 
             <[base.logs]>->(
                 1, '[%d] !TERM! cmd_id=%d -> src_sid=%d src_cmd_id=%d [ %s ]',
@@ -534,7 +535,7 @@ if ( $cmd eq q|!TERM!| ) {
         && ref $session->{'streams'}->{$cmd_id} eq qw| HASH |
         && $session->{'streams'}->{$cmd_id}->{'producer'} ) {
 
-        $session->{'stream_cancelled'}{$cmd_id} = 1;
+        $session->{'stream_cancelled'}->{$cmd_id} = TRUE;
 
         <[base.logs]>->(
             1,   '[%d] !TERM! cmd_id=%d local [ %s ]',
@@ -1278,6 +1279,13 @@ if ( $cmd =~ m,^(TRUE|FALSE|WAIT|SIZE|CHRSIZE|STRM|STRM-SIZE|GET|TERM)$, ) {
                     $cmd
                 );
 
+                ##  orphaned route : signal producer to stop  ##
+                $data{'session'}{$id}{'stream_cancelled'}{$cmd_id} = TRUE;
+                <[base.logs]>->(
+                    1,   '[%d] orphaned %s route_id=%d : sticky cancel set',
+                    $id, $cmd, $cmd_id
+                );
+
                 ## [ HOOK POINT: unknown-reply-route - complete case ]
                 ## Hook can intercept complete replies with unknown route IDs
                 if (<[base.handler.hooks.has_hooks]>->(
@@ -1308,6 +1316,17 @@ if ( $cmd =~ m,^(TRUE|FALSE|WAIT|SIZE|CHRSIZE|STRM|STRM-SIZE|GET|TERM)$, ) {
                     <[base.cnt_s]>->($ignore_count),
                     $cmd
                 );
+
+                ##  orphaned route : signal producer to stop  ##
+                $data{'session'}{$id}{'stream_cancelled'}{$cmd_id} = TRUE;
+                <[base.logs]>->(
+                    1,
+                    '[%d] orphaned %s route_id=%d : sticky cancel set [ incomplete ]',
+                    $id,
+                    $cmd,
+                    $cmd_id
+                );
+
                 ## Track incomplete payload: use ignore_chars for CHRSIZE,
                 #                                ignore_bytes for others
                 if ( $cmd eq qw| CHRSIZE | ) {
@@ -2061,8 +2080,8 @@ UNKNOWN_CMD_GLOBAL_HANDLED:
 
 return 0;        ## comand complete ##
 
-#,,,,,..,,..,,..,,.,,,..,,...,..,,,,,,,..,.,,,..,,...,..,,,.,,..,,,,.,,,.,,,.,
-#HWI3PZHHTN6QDGO2URGPFNUK3JGXDCYGKFEDIGDB3QJUSZVSSTSJTT7KEFY4H4I7YEX5WLFN4N2Z6
-#\\\|OKKXUTUTMBUGPVSXJKEZBRGG7SGQQRZIQYP4GXGI3G6ORYENIEV \ / AMOS7 \ YOURUM ::
-#\[7]O3ZNSCT5B23UBPSA55GCDGYXTDNEVLQMB7ROCL7MQD6RPEZDYMDI 7  DATA SIGNATURE ::
+#,,,.,,,.,.,.,..,,,,,,,,.,,.,,,,,,..,,.,.,,,,,..,,...,...,...,.,,,...,...,,,.,
+#4DIBABVI276GYPBO3VZ2Z2VB6XPMKL2WHI4AX5BQFBTIOZ4Q7Z6UMFYSYJQPVZJYPTL7BE53Q4HCQ
+#\\\|ZH37XDLJVWG2PNGLBBY6Y5QY6AWORU3GQTUCC4XVDLPAZHYWBXE \ / AMOS7 \ YOURUM ::
+#\[7]5FERIYWTWJBSRKQZJGPR7H7O3VVTNVZ5UPBWVIJLGAVDZGTWEEBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
