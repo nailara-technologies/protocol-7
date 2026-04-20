@@ -21,7 +21,33 @@ my $cmd_id = $h->{'cmd_id'};
 my $type   = $h->{'type'};
 
 my $session = <[base.stream.gate]>->( $sid, $cmd_id, 1 );
-return 0 if not defined $session;
+if ( not defined $session ) {
+    my $upstream = $h->{'upstream'};
+    if ( defined $upstream and $upstream->{'sid'} ) {
+        my $relay_term = TRUE;
+        if ( defined $h->{'stream_relay_term'} ) {
+            $relay_term = $h->{'stream_relay_term'};
+        } elsif ( exists $data{'session'}{$sid} ) {
+            $relay_term = $data{'session'}{$sid}{'stream_relay_term'} // TRUE;
+        }
+        if (    $relay_term
+            and $upstream->{'cmd_id'} > 0
+            and exists $data{'session'}{ $upstream->{'sid'} } ) {
+            my $term_frame = sprintf "(%d)!TERM!\n", $upstream->{'cmd_id'};
+            $data{'session'}{ $upstream->{'sid'} }{'buffer'}{'output'}
+                .= $term_frame;
+            <[base.logs]>->(
+                1,
+                '[%d] stream push gated : emitting !TERM! '
+                    . 'upstream sid=%d cmd_id=%d',
+                $sid,
+                $upstream->{'sid'},
+                $upstream->{'cmd_id'}
+            );
+        }
+    }
+    return 0;
+}
 
 my $cmd_id_str = $session->{'streams'}->{$cmd_id}->{'cmd_id_str'} // '';
 
@@ -36,8 +62,8 @@ $session->{'streams'}->{$cmd_id}->{'sent_bytes'} += $chunk_len;
 
 return $written;
 
-#,,..,,..,,,,,,..,.,,,,.,,.,,,...,,,.,...,,..,..,,...,...,...,...,,..,.,,,...,
-#W4H46SKZR7DB4HERW557Q72ZJL4RFQRIZZMERFOMFSWRUUNXFPIUJC634PTY5LQGKCTSZAC6QGAF4
-#\\\|ZKGRWO2KUU37THLKIGRJSKXJSD3T2SZLQX2MTMD7HKTQOYTZ7CY \ / AMOS7 \ YOURUM ::
-#\[7]DIFLZAKTYAGQN6IJYOT7RERLZ4XJ5ZYQPIHLNFADOIBATJPFKCAY 7  DATA SIGNATURE ::
+#,,,.,...,,,.,,,.,..,,,,,,,,.,...,,..,,,,,,..,..,,...,..,,...,..,,,.,,,.,,,,.,
+#DXF6QRAEJGPQZXON2CAMNSKKGY2QCFJUDNQEWAS6GKLAG536DD2O4QCVPDD5JHN56WT2UJUGEVLPA
+#\\\|IICAXDNFFRFJESBAHXKVHDZZK6RORNTMYOF5TWJHELFAMZQ6ACS \ / AMOS7 \ YOURUM ::
+#\[7]AARG4TRPLWMTWZGWAOP5TGNPMZS4TXJCT5WSMD3G6SLVUTZSCOBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
