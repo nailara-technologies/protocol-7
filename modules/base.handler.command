@@ -502,11 +502,33 @@ if ( $cmd eq q|!TERM!| ) {
 
     my $reason = $call_args->{'args'} // '';
 
-    ##  cmd_id required : no stream without one ; log and drop  ##
+    ##  no cmd_id : implicit lookup unless disabled  ##
     if ( $cmd_id == 0 ) {
-        <[base.logs]>->( 1, '[%d] !TERM! ignored : no cmd_id', $id );
-        $event->w->start;
-        return 0;
+        my $implicit = $session->{'stream_term_implicit'} // TRUE;
+        my $streams  = $session->{'streams'}              // {};
+        my @active = grep { $ARG > 0 and ref $streams->{$ARG} eq qw| HASH | }
+            keys %{$streams};
+        if ( $implicit and @active ) {
+            ##  sort by opened_at : highest timestamp = most recently opened  ##
+            my $newest = (
+                sort {
+                    $streams->{$b}{'opened_at'}
+                        <=> $streams->{$a}{'opened_at'}
+                } @active
+            )[0];
+            $cmd_id = $newest;
+            <[base.logs]>->(
+                1,
+                '[%d] !TERM! no cmd_id : implicitly '
+                    . 'targeting cmd_id=%d [ most recent ]',
+                $id,
+                $cmd_id
+            );
+        } else {
+            <[base.logs]>->( 1, '[%d] !TERM! ignored : no cmd_id', $id );
+            $event->w->start;
+            return 0;
+        }
     }
 
     ##  routed case : active route exists → translate and cancel at source  ##
@@ -2080,8 +2102,8 @@ UNKNOWN_CMD_GLOBAL_HANDLED:
 
 return 0;        ## comand complete ##
 
-#,,,.,,,.,.,.,..,,,,,,,,.,,.,,,,,,..,,.,.,,,,,..,,...,...,...,.,,,...,...,,,.,
-#4DIBABVI276GYPBO3VZ2Z2VB6XPMKL2WHI4AX5BQFBTIOZ4Q7Z6UMFYSYJQPVZJYPTL7BE53Q4HCQ
-#\\\|ZH37XDLJVWG2PNGLBBY6Y5QY6AWORU3GQTUCC4XVDLPAZHYWBXE \ / AMOS7 \ YOURUM ::
-#\[7]5FERIYWTWJBSRKQZJGPR7H7O3VVTNVZ5UPBWVIJLGAVDZGTWEEBA 7  DATA SIGNATURE ::
+#,,,,,...,.,.,,.,,,..,,,.,...,.,,,..,,,,.,,,.,..,,...,...,.,.,,,,,,..,..,,.,,,
+#3FACIWSQXGFVJ6BGF54BTBPMCL2NEJYUI2JEYAMCM3SZ4IYCLYM7YHEPZHQLM6JEIOWI3YJ373M2O
+#\\\|CGRJPBHMXZKMNQ2ZTDGO6BKJGHBRHUCKLHEYSLDTXIRNNUQ46JN \ / AMOS7 \ YOURUM ::
+#\[7]L5WRAQ4U4WJULAXXNJ45BQBIYUMXTGZZIOJLEH5OZ6HCJ5FU74BI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
