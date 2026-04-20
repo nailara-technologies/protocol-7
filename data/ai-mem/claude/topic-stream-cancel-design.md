@@ -33,11 +33,16 @@ handle to reference in `!TERM!`.
 Cube cannot implicitly manufacture a client cmd_id retroactively; it only
 assigns internal routing ids.
 
-**Side-note — implicit lookup option:** cube could offer a convenience
-fallback: if only one stream is active for the session, or always for
-the most recent one, `!TERM!` with no cmd_id [ bare `!TERM! <reason>\n` ]
-could resolve implicitly. Useful for simple single-stream clients, but
-fragile with concurrent streams. Defer until there is a concrete need.
+**Implicit lookup — agreed default behaviour:** bare `!TERM! <reason>\n`
+with no cmd_id targets the most-recently-opened stream when streams exist.
+Implementation: highest cmd_id key in `$session->{'streams'}` [ cmd_ids
+are monotonically increasing so highest = most recent ; no extra tracking
+needed ]. Always log at level 1: `!TERM! no cmd_id : implicitly targeting
+cmd_id=M [ most recent ]` for visibility.
+Configurable via session flag `stream_term_implicit` [ default true ] —
+producers managing multiple concurrent streams can disable for safety.
+Useful for: manual protocol interaction, simple single-stream zenki that
+do not generate their own command ids.
 
 **How to apply:** when wiring the !TERM! propagation path in cube and
 base.handler.command, require cmd_id on the client side and document it;
@@ -77,8 +82,10 @@ recurs, this is the fix path.
 
 current implementation handles **one hop only** : sets
 `stream_cancelled{src_cmd_id}` on the immediate source session.
-multi-hop propagation not yet implemented — recursive forwarding needed
-when src_sid is itself a relay with its own upstream route.
+multi-hop propagation falls out naturally from pass 3 : each intermediate
+relay that receives a chunk on an orphaned route triggers !TERM! back one
+hop ; the repeated trigger re-sets the cancel flag at each relay in turn,
+no explicit recursive forwarding needed.
 
 ## pass-plan
 
@@ -97,8 +104,8 @@ when src_sid is itself a relay with its own upstream route.
 `base.cmd.*` vs `cube.cmd.*` namespace — leaning `base.cmd.cancel-stream`
 so any zenka with streams can implement it consistently.
 
-#,,.,,...,.,.,.,,,,.,,,,,,,,.,,,.,...,..,,,,.,..,,...,...,.,.,,,,,,..,.,.,.,,,
-#JZ2TPWBKISRR3GGSF3SGW43C46ZJJNA2RPDWUJVU44LSVQ4YC2CVMGNDGVX2C5FAN7AXJLLEPWS4S
-#\\\|PEWUGCY2PJY7AEI54XQKZP62FF3TZ7WELGYEI5O2F3MWEWVA2WC \ / AMOS7 \ YOURUM ::
-#\[7]KXRIJEF4M6EDXZWJ3GHSVG6SET5GMBPAKFH3VXUF2AARL2UZISAI 7  DATA SIGNATURE ::
+#,,,.,,,.,..,,,..,...,.,.,,.,,,,.,...,.,,,,,,,..,,...,..,,...,,,.,,,,,...,.,,,
+#DDP7RA35UEKYSBFRHOZDRJ4RTE3UTCZW2MDMU52M67HYNNLUVAL4MCGHXQMS3DQU4M4TWVBGDKGTC
+#\\\|N4HXFM2UJDUXTHU4QGR26YXXAZ6KYHHDPUNWHXSTM7XF4X7F6U6 \ / AMOS7 \ YOURUM ::
+#\[7]Z4KV7JZ4K72VGSDKO27NDEGGO4JCJYF7MH4WZ5AD4QVOZN5R6YDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
