@@ -43,7 +43,9 @@
 - `feedback-file-stat-shadowing.md` — bin/Protocol-7 `use File::stat` shadows builtin stat; always use `File::stat::stat($p)->size/mtime` in modules
 - `feedback-cube-pause-starvation.md` — base.handler.read pause on cube socket starves all routed traffic; size-overflow drop must respect SIZE boundary or injection
 - `feedback-set-capability-session-id.md` — cube.cmd.* modules receive $call_args with 'session_id'/'args'; using 'sid'/'args_list' silently FALSEs out
-- `topic-stream-cancel-design.md` — base.cmd.cancel-stream design (pass plan, registry, excise rules); next session pickup point
+- `topic-stream-cancel-design.md` — !TERM! route backchannel agreed; cmd_id required from initiator; implicit-lookup deferred; DISCONNECT for session teardown; cancel-stream retained cube-local only
+- `topic-strm-unbounded-gap.md` — STRM/STRM-SIZE require declared total; unbounded needed for audio/webcam relay; protocol extension sketch
+- `topic-stream-transport-layer.md` — event-driven transport.register API above base.stream primitives; scalar+filehandle sources; follow mode resolves unbounded-gap; migrate STRM-SIZE sync dump when ready
 
 ## File Creation Notes (CRITICAL)
 - **Never add** the single-line `#,,.,,,...` stub at end of new files
@@ -290,8 +292,8 @@
 - Pattern: `my @non_num = grep { defined $data_ref->{$ARG}->{$key} and not looks_like_number(...) } keys $data_ref->%*`
 - Global `$SIG{__WARN__}` exists — if wrapping warn handler, capture `$prev_warn = $SIG{__WARN__}` first and call through
 
-#,,.,,.,,,,..,,.,,,,.,...,,,,,,..,,,.,.,,,,,.,..,,...,...,..,,,,,,,,,,..,,.,,,
-#VKCEI7FG5N5SD5TJ3B6HBWYPRX5BLENUC3OPWHEQVKPGMI7LXRIKW6W62OIJ32F7HJ4SVRY5OMICE
-#\\\|VDWCKRY56KEBPDEBTOKZLVB4K2WJ5SS767HC3OPKZGPZD3C4YFT \ / AMOS7 \ YOURUM ::
-#\[7]KPI5YCUQ73GG4BV6R57MZFVVVO24HHAWLVYMX4PCN4BNR7WGUOBA 7  DATA SIGNATURE ::
+#,,,.,,.,,..,,.,.,,,.,,.,,,,,,,.,,,,.,,,,,..,,..,,...,...,.,.,.,,,,..,,..,...,
+#JXJ666TZ27REDC5NJYSZMSBQCE4BWFY23PBLHTGDED33SL2FEFITU3VWLTRTSIK246T3OG5P7B7U2
+#\\\|OGKM3L3QB3JZ2DGCJVFW67F5RMIEY27N6X6ZBJEQIXJI2G4WXOQ \ / AMOS7 \ YOURUM ::
+#\[7]YJ2B6VJEXERVFQX4C35UNANQCSGDHR76O7E3EJDHLF4FM2MGWGCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,0 +1,68 @@
+## [:< ##
+
+# name  = base.stream.emit
+# descr = single-frame reply emit [ TRUE | FALSE | WAIT | SIZE | CHRSIZE ]
+#         honors cancel + session liveness ; records SIZE / CHRSIZE frames
+#         for cmd_id > 0 so cancel-stream can excise them later
+# param = { sid => .., cmd_id => .., mode => .., data => ..,
+#           [ cmd_id_str => '(NNN) ' ] }
+# return = bytes appended, 0 if gated
+
+my $arg = shift;
+
+my $sid      = $arg->{'sid'};
+my $cmd_id   = $arg->{'cmd_id'};
+my $mode     = uc( $arg->{'mode'} // '' );
+my $data     = $arg->{'data'} // '';
+my $data_str = ref $data eq qw| SCALAR | ? $$data : $data;
+
+my $cmd_id_str
+    = defined $arg->{'cmd_id_str'}        ? $arg->{'cmd_id_str'}
+    : ( defined $cmd_id and $cmd_id > 0 ) ? sprintf( '(%d) ', $cmd_id )
+    :                                       '';
+
+my $session = <[base.stream.gate]>->( $sid, $cmd_id );
+return 0 if not defined $session;
+
+my $frame;
+
+if ( $mode =~ m,^(?:TRUE|FALSE|WAIT|GET|TERM)$, ) {
+
+    my $msg = $data_str;
+    $msg =~ s|\n|\\n|go if $mode =~ m,^(?:TRUE|FALSE|WAIT)$,;
+    $frame = <[base.sprint_t]>->( qw| J4UEBUA |, $cmd_id_str, $mode, $msg );
+
+} elsif ( $mode eq qw| SIZE | ) {
+
+    my $count = bytes::length($data_str);
+    $frame = <[base.sprint_t]>
+        ->( qw| X3QVAWA |, $cmd_id_str, $count, $data_str );
+
+} elsif ( $mode eq qw| CHRSIZE | ) {
+
+    my $test = $data_str;
+    utf8::upgrade($test);
+    my $count = length($test);
+    $frame = sprintf "%sCHRSIZE %04d\n%s", $cmd_id_str, $count, $data_str;
+
+} else {
+
+    <[base.logs]>->( 0, 'base.stream.emit : unknown mode [ %s ]', $mode );
+    return 0;
+}
+
+my $written = bytes::length($frame);
+$session->{'buffer'}->{'output'} .= $frame;
+
+<[base.stream.record_emission]>->( $sid, $cmd_id, $written, $mode )
+    if defined $cmd_id
+    and $cmd_id > 0
+    and $mode =~ m,^(?:SIZE|CHRSIZE)$,;
+
+return $written;
+
+#,,,,,,,,,.,,,...,,.,,,,.,.,.,.,.,...,..,,...,..,,...,...,.,,,,,,,,,.,,.,,.,,,
+#YY3Q4YKGNSVMOQOSWZK2SEG7RP2FBXUJK3G6XJF6Z56UTH4U2ZO2ZDKVEIZP7EYFLMJTQHKLB7SLE
+#\\\|T4ML4ZI5OTVJ3CLHYU6DAAX5GREBNFUNY5LSVECSVCEOV7HCJA6 \ / AMOS7 \ YOURUM ::
+#\[7]BU7OBDNRWAEDKHPCFDFZQDKXZD5WIMEN2BAKBHQU23VHAKYDHYBY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

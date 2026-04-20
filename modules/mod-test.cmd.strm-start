@@ -1,0 +1,92 @@
+## [:< ##
+
+# name  = mod-test.cmd.strm-start
+# descr = open timer-driven STRM reply for cancel-stream testing
+# param = [ total_bytes ] [ chunk_size ] [ interval_ms ]
+
+my $args = $call->{'args'} // '';
+
+my ( $total, $chunk_size, $interval_ms )
+    = $args =~ m|^\s* (\d+)? \s* (\d+)? \s* (\d+)? \s*$|x;
+
+$total       //= 102400;    ##  100 KiB   ##
+$chunk_size  //= 2048;      ##  2 KiB per frame   ##
+$interval_ms //= 100;       ##  100 ms between frames   ##
+
+return {
+    'mode' => qw| false |,
+    'data' =>
+        'usage : strm-start [ total_bytes ] [ chunk_size ] [ interval_ms ]'
+    }
+    if $total !~ m|^\d+$|
+    or $total == 0
+    or $chunk_size !~ m|^\d+$|
+    or $chunk_size == 0
+    or $interval_ms !~ m|^\d+$|
+    or $interval_ms == 0;
+
+my $sid    = $call->{'session_id'};
+my $cmd_id = $call->{'command_id'};
+
+return {
+    'mode' => qw| false |,
+    'data' => 'strm-start requires a cmd_id > 0'
+    }
+    if not defined $cmd_id or $cmd_id == 0;
+
+##  open the stream [ emits STRM open <total> to caller's output buffer ]  ##
+
+my $h = <[base.stream.open]>->(
+    {   'sid'    => $sid,
+        'cmd_id' => $cmd_id,
+        'type'   => qw| STRM |,
+        'total'  => $total,
+    }
+);
+
+return {
+    'mode' => qw| false |,
+    'data' => 'base.stream.open refused [ session / cancel gate failed ]'
+    }
+    if not defined $h;
+
+<mod-test.strm.active> //= {};
+
+my $state = <mod-test.strm.active>->{$cmd_id} = {
+    'handle'      => $h,
+    'sid'         => $sid,
+    'cmd_id'      => $cmd_id,
+    'total'       => $total,
+    'chunk_size'  => $chunk_size,
+    'sent'        => 0,
+    'seq'         => 0,
+    'started_at'  => <[base.time]>->(3),
+    'interval_ms' => $interval_ms,
+};
+
+$state->{'timer'} = <[event.add_timer]>->(
+    {   'after'    => $interval_ms / 1000,
+        'interval' => $interval_ms / 1000,
+        'repeat'   => TRUE,
+        'handler'  => qw| mod-test.handler.strm-tick |,
+        'data'     => { 'cmd_id' => $cmd_id },
+    }
+);
+
+<[base.logs]>->(
+    1,
+    '[%d] mod-test strm-start cmd_id=%d : total=%d bytes chunk=%d every=%dms',
+    $sid,
+    $cmd_id,
+    $total,
+    $chunk_size,
+    $interval_ms
+);
+
+return { 'mode' => qw| deferred | };
+
+#,,..,...,.,,,...,,..,,.,,,..,,,,,,.,,..,,.,,,..,,...,...,...,.,,,.,.,..,,,,.,
+#AS2CEZLPL22UKPHDS7HDJ2Y6FNH5KEPKSRWIEHHMSQ636N2TPM4RYJ5DVO4HWSJRXJYQCFV4BDQPO
+#\\\|LMJJFY3R7IUG3XPEEWXCAXU4UEG2PLX6GGZGSCN7YCNZV2DH36R \ / AMOS7 \ YOURUM ::
+#\[7]KAP3DNAZDDUOBRWPKU72WVYEB7CCYP646DTBBEYORAKBI3FWQQDQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
