@@ -63,6 +63,23 @@ path → web zenka blocked → v7 heartbeat timeout → SIGTERM + restart.
 **How to apply:** next time orphan-route log spam / web-SIGTERM pattern
 recurs, this is the fix path.
 
+## !TERM! reason string rules
+
+- reason is **local context only** — logged at the receiving hop, never forwarded
+- on propagation upstream, emit `(<src_cmd_id>)!TERM!\n` with no reason
+- this closes the side-channel : verbatim forwarding would allow arbitrary
+  data to travel silently through the route chain bypassing access control
+- invalid !TERM! [ no cmd_id, no active stream ] : log and drop, no reply
+  [ !TERM! is fire-and-forget ; FALSE replies would mix command and
+  backchannel protocol layers ]
+
+## propagation status [ 2026-04-20 ]
+
+current implementation handles **one hop only** : sets
+`stream_cancelled{src_cmd_id}` on the immediate source session.
+multi-hop propagation not yet implemented — recursive forwarding needed
+when src_sid is itself a relay with its own upstream route.
+
 ## pass-plan
 
 1. **pass 1** [ done ] — base.cmd.cancel-stream + sticky cancel gate
@@ -80,8 +97,8 @@ recurs, this is the fix path.
 `base.cmd.*` vs `cube.cmd.*` namespace — leaning `base.cmd.cancel-stream`
 so any zenka with streams can implement it consistently.
 
-#,,,.,,,,,,,.,,..,.,,,..,,.,,,,,.,,..,...,,.,,..,,...,...,...,...,,,.,..,,,.,,
-#F5NVKM6FDGDVZ7GBICJVVTOBVAEN5H4Y3B6C3UZFS25CE6ZSMRAJH3UMFAXVQYYLKS262QAB7AGTS
-#\\\|SRLNX6SZJ3K5JK4RKSMBHUJG4V6OTFHAQCKPBRJH3YLLROSHBWD \ / AMOS7 \ YOURUM ::
-#\[7]UHXFMXZZOU74FKC4YRD6PPCE3KAIIY5YFBJZ2HPSB7ZBT7SV2OBQ 7  DATA SIGNATURE ::
+#,,.,,...,.,.,.,,,,.,,,,,,,,.,,,.,...,..,,,,.,..,,...,...,.,.,,,,,,..,.,.,.,,,
+#JZ2TPWBKISRR3GGSF3SGW43C46ZJJNA2RPDWUJVU44LSVQ4YC2CVMGNDGVX2C5FAN7AXJLLEPWS4S
+#\\\|PEWUGCY2PJY7AEI54XQKZP62FF3TZ7WELGYEI5O2F3MWEWVA2WC \ / AMOS7 \ YOURUM ::
+#\[7]KXRIJEF4M6EDXZWJ3GHSVG6SET5GMBPAKFH3VXUF2AARL2UZISAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
