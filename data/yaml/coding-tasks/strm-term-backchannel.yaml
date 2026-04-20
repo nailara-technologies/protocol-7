@@ -1,0 +1,165 @@
+task: implement !TERM! stream backchannel in base.handler.command
+priority: high
+
+summary: |
+  Add receiver-to-sender stream termination backchannel support to the
+  Protocol-7 command handler. When a client sends a !TERM! frame for an
+  active stream, the handler sets the sticky cancel flag so the producer's
+  next base.stream.push call returns 0 and stops.
+
+  The format is:   (<cmd_id>)!TERM! <reason>\n
+  This is a route backchannel — it flows receiver → sender, opposite to
+  data frames. Cube translates cmd_ids between hops.
+
+context: |
+  Already implemented (do not re-implement):
+  - base.stream.{open,push,close,gate,emit} wrapper API in modules/base.stream.*
+  - sticky cancel flag: $session->{'stream_cancelled'}{$cmd_id} = 1
+    set by base.cmd.cancel-stream ; checked by base.stream.gate
+  - base.handler.command already matches reply types at line 486:
+      if ( $cmd =~ m,^(TRUE|FALSE|WAIT|SIZE|CHRSIZE|STRM|STRM-SIZE|GET|TERM)$, )
+  - route structure: $data{'route'}{$route_id} = {
+        source => { sid => $sid, cmd_id => $cmd_id },
+        target => { sid => $sid, cmd_id => $cmd_id },
+        reply  => { handler => ..., params => ... }
+    }
+  - session cancel flag: $data{'session'}{$sid}{'stream_cancelled'}{$cmd_id} = 1
+
+  Key variable names in base.handler.command (already set before the match block):
+  - $id         : current session id
+  - $cmd_id     : command id parsed from frame prefix
+  - $cmd        : the command string (e.g. 'STRM', 'TRUE', etc.)
+  - $call_args  : hashref with 'args' key containing rest of line
+  - $session    : $data{'session'}{$id}
+  - $output     : \$session->{'buffer'}->{'output'}
+
+  Route lookup pattern (from existing STRM handler starting ~line 488):
+      if ( defined $session->{'route'}->{$cmd_id} ) {
+          my $route = $data{'route'}->{ $session->{'route'}->{$cmd_id} };
+          if ( exists $route->{'target'}->{'sid'}
+              and $route->{'target'}->{'sid'} == $id ) {
+              my $src_sid    = $route->{'source'}->{'sid'};
+              my $src_cmd_id = $route->{'source'}->{'cmd_id'};
+              ...
+          }
+      }
+
+implementation: |
+  Edit ONE file only: modules/base.handler.command
+
+  STEP 1 — extend the reply-type regex at line 486 to include !TERM!
+  The current line is:
+      if ( $cmd =~ m,^(TRUE|FALSE|WAIT|SIZE|CHRSIZE|STRM|STRM-SIZE|GET|TERM)$, ) {
+
+  The parser at the single-line cmd match (around line 313) strips the
+  cmd_id prefix and sets $cmd to the command word. !TERM! is a new token
+  that will not match the existing regex above. We need to add a NEW
+  match block BEFORE the existing reply-type block, handling !TERM! frames.
+
+  The !TERM! frame arrives as:
+      (<cmd_id>)!TERM! <reason>\n
+  After the existing cmd_id stripping (line ~374), $cmd = '!TERM!' and
+  $call_args->{'args'} = the reason string.
+
+  STEP 2 — add a new section "##[ COMMAND REPLY \ !TERM! BACKCHANNEL ]##"
+  immediately before the existing "##[ COMMAND REPLY \ MATCH TYPE ]##"
+  section (line ~482). The new block:
+
+      if ( $cmd eq q|!TERM!| ) {
+
+          my $reason = $call_args->{'args'} // '';
+
+          ##  routed case : translate cmd_id and set cancel on source session  ##
+          if ( defined $session->{'route'}->{$cmd_id}
+              and defined $data{'route'}->{ $session->{'route'}->{$cmd_id} } ) {
+
+              my $route      = $data{'route'}->{ $session->{'route'}->{$cmd_id} };
+              my $src_sid    = $route->{'source'}->{'sid'};
+              my $src_cmd_id = $route->{'source'}->{'cmd_id'};
+
+              if ( defined $src_sid
+                  and exists $data{'session'}{$src_sid}
+                  and $src_cmd_id > 0 ) {
+
+                  $data{'session'}{$src_sid}{'stream_cancelled'}{$src_cmd_id} = 1;
+
+                  <[base.logs]>->(
+                      1,
+                      '[%d] !TERM! cmd_id=%d → src_sid=%d src_cmd_id=%d [ %s ]',
+                      $id, $cmd_id, $src_sid, $src_cmd_id, $reason
+                  );
+              }
+
+          } else {
+
+              ##  local producer : set cancel flag directly  ##
+              $session->{'stream_cancelled'}{$cmd_id} = 1
+                  if $cmd_id > 0;
+
+              <[base.logs]>->(
+                  1, '[%d] !TERM! cmd_id=%d local [ %s ]',
+                  $id, $cmd_id, $reason
+              );
+          }
+
+          $event->w->start;
+          return 0;    ##  command complete  ##
+      }
+
+  STEP 3 — the single-line command parser (line ~312) matches:
+      s,^((\($re->{cmd_id}\)|) *$re->{cmdrp}\/?)( +(.+?)|)[ \t]*\n,,o
+  where $re->{cmdrp} = qr|[0-9a-zA-Z\-_\[\]\.]{1,}|
+
+  !TERM! contains '!' characters which do NOT match cmdrp. So !TERM! frames
+  will fall through to the protocol-mismatch handler. We need to add an
+  earlier match for !TERM! frames in the input buffer parsing section,
+  BEFORE the single-line cmd block.
+
+  Add a new elsif after the incomplete-CHRSIZE block (around line 294)
+  and before the clean-up block (line 298):
+
+      elsif ( $input->$*
+          =~ s,^((\($re->{cmd_id}\)|) *!TERM!(?:[ \t]+([^\n]*))?)[ \t]*\n,,o ) {
+
+          $event->w->start;
+
+          my $cmd_id_str = ${^CAPTURE}[1] // '';
+          my $reason_str = ${^CAPTURE}[2] // '';
+
+          $cmd_id = $cmd_id_str =~ m|^\(($re->{cmd_id})\)$|o
+              ? 0 + ${^CAPTURE}[0] : 0;
+          $cmd        = q|!TERM!|;
+          $command_mode = 1;
+          $call_args->{'args'} = $reason_str;
+      }
+
+  NOTE on regex captures: ${^CAPTURE}[0] is capture group 1 (the full
+  match minus trailing space), ${^CAPTURE}[1] is the optional cmd_id
+  group, ${^CAPTURE}[2] is the reason. Adjust indices to match the
+  actual capture groups in the regex — test carefully.
+
+  IMPORTANT style rules:
+  - lowercase comments only [ ## like this ]
+  - bracket annotations use [ word ] not ( word ) in comments
+  - no inline subs
+  - log calls: <[base.logs]>->( $level, $fmt, @args ) not <[base.log]>
+  - do NOT add a signature footer stub (the pre-commit hook adds it)
+  - do NOT use 'and' for assignment chains — use '&&' or separate statements
+  - preserve all existing whitespace style around edited sections
+
+validation: |
+  After implementing, run:  ./bin/ptd -c modules/base.handler.command
+  Must show 'syntax ok' with no errors.
+
+  Manual test sequence (after restarting cube + mod-test):
+  1. p7c mod-test.strm-start 1048576 2048 200
+     [ note the cmd_id from the log ]
+  2. In a second terminal: send a !TERM! frame manually or via nshell
+     [ future : p7c will have a strm-term command ]
+  3. Confirm log shows '!TERM! cmd_id=N → src_sid=...' and stream stops
+
+#,,..,...,.,,,..,,...,.,,,,,.,.,,,,,,,,..,...,..,,...,...,...,.,.,.,.,...,,..,
+#MR5PPTCG44NFXGNH7LAFZUHYTOXWMHJMSAX52U7DZ434UQD2QXL6SP232KHD2DN6UBNE7VS7CFPEA
+#\\\|FODATCJ5BKLL2GIEZM2YMM3K5XXMUXNYTEHSYWJX3YUCMAIN5KC \ / AMOS7 \ YOURUM ::
+#\[7]M2OUDBUJWRAOZLQ2UQ5MCJQ6QODKAFXGWJOVLNGTPQWPX4PIJCAA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
