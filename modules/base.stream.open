@@ -1,0 +1,69 @@
+## [:< ##
+
+# name  = base.stream.open
+# descr = open a STRM / STRM-SIZE reply stream : registers producer state on
+#         session, emits 'open <total>' frame, returns a handle for push/close
+# param = { sid => .., cmd_id => .., type => 'STRM' | 'STRM-SIZE',
+#           total => N, [ cmd_id_str => '(NNN) ' ] }
+# return = handle [ hashref ] on success, undef on fail [ gated / invalid ]
+
+my $arg = shift;
+
+my $sid    = $arg->{'sid'};
+my $cmd_id = $arg->{'cmd_id'};
+my $type   = uc( $arg->{'type'} // qw| STRM | );
+my $total  = $arg->{'total'};
+
+if ( $type ne qw| STRM | and $type ne qw| STRM-SIZE | ) {
+    <[base.logs]>->( 0, 'base.stream.open : invalid type [ %s ]', $type );
+    return undef;
+}
+
+if ( not defined $total or $total !~ m|^\d+$| or $total == 0 ) {
+
+    ##  unbounded-open [ total = 0 / undef ] not yet supported at protocol   ##
+    ##  layer ; see memory : topic-strm-unbounded-gap.md                     ##
+
+    <[base.logs]>->(
+        0,
+        'base.stream.open : numeric total > 0 required [ got %s ]',
+        defined $total ? $total : '<undef>'
+    );
+    return undef;
+}
+
+my $cmd_id_str
+    = defined $arg->{'cmd_id_str'}        ? $arg->{'cmd_id_str'}
+    : ( defined $cmd_id and $cmd_id > 0 ) ? sprintf( '(%d) ', $cmd_id )
+    :                                       '';
+
+my $session = <[base.stream.gate]>->( $sid, $cmd_id );
+return undef if not defined $session;
+
+$session->{'streams'}->{$cmd_id} //= {};
+$session->{'streams'}->{$cmd_id}->{'producer'}    = 1;
+$session->{'streams'}->{$cmd_id}->{'type'}        = $type;
+$session->{'streams'}->{$cmd_id}->{'total_bytes'} = 0 + $total;
+$session->{'streams'}->{$cmd_id}->{'sent_bytes'}  = 0;
+$session->{'streams'}->{$cmd_id}->{'cmd_id_str'}  = $cmd_id_str;
+$session->{'streams'}->{$cmd_id}->{'opened_at'}   = <[base.time]>->(3);
+
+my $frame = sprintf "%s%s open %d\n", $cmd_id_str, $type, $total;
+
+my $written = bytes::length($frame);
+$session->{'buffer'}->{'output'} .= $frame;
+
+<[base.stream.record_emission]>->( $sid, $cmd_id, $written, $type );
+
+return {
+    'sid'    => $sid,
+    'cmd_id' => $cmd_id,
+    'type'   => $type,
+    'total'  => 0 + $total,
+};
+
+#,,,.,,,,,..,,...,.,,,..,,...,.,,,,..,.,.,,.,,..,,...,...,,,.,.,,,.,,,,,.,,,,,
+#5ZBFZMYC3YMBN5CNK4ADG2QP6NFSIQL6RVA4POJZJYEFFBKJ5EMYDZE5DI7UGXANHU2QFC5CPDXCU
+#\\\|3G4IRLDQGOB2B63GZSURGEGMEIQJKEO2MKFZQ35U27H47MW7D5P \ / AMOS7 \ YOURUM ::
+#\[7]EIVTYQ2BLIONC7BGVSNWEBPFT3R62ISIWTAV7MDG4H6MZWH3LEAQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

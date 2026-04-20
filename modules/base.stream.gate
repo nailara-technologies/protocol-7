@@ -1,0 +1,34 @@
+## [:< ##
+
+# name  = base.stream.gate
+# descr = liveness gate for stream emission : session alive, not shutdown,
+#         not cancelled ; optionally : producer is registered
+# param = <sid> <cmd_id> [need_producer]
+# return = session ref on pass, undef on fail
+
+my ( $sid, $cmd_id, $need_producer ) = @ARG;
+
+return
+    if not defined $sid
+    or not exists $data{'session'}{$sid};
+
+my $session = $data{'session'}{$sid};
+
+return if $session->{'shutdown'};
+
+return
+        if defined $cmd_id
+    and ref $session->{'stream_cancelled'} eq qw| HASH |
+    and $session->{'stream_cancelled'}->{$cmd_id};
+
+return
+    if $need_producer
+    and not $session->{'streams'}->{$cmd_id}->{'producer'};
+
+return $session;
+
+#,,..,,..,.,,,,..,.,,,.,,,,.,,,,,,,,.,,..,.,,,..,,...,..,,.,.,,,,,.,.,,.,,.,.,
+#EAPLSCOUURUJGTUOKVJH3FANY25XLMAEC7BAWIM43QFJQC644Y7W2W73T3RETEQE5BWBR62TCY3HC
+#\\\|HEOKW6QKAL4JKH3FOEHF46QX3LZVLDFDUPHDNYGPCP3LMFXREHS \ / AMOS7 \ YOURUM ::
+#\[7]ZEICNOGPI6LEOLJNW3VBBGIN4UV5IOQ7MV2D7K6SZIY74DE55QDQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

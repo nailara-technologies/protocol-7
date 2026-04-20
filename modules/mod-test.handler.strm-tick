@@ -1,0 +1,82 @@
+## [:< ##
+
+# name  = mod-test.handler.strm-tick
+# descr = timer callback : push one chunk to an active mod-test STRM reply ;
+#         stops itself on cancel, peer-gone, or total reached
+
+my $event = shift;
+my $data  = $event->w->data // {};
+
+my $cmd_id = $data->{'cmd_id'};
+return if not defined $cmd_id;
+
+my $state = ( <mod-test.strm.active> // {} )->{$cmd_id};
+return if not defined $state;
+
+my $remaining = $state->{'total'} - $state->{'sent'};
+if ( $remaining <= 0 ) {
+
+    ##  reached declared total : close cleanly, stop timer  ##
+
+    <[base.stream.close]>->( $state->{'handle'} );
+
+    $state->{'timer'}->cancel
+        if defined $state->{'timer'}
+        and $state->{'timer'}->is_active;
+    delete <mod-test.strm.active>->{$cmd_id};
+
+    <[base.logs]>->(
+        1, '[%d] mod-test strm cmd_id=%d : complete [ %d bytes ]',
+        $state->{'sid'}, $cmd_id, $state->{'total'}
+    );
+    return;
+}
+
+my $chunk_len
+    = $state->{'chunk_size'} < $remaining
+    ? $state->{'chunk_size'}
+    : $remaining;
+
+##  identifiable content so a client can spot gaps / out-of-order frames  ##
+
+$state->{'seq'}++;
+my $header = sprintf "MOD-TEST-STRM[seq=%06d len=%05d]\n",
+    $state->{'seq'}, $chunk_len;
+my $filler_len = $chunk_len - bytes::length($header);
+my $chunk
+    = $filler_len > 0
+    ? $header . ( '.' x $filler_len )
+    : substr( $header, 0, $chunk_len );
+
+my $n = <[base.stream.push]>->( $state->{'handle'}, \$chunk );
+
+if ( not $n ) {
+
+    ##  gate refused : session gone, shutdown, or sticky cancel set ; stop  ##
+
+    $state->{'timer'}->cancel
+        if defined $state->{'timer'}
+        and $state->{'timer'}->is_active;
+    delete <mod-test.strm.active>->{$cmd_id};
+
+    <[base.logs]>->(
+        1,
+        '[%d] mod-test strm cmd_id=%d : '
+            . 'producer gated off [ %d / %d bytes sent ]',
+        $state->{'sid'},
+        $cmd_id,
+        $state->{'sent'},
+        $state->{'total'}
+    );
+    return;
+}
+
+$state->{'sent'} += $chunk_len;
+
+return;
+
+#,,.,,.,,,.,,,...,,,.,,..,.,,,,.,,,,,,,.,,,,.,..,,...,...,.,,,...,..,,.,,,,..,
+#R7GRDJC255H3ZMZHBTSI5DO6FIR7MP6ZC2P54D7T424LJX6WB6SBY7B46PY2BUTUUBJGXCH74MLKW
+#\\\|P3GPVYZSTF2LQDRF5T4OFTJUZLMA6K55GGFWQPV5X3N6ICRWHB3 \ / AMOS7 \ YOURUM ::
+#\[7]GQLJUAYVPJRDALBCPYY7HRXT4O3XW453PBJA2DRE6QTOCBODO2AI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

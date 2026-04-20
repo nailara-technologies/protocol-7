@@ -1,0 +1,46 @@
+## [:< ##
+
+# name  = mod-test.cmd.strm-stop
+# descr = call 'STRM close' on a mod-test STRM reply
+# param = <cmd_id>
+
+my $args   = $call->{'args'} // '';
+my $cmd_id = $args =~ m|^\s*(\d+)\s*$| ? 0 + $1 : undef;
+
+return {
+    'mode' => qw| false |,
+    'data' => 'usage : strm-stop <cmd_id>'
+    }
+    if not defined $cmd_id or $cmd_id == 0;
+
+my $active = <mod-test.strm.active> // {};
+my $state  = $active->{$cmd_id};
+
+return {
+    'mode' => qw| false |,
+    'data' => sprintf( 'no active mod-test stream [ cmd_id %d ]', $cmd_id )
+    }
+    if not defined $state;
+
+my $ok = <[base.stream.close]>->( $state->{'handle'} );
+
+$state->{'timer'}->cancel
+    if defined $state->{'timer'}
+    and $state->{'timer'}->is_active;
+
+delete $active->{$cmd_id};
+
+return {
+    'mode' => qw| true |,
+    'data' => sprintf(
+        'stream stopped [ cmd_id %d : %d / %d bytes sent%s ]',
+        $cmd_id, $state->{'sent'}, $state->{'total'},
+        $ok ? '' : ' ; close frame skipped [ peer gone ]'
+    ),
+};
+
+#,,,,,,,.,,.,,,,,,...,,.,,,.,,.,.,,,.,,,.,,,.,..,,...,...,...,,..,...,..,,,,.,
+#LZSFCOR3TRQQBAOBZJE4EGYALKM73PUJZF3GTPDARKHIKE7W3CBSS667J2MYSG5WAOB266GPEPBBO
+#\\\|T5UQC4BSM4GKQXMARCL44MHRAO5RL6ZSH5FB43ON34FLAVZWRSU \ / AMOS7 \ YOURUM ::
+#\[7]RPFUNHDPJBY3IX33FBVU32V4H4UQ2MP6NOPIJLACZVSP2HPS46DI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

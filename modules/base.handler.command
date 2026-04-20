@@ -272,6 +272,22 @@ elsif ( $input->$* =~ m,^((\($re->{cmd_id}\)|) *STRM-SIZE +(\d+)\n),o
     return 1;            ## command not complete ###
 }
 
+##[ RETURN \ INCOMPLETE 'STRM' CHUNK DATA ]####################################
+
+## incomplete STRM chunk data ##
+
+elsif ( $input->$* =~ m,^((\($re->{cmd_id}\)|) *STRM +(\d+)\n),o
+    and $buffer_length - bytes::length( ${^CAPTURE}[0] )
+    < 0 + ${^CAPTURE}[2] ) {
+
+    ## chunk header present but data incomplete - switch to bytewise ##
+    $session->{'read-mode'}     = qw| bytewise |;
+    $session->{'bytes-to-read'} = 0 + ${^CAPTURE}[2];
+
+    $event->w->start;    ##  restarting input buffer processing  ##
+    return 1;            ## command not complete ###
+}
+
 ##[ RETURN \ INCOMPLETE 'CHRSIZE' REPLY ]######################################
 
 ## incomplete CHRSIZE reply ##
@@ -517,9 +533,14 @@ if ( $cmd =~ m,^(TRUE|FALSE|WAIT|SIZE|CHRSIZE|STRM|STRM-SIZE|GET|TERM)$, ) {
 
                     ##  routing reply packet  ##
                     $call_args->{'args'} //= qw| UNDEFINED |;
-                    $data{'session'}->{$source_sid}->{'buffer'}->{'output'}
-                        .= sprintf "%s%s %s\n", $s_cmd_id,
-                        $cmd, $call_args->{'args'};
+                    <[base.stream.emit]>->(
+                        {   'sid'        => $source_sid,
+                            'cmd_id'     => $route->{'source'}->{'cmd_id'},
+                            'mode'       => $cmd,
+                            'data'       => \$call_args->{'args'},
+                            'cmd_id_str' => $s_cmd_id,
+                        }
+                    );
 
                 } else {    # should never come here [ SID gone. ]
                     <[base.log]>->(
@@ -593,11 +614,15 @@ if ( $cmd =~ m,^(TRUE|FALSE|WAIT|SIZE|CHRSIZE|STRM|STRM-SIZE|GET|TERM)$, ) {
                                 );
                             }
                         } else {    ## sending SIZE reply to target ##
-                            $data{'session'}{ $route->{'source'}->{'sid'} }
-                                {'buffer'}{'output'} .= <[base.sprint_t]>->(
-                                qw| X3QVAWA |,                   $s_cmd_id,
-                                sprintf( qw| %04d |, $msg_len ), $data_reply
-                                );
+                            <[base.stream.emit]>->(
+                                {   'sid'    => $route->{'source'}->{'sid'},
+                                    'cmd_id' =>
+                                        $route->{'source'}->{'cmd_id'},
+                                    'mode'       => qw| SIZE |,
+                                    'data'       => \$data_reply,
+                                    'cmd_id_str' => $s_cmd_id,
+                                }
+                            );
                         }
 
                         # delete route
@@ -671,11 +696,15 @@ if ( $cmd =~ m,^(TRUE|FALSE|WAIT|SIZE|CHRSIZE|STRM|STRM-SIZE|GET|TERM)$, ) {
                                 );
                             }
                         } else {    ## sending CHRSIZE reply to target ##
-                            $data{'session'}{ $route->{'source'}->{'sid'} }
-                                {'buffer'}{'output'} .= <[base.sprint_t]>->(
-                                qw| X3QVAWA |,                   $s_cmd_id,
-                                sprintf( qw| %04d |, $msg_len ), $data_reply
-                                );
+                            <[base.stream.emit]>->(
+                                {   'sid'    => $route->{'source'}->{'sid'},
+                                    'cmd_id' =>
+                                        $route->{'source'}->{'cmd_id'},
+                                    'mode'       => qw| SIZE |,
+                                    'data'       => \$data_reply,
+                                    'cmd_id_str' => $s_cmd_id,
+                                }
+                            );
                         }
 
                         # delete route
@@ -797,14 +826,15 @@ if ( $cmd =~ m,^(TRUE|FALSE|WAIT|SIZE|CHRSIZE|STRM|STRM-SIZE|GET|TERM)$, ) {
                             }
                         } else {
                             ## Forward to source zenka ##
-                            $data{'session'}{ $route->{'source'}->{'sid'} }
-                                {'buffer'}{'output'} .= <[base.sprint_t]>->(
-                                qw| X3QVAWA |,
-                                $s_cmd_id,
-                                sprintf( qw| %04d |,
-                                    bytes::length($accumulated_data) ),
-                                $accumulated_data
-                                );
+                            <[base.stream.emit]>->(
+                                {   'sid'    => $route->{'source'}->{'sid'},
+                                    'cmd_id' =>
+                                        $route->{'source'}->{'cmd_id'},
+                                    'mode'       => qw| SIZE |,
+                                    'data'       => \$accumulated_data,
+                                    'cmd_id_str' => $s_cmd_id,
+                                }
+                            );
                         }
 
                         ## Delete route ##
@@ -1357,7 +1387,7 @@ UNKNOWN_TYPE_HANDLED:
                 }
                 delete <base.cmd_reply>->{$reply_id};
 
-##[ LOCAL CMD \ REPLY ERROR CHECK ]###############@@@@########################
+##[ LOCAL CMD \ REPLY ERROR CHECK ]###########################################
 
                 ##  REPLACING RENAMED REPLY TYPE  ##
                 $reply->{'mode'} = qw| size |
@@ -1401,60 +1431,69 @@ UNKNOWN_TYPE_HANDLED:
 
                 ## check answer mode ##
                 if ( $reply->{'mode'} =~ m,^(TRUE|FALSE|WAIT)$,io ) {
-                    $reply->{'data'} =~ s|\n|\\n|go;
 
-                    $output->$* .= <[base.sprint_t]>->(    #  single line  #
-                        qw| J4UEBUA |, $cmd_id_str, uc( $reply->{'mode'} ),
-                        $reply->{'data'}                   ##  <-- message  ##
+                    <[base.stream.emit]>->(
+                        {   'sid'        => $id,
+                            'cmd_id'     => $cmd_id,
+                            'mode'       => uc( $reply->{'mode'} ),
+                            'data'       => \$reply->{'data'},
+                            'cmd_id_str' => $cmd_id_str,
+                        }
                     );
 
                 } elsif ( uc( $reply->{'mode'} ) eq qw| STRM | ) {
 
-                    ## STRM mode: Explicit streaming - chunked delivery
+                    ## STRM mode : explicit streaming, chunked delivery ##
+
                     my $data_to_send = $reply->{'data'};
                     my $total_bytes  = bytes::length($data_to_send);
                     my $chunk_size   = <protocol.strm.packet_size> // 8192;
 
-                    ## Send STRM open header
-                    $output->$* .= sprintf "%sSTRM open %d\n", $cmd_id_str,
-                        $total_bytes;
+                    my $h = <[base.stream.open]>->(
+                        {   'sid'        => $id,
+                            'cmd_id'     => $cmd_id,
+                            'type'       => qw| STRM |,
+                            'total'      => $total_bytes,
+                            'cmd_id_str' => $cmd_id_str,
+                        }
+                    );
 
-                    ## Send data in chunks
-                    my $offset = 0;
-                    while ( $offset < $total_bytes ) {
-                        my $chunk_len = $chunk_size;
-                        if ( $offset + $chunk_len > $total_bytes ) {
-                            $chunk_len = $total_bytes - $offset;
+                    if ( defined $h ) {
+
+                        my $offset = 0;
+                        while ( $offset < $total_bytes ) {
+                            my $chunk_len = $chunk_size;
+                            $chunk_len = $total_bytes - $offset
+                                if $offset + $chunk_len > $total_bytes;
+
+                            my $chunk = substr $data_to_send, $offset,
+                                $chunk_len;
+                            my $n = <[base.stream.push]>->( $h, \$chunk );
+                            last if not $n;    ## cancelled / gone ##
+                            $offset += $chunk_len;
                         }
 
-                        my $chunk = substr $data_to_send, $offset, $chunk_len;
-                        $output->$* .= sprintf "%sSTRM %d\n%s", $cmd_id_str,
-                            $chunk_len, $chunk;
-                        $offset += $chunk_len;
+                        <[base.stream.close]>->($h);
 
                         <[base.logs]>->(
-                            2,   "[%d] STRM chunk sent : %d/%d bytes",
-                            $id, $offset, $total_bytes
+                            1,
+                            "[%d] STRM streaming complete: %d bytes in chunks",
+                            $id,
+                            $total_bytes
                         );
                     }
 
-                    ## Send STRM close marker
-                    $output->$* .= sprintf "%sSTRM close\n", $cmd_id_str;
-
-                    <[base.logs]>->(
-                        1, "[%d] STRM streaming complete: %d bytes in chunks",
-                        $id, $total_bytes
-                    );
-
                 } elsif ( uc( $reply->{'mode'} ) eq qw| SIZE | ) {
 
-                    ## SIZE mode: reports BYTE count ##
+                    ## SIZE mode : reports BYTE count ##
+
                     my $data_to_send = $reply->{'data'};
                     my $session_mode = $session->{'size_mode'} // qw| SIZE |;
                     my $count        = bytes::length($data_to_send);
 
                     ## use STRM-SIZE fragmentation for large replies sent ##
                     ## through cube relay [ not for cube's own responses ] ##
+
                     my $buf_limit = $data{'size'}->{'buffer'}->{'input'};
                     if ( $count > $buf_limit
                         and <system.zenka.type> ne qw| cube | ) {
@@ -1462,87 +1501,78 @@ UNKNOWN_TYPE_HANDLED:
                         my $chunk_size = <protocol.strm_size.packet_size>
                             // 8192;
 
-                        my $_stream_before = bytes::length( $output->$* );
+                        my $h = <[base.stream.open]>->(
+                            {   'sid'        => $id,
+                                'cmd_id'     => $cmd_id,
+                                'type'       => qw| STRM-SIZE |,
+                                'total'      => $count,
+                                'cmd_id_str' => $cmd_id_str,
+                            }
+                        );
 
-                        ## STRM-SIZE open ##
-                        $output->$* .= sprintf "%sSTRM-SIZE open %d\n",
-                            $cmd_id_str, $count;
+                        if ( defined $h ) {
 
-                        ## send data in chunks ##
-                        my $offset = 0;
-                        while ( $offset < $count ) {
-                            my $chunk_len = $chunk_size;
-                            $chunk_len = $count - $offset
-                                if $offset + $chunk_len > $count;
-                            $output->$* .= sprintf "%sSTRM-SIZE %d\n%s",
-                                $cmd_id_str, $chunk_len,
-                                substr( $data_to_send, $offset, $chunk_len );
-                            $offset += $chunk_len;
+                            my $offset = 0;
+                            while ( $offset < $count ) {
+                                my $chunk_len = $chunk_size;
+                                $chunk_len = $count - $offset
+                                    if $offset + $chunk_len > $count;
+
+                                my $chunk = substr $data_to_send, $offset,
+                                    $chunk_len;
+                                my $n = <[base.stream.push]>->( $h, \$chunk );
+                                last if not $n;
+                                $offset += $chunk_len;
+                            }
+
+                            <[base.stream.close]>->($h);
+
+                            <[base.logs]>->(
+                                2, '[%d] STRM-SIZE sent : %d bytes in chunks',
+                                $id, $count
+                            );
                         }
 
-                        ## STRM-SIZE close ##
-                        $output->$* .= sprintf "%sSTRM-SIZE close\n",
-                            $cmd_id_str;
-
-                        <[base.stream.record_emission]>->(
-                            $id, $cmd_id,
-                            bytes::length( $output->$* ) - $_stream_before,
-                            'STRM-SIZE',
-                        );
-
-                        <[base.logs]>->(
-                            2,   '[%d] STRM-SIZE sent : %d bytes in chunks',
-                            $id, $count
-                        );
-
                     } elsif ( $session_mode eq qw| CHRSIZE | ) {
-                        ## translate to CHRSIZE mode: count UTF-8 characters ##
-                        my $test_data = $data_to_send;
-                        utf8::upgrade($test_data);
-                        $count = length($test_data);
 
-                        $output->$* .= sprintf "%sCHRSIZE %04d\n%s",
-                            $cmd_id_str, $count, $data_to_send;
+                        <[base.stream.emit]>->(
+                            {   'sid'        => $id,
+                                'cmd_id'     => $cmd_id,
+                                'mode'       => qw| CHRSIZE |,
+                                'data'       => \$data_to_send,
+                                'cmd_id_str' => $cmd_id_str,
+                            }
+                        );
 
                     } else {
-                        ## SIZE mode [ default ]: count bytes ##
-                        my $_stream_before = bytes::length( $output->$* );
-                        $output->$* .= <[base.sprint_t]>->(
-                            qw| X3QVAWA |, $cmd_id_str,
-                            $count,        $data_to_send
-                        );
-                        <[base.stream.record_emission]>->(
-                            $id, $cmd_id,
-                            bytes::length( $output->$* ) - $_stream_before,
-                            'SIZE',
+
+                        <[base.stream.emit]>->(
+                            {   'sid'        => $id,
+                                'cmd_id'     => $cmd_id,
+                                'mode'       => qw| SIZE |,
+                                'data'       => \$data_to_send,
+                                'cmd_id_str' => $cmd_id_str,
+                            }
                         );
                     }
 
                 } elsif ( uc( $reply->{'mode'} ) eq qw| CHRSIZE | ) {
 
-                    ## CHRSIZE mode: reports CHARACTER count [UTF-8 aware]
+                    ## CHRSIZE mode : reports CHARACTER count [ UTF-8 ] ##
+
                     my $data_to_send = $reply->{'data'};
                     my $session_mode = $session->{'size_mode'} // qw| SIZE |;
-                    my $count;
 
-                    ## Check session preference for response format
-                    if ( $session_mode eq qw| SIZE | ) {
-                        ## Translate to SIZE mode: count bytes
-                        $count = bytes::length($data_to_send);
-
-                        ## Send SIZE header instead of CHRSIZE
-                        $output->$* .= sprintf "%sSIZE %04d\n%s",
-                            $cmd_id_str, $count, $data_to_send;
-
-                    } else {
-                        ## CHRSIZE mode [default]: count characters
-                        my $test_data = $data_to_send;
-                        utf8::upgrade($test_data);
-                        $count = length($test_data);
-
-                        $output->$* .= sprintf "%sCHRSIZE %04d\n%s",
-                            $cmd_id_str, $count, $data_to_send;
-                    }
+                    <[base.stream.emit]>->(
+                        {   'sid'    => $id,
+                            'cmd_id' => $cmd_id,
+                            'mode'   => $session_mode eq qw| SIZE |
+                            ? qw| SIZE |
+                            : qw| CHRSIZE |,
+                            'data'       => \$data_to_send,
+                            'cmd_id_str' => $cmd_id_str,
+                        }
+                    );
 
                 } elsif ( uc( $reply->{'mode'} ) eq qw| TERM | ) {
                     <[base.session.shutdown]>->( $id, $reply->{'data'} );
@@ -1956,8 +1986,8 @@ UNKNOWN_CMD_GLOBAL_HANDLED:
 
 return 0;        ## comand complete ##
 
-#,,,.,,..,.,.,,.,,,,.,.,,,,,.,.,.,..,,,.,,,,.,..,,...,...,.,,,,,,,,..,...,,..,
-#QQFQNG3UFUZDI3HTAJEUHMAR74XWOC35I7QR5JUJ6L2TKLLAWZKYYVTD4AFBJ7UGD5726AFN6WBXC
-#\\\|FLRMJJNR5CXXDEMSIYTLJMV6DYQBYCT6AGNTRTJBYGY6UVSY5NR \ / AMOS7 \ YOURUM ::
-#\[7]AG56AEOLTCELH3NKRTUXUTV4YSDLSORHMO7FA42AGT4NJ63YEWAA 7  DATA SIGNATURE ::
+#,,.,,.,.,,,,,,..,,..,,..,...,.,,,.,,,,,,,...,..,,...,...,.,.,.,,,.,,,,,.,,,.,
+#KRTPSLGSWAIP2BZB5ZPYCVHXN7AXP67YPWWJEGAEG3MYSQJICUXVUAAFDA7CYSFUQK7FVBQQG4R64
+#\\\|VEZEFHYHOITXVEIJ4HBOXXUNULOTDZPOTXB5Q6TAD24J653RKRR \ / AMOS7 \ YOURUM ::
+#\[7]GMH5AK4OVDI4NKGQQX6QIE6C6AWR42IQEZNASK5577ZA7HG4OWCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
