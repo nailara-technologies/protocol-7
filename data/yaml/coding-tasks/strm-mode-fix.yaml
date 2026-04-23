@@ -1,0 +1,110 @@
+task:
+  id: strm-mode-fix
+  title: "base.handler.command : fix STRM relay to forward chunks progressively"
+  description: |
+    the current STRM handler in base.handler.command accumulates all
+    chunks into a buffer and then emits the entire payload as a single
+    SIZE frame on close. this is wrong: STRM semantics require each
+    chunk to be forwarded to the source session progressively as it
+    arrives. the route stays open for the duration of the stream and
+    is only deleted on STRM close (or !TERM!).
+
+  syntax_reference: data/yaml/docs/protocol-7-coding-style.md
+  file: modules/base.handler.command
+  section: "around line 836 — the '} elsif ( $cmd eq qw| STRM | )' block"
+
+  current_behaviour: |
+    STRM open   → stores stream state with empty buffer
+    STRM N\data → appends chunk to buffer, does NOT forward
+    STRM close  → calls reply handler OR emits accumulated data as
+                  SIZE frame to source; then deletes route
+
+    problems:
+    - entire payload buffered in memory before delivery
+    - SIZE frame on close loses streaming semantics entirely
+    - reply handler path also receives bulk data, not a stream
+
+  correct_behaviour: |
+    STRM open   → look up route → source {sid, src_cmd_id}
+                  write (<src_cmd_id>)STRM open <N>\n to source output
+                  keep stream state (total_bytes, received_bytes, route_id)
+                  but do NOT buffer data
+
+    STRM N\data → look up route → source {sid, src_cmd_id}
+                  write (<src_cmd_id>)STRM <N>\n<data> to source output
+                  update received_bytes counter
+                  do NOT buffer data
+
+    STRM close  → look up route → source {sid, src_cmd_id}
+                  write (<src_cmd_id>)STRM close\n to source output
+                  log received_bytes / total_bytes summary
+                  delete route and stream state (same as now)
+
+  stream_id_translation: |
+    cmd_id translation is already handled by the existing route table —
+    the same mechanism used for command routing. each session has its
+    own private cmd_ids; the route table maps between them:
+
+      producer sends:   (<cmd_id_A>)STRM ...
+      route lookup:     $session->{'route'}{$cmd_id_A} → $route_id
+                        $data{'route'}{$route_id}{'source'}
+                          → { sid => $src_sid, cmd_id => $cmd_id_B }
+      source receives:  (<cmd_id_B>)STRM ...
+
+    cmd_id_A and cmd_id_B are private to their respective sessions;
+    no collisions possible; no extra id management needed.
+    this is the same pattern already working for SIZE/TRUE/FALSE replies.
+
+  stream_state: |
+    keep $session->{'streams'}{$cmd_id} during the stream for:
+      - total_bytes, received_bytes (progress tracking + logging)
+      - route_id (quick lookup without re-hashing route table)
+      - started_at (timing)
+    remove the 'buffer' key — data is no longer accumulated.
+    delete stream state on STRM close (same as now).
+
+  route_lifetime: |
+    route is created when the producer sends the originating command
+    (e.g. mod-test.strm-start). it stays open for the entire stream
+    (open → chunks → close). deleted on STRM close or !TERM!.
+    do not change route creation or deletion timing.
+
+  forward_helper: |
+    for forwarding STRM frames to source, write directly to the source
+    session output buffer (same pattern used in base.stream.emit and
+    base.session.cancel_route). do NOT call base.stream.open/push/close
+    — those are producer-side APIs, not relay-side.
+
+    forward pattern:
+      my $src      = $data{'route'}{$route_id}{'source'};
+      my $src_sid  = $src->{'sid'};
+      my $src_cid  = $src->{'cmd_id'};
+      my $cid_str  = $src_cid > 0 ? sprintf('(%d) ', $src_cid) : '';
+      $data{'session'}{$src_sid}{'buffer'}{'output'} .= $frame
+          if exists $data{'session'}{$src_sid};
+
+  reply_handler_path: |
+    the current code checks for a reply handler on STRM close and calls
+    it with accumulated data. with the new behaviour, the reply handler
+    path is no longer needed for STRM (the source session receives the
+    stream directly). remove the reply handler invocation from the STRM
+    close branch. if reply handlers for STRM turn out to be needed later,
+    that is a separate extension.
+
+  acceptance: |
+    - ptd -c modules/base.handler.command passes
+    - STRM open frame forwarded immediately to source with translated cmd_id
+    - each STRM data chunk forwarded immediately, no buffering
+    - STRM close forwarded, route + stream state cleaned up
+    - received_bytes / total_bytes logged at close (level 2)
+    - no changes to STRM-SIZE handling
+    - no changes to !TERM! handling
+    - no changes to base.stream.{open,push,close,gate,emit}
+</content>
+</invoke>
+
+#,,,.,...,...,,,,,,.,,,,,,..,,,,.,,,,,..,,.,,,...,...,...,..,,,..,,.,,...,,.,,
+#AYGQXTYRAYB2YW33QJTENO3CCUI7C5HEI4M4LPUS4R4WVHOXWTVGSSDMFW5FK2634IPKS7FPBOFRO
+#\\\|EPHWTJ3YXUIEP6FSZA4DAVJ25XXHVM2N2SMJA6UDHD4SVSU2GGW \ / AMOS7 \ YOURUM ::
+#\[7]LUOTWJBFQI4ICKVQHCIA6QRB535EX75UCNWRJORN6FCE5GGTTUAI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
