@@ -1,0 +1,76 @@
+## [:< ##
+
+# name  = plugin.httpd.radio.handler.strm_open
+# descr = reply handler for radio.listen STRM open: register local consumer
+
+my $reply    = shift;
+my $cmd_id   = $reply->{'cmd_id'};
+my $http_sid = $reply->{'params'}{'http_sid'};
+
+##  guard: HTTP session may have disconnected before STRM arrived  ##
+if ( not exists $data{'session'}{$http_sid} ) {
+    <[base.logs]>->(
+        2, '[httpd.radio] [%d] session gone before STRM open', $http_sid
+    );
+    return;
+}
+
+<plugin.httpd.radio.relay>->{$http_sid} = $cmd_id;
+
+my $max_relay_buf = 4 * 1024 * 1024;    ##  4 MB hard limit  ##
+my $http_buf_high = 512 * 1024;         ##  512 K back-pressure  ##
+
+<[base.strm.local.register]>->(
+    $cmd_id,
+    {   'watcher' => sub {
+            my $lc = shift;
+
+            ##  HTTP client gone — cancel consumer  ##
+            if ( not exists $data{'session'}{$http_sid} ) {
+                <[base.strm.local.cancel]>->($cmd_id);
+                delete <plugin.httpd.radio.relay>->{$http_sid};
+                return;
+            }
+
+            ##  hard limit: client too slow  ##
+            if ( length( $lc->{'buf'} ) > $max_relay_buf ) {
+                <[base.logs]>->(
+                    1, '[httpd.radio] [%d] relay buf overflow, dropping',
+                    $http_sid
+                );
+                <[base.strm.local.cancel]>->($cmd_id);
+                delete <plugin.httpd.radio.relay>->{$http_sid};
+                $data{'session'}{$http_sid}{'flush_shutdown'} = 1;
+                return;
+            }
+
+            ##  back-pressure: HTTP output buffer too full  ##
+            my $out_ref
+                = \$data{'session'}{$http_sid}{'buffer'}{'output'};
+            return if length($$out_ref) > $http_buf_high;
+
+            ##  transfer audio bytes to HTTP output buffer  ##
+            $$out_ref .= $lc->{'buf'};
+            $lc->{'buf'} = '';
+        },
+        'on_eof' => sub {
+            <[base.logs]>->(
+                2, '[httpd.radio] [%d] STRM ended, closing client', $http_sid
+            );
+            delete <plugin.httpd.radio.relay>->{$http_sid};
+            $data{'session'}{$http_sid}{'flush_shutdown'} = 1
+                if exists $data{'session'}{$http_sid};
+        },
+    }
+);
+
+<[base.logs]>->(
+    2,         '[httpd.radio] [%d] STRM consumer registered cmd_id %d',
+    $http_sid, $cmd_id
+);
+
+#,,,.,...,...,.,.,...,,,.,.,,,,.,,,..,,.,,...,.,.,...,...,,,.,,.,,,,.,,,.,,..,
+#6ZELA6WWJ7Z5RM7XOCIQE62FGDZAB3ZNRD5BUMFIXO2IVV64LS26FG7FNRDOSVSBN72AHNUM4FYGC
+#\\\|INDA4OSISY26L5C6F6QUO323UR2OQIGCI32EW6QOPRDSX2BWHG7 \ / AMOS7 \ YOURUM ::
+#\[7]H2ZQTKSZU44FSJKP4TLNMOUYDJRUTDX3POM5Z6SESFSEHOVWLUCQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

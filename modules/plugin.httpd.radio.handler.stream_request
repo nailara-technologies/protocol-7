@@ -1,0 +1,51 @@
+## [:< ##
+
+# name  = plugin.httpd.radio.handler.stream_request
+# descr = HTTP handler: send 200 headers and open radio.listen STRM
+
+my $id      = shift;
+my $session = $data{'session'}{$id};
+
+if ( not <plugin.httpd.radio.active> ) {
+    return <[httpd.send_error_page]>->( $id, 503 );
+}
+
+##  send streaming HTTP 200 response  ##
+$session->{'buffer'}{'output'} .= <[httpd.new_header]>->(
+    200,
+    {   'Content-Type'           => 'audio/mpeg',
+        'Cache-Control'          => 'no-cache',
+        'X-Content-Type-Options' => 'nosniff',
+        'Connection'             => 'close',
+    }
+);
+
+##  mark connection as non-keep-alive [ stream is open-ended ]  ##
+$session->{'http'}{'close'} = 1;
+
+##  cancel input read timeout — no further requests on this socket  ##
+if ( defined $session->{'watcher'}{'input_handler'} ) {
+    $session->{'watcher'}{'input_handler'}->cancel;
+    delete $session->{'watcher'}{'input_handler'};
+}
+
+<[base.logs]>->( 2, '[httpd.radio] [%d] client connected', $id );
+
+##  call radio.listen — reply handler registers the STRM consumer  ##
+<[protocol-7.route-send]>->(
+    {   'command'   => 'radio.listen',
+        'call_args' => { 'args' => '' },
+        'reply'     => {
+            'handler' => 'plugin.httpd.radio.handler.strm_open',
+            'params'  => { 'http_sid' => $id },
+        }
+    }
+);
+
+return 0;
+
+#,,,.,...,...,...,,,,,,,,,.,,,,..,.,.,..,,,.,,.,.,...,...,.,,,,,,,,.,,.,.,,..,
+#A45G335BPZUYZZOPYYTHC6LIXSZQSIDMVCT2D2TJ5V2TAIS53F3SYK6K6LILGQOXV4Q2XYALYIZYG
+#\\\|7ETKKFUXU4BPKKWK7EFBSAJWUJTBX324WRLVS25XX5UVA6CI55S \ / AMOS7 \ YOURUM ::
+#\[7]USRS5UHHVX33X6NYCV3JZJDL4VI6VEKP2Q6VCZYV2ASISLDOXQDI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
