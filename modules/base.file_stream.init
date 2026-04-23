@@ -1,0 +1,23 @@
+## [:< ##
+
+# name  = base.file_stream.init
+# descr = set up the shared file stream idle watcher
+
+<base.file_stream.active> //= {};
+
+return
+    if defined <base.file_stream.watcher>
+    and <base.file_stream.watcher>->is_active;
+
+<base.file_stream.watcher> = Event->idle(
+    cb     => sub { $code{'base.file_stream.tick'}->(@ARG) },
+    repeat => 1,
+);
+
+return TRUE;
+
+#,,..,,,,,,..,,..,...,.,,,,,,,.,.,,..,.,,,,..,.,.,...,...,.,.,,,,,,..,,,,,,.,,
+#QTICTARJWFJIWBMKFUT6R7SZFLU5YG7W42ILQNDCZTOXKBVEV7UGFH6NKNI3INKQU2CNN4IBM2RES
+#\\\|5GFCSU2QNO3AZTYPWDPVFU32MSMIJDLYLHA2BXDRJDF6ELGMQBU \ / AMOS7 \ YOURUM ::
+#\[7]4H3NQUS2GKRFE4I3MWWHS2PL5QYNL7FBT4ILGUBPDV7HQIRHOSBY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

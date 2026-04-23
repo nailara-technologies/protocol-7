@@ -1,0 +1,59 @@
+## [:< ##
+
+# name  = base.file_stream.tick
+# descr = internal timer : push chunks for all active file streams, clean up done ones
+
+my $event = shift->w;
+
+my @done;
+
+foreach my $key ( keys <base.file_stream.active>->%* ) {
+    my $s          = <base.file_stream.active>->{$key};
+    my $fh         = $s->{'fh'};
+    my $h          = $s->{'h'};
+    my $chunk_size = $s->{'chunk_size'};
+
+    my $gated = 0;
+
+    ## skip tick if destination output buffer is above threshold [ back-pressure ] ##
+    next
+        if exists $data{'session'}{ $h->{'sid'} }
+        and length( $data{'session'}{ $h->{'sid'} }{'buffer'}{'output'} )
+        > 524288;    ##  512 K  ##
+
+    ## push up to 16 chunks per tick [ up to 1 MB per stream ] ##
+    for ( 1 .. 16 ) {
+        my $n = read( $fh, my $chunk, $chunk_size );
+
+        if ( not defined $n or $n == 0 ) {    ##  error or EOF  ##
+            CORE::close($fh);
+            <[base.stream.close]>->($h) if defined $n;    ##  clean EOF  ##
+            push @done, $key;
+            $gated = 1;
+            last;
+        }
+
+        if ( not <[base.stream.push]>->( $h, \$chunk ) ) {    ##  gated  ##
+            CORE::close($fh);
+            push @done, $key;
+            $gated = 1;
+            last;
+        }
+    }
+}
+
+delete <base.file_stream.active>->{$ARG} for @done;
+
+## cancel idle watcher when no active streams remain ##
+if ( not keys <base.file_stream.active>->%* ) {
+    $event->cancel;
+    delete <base.file_stream.watcher>;
+}
+
+return;
+
+#,,,,,,.,,..,,...,.,.,,,.,.,,,...,..,,,.,,,..,.,.,...,..,,.,.,,,.,.,,,...,,,,,
+#QSGDBFWOLWCKVJ6VH3OI5TWNMQGCO4CGJW2PJJAU6ZSTZVNJGGUMQ34ZIGKE6PRM476YSW4XPFFCY
+#\\\|PZ3EM2BMUPXVP4K4QHDWBRHJHO6Q6IERCI2MVZMTCZ55RDEZ6P2 \ / AMOS7 \ YOURUM ::
+#\[7]SWVQPVQCBQZWCLUR2GFZ6TM7DJXLRYG2ZKEIZZZ5OH7IF7OYCIAI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

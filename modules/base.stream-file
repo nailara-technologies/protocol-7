@@ -1,0 +1,57 @@
+## [:< ##
+
+# name  = base.stream-file
+# descr = stream a local file to the requesting session as a bounded STRM reply
+# param = file path [ in call_args->{'args'} ]
+
+my $call_args = shift;
+
+my $sid    = $call_args->{'sid'};
+my $cmd_id = $call_args->{'cmd_id'};
+my $path   = $call_args->{'args'} // '';
+
+if ( not length $path or not -f $path or not -r _ ) {
+    <[base.callback.cmd_reply]>->(
+        $call_args,
+        {   'mode' => qw| false |,
+            'data' => 'file not found or not readable'
+        }
+    );
+    return;
+}
+
+my $total = -s $path;
+
+my $h = <[base.stream.open]>->(
+    {   'sid'    => $sid,
+        'cmd_id' => $cmd_id,
+        'type'   => qw| STRM |,
+        'total'  => $total,
+    }
+);
+return if not defined $h;    ##  gated  ##
+
+open( my $fh, qw| <:raw |, $path ) or do {
+    <[base.logs]>->( 1, 'base.stream-file : open failed [ %s ]', $path );
+    <[base.stream.close]>->($h);
+    return;
+};
+
+my $key = join qw| . |, $sid, $cmd_id;
+
+<base.file_stream.active>->{$key} = {
+    'fh'         => $fh,
+    'h'          => $h,
+    'chunk_size' => 65536,
+    'path'       => $path,
+};
+
+<[base.file_stream.init]>
+    if not defined <base.file_stream.watcher>
+    or not <base.file_stream.watcher>->is_active;
+
+#,,,,,..,,...,,,.,,,,,...,,,,,,,.,,..,...,,.,,.,.,...,...,.,.,,,.,,..,.,.,,.,,
+#CFVOLUZMGZNUOUTNB4XGVSAHTTA2NJLESVBPP4ZO6PFH3JQSTXFDMHSQ2DHTSJPKMHZI6KEXNGW44
+#\\\|CMAV2HIA4LJKS7AI4ADUPL5DGHHHC7WOOJ445MSXRPXPIZPLXUS \ / AMOS7 \ YOURUM ::
+#\[7]MW7VROY4A5KT45VHTTKPCWHGOWFN5P3ASBIT3WG5UJJGA76JEEAQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
