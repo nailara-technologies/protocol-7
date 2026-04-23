@@ -1,0 +1,31 @@
+## [:< ##
+
+# name  = radio.ripper
+# descr = open output file for current track [ called when keep is flagged ]
+
+my $title = shift // '';
+
+my $safe = $title;
+$safe =~ s{[^A-Za-z0-9._-]}{_}g;
+$safe = substr( $safe, 0, 120 ) if length($safe) > 120;
+
+make_path(<radio.keep_library.path>)
+    if not -d <radio.keep_library.path>;
+
+my $ts   = int( <[base.time]>->(3) );
+my $path = <radio.keep_library.path> . "/${safe}_${ts}.mp3";
+
+open( my $fh, '>:raw', $path )
+    or return <[base.logs]>->( 1, '[radio] rip open failed: %s', $path );
+
+<radio.stream.icy>->{'rip_fh'}    = $fh;
+<radio.stream.icy>->{'rip_path'}  = $path;
+<radio.stream.icy>->{'rip_bytes'} = 0;
+
+<[base.logs]>->( 2, '[radio] ripping: %s -> %s', $title, $path );
+
+#,,,,,...,..,,,.,,..,,..,,.,,,...,..,,,..,.,.,.,.,...,..,,,..,,..,,,,,,,,,.,.,
+#SL6FQQ5OXGWC7ANVPVASZQBSBUYFYET32JREJJGXY7QW3QD47DSVC246TD6YKERIUQLJE7PBWWJES
+#\\\|JNCT74NDR3GU3IUMVGTRNBFGPU7KOJYYCFJBBOURJP372T2UH3R \ / AMOS7 \ YOURUM ::
+#\[7]YBWVCIGHCROCOUYWU7PSHVFTFV3OFFKD5R6MU4POYJXKGWKPMCDY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

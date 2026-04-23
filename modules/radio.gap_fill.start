@@ -1,0 +1,41 @@
+## [:< ##
+
+# name  = radio.gap_fill.start
+# descr = pick a random keep-library file and start idle-watcher relay
+
+my $dir = <radio.keep_library.path> // '';
+
+if ( not -d $dir ) {
+    <[base.logs]>->( 2, '[radio] gap filler: no keep-library files' );
+    return;
+}
+
+my @files = glob("$dir/*.mp3");
+if ( not @files ) {
+    <[base.logs]>->( 2, '[radio] gap filler: no keep-library files' );
+    return;
+}
+
+<[base.perlmod.autoload]>->( 'List::Util', qw| shuffle | );
+
+my ($chosen) = shuffle(@files);
+
+open( my $fh, '<:raw', $chosen )
+    or return
+    <[base.logs]>->( 1, '[radio] gap filler: open failed: %s', $chosen );
+
+<radio.gap_fill.fh>     = $fh;
+<radio.gap_fill.active> = 1;
+
+<radio.gap_fill.watcher> = Event->idle(
+    cb     => sub { $code{'radio.gap_fill.tick'}->(@ARG) },
+    repeat => 1,
+);
+
+<[base.logs]>->( 2, '[radio] gap filler: playing %s', $chosen );
+
+#,,,,,,,.,.,.,,,.,...,.,,,,,,,.,.,,.,,,..,,..,.,.,...,...,,.,,...,.,.,...,,.,,
+#VMGAXRC6Z7G6VNGM3OMK2S5FEOJ4ADHIDRRBG45T3UQOVJ2VLHX2FYEHL75KKWZU6TPYCIDXFDC7I
+#\\\|V5ER2DR4AHZRXWJOUXUZ6KMN5IALUEKUG27YNA5PFVFHYR4DJKL \ / AMOS7 \ YOURUM ::
+#\[7]6TREMSMTFGVFZVSN6B6EYO3JWSZHHATPSKXHGHGNKIHC2AAZSUCQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

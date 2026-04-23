@@ -1,0 +1,45 @@
+## [:< ##
+
+# name  = radio.gap_fill.tick
+# descr = idle watcher: push gap-fill audio chunk to listeners
+
+my $event = shift->w;
+
+##  stop if jingle ended (new real track playing)  ##
+if ( not <radio.stream.icy>->{'is_jingle'} ) {
+    CORE::close( delete <radio.gap_fill.fh> ) if <radio.gap_fill.fh>;
+    <radio.gap_fill.active> = 0;
+    $event->cancel;
+    delete <radio.gap_fill.watcher>;
+    <[base.logs]>->( 2, '[radio] gap filler: stopped [ track resumed ]' );
+    return;
+}
+
+##  read one chunk from gap-fill file  ##
+my $chunk = '';
+my $n     = read( <radio.gap_fill.fh>, $chunk, 65536 );
+
+if ( not defined $n or $n == 0 ) {    ##  EOF  ##
+    CORE::close( delete <radio.gap_fill.fh> );
+    <radio.gap_fill.active> = 0;
+    $event->cancel;
+    delete <radio.gap_fill.watcher>;
+    <[base.logs]>->( 2, '[radio] gap filler: file ended' );
+
+    ##  optionally restart with another file  ##
+    <[radio.gap_fill.start]> if <radio.stream.icy>->{'is_jingle'};
+    return;
+}
+
+##  push to listeners  ##
+my @keep;
+for my $h ( <radio.listeners>->@* ) {
+    push @keep, $h if <[base.stream.push]>->( $h, \$chunk );
+}
+<radio.listeners> = \@keep;
+
+#,,,,,..,,...,.,,,.,,,..,,.,,,.,,,,,.,,..,,,.,.,.,...,...,..,,,,,,.,.,,.,,,,.,
+#OXYHPLXWNWPCBI3D42AVAZPXVTU6YM3Y2TFMFL47TISO23JEAERXM25WVZDXSFQDRTXRLIIIE536A
+#\\\|LW66EL3RHCXMYG54QATZTURJX6SVS2NCNZFXS444FA6ZNFG3GBX \ / AMOS7 \ YOURUM ::
+#\[7]BCK5XYDM6CBZZVYBRNNSCWYC6Z6H4SFRX3GCCESC72QQVXMEAEDI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

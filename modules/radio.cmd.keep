@@ -8,6 +8,20 @@ my $icy = <radio.stream.icy>;
 $icy->{'keep_flagged'} = 1;
 $icy->{'is_jingle'}    = 0;
 
+##  open rip file if not already ripping  ##
+<[radio.ripper]>->( $icy->{'current_title'} )
+    if not defined $icy->{'rip_fh'};
+
+##  stop gap filler if running (we just un-muted)  ##
+if (<radio.gap_fill.active>) {
+    CORE::close( delete <radio.gap_fill.fh> )
+        if defined <radio.gap_fill.fh>;
+    <radio.gap_fill.watcher>->cancel
+        if defined <radio.gap_fill.watcher>;
+    delete <radio.gap_fill.watcher>;
+    <radio.gap_fill.active> = 0;
+}
+
 my $title = $icy->{'current_title'} // '(none)';
 
 <[base.logs]>->( 2, '[radio] keep: flagged [ %s ]', $title );
@@ -17,8 +31,8 @@ return {
     'data' => sprintf( 'keeping: %s', $title )
 };
 
-#,,..,,,.,.,,,,.,,.,.,.,.,,.,,.,.,.,,,,,,,,..,..,,...,...,.,.,,..,,,.,,..,,,,,
-#WV7FXAR5CC6VZYOC4SENYZVDHVWND2ZG6MEUWZHODX2LKQTYSABYH323WV7K433J5NOGNVVC5G7C4
-#\\\|TBY23HZVV6VGUY5EJ2HT26JI6VVOUXBFWSOZRX3GJ3SD2RBEDSD \ / AMOS7 \ YOURUM ::
-#\[7]GJ44ZH2ZLQI4WAGZJMJEPLU5FODV6EXERK2TCDR7DIAXTYZFBOCI 7  DATA SIGNATURE ::
+#,,,,,.,.,..,,.,.,..,,.,,,.,.,,..,,..,,,.,,,.,..,,...,...,,.,,..,,,.,,,,.,,..,
+#ED4CE73C5N3CIUYNWVYVOKI5H7OLNCYBEPX4DRFOT4AGOKE75FEF6QM3EXXTALCJGQB6GGCKYNYOE
+#\\\|N6URNZERE3RI54F5H5I3XCUNEQT4VYXYQBBXQH5GRSUSDXH2C7E \ / AMOS7 \ YOURUM ::
+#\[7]FBSB65TDRZNC7TDFESNT3GDSOYQJ2BGOA4O6CVKAD27EFKZNNUDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
