@@ -1,0 +1,18 @@
+## [:< ##
+
+# name  = radio.post_init
+# descr = notify httpd that radio stream endpoint is available
+
+<[protocol-7.route-send]>->(
+    {   'command'   => 'httpd.radio_online',
+        'call_args' => { 'args' => <radio.stream.path> // '/radio/stream' },
+    }
+);
+
+<[base.logs]>->( 2, '[radio] notified httpd: radio_online' );
+
+#,,..,,,,,,.,,.,,,.,,,.,,,,,,,...,.,,,..,,.,,,.,.,...,...,,..,,.,,.,.,.,.,,.,,
+#7FYKGGCASZ6KZQFERFWXQGWOGCDLIGSQBWK5NDK4DLXNBGO6HCD54ZWHTMYDYE4TYDHLFXUE47TJI
+#\\\|VRP2WLUZNUTQ772IE7ERCF2OPLVCQ4LPGYZ6F45JTE2NXE5JECR \ / AMOS7 \ YOURUM ::
+#\[7]OXIEIWQHEGKNYPQ6LD2TIUDVH226E352UCRTPVJHNAXK4UF5KUDI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

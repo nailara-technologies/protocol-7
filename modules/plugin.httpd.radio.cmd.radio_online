@@ -1,0 +1,37 @@
+## [:< ##
+
+# name  = plugin.httpd.radio.cmd.radio_online
+# descr = activate radio stream endpoint on radio_online
+# param = stream path [ optional, default /radio/stream ]
+
+my $call_args = shift;
+
+my $path = ( $call_args // {} )->{'args'};
+$path = '/radio/stream' if not defined $path or not length $path;
+
+<plugin.httpd.radio.stream.path> = $path;
+<plugin.httpd.radio.active>      = 1;
+
+##  invalidate any cached route for this path  ##
+delete $data{'route_cache'}{ "GET:$path:" . $_ }
+    for keys %{ $data{'session'} };
+$data{'route_cache'} = {}
+    if exists $data{'route_cache'};
+
+<[base.logs]>->( 2, '[httpd.radio] endpoint active: %s', $path );
+
+##  subscribe to notify_offline so endpoint disables on radio crash  ##
+<[protocol-7.route-send]>->(
+    {   'command'   => 'v7.notify_offline',
+        'call_args' => { 'args' => 'radio' },
+        'reply' => { 'handler' => 'plugin.httpd.radio.handler.radio_offline' }
+    }
+);
+
+return { 'mode' => qw| true |, 'data' => "radio endpoint active: $path" };
+
+#,,,.,,,.,.,,,..,,.,.,,,,,,.,,,,.,,,.,...,.,,,..,,...,...,.,.,,..,.,,,,.,,,,,,
+#4SU7VJ2NFAE524ET6S4TR2C3CB42D3FV7A7ZMVX5VDQ2GYKTSQJ3YBPWIMLCDJJNI3IA36U2JSA6C
+#\\\|4BNXD6EFMHFZEOOQNKWR3DE7GIEPRBHNDTFKEKWGMMXPCSK3354 \ / AMOS7 \ YOURUM ::
+#\[7]AYYUIKGJQ6GWKEBKIBNA2BTHHZCDQ3UZNEGIEZKMNENG627W7KBI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,0 +1,26 @@
+## [:< ##
+
+# name  = plugin.httpd.radio.handler.radio_offline
+# descr = v7.notify_offline reply: disable endpoint when radio stops
+
+my $reply = shift;
+
+<plugin.httpd.radio.active> = 0;
+$data{'route_cache'} = {} if exists $data{'route_cache'};
+
+<[base.logs]>->( 1, '[httpd.radio] radio zenka offline, endpoint disabled' );
+
+##  cancel all active relay consumers  ##
+for my $http_sid ( keys <plugin.httpd.radio.relay>->%* ) {
+    my $cmd_id = <plugin.httpd.radio.relay>->{$http_sid};
+    <[base.strm.local.cancel]>->($cmd_id);
+    $data{'session'}{$http_sid}{'flush_shutdown'} = 1
+        if exists $data{'session'}{$http_sid};
+}
+<plugin.httpd.radio.relay> = {};
+
+#,,.,,,..,,,.,.,,,...,,,,,..,,,.,,,..,,..,.,.,..,,...,...,...,,.,,,,,,,..,,,,,
+#OXGOSESDQDTJ5XLPURKTRFAASFVJVPX5CRY6L5D276XBQ4DLFN4UUNZWXIURS5BXGZTI6BD3XJ5LG
+#\\\|XUCH44WKTWQVLGQ65TNXJEXTB5G5XDSTNCOOW6Q3VYRRHRRXGOJ \ / AMOS7 \ YOURUM ::
+#\[7]7RTGUMOMEYBUMPKQPJLCLQJEIZ2XF6IIBN2MNDS3DNYRW6AU7YCI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

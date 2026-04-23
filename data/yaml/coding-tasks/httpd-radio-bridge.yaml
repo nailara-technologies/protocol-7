@@ -1,0 +1,313 @@
+task:
+  id: httpd-radio-bridge
+  title: "httpd : radio stream bridge [ plugin.httpd.radio ]"
+  description: |
+    implement an httpd plugin that exposes the radio relay zenka's filtered
+    audio stream as a plain HTTP audio endpoint. the radio zenka notifies
+    httpd when it comes online; httpd registers the URL path and serves
+    audio/mpeg to connecting clients. each HTTP client gets its own
+    radio.listen STRM via the local STRM consumer mechanism from
+    base.strm.local.*. the plugin monitors radio zenka lifecycle via
+    v7.notify_offline and disables the endpoint if radio crashes or stops.
+
+  syntax_reference: data/yaml/docs/protocol-7-coding-style.md
+
+  existing_modules_read_first:
+    - modules/httpd.route_dispatcher
+    - modules/httpd.download_init
+    - modules/httpd.http_get
+    - modules/httpd.new_header
+    - modules/radio.init_code
+    - modules/base.strm.local.register
+    - modules/base.strm.local.cancel
+    - modules/protocol-7.route-send
+
+  files_to_create:
+    - modules/plugin.httpd.radio.init_code
+    - modules/plugin.httpd.radio.cmd.radio_online
+    - modules/plugin.httpd.radio.handler.stream_request
+    - modules/plugin.httpd.radio.handler.strm_open
+    - modules/plugin.httpd.radio.handler.radio_offline
+    - modules/radio.post_init
+
+  files_to_modify:
+    - modules/radio.init_code          ##  add post_init timer  ##
+    - modules/httpd.route_dispatcher   ##  add radio path check  ##
+    - configuration/zenki/httpd/start  ##  add plugins.load  ##
+    - configuration/zenki/radio/zenka-startup.v7  ##  add stream path config  ##
+
+  plugin_state: |
+    namespace: <plugin.httpd.radio.*>
+
+    <plugin.httpd.radio.active>      ##  1 when radio is online, 0 otherwise  ##
+    <plugin.httpd.radio.stream.path> ##  URL path, default '/radio/stream'  ##
+    <plugin.httpd.radio.relay>       ##  hashref: { $http_sid => $cmd_id }  ##
+
+  plugin_init_code: |
+    file: modules/plugin.httpd.radio.init_code
+    descr = initialize radio bridge plugin state
+
+    <plugin.httpd.radio.active>      //= 0;
+    <plugin.httpd.radio.stream.path> //= '/radio/stream';
+    <plugin.httpd.radio.relay>       //= {};
+
+    <[base.logs]>->( 2, '[httpd.radio] plugin initialized' );
+
+    0;
+
+  plugin_cmd_radio_online: |
+    file: modules/plugin.httpd.radio.cmd.radio_online
+    descr = activate radio stream endpoint [ called by radio.post_init ]
+    param = stream path [ optional, default /radio/stream ]
+
+    called by radio zenka on startup. activates the endpoint and subscribes
+    to v7.notify_offline so httpd can detect if radio crashes.
+
+    my $path = ( $call_args // {} )->{'args'};
+    $path = '/radio/stream' if not defined $path or not length $path;
+
+    <plugin.httpd.radio.stream.path> = $path;
+    <plugin.httpd.radio.active>      = 1;
+
+    ##  invalidate any cached route for this path  ##
+    delete $data{'route_cache'}{ "GET:$path:" . $_ }
+        for keys %{ $data{'session'} };
+    $data{'route_cache'} = {}
+        if exists $data{'route_cache'};
+
+    <[base.logs]>->( 2, '[httpd.radio] endpoint active: %s', $path );
+
+    ##  subscribe to notify_offline so endpoint disables on radio crash  ##
+    <[protocol-7.route-send]>->(
+        {   'command'   => 'v7.notify_offline',
+            'call_args' => { 'args' => 'radio' },
+            'reply'     => {
+                'handler' => 'plugin.httpd.radio.handler.radio_offline'
+            }
+        }
+    );
+
+    return { 'mode' => qw| true |, 'data' => "radio endpoint active: $path" };
+
+  plugin_handler_stream_request: |
+    file: modules/plugin.httpd.radio.handler.stream_request
+    descr = HTTP handler: send 200 headers and open radio.listen STRM
+
+    called by httpd.route_dispatcher when a client requests the radio
+    stream path. sends HTTP 200 + audio/mpeg headers immediately, then
+    calls radio.listen via route-send. the reply handler registers a
+    local STRM consumer that feeds audio bytes into this HTTP session's
+    output buffer.
+
+    my $id      = shift;
+    my $session = $data{'session'}{$id};
+
+    if ( not <plugin.httpd.radio.active> ) {
+        return <[httpd.send_error_page]>->( $id, 503 );
+    }
+
+    ##  send streaming HTTP 200 response  ##
+    $session->{'buffer'}{'output'} .= <[httpd.new_header]>->(
+        200,
+        {   'Content-Type'           => 'audio/mpeg',
+            'Cache-Control'          => 'no-cache',
+            'X-Content-Type-Options' => 'nosniff',
+            'Connection'             => 'close',
+        }
+    );
+
+    ##  mark connection as non-keep-alive [ stream is open-ended ]  ##
+    $session->{'http'}{'close'} = 1;
+
+    ##  cancel input read timeout — no further requests on this socket  ##
+    if ( defined $session->{'watcher'}{'input_handler'} ) {
+        $session->{'watcher'}{'input_handler'}->cancel;
+        delete $session->{'watcher'}{'input_handler'};
+    }
+
+    <[base.logs]>->( 2, '[httpd.radio] [%d] client connected', $id );
+
+    ##  call radio.listen — reply handler registers the STRM consumer  ##
+    <[protocol-7.route-send]>->(
+        {   'command'   => 'radio.listen',
+            'call_args' => { 'args' => '' },
+            'reply'     => {
+                'handler' => 'plugin.httpd.radio.handler.strm_open',
+                'params'  => { 'http_sid' => $id },
+            }
+        }
+    );
+
+    return 0;
+
+  plugin_handler_strm_open: |
+    file: modules/plugin.httpd.radio.handler.strm_open
+    descr = reply handler for radio.listen STRM open: register local consumer
+
+    fired by base.handler.command when STRM open arrives for the radio.listen
+    call. receives cmd_id and the http_sid stored in reply params. registers
+    a local STRM consumer whose watcher appends raw audio bytes directly into
+    the HTTP client's output buffer.
+
+    my $reply   = shift;
+    my $cmd_id  = $reply->{'cmd_id'};
+    my $http_sid = $reply->{'params'}{'http_sid'};
+
+    ##  guard: HTTP session may have disconnected before STRM arrived  ##
+    if ( not exists $data{'session'}{$http_sid} ) {
+        <[base.logs]>->( 2, '[httpd.radio] [%d] session gone before STRM open',
+            $http_sid );
+        return;
+    }
+
+    <plugin.httpd.radio.relay>->{$http_sid} = $cmd_id;
+
+    my $max_relay_buf = 4 * 1024 * 1024;    ##  4 MB hard limit  ##
+    my $http_buf_high = 512 * 1024;         ##  512 K back-pressure  ##
+
+    <[base.strm.local.register]>->(
+        $cmd_id,
+        {   'watcher' => sub {
+                my $lc = shift;
+
+                ##  HTTP client gone — cancel consumer  ##
+                if ( not exists $data{'session'}{$http_sid} ) {
+                    <[base.strm.local.cancel]>->($cmd_id);
+                    delete <plugin.httpd.radio.relay>->{$http_sid};
+                    return;
+                }
+
+                ##  hard limit: client too slow  ##
+                if ( length( $lc->{'buf'} ) > $max_relay_buf ) {
+                    <[base.logs]>->(
+                        1, '[httpd.radio] [%d] relay buf overflow, dropping',
+                        $http_sid
+                    );
+                    <[base.strm.local.cancel]>->($cmd_id);
+                    delete <plugin.httpd.radio.relay>->{$http_sid};
+                    $data{'session'}{$http_sid}{'flush_shutdown'} = 1;
+                    return;
+                }
+
+                ##  back-pressure: HTTP output buffer too full  ##
+                my $out_ref
+                    = \$data{'session'}{$http_sid}{'buffer'}{'output'};
+                return if length($$out_ref) > $http_buf_high;
+
+                ##  transfer audio bytes to HTTP output buffer  ##
+                $$out_ref .= $lc->{'buf'};
+                $lc->{'buf'} = '';
+            },
+            'on_eof' => sub {
+                <[base.logs]>->(
+                    2, '[httpd.radio] [%d] STRM ended, closing client',
+                    $http_sid
+                );
+                delete <plugin.httpd.radio.relay>->{$http_sid};
+                $data{'session'}{$http_sid}{'flush_shutdown'} = 1
+                    if exists $data{'session'}{$http_sid};
+            },
+        }
+    );
+
+    <[base.logs]>->( 2, '[httpd.radio] [%d] STRM consumer registered cmd_id %d',
+        $http_sid, $cmd_id );
+
+  plugin_handler_radio_offline: |
+    file: modules/plugin.httpd.radio.handler.radio_offline
+    descr = v7.notify_offline reply: disable endpoint when radio stops
+
+    my $reply = shift;
+
+    <plugin.httpd.radio.active> = 0;
+    $data{'route_cache'} = {} if exists $data{'route_cache'};
+
+    <[base.logs]>->( 1, '[httpd.radio] radio zenka offline, endpoint disabled' );
+
+    ##  cancel all active relay consumers  ##
+    for my $http_sid ( keys <plugin.httpd.radio.relay>->%* ) {
+        my $cmd_id = <plugin.httpd.radio.relay>->{$http_sid};
+        <[base.strm.local.cancel]>->($cmd_id);
+        $data{'session'}{$http_sid}{'flush_shutdown'} = 1
+            if exists $data{'session'}{$http_sid};
+    }
+    <plugin.httpd.radio.relay> = {};
+
+  radio_post_init: |
+    file: modules/radio.post_init
+    descr = notify httpd that radio stream endpoint is available
+
+    <[protocol-7.route-send]>->(
+        {   'command'   => 'httpd.radio_online',
+            'call_args' => {
+                'args' => <radio.stream.path> // '/radio/stream'
+            },
+        }
+    );
+
+    <[base.logs]>->( 2, '[radio] notified httpd: radio_online' );
+
+  radio_init_code_modification: |
+    in modules/radio.init_code, alongside the existing radio.connect timer,
+    add a post_init timer:
+
+      <[event.add_timer]>->(
+          {   after   => 1.0,
+              handler => qw| radio.post_init |,
+          }
+      );
+
+    the 1.0s delay ensures httpd is fully initialized before the notification.
+
+  httpd_route_dispatcher_modification: |
+    in modules/httpd.route_dispatcher, add a radio stream check after the
+    ACME challenge route (Route 1) and BEFORE the template route (Route 2):
+
+      ## Route 1b: radio stream endpoint ##
+      if (    <plugin.httpd.radio.active>
+          and defined <plugin.httpd.radio.stream.path>
+          and $path eq <plugin.httpd.radio.stream.path> ) {
+          return {
+              handler      => qw| plugin.httpd.radio.handler.stream_request |,
+              handler_args => {},
+              cache_ttl    => 0,    ##  never cache streaming endpoints  ##
+          };
+      }
+
+    note: do NOT cache this route — each client gets a live stream.
+    the route_cache key must also be cleared when the endpoint is activated
+    or deactivated [ already handled in cmd.radio_online and handler.radio_offline ].
+
+  httpd_start_modification: |
+    in configuration/zenki/httpd/start, add before [load_modules:<modules.load>]:
+
+      plugins.load = plugin.httpd.radio
+      [load_plugins:<plugins.load>]
+
+  zenka_startup_modification: |
+    in configuration/zenki/radio/zenka-startup.v7, add:
+
+      radio.stream.path = /radio/stream
+
+  access_note: |
+    httpd already has access.cmd.usr.cube = * so radio_online is routable
+    without access list changes. no additional access configuration needed.
+
+  acceptance: |
+    - ptd -c passes for all new and modified modules
+    - plugin.httpd.radio.init_code initializes state cleanly
+    - radio.init_code fires radio.post_init via 1s timer
+    - radio.post_init calls httpd.radio_online, httpd logs endpoint active
+    - GET /radio/stream returns HTTP 200 with Content-Type: audio/mpeg
+    - audio bytes from radio zenka flow into HTTP client output buffer
+    - second client connecting gets its own independent STRM consumer
+    - when radio zenka stops: endpoint disabled, active clients closed
+    - HTTP client disconnect: watcher detects missing session, cancels consumer
+    - slow client exceeding 4MB relay buf: consumer cancelled, session closed
+    - no changes to existing httpd routing behaviour for non-radio paths
+
+#,,,,,,.,,,,,,..,,,..,,,.,.,,,,..,,,,,,,,,..,,..,,...,...,..,,.,,,,..,..,,,,,,
+#SRNVMJLGW72GOTLJORFJGGXQSJLSSIXDCKCZ4GPM5K7XFZNSVG7SBX6KYX6N4SWYR76GI3PLUEDBU
+#\\\|ELFUFJHBMHSPQVSIAVZTTFJJYU5KU7RXO3ZXQRDSPEGEGE7SAYF \ / AMOS7 \ YOURUM ::
+#\[7]5KJGQH7IB6KBIGK7TPGLEO5Y5FMWK3RHDCLOLB7S4J6OX3KSAYBY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

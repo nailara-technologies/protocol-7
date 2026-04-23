@@ -82,6 +82,17 @@ if ( $path =~ m|^/.well-known/acme-challenge/(.+)$| ) {
     return $route;
 }
 
+## Route 1b: radio stream endpoint ##
+if (    <plugin.httpd.radio.active>
+    and defined <plugin.httpd.radio.stream.path>
+    and $path eq <plugin.httpd.radio.stream.path> ) {
+    return {
+        handler      => qw| plugin.httpd.radio.handler.stream_request |,
+        handler_args => {},
+        cache_ttl    => 0,    ##  never cache streaming endpoints  ##
+    };
+}
+
 ## Route 2: Template-based dynamic content ##
 ## Try to resolve template using vhost resolver
 if ( defined $vhost ) {
@@ -116,8 +127,8 @@ my $route = {
 $data{'route_cache'}->{$cache_key} = $route;
 return $route;
 
-#,,,.,,..,,.,,,,,,..,,.,,,,.,,,,,,,.,,,..,,,.,..,,...,...,.,,,,,,,,,,,,..,,.,,
-#VPWORQGCXX5VZ4GNAX4C7YLGPSR46YAQJNUAF3PZNGLNUI3VFKHCOBDR3AJT6MBJUUH5BJOSDB6P4
-#\\\|6Z4Q4THTBBDBJMXZ4Y7M5LK6PWA7D2TBVMMBTTRWYGD546QGECR \ / AMOS7 \ YOURUM ::
-#\[7]XQFCG3ZXYI6FI67N4AK77VD22OFWWNJ7GMBBLOFXSSEXR6F6K2CI 7  DATA SIGNATURE ::
+#,,.,,...,.,.,,..,,,,,,.,,..,,,.,,,..,,..,,..,..,,...,.,,,.,,,,,.,,,,,,,.,,,.,
+#Z2UQCHHKIMSKSZNOV7MEWYVHBBXEYONM3HTTSWSEDVU5LNA5QEYHIK6G5VWWLD77654KULNKKEHGC
+#\\\|GCOEIU3OCNYQEM6MJ7GXTRPSCBJJ5Q5HADMDB33JXJQ6HOQ63Z4 \ / AMOS7 \ YOURUM ::
+#\[7]JPH3YINUJCAWGTVVHXXFXNL26WNY2LZLAIBT5QLR377RQGFJ5CAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
