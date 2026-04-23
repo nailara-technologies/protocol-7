@@ -1,0 +1,48 @@
+## [:< ##
+
+# name  = base.strm.callback.recv_test
+# descr = attach quiet logging test consumer to a local STRM [ dev tool ]
+# param = $cmd_id [, $label ]
+
+my $cmd_id = shift;
+my $label  = shift // sprintf 'strm-test:%d', $cmd_id;
+
+<base.strm.local> //= {};
+<base.strm.local>->{$cmd_id} //= {
+    'buf'     => '',
+    'bytes'   => 0,
+    'started' => <[base.time]>->(3),
+    'max_buf' => 0,
+};
+
+my $lc = <base.strm.local>->{$cmd_id};
+
+$lc->{'watcher'} = sub {
+    my $c      = shift;
+    my $chunks = ++$c->{'_chunks'};
+    my $buflen = length $c->{'buf'};
+    <[base.logs]>->(
+        2, '[%s] chunk #%d  buf=%d  total=%d bytes',
+        $label, $chunks, $buflen, $c->{'bytes'}
+    );
+    $c->{'buf'} = '';    ##  drain — don't accumulate  ##
+};
+
+$lc->{'on_eof'} = sub {
+    my $c   = shift;
+    my $dur = <[base.time]>->(3) - $c->{'started'};
+    <[base.logs]>->(
+        2, '[%s] eof: %d bytes in %.1fs [ %.1f KB/s ]',
+        $label, $c->{'bytes'}, $dur,
+        $dur > 0 ? ( $c->{'bytes'} / 1024 / $dur ) : 0
+    );
+};
+
+<[base.logs]>
+    ->( 2, '[%s] recv-test attached [ cmd_id %d ]', $label, $cmd_id );
+
+#,,.,,.,,,,,.,,,,,,,,,.,,,,,,,.,,,,..,,,,,.,.,..,,...,..,,.,,,,,.,..,,.,.,,,,,
+#I65W44L6F2QXZKQCRHB5DNJN7V62CHB66AD5CTSCBMVOCZ5AHHNMFWMU6AVGDZC3EYAZ2SCZ3P3C4
+#\\\|G757KHZX5V62SCOQFQTD7OHGEFOFLIHE7CHPCMSJYWIKSRJKH5Y \ / AMOS7 \ YOURUM ::
+#\[7]N7R4WSDRJKEMQIAFOVYMTKA3NVHO4YL2OZXAYY6NYHB62NPXLACI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

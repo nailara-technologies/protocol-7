@@ -1,0 +1,235 @@
+task:
+  id: base-strm-local-consumer
+  title: "base : local STRM consumer primitive + recv-test dev tool"
+  description: |
+    add a local STRM consumer mechanism to base.handler.command so that
+    any zenka can receive an incoming STRM as a terminal endpoint rather
+    than always forwarding to the route source. uses a per-cmd_id buffer
+    with an optional watcher callback (fires on each chunk) and on_eof
+    callback (fires on STRM close). also add a recv-test utility module
+    that attaches quiet logging to any local STRM consumer for use during
+    development of new STRM-consuming zenki.
+
+  syntax_reference: data/yaml/docs/protocol-7-coding-style.md
+
+  existing_modules_read_first:
+    - modules/base.handler.command
+    - modules/base.strm.local.register      ##  does not exist yet — read for context  ##
+    - modules/protocol-7.route-send
+
+  files_to_create:
+    - modules/base.strm.local.register
+    - modules/base.strm.local.consume
+    - modules/base.strm.local.cancel
+    - modules/base.strm.callback.recv_test
+
+  files_to_modify:
+    - modules/base.handler.command   ##  three injection points — see below  ##
+
+  local_consumer_state: |
+    namespace: <base.strm.local>
+    keyed by $cmd_id [ integer ] :
+
+      <base.strm.local>->{$cmd_id} = {
+          'buf'     => '',     ##  accumulating raw chunk bytes  ##
+          'bytes'   => 0,      ##  total bytes received so far  ##
+          'started' => $ts,    ##  <[base.time]>->(3) at registration  ##
+          'watcher' => $cb,    ##  called after each chunk is appended to buf  ##
+          'on_eof'  => $cb,    ##  called once on STRM close  ##
+          'max_buf' => 0,      ##  back-pressure ceiling [ 0 = no limit ]  ##
+      };
+
+    the watcher callback receives the consumer hashref as its only argument:
+      $cb->( <base.strm.local>->{$cmd_id} )
+
+    the watcher may:
+      - consume all of buf:    $lc->{'buf'} = ''
+      - consume partial:       substr( $lc->{'buf'}, 0, $n, '' )
+      - leave buf untouched:   accumulate until on_eof
+
+    if max_buf is set and length(buf) >= max_buf, the watcher is NOT called
+    [ back-pressure: caller must drain buf before more chunks are dispatched ]
+
+  base_handler_command_modifications: |
+    three injection points in the STRM block [ cmd eq 'STRM' ]:
+
+    ##  1. STRM open [ unbounded and bounded ]  ##
+    after initializing $session->{'streams'}->{$cmd_id} and BEFORE the
+    forward-to-source block, fire the reply handler if one is registered:
+
+      if (    defined $route->{'reply'}->{'handler'}
+          and defined $code{ $route->{'reply'}->{'handler'} } ) {
+          $code{ $route->{'reply'}{'handler'} }->(
+              {   'sid'     => $id,
+                  'cmd'     => qw| STRM |,
+                  'cmd_id'  => $cmd_id,
+                  'args'    => $call_args->{'args'},
+                  'params'  => $route->{'reply'}->{'params'},
+              }
+          );
+      }
+
+    this fires for BOTH 'open' (unbounded) and 'open N' (bounded) so the
+    reply handler can call base.strm.local.register at the right moment.
+    add to BOTH the 'open' branch (line ~857) and the 'open N' branch
+    (line ~880) — same pattern, same location relative to the forward block.
+
+    ##  2. STRM data packet  ##
+    after extracting $chunk_data and updating received_bytes, BEFORE the
+    $src_sid forward block (line ~900), insert:
+
+      if ( exists <base.strm.local>->{$cmd_id} ) {
+          my $lc = <base.strm.local>->{$cmd_id};
+          $lc->{'buf'}   .= $chunk_data;
+          $lc->{'bytes'} += $chunk_size;
+          if (   not $lc->{'max_buf'}
+              or length( $lc->{'buf'} ) < $lc->{'max_buf'} ) {
+              $lc->{'watcher'}->($lc) if defined $lc->{'watcher'};
+          }
+      } else {
+
+    and wrap the existing $src_sid forward block in the corresponding:
+
+      }   ##  end local consumer check  ##
+
+    this ensures the forward path is skipped when a local consumer is registered.
+
+    ##  3. STRM close  ##
+    in the STRM close branch (args eq 'close'), after computing the log
+    message and BEFORE delete $session->{'streams'}->{$cmd_id}, insert:
+
+      if ( exists <base.strm.local>->{$cmd_id} ) {
+          my $lc = <base.strm.local>->{$cmd_id};
+          $lc->{'on_eof'}->($lc) if defined $lc->{'on_eof'};
+          delete <base.strm.local>->{$cmd_id};
+      }
+
+  base_strm_local_register: |
+    file: modules/base.strm.local.register
+    descr = register a local STRM consumer for a cmd_id
+    param = $cmd_id, \%opts  [ watcher=>, on_eof=>, max_buf=> ]
+
+    my $cmd_id = shift;
+    my $opts   = shift // {};
+
+    return <[base.logs]>->( 1, '[strm.local] register: missing cmd_id' )
+        if not defined $cmd_id or $cmd_id !~ m|^\d+$|;
+
+    <base.strm.local> //= {};
+    <base.strm.local>->{$cmd_id} = {
+        'buf'     => '',
+        'bytes'   => 0,
+        'started' => <[base.time]>->(3),
+        'watcher' => $opts->{'watcher'},
+        'on_eof'  => $opts->{'on_eof'},
+        'max_buf' => $opts->{'max_buf'} // 0,
+    };
+
+    <[base.logs]>->( 2, '[strm.local] registered consumer cmd_id %d', $cmd_id );
+
+  base_strm_local_consume: |
+    file: modules/base.strm.local.consume
+    descr = consume bytes from a local STRM consumer buffer
+    param = $cmd_id [, $max_bytes ]  ## undef max_bytes = consume all  ##
+    returns = consumed data string [ '' if empty or not found ]
+
+    my $cmd_id    = shift;
+    my $max_bytes = shift;
+
+    my $lc = <base.strm.local>->{$cmd_id} // return '';
+    return '' unless length $lc->{'buf'};
+
+    if ( defined $max_bytes and $max_bytes < length $lc->{'buf'} ) {
+        return substr( $lc->{'buf'}, 0, $max_bytes, '' );
+    }
+    return substr( $lc->{'buf'}, 0, length( $lc->{'buf'} ), '' );
+
+  base_strm_local_cancel: |
+    file: modules/base.strm.local.cancel
+    descr = remove a local STRM consumer registration
+    param = $cmd_id
+
+    my $cmd_id = shift // return;
+    if ( exists <base.strm.local>->{$cmd_id} ) {
+        delete <base.strm.local>->{$cmd_id};
+        <[base.logs]>->( 2, '[strm.local] cancelled consumer cmd_id %d', $cmd_id );
+    }
+
+  base_strm_callback_recv_test: |
+    file: modules/base.strm.callback.recv_test
+    descr = attach quiet logging test consumer to a local STRM [ dev tool ]
+    param = $cmd_id [, $label ]
+
+    attaches watcher + on_eof callbacks to an already-registered local STRM
+    consumer for $cmd_id. if no consumer exists, registers one first.
+
+    the watcher logs each chunk at level 2 then drains the buffer [ so it
+    does not grow ]. on_eof logs total bytes, duration, and throughput rate.
+    designed to be quiet enough [ level 2 ] to leave enabled across reloads
+    during development without console noise in normal operation.
+
+    my $cmd_id = shift;
+    my $label  = shift // sprintf 'strm-test:%d', $cmd_id;
+
+    <base.strm.local> //= {};
+    <base.strm.local>->{$cmd_id} //= {
+        'buf'     => '',
+        'bytes'   => 0,
+        'started' => <[base.time]>->(3),
+        'max_buf' => 0,
+    };
+
+    my $lc = <base.strm.local>->{$cmd_id};
+
+    $lc->{'watcher'} = sub {
+        my $c      = shift;
+        my $chunks = ++$c->{'_chunks'};
+        my $buflen = length $c->{'buf'};
+        <[base.logs]>->( 2, '[%s] chunk #%d  buf=%d  total=%d bytes',
+            $label, $chunks, $buflen, $c->{'bytes'} );
+        $c->{'buf'} = '';    ##  drain — don't accumulate  ##
+    };
+
+    $lc->{'on_eof'} = sub {
+        my $c   = shift;
+        my $dur = <[base.time]>->(3) - $c->{'started'};
+        <[base.logs]>->( 2, '[%s] eof: %d bytes in %.1fs [ %.1f KB/s ]',
+            $label, $c->{'bytes'}, $dur,
+            $dur > 0 ? ( $c->{'bytes'} / 1024 / $dur ) : 0 );
+    };
+
+    <[base.logs]>->( 2, '[%s] recv-test attached [ cmd_id %d ]', $label, $cmd_id );
+
+  usage_note: |
+    to test after implementation:
+
+    1. in a reply handler for any STRM-producing command, when the reply
+       arrives with cmd eq 'STRM' and args =~ /^open/:
+         <[base.strm.callback.recv_test]>->( $reply->{'cmd_id'}, 'radio-test' );
+
+    2. the recv-test drains its buffer on every chunk so buf stays small.
+       remove by calling <[base.strm.local.cancel]>->( $cmd_id ) when done.
+
+    3. for production consumers [ e.g. httpd radio bridge ], replace the
+       recv-test watcher with one that appends to an HTTP client output buffer.
+
+  acceptance: |
+    - ptd -c passes for all new and modified modules
+    - base.strm.local.register creates entry in <base.strm.local>
+    - base.strm.local.consume returns and drains buf [ partial and full ]
+    - base.strm.local.cancel removes entry cleanly
+    - base.handler.command: reply handler fires on STRM open for both
+      unbounded and bounded opens
+    - base.handler.command: STRM data appends to local consumer buf and
+      fires watcher; forward-to-source path skipped when local consumer exists
+    - base.handler.command: STRM close fires on_eof and removes consumer
+    - base.strm.callback.recv_test attaches watcher + on_eof to a cmd_id,
+      logs at level 2, drains buf on each chunk, logs summary on eof
+    - no existing STRM relay behaviour changed [ forward path still runs when
+      no local consumer is registered for the cmd_id ]
+
+#,,,.,.,,,...,..,,.,,,,..,...,.,.,,,,,,..,...,..,,...,..,,...,.,.,...,.,,,.,.,
+#PDG3NAWHFR6YJIMHMKGCBCNSIWLMBIL66FOEO6I6EATJCZJVZIG7LOPDAJEVF6MHAQHYDQIAFY54O
+#\\\|36ZHQLP4JO7FVMCGKZI2PPX73LR47KSMLZWNMJAEPGA35JNVDDS \ / AMOS7 \ YOURUM ::
+#\[7]EA7UOMWHBONBT35JLHG44YY5LLGIU44WQTYEJ3QES3S43DQBU4BA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

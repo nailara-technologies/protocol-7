@@ -1,0 +1,23 @@
+## [:< ##
+
+# name  = base.strm.local.consume
+# descr = consume bytes from a local STRM consumer buffer
+# param = $cmd_id [, $max_bytes ]  ## undef max_bytes = consume all ##
+# return = consumed data string [ '' if empty or not found ]
+
+my $cmd_id    = shift;
+my $max_bytes = shift;
+
+my $lc = <base.strm.local>->{$cmd_id} // return '';
+return '' unless length $lc->{'buf'};
+
+if ( defined $max_bytes and $max_bytes < length $lc->{'buf'} ) {
+    return substr( $lc->{'buf'}, 0, $max_bytes, '' );
+}
+return substr( $lc->{'buf'}, 0, length( $lc->{'buf'} ), '' );
+
+#,,..,.,.,..,,,..,,,.,.,,,.,,,,,,,.,.,,..,.,.,..,,...,...,..,,..,,.,,,,,.,,.,,
+#546P5OKPCSS7454Q3HB44BPMYHLOCAE4SXOYSB7Y65BS72XD5YGTIDNUI734KAVL3DJLGSH4F736O
+#\\\|73FE2UVEAQFCEEEHYMJYHD3VJR7CLYBQAU4UDOBWAPUPRW4ITFP \ / AMOS7 \ YOURUM ::
+#\[7]QDUX3PCD24ATSXRJ32I5CBCZPH5BCWQDJ5537PIR7HXJCIZUA6BY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

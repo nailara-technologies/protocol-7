@@ -1,0 +1,18 @@
+## [:< ##
+
+# name  = base.strm.local.cancel
+# descr = remove a local STRM consumer registration
+# param = $cmd_id
+
+my $cmd_id = shift // return;
+if ( exists <base.strm.local>->{$cmd_id} ) {
+    delete <base.strm.local>->{$cmd_id};
+    <[base.logs]>
+        ->( 2, '[strm.local] cancelled consumer cmd_id %d', $cmd_id );
+}
+
+#,,,.,..,,,..,,,,,,.,,.,,,,..,.,,,..,,,.,,.,,,..,,...,...,..,,,..,.,.,.,,,.,,,
+#PLUBJREIWE6C3BWGTIHDAK5FJ6MU4OCAORDTD2DWKY7LRPXJJTQWYDHV2R7HM32ON4MJBL37ENE6M
+#\\\|YQBIADH7PMS4ERSRJCGNBSWMYKGCUNHY2TD4YAAA5BVNZDK4UI2 \ / AMOS7 \ YOURUM ::
+#\[7]4I2AWOQ7X7675BJZMQGDFXRT7ZIZLXEXTX63DPRCGNWDNKLDUMCQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
