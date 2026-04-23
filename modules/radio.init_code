@@ -6,6 +6,8 @@
 <[base.perlmod.autoload]>->( 'IPC::Open3', qw| open3 | );
 <[base.perlmod.autoload]>->( 'Fcntl',      qw| :DEFAULT | );
 <[base.perlmod.autoload]>->(qw| IO::Handle |);
+<[base.perlmod.autoload]>->( 'File::Path', qw| make_path | );
+<[base.perlmod.autoload]>->( 'List::Util', qw| shuffle   | );
 
 <radio.listeners>  //= [];
 <radio.stream.icy> //= {
@@ -19,8 +21,14 @@
     is_jingle      => 0,
     track_started  => undef,
     track_duration => undef,
-    keep_flagged   => 0
+    keep_flagged   => 0,
+    rip_fh         => undef,
+    rip_path       => undef,
+    rip_bytes      => 0
 };
+
+<radio.gap_fill.active>   //= 0;
+<radio.keep_library.path> //= '/var/protocol-7/radio/keep-library';
 
 if ( ( <radio.stream.auto_connect> // '' ) eq qw| yes | ) {
     <[event.add_timer]>->(
@@ -32,8 +40,8 @@ if ( ( <radio.stream.auto_connect> // '' ) eq qw| yes | ) {
 
 0;
 
-#,,.,,.,.,,.,,.,,,,,.,,..,.,,,.,,,..,,,,.,..,,..,,...,...,...,..,,...,.,,,,.,,
-#M2G6FW3GL75EBL25TNILIKA3ONV6KZFJNFGYVIDPAY2TBJSBJUF33PQN6TZKBGUYC34KWBKRUTQ7U
-#\\\|L46HRZCQTISGA7XKHT5PMXEBQCYNMW5RBCWJBOG34QY64VAPCJ2 \ / AMOS7 \ YOURUM ::
-#\[7]6ITXW4JPYDD2OT4OR537WYAD5FONO2FOISQ34KNLKUAVXEDDOADA 7  DATA SIGNATURE ::
+#,,.,,.,.,,,,,,..,,.,,.,,,.,,,.,.,.,,,..,,..,,..,,...,...,.,.,.,.,,.,,..,,.,,,
+#HDK4RJFBYYCRNW5RNQVV7WB7UWQTLY6G25PNRBLRHHWIH2FXLMLC3VKTMPG4KQR3LFV4GUDTJ4G4M
+#\\\|RO7OCIVM3TJVCBJI6HL5HFFJFDIC5Y47BLLCPY5RALVRQID5FXQ \ / AMOS7 \ YOURUM ::
+#\[7]EJAU6322Z4JD3GMZ3XY6P6BWR5VNXAZ7VDF6DYXEUFONQDKO3YCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

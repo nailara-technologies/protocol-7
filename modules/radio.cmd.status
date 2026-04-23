@@ -18,17 +18,29 @@ if ( defined $icy->{'track_started'} ) {
     $duration_str = sprintf "\ntrack duration: %.0f seconds", $dur;
 }
 
+my $gap_fill_state = <radio.gap_fill.active> ? qw| yes | : qw| no |;
+
+my $library_str = '';
+my $lib_dir     = <radio.keep_library.path> // '';
+if ( -d $lib_dir ) {
+    my @files = glob("$lib_dir/*.mp3");
+    $library_str = sprintf "\nlibrary: %d track%s", scalar @files,
+        @files == 1 ? '' : 's';
+}
+
 return {
     'mode' => qw| true |,
     'data' => sprintf(
-        "current track: %s\nlisteners: %d\nconnected: %s\njingle: %s%s",
+        "current track: %s\nlisteners: %d\nconnected: %s\njingle: %s"
+            . "\ngap filler: %s%s%s",
         length $current_title ? $current_title : '(none)',
-        $listeners, $connected, $jingle_state, $duration_str
+        $listeners,      $connected,    $jingle_state,
+        $gap_fill_state, $duration_str, $library_str
     )
 };
 
-#,,..,...,..,,.,,,...,,..,.,,,,.,,..,,.,,,...,..,,...,...,..,,.,,,.,,,...,,..,
-#DRAS2JJI3GQUGHN7HNVZI65R4HBZQLC3CSQ6QGPONJJZSPL5Z5RDGK7ZBEW6PW74LEWARGE2DIGYE
-#\\\|7I37TWHGFAM2C3JAS4PMP5IYEB7ABB2OAQQ3LAOW5CDPHYGRNM6 \ / AMOS7 \ YOURUM ::
-#\[7]WPUXFUQZQHQOVIVIKIDUD5DQS53OX6T7YHTRLYSSBU7HLV7XKEDQ 7  DATA SIGNATURE ::
+#,,..,,,.,.,,,..,,,.,,,,,,.,.,,,.,,,,,...,...,..,,...,...,.,.,,,,,,.,,,..,...,
+#E5YVUJXAESEHMKT5T3CTXYD3EU2N5NVQ6WSXWKNC5Z5KR2KENFMCZZAVCEYJMRWQQ4G63PP6SRJQC
+#\\\|D3X6XRXAHVDAVZU6SP6CPXSTBNJV4S2WUTS3GBLTQWOT6JWZ35P \ / AMOS7 \ YOURUM ::
+#\[7]LWPKAPAPU2TZQKJQB2QJPVKMF2W5Y54E32WTIPTAHK7KTJBHYQAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
