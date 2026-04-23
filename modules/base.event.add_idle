@@ -1,0 +1,70 @@
+## [:< ##
+
+# name  = base.event.add_idle
+# descr = install an idle watcher [ fires when event loop is idle ]
+# param = { handler => 'name' | cb => \&sub,
+#           [ params => $hashref ],  ##  forwarded to handler instead of event  ##
+#           [ repeat => 0|1 ],       ##  default : 0 [ one-shot ]  ##
+#           [ prio => N ],
+#           [ desc => 'str' ] }
+
+my $p = shift;
+
+return undef
+    if ref($p) ne qw| HASH |
+    and warn 'event.add_idle: expected hash reference <{C1}>';
+
+my $cb_name;
+my $callback_cref;
+
+if ( defined $p->{'handler'} ) {
+    $cb_name = $p->{'handler'};
+    if ( defined $p->{'cb'} ) {
+        warn "redundant callback definition [ 'handler' and 'cb' ] <{C1}>";
+        return undef;
+    } elsif ( not defined $code{$cb_name} ) {
+        <[base.s_warn]>->(
+            'event.add_idle: handler [ %s ] not defined <{C1}>', $cb_name
+        );
+        return undef;
+    } elsif ( defined $p->{'params'} ) {
+
+        ##  one-shot deferred call : forward params instead of event args  ##
+        my $fwd = $p->{'params'};
+        $callback_cref = sub { $code{$cb_name}->($fwd) };
+
+    } else {
+        $callback_cref = sub { $code{$cb_name}->(@ARG) };
+    }
+} elsif ( defined $p->{'cb'} and ref $p->{'cb'} eq qw| CODE | ) {
+    $callback_cref = sub { $p->{'cb'}->(@ARG) };
+} elsif ( defined $p->{'cb'} ) {
+    warn 'event.add_idle: callback [cb] param not a code ref <{C1}>';
+    return undef;
+} else {
+    warn 'event.add_idle: callback \ handler parameter missing <{C1}>';
+    return undef;
+}
+
+my $watcher;
+eval {
+    $watcher = Event->idle(
+        'reentrant' => $p->{'reentrant'} // 1,
+        'repeat'    => $p->{'repeat'}    // 0,
+        'prio'      => $p->{'prio'}      // 1,
+        'desc'      => $p->{'desc'}      // $cb_name // '',
+        'cb'        => $callback_cref,
+        'data'      => $p->{'data'},
+    );
+};
+
+<[base.s_warn]>->( '%s <{C1}>', <[base.str.eval_error]> )
+    if length $EVAL_ERROR or not defined $watcher;
+
+return $watcher;
+
+#,,.,,.,,,.,,,,,.,,,,,.,,,...,.,,,..,,,.,,,,.,.,.,...,...,...,..,,.,,,,..,.,,,
+#PTZKJCIZTADGCPFRUFQDSBH3R5RDPWI6553CMBT4RQCCEUBO2WGTSAWYHY2E7TE67S6TDARIH3AMY
+#\\\|KKJDQEJPA4LYJJKVWBDZKVZ7LTZR6CCMFU2NBH77ATHJTLX3MDN \ / AMOS7 \ YOURUM ::
+#\[7]5KRL2SB2KXR4CNMIZL5PC5JTQT4OTJF33X4TBSMEZAC56HD27YDI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
