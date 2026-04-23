@@ -1,0 +1,30 @@
+## [:< ##
+
+# name  = base.curve.compose
+# descr = Combine factor curves into a single output callback
+
+my $params = shift;
+
+my $id = $params->{'id'} // do {
+    state $auto_id = 0;
+    'compose_' . ++$auto_id;
+};
+
+<base.curve.compose>->{$id} = {
+    factors  => $params->{'factors'} // [],
+    mode     => $params->{'mode'}    // 'product',
+    clamp    => $params->{'clamp'},
+    callback => $params->{'callback'},
+};
+
+<[base.curve.init]>
+    if not defined <base.curve.timer>
+    or not <base.curve.timer>->is_active;
+
+return $id;
+
+#,,,,,,,,,...,..,,,,,,...,..,,...,,,.,,,.,.,,,.,.,...,...,..,,.,,,.,.,,,,,,..,
+#ORUBFCGN2SJUZXXJ4B62D3RIBPE3JYORDGEFMGUK7FRATYYPPQHREULOBDPJQOXMLVDM7ESIJ5O6I
+#\\\|M5RSGSEH7I3SAPFXGHFTE6IOLA2IO2P62BYVMMRTBXNXUIX3RF5 \ / AMOS7 \ YOURUM ::
+#\[7]I54BWVPFSEFJLHUZUZMFDGERL5VLVAIPEFM5YDFNSRHI6QRBISCY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

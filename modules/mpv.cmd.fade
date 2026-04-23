@@ -42,7 +42,7 @@ return {
     'mode' => qw| true |,
     'data' => sprintf( 'audio volume already at %s%%', $vol_str )
     }
-    if sprintf( qw| %.2f |, <mpv.current.volume> ) == $vol_str;
+    if sprintf( qw| %.2f |, <mpv.current.volume> // 0 ) == $vol_str;
 
 my $id_str = defined $id ? sprintf( '[%u] ', $id ) : '';
 
@@ -52,7 +52,6 @@ my $log_level = length($id_str) ? 1 : 2;
     $id_str,    $vol_str
 );
 
-my $min_delay = 0.0064;
 <mpv.current.volume_target> = <mpv.audio_fade.target> = $volume;
 
 <mpv.audio_fade.reply_ids> //= [];
@@ -63,6 +62,8 @@ delete <mpv.time.fade_volume>;
 <mpv.timer.audio_fade>->cancel
     if defined <mpv.timer.audio_fade>
     and <mpv.timer.audio_fade>->is_active;
+delete <mpv.timer.audio_fade>;
+<[base.curve.cancel]>->(qw| mpv_audio_fade |);
 <[base.callback.cmd_reply]>->(
     shift( <mpv.audio_fade.reply_ids>->@* ),
     {   'mode' => qw| true |,
@@ -74,25 +75,14 @@ delete <mpv.time.fade_volume>;
 
 <mpv.audio_fade.start_vol> = <mpv.current.volume>;
 <mpv.audio_fade.delta_vol>
-    = sprintf( qw| %.5f |, $volume - <mpv.current.volume> );
+    = sprintf( qw| %.5f |, $volume - ( <mpv.current.volume> // 0 ) );
 
-my $interval_delay = sprintf( qw| %.4f |,
-    ( 1 / $speed ) * 0.42 * ( abs(<mpv.audio_fade.delta_vol>) / 100 ) );
-
-$interval_delay = $min_delay if $interval_delay < $min_delay;
-
-<mpv.timer.audio_fade> = <[event.add_timer]>->(
-    {   'after'    => 0,
-        'interval' => $interval_delay,
-        'handler'  => qw| mpv.handler.audio_fade |,
-        'data'     => $volume
-    }
-);
+<[mpv.handler.audio_fade]>->($volume);
 
 return { 'mode' => qw| deferred | }
 
-#,,.,,.,,,,,.,.,.,...,..,,..,,..,,,..,.,,,,,.,..,,...,...,,..,,..,..,,..,,,,.,
-#AOXPQK2XEM5CJKSIKWA5DZZ47S6XKI3P4RAXVEXUBNFQ2AAXMZFR2YNFAXE6AFBJYM7KDBPOHVBLI
-#\\\|KBMT7WKAIQEEKHA5UHXING7RWG4VVN5NOUBAHMPNFVNK64DCD4M \ / AMOS7 \ YOURUM ::
-#\[7]UU3CBUCSDIADYB4ICB4XLSW4JURKX3Z7T2SRAHE5WMIXTW5EJOAY 7  DATA SIGNATURE ::
+#,,.,,,,,,,,.,,,,,.,,,,..,...,,,.,...,,,.,,.,,..,,...,.,.,..,,.,.,..,,,..,..,,
+#2MUEO3ERMG4T5IHCX4U4TYPPTGZPRSYX4TBF2X3CU774OUN65C3RPJNERKKPDAH4JMIQPKOHGX2G4
+#\\\|7KVH5KIRYDZT2FS6KCJQGHCHSMIERGEATH522NIRMB4D2KHOL5O \ / AMOS7 \ YOURUM ::
+#\[7]RM3VBNQ3GWVFIYKLXVXUZZYUDVBJ7XJX6FSPX6YLZCUI6NJQVSBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

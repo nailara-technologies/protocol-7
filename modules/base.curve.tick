@@ -1,0 +1,89 @@
+## [:< ##
+
+# name  = base.curve.tick
+# descr = Internal timer: advance all curves, fire callbacks
+
+my $event = shift->w;
+my $now   = <[base.time]>->(3);
+
+## advance individual curves, collect current values ##
+my %current_values;
+my @completed;
+
+foreach my $id ( keys <base.curve.active>->%* ) {
+    my $c = <base.curve.active>->{$id};
+
+    my $elapsed = $now - $c->{'started'};
+    my $t       = $elapsed / $c->{'duration'};
+    $t = 0 if $t < 0;
+    $t = 1 if $t > 1;
+
+    my $eval_t = <[base.curve.eval]>->( $c->{'type'}, $t );
+    my $val    = $c->{'from'} + ( $c->{'to'} - $c->{'from'} ) * $eval_t;
+    $current_values{$id} = $val;
+
+    $c->{'callback'}->($val)
+        if defined $c->{'callback'}
+        and ref $c->{'callback'} eq qw| CODE |;
+
+    push @completed, $id if $t >= 1 and $c->{'type'} ne qw| hold |;
+}
+
+## fire on_done and remove completed curves ##
+foreach my $id (@completed) {
+    my $c = <base.curve.active>->{$id};
+    $c->{'on_done'}->()
+        if defined $c->{'on_done'}
+        and ref $c->{'on_done'} eq qw| CODE |;
+    delete <base.curve.active>->{$id};
+}
+
+## evaluate composed curves using stored values ##
+foreach my $id ( keys <base.curve.compose>->%* ) {
+    my $comp = <base.curve.compose>->{$id};
+    my @values;
+
+    foreach my $factor_id ( $comp->{'factors'}->@* ) {
+        if ( exists $current_values{$factor_id} ) {
+            push @values, $current_values{$factor_id};
+        } else {
+            push @values,
+                ( $comp->{'mode'} // qw| product | ) eq qw| product | ? 1 : 0;
+        }
+    }
+
+    my $mode   = $comp->{'mode'} // qw| product |;
+    my $result = $mode eq qw| product | ? 1 : 0;
+    foreach my $v (@values) {
+        if ( $mode eq qw| product | ) {
+            $result *= $v;
+        } else {
+            $result += $v;
+        }
+    }
+
+    if ( defined $comp->{'clamp'} ) {
+        my ( $min, $max ) = $comp->{'clamp'}->@*;
+        $result = $min if defined $min and $result < $min;
+        $result = $max if defined $max and $result > $max;
+    }
+
+    $comp->{'callback'}->($result)
+        if defined $comp->{'callback'}
+        and ref $comp->{'callback'} eq qw| CODE |;
+}
+
+## stop timer when idle to save resources ##
+if (    not keys <base.curve.active>->%*
+    and not keys <base.curve.compose>->%* ) {
+    $event->cancel;
+    delete <base.curve.timer>;
+}
+
+return;
+
+#,,,,,...,,..,,..,,,,,,,.,,.,,,,.,,..,.,.,,.,,..,,...,...,.,,,,,,,,,.,,,,,,..,
+#F63MWVQJJO33YEQW3VVE6FFQY5GFY6L3ZTZTKLM4K2PJE2N5SG23KC7M6FW7YISMVM7BJJFWWW2OG
+#\\\|BCO57QYGWRMQVSCDKEJKUYZIGDA5ORFK3243OKSQN34E3L7NDTH \ / AMOS7 \ YOURUM ::
+#\[7]JYUTLFFSLINEZBPJTUVFIQ37YAGFZCUIAVO4H7MCR2TUAQO332DI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
