@@ -1,0 +1,154 @@
+task:
+  id: radio-tcp-connect-rewrite
+  title: "radio : replace curl subprocess with base.open ip.tcp connection"
+  description: |
+    replace the curl subprocess in radio.connect with a native TCP socket
+    opened via <[base.open]>->( qw| ip.tcp output |, $host, $port ) — the
+    same call used by all other zenki to connect to cube. this removes the
+    IPC::Open3 / Fcntl / IO::Handle dependencies and the curl child process.
+    the Event->io watcher and stream-chunk byte parser are unchanged; the
+    socket fd replaces the pipe read handle directly.
+
+  syntax_reference: data/yaml/docs/protocol-7-coding-style.md
+
+  existing_modules_read_first:
+    - modules/radio.connect
+    - modules/radio.init_code
+    - modules/radio.handler.stream-chunk
+    - modules/io.ip.tcp.output.open
+
+  files_to_modify:
+    - modules/radio.connect
+    - modules/radio.handler.stream-chunk
+    - modules/radio.init_code
+    - configuration/zenki/radio/start
+
+  ##  radio.connect rewrite  ##
+
+  new_radio_connect: |
+    file: modules/radio.connect
+    descr = open TCP connection to ICY stream host and send HTTP GET request
+
+    complete replacement. no curl subprocess, no IPC::Open3.
+
+    parse the URL from <radio.stream.url>:
+
+      my $url = <radio.stream.url>;
+
+      return <[base.logs]>->( 0, '[radio] no stream url configured' )
+          if not defined $url or not length $url;
+
+      ##  guard: already connected  ##
+      return <[base.logs]>->( 2, '[radio] already connected' )
+          if defined <radio.stream.sock>;
+
+      ##  parse http://host[:port]/path  ##
+      my ( $host, $port, $path ) = ( $url =~ m{^https?://([^/:]+)(?::(\d+))?(/.*)?$} );
+      $port //= 80;
+      $path //= '/';
+
+      if ( not defined $host ) {
+          <[base.logs]>->( 0, '[radio] invalid stream url: %s', $url );
+          return;
+      }
+
+      <[base.logs]>->( 2, '[radio] connecting to %s:%d%s', $host, $port, $path );
+
+      my $sock = <[base.open]>->( qw| ip.tcp output |, $host, $port );
+
+      if ( not defined $sock ) {
+          <[base.logs]>->( 0, '[radio] connection failed: %s:%d', $host, $port );
+          return;
+      }
+
+      ##  set non-blocking for event-loop reads  ##
+      $sock->blocking(0);
+
+      ##  send ICY HTTP GET request  ##
+      my $req = join( "\r\n",
+          "GET $path HTTP/1.0",
+          "Host: $host",
+          "Icy-Metadata: 1",
+          "User-Agent: radio-relay/1.0",
+          "Connection: close",
+          "", ""
+      );
+      syswrite( $sock, $req );
+
+      <radio.stream.sock> = $sock;
+
+      <radio.stream.io_watcher> = <[event.add_io]>->(
+          {   fd      => $sock,
+              poll    => qw| r |,
+              handler => qw| radio.handler.stream-chunk |,
+          }
+      );
+
+    note: use $sock->blocking(0) from IO::Socket::IP — no fcntl needed.
+    use HTTP/1.0 so the server closes after the stream ends (no chunked TE).
+
+  ##  stream-chunk disconnect block  ##
+
+  stream_chunk_disconnect: |
+    file: modules/radio.handler.stream-chunk
+
+    the disconnect block at the top of the handler currently does:
+
+      $event->cancel;
+      close($read_fh) if defined $read_fh;
+      my $pid = delete <radio.stream.pid>;
+      if ( defined $pid ) {
+          <[base.logs]>->( 1, '[radio] stream disconnected [pid=%d]', $pid );
+          kill( 15, $pid );
+          <system.kill_list> = [ grep { $_ != $pid } <system.kill_list>->@* ];
+      }
+      delete <radio.stream.r_fh>;
+      delete <radio.stream.io_watcher>;
+
+    replace with:
+
+      $event->cancel;
+      if ( defined <radio.stream.sock> ) {
+          close( delete <radio.stream.sock> );
+          <[base.logs]>->( 1, '[radio] stream disconnected' );
+      }
+      delete <radio.stream.io_watcher>;
+
+    also update the 'already connected' guard earlier in the same file
+    if it checks <radio.stream.pid> — replace that check with
+    'defined <radio.stream.sock>'.
+
+  ##  init_code cleanup  ##
+
+  init_code_cleanup: |
+    file: modules/radio.init_code
+
+    remove the three autoload calls that are no longer needed:
+
+      <[base.perlmod.autoload]>->( 'IPC::Open3', qw| open3 | );
+      <[base.perlmod.autoload]>->( 'Fcntl',      qw| :DEFAULT | );
+      <[base.perlmod.autoload]>->(qw| IO::Handle |);
+
+    keep the remaining autoloads:
+      File::Path  ( make_path )
+      List::Util  ( shuffle )
+
+    also remove <radio.stream.pid> //= undef or similar pid init if present
+    (there is none currently — the pid is set in radio.connect only).
+
+  ##  start file  ##
+
+  start_file_change: |
+    file: configuration/zenki/radio/start
+
+    current: modules.load = auth net protocol io.unix radio
+    new:     modules.load = auth net protocol io.unix io.ip radio
+
+    io.ip loads io.ip.tcp.init_code which registers IO::Socket::IP and
+    wires up the base.open ip.tcp handler used in radio.connect.
+
+#,,..,,,.,,,,,..,,...,...,,,,,...,...,,..,,.,,..,,...,...,,.,,,,.,.,.,,..,..,,
+#BZAAMPVUYWOKLVXEPBQP54CWNJEKDVW7L4TP6UHTLPULCVVRL54Y3MUAXQHKECNQNC6CU4KOEACCM
+#\\\|LEHA554Q2EG55KTOPFTYD6I25PGP2T4J6AW6B4Y2CIQHFMJVL4S \ / AMOS7 \ YOURUM ::
+#\[7]6KU7HI4JV6DGSMUSGJXJ4HKFYQ7AQIY5UOHBJUMUVEAVTF5YG6AQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
