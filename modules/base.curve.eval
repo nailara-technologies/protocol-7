@@ -1,0 +1,81 @@
+## [:< ##
+
+# name  = base.curve.eval
+# descr = Pure curve evaluator: type × t → value [0,1]
+
+my $type = shift;
+my $t    = shift // 0;
+
+## clamp t to [0,1] ##
+$t = 0 if $t < 0;
+$t = 1 if $t > 1;
+
+my $val;
+
+if ( $type eq 'sine' ) {
+    ## natural sine wave (smooth harmonic) ##
+    $val = sin( $t * τ / 2 );
+
+} elsif ( $type eq 'gaussian_pulse' ) {
+    ## gaussian pulse at peak visibility ##
+    my $x    = ( $t - 0.5 ) * 4;            # center at 0.5, spread 4
+    my $bell = <[base.calc_gauss]>->($x);
+    $val = $bell * sqrt(τ);                 # normalize to 1.0 at peak
+
+} elsif ( $type eq 'exponential' ) {
+    ## exponential decay from peak (radar/ping style) ##
+    $val = exp( -$t * 5 ) * ( $t < 0.2 ? 1 : 0.3 );
+
+} elsif ( $type eq 'quantized' ) {
+    ## 13-step discrete levels (P7 quantum effect) ##
+    my $steps = 13;
+    my $step  = int( $t * $steps );
+    $val = $step / ( $steps - 1 );
+
+} elsif ( $type eq 'heartbeat' ) {
+    ## double-pulse (heartbeat rhythm: lub-dub) ##
+    my $pulse1 = <[base.calc_gauss]>->( ( $t - 0.25 ) * 8 );
+    my $pulse2 = <[base.calc_gauss]>->( ( $t - 0.45 ) * 8 );
+    $val = ( $pulse1 + $pulse2 * 0.7 ) * 0.7;
+
+} elsif ( $type eq 'linear' ) {
+    ## constant rate ##
+    $val = $t;
+
+} elsif ( $type eq 'ease-in' ) {
+    ## cubic slow start ##
+    $val = $t * $t * $t;
+
+} elsif ( $type eq 'ease-out' ) {
+    ## cubic fast start ##
+    $val = 1 - ( 1 - $t )**3;
+
+} elsif ( $type eq 'ease-in-out' ) {
+    ## cubic slow at both ends ##
+    if ( $t < 0.5 ) {
+        $val = 4 * $t * $t * $t;
+    } else {
+        $val = 1 - ( ( -2 * $t + 2 )**3 ) / 2;
+    }
+
+} elsif ( $type eq 'hold' ) {
+    ## constant value (returns 0 so interpolation stays at 'from') ##
+    $val = 0;
+
+} else {
+    ## default: sigmoid S-curve (smooth on/off transition) ##
+    my $x = ( $t - 0.5 ) * 8;    # steepness factor
+    $val = 1 / ( 1 + exp( -$x ) );
+}
+
+## clamp to valid range ##
+$val = 0 if $val < 0;
+$val = 1 if $val > 1;
+
+return $val;
+
+#,,.,,.,.,.,.,...,.,,,,.,,,.,,.,.,,.,,.,.,,,.,..,,...,..,,.,.,.,,,.,,,...,,,.,
+#PLYNEE7M66ACXLXCUNRIPADBS33EWKZSFYXDB265XBHDPOYAXTXC5PP2KECVLS5QJ6VLZI4BDKMM4
+#\\\|AVE72IGUCWYYMMB3ZS7BFCBQTCLJ5PFW7GCIXZMMR26M35TRXSU \ / AMOS7 \ YOURUM ::
+#\[7]7MYQNXNU27ISEYT7CKE5LLEQNFPZVHP7TGBIY2A75QUSILULGYBA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

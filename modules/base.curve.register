@@ -1,0 +1,33 @@
+## [:< ##
+
+# name  = base.curve.register
+# descr = Create and start a named parameter curve
+
+my $params = shift;
+
+my $id = $params->{'id'} // do {
+    state $auto_id = 0;
+    'curve_' . ++$auto_id;
+};
+
+<base.curve.active>->{$id} = {
+    from     => $params->{'from'}     // 0,
+    to       => $params->{'to'}       // 1,
+    duration => $params->{'duration'} // 1,
+    type     => $params->{'type'}     // 'linear',
+    started  => <[base.time]>->(3),
+    callback => $params->{'callback'},
+    on_done  => $params->{'on_done'},
+};
+
+<[base.curve.init]>
+    if not defined <base.curve.timer>
+    or not <base.curve.timer>->is_active;
+
+return $id;
+
+#,,..,,.,,.,,,...,...,.,.,.,,,,,.,,,,,,..,.,,,..,,...,.,.,.,.,,,,,.,.,..,,,,,,
+#PVPRPB6FQC3SCFNOUUXBCDFVDJC3PLEUBHYWEAW2YLK6Z5KDFGN4GC6O2MTEQ6VN75DW2KCQEGIRO
+#\\\|TK224F3IM324KJTY5JU7YDYU7LBX7A4F5YIDOG3QNYCXZPFPKCQ \ / AMOS7 \ YOURUM ::
+#\[7]I6WL7EXAXOJX6AQMKLU5A4QPJCB6MTWCAGY7G7BSVGJGEHUY3IAQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

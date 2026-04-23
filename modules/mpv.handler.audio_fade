@@ -1,58 +1,63 @@
 ## [:< ##
 
 # name  = mpv.handler.audio_fade
+# descr = Register a base.curve for volume fade (replaces timer-driven loop)
 
-my $event = shift->w;
+my $volume = shift;
 
-my $target_volume = <mpv.audio_fade.target>;
-<mpv.audio_fade.start_vol> //= <mpv.current.volume> //= 0;  ## LLL: improve ##
+<mpv.audio_fade.start_vol> //= <mpv.current.volume> // 0;
 
-if ( not defined <mpv.time.fade_volume> ) {
-    <[base.log]>->( 2, 'fade-in started..,' );
-    <mpv.time.fade_volume>   = <[base.time]>->(3);
-    <mpv.volume.fade_factor> = 0;
-}
+my $speed    = <mpv.audio.fade_speed> // 24;
+my $duration = sprintf qw| %.3f |,
+    ( 4.0 + abs( <mpv.audio_fade.delta_vol> // 0 ) / 100 ) * ( 24 / $speed );
 
-my $delta_t = sprintf qw| %.3f |, <[base.time]>->(3) - <mpv.time.fade_volume>;
+<[base.curve.register]>->(
+    {   id       => qw| mpv_audio_fade |,
+        from     => <mpv.audio_fade.start_vol>,
+        to       => $volume,
+        duration => $duration,
+        type     => qw| sigmoid |,
+        callback => sub {
+            my $val        = shift;
+            my $new_volume = sprintf( qw| %.3f |, $val );
+            return
+                if defined <mpv.audio_fade.last_set>
+                and $new_volume eq <mpv.audio_fade.last_set>;
+            <[base.logs]>->( 2, '< FADE > volume == %.3f%%', $new_volume );
+            <[mpv.send_command]>->( qw| set_property volume |, $new_volume );
+            <mpv.audio_fade.last_set> = $new_volume;
+        },
+        on_done => sub {
+            ##  sigmoid never quite reaches 1.0 : set exact target  ##
+            <[mpv.send_command]>->( qw| set_property volume |, $volume );
+            my $vol_str = sprintf( qw| %.2f |, $volume );
+            $vol_str =~ s|(\.[^0])0$|$1|g;
+            $vol_str =~ s|\.00$||g;
+            map {
+                <[base.callback.cmd_reply]>->(
+                    $ARG,
+                    {   'mode' => qw| true |,
+                        'data' => sprintf '[%s%%] volume fade completed',
+                        $vol_str
+                    }
+                ) if defined $ARG;
+            } <mpv.audio_fade.reply_ids>->@*;
+            delete <mpv.audio_fade.reply_ids>;
+            delete <mpv.audio_fade>;
+        },
+    }
+);
 
-# adjusting fade speed based on volume difference
-$delta_t *= ( 1 - ( ( abs(<mpv.audio_fade.delta_vol>) * 0.2347 ) / 100 ) );
+return;
 
-<mpv.volume.fade_factor> += <[mpv.volume.calc_incr]>->($delta_t);
-<mpv.volume.fade_factor> = 1 if <mpv.volume.fade_factor> > 1;
-<mpv.audio_fade.last_set> //= '';
-
-my $new_volume = sprintf( qw| %.3f |,
-          <mpv.audio_fade.start_vol>
-        + <mpv.audio_fade.delta_vol> * <mpv.volume.fade_factor> );
-
-if ( $new_volume ne <mpv.audio_fade.last_set> ) {
-    <[base.logs]>->( 2, '< FADE > volume == %.3f%%', $new_volume );
-    <[mpv.send_command]>->( qw|  set_property  volume  |, $new_volume );
-    <mpv.audio_fade.last_set> = $new_volume;
-}
-
-if ( <mpv.volume.fade_factor> == 1 ) {
-    delete <mpv.time.fade_volume>;
-    my $vol_str = sprintf( qw| %.2f |, $target_volume );
-    $vol_str =~ s|(\.[^0])0$|$1|g;
-    $vol_str =~ s|\.00$||g;
-    map {
-        <[base.callback.cmd_reply]>->(
-            $ARG,
-            {   'mode' => qw| true |,
-                'data' => sprintf '[%s%%] volume fade completed',
-                $vol_str
-            }
-        ) if defined $ARG;
-    } <mpv.audio_fade.reply_ids>->@*;
-    delete <mpv.audio_fade.reply_ids>;
-    delete <mpv.audio_fade>;
-    $event->cancel;
-}
-
-#,,..,.,,,,.,,.,.,,,.,.,.,..,,..,,.,,,.,.,,.,,..,,...,..,,..,,.,.,...,,..,,,.,
+#,,..,.,,,,.,,.,.,,,.,.,.,..,,..,,.,,,.,.,,.,,..,,...,..,,..,,.,.,...,,..,,,.;
 #CMCMWJ4J77J7AGBMKHTUS6A32JO2BA526R5SGUMH5I5XSFSR4P7JL7MHK4PXLZ4UAZUS53YKHEWWS
 #\\\|5QIG6UZBTFNYT7BBI2LXX3XMMXGKVJU2EM4FKJCIZDUC5QV2YKD \ / AMOS7 \ YOURUM ::
 #\[7]UAVIZI43N3JZA2K2P73SVMWG2SZHOG66PHL4MWF4APWBSIHQ7YCQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+
+#,,.,,,..,.,.,.,,,..,,,,.,.,.,,..,.,.,...,.,,,..,,...,...,...,..,,.,,,.,.,,..,
+#6X63FK2Y3OGCLBTBYOFWDL5V3U2RTFSK24VSPM4Z6WWXXZGSZXR7VSN7QMYRFEPV6NYY7XPIPOWIE
+#\\\|3W2AOGWT6KEWNWFZY47LXMKGOAT37WYU7JJ6OUUCUHVMRITERX3 \ / AMOS7 \ YOURUM ::
+#\[7]NL3KUQ5CJEYEDNJ7B7TH5DHFE2XKYHGD22CWQVX62XET4CBLOYBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

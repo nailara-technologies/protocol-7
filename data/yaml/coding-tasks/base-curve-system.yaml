@@ -1,0 +1,121 @@
+task:
+  id: base-curve-system
+  title: "base.curve.* — extract and generalize existing curve infrastructure"
+  description: |
+    extract and generalize the curve evaluation logic that already exists
+    across several modules into a reusable base.curve.* layer. this is a
+    refactor-and-generalize task, not build-from-scratch.
+
+    existing infrastructure to build on:
+      modules/base.calc_gauss             — gaussian PDF, keep as-is
+      modules/graphics-3d.calc.cursor-translucency — 6 curve profiles
+      modules/mpv.volume.calc_incr        — gaussian fade increment
+      modules/mpv.handler.audio_fade      — timer-driven fade loop
+      modules/mpv.cmd.fade                — fade command entry point
+
+  scope:
+    new_modules:
+      - modules/base.curve.eval      # pure: curve type × t → value
+      - modules/base.curve.register  # create and start a named curve
+      - modules/base.curve.cancel    # stop and remove a running curve
+      - modules/base.curve.tick      # internal: advance all, fire callbacks
+      - modules/base.curve.compose   # combine factor curves into output
+    refactor:
+      - modules/mpv.handler.audio_fade   # use base.curve.eval instead of calc_incr
+      - modules/mpv.volume.calc_incr     # may become a thin shim or be retired
+    unchanged:
+      - modules/base.calc_gauss          # math primitive, keep as-is
+      - modules/mpv.cmd.fade             # external interface unchanged
+      - modules/graphics-3d.calc.cursor-translucency  # keep working, no changes
+
+  curve_types: |
+    extract these profiles from graphics-3d.calc.cursor-translucency
+    into base.curve.eval( $type, $t ) where t is normalized phase [0,1]:
+
+      sigmoid        — S-curve, smooth on/off  [ already in graphics-3d ]
+      sine           — natural sine wave        [ already in graphics-3d ]
+      gaussian_pulse — bell curve peak          [ already in graphics-3d ]
+      exponential    — radar/ping decay         [ already in graphics-3d ]
+      quantized      — 13-step discrete         [ already in graphics-3d ]
+      heartbeat      — double-pulse lub-dub     [ already in graphics-3d ]
+      linear         — constant rate (new)
+      ease-in        — cubic slow start (new)
+      ease-out       — cubic fast start (new)
+      ease-in-out    — cubic slow at both ends (new)
+      hold           — constant value = from, never advances (new;
+                       for external factors in compose chains)
+
+    base.curve.eval is a pure function: no state, no side effects.
+    graphics-3d.calc.cursor-translucency continues to use its own
+    local profiles unchanged — do not modify it.
+
+  api: |
+    base.curve.eval( $type, $t )     # t in [0,1], returns [0,1]
+
+    base.curve.register( {
+        id       => $name,           # optional: auto-assigned if omitted
+        from     => $start_val,
+        to       => $end_val,
+        duration => $seconds,
+        type     => 'linear' | 'ease-in' | 'ease-out' | 'ease-in-out'
+                  | 'sigmoid' | 'sine' | 'gaussian_pulse' | 'exponential'
+                  | 'quantized' | 'heartbeat' | 'hold',
+        callback => sub { my $val = shift; ... },
+        on_done  => sub { ... },     # optional: called at t=1
+    } )
+
+    base.curve.cancel( $id )
+
+    base.curve.compose( {
+        id       => $name,
+        factors  => [ $curve_id_A, $curve_id_B, ... ],
+        mode     => 'product' | 'sum',
+        clamp    => [ $min, $max ],  # optional
+        callback => sub { my $val = shift; ... },
+    } )
+
+  state_location: |
+    store active curves in <base.curve.active.$id>:
+      from, to, type, duration, started, callback, on_done
+
+    compose entries in <base.curve.compose.$id>:
+      factors (arrayref of ids), mode, clamp, callback
+
+  tick_timer: |
+    base.curve.init sets up a repeating timer at 50ms resolution.
+    base.curve.tick advances all active curves each fire:
+      t = elapsed / duration, clamped to [0, 1]
+      result = from + (to - from) * base.curve.eval(type, t)
+      fire callback with result
+      at t=1: fire on_done if defined, cancel curve
+    compose: collect current output from each factor curve, apply
+    mode (product or sum), clamp, fire callback
+
+  mpv_refactor: |
+    mpv.handler.audio_fade currently uses mpv.volume.calc_incr which
+    implements a custom gaussian increment accumulator. replace with:
+      - register a base.curve of type 'gaussian_pulse' or 'ease-in-out'
+        from start_vol to target_vol for the fade duration
+      - callback calls <[mpv.send_command]>->('set_property','volume',$val)
+      - on_done fires the existing reply_id completion logic
+    mpv.cmd.fade external interface (params, reply) stays unchanged.
+    mpv.volume.calc_incr can be retired if no other callers remain
+    (check grep before removing).
+
+  acceptance: |
+    - all new and modified modules pass ptd -c syntax check
+    - base.curve.eval returns correct shape for each curve type
+      (verify sigmoid reaches ~1 at t=1, gaussian_pulse peaks at t=0.5,
+       linear is linear, hold always returns from value)
+    - mpv.cmd.fade still works: fade volume up and down without regression
+    - mpv.handler.audio_fade no longer calls mpv.volume.calc_incr directly
+    - graphics-3d.calc.cursor-translucency unchanged and still passes ptd -c
+    - base.calc_gauss unchanged
+</content>
+</invoke>
+
+#,,..,...,.,,,,,,,..,,,,,,,.,,,,,,...,,..,,,,,...,...,...,..,,,,.,.,,,,,,,,..,
+#3EOOECO7PRQJEYZJIDBHDU5IL5AUXA4AJIYPLWULLTQTM6JST7BHHVPFFGOH6ZZ65PMTML4575PE6
+#\\\|YDHSSVW4YCPBVY2SK7ANDQVZWCBM7HWHNCD3AEU3B2MQMEBV4TK \ / AMOS7 \ YOURUM ::
+#\[7]6I3SJQMARN647I4LAHHMWTUXSYESHRVVSWCWMDBGDGUFPI3NSADA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
