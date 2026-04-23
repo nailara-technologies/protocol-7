@@ -1,0 +1,26 @@
+## [:< ##
+
+# name  = radio.cmd.status
+# descr = current track, listener count, connection status
+
+my $current_title = <radio.stream.icy>->{'current_title'} // '';
+my $listeners     = scalar( <radio.listeners>->@* );
+my $connected
+    = ( defined <radio.stream.pid> and <radio.stream.pid> )
+    ? qw| yes |
+    : qw| no |;
+
+return {
+    'mode' => qw| true |,
+    'data' => sprintf(
+        "current track: %s\nlisteners: %d\nconnected: %s",
+        length $current_title ? $current_title : '(none)', $listeners,
+        $connected
+    )
+};
+
+#,,,.,.,,,,,,,...,...,...,,,,,,..,.,,,..,,,..,..,,...,...,,,,,,,.,...,,,.,,..,
+#CKEWOTCGHXH6LOWUCVH3IFMOHKZ4RGCDJADIEHLFY622FCP2TCJYKTMM3GVMCKPUI5UES7WH34UQS
+#\\\|PDJ3M5GSZCWTB3F64F6UD6MGMN3GBIMN4W4UJLZVCHZ7PLEAMRA \ / AMOS7 \ YOURUM ::
+#\[7]YYANH2F6MFWRYXLRUKQAJ6JEKNDR6DMPOMKGINNGKPZI7XNVNGBI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

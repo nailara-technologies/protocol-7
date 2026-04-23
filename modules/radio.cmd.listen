@@ -1,0 +1,40 @@
+## [:< ##
+
+# name  = radio.cmd.listen
+# descr = register caller as unbounded STRM stream listener
+
+my $call_args = shift;
+
+my $sid    = $call_args->{'sid'};
+my $cmd_id = $call_args->{'cmd_id'};
+
+my $h = <[base.stream.open]>->(
+    {   sid    => $sid,
+        cmd_id => $cmd_id,
+        type   => qw| STRM |,
+        total  => undef,
+    }
+);
+
+if ( not defined $h ) {
+    <[base.callback.cmd_reply]>->(
+        $call_args,
+        {   'mode' => qw| false |,
+            'data' => 'stream open refused [ session gone ]'
+        }
+    );
+    return;
+}
+
+push <radio.listeners>->@*, $h;
+
+<[base.logs]>->(
+    2,    '[radio] listener added [sid=%d cmd_id=%d]',
+    $sid, $cmd_id
+);
+
+#,,,.,,..,,,.,...,.,.,.,,,...,,,,,.,,,,.,,..,,..,,...,.,.,,..,,,,,,.,,...,,,.,
+#HBP6CC4SWAOKLLYYRJPX3DVINQEEUHYUDPZB3TW26SVMBWPXBUBZQHTFU7QVAWK2I3BOTIJYNMRGA
+#\\\|55BBGYMQHYJWVXE4TMQNWQ4NLRIRHA3NO2HUKJ3S7VMVISVBXVO \ / AMOS7 \ YOURUM ::
+#\[7]EK7LZODEJYAX3V3JYWP56VICM6HWBTDQCS5SY6Y6MTW5LEIEX4AA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
