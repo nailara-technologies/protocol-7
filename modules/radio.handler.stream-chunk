@@ -93,10 +93,41 @@ while ( $offset < $buf_len ) {
             if ( $meta_str =~ /StreamTitle='([^']*)'/ ) {
                 my $new_title = $1;
                 if ( $new_title ne $icy->{'current_title'} ) {
+
+                    ##  finalize outgoing track  ##
+                    if ( defined $icy->{'track_started'} ) {
+                        $icy->{'track_duration'}
+                            = <[base.time]>->(3) - $icy->{'track_started'};
+                        if ( $icy->{'track_duration'}
+                            < ( <radio.jingle.min_track_seconds> // 90 ) ) {
+                            <[base.logs]>->(
+                                2,
+                                '[radio] short track %.0fs'
+                                    . ' — likely jingle [ %s ]',
+                                $icy->{'track_duration'},
+                                $icy->{'current_title'}
+                            );
+                        }
+                    }
+
+                    ##  reset state for incoming track  ##
                     $icy->{'current_title'} = $new_title;
-                    <[base.logs]>->(
-                        2, '[radio] now playing: %s', $new_title
-                    );
+                    $icy->{'track_started'} = <[base.time]>->(3);
+                    $icy->{'keep_flagged'}  = 0;
+
+                    ##  jingle detection  ##
+                    $icy->{'is_jingle'}
+                        = <[radio.filter.jingle]>->($new_title);
+
+                    if ( $icy->{'is_jingle'} ) {
+                        <[base.logs]>->(
+                            2, '[radio] jingle detected: %s', $new_title
+                        );
+                    } else {
+                        <[base.logs]>->(
+                            2, '[radio] now playing: %s', $new_title
+                        );
+                    }
                 }
             }
 
@@ -115,13 +146,15 @@ while ( $offset < $buf_len ) {
         if ( $take > 0 ) {
             my $audio_chunk = substr( $buf, $offset, $take );
 
-            ##  relay to listeners  ##
-            my @keep;
-            for my $h ( <radio.listeners>->@* ) {
-                push @keep, $h
-                    if <[base.stream.push]>->( $h, \$audio_chunk );
+            ##  relay to listeners [ jingle gate ]  ##
+            if ( not $icy->{'is_jingle'} ) {
+                my @keep;
+                for my $h ( <radio.listeners>->@* ) {
+                    push @keep, $h
+                        if <[base.stream.push]>->( $h, \$audio_chunk );
+                }
+                <radio.listeners> = \@keep;
             }
-            <radio.listeners> = \@keep;
 
             $offset += $take;
             $icy->{'bytes_to_meta'} -= $take;
@@ -142,8 +175,8 @@ while ( $offset < $buf_len ) {
 
 return;
 
-#,,.,,..,,,,.,.,.,,,,,,..,..,,.,,,.,,,,..,,..,..,,...,...,,..,...,,.,,.,,,,,,,
-#VXFY5IIAVP25GES2JTMMZC4Y74DMAOG6MDNFI4K5ZXUYIGJSICSGW6HDIRLZTLRXKML5OSDC43XNS
-#\\\|QASIMPJRFODRIVEDLTO3WW3LUYM3PVY7XFQF7NSPDQ2W2SBXZ3M \ / AMOS7 \ YOURUM ::
-#\[7]CNEUI3AZVNS2H6LHGOHXWCDA2XG22MYHLJDTW56UAJYYZHLTOACI 7  DATA SIGNATURE ::
+#,,.,,,.,,.,.,..,,,,.,,.,,,,.,.,,,.,.,,..,...,..,,...,..,,.,.,,.,,..,,,,,,.,.,
+#5NJUJZQCXNERAFIEB77XX2XSWQBV3VK4HTDPAYQJ3SPGRCRSHDG532PX7ZBKQJFJMV4W727QL5ZCC
+#\\\|Y46OJXTDVC6DVWIS2VMVAMAI6A2M6V7Y5HYPM4GSYR5IVCCPB7O \ / AMOS7 \ YOURUM ::
+#\[7]H7WJL6D4PZFLU52Z3GJZZODEPEUBFPXH5AK4BCQBI4TPNAUFUYBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

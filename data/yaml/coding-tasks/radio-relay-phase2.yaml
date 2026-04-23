@@ -1,0 +1,155 @@
+task:
+  id: radio-relay-phase2
+  title: "radio relay zenka : jingle detection + skip/keep commands [ phase 2 ]"
+  description: |
+    extend the radio relay zenka with jingle detection, track timing,
+    and skip/keep commands. when a jingle is detected, audio relay to
+    listeners is muted (chunks not forwarded). no background source or
+    keep-library playback yet — those are phase 3.
+
+  syntax_reference: data/yaml/docs/protocol-7-coding-style.md
+
+  existing_modules:
+    - modules/radio.init_code
+    - modules/radio.connect
+    - modules/radio.handler.stream-chunk
+    - modules/radio.cmd.start
+    - modules/radio.cmd.stop
+    - modules/radio.cmd.status
+    - modules/radio.cmd.listen
+
+  files_to_create:
+    - modules/radio.filter.jingle
+    - modules/radio.cmd.skip
+    - modules/radio.cmd.keep
+
+  files_to_modify:
+    - modules/radio.init_code      ##  add jingle state init  ##
+    - modules/radio.handler.stream-chunk  ##  add track timing + jingle mute  ##
+    - modules/radio.cmd.status     ##  add jingle state to output  ##
+    - configuration/zenki/radio/start  ##  add new modules to load list  ##
+
+  track_state: |
+    add to <radio.stream.icy> in radio.init_code:
+      is_jingle      => 0,          ##  1 when current track is a jingle  ##
+      track_started  => undef,      ##  epoch time when current track started  ##
+      track_duration => undef,      ##  seconds, set when title changes  ##
+      keep_flagged   => 0,          ##  1 when user flagged current track  ##
+
+    track_started is set to <[base.time]>->(3) each time current_title changes.
+    track_duration is computed as (now - track_started) when title changes again.
+
+  jingle_detection: |
+    detection runs when StreamTitle changes (in radio.handler.stream-chunk,
+    after updating current_title). call <[radio.filter.jingle]>->($new_title).
+
+    two signals combined:
+    1. title pattern match  — immediate, fires as soon as title arrives
+    2. track length check   — retroactive, fires on next title change
+
+    title pattern match (radio.filter.jingle):
+      match against <radio.jingle.patterns> (arrayref of regex strings,
+      default: [ 'psyndora', '\bjingle\b', '\bID\b', '\bpromo\b', 'station id' ])
+      configured in zenka-startup.v7 as space-separated list:
+        radio.jingle.patterns = psyndora (?i:\bjingle\b) (?i:\bID\b)
+      if any pattern matches: return 1 (jingle)
+
+    track length check (in radio.handler.stream-chunk, on title change):
+      if track_duration < <radio.jingle.min_track_seconds> (default 90):
+        retroactively flag previous track as jingle (log it)
+        (cannot un-mute past audio, but informs future heuristic tuning)
+
+  jingle_mute: |
+    in radio.handler.stream-chunk, in the audio relay section:
+    wrap the listener push loop with a jingle gate:
+
+      if ( not $icy->{'is_jingle'} ) {
+          my @keep;
+          for my $h ( <radio.listeners>->@* ) {
+              push @keep, $h
+                  if <[base.stream.push]>->( $h, \$audio_chunk );
+          }
+          <radio.listeners> = \@keep;
+      }
+      ##  else: drop audio chunk silently [ jingle muted ]  ##
+
+  radio_filter_jingle: |
+    file: modules/radio.filter.jingle
+    param = $title string
+    return = 1 if jingle, 0 if not
+
+    <radio.jingle.patterns> //= [ qw| psyndora | ];
+
+    for my $pat ( <radio.jingle.patterns>->@* ) {
+        return 1 if $title =~ m{$pat}i;
+    }
+    return 0;
+
+  radio_cmd_skip: |
+    file: modules/radio.cmd.skip
+
+    immediately flag current track as jingle:
+      <radio.stream.icy>->{'is_jingle'} = 1;
+      log: "[radio] skip: manually flagged as jingle [ %s ]", current_title
+      reply TRUE with 'skipping: <title>'
+
+  radio_cmd_keep: |
+    file: modules/radio.cmd.keep
+
+    flag current track as to-keep:
+      <radio.stream.icy>->{'keep_flagged'} = 1;
+      clear is_jingle if set (keep overrides skip)
+      log: "[radio] keep: flagged [ %s ]", current_title
+      reply TRUE with 'keeping: <title>'
+
+  handler_modifications: |
+    in radio.handler.stream-chunk, after updating current_title:
+
+    1. compute track_duration for outgoing track:
+         if defined $icy->{'track_started'} :
+           $icy->{'track_duration'} = <[base.time]>->(3) - $icy->{'track_started'};
+           if $icy->{'track_duration'} < ( <radio.jingle.min_track_seconds> // 90 ):
+             log level 2: "[radio] short track %.0fs — likely jingle [ %s ]",
+               $icy->{'track_duration'}, $icy->{'current_title'}
+
+    2. reset state for incoming track:
+         $icy->{'track_started'}  = <[base.time]>->(3);
+         $icy->{'keep_flagged'}   = 0;
+
+    3. run jingle detection on new title:
+         $icy->{'is_jingle'} = <[radio.filter.jingle]>->($new_title);
+         if $icy->{'is_jingle'} :
+           log level 2: "[radio] jingle detected: %s", $new_title
+         else:
+           log level 2: "[radio] now playing: %s", $new_title
+           ##  (replace existing log in the title-change block)  ##
+
+  status_modifications: |
+    in radio.cmd.status, extend reply data to include:
+      jingle: yes/no
+      track duration: N seconds (if known)
+
+  startup_config: |
+    add to configuration/zenki/radio/zenka-startup.v7:
+      radio.jingle.min_track_seconds = 90
+
+    radio.jingle.patterns is initialized in radio.filter.jingle as a default;
+    override by setting in zenka-startup.v7 if needed later.
+
+  acceptance: |
+    - ptd -c all modified and new radio.* modules passes
+    - StreamTitle change triggers jingle detection via radio.filter.jingle
+    - title matching 'psyndora' or jingle keywords → is_jingle = 1, audio muted
+    - clean track → audio relay resumes immediately
+    - track_duration logged on title change
+    - short track (< min_track_seconds) logged as likely jingle
+    - radio.cmd.skip sets is_jingle = 1 immediately
+    - radio.cmd.keep clears is_jingle, sets keep_flagged = 1
+    - radio.cmd.status includes jingle state
+    - no background source, no keep-library playback, no disk writes in this phase
+
+#,,.,,,,.,.,,,...,,..,..,,..,,...,.,,,..,,,.,,..,,...,..,,.,.,,,.,.,.,,,,,,..,
+#KC3DP5FWLQAR3Y53NRTZITVUZF3R4C6I3SXBIM6IE4S4YRLWMKPZF32O3OEKUFAVCH2P2CANJ32HG
+#\\\|F3EGI6OSCLQETVI3WNLIMWN6COYYJ3GJOJNI35HPI5WK2H54N4Q \ / AMOS7 \ YOURUM ::
+#\[7]MLKDFDWG7MOEHADUG3PZVM4LGNU5DSPYWVCVROBHUZZA2NAVT4DA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

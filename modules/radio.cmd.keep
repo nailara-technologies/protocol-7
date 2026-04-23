@@ -1,0 +1,24 @@
+## [:< ##
+
+# name  = radio.cmd.keep
+# descr = flag current track as to-keep (clear jingle flag)
+
+my $icy = <radio.stream.icy>;
+
+$icy->{'keep_flagged'} = 1;
+$icy->{'is_jingle'}    = 0;
+
+my $title = $icy->{'current_title'} // '(none)';
+
+<[base.logs]>->( 2, '[radio] keep: flagged [ %s ]', $title );
+
+return {
+    'mode' => qw| true |,
+    'data' => sprintf( 'keeping: %s', $title )
+};
+
+#,,..,,,.,.,,,,.,,.,.,.,.,,.,,.,.,.,,,,,,,,..,..,,...,...,.,.,,..,,,.,,..,,,,,
+#WV7FXAR5CC6VZYOC4SENYZVDHVWND2ZG6MEUWZHODX2LKQTYSABYH323WV7K433J5NOGNVVC5G7C4
+#\\\|TBY23HZVV6VGUY5EJ2HT26JI6VVOUXBFWSOZRX3GJ3SD2RBEDSD \ / AMOS7 \ YOURUM ::
+#\[7]GJ44ZH2ZLQI4WAGZJMJEPLU5FODV6EXERK2TCDR7DIAXTYZFBOCI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

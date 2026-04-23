@@ -1379,6 +1379,25 @@ modules/httpd.json.encode                ## Encoding
 modules/httpd.json.decode                ## Decoding
 ```
 
+### Loading Modules in Zenka Start Files
+
+In `configuration/zenki/<name>/start`, the `modules.load` list uses **namespace
+names**, not individual module filenames. A single namespace entry loads all
+modules sharing that prefix:
+
+```
+## correct — loads all radio.* modules (radio.init_code, radio.cmd.*, etc.)
+modules.load = auth net protocol io.unix radio
+
+## wrong — do NOT list individual subroutines
+modules.load = auth net protocol io.unix radio.init_code radio.cmd.start \
+               radio.cmd.stop radio.cmd.listen ...
+```
+
+The namespace entry (e.g. `radio`) is the dotted prefix shared by all modules
+in that zenka. Adding new modules to the namespace automatically makes them
+available without changing the start file.
+
 ### Module Dependencies
 
 Keep dependencies clear and minimal:
@@ -1455,8 +1474,8 @@ Module A → Module B → Module A
 - **Configuration**: See `configuration/zenki/*/start` for zenka-specific configurations
 - **Dependency Management**: See `modules/debian.*` for example of complete zenka implementation
 
-#,,.,,.,.,.,.,...,,,.,,.,,...,,,.,.,,,..,,,,,,..,,...,...,.,,,,,,,.,,,,,,,,,.,
-#QYK4AOMPK5E774SD7MEUCP6IWN7OE6OEZB5TBGWARWCSSYKPQQVFZ5EZNAELNRSTLSLHC2LWHM7IO
-#\\\|5TSSIPTOGZC7QT2NQMBB6PJ5GMTSXONJGY3QBYNKUD64X6QHD5K \ / AMOS7 \ YOURUM ::
-#\[7]XGOK7XFY7TA2HLHGUYPMYXBMMH6JCASLZ3XKGRMEN3FZOJT3T4CY 7  DATA SIGNATURE ::
+#,,.,,,,.,.,.,,,,,...,,.,,...,.,,,..,,.,,,,,,,..,,...,...,..,,..,,,,.,,..,,.,,
+#54OHH2SUANVVBPNRREY7U25UWP7BFAW4W2SMYQAUCG3WWIGE3OV6BF7DGP2RQZA4N6D3RTVGBRR74
+#\\\|T2TL4A33RBOOEZZFRTTHUG2BJQU57PMQZ4W3CWK5FWCN7S4BZ56 \ / AMOS7 \ YOURUM ::
+#\[7]WZWE4BPCJ4JS6KGF3BQC3KGY3DFKP2SGHT4GBUWHVPBUOQE7WKAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
