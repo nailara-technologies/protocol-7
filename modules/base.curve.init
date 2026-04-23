@@ -1,0 +1,27 @@
+## [:< ##
+
+# name  = base.curve.init
+# descr = Set up the shared curve tick timer (50 ms)
+
+<base.curve.active>  //= {};
+<base.curve.compose> //= {};
+
+return
+    if defined <base.curve.timer>
+    and <base.curve.timer>->is_active;
+
+<base.curve.timer> = <[event.add_timer]>->(
+    {   after    => 0,
+        interval => 0.05,
+        repeat   => TRUE,
+        handler  => qw| base.curve.tick |,
+    }
+);
+
+return TRUE;
+
+#,,,.,.,,,..,,.,.,.,.,..,,...,,,.,,..,,,,,.,.,..,,...,...,,..,,..,,,.,...,,..,
+#PTF3C362TNPVFHC2L5CMWLCYO6ZPJCY7OYSXD3EOJRGIKJVMKGPYCNCCCGUT4NN7QOOBVMF5GWO5Q
+#\\\|6YDSK437PKRAGVHUB3KFENATK2TID3SBHVEEO2A6Y2R3XVC45TT \ / AMOS7 \ YOURUM ::
+#\[7]REPONIGF2CSNZ45SPVVGJ56WZOZSFDAFPAVT6LDMB3MMIQN3NGCA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
