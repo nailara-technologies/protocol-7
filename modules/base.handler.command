@@ -846,6 +846,20 @@ if ( $cmd =~ m,^(TRUE|FALSE|WAIT|SIZE|CHRSIZE|STRM|STRM-SIZE|GET|TERM)$, ) {
                         'route_id'       => $session->{'route'}->{$cmd_id},
                     };
 
+                    ## Fire reply handler if registered ##
+                    if (    defined $route->{'reply'}->{'handler'}
+                        and defined $code{ $route->{'reply'}->{'handler'} } )
+                    {
+                        $code{ $route->{'reply'}{'handler'} }->(
+                            {   'sid'    => $id,
+                                'cmd'    => qw| STRM |,
+                                'cmd_id' => $cmd_id,
+                                'args'   => $call_args->{'args'},
+                                'params' => $route->{'reply'}->{'params'},
+                            }
+                        );
+                    }
+
                     ## Forward unbounded open frame to source ##
                     my $src_sid = $route->{'source'}->{'sid'};
                     if ( exists $data{'session'}{$src_sid} ) {
@@ -867,6 +881,20 @@ if ( $cmd =~ m,^(TRUE|FALSE|WAIT|SIZE|CHRSIZE|STRM|STRM-SIZE|GET|TERM)$, ) {
                         'started_at'     => <[base.time]>->(3),
                         'route_id'       => $session->{'route'}->{$cmd_id},
                     };
+
+                    ## Fire reply handler if registered ##
+                    if (    defined $route->{'reply'}->{'handler'}
+                        and defined $code{ $route->{'reply'}->{'handler'} } )
+                    {
+                        $code{ $route->{'reply'}{'handler'} }->(
+                            {   'sid'    => $id,
+                                'cmd'    => qw| STRM |,
+                                'cmd_id' => $cmd_id,
+                                'args'   => $call_args->{'args'},
+                                'params' => $route->{'reply'}->{'params'},
+                            }
+                        );
+                    }
 
                     ## Forward open frame to source ##
                     my $src_sid = $route->{'source'}->{'sid'};
@@ -897,15 +925,29 @@ if ( $cmd =~ m,^(TRUE|FALSE|WAIT|SIZE|CHRSIZE|STRM|STRM-SIZE|GET|TERM)$, ) {
                             $session->{'streams'}{$cmd_id}{'received_bytes'}
                                 += bytes::length($chunk_data);
 
-                            my $src_sid = $route->{'source'}->{'sid'};
-                            if ( exists $data{'session'}{$src_sid} ) {
-                                $data{'session'}{$src_sid}{'buffer'}{'output'}
-                                    .= <[base.sprint_t]>->(
-                                    qw| OMQVCCA |, $s_cmd_id, $chunk_size
-                                    );
-                                $data{'session'}{$src_sid}{'buffer'}{'output'}
-                                    .= $chunk_data;
-                            }
+                            if ( exists <base.strm.local>->{$cmd_id} ) {
+                                my $lc = <base.strm.local>->{$cmd_id};
+                                $lc->{'buf'} .= $chunk_data;
+                                $lc->{'bytes'} += $chunk_size;
+                                if ( not $lc->{'max_buf'}
+                                    or length( $lc->{'buf'} )
+                                    < $lc->{'max_buf'} ) {
+                                    $lc->{'watcher'}->($lc)
+                                        if defined $lc->{'watcher'};
+                                }
+                            } else {
+
+                                my $src_sid = $route->{'source'}->{'sid'};
+                                if ( exists $data{'session'}{$src_sid} ) {
+                                    $data{'session'}{$src_sid}{'buffer'}
+                                        {'output'} .= <[base.sprint_t]>->(
+                                        qw| OMQVCCA |, $s_cmd_id, $chunk_size
+                                        );
+                                    $data{'session'}{$src_sid}{'buffer'}
+                                        {'output'} .= $chunk_data;
+                                }
+
+                            } ##  end local consumer check  ##
 
                             <[base.logs]>->(
                                 2,
@@ -941,6 +983,13 @@ if ( $cmd =~ m,^(TRUE|FALSE|WAIT|SIZE|CHRSIZE|STRM|STRM-SIZE|GET|TERM)$, ) {
                             $stream->{'received_bytes'},
                             $stream->{'total_bytes'}
                         ) if defined $stream->{'total_bytes'};
+
+                        ## Fire local consumer on_eof and clean up ##
+                        if ( exists <base.strm.local>->{$cmd_id} ) {
+                            my $lc = <base.strm.local>->{$cmd_id};
+                            $lc->{'on_eof'}->($lc) if defined $lc->{'on_eof'};
+                            delete <base.strm.local>->{$cmd_id};
+                        }
 
                         ## Forward close frame to source ##
                         my $src_sid = $route->{'source'}->{'sid'};
@@ -2117,8 +2166,8 @@ UNKNOWN_CMD_GLOBAL_HANDLED:
 
 return 0;        ## comand complete ##
 
-#,,.,,..,,...,.,,,,.,,,,.,,,.,.,.,,,,,,..,..,,..,,...,...,,.,,..,,.,.,..,,...,
-#2JEFAX2UV3UXHTILOGYBDKYZDYATKBLPISUDEZTJ7SPRHLKOVT75DN6QUF3AY3QUJPEWUUFNONIW6
-#\\\|AMSKLEFF6GP3YN7WRHJDW7DXJIVIGAUBTPAVIWUYXV7BTETJOAL \ / AMOS7 \ YOURUM ::
-#\[7]Z7QM5IRKEUWZLZ7CH4UWWL2QUF7FOZSTT2XFK34YVRLLMLSAIWDY 7  DATA SIGNATURE ::
+#,,..,,,,,..,,.,,,,,.,...,.,,,,,.,,,,,,.,,,,.,..,,...,...,...,.,.,..,,..,,,,.,
+#D4J27SCYHPZD7Z5WPOCS73G5CXCXU2X6EWLLVFCXALC4JATC5RYIGDJSCOHNCLIMQO3NJGW7Q7S7O
+#\\\|3HORPBMQYLH67O3ZWFQKS3LNRQKOVDLRTU6MGKZ7JMFM2RHQX3R \ / AMOS7 \ YOURUM ::
+#\[7]4LUX3QROXAU5ZHLYBYNVK7675KV32FXSCTESKJ6LLUPYUKI7M2AY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
