@@ -7,7 +7,7 @@ my $icy           = <radio.stream.icy>;
 my $current_title = $icy->{'current_title'} // '';
 my $listeners     = scalar( <radio.listeners>->@* );
 my $connected
-    = ( defined <radio.stream.pid> and <radio.stream.pid> )
+    = defined <radio.stream.sock>
     ? qw| yes |
     : qw| no |;
 my $jingle_state = $icy->{'is_jingle'} ? qw| yes | : qw| no |;
@@ -39,8 +39,8 @@ return {
     )
 };
 
-#,,..,,,.,.,,,..,,,.,,,,,,.,.,,,.,,,,,...,...,..,,...,...,.,.,,,,,,.,,,..,...,
-#E5YVUJXAESEHMKT5T3CTXYD3EU2N5NVQ6WSXWKNC5Z5KR2KENFMCZZAVCEYJMRWQQ4G63PP6SRJQC
-#\\\|D3X6XRXAHVDAVZU6SP6CPXSTBNJV4S2WUTS3GBLTQWOT6JWZ35P \ / AMOS7 \ YOURUM ::
-#\[7]LWPKAPAPU2TZQKJQB2QJPVKMF2W5Y54E32WTIPTAHK7KTJBHYQAY 7  DATA SIGNATURE ::
+#,,.,,.,,,..,,..,,..,,,.,,.,.,.,.,...,.,.,..,,..,,...,...,,,,,,..,.,,,..,,..,,
+#BOV3KDVRHPMQ2APTWZ3IYSCVANLYX4W6QBW2NPOW6X6W6HGBUF3KSIDGRAMTNAEKJJ2L577ZZNJAA
+#\\\|4QR3KZF5YJP6U6YEFO6HRZHWSHKMKHYKCXSDMD7KWFN3HDIE2WS \ / AMOS7 \ YOURUM ::
+#\[7]AABV5RPGQ5RZSXDNFCRVIE2CFESN5P6NG5T3YG3H7NK2XXL5OOBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,7 +1,7 @@
 ## [:< ##
 
 # name  = radio.handler.stream-chunk
-# descr = IO read handler for curl pipe : parse ICY headers, extract audio
+# descr = IO read handler for TCP stream : parse ICY headers, extract audio
 #         and metadata, relay audio to registered listeners
 
 my $event   = shift->w;
@@ -14,19 +14,13 @@ my $read_len = sysread( $read_fh, $read_buf, 65536 );
 
 if ( not defined $read_len or $read_len == 0 ) {
 
-    ##  pipe closed or error  ##
+    ##  connection closed or error  ##
 
     $event->cancel;
-    close($read_fh) if defined $read_fh;
-
-    my $pid = delete <radio.stream.pid>;
-    if ( defined $pid ) {
-        <[base.logs]>->( 1, '[radio] stream disconnected [pid=%d]', $pid );
-        kill( 15, $pid );
-        <system.kill_list> = [ grep { $_ != $pid } <system.kill_list>->@* ];
+    if ( defined <radio.stream.sock> ) {
+        close( delete <radio.stream.sock> );
+        <[base.logs]>->( 1, '[radio] stream disconnected' );
     }
-
-    delete <radio.stream.r_fh>;
     delete <radio.stream.io_watcher>;
 
     ##  reset icy state for next connect  ##
@@ -201,8 +195,8 @@ while ( $offset < $buf_len ) {
 
 return;
 
-#,,,,,,,,,,,,,..,,,.,,,..,,,,,...,..,,,..,,,.,..,,...,...,...,.,.,,,.,,,,,,.,,
-#XQXYEMJPSGJE4E2K5XTMJNHW4HVBWYFE46B4GXT4PJRHLT2LUQJRSSSYFXM2LM3G65W6NHBAYARBC
-#\\\|6P7LNPC2AJI5VNWRZEMIWS7OABGUNYAJZ5UMEEOP5TB3BNN7XB4 \ / AMOS7 \ YOURUM ::
-#\[7]VUIWBKS5G5LZ6PXMYJ3MXVUX5FOJK2PRRRTPL5GNE4DFRTHVSSCY 7  DATA SIGNATURE ::
+#,,.,,.,,,...,,.,,...,,..,.,,,...,.,,,..,,.,,,..,,...,...,...,.,,,,,.,,.,,...,
+#OGSUTK5E6WK2UIJAACMGFEUW2Y5ITYZ4XJCT6HS4JWXA4O57PDDASYZK3HGEQPQ3JBRGKWD3GIQKI
+#\\\|PRS22VIVHX5LNXRQV2IMH2SCIYHNUUQ727REE5LO3KS2GMVGFXM \ / AMOS7 \ YOURUM ::
+#\[7]M43F6J2GX4TNSU36L4PEP2WR3OYUFYU3VLPDNJGE5TANBE5PMSDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
