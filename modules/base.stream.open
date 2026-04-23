@@ -4,7 +4,8 @@
 # descr = open a STRM / STRM-SIZE reply stream : registers producer state on
 #         session, emits 'open <total>' frame, returns a handle for push/close
 # param = { sid => .., cmd_id => .., type => 'STRM' | 'STRM-SIZE',
-#           total => N, [ cmd_id_str => '(NNN) ' ] }
+#           total => N | undef, [ cmd_id_str => '(NNN) ' ] }
+#         unbounded open emits 'STRM open\n' (no size)
 # return = handle [ hashref ] on success, undef on fail [ gated / invalid ]
 
 my $arg = shift;
@@ -20,15 +21,10 @@ if ( $type ne qw| STRM | and $type ne qw| STRM-SIZE | ) {
     return undef;
 }
 
-if ( not defined $total or $total !~ m|^\d+$| or $total == 0 ) {
-
-    ##  unbounded-open [ total = 0 / undef ] not yet supported at protocol   ##
-    ##  layer ; see memory : topic-strm-unbounded-gap.md                     ##
+if ( defined $total and ( $total !~ m|^\d+$| or $total == 0 ) ) {
 
     <[base.logs]>->(
-        0,
-        'base.stream.open : numeric total > 0 required [ got %s ]',
-        defined $total ? $total : '<undef>'
+        0, 'base.stream.open : numeric total > 0 required [ got %s ]', $total
     );
     return undef;
 }
@@ -42,14 +38,18 @@ my $session = <[base.stream.gate]>->( $sid, $cmd_id );
 return undef if not defined $session;
 
 $session->{'streams'}->{$cmd_id} //= {};
-$session->{'streams'}->{$cmd_id}->{'producer'}    = 1;
-$session->{'streams'}->{$cmd_id}->{'type'}        = $type;
-$session->{'streams'}->{$cmd_id}->{'total_bytes'} = 0 + $total;
-$session->{'streams'}->{$cmd_id}->{'sent_bytes'}  = 0;
-$session->{'streams'}->{$cmd_id}->{'cmd_id_str'}  = $cmd_id_str;
-$session->{'streams'}->{$cmd_id}->{'opened_at'}   = <[base.time]>->(3);
+$session->{'streams'}->{$cmd_id}->{'producer'} = 1;
+$session->{'streams'}->{$cmd_id}->{'type'}     = $type;
+$session->{'streams'}->{$cmd_id}->{'total_bytes'}
+    = defined $total ? 0 + $total : undef;
+$session->{'streams'}->{$cmd_id}->{'sent_bytes'} = 0;
+$session->{'streams'}->{$cmd_id}->{'cmd_id_str'} = $cmd_id_str;
+$session->{'streams'}->{$cmd_id}->{'opened_at'}  = <[base.time]>->(3);
 
-my $frame = sprintf "%s%s open %d\n", $cmd_id_str, $type, $total;
+my $frame
+    = defined $total
+    ? sprintf( "%s%s open %d\n", $cmd_id_str, $type, $total )
+    : sprintf( "%s%s open\n", $cmd_id_str, $type );
 
 my $written = bytes::length($frame);
 $session->{'buffer'}->{'output'} .= $frame;
@@ -60,12 +60,12 @@ return {
     'sid'      => $sid,
     'cmd_id'   => $cmd_id,
     'type'     => $type,
-    'total'    => 0 + $total,
+    'total'    => defined $total ? 0 + $total : undef,
     'upstream' => $upstream,
 };
 
-#,,.,,..,,,,,,...,,,,,,,.,,,,,,.,,,,.,...,,,,,..,,...,.,.,...,.,,,,,.,..,,,,,,
-#D3EHMWBMZTZ2QELYBFCAFSM6W6QIEBHFWC3WH77HX4MIRUJYPMCNASUIUTBEZ565KGKH5TTQWMUTI
-#\\\|ROCMXFTRZZ36TTN4X4XW3O5DTBV2GKXNJKNFTDWCL2VKGUADQZN \ / AMOS7 \ YOURUM ::
-#\[7]JKGICOFNSOXTRCRMOOYNWAUE2JF5LC3YBK3HOVBXHW5ABZXJZEDY 7  DATA SIGNATURE ::
+#,,..,,.,,,..,,.,,,..,.,,,,..,.,.,,,.,,..,..,,..,,...,...,.,,,,,.,,,,,,,,,..,,
+#HSVQTHTB2XJ4B3O2SVNA3LOX4BTNC2AOCXIHPQWWK3LHOQLJJVE7SIER4KH4DTLUVB3CHSXCFDKXY
+#\\\|SCDL4EHZQSYQTI3C3DN55M44Y6BJIDX3TMGUVWS5M2K2JHZN5BP \ / AMOS7 \ YOURUM ::
+#\[7]A3ZWVP72N66SS3IP25CE6NSWJVTWK2CUZ45TBHTONTAHIAL7DGDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

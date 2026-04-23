@@ -835,7 +835,28 @@ if ( $cmd =~ m,^(TRUE|FALSE|WAIT|SIZE|CHRSIZE|STRM|STRM-SIZE|GET|TERM)$, ) {
 
             } elsif ( $cmd eq qw| STRM | ) {
 
-                if ( $call_args->{'args'} =~ m|^open\s+(\d+)$| ) {
+                if ( $call_args->{'args'} eq qw| open | ) {
+                    ## STRM unbounded open: no declared total ##
+
+                    $session->{'streams'}->{$cmd_id} = {
+                        'type'           => qw| STRM |,
+                        'total_bytes'    => undef,
+                        'received_bytes' => 0,
+                        'started_at'     => <[base.time]>->(3),
+                        'route_id'       => $session->{'route'}->{$cmd_id},
+                    };
+
+                    ## Forward unbounded open frame to source ##
+                    my $src_sid = $route->{'source'}->{'sid'};
+                    if ( exists $data{'session'}{$src_sid} ) {
+                        $data{'session'}{$src_sid}{'buffer'}{'output'}
+                            .= <[base.sprint_t]>
+                            ->( qw| WQG7YII |, $s_cmd_id );
+                    }
+
+                    <[base.logs]>->( 2, "[%d] STRM open [ unbounded ]", $id );
+
+                } elsif ( $call_args->{'args'} =~ m|^open\s+(\d+)$| ) {
                     ## STRM open header: forward to source, init stream state ##
                     my $total_bytes = $1;
 
@@ -910,11 +931,16 @@ if ( $cmd =~ m,^(TRUE|FALSE|WAIT|SIZE|CHRSIZE|STRM|STRM-SIZE|GET|TERM)$, ) {
                         my $stream = $session->{'streams'}{$cmd_id};
 
                         <[base.logs]>->(
+                            2,   "[%d] STRM closed: %d bytes [ unbounded ]",
+                            $id, $stream->{'received_bytes'}
+                        ) if not defined $stream->{'total_bytes'};
+
+                        <[base.logs]>->(
                             2, "[%d] STRM closed: %d/%d bytes",
                             $id,
                             $stream->{'received_bytes'},
                             $stream->{'total_bytes'}
-                        );
+                        ) if defined $stream->{'total_bytes'};
 
                         ## Forward close frame to source ##
                         my $src_sid = $route->{'source'}->{'sid'};
@@ -2091,8 +2117,8 @@ UNKNOWN_CMD_GLOBAL_HANDLED:
 
 return 0;        ## comand complete ##
 
-#,,,.,,..,..,,.,.,,,,,..,,.,.,,.,,.,,,,.,,..,,..,,...,...,...,,,,,,,,,,..,..,,
-#QZP4YRRCWTSAK4VPXZOQAGTO573YXRHIITHK2S7OAE6NHMWGDG2DNM3YRXTA2IJQMQ3VOMZKEQDNS
-#\\\|DXWBJPGQ2UX4BC72DNWDEHQRNC3L7G2KFIW3MUIQS5VCK4QAVZ2 \ / AMOS7 \ YOURUM ::
-#\[7]3XRNDCWSD5KD5AWPUJQOAP3DM2BSNBGWF7MLVQCJ765XNPFYBICQ 7  DATA SIGNATURE ::
+#,,.,,..,,...,.,,,,.,,,,.,,,.,.,.,,,,,,..,..,,..,,...,...,,.,,..,,.,.,..,,...,
+#2JEFAX2UV3UXHTILOGYBDKYZDYATKBLPISUDEZTJ7SPRHLKOVT75DN6QUF3AY3QUJPEWUUFNONIW6
+#\\\|AMSKLEFF6GP3YN7WRHJDW7DXJIVIGAUBTPAVIWUYXV7BTETJOAL \ / AMOS7 \ YOURUM ::
+#\[7]Z7QM5IRKEUWZLZ7CH4UWWL2QUF7FOZSTT2XFK34YVRLLMLSAIWDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
