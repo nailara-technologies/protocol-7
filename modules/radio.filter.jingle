@@ -1,0 +1,21 @@
+## [:< ##
+
+# name  = radio.filter.jingle
+# descr = detect jingles by title pattern matching
+
+my $title = shift // '';
+
+<radio.jingle.patterns>
+    //= [ qw| psyndora |, '\bjingle\b', '\bID\b', '\bpromo\b', 'station id' ];
+
+for my $pat ( <radio.jingle.patterns>->@* ) {
+    return 1 if $title =~ m{$pat}i;
+}
+
+return 0;
+
+#,,.,,.,.,,..,,,,,.,,,.,.,.,,,,,.,...,...,,,,,..,,...,...,...,...,.,.,,.,,,.,,
+#TC7RVXWORUFIXSOKBJ3P335462DZHWP7XPL7RX6BFG676RE6Z4RWLDV63N35SK6UIBJ5T66HL7C5W
+#\\\|NN4NT4YRQ7KVAND5DJIEOYITGPM5H7T5K7W3YU7B3GYYPWB6PRE \ / AMOS7 \ YOURUM ::
+#\[7]5HFSZAL64JB4QYVJDZG4I554QUPBBXIAMOKFW7TN6PDGSMKVZ2CY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

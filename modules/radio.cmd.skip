@@ -1,0 +1,25 @@
+## [:< ##
+
+# name  = radio.cmd.skip
+# descr = manually flag current track as jingle
+
+my $icy = <radio.stream.icy>;
+
+$icy->{'is_jingle'} = 1;
+
+my $title = $icy->{'current_title'} // '(none)';
+
+<[base.logs]>->(
+    2, '[radio] skip: manually flagged as jingle [ %s ]', $title
+);
+
+return {
+    'mode' => qw| true |,
+    'data' => sprintf( 'skipping: %s', $title )
+};
+
+#,,..,,,.,,..,,,.,,..,..,,.,,,,.,,,..,,..,.,,,..,,...,...,.,.,,,.,,,.,...,,,,,
+#HALCZXUEAZ4KH3TYYRU3VBWFSV7JHJX7S4S5JUDL63TABW2DFJOWTBP6CY6GMOESLPP73EUAERXCO
+#\\\|6HWKNVHIU5HVYRUH2HN2K3GIGEHUXIIGXIMEJBQJDSRYMXJGA5W \ / AMOS7 \ YOURUM ::
+#\[7]L43CGRI2KYYTI4VTS4OUECIDDSLDC3C74IHADEXIJUWJRRHOA2CI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
