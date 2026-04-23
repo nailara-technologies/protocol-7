@@ -1,0 +1,226 @@
+task:
+  id: radio-relay-phase3
+  title: "radio relay zenka : keep-library accumulation + gap filler [ phase 3 ]"
+  description: |
+    extend the radio relay zenka with keep-library track saving and
+    gap filler playback. when a track is flagged keep, its audio is
+    saved to disk as it streams. when a jingle is detected, a random
+    keep-library track is relayed to listeners via an idle-watcher
+    file reader. no background saturation source yet (phase 4).
+
+  syntax_reference: data/yaml/docs/protocol-7-coding-style.md
+
+  existing_modules_read_first:
+    - modules/radio.init_code
+    - modules/radio.handler.stream-chunk
+    - modules/radio.cmd.keep
+    - modules/radio.cmd.skip
+    - modules/radio.filter.jingle
+
+  files_to_create:
+    - modules/radio.ripper
+    - modules/radio.gap_fill.start
+    - modules/radio.gap_fill.tick
+    - modules/radio.cmd.library
+
+  files_to_modify:
+    - modules/radio.init_code        ##  add ripper + gap_fill state  ##
+    - modules/radio.handler.stream-chunk  ##  write chunks to file when flagged  ##
+    - modules/radio.cmd.keep         ##  trigger gap_fill if currently jingle  ##
+    - modules/radio.cmd.status       ##  add library size + gap_fill state  ##
+    - configuration/zenki/radio/zenka-startup.v7  ##  add library path config  ##
+
+  keep_library_state: |
+    add to <radio.stream.icy> in radio.init_code:
+      rip_fh    => undef,   ##  open filehandle for current track being saved  ##
+      rip_path  => undef,   ##  full path of file being written  ##
+      rip_bytes => 0,       ##  bytes written so far  ##
+
+    separate namespace:
+      <radio.gap_fill.fh>     ##  filehandle of gap-fill track being played  ##
+      <radio.gap_fill.active> ##  1 while gap filler is running  ##
+      <radio.gap_fill.watcher> ##  idle watcher handle  ##
+
+  keep_library_path: |
+    <radio.keep_library.path> //= '/var/protocol-7/radio/keep-library';
+    configured in zenka-startup.v7:
+      radio.keep_library.path = /var/protocol-7/radio/keep-library
+
+    directory is created on first use [ mkdir -p equivalent ]:
+      <[base.perlmod.autoload]>->( 'File::Path', qw| make_path | );
+      make_path( <radio.keep_library.path> ) if not -d <radio.keep_library.path>;
+
+  track_filename: |
+    filename derived from sanitized track title + timestamp to avoid collisions:
+      my $safe = $title;
+      $safe =~ s{[^A-Za-z0-9._-]}{_}g;
+      $safe = substr($safe, 0, 120) if length($safe) > 120;
+      my $ts   = int( <[base.time]>->(3) );
+      my $path = <radio.keep_library.path> . "/${safe}_${ts}.mp3";
+
+  radio_ripper: |
+    file: modules/radio.ripper
+    descr = open output file for current track [ called when keep is flagged ]
+    param = $title string
+
+    - build sanitized filename (see track_filename above)
+    - open filehandle for write: open( my $fh, '>:raw', $path )
+    - store $fh and $path in <radio.stream.icy>->{'rip_fh'} / {'rip_path'}
+    - set <radio.stream.icy>->{'rip_bytes'} = 0
+    - log: "[radio] ripping: %s → %s", $title, $path
+
+  handler_modifications: |
+    in radio.handler.stream-chunk, in the audio relay section:
+
+    after extracting $audio_chunk and BEFORE the jingle gate:
+    if <radio.stream.icy>->{'rip_fh'} is defined:
+      syswrite( <radio.stream.icy>->{'rip_fh'}, $audio_chunk );
+      <radio.stream.icy>->{'rip_bytes'} += length($audio_chunk);
+
+    on title change, BEFORE resetting state:
+    close and finalize rip if rip_fh is open:
+      if defined $icy->{'rip_fh'} :
+        CORE::close( delete $icy->{'rip_fh'} );
+        <[base.logs]>->( 2, '[radio] saved: %s [ %d bytes ]',
+            $icy->{'rip_path'}, $icy->{'rip_bytes'} );
+        ##  if track was too short (jingle) — delete the saved file  ##
+        if $icy->{'track_duration'} < ( <radio.jingle.min_track_seconds> // 90 ):
+            unlink( $icy->{'rip_path'} );
+            <[base.logs]>->( 2, '[radio] discarded short rip [ jingle ]' );
+        delete $icy->{'rip_path'};
+        $icy->{'rip_bytes'} = 0;
+
+    on jingle detection (after setting is_jingle = 1):
+    start gap filler if keep-library has files:
+      <[radio.gap_fill.start]> if not <radio.gap_fill.active>;
+
+  radio_gap_fill_start: |
+    file: modules/radio.gap_fill.start
+    descr = pick a random keep-library file and start idle-watcher relay
+
+    - list files in <radio.keep_library.path> matching *.mp3
+    - if none: log "[radio] gap filler: no keep-library files" and return
+    - pick a random file (use List::Util::shuffle or index via rand)
+    - open filehandle: open( my $fh, '<:raw', $chosen )
+    - store in <radio.gap_fill.fh>
+    - set <radio.gap_fill.active> = 1
+    - register idle watcher:
+        <radio.gap_fill.watcher> = Event->idle(
+            cb     => sub { $code{'radio.gap_fill.tick'}->(@ARG) },
+            repeat => 1,
+        );
+    - log: "[radio] gap filler: playing %s", $chosen
+
+    module needs:
+      <[base.perlmod.autoload]>->( 'List::Util', qw| shuffle | );
+
+  radio_gap_fill_tick: |
+    file: modules/radio.gap_fill.tick
+    descr = idle watcher: push gap-fill audio chunk to listeners
+
+    my $event = shift->w;
+
+    ##  stop if jingle ended (new real track playing)  ##
+    if ( not <radio.stream.icy>->{'is_jingle'} ) {
+        CORE::close( delete <radio.gap_fill.fh> ) if <radio.gap_fill.fh>;
+        <radio.gap_fill.active>  = 0;
+        $event->cancel;
+        delete <radio.gap_fill.watcher>;
+        <[base.logs]>->( 2, '[radio] gap filler: stopped [ track resumed ]' );
+        return;
+    }
+
+    ##  read one chunk from gap-fill file  ##
+    my $chunk = '';
+    my $n = read( <radio.gap_fill.fh>, $chunk, 65536 );
+
+    if ( not defined $n or $n == 0 ) {    ##  EOF  ##
+        CORE::close( delete <radio.gap_fill.fh> );
+        <radio.gap_fill.active>  = 0;
+        $event->cancel;
+        delete <radio.gap_fill.watcher>;
+        <[base.logs]>->( 2, '[radio] gap filler: file ended' );
+        ##  optionally restart with another file:  ##
+        <[radio.gap_fill.start]> if <radio.stream.icy>->{'is_jingle'};
+        return;
+    }
+
+    ##  push to listeners  ##
+    my @keep;
+    for my $h ( <radio.listeners>->@* ) {
+        push @keep, $h if <[base.stream.push]>->( $h, \$chunk );
+    }
+    <radio.listeners> = \@keep;
+
+  cmd_keep_modification: |
+    in radio.cmd.keep, after setting keep_flagged = 1 and is_jingle = 0:
+
+    ##  open rip file if not already ripping  ##
+    <[radio.ripper]>->( $icy->{'current_title'} )
+        if not defined $icy->{'rip_fh'};
+
+    ##  stop gap filler if running (we just un-muted)  ##
+    if ( <radio.gap_fill.active> ) {
+        CORE::close( delete <radio.gap_fill.fh> ) if defined <radio.gap_fill.fh>;
+        <radio.gap_fill.watcher>->cancel if defined <radio.gap_fill.watcher>;
+        delete <radio.gap_fill.watcher>;
+        <radio.gap_fill.active> = 0;
+    }
+
+  radio_cmd_library: |
+    file: modules/radio.cmd.library
+    descr = list keep-library files
+
+    my $dir = <radio.keep_library.path> // '';
+    if ( not -d $dir ) {
+        return { 'mode' => qw| true |, 'data' => 'keep-library is empty' };
+    }
+    my @files = sort glob("$dir/*.mp3");
+    if ( not @files ) {
+        return { 'mode' => qw| true |, 'data' => 'keep-library is empty' };
+    }
+    my $list = join "\n", map {
+        my $size = -s $_;
+        sprintf '  %s  [ %.1f MB ]', ( split m|/|, $_ )[-1], $size / 1_048_576
+    } @files;
+    return {
+        'mode' => qw| true |,
+        'data' => sprintf "%d track%s:\n%s",
+            scalar @files, @files == 1 ? '' : 's', $list
+    };
+
+  init_modifications: |
+    in radio.init_code, add to <radio.stream.icy> initialization:
+      rip_fh    => undef,
+      rip_path  => undef,
+      rip_bytes => 0,
+
+    add top-level:
+      <radio.gap_fill.active>  //= 0;
+      <radio.keep_library.path> //= '/var/protocol-7/radio/keep-library';
+
+    load File::Path and List::Util:
+      <[base.perlmod.autoload]>->( 'File::Path',  qw| make_path | );
+      <[base.perlmod.autoload]>->( 'List::Util',  qw| shuffle   | );
+
+  access_list: |
+    add 'library' to access.cmd.usr.cube in configuration/zenki/radio/start
+
+  acceptance: |
+    - ptd -c all modified and new radio.* modules passes
+    - radio.cmd.keep opens rip file for current track
+    - audio chunks written to rip file in stream-chunk handler
+    - on title change: rip file closed and logged; deleted if track < min_track_seconds
+    - on jingle detection: radio.gap_fill.start called if library has files
+    - gap_fill.tick pushes keep-library audio to listeners while is_jingle = 1
+    - gap filler stops immediately when is_jingle clears (new real track)
+    - when gap-fill file ends: restart with another library file if still jingle
+    - radio.cmd.keep stops gap filler (track was un-muted by user)
+    - radio.cmd.library lists files with sizes
+    - no background saturation source in this phase
+
+#,,.,,,,,,...,,.,,,.,,,,,,...,,,,,,..,..,,.,.,..,,...,.,.,,.,,,,.,.,.,,,.,,..,
+#AR7WBBQU5SLVWZVLKDIWWB73BTHHEMVUNBLWMNH5OPCVZGTN6YQFRFCOAG3IKVFU5NGX2PJJOSUZU
+#\\\|AUHUI44UNGINNN2DUSIY6MEQ44V2Y6ZBNLCNZA7U2ISCBXZIXHQ \ / AMOS7 \ YOURUM ::
+#\[7]BMKT7TI2CEKQQWMWHINW736KU2PWGSC6MF3NK6NZOCYOOC5H34BI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

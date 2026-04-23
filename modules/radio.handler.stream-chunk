@@ -110,6 +110,24 @@ while ( $offset < $buf_len ) {
                         }
                     }
 
+                    ##  close and finalize rip if open  ##
+                    if ( defined $icy->{'rip_fh'} ) {
+                        CORE::close( delete $icy->{'rip_fh'} );
+                        <[base.logs]>->(
+                            2, '[radio] saved: %s [ %d bytes ]',
+                            $icy->{'rip_path'}, $icy->{'rip_bytes'}
+                        );
+                        if ( $icy->{'track_duration'}
+                            < ( <radio.jingle.min_track_seconds> // 90 ) ) {
+                            unlink( $icy->{'rip_path'} );
+                            <[base.logs]>->(
+                                2, '[radio] discarded short rip [ jingle ]'
+                            );
+                        }
+                        delete $icy->{'rip_path'};
+                        $icy->{'rip_bytes'} = 0;
+                    }
+
                     ##  reset state for incoming track  ##
                     $icy->{'current_title'} = $new_title;
                     $icy->{'track_started'} = <[base.time]>->(3);
@@ -123,6 +141,8 @@ while ( $offset < $buf_len ) {
                         <[base.logs]>->(
                             2, '[radio] jingle detected: %s', $new_title
                         );
+                        <[radio.gap_fill.start]>
+                            if not <radio.gap_fill.active>;
                     } else {
                         <[base.logs]>->(
                             2, '[radio] now playing: %s', $new_title
@@ -145,6 +165,12 @@ while ( $offset < $buf_len ) {
 
         if ( $take > 0 ) {
             my $audio_chunk = substr( $buf, $offset, $take );
+
+            ##  write to rip file if active  ##
+            if ( defined $icy->{'rip_fh'} ) {
+                syswrite( $icy->{'rip_fh'}, $audio_chunk );
+                $icy->{'rip_bytes'} += length($audio_chunk);
+            }
 
             ##  relay to listeners [ jingle gate ]  ##
             if ( not $icy->{'is_jingle'} ) {
@@ -175,8 +201,8 @@ while ( $offset < $buf_len ) {
 
 return;
 
-#,,.,,,.,,.,.,..,,,,.,,.,,,,.,.,,,.,.,,..,...,..,,...,..,,.,.,,.,,..,,,,,,.,.,
-#5NJUJZQCXNERAFIEB77XX2XSWQBV3VK4HTDPAYQJ3SPGRCRSHDG532PX7ZBKQJFJMV4W727QL5ZCC
-#\\\|Y46OJXTDVC6DVWIS2VMVAMAI6A2M6V7Y5HYPM4GSYR5IVCCPB7O \ / AMOS7 \ YOURUM ::
-#\[7]H7WJL6D4PZFLU52Z3GJZZODEPEUBFPXH5AK4BCQBI4TPNAUFUYBY 7  DATA SIGNATURE ::
+#,,,,,,,,,,,,,..,,,.,,,..,,,,,...,..,,,..,,,.,..,,...,...,...,.,.,,,.,,,,,,.,,
+#XQXYEMJPSGJE4E2K5XTMJNHW4HVBWYFE46B4GXT4PJRHLT2LUQJRSSSYFXM2LM3G65W6NHBAYARBC
+#\\\|6P7LNPC2AJI5VNWRZEMIWS7OABGUNYAJZ5UMEEOP5TB3BNN7XB4 \ / AMOS7 \ YOURUM ::
+#\[7]VUIWBKS5G5LZ6PXMYJ3MXVUX5FOJK2PRRRTPL5GNE4DFRTHVSSCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

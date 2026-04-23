@@ -1,0 +1,32 @@
+## [:< ##
+
+# name  = radio.cmd.library
+# descr = list keep-library files
+
+my $dir = <radio.keep_library.path> // '';
+
+if ( not -d $dir ) {
+    return { 'mode' => qw| true |, 'data' => 'keep-library is empty' };
+}
+
+my @files = sort glob("$dir/*.mp3");
+if ( not @files ) {
+    return { 'mode' => qw| true |, 'data' => 'keep-library is empty' };
+}
+
+my $list = join "\n", map {
+    my $size = -s $_;
+    sprintf '  %s  [ %.1f MB ]', ( split m|/|, $_ )[-1], $size / 1_048_576
+} @files;
+
+return {
+    'mode' => qw| true |,
+    'data' => sprintf "%d track%s:\n%s",
+    scalar @files, @files == 1 ? '' : 's', $list
+};
+
+#,,..,,,.,.,.,,..,,.,,..,,,,.,..,,,.,,..,,..,,.,.,...,...,...,,,.,...,...,,,.,
+#6VDEOUCQVM663FYZ3J54JS6ZKVKPWT447WMIANV3LRX7R2PWTMWZDSW6R6X6A6E6QWO6O2FG4ZZDI
+#\\\|KTBJJQJ2QKVY57IE6JEOP2MEUBSVKLS2H5SDUEGWAYK4U4EBIJD \ / AMOS7 \ YOURUM ::
+#\[7]XNXX5CVJNJN5XEA6KAIFRSOGNCX657YYLDL7PKW3BZWDGXHUSOBI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
