@@ -7,8 +7,8 @@ originSessionId: 22e240a2-b6d9-41a1-bfe7-0b6526db01b4
 ## motivation
 
 current STRM-SIZE in base.handler.command dumps all frames synchronously
-onto the client output buffer in one go — 'cramped', blocks the event loop
-for large payloads, and requires callers to know session buffer internals.
+onto the client output buffer in one go — blocks the event loop for large
+payloads, requires callers to know session buffer internals.
 base.stream.{open,push,close} are correct primitives but still require
 direct buffer access knowledge for anything beyond the simplest producer.
 
@@ -56,19 +56,52 @@ omitted [ pending protocol extension ].
                 └─ base.stream.gate          ← liveness / cancel check
                      └─ session output buffer
 
-## current state
+## current state [ 2026-04-23 ]
 
-base.stream.{open,push,close,gate,emit} are implemented and working
-[ 2026-04-20 session ]. transport registration layer not yet started.
-STRM-SIZE in base.handler.command still uses sync dump; refactor deferred
-until transport layer lands.
+stream cancel infrastructure complete (passes 1-3, session-close
+teardown, implicit !TERM! lookup, relay upstream propagation).
+transport registration layer not yet started.
+STRM-SIZE in base.handler.command still uses sync dump.
 
-**How to apply:** when next touching STRM-SIZE fragmentation or adding
-file/audio streaming, implement transport.register first; then migrate
-base.handler.command STRM-SIZE branch to use it.
+## next implementation sequence
 
-#,,..,,,.,.,.,.,,,,,.,...,,,.,...,,.,,,.,,,,.,..,,...,...,.,.,,,.,.,.,..,,,..,
-#BL7XBTOXA7LRKLXYWYMZSPGU66C4MYXEAF2FRNMJXM7GCPHYAVG27K5SCNHKWMPKUUR6IXSHTTM62
-#\\\|2USVC3PEA3LMDBN7AFQJFXDJ5FZ4C2PDYMFFDA4KS5T7SI56V65 \ / AMOS7 \ YOURUM ::
-#\[7]TOGCS2ZLMRY46YTU5SM3CUHKIFCP6C6SXA53MEBNOW7T26JBG6BI 7  DATA SIGNATURE ::
+### step 1 : STRM mode fix (prerequisite)
+
+current base.handler.command treats STRM type same as STRM-SIZE
+(sync fragment-and-close with deferred route). original semantics:
+STRM open → route stays open → producer pushes chunks async →
+STRM close signals end. fix: when mode=STRM, keep route open after
+open frame and let producer drive close; do not use deferred-and-dump.
+
+### step 2 : unbounded STRM protocol extension
+
+current base.stream.open requires total > 0. for follow mode
+(audio, log tail), total is unknown at open time. extend protocol:
+total=0 in STRM open frame means unbounded; receiver buffers until
+STRM close arrives. base.stream.open guard needs relaxing for type=STRM.
+
+### step 3 : transport.register implementation
+
+implement the API above; wire a timer-driven push loop per registration;
+handle gate-fail (stop + optionally !TERM! if upstream set).
+
+### step 4 : first real consumer — base.stream-file command
+
+command: `base.stream-file <path> [offset] [length]`
+streams a file to the caller over STRM; uses transport.register with
+filehandle source. replaces the sync STRM-SIZE dump for file content.
+this is the concrete motivating use case: bounded (size known), immediately
+useful, exercises the full stack without needing unbounded extension.
+
+**Why file-first:** bounded → no unbounded extension dependency; large
+file transfers currently block the event loop; clean testable end result.
+
+**How to apply:** implement steps 1-4 in sequence; test with
+`base.stream-file` as the integration target. audio/log-tail/webcam
+relay follow naturally once unbounded extension lands.
+
+#,,.,,,.,,,,.,.,.,.,,,,..,..,,.,.,...,,..,...,..,,...,..,,...,,,.,.,,,..,,,..,
+#4DZVLIG75MKZCABQESZ7YKRCBY7G7F5SLYGTUUNENGOUIDP7QRS5L6TCID5K6KOXZQW2O6XTUPMNG
+#\\\|WTLJ2U77O3JOBRQ3ARFCZB4QG4CKJLODPUHDUQ3ODQYU6W7RJ6S \ / AMOS7 \ YOURUM ::
+#\[7]NJEAGMLKHHMB55CGOWH5RU5P6C5DIRSQPIIHIPBXUMTITQ6PJYCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
