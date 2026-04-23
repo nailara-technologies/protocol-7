@@ -1,0 +1,35 @@
+## [:< ##
+
+# name = radio.init_code
+# descr = initialize radio relay zenka
+
+<[base.perlmod.autoload]>->( 'IPC::Open3', qw| open3 | );
+<[base.perlmod.autoload]>->( 'Fcntl',      qw| :DEFAULT | );
+<[base.perlmod.autoload]>->(qw| IO::Handle |);
+
+<radio.listeners>  //= [];
+<radio.stream.icy> //= {
+    headers_done  => 0,
+    header_buf    => '',
+    metaint       => 8192,
+    bytes_to_meta => 8192,
+    meta_expected => 0,
+    meta_buf      => '',
+    current_title => ''
+};
+
+if ( ( <radio.stream.auto_connect> // '' ) eq qw| yes | ) {
+    <[event.add_timer]>->(
+        {   after   => 0.5,
+            handler => qw| radio.connect |,
+        }
+    );
+}
+
+0;
+
+#,,,.,.,,,.,.,,.,,...,,..,.,.,.,,,,..,.,,,,,,,..,,...,...,,..,,..,,,.,.,,,.,.,
+#2G5GKH3ZTFZX4MAQVUVJAC2RAEXLK6SDCUQ5J5TUFXPTAC4QNQG76V4BQGNQ4GSM7SXHXFFGQTOVU
+#\\\|ZUNYNVPNAOW4RKC6KGEMLNE3ZOLGI5EPBUGADVFVNL2J5CXDHNB \ / AMOS7 \ YOURUM ::
+#\[7]QXE4PNLI7EV5EOAAWASUGXYVVNXUDQXC4CAHWVRV5WW347BZQ2BQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

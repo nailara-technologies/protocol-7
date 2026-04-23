@@ -1,0 +1,149 @@
+## [:< ##
+
+# name  = radio.handler.stream-chunk
+# descr = IO read handler for curl pipe : parse ICY headers, extract audio
+#         and metadata, relay audio to registered listeners
+
+my $event   = shift->w;
+my $read_fh = $event->fd;
+
+my $icy = <radio.stream.icy>;
+
+my $read_buf = '';
+my $read_len = sysread( $read_fh, $read_buf, 65536 );
+
+if ( not defined $read_len or $read_len == 0 ) {
+
+    ##  pipe closed or error  ##
+
+    $event->cancel;
+    close($read_fh) if defined $read_fh;
+
+    my $pid = delete <radio.stream.pid>;
+    if ( defined $pid ) {
+        <[base.logs]>->( 1, '[radio] stream disconnected [pid=%d]', $pid );
+        kill( 15, $pid );
+        <system.kill_list> = [ grep { $_ != $pid } <system.kill_list>->@* ];
+    }
+
+    delete <radio.stream.r_fh>;
+    delete <radio.stream.io_watcher>;
+
+    ##  reset icy state for next connect  ##
+    $icy->{'headers_done'}  = 0;
+    $icy->{'header_buf'}    = '';
+    $icy->{'meta_expected'} = 0;
+    $icy->{'meta_buf'}      = '';
+
+    return;
+}
+
+my $buf = $read_buf;
+
+##  header parse phase  ##
+
+if ( not $icy->{'headers_done'} ) {
+
+    $icy->{'header_buf'} .= $buf;
+
+    if ( $icy->{'header_buf'} =~ s/^(.*?)(?:\r\n\r\n|\n\n)//s ) {
+
+        my $headers = $1;
+        my $metaint = 8192;
+
+        if ( $headers =~ /icy-metaint:\s*(\d+)/i ) {
+            $metaint = 0 + $1;
+        }
+
+        $icy->{'metaint'}       = $metaint;
+        $icy->{'bytes_to_meta'} = $metaint;
+        $icy->{'headers_done'}  = 1;
+
+        <[base.logs]>->( 2, '[radio] connected, metaint=%d', $metaint );
+
+        $buf = $icy->{'header_buf'};
+        $icy->{'header_buf'} = '';
+
+    } else {
+        return;    ##  wait for more header data  ##
+    }
+}
+
+##  audio + metadata parse phase  ##
+
+my $offset  = 0;
+my $buf_len = length($buf);
+
+while ( $offset < $buf_len ) {
+
+    if ( $icy->{'meta_expected'} > 0 ) {
+
+        my $need  = $icy->{'meta_expected'} - length( $icy->{'meta_buf'} );
+        my $avail = $buf_len - $offset;
+        my $take  = $need < $avail ? $need : $avail;
+
+        $icy->{'meta_buf'} .= substr( $buf, $offset, $take );
+        $offset += $take;
+
+        if ( length( $icy->{'meta_buf'} ) >= $icy->{'meta_expected'} ) {
+
+            my $meta_str = $icy->{'meta_buf'};
+            $meta_str =~ s/\0+$//;
+
+            if ( $meta_str =~ /StreamTitle='([^']*)'/ ) {
+                my $new_title = $1;
+                if ( $new_title ne $icy->{'current_title'} ) {
+                    $icy->{'current_title'} = $new_title;
+                    <[base.logs]>->(
+                        2, '[radio] now playing: %s', $new_title
+                    );
+                }
+            }
+
+            $icy->{'meta_buf'}      = '';
+            $icy->{'meta_expected'} = 0;
+        }
+
+    } else {
+
+        my $avail = $buf_len - $offset;
+        my $take
+            = $icy->{'bytes_to_meta'} < $avail
+            ? $icy->{'bytes_to_meta'}
+            : $avail;
+
+        if ( $take > 0 ) {
+            my $audio_chunk = substr( $buf, $offset, $take );
+
+            ##  relay to listeners  ##
+            my @keep;
+            for my $h ( <radio.listeners>->@* ) {
+                push @keep, $h
+                    if <[base.stream.push]>->( $h, \$audio_chunk );
+            }
+            <radio.listeners> = \@keep;
+
+            $offset += $take;
+            $icy->{'bytes_to_meta'} -= $take;
+        }
+
+        if ( $icy->{'bytes_to_meta'} == 0 and $offset < $buf_len ) {
+
+            my $meta_len_byte = ord( substr( $buf, $offset, 1 ) );
+            $offset++;
+
+            $icy->{'meta_expected'} = $meta_len_byte * 16;
+            $icy->{'bytes_to_meta'} = $icy->{'metaint'};
+
+            ##  meta_expected == 0 : no metadata this interval  ##
+        }
+    }
+}
+
+return;
+
+#,,.,,..,,,,.,.,.,,,,,,..,..,,.,,,.,,,,..,,..,..,,...,...,,..,...,,.,,.,,,,,,,
+#VXFY5IIAVP25GES2JTMMZC4Y74DMAOG6MDNFI4K5ZXUYIGJSICSGW6HDIRLZTLRXKML5OSDC43XNS
+#\\\|QASIMPJRFODRIVEDLTO3WW3LUYM3PVY7XFQF7NSPDQ2W2SBXZ3M \ / AMOS7 \ YOURUM ::
+#\[7]CNEUI3AZVNS2H6LHGOHXWCDA2XG22MYHLJDTW56UAJYYZHLTOACI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

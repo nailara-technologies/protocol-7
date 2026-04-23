@@ -1,0 +1,227 @@
+task:
+  id: radio-relay-phase1
+  title: "radio relay zenka : ICY stream reader + unbounded STRM relay [ phase 1 ]"
+  description: |
+    implement the first phase of the psytrance radio relay zenka:
+    ICY HTTP stream reader via pipe-open curl, basic metadata parsing,
+    unbounded STRM relay to registered listeners. no jingle filtering,
+    no gap filler, no keep-library — those are separate tasks.
+
+  syntax_reference: data/yaml/docs/protocol-7-coding-style.md
+  templates_reference: modules/protocol.protocol-7.message-templates
+
+  pattern_references:
+    - "pipe-open + IO watcher: modules/mpv.open_player (lines 120-155)"
+    - "unbounded STRM: modules/base.stream.open (total => undef)"
+    - "STRM push: modules/base.stream.push"
+    - "STRM close: modules/base.stream.close"
+    - "IO watcher: modules/base.event.add_io"
+
+  files_to_create:
+    - configuration/zenki/radio/start
+    - configuration/zenki/radio/zenka-startup.v7
+    - modules/radio.init_code
+    - modules/radio.connect
+    - modules/radio.handler.stream-chunk
+    - modules/radio.cmd.start
+    - modules/radio.cmd.stop
+    - modules/radio.cmd.status
+    - modules/radio.cmd.listen
+
+  icy_protocol: |
+    ICY (Icecast/Shoutcast) HTTP stream format:
+
+    1. connect with headers:
+         Icy-Metadata: 1
+         User-Agent: radio-relay/1.0
+
+    2. response includes header (before double CRLF):
+         icy-metaint: N      ##  audio bytes between metadata blocks  ##
+
+    3. after headers, stream body alternates:
+         [ N bytes audio ] [ 1 byte = meta_len ] [ meta_len * 16 bytes metadata ]
+         [ N bytes audio ] [ 1 byte = meta_len ] ...
+
+       meta_len = 0 → no metadata this interval (very common)
+       metadata block: null-padded, contains 'StreamTitle=\'track title\';'
+
+    curl command:
+      curl -si --http0.9 -H 'Icy-Metadata: 1' -H 'User-Agent: radio-relay/1.0' --no-buffer <url>
+
+    '--http0.9' is required: ICY servers respond with HTTP/0.9 (Shoutcast format),
+    which curl rejects by default since 7.66.0.
+    '-si' includes response headers in stdout (so we parse them inline).
+    '-i' mode: headers are followed by a blank line (CRLF CRLF), then stream body.
+    note: ICY response line is 'ICY 200 OK\r\n' not 'HTTP/...' — treat as headers.
+
+  icy_parser_state: |
+    stored in <radio.stream.icy> :
+      headers_done    => 0 | 1          ##  header parse phase done  ##
+      header_buf      => ''             ##  accumulates until CRLF CRLF  ##
+      metaint         => N              ##  bytes between meta blocks  ##
+      bytes_to_meta   => N              ##  countdown to next meta block  ##
+      meta_expected   => 0             ##  >0 means reading meta block  ##
+      meta_buf        => ''             ##  accumulates current meta block  ##
+      current_title   => ''            ##  last parsed StreamTitle  ##
+
+  stream_relay_state: |
+    stored in <radio.listeners> : arrayref of stream handles returned by
+    base.stream.open. push audio chunks to all handles via base.stream.push.
+    remove handles where push returns 0 [ gated / session gone ].
+
+    each handle: { sid => $sid, cmd_id => $cmd_id, type => 'STRM', total => undef }
+
+  pipe_open_pattern: |
+    use IPC::Open3::open3 [ already used in mpv.open_player ]:
+
+      <[base.perlmod.autoload]>->( 'IPC::Open3', qw| open3 | );
+
+      my ( $w_fh, $r_fh, $e_fh );
+      $w_fh = IO::Handle->new;
+      $r_fh = IO::Handle->new;
+      $e_fh = IO::Handle->new;
+
+      my $pid = IPC::Open3::open3( $w_fh, $r_fh, $e_fh,
+          qw| curl -si --http0.9 --no-buffer |,
+          '-H', 'Icy-Metadata: 1',
+          '-H', 'User-Agent: radio-relay/1.0',
+          $url );
+
+      close($w_fh);   ##  stdin not used  ##
+
+      ##  set non-blocking  ##
+      <[base.perlmod.autoload]>->( 'Fcntl', qw| :DEFAULT | );
+      my $flags = fcntl( $r_fh, F_GETFL, 0 );
+      fcntl( $r_fh, F_SETFL, $flags | O_NONBLOCK );
+
+      <radio.stream.pid>  = $pid;
+      <radio.stream.r_fh> = $r_fh;
+
+      push <system.kill_list>->@*, $pid;
+
+      <[event.add_io]>->(
+          {   fd      => $r_fh,
+              poll    => qw| r |,
+              handler => qw| radio.handler.stream-chunk |,
+          }
+      );
+
+  configuration_start: |
+    file: configuration/zenki/radio/start
+
+    modules.load = radio.init_code radio.connect
+                   radio.cmd.start radio.cmd.stop radio.cmd.status radio.cmd.listen
+                   radio.handler.stream-chunk
+
+    [load_modules:<modules.load>]
+    [init_modules]
+    [zenka.loop]
+
+  configuration_startup: |
+    file: configuration/zenki/radio/zenka-startup.v7
+
+    radio.stream.url          = https://cast.magicstreams.gr/sc/psyndora
+    radio.stream.auto_connect = yes
+
+  radio_init_code: |
+    file: modules/radio.init_code
+
+    - load IPC::Open3, Fcntl, IO::Handle
+    - initialize: <radio.listeners> = []
+    - initialize: <radio.stream.icy> = { headers_done => 0, header_buf => '',
+        metaint => 8192, bytes_to_meta => 8192, meta_expected => 0,
+        meta_buf => '', current_title => '' }
+    - if <radio.stream.auto_connect> eq 'yes' :
+        schedule <[radio.connect]> via event.add_timer after => 0.5
+
+  radio_connect: |
+    file: modules/radio.connect
+
+    open curl pipe as described in pipe_open_pattern section above.
+    log: "[radio] connecting to <url>"
+
+  radio_handler_stream_chunk: |
+    file: modules/radio.handler.stream-chunk
+
+    IO read handler — called when curl pipe has data.
+
+    1. read available data from <radio.stream.r_fh> into $buf
+       [ use sysread, check for undef/0 = pipe closed ]
+    2. if not <radio.stream.icy>->{'headers_done'} :
+         append $buf to header_buf
+         look for CRLF CRLF or LF LF boundary
+         when found:
+           extract headers, parse 'icy-metaint: N' (case-insensitive)
+           store into metaint and bytes_to_meta
+           set headers_done = 1
+           remainder after boundary becomes the start of the audio stream
+           log: "[radio] connected, metaint=%d", $metaint
+    3. process audio stream byte-by-byte-range:
+         while bytes remain in $buf:
+           if meta_expected > 0:
+             absorb bytes into meta_buf until meta_expected reached
+             when complete: parse StreamTitle from meta_buf, log title, reset
+           else:
+             take min(bytes_to_meta, bytes_remaining) bytes as audio chunk
+             relay audio chunk to all listeners (see relay pattern below)
+             decrement bytes_to_meta by chunk length
+             if bytes_to_meta == 0:
+               read next byte as meta_len_byte
+               meta_expected = meta_len_byte * 16
+               bytes_to_meta = metaint
+               if meta_expected == 0: skip meta phase (no metadata this interval)
+    4. relay audio chunk to listeners:
+         my @keep;
+         for my $h ( <radio.listeners>->@* ) {
+             push @keep, $h if <[base.stream.push]>->( $h, \$audio_chunk );
+         }
+         <radio.listeners> = \@keep;
+
+  radio_cmd_listen: |
+    file: modules/radio.cmd.listen
+
+    called by a client to register as a stream listener.
+    opens an unbounded STRM reply and stores the handle:
+
+      my $h = <[base.stream.open]>->({
+          sid    => $call_args->{'sid'},
+          cmd_id => $call_args->{'cmd_id'},
+          type   => 'STRM',
+          total  => undef,    ##  unbounded  ##
+      });
+      push <radio.listeners>->@*, $h if defined $h;
+
+  radio_cmd_start: |
+    file: modules/radio.cmd.start
+    call <[radio.connect]> if not already connected (pid not defined).
+    reply TRUE.
+
+  radio_cmd_stop: |
+    file: modules/radio.cmd.stop
+    close stream handles for all listeners (base.stream.close each).
+    kill curl pid if running. clear <radio.listeners>.
+    reply TRUE.
+
+  radio_cmd_status: |
+    file: modules/radio.cmd.status
+    reply TRUE with:
+      current track: <radio.stream.icy>->{'current_title'}
+      listeners: scalar(<radio.listeners>->@*)
+      connected: defined <radio.stream.pid> ? 'yes' : 'no'
+
+  acceptance: |
+    - ptd -c all radio.* modules passes
+    - ptd -c configuration/zenki/radio/start passes
+    - radio.cmd.listen opens unbounded STRM to caller
+    - radio.handler.stream-chunk parses ICY headers and extracts audio bytes
+    - StreamTitle changes logged at level 2
+    - audio chunks pushed to all listeners via base.stream.push
+    - disconnected listeners removed from list automatically
+    - radio.cmd.stop closes all streams and kills curl
+    - no jingle filtering, no gap filler, no keep-library in this phase
+
+#,,,,,..,,...,,..,,,,,,,.,.,.,,.,,,,.,...,,..,..,,...,...,.,,,,,.,,,,,...,,.,,
+#7NAORR5NR6IOMUC2TL6K5RZWTXHRWZ3GFNHJSL3SEJLWGLTLWZY6XWBNRUSMHL7KDGFHH6M2P4K4I
+#\\\|KO5THBZF5623AWFYETK67L6K2IEKZNJPHVNC4N6CWDU4XEMOHMJ \ / AMOS7 \ YOURUM ::
+#\[7]IR77SB6WAWBJ6NGYHP55AKLDPVUKDUPVRRPA3TQNGFDARG57A6CQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,0 +1,21 @@
+## [:< ##
+
+# name  = zenka-startup.v7
+# descr = 'radio' zenka startup configuration used by 'v7' zenka
+
+dependencies = cube
+max_concurrency = 1
+
+: v7-init :
+  start_mode = stdin-zenka
+  cube.key = [base.prng.chars-anum:44]
+  [v7.callback.setup_zenka_key:<instance_id>,'<zenka_name>',<cube.key>]
+
+: zenka-init :
+  [base.auth.set_zenka_key:'<{cube.key}>']
+
+#,,,,,.,.,,,,,...,,,.,...,,.,,.,.,,..,,.,,.,.,..,,...,...,..,,.,,,,..,..,,..,,
+#CBDC5NEPFTZNQWLUUY5JYSOFG6DDIAK5VZA3SHSEYCLXKBLIBGSLGLUUNUNX2JPJN2GZFDK7FAZSY
+#\\\|C4TI5XYKHMSXASG4PT5WIQMHUEWZZFZPWQHCESMG753V5BVFDIR \ / AMOS7 \ YOURUM ::
+#\[7]ZEM4ONHB7T2T6MHAMJ6VAGDTMB77FWTLKZGXFCIJIZYYHVSODIBI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
