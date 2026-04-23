@@ -1,7 +1,7 @@
 ## [:< ##
 
 # name  = radio.cmd.stop
-# descr = close all listener streams and kill the curl process
+# descr = close all listener streams and disconnect TCP socket
 
 ##  close listener streams  ##
 
@@ -17,18 +17,10 @@ if ( defined <radio.stream.io_watcher> ) {
     delete <radio.stream.io_watcher>;
 }
 
-##  close filehandle  ##
+##  close socket  ##
 
-if ( defined <radio.stream.r_fh> ) {
-    close( delete <radio.stream.r_fh> );
-}
-
-##  kill curl process  ##
-
-if ( defined <radio.stream.pid> ) {
-    my $pid = delete <radio.stream.pid>;
-    kill( 15, $pid );
-    <system.kill_list> = [ grep { $_ != $pid } <system.kill_list>->@* ];
+if ( defined <radio.stream.sock> ) {
+    close( delete <radio.stream.sock> );
 }
 
 ##  reset icy state  ##
@@ -41,8 +33,8 @@ $icy->{'meta_buf'}      = '';
 
 return { 'mode' => qw| true |, 'data' => 'stopped' };
 
-#,,,,,..,,,..,,,,,,,,,,,.,..,,..,,,,,,,,.,,,.,..,,...,...,,,.,,..,.,,,.,,,,.,,
-#TFQWDTIBXKZ3G4OW7L5NWHEO2W6SQZTTULKZ6FHS67IDWOW4FDYCRW4CXBXAOZ3WJQWQYSFQLSTYA
-#\\\|MI4PEKARFTIGZ2CZXLU5RSIRATVODB4BXDTBR24Z6XKBHEVLN2S \ / AMOS7 \ YOURUM ::
-#\[7]2WG523UIC45OVNPDVDO4VHBG2MPKBK4OJHVPIVGIPKSJTUHG3SDY 7  DATA SIGNATURE ::
+#,,.,,,.,,...,,.,,,,,,,..,..,,,,,,,..,.,,,,..,..,,...,...,...,.,.,.,.,,..,,,.,
+#TCTAJXPKSJOCYRZWLPENVD5QELDPA2UXR332C7PRNP2YXWFVWEQOH26VRTWZVLUNBTVZEQXQSMGAW
+#\\\|EIB3HCTKWGBBI762DWMZUFZO6V6P2MDTEPMQFZ4UDOD6TLDRVGC \ / AMOS7 \ YOURUM ::
+#\[7]P6QVEFYZGLFUNGQWLWGI7RJZE4437XT3AELVJCHPWFGIPP3NW2BA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,7 +1,7 @@
 ## [:< ##
 
 # name = radio.connect
-# descr = open curl pipe to ICY stream
+# descr = open TCP connection to ICY stream host and send HTTP GET request
 
 my $url = <radio.stream.url>;
 
@@ -10,39 +10,50 @@ if ( not defined $url or not length $url ) {
     return;
 }
 
-if ( defined <radio.stream.pid> and <radio.stream.pid> ) {
-    <[base.logs]>->(
-        2, '[radio] already connected [pid=%d]',
-        <radio.stream.pid>
-    );
+if ( defined <radio.stream.sock> ) {
+    <[base.logs]>->( 2, '[radio] already connected' );
     return;
 }
 
 <[base.logs]>->( 2, '[radio] connecting to %s', $url );
 
-my ( $w_fh, $r_fh, $e_fh );
-$w_fh = IO::Handle->new;
-$r_fh = IO::Handle->new;
-$e_fh = IO::Handle->new;
+##  parse http://host[:port]/path  ##
+my ( $host, $port, $path )
+    = ( $url =~ m{^https?://([^/:]+)(?::(\d+))?(/.*)?$} );
+$port //= 80;
+$path //= '/';
 
-my $pid = IPC::Open3::open3(
-    $w_fh, $r_fh, $e_fh, qw| curl -si --http0.9 --no-buffer |,
-    '-H',  'Icy-Metadata: 1',
-    '-H',  'User-Agent: radio-relay/1.0', $url
-);
+if ( not defined $host ) {
+    <[base.logs]>->( 0, '[radio] invalid stream url: %s', $url );
+    return;
+}
 
-close($w_fh);
+<[base.logs]>->( 2, '[radio] connecting to %s:%d%s', $host, $port, $path );
 
-my $flags = fcntl( $r_fh, F_GETFL, 0 );
-fcntl( $r_fh, F_SETFL, $flags | O_NONBLOCK );
+my $sock = <[base.open]>->( qw| ip.tcp output |, $host, $port );
 
-<radio.stream.pid>  = $pid;
-<radio.stream.r_fh> = $r_fh;
+if ( not defined $sock ) {
+    <[base.logs]>->( 0, '[radio] connection failed: %s:%d', $host, $port );
+    return;
+}
 
-push <system.kill_list>->@*, $pid;
+##  set non-blocking for event-loop reads  ##
+$sock->blocking(0);
+
+##  send ICY HTTP GET request  ##
+my $req = join( "\r\n",
+    "GET $path HTTP/1.0",
+    "Host: $host",
+    "Icy-Metadata: 1",
+    "User-Agent: radio-relay/1.0",
+    "Connection: close",
+    "", "" );
+syswrite( $sock, $req );
+
+<radio.stream.sock> = $sock;
 
 <radio.stream.io_watcher> = <[event.add_io]>->(
-    {   fd      => $r_fh,
+    {   fd      => $sock,
         poll    => qw| r |,
         handler => qw| radio.handler.stream-chunk |,
     }
@@ -50,8 +61,8 @@ push <system.kill_list>->@*, $pid;
 
 0;
 
-#,,..,,,,,.,,,..,,..,,,..,,,.,.,.,,,,,,,,,,,.,..,,...,...,.,.,...,,.,,.,.,,..,
-#HLYH5UQZ2B3IEVMDLRNDYCV5E6FORLYEUZAJSO34GOZPNGMWFUVNTJFUVTMUOXTBS4WF3EJWNRNUG
-#\\\|6QJIPMAZMHOSOGN25IZHE2S4TUF27HVPGMCW3ECB4EE4ERHRBYN \ / AMOS7 \ YOURUM ::
-#\[7]SSPPFOJ4QVVE7W7MF67E4T3JRPB3DJ5LBOQHKV45JKP66QCE5MDI 7  DATA SIGNATURE ::
+#,,.,,,,,,,,.,,,.,..,,,.,,,.,,.,.,,,.,,..,...,..,,...,...,.,,,.,,,,,,,,..,..,,
+#WKBWXTFEM4VQPXBAEK4ZX2W6LFLAHB4HIO4COGT72CTTDMHRBNV3NVJ2EYNU6JB6SXMWRAJUAUET2
+#\\\|54YTGHBEW3EOEZNKVA7FZYIMFZUYKDDTULNPMGRVJVIFHJ4CWXL \ / AMOS7 \ YOURUM ::
+#\[7]D7YIZBZ3N6AYVAVEBEJFU4FTBAZU7JUVCY37RY4OPU4S4KHVEKDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

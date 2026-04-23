@@ -1,0 +1,290 @@
+task:
+  id: radio-phase4-mpv-audio-background
+  title: "radio : phase 4 — mpv audio background [ twin zenki crossfade ]"
+  description: |
+    the radio zenka currently filters the ICY stream and relays audio to
+    HTTP clients. phase 4 adds background audio playback via two mpv[audio-N]
+    zenki instances that play the HTTP radio stream endpoint locally. this
+    gives a local speaker output path independent of HTTP clients, with
+    crossfade between the two instances on jingle/track transitions.
+
+    architecture:
+    - two mpv zenki with subnames audio-0 and audio-1 are started on-demand
+      via v7.start_once + v7.notify_online counter pattern
+    - once both are online, audio-0 is loaded with the stream URL and faded in
+    - on jingle detection: fade audio-0 down; gap_fill already feeds keep-library
+      audio via the STRM relay path; audio-1 is not used in this phase (reserved
+      for crossfade in a later extension)
+    - on track resume: fade audio-0 back up
+    - the stream URL is derived from radio.audio.stream_url config key
+      (default: http://127.0.0.1/radio/stream)
+    - mpv audio instances use audio_params (no video, -ao=pulse etc.) which is
+      already selected when subname matches audio-N pattern
+
+    IMPORTANT: mpv.open_player currently only matches subname exactly 'audio'.
+    the subname regex must be extended to also accept audio-0, audio-1, etc.
+
+  syntax_reference: data/yaml/docs/protocol-7-coding-style.md
+
+  existing_modules_read_first:
+    - modules/mpv.open_player
+    - modules/mpv.callback.start_reenc_msg
+    - modules/mpv.handler.reenc_notify_reply
+    - modules/mpv.cmd.add_file
+    - modules/mpv.cmd.fade
+    - modules/radio.init_code
+    - modules/radio.handler.stream-chunk
+    - modules/radio.gap_fill.start
+    - modules/protocol-7.route-send
+
+  ##  step 1: one-line fix in mpv.open_player  ##
+
+  fix_mpv_open_player: |
+    file: modules/mpv.open_player
+
+    current lines 17-20:
+      <mpv.audio_only> = TRUE
+          if <system.zenka.mode> eq qw| stand-alone |
+          and defined <system.zenka.subname>
+          and <system.zenka.subname> eq qw| audio |;
+
+    change the final condition so subnames audio-0, audio-1, ... also trigger
+    audio-only mode. replace only line 20:
+
+      old: and <system.zenka.subname> eq qw| audio |;
+      new: and <system.zenka.subname> =~ m|^audio(?:-\d+)?$|;
+
+    no other change to mpv.open_player.
+
+  ##  step 2: new modules  ##
+
+  files_to_create:
+    - modules/radio.audio.init
+    - modules/radio.audio.handler.player_online
+
+  files_to_modify:
+    - modules/mpv.open_player
+    - modules/radio.handler.stream-chunk
+    - modules/radio.init_code
+    - configuration/zenki/radio/zenka-startup.v7
+    - configuration/zenki/radio/start
+    - configuration/zenki/cube/access.zenki
+
+  ##  state variables  ##
+
+  radio_audio_state: |
+    all state lives under <radio.audio.*>
+
+    <radio.audio.stream_url>     ##  loaded from config; default http://127.0.0.1/radio/stream  ##
+    <radio.audio.online_count>   ##  counts how many mpv[audio-N] have notified online  ##
+    <radio.audio.active>         ##  1 once audio-0 is playing, 0 otherwise  ##
+    <radio.audio.current_vol>    ##  current target volume [0..100], default from config  ##
+
+  ##  module: radio.audio.init  ##
+
+  module_audio_init: |
+    file: modules/radio.audio.init
+    descr = start mpv[audio-0] background player via v7 on-demand
+
+    called from radio.init_code via a timer (after 2.0s, one-shot).
+    uses v7.notify_online + v7.start_once for each of the two audio players.
+    a shared reply handler radio.audio.handler.player_online is used for both;
+    it uses an incrementing <radio.audio.online_count> to know when audio-0
+    is up (count >= 1 means audio-0 ready; in this phase we only need audio-0).
+
+    for each instance name in ( 'mpv[audio-0]' ):
+
+      ##  register interest before start  ##
+      <[protocol-7.route-send]>->(
+          {   'command'   => 'v7.notify_online',
+              'call_args' => { 'args' => 'mpv[audio-0]' },
+              'reply'     => {
+                  'handler' => 'radio.audio.handler.player_online',
+                  'params'  => { 'instance' => 'mpv[audio-0]' },
+              }
+          }
+      );
+
+      ##  trigger start  ##
+      <[protocol-7.route-send]>->(
+          {   'command'   => 'v7.start_once',
+              'call_args' => { 'args' => 'mpv[audio-0]' },
+          }
+      );
+
+    <[base.logs]>->( 2, '[radio.audio] waiting for mpv[audio-0] ...' );
+
+  ##  module: radio.audio.handler.player_online  ##
+
+  module_player_online_handler: |
+    file: modules/radio.audio.handler.player_online
+    descr = v7.notify_online reply: load stream URL into mpv[audio-N]
+
+    fired when mpv[audio-N] comes online. increments online_count.
+    for audio-0 (first to come online): loads the stream URL and fades in.
+    the instance name is passed via reply params.
+
+    my $reply    = shift;
+    my $instance = $reply->{'params'}{'instance'} // 'mpv[audio-0]';
+
+    ##  guard: must be a TRUE reply  ##
+    if ( $reply->{'cmd'} ne 'TRUE' ) {
+        <[base.logs]>->(
+            1, '[radio.audio] notify_online for %s returned non-TRUE', $instance
+        );
+        return;
+    }
+
+    <radio.audio.online_count> //= 0;
+    <radio.audio.online_count>++;
+
+    <[base.logs]>->( 2, '[radio.audio] %s online [count=%d]',
+        $instance, <radio.audio.online_count> );
+
+    ##  audio-0 is up — load stream and fade in  ##
+    my $url = <radio.audio.stream_url> // 'http://127.0.0.1/radio/stream';
+
+    <[protocol-7.route-send]>->(
+        {   'command'   => "$instance.add_file",
+            'call_args' => { 'args' => $url },
+        }
+    );
+
+    ##  start at 0 then fade to configured volume  ##
+    <[protocol-7.route-send]>->(
+        {   'command'   => "$instance.set_volume",
+            'call_args' => { 'args' => '0' },
+        }
+    );
+
+    my $vol = <radio.audio.start_volume> // 70;
+    <[protocol-7.route-send]>->(
+        {   'command'   => "$instance.fade",
+            'call_args' => { 'args' => $vol },
+        }
+    );
+
+    <radio.audio.active>  = 1;
+    <radio.audio.current_vol> = $vol;
+
+    <[base.logs]>->( 2, '[radio.audio] [%s] stream loaded, fading to %d%%',
+        $instance, $vol );
+
+  ##  changes to radio.handler.stream-chunk  ##
+
+  stream_chunk_changes: |
+    in the jingle detection block (where $icy->{'is_jingle'} is set true),
+    after the existing gap_fill.start call, add:
+
+      ##  fade audio-0 down during jingle  ##
+      if ( <radio.audio.active> ) {
+          <[protocol-7.route-send]>->(
+              {   'command'   => 'mpv[audio-0].fade',
+                  'call_args' => { 'args' => '0' },
+              }
+          );
+          <[base.logs]>->( 2, '[radio.audio] jingle: fading down' );
+      }
+
+    in the 'else' branch (real track, $icy->{'is_jingle'} is set false),
+    after the 'now playing' log, add:
+
+      ##  fade audio-0 back up on real track  ##
+      if ( <radio.audio.active> ) {
+          my $vol = <radio.audio.current_vol> // <radio.audio.start_volume> // 70;
+          <[protocol-7.route-send]>->(
+              {   'command'   => 'mpv[audio-0].fade',
+                  'call_args' => { 'args' => $vol },
+              }
+          );
+          <[base.logs]>->( 2, '[radio.audio] track: fading up to %d%%', $vol );
+      }
+
+    note: both branches are inside the title-change 'if' block. the jingle
+    fade-down belongs in the is_jingle == true branch; the fade-up belongs
+    in the is_jingle == false branch. add after existing log calls only.
+
+  ##  changes to radio.init_code  ##
+
+  init_code_changes: |
+    add a one-shot 2.0s timer for radio.audio.init, after the post_init timer:
+
+      <[event.add_timer]>->(
+          {   after   => 2.0,
+              handler => qw| radio.audio.init |,
+          }
+      );
+
+    also initialize audio state:
+
+      <radio.audio.online_count> //= 0;
+      <radio.audio.active>       //= 0;
+
+  ##  config changes  ##
+
+  zenka_startup_changes: |
+    file: configuration/zenki/radio/zenka-startup.v7
+    add:
+
+      radio.audio.stream_url   = http://127.0.0.1/radio/stream
+      radio.audio.start_volume = 70
+
+  access_changes: |
+    file: configuration/zenki/cube/access.zenki
+
+    extend access.cmd.usr.radio to include:
+      v7.start_once v7.notify_online mpv[audio-0].add_file
+      mpv[audio-0].set_volume mpv[audio-0].fade
+
+    updated line:
+      access.cmd.usr.radio  =  httpd.radio_online v7.notify_offline \
+                                v7.start_once v7.notify_online \
+                                mpv[audio-0].add_file \
+                                mpv[audio-0].set_volume \
+                                mpv[audio-0].fade
+
+  radio_start_changes: |
+    file: configuration/zenki/radio/start
+
+    add 'audio.init audio.handler.player_online' to access.cmd.usr.cube
+    (these are new radio.* modules that cube's list command needs to see):
+
+      access.cmd.usr.cube = ... audio.init audio.handler.player_online
+
+    add radio.audio to modules.load namespace list if needed.
+    the new modules are in the radio.audio.* namespace.
+    if modules.load uses 'radio' as a namespace glob, they are auto-included.
+    verify by checking how modules.load is specified in the start file.
+
+  ##  known issues to watch for  ##
+
+  caveats: |
+    1. mpv[audio-0].set_volume — check if 'set_volume' is the correct command
+       name. see modules/mpv.cmd.set_volume for the exact name. the mpv start
+       file lists 'set_volume' in access.cmd.usr.cube so it exists.
+
+    2. v7.zenka.cmd.start resolves config for mpv[audio-0] using the base
+       'mpv' zenka_name (subname is stripped before config lookup). so
+       configuration/zenki/mpv/zenka-startup.v7 IS the config used.
+       however, mpv is not in the v7 always-on start-set, and
+       'start.on-demand = 1' is currently commented out in that config.
+       v7.start_once will only start a zenka if it is configured for v7
+       management. add 'start.on-demand = 1' to zenka-startup.v7 (uncomment
+       the existing line). also check 'max_concurrency' — it defaults to 1
+       which means only one mpv instance at a time. since we need a subnamed
+       audio-0 instance alongside a potential regular mpv, either raise
+       max_concurrency = 2 or rely on max_subname_concurrency = 1. read
+       modules/v7.zenka.cmd.start lines 93-146 for the exact logic.
+
+    3. do NOT add set_volume to cube access for mpv[audio-0] by name if the
+       route already matches via mpv wildcard entry. check cube/access.zenki
+       for mpv[audio-0] or *.set_volume coverage first.
+
+    4. <radio.audio.current_vol> must be kept in sync if the user later
+       changes volume interactively. for now it is set once at startup.
+
+#,,.,,,,,,..,,..,,,,,,.,.,..,,...,.,,,,.,,,,.,..,,...,..,,.,.,,.,,,,,,..,,,.,,
+#2IKYLS5WBKWBIJLIAA4LSIGWX4PIFL6LQHBGLCDYGU43LGWUKHKFITMNEC3RJ4VDYR5XG2EMGW6QA
+#\\\|XEGJ7EU6QTPFF2ELVLPE6WVFQB5FG3XKB7KKRQC6CQLSPA57UPJ \ / AMOS7 \ YOURUM ::
+#\[7]7HSDBDHFFIJKUQLL247W3PJLJJS6J5BZOH65VALQNX4U3W3YTYAA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
