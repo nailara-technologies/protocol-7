@@ -1,0 +1,148 @@
+task:
+  id: strm-unbounded-open
+  title: "STRM unbounded-open : total=undef support in open + relay handler"
+  description: |
+    extend the STRM protocol to support streams with no declared total byte
+    count. the open frame becomes 'STRM open\n' (no size argument). the
+    handler and producer-side base.stream.open both need to accept and track
+    this mode. chunks and close are identical to bounded STRM.
+
+  syntax_reference: data/yaml/docs/protocol-7-coding-style.md
+  templates_reference: modules/protocol.protocol-7.message-templates
+  files:
+    - modules/base.stream.open
+    - modules/base.handler.command
+
+  protocol_change: |
+    bounded   (existing):   (<cmd_id>)STRM open N\n   [ N = total bytes ]
+    unbounded (new):        (<cmd_id>)STRM open\n     [ no size ]
+
+    chunks and close frames are identical in both modes:
+      (<cmd_id>)STRM N\n<data>
+      (<cmd_id>)STRM close\n
+
+  section_base_stream_open: |
+    file: modules/base.stream.open  (around line 23)
+
+    current guard (lines 23-34):
+      if ( not defined $total or $total !~ m|^\d+$| or $total == 0 ) {
+          ## unbounded-open not yet supported ##
+          <[base.logs]>->( 0, 'base.stream.open : numeric total > 0 ...' );
+          return undef;
+      }
+
+    replace with:
+      - if $total is undef or eq '' → unbounded mode; allow it through
+      - if $total is defined but not a positive integer → log error, return undef
+        (keep the existing error for bad values like negative or non-numeric)
+
+    stream state (line 47):
+      $session->{'streams'}->{$cmd_id}->{'total_bytes'} = 0 + $total;
+    change to:
+      $session->{'streams'}->{$cmd_id}->{'total_bytes'}
+          = defined $total ? 0 + $total : undef;
+
+    open frame (line 52):
+      my $frame = sprintf "%s%s open %d\n", $cmd_id_str, $type, $total;
+    change to:
+      my $frame = defined $total
+          ? sprintf( "%s%s open %d\n", $cmd_id_str, $type, $total )
+          : sprintf( "%s%s open\n",    $cmd_id_str, $type );
+
+    handle return (line 63):
+      'total' => 0 + $total,
+    change to:
+      'total' => defined $total ? 0 + $total : undef,
+
+    param comment (line 6):
+      # param = { sid => .., cmd_id => .., type => 'STRM' | 'STRM-SIZE',
+      #           total => N, [ cmd_id_str => '(NNN) ' ] }
+    update to:
+      # param = { sid => .., cmd_id => .., type => 'STRM' | 'STRM-SIZE',
+      #           total => N | undef, [ cmd_id_str => '(NNN) ' ] }
+      # descr update: also note 'unbounded open emits STRM open\n (no size)'
+
+  section_handler_command: |
+    file: modules/base.handler.command  (around line 836)
+
+    current STRM block opens with:
+      } elsif ( $cmd eq qw| STRM | ) {
+          if ( $call_args->{'args'} =~ m|^open\s+(\d+)$| ) {
+              ## bounded open ##
+              ...
+          } elsif ( $call_args->{'args'} =~ m|^(\d+)$| ) {
+              ## chunk ##
+              ...
+
+    add a new branch BEFORE the existing open branch:
+
+      if ( $call_args->{'args'} eq qw| open | ) {
+          ## STRM unbounded open: no declared total ##
+
+          $session->{'streams'}->{$cmd_id} = {
+              'type'           => qw| STRM |,
+              'total_bytes'    => undef,
+              'received_bytes' => 0,
+              'started_at'     => <[base.time]>->(3),
+              'route_id'       => $session->{'route'}->{$cmd_id},
+          };
+
+          ## Forward unbounded open frame to source ##
+          my $src_sid = $route->{'source'}->{'sid'};
+          if ( exists $data{'session'}{$src_sid} ) {
+              $data{'session'}{$src_sid}{'buffer'}{'output'}
+                  .= <[base.sprint_t]>->( qw| WQG7YII |, $s_cmd_id );
+          }
+
+          <[base.logs]>->( 2, "[%d] STRM open [ unbounded ]", $id );
+
+      } elsif ( $call_args->{'args'} =~ m|^open\s+(\d+)$| ) {
+          ## existing bounded open — unchanged ##
+          ...
+
+    template WQG7YII is already in modules/protocol.protocol-7.message-templates:
+      qw| WQG7YII | => "%sSTRM open\n",   ##  STRM open [ unbounded ]  ##
+
+    the chunk branch (m|^(\d+)$|) and close branch need a small guard:
+    the log at close currently prints 'received/total bytes'. for unbounded
+    streams total_bytes is undef. update the close log to handle this:
+
+      <[base.logs]>->(
+          2, "[%d] STRM closed: %d bytes [ unbounded ]",
+          $id, $stream->{'received_bytes'}
+      ) if not defined $stream->{'total_bytes'};
+
+      <[base.logs]>->(
+          2, "[%d] STRM closed: %d/%d bytes",
+          $id, $stream->{'received_bytes'}, $stream->{'total_bytes'}
+      ) if defined $stream->{'total_bytes'};
+
+  stream_id_translation: |
+    unchanged from bounded STRM. route table maps cmd_id between sessions.
+    WQG7YII template takes only $s_cmd_id (no size arg):
+      <[base.sprint_t]>->( qw| WQG7YII |, $s_cmd_id )
+    $s_cmd_id is defined at line 592 of base.handler.command as:
+      my $s_cmd_id = $src_cid > 0 ? sprintf( '(%d) ', $src_cid ) : '';
+
+  no_changes_to: |
+    - chunk forwarding (OMQVCCA) — identical for bounded and unbounded
+    - close forwarding (SVH7LQQ) — identical for bounded and unbounded
+    - !TERM! handling — unchanged
+    - base.stream.push / base.stream.gate / base.stream.close — unchanged
+    - STRM-SIZE handling — completely separate path, unchanged
+
+  acceptance: |
+    - ptd -c modules/base.stream.open passes
+    - ptd -c modules/base.handler.command passes
+    - base.stream.open accepts total => undef, emits 'STRM open\n'
+    - base.stream.open still rejects total => 0 or non-numeric values
+    - relay handler: 'STRM open' (no size) → unbounded stream state + WQG7YII forward
+    - relay handler: 'STRM open N' (with size) → bounded path unchanged
+    - close log handles undef total_bytes without warning
+    - no changes outside the two specified files
+
+#,,..,...,,,.,.,,,...,...,...,...,.,,,.,.,,.,,..,,...,...,...,..,,,,.,...,.,.,
+#PUN42GNK5H4PPNJAETD2AVFFL7HDG72D7CGMY4RLWLST4TO5SR6XX4J4CXVR7DHA4RLE76MQWDP7M
+#\\\|LJTZHSIW3SBNYPZCOGWQAW3NNSEMPIBSNTMX23JTOVYJIBIPXEI \ / AMOS7 \ YOURUM ::
+#\[7]ATELQAE7MIL3L3JPEIVNL64KKY4PTD7FUUN6EMUPKU7D4VNKYWAI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
