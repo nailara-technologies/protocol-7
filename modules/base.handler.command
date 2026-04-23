@@ -836,17 +836,25 @@ if ( $cmd =~ m,^(TRUE|FALSE|WAIT|SIZE|CHRSIZE|STRM|STRM-SIZE|GET|TERM)$, ) {
             } elsif ( $cmd eq qw| STRM | ) {
 
                 if ( $call_args->{'args'} =~ m|^open\s+(\d+)$| ) {
-                    ## STRM open header: initialize streaming buffer ##
+                    ## STRM open header: forward to source, init stream state ##
                     my $total_bytes = $1;
 
                     $session->{'streams'}->{$cmd_id} = {
                         'type'           => qw| STRM |,
                         'total_bytes'    => $total_bytes,
                         'received_bytes' => 0,
-                        'buffer'         => '',
                         'started_at'     => <[base.time]>->(3),
                         'route_id'       => $session->{'route'}->{$cmd_id},
                     };
+
+                    ## Forward open frame to source ##
+                    my $src_sid = $route->{'source'}->{'sid'};
+                    if ( exists $data{'session'}{$src_sid} ) {
+                        $data{'session'}{$src_sid}{'buffer'}{'output'}
+                            .= <[base.sprint_t]>->(
+                            qw| WPSKVIA |, $s_cmd_id, $total_bytes
+                            );
+                    }
 
                     <[base.logs]>->(
                         2,   "[%d] STRM open : %d bytes",
@@ -863,12 +871,20 @@ if ( $cmd =~ m,^(TRUE|FALSE|WAIT|SIZE|CHRSIZE|STRM|STRM-SIZE|GET|TERM)$, ) {
                         my $chunk_data = substr $input->$*, 0, $chunk_size,
                             '';
 
-                        ## Append to stream buffer ##
+                        ## Forward chunk to source progressively ##
                         if ( defined $session->{'streams'}->{$cmd_id} ) {
-                            $session->{'streams'}->{$cmd_id}->{'buffer'}
-                                .= $chunk_data;
-                            $session->{'streams'}{$cmd_id}->{'received_bytes'}
+                            $session->{'streams'}{$cmd_id}{'received_bytes'}
                                 += bytes::length($chunk_data);
+
+                            my $src_sid = $route->{'source'}->{'sid'};
+                            if ( exists $data{'session'}{$src_sid} ) {
+                                $data{'session'}{$src_sid}{'buffer'}{'output'}
+                                    .= <[base.sprint_t]>->(
+                                    qw| OMQVCCA |, $s_cmd_id, $chunk_size
+                                    );
+                                $data{'session'}{$src_sid}{'buffer'}{'output'}
+                                    .= $chunk_data;
+                            }
 
                             <[base.logs]>->(
                                 2,
@@ -888,11 +904,10 @@ if ( $cmd =~ m,^(TRUE|FALSE|WAIT|SIZE|CHRSIZE|STRM|STRM-SIZE|GET|TERM)$, ) {
                     }
 
                 } elsif ( $call_args->{'args'} eq qw| close | ) {
-                    ## STRM close: finalize stream ##
+                    ## STRM close: forward to source, clean up ##
 
                     if ( defined $session->{'streams'}->{$cmd_id} ) {
-                        my $stream           = $session->{'streams'}{$cmd_id};
-                        my $accumulated_data = $stream->{'buffer'};
+                        my $stream = $session->{'streams'}{$cmd_id};
 
                         <[base.logs]>->(
                             2, "[%d] STRM closed: %d/%d bytes",
@@ -901,42 +916,16 @@ if ( $cmd =~ m,^(TRUE|FALSE|WAIT|SIZE|CHRSIZE|STRM|STRM-SIZE|GET|TERM)$, ) {
                             $stream->{'total_bytes'}
                         );
 
-                        ## call reply handler with accumulated data ##
-                        if ( defined $route->{'reply'}->{'handler'} ) {
-                            if (defined $code{ $route->{'reply'}->{'handler'}
-                                } ) {
-                                $code{ $route->{'reply'}->{'handler'} }->(
-                                    {   'sid'       => $id,
-                                        'cmd'       => $cmd,
-                                        'call_args' => $call_args,
-                                        'params'    =>
-                                            $route->{'reply'}->{'params'},
-                                        'data' => $accumulated_data
-                                    }
+                        ## Forward close frame to source ##
+                        my $src_sid = $route->{'source'}->{'sid'};
+                        if ( exists $data{'session'}{$src_sid} ) {
+                            $data{'session'}{$src_sid}{'buffer'}{'output'}
+                                .= <[base.sprint_t]>->(
+                                qw| SVH7LQQ |, $s_cmd_id
                                 );
-                            } else {
-                                <[base.logs]>->(
-                                    0,
-                                    "[%d] not defined reply handler ['%s']",
-                                    $id,
-                                    $route->{'reply'}->{'handler'}
-                                );
-                            }
-                        } else {
-                            ## Forward to source zenka ##
-                            <[base.stream.emit]>->(
-                                {   'sid'    => $route->{'source'}->{'sid'},
-                                    'cmd_id' =>
-                                        $route->{'source'}->{'cmd_id'},
-                                    'mode'       => qw| SIZE |,
-                                    'data'       => \$accumulated_data,
-                                    'cmd_id_str' => $s_cmd_id,
-                                }
-                            );
                         }
 
                         ## Delete route ##
-                        my $src_sid    = $route->{'source'}->{'sid'};
                         my $src_cmd_id = $route->{'source'}->{'cmd_id'};
                         delete $data{'session'}->{$src_sid}->{'route'}
                             ->{$src_cmd_id};
@@ -1121,13 +1110,13 @@ if ( $cmd =~ m,^(TRUE|FALSE|WAIT|SIZE|CHRSIZE|STRM|STRM-SIZE|GET|TERM)$, ) {
                             if ( not defined $stream->{'handler'} ) {
                                 $data{'session'}
                                     { $route->{'source'}->{'sid'} }{'buffer'}
-                                    {'output'}
-                                    .= sprintf
-                                    "%sFALSE STRM-SIZE %s: %d/%d bytes\n",
+                                    {'output'} .= <[base.sprint_t]>->(
+                                    qw| ZQV57GA |,
                                     $s_cmd_id,
                                     $is_timeout ? 'timeout' : 'incomplete',
                                     $stream->{'received_bytes'},
-                                    $stream->{'total_bytes'};
+                                    $stream->{'total_bytes'}
+                                    );
                             }
 
                         } else {
@@ -2102,8 +2091,8 @@ UNKNOWN_CMD_GLOBAL_HANDLED:
 
 return 0;        ## comand complete ##
 
-#,,,,,...,.,.,,.,,,..,,,.,...,.,,,..,,,,.,,,.,..,,...,...,.,.,,,,,,..,..,,.,,,
-#3FACIWSQXGFVJ6BGF54BTBPMCL2NEJYUI2JEYAMCM3SZ4IYCLYM7YHEPZHQLM6JEIOWI3YJ373M2O
-#\\\|CGRJPBHMXZKMNQ2ZTDGO6BKJGHBRHUCKLHEYSLDTXIRNNUQ46JN \ / AMOS7 \ YOURUM ::
-#\[7]L5WRAQ4U4WJULAXXNJ45BQBIYUMXTGZZIOJLEH5OZ6HCJ5FU74BI 7  DATA SIGNATURE ::
+#,,,.,,..,..,,.,.,,,,,..,,.,.,,.,,.,,,,.,,..,,..,,...,...,...,,,,,,,,,,..,..,,
+#QZP4YRRCWTSAK4VPXZOQAGTO573YXRHIITHK2S7OAE6NHMWGDG2DNM3YRXTA2IJQMQ3VOMZKEQDNS
+#\\\|DXWBJPGQ2UX4BC72DNWDEHQRNC3L7G2KFIW3MUIQS5VCK4QAVZ2 \ / AMOS7 \ YOURUM ::
+#\[7]3XRNDCWSD5KD5AWPUJQOAP3DM2BSNBGWF7MLVQCJ765XNPFYBICQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
