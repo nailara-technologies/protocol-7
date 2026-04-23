@@ -9,13 +9,17 @@
 
 <radio.listeners>  //= [];
 <radio.stream.icy> //= {
-    headers_done  => 0,
-    header_buf    => '',
-    metaint       => 8192,
-    bytes_to_meta => 8192,
-    meta_expected => 0,
-    meta_buf      => '',
-    current_title => ''
+    headers_done   => 0,
+    header_buf     => '',
+    metaint        => 8192,
+    bytes_to_meta  => 8192,
+    meta_expected  => 0,
+    meta_buf       => '',
+    current_title  => '',
+    is_jingle      => 0,
+    track_started  => undef,
+    track_duration => undef,
+    keep_flagged   => 0
 };
 
 if ( ( <radio.stream.auto_connect> // '' ) eq qw| yes | ) {
@@ -28,8 +32,8 @@ if ( ( <radio.stream.auto_connect> // '' ) eq qw| yes | ) {
 
 0;
 
-#,,,.,.,,,.,.,,.,,...,,..,.,.,.,,,,..,.,,,,,,,..,,...,...,,..,,..,,,.,.,,,.,.,
-#2G5GKH3ZTFZX4MAQVUVJAC2RAEXLK6SDCUQ5J5TUFXPTAC4QNQG76V4BQGNQ4GSM7SXHXFFGQTOVU
-#\\\|ZUNYNVPNAOW4RKC6KGEMLNE3ZOLGI5EPBUGADVFVNL2J5CXDHNB \ / AMOS7 \ YOURUM ::
-#\[7]QXE4PNLI7EV5EOAAWASUGXYVVNXUDQXC4CAHWVRV5WW347BZQ2BQ 7  DATA SIGNATURE ::
+#,,.,,.,.,,.,,.,,,,,.,,..,.,,,.,,,..,,,,.,..,,..,,...,...,...,..,,...,.,,,,.,,
+#M2G6FW3GL75EBL25TNILIKA3ONV6KZFJNFGYVIDPAY2TBJSBJUF33PQN6TZKBGUYC34KWBKRUTQ7U
+#\\\|L46HRZCQTISGA7XKHT5PMXEBQCYNMW5RBCWJBOG34QY64VAPCJ2 \ / AMOS7 \ YOURUM ::
+#\[7]6ITXW4JPYDD2OT4OR537WYAD5FONO2FOISQ34KNLKUAVXEDDOADA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
