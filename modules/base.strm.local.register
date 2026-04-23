@@ -1,0 +1,29 @@
+## [:< ##
+
+# name  = base.strm.local.register
+# descr = register a local STRM consumer for a cmd_id
+# param = $cmd_id, \%opts  [ watcher=>, on_eof=>, max_buf=> ]
+
+my $cmd_id = shift;
+my $opts   = shift // {};
+
+return <[base.logs]>->( 1, '[strm.local] register: missing cmd_id' )
+    if not defined $cmd_id or $cmd_id !~ m|^\d+$|;
+
+<base.strm.local> //= {};
+<base.strm.local>->{$cmd_id} = {
+    'buf'     => '',
+    'bytes'   => 0,
+    'started' => <[base.time]>->(3),
+    'watcher' => $opts->{'watcher'},
+    'on_eof'  => $opts->{'on_eof'},
+    'max_buf' => $opts->{'max_buf'} // 0,
+};
+
+<[base.logs]>->( 2, '[strm.local] registered consumer cmd_id %d', $cmd_id );
+
+#,,.,,...,,.,,..,,,,.,.,,,...,..,,,.,,,,.,.,,,..,,...,...,.,.,.,,,,.,,,,.,,.,,
+#I4Y4BBRG5O2FJK2AUVFXMQ5KNPNIOW4DSNKRPCOFMWVB7IHRKD7HSZ45DZ3JKAOUS5TUEWERETC3O
+#\\\|RIKIZKU5JVK6WTJLQM7H4XRZ5WWFZTS7UUEIXM463GLQIRKI55N \ / AMOS7 \ YOURUM ::
+#\[7]2OH2P3ODXQU7H3JLQS35I4JDBEUPHD4ES6PABTZ735Q7HI7FYEAY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
