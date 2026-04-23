@@ -1,0 +1,48 @@
+## [:< ##
+
+# name  = radio.cmd.stop
+# descr = close all listener streams and kill the curl process
+
+##  close listener streams  ##
+
+for my $h ( <radio.listeners>->@* ) {
+    <[base.stream.close]>->($h);
+}
+<radio.listeners> = [];
+
+##  cancel IO watcher  ##
+
+if ( defined <radio.stream.io_watcher> ) {
+    <radio.stream.io_watcher>->cancel;
+    delete <radio.stream.io_watcher>;
+}
+
+##  close filehandle  ##
+
+if ( defined <radio.stream.r_fh> ) {
+    close( delete <radio.stream.r_fh> );
+}
+
+##  kill curl process  ##
+
+if ( defined <radio.stream.pid> ) {
+    my $pid = delete <radio.stream.pid>;
+    kill( 15, $pid );
+    <system.kill_list> = [ grep { $_ != $pid } <system.kill_list>->@* ];
+}
+
+##  reset icy state  ##
+
+my $icy = <radio.stream.icy>;
+$icy->{'headers_done'}  = 0;
+$icy->{'header_buf'}    = '';
+$icy->{'meta_expected'} = 0;
+$icy->{'meta_buf'}      = '';
+
+return { 'mode' => qw| true |, 'data' => 'stopped' };
+
+#,,,,,..,,,..,,,,,,,,,,,.,..,,..,,,,,,,,.,,,.,..,,...,...,,,.,,..,.,,,.,,,,.,,
+#TFQWDTIBXKZ3G4OW7L5NWHEO2W6SQZTTULKZ6FHS67IDWOW4FDYCRW4CXBXAOZ3WJQWQYSFQLSTYA
+#\\\|MI4PEKARFTIGZ2CZXLU5RSIRATVODB4BXDTBR24Z6XKBHEVLN2S \ / AMOS7 \ YOURUM ::
+#\[7]2WG523UIC45OVNPDVDO4VHBG2MPKBK4OJHVPIVGIPKSJTUHG3SDY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

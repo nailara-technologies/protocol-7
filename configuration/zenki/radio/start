@@ -1,0 +1,33 @@
+
+ .:[ 'radio' relay zenka ]:.
+
+[load_config_file:'shared-params']
+
+system.verbosity.zenka_buffer = 2
+
+access.cmd.usr.cube = commands heart reload verify-instance \
+                      show-buffer buffer-erase buffer-erase-level list \
+                      src-age cur-pid start stop status listen \
+                      *  ## devmod
+
+modules.load = auth net protocol io.unix radio
+
+[load_modules:<modules.load>]
+[init_modules]
+
+[root.drop_privs:<system.amos-zenka-user>]
+
+radio.stream.url          = https://cast.magicstreams.gr/sc/psyndora
+radio.stream.auto_connect = yes
+
+[base.net.connect:'unix']
+
+[base.get_session_id]
+
+[zenka.loop]
+
+#,,,.,.,,,,..,.,,,.,.,...,..,,...,,,,,.,.,.,,,..,,...,...,,.,,,,.,,,,,.,,,.,,,
+#EDZHD5X76JFYSR22P4UCXVYR36XHK5YF7DI2KHCXUR74D7HDY4PHAGF6XH344QXPVEQSXGKAFB4M4
+#\\\|ZRMD6FZWM2BWL2TEB3CHRBZMWPVBCNMFSCUT664ZZKNWRL4FMLE \ / AMOS7 \ YOURUM ::
+#\[7]LJFK2U4X555A37JL3HBDTDHD5VXTBTDYYK3DHRSLABGNCUZUGCBA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

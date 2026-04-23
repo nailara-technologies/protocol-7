@@ -1,0 +1,57 @@
+## [:< ##
+
+# name = radio.connect
+# descr = open curl pipe to ICY stream
+
+my $url = <radio.stream.url>;
+
+if ( not defined $url or not length $url ) {
+    <[base.logs]>->( 0, '[radio] no stream url configured' );
+    return;
+}
+
+if ( defined <radio.stream.pid> and <radio.stream.pid> ) {
+    <[base.logs]>->(
+        2, '[radio] already connected [pid=%d]',
+        <radio.stream.pid>
+    );
+    return;
+}
+
+<[base.logs]>->( 2, '[radio] connecting to %s', $url );
+
+my ( $w_fh, $r_fh, $e_fh );
+$w_fh = IO::Handle->new;
+$r_fh = IO::Handle->new;
+$e_fh = IO::Handle->new;
+
+my $pid = IPC::Open3::open3(
+    $w_fh, $r_fh, $e_fh, qw| curl -si --http0.9 --no-buffer |,
+    '-H',  'Icy-Metadata: 1',
+    '-H',  'User-Agent: radio-relay/1.0', $url
+);
+
+close($w_fh);
+
+my $flags = fcntl( $r_fh, F_GETFL, 0 );
+fcntl( $r_fh, F_SETFL, $flags | O_NONBLOCK );
+
+<radio.stream.pid>  = $pid;
+<radio.stream.r_fh> = $r_fh;
+
+push <system.kill_list>->@*, $pid;
+
+<radio.stream.io_watcher> = <[event.add_io]>->(
+    {   fd      => $r_fh,
+        poll    => qw| r |,
+        handler => qw| radio.handler.stream-chunk |,
+    }
+);
+
+0;
+
+#,,..,,,,,.,,,..,,..,,,..,,,.,.,.,,,,,,,,,,,.,..,,...,...,.,.,...,,.,,.,.,,..,
+#HLYH5UQZ2B3IEVMDLRNDYCV5E6FORLYEUZAJSO34GOZPNGMWFUVNTJFUVTMUOXTBS4WF3EJWNRNUG
+#\\\|6QJIPMAZMHOSOGN25IZHE2S4TUF27HVPGMCW3ECB4EE4ERHRBYN \ / AMOS7 \ YOURUM ::
+#\[7]SSPPFOJ4QVVE7W7MF67E4T3JRPB3DJ5LBOQHKV45JKP66QCE5MDI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
