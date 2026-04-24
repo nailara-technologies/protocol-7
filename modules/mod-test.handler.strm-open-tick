@@ -1,0 +1,43 @@
+## [:< ##
+
+# name  = mod-test.handler.strm-open-tick
+# descr = timer tick for unbounded mod-test STRM : stops on push gate=0
+
+my $event  = shift;
+my $data   = $event->w->data // {};
+my $cmd_id = $data->{'cmd_id'};
+return if not defined $cmd_id;
+
+my $state = ( <mod-test.strm.active> // {} )->{$cmd_id};
+return if not defined $state;
+
+$state->{'seq'}++;
+my $chunk_len = $state->{'chunk_size'};
+my $chunk     = chr( $state->{'seq'} % 256 ) x $chunk_len;
+
+my $n = <[base.stream.push]>->( $state->{'handle'}, \$chunk );
+
+if ( not $n ) {
+    $state->{'timer'}->cancel
+        if defined $state->{'timer'}
+        and $state->{'timer'}->is_active;
+    delete <mod-test.strm.active>->{$cmd_id};
+    <[base.logs]>->(
+        1, '[%d] strm-open cmd_id=%d : gated off [ %d bytes sent ]',
+        $state->{'sid'}, $cmd_id, $state->{'sent'}
+    );
+    return;
+}
+
+$state->{'sent'} += $chunk_len;
+
+<[base.logs]>->(
+    2, '[%d] strm-open tick cmd_id=%d seq=%d sent=%d',
+    $state->{'sid'}, $cmd_id, $state->{'seq'}, $state->{'sent'}
+);
+
+#,,..,.,,,,..,..,,..,,,,.,,,.,,.,,..,,,..,..,,.,.,...,...,,,,,..,,,..,.,,,,..,
+#WQHADEAQB5LGRIURCLGGIOBENCUEZDKNRADXUUK4LH3YZW47IIA57QLJDWYTDFBWXMASBSW2PUAWK
+#\\\|RJH7AZ6DRJZ2RSDN2CHBULSSS3KQG3LEV5E4UM57GNT2USH46ZQ \ / AMOS7 \ YOURUM ::
+#\[7]XEONNEBTIUXJPUJF3JZUHB67GHLBWVHG32LXHL3BFOITXHRMMKDI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

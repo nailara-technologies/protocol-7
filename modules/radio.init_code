@@ -31,11 +31,18 @@
 <radio.audio.active>       //= 0;
 
 if ( ( <radio.stream.auto_connect> // '' ) eq qw| yes | ) {
+    <[base.logs]>->(
+        2,
+        '[radio] auto_connect enabled [ url: %s ]',
+        <radio.stream.url> // '(none)'
+    );
     <[event.add_timer]>->(
         {   after   => 0.5,
             handler => qw| radio.connect |,
         }
     );
+} else {
+    <[base.logs]>->( 2, '[radio] auto_connect disabled' );
 }
 
 <[event.add_timer]>->(
@@ -52,8 +59,8 @@ if ( ( <radio.stream.auto_connect> // '' ) eq qw| yes | ) {
 
 0;
 
-#,,..,,..,.,.,,,.,,..,...,,..,.,,,,..,..,,..,,..,,...,...,,,.,...,.,,,...,..,,
-#4LOGI3HEFQQ63MWJFYNBPEK4C47WWT2S4W2EV4F3M5GZRQHU6YVUX7HNSKTP43RY5L2FHXONSWYM2
-#\\\|2IMHPZZ3XEENHLU7W2KBM5QQL2JGZS4TB5NV7QKFVVSP7WNSMFR \ / AMOS7 \ YOURUM ::
-#\[7]7BR7GTYCLDMDTSKZRLG5IRWW3FXQFPSZ7J5PLPFR53G2SN4JXKDA 7  DATA SIGNATURE ::
+#,,,,,...,,,.,.,.,,..,,,,,...,,.,,.,.,.,.,...,..,,...,...,.,,,,,,,...,,,.,,,,,
+#5V472NNX3HBAQT35G72WY5DC3GOPDLUZTFZHZSRLWSN2HMI4DR5CMZUFDH3K4MEKTZCJGNW7FAKLE
+#\\\|MN7X66RMKDBYUGEEG4T3BIGT5GK7225LS7RUTGKLVF4XF44BPV3 \ / AMOS7 \ YOURUM ::
+#\[7]UG3CYTNSWCVJZH4BDH72HMZE7YYKKQTDTMQWXZ76XIXBWDV2ZSDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

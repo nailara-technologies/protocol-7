@@ -12,6 +12,29 @@ my $icy = <radio.stream.icy>;
 my $read_buf = '';
 my $read_len = sysread( $read_fh, $read_buf, 65536 );
 
+<[base.logs]>->(
+    2,
+    '[radio] chunk: read=%s listeners=%d headers_done=%d',
+    defined $read_len ? $read_len : 'undef',
+    scalar <radio.listeners>->@*,
+    <radio.stream.icy>->{'headers_done'}
+) if defined $read_len and $read_len > 0;
+
+if ( not defined $read_len ) {
+
+    ##  undef: EAGAIN / SSL_WANT_READ — wait for next watcher fire  ##
+    my $os_err = $OS_ERROR + 0;
+    if ( $os_err == Errno::EAGAIN() or $os_err == Errno::EWOULDBLOCK() ) {
+        return;
+    }
+
+    ##  real read error  ##
+    <[base.logs]>->(
+        1,         '[radio] sysread error: %s [errno=%d]',
+        $OS_ERROR, $os_err
+    );
+}
+
 if ( not defined $read_len or $read_len == 0 ) {
 
     ##  connection closed or error  ##
@@ -222,8 +245,8 @@ while ( $offset < $buf_len ) {
 
 return;
 
-#,,,.,,,,,,,.,.,,,.,.,,,,,...,,.,,.,.,,.,,,.,,..,,...,...,,..,,,,,.,,,,..,..,,
-#QV66UKXCUGYCVTSM5VPROVSHNPWMPDXOSMO7RZ3UB2ONNTSJYOYERG2PTY5UBE2TDN6N23JEBZFAK
-#\\\|D5YGVRSCIVIZS4BLUYQP4BION47XTD232OANS3H2TDM6TWLQ5MH \ / AMOS7 \ YOURUM ::
-#\[7]L7BFAZPCP3FJ4OV7ICST36SK5DNYYP5ENOHZG5O7A2AYEBF6SEDI 7  DATA SIGNATURE ::
+#,,,,,..,,..,,.,.,.,,,,.,,,,,,,..,,,.,,,.,,.,,..,,...,...,...,,.,,,.,,,.,,,.,,
+#5LHMUMXT3Z5LJJT54RB6T6LGPETWDHQDD2EHUK6OXCIAHAXQ5MECOP5THN726WNHVEPVRC5P62MWS
+#\\\|EQTRXXKSUEHZZ64CJAYPWBD4XZGCZCFE6VL22TOYTDJXMHRA34J \ / AMOS7 \ YOURUM ::
+#\[7]OHZ2BSJHML776KGZNW4U4FTM2K7PYLUXISVASH3S6F6GFSAS5YDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

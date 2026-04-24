@@ -1,0 +1,64 @@
+## [:< ##
+
+# name  = mod-test.cmd.strm-open
+# descr = open unbounded timer-driven STRM [ cancel test ]
+# param = [ chunk_size ] [ interval_ms ]
+
+my $args = $call->{'args'} // '';
+
+my ( $chunk_size, $interval_ms ) = $args =~ m|^\s* (\d+)? \s* (\d+)? \s*$|x;
+
+$chunk_size  //= 512;    ##  512 B per frame   ##
+$interval_ms //= 500;    ##  0.5 s between frames  ##
+
+my $sid    = $call->{'session_id'};
+my $cmd_id = $call->{'command_id'};
+
+return { 'mode' => qw| false |, 'data' => 'requires cmd_id > 0' }
+    if not defined $cmd_id or $cmd_id == 0;
+
+my $h = <[base.stream.open]>->(
+    {   'sid'    => $sid,
+        'cmd_id' => $cmd_id,
+        'type'   => qw| STRM |,
+        'total'  => undef,        ##  unbounded  ##
+    }
+);
+
+return { 'mode' => qw| false |, 'data' => 'base.stream.open refused' }
+    if not defined $h;
+
+<mod-test.strm.active> //= {};
+
+my $state = <mod-test.strm.active>->{$cmd_id} = {
+    'handle'      => $h,
+    'sid'         => $sid,
+    'cmd_id'      => $cmd_id,
+    'chunk_size'  => $chunk_size,
+    'sent'        => 0,
+    'seq'         => 0,
+    'started_at'  => <[base.time]>->(3),
+    'interval_ms' => $interval_ms,
+};
+
+$state->{'timer'} = <[event.add_timer]>->(
+    {   'after'    => $interval_ms / 1000,
+        'interval' => $interval_ms / 1000,
+        'repeat'   => TRUE,
+        'handler'  => qw| mod-test.handler.strm-open-tick |,
+        'data'     => { 'cmd_id' => $cmd_id },
+    }
+);
+
+<[base.logs]>->(
+    1,    '[%d] mod-test strm-open cmd_id=%d : unbounded chunk=%d every=%dms',
+    $sid, $cmd_id, $chunk_size, $interval_ms
+);
+
+return { 'mode' => qw| deferred | };
+
+#,,.,,,,,,,.,,...,,,,,.,,,,,,,..,,,.,,,,,,,,.,.,.,...,...,.,.,...,,,.,...,,,.,
+#7QGLJH6FEAQGSI2GNBQS4HCZUO46UWI4WTY4RSPHXSGT3SMUG4FH6XA2V5N2ETYOXCRX42YJDLWEY
+#\\\|LUN2ZMFMHLJKM65LU4U7QJEFGCVGUB4VXGGO3Z47G53RPXZGKVN \ / AMOS7 \ YOURUM ::
+#\[7]ZEAX4F33UZCO2SSPVXVA27GP4UY26EDAGBM2MQWTWVXR5TNLN6BA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

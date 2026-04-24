@@ -23,15 +23,35 @@ if ( not exists $data{'session'}{$http_sid} ) {
 my $max_relay_buf = 4 * 1024 * 1024;    ##  4 MB hard limit  ##
 my $http_buf_high = 512 * 1024;         ##  512 K back-pressure  ##
 
+##  send !TERM! to radio via the route — stops the STRM at the source  ##
+my $cancel_strm = sub {
+    for my $sid ( keys $data{'session'}->%* ) {
+        next if not exists $data{'session'}{$sid}{'route'}{$cmd_id};
+        my $rid        = $data{'session'}{$sid}{'route'}{$cmd_id} // next;
+        my $route      = $data{'route'}{$rid}                     // next;
+        my $src_cmd_id = $route->{'source'}{'cmd_id'}             // 0;
+        if ( $src_cmd_id > 0 ) {
+            $data{'session'}{$sid}{'buffer'}{'output'}
+                .= sprintf "(%d)!TERM!\n", $cmd_id;
+            <[base.logs]>->(
+                2,         '[httpd.radio] [%d] sent !TERM! [ cmd_id %d ]',
+                $http_sid, $cmd_id
+            );
+        }
+        last;
+    }
+    <[base.strm.local.cancel]>->($cmd_id);
+    delete <plugin.httpd.radio.relay>->{$http_sid};
+};
+
 <[base.strm.local.register]>->(
     $cmd_id,
     {   'watcher' => sub {
             my $lc = shift;
 
-            ##  HTTP client gone — cancel consumer  ##
+            ##  HTTP client gone — cancel consumer and terminate STRM  ##
             if ( not exists $data{'session'}{$http_sid} ) {
-                <[base.strm.local.cancel]>->($cmd_id);
-                delete <plugin.httpd.radio.relay>->{$http_sid};
+                $cancel_strm->();
                 return;
             }
 
@@ -41,9 +61,9 @@ my $http_buf_high = 512 * 1024;         ##  512 K back-pressure  ##
                     1, '[httpd.radio] [%d] relay buf overflow, dropping',
                     $http_sid
                 );
-                <[base.strm.local.cancel]>->($cmd_id);
-                delete <plugin.httpd.radio.relay>->{$http_sid};
-                $data{'session'}{$http_sid}{'flush_shutdown'} = 1;
+                $cancel_strm->();
+                $data{'session'}{$http_sid}{'flush_shutdown'} = 1
+                    if exists $data{'session'}{$http_sid};
                 return;
             }
 
@@ -72,8 +92,8 @@ my $http_buf_high = 512 * 1024;         ##  512 K back-pressure  ##
     $http_sid, $cmd_id
 );
 
-#,,.,,.,,,.,.,.,,,,.,,..,,,..,,,,,...,,..,,.,,.,.,...,...,...,,,.,.,,,,.,,,.,,
-#LR6AY6KC65GSX4CUVIVIIKDFZH56LZ4OKRZBKXADAIFC7LPQNYDJVVS7R74JUIUYJ7KS654GCOIZM
-#\\\|ZYAHQNEZTG6LCWXCFSOHKIRRIW6OXVW2I2N2M32EE6AWLVSAVRC \ / AMOS7 \ YOURUM ::
-#\[7]4F6N47RXN64TEDWPDLWHVOWNDV7OKB4GL6I2WVO4VL4AJOKYLIBQ 7  DATA SIGNATURE ::
+#,,..,...,,.,,,,,,,,.,..,,,,,,.,,,,.,,..,,..,,.,.,...,...,.,.,...,,,.,.,,,,,.,
+#FCPQ7ZLV6L6AWCWTPYC6PQQXHBOTRR2YNIQAYD2SWXHOA7J5DNRVVWZGE7TY6QZ6OJBC5Y2L7GUDW
+#\\\|CC5EOZP7MPSR24WT2CMUFFRDOIAPVC5QWULH2V5JDCYDDNRKJWO \ / AMOS7 \ YOURUM ::
+#\[7]MIM433HAVNYVOO7HRU5K262TC7MJPWNZR5PCTU23ZYTKTVQHD4BY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

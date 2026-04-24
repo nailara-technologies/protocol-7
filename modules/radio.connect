@@ -70,7 +70,13 @@ my $req = join( "\r\n",
     "User-Agent: radio-relay/1.0",
     "Connection: close",
     "", "" );
-syswrite( $sock, $req );
+my $written = syswrite( $sock, $req );
+<[base.logs]>->(
+    2,
+    '[radio] GET sent: %s bytes written [ %s ]',
+    defined $written ? $written : 'undef',
+    defined $written ? 'ok'     : $OS_ERROR
+);
 
 <radio.stream.sock> = $sock;
 
@@ -83,8 +89,8 @@ syswrite( $sock, $req );
 
 0;
 
-#,,,,,...,,,.,,,.,,..,..,,,.,,.,.,...,,,.,,.,,..,,...,...,.,.,...,.,,,.,.,,..,
-#KKYX334LUYUW6TIXRXRKKTK4DC7AMC5ZO6RB2FSAGMFU3KDITWGXZZC52FY4UU2I35DNQFJBHNEPA
-#\\\|RZHD6FISB3CKVFR3MDJBXR6WSOM6U2TKY55FM3YWYGU4WWHNOY3 \ / AMOS7 \ YOURUM ::
-#\[7]7BJURT6E73H7AEZBAOIXPM3E26ULIGLAJA6JE2YEXX3RSO62AYBA 7  DATA SIGNATURE ::
+#,,,.,,,,,,.,,,,.,,.,,,..,...,,,.,,,,,.,.,.,.,..,,...,..,,...,..,,,..,,,.,..,,
+#X2GE5JBJ7VMAUB226F5ZROJAZ3QLHFYMF5WENIYXOVXXSBFG3HIQMD5PUS6DDDTHTSOFRTEWQCCIE
+#\\\|D5G4KJPEBVVNWZXO4Z2JXWY54WNBGJ4HTGKT3JNRVQ3VP7FYCYA \ / AMOS7 \ YOURUM ::
+#\[7]PDED23B6KN46SQCFJLM7WCCEQZACP2W4A6Y237AEG5ZKW3FJG2CQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
