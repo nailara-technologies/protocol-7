@@ -137,10 +137,37 @@ while ( $offset < $buf_len ) {
                         );
                         <[radio.gap_fill.start]>
                             if not <radio.gap_fill.active>;
+
+                        ##  fade audio-0 down during jingle  ##
+                        if (<radio.audio.active>) {
+                            <[protocol-7.route-send]>->(
+                                {   'command'   => 'mpv[audio-0].fade',
+                                    'call_args' => { 'args' => '0' },
+                                }
+                            );
+                            <[base.logs]>->(
+                                2, '[radio.audio] jingle: fading down'
+                            );
+                        }
                     } else {
                         <[base.logs]>->(
                             2, '[radio] now playing: %s', $new_title
                         );
+
+                        ##  fade audio-0 back up on real track  ##
+                        if (<radio.audio.active>) {
+                            my $vol = <radio.audio.current_vol>
+                                // <radio.audio.start_volume> // 70;
+                            <[protocol-7.route-send]>->(
+                                {   'command'   => 'mpv[audio-0].fade',
+                                    'call_args' => { 'args' => $vol },
+                                }
+                            );
+                            <[base.logs]>->(
+                                2, '[radio.audio] track: fading up to %d%%',
+                                $vol
+                            );
+                        }
                     }
                 }
             }
@@ -195,8 +222,8 @@ while ( $offset < $buf_len ) {
 
 return;
 
-#,,.,,.,,,...,,.,,...,,..,.,,,...,.,,,..,,.,,,..,,...,...,...,.,,,,,.,,.,,...,
-#OGSUTK5E6WK2UIJAACMGFEUW2Y5ITYZ4XJCT6HS4JWXA4O57PDDASYZK3HGEQPQ3JBRGKWD3GIQKI
-#\\\|PRS22VIVHX5LNXRQV2IMH2SCIYHNUUQ727REE5LO3KS2GMVGFXM \ / AMOS7 \ YOURUM ::
-#\[7]M43F6J2GX4TNSU36L4PEP2WR3OYUFYU3VLPDNJGE5TANBE5PMSDQ 7  DATA SIGNATURE ::
+#,,,.,,,,,,,.,.,,,.,.,,,,,...,,.,,.,.,,.,,,.,,..,,...,...,,..,,,,,.,,,,..,..,,
+#QV66UKXCUGYCVTSM5VPROVSHNPWMPDXOSMO7RZ3UB2ONNTSJYOYERG2PTY5UBE2TDN6N23JEBZFAK
+#\\\|D5YGVRSCIVIZS4BLUYQP4BION47XTD232OANS3H2TDM6TWLQ5MH \ / AMOS7 \ YOURUM ::
+#\[7]L7BFAZPCP3FJ4OV7ICST36SK5DNYYP5ENOHZG5O7A2AYEBF6SEDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

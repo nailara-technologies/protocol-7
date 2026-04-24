@@ -46,9 +46,17 @@
                                      nameserv.get-record
 
             access.cmd.usr.httpd  =  web.process_template_ipc web.* \
-                                     v7.notify_offline
+                                     v7.notify_offline \
+                                     radio.listen
 
-            access.cmd.usr.radio  =  httpd.radio_online v7.notify_offline
+            access.cmd.usr.radio  =  httpd.radio_online v7.notify_offline \
+                                     v7.start_once v7.notify_online \
+                                     mpv[audio-0].add_file \
+                                     mpv[audio-0].set_volume \
+                                     mpv[audio-0].fade \
+                                     mpv[audio-1].add_file \
+                                     mpv[audio-1].set_volume \
+                                     mpv[audio-1].fade
 
           access.cmd.usr.cube-13  =  heart p7-log.append list \
                                      v7.report-temp-path \
@@ -276,8 +284,8 @@
                                      amos-term.window-destroy \
                                      amos-term.list-windows
 
-#,,,.,,..,.,.,,,.,,.,,,..,..,,.,,,..,,,,.,,..,..,,...,..,,...,,,.,..,,..,,,.,,
-#SQ3UUK6K4VZTEHLWXNBDNF42SDVUAWZVGC33UXFVNXVKFI2VOSTGZCBAA4WRPCFZ6I32ATE6KLDFG
-#\\\|4PZIVBESQAKHGUNE2JXEIZKATEV64V54QV5AMCR7W5EC46JCMV5 \ / AMOS7 \ YOURUM ::
-#\[7]2KWGPLYBNU23ZU3TYKLY5F33HPX3DP5T6TSV2O4DLY6PR53DN6DA 7  DATA SIGNATURE ::
+#,,,,,,..,,..,,..,,..,...,.,.,,,,,...,.,,,...,..,,...,..,,,,.,.,,,.,.,,,,,..,,
+#RWCRWE276RBJMQ4SSZZ3FV7QCLWSCFXRWXPVIOIIKRTX32MERACSLCA22QRMBBZDVETMLBU7XSR4C
+#\\\|L5QVGTVFOEV63W3ZJHMMOO22BJ3Y6HFFD4HOLJTLHBMAHWCFOD6 \ / AMOS7 \ YOURUM ::
+#\[7]LLNYORNIPN2NK6A6OYDMQ3DYU3DBUQISACNET37GT4CE32HMIIBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
