@@ -43,10 +43,10 @@
 - `feedback-file-stat-shadowing.md` — bin/Protocol-7 `use File::stat` shadows builtin stat; always use `File::stat::stat($p)->size/mtime` in modules
 - `feedback-cube-pause-starvation.md` — base.handler.read pause on cube socket starves all routed traffic; size-overflow drop must respect SIZE boundary or injection
 - `feedback-set-capability-session-id.md` — cube.cmd.* modules receive $call_args with 'session_id'/'args'; using 'sid'/'args_list' silently FALSEs out
-- `topic-stream-cancel-design.md` — stream cancel COMPLETE (2026-04-23): !TERM! backchannel, session-close teardown, implicit lookup, relay propagation; no open items
+- `topic-stream-cancel-design.md` — stream cancel: !TERM! forwarded to route target + source-gone else branch added; session-close teardown NOT yet implemented (open item)
 - `topic-strm-unbounded-gap.md` — STRM/STRM-SIZE require declared total; unbounded needed for audio/webcam relay; protocol extension sketch
 - `topic-stream-transport-layer.md` — next sequence: (1) STRM mode fix, (2) unbounded protocol ext, (3) transport.register, (4) base.stream-file as first consumer
-- `topic-radio-relay-zenka.md` — jingle-filtering psytrance relay; ICY metadata detection; keep-library gap fill; stream-ripper idle mode; first unbounded STRM consumer; mpv via httpd
+- `topic-radio-relay-zenka.md` — radio WORKING: TLS connect, HTTP endpoint, mpv[audio-0] playback; open: STRM cancel verification, session-close teardown, jingle filter tuning
 - `topic-base-curve-system.md` — generic base.curve.* parameter animation; composable signal chain (daytime × ambient × fade); mpv.param.curve is a thin wrapper on top
 
 ## File Creation Notes (CRITICAL)
@@ -294,8 +294,8 @@
 - Pattern: `my @non_num = grep { defined $data_ref->{$ARG}->{$key} and not looks_like_number(...) } keys $data_ref->%*`
 - Global `$SIG{__WARN__}` exists — if wrapping warn handler, capture `$prev_warn = $SIG{__WARN__}` first and call through
 
-#,,..,.,.,,,.,,..,...,..,,..,,,,,,,..,,,.,,,.,..,,...,...,..,,,.,,,..,.,.,,,,,
-#BKUYX2QIR6KWVHIGYYPI5P6356VFVB3TU4XA75IGKQ4HJR7QSPJFLMPLXWYNWGNCC753LAAZR7EAA
-#\\\|CMIRSAPZJOOQOCTOS3UEAH4RAFSAEWYXSWSMGHL3RNC6CDTJIS2 \ / AMOS7 \ YOURUM ::
-#\[7]OEXYH7KRSTZCANDPZVQ3Y5URHJQODV4TXHFT3ACOJHW5WCKX5YDY 7  DATA SIGNATURE ::
+#,,,,,..,,..,,,,,,...,,,,,.,,,...,..,,,.,,..,,..,,...,...,...,.,.,...,..,,,,,,
+#GT7OIZOEAXMG25F6Q6XN6T24HKBWDBIYCDHB7KGG5JW3OUQ2BSZCRHMPSRBA5AYQPKSPFH53DBX76
+#\\\|UIMT4MVK6WWGUI4IP5TNSEC54W37CKSVJBLEIWGMGBSOGQLHPWK \ / AMOS7 \ YOURUM ::
+#\[7]VLI6R5GYVQQQ5EMAESK6E5XYN4VIXCBTG6VXQGM4DS6JUPIA7OCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
