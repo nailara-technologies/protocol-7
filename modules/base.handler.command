@@ -861,11 +861,14 @@ if ( $cmd =~ m,^(TRUE|FALSE|WAIT|SIZE|CHRSIZE|STRM|STRM-SIZE|GET|TERM)$, ) {
                     }
 
                     ## Forward unbounded open frame to source ##
-                    my $src_sid = $route->{'source'}->{'sid'};
-                    if ( exists $data{'session'}{$src_sid} ) {
-                        $data{'session'}{$src_sid}{'buffer'}{'output'}
-                            .= <[base.sprint_t]>
-                            ->( qw| WQG7YII |, $s_cmd_id );
+                    if ( not exists <base.strm.local>->{$cmd_id} ) {
+                        my $src_sid = $route->{'source'}->{'sid'};
+                        if ( exists $data{'session'}{$src_sid} ) {
+                            $data{'session'}{$src_sid}{'buffer'}{'output'}
+                                .= <[base.sprint_t]>->(
+                                qw| WQG7YII |, $s_cmd_id
+                                );
+                        }
                     }
 
                     <[base.logs]>->( 2, "[%d] STRM open [ unbounded ]", $id );
@@ -897,12 +900,14 @@ if ( $cmd =~ m,^(TRUE|FALSE|WAIT|SIZE|CHRSIZE|STRM|STRM-SIZE|GET|TERM)$, ) {
                     }
 
                     ## Forward open frame to source ##
-                    my $src_sid = $route->{'source'}->{'sid'};
-                    if ( exists $data{'session'}{$src_sid} ) {
-                        $data{'session'}{$src_sid}{'buffer'}{'output'}
-                            .= <[base.sprint_t]>->(
-                            qw| WPSKVIA |, $s_cmd_id, $total_bytes
-                            );
+                    if ( not exists <base.strm.local>->{$cmd_id} ) {
+                        my $src_sid = $route->{'source'}->{'sid'};
+                        if ( exists $data{'session'}{$src_sid} ) {
+                            $data{'session'}{$src_sid}{'buffer'}{'output'}
+                                .= <[base.sprint_t]>->(
+                                qw| WPSKVIA |, $s_cmd_id, $total_bytes
+                                );
+                        }
                     }
 
                     <[base.logs]>->(
@@ -2166,8 +2171,8 @@ UNKNOWN_CMD_GLOBAL_HANDLED:
 
 return 0;        ## comand complete ##
 
-#,,..,,,,,..,,.,,,,,.,...,.,,,,,.,,,,,,.,,,,.,..,,...,...,...,.,.,..,,..,,,,.,
-#D4J27SCYHPZD7Z5WPOCS73G5CXCXU2X6EWLLVFCXALC4JATC5RYIGDJSCOHNCLIMQO3NJGW7Q7S7O
-#\\\|3HORPBMQYLH67O3ZWFQKS3LNRQKOVDLRTU6MGKZ7JMFM2RHQX3R \ / AMOS7 \ YOURUM ::
-#\[7]4LUX3QROXAU5ZHLYBYNVK7675KV32FXSCTESKJ6LLUPYUKI7M2AY 7  DATA SIGNATURE ::
+#,,,,,.,.,.,.,.,.,..,,.,.,.,.,,,.,,.,,.,.,.,,,..,,...,...,...,,.,,,,,,,,,,,..,
+#5PUKLBSNFYEJRHEWYUIO3JATMLPEW25WNIBNJGD45WC24ISAVLF46DCCFFJ27QXVBORTL5ZBTLXU4
+#\\\|O77ERXTKRNOMP2M7DPHVP6VNA5KT37VYEBJMNNZJCFVGXQYYAWD \ / AMOS7 \ YOURUM ::
+#\[7]VXQR7NDYCCP2EWH5GO5KN4IK6YAHUVZE7SVFNPQ2ERR7EX7FVMBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

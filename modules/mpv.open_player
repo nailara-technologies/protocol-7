@@ -17,7 +17,7 @@ my $mpv_params = <mpv.params>;
 <mpv.audio_only> = TRUE
     if <system.zenka.mode> eq qw| stand-alone |
     and defined <system.zenka.subname>
-    and <system.zenka.subname> eq qw| audio |;
+    and <system.zenka.subname> =~ m|^audio(?:-\d+)?$|;
 
 <mpv.playlist_type> = qw| audio |
     if <mpv.audio_only>;    # <-- run with 'audio' subname
@@ -169,7 +169,8 @@ close( delete <mpv.fh.stdin> );    # input fd not required
         'handler' => qw| mpv.handler.stdout |,
         'data'    => {
             qw| pid |           => <mpv.pid>,
-            qw| log_whitelist | => [], 'another'=>[
+            qw| log_whitelist | => [],
+            'another'           => [
                 'Creating non-video VO',
                 '\[ipc',
                 '.{5}Video ',
@@ -196,8 +197,8 @@ close( delete <mpv.fh.stdin> );    # input fd not required
 
 <[base.log]>->( 1, 'player startup successful., =)' );
 
-#,,..,,,,,,.,,..,,.,,,...,.,.,,..,..,,...,,..,..,,...,..,,,.,,.,,,.,.,,.,,...,
-#FASBQTTC3UHVIGT3VOWQ4CNVTXM5YSUCFA44EQ4JSVKS7ABRPADJHX3PLO4BRJF67TDITTM4EXRZ2
-#\\\|PV7F5TKCIJSBTXWL5EQTTPFFM32D2TNELRIMQYPHB5HQWFYZGB3 \ / AMOS7 \ YOURUM ::
-#\[7]HJ2GAUE4OSWQZFD5QEE63WUHICNIDBH2AMPGXEUUOGTYZDVLPYDA 7  DATA SIGNATURE ::
+#,,.,,..,,..,,,,.,,.,,,.,,,.,,..,,...,..,,..,,..,,...,...,...,,..,,..,.,.,,.,,
+#ZUMGRDZEA7BZ72OKWEN653BAF6ZO4HAJVFPI4UHOOBKD2JTWKZDRNCAFBG5PTUP4EJQH36GKJ3TJS
+#\\\|W5SUCN2E4SJ63352MJP6CHOCKZFGSI7R66LH6ZK34L2BYPVMMPC \ / AMOS7 \ YOURUM ::
+#\[7]4Y7J2LGNEGZWKYWYNPBKDIABTNN5MTLS46WAARJXLCEWJRHQTSBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

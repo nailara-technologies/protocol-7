@@ -1,0 +1,60 @@
+## [:< ##
+
+# name  = radio.audio.handler.player_online
+# descr = v7.notify_online reply: load stream URL into mpv[audio-N]
+
+my $reply    = shift;
+my $instance = $reply->{'params'}{'instance'} // 'mpv[audio-0]';
+
+##  guard: must be a TRUE reply  ##
+if ( $reply->{'cmd'} ne 'TRUE' ) {
+    <[base.logs]>->(
+        1, '[radio.audio] notify_online for %s returned non-TRUE', $instance
+    );
+    return;
+}
+
+<radio.audio.online_count> //= 0;
+<radio.audio.online_count>++;
+
+<[base.logs]>->(
+    2,         '[radio.audio] %s online [count=%d]',
+    $instance, <radio.audio.online_count>
+);
+
+##  audio-0 is up — load stream and fade in  ##
+my $url = <radio.audio.stream_url> // 'http://127.0.0.1/radio/stream';
+
+<[protocol-7.route-send]>->(
+    {   'command'   => "$instance.add_file",
+        'call_args' => { 'args' => $url },
+    }
+);
+
+##  start at 0 then fade to configured volume  ##
+<[protocol-7.route-send]>->(
+    {   'command'   => "$instance.set_volume",
+        'call_args' => { 'args' => '0' },
+    }
+);
+
+my $vol = <radio.audio.start_volume> // 70;
+<[protocol-7.route-send]>->(
+    {   'command'   => "$instance.fade",
+        'call_args' => { 'args' => $vol },
+    }
+);
+
+<radio.audio.active>      = 1;
+<radio.audio.current_vol> = $vol;
+
+<[base.logs]>->(
+    2,         '[radio.audio] [%s] stream loaded, fading to %d%%',
+    $instance, $vol
+);
+
+#,,..,.,,,..,,...,.,,,,,,,..,,,,,,.,,,.,.,,..,.,.,...,...,,.,,,,,,.,,,.,.,,,.,
+#4EBWZRW7C4LCTFZGZVF2YJBEZPQ6FIQFODYTQ4MPCS4O5JWPGBTXEILX2XXVT7MMZADY2QQM3EXPK
+#\\\|ZH2TKUKUCHRNDDUAYVVKJD7VWOQ3UR7SCSM66NU4M6HISHZWLVW \ / AMOS7 \ YOURUM ::
+#\[7]2WZI5OHFJKIEBPBMSAESRY7QEVLXSVOLIBJ43WG57ITXYDLKZ2AY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,0 +1,28 @@
+## [:< ##
+
+# name  = radio.audio.init
+# descr = start mpv[audio-0] background player via v7 on-demand
+
+<[protocol-7.route-send]>->(
+    {   'command'   => 'v7.notify_online',
+        'call_args' => { 'args' => 'mpv[audio-0]' },
+        'reply'     => {
+            'handler' => 'radio.audio.handler.player_online',
+            'params'  => { 'instance' => 'mpv[audio-0]' },
+        }
+    }
+);
+
+<[protocol-7.route-send]>->(
+    {   'command'   => 'v7.start_once',
+        'call_args' => { 'args' => 'mpv[audio-0]' },
+    }
+);
+
+<[base.logs]>->( 2, '[radio.audio] waiting for mpv[audio-0] ...' );
+
+#,,..,,.,,.,.,.,,,,.,,.,.,.,,,,.,,..,,.,,,,,.,.,.,...,...,.,,,,,.,,.,,,,.,,,.,
+#7M5M3WPWVFYOJLC3J5KRLFKBJSQWOWB5UZXRHJCOYLHCVKLKI5S7VLTJARIPZJLJWFZCJXXQBECAC
+#\\\|4FCR6VZMNINSYBD6UWZXVIAPGT7OM5WQVOQ575JRLGTALBDNZHS \ / AMOS7 \ YOURUM ::
+#\[7]QXOO6IK67XFJ6ZLGWHZMMIMPEKFO3PPIO66TFFWAY4MOUY47C4CA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
