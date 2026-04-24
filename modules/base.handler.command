@@ -552,6 +552,19 @@ if ( $cmd eq q|!TERM!| ) {
             );
         }
 
+        ##  forward !TERM! to the producing side [ target of the route ]  ##
+        my $tgt_sid    = $route->{'target'}->{'sid'};
+        my $tgt_cmd_id = $route->{'target'}->{'cmd_id'} // 0;
+        if (    $tgt_cmd_id > 0
+            and defined $tgt_sid
+            and exists $data{'session'}{$tgt_sid} ) {
+            $data{'session'}{$tgt_sid}{'buffer'}{'output'}
+                .= sprintf "(%d)!TERM!\n", $tgt_cmd_id;
+            <[base.logs]>->(
+                2,   '[%d] !TERM! forwarded to target sid=%d cmd_id=%d',
+                $id, $tgt_sid, $tgt_cmd_id
+            );
+        }
         ##  local producer : active stream registered for this cmd_id  ##
     } elsif ( ref $session->{'streams'} eq qw| HASH |
         && ref $session->{'streams'}->{$cmd_id} eq qw| HASH |
@@ -950,18 +963,47 @@ if ( $cmd =~ m,^(TRUE|FALSE|WAIT|SIZE|CHRSIZE|STRM|STRM-SIZE|GET|TERM)$, ) {
                                         );
                                     $data{'session'}{$src_sid}{'buffer'}
                                         {'output'} .= $chunk_data;
+                                } else {
+                                    ##  source gone: notify producer to stop  ##
+                                    if (not $data{'session'}{$id}
+                                        {'stream_cancelled'}{$cmd_id} ) {
+                                        my $tgt_sid
+                                            = $route->{'target'}->{'sid'};
+                                        my $tgt_cmd_id
+                                            = $route->{'target'}->{'cmd_id'}
+                                            // 0;
+                                        if (    $tgt_cmd_id > 0
+                                            and defined $tgt_sid
+                                            and
+                                            exists $data{'session'}{$tgt_sid}
+                                        ) {
+                                            $data{'session'}{$tgt_sid}
+                                                {'buffer'}{'output'}
+                                                .= sprintf "(%d)!TERM!\n",
+                                                $tgt_cmd_id;
+                                        }
+                                        $data{'session'}{$id}
+                                            {'stream_cancelled'}{$cmd_id}
+                                            = TRUE;
+                                    }
                                 }
 
                             } ##  end local consumer check  ##
 
                             <[base.logs]>->(
                                 2,
-                                "[%d] STRM pkt: %d/%d bytes",
+                                defined $session->{'streams'}->{$cmd_id}
+                                    ->{'total_bytes'}
+                                ? "[%d] STRM pkt : [%04d:%04d]"
+                                : "[%d] STRM pkt : [b:%05d:u]",
                                 $id,
                                 $session->{'streams'}->{$cmd_id}
                                     ->{'received_bytes'},
-                                $session->{'streams'}->{$cmd_id}
+                                defined $session->{'streams'}->{$cmd_id}
                                     ->{'total_bytes'}
+                                ? $session->{'streams'}->{$cmd_id}
+                                    ->{'total_bytes'}
+                                : ()
                             );
                         } else {
                             <[base.logs]>->(
@@ -998,7 +1040,8 @@ if ( $cmd =~ m,^(TRUE|FALSE|WAIT|SIZE|CHRSIZE|STRM|STRM-SIZE|GET|TERM)$, ) {
 
                         ## Forward close frame to source ##
                         my $src_sid = $route->{'source'}->{'sid'};
-                        if ( exists $data{'session'}{$src_sid} ) {
+                        if ( not exists <base.strm.local>->{$cmd_id}
+                            and exists $data{'session'}{$src_sid} ) {
                             $data{'session'}{$src_sid}{'buffer'}{'output'}
                                 .= <[base.sprint_t]>->(
                                 qw| SVH7LQQ |, $s_cmd_id
@@ -1371,11 +1414,19 @@ if ( $cmd =~ m,^(TRUE|FALSE|WAIT|SIZE|CHRSIZE|STRM|STRM-SIZE|GET|TERM)$, ) {
                 );
 
                 ##  orphaned route : signal producer to stop  ##
+                if ( not $data{'session'}{$id}{'stream_cancelled'}{$cmd_id} )
+                {
+                    $data{'session'}{$id}{'buffer'}{'output'}
+                        .= sprintf "(%d)!TERM!\n", $cmd_id;
+                    <[base.logs]>->(
+                        1,
+                        '[%d] orphaned %s cmd_id=%d : !TERM! sent to producer',
+                        $id,
+                        $cmd,
+                        $cmd_id
+                    );
+                }
                 $data{'session'}{$id}{'stream_cancelled'}{$cmd_id} = TRUE;
-                <[base.logs]>->(
-                    1,   '[%d] orphaned %s route_id=%d : sticky cancel set',
-                    $id, $cmd, $cmd_id
-                );
 
                 ## [ HOOK POINT: unknown-reply-route - complete case ]
                 ## Hook can intercept complete replies with unknown route IDs
@@ -1409,14 +1460,19 @@ if ( $cmd =~ m,^(TRUE|FALSE|WAIT|SIZE|CHRSIZE|STRM|STRM-SIZE|GET|TERM)$, ) {
                 );
 
                 ##  orphaned route : signal producer to stop  ##
+                if ( not $data{'session'}{$id}{'stream_cancelled'}{$cmd_id} )
+                {
+                    $data{'session'}{$id}{'buffer'}{'output'}
+                        .= sprintf "(%d)!TERM!\n", $cmd_id;
+                    <[base.logs]>->(
+                        1,
+                        '[%d] orphaned %s cmd_id=%d : !TERM! sent to producer [ incomplete ]',
+                        $id,
+                        $cmd,
+                        $cmd_id
+                    );
+                }
                 $data{'session'}{$id}{'stream_cancelled'}{$cmd_id} = TRUE;
-                <[base.logs]>->(
-                    1,
-                    '[%d] orphaned %s route_id=%d : sticky cancel set [ incomplete ]',
-                    $id,
-                    $cmd,
-                    $cmd_id
-                );
 
                 ## Track incomplete payload: use ignore_chars for CHRSIZE,
                 #                                ignore_bytes for others
@@ -2171,8 +2227,8 @@ UNKNOWN_CMD_GLOBAL_HANDLED:
 
 return 0;        ## comand complete ##
 
-#,,,,,.,.,.,.,.,.,..,,.,.,.,.,,,.,,.,,.,.,.,,,..,,...,...,...,,.,,,,,,,,,,,..,
-#5PUKLBSNFYEJRHEWYUIO3JATMLPEW25WNIBNJGD45WC24ISAVLF46DCCFFJ27QXVBORTL5ZBTLXU4
-#\\\|O77ERXTKRNOMP2M7DPHVP6VNA5KT37VYEBJMNNZJCFVGXQYYAWD \ / AMOS7 \ YOURUM ::
-#\[7]VXQR7NDYCCP2EWH5GO5KN4IK6YAHUVZE7SVFNPQ2ERR7EX7FVMBQ 7  DATA SIGNATURE ::
+#,,,,,.,.,,,.,.,.,.,.,,..,.,.,...,,..,,..,,..,..,,...,..,,..,,..,,,,.,,,.,...,
+#EVPG2BZV544VTRNXD4PHNW57QMFZWIU2UZSH6WAX7NKFYSWCX3Y6P4WVY7DOFB2MWVSUMSQ3T2NQC
+#\\\|3TZXA4MCEHERC6XKPLDLQJFUANAAMMANZV6GTPQ4JL7YZ7PEDJR \ / AMOS7 \ YOURUM ::
+#\[7]BH3JJ3YP5INZNBR3RSVWKTBJ33HGLKOHAHP3TRLAQVQ3HW73XWAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

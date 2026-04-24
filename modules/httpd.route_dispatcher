@@ -83,6 +83,13 @@ if ( $path =~ m|^/.well-known/acme-challenge/(.+)$| ) {
 }
 
 ## Route 1b: radio stream endpoint ##
+<[base.logs]>->(
+    2,
+    '[httpd] radio path check: active=%s path=%s stream_path=%s',
+    <plugin.httpd.radio.active> // 0,
+    $path,
+    <plugin.httpd.radio.stream.path> // '(none)'
+) if $path =~ m|^/radio|;
 if (    <plugin.httpd.radio.active>
     and defined <plugin.httpd.radio.stream.path>
     and $path eq <plugin.httpd.radio.stream.path> ) {
@@ -127,8 +134,8 @@ my $route = {
 $data{'route_cache'}->{$cache_key} = $route;
 return $route;
 
-#,,.,,...,.,.,,..,,,,,,.,,..,,,.,,,..,,..,,..,..,,...,.,,,.,,,,,.,,,,,,,.,,,.,
-#Z2UQCHHKIMSKSZNOV7MEWYVHBBXEYONM3HTTSWSEDVU5LNA5QEYHIK6G5VWWLD77654KULNKKEHGC
-#\\\|GCOEIU3OCNYQEM6MJ7GXTRPSCBJJ5Q5HADMDB33JXJQ6HOQ63Z4 \ / AMOS7 \ YOURUM ::
-#\[7]JPH3YINUJCAWGTVVHXXFXNL26WNY2LZLAIBT5QLR377RQGFJ5CAA 7  DATA SIGNATURE ::
+#,,,,,.,,,,..,,,,,,.,,,.,,..,,..,,.,.,...,...,..,,...,...,.,.,,,.,,.,,.,.,,,,,
+#UKOLJVLQUIBASMSTHTBYWSHOVKGX5VI2PV4UX6CWXLUN4N7SQPWRQCMXRCR334INQPNERZGR4NOZ4
+#\\\|EDRAYUP2YMXBIN5OLEQLA2LN2AQXONQQDLJFAT6DTBNXU5J27LS \ / AMOS7 \ YOURUM ::
+#\[7]35VCB6KBP4BNTHETJDHOIZAXWWNHFEROCYK562WDEEAO4FBIGACI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
