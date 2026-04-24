@@ -1,7 +1,7 @@
 ## [:< ##
 
 # name = radio.connect
-# descr = open TCP connection to ICY stream host and send HTTP GET request
+# descr = open TCP/TLS connection to ICY stream host and send HTTP GET request
 
 my $url = <radio.stream.url>;
 
@@ -17,10 +17,11 @@ if ( defined <radio.stream.sock> ) {
 
 <[base.logs]>->( 2, '[radio] connecting to %s', $url );
 
-##  parse http://host[:port]/path  ##
-my ( $host, $port, $path )
-    = ( $url =~ m{^https?://([^/:]+)(?::(\d+))?(/.*)?$} );
-$port //= 80;
+##  parse http[s]://host[:port]/path  ##
+my ( $scheme, $host, $port, $path )
+    = ( $url =~ m{^(https?)://([^/:]+)(?::(\d+))?(/.*)?$} );
+my $use_tls = defined $scheme && $scheme eq 'https';
+$port //= $use_tls ? 443 : 80;
 $path //= '/';
 
 if ( not defined $host ) {
@@ -28,13 +29,34 @@ if ( not defined $host ) {
     return;
 }
 
-<[base.logs]>->( 2, '[radio] connecting to %s:%d%s', $host, $port, $path );
+<[base.logs]>->(
+    2, '[radio] connecting to %s:%d%s [%s]',
+    $host, $port, $path, $use_tls ? 'tls' : 'tcp'
+);
 
-my $sock = <[base.open]>->( qw| ip.tcp output |, $host, $port );
-
-if ( not defined $sock ) {
-    <[base.logs]>->( 0, '[radio] connection failed: %s:%d', $host, $port );
-    return;
+my $sock;
+if ($use_tls) {
+    $sock = IO::Socket::SSL->new(
+        PeerAddr        => $host,
+        PeerPort        => $port,
+        Proto           => 'tcp',
+        Timeout         => 7,
+        SSL_verify_mode => 0,
+    );
+    if ( not defined $sock ) {
+        <[base.logs]>->(
+            0, '[radio] TLS connection failed: %s:%d [ %s ]',
+            $host, $port, IO::Socket::SSL::errstr()
+        );
+        return;
+    }
+} else {
+    $sock = <[base.open]>->( qw| ip.tcp output |, $host, $port );
+    if ( not defined $sock ) {
+        <[base.logs]>
+            ->( 0, '[radio] connection failed: %s:%d', $host, $port );
+        return;
+    }
 }
 
 ##  set non-blocking for event-loop reads  ##
@@ -61,8 +83,8 @@ syswrite( $sock, $req );
 
 0;
 
-#,,.,,,,,,,,.,,,.,..,,,.,,,.,,.,.,,,.,,..,...,..,,...,...,.,,,.,,,,,,,,..,..,,
-#WKBWXTFEM4VQPXBAEK4ZX2W6LFLAHB4HIO4COGT72CTTDMHRBNV3NVJ2EYNU6JB6SXMWRAJUAUET2
-#\\\|54YTGHBEW3EOEZNKVA7FZYIMFZUYKDDTULNPMGRVJVIFHJ4CWXL \ / AMOS7 \ YOURUM ::
-#\[7]D7YIZBZ3N6AYVAVEBEJFU4FTBAZU7JUVCY37RY4OPU4S4KHVEKDY 7  DATA SIGNATURE ::
+#,,,,,...,,,.,,,.,,..,..,,,.,,.,.,...,,,.,,.,,..,,...,...,.,.,...,.,,,.,.,,..,
+#KKYX334LUYUW6TIXRXRKKTK4DC7AMC5ZO6RB2FSAGMFU3KDITWGXZZC52FY4UU2I35DNQFJBHNEPA
+#\\\|RZHD6FISB3CKVFR3MDJBXR6WSOM6U2TKY55FM3YWYGU4WWHNOY3 \ / AMOS7 \ YOURUM ::
+#\[7]7BJURT6E73H7AEZBAOIXPM3E26ULIGLAJA6JE2YEXX3RSO62AYBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

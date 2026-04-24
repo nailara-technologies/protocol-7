@@ -7,6 +7,9 @@ my $reply    = shift;
 my $cmd_id   = $reply->{'cmd_id'};
 my $http_sid = $reply->{'params'}{'http_sid'};
 
+##  guard: only process actual STRM open replies  ##
+return if not defined $cmd_id or $cmd_id !~ m|^\d+$|;
+
 ##  guard: HTTP session may have disconnected before STRM arrived  ##
 if ( not exists $data{'session'}{$http_sid} ) {
     <[base.logs]>->(
@@ -69,8 +72,8 @@ my $http_buf_high = 512 * 1024;         ##  512 K back-pressure  ##
     $http_sid, $cmd_id
 );
 
-#,,,.,...,...,.,.,...,,,.,.,,,,.,,,..,,.,,...,.,.,...,...,,,.,,.,,,,.,,,.,,..,
-#6ZELA6WWJ7Z5RM7XOCIQE62FGDZAB3ZNRD5BUMFIXO2IVV64LS26FG7FNRDOSVSBN72AHNUM4FYGC
-#\\\|INDA4OSISY26L5C6F6QUO323UR2OQIGCI32EW6QOPRDSX2BWHG7 \ / AMOS7 \ YOURUM ::
-#\[7]H2ZQTKSZU44FSJKP4TLNMOUYDJRUTDX3POM5Z6SESFSEHOVWLUCQ 7  DATA SIGNATURE ::
+#,,.,,.,,,.,.,.,,,,.,,..,,,..,,,,,...,,..,,.,,.,.,...,...,...,,,.,.,,,,.,,,.,,
+#LR6AY6KC65GSX4CUVIVIIKDFZH56LZ4OKRZBKXADAIFC7LPQNYDJVVS7R74JUIUYJ7KS654GCOIZM
+#\\\|ZYAHQNEZTG6LCWXCFSOHKIRRIW6OXVW2I2N2M32EE6AWLVSAVRC \ / AMOS7 \ YOURUM ::
+#\[7]4F6N47RXN64TEDWPDLWHVOWNDV7OKB4GL6I2WVO4VL4AJOKYLIBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
