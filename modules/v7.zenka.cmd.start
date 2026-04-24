@@ -117,7 +117,7 @@ if ( exists $zenka_config->{'max_concurrency'}
 
     if ( $is_handover and $at_exact_limit and not $handover_already_active ) {
         <[base.logs]>->(
-            2,           'allowing handover expansion slot for %s (max=%d)',
+            2,           'allowing handover expansion slot for %s [max:%d]',
             $zenka_name, $zenka_config->{'max_concurrency'}
         );
         ## proceed with expansion slot
@@ -166,7 +166,7 @@ my @dependencies
 foreach my $dep_name (@dependencies) {
     delete <v7.zenka.manually_stopped>->{$dep_name}
         and <[base.logs]>->(
-        0, 'reset manually stopped status for %s zenka', $dep_name
+        1, ': %s-zenka .: reset manually stopped status', $dep_name
         )
         if exists <v7.zenka.manually_stopped>->{$dep_name}
         and $start_mode eq qw| manual |;  ## <-- forced dependency start-up .,
@@ -175,7 +175,7 @@ foreach my $dep_name (@dependencies) {
         if exists <v7.zenka.manually_stopped>->{$dep_name};   # .. or skipped.
 
     if ( !<[zenka.is_enabled]>->($dep_name) ) {
-        <[base.logs]>->( "zenka enabled by dependency ['%s']", $dep_name );
+        <[base.logs]>->( ":. zenka enabled by dependency [ %s ]", $dep_name );
 
         my $start_name_str = $dep_name;
 
@@ -230,8 +230,8 @@ return {
     'data' => sprintf( "job queued [ID=%d]", $job_id )
     }
 
-#,,,,,..,,...,...,,,.,...,.,,,,.,,,.,,,,,,...,..,,...,...,.,,,..,,,..,..,,..,,
-#MKR6C4ISUOHORBUYB35KHPD2HEWJ6ABB6Z5WX3UJ2ST7CIF3AC5AAEE4HQUBKYUGBCB3T452YWGE2
-#\\\|YD3JW3MC6PQ5BGV2Q7WBXRNS6CVRUV6TJYPTVSNSNE4QK6AYOXP \ / AMOS7 \ YOURUM ::
-#\[7]GDL5IRQFEH7ZFFZXYABD5GVG5FSSQEPQM4SSFDZHF52AK3PZ2ACQ 7  DATA SIGNATURE ::
+#,,,,,..,,.,,,.,.,,,.,...,...,,,.,,,,,,..,,,.,..,,...,...,...,,..,,.,,,..,.,,,
+#WS6AW7SSWQ2OXLFYTODFVL4FQHYWJF4AAQ4QQIZCIY4O7UKQWJU2K6TAK4OGFVICVENRAJXNHMYI4
+#\\\|NAWYHRCTDAGQHRB6HLM4H67ZDDBEXN5TTCMBGHD4YZIXQQ7F3KG \ / AMOS7 \ YOURUM ::
+#\[7]P7LPQNSEAMBY5OVZTCVKBT4STH7YDRWAPWE7LUQCPHVBM3YEGQCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
