@@ -1,0 +1,23 @@
+## [:< ##
+
+# name  = mpv.cmd.append-play
+# param = <file|url>
+# descr = add a file to current playlist [starts playback]
+
+my $file = $call->{'args'};
+
+return { 'mode' => qw| false |, 'data' => 'expected path or url' }
+    if not defined $file or !length($file);
+
+push <mpv.reply_ids>->@*, $call->{'reply_id'};
+<mpv.success_reply_str> = 'added to playlist';
+
+<[mpv.send_command]>->( qw| loadfile |, $file, qw| append-play | );
+
+return { 'mode' => qw| deferred | };
+
+#,,,,,.,,,...,,,,,...,...,.,.,.,,,,,.,.,.,.,,,..,,...,...,,.,,...,,.,,...,...,
+#TBSK6SO7XUNMMSMVPUGYJWJSLDGPPP4XLIVSGM6NVYZ2COUAV47EZGJKPWJI5SATX2TFBDQRFRCKI
+#\\\|6LYXKTLHPBAMQZV4S2NXZ42LGZSWZ37CCS5UEEB7IJC7BMUNJO7 \ / AMOS7 \ YOURUM ::
+#\[7]SIS6HJENF4EDAJ2VLNAFKBIS2PN653HJRIFCJDGUIWJGQSEWBOBQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
