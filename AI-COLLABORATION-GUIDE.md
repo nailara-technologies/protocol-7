@@ -28,11 +28,14 @@ Protocol-7 is a **multi-agent system** (zenki) built in Perl with:
 - **`data/lib-path/pm/AMOS7/`** - AMOS7 Perl modules (checksums, truth, crypto)
 
 ### Recent Work (Check These for Context)
+- **`modules/radio.*`** - ICY stream relay zenka: TLS connect, ICY parser, jingle filter, gap filler
+- **`modules/plugin.httpd.radio.*`** - HTTP audio bridge: `/radio/stream` endpoint via STRM consumers
+- **`modules/base.strm.local.*`** - Local STRM consumer primitive (register/cancel/consume)
+- **`modules/base.handler.command`** - STRM cancel propagation: `!TERM!` forwarded to route target
+- **`modules/v7.zenka.cmd.notify_online`** - Fixed subname matching (audio-0 vs audio)
+- **`modules/mpv.open_player`** - Subname regex extended to `audio-\d+`
 - **`modules/coding.*`** - Async ML inference orchestration with tool loop
 - **`modules/httpd.*`** - Async HTTP server with template rendering
-- **`modules/httpsd.*`** - HTTPS server with Let's Encrypt integration
-- **`modules/web.*`** - Template processing pipeline (process_template_recursive, IPC)
-- **`modules/plugin.web.*`** - Web plugins (space visualization, content utilities)
 - **`modules/graphics-matrix.*`** - 36+ modules: cursor, glow, channels, cells, graph
 - **`modules/kimi.*`** - Kimi zenka (websocket, task queue, JSON tools)
 - **`modules/task.*`** - Task coordination between kimi/coding/models
@@ -138,7 +141,7 @@ git commit -m "message"
 - File: `configuration/protocol-7.src-ver`
 - Must match: `git rev-list --count hub/base..HEAD`
 
-## Current State (2026-04-17)
+## Current State (2026-04-24)
 
 ### Infrastructure — Working
 - **web template pipeline**: httpd → web zenka → process_template_recursive → plugin commands → HTML
@@ -149,19 +152,44 @@ git commit -m "message"
 - **task zenka**: coordination between kimi/coding/models for task dispatch
 - **MCP server**: Claude Code integration via mcp__protocol-7__* tools
 - **graphics-matrix**: 36+ modules for spatial data (cursor, glow, channels, cells, graph)
+- **radio zenka** (branch `base`): ICY TLS stream relay, keep-library, jingle detection, gap filler
+- **plugin.httpd.radio**: HTTP audio endpoint (`/radio/stream`), STRM-based relay to HTTP clients
+- **mpv[audio-0]**: background audio player started on radio startup, fades in on track detection
+- **base.strm.local**: local STRM consumer primitive for in-process stream consumption
+- **STRM cancel propagation**: `!TERM!` forwarded to route target when source session gone
+
+### Radio Zenka — Needs Verification
+- **STRM cancel on disconnect**: `!TERM!` propagation chain (cube → httpd → radio) not yet confirmed
+  working end-to-end; `mod-test.strm-open` + socat disconnect is the test tool
+- **session-close stream teardown**: when a session disconnects, `$session->{'streams'}` entries
+  are NOT cleaned up; producers keep pushing until `!TERM!` arrives. Needs implementation in
+  `base.session.check.close` — iterate streams, send `!TERM!` to each producer on disconnect
+- **jingle detection**: filter logic exists but jingles are not being filtered correctly in practice;
+  needs testing with live stream and tuning of `radio.filter.jingle` regex patterns
+- **kimi auto-approve regression**: some tool calls in tasks 3+ require manual approval;
+  task `BHHXHDQ` dispatched to kimi for self-diagnosis
+- **mpv show_playlist blocking**: after radio STRM opens, mpv show_playlist SIZE replies stop
+  arriving; suspected STRM state interference — needs investigation after cancel bug is fixed
+
+### Pending Kimi Tasks (check with `p7c task.show <id>`)
+- **BHHXHDQ**: kimi auto-approve regression diagnosis
+- **L45OX7I**: radio phase 4 mpv audio background (may already be done — verify)
 
 ### Active Direction
+- **radio zenka**: complete and stabilise streaming pipeline; phase 4 (mpv twin crossfade) pending
 - **searchable checksum-indexed dataspace**: nodes as single base32 characters in namespace grid
 - **index zenka**: planned — checksum-path index with anonymizing algorithm
 - **source.v7.ax**: planned — code browsing and search UI
-- **UI-first approach**: visualization drives index requirements, templates as generic interface
 
 ### Key Patterns Since Feb 2026
-- **kimi task dispatch**: write task file to `data/md/coding-tasks/`, run `bin/kimi-task <file>`
-- **plugin system**: `plugin.web.*` namespace loaded via `[load_plugins]`, reloadable separately
+- **kimi task dispatch**: write task file to `data/yaml/coding-tasks/`, dispatch via MCP or p7c
+- **plugin system**: `plugin.web.*` or `plugin.httpd.*` namespace, loaded via `[load_plugins]`
 - **inline sub extraction**: modules must not contain `sub {}` — each file IS the subroutine
 - **template commands**: `<[module.name:arg]>` in .tmpl files, processed by web zenka
-- **base.parser.pattern_split**: callback receives SCALAR REFS, dereference with `$$captured`
+- **STRM local consumer**: `base.strm.local.register($cmd_id, {watcher=>, on_eof=>})` for in-process
+  STRM consumption; cancel with `base.strm.local.cancel($cmd_id)`
+- **`ptd -c`** for syntax checking P7 modules (not `perl -c`)
+- **`AMEND=1 git commit --amend`** for message-only amends (bypasses version check)
 
 ## Tips for Kimi Specifically
 
