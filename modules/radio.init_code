@@ -24,8 +24,10 @@
     rip_bytes      => 0
 };
 
-<radio.gap_fill.active>   //= 0;
-<radio.keep_library.path> //= '/var/protocol-7/radio/keep-library';
+<radio.gap_fill.active>    //= 0;
+<radio.keep_library.path>  //= '/var/protocol-7/radio/keep-library';
+<radio.audio.online_count> //= 0;
+<radio.audio.active>       //= 0;
 
 if ( ( <radio.stream.auto_connect> // '' ) eq qw| yes | ) {
     <[event.add_timer]>->(
@@ -41,10 +43,16 @@ if ( ( <radio.stream.auto_connect> // '' ) eq qw| yes | ) {
     }
 );
 
+<[event.add_timer]>->(
+    {   after   => 2.0,
+        handler => qw| radio.audio.init |,
+    }
+);
+
 0;
 
-#,,,,,.,,,,..,.,.,,,,,...,.,.,.,.,.,.,...,.,,,..,,...,..,,..,,,,.,,,.,,..,,,,,
-#3LWW4IFW2MTJWNDIMGULX57TGMJCCO3XV4HHHOF3GIJQYEKTQPMQVLFT5UFOTXR4DK57DKLNPJHRA
-#\\\|DWGO4FYIWSR7ZCKG4GOIXU3RMDTDFORC7ST5WGJ7SRUGNOGXDWC \ / AMOS7 \ YOURUM ::
-#\[7]4Q2WAGLUWKEZJ537GNHDRS4HOT3BHCVB7G4BN5C3IZK366P65EBI 7  DATA SIGNATURE ::
+#,,.,,..,,,,.,...,..,,,.,,.,.,..,,,,,,,,.,,,.,..,,...,...,.,,,.,.,,.,,..,,,,,,
+#YKVILISWKOF4GB67RBKCP6A7DBSUKI3JT3GHLUD5I35BXXVGCVHS2YKVKB4I642QMSIKU7F3ZZ4NS
+#\\\|AJXUVDQ257TJMF66GHZ5UN5XQVGR6KMHWME6M7GFD24FNZ3XWZU \ / AMOS7 \ YOURUM ::
+#\[7]T2YGBCE24YFDF3DS3RDM2JTOJBSGPLJQZHKHO3PEMANXJXOAW4CY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

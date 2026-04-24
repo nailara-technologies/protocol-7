@@ -1,0 +1,59 @@
+task:
+  id: kimi-auto-approve-regression
+  title: "kimi : diagnose and fix auto-approve regression in tasks 3+"
+  description: |
+    during multi-task kimi sessions, some tool calls in tasks 3 and 4 are
+    not auto-approved and require manual approval in the kimi-web UI, despite
+    <kimi.approval.auto_approve> being TRUE. tasks 1 and 2 in the same session
+    work correctly. the issue is intermittent and may relate to task queue
+    wiring or state accumulated across tasks.
+
+    this task: trace the approval flow, find what breaks for later tasks, fix
+    it. if no fix is found, report the narrowed-down cause clearly.
+
+  syntax_reference: data/yaml/docs/protocol-7-coding-style.md
+
+  existing_modules_read_first:
+    - modules/kimi.handler.approval_request
+    - modules/kimi.wire.approval_respond
+    - modules/kimi.init_code
+    - modules/kimi.handler.ws_message
+    - modules/kimi.task.execute
+    - modules/kimi.task.complete
+    - modules/kimi.event.on_task_complete
+    - modules/kimi.handler.process-queued-task
+
+  investigation_leads: |
+    1. approval_responded set grows across tasks and is never pruned mid-session
+       (only cleared by kimi.cmd.new-session). if kimi-web reuses or re-sends
+       request_ids that happen to match stale entries, the handler silently
+       drops them. check whether request_ids are truly unique across tasks.
+
+    2. reconnect race: approval_respond returns early (undef) when
+       kimi.ws.connected is FALSE, WITHOUT marking the id as responded.
+       on reconnect kimi-web resends — should be handled again. but check
+       whether there is a window where session.acquired gets inconsistent
+       state relative to ws.connected during task transitions.
+
+    3. task queue wiring: check whether the task dispatch path for tasks 3+
+       differs from task 1. look at kimi.handler.process-queued-task and
+       kimi.event.on_task_complete — does prior task state leak into the next
+       task's approval context? is auto_approve ever toggled during task flow?
+
+    4. grep all kimi.* modules for any write to <kimi.approval.auto_approve>
+       that is NOT the //= TRUE initializer in init_code.
+
+  fix_guidance: |
+    if the cause is identified:
+    - if approval_responded grows stale: add pruning after each task completes
+      in kimi.event.on_task_complete or kimi.task.complete
+    - if auto_approve is toggled: trace why and guard against it
+    - if a race: add a queued-approval retry when ws reconnects
+
+    keep fixes minimal and surgical. do not restructure the approval flow.
+
+#,,..,,.,,.,.,..,,,.,,..,,.,,,,.,,.,,,,,,,,.,,..,,...,..,,...,..,,,..,,,,,,,,,
+#B72AS43MZXEP4AY2BYR7XPGWL4CECCTMROKRUJB6B37XEYT5642YENHMUO53REZAYNTKAAAEEV5LG
+#\\\|DJIA6RU4BBDRU2WYZONHLSU5QBJBROSIJDTKTRTG7WCHJ4IKLYG \ / AMOS7 \ YOURUM ::
+#\[7]UICOHVUW4X2R7I4JHA7TTREQWVC32JI67NWZ3FBCC7V4NJRXIWBQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

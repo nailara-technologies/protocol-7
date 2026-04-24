@@ -75,9 +75,12 @@ foreach my $id (@instances) {    # zenka name [ +subname ]
     my $cube_sid = <v7.zenka.instance>->{$id}->{'cube_sid'};
     my $prog_pid = <v7.zenka.instance>->{$id}->{'process'}->{'id'};
     if (<v7.zenka.instance>->{$id}->{'zenka_name'} eq $query_param
-        and (  not defined $zenka_subname
-            or not defined <v7.zenka.instance>->{$id}->{'subname'}
-            or <v7.zenka.instance>->{$id}->{'subname'} eq $zenka_subname )
+        and (
+            not defined $zenka_subname
+            or ( defined <v7.zenka.instance>->{$id}->{'subname'}
+                and <v7.zenka.instance>->{$id}->{'subname'} eq
+                $zenka_subname )
+        )
     ) {
         return {
             'mode' => qw| true |,
@@ -108,8 +111,8 @@ push <v7.zenka.notify_online>->{$query_copy}->@*, $reply_id;
 
 return { 'mode' => qw| deferred | }
 
-#,,,.,..,,,..,.,,,..,,..,,,..,.,.,,,,,,,,,,..,..,,...,..,,..,,.,.,,..,,..,,.,,
-#GQTIZ5JSYHBFZ6M62X2HSJ42W4FCRVOCYDM3ZBYKHGP2PZ7ED6HOOOTF5W25G3XNLX4WCEWB7J53W
-#\\\|FDRAHODUUO756LGYJ4TFTHAB7KH44FIJIWSSELK6PRJJM27GT4Y \ / AMOS7 \ YOURUM ::
-#\[7]IUGOY6JLCBEQD27VSIPCWXKSNZGQ7RXPSUMEX6APC34GS4CDU2BY 7  DATA SIGNATURE ::
+#,,,,,.,,,,..,.,.,...,,.,,...,.,.,.,,,...,,..,..,,...,..,,..,,..,,,.,,.,,,,,,,
+#PBWNACD5PQB4V6YKQAOZ3C5DSLRFOGEEL7KBQM256PTD4CENXBEV3WEDTSLDIP7XGSKB74J6W6PZU
+#\\\|6G2DVXE23DC2R7GRAR6FSGXCGKOS2J7OLTTK2TPKL6GF4RKUUHJ \ / AMOS7 \ YOURUM ::
+#\[7]ZUEDMQIBLHB6Z6Q7NSST4QUZ5I7L6L52GQFZMIWQVVNTUAYSI4DY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
