@@ -49,6 +49,7 @@
 - `topic-stream-transport-layer.md` — STRM stack complete: cancel, base.stream-file, unbounded relay (radio); remaining: formal open-0 sentinel, transport.register (when 2nd consumer), webcam/log-tail
 - `topic-radio-relay-zenka.md` — radio COMPLETE: TLS relay, STRM cancel, mpv offline/resilience, gap-fill paced; phase 5 (buffer-fill curve) next
 - `topic-base-curve-system.md` — generic base.curve.* parameter animation; composable signal chain (daytime × ambient × fade); mpv.param.curve is a thin wrapper on top
+- `topic-buffer-access-control.md` — per-buffer-name ACL deferred; revisit when 3+ zenki expose buffers via show-buffer
 
 ## File Creation Notes (CRITICAL)
 - **Never add** the single-line `#,,.,,,...` stub at end of new files
@@ -295,8 +296,8 @@
 - Pattern: `my @non_num = grep { defined $data_ref->{$ARG}->{$key} and not looks_like_number(...) } keys $data_ref->%*`
 - Global `$SIG{__WARN__}` exists — if wrapping warn handler, capture `$prev_warn = $SIG{__WARN__}` first and call through
 
-#,,,.,,..,,..,,.,,...,..,,,,,,.,,,..,,.,,,,,,,..,,...,...,..,,,.,,.,.,,.,,,.,,
-#GUPKIZYFPJ46WSFONUJCPB7KHTPDGVB6PA3RA3P6MTFTV7ZMPVCR5AP5B6YY2NIX6CLNP3PCDTQRA
-#\\\|VQPQVXFL2YFHGAA3FCPHHF5CY7RBILY3IZK7VSA3NJS6ZJGQD6R \ / AMOS7 \ YOURUM ::
-#\[7]TN2Z6QDLCWPMKZJ7ON4DYREHV73F6VN4PNVVZE2H7BXGNKFFUGBQ 7  DATA SIGNATURE ::
+#,,..,...,.,.,,.,,,.,,,,.,,,,,.,.,.,,,.,.,,,.,..,,...,...,...,.,,,,,.,,..,,.,,
+#AZYM2PFAO47UIYNJRWNS7UGBCIB2HNWFPDBLLIIQCK337HLYI4ADHF55AOB2B2GMJ5HNKJKOCNQRK
+#\\\|DDKJRCINJSEFGRWFPP6TE2IX3TTCMSPGDXZYX54GSGF6OHAMQFP \ / AMOS7 \ YOURUM ::
+#\[7]URSIMURT2KZJ5AZDAZD6JFBYYEZP74ZEGCBH6OTDYP2YC3MZMWAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
