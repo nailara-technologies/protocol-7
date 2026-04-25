@@ -46,8 +46,8 @@
 - `feedback-set-capability-session-id.md` — cube.cmd.* modules receive $call_args with 'session_id'/'args'; using 'sid'/'args_list' silently FALSEs out
 - `topic-stream-cancel-design.md` — stream cancel: !TERM! forwarded to route target + source-gone else branch added; session-close teardown NOT yet implemented (open item)
 - `topic-strm-unbounded-gap.md` — STRM/STRM-SIZE require declared total; unbounded needed for audio/webcam relay; protocol extension sketch
-- `topic-stream-transport-layer.md` — next sequence: (1) STRM mode fix, (2) unbounded protocol ext, (3) transport.register, (4) base.stream-file as first consumer
-- `topic-radio-relay-zenka.md` — radio WORKING: TLS connect, HTTP endpoint, mpv[audio-0] playback; open: STRM cancel verification, session-close teardown, jingle filter tuning
+- `topic-stream-transport-layer.md` — STRM stack complete: cancel, base.stream-file, unbounded relay (radio); remaining: formal open-0 sentinel, transport.register (when 2nd consumer), webcam/log-tail
+- `topic-radio-relay-zenka.md` — radio COMPLETE: TLS relay, STRM cancel, mpv offline/resilience, gap-fill paced; phase 5 (buffer-fill curve) next
 - `topic-base-curve-system.md` — generic base.curve.* parameter animation; composable signal chain (daytime × ambient × fade); mpv.param.curve is a thin wrapper on top
 
 ## File Creation Notes (CRITICAL)
@@ -295,8 +295,8 @@
 - Pattern: `my @non_num = grep { defined $data_ref->{$ARG}->{$key} and not looks_like_number(...) } keys $data_ref->%*`
 - Global `$SIG{__WARN__}` exists — if wrapping warn handler, capture `$prev_warn = $SIG{__WARN__}` first and call through
 
-#,,.,,,..,,,,,,,.,,..,.,,,,..,,,,,,,.,,,.,...,..,,...,...,..,,,.,,,,,,.,.,,.,,
-#BRKS6Y6VLVQV6CRJNY7KGRBPM6IP3VEKWWEDPQSN56UMFIYEDOEZLFYDSZKVENOCWJH52LRA3UIYY
-#\\\|KOSSDCL45W4SUELV7RGR2GMHKLIDXQAKTE2MI3AODDTDBCJQ3IG \ / AMOS7 \ YOURUM ::
-#\[7]BCQ432PDC27JRMUUBSE3Y2LKGBRSV75FNKIPDQYVJYXUHPJKRIAY 7  DATA SIGNATURE ::
+#,,,.,,..,,..,,.,,...,..,,,,,,.,,,..,,.,,,,,,,..,,...,...,..,,,.,,.,.,,.,,,.,,
+#GUPKIZYFPJ46WSFONUJCPB7KHTPDGVB6PA3RA3P6MTFTV7ZMPVCR5AP5B6YY2NIX6CLNP3PCDTQRA
+#\\\|VQPQVXFL2YFHGAA3FCPHHF5CY7RBILY3IZK7VSA3NJS6ZJGQD6R \ / AMOS7 \ YOURUM ::
+#\[7]TN2Z6QDLCWPMKZJ7ON4DYREHV73F6VN4PNVVZE2H7BXGNKFFUGBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
