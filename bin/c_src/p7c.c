@@ -398,7 +398,8 @@ int main( int argc, char * argv[] ) {
                         if ( byte == '\n' ) {
                             strm_arg_buf[arg_len] = '\0';
 
-                            /* Parse STRM argument: "open <bytes>" or "<chunk_size>" or "close" */
+                            /* Parse STRM argument: "open <bytes>", "open" (unbounded),
+                               "<chunk_size>", or "close" */
                             if ( strncmp(strm_arg_buf, "open ", 5) == 0 ) {
                                 stream.expected_bytes = atol(strm_arg_buf + 5);
                                 stream.streaming = 1;
@@ -407,16 +408,25 @@ int main( int argc, char * argv[] ) {
                                 /* Reset state to parse next STRM header fresh */
                                 memset(reply_type, 0, sizeof(reply_type));
                                 space_seen = 0;
+                            } else if ( strcmp(strm_arg_buf, "open") == 0 ) {
+                                /* Unbounded stream: no declared total */
+                                stream.expected_bytes = -1;
+                                stream.streaming = 1;
+                                stream.received_bytes = 0;
+                                close_at_lf = 0;
+                                memset(reply_type, 0, sizeof(reply_type));
+                                space_seen = 0;
                             } else if ( strcmp(strm_arg_buf, "close") == 0 ) {
-                                /* Validate and exit */
-                                if (stream.received_bytes != stream.expected_bytes) {
+                                /* Validate and exit (skip check for unbounded streams) */
+                                if ( stream.expected_bytes != -1 &&
+                                     stream.received_bytes != stream.expected_bytes ) {
                                     fprintf(stderr, "[STRM] ERROR: incomplete stream %ld/%ld bytes\n",
                                         stream.received_bytes, stream.expected_bytes);
                                     return 1;
                                 }
                                 if (getenv("DEBUG"))
-                                    fprintf(stderr, "[STRM] stream closed: %ld/%ld bytes complete\n",
-                                        stream.received_bytes, stream.expected_bytes);
+                                    fprintf(stderr, "[STRM] stream closed: %ld bytes received\n",
+                                        stream.received_bytes);
                                 continue_read = 0;
                             } else {
                                 /* chunk_size for data packet */
