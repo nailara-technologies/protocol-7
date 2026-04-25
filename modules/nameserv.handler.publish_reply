@@ -1,0 +1,71 @@
+## [:< ##
+
+# name  = nameserv.handler.publish_reply
+# descr = handle orbital data reply and publish dns records
+
+my $reply_data = shift;
+my $params     = shift;
+
+my $domain    = $params->{'domain'}    // '';
+my $port      = $params->{'port'}      // 7777;
+my $ttl       = $params->{'ttl'}       // 3600;
+my $node_name = $params->{'node_name'} // '';
+my $reply_id  = $params->{'reply_id'};
+
+my $data     = $reply_data->{'data'} // {};
+my $p7ref    = $data->{'p7ref'}      // '';
+my $local_ip = $data->{'local_ip'}   // '';
+
+if ( not length $p7ref ) {
+    <[base.logs]>->( 1, 'publish reply missing p7ref' );
+    <[base.callback.cmd_reply]>->(
+        $reply_id,
+        {   'mode' => qw| false |,
+            'data' => qq| no orbital p7ref received |
+        }
+    ) if defined $reply_id;
+    return;
+}
+
+my $rec_name  = sprintf( '_protocol7._tcp.%s', $domain );
+my $txt_value = sprintf( 'v=proto7 vm=%s p7ref=%s harmonic=384615',
+    $node_name, $p7ref );
+my $srv_value = sprintf( '0 0 %d %s.%s.', $port, $node_name, $domain );
+
+## ensure zone ttl matches desired value
+my $zones = <nameserv.zones>;
+$zones->{$domain}{'ttl'} = $ttl
+    if exists $zones->{$domain};
+
+## publish txt record
+<[nameserv.cmd.set-record]>->(
+    { 'args' => sprintf( '%s TXT %s %s', $domain, $rec_name, $txt_value ) } );
+
+## publish srv record
+<[nameserv.cmd.set-record]>->(
+    { 'args' => sprintf( '%s SRV %s %s', $domain, $rec_name, $srv_value ) } );
+
+## persist zone
+<[nameserv.zone.save]>->($domain);
+
+<[base.logs]>->(
+    2, 'published node %s as %s [ %s ]',
+    $node_name, $rec_name, $p7ref
+);
+
+if ( defined $reply_id ) {
+    <[base.callback.cmd_reply]>->(
+        $reply_id,
+        {   'mode' => qw| true |,
+            'data' => sprintf( 'published TXT + SRV for %s', $domain )
+        }
+    );
+}
+
+return TRUE;
+
+#,,.,,,,.,.,.,.,.,.,.,..,,,,,,,,,,,,,,.,.,,,,,..,,...,..,,.,,,.,.,,,.,.,.,...,
+#AQRD4HYI3FHPQFHDZTWO2LFGDDI7R2IBZKXDCMARJJVPX2HHSGDIVLP7KN334H53SFO5HASGZ6VL4
+#\\\|22KEBFY2XCYBOKEAH4CFIIFZH7YVUFXJQMDJR5DIYCEK3OHRGDS \ / AMOS7 \ YOURUM ::
+#\[7]C4P6CU6AQJX7M75HBRJZK2UPIUZH75UNV2EYJOLISBN37KTRWIDQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

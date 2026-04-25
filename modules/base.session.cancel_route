@@ -9,7 +9,8 @@ return warn "[cancel_route] expected termination message"
 
 foreach my $s_cid (@route_cids) {
     my $route_id = $data{'session'}{$sid}{'route'}{$s_cid};
-    my $s_sid    = $data{'route'}{$route_id}{'source'}{'sid'};
+    next if not exists $data{'route'}->{$route_id};
+    my $s_sid = $data{'route'}{$route_id}{'source'}{'sid'};
     next if not defined $s_sid;
 
     my $t_sid    = $data{'route'}{$route_id}{'target'}{'sid'};
@@ -48,8 +49,8 @@ foreach my $s_cid (@route_cids) {
     delete $data{'route'}{$route_id};
 }
 
-#,,..,,,.,.,,,,,.,,,,,,.,,,,.,.,.,.,.,.,.,,,,,..,,...,...,,,,,,..,,,,,,,.,,,.,
-#ZAD64O6ONL2TRITCOWLR26ST743MEA2NXRKGSER7KG3RXHT5DCB5T3WQ4FJBBXQEHYJPC6TKC7BQY
-#\\\|NA6K3HOGATQVGXIAEA7PJJILAIFRHHOCCPZ5DBQDO5VRL46ELOR \ / AMOS7 \ YOURUM ::
-#\[7]RTQWRKTQKUZF2YSMM37GBYIYOAZHMWBAR64WQ4DGW5VNVWELZCBA 7  DATA SIGNATURE ::
+#,,,.,...,,,.,..,,.,.,,,.,,..,..,,,,.,.,,,,,.,..,,...,..,,,..,.,,,...,,..,.,,,
+#6IECQK5LOQBE3DC4PJIRKTPSIKZ3CEZZNWK2D7FMFZ6NP22ZXBNQSHD3NKRSDLZ27JYRIFEBYW6DE
+#\\\|H5TJHB3LVM2KCK5QSXAZCBUDLPKFUJQDI44SA225BYSO6IGW6YZ \ / AMOS7 \ YOURUM ::
+#\[7]LU5SXZCWCHABRXGDECEOGK2ZLROR3IEWDIRM3MCD74YFIDT3XIBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

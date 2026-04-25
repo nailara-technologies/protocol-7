@@ -1,0 +1,86 @@
+## [:< ##
+
+# name  = nameserv.cmd.discover-nodes
+# descr = discover protocol-7 nodes via dns txt lookup
+
+my $domain = $call->{'args'} // '';
+
+if ( not length $domain ) {
+    return {
+        'mode' => qw| false |,
+        'data' => qq| usage: discover-nodes <domain> |
+    };
+}
+
+my $resolver = Net::DNS::Resolver->new;
+
+my $query = eval { $resolver->query( "_protocol7._tcp.$domain", 'TXT' ); };
+
+if ($EVAL_ERROR) {
+    <[base.logs]>->( 1, 'discover-nodes query failed: %s', $EVAL_ERROR );
+    return {
+        'mode' => qw| false |,
+        'data' => qq| dns query error |
+    };
+}
+
+if ( not defined $query ) {
+    return {
+        'mode' => qw| false |,
+        'data' =>
+            sprintf( qq| dns query failed: %s |, $resolver->errorstring )
+    };
+}
+
+my @nodes;
+
+foreach my $rr ( $query->answer ) {
+    next if $rr->type ne 'TXT';
+
+    my $txt = $rr->txtdata;
+    next if index( $txt, 'v=proto7' ) != 0;
+
+    my %attrs;
+    foreach my $pair ( split /\s+/, $txt ) {
+        my ( $key, $value ) = split /=/, $pair, 2;
+        next if not defined $key;
+        $attrs{$key} = $value;
+    }
+
+    my $node_name = $attrs{'vm'}    // '';
+    my $p7ref     = $attrs{'p7ref'} // '';
+
+    next if not length $p7ref;
+
+    push @nodes,
+        {
+        'name'  => $node_name,
+        'p7ref' => $p7ref,
+        'txt'   => $txt,
+        };
+
+    <[base.logs]>->( 2, 'discovered node %s [ %s ]', $node_name, $p7ref );
+}
+
+<nameserv.discovered>->{$domain} = \@nodes;
+
+my $result_str
+    = sprintf( qq| discovered %d node(s) for %s |, scalar(@nodes), $domain );
+
+if (@nodes) {
+    $result_str .= "\n"
+        . join( "\n",
+        map { sprintf( '  %s %s', $ARG->{'name'}, $ARG->{'p7ref'} ) }
+            @nodes );
+}
+
+return {
+    'mode' => qw| true |,
+    'data' => $result_str
+};
+
+#,,,.,,.,,..,,..,,.,.,,,,,,..,,,,,...,...,.,,,..,,...,...,..,,,.,,,,.,...,..,,
+#A7MV4ITWQUV43VCS5FOAMXB232EN7DE6A4JC6ITBZC3A7BMHDJKVXHWMOWDC4XMDLO5575G5VSEVU
+#\\\|D2TJPFHP574SNBJD722WRR3J5TJWZJHWWZ7L7BU4UVOOIW462Q7 \ / AMOS7 \ YOURUM ::
+#\[7]DCBNWP345VNQNFNMA3C76SWBS3HULGDAH4AEVVGZEQMBFXYSZ4BY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
