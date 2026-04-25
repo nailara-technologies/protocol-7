@@ -1172,6 +1172,7 @@ return [ qw[
         nshell.render.viewport
         nshell.history.page_up
         nodes.parser.node_pkey
+        nodes.orbital.addr_b32
         nameserv.handler.query
         nameserv.cmd.show-zone
         mpv.handler.pipe.float
@@ -1352,6 +1353,7 @@ return [ qw[
         nshell.render.full_line
         nshell.read_from_buffer
         nshell.history.arrow_up
+        nodes.orbital.init_code
         nameserv.start_listener
         nameserv.cmd.set-record
         nameserv.cmd.list-zones
@@ -1760,6 +1762,7 @@ return [ qw[
         graphics-3d.render.cursor
         download.cmd.get_mimetype
         discover.log_mcast_packet
+        discover.cmd.list-orbital
         discover.cmd.host_details
         devmod.cmd.test-strm-size
         debian.console.list-zenki
@@ -2401,6 +2404,7 @@ return [ qw[
         nshell.util.syswrite_complete
         nshell.util.extract_utf8_char
         nshell.hook.input_passthrough
+        nodes.orbital.update_position
         nodes.cmd.update-protocol-elf
         mpv.handler.event.file-loaded
         models.storage.create_symlink
@@ -2441,6 +2445,7 @@ return [ qw[
         graphics-matrix.graph.cluster
         graphics-matrix.filter.c-to-a
         ffmpeg.cmd.extract_last_frame
+        discover.orbital.store_remote
         discover.load_resend_requests
         discover.cmd.resend-awareness
         devmod.cmd.keep-devmod-loaded
@@ -2568,6 +2573,7 @@ return [ qw[
         nshell.check_remote_connection
         nodes.parser.connection_target
         nodes.parser.connection_status
+        nodes.orbital.current_position
         mpv.handler.scan_encoded_timer
         mpv.handler.reenc_notify_reply
         mpv.callback.check_parent_dirs
@@ -2858,6 +2864,7 @@ return [ qw[
         graphics-matrix.cmd.cursor-state
         graphics-matrix.address.register
         discover.process_incoming_packet
+        discover.orbital.get_local_p7ref
         discover.handler.incoming_packet
         data.mount.shm.permission.verify
         data.get.find_interference_match
@@ -3240,6 +3247,7 @@ return [ qw[
         graphics.matrix.visual.find-clusters
         graphics.matrix.visual.extract-color
         graphics-3d.calc.cursor-translucency
+        discover.orbital.share_grid_fragment
         debian.parent.resolve_cpan_to_debian
         crypt.C25519.cmd.register-master-key
         context.util.tree.resolve_time_range
@@ -3480,6 +3488,7 @@ return [ qw[
         plugin.auth.auth-keypair.tofu-notification
         pager.util.filter.calculate_harmonic_score
         letsencr.parent.handler_httpd_reload_reply
+        discover.orbital.handler.local_p7ref_reply
         coding.tools.handler.strip_trailing_spaces
         auth.callback.cap-neg.declare-strm-support
         X-11.background.chksum-cache.write_to_disk
@@ -3609,8 +3618,8 @@ return [ qw[
     ]
 ];
 
-#,,.,,..,,,,.,,..,.,,,.,.,,,,,..,,,.,,,.,,,,.,.,.,...,.,.,,..,.,.,,..,,.,,,,.,
-#2CANZJYGORRGLGFWH32NOX5BDQYVFYAKXY7PDEMT7OQJCIWESCU2E3IBXTF7OZDNETGDBWAFZYUZM
-#\\\|PVYKCICQSSFSHLFEKYP3DOQPRM3MSGLVLQV6GCYXRXL5CKFTVBV \ / AMOS7 \ YOURUM ::
-#\[7]FJDHD2CDXCOL65ZW2WAF2MO33EPYEHPSZZDYIOBGSNUXQNRHDMCQ 7  DATA SIGNATURE ::
+#,,.,,...,.,,,..,,,.,,..,,..,,.,,,,..,..,,.,.,.,.,...,.,.,.,,,,,.,...,,,,,...,
+#JLHF73A73Q2WDDVP2KLFFTFLKVEFXJWOHV7ZIRC3IRTY45QPXJURNZ3YJUKXLAXZI5KA6S4KZBK4G
+#\\\|TVOUOS6KU2ASIU63EAI5KSZN7RRAE4TFN77I63N27HV7RPBFBG4 \ / AMOS7 \ YOURUM ::
+#\[7]AFT35BN44CS7B67SWJPK3ZFDNQV337DOOXECRTXLESZ5KHQTLOCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

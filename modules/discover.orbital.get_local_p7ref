@@ -1,0 +1,40 @@
+## [:< ##
+
+# name  = discover.orbital.get_local_p7ref
+# descr = retrieve local orbital p7ref from nodes zenka via route-send
+
+## return cached value if available ##
+return <discover.orbital.local_p7ref>
+    if defined <discover.orbital.local_p7ref>
+    and length <discover.orbital.local_p7ref>;
+
+## request fresh value from nodes zenka ##
+my $sent_count = eval {
+    <[protocol-7.route-send]>->(
+        {   'command'   => 'nodes.orbital.current_position',
+            'call_args' => { 'args' => '' },
+            'reply'     =>
+                { 'handler' => 'discover.orbital.handler.local_p7ref_reply' }
+        }
+    );
+};
+
+if ($EVAL_ERROR) {
+    <[base.logs]>->( 3, 'orbital p7ref request failed: %s', $EVAL_ERROR );
+    return undef;
+}
+
+if ( not $sent_count ) {
+    <[base.logs]>->(
+        3, 'orbital p7ref not available [ nodes zenka offline? ]'
+    );
+    return undef;
+}
+
+return undef;    ## async reply will populate cache ##
+
+#,,,.,,.,,.,.,,,,,,,,,.,,,,,,,,,.,,,.,,,,,...,..,,...,.,.,,..,,..,.,,,...,,.,,
+#ZOY4EWNUTU4AAQNYABZXT3G74FTBPWNF3IFEEKAPAUY23IKJ37IRH2NLS5LYDQ6RGTCXTSVHFTRAK
+#\\\|CTCNNG3A3CUE2CWXX5I5KS2F2POOBLBYK3AGNPXOIH7BROJO7PN \ / AMOS7 \ YOURUM ::
+#\[7]CQNVPBUG2VDP6F6WSQE4WJDXXSS4IDJVYTQ3O24TTSQ537MJTADI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
