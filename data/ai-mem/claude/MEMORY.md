@@ -50,6 +50,7 @@
 - `topic-radio-relay-zenka.md` — radio COMPLETE: TLS relay, STRM cancel, mpv offline/resilience, gap-fill paced; phase 5 (buffer-fill curve) next
 - `topic-base-curve-system.md` — generic base.curve.* parameter animation; composable signal chain (daytime × ambient × fade); mpv.param.curve is a thin wrapper on top
 - `topic-buffer-access-control.md` — per-buffer-name ACL deferred; revisit when 3+ zenki expose buffers via show-buffer
+- `topic-orbital-data-space.md` — IPv4/IPv6/key as orbital seeds in cubic space; arcs/rings/galaxy emerge from allocation history; merge zenki-cosmos stars into grid-v13 cubic layers
 
 ## File Creation Notes (CRITICAL)
 - **Never add** the single-line `#,,.,,,...` stub at end of new files
@@ -296,8 +297,8 @@
 - Pattern: `my @non_num = grep { defined $data_ref->{$ARG}->{$key} and not looks_like_number(...) } keys $data_ref->%*`
 - Global `$SIG{__WARN__}` exists — if wrapping warn handler, capture `$prev_warn = $SIG{__WARN__}` first and call through
 
-#,,..,...,.,.,,.,,,.,,,,.,,,,,.,.,.,,,.,.,,,.,..,,...,...,...,.,,,,,.,,..,,.,,
-#AZYM2PFAO47UIYNJRWNS7UGBCIB2HNWFPDBLLIIQCK337HLYI4ADHF55AOB2B2GMJ5HNKJKOCNQRK
-#\\\|DDKJRCINJSEFGRWFPP6TE2IX3TTCMSPGDXZYX54GSGF6OHAMQFP \ / AMOS7 \ YOURUM ::
-#\[7]URSIMURT2KZJ5AZDAZD6JFBYYEZP74ZEGCBH6OTDYP2YC3MZMWAY 7  DATA SIGNATURE ::
+#,,,.,,,,,.,.,...,,.,,...,...,,,.,.,,,..,,.,.,..,,...,..,,...,..,,,,,,,.,,,..,
+#I4MNQXSEIUUKYJSTKRYRJYUNANW6NJU2YTDTEQD24US2KLGALMYYZMKQ5Z6I6LBH7ZIU6MTREJOQM
+#\\\|XJ4RFCKEPU67SBM34DNPXVAPHL7HMXANTNXXF2V2W567Q5B2APH \ / AMOS7 \ YOURUM ::
+#\[7]UADI26D5U3RDVSWBB33GP7MAHKOJS6VUB3SABFEV7ZA3QPJEJCBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
