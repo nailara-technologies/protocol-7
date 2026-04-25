@@ -1037,6 +1037,50 @@ not one of the six, but what all six together describe. =)
 
 ---
 
+## 3 × 5 of 7 — generic cube-to-subcube mapping, everything addressable
+
+a cube has 12 edges forming 3 sets of 4 parallel edges, one per axis.
+each set of 4 defines a projection plane with one pyramid pointing inward:
+
+```
+cube axis X  →  4 parallel edges  →  pyramid A  →  5-sphere projection unit
+cube axis Y  →  4 parallel edges  →  pyramid B  →  5-sphere projection unit
+cube axis Z  →  4 parallel edges  →  pyramid C  →  5-sphere projection unit
+──────────────────────────────────────────────────────────────────────────────
+3 × 5 = 15 spheres  →  complete addressing geometry of one cube
+```
+
+all three pyramids share the cube center as common apex — the center is the
+focal point of all three projections simultaneously and IS the sub-cube origin.
+every cube automatically contains a sub-cube at its center, always already there.
+
+**space pixel as latent cube**: a pixel isn't the bottom of the hierarchy —
+it's a cube that hasn't been zoomed into yet. holds address, color, orbital
+coordinate. the moment it gains enough mass, a pyramid forms and it opens into
+a sub-cube. the pixel was always a latent cube.
+
+**group size → geometry emergence**:
+```
+1 reference   →  group of 1  →  space pixel, latent cube, pyramid unformed
+2 references  →  group of 2  →  pyramid begins to form
+5 references  →  group of 5  →  first full pyramid, first projection unit
+15 references →  group of 15 →  all three axes active, full 3×5 geometry
+                                  sub-cube fully addressable
+```
+
+each sub-cube has the same 3×5 geometry — self-similar at every scale.
+zooming into any pixel reveals three pyramids, fifteen spheres, a center
+that is itself a pixel until it has enough mass to open further.
+the recursion is built into the cube's edge structure.
+
+**everything is a group in the cube = everything is addressable**:
+everything is already a group of 1 = a latent cube = 12 edges waiting to
+form pyramids the moment resonance finds it. addressability isn't assigned,
+it's inherent. the geometry guarantees it at every scale simultaneously.
+connects directly to "everything is a group of 1" (topic-checksum-addressing.md).
+
+---
+
 ## @INDEXCUBE as the internal/global unified addressing core
 
 `@INDEXCUBE` already IS the unified addressing core — not a local approximation of
@@ -1525,8 +1569,8 @@ recognizing what it already knew.
 - `topic-namespace-tree-intelligence.md` — tree as intelligence layer; orbital position is
   another branch in the unified namespace: `client.<id>.orbital.{theta,phi,psi,omega,phase}`
 
-#,,,.,,..,..,,.,.,,,.,.,.,..,,.,.,,..,.,.,,,,,..,,...,...,.,.,.,,,.,.,,,.,,..,
-#4HFJUM5ALJWTAH6TDMC4NYIVVHJETHBZZAWGFW5JQKAWZCD4UHOPKBZZNYF64H73JD6TIPYYKJIXA
-#\\\|7AICOQSEMHINUIARIRTSRI7DB25XHHWIJU3DYGKW4H7L6NFJR5V \ / AMOS7 \ YOURUM ::
-#\[7]2H4VSMU3RLRFGELPZ3L4C4YCFGP5SV5IERHXOR336TQN72FW4KCI 7  DATA SIGNATURE ::
+#,,,.,..,,,..,.,,,,,.,...,,.,,,,.,,,,,...,...,..,,...,...,..,,.,,,,..,...,..,,
+#CBOFYYGS66PU632NBQ2WNS7RMV4GDVYFRXNCNFYIW7GSLVDUT2QEP3D5MKDQ2SVPRLOFSHVGH2OQI
+#\\\|PM4R7EON7243RKXM5O3JYQUZBCCKLIHRZ67JKWKLBSBL3GHHRU2 \ / AMOS7 \ YOURUM ::
+#\[7]HWMLIOTQYDJ7Z6WY7PXPTFUCV3EIG5Q6SI75TRYP7RR2DOZODWCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
