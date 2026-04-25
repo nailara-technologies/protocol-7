@@ -1,0 +1,33 @@
+## [:< ##
+
+# name  = external.cmd.list-connections
+# descr = list all orbital connections
+
+my $conn_ref = $data{'external'}{'connections'} // {};
+my @names    = <[base.sort]>->($conn_ref);
+
+return { 'mode' => qw| true |, 'data' => 'no connections' }
+    unless @names;
+
+my $output = "\n";
+my $fmt    = "%-16s %-30s %-16s %-12s %-10s\n";
+$output .= sprintf $fmt, qw| name p7ref ip status encrypted |;
+$output .= '-' x 90 . "\n";
+
+foreach my $name (@names) {
+    my $c = $conn_ref->{$name};
+    $output .= sprintf $fmt,
+        $name,
+        $c->{'p7ref'}  // '',
+        $c->{'ip'}     // '',
+        $c->{'status'} // '',
+        $c->{'encrypted'} ? qw| yes | : qw| no |;
+}
+
+return { 'mode' => qw| size |, 'data' => $output };
+
+#,,.,,.,.,,,,,...,..,,,..,..,,,,,,..,,.,.,...,..,,...,..,,...,,,.,,,,,.,,,..,,
+#ZDRXAWQ44N6Z7A7EEH24YB4XY7UR2NJYVL5UGP2DQDUUVQPY6BFLB6MBV2LTBDQK3VUKNPU7JVBTW
+#\\\|HE55WUNT4VSKSZ4CVGDELG43JHCAQIK5BCRTSJX3DCUMSNBTQA4 \ / AMOS7 \ YOURUM ::
+#\[7]TXFVQY5LTGHMR234LLQMAMUQ2MKVCCCZTIV72V34742K3DXLPGAA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

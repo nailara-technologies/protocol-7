@@ -1,0 +1,162 @@
+## [:< ##
+
+# name  = external.cmd.connect-orbital
+# descr = connect to an orbital node by p7ref or hostname
+
+use Socket;
+use Crypt::Misc;
+
+my $args_str;
+
+## support timer callback context ##
+if ( ref $ARG[0] and eval { $ARG[0]->can('w') } ) {
+    my $timer_data = $ARG[0]->w->data // {};
+    $args_str = $timer_data->{'args'} // '';
+} else {
+    $args_str = $call->{'args'} // '';
+}
+
+my @params = split( m| +|, $args_str );
+
+return {
+    'mode' => qw| false |,
+    'data' => qq| usage: connect-orbital <p7ref_or_hostname> [name] |
+    }
+    if @params < 1 or @params > 2;
+
+my $target = shift @params;
+my $name   = shift @params;
+
+## lookup in discover.orbital.known ##
+my $known = $data{'discover'}{'orbital'}{'known'} // {};
+my $entry;
+
+foreach my $id ( keys %$known ) {
+    my $e = $known->{$id};
+    if (   ( $e->{'p7ref'} // '' ) eq $target
+        or ( $e->{'hostname'} // '' ) eq $target ) {
+        $entry = $e;
+        last;
+    }
+}
+
+## optionally try nameserv if not found and target looks like a domain ##
+if ( not defined $entry and index( $target, '.' ) > 0 ) {
+    eval {
+        my $ns_result
+            = <[nameserv.cmd.discover-nodes]>->( { 'args' => $target } );
+        if ( ref $ns_result eq qw| HASH |
+            and $ns_result->{'mode'} eq qw| true | ) {
+            <[base.logs]>->(
+                2, qq| nameserv query returned results for %s |, $target
+            );
+        }
+    };
+}
+
+return {
+    'mode' => qw| false |,
+    'data' => qq| orbital node $target not known |
+    }
+    if not defined $entry;
+
+my $hostname = $entry->{'hostname'} // '';
+my $p7ref    = $entry->{'p7ref'}    // '';
+my $pkey_bin = $entry->{'pkey'}     // '';
+
+return {
+    'mode' => qw| false |,
+    'data' => qq| orbital entry incomplete |
+    }
+    if not length $hostname
+    or not length $pkey_bin
+    or not length $p7ref;
+
+## resolve ip address ##
+my $online_hosts = $data{'nodes'}{'local-network'}{'online-hosts'} // {};
+my $ip           = $online_hosts->{$hostname}->{'ip_addr'}         // '';
+
+if ( not length $ip ) {
+    my $addr = gethostbyname($hostname);
+    $ip = defined $addr ? inet_ntoa($addr) : '';
+}
+
+return {
+    'mode' => qw| false |,
+    'data' => qq| could not resolve ip for $hostname |
+    }
+    if not length $ip;
+
+## derive connection name ##
+if ( not defined $name or not length $name ) {
+    $name = $hostname;
+    if ( not length $name and $p7ref =~ m|^NODE:([^:]+):| ) {
+        $name = $1;
+    }
+}
+
+## encode public key to base32 ##
+my $pkey_b32 = Crypt::Misc::encode_b32r($pkey_bin);
+
+## store preliminary connection state ##
+$data{'external'}{'connections'} //= {};
+$data{'external'}{'connections'}->{$name} = {
+    'p7ref'     => $p7ref,
+    'ip'        => $ip,
+    'hostname'  => $hostname,
+    'status'    => qw| connecting |,
+    'encrypted' => FALSE,
+};
+
+## initiate trunc registration via nodes zenka ##
+my $sent = eval {
+    <[protocol-7.route-send]>->(
+        {   'command'   => 'nodes.cmd.add-trunc',
+            'call_args' =>
+                { 'args' => sprintf( '%s %s %s', $name, $ip, $pkey_b32 ) },
+            'reply' => {
+                'handler' => qw| external.handler.orbital_connect_reply |,
+                'params'  => {
+                    'name'  => $name,
+                    'p7ref' => $p7ref,
+                    'ip'    => $ip,
+                }
+            }
+        }
+    );
+};
+
+if ($EVAL_ERROR) {
+    <[base.logs]>->(
+        1, qq| connect-orbital route-send error: %s |, $EVAL_ERROR
+    );
+    $data{'external'}{'connections'}->{$name}->{'status'} = qw| error |;
+    return {
+        'mode' => qw| false |,
+        'data' => qq| failed to initiate connection to $name |
+    };
+}
+
+if ( not $sent ) {
+    $data{'external'}{'connections'}->{$name}->{'status'} = qw| error |;
+    return {
+        'mode' => qw| false |,
+        'data' => qq| nodes zenka unavailable for $name |
+    };
+}
+
+<[base.logs]>->(
+    2, qq| connecting to orbital node %s at %s via %s |,
+    $name, $ip, $p7ref
+);
+
+return {
+    'mode' => qw| true |,
+    'data' => qq| connecting to $name |
+};
+
+#,,,,,,..,.,.,.,.,,..,.,,,.,.,..,,,,,,,..,..,,..,,...,...,..,,.,,,,,,,.,,,.,,,
+#DPTHWN72GKBXJNTE4P5X36BNOTIBE63TP64RKR5XJVWU56MYMV5IQ2UL5TTZ4YUL3EZEHV4JUAYNW
+#\\\|ZKR6RBSO6RWGKRKVYHB76GUXQKJUC6WOPVLLLJB6WGJ2QSRIPWL \ / AMOS7 \ YOURUM ::
+#\[7]TL72HG72XVWJCVPCIWZ7S2SK2H7TXCNK7KRNSSRMNUIZPLKZBECA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
