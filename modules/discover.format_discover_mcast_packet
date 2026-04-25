@@ -43,6 +43,12 @@ if (   not defined <discover.announce_msg_header>
     }
 }
 
+## append orbital p7ref if available ##
+my $local_p7ref = <discover.orbital.local_p7ref>;
+if ( defined $local_p7ref and length $local_p7ref ) {
+    $payload_str .= sprintf "p7ref %s\n", $local_p7ref;
+}
+
 $payload_str =~ s|^|      |mg;    ##  payload has 6 spaces prefix  ##
 $payload_str =~ s|\n+$||;         ##  striping trailing linefeed[s]  ##
 
@@ -65,8 +71,8 @@ if ( not defined $signature_str ) {
 return sprintf "%s%s\n", $packet_str,    ## appending packet signature ##
     Crypt::Misc::encode_b32r($signature_str);
 
-#,,,.,,.,,.,,,...,.,,,.,.,,,.,,.,,.,,,,..,.,,,..,,...,...,.,,,.,,,,,.,,..,,..,
-#QXXLDGZS5TNGIUFQ7TSVK2ZMYX63NG3ULMDMNJERYSHKZPNB7PTRP65KABNO2M6ZAOXUSCXHM4J2E
-#\\\|IJYFNOVORF2GOTLQ5TWCJDQJBPLAL2V6CVJWLZGLTDZDLFTPOSN \ / AMOS7 \ YOURUM ::
-#\[7]AKWNR3RGPATD52ORAFZSIGRZGBEX7KP64JCFULMA4YGL4FSTM4DI 7  DATA SIGNATURE ::
+#,,..,,,,,..,,,..,,.,,.,.,,.,,,..,,,,,,..,.,.,..,,...,..,,.,.,,,.,,..,,,.,.,,,
+#7OX74U4M5SEFGFX4BYVJVY3EUTBK73KXO72DBOMANAPNIOC4QIYEAPOLFXUCLSPMAI4777MZFABIA
+#\\\|RGSBF23IUJJQ2Z65NJD3SGLDXBUVZRYA4H7VW5IK65KUSNV7MOC \ / AMOS7 \ YOURUM ::
+#\[7]V3OGIHHUOKG5LSBR6D76YNG46AERQZKOVV2XFA322UCGW4N576DY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

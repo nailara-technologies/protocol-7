@@ -180,8 +180,19 @@ if ($entry_added    ##  when announce host request [re-]appears  ##
     }
 }
 
-#,,.,,.,.,,,,,,.,,.,,,,,.,,.,,..,,,..,...,,,,,..,,...,...,...,.,.,,,,,,,,,,,,,
-#3QGJQRUWIB27CJOHASGUA3CB4RXNYOXWMC7KDLBXIM6G6ZTFRXOJOUYNZSPLLOE2LBYYC4TUGVE4E
-#\\\|WNJUH5OUYXXQJSCKV236C5L5ZZDGYF4GGVOTUCQTTB3TNHVZHOS \ / AMOS7 \ YOURUM ::
-#\[7]U6ZCZUSM42OYCV64WT3WKJMY2KAMG6GH4QUYJQZEWYGEZVA47KCQ 7  DATA SIGNATURE ::
+## check for orbital p7ref line ##
+my $orbital_p7ref;
+if ( $packet_payload =~ m|^p7ref\s+(\S+)$|m ) {
+    $orbital_p7ref = $1;
+}
+
+if ( defined $orbital_p7ref and length $orbital_p7ref ) {
+    <[discover.orbital.store_remote]>->( $hostname, $pkey, $orbital_p7ref );
+    <[discover.orbital.share_grid_fragment]>->( $hostname, $pkey );
+}
+
+#,,,.,,,.,.,,,..,,,.,,.,.,.,,,,.,,,..,..,,,,,,..,,...,...,...,..,,,..,,,,,..,,
+#WUTTMTPLF7RSQWYXFC7YUH2SVDHKF4T7PCL2SFZSM6576YORGHSATW3GEFSDRRBJ4LSEM32THZERY
+#\\\|X3CEW2SQMP4BFCIIGUDU7FCPNZVVPTECKACY4JGRTJOW37VXLTQ \ / AMOS7 \ YOURUM ::
+#\[7]WO7YAQSUMDMTJ6GAE2KIU7W3KIC3F3W7F66BFZX5VPMWBV4BOWBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
