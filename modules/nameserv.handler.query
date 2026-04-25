@@ -57,26 +57,38 @@ if ($zone_match) {
     my $ttl = $zone_match->{'ttl'};
 
     ## search records for match
-    for my $rec ( @{ $zone_match->{'records'} } ) {
-        my $rec_name = lc( $rec->{'name'} // '' );
-        my $rec_type = $rec->{'type'} // '';
+    if ( $qname =~ /^_protocol7\._tcp\./ ) {
+        $found_answer = <[nameserv.handler.p7ref_lookup]>->(
+            {   reply      => $reply,
+                qname      => $qname,
+                zone_match => $zone_match,
+                ttl        => $ttl,
+            }
+        );
+    } else {
+        for my $rec ( @{ $zone_match->{'records'} } ) {
+            my $rec_name = lc( $rec->{'name'} // '' );
+            my $rec_type = $rec->{'type'} // '';
 
-        ## match name and type
-        next if $rec_name ne $qname;
-        next if $rec_type ne $qtype;
+            ## match name and type
+            next if $rec_name ne $qname;
+            next if $rec_type ne $qtype;
 
-        ## build rr using string-form constructor (phase-1 simple approach)
-        my $value = $rec->{'value'} // '';
-        my $rr_str
-            = sprintf( "%s %d IN %s %s", $qname, $ttl, $qtype, $value );
+            ## build rr using string-form constructor (phase-1 simple approach)
+            my $value = $rec->{'value'} // '';
+            my $rr_str
+                = sprintf( "%s %d IN %s %s", $qname, $ttl, $qtype, $value );
 
-        my $rr = eval { Net::DNS::RR->new($rr_str) };
-        if ( defined $rr ) {
-            $reply->push( answer => $rr );
-            $found_answer = 1;
-        } else {
-            <[base.logs]>->( 0, "failed to create rr for %s: %s", $qname, $@ )
-                if $@;
+            my $rr = eval { Net::DNS::RR->new($rr_str) };
+            if ( defined $rr ) {
+                $reply->push( answer => $rr );
+                $found_answer = 1;
+            } else {
+                <[base.logs]>->(
+                    0,      "failed to create rr for %s: %s",
+                    $qname, $@
+                ) if $@;
+            }
         }
     }
 
@@ -98,8 +110,8 @@ if ( defined $reply_data and length $reply_data ) {
 
 0;
 
-#,,,,,...,,,,,...,..,,..,,,..,,,.,,..,.,.,..,,..,,...,...,.,.,.,.,.,,,,.,,.,.,
-#7WSBBYOE6G66JKTOM2PI4UG6PKE2KEEDQNHH65JP5PAFM2AB7RBMO6OXLCDFNKTA5CBPXO5XI5O4A
-#\\\|FJULXTXX55QEKOFYJWHSFTZPZBMRRRFWCQPW5UDAIL2GXZS4PYA \ / AMOS7 \ YOURUM ::
-#\[7]6MVK2GOPKJA3CLPNVQLA7BABSTLDO7FXQR7OW4GADBLD2RTGYYBA 7  DATA SIGNATURE ::
+#,,..,,,.,,..,,.,,,..,.,,,,.,,,,.,,,,,.,,,...,..,,...,...,...,,..,,,.,,,.,..,,
+#7TO5WHJGKAONVF4IWVJFZXIB54AJBQNROSBA5WBRWPCIGJ7LOCYAW34GEKOV44EZ64GM6F25CU5XU
+#\\\|YPIQBPRQCZFCSU7POELVKN7S5KVIDFFYEANMISOBCJMPBFG2QEC \ / AMOS7 \ YOURUM ::
+#\[7]TGLXSTLKZTAAHH5OOZIWC37YER7AX2UEALYORMX7RL4BG2YKP2BA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

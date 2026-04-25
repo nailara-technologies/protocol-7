@@ -1,0 +1,24 @@
+## [:< ##
+
+# name  = nameserv.orbital.auto_publish
+# descr = auto-publish orbital dns records on timer
+
+my $domain = <nameserv.cfg.auto_publish_domain>;
+
+if ( not defined $domain or not length $domain ) {
+    <[base.logs]>->( 3, 'auto_publish skipped: no domain configured' );
+    return;
+}
+
+my $ttl = 777;
+
+<[nameserv.cmd.publish-node]>
+    ->( { 'args' => sprintf( '%s 7777 %d', $domain, $ttl ) } );
+
+return TRUE;
+
+#,,,.,,..,...,,..,,,.,.,.,,,.,..,,,,.,,,.,..,,..,,...,...,.,.,.,.,,..,.,,,,,,,
+#KW4RRBLNQU6GF7LTYDDIFLAFWQZZI5UHB7CVGNVJ24JDLH7GOAFOCZ5YQZXZNKPM3QR4PU627DJFU
+#\\\|ID7MSJGY6RS2SVSVVHMSFRS5S4WA4MMRPO23ZTIJLGGRTOW34R3 \ / AMOS7 \ YOURUM ::
+#\[7]II25C32MC2Q64NVXKPDTBH62HYUNABSETGGLVBD5YV5QMSLIOQAI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
