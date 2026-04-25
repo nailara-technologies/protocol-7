@@ -5,6 +5,9 @@
 
 my $url = <radio.stream.url>;
 
+##  clear any pending reconnect timer  ##
+delete <radio.stream.reconnect_watcher>;
+
 if ( not defined $url or not length $url ) {
     <[base.logs]>->( 0, '[radio] no stream url configured' );
     return;
@@ -48,6 +51,7 @@ if ($use_tls) {
             0, '[radio] TLS connection failed: %s:%d [ %s ]',
             $host, $port, IO::Socket::SSL::errstr()
         );
+        <[radio.handler.reconnect]>;
         return;
     }
 } else {
@@ -55,6 +59,7 @@ if ($use_tls) {
     if ( not defined $sock ) {
         <[base.logs]>
             ->( 0, '[radio] connection failed: %s:%d', $host, $port );
+        <[radio.handler.reconnect]>;
         return;
     }
 }
@@ -80,6 +85,8 @@ my $written = syswrite( $sock, $req );
 
 <radio.stream.sock> = $sock;
 
+<radio.stream.reconnect_delay> = 5;
+
 <radio.stream.io_watcher> = <[event.add_io]>->(
     {   fd      => $sock,
         poll    => qw| r |,
@@ -89,8 +96,8 @@ my $written = syswrite( $sock, $req );
 
 0;
 
-#,,,.,,,,,,.,,,,.,,.,,,..,...,,,.,,,,,.,.,.,.,..,,...,..,,...,..,,,..,,,.,..,,
-#X2GE5JBJ7VMAUB226F5ZROJAZ3QLHFYMF5WENIYXOVXXSBFG3HIQMD5PUS6DDDTHTSOFRTEWQCCIE
-#\\\|D5G4KJPEBVVNWZXO4Z2JXWY54WNBGJ4HTGKT3JNRVQ3VP7FYCYA \ / AMOS7 \ YOURUM ::
-#\[7]PDED23B6KN46SQCFJLM7WCCEQZACP2W4A6Y237AEG5ZKW3FJG2CQ 7  DATA SIGNATURE ::
+#,,,,,,.,,..,,,..,,,,,..,,...,.,,,..,,.,.,.,.,..,,...,..,,,..,...,...,..,,,.,,
+#YCY7DVVXI2W35Y3WRXRIQUYXBDJSFZNXCKRCX76IXDSBXYGA5HCG4W6DJJGS3SMN6ANQYBGFFQ5S6
+#\\\|ALZBALC2QHJ7RRLXISTIL3AXAQKE6UBBUILKOJT5BKVRFDEUOZO \ / AMOS7 \ YOURUM ::
+#\[7]OELXSCXXWK62LNXHE4CIXOXLB4M3AZETA3OPOGR7WL4M7MNQL6AY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

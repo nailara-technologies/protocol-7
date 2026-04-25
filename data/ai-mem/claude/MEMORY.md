@@ -21,6 +21,7 @@
   current state, dispatch flow, architectural questions, reference to scattered design docs
 - `feedback-kimi-code-review.md` — common issues in kimi-generated P7 code: SUPER:: resolution,
   namespace swaps, SSL internals, missing log levels, style, fake signatures
+- `feedback-kimi-signatures.md` — kimi derails into AMOS7 signature investigation; add signatures_note to every task file
 - `topic-context-and-forensics.md` — context.* module namespace design, forensics zenka vision
   (nightly security audits via NIST/security models), model capabilities mapping
 - `topic-checksum-addressing.md` — AMOS checksums as universal routing primitive,
@@ -294,8 +295,8 @@
 - Pattern: `my @non_num = grep { defined $data_ref->{$ARG}->{$key} and not looks_like_number(...) } keys $data_ref->%*`
 - Global `$SIG{__WARN__}` exists — if wrapping warn handler, capture `$prev_warn = $SIG{__WARN__}` first and call through
 
-#,,,,,..,,..,,,,,,...,,,,,.,,,...,..,,,.,,..,,..,,...,...,...,.,.,...,..,,,,,,
-#GT7OIZOEAXMG25F6Q6XN6T24HKBWDBIYCDHB7KGG5JW3OUQ2BSZCRHMPSRBA5AYQPKSPFH53DBX76
-#\\\|UIMT4MVK6WWGUI4IP5TNSEC54W37CKSVJBLEIWGMGBSOGQLHPWK \ / AMOS7 \ YOURUM ::
-#\[7]VLI6R5GYVQQQ5EMAESK6E5XYN4VIXCBTG6VXQGM4DS6JUPIA7OCI 7  DATA SIGNATURE ::
+#,,.,,,..,,,,,,,.,,..,.,,,,..,,,,,,,.,,,.,...,..,,...,...,..,,,.,,,,,,.,.,,.,,
+#BRKS6Y6VLVQV6CRJNY7KGRBPM6IP3VEKWWEDPQSN56UMFIYEDOEZLFYDSZKVENOCWJH52LRA3UIYY
+#\\\|KOSSDCL45W4SUELV7RGR2GMHKLIDXQAKTE2MI3AODDTDBCJQ3IG \ / AMOS7 \ YOURUM ::
+#\[7]BCQ432PDC27JRMUUBSE3Y2LKGBRSV75FNKIPDQYVJYXUHPJKRIAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
