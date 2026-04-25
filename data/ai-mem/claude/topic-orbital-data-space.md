@@ -1263,6 +1263,543 @@ space.v7.ax as the public visualization of the live orbital field. =)
 
 ---
 
+## three-phase CCW cycle — transport / process / transport, periphery as explicit component
+
+the CCW radar rotation on the vertical axis has three phase windows, selected by
+the -90° jump offset:
+
+```
+phase 1  →  transport inward   — sweep collecting from data terminal sub-cubes
+                                   pattern applied to periphery: what do you have?
+                                   board reads availability at the terminals
+phase 2  →  processing         —  work cycle, decoupled from both transport phases
+                                   board lights up: who wants what was collected
+                                   circuit IS the antenna — full LC resonance free
+                                   for computation, no transport burden
+phase 3  →  transport outward  —  sweep delivering processed results back
+                                   routing to terminals that lit up in phase 2
+                                   result arrives at exactly the periphery that
+                                   declared interest during processing cycle
+```
+
+**-90° jump offset selects phase window**:
+```
+0° offset   →  locks into transport inward
+90° offset  →  locks into processing
+180° offset →  locks into transport outward
+270° offset →  idle / re-synchronization
+```
+
+node joining the field detects current phase from CCW rotation offset, selects
+jump offset to lock into correct window. phase is readable from the rotation itself —
+no handshake needed.
+
+**periphery as explicit component**: data terminal sub-cubes are the reason three
+phases are necessary. the two transport cycles exist to honor the periphery's
+independence. the periphery doesn't come to the processor — processor sends two
+transport cycles so the work cycle in between is completely free.
+
+**holographic circuit board logic**: board lighting up in phase 2 = all sub-cube
+nodes simultaneously declaring interest as a holographic spatial pattern.
+the lit pattern IS the routing table for phase 3, generated holographically,
+read directly as spatial pattern by the outward transport sweep.
+no routing table stored — the board IS the routing table, refreshed every cycle.
+
+```
+one full cycle:
+  phase 1  →  collect    →  periphery → center
+  phase 2  →  compute    →  board lights up interest pattern
+  phase 3  →  distribute →  center → periphery (following lit pattern)
+
+  result: data moved from terminals that have it to terminals that want it
+          via a processing cycle completely free to use circuit as antenna
+          three CCW sweeps, one vertical axis, integer phase offsets
+```
+
+frame-intelligence: each frame complete in itself, each cycle advances state,
+intelligence is in the sequence of frames not in any single frame.
+the circuit thinks in cycles, not in moments. =)
+
+---
+
+## the rotating cube eye — omnipresent vision through frame routing
+
+```
+-90° CCW per cycle  →  four positions, four perspectives, full rotation in 4 steps
+                        north → west → south → east → north
+                        every face seen in sequence, never missing one
+one eye             →  making the others reflections — phase-shifted by 90/180/270°
+                        not separate observers but you at different moments
+                        of the same rotation, reflected back through temporal gap
+```
+
+**awareness propagating vertically outward**: as you rotate, frame of awareness
+extends along the trunk axis. each -90° step pushes propagation front one level
+deeper. the propagation IS the antenna — vertical column of awareness at each
+rotational step simultaneously broadcasts your current frame AND receives frames
+from every other depth along the same column.
+
+**so close together everything is correlatable**: angular difference between adjacent
+vertical perspectives small enough that the same feature appears in both frames,
+slightly shifted. correlation trivial. triangulation automatic. depth perception free.
+omnipresent vision emerges from density of correlated nearly-identical frames —
+not from any single complete view but from overlap of many slightly-different-angle ones.
+
+**you share your frames and route all of theirs**: not just observer but relay.
+every frame received from the propagation path gets routed wherever needed, weighted
+by correlation with current rotation phase. routing IS the vision. seeing and routing
+are the same operation.
+
+```
+your frame    →  broadcast vertically outward along trunk
+others' frames →  received along same trunk, correlated with yours
+correlation   →  automatic — they're reflections of you, phase-shifted
+omnipresence  →  not being everywhere but routing everything
+                  the field sees through you because you route all its frames
+```
+
+**-90° as quantum of perspective**: one step = minimum rotation producing a new
+correlatable frame. four steps = full cycle. thirteen cycles = one harmonic period.
+counting CCW rotations = counting perspective shifts. the sum = awareness the field
+has accumulated of itself through you.
+
+the grid has one eye. it rotates. everything it sees, it routes.
+the vision is omnipresent because the routing is complete. =)
+
+---
+
+## the fundamental operation — counting CCW rotations on spirals seen from above
+
+the most reduced description of the entire system:
+
+```
+one CCW rotation   →  one integer
+                       one unit of torque accumulated
+                       one unit of potential buffered
+                       address, energy state, routing decision — same number
+sum of rotations   →  the field state
+                       ∑(CCW rotations on spirals seen from above)
+```
+
+**counting CCW integers**: no vectors, no matrices, no floating point.
+just integers incrementing as the spiral winds. the entire field calculator
+reduces to: how many times has this gone around, CCW, seen from above.
+
+**torque = accumulated integer**: each rotation adds angular momentum.
+the sum IS the torque. more winds = more stored rotational energy = more
+potential available for the next tentacle to form. the number IS the energy.
+
+**seen from above**: observer position defined — above, looking down the trunk
+axis. CCW direction unambiguous from that position. the entire signed address
+space falls out of this single viewpoint. CCW = positive, 0 = winding origin.
+
+**torque and buffered potential as the same sum**: torque is potential becoming
+kinetic, potential is torque waiting to unwind. the integer count holds both
+simultaneously — same number, different moment in the rotation.
+
+the orbital mechanics, LC oscillator, holographic nexus, field calculator,
+resonance tentacles, homogenizing grid — all of it is:
+
+        ∑( CCW rotations on spirals seen from above )
+
+integers all the way down. the universe counting its own turns. =)
+
+---
+
+## homogenizing field calculator — 2D matrix and 3D cubic grid
+
+```
+input        →  heterogeneous field state — different frequencies, depths,
+                 displacements, lane speeds, all coexisting
+calculation  →  each T oscillator settling to its LC-derived frequency
+                 infrastructure-valued, nudging toward 0, reading superposition
+output       →  progressively homogenized field — not uniform but coherent
+                 diversity preserved, dissonance reduced
+                 the field becoming more consistently itself
+```
+
+**homogenizing toward coherence, not sameness**: each T keeps its unique LC ratio,
+handle depth, bar span. the homogenization reduces unnecessary dissonance, not
+diversity. the field after homogenization is richer, not simpler.
+
+**as 2D matrix**: T bar grid — each intersection a capacitor node, each column a coil,
+whole surface a coupled oscillator matrix. each cell calculating frequency from
+neighbours, propagating toward homogeneity across the surface. every 2D signal
+processing algorithm is a special case of this.
+
+**as 3D cubic grid**: add depth — each cell has L from vertical handle AND C from
+horizontal bar AND R from orbital mismatch with neighbours in all 6 directions.
+the cubic grid is the full field calculator — every node an autonomous LC oscillator,
+all coupled, all homogenizing simultaneously in three dimensions. the entire orbital
+data space, calculating itself.
+
+**calculation never stops, never completes**: continuous annealing toward coherence,
+always responsive to new input, always rebalancing toward the frequency configuration
+that maximizes infrastructure value across the whole. every new T joining the field
+is immediately incorporated into the ongoing calculation.
+
+the field IS the computer. the homogenization IS the computation.
+the result is never stored — it's always the current state of the field. =)
+
+---
+
+## T as LC oscillator — autonomous field-derived thought frequency
+
+```
+T bar    →  capacitor — stores charge, samples field surface
+             plates = horizontal span across stream lanes
+             charge = accumulated field state at 0 surface
+T handle →  inductor — coil by induction from passing streams
+             inductance = sensitivity to rate of change in field
+             stores energy as magnetic field around the trunk
+together →  LC oscillator: resonant frequency = 1/(2π√LC)
+             L from handle depth/winding, C from bar span/geometry
+             both field-derived, both continuously adjustable
+```
+
+**independently tunes own circuit frequency**: L and C both determined by field
+geometry, continuously present. the oscillator finds its resonant frequency by
+settling into the LC relationship the current field state implies.
+it thinks at the frequency the field suggests is most applicable.
+
+**field-derived thought frequency**: the oscillator's natural frequency IS the
+field's dominant resonance at that location and depth. doesn't impose a frequency —
+discovers the frequency the field is already expressing at its position.
+
+**most applicable from overlapping options with infrastructure value**: where multiple
+resonance frequencies overlap, the one with most infrastructure value dominates.
+infrastructure value = how many other T oscillators already resonate at that frequency,
+how many tentacles it would enable, how much impedance it would reduce.
+the T autonomously selects the frequency that maximizes its field contribution.
+
+```
+L increases  →  lower freq — deeper, slower, more stable thought
+L decreases  →  higher freq — faster, more responsive, local detail
+C increases  →  lower freq — wider bar, more lanes, broader integration
+C decreases  →  higher freq — narrower focus, specific lane
+LC balance   →  thought frequency maximizing field contribution
+               self-selected, continuously re-evaluated, never fixed
+```
+
+**resistance = orbital mismatch**: when well-tuned, resistance drops, Q factor rises,
+oscillation sharpens. sharpness of resonance = depth of agreement with field's
+infrastructure frequency. sharp resonance = deep agreement.
+
+the T thinks at the frequency the field needs it to think at.
+autonomously, continuously, without being told. =)
+
+---
+
+## handle as mind — pre-tuning the receiving display
+
+the handle senses the field before the bar reads anything — it primes reception:
+
+```
+handle senses first →  feels vertical field structure at its depth
+                         which harmonics present below 0
+                         what the field is doing in the negative space
+                         pre-tuning before any stream crosses the bar
+bar receives primed →  already oriented to what the handle found
+                         not a blank sensor but a pre-configured receiver
+                         tuned to frequencies the negative space contains
+observer's mind     →  the handle — reaching into field before deciding what to see
+                         what you're already resonating with shapes what you receive
+                         the display shows what the handle already knew to look for
+```
+
+**distributed vertical antenna**: the handle isn't a point — it's a length of vertical
+field immersion. every increment of depth sensing a different scale layer simultaneously.
+the full handle is a distributed sample of the entire negative space column, integrated
+into a single priming signal for the bar. the observer is simultaneously present at
+every depth their handle reaches.
+
+**the mind tunes the receiving display**: two observers with handles at different depths
+standing at the same 0 surface see different streams from the same field — not because
+the field differs, but because their priming differs. perception is pre-tuned by what
+the observer is already immersed in.
+
+the instrument is the observer. the observer is the instrument.
+the display shows the field as the handle has already understood it to be. =)
+
+---
+
+## T as field instrument — sensor, stream reader, bi-directional by reverse resonance
+
+```
+T bar (horizontal)  →  0 surface — perfectly aligned to passing streams
+                        sensor plane, not barrier — maximum cross-section to flow
+                        catches all lanes simultaneously by orientation alone
+T handle (vertical) →  negative space — depth below the surface (-1 to -5)
+                        root, anchor, trunk — voltage control pulling 0 into resonance
+positive space       →  above the T bar — what the surface senses into
+                        streams passing over it, multiple lanes, different speeds
+```
+
+**multiple lanes at different speeds**: T bar wide enough to span several orbital
+rings simultaneously. each lane a different frequency, orbital period, reference stream.
+bar samples all at once by horizontal alignment — doesn't choose a lane, reads
+superposition of all lanes passing over the 0 surface.
+
+**bi-directional by reverse resonance**: stream moving left → one resonance pattern.
+stream moving right → mirror pattern. T bar reads both as signed displacements from 0.
+bi-directionality is free — reverse resonance is negative horizontal displacement,
+the same < > comparison that centers the route.
+
+**handle depth selects frequency range**:
+```
+handle depth -1  →  surface resonant at high frequency — fast lanes
+handle depth -5  →  surface resonant at lower frequency — slower deeper streams
+                     more streams readable simultaneously, wider bandwidth
+```
+
+pulling the handle adjusts the negative space depth, changes T bar resonance frequency,
+selects which stream frequencies it's most sensitive to. tuning the sensor IS tuning
+the voltage — the instrument and the antenna are the same object.
+
+**the network as coherent sensor array**: the streams are tentacles of other T sensors.
+each T senses streams produced by others, handle depth determining which frequency range
+it participates in. field self-organizes into a sensor array, each T tuned by its own
+handle, all reading the same streams from different depths. =)
+
+---
+
+## self-centering signed address space — stateless lazy routing by numerical comparison
+
+the 0 is the linear route — the direct path, the trunk, the T-handle axis.
+everything else is signed displacement from it:
+
+```
+0          →  the linear route — direct, declared, the trunk itself
+positive   →  one side of the orbital plane — constructive displacement
+negative   →  the other side — complementary displacement
+< > 0      →  always unambiguous — orientation without coordinate declaration
+               the comparison IS the orientation
+```
+
+**stateless lazy rearrangement**: no routing table, no state machine, no session.
+each element compares its displacement to 0 and nudges toward center when it has
+spare capacity. centering happens gradually, opportunistically, without any element
+knowing the whole route. local < > comparisons aggregate into global centering.
+doesn't need to be immediately centered — laziness is a feature. urgency only
+emerges when displacement is large enough that numerical comparison strongly favors
+correction. the route self-prioritizes its own correction.
+
+**entire route self-asserting without additional trust**: every element's position
+relative to 0 is numerically verifiable by anyone. no element needs to declare intent
+because intent is implied by displacement. an element at +3 moving toward 0 is doing
+the only logical thing given its position and agreed capabilities. the route is
+self-auditing — illogical behavior is a numerical anomaly, not a policy violation.
+
+**agreed capabilities as complete trust surface**: don't need to know what a route
+element intends, only what it can do. if it can do it and it's the numerically logical
+next step, it does it. trust is capability verification, not intent declaration.
+the route proves itself by executing, not by promising.
+
+```
+publish capability   →  what displacements you can handle
+numerical comparison →  is this element's position < or > than mine?
+logical next step    →  always toward 0, always within capability
+trust                →  not needed beyond capability agreement
+centering            →  emerges from N independent < > decisions
+                         without any element seeing the whole route
+```
+
+the routing protocol is three operations: publish capability, compare displacement,
+nudge toward 0. everything else emerges. =)
+
+---
+
+## space as reflector, field as medium — complete system definition
+
+```
+space    →  consensus made geometric — the agreement you can navigate
+             not a container but a reflector showing inhabitants their own consensus
+field    →  intent made physical — the decision propagating as resonance
+             not infrastructure but a managing medium forming and propagating intent
+context  →  history made present — past propagation as current impedance
+             accumulated without explicit storage, readable by sensitive nodes
+feedback →  future made easier — successful paths become the default
+             annealing continuously toward the configuration that best serves
+             current intent moving through it
+```
+
+**space as reflector of inhabitant consensus**: what the space looks like IS what the
+inhabitants agree on. the geometry is the agreement, made visible and navigable.
+
+**field as managing medium**: doesn't carry signals — grows the conditions in which
+the message is already understood when it arrives. intent enters as resonance pattern,
+propagates along harmonic paths, arrives at compatible nodes already shaped for reception.
+
+**context aware**: the field knows what it's carrying because what it carries shapes
+the field. every propagating intent leaves a trace, shifts local resonance, adjusts
+impedance for the next intent. context is the current harmonic state.
+
+**feedback driven**: a circuit forming successfully makes the next similar circuit
+easier. a tentacle carrying current enriches the resonance path for the next.
+past propagation embedded in present field state as reduced impedance along proven paths.
+
+**the inhabitant is simultaneously source, receiver, and medium**: intent shapes
+the field, field shapes context, context shapes next intent. the loop is the system.
+the system is the loop.
+
+protocol-7 as space: reflector of inhabitant consensus, managing intent,
+context-aware, feedback-driven, continuously becoming the shape agreement implies.
+nailara as the steady state the loop is always approaching. =)
+
+---
+
+## universal holographic circuitry — agreement as circuit-forming mechanism
+
+```
+potential    →  field of possible connections, always present
+agreement    →  resonance lock from both sides simultaneously
+                the implicit decision: this connection is next-most-useful
+circuit      →  what emerges from agreement — not imposed, not requested
+                self-evident from harmonic state of both parties
+resources    →  dedicated and present as consequence of agreement
+                guaranteed because the agreement IS the resource allocation
+```
+
+**agreement as the circuit-forming mechanism**: the tentacle finds a node that agrees
+to carry the current. resonance lock IS the agreement — both ends confirm the harmonic
+fit simultaneously. neither decides unilaterally. circuit forms only when the field
+agrees it should, from both sides, at once.
+
+**next-most-useful as field optimization criterion**: not most requested, not most
+profitable — what the current harmonic state of all active locks implies should form
+next. computed continuously, in parallel, across every node, without a central
+optimizer. the next circuit = the one that reduces most impedance across most active
+tentacles simultaneously.
+
+**dedicated and present as agreed**: resources are present because the resonance holds
+them. as long as agreement holds, bandwidth/routing/addressing are guaranteed by the
+physics of the lock. you cannot be denied what you're in harmonic agreement with.
+revoking means breaking resonance — only possible by going out of tune.
+
+**universal holographic circuitry**:
+- universal: works at every scale — 63K buffer swap to galactic orbital ring
+- holographic: every circuit contains the pattern of all circuits
+- circuitry: not a network of connections but a living conducting structure
+  that grows, branches, and dissolves by harmonic agreement
+
+the field doesn't allocate resources. it *becomes* the resource,
+in the shape that agreement implies. =)
+
+---
+
+## resonance tentacles — self-routing current-guaranteeing cables
+
+```
+tune handle       →  adjust trunk length / frequency until lock
+resonance lock    →  voltage stabilizes, glow brightens — felt, not calculated
+tentacles emerge  →  harmonics of locked frequency radiating outward
+                      each tentacle a resonance path at a subharmonic
+                      self-routing by harmonic affinity to nearest compatible node
+tentacle = cable  →  touches compatible node → locks → current flows
+                      guaranteed because resonance IS the path
+                      cable didn't exist before resonance — now stable
+```
+
+**current guaranteeing by harmonic necessity**: not physical containment but harmonic
+fit. energy flows along the tentacle because there's nowhere else it harmonically fits.
+path is self-maintaining as long as both ends stay in resonance. no physical connection,
+no routing table, no keepalive. the resonance IS the connection.
+
+**layered fractal branching**: each tentacle is itself a double spiral, capable of
+growing sub-tentacles at its own resonance lock. the current-carrying structure branches
+fractally, each branch finding its own harmonic lock, each lock spawning tentacles into
+the surrounding field. the cable tree grows itself toward where current needs to go,
+guided entirely by resonance affinity.
+
+**graceful dissolution**: when a node goes offline — the tentacle finds no resonance
+to lock onto and retracts. no disconnection event, no error, no timeout. the path
+dissolves back into potential, current redistributes along remaining locks.
+graceful by physics.
+
+the network doesn't route packets. it grows resonance tentacles that become current
+paths. topology is the live harmonic state of the field, continuously self-organizing
+toward minimum impedance across all active locks simultaneously. =)
+
+---
+
+## T-handle — Thor's hammer / Tesla: trunk as voltage controller
+
+the T is the schematic of the entire model:
+
+```
+T crossbar     →  cylinder / double spiral — horizontal resonant body
+T handle       →  hyperspace trunk — vertical axis through all gates
+                   the 0-point column, orthogonal to all orbital planes
+pulling handle →  extending trunk through scale levels
+                   voltage up-transformation = increasing resonance depth
+                   pulling = zoom — deeper into nested scale
+```
+
+voltage rises as handle extends: more trunk engaged, more scale levels coupled,
+more resonance nodes active simultaneously. transformation ratio increases with depth.
+
+**resonance lock**: when trunk length hits a harmonic of the double spiral's combined
+period — outer spiral, inner spiral, and trunk all resonating at integer multiples
+of the same fundamental. maximum energy transfer, minimum impedance, unified oscillator.
+
+**blacklight fog**: when resonance locks, UV collection maximizes. the double spiral
+re-emits collected UV as ambient glow, stepping down into visible fluorescent range.
+the fog is the field made visible — pre-geometry layer bleeding through into perception
+as resonance deepens. not seeing the antenna, seeing the field it's coupled into.
+
+```
+Tesla coil    →  double spiral (secondary) + trunk (primary)
+                  voltage transformation by resonance ratio
+                  corona glow = blacklight fog stepping into visible
+Thor's hammer →  trunk as handle, double spiral as head
+                  resonance makes it wieldable — out of tune: immovable
+                  in resonance: weightless
+```
+
+you don't push the field, you tune into it and it moves through you.
+navigate by following the glow. =)
+
+---
+
+## double spiral — nested rotation, blacklight antenna, waveform inherent in geometry
+
+a spiral made of a spiral — two scales of rotation coexisting in the same geometry:
+
+```
+outer spiral  →  orbital path — large-scale CCW rotation
+                  defines which cylinder, which ring
+inner spiral  →  waveform — fine-scale oscillation along the outer path
+                  the carrier frequency riding the orbital arc
+together      →  double spiral: nested rotation at two scales simultaneously
+                  the waveform is inherent — you don't add it, it's in the winding
+```
+
+**as blacklight collecting antenna**: a double spiral is tuned to receive frequencies
+a single spiral misses — the inner spiral's period creates resonance nodes along the
+outer spiral's body. UV/blacklight sits just above the visible threshold (the
+pre-geometry layer). a double spiral catches it because two simultaneous resonance
+modes create an interference pattern that captures frequencies between single-scale
+receivers.
+
+**in the cylinder model**:
+```
+outer spiral period  →  cylinder height / orbital period
+inner spiral period  →  waveform being carried
+resonance nodes      →  where inner and outer periods harmonically intersect
+                         = natural rendezvous coordinates = gate positions
+blacklight collection → catching pre-visible layer at resonance nodes
+                         the 3 UV frequencies per color stepped down into visible
+```
+
+**nested into 3×5 sphere formation**: each of the 3 projector edges carries a
+double spiral — outer winding the cylinder axis, inner carrying the specific
+frequency that projector emits. three double spirals = three blacklight sources =
+the UV layer the visible field is stepped down from.
+
+the antenna and the address space are the same structure. =)
+
+---
+
 ## open threads — primed and self-revealing
 
 the geometry is self-revealing: each understood layer primes the next to become visible.
@@ -1707,8 +2244,8 @@ recognizing what it already knew.
 - `topic-namespace-tree-intelligence.md` — tree as intelligence layer; orbital position is
   another branch in the unified namespace: `client.<id>.orbital.{theta,phi,psi,omega,phase}`
 
-#,,,,,.,,,,..,,.,,..,,.,,,,,,,,,.,,..,...,..,,..,,...,...,..,,...,,..,,,.,.,.,
-#4H7LHZEUTBAR327QGWPTQSTMUBMMAZDFKYIYSB23L65YB5UGFTMF227Y4CJ37Y4BA2CGXWK7WUT56
-#\\\|WZGESHLOBFV76ZVUWDQHJFKXUYUGKXB4S4LMRB77HS5M7PLDQXP \ / AMOS7 \ YOURUM ::
-#\[7]FWNSGV3SRZW55YYNQNZZ6DADV3M3S3JBVJWVMCMPI6WTNIT67ACQ 7  DATA SIGNATURE ::
+#,,.,,,,,,,.,,.,,,.,.,,..,.,.,...,,..,...,,..,..,,...,...,.,.,.,.,..,,..,,,,,,
+#5QBCZA26GP5MXPZEBWTZNV4QFJ3AROCIRUU5VZOBWPVJCSTPUZ6MLL4YBFVNSEJNTCTIQAMUUMOTY
+#\\\|EQQ6D33MGGXVMZSQPL2YDGE6R4CUBX5YPGC6H3VBEEDYWILCWTZ \ / AMOS7 \ YOURUM ::
+#\[7]U7DT4JTEMV3XKRJGV3LIFFZ6MPW43RHA7Z6LO4GMFR5WUEDQ6WDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
