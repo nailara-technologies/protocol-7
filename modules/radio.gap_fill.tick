@@ -12,6 +12,12 @@ if ( not <radio.stream.icy>->{'is_jingle'} ) {
     $event->cancel;
     delete <radio.gap_fill.watcher>;
     <[base.logs]>->( 2, '[radio] gap filler: stopped [ track resumed ]' );
+
+    my $time_stamp = <[base.anum_log_time]>->( 5, TRUE );
+    <[base.buffer.add_line]>->(
+        qw| radio-jingle |,
+        join( ' ', $time_stamp, 2, 'gap fill ended' ), 2
+    );
     return;
 }
 
@@ -26,20 +32,35 @@ if ( not defined $n or $n == 0 ) {    ##  EOF  ##
     delete <radio.gap_fill.watcher>;
     <[base.logs]>->( 2, '[radio] gap filler: file ended' );
 
+    my $time_stamp = <[base.anum_log_time]>->( 5, TRUE );
+    <[base.buffer.add_line]>->(
+        qw| radio-jingle |,
+        join( ' ', $time_stamp, 2, 'gap fill ended' ), 2
+    );
+
     ##  optionally restart with another file  ##
     <[radio.gap_fill.start]> if <radio.stream.icy>->{'is_jingle'};
     return;
 }
 
 ##  push to listeners  ##
+my $before = scalar <radio.listeners>->@*;
 my @keep;
 for my $h ( <radio.listeners>->@* ) {
     push @keep, $h if <[base.stream.push]>->( $h, \$chunk );
 }
+my $after = scalar @keep;
+if ( $after < $before ) {
+    my $time_stamp = <[base.anum_log_time]>->( 5, TRUE );
+    <[base.buffer.add_line]>->(
+        qw| radio-stream |,
+        join( ' ', $time_stamp, 2, "listener removed :. $after" ), 2
+    );
+}
 <radio.listeners> = \@keep;
 
-#,,,,,,.,,,.,,,.,,.,.,,,,,,,.,..,,..,,,..,..,,.,.,...,..,,,,.,.,,,.,.,,,.,.,.,
-#2XZZ4T6KL426WF5H4OSE6G5RDI6S2KSDJO7VFM2XEVSN4CG73XR6RWI3DLV27IPJ47XVFT6KN7N5I
-#\\\|E6B6VAZG3T7PZZB65QJTVC2NC2B5W2RVXXC7O4DLGCSLWD6LNAU \ / AMOS7 \ YOURUM ::
-#\[7]XUJ7ZNEO7MALKJAUAOBH4B44M3J6TZ4K43YBB3IFVW6FCWI7SABI 7  DATA SIGNATURE ::
+#,,.,,...,,..,.,.,,,.,,,,,..,,.,,,,,.,,,,,,,,,.,.,...,..,,,.,,,.,,.,.,,..,..,,
+#FIGAJLJUGSN3PH4ZGZN2OECHXP7NFBZLFED3UVTY554VJTELEB2M3Q3Q4MM6Q72GERA4SAVSO2KSC
+#\\\|TACSDKEPT67JIZ5YRHFCSG2MJCYOBMK6CDJQ26B6FMSLVAHZORM \ / AMOS7 \ YOURUM ::
+#\[7]JNOTWFWCRXOYA2JLLGAK4Q7KD4N6UDFXNWIF35WFJEESMCPPZAAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

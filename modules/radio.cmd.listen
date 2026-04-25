@@ -28,6 +28,13 @@ if ( not defined $h ) {
 
 push <radio.listeners>->@*, $h;
 
+my $count      = scalar <radio.listeners>->@*;
+my $time_stamp = <[base.anum_log_time]>->( 5, TRUE );
+<[base.buffer.add_line]>->(
+    qw| radio-stream |,
+    join( ' ', $time_stamp, 2, "listener added :. $count" ), 2
+);
+
 <[base.logs]>->(
     2,    '[radio] listener added [sid=%d cmd_id=%d]',
     $sid, $cmd_id
@@ -35,8 +42,8 @@ push <radio.listeners>->@*, $h;
 
 return { 'mode' => qw| deferred | }
 
-#,,..,.,.,..,,,,,,..,,,..,.,,,,.,,,.,,...,,..,..,,...,...,.,.,.,,,,.,,,,.,.,,,
-#IJCC34PBYJGEMSKGICCOKZQGZ2QLIIKGEO2SC6J7RGFWFWFI2FHHNRTDJ2Q3FIN6DL3XE5FC4TM5M
-#\\\|PNDHTNK7LK3BMXEGAP3YXSZVHN3UJ7ICP6SOZFDQAAYVU33A7D5 \ / AMOS7 \ YOURUM ::
-#\[7]EDEM667V6VI4ABA3JFZXQQIYIG6YX2GRYPH23DESWYCF24EG2CCQ 7  DATA SIGNATURE ::
+#,,.,,...,,,,,,..,.,.,,,.,,..,.,,,,.,,,,.,.,.,..,,...,..,,,,,,...,.,,,.,.,..,,
+#YVYKS33U3RTGCCPNBCCJ533MXW7OFLZFPF7MSNXRKVQKEF6EJBHWVMQFVBAD27QE4CQSWJEY3LN5C
+#\\\|AZBZ5KCK453WDDJOSMTRNMES5EPCECICTDSAYFXJ5FHD5X366ON \ / AMOS7 \ YOURUM ::
+#\[7]GKL4POEMN22QILA3VHYJ2223Y5Y2OXWAXT4HUTRCRQ6KJMICNYAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

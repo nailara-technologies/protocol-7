@@ -10,6 +10,12 @@ my $delay = <radio.stream.reconnect_delay> // 5;
 
 <[base.logs]>->( 1, '[radio] reconnecting in %ds', $delay );
 
+my $time_stamp = <[base.anum_log_time]>->( 5, TRUE );
+<[base.buffer.add_line]>->(
+    qw| radio-stream |,
+    join( ' ', $time_stamp, 1, "reconnect scheduled :. ${delay}s" ), 1
+);
+
 <radio.stream.reconnect_watcher> = <[event.add_timer]>->(
     {   after   => $delay,
         handler => qw| radio.connect |,
@@ -19,8 +25,8 @@ my $delay = <radio.stream.reconnect_delay> // 5;
 ##  exponential backoff, capped at 77s  ##
 <radio.stream.reconnect_delay> = $delay < 77 ? $delay * 2 : 77;
 
-#,,,.,.,.,..,,..,,,,,,..,,.,.,.,,,,.,,.,,,..,,..,,...,...,.,,,.,,,.,,,,..,.,,,
-#ZP4JKNVEWYVYO7DOQGGEK57SAXGS3TFUFQVIZ7KOQ3TQAQOHYWOFO6IH3K2WNJMXD337BY7C73MBI
-#\\\|3ROVZO267WHAGKZS5GPV6UTST4BP6LZZJZYP7VHF3PZCYCRDBEF \ / AMOS7 \ YOURUM ::
-#\[7]JLMPZRPLBEQWVBE76O5OQNVHW7OSPJRCFVKBNRJH4XKJLSYHBACQ 7  DATA SIGNATURE ::
+#,,,.,.,.,,.,,,..,,,.,,..,,,.,,..,,..,.,.,..,,..,,...,...,,,,,...,,,.,...,,.,,
+#A3JZU5Z74NPNFWPSHIZIOEMX4YFWELRTWUCCRKV4YFGYEF7JFGIFAXTRSGLD3RKR3C3MDWCTDWN5K
+#\\\|WSD7LFAQTX5RHZQ7QVML26A3RE4YYXSAWDLSO7LZ4YW2UHWWQRB \ / AMOS7 \ YOURUM ::
+#\[7]7UUTFEBSCFPXEQLL2GCRM5NGTI5VKGKMW4VRUXF5P27LOL6NRIDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
