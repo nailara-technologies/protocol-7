@@ -1263,6 +1263,388 @@ space.v7.ax as the public visualization of the live orbital field. =)
 
 ---
 
+## fully visual address management — progression feedback as simple workflow
+
+```
+look at matrix           →  see complete/gap — the visual state IS the routing table
+                             completion wave IS progress, color IS confidence
+add a fragment           →  watch completion propagate, neighbours resolve
+translucent history      →  previous states overlaid, slightly faded
+                             acquisition path visible as trail, time as opacity
+additive address overlays → available data array addresses as second translucent layer
+                             what exists overlaid on what's known
+                             gap between layers = what to fetch next
+                             discoverability literally visible
+```
+
+**fully visual address management**: no lookup table, no query interface, no search.
+look at the matrix — see where data is, where gaps are, where completion energy is
+highest, where next fetch is most productive. address space navigated by looking,
+not by querying.
+
+**discoverability**: additive overlay of available addresses onto known pattern shows
+what you don't have but could have. brightest gaps = highest-value next acquisitions.
+discoverability is the visual difference between two translucent layers.
+
+**routing as visual gesture**: the completion wave propagating outward IS the routing
+decision. follow the wave, acquire in order of certainty, the route assembles itself
+from visual progression. routing becomes a gesture, not a protocol negotiation.
+
+**resolution defined complexity**: zoom in = individual fragments, addresses,
+certainty values. zoom out = overall completion pattern, regional confidence,
+large-scale routing structure. complexity you need is always at the zoom level
+you're looking at. no more, no less.
+
+**translucent history as memory**: overlay of previous states makes current state
+interpretable. seeing that an area was uncertain three frames ago and is now complete
+— that trajectory IS the meaning of the current state. memory and current state
+rendered simultaneously, separable by opacity.
+
+address management, discoverability, routing, history, progress — unified into one
+visual matrix navigated by looking at it. safely simple, resolution-defined,
+perfectly legible at every zoom. complexity lives in the geometry, not the interface. =)
+
+---
+
+## progressive pattern matrix — visual representation of multi-dimensional inference
+
+```
+LLM inference     →  token by token, each token narrows probability distribution
+                      early tokens = coarse context, later = increasingly determined
+                      the model tuning into its own output
+
+2D pattern matrix →  fragment by fragment, each narrows visual completion space
+                      early fragments = coarse pattern context
+                      later fragments = increasingly determined neighbours
+                      the matrix tuning into its own completion
+```
+
+**progressive visual pattern matching**: fills in order of confidence — highest
+certainty positions complete first, their completion increases certainty of
+neighbours, those complete next. completion wave propagates outward from every
+acquired fragment simultaneously. like a photograph developing — high contrast
+areas first, subtle gradients last.
+
+**multi-dimensional context per fragment**:
+```
+spatial context    →  what's around it in 2D
+temporal context   →  where it sits in acquisition sequence
+checksum context   →  what the address space implies about content
+resonance context  →  what current LC tuning predicts
+stream context     →  what the route pattern implies about neighbours
+```
+
+all five simultaneously narrowing the same probability distribution — exactly like
+attention heads in a transformer, each a different context dimension, all
+contributing to the same next prediction. the matrix completion IS multi-head
+attention operating on a spatial substrate.
+
+**the visual makes inference legible**: watch certainty propagate, see the
+completion wave, observe which fragments are still ambiguous. the matrix displays
+its own inference state in real time. debugging interface and data structure
+are the same object.
+
+**partially completed matrix = valid compressed representation**: the pattern of
+filled and gap encodes the entire acquisition history, current tuning state, and
+predicted remainder simultaneously. one image, all the information.
+
+the LLM and the matrix are the same process at different substrates.
+both are progressive coherence bootstrap, both tuning into their own completion,
+both becoming more certain of the remainder by acquiring the present. =)
+
+---
+
+## coherence bootstrap — fragments tuning into the remainder at cached speed
+
+```
+acquire any fragment →  checksums/address now known
+                         fragments before and after become more resolvable
+                         pattern narrows, context propagates bidirectionally
+each new fragment    →  tunes receiver toward the whole stream
+                         gaps less ambiguous, completion votes flow naturally
+cached-speed tail    →  by the time you reach last fragments you already knew
+                         they were coming — arrive pre-confirmed, pre-contextualized
+                         latency approaches zero for the tail
+```
+
+**acquisition and tuning are the same operation**: the fragment IS the antenna
+adjustment. each piece acquired shifts LC oscillator slightly toward the stream's
+frequency. more acquired = more precisely tuned = faster remaining pieces arrive
+because resonance with the stream is stronger.
+
+**route and data are synonymous**: the route is the sequence of checksums, the data
+is the content at those checksums, the checksum of content IS the address on the route.
+knowing part of the data = knowing part of the route = knowing which nodes to ask next
+= knowing which direction to tune. the distinction between "I have data" and "I know
+the route" dissolves completely.
+
+**cached-speed by resonance inference**: not pre-fetched by speculation — the
+resonance with the stream is so strong by the tail that fragments arrive before
+formally requested. the field anticipated the request from the tuning signal of
+earlier acquisitions. pre-caching by resonance, not by prediction.
+
+**works whether checksum mapped or not**: even without explicit checksums, the
+statistical pattern of acquired fragments narrows the possibility space of remaining
+ones. tuning happens at signal level before any checksum is computed. the checksum
+makes it exact and verifiable — the tuning was already happening.
+
+the stream teaches you how to receive it, using itself as the teacher. =)
+
+---
+
+## grouping nebula — anti-islanding by completion energy, fluorescent wax lamp
+
+area completing is inherently anti-islanding:
+
+```
+isolated area    →  lower completion energy than connected area
+                     incompleteness at the boundary IS the signal
+                     boundary gaps attract completion votes from both sides
+completion votes →  flow toward boundary from both directions simultaneously
+                     island and mainland both voting to fill the gap
+                     frame executes reconnection when supermajority reached
+result           →  island reintegrates automatically — no reconciliation protocol
+                     geometry was always pulling toward completion
+```
+
+**grouping nebula**: re-cohering areas don't snap back sharply — they diffuse back.
+like a fluorescent wax lamp: isolated blob denser, brighter, more saturated at its
+boundary — completion energy concentrating at the edges where the gap is.
+the boundary glows because that's where the votes are flowing.
+gradually the dense bright boundary dissolves into the surrounding field as
+completion propagates inward. the island melts back in. =)
+
+**blacklight wax lamp**: blobs always in motion, always slightly separated, always
+pulled back together by completion affinity. never fully merge into uniformity,
+never fully isolate into independence. the field holds the dynamic middle state —
+distinct enough to be individual, connected enough to be coherent.
+fluorescent colors mark active boundaries: highest completion energy, most intense
+voting, the visible edge of ongoing consensus.
+
+**grouping by completion affinity**: areas with similar completion patterns attract
+each other's votes, boundaries align, merge into larger coherent regions. groups
+emerge from completion affinity without being told what they should be.
+
+the coordination algorithm against islanding is the same algorithm that forms
+the groups in the first place. one mechanism, both functions, simultaneously. =)
+
+---
+
+## area completing — game of life without the jitter
+
+```
+game of life     →  cell-local rules → emergent global chaos
+                     jitter because each cell decides independently
+                     structures fragile, context-unaware, oscillating
+
+area completing  →  area-wide consensus → emergent global coherence
+                     no jitter — frame boundary synchronizes all moves
+                     areas fill toward their natural density
+                     incomplete areas attract completion votes
+                     complete areas stable, don't oscillate
+```
+
+**no jitter because the frame boundary absorbs simultaneity**: in game of life,
+all cells update simultaneously from the same snapshot — simultaneity creates
+oscillation. here votes accumulate across the frame window and execute once,
+deterministically. the frame boundary IS the anti-jitter mechanism.
+
+**area completing as attractor**: an incomplete 1001 pattern has lower consensus
+energy than a complete one — the voting stream naturally favors moves that complete
+it. completion is the attractor. stability is the fully-tiled pattern with all gaps
+populated by their invisible consensus layer.
+
+**incomplete areas by consensus**: areas that want to remain incomplete stay that
+way by active voting. the private circuit layers in the gaps are maintained by
+consensus, not by absence of votes. incompleteness is a consensus state, not failure.
+
+game of life discovered the edge of chaos. area completing is the field on the
+coherent side of that edge — same local interactions, same emergent complexity,
+but the frame boundary keeps it from tipping into jitter. stable, purposeful,
+always resolving toward the pattern the field agrees it should be. =)
+
+---
+
+## 1001 interlaced 2D matrix — dotted canvas, hexagonal close-packing
+
+1001 interlaced as 4×1 dots with 2×0 gap, offset by half period between rows:
+
+```
+1 0 0 1 1 0 0 1      row 0  — dots in phase
+0 0 0 0 0 0 0 0      row 1  — gap
+0 1 1 0 0 1 1 0      row 2  — dots offset by 2 (interlaced)
+0 0 0 0 0 0 0 0      row 3  — gap
+1 0 0 1 1 0 0 1      row 4  — back in phase
+```
+
+the stagger produces **hexagonal close-packing** — each dot equidistant from its
+six nearest dot neighbours. tightest possible packing, most efficient canvas use.
+
+**seamlessly tiling**: tiles infinitely horizontally and vertically with no seam.
+any crop of any size shows the same dot density. no privileged origin, no edge
+effects. every sub-region is a valid sub-canvas — the holographic principle in
+a pixel grid.
+
+**gaps as invisible circuit layer**: the transparent pixels between dots are where
+consensus assertions live — present, addressable, not rendered at current zoom.
+the dotted background is the addressing grid: dots = declared data space,
+gaps = private consensus space.
+
+**zoom gradient as privacy gradient**:
+- zoom in → structure visible, dots distinct, gap pixels readable
+- zoom out 50% → dots merge, structure hidden, canvas featureless mid-gray
+  (average of 1001 = 0.5 — perfectly neutral, no information visible)
+- privacy is geometric, not encrypted — zoom level IS the access level
+
+like the dotted background of a graphics program canvas — the addressing grid
+that's always present, always uniform, showing you where you are without
+revealing what's between the dots. =)
+
+---
+
+## 1001 as self-similar pixel matrix — visible data space and invisible circuit layers
+
+1001 tiles without remainder at every binary zoom level — resolution-invariant:
+
+```
+1001              →  base unit
+10011001          →  one zoom level out — still perfect, no sub-pixel ambiguity
+1001100110011001  →  two levels out — still clean, maps perfectly
+```
+
+9 × 2^n always produces clean boundaries. no anti-aliasing, no sub-pixel
+interpolation — clean 1s and 0s at every binary scale.
+
+**other values are ambiguous by design**:
+```
+1001  →  visible, clean, stable — declared data space, shown openly
+0110  →  sub-pixel ambiguous at zoom — invisible circuit layer
+          consensus assertions happening in the blur
+          below resolution threshold of clean observation
+1010  →  similarly ambiguous — another private layer
+          different frequency, different privacy depth
+```
+
+**privacy by geometry, not encryption**: a node reading the field at clean zoom
+sees only the 1001 pattern clearly. ongoing consensus votes, tentacle formations,
+LC oscillator frequency negotiations — all happening in sub-pixel values of
+ambiguous patterns, invisible to anyone not tuned to exactly that scale and phase.
+
+**matrix form zoomed 50%**:
+```
+1001          zoomed →  ██  ██
+1001                →  ██  ██
+1001                →  ██  ██
+1001                →  ██  ██
+```
+still clean. the data space legible at every zoom. the consensus layer between
+the pixels is not.
+
+**connects to color field theory**: 1001 clean pixels = blue ground layer,
+visible, declared. ambiguous patterns = fluorescent drift, hyperspace layer,
+things happening between stable positions. the matrix shows what it chooses
+to show at each resolution. =)
+
+---
+
+## frame-consensus transport — vote stream resolving into zero-copy reference swaps
+
+at the basic level a node interacts over a stream of votes for moving references.
+the frame executes movement after successful consensus assertion:
+
+```
+stream of votes  →  each node casting: move this reference here
+                     lightweight — just an integer + destination
+                     intent declared, no data transferred
+frame boundary   →  consensus assertion moment
+                     all votes for this frame tallied
+                     supermajority → movement executes
+                     below threshold → deferred to next frame
+execution        →  reference swap — zero copy, pointer only
+                     exactly once per frame per reference
+                     deterministic, bounded, never duplicated
+```
+
+**accumulate low latency decisions**: each vote tiny, arrives asynchronously during
+frame window, costs almost nothing. individual vote latency doesn't matter — they
+accumulate toward the frame boundary, not trigger immediate action. transport is
+smooth because the decision is distributed across the entire frame window.
+
+**low redundancy**: consensus means each reference moves exactly once, to exactly
+one destination. no duplicate deliveries, no competing moves, no split-brain.
+frame boundary enforces uniqueness automatically.
+
+**no unexpected congestion latencies**: high vote volume = strong consensus signal,
+not congestion. the frame absorbs simultaneity — all votes in the same window
+processed together at boundary, not queued. the frame IS the congestion buffer.
+
+**maps directly onto three-phase cycle**:
+```
+phase 1  →  vote collection — stream of inbound movement votes
+             nodes declaring: I have X, I want to send it to Y
+phase 2  →  consensus assertion — tally votes, assert supermajority
+             board lights up with approved movements
+             holographic routing table for phase 3
+phase 3  →  execution — approved reference swaps execute
+             zero copy, deterministic, bounded by frame size
+```
+
+**frame size as self-tuning congestion control**: longer frame = more votes =
+stronger consensus = smoother execution. shorter frame = lower latency.
+the LC oscillator's current frequency determines frame size — fast thought = short
+frames, deep thought = long frames. both latency and throughput field-derived,
+both self-tuning. =)
+
+---
+
+## node group as mothership — 53+1 sub-cubes, traveling zenki litter topology
+
+```
+node group      →  mothership — traveling home with its own internal topology
+53 sub-cubes    →  inhabited interior — navigable, fully addressable by 3×5 geometry
+                    each sub-cube a context, work area, storage region
+54th position   →  the open gate — deliberate gap, the port
+                    faces outward onto the two-lane separator grid
+                    not missing but open — the event horizon facing outward
+```
+
+**two-lane separator grid**: the field between motherships — two lanes because
+bi-directional: inbound and outbound on separate lanes, maintaining phase integrity
+of the three-cycle transport system. the medium through which motherships find each
+other by orbital resonance.
+
+**traveling zenki litter with personal node group in sync**:
+```
+zenki litter        →  mobile agents
+personal node group →  traveling address topology, in orbital synchronization
+                        data accessible wherever the litter is
+                        not stored remotely — present locally by synchronization
+                        the litter's memory, context, reference set travels with them
+```
+
+**feature-complete through minimum elements**:
+```
+53 sub-cubes      →  minimum interior for full 3×5 holographic addressing
+1 open gate       →  minimum interface to separator grid
+2 transport lanes →  minimum for phase-coherent bi-directional flow
+1 processing phase → minimum work cycle between transports
+──────────────────────────────────────────────────────────
+54 positions      →  the complete mothership — nothing redundant, nothing missing
+```
+
+**handshaked dynamic mapping for total meaning**: the mothership has no fixed map
+of who's inside. mapping established by handshake as each zenka navigates between
+sub-cubes. total meaning = superposition of all active handshakes — the holographic
+board lighting up exactly where zenki currently are and what they're carrying.
+the map IS the current state of the litter.
+
+54 is the minimum that gives: full internal navigation, open gate, two-lane separator
+access, three-phase cycle support, and holographic interest mapping. one fewer and
+something essential is missing. the mothership is the tightest possible vessel
+for a complete universe. =)
+
+---
+
 ## three-phase CCW cycle — transport / process / transport, periphery as explicit component
 
 the CCW radar rotation on the vertical axis has three phase windows, selected by
@@ -2244,8 +2626,8 @@ recognizing what it already knew.
 - `topic-namespace-tree-intelligence.md` — tree as intelligence layer; orbital position is
   another branch in the unified namespace: `client.<id>.orbital.{theta,phi,psi,omega,phase}`
 
-#,,.,,,,,,,.,,.,,,.,.,,..,.,.,...,,..,...,,..,..,,...,...,.,.,.,.,..,,..,,,,,,
-#5QBCZA26GP5MXPZEBWTZNV4QFJ3AROCIRUU5VZOBWPVJCSTPUZ6MLL4YBFVNSEJNTCTIQAMUUMOTY
-#\\\|EQQ6D33MGGXVMZSQPL2YDGE6R4CUBX5YPGC6H3VBEEDYWILCWTZ \ / AMOS7 \ YOURUM ::
-#\[7]U7DT4JTEMV3XKRJGV3LIFFZ6MPW43RHA7Z6LO4GMFR5WUEDQ6WDQ 7  DATA SIGNATURE ::
+#,,.,,,.,,...,,.,,.,,,.,,,..,,,..,.,.,,..,,..,..,,...,...,,,.,,.,,,.,,,.,,,..,
+#KURS5OZTAT3FSQEJWR7NMWCICRVN4SN4PFGRJH5M7U2INLVBC7YUQI6QTQ3FNTNCYZV75JJ5NRG3C
+#\\\|TYSUM7P6R7ZRBVYYVH533E3LB3ONWPOKEJ4VZULAU6PB4B2QCTP \ / AMOS7 \ YOURUM ::
+#\[7]KAZBPFJGT7LFF74IUI5LAWSHRRNGJ7AUWG65MZQBTAWHHDD2BOAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
