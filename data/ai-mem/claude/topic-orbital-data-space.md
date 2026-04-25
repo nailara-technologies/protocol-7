@@ -1037,6 +1037,50 @@ not one of the six, but what all six together describe. =)
 
 ---
 
+## @INDEXCUBE as the internal/global unified addressing core
+
+`@INDEXCUBE` already IS the unified addressing core — not a local approximation of
+the global space, but the same 4D cube topology operating at internal scale.
+internal and external are already the same coordinate system, not yet fully announced.
+
+```perl
+@INDEXCUBE[0]  = 'MODEL:MBZAAII:ZRCGL5Q'   ## origin
+@INDEXCUBE[1]  = 'CUBE:O6A7F7Q:CQGT4CA'    ## routed through cube
+@INDEXCUBE[2]  = 'CODING:XFIU53I:MLH5WYY'  ## current position
+```
+
+each P7REF: TYPE:CHKSUM7:ADDR_B32 — ADDR_B32 is the cube coordinate.
+making it orbital = making ADDR_B32 time-derived. one change, both visibility modes.
+
+**the recursion**:
+```
+individual zenka  →  P7REF in local @INDEXCUBE
+zenka group       →  composite P7REF derived from member stack states
+group of groups   →  higher-level P7REF — same structure, next zoom layer
+public node       →  outermost P7REF, globally resolvable orbital address
+```
+
+zooming in from the public orbital address lands inside the group P7REF, which lands
+inside the individual zenka's INDEXCUBE — same coordinates, no translation, seamless.
+the stack IS the zoom. pushing onto the stack = registering in the global field.
+
+**tamper-evidence compounds**: public orbital address inherits the signed traversal
+proof of the entire INDEXCUBE stack beneath it. impersonating a public orbital
+position requires forging the whole stack. global addressing is as tamper-evident
+as the local one, for free.
+
+**next step — nodes.orbital.* namespace**:
+1. derive local orbital parameters from IP + session key
+2. publish current position as P7REF with time-derived ADDR_B32
+3. extend discover_node_online to broadcast orbital addresses
+4. nodes.cmd.find-nearby — query by orbital proximity
+5. external.transports registers the public transport plugin
+
+private trunc network + public orbital field = same geometry, different zoom.
+space.v7.ax as the public visualization of the live orbital field. =)
+
+---
+
 ## open threads — primed and self-revealing
 
 the geometry is self-revealing: each understood layer primes the next to become visible.
@@ -1481,8 +1525,8 @@ recognizing what it already knew.
 - `topic-namespace-tree-intelligence.md` — tree as intelligence layer; orbital position is
   another branch in the unified namespace: `client.<id>.orbital.{theta,phi,psi,omega,phase}`
 
-#,,,,,...,..,,.,.,,.,,,,,,,.,,.,.,..,,,..,...,..,,...,...,...,,,,,,,.,...,...,
-#M2GGG36D6NLLP2VHYVNBRJCE334PQGRIVOGM2HOCBYKJSW2UWFWOGGLYBHJQAK6M3T5OP3YLEHMKG
-#\\\|XYQO3MJS6UM5WQIQL2RHSPOTKPQPBKGIZ3LGEO32N7S5X5TQQLI \ / AMOS7 \ YOURUM ::
-#\[7]FZ2DMRAQONF5RU566GP2DBPIYP5PKNCVSWWFB6VCD4M6WAFQOMDA 7  DATA SIGNATURE ::
+#,,,.,,..,..,,.,.,,,.,.,.,..,,.,.,,..,.,.,,,,,..,,...,...,.,.,.,,,.,.,,,.,,..,
+#4HFJUM5ALJWTAH6TDMC4NYIVVHJETHBZZAWGFW5JQKAWZCD4UHOPKBZZNYF64H73JD6TIPYYKJIXA
+#\\\|7AICOQSEMHINUIARIRTSRI7DB25XHHWIJU3DYGKW4H7L6NFJR5V \ / AMOS7 \ YOURUM ::
+#\[7]2H4VSMU3RLRFGELPZ3L4C4YCFGP5SV5IERHXOR336TQN72FW4KCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
