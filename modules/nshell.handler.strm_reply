@@ -1,0 +1,107 @@
+## [:< ##
+
+# name  = nshell.handler.strm_reply
+# descr = handle STRM protocol replies: open, chunk, close lifecycle
+
+my $reply = shift // return FALSE;
+
+return FALSE unless defined $reply;
+
+my $cmd    = $reply->{'cmd'}                       // '';
+my $args   = $reply->{'call_args'}->{'args'}       // '';
+my $cmd_id = $reply->{'call_args'}->{'command_id'} // 0;
+
+return FALSE unless $cmd =~ m|^STRM\b|;
+
+## get or initialise nshell stream state
+my $nshell_streams = $data{'nshell'}{'streams'} //= {};
+
+if ( $args eq qw| open | ) {
+    ## STRM open: unbounded
+    $nshell_streams->{$cmd_id} = {
+        'type'           => qw| STRM |,
+        'total_bytes'    => undef,
+        'received_bytes' => 0,
+        'started_at'     => <[base.time]>->(3),
+    };
+
+    <[base.logs]>->( 2, '[nshell] STRM open :. unbounded' );
+
+    ## brief status line on TTY
+    if ( -t STDOUT ) {
+        print "\r[ stream started ]\e[K\n";
+        STDOUT->flush();
+    }
+
+} elsif ( $args =~ m|^open\s+(\d+)$| ) {
+    ## STRM open: bounded
+    my $total_bytes = $1;
+
+    $nshell_streams->{$cmd_id} = {
+        'type'           => qw| STRM |,
+        'total_bytes'    => $total_bytes,
+        'received_bytes' => 0,
+        'started_at'     => <[base.time]>->(3),
+    };
+
+    <[base.logs]>->( 2, '[nshell] STRM open :. %d bytes', $total_bytes );
+
+    ## brief status line on TTY
+    if ( -t STDOUT ) {
+        printf "\r[ stream started :: %d bytes ]\e[K\n", $total_bytes;
+        STDOUT->flush();
+    }
+
+} elsif ( $args =~ m|^(\d+)$| ) {
+    ## STRM chunk: write raw bytes directly to STDOUT
+    my $chunk_data = $reply->{'data'} // '';
+
+    if ( defined $nshell_streams->{$cmd_id} ) {
+        $nshell_streams->{$cmd_id}{'received_bytes'}
+            += bytes::length($chunk_data);
+    }
+
+    print $chunk_data;
+    STDOUT->flush();
+
+} elsif ( $args eq qw| close | ) {
+    ## STRM close: clean up and reprint prompt
+    if ( defined $nshell_streams->{$cmd_id} ) {
+        my $stream = $nshell_streams->{$cmd_id};
+
+        <[base.logs]>->(
+            2,
+            '[nshell] STRM closed :. %d bytes%s',
+            $stream->{'received_bytes'},
+            defined $stream->{'total_bytes'}
+            ? sprintf( ' / %d', $stream->{'total_bytes'} )
+            : ' [ unbounded ]'
+        );
+
+        delete $nshell_streams->{$cmd_id};
+    }
+
+    ## reprint cursor prompt in TTY mode
+    if ( -t STDOUT ) {
+        my ($session_id) = keys <user.cube.session>->%*;
+        if (    defined $session_id
+            and defined $data{'session'}{$session_id} ) {
+            my $session = $data{'session'}{$session_id};
+            if ( defined $session->{'watcher'}{'stdin_handler'} ) {
+                $session->{'watcher'}{'stdin_handler'}->now();
+            }
+        }
+    }
+
+} else {
+    <[base.logs]>->( 1, '[nshell] STRM bad args :. %s', $args );
+    return FALSE;
+}
+
+return TRUE;
+
+#,,..,,.,,.,,,,,.,...,..,,,..,...,.,.,.,.,.,.,..,,...,...,,,.,,.,,,..,.,,,..,,
+#K3EYMLLSPNFH4NTUEDAS2YLH4RGG3ZADLODZTLY4CSVHEPT63663KOPPACBJJO23XN6SBVVYD7COS
+#\\\|AG3EFWEVYRDY7RPHKMA3OBN7OUURGDVG2BR6JJJOG7BA4VYF6EM \ / AMOS7 \ YOURUM ::
+#\[7]S2BDG7RI2V3NSMPU6N4XFVU44DYRBR5W45JOCD7TMQZKB7YHP2CI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

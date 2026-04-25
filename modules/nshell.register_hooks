@@ -28,6 +28,9 @@ unless ( defined $session_id and defined $data{'session'}{$session_id} ) {
     $session_id, 'unknown-reply-type', 'nshell.hook.unknown_reply_type'
 );
 
+## initialise nshell stream tracking state for STRM protocol support
+$data{'nshell'}{'streams'} //= {};
+
 ## suppress unknown-reply-route log messages for nshell's cube session
 ## nshell sends commands without reply routes (transparent relay), so receiving
 ## TRUE-reply to unknown route id is normal operation — not an error to log
@@ -41,13 +44,14 @@ $data{'session'}{$session_id}{'silent_reply_ignore'} = TRUE;
 
 <[base.log]>->(
     2,
-    'nshell: registered 2 message interception hooks (reply-route, reply-type)'
+    'nshell: registered 2 message interception hooks '
+        . '(reply-route [ incl. STRM ], reply-type)'
 );
 
 return TRUE;
 
-#,,,.,...,.,,,,,.,,,,,,,.,,.,,.,.,..,,,..,,,,,.,.,...,..,,,..,,..,.,,,..,,,,.,
-#5DVNPZK5M63WK4TKC4IEP6YG4EBO2GRPRRDPP2KLJ3747GBNPPH7JDXJITWCYNCAXCIHSFBLMEOCA
-#\\\|HE54CUXIOTN6BET4QLRO3P25KFIZBVGQTTYIODIT2XQ4M5FC7W2 \ / AMOS7 \ YOURUM ::
-#\[7]ICQWV3PJW2O4RJ2OJQWEFOPX5CRGBBCIFX5XYH3WQFZISW6XXMDI 7  DATA SIGNATURE ::
+#,,,,,,..,,,,,..,,..,,..,,,.,,,,.,,,.,.,,,,.,,.,.,...,...,.,.,..,,,,,,,.,,.,,,
+#NK3HMHJHHFIVPEBQQBXMXL5A363GC5ZQDEMFL65W5RYUT75CKXKFK7PVT4C4DO6L3GVNI3KQGSY34
+#\\\|JLD5IL3DWPSJYBLFJJO3NNDAVLFYA6FCVG2VY76FSMN6V3QL4FT \ / AMOS7 \ YOURUM ::
+#\[7]NEQZSERZGLQA4OQAOZHGHW5MFI6NKCMORUBE2O35UIPGX6PEUQAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
