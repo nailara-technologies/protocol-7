@@ -56,52 +56,36 @@ omitted [ pending protocol extension ].
                 └─ base.stream.gate          ← liveness / cancel check
                      └─ session output buffer
 
-## current state [ 2026-04-23 ]
+## current state [ 2026-04-25 ]
 
-stream cancel infrastructure complete (passes 1-3, session-close
-teardown, implicit !TERM! lookup, relay upstream propagation).
-transport registration layer not yet started.
-STRM-SIZE in base.handler.command still uses sync dump.
+### completed
+- **STRM cancel infrastructure**: passes 1-3 complete (`01b6be26e`);
+  session-close proactive teardown still deferred (open item)
+- **unbounded STRM**: working in practice — radio relay proves producer-driven
+  close with no pre-declared total. formal `open 0` sentinel not yet in protocol
+  spec but the stack handles it correctly for the relay case.
+- **base.stream-file**: implemented (`61688a279`) — idle-driven bounded file
+  streaming over STRM; exercises the full stack end-to-end.
+- **radio as first real consumer**: full STRM pipeline verified end-to-end
+  (ICY relay → STRM → httpd → curl/mpv) with cancel propagation working.
 
-## next implementation sequence
+### remaining
 
-### step 1 : STRM mode fix (prerequisite)
+**unbounded STRM protocol extension** — formal `open 0` / `open ?` sentinel;
+relax the `total > 0` assertion in base.stream.open; skip `received == total`
+check on close. spin a task when webcam/log-tail becomes concrete — not blocking
+anything currently.
 
-current base.handler.command treats STRM type same as STRM-SIZE
-(sync fragment-and-close with deferred route). original semantics:
-STRM open → route stays open → producer pushes chunks async →
-STRM close signals end. fix: when mode=STRM, keep route open after
-open frame and let producer drive close; do not use deferred-and-dump.
+**transport.register** — extract from radio.gap_fill + base.stream-file once a
+second consumer appears with similar idle/timer loop patterns. premature now.
 
-### step 2 : unbounded STRM protocol extension
+**webcam / log-tail relay** — depends on unbounded formal extension.
 
-current base.stream.open requires total > 0. for follow mode
-(audio, log tail), total is unknown at open time. extend protocol:
-total=0 in STRM open frame means unbounded; receiver buffers until
-STRM close arrives. base.stream.open guard needs relaxing for type=STRM.
+**How to apply:** next STRM consumer is the trigger to extract transport.register.
+unbounded extension needed for any open-ended feed (no known total at open time).
 
-### step 3 : transport.register implementation
-
-implement the API above; wire a timer-driven push loop per registration;
-handle gate-fail (stop + optionally !TERM! if upstream set).
-
-### step 4 : first real consumer — base.stream-file command
-
-command: `base.stream-file <path> [offset] [length]`
-streams a file to the caller over STRM; uses transport.register with
-filehandle source. replaces the sync STRM-SIZE dump for file content.
-this is the concrete motivating use case: bounded (size known), immediately
-useful, exercises the full stack without needing unbounded extension.
-
-**Why file-first:** bounded → no unbounded extension dependency; large
-file transfers currently block the event loop; clean testable end result.
-
-**How to apply:** implement steps 1-4 in sequence; test with
-`base.stream-file` as the integration target. audio/log-tail/webcam
-relay follow naturally once unbounded extension lands.
-
-#,,.,,,.,,,,.,.,.,.,,,,..,..,,.,.,...,,..,...,..,,...,..,,...,,,.,.,,,..,,,..,
-#4DZVLIG75MKZCABQESZ7YKRCBY7G7F5SLYGTUUNENGOUIDP7QRS5L6TCID5K6KOXZQW2O6XTUPMNG
-#\\\|WTLJ2U77O3JOBRQ3ARFCZB4QG4CKJLODPUHDUQ3ODQYU6W7RJ6S \ / AMOS7 \ YOURUM ::
-#\[7]NJEAGMLKHHMB55CGOWH5RU5P6C5DIRSQPIIHIPBXUMTITQ6PJYCY 7  DATA SIGNATURE ::
+#,,,.,.,.,,,,,.,.,,,.,.,.,...,...,...,..,,,,.,..,,...,...,...,...,...,...,,,,,
+#XSZ6FII46IJT6TII5IFXFHDTXQUM5Q6C75FWV4I27AW2OIIJUUXC732CXLTFGSPGCMC2GXHFY4CCK
+#\\\|W4F2FB3ZVUGXSI4S4EL2C5OS4XGOHJQQG62WUYQ5HYIQ6YUKSTU \ / AMOS7 \ YOURUM ::
+#\[7]CXST7CFDDBYMCOWQ7WWCTPWIRCUX7TKQAKCBFMCQ4CSZEGH7TECA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

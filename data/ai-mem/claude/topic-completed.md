@@ -1,5 +1,45 @@
 # Completed Work Sessions
 
+## radio zenka — full stack + resilience (Apr 23-25 2026)
+
+### base infrastructure (Apr 23, commit `61688a279`)
+- `event.add_idle` helper added to base event API
+- `base.stream-file` command: idle-driven streaming of a file over STRM to caller
+  (bounded, non-blocking, exercises full STRM stack without unbounded extension)
+
+### radio phases 1-4 (Apr 23-24, commits `9c4875214`–`707415c7b`)
+- **phase 1** (`9c4875214`): ICY stream reader + unbounded STRM relay to listeners array
+- **phase 2** (`dc9243962`): jingle detection (radio.filter.jingle) + skip/keep commands
+- **phase 3** (`498a12c73`): keep-library accumulation + gap filler (idle watcher, since replaced)
+- **base** (`cf2f6c023`): local STRM consumer primitive (base.strm.local.register/cancel/consume)
+  + recv-test dev tool (base.strm.callback.recv_test)
+- **httpd bridge** (`b6e20ce10`): plugin.httpd.radio.* — /radio/stream HTTP endpoint, per-client
+  radio.listen STRM subscription
+- **TCP rewrite** (`f388f8674`): replaced curl subprocess with base.open ip.tcp + IO::Socket::SSL
+- **phase 4** (`707415c7b`): mpv[audio-0] background player via v7.start_once + v7.notify_online;
+  fade-in to configured volume; TLS connect + strm_open guard on route collapse
+
+### STRM cancel + cmd_id fixes (Apr 25, commit `01b6be26e`)
+- `base.session.cancel_route`: sends `($cmd_id)!TERM!\n` to target on consumer disconnect;
+  sets stream_cancelled + cleans stale route entry — prevents cube undef-deref crash
+- cmd_id format fixed: `sprintf '(%d)'` (no trailing space) in base.handler.command,
+  base.stream.open, base.stream.emit, base.callback.cmd_reply
+- mpv command renames: add_file→append-play, mpv_pid→pid, is_idle→is-idle,
+  get/set_speed/volume→get/set-speed/get/set-volume
+
+### radio resilience refactor (Apr 25, commit `a4154a294`, kimi task radio-resilience)
+- **reconnect**: exponential backoff (5s→60s) via radio.handler.reconnect; guards double-schedule
+- **gap_fill pacing**: replaced Event->idle with 1s repeating timer; chunk 65KB→16KB (~128kbps);
+  fixes "stopped suddenly" mpv disconnect caused by STRM buffer overflow
+- **mpv offline handling**: radio.audio.handler.player_offline clears active flag, re-inits after 3s
+- **post-hoc jingle detection**: tracks under min_track_seconds trigger gap_fill retroactively;
+  magicstreams/PsyNdora added to filter patterns
+
+### verified working end-to-end
+- TLS connect → ICY parse → jingle filter → gap_fill → STRM relay → httpd → mpv/curl
+- STRM cancel on client disconnect propagates correctly back to radio producer
+- mpv[audio-0] starts automatically, survives v7 restart and reconnects within 3s
+
 ## graphics-matrix critical path — 36 modules in 6 kimi tasks (Apr 16 2026)
 Full critical path implemented via kimi task dispatch (bin/kimi-task -next):
 - Task 1 (82bbf70): cursor namespace bridge — 7 modules (cursor.init/move/position/set/checksum, cmd.cursor, cmd.cursor-state)
@@ -155,8 +195,8 @@ zenki-create/zenki-feature-port/footer-cleanup templates added.
 - philosophy: ETERNAL-TEMPLATE-KITTEN.md (deduplication tree crystallizes truth, kitten as template process)
 - Commits: 98743c227 through 30bbd31b4 + fe3d3a295
 
-#,,.,,..,,,,,,...,..,,..,,,..,..,,..,,,.,,.,.,..,,...,...,,..,.,,,,,.,.,,,,.,,
-#V47IRHWGVF2VGR6WELZG3YNF2WU23W6MAW2EGUOVNF3CUSYQU225K2LRJYTRXFRL4S6YV6J3QAIWC
-#\\\|W4MY5DAMOAQHYJKKPGB7DOE3RSFHCDQXXATOE764PIHCCDNMC6R \ / AMOS7 \ YOURUM ::
-#\[7]EOJV7P76JU63GZKHEB7AA4M3L5R3TG4LVV4QQFYMPYH6ZXXCAKAQ 7  DATA SIGNATURE ::
+#,,,,,...,..,,,,.,,..,,..,..,,.,.,.,,,,.,,.,,,..,,...,...,,..,,,.,.,.,.,,,.,,,
+#XL3AHBGW7YKIAIGPDHCZL37BVV4JSFQCMRQGCLPM23IXVNAJAZEJQ4CSISCRSER3TRCZ4R44KTQPS
+#\\\|PJSEFRM2X6H2OYCV3H4XTJIRLYDEOBZ2VW2Z2NTAFMRSU72XUEE \ / AMOS7 \ YOURUM ::
+#\[7]X5P4LFW2LL5U53LZ3IJGS6G4KFSXVR44E42BB3DVZ7BYIYGD6QAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

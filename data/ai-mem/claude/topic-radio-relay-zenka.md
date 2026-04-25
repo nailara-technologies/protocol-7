@@ -58,37 +58,13 @@ fixed to `sprintf '(%d)'` in all four files.
 - mpv[audio-0] starts automatically on radio startup, fades in to 70% volume
 - STRM cancel on disconnect now works end-to-end
 
-### remaining issues / next task (kimi task file written)
+### resilience refactor — COMPLETE (Apr 25 2026, commit `a4154a294`)
 
-see: `data/yaml/coding-tasks/radio-resilience.yaml`
-
-1. **no reconnect on ICY stream drop** — `stream-chunk` closes socket + cancels watcher
-   on EOF/error but schedules nothing. radio sits silent forever after any network hiccup.
-   need reconnect timer with backoff (5s → 15s → 30s → 60s cap).
-
-2. **gap_fill idle watcher causes buffer overflow** — `Event->idle(repeat=>1)` in
-   `radio.gap_fill.start` runs as fast as the event loop allows, pushing 65KB chunks
-   with no rate limiting. fills STRM buffer (lc->{'buf'}) faster than mpv drains it.
-   when buffer exceeds 4MB overflow threshold in strm_open watcher, mpv listener is
-   cancelled → playback stops. THIS IS THE "STOPPED SUDDENLY" BUG.
-   fix: replace idle watcher with a repeating timer at audio bitrate rate
-   (e.g., 100ms interval reading ~16KB chunks for ~128kbps streams).
-
-3. **mpv state not tracked** — `radio.audio.active` set to 1 in player_online but
-   never cleared. if mpv crashes/restarts, radio sends fade/volume commands into void.
-   fix: new `radio.audio.handler.player_offline` module, register with `v7.notify_offline`
-   in `radio.audio.init`, clears `radio.audio.active` and re-queues `radio.audio.init`.
-
-4. **jingle filter only pattern-based** — `radio.filter.jingle` matches title patterns
-   but duration heuristic (`< min_track_seconds`) is computed and logged but never feeds
-   `gap_fill`. short tracks not matching patterns play through.
-   improvement: use post-hoc duration to inform gap_fill retroactively on confirmed
-   short tracks, or add duration-based confidence scoring.
-
-5. **fade timing issues** — sometimes inverted, fades during silence, fades in remaining
-   jingle tail. these are downstream of gap_fill timing being wrong (#2) and jingle
-   detection boundaries being off (#4). will naturally improve once #2 and #4 are fixed.
-   no need to tune fade logic independently.
+all issues fixed via kimi task `radio-resilience`:
+1. **reconnect**: exponential backoff 5s→60s (radio.handler.reconnect); guard against double-schedule
+2. **gap_fill pacing**: 1s repeating timer; chunk 65KB→16KB (~128kbps) — "stopped suddenly" bug eliminated
+3. **mpv offline**: radio.audio.handler.player_offline; v7.notify_offline in audio.init; re-inits after 3s
+4. **post-hoc jingle**: tracks under min_track_seconds trigger gap_fill; magicstreams/PsyNdora in filter
 
 ### key config
 
@@ -117,7 +93,7 @@ when socat/direct client disconnects:
     internet radio (HTTPS/Icecast) via TLS socket
       └─ IO::Socket::SSL → radio.handler.stream-chunk (Event->io)
            └─ ICY metadata parser → radio.filter.jingle
-                ├─ gap filler (keep-library idle watcher on jingle) ← NEEDS TIMER FIX
+                ├─ gap filler (keep-library 1s timer, 16KB/tick on jingle)
                 └─ STRM relay → radio.listeners array
                      └─ cube → httpd STRM consumer (base.strm.local)
                           └─ HTTP session output buffer → curl/mpv HTTP client
@@ -150,8 +126,8 @@ use mpv[audio-1] for crossfade on jingle/track transitions. task file:
 `data/yaml/coding-tasks/radio-phase4-mpv-audio-background.yaml` (already complete)
 dispatcher: kimi task `L45OX7I` (verify status first).
 
-#,,,,,..,,,.,,..,,..,,,..,.,.,.,,,,,,,.,,,,..,..,,...,..,,...,...,,,,,.,.,...,
-#6PCUT7HTRQ5IIUOBY4J2QX5FDZB65SS2QB7IJDFFJACQ3W74MB733QY7FHHC6Q7W4TFLT35ZGPTZ4
-#\\\|DKRQRAKZ47P7Z4HUSD22GRP3OFSCWB4TUJWXFO5R56FKGUMYSMC \ / AMOS7 \ YOURUM ::
-#\[7]GKS7U47MWMAN7F5WLVIBWV6S3W4ATML5JTIMZZNWXDSJQFE44KCQ 7  DATA SIGNATURE ::
+#,,,,,.,,,.,.,.,.,,,.,.,.,,,.,,,,,,,.,,,,,,..,..,,...,...,.,,,...,,..,.,,,..,,
+#IBPGCBFQDE65C5FK4ZUH6YVEXD6ISSDE7U3CRSMFGRLFWE77RNXE2JGJY4YXX6OAGURVWKQHGVLKO
+#\\\|5OO4DW4BJGZQPVC65XDRJQ4TZIFIHGWFNDM2IVD7J2ZOSLOZ3CU \ / AMOS7 \ YOURUM ::
+#\[7]J3OXOP3A6HT2YK5NIWEZFTLPY4TDTGCZV3IOOEBJZHCYBYWH5UDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
