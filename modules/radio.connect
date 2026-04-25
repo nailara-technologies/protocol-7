@@ -20,6 +20,12 @@ if ( defined <radio.stream.sock> ) {
 
 <[base.logs]>->( 2, '[radio] connecting to %s', $url );
 
+my $stream_log_ts = <[base.anum_log_time]>->( 5, TRUE );
+<[base.buffer.add_line]>->(
+    qw| radio-stream |,
+    join( ' ', $stream_log_ts, 2, "connecting to $url" ), 2
+);
+
 ##  parse http[s]://host[:port]/path  ##
 my ( $scheme, $host, $port, $path )
     = ( $url =~ m{^(https?)://([^/:]+)(?::(\d+))?(/.*)?$} );
@@ -47,9 +53,15 @@ if ($use_tls) {
         SSL_verify_mode => 0,
     );
     if ( not defined $sock ) {
+        my $reason = IO::Socket::SSL::errstr();
         <[base.logs]>->(
             0, '[radio] TLS connection failed: %s:%d [ %s ]',
-            $host, $port, IO::Socket::SSL::errstr()
+            $host, $port, $reason
+        );
+        $stream_log_ts = <[base.anum_log_time]>->( 5, TRUE );
+        <[base.buffer.add_line]>->(
+            qw| radio-stream |,
+            join( ' ', $stream_log_ts, 0, "connect failed :. $reason" ), 0
         );
         <[radio.handler.reconnect]>;
         return;
@@ -57,12 +69,24 @@ if ($use_tls) {
 } else {
     $sock = <[base.open]>->( qw| ip.tcp output |, $host, $port );
     if ( not defined $sock ) {
+        my $reason = $OS_ERROR // 'unknown';
         <[base.logs]>
             ->( 0, '[radio] connection failed: %s:%d', $host, $port );
+        $stream_log_ts = <[base.anum_log_time]>->( 5, TRUE );
+        <[base.buffer.add_line]>->(
+            qw| radio-stream |,
+            join( ' ', $stream_log_ts, 0, "connect failed :. $reason" ), 0
+        );
         <[radio.handler.reconnect]>;
         return;
     }
 }
+
+$stream_log_ts = <[base.anum_log_time]>->( 5, TRUE );
+<[base.buffer.add_line]>->(
+    qw| radio-stream |,
+    join( ' ', $stream_log_ts, 1, "connected :. $host:$port" ), 1
+);
 
 ##  set non-blocking for event-loop reads  ##
 $sock->blocking(0);
@@ -96,8 +120,8 @@ my $written = syswrite( $sock, $req );
 
 0;
 
-#,,,,,,.,,..,,,..,,,,,..,,...,.,,,..,,.,.,.,.,..,,...,..,,,..,...,...,..,,,.,,
-#YCY7DVVXI2W35Y3WRXRIQUYXBDJSFZNXCKRCX76IXDSBXYGA5HCG4W6DJJGS3SMN6ANQYBGFFQ5S6
-#\\\|ALZBALC2QHJ7RRLXISTIL3AXAQKE6UBBUILKOJT5BKVRFDEUOZO \ / AMOS7 \ YOURUM ::
-#\[7]OELXSCXXWK62LNXHE4CIXOXLB4M3AZETA3OPOGR7WL4M7MNQL6AY 7  DATA SIGNATURE ::
+#,,..,.,,,.,,,..,,.,,,.,,,,,,,.,.,,,,,.,.,,,,,..,,...,...,,,,,..,,,,.,.,,,,.,,
+#KG44IAAHRH3OLWCXCE35GPOM5ZBOXYYG4J3EZ7KXPFYQTKVDNARVQXDV3YJLEICPXFQTHEVA5FUDU
+#\\\|GVLRUA7QVGUD3Q3XJ3YAIPUAOX5RHXXTUKBEMPPHPGNYAOFBMGT \ / AMOS7 \ YOURUM ::
+#\[7]H3OHCI26TKZKXF5IMBUV7VG2D4YR7SGGNSV3BPSTS7VRZERCOGDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

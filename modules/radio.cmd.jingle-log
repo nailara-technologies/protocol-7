@@ -1,0 +1,21 @@
+## [:< ##
+
+# name  = radio.cmd.jingle-log
+# descr = radio jingle detection log buffer
+
+my $buffer = <buffer.radio-jingle.data> // undef;
+
+return { 'mode' => qw| size |, 'data' => '' }
+    if not defined $buffer
+    or ref $buffer ne qw| ARRAY |;
+
+return {
+    'mode' => qw| size |,
+    'data' => join( "\n", $buffer->@* ) . "\n"
+};
+
+#,,..,..,,,..,.,.,.,,,,..,,,,,,..,...,..,,...,..,,...,...,,,.,...,,,.,..,,,,,,
+#RYWTHAQ4INY2FLLA5K2S6ULSUGQX5LGXYG2ILEZNO6HHMVVG7NPQF5WCTJZSQJ5PLV7IT4CG4QFRY
+#\\\|FTNEBEFSFQBCWNTREJTQDHMFMGK5UMETPAZ3C7JO2BGDRJ3NF2I \ / AMOS7 \ YOURUM ::
+#\[7]YHAVTL4BBMMY4CNBYCGDMZQ2YJM3IPRYNHDC5GK4QTBFKE4W2EDQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

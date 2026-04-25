@@ -11,13 +11,20 @@ my $title = shift // '';
 ];
 
 for my $pat ( <radio.jingle.patterns>->@* ) {
-    return 1 if $title =~ m{$pat}i;
+    if ( $title =~ m{$pat}i ) {
+        my $time_stamp = <[base.anum_log_time]>->( 5, TRUE );
+        <[base.buffer.add_line]>->(
+            qw| radio-jingle |,
+            join( ' ', $time_stamp, 2, "matched pattern :. $pat" ), 2
+        );
+        return $pat;
+    }
 }
 
 return 0;
 
-#,,.,,,..,,..,.,.,,.,,.,,,..,,..,,,,.,,,,,,.,,..,,...,..,,,..,,,.,,,,,,..,,,.,
-#3VSMSHYJSYZXVUBYKCNP2VTEGTATO2EVKRKJCOMBNWRE3NUH2TSSJDXLCVIB4C2HMFWGPRWZ6OUOC
-#\\\|KBCXVFC7ZJLRR63DS2RQXCFKEJTXTGTRUMBCRRBRU2JIHF2QODM \ / AMOS7 \ YOURUM ::
-#\[7]Z3PLPGVBGXCI4CIU23GOMYP2CTHZGFREMTB7ZMNXQN4QNTUBRWCA 7  DATA SIGNATURE ::
+#,,.,,,.,,,,,,,,,,,,.,..,,,..,,,,,...,,,.,..,,..,,...,...,...,..,,.,.,,,.,.,,,
+#RNNOJ53INUTE36NTXF54U3QPAB63NJNFTWPYTCIJCPVFD2NNXC3CSCYBFRKLR2T6MAZL4M4WTMEAK
+#\\\|BJHWQ27DV2TWWQS5QQLWWQ2T2DZHTDPNZ22V7EWNMETNUTWCUPH \ / AMOS7 \ YOURUM ::
+#\[7]FCCBNHEP35UEEPV4KW5MHMR3UPCHHSEFCCUPG5H2J3EB5MNEIGBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

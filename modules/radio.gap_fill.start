@@ -36,8 +36,14 @@ open( my $fh, '<:raw', $chosen )
 
 <[base.logs]>->( 2, '[radio] gap filler: playing %s', $chosen );
 
-#,,,.,,,.,,,,,,..,..,,,,,,.,,,..,,.,.,,,,,,,,,.,.,...,...,...,.,.,...,,.,,...,
-#UBNMPLFPOM4DJWMRYNI3ORF65CSIXNMN7YZH2YWDASF46CVHJSGWKRGU2XAVFPJBRTWXRI7267LJO
-#\\\|SREOT5B5USUVPVYX34OOOM2SCAZWI3FRLESAFWKRCPXO63CNKK6 \ / AMOS7 \ YOURUM ::
-#\[7]NSRXODB574UTTDP6ULPYLC3FEANYYISU6A5EAQXPHCIYVSJ7MUAQ 7  DATA SIGNATURE ::
+my $time_stamp = <[base.anum_log_time]>->( 5, TRUE );
+<[base.buffer.add_line]>->(
+    qw| radio-jingle |,
+    join( ' ', $time_stamp, 2, "gap fill started :. $chosen" ), 2
+);
+
+#,,,,,...,,,.,,.,,.,.,,.,,,.,,..,,,,.,,.,,.,.,.,.,...,...,,,,,..,,,.,,.,.,,,,,
+#7VBTGNPKPLXHRQ2O4W6EPUEQEH6747ULCCJI43SJ57D5YTGWSF4J4CYZ254V7WMZBTD6EWZFBZRJE
+#\\\|G323LOVLBXSLOHMD4FLY4MSUVWRFB3OYULQWFMUXRETDW3KRD2F \ / AMOS7 \ YOURUM ::
+#\[7]JLGYYPGFGOJTRLNBF7MXNC6GRXRUUOG3N36DJT5NRQPBTHBXWADI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

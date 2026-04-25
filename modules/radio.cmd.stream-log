@@ -1,0 +1,21 @@
+## [:< ##
+
+# name  = radio.cmd.stream-log
+# descr = radio stream connection log buffer
+
+my $buffer = <buffer.radio-stream.data> // undef;
+
+return { 'mode' => qw| size |, 'data' => '' }
+    if not defined $buffer
+    or ref $buffer ne qw| ARRAY |;
+
+return {
+    'mode' => qw| size |,
+    'data' => join( "\n", $buffer->@* ) . "\n"
+};
+
+#,,,,,,..,,,,,.,,,.,,,..,,.,.,...,,.,,.,.,,..,..,,...,...,.,,,.,.,,..,,,.,,.,,
+#P5Z5QLVVEYZBPRCQJKSOZXPVB75JXPTBJXFCSBJNOUF2ECTE7TUN5TCCN27MY3R26XG56JSHTVSG2
+#\\\|HSBMWKK7CAL2SDG5VRRMDORYQCD7I6VWDDVIRQBM6ZKTXSADSFY \ / AMOS7 \ YOURUM ::
+#\[7]27KCMQB7EIDMMN5A2JPCSX456XP3S3TNSLMIVBPJIX2PXDBE5GBI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
