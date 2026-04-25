@@ -7,8 +7,13 @@ my $reply = shift // return FALSE;
 
 return FALSE unless defined $reply;
 
+my $cmd = $reply->{'cmd'} // '';
+
+## delegate STRM replies to dedicated stream handler
+return <[nshell.handler.strm_reply]>->($reply)
+    if $cmd =~ m|^STRM\b|;
+
 ## extract reply components [ already parsed by base.handler.command ]
-my $cmd  = $reply->{'cmd'};            # reply type [TRUE, FALSE, SIZE, etc.]
 my $args = $reply->{'call_args'}->{'args'} // '';    # content from call_args
 my $payload_str = $reply->{'data'};    # raw payload for multi-line replies
 
@@ -68,8 +73,8 @@ STDOUT->flush();
 
 return TRUE;
 
-#,,..,...,..,,...,..,,,,.,,,.,,,.,,,.,...,.,.,.,.,...,..,,,,.,,.,,...,.,.,..,,
-#GBTFJVAGZIMC5BMYZWYNPAHIFUMISQ4YPKBFDQCF5CHYNS7WL2LGNO7JG232ENFKC7MTQ67M5IB7E
-#\\\|SJLZRKQQSWSEZHMIMAFQH7UASHJCFDV62S3KXJNX5P37QSBE776 \ / AMOS7 \ YOURUM ::
-#\[7]TFJMI2UYMJX7PNXGLJKBCAVHXONNJZH3QRAAU6WQRF73MHM5YIBI 7  DATA SIGNATURE ::
+#,,..,,..,..,,.,,,.,.,,,.,,,.,,..,.,,,..,,,,.,.,.,...,.,.,...,..,,..,,,.,,,..,
+#CU5OUEGNVZX622AZJG32VLKTXFNUL32A26HYIKSO3N6DQAG5NZ6BYOKUHOT5PWOMKLNETGVWT4GE2
+#\\\|K46G64CQHTKEGNT5EUMSBUNGMYVWDBBDAT3GYRHSNNCL46HZIMK \ / AMOS7 \ YOURUM ::
+#\[7]QDTZFH54NXMHRZBQE3HKPV6XDY3PB3TLMG3GPH6HKSGK7TCKDCDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
