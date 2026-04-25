@@ -17,7 +17,7 @@ if ( not <radio.stream.icy>->{'is_jingle'} ) {
 
 ##  read one chunk from gap-fill file  ##
 my $chunk = '';
-my $n     = read( <radio.gap_fill.fh>, $chunk, 65536 );
+my $n     = read( <radio.gap_fill.fh>, $chunk, 16384 );
 
 if ( not defined $n or $n == 0 ) {    ##  EOF  ##
     CORE::close( delete <radio.gap_fill.fh> );
@@ -38,8 +38,8 @@ for my $h ( <radio.listeners>->@* ) {
 }
 <radio.listeners> = \@keep;
 
-#,,,,,..,,...,.,,,.,,,..,,.,,,.,,,,,.,,..,,,.,.,.,...,...,..,,,,,,.,.,,.,,,,.,
-#OXYHPLXWNWPCBI3D42AVAZPXVTU6YM3Y2TFMFL47TISO23JEAERXM25WVZDXSFQDRTXRLIIIE536A
-#\\\|LW66EL3RHCXMYG54QATZTURJX6SVS2NCNZFXS444FA6ZNFG3GBX \ / AMOS7 \ YOURUM ::
-#\[7]BCK5XYDM6CBZZVYBRNNSCWYC6Z6H4SFRX3GCCESC72QQVXMEAEDI 7  DATA SIGNATURE ::
+#,,,,,,.,,,.,,,.,,.,.,,,,,,,.,..,,..,,,..,..,,.,.,...,..,,,,.,.,,,.,.,,,.,.,.,
+#2XZZ4T6KL426WF5H4OSE6G5RDI6S2KSDJO7VFM2XEVSN4CG73XR6RWI3DLV27IPJ47XVFT6KN7N5I
+#\\\|E6B6VAZG3T7PZZB65QJTVC2NC2B5W2RVXXC7O4DLGCSLWD6LNAU \ / AMOS7 \ YOURUM ::
+#\[7]XUJ7ZNEO7MALKJAUAOBH4B44M3J6TZ4K43YBB3IFVW6FCWI7SABI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

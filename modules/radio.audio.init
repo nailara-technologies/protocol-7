@@ -3,11 +3,24 @@
 # name  = radio.audio.init
 # descr = start mpv[audio-0] background player via v7 on-demand
 
+##  clear any pending re-init timer  ##
+delete <radio.audio.reinit_watcher>;
+
 <[protocol-7.route-send]>->(
     {   'command'   => 'v7.notify_online',
         'call_args' => { 'args' => 'mpv[audio-0]' },
         'reply'     => {
             'handler' => 'radio.audio.handler.player_online',
+            'params'  => { 'instance' => 'mpv[audio-0]' },
+        }
+    }
+);
+
+<[protocol-7.route-send]>->(
+    {   'command'   => 'v7.notify_offline',
+        'call_args' => { 'args' => 'mpv[audio-0]' },
+        'reply'     => {
+            'handler' => 'radio.audio.handler.player_offline',
             'params'  => { 'instance' => 'mpv[audio-0]' },
         }
     }
@@ -21,8 +34,8 @@
 
 <[base.logs]>->( 2, '[radio.audio] waiting for mpv[audio-0] ...' );
 
-#,,..,,.,,.,.,.,,,,.,,.,.,.,,,,.,,..,,.,,,,,.,.,.,...,...,.,,,,,.,,.,,,,.,,,.,
-#7M5M3WPWVFYOJLC3J5KRLFKBJSQWOWB5UZXRHJCOYLHCVKLKI5S7VLTJARIPZJLJWFZCJXXQBECAC
-#\\\|4FCR6VZMNINSYBD6UWZXVIAPGT7OM5WQVOQ575JRLGTALBDNZHS \ / AMOS7 \ YOURUM ::
-#\[7]QXOO6IK67XFJ6ZLGWHZMMIMPEKFO3PPIO66TFFWAY4MOUY47C4CA 7  DATA SIGNATURE ::
+#,,,.,.,,,,,,,...,..,,.,.,,.,,.,.,,..,...,,,,,.,.,...,...,..,,...,...,.,,,..,,
+#NN6EJKFQFQC7YFB7ZKTP7UCDHTF3O57PJKP37S4QDOJWYACYOUT4SQB7IMNXPSTJMGVJX2PNNRNGW
+#\\\|QSN5MB4QGV6VSPJ6QLPOYPTWIVJ4JLNG47YXUM5PBOX5Z46PL2K \ / AMOS7 \ YOURUM ::
+#\[7]6JV7SSOZB5ALZ4GHG2JJKRYMQTHBBH2QPJ4YGY2KPHSLKKC72GAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
