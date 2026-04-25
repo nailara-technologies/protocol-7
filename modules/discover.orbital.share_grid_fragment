@@ -1,0 +1,38 @@
+## [:< ##
+
+# name  = discover.orbital.share_grid_fragment
+# descr = share known orbital addresses as grid map fragment reply
+
+my $sender_hostname = shift // '';
+my $sender_pkey     = shift // '';
+
+return unless length $sender_hostname;
+
+<discover.orbital.known> //= {};
+
+my $grid_lines = '';
+foreach my $id ( <[base.sort]>->(<discover.orbital.known>) ) {
+    my $entry = <discover.orbital.known>->{$id};
+    $grid_lines .= sprintf "%s %s\n", $entry->{'hostname'}, $entry->{'p7ref'};
+}
+
+return unless length $grid_lines;
+
+<[protocol-7.route-send]>->(
+    {   'command'   => 'nodes.orbital.grid_fragment',
+        'call_args' => { 'args' => $grid_lines }
+    }
+);
+
+<[base.logs]>->(
+    2,                "grid fragment shared with %s [ %d lines ]",
+    $sender_hostname, scalar( split "\n", $grid_lines )
+);
+
+return TRUE;
+
+#,,..,,..,.,,,,,.,,.,,,..,.,,,,,.,.,.,.,,,.,.,..,,...,...,.,.,,.,,,..,,.,,,,.,
+#LLIGWAZRIIKSLDLUJCO334I43RMF5AL6CGKQEY6TUY4VGGUVAWPFUACJS5DRNRPIOCFPP7YUAMIW4
+#\\\|E5AEAH5BSAJ4QNXDU2C7PPIYWZUVY5RV5CAKRSP43JOXSOJ2O6I \ / AMOS7 \ YOURUM ::
+#\[7]TS3S23REPLHQTJO6WJYY3WQNAHKJZ73L6AQ2YNSGTXD6USCKUMAQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

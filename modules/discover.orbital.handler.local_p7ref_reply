@@ -1,0 +1,24 @@
+## [:< ##
+
+# name  = discover.orbital.handler.local_p7ref_reply
+# descr = reply handler for local orbital p7ref request
+
+my $reply = shift;
+my $data  = $reply->{'data'} // {};
+
+my $p7ref = $data->{'p7ref'} // '';
+
+if ( length $p7ref ) {
+    <discover.orbital.local_p7ref> = $p7ref;
+    return $p7ref;
+}
+
+<[base.logs]>->( 3, 'orbital p7ref reply contained no p7ref' );
+
+return undef;
+
+#,,.,,...,...,,..,..,,.,,,,,,,.,.,,,,,.,.,,,,,..,,...,...,,..,,,,,.,,,,,,,.,,,
+#4G3HBGYPWEOQF6S2IBY2YN2HH4AJR5OZRTNWD4VVOWTYNP6TWHYIJKUYCKQIQ2CE4TTBTJ37EBW6K
+#\\\|LCVTOS5ITJ4ZS4UR6UKLCHXWT7SUMNB3GD7EXZ57W6ONFZD6NZW \ / AMOS7 \ YOURUM ::
+#\[7]VRCLB2F4RUNRNVFCUDITKES62PGBLCFO34NQGMTD57XPAEKI3IBQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

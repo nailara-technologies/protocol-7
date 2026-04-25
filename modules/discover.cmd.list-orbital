@@ -1,0 +1,34 @@
+## [:< ##
+
+# name  = discover.cmd.list-orbital
+# descr = list all known orbital addresses
+
+<discover.orbital.known> //= {};
+
+my $known = <discover.orbital.known>;
+my @keys  = <[base.sort]>->($known);
+
+return { 'mode' => qw| true |, 'data' => 'no orbital addresses known' }
+    unless @keys;
+
+my $output = "\n";
+my $fmt    = "%-20s %-10s %-30s %-10s\n";
+$output .= sprintf $fmt, qw| hostname pkey p7ref age |;
+$output .= '-' x 75 . "\n";
+
+foreach my $id (@keys) {
+    my $entry = $known->{$id};
+    my $age = sprintf qw| %.1fs |, <[base.time]>->(5) - $entry->{'timestamp'};
+    my $pkey_short
+        = substr( Crypt::Misc::encode_b32r( $entry->{'pkey'} ), 0, 7 );
+    $output .= sprintf $fmt,
+        $entry->{'hostname'}, $pkey_short, $entry->{'p7ref'}, $age;
+}
+
+return { 'mode' => qw| size |, 'data' => $output };
+
+#,,,.,,.,,..,,,..,..,,...,,.,,.,,,..,,..,,.,,,..,,...,...,...,,,,,,..,...,,.,,
+#5MKREZ5I35NH2EMDL3SQDNWJDZLYRFBLSKPVZXC5E5FZZHNKTWQ52XFJH6OOVU3NXAQZZSU3J5CXC
+#\\\|KQTBEBJHHI3NJA2MX2BAORVKAADTNJTI4BN6QNDVUWH25G2DZAT \ / AMOS7 \ YOURUM ::
+#\[7]XS2W2YZ6XSHD5WBCA35ZR4PCBUKHXCU34H7YFPK6FUW3QNFFT4CQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,0 +1,37 @@
+## [:< ##
+
+# name  = discover.orbital.store_remote
+# descr = store orbital p7ref received from remote node
+
+my $hostname = shift // '';
+my $pkey_b32 = shift // '';
+my $p7ref    = shift // '';
+
+return
+        unless length $hostname
+    and length $pkey_b32
+    and length $p7ref;
+
+my $pkey = Crypt::Misc::decode_b32r($pkey_b32);
+return unless defined $pkey and length $pkey;
+
+my $pkey_L13 = <[chk-sum.bmw.L13-str]>->($pkey);
+
+<discover.orbital.known> //= {};
+<discover.orbital.known>->{$pkey_L13} = {
+    'hostname'  => $hostname,
+    'pkey'      => $pkey,
+    'p7ref'     => $p7ref,
+    'timestamp' => <[base.time]>->(5)
+};
+
+<[base.logs]>
+    ->( 2, "orbital address received for %s: %s", $hostname, $p7ref );
+
+return TRUE;
+
+#,,.,,.,.,.,.,,,,,...,...,.,,,,..,..,,,..,,,.,..,,...,.,.,,..,,..,..,,,,.,..,,
+#VZC2VRXDAEF6VJMRGUH6RSQHGIGAM437PFLQLIMBYLFM5H2UBNFDRSZAKIZ36QVSSS6CXFZZSOQFK
+#\\\|HGWOG5Q5G56N7X2KSMM5HKNZGMER6Q5FAJEIF744CMUM5SUPKXQ \ / AMOS7 \ YOURUM ::
+#\[7]ODXEAJPUBJ4TEIH4CZA6VB2GCONTLVONXBQL4XNZTHIMRUQ52UDY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
