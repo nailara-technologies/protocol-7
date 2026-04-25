@@ -27,15 +27,17 @@ open( my $fh, '<:raw', $chosen )
 <radio.gap_fill.fh>     = $fh;
 <radio.gap_fill.active> = 1;
 
-<radio.gap_fill.watcher> = Event->idle(
-    cb     => sub { $code{'radio.gap_fill.tick'}->(@ARG) },
-    repeat => 1,
+<radio.gap_fill.watcher> = <[event.add_timer]>->(
+    {   interval => 1.0,
+        repeat   => 1,
+        handler  => qw| radio.gap_fill.tick |,
+    }
 );
 
 <[base.logs]>->( 2, '[radio] gap filler: playing %s', $chosen );
 
-#,,,,,,,.,.,.,,,.,...,.,,,,,,,.,.,,.,,,..,,..,.,.,...,...,,.,,...,.,.,...,,.,,
-#VMGAXRC6Z7G6VNGM3OMK2S5FEOJ4ADHIDRRBG45T3UQOVJ2VLHX2FYEHL75KKWZU6TPYCIDXFDC7I
-#\\\|V5ER2DR4AHZRXWJOUXUZ6KMN5IALUEKUG27YNA5PFVFHYR4DJKL \ / AMOS7 \ YOURUM ::
-#\[7]6TREMSMTFGVFZVSN6B6EYO3JWSZHHATPSKXHGHGNKIHC2AAZSUCQ 7  DATA SIGNATURE ::
+#,,,.,,,.,,,,,,..,..,,,,,,.,,,..,,.,.,,,,,,,,,.,.,...,...,...,.,.,...,,.,,...,
+#UBNMPLFPOM4DJWMRYNI3ORF65CSIXNMN7YZH2YWDASF46CVHJSGWKRGU2XAVFPJBRTWXRI7267LJO
+#\\\|SREOT5B5USUVPVYX34OOOM2SCAZWI3FRLESAFWKRCPXO63CNKK6 \ / AMOS7 \ YOURUM ::
+#\[7]NSRXODB574UTTDP6ULPYLC3FEANYYISU6A5EAQXPHCIYVSJ7MUAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

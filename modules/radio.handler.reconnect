@@ -1,0 +1,26 @@
+## [:< ##
+
+# name  = radio.handler.reconnect
+# descr = schedule radio reconnect with exponential backoff
+
+##  guard: already scheduled  ##
+return if defined <radio.stream.reconnect_watcher>;
+
+my $delay = <radio.stream.reconnect_delay> // 5;
+
+<[base.logs]>->( 1, '[radio] reconnecting in %ds', $delay );
+
+<radio.stream.reconnect_watcher> = <[event.add_timer]>->(
+    {   after   => $delay,
+        handler => qw| radio.connect |,
+    }
+);
+
+##  exponential backoff, capped at 77s  ##
+<radio.stream.reconnect_delay> = $delay < 77 ? $delay * 2 : 77;
+
+#,,,.,.,.,..,,..,,,,,,..,,.,.,.,,,,.,,.,,,..,,..,,...,...,.,,,.,,,.,,,,..,.,,,
+#ZP4JKNVEWYVYO7DOQGGEK57SAXGS3TFUFQVIZ7KOQ3TQAQOHYWOFO6IH3K2WNJMXD337BY7C73MBI
+#\\\|3ROVZO267WHAGKZS5GPV6UTST4BP6LZZJZYP7VHF3PZCYCRDBEF \ / AMOS7 \ YOURUM ::
+#\[7]JLMPZRPLBEQWVBE76O5OQNVHW7OSPJRCFVKBNRJH4XKJLSYHBACQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

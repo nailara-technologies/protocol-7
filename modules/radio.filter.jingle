@@ -5,8 +5,10 @@
 
 my $title = shift // '';
 
-<radio.jingle.patterns>
-    //= [ qw| psyndora |, '\bjingle\b', '\bID\b', '\bpromo\b', 'station id' ];
+<radio.jingle.patterns> //= [
+    qw| psyndora |, '\bjingle\b',   '\bID\b', '\bpromo\b',
+    'station id',   'magicstreams', 'PsyNdora'
+];
 
 for my $pat ( <radio.jingle.patterns>->@* ) {
     return 1 if $title =~ m{$pat}i;
@@ -14,8 +16,8 @@ for my $pat ( <radio.jingle.patterns>->@* ) {
 
 return 0;
 
-#,,.,,.,.,,..,,,,,.,,,.,.,.,,,,,.,...,...,,,,,..,,...,...,...,...,.,.,,.,,,.,,
-#TC7RVXWORUFIXSOKBJ3P335462DZHWP7XPL7RX6BFG676RE6Z4RWLDV63N35SK6UIBJ5T66HL7C5W
-#\\\|NN4NT4YRQ7KVAND5DJIEOYITGPM5H7T5K7W3YU7B3GYYPWB6PRE \ / AMOS7 \ YOURUM ::
-#\[7]5HFSZAL64JB4QYVJDZG4I554QUPBBXIAMOKFW7TN6PDGSMKVZ2CY 7  DATA SIGNATURE ::
+#,,.,,,..,,..,.,.,,.,,.,,,..,,..,,,,.,,,,,,.,,..,,...,..,,,..,,,.,,,,,,..,,,.,
+#3VSMSHYJSYZXVUBYKCNP2VTEGTATO2EVKRKJCOMBNWRE3NUH2TSSJDXLCVIB4C2HMFWGPRWZ6OUOC
+#\\\|KBCXVFC7ZJLRR63DS2RQXCFKEJTXTGTRUMBCRRBRU2JIHF2QODM \ / AMOS7 \ YOURUM ::
+#\[7]Z3PLPGVBGXCI4CIU23GOMYP2CTHZGFREMTB7ZMNXQN4QNTUBRWCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

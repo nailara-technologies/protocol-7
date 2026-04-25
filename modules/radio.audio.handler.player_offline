@@ -1,0 +1,36 @@
+## [:< ##
+
+# name  = radio.audio.handler.player_offline
+# descr = v7.notify_offline reply: mark mpv offline and schedule re-init
+
+my $reply    = shift;
+my $instance = $reply->{'params'}{'instance'} // 'mpv[audio-0]';
+
+##  guard: must be a TRUE reply  ##
+if ( $reply->{'cmd'} ne 'TRUE' ) {
+    <[base.logs]>->(
+        1, '[radio.audio] notify_offline for %s returned non-TRUE', $instance
+    );
+    return;
+}
+
+<[base.logs]>->( 1, '[radio.audio] %s offline', $instance );
+
+<radio.audio.active> = 0;
+
+##  guard: do not double-schedule re-init  ##
+return if defined <radio.audio.reinit_watcher>;
+
+<radio.audio.reinit_watcher> = <[event.add_timer]>->(
+    {   after   => 3.0,
+        handler => qw| radio.audio.init |,
+    }
+);
+
+0;
+
+#,,,.,.,,,.,.,.,,,,,,,..,,,..,,,.,,.,,,..,,,.,..,,...,...,..,,.,.,,,,,..,,..,,
+#UNHJU3QXOJOJM4BKCF54PVEJ4I6X7HYR6AU6CPC3774FDOCXFM6G2AL5CIJ25MBX7NRDDNTQRIGSK
+#\\\|XNFAICW2TLVLOJHBUYVZOYKBLBHP3ARA7GQIZ6VQ5C27AWF2TXE \ / AMOS7 \ YOURUM ::
+#\[7]XOZLUQAKMFTTJP23O4YSECHQLBFV4D4WATP4REE7RW5M3OG6YMBQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

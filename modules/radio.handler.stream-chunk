@@ -52,6 +52,9 @@ if ( not defined $read_len or $read_len == 0 ) {
     $icy->{'meta_expected'} = 0;
     $icy->{'meta_buf'}      = '';
 
+    ##  schedule reconnect with backoff  ##
+    <[radio.handler.reconnect]>;
+
     return;
 }
 
@@ -124,6 +127,17 @@ while ( $offset < $buf_len ) {
                                 $icy->{'track_duration'},
                                 $icy->{'current_title'}
                             );
+                            if ( not $icy->{'is_jingle'} ) {
+                                <[base.logs]>->(
+                                    2,
+                                    '[radio] short track %.0fs'
+                                        . ' confirmed as jingle post-hoc',
+                                    $icy->{'track_duration'}
+                                );
+                                <[radio.gap_fill.start]>
+                                    if not <radio.gap_fill.active>;
+                                $icy->{'is_jingle'} = 1;
+                            }
                         }
                     }
 
@@ -245,8 +259,8 @@ while ( $offset < $buf_len ) {
 
 return;
 
-#,,,,,..,,..,,.,.,.,,,,.,,,,,,,..,,,.,,,.,,.,,..,,...,...,...,,.,,,.,,,.,,,.,,
-#5LHMUMXT3Z5LJJT54RB6T6LGPETWDHQDD2EHUK6OXCIAHAXQ5MECOP5THN726WNHVEPVRC5P62MWS
-#\\\|EQTRXXKSUEHZZ64CJAYPWBD4XZGCZCFE6VL22TOYTDJXMHRA34J \ / AMOS7 \ YOURUM ::
-#\[7]OHZ2BSJHML776KGZNW4U4FTM2K7PYLUXISVASH3S6F6GFSAS5YDQ 7  DATA SIGNATURE ::
+#,,.,,,,,,.,.,..,,,,.,,..,.,.,...,,.,,,,,,.,,,..,,...,...,...,.,.,,..,.,,,,,.,
+#KIB7ZWHZWFJNKKW7K6UWQBLKMCEDSPJRTZEWUCXUB4ZD37YIENHFSNHU7BKO55L6CQFJZD7LSZABM
+#\\\|6T6NVBCEFYOIHQNGC27COZJPNHSRR366OF2N7AA2RNL7TNJX64W \ / AMOS7 \ YOURUM ::
+#\[7]YTH4ERWCLC3JZUJADOGV6XZ32W5RSW5KQQHLF532GBCVF323FWCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
