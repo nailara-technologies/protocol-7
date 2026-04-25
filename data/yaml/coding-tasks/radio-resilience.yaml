@@ -1,0 +1,193 @@
+task_id: radio-resilience
+title: radio zenka — resilience refactor
+priority: high
+estimated_rounds: 30
+
+context: |
+  The radio zenka relays a live HTTPS/Icecast stream to HTTP clients via STRM.
+  It is otherwise working (STRM cancel, TLS connect, jingle detection, gap filler,
+  mpv[audio-0] background player). Four resilience issues need fixing in this task.
+  All changes are within modules/radio.* plus one new module.
+
+  architecture summary:
+    radio.connect → IO::Socket::SSL → radio.handler.stream-chunk (Event->io)
+      → ICY parser → radio.filter.jingle
+        → gap filler (radio.gap_fill.start / radio.gap_fill.tick)
+        → STRM relay → radio.listeners array → cube → httpd → mpv/curl
+
+  radio.audio.init fires 2s after init:
+    → v7.notify_online mpv[audio-0]  (reply: radio.audio.handler.player_online)
+    → v7.start_once mpv[audio-0]
+
+  radio.audio.handler.player_online:
+    → mpv[audio-0].play http://127.0.0.1/radio/stream
+    → mpv[audio-0].set-volume 0
+    → mpv[audio-0].fade <start_volume>
+    → sets radio.audio.active = 1, radio.audio.current_vol
+
+  key data vars:
+    <radio.stream.sock>         — IO::Socket::SSL handle, undef when disconnected
+    <radio.stream.icy>          — ICY state hash (headers_done, metaint, current_title,
+                                  is_jingle, track_started, track_duration, etc.)
+    <radio.stream.io_watcher>   — EV IO watcher for the socket
+    <radio.listeners>           — arrayref of STRM listener handles
+    <radio.gap_fill.active>     — 1 when gap filler is running
+    <radio.gap_fill.watcher>    — the idle/timer watcher
+    <radio.gap_fill.fh>         — file handle for current gap-fill track
+    <radio.audio.active>        — 1 when mpv[audio-0] is playing
+    <radio.audio.current_vol>   — current volume level
+    <radio.audio.online_count>  — count of player_online replies received
+
+  config (set in configuration/zenki/radio/start BEFORE [init_modules]):
+    radio.stream.url = https://cast.magicstreams.gr/sc/psyndora
+    radio.stream.auto_connect = yes
+    radio.stream.path = /radio/stream
+    radio.audio.stream_url = http://127.0.0.1/radio/stream
+    radio.audio.start_volume = 70
+    radio.jingle.min_track_seconds = 90
+
+issues_to_fix:
+
+  1_reconnect:
+    description: |
+      radio.handler.stream-chunk detects disconnect (sysread returns 0 or undef
+      with non-EAGAIN errno) and correctly closes the socket and cancels the IO
+      watcher. but it schedules NO reconnect. radio sits silent forever after any
+      network hiccup or server restart.
+
+    fix: |
+      add a reconnect mechanism with exponential backoff:
+      - new data var: <radio.stream.reconnect_delay> (starts at 5, caps at 60)
+      - new data var: <radio.stream.reconnect_watcher> (one-shot timer)
+      - in radio.handler.stream-chunk, after closing socket on disconnect:
+          call new module radio.handler.reconnect (or inline) which:
+          - logs reconnect attempt with current delay
+          - schedules one-shot timer: after => <radio.stream.reconnect_delay>
+            handler => radio.connect
+          - doubles the delay for next time (up to 60s cap)
+      - in radio.connect, on successful connection:
+          reset <radio.stream.reconnect_delay> = 5
+      - in radio.connect, on connection failure:
+          also call the reconnect schedule (currently just returns)
+      - guard: if <radio.stream.reconnect_watcher> is already active, do not
+        schedule a second one
+
+    modules_to_modify:
+      - radio.handler.stream-chunk  (add reconnect schedule on disconnect)
+      - radio.connect               (reset delay on success, schedule on failure)
+    new_modules:
+      - radio.handler.reconnect     (schedule reconnect timer with backoff)
+
+  2_gap_fill_timer:
+    description: |
+      radio.gap_fill.start uses Event->idle(repeat=>1) which runs as fast as the
+      event loop allows when nothing else is pending. it reads 65KB chunks and
+      pushes them with no rate limiting. this fills the STRM relay buffer
+      (lc->{'buf'} in base.strm.local) faster than mpv can drain it. when the
+      buffer exceeds the 4MB overflow threshold in plugin.httpd.radio.handler.strm_open,
+      the listener is cancelled and mpv disconnects. THIS IS THE CAUSE OF
+      "STOPPED SUDDENLY" PLAYBACK FAILURES.
+
+    fix: |
+      replace Event->idle with a repeating EV timer at audio-rate pacing:
+      - chunk size: 16384 bytes (16KB) per tick  [was 65536]
+      - interval: 1.0 second
+      - this approximates 131072 bits/s = ~128kbps, matching typical stream bitrate
+      - if the actual stream bitrate is known from ICY headers it can be used instead,
+        but 1s/16KB is a safe conservative default
+      - use event.add_timer with interval=>1.0, repeat=>TRUE, handler=>radio.gap_fill.tick
+        instead of Event->idle
+      - radio.gap_fill.tick receives the event object: use $event->w->data or pass
+        state via a closure-safe mechanism
+      - gap_fill.tick already handles EOF and jingle-ended cases correctly, keep those
+
+    modules_to_modify:
+      - radio.gap_fill.start   (replace Event->idle with event.add_timer)
+      - radio.gap_fill.tick    (adapt to receive timer event, reduce read chunk to 16KB)
+
+  3_mpv_offline:
+    description: |
+      radio.audio.active is set to 1 in player_online but never cleared. if mpv[audio-0]
+      crashes, is restarted by v7, or is stopped manually, radio keeps sending fade and
+      volume commands into a session that may not exist or may be in a wrong state.
+      radio.audio.online_count increments on each notify_online reply but is never
+      used for anything and never decrements.
+
+    fix: |
+      add a player_offline handler:
+      - new module: radio.audio.handler.player_offline
+        receives reply from v7.notify_offline for mpv[audio-0]
+        - sets radio.audio.active = 0
+        - logs '[radio.audio] mpv[audio-0] offline'
+        - schedules radio.audio.init after 3s (re-registers notify_online and
+          calls v7.start_once again so mpv restarts and re-connects)
+        - guard: do not double-schedule if already pending
+
+      - in radio.audio.init: add a second route-send after the notify_online one:
+          v7.notify_offline mpv[audio-0]
+          reply handler: radio.audio.handler.player_offline
+          params: { instance => mpv[audio-0] }
+
+      - also guard player_online: if radio.audio.active is already 1, do not
+        re-send play/fade commands (handles v7 re-notifying on reconnect)
+
+    modules_to_modify:
+      - radio.audio.init                      (add notify_offline route-send)
+      - radio.audio.handler.player_online     (add active guard)
+    new_modules:
+      - radio.audio.handler.player_offline
+
+  4_jingle_duration:
+    description: |
+      radio.filter.jingle only matches title patterns (psyndora, jingle, ID, promo,
+      station id). the track duration heuristic (< radio.jingle.min_track_seconds = 90s)
+      is computed in stream-chunk and logged but never used to trigger gap_fill.
+      short tracks that do not match patterns play through.
+
+    fix: |
+      when a track ends and its duration is below min_track_seconds, treat it as a
+      confirmed jingle retroactively:
+      - in radio.handler.stream-chunk, when finalizing an outgoing track (new title
+        arrives), after computing track_duration:
+        if track_duration < min_track_seconds AND not already is_jingle:
+          - log '[radio] short track %.0fs confirmed as jingle post-hoc'
+          - start gap_fill if not already active: <[radio.gap_fill.start]>
+          - set icy->{'is_jingle'} = 1 for the outgoing track record
+            (note: at this point we are already processing the NEXT track's title,
+             so this affects gap_fill state going into the next track, which may
+             or may not be a jingle — check: if the new track is not a jingle,
+             gap_fill.tick will stop itself on the next tick anyway)
+      - also: improve the default jingle patterns slightly — add 'magicstreams'
+        and 'PsyNdora' as explicit patterns since they appear in station IDs for
+        this specific stream
+
+    modules_to_modify:
+      - radio.handler.stream-chunk   (add post-hoc duration gap_fill trigger)
+      - radio.filter.jingle          (add 'magicstreams' and 'PsyNdora' patterns)
+
+style_notes: |
+  - all comments lowercase
+  - annotations use [ word ] not ( word )
+  - log format: '[radio] description :. value' or '[radio.audio] ...'
+  - use <[base.logs]>->( level, 'format', args ) for all logging
+  - log levels: 0=error, 1=important, 2=info, 3=debug
+  - module invocation: <[module.name]>->($args)  — closing ]> BEFORE ->
+  - do not add the stub signature line — signing system adds the real footer
+  - use event.add_timer not raw EV timer calls
+  - repeating timers need BOTH interval=>N AND repeat=>TRUE
+
+verification: |
+  after implementing, verify:
+  1. p7c 'radio.status' shows connected, no listeners
+  2. NO_PROXY=127.0.0.1 curl http://127.0.0.1/radio/stream — audio flows
+  3. kill -9 the curl process — radio logs listener removed, stream continues
+  4. disconnect/reconnect network — radio logs reconnect attempt + reconnects
+  5. p7c 'v7.restart mpv[audio-0]' — radio logs mpv offline, re-inits, mpv
+     reconnects and resumes playing within a few seconds
+  6. gap filler activates on jingle — no CPU spike, no mpv disconnect
+
+#,,.,,.,,,..,,.,.,...,,,,,,,,,...,...,,,,,,.,,..,,...,...,.,.,.,,,...,...,.,,,
+#5BFHGBLGRKOCAFGZ322IW56EA5FLLTDDVMTTDFPYGSAC3DYTQMGMWD54JW357CJSCMVR2R6BCLSAW
+#\\\|SHUZK6N4AMVOBCOQIRWCWWSJSWVJGV5S5OPBRJVL2TAZIW43KAK \ / AMOS7 \ YOURUM ::
+#\[7]QEMDFR4TKJ6JJOHAOBJX5UIR4LQXOSI6BS4FRA4ATNJ3XSDYIKAA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
