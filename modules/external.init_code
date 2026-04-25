@@ -35,10 +35,48 @@
 
 <[base.logs]>->( 2, ':. external.init_code: transport registry initialized' );
 
+## active orbital connections registry ##
+<external.connections> //= {};
+
+## auto-connect configuration ##
+<external.cfg.auto_connect> //= 0;
+
+## schedule auto-connections to strongest neighbours on startup ##
+if ( <external.cfg.auto_connect> > 0 ) {
+    my $known     = $data{'discover'}{'orbital'}{'known'}      // {};
+    my $own_p7ref = $data{'nodes'}{'orbital'}{'current_p7ref'} // '';
+
+    my @sorted
+        = sort { $known->{$b}->{'timestamp'} <=> $known->{$a}->{'timestamp'} }
+        keys %$known;
+
+    my $n
+        = scalar @sorted < <external.cfg.auto_connect>
+        ? scalar @sorted
+        : <external.cfg.auto_connect>;
+
+    my $scheduled = 0;
+    foreach my $id (@sorted) {
+        last if $scheduled >= $n;
+        my $entry = $known->{$id};
+        my $p7ref = $entry->{'p7ref'} // '';
+        next if not length $p7ref;
+        next if $p7ref eq $own_p7ref;
+
+        $scheduled++;
+        <[event.add_timer]>->(
+            {   'after'   => 13,
+                'handler' => 'external.cmd.connect-orbital',
+                'data'    => { 'args' => $p7ref }
+            }
+        );
+    }
+}
+
 return TRUE;
 
-#,,,.,,,,,,,.,,,,,.,.,,..,..,,.,.,,,,,..,,..,,.,.,...,...,.,.,,.,,...,,.,,,.,,
-#GPXREABP6MC6KR5MHZS2IKRGXEZHSEJEESWOX33YERKTA2YXNLKNHSSCNQRD7E235YM7CRDMGKUY6
-#\\\|3AM5YHEE7YWSDAQDW6VQPC6V2Y32JJP7GZTC2KL5PTIJ7RRJ4QY \ / AMOS7 \ YOURUM ::
-#\[7]CO5Y2BRZU7LO7GOFV2E2LUQ6RTHXE6AD5A5RWWF4T4U4ISBVJECI 7  DATA SIGNATURE ::
+#,,..,.,.,,,,,,.,,..,,.,.,.,,,,,,,,.,,,..,.,,,.,.,...,...,,,,,,..,..,,.,.,,..,
+#AFXNOVJVH62UMJ7MDTOSYJC5LQYJG3LEZKSXK4MXBXU6BYUMNHG6KGKXYBGRMPXNUA4NQ6YGJWMEW
+#\\\|KMAWH6D4EN5VEEZX2BW53JHGLU25O6DYAJEZZL6G3KIZK5UETLC \ / AMOS7 \ YOURUM ::
+#\[7]HNJVGSPG2CXQO25FPGBILYFIAUUUPUJEXD3TKE4IL3I3QXUGMMCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

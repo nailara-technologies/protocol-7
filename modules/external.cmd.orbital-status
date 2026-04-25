@@ -1,0 +1,36 @@
+## [:< ##
+
+# name  = external.cmd.orbital-status
+# descr = show orbital layer health status
+
+my $p7ref = $data{'nodes'}{'orbital'}{'current_p7ref'} // 'unknown';
+
+my $known_ref   = $data{'discover'}{'orbital'}{'known'} // {};
+my $known_count = scalar keys %$known_ref;
+
+my $conn_ref   = $data{'external'}{'connections'} // {};
+my $conn_count = scalar keys %$conn_ref;
+
+my $transports    = $data{'external'}{'transports'} // {};
+my $transport_str = 'not initialized';
+if ( defined $transports->{'preferred'} ) {
+    $transport_str = sprintf(
+        'preferred=%s available=%d',
+        $transports->{'preferred'} // 'none',
+        scalar @{ $transports->{'available'} // [] }
+    );
+}
+
+my $output = "\n";
+$output .= sprintf( "our orbital p7ref    : %s\n", $p7ref );
+$output .= sprintf( "known orbital nodes  : %d\n", $known_count );
+$output .= sprintf( "active connections   : %d\n", $conn_count );
+$output .= sprintf( "transport registry   : %s\n", $transport_str );
+
+return { 'mode' => qw| size |, 'data' => $output };
+
+#,,,.,,,.,.,.,.,,,..,,..,,..,,.,.,..,,,,.,,.,,..,,...,...,..,,,.,,,.,,,,.,...,
+#UCQRG7WDJ4VCRSQTPWWJWGEFQPHNO5OF4YOKMDUB3UJXZOGV53VUICIGALOQ7NYS2NPRKLTQ2QJDY
+#\\\|A5AFQT6IZE2MUUN3WODE2GCDZJC5AYGPKAISUFRXPLRE7YQPRQT \ / AMOS7 \ YOURUM ::
+#\[7]37HATDMRH7VSCYFII7KA2YHI2ZIX7OR33HZBZXU5SGVDJZWFRICQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

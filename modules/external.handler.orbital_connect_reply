@@ -1,0 +1,107 @@
+## [:< ##
+
+# name  = external.handler.orbital_connect_reply
+# descr = reply handler for orbital connect sequence and grid sync
+
+my $reply  = shift;
+my $params = $reply->{'params'} // {};
+my $data   = $reply->{'data'}   // {};
+
+my $name = $params->{'name'} // '';
+return unless length $name;
+
+my $step = $params->{'step'} // qw| connect |;
+
+## grid sync step ##
+if ( $step eq qw| grid_sync | ) {
+    my $reply_href = ref $data eq qw| HASH | ? $data : {};
+    return unless $reply_href->{'mode'} eq qw| true |;
+
+    my $output = $reply_href->{'data'} // '';
+    return unless length $output;
+
+    my $known = $data{'discover'}{'orbital'}{'known'} // {};
+    my $count = 0;
+
+    foreach my $line ( split "\n", $output ) {
+        next if $line =~ m|^-+|;
+        next if $line =~ m|^\s*$|;
+        next if $line =~ m|^\s*hostname\s|;
+
+        my @fields = split m|\s+|, $line;
+        next if @fields < 2;
+
+        my $host = $fields[0];
+        my $ref  = $fields[-2] // '';
+        next if not length $host or not length $ref;
+
+        ## skip if already known ##
+        my $exists = 0;
+        foreach my $id ( keys %$known ) {
+            if ( ( $known->{$id}->{'hostname'} // '' ) eq $host ) {
+                $exists = 1;
+                last;
+            }
+        }
+        next if $exists;
+
+        ## store with placeholder pkey for grid fragment ##
+        $known->{$host} = {
+            'hostname'  => $host,
+            'p7ref'     => $ref,
+            'pkey'      => "\x00" x 32,
+            'timestamp' => <[base.time]>->(5)
+        };
+        $count++;
+    }
+
+    <[base.logs]>->(
+        2,      qq| synced %d orbital addresses from %s |,
+        $count, $name
+    );
+
+    return;
+}
+
+## connect step ##
+my $conn_ref = $data{'external'}{'connections'} // {};
+return unless exists $conn_ref->{$name};
+
+my $reply_href = ref $data eq qw| HASH | ? $data : {};
+
+if ( $reply_href->{'mode'} eq qw| true | ) {
+    $conn_ref->{$name}->{'status'} = qw| connected |;
+
+    ## infer encryption status from reply data ##
+    my $reply_str = $reply_href->{'data'} // '';
+    if ( index( $reply_str, qw| encrypted | ) >= 0 ) {
+        $conn_ref->{$name}->{'encrypted'} = TRUE;
+    }
+
+    <[base.logs]>->(
+        2,
+        qq| orbital connection to %s established [ %s ] |,
+        $name,
+        $conn_ref->{$name}->{'encrypted'}
+        ? qw| encrypted |
+        : qw| plaintext |
+    );
+
+    ## request grid fragment sync ##
+    eval { <[external.orbital.sync_grid_fragment]>->($name); };
+} else {
+    $conn_ref->{$name}->{'status'} = qw| failed |;
+    my $reason = $reply_href->{'data'} // 'unknown error';
+    <[base.logs]>->(
+        1,     qq| orbital connection to %s failed: %s |,
+        $name, $reason
+    );
+}
+
+return;
+
+#,,,.,...,.,,,...,.,,,,..,.,.,,.,,,,.,...,.,.,..,,...,...,,,,,..,,,..,...,.,.,
+#7LR42NVRX55APBDDEBTMUUKLNAX3PNZOJ4U7FSMWCH3T3TREZFNCOFUDMWUOOQ3RSS3GMZJAHBGTW
+#\\\|6I4GYNO5BRURBAFFMNJRLCJWWXM3ILAGJH4OVQDR4A3AWNOBO6X \ / AMOS7 \ YOURUM ::
+#\[7]DKTJPAPVA6J4AF2TWCENURN6H3KACKNJS62SATTZMSF7ZJB2FYAQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

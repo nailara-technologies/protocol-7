@@ -1,0 +1,41 @@
+## [:< ##
+
+# name  = external.orbital.sync_grid_fragment
+# descr = sync orbital grid fragment from connected node
+
+my $name = shift // '';
+return unless length $name;
+
+my $conn_ref = $data{'external'}{'connections'} // {};
+return unless exists $conn_ref->{$name};
+
+## request remote node's orbital list ##
+my $sent = eval {
+    <[protocol-7.route-send]>->(
+        {   'command'   => 'discover.cmd.list-orbital',
+            'call_args' => { 'args' => '' },
+            'reply'     => {
+                'handler' => qw| external.handler.orbital_connect_reply |,
+                'params'  => {
+                    'name' => $name,
+                    'step' => qw| grid_sync |
+                }
+            }
+        }
+    );
+};
+
+if ( $EVAL_ERROR or not $sent ) {
+    <[base.logs]>->( 2, qq| grid fragment request failed for %s |, $name );
+    return;
+}
+
+<[base.logs]>->( 2, qq| requested grid fragment from %s |, $name );
+
+return TRUE;
+
+#,,..,.,.,,.,,...,,,.,...,,.,,..,,.,,,.,,,,,.,..,,...,...,,.,,..,,...,,,.,,,.,
+#MSHV6E3RX7XDGNNQTASEP2S2J7N75ID3MRMPAAWZYJSRNTMJ5CDCKW74TDW5ARDHPBHJZ75BTZVF2
+#\\\|IIJF62UCKNPYDDJDR4QL4KUTGBFAKFJNKVCZI3LASC57LQRVZQJ \ / AMOS7 \ YOURUM ::
+#\[7]QMVHMSKMWD74JZ4NB4YKBF7K4HZVLQYMW4Z6ZEB5OIGOZUSFGICI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
