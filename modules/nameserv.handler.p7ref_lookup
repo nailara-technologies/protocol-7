@@ -1,0 +1,46 @@
+## [:< ##
+
+# name  = nameserv.handler.p7ref_lookup
+# descr = lookup protocol-7 discovery records for dns query
+
+my $params = shift // {};
+
+my $reply      = $params->{'reply'};
+my $qname      = $params->{'qname'} // '';
+my $zone_match = $params->{'zone_match'};
+my $ttl        = $params->{'ttl'} // 3600;
+
+if ( not defined $reply or not defined $zone_match ) {
+    <[base.logs]>->( 1, 'p7ref_lookup missing reply or zone_match' );
+    return 0;
+}
+
+my $found = 0;
+
+foreach my $rec ( @{ $zone_match->{'records'} } ) {
+    my $rec_name = lc( $rec->{'name'} // '' );
+    next if $rec_name ne $qname;
+
+    my $rec_type = $rec->{'type'} // '';
+    next if $rec_type ne 'TXT' and $rec_type ne 'SRV';
+
+    my $value  = $rec->{'value'} // '';
+    my $rr_str = sprintf( '%s %d IN %s %s', $qname, $ttl, $rec_type, $value );
+
+    my $rr = eval { Net::DNS::RR->new($rr_str) };
+    if ( defined $rr ) {
+        $reply->push( answer => $rr );
+        $found = 1;
+    } else {
+        <[base.logs]>->( 0, 'failed to create rr for %s: %s', $qname, $@ )
+            if $@;
+    }
+}
+
+return $found;
+
+#,,,.,..,,,..,.,,,.,.,.,.,.,.,,,.,.,.,.,.,.,,,..,,...,...,...,,.,,,,.,.,,,.,.,
+#2QMGXG3KDVHAANQ5MDB3WXTRLK5APD5I445LBAV5TKJMMMTFLPGQ2PREJRZGE326HASHEITBLM5M4
+#\\\|422VXTYMRKLTJQMVUXRJYQZWUC5YMVLSWAJQ5VV77PEUFF4CTE7 \ / AMOS7 \ YOURUM ::
+#\[7]SWQ5RZLGBMND4ZOUJOAUHCYDBRO3YR6AEVP2CLBXBRKHLLAYSIDI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

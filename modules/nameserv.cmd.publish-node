@@ -1,0 +1,72 @@
+## [:< ##
+
+# name  = nameserv.cmd.publish-node
+# descr = publish orbital node data as dns txt and srv records
+
+my $args_str = $call->{'args'} // '';
+my $reply_id = $call->{'reply_id'};
+
+## parse args: domain [port] [ttl]
+my ( $domain, $port, $ttl ) = split /\s+/, $args_str, 3;
+
+$domain //= '';
+$port   //= 7777;
+$ttl    //= 3600;
+
+if ( not length $domain ) {
+    return {
+        'mode' => qw| false |,
+        'data' => qq| usage: publish-node <domain> [port] [ttl] |
+    };
+}
+
+my $node_name = <system.zenka.name>;
+
+## request orbital data from nodes zenka
+my $sent = eval {
+    <[protocol-7.route-send]>->(
+        {   'command'   => qw| nodes.orbital.current_position |,
+            'call_args' => { 'args' => '' },
+            'reply'     => {
+                'handler' => qw| nameserv.handler.publish_reply |,
+                'params'  => {
+                    'domain'    => $domain,
+                    'port'      => $port,
+                    'ttl'       => $ttl,
+                    'node_name' => $node_name,
+                    'reply_id'  => $reply_id,
+                }
+            }
+        }
+    );
+};
+
+if ($EVAL_ERROR) {
+    <[base.logs]>->( 1, 'publish-node route-send failed: %s', $EVAL_ERROR );
+    return {
+        'mode' => qw| false |,
+        'data' => qq| failed to request orbital data |
+    };
+}
+
+if ( not $sent ) {
+    return {
+        'mode' => qw| false |,
+        'data' => qq| nodes zenka not available |
+    };
+}
+
+if ( defined $reply_id ) {
+    return { 'mode' => qw| deferred | };
+}
+
+return {
+    'mode' => qw| true |,
+    'data' => sprintf( qq| publish initiated for %s |, $domain )
+};
+
+#,,..,,..,,..,...,,,,,,.,,..,,.,.,,.,,,..,.,,,..,,...,...,,..,...,,,,,,.,,...,
+#KRANNRPLE4WJBN7N5DDF6FECL5254I4HAV7HQTYYX5JCDIMCKPJXXAYBT3AJ5XKFYRVVVZ7ESGJIO
+#\\\|O33RP7JIKXUP7KTEWDLO2UOOEQHRMNFOXLJXZ4P3J77VN2BY2D3 \ / AMOS7 \ YOURUM ::
+#\[7]PUVPNUQ365I56VF5ACY7LHFQWQIYUE7F6FIOIEQWCIR4B6XTBUDQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
