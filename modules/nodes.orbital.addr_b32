@@ -1,0 +1,42 @@
+## [:< ##
+
+# name  = nodes.orbital.addr_b32
+# descr = encode orbital angles and time offset into ADDR_B32 string
+
+<[base.perlmod.autoload]>->('Crypt::Misc');
+
+my $params = shift // {};
+
+my $theta       = $params->{'theta'}       // 0;
+my $phi         = $params->{'phi'}         // 0;
+my $psi         = $params->{'psi'}         // 0;
+my $omega       = $params->{'omega'}       // 0;
+my $time_offset = $params->{'time_offset'} // 0;
+
+## normalize angles to 0-255 range ##
+my $t = int( ( $theta % 360 ) / 360 * 255 ) & 0xFF;
+my $p = int( ( $phi % 360 ) / 360 * 255 ) & 0xFF;
+my $s = int( ( $psi % 360 ) / 360 * 255 ) & 0xFF;
+my $o = int( ( $omega % 360 ) / 360 * 255 ) & 0xFF;
+
+## pack angles + time offset into binary ##
+my $packed = pack( 'C4N', $t, $p, $s, $o, $time_offset );
+
+## encode as base32r ##
+my $addr_b32 = Crypt::Misc::encode_b32r($packed);
+
+## strip padding and enforce P7REF conventions ##
+$addr_b32 =~ s|=+$||;
+$addr_b32 =~ tr|a-z|A-Z|;
+$addr_b32 =~ s|[^2-9A-Z]||g;
+
+## limit to 16 chars per P7REF spec ##
+$addr_b32 = substr( $addr_b32, 0, 16 );
+
+return $addr_b32;
+
+#,,,.,,.,,,.,,.,.,,,,,...,.,.,,,,,..,,,,,,,,,,..,,...,...,...,...,,,,,,,,,.,,,
+#IUGYM6LJQEAVPHNPZOAE75TKFNWKMV3GXKY4JVDILBP65GOLJGB7W5DKOHL7QAMQMPDR2E4UBHZ4G
+#\\\|CJPJTTY57EVFEJC6WIGF4YJ6J6NM4POWOST6DNLOXZUCGDQOXER \ / AMOS7 \ YOURUM ::
+#\[7]KRYHRITISSWDLBCJZONELCVAATT4ESIH2PVEW6FN3X3GP46INUAA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
