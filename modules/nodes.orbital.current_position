@@ -1,0 +1,35 @@
+## [:< ##
+
+# name  = nodes.orbital.current_position
+# descr = return current orbital P7REF and derived parameters
+
+my $params        = <nodes.orbital.params> // {};
+my $session_start = <nodes.orbital.session_start>;
+my $current_p7ref = <nodes.orbital.current_p7ref>;
+
+return {
+    'mode' => qw| false |,
+    'data' => 'orbital position not initialized'
+    }
+    unless defined $session_start;
+
+my $computed_at = <[base.time]>->(5);
+
+return {
+    'mode' => qw| true |,
+    'data' => {
+        'p7ref'         => $current_p7ref,
+        'theta'         => $params->{'theta'},
+        'phi'           => $params->{'phi'},
+        'psi'           => $params->{'psi'},
+        'omega'         => $params->{'omega'},
+        'session_start' => $session_start,
+        'computed_at'   => $computed_at
+    }
+};
+
+#,,,.,.,.,,,.,,,,,..,,,.,,,,.,,..,,..,..,,.,,,..,,...,..,,..,,.,.,.,,,.,.,,,.,
+#HYYCVALEX3MIBT7R74YPARSNFKIT3BQ7YN3MLKFGP74DASPYX7WQ6X2H7QDPDIWZETGEFDZYEDMB6
+#\\\|SHIMZ2IZL7WRJG7M2XIFG2LCZ57LLH2JPTGWQGSGRQ6KSSJNIRC \ / AMOS7 \ YOURUM ::
+#\[7]5XRIZRUMUJ6SJRDC5KYXEYX4V6TTRZ4BWNCKX7WJFFZ2AEEZK4CI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

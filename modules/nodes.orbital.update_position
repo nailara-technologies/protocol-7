@@ -1,0 +1,54 @@
+## [:< ##
+
+# name  = nodes.orbital.update_position
+# descr = recompute orbital position from stored params and current time
+
+my $params        = <nodes.orbital.params> // {};
+my $session_start = <nodes.orbital.session_start>;
+
+return unless defined $session_start;
+
+my $theta = $params->{'theta'} // 0;
+my $phi   = $params->{'phi'}   // 0;
+my $psi   = $params->{'psi'}   // 0;
+my $omega = $params->{'omega'} // 0;
+
+my $current_time = <[base.time]>->(5);
+my $dt           = $current_time - $session_start;
+
+## simple orbital mechanics ##
+## theta rotates with angular velocity omega ##
+## phi oscillates with inclination psi ##
+my $orbital_theta = $theta + $omega * $dt * 0.001;
+$orbital_theta -= int( $orbital_theta / 360 ) * 360;
+
+my $orbital_phi = $phi + $psi * sin( $dt * 0.001 );
+$orbital_phi -= int( $orbital_phi / 360 ) * 360;
+
+my $addr_b32 = <[nodes.orbital.addr_b32]>->(
+    {   'theta'       => $orbital_theta,
+        'phi'         => $orbital_phi,
+        'psi'         => $psi,
+        'omega'       => $omega,
+        'time_offset' => int($dt)
+    }
+);
+
+## compute CHKSUM7 using local ip as seed input ##
+my $local_ip    = <nodes.orbital.local_ip> // '127.0.0.1';
+my $amos_chksum = $code{'chk-sum.amos'}    // $code{'base.chk-sum.amos'};
+my $chksum7     = substr( $amos_chksum->($local_ip), 0, 7 );
+
+my $p7ref = sprintf( "NODE:%s:%s", $chksum7, $addr_b32 );
+
+<nodes.orbital.current_p7ref> = $p7ref;
+
+<[base.logs]>->( 3, "[orbital.update_position] %s", $p7ref );
+
+return $p7ref;
+
+#,,,.,,..,,.,,,,.,..,,,.,,,,.,..,,,..,,,,,.,.,..,,...,.,.,,..,,,,,.,,,,,,,...,
+#75GJQJUDIA6MRPAIQPE344XW5NHJMQYGP2EHL5BBNHKN4M73VBUXSLUQIZOWZBT6BMF5P24DR4RBI
+#\\\|2XEVJAGWOBLHHYRBFB4C4K3LTXK44L7QB55ZVYQPQWV2HJBBQL3 \ / AMOS7 \ YOURUM ::
+#\[7]TDAGXTSJ2ECZTQAE5SHWBUWIBRZ54P63MPYJKAUZFTOKWABELABY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
