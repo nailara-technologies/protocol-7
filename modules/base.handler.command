@@ -479,7 +479,7 @@ if ( defined $alias_to and length $alias_to ) {
 ##[ PREPARE REPLY \ HAS REPLY ID ]############################################
 
 my $cmd_id_str = '';
-if ( $cmd_id > 0 ) { $cmd_id_str = sprintf qw| (%d) |, $cmd_id }
+if ( $cmd_id > 0 ) { $cmd_id_str = sprintf '(%d)', $cmd_id }
 
 ##[ COMMAND REPLIES ]#########################################################
 
@@ -604,7 +604,7 @@ if ( $cmd =~ m,^(TRUE|FALSE|WAIT|SIZE|CHRSIZE|STRM|STRM-SIZE|GET|TERM)$, ) {
 
             my $s_cmd_id = '';
             if ( $route->{'source'}->{'cmd_id'} > 0 ) {
-                $s_cmd_id = sprintf qw| (%d) |, $$route{'source'}{'cmd_id'};
+                $s_cmd_id = sprintf '(%d)', $$route{'source'}{'cmd_id'};
             }
 
             if ( $cmd =~ m,^(TRUE|FALSE|WAIT|GET|TERM)$, ) { ## GET ## [ LLL ]
@@ -2124,7 +2124,7 @@ UNKNOWN_TYPE_HANDLED:
             }
 
             my $target_cmdid_str = '';
-            $target_cmdid_str = sprintf qw| (%d) |, $target_cmd_id
+            $target_cmdid_str = sprintf '(%d)', $target_cmd_id
                 if $target_cmd_id > 0;
 
 ##[ PROCESS \ SINGLE LINE CMD ]###############################################
@@ -2227,8 +2227,8 @@ UNKNOWN_CMD_GLOBAL_HANDLED:
 
 return 0;        ## comand complete ##
 
-#,,,,,.,.,,,.,.,.,.,.,,..,.,.,...,,..,,..,,..,..,,...,..,,..,,..,,,,.,,,.,...,
-#EVPG2BZV544VTRNXD4PHNW57QMFZWIU2UZSH6WAX7NKFYSWCX3Y6P4WVY7DOFB2MWVSUMSQ3T2NQC
-#\\\|3TZXA4MCEHERC6XKPLDLQJFUANAAMMANZV6GTPQ4JL7YZ7PEDJR \ / AMOS7 \ YOURUM ::
-#\[7]BH3JJ3YP5INZNBR3RSVWKTBJ33HGLKOHAHP3TRLAQVQ3HW73XWAI 7  DATA SIGNATURE ::
+#,,,.,..,,,.,,.,,,.,,,.,.,.,.,..,,,..,.,,,..,,..,,...,...,.,.,.,,,..,,.,.,,.,,
+#CWT7Y2S4KAAFIYI75UEP7W3MFUDN6XGGOF2PBDCWMRP555IBQD6MWZ36GVGYMXVMTSIYKV35QCQEQ
+#\\\|SPOZWATLH2VUGWIPOA47SYPM2ZSO4NRFJKQTLWQDBZORPQJSHX6 \ / AMOS7 \ YOURUM ::
+#\[7]TLV5T3ST6HGXZ7RE7M4KWR67WQB5EETRLFBQKLZZJNYRULDZLQDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

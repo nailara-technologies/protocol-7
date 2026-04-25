@@ -11,6 +11,10 @@ foreach my $s_cid (@route_cids) {
     my $route_id = $data{'session'}{$sid}{'route'}{$s_cid};
     my $s_sid    = $data{'route'}{$route_id}{'source'}{'sid'};
     next if not defined $s_sid;
+
+    my $t_sid    = $data{'route'}{$route_id}{'target'}{'sid'};
+    my $t_cmd_id = $data{'route'}{$route_id}{'target'}{'cmd_id'} // 0;
+
     my $s_cid     = $data{'route'}{$route_id}{'source'}{'cmd_id'};
     my $reply_str = $s_cid ? "($s_cid)" : '';
     $reply_str .= "FALSE command route collapsed\n";
@@ -21,11 +25,31 @@ foreach my $s_cid (@route_cids) {
         $data{'session'}{$s_sid}{'stream_cancelled'}{$s_cid} = TRUE
             if $s_cid > 0;
     }
+
+    ##  notify STRM producer that its consumer is gone  ##
+    if (    $t_cmd_id > 0
+        and defined $t_sid
+        and exists $data{'session'}{$t_sid}
+        and ref $data{'session'}{$t_sid}{'streams'} eq 'HASH'
+        and ref $data{'session'}{$t_sid}{'streams'}{$t_cmd_id} eq 'HASH'
+        and not $data{'session'}{$t_sid}{'stream_cancelled'}{$t_cmd_id} ) {
+        $data{'session'}{$t_sid}{'buffer'}{'output'}
+            .= sprintf "(%d)!TERM!\n", $t_cmd_id;
+        $data{'session'}{$t_sid}{'stream_cancelled'}{$t_cmd_id} = TRUE;
+    }
+
+    ##  clean up stale route entry in target session to prevent crash  ##
+    ##  on next push attempt when handler looks up the deleted route   ##
+    delete $data{'session'}{$t_sid}{'route'}{$t_cmd_id}
+        if defined $t_sid
+        and $t_cmd_id > 0
+        and exists $data{'session'}{$t_sid};
+
     delete $data{'route'}{$route_id};
 }
 
-#,,,.,.,,,..,,,..,...,..,,,,,,,,.,,.,,,,.,..,,..,,...,...,,,,,...,,,,,,.,,,..,
-#AGW5ZY4B2XJJUN3ASCDN3P5K6M5QBAOTMSWSZCMWJGR5KBPW7WUGGVOI4Q4FFOWGDMEMBU3CP56FC
-#\\\|OUVIDTZQUKEVYWZJG7JHAHVJGKT4UN5D57RKCC3H6TDDQJSHURP \ / AMOS7 \ YOURUM ::
-#\[7]ZIUJE555B7FRX5IBC5PM5RCMF7E2SKBJKGRZFOEF5NH7FU7FLSBY 7  DATA SIGNATURE ::
+#,,..,,,.,.,,,,,.,,,,,,.,,,,.,.,.,.,.,.,.,,,,,..,,...,...,,,,,,..,,,,,,,.,,,.,
+#ZAD64O6ONL2TRITCOWLR26ST743MEA2NXRKGSER7KG3RXHT5DCB5T3WQ4FJBBXQEHYJPC6TKC7BQY
+#\\\|NA6K3HOGATQVGXIAEA7PJJILAIFRHHOCCPZ5DBQDO5VRL46ELOR \ / AMOS7 \ YOURUM ::
+#\[7]RTQWRKTQKUZF2YSMM37GBYIYOAZHMWBAR64WQ4DGW5VNVWELZCBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
