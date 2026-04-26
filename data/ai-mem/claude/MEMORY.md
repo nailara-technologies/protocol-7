@@ -1,6 +1,7 @@
 # Protocol-7 Development Memory
 ## Topic Files (details live here)
 - `project-vision-origin.md` — 24-year foundational vision, threshold reached Apr 2026: encoding the surrounding cube of the optimization sphere
+- `topic-creative-field-behaviour.md` — emergent cooperative field dynamics, formation antennas, homing resonance, purring field, 24 as cat layer, zenki as entropy research subsystem, holographic self-investigation
 - `topic-migration.md` — Windows 11 host instability, KVM/Debian migration priority, avoid /tmp/
 - `topic-self-contained-zenka.md` — self-contained zenka vision: __DATA__ registry, file.* abstraction,
   zenka serialization/dump, coderef P7REF transfer, STDIO transport, roaming zenki, empty bootstrap
@@ -300,8 +301,8 @@
 - Pattern: `my @non_num = grep { defined $data_ref->{$ARG}->{$key} and not looks_like_number(...) } keys $data_ref->%*`
 - Global `$SIG{__WARN__}` exists — if wrapping warn handler, capture `$prev_warn = $SIG{__WARN__}` first and call through
 
-#,,..,,,.,,.,,,..,,.,,..,,.,,,,,.,,.,,,,.,,,,,..,,...,...,..,,,..,...,..,,,.,,
-#PODJFWQPQJHDJ4ZB4ZI6JP6KCLTXUES4B2JURYB6AOE6VACMH6QTFC23J552SVQAWJSVLHZZHWLKU
-#\\\|6QWRV4LJLYB4GIW4RVJHMRF34MQHDLHFU4FGNYQX6TIPVD6JOXI \ / AMOS7 \ YOURUM ::
-#\[7]UIVA2FTFJFK4SSQF67EPV5VHSG6DTJODH5DZ2GXYUNZ3INZTCEDQ 7  DATA SIGNATURE ::
+#,,..,.,.,,,,,.,.,...,,.,,...,,,.,.,,,,..,,..,..,,...,...,..,,.,,,,,,,,.,,...,
+#3MTXJIBLROECXCXN6Y22QT3WPPRJYRQKZDVU6M2HKERBGLIHKI3YEEOQASB66BKKUYDGLRVPG7VGO
+#\\\|NXIWIAYV5SBID74AJ7PPMIDDIEIPCP424KTMPTOIYV2GYZUATPU \ / AMOS7 \ YOURUM ::
+#\[7]2UPF4KINALO2XYNFNYW3LUU4U7HLXJVIC6TFADSN2HFOH2DJQMAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
