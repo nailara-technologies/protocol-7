@@ -28,20 +28,22 @@ my $palette_raw = eval { <[graphics-matrix.channel.palette]>->() } // [];
 $channel->{'palette'}
     = [ map { $ARG->{'color'}{'hex'} // '' } @$palette_raw ];
 
-## build summary ##
-return {
-    qw| mode | => qw| true |,
-    qw| data | => {
-        qw| cells       | => $cells,
-        qw| glow_shells | => $glow_shells,
-        qw| glow_total  | => sprintf( '%.2f', $glow_total ),
-        qw| graph       | => $graph,
-        qw| channel     | => $channel,
-    },
+## build summary — JSON-encoded for reliable transport over size reply ##
+my $summary = {
+    qw| cells       | => $cells,
+    qw| glow_shells | => $glow_shells,
+    qw| glow_total  | => sprintf( '%.2f', $glow_total ),
+    qw| graph       | => $graph,
+    qw| channel     | => $channel,
 };
 
-#,,..,,,.,,..,,,.,..,,.,.,.,,,..,,..,,,.,,...,..,,...,...,.,.,...,,,.,,,.,.,.,
-#RJXXM6LPPOGTLN5WGBZ534TZIJCGK4Z5OH4SZDGCJJBPLBDBC265XHSY6U6EPZFSR7L32MIHKH2ZI
-#\\\|HIRNLOTZGCU3H5WPINE32IWZ67RAMSKGMMKSB4QP7RYO43O4IYZ \ / AMOS7 \ YOURUM ::
-#\[7]GWHKINOZQGWD45X4OBXD3HJCFKQ6C5LV543DWHEJ6QQLJ5AHH2CI 7  DATA SIGNATURE ::
+return {
+    qw| mode | => qw| size |,
+    qw| data | => JSON::XS::encode_json($summary),
+};
+
+#,,,.,,.,,,,,,.,,,...,,..,.,.,,..,.,.,,..,,.,,..,,...,...,,,.,,..,.,.,,..,.,.,
+#VZLU27XPTOHBGYP6DVHVV4DZ75FMRI2IZXR37IGKCOXSEOGYMGEFZFUGVALT7L76S5JVLLWOMV33O
+#\\\|FTO4VBW6M5ZKDGCTYLDCSWLRERH54FTL2IGYA5PCN5URJ2YZVYL \ / AMOS7 \ YOURUM ::
+#\[7]7E5TG4XQ6BUVU3B6AAIZ56JCS7KI4NTGHR4KHCRYVKV36ZBZ7IAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

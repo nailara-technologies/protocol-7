@@ -44,6 +44,7 @@ if ( $field eq qw| self | ) {
     foreach my $line ( split "\n", $raw_data ) {
         next if $line =~ m|^[-\s]+$|;
         next if $line =~ m|^\s*hostname|i;
+        next if $line =~ m|no .* known|i;
         if ( $line =~ m|^\s*(\S+)\s+(\S+)\s+(\S+)\s+(\S+)| ) {
             push @nodes,
                 {
@@ -63,6 +64,7 @@ if ( $field eq qw| self | ) {
     foreach my $line ( split "\n", $raw_data ) {
         next if $line =~ m|^[-\s]+$|;
         next if $line =~ m|^\s*name|i;
+        next if $line =~ m|no connections|i;
         if ( $line =~ m|^\s*(\S+)\s+(\S+)\s+(\S+)\s+(\S+)\s+(\S+)| ) {
             push @conns,
                 {
@@ -95,11 +97,11 @@ if ( $field eq qw| self | ) {
 } elsif ( $field eq qw| gm_state | ) {
 
     ## graphics-matrix.orbital-sync — true mode with structured data ##
-    if ( ref $raw_data eq qw| HASH | ) {
-        $data->{'gm_state'} = $raw_data;
-    } else {
-        $data->{'gm_state'} = {};
-    }
+    my $decoded
+        = length($raw_data)
+        ? eval { JSON::XS::decode_json($raw_data) }
+        : undef;
+    $data->{'gm_state'} = ( ref $decoded eq qw| HASH | ) ? $decoded : {};
 
 }
 
@@ -120,8 +122,8 @@ $cache->{'timestamp'} = time() if $all_received;
 
 return 0;
 
-#,,.,,.,.,,.,,.,,,,..,.,,,,.,,.,.,..,,,..,,..,..,,...,...,,,.,..,,.,,,.,,,.,,,
-#2DOT3YDZWYD3OLUTKKRW562R7OA7UML2FEEACE3LEDEXOXMWMBTPBUPETNDNMKWCQLJYNQXUXJQDG
-#\\\|SQFQ7242BO6OXSATC5YOZCWZNU4LESSZXK3KPGEFZWJMS3GW2T3 \ / AMOS7 \ YOURUM ::
-#\[7]FCSBWUFJ4XVJLGUO5N7QOSFWARGNII7JUPONZWH4PE5WNGAN36DY 7  DATA SIGNATURE ::
+#,,..,,,,,,,,,.,,,,..,,,,,,,,,.,.,,,.,,,.,,,.,..,,...,..,,,.,,.,.,.,,,.,.,...,
+#4M4UKUDYUOZAMRUIDNDVIMAUUCILGEHOBYWWR3TY257IX2JQ3ZK2USXLZHVWJ2LQSJOZY3GE4TVKM
+#\\\|RUPYDUC2CO5F4TH3FPUVIOJ3DULZCPUDATXMQNNX3NTN3JL2MVA \ / AMOS7 \ YOURUM ::
+#\[7]U6FNRMCTF5KEPDYKVS5LMXGUZFRMFSIUE5PIK6ZX3XEZZI3W7GCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
