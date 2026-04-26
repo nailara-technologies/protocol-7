@@ -3,10 +3,26 @@
 # name  = nodes.cmd.orbital-position
 # descr = return current orbital position and P7REF
 
-return <[nodes.orbital.current_position]>->();
+my $result = <[nodes.orbital.current_position]>->();
 
-#,,,,,,..,...,,,.,.,.,,,,,,.,,,.,,,.,,,.,,..,,..,,...,...,,,.,..,,...,,,.,.,.,
-#U6KGL75BSGE6IWXM2XUIEQYPCB4VXIV6XPB7IQUSPD6XLMJJIFRIGTEKTCWQSGP2Q7P5PE72F2FFI
-#\\\|DPOCHCBTIQ4QBMIYQ5XAFXDWJG7SCRZMWBPDHRINDCXRFSTLI6B \ / AMOS7 \ YOURUM ::
-#\[7]4C2TVOX7QMOR7G26GG32Q5DKICRWNSJ23AODICQNQSH2BSN4NADQ 7  DATA SIGNATURE ::
+return { qw| mode | => qw| false |, qw| data | => $result->{'data'} }
+    unless ( $result->{'mode'} // '' ) eq qw| true |;
+
+my $d    = $result->{'data'};
+my @keys = <[base.sort]>->( keys %$d );
+my $w    = length( ( sort { length $b <=> length $a } @keys )[0] );
+my $out  = '';
+for my $key (@keys) {
+    my $val = $d->{$key} // '';
+    $val = sprintf '%.6f', $val
+        if $val =~ m|^\d+\.\d+$| and $key =~ m{^(theta|phi|psi|omega)$};
+    $out .= sprintf "  %*s  %s\n", $w, $key, $val;
+}
+
+return { qw| mode | => qw| size |, qw| data | => $out };
+
+#,,,,,,..,...,...,.,.,.,,,,..,...,,.,,,,,,..,,..,,...,...,...,...,,.,,,..,,,,,
+#HYDB2652GDRTJWF2NNK55ZVAHP5XYY3AAJGDIMK2HRCXVUKHAVQ5DT3BMMRVG6IZZGEFAX5OUSXBK
+#\\\|Z52CLNQID32GE2UT6H37MY7BQMFMQFI55N4L6LWIVRNTIAX6JEH \ / AMOS7 \ YOURUM ::
+#\[7]YG52SNSJWQUF3O3RDJNCJNWZ3NTLCC4KXG2YCPXBG3HG3HB4RADA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
