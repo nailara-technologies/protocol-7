@@ -50,7 +50,8 @@
 - `topic-radio-relay-zenka.md` — radio COMPLETE: TLS relay, STRM cancel, mpv offline/resilience, gap-fill paced; phase 5 (buffer-fill curve) next
 - `topic-base-curve-system.md` — generic base.curve.* parameter animation; composable signal chain (daytime × ambient × fade); mpv.param.curve is a thin wrapper on top
 - `topic-buffer-access-control.md` — per-buffer-name ACL deferred; revisit when 3+ zenki expose buffers via show-buffer
-- `topic-orbital-data-space.md` — IPv4/IPv6/key as orbital seeds in cubic space; arcs/rings/galaxy emerge from allocation history; merge zenki-cosmos stars into grid-v13 cubic layers
+- `topic-orbital-data-space.md` — full orbital field theory: nested orbits, EM coupling, holographic nexus, 5-of-7 formation, spiral cylinder, CCW counting, 3-phase cycle, mothership/zenki-stations, layer masks, curve engine, game engines as consumers
+- `topic-vhost-install.md` — httpd vhost install infrastructure: DNS-gated symlink/copy, letsencr TLS, space.v7.ax live with orbital.json+templates.json+visualization.html; key fixes + open items
 
 ## File Creation Notes (CRITICAL)
 - **Never add** the single-line `#,,.,,,...` stub at end of new files
@@ -297,8 +298,8 @@
 - Pattern: `my @non_num = grep { defined $data_ref->{$ARG}->{$key} and not looks_like_number(...) } keys $data_ref->%*`
 - Global `$SIG{__WARN__}` exists — if wrapping warn handler, capture `$prev_warn = $SIG{__WARN__}` first and call through
 
-#,,,.,,,,,.,.,...,,.,,...,...,,,.,.,,,..,,.,.,..,,...,..,,...,..,,,,,,,.,,,..,
-#I4MNQXSEIUUKYJSTKRYRJYUNANW6NJU2YTDTEQD24US2KLGALMYYZMKQ5Z6I6LBH7ZIU6MTREJOQM
-#\\\|XJ4RFCKEPU67SBM34DNPXVAPHL7HMXANTNXXF2V2W567Q5B2APH \ / AMOS7 \ YOURUM ::
-#\[7]UADI26D5U3RDVSWBB33GP7MAHKOJS6VUB3SABFEV7ZA3QPJEJCBA 7  DATA SIGNATURE ::
+#,,,.,,..,...,,,.,,.,,..,,.,,,.,.,..,,.,,,,,,,..,,...,...,...,...,.,,,.,.,.,.,
+#4CT654QKLLBLXO5JW4GX6TMU65ZJGYIEWS2KVEZ4RMCICYARICL5IGPJA7FU5FX2JLYXXGFSZDHQ4
+#\\\|D6CTI3WFYVXJ66XVDXXXVUGU2XZ6JHP772P75FWBOEVUH227ZUM \ / AMOS7 \ YOURUM ::
+#\[7]AJ5MRUCTERMZT7YIQ4HJRQ3ZE4YLET5QNU24TI6433VTG2WWPSCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
