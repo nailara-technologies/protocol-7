@@ -103,6 +103,30 @@ if (   $http_uri =~ m|^/api/certificate|
     } elsif ( $http_uri =~ m|^/api/certificate/list| ) {
         return <[httpd.handler.acme_request]>->( $id, $http_uri );
     }
+} elsif ( $http_uri eq qw| /context | ) {
+
+    ## visualization context update — zoom + intent from browser ##
+    my $body = $session->{'buffer'}->{'input'} // '';
+    $session->{'buffer'}->{'input'} = '';
+    <[protocol-7.route-send]>->(
+        {   qw| command |   => qw| web.context |,
+            qw| call_args | => { qw| args | => $body },
+        }
+    );
+    ## force close — body may arrive after headers in separate chunk,
+    ## keeping alive would bleed body bytes into next request parse ##
+    $session->{'http'}->{'close'} = 1;
+    my $reply_body   = qw| {} |;
+    my $reply_header = {
+        qw| Content-Type   | => qw| application/json |,
+        qw| Content-Length | => length($reply_body),
+        qw| Connection     | => qw| close |,
+    };
+    $session->{'buffer'}->{'output'}
+        .= <[httpd.new_header]>->( 200, $reply_header );
+    $session->{'buffer'}->{'output'} .= $reply_body;
+    return 2;
+
 } else {
     ## Unsupported POST endpoint
     <[base.logs]>->( 1, '[%d] POST not supported for: %s', $id, $http_uri );
@@ -111,8 +135,8 @@ if (   $http_uri =~ m|^/api/certificate|
 
 return 2;    ## Should not reach here
 
-#,,,,,,,.,,,.,.,.,...,,.,,,.,,...,..,,..,,,,.,..,,...,...,,.,,.,,,.,.,,,,,,,.,
-#TCCHG3RPYGPXOC5SHKU7GBZ7ZAXNCG6QE6ZPU7GUZMUHWIXG2IGKYSXRPYZZ7TWHDMDYNJL4ROQTI
-#\\\|MWCOMAINDTOC6WQTZ7PTYX5B2MSS2EYQX2VBWU5GNXOHCL4VF7J \ / AMOS7 \ YOURUM ::
-#\[7]HWYNROUQEXQKE4LVODCR5RMLJFV6NYPR5H7SQOG6VOZ7HGZNYGAI 7  DATA SIGNATURE ::
+#,,,,,...,.,,,..,,..,,,.,,...,...,.,,,...,,,.,..,,...,...,...,,.,,,,.,,,,,,,.,
+#CGNJY7RADMHGA2R4O4IWS26R4JB5TAWIK33BU3VNRLJEQBNAJYTXN2C2LRH3ZFQ2GCEGKQMLSICCU
+#\\\|GC4NCGJ6PATDAT43SQ6SVLUYZT5GRBRV7EMZBKLDZR6F7WOWLJY \ / AMOS7 \ YOURUM ::
+#\[7]RTFEEWZF4NKW7RKPNAL4BP5G2LVXNMGWQGVITPZIZTIEPJY2KADY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
