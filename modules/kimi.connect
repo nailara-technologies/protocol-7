@@ -124,6 +124,23 @@ if ($has_preserved_prompt) {
     );
 }    ## else status stays 'connecting' until history_complete + initialize
 
+## flush any approvals that arrived during the disconnect window ##
+my $pending = <kimi.approval.pending> // {};
+my @stale   = keys %$pending;
+if (@stale) {
+    <[base.logs]>->(
+        1,
+        ': flushing %d stale approval%s after reconnect',
+        scalar @stale,
+        @stale == 1 ? '' : 's'
+    );
+    for my $rid (@stale) {
+        delete $pending->{$rid};
+        <kimi.approval.responded>->{$rid} = 1;
+        <[kimi.wire.approval_respond]>->( $rid, 'approve' );
+    }
+}
+
 ## session liveness timeout — if status doesn't leave 'connecting' within
 ## 15s, the session is likely dead/archived. clear and retry with fresh one.
 ## [ must fit within v7 start timeout of ~65s with room for fresh connect ]
@@ -136,8 +153,8 @@ if ($has_preserved_prompt) {
 
 <[base.logs]>->( 2, 'kimi.connect: websocket connected [ %s ]', $ws_url );
 
-#,,,,,,.,,,,.,.,.,,,,,...,.,.,.,.,,,,,,..,.,,,.,.,...,...,...,.,.,,..,,,.,..,,
-#Y6SYG4P6E3NKVVKN34ZNYV2SQ46WUAEZZZHFKJNEJ4UX2HT3TX7EZGWQ6MRH5B64E4WMBRPBIKYMA
-#\\\|JFNVMCTCCZL534U7KWQLXRYLSSLJ5RM3WLTFTPIESY6B7XTELP7 \ / AMOS7 \ YOURUM ::
-#\[7]BTGX3XIFMLVRQ4AWAUKLVQIE2MDE6VZCU3ZWZIH7VFJFNARRBKDI 7  DATA SIGNATURE ::
+#,,,.,...,...,,,.,.,.,,..,.,.,.,,,,.,,..,,.,,,.,.,...,...,,..,.,.,.,.,...,,.,,
+#GAXMB6QTV7HUCZAV2WWUI6MKRDHNSOKCTLFS4O2F2VTNNLEKJLXADVB3O27XR7PFKZJMWFPAPFBWQ
+#\\\|G6MWNGJIWGBX5QWEGFLOLKYNGR6V5YOHHJ4PNVTXZVDPEV7XDMC \ / AMOS7 \ YOURUM ::
+#\[7]NSDXPVCD4I7LAAJCNLAPHYGMT35NTXO65WOGGQLEPLYYW752HCDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
