@@ -22,26 +22,20 @@ if ( $cmd eq qw| SIZE | ) {
 
 if ( $field eq qw| self | ) {
 
-    ## nodes.orbital.current_position — true mode reply ##
-    ## data is a hashref that serializes as a string over protocol-7 ##
-    ## store raw and attempt to extract structured fields ##
-    if ( ref $raw_data eq qw| HASH | ) {
-        $data->{'self'} = {
-            qw| p7ref  | => ( $raw_data->{'p7ref'} // '' ),
-            qw| theta  | => ( $raw_data->{'theta'} // 0 ),
-            qw| phi    | => ( $raw_data->{'phi'}   // 0 ),
-            qw| psi    | => ( $raw_data->{'psi'}   // 0 ),
-            qw| omega  | => ( $raw_data->{'omega'} // 0 ),
-        };
-    } else {
-        $data->{'self'} = {
-            qw| p7ref | => '',
-            qw| theta | => 0,
-            qw| phi   | => 0,
-            qw| psi   | => 0,
-            qw| omega | => 0,
-        };
+    ## nodes.cmd.orbital-position — size mode, key=value lines ##
+    my %kv;
+    foreach my $line ( split "\n", $raw_data ) {
+        if ( $line =~ m|^\s*(\w+)\s+(.+)$| ) {
+            $kv{$1} = $2;
+        }
     }
+    $data->{'self'} = {
+        qw| p7ref | => ( $kv{'p7ref'} // '' ),
+        qw| theta | => ( $kv{'theta'} // 0 ) + 0,
+        qw| phi   | => ( $kv{'phi'}   // 0 ) + 0,
+        qw| psi   | => ( $kv{'psi'}   // 0 ) + 0,
+        qw| omega | => ( $kv{'omega'} // 0 ) + 0,
+    };
 
 } elsif ( $field eq qw| known | ) {
 
@@ -126,8 +120,8 @@ $cache->{'timestamp'} = time() if $all_received;
 
 return 0;
 
-#,,,.,...,,..,,.,,.,.,.,.,,,.,,..,,,,,.,,,...,..,,...,..,,.,,,.,,,,,,,,,.,,..,
-#VT7GUIHLKPSBJFCZD2HIB3I3MWW3ZPPLPV6YPTOFPG4FXMCDHSMFT5SUTCCLW3JKDYENVRT3URIEA
-#\\\|4NAALJBQTULAWYOVFQ67ALWDMCWG4UE4DWG5PEJ6RAZHZE64UBJ \ / AMOS7 \ YOURUM ::
-#\[7]ZC5WMKWYHVZHQ2VWCRNYSQXCPFFAEATY53P4MM3IFF6L5KI7WMBI 7  DATA SIGNATURE ::
+#,,.,,.,.,,.,,.,,,,..,.,,,,.,,.,.,..,,,..,,..,..,,...,...,,,.,..,,.,,,.,,,.,,,
+#2DOT3YDZWYD3OLUTKKRW562R7OA7UML2FEEACE3LEDEXOXMWMBTPBUPETNDNMKWCQLJYNQXUXJQDG
+#\\\|SQFQ7242BO6OXSATC5YOZCWZNU4LESSZXK3KPGEFZWJMS3GW2T3 \ / AMOS7 \ YOURUM ::
+#\[7]FCSBWUFJ4XVJLGUO5N7QOSFWARGNII7JUPONZWH4PE5WNGAN36DY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
