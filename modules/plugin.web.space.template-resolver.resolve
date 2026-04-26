@@ -1,0 +1,80 @@
+## [:< ##
+
+# name  = plugin.web.space.template-resolver.resolve
+# descr = compute active template layers for current zoom and data context
+
+my $params = shift               // {};
+my $zoom   = $params->{'zoom'}   // 1.0;
+my $intent = $params->{'intent'} // '';
+
+## get available data fields ##
+my $available_data = <[plugin.web.space.template-resolver.available_data]>;
+
+## convert available data to lookup hash for fast checks ##
+my %data_available = map { $ARG => 1 } @$available_data;
+
+my $layers = <web.space.templates.layers>;
+my @resolved;
+
+my $log10_zoom = log($zoom) / log(10);
+my $fade_dist  = 1.0;
+
+foreach my $layer (@$layers) {
+    my $name        = $layer->{'name'};
+    my $base_weight = $layer->{'weight'} // 0.5;
+    my $zoom_min    = $layer->{'zoom_min'};
+    my $zoom_max    = $layer->{'zoom_max'};
+    my $dependency  = $layer->{'dependency'};
+
+    ## compute zoom match factor ##
+    my $zoom_factor = 1.0;
+    if ( defined $zoom_min or defined $zoom_max ) {
+        if ( defined $zoom_min and $log10_zoom < $zoom_min ) {
+            my $dist = $zoom_min - $log10_zoom;
+            $zoom_factor
+                = $dist < $fade_dist ? 1.0 - ( $dist / $fade_dist ) : 0.0;
+        } elsif ( defined $zoom_max and $log10_zoom > $zoom_max ) {
+            my $dist = $log10_zoom - $zoom_max;
+            $zoom_factor
+                = $dist < $fade_dist ? 1.0 - ( $dist / $fade_dist ) : 0.0;
+        }
+    }
+
+    ## compute data availability factor ##
+    my $data_factor = 1.0;
+    if ( $dependency ne qw| always | ) {
+        $data_factor = $data_available{$dependency} ? 1.0 : 0.0;
+    }
+
+    ## compute final weight ##
+    my $weight = $base_weight * $zoom_factor * $data_factor;
+
+    push @resolved,
+        {
+        qw| name   | => $name,
+        qw| weight | => $weight + 0,
+        qw| active | => ( $weight > 0.15 ? TRUE : FALSE ),
+        };
+}
+
+## sort by weight descending ##
+@resolved = sort { $b->{'weight'} <=> $a->{'weight'} } @resolved;
+
+## store result in context ##
+<web.space.templates.context>->{'active_layers'} = \@resolved;
+
+<[base.log]>->(
+    3,
+    qq| resolved %d active layers for zoom %.3f |,
+    scalar @resolved, $zoom
+);
+
+return \@resolved;
+
+0;
+
+#,,..,.,,,..,,,..,,..,..,,.,,,,,,,,,,,..,,,.,,..,,...,...,,,.,,.,,..,,..,,,,,,
+#7JKZTWLRZOFXE7ZHRGNDZP5SV6NEFPIY3EYH3NOG7HOKISSAYPWWZY5EKRJCRJMLQMAYTSXNQK5SO
+#\\\|BJEU7QWGHTFFZ33RVOEXCCZTC66PZNSFESRCRLL5JSZDMHNLHGR \ / AMOS7 \ YOURUM ::
+#\[7]QDDEO4CGRS2ETR52FVZO223JD2EZGV6VSAVGGMIN7WSZIU2BTQBQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
