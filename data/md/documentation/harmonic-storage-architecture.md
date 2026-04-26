@@ -279,8 +279,51 @@ about any content is always grounded in the same unchanging reference
 frame — the carrier frequency of 13, which requires no server, no
 protocol, no configuration. it simply is. =)
 
-#,,..,...,.,,,,,,,..,,,..,...,,..,..,,...,,..,..,,...,...,,.,,,,.,,.,,,,,,,,,,
-#QHWHFXGRB2DA5YFJ2VMLKHEAHPNM5HIJK7PALQOH5QMGGZPSSTIKHRX5BP2OSO4OCQB6J7IIZJNLK
-#\\\|PEQKPZZBE7PZTZTFTNCPMRYMHA4HVNEHZG2SHILCOKQV7CMZOQM \ / AMOS7 \ YOURUM ::
-#\[7]5PTC6BGR5TR6LWB2PD4R4O6W6UZWWFANZ6U7CHWZ3VWF6GBLDQBA 7  DATA SIGNATURE ::
+## distributed inversion — directory overhead becomes ring bandwidth
+
+what appears as directory overhead in a local filesystem inverts completely
+in the distributed context. each AMOS prefix level is a natural replication
+boundary — a ring of nodes that collectively own that address space.
+
+```
+L1 ring:  32 slots      — coarse semantic hubs, routing concentration
+L2 ring:  1,024 slots   — semantic regions, moderate load distribution
+L3 ring:  32,768 slots  — semantic clusters, read-parallel
+L4 ring:  ~1M slots     — fine-grained content, high parallelism
+L5–L7:    up to 32^7    — full content resolution, maximum distribution
+```
+
+each ring scales its bandwidth independently by adding nodes. a hot
+semantic cluster (dense attractor voxel) at depth 3 attracts more nodes
+to its L3 ring — capacity follows semantic demand without central
+coordination. the rings are self-balancing.
+
+**redundancy:** replicating K nodes per ring means losing any single node
+loses zero address space. the harmonic truth filter keeps valid addresses
+sparse — most ring slots are empty, nodes only join rings where they
+actually hold content. the rings are self-pruning.
+
+**topology identity:** p7ref orbital addresses are already AMOS-derived.
+a node's natural ring membership is its own orbital address prefix. the
+distributed index needs no routing table — the network topology and the
+storage topology are the same topology, both derived from the same
+carrier frequency.
+
+the "directory overhead" that looks like a local cost is the
+**bandwidth pre-allocation** for global scale. the tree is not a tree —
+it is a nested ring system waiting to be populated.
+
+**the global filesystem property:** as the network grows, deeper address
+levels become populated, increasing total capacity super-linearly. a
+network of N nodes can collectively hold a harmonic index of depth
+log₃₂(N) levels with full redundancy at every level. the index grows
+with the network, structured by the same harmonic geometry that
+structures the network itself.
+
+every local directory is a global ring seen from one vantage point. =)
+
+#,,.,,...,..,,,.,,,..,.,,,.,,,,,.,..,,.,,,.,,,..,,...,...,..,,..,,.,,,,.,,,,.,
+#4BL26EI4YU6SUMWVUCBGB4D5M75I4FJQZB4SJ6PCED6CRMJSUF3S37ANJACVZZ32YKIMYEPKGUY56
+#\\\|CKQXWXHLBRKU7WPK3JHA5YDWSHUT7BVYYDEW6MRWOVEIMVBUU5P \ / AMOS7 \ YOURUM ::
+#\[7]X4RY35JN4E2Z6VFRVNVFXADZ3I7CL2UFUNQTKPP5UACXH4VEBMBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
