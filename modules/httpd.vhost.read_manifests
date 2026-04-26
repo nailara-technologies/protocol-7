@@ -4,6 +4,8 @@
 # descr = scan data/web-root/vhosts/ for .vhost-manifest files
 
 my $vhosts_dir = <httpd.vhosts.source_dir>;
+$vhosts_dir = <system.root_path> . "/$vhosts_dir"
+    if defined <system.root_path> and $vhosts_dir !~ m|^/|;
 
 unless ( -d $vhosts_dir ) {
     <[base.logs]>->( 1, 'vhost source dir not found: %s', $vhosts_dir );
@@ -72,8 +74,8 @@ closedir($dir_fh);
 
 return \@hostnames_found;
 
-#,,..,,,.,,.,,..,,.,,,,.,,,.,,..,,,..,,..,,.,,..,,...,...,.,.,.,,,...,.,.,,.,,
-#CF55I4PGZETM4FJDXT63TJ576CDMAVTT3G37CSK75FZHHW2LJAN4ZHGZ4JK4HRSN4E2LYRA5FV3MS
-#\\\|YO7WP5Y3ZMIVLADTYAV7N7UHSGXXNWDIEQ3GKDK32KP3KN33WPP \ / AMOS7 \ YOURUM ::
-#\[7]JFWMEDOS2YUEFQUBV2KJAZMMEY2W2FBCVNNL2TYK53EDVUYB24CA 7  DATA SIGNATURE ::
+#,,..,,..,.,,,.,.,,.,,.,.,..,,,,,,,..,,.,,.,.,..,,...,...,.,.,...,..,,...,,.,,
+#GK6Z22FAU6O3PQ4S63W3IR7SNGAOWRIVSAQL4PHPILL5EOIJBWC6G2F4VLEG7777MJH4GU5ZZMNSM
+#\\\|UHNXFQLBQBR5ZFS4RH6WHQTBCUGIDPIVBJV4FGZFT6KD6Z5NLHO \ / AMOS7 \ YOURUM ::
+#\[7]O6H3KPTVDVLUIAWQ34NOAPOG5ATYDH32O63KIH6NEW3O3JBVY2CA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
