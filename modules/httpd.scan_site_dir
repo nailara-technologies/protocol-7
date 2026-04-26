@@ -37,18 +37,18 @@ foreach my $dir_name ( <[base.sort]>->( readdir $dir_fh ) ) {
             push @vhosts, $dir_name;
         }
     } else {
-        <[base.logs]>->( ':   host : %s', $dir_name );
+        <[base.logs]>->( 2, ':   host : %s', $dir_name );
         <httpd.cfg.hostnames>->{$dir_name} = $dir_path;
     }
 }
 
-my $vh_max_len = max map {length} @vhosts;
+my $vh_max_len = @vhosts ? max( map {length} @vhosts ) : 0;
 while (@ext_dirs) {
     my $dir_name    = shift @ext_dirs;
     my $link_target = shift @ext_dirs;
     <[base.logs]>->(
-        ': extdir : %-*s --> %s',
-        $vh_max_len, $link_target, $dir_name
+        2, ': extdir : %-*s --> %s',
+        $vh_max_len, $dir_name, $link_target
     );
 }
 foreach my $link_name (@vhosts) {
@@ -77,8 +77,8 @@ foreach my $link_name (@vhosts) {
 
 0;
 
-#,,,.,.,.,.,.,..,,.,.,...,.,,,..,,.,,,,,.,.,,,..,,...,..,,,,,,,,,,.,,,..,,,..,
-#ELC2NI3MXTL3FI5KU5EX774CDSUIRV6EK2Q4NLVHAEEZS75THABNMZXI4USCR6ULQBQVVOZCUCLYE
-#\\\|IMZLW46ZSDOHEUQUQEKUD47S6AIAKF7DYBAIJKMZLLGDNDYH6EL \ / AMOS7 \ YOURUM ::
-#\[7]SK6CAJSE66VKISA4IH6DVR3PAG4AV4EAYBYQB66ANGYHZVA36KBY 7  DATA SIGNATURE ::
+#,,.,,...,..,,,.,,.,.,..,,.,.,,,,,,,.,,..,...,..,,...,...,,..,,.,,,..,,..,,.,,
+#K64RKWIEUA7UHIHUMO5H633AS5YLY2PA5YTJC5KDQ4AAFUXWWULRCWFICZPVBUWCES4XVBZVZAKGU
+#\\\|2GVRQSZ6SRUFOH32Q3OCYIHJMX7KYTZKWUGLUHAMFSD4RNDE5RI \ / AMOS7 \ YOURUM ::
+#\[7]HG5V6K32USSTYKLN22OPTZTUSUZ6YBVXOYCZFFEPU22J2XKXNUCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
