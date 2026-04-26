@@ -1,0 +1,59 @@
+## [:< ##
+
+# name  = plugin.web.space.orbital.json
+# descr = return orbital cache as complete JSON structure for visualization
+
+my $cache = <web.space.orbital.cache>;
+my $data  = $cache->{'data'} // {};
+
+my $now = time();
+my $age = $now - ( $cache->{'timestamp'} // 0 );
+
+## self — ensure hash with expected keys ##
+my $self_raw = $data->{'self'};
+my $self;
+if ( ref $self_raw eq qw| HASH | ) {
+    $self = {
+        qw| p7ref | => ( $self_raw->{'p7ref'} // '' ),
+        qw| theta | => ( $self_raw->{'theta'} // 0 ),
+        qw| phi   | => ( $self_raw->{'phi'}   // 0 ),
+        qw| psi   | => ( $self_raw->{'psi'}   // 0 ),
+        qw| omega | => ( $self_raw->{'omega'} // 0 ),
+    };
+} else {
+    $self = {
+        qw| p7ref | => '',
+        qw| theta | => 0,
+        qw| phi   | => 0,
+        qw| psi   | => 0,
+        qw| omega | => 0,
+    };
+}
+
+## ensure arrays for list fields ##
+my $known       = $data->{'known'}       // [];
+my $connections = $data->{'connections'} // [];
+my $nameserv    = $data->{'nameserv'}    // [];
+
+$known       = [] unless ref $known eq qw| ARRAY |;
+$connections = [] unless ref $connections eq qw| ARRAY |;
+$nameserv    = [] unless ref $nameserv eq qw| ARRAY |;
+
+my $payload = {
+    qw| self        | => $self,
+    qw| known       | => $known,
+    qw| connections | => $connections,
+    qw| nameserv    | => $nameserv,
+    qw| timestamp   | => ( $cache->{'timestamp'} // 0 ),
+    qw| cache_age   | => $age,
+};
+
+return eval { JSON::XS::encode_json($payload) } // '{}';
+
+0;
+
+#,,..,,..,,..,...,..,,,,.,.,,,,,,,,..,,,.,..,,..,,...,...,,,,,,.,,.,.,,..,..,,
+#E2IUEMCWDSFRHEK4FMTCPRCLWOROPNZKHOWCCLEDDZ4HFZQV6F4OVEG3GX2UBWBGOQHMYP4M3FTTO
+#\\\|MZNP4WLN5ZLE2Z3PWKK2RWMMDMNHUWAGZPV7TCC4HIQTVBC275B \ / AMOS7 \ YOURUM ::
+#\[7]SG3YZJA26KZDFJJENQMZ3OFJMKN6NN25Q7DEFIDSGHCKZIDLD4CQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

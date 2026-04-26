@@ -75,13 +75,18 @@ if ( $section eq qw| summary | ) {
     };
     return eval { JSON::XS::encode_json($payload) } // '{}';
 
+} elsif ( $section eq qw| orbital-json | ) {
+
+    ## orbital data json — for live orbital visualization endpoint ##
+    return <[plugin.web.space.orbital.json]>;
+
 } else {
 
     return sprintf '<!-- unknown space section: %s -->', $section;
 }
 
-#,,.,,,,,,,,.,,.,,,,.,,,,,.,,,,..,..,,,,,,,..,..,,...,...,..,,.,,,..,,,,.,...,
-#ZE3Q75RWFPDOKYNUA357VT2TMDIDMYMEJBEJKU6XR2BHW7YAXGL225EZXSB7ELVU4MGNSKROFPJMA
-#\\\|YHL77AIAR7Y5BKDIO2CDFPKWV3ZUUJ2Q6C7QGSH5SWP5WOQKNVO \ / AMOS7 \ YOURUM ::
-#\[7]ML54C63LHUOTYVL7JT2ATZQV4WUBH6R2NG77Q35M5D746I2AKSBY 7  DATA SIGNATURE ::
+#,,..,...,..,,,,.,,,,,...,,,,,,,,,,.,,,..,...,..,,...,...,,..,...,.,,,.,,,..,,
+#JQR5EF5IQMK3T3M6RFN5AQNZYYU4TN6KIB33MKGLP6SSPTTZCPODQMW4NPNLBE2MZCGN4W5Z5SKVK
+#\\\|P5YRJUHCFQP7SBSIVHXKB2UJP4UK3DKV7SGUTKFREZH7ZJ3VDKJ \ / AMOS7 \ YOURUM ::
+#\[7]65OP54AGXP5F4RHU3FPP2EAP75IT6FHYOLUMRNNC5QCAZ3D4IECY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

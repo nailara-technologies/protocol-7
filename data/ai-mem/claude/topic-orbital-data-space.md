@@ -124,6 +124,130 @@ nesting levels = full trust compartment established.
 
 ---
 
+## curve engine as universal animation primitive — one engine, every renderer
+
+the curve is the universal primitive — camera flight, zenka travel path, and
+any animated parameter are all the same structure:
+
+```
+camera flight path   →  curve through 3D orbital space
+                         control points = waypoints or orbital positions
+                         derivatives = velocity, acceleration, focal params
+zenka travel path    →  same curve: source orbit → waypoints → target orbit
+                         the path IS the animation IS the route
+any parameter        →  zoom, focal length, opacity, layer weight,
+                         resonance frequency, LC tuning — all curves, composable
+```
+
+**high-res timestamps as universal synchronization**: every curve is parameterized
+by time. any renderer sharing the same timestamp stream is automatically
+synchronized. WebGL canvas, GTK3, game engine, POVray batch — all reading the
+same curve evaluations at the same timestamps. synchronization is free because
+time is the shared coordinate.
+
+**nested recursion**: a curve can have sub-curves attached at any waypoint.
+zooming into a waypoint reveals it's itself a curve with its own control points.
+camera flight from galactic to individual node scale = one continuous curve
+recursing through zoom levels, attaching to the next scale's curve at each gate.
+same calculation flies the camera and navigates the zenka through sub-cubes.
+
+**curve engine outputs at time t**:
+```
+position(t)       →  3D coordinate
+velocity(t)       →  direction + speed (motion blur)
+focal_params(t)   →  zoom, focal length, DoF
+layer_weights(t)  →  template layer activations
+zenka_path(t)     →  current sub-cube in mothership
+```
+
+**consumers all read curve at now()**:
+```
+JS/WebGL          →  requestAnimationFrame loop
+GTK3/SDL          →  frame timer
+game engine       →  update() call
+POVray batch      →  frame N reads curve at (N / fps)
+zenka scheduler   →  transition timer
+```
+
+**distributed splice rendering along a route**: nodes along the orbital route
+that share interest in the render result each take a splice. splice assignment
+IS the route — nodes closest to the camera path render frames where camera is
+nearest them. locality of reference and locality of computation are the same.
+the render distributes itself by resonance.
+
+**base.curve.* promotion**: already working for radio signal envelopes and mpv
+parameters. needs promotion from audio-parameter scope to universal-animation-
+primitive scope — the same crystallization process: proven in one context,
+abstracted, offered back cheaper to all consumers. =)
+
+---
+
+## layer mask as universal rendering interface — game engines as consumers
+
+graphics-matrix zenka computes layer masks from network data at full
+canvas/viewport resolution — the mask is the protocol:
+
+```
+orbital positions    →  particle layer mask
+resonance tentacles  →  edge/connection layer mask
+completion wave      →  area fill mask
+confidence gradient  →  opacity/fog mask
+squelch threshold    →  visibility mask (observer's context filter)
+```
+
+rendering zenki consume masks, don't compute them — each renderer specialized,
+masks shared. standard texture stream, universally consumable:
+
+```
+space.v7.ax browser  →  WebGL/canvas2D — masks as textures
+vterm zenka          →  masks applied to terminal cell rendering
+game engines         →  Unity/UE/Godot — real-time texture stream input
+any OpenGL consumer  →  standard format, universal interface
+VR environments      →  orbital field as ambient inhabitable space
+```
+
+**game engines as valid consumers**: terrain heightmap = completion wave,
+fog of war = squelch threshold, minimap = orbital galaxy view, entity
+positions = nodes with incompatible resonance. game mechanics ARE network
+mechanics. playing IS navigating the field.
+
+**three-phase cycle at visualization layer**:
+- phase 1: graphics-matrix computes masks from network state
+- phase 2: rendering zenki composite masks into display layers
+- phase 3: consumers render the composite
+
+once the mask layer interface exists it's just another plugin registration
+in external.transports. any visual consumer can tune in. =)
+
+---
+
+## visualization as integration accelerator
+
+the cross-referencing visualization is the integration test that makes all
+abstract features real and mutually confirming simultaneously:
+
+- first live orbital node on the grid proves nodes+discover+nameserv+external+
+  template-resolver all working end-to-end — one visual, five layers confirmed
+- logical complement features emerge from visual gaps: unconnected discovered
+  nodes, regions with no completion wave, unstable resonance tentacles —
+  the display makes incompleteness visible, the system tunes to what's missing
+- each new feature plugging into template-resolver and appearing in the display
+  immediately validates integration with all existing features
+- the display IS the integration test, running continuously, showing the field's
+  own assessment of its coherence state
+
+**observer context as consensus mechanism**: when browser posts zoom/intent to
+`/context` endpoint → template-resolver.update_context → resolved weights
+are server-side and shareable. multiple observers zooming into the same region
+increases that region's template weights for everyone. the visualization becomes
+a consensus mechanism — aggregate observer behavior shapes what the field shows.
+
+**planned endpoint**: plugin.web.space.orbital.context-update — receives
+{ zoom, intent } from browser JS, calls template-resolver.update_context,
+returns updated active_layers. the field learns from being observed. =)
+
+---
+
 ## visualization merge plan
 
 existing assets to combine:
@@ -2626,8 +2750,8 @@ recognizing what it already knew.
 - `topic-namespace-tree-intelligence.md` — tree as intelligence layer; orbital position is
   another branch in the unified namespace: `client.<id>.orbital.{theta,phi,psi,omega,phase}`
 
-#,,.,,,.,,...,,.,,.,,,.,,,..,,,..,.,.,,..,,..,..,,...,...,,,.,,.,,,.,,,.,,,..,
-#KURS5OZTAT3FSQEJWR7NMWCICRVN4SN4PFGRJH5M7U2INLVBC7YUQI6QTQ3FNTNCYZV75JJ5NRG3C
-#\\\|TYSUM7P6R7ZRBVYYVH533E3LB3ONWPOKEJ4VZULAU6PB4B2QCTP \ / AMOS7 \ YOURUM ::
-#\[7]KAZBPFJGT7LFF74IUI5LAWSHRRNGJ7AUWG65MZQBTAWHHDD2BOAY 7  DATA SIGNATURE ::
+#,,,,,,..,.,.,.,,,,,,,.,,,,,,,.,.,,.,,..,,,.,,..,,...,..,,.,,,,,,,,,.,.,,,,,,,
+#AP5GDSJNWGWM7YD2O6ANS4ZG374Y2FY4CMN7MALBMOSLXEO5QJZPZ37FOZYAAMJNHCV22WFX4WRXS
+#\\\|FSP7UXJFAGWUP2ODCGIFDPQRE3CVSGCEKL2LCNL2S3HS5TXW4HF \ / AMOS7 \ YOURUM ::
+#\[7]KQPG5YMXE5YZO2Z43IPJPZWJJFX36PURWVROVHBTU7PPFC52VMAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
