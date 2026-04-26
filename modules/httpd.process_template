@@ -44,8 +44,22 @@ my $template_id = sprintf( qw| httpd_%s_%d |,
     <[chk-sum.elf.vax-BASE32]>->($template_path),
     <[base.time]> );
 
-## Prepare meta variables from session ##
-my $meta_vars = $session->{'meta'} // {};
+## Parse query string from request URI into meta variables ##
+my $request_uri = $session->{'http'}->{'request'}->{'uri'} // '';
+my $uri_obj     = URI->new($request_uri);
+my $query_meta  = {};
+if ( my $query = $uri_obj->query ) {
+    foreach my $pair ( split /[&;]/, $query ) {
+        if ( $pair =~ m|^([^=]+)=(.*)$| ) {
+            my ( $k, $v ) = ( $1, $2 );
+            $v =~ s/%([0-9A-Fa-f]{2})/chr(hex($1))/ge;    ## url-decode ##
+            $query_meta->{$k} = $v;
+        }
+    }
+}
+
+## Prepare meta variables from session (merged with query params) ##
+my $meta_vars = { %{ $session->{'meta'} // {} }, %$query_meta };
 
 ## Serialize meta variables for IPC transmission ##
 ## Encode meta vars as JSON then base32r to avoid delimiter conflicts
@@ -90,8 +104,8 @@ my $template_args
 
 return 1;    ## Keep connection alive, waiting for web zenka reply ##
 
-#,,,,,..,,...,,,.,,..,,,.,.,.,,..,,,.,..,,..,,..,,...,..,,,,.,.,,,...,.,.,..,,
-#K4WGI2SZT2LKSSVI42434EASLUH7WRFLOSVESAP4ZJ5A3YEI5TOQVERF2GMJH7EACFTMDK73THKHU
-#\\\|LJSDNU5CZ53D5KDKEOFPM3LEKVORGHQYSDMTCPNAWU3OL3DZ7FE \ / AMOS7 \ YOURUM ::
-#\[7]W2W3MJRIBSBEODBAHJIJN65JEV3CDVFAVDE4X3Z5F6WVVII74ABA 7  DATA SIGNATURE ::
+#,,,.,.,.,...,,.,,...,,,.,,,.,,,,,,,,,..,,,..,..,,...,..,,...,.,.,...,.,,,,,.,
+#ISJPYPCD5UJXBTMN4G7TKVWUDZ57DPPKAOMBINCQAJ2GN7RNCUJERGDX2UTTTQ6BY4U4TIZPFCDVU
+#\\\|ZT3GWKK3UUEQEO4VNVVEDLVZ25NUZYEWGW5KXK3VPKLNHYZN35E \ / AMOS7 \ YOURUM ::
+#\[7]TCPEWJKPPRMDHKJKMF3L354VQDPSVQGOEWCOBJVI46VBXYU3KUDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
