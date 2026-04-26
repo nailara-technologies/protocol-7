@@ -1,0 +1,19 @@
+## [:< ##
+
+# name  = discover.orbital.init_code
+# descr = schedule initial orbital p7ref fetch from nodes zenka
+
+## fetch after short delay to allow nodes zenka to connect first ##
+<[event.add_timer]>->(
+    {   qw| after   | => 7,
+        qw| handler | => qw| discover.orbital.get_local_p7ref |,
+    }
+);
+
+<[base.log]>->( 2, 'orbital p7ref fetch scheduled' );
+
+#,,,,,...,,.,,..,,...,,.,,..,,..,,..,,...,..,,..,,...,...,,.,,,..,,,,,...,,..,
+#XMSAO7T2FULGNFBIGFSXWQVESYBMKDELJJ2VKLU2G3D42GYRUHWYVM3ETN3IRLIUXOCVEU637E3IA
+#\\\|H5PV5ITFIPQ7DNUD4QUKVZZO47E42XNUNCIWZ23H7WNV623M5M7 \ / AMOS7 \ YOURUM ::
+#\[7]DKEUTBW6ZRFCUDUQR2NHMPCUEWOQ3XH3MGKOMB65BY3KCXXKXGBI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
