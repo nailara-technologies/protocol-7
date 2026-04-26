@@ -1,0 +1,123 @@
+## [:< ##
+
+# name  = plugin.web.space.orbital.handler.reply
+# descr = reply handler for all orbital data route-sends
+
+my $reply = shift;
+
+my $params = $reply->{'params'} // {};
+my $field  = $params->{'field'} // return;
+my $cmd    = $reply->{'cmd'}    // '';
+
+my $cache = <web.space.orbital.cache>;
+my $data  = $cache->{'data'} //= {};
+
+## determine raw data source based on reply mode ##
+my $raw_data;
+if ( $cmd eq qw| SIZE | ) {
+    $raw_data = $reply->{'data'} // '';
+} else {
+    $raw_data = $reply->{'call_args'}{'args'} // '';
+}
+
+if ( $field eq qw| self | ) {
+
+    ## nodes.orbital.current_position — true mode reply ##
+    ## data is a hashref that serializes as a string over protocol-7 ##
+    ## store raw and attempt to extract structured fields ##
+    if ( ref $raw_data eq qw| HASH | ) {
+        $data->{'self'} = {
+            qw| p7ref  | => ( $raw_data->{'p7ref'} // '' ),
+            qw| theta  | => ( $raw_data->{'theta'} // 0 ),
+            qw| phi    | => ( $raw_data->{'phi'}   // 0 ),
+            qw| psi    | => ( $raw_data->{'psi'}   // 0 ),
+            qw| omega  | => ( $raw_data->{'omega'} // 0 ),
+        };
+    } else {
+        $data->{'self'} = {
+            qw| p7ref | => '',
+            qw| theta | => 0,
+            qw| phi   | => 0,
+            qw| psi   | => 0,
+            qw| omega | => 0,
+        };
+    }
+
+} elsif ( $field eq qw| known | ) {
+
+    ## discover.list-orbital — size mode with formatted table ##
+    my @nodes;
+    foreach my $line ( split "\n", $raw_data ) {
+        next if $line =~ m|^[-\s]+$|;
+        next if $line =~ m|^\s*hostname|i;
+        if ( $line =~ m|^\s*(\S+)\s+(\S+)\s+(\S+)\s+(\S+)| ) {
+            push @nodes,
+                {
+                qw| hostname | => $1,
+                qw| pkey7    | => $2,
+                qw| p7ref    | => $3,
+                qw| age      | => $4,
+                };
+        }
+    }
+    $data->{'known'} = \@nodes;
+
+} elsif ( $field eq qw| connections | ) {
+
+    ## external.list-connections — size mode with formatted table ##
+    my @conns;
+    foreach my $line ( split "\n", $raw_data ) {
+        next if $line =~ m|^[-\s]+$|;
+        next if $line =~ m|^\s*name|i;
+        if ( $line =~ m|^\s*(\S+)\s+(\S+)\s+(\S+)\s+(\S+)\s+(\S+)| ) {
+            push @conns,
+                {
+                qw| name      | => $1,
+                qw| p7ref     | => $2,
+                qw| status    | => $4,
+                qw| encrypted | => ( $5 eq qw| yes | ? TRUE : FALSE ),
+                };
+        }
+    }
+    $data->{'connections'} = \@conns;
+
+} elsif ( $field eq qw| nameserv | ) {
+
+    ## nameserv.cmd.discover-nodes — true mode with result string ##
+    my @entries;
+    my $domain = <nameserv.cfg.auto_publish_domain> // '';
+    foreach my $line ( split "\n", $raw_data ) {
+        if ( $line =~ m|^\s+(\S+)\s+(\S+)| ) {
+            push @entries,
+                {
+                qw| name   | => $1,
+                qw| p7ref  | => $2,
+                qw| domain | => $domain,
+                };
+        }
+    }
+    $data->{'nameserv'} = \@entries;
+}
+
+## track received fields ##
+$cache->{'received_fields'} //= {};
+$cache->{'received_fields'}->{$field} = 1;
+
+## update timestamp when all expected fields received ##
+my $expected     = $cache->{'expected_fields'} // [];
+my $all_received = 1;
+foreach my $f (@$expected) {
+    $all_received = 0 unless $cache->{'received_fields'}->{$f};
+}
+
+$cache->{'timestamp'} = time() if $all_received;
+
+<[base.log]>->( 3, qq| orbital field '$field' received | );
+
+return 0;
+
+#,,,.,..,,,,,,...,...,..,,...,,.,,.,,,..,,,,,,..,,...,...,.,.,.,,,,,.,.,.,,.,,
+#6SWFCXW4WBITY6ADWQKIMACXY34K33TUUSZIVRAAZBSVVLNX3DXBJ733ZXAKORQ2CNMDKGZOLEFA6
+#\\\|PQKMJYMYPKLWFG25ESRBJMXREOFYRQXM5ONCZLRN6ZLNDL4IB3R \ / AMOS7 \ YOURUM ::
+#\[7]XDAQTT6DI5I46G5I3XZFJEQQ3YDRCDGNS7IDJ5IJWSK4IBM7P6AI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

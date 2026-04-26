@@ -1,0 +1,61 @@
+## [:< ##
+
+# name  = plugin.web.space.orbital.fetch
+# descr = async fetch orbital data from all orbital layer zenki
+
+## request self position from nodes zenka ##
+<[protocol-7.command.send.local]>->(
+    {   qw| command |   => qw| nodes.orbital.current_position |,
+        qw| call_args | => { qw| args | => '' },
+        qw| reply |     => {
+            qw| handler | => qw| plugin.web.space.orbital.handler.reply |,
+            qw| params |  => { qw| field | => qw| self | },
+        }
+    }
+);
+
+## request known orbital nodes from discover zenka ##
+<[protocol-7.command.send.local]>->(
+    {   qw| command |   => qw| discover.list-orbital |,
+        qw| call_args | => { qw| args | => '' },
+        qw| reply |     => {
+            qw| handler | => qw| plugin.web.space.orbital.handler.reply |,
+            qw| params |  => { qw| field | => qw| known | },
+        }
+    }
+);
+
+## request connections from external zenka ##
+<[protocol-7.command.send.local]>->(
+    {   qw| command |   => qw| external.list-connections |,
+        qw| call_args | => { qw| args | => '' },
+        qw| reply |     => {
+            qw| handler | => qw| plugin.web.space.orbital.handler.reply |,
+            qw| params |  => { qw| field | => qw| connections | },
+        }
+    }
+);
+
+## request nameserv data if configured ##
+my $nameserv_domain = <nameserv.cfg.auto_publish_domain> // '';
+if ( length $nameserv_domain ) {
+    <[protocol-7.command.send.local]>->(
+        {   qw| command |   => qw| nameserv.cmd.discover-nodes |,
+            qw| call_args | => { qw| args | => $nameserv_domain },
+            qw| reply |     => {
+                qw| handler | => qw| plugin.web.space.orbital.handler.reply |,
+                qw| params |  => { qw| field | => qw| nameserv | },
+            }
+        }
+    );
+}
+
+<[base.log]>->( 3, qq| orbital fetch dispatched | );
+
+return 1;
+
+#,,.,,...,,,.,,.,,...,.,.,,,,,,.,,.,,,,.,,.,,,..,,...,...,,.,,..,,..,,,,,,..,,
+#5LTMVYXFXPTYGCHNMEMGWPDCGL2LKBHFYL2FNGFDEVIQGIIOD76JAZEMYSEIAZ6PRPGOQGFO7ZP4Q
+#\\\|Y7CZRVQVCGHHOFKYHARVRFGPWFT3ZQK6LMX4GP6SPRGXXTBZSF4 \ / AMOS7 \ YOURUM ::
+#\[7]IFQRC2F77IKJVWV2334HPXSBPRCB2IT3RVBTPPWWA26TCHQW3IDQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
