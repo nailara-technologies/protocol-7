@@ -1,0 +1,49 @@
+## [:< ##
+
+# name  = graphics-matrix.cmd.char-rays
+# descr = pre-compute character ray table for printable ASCII
+
+my $voxels = <graphics-matrix.harmonic.voxels>;
+
+my @rays;
+for my $ord ( 32 .. 126 ) {
+    my $char = chr($ord);
+    my @levels;
+    for my $len ( 1 .. 7 ) {
+        local $AMOS7::CHKSUM::sstr_start = 0;
+        local $AMOS7::CHKSUM::str_length = $len;
+        push @levels, <[chk-sum.amos]>->( \$char );
+    }
+
+    my $class
+        = $char =~ m|[A-Za-z]| ? 'alpha'
+        : $char =~ m|\d|       ? 'digit'
+        :                        'punctuation';
+
+    push @rays,
+        {
+        'char'   => $char,
+        'ord'    => $ord,
+        'class'  => $class,
+        'levels' => \@levels
+        };
+}
+
+## store in cache ##
+<graphics-matrix.harmonic.char_rays> = \@rays;
+
+my $out = sprintf "computed %d character rays\n", scalar @rays;
+$out
+    .= "  alpha: " . scalar( grep { $_->{'class'} eq 'alpha' } @rays ) . "\n";
+$out
+    .= "  digit: " . scalar( grep { $_->{'class'} eq 'digit' } @rays ) . "\n";
+$out .= "  punctuation: "
+    . scalar( grep { $_->{'class'} eq 'punctuation' } @rays ) . "\n";
+
+return { 'mode' => 'size', 'data' => $out };
+
+#,,,,,..,,.,,,.,,,,,.,,,,,..,,,..,...,...,.,,,..,,...,...,,..,.,,,,,.,.,.,,.,,
+#3VJKE2C6JLQM4MCNY2ZPIFWTHXONVTGEZTIIJAVBC7OK4PJAFSASYUIOCM47NXCWF76HVQ56JZLS4
+#\\\|N7YXJJ3OPNWKDMOFDS65ZS23427WZC6ROBOZRC5W2PPK3CHCY2G \ / AMOS7 \ YOURUM ::
+#\[7]5Y5XEUB5W5IY6H4SRZQTELLML7PRHXGGCVA5RGVSIBPUC43XAKAA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

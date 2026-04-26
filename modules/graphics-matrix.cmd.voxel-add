@@ -1,0 +1,46 @@
+## [:< ##
+
+# name  = graphics-matrix.cmd.voxel-add
+# descr = add input to voxel density grid
+# param = <input-string>
+
+my $input = $call->{'args'} // '';
+return { 'mode' => 'false', 'data' => 'expected input' }
+    unless length $input;
+
+my ( $x, $y, $z ) = <[graphics-matrix.harmonic.coords]>->( \$input );
+
+## use first 3 chars of each coordinate as voxel key ##
+my $vx        = substr( $x, 0, 3 );
+my $vy        = substr( $y, 0, 3 );
+my $vz        = substr( $z, 0, 3 );
+my $voxel_key = "$vx:$vy:$vz";
+
+<graphics-matrix.harmonic.voxels>->{$voxel_key} //= {
+    'count'  => 0,
+    'inputs' => [],
+    'coords' => { 'x' => $x, 'y' => $y, 'z' => $z }
+};
+
+<graphics-matrix.harmonic.voxels>->{$voxel_key}->{'count'}++;
+push <graphics-matrix.harmonic.voxels>->{$voxel_key}->{'inputs'}->@*, $input;
+
+## compute axis agreement (how many of X/Y/Z agree) ##
+my $agreement = 0;
+$agreement++ if $vx eq $vy;
+$agreement++ if $vy eq $vz;
+$agreement++ if $vx eq $vz;
+<graphics-matrix.harmonic.voxels>->{$voxel_key}->{'axis_agreement'}
+    = $agreement;
+
+return {
+    'mode' => 'true',
+    'data' => "$voxel_key (count: "
+        . <graphics-matrix.harmonic.voxels>->{$voxel_key}->{'count'} . ")"
+};
+
+#,,..,,..,,..,,,.,,,,,..,,.,,,..,,,..,...,,..,..,,...,...,.,.,,,,,.,,,.,.,.,.,
+#EVGJBR7Q4672DSIHZ3SWTKMBCPXPONVX6NBRJIDE3HEOBBSFUHTACFCLJAOJFIYPA7SICCSBZLXRA
+#\\\|P3WYJSBXQMALX5CV5OSIPKTQEFNQX6UF7Z2UZHHKMA3H2FY4NU6 \ / AMOS7 \ YOURUM ::
+#\[7]XE3SPJQCT6ZPZ6WTVGASPIJ5XX4ZYR2B2HT6RGAJSYKSXD6HNWAA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
