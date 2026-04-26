@@ -1,0 +1,76 @@
+## [:< ##
+
+# name  = index.cmd.cluster
+# descr = return density stats for a harmonic address prefix
+
+my $prefix = $call->{'args'} // '';
+return { 'mode' => 'false', 'data' => 'expected prefix path' }
+    unless length $prefix;
+
+$prefix =~ s|/+$||;
+
+my $store_root = <index.path.index-files>;
+my $scan_path  = "$store_root/$prefix";
+
+return { 'mode' => 'false', 'data' => 'not found' } unless -d $scan_path;
+
+my $threshold = <index.cfg.cluster_summarize_threshold> // 42;
+
+my $count = 0;
+my @child_paths;
+
+my @queue = ($scan_path);
+while (@queue) {
+    my $current = shift @queue;
+    my $dh;
+    next unless opendir( $dh, $current );
+    my @entries = grep { !/^\.{1,2}$/ } readdir($dh);
+    closedir($dh);
+    for my $entry (@entries) {
+        my $full = "$current/$entry";
+        if ( -d $full ) {
+            push @queue,       $full;
+            push @child_paths, $full;
+        } else {
+            $count++;
+        }
+    }
+}
+
+my $density = $count >= $threshold ? 1 : 0;
+
+## trigger summarization on high-density clusters ##
+if ( $density and !<index.cluster_reported>->{$scan_path} ) {
+    <index.cluster_reported>->{$scan_path} = 1;
+
+    my @members = <[file.all_files]>->($scan_path);
+
+    <[protocol-7.route-send]>->(
+        {   command   => 'coding.submit',
+            call_args => {
+                args => "summarize harmonic cluster: $prefix\n"
+                    . join( "\n", @members )
+            },
+            reply => { handler => 'index.handler.summarize-reply' }
+        }
+    );
+}
+
+my $output = sprintf( "path: %s\ncount: %d\nthreshold: %d\ndensity: %s\n",
+    $prefix, $count, $threshold, $density ? 'high' : 'normal' );
+
+if (@child_paths) {
+    $output .= "children:\n";
+    for my $child (@child_paths) {
+        $child =~ s|^$store_root/||;
+        $output .= "$child\n";
+    }
+}
+
+return { 'mode' => 'size', 'data' => $output };
+
+#,,..,,..,...,,,,,.,.,,..,,..,,,,,..,,.,,,...,..,,...,...,,.,,.,.,...,...,,,,,
+#LNAQ5OCJ4KUBIO6SRYTJFCQI4MO7OWQCHRT2MKTYEFHZYUDLUAN43Y6PWMANKQEWARCYGU5KEBM7C
+#\\\|HRIP5SPW2UVR7XIXA6JJXUL2DYVYQKGJW2S3F7RXYOU3X2BQDG7 \ / AMOS7 \ YOURUM ::
+#\[7]FRMLIMTTATBEQTUTDNCTLW6W43PT7VUGY2MKWQFHLFGWMSRBFSBI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
