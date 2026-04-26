@@ -1,0 +1,71 @@
+## [:< ##
+
+# name  = plugin.web.space.orbital.json.context
+# descr = return orbital json scoped to a context node (recursive nav)
+
+my $context_p7ref = shift // '';
+
+my $cache = <web.space.orbital.cache>;
+my $data  = $cache->{'data'} // {};
+my $now   = time();
+my $age   = $now - ( $cache->{'timestamp'} // 0 );
+
+## use context p7ref as self for this scope ##
+my $self = {
+    qw| p7ref | => $context_p7ref,
+    qw| theta | => 0,
+    qw| phi   | => 0,
+    qw| psi   | => 0,
+    qw| omega | => 0,
+};
+
+## find hostname from known[] if available ##
+my $known_all = $data->{'known'} // [];
+$known_all = [] unless ref $known_all eq qw| ARRAY |;
+
+foreach my $n (@$known_all) {
+    if ( ( $n->{'p7ref'} // '' ) eq $context_p7ref ) {
+        $self->{'hostname'} = $n->{'hostname'} if defined $n->{'hostname'};
+        last;
+    }
+}
+
+## return known[] excluding the context node itself ##
+my @sub_known
+    = grep { ( $_->{'p7ref'} // '' ) ne $context_p7ref } @$known_all;
+
+## build payload matching root orbital.json shape ##
+my $gm_state = $data->{'gm_state'} // {};
+
+my $glow_shells = $gm_state->{'glow_shells'};
+$glow_shells = [ 0.0, 0.0, 0.0, 0.0, 0.0, 0.0 ]
+    unless ref $glow_shells eq qw| ARRAY | and @$glow_shells;
+
+my $channel = $gm_state->{'channel'} // {};
+$channel = { index => 0, name => '', palette => [] }
+    unless ref $channel eq qw| HASH |;
+
+my $graph = $gm_state->{'graph'} // {};
+$graph = { counts => {}, total => 0 }
+    unless ref $graph eq qw| HASH |;
+
+my $payload = {
+    qw| self        | => $self,
+    qw| known       | => \@sub_known,
+    qw| connections | => [],
+    qw| nameserv    | => [],
+    qw| timestamp   | => ( $cache->{'timestamp'} // 0 ),
+    qw| cache_age   | => $age,
+    qw| context     | => $context_p7ref,
+    qw| glow_shells | => $glow_shells,
+    qw| channel     | => $channel,
+    qw| graph       | => $graph,
+};
+
+return eval { JSON::XS::encode_json($payload) } // '{}';
+
+#,,,,,...,,..,,,,,,,.,,,,,.,.,,..,...,,,,,.,.,..,,...,...,..,,.,.,...,...,.,,,
+#J3RTOSPJN5YDTGSTXFWYIAXDV4EH4S7W62XQGJPTK7FJ362EIN4QHRKNXTSZF5V64KTO3PY3HIJP2
+#\\\|OTQDOQL2QUZJGOYCNY3RCTAPGQHGJS22U4DQSYQU45FTKBMFTFB \ / AMOS7 \ YOURUM ::
+#\[7]5PNI7UERBMTZXWJI2BEJ3K4BMD6RJWJDFBYNJLJ6VYZ3WCGMOAAQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

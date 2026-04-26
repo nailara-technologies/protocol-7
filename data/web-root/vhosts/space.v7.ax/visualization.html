@@ -828,15 +828,24 @@
                 label: node.hostname || (node.p7ref || '').split(':')[1] || 'node',
                 snapshot: { ...parentData }
             });
-            navOrbitalData = {
-                self: { ...node },
-                known: generateMockSubNodes(node.p7ref),
-                connections: [],
-                nameserv: [],
-                channel: parentData.channel,
-                glow_shells: [0, 0, 0, 0, 0, 0]
-            };
-            nodeHistory = {};
+            // fetch real context data
+            fetch('/orbital.json?context=' + encodeURIComponent(node.p7ref))
+                .then(r => r.json())
+                .then(data => {
+                    navOrbitalData = data;
+                    nodeHistory = {};
+                })
+                .catch(() => {
+                    // fallback to mock on fetch failure
+                    navOrbitalData = {
+                        self: { ...node },
+                        known: generateMockSubNodes(node.p7ref),
+                        connections: [], nameserv: [],
+                        channel: parentData.channel,
+                        glow_shells: [0,0,0,0,0,0]
+                    };
+                    nodeHistory = {};
+                });
             updateBreadcrumb();
             selectedNodeP7ref = null;
             zoomTargetZoom = ZOOM_OVERVIEW;
