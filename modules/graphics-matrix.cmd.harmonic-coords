@@ -1,0 +1,22 @@
+## [:< ##
+
+# name  = graphics-matrix.cmd.harmonic-coords
+# descr = show 3D harmonic coordinates for input
+# param = <input-string>
+
+my $input = $call->{'args'} // '';
+return { 'mode' => 'false', 'data' => 'expected input' }
+    unless length $input;
+
+my ( $x, $y, $z ) = <[graphics-matrix.harmonic.coords]>->( \$input );
+
+return {
+    'mode' => 'size',
+    'data' => sprintf( "x: %s  y: %s  z: %s", $x, $y, $z )
+};
+
+#,,.,,,..,..,,.,.,.,.,...,,.,,.,.,.,,,,,,,,,.,..,,...,...,,.,,.,,,,.,,,,.,.,.,
+#5RRZXL67GDQ6FNNJZZPWNJMH2AIATEYSM5CAB3A7HKO5EJVM6RV7IPBE4764RN76XC5Y2KD4ZVWCA
+#\\\|74VDQTBWDJP4NEZSRY56BJR3ZJRMDC3WU6XMNRHDNN4BJNC3A23 \ / AMOS7 \ YOURUM ::
+#\[7]CXC43ZUDJMXT3MWGU3BWPPDFNO6LDH7GB5MT5E4ICR7I5UX27EDQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
