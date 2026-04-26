@@ -2,10 +2,11 @@
 
 # name = image2html.base.write_image_html
 
-my $path          = shift;
-my $image_file    = shift;
-my $img_bg_color  = <image2html.bg_color>;
-my $template_dir  = <system.root_path> . '/data/html/templates/image2html';
+my $path         = shift;
+my $image_file   = shift;
+my $img_bg_color = <image2html.bg_color>;
+my $template_dir
+    = <system.root_path> . '/' . <system.web-root-templates> . '/image2html';
 my $html_template = "$template_dir/image.html";
 my $target_file   = "$path/image.html";
 my $temp_file     = "$target_file.NEW";
@@ -30,8 +31,8 @@ close($html_fh);
 rename( $temp_file, $target_file )
     or die "$temp_file --> $target_file : \l$OS_ERROR";
 
-#,,..,,,.,,,.,,,.,.,.,,,.,...,,,,,,,,,.,,,...,..,,...,...,.,.,,,,,...,,,,,,.,,
-#XOCEFTKY65IS36FNNUEUSYSRV64GCLBV5TO4LLPEVKRKCF3E36GA7ZOCIW3PXXUC7BYPJIKTM2ZTC
-#\\\|UVA6F5SPTQAN3DBLKMHI2HDDEQUNIZEYLCNFDRSXMKGVKXLGZYS \ / AMOS7 \ YOURUM ::
-#\[7]TNXKNPO3475D7N7XIKY3NSB3O2KZEIQMCX3RXKTFHABEEUMMKCAI 7  DATA SIGNATURE ::
+#,,,.,,.,,...,,,,,.,,,.,.,..,,,,,,,,.,,..,,.,,..,,...,...,,,.,,..,.,.,.,.,..,,
+#H53CZ4NTBAWXQGUKAUTFY5ULBM22S4DVZRXLIGHECCZFHYPQS3EJGCD5QSH53BPP6BO6USI2YOOTQ
+#\\\|PBGN6J6BLQ6FGUVA7TAHIOUFY6RGZKV5XM7RVQQQLHOLIKYEAZU \ / AMOS7 \ YOURUM ::
+#\[7]T7BBURQ3P6YN56A5D76YH2K4OJEUXIY7TUOQ6P6TGQ5GBWR7EQBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

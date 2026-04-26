@@ -9,7 +9,7 @@ my $cache_dir = <weather.cache_dir> . '/html';
 my $html_dir  = "$cache_dir/$station_id";
 my @page_list = <[weather.parent.page_list]>;
 my $current_template_dir
-    = <system.root_path> . '/data/html/templates/weather';
+    = <system.root_path> . '/' . <system.web-root-templates> . '/weather';
 my $body_template = "$current_template_dir/body.html";
 
 if ( !-d $html_dir ) {
@@ -304,8 +304,8 @@ foreach my $page_name (@page_list) {
     <[weather.parent.html_put]>->( $html_dir, $page_name, \$html_str );
 }
 
-#,,..,...,,,.,,,.,,,,,.,.,,,,,,..,,,.,..,,,,,,..,,...,...,.,.,,,.,.,,,,,,,,,,,
-#RIN76IQ66NW7DSP242S5OG4657FTIOJUUKBIHFFJTL6YLEXT5IZ2BAAGBGJYCGT2WHGO3E4DLGJIE
-#\\\|LXA5UN44CHJJIGNLQSXCGQT642FTALPLZANSCXLN4X4XUV7M4IY \ / AMOS7 \ YOURUM ::
-#\[7]5RHPKYQX5HUFZ3ACB5WGU6WQEJPMKSAIF35OOW6PLX6UX7QCGEAI 7  DATA SIGNATURE ::
+#,,..,...,,..,..,,.,,,..,,,.,,..,,.,,,,,,,.,.,..,,...,..,,.,.,..,,,.,,.,.,,,.,
+#VS4MGQ2JF4OYM74S5L3AXJSY5L3IPEQWQCLHVC5PK2YA7EK72TPRYF7YINQ2DHVDT73OA2267AZRG
+#\\\|YWQPCAXLY5R56RCZVMAPOLSTO6DZNP2O3RPS7D5YDLXKC73AICM \ / AMOS7 \ YOURUM ::
+#\[7]O4GE5XTFBDJRD3DILPPZUXZGFBV2TGZQYPISEWPGO4APDSDADYCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
