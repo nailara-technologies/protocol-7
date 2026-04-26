@@ -13,6 +13,7 @@
 use strict;
 use warnings;
 use Crypt::Misc qw| encode_b32r |;
+use Encode qw| encode_utf8 |;
 
 my $fresh  = 0;
 my $prompt = '';
@@ -57,11 +58,12 @@ unless ( length $prompt ) {
 }
 
 chomp $prompt;
+binmode STDOUT, ':encoding(UTF-8)';
 
 die ":: empty prompt\n" unless length $prompt;
 
 ## encode ##
-my $encoded = encode_b32r($prompt);
+my $encoded = encode_b32r( encode_utf8($prompt) );
 
 ## build command ##
 my $prefix = $fresh ? ':next:' : '';
@@ -78,8 +80,8 @@ printf ":: fresh session: %s\n", $fresh ? 'yes' : 'no';
 ## dispatch ##
 exec $cmd;
 
-#,,,.,.,,,.,,,,,,,,,.,,.,,,.,,,.,,..,,...,,,,,..,,...,...,.,.,,.,,.,,,.,.,,.,,
-#TOI2AXRPOGCZILMJXIEK5NABY2BUGAHEQWYL3MYXAHU3C6FMISY2RWSLL4RTIDACWBHT7ROLORMCC
-#\\\|QEF7XF4DBBLCDOY6JH5JVPVNC4JHSHLPJL5GK5ERFOIRFOQH5HC \ / AMOS7 \ YOURUM ::
-#\[7]63SMVBZL6EDUOD6PTVVNF2QNF2V36EYQBLCAZRNOF6PZ4UTZ2ODQ 7  DATA SIGNATURE ::
+#,,,,,.,.,...,,.,,...,,,.,,..,,,.,...,,,,,,,,,..,,...,...,.,.,,.,,..,,,,,,.,.,
+#6VXBALIKINTRERJTVFHBTYX6Q2ALLPFBB5XHPEKLK2PEDWENFO3233VJV5AWZ5EWBKFJ4DLV7HHV6
+#\\\|PYGENHN5PTKRBFBUDII2HOIHRRIMBMCV6KSSUV3Z74RXG7TTVSU \ / AMOS7 \ YOURUM ::
+#\[7]TSQIAEX7XSXREHWQFQLCCY2DNHCGGR3NCX6C5AKXFEI4KNV552CA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
