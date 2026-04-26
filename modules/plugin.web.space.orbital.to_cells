@@ -1,0 +1,106 @@
+## [:< ##
+
+# name  = plugin.web.space.orbital.to_cells
+# descr = register orbital cache nodes as graphics-matrix cells
+
+my $cache = <web.space.orbital.cache>;
+my $data  = $cache->{'data'} // {};
+
+my $pi = 3.14159265358979;
+
+## helper to derive cell position from orbital angles ##
+my $orbital_to_cell = sub {
+    my ( $theta, $phi, $psi ) = @_;
+    return {
+        selX => int( ( $theta * 6 / $pi ) + 0.5 ),
+        selY => int( ( $phi * 3 / $pi ) + 0.5 ),
+        selZ => int( ( $psi * 4 / ( 2 * $pi ) ) + 0.5 ),
+    };
+};
+
+## place self node ##
+my $self = $data->{'self'};
+if ( ref $self eq qw| HASH | and $self->{'p7ref'} ) {
+    my $pos = $orbital_to_cell->(
+        $self->{'theta'} // 0,
+        $self->{'phi'}   // 0,
+        $self->{'psi'}   // 0
+    );
+    <[protocol-7.command.send.local]>->(
+        {   qw| command |   => qw| graphics-matrix.cell |,
+            qw| call_args | => {
+                qw| args | => sprintf( 'place %d,%d,%d',
+                    $pos->{'selX'}, $pos->{'selY'}, $pos->{'selZ'} )
+            },
+        }
+    );
+    <[protocol-7.command.send.local]>->(
+        {   qw| command |   => qw| graphics-matrix.cursor |,
+            qw| call_args | => {
+                qw| args | => sprintf( 'set %d %d %d',
+                    $pos->{'selX'}, $pos->{'selY'}, $pos->{'selZ'} )
+            },
+        }
+    );
+}
+
+## track connected p7refs for type classification ##
+my $connected = {};
+for my $conn ( @{ $data->{'connections'} // [] } ) {
+    $connected->{ $conn->{'p7ref'} } = 1;
+}
+
+## place known nodes ##
+for my $node ( @{ $data->{'known'} // [] } ) {
+    my $pos = $orbital_to_cell->(
+        $node->{'theta'} // 0,
+        $node->{'phi'}   // 0,
+        $node->{'psi'}   // 0
+    );
+    my $type
+        = $connected->{ $node->{'p7ref'} }
+        ? qw| connected |
+        : qw| discovered |;
+    <[protocol-7.command.send.local]>->(
+        {   qw| command |   => qw| graphics-matrix.cell |,
+            qw| call_args | => {
+                qw| args | => sprintf( 'place %d,%d,%d',
+                    $pos->{'selX'}, $pos->{'selY'}, $pos->{'selZ'} )
+            },
+        }
+    );
+}
+
+## place nameserv nodes ##
+for my $node ( @{ $data->{'nameserv'} // [] } ) {
+    my $pos = $orbital_to_cell->(
+        $node->{'theta'} // 0,
+        $node->{'phi'}   // 0,
+        $node->{'psi'}   // 0
+    );
+    <[protocol-7.command.send.local]>->(
+        {   qw| command |   => qw| graphics-matrix.cell |,
+            qw| call_args | => {
+                qw| args | => sprintf( 'place %d,%d,%d',
+                    $pos->{'selX'}, $pos->{'selY'}, $pos->{'selZ'} )
+            },
+        }
+    );
+}
+
+## recompute glow shells ##
+<[protocol-7.command.send.local]>->(
+    {   qw| command |   => qw| graphics-matrix.glow |,
+        qw| call_args | => { qw| args | => qw| compute | },
+    }
+);
+
+<[base.log]>->( 2, qq| orbital to_cells dispatched | );
+
+return 1;
+
+#,,,.,,,.,.,,,,.,,,.,,,.,,,,,,.,.,...,...,,,,,..,,...,...,..,,,.,,,..,,,,,,..,
+#NPLFUASCHZOGS56KD367G4VARFXDTABFYJQB5MMLUWVLS6DHBRTNLJWA6Q6LUXR2SNH5VPSFULK2I
+#\\\|LZYS7YYCZXRIIYZPA4OONDFOBPRESXDSF7IOAXK2X2VH76ZBH3O \ / AMOS7 \ YOURUM ::
+#\[7]LNFYAEAEAIGOOY24OLRRV3VFPNWUT3DVY22RI6VERSZHONX6SIAA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
