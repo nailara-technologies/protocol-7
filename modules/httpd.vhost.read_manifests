@@ -7,6 +7,11 @@ my $vhosts_dir = <httpd.vhosts.source_dir>;
 $vhosts_dir = <system.root_path> . "/$vhosts_dir"
     if defined <system.root_path> and $vhosts_dir !~ m|^/|;
 
+<[base.logs]>->(
+    1, 'vhost source dir: %s [ exists: %s ]',
+    $vhosts_dir, ( -d $vhosts_dir ? 'yes' : 'no' )
+);
+
 unless ( -d $vhosts_dir ) {
     <[base.logs]>->( 1, 'vhost source dir not found: %s', $vhosts_dir );
     return [];
@@ -74,8 +79,8 @@ closedir($dir_fh);
 
 return \@hostnames_found;
 
-#,,..,,..,.,,,.,.,,.,,.,.,..,,,,,,,..,,.,,.,.,..,,...,...,.,.,...,..,,...,,.,,
-#GK6Z22FAU6O3PQ4S63W3IR7SNGAOWRIVSAQL4PHPILL5EOIJBWC6G2F4VLEG7777MJH4GU5ZZMNSM
-#\\\|UHNXFQLBQBR5ZFS4RH6WHQTBCUGIDPIVBJV4FGZFT6KD6Z5NLHO \ / AMOS7 \ YOURUM ::
-#\[7]O6H3KPTVDVLUIAWQ34NOAPOG5ATYDH32O63KIH6NEW3O3JBVY2CA 7  DATA SIGNATURE ::
+#,,.,,,..,.,,,,.,,...,,,,,,..,...,,..,,,,,...,..,,...,...,..,,,..,.,.,.,,,...,
+#UYWMOZNHN6HVPX23WWJUHTGNUE3M4IOB3Y27O3NA5NUQ4MJDAZEAPC4CUGIX7O7F6ZTNNDJ3BK6ME
+#\\\|XFKIMSVGZFRZZOAZILGYLECZWF7UC574KKG37EMKKCWAMC3SG3R \ / AMOS7 \ YOURUM ::
+#\[7]KQ53QT4GFOR42MSHIET5JKQ75VLA342F2HKHXPUVG7IIW3DM5MDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
