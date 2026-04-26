@@ -23,7 +23,8 @@ while ( my $arg = shift @ARGV ) {
         $fresh = 1;
     } elsif ( $arg eq '-file' ) {
         my $file = shift @ARGV // die ":: -file requires a path\n";
-        open my $fh, '<', $file or die ":: cannot read $file: $!\n";
+        open my $fh, '<:encoding(UTF-8)', $file
+            or die ":: cannot read $file: $!\n";
         local $/;
         $prompt = <$fh>;
         close $fh;
@@ -50,6 +51,7 @@ unless ( length $prompt ) {
     if ( -t STDIN ) {
         print ":: enter prompt [ ctrl-d to submit ]:\n";
     }
+    binmode STDIN, ':encoding(UTF-8)';
     local $/;
     $prompt = <STDIN> // '';
 }
@@ -76,8 +78,8 @@ printf ":: fresh session: %s\n", $fresh ? 'yes' : 'no';
 ## dispatch ##
 exec $cmd;
 
-#,,,,,...,,,,,.,,,,..,,,,,,,.,,,.,.,.,,,,,,.,,..,,...,...,.,.,.,.,,.,,,..,...,
-#HIQYO3OTTTLUYXR4VDXRUE23W4X5CDCMAORRSVOD3KOAMMGHRXJJRFMDOKHRYGXN6BQ5ZRGIZBW3E
-#\\\|ILIM57RD76CM2I6QX6UQ6XLXWNGQT3TBELMU5CGFFD5NR7WYBTS \ / AMOS7 \ YOURUM ::
-#\[7]YR6HIZIZ4AFNEFAZDFMBVQ2MKFUIJWDGDXPQIB4CGEBFPLCSMMCA 7  DATA SIGNATURE ::
+#,,,.,.,,,.,,,,,,,,,.,,.,,,.,,,.,,..,,...,,,,,..,,...,...,.,.,,.,,.,,,.,.,,.,,
+#TOI2AXRPOGCZILMJXIEK5NABY2BUGAHEQWYL3MYXAHU3C6FMISY2RWSLL4RTIDACWBHT7ROLORMCC
+#\\\|QEF7XF4DBBLCDOY6JH5JVPVNC4JHSHLPJL5GK5ERFOIRFOQH5HC \ / AMOS7 \ YOURUM ::
+#\[7]63SMVBZL6EDUOD6PTVVNF2QNF2V36EYQBLCAZRNOF6PZ4UTZ2ODQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

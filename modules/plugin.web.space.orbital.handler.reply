@@ -97,6 +97,16 @@ if ( $field eq qw| self | ) {
         }
     }
     $data->{'nameserv'} = \@entries;
+
+} elsif ( $field eq qw| gm_state | ) {
+
+    ## graphics-matrix.orbital-sync — true mode with structured data ##
+    if ( ref $raw_data eq qw| HASH | ) {
+        $data->{'gm_state'} = $raw_data;
+    } else {
+        $data->{'gm_state'} = {};
+    }
+
 }
 
 ## track received fields ##
@@ -116,8 +126,8 @@ $cache->{'timestamp'} = time() if $all_received;
 
 return 0;
 
-#,,,.,..,,,,,,...,...,..,,...,,.,,.,,,..,,,,,,..,,...,...,.,.,.,,,,,.,.,.,,.,,
-#6SWFCXW4WBITY6ADWQKIMACXY34K33TUUSZIVRAAZBSVVLNX3DXBJ733ZXAKORQ2CNMDKGZOLEFA6
-#\\\|PQKMJYMYPKLWFG25ESRBJMXREOFYRQXM5ONCZLRN6ZLNDL4IB3R \ / AMOS7 \ YOURUM ::
-#\[7]XDAQTT6DI5I46G5I3XZFJEQQ3YDRCDGNS7IDJ5IJWSK4IBM7P6AI 7  DATA SIGNATURE ::
+#,,,.,...,,..,,.,,.,.,.,.,,,.,,..,,,,,.,,,...,..,,...,..,,.,,,.,,,,,,,,,.,,..,
+#VT7GUIHLKPSBJFCZD2HIB3I3MWW3ZPPLPV6YPTOFPG4FXMCDHSMFT5SUTCCLW3JKDYENVRT3URIEA
+#\\\|4NAALJBQTULAWYOVFQ67ALWDMCWG4UE4DWG5PEJ6RAZHZE64UBJ \ / AMOS7 \ YOURUM ::
+#\[7]ZC5WMKWYHVZHQ2VWCRNYSQXCPFFAEATY53P4MM3IFF6L5KI7WMBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

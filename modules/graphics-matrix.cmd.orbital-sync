@@ -1,0 +1,47 @@
+## [:< ##
+
+# name  = graphics-matrix.cmd.orbital-sync
+# descr = sync orbital state and return graphics-matrix summary
+
+## get current cell count ##
+my $cell_list = <[graphics-matrix.cell.list]>->( {} );
+my $cells     = scalar @$cell_list;
+
+## refresh glow ##
+<[graphics-matrix.glow.compute]>->();
+
+## build glow_shells array for hops 0..5 ##
+my $glow_shells = [];
+for my $hop ( 0 .. 5 ) {
+    push @$glow_shells, <[graphics-matrix.glow.query]>->($hop) // 0.0;
+}
+
+my $glow_total = 0.0;
+$glow_total += $_ for @$glow_shells;
+
+## get graph survey ##
+my $graph = <[graphics-matrix.graph.survey]>->( {} );
+
+## get channel with palette ##
+my $channel     = eval { <[graphics-matrix.channel.current]>->() } // {};
+my $palette_raw = eval { <[graphics-matrix.channel.palette]>->() } // [];
+$channel->{'palette'}
+    = [ map { $ARG->{'color'}{'hex'} // '' } @$palette_raw ];
+
+## build summary ##
+return {
+    qw| mode | => qw| true |,
+    qw| data | => {
+        qw| cells       | => $cells,
+        qw| glow_shells | => $glow_shells,
+        qw| glow_total  | => sprintf( '%.2f', $glow_total ),
+        qw| graph       | => $graph,
+        qw| channel     | => $channel,
+    },
+};
+
+#,,..,,,.,,..,,,.,..,,.,.,.,,,..,,..,,,.,,...,..,,...,...,.,.,...,,,.,,,.,.,.,
+#RJXXM6LPPOGTLN5WGBZ534TZIJCGK4Z5OH4SZDGCJJBPLBDBC265XHSY6U6EPZFSR7L32MIHKH2ZI
+#\\\|HIRNLOTZGCU3H5WPINE32IWZ67RAMSKGMMKSB4QP7RYO43O4IYZ \ / AMOS7 \ YOURUM ::
+#\[7]GWHKINOZQGWD45X4OBXD3HJCFKQ6C5LV543DWHEJ6QQLJ5AHH2CI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
