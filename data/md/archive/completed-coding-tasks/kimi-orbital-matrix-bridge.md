@@ -114,3 +114,9 @@ once implemented, test sequence:
 - use `<[module.name]>->()` syntax for internal calls
 - use `$data{'zenka-name'}{'key'}` for zenka data tree access
 - use `protocol-7.route-send` for cross-zenka calls, `protocol-7.command.send.local` for same-zenka
+
+#,,,,,...,.,.,.,.,,,.,.,,,,..,.,.,..,,.,.,,,.,..,,...,...,...,.,.,,.,,.,,,,,.,
+#YN555ZCEFTEADNGOBEXVMM25ZTOPNLK3IHWFFAKE7QTUG2QPIXWDOCTY7MRPH7JSOUJLVRBFDTK2K
+#\\\|IPUW6BJAD3SXPHOOADOKMRP6PWAPQLPJBGLRYKQ2SLDNE3S5ZXC \ / AMOS7 \ YOURUM ::
+#\[7]HZQ7VDGV7BYO7XWFT3HZHFC3RZNBORQBFVKNKPHNDX2TRK4ANSAQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
