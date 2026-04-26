@@ -5,7 +5,7 @@
 
 ## request self position from nodes zenka ##
 <[protocol-7.command.send.local]>->(
-    {   qw| command |   => qw| nodes.orbital.current_position |,
+    {   qw| command |   => qw| nodes.orbital-position |,
         qw| call_args | => { qw| args | => '' },
         qw| reply |     => {
             qw| handler | => qw| plugin.web.space.orbital.handler.reply |,
@@ -40,7 +40,7 @@
 my $nameserv_domain = <nameserv.cfg.auto_publish_domain> // '';
 if ( length $nameserv_domain ) {
     <[protocol-7.command.send.local]>->(
-        {   qw| command |   => qw| nameserv.cmd.discover-nodes |,
+        {   qw| command |   => qw| nameserv.discover-nodes |,
             qw| call_args | => { qw| args | => $nameserv_domain },
             qw| reply |     => {
                 qw| handler | => qw| plugin.web.space.orbital.handler.reply |,
@@ -65,8 +65,8 @@ if ( length $nameserv_domain ) {
 
 return 1;
 
-#,,,,,.,.,.,.,,,.,,,,,,,.,,.,,,..,,,,,,,.,,,,,..,,...,...,..,,..,,.,.,,,,,..,,
-#5EQ6VTMQ2RGCVZQKXG7BE44RTGR2E53SFWSRPIVBQSFDLM5ZZORZK2SFGFN2IORCH6Y2A5R6LIPYE
-#\\\|DEUHJ63N6CQADMLOSN6D5QRYCHFQAB2MKQZRFL5SSDFJNWUXZ37 \ / AMOS7 \ YOURUM ::
-#\[7]TESOO64DNT6TXGEIYDEIQSSLIQJ67QLAFNHWBESEGOHFMTB7H6DY 7  DATA SIGNATURE ::
+#,,,.,.,.,.,.,,.,,,,,,..,,.,.,,,,,,,,,.,.,,,.,..,,...,...,..,,...,,..,,,.,..,,
+#WQLPELBNEQBBIL7KGYSVXB2WVQMFH44S676LHAXG6LUBWRVCZX3SOV7G2CMVQVYFYBSC4R5KTK6NC
+#\\\|DQ5LIPGTVYSR5B6C5PRPHRF2DLHGVPRI467FCA6YHAOHKJ3RLRI \ / AMOS7 \ YOURUM ::
+#\[7]74LKN2AHEKQF2R66YVG6RZ7X6WYHE7ARFENHKGOTEU4JLDCJWICY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
