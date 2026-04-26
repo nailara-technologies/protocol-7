@@ -93,6 +93,7 @@
         <p>Camera: <span class="cam" id="camD">0.00, 0.00, 0.00</span></p>
         <p>Velocity: <span class="spd" id="velD">0.00</span></p>
         <p id="clustersActive" style="display:none;color:#60d0ff;">clusters active</p>
+        <p id="staleIndicator" style="display:none;color:#f0a030;font-size:10px;">⚠ stale orbital data</p>
         <p style="margin-top:10px;font-size:10px;color:#6080b0;">
             <b>Controls:</b><br>
             Wheel = zoom | Ctrl+Wheel = focal<br>
@@ -102,6 +103,8 @@
             I = toggle info panel
         </p>
     </div>
+
+    <div id="nodeTooltip" style="display:none;position:fixed;background:rgba(5,2,20,0.92);border:1px solid #304060;border-radius:6px;color:#a0c0e0;font:11px monospace;padding:6px 10px;pointer-events:none;z-index:100;line-height:1.6;"></div>
 
     <div class="controls">
         <button onclick="toggleRotation()" id="rotBtn">Auto-Rotate</button>
@@ -195,6 +198,11 @@
         let templateData = { zoom: 1.0, intent: 'navigate', active_layers: [], available_data: [] };
         let lastOrbitalFetch = 0;
         let lastTemplateFetch = 0;
+
+        // === HOVER / TOOLTIP ===
+        let mouseX = 0, mouseY = 0;
+        const tooltip = document.getElementById('nodeTooltip');
+        document.addEventListener('mousemove', e => { mouseX = e.clientX; mouseY = e.clientY; });
 
         // === ORBITAL RENDERING STATE ===
         let orbitalShowNodes = true;
@@ -687,13 +695,35 @@
             });
         }
 
-        function p7refToCoords(p7ref, theta, phi, psi, scale) {
+        const B32_ALPHA = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ234567';
+        function decodeB32(str) {
+            let bits = 0, val = 0;
+            const out = [];
+            for (const c of str.toUpperCase()) {
+                const idx = B32_ALPHA.indexOf(c);
+                if (idx < 0) continue;
+                val = (val << 5) | idx;
+                bits += 5;
+                if (bits >= 8) { bits -= 8; out.push((val >> bits) & 0xFF); }
+            }
+            return out;
+        }
+        function p7refToCoords(p7ref, _t, _p, _s, scale) {
             const s = scale || 140;
-            return {
-                x: Math.sin(phi || 0) * Math.cos(theta || 0) * s,
-                y: Math.cos(phi || 0) * s,
-                z: Math.sin(phi || 0) * Math.sin(theta || 0) * s
-            };
+            const parts = (p7ref || '').split(':');
+            if (parts.length >= 3) {
+                const bytes = decodeB32(parts[2]);
+                if (bytes.length >= 3) {
+                    const theta = bytes[0] / 255 * 2 * Math.PI;
+                    const phi   = bytes[1] / 255 * Math.PI;
+                    return {
+                        x: Math.sin(phi) * Math.cos(theta) * s,
+                        y: Math.cos(phi) * s,
+                        z: Math.sin(phi) * Math.sin(theta) * s
+                    };
+                }
+            }
+            return { x: 0, y: s, z: 0 };
         }
 
         function getNodeColor(node, isConnected, isSelf) {
@@ -794,12 +824,12 @@
                 const isEncrypted = conn.encrypted;
                 const opacity = globalAlpha * 0.6;
                 if (isEncrypted) {
-                    ctx.strokeStyle = `rgba(0, 255, 255, ${opacity})`;
+                    ctx.strokeStyle = `rgba(0, 255, 221, ${opacity})`;
                     ctx.lineWidth = 1.5;
                     ctx.setLineDash([8, 4]);
                     ctx.lineDashOffset = -Date.now() / 50;
                 } else {
-                    ctx.strokeStyle = `rgba(200, 200, 220, ${opacity * 0.5})`;
+                    ctx.strokeStyle = `rgba(255, 240, 208, ${opacity * 0.5})`;
                     ctx.lineWidth = 1;
                     ctx.setLineDash([]);
                 }
@@ -807,7 +837,7 @@
                 ctx.moveTo(selfProj.x, selfProj.y);
                 ctx.lineTo(targetProj.x, targetProj.y);
                 ctx.stroke();
-                ctx.strokeStyle = `rgba(${isEncrypted ? '0,255,255' : '200,200,220'}, ${opacity * 0.2})`;
+                ctx.strokeStyle = `rgba(${isEncrypted ? '0,255,221' : '255,240,208'}, ${opacity * 0.2})`;
                 ctx.lineWidth = 4;
                 ctx.beginPath();
                 ctx.moveTo(selfProj.x, selfProj.y);
@@ -820,7 +850,8 @@
 
         function drawOrbitalNodes() {
             if (!orbitalShowNodes) return;
-            const selfWeight = layerWeights['orbital-self'];
+            const cacheAgeDim = parseFloat(orbitalData.cache_age || 0) > 120 ? 0.5 : 1.0;
+            const selfWeight = layerWeights['orbital-self'] * cacheAgeDim;
             const knownWeight = layerWeights['orbital-known'];
             const galaxyWeight = layerWeights['orbital-galaxy'];
             const nameservWeight = layerWeights['nameserv-remote'];
@@ -836,7 +867,7 @@
             (orbitalData.known || []).forEach(n => allNodes.push({ ...n, isSelf: false }));
 
             allNodes.forEach(node => {
-                const pos = node.isSelf ? selfPos : p7refToCoords(node.p7ref, 0, 0, 0, 140);
+                const pos = node.isSelf ? selfPos : p7refToCoords(node.p7ref, 0, 0, 0, 140);  // p7refToCoords decodes ADDR_B32
                 if (!nodeHistory[node.p7ref]) nodeHistory[node.p7ref] = [];
                 nodeHistory[node.p7ref].push({ x: pos.x, y: pos.y, z: pos.z, time: now });
                 nodeHistory[node.p7ref] = nodeHistory[node.p7ref].filter(h => (now - h.time) < overlapRange).slice(-trailLength);
@@ -850,7 +881,8 @@
             if (selfWeight > 0.01 && self.p7ref) {
                 const proj = project(selfPos);
                 if (proj) {
-                    const glowMult = 1 + (glowShells[0] || 0) * 2;
+                    const pulse = 1 + 0.3 * Math.sin(now * 0.9);
+                    const glowMult = (1 + (glowShells[0] || 0) * 2) * pulse;
                     drawNodeGlow(proj.x, proj.y, 8 * selfWeight * glowMult, { r: 100, g: 200, b: 255 }, 0.8 * selfWeight);
                     ctx.fillStyle = `rgba(20, 5, 255, ${selfWeight})`;
                     ctx.beginPath();
@@ -889,6 +921,39 @@
                     ctx.fill();
                 });
             }
+
+            // hover tooltip — find nearest rendered node
+            const allRendered = [];
+            if (self.p7ref) allRendered.push({ node: { ...self, hostname: 'self', type: 'self' }, pos: selfPos });
+            (orbitalData.known || []).forEach(n => {
+                const isConn = connectedP7refs.has(n.p7ref);
+                allRendered.push({ node: { ...n, type: isConn ? 'connected' : 'discovered' }, pos: p7refToCoords(n.p7ref, 0, 0, 0, 140) });
+            });
+            let nearest = null, nearDist = 30;
+            allRendered.forEach(({ node, pos }) => {
+                const proj = project(pos);
+                if (!proj) return;
+                const rect = canvas.getBoundingClientRect();
+                const dx = mouseX - rect.left - proj.x;
+                const dy = mouseY - rect.top - proj.y;
+                const d = Math.sqrt(dx*dx + dy*dy);
+                if (d < nearDist) { nearDist = d; nearest = { node, proj, rect }; }
+            });
+            if (nearest) {
+                const { node, proj, rect } = nearest;
+                const short = (node.p7ref || '').split(':').slice(0,2).join(':') + ':' + ((node.p7ref || '').split(':')[2] || '').slice(0, 8);
+                tooltip.innerHTML = `<b>${node.hostname || node.type}</b><br>${short}<br>age: ${node.age || '—'}<br>type: ${node.type}`;
+                tooltip.style.display = 'block';
+                tooltip.style.left = (rect.left + proj.x + 14) + 'px';
+                tooltip.style.top  = (rect.top  + proj.y - 10) + 'px';
+            } else {
+                tooltip.style.display = 'none';
+            }
+
+            // freshness indicator
+            const cacheAge = parseFloat(orbitalData.cache_age || 0);
+            const staleEl = document.getElementById('staleIndicator');
+            if (staleEl) staleEl.style.display = cacheAge > 30 ? 'block' : 'none';
         }
 
         function toggleOrbitalNodes() {
