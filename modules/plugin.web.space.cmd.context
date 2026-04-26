@@ -25,6 +25,13 @@ my $max = 42;
 splice $context->{'history'}->@*, 0, -$max
     if $context->{'history'}->@* > $max;
 
+## trigger layer re-resolution with updated context ##
+<[plugin.web.space.template-resolver.resolve]>->(
+    {   qw| zoom   | => $context->{'zoom'},
+        qw| intent | => $context->{'intent'},
+    }
+);
+
 <[base.log]>->(
     3,
     'space context updated : zoom=%.2f intent=%s',
@@ -34,8 +41,8 @@ splice $context->{'history'}->@*, 0, -$max
 
 return { qw| mode | => qw| true |, qw| data | => 'ok' };
 
-#,,,.,.,.,.,.,.,.,.,,,,..,,,,,,..,..,,,,.,..,,..,,...,...,.,.,.,,,..,,,.,,..,,
-#A725F44ZGHSDR6MJCSD6DJ34AHUZIYTPNUCB5KOQYB4ZTQRZOE7O5KVQRI3MKH3UOK6OBKZ3NF7VE
-#\\\|JUTJB3ZPIEKVOMF5ESSIOSHZXDGJJPX6HHUCUDV643LE57WXYJW \ / AMOS7 \ YOURUM ::
-#\[7]QF7SVK5TXVFF77YMDCGKX72Q7OXAER7DOJN5Z54BXSAORYJOVMDY 7  DATA SIGNATURE ::
+#,,..,,.,,..,,.,,,,,,,,..,.,.,.,,,...,.,,,,.,,..,,...,...,,..,,,,,,,.,,,,,,,,,
+#FL2GPF5STI5YA754H6TR26CITIVIXWOL4CPU654TREOLD7PQQDPB35UAI5FK3WKLXANCNT4VIF4CO
+#\\\|44ONXWVLAOH75KOUARVIDEUAPNOXW5L5AHMFNTBTRS4C5GXF54Z \ / AMOS7 \ YOURUM ::
+#\[7]TI5Y7C5UBO7525ZB2KGE7XPJRHKGKA3HENN6RA2V5XRKQKARA6DQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
