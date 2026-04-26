@@ -74,20 +74,17 @@ if ( !-d $site_dir ) {
 <list.httpd-vhosts> = {
     'var'      => qw| data |,
     'key'      => qw| httpd.vhosts.registry |,
-    'sort_key' => 'alpha-len:domain',
-    'mask'     => 'id domain path cert status added_at',
+    'descr'    => 'installed vhosts registry',
+    'sort_key' => 'alpha-len:hostname',
+    'mask'     => 'hostname install_mode install_path cert_status',
     'align'    => {
-        'id'       => 'right',
-        'domain'   => 'left+2',
-        'path'     => 'left+1',
-        'cert'     => 'center',
-        'status'   => 'center',
-        'added_at' => 'center-1'
+        'hostname'     => 'left+2',
+        'install_mode' => 'center',
+        'install_path' => 'left+1',
+        'cert_status'  => 'center'
     },
-    'filters' => {
-        'added_at' => qw| base.parser.timestamp |,
-        'cert'     => sub { $_[0] ? '✓' : '✗' }
-    }
+    'filters' => {}
+
 };
 
 <[base.list.init]>->(
@@ -110,8 +107,8 @@ if ( <httpd.cfg.uploads_enabled> and !-d $upload_dir ) {
 
 0;
 
-#,,,,,,,.,.,.,..,,.,,,.,.,,.,,,,.,..,,,,.,,,.,..,,...,...,.,.,,,,,,.,,,..,,.,,
-#6I4K32AUN6HVQJH4JR4JJZPX2ERNRHU52U4WI5E6QMTHJDRP2YQMSXJ4MU35VKVMZFWU7IPDWAJXA
-#\\\|2EHG7RBVXYBXYBXBGM7SY3D4DDGO3TZ4MIC4OGY3ZRMIBS3EE3K \ / AMOS7 \ YOURUM ::
-#\[7]NLLONHVXWEURG2EGGMJR3CXYIIE64GCPD5JSIFKAKKI5Q7HUPWAQ 7  DATA SIGNATURE ::
+#,,..,.,,,.,,,,,.,.,.,,.,,,..,,,.,,..,..,,...,..,,...,...,.,.,,,.,..,,..,,..,,
+#EOKWP2CRWHMZ6ZUGL7WFNRXJSUKCF5KXL7S3ZQAKTPGE2O4BMERA2CI46CR7MX22UGZZ7ZPLCGOTO
+#\\\|JD4UQFGV2MRPSATFIQRC32FYT75VMY7Z3CV5RSCAKUOGJZ4RVAD \ / AMOS7 \ YOURUM ::
+#\[7]VLX2N5X4AM3JEWS3SHC6QIOZQSAGKS72LQLMDHULEBU4HXNQCMBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
