@@ -16,6 +16,13 @@
 
 <[base.log]>->( 1, 'plugin.web.space : initialized' );
 
+## register template command aliases (web.space.* → plugin.web.space.*) ##
+for my $suffix (qw| state fetch index grid |) {
+    my $full  = "plugin.web.space.$suffix";
+    my $alias = "web.space.$suffix";
+    $code{$alias} = $code{$full} if exists $code{$full};
+}
+
 ## initialize orbital data endpoint ##
 <[plugin.web.space.orbital.init_code]>;
 
@@ -24,8 +31,8 @@
 
 0;
 
-#,,.,,..,,,,.,,,.,...,.,.,.,.,...,,..,,,,,,,.,..,,...,..,,...,..,,,,,,,,,,,.,,
-#UFRINPGN36Z7NNJ2R4RBZQWGPMXCWFZABSBGJMIBYSQQ7BKC6FADGD5QHULSA6S7TN3ZQYUFDOAKY
-#\\\|36XHRCGO6CTWHLU2J75YOTM7KDOIFVPI455YSBJSUBASFKKSXHY \ / AMOS7 \ YOURUM ::
-#\[7]I4EETXZHICO6GMNVJ22I5ASMK7G66JGPKFHSE5ESTCIWV4Z4VMBI 7  DATA SIGNATURE ::
+#,,..,..,,.,,,,,,,.,.,,,,,...,.,.,.,.,..,,,..,..,,...,.,,,...,.,,,,,.,..,,..,,
+#YMRILOCHGOQCS6OPYLUWPSIGRAJXRTOHOK6IZ5WWI2E7FOZRIRD7LNHMZFOGYSDWGHEKFF7BRRM76
+#\\\|QOMY544QZPMPLLRCXHWDWG42TAQKORDGSXPQKLJEPMHTRQKKK5F \ / AMOS7 \ YOURUM ::
+#\[7]PTP3DZL7NCBCCWSLRUT422HX46T2ZLKYKAZFDSK3D3FECUJQDKAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
