@@ -25,7 +25,7 @@ my $ttl   = <web.space.grid.cfg.ttl> // 60;
 ## trigger re-scan if cache is stale or empty ##
 my $age = time() - ( $cache->{'timestamp'} // 0 );
 if ( $age > $ttl or not @{ $cache->{'cells'} // [] } ) {
-    my $scan_ok = eval { <[plugin.web.space.grid.scan]>->(); 1 };
+    my $scan_ok = eval { <[plugin.web.space.grid.scan]>; 1 };
     return sprintf '<!-- grid scan error: %s -->', $@ if not $scan_ok;
     $cache = <web.space.grid.cache>;
     $age   = time() - ( $cache->{'timestamp'} // 0 );
@@ -85,8 +85,8 @@ if ( $section eq qw| summary | ) {
     return sprintf '<!-- unknown grid section: %s -->', $section;
 }
 
-#,,..,,,,,.,,,,,.,,,.,,.,,.,,,,,,,,,,,...,.,.,..,,...,...,.,,,.,,,.,,,,,,,...,
-#CRHSVXIPTP5JJBR5NWQGPCF46CV6U5KDWU4GSBR7DERNLKQ6HWDSCUDFJHIW2DQVBISSQBLXNENTC
-#\\\|ABUCH2BR36CMYWCBCJDEDXMUYM4QKV3EV5X4KORFWCX4WOMYH4Q \ / AMOS7 \ YOURUM ::
-#\[7]REUBW5SCGSF63DNUGQV77EP6DCHASGKSV3WJ4XYLY746JOIC3GBY 7  DATA SIGNATURE ::
+#,,..,,,.,,,.,...,,,,,,.,,.,.,...,.,,,.,.,.,.,..,,...,...,,..,,,,,,,.,...,...,
+#BDU2IRK5WMMKVCQG46NPJ36HVWDCLDNYXQNFMOKHOIEUQR2IQIUAN4QYMS6QUTVUX45563GNW4JJ4
+#\\\|AZWKVZGH3IL4T3WN3C34AN7AH7XKIJOHUVQJRCXSBABH6BCVNQE \ / AMOS7 \ YOURUM ::
+#\[7]QGV5QS6ODYBC5WXKV2O3N6LFKZQCEVD62EXRJB4UCOCVINJLOEBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
