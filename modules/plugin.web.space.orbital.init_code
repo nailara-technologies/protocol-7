@@ -1,0 +1,37 @@
+## [:< ##
+
+# name  = plugin.web.space.orbital.init_code
+# descr = initialize orbital data endpoint cache and repeating fetch timer
+
+## orbital data cache — populated by async fetch, read by json endpoint ##
+<web.space.orbital.cache> = {
+    qw| data            | => {},
+    qw| timestamp       | => 0,
+    qw| ttl             | => 13,
+    qw| expected_fields | => [qw| self known connections |],
+    qw| received_fields | => {},
+};
+
+## add nameserv to expected fields if configured ##
+my $nameserv_domain = <nameserv.cfg.auto_publish_domain> // '';
+if ( length $nameserv_domain ) {
+    push <web.space.orbital.cache>->{'expected_fields'}->@*, qw| nameserv |;
+}
+
+## set up repeating fetch timer [ interval 13, repeat TRUE ] ##
+<[event.add_timer]>->(
+    {   qw| interval | => 13,
+        qw| repeat   | => TRUE,
+        qw| handler  | => qw| plugin.web.space.orbital.fetch |,
+    }
+);
+
+<[base.log]>->( 2, qq| orbital data endpoint initialized | );
+
+0;
+
+#,,.,,.,,,..,,.,.,.,.,,..,,,,,.,.,..,,,,.,.,.,..,,...,..,,..,,,.,,.,.,,.,,,..,
+#DSVZE3PBEEJLOBNVJ6AANRICALPFPL3F5LEVPZAG5KUD5VU37DVSI4XZE6GTA2XBFRDX2ITHRMJUA
+#\\\|66LUWLBPILOHNXRVKMUOLTRW3PMSEGMGR7HLWLNYFF4ZQ2SIHK6 \ / AMOS7 \ YOURUM ::
+#\[7]JNPF4OMHBLBQOMLWMQ37PVMRZKAYQORZDSYD3BCJS7FE6YV4XGBI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
