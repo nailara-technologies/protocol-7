@@ -1,0 +1,79 @@
+## [:< ##
+
+# name  = plugin.web.space.template-resolver.init_code
+# descr = initialize template layer registry and observer context
+
+## layer registry — predefined visualization layers ##
+<web.space.templates.layers> = [
+    {   qw| name       | => qw| cubic-grid |,
+        qw| zoom_min   | => undef,
+        qw| zoom_max   | => undef,
+        qw| dependency | => qw| always |,
+        qw| weight     | => 0.5,
+        qw| active     | => FALSE,
+    },
+    {   qw| name       | => qw| orbital-galaxy |,
+        qw| zoom_min   | => 0.3,
+        qw| zoom_max   | => undef,
+        qw| dependency | => qw| orbital.known |,
+        qw| weight     | => 0.7,
+        qw| active     | => FALSE,
+    },
+    {   qw| name       | => qw| orbital-self |,
+        qw| zoom_min   | => undef,
+        qw| zoom_max   | => undef,
+        qw| dependency | => qw| orbital.self |,
+        qw| weight     | => 0.8,
+        qw| active     | => FALSE,
+    },
+    {   qw| name       | => qw| orbital-connections |,
+        qw| zoom_min   | => -2.5,
+        qw| zoom_max   | => undef,
+        qw| dependency | => qw| external.connections |,
+        qw| weight     | => 0.6,
+        qw| active     | => FALSE,
+    },
+    {   qw| name       | => qw| orbital-known |,
+        qw| zoom_min   | => 0.3,
+        qw| zoom_max   | => undef,
+        qw| dependency | => qw| discover.orbital.known |,
+        qw| weight     | => 0.65,
+        qw| active     | => FALSE,
+    },
+    {   qw| name       | => qw| completion-wave |,
+        qw| zoom_min   | => -2.5,
+        qw| zoom_max   | => 0.7777,
+        qw| dependency | => qw| orbital.known |,
+        qw| weight     | => 0.4,
+        qw| active     | => FALSE,
+    },
+    {   qw| name       | => qw| nameserv-remote |,
+        qw| zoom_min   | => 5.0,
+        qw| zoom_max   | => undef,
+        qw| dependency | => qw| nameserv.discovered |,
+        qw| weight     | => 0.55,
+        qw| active     | => FALSE,
+    },
+];
+
+## observer context ##
+<web.space.templates.context> = {
+    qw| zoom          | => 1.0,
+    qw| intent        | => qw| navigate |,
+    qw| history       | => [],
+    qw| active_layers | => [],
+};
+
+my $layer_count = scalar <web.space.templates.layers>->@*;
+
+<[base.log]>->(
+    2, qq| template resolver initialized with $layer_count layers |
+);
+
+0;
+
+#,,.,,,..,.,.,,.,,,,.,...,..,,,,.,.,.,,,,,,,.,..,,...,...,..,,..,,.,.,.,.,,,,,
+#IMWXQ5CA4LFNLL7NWUJOUAAHNIIZP5TQK6GWKVSQ6DYCUWHKUXVPQWSQEFWGYSMQV54TO3WSMWJ2E
+#\\\|NSO2DDS6DVQWJC4WZPEIHDLPFZERH3WERWVDOGRNVXPGLPZG6XB \ / AMOS7 \ YOURUM ::
+#\[7]S4HE2AXIDDDDK6VKANHY4AVJOEZFFIXVNJMHFFQ2EPX4PIZVMADY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

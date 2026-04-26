@@ -1,0 +1,61 @@
+## [:< ##
+
+# name  = plugin.web.space.template-resolver.update_context
+# descr = update observer context from zoom change or navigation event
+
+my $params   = shift // {};
+my $new_zoom = $params->{'zoom'};
+
+my $context = <web.space.templates.context>;
+
+## update zoom if provided ##
+if ( defined $new_zoom and $new_zoom > 0 ) {
+    $context->{'zoom'} = $new_zoom;
+}
+
+## append to history (max 13 entries — harmonic memory depth) ##
+my $history = $context->{'history'} //= [];
+push @$history, $new_zoom if defined $new_zoom;
+
+## trim history to harmonic memory depth of 13 ##
+while ( scalar @$history > 13 ) {
+    shift @$history;
+}
+
+## derive intent from history pattern ##
+my $intent = qw| navigate |;
+
+if ( scalar @$history >= 2 ) {
+    my $prev = $history->[-2] // $context->{'zoom'};
+    my $curr = $context->{'zoom'};
+
+    if ( $curr < $prev * 0.95 ) {
+        $intent = qw| explore |;    ## zooming out ##
+    } elsif ( $curr > $prev * 1.05 ) {
+        $intent = qw| focus |;      ## zooming in ##
+    }
+}
+
+$context->{'intent'} = $intent;
+
+## re-run resolve with updated context ##
+<[plugin.web.space.template-resolver.resolve]>->(
+    {   qw| zoom   | => $context->{'zoom'},
+        qw| intent | => $intent,
+    }
+);
+
+<[base.log]>->(
+    3, qq| context updated: intent='$intent' zoom=%.3f |,
+    $context->{'zoom'}
+);
+
+return $context;
+
+0;
+
+#,,..,,.,,.,.,,,,,.,,,,.,,,,.,,..,,,.,,.,,,.,,..,,...,...,,,.,.,.,.,,,..,,,.,,
+#A2QSIKW6PWJT2FEP5ECKOUWFMCAAKPZMUSEMX4YXHMIHXY3NUVCVJHKKBVDZAPV5XNH5CDQ7ZBG7I
+#\\\|XGUFC3MSHS4ESKBHCI44Y54IPA6VSCNC4QMAWDAJVGQLY2UQFA6 \ / AMOS7 \ YOURUM ::
+#\[7]HTUAYKCYWFE5YZN72TVKLA7GWG5ABW577O2BQLKJFCT34SQMR2BQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

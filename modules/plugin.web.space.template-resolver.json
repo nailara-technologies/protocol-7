@@ -1,0 +1,26 @@
+## [:< ##
+
+# name  = plugin.web.space.template-resolver.json
+# descr = return current resolved template state as JSON
+
+my $context = <web.space.templates.context>;
+
+my $available_data = <[plugin.web.space.template-resolver.available_data]>;
+
+my $payload = {
+    qw| zoom           | => ( $context->{'zoom'}          // 1.0 ),
+    qw| intent         | => ( $context->{'intent'}        // qw| navigate | ),
+    qw| active_layers  | => ( $context->{'active_layers'} // [] ),
+    qw| available_data | => $available_data,
+    qw| history_depth  | => scalar( $context->{'history'} // [] )->@*,
+};
+
+return eval { JSON::XS::encode_json($payload) } // '{}';
+
+0;
+
+#,,,,,...,.,,,,,,,..,,.,,,,.,,,,.,...,,,.,,.,,..,,...,...,.,.,,,.,...,.,,,,,.,
+#ZWIWPA6RF6QA3G7KBTRR7KYW3GY2HC4JSY7TOCE4NPBVUFEWMAFZ62VTDS7OCB57MK2QZKZZ2V7VY
+#\\\|LCQHJ4TJREFDKPHZTZS72J2S26XWNMBDGUXEJ6OBVUGOJIE3SLT \ / AMOS7 \ YOURUM ::
+#\[7]GR3JCWWPLGXUI5IKOACWS7BYK6JCV5AGTZHOTE4JVPXRYZNSCQCQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
