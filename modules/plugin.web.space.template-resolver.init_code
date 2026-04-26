@@ -66,14 +66,25 @@
 
 my $layer_count = scalar <web.space.templates.layers>->@*;
 
+## deferred initial resolve — after orbital cache has time to populate ##
+<[event.add_timer]>->(
+    {   qw| after   | => 2,
+        qw| handler | => qw| plugin.web.space.template-resolver.resolve |,
+        qw| params  | => {
+            qw| zoom   | => 1.0,
+            qw| intent | => qw| navigate |,
+        },
+    }
+);
+
 <[base.log]>->(
     2, qq| template resolver initialized with $layer_count layers |
 );
 
 0;
 
-#,,.,,,..,.,.,,.,,,,.,...,..,,,,.,.,.,,,,,,,.,..,,...,...,..,,..,,.,.,.,.,,,,,
-#IMWXQ5CA4LFNLL7NWUJOUAAHNIIZP5TQK6GWKVSQ6DYCUWHKUXVPQWSQEFWGYSMQV54TO3WSMWJ2E
-#\\\|NSO2DDS6DVQWJC4WZPEIHDLPFZERH3WERWVDOGRNVXPGLPZG6XB \ / AMOS7 \ YOURUM ::
-#\[7]S4HE2AXIDDDDK6VKANHY4AVJOEZFFIXVNJMHFFQ2EPX4PIZVMADY 7  DATA SIGNATURE ::
+#,,..,.,,,...,,,.,..,,,..,...,,.,,,,.,,,.,,..,..,,...,...,,..,..,,.,,,,..,,..,
+#COCYT7LUCYBQOOARIY64GD3KUNE2LJK7P3TBGJFDW4UZVNAI4AGRHWQ3MV4GM2UJYFQ66KQUF2GRO
+#\\\|FLJEIBUBSEJOOZRI3BGG6MAL5XHLSS2XAOBJT5M5EVPYHM6OBVS \ / AMOS7 \ YOURUM ::
+#\[7]ERCZCSJKAWAUS64PS4LCEPMDPPP7R25EWPRZDDUEQU5BIORDLQAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
