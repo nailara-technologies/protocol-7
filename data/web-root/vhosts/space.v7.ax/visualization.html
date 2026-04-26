@@ -80,6 +80,33 @@
             font-size: 10px;
             width: 60px;
         }
+
+        /* === NAV BREADCRUMB === */
+        .nav-breadcrumb {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: rgba(12, 5, 24, 0.88);
+            padding: 8px 14px;
+            border-radius: 10px;
+            box-shadow: 0 0 14px rgba(60, 0, 120, 0.4);
+            font-size: 11px;
+            color: #a0c0ff;
+            z-index: 100;
+            display: none;
+            align-items: center;
+            gap: 8px;
+        }
+        .nav-breadcrumb .back-btn {
+            cursor: pointer;
+            color: #60d0ff;
+            padding: 2px 6px;
+            border: 1px solid #304060;
+            border-radius: 6px;
+        }
+        .nav-breadcrumb .back-btn:hover { color: #a0f0ff; background: rgba(30,15,60,0.7); }
+        .nav-breadcrumb .nav-path { color: #8090b0; }
+        .nav-breadcrumb .nav-depth { color: #405070; font-size: 10px; }
     </style>
 </head>
 <body>
@@ -105,6 +132,12 @@
     </div>
 
     <div id="nodeTooltip" style="display:none;position:fixed;background:rgba(5,2,20,0.92);border:1px solid #304060;border-radius:6px;color:#a0c0e0;font:11px monospace;padding:6px 10px;pointer-events:none;z-index:100;line-height:1.6;"></div>
+
+    <div class="nav-breadcrumb" id="navBreadcrumb">
+        <span class="back-btn" onclick="navPop()">◂ back</span>
+        <span class="nav-path" id="navPath">root</span>
+        <span class="nav-depth">depth <span id="navDepthLabel">0</span></span>
+    </div>
 
     <div class="controls">
         <button onclick="toggleRotation()" id="rotBtn">Auto-Rotate</button>
@@ -205,6 +238,10 @@
         let dragMoved = false;
         let selectedNodeP7ref = null;
         const ZOOM_CLOSE = 2.5, ZOOM_OVERVIEW = 0.8;
+
+        // === RECURSIVE NAVIGATION ===
+        let navStack = []; // [{ p7ref, label, snapshot }]
+        let navOrbitalData = null; // mock data for current nav depth (null = root)
         const tooltip = document.getElementById('nodeTooltip');
         document.addEventListener('mousemove', e => { mouseX = e.clientX; mouseY = e.clientY; });
 
@@ -741,6 +778,101 @@
             return { x: 0, y: s, z: 0 };
         }
 
+        function encodeB32Bytes(bytes) {
+            let bits = 0, val = 0, out = '';
+            for (const b of bytes) {
+                val = (val << 8) | b;
+                bits += 8;
+                while (bits >= 5) { bits -= 5; out += B32_ALPHA[(val >> bits) & 31]; }
+            }
+            if (bits > 0) out += B32_ALPHA[(val << (5 - bits)) & 31];
+            return out;
+        }
+
+        function generateMockSubNodes(contextP7ref) {
+            const seed = decodeB32((contextP7ref.split(':')[2] || 'AAAAAAA'));
+            const nodes = [];
+            for (let i = 0; i < 7; i++) {
+                const s0 = (seed[0] || 42) ^ (seed[1] || 17) ^ (i * 37);
+                const s1 = (seed[0] || 42) ^ (seed[2] || 99) ^ (i * 53);
+                const b0 = ((s0 * 67 + i * 31) & 0xFF);
+                const b1 = ((s1 * 31 + i * 67) & 0xFF);
+                const addr = encodeB32Bytes([b0, b1, i * 13, 0, 0, 0, 0, 0]);
+                nodes.push({
+                    p7ref: `NODE:SUB${i.toString(16).toUpperCase()}:${addr}`,
+                    hostname: `sub-${i}`,
+                    age: String((s0 * 7) % 120)
+                });
+            }
+            return nodes;
+        }
+
+        function updateBreadcrumb() {
+            const el = document.getElementById('navBreadcrumb');
+            const depthEl = document.getElementById('navDepthLabel');
+            const pathEl = document.getElementById('navPath');
+            if (!navStack.length) {
+                el.style.display = 'none';
+                return;
+            }
+            el.style.display = 'flex';
+            const parts = ['root', ...navStack.map(f => f.label)];
+            pathEl.textContent = parts.join(' ▸ ');
+            depthEl.textContent = navStack.length;
+        }
+
+        function navPush(node) {
+            const parentData = navOrbitalData || orbitalData;
+            navStack.push({
+                p7ref: node.p7ref,
+                label: node.hostname || (node.p7ref || '').split(':')[1] || 'node',
+                snapshot: { ...parentData }
+            });
+            navOrbitalData = {
+                self: { ...node },
+                known: generateMockSubNodes(node.p7ref),
+                connections: [],
+                nameserv: [],
+                channel: parentData.channel,
+                glow_shells: [0, 0, 0, 0, 0, 0]
+            };
+            nodeHistory = {};
+            updateBreadcrumb();
+            selectedNodeP7ref = null;
+            zoomTargetZoom = ZOOM_OVERVIEW;
+        }
+
+        function navPop() {
+            if (!navStack.length) return;
+            navStack.pop();
+            navOrbitalData = navStack.length > 0 ? navStack[navStack.length - 1].snapshot : null;
+            nodeHistory = {};
+            updateBreadcrumb();
+            selectedNodeP7ref = null;
+            zoomTargetZoom = ZOOM_OVERVIEW;
+        }
+
+        function drawGhostNodes(snapshot, alpha) {
+            if (!snapshot || alpha < 0.01) return;
+            const known = snapshot.known || [];
+            const self  = snapshot.self  || {};
+            ctx.save();
+            ctx.globalCompositeOperation = 'screen';
+            const all = (self.p7ref ? [self] : []).concat(known);
+            all.forEach(node => {
+                const pos  = p7refToCoords(node.p7ref, 0, 0, 0, 140);
+                const proj = project(pos);
+                if (!proj) return;
+                const isSelf = node.p7ref === self.p7ref;
+                const c = isSelf ? '100,200,255' : '80,120,200';
+                ctx.fillStyle = `rgba(${c},${alpha * 0.35})`;
+                ctx.beginPath();
+                ctx.arc(proj.x, proj.y, isSelf ? 4 : 2.5, 0, Math.PI * 2);
+                ctx.fill();
+            });
+            ctx.restore();
+        }
+
         function getNodeColor(node, isConnected, isSelf) {
             if (isSelf) return { r: 100, g: 200, b: 255 };
             if (isConnected) return { r: 0, g: 255, b: 255 };
@@ -787,7 +919,8 @@
         function drawOrbitalTrails(globalAlpha) {
             if (!orbitalShowTrails || globalAlpha < 0.01) return;
             const now = Date.now() / 1000;
-            const palette = orbitalData.channel?.palette || [];
+            const od = navOrbitalData || orbitalData;
+            const palette = od.channel?.palette || [];
             const paletteLen = palette.length;
             ctx.save();
             ctx.globalCompositeOperation = 'screen';
@@ -845,14 +978,15 @@
 
         function drawResonanceTentacles(selfPos, globalAlpha) {
             if (!orbitalShowTentacles || globalAlpha < 0.01) return;
-            const connections = orbitalData.connections || [];
+            const od = navOrbitalData || orbitalData;
+            const connections = od.connections || [];
             if (!connections.length || !selfPos) return;
             const selfProj = project(selfPos);
             if (!selfProj) return;
             ctx.save();
             ctx.globalCompositeOperation = 'screen';
             connections.forEach(conn => {
-                const node = (orbitalData.known || []).find(n => n.p7ref === conn.p7ref);
+                const node = (od.known || []).find(n => n.p7ref === conn.p7ref);
                 if (!node) return;
                 const targetPos = p7refToCoords(node.p7ref, 0, 0, 0, 140);
                 const targetProj = project(targetPos);
@@ -886,21 +1020,22 @@
 
         function drawOrbitalNodes() {
             if (!orbitalShowNodes) return;
-            const cacheAgeDim = parseFloat(orbitalData.cache_age || 0) > 120 ? 0.5 : 1.0;
+            const od = navOrbitalData || orbitalData;
+            const cacheAgeDim = navOrbitalData ? 1.0 : (parseFloat(od.cache_age || 0) > 120 ? 0.5 : 1.0);
             const selfWeight = layerWeights['orbital-self'] * cacheAgeDim;
-            const knownWeight = layerWeights['orbital-known'];
-            const galaxyWeight = layerWeights['orbital-galaxy'];
+            const knownWeight = navOrbitalData ? 1.0 : layerWeights['orbital-known'];
+            const galaxyWeight = navOrbitalData ? 0   : layerWeights['orbital-galaxy'];
             const nameservWeight = layerWeights['nameserv-remote'];
             if (selfWeight < 0.01 && knownWeight < 0.01 && galaxyWeight < 0.01 && nameservWeight < 0.01) return;
 
             const now = Date.now() / 1000;
-            const connectedP7refs = new Set((orbitalData.connections || []).map(c => c.p7ref));
-            const self = orbitalData.self || {};
+            const connectedP7refs = new Set((od.connections || []).map(c => c.p7ref));
+            const self = od.self || {};
             const selfPos = p7refToCoords(self.p7ref, self.theta, self.phi, self.psi, 140);
 
             const allNodes = [];
             if (self.p7ref) allNodes.push({ ...self, p7ref: self.p7ref, isSelf: true });
-            (orbitalData.known || []).forEach(n => allNodes.push({ ...n, isSelf: false }));
+            (od.known || []).forEach(n => allNodes.push({ ...n, isSelf: false }));
 
             allNodes.forEach(node => {
                 const pos = node.isSelf ? selfPos : p7refToCoords(node.p7ref, 0, 0, 0, 140);  // p7refToCoords decodes ADDR_B32
@@ -912,7 +1047,7 @@
             drawOrbitalTrails(Math.max(galaxyWeight, knownWeight, selfWeight));
             drawResonanceTentacles(selfPos, layerWeights['orbital-connections']);
 
-            const glowShells = orbitalData.glow_shells || [0,0,0,0,0,0];
+            const glowShells = od.glow_shells || [0,0,0,0,0,0];
 
             if (selfWeight > 0.01 && self.p7ref) {
                 const proj = project(selfPos);
@@ -929,7 +1064,7 @@
 
             if (knownWeight > 0.01 || galaxyWeight > 0.01) {
                 const w = Math.max(knownWeight, galaxyWeight);
-                (orbitalData.known || []).forEach(node => {
+                (od.known || []).forEach(node => {
                     const pos = p7refToCoords(node.p7ref, 0, 0, 0, 140);
                     const proj = project(pos);
                     if (!proj) return;
@@ -947,7 +1082,7 @@
             }
 
             if (nameservWeight > 0.01) {
-                (orbitalData.nameserv || []).forEach(node => {
+                (od.nameserv || []).forEach(node => {
                     const pos = p7refToCoords(node.p7ref, 0, 0, 0, 280);
                     const proj = project(pos);
                     if (!proj) return;
@@ -960,8 +1095,8 @@
 
             // hover tooltip — find nearest rendered node
             const allRendered = [];
-            if (self.p7ref) allRendered.push({ node: { ...self, hostname: 'self', type: 'self' }, pos: selfPos });
-            (orbitalData.known || []).forEach(n => {
+            if (self.p7ref) allRendered.push({ node: { ...self, hostname: navOrbitalData ? (self.hostname || 'context') : 'self', type: 'self' }, pos: selfPos });
+            (od.known || []).forEach(n => {
                 const isConn = connectedP7refs.has(n.p7ref);
                 allRendered.push({ node: { ...n, type: isConn ? 'connected' : 'discovered' }, pos: p7refToCoords(n.p7ref, 0, 0, 0, 140) });
             });
@@ -987,7 +1122,7 @@
             }
 
             // freshness indicator
-            const cacheAge = parseFloat(orbitalData.cache_age || 0);
+            const cacheAge = navOrbitalData ? 0 : parseFloat(od.cache_age || 0);
             const staleEl = document.getElementById('staleIndicator');
             if (staleEl) staleEl.style.display = cacheAge > 30 ? 'block' : 'none';
         }
@@ -1370,6 +1505,9 @@
 
             // === ORBITAL LAYERS ===
             updateLayerWeights();
+            if (navStack.length > 0) {
+                drawGhostNodes(navStack[navStack.length - 1].snapshot, 0.2);
+            }
             drawOrbitalNodes();
 
             // Vignette
@@ -1434,6 +1572,10 @@
             followEnabled = true;
             selectedNodeP7ref = null;
             zoomTargetRotX = zoomTargetRotY = zoomTargetZoom = null;
+            navStack = [];
+            navOrbitalData = null;
+            nodeHistory = {};
+            updateBreadcrumb();
             document.getElementById('followBtn').classList.add('active');
             updateDisplays();
         }
@@ -1496,11 +1638,12 @@
         canvas.addEventListener('mouseup', e => {
             if (!dragMoved) {
                 // click — zoom to nearest node if within range
-                const self = orbitalData.self || {};
-                const connectedP7refs = new Set((orbitalData.connections || []).map(c => c.p7ref));
+                const od = navOrbitalData || orbitalData;
+                const self = od.self || {};
+                const connectedP7refs = new Set((od.connections || []).map(c => c.p7ref));
                 const allRendered = [];
                 if (self.p7ref) allRendered.push({ node: self, pos: p7refToCoords(self.p7ref, 0, 0, 0, 140) });
-                (orbitalData.known || []).forEach(n => allRendered.push({ node: n, pos: p7refToCoords(n.p7ref, 0, 0, 0, 140) }));
+                (od.known || []).forEach(n => allRendered.push({ node: n, pos: p7refToCoords(n.p7ref, 0, 0, 0, 140) }));
                 let nearest = null, nearDist = 40;
                 allRendered.forEach(({ node, pos }) => {
                     const proj = project(pos);
@@ -1536,6 +1679,24 @@
             isDragging = false;
         });
         canvas.addEventListener('mouseleave', () => isDragging = false);
+
+        canvas.addEventListener('dblclick', e => {
+            const od = navOrbitalData || orbitalData;
+            const self = od.self || {};
+            const known = od.known || [];
+            let nearest = null, nearDist = 40;
+            known.forEach(node => {
+                const pos = p7refToCoords(node.p7ref, 0, 0, 0, 140);
+                const proj = project(pos);
+                if (!proj) return;
+                const rect = canvas.getBoundingClientRect();
+                const dx = e.clientX - rect.left - proj.x;
+                const dy = e.clientY - rect.top  - proj.y;
+                const d = Math.sqrt(dx*dx + dy*dy);
+                if (d < nearDist) { nearDist = d; nearest = node; }
+            });
+            if (nearest) navPush(nearest);
+        });
 
         // === WHEEL (restored manual control!) ===
         canvas.addEventListener('wheel', function(e) {
@@ -1591,6 +1752,9 @@
                 case 'i': case 'I':
                     e.preventDefault();
                     toggleInfoPanel();
+                    break;
+                case 'Escape':
+                    navPop();
                     break;
                 case 'ArrowLeft': e.preventDefault(); moveSelection(-1, 0, 0); break;
                 case 'ArrowRight': e.preventDefault(); moveSelection(1, 0, 0); break;
