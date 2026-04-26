@@ -44,9 +44,8 @@ foreach my $hostname (@$hostnames) {
     my $vhost_entry = <httpd.vhosts.registry>->{$hostname};
     my $manifest    = $vhost_entry->{'manifest'};
 
-    my $dns_match    = $manifest->{'dns_match'} // $hostname;
-    my $install_path = $manifest->{'install_path'}
-        // catfile( $site_dir, $hostname );
+    my $dns_match    = $manifest->{'dns_match'}    // $hostname;
+    my $install_path = $manifest->{'install_path'} // "$site_dir/$hostname";
 
     ## step 1: dns check (skip when --force) ##
     unless ( $force_install
@@ -93,7 +92,19 @@ foreach my $hostname (@$hostnames) {
                 };
             }
         } elsif ( -e $install_path ) {
-            <[base.file.remove_tree]>->($install_path);
+            ## sanity: never remove_tree on short or root-like paths ##
+            if (   length($install_path) < 8
+                or $install_path eq qw| / |
+                or $install_path !~ m|^/var/| ) {
+                <[base.logs]>->(
+                    0, 'refusing remove_tree on unsafe path: %s',
+                    $install_path
+                );
+                push @errors,
+                    { hostname => $hostname, reason => qw| unsafe_path | };
+                next;
+            }
+            <[file.remove_tree]>->($install_path);
         }
 
         unless ($install_ok) {
@@ -113,21 +124,21 @@ foreach my $hostname (@$hostnames) {
         my $copy_count = 0;
         my $copy_error = 0;
 
-        my @files_to_copy = <[base.file.all_files]>->($source_path);
+        my @files_to_copy = <[file.all_files]>->($source_path);
         foreach my $src_file (@files_to_copy) {
             next if $src_file =~ m|/\.vhost-manifest$|;
 
             my $rel_path = substr( $src_file, length($source_path) + 1 );
-            my $dst_file = catfile( $install_path, $rel_path );
+            my $dst_file = "$install_path/$rel_path";
 
-            my $dst_dir = <[base.file.last_existing_dir_path]>->($dst_file);
+            my $dst_dir = <[file.last_existing_dir_path]>->($dst_file);
             if ( defined $dst_dir and not -d $dst_dir ) {
                 <[file.make_path]>->(
                     $dst_dir, 0755, $httpd_user, $httpd_group
                 );
             }
 
-            if ( <[base.file.copy]>->( $src_file, $dst_file ) ) {
+            if ( <[file.copy]>->( $src_file, $dst_file ) ) {
                 $copy_count++;
             } else {
                 $copy_error++;
@@ -210,8 +221,8 @@ return {
     'summary' => $result_summary
 };
 
-#,,..,,,.,,..,.,.,,,,,.,.,...,...,,.,,,,.,...,..,,...,...,,,.,.,.,,..,..,,.,,,
-#RK7BNLYUBPFTPIMFSASMUSYG2IWVVGR6V65KGNBBZFDI5WZGG56BKCUEXEXGLJAHJ2QUYOLAQULRC
-#\\\|UDNYERHTMTUD2UHYN3NLHINTHZY22WPCP3QEEVZYNMGUMXFGCQH \ / AMOS7 \ YOURUM ::
-#\[7]CMVV24K6KHL7HYWC3MCM4PMI2EMDTC6Q66EDTQVWBU3Z6KX4MEAA 7  DATA SIGNATURE ::
+#,,,,,,,.,,,.,,,.,,.,,,,,,..,,..,,,,.,,,,,...,..,,...,...,.,.,,.,,,,.,,..,,,.,
+#ZRYLK5OINELAAZPCJD7XIGBIR5J4LFOHDNMU7YET2M4HHT3AEURM74H6FLXCPQLIEJLQFJ4OTAOIY
+#\\\|TACPSHYVOT36JRBBRR5A4QL46V6ZHRFQPQATEZU4QOBY5IGEAAR \ / AMOS7 \ YOURUM ::
+#\[7]EBZWE2HWVAYJXHHMK2R2THUKJA7KOPNYLSRODAN25KTQT4OM7GBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
