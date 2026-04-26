@@ -36,6 +36,12 @@ if ( scalar @$history >= 2 ) {
     }
 }
 
+## accept explicit intent if provided ##
+if ( defined $params->{'intent'} and length $params->{'intent'} ) {
+    $intent = $params->{'intent'};
+    $context->{'intent'} = $intent;
+}
+
 $context->{'intent'} = $intent;
 
 ## re-run resolve with updated context ##
@@ -54,8 +60,8 @@ return $context;
 
 0;
 
-#,,..,,.,,.,.,,,,,.,,,,.,,,,.,,..,,,.,,.,,,.,,..,,...,...,,,.,.,.,.,,,..,,,.,,
-#A2QSIKW6PWJT2FEP5ECKOUWFMCAAKPZMUSEMX4YXHMIHXY3NUVCVJHKKBVDZAPV5XNH5CDQ7ZBG7I
-#\\\|XGUFC3MSHS4ESKBHCI44Y54IPA6VSCNC4QMAWDAJVGQLY2UQFA6 \ / AMOS7 \ YOURUM ::
-#\[7]HTUAYKCYWFE5YZN72TVKLA7GWG5ABW577O2BQLKJFCT34SQMR2BQ 7  DATA SIGNATURE ::
+#,,,.,,,.,,.,,..,,.,.,,..,.,,,...,...,,,.,.,,,..,,...,...,...,,.,,,,,,,,,,,..,
+#HU27V76MKMPUU3LGTEJDBYAAUQSZKJ52GZMLL4D5ATCWMNGIZT6VH6JN74OKAUJ73K7W5QJGRZYHQ
+#\\\|NP4EDMQ3KT3NUIYSUAWVHIPKOUGU3QWJMYCMZT4TMYB5RRASJNV \ / AMOS7 \ YOURUM ::
+#\[7]HTJAXME3IMPYC7OEO6U7MGZ7LPVJI3O2FLMTCVCI2GTYPAPXMCCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
