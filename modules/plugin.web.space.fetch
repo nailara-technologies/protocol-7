@@ -8,7 +8,7 @@ my $source = <web.space.cfg.data_source> // return;
 <[base.log]>->( 2, 'plugin.web.space.fetch : requesting from %s', $source );
 
 ## request cursor position ##
-<[protocol-7.command.send.local]>->(
+<[protocol-7.route-send]>->(
     {   qw| command |   => "$source.cursor-state",
         qw| call_args | => { qw| args | => '' },
         qw| reply |     => {
@@ -19,7 +19,7 @@ my $source = <web.space.cfg.data_source> // return;
 );
 
 ## request graph stats ##
-<[protocol-7.command.send.local]>->(
+<[protocol-7.route-send]>->(
     {   qw| command |   => "$source.graph",
         qw| call_args | => { qw| args | => '' },
         qw| reply |     => {
@@ -34,8 +34,8 @@ my $source = <web.space.cfg.data_source> // return;
 
 return 1;
 
-#,,,.,.,,,...,,.,,...,..,,,.,,.,.,...,,,.,,.,,..,,...,...,.,,,,..,.,.,,,.,.,,,
-#7NNEK3DKRPIQSBYO3KNCHDX5DJCAF2D4IWPOINMAIBAB3R6HHX4VEVZRRDDHOAN23KZSD6OCLECT4
-#\\\|RDBW2IIPBFXMEH4YAD2K3OZXB7GMGOEHD76T54HCTX42ZED5KPM \ / AMOS7 \ YOURUM ::
-#\[7]H5V3EVBPTLQQKJRP7WZGPU2DV52SNCXOP7ZJCBDM7MHJ5BY2PYCY 7  DATA SIGNATURE ::
+#,,.,,.,.,,,.,,,.,.,.,..,,,.,,,,.,.,.,.,,,...,..,,...,...,,,.,.,.,.,.,.,,,,,,,
+#WIYX5AGBB35P76LBDR6G3RRU54RLXO5MVE3Y755WGVR2LYU4UEY4V32RWQHZ6RR23KQB7TF2VDECY
+#\\\|IKSDZLFARBSZ2ZNXRM5ANDMHPAO27CS3BTEMOFFADWC33KTUIN2 \ / AMOS7 \ YOURUM ::
+#\[7]WG6KSCZBVNAW4JU6YBO6AYOMHHIW2C5FHUZU7HFUUFRLBEU7QGAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

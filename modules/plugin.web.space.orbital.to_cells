@@ -26,7 +26,7 @@ if ( ref $self eq qw| HASH | and $self->{'p7ref'} ) {
         $self->{'phi'}   // 0,
         $self->{'psi'}   // 0
     );
-    <[protocol-7.command.send.local]>->(
+    <[protocol-7.route-send]>->(
         {   qw| command |   => qw| graphics-matrix.cell |,
             qw| call_args | => {
                 qw| args | => sprintf( 'place %d,%d,%d',
@@ -34,7 +34,7 @@ if ( ref $self eq qw| HASH | and $self->{'p7ref'} ) {
             },
         }
     );
-    <[protocol-7.command.send.local]>->(
+    <[protocol-7.route-send]>->(
         {   qw| command |   => qw| graphics-matrix.cursor |,
             qw| call_args | => {
                 qw| args | => sprintf( 'set %d %d %d',
@@ -61,7 +61,7 @@ for my $node ( @{ $data->{'known'} // [] } ) {
         = $connected->{ $node->{'p7ref'} }
         ? qw| connected |
         : qw| discovered |;
-    <[protocol-7.command.send.local]>->(
+    <[protocol-7.route-send]>->(
         {   qw| command |   => qw| graphics-matrix.cell |,
             qw| call_args | => {
                 qw| args | => sprintf( 'place %d,%d,%d',
@@ -78,7 +78,7 @@ for my $node ( @{ $data->{'nameserv'} // [] } ) {
         $node->{'phi'}   // 0,
         $node->{'psi'}   // 0
     );
-    <[protocol-7.command.send.local]>->(
+    <[protocol-7.route-send]>->(
         {   qw| command |   => qw| graphics-matrix.cell |,
             qw| call_args | => {
                 qw| args | => sprintf( 'place %d,%d,%d',
@@ -89,7 +89,7 @@ for my $node ( @{ $data->{'nameserv'} // [] } ) {
 }
 
 ## recompute glow shells ##
-<[protocol-7.command.send.local]>->(
+<[protocol-7.route-send]>->(
     {   qw| command |   => qw| graphics-matrix.glow |,
         qw| call_args | => { qw| args | => qw| compute | },
     }
@@ -99,8 +99,8 @@ for my $node ( @{ $data->{'nameserv'} // [] } ) {
 
 return 1;
 
-#,,,.,,,.,.,,,,.,,,.,,,.,,,,,,.,.,...,...,,,,,..,,...,...,..,,,.,,,..,,,,,,..,
-#NPLFUASCHZOGS56KD367G4VARFXDTABFYJQB5MMLUWVLS6DHBRTNLJWA6Q6LUXR2SNH5VPSFULK2I
-#\\\|LZYS7YYCZXRIIYZPA4OONDFOBPRESXDSF7IOAXK2X2VH76ZBH3O \ / AMOS7 \ YOURUM ::
-#\[7]LNFYAEAEAIGOOY24OLRRV3VFPNWUT3DVY22RI6VERSZHONX6SIAA 7  DATA SIGNATURE ::
+#,,..,,,.,,,,,..,,,,.,...,,.,,,,.,,..,,,,,.,,,..,,...,...,...,.,,,,.,,,.,,.,.,
+#E6TGALWH4PGV32WVGIXIUNRIYQCNRUQAYVIP6SUKBOXX7CWRQ67LNU3JBD7NJBDT5TTFSSNGOLAGI
+#\\\|ZW656P3CF7KPDMVF5764WV4AMHAYWJY46F4XBNMK3I4J6OY2X3Y \ / AMOS7 \ YOURUM ::
+#\[7]XWT2MQNJHPU3RML3JTAYE4VKN3JMO6QSLJGLAMJ4UBXWV2XCOMBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
