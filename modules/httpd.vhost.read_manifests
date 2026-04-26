@@ -38,17 +38,23 @@ foreach my $entry ( <[base.sort]>->( readdir $dir_fh ) ) {
     my $manifest_path = "$vhost_path/.vhost-manifest";
     next unless -f $manifest_path;
 
-    my $manifest_yaml_ref = eval { <[base.file.slurp]>->($manifest_path) };
-    if ( $EVAL_ERROR or not defined $manifest_yaml_ref ) {
-        <[base.logs]>->(
-            1,      'failed to read manifest for %s [ %s ]',
-            $entry, $EVAL_ERROR // qw| unknown error |
-        );
-        next;
-    }
+    my $manifest_yaml = do {
+        local $INPUT_RECORD_SEPARATOR = undef;
+        my $fh;
+        open( $fh, '<', $manifest_path ) or do {
+            <[base.logs]>->(
+                1,              'cannot open manifest %s [ %s ]',
+                $manifest_path, $OS_ERROR
+            );
+            next;
+        };
+        my $content = <$fh>;
+        close $fh;
+        $content;
+    };
 
-    my $manifest = eval { YAML::XS::Load($$manifest_yaml_ref) };
-    if ( $EVAL_ERROR or not defined $manifest ) {
+    my $manifest = eval { YAML::XS::Load($manifest_yaml) };
+    if ( $EVAL_ERROR or not defined $manifest or ref $manifest ne 'HASH' ) {
         <[base.logs]>->(
             1,      'failed to parse manifest for %s [ %s ]',
             $entry, $EVAL_ERROR // qw| unknown error |
@@ -79,8 +85,8 @@ closedir($dir_fh);
 
 return \@hostnames_found;
 
-#,,.,,,..,.,,,,.,,...,,,,,,..,...,,..,,,,,...,..,,...,...,..,,,..,.,.,.,,,...,
-#UYWMOZNHN6HVPX23WWJUHTGNUE3M4IOB3Y27O3NA5NUQ4MJDAZEAPC4CUGIX7O7F6ZTNNDJ3BK6ME
-#\\\|XFKIMSVGZFRZZOAZILGYLECZWF7UC574KKG37EMKKCWAMC3SG3R \ / AMOS7 \ YOURUM ::
-#\[7]KQ53QT4GFOR42MSHIET5JKQ75VLA342F2HKHXPUVG7IIW3DM5MDA 7  DATA SIGNATURE ::
+#,,,.,,..,,,.,.,,,,,.,,..,,,,,...,.,.,,..,...,..,,...,...,...,,..,,,.,..,,..,,
+#GBUWXSSHXJX5RH35SNN6CV3SSLT67DTNDK7X6U26JZY6FDCN7ZR6UKHYCMKWLAERO6Q52HSPLEUE4
+#\\\|TIJ4U6F5BMZABUF3322GPR4MSAM2VHXQIKCGWHC4JJNP3DDWCIM \ / AMOS7 \ YOURUM ::
+#\[7]MEHJ5N2TKZ4WU42RUYVZ5SWNZTYS4ABJZL24M7NP7ZBLC2Z73ACQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
