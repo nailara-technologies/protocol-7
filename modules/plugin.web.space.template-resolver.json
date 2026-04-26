@@ -12,15 +12,15 @@ my $payload = {
     qw| intent         | => ( $context->{'intent'}        // qw| navigate | ),
     qw| active_layers  | => ( $context->{'active_layers'} // [] ),
     qw| available_data | => $available_data,
-    qw| history_depth  | => scalar( $context->{'history'} // [] )->@*,
+    qw| history_depth  | => scalar( ( $context->{'history'} // [] )->@* ),
 };
 
 return eval { JSON::XS::encode_json($payload) } // '{}';
 
 0;
 
-#,,,,,...,.,,,,,,,..,,.,,,,.,,,,.,...,,,.,,.,,..,,...,...,.,.,,,.,...,.,,,,,.,
-#ZWIWPA6RF6QA3G7KBTRR7KYW3GY2HC4JSY7TOCE4NPBVUFEWMAFZ62VTDS7OCB57MK2QZKZZ2V7VY
-#\\\|LCQHJ4TJREFDKPHZTZS72J2S26XWNMBDGUXEJ6OBVUGOJIE3SLT \ / AMOS7 \ YOURUM ::
-#\[7]GR3JCWWPLGXUI5IKOACWS7BYK6JCV5AGTZHOTE4JVPXRYZNSCQCQ 7  DATA SIGNATURE ::
+#,,.,,.,.,,,.,,..,,,.,.,,,,,.,,,.,.,.,..,,,.,,..,,...,...,,,.,.,,,,..,,.,,,..,
+#ID667WNMWXLP2B5AG7FQOO6KW35745DCLW75QCLCKE3JVZL44AMFLXQLLJNI4X7JKOB6NYLKHVQLC
+#\\\|5IZ3JGZXZAGYADSYTTM4MJENE6WTBQPDZHXSMR3R4CPNLLANACG \ / AMOS7 \ YOURUM ::
+#\[7]3MU4SSG65JFYUDL3HZRRDLS32KF2BPWKLDYU4C7CQIG2D2GG5IBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
