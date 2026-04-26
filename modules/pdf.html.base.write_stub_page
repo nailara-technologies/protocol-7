@@ -2,9 +2,10 @@
 
 # name = pdf.html.base.write_stub_page
 
-my $path          = shift;
-my $percentage    = shift // 0;
-my $template_dir  = <system.root_path> . '/data/html/templates/pdf2html';
+my $path       = shift;
+my $percentage = shift // 0;
+my $template_dir
+    = <system.root_path> . '/' . <system.web-root-templates> . '/pdf2html';
 my $html_template = "$template_dir/stub.html";
 my $target_file   = "$path/pdf.html";
 my $temp_file     = "$target_file.NEW";
@@ -33,8 +34,8 @@ close($html_fh);
 rename( $temp_file, $target_file )
     or die "$temp_file --> $target_file : \l$OS_ERROR";
 
-#,,..,,.,,.,,,.,.,...,,..,,,.,,.,,,..,.,,,...,..,,...,...,.,.,.,,,,.,,.,,,,,.,
-#37YG7NXT5RS22P5N2OZUTVZ2A43DPJPRO3TVX5KWHWFDMB3IBIXWJIEDIC7I6GGIQDXL3BTYEE5AM
-#\\\|Y5BUQABNSNGI3J6TMWEDLRB43CUVGMC7AZNYC4753C5GSYHDBAG \ / AMOS7 \ YOURUM ::
-#\[7]QKRPQPFD4DBF2X4IHNIQZY5747YO6HYYHY7FZA5WOCL3IWA7DQBY 7  DATA SIGNATURE ::
+#,,..,,,.,...,.,.,,..,,..,...,..,,...,,,.,,.,,..,,...,...,.,,,.,.,..,,.,,,,..,
+#K62QONXRPXBIMAAABGJUCEW4OZBGT6YEG5GOV3AZATSB2KODDLWU3IXPOQ2G5FVRCPWZ2IO2SOOC4
+#\\\|N7JJI7DPXLSZIPOQNBLSNZY3HTHUF7ETEKTTWGXMDBLPUABHYIK \ / AMOS7 \ YOURUM ::
+#\[7]EWBNSKVAE5XZDBVM4GBU7ZCRYIN6U56MEMIRQ7RR7NL6MH4CWMBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
