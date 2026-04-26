@@ -68,10 +68,33 @@ $payload->{'glow_shells'} = $glow_shells;
 $payload->{'channel'}     = $channel;
 $payload->{'graph'}       = $graph;
 
+## enrich with harmonic voxel attractors ##
+my $voxels = <graphics-matrix.harmonic.voxels> // {};
+my @attractors;
+for my $key ( keys %$voxels ) {
+    my $v = $voxels->{$key};
+    next if $v->{'count'} < 2;
+    push @attractors,
+        {
+        'x'              => substr( $v->{'coords'}->{'x'}, 0, 3 ),
+        'y'              => substr( $v->{'coords'}->{'y'}, 0, 3 ),
+        'z'              => substr( $v->{'coords'}->{'z'}, 0, 3 ),
+        'density'        => $v->{'count'},
+        'inputs'         => $v->{'inputs'},
+        'axis_agreement' => $v->{'axis_agreement'} // 0
+        };
+}
+
+$payload->{'harmonic_attractors'} = \@attractors;
+
+## character rays (if pre-computed) ##
+my $char_rays = <graphics-matrix.harmonic.char_rays> // [];
+$payload->{'char_rays'} = $char_rays;
+
 return eval { JSON::XS::encode_json($payload) } // '{}';
 
-#,,,.,,..,.,.,,,,,,.,,...,.,,,,,,,.,.,,.,,,,,,..,,...,...,..,,...,.,.,,.,,,.,,
-#H4RVSRV2QIYA2EKHWQ4J7WA5IDNGCFRUEK3DE767LZTI7WACZWK2TFDMJP4MCSQOGH2JCMVN7PKFS
-#\\\|4MQM3EM3NCJTMRXDBWAIQXHR3PGRHH3MG5WSZHP2XQFCC2Q4SIJ \ / AMOS7 \ YOURUM ::
-#\[7]CSXYHBO2VVJ4BDPBUNLKSGLIU2NUZ46TZXJMZKQN6WUACI23JOBY 7  DATA SIGNATURE ::
+#,,,,,..,,.,.,,..,,..,.,.,..,,.,,,...,..,,,..,..,,...,...,.,.,..,,,..,,..,.,.,
+#2ZOPKCMKSSVUN7NH2PSTSUHHSJH3KYQGX2F5FD26SOQCA5JNJVX2HHFS2NRNMFTNITE67S6T5YVVG
+#\\\|CEHKKDMHET7EBGKKKPYKYHQ4IFARIN2FURUJSEIY4WK5DE2KWRW \ / AMOS7 \ YOURUM ::
+#\[7]IPR6TGA7V342ZLFZFDFYTFLGZNAHF23MJLIKKAKL3HZCSKYAZMAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

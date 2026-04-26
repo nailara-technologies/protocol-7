@@ -1,0 +1,68 @@
+## [:< ##
+
+# name  = graphics-matrix.cmd.analyze-wordlist
+# descr = analyze wordlist for harmonic correlations
+# param = <wordlist-path> <language-code>
+
+( my $wordlist_path, my $language_code )
+    = split( m|\s+|, $call->{'args'}, 2 );
+
+return { 'mode' => 'false', 'data' => 'expected wordlist path' }
+    unless defined $wordlist_path and length $wordlist_path;
+return { 'mode' => 'false', 'data' => 'expected language code' }
+    unless defined $language_code and length $language_code;
+return { 'mode' => 'false', 'data' => 'language code must be 3 letters' }
+    if $language_code !~ m|^[A-Z]{3}$|;
+return { 'mode' => 'false', 'data' => 'wordlist not found' }
+    if not -f $wordlist_path;
+return { 'mode' => 'false', 'data' => 'wordlist not readable' }
+    if not -r $wordlist_path;
+
+my $fh = <[file.open]>->($wordlist_path);
+return { 'mode' => 'false', 'data' => 'cannot open wordlist' }
+    unless defined $fh;
+
+my %prefix_groups;
+while ( my $word = <$fh> ) {
+    chomp($word);
+    next unless length $word;
+
+    my $path  = <[index.gen_path]>->( \$word );
+    my @parts = split( m|/|, $path );
+
+    for my $depth ( 1, 2, 3 ) {
+        next if @parts < $depth;
+        my $prefix = join( '/', @parts[ 0 .. $depth - 1 ] );
+        push @{ $prefix_groups{$depth}{$prefix} },
+            { 'word' => $word, 'lang' => $language_code };
+    }
+
+    ## add to voxel density grid ##
+    <[graphics-matrix.cmd.voxel-add]>->( { 'args' => $word } );
+}
+close($fh);
+
+my @lines;
+push @lines, "wordlist analysis: $wordlist_path [$language_code]";
+push @lines, '';
+
+for my $depth ( sort { $a <=> $b } keys %prefix_groups ) {
+    push @lines, "--- depth $depth ---";
+    for my $prefix ( sort keys %{ $prefix_groups{$depth} } ) {
+        my @entries = @{ $prefix_groups{$depth}{$prefix} };
+        my $count   = scalar @entries;
+        push @lines,
+              "  $prefix : $count word"
+            . ( $count == 1 ? '' : 's' ) . " ["
+            . join( ', ', map { $_->{'word'} } @entries ) . "]";
+    }
+    push @lines, '';
+}
+
+return { 'mode' => 'size', 'data' => join( "\n", @lines ) };
+
+#,,.,,,,.,..,,.,.,.,,,,..,.,,,,,.,.,.,...,,,,,..,,...,...,..,,.,,,.,,,,.,,,.,,
+#J6VU5KM6VEST5Z4JXOBXSS6SIMC6ABAJ5YP3DQO4G43WTP7LSIVSFL5E6TEV6LZOUQ7PEWTPG3ZRQ
+#\\\|VYCF6I3ZGZR2XZZFS5DLDK3PGBDNEGDA36675YBWTDSVLARLPIU \ / AMOS7 \ YOURUM ::
+#\[7]FPAEL7L733P47MGEKMSSWLYDXPJ2ZQVPTJWYX66ADJFLQEGXNSAQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

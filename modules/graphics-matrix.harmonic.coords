@@ -1,0 +1,28 @@
+## [:< ##
+
+# name  = graphics-matrix.harmonic.coords
+# descr = compute 3D voxel position from AMOS checksum offsets
+
+my $input_sref = shift;
+
+$input_sref = \"$input_sref" if ref($input_sref) eq '';
+
+my @coords;
+for my $offset ( 0, 1, 2 ) {
+    my $length = 7 - $offset;
+
+    local $AMOS7::CHKSUM::sstr_start = $offset;
+    local $AMOS7::CHKSUM::str_length = $length;
+
+    my $checksum = <[chk-sum.amos]>->($input_sref);
+
+    push @coords, $checksum;
+}
+
+return @coords;
+
+#,,,,,.,,,...,.,.,,,.,..,,...,.,,,,.,,,,.,.,,,..,,...,.,,,,,,,.,,,.,,,,.,,,.,,
+#7O5FIVJ33DWUF726WVLV7CJHAEZU2HL4APNZQEDVSRXPITVISFXZXVXJBT5YXNBQJJR3VDDBBKWNQ
+#\\\|Z5VJ6HSUAOCNPX5IOFE7UPBVDCVFLZ6JY5AFQTDPKZZVDEGGAB5 \ / AMOS7 \ YOURUM ::
+#\[7]PIQ4CUBL7LUIUHZOOHD437LI6SIBNL2JKADQJHUL3ZK3DBLMVEAQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

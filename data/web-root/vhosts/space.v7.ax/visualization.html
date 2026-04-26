@@ -148,6 +148,8 @@
         <button onclick="toggleKnownNodes()" id="knownBtn">Known</button>
         <button onclick="toggleTentacles()" id="tentacleBtn" class="active">Tentacles</button>
         <button onclick="toggleTrails()" id="trailBtn" class="active">Trails</button>
+        <button onclick="toggleHarmonicVoxels()" id="voxelBtn">Voxels</button>
+        <button onclick="toggleCharRays()" id="raysBtn">Rays</button>
     </div>
 
     <div class="orbital-controls" id="orbitalControls">
@@ -261,8 +263,12 @@
             'orbital-connections': 0,
             'orbital-known': 0,
             'completion-wave': 0,
-            'nameserv-remote': 0
+            'nameserv-remote': 0,
+            'harmonic-voxel': 0,
+            'char-rays': 0
         };
+        let harmonicShowVoxels = false;
+        let harmonicShowRays = false;
 
         // Fetch loops
         function fetchOrbitalData() {
@@ -1027,6 +1033,101 @@
             ctx.restore();
         }
 
+        function checksumPrefixToCoords(prefix, scale) {
+            const s = scale || 140;
+            const bytes = decodeB32(prefix);
+            if (bytes.length >= 2) {
+                const theta = bytes[0] / 255 * 2 * Math.PI;
+                const phi   = bytes[1] / 255 * Math.PI;
+                return {
+                    x: Math.sin(phi) * Math.cos(theta) * s,
+                    y: Math.cos(phi) * s,
+                    z: Math.sin(phi) * Math.sin(theta) * s
+                };
+            }
+            return { x: 0, y: s, z: 0 };
+        }
+
+        function drawHarmonicVoxels() {
+            if (!harmonicShowVoxels) return;
+            const od = navOrbitalData || orbitalData;
+            const attractors = od.harmonic_attractors || [];
+            if (!attractors.length) return;
+            const weight = layerWeights['harmonic-voxel'];
+            if (weight < 0.01) {
+                layerWeights['harmonic-voxel'] = Math.min(1, weight + 0.02);
+            }
+            const globalAlpha = layerWeights['harmonic-voxel'];
+            ctx.save();
+            ctx.globalCompositeOperation = 'screen';
+            attractors.forEach(attractor => {
+                const pos = checksumPrefixToCoords(attractor.x + attractor.y + attractor.z, 140);
+                const proj = project(pos);
+                if (!proj) return;
+                const density = attractor.density || 1;
+                const agreement = attractor.axis_agreement || 0;
+                const size = Math.max(2, Math.log(density + 1) * 4 * globalAlpha);
+                const blueIntensity = 100 + agreement * 50;
+                const alpha = Math.min(0.8, globalAlpha * (1 - 1 / (density + 1)));
+                drawNodeGlow(proj.x, proj.y, size,
+                    { r: 20, g: 80, b: blueIntensity }, alpha);
+                ctx.fillStyle = `rgba(40, 120, ${blueIntensity + 40}, ${alpha})`;
+                ctx.beginPath();
+                ctx.arc(proj.x, proj.y, size * 0.3, 0, Math.PI * 2);
+                ctx.fill();
+            });
+            ctx.restore();
+        }
+
+        function drawCharRays() {
+            if (!harmonicShowRays) return;
+            const od = navOrbitalData || orbitalData;
+            const rays = od.char_rays || [];
+            if (!rays.length) return;
+            const weight = layerWeights['char-rays'];
+            if (weight < 0.01) {
+                layerWeights['char-rays'] = Math.min(1, weight + 0.02);
+            }
+            const globalAlpha = layerWeights['char-rays'];
+            ctx.save();
+            ctx.globalCompositeOperation = 'screen';
+            rays.forEach(ray => {
+                const cls = ray.class;
+                const color = cls === 'alpha'
+                    ? { r: 0, g: 255, b: 100 }
+                    : cls === 'digit'
+                    ? { r: 255, g: 220, b: 0 }
+                    : { r: 0, g: 200, b: 255 };
+                const levels = ray.levels || [];
+                const points = [];
+                for (let i = 0; i < levels.length; i++) {
+                    const levelStr = levels[i];
+                    if (!levelStr) continue;
+                    const scale = 40 + i * 20;
+                    const pos = checksumPrefixToCoords(levelStr, scale);
+                    const proj = project(pos);
+                    if (proj) points.push(proj);
+                }
+                if (points.length < 2) return;
+                ctx.strokeStyle = `rgba(${color.r}, ${color.g}, ${color.b}, ${globalAlpha * 0.3})`;
+                ctx.lineWidth = 0.5;
+                ctx.beginPath();
+                ctx.moveTo(points[0].x, points[0].y);
+                for (let i = 1; i < points.length; i++) {
+                    ctx.lineTo(points[i].x, points[i].y);
+                }
+                ctx.stroke();
+                points.forEach((p, i) => {
+                    const alpha = globalAlpha * (0.3 + i * 0.1);
+                    ctx.fillStyle = `rgba(${color.r}, ${color.g}, ${color.b}, ${alpha})`;
+                    ctx.beginPath();
+                    ctx.arc(p.x, p.y, 1.2, 0, Math.PI * 2);
+                    ctx.fill();
+                });
+            });
+            ctx.restore();
+        }
+
         function drawOrbitalNodes() {
             if (!orbitalShowNodes) return;
             const od = navOrbitalData || orbitalData;
@@ -1151,6 +1252,14 @@
         function toggleTrails() {
             orbitalShowTrails = !orbitalShowTrails;
             document.getElementById('trailBtn').classList.toggle('active', orbitalShowTrails);
+        }
+        function toggleHarmonicVoxels() {
+            harmonicShowVoxels = !harmonicShowVoxels;
+            document.getElementById('voxelBtn').classList.toggle('active', harmonicShowVoxels);
+        }
+        function toggleCharRays() {
+            harmonicShowRays = !harmonicShowRays;
+            document.getElementById('raysBtn').classList.toggle('active', harmonicShowRays);
         }
         // === DRAW ===
         function draw() {
@@ -1518,6 +1627,8 @@
                 drawGhostNodes(navStack[navStack.length - 1].snapshot, 0.2);
             }
             drawOrbitalNodes();
+            drawHarmonicVoxels();
+            drawCharRays();
 
             // Vignette
             const gradient = ctx.createRadialGradient(centerX, centerY, 0, centerX, centerY, Math.max(width, height) / 2);

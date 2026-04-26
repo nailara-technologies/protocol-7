@@ -1,0 +1,32 @@
+## [:< ##
+
+# name  = graphics-matrix.cmd.ray-table
+# descr = generate 7-level tree address table for inputs
+# param = <space-separated inputs>
+
+my $args = $call->{'args'} // '';
+return { 'mode' => 'false', 'data' => 'expected inputs' }
+    unless length $args;
+
+my @inputs = split( m|\s+|, $args );
+
+my @lines;
+push @lines, join( "\t", 'input', map {"L$_"} 1 .. 7 );
+
+for my $input (@inputs) {
+    my @levels;
+    for my $len ( 1 .. 7 ) {
+        local $AMOS7::CHKSUM::sstr_start = 0;
+        local $AMOS7::CHKSUM::str_length = $len;
+        push @levels, <[chk-sum.amos]>->( \$input );
+    }
+    push @lines, join( "\t", $input, @levels );
+}
+
+return { 'mode' => 'size', 'data' => join( "\n", @lines ) };
+
+#,,..,..,,,,.,.,,,,.,,...,.,.,...,.,,,...,,,.,..,,...,...,...,,..,,.,,.,,,,.,,
+#EMRTONBCXZSC4QWKUDGADXMC5AIPNVZCE3O4UAZO6VSLTRQOQRUHI54ZXKQL7NPQQH2ED4RWISTKY
+#\\\|HT634NKNPKT3L4CIZZPPC5HBI4IDKJNXPBE2QHTXT5K7ERO37VV \ / AMOS7 \ YOURUM ::
+#\[7]YQ62KCH4UTOQELR5D6GKLCUPQO7ZJOK3L4EFEPQ7MQNNT3NF24CA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
