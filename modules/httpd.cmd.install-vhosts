@@ -7,8 +7,7 @@
 my $args_str = $call->{'args'} // '';
 my $target_hostname;
 my $force_install = FALSE;
-$force_install   = TRUE if $args_str =~ s|\s*--force\s*||;
-$force_install   = TRUE if $args_str =~ s|\s*-f\s*||;
+$force_install   = TRUE if $args_str =~ s|\s*:force:\s*||i;
 $target_hostname = $1   if $args_str =~ m|^\s*([a-zA-Z0-9\.\-]+)\s*$|;
 
 my $hostnames = <[httpd.vhost.read_manifests]>;
@@ -211,8 +210,8 @@ return {
     'summary' => $result_summary
 };
 
-#,,,.,,..,,,,,.,,,,.,,,,,,.,,,,.,,..,,...,..,,..,,...,...,...,.,,,...,.,,,.,.,
-#EYB3TTEFMBTXI4UCYZULCZ3JMM7UR655SEAISELJQLAXVYNIE2XQLDZAKOJAJDSRNRFNQN3444UPO
-#\\\|MD7GQ5XUT57ZP3BFG2AR3EJOAOZFOU3BUWFWE6KWM7DBUQ5HAJA \ / AMOS7 \ YOURUM ::
-#\[7]EU7D52ETCIN7O7ZCXJBYV4GC5TFW73XWM7PNEN2UHJDKCP6IX2CQ 7  DATA SIGNATURE ::
+#,,..,,,.,,..,.,.,,,,,.,.,...,...,,.,,,,.,...,..,,...,...,,,.,.,.,,..,..,,.,,,
+#RK7BNLYUBPFTPIMFSASMUSYG2IWVVGR6V65KGNBBZFDI5WZGG56BKCUEXEXGLJAHJ2QUYOLAQULRC
+#\\\|UDNYERHTMTUD2UHYN3NLHINTHZY22WPCP3QEEVZYNMGUMXFGCQH \ / AMOS7 \ YOURUM ::
+#\[7]CMVV24K6KHL7HYWC3MCM4PMI2EMDTC6Q66EDTQVWBU3Z6KX4MEAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
