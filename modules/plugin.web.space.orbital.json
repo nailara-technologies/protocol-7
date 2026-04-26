@@ -39,6 +39,7 @@ $known       = [] unless ref $known eq qw| ARRAY |;
 $connections = [] unless ref $connections eq qw| ARRAY |;
 $nameserv    = [] unless ref $nameserv eq qw| ARRAY |;
 
+## build base payload ##
 my $payload = {
     qw| self        | => $self,
     qw| known       | => $known,
@@ -48,12 +49,29 @@ my $payload = {
     qw| cache_age   | => $age,
 };
 
+## enrich with graphics-matrix data ##
+my $gm_state = $data->{'gm_state'} // {};
+
+my $glow_shells = $gm_state->{'glow_shells'};
+$glow_shells = [ 0.0, 0.0, 0.0, 0.0, 0.0, 0.0 ]
+    unless ref $glow_shells eq qw| ARRAY | and @$glow_shells;
+
+my $channel = $gm_state->{'channel'} // {};
+$channel = { index => 0, name => '', palette => [] }
+    unless ref $channel eq qw| HASH |;
+
+my $graph = $gm_state->{'graph'} // {};
+$graph = { counts => {}, total => 0 }
+    unless ref $graph eq qw| HASH |;
+
+$payload->{'glow_shells'} = $glow_shells;
+$payload->{'channel'}     = $channel;
+$payload->{'graph'}       = $graph;
+
 return eval { JSON::XS::encode_json($payload) } // '{}';
 
-0;
-
-#,,..,,..,,..,...,..,,,,.,.,,,,,,,,..,,,.,..,,..,,...,...,,,,,,.,,.,.,,..,..,,
-#E2IUEMCWDSFRHEK4FMTCPRCLWOROPNZKHOWCCLEDDZ4HFZQV6F4OVEG3GX2UBWBGOQHMYP4M3FTTO
-#\\\|MZNP4WLN5ZLE2Z3PWKK2RWMMDMNHUWAGZPV7TCC4HIQTVBC275B \ / AMOS7 \ YOURUM ::
-#\[7]SG3YZJA26KZDFJJENQMZ3OFJMKN6NN25Q7DEFIDSGHCKZIDLD4CQ 7  DATA SIGNATURE ::
+#,,,.,,..,.,.,,,,,,.,,...,.,,,,,,,.,.,,.,,,,,,..,,...,...,..,,...,.,.,,.,,,.,,
+#H4RVSRV2QIYA2EKHWQ4J7WA5IDNGCFRUEK3DE767LZTI7WACZWK2TFDMJP4MCSQOGH2JCMVN7PKFS
+#\\\|4MQM3EM3NCJTMRXDBWAIQXHR3PGRHH3MG5WSZHP2XQFCC2Q4SIJ \ / AMOS7 \ YOURUM ::
+#\[7]CSXYHBO2VVJ4BDPBUNLKSGLIU2NUZ46TZXJMZKQN6WUACI23JOBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

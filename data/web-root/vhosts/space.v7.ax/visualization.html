@@ -92,6 +92,7 @@
         <p>Selection: <span class="sel" id="selD">0, 0, 0</span></p>
         <p>Camera: <span class="cam" id="camD">0.00, 0.00, 0.00</span></p>
         <p>Velocity: <span class="spd" id="velD">0.00</span></p>
+        <p id="clustersActive" style="display:none;color:#60d0ff;">clusters active</p>
         <p style="margin-top:10px;font-size:10px;color:#6080b0;">
             <b>Controls:</b><br>
             Wheel = zoom | Ctrl+Wheel = focal<br>
@@ -711,15 +712,42 @@
             ctx.fill();
         }
 
+        function hexToRgb(hex) {
+            const v = hex.replace('#', '');
+            return {
+                r: parseInt(v.substring(0, 2), 16) || 100,
+                g: parseInt(v.substring(2, 4), 16) || 200,
+                b: parseInt(v.substring(4, 6), 16) || 255
+            };
+        }
+
+        function getNodeHop(node, selfNode) {
+            if (node.isSelf) return 0;
+            const sX = Math.round((node.theta || 0) * 6 / Math.PI);
+            const sY = Math.round((node.phi || 0) * 3 / Math.PI);
+            const sZ = Math.round((node.psi || 0) * 4 / (2 * Math.PI));
+            const selfX = Math.round((selfNode.theta || 0) * 6 / Math.PI);
+            const selfY = Math.round((selfNode.phi || 0) * 3 / Math.PI);
+            const selfZ = Math.round((selfNode.psi || 0) * 4 / (2 * Math.PI));
+            return Math.abs(sX - selfX) + Math.abs(sY - selfY) + Math.abs(sZ - selfZ);
+        }
+
         function drawOrbitalTrails(globalAlpha) {
             if (!orbitalShowTrails || globalAlpha < 0.01) return;
             const now = Date.now() / 1000;
+            const palette = orbitalData.channel?.palette || [];
+            const paletteLen = palette.length;
             ctx.save();
             ctx.globalCompositeOperation = 'screen';
-            Object.entries(nodeHistory).forEach(([p7ref, history]) => {
+            Object.entries(nodeHistory).forEach(([p7ref, history], nodeIdx) => {
                 if (history.length < 2) return;
                 const recent = history.filter(h => (now - h.time) < overlapRange);
                 if (recent.length < 2) return;
+                let color = { r: 100, g: 200, b: 255 };
+                if (paletteLen > 0) {
+                    const hex = palette[nodeIdx % paletteLen];
+                    color = hexToRgb(hex);
+                }
                 recent.forEach((point, i) => {
                     const projected = project(point);
                     if (!projected) return;
@@ -727,7 +755,7 @@
                     const opacity = globalAlpha * (1 - idx / recent.length) ** trailDecay;
                     if (opacity < 0.01) return;
                     const size = Math.max(1, 3 * opacity);
-                    ctx.fillStyle = `rgba(100, 200, 255, ${opacity * 0.5})`;
+                    ctx.fillStyle = `rgba(${color.r}, ${color.g}, ${color.b}, ${opacity * 0.5})`;
                     ctx.beginPath();
                     ctx.arc(projected.x, projected.y, size, 0, Math.PI * 2);
                     ctx.fill();
@@ -804,13 +832,16 @@
             drawOrbitalTrails(Math.max(galaxyWeight, knownWeight, selfWeight));
             drawResonanceTentacles(selfPos, layerWeights['orbital-connections']);
 
+            const glowShells = orbitalData.glow_shells || [0,0,0,0,0,0];
+
             if (selfWeight > 0.01 && self.p7ref) {
                 const proj = project(selfPos);
                 if (proj) {
-                    drawNodeGlow(proj.x, proj.y, 8 * selfWeight, { r: 100, g: 200, b: 255 }, 0.8 * selfWeight);
+                    const glowMult = 1 + (glowShells[0] || 0) * 2;
+                    drawNodeGlow(proj.x, proj.y, 8 * selfWeight * glowMult, { r: 100, g: 200, b: 255 }, 0.8 * selfWeight);
                     ctx.fillStyle = `rgba(255, 255, 255, ${selfWeight})`;
                     ctx.beginPath();
-                    ctx.arc(proj.x, proj.y, 3 * selfWeight, 0, Math.PI * 2);
+                    ctx.arc(proj.x, proj.y, 3 * selfWeight * glowMult, 0, Math.PI * 2);
                     ctx.fill();
                 }
             }
@@ -821,12 +852,15 @@
                     const pos = p7refToCoords(node.p7ref, 0, 0, 0, 140);
                     const proj = project(pos);
                     if (!proj) return;
+                    const hop = getNodeHop(node, self);
+                    const glowIdx = Math.min(hop, glowShells.length - 1);
+                    const glowMult = 1 + (glowShells[glowIdx] || 0);
                     const isConnected = connectedP7refs.has(node.p7ref);
                     const color = getNodeColor(node, isConnected, false);
-                    drawNodeGlow(proj.x, proj.y, 5 * w, color, 0.5 * w);
+                    drawNodeGlow(proj.x, proj.y, 5 * w * glowMult, color, 0.5 * w);
                     ctx.fillStyle = `rgba(${color.r}, ${color.g}, ${color.b}, ${w})`;
                     ctx.beginPath();
-                    ctx.arc(proj.x, proj.y, 2 * w, 0, Math.PI * 2);
+                    ctx.arc(proj.x, proj.y, 2 * w * glowMult, 0, Math.PI * 2);
                     ctx.fill();
                 });
             }
@@ -1299,6 +1333,10 @@
             document.getElementById('selD').textContent = `${selX}, ${selY}, ${selZ}`;
             document.getElementById('camD').textContent = `${camX.toFixed(2)}, ${camY.toFixed(2)}, ${camZ.toFixed(2)}`;
             document.getElementById('velD').textContent = velocity.toFixed(3);
+            const clustersEl = document.getElementById('clustersActive');
+            if (clustersEl) {
+                clustersEl.style.display = (orbitalData.graph?.total > 0) ? 'block' : 'none';
+            }
         }
 
         // === NAVIGATION ===

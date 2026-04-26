@@ -50,12 +50,23 @@ if ( length $nameserv_domain ) {
     );
 }
 
+## request graphics-matrix summary for orbital enrichment ##
+<[protocol-7.command.send.local]>->(
+    {   qw| command |   => qw| graphics-matrix.orbital-sync |,
+        qw| call_args | => { qw| args | => '' },
+        qw| reply |     => {
+            qw| handler | => qw| plugin.web.space.orbital.handler.reply |,
+            qw| params |  => { qw| field | => qw| gm_state | },
+        }
+    }
+);
+
 <[base.log]>->( 3, qq| orbital fetch dispatched | );
 
 return 1;
 
-#,,.,,...,,,.,,.,,...,.,.,,,,,,.,,.,,,,.,,.,,,..,,...,...,,.,,..,,..,,,,,,..,,
-#5LTMVYXFXPTYGCHNMEMGWPDCGL2LKBHFYL2FNGFDEVIQGIIOD76JAZEMYSEIAZ6PRPGOQGFO7ZP4Q
-#\\\|Y7CZRVQVCGHHOFKYHARVRFGPWFT3ZQK6LMX4GP6SPRGXXTBZSF4 \ / AMOS7 \ YOURUM ::
-#\[7]IFQRC2F77IKJVWV2334HPXSBPRCB2IT3RVBTPPWWA26TCHQW3IDQ 7  DATA SIGNATURE ::
+#,,,,,.,.,.,.,,,.,,,,,,,.,,.,,,..,,,,,,,.,,,,,..,,...,...,..,,..,,.,.,,,,,..,,
+#5EQ6VTMQ2RGCVZQKXG7BE44RTGR2E53SFWSRPIVBQSFDLM5ZZORZK2SFGFN2IORCH6Y2A5R6LIPYE
+#\\\|DEUHJ63N6CQADMLOSN6D5QRYCHFQAB2MKQZRFL5SSDFJNWUXZ37 \ / AMOS7 \ YOURUM ::
+#\[7]TESOO64DNT6TXGEIYDEIQSSLIQJ67QLAFNHWBESEGOHFMTB7H6DY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
