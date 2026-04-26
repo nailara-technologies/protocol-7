@@ -1,0 +1,41 @@
+## [:< ##
+
+# name  = plugin.web.space.cmd.context
+# descr = update visualization context [ zoom + intent ]
+
+my $args = $call->{'args'}                       // '';
+my $ctx  = eval { JSON::XS::decode_json($args) } // {};
+
+return { qw| mode | => qw| false |, qw| data | => 'invalid context payload' }
+    unless ref $ctx eq qw| HASH |;
+
+my $context = <web.space.templates.context> //= {};
+
+$context->{'zoom'}   = $ctx->{'zoom'}   if exists $ctx->{'zoom'};
+$context->{'intent'} = $ctx->{'intent'} if exists $ctx->{'intent'};
+
+push $context->{'history'}->@*,
+    {
+    qw| zoom |   => $context->{'zoom'},
+    qw| intent | => $context->{'intent'}
+    };
+
+## keep history bounded ##
+my $max = 42;
+splice $context->{'history'}->@*, 0, -$max
+    if $context->{'history'}->@* > $max;
+
+<[base.log]>->(
+    3,
+    'space context updated : zoom=%.2f intent=%s',
+    $context->{'zoom'}   // 0,
+    $context->{'intent'} // ''
+);
+
+return { qw| mode | => qw| true |, qw| data | => 'ok' };
+
+#,,,.,.,.,.,.,.,.,.,,,,..,,,,,,..,..,,,,.,..,,..,,...,...,.,.,.,,,..,,,.,,..,,
+#A725F44ZGHSDR6MJCSD6DJ34AHUZIYTPNUCB5KOQYB4ZTQRZOE7O5KVQRI3MKH3UOK6OBKZ3NF7VE
+#\\\|JUTJB3ZPIEKVOMF5ESSIOSHZXDGJJPX6HHUCUDV643LE57WXYJW \ / AMOS7 \ YOURUM ::
+#\[7]QF7SVK5TXVFF77YMDCGKX72Q7OXAER7DOJN5Z54BXSAORYJOVMDY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
