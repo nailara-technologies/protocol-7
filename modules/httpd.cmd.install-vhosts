@@ -6,7 +6,10 @@
 
 my $args_str = $call->{'args'} // '';
 my $target_hostname;
-$target_hostname = $1 if $args_str =~ m|^([a-zA-Z0-9\.\-]+)$|;
+my $force_install = FALSE;
+$force_install   = TRUE if $args_str =~ s|\s*--force\s*||;
+$force_install   = TRUE if $args_str =~ s|\s*-f\s*||;
+$target_hostname = $1   if $args_str =~ m|^\s*([a-zA-Z0-9\.\-]+)\s*$|;
 
 my $hostnames = <[httpd.vhost.read_manifests]>;
 
@@ -46,8 +49,9 @@ foreach my $hostname (@$hostnames) {
     my $install_path = $manifest->{'install_path'}
         // catfile( $site_dir, $hostname );
 
-    ## step 1: dns check ##
-    unless ( <[httpd.vhost.dns_matches_local]>->($dns_match) ) {
+    ## step 1: dns check (skip when --force) ##
+    unless ( $force_install
+        or <[httpd.vhost.dns_matches_local]>->($dns_match) ) {
         <[base.logs]>->( 2, 'skipping %s (DNS no match)', $hostname );
         push @skipped,
             { hostname => $hostname, reason => qw| dns_no_match | };
@@ -207,8 +211,8 @@ return {
     'summary' => $result_summary
 };
 
-#,,,.,,,,,,.,,,,.,...,.,,,,..,,.,,.,.,...,...,..,,...,...,,,,,,.,,.,.,,..,.,,,
-#D3YN2DLW3CPFJUNY24EXBO6SUFFMKUTIQZEVD7G2NFKU75JXNJ7S7DI42VPFSU7NSD3EOUOBMZ3TK
-#\\\|M7LAMU5N4VG4YA5KBDP4746ARVNYOQKAWMM64CUKKXO7AZFEIMQ \ / AMOS7 \ YOURUM ::
-#\[7]BJX7PC2LMHVDHPJTQTVGVKIXCAOOQGQT7OXUGEKANFKOVAY6RICA 7  DATA SIGNATURE ::
+#,,,.,,..,,,,,.,,,,.,,,,,,.,,,,.,,..,,...,..,,..,,...,...,...,.,,,...,.,,,.,.,
+#EYB3TTEFMBTXI4UCYZULCZ3JMM7UR655SEAISELJQLAXVYNIE2XQLDZAKOJAJDSRNRFNQN3444UPO
+#\\\|MD7GQ5XUT57ZP3BFG2AR3EJOAOZFOU3BUWFWE6KWM7DBUQ5HAJA \ / AMOS7 \ YOURUM ::
+#\[7]EU7D52ETCIN7O7ZCXJBYV4GC5TFW73XWM7PNEN2UHJDKCP6IX2CQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
