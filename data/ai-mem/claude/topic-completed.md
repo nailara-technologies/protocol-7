@@ -1,5 +1,44 @@
 # Completed Work Sessions
 
+## orbital pipeline + visualization wiring (Apr 26 2026)
+
+commits `fbb4d246d`–`6e02d1475` on branch `base`
+
+### orbital → graphics-matrix bridge
+- plugin.web.space.orbital.to_cells: maps theta/phi/psi → cell coords, places in graphics-matrix
+- graphics-matrix.cmd.orbital-sync: JSON-encoded glow_shells/channel/graph reply
+- orbital.json enriched with glow_shells, channel, graph from graphics-matrix
+- visualization: glow radius modulation, channel.palette trail tinting, cluster indicator
+
+### send.local → route-send fix (root cause: web plugin context)
+- web plugin modules need route-send for cross-zenka calls; send.local only reaches httpd↔web IPC
+- fixed in: orbital.fetch, space.fetch, orbital.to_cells
+
+### command routing fixes (multi-dot names don't route)
+- all .cell.place/.cursor.set/.glow.compute → single-dot with subcommand in args
+- nodes.orbital.current_position → nodes.cmd.orbital-position (mode=size key=value)
+- discover.orbital.grid_fragment → nodes.cmd.orbital-grid-fragment
+
+### nodes → discover p7ref push
+- nodes.orbital.update_position: route-send to discover.orbital-p7ref-update each 13s tick
+- nodes.cmd.orbital-p7ref: plain string reply for simple parsing
+- discover.cmd.orbital-p7ref-update: stores p7ref for mcast packet inclusion
+- format_discover_mcast_packet: appends p7ref line when cached
+
+### other fixes
+- graphics-matrix idle timeout 23s → 420s (orbital fetch cycle is 13s)
+- orbital.handler.reply: known/connections empty-response guards
+- httpd POST /context: force Connection: close (body bleed on keep-alive)
+- plugin.web.space.cmd.context: stores zoom/intent/history
+- kimi reconnect: flush pending approvals on session restore
+- bin/kimi-task: UTF-8 encoding fix (encode_utf8 before b32r)
+- nodes.orbital timestamps: base.time → base.ntime
+
+### result
+orbital.json live with self + known nodes, visualization rendering at space.v7.ax,
+graphics-matrix glow/channel data flowing. self-echo test confirmed pipeline end-to-end.
+distinct nodes visible once second P7 instance joins network.
+
 ## radio zenka — full stack + resilience (Apr 23-25 2026)
 
 ### base infrastructure (Apr 23, commit `61688a279`)
@@ -195,8 +234,8 @@ zenki-create/zenki-feature-port/footer-cleanup templates added.
 - philosophy: ETERNAL-TEMPLATE-KITTEN.md (deduplication tree crystallizes truth, kitten as template process)
 - Commits: 98743c227 through 30bbd31b4 + fe3d3a295
 
-#,,,,,...,..,,,,.,,..,,..,..,,.,.,.,,,,.,,.,,,..,,...,...,,..,,,.,.,.,.,,,.,,,
-#XL3AHBGW7YKIAIGPDHCZL37BVV4JSFQCMRQGCLPM23IXVNAJAZEJQ4CSISCRSER3TRCZ4R44KTQPS
-#\\\|PJSEFRM2X6H2OYCV3H4XTJIRLYDEOBZ2VW2Z2NTAFMRSU72XUEE \ / AMOS7 \ YOURUM ::
-#\[7]X5P4LFW2LL5U53LZ3IJGS6G4KFSXVR44E42BB3DVZ7BYIYGD6QAI 7  DATA SIGNATURE ::
+#,,,,,,,.,,..,,,.,...,,,,,,,.,.,,,,.,,,,,,.,,,..,,...,...,,,.,,.,,...,.,,,,,,,
+#4ZFEDYPGDNEL7LF4OGGEJLAWVGINSVG73VLNZP34ZHV5SI47ZDA5LZODSMDNYQOEHWPQ2FEPMAPBM
+#\\\|VBYSJEESPEGPOCTYIMYAAIDHHKYBZ4NYAWHAPMSN7V42EDZ5UZD \ / AMOS7 \ YOURUM ::
+#\[7]KUWZXYPQCIWUAWJEAGHAQY7L5DSONO7T5WTCVEUKDO4VHLPY4ACA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

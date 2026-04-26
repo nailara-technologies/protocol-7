@@ -51,25 +51,36 @@ test with: `NO_PROXY=127.0.0.1 curl -s -H "Host: space.v7.ax" http://127.0.0.1/`
 - plugin.web.space.template-resolver.json: fix scalar/deref syntax for history_depth
 - shared-params: system.web-root-* keys (hyphenated to avoid dot→hash nesting conflict)
 
+## status (Apr 26 2026)
+
+orbital pipeline fully live:
+- nodes/discover/external/web/httpd/graphics-matrix all running
+- orbital.json: self + known populated, glow_shells/channel/graph from graphics-matrix
+- visualization renders at space.v7.ax via local httpd (Host: header)
+- POST /context handled, zoom/intent stored in web.space.templates.context
+- self-echo test: discovered node appears in known[] (same coords as self — overlap expected)
+- real second node needed to see distinct visualization elements
+
 ## open items
 
-- nodes/discover zenki not running during test → orbital.json returns empty arrays
-- web-browser start file still references old data/html/ paths (web-browser zenka)
-- httpsd TLS testing pending (needs httpsd online for cert requests)
-- visual.v7.ax + iv.v7.ax DNS needed for remote test (or /etc/hosts entry)
-- double scan on init resolved but worth monitoring
+- web-browser start file still references old data/html/ paths
+- httpsd TLS testing pending
+- visual.v7.ax + iv.v7.ax DNS needed for remote test
+- graphics-matrix.orbital-sync: channel.palette empty (no multi-node cells yet)
+- glow_shells strings not numbers in JSON ("1.00000" vs 1.0) — viz parseFloat handles it
+- kimi reconnect auto-approval fix deployed but not yet stress-tested
 
-## next steps
+## key fixes made this session (Apr 26 2026)
 
-1. start nodes + discover zenki → populate orbital.json with live data
-2. open space.v7.ax in browser (add to /etc/hosts or use pri.v7.ax proxy)
-3. test visualization with live orbital nodes visible
-4. httpsd deployment for TLS vhosts (letsencr cert auto-request)
-5. nodes.orbital → discover bridge: verify mcast packets include p7ref
-6. curve engine promotion: base.curve.* from radio/mpv scope to universal animation
+- send.local → route-send in web plugin fetch modules (replies never arrived)
+- nodes.orbital-position: mode=size key=value (REF stringification fix)
+- discover.orbital.get_local_p7ref: nodes push pattern (route-send, not reply handler)
+- all multi-dot command names fixed: .cell.place/.cursor.set/.glow.compute → single-dot
+- graphics-matrix idle timeout: 23s → 420s
+- cube/access.zenki: web + httpd + discover + nodes permissions fully wired
 
-#,,,.,,,.,,..,..,,,..,,..,,..,,..,,,.,,..,...,..,,...,..,,..,,..,,.,.,,..,,.,,
-#JXEYUFAJLWDDA5UZN5ZL7SBQXF5TZZ35EGMERQMECIJHRVTYHPJGP4EUK2EW2GOQOQDFNKWWZSDF2
-#\\\|W5AWZEG7GSLV5JA2EGO4PPMXXVIVKKD22CP4B6R34FF5IGUNLEH \ / AMOS7 \ YOURUM ::
-#\[7]GWD2JP7U547545MQ2JIVN7DG43XXIZZ5MWSUXBNUMTHVORLZQ6DQ 7  DATA SIGNATURE ::
+#,,..,,,.,..,,,..,...,..,,..,,.,.,,,.,..,,,,,,..,,...,...,...,,.,,.,.,,,,,,,.,
+#OSTSOBNSEZRWMSNZ6WBB2ZNCZPDCIKJMH3XYT7LCD7P2SR4DUDS4H23OX6NHABNQABDR2TC7G4LI4
+#\\\|DLQD6S4FKW6IVPWLP7YHHQLWBRW3S3CSBKQPDFHC3V7SAQWLGFZ \ / AMOS7 \ YOURUM ::
+#\[7]DUUOZAKCAT4YY2CGXRQXS2MWNNYIKFKKR7SJVZFED5UDF6J32MAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
