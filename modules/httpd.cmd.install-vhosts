@@ -47,8 +47,9 @@ foreach my $hostname (@$hostnames) {
     my $dns_match    = $manifest->{'dns_match'}    // $hostname;
     my $install_path = $manifest->{'install_path'} // "$site_dir/$hostname";
 
-    ## step 1: dns check (skip when --force) ##
+    ## step 1: dns check (skip when :force: or dns_match is 'none') ##
     unless ( $force_install
+        or $dns_match eq qw| none |
         or <[httpd.vhost.dns_matches_local]>->($dns_match) ) {
         <[base.logs]>->( 2, 'skipping %s (DNS no match)', $hostname );
         push @skipped,
@@ -56,20 +57,11 @@ foreach my $hostname (@$hostnames) {
         next;
     }
 
-    ## step 2: create install_path if missing ##
-    unless ( -d $install_path ) {
-        my $mk_result = <[file.make_path]>->(
-            $install_path, 0755, $httpd_user, $httpd_group
-        );
-        unless ($mk_result) {
-            <[base.logs]>->(
-                1,             'failed to create install path %s for %s',
-                $install_path, $hostname
-            );
-            push @errors,
-                { hostname => $hostname, reason => qw| mkdir_failed | };
-            next;
-        }
+    ## step 2: ensure parent directory exists ##
+    my $parent_dir = $install_path;
+    $parent_dir =~ s|/[^/]+$||;
+    if ( length($parent_dir) and not -d $parent_dir ) {
+        <[file.make_path]>->( $parent_dir, 0755, $httpd_user, $httpd_group );
     }
 
     ## step 3: install based on mode ##
@@ -78,36 +70,59 @@ foreach my $hostname (@$hostnames) {
     my $install_ok   = FALSE;
 
     if ( $install_mode eq qw| symlinked | ) {
-        ## remove existing symlink or directory ##
         if ( -l $install_path ) {
+            ## existing symlink — check if already correct ##
             my $current_target = readlink($install_path);
             if ( $current_target eq $source_path ) {
-                $install_ok = TRUE;
+                $install_ok = TRUE;    ## already installed correctly ##
             } else {
-                unlink($install_path) or do {
+                ## symlink points elsewhere — replace only the symlink ##
+                if ( unlink($install_path) ) {
+                    if ( symlink( $source_path, $install_path ) ) {
+                        $install_ok = TRUE;
+                    } else {
+                        <[base.logs]>->(
+                            1,         'symlink failed for %s [ %s ]',
+                            $hostname, <[base.str.os_err]>
+                        );
+                    }
+                } else {
                     <[base.logs]>->(
                         1,             'cannot remove old symlink %s [ %s ]',
                         $install_path, <[base.str.os_err]>
                     );
-                };
+                }
             }
         } elsif ( -e $install_path ) {
-            ## sanity: never remove_tree on short or root-like paths ##
-            if (   length($install_path) < 8
-                or $install_path eq qw| / |
-                or $install_path !~ m|^/var/| ) {
+            ## real directory or file exists — rename as backup, then symlink ##
+            my $backup_path
+                = $install_path . '.bak-' . <[base.ntime.b32]>->(3);
+            if ( rename( $install_path, $backup_path ) ) {
                 <[base.logs]>->(
-                    0, 'refusing remove_tree on unsafe path: %s',
-                    $install_path
+                    1,             'backed up existing %s to %s',
+                    $install_path, $backup_path
                 );
-                push @errors,
-                    { hostname => $hostname, reason => qw| unsafe_path | };
+                if ( symlink( $source_path, $install_path ) ) {
+                    $install_ok = TRUE;
+                } else {
+                    <[base.logs]>->(
+                        1,         'symlink failed for %s [ %s ]',
+                        $hostname, <[base.str.os_err]>
+                    );
+                    ## restore backup on failure ##
+                    rename( $backup_path, $install_path );
+                }
+            } else {
+                <[base.logs]>->(
+                    1, 'cannot back up %s to %s [ %s ] — skipping',
+                    $install_path, $backup_path, <[base.str.os_err]>
+                );
+                push @skipped,
+                    { hostname => $hostname, reason => qw| backup_failed | };
                 next;
             }
-            <[file.remove_tree]>->($install_path);
-        }
-
-        unless ($install_ok) {
+        } else {
+            ## nothing there — create symlink directly ##
             if ( symlink( $source_path, $install_path ) ) {
                 $install_ok = TRUE;
             } else {
@@ -221,8 +236,8 @@ return {
     'summary' => $result_summary
 };
 
-#,,,,,,,.,,,.,,,.,,.,,,,,,..,,..,,,,.,,,,,...,..,,...,...,.,.,,.,,,,.,,..,,,.,
-#ZRYLK5OINELAAZPCJD7XIGBIR5J4LFOHDNMU7YET2M4HHT3AEURM74H6FLXCPQLIEJLQFJ4OTAOIY
-#\\\|TACPSHYVOT36JRBBRR5A4QL46V6ZHRFQPQATEZU4QOBY5IGEAAR \ / AMOS7 \ YOURUM ::
-#\[7]EBZWE2HWVAYJXHHMK2R2THUKJA7KOPNYLSRODAN25KTQT4OM7GBQ 7  DATA SIGNATURE ::
+#,,..,...,..,,.,.,...,..,,.,.,.,.,,.,,,,.,..,,..,,...,...,.,,,,,,,,,,,...,,..,
+#YU43WOXULSGJGINWDLJZUILMRWI37SGMC3UWRXTL4NOAZKQPKTMOGWKLIFRHZJFOTK3A3Y43B2MJY
+#\\\|BGXLADN4SGJQN57MTCFZBVGLYT7S7M4XHCWUAU4OFVOMQWZ65C4 \ / AMOS7 \ YOURUM ::
+#\[7]BDIELIXRI7CDATVHK2KRA7SYLE5SLX7YKRIILTI3SWKJIURABMDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

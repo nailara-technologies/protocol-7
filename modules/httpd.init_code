@@ -94,9 +94,6 @@ if ( !-d $site_dir ) {
     }
 );
 
-## Initialize vhost manifest-based installation system ##
-<[httpd.vhost.init_code]>;
-
 my $upload_dir = <httpd.upload_dir> //= '/var/httpd/..incoming..';
 if ( <httpd.cfg.uploads_enabled> and !-d $upload_dir ) {
     <[base.log]>->( 0, "creating upload_dir '$upload_dir'..," );
@@ -107,8 +104,8 @@ if ( <httpd.cfg.uploads_enabled> and !-d $upload_dir ) {
 
 0;
 
-#,,..,.,,,.,,,,,.,.,.,,.,,,..,,,.,,..,..,,...,..,,...,...,.,.,,,.,..,,..,,..,,
-#EOKWP2CRWHMZ6ZUGL7WFNRXJSUKCF5KXL7S3ZQAKTPGE2O4BMERA2CI46CR7MX22UGZZ7ZPLCGOTO
-#\\\|JD4UQFGV2MRPSATFIQRC32FYT75VMY7Z3CV5RSCAKUOGJZ4RVAD \ / AMOS7 \ YOURUM ::
-#\[7]VLX2N5X4AM3JEWS3SHC6QIOZQSAGKS72LQLMDHULEBU4HXNQCMBI 7  DATA SIGNATURE ::
+#,,.,,.,,,...,...,,..,..,,.,,,..,,,.,,...,,,.,..,,...,..,,...,,.,,,,,,.,.,.,.,
+#3AL3AGX3YRW6ZKYFG7MUDEWSCVOG5BF4R67DPJWQMB3O6DDOYHBATBRA7HC5VNPHXTW53RQKBRKEU
+#\\\|UBXNFW76D4CSDBNNJDCGQBDSWWZERZY2RSAFSRC4YUHS5TGQINF \ / AMOS7 \ YOURUM ::
+#\[7]KVHMYBFOCIT5VRLB4AI4Y2TXBHOPAXGNG3TSJT2BTTXHLSKNQWCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
