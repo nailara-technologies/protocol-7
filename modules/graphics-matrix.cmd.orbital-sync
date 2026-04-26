@@ -8,7 +8,7 @@ my $cell_list = <[graphics-matrix.cell.list]>->( {} );
 my $cells     = scalar @$cell_list;
 
 ## refresh glow ##
-<[graphics-matrix.glow.compute]>->();
+<[graphics-matrix.glow.compute]>;
 
 ## build glow_shells array for hops 0..5 ##
 my $glow_shells = [];
@@ -23,8 +23,8 @@ $glow_total += $_ for @$glow_shells;
 my $graph = <[graphics-matrix.graph.survey]>->( {} );
 
 ## get channel with palette ##
-my $channel     = eval { <[graphics-matrix.channel.current]>->() } // {};
-my $palette_raw = eval { <[graphics-matrix.channel.palette]>->() } // [];
+my $channel     = eval {<[graphics-matrix.channel.current]>} // {};
+my $palette_raw = eval {<[graphics-matrix.channel.palette]>} // [];
 $channel->{'palette'}
     = [ map { $ARG->{'color'}{'hex'} // '' } @$palette_raw ];
 
@@ -42,8 +42,8 @@ return {
     qw| data | => JSON::XS::encode_json($summary),
 };
 
-#,,,.,,.,,,,,,.,,,...,,..,.,.,,..,.,.,,..,,.,,..,,...,...,,,.,,..,.,.,,..,.,.,
-#VZLU27XPTOHBGYP6DVHVV4DZ75FMRI2IZXR37IGKCOXSEOGYMGEFZFUGVALT7L76S5JVLLWOMV33O
-#\\\|FTO4VBW6M5ZKDGCTYLDCSWLRERH54FTL2IGYA5PCN5URJ2YZVYL \ / AMOS7 \ YOURUM ::
-#\[7]7E5TG4XQ6BUVU3B6AAIZ56JCS7KI4NTGHR4KHCRYVKV36ZBZ7IAI 7  DATA SIGNATURE ::
+#,,.,,,,,,.,,,..,,.,.,.,,,..,,.,,,,,,,.,,,..,,..,,...,...,...,,,.,,..,.,,,...,
+#AO2DWWKIUZ5D2GFQSKBVBHYEYH3LB7WVZFYJHBTXHPMQF5AFUMG7GR64S2DLBJP34MU7UJKRON2C6
+#\\\|7CGM655CRV5KPL3QPR2QOMIVX4I7TXC3WEQ4NZEBCETEYR6NAX4 \ / AMOS7 \ YOURUM ::
+#\[7]WEND3O7DGV4XPAS3ECGFBUSDCOJWPZ3JZPHQCACOFTZJV4YOYYAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
