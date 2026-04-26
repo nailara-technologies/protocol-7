@@ -199,8 +199,10 @@
         let lastOrbitalFetch = 0;
         let lastTemplateFetch = 0;
 
-        // === HOVER / TOOLTIP ===
+        // === HOVER / TOOLTIP / CLICK-ZOOM ===
         let mouseX = 0, mouseY = 0;
+        let zoomTargetRotX = null, zoomTargetRotY = null, zoomTargetZoom = null;
+        let dragMoved = false;
         const tooltip = document.getElementById('nodeTooltip');
         document.addEventListener('mousemove', e => { mouseX = e.clientX; mouseY = e.clientY; });
 
@@ -633,6 +635,17 @@
             prevCamY = camY;
             prevCamZ = camZ;
 
+            if (zoomTargetRotX !== null) {
+                rotX += (zoomTargetRotX - rotX) * 0.07;
+                rotY += (zoomTargetRotY - rotY) * 0.07;
+                manualZoom += (zoomTargetZoom - manualZoom) * 0.07;
+                if (Math.abs(zoomTargetRotX - rotX) < 0.05 && Math.abs(zoomTargetRotY - rotY) < 0.05) {
+                    rotX = zoomTargetRotX; rotY = zoomTargetRotY;
+                    manualZoom = zoomTargetZoom;
+                    zoomTargetRotX = zoomTargetRotY = zoomTargetZoom = null;
+                }
+            }
+
             if (followEnabled) {
                 camX += (selX - camX) * CAM_FOLLOW_SPEED;
                 camY += (selY - camY) * CAM_FOLLOW_SPEED;
@@ -803,6 +816,27 @@
                     ctx.arc(projected.x, projected.y, size, 0, Math.PI * 2);
                     ctx.fill();
                 });
+                // CCW arrowhead at tail (oldest point) pointing toward second point
+                if (deduped.length >= 2) {
+                    const p0 = project(deduped[0]);
+                    const p1 = project(deduped[1]);
+                    if (p0 && p1) {
+                        const dx = p1.x - p0.x, dy = p1.y - p0.y;
+                        const len = Math.sqrt(dx*dx + dy*dy);
+                        if (len > 0.5) {
+                            const ux = dx/len, uy = dy/len;
+                            const arrowSize = 5;
+                            const tailAlpha = globalAlpha * 0.6;
+                            ctx.fillStyle = `rgba(${color.r}, ${color.g}, ${color.b}, ${tailAlpha})`;
+                            ctx.beginPath();
+                            ctx.moveTo(p0.x + ux * arrowSize, p0.y + uy * arrowSize);
+                            ctx.lineTo(p0.x - uy * arrowSize * 0.5, p0.y + ux * arrowSize * 0.5);
+                            ctx.lineTo(p0.x + uy * arrowSize * 0.5, p0.y - ux * arrowSize * 0.5);
+                            ctx.closePath();
+                            ctx.fill();
+                        }
+                    }
+                }
             });
             ctx.restore();
         }
@@ -1431,6 +1465,7 @@
         // === MOUSE ===
         canvas.addEventListener('mousedown', e => {
             isDragging = true;
+            dragMoved = false;
             dragStartX = e.clientX;
             dragStartY = e.clientY;
             dragStartRotX = rotX;
@@ -1440,6 +1475,7 @@
 
         canvas.addEventListener('mousemove', e => {
             if (!isDragging) return;
+            dragMoved = true;
 
             const dx = e.clientX - dragStartX;
             const dy = e.clientY - dragStartY;
@@ -1453,7 +1489,33 @@
             rotZ = dragStartRotZ + diag * 0.7;
         });
 
-        canvas.addEventListener('mouseup', () => isDragging = false);
+        canvas.addEventListener('mouseup', e => {
+            if (!dragMoved) {
+                // click — zoom to nearest node if within range
+                const self = orbitalData.self || {};
+                const connectedP7refs = new Set((orbitalData.connections || []).map(c => c.p7ref));
+                const allRendered = [];
+                if (self.p7ref) allRendered.push({ node: self, pos: p7refToCoords(self.p7ref, 0, 0, 0, 140) });
+                (orbitalData.known || []).forEach(n => allRendered.push({ node: n, pos: p7refToCoords(n.p7ref, 0, 0, 0, 140) }));
+                let nearest = null, nearDist = 40;
+                allRendered.forEach(({ node, pos }) => {
+                    const proj = project(pos);
+                    if (!proj) return;
+                    const rect = canvas.getBoundingClientRect();
+                    const dx = e.clientX - rect.left - proj.x;
+                    const dy = e.clientY - rect.top  - proj.y;
+                    const d = Math.sqrt(dx*dx + dy*dy);
+                    if (d < nearDist) { nearDist = d; nearest = { node, pos }; }
+                });
+                if (nearest) {
+                    const { pos } = nearest;
+                    zoomTargetRotY = Math.atan2(pos.x, pos.z) * 180 / Math.PI;
+                    zoomTargetRotX = Math.atan2(pos.y, Math.sqrt(pos.x*pos.x + pos.z*pos.z)) * 180 / Math.PI;
+                    zoomTargetZoom = Math.min(manualZoom * 2, MAX_ZOOM);
+                }
+            }
+            isDragging = false;
+        });
         canvas.addEventListener('mouseleave', () => isDragging = false);
 
         // === WHEEL (restored manual control!) ===
