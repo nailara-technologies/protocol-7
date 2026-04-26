@@ -203,6 +203,8 @@
         let mouseX = 0, mouseY = 0;
         let zoomTargetRotX = null, zoomTargetRotY = null, zoomTargetZoom = null;
         let dragMoved = false;
+        let selectedNodeP7ref = null;
+        const ZOOM_CLOSE = 2.5, ZOOM_OVERVIEW = 0.8;
         const tooltip = document.getElementById('nodeTooltip');
         document.addEventListener('mousemove', e => { mouseX = e.clientX; mouseY = e.clientY; });
 
@@ -1430,6 +1432,8 @@
             camX = camY = camZ = 0;
             velocity = 0;
             followEnabled = true;
+            selectedNodeP7ref = null;
+            zoomTargetRotX = zoomTargetRotY = zoomTargetZoom = null;
             document.getElementById('followBtn').classList.add('active');
             updateDisplays();
         }
@@ -1508,10 +1512,25 @@
                     if (d < nearDist) { nearDist = d; nearest = { node, pos }; }
                 });
                 if (nearest) {
-                    const { pos } = nearest;
+                    const { node, pos } = nearest;
                     zoomTargetRotY = Math.atan2(pos.x, pos.z) * 180 / Math.PI;
                     zoomTargetRotX = Math.atan2(pos.y, Math.sqrt(pos.x*pos.x + pos.z*pos.z)) * 180 / Math.PI;
-                    zoomTargetZoom = Math.min(manualZoom * 2, MAX_ZOOM);
+                    if (selectedNodeP7ref === node.p7ref) {
+                        // second click on same node — toggle close ↔ overview with kick
+                        zoomTargetZoom = Math.abs(manualZoom - ZOOM_CLOSE) < 0.3 ? ZOOM_OVERVIEW : ZOOM_CLOSE;
+                        manualZoom += (zoomTargetZoom - manualZoom) * 0.7;
+                    } else {
+                        // first click on new node — zoom in close
+                        selectedNodeP7ref = node.p7ref;
+                        zoomTargetZoom = ZOOM_CLOSE;
+                    }
+                } else {
+                    // click on empty space — deselect and reset zoom
+                    selectedNodeP7ref = null;
+                    zoomTargetZoom = 1.0;
+                    zoomTargetRotX = rotX;
+                    zoomTargetRotY = rotY;
+                    manualZoom += (1.0 - manualZoom) * 0.35;
                 }
             }
             isDragging = false;
