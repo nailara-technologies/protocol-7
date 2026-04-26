@@ -109,6 +109,7 @@
         <button onclick="centerCamera()">Center</button>
         <button onclick="resetView()">Reset</button>
         <button onclick="toggleOrbitalNodes()" id="nodeBtn" class="active">Nodes</button>
+        <button onclick="toggleKnownNodes()" id="knownBtn">Known</button>
         <button onclick="toggleTentacles()" id="tentacleBtn" class="active">Tentacles</button>
         <button onclick="toggleTrails()" id="trailBtn" class="active">Trails</button>
     </div>
@@ -197,6 +198,7 @@
 
         // === ORBITAL RENDERING STATE ===
         let orbitalShowNodes = true;
+        let forceKnownVisible = false;
         let orbitalShowTentacles = true;
         let orbitalShowTrails = true;
         let trailLength = 13;
@@ -669,6 +671,7 @@
 
         // === ORBITAL HELPERS ===
         function getLayerWeight(name) {
+            if (forceKnownVisible && name === 'orbital-known') return 1;
             if (!templateData.active_layers) return 0;
             const layer = templateData.active_layers.find(l => l.name === name);
             return layer ? layer.weight : 0;
@@ -697,18 +700,22 @@
             if (isSelf) return { r: 100, g: 200, b: 255 };
             if (isConnected) return { r: 0, g: 255, b: 255 };
             const age = parseFloat(node.age || 0);
-            if (age > 60) return { r: 80, g: 120, b: 200 };
+            if (age > 60) return { r: 30, g: 60, b: 220 };
             return { r: 180, g: 255, b: 100 };
         }
 
         function drawNodeGlow(x, y, size, color, alpha) {
             const gradient = ctx.createRadialGradient(x, y, 0, x, y, size * 4);
-            gradient.addColorStop(0, `rgba(${color.r}, ${color.g}, ${color.b}, ${alpha})`);
-            gradient.addColorStop(0.5, `rgba(${color.r}, ${color.g}, ${color.b}, ${alpha * 0.3})`);
+            gradient.addColorStop(0, `rgba(${color.r}, ${color.g}, ${color.b}, ${alpha * 0.4})`);
+            gradient.addColorStop(0.5, `rgba(${color.r}, ${color.g}, ${color.b}, ${alpha * 0.15})`);
             gradient.addColorStop(1, 'rgba(0, 0, 0, 0)');
             ctx.fillStyle = gradient;
             ctx.beginPath();
             ctx.arc(x, y, size * 4, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.fillStyle = `rgba(${color.r}, ${color.g}, ${color.b}, ${alpha * 0.9})`;
+            ctx.beginPath();
+            ctx.arc(x, y, size * 0.6, 0, Math.PI * 2);
             ctx.fill();
         }
 
@@ -743,15 +750,21 @@
                 if (history.length < 2) return;
                 const recent = history.filter(h => (now - h.time) < overlapRange);
                 if (recent.length < 2) return;
+                const deduped = recent.filter((h, i) => {
+                    if (i === 0) return true;
+                    const prev = recent[i - 1];
+                    return Math.abs(h.x - prev.x) > 1 || Math.abs(h.y - prev.y) > 1 || Math.abs(h.z - prev.z) > 1;
+                });
+                if (deduped.length < 1) return;
                 let color = { r: 100, g: 200, b: 255 };
                 if (paletteLen > 0) {
                     const hex = palette[nodeIdx % paletteLen];
                     color = hexToRgb(hex);
                 }
-                recent.forEach((point, i) => {
+                deduped.forEach((point, i) => {
                     const projected = project(point);
                     if (!projected) return;
-                    const idx = recent.length - 1 - i;
+                    const idx = deduped.length - 1 - i;
                     const opacity = globalAlpha * (1 - idx / recent.length) ** trailDecay;
                     if (opacity < 0.01) return;
                     const size = Math.max(1, 3 * opacity);
@@ -839,7 +852,7 @@
                 if (proj) {
                     const glowMult = 1 + (glowShells[0] || 0) * 2;
                     drawNodeGlow(proj.x, proj.y, 8 * selfWeight * glowMult, { r: 100, g: 200, b: 255 }, 0.8 * selfWeight);
-                    ctx.fillStyle = `rgba(255, 255, 255, ${selfWeight})`;
+                    ctx.fillStyle = `rgba(20, 5, 255, ${selfWeight})`;
                     ctx.beginPath();
                     ctx.arc(proj.x, proj.y, 3 * selfWeight * glowMult, 0, Math.PI * 2);
                     ctx.fill();
@@ -881,6 +894,10 @@
         function toggleOrbitalNodes() {
             orbitalShowNodes = !orbitalShowNodes;
             document.getElementById('nodeBtn').classList.toggle('active', orbitalShowNodes);
+        }
+        function toggleKnownNodes() {
+            forceKnownVisible = !forceKnownVisible;
+            document.getElementById('knownBtn').classList.toggle('active', forceKnownVisible);
         }
         function toggleTentacles() {
             orbitalShowTentacles = !orbitalShowTentacles;

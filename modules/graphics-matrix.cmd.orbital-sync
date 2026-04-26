@@ -13,7 +13,7 @@ my $cells     = scalar @$cell_list;
 ## build glow_shells array for hops 0..5 ##
 my $glow_shells = [];
 for my $hop ( 0 .. 5 ) {
-    push @$glow_shells, <[graphics-matrix.glow.query]>->($hop) // 0.0;
+    push @$glow_shells, ( <[graphics-matrix.glow.query]>->($hop) // 0 ) + 0;
 }
 
 my $glow_total = 0.0;
@@ -32,7 +32,7 @@ $channel->{'palette'}
 my $summary = {
     qw| cells       | => $cells,
     qw| glow_shells | => $glow_shells,
-    qw| glow_total  | => sprintf( '%.2f', $glow_total ),
+    qw| glow_total  | => $glow_total + 0,
     qw| graph       | => $graph,
     qw| channel     | => $channel,
 };
@@ -42,8 +42,8 @@ return {
     qw| data | => JSON::XS::encode_json($summary),
 };
 
-#,,.,,,,,,.,,,..,,.,.,.,,,..,,.,,,,,,,.,,,..,,..,,...,...,...,,,.,,..,.,,,...,
-#AO2DWWKIUZ5D2GFQSKBVBHYEYH3LB7WVZFYJHBTXHPMQF5AFUMG7GR64S2DLBJP34MU7UJKRON2C6
-#\\\|7CGM655CRV5KPL3QPR2QOMIVX4I7TXC3WEQ4NZEBCETEYR6NAX4 \ / AMOS7 \ YOURUM ::
-#\[7]WEND3O7DGV4XPAS3ECGFBUSDCOJWPZ3JZPHQCACOFTZJV4YOYYAY 7  DATA SIGNATURE ::
+#,,,.,,,,,..,,,,.,.,,,.,.,...,,..,,,.,...,,,.,..,,...,...,.,.,..,,..,,..,,,,.,
+#5LZZLL3GL2MNPJZCINL3UEORQMXEIBNZ2RNYKK2G44SFEKKEW6QFJ4U32HJ4IEH6YRQWAHQQSQFEA
+#\\\|JXPU6LELUAU4JGB77RWHYQOYRO3WR4SQYRDOJ2NWWVOPXQT4VCH \ / AMOS7 \ YOURUM ::
+#\[7]7IA62VG2E4FRD7OOSS5KCPJA26GUYEL4PEQCI22PPLPGBI36GGDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

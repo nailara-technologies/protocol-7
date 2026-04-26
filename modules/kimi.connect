@@ -124,6 +124,11 @@ if ($has_preserved_prompt) {
     );
 }    ## else status stays 'connecting' until history_complete + initialize
 
+## clear responded cache so re-sent approvals on new ws session are not
+## silently dropped — previous response may not have been received by backend
+<kimi.approval.responded> = {};
+<[file.zenka_dir.write]>->( 'approval_responded', \'' );
+
 ## flush any approvals that arrived during the disconnect window ##
 my $pending = <kimi.approval.pending> // {};
 my @stale   = keys %$pending;
@@ -153,8 +158,8 @@ if (@stale) {
 
 <[base.logs]>->( 2, 'kimi.connect: websocket connected [ %s ]', $ws_url );
 
-#,,,.,...,...,,,.,.,.,,..,.,.,.,,,,.,,..,,.,,,.,.,...,...,,..,.,.,.,.,...,,.,,
-#GAXMB6QTV7HUCZAV2WWUI6MKRDHNSOKCTLFS4O2F2VTNNLEKJLXADVB3O27XR7PFKZJMWFPAPFBWQ
-#\\\|G6MWNGJIWGBX5QWEGFLOLKYNGR6V5YOHHJ4PNVTXZVDPEV7XDMC \ / AMOS7 \ YOURUM ::
-#\[7]NSDXPVCD4I7LAAJCNLAPHYGMT35NTXO65WOGGQLEPLYYW752HCDA 7  DATA SIGNATURE ::
+#,,..,,.,,,,,,.,.,.,,,...,,,,,.,,,...,.,.,...,.,.,...,...,,.,,..,,,..,...,,..,
+#5ZJMRBJWQYW6U7GQOGCZS57SYUXUW4J3WA67VX3HJ3GL6WEBEI5K3UWS2M3FCSDIOSUOXFZEVSHEQ
+#\\\|MRTY7H7LLU4FA3JOAMV3WNYZEJNV253HZ33XXFB2PKDFEG4FNES \ / AMOS7 \ YOURUM ::
+#\[7]Q5USFWABPDZ7OIRZPJ3CMPKB3UU45GCEQWXPQG5K2J2C4WFMNICY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -44,11 +44,17 @@ my $sat = 0.3 + $intensity * 0.7;
 my $val = 0.1 + $intensity * 0.9;
 
 my $hsv = Convert::Color::HSV->new( $hue, $sat, $val );
-my @rgb = $hsv->rgb;                                      ## float 0.0-1.0 ##
+
+local $SIG{__WARN__} = sub {
+    my $w = shift;
+    CORE::warn($w) unless $w =~ m|^Relying on AUTOLOAD|;
+};
+
+my @rgb = $hsv->rgb;                    ## float 0.0-1.0 ##
 my $r   = int( $rgb[0] * 255 + 0.5 );
 my $g   = int( $rgb[1] * 255 + 0.5 );
 my $b   = int( $rgb[2] * 255 + 0.5 );
-my $hex = '#' . $hsv->as_rgb8->hex;    ## uppercase hex string ##
+my $hex = '#' . $hsv->as_rgb8->hex;
 
 return {
     qw| r |          => $r,
@@ -61,8 +67,8 @@ return {
     qw| mode |       => qw| color |,
 };
 
-#,,.,,.,,,...,.,.,.,,,...,,,.,..,,.,,,,,.,...,..,,...,...,..,,..,,,.,,.,,,,,,,
-#TJFVPCPQ7Z2TZMJSROAHOHYQS2ZKZ5XNW63RHK74NW4CEHQEYIVYWDJK72GIGURJGX3IOJBNG6SIK
-#\\\|AJO3EPIUWFJFJK363G5BQODOPBQSKBE3IDDUO4ZEMX3P7GDMEYQ \ / AMOS7 \ YOURUM ::
-#\[7]UTQRUQZO6N7P4BPLKFV5IP6SVP5CRQQEA6YYBWGKDCYM2PY63CAY 7  DATA SIGNATURE ::
+#,,,,,,,.,,,.,...,.,.,..,,...,..,,,.,,,.,,.,.,..,,...,..,,,..,,.,,..,,..,,..,,
+#GUSAYW4CGGF356BDXESKCF7CBU2D44KPQW6DIMK6CF4KLAIDLUTO3YZJSYWDQKYN7Z7VTC7RTLRCQ
+#\\\|RWSPEKR6TUBDTMPFN4ECISX6DYX747AY55KMVWMUA3I3SJ5IXZP \ / AMOS7 \ YOURUM ::
+#\[7]ZBXYQWLRWXV2H5WQKBOV3QDYASINFGBXTDIVHJ5TXOMYYFETK6CI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
