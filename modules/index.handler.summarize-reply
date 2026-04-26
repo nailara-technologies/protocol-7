@@ -1,0 +1,32 @@
+## [:< ##
+
+# name  = index.handler.summarize-reply
+# descr = handle coding.submit reply for cluster summarization
+
+my $reply = shift;
+
+my $raw_data = $reply->{'data'}              // '';
+my $args     = $reply->{'call_args'}{'args'} // '';
+
+my $summary = length($raw_data) ? $raw_data : $args;
+
+return 0 unless length($summary);
+
+## store summary via index.cmd.write ##
+my $write_result = <[index.cmd.write]>->( { 'args' => $summary } );
+
+if ( ref $write_result eq 'HASH' and $write_result->{'mode'} eq 'true' ) {
+    <[base.log]>->(
+        1, ": cluster summary stored [ $write_result->{'data'} ]"
+    );
+} else {
+    <[base.log]>->( 0, ': cluster summary storage failed' );
+}
+
+0;
+
+#,,..,,.,,...,,..,,.,,,,.,,,.,,.,,...,,,.,...,..,,...,...,...,.,.,,,,,,..,.,,,
+#2N5JCSD355SXKPQONJTA3Z6EYFG3K4HWJV2AAVQBXQYTBMSQ4GDAIQADGJN3R3ERWUFMTDO5FQ63A
+#\\\|7Y3VUTOC676QA4LWEHZAOGLJQ3NMQOXGYYCATUFLJ7COGLAEJNF \ / AMOS7 \ YOURUM ::
+#\[7]6HYBPYVESBNLSYD3ZBWXED5SIZJ3HQCWHALYNOA7AGOPEJPFIQBA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

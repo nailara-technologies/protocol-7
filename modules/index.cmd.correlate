@@ -1,0 +1,76 @@
+## [:< ##
+
+# name  = index.cmd.correlate
+# descr = cross-lang correlation by shared harmonic path prefix
+# param = <lang1> <lang2> <depth>
+
+my ( $lang1, $lang2, $depth )
+    = split( m|\s+|, $call->{'args'}, 3 );
+
+return {
+    'mode' => 'false',
+    'data' => 'expected two language codes and depth'
+    }
+    unless defined $lang1
+    and defined $lang2
+    and defined $depth;
+
+return { 'mode' => 'false', 'data' => 'language codes must be 3 letters' }
+    if $lang1 !~ m|^[A-Z]{3}$|
+    or $lang2 !~ m|^[A-Z]{3}$|;
+
+return { 'mode' => 'false', 'data' => 'depth must be a positive integer' }
+    if $depth !~ m|^\d+$|
+    or $depth < 1;
+
+return { 'mode' => 'false', 'data' => 'depth exceeds tree depth' }
+    if $depth > 7;
+
+my $store_root = <index.path.index-files>;
+my $links      = <[file.all_links]>->( $store_root, 'recursive' );
+
+my %path_groups;
+for my $link_path ( keys %$links ) {
+    if ( $link_path =~ m|:LANG:$lang1$| ) {
+        my $rel = $link_path;
+        $rel =~ s|^$store_root/||;
+        my @parts = split( m|/|, $rel );
+        next if @parts < $depth;
+        my $prefix = join( '/', @parts[ 0 .. $depth - 1 ] );
+        push @{ $path_groups{$prefix}{$lang1} }, $links->{$link_path};
+    } elsif ( $link_path =~ m|:LANG:$lang2$| ) {
+        my $rel = $link_path;
+        $rel =~ s|^$store_root/||;
+        my @parts = split( m|/|, $rel );
+        next if @parts < $depth;
+        my $prefix = join( '/', @parts[ 0 .. $depth - 1 ] );
+        push @{ $path_groups{$prefix}{$lang2} }, $links->{$link_path};
+    }
+}
+
+my @results;
+for my $prefix ( sort keys %path_groups ) {
+    next
+        unless exists $path_groups{$prefix}{$lang1}
+        and exists $path_groups{$prefix}{$lang2};
+
+    push @results, "prefix: $prefix";
+    push @results,
+        "  $lang1: " . join( ', ', @{ $path_groups{$prefix}{$lang1} } );
+    push @results,
+        "  $lang2: " . join( ', ', @{ $path_groups{$prefix}{$lang2} } );
+    push @results, '';
+}
+
+return {
+    'mode' => 'size',
+    'data' => @results
+    ? join( "\n", @results )
+    : 'no correlations found'
+};
+
+#,,,.,.,.,,.,,.,,,,.,,,.,,,,.,.,,,,..,.,,,,..,..,,...,...,,,.,...,...,,.,,,..,
+#KCVHEQ46LX2UKH7EWY5W77AUPJED3UJRAKVUPQBZWFPU3Z7C6H7RHTDZCMW3FWC7ZSL6ZXT3JWPEC
+#\\\|U75GEIWMJZ4QBT4RYIB42BQ2MYCMADSVHAIU7NS7D7SW2CGTV74 \ / AMOS7 \ YOURUM ::
+#\[7]H5VSDEALVRRSGTA4YNOXYVZYPTIZMBCAVB6HFKBRG5WZ2HVOV4CI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

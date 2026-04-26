@@ -67,6 +67,35 @@ my $link_path = sprintf( '%s/%03d:LANG:%s', $abs_path, $start_existence,
 if ( !-l $link_path ) {
     symlink( $word_str, $link_path )
         or warn <[base.format_error]>->( $OS_ERROR, -1 );
+
+    ## check cluster density threshold ##
+    my $threshold = <index.cfg.cluster_summarize_threshold> // 42;
+    if ( !<index.cluster_reported>->{$abs_path} ) {
+        my $dh;
+        if ( opendir( $dh, $abs_path ) ) {
+            my $count = scalar grep { !/^\.{1,2}$/ } readdir($dh);
+            closedir($dh);
+            if ( $count >= $threshold ) {
+                <index.cluster_reported>->{$abs_path} = 1;
+
+                my $dh2;
+                opendir( $dh2, $abs_path );
+                my @members = grep { !/^\.{1,2}$/ } readdir($dh2);
+                closedir($dh2);
+
+                <[protocol-7.route-send]>->(
+                    {   command   => 'coding.submit',
+                        call_args => {
+                            args => "summarize harmonic cluster: $abs_path\n"
+                                . join( "\n", @members )
+                        },
+                        reply =>
+                            { handler => 'index.handler.summarize-reply' }
+                    }
+                );
+            }
+        }
+    }
 }
 ### else [ report, collect ] ###
 
@@ -79,8 +108,8 @@ if ( ++$index_job->{'iterations'} == $file_entries ) {
     );
 }
 
-#,,,.,,,,,,.,,.,,,,..,.,.,...,...,..,,,.,,,,.,..,,...,...,...,,.,,,,,,,..,..,,
-#7QK6F6QFAQXVAGQXO6T3CDGTMZ2JENTVF7Z2JNMGIO5YE4RZJBNSLENWI6FXXZ3HNA7FQJWYG3DNW
-#\\\|UFTOTHEXSLCIBOP3EKTD42EDP3NYG3NY3H5NRUDFLRIKQ5FC35W \ / AMOS7 \ YOURUM ::
-#\[7]AP4JOOWRXDUZWKAZOIBETOHWKZNEOHLLLBUTZJSEUYYR645UA2DQ 7  DATA SIGNATURE ::
+#,,,.,.,.,,,,,,..,..,,,,.,..,,,,,,,.,,...,,..,..,,...,...,..,,,,.,...,,,,,,.,,
+#6CLMW32OFZIQBGOLZJXVDH2UWAVCNUVGSIHWDIQU2Y7VTHJTCYGFLQ754TFMVW35TDG3HAQNPXAC6
+#\\\|J2TRC2YES7ZQFC4WSRRWCIVVHEDA3SRUPTYAP4BPR3NBJQYV46W \ / AMOS7 \ YOURUM ::
+#\[7]6EPDINN2L53G4A55MNOYT4EL57BIAWZMZNV5TUDHZX2TNOCTUWDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

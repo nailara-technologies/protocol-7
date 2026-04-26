@@ -1,0 +1,31 @@
+## [:< ##
+
+# name  = index.cmd.write
+# descr = store content reference at harmonic address
+
+my $input = $call->{'args'} // '';
+return { 'mode' => 'false', 'data' => 'expected input' } unless length $input;
+
+my $path    = <[index.gen_path]>->( \$input );
+my $bmw_sum = <[chk-sum.bmw.strsum]>->( \$input );
+
+my $store_root = <index.path.index-files>;
+<[file.make_path]>->( "$store_root/$path", 0755, <system.amos-zenka-user> );
+
+my $ref_file = "$store_root/$path/$bmw_sum";
+my $ref_data = {
+    'p7ref'     => <[base.p7ref.self]>,
+    'input'     => $input,
+    'timestamp' => time(),
+    'path'      => $path
+};
+
+<[file.write]>->( $ref_file, JSON::PP::encode_json($ref_data) );
+
+return { 'mode' => 'true', 'data' => "$path/$bmw_sum" };
+
+#,,,.,.,.,,.,,.,,,,.,,,..,,,.,,.,,..,,..,,.,.,..,,...,...,,..,...,,,.,,,.,,..,
+#Q7GWV2ZZ5XUSDWAK74IL54ZKR454425BXUH5YS5E2ATOBY464IS7IPJA32P5GIDBWBAW4MYAWCH54
+#\\\|HFB55NYUOGJQGHDQ4N26QPJIDH4Y44TP4DE3WBQ7EESLTT6PZN6 \ / AMOS7 \ YOURUM ::
+#\[7]37KQQSIDOJGEAK2OXE4V5OMUBWEFEDUJU5I6ISVORWL5OR7SKQBY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

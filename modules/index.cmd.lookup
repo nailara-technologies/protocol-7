@@ -1,0 +1,26 @@
+## [:< ##
+
+# name  = index.cmd.lookup
+# descr = look up index entries by input string or address prefix
+
+my $args = $call->{'args'} // '';
+return { 'mode' => 'false', 'data' => 'expected input' } unless length $args;
+
+my $path  = <[index.gen_path]>->( \$args );
+my $store = <index.path.index-files> . '/' . $path;
+
+return { 'mode' => 'false', 'data' => 'not found' } unless -d $store;
+
+my $dir_fh;
+opendir( $dir_fh, $store )
+    or return { 'mode' => 'false', 'data' => 'cannot read directory' };
+my @entries = grep { !/^\.{1,2}$/ } readdir($dir_fh);
+closedir($dir_fh);
+
+return { 'mode' => 'size', 'data' => join( "\n", @entries ) };
+
+#,,,,,,..,...,,,,,...,,,.,..,,,..,...,,..,,..,..,,...,..,,,.,,.,,,...,..,,..,,
+#BL5HODLQK7TWGVZ5MWUPDW7FDTW4UBWSPEIISG5QWMAAQPATB6NFHI5K2H54KHT4U2J376FKHHRPG
+#\\\|SMJHXSIUOUAAZ5YIXK2MSVLAPNCYQYDRUPRIVP33TQPH2Q6QE6U \ / AMOS7 \ YOURUM ::
+#\[7]37X2TBFYVBSBPHMJ7ZD77WUH2RLL4JJS44XA4UXMPA7BPE4OQYCQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
