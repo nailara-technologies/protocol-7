@@ -1,0 +1,23 @@
+## [:< ##
+
+# name  = discover.cmd.orbital-p7ref-update
+# descr = receive local orbital p7ref push from nodes zenka
+
+my $p7ref = $call->{'args'} // '';
+$p7ref =~ s|^\s+||;
+$p7ref =~ s|\s+$||;
+
+return { qw| mode | => qw| false |, qw| data | => 'empty p7ref' }
+    unless length $p7ref;
+
+<discover.orbital.local_p7ref> = $p7ref;
+
+<[base.logs]>->( 2, 'orbital local p7ref updated: %s', $p7ref );
+
+return { qw| mode | => qw| true |, qw| data | => 'ok' };
+
+#,,..,,..,.,,,,.,,..,,,,,,.,,,,..,,..,..,,.,,,..,,...,...,..,,..,,,.,,.,.,..,,
+#CC7OFEZFRMQWBC2EUSCOEQNAQOSCXRPLX7L6GGPZXUQIT7GRHDNYMJ3YI7E3V75ZXQPKE5SQGCF26
+#\\\|6IXCE3STE3FS2JVE5RP42WBIQEUGJPPVLCSEIAFXSEUR62UZGS3 \ / AMOS7 \ YOURUM ::
+#\[7]2IHCW554GUSCOOBH57O3HSEWZINFN7CWJ7MJXDAIVUXQSMZMFIDA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
