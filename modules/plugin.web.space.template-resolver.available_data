@@ -1,0 +1,56 @@
+## [:< ##
+
+# name  = plugin.web.space.template-resolver.available_data
+# descr = check which data sources currently have fresh data
+
+my @available;
+
+## check orbital cache freshness ##
+my $orbital_cache = <web.space.orbital.cache>;
+if ( defined $orbital_cache ) {
+    my $orbital_data = $orbital_cache->{'data'}      // {};
+    my $timestamp    = $orbital_cache->{'timestamp'} // 0;
+    my $ttl          = $orbital_cache->{'ttl'}       // 13;
+    my $age          = time() - $timestamp;
+    my $max_age      = $ttl * 3;
+
+    if ( $age < $max_age ) {
+        push @available, qw| orbital.self |
+            if ref $orbital_data->{'self'} eq qw| HASH |;
+        push @available, qw| orbital.known |
+            if ref $orbital_data->{'known'} eq qw| ARRAY |
+            and scalar $orbital_data->{'known'}->@*;
+        push @available, qw| external.connections |
+            if ref $orbital_data->{'connections'} eq qw| ARRAY |
+            and scalar $orbital_data->{'connections'}->@*;
+        push @available, qw| discover.orbital.known |
+            if ref $orbital_data->{'known'} eq qw| ARRAY |
+            and scalar $orbital_data->{'known'}->@*;
+        push @available, qw| nameserv.discovered |
+            if ref $orbital_data->{'nameserv'} eq qw| ARRAY |
+            and scalar $orbital_data->{'nameserv'}->@*;
+    }
+}
+
+## check graphics-matrix cache freshness ##
+my $space_cache = <web.space.cache>;
+if ( defined $space_cache ) {
+    my $timestamp = $space_cache->{'timestamp'} // 0;
+    my $ttl       = $space_cache->{'ttl'}       // 7;
+    my $age       = time() - $timestamp;
+    my $max_age   = $ttl * 3;
+
+    if ( $age < $max_age ) {
+        push @available, qw| graphics-matrix.state |;
+    }
+}
+
+return \@available;
+
+0;
+
+#,,,.,,,,,,,,,,,,,.,.,.,.,,.,,,.,,.,,,,.,,,,.,..,,...,...,.,,,.,.,,,,,,..,,,.,
+#TA7RMOUWQQX4ODHLBZSWFSOHJN4MMVTDBXX5FNRZHFO2SYO4W62J3F2H6TRFLPC563Q2IEVPNQSRS
+#\\\|RR7AOQAUEQ657RKVCSMJ5ANDTTRYDK3DLWCGSJL3MJM5MPWIRMY \ / AMOS7 \ YOURUM ::
+#\[7]YHMVGQTVUY3QDQF3UD7RTYC4SSLOI2M6NIKSBFX4XQCL6JGMCIAQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
