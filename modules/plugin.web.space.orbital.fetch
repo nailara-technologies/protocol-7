@@ -4,7 +4,7 @@
 # descr = async fetch orbital data from all orbital layer zenki
 
 ## request self position from nodes zenka ##
-<[protocol-7.command.send.local]>->(
+<[protocol-7.route-send]>->(
     {   qw| command |   => qw| nodes.orbital-position |,
         qw| call_args | => { qw| args | => '' },
         qw| reply |     => {
@@ -15,7 +15,7 @@
 );
 
 ## request known orbital nodes from discover zenka ##
-<[protocol-7.command.send.local]>->(
+<[protocol-7.route-send]>->(
     {   qw| command |   => qw| discover.list-orbital |,
         qw| call_args | => { qw| args | => '' },
         qw| reply |     => {
@@ -26,7 +26,7 @@
 );
 
 ## request connections from external zenka ##
-<[protocol-7.command.send.local]>->(
+<[protocol-7.route-send]>->(
     {   qw| command |   => qw| external.list-connections |,
         qw| call_args | => { qw| args | => '' },
         qw| reply |     => {
@@ -39,7 +39,7 @@
 ## request nameserv data if configured ##
 my $nameserv_domain = <nameserv.cfg.auto_publish_domain> // '';
 if ( length $nameserv_domain ) {
-    <[protocol-7.command.send.local]>->(
+    <[protocol-7.route-send]>->(
         {   qw| command |   => qw| nameserv.discover-nodes |,
             qw| call_args | => { qw| args | => $nameserv_domain },
             qw| reply |     => {
@@ -51,7 +51,7 @@ if ( length $nameserv_domain ) {
 }
 
 ## request graphics-matrix summary for orbital enrichment ##
-<[protocol-7.command.send.local]>->(
+<[protocol-7.route-send]>->(
     {   qw| command |   => qw| graphics-matrix.orbital-sync |,
         qw| call_args | => { qw| args | => '' },
         qw| reply |     => {
@@ -65,8 +65,8 @@ if ( length $nameserv_domain ) {
 
 return 1;
 
-#,,,.,.,.,.,.,,.,,,,,,..,,.,.,,,,,,,,,.,.,,,.,..,,...,...,..,,...,,..,,,.,..,,
-#WQLPELBNEQBBIL7KGYSVXB2WVQMFH44S676LHAXG6LUBWRVCZX3SOV7G2CMVQVYFYBSC4R5KTK6NC
-#\\\|DQ5LIPGTVYSR5B6C5PRPHRF2DLHGVPRI467FCA6YHAOHKJ3RLRI \ / AMOS7 \ YOURUM ::
-#\[7]74LKN2AHEKQF2R66YVG6RZ7X6WYHE7ARFENHKGOTEU4JLDCJWICY 7  DATA SIGNATURE ::
+#,,..,,,.,.,,,,,.,...,.,,,,,,,,.,,,..,,.,,,,.,..,,...,...,,.,,.,.,,..,,..,,,.,
+#GXGONMJCELI7GKUEHGU2ZGV5IUG5WMOPC2K32KLLOIG5BHGP2WHGNUVN4PF2Z4HYJDV425L2OX2C2
+#\\\|6CJ4BSWF3XLGVAL5QXSMKUCRCT4XVCVEUNQSPHK3AF4WIKOPRHZ \ / AMOS7 \ YOURUM ::
+#\[7]PVPHGWKHAJO4IOLETLZ6Y7DWMMSTCX2OCW5I7UWVKVXBPENZDSAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
