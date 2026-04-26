@@ -25,14 +25,14 @@ my @hostnames_found;
 
 foreach my $entry ( <[base.sort]>->( readdir $dir_fh ) ) {
     next if $entry =~ m|^\.|;
-    my $vhost_path = catfile( $vhosts_dir, $entry );
+    my $vhost_path = "$vhosts_dir/$entry";
     next unless -d $vhost_path;
 
-    my $manifest_path = catfile( $vhost_path, qw| .vhost-manifest | );
+    my $manifest_path = "$vhost_path/.vhost-manifest";
     next unless -f $manifest_path;
 
-    my $manifest_yaml = eval { <[base.file.slurp]>->($manifest_path) };
-    if ( $EVAL_ERROR or not defined $manifest_yaml ) {
+    my $manifest_yaml_ref = eval { <[base.file.slurp]>->($manifest_path) };
+    if ( $EVAL_ERROR or not defined $manifest_yaml_ref ) {
         <[base.logs]>->(
             1,      'failed to read manifest for %s [ %s ]',
             $entry, $EVAL_ERROR // qw| unknown error |
@@ -40,7 +40,7 @@ foreach my $entry ( <[base.sort]>->( readdir $dir_fh ) ) {
         next;
     }
 
-    my $manifest = eval { YAML::XS::Load($manifest_yaml) };
+    my $manifest = eval { YAML::XS::Load($$manifest_yaml_ref) };
     if ( $EVAL_ERROR or not defined $manifest ) {
         <[base.logs]>->(
             1,      'failed to parse manifest for %s [ %s ]',
@@ -72,8 +72,8 @@ closedir($dir_fh);
 
 return \@hostnames_found;
 
-#,,,,,...,,..,,,,,,,,,.,,,,..,...,...,.,,,,,,,..,,...,...,.,,,...,,..,..,,,..,
-#TAXWUNZSQL44YEKG3IUKH4QJ2HW3FLMTMHVRJOYBLP4AM7GA4HAO7MKHJIQOT4XI4RNVALYKOGESI
-#\\\|TLU4PPCPQACDCX43L2NQXEFGUUCSDWHU45N6UNPZEAX2EHMFRDT \ / AMOS7 \ YOURUM ::
-#\[7]O5WPXOKEJ6P2RBLKE2FCL6QYJNGUTAPV3SPA3SO22P3ZL5JUYIDQ 7  DATA SIGNATURE ::
+#,,..,,,.,,.,,..,,.,,,,.,,,.,,..,,,..,,..,,.,,..,,...,...,.,.,.,,,...,.,.,,.,,
+#CF55I4PGZETM4FJDXT63TJ576CDMAVTT3G37CSK75FZHHW2LJAN4ZHGZ4JK4HRSN4E2LYRA5FV3MS
+#\\\|YO7WP5Y3ZMIVLADTYAV7N7UHSGXXNWDIEQ3GKDK32KP3KN33WPP \ / AMOS7 \ YOURUM ::
+#\[7]JFWMEDOS2YUEFQUBV2KJAZMMEY2W2FBCVNNL2TYK53EDVUYB24CA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
