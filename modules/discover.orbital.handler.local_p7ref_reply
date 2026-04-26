@@ -5,24 +5,22 @@
 
 my $reply = shift;
 
-## nodes.orbital-position returns mode=size key=value lines ##
-my $raw   = $reply->{'call_args'}{'args'} // '';
-my $p7ref = '';
-if ( $raw =~ m|^\s*p7ref\s+(\S+)|m ) {
-    $p7ref = $1;
-}
+## nodes.orbital-p7ref returns mode=size with plain p7ref string ##
+my $p7ref = $reply->{'data'} // '';
+$p7ref =~ s|^\s+||;
+$p7ref =~ s|\s+$||;
 
 if ( length $p7ref ) {
     <discover.orbital.local_p7ref> = $p7ref;
     return $p7ref;
 }
 
-<[base.logs]>->( 3, 'orbital p7ref reply contained no p7ref' );
+<[base.logs]>->( 2, 'orbital p7ref reply: empty or not initialized' );
 
 return undef;
 
-#,,..,,,.,,..,...,.,,,,,,,.,.,..,,,,.,.,,,,,.,..,,...,...,,,,,,.,,...,,,,,.,,,
-#PUSZEA7ZH7RTHX3GINIM2FMSXKSWRNZTRSI4YRBXC2L3DJ6GTBO3FMUYOSSCV2QXBL5WQ7NR23WH4
-#\\\|KEN5JASQHROCXCTGYITRNLVXRCGAGWJ4MWKPDR2HJVHX3CPL2U5 \ / AMOS7 \ YOURUM ::
-#\[7]VUHGJUWQQ2TVCMLSMB3TW2ZPEXISXRVS5BI4XXW2MTKYJAGBEWDA 7  DATA SIGNATURE ::
+#,,,,,.,,,...,,.,,,,.,.,.,,.,,,,.,...,,.,,,,,,..,,...,...,,,.,..,,,,,,...,..,,
+#HBL3QUB5M5H2X5JWFOBANRH4H3CKKAYRUL4XJWVCNZD6SLX3J7I46O46RGFVVEDABWBBFFHL3DAME
+#\\\|TO5XCLMT4WLFECONJMWZUALVVKEGUNTNFB2JNM2QE4F45UCNXOE \ / AMOS7 \ YOURUM ::
+#\[7]YWFRJYWMPLKDLLG3SBR63W7Y3O2HOLGB5LDAD54UQDPPZASUXSBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

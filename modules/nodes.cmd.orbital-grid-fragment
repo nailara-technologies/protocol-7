@@ -1,0 +1,33 @@
+## [:< ##
+
+# name  = nodes.cmd.orbital-grid-fragment
+# descr = receive orbital grid fragment from discover zenka
+
+my $grid_lines = $call->{'args'} // '';
+
+return { qw| mode | => qw| false |, qw| data | => 'empty grid fragment' }
+    unless length $grid_lines;
+
+<nodes.orbital.known_remote> //= {};
+
+my $count = 0;
+for my $line ( split "\n", $grid_lines ) {
+    next unless $line =~ m|^\s*(\S+)\s+(\S+)\s*$|;
+    my ( $hostname, $p7ref ) = ( $1, $2 );
+    <nodes.orbital.known_remote>->{$hostname} = {
+        'hostname'  => $hostname,
+        'p7ref'     => $p7ref,
+        'timestamp' => <[base.ntime]>->(3),
+    };
+    $count++;
+}
+
+<[base.log]>->( 2, 'orbital grid fragment received: %d entries', $count );
+
+return { qw| mode | => qw| true |, qw| data | => 'ok' };
+
+#,,,.,,,,,,,.,...,.,.,...,,,.,,.,,.,.,.,,,..,,..,,...,...,,,.,,..,,..,,,,,,,,,
+#WFHXK5FW7Z5B4XHMMOYKKA3TDANAEP666A3TE66EOGAQPGMM5SU7REHBY53MZWDR2B2ATMPFHJLUY
+#\\\|IJEZCEARFJKB5Z5DRFRAMGRHENH6ESGQFDGO3XWNJOLWFHRWRIZ \ / AMOS7 \ YOURUM ::
+#\[7]SJDVYWRXJG7BNTFUIOFTVZYL7QL4ZPNWWEVZRFQYKFAQE45MB6AQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

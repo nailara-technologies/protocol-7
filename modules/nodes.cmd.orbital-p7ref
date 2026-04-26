@@ -1,0 +1,20 @@
+## [:< ##
+
+# name  = nodes.cmd.orbital-p7ref
+# descr = return current orbital P7REF as plain string
+
+my $p7ref = <nodes.orbital.current_p7ref> // '';
+
+return {
+    qw| mode | => qw| false |,
+    qw| data | => 'orbital position not initialized'
+    }
+    unless length $p7ref;
+
+return { qw| mode | => qw| size |, qw| data | => $p7ref };
+
+#,,..,.,,,,,,,,.,,,,.,...,,,.,.,.,...,...,...,..,,...,.,.,..,,,,,,,,,,...,,.,,
+#JHXCPC26E7QR5SKSCMS2B44K2TIR5EITCEAZXJXXJNPXLEFAPRGN7NQVEWIYITOPYEAJ4BMF6CAUI
+#\\\|ITHMQGYBJBL6H6BW4CMAYYK4U357NWPJCYSVZGJF5FXLMRBTPUQ \ / AMOS7 \ YOURUM ::
+#\[7]6YWMPRRM5CK2DCCMQWZDTFJJQY6ORS7WSDQJL4NKK32T3ESY5UAQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
