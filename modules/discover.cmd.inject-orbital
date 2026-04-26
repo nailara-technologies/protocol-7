@@ -1,0 +1,34 @@
+## [:< ##
+
+# name  = discover.cmd.inject-orbital
+# param = <hostname> <pkey_b32> <p7ref>
+# descr = inject a fake orbital node for visualization testing
+
+my $args = $call->{'args'} // '';
+
+my ( $hostname, $pkey_b32, $p7ref ) = split m| +|, $args, 3;
+
+return { 'mode' => qw| false |, 'data' => 'usage: hostname pkey_b32 p7ref' }
+    unless defined $hostname
+    and length $hostname
+    and defined $pkey_b32
+    and length $pkey_b32
+    and defined $p7ref
+    and length $p7ref;
+
+my $result
+    = <[discover.orbital.store_remote]>->( $hostname, $pkey_b32, $p7ref );
+
+return {
+    'mode' => qw| false |,
+    'data' => 'injection failed (invalid pkey?)'
+    }
+    unless $result;
+
+return { 'mode' => qw| size |, 'data' => "orbital node injected: $hostname" };
+
+#,,.,,.,.,..,,,..,...,,,,,.,.,,,.,,.,,.,,,.,,,..,,...,...,.,,,...,..,,,,,,,.,,
+#2NRVJ23TQDLC2YQHUDGDNTBUZYFOTWEL6AK5TTQ5NBW5KJL6S4Y2FJASEFXRE6UHZS4AXZB5IVV7C
+#\\\|ZJEX5OJDNGHW5VBIOIOPOEDOJXK3JH2V42I2FM7K7PA7BD5XHUV \ / AMOS7 \ YOURUM ::
+#\[7]OTMQ2PLGFFPPY5ZYKR3TOQMU4NMRDJD6YLWH62N2BFKITL7EB4DI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
