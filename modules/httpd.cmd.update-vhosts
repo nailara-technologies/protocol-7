@@ -1,0 +1,182 @@
+## [:< ##
+
+# name  = httpd.cmd.update-vhosts
+# descr = check for | apply updates to installed copy-mode vhosts
+# param = [hostname]
+
+my $args_str = $call->{'args'} // '';
+my $target_hostname;
+$target_hostname = $1 if $args_str =~ m|^([a-zA-Z0-9\.\-]+)$|;
+
+my @updated;
+my @merge_needed;
+my @errors;
+
+foreach my $hostname ( sort keys <httpd.vhosts.installed>->%* ) {
+    if ( defined $target_hostname and $hostname ne $target_hostname ) {
+        next;
+    }
+
+    my $installed    = <httpd.vhosts.installed>->{$hostname};
+    my $manifest     = $installed->{'manifest'};
+    my $install_mode = $installed->{'install_mode'} // qw| symlinked |;
+
+    ## symlinked mode: nothing to do ##
+    next if $install_mode eq qw| symlinked |;
+
+    my $source_path  = <httpd.vhosts.registry>->{$hostname}{'source_path'};
+    my $install_path = $installed->{'install_path'};
+
+    unless ( defined $source_path and -d $source_path ) {
+        <[base.logs]>->( 1, 'update: source path missing for %s', $hostname );
+        push @errors,
+            { hostname => $hostname, reason => qw| source_missing | };
+        next;
+    }
+
+    unless ( defined $install_path and -d $install_path ) {
+        <[base.logs]>
+            ->( 1, 'update: install path missing for %s', $hostname );
+        push @errors,
+            { hostname => $hostname, reason => qw| install_missing | };
+        next;
+    }
+
+    my $update_count  = 0;
+    my $merge_count   = 0;
+    my $is_autoupdate = ( $install_mode eq qw| copy-autoupdate | );
+
+    my @source_files = <[base.file.all_files]>->($source_path);
+    foreach my $src_file (@source_files) {
+        next if $src_file =~ m|/\.vhost-manifest$|;
+
+        my $rel_path = substr( $src_file, length($source_path) + 1 );
+        my $dst_file = catfile( $install_path, $rel_path );
+
+        my $src_checksum
+            = eval { <[base.file.path.chksum.AMOS]>->($src_file) };
+        if ($EVAL_ERROR) {
+            <[base.logs]>->(
+                1,         'update: checksum failed for %s [ %s ]',
+                $src_file, $EVAL_ERROR
+            );
+            next;
+        }
+
+        if ( not -f $dst_file ) {
+            ## new file: copy ##
+            my $dst_dir = <[base.file.last_existing_dir_path]>->($dst_file);
+            <[file.make_path]>->( $dst_dir, 0755 )
+                if defined $dst_dir and not -d $dst_dir;
+
+            if ( <[base.file.copy]>->( $src_file, $dst_file ) ) {
+                $update_count++;
+            }
+            next;
+        }
+
+        my $dst_checksum
+            = eval { <[base.file.path.chksum.AMOS]>->($dst_file) };
+        if ($EVAL_ERROR) {
+            <[base.logs]>->(
+                1,         'update: checksum failed for %s [ %s ]',
+                $dst_file, $EVAL_ERROR
+            );
+            next;
+        }
+
+        next if $src_checksum eq $dst_checksum;
+
+        ## file differs ##
+        my $previous_checksum = $installed->{'file_checksums'}->{$rel_path};
+
+        if ( defined $previous_checksum
+            and $previous_checksum ne $dst_checksum ) {
+            ## installed file was modified locally ##
+            <[base.logs]>->(
+                1,         'merge needed for %s/%s -- skipping',
+                $hostname, $rel_path
+            );
+            $merge_count++;
+            <httpd.vhosts.merge_needed>->{$hostname}->{$rel_path} = {
+                'source_checksum'    => $src_checksum,
+                'installed_checksum' => $dst_checksum,
+                'detected_at'        => <[base.time]>->(3)
+            };
+            next;
+        }
+
+        if ($is_autoupdate) {
+            if ( <[base.file.copy]>->( $src_file, $dst_file ) ) {
+                $update_count++;
+            }
+        } else {
+            ## copy mode without autoupdate: log but do not apply ##
+            <[base.logs]>->(
+                2,         'update available for %s/%s [manual copy mode]',
+                $hostname, $rel_path
+            );
+        }
+    }
+
+    ## store current source checksums for next comparison ##
+    my %current_checksums;
+    foreach my $src_file (@source_files) {
+        next if $src_file =~ m|/\.vhost-manifest$|;
+        my $rel_path = substr( $src_file, length($source_path) + 1 );
+        my $checksum = eval { <[base.file.path.chksum.AMOS]>->($src_file) };
+        $current_checksums{$rel_path} = $checksum unless $EVAL_ERROR;
+    }
+    $installed->{'file_checksums'} = \%current_checksums;
+
+    if ($update_count) {
+        <[base.logs]>->(
+            2, 'updated %d file%s in %s',
+            $update_count, <[base.cnt_s]>->($update_count), $hostname
+        );
+        push @updated, { hostname => $hostname, files => $update_count };
+    }
+
+    if ($merge_count) {
+        push @merge_needed, { hostname => $hostname, files => $merge_count };
+    }
+}
+
+## clean up resolved merge entries ##
+foreach my $hostname ( keys <httpd.vhosts.merge_needed>->%* ) {
+    if ( defined $target_hostname and $hostname ne $target_hostname ) {
+        next;
+    }
+    my $still_needed = 0;
+    foreach my $file ( keys <httpd.vhosts.merge_needed>->{$hostname}->%* ) {
+        $still_needed++;
+    }
+    delete <httpd.vhosts.merge_needed>->{$hostname}
+        unless $still_needed;
+}
+
+my $result = {
+    'updated'      => \@updated,
+    'merge_needed' => \@merge_needed,
+    'errors'       => \@errors,
+};
+
+return {
+    'mode' => qw| true |,
+    'data' => sprintf(
+        'updated %d vhost%s, %d merge%s needed, %d error%s',
+        scalar @updated,
+        <[base.cnt_s]>->( scalar @updated ),
+        scalar @merge_needed,
+        <[base.cnt_s]>->( scalar @merge_needed ),
+        scalar @errors,
+        <[base.cnt_s]>->( scalar @errors )
+    ),
+    'summary' => $result
+};
+
+#,,.,,.,.,.,.,,.,,.,.,,.,,,,.,,,.,...,,,.,,,,,..,,...,...,...,,,.,,.,,,.,,.,,,
+#HMQQCHPZMCR4OGJBXXY3S3PZNFUQPFOTZZYKUNWMZSYPR3M4EH54GLFKVGASS5CST6IMMNGRJUOGS
+#\\\|C5N6WD7GP4X3IMX6XUF4USBC4HSGV2CMCRLNZKDJJKZDF7NBSJ5 \ / AMOS7 \ YOURUM ::
+#\[7]HUJ5PXG7DUECAP6FCKTWNIEFIWWJA5YFMMYVQBI2PW4YG3EIPKDQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

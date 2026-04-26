@@ -1,0 +1,79 @@
+## [:< ##
+
+# name  = httpd.vhost.read_manifests
+# descr = scan data/web-root/vhosts/ for .vhost-manifest files
+
+my $vhosts_dir = <httpd.vhosts.source_dir>;
+
+unless ( -d $vhosts_dir ) {
+    <[base.logs]>->( 1, 'vhost source dir not found: %s', $vhosts_dir );
+    return [];
+}
+
+<[base.perlmod.autoload]>->('YAML::XS');
+
+my $dir_fh;
+if ( not opendir( $dir_fh, $vhosts_dir ) ) {
+    <[base.logs]>->(
+        1, 'cannot open vhost source dir [ %s ]',
+        <[base.str.os_err]>
+    );
+    return [];
+}
+
+my @hostnames_found;
+
+foreach my $entry ( <[base.sort]>->( readdir $dir_fh ) ) {
+    next if $entry =~ m|^\.|;
+    my $vhost_path = catfile( $vhosts_dir, $entry );
+    next unless -d $vhost_path;
+
+    my $manifest_path = catfile( $vhost_path, qw| .vhost-manifest | );
+    next unless -f $manifest_path;
+
+    my $manifest_yaml = eval { <[base.file.slurp]>->($manifest_path) };
+    if ( $EVAL_ERROR or not defined $manifest_yaml ) {
+        <[base.logs]>->(
+            1,      'failed to read manifest for %s [ %s ]',
+            $entry, $EVAL_ERROR // qw| unknown error |
+        );
+        next;
+    }
+
+    my $manifest = eval { YAML::XS::Load($manifest_yaml) };
+    if ( $EVAL_ERROR or not defined $manifest ) {
+        <[base.logs]>->(
+            1,      'failed to parse manifest for %s [ %s ]',
+            $entry, $EVAL_ERROR // qw| unknown error |
+        );
+        next;
+    }
+
+    my $hostname = $manifest->{'hostname'} // $entry;
+
+    <httpd.vhosts.registry>->{$hostname} = {
+        'manifest'      => $manifest,
+        'source_path'   => $vhost_path,
+        'hostname'      => $hostname,
+        'discovered_at' => <[base.time]>->(3)
+    };
+
+    push @hostnames_found, $hostname;
+}
+
+closedir($dir_fh);
+
+<[base.logs]>->(
+    2,
+    'found %d vhost manifest%s',
+    scalar @hostnames_found,
+    <[base.cnt_s]>->( scalar @hostnames_found )
+);
+
+return \@hostnames_found;
+
+#,,,,,...,,..,,,,,,,,,.,,,,..,...,...,.,,,,,,,..,,...,...,.,,,...,,..,..,,,..,
+#TAXWUNZSQL44YEKG3IUKH4QJ2HW3FLMTMHVRJOYBLP4AM7GA4HAO7MKHJIQOT4XI4RNVALYKOGESI
+#\\\|TLU4PPCPQACDCX43L2NQXEFGUUCSDWHU45N6UNPZEAX2EHMFRDT \ / AMOS7 \ YOURUM ::
+#\[7]O5WPXOKEJ6P2RBLKE2FCL6QYJNGUTAPV3SPA3SO22P3ZL5JUYIDQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

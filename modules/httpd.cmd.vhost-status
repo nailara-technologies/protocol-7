@@ -1,0 +1,76 @@
+## [:< ##
+
+# name  = httpd.cmd.vhost-status
+# descr = show status of all known vhosts
+
+my @output;
+my @hostnames = sort keys <httpd.vhosts.registry>->%*;
+
+unless (@hostnames) {
+    return {
+        'mode' => qw| true |,
+        'data' => 'no vhosts in registry'
+    };
+}
+
+push @output,
+    sprintf(
+    "%-24s %-10s %-6s %-10s %-10s %s",
+    qw| hostname |,
+    qw| mode |,
+    qw| dns |,
+    qw| installed |,
+    qw| cert |,
+    qw| merge |
+    );
+push @output, '-' x 80;
+
+foreach my $hostname (@hostnames) {
+    my $registry  = <httpd.vhosts.registry>->{$hostname};
+    my $manifest  = $registry->{'manifest'} // {};
+    my $installed = <httpd.vhosts.installed>->{$hostname};
+
+    my $mode = $installed->{'install_mode'} // $manifest->{'install_mode'}
+        // qw| - |;
+
+    my $dns = qw| yes |;
+    $dns = qw| skip | unless $manifest->{'dns_match'};
+
+    my $install_status = qw| no |;
+    if ( defined $installed ) {
+        my $age = time() - ( $installed->{'installed_at'} // 0 );
+        $install_status = sprintf "%dd", int( $age / 86400 );
+        $install_status = qw| today | if $age < 86400;
+    }
+
+    my $cert_status = qw| - |;
+    if ( exists $manifest->{'tls'}
+        and $manifest->{'tls'} =~ m{^(yes|1|true)$}i ) {
+        $cert_status = $installed->{'cert_status'} // qw| pending |;
+    } else {
+        $cert_status = qw| none |;
+    }
+
+    my $merge_status = qw| - |;
+    if ( exists <httpd.vhosts.merge_needed>->{$hostname}
+        and keys <httpd.vhosts.merge_needed>->{$hostname}->%* ) {
+        my $count = scalar keys <httpd.vhosts.merge_needed>->{$hostname}->%*;
+        $merge_status = $count;
+    }
+
+    push @output,
+        sprintf( "%-24s %-10s %-6s %-10s %-10s %s",
+        $hostname,    $mode, $dns, $install_status,
+        $cert_status, $merge_status );
+}
+
+return {
+    'mode' => qw| true |,
+    'data' => join( "\n", @output )
+};
+
+#,,.,,,..,,,.,..,,,,.,,,,,,.,,,,,,.,.,,,,,,..,..,,...,..,,,..,,,.,,,.,,,.,,..,
+#O3KEHCDUX2MYMO554HGVQBYBL3TO2QCRPJXAS3E65JBGVQI5Y6JD5GTVILKCQLIIXU5TXO7BVUF4O
+#\\\|VROQXX2SIL25XKUW3QYEQEPKZ2SFNN7VHEWHVCDR4SQ6H6EZHWE \ / AMOS7 \ YOURUM ::
+#\[7]3TP4JSCSTN6RF3T3BETBOBTZ2C7OYBA4DQIJY43FJLISLR2DGWCQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,0 +1,64 @@
+## [:< ##
+
+# name  = httpd.vhost.dns_matches_local
+# descr = check if hostname resolves to a local IP address
+
+my $hostname = shift;
+
+unless ( defined $hostname and length $hostname ) {
+    <[base.logs]>->( 1, 'dns_matches_local: hostname required' );
+    return FALSE;
+}
+
+<[base.perlmod.autoload]>->('Net::DNS::Resolver');
+<[base.perlmod.autoload]>->('IO::Interface::Simple');
+
+my $resolver = Net::DNS::Resolver->new;
+my $query    = $resolver->query( $hostname, qw| A | );
+
+my @resolved_ips;
+if ($query) {
+    foreach my $rr ( $query->answer ) {
+        next unless $rr->type eq qw| A |;
+        push @resolved_ips, $rr->address;
+    }
+}
+
+if ( @resolved_ips == 0 ) {
+    <[base.logs]>->( 3, 'DNS check %s: no A records found', $hostname );
+    return FALSE;
+}
+
+my %local_ips;
+foreach my $ifobj ( IO::Interface::Simple->interfaces ) {
+    next if $ifobj->is_loopback;
+    next unless $ifobj->is_running;
+    next unless defined $ifobj->address;
+    $local_ips{ $ifobj->address } = TRUE;
+}
+
+## also consider 127.0.0.1 as local for localhost variants ##
+$local_ips{'127.0.0.1'} = TRUE;
+
+foreach my $ip (@resolved_ips) {
+    if ( exists $local_ips{$ip} ) {
+        <[base.logs]>->(
+            3,         'DNS check %s: matched local IP %s',
+            $hostname, $ip
+        );
+        return TRUE;
+    }
+}
+
+<[base.logs]>->(
+    3,         'DNS check %s: unmatched [ resolved: %s ]',
+    $hostname, join( qw| , |, @resolved_ips )
+);
+
+return FALSE;
+
+#,,..,,,.,...,.,.,,..,.,,,,,,,,,.,,,.,,,.,...,..,,...,...,..,,..,,.,.,...,,..,
+#X6M5VUKA7B5A3LGAZEGYIZIRY4QN5U2YZEUR4WHFRLSRMDBJJGK5EBVLJ2ZLJYLDR4IYKB25WIEX4
+#\\\|NHFNP5O7HKKFWMXR2NXOQK5NMIWMNNA6GHKVEOUF64APTBVMTF6 \ / AMOS7 \ YOURUM ::
+#\[7]YJBWYNAZ2HDPCF6N75BMMUGSOXIYA7OCPVQJZIN6A2DOYNM2VMCY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

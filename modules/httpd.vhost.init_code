@@ -1,0 +1,28 @@
+## [:< ##
+
+# name  = httpd.vhost.init_code
+# descr = initialize vhost manifest registry and installed tracking
+
+<httpd.vhosts.registry>     //= {};
+<httpd.vhosts.installed>    //= {};
+<httpd.vhosts.merge_needed> //= {};
+
+my $root_path = <system.root_path> // qw| . |;
+<httpd.vhosts.source_dir> //= "$root_path/data/web-root/vhosts";
+
+my $manifests_found = <[httpd.vhost.read_manifests]>;
+
+<[base.logs]>->(
+    2,
+    'vhost registry initialized with %d manifest%s',
+    scalar @$manifests_found,
+    <[base.cnt_s]>->( scalar @$manifests_found )
+);
+
+0;
+
+#,,,.,.,,,...,,.,,,.,,.,.,,,.,...,,..,,,,,.,.,..,,...,...,,.,,..,,,,,,..,,,.,,
+#BHNT377XS3KBYERTMK5WPW3QCK5PRWQYAWZTCOL2NFZUTTHNKI52AWRRRRW3QREDSTMEX64BTS2BI
+#\\\|MQIX4EH67Q35NUMUA6NI5IE362KRU3I4Q3ST6244UOVRSBLODBL \ / AMOS7 \ YOURUM ::
+#\[7]SY4XV42GTXYO6SIWIHFNT275NPDLXQT6FE74V42E64YTFTBR7SDA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

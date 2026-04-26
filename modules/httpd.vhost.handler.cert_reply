@@ -1,0 +1,48 @@
+## [:< ##
+
+# name  = httpd.vhost.handler.cert_reply
+# descr = handle TLS certificate request reply from letsencr zenka
+
+my $reply = shift;
+
+my $hostname = $reply->{'params'}->{'hostname'};
+my $mode     = $reply->{'cmd'}  // qw| FALSE |;
+my $data     = $reply->{'data'} // '';
+
+unless ($hostname) {
+    <[base.log]>->( 1, 'cert reply handler: missing hostname in params' );
+    return FALSE;
+}
+
+my $status;
+if ( $mode eq qw| TRUE | ) {
+    $status = qw| pending |;
+    if ( $data =~ m|completed|i or $data =~ m|success|i ) {
+        $status = qw| active |;
+    }
+} elsif ( $mode eq qw| SIZE | ) {
+    ## certificate data returned directly ##
+    $status = qw| active |;
+} elsif ( $mode eq qw| FALSE | ) {
+    $status = qw| failed |;
+} else {
+    $status = qw| pending |;
+}
+
+if ( exists <httpd.vhosts.installed>->{$hostname} ) {
+    <httpd.vhosts.installed>->{$hostname}->{'cert_status'} = $status;
+    <httpd.vhosts.installed>->{$hostname}->{'cert_updated_at'}
+        = <[base.time]>->(3);
+    <httpd.vhosts.installed>->{$hostname}->{'cert_error'} = $data
+        if $status eq qw| failed |;
+}
+
+<[base.logs]>->( 2, 'cert for %s: %s', $hostname, $status );
+
+return $status;
+
+#,,..,...,,.,,,,,,,.,,...,...,.,,,.,,,..,,,.,,..,,...,...,.,.,,.,,,,.,,,,,.,,,
+#BUBCCXGFZA3QRCR5V4QUXCCZK4IDI6IKV6G32M776X56KEMLQDXNEFN35U7NUNF5AR4QEWXGACB7Y
+#\\\|7TMT2SQI63ZZX2RWFORI6DTDKCM2RHKLLYGPULAWIOX3NHRTH6F \ / AMOS7 \ YOURUM ::
+#\[7]HM2MBFPKW7QG6L4QEZXIT6LYOA4C75PIWQRZYYSX6U2EBWGGUUDY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,0 +1,214 @@
+## [:< ##
+
+# name  = httpd.cmd.install-vhosts
+# descr = install vhosts from manifests to httpd docroot
+# param = [hostname]
+
+my $args_str = $call->{'args'} // '';
+my $target_hostname;
+$target_hostname = $1 if $args_str =~ m|^([a-zA-Z0-9\.\-]+)$|;
+
+my $hostnames = <[httpd.vhost.read_manifests]>;
+
+unless (@$hostnames) {
+    return {
+        'mode' => qw| false |,
+        'data' => 'no vhost manifests found'
+    };
+}
+
+my $site_dir    = <httpd.site_dir>     // qw| /var/httpd |;
+my $httpd_user  = <httpd.system.user>  // qw| httpd |;
+my $httpd_group = <httpd.system.group> // qw| httpd |;
+
+my ( undef, undef, $httpd_uid, $httpd_gid ) = getpwnam($httpd_user);
+
+unless ( defined $httpd_uid ) {
+    return {
+        'mode' => qw| false |,
+        'data' => sprintf( "httpd user '%s' does not exist", $httpd_user )
+    };
+}
+
+my @installed;
+my @skipped;
+my @errors;
+
+foreach my $hostname (@$hostnames) {
+    if ( defined $target_hostname and $hostname ne $target_hostname ) {
+        next;
+    }
+
+    my $vhost_entry = <httpd.vhosts.registry>->{$hostname};
+    my $manifest    = $vhost_entry->{'manifest'};
+
+    my $dns_match    = $manifest->{'dns_match'} // $hostname;
+    my $install_path = $manifest->{'install_path'}
+        // catfile( $site_dir, $hostname );
+
+    ## step 1: dns check ##
+    unless ( <[httpd.vhost.dns_matches_local]>->($dns_match) ) {
+        <[base.logs]>->( 2, 'skipping %s (DNS no match)', $hostname );
+        push @skipped,
+            { hostname => $hostname, reason => qw| dns_no_match | };
+        next;
+    }
+
+    ## step 2: create install_path if missing ##
+    unless ( -d $install_path ) {
+        my $mk_result = <[file.make_path]>->(
+            $install_path, 0755, $httpd_user, $httpd_group
+        );
+        unless ($mk_result) {
+            <[base.logs]>->(
+                1,             'failed to create install path %s for %s',
+                $install_path, $hostname
+            );
+            push @errors,
+                { hostname => $hostname, reason => qw| mkdir_failed | };
+            next;
+        }
+    }
+
+    ## step 3: install based on mode ##
+    my $install_mode = $manifest->{'install_mode'} // qw| symlinked |;
+    my $source_path  = $vhost_entry->{'source_path'};
+    my $install_ok   = FALSE;
+
+    if ( $install_mode eq qw| symlinked | ) {
+        ## remove existing symlink or directory ##
+        if ( -l $install_path ) {
+            my $current_target = readlink($install_path);
+            if ( $current_target eq $source_path ) {
+                $install_ok = TRUE;
+            } else {
+                unlink($install_path) or do {
+                    <[base.logs]>->(
+                        1,             'cannot remove old symlink %s [ %s ]',
+                        $install_path, <[base.str.os_err]>
+                    );
+                };
+            }
+        } elsif ( -e $install_path ) {
+            <[base.file.remove_tree]>->($install_path);
+        }
+
+        unless ($install_ok) {
+            if ( symlink( $source_path, $install_path ) ) {
+                $install_ok = TRUE;
+            } else {
+                <[base.logs]>->(
+                    1,         'symlink failed for %s [ %s ]',
+                    $hostname, <[base.str.os_err]>
+                );
+            }
+        }
+
+    } elsif ( $install_mode eq qw| copy |
+        or $install_mode eq qw| copy-autoupdate | ) {
+        ## copy all files from source to install_path ##
+        my $copy_count = 0;
+        my $copy_error = 0;
+
+        my @files_to_copy = <[base.file.all_files]>->($source_path);
+        foreach my $src_file (@files_to_copy) {
+            next if $src_file =~ m|/\.vhost-manifest$|;
+
+            my $rel_path = substr( $src_file, length($source_path) + 1 );
+            my $dst_file = catfile( $install_path, $rel_path );
+
+            my $dst_dir = <[base.file.last_existing_dir_path]>->($dst_file);
+            if ( defined $dst_dir and not -d $dst_dir ) {
+                <[file.make_path]>->(
+                    $dst_dir, 0755, $httpd_user, $httpd_group
+                );
+            }
+
+            if ( <[base.file.copy]>->( $src_file, $dst_file ) ) {
+                $copy_count++;
+            } else {
+                $copy_error++;
+            }
+        }
+
+        if ( $copy_error == 0 ) {
+            $install_ok = TRUE;
+        } else {
+            <[base.logs]>->(
+                1,         'copy failed for %s (%d errors)',
+                $hostname, $copy_error
+            );
+        }
+    }
+
+    unless ($install_ok) {
+        push @errors,
+            { hostname => $hostname, reason => qw| install_failed | };
+        next;
+    }
+
+    ## step 4: request TLS cert if needed ##
+    my $cert_status = qw| none |;
+    if (    exists $manifest->{'tls'}
+        and $manifest->{'tls'}
+        and $manifest->{'tls'} =~ m{^(yes|1|true)$}i ) {
+        $cert_status = <[httpd.vhost.request_tls_cert]>->($hostname);
+    }
+
+    ## step 5: register installed vhost ##
+    <httpd.vhosts.installed>->{$hostname} = {
+        'manifest'     => $manifest,
+        'installed_at' => <[base.time]>->(3),
+        'install_mode' => $install_mode,
+        'cert_status'  => $cert_status,
+        'install_path' => $install_path,
+    };
+
+    <[base.logs]>->(
+        2,         'installed vhost %s [mode: %s]',
+        $hostname, $install_mode
+    );
+
+    push @installed, $hostname;
+
+    ## update httpd.cfg.hostnames for runtime discovery ##
+    <httpd.cfg.hostnames>->{$hostname} = $install_path;
+}
+
+<[httpd.scan_site_dir]> if @installed;
+
+my $result_summary = {
+    'installed' => \@installed,
+    'skipped'   => \@skipped,
+    'errors'    => \@errors,
+};
+
+if ( @errors and not @installed ) {
+    return {
+        'mode' => qw| false |,
+        'data' => sprintf(
+            'installed %d, skipped %d, errors %d',
+            scalar @installed,
+            scalar @skipped,
+            scalar @errors
+        ),
+        'summary' => $result_summary
+    };
+}
+
+return {
+    'mode' => qw| true |,
+    'data' => sprintf(
+        'installed %d, skipped %d, errors %d',
+        scalar @installed,
+        scalar @skipped,
+        scalar @errors
+    ),
+    'summary' => $result_summary
+};
+
+#,,,.,,,,,,.,,,,.,...,.,,,,..,,.,,.,.,...,...,..,,...,...,,,,,,.,,.,.,,..,.,,,
+#D3YN2DLW3CPFJUNY24EXBO6SUFFMKUTIQZEVD7G2NFKU75JXNJ7S7DI42VPFSU7NSD3EOUOBMZ3TK
+#\\\|M7LAMU5N4VG4YA5KBDP4746ARVNYOQKAWMM64CUKKXO7AZFEIMQ \ / AMOS7 \ YOURUM ::
+#\[7]BJX7PC2LMHVDHPJTQTVGVKIXCAOOQGQT7OXUGEKANFKOVAY6RICA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

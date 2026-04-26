@@ -1,0 +1,64 @@
+## [:< ##
+
+# name  = httpd.vhost.request_tls_cert
+# descr = request TLS certificate for a vhost via letsencr zenka
+
+my $hostname = shift;
+
+unless ( defined $hostname and length $hostname ) {
+    <[base.logs]>->( 1, 'request_tls_cert: hostname required' );
+    return qw| error |;
+}
+
+## check if cert already exists and is valid ##
+my $certs = <letsencr.parent.certs>;
+if (    exists $certs->{$hostname}
+    and $certs->{$hostname}{'status'} eq qw| active |
+    and exists $certs->{$hostname}{'expires_at'} ) {
+    my $expires_at     = $certs->{$hostname}{'expires_at'};
+    my $days_remaining = int( ( $expires_at - time() ) / 86400 );
+
+    if ( $days_remaining > 30 ) {
+        <[base.logs]>->(
+            2,         'cert for %s valid (%d days), skipping request',
+            $hostname, $days_remaining
+        );
+        return qw| active |;
+    }
+}
+
+<[base.logs]>->( 2, 'requesting TLS cert for %s', $hostname );
+
+## send route-send to letsencr zenka ##
+my $sent = eval {
+    <[protocol-7.route-send]>->(
+        {   'command'   => qw| letsencr.parent.cmd.request-certificate |,
+            'call_args' => { 'args' => $hostname },
+            'reply'     => {
+                'handler' => qw| httpd.vhost.handler.cert_reply |,
+                'params'  => { 'hostname' => $hostname }
+            }
+        }
+    );
+};
+
+if ($EVAL_ERROR) {
+    <[base.logs]>->(
+        1,         'route-send to letsencr failed for %s: %s',
+        $hostname, $EVAL_ERROR
+    );
+    return qw| failed |;
+}
+
+unless ($sent) {
+    <[base.logs]>->( 1, 'letsencr zenka not available for %s', $hostname );
+    return qw| failed |;
+}
+
+return qw| pending |;
+
+#,,.,,,,.,...,..,,,,,,,.,,...,...,.,,,.,.,,,,,..,,...,...,.,,,,.,,,,.,..,,.,,,
+#7IHKT7QEPSHRZ4SHTOKVSXVMTWOC433JDHHEYPJAKJEJR6UKPE6CEPLVV7M7E6MT6Z55M5FYPWVPG
+#\\\|HUVUB5LMQXOFGH7DQY2EMZZBQBPKHWEO7QJSPCXYKIWKHJU2USG \ / AMOS7 \ YOURUM ::
+#\[7]TKHIEZ6METZY5Q3YSZRFKYF5GVBL7S7SKZXYILSDMVTFILRAFSCI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
