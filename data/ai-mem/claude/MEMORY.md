@@ -27,6 +27,7 @@
 - `topic-checksum-addressing.md` — AMOS checksums as universal routing primitive,
   everything-is-a-group-of-1, expectability principle, delegation via checksum endpoints
 - `feedback-ptd-syntax-check.md` — use `ptd -c` not `perl -c` for P7 module syntax checks
+- `feedback-p7c-command.md` — always use `p7c` not `p7`; binary was renamed
 - `feedback-kimi-dispatch-pattern.md` — dispatching tasks to kimi via bin/kimi-task is highly
   token-efficient; write detailed task files, review for known issues
 - `topic-tool-shm-architecture.md` — LLM tool calling (8 tools), dispatch loop, SHM+mmap file editing vision
@@ -298,8 +299,8 @@
 - Pattern: `my @non_num = grep { defined $data_ref->{$ARG}->{$key} and not looks_like_number(...) } keys $data_ref->%*`
 - Global `$SIG{__WARN__}` exists — if wrapping warn handler, capture `$prev_warn = $SIG{__WARN__}` first and call through
 
-#,,,.,,..,...,,,.,,.,,..,,.,,,.,.,..,,.,,,,,,,..,,...,...,...,...,.,,,.,.,.,.,
-#4CT654QKLLBLXO5JW4GX6TMU65ZJGYIEWS2KVEZ4RMCICYARICL5IGPJA7FU5FX2JLYXXGFSZDHQ4
-#\\\|D6CTI3WFYVXJ66XVDXXXVUGU2XZ6JHP772P75FWBOEVUH227ZUM \ / AMOS7 \ YOURUM ::
-#\[7]AJ5MRUCTERMZT7YIQ4HJRQ3ZE4YLET5QNU24TI6433VTG2WWPSCQ 7  DATA SIGNATURE ::
+#,,..,.,.,.,,,.,,,..,,,,,,.,.,..,,,,,,.,.,,.,,..,,...,...,.,,,,..,,.,,,,.,,..,
+#PNGEN2ELUQHVCCPXF437UKHPKQAQTWRQOARFPTW5CTUEX4OOBMX2RW2OZCPSRDOLKJMW6SUDSUSTK
+#\\\|7HKA7BDRZAOFJTNVCNPK3TMUDZXQTKG5RLG6FFEGMXPYVUQHCRR \ / AMOS7 \ YOURUM ::
+#\[7]YZDB7BJNYIELKW3LMF65RQI6KVJIF4K5SVKPAJQPBCZKIROCFIAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
