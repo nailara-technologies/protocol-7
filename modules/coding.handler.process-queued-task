@@ -546,10 +546,26 @@ INFERENCE_LOOP:
                         if @messages
                         and ( $messages[-1]->{'role'} // '' ) eq 'assistant';
                 }
+
+                ## inject timeout notification so model can self-correct ##
+                if ($is_timeout) {
+                    my $hint_text
+                        = "request timeout — server did not respond\n"
+                        . "your last tool call was not executed\n"
+                        . "please retry, simplify, or split the call\n"
+                        . "retries remaining: $server_retries";
+                    my $hint_box
+                        = <[base.parser.txt_box]>->( \$hint_text, 'timeout' );
+                    push @messages,
+                        {
+                        'role'    => 'user',
+                        'content' => $hint_box,
+                        };
+                }
+
                 ## for connection errors, yield to event loop to allow server restart ##
                 if ($is_conn_err) {
-                    <[event.once]>->(2.0)
-                        ;    ## yield for server restart processing ##
+                    <[event.once]>->(2.0);
                 } else {
                     <[base.sleep]>->( $is_timeout ? 2 : 0.5 );
                 }
@@ -973,8 +989,8 @@ if ( length $response_text
 ## return result hashref for jobqueue callback ##
 return { success => TRUE, result => $response_text, task_id => $task_id };
 
-#,,,.,,.,,,,.,...,,,,,.,,,,.,,.,,,,.,,.,.,..,,..,,...,...,,..,.,.,,,,,..,,,..,
-#MY55ID2IXO5WHHUMIWOOBPKKQWZC2ZF4RTAIOKPMYHBQBH2KRJ5R5OMVDGOP7EQVK2AA2WTJQ5OWM
-#\\\|U6MORU2R366CQD4XGGXYG7RJDYVYSGQLREGDUIGAGHOZMWHCKPV \ / AMOS7 \ YOURUM ::
-#\[7]PI4FSZW7U3EDRHAY2ZE2CUP4WDQOQBZ6AIQ66ERLN3SV4LLO3SCQ 7  DATA SIGNATURE ::
+#,,,,,.,,,,..,...,,..,,,.,...,..,,,,,,,,.,.,,,..,,...,...,.,.,,.,,.,,,.,,,..,,
+#ZFB7Z2YQMX3RAY42CWUWJK26YXUWQYADUHTYKIVXH3JRVAZCK4KYNIRUE5B2WTCBTLPN2LU7Q5TY2
+#\\\|SMR6UKWBGCSRSKEJYAJDKRP2HS2MEILGD53CG6BDBZZANYPPG22 \ / AMOS7 \ YOURUM ::
+#\[7]BSM2T5HTFBUDBS7J3N3SHYYVOEC6BLF6ZA7SDGLAWJDGH4W7JYAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
