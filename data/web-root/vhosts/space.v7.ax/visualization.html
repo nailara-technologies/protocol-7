@@ -1213,11 +1213,13 @@
         function drawOrbitalNodes() {
             if (!orbitalShowNodes) return;
             const od = navOrbitalData || orbitalData;
-            const cacheAgeDim = navOrbitalData ? 1.0 : (parseFloat(od.cache_age || 0) > 120 ? 0.5 : 1.0);
+            const cacheAge = navOrbitalData ? 0 : parseFloat(od.cache_age || 0);
+            const cacheAgeDim = cacheAge > 120 ? 0.5 : 1.0;
             const selfWeight = layerWeights['orbital-self'] * cacheAgeDim;
-            const knownWeight = navOrbitalData ? 1.0 : layerWeights['orbital-known'];
-            const galaxyWeight = navOrbitalData ? 0   : layerWeights['orbital-galaxy'];
-            const nameservWeight = layerWeights['nameserv-remote'];
+            const knownWeight = (navOrbitalData ? 1.0 : layerWeights['orbital-known']) * cacheAgeDim;
+            const galaxyWeight = (navOrbitalData ? 0 : layerWeights['orbital-galaxy']) * cacheAgeDim;
+            const nameservWeight = layerWeights['nameserv-remote'] * cacheAgeDim;
+            const connectionsWeight = layerWeights['orbital-connections'] * cacheAgeDim;
             if (selfWeight < 0.01 && knownWeight < 0.01 && galaxyWeight < 0.01 && nameservWeight < 0.01) return;
 
             const now = Date.now() / 1000;
@@ -1237,7 +1239,7 @@
             });
 
             drawOrbitalTrails(Math.max(galaxyWeight, knownWeight, selfWeight));
-            drawResonanceTentacles(selfPos, layerWeights['orbital-connections']);
+            drawResonanceTentacles(selfPos, connectionsWeight);
 
             const glowShells = od.glow_shells || [0,0,0,0,0,0];
 
@@ -1292,6 +1294,9 @@
                 const isConn = connectedP7refs.has(n.p7ref);
                 allRendered.push({ node: { ...n, type: isConn ? 'connected' : 'discovered' }, pos: p7refToCoords(n.p7ref, 0, 0, 0, 140) });
             });
+            (od.nameserv || []).forEach(n => {
+                allRendered.push({ node: { ...n, hostname: n.hostname || 'nameserv', type: 'nameserv' }, pos: p7refToCoords(n.p7ref, 0, 0, 0, 280) });
+            });
             let nearest = null, nearDist = 30;
             allRendered.forEach(({ node, pos }) => {
                 const proj = project(pos);
@@ -1302,7 +1307,7 @@
                 const d = Math.sqrt(dx*dx + dy*dy);
                 if (d < nearDist) { nearDist = d; nearest = { node, proj, rect }; }
             });
-            if (nearest) {
+            if (nearest && !isDragging) {
                 const { node, proj, rect } = nearest;
                 const short = (node.p7ref || '').split(':').slice(0,2).join(':') + ':' + ((node.p7ref || '').split(':')[2] || '').slice(0, 8);
                 tooltip.innerHTML = `<b>${node.hostname || node.type}</b><br>${short}<br>age: ${node.age || '—'}<br>type: ${node.type}`;
@@ -1314,7 +1319,6 @@
             }
 
             // freshness indicator
-            const cacheAge = navOrbitalData ? 0 : parseFloat(od.cache_age || 0);
             const staleEl = document.getElementById('staleIndicator');
             if (staleEl) staleEl.style.display = cacheAge > 30 ? 'block' : 'none';
         }
@@ -1854,6 +1858,7 @@
                 const allRendered = [];
                 if (self.p7ref) allRendered.push({ node: self, pos: p7refToCoords(self.p7ref, 0, 0, 0, 140) });
                 (od.known || []).forEach(n => allRendered.push({ node: n, pos: p7refToCoords(n.p7ref, 0, 0, 0, 140) }));
+                (od.nameserv || []).forEach(n => allRendered.push({ node: n, pos: p7refToCoords(n.p7ref, 0, 0, 0, 280) }));
                 let nearest = null, nearDist = 40;
                 allRendered.forEach(({ node, pos }) => {
                     const proj = project(pos);
