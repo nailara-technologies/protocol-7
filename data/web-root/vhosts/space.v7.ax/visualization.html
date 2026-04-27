@@ -124,7 +124,7 @@
         <p style="margin-top:10px;font-size:10px;color:#6080b0;">
             <b>Controls:</b><br>
             Wheel = zoom | Ctrl+Wheel = focal<br>
-            Drag = rotate | ←→↑↓ = rotate camera<br>
+            Drag = rotate | ←→↑↓ = move cursor<br>
             PgUp/Dn = vertical | Space = auto-rotate<br>
             F = follow | C = center | B = buttons<br>
             I = toggle info panel
@@ -1160,6 +1160,91 @@
             ctx.restore();
         }
 
+        function updateCursorSnap() {
+            const od = navOrbitalData || orbitalData;
+            const nodes = [];
+            if (od.self && od.self.p7ref) nodes.push(od.self);
+            if (od.known) nodes.push(...od.known);
+
+            for (const node of nodes) {
+                const pos = p7refToCoords(node.p7ref, 0, 0, 0, 140);
+                const ngX = Math.round(pos.x / FORMATION_SPACING);
+                const ngY = Math.round(pos.y / FORMATION_SPACING);
+                const ngZ = Math.round(pos.z / FORMATION_SPACING);
+                if (Math.abs(selX - ngX) <= 1 && Math.abs(selY - ngY) <= 1 && Math.abs(selZ - ngZ) <= 1) {
+                    selX = ngX;
+                    selY = ngY;
+                    selZ = ngZ;
+                    selectedNodeP7ref = node.p7ref;
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        function drawCursor(now) {
+            const cursorSize = CUBE_SIZE * 0.4;
+            const cx = (selX - camX) * FORMATION_SPACING;
+            const cy = (selY - camY) * FORMATION_SPACING;
+            const cz = (selZ - camZ) * FORMATION_SPACING;
+
+            const cube = createCube(cursorSize, cx, cy, cz);
+            const projected = cube.vertices.map(v => project(v));
+            if (projected.some(p => p === null)) return;
+
+            let isSnapped = false;
+            if (selectedNodeP7ref) {
+                const od = navOrbitalData || orbitalData;
+                const nodes = [];
+                if (od.self && od.self.p7ref) nodes.push(od.self);
+                if (od.known) nodes.push(...od.known);
+                for (const node of nodes) {
+                    if (node.p7ref !== selectedNodeP7ref) continue;
+                    const pos = p7refToCoords(node.p7ref, 0, 0, 0, 140);
+                    const ngX = Math.round(pos.x / FORMATION_SPACING);
+                    const ngY = Math.round(pos.y / FORMATION_SPACING);
+                    const ngZ = Math.round(pos.z / FORMATION_SPACING);
+                    if (selX === ngX && selY === ngY && selZ === ngZ) {
+                        isSnapped = true;
+                    }
+                    break;
+                }
+            }
+
+            const pulse = 0.5 + 0.5 * Math.sin(now * 2.1);
+            const color = isSnapped ? '255, 200, 50' : '80, 180, 255';
+            const alpha = isSnapped ? 0.9 : 0.6 * pulse;
+
+            const avgX = projected.reduce((s, p) => s + p.x, 0) / projected.length;
+            const avgY = projected.reduce((s, p) => s + p.y, 0) / projected.length;
+
+            ctx.save();
+            ctx.globalCompositeOperation = 'screen';
+
+            const haloRadius = Math.max(10, cursorSize * zoom * 1.5);
+            const gradient = ctx.createRadialGradient(avgX, avgY, 0, avgX, avgY, haloRadius);
+            gradient.addColorStop(0, `rgba(${color}, ${alpha * 0.35})`);
+            gradient.addColorStop(1, 'rgba(0, 0, 0, 0)');
+            ctx.fillStyle = gradient;
+            ctx.beginPath();
+            ctx.arc(avgX, avgY, haloRadius, 0, Math.PI * 2);
+            ctx.fill();
+
+            ctx.strokeStyle = `rgba(${color}, ${alpha})`;
+            ctx.lineWidth = 1.5;
+            ctx.beginPath();
+            cube.edges.forEach(([i, j]) => {
+                const a = projected[i], b = projected[j];
+                if (a && b) {
+                    ctx.moveTo(a.x, a.y);
+                    ctx.lineTo(b.x, b.y);
+                }
+            });
+            ctx.stroke();
+
+            ctx.restore();
+        }
+
         function drawOrbitalNodes() {
             if (!orbitalShowNodes) return;
             const od = navOrbitalData || orbitalData;
@@ -1653,6 +1738,11 @@
 
             ctx.globalCompositeOperation = 'source-over';
 
+            // === CURSOR ===
+            const cursorNow = performance.now() / 1000;
+            updateCursorSnap();
+            drawCursor(cursorNow);
+
             // === ORBITAL LAYERS ===
             updateLayerWeights();
             if (navStack.length > 0) {
@@ -1744,7 +1834,22 @@
 
             document.getElementById('zoomD').textContent = `${zoomText}`;
             document.getElementById('focalD').textContent = Math.round(focalLength);
-            document.getElementById('selD').textContent = `${selX}, ${selY}, ${selZ}`;
+            const od = navOrbitalData || orbitalData;
+            const nodes = [];
+            if (od.self && od.self.p7ref) nodes.push(od.self);
+            if (od.known) nodes.push(...od.known);
+            let nearestDist = Infinity;
+            const cwx = selX * FORMATION_SPACING;
+            const cwy = selY * FORMATION_SPACING;
+            const cwz = selZ * FORMATION_SPACING;
+            nodes.forEach(node => {
+                const pos = p7refToCoords(node.p7ref, 0, 0, 0, 140);
+                const dx = pos.x - cwx, dy = pos.y - cwy, dz = pos.z - cwz;
+                const dist = Math.sqrt(dx*dx + dy*dy + dz*dz);
+                if (dist < nearestDist) nearestDist = dist;
+            });
+            const distText = nearestDist === Infinity ? '—' : nearestDist.toFixed(0);
+            document.getElementById('selD').textContent = `${selX}, ${selY}, ${selZ} | nearest: ${distText}u`;
             document.getElementById('camD').textContent = `${camX.toFixed(2)}, ${camY.toFixed(2)}, ${camZ.toFixed(2)}`;
             document.getElementById('velD').textContent = velocity.toFixed(3);
             const clustersEl = document.getElementById('clustersActive');
@@ -1908,10 +2013,10 @@
                 case 'Escape':
                     navPop();
                     break;
-                case 'ArrowLeft': e.preventDefault(); rotY -= 5; break;
-                case 'ArrowRight': e.preventDefault(); rotY += 5; break;
-                case 'ArrowUp': e.preventDefault(); rotX -= 5; break;
-                case 'ArrowDown': e.preventDefault(); rotX += 5; break;
+                case 'ArrowLeft': e.preventDefault(); moveSelection(-1, 0, 0); break;
+                case 'ArrowRight': e.preventDefault(); moveSelection(1, 0, 0); break;
+                case 'ArrowUp': e.preventDefault(); moveSelection(0, 0, -1); break;
+                case 'ArrowDown': e.preventDefault(); moveSelection(0, 0, 1); break;
                 case 'PageUp': e.preventDefault(); moveSelection(0, 1, 0); break;
                 case 'PageDown': e.preventDefault(); moveSelection(0, -1, 0); break;
                 case 'b': case 'B': {
