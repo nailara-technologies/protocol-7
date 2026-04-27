@@ -103,6 +103,11 @@ if (   $http_uri =~ m|^/api/certificate|
     } elsif ( $http_uri =~ m|^/api/certificate/list| ) {
         return <[httpd.handler.acme_request]>->( $id, $http_uri );
     }
+} elsif ( $http_uri eq qw| /cursor | ) {
+
+    ## visualization cursor update — selX/Y/Z from browser ##
+    return <[plugin.web.space.handler.cursor_update]>->($id);
+
 } elsif ( $http_uri eq qw| /context | ) {
 
     ## visualization context update — zoom + intent from browser ##
@@ -135,8 +140,8 @@ if (   $http_uri =~ m|^/api/certificate|
 
 return 2;    ## Should not reach here
 
-#,,,,,...,.,,,..,,..,,,.,,...,...,.,,,...,,,.,..,,...,...,...,,.,,,,.,,,,,,,.,
-#CGNJY7RADMHGA2R4O4IWS26R4JB5TAWIK33BU3VNRLJEQBNAJYTXN2C2LRH3ZFQ2GCEGKQMLSICCU
-#\\\|GC4NCGJ6PATDAT43SQ6SVLUYZT5GRBRV7EMZBKLDZR6F7WOWLJY \ / AMOS7 \ YOURUM ::
-#\[7]RTFEEWZF4NKW7RKPNAL4BP5G2LVXNMGWQGVITPZIZTIEPJY2KADY 7  DATA SIGNATURE ::
+#,,,,,.,.,..,,...,,,.,.,.,.,.,,..,,,.,,,.,,,.,..,,...,...,...,,..,,.,,,.,,..,,
+#5A357UMBRUOY6YFF7FA7RFZUK54OBH7OD2BUHXX5PRNEACLIJNXDEEE6BLOWAC4XHQAGPQHZ7IDAQ
+#\\\|M6ILY3MS4DNBSW3QYKZWCYGAXL2RGGZNIOKFZKICGQOATTJSOXX \ / AMOS7 \ YOURUM ::
+#\[7]ROZFTTZPL7O3R7NSQPBW6YCMEMJIRFNBRYECFI5BEUTY6U2SMUAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

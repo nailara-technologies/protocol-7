@@ -1,0 +1,45 @@
+## [:< ##
+
+# name  = plugin.web.space.handler.cursor_update
+# descr = handle POST /cursor body — update grid cursor position in graphics-matrix
+
+my $id   = shift;
+my $body = $data{'session'}->{$id}->{'buffer'}->{'input'} // '';
+$data{'session'}->{$id}->{'buffer'}->{'input'} = '';
+
+## parse JSON body {selX, selY, selZ} ##
+my $params = eval { JSON::PP->new->utf8->decode($body) } // {};
+
+my $selX = int( $params->{'selX'} // 0 );
+my $selY = int( $params->{'selY'} // 0 );
+my $selZ = int( $params->{'selZ'} // 0 );
+
+<[base.logs]>->(
+    2, 'cursor_update: POST /cursor -> [%d,%d,%d]',
+    $selX, $selY, $selZ
+);
+
+## fire-and-forget: route to graphics-matrix cursor set ##
+<[protocol-7.route-send]>->(
+    {   qw| command |   => 'graphics-matrix.cursor',
+        qw| call_args | => { qw| args | => "set $selX $selY $selZ" },
+    }
+);
+
+$data{'session'}->{$id}->{'http'}->{'close'} = 1;
+my $reply_header = {
+    qw| Content-Type   | => qw| application/json |,
+    qw| Content-Length | => 2,
+    qw| Connection     | => qw| close |,
+};
+$data{'session'}->{$id}->{'buffer'}->{'output'}
+    .= <[httpd.new_header]>->( 200, $reply_header );
+$data{'session'}->{$id}->{'buffer'}->{'output'} .= qw| {} |;
+
+return 2;
+
+#,,,,,..,,...,,..,..,,.,.,,..,..,,.,,,,,,,,..,..,,...,...,,,.,,,,,..,,...,,,,,
+#U76JAARXKVYTXTC3JCHOJ5P5LUL3EUKX3R332ISU6KKUISUKVB7QBTVYKHKZWNAP5BSCEMACDMQA2
+#\\\|AXHUMROWMTJXEYQZSVXSY5T2HYBE6PU4Y2O6F4SYK6SU464IXDN \ / AMOS7 \ YOURUM ::
+#\[7]DLHAVPUGXOM6LK3H4CA7U47XMUO2FDMHWAOSWBBNTN7YDMO7JUDY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
