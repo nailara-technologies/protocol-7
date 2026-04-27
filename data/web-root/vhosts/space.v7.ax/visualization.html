@@ -124,9 +124,9 @@
         <p style="margin-top:10px;font-size:10px;color:#6080b0;">
             <b>Controls:</b><br>
             Wheel = zoom | Ctrl+Wheel = focal<br>
-            Drag = rotate | ←→↑↓ = navigate<br>
+            Drag = rotate | ←→↑↓ = rotate camera<br>
             PgUp/Dn = vertical | Space = auto-rotate<br>
-            F = toggle follow | C = center camera<br>
+            F = follow | C = center | B = buttons<br>
             I = toggle info panel
         </p>
     </div>
@@ -1876,12 +1876,18 @@
                 case 'Escape':
                     navPop();
                     break;
-                case 'ArrowLeft': e.preventDefault(); moveSelection(-1, 0, 0); break;
-                case 'ArrowRight': e.preventDefault(); moveSelection(1, 0, 0); break;
-                case 'ArrowUp': e.preventDefault(); moveSelection(0, 0, -1); break;
-                case 'ArrowDown': e.preventDefault(); moveSelection(0, 0, 1); break;
+                case 'ArrowLeft': e.preventDefault(); rotY -= 5; break;
+                case 'ArrowRight': e.preventDefault(); rotY += 5; break;
+                case 'ArrowUp': e.preventDefault(); rotX -= 5; break;
+                case 'ArrowDown': e.preventDefault(); rotX += 5; break;
                 case 'PageUp': e.preventDefault(); moveSelection(0, 1, 0); break;
                 case 'PageDown': e.preventDefault(); moveSelection(0, -1, 0); break;
+                case 'b': case 'B': {
+                    e.preventDefault();
+                    const ctrl = document.getElementById('controls');
+                    ctrl.style.display = ctrl.style.display === 'none' ? '' : 'none';
+                    break;
+                }
             }
         });
 
