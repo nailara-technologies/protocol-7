@@ -53,7 +53,7 @@ for my $i ( 0 .. $lines - 1 ) {
     } elsif ( $item && $item->{'path'} ) {
 
         # Encode path as 56-bit L13 fingerprint
-        my $hash = <[base.chk-sum.bmw.L13-str]>->( $item->{'path'} );
+        my $hash = <[chk-sum.bmw.L13-str]>->( $item->{'path'} );
         $bin = pack( 'H*', substr( $hash, 0, 14 ) );  # 14 hex chars = 7 bytes
     } else {
 
@@ -80,8 +80,8 @@ if ( $args->{'async'} ) {
 
 # SPDX-License-Identifier: ISC
 
-#,,,,,..,,...,,,.,.,,,,,,,,,,,...,,,,,..,,,.,,..,,...,...,...,..,,,,,,...,.,.,
-#Q44WD5DCYNQZHD2JELFZLQTAKVUJ6EJS4T4EQ7OYJHUUM4XDNGISU5KMMXDH722QCEYQFAK6SHIJO
-#\\\|GZ5OQC3HPC5QS4CW4HQQYWAMHPVENUP5MIAFCZKD3NZXZZKBN77 \ / AMOS7 \ YOURUM ::
-#\[7]IINGHZ7V37ZFQGTPFLW3N27FBODUXTRSPYDNSZZKK5NUQFN5DIAI 7  DATA SIGNATURE ::
+#,,,,,,.,,.,.,..,,,,,,,.,,...,,,.,,,,,,,,,.,,,..,,...,...,.,.,...,..,,,,.,.,.,
+#CZ6V3KDSNVOSQOTSHJCS362NM7MKRZ3YPOVQGMPIF5H3GIEDAG67JUYPREDZE66OS3PNYJ6D7SX62
+#\\\|MJFDC2D6EIXJPTHS32HUW2ZEV37ZV6SB3O636NDLBNJQ7CVUJOE \ / AMOS7 \ YOURUM ::
+#\[7]EMRNJKTIXDVXUJHPAX4OCQCT6PI5QAEVMSFWL2UVCLYCA5A5WUAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

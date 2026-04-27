@@ -23,11 +23,11 @@ return sub {
     my $algorithm = $cached->{algorithm};
 
     if ( $algorithm eq 'bmw' ) {
-        $current_checksum = <[base.chk-sum.bmw.filesum]>->($path);
+        $current_checksum = <[chk-sum.bmw.filesum]>->($path);
     } elsif ( $algorithm eq 'bmw-224' ) {
-        $current_checksum = <[base.chk-sum.bmw.224.B32]>->($path);
+        $current_checksum = <[chk-sum.bmw.224.B32]>->($path);
     } elsif ( $algorithm eq 'bmw-512' ) {
-        $current_checksum = <[base.chk-sum.bmw.512_32]>->($path);
+        $current_checksum = <[chk-sum.bmw.512_32]>->($path);
     } elsif ( $algorithm eq 'bmw-L13' or $algorithm eq 'bmw-L13-b32' ) {
         open my $fh, '<:raw', $path
             or return { 'mode' => 'false', 'data' => 'cannot read file' };
@@ -35,9 +35,9 @@ return sub {
         close $fh;
 
         if ( $algorithm eq 'bmw-L13' ) {
-            $current_checksum = <[base.chk-sum.bmw.L13-str]>->($content);
+            $current_checksum = <[chk-sum.bmw.L13-str]>->($content);
         } else {
-            $current_checksum = <[base.chk-sum.bmw.str-b32.L13]>->($content);
+            $current_checksum = <[chk-sum.bmw.str-b32.L13]>->($content);
         }
     } elsif ( $algorithm eq 'amos' ) {
         $current_checksum = <[base.chk-sum.amos]>->($path);
@@ -60,8 +60,8 @@ return sub {
     };
 };
 
-#,,,.,,.,,,,.,...,,,,,.,,,,..,.,.,,.,,,.,,,,,,..,,...,...,.,.,...,.,,,.,,,.,.,
-#VN7VCHOUTILRUW23TETXJCG3XDIMQ2V2OZFVJBYFE7AGZWPVMP3B3PMU5ASC3HZAV4O27JCHBHCTM
-#\\\|MSSZZUKPPHYDKPXCFEGHL35MNS2NGRHRFHW574CSZ7SUZFPHEZN \ / AMOS7 \ YOURUM ::
-#\[7]LCHEVBJPZLWLKNO3C3EC23A4GDNGOZVUVUUG5LRQVESWOZ4HEGDI 7  DATA SIGNATURE ::
+#,,,,,,..,,.,,.,.,...,,.,,,,,,..,,.,.,.,.,,,,,..,,...,...,...,.,.,..,,..,,...,
+#4UOJDC5QDRBVZHTPCFIZEZEC5I6C5G4XB7MLNKO7BFW2SWR55L4TW6PRJ2HQFE5OFQC56HE2UM66Y
+#\\\|7TTLMQVE2KJOD5TZCI3L6ILLEO2VDCIMZGXTFUUBIHWICP5GL2X \ / AMOS7 \ YOURUM ::
+#\[7]VBXQ3HCLLRS7I2VGTCFDDBJPUF7F2KZVAHO3H6VCNCNXRWKK5SCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

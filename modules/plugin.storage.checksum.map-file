@@ -46,11 +46,11 @@ return sub {
 
     # Dispatch to correct BMW/AMOS checksum module
     if ( $algorithm eq 'bmw' ) {
-        $checksum = <[base.chk-sum.bmw.filesum]>->($path);
+        $checksum = <[chk-sum.bmw.filesum]>->($path);
     } elsif ( $algorithm eq 'bmw-224' ) {
-        $checksum = <[base.chk-sum.bmw.224.B32]>->($path);
+        $checksum = <[chk-sum.bmw.224.B32]>->($path);
     } elsif ( $algorithm eq 'bmw-512' ) {
-        $checksum = <[base.chk-sum.bmw.512_32]>->($path);
+        $checksum = <[chk-sum.bmw.512_32]>->($path);
     } elsif ( $algorithm eq 'bmw-L13' ) {
 
         # For L13, we need to read file content as string
@@ -58,13 +58,13 @@ return sub {
             or return { 'mode' => 'false', 'data' => 'cannot read file' };
         my $content = do { local $/; <$fh> };
         close $fh;
-        $checksum = <[base.chk-sum.bmw.L13-str]>->($content);
+        $checksum = <[chk-sum.bmw.L13-str]>->($content);
     } elsif ( $algorithm eq 'bmw-L13-b32' ) {
         open my $fh, '<:raw', $path
             or return { 'mode' => 'false', 'data' => 'cannot read file' };
         my $content = do { local $/; <$fh> };
         close $fh;
-        $checksum = <[base.chk-sum.bmw.str-b32.L13]>->($content);
+        $checksum = <[chk-sum.bmw.str-b32.L13]>->($content);
     } elsif ( $algorithm eq 'amos' ) {
         $checksum = <[base.chk-sum.amos]>->($path);
     } else {
@@ -106,8 +106,8 @@ return sub {
     };
 };
 
-#,,..,.,,,,,.,...,,..,.,,,,,,,.,.,..,,,..,..,,..,,...,...,..,,.,,,,,,,,..,,..,
-#W55BHAIB6FBRJYC6RRWOON2VVUR5TNNCPZJ4OOVPDRKUTRT4LYPN6QCQVIA6B2JADDXVIEVGJIN36
-#\\\|PI7ULBXH6EKZEPJI5H4SVIN3PSQEQNIP7OCP75APH67ONLLL2UM \ / AMOS7 \ YOURUM ::
-#\[7]SHQYSNZJ47U2UX5HFM4CHRFZG366R6FM32TTUY2W2TIAFIFAIKDQ 7  DATA SIGNATURE ::
+#,,.,,,..,,..,..,,,.,,..,,..,,,..,.,,,.,.,.,.,..,,...,...,.,,,,,,,,,,,...,,.,,
+#N4XHPQNX47TLVHFP4APXJIMCSMV6QOFF4PZJKYI4ONELY466YFEU2EVEL2MJ7FVUTQJTDZSBY6BJG
+#\\\|OUXEVBEADS5TYPCNJYEVTPXFUIG47C22FTK75KL6GAYA2HLKBSI \ / AMOS7 \ YOURUM ::
+#\[7]OXSSEQEXMHOIW4PBACGATRNT2V5O7AVYVPZ37623IHJSW7CILUDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

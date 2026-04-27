@@ -23,13 +23,13 @@ for my $item (@$items) {
         my $bin = <[base.decode.bmw-L13]>->( $item->{'checksum'} );
         $num = unpack( 'Q>', $bin . "\0\0" ) >> 8 if $bin;    # 56-bit
     } elsif ( $item->{'path'} ) {
-        my $hash = <[base.chk-sum.bmw.L13-str]>->( $item->{'path'} );
+        my $hash = <[chk-sum.bmw.L13-str]>->( $item->{'path'} );
         $num = hex( substr( $hash, 0, 14 ) );
     } else {
 
         # Use item hash
         my $data = join( '', map { $item->{$ARG} // '' } sort keys %$item );
-        my $hash = <[base.chk-sum.bmw.L13-str]>->($data);
+        my $hash = <[chk-sum.bmw.L13-str]>->($data);
         $num = hex( substr( $hash, 0, 14 ) );
     }
 
@@ -83,8 +83,8 @@ return \@colored;
 
 # SPDX-License-Identifier: ISC
 
-#,,,.,.,.,...,.,.,,..,,,,,,,.,.,.,...,,..,..,,..,,...,...,.,.,.,.,.,.,,..,..,,
-#Q75U3MALP2YERFJORSWARCI4XUV5GV24KDMHKHQYKQXV4RB6YB3UE636DVNZTDCI3OW7TZLKRMLHE
-#\\\|GIA2RZPQOW7LDFCME2MUUFJ2LNNDDGQJML446FTNLB45DVA4TBY \ / AMOS7 \ YOURUM ::
-#\[7]CGJ4IB7KGNF67H7T6J3MEQLXTN27XQ6SLU3YULWFS5D4N2DY7EBI 7  DATA SIGNATURE ::
+#,,,.,,..,,,.,...,.,.,,,.,,..,,.,,,..,,,.,,..,..,,...,...,...,,,.,..,,..,,,,,,
+#6SRWMLHQTNBALNWCMKVQ4L5LB65HH3JSLSXID2KRXMHLH5INHXHQ2KFIE3B77CHJLWBYE2TXQUE4M
+#\\\|I5XFZSJYFWUUPRTAJPGHHW7LEPLXNJEOH2QSYT6FSAPFG2NMMZ6 \ / AMOS7 \ YOURUM ::
+#\[7]BT6BOVMZA2ZSDTG3OMFQDTQ57IIHZQMS6GKBT32SSPN4NG6H3SAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
