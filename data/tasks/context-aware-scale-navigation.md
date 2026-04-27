@@ -98,14 +98,53 @@ mousewheel clears zoomTargetZoom immediately (already implemented this session).
 
 do NOT add stub signature lines to new or modified files.
 
+## three-layer abstraction model
+
+interaction depth mirrors abstraction depth — click speed and target encode
+which layer you want to work at, no mode buttons needed:
+
+  space / content    — base reality, what things are, data values
+  proximity grouping — first abstraction, spatial relationship, the grid
+  frame / code       — second abstraction, explicit structure, connections
+
+### click semantics across layers
+
+- single click in space/content → interact with content directly (move, select)
+- single click on frame edge    → select that frame, enter frame-interaction mode
+- double click on frame         → switch to frame-structure mode: connections,
+                                   dependencies, what the frame is bound to
+- single click into content area inside frame → offer content selection first
+- fast second click or double   → exit frame mode, back to space interaction
+
+content is part of space. frame is abstraction from it. you never choose a mode
+from a menu — click target + click speed encode the abstraction level.
+
+### mapping to P7 topology
+
+- space/content       → data values in the namespace tree, zenka state
+- proximity grouping  → zenka neighborhoods, orbital shells, grid layers
+- frame/code          → module definitions, zenka start files, the code
+                        that shapes behavior
+
+double-clicking into a zenka's orbital shell inspects its code/connections.
+single-clicking back out returns to the data space it operates on.
+a module IS a callable region of the namespace — the frame around behavior.
+
+### touch equivalents
+
+- tap            = single click
+- double-tap     = double click (enter frame-structure mode)
+- tap-hold       = reserved for context menu / long-press actions
+- drag from frame edge = move/resize frame structure
+
 ## assignee
 
 claude (JS/HTML work) — once grid has more functional distinction between layers,
 extend to include grid-layer drag coupling. touch events can be wired in the
 same pass as the click resolver.
 
-#,,.,,,,,,..,,,..,,..,...,,,.,.,,,.,,,..,,,,.,..,,...,..,,,..,,.,,,,,,.,.,...,
-#LLL6IE2LQVFNVFBL6CWU76BVLY5UZTYVL3HUH4HFVBNTW2RSQBPBGEKWC22FM6PQQIXIOV2PA7UCO
-#\\\|DY7WJAPAJXGW4D5A3ZGWJGQSKW3URQ7HGZJ6IEQTE4EZLAJCMJT \ / AMOS7 \ YOURUM ::
-#\[7]HOKJ7AKOI2YRS5G43D3BABIXC5NEW2WK7C4Z5YT3Z5YDRZJOUCDI 7  DATA SIGNATURE ::
+#,,,.,,,.,,.,,.,,,.,,,...,.,,,,,,,,,.,,,.,.,,,..,,...,...,,..,,,.,..,,..,,...,
+#3BS75H2QRXLJ4DPFXBJVTK7XBTADE233EIW6XPZZSF7JYGJOCOFGXEAQHQDBFPJXPLJTQ2FP7M37U
+#\\\|K56XJVD24I4GIUOWOMNN42E7S42YUEGUKNGEU4Y3A5VY2VFLETF \ / AMOS7 \ YOURUM ::
+#\[7]6IKSFK4LLW5BNPP6XFMKL32WQUPMVAIPWVGODXYK2565XDMGK4BY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
