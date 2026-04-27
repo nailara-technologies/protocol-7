@@ -6,6 +6,18 @@
 
 my ($cmd) = @ARG;
 
+## strip leading :template-name: prefix and promote to type ##
+## example: ":bug-fix: investigate kimi approval reconnect" ##
+if ( $cmd =~ s{^:([\w-]+):\s*}{} ) {
+    my $forced_type = $1;
+    return {
+        type        => $forced_type,
+        description => $cmd,
+        constraints => [],
+        source      => qw| console |
+    };
+}
+
 ## Simple command parsing: "type: description | constraints"
 #
 # Example: "code-generation: Create Whisper module | Protocol-7 compatible,
@@ -34,8 +46,8 @@ return {
     description => $cmd
 };
 
-#,,,,,...,,,,,..,,.,,,..,,,..,...,..,,,..,,,.,..,,...,...,,,.,...,,,,,,,,,,.,,
-#SKXTYHG3QW32BQSBNN7LO7JI2T2NXT7LQ5DSGL3FGANE5MPADDVP7E2TT2WCPOGVDD7Q2V4YSZFC4
-#\\\|44HZRWNLFTGTC5KC6HL36ZBDWKG3RHFU6UMELJLMH564LONVS7S \ / AMOS7 \ YOURUM ::
-#\[7]6SDMS7CHLW47XU2GIH6D26QQ3AIIWZAQAO7OJYM2K3BC6Y4RI6AY 7  DATA SIGNATURE ::
+#,,,.,..,,,..,.,.,.,,,...,,,,,,,.,,,,,,..,.,.,..,,...,..,,..,,...,,.,,,.,,...,
+#AJCHWRERICQOWSD2KGWDXLMQIRTO6WSSRGPZVZZR4NLKNBVJQNDM43ON3TQQH7ZZI4GOD5D5R34E4
+#\\\|F4YDL6CYQIVEQKQLAMNCVID5YIZQIMF3YAP56QK3PY3QYZYPFSF \ / AMOS7 \ YOURUM ::
+#\[7]56FZW2TUOKQYYVKDSBXJ2MO5MVK7JW7PAUBULNJKAL3DA4WAFWDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
