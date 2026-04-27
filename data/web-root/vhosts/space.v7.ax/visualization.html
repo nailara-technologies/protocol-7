@@ -126,7 +126,7 @@
             Wheel = zoom | Ctrl+Wheel = focal<br>
             Drag = rotate | ←→↑↓ = move cursor<br>
             PgUp/Dn = vertical | Space = auto-rotate<br>
-            F = follow | C = center | B = buttons<br>
+            F = follow | C = center | B = buttons | G = cursor<br>
             I = toggle info panel
         </p>
     </div>
@@ -227,6 +227,7 @@
 
         // === SELECTION (integer grid coordinates - unlimited) ===
         let selX = 0, selY = 0, selZ = 0;
+        let showCursor = true;
 
         // === CAMERA (floating point, lazy follows selection) ===
         let camX = 0, camY = 0, camZ = 0;
@@ -1160,26 +1161,25 @@
             ctx.restore();
         }
 
-        function updateCursorSnap() {
+        let cursorNearestDist = Infinity;
+
+        function updateCursorNearest() {
             const od = navOrbitalData || orbitalData;
             const nodes = [];
             if (od.self && od.self.p7ref) nodes.push(od.self);
             if (od.known) nodes.push(...od.known);
 
+            const cx = selX * FORMATION_SPACING;
+            const cy = selY * FORMATION_SPACING;
+            const cz = selZ * FORMATION_SPACING;
+            let best = Infinity;
             for (const node of nodes) {
                 const pos = p7refToCoords(node.p7ref, 0, 0, 0, 140);
-                const ngX = Math.round(pos.x / FORMATION_SPACING);
-                const ngY = Math.round(pos.y / FORMATION_SPACING);
-                const ngZ = Math.round(pos.z / FORMATION_SPACING);
-                if (Math.abs(selX - ngX) <= 1 && Math.abs(selY - ngY) <= 1 && Math.abs(selZ - ngZ) <= 1) {
-                    selX = ngX;
-                    selY = ngY;
-                    selZ = ngZ;
-                    selectedNodeP7ref = node.p7ref;
-                    return true;
-                }
+                const dx = cx - pos.x, dy = cy - pos.y, dz = cz - pos.z;
+                const d = Math.sqrt(dx*dx + dy*dy + dz*dz);
+                if (d < best) best = d;
             }
-            return false;
+            cursorNearestDist = best;
         }
 
         function drawCursor(now) {
@@ -1192,24 +1192,7 @@
             const projected = cube.vertices.map(v => project(v));
             if (projected.some(p => p === null)) return;
 
-            let isSnapped = false;
-            if (selectedNodeP7ref) {
-                const od = navOrbitalData || orbitalData;
-                const nodes = [];
-                if (od.self && od.self.p7ref) nodes.push(od.self);
-                if (od.known) nodes.push(...od.known);
-                for (const node of nodes) {
-                    if (node.p7ref !== selectedNodeP7ref) continue;
-                    const pos = p7refToCoords(node.p7ref, 0, 0, 0, 140);
-                    const ngX = Math.round(pos.x / FORMATION_SPACING);
-                    const ngY = Math.round(pos.y / FORMATION_SPACING);
-                    const ngZ = Math.round(pos.z / FORMATION_SPACING);
-                    if (selX === ngX && selY === ngY && selZ === ngZ) {
-                        isSnapped = true;
-                    }
-                    break;
-                }
-            }
+            const isSnapped = !!selectedNodeP7ref;
 
             const pulse = 0.5 + 0.5 * Math.sin(now * 2.1);
             const color = isSnapped ? '255, 200, 50' : '80, 180, 255';
@@ -1740,8 +1723,8 @@
 
             // === CURSOR ===
             const cursorNow = performance.now() / 1000;
-            updateCursorSnap();
-            drawCursor(cursorNow);
+            updateCursorNearest();
+            if (showCursor) drawCursor(cursorNow);
 
             // === ORBITAL LAYERS ===
             updateLayerWeights();
@@ -1834,21 +1817,7 @@
 
             document.getElementById('zoomD').textContent = `${zoomText}`;
             document.getElementById('focalD').textContent = Math.round(focalLength);
-            const od = navOrbitalData || orbitalData;
-            const nodes = [];
-            if (od.self && od.self.p7ref) nodes.push(od.self);
-            if (od.known) nodes.push(...od.known);
-            let nearestDist = Infinity;
-            const cwx = selX * FORMATION_SPACING;
-            const cwy = selY * FORMATION_SPACING;
-            const cwz = selZ * FORMATION_SPACING;
-            nodes.forEach(node => {
-                const pos = p7refToCoords(node.p7ref, 0, 0, 0, 140);
-                const dx = pos.x - cwx, dy = pos.y - cwy, dz = pos.z - cwz;
-                const dist = Math.sqrt(dx*dx + dy*dy + dz*dz);
-                if (dist < nearestDist) nearestDist = dist;
-            });
-            const distText = nearestDist === Infinity ? '—' : nearestDist.toFixed(0);
+            const distText = cursorNearestDist === Infinity ? '—' : cursorNearestDist.toFixed(0);
             document.getElementById('selD').textContent = `${selX}, ${selY}, ${selZ} | nearest: ${distText}u`;
             document.getElementById('camD').textContent = `${camX.toFixed(2)}, ${camY.toFixed(2)}, ${camZ.toFixed(2)}`;
             document.getElementById('velD').textContent = velocity.toFixed(3);
@@ -2025,6 +1994,10 @@
                     ctrl.style.display = ctrl.style.display === 'none' ? '' : 'none';
                     break;
                 }
+                case 'g': case 'G':
+                    e.preventDefault();
+                    showCursor = !showCursor;
+                    break;
             }
         });
 
