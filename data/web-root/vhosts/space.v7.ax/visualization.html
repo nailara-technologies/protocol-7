@@ -257,8 +257,6 @@
 
         // === SELECTION (integer grid coordinates - unlimited) ===
         let selX = 0, selY = 0, selZ = 0;
-        let showCursor = true;
-
         // === CAMERA (floating point, lazy follows selection) ===
         let camX = 0, camY = 0, camZ = 0;
         let prevCamX = 0, prevCamY = 0, prevCamZ = 0;
@@ -1212,52 +1210,6 @@
             cursorNearestDist = best;
         }
 
-        function drawCursor(now) {
-            const cursorSize = CUBE_SIZE * 0.4;
-            const cx = (selX - camX) * FORMATION_SPACING;
-            const cy = (selY - camY) * FORMATION_SPACING;
-            const cz = (selZ - camZ) * FORMATION_SPACING;
-
-            const cube = createCube(cursorSize, cx, cy, cz);
-            const projected = cube.vertices.map(v => project(v));
-            if (projected.some(p => p === null)) return;
-
-            const isSnapped = !!selectedNodeP7ref;
-
-            const pulse = 0.5 + 0.5 * Math.sin(now * 2.1);
-            const color = isSnapped ? '255, 200, 50' : '80, 180, 255';
-            const alpha = isSnapped ? 0.9 : 0.6 * pulse;
-
-            const avgX = projected.reduce((s, p) => s + p.x, 0) / projected.length;
-            const avgY = projected.reduce((s, p) => s + p.y, 0) / projected.length;
-
-            ctx.save();
-            ctx.globalCompositeOperation = 'screen';
-
-            const haloRadius = Math.max(10, cursorSize * zoom * 1.5);
-            const gradient = ctx.createRadialGradient(avgX, avgY, 0, avgX, avgY, haloRadius);
-            gradient.addColorStop(0, `rgba(${color}, ${alpha * 0.35})`);
-            gradient.addColorStop(1, 'rgba(0, 0, 0, 0)');
-            ctx.fillStyle = gradient;
-            ctx.beginPath();
-            ctx.arc(avgX, avgY, haloRadius, 0, Math.PI * 2);
-            ctx.fill();
-
-            ctx.strokeStyle = `rgba(${color}, ${alpha})`;
-            ctx.lineWidth = 1.5;
-            ctx.beginPath();
-            cube.edges.forEach(([i, j]) => {
-                const a = projected[i], b = projected[j];
-                if (a && b) {
-                    ctx.moveTo(a.x, a.y);
-                    ctx.lineTo(b.x, b.y);
-                }
-            });
-            ctx.stroke();
-
-            ctx.restore();
-        }
-
         function drawOrbitalNodes() {
             if (!orbitalShowNodes) return;
             const od = navOrbitalData || orbitalData;
@@ -1752,9 +1704,7 @@
             ctx.globalCompositeOperation = 'source-over';
 
             // === CURSOR ===
-            const cursorNow = performance.now() / 1000;
             updateCursorNearest();
-            if (showCursor) drawCursor(cursorNow);
 
             // === ORBITAL LAYERS ===
             updateLayerWeights();
@@ -2033,10 +1983,7 @@
                     sliders.style.display = hidden ? '' : 'none';
                     break;
                 }
-                case 'g': case 'G':
-                    e.preventDefault();
-                    showCursor = !showCursor;
-                    break;
+
             }
         });
 
