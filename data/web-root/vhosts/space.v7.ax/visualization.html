@@ -1835,7 +1835,10 @@
         }
 
         // === MOUSE ===
+        canvas.addEventListener('contextmenu', e => e.preventDefault());
+
         canvas.addEventListener('mousedown', e => {
+            if (e.button !== 0) return;
             isDragging = true;
             dragMoved = false;
             dragStartX = e.clientX;
@@ -1862,6 +1865,7 @@
         });
 
         canvas.addEventListener('mouseup', e => {
+            if (e.button !== 0) return;
             if (!dragMoved) {
                 // click — zoom to nearest node if within range
                 const od = navOrbitalData || orbitalData;
@@ -1961,6 +1965,8 @@
 
         // === KEYBOARD ===
         document.addEventListener('keydown', e => {
+            if (document.activeElement && document.activeElement !== document.body)
+                document.activeElement.blur();
             switch (e.key) {
                 case ' ':
                     e.preventDefault();

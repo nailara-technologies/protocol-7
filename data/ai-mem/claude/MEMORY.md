@@ -55,6 +55,7 @@
 - `topic-buffer-access-control.md` — per-buffer-name ACL deferred; revisit when 3+ zenki expose buffers via show-buffer
 - `topic-orbital-data-space.md` — full orbital field theory: nested orbits, EM coupling, holographic nexus, 5-of-7 formation, spiral cylinder, CCW counting, 3-phase cycle, mothership/zenki-stations, layer masks, curve engine, game engines as consumers
 - `topic-vhost-install.md` — httpd vhost install infrastructure: DNS-gated symlink/copy, letsencr TLS, space.v7.ax live with orbital.json+templates.json+visualization.html; key fixes + open items
+- `topic-cursor-model.md` — true cursor emerges from hyperspace plane line density (not drawn); glow=influence gradient; liquid crystal desktop; brightness-only color model; next: remove wireframe cube, queue glow task
 
 ## File Creation Notes (CRITICAL)
 - **Never add** the single-line `#,,.,,,...` stub at end of new files
@@ -301,8 +302,8 @@
 - Pattern: `my @non_num = grep { defined $data_ref->{$ARG}->{$key} and not looks_like_number(...) } keys $data_ref->%*`
 - Global `$SIG{__WARN__}` exists — if wrapping warn handler, capture `$prev_warn = $SIG{__WARN__}` first and call through
 
-#,,..,.,.,,,,,.,.,...,,.,,...,,,.,.,,,,..,,..,..,,...,...,..,,.,,,,,,,,.,,...,
-#3MTXJIBLROECXCXN6Y22QT3WPPRJYRQKZDVU6M2HKERBGLIHKI3YEEOQASB66BKKUYDGLRVPG7VGO
-#\\\|NXIWIAYV5SBID74AJ7PPMIDDIEIPCP424KTMPTOIYV2GYZUATPU \ / AMOS7 \ YOURUM ::
-#\[7]2UPF4KINALO2XYNFNYW3LUU4U7HLXJVIC6TFADSN2HFOH2DJQMAY 7  DATA SIGNATURE ::
+#,,..,,,.,,.,,,,,,,..,...,.,.,.,,,..,,,,,,.,,,..,,...,...,...,,.,,,..,,..,.,.,
+#LPSXRN36R6FOIZALC7TTMALUTFNUDFUJZJYAAVTMVLQ3IPGX73R3C6Q46IPEQQO7CJYCHRNYDUCIS
+#\\\|UUVR6VGU65JFQIGLCSBTSVDGNHILLQF73ACNOCKHHRWEUWAWVKV \ / AMOS7 \ YOURUM ::
+#\[7]CKTH377SHGMNTSSZV7725CTNEJLAIWL66SKIMSDE5ZJ64X5436BI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
