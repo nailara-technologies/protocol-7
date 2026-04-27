@@ -1,0 +1,65 @@
+## [:< ##
+
+# name  = plugin.web.attention.blend
+# descr = compute current blended attention parameter set
+
+my $stack  = <web.attention.stack>  // [];
+my $states = <web.attention.states> // {};
+
+return {} unless @$stack;
+
+my $top    = $stack->[-1];
+my $name   = $top->{'name'}   // qw| ambient |;
+my $params = $top->{'params'} // {};
+
+my $state_def = $states->{$name} // $states->{'ambient'} // {};
+
+## start with state definition defaults ##
+my $blend = {
+    qw| name              | => $name,
+    qw| camera_target     | =>
+        ( $state_def->{'camera_target'} // qw| free | ),
+    qw| zoom_envelope     | =>
+        { ( $state_def->{'zoom_envelope'} // {} )->%* },
+    qw| layer_overrides   | =>
+        { ( $state_def->{'layer_overrides'} // {} )->%* },
+    qw| curve_set         | => ( $state_def->{'curve_set'} // qw| ambient | ),
+    qw| follow_speed      | => ( $state_def->{'follow_speed'}      // undef ),
+    qw| transition_budget | => ( $state_def->{'transition_budget'} // 1.0 ),
+    qw| stack_depth       | => scalar(@$stack),
+};
+
+## apply param overrides ##
+$blend->{'camera_target'} = $params->{'camera_target'}
+    if exists $params->{'camera_target'};
+$blend->{'curve_set'} = $params->{'curve_set'}
+    if exists $params->{'curve_set'};
+$blend->{'follow_speed'} = $params->{'follow_speed'}
+    if exists $params->{'follow_speed'};
+$blend->{'transition_budget'} = $params->{'transition_budget'}
+    if exists $params->{'transition_budget'};
+
+if ( exists $params->{'zoom_envelope'}
+    and ref $params->{'zoom_envelope'} eq qw| HASH | ) {
+    $blend->{'zoom_envelope'}
+        = { $blend->{'zoom_envelope'}->%*, $params->{'zoom_envelope'}->%*, };
+}
+
+if ( exists $params->{'layer_overrides'}
+    and ref $params->{'layer_overrides'} eq qw| HASH | ) {
+    $blend->{'layer_overrides'} = {
+        $blend->{'layer_overrides'}->%*,
+        $params->{'layer_overrides'}->%*,
+    };
+}
+
+## store current blend ##
+<web.attention.current_blend> = $blend;
+
+return $blend;
+
+#,,.,,,,.,.,.,,.,,,,,,,,.,,..,,.,,,..,,,,,...,..,,...,...,.,.,,..,..,,,.,,.,.,
+#FCDOHKKV4YSUDWHRYPREILSDMGSXFYEF4J6OCHURLIY47JDMRT5BWBKQQZKKHAGWUGSBRQLWM2U3C
+#\\\|XR4UWSOKBOPNZDCQC3H6G7SCM7LAOZHRSZPMASKQR6SBWIOXCDM \ / AMOS7 \ YOURUM ::
+#\[7]MWCHUWDPC5WXVVXKZOHM2XSSTG5CBUZQTTQKIMZUIYS3JXX6KOCY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

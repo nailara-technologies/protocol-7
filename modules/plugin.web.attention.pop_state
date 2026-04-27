@@ -1,0 +1,26 @@
+## [:< ##
+
+# name  = plugin.web.attention.pop_state
+# descr = pop the top state from the attention stack
+
+return { qw| error | => qw| stack empty | }
+    unless <web.attention.stack>->@* > 1;
+
+pop <web.attention.stack>->@*;
+
+my $top = <web.attention.stack>->[-1] // {};
+
+<[base.log]>->(
+    3, qq| attention pop_state: | . ( $top->{'name'} // qw| unknown | )
+);
+
+return {
+    qw| name        | => ( $top->{'name'} // qw| ambient | ),
+    qw| stack_depth | => scalar( <web.attention.stack>->@* ),
+};
+
+#,,.,,.,,,..,,.,.,,..,.,.,,..,.,.,.,.,..,,.,.,..,,...,...,.,,,...,,..,,,.,...,
+#MPWOPCFM6DUQEXM2DLA6PBPKVSGSTVG6B3M6L255QBPXL33755UCGHY3YMZAVFD64UA3HCTWVEMN6
+#\\\|D2WLMGVOGQAFW3HSL2ZHZOQNV3TGKXWHS66OGVFSHO6TX46M6XF \ / AMOS7 \ YOURUM ::
+#\[7]QMLNXAKBKDYMDPENFPXYVABRVECXY63UUU3ZLVGQ2MFATSYGB6BA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
