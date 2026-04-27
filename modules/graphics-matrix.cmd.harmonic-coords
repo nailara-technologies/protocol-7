@@ -1,22 +1,24 @@
 ## [:< ##
 
 # name  = graphics-matrix.cmd.harmonic-coords
-# descr = show 3D harmonic coordinates for input
+# descr = show 3D harmonic voxel coordinates for an input string
 # param = <input-string>
 
 my $input = $call->{'args'} // '';
-return { 'mode' => 'false', 'data' => 'expected input' }
+return { 'mode' => 'false', 'data' => 'expected input string' }
     unless length $input;
 
 my ( $x, $y, $z ) = <[graphics-matrix.harmonic.coords]>->( \$input );
 
-return {
-    'mode' => 'size',
-    'data' => sprintf( "x: %s  y: %s  z: %s", $x, $y, $z )
-};
+my $out = sprintf "x: %s  y: %s  z: %s", $x, $y, $z;
+$out .= '  [ y=z axis agreement ]' if $y eq $z;
+$out .= '  [ x=y axis agreement ]' if $x eq $y;
+$out .= '  [ x=z axis agreement ]' if $x eq $z;
 
-#,,.,,,..,..,,.,.,.,.,...,,.,,.,.,.,,,,,,,,,.,..,,...,...,,.,,.,,,,.,,,,.,.,.,
-#5RRZXL67GDQ6FNNJZZPWNJMH2AIATEYSM5CAB3A7HKO5EJVM6RV7IPBE4764RN76XC5Y2KD4ZVWCA
-#\\\|74VDQTBWDJP4NEZSRY56BJR3ZJRMDC3WU6XMNRHDNN4BJNC3A23 \ / AMOS7 \ YOURUM ::
-#\[7]CXC43ZUDJMXT3MWGU3BWPPDFNO6LDH7GB5MT5E4ICR7I5UX27EDQ 7  DATA SIGNATURE ::
+return { 'mode' => 'size', 'data' => $out };
+
+#,,,.,,,,,...,.,,,...,.,,,..,,.,,,.,,,.,.,..,,..,,...,...,..,,,..,,..,.,,,.,.,
+#I3HPFZUEJTXTW66I5TBEK2TJYC7LX5ZVGC55IAI7MYLMS46ONFPLOG4HBKODSI4JXGJPOHYTCMXJK
+#\\\|4EVTFWB27R3KZJ7YFMV5M2BE5U2I4NX3P55VLH4N5ZD2M547W6R \ / AMOS7 \ YOURUM ::
+#\[7]WYW3KVVMWDQUFMARHOBYJTBCOLA5F6CCFBXSI74XU4TL2XAW44BI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
