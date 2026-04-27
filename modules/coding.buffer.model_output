@@ -23,7 +23,11 @@ if ( $tool eq 'stream_chunk' ) {
     @lines = split( /\n/, $content );
 } elsif ( $tool eq 'input' ) {
     ##  user input: highlighted header  ##
-    my $header = sprintf( '┌──[ user | round %s ]%s', $round, '─' x 40 );
+    my $header = sprintf(
+        '┌──[ user | round %s %s ]%s',
+        $round, $context->{'pct'} ? '[CTX:' . $context->{'pct'} . '%]' : '',
+        '─' x 40
+    );
     push @lines, $header;
     $content =~ s|\r||g;
     my @content_lines = split( /\n/, $content );
@@ -33,7 +37,11 @@ if ( $tool eq 'stream_chunk' ) {
     push @lines, '└' . '─' x 50;
 } elsif ( $tool eq 'model' ) {
     ##  model response: highlighted header  ##
-    my $header = sprintf( '┌──[ assistant | round %s ]%s', $round, '─' x 36 );
+    my $header = sprintf(
+        '┌──[ assistant | round %s %s]%s',
+        $round, $context->{'pct'} ? '[CTX:' . $context->{'pct'} . '%] ' : '',
+        '─' x 36
+    );
     push @lines, $header;
     $content =~ s|\r||g;
     my @content_lines = split( /\n/, $content );
@@ -66,8 +74,8 @@ foreach my $line (@lines) {
 
 return TRUE;
 
-#,,.,,,..,,,,,,,,,.,.,..,,.,.,,..,,,.,,,,,,,,,..,,...,...,.,.,...,,..,.,,,..,,
-#BJ3BZRB2GUUO3URELMBTFDJK4FLDEWPAHAXYKHWHIGZVALPV5ZWUBSFAHZX5SA4UCYXWFCX6T5O44
-#\\\|XYDFTOSO5KZA6R3CCMCNZ5VGTOKST6QAILWXALMGOO73SHKCLAJ \ / AMOS7 \ YOURUM ::
-#\[7]NIF5MGXTGC7OICQ7FO6C6BJEGYPS4YEQIV4IWUWX3KQ6E6UZCEAA 7  DATA SIGNATURE ::
+#,,..,.,.,...,.,,,,.,,.,.,,..,,,,,,..,...,..,,..,,...,...,,..,,,,,.,.,.,,,.,,,
+#TNAJBAHAZXT3RNPXDI7FZQ4PLEKOH7H7CYMSAUB3BA6FNSNZUHCBLOF5OBFOMQA4KDYEPVVMWAXBE
+#\\\|K56N6TTUBTMBN57P45D4TOY7YLXQIFAE5DR467RYSHAXMSCT5W7 \ / AMOS7 \ YOURUM ::
+#\[7]NIDRZNE6KXFXWT4F4AT3UTVVTV74EF36PLLH45BIMB3WDHCKYIBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
