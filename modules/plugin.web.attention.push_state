@@ -1,0 +1,34 @@
+## [:< ##
+
+# name  = plugin.web.attention.push_state
+# descr = push a new state onto the attention stack
+
+my $name   = shift // '';
+my $params = shift // {};
+
+$params = {} unless ref $params eq qw| HASH |;
+
+my $states = <web.attention.states> // {};
+return { qw| error | => qq| unknown state '$name' | }
+    unless exists $states->{$name};
+
+my $entry = {
+    qw| name      | => $name,
+    qw| params    | => $params,
+    qw| pushed_at | => time(),
+};
+
+push <web.attention.stack>->@*, $entry;
+
+<[base.log]>->( 3, qq| attention push_state: $name | );
+
+return {
+    qw| name        | => $name,
+    qw| stack_depth | => scalar( <web.attention.stack>->@* ),
+};
+
+#,,..,,,.,,,.,..,,,..,,..,,..,,..,,.,,..,,...,..,,...,...,,..,,,,,...,.,,,,.,,
+#BGRLIFX6YAJXHBDVEG7MS5WMPLX3TTUU7MPQ4B2VRYAXACJ7B4HXZEIYVRQKDF6BFDDBW565JZ2CU
+#\\\|AIAGPYCJAOKC5LBUWZHRQ5HVL6V4AVSTFNKZSL2LNTPDEP76WH3 \ / AMOS7 \ YOURUM ::
+#\[7]GSL7GXEYWLG7GL7OYU46SRLTZMOH53OHVHAP5CGKDENGYA7KMWDY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
