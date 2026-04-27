@@ -166,7 +166,7 @@
     <div class="nav-breadcrumb" id="navBreadcrumb">
         <span class="back-btn" onclick="navPop()">◂ back</span>
         <span class="nav-path" id="navPath">root</span>
-        <span class="nav-depth">depth <span id="navDepthLabel">0</span></span>
+        <span class="nav-depth">depth <span id="navDepthLabel">0</span>/4</span>
     </div>
 
     <div class="controls" id="controls">
@@ -295,8 +295,10 @@
         const ZOOM_CLOSE = 2.5, ZOOM_OVERVIEW = 0.8;
 
         // === RECURSIVE NAVIGATION ===
-        let navStack = []; // [{ p7ref, label, snapshot }]
+        let navStack = []; // [{ scaleLevel, contextP7ref, rotX, rotY, manualZoom, label, snapshot }]
         let navOrbitalData = null; // mock data for current nav depth (null = root)
+        let clickTimer = null;
+        let lastClickTime = 0;
         const tooltip = document.getElementById('nodeTooltip');
         document.addEventListener('mousemove', e => { mouseX = e.clientX; mouseY = e.clientY; });
 
@@ -874,6 +876,26 @@
             return nodes;
         }
 
+        function getNearestNode(clientX, clientY, threshold) {
+            const od = navOrbitalData || orbitalData;
+            const self = od.self || {};
+            const allRendered = [];
+            if (self.p7ref) allRendered.push({ node: { ...self, type: 'self' }, pos: p7refToCoords(self.p7ref, 0, 0, 0, 140) });
+            (od.known || []).forEach(n => allRendered.push({ node: { ...n, type: 'known' }, pos: p7refToCoords(n.p7ref, 0, 0, 0, 140) }));
+            (od.nameserv || []).forEach(n => allRendered.push({ node: { ...n, type: 'nameserv' }, pos: p7refToCoords(n.p7ref, 0, 0, 0, 280) }));
+            let nearest = null, nearDist = threshold || 40;
+            const rect = canvas.getBoundingClientRect();
+            allRendered.forEach(({ node, pos }) => {
+                const proj = project(pos);
+                if (!proj) return;
+                const dx = clientX - rect.left - proj.x;
+                const dy = clientY - rect.top - proj.y;
+                const d = Math.sqrt(dx*dx + dy*dy);
+                if (d < nearDist) { nearDist = d; nearest = { node, pos }; }
+            });
+            return nearest;
+        }
+
         function updateBreadcrumb() {
             const el = document.getElementById('navBreadcrumb');
             const depthEl = document.getElementById('navDepthLabel');
@@ -889,12 +911,22 @@
         }
 
         function navPush(node) {
+            if (navStack.length >= 4) return; // max depth 5 levels [0..4]
             const parentData = navOrbitalData || orbitalData;
             navStack.push({
-                p7ref: node.p7ref,
+                scaleLevel: navStack.length,
+                contextP7ref: node.p7ref,
+                rotX: rotX,
+                rotY: rotY,
+                manualZoom: manualZoom,
                 label: node.hostname || (node.p7ref || '').split(':')[1] || 'node',
                 snapshot: { ...parentData }
             });
+            // Zoom in 2x with kick
+            zoomTargetZoom = manualZoom * 2;
+            manualZoom += (zoomTargetZoom - manualZoom) * CURVES.ZOOM_KICK;
+            zoomTargetRotX = rotX;
+            zoomTargetRotY = rotY;
             // fetch real context data
             fetch('/orbital.json?context=' + encodeURIComponent(node.p7ref))
                 .then(r => r.json())
@@ -915,17 +947,22 @@
                 });
             updateBreadcrumb();
             selectedNodeP7ref = null;
-            zoomTargetZoom = ZOOM_OVERVIEW;
         }
 
         function navPop() {
             if (!navStack.length) return;
-            navStack.pop();
+            const popped = navStack.pop();
             navOrbitalData = navStack.length > 0 ? navStack[navStack.length - 1].snapshot : null;
             nodeHistory = {};
+            // Restore view state from popped frame
+            if (popped) {
+                zoomTargetRotX = popped.rotX;
+                zoomTargetRotY = popped.rotY;
+                zoomTargetZoom = popped.manualZoom;
+                manualZoom += (zoomTargetZoom - manualZoom) * CURVES.ZOOM_KICK;
+            }
             updateBreadcrumb();
             selectedNodeP7ref = null;
-            zoomTargetZoom = ZOOM_OVERVIEW;
         }
 
         function drawGhostNodes(snapshot, alpha) {
@@ -941,7 +978,7 @@
                 if (!proj) return;
                 const isSelf = node.p7ref === self.p7ref;
                 const c = isSelf ? '100,200,255' : '80,120,200';
-                ctx.fillStyle = `rgba(${c},${alpha * 0.35})`;
+                ctx.fillStyle = `rgba(${c},${alpha})`;
                 ctx.beginPath();
                 ctx.arc(proj.x, proj.y, isSelf ? 4 : 2.5, 0, Math.PI * 2);
                 ctx.fill();
@@ -1848,69 +1885,67 @@
             rotZ = dragStartRotZ + diag * 0.7;
         });
 
-        canvas.addEventListener('mouseup', e => {
-            if (e.button !== 0) return;
-            if (!dragMoved) {
-                // click — zoom to nearest node if within range
-                const od = navOrbitalData || orbitalData;
-                const self = od.self || {};
-                const connectedP7refs = new Set((od.connections || []).map(c => c.p7ref));
-                const allRendered = [];
-                if (self.p7ref) allRendered.push({ node: self, pos: p7refToCoords(self.p7ref, 0, 0, 0, 140) });
-                (od.known || []).forEach(n => allRendered.push({ node: n, pos: p7refToCoords(n.p7ref, 0, 0, 0, 140) }));
-                (od.nameserv || []).forEach(n => allRendered.push({ node: n, pos: p7refToCoords(n.p7ref, 0, 0, 0, 280) }));
-                let nearest = null, nearDist = 40;
-                allRendered.forEach(({ node, pos }) => {
-                    const proj = project(pos);
-                    if (!proj) return;
-                    const rect = canvas.getBoundingClientRect();
-                    const dx = e.clientX - rect.left - proj.x;
-                    const dy = e.clientY - rect.top  - proj.y;
-                    const d = Math.sqrt(dx*dx + dy*dy);
-                    if (d < nearDist) { nearDist = d; nearest = { node, pos }; }
-                });
-                if (nearest) {
-                    const { node, pos } = nearest;
-                    zoomTargetRotY = Math.atan2(pos.x, pos.z) * 180 / Math.PI;
-                    zoomTargetRotX = Math.atan2(pos.y, Math.sqrt(pos.x*pos.x + pos.z*pos.z)) * 180 / Math.PI;
-                    if (selectedNodeP7ref === node.p7ref) {
-                        // second click on same node — toggle close ↔ overview with kick
-                        zoomTargetZoom = Math.abs(manualZoom - ZOOM_CLOSE) < 0.3 ? ZOOM_OVERVIEW : ZOOM_CLOSE;
-                        manualZoom += (zoomTargetZoom - manualZoom) * CURVES.ZOOM_KICK;
-                    } else {
-                        // first click on new node — zoom in close
-                        selectedNodeP7ref = node.p7ref;
-                        zoomTargetZoom = ZOOM_CLOSE;
-                    }
-                } else {
-                    // click on empty space — deselect and reset zoom
-                    selectedNodeP7ref = null;
-                    zoomTargetZoom = 1.0;
-                    zoomTargetRotX = rotX;
-                    zoomTargetRotY = rotY;
-                    manualZoom += (1.0 - manualZoom) * 0.35;
-                }
-            }
-            isDragging = false;
-        });
         canvas.addEventListener('mouseleave', () => isDragging = false);
 
-        canvas.addEventListener('dblclick', e => {
-            const od = navOrbitalData || orbitalData;
-            const self = od.self || {};
-            const known = od.known || [];
-            let nearest = null, nearDist = 40;
-            known.forEach(node => {
-                const pos = p7refToCoords(node.p7ref, 0, 0, 0, 140);
-                const proj = project(pos);
-                if (!proj) return;
-                const rect = canvas.getBoundingClientRect();
-                const dx = e.clientX - rect.left - proj.x;
-                const dy = e.clientY - rect.top  - proj.y;
-                const d = Math.sqrt(dx*dx + dy*dy);
-                if (d < nearDist) { nearDist = d; nearest = node; }
-            });
-            if (nearest) navPush(nearest);
+        function handleSingleClick(clientX, clientY) {
+            const nearest = getNearestNode(clientX, clientY, 40);
+            if (nearest) {
+                const { node, pos } = nearest;
+                zoomTargetRotY = Math.atan2(pos.x, pos.z) * 180 / Math.PI;
+                zoomTargetRotX = Math.atan2(pos.y, Math.sqrt(pos.x*pos.x + pos.z*pos.z)) * 180 / Math.PI;
+                if (selectedNodeP7ref === node.p7ref) {
+                    // second click on same node — toggle close ↔ overview with kick
+                    zoomTargetZoom = Math.abs(manualZoom - ZOOM_CLOSE) < 0.3 ? ZOOM_OVERVIEW : ZOOM_CLOSE;
+                    manualZoom += (zoomTargetZoom - manualZoom) * CURVES.ZOOM_KICK;
+                } else {
+                    // first click on new node — zoom in close
+                    selectedNodeP7ref = node.p7ref;
+                    zoomTargetZoom = ZOOM_CLOSE;
+                }
+            } else {
+                // click on empty space — deselect and reset zoom
+                selectedNodeP7ref = null;
+                zoomTargetZoom = 1.0;
+                zoomTargetRotX = rotX;
+                zoomTargetRotY = rotY;
+                manualZoom += (1.0 - manualZoom) * 0.35;
+            }
+        }
+
+        function handleDoubleClick(clientX, clientY) {
+            const nearest = getNearestNode(clientX, clientY, 40);
+            if (nearest) {
+                // Double-click on node: push and zoom in
+                navPush(nearest.node);
+            } else {
+                // Double-click on void: pop and zoom out
+                if (navStack.length > 0) {
+                    navPop();
+                }
+            }
+        }
+
+        canvas.addEventListener('mouseup', e => {
+            if (e.button !== 0) return;
+            if (dragMoved) {
+                isDragging = false;
+                return;
+            }
+            const now = Date.now();
+            if (now - lastClickTime < 250) {
+                // Double click
+                clearTimeout(clickTimer);
+                lastClickTime = 0;
+                handleDoubleClick(e.clientX, e.clientY);
+            } else {
+                // Potential single click — wait 250ms
+                lastClickTime = now;
+                clickTimer = setTimeout(() => {
+                    lastClickTime = 0;
+                    handleSingleClick(e.clientX, e.clientY);
+                }, 250);
+            }
+            isDragging = false;
         });
 
         // === WHEEL (restored manual control!) ===
