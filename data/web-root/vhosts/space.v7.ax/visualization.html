@@ -72,13 +72,43 @@
             align-items: center;
         }
         .orbital-controls label { display: flex; align-items: center; gap: 4px; }
-        .orbital-controls input[type="range"], .orbital-controls select {
+        .orbital-controls select {
             background: rgba(15, 5, 30, 0.8);
             border: 1px solid #3030a0;
             color: #a0c0ff;
             border-radius: 4px;
             font-size: 10px;
             width: 60px;
+        }
+        .orbital-controls input[type="range"] {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 70px;
+            height: 3px;
+            background: #1a0a40;
+            border-radius: 2px;
+            outline: none;
+            border: none;
+            cursor: pointer;
+            vertical-align: middle;
+        }
+        .orbital-controls input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: #5050d0;
+            border: 1px solid #8080ff;
+            cursor: pointer;
+        }
+        .orbital-controls input[type="range"]::-moz-range-thumb {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: #5050d0;
+            border: 1px solid #8080ff;
+            cursor: pointer;
         }
 
         /* === NAV BREADCRUMB === */
@@ -126,7 +156,7 @@
             Wheel = zoom | Ctrl+Wheel = focal<br>
             Drag = rotate | ←→↑↓ = move cursor<br>
             PgUp/Dn = vertical | Space = auto-rotate<br>
-            F = follow | C = center | B = buttons | G = cursor<br>
+            F = follow | C = center | P = buttons | G = cursor<br>
             I = toggle info panel
         </p>
     </div>
@@ -139,7 +169,7 @@
         <span class="nav-depth">depth <span id="navDepthLabel">0</span></span>
     </div>
 
-    <div class="controls">
+    <div class="controls" id="controls">
         <button onclick="toggleRotation()" id="rotBtn">Auto-Rotate</button>
         <button onclick="toggleFollow()" id="followBtn" class="active">Follow</button>
         <button onclick="centerCamera()">Center</button>
@@ -1994,10 +2024,13 @@
                 case 'ArrowDown': e.preventDefault(); moveSelection(0, 0, 1); break;
                 case 'PageUp': e.preventDefault(); moveSelection(0, 1, 0); break;
                 case 'PageDown': e.preventDefault(); moveSelection(0, -1, 0); break;
-                case 'b': case 'B': {
+                case 'p': case 'P': {
                     e.preventDefault();
                     const ctrl = document.getElementById('controls');
-                    ctrl.style.display = ctrl.style.display === 'none' ? '' : 'none';
+                    const sliders = document.getElementById('orbitalControls');
+                    const hidden = ctrl.style.display === 'none';
+                    ctrl.style.display = hidden ? '' : 'none';
+                    sliders.style.display = hidden ? '' : 'none';
                     break;
                 }
                 case 'g': case 'G':
