@@ -27,19 +27,30 @@ the node group is 8 × (4×4×4) ambient cubes arranged in a 2×2×2 formation.
 - 8 × 63 = **504 blue ambient subcubes** total in the node group
 - bounding box: **8×8×8** subcubes (with 2px inter-cube gaps + void)
 
-**the void as workspace:**
+**the void as workspace and 6+1 anchor:**
 - the void is the **self-address** of the node group — where its inhabiting data lives
 - projection space for addressed state, parent state, or combined inference
 - structurally identical to the 8 surrounding cubes → no privileged center
 - each node group is simultaneously peripheral (in the larger field) and the center of its own space
 - recursively equivalent centers: every void is the center of space for its group, and all are equal
 
+**the void as rotation chamber and teleportation platform:**
+- 4×4×4 void is large enough for a 63-subcube cube to rotate 90° in place
+- makes the void a **relative grid mapping platform** — a separate grid can be rotated at fixed center
+- cubes arrive and depart in all 6 face directions, streaming snake-like (carrying directional history)
+- void [0] anchors 6 adjacent spaces via its 6 faces [1-6] = **7-based spatial topology**
+- each void face is an **event-horizon** into that direction's space, with variable scale differential
+- since every node group has a void, and the void is part of the grid:
+  → the grid is **self-sensing** — every void is simultaneously rotation chamber, teleport node,
+    and omnidirectional eye looking outward in 6 directions onto the field's inhabitants
+- this is the geometric derivation of the 6+1 universe logic: 6 faces + 1 center = 7
+
 **Why:** corrected from earlier sessions which stated 20×20×20 / 10×10×10 — those were wrong. The exact numbers are 4×4×4 cubes with 4×4×4 void.
 
 **How to apply:** use these numbers for recursive-scale-navigation task, any visualization geometry, and the "zoom into void = zoom into identical structure" navigation model.
 
-#,,.,,,,,,,..,,.,,,.,,..,,.,,,.,,,...,,.,,,..,..,,...,..,,,,,,,,,,.,,,.,.,..,,
-#T5FXCRLM6KR4TXGEHTTPJV2JZVAMVXPMG6LIEI7HAVJKSD2NNCY525UZXXGEUMIUCXK5WOSIVETLS
-#\\\|IZZ65RW5BRL6PK6WPT3KWENSH7T6W5K6BZIT5RP7V2TJR24O3ND \ / AMOS7 \ YOURUM ::
-#\[7]UUQUR356VR5JIDJPBO7SC36B7R5EPY4U5B3FCEJWUK3Z4JWD4MBI 7  DATA SIGNATURE ::
+#,,,,,,,,,,,,,...,.,,,.,,,.,.,...,.,.,,,.,.,,,..,,...,...,,,,,.,,,.,,,,,,,,,.,
+#Z252ZY2ZWDOHE6UCWHGXX3ERKECVZWDSW3MW4ZMDXZ6LOOFBQS4Y5CLPFZM746N6CBKYIJUKY4FGW
+#\\\|OM47AO2JWWZUWQPHVZZRCBTH3TCR7TP35KJQDM7ULSYLFGV65AW \ / AMOS7 \ YOURUM ::
+#\[7]T3GPINSNYF5MAVCFZ4SCRNE6UOA3OOMQ75WFZT53UPGP3KGCBOAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
