@@ -1,0 +1,38 @@
+## [:< ##
+
+# name  = plugin.web.attention.switch_state
+# descr = replace the current state on the attention stack
+
+my $name   = shift // '';
+my $params = shift // {};
+
+$params = {} unless ref $params eq qw| HASH |;
+
+my $states = <web.attention.states> // {};
+return { qw| error | => qq| unknown state '$name' | }
+    unless exists $states->{$name};
+
+my $entry = {
+    qw| name      | => $name,
+    qw| params    | => $params,
+    qw| pushed_at | => time(),
+};
+
+if ( <web.attention.stack>->@* ) {
+    <web.attention.stack>->[-1] = $entry;
+} else {
+    push <web.attention.stack>->@*, $entry;
+}
+
+<[base.log]>->( 3, qq| attention switch_state: $name | );
+
+return {
+    qw| name        | => $name,
+    qw| stack_depth | => scalar( <web.attention.stack>->@* ),
+};
+
+#,,,.,,.,,..,,,.,,...,...,,,.,,,,,.,,,.,,,,.,,..,,...,...,...,,.,,..,,,.,,,.,,
+#Y4E27ECFYVEX7NQPXHMMVWRGJEEJXT2UX2ANZSSAUBG654Q4UDMNM3SHAQW5T2D5AROB6E7CFK2BY
+#\\\|XKL4KA65VVR5XRJDM3BS2WIAGLABJE5HSUKKW46PXXIR32LDDK5 \ / AMOS7 \ YOURUM ::
+#\[7]XWCCRYHLJVUYLITTFSHTHG7LBODE23ESTH4GBVOQN5A66A3ITUAY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

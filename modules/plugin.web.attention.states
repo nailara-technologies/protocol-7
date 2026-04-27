@@ -1,0 +1,62 @@
+## [:< ##
+
+# name  = plugin.web.attention.states
+# descr = attention state machine state definitions
+
+my $states = {
+    qw| ambient | => {
+        qw| name              | => qw| ambient |,
+        qw| camera_target     | => qw| orbit-field |,
+        qw| zoom_envelope     | => {
+            qw| min       | => 0.1,
+            qw| max       | => 5.0,
+            qw| preferred | => 1.0,
+        },
+        qw| layer_overrides   | => {},
+        qw| curve_set         | => qw| ambient |,
+        qw| follow_speed      | => 0.03,
+        qw| transition_budget | => 2.0,
+    },
+    qw| single-focus | => {
+        qw| name              | => qw| single-focus |,
+        qw| camera_target     | => qw| selection |,
+        qw| zoom_envelope     | => {
+            qw| min       | => 0.5,
+            qw| max       | => 10.0,
+            qw| preferred | => 2.5,
+        },
+        qw| layer_overrides   | => {
+            qw| orbital-self  | => 1.2,
+            qw| orbital-known | => 0.6,
+        },
+        qw| curve_set         | => qw| focus |,
+        qw| follow_speed      | => 0.08,
+        qw| transition_budget | => 1.5,
+    },
+    qw| group-view | => {
+        qw| name              | => qw| group-view |,
+        qw| camera_target     | => qw| group-centroid |,
+        qw| zoom_envelope     | => {
+            qw| min       | => 0.2,
+            qw| max       | => 8.0,
+            qw| preferred | => 1.5,
+        },
+        qw| layer_overrides   | => {
+            qw| orbital-self        | => 1.0,
+            qw| orbital-known       | => 1.0,
+            qw| orbital-connections | => 1.0,
+            qw| orbital-galaxy      | => 1.0,
+        },
+        qw| curve_set         | => qw| survey |,
+        qw| follow_speed      | => 0.05,
+        qw| transition_budget | => 2.0,
+    },
+};
+
+return $states;
+
+#,,,,,,..,,,,,.,,,.,,,...,.,,,,..,,,.,...,.,,,..,,...,...,,,,,,..,,,.,,,,,..,,
+#K5R43GAMXDY63HKSTBPTVUQVVYCW3OOMDFBAFTVHZQ3I5CSV22U7AD6EHONPBIRXJ7VIVRMKNZVAG
+#\\\|47EQI5TTSHSMR65IWJGOYMAID2HQ6ONCLBMBSBN6VTPKAZC644E \ / AMOS7 \ YOURUM ::
+#\[7]ZVJRGFVEK7SEPWQPNQVKA7Q75X7BQZ36264C4DWNMTT4RP4FNADQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

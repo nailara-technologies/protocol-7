@@ -1,0 +1,64 @@
+## [:< ##
+
+# name  = plugin.web.attention.blend_states
+# descr = interpolate two attention parameter sets at ratio t
+
+my $a = shift // {};
+my $b = shift // {};
+my $t = shift // 0;
+
+$t = 0 if $t < 0;
+$t = 1 if $t > 1;
+
+## discrete fields — snap at midpoint ##
+my $result = {
+    qw| name          | => ( $t < 0.5 ? $a->{'name'} : $b->{'name'} ),
+    qw| camera_target | =>
+        ( $t < 0.5 ? $a->{'camera_target'} : $b->{'camera_target'} ),
+    qw| curve_set     | =>
+        ( $t < 0.5 ? $a->{'curve_set'} : $b->{'curve_set'} ),
+};
+
+## zoom envelope interpolation ##
+my $a_zoom = $a->{'zoom_envelope'} // {};
+my $b_zoom = $b->{'zoom_envelope'} // {};
+$result->{'zoom_envelope'} = {
+    min => ( $a_zoom->{'min'} // 0.1 ) * ( 1 - $t )
+        + ( $b_zoom->{'min'} // 0.1 ) * $t,
+    max => ( $a_zoom->{'max'} // 10.0 ) * ( 1 - $t )
+        + ( $b_zoom->{'max'} // 10.0 ) * $t,
+    preferred => ( $a_zoom->{'preferred'} // 1.0 ) * ( 1 - $t )
+        + ( $b_zoom->{'preferred'} // 1.0 ) * $t,
+};
+
+## follow_speed interpolation ##
+$result->{'follow_speed'}
+    = defined( $a->{'follow_speed'} )
+    && defined( $b->{'follow_speed'} )
+    ? $a->{'follow_speed'} * ( 1 - $t ) + $b->{'follow_speed'} * $t
+    : ( $b->{'follow_speed'} // $a->{'follow_speed'} // undef );
+
+## transition_budget interpolation ##
+$result->{'transition_budget'}
+    = ( $a->{'transition_budget'} // 1.0 ) * ( 1 - $t )
+    + ( $b->{'transition_budget'} // 1.0 ) * $t;
+
+## layer overrides — merge and lerp on common keys ##
+my $a_layers = $a->{'layer_overrides'} // {};
+my $b_layers = $b->{'layer_overrides'} // {};
+my %all_keys = map { $_ => 1 } ( keys $a_layers->%*, keys $b_layers->%* );
+my %merged;
+for my $k ( keys %all_keys ) {
+    my $va = $a_layers->{$k} // 1.0;
+    my $vb = $b_layers->{$k} // 1.0;
+    $merged{$k} = $va * ( 1 - $t ) + $vb * $t;
+}
+$result->{'layer_overrides'} = \%merged;
+
+return $result;
+
+#,,.,,,,.,,,,,.,.,,,,,,..,,,,,.,.,,,,,,..,...,..,,...,...,...,,,,,,..,.,,,,.,,
+#URODPVJON4IFVDHCV53NUBAEA5HV2ECGEZG4WQOPR4MNX3SWKPT27UXMLCI4QU36UIMR5OK32KPCS
+#\\\|T3IKKSO54AW4LPWK5VHZ43PAYIEYNYZSSOPHPCJRCBB7GWRWJS3 \ / AMOS7 \ YOURUM ::
+#\[7]VXMSBVK7JUMFKI4YCJ5GE4EUCMFE3TUWDJTDK7QOC2V5SOZJDIDY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
