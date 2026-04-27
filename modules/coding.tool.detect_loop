@@ -188,16 +188,36 @@ my @pattern_registry = (
             ## Check last 5 responses are identical ##
             my @last5 = @$rh[ -5 .. -1 ];
             my $first = $last5[0];
-            return 0 unless length($first) > 20;  ## Ignore short responses ##
+            return 0 unless length($first) > 20;
 
             for my $r (@last5) {
                 return 0 if $r ne $first;
             }
 
-            ## Same response repeated 5+ times indicates stuck model ##
             return 1;
         },
         'confidence'    => 0.9,
+        'allow_polling' => 0,
+    },
+
+    ## Pattern: Similar response prefix repeated (truncated-loop variant)     ##
+    ## catches models stuck retrying same failed tool call with same reasoning ##
+    {   'name'     => 'similar_response_prefix',
+        'priority' => 2,
+        'min_hits' => 4,
+        'check'    => sub {
+            my ( $history, $weights, $ld_state ) = @ARG;
+            my $rh = $ld_state->{'response_history'} // [];
+            return 0 unless @$rh >= 4;
+
+            my @last4  = @$rh[ -4 .. -1 ];
+            my $prefix = substr( $last4[0], 0, 120 );
+            return 0 unless length($prefix) > 40;
+
+            my $matches = grep { index( $_, $prefix ) == 0 } @last4;
+            return $matches >= 4 ? 1 : 0;
+        },
+        'confidence'    => 0.85,
         'allow_polling' => 0,
     },
 );
@@ -473,8 +493,8 @@ elsif ( $phase eq 'escalation' ) {
 ## Unknown phase ##
 return qw| false |;
 
-#,,,,,.,,,,..,.,.,...,,,.,..,,.,,,,,.,,,,,,,,,.,.,...,..,,...,..,,,,.,.,.,,.,,
-#GZO47O3AEZOULMQKYBUNTONYKIDGQKIUCRDDV3IR52DRKIXLCL5EQNYPWWQTK5A2NHF2ZZLYMSQ2C
-#\\\|XBCM2WWIMBFXSK2KJWK23LVENQ3UD2MJKOQMVOQLQEFWSORWGZN \ / AMOS7 \ YOURUM ::
-#\[7]6YAD6DRTKR3S2NOGLM5HM4DJOVQTW3OGAX7ULI4PZ3DVAL5PHWCQ 7  DATA SIGNATURE ::
+#,,.,,,..,,.,,...,,.,,,.,,...,,,.,..,,.,,,.,,,.,.,...,...,.,,,..,,.,.,,,,,...,
+#BOYSMPBEUOKVKFNJM57RQGIRN477L54BGUFTQXTM3W5PRCEBZXU7YD4CA2JBEUTSUQVSWY7S45GMO
+#\\\|XW4VC7Z32AD5B25C4AHGDB6STIETDKT7O7JQ55OQRVQUWEH24A4 \ / AMOS7 \ YOURUM ::
+#\[7]ZLR2UGMLMHKF6WDVXP67ZTB2BGL7MIPQOE3T5IK6766UQ27HVYDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
