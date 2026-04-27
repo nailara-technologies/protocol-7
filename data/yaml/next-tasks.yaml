@@ -1,0 +1,106 @@
+# next-tasks.yaml — prioritized work queue
+# assignee: coding-zenka | kimi | claude | any
+# effort: trivial | small | medium | large
+# status: open | in-progress | done
+
+tasks:
+
+  visualization:
+
+    - id: orbital-radius-adjust
+      desc: change p7refToCoords radius 140→210 (FORMATION_SPACING/2, midpoint to next node group)
+      effort: trivial
+      assignee: coding-zenka
+      status: open
+      files:
+        - data/web-root/vhosts/space.v7.ax/visualization.html
+      notes: >
+        5 call sites, all p7refToCoords(..., 140) — change to 210.
+        makes peers orbit at the boundary of local space, improves planetary system geometry.
+
+    - id: color-threshold-brightness
+      desc: global BRIGHTNESS scalar over all rgba alphas in visualization.html
+      effort: small
+      assignee: claude
+      status: open
+      notes: >
+        single variable wired through draw functions.
+        makes all colors relative to one brightness control.
+
+    - id: shell-2-orbital-render
+      desc: render peers' peers at radius 280 (nameserv radius), dimmed to alpha 0.3
+      effort: medium
+      assignee: kimi
+      status: open
+      blocked-by: orbital-radius-adjust
+      notes: >
+        JS rendering half can be stubbed now (radius 280, alpha 0.3, existing drawNodeGlow).
+        P7 side needs kimi: grid fragment sync via discover.orbital.share_grid_fragment /
+        external.orbital.sync_grid_fragment — 13 nested orbit references already in codebase.
+
+  graphics-matrix:
+
+    - id: voxel-space-research
+      desc: harmonic voxel space — division-13 frequency mapping to 3D voxel grid
+      effort: medium
+      assignee: coding-zenka
+      status: open
+      files:
+        - data/tasks/graphics-matrix-voxel-space.md
+
+    - id: channel-palette-population
+      desc: confirmed already working — archive task file
+      effort: trivial
+      assignee: any
+      status: done
+
+  infrastructure:
+
+    - id: index-zenka-xfs-template
+      desc: XFS template for index zenka
+      effort: medium
+      assignee: coding-zenka
+      status: open
+      files:
+        - data/tasks/index-zenka-xfs-template.md
+
+    - id: stream-cancel-session-teardown
+      desc: session-close teardown for STRM cancel (open item from STRM stack)
+      effort: medium
+      assignee: kimi
+      status: open
+      notes: see topic-stream-cancel-design.md — teardown not yet implemented
+
+    - id: compaction-visibility
+      desc: log compaction events visibly in show-buffer (currently silent)
+      effort: small
+      assignee: kimi
+      status: open
+
+  blocked:
+
+    - id: external-orbital-connect-test
+      desc: test orbital connect from external node
+      effort: small
+      assignee: any
+      status: open
+      blocked-by: nodes-orbital-second-node-setup
+
+    - id: nodes-orbital-second-node-setup
+      desc: second P7 node setup (KVM option still open)
+      effort: large
+      assignee: any
+      status: open
+
+    - id: phase2-orbital-context-endpoint
+      desc: level 2+ orbital data sources for context endpoint
+      effort: medium
+      assignee: kimi
+      status: open
+      blocked-by: shell-2-orbital-render
+
+#,,..,.,,,...,,,,,...,.,,,.,.,,.,,..,,,,,,..,,..,,...,...,.,.,..,,,..,,..,,,,,
+#JHZB22F2AFASW3AYZIYLIXCMHXLDWEHJ4MSXPF3I4CV7PZHYEDN3ODTJYVJGZN2CT2UEXXZ7GHKMW
+#\\\|S76VRYGUDGTVHEWLADK5MQOM7MBFS247G6ZDHI6O2WNRYIS5HOP \ / AMOS7 \ YOURUM ::
+#\[7]KUBJCIX7YNC3QDG7P47ZRRMUKX2RPSG3KTOPGS4N63MOX2P3KYBI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
