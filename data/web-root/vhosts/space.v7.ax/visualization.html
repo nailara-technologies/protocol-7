@@ -178,6 +178,30 @@
         const SCALE_100000 = FORMATION_SPACING * 100000;
         const SCALE_1000000 = FORMATION_SPACING * 1000000;
 
+        // === CURVE CONFIG (data-driven animation timing) ===
+        const CURVES = {
+            CAM_FOLLOW:       0.06,   // camera lerp toward selection cursor
+            ZOOM_FOLLOW:      0.08,   // zoom lerp toward target zoom
+            ZOOM_TARGET_ROT:  0.07,   // rotation lerp toward zoom-click target
+            ZOOM_TARGET_ZOOM: 0.07,   // zoom lerp toward zoom-click target
+            LAYER_FADE:       0.05,   // layer weight lerp speed
+            ZOOM_KICK:        0.70,   // immediate zoom kick fraction on double-click
+            TOUCH_DRAG:       0.30,   // touch drag rotation sensitivity
+            NODE_GLOW_PULSE:  0.90,   // glow pulse frequency (radians/sec)
+        };
+
+        const CURVE_SETS = {
+            ambient: { CAM_FOLLOW: 0.03, ZOOM_FOLLOW: 0.05, LAYER_FADE: 0.03 },
+            focus:   { CAM_FOLLOW: 0.08, ZOOM_FOLLOW: 0.10, LAYER_FADE: 0.07 },
+            survey:  { CAM_FOLLOW: 0.05, ZOOM_FOLLOW: 0.07, LAYER_FADE: 0.05 },
+        };
+
+        function setCurveSet(name) {
+            const set = CURVE_SETS[name];
+            if (!set) return;
+            Object.assign(CURVES, set);
+        }
+
         // Hyperspace grid plane ranges (configurable)
         // All use 21 planes (20×20 grid) for perfect recursive self-similarity
         // 21 ÷ 7 = 3 (harmonic division alignment)
@@ -208,7 +232,6 @@
         let camX = 0, camY = 0, camZ = 0;
         let prevCamX = 0, prevCamY = 0, prevCamZ = 0;
         let velocity = 0;
-        const CAM_FOLLOW_SPEED = 0.06;
         let followEnabled = true;
 
         // === MAGNETIC ROTATION ALIGNMENT ===
@@ -231,6 +254,7 @@
         // === ORBITAL DATA ===
         let orbitalData = { self: { p7ref: '', theta: 0, phi: 0, psi: 0, omega: 0 }, known: [], connections: [], nameserv: [] };
         let templateData = { zoom: 1.0, intent: 'navigate', active_layers: [], available_data: [] };
+        let attentionData = {};
         let lastOrbitalFetch = 0;
         let lastTemplateFetch = 0;
 
@@ -283,10 +307,18 @@
                 lastTemplateFetch = Date.now();
             }).catch(() => {});
         }
+        function fetchAttentionData() {
+            fetch('/attention.json').then(r => r.json()).then(data => {
+                attentionData = data;
+                // if (attentionData.curve_set) setCurveSet(attentionData.curve_set);
+            }).catch(() => {});
+        }
         setInterval(fetchOrbitalData, 13000);
         setInterval(fetchTemplateData, 7000);
+        setInterval(fetchAttentionData, 7000);
         fetchOrbitalData();
         fetchTemplateData();
+        fetchAttentionData();
 
 
         // === CUBE GEOMETRY ===
@@ -681,9 +713,9 @@
             prevCamZ = camZ;
 
             if (zoomTargetRotX !== null) {
-                rotX += (zoomTargetRotX - rotX) * 0.07;
-                rotY += (zoomTargetRotY - rotY) * 0.07;
-                manualZoom += (zoomTargetZoom - manualZoom) * 0.07;
+                rotX += (zoomTargetRotX - rotX) * CURVES.ZOOM_TARGET_ROT;
+                rotY += (zoomTargetRotY - rotY) * CURVES.ZOOM_TARGET_ROT;
+                manualZoom += (zoomTargetZoom - manualZoom) * CURVES.ZOOM_TARGET_ZOOM;
                 if (Math.abs(zoomTargetRotX - rotX) < 0.05 && Math.abs(zoomTargetRotY - rotY) < 0.05) {
                     rotX = zoomTargetRotX; rotY = zoomTargetRotY;
                     manualZoom = zoomTargetZoom;
@@ -692,9 +724,9 @@
             }
 
             if (followEnabled) {
-                camX += (selX - camX) * CAM_FOLLOW_SPEED;
-                camY += (selY - camY) * CAM_FOLLOW_SPEED;
-                camZ += (selZ - camZ) * CAM_FOLLOW_SPEED;
+                camX += (selX - camX) * CURVES.CAM_FOLLOW;
+                camY += (selY - camY) * CURVES.CAM_FOLLOW;
+                camZ += (selZ - camZ) * CURVES.CAM_FOLLOW;
 
                 if (Math.abs(selX - camX) < 0.001) camX = selX;
                 if (Math.abs(selY - camY) < 0.001) camY = selY;
@@ -718,8 +750,8 @@
             const targetFocal = manualFocal + velocityFocalOffset;
             const targetZoom = manualZoom + velocityZoomOffset;
 
-            focalLength += (targetFocal - focalLength) * 0.08;
-            zoom += (targetZoom - zoom) * 0.08;
+            focalLength += (targetFocal - focalLength) * CURVES.ZOOM_FOLLOW;
+            zoom += (targetZoom - zoom) * CURVES.ZOOM_FOLLOW;
 
             // Clamp
             focalLength = Math.max(MIN_FOCAL, Math.min(MAX_FOCAL, focalLength));
@@ -749,7 +781,7 @@
 
         function updateLayerWeights() {
             Object.keys(layerWeights).forEach(n => {
-                lerpWeight(n, getLayerWeight(n), 0.05);
+                lerpWeight(n, getLayerWeight(n), CURVES.LAYER_FADE);
             });
         }
 
@@ -1162,7 +1194,7 @@
             if (selfWeight > 0.01 && self.p7ref) {
                 const proj = project(selfPos);
                 if (proj) {
-                    const pulse = 1 + 0.3 * Math.sin(now * 0.9);
+                    const pulse = 1 + 0.3 * Math.sin(now * CURVES.NODE_GLOW_PULSE);
                     const glowMult = (1 + (glowShells[0] || 0) * 2) * pulse;
                     drawNodeGlow(proj.x, proj.y, 8 * selfWeight * glowMult, { r: 100, g: 200, b: 255 }, 0.8 * selfWeight);
                     ctx.fillStyle = `rgba(20, 5, 255, ${selfWeight})`;
@@ -1781,7 +1813,7 @@
                     if (selectedNodeP7ref === node.p7ref) {
                         // second click on same node — toggle close ↔ overview with kick
                         zoomTargetZoom = Math.abs(manualZoom - ZOOM_CLOSE) < 0.3 ? ZOOM_OVERVIEW : ZOOM_CLOSE;
-                        manualZoom += (zoomTargetZoom - manualZoom) * 0.7;
+                        manualZoom += (zoomTargetZoom - manualZoom) * CURVES.ZOOM_KICK;
                     } else {
                         // first click on new node — zoom in close
                         selectedNodeP7ref = node.p7ref;
@@ -1914,8 +1946,8 @@
             if (e.touches.length === 1 && isDragging) {
                 const dx = e.touches[0].clientX - dragStartX;
                 const dy = e.touches[0].clientY - dragStartY;
-                rotY = dragStartRotY + dx * 0.3;
-                rotX = dragStartRotX + dy * 0.3;
+                rotY = dragStartRotY + dx * CURVES.TOUCH_DRAG;
+                rotX = dragStartRotX + dy * CURVES.TOUCH_DRAG;
             } else if (e.touches.length === 2) {
                 const dx = e.touches[0].clientX - e.touches[1].clientX;
                 const dy = e.touches[0].clientY - e.touches[1].clientY;
