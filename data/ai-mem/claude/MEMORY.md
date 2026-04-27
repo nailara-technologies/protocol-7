@@ -36,6 +36,7 @@
 - `topic-coding-zenka-templates.md` — 50+ context templates, 16+ tools, tree tools, autonomous loops
 - `feedback-p7c-multiline.md` — p7c cannot handle multiline task descriptions; use single-line or templates
 - `feedback-coding-zenka-edits.md` — local LLM often describes edits instead of applying them; verify results
+- `feedback-coding-zenka-inject.md` — use `p7c coding.inject-message <id> <msg>` to redirect stuck model mid-task with explicit file paths
 - `feedback-arg-regression.md` — local LLM reverts $ARG→$_ after context compaction; verify all edits
 - `topic-tool-suggestions.md` — LLM-suggested tools/improvements, prioritized; implemented/deferred/sources
 - `topic-namespace-tree-intelligence.md` — the tree IS the intelligence: unified namespace for
@@ -156,6 +157,14 @@
 - log cleanup: removed level-0 debug scaffolding from IPC/reply handler, switched to base.logs
 - $data shadowing fix: renamed to $reply_content in httpd.handler.web_template_reply
 - plugin init naming: plugin.web.space.init → init_code for lifecycle hook discovery
+
+### Completed (Apr 27 2026) — session 6
+- chk-sum namespace fix: 14 modules had wrong `base.chk-sum.amos` ref after swap_subs reinstall
+- coding zenka: CTX% now shown in model_output buffer round headers
+- POST /cursor endpoint + visualization debounced push → live cursor-state in graphics-matrix
+- visualization: zoom rebound fix (clear zoomTarget on scroll), node glow scales with zoom
+- coding.inject-message discovered as mid-task redirect tool
+- insight: orbital nodes at low zoom look like planetary system — nested orbit infra already present
 
 ### Active / Partial
 - **namespace tree as intelligence layer**: see `topic-namespace-tree-intelligence.md`
@@ -303,8 +312,8 @@
 - Pattern: `my @non_num = grep { defined $data_ref->{$ARG}->{$key} and not looks_like_number(...) } keys $data_ref->%*`
 - Global `$SIG{__WARN__}` exists — if wrapping warn handler, capture `$prev_warn = $SIG{__WARN__}` first and call through
 
-#,,,.,.,.,..,,,,,,...,,,,,,,,,...,...,,.,,,,.,..,,...,...,,.,,...,...,...,.,.,
-#DWXHO7YMPIVE446AANW6F3NR42CSFGVJVJT6SWJAFWY6QWJ6NBDCMNMOKKYJPZC4CUWQEYSJUZCI6
-#\\\|LS4G5FJ5UBNB5QHLKZIATRVUKMX6NSLBU5WX6DPCJFWXOGIV2V4 \ / AMOS7 \ YOURUM ::
-#\[7]R25RFJHWSN365HLEDO76LQ4O6EXBFEX4GGDTDYYQD74I2N7FVWDY 7  DATA SIGNATURE ::
+#,,,,,,..,,,,,...,,,.,,..,...,,,.,,.,,,.,,,.,,..,,...,...,,..,...,,.,,..,,,..,
+#YF5CZW4RA65UF3LXORTWQ5PMWE3TRRVESQNJKS4Q4YM5NHMV6ADRHHKFCHUEESGAFKNN6DNAUN36C
+#\\\|KSYYKPAST3V6RKSDJEEIBOXIFW3GMHXXBO6EJ6FH7LVLIO3OGQM \ / AMOS7 \ YOURUM ::
+#\[7]S3A35GKDIA4263OAXBIXA7OCOTMS5MAPDEQXUHKF57V73SGQ2ABQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
