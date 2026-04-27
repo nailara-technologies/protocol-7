@@ -46,7 +46,7 @@ if ( $preserve_context and not $force ) {
         <[file.write]>->( $context_path, $context_data );
 
         ## store P7REF in agent record ##
-        my $checksum = <[base.chk-sum.bmw.stringsum]>->($context_data);
+        my $checksum = <[chk-sum.bmw.stringsum]>->($context_data);
         $agent->{'context_p7ref'} = $checksum;
 
         <[base.logs]>->(
@@ -106,8 +106,8 @@ return {
     'data' => "agent $agent_id terminated"
 };
 
-#,,,,,...,..,,,,,,.,.,.,.,..,,.,.,.,.,,.,,,.,,.,.,...,..,,...,...,.,.,...,,.,,
-#KNATTMY7M3E5WNTOXJH3GA3F72KWRF2FQEYOYX7WBND74VIQ6P62QHPMBHHQNHHPH57P7AQE6IZO2
-#\\\|N4EQ2KKR2G3SCK6ZRXNFAX2CKGEWIWHPNVJBVXOA25HPNWCCRA7 \ / AMOS7 \ YOURUM ::
-#\[7]EZMQ73W3EWWRSWHKGVDQR4LMN5AHEOAEDK3NT2JTZMALGRKLPKDY 7  DATA SIGNATURE ::
+#,,..,,.,,.,,,.,.,.,,,.,.,...,...,.,.,,.,,.,.,.,.,...,...,.,,,..,,...,,,,,.,.,
+#ID2HNL7TXBGLQCLZAS4XSMTAIF5BZ77IHNE7TH4ZMFHJNNYC76FX327NAKYTLCYACSSP4DKICCLUE
+#\\\|W6LL2UDDSO5QNVS64QECOYKL4IT4LX25YQFOTBXRO4J5NUX3BH6 \ / AMOS7 \ YOURUM ::
+#\[7]YE7JN36IS37PJ4RPUGJZ7QF5IQ2GLPULTYDIA6OX7J5YDVQ5MCAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
