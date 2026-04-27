@@ -18,6 +18,7 @@ if ( not opendir( $dir_fh, $site_dir ) ) {
 <httpd.cfg.hostnames> = {};
 my @vhosts;
 my @ext_dirs;
+my @ext_names;    ## for max-len calculation ##
 foreach my $dir_name ( <[base.sort]>->( readdir $dir_fh ) ) {
     ( my $dir_path = catfile( $site_dir, $dir_name ) ) =~ s|//|/|g;
     next
@@ -28,11 +29,16 @@ foreach my $dir_name ( <[base.sort]>->( readdir $dir_fh ) ) {
         and readlink($dir_path) !~ m|^\d{3}$| );   # <-- custom status codes.,
     if ( -l $dir_path ) {
         my $link_target = readlink($dir_path);
-        if (    <[base.cfg_bool]>->(<httpd.cfg.external_sitedirs>)
+        if (<[base.cfg_bool]>->(
+                <httpd.cfg.external_sitedirs>
+                    // <httpsd.cfg.external_sitedirs>
+            )
             and $link_target =~ m|/|
-            and -d $link_target ) {
+            and -d $link_target
+        ) {
             <httpd.cfg.hostnames>->{$dir_name} = abs_path($link_target);
-            push( @ext_dirs, $dir_name, abs_path($link_target) );
+            push @ext_names, $dir_name;
+            push @ext_dirs, $dir_name, abs_path($link_target);
         } else {
             push @vhosts, $dir_name;
         }
@@ -42,13 +48,22 @@ foreach my $dir_name ( <[base.sort]>->( readdir $dir_fh ) ) {
     }
 }
 
-my $vh_max_len = @vhosts ? max( map {length} @vhosts ) : 0;
+my $vh_max_len
+    = ( @vhosts or @ext_names ) ? max( map {length} @vhosts, @ext_names ) : 0;
+
+my $root_path = <system.root_path> // '';
+$root_path =~ s|/$||;
+
 while (@ext_dirs) {
     my $dir_name    = shift @ext_dirs;
     my $link_target = shift @ext_dirs;
+    ( my $display = $link_target ) =~ s|^\Q$root_path\E/*||
+        if length $root_path;
+    $display = <[base.parser.ellipse_center]>->( $display, 42 )
+        if length($display) > 42;
     <[base.logs]>->(
-        2, ': extdir : %-*s --> %s',
-        $vh_max_len, $dir_name, $link_target
+        1, ': extdir : %-*s --> %s',
+        $vh_max_len, $dir_name, $display
     );
 }
 foreach my $link_name (@vhosts) {
@@ -56,13 +71,13 @@ foreach my $link_name (@vhosts) {
     ( my $link_target = readlink($link_path_abs) ) =~ s|//|/|g;
     if ( $link_target =~ m|^\d{3}$| ) {
         <[base.logs]>->(
-            ':   code : %-*s <-- %s',
+            1, ':   code : %-*s <-- %s',
             $vh_max_len, $link_target, $link_name
         );
         <httpd.cfg.hostnames>->{$link_name} = $link_target;
     } elsif ( exists <httpd.cfg.hostnames>->{$link_target} ) {
         <[base.logs]>->(
-            ': v_host : %-*s  <--- %s',
+            1, ': v_host : %-*s  <--- %s',
             $vh_max_len, $link_target, $link_name
         );
         <httpd.cfg.hostnames>->{$link_name}
@@ -77,8 +92,8 @@ foreach my $link_name (@vhosts) {
 
 0;
 
-#,,.,,...,..,,,.,,.,.,..,,.,.,,,,,,,.,,..,...,..,,...,...,,..,,.,,,..,,..,,.,,
-#K64RKWIEUA7UHIHUMO5H633AS5YLY2PA5YTJC5KDQ4AAFUXWWULRCWFICZPVBUWCES4XVBZVZAKGU
-#\\\|2GVRQSZ6SRUFOH32Q3OCYIHJMX7KYTZKWUGLUHAMFSD4RNDE5RI \ / AMOS7 \ YOURUM ::
-#\[7]HG5V6K32USSTYKLN22OPTZTUSUZ6YBVXOYCZFFEPU22J2XKXNUCA 7  DATA SIGNATURE ::
+#,,,,,,,.,.,.,.,.,...,.,.,,.,,,,,,...,,.,,,,.,..,,...,..,,.,.,...,,,.,.,,,.,.,
+#IMQEKKGQDV76DD46OHYDORCBVAAOYQHA4BZGUYHLQSMOLBIGR2BA5SAHQNX44YAXCTZE62OTQEYVU
+#\\\|GASL6UBWZQ3C7KBRTR7UG56DOLQ7GAGV3D3DPAHKL77DKSKVDWT \ / AMOS7 \ YOURUM ::
+#\[7]ZNFULAPSRQKU6WPY3OOCZND2MN6O52BG7N4Q6CK4BK75BRBSBKDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
