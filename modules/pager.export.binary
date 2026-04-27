@@ -56,13 +56,13 @@ for my $item (@items) {
     } elsif ( $item->{'path'} ) {
 
         # Hash path to binary
-        my $hash = <[base.chk-sum.bmw.L13-str]>->( $item->{'path'} );
+        my $hash = <[chk-sum.bmw.L13-str]>->( $item->{'path'} );
         $bin = pack( 'H*', substr( $hash, 0, $byte_width * 2 ) );
     } else {
 
         # Default to item fingerprint
         my $data = join( '', map { $item->{$ARG} // '' } sort keys %$item );
-        my $hash = <[base.chk-sum.bmw.L13-str]>->($data);
+        my $hash = <[chk-sum.bmw.L13-str]>->($data);
         $bin = pack( 'H*', substr( $hash, 0, $byte_width * 2 ) );
     }
 
@@ -83,8 +83,8 @@ if ($output) {
 
 # SPDX-License-Identifier: ISC
 
-#,,,,,,,,,,,.,,,,,..,,,.,,.,.,,..,.,.,,.,,,..,..,,...,...,,,,,.,.,...,,..,.,,,
-#TB5LM372IFL3RH5RIBF2MPSMWIBL4QHJOYLMVQWGOYND2H2U42VFCHUANI3GBS4NUVQO2J32YVU4C
-#\\\|SCFWL4DY45657OHZLBAPFQZ7UK5DFH2HRQNM6ACUKK7B6TJXAAX \ / AMOS7 \ YOURUM ::
-#\[7]LVP6XZTBGSZFEALOI7YVKOS46VOO2FKDTYHPFXG6JZJUDU2TEKAQ 7  DATA SIGNATURE ::
+#,,.,,,..,.,,,,,.,.,.,,.,,.,.,..,,,.,,...,.,,,..,,...,...,.,.,.,,,.,.,,..,.,.,
+#RB7MGROUSA33ZZ6NUMMAADHLBRP5FJJOR6MHJ2DMKDR2FZOFJ6LCUSTYNDVOE3JDRIXFPJDVSFCZA
+#\\\|IHUCKEA64JS4S5LJLXVABH3CSACLWG5RYS5EXBISCNYZD2OQXPF \ / AMOS7 \ YOURUM ::
+#\[7]5TQCMZBEUG5OZ5CAEXF5WBJCOBPNFPNG6A352DQFCVAENFYI5KDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
