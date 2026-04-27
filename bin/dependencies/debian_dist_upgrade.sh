@@ -17,7 +17,11 @@ echo -e "\n:\n: starting $ID $ACTION ...\n:\n"
 dpkg --force-confold --force-confdef --force-confmiss --force-overwrite \
     --configure -a ; apt-get -fy install # [automatic recovery, if required]
 
-apt-get -y $ACTION
+apt-get -y \
+	-o Dpkg::Options::="--force-confold" \
+	-o Dpkg::Options::="--force-confdef" \
+	-o Dpkg::Options::="--force-confmiss" \
+	$ACTION
 
 pam-auth-update --force
 
@@ -37,8 +41,8 @@ rm -rf /root/.cpanm
 
 # dpkg -l | grep '^rc' | awk '{print $2}' | xargs dpkg --purge 2>/dev/null
 
-#,,.,,,..,..,,,,.,..,,,,,,...,.,.,,,,,,.,,,..,..,,...,...,..,,...,,..,,..,,..,
-#I5EH5PDWZ4YLCGDGQ7N2DUKLV7OJC5JFPHYWJMZRZSYZZIFNZ53BGG43IWVWWLGJPKAMFJ2HEZB7O
-#\\\|FR2PEQXBWG2Z4FTCNB5MCO5VDMU5RAZMJ76IEADFKRQUGY4Q4YN \ / AMOS7 \ YOURUM ::
-#\[7]TQ3QOTLFE6C3PKDHDUUTACMVCIHQWWDQSTJO73YZDR4262ZVBSBQ 7  DATA SIGNATURE ::
+#,,,,,..,,,..,,.,,.,.,,,.,,.,,,..,,,.,...,.,.,..,,...,...,,..,...,...,,,.,...,
+#YYUH3SHPNHI5OU63O6PX7QRONTLYWBVHAISLHK5RI6ITV7UD25SFSWZNJY7AJ25MW75X3RENSEP5A
+#\\\|L7YMLFBOUQMJTCXYMJLIOLXNMTXED6WOQ3EPU2G72HSFPXLVD3B \ / AMOS7 \ YOURUM ::
+#\[7]CDUUT6DR5MIALXMFUAUJALNYNIOEHNWDAJJSPQEA6USB7QVUYQDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
