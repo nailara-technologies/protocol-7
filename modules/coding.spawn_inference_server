@@ -164,7 +164,7 @@ if ( $backend eq qw| gpu | ) {
     if ( $nvidia_smi =~ m|^(\d+),\s*(\d+)|m ) {
         my ( $total_mb, $free_mb ) = ( $1, $2 );
         my $model_size_mb = ( -s $model_path ) / ( 1024 * 1024 );
-        my $safety_mb     = 1024;    ## 1GB headroom ##
+        my $safety_mb = <coding.cfg.vram_safety_mb> // 1024;
         if ( $free_mb < $model_size_mb + $safety_mb ) {
             <[base.logs]>->(
                 0,
@@ -325,8 +325,8 @@ return {
     'port'    => $port
 };
 
-#,,..,...,...,.,,,,..,,..,.,.,.,,,..,,,,,,,..,..,,...,...,..,,..,,.,,,,..,,..,
-#IVNTQIHSPIRVDFDLMIDI3APRAYCZOKB2PSD35AH2YTGVTD5AKW5SOGRTYJLG5IP4T7FVFV6WL7KQ4
-#\\\|3AGGVVGJTOE3PHTXMM6ZHVGWFAH7EYBT36HMKW5BSP5SN7MASLJ \ / AMOS7 \ YOURUM ::
-#\[7]QTNH3TXKW3WCJKLW7I4ACNIJTFJGSWQCU7DXC7C7VONSKKB3TGAI 7  DATA SIGNATURE ::
+#,,,,,...,.,.,,.,,.,,,,,,,,,,,,,,,,.,,.,,,,,,,..,,...,...,.,.,..,,,,,,.,.,,,,,
+#Z7S43EBUBL7HSGWNQQZENVYQP77FVS5LIERSKXMJXZUAPIZ2CERKISGCIX4GJM7TWMCQEBL6WALAQ
+#\\\|TKJMBKGM2TJ4GJYGFOYS44DMOLCU3CITTH2TCJWQYMQ2TF27CTH \ / AMOS7 \ YOURUM ::
+#\[7]D3MB5YOSQTHSVYNKSQVAGY4E5KQHZFOMYCGVSNZKQVQ2PI4XLEBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

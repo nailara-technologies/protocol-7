@@ -53,7 +53,7 @@
 - `topic-radio-relay-zenka.md` — radio COMPLETE: TLS relay, STRM cancel, mpv offline/resilience, gap-fill paced; phase 5 (buffer-fill curve) next
 - `topic-base-curve-system.md` — generic base.curve.* parameter animation; composable signal chain (daytime × ambient × fade); mpv.param.curve is a thin wrapper on top
 - `topic-buffer-access-control.md` — per-buffer-name ACL deferred; revisit when 3+ zenki expose buffers via show-buffer
-- `topic-orbital-data-space.md` — full orbital field theory: nested orbits, EM coupling, holographic nexus, 5-of-7 formation, spiral cylinder, CCW counting, 3-phase cycle, mothership/zenki-stations, layer masks, curve engine, game engines as consumers
+- `topic-orbital-data-space.md` — full orbital field theory + zenki-as-satellites: zenki orbit a work/memory ring; ring buffers+translates between free-rotation zenki and cubic grid routes; data flows electrically along ring; routes stay static near ring while zenki orbit freely — explains why zenki can migrate/restart without breaking routing
 - `topic-vhost-install.md` — httpd vhost install infrastructure: DNS-gated symlink/copy, letsencr TLS, space.v7.ax live with orbital.json+templates.json+visualization.html; key fixes + open items
 - `topic-cursor-model.md` — true cursor emerges from hyperspace plane line density (not drawn); glow=influence gradient; liquid crystal desktop; brightness-only color model; next: remove wireframe cube, queue glow task
 - `topic-node-group-geometry.md` — exact geometry: 8×(4×4×4-1=63) cubes, 4×4×4 void = ghost cube slot; void derivation 2+1+1=4 per axis; corrects earlier wrong 20/10 ratio
@@ -303,8 +303,8 @@
 - Pattern: `my @non_num = grep { defined $data_ref->{$ARG}->{$key} and not looks_like_number(...) } keys $data_ref->%*`
 - Global `$SIG{__WARN__}` exists — if wrapping warn handler, capture `$prev_warn = $SIG{__WARN__}` first and call through
 
-#,,,,,,,.,...,,.,,,..,,,,,..,,,..,.,,,,,,,,.,,..,,...,...,,,,,.,.,,,,,.,.,,..,
-#R7W2YDAWUOARFANOFKOC2X3RX45Q3TUQSPJM3N6KLXCKZDG34PTNXKOB6UYEWVQ4H7CD3RR4R7TZY
-#\\\|PKITZRHMLEKLGQQCMEEGHPO2ELXD6M3IHLX7JNR6PHFVQHFPU65 \ / AMOS7 \ YOURUM ::
-#\[7]WV3QIYJXYR44SL2VANRPPK3YQF6SMKXFQPUAOWWH66N6E53EWIAY 7  DATA SIGNATURE ::
+#,,,.,.,.,..,,,,,,...,,,,,,,,,...,...,,.,,,,.,..,,...,...,,.,,...,...,...,.,.,
+#DWXHO7YMPIVE446AANW6F3NR42CSFGVJVJT6SWJAFWY6QWJ6NBDCMNMOKKYJPZC4CUWQEYSJUZCI6
+#\\\|LS4G5FJ5UBNB5QHLKZIATRVUKMX6NSLBU5WX6DPCJFWXOGIV2V4 \ / AMOS7 \ YOURUM ::
+#\[7]R25RFJHWSN365HLEDO76LQ4O6EXBFEX4GGDTDYYQD74I2N7FVWDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
