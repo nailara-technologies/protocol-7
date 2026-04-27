@@ -6,49 +6,73 @@ my $args = shift // {};
 
 return unless exists $code{'context.file'};
 
-## get file content first ##
+## offset/length as line numbers (model-friendly pagination) ##
+my $from_line = $args->{'from_line'} // $args->{'offset'} // 1;
+my $to_line   = $args->{'to_line'}   // 0;
+
+## if length given, derive to_line from from_line + length ##
+if ( !$to_line && ( $args->{'length'} // 0 ) > 0 ) {
+    $to_line = $from_line + $args->{'length'} - 1;
+}
+
+$from_line = 1 if $from_line < 1;
+
+my $path   = $args->{'path'}   // '';
+my $budget = $args->{'budget'} // 8000;
+
 my $result = $code{'context.file'}->(
-    {   'path'      => $args->{'path'}      // '',
-        'budget'    => $args->{'budget'}    // 8000,
-        'from_line' => $args->{'from_line'} // 1,
-        'to_line'   => $args->{'to_line'}   // 0,
+    {   'path'      => $path,
+        'budget'    => $budget,
+        'from_line' => $from_line,
+        'to_line'   => $to_line,
     }
 );
 
-## apply offset/length pagination if requested ##
-my $offset = $args->{'offset'} // 0;
-my $length = $args->{'length'} // 0;
-
-if ( $offset > 0 || $length > 0 ) {
-    ## extract content from result ##
-    if ( ref $result && $result =~ m|\.:\[ .* \]:\.\n\n(.*)|s ) {
-        my $content      = $1;
-        my $total_length = length $content;
-
-        ## apply offset ##
-        if ( $offset > 0 ) {
-            $content = substr( $content, $offset );
-        }
-
-        ## apply length limit ##
-        if ( $length > 0 && length $content > $length ) {
-            $content = substr( $content, 0, $length );
-            $content
-                .= "\n\n... [ truncated, "
-                . ( $total_length - $offset - $length )
-                . " chars remaining ]";
-        }
-
-        ## rebuild result with pagination info ##
-        $result
-            =~ s|\.:\[ .* \]:\.\n\n.*|.: [ content offset=$offset length=" . length($content) . " total=$total_length ]:.\n\n$content|s;
+## count total lines in file for pagination display ##
+my $total_lines = 0;
+if ( length $path && -f $path ) {
+    if ( open my $fh, '<', $path ) {
+        $total_lines++ while <$fh>;
+        close $fh;
     }
+}
+
+## wrap truncated output with ASCII pagination UI ##
+if ( defined $result && $total_lines > 0 ) {
+    my $shown_to
+        = $to_line && $to_line < $total_lines ? $to_line : $total_lines;
+    my $pct        = int( $shown_to / $total_lines * 100 );
+    my $bar_filled = int( $pct / 5 );
+    my $bar        = '|' x $bar_filled . ' ' x ( 20 - $bar_filled );
+    my $is_partial = $shown_to < $total_lines;
+
+    my $header = sprintf
+        ".:[ file: %s  lines %d-%d / %d ]:%s\n",
+        $path, $from_line, $shown_to, $total_lines,
+        $is_partial ? '' : ' [ end of file ]';
+
+    my $footer;
+    if ($is_partial) {
+        my $hint = sprintf(
+            "offset=%d  [ %d lines remaining of %d ]"
+                . "\n:: to continue: read_file path=\"%s\" offset=%d",
+            $from_line,   $total_lines - $shown_to,
+            $total_lines, $path, $shown_to + 1
+        );
+        my $hint_box = <[base.parser.txt_box]>->( \$hint, 'truncated' );
+        $footer
+            = sprintf( "\n::[ %s %3d%% ]::\n%s\n", $bar, $pct, $hint_box );
+    } else {
+        $footer = sprintf( "\n::[ %s 100%% ]:: [ end of file ]::\n", $bar );
+    }
+
+    $result = $header . $result . $footer;
 }
 
 return $result;
 
-#,,..,,,.,,..,.,.,,..,.,.,,.,,,,.,,..,.,,,.,.,..,,...,...,..,,...,...,,.,,..,,
-#JADSLNH3JLJRXVZBABXM3XFTSRZSU5KEVHKK3BUJPB5Z4P6QIZBPBHWHKYSXJVORQ44T3FGS4MI6I
-#\\\|NCXS4FQMBB3A42I7OJCMVAYGWSSGJHMB7ZHLYZYQUFDBC4VIZPR \ / AMOS7 \ YOURUM ::
-#\[7]JYRKVBD63Y74QUITDXYNLF5IWHAGACRWSQALP32BHG7KH4SXHMDY 7  DATA SIGNATURE ::
+#,,,,,,..,,,,,,,,,,,,,,,.,...,.,.,,,.,,.,,.,,,..,,...,...,,,,,.,.,,.,,.,.,,..,
+#TQW6OHVDW2OM27EJMRMMRMQ4R6BJWLAOBNIZG4UQG6P5BPAV7FDAUHFG66YNNUZXRTN7BMWHZBBKG
+#\\\|WYILKF3KYMWXIUHUPFXDU732OZKBUKALTENZYRWP676OMEMGF5B \ / AMOS7 \ YOURUM ::
+#\[7]4GWMBCZ274NWS4B7UG53ALQBOXUNIHGVROKJJL2A6PDUPSVUVECI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
