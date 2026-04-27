@@ -1,5 +1,39 @@
 # Completed Work Sessions
 
+## session 6 — coding zenka improvements + cursor address wiring (Apr 27 2026)
+
+### chk-sum namespace fix (systematic)
+- 14 modules had `<[base.chk-sum.amos]>` — wrong after namespace reinstall with swap_subs
+- ncode replace → all fixed to `<[chk-sum.amos]>` (local namespace)
+- affected: graphics-matrix.cursor.checksum, pager.*, plugin.storage.checksum.*, context.tree.*, kimi-web, note.tree
+
+### coding zenka: CTX% in model_output buffer
+- round header now shows `[CTX:XX%]` on assistant turns
+- `pct_used` passed via context hash to `coding.buffer.model_output`
+- both user and assistant headers have the slot; pct only available post-inference on assistant side
+
+### cursor address resolution layer
+- `POST /cursor` endpoint added to `httpd.http_post`
+- new module `plugin.web.space.handler.cursor_update`: reads JSON {selX,Y,Z}, routes to `graphics-matrix.cursor set x y z`
+- `moveSelection()` in visualization.html now calls debounced `scheduleCursorPush()` (150ms)
+- `p7c graphics-matrix.cursor-state` now reflects live browser navigation position
+- bug fixed: premature `scheduleCursorPush()` call before `let` declaration blocked entire JS
+
+### visualization bug fixes
+- zoom rebound: `zoomTargetRotX/Y/Z` cleared on manual scroll so it can't fight the user
+- orbital node glow scaled with zoom: `glowScale = Math.max(0.15, Math.min(1, zoom))`
+  fixes sphere appearing to grow when zooming out (fixed-pixel glow halos were merging as nodes clustered)
+
+### coding zenka: inject-message command
+- `p7c coding.inject-message <task_id> <message>` injects a user turn into active task
+- useful for redirecting stuck model mid-task without stopping and restarting
+
+### insight: orbital nodes as planetary system
+- at low zoom, self-node + known peers looked like a blue sun with 3 orbiting planets
+- orbital ring radius 140 = CUBE_SIZE; FORMATION_SPACING/2 = 210 may be better (midpoint to next group)
+- nested orbit infrastructure already present: discover.orbital.*, nodes.orbital.*, plugin.web.space.orbital.*
+- shell-2 data via grid fragment sync → render at radius 280 (nameserv radius) would deepen the effect
+
 ## orbital pipeline + visualization wiring (Apr 26 2026)
 
 commits `fbb4d246d`–`6e02d1475` on branch `base`
@@ -234,8 +268,8 @@ zenki-create/zenki-feature-port/footer-cleanup templates added.
 - philosophy: ETERNAL-TEMPLATE-KITTEN.md (deduplication tree crystallizes truth, kitten as template process)
 - Commits: 98743c227 through 30bbd31b4 + fe3d3a295
 
-#,,,,,,,.,,..,,,.,...,,,,,,,.,.,,,,.,,,,,,.,,,..,,...,...,,,.,,.,,...,.,,,,,,,
-#4ZFEDYPGDNEL7LF4OGGEJLAWVGINSVG73VLNZP34ZHV5SI47ZDA5LZODSMDNYQOEHWPQ2FEPMAPBM
-#\\\|VBYSJEESPEGPOCTYIMYAAIDHHKYBZ4NYAWHAPMSN7V42EDZ5UZD \ / AMOS7 \ YOURUM ::
-#\[7]KUWZXYPQCIWUAWJEAGHAQY7L5DSONO7T5WTCVEUKDO4VHLPY4ACA 7  DATA SIGNATURE ::
+#,,,.,.,,,.,,,.,.,,.,,..,,.,.,.,,,,.,,.,,,,.,,..,,...,...,...,.,.,,..,,,.,,.,,
+#JXWKF3Q4ZI3IDNOQKWS26KA35CRGI24RU4YHH4IDQKZSRP4TVLGYC4BPOR6XTUCA4266PYCUUNPV2
+#\\\|GTYPEPKX67MRGEPPILUABWJJW457OZFVT7RBHHOVFIODNEH3LVP \ / AMOS7 \ YOURUM ::
+#\[7]6Z5NTDH6T3HS3SPIFGGX5QVTPVY63Q2QJCH2ULNCCASFQ6TOYOBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
