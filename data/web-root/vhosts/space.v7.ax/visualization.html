@@ -1285,10 +1285,11 @@
                 if (proj) {
                     const pulse = 1 + 0.3 * Math.sin(now * CURVES.NODE_GLOW_PULSE);
                     const glowMult = (1 + (glowShells[0] || 0) * 2) * pulse;
-                    drawNodeGlow(proj.x, proj.y, 8 * selfWeight * glowMult, { r: 100, g: 200, b: 255 }, 0.8 * selfWeight);
+                    const glowScale = Math.max(0.15, Math.min(1, zoom));
+                    drawNodeGlow(proj.x, proj.y, 8 * selfWeight * glowMult * glowScale, { r: 100, g: 200, b: 255 }, 0.8 * selfWeight);
                     ctx.fillStyle = `rgba(20, 5, 255, ${selfWeight})`;
                     ctx.beginPath();
-                    ctx.arc(proj.x, proj.y, 3 * selfWeight * glowMult, 0, Math.PI * 2);
+                    ctx.arc(proj.x, proj.y, 3 * selfWeight * glowMult * glowScale, 0, Math.PI * 2);
                     ctx.fill();
                 }
             }
@@ -1304,10 +1305,11 @@
                     const glowMult = 1 + (glowShells[glowIdx] || 0);
                     const isConnected = connectedP7refs.has(node.p7ref);
                     const color = getNodeColor(node, isConnected, false);
-                    drawNodeGlow(proj.x, proj.y, 5 * w * glowMult, color, 0.5 * w);
+                    const glowScale = Math.max(0.15, Math.min(1, zoom));
+                    drawNodeGlow(proj.x, proj.y, 5 * w * glowMult * glowScale, color, 0.5 * w);
                     ctx.fillStyle = `rgba(${color.r}, ${color.g}, ${color.b}, ${w})`;
                     ctx.beginPath();
-                    ctx.arc(proj.x, proj.y, 2 * w * glowMult, 0, Math.PI * 2);
+                    ctx.arc(proj.x, proj.y, 2 * w * glowMult * glowScale, 0, Math.PI * 2);
                     ctx.fill();
                 });
             }
@@ -1971,7 +1973,8 @@
                 const delta = e.deltaY > 0 ? -30 : 30;
                 manualFocal = Math.max(MIN_FOCAL, Math.min(MAX_FOCAL, manualFocal + delta));
             } else {
-                // Wheel: Zoom
+                // Wheel: Zoom — clear any active zoom target so manual scroll wins
+                zoomTargetRotX = zoomTargetRotY = zoomTargetZoom = null;
                 const factor = e.deltaY > 0 ? 0.92 : 1.08;
                 manualZoom = Math.max(MIN_ZOOM, Math.min(MAX_ZOOM, manualZoom * factor));
             }
