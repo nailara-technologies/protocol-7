@@ -77,6 +77,28 @@ if (@$tools) {
     $request_body->{'tool_choice'} = 'auto';
 }
 
+## estimate context usage and log CTX% ##
+my $context_limit   = <inference.model.context_length> // 16384;
+my $chars_per_token = 3.2;
+my $body_chars      = length( JSON::PP->new->utf8->encode( \@messages ) );
+my $est_tokens      = int( $body_chars / $chars_per_token );
+my $pct_used        = int( $est_tokens * 100 / $context_limit );
+my $tokens_left     = $context_limit - $est_tokens - $max_tokens;
+
+<[base.logs]>->(
+    1,
+    "send_request: :%03d: msgs=%d <T:%d:%d:%d> [CTX:%d%%]",
+    $state->{'round'} // 0,
+    scalar(@messages),
+    $est_tokens,
+    $context_limit,
+    $tokens_left > 0 ? $tokens_left : 0,
+    $pct_used
+);
+
+## pass pct to model_output buffer for round header display ##
+$state->{'pct_used'} = $pct_used;
+
 ## sanitize messages for jinja2 safety ##
 <[coding.sanitize.jinja_messages]>->( \@messages );
 
@@ -100,8 +122,8 @@ if (@messages) {
 return
     <[coding.async.request]>->( $task_id, $request_body, $state->{'job_id'} );
 
-#,,,.,.,,,,,,,.,,,...,,..,..,,...,,,.,.,,,.,.,..,,...,...,.,,,.,,,,.,,...,,.,,
-#5JRXIS4LRMR6ZAY3ZBTU7BA6GAJHDMFW6YMSKUY4RAU5RS5FACBZ3753EEVEELVK27CTF3I3ZYD4G
-#\\\|KJJVJ2NV7NP7VEYV5JQPGTTK2YUBUST4PQELYCMVPOIWOVFLY5N \ / AMOS7 \ YOURUM ::
-#\[7]EP3W2G432UQPS2OQTSYVRII2LEQAAUHWEGYDK6NUQ23Q4GLX42BY 7  DATA SIGNATURE ::
+#,,,,,,,,,,.,,,,,,,,.,,.,,,,.,...,,.,,.,,,..,,..,,...,...,.,.,.,.,,,,,,..,..,,
+#ZTS2JQBH4H6GJMJFVNG243NGGVX6DAR7KKGYYA5HHAJ5CZVEF76UJ2RORA7CQBWVGNTFNV3YFFOXG
+#\\\|R3JCDAVC3QVRUDMO5X3HU325RAPJXYBE5J4Z6HWH6SOPLA5GMLH \ / AMOS7 \ YOURUM ::
+#\[7]RC3G4IFKT7LFHWGHMYDXVAYJZK5ZAIFQD6NJ625TYMNXELPYWCCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
