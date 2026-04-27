@@ -6,11 +6,21 @@
 my $msg_id  = shift // '';
 my $payload = shift // {};
 
-## skip replayed approvals during session history catchup
+## session not yet acquired — queue for flush on acquisition, don't drop
 if ( not <kimi.session.acquired> ) {
     <[base.logs]>->(
-        2, ': dropping replayed approval [ %s ] — session not ready', $msg_id
+        2, ': queuing approval [ %s ] — session not yet acquired', $msg_id
     );
+    <kimi.approval.pending> //= {};
+    my $request_id = $payload->{'id'} // $msg_id;
+    <kimi.approval.pending>->{$request_id} = {
+        'request_id'  => $request_id,
+        'tool_call'   => $payload->{'tool_call_id'} // '',
+        'sender'      => $payload->{'sender'}       // '',
+        'action'      => $payload->{'action'}       // '',
+        'description' => $payload->{'description'}  // '',
+        'received_at' => <[base.time]>->(3)
+    };
     return;
 }
 
@@ -79,8 +89,8 @@ if ( defined $auto_allow->{$action} ) {
 
 return;
 
-#,,,.,...,,,.,,,.,..,,...,.,,,,.,,.,.,...,..,,.,.,...,...,..,,...,.,.,..,,.,,,
-#GPPT3J7OLUD6HUJJKKIQBK7H7AOK2TATKP6WHLVHNKWNXCXS7SKW4BNDJ5RRE4DJC3MHX4ATP7F2G
-#\\\|LD2TJ5B7NDLYPHY2UOLIOCX4H2ZBAKSVUKAQNFWSI23L6QDMN4X \ / AMOS7 \ YOURUM ::
-#\[7]JG6JFA2NCTNJS73G7WHGUHIYK3UGK2LMEJSJ5XPIC23Y2EAQDKAQ 7  DATA SIGNATURE ::
+#,,,.,.,.,,,,,..,,..,,..,,...,..,,,..,,..,,.,,.,.,...,...,...,..,,...,,.,,..,,
+#C4TAJD2N7GOXZAAIP4EMC4WR6RJGDUUCT53KYIJRHGT57BBUTBUG7TPS63TE5KMDJH37L4MQ6CLPG
+#\\\|JZCDIZH35WYBTJMWUBW2L45SRM5AXED3OLXVPMRE7WY5ZH5BJOM \ / AMOS7 \ YOURUM ::
+#\[7]P7PXJPP4KZ7LUU3LOK2GDRU77R4AYOQVMYO7765ANOP22AYFHSAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
