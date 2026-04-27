@@ -880,8 +880,8 @@
             const od = navOrbitalData || orbitalData;
             const self = od.self || {};
             const allRendered = [];
-            if (self.p7ref) allRendered.push({ node: { ...self, type: 'self' }, pos: p7refToCoords(self.p7ref, 0, 0, 0, 140) });
-            (od.known || []).forEach(n => allRendered.push({ node: { ...n, type: 'known' }, pos: p7refToCoords(n.p7ref, 0, 0, 0, 140) }));
+            if (self.p7ref) allRendered.push({ node: { ...self, type: 'self' }, pos: p7refToCoords(self.p7ref, 0, 0, 0, 210) });
+            (od.known || []).forEach(n => allRendered.push({ node: { ...n, type: 'known' }, pos: p7refToCoords(n.p7ref, 0, 0, 0, 210) }));
             (od.nameserv || []).forEach(n => allRendered.push({ node: { ...n, type: 'nameserv' }, pos: p7refToCoords(n.p7ref, 0, 0, 0, 280) }));
             let nearest = null, nearDist = threshold || 40;
             const rect = canvas.getBoundingClientRect();
@@ -973,7 +973,7 @@
             ctx.globalCompositeOperation = 'screen';
             const all = (self.p7ref ? [self] : []).concat(known);
             all.forEach(node => {
-                const pos  = p7refToCoords(node.p7ref, 0, 0, 0, 140);
+                const pos  = p7refToCoords(node.p7ref, 0, 0, 0, 210);
                 const proj = project(pos);
                 if (!proj) return;
                 const isSelf = node.p7ref === self.p7ref;
@@ -1101,7 +1101,7 @@
             connections.forEach(conn => {
                 const node = (od.known || []).find(n => n.p7ref === conn.p7ref);
                 if (!node) return;
-                const targetPos = p7refToCoords(node.p7ref, 0, 0, 0, 140);
+                const targetPos = p7refToCoords(node.p7ref, 0, 0, 0, 210);
                 const targetProj = project(targetPos);
                 if (!targetProj) return;
                 const isEncrypted = conn.encrypted;
@@ -1239,7 +1239,7 @@
             const cz = selZ * FORMATION_SPACING;
             let best = Infinity;
             for (const node of nodes) {
-                const pos = p7refToCoords(node.p7ref, 0, 0, 0, 140);
+                const pos = p7refToCoords(node.p7ref, 0, 0, 0, 210);
                 const dx = cx - pos.x, dy = cy - pos.y, dz = cz - pos.z;
                 const d = Math.sqrt(dx*dx + dy*dy + dz*dz);
                 if (d < best) best = d;
@@ -1269,7 +1269,7 @@
             (od.known || []).forEach(n => allNodes.push({ ...n, isSelf: false }));
 
             allNodes.forEach(node => {
-                const pos = node.isSelf ? selfPos : p7refToCoords(node.p7ref, 0, 0, 0, 140);  // p7refToCoords decodes ADDR_B32
+                const pos = node.isSelf ? selfPos : p7refToCoords(node.p7ref, 0, 0, 0, 210);  // p7refToCoords decodes ADDR_B32
                 if (!nodeHistory[node.p7ref]) nodeHistory[node.p7ref] = [];
                 nodeHistory[node.p7ref].push({ x: pos.x, y: pos.y, z: pos.z, time: now });
                 nodeHistory[node.p7ref] = nodeHistory[node.p7ref].filter(h => (now - h.time) < overlapRange).slice(-trailLength);
@@ -1297,7 +1297,7 @@
             if (knownWeight > 0.01 || galaxyWeight > 0.01) {
                 const w = Math.max(knownWeight, galaxyWeight);
                 (od.known || []).forEach(node => {
-                    const pos = p7refToCoords(node.p7ref, 0, 0, 0, 140);
+                    const pos = p7refToCoords(node.p7ref, 0, 0, 0, 210);
                     const proj = project(pos);
                     if (!proj) return;
                     const hop = getNodeHop(node, self);
@@ -1331,7 +1331,7 @@
             if (self.p7ref) allRendered.push({ node: { ...self, hostname: navOrbitalData ? (self.hostname || 'context') : 'self', type: 'self' }, pos: selfPos });
             (od.known || []).forEach(n => {
                 const isConn = connectedP7refs.has(n.p7ref);
-                allRendered.push({ node: { ...n, type: isConn ? 'connected' : 'discovered' }, pos: p7refToCoords(n.p7ref, 0, 0, 0, 140) });
+                allRendered.push({ node: { ...n, type: isConn ? 'connected' : 'discovered' }, pos: p7refToCoords(n.p7ref, 0, 0, 0, 210) });
             });
             (od.nameserv || []).forEach(n => {
                 allRendered.push({ node: { ...n, hostname: n.hostname || 'nameserv', type: 'nameserv' }, pos: p7refToCoords(n.p7ref, 0, 0, 0, 280) });
