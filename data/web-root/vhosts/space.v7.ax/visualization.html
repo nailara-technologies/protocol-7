@@ -350,6 +350,7 @@
         fetchOrbitalData();
         fetchTemplateData();
         fetchAttentionData();
+        scheduleCursorPush();
 
 
         // === CUBE GEOMETRY ===
@@ -1849,10 +1850,23 @@
         }
 
         // === NAVIGATION ===
+        let cursorPushTimer = null;
+        function scheduleCursorPush() {
+            clearTimeout(cursorPushTimer);
+            cursorPushTimer = setTimeout(() => {
+                fetch('/cursor', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ selX, selY, selZ }),
+                }).catch(() => {});
+            }, 150);
+        }
+
         function moveSelection(dx, dy, dz) {
             selX += dx;
             selY += dy;
             selZ += dz;
+            scheduleCursorPush();
         }
 
         // === MOUSE ===
