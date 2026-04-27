@@ -2,12 +2,19 @@
 
 ## geometric foundation
 
-the 20x20x20 node group has 8 corner subcubes missing (aligned toward center).
-these define a 10x10x10 central void — exactly half the bounding box in each dimension.
-ratio: void:group = 1:2 (exact).
+the node group is 8 x (4x4x4) ambient cubes arranged in a 2x2x2 formation.
+each cube has 1 missing corner subcube pointing toward the center (63 lit subcubes each).
+each cube has a native 1-pixel boundary, so adjacent cubes sit 2px apart (1+1).
+the missing corner adds 1px inward from each side → void per axis: 2+1+1 = 4.
+
+the central void is exactly 4x4x4 — identical in size to one of the 8 ambient cubes.
+a virtual 9th cube (63 subcubes) fits perfectly into the void: the ghost cube slot.
+
+ratio: void:group bounding box = 4:8 = 1:2 (exact).
+total lit subcubes: 8 x 63 = 504.
 
 recursive self-similarity:
-- current level's node group (20x20x20) = parent level's central void (10x10x10 x scale)
+- current level's node group (8x8x8 bounding box) = parent level's central void (4x4x4 x scale)
 - zoom factor between adjacent levels = 2
 - 5 navigable scale levels already defined in grid-v13 baseline:
     SCALE_1      = FORMATION_SPACING x 1       (innermost)
@@ -17,7 +24,7 @@ recursive self-similarity:
     SCALE_100000 = FORMATION_SPACING x 100000  (outermost)
 
 the x20 jump between levels = 2 (void ratio) x 10 (decimal/binary boundary).
-the 8 missing corner subcubes are the entry/exit points between scales.
+the 8 corner cubes (with their missing inner subcubes) are the entry/exit points between scales.
 
 ## navigation model
 
@@ -76,8 +83,8 @@ the web zenka's orbital state handler needs a context param:
 ## visualization notes
 
 - the orbital sphere radius (140) and the grid CUBE_SIZE (140) are already matched
-- the 10x10x10 void maps to radius 70 — could visualize as inner sphere boundary
-- corner nodes (8 missing subcubes) could be highlighted as entry points
+- the 4x4x4 void maps to radius 70 — could visualize as inner sphere boundary
+- the 8 corner cubes (missing inner subcube) could be highlighted as entry points
 - smooth 2x zoom with existing lerp + 0.7 kick is already proven to feel right
 - at depth > 0: show outer node group faintly at 0.2 opacity as spatial anchor
 
@@ -86,10 +93,8 @@ the web zenka's orbital state handler needs a context param:
 phase 1 modifies visualization.html only.
 phase 2 modifies plugin.web.space.fetch and related web zenka modules.
 
-#,,.,,,..,..,,,.,,.,.,,..,.,.,,,.,.,.,.,.,,.,,..,,...,...,.,.,,.,,,.,,,.,..,.,
-
-#,,.,,.,.,,,.,,,.,...,...,,..,,.,,,..,,,,,,,.,..,,...,..,,...,,,.,,.,,.,,,,.,,
-#7L5ITCMW356AJWP2FZ2WV7DD5FMGPW4QRBS7T56MDBHHIU4ZZVTHYM5YC7XW6W2KETG24WEBZ3GMO
-#\\\|SHEWKYJSWWF5U3XDWOT7UWCIYEPM5SPKN2WEB4KTMNOGWCXQNWV \ / AMOS7 \ YOURUM ::
-#\[7]6HGL3WXTBD3DTVCRNLJBR6QQDEHEEYQVCEP4SHE3MPNZGI3PJEBY 7  DATA SIGNATURE ::
+#,,.,,,,,,...,,..,,,.,,,.,,.,,..,,...,,.,,.,,,..,,...,...,,.,,...,,,.,...,,.,,
+#AP33L24DRFU5CVZKO5ZSBIRRLJWXLII2XUQOM4QNZ3XXMNEEB6KEB2JMIAQCOEUYZSFFP4O5LM6QS
+#\\\|EBY3X3SDEKQNDNXCIGIHYNQ7Y4ZTRQ6VQVQ7ONVHKHOW5OYLSZV \ / AMOS7 \ YOURUM ::
+#\[7]DSB6KJC7NZHIC6C7BROES6TTVGSA33S5AE4GD2B6ISQUU733LYBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

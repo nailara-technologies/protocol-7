@@ -30,9 +30,88 @@ foreach my $n (@$known_all) {
     }
 }
 
-## return known[] excluding the context node itself ##
-my @sub_known
-    = grep { ( $_->{'p7ref'} // '' ) ne $context_p7ref } @$known_all;
+## helper: build synthetic orbital node from zenka identity ##
+sub _synthetic_zenka_node {
+    my ( $ctx, $name ) = @_;
+
+    ## deterministic hash from context + name ##
+    my $hash_input = sprintf( 'zenka:%s:%s', $ctx, $name );
+    my $hash_hex   = eval {
+        <[base.perlmod.autoload]>->('Digest::SHA');
+        Digest::SHA::sha256_hex($hash_input);
+    } // do {
+        my $sum = 0;
+        $sum = ( $sum * 31 + ord($_) ) & 0xFFFFFFFF for split //, $hash_input;
+        sprintf( '%08X%08X', $sum, $sum ^ 0xAAAAAAAA );
+    };
+    my @bytes = map { hex($_) } unpack( '(a2)*', substr( $hash_hex, 0, 8 ) );
+
+    ## encode first 4 bytes as base32r addr ##
+    <[base.perlmod.autoload]>->('Crypt::Misc');
+    my $packed = pack( 'C4',
+        $bytes[0] // 0,
+        $bytes[1] // 0,
+        $bytes[2] // 0,
+        $bytes[3] // 0 );
+    my $addr_b32 = Crypt::Misc::encode_b32r($packed);
+    $addr_b32 =~ s|=+$||;
+    $addr_b32 =~ tr|a-z|A-Z|;
+    $addr_b32 = substr( $addr_b32, 0, 16 );
+
+    return {
+        qw| p7ref    | => sprintf( 'NODE:%s:%s', $name, $addr_b32 ),
+        qw| hostname | => $name,
+        qw| theta    | => ( ( $bytes[0] // 0 ) / 255 ) * 360,
+        qw| phi      | => ( ( $bytes[1] // 0 ) / 255 ) * 360,
+        qw| psi      | => ( ( $bytes[2] // 0 ) / 255 ) * 360,
+        qw| omega    | => ( ( $bytes[3] // 0 ) / 255 ) * 360,
+        qw| age      | => 0,
+    };
+}
+
+## level 1: try to build zenki list from local running registry ##
+my @sub_known;
+
+my $zenki_running = $data{'zenki'}{'running'} // {};
+if ( ref $zenki_running eq qw| HASH | ) {
+    my @zenki_names;
+
+    ## managed zenki ##
+    if ( ref $zenki_running->{'zenki'} eq qw| HASH | ) {
+        push @zenki_names, keys %{ $zenki_running->{'zenki'} };
+    }
+
+    ## core infrastructure zenki ##
+    push @zenki_names, 'cube'
+        if ref $zenki_running->{'cube'} eq qw| HASH |
+        and exists $zenki_running->{'cube'}{'status'};
+    push @zenki_names, 'v7'
+        if ref $zenki_running->{'v7'} eq qw| HASH |
+        and exists $zenki_running->{'v7'}{'status'};
+
+    ## also try v7 zenka instance registry if available ##
+    my $v7_instances = $data{'v7'}{'zenka'}{'instance'} // {};
+    if ( ref $v7_instances eq qw| HASH | and keys %$v7_instances ) {
+        my %seen = map { $_ => 1 } @zenki_names;
+        foreach my $inst_id ( keys %$v7_instances ) {
+            my $inst = $v7_instances->{$inst_id};
+            next unless ref $inst eq qw| HASH |;
+            my $z_name = $inst->{'zenka_name'} // $inst->{'name'} // '';
+            next unless length $z_name;
+            push @zenki_names, $z_name unless $seen{$z_name}++;
+        }
+    }
+
+    if (@zenki_names) {
+        foreach my $z_name ( sort @zenki_names ) {
+            push @sub_known, _synthetic_zenka_node( $context_p7ref, $z_name );
+        }
+    }
+}
+
+## fallback: filter orbital cache known[] excluding context node ##
+@sub_known = grep { ( $_->{'p7ref'} // '' ) ne $context_p7ref } @$known_all
+    unless @sub_known;
 
 ## build payload matching root orbital.json shape ##
 my $gm_state = $data->{'gm_state'} // {};
@@ -64,8 +143,8 @@ my $payload = {
 
 return eval { JSON::XS::encode_json($payload) } // '{}';
 
-#,,,,,...,,..,,,,,,,.,,,,,.,.,,..,...,,,,,.,.,..,,...,...,..,,.,.,...,...,.,,,
-#J3RTOSPJN5YDTGSTXFWYIAXDV4EH4S7W62XQGJPTK7FJ362EIN4QHRKNXTSZF5V64KTO3PY3HIJP2
-#\\\|OTQDOQL2QUZJGOYCNY3RCTAPGQHGJS22U4DQSYQU45FTKBMFTFB \ / AMOS7 \ YOURUM ::
-#\[7]5PNI7UERBMTZXWJI2BEJ3K4BMD6RJWJDFBYNJLJ6VYZ3WCGMOAAQ 7  DATA SIGNATURE ::
+#,,,,,,.,,...,,,.,,..,...,.,.,,.,,,,,,..,,.,.,..,,...,...,,.,,,,,,,..,..,,..,,
+#CWORUH2KWWFUNCF7TRFL52MJOQBS3Q4R64ADTHPRIIV2EITP5LK4NQT5Y5XVRYIHM6HJK6U6B3PZW
+#\\\|CPEGZDIL4Z3MDMJQQH6BZXZJM3R224S3LHEWRMG4UAMRJOWA262 \ / AMOS7 \ YOURUM ::
+#\[7]YAYJYCLVXO52WMD6LQ3YLYGWLDWO2BB76X7BINICJ4VOK4JX32BA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
