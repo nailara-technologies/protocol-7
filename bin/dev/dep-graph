@@ -652,22 +652,27 @@ sub analyze_zenka_reachability {
     ##  analyze which modules are reachable from a zenka's entry points  ##
     my ( $graph, $zenka_name, $lines_ref ) = @ARG;
 
-    my ( $loaded_set, $entry_commands );
+    my ( $loaded_set, $entry_commands, $whitelist_register );
     if ( defined $lines_ref ) {
         ##  stdin mode: parse lines directly  ##
-        ( $loaded_set, $entry_commands ) = parse_start_lines($lines_ref);
+        ( $loaded_set, $entry_commands, undef, undef, $whitelist_register )
+            = parse_start_lines($lines_ref);
     } else {
         ##  file mode: locate and parse start file  ##
         my $start_file = c_dir( $root_path, qw| configuration zenki |,
             $zenka_name, qw| start | );
         die ":: zenka start file not found: $start_file\n" if !-f $start_file;
-        ( $loaded_set, $entry_commands )
+        ( $loaded_set, $entry_commands, undef, undef, $whitelist_register )
             = parse_zenka_start_file($start_file)
             ;    ##  config_files unused here  ##
     }
 
     say ":: zenka : $zenka_name";
     say ":: loaded   : " . scalar( keys %{$loaded_set} ) . " modules";
+    say ":: whitelist : "
+        . scalar( @{$whitelist_register} )
+        . " eager-load namespaces"
+        if @{$whitelist_register};
 
     ##  parse access.cmd.* configuration for command filtering  ##
     my $access_config = {};
@@ -781,6 +786,15 @@ sub analyze_zenka_reachability {
         ##  base.load_modules loads the full namespace at runtime  ##
         for my $loaded ( keys %{$loaded_set} ) {
             for my $node ( grep {m/^\Q$loaded\E(?:\.|$)/} keys %{$graph} ) {
+                my %new = walk_reachable( $graph, [$node] );
+                %reachable = ( %reachable, %new );
+            }
+        }
+
+        ##  include eager-load namespaces from white-list.register  ##
+        for my $ns ( @{$whitelist_register} ) {
+            for my $node ( grep {m/^\Q$ns\E(?:\.|$)/} keys %{$graph} ) {
+                next if $reachable{$node};
                 my %new = walk_reachable( $graph, [$node] );
                 %reachable = ( %reachable, %new );
             }
@@ -1122,9 +1136,26 @@ sub parse_start_lines {
         }
     }
 
+    ##  extract white-list.register namespace registrations  ##
+    my @whitelist_register;
+    for my $line (@joined_lines) {
+        if ( $line
+            =~ m/^\s*\[(?:base\.)?white-list\.register\s*:\s*([^\]]+)\]/ )
+        {
+            my $arg = $1;
+            $arg =~ s/^\s+|\s+$//g;
+            if ( $arg =~ m/^['"](.+)['"]$/ ) {
+                push @whitelist_register, $1;
+            } else {
+                push @whitelist_register, $arg;
+            }
+        }
+    }
+
     return (
         \%loaded_set,   \@entry_commands,
-        \@config_files, \@config_ambiguous
+        \@config_files, \@config_ambiguous,
+        \@whitelist_register
     );
 }
 
@@ -1627,8 +1658,8 @@ sub classify_dispatch_confidence {
     return 'open';
 }
 
-#,,..,.,,,,,,,.,.,.,.,,..,...,.,,,..,,,.,,,,.,.,.,...,...,,,.,,.,,,..,,,.,...,
-#ZTDL4HBYC7RAQXRCXS4D2KJHVWVDDWO762O2KGN2BWIHXAT5LABINBJHNVD3A3J4AZGL6IV3DNYYY
-#\\\|GQKU3Z5KL7XE4KAVTBHDLMUVJ65OKF4CCJJMTER75DYLVA2NYZD \ / AMOS7 \ YOURUM ::
-#\[7]YXFGN3QAB226ISNJPGHP5H3HQNZUBE3NZGT4RLI5SMDLCRKX2WAA 7  DATA SIGNATURE ::
+#,,,.,..,,,.,,.,,,...,...,,.,,,,,,...,,,,,.,,,.,.,...,..,,..,,...,.,.,,,.,,,,,
+#26X4W3N6JY62QB245QKVO7RLGAYYWJXDOZDCS5C245XRPUMDLT7NWOB4DTEUIBLEQGB4PLKBEKLOC
+#\\\|XWHAZML55FSOMARXCXDA2LOZ2CRPDSL2VQ2BUH22P2A7B4Y6ZSP \ / AMOS7 \ YOURUM ::
+#\[7]JEWQ7F4HVR3Y2XFIKIVR42QNDPSIA3VFTEAIYUYZWB5UZTHML6CI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

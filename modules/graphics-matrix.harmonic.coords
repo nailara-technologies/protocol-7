@@ -3,59 +3,17 @@
 # name  = graphics-matrix.harmonic.coords
 # descr = compute 3D voxel position from AMOS checksum offsets
 
-my $input_sref = shift;
+my ( $input, $preset_id ) = @ARG;
+$preset_id //= '';
 
-$input_sref = \"$input_sref" if ref($input_sref) eq '';
+return <[chk-sum.profile.calc]>->(
+    length $preset_id
+    ? "harmonic-slide.$preset_id"
+    : qw| harmonic-slide |, $input
+);
 
-my @coords;
-my $input_str = $$input_sref;
-
-## NOTE-UPDATED ##  the original [ task file ]
-# : data/tasks/graphics-matrix-voxel-space.md, tried to implement
-#                   the checksum modes from index.gen_path, which
-#                   would result in 7 character checksums with
-#                   alternate modes, but for space coordinates
-#                   this implementation is now testing a version
-#           with default modes but length 5 and a sliding offset
-#           window, which ensures there are no collisions as the
-#                   entropy will stronger diverge because of it.
-#                   the elf and truth modes changing version in
-#                   index.gen_path should be kept and analyzed,
-#                   and what is used for what might still change.
-
-## [ adjusted version ] ## [ while original attempt had length 4 ]
-#
-for my $offset ( 0, 1, 2 ) {
-    ## full checksum of input substring at each offset ##
-    ## gives independent 7-char harmonic projection per axis ##
-
-    $AMOS7::CHKSUM::sstr_start = $offset;
-    $AMOS7::CHKSUM::str_length = 5;
-    my $checksum = <[chk-sum.amos]>->( \$input_str );
-    push @coords, $checksum;
-}
-#
-##
-
-# NOTE #  if length 5 turns out to be more desirable  we can reverse-adjust
-#         any similar computations elsewhere. we at least had the entropy
-#         available while remaining at the same length per checksum value.
-##
-
-##[ old [intermediate] version - probably drop - kept for reference ]
-#
-# for my $offset ( 0, 1, 2 ) {
-#     ## full checksum of input substring at each offset ##
-#     ## gives independent 7-char harmonic projection per axis ##
-#     my $substr = substr( $input_str, $offset );
-#     my $checksum = <[chk-sum.amos]>->( \$substr );
-#     push @coords, $checksum;
-# }
-
-return @coords;
-
-#,,,,,,..,,.,,,,.,,,,,,.,,,.,,,..,,,,,,,,,...,..,,...,...,,.,,,,.,.,.,.,.,..,,
-#KQUBVHHEAKWLVX7ZXEGHAPC32O526R5I33FWQS5TWW4OKK57YVYAP4NNYR3ONJH4R74NTG3IRJGDE
-#\\\|HSV454Y4X5FRNNTMYOYCDYW5RLUKQWBUSLJUIUYJS6XPHZAHTHZ \ / AMOS7 \ YOURUM ::
-#\[7]KXOKZFRELVTKJMCXDUJYOONS723JUUKJUNIBGFES7XC7D7AHVKCI 7  DATA SIGNATURE ::
+#,,,.,.,.,,,.,.,.,.,.,,,,,,,,,,,,,,,.,,..,,,,,..,,...,...,,..,...,,,.,.,.,,,,,
+#RZ2W2RCGJJMCAMZ5QWPLOG73DWL4JGJAKCOWPVU2KGMTDN364RLAZTMLDLORHULBQUOJ7SYU74NAG
+#\\\|IKFCR5ZNTPXPCNZ36Z6AFEFXQFZ3WWI7YPE4PXYDKJSCQLXQ4SS \ / AMOS7 \ YOURUM ::
+#\[7]TT6E3XZ4FYT5OFGA4P2ZIMFMJLEL5C2I4C2EPQ6YVRFVUF5GIGCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
