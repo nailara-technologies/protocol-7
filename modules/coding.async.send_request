@@ -30,14 +30,50 @@ my @roles = map { $ARG->{'role'} } @messages;
     join( ',', map { uc( substr( $ARG, 0, 1 ) ) } @roles )
 );
 
-## check for stop request ##
+## check for injected messages from coding.cmd.inject-message ##
 my $task = <coding.task.queue>->{$task_id};
+if (    defined $task
+    and ref $task->{'injected_messages'} eq qw| ARRAY |
+    and $task->{'injected_messages'}->@* ) {
+    my @injected = $task->{'injected_messages'}->@*;
+    $task->{'injected_messages'} = [];
+
+    for my $im (@injected) {
+        push @{ $state->{'messages'} },
+            {
+            'role'    => $im->{'role'}    // qw| user |,
+            'content' => $im->{'content'} // ''
+            };
+    }
+
+    <[base.logs]>->(
+        1,
+        "send_request: injected %d message(s) from external source",
+        scalar @injected
+    );
+}
+
+## refresh messages array after potential injection ##
+@messages = @{ $state->{'messages'} // [] };
+
+## check for stop request ##
 if ( defined $task && $task->{'stop_requested'} ) {
     <[base.logs]>->(
         1, "send_request: stop requested for %s, completing", $task_id
     );
     <[coding.async.complete_task]>->($task_id);
     return { success => TRUE, stopped => TRUE };
+}
+
+## check for pause request ##
+if ( defined $task && $task->{'pause_requested'} ) {
+    <[base.logs]>->( 1, "send_request: pause requested for %s", $task_id );
+    $task->{'pause_requested'} = FALSE;
+    <[coding.async.state_machine]>->(
+        'pause', $task_id,
+        { 'reason' => 'user request', 'resume_event' => 'resume' }
+    );
+    return { success => TRUE, paused => TRUE };
 }
 
 ## check round limit ##
@@ -122,8 +158,8 @@ if (@messages) {
 return
     <[coding.async.request]>->( $task_id, $request_body, $state->{'job_id'} );
 
-#,,,,,,,,,,.,,,,,,,,.,,.,,,,.,...,,.,,.,,,..,,..,,...,...,.,.,.,.,,,,,,..,..,,
-#ZTS2JQBH4H6GJMJFVNG243NGGVX6DAR7KKGYYA5HHAJ5CZVEF76UJ2RORA7CQBWVGNTFNV3YFFOXG
-#\\\|R3JCDAVC3QVRUDMO5X3HU325RAPJXYBE5J4Z6HWH6SOPLA5GMLH \ / AMOS7 \ YOURUM ::
-#\[7]RC3G4IFKT7LFHWGHMYDXVAYJZK5ZAIFQD6NJ625TYMNXELPYWCCI 7  DATA SIGNATURE ::
+#,,..,.,.,.,,,,..,.,.,...,,,.,..,,,,,,..,,,.,,..,,...,...,...,..,,..,,..,,,,,,
+#6UMYLY6QDIWDAYM53UNBKJVF2SULH6LPWMVCGDUZOHXYRSZQ7LBFU3AOZKKLBH7IJ7XGOZX4JA4YC
+#\\\|6KKSX5HO3IC7XA7Q4CEJTCZBGIAQUIVBWL4FI2YLFZIKJN2MDF7 \ / AMOS7 \ YOURUM ::
+#\[7]SDWXI346I3QNA4ETGJA6T2NCPT6LA34WIOWXLEAN6DVNVX467MAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

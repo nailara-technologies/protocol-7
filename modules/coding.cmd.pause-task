@@ -1,0 +1,58 @@
+## [:< ##
+
+# name  = coding.cmd.pause-task
+# descr = pause an active async coding task
+# param = [task_id]
+
+my $args_str  = $call->{'args'} // '';
+my ($task_id) = split m{ +}, $args_str, 2;
+
+## default to first active task ##
+if ( not defined $task_id or not length $task_id ) {
+    my $aref_active = <coding.task.active> // [];
+    if ( $aref_active->@* ) {
+        $task_id = $aref_active->[0];
+    } else {
+        return {
+            'mode' => qw| false |,
+            'data' => 'no active task to pause'
+        };
+    }
+}
+
+my $task = <coding.task.queue>->{$task_id};
+
+return { 'mode' => qw| false |, 'data' => "task not found: $task_id" }
+    unless defined $task;
+
+my $status = $task->{'execution'}->{'status'} // 'unknown';
+
+return {
+    'mode' => qw| false |,
+    'data' => "task not active (status: $status)"
+    }
+    unless $status eq qw| in_progress |;
+
+## blocking mode does not support pause ##
+my $has_async = <[coding.async.state_manager]>->( 'exists', $task_id );
+if ( !$has_async ) {
+    return {
+        'mode' => qw| false |,
+        'data' => 'pause only supported for async tasks'
+    };
+}
+
+$task->{'pause_requested'} = TRUE;
+
+<[base.logs]>->( 1, "pause-task: pause requested for %s", $task_id );
+
+return {
+    'mode' => qw| true |,
+    'data' => "pause requested for task $task_id"
+};
+
+#,,,.,,.,,,.,,...,...,,..,.,,,.,.,,,,,,,,,.,,,.,.,...,...,.,,,,..,,.,,,.,,.,,,
+#CGGXNKL5JNHJM3S6DDQH7FCBRB2QO5X6BIAFY3DM4BKMGE5KJD5I6FWNNGONMZBCOW4NS5YIBOSHI
+#\\\|UJZNQKFKBMQOLTPOTHDHNRLDKMSGE22R4RTRG5FPEBN2VWCODNW \ / AMOS7 \ YOURUM ::
+#\[7]5NN6OAM4MH2CMYJXFZUVOCOOVLYJ6D66PSIHUHXORHQQ4FYW3UDQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

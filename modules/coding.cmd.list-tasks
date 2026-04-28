@@ -1,0 +1,68 @@
+## [:< ##
+
+# name  = coding.cmd.list-tasks
+# descr = list active and pending coding tasks
+# param = [limit]
+
+my $args_str = $call->{'args'} // '';
+my ($limit)  = split m{ +}, $args_str, 2;
+$limit //= 20;
+
+my $aref_active  = <coding.task.active>  // [];
+my $aref_pending = <coding.task.pending> // [];
+
+my @output;
+push @output, ':: active tasks ::';
+
+if ( $aref_active->@* ) {
+    for my $task_id ( $aref_active->@* ) {
+        my $task = <coding.task.queue>->{$task_id};
+        next unless defined $task;
+
+        my $status  = $task->{'execution'}->{'status'}     // 'unknown';
+        my $model   = $task->{'execution'}->{'model_used'} // '?';
+        my $started = $task->{'execution'}->{'started'}    // 0;
+        my $elapsed = int( <[base.time]>->(3) - $started );
+        my $desc    = $task->{'request'}->{'description'} // '';
+        $desc = <[base.parser.center_ellipse_string]>->( $desc, 40 )
+            if length $desc > 40;
+
+        my $async_state
+            = <[coding.async.state_machine]>->( qw| get |, $task_id );
+        my $round = $async_state->{'round'} // 0;
+
+        push @output,
+            sprintf "%s | %s | %s | %ds | r%d | %s",
+            $task_id, $status, $model, $elapsed, $round, $desc;
+    }
+} else {
+    push @output, '  (none)';
+}
+
+push @output, '', ':: pending tasks ::';
+
+if ( $aref_pending->@* ) {
+    for my $task_id ( $aref_pending->@* ) {
+        my $task = <coding.task.queue>->{$task_id};
+        next unless defined $task;
+
+        my $desc = $task->{'request'}->{'description'} // '';
+        $desc = <[base.parser.center_ellipse_string]>->( $desc, 50 )
+            if length $desc > 50;
+
+        push @output, sprintf "%s | %s", $task_id, $desc;
+    }
+} else {
+    push @output, '  (none)';
+}
+
+my $output_str = join "\n", @output;
+$output_str .= "\n";
+
+return { 'mode' => qw| size |, 'data' => $output_str };
+
+#,,.,,,.,,,.,,..,,...,,,,,,..,,..,,..,,..,,,,,.,.,...,...,,..,,..,...,.,.,,..,
+#JG7YOOWAOGQ4JPV6H5UKKKF77EGHFPDHZNXNYKDYQIKQI5VQ3MQ3A7O7MJV5VFGAWZPDTA4U6CESW
+#\\\|B3AZKFKHTK52PAZB247CTOBMXTGJCRBR4DKHSQ6UBZJ5YKPRLQ4 \ / AMOS7 \ YOURUM ::
+#\[7]6FDW6EOTGKDKSODPNQ36EAE6AXYHVPRH626OC3HRDGRFRARFLQCA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
