@@ -1,0 +1,60 @@
+## [:< ##
+
+# name  = coding.cmd.task-info
+# descr = show detailed information about a coding task
+# param = <task_id>
+
+my $task_id = $call->{'args'} // '';
+
+return { 'mode' => qw| false |, 'data' => 'task_id required' }
+    unless length $task_id;
+
+my $task = <coding.task.queue>->{$task_id};
+
+return { 'mode' => qw| false |, 'data' => "task not found: $task_id" }
+    unless defined $task;
+
+my $exec   = $task->{'execution'} // {};
+my $status = $exec->{'status'}    // 'unknown';
+
+my @output;
+push @output, ":: task info : $task_id ::";
+push @output, sprintf "status       : %s", $status;
+push @output, sprintf "backend      : %s", $exec->{'backend'}    // '?';
+push @output, sprintf "model        : %s", $exec->{'model_used'} // '?';
+push @output, sprintf "started      : %s",
+    $exec->{'started'}
+    ? scalar localtime( $exec->{'started'} )
+    : 'n/a';
+push @output, sprintf "finish_reason: %s", $exec->{'finish_reason'} // 'n/a';
+
+my $async_state = <[coding.async.state_machine]>->( qw| get |, $task_id );
+if ( defined $async_state and keys %$async_state ) {
+    push @output, sprintf "async_round  : %d", $async_state->{'round'} // 0;
+    push @output,
+        sprintf "async_state  : %s", $async_state->{'state'} // 'n/a';
+    my $msg_count = scalar( @{ $async_state->{'messages'} // [] } );
+    push @output, sprintf "messages     : %d", $msg_count;
+} else {
+    push @output, sprintf "messages     : %s", 'n/a';
+}
+
+my $inject_count = 0;
+if ( ref $task->{'injected_messages'} eq qw| ARRAY | ) {
+    $inject_count = scalar $task->{'injected_messages'}->@*;
+}
+push @output, sprintf "injected_pending: %d", $inject_count;
+
+my $desc = $task->{'request'}->{'description'} // '';
+push @output, '', sprintf "description  : %s", $desc;
+
+my $output_str = join "\n", @output;
+$output_str .= "\n";
+
+return { 'mode' => qw| size |, 'data' => $output_str };
+
+#,,.,,.,,,,,.,,,.,,..,.,.,,..,,,,,,.,,,,.,...,.,.,...,...,..,,,,,,,,.,...,..,,
+#I75DO4XLKPP7HENLJOCNVTS2DUYG57ZHMOXILAHISXDZCBBAHU7ZKHLZ6SZZOSHXU2LWYB3WZZDJQ
+#\\\|AOEEWB2BH6NTZXJZFRMISUMM5QPW5ZPTOF33GFASJQ4GHUP3LX2 \ / AMOS7 \ YOURUM ::
+#\[7]MLC2RYZJDNG5RNVS6SUBL47V2Q5BCNRNV62FCR33Z7UKOJMZJMCA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

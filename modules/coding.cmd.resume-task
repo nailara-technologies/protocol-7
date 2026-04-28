@@ -1,0 +1,65 @@
+## [:< ##
+
+# name  = coding.cmd.resume-task
+# descr = resume a paused async coding task
+# param = [task_id]
+
+my $args_str  = $call->{'args'} // '';
+my ($task_id) = split m{ +}, $args_str, 2;
+
+## default to first active task ##
+if ( not defined $task_id or not length $task_id ) {
+    my $aref_active = <coding.task.active> // [];
+    if ( $aref_active->@* ) {
+        $task_id = $aref_active->[0];
+    } else {
+        return {
+            'mode' => qw| false |,
+            'data' => 'no active task to resume'
+        };
+    }
+}
+
+my $task = <coding.task.queue>->{$task_id};
+
+return { 'mode' => qw| false |, 'data' => "task not found: $task_id" }
+    unless defined $task;
+
+## check async state ##
+my $state = <[coding.async.state_machine]>->( qw| get |, $task_id );
+
+return {
+    'mode' => qw| false |,
+    'data' => 'task has no async state'
+    }
+    unless defined $state and keys %$state;
+
+my $current = $state->{'state'} // 'unknown';
+
+return {
+    'mode' => qw| false |,
+    'data' => "task is not paused (state: $current)"
+    }
+    unless $current eq qw| paused |;
+
+## clear pause flag ##
+$task->{'pause_requested'} = FALSE
+    if exists $task->{'pause_requested'};
+
+## trigger resume via state_machine ##
+<[coding.async.state_machine]>->(
+    'resume', $task_id, { 'reason' => 'user request' }
+);
+
+<[base.logs]>->( 1, "resume-task: resuming %s", $task_id );
+
+return {
+    'mode' => qw| true |,
+    'data' => "task $task_id resumed"
+};
+
+#,,.,,,,.,.,,,.,,,...,,,,,,.,,.,,,.,.,...,,,,,.,.,...,.,.,..,,..,,...,.,.,.,,,
+#BDG7ZY6IF23CPPBJ5GT56N3UEMXA5O26MYA2TQJWJ5CIY3H3TW7GASUNFZYRA5XGSIRVTEN5DP5RG
+#\\\|UAUBD77J34R4C5R2NASW7JNQTDRU3RQDLZ5WWG7DQWOL66EC7HX \ / AMOS7 \ YOURUM ::
+#\[7]XMSA23XAQBKLBMH7DZLXTASJYPVCQ3UJYF7H677QEREOJCAHPCCQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
