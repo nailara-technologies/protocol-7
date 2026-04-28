@@ -1,30 +1,34 @@
 ## [:< ##
 
 # name  = index.gen_path
+# descr = AMOS path generation using configurable profile
 
-my $s_ref = shift;    ##[  string or scalar reference  ]##
+my ( $input, $preset_id ) = @ARG;
+my $p = <[chk-sum.profile.gen-path]>->($preset_id);
+
+my $s_ref = $input;
+$s_ref = \"$s_ref" if ref($s_ref) eq '';
 
 my @path_structure;
 my $minimum_subdir_count  = 4;
-my @subdir_modes          = qw| 5 7 |;
-my @truth_elf_mode_filter = qw| 7 9 |;
-
-$s_ref = \"$s_ref" if ref($s_ref) eq '';
+my @subdir_modes          = @{ $p->{'modes'} };
+my @truth_elf_mode_filter = @{ $p->{'filter'} };
 
 while ( !@path_structure ) {
-    my @checksums = map { scalar <[chk-sum.amos]>->( $s_ref, $ARG ) } @subdir_modes;
+    my @checksums
+        = map { scalar <[chk-sum.amos]>->( $s_ref, $ARG ) } @subdir_modes;
 
 ##                                                                     ##
 ##   splitting amos-chksum entropy into anti-entropic directory tree   ##
 ##                                                                     ##
 
     my %checksum_map;
-    for my $offset ( 0 .. 6 ) {    ##  create amos chksum character matrix  ##
+    for my $offset ( 0 .. $p->{'length'} - 1 ) {
         foreach my $checksum (@checksums) {
             ++$checksum_map{$offset}{ substr( $checksum, $offset, 1 ) };
         }
     }
-    for my $offset ( 0 .. 6 ) {    ##  iterating through checksum width  ##
+    for my $offset ( 0 .. $p->{'length'} - 1 ) {
         my $dir_name = join(
             '',
             sort { $checksum_map{$offset}{$b} <=> $checksum_map{$offset}{$a} }
@@ -43,8 +47,8 @@ while ( !@path_structure ) {
 
 return join qw| / |, @path_structure;
 
-#,,.,,,,,,.,,,...,,.,,,..,,..,,..,..,,.,.,..,,..,,...,...,,,,,.,.,,,,,,.,,,,.,
-#XU7NBSYXGLJ7J2ITNTVYXYOKOGG7UPKZ7MQ3D5KHL2AI2O5LSSOTOWCC4WPI7WM6OGGKOGLHV4BQQ
-#\\\|XVX6YV6NZ22EUMLZT2UWWCEGGQHXKEYCKRKKEM4A3NG736IHAVA \ / AMOS7 \ YOURUM ::
-#\[7]JLFTCZHN6CPIMHJ4DQ2LQUOM3GRNWI2PKPLBEDGMLFIF6SW7VGAY 7  DATA SIGNATURE ::
+#,,,.,,,.,...,,,,,,,.,,,.,...,,,.,,..,.,,,,,.,.,.,...,...,...,.,,,,.,,...,,.,,
+#TGXPDSCKAYBZEZUPUFCFH7DEMOWTMNI5YAXM6IUN3C7BW572X5FPMQ64QKCLF6KEBVNFWFS5ZLY7Y
+#\\\|D5Y2GB2BJYKOFBXNW4IGGENRC5H6TF7RMPSHAAHA2NX3DSIGB2K \ / AMOS7 \ YOURUM ::
+#\[7]2BDRQLYJJYMF5XX3MUOOYC3I3FXR3I6D764VNZOO3COCJ46SFGDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,0 +1,32 @@
+## [:< ##
+
+#  name  = base.chk-sum.profile.harmonic-slide
+#  descr = spatial coordinate profiles, sliding window family
+
+my ($preset_id) = @ARG;
+
+my $profile = {
+    algo    => qw| amos |,
+    offsets => [ 0, 1, 2 ],
+    length  => 5,
+};
+
+if ( defined $preset_id ) {
+    my $resolved
+        = <[base.resolve_key]>->("chk-sum.profile.harmonic-slide.$preset_id");
+    if ( defined $resolved
+        and $resolved->{'r-type'} eq qw| HASH | ) {
+        my $delta = $resolved->{'r-data'};
+        while ( my ( $k, $v ) = each %$delta ) {
+            $profile->{$k} = $v;
+        }
+    }
+}
+
+return $profile;
+
+#,,,.,.,.,,.,,,.,,,,,,.,,,,,,,,..,.,.,,,,,,,,,..,,...,...,,.,,.,,,.,.,,,.,.,.,
+#T42LOAIIBT2M5YJKIE27WDYEPK5B2RMCMYVLWV7LG4SUPTT53XXMKOOVBUQMRDSIVOVUTOH4C4YIW
+#\\\|YSDBRU3QVSWNGZR2ZVPGH454IGZDUKAY6BCCK33VWRSQFSBWWLY \ / AMOS7 \ YOURUM ::
+#\[7]VOEFP5ZC5VHC43URMBME5YWE2ASWHCPY5DTQAAF5TPMG5PKG7ODQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,0 +1,54 @@
+## [:< ##
+
+#  name  = base.chk-sum.profile.calc
+#  descr = calculate checksum using profile parameters
+
+my ( $profile, $input ) = @ARG;
+
+## normalize input to scalar ref ##
+my $input_sref;
+if ( not length ref $input ) {
+    $input_sref = \$input;
+} elsif ( ref $input eq qw| SCALAR | ) {
+    $input_sref = $input;
+} else {
+    warn 'expected string or scalar reference <{C1}>';
+    return undef;
+}
+
+## string profile id: resolve category.preset ##
+if ( not ref $profile and length $profile ) {
+    my ( $category, $preset_id ) = split m|\.|, $profile, 2;
+    $preset_id //= '';
+    my $mod = "chk-sum.profile.$category";
+    if ( exists $code{$mod} ) {
+        $profile = $code{$mod}->($preset_id);
+    } else {
+        warn "unknown profile category: $category <{C1}>";
+        return undef;
+    }
+}
+
+return warn 'expected profile hash reference <{C1}>'
+    if ref $profile ne qw| HASH |;
+
+my $algo    = $profile->{'algo'} // qw| amos |;
+my $mod     = "chk-sum.$algo";
+my @offsets = @{ $profile->{'offsets'} // [0] };
+my $length  = $profile->{'length'} // 7;
+my @modes   = @{ $profile->{'modes'} // [] };
+
+my @results;
+for my $offset (@offsets) {
+    local $AMOS7::CHKSUM::sstr_start = $offset;
+    local $AMOS7::CHKSUM::str_length = $length;
+    push @results, $code{$mod}->( $input_sref, @modes );
+}
+
+return wantarray ? @results : \@results;
+
+#,,,,,,,,,,,.,...,,,,,,,.,.,.,..,,...,..,,.,,,..,,...,...,..,,...,..,,..,,.,.,
+#XHENSMEQ2MQ35ZGEARZNPUBLXQ567PYQ3Q3ZOZ36NXRUWTNIR2HZ2B55H6P2FBVQB57DKG6GLT5FQ
+#\\\|2EAOP34C54W565NONML2UQAR7LKN37DF7HEW54RE6HCDCUETYWG \ / AMOS7 \ YOURUM ::
+#\[7]JA5MIRVRWJED7F4WFAMVVL5C3EADRMM7AFLPSKOS5KX3JI4YUEAY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
