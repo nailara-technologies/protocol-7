@@ -1,0 +1,45 @@
+## [:< ##
+
+#  name  = base.white-list.register
+#  descr = register namespace for eager whitelist loading, verify files
+
+my $args = shift // '';
+$args =~ s|^\s+||;
+$args =~ s|\s+$||;
+
+my ($namespace) = $args =~ m|^['"]([^'"]+)['"]$|;
+$namespace //= $args;
+$namespace =~ s|\s.*$||;
+
+return { 'mode' => qw| false |, 'data' => 'expected namespace argument' }
+    if not length $namespace;
+
+my $modules_dir = File::Spec->catdir( <system.root_path>, qw| modules | );
+
+my $found = 0;
+for my $file ( glob File::Spec->catfile( $modules_dir, "$namespace.*" ) ) {
+    next if -d $file;
+    $found++;
+}
+
+if ( not $found ) {
+    <[base.logs]>
+        ->( 0, "white-list.register: no modules for %s", $namespace );
+    return {
+        'mode' => qw| false |,
+        'data' => "no modules found: $namespace"
+    };
+}
+
+<[base.logs]>->(
+    2,          "white-list.register: %s [%d modules]",
+    $namespace, $found
+);
+
+return { 'mode' => qw| true |, 'data' => $namespace };
+
+#,,,.,.,.,,,,,.,,,.,,,.,.,,.,,,.,,.,.,,,,,...,..,,...,..,,...,,,,,..,,,.,,.,.,
+#M2FHFGL6ZMLS7LYYU6M6S3SIWZH6JCBQ6MEYBNLT4AKMYD6CCL4XE4UVRQVNRO5BJMXBKBBMMAHVI
+#\\\|76HKYQ4EKMT5NL7PKSV4X34W7CZU7LZP54FZTQRLF5RRYFIECT5 \ / AMOS7 \ YOURUM ::
+#\[7]GB2R43TCNQGNZJM2J432D3VCERGS4YENXE7WGN7F7SOO53RM7MDQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
