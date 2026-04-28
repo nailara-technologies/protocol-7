@@ -66,11 +66,19 @@ if ( $sm_state eq 'streaming' ) {
     ## connection closed while still streaming [ current request ] ##
     ## no finish_reason received — try to recover ##
     my $content = $state->{'response_text'} // $state->{'content'} // '';
+
+    ## check chunk_context for partial content
+    ## [ model sent data but no finish_reason ] ##
+    if ( !length($content) && defined $state->{'chunk_context'} ) {
+        $content = $state->{'chunk_context'}->{'content'} // '';
+    }
+
     if ( length($content) ) {
         ## got partial response — complete with what we have ##
         <[base.logs]>->(
             1,
-            "http_complete: task %s connection closed with partial response [ %d bytes ]",
+            "http_complete: task %s connection "
+                . "closed with partial response [ %d bytes ]",
             $task_id,
             length($content)
         );
@@ -79,12 +87,13 @@ if ( $sm_state eq 'streaming' ) {
             { 'event' => 'finish_stop', 'content' => $content }
         );
     } else {
-        ## no content at all — check for non-sse response body ##
-        my $body = $http_state->{'body'} // '';
+        ## no content at all — check for raw response in buffer ##
+        my $body = $http_state->{'buffer'} // '';
         if ( length($body) ) {
             <[base.logs]>->(
                 1,
-                "http_complete: task %s non-sse response [ %d bytes ], completing",
+                "http_complete: task %s non-sse "
+                    . "response [ %d bytes ], completing",
                 $task_id,
                 length($body)
             );
@@ -119,8 +128,8 @@ if ( $sm_state eq 'streaming' ) {
 
 return;
 
-#,,.,,,..,,.,,,..,.,,,,.,,,,,,,,,,...,..,,...,..,,...,...,.,,,,..,,..,,..,,,.,
-#XQHFP7P6A62GK6VOWOOAHUAXP5EJ5RXOIK5OIOHEWMIXEQNKJT4THAOWXQZT5DTIJPQSXHVZXZ6EK
-#\\\|MX7JKTVGHO3EV7DMPSWOG6J23C5J4Y5CAWYRGLB5RIE5NHNLHLK \ / AMOS7 \ YOURUM ::
-#\[7]GJJXCJWAEPW3GPHOSMM7IQF2ZF4KYXG4BP5MYSBTJ4L4AJ6DR6AI 7  DATA SIGNATURE ::
+#,,..,,..,...,,,.,,,.,.,.,..,,,,,,,,,,,..,,,,,..,,...,...,,..,.,.,...,.,,,,,.,
+#HOQCHZMZRK6J64WY2F72MZOMVJ6EE3S4PH5KEYCJQ64LVHI4QPF2F7Q2HV6PQ5TNQU5T3FR4QMKRU
+#\\\|XIJA2MQNOQPWDFSDVHIG644CQ6JDHYSPVPZGFPVGTPW5XNQOHBZ \ / AMOS7 \ YOURUM ::
+#\[7]PJJ45RMXNA7NEVZHTNLX2KZLFWTSKZU6FNHWUQKE5MCMQ57H3WAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
