@@ -15,7 +15,8 @@ access.cmd.usr.cube = commands heart reload verify-instance list show-buffer \
                       clear-applied apply-staged tree-read tree-list \
                       tree-write list-tools call-tool get set dump \
                       inject-message stop-task async-test wait-done \
-                      list-tasks task-info pause-task resume-task
+                      list-tasks task-info pause-task resume-task \
+                      execute_round
 ##                                                   to access %data.  ##
 
 system.verbosity.zenka_buffer  = 2  ##  memory ring buffer verbosity   ##
@@ -27,6 +28,10 @@ crypt.C25519.autocreate-user-key = yes
 ## project file write access [ apply-staged ] ##
 coding.cfg.assume_admin_group = yes  ## run with project owner's group ##
 coding.cfg.allow_chmod_apply  = yes  ## chmod g+w target files during apply ##
+
+## round-based scheduling: each inference round is a discrete jobqueue job ##
+## enables fair multiplexing across tasks and natural subtask trees       ##
+coding.async.round_scheduling.enabled = no   ## set to yes when proven ##
 
 ## GPU+CPU Dual Inference Configuration ##
 inference.backend.lib_path = /data/source/ik_llama.cpp
@@ -106,8 +111,8 @@ plugins.load = plugin.storage.inference plugin.storage.util.inference
 
 [zenka.loop]
 
-#,,,.,..,,..,,...,,,.,.,,,.,.,,.,,.,,,,,.,...,.,.,...,...,,.,,,,,,.,,,...,.,,,
-#S5Z57PHYCKH73X5HNK5346PKTXQRROBGQNDBO3K6O6A5A5IRNRCGF6A2N32DBILNY5AFMZXL3IH3Q
-#\\\|Y4XVLIEFKOKNZ4NVMLPZPXKGR22FIG4WTPFIUDCFEOKNPEL5RDW \ / AMOS7 \ YOURUM ::
-#\[7]UYX7ODMIQIVLMZKMSY2SDNXRMJEKBMMRNCK5KWJWPR57LN4XJ6BQ 7  DATA SIGNATURE ::
+#,,,,,,..,..,,.,,,..,,,,,,,,.,.,.,,,,,.,.,,,,,.,.,...,..,,...,...,,,,,.,,,,,.,
+#R7F3HTOZ24BMITAN74ZV76FF5EWVEAEHXZZJ2VE725KV3JWR7DWF6DIVBGNMLXH637X6J4UJTKCIO
+#\\\|NOZCA23PN2TSC7NJUCZAYQ7AJTCM3JPV2GSILQ3IIXKZEKUY3FB \ / AMOS7 \ YOURUM ::
+#\[7]6LAIV6WB3RI5IM5YATUIOT2SJGE7DXCLKOJYLACLAGRJXYULHGCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -574,6 +574,41 @@ push @tools,
     },
     };
 
+## subtask_spawn — delegate work to a child task ##
+push @tools,
+    {
+    'type'     => 'function',
+    'function' => {
+        'name'        => 'subtask_spawn',
+        'description' => 'spawn a focused child task to investigate or '
+            . 'solve a sub-problem. the parent task pauses until the '
+            . 'child completes and the result is injected back into '
+            . 'parent context. use for parallelizable work or deep '
+            . 'dives that should not block the main flow.',
+        'parameters' => {
+            'type'       => 'object',
+            'properties' => {
+                'description' => {
+                    'type'        => 'string',
+                    'description' => 'clear description of what the child '
+                        . 'task should do'
+                },
+                'template' => {
+                    'type'        => 'string',
+                    'description' => 'optional context template name '
+                        . 'to guide the child task'
+                },
+                'guiding_message' => {
+                    'type'        => 'string',
+                    'description' => 'optional guidance for the child '
+                        . 'task [ constraints, priorities, hints ]'
+                },
+            },
+            'required' => ['description'],
+        },
+    },
+    };
+
 ## record_question — note uncertainty without stopping ##
 push @tools,
     {
@@ -1247,8 +1282,8 @@ if ( exists $code{'coding.tools.handler.decode_base32'} ) {
 
 return \@tools;
 
-#,,.,,,..,,.,,,..,,..,.,,,.,.,.,.,...,,,.,.,.,..,,...,...,.,.,..,,,.,,,..,,..,
-#FK2VFXKQTFEG3NTSFJ47SEPCKW4ET4I3W72SL76BK5GPC3CFFPXPYB23TGOIODNOAGIPGOOHYAQ5G
-#\\\|E25BRAHMM2Z6KQ5VNICASQWCPPDX4SWCRR6MC4TZPPWXWDI4FAU \ / AMOS7 \ YOURUM ::
-#\[7]XVGDS4EZGKUBY7F6LQYDC4UM5FVURHD2TZ5I25KMJNHVWXS3PCDA 7  DATA SIGNATURE ::
+#,,..,,..,,,,,,.,,.,,,,,.,,..,.,,,.,,,...,,.,,..,,...,...,,,.,.,,,...,.,,,.,,,
+#S367P6R2B23KNYSZZB5T3IBKJJCBIVZV62KAJWGVC7FGHBPDWDFF46XQVIJKB6DYLGHSQA72QVZVM
+#\\\|HGBUEIWENAOCTL6SPOOFD4CXGPGBTQLYM4KAWYJUQSMXLJKO5TT \ / AMOS7 \ YOURUM ::
+#\[7]UOX5NRLDWUNHGR7IKOBY56XEY56WRYIZ5TGT7DF5BYRXGG7GQ4BQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

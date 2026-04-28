@@ -338,7 +338,38 @@ elsif ( $action eq 'transition' ) {
         }
 
         <coding.async.task_state>->{$task_id} = $state;
-        <[coding.async.send_request]>->($task_id);
+
+        ## round scheduling: break callback chain into discrete jobs ##
+        if ( <[base.cfg_bool]>->(<coding.async.round_scheduling.enabled>) ) {
+            ## move current round job to completed ##
+            my $current_job_id = $state->{'job_id'};
+            if ( defined $current_job_id ) {
+                <[jobqueue.move_job]>->( $current_job_id, 'completed' );
+            }
+
+            ## check for pending subtask ##
+            if ( defined $state->{'pending_subtask'}
+                and length $state->{'pending_subtask'} ) {
+                <[base.logs]>->(
+                    1,        "state_machine: %s waiting for subtask %s",
+                    $task_id, $state->{'pending_subtask'}
+                );
+                <[coding.async.state_machine]>->(
+                    'transition',
+                    $task_id,
+                    {   'event'      => 'spawn_subtask',
+                        'subtask_id' => $state->{'pending_subtask'}
+                    }
+                );
+            } else {
+                ## enqueue next round ##
+                <[coding.task.enqueue_round]>
+                    ->( $task_id, $state->{'round'} );
+            }
+        } else {
+            ## backward compat: chain directly to next request ##
+            <[coding.async.send_request]>->($task_id);
+        }
     } elsif ( $new_state eq STATE_STREAMING && $event eq 'user_responded' ) {
         $state->{'round'}++;
         $state->{'content'} = '';
@@ -453,8 +484,8 @@ elsif ( $action eq 'constants' ) {
 
 return { error => sprintf "unknown action : '%s'", $action };
 
-#,,,.,..,,,..,.,,,.,,,..,,.,.,,,,,...,.,,,...,.,.,...,...,..,,.,.,,,,,,,,,,,,,
-#RZGFIDE7JBDGBV76GYDNAQP4XQR6OQPIM6HSYQ6KQMAIAZ3H4FD2NXUZA7YHU42OJHI3YNUQZPRR2
-#\\\|OMGDYCQTJTAKFTOZGMUXJZOKSWR2IR7VUPGEIFHBNM6IE75SMCJ \ / AMOS7 \ YOURUM ::
-#\[7]XCC4XYXLD2I63MYPIAQ5K4ZVFAPYKDOGIF3PVCVNYC7EXWIG3IBI 7  DATA SIGNATURE ::
+#,,,.,,.,,.,,,,,,,.,.,,,,,,.,,.,.,,..,,.,,.,.,.,.,...,..,,.,.,,.,,...,.,,,..,,
+#2WLLH7BQWMC6HSJJKGUWGO2RKIN44NV6MZHQ43PBTI756EY55EDRG44VJWEYRDX3P4OPD3V2GOQY4
+#\\\|24HJMQKW6EEZ3YWJJDBQN7UKH5VWAQLCIFRD6GVF7OON3SPS2KT \ / AMOS7 \ YOURUM ::
+#\[7]PL5BEPFA7NZJMYN4MPGHPADL4YBZMXUJ3GP6GQW2XXLEVN3XOEBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

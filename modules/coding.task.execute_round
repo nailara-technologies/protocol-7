@@ -1,0 +1,82 @@
+## [:< ##
+
+# name  = coding.task.execute_round
+# descr = execute one round of a coding task from jobqueue callback
+# param = { job_id => ..., params => { task_id => ..., round => ... } }
+
+my $params          = shift;
+my $job_id          = $params->{'job_id'};
+my $callback_params = $params->{'params'} // {};
+
+my $task_id = $callback_params->{'task_id'};
+my $round   = $callback_params->{'round'};
+
+return { success => FALSE, error => 'task_id required' }
+    unless defined $task_id;
+
+## get task ##
+my $task = <coding.task.queue>->{$task_id};
+
+if ( !defined $task ) {
+    <[base.logs]>->( 0, "execute_round: task not found: %s", $task_id );
+    return { success => FALSE, error => "task not found: $task_id" };
+}
+
+## check task is still active ##
+my $status = $task->{'execution'}->{'status'} // 'unknown';
+if ( $status ne qw| in_progress | and $status ne qw| pending | ) {
+    <[base.logs]>->(
+        1,        "execute_round: task %s status=%s, skipping round",
+        $task_id, $status
+    );
+    return { success => FALSE, error => "task not active: $status" };
+}
+
+## load async state ##
+my $state = <[coding.async.state_manager]>->( qw| get |, $task_id );
+if ( !defined $state ) {
+    <[base.logs]>->( 0, "execute_round: no async state for %s", $task_id );
+    return { success => FALSE, error => "no async state: $task_id" };
+}
+
+## store current job_id in state for round completion tracking ##
+$state->{'job_id'} = $job_id;
+<coding.async.task_state>->{$task_id} = $state;
+
+## validate round [ optional sanity check ] ##
+my $state_round = $state->{'round'} // 0;
+if ( defined $round and $round != $state_round ) {
+    <[base.logs]>->(
+        1, "execute_round: round mismatch for %s [expected=%d state=%d]",
+        $task_id, $round, $state_round
+    );
+    ## continue anyway — state is source of truth ##
+}
+
+<[base.logs]>->(
+    1, "execute_round: %s round=%d job_id=%s",
+    $task_id, $state_round, $job_id
+);
+
+## start next inference request ##
+my $result = <[coding.async.send_request]>->($task_id);
+
+if ( $result->{'success'} ) {
+    return {
+        success => TRUE,
+        mode    => qw| deferred |,
+        task_id => $task_id
+    };
+} else {
+    <[base.logs]>->(
+        0,        "execute_round: send_request failed for %s: %s",
+        $task_id, $result->{'error'} // 'unknown'
+    );
+    return $result;
+}
+
+#,,,,,.,.,...,..,,.,.,,,,,...,,.,,.,,,,,,,.,,,..,,...,...,...,..,,...,,,.,,,.,
+#6KAPKQRYS2GOPGWXUNLXI3A3FR4B7ENC23VOUOFFGRDWTCYZOUGSPXRB6X2OCEAVJZ2XJNUQFENAK
+#\\\|EYYSY4KADH77YEWL2BI3BCDPIWV7E3RCIWK3JEFZW542MMRMC6A \ / AMOS7 \ YOURUM ::
+#\[7]ETCENOBH7WCMPE3GW6G5PDQQRWIXIHABVV66SX3PN2QDVAMPKKBQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

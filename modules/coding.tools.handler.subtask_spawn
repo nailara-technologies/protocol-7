@@ -1,0 +1,114 @@
+## [:< ##
+
+# name  = coding.tools.handler.subtask_spawn
+# descr = spawn a child coding task as a subtask of the current task
+# param = { description => ..., template => ..., guiding_message => ... }
+
+my $args = shift // {};
+
+my $description     = $args->{'description'}     // '';
+my $template        = $args->{'template'}        // '';
+my $guiding_message = $args->{'guiding_message'} // '';
+
+return {
+    error   => 'description required',
+    content => 'subtask_spawn failed: no description provided'
+    }
+    unless length $description;
+
+## get parent task id from args or infer from context ##
+my $parent_task_id = $args->{'parent_task_id'} // '';
+
+## if no explicit parent, try to find active task with async state ##
+if ( !length $parent_task_id ) {
+    my $aref_active = <coding.task.active> // [];
+    for my $tid ( $aref_active->@* ) {
+        my $state = <[coding.async.state_manager]>->( qw| get |, $tid );
+        if ( defined $state and keys %$state ) {
+            $parent_task_id = $tid;
+            last;
+        }
+    }
+}
+
+return {
+    error   => 'parent task not found',
+    content => 'subtask_spawn failed: no active parent task'
+    }
+    unless length $parent_task_id;
+
+## get parent task ##
+my $parent_task = <coding.task.queue>->{$parent_task_id};
+
+return {
+    error   => 'parent task not found',
+    content => "subtask_spawn failed: parent $parent_task_id not found"
+    }
+    unless defined $parent_task;
+
+## generate child task id ##
+my $child_task_id = <[coding.helper.task_id_generator]>->();
+
+## build child task description with parent context ##
+my $child_description = $description;
+if ( length $guiding_message ) {
+    $child_description = "[GUIDANCE] $guiding_message\n\n[TASK] $description";
+}
+
+## inherit parent's backend routing ##
+my $routed_to = $parent_task->{'analysis'}->{'routed_to'} // 'gpu';
+
+## create child task ##
+my $child_task = {
+    id       => $child_task_id,
+    type     => $template || $parent_task->{'type'} // 'general',
+    request  => { description => $child_description },
+    metadata => {
+        raw_request => {
+            type        => $template || $parent_task->{'type'} // 'general',
+            description => $child_description
+        },
+        parent_task_id => $parent_task_id,
+    },
+    analysis   => { routed_to => $routed_to },
+    execution  => { status    => 'pending' },
+    created_at => <[base.time]>->(3),
+};
+
+## enqueue child task ##
+my $enqueue_result = <[coding.task.enqueue]>->($child_task);
+
+if ( !$enqueue_result->{'success'} ) {
+    return {
+        error   => 'enqueue failed',
+        content => "subtask_spawn failed: "
+            . ( $enqueue_result->{'error'} // 'unknown' )
+    };
+}
+
+## record parent/child relationship ##
+<coding.task.parent>->{$child_task_id} = $parent_task_id;
+
+## record pending subtask in parent's async state ##
+my $parent_state
+    = <[coding.async.state_manager]>->( qw| get |, $parent_task_id );
+if ( defined $parent_state ) {
+    $parent_state->{'pending_subtask'} = $child_task_id;
+    <coding.async.task_state>->{$parent_task_id} = $parent_state;
+}
+
+<[base.logs]>->(
+    1,               "subtask_spawn: %s spawned child %s",
+    $parent_task_id, $child_task_id
+);
+
+return {
+    content       => "subtask spawned: $child_task_id",
+    child_task_id => $child_task_id,
+};
+
+#,,..,,,,,,..,..,,.,.,.,,,,,.,,.,,.,,,,,,,,,.,..,,...,...,,.,,...,,..,,.,,,.,,
+#SSDMOMFTPBD4CVWS3ARNR7NXFQM4HFQS4IDQPSIQDRM6RYFN4ZFKLNLHAJIGGKNWKIQQPY6PVJVR6
+#\\\|KRQKR2FJHBW72MY3PVZ4V2FISZERN4ZYBBWOM6FR7TZBL252AWC \ / AMOS7 \ YOURUM ::
+#\[7]OY4IKPPKKJFC2HZNMDCUY3DRPO5WTKQLQKJ6EFN5RRFBSZC3BSCY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
