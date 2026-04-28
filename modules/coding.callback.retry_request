@@ -10,12 +10,20 @@ my $task_id = shift->w->data;
 return unless defined $task_id && !ref $task_id;
 
 <[base.logs]>->( 2, "retry_request: executing retry for %s", $task_id );
+
+## clear retry pending flag ##
+my $state = <[coding.async.state_manager]>->( qw| get |, $task_id );
+if ( defined $state ) {
+    $state->{'retry_pending'} = FALSE;
+    <coding.async.task_state>->{$task_id} = $state;
+}
+
 <[coding.async.send_request]>->($task_id);
 
 return;
 
-#,,,,,..,,,.,,...,...,,,.,.,.,,,.,...,,..,..,,.,.,...,...,...,,.,,,..,.,.,,.,,
-#2E2XIWK6YYJCCPQTRKVKKJBXLJSJET65SQGXFACT4374OFWWRZSJ6TWJTPHFMRBSCLYRJ2SJHF3JU
-#\\\|Y4JORYGZMXG574OUW4ZJPY4S7OX2JQRHZP43AVDH2TGIRZRQ2A2 \ / AMOS7 \ YOURUM ::
-#\[7]FATBXNRS5ONNHPR76FDHFK5HCYZWNB6RCC3FYMVXMITKLLBHFIAY 7  DATA SIGNATURE ::
+#,,,,,,,,,.,.,,..,,,,,,.,,..,,,,,,.,.,,..,.,,,.,.,...,..,,..,,,..,,,.,.,,,,,.,
+#VXZVQSZUSIIXQHGHUOYEOYTHB6PQE7WXKIOIO5FSQSBWIYYFP5PBUV5B7GPX62T7AIZPK62TF2SYI
+#\\\|I36JHNXN42O6DUAYB6SWBPBQETNACHPIFPXWRIFPL7MS3OESCTS \ / AMOS7 \ YOURUM ::
+#\[7]EFAE5UKIK26PNCLEPUMDQT6RGJX3QOBK4AU2E5AKCT6SDMGENABQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

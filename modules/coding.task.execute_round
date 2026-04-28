@@ -39,6 +39,15 @@ if ( !defined $state ) {
     return { success => FALSE, error => "no async state: $task_id" };
 }
 
+## skip if a retry is already pending [ prevents duplicate requests ] ##
+if ( $state->{'retry_pending'} ) {
+    <[base.logs]>->(
+        1, "execute_round: %s retry pending, skipping duplicate execution",
+        $task_id
+    );
+    return { success => TRUE, mode => qw| deferred |, skipped => TRUE };
+}
+
 ## store current job_id in state for round completion tracking ##
 $state->{'job_id'} = $job_id;
 <coding.async.task_state>->{$task_id} = $state;
@@ -75,8 +84,8 @@ if ( $result->{'success'} ) {
     return $result;
 }
 
-#,,,,,.,.,...,..,,.,.,,,,,...,,.,,.,,,,,,,.,,,..,,...,...,...,..,,...,,,.,,,.,
-#6KAPKQRYS2GOPGWXUNLXI3A3FR4B7ENC23VOUOFFGRDWTCYZOUGSPXRB6X2OCEAVJZ2XJNUQFENAK
-#\\\|EYYSY4KADH77YEWL2BI3BCDPIWV7E3RCIWK3JEFZW542MMRMC6A \ / AMOS7 \ YOURUM ::
-#\[7]ETCENOBH7WCMPE3GW6G5PDQQRWIXIHABVV66SX3PN2QDVAMPKKBQ 7  DATA SIGNATURE ::
+#,,,.,,.,,...,..,,,,.,.,.,..,,.,,,,..,,.,,..,,..,,...,...,,..,,.,,,..,,.,,...,
+#NFFBWC2W6JGH4HWRQKEO2KJJR2UI53MKPI25DGK6ORCMUFCJEVVFWA7XBDL5VIDZ6AJ4S3EVYXDUO
+#\\\|XM43G4IX5WR2YOGA6SBX32UXCMC3U3UKQIPZTHRGC5ZGX3TF7LQ \ / AMOS7 \ YOURUM ::
+#\[7]BAKRTHWAD5JUQHWKUZS6BAKY4U3BJUEAXFKCHYGXKM3GHV62YYDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

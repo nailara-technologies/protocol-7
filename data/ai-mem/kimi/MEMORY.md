@@ -2,6 +2,90 @@
 
 > ⚠️ **CRITICAL COMMIT POLICY**: Never commit without valid version number (run `./bin/dev/update-version`) and proper signatures (run `bin/Protocol-7 sourcecode update-signatures`). Use `--no-verify` only in emergencies.
 
+## Round-Based Scheduling & Subtask Spawn (April 2026)
+
+> Detailed topic file: `data/ai-mem/kimi/topic-round-scheduling-subtasks.md`
+
+### Architecture
+
+**Round-based scheduling** breaks the async inference callback chain into discrete jobqueue jobs.
+Each inference round is enqueued as a separate job (`task_id.round_N`). When tool execution
+completes, the next round is enqueued rather than chaining directly via `send_request`.
+
+Controlled by: `coding.async.round_scheduling.enabled = yes` in `configuration/zenki/coding/start`
+
+### Subtask Spawn Flow
+
+```
+Parent (streaming) --subtask_spawn--> tool_exec
+  └─→ creates Child task, Parent state → subtask
+  └─→ Child runs independently via jobqueue
+  └─→ Child completes → async.complete injects result + resumes Parent
+  └─→ Parent transitions subtask → streaming, enqueues next round
+```
+
+### Critical Fixes Applied
+
+**1. Duplicate Request Prevention**
+- `http_error` sets `retry_pending` flag; duplicate error callbacks are ignored
+- `retry_request` clears the flag before calling `send_request`
+- `execute_round` skips if `retry_pending` is true (prevents jobqueue re-execution race)
+- `async.request` cancels stale `http_state` connections before starting new ones
+- Files: `coding.callback.http_error`, `coding.callback.retry_request`, `coding.task.execute_round`, `coding.async.request`
+
+**2. Partial Content Recovery on Connection Close**
+- `http_complete` checks `$state->{'chunk_context'}->{'content'}` when `finish_reason` is missing
+- Falls back to `$http_state->{'buffer'}` for raw non-SSE JSON responses
+- Prevents "connection closed with no data" from losing partial model output
+- Files: `coding.callback.http_complete`
+
+**3. Parent Resume from Subtask State**
+- `coding.async.complete` transitions parent from `subtask` → `streaming` before enqueueing next round
+- Verifies completing child matches `$parent_state->{'pending_subtask'}` before resuming
+- Orphaned children (completed after parent already resumed) are logged but ignored
+- Files: `coding.async.complete`
+
+**4. Subtask Spawn Deduplication**
+- `subtask_spawn` rejects if parent already has `pending_subtask` set
+- Rejection happens **before** `coding.task.enqueue` (prevents orphaned child tasks)
+- Returns error message to model: "already waiting for subtask X"
+- Files: `coding.tools.handler.subtask_spawn`
+
+**5. String Priority Mapping**
+- Task priorities are strings (`critical`, `high`, `normal`, `low`) from `coding.intake.normalize_task`
+- `coding.task.enqueue_round` maps them to numeric values for jobqueue sorting
+- Prevents `argument 'normal' isn't numeric in sort` warning in `jobqueue.get_next_job`
+
+### Modules Added/Modified
+
+| file | purpose |
+|------|---------|
+| `modules/coding.task.enqueue_round` | enqueue inference round as jobqueue job |
+| `modules/coding.task.execute_round` | job callback: execute one round |
+| `modules/coding.tools.handler.subtask_spawn` | spawn child task with parent tracking |
+| `modules/coding.async.state_machine` | `tools_done` → enqueue round (vs direct chain) |
+| `modules/coding.async.send_request` | injected message + pause support |
+| `modules/coding.async.complete` | resume parent on child completion |
+| `modules/coding.callback.http_complete` | partial content recovery |
+| `modules/coding.callback.http_error` | duplicate retry prevention |
+| `modules/coding.callback.retry_request` | clear retry_pending flag |
+| `modules/coding.async.request` | stale connection cleanup |
+| `configuration/zenki/coding/start` | `round_scheduling.enabled = yes` |
+
+### Known Server-Side Issue (Not a Scheduling Bug)
+
+The llama-server occasionally returns incomplete responses (HTTP 200 with no `finish_reason`,
+or closes connection with partial data). This manifests as:
+
+```
+async.request: inference complete for task-X [N bytes, 1 chunks]
+http_complete: task task-X connection closed with no data
+```
+
+The client-side retry logic handles this. The server issue is separate from the scheduling system.
+
+---
+
 ## Coding Zenka Infrastructure Commands (March 2026)
 
 ### New Commands Added
@@ -1541,8 +1625,8 @@ module_glob : var_name ~ /context_pattern/ -> resolution_template
 | `modules/base.white-list.register` | whitelist + runtime verification |
 | `bin/dev/dep-graph` | parse white-list.register in start files |
 
-#,,,.,,,.,...,.,,,...,,,,,,,,,,,,,.,,,.,.,...,..,,...,...,.,.,,,,,,,,,.,,,.,.,
-#D3WGI7PAWBD77WOGTMMD6YZUL2ZCM2RFPYIUFHGPGKDRCGILY4HMWPESBMEONF7MHWBLTQIEJNAT6
-#\\\|WKCO3QTW6YBZGRTTWYDZ2LQLZS2424HGFNKDCVFUT7ZLGWEHXZE \ / AMOS7 \ YOURUM ::
-#\[7]NQZBNSXKRAMBZFG5R6I7KWAXEMHAQMYVD3YZP6ROMEX7ARKEIYAI 7  DATA SIGNATURE ::
+#,,,,,,,,,,,,,,,.,,.,,,..,,,,,.,.,...,.,.,..,,..,,...,...,,,.,..,,..,,,,,,.,,,
+#VHDOD5UHIG4T7ZMEAZKB3XJGXUIEWOCNUB46H5N3IELQ5DZBSAMZXTCETPDEBA5WKKPRZOVXH5GB6
+#\\\|I3E4UWXXHVCVCK3HFADKBIQGKHFTFO3HIB32UVLJFI6IYUPZRLI \ / AMOS7 \ YOURUM ::
+#\[7]VODKQGACDEZL66DCRPMYOGZIWM4BBHMFAENKMCIPR4IXUPZFGMCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

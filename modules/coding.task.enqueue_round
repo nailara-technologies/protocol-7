@@ -20,6 +20,17 @@ return { success => FALSE, error => "task not found: $task_id" }
 ## get priority from task metadata ##
 my $priority = $task->{'priority'} // 0;
 
+## map string priorities to numeric values for jobqueue ##
+if ( defined $priority && $priority =~ m{^[a-z]+$}i ) {
+    my %prio_map = (
+        critical => -2,
+        high     => -1,
+        normal   =>  0,
+        low      =>  1,
+    );
+    $priority = $prio_map{ lc($priority) } // 0;
+}
+
 ## determine server dependency ##
 my $routed_to = $task->{'analysis'}->{'routed_to'} // 'gpu';
 my $dep_object_id
@@ -61,8 +72,8 @@ return {
     job_id  => $job_id,
 };
 
-#,,,.,,..,.,.,.,.,.,,,,,.,,,.,.,,,,..,.,,,.,.,..,,...,...,..,,,,,,,,,,..,,,.,,
-#MBGJB2BDKLJNFIYDWB5MZKUG3UASWRIQOOABAO7EBXZMAKXIFZ5NDABSE3UXJ66KGZZQEMWLY2ZDO
-#\\\|OFCUHEB265GJFW72AVBJMVWHJWEJ6F5ZYIISGSVRHE26QHRPC25 \ / AMOS7 \ YOURUM ::
-#\[7]MAI2MA3SBMX3VXQZHQK3BS7W6DZF5F52INYHDVZMV4P52MZTLABY 7  DATA SIGNATURE ::
+#,,.,,.,.,.,.,.,.,,,,,..,,,,.,..,,,..,,,,,.,.,..,,...,...,,.,,,..,.,,,,.,,,.,,
+#Y24IVCBQCFELNKPGQIZLOO7JHAERYR4IFZXR7QAQZILRPFIEZCFNYVZOG74DEIAEYFZSWZHWHOYCM
+#\\\|S2ISILDA5WP5LPGSPWUQUHEQEM74NDNDIAWGWCHUKMVPW676XWZ \ / AMOS7 \ YOURUM ::
+#\[7]RCGJCKL6KN6QEELPEMAMP4AYWS2JBCNIPHBO7YSVBCZU4XNDOAAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

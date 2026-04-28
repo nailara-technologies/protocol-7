@@ -58,6 +58,24 @@ if ( length $guiding_message ) {
 ## inherit parent's backend routing ##
 my $routed_to = $parent_task->{'analysis'}->{'routed_to'} // 'gpu';
 
+## check if parent already has a pending subtask [ before creating child ] ##
+my $parent_state
+    = <[coding.async.state_manager]>->( qw| get |, $parent_task_id );
+if (   defined $parent_state
+    && defined $parent_state->{'pending_subtask'}
+    && length $parent_state->{'pending_subtask'} ) {
+    <[base.logs]>->(
+        1, "subtask_spawn: %s already waiting for %s, rejecting new subtask",
+        $parent_task_id, $parent_state->{'pending_subtask'}
+    );
+    return {
+        error   => 'subtask already pending',
+        content => "error: already waiting for subtask "
+            . $parent_state->{'pending_subtask'}
+            . ". Only one subtask at a time is supported."
+    };
+}
+
 ## create child task ##
 my $child_task = {
     id       => $child_task_id,
@@ -90,8 +108,6 @@ if ( !$enqueue_result->{'success'} ) {
 <coding.task.parent>->{$child_task_id} = $parent_task_id;
 
 ## record pending subtask in parent's async state ##
-my $parent_state
-    = <[coding.async.state_manager]>->( qw| get |, $parent_task_id );
 if ( defined $parent_state ) {
     $parent_state->{'pending_subtask'} = $child_task_id;
     <coding.async.task_state>->{$parent_task_id} = $parent_state;
@@ -107,8 +123,8 @@ return {
     child_task_id => $child_task_id,
 };
 
-#,,..,,,,,,..,..,,.,.,.,,,,,.,,.,,.,,,,,,,,,.,..,,...,...,,.,,...,,..,,.,,,.,,
-#SSDMOMFTPBD4CVWS3ARNR7NXFQM4HFQS4IDQPSIQDRM6RYFN4ZFKLNLHAJIGGKNWKIQQPY6PVJVR6
-#\\\|KRQKR2FJHBW72MY3PVZ4V2FISZERN4ZYBBWOM6FR7TZBL252AWC \ / AMOS7 \ YOURUM ::
-#\[7]OY4IKPPKKJFC2HZNMDCUY3DRPO5WTKQLQKJ6EFN5RRFBSZC3BSCY 7  DATA SIGNATURE ::
+#,,,,,.,,,.,,,..,,...,,,,,.,.,,,.,,,,,.,.,..,,..,,...,...,,,.,..,,,,,,.,,,..,,
+#BJCLBSEC5VUHSSVUQKOXBLATLRD3MKDRATFPM4EWFZO6KV5NKSAJABDAVH6FFY2AGWRJRAMMX3OOC
+#\\\|7AXR3TZG24RKART3UBYEBCN2CMACGWE2SFZSG7KWJX5FBW6VHRO \ / AMOS7 \ YOURUM ::
+#\[7]KZKQ52REI25ENKPGAUA3NG2L5XVWE5PNWL4KDF3GCVSPNM5KMCBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

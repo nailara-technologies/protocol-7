@@ -12,6 +12,16 @@ my $state       = <[coding.async.state_manager]>->( 'get', $task_id );
 my $retry_count = $state->{'retry_count'} // 0;
 my $max_retries = 3;
 
+## prevent duplicate retry timers ##
+if ( $state->{'retry_pending'} ) {
+    <[base.logs]>->(
+        2,
+        "async.request: retry already pending for %s, ignoring duplicate error",
+        $task_id
+    );
+    return;
+}
+
 if (   $error =~ m{HTTP error:\s*5\d\d|timeout|connection closed}i
     && $retry_count < $max_retries ) {
     $retry_count++;
@@ -38,9 +48,12 @@ if (   $error =~ m{HTTP error:\s*5\d\d|timeout|connection closed}i
         }
     }
 
-    ## update retry count ##
+    ## update retry count and set pending flag ##
     <[coding.async.state_manager]>->(
-        'set', $task_id, { retry_count => $retry_count }
+        'set', $task_id,
+        {   retry_count   => $retry_count,
+            retry_pending => TRUE
+        }
     );
 
     ## retry after short delay (100ms) ##
@@ -64,8 +77,8 @@ my $result = {
 
 return;
 
-#,,,.,..,,.,,,,,,,,,.,,..,,,.,.,.,,,,,...,,.,,..,,...,...,,,.,,,,,,.,,..,,,,.,
-#F3AKQQI4VRFVHYBZ7PNLXVCNY7U2BGS3TXQP5OBEM63R4DWGFPURCLT27MPVBEISWPY552EZKAX4Q
-#\\\|ILWAE3YYLQIL3IFUCKO2WQT46OSXNRGZSJ4KOMNSWUIBHHHXDAO \ / AMOS7 \ YOURUM ::
-#\[7]JTNIC7YNHOVPG5HFHOR6KXHAGH2UIB3RHZ5TZXHCSJS5VTFVQ4AY 7  DATA SIGNATURE ::
+#,,..,.,,,..,,..,,..,,.,.,.,,,.,.,.,.,,,,,.,.,..,,...,...,.,.,,.,,,,,,...,,,.,
+#FL4X2UIGBAQXGE4TGEYXEDZFVWKTLEEHFEMBNOHSKQ2PYHNNZWW6MHYQ4X4JSTGW3LJDEYRLNUZNA
+#\\\|M4DSIHYC37EGLLNRZAVC2MMEHFCKVRQPNUU3XCW5AM6RIIYL62H \ / AMOS7 \ YOURUM ::
+#\[7]ZBK44XKFFD42PYDW6I6NLI7BZGIDCML4K67C52AKXFSH62SK26BY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
