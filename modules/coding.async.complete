@@ -31,6 +31,30 @@ if ( defined $result && $result->{'success'} ) {
     ## complete the task ##
     <[coding.task.complete]>->( $task_id, $result_text );
 
+    ## resume parent if this task is a subtask ##
+    my $parent_id = <coding.task.parent>->{$task_id};
+    if ( defined $parent_id ) {
+        my $parent_state
+            = <[coding.async.state_manager]>->( qw| get |, $parent_id );
+        if ( defined $parent_state
+            and $parent_state->{'state'} eq qw| subtask | ) {
+            push @{ $parent_state->{'messages'} },
+                {
+                'role'    => 'user',
+                'content' => "[SUBTASK RESULT: $task_id]\n\n" . $result_text
+                };
+            $parent_state->{'pending_subtask'} = undef;
+            <coding.async.task_state>->{$parent_id} = $parent_state;
+            <[coding.task.enqueue_round]>->(
+                $parent_id, $parent_state->{'round'}
+            );
+            <[base.logs]>->(
+                1, "async.complete: resumed parent %s from subtask %s",
+                $parent_id, $task_id
+            );
+        }
+    }
+
     <[base.logs]>->( 2, "async.complete: task %s completed", $task_id );
 
     return { success => TRUE, task_id => $task_id };
@@ -50,11 +74,36 @@ if ( defined $result && $result->{'success'} ) {
     ## fail the task ##
     <[coding.task.fail]>->( $task_id, $error_msg );
 
+    ## notify parent if this task is a subtask ##
+    my $parent_id_fail = <coding.task.parent>->{$task_id};
+    if ( defined $parent_id_fail ) {
+        my $parent_state
+            = <[coding.async.state_manager]>->( qw| get |, $parent_id_fail );
+        if ( defined $parent_state
+            and $parent_state->{'state'} eq qw| subtask | ) {
+            push @{ $parent_state->{'messages'} },
+                {
+                'role'    => 'user',
+                'content' => "[SUBTASK FAILED: $task_id]\n\n" . $error_msg
+                };
+            $parent_state->{'pending_subtask'} = undef;
+            <coding.async.task_state>->{$parent_id_fail} = $parent_state;
+            <[coding.task.enqueue_round]>->(
+                $parent_id_fail, $parent_state->{'round'}
+            );
+            <[base.logs]>->(
+                1,
+                "async.complete: resumed parent %s after subtask %s failed",
+                $parent_id_fail, $task_id
+            );
+        }
+    }
+
     return { success => FALSE, error => $error_msg, task_id => $task_id };
 }
 
-#,,..,,.,,...,,,.,.,,,.,,,.,,,,.,,...,..,,.,,,.,.,...,...,..,,...,,..,.,.,,.,,
-#JG5EC54ST54YU6HEAJMFHCWXDK7OXYT24LEHO4LL4MFR56NL2D7PITGRAMKQOEISE5HLFCVB7NFIW
-#\\\|ZYIPDUAFPMO6FLIRRD4GBNIT5ENTMEK7J2ENHGICQR2SKH2XVUQ \ / AMOS7 \ YOURUM ::
-#\[7]O3VVWFD7AZOETHBMC556YABSE6K4KGZQO4BF5JSQHRXLUKTA6OCQ 7  DATA SIGNATURE ::
+#,,,.,..,,,..,,.,,.,.,,.,,.,.,.,.,,,.,,,.,.,,,.,.,...,...,,.,,,.,,.,,,.,,,,..,
+#6RFFTGI7DHV3EWHZ2UAIUEEYN53XKFL44QR242M5SEU6VEP22KJ6QPLD5YEKA2H6PYQAC4OUHG2YU
+#\\\|VAU7HK3KG4QRI5LZAODV6DNJ2ESPTLRN7Y3AFEA5CVAXZ4TTGOZ \ / AMOS7 \ YOURUM ::
+#\[7]XLR3OHSEWW3LPVXHKEZLIKOFMZ2JCIH7F6OM53Y6LLDDAGHYPICA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

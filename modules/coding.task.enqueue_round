@@ -1,0 +1,68 @@
+## [:< ##
+
+# name  = coding.task.enqueue_round
+# descr = enqueue next round of a coding task as a jobqueue job
+# param = <task_id> <round>
+
+my ( $task_id, $round ) = @ARG;
+
+return { success => FALSE, error => 'task_id required' }
+    unless defined $task_id;
+
+return { success => FALSE, error => 'round required' }
+    unless defined $round;
+
+my $task = <coding.task.queue>->{$task_id};
+
+return { success => FALSE, error => "task not found: $task_id" }
+    unless defined $task;
+
+## get priority from task metadata ##
+my $priority = $task->{'priority'} // 0;
+
+## determine server dependency ##
+my $routed_to = $task->{'analysis'}->{'routed_to'} // 'gpu';
+my $dep_object_id
+    = $routed_to eq 'cpu'
+    ? ( <coding.dep.cpu_server> // 0 )
+    : ( <coding.dep.gpu_server> // 0 );
+
+## create round job ##
+my $job_params = {
+    name            => sprintf( "%s.round_%d", $task_id, $round ),
+    priority        => $priority,
+    object_id       => $dep_object_id,
+    target_queue    => 'queued',
+    job_callback    => 'coding.task.execute_round',
+    callback_params => {
+        task_id => $task_id,
+        round   => $round,
+    },
+};
+
+my $job_id = <[jobqueue.add_job]>->($job_params);
+
+## store job_id in async state for round completion tracking ##
+my $state = <[coding.async.state_manager]>->( qw| get |, $task_id );
+if ( defined $state ) {
+    $state->{'job_id'} = $job_id;
+    <coding.async.task_state>->{$task_id} = $state;
+}
+
+<[base.logs]>->(
+    1, "enqueue_round: %s round=%d job_id=%s",
+    $task_id, $round, $job_id
+);
+
+return {
+    success => TRUE,
+    task_id => $task_id,
+    round   => $round,
+    job_id  => $job_id,
+};
+
+#,,,.,,..,.,.,.,.,.,,,,,.,,,.,.,,,,..,.,,,.,.,..,,...,...,..,,,,,,,,,,..,,,.,,
+#MBGJB2BDKLJNFIYDWB5MZKUG3UASWRIQOOABAO7EBXZMAKXIFZ5NDABSE3UXJ66KGZZQEMWLY2ZDO
+#\\\|OFCUHEB265GJFW72AVBJMVWHJWEJ6F5ZYIISGSVRHE26QHRPC25 \ / AMOS7 \ YOURUM ::
+#\[7]MAI2MA3SBMX3VXQZHQK3BS7W6DZF5F52INYHDVZMV4P52MZTLABY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
