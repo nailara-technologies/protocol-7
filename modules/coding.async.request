@@ -34,6 +34,17 @@ if ( defined $existing && defined $existing->{'state'} ) {
     $existing->{'finish_reason'} = undef;
     $existing->{'content'}       = '';
     $existing->{'tool_calls'}    = [];
+
+    ## prevent duplicate active connections ##
+    if (    defined $existing->{'http_state'}
+        and defined $existing->{'http_state'}->{'sock'} ) {
+        <[base.logs]>->(
+            1, "async.request: cancelling stale connection for %s [ seq %d ]",
+            $task_id, $existing->{'request_seq'} // 0
+        );
+        <[coding.async.http_cleanup]>->( $existing->{'http_state'} );
+        delete $existing->{'http_state'};
+    }
 } else {
     ## first request: full init ##
     <[coding.async.state_manager]>->(
@@ -85,6 +96,11 @@ my $callbacks = {
 my $http_result
     = <[coding.async.http_client]>->( $url, $request_body, $callbacks );
 
+## store http_state for duplicate detection and cleanup ##
+if ( $http_result->{'success'} && defined $http_result->{'state'} ) {
+    $state_ref->{'http_state'} = $http_result->{'state'};
+}
+
 if ( !$http_result->{'success'} ) {
     ## immediate error ##
     <[base.logs]>->(
@@ -107,8 +123,8 @@ return {
     mode    => qw| streaming |,
 };
 
-#,,,.,..,,,,.,.,.,...,,,,,,,.,...,,,.,,.,,...,..,,...,...,.,.,.,.,,,.,.,,,,..,
-#CE6ZJM4NI3IOERM77KKH65TYS5K3DY46F7CIBAEW5ILSBUTD22PVTY36TCZ4L5EWZQKDMM4NOB3J2
-#\\\|D7V52DN6POHKVCGZYUOFRFLAYCVKYVQAKXMLXIHLS7LVLQSII4G \ / AMOS7 \ YOURUM ::
-#\[7]KJBRWWEQXGVKUZEKDQHDYG5TF6P5FUAMTNY5JXVEAR3CLTUR2CDY 7  DATA SIGNATURE ::
+#,,,,,,,,,...,,.,,,.,,,.,,..,,,.,,.,.,..,,,,.,..,,...,...,.,,,,.,,.,,,,,.,,,,,
+#AK4SOCCR576Y77UMZGFX5ZZTEP6EQPT3QBXKMBUWYLP7VDJM72B7SDKZ2LI2MOWTRQFK5WBR6VQ64
+#\\\|ZY7WBRB66ZYX7ZUGTOPCI67SUIJA55C2IPNSMK6APN6TXMA64X2 \ / AMOS7 \ YOURUM ::
+#\[7]7Y37TPWQPZJQCS735SC7WC7KNY7I564OJZJDRIVISP2LMQFSFKCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

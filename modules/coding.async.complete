@@ -36,14 +36,17 @@ if ( defined $result && $result->{'success'} ) {
     if ( defined $parent_id ) {
         my $parent_state
             = <[coding.async.state_manager]>->( qw| get |, $parent_id );
-        if ( defined $parent_state
-            and $parent_state->{'state'} eq qw| subtask | ) {
+        if (    defined $parent_state
+            and $parent_state->{'state'} eq qw| subtask |
+            and ( $parent_state->{'pending_subtask'} // '' ) eq $task_id ) {
             push @{ $parent_state->{'messages'} },
                 {
                 'role'    => 'user',
                 'content' => "[SUBTASK RESULT: $task_id]\n\n" . $result_text
                 };
             $parent_state->{'pending_subtask'} = undef;
+            ## transition parent from subtask back to streaming ##
+            $parent_state->{'state'} = qw| streaming |;
             <coding.async.task_state>->{$parent_id} = $parent_state;
             <[coding.task.enqueue_round]>->(
                 $parent_id, $parent_state->{'round'}
@@ -51,6 +54,15 @@ if ( defined $result && $result->{'success'} ) {
             <[base.logs]>->(
                 1, "async.complete: resumed parent %s from subtask %s",
                 $parent_id, $task_id
+            );
+        } elsif ( defined $parent_state
+            and $parent_state->{'state'} eq qw| subtask | ) {
+            <[base.logs]>->(
+                1,
+                "async.complete: subtask %s completed but parent %s waits for %s",
+                $task_id,
+                $parent_id,
+                $parent_state->{'pending_subtask'} // 'none'
             );
         }
     }
@@ -79,14 +91,17 @@ if ( defined $result && $result->{'success'} ) {
     if ( defined $parent_id_fail ) {
         my $parent_state
             = <[coding.async.state_manager]>->( qw| get |, $parent_id_fail );
-        if ( defined $parent_state
-            and $parent_state->{'state'} eq qw| subtask | ) {
+        if (    defined $parent_state
+            and $parent_state->{'state'} eq qw| subtask |
+            and ( $parent_state->{'pending_subtask'} // '' ) eq $task_id ) {
             push @{ $parent_state->{'messages'} },
                 {
                 'role'    => 'user',
                 'content' => "[SUBTASK FAILED: $task_id]\n\n" . $error_msg
                 };
             $parent_state->{'pending_subtask'} = undef;
+            ## transition parent from subtask back to streaming ##
+            $parent_state->{'state'} = qw| streaming |;
             <coding.async.task_state>->{$parent_id_fail} = $parent_state;
             <[coding.task.enqueue_round]>->(
                 $parent_id_fail, $parent_state->{'round'}
@@ -96,14 +111,23 @@ if ( defined $result && $result->{'success'} ) {
                 "async.complete: resumed parent %s after subtask %s failed",
                 $parent_id_fail, $task_id
             );
+        } elsif ( defined $parent_state
+            and $parent_state->{'state'} eq qw| subtask | ) {
+            <[base.logs]>->(
+                1,
+                "async.complete: subtask %s failed but parent %s waits for %s",
+                $task_id,
+                $parent_id_fail,
+                $parent_state->{'pending_subtask'} // 'none'
+            );
         }
     }
 
     return { success => FALSE, error => $error_msg, task_id => $task_id };
 }
 
-#,,,.,..,,,..,,.,,.,.,,.,,.,.,.,.,,,.,,,.,.,,,.,.,...,...,,.,,,.,,.,,,.,,,,..,
-#6RFFTGI7DHV3EWHZ2UAIUEEYN53XKFL44QR242M5SEU6VEP22KJ6QPLD5YEKA2H6PYQAC4OUHG2YU
-#\\\|VAU7HK3KG4QRI5LZAODV6DNJ2ESPTLRN7Y3AFEA5CVAXZ4TTGOZ \ / AMOS7 \ YOURUM ::
-#\[7]XLR3OHSEWW3LPVXHKEZLIKOFMZ2JCIH7F6OM53Y6LLDDAGHYPICA 7  DATA SIGNATURE ::
+#,,,.,,,,,...,..,,.,.,,..,..,,..,,.,.,...,..,,.,.,...,...,...,.,.,,.,,,..,..,,
+#DMZK4FKRHJT725RCZBEJJRFTBYYTEDFQG33QSZHOCPHDTFXN5K4RBK37CVQQXWKZVB7K6HWCWP5HI
+#\\\|O5GOZGOTRSQAMSJR5EF5FZKEZQUJK63MTLAUIWWR5LN5KOPPARC \ / AMOS7 \ YOURUM ::
+#\[7]K5TZGGZBA7QEMODHZXQEB6MULYP3IOLRWV626PO77OFNOZMMMSDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
