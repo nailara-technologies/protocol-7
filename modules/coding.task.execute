@@ -5,6 +5,8 @@
 # purpose = bridge jobqueue execution to coding task processing
 #         = Phase 2: async streaming support (default: blocking)
 
+use JSON::PP;
+
 ## JSON::XS loaded via coding.init_code
 
 my $params          = shift;
@@ -25,30 +27,6 @@ my $task = <coding.task.queue>->{$task_id};
 
 unless ( defined $task ) {
     <[base.logs]>->( 0, "coding.task.execute: task not found: %s", $task_id );
-    return FALSE;
-}
-
-## check if inference server is ready via HTTP ##
-my $routed_to = $task->{'analysis'}->{'routed_to'} // 'gpu';
-my $port
-    = $routed_to eq 'cpu'
-    ? ( <inference.backend.cpu.port> // 8001 )
-    : ( <inference.backend.gpu.port> // 8000 );
-
-## verify http server is actually responding ##
-my $is_ready = eval {
-    use LWP::UserAgent;
-    my $ua       = LWP::UserAgent->new( timeout => 2 );
-    my $response = $ua->get("http://127.0.0.1:${port}/health");
-    return $response->is_success ? 1 : 0;
-};
-
-unless ($is_ready) {
-    ## fail-safe: dependency check passed but HTTP not ready ##
-    <[base.logs]>->(
-        2,        "coding.task.execute: HTTP fail-safe for %s on port %d",
-        $task_id, $port
-    );
     return FALSE;
 }
 
@@ -99,13 +77,43 @@ if ($async_mode) {
     $task->{'execution'}->{'model_used'} = $backend_info->{'model'};
 
     ## Build request body ##
+    ## cap max_tokens to avoid KV overflow [ full body includes tools ] ##
+    my $max_tokens_cfg = <inference.model.max_tokens>       // 4096;
+    my $routed_to_be   = $task->{'analysis'}->{'routed_to'} // 'gpu';
+    my $srv_key_be     = $routed_to_be eq qw| cpu | ? qw| cpu | : qw| gpu |;
+    my $backend_info_r = <coding.inference_servers>->{$srv_key_be} // {};
+    my $n_ctx          = $backend_info_r->{'n_ctx'}
+        // <inference.model.context_length> // 7777;
+    ## estimate full body size (messages + tools) in tokens ##
+    my $body_est_json = JSON::PP->new->utf8->encode(
+        {   messages => $assembled->{'messages'},
+            tools    => $assembled->{'tools'} // []
+        }
+    );
+    my $est_tokens      = int( bytes::length($body_est_json) / 3.2 );
+    my $max_tokens_safe = $n_ctx - $est_tokens - 500;
+    $max_tokens_safe = 200 if $max_tokens_safe < 200;
+    my $max_tokens
+        = $max_tokens_cfg < $max_tokens_safe
+        ? $max_tokens_cfg
+        : $max_tokens_safe;
+    <[base.logs]>->(
+        1,
+        "coding.task.execute: max_tokens capped %d→%d [n_ctx=%d ctx_est=%d]",
+        $max_tokens_cfg,
+        $max_tokens,
+        $n_ctx,
+        $est_tokens
+    ) if $max_tokens < $max_tokens_cfg;
+
     my $request_body = {
         model       => $backend_info->{'model'},
         messages    => $assembled->{'messages'},
-        max_tokens  => <inference.model.max_tokens>  // 4096,
+        max_tokens  => $max_tokens,
         temperature => <inference.model.temperature> // 0.7,
-        ## no stream — server returns full JSON with tool_calls ##
-        ## async I/O reads response non-blocking via event loop ##
+        ## use streaming — consistent with send_request / chunk_handler ##
+        ## [ non-streaming JSON responses are not parsed correctly by http_io ] ##
+        'stream' => JSON::PP::true(),
     };
 
     ## Add tools if available ##
@@ -135,7 +143,7 @@ if ($async_mode) {
             1, "coding.task.execute: async streaming started for %s",
             $task_id
         );
-        ## Return deferred - completion handled by async callbacks ##
+        ## Return deferred — job stays 'running' until coding.async.complete ##
         return { success => TRUE, mode => 'deferred', task_id => $task_id };
     }
 }
@@ -169,8 +177,8 @@ if ($async_mode) {
 
 return $result;
 
-#,,..,,.,,..,,.,.,...,,,.,.,,,.,.,...,.,,,.,.,.,.,...,...,.,,,,.,,,..,,,,,.,,,
-#OHRTOAPAPMUB5V7GYUO5DGLOA564LWQ5NOUFKL5JWQ7UME6WBVB5E6BPSNLAGE6FHG2RQ5RAZGWUQ
-#\\\|AZNXWH3A75IPDTRKBRRGRNDEQTYG6NDMJSOSODSVROAEK2NDLCP \ / AMOS7 \ YOURUM ::
-#\[7]GQWFPUBCHS2TLJTROMISMHJMMZTHYI4XDGZGHGMWCLDUYH2X26BI 7  DATA SIGNATURE ::
+#,,..,.,.,.,.,...,,,.,,.,,,.,,,.,,,,,,...,,..,.,.,...,..,,,.,,,..,..,,...,.,,,
+#X2CA2ZKGFFCRJTWRRVWJWYXKC7ZUPTSVBAUANFE4GFHG27XSLEJSJE6MJUPV3QCXGQVOXWX6INXNK
+#\\\|3HETTCQEWIJ2VSYT2GZTPK7YVVH3NVCF7UIYBEJMHLL2PS2DF5I \ / AMOS7 \ YOURUM ::
+#\[7]SUUI5B2TZ3FQL6JZWXD7QY5UJXF4FU62S2A7BHM7CLO6JGRGPKBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

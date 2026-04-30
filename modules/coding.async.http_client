@@ -35,7 +35,7 @@ my $sock = IO::Socket::IP->new(
     PeerHost => $host,
     PeerPort => $port,
     Type     => SOCK_STREAM(),
-    Timeout  => 10,
+    Timeout  => 13,
 );
 
 if ( !$sock ) {
@@ -46,28 +46,7 @@ if ( !$sock ) {
     return { success => FALSE, error => $error };
 }
 
-## Set non-blocking for event loop integration ##
-## Write request (blocking is fine for localhost) ##
-my $written = syswrite( $sock, $request );
-if ( !defined $written || $written != length($request) ) {
-    my $error = "Failed to write request: $!";
-    <[base.logs]>->( 0, "async.http_client: %s", $error );
-    $callbacks->{'on_error'}->($error) if exists $callbacks->{'on_error'};
-    close($sock);
-    return { success => FALSE, error => $error };
-}
-
-<[base.logs]>->( 2, "async.http_client: wrote %d bytes", $written );
-
-## Set socket to non-blocking for event loop ##
-use Fcntl qw| F_GETFL F_SETFL O_NONBLOCK |;
-my $flags = fcntl( $sock, F_GETFL, 0 );
-if ( defined $flags ) {
-    fcntl( $sock, F_SETFL, $flags | O_NONBLOCK )
-        or <[base.logs]>->(
-        0, "async.http_client: failed to set non-blocking: %s", $!
-        );
-}
+my $req_bytes = bytes::length($request);
 
 ## Set up connection state ##
 my $state = {
@@ -84,16 +63,49 @@ my $state = {
     'completed'       => FALSE,
 };
 
-## Register socket for read handling ##
+$sock->blocking(0);
+
+## Register socket for read events ##
 my $io_watcher = <[event.add_io]>->(
     {   'fd'      => $sock,
         'handler' => qw| coding.handler.http_io |,
         'data'    => $state,
-        ## Default poll is 'r' (read) ##
     }
 );
 
+if ( !defined $io_watcher ) {
+    my $error = "event.add_io failed for $host:$port";
+    <[base.logs]>->( 0, "async.http_client: %s", $error );
+    $callbacks->{'on_error'}->($error) if exists $callbacks->{'on_error'};
+    close($sock);
+    return { success => FALSE, error => $error };
+}
+
+$state->{'io_watcher'} = $io_watcher;
+
+## Write request ##
+my $total_written = 0;
+while ( $total_written < $req_bytes ) {
+    my $n = syswrite( $sock, $request, $req_bytes - $total_written,
+        $total_written );
+    if ( defined $n ) {
+        $total_written += $n;
+    } elsif ( $!{EAGAIN} || $!{EWOULDBLOCK} ) {
+        select( undef, undef, undef, 0.001 );
+    } else {
+        my $error = "Failed to write request: $!";
+        <[base.logs]>->( 0, "async.http_client: %s", $error );
+        $callbacks->{'on_error'}->($error) if exists $callbacks->{'on_error'};
+        eval { $io_watcher->cancel };
+        close($sock);
+        return { success => FALSE, error => $error };
+    }
+}
+
+<[base.logs]>->( 2, "async.http_client: wrote %d bytes", $total_written );
+
 ## Set up timeout ##
+
 my $timeout_sec     = $callbacks->{'timeout'} // 780;
 my $timeout_watcher = <[event.add_timer]>->(
     {   'after'   => $timeout_sec,
@@ -102,7 +114,6 @@ my $timeout_watcher = <[event.add_timer]>->(
     }
 );
 
-$state->{'io_watcher'}      = $io_watcher;
 $state->{'timeout_watcher'} = $timeout_watcher;
 
 <[base.logs]>->(
@@ -115,8 +126,8 @@ return {
     state   => $state,
 };
 
-#,,..,..,,..,,,..,..,,,..,,..,.,.,,,.,...,,,,,.,.,...,..,,.,.,,,,,.,,,..,,,,,,
-#LEAHNHRHLGGXHLYL4S5EDYLOZI23QHMYB3XA22ENPNETCMDQUQO4KCAMUISRYQEMMHQC67Z7JY4LC
-#\\\|MLJ7ZGCU7HKKX7HE6BXFSINHMXT37UAKDJAFBYNKNZXJKTML3PC \ / AMOS7 \ YOURUM ::
-#\[7]MM5H62GPF4HTVRIGFCLS3KZ3OTUZ62PSJHDBUL7JOI56LRMTZCBQ 7  DATA SIGNATURE ::
+#,,,.,,,,,.,,,,,,,.,,,..,,..,,,,,,.,.,.,,,.,.,.,.,...,...,,.,,.,.,...,..,,.,,,
+#KDOR3OQY3P2QPQDCHZX5KXEJI6C4TB6HIJ4JLJVIQO3SGZICF5KOKJZWMDCDPGQBNVYMSBJS2LFFK
+#\\\|7MWZWCYAO2SS4S25T65SBP2LV3KO5ZBVWBGZPUBZZ5Y4HTQ7JYY \ / AMOS7 \ YOURUM ::
+#\[7]PKFP6LDFGU3QMOMCZEC5OLOZBDE4DKBJKVKIXUHUFCJXDA3GBUAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

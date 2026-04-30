@@ -1,0 +1,33 @@
+## [:< ##
+
+# name  = coding.handler.enqueue_round_deferred
+# descr = deferred timer callback: dispatch enqueue_round job after event loop tick
+
+my $data       = shift->w->data;
+my $task_id    = $data->{'task_id'};
+my $round      = $data->{'round'};
+my $job_params = $data->{'job_params'};
+
+return unless defined $task_id && defined $job_params;
+
+my $job_id = <[jobqueue.add_job]>->($job_params);
+
+## store job_id in async state ##
+my $state = <[coding.async.state_manager]>->( qw| get |, $task_id );
+if ( defined $state ) {
+    $state->{'job_id'} = $job_id;
+    <coding.async.task_state>->{$task_id} = $state;
+}
+
+<[base.logs]>->(
+    1, "enqueue_round: %s round=%d job_id=%s [dispatched]",
+    $task_id, $round, $job_id
+);
+
+return;
+
+#,,,,,,..,,..,,..,...,,,.,..,,,,,,,,,,.,,,,.,,.,.,...,...,,,,,..,,.,,,.,,,...,
+#V2GQBRWDYZOANLRTVOUPORXU43GXUU6X7GWANZPLOSF43XTVIDGDTQQDM6D67PNKA4IMPB7QAWLUQ
+#\\\|FCTYOIOB6SLRPGJVXVQ5ELPCDAOOU552SUR7FORUNWOVJAJH42E \ / AMOS7 \ YOURUM ::
+#\[7]YPXTNDAD6DER4UDUZSC5C2FQBTXOZRINTGT47VJLPAYQSGQIYEBA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

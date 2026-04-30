@@ -19,6 +19,16 @@ if ( $state->{'retry_pending'} ) {
         "async.request: retry already pending for %s, ignoring duplicate error",
         $task_id
     );
+    ## release lock if we own it [ safety net ] ##
+    my $backend_dup = $state->{'backend'} // '';
+    if ( length $backend_dup ) {
+        my $lock_dup = <coding.async.backend_busy>->{$backend_dup};
+        if (   defined $lock_dup
+            && ref($lock_dup) eq qw| HASH |
+            && $lock_dup->{'task_id'} eq $task_id ) {
+            delete <coding.async.backend_busy>->{$backend_dup};
+        }
+    }
     return;
 }
 
@@ -26,7 +36,7 @@ if (   $error =~ m{HTTP error:\s*5\d\d|timeout|connection closed}i
     && $retry_count < $max_retries ) {
     $retry_count++;
     <[base.logs]>->(
-        1, "async.request: retrying %s (attempt %d/%d)",
+        1, "async.request: retrying %s [attempt %d/%d]",
         $task_id, $retry_count, $max_retries
     );
 
@@ -64,7 +74,36 @@ if (   $error =~ m{HTTP error:\s*5\d\d|timeout|connection closed}i
             'data'    => $task_id
         }
     );
+    ## release backend lock before scheduling retry ##
+    my $backend_retry = $state->{'backend'} // '';
+    if ( length $backend_retry ) {
+        my $lock_retry = <coding.async.backend_busy>->{$backend_retry};
+        if (   defined $lock_retry
+            && ref($lock_retry) eq qw| HASH |
+            && $lock_retry->{'task_id'} eq $task_id ) {
+            delete <coding.async.backend_busy>->{$backend_retry};
+            <[base.logs]>->(
+                2, "http_error: released %s lock for %s [retry scheduled]",
+                $backend_retry, $task_id
+            );
+        }
+    }
     return;
+}
+
+## release backend lock before failing task ##
+my $backend_fail = $state->{'backend'} // '';
+if ( length $backend_fail ) {
+    my $lock_fail = <coding.async.backend_busy>->{$backend_fail};
+    if (   defined $lock_fail
+        && ref($lock_fail) eq qw| HASH |
+        && $lock_fail->{'task_id'} eq $task_id ) {
+        delete <coding.async.backend_busy>->{$backend_fail};
+        <[base.logs]>->(
+            2,             "http_error: released %s lock for %s [fail]",
+            $backend_fail, $task_id
+        );
+    }
 }
 
 ## fail the task ##
@@ -73,12 +112,40 @@ my $result = {
     error   => $error,
 };
 
+## when all retries fail with a timeout the server accepted the TCP
+## connection but never responded — restart it so the next task gets
+## a fresh process rather than silently hanging again                  ##
+if ( $error =~ m{timeout}i ) {
+    my $backend_r = $state->{'backend'} // 'gpu';
+    my $srv       = ( <coding.inference_servers> // {} )->{$backend_r} // {};
+    if ( ( $srv->{'status'} // '' ) eq 'ready' ) {
+        <[base.logs]>->(
+            0,
+            "http_error: %s timed out after %d retries"
+                . " — scheduling %s server restart",
+            $task_id,
+            $max_retries,
+            $backend_r
+        );
+        $srv->{'status'} = 'restart_needed';
+        ## clear cached pid so spawn_servers_deferred doesn't skip us ##
+        <inference.gpu_pid> = 0 if $backend_r eq 'gpu';
+        ## defer restart to avoid interfering with task teardown ##
+        <[event.add_timer]>->(
+            {   'after'   => 0.5,
+                'handler' => qw| coding.handler.spawn_servers_deferred |,
+                'data'    => { 'reason' => 'timeout_restart' }
+            }
+        );
+    }
+}
+
 <[coding.async.complete]>->( $task_id, $result );
 
 return;
 
-#,,..,.,,,..,,..,,..,,.,.,.,,,.,.,.,.,,,,,.,.,..,,...,...,.,.,,.,,,,,,...,,,.,
-#FL4X2UIGBAQXGE4TGEYXEDZFVWKTLEEHFEMBNOHSKQ2PYHNNZWW6MHYQ4X4JSTGW3LJDEYRLNUZNA
-#\\\|M4DSIHYC37EGLLNRZAVC2MMEHFCKVRQPNUU3XCW5AM6RIIYL62H \ / AMOS7 \ YOURUM ::
-#\[7]ZBK44XKFFD42PYDW6I6NLI7BZGIDCML4K67C52AKXFSH62SK26BY 7  DATA SIGNATURE ::
+#,,,,,.,,,...,,,,,,..,.,.,.,,,.,.,.,.,,,.,,..,..,,...,...,.,.,.,.,,.,,.,,,,.,,
+#RYBSXXFNMPR6CQL3A5E23HCXVBZMBS2HZYBMLBDP325JX2G5GUMWR44NCCWU2E7R4SRFICCOYAPHQ
+#\\\|JIPCVN2RTTM5YNQ4URZHXIZE7X4H7MGF42F6MGXYFKSYHLXNA5Y \ / AMOS7 \ YOURUM ::
+#\[7]YYNKLS65IARXT3V6J7XP3RXIQ3KHUN3MMRU22J7OTNXNIDONOUDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
