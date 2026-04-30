@@ -10,6 +10,17 @@ my $event = shift;
     1, 'deferred spawn timer triggered, spawning inference servers'
 );
 
+## skip if server already running [ model_path_reply may have spawned already ] ##
+my $gpu_pid = <inference.gpu_pid> // 0;
+if ( $gpu_pid and kill( 0, $gpu_pid ) ) {
+    <[base.logs]>->(
+        1, 'deferred spawn: GPU server already running [pid:%d], skipping',
+        $gpu_pid
+    );
+    $event->w->stop if defined $event->w;
+    return TRUE;
+}
+
 # Call the async spawn routine
 <[coding.async_spawn_inference_servers]>;
 
@@ -18,8 +29,8 @@ $event->w->stop if defined $event->w;
 
 return TRUE;
 
-#,,,.,,..,.,.,...,.,,,,,,,,.,,,,.,,..,.,.,,,.,..,,...,...,.,.,,,,,.,,,..,,...,
-#IJLJDKAOTGDWHYWUMUBPNXLO6J3BUAFWFWMSGHXQ6LA37DI5CV5UTJWV7HBR6GFWDB7VRSXC4I56I
-#\\\|DVUVQPTPBOZ7PUJZMUSNB2JJ3NATUQMA2L7NH3UQILPFJXBPTZC \ / AMOS7 \ YOURUM ::
-#\[7]UFJPFYLOGSSAQXAQ4ZFSXXIJDUGV3WPZCCNZ5ZZSO4OAFVIRBAAI 7  DATA SIGNATURE ::
+#,,.,,..,,..,,...,,,.,,,,,...,,,.,...,,,,,...,..,,...,..,,,,.,.,,,...,,,,,,.,,
+#4WIH2PDU7LVEGXYHWZ24YH3ZH7X3CXNMTPJCGFXXJ4Q7JF24WTV3T7TXRYYM6JUE23TEUIQYOU3A6
+#\\\|NOW2KWMNSPWMZPXGXTV5NNH2PJZTLAUEGPOMMQ7XMWME4D5QWB4 \ / AMOS7 \ YOURUM ::
+#\[7]A776A7VSVTKXMKHYCUB6F4QFPBVAZW6V5AY4G22ECWVEET7U4MDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

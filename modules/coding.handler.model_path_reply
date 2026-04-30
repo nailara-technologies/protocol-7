@@ -76,12 +76,21 @@ if ( ( not $gpu_pid or $needs_respawn )
         $needs_respawn ? 're-' : 'deferred '
     );
     $code{'coding.async_spawn_inference_servers'}->();
+
+    ## cancel deferred spawn timer — we've already spawned, avoid duplicate ##
+    if ( defined <coding.timer.spawn_servers> ) {
+        eval { <coding.timer.spawn_servers>->cancel };
+        <coding.timer.spawn_servers> = undef;
+        <[base.logs]>->(
+            2, '[model_path_reply] cancelled deferred spawn timer'
+        );
+    }
 }
 
 return TRUE;
 
-#,,..,..,,..,,..,,,,.,.,,,.,.,,,,,.,.,..,,...,..,,...,.,.,...,,.,,,,,,,,.,...,
-#66IMWX6KURNCPMS42PNG3632MA66XRPPZUHIFI4R4OPNRBI2XBPIRD6OLJ7KEGFJEFBTDBRA6XLHS
-#\\\|US2HW35UQMEYWMDO3AIUQDHYVUL4FIPNGVDUOA7JONGINCS4TJE \ / AMOS7 \ YOURUM ::
-#\[7]E6ABRVVHDFH76PPUPQWDTHTHSXE2PYW24P35KESJFOSBBPEL6ABA 7  DATA SIGNATURE ::
+#,,..,,.,,.,.,..,,,,.,,..,...,..,,.,.,..,,...,..,,...,..,,,.,,,.,,,,,,,..,,,,,
+#E7X4MSFRPTOVDZDY6ODZY6HRZSWLRBXW5LBRBEVD5YCTBY4VQBC7WPK22H22XLOW3LSKZ4CNGRGEY
+#\\\|X5Y6OXFW6N5QJMJSM67UCX6VUGVTQIYNKPOUD72AGMYUBFUOTJ2 \ / AMOS7 \ YOURUM ::
+#\[7]NRNKD6J3RMJSXOJLZFIK2VCO4RYGUFPSA4UKVPPIUNLWWM7ODGAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

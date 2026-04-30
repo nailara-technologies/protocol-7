@@ -322,7 +322,8 @@ elsif ( $action eq 'transition' ) {
                     $loop_check->{'pattern'} // 'unknown',
                     int( ( $loop_check->{'confidence'} // 0 ) * 100 ),
                     join( ' → ',
-                        @{ $loop_check->{'history_snapshot'} // [] } ),
+                        grep {defined}
+                            @{ $loop_check->{'history_snapshot'} // [] } ),
                     $loop_check->{'score'} // 0
                 );
                 push @{ $state->{'messages'} },
@@ -362,6 +363,11 @@ elsif ( $action eq 'transition' ) {
                     }
                 );
             } else {
+                ## clear chunk_context before enqueue — prevents http_complete
+                ## from re-processing tool_calls when the EOF arrives after
+                ## enqueue_round has already been scheduled (double execution) ##
+                $state->{'chunk_context'} = {};
+                <coding.async.task_state>->{$task_id} = $state;
                 ## enqueue next round ##
                 <[coding.task.enqueue_round]>
                     ->( $task_id, $state->{'round'} );
@@ -484,8 +490,8 @@ elsif ( $action eq 'constants' ) {
 
 return { error => sprintf "unknown action : '%s'", $action };
 
-#,,,.,,.,,.,,,,,,,.,.,,,,,,.,,.,.,,..,,.,,.,.,.,.,...,..,,.,.,,.,,...,.,,,..,,
-#2WLLH7BQWMC6HSJJKGUWGO2RKIN44NV6MZHQ43PBTI756EY55EDRG44VJWEYRDX3P4OPD3V2GOQY4
-#\\\|24HJMQKW6EEZ3YWJJDBQN7UKH5VWAQLCIFRD6GVF7OON3SPS2KT \ / AMOS7 \ YOURUM ::
-#\[7]PL5BEPFA7NZJMYN4MPGHPADL4YBZMXUJ3GP6GQW2XXLEVN3XOEBI 7  DATA SIGNATURE ::
+#,,,,,,..,..,,,.,,...,,,.,.,.,,,.,.,.,,,.,.,,,.,.,...,..,,..,,,,,,,,.,,.,,.,.,
+#YGVYUL4IOVRH5XPIJF2D5AB6JM5CAOZMEN4QFXQQRYHKBAO5SVYVLQOJLDJS2OHLTAPHSZJNGUCDK
+#\\\|VUWZW2MT77ZB5CYK2W3T4F7DAZ72PID7QMT4W4SSLRUFLPYPOFN \ / AMOS7 \ YOURUM ::
+#\[7]ZAP7NHMXF5J2KXBNQYVAEE4ZMSODQCTLCOLZ6NLNFCIHKITHXKAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

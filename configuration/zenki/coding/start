@@ -5,9 +5,9 @@
 [zenka.load_sub_list]
 
 access.cmd.usr.cube = commands heart reload verify-instance list show-buffer \
-                      buffer-erase buffer-erase-level budget status \
+                      src-age buffer-erase buffer-erase-level budget status \
                       inference-status submit get-result analyze_and_extract \
-                      complete-analysis resume-analysis ask-reply \
+                      src-ver complete-analysis resume-analysis ask-reply \
                       switch-model show-prompt match-template dump-env list-subs \
                       vision-parser.analyze_and_extract vision-parser.status \
                       infer query test-inference clear-registry clear-cache \
@@ -16,7 +16,7 @@ access.cmd.usr.cube = commands heart reload verify-instance list show-buffer \
                       tree-write list-tools call-tool get set dump \
                       inject-message stop-task async-test wait-done \
                       list-tasks task-info pause-task resume-task \
-                      execute_round
+                      execute_round last-compaction
 ##                                                   to access %data.  ##
 
 system.verbosity.zenka_buffer  = 2  ##  memory ring buffer verbosity   ##
@@ -32,6 +32,9 @@ coding.cfg.allow_chmod_apply  = yes  ## chmod g+w target files during apply ##
 ## round-based scheduling: each inference round is a discrete jobqueue job ##
 ## enables fair multiplexing across tasks and natural subtask trees       ##
 coding.async.round_scheduling.enabled = yes    ## set to yes when proven ##
+
+# coding.jinja.convert_tool_role = yes ## testing..
+coding.jinja.convert_tool_role = false
 
 ## GPU+CPU Dual Inference Configuration ##
 inference.backend.lib_path = /data/source/ik_llama.cpp
@@ -74,8 +77,11 @@ inference.routing.fallback_on_timeout = yes  ## Try CPU if GPU times out ##
 coding.async.enabled = 1  ## Use non-blocking HTTP streaming with tool execution loop ##
 
 ## Model Configuration ##
-inference.model.context_length = 77777  ## doubled for multi-round tool sessions ##
-inference.model.max_tokens = 8192
+## Context length: auto-calculated from GPU VRAM if not set (range 7777-77777) ##
+## Set explicitly only if you want to override the safe auto-detection ##
+## inference.model.context_length = 63000  ## doubled for multi-round tool sessions ##
+inference.model.context_length = 13500
+inference.model.max_tokens  = 13500
 inference.model.temperature = 0.7
 inference.model.seed = 0  ## 0 = harmonic seed from ntime+fortuna, >0 = fixed ##
 
@@ -111,8 +117,8 @@ plugins.load = plugin.storage.inference plugin.storage.util.inference
 
 [zenka.loop]
 
-#,,.,,...,,,.,..,,,.,,.,.,.,,,,,.,,,,,...,...,.,.,...,...,.,.,,,,,,..,,..,.,.,
-#FBANNUKFAOG5ISJVOATPMLZCQKGJW3DUODDU6NKXSIXSJUVRNYT4VYCKEILAS6DW2ZOSMHWKWPEXQ
-#\\\|WAU6PEVKSM4ML7CMGEOSCRLMYJABW5YMINBVRDBYWCHFEBPWBNO \ / AMOS7 \ YOURUM ::
-#\[7]LFIL5SVRW5XNT4VTPGTZVCNJX22ZKGTZ6GBJBTXBBSDSANYZHODQ 7  DATA SIGNATURE ::
+#,,,.,...,.,,,...,,,.,,,,,.,.,,.,,.,.,,.,,.,,,.,.,...,..,,...,.,,,,.,,.,,,,.,,
+#AAMVO2IU7KX3LOOPIBO2K6HCZRGR5QOQ5SA6YXVMYTY4CLHWYKOOCKJCLGJGPLRV6XC7F3P45XMTI
+#\\\|T3NQYGHHEJDHMNQM6SDHLRDBL3EUABYGK4E6Y7NRNTRCQ2NLDOH \ / AMOS7 \ YOURUM ::
+#\[7]E2V3ZAMDSMPYC72GN2ISFVIDZIGL654G2S72NG2BJPIKRQPI52BQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

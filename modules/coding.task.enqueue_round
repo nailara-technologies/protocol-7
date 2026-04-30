@@ -1,7 +1,7 @@
 ## [:< ##
 
 # name  = coding.task.enqueue_round
-# descr = enqueue next round of a coding task as a jobqueue job
+# descr = schedule next inference round via timer — bypasses jobqueue for N+1 rounds
 # param = <task_id> <round>
 
 my ( $task_id, $round ) = @ARG;
@@ -17,63 +17,31 @@ my $task = <coding.task.queue>->{$task_id};
 return { success => FALSE, error => "task not found: $task_id" }
     unless defined $task;
 
-## get priority from task metadata ##
-my $priority = $task->{'priority'} // 0;
-
-## map string priorities to numeric values for jobqueue ##
-if ( defined $priority && $priority =~ m{^[a-z]+$}i ) {
-    my %prio_map = (
-        critical => -2,
-        high     => -1,
-        normal   =>  0,
-        low      =>  1,
-    );
-    $priority = $prio_map{ lc($priority) } // 0;
-}
-
-## determine server dependency ##
-my $routed_to = $task->{'analysis'}->{'routed_to'} // 'gpu';
-my $dep_object_id
-    = $routed_to eq 'cpu'
-    ? ( <coding.dep.cpu_server> // 0 )
-    : ( <coding.dep.gpu_server> // 0 );
-
-## create round job ##
-my $job_params = {
-    name            => sprintf( "%s.round_%d", $task_id, $round ),
-    priority        => $priority,
-    object_id       => $dep_object_id,
-    target_queue    => 'queued',
-    job_callback    => 'coding.task.execute_round',
-    callback_params => {
-        task_id => $task_id,
-        round   => $round,
-    },
-};
-
-my $job_id = <[jobqueue.add_job]>->($job_params);
-
-## store job_id in async state for round completion tracking ##
-my $state = <[coding.async.state_manager]>->( qw| get |, $task_id );
-if ( defined $state ) {
-    $state->{'job_id'} = $job_id;
-    <coding.async.task_state>->{$task_id} = $state;
-}
+## schedule send_request via timer — defers to next event loop tick ##
+## [ the jobqueue dispatches synchronously via variable-watcher, which caused  ##
+##   io-watcher registration to fail when nested inside timer/var-watcher chain ] ##
+## [ using the timer directly avoids all nested-watcher issues ] ##
+<[event.add_timer]>->(
+    {   'after'   => 0.1,  ## 100ms: give server time to fully release slot ##
+        'handler' => qw| coding.callback.backend_busy_retry |,
+        'data'    => $task_id,
+    }
+);
 
 <[base.logs]>->(
-    1, "enqueue_round: %s round=%d job_id=%s",
-    $task_id, $round, $job_id
+    1,        "enqueue_round: %s round=%d [scheduled via timer]",
+    $task_id, $round
 );
 
 return {
-    success => TRUE,
-    task_id => $task_id,
-    round   => $round,
-    job_id  => $job_id,
+    success  => TRUE,
+    task_id  => $task_id,
+    round    => $round,
+    deferred => TRUE,
 };
 
-#,,.,,.,.,.,.,.,.,,,,,..,,,,.,..,,,..,,,,,.,.,..,,...,...,,.,,,..,.,,,,.,,,.,,
-#Y24IVCBQCFELNKPGQIZLOO7JHAERYR4IFZXR7QAQZILRPFIEZCFNYVZOG74DEIAEYFZSWZHWHOYCM
-#\\\|S2ISILDA5WP5LPGSPWUQUHEQEM74NDNDIAWGWCHUKMVPW676XWZ \ / AMOS7 \ YOURUM ::
-#\[7]RCGJCKL6KN6QEELPEMAMP4AYWS2JBCNIPHBO7YSVBCZU4XNDOAAI 7  DATA SIGNATURE ::
+#,,,,,,..,,,.,,.,,...,,,,,...,..,,...,...,,..,..,,...,...,,,.,.,,,,,.,.,.,,,,,
+#FKXUIWED6LYRQXP5FTWBIGWKSY3AP53UGMM5W4OEMB2XJGIA5SJ2ES3U2UTLB7CBVZJGDPTFH55TY
+#\\\|64WQNZWBJRA3FEBO5H6FXEJHQOYN6OSK5GUNYBZZBGRL3APVBC2 \ / AMOS7 \ YOURUM ::
+#\[7]2PKVGRWQ4GGN44SQGHWK4RVU4W5OPJ4VNPKNPS2VG5INXJOUB2BY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

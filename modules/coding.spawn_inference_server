@@ -33,6 +33,7 @@ for my $fh_key (qw| io_stdout io_stderr |) {
 if ( my $old_pid = $old->{'pid'} ) {
     if ( kill( 0, $old_pid ) ) {    ## process still exists ##
         kill( 'KILL', $old_pid );   ## SIGKILL : gpu servers ignore SIGTERM ##
+        <[base.waitpid]>->($old_pid);    ## reap zombie ##
         <[base.logs]>->(
             1, '[spawn_inference_server] killed old %s server [pid:%d]',
             $backend, $old_pid
@@ -57,6 +58,7 @@ if ( defined $saved_ref ) {
         }
         if ( length $saved_bin and $proc_cmd =~ m|\Q$saved_bin\E| ) {
             kill( 'KILL', $saved_pid );
+            <[base.waitpid]>->($saved_pid);    ## reap zombie ##
             <[base.logs]>->(
                 1,
                 '[spawn_inference_server] killed orphan %s'
@@ -70,6 +72,7 @@ if ( defined $saved_ref ) {
 }
 
 ## scan for stale llama-server processes on same port ##
+my @killed_stale_pids;
 if ( open my $pfh, '-|', 'fuser', '-n', 'tcp', $port ) {
     while ( my $line = <$pfh> ) {
         for my $stale_pid ( $line =~ m|(\d+)|g ) {
@@ -82,6 +85,7 @@ if ( open my $pfh, '-|', 'fuser', '-n', 'tcp', $port ) {
             }
             next unless $proc_cmd =~ m|llama-server|;
             kill( 'KILL', $stale_pid );
+            push @killed_stale_pids, $stale_pid;
             <[base.logs]>->(
                 1,
                 '[spawn_inference_server] killed stale llama-server'
@@ -131,14 +135,17 @@ if ( $backend eq qw| gpu | ) {
 
         ## Skip defunct (zombie) processes - they're dead but not reaped ##
         if ($pid) {
+            ## skip PIDs we just killed in the port scan (may linger briefly) ##
+            next if grep { $_ == $pid } @killed_stale_pids;
+
             my $stat_file = "/proc/$pid/stat";
             if ( open my $fh, '<', $stat_file ) {
                 my $stat = <$fh>;
                 close($fh);
-                ## Defunct/zombie processes have 'Z' state in stat ##
+                ## defunct/zombie processes have 'Z' state in stat ##
                 ## stat format: pid (comm) state ppid ... ##
                 if ( $stat && $stat =~ m|^\d+\s+\([^)]+\)\s+Z| ) {
-                    next;    ## Skip zombies ##
+                    next;    ## skip zombies ##
                 }
             }
         }
@@ -164,7 +171,7 @@ if ( $backend eq qw| gpu | ) {
     if ( $nvidia_smi =~ m|^(\d+),\s*(\d+)|m ) {
         my ( $total_mb, $free_mb ) = ( $1, $2 );
         my $model_size_mb = ( -s $model_path ) / ( 1024 * 1024 );
-        my $safety_mb = <coding.cfg.vram_safety_mb> // 1024;
+        my $safety_mb     = <coding.cfg.vram_safety_mb> // 1024;
         if ( $free_mb < $model_size_mb + $safety_mb ) {
             <[base.logs]>->(
                 0,
@@ -197,8 +204,45 @@ push @cmd, qw| --log-disable --log-file /dev/null |;
 
 # Add context and other parameters
 ## context and generation limits from config ##
-my $ctx_size   = <inference.model.context_length> // 16384;
-my $max_tokens = <inference.model.max_tokens>     // 4096;
+my $max_tokens = <inference.model.max_tokens> // 4096;
+
+## determine context size: explicit config wins, otherwise auto-calculate from VRAM ##
+my $ctx_size;
+if ( defined <inference.model.context_length> ) {
+    $ctx_size = <inference.model.context_length>;
+    ## validate against safe maximum ##
+    my $safe = <[coding.helper.calculate_safe_context]>->(
+        {   model_path  => $model_path,
+            mmproj_path => $mmproj_path,
+            backend     => $backend,
+        }
+    );
+    if ( $ctx_size > $safe->{'context_length'} ) {
+        <[base.logs]>->(
+            0,
+            '[spawn_inference_server] WARNING: configured context=%d '
+                . 'exceeds safe maximum=%d [%s]',
+            $ctx_size,
+            $safe->{'context_length'},
+            $safe->{'explanation'}
+        );
+    }
+} else {
+    ## auto-calculate safe context from available GPU memory ##
+    my $safe = <[coding.helper.calculate_safe_context]>->(
+        {   model_path  => $model_path,
+            mmproj_path => $mmproj_path,
+            backend     => $backend,
+        }
+    );
+    $ctx_size = $safe->{'context_length'};
+    <[base.logs]>->(
+        1,
+        '[spawn_inference_server] auto-context: %s',
+        $safe->{'explanation'}
+    );
+}
+
 push @cmd, '-c', $ctx_size;
 push @cmd, '-n', $max_tokens;
 
@@ -276,12 +320,13 @@ for my $pipe_fh ( $server_out, $server_err ) {
 ## Store server metadata (initialize if needed)
 <coding.inference_servers> = {} unless defined <coding.inference_servers>;
 <coding.inference_servers>->{$backend} = {
-    'backend'     => $backend,
-    'port'        => $port,
-    'pid'         => $pid,
-    'binary'      => $binary,
-    'seed'        => $seed,
-    'status'      => qw| starting |,
+    'backend' => $backend,
+    'port'    => $port,
+    'pid'     => $pid,
+    'binary'  => $binary,
+    'seed'    => $seed,
+    'n_ctx'   => $ctx_size,       ## actual context window passed to server ##
+    'status'  => qw| starting |,
     'start_time'  => <[base.time]>->(3),
     'stdout'      => $server_out,
     'stderr'      => $server_err,
@@ -289,6 +334,12 @@ for my $pipe_fh ( $server_out, $server_err ) {
 };
 
 ## Register I/O handlers to monitor startup
+<[base.logs]>->(
+    1,
+    "[spawn_inference_server] pipe fds: stdout=%s stderr=%s",
+    fileno($server_out) // 'undef',
+    fileno($server_err) // 'undef'
+);
 my $watcher_out = <[event.add_io]>->(
     {   'fd'      => $server_out,
         'handler' => qw| coding.handler.monitor_inference_startup |,
@@ -313,10 +364,16 @@ my $watcher_err = <[event.add_io]>->(
     }
 );
 
+### reference watcher pair for later cancellation ###
+<coding.watcher_pair>->{$watcher_out} = $watcher_err;
+<coding.watcher_pair>->{$watcher_err} = $watcher_out;
+
 <coding.inference_servers>->{$backend}->{'io_stdout'}      = $server_out;
 <coding.inference_servers>->{$backend}->{'io_stderr'}      = $server_err;
 <coding.inference_servers>->{$backend}->{'watcher_stdout'} = $watcher_out;
 <coding.inference_servers>->{$backend}->{'watcher_stderr'} = $watcher_err;
+#
+## <-- 'e' is _not_ stderr, but exception.
 
 return {
     'success' => TRUE,
@@ -325,8 +382,8 @@ return {
     'port'    => $port
 };
 
-#,,,,,...,.,.,,.,,.,,,,,,,,,,,,,,,,.,,.,,,,,,,..,,...,...,.,.,..,,,,,,.,.,,,,,
-#Z7S43EBUBL7HSGWNQQZENVYQP77FVS5LIERSKXMJXZUAPIZ2CERKISGCIX4GJM7TWMCQEBL6WALAQ
-#\\\|TKJMBKGM2TJ4GJYGFOYS44DMOLCU3CITTH2TCJWQYMQ2TF27CTH \ / AMOS7 \ YOURUM ::
-#\[7]D3MB5YOSQTHSVYNKSQVAGY4E5KQHZFOMYCGVSNZKQVQ2PI4XLEBY 7  DATA SIGNATURE ::
+#,,,,,.,.,.,,,,..,..,,...,,,,,,.,,...,,..,,,,,..,,...,...,...,...,...,,.,,.,.,
+#K7QKW42UTSMAQY52DKFLAIK7UZUC4TP2NT2QCZ4KU47BDS5YLARZKANKCXWBOAAR3EASQVYKXBEN4
+#\\\|BX6ISFNGAIV72BODYM3OERQTP7ZHA5DP6AVPPJLW6HV2EYCJUWH \ / AMOS7 \ YOURUM ::
+#\[7]AJLLG7QUCLLB6CWWLE5PXJCDVC3KEUA4HA2URXXGPK6TFBRHM2DA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,0 +1,36 @@
+## [:< ##
+
+# name  = coding.callback.backend_busy_retry
+# descr = Retry handler when backend is busy with another inference request
+
+## timer callbacks receive watcher object, extract data from it ##
+my $task_id = shift->w->data;
+
+return unless defined $task_id && !ref $task_id;
+
+<[base.logs]>->(
+    2, "backend_busy_retry: retrying %s after backend wait", $task_id
+);
+
+## guard: only proceed if task is still active ##
+my $state = <[coding.async.state_manager]>->( qw| get |, $task_id );
+if ( !defined $state ) {
+    <[base.logs]>->(
+        2, "backend_busy_retry: %s no longer active, skipping", $task_id
+    );
+    return;
+}
+
+delete $state->{'backend_busy'};
+<coding.async.task_state>->{$task_id} = $state;
+
+## re-attempt inference request ##
+<[coding.async.send_request]>->($task_id);
+
+return;
+
+#,,.,,,..,.,.,,,,,...,...,..,,.,.,.,.,,,.,.,.,.,.,...,...,,.,,.,.,,,.,..,,.,,,
+#2X35L4QG2JJZMMW6NEFW32IOVGJETHUJFPXSWNZK3MLFFE6FLOZVCOIWD3Q2F55JGG3GCEOM3BRG2
+#\\\|UJELHNCYORMRABNEGVKVWB4N5GYI2EZDCQX6BZBC24ACBWKDEPX \ / AMOS7 \ YOURUM ::
+#\[7]NS5AK7DMOJ72RT2PW6H3TZ2PNKHYBCQP2JFHOAJWJKHFQJYUBMBQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

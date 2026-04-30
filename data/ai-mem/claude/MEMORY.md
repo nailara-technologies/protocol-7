@@ -42,6 +42,7 @@
 - `topic-namespace-tree-intelligence.md` — the tree IS the intelligence: unified namespace for
   code/data/state/history/planning, branch summarization, universal off-band access
 - `topic-async-tool-loop-debug.md` — RESOLVED: async tool loop fixes, XML parsing, root cause chain
+- `topic-async-round-2-timeout.md` — RESOLVED (Apr 30): double-spawn VRAM starvation + subtask lock deadlock + timeout restart; full subtask round-trip verified
 - `feedback-list-return-format.md` — list backends: mode 'size' + formatted string, not arrayref
 - `topic-searchable-index-and-visualization.md` — checksum-indexed dataspace, space.v7.ax/source.v7.ax, index/file zenki
 - `feedback-web-serialization-and-inlining.md` — parallel JSON+YAML data endpoints, inline CSS/JS for offline-viewable native-app-like reliability
@@ -312,8 +313,8 @@
 - Pattern: `my @non_num = grep { defined $data_ref->{$ARG}->{$key} and not looks_like_number(...) } keys $data_ref->%*`
 - Global `$SIG{__WARN__}` exists — if wrapping warn handler, capture `$prev_warn = $SIG{__WARN__}` first and call through
 
-#,,,,,,..,,,,,...,,,.,,..,...,,,.,,.,,,.,,,.,,..,,...,...,,..,...,,.,,..,,,..,
-#YF5CZW4RA65UF3LXORTWQ5PMWE3TRRVESQNJKS4Q4YM5NHMV6ADRHHKFCHUEESGAFKNN6DNAUN36C
-#\\\|KSYYKPAST3V6RKSDJEEIBOXIFW3GMHXXBO6EJ6FH7LVLIO3OGQM \ / AMOS7 \ YOURUM ::
-#\[7]S3A35GKDIA4263OAXBIXA7OCOTMS5MAPDEQXUHKF57V73SGQ2ABQ 7  DATA SIGNATURE ::
+#,,,.,.,.,,.,,.,.,,,.,,..,,,.,,..,,,,,.,,,..,,..,,...,...,.,,,.,.,..,,,,,,.,,,
+#ODG5QMRLHOGT6YX6RKTE36OV5CX3UVQXNGPYB4BQJO73RFPZ45SMGBHGQY7WYEN4ZR252GOOWAXH2
+#\\\|RXG553IQ6RA5JOSB3FZZ7TQV3VQNNJ5D3YWUDFVJI4OMMAY3E32 \ / AMOS7 \ YOURUM ::
+#\[7]3VSXLYVHUQSSTAU4EZV26HA76NQNNDWXT3ILDPXT7G72KAX5UAAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

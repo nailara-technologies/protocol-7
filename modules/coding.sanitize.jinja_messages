@@ -1,7 +1,7 @@
 ## [:< ##
 
 # name  = coding.sanitize.jinja_messages
-# descr = sanitize message array for jinja2 template safety
+# descr = sanitize message array for jinja2 template safety + tool role workaround
 
 ## sanitize all messages in-place for jinja2 template safety ##
 ## prevents ik_llama.cpp jinja engine from crashing on {{ }}, {% %} ##
@@ -11,7 +11,24 @@ my ($messages) = @ARG;
 
 return unless ref $messages eq qw| ARRAY |;
 
+## Check if workaround is enabled ##
+my $convert_tool_role = <[base.cfg_bool]>->(<coding.jinja.convert_tool_role>);
+
+my $converted_count = 0;
 for my $msg ( @{$messages} ) {
+
+    ## Workaround: convert tool role messages to user role ##
+    ## [ Qwen3.5 and some other models' jinja templates don't handle ##
+    ##   role='tool', causing server hangs on accumulated tool rounds ] ##
+    if ( $convert_tool_role
+        && ( $msg->{'role'} // '' ) eq qw| tool | ) {
+        my $tc_id   = $msg->{'tool_call_id'} // 'unknown';
+        my $content = $msg->{'content'}      // '';
+        $msg->{'role'}    = qw| user |;
+        $msg->{'content'} = "[TOOL RESULT: $tc_id]\n$content";
+        delete $msg->{'tool_call_id'};
+        $converted_count++;
+    }
 
     ## sanitize message content ##
     my $content = $msg->{'content'} // '';
@@ -40,10 +57,42 @@ for my $msg ( @{$messages} ) {
     }
 }
 
+if ($converted_count) {
+    <[base.logs]>->(
+        1, "sanitize.jinja: converted %d tool role messages to user role",
+        $converted_count
+    );
+}
+
+## Strip tool_calls from older assistant messages ##
+## [ Qwen template tries to match tool_calls with role:tool messages;     ##
+##   after conversion those are user-role, causing hangs with >3 rounds ] ##
+if ($convert_tool_role) {
+    my @tc_indices;
+    for my $i ( 0 .. $#{$messages} ) {
+        my $msg = $messages->[$i];
+        push @tc_indices, $i
+            if ( $msg->{'role'} // '' ) eq qw| assistant |
+            and ref $msg->{'tool_calls'} eq qw| ARRAY |
+            and @{ $msg->{'tool_calls'} };
+    }
+    if (@tc_indices) {
+        my $stripped = 0;
+        for my $i (@tc_indices) {
+            delete $messages->[$i]->{'tool_calls'};
+            $stripped++;
+        }
+        <[base.logs]>->(
+            1, "sanitize.jinja: stripped tool_calls from %d assistant msgs",
+            $stripped
+        );
+    }
+}
+
 return;
 
-#,,..,,.,,.,.,.,.,,..,,.,,,,,,.,.,.,.,,,,,,,,,.,.,...,...,..,,..,,..,,..,,,,,,
-#7VSIB6QZTHGQH277VDA4JMWTP5AJT6HCZ6OWMLLFSJUKCANUC7WNUUSNTT2J465NROQQCHH3TPANO
-#\\\|MYIJGM5IUD4JDKS2ZROBO4KMAYSK2VHMHJU33W4ZVTCE7JUHDAT \ / AMOS7 \ YOURUM ::
-#\[7]DWFGAQ7LCE5AYTDLMAFPOQQZGGT6NFMTWXCKUB7ZVR7XIVVZ7ICY 7  DATA SIGNATURE ::
+#,,,,,.,,,...,,,.,,,,,,,.,...,,..,,,,,...,.,.,.,.,...,...,,,.,,..,..,,,,.,,,.,
+#IIOL2GQGLHIHHFVMQBMO3FA7SOXCLE5X3MAFDHCV6HNK75VCGR72IIWCV2DNQ2NPWVELA4PCQB3YY
+#\\\|QH7BQGHPK533EVHEAQ2532OIIBOEMWH4ANR2QAFTFOGOSV6MLUR \ / AMOS7 \ YOURUM ::
+#\[7]NUV2ARQ4ZHFGI5TCUWDVLJQT5C6OYXCDJQDQXIL6Q4LGILY6ZAAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

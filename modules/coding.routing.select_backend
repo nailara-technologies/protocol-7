@@ -15,24 +15,37 @@ my $cpu_port  = <inference.backend.cpu.port> // 8001;
 my $gpu_ready = 0;
 my $cpu_ready = 0;
 
-## Check GPU server health ##
+my $servers = <coding.inference_servers> // {};
+
+## Check GPU server health — use cached status from startup monitor when
+## available (avoids blocking LWP call while server is busy streaming) ##
 if ( $preferred_backend eq 'auto' || $preferred_backend eq 'gpu' ) {
-    $gpu_ready = eval {
-        use LWP::UserAgent;
-        my $ua       = LWP::UserAgent->new( timeout => 1 );
-        my $response = $ua->get("http://127.0.0.1:${gpu_port}/health");
-        return $response->is_success ? 1 : 0;
-    } // 0;
+    my $cached_status = $servers->{'gpu'}->{'status'} // '';
+    if ( $cached_status eq 'ready' ) {
+        $gpu_ready = 1;
+    } else {
+        $gpu_ready = eval {
+            use LWP::UserAgent;
+            my $ua       = LWP::UserAgent->new( timeout => 1 );
+            my $response = $ua->get("http://127.0.0.1:${gpu_port}/health");
+            return $response->is_success ? 1 : 0;
+        } // 0;
+    }
 }
 
 ## Check CPU server health ##
 if ( $preferred_backend eq 'auto' || $preferred_backend eq 'cpu' ) {
-    $cpu_ready = eval {
-        use LWP::UserAgent;
-        my $ua       = LWP::UserAgent->new( timeout => 1 );
-        my $response = $ua->get("http://127.0.0.1:${cpu_port}/health");
-        return $response->is_success ? 1 : 0;
-    } // 0;
+    my $cached_status = $servers->{'cpu'}->{'status'} // '';
+    if ( $cached_status eq 'ready' ) {
+        $cpu_ready = 1;
+    } else {
+        $cpu_ready = eval {
+            use LWP::UserAgent;
+            my $ua       = LWP::UserAgent->new( timeout => 1 );
+            my $response = $ua->get("http://127.0.0.1:${cpu_port}/health");
+            return $response->is_success ? 1 : 0;
+        } // 0;
+    }
 }
 
 ## Determine which backend to use ##
@@ -108,8 +121,8 @@ return {
     available => $available
 };
 
-#,,,,,..,,..,,...,.,.,,..,...,,,.,.,,,..,,.,.,.,.,...,...,.,.,,,.,..,,,.,,,..,
-#GIWOWI62YRIQEDNCMULS3MZUP3FTSA5BN6QSE2MTLGRD4X5NXJ6I3SWLYWQ4X6LOK3UN3T36O7CWK
-#\\\|WVBAWPZGGTXFKIQWEF77ZW75WXXC4QIMX2VLXGK2RG2R7CKWEK4 \ / AMOS7 \ YOURUM ::
-#\[7]2VF7DVZVBXRZNKRUAE7RHS5A2QVCPJKK6MLFLEZ7VDAPTXO6TWAI 7  DATA SIGNATURE ::
+#,,,.,,.,,,,.,,,.,,,.,,,,,..,,...,,..,,.,,..,,.,.,...,...,..,,.,,,.,,,,,,,.,.,
+#K5HFKMGVJG7RIPGOOHUIXTGMZGL5ITK6GEYPFS7HVWBI35LEVXJQ6JUOJFSEDCVRKANJ7SBIYEQKW
+#\\\|NCZEUIUCGMNQOUOUOV5XTF4Y24B5X356MMNYAMABYZQOWFHDIST \ / AMOS7 \ YOURUM ::
+#\[7]WLB5JQPC4XWIWU6XUEZUS7E76FWCRWC7TURO3VQX5AH2L7DY2MBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
