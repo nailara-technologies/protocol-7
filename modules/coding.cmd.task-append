@@ -1,0 +1,121 @@
+## [:< ##
+
+# name  = coding.cmd.task-append
+# descr = append user message to any task, resume if completed
+# param = <task_id> <message>
+# note  = works on in_progress, pending, subtask, completed, and failed tasks.
+#         for completed/failed tasks, the conversation is resumed from where
+#         it ended — useful when the model asked a question and needs an answer.
+
+my $args_str = $call->{'args'} // '';
+my ( $task_id, $message ) = split m{ +}, $args_str, 2;
+
+return { 'mode' => qw| false |, 'data' => 'task_id required' }
+    unless defined $task_id and length $task_id;
+
+return { 'mode' => qw| false |, 'data' => 'message required' }
+    unless defined $message and length $message;
+
+my $task = <coding.task.queue>->{$task_id};
+
+return { 'mode' => qw| false |, 'data' => "task not found: $task_id" }
+    unless defined $task;
+
+my $status = $task->{'execution'}->{'status'} // 'unknown';
+
+## active tasks : queue via injected_messages [picked up in send_request] ##
+if (   $status eq qw| in_progress |
+    or $status eq qw| pending |
+    or $status eq qw| subtask | ) {
+
+    $task->{'injected_messages'} //= [];
+    push $task->{'injected_messages'}->@*,
+        {
+        'content'     => $message,
+        'injected_at' => <[base.time]>->(3),
+        'role'        => qw| user |
+        };
+
+    <[base.logs]>->(
+        1,        "task-append: queued for active task %s [%d pending]",
+        $task_id, scalar $task->{'injected_messages'}->@*
+    );
+
+    return {
+        'mode' => qw| true |,
+        'data' => "message queued for task $task_id [status: $status]"
+    };
+}
+
+## completed|failed tasks : resume conversation from saved message history ##
+if ( $status eq qw| completed | or $status eq qw| failed | ) {
+
+    ## retrieve saved message history [stored by async.complete] ##
+    my $saved_messages = $task->{'execution'}->{'messages'};
+
+    unless ( defined $saved_messages && ref $saved_messages eq qw| ARRAY | ) {
+        ## fallback : reconstruct minimal history from result ##
+        my $prev_result = $task->{'execution'}->{'result'} // '';
+        my $orig_desc   = $task->{'request'}->{'description'}
+            // $task->{'metadata'}->{'raw_request'}->{'description'} // '';
+        $saved_messages = [
+            { 'role' => 'user',      'content' => $orig_desc },
+            { 'role' => 'assistant', 'content' => $prev_result },
+        ];
+        <[base.logs]>->(
+            2,
+            "task-append : no saved messages for %s, using result fallback",
+            $task_id
+        );
+    }
+
+    ## append new user message ##
+    my @resume_messages
+        = ( @{$saved_messages}, { 'role' => 'user', 'content' => $message } );
+
+    ## rebuild async state for the resumed conversation ##
+    my $prev_backend = $task->{'execution'}->{'backend'} // 'gpu';
+    my $prev_round = scalar( @{$saved_messages} );  ## rough round estimate ##
+
+    <coding.async.task_state>->{$task_id} = {
+        'state'    => qw| streaming |,
+        'backend'  => $prev_backend,
+        'round'    => $prev_round,
+        'messages' => \@resume_messages,
+    };
+
+    ## restore task to active state ##
+    $task->{'execution'}->{'status'} = qw| in_progress |;
+    delete $task->{'execution'}->{'completed'};
+
+    my $aref_completed = <coding.task.completed> // [];
+    my $aref_active    = <coding.task.active> //= [];
+    $aref_completed->@* = grep { $ARG ne $task_id } $aref_completed->@*;
+    push $aref_active->@*, $task_id
+        unless grep { $ARG eq $task_id } $aref_active->@*;
+
+    ## schedule the next inference round ##
+    <[coding.task.enqueue_round]>->( $task_id, $prev_round );
+
+    <[base.logs]>->(
+        1, "task-append : resumed %s from %s with %d messages",
+        $task_id, $status, scalar @resume_messages
+    );
+
+    return {
+        'mode' => qw| true |,
+        'data' => "task $task_id resumed from $status "
+            . "[${\scalar @resume_messages} messages]"
+    };
+}
+
+return {
+    'mode' => qw| false |,
+    'data' => "cannot append to task $task_id [status:$status]"
+};
+
+#,,,,,,,.,...,.,,,.,,,...,,.,,..,,.,,,,.,,,,.,..,,...,...,..,,..,,...,,..,,,,,
+#UZN62Q7UXMQAJ6RPRLE5YLROKJ4LC346VY7VKDDEMDSOZNVDPHRUL2YMX453GX7LW7KZD4SFMG7DG
+#\\\|MMK4O4TCGHJP4M5ISR6ITPE2YWS3OCRYO4LUGG3CEZCW7UGAK47 \ / AMOS7 \ YOURUM ::
+#\[7]EJ27KNARHVSIHTQR624BGVFIBCBRDL7H6ZUFWUCZWEIFOUOSIADY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
