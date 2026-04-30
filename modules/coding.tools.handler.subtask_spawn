@@ -113,6 +113,21 @@ if ( defined $parent_state ) {
     <coding.async.task_state>->{$parent_task_id} = $parent_state;
 }
 
+## release parent's backend lock — parent is now waiting, not using inference ##
+## child will acquire the lock when it runs via coding.async.request           ##
+my $parent_backend = $parent_state->{'backend'} // 'gpu';
+my $busy_href      = <coding.async.backend_busy> //= {};
+my $held_lock      = $busy_href->{$parent_backend};
+if (   defined $held_lock
+    && ref($held_lock) eq qw| HASH |
+    && ( $held_lock->{'task_id'} // '' ) eq $parent_task_id ) {
+    delete $busy_href->{$parent_backend};
+    <[base.logs]>->(
+        1, "subtask_spawn: released %s lock for parent %s (child %s pending)",
+        $parent_backend, $parent_task_id, $child_task_id
+    );
+}
+
 <[base.logs]>->(
     1,               "subtask_spawn: %s spawned child %s",
     $parent_task_id, $child_task_id
@@ -123,8 +138,8 @@ return {
     child_task_id => $child_task_id,
 };
 
-#,,,,,.,,,.,,,..,,...,,,,,.,.,,,.,,,,,.,.,..,,..,,...,...,,,.,..,,,,,,.,,,..,,
-#BJCLBSEC5VUHSSVUQKOXBLATLRD3MKDRATFPM4EWFZO6KV5NKSAJABDAVH6FFY2AGWRJRAMMX3OOC
-#\\\|7AXR3TZG24RKART3UBYEBCN2CMACGWE2SFZSG7KWJX5FBW6VHRO \ / AMOS7 \ YOURUM ::
-#\[7]KZKQ52REI25ENKPGAUA3NG2L5XVWE5PNWL4KDF3GCVSPNM5KMCBI 7  DATA SIGNATURE ::
+#,,,.,..,,,,.,,.,,.,,,.,.,,..,...,,..,...,.,,,..,,...,...,.,.,,.,,...,,.,,,,,,
+#6ZQKYY5ILXEHSVEH6A5H4ILD4W55X352FIMM25EN4HNRUNMCUK5P43OZ4SBSOTUXXDXANNHF4UONK
+#\\\|TZN3CS6JL5DNMDDD2GVOAKGI4UFCZ25W7QNPVA6BHEX4VYUYAZZ \ / AMOS7 \ YOURUM ::
+#\[7]HIYF65NOHV2ZGJIL6Q2TBFC7PLHVWPKFDXL7RFUY3SRAYMDDXKDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

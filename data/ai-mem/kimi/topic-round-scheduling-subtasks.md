@@ -4,7 +4,7 @@
 April 2026
 
 ## Status
-IMPLEMENTED & TESTED
+COMPLETE — full round-trip verified 2026-04-30
 
 ## Architecture
 
@@ -114,13 +114,25 @@ coding.async.round_scheduling.enabled = yes
 - Duplicate subtask rejection: ✅ working
 - Partial content recovery: ✅ working (538 bytes recovered)
 
+## Post-Handover Fixes (Claude sessions, Apr 29-30 2026)
+
+These bugs were resolved after kimi's handover:
+
+| Bug | Root Cause | Fix |
+|-----|-----------|-----|
+| Silent timeout (most cases) | Two llama-server processes spawned simultaneously, 2nd stole VRAM | `<coding.spawning_in_progress>` guard in `async_spawn_inference_servers` |
+| Stale PID kill race | `waitpid` no-op on non-child, `pgrep` saw just-killed pid as foreign | `@killed_stale_pids` tracked in port scan, skipped in foreign check |
+| Subtask "backend not available" | Parent held lock in `subtask` state; child's LWP health check raced with active stream | `subtask_spawn` releases parent lock; `select_backend` uses cached `'ready'` status |
+| `http_complete` fallthrough on subtask | No `subtask` case — fell through to lock-release code unnecessarily | Explicit `subtask` case added, returns cleanly |
+| Timeout with no recovery | Server in silent-hang state, next task also hangs | `http_error` schedules deferred respawn on timeout after all retries |
+
 ## Known Limitations
 
-- The llama-server occasionally returns incomplete responses (no `finish_reason`). This is a server-side issue, not related to scheduling. Client-side retry handles it.
-- Full parallel task execution would require per-task isolation of globals (`coding.tool_loop.stop`, `coding.loop_detect_count`, etc.). The round-based approach avoids this by never running tasks concurrently.
+- Full parallel task execution would require per-task isolation of globals. The round-based approach avoids this by never running tasks concurrently.
+- Server-side incomplete responses (no `finish_reason`) still occur occasionally; client-side retry handles them.
 
-#,,.,,,..,,,.,,,,,.,,,,..,,.,,..,,,..,,,.,,..,..,,...,...,...,..,,,..,.,,,,..,
-#VK3LUDEB5EOU6E6FK3XVWJUV2RBKCIHMWAC7VY2XCYTXNIPT37IUAJVD3NEWZ4MS4ZYZO75F2M3PI
-#\\\|5W7DS4WUQUVQBVTPXI7FM7CLPPM4CEKILLUORXAVBI63PSUVRY5 \ / AMOS7 \ YOURUM ::
-#\[7]TNHXC6O5EDGLCFVUXSNGMRS43L4UWDAPXVNBQ5PWM7XECU4J4EBA 7  DATA SIGNATURE ::
+#,,,.,,.,,,,.,...,...,.,.,..,,.,,,.,.,.,,,..,,..,,...,...,...,...,.,.,,.,,,,,,
+#ZRLWESTVC3RDWVF4I46PDKRJ7C2FDNUN2PXKJ2QHSH3WOWADIF4MI4UP5BSR6VFQTI2YKBZUQ2QNY
+#\\\|5WPVI75IZDL3ENVOCE76QRZSCCUWFZY7T5YFISNWEQIEG7AET4O \ / AMOS7 \ YOURUM ::
+#\[7]SLCWL6JAOP2IYBJ3IIP2R4R32TFGVDMKOYKTPNZSFLNHYSBWGMDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

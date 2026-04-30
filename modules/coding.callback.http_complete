@@ -23,6 +23,8 @@ if ( !defined $state ) {
     return;
 }
 
+# eval { $state->{'io_watcher'}->fd->close() }; ## testing ##
+
 ## check if this is a stale callback from a previous connection ##
 my $current_seq = $state->{'request_seq'} // 0;
 if ( defined $req_seq && $req_seq != $current_seq ) {
@@ -36,28 +38,60 @@ if ( defined $req_seq && $req_seq != $current_seq ) {
 my $sm_state = $state->{'state'} // '';
 
 <[base.logs]>->(
-    2,
-    "http_complete: %s sm_state=%s finish_reason=%s tool_calls=%d",
+    1,
+    "http_complete: %s sm_state=%s seq=%s/%s finish=%s tools=%d bytes=%d chunks=%d",
     $task_id,
     $sm_state,
+    $req_seq                  // 'undef',
+    $state->{'request_seq'}   // 0,
     $state->{'finish_reason'} // 'undef',
-    scalar( @{ $state->{'tool_calls'} // [] } )
+    scalar( @{ $state->{'tool_calls'} // [] } ),
+    $http_state->{'bytes_received'}  // 0,
+    $http_state->{'chunks_received'} // 0
 );
 
 ## state machine drives all transitions — check what happened ##
+## helper: release backend lock if we own it ##
+my $release_backend_lock = sub {
+    my $backend = $state->{'backend'} // '';
+    return unless length $backend;
+    my $lock = <coding.async.backend_busy>->{$backend};
+    if (   defined $lock
+        && ref($lock) eq qw| HASH |
+        && $lock->{'task_id'} eq $task_id ) {
+        delete <coding.async.backend_busy>->{$backend};
+        <[base.logs]>->(
+            1, "http_complete: released %s lock for %s [%s]",
+            $backend, $task_id, $_[0]
+        );
+    }
+};
+
 if ( $sm_state eq 'tool_exec' ) {
     ## tool execution in progress — do not interfere ##
     <[base.logs]>->(
-        2, "http_complete: task %s in tool_exec, deferring", $task_id
+        1, "http_complete: task %s in tool_exec, deferring", $task_id
     );
+    $release_backend_lock->('tool_exec');
     return;
 }
 
 if ( $sm_state eq 'complete' || $sm_state eq 'error' ) {
     ## state machine already finalized — nothing to do ##
     <[base.logs]>->(
-        2,        "http_complete: task %s already %s",
+        1,        "http_complete: task %s already %s",
         $task_id, $sm_state
+    );
+    $release_backend_lock->($sm_state);
+    return;
+}
+
+if ( $sm_state eq 'subtask' ) {
+    ## parent transitioned to subtask-wait state during streaming ##
+    ## lock already released by subtask_spawn — nothing else to do  ##
+    <[base.logs]>->(
+        2, "http_complete: task %s in subtask-wait, stream ended cleanly",
+        $task_id
     );
     return;
 }
@@ -73,7 +107,27 @@ if ( $sm_state eq 'streaming' ) {
         $content = $state->{'chunk_context'}->{'content'} // '';
     }
 
-    if ( length($content) ) {
+    ## check for tool_calls in chunk_context [ model was generating tools ] ##
+    my $tool_calls = [];
+    if ( defined $state->{'chunk_context'} ) {
+        $tool_calls = $state->{'chunk_context'}->{'tool_calls'} // [];
+    }
+
+    if ( @{$tool_calls} ) {
+        ## partial tool_calls detected — transition to tool execution ##
+        <[base.logs]>->(
+            1, "http_complete: task %s connection closed with %d tool_calls",
+            $task_id, scalar( @{$tool_calls} )
+        );
+        <[coding.async.state_machine]>->(
+            'transition',
+            $task_id,
+            {   'event'      => 'finish_tool_calls',
+                'tool_calls' => $tool_calls,
+                'content'    => $content,
+            }
+        );
+    } elsif ( length($content) ) {
         ## got partial response — complete with what we have ##
         <[base.logs]>->(
             1,
@@ -112,6 +166,15 @@ if ( $sm_state eq 'streaming' ) {
                     { 'event' => 'finish_stop', 'content' => $body }
                 );
             }
+        } elsif ( ( $http_state->{'bytes_received'} // 0 ) > 0 ) {
+            ## data was received and processed via on_chunk (tool calls,
+            ## finish_reason, etc.) — clean close, nothing left to handle ##
+            <[base.logs]>->(
+                2,
+                "http_complete: task %s clean close after %d bytes processed",
+                $task_id,
+                $http_state->{'bytes_received'}
+            );
         } else {
             <[base.logs]>->(
                 0, "http_complete: task %s connection closed with no data",
@@ -123,13 +186,42 @@ if ( $sm_state eq 'streaming' ) {
             );
         }
     }
+    ## release backend lock if we own it ##
+    my $backend = $state->{'backend'} // '';
+    if ( length $backend ) {
+        my $lock = <coding.async.backend_busy>->{$backend};
+        if (   defined $lock
+            && ref($lock) eq qw| HASH |
+            && $lock->{'task_id'} eq $task_id ) {
+            delete <coding.async.backend_busy>->{$backend};
+            <[base.logs]>->(
+                2,        "http_complete: released %s lock for %s",
+                $backend, $task_id
+            );
+        }
+    }
     return;
+}
+
+## release backend lock on early return paths ##
+my $backend_early = $state->{'backend'} // '';
+if ( length $backend_early ) {
+    my $lock_early = <coding.async.backend_busy>->{$backend_early};
+    if (   defined $lock_early
+        && ref($lock_early) eq qw| HASH |
+        && $lock_early->{'task_id'} eq $task_id ) {
+        delete <coding.async.backend_busy>->{$backend_early};
+        <[base.logs]>->(
+            2, "http_complete: released %s lock for %s [early exit]",
+            $backend_early, $task_id
+        );
+    }
 }
 
 return;
 
-#,,..,,..,...,,,.,,,.,.,.,..,,,,,,,,,,,..,,,,,..,,...,...,,..,.,.,...,.,,,,,.,
-#HOQCHZMZRK6J64WY2F72MZOMVJ6EE3S4PH5KEYCJQ64LVHI4QPF2F7Q2HV6PQ5TNQU5T3FR4QMKRU
-#\\\|XIJA2MQNOQPWDFSDVHIG644CQ6JDHYSPVPZGFPVGTPW5XNQOHBZ \ / AMOS7 \ YOURUM ::
-#\[7]PJJ45RMXNA7NEVZHTNLX2KZLFWTSKZU6FNHWUQKE5MCMQ57H3WAQ 7  DATA SIGNATURE ::
+#,,,,,.,,,.,.,...,..,,,,.,.,.,,..,,.,,.,,,,,.,..,,...,...,,,.,.,,,..,,,.,,,,.,
+#QUWR2EO6HEL6YHCO3QYOUFOJIAKEJ5XX6VFCYNCY64TPVB6HYUMGEFFAUHGJY4EGIIAPZXVZNCK2E
+#\\\|YXCL7IQOGV5OJYUK26QQ7EIAR4DV7N26FPN4GG4D2A4ETOVRAAO \ / AMOS7 \ YOURUM ::
+#\[7]2GSYFU77H7G2PJZZ2G5TNC5BTUAP7SS3LEEOSB2WRMLBYQMT2AAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

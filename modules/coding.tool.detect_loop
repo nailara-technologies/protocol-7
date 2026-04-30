@@ -117,14 +117,14 @@ my @pattern_registry = (
     ## Pattern: Same tool repeated many times (possible stuck retry)          ##
     {   'name'     => 'stuck_retry',
         'priority' => 3,
-        'min_hits' => 5,
+        'min_hits' => 3,
         'check'    => sub {
             my ( $history, $weights ) = @ARG;
-            return 0 unless @$history >= 5;
+            return 0 unless @$history >= 3;
 
-            my @last5 = @$history[ -5 .. -1 ];
-            my $first = $last5[0];
-            for my $h (@last5) { return 0 if $h ne $first; }
+            my @last3 = @$history[ -3 .. -1 ];
+            my $first = $last3[0];
+            for my $h (@last3) { return 0 if $h ne $first; }
 
             ## Weighted threshold - high-weight tools trigger sooner ##
             ## search_code/ncode_search trigger at lower threshold ##
@@ -493,8 +493,8 @@ elsif ( $phase eq 'escalation' ) {
 ## Unknown phase ##
 return qw| false |;
 
-#,,.,,,..,,.,,...,,.,,,.,,...,,,.,..,,.,,,.,,,.,.,...,...,.,,,..,,.,.,,,,,...,
-#BOYSMPBEUOKVKFNJM57RQGIRN477L54BGUFTQXTM3W5PRCEBZXU7YD4CA2JBEUTSUQVSWY7S45GMO
-#\\\|XW4VC7Z32AD5B25C4AHGDB6STIETDKT7O7JQ55OQRVQUWEH24A4 \ / AMOS7 \ YOURUM ::
-#\[7]ZLR2UGMLMHKF6WDVXP67ZTB2BGL7MIPQOE3T5IK6766UQ27HVYDY 7  DATA SIGNATURE ::
+#,,,.,..,,..,,,,.,,,,,..,,..,,.,.,,..,...,.,.,.,.,...,...,.,,,,,.,..,,...,.,,,
+#6HAKXO3CVT2TH7RU2UWKR7W5JACVMCWZI6OLFTNPNI4I7SQ4HM44AF73ZXOFONUGVKCOIXIR5BRWQ
+#\\\|WA35X7SRIRFTBLI2ULVI756XYQZPUITKQENXM5X7ERFNBWZAYRX \ / AMOS7 \ YOURUM ::
+#\[7]L7M7WMDNBSB5ORNJEUHPLX4ISXHFT22GW7LNG6OVS2MD7VRVV6CI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

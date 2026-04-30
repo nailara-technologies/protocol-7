@@ -1,0 +1,164 @@
+## [:< ##
+
+# name  = coding.helper.calculate_safe_context
+# descr = calculate safe context length from available GPU VRAM
+# param = { model_path => ..., mmproj_path => ..., backend => ... }
+# return = { context_length => N, calculated => N, explanation => "...", limited_by => "..." }
+
+my ($params) = @ARG;
+
+my $model_path  = $params->{'model_path'}  // '';
+my $mmproj_path = $params->{'mmproj_path'} // '';
+my $backend     = $params->{'backend'}     // qw| gpu |;
+
+## safe operating range ##
+my $MIN_CONTEXT = 7777;    ## below this, system prompt + tools may not fit ##
+my $MAX_CONTEXT = 77777;   ## hard ceiling to prevent excessive allocation ##
+
+## For CPU backend, RAM is usually not the tight constraint ##
+if ( $backend ne qw| gpu | ) {
+    return {
+        context_length => $MAX_CONTEXT,
+        calculated     => $MAX_CONTEXT,
+        explanation    => 'CPU backend: using maximum context',
+        limited_by     => qw| none |,
+    };
+}
+
+## query GPU memory ##
+my $nvidia_smi
+    = qx{ nvidia-smi --query-gpu=memory.total,memory.free --format=csv,noheader,nounits 2>/dev/null };
+
+if ( $? != 0 || !defined $nvidia_smi || $nvidia_smi !~ m|^(\d+),\s*(\d+)|m ) {
+    <[base.logs]>->(
+        1,
+        '[calculate_safe_context] nvidia-smi failed, falling back to minimum=%d',
+        $MIN_CONTEXT
+    );
+    return {
+        context_length => $MIN_CONTEXT,
+        calculated     => $MIN_CONTEXT,
+        explanation    => 'GPU query failed: using safe minimum',
+        limited_by     => qw| gpu_query_failed |,
+    };
+}
+
+my ( $total_mb, $free_mb ) = ( $1, $2 );
+
+## model weights size [ file size is good proxy for Q8_0 / Q4 ] ##
+my $model_size_mb = 0;
+if ( length($model_path) && -f $model_path ) {
+    $model_size_mb = ( -s $model_path ) / ( 1024 * 1024 );
+}
+
+## multimodal projector size [ loaded even for text if specified ] ##
+my $mmproj_size_mb = 0;
+if ( length($mmproj_path) && -f $mmproj_path ) {
+    $mmproj_size_mb = ( -s $mmproj_path ) / ( 1024 * 1024 );
+}
+
+## estimate parameter count from file size [ Q8_0 ≈ 1 byte/param ] ##
+my $est_params_gb = $model_size_mb / 1024;
+
+## KV-cache bytes per token ##
+## derived from typical transformer architectures: 2 * layers * kv_heads * head_dim * 2 bytes ##
+## when we know layer count, use a more precise estimate ##
+my $kv_bytes_per_token;
+if ( $est_params_gb < 3 ) {
+    $kv_bytes_per_token = 18 * 1024;    # ~18 KB  (3B class)
+} elsif ( $est_params_gb < 7 ) {
+    $kv_bytes_per_token = 28 * 1024;    # ~28 KB  (7B class)
+} elsif ( $est_params_gb < 12 ) {
+    $kv_bytes_per_token = 42 * 1024;    # ~42 KB  (9-10B class)
+} elsif ( $est_params_gb < 20 ) {
+    $kv_bytes_per_token = 65 * 1024;    # ~65 KB  (14-20B class)
+} elsif ( $est_params_gb < 35 ) {
+    $kv_bytes_per_token = 95 * 1024;    # ~95 KB  (30B class)
+} else {
+    $kv_bytes_per_token = 140 * 1024;    # ~140 KB (70B class)
+}
+
+## fixed CUDA context overhead ##
+## [ empirical: actual overhead ~1256MB for WSL2 + CUDA + FlashAttention ] ##
+my $cuda_overhead_mb = 1256;
+
+## memory left after loading model weights and CUDA context ##
+my $remaining_mb
+    = $total_mb - $model_size_mb - $mmproj_size_mb - $cuda_overhead_mb;
+
+## cannot fit model at all ##
+if ( $remaining_mb <= 0 ) {
+    <[base.logs]>->(
+        0,
+        '[calculate_safe_context] model does not fit GPU: '
+            . 'total=%dMB model=%.0fMB mmproj=%.0fMB',
+        $total_mb,
+        $model_size_mb,
+        $mmproj_size_mb
+    );
+    return {
+        context_length => $MIN_CONTEXT,
+        calculated     => 0,
+        explanation    => sprintf(
+            'Model too large for GPU: total=%dMB model=%.0fMB mmproj=%.0fMB',
+            $total_mb, $model_size_mb, $mmproj_size_mb
+        ),
+        limited_by => qw| model_size |,
+    };
+}
+
+## adaptive safety margin: 30% of remaining space for generation buffers ##
+## [ compute buffers, temporary allocations, headroom for token generation ] ##
+my $safety_mb = int( $remaining_mb * 0.30 );
+$safety_mb = 512  if $safety_mb < 512;     ## minimum 512MB ##
+$safety_mb = 3072 if $safety_mb > 3072;    ## cap at 3GB ##
+
+my $available_for_kv_mb = $remaining_mb - $safety_mb;
+
+## derive context from available KV memory ##
+my $calculated_context
+    = int( ( $available_for_kv_mb * 1024 * 1024 ) / $kv_bytes_per_token );
+
+## clamp to safe range ##
+my $final_context = $calculated_context;
+$final_context = $MIN_CONTEXT if $final_context < $MIN_CONTEXT;
+$final_context = $MAX_CONTEXT if $final_context > $MAX_CONTEXT;
+
+my $limited_by
+    = $final_context == $calculated_context ? qw| none |
+    : $final_context == $MIN_CONTEXT        ? qw| minimum |
+    :                                         qw| maximum |;
+
+<[base.logs]>->(
+    1,
+    '[calculate_safe_context] VRAM=%dMB model=%.0fMB mmproj=%.0fMB '
+        . 'KV/token=%.1fKB safety=%dMB calc=%d clamped=%d [%s]',
+    $total_mb,
+    $model_size_mb,
+    $mmproj_size_mb,
+    $kv_bytes_per_token / 1024,
+    $safety_mb,
+    $calculated_context,
+    $final_context,
+    $limited_by
+);
+
+return {
+    context_length => $final_context,
+    calculated     => $calculated_context,
+    explanation    => sprintf(
+        'VRAM=%dMB model=%.0fMB mmproj=%.0fMB '
+            . 'KV/token=%.1fKB safety=%dMB -> calc=%d clamped=%d',
+        $total_mb,       $model_size_mb,
+        $mmproj_size_mb, $kv_bytes_per_token / 1024,
+        $safety_mb,      $calculated_context,
+        $final_context
+    ),
+    limited_by => $limited_by,
+};
+
+#,,.,,,..,,..,,.,,,..,,,.,,.,,,,,,,,.,,,,,..,,.,.,...,..,,.,,,,.,,...,...,,,.,
+#PC3MMGF66KKMFAGOVODH64RY6R3WGOQS35AIE4PBREI7Y4ESZOORVKDGK4XXVTMTRZR6IJSO5VJ2Y
+#\\\|V44ZV6N7SJ3NJTMW4XGNDW5762XZXAHN4XU24UABTWKB5J6XIDL \ / AMOS7 \ YOURUM ::
+#\[7]5P6T2HDC5FGMABOMEHRYFRIJJGR5C2AJSAX2VCR7UZA6J3BCDICA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

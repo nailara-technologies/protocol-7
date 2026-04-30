@@ -25,28 +25,10 @@ my $port
 
 my $url = "http://127.0.0.1:${port}/v1/chat/completions";
 
-## check if state already exists [ follow-up round ] ##
+## ensure state exists before lock check ##
+## [ backend_busy_retry calls send_request which needs messages ] ##
 my $existing = <coding.async.task_state>->{$task_id};
-if ( defined $existing && defined $existing->{'state'} ) {
-    ## follow-up request: reset chunk fields only, preserve state machine ##
-    $existing->{'chunk_context'} = {};
-    $existing->{'response_text'} = '';
-    $existing->{'finish_reason'} = undef;
-    $existing->{'content'}       = '';
-    $existing->{'tool_calls'}    = [];
-
-    ## prevent duplicate active connections ##
-    if (    defined $existing->{'http_state'}
-        and defined $existing->{'http_state'}->{'sock'} ) {
-        <[base.logs]>->(
-            1, "async.request: cancelling stale connection for %s [ seq %d ]",
-            $task_id, $existing->{'request_seq'} // 0
-        );
-        <[coding.async.http_cleanup]>->( $existing->{'http_state'} );
-        delete $existing->{'http_state'};
-    }
-} else {
-    ## first request: full init ##
+if ( !defined $existing || !defined $existing->{'state'} ) {
     <[coding.async.state_manager]>->(
         qw| set |,
         $task_id,
@@ -69,6 +51,51 @@ if ( defined $existing && defined $existing->{'state'} ) {
             port     => $port,
         }
     );
+    $existing = <coding.async.task_state>->{$task_id};
+}
+
+## per-backend serialization: only one inference request at a time per server ##
+## [ prevents concurrent requests from multiple tasks to same backend ] ##
+<coding.async.backend_busy> //= {};
+my $lock = <coding.async.backend_busy>->{$backend};
+if (   defined $lock
+    && ref($lock) eq qw| HASH |
+    && $lock->{'task_id'} ne $task_id ) {
+    <[base.logs]>->(
+        1, "async.request: backend %s busy [task %s], deferring %s",
+        $backend, $lock->{'task_id'}, $task_id
+    );
+    ## schedule retry after short delay — event-loop friendly ##
+    <[event.add_timer]>->(
+        {   'after'   => 0.7,
+            'handler' => qw| coding.callback.backend_busy_retry |,
+            'data'    => $task_id
+        }
+    );
+    return { success => TRUE, mode => qw| deferred |, backend_busy => TRUE };
+}
+
+## acquire backend lock ##
+<coding.async.backend_busy>->{$backend} = {
+    'task_id' => $task_id,
+    'started' => <[base.time]>->(3),
+};
+
+## check if state already exists [ follow-up round ] ##
+if ( defined $existing && defined $existing->{'state'} ) {
+    ## follow-up request: reset chunk fields only, preserve state machine ##
+    $existing->{'chunk_context'} = {};
+    $existing->{'response_text'} = '';
+    $existing->{'finish_reason'} = undef;
+    $existing->{'content'}       = '';
+    $existing->{'tool_calls'}    = [];
+
+    ## do NOT cancel the previous connection here — tool execution runs synchronously
+    ## inside on_chunk while the server is still streaming the previous response.
+    ## cancelling the socket mid-stream corrupts the llama-server inference slot,
+    ## causing the next request to hang indefinitely.
+    ## the previous connection self-cleans via: EOF → http_io → http_cleanup.
+    ## stale-seq check in http_complete prevents any double-processing.
 }
 
 ## increment request sequence [ used to detect stale callbacks ] ##
@@ -102,7 +129,17 @@ if ( $http_result->{'success'} && defined $http_result->{'state'} ) {
 }
 
 if ( !$http_result->{'success'} ) {
-    ## immediate error ##
+    ## immediate error — release backend lock before failing ##
+    my $busy = <coding.async.backend_busy>->{$backend};
+    if (   defined $busy
+        && ref($busy) eq qw| HASH |
+        && $busy->{'task_id'} eq $task_id ) {
+        delete <coding.async.backend_busy>->{$backend};
+        <[base.logs]>->(
+            2, "async.request: released lock for %s [immediate error]",
+            $task_id
+        );
+    }
     <[base.logs]>->(
         0,        "async.request : immediate error for %s : %s",
         $task_id, $http_result->{'error'}
@@ -123,8 +160,8 @@ return {
     mode    => qw| streaming |,
 };
 
-#,,,,,,,,,...,,.,,,.,,,.,,..,,,.,,.,.,..,,,,.,..,,...,...,.,,,,.,,.,,,,,.,,,,,
-#AK4SOCCR576Y77UMZGFX5ZZTEP6EQPT3QBXKMBUWYLP7VDJM72B7SDKZ2LI2MOWTRQFK5WBR6VQ64
-#\\\|ZY7WBRB66ZYX7ZUGTOPCI67SUIJA55C2IPNSMK6APN6TXMA64X2 \ / AMOS7 \ YOURUM ::
-#\[7]7Y37TPWQPZJQCS735SC7WC7KNY7I564OJZJDRIVISP2LMQFSFKCQ 7  DATA SIGNATURE ::
+#,,,.,,.,,,,,,,,,,..,,,..,.,,,..,,,..,.,.,...,..,,...,...,..,,..,,..,,.,.,,,.,
+#KBG7EPPHB4QIOUK6IDQOHUWVOV5G4HZQLG3EQ4VBDVNOMFISAI6QJXIDRDWXKVVYR6TJWSWXBDZQI
+#\\\|2G25HVK5QGWQ46CE2HD3USES25QCJBX2AZXBB6T5Y3ZA3OWGDGL \ / AMOS7 \ YOURUM ::
+#\[7]MTJW7SBMRN5EBEIWNAFJA7QG3HXH6FHK2VTTOUN5LP7IHSZ72IAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -2,9 +2,40 @@
 
 > ⚠️ **CRITICAL COMMIT POLICY**: Never commit without valid version number (run `./bin/dev/update-version`) and proper signatures (run `bin/Protocol-7 sourcecode update-signatures`). Use `--no-verify` only in emergencies.
 
-## Round-Based Scheduling & Subtask Spawn (April 2026)
+## Round-Based Scheduling & Subtask Spawn — COMPLETE (April 2026)
 
+> **STATUS: Fully working as of 2026-04-30.** Full subtask round-trip verified.
 > Detailed topic file: `data/ai-mem/kimi/topic-round-scheduling-subtasks.md`
+
+### Post-Handover Fixes (Claude sessions, Apr 29-30 2026)
+
+After kimi's implementation and debugging, three additional Claude sessions resolved
+remaining issues:
+
+**1. Double-spawn VRAM starvation (root cause of most timeouts)**
+- Two `llama-server` processes spawned simultaneously (same seed) when `model_path_reply`
+  and deferred timer called `async_spawn_inference_servers` in the same event loop tick
+- Second process held ~250MB VRAM, starving first server's KV cache → silent hang
+- Fix: `<coding.spawning_in_progress>` guard in `coding.async_spawn_inference_servers`
+
+**2. Stale-process kill race**
+- `fuser` killed stale pid → `waitpid` was no-op (non-child) → `pgrep` immediately
+  found same pid as "foreign" → blocked spawn
+- Fix: `@killed_stale_pids` array in `coding.spawn_inference_server` skips those PIDs
+  in the subsequent foreign-process check
+
+**3. Subtask backend lock deadlock**
+- Parent held backend lock while transitioning to `subtask` state; child tried to run
+  immediately via jobqueue and hit `select_backend`'s blocking LWP `/health` check
+- Fix A: `subtask_spawn` releases parent lock after setting `pending_subtask`
+- Fix B: `select_backend` uses cached `inference_servers` status (`'ready'`) fast path
+- Fix C: `http_complete` has explicit `subtask` case (clean return, no lock ops)
+
+**4. Timeout recovery**
+- After all retries fail on timeout with server status `'ready'`, `http_error` now
+  marks server `restart_needed`, clears `<inference.gpu_pid>`, schedules deferred respawn
+
+**Verified**: `coding.submit` + `coding.wait-done` full subtask round-trip working.
 
 ### Architecture
 
@@ -1625,8 +1656,38 @@ module_glob : var_name ~ /context_pattern/ -> resolution_template
 | `modules/base.white-list.register` | whitelist + runtime verification |
 | `bin/dev/dep-graph` | parse white-list.register in start files |
 
-#,,,,,,,,,,,,,,,.,,.,,,..,,,,,.,.,...,.,.,..,,..,,...,...,,,.,..,,..,,,,,,.,,,
-#VHDOD5UHIG4T7ZMEAZKB3XJGXUIEWOCNUB46H5N3IELQ5DZBSAMZXTCETPDEBA5WKKPRZOVXH5GB6
-#\\\|I3E4UWXXHVCVCK3HFADKBIQGKHFTFO3HIB32UVLJFI6IYUPZRLI \ / AMOS7 \ YOURUM ::
-#\[7]VODKQGACDEZL66DCRPMYOGZIWM4BBHMFAENKMCIPR4IXUPZFGMCA 7  DATA SIGNATURE ::
+## Async Round-2+ Timeout Bug (2026-04-29)
+
+**Status**: OPEN — server-side hang, not client-side.
+
+**Pattern**: Round 0 works, Round 1 works, Round 2+ hangs every time. Server processes request (GPU active briefly) then stops, but never sends HTTP response headers. Client times out after 780s.
+
+**Critical finding**: Bug occurs with `coding.jinja.convert_tool_role = yes` AND `= no`. Also occurs with ALL `tool_calls` stripped from assistant messages. This rules out jinja template issues.
+
+**Client fixes applied**:
+- `stream` boolean: `JSON::PP::true()` ✅
+- EOF buffer: `length()` instead of `bytes::length()` ✅
+- Backend lock leak: release in `coding.async.complete` before state delete ✅
+- HTTP client race: register I/O watcher BEFORE writing request ✅
+- State init before lock check: fixes `messages=0` on deferral ✅
+- Tool role conversion + tool_calls stripping ✅
+- Loop detection threshold: 5→3 ✅
+
+**Suspected root cause**: llama-server-side. Possible KV cache limit (startup reports `calc=6701 clamped=7777 [minimum]`) or model-specific bug with multi-turn history. Request at round 2 has ~4700 context + 7777 max_tokens = ~12455 total.
+
+**Key log signature**:
+```
+async.request: http_client returned success for task-XXX
+[780s silence]
+async.http_timeout: request timed out after 780 seconds
+```
+
+The `200 : streaming started` log is **present** for working rounds, **absent** for hanging rounds.
+
+**File**: `data/ai-mem/claude/topic-async-round-2-timeout.md` (handover for Claude)
+
+#,,.,,..,,..,,,..,,.,,.,,,,..,...,.,,,..,,,..,..,,...,...,,..,...,,,,,,.,,,.,,
+#DJUMU2NIWD3MWNT4563CGQVGMYZK2ALQGPMRAJSHYDUNN4HTJVXHTW2LTOBF7OGQIC27RDLZZR5A6
+#\\\|74RFHGHBTQ7KI47QRZEQIAXFBJA6W3G2IXMAVVK2ELZPFFK45KP \ / AMOS7 \ YOURUM ::
+#\[7]TCBBRQI4IZ6OBUFZYT7UFTQFCUCGZDZLTMBGPQLBAR3OOLQYKYDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

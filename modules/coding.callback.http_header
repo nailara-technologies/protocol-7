@@ -10,23 +10,10 @@ my ( $task_id, $headers ) = @ARG;
     $task_id, $headers->{'Status'}
 );
 
-## reset retry count on successful connection ##
-if ( $headers->{'Status'} =~ m{^2} ) {
-    my $state = <[coding.async.state_manager]>->( 'get', $task_id );
-    if ( $state && ( $state->{'retry_count'} // 0 ) > 0 ) {
-        <[coding.async.state_manager]>->(
-            'set', $task_id, { retry_count => 0 }
-        );
-        <[base.logs]>->(
-            2, "async.request: retry count reset for %s", $task_id
-        );
-    }
-}
-
 return;
 
-#,,,,,,..,,,.,...,,,,,,.,,...,.,,,.,.,,,.,.,.,..,,...,...,.,.,,..,,..,.,,,.,.,
-#VSVRXLFNHMI442HVNKJNLVBLPBUZT7NLW5Y3RYPHQXEBCZJWJHSVFVPEL7R5SNKBK7H76NQTONFUQ
-#\\\|3SVQRFKLNCSO4JAG2R5JET4SWUMJP7QG2TCUMSQY5B2ME4VUZ3Y \ / AMOS7 \ YOURUM ::
-#\[7]3SFG2LSJFMK643U4CBX4IIG7E6DNGRGTHBDVAMTL7YK4BB4NLYBA 7  DATA SIGNATURE ::
+#,,,.,.,.,,,,,.,.,,..,.,,,,.,,,,.,,..,,,.,...,..,,...,..,,,..,..,,,,.,,,,,,,.,
+#537M3QH2HMVXPDC2S5PLDPEVJ33753WFWEOYKYO23TCAHOSBLVQ7ZS5Y5XUB4RX4CCJGMGZHVLRXM
+#\\\|FXF73ERQKMDSXVRXIL4A4TGZG62VY3SZUGRIF5ACSPCQPKQF7QW \ / AMOS7 \ YOURUM ::
+#\[7]WAEGACVGVS2YMTLRREILCTBHSNDP3XMKVSSISHTZBBO4PSEDDOAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

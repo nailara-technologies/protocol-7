@@ -85,12 +85,20 @@ if (
         <[jobqueue.check_dependencies]>
             if exists $code{'jobqueue.check_dependencies'};
     }
+
+    ## cancel watcher once ready — no need to keep reading server output ##
+    ## [ continuing to read monopolizes the event loop during inference ] ##
+    <[coding.cancel_watcher.backend_monitor]>->($event);
+
+### [ LLL : needs combined event cancel handler [ stdout stderr ] ]
+
+    return;
 }
 
 # If EOF, close the handler
 if ( $bytes <= 0 ) {
     close($read_fh);
-    $event->cancel if $event->is_active;
+    <[coding.cancel_watcher.backend_monitor]>->($event);
 
     ## Check if server became ready before EOF (normal) or crashed (error)
     ## crash_logged guard : both stdout+stderr watchers fire EOF on crash ##
@@ -135,8 +143,8 @@ if ( $bytes <= 0 ) {
     }
 }
 
-#,,..,...,...,...,,,.,..,,.,,,.,.,,,,,.,,,...,..,,...,.,.,.,,,,..,,,.,..,,,..,
-#I3E5UIGG7TDX6XRQCNT7W6L6UA5GSWZZQRUDSEMNM7JLPBOFJNE7G4GKATNODJDHNFFVWA4XMAM64
-#\\\|RTBH4BPBUJVBMMNFYOZ6SYRRDFAFB4QP3CYMFGURBMUIAVRSW4D \ / AMOS7 \ YOURUM ::
-#\[7]UXHSCH5HWOW36QDQJHIHKEQWKLRXHCBHVIGLBDSFJKCCYRHNTOBI 7  DATA SIGNATURE ::
+#,,.,,.,,,...,.,,,,..,,..,..,,.,.,,,,,..,,,,.,..,,...,...,.,,,,,.,,..,,,,,.,,,
+#Z4WLR2HQYKYCINUAH2AXDGIKFJZXO2SFQX7LQRSUGGLKY4UU7GQONFNUTETWELVIW3HJDS7DAZF3E
+#\\\|33ZFSRHQSI6CPQ5MDOREIJU5DOXTFD63FXCU2MMWSEZPM2UK4K2 \ / AMOS7 \ YOURUM ::
+#\[7]AOJEUA5GF4SNEFZSDUMPWVDUF3FPUMNXU22LLI3B75HH3JRLA2AQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

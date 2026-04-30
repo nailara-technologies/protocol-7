@@ -4,125 +4,45 @@
 # descr = HTTP I/O handler for async streaming client
 # purpose = Handle socket I/O for HTTP request/response
 
-my $event = shift->w;
-my $state = $event->data;
-
+my $event     = shift->w;
+my $state     = $event->data;
 my $sock      = $state->{'sock'};
 my $callbacks = $state->{'callbacks'};
 
 ## Read response ##
+#
 my $buffer;
-my $bytes = sysread( $sock, $buffer, 8192 );
+my $read_size = 16384;
+#
+my $bytes = <[base.s_read]>->( $sock, \$buffer, $read_size );
+#
+<[base.logs]>->( 2, ': async io bytes : %s :', $bytes // '[undef]' );
+#
+##
 
+## EAGAIN / EWOULDBLOCK — no data available yet ##
 if ( !defined $bytes && ( $!{EAGAIN} || $!{EWOULDBLOCK} ) ) {
-    ## No data available yet, wait for next event ##
     return;
 }
 
-if ( defined $bytes && $bytes > 0 ) {
-    $state->{'last_activity'} = <[base.time]>->(3);
-    $state->{'bytes_received'} += $bytes;
-    $state->{'buffer'} .= $buffer;
-
-    <[base.logs]>->(
-        2,      "async.http_io: received %d bytes [total: %d]",
-        $bytes, $state->{'bytes_received'}
-    );
-
-    ## Debug: show raw buffer preview ##
-    my $preview = substr( $state->{'buffer'}, 0, 100 );
-    $preview =~ s/\n/\\n/g;
-    $preview =~ s/\r/\\r/g;
-    <[base.logs]>->( 2, "async.http_io: buffer preview [%s]", $preview );
-
-    ## Parse headers if not yet done ##
-    if ( !$state->{'headers_parsed'} ) {
-        if ( $state->{'buffer'} =~ s/^(.+?)\r?\n\r?\n//s ) {
-            my $header_text = $1;
-            my @lines       = split( /\r?\n/, $header_text );
-
-            ## Parse status line ##
-            my $status_line = shift @lines;
-            if ( $status_line =~ m{HTTP/\d\.\d\s+(\d+)\s*(.*)} ) {
-                my $code = $1 // '???';
-                $state->{'status_code'}    = $code;
-                $state->{'status_message'} = $2 // '';
-
-                <[base.logs]>->(
-                    1, "http_io : %s : streaming started..,", $code
-                );
-
-                if ( $state->{'status_code'} !~ m{^2} ) {
-                    my $error = "HTTP error: " . $state->{'status_code'};
-                    ## capture response body for debugging ##
-                    if ( length( $state->{'buffer'} ) > 0 ) {
-                        my $body = $state->{'buffer'};
-                        $body =~ s/^\s+|\s+$//g;
-                        $body = substr( $body, 0, 200 )
-                            if length($body) > 200;
-                        <[base.logs]>
-                            ->( 0, "http_io: error body: %s", $body );
-                    }
-                    $callbacks->{'on_error'}->($error)
-                        if exists $callbacks->{'on_error'};
-                    <[coding.async.http_cleanup]>->($state);
-                    return;
-                }
-
-                $callbacks->{'on_header'}
-                    ->( { Status => $state->{'status_code'} } )
-                    if exists $callbacks->{'on_header'};
-            }
-
-            ## Parse headers ##
-            foreach my $line (@lines) {
-                if ( $line =~ /^([^:]+):\s*(.+)/ ) {
-                    $state->{'headers'}{ lc($1) } = $2;
-                }
-            }
-
-            $state->{'headers_parsed'} = TRUE;
-        }
-    }
-
-    ## Process body data (SSE format: data: {...}) ##
-    if ( $state->{'headers_parsed'} ) {
-        ## process complete lines [ terminated by \n ] ##
-        while ( $state->{'buffer'} =~ s/^([^\r\n]*)\r?\n// ) {
-            <[coding.handler.http_io_parse_line]>->( $1, $state, $callbacks );
-        }
-        ## process remaining buffer if it looks like a complete SSE data line ##
-        ## [ handles responses that arrive without trailing newline ] ##
-        if ( length( $state->{'buffer'} )
-            and $state->{'buffer'} =~ m/^data:\s*(\{.+)/ ) {
-            ## verify it's complete JSON before consuming [ avoid partial reads ] ##
-            my $maybe_json = $1;
-            $maybe_json =~ s/\r$//;
-            my $test = eval { $state->{'json_decoder'}->decode($maybe_json) };
-            if ( defined $test ) {
-                my $remaining = $state->{'buffer'};
-                $remaining =~ s/\r$//;
-                $state->{'buffer'} = '';
-                <[coding.handler.http_io_parse_line]>->(
-                    $remaining, $state, $callbacks
-                );
-            }
-        }
-    }
-
-    ## Return and wait for more data ##
+## Read error (other than EAGAIN) ##
+if ( !defined $bytes ) {
+    my $error = "Read error: $!";
+    <[base.logs]>->( 0, "async.http_io: %s", $error );
+    $callbacks->{'on_error'}->($error) if exists $callbacks->{'on_error'};
+    <[coding.async.http_cleanup]>->($state);
     return;
 }
 
-if ( defined $bytes && $bytes == 0 ) {
-    ## EOF - connection closed ##
-    <[base.logs]>->( 1, "http_io : EOF : connection closed ." );
+## EOF — connection closed by peer ##
+if ( $bytes == 0 ) {
+    my $buf_len = length( $state->{'buffer'} );
+    <[base.log]>->( 2, "http_io : EOF : connection closed. [ bytes : 0 ]" );
 
     ## process any remaining data in buffer ##
     if ( length( $state->{'buffer'} ) ) {
-        ## try line-by-line first [ handles SSE data: prefix ] ##
         my $remaining = $state->{'buffer'};
-        $remaining =~ s/\r$//;
+        $remaining =~ s|\r$||;
         $state->{'buffer'} = '';
         <[coding.handler.http_io_parse_line]>->(
             $remaining, $state, $callbacks
@@ -137,14 +57,100 @@ if ( defined $bytes && $bytes == 0 ) {
     return;
 }
 
-## Read error ##
-my $error = "Read error: $!";
-<[base.logs]>->( 0, "async.http_io: %s", $error );
-$callbacks->{'on_error'}->($error) if exists $callbacks->{'on_error'};
-<[coding.async.http_cleanup]>->($state);
+## $bytes > 0 — data received ##
+$state->{'last_activity'} = <[base.time]>->(3);
+$state->{'bytes_received'} += $bytes;
+$state->{'buffer'} .= $buffer;
 
-#,,..,,,,,,.,,,.,,...,..,,.,,,,.,,,..,.,.,.,.,.,.,...,...,,,,,...,,,.,.,.,.,.,
-#X4KP5RUYERHL7SYXUYGH6OYLVIGU5HFUT4QWGIGV5RGER5MJ6FEPB32ZK2P4IVKAGKHMFDXFAX5PS
-#\\\|G67Y74U5OOCOEM3LM64ESYZ7ROTYLGXSSQR5Q2HE3G3VCIXK7Y4 \ / AMOS7 \ YOURUM ::
-#\[7]RLJGWMQH5ZDZOZ23BXGAAA3FM6WTYN4ULSFKHAFPBE3GI75R5KDI 7  DATA SIGNATURE ::
+<[base.logs]>->(
+    2,      "async.http_io: received %d bytes [ total : %d ]",
+    $bytes, $state->{'bytes_received'}
+);
+
+## Debug: show raw buffer preview ##
+my $preview = substr( $state->{'buffer'}, 0, 100 );
+$preview =~ s/\n/\\n/g;
+$preview =~ s/\r/\\r/g;
+<[base.logs]>->( 2, "async.http_io : buffer preview [%s]", $preview );
+
+## Parse headers if not yet done ##
+if ( !$state->{'headers_parsed'} ) {
+    if ( $state->{'buffer'} =~ s/^(.+?)\r?\n\r?\n//s ) {
+        my $header_text = $1;
+        my @lines       = split( /\r?\n/, $header_text );
+
+        ## Parse status line ##
+        my $status_line = shift @lines;
+
+        if ( $status_line =~ m{HTTP/\d\.\d\s+(\d+)\s*(.*)} ) {
+            my $code = $1 // '???';
+            $state->{'status_code'}    = $code;
+            $state->{'status_message'} = $2 // '';
+
+            <[base.logs]>->( 2, "http_io : %s : streaming started.", $code );
+
+            if ( $state->{'status_code'} !~ m{^2} ) {
+                my $error = "HTTP error: " . $state->{'status_code'};
+                ## capture response body for debugging ##
+                if ( length( $state->{'buffer'} ) > 0 ) {
+                    my $body = $state->{'buffer'};
+                    $body =~ s/^\s+|\s+$//g;
+                    $body = substr( $body, 0, 200 )
+                        if length($body) > 200;
+                    <[base.logs]>->( 0, "http_io: error body: %s", $body );
+                }
+                $callbacks->{'on_error'}->($error)
+                    if exists $callbacks->{'on_error'};
+                <[coding.async.http_cleanup]>->($state);
+                return;
+            }
+
+            $callbacks->{'on_header'}
+                ->( { Status => $state->{'status_code'} } )
+                if exists $callbacks->{'on_header'};
+        }
+
+        ## Parse headers ##
+        foreach my $line (@lines) {
+            if ( $line =~ /^([^:]+):\s*(.+)/ ) {
+                $state->{'headers'}{ lc($1) } = $2;
+            }
+        }
+
+        $state->{'headers_parsed'} = TRUE;
+    }
+}
+
+## Process body data (SSE format: data: {...}) ##
+if ( $state->{'headers_parsed'} ) {
+    ## process complete lines [ terminated by \n ] ##
+    while ( $state->{'buffer'} =~ s/^([^\r\n]*)\r?\n// ) {
+        <[coding.handler.http_io_parse_line]>->( $1, $state, $callbacks );
+    }
+    ## process remaining buffer if it looks like a complete SSE data line ##
+    ## [ handles responses that arrive without trailing newline ] ##
+    if ( length( $state->{'buffer'} )
+        and $state->{'buffer'} =~ m/^data:\s*(\{.+)/ ) {
+        ## verify it's complete JSON before consuming [ avoid partial reads ] ##
+        my $maybe_json = $1;
+        $maybe_json =~ s/\r$//;
+        my $test = eval { $state->{'json_decoder'}->decode($maybe_json) };
+
+        if ( defined $test ) {
+            my $remaining = $state->{'buffer'};
+            $remaining =~ s/\r$//;
+            $state->{'buffer'} = '';
+            <[coding.handler.http_io_parse_line]>->(
+                $remaining, $state, $callbacks
+            );
+        }
+    }
+}
+
+return;
+
+#,,.,,,..,...,..,,.,.,.,,,.,,,..,,...,...,...,.,.,...,...,.,.,...,.,,,,..,...,
+#TJZSDGNID3XTALKSOL6FEETYIH3KXT2VKVP47FYT3ICRFBH7M4HD2IPQ3BK6DAYUDD367K5XPOODK
+#\\\|B43URXK4SYWSN4H4QJKFJSKX6XA4WIA6UI6V5QLJ62BEJ547FH6 \ / AMOS7 \ YOURUM ::
+#\[7]ASRWHMZLXWXOZ72AYN4KPNWOWX5CQQWLKKM2VLBE7FUMUQLCKSCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
