@@ -11,6 +11,9 @@ my $other_watcher = <coding.watcher_pair>->{$current_watcher};
 
 <[base.log]>->( 1, ':. cancelling backend_monitor watchers' );
 
+my $current_fd = eval { $current_watcher->fd };
+my $other_fd   = eval { $other_watcher->fd };
+
 $current_watcher->cancel
     if defined $current_watcher
     and $current_watcher->is_active;
@@ -19,18 +22,26 @@ $other_watcher->cancel
     if defined $other_watcher
     and $other_watcher->is_active;
 
-## close pipe fds so server doesn't block on stdout/stderr writes ##
-## [ pipe buffer fills during inference → server deadlocks on write() ] ##
-eval { close( $current_watcher->fd ) } if defined $current_watcher;
-eval { close( $other_watcher->fd ) }   if defined $other_watcher;
+## replace startup-monitoring watchers with drain watchers           ##
+## the server's pipes must stay readable — if the buffer fills (64KB) ##
+## llama-server's write() blocks and inference stalls silently       ##
+## do NOT close the fds — that sends SIGPIPE to the server           ##
+for my $fd ( grep { defined $_ } $current_fd, $other_fd ) {
+    <[event.add_io]>->(
+        {   'fd'      => $fd,
+            'handler' => qw| coding.handler.drain_pipe |,
+            'poll'    => qw| re |
+        }
+    );
+}
 
 ## clean up pair references to avoid memory accumulation ##
 delete <coding.watcher_pair>->{$current_watcher};
 delete <coding.watcher_pair>->{$other_watcher}
     if defined $other_watcher;
 
-#,,,.,,,.,.,,,,,,,,,.,..,,,..,...,,..,.,,,.,.,..,,...,...,.,,,,.,,,,.,..,,,,.,
-#Y3XXFGF4TASLSNG3PTDU5MYDWCPZ7MEBZQXNIXJ7MOZAY2O3RXZD5BAQAYSC46UV3M6FSCR5KXZVU
-#\\\|7VQG4OHQNIVKRJCR2HQETCJ2U4WCI6FVZYVA45CTSAQHY2POTQS \ / AMOS7 \ YOURUM ::
-#\[7]VDNCTTHHRYMZYLYPNR6T52C247VZMVD7GLT4FQ5W4JJKIUC2BYBI 7  DATA SIGNATURE ::
+#,,..,.,,,,.,,,,.,,,.,,,,,,,.,.,.,...,.,,,,,,,..,,...,..,,,.,,,..,.,,,,,.,.,,,
+#QI24ASH7LWGQYCZH6HEQ6LOE5OTYHE4G6LPCLXASDLZNB42YZT7UJ7WYJAWP7R54Y42TBSUNW7D5Q
+#\\\|LZ62TOPPJ5HOPZ4TAFLIX2TNTVFAT6YOIEK7YI4PK2WGY37UUQJ \ / AMOS7 \ YOURUM ::
+#\[7]OUC7CRB5SQ5UQRPXWMBA7FM2AXHI6UESXIH6U5UQEYNLGUQDCGDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -5,15 +5,6 @@
 # purpose = Start GPU and CPU inference servers without blocking zenka
 #           initialization
 
-## guard against concurrent spawns [ same event-loop tick or rapid re-entry ] ##
-if (<coding.spawning_in_progress>) {
-    <[base.logs]>->(
-        2, ": spawn already in progress, skipping duplicate call"
-    );
-    return FALSE;
-}
-<coding.spawning_in_progress> = TRUE;
-
 <[base.logs]>->( 1, ": starting inference servers asynchronously" );
 
 ## check system memory before spawning [ prevents oom conditions ]
@@ -27,7 +18,6 @@ if ( $mem_pct >= 90 ) {
         0, ": system memory at %.2f%% - skipping inference server spawn",
         $mem_pct
     );
-    <coding.spawning_in_progress> = FALSE;
     return FALSE;
 }
 
@@ -36,7 +26,6 @@ my $spawn_params = <coding.spawn_params> // {};
 
 if ( not keys $spawn_params->%* ) {
     warn 'expected spawn parameters not found [cannot start server]';
-    <coding.spawning_in_progress> = FALSE;
     return FALSE;
 }
 
@@ -47,7 +36,6 @@ unless ( defined $model_path && length $model_path ) {
     <[base.logs]>->(
         0, ": model path not resolved - cannot spawn inference server"
     );
-    <coding.spawning_in_progress> = FALSE;
     return FALSE;
 }
 
@@ -64,7 +52,7 @@ if ( $spawn_params->{'gpu_enabled'} ) {
         $gpu_port, $gpu_model
     );
 
-    # Spawn server asynchronously - don't wait for readiness
+    ## spawn_inference_server owns the spawning_in_progress guard ##
     my $gpu_result = <[coding.spawn_inference_server]>->(
         {   'backend'     => 'gpu',
             'binary'      => $gpu_binary,
@@ -87,7 +75,6 @@ if ( $spawn_params->{'gpu_enabled'} ) {
             0, 'GPU server spawn failed : %s',
             $gpu_result->{error}
         );
-        <coding.spawning_in_progress> = FALSE;
         return FALSE;    ## spawning not successful ##
     }
 }
@@ -97,11 +84,10 @@ if ( $spawn_params->{'gpu_enabled'} ) {
 
 <[base.logs]>->( 1, ": inference server spawning complete" );
 
-<coding.spawning_in_progress> = FALSE;
 return TRUE;
 
-#,,.,,,.,,,.,,.,,,,,,,,,,,,,,,,,,,,.,,..,,,,.,..,,...,...,.,,,,.,,.,,,..,,...,
-#5E7MVPWF2T2IIXNQ7C74D54NZ74UP32CNACROOYNIUU36MXGOC7WBIKI2ZC4YNRN6QVFYLCIPK6OA
-#\\\|BXIJ7HANKM6MZHRM4LCL4I5EZOLT5QXEOYQGPM5ES5OSU6R2F4L \ / AMOS7 \ YOURUM ::
-#\[7]I7YEJ7ZHBD7KV2ZVVZKZFIRSY7JPNF2VHSPDXXPZXPKP7Y2ID4BQ 7  DATA SIGNATURE ::
+#,,,,,..,,.,,,.,.,...,,,,,,,,,,,.,...,.,.,.,,,..,,...,...,,.,,,..,..,,...,,,.,
+#3AYTZPH67CTLKDQ6FF6SKA7TQTPLYIV6XEYXTHU3342P7GW5GS53VESHKPFRLBWG57DUY756EMC4Y
+#\\\|XV3JVKKXJKEG4S5E3LV2CF2C2KP5LNAAEU7LKSK4DCPRQIVBFLS \ / AMOS7 \ YOURUM ::
+#\[7]FQZD2QSOJZKG5LNNXK5GWNHKP6Q2GMILWZ3HFWVEDV32XTADIGDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
