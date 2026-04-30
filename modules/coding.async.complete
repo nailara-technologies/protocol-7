@@ -33,6 +33,12 @@ if ( length $backend ) {
     }
 }
 
+## save message history before cleanup — needed for task-append resumption ##
+my $task_rec = <coding.task.queue>->{$task_id};
+if ( defined $task_rec && defined $state->{'messages'} ) {
+    $task_rec->{'execution'}->{'messages'} = $state->{'messages'};
+}
+
 ## clean up async state ##
 <[coding.async.state_manager]>->( 'delete', $task_id );
 
@@ -142,8 +148,8 @@ if ( defined $result && $result->{'success'} ) {
     return { success => FALSE, error => $error_msg, task_id => $task_id };
 }
 
-#,,..,.,.,,..,,.,,.,,,,,.,.,,,...,..,,,.,,..,,.,.,...,...,..,,.,.,.,.,.,.,...,
-#6H7VPPWYBRGZ46EASQR762HJZ5UHKINWD6QA2OLNPZKQS6RF4P6BLNWCG6V2GTF2K42U6EVGW2BCU
-#\\\|ET3WEWCS63TXLIYYTJMVD4GRKPKQXZKKW2RFSUBLSMKEAVM2NO7 \ / AMOS7 \ YOURUM ::
-#\[7]ME5AIGDCVD6FAZCQ47SLO3SARWB66AJGA5SRNNYTDYENP5FAMOCQ 7  DATA SIGNATURE ::
+#,,,,,,..,.,.,,,,,,,.,.,,,...,,.,,.,,,..,,,.,,.,.,...,...,...,..,,..,,.,.,..,,
+#2FQRYG3BQ4LCJNVCSSHIAVOXEFR7FF4NIG3ZEBCFL35JKIYMMIFLYNLE5ETJX2YXGPBGRKWIVFCGY
+#\\\|P36MCAVSAKWDIRTYF6SC67SGGHCRXCRJWXFFWIL2BNRY5R3XIRL \ / AMOS7 \ YOURUM ::
+#\[7]LDWUACHIB6WR4VDZ3H3A4NDAKCAW5CD6APKTI4BDBRPK2UVASOAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
