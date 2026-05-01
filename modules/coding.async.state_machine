@@ -179,15 +179,17 @@ elsif ( $action eq 'transition' ) {
         $display_content =~ s|^\s+||;
         $display_content =~ s|\s+$||;
         ## write model response to output buffer [ before tool execution ] ##
-        if ( length($display_content) ) {
-            <[coding.buffer.model_output]>->(
-                $display_content,
-                {   'round' => $state->{'round'} // 0,
-                    'tool'  => qw| model |,
-                    'pct'   => $state->{'pct_used'},
-                }
-            );
-        }
+        ## always write even when content is empty so buffer exists and  ##
+        ## shows live round progress for tool-call-only models           ##
+        <[coding.buffer.model_output]>->(
+            length($display_content)
+            ? $display_content
+            : '[tool call — no reasoning text]',
+            {   'round' => $state->{'round'} // 0,
+                'tool'  => qw| model |,
+                'pct'   => $state->{'pct_used'},
+            }
+        );
         $state->{'pending_tools'} = $data->{'tool_calls'} // [];
         <coding.async.task_state>->{$task_id} = $state;
         <[coding.async.tool_executor]>->($task_id);
@@ -287,12 +289,14 @@ elsif ( $action eq 'transition' ) {
                 if ( <coding.loop_detect_count> >= 3 ) {
                     <[base.logs]>->(
                         0,
-                        "state_machine: loop persisted after 3 warnings, forcing stop"
+                        "state_machine: loop persisted "
+                            . "after 3 warnings, forcing stop"
                     );
                     <coding.async.task_state>->{$task_id} = $state;
                     <[coding.async.fail_task]>->(
                         $task_id,
-                        'loop detected: task stopped after repeated warnings'
+                        'loop detected: task stopped '
+                            . 'after repeated warnings'
                     );
                     return $state;
                 }
@@ -332,6 +336,9 @@ elsif ( $action eq 'transition' ) {
                     'tool_call_id' => 'loop_assert_' . $state->{'round'},
                     'content'      => $assert_prompt,
                     };
+                ## flag so finish_stop intercepts the next text response ##
+                ## as an assertion answer rather than a task completion    ##
+                $state->{'loop_assertion_pending'} = TRUE;
             } else {
                 ## no loop pattern — reset counter ##
                 <coding.loop_detect_count> = 0;
@@ -393,6 +400,34 @@ elsif ( $action eq 'transition' ) {
         );
         <coding.async.task_state>->{$task_id} = $state;
         <[coding.async.send_request]>->($task_id);
+    } elsif ( $new_state eq STATE_COMPLETE
+        && $state->{'loop_assertion_pending'} ) {
+        ## intercept: this completion is the model answering the loop assertion ##
+        ## process it through detect_loop assertion phase then continue          ##
+        my $assertion_response = $data->{'content'} // $state->{'content'}
+            // '';
+        $state->{'loop_assertion_pending'} = FALSE;
+        my $task_la = <coding.task.queue>->{$task_id};
+        <[coding.tool.detect_loop]>->(
+            $task_la, $assertion_response, 'assertion', ''
+        ) if defined $task_la;
+        ## inject model's answer as user message so context is preserved ##
+        push @{ $state->{'messages'} },
+            {
+            'role'    => 'assistant',
+            'content' => $assertion_response,
+            };
+        push @{ $state->{'messages'} },
+            {
+            'role'    => 'user',
+            'content' => 'Thank you for your self-assessment.'
+                . ' Please continue with your task.',
+            };
+        ## stay in streaming state and enqueue next round ##
+        $state->{'state'} = STATE_STREAMING;
+        $state->{'round'}++;
+        <coding.async.task_state>->{$task_id} = $state;
+        <[coding.task.enqueue_round]>->( $task_id, $state->{'round'} );
     } elsif ( $new_state eq STATE_COMPLETE ) {
         $state->{'final_content'} = $data->{'content'} // $state->{'content'};
         ## strip tool call markup if present ##
@@ -490,8 +525,8 @@ elsif ( $action eq 'constants' ) {
 
 return { error => sprintf "unknown action : '%s'", $action };
 
-#,,,,,,..,..,,,.,,...,,,.,.,.,,,.,.,.,,,.,.,,,.,.,...,..,,..,,,,,,,,.,,.,,.,.,
-#YGVYUL4IOVRH5XPIJF2D5AB6JM5CAOZMEN4QFXQQRYHKBAO5SVYVLQOJLDJS2OHLTAPHSZJNGUCDK
-#\\\|VUWZW2MT77ZB5CYK2W3T4F7DAZ72PID7QMT4W4SSLRUFLPYPOFN \ / AMOS7 \ YOURUM ::
-#\[7]ZAP7NHMXF5J2KXBNQYVAEE4ZMSODQCTLCOLZ6NLNFCIHKITHXKAI 7  DATA SIGNATURE ::
+#,,.,,,..,,.,,,,.,,.,,,,,,.,.,,,,,,.,,,..,..,,.,.,...,..,,.,.,...,,.,,...,,,.,
+#QEK755MT74MWUCZY5XEGMILVKRYBZHHPNHOO7F53N23RECBPGWJMVGOTLXATMH44VU2PZTYHQN5II
+#\\\|JQQCZW3KKP6TEDMHMMFEADNFP5C5UPCF47Q6TQEKVVJJWOQD34R \ / AMOS7 \ YOURUM ::
+#\[7]34NROKMWCEO7VGQ7BUZ544TYOYWZ2GJBRGJLW4OAGNOOU4MSWQBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

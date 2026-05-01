@@ -17,8 +17,13 @@ my $round    = $state->{'round'}    // 0;
 ## skip if too few messages ##
 return if $round < 3 || @{$messages} < 6;
 
-## compaction parameters [ matching blocking version ] ##
-my $context_limit     = <inference.model.context_length> // 16384;
+## compaction parameters — use actual server n_ctx, not configured floor ##
+## configured value may be a minimum floor; server may have more context ##
+my $backend       = $state->{'backend'} // 'gpu';
+my $srv_key       = $backend eq qw| cpu | ? qw| cpu | : qw| gpu |;
+my $srv_info      = ( <coding.inference_servers> // {} )->{$srv_key} // {};
+my $context_limit = $srv_info->{'n_ctx'} // <inference.model.context_length>
+    // 16384;
 my $compact_threshold = int( $context_limit * 0.53 );
 my $chars_per_token   = 3.2;
 my $keep_recent_msgs  = 6;    ## preserve last 3 tool rounds [ 6 msgs ] ##
@@ -148,8 +153,8 @@ if ( $after_tokens > $compact_threshold * 0.8 ) {
 
 return;
 
-#,,..,.,.,,..,..,,,..,.,.,.,,,.,.,..,,,..,...,.,.,...,...,.,,,.,,,,,,,.,.,,,,,
-#QJCPYRX5XCQS4ZPQI7UD4RWRDSMAV5HHGEYNRD7C7FSAD6724MDGFXLYV3G4CZTEOCCFOWN3W4XWQ
-#\\\|2SXN7D7DQJGO3WEOQKNNX3SVU663NZRZ5ONJGNB3N6UDQMLUXUQ \ / AMOS7 \ YOURUM ::
-#\[7]N6IFDUSAJIRJRF2F3ACARS3WIUQJ77IRPC3VM5RXCKKHNLIEXACI 7  DATA SIGNATURE ::
+#,,.,,,,.,.,,,.,,,.,,,,.,,.,,,,..,,,.,.,.,.,,,.,.,...,.,.,...,...,,.,,...,,,.,
+#JKG3JGAAUEEXLR3CT5CRVNNH7T5Q2LDT277AV4DEQ3ITTINN42YYNYZWP3UCHDNCMB4FB2M3YHZ4U
+#\\\|Y2JKYKVYQ4N6SKS2UOK7Z36O3QF22YGWMAINS5WMEU6XJO7CHTL \ / AMOS7 \ YOURUM ::
+#\[7]Z4BXLJQYRVR7K2XOI767FVDU3MLCZWRFY27EEBT7WCRPFRYNX2DA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
