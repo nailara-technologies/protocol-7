@@ -55,6 +55,14 @@
 - Earlier form: `(cmd_id)(route_id)p7-log.append...` — a fix attempt stripped it down to
   just `(0)` but didn't fully eliminate it.
 - Documented in: `data/yaml/coding-tasks/nshell-session-protocol-tunneling.yaml`
+- Kimi session (100 rounds): investigated `v7.notify_online` reply loop in send-buffer.
+  Key finding: cube's `setup.aliases.source_zenka_sid` alias auto-prepends
+  `SOURCE_ZENKA SOURCE_SID` to `p7-log.append` for non-cube zenki — kimi accidentally
+  broke this by adding a manual prefix in `send-idle-callback` (reverted). The `(0)` source
+  is still unconfirmed — `send.local` debug showed it's NOT from the log send system.
+  All `YYOPDKA` template writes produce `"FALSE..."` with no `(0)` prefix when cmd_id empty.
+  Next angle: something writes to the session output buffer BEFORE setup_stdin_watcher runs,
+  or the `v7.notify_online` TRUE reply triggers a chain that writes to the buffer directly.
 - Proper fix: cube raw mode + proper command ID support in nshell (large feature, VTerm
   line session buffers). Workaround: intercept/suppress the mismatch response write to
   output buffer before first user command.
