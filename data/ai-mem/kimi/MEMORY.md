@@ -2,6 +2,11 @@
 
 > ⚠️ **CRITICAL COMMIT POLICY**: Never commit without valid version number (run `./bin/dev/update-version`) and proper signatures (run `bin/Protocol-7 sourcecode update-signatures`). Use `--no-verify` only in emergencies.
 
+> 📖 **BEFORE STRUCTURAL WORK**: Read `data/md/development/STYLE-PHILOSOPHY.md` alongside
+> `data/yaml/code-style/CONVENTIONS.yaml` and `data/md/development/CODE-STYLE-AND-LLM-INTEGRATION.md`.
+> The philosophy doc covers *why* the conventions are load-bearing, not just *what* they are.
+> Update it if you arrive at refined perspectives after reading it.
+
 ## Round-Based Scheduling & Subtask Spawn — COMPLETE (April 2026)
 
 > **STATUS: Fully working as of 2026-04-30.** Full subtask round-trip verified.
@@ -1731,8 +1736,8 @@ The `200 : streaming started` log is **present** for working rounds, **absent** 
 
 **File**: `data/ai-mem/claude/topic-async-round-2-timeout.md` (handover for Claude)
 
-#,,.,,,,,,,,.,.,,,...,.,.,.,,,.,,,,.,,,.,,,,.,..,,...,...,.,,,.,,,,,.,,,.,...,
-#FFYRKYC5HVLT6GB4QDS5TORIR5UCLMUL3UQ2UL35GSSQZF6TWDCXEY6J3CVQXY3HHFRZWRP3ECMVY
-#\\\|CKIHOGPKWSWZIETZC4ZPJIR3UZ6GDQFQVCP2ABP5TINLKKWKDTH \ / AMOS7 \ YOURUM ::
-#\[7]SUWRMMMOQEBQVLNNOFCF7H4DMT4LEOAII7EIGWUNAYD2GVFSTMBI 7  DATA SIGNATURE ::
+#,,,.,.,.,,..,.,.,.,.,,.,,...,...,.,.,,,,,,.,,..,,...,...,...,..,,,..,,,.,,,,,
+#RN52WDRXCWZ6BW55DVB3K6KQ3B6ZACPQWQKLGBSMBBCNL3RUPLG7Y4OYIZF7HO77E4MVK22D2ECRM
+#\\\|PHHDUAC2DVISPJVSESCQE2DVYN6JJK53WK3SDQHR3AR3GXEED7Y \ / AMOS7 \ YOURUM ::
+#\[7]PNKRY7322PU3S7EA4GSLBEBKRSE2IOV453ECW6YSSLAHJDZLHEAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
