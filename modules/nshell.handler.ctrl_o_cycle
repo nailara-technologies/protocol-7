@@ -29,16 +29,20 @@ printf "\r\e[K%s%s\e[0m%s\n",
 STDOUT->flush();
 
 ## [ add to history ]
-my @lines = split "\n", $cmd;
+my @lines        = split "\n", $cmd;
+my $pre_add_size = scalar @AMOS7::TERM::history_entries;
 AMOS7::TERM::history_add(@lines);
 $state_ref->{'ctrl_o_entries_added'}++;
 
 ## [ find next entry — ctrl+o advances toward newer (higher index) ]
 ## [ duplicate skipping ]
+## when history is at max capacity, history_add shifts out the oldest entry,
+## moving all indices down by 1 — cur_index already points to next entry ##
+my $shifted    = scalar @AMOS7::TERM::history_entries == $pre_add_size;
 my $next_index = -1;
 my $next_lines = undef;
 my $attempts   = 0;
-my $search_idx = $cur_index + 1;    ## toward newer entries (higher = newer)
+my $search_idx = $shifted ? $cur_index : $cur_index + 1;
 
 while ( $attempts < scalar @AMOS7::TERM::history_entries ) {
     last if $search_idx >= scalar @AMOS7::TERM::history_entries;
@@ -58,9 +62,9 @@ while ( $attempts < scalar @AMOS7::TERM::history_entries ) {
 if ( defined $next_lines ) {
     ## [ advance to next entry — stay in VIEWING_HISTORY ]
     my $next_text = join "\n", $next_lines->@*;
-    $state_ref->{'current_history_index'}   = $next_index - 1;
-    $state_ref->{'display_buffer'}          = $next_text;
-    $state_ref->{'current_mode'}            = 2;      ## [ VIEWING_HISTORY ]
+    $state_ref->{'current_history_index'} = $next_index;
+    $state_ref->{'display_buffer'}        = $next_text;
+    $state_ref->{'current_mode'}          = 2;          ## [ VIEWING_HISTORY ]
     $state_ref->{'display_preloaded_entry'} = TRUE;
     AMOS7::TERM::editor_load( $state_ref->{'editor'}, $next_text );
 
@@ -101,8 +105,8 @@ if ( defined $next_lines ) {
 
 return $cmd;
 
-#,,,.,,..,,.,,..,,,,,,..,,,..,..,,,.,,...,,,,,.,.,...,...,,.,,,.,,,.,,..,,.,.,
-#FN45ENB5QJF4DG5EYEJ4BRZVKGOVPNS6NUTORUKCCWYOEAXHQOQCWOLGXVRKFBEWMSG2GYT3QRUTU
-#\\\|ORXBVR4FPEFANAJ3DWHGNLENILBRL7F6E3EYQL6VIKXZW55PJNM \ / AMOS7 \ YOURUM ::
-#\[7]YAUB7AC3IQRSEEUF3BO25TDMKQ7QU7HQPGYEG44OUKNRFU6KDADA 7  DATA SIGNATURE ::
+#,,..,,..,.,,,...,,,.,,.,,..,,,,.,,.,,,.,,.,,,.,.,...,...,,,,,,,,,,..,.,.,...,
+#LH2AMUVMJQQLLN2X45DXWKYYNOJ475ENHXBIDC5F3SGH57DNM6E63KQOTCYB4SOXMRYMWQIHKC7QO
+#\\\|LNBZ2LSEVQN7AYZSNIPXWZDZCMIN3RL73XRM35QPLQ7T645VAPC \ / AMOS7 \ YOURUM ::
+#\[7]B43F4ZG2V2W2JRV5LD6PZS6UXBJWCFJ6MJYUINCFBFDCNV67WUBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
