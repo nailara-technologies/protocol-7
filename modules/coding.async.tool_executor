@@ -74,6 +74,37 @@ foreach my $tc (@$tool_calls) {
     ## decode_json expects raw bytes and dies on utf8-flagged strings ##
     my $args = eval { JSON::PP->new->utf8(0)->decode($args_str) };
 
+    ## repair common model JSON anti-patterns before retrying ##
+    if ($EVAL_ERROR) {
+        my $repaired = $args_str;
+        my $did_repair;
+
+        ## anti-pattern 1: literal newlines/tabs inside string values ##
+        ## model emits raw \n instead of \\n — fix by escaping within strings ##
+        if ($repaired =~ s/("(?:[^"\\]|\\.)*")/
+            do { (my $s=$1) =~ s|(?<!\\)\n|\\n|g;
+                              $s =~ s|(?<!\\)\r|\\r|g;
+                              $s =~ s|(?<!\\)\t|\\t|g; $s }/ge
+        ) {
+            $did_repair = 'escaped literal whitespace in strings';
+        }
+
+        ## anti-pattern 2: trailing comma before closing } or ] ##
+        $repaired =~ s/,(\s*[}\]])/$1/g
+            and $did_repair //= 'removed trailing comma';
+
+        if ($did_repair) {
+            $args = eval { JSON::PP->new->utf8(0)->decode($repaired) };
+            unless ($EVAL_ERROR) {
+                <[base.logs]>->(
+                    1,          "tool_executor: repaired args for %s [%s]",
+                    $tool_name, $did_repair
+                );
+                $args_str = $repaired;
+            }
+        }
+    }
+
     ## handle concatenated JSON objects (model error) ##
     if ( $EVAL_ERROR && $args_str =~ m/^\s*\{.*\}\s*\{/s ) {
         ## multiple objects concatenated - try to extract first valid one ##
@@ -233,8 +264,8 @@ if (<coding.tool_loop.stop>) {
 
 return { success => TRUE, tool_results => \@tool_results };
 
-#,,..,..,,.,,,.,.,.,,,,,.,,..,...,.,.,,.,,.,.,.,.,...,...,...,.,,,,.,,.,.,.,.,
-#ITL65YHEWDIGRDPTIPO2DXJGVST5RQTDCSE6UOK33FX3YZWP56LDORMXE4MI7K5QZSE7OOJKHDBLU
-#\\\|KNN5UVAALICT6IX6IZYBJOOWUFQIA4IG32E6MDOPWRN7I65XYPZ \ / AMOS7 \ YOURUM ::
-#\[7]4KCKECQTHMTCEEK6LIOPCEQBWQ3KPGDEY672H57XV6Z2RKPQLICA 7  DATA SIGNATURE ::
+#,,..,.,,,,,.,,.,,,.,,.,.,.,,,,,.,..,,..,,..,,.,.,...,...,...,,.,,.,,,.,,,,,,,
+#MDUKHDS25L7VZ3ZDLPQIAUB26RUC3ZTSGJ5W2AAIWE65BPIAEASEYSYO4PEYH6PF3BUZVU6RJRRLM
+#\\\|J6EOOFU6IDXIG5BGQYXIXEHDYDNB5DUDCN7FMMH7DUVQI7VYOCH \ / AMOS7 \ YOURUM ::
+#\[7]D6B6BS4THUCPWYJTUC3K5L42GVBZVERHASSNBMXL65AIWIVWQYCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

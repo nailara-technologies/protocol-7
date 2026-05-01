@@ -6,24 +6,6 @@
 my $msg_id  = shift // '';
 my $payload = shift // {};
 
-## session not yet acquired — queue for flush on acquisition, don't drop
-if ( not <kimi.session.acquired> ) {
-    <[base.logs]>->(
-        2, ': queuing approval [ %s ] — session not yet acquired', $msg_id
-    );
-    <kimi.approval.pending> //= {};
-    my $request_id = $payload->{'id'} // $msg_id;
-    <kimi.approval.pending>->{$request_id} = {
-        'request_id'  => $request_id,
-        'tool_call'   => $payload->{'tool_call_id'} // '',
-        'sender'      => $payload->{'sender'}       // '',
-        'action'      => $payload->{'action'}       // '',
-        'description' => $payload->{'description'}  // '',
-        'received_at' => <[base.time]>->(3)
-    };
-    return;
-}
-
 my $request_id  = $payload->{'id'}           // $msg_id;
 my $tool_call   = $payload->{'tool_call_id'} // '';
 my $sender      = $payload->{'sender'}       // '';
@@ -58,7 +40,7 @@ $short_desc = <[base.parser.center_ellipse_string]>->( $short_desc, 72 );
     'received_at' => <[base.time]>->(3)
 };
 
-## auto-approve mode: respond immediately
+## auto-approve: check before session guard — works even during reconnect
 if (<kimi.approval.auto_approve>) {
     <[base.logs]>->(
         1, ': auto-approving [ %s ] %s : %s',
@@ -66,6 +48,23 @@ if (<kimi.approval.auto_approve>) {
     );
     delete <kimi.approval.pending>->{$request_id};
     <[kimi.wire.approval_respond]>->( $request_id, 'approve' );
+    return;
+}
+
+## session not yet acquired — queue for flush on acquisition, don't drop
+if ( not <kimi.session.acquired> ) {
+    <[base.logs]>->(
+        2, ': queuing approval [ %s ] — session not yet acquired', $request_id
+    );
+    <kimi.approval.pending> //= {};
+    <kimi.approval.pending>->{$request_id} = {
+        'request_id'  => $request_id,
+        'tool_call'   => $tool_call,
+        'sender'      => $sender,
+        'action'      => $action,
+        'description' => $description,
+        'received_at' => <[base.time]>->(3)
+    };
     return;
 }
 
@@ -105,8 +104,8 @@ sub flush_on_acquisition {
 
 return;
 
-#,,,.,,,,,,,,,.,.,,.,,.,,,..,,.,.,.,,,,..,.,.,.,.,...,...,.,,,,..,,,.,.,,,,.,,
-#SL4WGC4UZ4ATB7TEYUTUDPID3FD6QDWX5DL7JC3LRSEPSDWGUUUCBBNXMFGAFENKSJ5IP6EGOBX7E
-#\\\|SZLT3LG4D3HWC7OMJGMY52YONIWUQNFKBS4SDU6SRWFANJXBBEN \ / AMOS7 \ YOURUM ::
-#\[7]BBGIS3GYNBFD36VOEWWYQIXLXF6S7AIS7FIBRZR3XVYIKWG54ACA 7  DATA SIGNATURE ::
+#,,,,,,,,,,..,.,,,,..,,,.,,,,,,,.,,.,,,..,.,.,.,.,...,...,,.,,,..,..,,.,.,,..,
+#ZUA3VPBUR4SLJYGJD54UXTMDXDM655O3DT536VLCBCSZO7CJMODRK2J2ZE5H257ZJGOJERBZ7ALO6
+#\\\|6XFMGXCSWXF5P637ZDNKXXOSF3YPSYADUAUNKXYOSJ3THRCKB3U \ / AMOS7 \ YOURUM ::
+#\[7]OJTQLXWHAIHQFSIR5O7W7FQMC5XIONR4V2LOEBLTFIMEPZ6MNKCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
