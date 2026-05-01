@@ -61,11 +61,14 @@
   broke this by adding a manual prefix in `send-idle-callback` (reverted). The `(0)` source
   is still unconfirmed — `send.local` debug showed it's NOT from the log send system.
   All `YYOPDKA` template writes produce `"FALSE..."` with no `(0)` prefix when cmd_id empty.
-  Next angle: something writes to the session output buffer BEFORE setup_stdin_watcher runs,
-  or the `v7.notify_online` TRUE reply triggers a chain that writes to the buffer directly.
-- Proper fix: cube raw mode + proper command ID support in nshell (large feature, VTerm
-  line session buffers). Workaround: intercept/suppress the mismatch response write to
-  output buffer before first user command.
+  Best theory: commit `01b6be26e` removed trailing space from cmd_id formatting —
+  something that was undef (no prefix) is now `0` (produces `(0)` prefix).
+- `v7.notify_online` retry loop was kimi regression (reverted), confirmed gone after revert.
+- cube alias `setup.aliases.source_zenka_sid` auto-prepends SOURCE_ZENKA SOURCE_SID
+  for non-cube zenki — do NOT add manually in send-idle-callback.
+- Kimi session archived: `data/asc/coding-chats/kimi-session-nshell-bug.jsonl.xz`
+- Pre-existing bug, not worsened this session.
+- Proper fix: cube raw mode + VTerm line session buffers (large feature, deferred).
 
 ### llama-server tip rebuild
 - When ik_llama.cpp fixes the Jinja engine crash (track #1369-related issues), rebuild
