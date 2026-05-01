@@ -35,6 +35,32 @@ If tools not saved (pre-fix tasks), re-assembles from `coding.tools.definitions`
 - injects "please continue" user message
 - re-enqueues round instead of completing task
 
+### Additional fixes (same session, continued)
+
+**Model switch / spawn lifecycle:**
+- `spawn_inference_server`: remove watcher_pair entries BEFORE cancelling — prevents queued "ready" event from old server setting drain watchers on reused fd numbers (was causing tasks to stay queued after switch-model)
+- `monitor_inference_startup`: liveness check `kill(0, pid)` before declaring EOF crash; reset dep object `failed` flag when server becomes ready (model switch killed mid-startup could permanently block jobqueue)
+- `inference_server_sigchld`: `POSIX::waitpid` reaps any child PID to prevent zombies
+
+**Loop detection / tool use:**
+- `detect_loop`: parse JSON args string to build tool key — pagination calls (`read_file offset=1` vs `offset=101`) now produce distinct history keys, no false `stuck_retry`
+- Loop warning injected as `user` role (was `system` — broke Gemma's strict alternation → 500 errors)
+- Loop assertion interception: `loop_assertion_pending` flag prevents model's assertion answer from completing the task; injects "please continue" and re-enqueues
+
+**Context sizing:**
+- `calculate_safe_context`: `coding.cfg.context_max` configurable (0=uncapped, default 131072); context ceiling no longer hardcoded 77777
+- `read_file` tool: budget defaults to 32000 chars when n_ctx > 30000 (was 8000 — caused pagination loops on large-context models)
+- `model_output` buffer: always written even with no reasoning text
+
+**apply-staged mkdir:**
+- `start.chmod_child`: added `mkdir` command — creates dir + parents as admin user (0775, correct group)
+- `apply-staged`: routes missing parent directory creation through chmod child, not direct `file.make_path`
+
+**models zenka:**
+- `discover_files`: two `@ARG`/implicit-call bugs fixed — scan and populate were silent no-ops
+- `adapter.invoke.discover`: uses `system.admin-user` for InvokeAI DB path (was falling back to protocol-7 home)
+- Model `Huihui Qwen3.5 4B Claude 4.6 Opus Abliterated` Q8_0 added — vision capable, ~156K context, good for large refactoring and CPU remote servers
+
 ### open items
 - `loop_detect_count` is zenka-global, not per-task — a model switching between tools
   can reset the counter; should move into `$state->{'loop_detect_count'}`
@@ -43,8 +69,8 @@ If tools not saved (pre-fix tasks), re-assembles from `coding.tools.definitions`
 - `coding.task.fail` has a P7 data-path bug at line 19 (`<coding.task.failed.queue>`);
   `async.complete` inlines the fail path instead of calling it
 
-#,,..,,,,,,,,,,,.,,.,,,,,,...,...,,.,,,,.,,.,,..,,...,...,.,,,,..,.,.,,,,,,,,,
-#UNO6OYD3A27LFWI4RJASR6VO6AMZTGRB74WDNKRQ5QKFOJACIVQF2DJTBJQX22HESAP5G5CRCV26E
-#\\\|5MFBQEIH7MDZPFKNX6A24JQHSUB7QWZWF36WVZ44TGWDWO2IN6A \ / AMOS7 \ YOURUM ::
-#\[7]4DZ5EO5FJ7BBS7NJXBZTAW5CP6EKGN57DORRMBP3HH3RPQA3DIDY 7  DATA SIGNATURE ::
+#,,.,,,,.,,,,,,..,,,,,...,,,.,,.,,.,,,..,,.,,,..,,...,...,..,,..,,,,.,,..,.,,,
+#2VNXBBKY7PV7WTT6CWIYRIGS4QXKXZS6G7KMPUUDRXMYEUNH3FPA6XOJFFAUMSVX2TR3E65I3MEWE
+#\\\|VQYLZHIMK4YEMEM4O67MVNRRAP6JG7HD5BVZBRVCAXUPTDPF6DW \ / AMOS7 \ YOURUM ::
+#\[7]NENO5X5VQTXMEGFZ52VUZYBDAHYQMEHTV7ARV7TWXQMOYNGATMBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

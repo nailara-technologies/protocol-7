@@ -10,6 +10,8 @@ my $port    = $params->{'port'}    // 8000;
 
 ## guard against concurrent spawns — any call path (crash restart, timeout
 ## recovery, model_path_reply, deferred timer) hits this central lock       ##
+## also enforce a 30s cooldown: the seed sleep(0.0013) yields to the event
+## loop, which can let a second call through before the first completes     ##
 if (<coding.spawning_in_progress>) {
     <[base.logs]>->(
         2, '[spawn_inference_server] spawn already in progress, skipping %s',
@@ -54,10 +56,13 @@ for my $fh_key (qw| io_stdout io_stderr |) {
 }
 if ( my $old_pid = $old->{'pid'} ) {
     if ( kill( 0, $old_pid ) ) {    ## process still exists ##
-        kill( 'KILL', $old_pid );   ## SIGKILL : gpu servers ignore SIGTERM ##
-        <[base.waitpid]>->($old_pid);    ## reap zombie ##
+        ## kill the entire process group — covers the server and any forked
+        ## workers (llama-server forks on first request; all share the pgid
+        ## set by our setpgid call at spawn time)                           ##
+        kill( 'KILL', -$old_pid );     ## negative pid = kill process group ##
+        <[base.waitpid]>->($old_pid);  ## reap the group leader's zombie    ##
         <[base.logs]>->(
-            1, '[spawn_inference_server] killed old %s server [pid:%d]',
+            1, '[spawn_inference_server] killed old %s server group [pid:%d]',
             $backend, $old_pid
         );
     }
@@ -161,6 +166,19 @@ if ( $backend eq qw| gpu | ) {
         if ($pid) {
             ## skip PIDs we just killed in the port scan (may linger briefly) ##
             next if grep { $_ == $pid } @killed_stale_pids;
+
+            ## skip child processes of our own server (llama-server forks
+            ## a worker on first request — same cmdline, different PID)   ##
+            if ($own_pid) {
+                my $ppid = 0;
+                if ( open my $sfh, '<', "/proc/$pid/status" ) {
+                    while ( my $sl = <$sfh> ) {
+                        if ( $sl =~ m|^PPid:\s+(\d+)| ) { $ppid = $1; last }
+                    }
+                    close $sfh;
+                }
+                next if $ppid == $own_pid;
+            }
 
             my $stat_file = "/proc/$pid/stat";
             if ( open my $fh, '<', $stat_file ) {
@@ -343,6 +361,10 @@ for my $pipe_fh ( $server_out, $server_err ) {
         if defined $flags;
 }
 
+## make server its own process group leader so kill(-pid) reaches all
+## children (llama-server forks a worker on first request)             ##
+POSIX::setpgid( $pid, $pid );
+
 <[base.logs]>->(
     1, "[spawn_inference_server] spawned: backend=%s pid=%d port=%d",
     $backend, $pid, $port
@@ -350,6 +372,18 @@ for my $pipe_fh ( $server_out, $server_err ) {
 
 ## Report child PID to v7 for lifecycle management
 <[base.zenki.report_child_pid]>->($pid);
+
+## exponential-backoff poll for forked worker child (0.7s × 1.6 each miss) ##
+<[event.add_timer]>->(
+    {   'after'   => 0.7,
+        'handler' => qw| coding.handler.register_server_children |,
+        'data'    => {
+            'backend'    => $backend,
+            'parent_pid' => $pid,
+            'interval'   => 0.7
+        }
+    }
+);
 
 ## persist pid + binary name for orphan detection across restarts ##
 <[file.zenka_dir.write]>->( $pid_rel, \"$pid\n$binary\n" );
@@ -420,8 +454,8 @@ return {
     'port'    => $port
 };
 
-#,,,,,..,,.,.,...,,..,,,,,,..,.,.,..,,..,,,..,..,,...,..,,..,,...,.,.,.,,,.,.,
-#RXPIFLQ3SYKR44LLRKYVTOZNYABREXU4F3OUW3LYJY3VZKSYUNMV4SXMOB7O2ZF6PJIWNAG2TH4LE
-#\\\|CTIEZCTI6F3O5UZQPJVDFSL25Z7VLQSPKQ473ACSMBJRXVESVDU \ / AMOS7 \ YOURUM ::
-#\[7]SN3JH6BU2NG4VITWPKTLX24QZMTNSYSPKMNSSDN5BHLKKT7M3OBA 7  DATA SIGNATURE ::
+#,,..,,..,,.,,.,,,.,,,.,,,,,.,..,,..,,,,.,,,,,..,,...,...,...,..,,.,.,.,.,,..,
+#IWDSPRU2UW2UTAHKKNXWNKNYCSTQ5IWNJA6OKJHCWJBGN26SMBUTP5UPUU2Q4MFX5SH2NZLYTQFIY
+#\\\|GSM435WFANIMX4E4DBSBGFZG3PCC7AVL3JJWC2UHOH53BX56KS7 \ / AMOS7 \ YOURUM ::
+#\[7]SFN7VNTHTF6DZCVEZ3PFI7KSRHPO3IJ2JI3TQLU5CHDG46GAT6AI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
