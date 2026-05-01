@@ -93,6 +93,12 @@ foreach my $tc (@$tool_calls) {
         $repaired =~ s/,(\s*[}\]])/$1/g
             and $did_repair //= 'removed trailing comma';
 
+        ## anti-pattern 3: illegal backslash escapes like \[ \# \< \$ ##
+        ## valid JSON escapes: \" \\ \/ \b \f \n \r \t \uXXXX ##
+        if ( $repaired =~ s|\\([^"\\\/bfnrtu])|'\\\\' . $1|ge ) {
+            $did_repair //= 'fixed illegal backslash escapes';
+        }
+
         if ($did_repair) {
             $args = eval { JSON::PP->new->utf8(0)->decode($repaired) };
             unless ($EVAL_ERROR) {
@@ -119,22 +125,36 @@ foreach my $tc (@$tool_calls) {
         }
     }
 
-    ## sanitize malformed arguments ##
+    ## malformed arguments — skip dispatch and return parse error to model ##
+    ## giving the model the exact error lets it fix its JSON rather than   ##
+    ## retrying blindly with empty args                                    ##
     if ( $EVAL_ERROR || ref $args ne qw| HASH | ) {
-        my $err
+        my $parse_err
             = $EVAL_ERROR
-            ? sprintf( "JSON parse error : %s", <[base.str.eval_error]> )
+            ? <[base.str.eval_error]>
             : "expected object, got " . ref($args);
-        ## truncate long args_str for logging ##
-        my $args_preview
-            = length($args_str) > 100
-            ? substr( $args_str, 0, 100 ) . '...'
-            : $args_str;
+        ## sanitize preview — raw broken args in tool result crash Jinja ##
+        my $args_preview = substr( $args_str, 0, 120 );
+        $args_preview .= '...' if length($args_str) > 120;
+        $args_preview =~ s/[^\x20-\x7E]/?/g;
         <[base.logs]>->(
             0, "async.tool_executor: malformed args for %s: %s [args=%s]",
-            $tool_name, $err, $args_preview
+            $tool_name, $parse_err, $args_preview
         );
-        $args = {};
+        push @tool_results,
+            {
+            'role'         => 'tool',
+            'tool_call_id' => $call_id,
+            'content'      => sprintf(
+                "ERROR: could not parse tool arguments for %s.\n" . "%s\n"
+                    . "Please fix your JSON and call the tool again.\n"
+                    . "Common issues: unescaped backslashes (use \\\\ not \\),"
+                    . " literal newlines in strings (use \\n), trailing commas.",
+                $tool_name, $parse_err
+            ),
+            };
+        $tc->{'id'} = $call_id;
+        next;
     }
 
     ## dispatch tool call ##
@@ -264,8 +284,8 @@ if (<coding.tool_loop.stop>) {
 
 return { success => TRUE, tool_results => \@tool_results };
 
-#,,..,.,,,,,.,,.,,,.,,.,.,.,,,,,.,..,,..,,..,,.,.,...,...,...,,.,,.,,,.,,,,,,,
-#MDUKHDS25L7VZ3ZDLPQIAUB26RUC3ZTSGJ5W2AAIWE65BPIAEASEYSYO4PEYH6PF3BUZVU6RJRRLM
-#\\\|J6EOOFU6IDXIG5BGQYXIXEHDYDNB5DUDCN7FMMH7DUVQI7VYOCH \ / AMOS7 \ YOURUM ::
-#\[7]D6B6BS4THUCPWYJTUC3K5L42GVBZVERHASSNBMXL65AIWIVWQYCI 7  DATA SIGNATURE ::
+#,,..,,..,...,...,,,,,,,,,...,...,..,,.,.,..,,.,.,...,...,..,,.,.,.,,,,,,,,,,,
+#INLBS3MCUTAGTSESS3N5XXDTZQGUMTT7UOMVQGTTTTGUTDKYKWTEP4KWVO2S7T2RN3ACLZ2FQOUWK
+#\\\|KM5BQPTW356CSJCGPA437KL4BMT7QXSVFRCKQTRS3MN5BDABCRN \ / AMOS7 \ YOURUM ::
+#\[7]NC7OEEYEVBZQ7TMVWYHIDKG6YFKKYKFLHMO63NWVSSZKWDOUXKCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
