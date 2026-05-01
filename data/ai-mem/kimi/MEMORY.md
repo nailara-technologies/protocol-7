@@ -231,6 +231,51 @@ Major fixes to tool dispatch, error handling, and context management.
 
 ---
 
+## May 1 2026 Session — Regression, Revert, and nshell (0) Bug
+
+### What Happened
+
+Kimi was given an nshell debugging task. During the session it made a minor unrelated
+fix but **introduced a regression** in `modules/base.log.send-buffer.send-idle-callback`:
+it removed the cube-only guard on the `node.zenka + sid` push, causing **all non-cube
+zenki to double-prepend the prefix** — p7-log received `node.zenka sid node.zenka sid ...`
+and rejected it as a non-numeric log-level. Logging broke silently for all non-cube zenki.
+
+Kimi then spent most of the session confused, debugging the symptom rather than the cause,
+until it ran out of tokens (2% weekly credits left). It noted the intention to revert
+before stopping but did not complete it.
+
+### Claude Revert (commit `3b01d2e81`)
+
+Claude reverted the regression: restored the `if ( $id == 1 )` / cube-only guard in
+`send-idle-callback` and added a comment to prevent future regressions:
+
+```perl
+## only push node.zenka+sid prefix from cube (id==1) ##
+## non-cube zenki: send buffer without node prefix   ##
+if ( $id == 1 ) {
+    $send_buf = "node.zenka $id\n$send_buf";
+}
+```
+
+### nshell cmd_id (0) Bug — Pre-Existing, Not Kimi's Fault
+
+During investigation, a pre-existing bug surfaced: the **first command in an nshell session**
+gets `cmd_id = 0` instead of a positive integer. This causes cube to log `[0] unknown route`
+for the reply. The bug was present before kimi's session and was not worsened.
+**Not yet fixed** — it's a cmd_id assignment issue in nshell startup, not related to logging.
+
+### Kimi Memory State After Session
+
+Kimi's memory is **frozen mid-session** (during its own debugging loop). It does not yet
+reflect the revert. When starting the next kimi session, inform it:
+- The logging regression was reverted by Claude — `base.log.send-buffer.send-idle-callback`
+  is correct now, do not touch that guard
+- The nshell (0) bug is pre-existing and still open, but low priority
+- Weekly credits are at ~2%, so task scope should be minimal this week
+
+---
+
 ## NShell Ctrl+O Cycle Fixes (February 2025)
 
 ### Bugs Fixed
@@ -1686,8 +1731,8 @@ The `200 : streaming started` log is **present** for working rounds, **absent** 
 
 **File**: `data/ai-mem/claude/topic-async-round-2-timeout.md` (handover for Claude)
 
-#,,.,,..,,..,,,..,,.,,.,,,,..,...,.,,,..,,,..,..,,...,...,,..,...,,,,,,.,,,.,,
-#DJUMU2NIWD3MWNT4563CGQVGMYZK2ALQGPMRAJSHYDUNN4HTJVXHTW2LTOBF7OGQIC27RDLZZR5A6
-#\\\|74RFHGHBTQ7KI47QRZEQIAXFBJA6W3G2IXMAVVK2ELZPFFK45KP \ / AMOS7 \ YOURUM ::
-#\[7]TCBBRQI4IZ6OBUFZYT7UFTQFCUCGZDZLTMBGPQLBAR3OOLQYKYDI 7  DATA SIGNATURE ::
+#,,.,,,,,,,,.,.,,,...,.,.,.,,,.,,,,.,,,.,,,,.,..,,...,...,.,,,.,,,,,.,,,.,...,
+#FFYRKYC5HVLT6GB4QDS5TORIR5UCLMUL3UQ2UL35GSSQZF6TWDCXEY6J3CVQXY3HHFRZWRP3ECMVY
+#\\\|CKIHOGPKWSWZIETZC4ZPJIR3UZ6GDQFQVCP2ABP5TINLKKWKDTH \ / AMOS7 \ YOURUM ::
+#\[7]SUWRMMMOQEBQVLNNOFCF7H4DMT4LEOAII7EIGWUNAYD2GVFSTMBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
