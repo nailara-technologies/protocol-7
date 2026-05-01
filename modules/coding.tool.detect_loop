@@ -115,6 +115,7 @@ my @pattern_registry = (
     },
 
     ## Pattern: Same tool repeated many times (possible stuck retry)          ##
+    ## no assertion — same tool 3 times in a row is definitively stuck       ##
     {   'name'     => 'stuck_retry',
         'priority' => 3,
         'min_hits' => 3,
@@ -126,13 +127,11 @@ my @pattern_registry = (
             my $first = $last3[0];
             for my $h (@last3) { return 0 if $h ne $first; }
 
-            ## Weighted threshold - high-weight tools trigger sooner ##
-            ## search_code/ncode_search trigger at lower threshold ##
-            my $weight = $weights->{$first} // 0.5;
-            return $weight >= 0.6 ? 1 : 0;
+            ## any tool called 3 times in a row is a stuck loop ##
+            return 1;
         },
-        'confidence'    => 0.6,
-        'allow_polling' => 1,
+        'confidence'    => 0.9,
+        'allow_polling' => 0,
     },
 
     ## Pattern: Same tool with same parameters (definite loop)                ##
@@ -493,8 +492,8 @@ elsif ( $phase eq 'escalation' ) {
 ## Unknown phase ##
 return qw| false |;
 
-#,,,.,..,,..,,,,.,,,,,..,,..,,.,.,,..,...,.,.,.,.,...,...,.,,,,,.,..,,...,.,,,
-#6HAKXO3CVT2TH7RU2UWKR7W5JACVMCWZI6OLFTNPNI4I7SQ4HM44AF73ZXOFONUGVKCOIXIR5BRWQ
-#\\\|WA35X7SRIRFTBLI2ULVI756XYQZPUITKQENXM5X7ERFNBWZAYRX \ / AMOS7 \ YOURUM ::
-#\[7]L7M7WMDNBSB5ORNJEUHPLX4ISXHFT22GW7LNG6OVS2MD7VRVV6CI 7  DATA SIGNATURE ::
+#,,.,,,..,..,,.,.,.,.,.,.,,,.,...,,.,,..,,..,,.,.,...,..,,...,,,,,,,.,..,,...,
+#ERMPRK4MV7N7ZLIXNMJS2BW7KXXVN622TKKEMGJXJ7QVF6PPLO7HJROPGADDL2BAV3CHWTY4IMKLU
+#\\\|7YVQSBKPPMPERYLSP7UA6FRQ3EF2PE7EEARCNDE336A6WNBNLDV \ / AMOS7 \ YOURUM ::
+#\[7]M6SVQPLBR7WTJ4QPIBLNE2YSWGW2AYGGTF55RALL3RPJKK535CBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

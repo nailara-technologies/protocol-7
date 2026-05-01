@@ -81,6 +81,17 @@ if (
         $server->{'model'}       = <inference.model.amos_id>     // '';
         $server->{'mmproj_path'} = <inference.model.mmproj_path> // '';
 
+        ## reset dependency object (may have been marked failed by a previous
+        ## server that was killed mid-startup, e.g. during switch-model)     ##
+        my $dep_id_ready
+            = $backend eq qw| gpu |
+            ? ( <coding.dep.gpu_server> // 0 )
+            : ( <coding.dep.cpu_server> // 0 );
+        if ( $dep_id_ready && exists <dependency.object>->{$dep_id_ready} ) {
+            <dependency.object>->{$dep_id_ready}->{'failed'} = FALSE;
+            delete <dependency.object>->{$dep_id_ready}->{'error'};
+        }
+
         ## trigger dependency recheck for waiting jobs ##
         <[jobqueue.check_dependencies]>
             if exists $code{'jobqueue.check_dependencies'};
@@ -95,8 +106,14 @@ if (
     return;
 }
 
-# If EOF, close the handler
+# If EOF or no data — verify the server process is still alive before
+# declaring crash.  When fd numbers are reused after a switch-model, a
+# spurious 0-byte read can fire on the new pipe; don't misread it as EOF.
 if ( $bytes <= 0 ) {
+    if ( kill( 0, $expected_pid ) ) {
+        ## process still alive — spurious read, stay active ##
+        return;
+    }
     close($read_fh);
     <[coding.cancel_watcher.backend_monitor]>->($event);
 
@@ -143,8 +160,8 @@ if ( $bytes <= 0 ) {
     }
 }
 
-#,,.,,.,,,...,.,,,,..,,..,..,,.,.,,,,,..,,,,.,..,,...,...,.,,,,,.,,..,,,,,.,,,
-#Z4WLR2HQYKYCINUAH2AXDGIKFJZXO2SFQX7LQRSUGGLKY4UU7GQONFNUTETWELVIW3HJDS7DAZF3E
-#\\\|33ZFSRHQSI6CPQ5MDOREIJU5DOXTFD63FXCU2MMWSEZPM2UK4K2 \ / AMOS7 \ YOURUM ::
-#\[7]AOJEUA5GF4SNEFZSDUMPWVDUF3FPUMNXU22LLI3B75HH3JRLA2AQ 7  DATA SIGNATURE ::
+#,,,,,,,,,..,,,..,,..,.,.,,,,,.,,,...,...,,,.,..,,...,...,..,,,.,,,..,.,.,,,.,
+#T4WK36FRDKQJCQ2BXOMOSK7THVIEXEMAV65GNJJ2TSSSN7MG667P77ZCMO3AWZRHOZ4WS4NPSELQ2
+#\\\|LVBELAYUMGJIPFRIPZDYKQ4XZ2RSQCJB3QI6PED7AM4B53KIV7Y \ / AMOS7 \ YOURUM ::
+#\[7]YOYJ3H5CN5D4622SGBVR6XJVZDRKPC4AJDJ4G4SM4H6BGHPKTKAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

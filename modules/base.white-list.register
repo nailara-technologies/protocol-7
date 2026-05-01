@@ -14,10 +14,10 @@ $namespace =~ s|\s.*$||;
 return { 'mode' => qw| false |, 'data' => 'expected namespace argument' }
     if not length $namespace;
 
-my $modules_dir = File::Spec->catdir( <system.root_path>, qw| modules | );
+my $modules_dir = <system.code_path>;
 
 my $found = 0;
-for my $file ( glob File::Spec->catfile( $modules_dir, "$namespace.*" ) ) {
+for my $file ( glob catfile( $modules_dir, "$namespace.*" ) ) {
     next if -d $file;
     $found++;
 }
@@ -25,10 +25,7 @@ for my $file ( glob File::Spec->catfile( $modules_dir, "$namespace.*" ) ) {
 if ( not $found ) {
     <[base.logs]>
         ->( 0, "white-list.register: no modules for %s", $namespace );
-    return {
-        'mode' => qw| false |,
-        'data' => "no modules found: $namespace"
-    };
+    return FALSE;
 }
 
 <[base.logs]>->(
@@ -36,10 +33,10 @@ if ( not $found ) {
     $namespace, $found
 );
 
-return { 'mode' => qw| true |, 'data' => $namespace };
+return TRUE;
 
-#,,,.,.,.,,,,,.,,,.,,,.,.,,.,,,.,,.,.,,,,,...,..,,...,..,,...,,,,,..,,,.,,.,.,
-#M2FHFGL6ZMLS7LYYU6M6S3SIWZH6JCBQ6MEYBNLT4AKMYD6CCL4XE4UVRQVNRO5BJMXBKBBMMAHVI
-#\\\|76HKYQ4EKMT5NL7PKSV4X34W7CZU7LZP54FZTQRLF5RRYFIECT5 \ / AMOS7 \ YOURUM ::
-#\[7]GB2R43TCNQGNZJM2J432D3VCERGS4YENXE7WGN7F7SOO53RM7MDQ 7  DATA SIGNATURE ::
+#,,.,,,,,,.,.,...,,..,,,,,...,..,,,.,,,,,,..,,..,,...,...,,..,.,.,,..,,,.,.,,,
+#YWL7AGRK7VTXSDFMQZBCWKHKLWPVJWKKCA3KRTFQ57W7OOVKVHGZUY65CFEUO3Z7HZRLW2CBEEUYI
+#\\\|MTVWO2MEDLCO3THTTGNY745G4WP4CGF625BTNTPBDNUYDDOQOYN \ / AMOS7 \ YOURUM ::
+#\[7]4IFLJ5USCBWYICELUG5UN2HNNOS6FBQYFYLIANJGOZ2CV7L2VKCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

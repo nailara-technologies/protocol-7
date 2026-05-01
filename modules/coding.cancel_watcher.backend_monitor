@@ -22,17 +22,35 @@ $other_watcher->cancel
     if defined $other_watcher
     and $other_watcher->is_active;
 
-## replace startup-monitoring watchers with drain watchers           ##
+## replace startup-monitoring watchers with drain watchers            ##
 ## the server's pipes must stay readable — if the buffer fills (64KB) ##
-## llama-server's write() blocks and inference stalls silently       ##
-## do NOT close the fds — that sends SIGPIPE to the server           ##
+## llama-server's write() blocks and inference stalls silently        ##
+## do NOT close the fds — that sends SIGPIPE to the server            ##
+## store watcher refs so spawn_inference_server can cancel on respawn ##
+my @drain_watchers;
 for my $fd ( grep { defined $_ } $current_fd, $other_fd ) {
-    <[event.add_io]>->(
+    my $dw = <[event.add_io]>->(
         {   'fd'      => $fd,
             'handler' => qw| coding.handler.drain_pipe |,
             'poll'    => qw| re |
         }
     );
+    push @drain_watchers, $dw if defined $dw;
+}
+
+## find which backend these fds belong to and store drain watchers ##
+my $servers = <coding.inference_servers> // {};
+for my $backend ( keys %{$servers} ) {
+    my $srv = $servers->{$backend};
+    my $out = $srv->{'io_stdout'};
+    my $err = $srv->{'io_stderr'};
+    if (    defined $out
+        and defined $current_fd
+        and eval { fileno($out) } == $current_fd ) {
+        $srv->{'watcher_drain_stdout'} = $drain_watchers[0];
+        $srv->{'watcher_drain_stderr'} = $drain_watchers[1];
+        last;
+    }
 }
 
 ## clean up pair references to avoid memory accumulation ##
@@ -40,8 +58,8 @@ delete <coding.watcher_pair>->{$current_watcher};
 delete <coding.watcher_pair>->{$other_watcher}
     if defined $other_watcher;
 
-#,,..,.,,,,.,,,,.,,,.,,,,,,,.,.,.,...,.,,,,,,,..,,...,..,,,.,,,..,.,,,,,.,.,,,
-#QI24ASH7LWGQYCZH6HEQ6LOE5OTYHE4G6LPCLXASDLZNB42YZT7UJ7WYJAWP7R54Y42TBSUNW7D5Q
-#\\\|LZ62TOPPJ5HOPZ4TAFLIX2TNTVFAT6YOIEK7YI4PK2WGY37UUQJ \ / AMOS7 \ YOURUM ::
-#\[7]OUC7CRB5SQ5UQRPXWMBA7FM2AXHI6UESXIH6U5UQEYNLGUQDCGDI 7  DATA SIGNATURE ::
+#,,,.,,,,,...,.,,,.,,,...,,,.,..,,,,.,.,,,,..,..,,...,...,.,,,.,.,,,.,.,.,,,,,
+#6U2R4YVDSZQJOTSYIXFK6WSZTZS5IDJ3VQSTFQ6MIBBYHPVLGPCZQBROS7Q5JYMZRZF6UUXE2Y43G
+#\\\|LFLDDDDZMK26XR4SMHTOODXLYWWCR3JJHRULI2SE3FULC2B5VP3 \ / AMOS7 \ YOURUM ::
+#\[7]C3P3HCPZYYQLBSLTP6LZMEKMHQOKPL7DSBTHIYPHO7ABJUWBSYDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

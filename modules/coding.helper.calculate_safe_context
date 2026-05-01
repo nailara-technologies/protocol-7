@@ -109,9 +109,11 @@ if ( $remaining_mb <= 0 ) {
 
 ## adaptive safety margin: 30% of remaining space for generation buffers ##
 ## [ compute buffers, temporary allocations, headroom for token generation ] ##
-my $safety_mb = int( $remaining_mb * 0.30 );
-$safety_mb = 512  if $safety_mb < 512;     ## minimum 512MB ##
-$safety_mb = 3072 if $safety_mb > 3072;    ## cap at 3GB ##
+my $safety_min_mb = <coding.cfg.vram_safety_min_mb> // 512;
+my $safety_max_mb = <coding.cfg.vram_safety_max_mb> // 3072;
+my $safety_mb     = int( $remaining_mb * 0.30 );
+$safety_mb = $safety_min_mb if $safety_mb < $safety_min_mb;
+$safety_mb = $safety_max_mb if $safety_mb > $safety_max_mb;
 
 my $available_for_kv_mb = $remaining_mb - $safety_mb;
 
@@ -157,8 +159,8 @@ return {
     limited_by => $limited_by,
 };
 
-#,,.,,,..,,..,,.,,,..,,,.,,.,,,,,,,,.,,,,,..,,.,.,...,..,,.,,,,.,,...,...,,,.,
-#PC3MMGF66KKMFAGOVODH64RY6R3WGOQS35AIE4PBREI7Y4ESZOORVKDGK4XXVTMTRZR6IJSO5VJ2Y
-#\\\|V44ZV6N7SJ3NJTMW4XGNDW5762XZXAHN4XU24UABTWKB5J6XIDL \ / AMOS7 \ YOURUM ::
-#\[7]5P6T2HDC5FGMABOMEHRYFRIJJGR5C2AJSAX2VCR7UZA6J3BCDICA 7  DATA SIGNATURE ::
+#,,..,.,.,,,,,..,,,,,,,,.,.,.,,.,,...,,..,.,.,.,.,...,...,.,,,..,,,,.,.,,,,,.,
+#KRS4ARHAL5PRRRZCCR3TZDJAN4GR2ANZR2I6H6VC2LPU76MIUTAA5HYQKPY4QCBBRGHIIOSRIHXYY
+#\\\|RYDSUYZXWJJI6DMM6C7MQJMRZODHPJ6PSM4BGVKBVRXMQWO43XA \ / AMOS7 \ YOURUM ::
+#\[7]3N7SF2EMGN3E4FE7KXRVKTXV2IKCKGAFDVEX27ZNNJWRGGZBH4DY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

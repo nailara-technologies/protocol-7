@@ -33,9 +33,20 @@ my $mmproj_path = $params->{'mmproj_path'} // '';
 
 ## cancel watchers, close fds, and kill old server before spawning new one ##
 my $old = <coding.inference_servers>->{$backend} // {};
-for my $w_key (qw| watcher_stdout watcher_stderr |) {
+<coding.watcher_pair> //= {};
+for my $w_key (
+    qw| watcher_stdout watcher_stderr
+    watcher_drain_stdout watcher_drain_stderr |
+) {
     my $w = $old->{$w_key};
-    $w->cancel() if defined $w && $w->is_active();
+    next unless defined $w;
+    ## remove from watcher_pair BEFORE cancelling — if the old server's
+    ## "ready" event was already queued, cancel_watcher.backend_monitor
+    ## will fire after this and find no pair entry, returning early
+    ## (prevents drain watchers being set up on B's reused fd numbers) ##
+    my $paired = delete <coding.watcher_pair>->{$w};
+    delete <coding.watcher_pair>->{$paired} if defined $paired;
+    $w->cancel()                            if $w->is_active();
 }
 for my $fh_key (qw| io_stdout io_stderr |) {
     my $fh = $old->{$fh_key};
@@ -219,38 +230,48 @@ push @cmd, qw| --log-disable --log-file /dev/null |;
 
 # Add context and other parameters
 ## context and generation limits from config ##
-my $max_tokens = <inference.model.max_tokens> // 4096;
+## max_tokens defaults to context_length when not set separately ##
+my $max_tokens = <inference.model.max_tokens>
+    // <inference.model.context_length> // 4096;
 
-## determine context size: explicit config wins, otherwise auto-calculate from VRAM ##
+## context size: auto-calculated from VRAM, with configured value as a floor ##
+## configured acts as a minimum — smaller models may safely allow more context ##
+my $safe = <[coding.helper.calculate_safe_context]>->(
+    {   model_path  => $model_path,
+        mmproj_path => $mmproj_path,
+        backend     => $backend,
+    }
+);
+my $auto_ctx = $safe->{'context_length'};
 my $ctx_size;
 if ( defined <inference.model.context_length> ) {
-    $ctx_size = <inference.model.context_length>;
-    ## validate against safe maximum ##
-    my $safe = <[coding.helper.calculate_safe_context]>->(
-        {   model_path  => $model_path,
-            mmproj_path => $mmproj_path,
-            backend     => $backend,
-        }
-    );
-    if ( $ctx_size > $safe->{'context_length'} ) {
+    my $configured = <inference.model.context_length>;
+    if ( $auto_ctx > $configured ) {
+        ## smaller model: auto-calc gives more context than configured floor ##
+        $ctx_size = $auto_ctx;
         <[base.logs]>->(
-            0,
-            '[spawn_inference_server] WARNING: configured context=%d '
-                . 'exceeds safe maximum=%d [%s]',
+            1,
+            '[spawn_inference_server] context expanded to %d'
+                . ' [auto > configured floor %d] [%s]',
             $ctx_size,
-            $safe->{'context_length'},
+            $configured,
             $safe->{'explanation'}
         );
+    } else {
+        ## large model: use configured floor even if above safe auto-calc ##
+        $ctx_size = $configured;
+        if ( $configured > $auto_ctx ) {
+            <[base.logs]>->(
+                1,
+                '[spawn_inference_server] context set to configured %d'
+                    . ' [above auto-calc %d — user override]',
+                $configured,
+                $auto_ctx
+            );
+        }
     }
 } else {
-    ## auto-calculate safe context from available GPU memory ##
-    my $safe = <[coding.helper.calculate_safe_context]>->(
-        {   model_path  => $model_path,
-            mmproj_path => $mmproj_path,
-            backend     => $backend,
-        }
-    );
-    $ctx_size = $safe->{'context_length'};
+    $ctx_size = $auto_ctx;
     <[base.logs]>->(
         1,
         '[spawn_inference_server] auto-context: %s',
@@ -399,8 +420,8 @@ return {
     'port'    => $port
 };
 
-#,,.,,,,.,,..,..,,,,,,.,,,.,,,...,..,,,,.,...,..,,...,.,,,...,...,.,.,,,,,,,.,
-#GK4PZJ7HGZ54OGUCUK7FNRWMTSGH6KG7RFMVKNZRFALJHOEDRWQFLHVPVMRGKHTAPNXK2F373X4J6
-#\\\|DCDPAILL2HI7DOZ3VDH6FEZXI57HUTRVWMCF673HTNEPVESHXRV \ / AMOS7 \ YOURUM ::
-#\[7]X4EZNOQMT3VHE77CFSS2XQFU2RBLR47BWASWWIUHAKWKB5Z754BQ 7  DATA SIGNATURE ::
+#,,,,,..,,.,.,...,,..,,,,,,..,.,.,..,,..,,,..,..,,...,..,,..,,...,.,.,.,,,.,.,
+#RXPIFLQ3SYKR44LLRKYVTOZNYABREXU4F3OUW3LYJY3VZKSYUNMV4SXMOB7O2ZF6PJIWNAG2TH4LE
+#\\\|CTIEZCTI6F3O5UZQPJVDFSL25Z7VLQSPKQ473ACSMBJRXVESVDU \ / AMOS7 \ YOURUM ::
+#\[7]SN3JH6BU2NG4VITWPKTLX24QZMTNSYSPKMNSSDN5BHLKKT7M3OBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

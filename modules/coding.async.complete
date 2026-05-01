@@ -33,10 +33,13 @@ if ( length $backend ) {
     }
 }
 
-## save message history before cleanup — needed for task-append resumption ##
+## save conversation state before cleanup — needed for task-append resumption ##
 my $task_rec = <coding.task.queue>->{$task_id};
-if ( defined $task_rec && defined $state->{'messages'} ) {
-    $task_rec->{'execution'}->{'messages'} = $state->{'messages'};
+if ( defined $task_rec ) {
+    $task_rec->{'execution'}->{'messages'} = $state->{'messages'}
+        if defined $state->{'messages'};
+    $task_rec->{'execution'}->{'tools'} = $state->{'tools'}
+        if defined $state->{'tools'};
 }
 
 ## clean up async state ##
@@ -105,8 +108,28 @@ if ( defined $result && $result->{'success'} ) {
     <[jobqueue.move_job]>->( $job_id, 'error' )
         if defined $job_id;
 
-    ## fail the task ##
-    <[coding.task.fail]>->( $task_id, $error_msg );
+    ## mark task failed and remove from active/pending lists ##
+    ## coding.task.fail has a P7 data-path bug, so we inline this ##
+    my $task_obj_fail = <coding.task.queue>->{$task_id};
+    if ( defined $task_obj_fail ) {
+        $task_obj_fail->{'execution'}->{'status'}    = qw| failed |;
+        $task_obj_fail->{'execution'}->{'error'}     = $error_msg;
+        $task_obj_fail->{'execution'}->{'failed_at'} = <[base.time]>->(3);
+    }
+    my $aref_pending_f = <coding.task.pending> // [];
+    my $aref_active_f  = <coding.task.active>  // [];
+    $aref_pending_f->@* = grep { $ARG ne $task_id } $aref_pending_f->@*;
+    $aref_active_f->@*  = grep { $ARG ne $task_id } $aref_active_f->@*;
+
+    ## fire any deferred reply waiting on this task (ask-reply, etc.) ##
+    my $deferred_replies = $data{'coding'}{'deferred_replies'} // {};
+    for my $did ( keys %{$deferred_replies} ) {
+        my $dr = $deferred_replies->{$did};
+        if ( defined $dr && ( $dr->{'task_id'} // '' ) eq $task_id ) {
+            <[coding.handler.deferred_reply]>->($did);
+            last;
+        }
+    }
 
     ## notify parent if this task is a subtask ##
     my $parent_id_fail = <coding.task.parent>->{$task_id};
@@ -148,8 +171,8 @@ if ( defined $result && $result->{'success'} ) {
     return { success => FALSE, error => $error_msg, task_id => $task_id };
 }
 
-#,,,,,,..,.,.,,,,,,,.,.,,,...,,.,,.,,,..,,,.,,.,.,...,...,...,..,,..,,.,.,..,,
-#2FQRYG3BQ4LCJNVCSSHIAVOXEFR7FF4NIG3ZEBCFL35JKIYMMIFLYNLE5ETJX2YXGPBGRKWIVFCGY
-#\\\|P36MCAVSAKWDIRTYF6SC67SGGHCRXCRJWXFFWIL2BNRY5R3XIRL \ / AMOS7 \ YOURUM ::
-#\[7]LDWUACHIB6WR4VDZ3H3A4NDAKCAW5CD6APKTI4BDBRPK2UVASOAA 7  DATA SIGNATURE ::
+#,,,,,..,,,,,,,,,,,..,,,.,,,.,,,.,,..,.,.,,,,,.,.,...,...,,.,,..,,,.,,,..,.,,,
+#O57Z47U4DHCTCFMHMJ2AFXEGZ33OOR5KW6AF6LLSREVUQ2DJ7PDBQFLZLN6RVT4KFAQGMWDU4POZA
+#\\\|TM2JICSBDKHNCS3SZZZQ2YCEZGX3GSBA4C4LX2VQLYY74BW3RPM \ / AMOS7 \ YOURUM ::
+#\[7]XXA2UONFSHFH5L4XDOSKE3XYQWSB4Q4VTQMNA4GQQWAVYFW24GAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

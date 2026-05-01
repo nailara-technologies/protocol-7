@@ -8,14 +8,39 @@
 
 my $event = shift;
 
-my $fh = eval { $event->w->fd };
+my $watcher = eval { $event->w };
+my $fh      = eval { $watcher->fd };
 return unless defined $fh;
+
+## precheck: avoid Perl warning on closed filehandle ##
+unless ( defined fileno($fh) ) {
+    $watcher->cancel if defined $watcher;
+    <[base.logs]>->( 2, "drain_pipe: pipe closed, watcher cancelled" );
+    return;
+}
 
 my $buf   = '';
 my $total = 0;
 while (1) {
     my $n = sysread( $fh, $buf, 4096 );
-    last unless defined $n and $n > 0;
+
+    if ( !defined $n ) {
+        ## EBADF/EINVAL: FD closed between precheck and read ##
+        if ( $! == 9 or $! == 22 ) {
+            $watcher->cancel if defined $watcher;
+            <[base.logs]>
+                ->( 2, "drain_pipe: pipe closed, watcher cancelled" );
+        }
+        last;
+    }
+
+    if ( $n == 0 ) {
+        ## EOF — server closed its write end ##
+        $watcher->cancel if defined $watcher;
+        <[base.logs]>->( 2, "drain_pipe: pipe EOF, watcher cancelled" );
+        last;
+    }
+
     $total += $n;
 }
 
@@ -26,8 +51,8 @@ if ( $total > 0 ) {
     );
 }
 
-#,,,.,,,.,.,,,,.,,...,,..,..,,,..,,,.,,..,.,,,..,,...,...,,,.,..,,.,,,.,,,,.,,
-#DNCJ3W4S35KKNTRBVNZQ7FOMUHZEMPAFPXISQQEOTRFAMHWIMOSKKMRWTOIMODANRFPRZMX6SXDS2
-#\\\|EFARHIQLDKNC2BPWHOYG6JV37P7WYTXHRV665YD7JTCM6AWHEYH \ / AMOS7 \ YOURUM ::
-#\[7]EKP3DLJIRAVIVKWDUGOVZMUDGDYW5O3KYN5GPED2AIJIKYLKHGDY 7  DATA SIGNATURE ::
+#,,,.,,..,,..,,.,,,.,,,,.,,,,,.,.,..,,.,.,,,.,..,,...,..,,,.,,,..,,.,,.,,,,,,,
+#JLYPQIDJEKTYK5TWOB7FZVDZEELOFPDHFOORATRMRWLDFMSW4X2CFWM3HCLXMQKOAMTNEIOSIG6NY
+#\\\|XU5OWT6QVPJAVVD5K7FGJ6O47JYBEMNT3ZSIUEBWQ3AGAS334IL \ / AMOS7 \ YOURUM ::
+#\[7]ZCOH3ZJSMJE6JDK66ZKSTACW3OX7BLW5YGW4RYQ3XZASGEFHCEAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
