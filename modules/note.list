@@ -60,15 +60,16 @@ for my $task_dir (@task_dirs) {
 }
 
 ## sort by creation time, newest first ##
-@results = sort { $b->{'created'} <=> $a->{'created'} } @results;
+@results
+    = sort { ( $b->{'created'} // 0 ) <=> ( $a->{'created'} // 0 ) } @results;
 
 return {
     'mode' => qw| true |,
     'data' => \@results,
 };
 
-#,,..,..,,..,,,.,,..,,.,,,.,,,..,,,..,,,,,.,,,.,.,...,...,.,.,.,.,.,.,,,,,,.,,
-#PE2MISZ7KLSJOJQHMIWQJWTYPLNRW5RYBBFZJSMA6EX6QYNVBMJVIXSEVYVDT3KTHOYANA2WHB7WE
-#\\\|6N5HVOUZO7T234DLPSKDMXQRUSBZWEOVP4QI7XYKJRRA7FPGVAX \ / AMOS7 \ YOURUM ::
-#\[7]SERCFB2BW4ZLEZXL4CZF3RFFDNG3DD2EQ3SSMCEFCDF47Z3UXUCY 7  DATA SIGNATURE ::
+#,,..,...,,,.,.,.,...,,..,.,.,,,.,,..,,,,,..,,.,.,...,...,.,,,...,,.,,,..,,,.,
+#2CHSHWATEQQHROZLEIKGPXGORN3WQUQ243KBWRKGLPPAI7N4UB4I4LOL2UAJ7IX5IGZYXVHLLD2O2
+#\\\|DKWENXU6PAIDE6VLDSFEE27IOC5SLKF7CZZVO4M5WB7I4N2RSNX \ / AMOS7 \ YOURUM ::
+#\[7]YKPL2LWZIYNZOOXV5OPG27SZRHPSQ34N3W2P6DMJOGX3NNRHA2AQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

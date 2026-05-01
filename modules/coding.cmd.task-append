@@ -76,12 +76,24 @@ if ( $status eq qw| completed | or $status eq qw| failed | ) {
     ## rebuild async state for the resumed conversation ##
     my $prev_backend = $task->{'execution'}->{'backend'} // 'gpu';
     my $prev_round = scalar( @{$saved_messages} );  ## rough round estimate ##
+    my $prev_tools = $task->{'execution'}->{'tools'} // [];
+
+    ## if tools weren't saved (pre-fix completions), re-assemble them now ##
+    if ( !@{$prev_tools} && exists $code{'coding.tools.definitions'} ) {
+        $prev_tools = $code{'coding.tools.definitions'}->() // [];
+        <[base.logs]>->(
+            1,
+            "task-append : reassembled %d tools for %s",
+            scalar @{$prev_tools}, $task_id
+        );
+    }
 
     <coding.async.task_state>->{$task_id} = {
         'state'    => qw| streaming |,
         'backend'  => $prev_backend,
         'round'    => $prev_round,
         'messages' => \@resume_messages,
+        'tools'    => $prev_tools,
     };
 
     ## restore task to active state ##
@@ -114,8 +126,8 @@ return {
     'data' => "cannot append to task $task_id [status:$status]"
 };
 
-#,,,,,,,.,...,.,,,.,,,...,,.,,..,,.,,,,.,,,,.,..,,...,...,..,,..,,...,,..,,,,,
-#UZN62Q7UXMQAJ6RPRLE5YLROKJ4LC346VY7VKDDEMDSOZNVDPHRUL2YMX453GX7LW7KZD4SFMG7DG
-#\\\|MMK4O4TCGHJP4M5ISR6ITPE2YWS3OCRYO4LUGG3CEZCW7UGAK47 \ / AMOS7 \ YOURUM ::
-#\[7]EJ27KNARHVSIHTQR624BGVFIBCBRDL7H6ZUFWUCZWEIFOUOSIADY 7  DATA SIGNATURE ::
+#,,..,,..,..,,.,.,...,,.,,,,,,,,,,.,,,,..,.,.,..,,...,...,,,.,,,,,,,.,,..,...,
+#MJ3VGPBJ3TNTGHFS7ZC4K2JCD5G4Z6ZWOTQYH6H7TKJFHYNOTTD6BH2UVHWAZUWCIYMXGPKKJG43Q
+#\\\|L2K4UP5PU4I6D7GJPXYRZWTPHETRMIJQBENKJYCQWPABW55PTN5 \ / AMOS7 \ YOURUM ::
+#\[7]PUHY7TUPJJN623KCCI7LLXXWW3GTH7UVSNYD64ZJ2AWZFJW75QAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

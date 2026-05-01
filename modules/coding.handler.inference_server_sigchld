@@ -14,6 +14,10 @@ my $exit_status = $signal_data->{'params'}{'exit_status'}
 ## skip if no child pid (spurious signal) ##
 return unless $child_pid > 0;
 
+## always reap the child to prevent zombies, even if we don't recognize
+## the PID (e.g. old server killed mid-startup before being replaced)  ##
+POSIX::waitpid( $child_pid, POSIX::WNOHANG() );
+
 my $servers = <coding.inference_servers> // {};
 
 ## check if this was an inference server process ##
@@ -76,8 +80,8 @@ for my $backend (qw| gpu cpu |) {
     }
 }
 
-#,,,,,,,.,,,.,,.,,,,.,.,.,.,,,,.,,,,,,..,,.,,,..,,...,..,,,.,,...,,,,,..,,,.,,
-#B53YI5QYLA7DOMHIRSXNPMOGQYKJSPG42JAA7YLLNYPWMCNO4VJVQN7UK3NNNEUAXLDL5OFEPZ656
-#\\\|SY3V5T3GL5CDKA4ANTUOR5ZYN37IW437LM5WN4V6EOJRP4SPYMI \ / AMOS7 \ YOURUM ::
-#\[7]GF6JUPEUW77IGH3TCZXH6LUWHF5GZAL6GORPMK7NJWH2ZDZIKGBY 7  DATA SIGNATURE ::
+#,,..,...,,,,,,,,,,..,..,,,,.,,..,...,,..,.,.,..,,...,...,.,.,.,.,,..,,..,,..,
+#RNOSFE2UKLHW6FCTKDUI3TQIJHZKGNUAKZJDE2Q3HF7XO4LWYTQ5KDKFYXRLNOC2PWF4L3OAEBC7U
+#\\\|JHKQA4FL654FEFD74PKGLPQ6WHBZCHVTAPD324PUKKTRHADHEX2 \ / AMOS7 \ YOURUM ::
+#\[7]3KY62EUVLDRF6RCIDJ5RR3TEKFYCTN5CBL6QW4C4SZYDCIDYJECY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -4,6 +4,8 @@
 [load_config_file:'shared-params']
 [zenka.load_sub_list]
 
+[base.white-list.register:'coding.handler']
+
 access.cmd.usr.cube = commands heart reload verify-instance list show-buffer \
                       src-age buffer-erase buffer-erase-level budget status \
                       inference-status submit get-result analyze_and_extract \
@@ -76,13 +78,18 @@ inference.routing.fallback_on_timeout = yes  ## Try CPU if GPU times out ##
 coding.async.enabled = 1  ## Use non-blocking HTTP streaming with tool execution loop ##
 
 ## Model Configuration ##
-## Context length: auto-calculated from GPU VRAM if not set (range 7777-77777) ##
-## Set explicitly only if you want to override the safe auto-detection ##
+## Context length: floor value — auto-calculated from VRAM, but never below this ##
+## smaller models expand above this automatically; large models use this as a min ##
 ## inference.model.context_length = 63000  ## doubled for multi-round tool sessions ##
-inference.model.context_length = 13500
-inference.model.max_tokens  = 13500
+inference.model.context_length = 17777
+## inference.model.max_tokens = 17777  ## defaults to context_length if unset
 inference.model.temperature = 0.7
 inference.model.seed = 0  ## 0 = harmonic seed from ntime+fortuna, >0 = fixed ##
+
+## VRAM safety margin for context auto-calculation (calculate_safe_context) ##
+## safety = 30% of remaining VRAM, clamped to [min, max]                   ##
+coding.cfg.vram_safety_min_mb = 512   ## lower to allow larger context windows ##
+coding.cfg.vram_safety_max_mb = 3072  ## cap to reserve VRAM for other use     ##
 
 ## Default model AMOS checksum [ resolved from models zenka during init ] ##
 ##
@@ -116,8 +123,8 @@ plugins.load = plugin.storage.inference plugin.storage.util.inference
 
 [zenka.loop]
 
-#,,.,,,,,,...,,,.,,,.,..,,.,,,.,,,.,.,.,,,,..,.,.,...,...,...,,.,,,..,.,.,..,,
-#L42TSYIDNY4HEKARP2NJ75VDOFPMFOW36LK4HGRYFCOOG6BPUCWIVPYX2SUGTFD7BD6NPGSWAG2QM
-#\\\|VAITBOQ446R3ASAT4BUDHXP57NKGEHO2L3IRRG25ZUC2JVJMBIS \ / AMOS7 \ YOURUM ::
-#\[7]TQCW7KCK54KSS5FLSOUL3YN3QIF3R2P5CJFBYTNWJ6M3KV463KCA 7  DATA SIGNATURE ::
+#,,.,,,.,,,.,,.,.,,,,,,,.,,,.,...,,,.,..,,.,.,.,.,...,...,..,,...,...,,.,,..,,
+#3B4FL6F4TWFVYTFDV4NWZBUKS6M4TXZ7AQGPF3655L22NM73MB5AOS75OKLPZVRWEETJZJLRHWVIS
+#\\\|EUSKTWWW4SMDJYKFFBP7M63FC7ZEYHYX3CQDLSV3R4BI3CFBCNM \ / AMOS7 \ YOURUM ::
+#\[7]ET4RKXZXGJULXRTY3MF2FNOZXWDPCLDLG6N6CO3BKQ6DGW4NY4BA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

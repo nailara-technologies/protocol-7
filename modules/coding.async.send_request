@@ -97,8 +97,9 @@ my $tools = $state->{'tools'} // [];
 );
 
 ## get inference parameters (matching blocking version) ##
-my $max_tokens_cfg = <inference.model.max_tokens>  // 7777;
-my $temperature    = <inference.model.temperature> // 0.7;
+my $max_tokens_cfg = <inference.model.max_tokens>
+    // <inference.model.context_length> // 7777;
+my $temperature = <inference.model.temperature> // 0.7;
 
 ## cap max_tokens to avoid KV cache overflow [ context + max_tokens must fit in server n_ctx ] ##
 ## n_ctx is stored in inference_servers when the backend was spawned ##
@@ -117,7 +118,22 @@ my $body_chars_pre      = length(
 my $est_tokens_pre  = int( $body_chars_pre / $chars_per_token_pre );
 my $headroom        = 500;    ## tokens reserved for generation overhead ##
 my $max_tokens_safe = $n_ctx - $est_tokens_pre - $headroom;
-$max_tokens_safe = 200 if $max_tokens_safe < 200;    ## floor ##
+
+## context overflow: ctx_est exceeds n_ctx — inject a user-visible error
+## message so the model can acknowledge and the task fails cleanly,
+## rather than silently producing a 200-token stub completion          ##
+if ( $max_tokens_safe < 1000 ) {
+    my $overflow = $est_tokens_pre - $n_ctx;
+    my $err
+        = sprintf(
+        'context overflow: estimated %d tokens exceeds n_ctx=%d by %d'
+            . ' — reduce tool output size or use a larger context window',
+        $est_tokens_pre, $n_ctx, $overflow > 0 ? $overflow : 0 );
+    <[base.logs]>->( 0, "send_request: %s for %s", $err, $task_id );
+    <[coding.async.fail_task]>->( $task_id, $err );
+    return { success => FALSE, error => $err };
+}
+
 my $max_tokens
     = $max_tokens_cfg < $max_tokens_safe ? $max_tokens_cfg : $max_tokens_safe;
 
@@ -126,6 +142,30 @@ if ( $max_tokens < $max_tokens_cfg ) {
         1, "send_request: max_tokens capped %d→%d [n_ctx=%d ctx_est=%d]",
         $max_tokens_cfg, $max_tokens, $n_ctx, $est_tokens_pre
     );
+
+    ## when severely capped, inject a warning so the model adapts its strategy ##
+    ## rather than silently generating truncated tool call arguments             ##
+    if ( $max_tokens < 3000 ) {
+        push @{ $state->{'messages'} },
+            {
+            'role'    => 'user',
+            'content' => sprintf(
+                '[CONTEXT PRESSURE: only %d tokens available for generation'
+                    . ' — context is %d%% full. Use shorter responses, break'
+                    . ' large writes into smaller chunks, or summarize instead'
+                    . ' of writing verbatim content.]',
+                $max_tokens, int( $est_tokens_pre * 100 / $n_ctx )
+            ),
+            };
+        ## refresh messages after injection ##
+        @messages = @{ $state->{'messages'} // [] };
+        <[base.logs]>->(
+            1,
+            "send_request: context pressure warning injected for %s [%d tokens left]",
+            $task_id,
+            $max_tokens
+        );
+    }
 }
 
 my $request_body = {
@@ -146,7 +186,7 @@ if (@$tools) {
 }
 
 ## estimate context usage and log CTX% ##
-my $context_limit   = <inference.model.context_length> // 16384;
+my $context_limit   = $n_ctx;    ## actual server context window ##
 my $chars_per_token = 3.2;
 my $body_chars      = length( JSON::PP->new->utf8->encode( \@messages ) );
 my $est_tokens      = int( $body_chars / $chars_per_token );
@@ -190,8 +230,8 @@ if (@messages) {
 return
     <[coding.async.request]>->( $task_id, $request_body, $state->{'job_id'} );
 
-#,,,.,...,.,,,...,.,.,..,,,..,.,,,.,,,,..,,,,,..,,...,...,...,,,.,,..,,..,,,,,
-#3S7NCXFVLB3TBJHEUMOOH4BBVWAXEKGVZN4XANDZCF6RSVGHEI4H2N4S3OXNMIL3LPJ4DAPRFYEZE
-#\\\|7Z7YOIEAFAZ2BLJV474EA6K5OUZRG3IYPFT4HWS7DPN2UOMYAZL \ / AMOS7 \ YOURUM ::
-#\[7]42HOZJ7AG3UAD3BCNDGQUU3JCKJQIHZJYUQJNXLNS5LNL6ZOHIAA 7  DATA SIGNATURE ::
+#,,.,,,..,,.,,,..,,..,...,.,.,,.,,,,,,...,.,,,..,,...,...,,,,,.,,,...,,,,,.,,,
+#R34UVWW44WFULYUDXL7UCXMWYLSXO5AJXNJS3G2ZCK537XPO4K5AAOICRQFZSMRUJKUM6VZDLTKDI
+#\\\|HCIMPTXIIOI4D2YC6VJENUMJXXRBOOGHSYJ2UCU7JAMAW4QD7BO \ / AMOS7 \ YOURUM ::
+#\[7]7RI7CUJBC6I6Z6WEETP5EXJW3GRBIHQLGS2UHLS3IVRHTWOZXKDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

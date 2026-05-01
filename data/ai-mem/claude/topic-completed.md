@@ -1,5 +1,34 @@
 # Completed Work Sessions
 
+## session 7 — coding zenka stability: spawning, subtasks, context, loops (May 1 2026)
+
+### Spawning fixes
+- `spawn_inference_server`: centralized `spawning_in_progress` guard (TRUE/FALSE) covering ALL call paths (crash-restart, timeout-recovery, model_path_reply, deferred timer) — was only in `async_spawn_inference_servers` which missed direct callers
+- Stale-port kill race: `@killed_stale_pids` tracked from fuser scan, skipped in foreign-process pgrep check
+- Pipe drain: `cancel_watcher.backend_monitor` replaces startup watchers with drain watchers (stored as `watcher_drain_stdout/stderr` in inference_servers hash); `spawn_inference_server` cancels drain watchers on respawn; `drain_pipe` precheck `fileno()` before sysread to avoid Perl warning; drain watcher self-cancels on EOF/EBADF
+- Context auto-scaling: `inference.model.context_length` is now a **floor**, not a fixed value — servers use `max(auto_calc, configured_floor)` so small models get more context automatically
+- `vram_safety_min_mb`/`vram_safety_max_mb` configurable in start file (defaults 512/3072)
+- `max_tokens` defaults to `context_length` when not set separately (one config value)
+
+### Task management
+- `task-append`: new command to append user message to any task regardless of state; completed/failed tasks are resumed with full message history + tools restored (tools re-assembled from `coding.tools.definitions` if not saved)
+- `coding.async.complete`: saves `messages` + `tools` to task record before state cleanup (enables task-append resumption)
+- `coding.async.complete` fail path: inlines task status update (bypasses buggy `coding.task.fail`), removes from active list, fires deferred reply so `ask-reply` unblocks on failure
+
+### Context/compaction
+- `send_request`, `compact_context`: use actual server `n_ctx` from `inference_servers->{'n_ctx'}` instead of configured `context_length` — compaction threshold and overflow check now scale with model
+- Context overflow: clean fail with error message instead of 200-token silent stub
+- Context pressure warning: when `max_tokens < 3000`, inject `[CONTEXT PRESSURE]` user message so model can adapt strategy (break into chunks, shorter writes)
+
+### Loop detection
+- `stuck_retry` pattern: weight threshold removed — any tool called 3× in a row is a stuck loop (`allow_polling: 0`, no assertion)
+- `model_output` buffer: always written even when model produces no text (shows `[tool call — no reasoning text]`), so `show-buffer model_output` always works
+- Loop assertion interception: when `loop_assertion_pending` flag is set, `finish_stop` intercepts the model's assertion answer instead of completing the task; processes it through detect_loop assertion phase, injects "please continue" message, re-enqueues round
+- **Open**: `loop_detect_count` is still global/zenka-wide — should be per-task in `$state`
+
+### Config cleanup
+- VRAM safety, context floor, max_tokens, and vram_safety_min/max all grouped in start file model configuration section
+
 ## session 6 — coding zenka improvements + cursor address wiring (Apr 27 2026)
 
 ### chk-sum namespace fix (systematic)
@@ -268,8 +297,8 @@ zenki-create/zenki-feature-port/footer-cleanup templates added.
 - philosophy: ETERNAL-TEMPLATE-KITTEN.md (deduplication tree crystallizes truth, kitten as template process)
 - Commits: 98743c227 through 30bbd31b4 + fe3d3a295
 
-#,,,.,.,,,.,,,.,.,,.,,..,,.,.,.,,,,.,,.,,,,.,,..,,...,...,...,.,.,,..,,,.,,.,,
-#JXWKF3Q4ZI3IDNOQKWS26KA35CRGI24RU4YHH4IDQKZSRP4TVLGYC4BPOR6XTUCA4266PYCUUNPV2
-#\\\|GTYPEPKX67MRGEPPILUABWJJW457OZFVT7RBHHOVFIODNEH3LVP \ / AMOS7 \ YOURUM ::
-#\[7]6Z5NTDH6T3HS3SPIFGGX5QVTPVY63Q2QJCH2ULNCCASFQ6TOYOBQ 7  DATA SIGNATURE ::
+#,,.,,.,.,,.,,..,,.,,,.,,,...,...,,.,,,.,,...,..,,...,...,.,,,..,,,,,,..,,..,,
+#XHSYCMWE2VLSMDLWBLAI6VSQLO6D4IC6WJME4ZXTJPJ6AB6JEU7J7WL6TNDD3U3K5QRFJRBMSSPA6
+#\\\|FVMCEI2QB74BSKY5VJTIM6UXMTKLIKRH4N2HZ3UCXAKZZDYWOOV \ / AMOS7 \ YOURUM ::
+#\[7]KQRO6U43MFZSLROFXPD7RCOEWV4M726UOK5FKJIOCST7W55RLQDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
