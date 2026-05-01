@@ -55,6 +55,20 @@ for my $staged_name (@files) {
         next;
     }
 
+    ## create parent directory via chmod child if it doesn't exist ##
+    my $src_dir = $src_path;
+    $src_dir =~ s|/[^/]+$||;
+    if ( !-d $src_dir ) {
+        if ( defined $chmod_fh ) {
+            print {$chmod_fh} "mkdir $src_dir\n";
+            select undef, undef, undef, 0.05;    ## yield for child ##
+        } else {
+            <[file.make_path]>->($src_dir);
+        }
+        <[base.logs]>->( 1, "apply-staged: created directory %s", $src_dir )
+            if -d $src_dir;
+    }
+
     ## request group-write via privileged chmod child if needed ##
     my $mode_restore;
     if ( defined $chmod_fh and -f $src_path and not -w $src_path ) {
@@ -102,8 +116,8 @@ $output .= sprintf "\n## %d applied, %d skipped ##\n", $applied, $skipped;
 
 return { 'mode' => qw| size |, 'data' => $output };
 
-#,,,.,.,,,,,,,...,.,.,.,,,..,,..,,,,.,.,,,,,.,..,,...,...,...,,,.,.,,,...,.,.,
-#Q47C6T2T6MA5UBB6HP3UVTO4HAMGAHD6QV6HCCFLQE7JXBGHROIWYWYV27LJ4HH2FLS6GNUB45YYC
-#\\\|SX4NOHPOEAI7OB54P7KUTQHWP3JXK26XXFXWHUEGKVNH7IB3C35 \ / AMOS7 \ YOURUM ::
-#\[7]DK6HAMGGE67WESIJUAMXEDUBWDI5FPYT3OWT5LEBBQTKY2ICF2AQ 7  DATA SIGNATURE ::
+#,,.,,..,,,,,,.,.,,,.,,,,,..,,,,.,.,,,..,,,..,..,,...,...,..,,..,,...,.,,,...,
+#SYGDAY6YWSWT6TLT33UOXWNQZ5657GOY7LTANUVUEQTNXQEQR5FCSF563CIIAC2H4YPRH2I6TITZW
+#\\\|AOG7M2FTXYVCFABVIAGXD6AOX3MXZWZT4YTRVSRMVKPXR6Q53LQ \ / AMOS7 \ YOURUM ::
+#\[7]BGHI5GEAXSCDGD3KV3LZIITGU6FECOV4TBPGCXUV2IQ5JDNN5IAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
