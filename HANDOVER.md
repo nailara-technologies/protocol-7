@@ -1,43 +1,69 @@
 # Session Handover — 2026-05-01
 
-## Task: Rebuild ik_llama.cpp (llama-server-cuda-fa)
+## Completed This Session
 
-### Why
-The current llama-server binary is from 2025-12. After months of upstream fixes:
-- Better VRAM management (silent KV allocation failures currently cause server hangs)
-- Flash attention improvements for long contexts
-- Possible better CUDA memory reporting (would improve calculate_safe_context accuracy)
+### llama-server rebuild (ik_llama.cpp)
+- Rebuilt to version 4447 (latest) — new Jinja PEG engine (PR #1369, Mar 9) crashes with
+  `--jinja` + tools on Qwen3.5 model (stack overflow in libc, segfault)
+- Rebuilt to version 4266 (commit `542988773`, one before the broken Jinja engine) — works
+- Binary: `/data/source/ik_llama.cpp/llama-server-cuda-fa` (symlink → `llama-server-cuda-fa-12.5.0`)
+- Repo is back on `main` branch; binary is pinned at 4266 via the build symlink
+- Config toggle added: `coding.jinja.enable = yes/no` in `configuration/zenki/coding/start`
+  (set to `yes` — 4266 handles `--jinja` + tools correctly)
+- Upstream bug: new Jinja engine crashes on Qwen3.5 tool template; multiple related issues
+  open on ik_llama.cpp (#1514, #1518 etc). Rebuild to tip when a fix lands.
 
-### Context from current sessions
-The coding zenka uses `llama-server-cuda-fa` (ik_llama.cpp fork with flash attention):
-- Binary: `/data/source/ik_llama.cpp/llama-server-cuda-fa`
-- Source: `/data/source/ik_llama.cpp/` (git repo)
-- CPU binary: `/data/source/ik_llama.cpp/llama-server-cpu`
+### Coding zenka improvements
+- `coding.async.tool_executor`: JSON repair pass (3 anti-patterns: literal whitespace in
+  strings, trailing commas, illegal backslash escapes like `\[`). On repair failure: return
+  exact parse error to model instead of dispatching with empty args.
+- `coding.sanitize.jinja_messages`: fix illegal backslash escapes in tool_call arguments
+  before sending to server (prevents Jinja crash on round retry)
+- `coding.handler.http_io`: init `$buffer = ''` to silence undef concat warning
+- `coding.spawn_inference_server`: `coding.inference.reasoning_effort` config — passes
+  `--chat-template-kwargs '{"reasoning_effort":"..."}''` to server. Set to `low` by default
+  to prevent runaway `<think>` spirals on the 4B model.
 
-Current empirical limits on RTX 3060 12GB with 4B Huihui Qwen3.5 Q8_0 + mmproj:
-- 110007 tokens context: works
-- 130007 tokens: fails silently (KV allocation failure → server hangs)
-- `calculate_safe_context` estimates too generously; actual CUDA overhead ~3000-3500MB not 1256MB
-- After rebuild, test at 120K-128K to see if upstream fixes improve the ceiling
+### Model selection
+- Tested 4 models on same benchmark task (kimi auto-approve fix):
+  - 4B Huihui Q8 (BVFPWBA): unstable, JSON errors, think spirals
+  - 4B Claude distilled v2 Q8 (SJCPFAQ): clean 3-round result, no errors, fast — **new default**
+  - 9B Q6_K (MBZAAII): correct but basic
+  - 9B Claude distilled v2 Q8 (WZIZD6Y): detailed reasoning, no 500s — available for heavy tasks
+- New default: `coding.cfg.start_model = SJCPFAQ:AGKY7YQ` in coding start
+- 9B Claude distilled v2 stays available via `p7c coding.switch-model WZIZD6Y:2BIZKWY`
 
-### Build scripts / docs
-- Main build script: `bin/build-scripts/llama-cpp/build-llama-server-cuda-flashattn.sh`
-- Flash attn build doc: `data/md/documentation/LLAMA-SERVER-BUILD-FLASHATTN.md`
-- Previous build instructions (Dec 2025): `data/yaml/build-instructions/ik_llama.cpp-cuda-debian-wsl2.yaml`
-- Dual strategy doc: `data/yaml/build-instructions/ik_llama_dual_strategy_2025-12-05.yaml`
-- Test scripts: `bin/dev/tests/ml/test-llama-server-gpu.sh`
+### kimi auto-approve race condition fix
+- `modules/kimi.handler.approval_request`: moved `auto_approve` check BEFORE session guard
+  so reconnects no longer block auto-approval. Previously queued then lost during reconnect.
 
-### Steps
-1. `cd /data/source/ik_llama.cpp && git pull`
-2. Check if CMakeLists or build flags changed
-3. Build: `cmake -B build -DLLAMA_CUDA=ON -DLLAMA_CURL=OFF ... && cmake --build build --target llama-server -j$(nproc)`
-   (or use the build script if it's still correct)
-4. Verify binary runs: `./llama-server-cuda-fa --version`
-5. Test with: `p7c coding.switch-model <amos-id>` and submit a simple task
-6. If 110K ceiling moved up, update `coding.cfg.context_max` in `configuration/zenki/coding/start`
+### nshell Ctrl+O history off-by-one
+- `modules/nshell.handler.ctrl_o_cycle`: `history_add` pushes then shifts when at max
+  capacity — all indices shift down by 1, so `search_idx` must be `cur_index` not
+  `cur_index + 1`. Fixed by detecting size change after add.
+  Result: Ctrl+O now correctly cycles through the last N entries indefinitely.
 
-### After rebuild
-- Test context sizes: 110K (known good), then 120K, 128K
-- Check if `calculate_safe_context` CUDA overhead constant needs updating
-  (`modules/coding.helper.calculate_safe_context` line ~90: `my $cuda_overhead_mb = 1256`)
-- The empirical overhead with current binary is ~3000-3500MB; new binary may differ
+## Open / Next
+
+### nshell first-command `(0)` prefix bug
+- `( echo clear ; sleep 2 ; echo close ) | p7.nshell | grep invalid` → `invalid command id syntax or length`
+- Cube receives `(0)clear\n` instead of `clear\n` on the very first command only
+- Root cause: log reply from cube (reply to nshell's startup log send) arrives in nshell's
+  session buffer before the first user command. `base.handler.command` processes it,
+  generates a protocol mismatch response via `YYOPDKA` with `cmd_id=0`, written to the
+  output buffer. First user command appends after it.
+- Earlier form: `(cmd_id)(route_id)p7-log.append...` — a fix attempt stripped it down to
+  just `(0)` but didn't fully eliminate it.
+- Documented in: `data/yaml/coding-tasks/nshell-session-protocol-tunneling.yaml`
+- Proper fix: cube raw mode + proper command ID support in nshell (large feature, VTerm
+  line session buffers). Workaround: intercept/suppress the mismatch response write to
+  output buffer before first user command.
+
+### llama-server tip rebuild
+- When ik_llama.cpp fixes the Jinja engine crash (track #1369-related issues), rebuild
+  from tip to get VRAM improvements in 4268-4447 range.
+- Toggle: set `coding.jinja.enable = yes` (already set) and rebuild with build script.
+
+### context ceiling
+- With 4B Claude distilled v2, context auto-calc gives ~110K. Check if ceiling can move
+  up now that server is stable. `coding.cfg.context_max = 110007` in coding start.
