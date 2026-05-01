@@ -61,6 +61,31 @@ If tools not saved (pre-fix tasks), re-assembles from `coding.tools.definitions`
 - `adapter.invoke.discover`: uses `system.admin-user` for InvokeAI DB path (was falling back to protocol-7 home)
 - Model `Huihui Qwen3.5 4B Claude 4.6 Opus Abliterated` Q8_0 added — vision capable, ~156K context, good for large refactoring and CPU remote servers
 
+**llama-server process group + child worker:**
+- `setpgid($pid, $pid)` after fork makes server its own process group leader
+- Group kill `kill('KILL', -$pid)` in cleanup kills parent + all forked workers
+- `coding.end_code`: kills process groups on zenka shutdown (v7 only kills registered parent)
+- `register_server_children`: exponential-backoff poll 0.7s × 1.6, cap 47s — registers worker with v7 after first request
+- Foreign process check now skips child PIDs (reads `/proc/PID/status` for PPid)
+- Root cause of "double server same seed": KV overflow → llama-server forks worker child → child inherits cmdline including --seed → looks like double spawn; foreign process check was then blocking future spawns
+
+**Context size calibration (4B Huihui Qwen3.5 Q8_0 on RTX 3060 12GB):**
+- 110007 tokens: works reliably
+- 130007 tokens: fails (KV allocation silent failure → worker fork → hanging)
+- 128K (131072): not tested after group-kill fix — worth retrying after ik_llama.cpp update
+- Empirical: only 43MB VRAM free during active inference at 110K context
+- `cuda_overhead_mb = 1256` in calculate_safe_context is too low; actual ~3000-3500MB
+  (accounts for CUDA context, FlashAttention workspace, mmproj activation buffers, WSL2 overhead)
+- `context_max = 110007` in start file currently; update after ik_llama rebuild
+
+**kimi.handler.ws_message:** 4B model attempted bugfix for auto-approval regression;
+duplicate code cleaned up; actual fix (flush_on_acquisition) still needs implementation — marked `[LLL]`
+
+**Next: rebuild ik_llama.cpp**
+Build scripts: `bin/build-scripts/llama-cpp/build-llama-server-cuda-flashattn.sh`
+Build docs: `data/md/documentation/LLAMA-SERVER-BUILD-FLASHATTN.md`
+Previous build instructions: `data/yaml/build-instructions/ik_llama.cpp-cuda-debian-wsl2.yaml`
+
 ### open items
 - `loop_detect_count` is zenka-global, not per-task — a model switching between tools
   can reset the counter; should move into `$state->{'loop_detect_count'}`
@@ -69,8 +94,8 @@ If tools not saved (pre-fix tasks), re-assembles from `coding.tools.definitions`
 - `coding.task.fail` has a P7 data-path bug at line 19 (`<coding.task.failed.queue>`);
   `async.complete` inlines the fail path instead of calling it
 
-#,,.,,,,.,,,,,,..,,,,,...,,,.,,.,,.,,,..,,.,,,..,,...,...,..,,..,,,,.,,..,.,,,
-#2VNXBBKY7PV7WTT6CWIYRIGS4QXKXZS6G7KMPUUDRXMYEUNH3FPA6XOJFFAUMSVX2TR3E65I3MEWE
-#\\\|VQYLZHIMK4YEMEM4O67MVNRRAP6JG7HD5BVZBRVCAXUPTDPF6DW \ / AMOS7 \ YOURUM ::
-#\[7]NENO5X5VQTXMEGFZ52VUZYBDAHYQMEHTV7ARV7TWXQMOYNGATMBI 7  DATA SIGNATURE ::
+#,,,.,,.,,,,.,,,,,...,..,,...,...,,..,,..,,.,,..,,...,...,...,.,,,.,,,,.,,,,.,
+#FRN5S57WDOTUNF2EF7HS7PP5Y3H2LNIKZJADJORTRNAESR72C4IFZQYIMOQLRKICHKTWQTI75SE6U
+#\\\|Q6G3UNSEOY2LUDHS5NYCX4BC7NRUAHRW2IK7EAYDNZMNHPIG4KN \ / AMOS7 \ YOURUM ::
+#\[7]DE7WIVLC2KMZC2UTR6IXRUC6IKSTFEVNUZBSRBDROKLGVLK2ZMAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
