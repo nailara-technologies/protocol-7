@@ -19,7 +19,9 @@ if ( $state->{'completed'} || !defined $state->{'sock'} ) {
 <[base.logs]>->(
     0,
     "async.http_timeout: request timed out after %d seconds",
-    <[base.time]>->(3) - $state->{'last_activity'}
+    int(<[base.time]>->(3)
+            - ( $state->{'request_start'} // $state->{'last_activity'} // 0 )
+    )
 );
 
 my $error = "Request timeout";
@@ -27,8 +29,8 @@ $callbacks->{'on_error'}->($error) if exists $callbacks->{'on_error'};
 
 <[coding.async.http_cleanup]>->($state);
 
-#,,..,,,.,.,.,...,...,.,,,,.,,,,.,,.,,.,,,.,.,.,.,...,...,,.,,.,,,.,,,,,.,,,.,
-#ZHCANHAZS7VKAILITVKYMGESPTSEEU5YQ5IFOVV2WNYGO26PUDZWYQMI62GC2WMR57GY3KDRJJ53W
-#\\\|FJMYM4WOAMWEEL7VW5Q3KIB6TC6D4LM6YJMPROZ4IBUA4HVEJVW \ / AMOS7 \ YOURUM ::
-#\[7]U44ZQAV7Z7MW5PLBWEZQVP6VZVECFQ5WIBOJ75QTYQJX7EUZBABQ 7  DATA SIGNATURE ::
+#,,.,,,.,,.,,,,..,,.,,,.,,.,,,,..,,.,,..,,,,,,.,.,...,...,..,,..,,.,.,,..,...,
+#GSIVQD5J4UKLCVFLGP4RCYXR5IHPTNQLOZTWHTTURYZEB2CDBUYGOXEWYC45CLKTRJSMGMCUT3DWE
+#\\\|OYGIVKC2X5UDKTERWRMQIZ5WBW4ZWTLK6DOHODNT7POLBAFKE54 \ / AMOS7 \ YOURUM ::
+#\[7]WZLZHF3U6ARP4TABQWN6WLC7BE74I3QQYST3IQQERZFVSRDVN6BY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

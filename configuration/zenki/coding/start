@@ -1,6 +1,8 @@
 
  .:[ protocol-7 coding zenka - GPU+CPU dual inference ]:.
 
+coding.cfg.start_model = BVFPWBA:HPXUELA ## Huihui Qwen3.5 4B Opus Abliterated ##
+
 [load_config_file:'shared-params']
 [zenka.load_sub_list]
 
@@ -63,8 +65,11 @@ inference.backend.cpu.binary = /data/source/ik_llama.cpp/llama-server-cpu
 
 ### Qwopus3.5 9B v3 ###
 ##
-inference.backend.gpu.model_id = ZDMAPAY:AR3OCKQ
-inference.backend.cpu.model_id = ZDMAPAY:AR3OCKQ
+#inference.backend.gpu.model_id = ZDMAPAY:AR3OCKQ
+#inference.backend.cpu.model_id = ZDMAPAY:AR3OCKQ
+
+inference.backend.gpu.model_id = <coding.cfg.start_model>
+inference.backend.cpu.model_id = <coding.cfg.start_model>
 
 inference.backend.cpu.threads = 8  ## Use system thread count ##
 
@@ -93,11 +98,14 @@ coding.cfg.vram_safety_max_mb = 3072  ## cap to reserve VRAM for other use     #
 
 ## context ceiling for auto-calculation — 0 = uncapped (VRAM math decides) ##
 ## code default is 131072; override here for this system                   ##
-coding.cfg.context_max = 131072
+# coding.cfg.context_max = 131072
+coding.cfg.context_max = 110007
 
 ## Default model AMOS checksum [ resolved from models zenka during init ] ##
 ##
-inference.model.amos_id = ZDMAPAY:AR3OCKQ  ## Qwopus3.5 9B v3 ##
+#inference.model.amos_id = ZDMAPAY:AR3OCKQ  ## Qwopus3.5 9B v3 ##
+
+inference.model.amos_id = <coding.cfg.start_model>
 
 inference.model.path = null  ## Resolved during init via network request ##
 
@@ -127,8 +135,8 @@ plugins.load = plugin.storage.inference plugin.storage.util.inference
 
 [zenka.loop]
 
-#,,,,,.,.,,..,,,.,,.,,..,,...,,.,,.,.,,.,,,,.,.,.,...,...,.,.,,..,,,,,.,.,,,,,
-#ZUYQPIBVHAKRHVGW556XOQYGTUDQIJMI2QFXMKXSKWCDNZFZRXEQXFLZOOBPGFJNJU5HK2FMGM24O
-#\\\|Y2KQDVTEZHX5G5J6DXNGHT3M5IPZV7F5K5HPUIZE65IK57FKYS4 \ / AMOS7 \ YOURUM ::
-#\[7]F7KU4ZI5FHVG2YJDHM6MV5DDLQDEZ5LY3FP7J4MZADXNX2YUAWAI 7  DATA SIGNATURE ::
+#,,..,.,.,,,.,..,,,,.,,,,,...,.,.,...,,..,,..,.,.,...,...,.,.,,,,,.,,,,.,,.,.,
+#REHX6QLK7NGADTBW53M4EKWP5CU6XTD46Y2SDJNZZ33ORG2WL2RFRS77D5S5BQ2B6B4BA3RIJIE6A
+#\\\|EQIDJBJ3EG25Q7V57HMQZ6U345CFYABWDQRQTUSIGFKYYSSE2ZR \ / AMOS7 \ YOURUM ::
+#\[7]L2LZXYKHNTBMCZFDSPW5DHFKXR6OUKZJTL6AXMSHFJFJPXR65IAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

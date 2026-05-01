@@ -1,0 +1,24 @@
+## [:< ##
+
+# name  = coding.end_code
+# descr = zenka shutdown cleanup — kill inference server process groups
+
+my $servers = <coding.inference_servers> // {};
+
+for my $backend ( keys %{$servers} ) {
+    my $pid = $servers->{$backend}{'pid'} // 0;
+    next unless $pid && kill( 0, $pid );
+
+    ## kill the full process group (parent + forked workers) ##
+    kill( 'KILL', -$pid );
+    <[base.logs]>->(
+        1,        "end_code: killed %s server group [pid:%d]",
+        $backend, $pid
+    );
+}
+
+#,,..,..,,..,,,,.,.,,,..,,,,.,,,,,.,.,,..,,..,..,,...,...,,,.,,..,...,,.,,,,,,
+#STTPKDHLNRIELTB37E2ZUPS7DK3LQ3KUGJLNR2WWYNQBB2QF565GJDDV6HJTW5C3BBISCMODXSGQO
+#\\\|MYA7BSXF5KU4W4ECXLN4AEM7QUW4X4NANUBU3FLV2UKHIHC2JQW \ / AMOS7 \ YOURUM ::
+#\[7]AWB67EPQX4RTR5IQPSDMTMKJ4DRTX5T4GZ6PLGZUVMVD7PGSXCDY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
