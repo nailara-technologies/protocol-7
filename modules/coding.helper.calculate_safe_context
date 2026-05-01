@@ -13,13 +13,20 @@ my $backend     = $params->{'backend'}     // qw| gpu |;
 
 ## safe operating range ##
 my $MIN_CONTEXT = 7777;    ## below this, system prompt + tools may not fit ##
-my $MAX_CONTEXT = 77777;   ## hard ceiling to prevent excessive allocation ##
 
-## For CPU backend, RAM is usually not the tight constraint ##
+## configurable ceiling — set coding.cfg.context_max in start file to cap  ##
+## smaller models; 0 = uncapped (let VRAM math decide)                     ##
+## default 131072 covers most consumer GPUs without excessive KV alloc     ##
+my $MAX_CONTEXT = <coding.cfg.context_max> // 131072;
+$MAX_CONTEXT = 0 if $MAX_CONTEXT < 0;    ## treat negative as uncapped ##
+
+## for CPU backend, RAM is usually not the tight constraint ##
+## use configured max if set, otherwise a generous default    ##
 if ( $backend ne qw| gpu | ) {
+    my $cpu_ctx = $MAX_CONTEXT || 131072;
     return {
-        context_length => $MAX_CONTEXT,
-        calculated     => $MAX_CONTEXT,
+        context_length => $cpu_ctx,
+        calculated     => $cpu_ctx,
         explanation    => 'CPU backend: using maximum context',
         limited_by     => qw| none |,
     };
@@ -124,7 +131,8 @@ my $calculated_context
 ## clamp to safe range ##
 my $final_context = $calculated_context;
 $final_context = $MIN_CONTEXT if $final_context < $MIN_CONTEXT;
-$final_context = $MAX_CONTEXT if $final_context > $MAX_CONTEXT;
+$final_context = $MAX_CONTEXT
+    if $MAX_CONTEXT && $final_context > $MAX_CONTEXT;
 
 my $limited_by
     = $final_context == $calculated_context ? qw| none |
@@ -159,8 +167,8 @@ return {
     limited_by => $limited_by,
 };
 
-#,,..,.,.,,,,,..,,,,,,,,.,.,.,,.,,...,,..,.,.,.,.,...,...,.,,,..,,,,.,.,,,,,.,
-#KRS4ARHAL5PRRRZCCR3TZDJAN4GR2ANZR2I6H6VC2LPU76MIUTAA5HYQKPY4QCBBRGHIIOSRIHXYY
-#\\\|RYDSUYZXWJJI6DMM6C7MQJMRZODHPJ6PSM4BGVKBVRXMQWO43XA \ / AMOS7 \ YOURUM ::
-#\[7]3N7SF2EMGN3E4FE7KXRVKTXV2IKCKGAFDVEX27ZNNJWRGGZBH4DY 7  DATA SIGNATURE ::
+#,,.,,,,.,,,,,,,,,..,,,,.,..,,...,..,,,..,.,,,.,.,...,...,,,.,...,...,,,.,,.,,
+#AK4JOM5DHCLHOPMP7CWQWPZIOBDPFSIOYF3T23VVLBBYO4OLTTZLZDHODQUEMMS44US4HDSTDL6MS
+#\\\|ONH4ESH6YSIIL7DEQM75G2U2VZYP75STRT4GTCQDK22I7EAJUL3 \ / AMOS7 \ YOURUM ::
+#\[7]MNI4MRJIV5GNZVO4RACTJLCGXGMEZTHNS5IRPNQVXIELNKHM3KAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

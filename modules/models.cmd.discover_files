@@ -30,16 +30,16 @@ foreach my $path_config (@$search_paths) {
     next unless $path_config->{enabled};
     next unless -d $path_config->{path};
 
-    @ARG = ( $path_config->{path}, $path_config->{recursive} );
-    my $result = <[models.storage.discover_directory]>;
+    my $result = <[models.storage.discover_directory]>->(
+        $path_config->{path}, $path_config->{recursive}
+    );
     push @discovered, @$result if $result;
 }
 
 my $discovered = \@discovered;
 
 # Populate registry with discovered models
-@ARG = ($discovered);
-my $result = <[models.registry.populate_from_discovery]>;
+my $result = <[models.registry.populate_from_discovery]>->($discovered);
 
 # Save updated registry to disk for persistence
 <[models.storage.yaml_save]>->(<models.registry>);
@@ -58,8 +58,8 @@ if (@$discovered) {
 
 return { 'mode' => qw| size |, 'data' => $reply_str };
 
-#,,..,,.,,,,.,,,.,...,,..,,,.,..,,..,,,,,,.,,,..,,...,...,..,,,,,,,,,,,,.,.,,,
-#5YJXMTS72HBGUVYNBZWRPCTDGQ7YMY2ZDRL24XXTN446NEBG55P456T7LGIZHBNBJPU3VPGPIXRJU
-#\\\|INGQMIMSW6RTIMJAY6TE272X4VUTKI5MC3SZLIWVMTZUG64GBPU \ / AMOS7 \ YOURUM ::
-#\[7]IJRN6GPLMFRT2EIPJKYQX7QWZUQ3U6URVZNDL4JG7IAWK24PEYBQ 7  DATA SIGNATURE ::
+#,,,,,.,.,,.,,...,,,,,,,,,..,,,..,.,,,,,,,,..,..,,...,...,...,,,.,,..,..,,,..,
+#UEJ7O6CLQBQ5KSGWUXCH3I7VMJ2JLTEIL2IW7NUPTGZAYNIUBJ3B3ZJRTOM4IGWWFCI3IA4BZ7UEW
+#\\\|OFUQSOOHRUV4P5H6JPQ43NJ3AWDYF4INK4LY3ULTWZGCOR67KM5 \ / AMOS7 \ YOURUM ::
+#\[7]RA2YUVK2PRN7OI6ZTZ22WO7XHP5EUR7XMHH74TJ44LHTTPXWEOCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

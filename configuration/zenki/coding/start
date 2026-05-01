@@ -91,6 +91,10 @@ inference.model.seed = 0  ## 0 = harmonic seed from ntime+fortuna, >0 = fixed ##
 coding.cfg.vram_safety_min_mb = 512   ## lower to allow larger context windows ##
 coding.cfg.vram_safety_max_mb = 3072  ## cap to reserve VRAM for other use     ##
 
+## context ceiling for auto-calculation — 0 = uncapped (VRAM math decides) ##
+## code default is 131072; override here for this system                   ##
+coding.cfg.context_max = 131072
+
 ## Default model AMOS checksum [ resolved from models zenka during init ] ##
 ##
 inference.model.amos_id = ZDMAPAY:AR3OCKQ  ## Qwopus3.5 9B v3 ##
@@ -123,8 +127,8 @@ plugins.load = plugin.storage.inference plugin.storage.util.inference
 
 [zenka.loop]
 
-#,,.,,,.,,,.,,.,.,,,,,,,.,,,.,...,,,.,..,,.,.,.,.,...,...,..,,...,...,,.,,..,,
-#3B4FL6F4TWFVYTFDV4NWZBUKS6M4TXZ7AQGPF3655L22NM73MB5AOS75OKLPZVRWEETJZJLRHWVIS
-#\\\|EUSKTWWW4SMDJYKFFBP7M63FC7ZEYHYX3CQDLSV3R4BI3CFBCNM \ / AMOS7 \ YOURUM ::
-#\[7]ET4RKXZXGJULXRTY3MF2FNOZXWDPCLDLG6N6CO3BKQ6DGW4NY4BA 7  DATA SIGNATURE ::
+#,,,,,.,.,,..,,,.,,.,,..,,...,,.,,.,.,,.,,,,.,.,.,...,...,.,.,,..,,,,,.,.,,,,,
+#ZUYQPIBVHAKRHVGW556XOQYGTUDQIJMI2QFXMKXSKWCDNZFZRXEQXFLZOOBPGFJNJU5HK2FMGM24O
+#\\\|Y2KQDVTEZHX5G5J6DXNGHT3M5IPZV7F5K5HPUIZE65IK57FKYS4 \ / AMOS7 \ YOURUM ::
+#\[7]F7KU4ZI5FHVG2YJDHM6MV5DDLQDEZ5LY3FP7J4MZADXNX2YUAWAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

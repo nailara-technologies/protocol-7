@@ -17,8 +17,13 @@ if ( !$to_line && ( $args->{'length'} // 0 ) > 0 ) {
 
 $from_line = 1 if $from_line < 1;
 
-my $path   = $args->{'path'}   // '';
-my $budget = $args->{'budget'} // 8000;
+my $path = $args->{'path'} // '';
+## default budget scales with actual server context window ##
+## 8000 chars was too small for large-context models (causes pagination loops) ##
+my $srv_n_ctx = ( <coding.inference_servers> // {} )->{'gpu'}->{'n_ctx'}
+    // <inference.model.context_length> // 16384;
+my $default_budget = $srv_n_ctx > 30000 ? 32000 : 8000;
+my $budget         = $args->{'budget'} // $default_budget;
 
 my $result = $code{'context.file'}->(
     {   'path'      => $path,
@@ -71,8 +76,8 @@ if ( defined $result && $total_lines > 0 ) {
 
 return $result;
 
-#,,,,,,..,,,,,,,,,,,,,,,.,...,.,.,,,.,,.,,.,,,..,,...,...,,,,,.,.,,.,,.,.,,..,
-#TQW6OHVDW2OM27EJMRMMRMQ4R6BJWLAOBNIZG4UQG6P5BPAV7FDAUHFG66YNNUZXRTN7BMWHZBBKG
-#\\\|WYILKF3KYMWXIUHUPFXDU732OZKBUKALTENZYRWP676OMEMGF5B \ / AMOS7 \ YOURUM ::
-#\[7]4GWMBCZ274NWS4B7UG53ALQBOXUNIHGVROKJJL2A6PDUPSVUVECI 7  DATA SIGNATURE ::
+#,,,,,.,,,...,.,,,,.,,.,,,,.,,,,,,.,.,,..,,.,,..,,...,..,,.,.,,..,,.,,,.,,..,,
+#4F4E4YRPBNCQGADVHCWQKLSSVHERBA6TAIBM3DSAXQ4MRXIYFQASMQQOERIHEW4LOP6TWOOZYQ5GA
+#\\\|RVTEXE2EACGGTJO4JZ2QDNQGC4QN7GAAQJG6VHN4B7PBDLJBSYH \ / AMOS7 \ YOURUM ::
+#\[7]USXA4R34RCI4KEN7HMH7HM65UBVOIN5H5IU5JZJU6MSOXZJE4GAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

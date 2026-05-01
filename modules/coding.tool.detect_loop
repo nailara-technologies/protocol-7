@@ -250,7 +250,13 @@ if ( $phase eq 'suspicion' ) {
         my $name = $tc->{'function'}->{'name'} // $tc->{'name'} // '?';
         my $args = $tc->{'function'}->{'arguments'} // {};
         ## include argument hash to distinguish different calls ##
+        ## args may be a JSON string (state machine encodes them) ##
         my $arg_sig = '';
+        if ( !ref $args && length $args ) {
+            ## parse JSON string to hashref for arg extraction ##
+            my $parsed = eval { JSON::PP->new->utf8(0)->decode($args) };
+            $args = $parsed if defined $parsed && ref $parsed eq qw| HASH |;
+        }
         if ( ref $args eq qw| HASH | && keys %$args ) {
             ## sort keys for consistent hashing ##
             $arg_sig = ':'
@@ -492,8 +498,8 @@ elsif ( $phase eq 'escalation' ) {
 ## Unknown phase ##
 return qw| false |;
 
-#,,.,,,..,..,,.,.,.,.,.,.,,,.,...,,.,,..,,..,,.,.,...,..,,...,,,,,,,.,..,,...,
-#ERMPRK4MV7N7ZLIXNMJS2BW7KXXVN622TKKEMGJXJ7QVF6PPLO7HJROPGADDL2BAV3CHWTY4IMKLU
-#\\\|7YVQSBKPPMPERYLSP7UA6FRQ3EF2PE7EEARCNDE336A6WNBNLDV \ / AMOS7 \ YOURUM ::
-#\[7]M6SVQPLBR7WTJ4QPIBLNE2YSWGW2AYGGTF55RALL3RPJKK535CBI 7  DATA SIGNATURE ::
+#,,,,,.,,,,,.,,..,...,..,,.,.,.,.,,,,,..,,,.,,.,.,...,...,,.,,...,,..,..,,.,,,
+#34B6ATINXH4CMPCVWI3HE6HZU6AOBEGICGCK4CMSTEBWDDMN37VEJGKBUVZTKSH5JLNQ7CJP7CDN6
+#\\\|BGWZ6CAMQ573X6FNZ2H6BPN4YH3TN3I7QJZJOEIRWPYYMI56TOT \ / AMOS7 \ YOURUM ::
+#\[7]FJEHN65KE7SIHB4T32ICP46RLH4N6ISZZDKCVIIBPPN4VQPECODQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
