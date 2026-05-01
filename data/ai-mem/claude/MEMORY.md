@@ -169,6 +169,10 @@
 - coding.inject-message discovered as mid-task redirect tool
 - insight: orbital nodes at low zoom look like planetary system — nested orbit infra already present
 
+### Planned / Future
+- **base.handler.command refactor**: plan at `data/md/development/BASE-HANDLER-COMMAND-REFACTOR-PLAN.md` — identical-behavior extraction steps, namespace map first, per-session isolation as boundary, cross-reference maps (`$data{'route'}`) as only explicit cleanup surface. Claude designs seams + namespace map; local models execute. Related to SIZE packet loss bug below.
+- **SIZE packet loss bug**: STRM interaction causes zenka to stop returning SIZE replies until an unrelated command (e.g. `heart`) is sent. No reliable reproducer yet — radio zenka group expected to trigger it. Investigate alongside or before the refactor.
+
 ### Active / Partial
 - **namespace tree as intelligence layer**: see `topic-namespace-tree-intelligence.md`
 - **deferred compilation stubs** (Mar 15): partial — deeper namespace/phase work pending
@@ -315,8 +319,8 @@
 - Pattern: `my @non_num = grep { defined $data_ref->{$ARG}->{$key} and not looks_like_number(...) } keys $data_ref->%*`
 - Global `$SIG{__WARN__}` exists — if wrapping warn handler, capture `$prev_warn = $SIG{__WARN__}` first and call through
 
-#,,,.,..,,.,.,...,...,,.,,...,,,,,,..,.,.,,..,..,,...,...,,,.,...,,..,,.,,.,,,
-#CLMENMBYPX7VAZOFRQFHFQL5J543R7LBL3IBQOLNVGI26KV5QLCIUQO66U726A3VFJDAE5NVW2YO2
-#\\\|HBHHDSXQR5M3VYESJMBID7X5MHEMG4XAT5QZF4X3DCWRC62GRJR \ / AMOS7 \ YOURUM ::
-#\[7]GCM7T67Z5GDLR65BVQPNEDNTSDWW4BA3SLUHKATYE5PLQ4HZPWDY 7  DATA SIGNATURE ::
+#,,,,,,,,,.,.,.,.,,,,,.,.,,..,,,,,,,.,,,.,.,,,..,,...,...,...,...,.,.,,..,,,.,
+#AWS64T5ISDK2KIHQ2TPKKIYGOAZLL7RSUT22TNVEAG4JR7RRAN3K2P4GLQXNJPN6ZGXLQMBPOVCR4
+#\\\|QGNA44OS2WBPECXQS6YLJWVN2G54OLG3H4776ZTTPG5OQ6CTLKH \ / AMOS7 \ YOURUM ::
+#\[7]QBZLSUJQN45WLRK7ENADXQ2NQA4CMHWH5DPN5SAYQYTSXLPUTUDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

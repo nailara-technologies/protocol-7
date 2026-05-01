@@ -64,9 +64,18 @@ if ( $cmd =~ s|^([^\.]+)\.((([^\.]+)\.)*\w[\w\d\_\-\.]*)$|$2|go ) {
         $src_name .= sprintf qw| [%s] |, <system.zenka.subname>
             if exists <system.zenka.subname>;
 
-     # [LLL]  implement [devmod] watch and filter patterns for command logging
-        if (   <system.verbosity.console> >= 2
-            or <system.verbosity.zenka_buffer> >= 2 ) {
+     # [LLL]  implement [devmod] watch and
+     # filter patterns for command logging
+
+            <log.level.cmd-offset> //= {};
+            my $llvl_offs    ## adjustable per cmd ##
+                = ( exists <log.level.cmd-offset>->{$cmd}
+                    and <log.level.cmd-offset>->{$cmd} =~ m{^[\+\_]?\d} )
+                ? <log.level.cmd-offset>->{$cmd}
+                : 0;         ## default offset 0 ##
+            ## default log level 2 for network traffic ##
+            if (   <system.verbosity.console> >= $llvl_offs
+                or <system.verbosity.zenka_buffer> >= $llvl_offs ) {
             if (
                 (      $src_name ne qw| cube |
                     or $target_name ne qw| p7-log |
@@ -84,7 +93,7 @@ if ( $cmd =~ s|^([^\.]+)\.((([^\.]+)\.)*\w[\w\d\_\-\.]*)$|$2|go ) {
                 )
             ) {
                 <[base.logs]>->(
-                    2, ':network: %s ..:. %s ..:. %s',
+                    2 + $llvl_offs, ':network: %s ..:. %s ..:. %s',
                     $src_name, $target_name, $cmd
                 );
             }
@@ -136,8 +145,8 @@ if ( $cmd =~ s|^([^\.]+)\.((([^\.]+)\.)*\w[\w\d\_\-\.]*)$|$2|go ) {
     return -2;
 }
 
-#,,.,,.,.,.,.,,,.,,..,...,,..,...,.,.,.,.,,..,..,,...,...,...,,,.,.,.,,..,.,,,
-#JIKJKUKROLRYFFUXJALMDBCU2VYPMCWJX6GUZUS7VITNMM6NWBUWVGH6JUUG7XAJKWQ5NIGS4R3ZS
-#\\\|RQZTBI4ATVTYRG2WPTF4ZM2VGGSEATBYMW4R7AW5WPFK33G7Y65 \ / AMOS7 \ YOURUM ::
-#\[7]HGB27X5LYZ7G5YSJDF7ATUUBO37G7QPBC27UCGGHLXYJAPX3VSDY 7  DATA SIGNATURE ::
+#,,..,,,.,,,,,..,,...,,.,,,,,,.,.,.,,,...,,..,..,,...,...,..,,..,,,.,,,.,,,,.,
+#JJAS5B6IAPZL44AXJRH636TYUGTPDGK2OXJ4ICLYWQK5MIOWS2SVOWI7IL5SQ54JNYVGBRFOQ6OMO
+#\\\|TKOWQLAGS2CPF6EGCLZFYS6X5ZVHCQE46SERZSW52BDHC36XVFZ \ / AMOS7 \ YOURUM ::
+#\[7]ZVFTJFWFELTIUS5BGQFLDJXC74HZDPGPK62HXKXFVZKEOVZ6SECA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
