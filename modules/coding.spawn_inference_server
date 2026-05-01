@@ -315,6 +315,13 @@ if ( <[base.cfg_bool]>->( <coding.jinja.enable> // 1 ) ) {
     push @cmd, qw| --jinja |;
 }
 
+## reasoning effort [ controls <think> budget — varies by model and task type ] ##
+my $reasoning_effort = <coding.inference.reasoning_effort> // '';
+if ( length $reasoning_effort ) {
+    push @cmd, '--chat-template-kwargs',
+        sprintf( '{"reasoning_effort":"%s"}', $reasoning_effort );
+}
+
 ## harmonic seed [ configurable fixed seed or generated from ntime+fortuna ] ##
 my $fixed_seed = <inference.model.seed> // 0;
 my $seed;
@@ -456,8 +463,8 @@ return {
     'port'    => $port
 };
 
-#,,,.,..,,...,.,,,..,,,.,,..,,..,,,,,,,..,...,..,,...,...,,,,,,,.,...,,.,,,..,
-#XVH57Y6FGY3ENKLGU773BJREIOFJ5EW3F3HWNDYSUXAWJS5AYLKNQWYJEJXETCUEQEYMCOVNORLEI
-#\\\|4LHLTNMCIGGUCTRTKMO4IUR5F4UNANNKHVSBQJMS2H56FBAN6WS \ / AMOS7 \ YOURUM ::
-#\[7]WVRBFPRVYHYV5S7NMSN66YCJEKDBDJ2FEWSFYPNNKALTU5A2U4BQ 7  DATA SIGNATURE ::
+#,,,,,.,,,,,,,.,.,.,,,,..,.,,,.,,,.,.,.,,,.,,,..,,...,...,...,,..,.,.,,,,,,,.,
+#V2QSEPSEOUWAURDZMH7ISDMBD3HRPHQEKJ3SUMYUJKEPIL6NJIXZG4CXCDKI7L75NQEMAPDU7N472
+#\\\|ZB4ULPT4WOES2HFID2W6ICOMIYVJXVU4QBYUUS5ZU2NE3EOK24Y \ / AMOS7 \ YOURUM ::
+#\[7]32MLAG5IGCMNVSI66XVLGNCEJ3D7J3MFUV4MKD3NBHAPNGABYIDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
