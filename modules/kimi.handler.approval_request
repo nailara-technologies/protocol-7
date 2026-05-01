@@ -56,15 +56,6 @@ if ( not <kimi.session.acquired> ) {
     <[base.logs]>->(
         2, ': queuing approval [ %s ] — session not yet acquired', $request_id
     );
-    <kimi.approval.pending> //= {};
-    <kimi.approval.pending>->{$request_id} = {
-        'request_id'  => $request_id,
-        'tool_call'   => $tool_call,
-        'sender'      => $sender,
-        'action'      => $action,
-        'description' => $description,
-        'received_at' => <[base.time]>->(3)
-    };
     return;
 }
 
@@ -104,8 +95,8 @@ sub flush_on_acquisition {
 
 return;
 
-#,,,,,,,,,,..,.,,,,..,,,.,,,,,,,.,,.,,,..,.,.,.,.,...,...,,.,,,..,..,,.,.,,..,
-#ZUA3VPBUR4SLJYGJD54UXTMDXDM655O3DT536VLCBCSZO7CJMODRK2J2ZE5H257ZJGOJERBZ7ALO6
-#\\\|6XFMGXCSWXF5P637ZDNKXXOSF3YPSYADUAUNKXYOSJ3THRCKB3U \ / AMOS7 \ YOURUM ::
-#\[7]OJTQLXWHAIHQFSIR5O7W7FQMC5XIONR4V2LOEBLTFIMEPZ6MNKCY 7  DATA SIGNATURE ::
+#,,.,,.,,,,.,,.,.,.,.,..,,.,.,.,.,,.,,..,,..,,.,.,...,...,...,,..,..,,...,,..,
+#KKJSKMZ3BAH7TAB7DIUEBYTV6HSA5FVJLLGPC4GG74TZUEUWKUB4EK2KT2EJZLJNPF6PZICO5WGM2
+#\\\|DY2U6EVZHRBVMXEQUTIZDJEQ7NU3FHI47BFCGONXEPOG424L3P5 \ / AMOS7 \ YOURUM ::
+#\[7]LQOIMRKUHCYZXYLTR6RWNGIK34EAP2L2DN6FXECGR6GTUIQA7QCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
