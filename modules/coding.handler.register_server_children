@@ -1,0 +1,68 @@
+## [:< ##
+
+# name  = coding.handler.register_server_children
+# descr = exponential-backoff poll: register llama-server forked worker with v7
+# note  = llama-server forks a worker on first inference request.
+#         timer starts at 0.7s and multiplies by 1.6 each miss, up to 60s max.
+#         self-cancels once child is found and registered.
+
+my $event      = shift;
+my $data       = eval { $event->w->data } // {};
+my $backend    = $data->{'backend'}       // 'gpu';
+my $parent_pid = $data->{'parent_pid'}    // 0;
+my $interval   = $data->{'interval'}      // 0.7;
+
+return unless $parent_pid;
+
+## verify parent is still our tracked server ##
+my $srv = ( <coding.inference_servers> // {} )->{$backend} // {};
+if ( ( $srv->{'pid'} // 0 ) != $parent_pid ) {
+    return;    ## server was replaced — stop polling ##
+}
+
+## scan for direct llama-server children of the server process ##
+my $found = 0;
+if ( open my $pfh, '-|', 'pgrep', '-P', $parent_pid ) {
+    while ( my $child_pid = <$pfh> ) {
+        chomp $child_pid;
+        next unless $child_pid =~ m|^\d+$|;
+        my $proc_cmd = '';
+        if ( open my $cfh, '<', "/proc/$child_pid/cmdline" ) {
+            local $/;
+            $proc_cmd = <$cfh>;
+            close $cfh;
+        }
+        next unless $proc_cmd =~ m|llama-server|;
+        <[base.zenki.report_child_pid]>->($child_pid);
+        <[base.logs]>->(
+            1, '[register_server_children] registered %s worker child pid=%d',
+            $backend, $child_pid
+        );
+        $found++;
+    }
+    close $pfh;
+}
+
+## found — stop polling ##
+return if $found;
+
+## not found yet — reschedule with 1.6x backoff, cap at 60s ##
+my $next = $interval * 1.6;
+$next = 47 if $next > 47;
+
+<[event.add_timer]>->(
+    {   'after'   => $next,
+        'handler' => qw| coding.handler.register_server_children |,
+        'data'    => {
+            'backend'    => $backend,
+            'parent_pid' => $parent_pid,
+            'interval'   => $next,
+        }
+    }
+);
+
+#,,,.,.,,,...,,,,,,..,.,,,.,,,.,,,..,,,,.,,,,,..,,...,..,,...,.,.,,,,,,,.,..,,
+#A76SADDMYELAUPQPFLE42VVCQAJTAVML7SGGLFBIJI2JEQWFZS42YWQOQ6QTEL6KTABCIGAITFGC2
+#\\\|EA5VG4T7ZBREDGH6AIDCD3JYFCTHWD3F5IH53ESIRTDO7RXBE5Q \ / AMOS7 \ YOURUM ::
+#\[7]3MISWXPYCKWNSI5437JK5H77XS5QAGU7DWFUBILLDO75EH4N22DA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
