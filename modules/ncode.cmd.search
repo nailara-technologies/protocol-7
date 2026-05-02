@@ -1,0 +1,155 @@
+## [:< ##
+
+# name  = ncode.cmd.search
+# descr = regexp search across files with optional context lines
+
+my $call_args = shift;
+my $args      = $call_args->{'args'} // '';
+
+## parse: [target] [-C N] <pattern> ##
+my @parts   = split m|\s+|, $args;
+my $target  = shift @parts // '';
+my $context = 0;
+
+## extract -C <N> context lines option ##
+my @remaining;
+my $i = 0;
+while ( $i < @parts ) {
+    if (    $parts[$i] =~ m|^-[Cc]$|
+        and defined $parts[ $i + 1 ]
+        and $parts[ $i + 1 ] =~ m|^\d+$| ) {
+        $context = 0 + $parts[ $i + 1 ];
+        $i += 2;
+    } elsif ( $parts[$i] =~ m|^-[Cc](\d+)$| ) {
+        $context = 0 + $LAST_PAREN_MATCH;
+        $i++;
+    } else {
+        push @remaining, $parts[$i];
+        $i++;
+    }
+}
+
+my $pattern = join ' ', @remaining;
+
+if ( not length $target or not length $pattern ) {
+    return {
+        'mode' => 'false',
+        'data' => 'usage: search <target-path> [-C <lines>] <pattern>'
+    };
+}
+
+## collect matching files ##
+my @files;
+if ( -f $target ) {
+    @files = ($target);
+} elsif ( -d $target ) {
+    @files = sort glob "$target/*";
+    @files = grep { -f $ARG } @files;
+} else {
+    ## glob pattern ##
+    @files = sort grep { -f $ARG } glob $target;
+}
+
+if ( not @files ) {
+    return { 'mode' => 'false', 'data' => "no files found: $target" };
+}
+
+## build result ##
+my @results;
+my $total_matches = 0;
+
+foreach my $file (@files) {
+    next unless open my $fh, '<', $file;
+    my @lines = <$fh>;
+    close $fh;
+    chomp @lines;
+
+    my @file_matches;
+
+    for ( my $ln = 0; $ln < @lines; $ln++ ) {
+        if ( $lines[$ln] =~ m{$pattern}i ) {
+            my $start = $ln - $context;
+            $start = 0 if $start < 0;
+            my $end = $ln + $context;
+            $end = $#lines if $end > $#lines;
+
+            my @block;
+            for ( my $cl = $start; $cl <= $end; $cl++ ) {
+                push @block,
+                    {
+                    'line'    => $cl + 1,
+                    'content' => $lines[$cl],
+                    'match'   => ( $cl == $ln ? 1 : 0 ),
+                    };
+            }
+            push @file_matches, { 'line' => $ln + 1, 'block' => \@block };
+            $total_matches++;
+        }
+    }
+
+    if (@file_matches) {
+        ## strip project root prefix for display ##
+        my $display_path = $file;
+        my $root         = <system.root_path> // '';
+        $display_path =~ s|^\Q$root\E/|| if length $root;
+
+        push @results,
+            {
+            'file'    => $display_path,
+            'matches' => \@file_matches,
+            };
+    }
+}
+
+## format output ##
+if ( not @results ) {
+    return {
+        'mode' => 'size',
+        'data' => sprintf ": no matches for m{%s} in %s\n",
+        $pattern, $target
+    };
+}
+
+my $out = '';
+for my $file_result (@results) {
+    $out .= sprintf "\n::: [ search =~ m{%s}i ] :: %s ::\n:\n",
+        $pattern, $file_result->{'file'};
+
+    my $prev_end = -1;
+    for my $match ( @{ $file_result->{'matches'} } ) {
+        my $block = $match->{'block'};
+
+        ## separator between non-adjacent blocks ##
+        my $block_start = $block->[0]{'line'};
+        $out .= ": ..,\n"
+            if $context
+            and $prev_end >= 0
+            and $block_start > $prev_end + 1;
+
+        for my $entry (@$block) {
+            if ( $entry->{'match'} ) {
+                $out .= sprintf ": %d :     %s\n",
+                    $entry->{'line'}, $entry->{'content'};
+            } else {
+                $out .= sprintf ": %d :  .. %s\n",
+                    $entry->{'line'}, $entry->{'content'};
+            }
+        }
+        $prev_end = $block->[-1]{'line'};
+    }
+    $out .= ":\n";
+}
+
+$out .= sprintf "\n: %d match%s across %d file%s\n",
+    $total_matches,
+    ( $total_matches == 1 ? '' : 'es' ),
+    scalar @results,
+    ( scalar @results == 1 ? '' : 's' );
+
+return { 'mode' => 'size', 'data' => $out };
+
+#,,..,,,.,,,,,.,,,,..,.,.,.,,,,,,,.,.,..,,,.,,..,,...,...,.,,,,,,,,.,,,,,,.,,,
+#SKPFTAKQDJ2T75M7VDMJEIEHA5EUQJMBBH4OFOMN477EYHA2BJ7PY27MXLRFQZQBYNWEAYTVV3IR2
+#\\\|UGG5FSMAMZIC4FKQPYLLAB2OL4LOAWSJBETAUVMMRVL4XKAVVEB \ / AMOS7 \ YOURUM ::
+#\[7]DWUBLSQ4BREARLQN4WKGCXMEVIDY47U3VI25OU6DV6EQ7TG73WCA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

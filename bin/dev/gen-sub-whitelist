@@ -62,10 +62,22 @@ say $blacklight . ':' . $reset;
 
 for my $zenka (@targets) {
     $num++;
-    my $out_path
-        = File::Spec->catfile( $zenki_dir, $zenka, 'subroutine.white-list' );
+    my $zenka_dir = File::Spec->catdir( $zenki_dir, $zenka );
+    my $out_path  = File::Spec->catfile( $zenka_dir, 'subroutine.white-list' );
+
+    ##  namespace-only targets [ no zenka start file ] have no whitelist ##
+    ##  their subs are covered by the loading zenka's whitelist          ##
+    my $has_start = -f File::Spec->catfile( $zenka_dir, 'start' );
 
     show_progress( $zenka, $num, $total );
+
+    ##  namespace-only: skip — covered by loading zenka's whitelist ##
+    if ( not $has_start ) {
+        print_result( $zenka, $num, $total,
+            '[ namespace-only : no whitelist needed ]', $blacklight );
+        $unchanged++;
+        next;
+    }
 
     ##  run dep-graph and capture output  ##
     my @subs = qx| $dep_graph -list-subs -zenka=$zenka 2>/dev/null |;
@@ -184,8 +196,8 @@ sub print_result {
         $result_color, $result,     $reset;
 }
 
-#,,..,.,,,,..,,,,,,.,,,,,,.,,,.,,,.,.,.,,,,.,,..,,...,...,.,.,.,,,,.,,.,,,..,,
-#ICIL3XOTCOWTW7F67K4QDCRZEX4WFJZN6L6QODFJ5M67TXMYIP4IJQFKR2AKWEZYD2FYSQEAYLB3K
-#\\\|SY34S2DXUVC3BL2BQX6MZH35NIQULLMDTCLYYGYJSBSRT7XKV3O \ / AMOS7 \ YOURUM ::
-#\[7]IUFJRMKAWQVSPC2E7FV7UZQHARDXP6ZTYQD7S4PJSH24HCKHYMAQ 7  DATA SIGNATURE ::
+#,,,.,,..,..,,.,,,,,.,,,.,..,,...,,,.,..,,.,.,..,,...,...,,.,,..,,,,.,,.,,,,.,
+#S2FZPB5BKJQP3QRHCSBOWIEK57OOP7DHF457ZXTGQVTU44HEHHWVOZR2WE5GUKTKW5RM2W6SK7FJO
+#\\\|4MFJCGDMT5QJ23FM4YO3SG4N3YM4A4YCK34IXGON4T6SUDUCOJG \ / AMOS7 \ YOURUM ::
+#\[7]JQGDM7CXPJWICSZFOQVAX2OQI7U345LYZSXZDXMP36W7SZPEAICI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
