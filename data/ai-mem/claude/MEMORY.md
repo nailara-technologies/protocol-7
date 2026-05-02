@@ -62,6 +62,8 @@
 - `topic-cursor-model.md` — true cursor emerges from hyperspace plane line density (not drawn); glow=influence gradient; liquid crystal desktop; brightness-only color model; next: remove wireframe cube, queue glow task
 - `topic-node-group-geometry.md` — exact geometry: 8×(4×4×4-1=63) cubes, 4×4×4 void = ghost cube slot; void derivation 2+1+1=4 per axis; corrects earlier wrong 20/10 ratio
 - `style-philosophy.md` — living manifesto: coding as artform, style-as-function, harmonization layers, fractal self-similarity, normalization resistance; give to LLMs before structural/refactor work; models update it after sessions
+- `topic-punctuation-topology.md` — `:` as group boundary, `.` as element separator; universal scale-independent addressing; AMOS checksums as atoms; route=session=task=cache at different resolutions; doc at data/md/development/PUNCTUATION-TOPOLOGY.md
+- `topic-hyperspace-topology.md` — closed observer loop as anti-entropic; intent-saturated chains self-strengthen; sensor cube 3D grid as physical hyperspace; on-route topology teaching; feature-to-topology mapping; context as position; doc at data/md/development/HYPERSPACE-TOPOLOGY.md
 
 ## File Creation Notes (CRITICAL)
 - **Never add** the single-line `#,,.,,,...` stub at end of new files
@@ -320,8 +322,8 @@
 - Pattern: `my @non_num = grep { defined $data_ref->{$ARG}->{$key} and not looks_like_number(...) } keys $data_ref->%*`
 - Global `$SIG{__WARN__}` exists — if wrapping warn handler, capture `$prev_warn = $SIG{__WARN__}` first and call through
 
-#,,..,,,,,...,,,,,,..,.,,,,..,,.,,.,,,...,.,,,..,,...,...,...,.,,,.,.,.,,,..,,
-#IVFWC524PD32L7CWAUY5II5MMNGB3HJSATCOZSQHZCMCMURAY4DOF2IN2BC3EUZJ7SGZ6UAJSIVQS
-#\\\|4KNH6HX3H4KZREPN3UTAH77HA232PKIMU2GYWIUBUFHWK6UFDNW \ / AMOS7 \ YOURUM ::
-#\[7]77LQRELFCAMS5MASEE5235VJ4KBHA23Y6D4VQ6HOV6NXODFWCICY 7  DATA SIGNATURE ::
+#,,..,...,,,,,.,.,..,,,.,,...,..,,.,.,,.,,.,.,..,,...,...,..,,,.,,...,,.,,,.,,
+#JVMBO43ZTMWYJLLRCSCSDQBKXNI3CEH4OPHSQEUCLPTEVBRAABWAN3WBZ3C7XVDR2TS5DDANPBKLU
+#\\\|SQFJ4NMPOMBUOM64AWNF5IMH4AKEEGC7NU2ZEAYK5G4TJ4QP3NY \ / AMOS7 \ YOURUM ::
+#\[7]R2TKMALBPE5KQ7MVNGUQRI6RITWFUYGXOBOPH3PQOJNN234YKCDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
