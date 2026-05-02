@@ -295,6 +295,24 @@ my %dispatch = (
             : "no matches for '$query'";
     },
 
+    'ncode_search_context' => sub {
+        return 'ncode.cmd.search module not loaded'
+            unless exists $code{'ncode.cmd.search'};
+        my $target  = $args->{'target'}  // return 'target required';
+        my $pattern = $args->{'pattern'} // return 'pattern required';
+        my $context = $args->{'context'} // 0;
+        my $arg_str
+            = length($context)
+            && $context > 0
+            ? "$target -C $context $pattern"
+            : "$target $pattern";
+        my $result = $code{'ncode.cmd.search'}->( { 'args' => $arg_str } );
+        return
+            ref($result) eq 'HASH'
+            ? ( $result->{'data'} // $result->{'content'} // 'no output' )
+            : ( $result // 'no output' );
+    },
+
     'edit_file' => sub {
         ## extract parameters with chunked editing support ##
         my $path       = $args->{'path'}  // return 'path required';
@@ -553,8 +571,8 @@ return {
     'content' => $content,
 };
 
-#,,.,,...,,.,,,.,,.,,,...,,..,..,,...,.,,,.,,,..,,...,...,...,,,.,..,,..,,.,.,
-#HPXHPL372OIIKDGFYWTFHSZ3NL2IRMMSGVEUSOJRFBIKUVVSLDSPHC7U6MQARRLZMJ3PFXIXCRF7S
-#\\\|FE6DVRPGQNGFWRVEUPRPIEJRK7N65IEOLYFIYSSOX7OO4STIVTX \ / AMOS7 \ YOURUM ::
-#\[7]FBCCN3VVEYBBSI3EEWAL3MWIV3CMWPTBOLSGXHYTAYVB2677PMCA 7  DATA SIGNATURE ::
+#,,,,,,.,,,..,,.,,,,.,,,.,,,,,...,,,,,,..,.,,,..,,...,...,..,,.,.,,..,,..,..,,
+#M2IE24PNEOZVALTLTNPMSKWWJY5YIRSAMZ2R7V5Y3ZBDACU42V3LK4EJ4RGTC65O3PJTWFIQSY4LW
+#\\\|UX47KQK5QBLFB5SVNSIPLAUBADOHZIK64GLFEPU2HHRX7XKGW2V \ / AMOS7 \ YOURUM ::
+#\[7]PTJYUITTTVBVCV4N6OOZ53FDAOTMOSX3TFYO5UKYKSUCY5GLIEBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

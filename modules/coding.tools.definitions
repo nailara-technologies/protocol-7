@@ -1280,10 +1280,42 @@ if ( exists $code{'coding.tools.handler.decode_base32'} ) {
         };
 }
 
+## ncode_search_context — regexp search across files with context lines ##
+if ( exists $code{'ncode.cmd.search'} ) {
+    push @tools,
+        {
+        'type'     => 'function',
+        'function' => {
+            'name'        => 'ncode_search_context',
+            'description' =>
+                'regexp search across files with optional context lines',
+            'parameters' => {
+                'type'       => 'object',
+                'properties' => {
+                    'target' => {
+                        'type'        => 'string',
+                        'description' => 'target path or directory to search'
+                    },
+                    'pattern' => {
+                        'type'        => 'string',
+                        'description' => 'perl regex pattern to match'
+                    },
+                    'context' => {
+                        'type'        => 'integer',
+                        'description' =>
+                            'context lines around matches [ default 0 ]'
+                    },
+                },
+                'required' => [ 'target', 'pattern' ],
+            },
+        },
+        };
+}
+
 return \@tools;
 
-#,,..,,..,,,,,,.,,.,,,,,.,,..,.,,,.,,,...,,.,,..,,...,...,,,.,.,,,...,.,,,.,,,
-#S367P6R2B23KNYSZZB5T3IBKJJCBIVZV62KAJWGVC7FGHBPDWDFF46XQVIJKB6DYLGHSQA72QVZVM
-#\\\|HGBUEIWENAOCTL6SPOOFD4CXGPGBTQLYM4KAWYJUQSMXLJKO5TT \ / AMOS7 \ YOURUM ::
-#\[7]UOX5NRLDWUNHGR7IKOBY56XEY56WRYIZ5TGT7DF5BYRXGG7GQ4BQ 7  DATA SIGNATURE ::
+#,,..,...,,,,,.,.,,..,..,,...,..,,,..,,.,,,..,..,,...,...,.,.,,.,,,,.,.,,,...,
+#AASTKWFQBC4Z5RYHNXAHZ3FAHUFY5M2QITDCCMUPW4WB6SOH4RHSBN5MXCVTA7QQN4O4B4FNML264
+#\\\|D6OWFTQ6XNKFHYXAPRTBALYOW3XBDB62WBP6WH2IEG7JYWLBGQY \ / AMOS7 \ YOURUM ::
+#\[7]2CHA3UFRYZSZ5M7NRZRI5X3FGBDW3ADDIYE4SSYLD6YTSYXVWMBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

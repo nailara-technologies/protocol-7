@@ -140,17 +140,12 @@ my $limited_by
     :                                         qw| maximum |;
 
 <[base.logs]>->(
-    1,
-    '[calculate_safe_context] VRAM=%dMB model=%.0fMB mmproj=%.0fMB '
-        . 'KV/token=%.1fKB safety=%dMB calc=%d clamped=%d [%s]',
-    $total_mb,
-    $model_size_mb,
-    $mmproj_size_mb,
-    $kv_bytes_per_token / 1024,
-    $safety_mb,
-    $calculated_context,
-    $final_context,
-    $limited_by
+    1, ': VRAM=%d MB : model %.0f MB mmproj %.0f MB KV [ token %.1f KB ]',
+    $total_mb, $model_size_mb, $mmproj_size_mb, $kv_bytes_per_token / 1024,
+);
+<[base.logs]>->(
+    1, ': safety=%d MB : calc : %d | clamped : %d [ %s ]',
+    $safety_mb, $calculated_context, $final_context, $limited_by
 );
 
 return {
@@ -158,7 +153,7 @@ return {
     calculated     => $calculated_context,
     explanation    => sprintf(
         'VRAM=%dMB model=%.0fMB mmproj=%.0fMB '
-            . 'KV/token=%.1fKB safety=%dMB -> calc=%d clamped=%d',
+            . 'KV/token=%.1fKB safety=%dMB -> calc : %d clamped : %d',
         $total_mb,       $model_size_mb,
         $mmproj_size_mb, $kv_bytes_per_token / 1024,
         $safety_mb,      $calculated_context,
@@ -167,8 +162,8 @@ return {
     limited_by => $limited_by,
 };
 
-#,,.,,,,.,,,,,,,,,..,,,,.,..,,...,..,,,..,.,,,.,.,...,...,,,.,...,...,,,.,,.,,
-#AK4JOM5DHCLHOPMP7CWQWPZIOBDPFSIOYF3T23VVLBBYO4OLTTZLZDHODQUEMMS44US4HDSTDL6MS
-#\\\|ONH4ESH6YSIIL7DEQM75G2U2VZYP75STRT4GTCQDK22I7EAJUL3 \ / AMOS7 \ YOURUM ::
-#\[7]MNI4MRJIV5GNZVO4RACTJLCGXGMEZTHNS5IRPNQVXIELNKHM3KAA 7  DATA SIGNATURE ::
+#,,.,,,..,,,.,,.,,,,.,,,.,.,,,,.,,,..,.,,,,..,.,.,...,...,...,,,,,,..,,,,,.,.,
+#NNUFWF6QOACRRHEUVA2K3DDQYB6ZIFKPZLH3TBCBTAHTJTIPQQECGVQX2QM67GMSKQZE6OTDG7M4I
+#\\\|23BPNUQF5VKKOGER6DWFNOMYY4GW47H57ID2LR2IYN2FK7434DY \ / AMOS7 \ YOURUM ::
+#\[7]6DSTMYLFL2CEEVSOTS7GFS4LEJTGEF3WLBNKLQ33MSBMFWPY52DQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

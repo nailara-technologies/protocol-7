@@ -8,13 +8,15 @@ my $params = shift;
 my $backend = $params->{'backend'} // qw| cpu |;
 my $port    = $params->{'port'}    // 8000;
 
-## guard against concurrent spawns — any call path (crash restart, timeout
-## recovery, model_path_reply, deferred timer) hits this central lock       ##
-## also enforce a 30s cooldown: the seed sleep(0.0013) yields to the event
-## loop, which can let a second call through before the first completes     ##
+## guard against concurrent spawns — any call path (crash restart, timeout ##
+## recovery, model_path_reply, deferred timer) hits this central lock      ##
+## also enforce a 30s cooldown: the seed sleep(0.0013) yields to the event ##
+## loop, which can let a second call through before the first completes    ##
 if (<coding.spawning_in_progress>) {
     <[base.logs]>->(
-        2, '[spawn_inference_server] spawn already in progress, skipping %s',
+        2,
+        '[spawn_inference_server] spawn already'
+            . ' in progress, skipping %s',
         $backend
     );
     return { 'success' => FALSE, 'error' => 'spawn already in progress' };
@@ -204,13 +206,14 @@ if ( $backend eq qw| gpu | ) {
         <coding.spawning_in_progress> = FALSE;
         return {
             'success' => FALSE,
-            'error'   => 'another llama process is running, gpu spawn blocked'
+            'error'   => 'another llama process is'
+                . ' running : gpu spawn blocked'
         };
     }
 
     ## vram sanity check ##
-    my $nvidia_smi
-        = qx{ nvidia-smi --query-gpu=memory.total,memory.free --format=csv,noheader,nounits 2>/dev/null };
+    my $nvidia_smi = qx{ nvidia-smi --query-gpu=memory.total,memory.free
+                               --format=csv,noheader,nounits 2>/dev/null };
     if ( $nvidia_smi =~ m|^(\d+),\s*(\d+)|m ) {
         my ( $total_mb, $free_mb ) = ( $1, $2 );
         my $model_size_mb = ( -s $model_path ) / ( 1024 * 1024 );
@@ -252,8 +255,10 @@ push @cmd, qw| --log-disable --log-file /dev/null |;
 my $max_tokens = <inference.model.max_tokens>
     // <inference.model.context_length> // 4096;
 
-## context size: auto-calculated from VRAM, with configured value as a floor ##
-## configured acts as a minimum — smaller models may safely allow more context ##
+## context size: auto-calculated from VRAM, with configured value as a  ##
+## floor configured acts as a minimum — smaller models may safely allow ##
+## more context                                                         ##
+
 my $safe = <[coding.helper.calculate_safe_context]>->(
     {   model_path  => $model_path,
         mmproj_path => $mmproj_path,
@@ -265,7 +270,8 @@ my $ctx_size;
 if ( defined <inference.model.context_length> ) {
     my $configured = <inference.model.context_length>;
     if ( $auto_ctx > $configured ) {
-        ## smaller model: auto-calc gives more context than configured floor ##
+        ## smaller model : auto-calc gives more ##
+        ##        context than configured floor ##
         $ctx_size = $auto_ctx;
         <[base.logs]>->(
             1,
@@ -276,13 +282,14 @@ if ( defined <inference.model.context_length> ) {
             $safe->{'explanation'}
         );
     } else {
-        ## large model: use configured floor even if above safe auto-calc ##
+        ## large model : use configured floor ##
+        ##       even if above safe auto-calc ##
         $ctx_size = $configured;
         if ( $configured > $auto_ctx ) {
             <[base.logs]>->(
                 1,
-                '[spawn_inference_server] context set to configured %d'
-                    . ' [above auto-calc %d — user override]',
+                ': context set to configured %d'
+                    . ' [ above %d auto-calc : user override ]',
                 $configured,
                 $auto_ctx
             );
@@ -290,15 +297,11 @@ if ( defined <inference.model.context_length> ) {
     }
 } else {
     $ctx_size = $auto_ctx;
-    <[base.logs]>->(
-        1,
-        '[spawn_inference_server] auto-context: %s',
-        $safe->{'explanation'}
-    );
+    <[base.logs]>->( 1, ': auto-context : %s', $safe->{'explanation'} );
 }
 
-push @cmd, '-c', $ctx_size;
-push @cmd, '-n', $max_tokens;
+push @cmd, qw| -c |, $ctx_size;
+push @cmd, qw| -n |, $max_tokens;
 
 # Backend-specific settings
 if ( $backend eq qw| cpu | ) {
@@ -356,7 +359,7 @@ push @cmd, '--seed', $seed;
 my ( $server_in, $server_out, $server_err );
 $server_err = Symbol::gensym;
 
-# Set up environment for llama-server (same as lm-vision does)
+# Set up environment for llama-server [ same as lm-vision does ]
 local $ENV{'LD_LIBRARY_PATH'}
     = <coding.lib_path> . ':' . ( $ENV{'LD_LIBRARY_PATH'} // '' );
 
@@ -378,8 +381,8 @@ for my $pipe_fh ( $server_out, $server_err ) {
         if defined $flags;
 }
 
-## make server its own process group leader so kill(-pid) reaches all
-## children (llama-server forks a worker on first request)             ##
+## make server its own process group leader so kill( -pid ) reaches all ##
+## children [ llama-server forks a worker on first request ]            ##
 POSIX::setpgid( $pid, $pid );
 
 <[base.logs]>->(
@@ -390,7 +393,8 @@ POSIX::setpgid( $pid, $pid );
 ## Report child PID to v7 for lifecycle management
 <[base.zenki.report_child_pid]>->($pid);
 
-## exponential-backoff poll for forked worker child (0.7s × 1.6 each miss) ##
+## exponential-backoff poll for forked worker ##
+##             child [ 0.7s × 1.6 each miss ] ##
 <[event.add_timer]>->(
     {   'after'   => 0.7,
         'handler' => qw| coding.handler.register_server_children |,
@@ -471,8 +475,8 @@ return {
     'port'    => $port
 };
 
-#,,.,,...,.,,,,..,,.,,.,.,,,,,...,.,,,,.,,,,,,..,,...,...,,..,,,.,...,..,,.,.,
-#BEGS275NQHLEVLMBEIEAFBHLVBLFT67WXXJIMJGU73YE5R34CKL227DCA4VBKZABMSEELN542YOBA
-#\\\|XIFS3NRMXZVTKHSKTTA4D6H7FX3UBEFMXAAQQTYVB6N533ZIJ72 \ / AMOS7 \ YOURUM ::
-#\[7]WDCQKOUGSJIINO7G2N6X3NYZWHQEMF22QYVLFDNANVMTKY5ASWDY 7  DATA SIGNATURE ::
+#,,,,,.,,,..,,.,.,.,,,,,.,...,..,,..,,,,.,,..,..,,...,...,..,,..,,.,.,...,..,,
+#6UCVJGK6YMXCCA5CSXI77C3P3PU4V7UATULDFHYCQCUL7YSAPHMHEWNN3RUFAODB2UEVY3Y7GBM5U
+#\\\|7OZSEDTN2UAPC2A7XMBJ7NR7UFEV4S3LIM6VUA3ZFF76ASD5O7Z \ / AMOS7 \ YOURUM ::
+#\[7]FIE4BD5BWBH7OBILSMA7YU5QVIERVA3OLJP6P47JCFHAVWIWOICA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

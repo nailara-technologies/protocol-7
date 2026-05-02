@@ -30,11 +30,11 @@ return $context unless defined $choice;
 ## extract delta content [ fallback to message for non-sse responses ] ##
 my $delta = $choice->{'delta'} // $choice->{'message'} // {};
 
-## prefer content, fall back to reasoning_content if content is empty ##
-## note: content="" is defined but empty — use length check not // ##
+## accumulate reasoning_content separately [ qwen3 thinking trace ] ##
+## never mix into content — it causes double-output in model_output buffer ##
 my $content = $delta->{'content'} // '';
-if ( !length($content) && length( $delta->{'reasoning_content'} // '' ) ) {
-    $content = $delta->{'reasoning_content'};
+if ( length( $delta->{'reasoning_content'} // '' ) ) {
+    $context->{'reasoning'} .= $delta->{'reasoning_content'};
     $context->{'has_reasoning_content'} = TRUE;
 }
 
@@ -184,8 +184,8 @@ if ( defined $choice->{'finish_reason'} ) {
 
 return $context;
 
-#,,..,,,.,..,,,..,,,.,,,,,..,,...,.,.,,.,,,,.,.,.,...,..,,,..,,,.,.,,,,..,.,.,
-#HDDSGSC6A3J5Q6NOE76VX53XPTP4RLHJBZ6TT6CMMKPK3O2OXD2GO3BRPYHDHMU6BG5OPH4B4WFKY
-#\\\|XHRQUIG2Y3YZZKEUPQ4AL3YVAG4U6O5ZSP6OJSWR57WD636ZDP7 \ / AMOS7 \ YOURUM ::
-#\[7]IHRZ5O2FSIGH5GFFOCCJ5Q3SFA2KM6LDOCWTYPQNL6JLCX7VVUDI 7  DATA SIGNATURE ::
+#,,..,,,.,..,,,,,,.,,,.,.,,,.,...,.,,,.,.,,..,.,.,...,...,...,,,.,,,,,..,,...,
+#B2SPWGU7YOJY2PQBRYQS6IYQN7QTUGOTYGORQBTMBDK3BZ6RLCEBUA7VNP6MU6P7WOA3FISU3LT2E
+#\\\|QESB4PXOAZADZ2BKOP2GSJQHL7N3LPMUDUHGBYT43XDB7JQ2CBU \ / AMOS7 \ YOURUM ::
+#\[7]LP5NLP6GLVWVKXNI4AVLYEMYTZEJ65HQ4NUG3CFLPGHDM4R7ZUDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

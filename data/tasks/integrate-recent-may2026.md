@@ -4,21 +4,12 @@
 
 integrate the following recent additions from the may 2026 sessions:
 
-### 1. ncode.cmd.search as coding zenka tool
+### 1. ncode.cmd.search as coding zenka tool [ DONE ]
 
-`modules/ncode.cmd.search` was added and the ncode namespace loaded into
-coding zenka via modules.load — but `ncode.cmd.search` is not yet a
-defined tool in the coding zenka tool list. wire it so models can call
-it during tasks.
-
-- add tool definition to coding tools definitions
-- tool name: `search_code_context` or similar [ distinguish from
-  existing `search_code` which uses grep ]
-- args: `path` [ target file, dir, or glob ], `pattern` [ regexp ],
-  `context_lines` [ optional int, default 0 ]
-- description should mention: context lines around matches, path can
-  be file/dir/glob, case-insensitive match
-- verify it appears in coding.list-tools after wiring
+wired as `ncode_search_context` in `coding.tools.definitions` +
+`coding.tools.dispatch`. dispatch wrapper builds arg string from
+structured `target`/`pattern`/`context` params and calls
+`$code{'ncode.cmd.search'}` directly.
 
 ### 2. topology documents in orbital visualization
 
@@ -69,8 +60,8 @@ conventions. `$ARG` not `$_`.
 do not investigate or modify AMOS7 signatures. leave signature lines
 at end of module files untouched.
 
-#,,..,.,,,.,,,..,,.,,,,.,,,.,,,,,,.,.,,..,,..,..,,...,...,...,...,,..,..,,,..,
-#KSRTEILVFAL2BCEX27E7DE247CD65ZNR7CZPUOUM6ZWS5JALQ7UW2BN435VEIVLVETCM4RPGQDZAW
-#\\\|44FZLU7SZNQCSZXLTJD7JYYBPB3B7CBLZV7ELYHDFDBVEKHAQVE \ / AMOS7 \ YOURUM ::
-#\[7]SWKLEZSPWDDHWMJSASRDTT4QP65IWXQTT2YSP4CD7RSWHJYROKCA 7  DATA SIGNATURE ::
+#,,..,,.,,..,,.,,,,.,,...,,..,..,,,,,,,.,,,..,..,,...,..,,,,,,.,.,,.,,,..,,.,,
+#EONFHMLXTOSHMPQBLCT4XZZRXULEMLSCQECB26TUVKFI2IQG27KR7TDFYNDGMWXLVWU7JULHQC7X6
+#\\\|GI66IBXNRCNPUHJRQ4BHYL7DI7DAP74NMINAOTU7AZLOWTUE2CY \ / AMOS7 \ YOURUM ::
+#\[7]6JNNKAXGUZKGD64DD7PGT6ABNFHX7D7T3JX3T5YZT2B2S3MGUYBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

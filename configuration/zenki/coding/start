@@ -1,7 +1,8 @@
 
  .:[ protocol-7 coding zenka - GPU+CPU dual inference ]:.
 
-coding.cfg.start_model = SJCPFAQ:AGKY7YQ ## Qwen3.5 4B Claude 4.6 Reasoning Distilled v2 ##
+# coding.cfg.start_model = SJCPFAQ:AGKY7YQ ## Qwen3.5 4B Claude 4.6 Reasoning Distilled v2 ##
+coding.cfg.start_model   = WZIZD6Y:2BIZKWY ## Qwen3.5 9B Claude 4.6 Reasoning Distilled v2 ##
 
 [load_config_file:'shared-params']
 [zenka.load_sub_list]
@@ -95,7 +96,7 @@ coding.async.enabled = 1  ## Use non-blocking HTTP streaming with tool execution
 ## Context length: floor value — auto-calculated from VRAM, but never below this ##
 ## smaller models expand above this automatically; large models use this as a min ##
 ## inference.model.context_length = 63000  ## doubled for multi-round tool sessions ##
-inference.model.context_length = 17777
+inference.model.context_length = 32000
 ## inference.model.max_tokens = 17777  ## defaults to context_length if unset
 inference.model.temperature = 0.7
 inference.model.seed = 0  ## 0 = harmonic seed from ntime+fortuna, >0 = fixed ##
@@ -144,8 +145,8 @@ plugins.load = plugin.storage.inference plugin.storage.util.inference
 
 [zenka.loop]
 
-#,,,.,,..,,..,.,.,..,,.,,,.,.,.,.,,,,,,,,,.,.,.,.,...,...,.,,,,,.,...,.,,,...,
-#XXNXO42ZPSS6MMHLUA624IPTL6XIG5X45XSUOBIFJBTGP54EQ56TSK7DKO4NN7CHEODKDI37MXYRS
-#\\\|VEFC3VESFVTZZBZ52F4IOBPDTHR3HEL6WGBDORYDHZ335ABPJDY \ / AMOS7 \ YOURUM ::
-#\[7]MAMEV4DYMGLL2ZKN2AENIXPIVM4IHZWZQTQIGHUEW7RSLNAXPQDI 7  DATA SIGNATURE ::
+#,,,.,.,.,,..,.,.,...,.,,,...,,,,,..,,,.,,..,,.,.,...,...,...,.,,,,..,.,,,..,,
+#J3A6FOY3H5UFVEG3YTJDKMTNEFOSG5S74CZWHST5K2FTF6AHEJW6MVLK6ZUA56C6RTLZEFC4XHKGS
+#\\\|WKDU3ONPCZHLVEF6MSUVLXO3ZHAX5QHWAQPKJFXVZCPC5YDZPQW \ / AMOS7 \ YOURUM ::
+#\[7]4WLF7GDCVZHKGBGMGW3QQGI2RPWEOTBMBPCQTFNANBGIBGTBASCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
