@@ -17,6 +17,7 @@ use Crypt::Misc qw| encode_b32r |;
 my $prompt       = '';
 my $wait         = 0;
 my $use_readline = 0;
+my $template     = '';
 
 ## parse args ##
 while ( my $arg = shift @ARGV ) {
@@ -28,14 +29,18 @@ while ( my $arg = shift @ARGV ) {
         close $fh;
     } elsif ( $arg eq '-wait' ) {
         $wait = 1;
+    } elsif ( $arg eq '-template' ) {
+        $template = shift @ARGV // die ":: -template requires a name\n";
+        $template =~ s/^:+|:+$//g;    ## strip surrounding colons if any ##
     } elsif ( $arg eq '-help' or $arg eq '--help' ) {
         print <<~'USAGE';
         usage: coding-task [options] [prompt]
 
         options:
-          -file PATH    read prompt from file
-          -wait         block and wait for result (default: submit and exit)
-          -help         show this help
+          -file PATH        read prompt from file
+          -wait             block and wait for result (default: submit and exit)
+          -template NAME    use context template via coding.ask-reply :NAME:
+          -help             show this help
 
         if no prompt arg:
           - checks X11 selection (if xsel available)
@@ -46,7 +51,7 @@ while ( my $arg = shift @ARGV ) {
 
         examples:
           coding-task "review module coding.validate.module"
-          coding-task "improve-system-prompt: add note_search guidance"
+          coding-task -file task.md -template integrate-recent -wait
           echo "fix bug in file.read" | coding-task
           coding-task -file task-description.md -wait
         USAGE
@@ -123,25 +128,33 @@ chomp $prompt if length $prompt;
 
 die ":: empty prompt\n" unless length $prompt;
 
-## encode ##
-my $encoded = encode_b32r($prompt);
+## prepend template prefix into prompt before encoding ##
+## so the full B32 blob is self-contained for both ask-reply and submit ##
+my $full_prompt
+    = length($template)
+    ? ":${template}:\n${prompt}"
+    : $prompt;
 
-## build command with B32: prefix ##
-my $cmd = sprintf "p7c coding.submit 'B32:%s'", $encoded;
+## encode ##
+my $encoded = encode_b32r($full_prompt);
+
+## build command — always a single B32 blob ##
+my $cmd = sprintf "p7c coding.ask-reply 'B32:%s'", $encoded;
 $cmd .= ' -wait' if $wait;
 
 ## show summary ##
+printf ":: template: %s\n", $template if length $template;
 my $preview = substr( $prompt, 0, 80 );
 $preview .= '...' if length $prompt > 80;
 printf ":: prompt: %s\n", $preview;
 printf ":: encoded: %d bytes → %d b32r chars\n",
-    length($prompt), length($encoded);
+    length($full_prompt), length($encoded);
 
 ## dispatch ##
 exec $cmd;
 
-#,,.,,,,,,,..,,,,,,,.,,.,,,..,.,.,,.,,,,.,.,,,.,.,...,...,,.,,.,,,...,...,..,,
-#6LDODR42WZPULN2YI4L3GD55ITXPAMV33I6DBA4N3QI676LOAHKBWEJ5BAXMFN3Y5R7DFB4JMFBDK
-#\\\|I7F7QSXHV4NFDYD633ATRPCUF7OTKQN7SGVEA2H5AJ6GVVSZYN3 \ / AMOS7 \ YOURUM ::
-#\[7]VGFNS6OJREMPKVBYZ5RFOXEJ6XYQYPORWQ3UESYLLJ4VP3M5FIAA 7  DATA SIGNATURE ::
+#,,..,,,.,.,.,...,.,,,.,,,,..,,,.,.,,,..,,,..,.,.,...,...,.,,,,.,,.,,,,..,.,.,
+#GTBDNI6WB7KFUW6AGZVAKVASRR66VTRQCSTPFUCZGQRRTZX6REB2ZV2IZSGWVXQ2UVBVS2S7TLIPW
+#\\\|SOYGU35D2TGEZJDLSLLAUNQ2SG64I36JHLUZQ52DJQEXOMLMP73 \ / AMOS7 \ YOURUM ::
+#\[7]W5NJ4IHLOZGTGN45MTUTM2QDTBAQYKE74GU7F6YJ2DOJL2XNMOAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
