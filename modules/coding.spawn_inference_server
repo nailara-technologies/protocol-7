@@ -313,6 +313,14 @@ push @cmd, qw| --no-warmup |;
 ## jinja template engine [ disable if new binary crashes on tool calls ] ##
 if ( <[base.cfg_bool]>->( <coding.jinja.enable> // 1 ) ) {
     push @cmd, qw| --jinja |;
+    ## fixed chat template override [ e.g. froggeric qwen3.5/3.6 bug fixes ] ##
+    my $tmpl_file = <coding.jinja.template_file> // '';
+    if ( length $tmpl_file and -r $tmpl_file ) {
+        push @cmd, '--chat-template-file', $tmpl_file;
+        <[base.logs]>->(
+            2, '[spawn_inference_server] chat template: %s', $tmpl_file
+        );
+    }
 }
 
 ## reasoning effort [ controls <think> budget — varies by model and task type ] ##
@@ -463,8 +471,8 @@ return {
     'port'    => $port
 };
 
-#,,,,,.,,,,,,,.,.,.,,,,..,.,,,.,,,.,.,.,,,.,,,..,,...,...,...,,..,.,.,,,,,,,.,
-#V2QSEPSEOUWAURDZMH7ISDMBD3HRPHQEKJ3SUMYUJKEPIL6NJIXZG4CXCDKI7L75NQEMAPDU7N472
-#\\\|ZB4ULPT4WOES2HFID2W6ICOMIYVJXVU4QBYUUS5ZU2NE3EOK24Y \ / AMOS7 \ YOURUM ::
-#\[7]32MLAG5IGCMNVSI66XVLGNCEJ3D7J3MFUV4MKD3NBHAPNGABYIDY 7  DATA SIGNATURE ::
+#,,.,,...,.,,,,..,,.,,.,.,,,,,...,.,,,,.,,,,,,..,,...,...,,..,,,.,...,..,,.,.,
+#BEGS275NQHLEVLMBEIEAFBHLVBLFT67WXXJIMJGU73YE5R34CKL227DCA4VBKZABMSEELN542YOBA
+#\\\|XIFS3NRMXZVTKHSKTTA4D6H7FX3UBEFMXAAQQTYVB6N533ZIJ72 \ / AMOS7 \ YOURUM ::
+#\[7]WDCQKOUGSJIINO7G2N6X3NYZWHQEMF22QYVLFDNANVMTKY5ASWDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
