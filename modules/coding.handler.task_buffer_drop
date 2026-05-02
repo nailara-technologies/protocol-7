@@ -1,0 +1,40 @@
+## [:< ##
+
+# name  = coding.handler.task_buffer_drop
+# descr = timer handler: drop per-task buffers from memory after save window
+
+my @completed = keys %{ <coding.task.completed_ids> // {} };
+
+if ( !@completed ) {
+    <[base.logs]>->(
+        2, "task_buffer_drop: no completed tasks, nothing to drop"
+    );
+    return TRUE;
+}
+
+my $dropped = 0;
+for my $task_id (@completed) {
+    ( my $short_id = $task_id ) =~ s/^task-//i;
+
+    for my $buf ( "T-$short_id", "T-${short_id}-T", "T-${short_id}-F", ) {
+        next unless defined $data{'buffer'}{$buf};
+        delete $data{'buffer'}{$buf};
+        $dropped++;
+    }
+    <[base.logs]>
+        ->( 1, "task_buffer_drop: dropped buffers for %s", $task_id );
+}
+
+## clear the drop timer handle and completed_ids registry ##
+delete <coding.timer.task_buffer_drop>;
+<coding.task.completed_ids> = {};
+
+<[base.logs]>->( 1, "task_buffer_drop: dropped %d buffers total", $dropped );
+
+return TRUE;
+
+#,,..,...,,,.,,..,...,,.,,..,,.,,,,,,,.,.,,,.,..,,...,...,...,,,.,...,,,.,.,,,
+#KTZA2N3QCEHIXR3YF6L6DMRMO7TYKHAO26U6T37UU4NUDDHONCB6MPXVAKSVYTP2NMDAKOVFWOB5W
+#\\\|LEGCT7NSUMC2EA3JXLVI5GLQCJQOUW7FH53KSV4EP4DQXCTNKGE \ / AMOS7 \ YOURUM ::
+#\[7]MLKNPUMI3LJS24UTGKRZLDGJETHATT2QPZQIYMMPD5WVIP2CS2AY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

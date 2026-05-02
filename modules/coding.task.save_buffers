@@ -1,0 +1,84 @@
+## [:< ##
+
+# name  = coding.task.save_buffers
+# descr = compress and write per-task buffers to completed-task-backups/
+# param = task_id
+
+my $task_id = shift // '';
+
+return FALSE unless length $task_id;
+
+( my $short_id = $task_id ) =~ s/^task-//i;
+
+my %variants = (
+    'compact'  => "T-$short_id",
+    'thinking' => "T-${short_id}-T",
+    'full'     => "T-${short_id}-F",
+);
+
+## collect metadata from task queue ##
+my $task      = <coding.task.queue>->{$task_id} // {};
+my $exec      = $task->{'execution'}            // {};
+my $timestamp = <[base.time]>->(7);    ## network timestamp ##
+my $result    = $exec->{'result'}                   // '';
+my $model     = <coding.inference.current_model_id> // '';
+
+my $meta = {
+    'task_id'   => $task_id,
+    'timestamp' => $timestamp,
+    'model'     => $model,
+    'rounds'    => ( $exec->{'rounds'} // 0 ),
+    'result'    => length($result) > 200
+    ? substr( $result, 0, 200 ) . '...'
+    : $result,
+    'template' => ( $task->{'template'} // '' ),
+    'saved_at' => scalar localtime,
+};
+
+my $subdir   = "completed-task-backups/$timestamp-$short_id";
+my $meta_str = YAML::XS::Dump($meta);
+<[file.zenka_dir.write]>->( "$subdir/meta.yaml", \$meta_str );
+
+my $saved = 0;
+for my $variant ( sort keys %variants ) {
+    my $buf_name = $variants{$variant};
+    my $lines    = $data{'buffer'}{$buf_name}{'data'} // [];
+    next unless @{$lines};
+
+    my $content = join "\n", @{$lines};
+    $content .= "\n";
+
+    my $compressed = '';
+    IO::Compress::Xz::xz( \$content, \$compressed )
+        or do {
+        <[base.logs]>->(
+            0, "save_buffers : xz compress failed for %s/%s : %s",
+            $task_id, $variant, $IO::Compress::Xz::XzError
+        );
+        $compressed = $content;    ## fallback: plain text ##
+        $variant .= qw| .asc |;
+        };
+    if ( $variant =~ m{\.asc$} ) {
+        <[file.zenka_dir.write]>->(
+            "$subdir/$variant", \$compressed, '>', 0600, ':raw'
+        );
+    } else {    ## compression worked ##
+        <[file.zenka_dir.write]>->(
+            "$subdir/$variant.xz", \$compressed, '>', 0600, ':raw'
+        );
+    }
+    $saved++;
+}
+
+<[base.logs]>->(
+    1, ":. save_buffers .: saved %d buffers for %s to %s",
+    $saved, $task_id, $subdir
+);
+
+return $saved > 0 ? TRUE : FALSE;
+
+#,,.,,...,,,,,,,,,,,,,.,,,.,.,,,.,,.,,.,,,..,,..,,...,...,...,.,.,,,.,.,,,,,.,
+#X2GGZ2GNBTZ4YS7FY6HBTHS4AUWFBAFVHX5KR7U37ZKF7LZ57XUWODOYNFNMWKDGEE4AIXZV6XPRY
+#\\\|V76QJLXCPEMEHZM3G2IEVTR4OHFUJB24LLCB7EUX53AD3QNR4KC \ / AMOS7 \ YOURUM ::
+#\[7]N7EZWDLB3SRJXP3JCMXVBLDPHIICH7XX6WKFCE5LHVHAKWGO3GBA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
