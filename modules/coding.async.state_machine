@@ -301,10 +301,10 @@ elsif ( $action eq 'transition' ) {
                     return $state;
                 }
 
-                ## inject escalation warning ##
+                ## inject escalation warning [ user role: system mid-conv rejected ] ##
                 push @{ $state->{'messages'} },
                     {
-                    'role'    => 'system',
+                    'role'    => 'user',
                     'content' => $loop_check->{'warning'}
                         // $loop_check->{'message'},
                     };
@@ -525,8 +525,8 @@ elsif ( $action eq 'constants' ) {
 
 return { error => sprintf "unknown action : '%s'", $action };
 
-#,,.,,,..,,.,,,,.,,.,,,,,,.,.,,,,,,.,,,..,..,,.,.,...,..,,.,.,...,,.,,...,,,.,
-#QEK755MT74MWUCZY5XEGMILVKRYBZHHPNHOO7F53N23RECBPGWJMVGOTLXATMH44VU2PZTYHQN5II
-#\\\|JQQCZW3KKP6TEDMHMMFEADNFP5C5UPCF47Q6TQEKVVJJWOQD34R \ / AMOS7 \ YOURUM ::
-#\[7]34NROKMWCEO7VGQ7BUZ544TYOYWZ2GJBRGJLW4OAGNOOU4MSWQBY 7  DATA SIGNATURE ::
+#,,,,,,,,,.,.,..,,...,.,,,,.,,,,,,,.,,,,,,...,.,.,...,...,...,...,...,...,,,,,
+#IRIEWSAOAMUQ5WXPWDEKMNBTSGS46467I3MQD3I73BJD3LE7DQPCFAYTWXCW3AJGHZDX4AFOEX6CY
+#\\\|YK3KQCBP7I6G3QGIPGCPUPEEKTBFKGQUHJGWQNBS56N5NU2JN6G \ / AMOS7 \ YOURUM ::
+#\[7]AYSQPW7E6F4XMJQPNXLDWPBPU4GBUSHOPQR4M523OIXST3SOCKAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
