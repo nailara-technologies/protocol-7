@@ -77,9 +77,16 @@ if ( defined $choice->{'finish_reason'} ) {
 
     ## fall back to reasoning if content is empty at finish ##
     ## qwen3 thinking models sometimes emit only reasoning_content ##
-    if (   !length( $context->{'content'} // '' )
+    ## strip tool call markup — tool calls are handled separately and  ##
+    ## leaving xml in content confuses the model in subsequent rounds  ##
+    if (  !length( $context->{'content'} // '' )
         && length( $context->{'reasoning'} // '' ) ) {
-        $context->{'content'} = $context->{'reasoning'};
+        my $reasoning_text = $context->{'reasoning'};
+        $reasoning_text =~ s|<tool_call>.*?</tool_call>||gs;
+        $reasoning_text =~ s|<function\s*=\s*\w+\s*>.*?</function>||gs;
+        $reasoning_text =~ s|^\s+||;
+        $reasoning_text =~ s|\s+$||;
+        $context->{'content'} = $reasoning_text if length $reasoning_text;
     }
 
     ## log current state before transition ##
@@ -135,9 +142,11 @@ if ( defined $choice->{'finish_reason'} ) {
 
             ## also check reasoning_content — qwen3 thinking emits xml tool ##
             ## calls in reasoning_content rather than content                ##
-            if ( !@{$parsed_tools} && length( $context->{'reasoning'} // '' ) ) {
+            if ( !@{$parsed_tools}
+                && length( $context->{'reasoning'} // '' ) ) {
                 $parsed_tools
-                    = <[coding.parse.xml_tool_calls]>->( $context->{'reasoning'} );
+                    = <[coding.parse.xml_tool_calls]>
+                    ->( $context->{'reasoning'} );
                 <[base.logs]>->(
                     1, "chunk_handler: checking reasoning for xml tool_calls"
                 ) if @{$parsed_tools};
@@ -206,8 +215,8 @@ if ( defined $choice->{'finish_reason'} ) {
 
 return $context;
 
-#,,..,.,.,,.,,.,.,,..,.,,,,.,,,..,.,.,,,,,...,.,.,...,..,,...,,..,,.,,,..,...,
-#7TX3PRNNFGQAWTP4FHEECSK2PBS4RWUSANWN6QTT5QQNUXPPKE5QTNJPXDUVJFRCIIQRQZGHDB7OO
-#\\\|QMZVK4Q5XBN236WHX4PXABLQHAZAOEQPHP4U2TQY2U24C3IU6Q7 \ / AMOS7 \ YOURUM ::
-#\[7]H5NG5O7MMLHET7UJCIR63F36VFQIAHSIEQVW4BW2O7Q6LN6D5CCY 7  DATA SIGNATURE ::
+#,,.,,...,.,,,,,,,...,,,,,,,,,..,,,.,,,,.,,.,,.,.,...,..,,,..,,,.,,..,,.,,.,,,
+#MNYTDN6OYMOZAVQOJBISVJISGFK3UTMSAYPDRVBCZAEYBPP2KPPY3O6P6NYZJW6OE7D27PAFPKD7W
+#\\\|2IUPSTPWZHGYR3GXKB5TPGVAM3UVTVF6HTZSUVLC32VEXIZKESN \ / AMOS7 \ YOURUM ::
+#\[7]NYOBA5K6Z5LRRKBZL4235SRR2TC5SY2RZ7BZMWFMATAVLBCURGAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -20,34 +20,38 @@ the following documents were added to `data/md/development/`:
 - `STYLE-PHILOSOPHY.md`
 - `BASE-HANDLER-COMMAND-REFACTOR-PLAN.md`
 
-check whether the space.v7.ax visualization or the orbital data system
-references `data/md/development/` as a source. if there is a mechanism
-for making these documents browsable or addressable via the orbital
-visualization [ orbital.json, templates.json, or similar ], wire them
-in. if not, record the gap as a suggestion.
+the orbital visualization template is at:
+`data/web-root/vhosts/space.v7.ax/orbital.json.tmpl`
 
-### 3. jinja template file config wiring
+read that file. if there is a `docs` or `references` section, add
+entries for the new topology documents. if not, record the gap as a
+note_write suggestion [ use note_write tool, do not create files ].
 
-`coding.jinja.template_file` is set to an absolute path in the coding
-zenka start file. check whether this should be resolved relative to
-`<system.root_path>` like other path configs — and if other model
-configs [ like when switching models ] should auto-select between
-`qwen3.5-fixed.jinja` and `qwen3.6-fixed.jinja` based on the loaded
-model's family. record finding and apply if straightforward.
+### 3. jinja template file config wiring [ record finding only ]
 
-### 4. gen-sub-whitelist namespace-only handling
+`configuration/zenki/coding/start` line 45 sets:
+`coding.jinja.template_file = /data/projects/protocol-7/data/jinja/templates/qwen3.5-fixed.jinja`
 
-`bin/dev/gen-sub-whitelist` was updated to skip namespace-only targets
-gracefully. verify the coding zenka subroutine whitelist was regenerated
-and now includes the ncode.* modules it inherited. run
-`gen-sub-whitelist coding` and check the output.
+this is an absolute path. check whether `coding.spawn_inference_server`
+or whichever module reads `coding.jinja.template_file` resolves it
+relative to `<system.root_path>`. if it uses the value verbatim [ no
+resolution ], record as a note_write suggestion for making it relative.
+do not change config or code for this item — record only.
+
+### 4. gen-sub-whitelist namespace-only handling [ DONE ]
+
+`bin/dev/gen-sub-whitelist coding` was already run this session and
+regenerated `configuration/zenki/coding/subroutine.white-list` with
+1004 entries including the new `coding.buffer.task_write` module.
+no further action needed.
 
 ### 5. cross-namespace: ncode.cmd.search ↔ existing search_code tool
 
-the existing `search_code` tool uses grep. `ncode.cmd.search` adds
-context lines. check if there are places in the codebase where
-search_code results are used and context lines would help — record
-as suggestion for future task improvement.
+`search_code` tool in `coding.tools.dispatch` uses grep [ no context
+lines ]. `ncode_search_context` [ just added ] uses `ncode.cmd.search`
+with `-C N` context lines. record as note_write whether the system
+prompt or tool descriptions should mention that `ncode_search_context`
+is preferred when context around matches is needed.
 
 ## style note
 
@@ -60,8 +64,8 @@ conventions. `$ARG` not `$_`.
 do not investigate or modify AMOS7 signatures. leave signature lines
 at end of module files untouched.
 
-#,,..,,.,,..,,.,,,,.,,...,,..,..,,,,,,,.,,,..,..,,...,..,,,,,,.,.,,.,,,..,,.,,
-#EONFHMLXTOSHMPQBLCT4XZZRXULEMLSCQECB26TUVKFI2IQG27KR7TDFYNDGMWXLVWU7JULHQC7X6
-#\\\|GI66IBXNRCNPUHJRQ4BHYL7DI7DAP74NMINAOTU7AZLOWTUE2CY \ / AMOS7 \ YOURUM ::
-#\[7]6JNNKAXGUZKGD64DD7PGT6ABNFHX7D7T3JX3T5YZT2B2S3MGUYBQ 7  DATA SIGNATURE ::
+#,,,,,...,,,,,,..,.,.,.,.,.,,,..,,.,,,,..,,.,,..,,...,...,...,..,,.,,,.,.,,,.,
+#RUPRFFNTSIITAI5GJEYLQTQ5VY2ZC2W36WSM5PFGKRXT54D27YKVKC52WBIZ2NUK2GK3PE6XEC53K
+#\\\|Q4JBEC7BDLP236C5BPUX26WMSLEP4LBGUBUFLJXB4235PRZTVZP \ / AMOS7 \ YOURUM ::
+#\[7]D3WWYJP2CQBUMWWVGTWC35LBOPHTIAHRTQ6UP54AGZYL5UDJF2DI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
