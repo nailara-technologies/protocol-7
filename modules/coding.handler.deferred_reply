@@ -35,6 +35,7 @@ if ( $status eq 'completed' ) {
     if ( $newlines == 0 ) {
         $final_data = $result;
         $final_data =~ s/\n$//;
+        $final_data = '[ no reply message ]' unless length $final_data;
         $reply_mode = 'true';
     } else {
         $final_data = $result;
@@ -60,8 +61,8 @@ if ( $status eq 'completed' ) {
     delete $data{"coding"}{"deferred_replies"}->{$deferred_id};
 }
 
-#,,,,,.,,,..,,.,.,.,.,,..,...,.,.,.,.,.,.,,,,,.,.,...,...,.,.,,..,,..,..,,..,,
-#VM4XKAXSUWIUUMORZRWYP2NVP2Q323ONP52BHPRRBX2PZ6YCXABJMR4GVWTVU3H25N4A3YOYTAO7U
-#\\\|HTRVWJZ545Q2SCVHYFB5SIW532RZ3NENZHS5Y6OLB2XLMOPW7A7 \ / AMOS7 \ YOURUM ::
-#\[7]TNPUPKVYQ7YRFHL2SRAQ4QYVVDSOIPKBDN6RFKYS4267NRS7WMBI 7  DATA SIGNATURE ::
+#,,.,,.,.,.,.,,,,,.,,,.,,,...,,,.,,.,,,,.,...,.,.,...,...,..,,..,,...,,,,,,..,
+#5CYI2LJZ4ORUNX5CPGFH6H2C3U5ZFW6NH2FQNIKWGG4BCNCOGGWDB6WDUJXTOP72CCQJSY7ZZDRBA
+#\\\|45DVOP5WAU4LDSCC5EAPM4KHMLBL7MOJUYCCSFZIBRWZU6DJG65 \ / AMOS7 \ YOURUM ::
+#\[7]DD3PMQ7NQ4IH4BWU6NO3ZIJ2UOTHIG2PDIYMR6CH6OUUTJ7KC2AQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
