@@ -702,10 +702,10 @@ INFERENCE_LOOP:
                     last INFERENCE_LOOP;
                 }
 
-                ## Inject escalation warning as system message ##
+                ## inject escalation warning [ user role: system mid-conv rejected ] ##
                 push @messages,
                     {
-                    'role'    => 'system',
+                    'role'    => 'user',
                     'content' => $loop_check->{'warning'}
                         // $loop_check->{'message'}
                     };
@@ -894,10 +894,10 @@ INFERENCE_LOOP:
                         $assert_result->{'votes'} // 'single'
                     );
 
-                    ## Inject escalation warning ##
+                    ## inject escalation warning [ user role: system mid-conv rejected ] ##
                     push @messages,
                         {
-                        'role'    => 'system',
+                        'role'    => 'user',
                         'content' => $assert_result->{'message'}
                             . "\n\nACTION REQUIRED: "
                             . "Please conclude your work or call task_complete."
@@ -990,8 +990,8 @@ if ( length $response_text
 ## return result hashref for jobqueue callback ##
 return { success => TRUE, result => $response_text, task_id => $task_id };
 
-#,,..,..,,.,.,.,.,,..,,,,,,.,,,,.,,.,,.,,,,,.,..,,...,...,..,,...,,..,.,,,,.,,
-#WTQAWK22LHXZX4XZE5U7ONGUTKVBHBAJPWD77EDJNTHBF4CWAVWOYMBDSCTRIIHTHWP2GMFQT5GB4
-#\\\|A6P4VSSHFEOSNCAXCUGBT6M4QBSF6PIVDITKP6XOLOAUAJ6CQ3G \ / AMOS7 \ YOURUM ::
-#\[7]I6ZTJPG5SHLBGQZYORVTUF4RX76KSCJSRYJH2ZL3YLVPXD5AEUBA 7  DATA SIGNATURE ::
+#,,,,,.,,,,,,,,,,,,.,,.,,,...,.,.,..,,.,,,,.,,..,,...,...,.,.,.,,,,,,,,.,,,,.,
+#OXHPUTHYPUFPRXFPDGDBMCD7CZT5F7WBBYCPLCUHRDVWRVJGXWMTGVXT6FJ3SDXMG75QAB4ESXBRK
+#\\\|3XZ6FHLHO6A6QWSAZKTMBC4V2U6IVGJJ24KF42VU6DDVFAM33J7 \ / AMOS7 \ YOURUM ::
+#\[7]XUQKGCQAEAP3ZTGPTJWSPCCFUUONRQUC52KFPTLLN2X2E76M6SAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
