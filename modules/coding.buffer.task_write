@@ -72,11 +72,11 @@ my $trunc = sub {
 };
 
 if ( $type eq 'assistant' ) {
-    my @lines = $box->( 'assistant', $content, $pct_tag );
-    @lines = map { $trunc->($_) } @lines;
-    $append->( $buf_compact,  @lines );
-    $append->( $buf_thinking, @lines );
-    $append->( $buf_full,     @lines );
+    my @lines     = $box->( 'assistant', $content, $pct_tag );
+    my @truncated = map { $trunc->($_) } @lines;
+    $append->( $buf_compact,  @truncated );
+    $append->( $buf_thinking, @truncated );
+    $append->( $buf_full,     @lines );       ## full: no truncation ##
 
 } elsif ( $type eq 'thinking' ) {
     ## compact: one-line summary only ##
@@ -88,10 +88,9 @@ if ( $type eq 'assistant' ) {
         $round, $pct_tag, '─' x 30;
     $append->( $buf_compact, $header, $summary, '└' . '─' x 50 );
 
-    ## thinking + full: full reasoning box ##
+    ## thinking: truncated; full: no truncation ##
     my @lines = $box->( 'thinking', $content, $pct_tag );
-    @lines = map { $trunc->($_) } @lines;
-    $append->( $buf_thinking, @lines );
+    $append->( $buf_thinking, map { $trunc->($_) } @lines );
     $append->( $buf_full,     @lines );
 
 } elsif ( $type eq 'tool_call' ) {
@@ -101,11 +100,10 @@ if ( $type eq 'assistant' ) {
         map  {"$_=$opts->{'args'}{$_}"}
         grep { defined $opts->{'args'}{$_} }
         sort keys %{ $opts->{'args'} // {} } );
-    $summary = $trunc->($summary);
-    $append->( $buf_compact,  $summary );
-    $append->( $buf_thinking, $summary );
+    $append->( $buf_compact,  $trunc->($summary) );
+    $append->( $buf_thinking, $trunc->($summary) );
 
-    ## full: include full args block ##
+    ## full: complete args block, no truncation ##
     my $args_str = '';
     if ( ref $opts->{'args'} eq 'HASH' ) {
         for my $k ( sort keys %{ $opts->{'args'} } ) {
@@ -125,9 +123,8 @@ if ( $type eq 'assistant' ) {
     $append->( $buf_compact,  $summary );
     $append->( $buf_thinking, $summary );
 
-    ## full: full result box ##
+    ## full: complete result, no truncation ##
     my @lines = $box->( "tool: $name", $content, '' );
-    @lines = map { $trunc->($_) } @lines;
     $append->( $buf_full, @lines );
 
 } elsif ( $type eq 'system' ) {
@@ -139,8 +136,8 @@ if ( $type eq 'assistant' ) {
 
 return TRUE;
 
-#,,,.,,..,,,,,,..,.,.,,,,,..,,,,,,,,.,,..,,,.,..,,...,...,.,.,,,,,...,,..,,.,,
-#NCQFUTBRM24LW7MQY6JH7CGO7LYO5LY5OFP6GLOV4RGFOLXQ6YO7ZQX3GN7HUY3GSCKQUQAQ7MA3C
-#\\\|43EAL3IJIRDZIBXC4YQL4H2X3KVB4VTNYYMGUF5PVEL575IIVUZ \ / AMOS7 \ YOURUM ::
-#\[7]5H4IKBCDVZ4IQWVXPA4TBPEJYCLCYLQN4E4UVHBYYHFPAFGSZ2DY 7  DATA SIGNATURE ::
+#,,,.,..,,.,.,.,.,.,.,.,.,...,..,,,,.,..,,...,..,,...,...,.,.,,,.,..,,,.,,...,
+#CROXZPJB6E7SOZOATZDZ5CFY5XV5KOO4PLVFKABRGB4J3BR4CL7YVPKI43P2AHIGJWA3K3OU44WHC
+#\\\|T2CB5XGWRSFBWJPGFADY35XYS5T2G52NUDIQK3445VQGQ47TJ66 \ / AMOS7 \ YOURUM ::
+#\[7]J3DALVX7W7JNMHZWBPFP4JV4SVXPVCYY2R5UFCF45J7RCFDZQACA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
