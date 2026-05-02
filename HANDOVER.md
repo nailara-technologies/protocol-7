@@ -43,6 +43,53 @@
   `cur_index + 1`. Fixed by detecting size change after add.
   Result: Ctrl+O now correctly cycles through the last N entries indefinitely.
 
+## Session 2026-05-02/03 — Coding zenka major improvements
+
+### reasoning_content separation (Qwen3 thinking models)
+- `coding.async.chunk_handler`: `reasoning_content` now accumulates in
+  `context->{'reasoning'}` separately from `content` — prevents double-output
+  in model_output buffer (thinking trace + answer were both appearing)
+- Fallback: if `content` empty at finish, copy reasoning → content (stripped
+  of tool call XML first to prevent confusion in next round)
+- XML tool call detection also checks `reasoning_content` (Qwen3 emits XML
+  tool calls there instead of structured `tool_calls` array)
+- `reasoning` field passed through all state machine transitions
+
+### per-task three-tier ring buffers
+- `coding.buffer.task_write`: new module writing to `T-<id>`, `T-<id>-T`,
+  `T-<id>-F` ring buffers (compact / thinking / full)
+- **compact** (`T-<id>`): assistant text + tool call/result summaries only
+- **thinking** (`T-<id>-T`): compact + full reasoning traces
+- **full** (`T-<id>-F`): everything untruncated including tool outputs
+- Buffer names: max 24 chars, `[\w\-_]` charset — strip `task-` prefix
+- Hooked into `state_machine` (assistant + thinking) and `tool_executor`
+  (tool_call + tool_result entries)
+- `model_output` retained as rolling cross-task live monitor
+
+### buffer lifecycle — save/drop timers
+- `coding.event.on_task_complete`: arms 47m save + 63m drop timers after
+  each task; `coding.task.enqueue`: cancels them when new task starts
+- `coding.task.save_buffers`: compresses all 3 buffers as xz, writes to
+  `/var/protocol-7/coding/completed-task-backups/<timestamp>-<id>/` with
+  `meta.yaml` (task_id, model, rounds, result snippet, template)
+- Idle timeout raised to 77m (4620s) in `zenka-startup.v7`
+
+### single-shot inference sub-agent infrastructure
+- `task->{'system'}`: custom system prompt, bypasses template selection
+- `task->{'no_tools'}`: disables tool list (zero inference overhead)
+- `task->{'max_rounds'}`: per-task round cap (overrides global 777)
+- All wired in `coding.async.send_request` + `coding.prompt.assemble`
+- `coding.cmd.oneline-summary`: first true sub-agent command — passes text
+  to inference with focused system prompt, returns ≤74 char summary
+- `coding.filter.summarize_oneline`: heuristic fallback (no inference) used
+  in `task_complete` log line
+
+### bin/coding-task improvements
+- `-template NAME` option: prepends `:name:\n` into B32 payload before
+  encoding, so full prompt is self-contained in one arg to `p7c`
+- `exec @cmd` list form (avoids shell quoting issues with long B32 strings)
+- `-wait` is script-level only, not forwarded to p7c
+
 ## Open / Next
 
 ### nshell first-command `(0)` prefix bug
@@ -74,6 +121,22 @@
 - When ik_llama.cpp fixes the Jinja engine crash (track #1369-related issues), rebuild
   from tip to get VRAM improvements in 4268-4447 range.
 - Toggle: set `coding.jinja.enable = yes` (already set) and rebuild with build script.
+
+### inference-backed compaction (planned)
+- Current `coding.async.compact_context` is heuristic only (truncates/merges
+  messages in-place, no LLM call)
+- Plan: use `no_tools + max_rounds=1 + system` sub-agent to summarize
+  conversation history via a fast model before sending to main model
+- Add `coding.cfg.base_work_model` and `coding.cfg.base_compaction_model`
+  config vars in coding start file — separate model IDs for task work vs
+  compaction (compaction can use smaller/faster model)
+- Later: `coding.cfg.base_work_model` as primary default, overridable
+  per-task via `:model:<amos-id>:` keyword at start of prompt/task file
+  e.g. `:integrate-recent: :model:WZIZD6Y:2BIZKWY:` on same or adjacent line
+- `bin/coding-task -model <amos-model-id>` option to prepend `:model:...:`
+  into the B32 payload alongside `-template`
+- Task files storing `:model:` make them self-describing and portable —
+  model present → use it, absent → fall back to base_work_model
 
 ### context ceiling
 - With 4B Claude distilled v2, context auto-calc gives ~110K. Check if ceiling can move
