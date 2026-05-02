@@ -231,6 +231,23 @@ foreach my $tc (@$tool_calls) {
     ## update tool call id in pending_tools (for assistant message) ##
     $tc->{'id'} = $call_id;
 
+    ## write to per-task buffers ##
+    my $round = $state->{'round'} // 0;
+    <[coding.buffer.task_write]>->(
+        $task_id, '', 'tool_call',
+        {   'round' => $round,
+            'name'  => $tool_name,
+            'args'  => ref $args eq 'HASH' ? $args : {},
+        }
+    );
+    <[coding.buffer.task_write]>->(
+        $task_id, $result_content, 'tool_result',
+        {   'round' => $round,
+            'name'  => $tool_name,
+            'size'  => length($result_content),
+        }
+    );
+
     ## summary for logging ##
     my $snippet = substr( $result_content, 0, 60 );
     $snippet =~ s|\n| |g;
@@ -284,8 +301,8 @@ if (<coding.tool_loop.stop>) {
 
 return { success => TRUE, tool_results => \@tool_results };
 
-#,,..,,..,...,...,,,,,,,,,...,...,..,,.,.,..,,.,.,...,...,..,,.,.,.,,,,,,,,,,,
-#INLBS3MCUTAGTSESS3N5XXDTZQGUMTT7UOMVQGTTTTGUTDKYKWTEP4KWVO2S7T2RN3ACLZ2FQOUWK
-#\\\|KM5BQPTW356CSJCGPA437KL4BMT7QXSVFRCKQTRS3MN5BDABCRN \ / AMOS7 \ YOURUM ::
-#\[7]NC7OEEYEVBZQ7TMVWYHIDKG6YFKKYKFLHMO63NWVSSZKWDOUXKCA 7  DATA SIGNATURE ::
+#,,,.,.,,,,,,,..,,,,,,.,,,,.,,.,.,...,.,.,,,.,.,.,...,...,...,,,.,..,,,,,,...,
+#JGNA63RIPSUSZA2MNG57OSB4RHREPZXZVFXS6GHD7DUIFGZFVCHODYGNTU3XIOGVX4V2OS6NNDAW4
+#\\\|OKXLDVWFOL4GBWK4RL6VUPCONGGRL342JXQZJ6JFAJD4EZRXB2M \ / AMOS7 \ YOURUM ::
+#\[7]DV6IBMEAAMRFMEGF2HAZGWN5CWDWWSWM4H7PHOOZHHUFZQGRLCDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
