@@ -199,11 +199,21 @@ my $tpl_context = {
     $selected_template, $target_module || 'none', $task_type
 );
 
-## resolve system prompt via template or fallback ##
+## task-level custom system prompt overrides template + fallback ##
 my @messages;
 my $hooks = [];
+if ( defined $task->{'system'} && length $task->{'system'} ) {
+    push @messages, { 'role' => 'system', 'content' => $task->{'system'} };
+    <[base.logs]>->(
+        2,
+        ':. prompt.assemble: using task-level system prompt [ %d chars ]',
+        length $task->{'system'}
+    );
+}
 
-if ( exists $code{'context.template.resolve'} ) {
+## resolve system prompt via template or fallback ##
+
+if ( !@messages && exists $code{'context.template.resolve'} ) {
     my $resolved = $code{'context.template.resolve'}->(
         {   'template' => $selected_template,
             'vars'     => $tpl_vars,
@@ -225,7 +235,7 @@ if ( exists $code{'context.template.resolve'} ) {
 }
 
 ## fallback to hardcoded system prompt ##
-if ( not @messages and exists $code{'coding.system_prompt'} ) {
+if ( !@messages and exists $code{'coding.system_prompt'} ) {
     my $sys_prompt = $code{'coding.system_prompt'}->();
     if ( defined $sys_prompt and length $sys_prompt ) {
         push @messages, { 'role' => 'system', 'content' => $sys_prompt };
@@ -253,8 +263,8 @@ return {
     'hooks'        => $hooks,
 };
 
-#,,,.,,.,,,,.,,..,,..,,,.,.,.,,,.,...,.,.,..,,..,,...,...,,,.,,.,,,.,,,,.,...,
-#6TIOEYA4NCPS65KOKYU7Y5BBBNPZLMMRSBXPSJ6VRHPOLTP54HWMCI3RDTDQ2XQSY5JVM5KFTZZXK
-#\\\|HJZC3RSMZIZ7Z37FOHF5BHFYOEA772LFVWMC5PN6GWLSKHBFUTT \ / AMOS7 \ YOURUM ::
-#\[7]CNFM4TPO4O5TOLKDMURGX5745CICV7XPDXJQZXAB3T2BS26P62AA 7  DATA SIGNATURE ::
+#,,,,,,,,,,,.,.,,,,..,,.,,,..,.,,,,,,,,.,,.,.,..,,...,...,...,,..,,.,,,,.,,..,
+#ZME3OFEG2G4FULTZMHTOR4O3UXIDI6QAM7PDVRYLXIF5SYQCFFO6MNBQR65XFN3CRAJY2BRMQHPIW
+#\\\|NWQ6X56ZRBIE4WMEHHRYSLS23RRWNYMCUY7VB3WRUNS73JHCZLU \ / AMOS7 \ YOURUM ::
+#\[7]72GPR2LKS46V4JMTSJXHRKIBD3W7W6I2GEXPN5RPGN4J7GOUBQBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

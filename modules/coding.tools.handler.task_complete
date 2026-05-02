@@ -11,12 +11,13 @@ my $summary = $args->{'summary'} // 'task completed';
 <coding.tool_loop.stop_reason>  = 'task_complete';
 <coding.tool_loop.stop_summary> = $summary;
 
-<[base.logs]>->( 1, ':. task_complete: %s', substr( $summary, 0, 200 ) );
+my $oneliner = <[coding.filter.summarize_oneline]>->($summary);
+<[base.logs]>->( 1, ':. task_complete: %s', $oneliner );
 
 return $summary;
 
-#,,..,..,,,.,,..,,,.,,,..,.,,,.,.,.,,,...,...,.,.,...,...,,..,,.,,,,.,..,,..,,
-#OFFUNGMHHZETT267JTJ6TNMHYJDWLRX6UQZWMML7EZTHYACFPZYZ73WQBTAIX533IKL4AUBFWGYAC
-#\\\|KUKMUANX3HUUBLKFU36SYSNRHUKI2LICE3J6ZF3LW3TUFS7UMDA \ / AMOS7 \ YOURUM ::
-#\[7]SNWRXYKEKOGRXSMSIUSIQVMJALEKOOQUXKP7INR4LWVWRCH4D6CQ 7  DATA SIGNATURE ::
+#,,,.,,..,,..,...,...,,,.,,.,,...,...,..,,,..,.,.,...,...,,..,,,.,,..,.,.,..,,
+#A3RCLEAM5VLMB3SGWFZPLBIG6JYLT3HTYOUYRQSLQYOMNNBOEMLETLQQWZHE66R6I55FVQYG3T6NM
+#\\\|CBI62S5D2AQDY75SWHPMRJP7A2KYGRM2EBW4A3VRB6LTSIDJKGX \ / AMOS7 \ YOURUM ::
+#\[7]TZARUR2E54KSGBQXL6ED4QZFUAXSLN52ZY4C3JO564OMM3GLZEBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

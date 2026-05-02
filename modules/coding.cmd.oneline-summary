@@ -1,0 +1,80 @@
+## [:< ##
+
+# name  = coding.cmd.oneline-summary
+# descr = summarize text to one line via inference
+# param = text to summarize [ SIZE-mode for multiline ]
+#         optional: focus=<perspective> in args for targeted summary
+
+my $input = '';
+my $focus = '';
+
+if ( defined $call->{'param'} && ref $call->{'param'} eq qw| HASH | ) {
+    $input = $call->{'param'}->{'text'} // $call->{'param'}->{'input'}
+        // $call->{'param'}->{'summary'} // '';
+    $focus = $call->{'param'}->{'focus'} // '';
+}
+
+## also accept raw args or SIZE-mode body ##
+if ( !length($input) && defined $call->{'args'} && length $call->{'args'} ) {
+    $input = $call->{'args'};
+}
+if ( !length($input) && defined $call->{'data'} && length $call->{'data'} ) {
+    $input = $call->{'data'};
+}
+
+return { 'mode' => qw| false |, 'data' => "text required\n" }
+    unless length $input;
+
+## apply quick heuristic first — skip inference for short inputs ##
+if ( length($input) <= 74 && $input !~ /\n/ ) {
+    return { 'mode' => qw| true |, 'data' => $input };
+}
+
+my $focus_line
+    = length($focus)
+    ? "\nFocus the summary on: $focus"
+    : '';
+
+## build minimal single-round task ##
+my $system_prompt
+    = 'You are a summarization assistant. '
+    . 'Your response must be exactly ONE line, maximum 74 characters. '
+    . 'No markdown, no bullet points, no trailing punctuation unless natural. '
+    . 'Capture the key outcome or finding.'
+    . $focus_line;
+
+my $task = {
+    'id'          => <[base.gen_id]>->(<coding.task.queue>),
+    'type'        => 'summary',
+    'description' => $input,
+    'system'      => $system_prompt,
+    'no_tools'    => TRUE,
+    'max_rounds'  => 1,
+};
+
+my $queue_result = <[coding.task.enqueue]>->($task);
+return {
+    'mode' => qw| false |,
+    'data' => "Failed to enqueue: $queue_result->{'error'}\n"
+    }
+    if !$queue_result->{'success'};
+
+## deferred reply — returns when inference completes ##
+$data{'coding'}{'deferred_replies'} //= {};
+my $deferred_id
+    = <[base.gen_id]>->( $data{"coding"}{"deferred_replies"} );
+$data{"coding"}{"deferred_replies"}->{$deferred_id} = {
+    'deferred_id' => $deferred_id,
+    'reply_id'    => $call->{'reply_id'},
+    'task_id'     => $task->{'id'},
+    'submitted'   => <[base.time]>->(3),
+    'status'      => qw| waiting |,
+};
+
+return { 'mode' => qw| deferred | };
+
+#,,,,,.,,,..,,..,,...,..,,,,.,,,.,,,,,,..,.,,,..,,...,...,...,...,,..,,..,,..,
+#GZN56AII6J6PNKPGHRPFN5QXAQYNHLD3PR6M5D5WXTD6YMJ7DBWPPRYRD6AT5RWQNV5C2RNXS5UU6
+#\\\|5SZBNS3FCJT3TZWGR6JIGNGD43MYUN4AIIUO4ZVPNIQB7R27SXB \ / AMOS7 \ YOURUM ::
+#\[7]CWDR54WVDYM4BJFMIGBDER6EDA6YNQ4TOHIRQNGZ6WWNMF2VCMBI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
