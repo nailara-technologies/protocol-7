@@ -128,19 +128,15 @@ chomp $prompt if length $prompt;
 
 die ":: empty prompt\n" unless length $prompt;
 
-## prepend template prefix into prompt before encoding ##
-## so the full B32 blob is self-contained for both ask-reply and submit ##
+## prepend template prefix unless already present in prompt ##
+my $has_tmpl = $prompt =~ m|^\s*:[A-Za-z0-9_.+-]+:|;
 my $full_prompt
-    = length($template)
+    = ( length($template) && !$has_tmpl )
     ? ":${template}:\n${prompt}"
     : $prompt;
 
 ## encode ##
 my $encoded = encode_b32r($full_prompt);
-
-## build command — always a single B32 blob ##
-my $cmd = sprintf "p7c coding.ask-reply 'B32:%s'", $encoded;
-$cmd .= ' -wait' if $wait;
 
 ## show summary ##
 printf ":: template: %s\n", $template if length $template;
@@ -150,11 +146,12 @@ printf ":: prompt: %s\n", $preview;
 printf ":: encoded: %d bytes → %d b32r chars\n",
     length($full_prompt), length($encoded);
 
-## dispatch ##
-exec $cmd;
+## dispatch as list — avoids shell interpretation of B32 string ##
+## -wait is a coding-task option only, not forwarded to p7c ##
+exec 'p7c', 'coding.ask-reply', "B32:$encoded";
 
-#,,..,,,.,.,.,...,.,,,.,,,,..,,,.,.,,,..,,,..,.,.,...,...,.,,,,.,,.,,,,..,.,.,
-#GTBDNI6WB7KFUW6AGZVAKVASRR66VTRQCSTPFUCZGQRRTZX6REB2ZV2IZSGWVXQ2UVBVS2S7TLIPW
-#\\\|SOYGU35D2TGEZJDLSLLAUNQ2SG64I36JHLUZQ52DJQEXOMLMP73 \ / AMOS7 \ YOURUM ::
-#\[7]W5NJ4IHLOZGTGN45MTUTM2QDTBAQYKE74GU7F6YJ2DOJL2XNMOAY 7  DATA SIGNATURE ::
+#,,.,,,..,.,,,,,.,.,.,,,,,,,,,..,,,..,...,,,.,.,.,...,...,,,.,.,,,...,...,,.,,
+#OSW6RZZEA5LZTSUIGVL3ER4UZ4JSBPAH6K2H57A4MTTYKV7BO3MFWMVXZIEHM6OKK4F7L4UHKN2J2
+#\\\|RVBOMENITVWWEOKMXY5CEKY275TLV3CU6QXOHKZANBP7FMLVBB6 \ / AMOS7 \ YOURUM ::
+#\[7]MBD72Y5CJLUNF533DLJ6DRWL6XKDA2OLJ7XAKR5KNFEJYSB7WKDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

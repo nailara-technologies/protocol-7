@@ -178,9 +178,17 @@ elsif ( $action eq 'transition' ) {
         $display_content =~ s{$json_tc_re}{}g;
         $display_content =~ s|^\s+||;
         $display_content =~ s|\s+$||;
-        ## write model response to output buffer [ before tool execution ] ##
-        ## always write even when content is empty so buffer exists and  ##
-        ## shows live round progress for tool-call-only models           ##
+        ## write reasoning trace to per-task buffers if present ##
+        my $reasoning = $data->{'reasoning'} // $state->{'reasoning'} // '';
+        if ( length $reasoning ) {
+            <[coding.buffer.task_write]>->(
+                $task_id, $reasoning, 'thinking',
+                {   'round' => $state->{'round'} // 0,
+                    'pct'   => $state->{'pct_used'},
+                }
+            );
+        }
+        ## write model text to per-task buffers + rolling model_output ##
         <[coding.buffer.model_output]>->(
             length($display_content)
             ? $display_content
@@ -190,6 +198,14 @@ elsif ( $action eq 'transition' ) {
                 'pct'   => $state->{'pct_used'},
             }
         );
+        if ( length $display_content ) {
+            <[coding.buffer.task_write]>->(
+                $task_id, $display_content, 'assistant',
+                {   'round' => $state->{'round'} // 0,
+                    'pct'   => $state->{'pct_used'},
+                }
+            );
+        }
         $state->{'pending_tools'} = $data->{'tool_calls'} // [];
         <coding.async.task_state>->{$task_id} = $state;
         <[coding.async.tool_executor]>->($task_id);
@@ -437,12 +453,18 @@ elsif ( $action eq 'transition' ) {
         $final_display =~ s{$json_tc_re}{}g;
         $final_display =~ s|^\s+||;
         $final_display =~ s|\s+$||;
-        ## write final response to model output buffer ##
+        ## write final response to model output buffer + per-task buffers ##
         if ( length($final_display) ) {
             <[coding.buffer.model_output]>->(
                 $final_display,
                 {   'round' => $state->{'round'} // 0,
                     'tool'  => qw| model |,
+                    'pct'   => $state->{'pct_used'},
+                }
+            );
+            <[coding.buffer.task_write]>->(
+                $task_id, $final_display, 'assistant',
+                {   'round' => $state->{'round'} // 0,
                     'pct'   => $state->{'pct_used'},
                 }
             );
@@ -525,8 +547,8 @@ elsif ( $action eq 'constants' ) {
 
 return { error => sprintf "unknown action : '%s'", $action };
 
-#,,,,,,,,,.,.,..,,...,.,,,,.,,,,,,,.,,,,,,...,.,.,...,...,...,...,...,...,,,,,
-#IRIEWSAOAMUQ5WXPWDEKMNBTSGS46467I3MQD3I73BJD3LE7DQPCFAYTWXCW3AJGHZDX4AFOEX6CY
-#\\\|YK3KQCBP7I6G3QGIPGCPUPEEKTBFKGQUHJGWQNBS56N5NU2JN6G \ / AMOS7 \ YOURUM ::
-#\[7]AYSQPW7E6F4XMJQPNXLDWPBPU4GBUSHOPQR4M523OIXST3SOCKAA 7  DATA SIGNATURE ::
+#,,..,,.,,,.,,..,,,..,,,,,..,,,..,,,,,,,.,,,.,.,.,...,...,.,.,...,,..,,,.,,,.,
+#5PETFK3D6KING7CFLW7QA3IXVBY4N77NBTLNW5FZIF3SIFUG3PC4XQ22V67HZLSPZJE4DTM3N4WVU
+#\\\|7X5X6KNILZSCTBL7NO2Q64TPJ62FX5P6TYJBT62E7GBSHO3AI45 \ / AMOS7 \ YOURUM ::
+#\[7]XLOO4W2W4S2UTNTUS3JSO2MVK2V5NKNX2M2KY2PS4HUXWCGIBGBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
