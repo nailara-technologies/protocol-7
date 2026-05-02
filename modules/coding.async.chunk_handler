@@ -75,6 +75,13 @@ if ( defined $choice->{'finish_reason'} ) {
     my $finish = $choice->{'finish_reason'};
     $context->{'finish_reason'} = $finish;
 
+    ## fall back to reasoning if content is empty at finish ##
+    ## qwen3 thinking models sometimes emit only reasoning_content ##
+    if (   !length( $context->{'content'} // '' )
+        && length( $context->{'reasoning'} // '' ) ) {
+        $context->{'content'} = $context->{'reasoning'};
+    }
+
     ## log current state before transition ##
     my $content_preview = substr( $context->{'content'} // '', 0, 50 );
     $content_preview =~ s/\n/ /g;
@@ -98,6 +105,7 @@ if ( defined $choice->{'finish_reason'} ) {
                 {   'event'      => 'finish_tool_calls',
                     'tool_calls' => $context->{'tool_calls'},
                     'content'    => $context->{'content'},
+                    'reasoning'  => $context->{'reasoning'} // '',
                 }
             );
         }
@@ -115,6 +123,7 @@ if ( defined $choice->{'finish_reason'} ) {
                 {   'event'      => 'finish_tool_calls',
                     'tool_calls' => $context->{'tool_calls'},
                     'content'    => $context->{'content'},
+                    'reasoning'  => $context->{'reasoning'} // '',
                 }
             );
         } else {
@@ -123,6 +132,16 @@ if ( defined $choice->{'finish_reason'} ) {
             ## instead of structured tool_calls array ##
             my $parsed_tools
                 = <[coding.parse.xml_tool_calls]>->( $context->{'content'} );
+
+            ## also check reasoning_content — qwen3 thinking emits xml tool ##
+            ## calls in reasoning_content rather than content                ##
+            if ( !@{$parsed_tools} && length( $context->{'reasoning'} // '' ) ) {
+                $parsed_tools
+                    = <[coding.parse.xml_tool_calls]>->( $context->{'reasoning'} );
+                <[base.logs]>->(
+                    1, "chunk_handler: checking reasoning for xml tool_calls"
+                ) if @{$parsed_tools};
+            }
 
             ## fallback: try json tool calls if xml found nothing ##
             if ( !@{$parsed_tools} ) {
@@ -142,6 +161,7 @@ if ( defined $choice->{'finish_reason'} ) {
                     {   'event'      => 'finish_tool_calls',
                         'tool_calls' => $parsed_tools,
                         'content'    => $context->{'content'},
+                        'reasoning'  => $context->{'reasoning'} // '',
                     }
                 );
             } else {
@@ -149,8 +169,9 @@ if ( defined $choice->{'finish_reason'} ) {
                 <[coding.async.state_machine]>->(
                     'transition',
                     $task_id,
-                    {   'event'   => 'finish_stop',
-                        'content' => $context->{'content'},
+                    {   'event'     => 'finish_stop',
+                        'content'   => $context->{'content'},
+                        'reasoning' => $context->{'reasoning'} // '',
                     }
                 );
             }
@@ -163,8 +184,9 @@ if ( defined $choice->{'finish_reason'} ) {
         <[coding.async.state_machine]>->(
             'transition',
             $task_id,
-            {   'event'   => 'finish_stop',
-                'content' => $context->{'content'},
+            {   'event'     => 'finish_stop',
+                'content'   => $context->{'content'},
+                'reasoning' => $context->{'reasoning'} // '',
             }
         );
     } elsif ( $finish eq 'content_filter' ) {
@@ -184,8 +206,8 @@ if ( defined $choice->{'finish_reason'} ) {
 
 return $context;
 
-#,,..,,,.,..,,,,,,.,,,.,.,,,.,...,.,,,.,.,,..,.,.,...,...,...,,,.,,,,,..,,...,
-#B2SPWGU7YOJY2PQBRYQS6IYQN7QTUGOTYGORQBTMBDK3BZ6RLCEBUA7VNP6MU6P7WOA3FISU3LT2E
-#\\\|QESB4PXOAZADZ2BKOP2GSJQHL7N3LPMUDUHGBYT43XDB7JQ2CBU \ / AMOS7 \ YOURUM ::
-#\[7]LP5NLP6GLVWVKXNI4AVLYEMYTZEJ65HQ4NUG3CFLPGHDM4R7ZUDQ 7  DATA SIGNATURE ::
+#,,..,.,.,,.,,.,.,,..,.,,,,.,,,..,.,.,,,,,...,.,.,...,..,,...,,..,,.,,,..,...,
+#7TX3PRNNFGQAWTP4FHEECSK2PBS4RWUSANWN6QTT5QQNUXPPKE5QTNJPXDUVJFRCIIQRQZGHDB7OO
+#\\\|QMZVK4Q5XBN236WHX4PXABLQHAZAOEQPHP4U2TQY2U24C3IU6Q7 \ / AMOS7 \ YOURUM ::
+#\[7]H5NG5O7MMLHET7UJCIR63F36VFQIAHSIEQVW4BW2O7Q6LN6D5CCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
