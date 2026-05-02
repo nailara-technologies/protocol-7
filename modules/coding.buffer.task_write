@@ -23,21 +23,26 @@ return FALSE unless defined $content && length($content);
 $type //= 'assistant';
 $opts //= {};
 
-my $round  = $opts->{'round'} // '?';
-my $pct    = $opts->{'pct'}   // 0;
-my $name   = $opts->{'name'}  // '';    ## tool name for tool_call/result ##
-my $size   = $opts->{'size'}  // 0;    ## result size for tool_result ##
+my $round = $opts->{'round'} // '?';
+my $pct   = $opts->{'pct'}   // 0;
+my $name  = $opts->{'name'}  // '';    ## tool name for tool_call/result ##
+my $size  = $opts->{'size'}  // 0;     ## result size for tool_result ##
 
-my $buf_compact  = "task-$task_id";
-my $buf_thinking = "task-$task_id-thinking";
-my $buf_full     = "task-$task_id-full";
+## task_id already contains 'task-' prefix — strip for buffer name ##
+## buffer names: max 24 chars, only [\w\-_] allowed                ##
+( my $short_id = $task_id ) =~ s/^task-//i;
+my $buf_compact  = "T-$short_id";
+my $buf_thinking = "T-${short_id}-T";
+my $buf_full     = "T-${short_id}-F";
 
 my $pct_tag = $pct ? " [CTX:${pct}%]" : '';
 
 ## initialize buffers on first write [ 256K each ] ##
 for my $buf ( $buf_compact, $buf_thinking, $buf_full ) {
-    <[base.buffer.add_line]>->( $buf, undef )
-        unless defined $data{'buffer'}{$buf}{'data'};
+    unless ( defined $data{'buffer'}{$buf}{'data'} ) {
+        $data{'buffer'}{$buf}{'max_size'} //= 256 * 1024;
+        $data{'buffer'}{$buf}{'data'}     //= [];
+    }
 }
 
 ## helper: append lines to a buffer ##
@@ -53,7 +58,7 @@ my $box = sub {
     $body =~ s|\r||g;
     my $header = sprintf '┌──[ %s | round %s%s ]%s',
         $label, $round, $pct_str // '', '─' x 30;
-    my @lines = ( $header );
+    my @lines = ($header);
     push @lines, "│ $_" for split /\n/, $body;
     push @lines, '└' . '─' x 50;
     return @lines;
@@ -78,7 +83,7 @@ if ( $type eq 'assistant' ) {
     my $chars   = length($content);
     my $preview = substr( $content, 0, 120 );
     $preview =~ s|\n| ↵ |g;
-    my $summary = $trunc->( "│ [thinking $chars chars] $preview" );
+    my $summary = $trunc->("│ [thinking $chars chars] $preview");
     my $header  = sprintf '┌──[ thinking | round %s%s ]%s',
         $round, $pct_tag, '─' x 30;
     $append->( $buf_compact, $header, $summary, '└' . '─' x 50 );
@@ -93,7 +98,7 @@ if ( $type eq 'assistant' ) {
     ## compact + thinking: summary line ##
     my $summary = sprintf '  → %s [ %s ]', $name,
         join( ', ',
-        map  { "$_=$opts->{'args'}{$_}" }
+        map  {"$_=$opts->{'args'}{$_}"}
         grep { defined $opts->{'args'}{$_} }
         sort keys %{ $opts->{'args'} // {} } );
     $summary = $trunc->($summary);
@@ -104,18 +109,19 @@ if ( $type eq 'assistant' ) {
     my $args_str = '';
     if ( ref $opts->{'args'} eq 'HASH' ) {
         for my $k ( sort keys %{ $opts->{'args'} } ) {
-            $args_str .= sprintf "    %s = %s\n", $k, $opts->{'args'}{$k} // '';
+            $args_str .= sprintf "    %s = %s\n", $k,
+                $opts->{'args'}{$k} // '';
         }
     }
-    $append->( $buf_full,
+    $append->(
+        $buf_full,
         sprintf( '  → %s(', $name ),
-        split( /\n/, $args_str ),
-        '  )' );
+        split( /\n/, $args_str ), '  )'
+    );
 
 } elsif ( $type eq 'tool_result' ) {
     ## compact + thinking: size only ##
-    my $summary = $trunc->(
-        sprintf '  ← %s [ %d chars ]', $name, $size );
+    my $summary = $trunc->( sprintf '  ← %s [ %d chars ]', $name, $size );
     $append->( $buf_compact,  $summary );
     $append->( $buf_thinking, $summary );
 
@@ -125,7 +131,7 @@ if ( $type eq 'assistant' ) {
     $append->( $buf_full, @lines );
 
 } elsif ( $type eq 'system' ) {
-    my $line = $trunc->( "  · $content" );
+    my $line = $trunc->("  · $content");
     $append->( $buf_compact,  $line );
     $append->( $buf_thinking, $line );
     $append->( $buf_full,     $line );
@@ -133,8 +139,8 @@ if ( $type eq 'assistant' ) {
 
 return TRUE;
 
-#,,..,.,.,,,.,...,,,,,.,.,,.,,,,,,,.,,,,,,,.,,..,,...,...,..,,,,.,,,,,..,,.,.,
-#2TCNOH33SGD2XQ7XCWZMRSEPOBX4SURCOZB35F6OPZJWKYD5QCPOROW2VI3BI4QPNXUUCGTO3W2EE
-#\\\|34IDKTNQWLKHSWPXQ3EOGOI3CUBIDQQPAV4H2CDHTLUPT74ZLRO \ / AMOS7 \ YOURUM ::
-#\[7]JCZUR6XEH7XTAGX53R2FYOTOZLSAE4ZOOLNBFKN4WYKMPMEU6WCI 7  DATA SIGNATURE ::
+#,,,.,,..,,,,,,..,.,.,,,,,..,,,,,,,,.,,..,,,.,..,,...,...,.,.,,,,,...,,..,,.,,
+#NCQFUTBRM24LW7MQY6JH7CGO7LYO5LY5OFP6GLOV4RGFOLXQ6YO7ZQX3GN7HUY3GSCKQUQAQ7MA3C
+#\\\|43EAL3IJIRDZIBXC4YQL4H2X3KVB4VTNYYMGUF5PVEL575IIVUZ \ / AMOS7 \ YOURUM ::
+#\[7]5H4IKBCDVZ4IQWVXPA4TBPEJYCLCYLQN4E4UVHBYYHFPAFGSZ2DY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
