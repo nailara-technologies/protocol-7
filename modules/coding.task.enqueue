@@ -34,6 +34,15 @@ if ( exists $queue_href->{$task_id} ) {
     };
 }
 
+## cancel buffer save/drop timers — new task is active ##
+for my $timer_key (qw| task_buffer_save task_buffer_drop |) {
+    my $t = <coding.timer>->{$timer_key};
+    if ( defined $t && ref $t && $t->is_active ) {
+        $t->cancel;
+        <[base.logs]>->( 2, "enqueue: cancelled %s timer", $timer_key );
+    }
+}
+
 ## store task in coding queue ##
 $queue_href->{$task_id} = {
     %$task,
@@ -76,8 +85,8 @@ return {
     message    => "task enqueued: $task_id"
 };
 
-#,,,.,,.,,.,.,,..,..,,,,.,...,,..,.,,,.,,,,.,,..,,...,...,...,.,.,.,.,,..,..,,
-#44JWOLM52BOEVZYUIGCG7CI4PWWKXT555HMBWTQJGATWMKICUBEV6YE37E6GLD3OCVZH54MBLBJZU
-#\\\|5AHLTB2ZOCKZDF2CBN2M2CXTMXCJT6WUCDL5OUWGDSM6NRWUEC5 \ / AMOS7 \ YOURUM ::
-#\[7]SLSQCS5QFIOPVGLIZBIYZZ6QL2LDIQNDSUDFJY5MBRJIRMGEVSCY 7  DATA SIGNATURE ::
+#,,,.,,,,,,,,,..,,,..,,,,,,.,,,,.,,,.,,,,,.,.,..,,...,...,..,,,,.,,,.,...,,.,,
+#SFRGVSVYVIDLZIMOAWT7CRGXYMIBZJDO5KK4VTNLJ7BMDWVXVNOE7D7VMMAWIXFRRM65KODK2DRCQ
+#\\\|LUC3PKMWOUKP5FSU4R7YUQUJSWVBJO5NNB6QMZQRMI7FBHBLRBK \ / AMOS7 \ YOURUM ::
+#\[7]YUNVRWPSOAUXESV3R64YH2YWR2QC2MZVYUKFKBINOSOPX7NQDUDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

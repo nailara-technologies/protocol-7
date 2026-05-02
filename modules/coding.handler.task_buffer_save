@@ -1,0 +1,27 @@
+## [:< ##
+
+# name  = coding.handler.task_buffer_save
+# descr = timer handler: save buffers for recently completed tasks
+
+my @completed = keys %{ <coding.task.completed_ids> // {} };
+
+if ( !@completed ) {
+    <[base.logs]>->( 2, "task_buffer_save: no completed tasks to save" );
+    return TRUE;
+}
+
+for my $task_id (@completed) {
+    <[base.logs]>->( 1, "task_buffer_save: saving buffers for %s", $task_id );
+    <[coding.task.save_buffers]>->($task_id);
+}
+
+## clear the save timer handle ##
+delete <coding.timer.task_buffer_save>;
+
+return TRUE;
+
+#,,,.,,.,,,..,,,.,...,..,,...,..,,..,,,,,,,,.,..,,...,...,,,.,,.,,...,,..,,,.,
+#MSCF7OBV2T4U6BOMTCF5V5XUEQPKNRBLZXWSUC5PQ3L2CCQC7BAKLT7TSV3LSPJ2W6TH2THQJ7QO2
+#\\\|CSM3IDS7QDZLIUS4QWNGKXNOYICJK52WJVTBFDJORENDUJPQ67F \ / AMOS7 \ YOURUM ::
+#\[7]CLA67GUTI6NOBWYYOZTCSHZRBG3S2XM36NLNHP5TORVIYGNBOWCY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
