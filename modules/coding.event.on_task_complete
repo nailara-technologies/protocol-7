@@ -71,10 +71,40 @@ foreach my $deferred_id ( keys %$deferred_replies ) {
     }
 }
 
+## register task in completed_ids for buffer save/drop timers ##
+<coding.task.completed_ids> //= {};
+<coding.task.completed_ids>->{$task_id} = <[base.time]>->(3);
+
+## (re)start 47m save timer ##
+if ( defined <coding.timer.task_buffer_save>
+    && <coding.timer.task_buffer_save>->is_active ) {
+    <coding.timer.task_buffer_save>->cancel;
+}
+<coding.timer.task_buffer_save> = <[event.add_timer]>->(
+    {   'after'   => 2820,
+        'handler' => qw| coding.handler.task_buffer_save |,
+    }
+);
+
+## (re)start 63m drop timer ##
+if ( defined <coding.timer.task_buffer_drop>
+    && <coding.timer.task_buffer_drop>->is_active ) {
+    <coding.timer.task_buffer_drop>->cancel;
+}
+<coding.timer.task_buffer_drop> = <[event.add_timer]>->(
+    {   'after'   => 3780,
+        'handler' => qw| coding.handler.task_buffer_drop |,
+    }
+);
+
+<[base.logs]>->(
+    1, "[on-task-complete] buffer save/drop timers set [ 47m / 63m ]"
+);
+
 return TRUE;
 
-#,,.,,,,,,,,.,...,,.,,,,.,...,.,,,,..,,.,,,..,..,,...,...,,..,..,,..,,...,..,,
-#DYJ3XLYFTG5LRCHLJV7DDHCSFH2FZHWXABZBPMN7AKE42FQRX6VER5RR6CLG6GDZL6IFBOMXYXFWM
-#\\\|YOEJGUVAOXFTNECAUVAX6BNKSNE25VAMEUWHETS6DOSOSMIG56E \ / AMOS7 \ YOURUM ::
-#\[7]WE2ZVRQLZN3OA5G27TQ3YYX4V7TWPKLUTRVLAJWRZPTXSDT4NCAA 7  DATA SIGNATURE ::
+#,,..,,,.,...,,,,,,..,..,,...,.,,,,,,,..,,.,,,..,,...,...,...,.,.,,,,,.,,,,,,,
+#GVNPXTZ2TBDWUZHQ356UDNSAZHXOV24F2MU2VGOBJKWJVKX7E7GKI2U6RUIPRXEDHK7YERSUTIELW
+#\\\|4BHKVOHGB37CPEC47W44UYQTTOON34DZG6BH7ZS22EJOUX6DKFE \ / AMOS7 \ YOURUM ::
+#\[7]U44D2GPRUNVFTG7UBQUQIFDRVRQDVKLHKFQTXLEJJ4CI3HWZ7SAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
