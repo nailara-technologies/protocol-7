@@ -1,0 +1,49 @@
+## [:< ##
+
+# name  = coding.filter.summarize_oneline
+# descr = distill any text to a single line of max 74 characters
+# param = text string
+# returns = condensed one-line summary string
+
+my $text = shift // '';
+my $max  = shift // 74;
+
+return '' unless length $text;
+
+## strip markdown formatting ##
+$text =~ s|\*{1,3}([^*]+)\*{1,3}|$1|g;    ## bold / italic ##
+$text =~ s|`[^`]+`||g;                    ## inline code ##
+$text =~ s|^\s*#{1,6}\s+||gm;             ## headings ##
+$text =~ s|^\s*[-*+]\s+||gm;              ## bullet points ##
+$text =~ s|^\s*\d+\.\s+||gm;              ## numbered lists ##
+
+## collapse whitespace and newlines to single spaces ##
+$text =~ s|\r?\n+| |g;
+$text =~ s|\s{2,}| |g;
+$text =~ s|^\s+||;
+$text =~ s|\s+$||;
+
+## extract first sentence [ ends at . ! ? followed by space or end ] ##
+if ( $text =~ m{^(.{10,}?[.!?])(?:\s|$)} ) {
+    my $sentence = $1;
+    ## only use if shorter than max — otherwise fall through to truncation ##
+    if ( length($sentence) <= $max ) {
+        return $sentence;
+    }
+}
+
+## truncate at word boundary ##
+if ( length($text) <= $max ) {
+    return $text;
+}
+
+my $truncated = substr( $text, 0, $max );
+$truncated =~ s|\s+\S*$||;    ## trim to last complete word ##
+$truncated =~ s|\s+$||;
+return $truncated . ' .,.';
+
+#,,,.,,,.,,..,,..,...,,.,,,,.,..,,,,.,.,,,,..,..,,...,...,...,...,,..,.,,,.,,,
+#ASRFR624J74OJCFGZHPWTX5IP5MML5JHLZRVI7GC6KWRZU55AWQS5VYPHXMHMQR2DJNYAXL65Z2BC
+#\\\|5HTSF6TT6LOPGP743VVQ2VYB6PXE5EAL53TCM3CCSKPHCXQG2VK \ / AMOS7 \ YOURUM ::
+#\[7]FXAYLEHJLS6VVWJN26JDNEU3VSRFQK3ZIEGPC4WWU3U73CDLRMDA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
