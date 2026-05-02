@@ -43,6 +43,7 @@
   code/data/state/history/planning, branch summarization, universal off-band access
 - `topic-async-tool-loop-debug.md` — RESOLVED: async tool loop fixes, XML parsing, root cause chain
 - `topic-coding-zenka-session8.md` — May 1: llama-server 4266 pinned (Jinja crash), 4B Claude distilled v2 default, tool JSON repair, nshell Ctrl+O + (0) bug
+- `topic-coding-zenka-session9.md` — May 2/3: reasoning_content separation, 3-tier task buffers, buffer lifecycle (47m save/63m xz), sub-agent infra, model/compaction config plan
 - `topic-async-round-2-timeout.md` — RESOLVED (Apr 30): double-spawn VRAM starvation + subtask lock deadlock + timeout restart; full subtask round-trip verified
 - `topic-coding-zenka-session7.md` — May 1: spawning guard centralized, drain pipe lifecycle, context floor semantics, task-append + resumption, loop detection fixes, context pressure warning; open: loop_detect_count per-task
 - `feedback-list-return-format.md` — list backends: mode 'size' + formatted string, not arrayref
@@ -323,8 +324,8 @@
 - Pattern: `my @non_num = grep { defined $data_ref->{$ARG}->{$key} and not looks_like_number(...) } keys $data_ref->%*`
 - Global `$SIG{__WARN__}` exists — if wrapping warn handler, capture `$prev_warn = $SIG{__WARN__}` first and call through
 
-#,,..,,,.,..,,.,,,..,,...,.,.,...,.,.,..,,...,..,,...,...,...,.,.,,,.,,..,,,,,
-#L5IAIISVHLO2HTYJ5DRI3SNFBWLGGTO7DYUUOPKKEPBMWPTTV4M65NCU56HFW3KFMDNRMB2GVGRIU
-#\\\|V5O6IN7XHBZENL3NRREHK5UULD3IDXXLYBG4P22VU7Y3I4U5GN6 \ / AMOS7 \ YOURUM ::
-#\[7]4IKZ7TJG3EAXQCOHCNVJVBES7CORUDTPF7LSVP45PBMM4ZRARUCY 7  DATA SIGNATURE ::
+#,,,,,.,.,,.,,.,.,,,,,..,,,,,,,,.,,.,,,..,..,,..,,...,...,...,...,.,.,...,.,.,
+#2SWT7H4BBFAJMLLGW5GJ2PKMBWWUG7LADLRUQBOBAKXGSOEDMAGV2VC3SP63GK325PNXQTV447DJU
+#\\\|V4YJ2SWIBZHSVZ7SDCZR64UYY4U3DZWAYJ7TKNYKOCTCI2C4IFI \ / AMOS7 \ YOURUM ::
+#\[7]3MDNNTLRMBVYV2BS235KCLU4GQ6DNREWIK5COOZIKXNB3OX25ICY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
