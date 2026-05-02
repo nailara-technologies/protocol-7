@@ -64,6 +64,7 @@
 - `style-philosophy.md` — living manifesto: coding as artform, style-as-function, harmonization layers, fractal self-similarity, normalization resistance; give to LLMs before structural/refactor work; models update it after sessions
 - `topic-punctuation-topology.md` — `:` as group boundary, `.` as element separator; universal scale-independent addressing; AMOS checksums as atoms; route=session=task=cache at different resolutions; doc at data/md/development/PUNCTUATION-TOPOLOGY.md
 - `topic-hyperspace-topology.md` — closed observer loop as anti-entropic; intent-saturated chains self-strengthen; sensor cube 3D grid as physical hyperspace; on-route topology teaching; feature-to-topology mapping; context as position; doc at data/md/development/HYPERSPACE-TOPOLOGY.md
+- `topic-field-coherence-synthesis.md` — bridges all topology docs: tree=grid=address, div-13 as holographic refraction, expectability as protocol, trust as logical proximity, error-free as geometric consequence, sensor-void duality; doc at data/md/development/FIELD-COHERENCE-SYNTHESIS.md
 
 ## File Creation Notes (CRITICAL)
 - **Never add** the single-line `#,,.,,,...` stub at end of new files
@@ -322,8 +323,8 @@
 - Pattern: `my @non_num = grep { defined $data_ref->{$ARG}->{$key} and not looks_like_number(...) } keys $data_ref->%*`
 - Global `$SIG{__WARN__}` exists — if wrapping warn handler, capture `$prev_warn = $SIG{__WARN__}` first and call through
 
-#,,..,...,,,,,.,.,..,,,.,,...,..,,.,.,,.,,.,.,..,,...,...,..,,,.,,...,,.,,,.,,
-#JVMBO43ZTMWYJLLRCSCSDQBKXNI3CEH4OPHSQEUCLPTEVBRAABWAN3WBZ3C7XVDR2TS5DDANPBKLU
-#\\\|SQFJ4NMPOMBUOM64AWNF5IMH4AKEEGC7NU2ZEAYK5G4TJ4QP3NY \ / AMOS7 \ YOURUM ::
-#\[7]R2TKMALBPE5KQ7MVNGUQRI6RITWFUYGXOBOPH3PQOJNN234YKCDY 7  DATA SIGNATURE ::
+#,,..,,,.,..,,.,,,..,,...,.,.,...,.,.,..,,...,..,,...,...,...,.,.,,,.,,..,,,,,
+#L5IAIISVHLO2HTYJ5DRI3SNFBWLGGTO7DYUUOPKKEPBMWPTTV4M65NCU56HFW3KFMDNRMB2GVGRIU
+#\\\|V5O6IN7XHBZENL3NRREHK5UULD3IDXXLYBG4P22VU7Y3I4U5GN6 \ / AMOS7 \ YOURUM ::
+#\[7]4IKZ7TJG3EAXQCOHCNVJVBES7CORUDTPF7LSVP45PBMM4ZRARUCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
