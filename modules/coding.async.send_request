@@ -78,8 +78,9 @@ if ( defined $task && $task->{'pause_requested'} ) {
     return { success => TRUE, paused => TRUE };
 }
 
-## check round limit ##
-my $max_rounds = <coding.async.max_rounds> // 50;
+## check round limit [ task-level override or global ] ##
+my $task_ref   = <coding.task.queue>->{$task_id} // {};
+my $max_rounds = $task_ref->{'max_rounds'} // <coding.async.max_rounds> // 50;
 if ( ( $state->{'round'} // 0 ) > $max_rounds ) {
     <[base.logs]>->(
         0, "send_request: max rounds exceeded (%d > %d) for %s",
@@ -90,7 +91,11 @@ if ( ( $state->{'round'} // 0 ) > $max_rounds ) {
 }
 
 ## build request body ##
-my $tools = $state->{'tools'} // [];
+## no_tools flag: summary/classification tasks that don't need tool use ##
+my $tools
+    = ( $task_ref->{'no_tools'} // FALSE )
+    ? []
+    : ( $state->{'tools'} // [] );
 <[base.logs]>->(
     2,               "send_request: sending %d tools for %s",
     scalar(@$tools), $task_id
@@ -230,8 +235,8 @@ if (@messages) {
 return
     <[coding.async.request]>->( $task_id, $request_body, $state->{'job_id'} );
 
-#,,.,,,..,,.,,,..,,..,...,.,.,,.,,,,,,...,.,,,..,,...,...,,,,,.,,,...,,,,,.,,,
-#R34UVWW44WFULYUDXL7UCXMWYLSXO5AJXNJS3G2ZCK537XPO4K5AAOICRQFZSMRUJKUM6VZDLTKDI
-#\\\|HCIMPTXIIOI4D2YC6VJENUMJXXRBOOGHSYJ2UCU7JAMAW4QD7BO \ / AMOS7 \ YOURUM ::
-#\[7]7RI7CUJBC6I6Z6WEETP5EXJW3GRBIHQLGS2UHLS3IVRHTWOZXKDY 7  DATA SIGNATURE ::
+#,,,.,,.,,,..,.,,,.,.,...,.,,,,..,.,.,,,,,...,..,,...,..,,,.,,...,,..,..,,...,
+#73VGMLDIT5Q6P344FBJFXVX5LQS3I4FWI2G3O75PPA36EFOIJ3YOQOS5UZRRJAO5RPDKJJMKM4UBY
+#\\\|NN3GVTETUQ6MRKWZCQQWW32PNDUYCUUG7WJLWEQ7V32D3JQDKJJ \ / AMOS7 \ YOURUM ::
+#\[7]GYOO4VABEQREALGQ4QNXZSZCTUHLPPE6QXMJY42GOGANNRNBV4BA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
