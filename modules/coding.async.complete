@@ -33,7 +33,8 @@ if ( length $backend ) {
     }
 }
 
-## save conversation state before cleanup — needed for task-append resumption ##
+## save conversation state before cleanup ##
+##    — needed for task-append resumption ##
 my $task_rec = <coding.task.queue>->{$task_id};
 if ( defined $task_rec ) {
     $task_rec->{'execution'}->{'messages'} = $state->{'messages'}
@@ -53,8 +54,14 @@ if ( defined $result && $result->{'success'} ) {
     <[jobqueue.move_job]>->( $job_id, 'completed' )
         if defined $job_id;
 
+    ## skip lifecycle hooks for internal compaction subtasks ##
+    my $is_compaction
+        = ( ( <coding.task.queue>->{$task_id} // {} )->{'metadata'} // {} )
+        ->{'is_compaction'} // 0;
+
     ## complete the task ##
-    <[coding.task.complete]>->( $task_id, $result_text );
+    <[coding.task.complete]>->( $task_id, $result_text )
+        unless $is_compaction;
 
     ## resume parent if this task is a subtask ##
     my $parent_id = <coding.task.parent>->{$task_id};
@@ -91,6 +98,9 @@ if ( defined $result && $result->{'success'} ) {
                 delete $parent_state->{'compaction_pending'};
                 delete $parent_state->{'compact_start'};
                 delete $parent_state->{'compact_end'};
+                ## prevent re-triggering on same round ##
+                ##             if still near threshold ##
+                $parent_state->{'compaction_applied_round'} = $round;
             } else {
                 ## regular subtask: append result as user message ##
                 push @{ $parent_state->{'messages'} },
@@ -203,8 +213,8 @@ if ( defined $result && $result->{'success'} ) {
     return { success => FALSE, error => $error_msg, task_id => $task_id };
 }
 
-#,,..,...,,.,,,,,,..,,.,.,,,.,,.,,...,,..,,,,,.,.,...,...,.,.,.,,,...,,..,..,,
-#NYX7JZCWTVBUAG2T5TXAJVOXNMG7MAFPSXL3AF3PIPH3G7ZXHZOP46X6VTYWEURQXEX553UQYM25Q
-#\\\|2DVB5GHWKMZJDKBRRPZSJDSEA5EK4KIJH2CQCF4PKSXFSZ72KT4 \ / AMOS7 \ YOURUM ::
-#\[7]BT6RXHXSRYPNO7QUL4ZTYLWGNMAXY2UIEF745UYAQSNPOT5MKQDA 7  DATA SIGNATURE ::
+#,,,.,,,.,.,.,.,,,,,,,,,,,,,,,.,.,,,.,,,.,...,.,.,...,...,,..,,..,,,.,,..,..,,
+#PVTUCMW5KJ77BYMREXLBHWF7H25WTSNDQ4VQXSCAWQKTA7S5YQR6OZTIIWF4LK5C3BJA2W5WXURHM
+#\\\|WE7WBEP6QSDFR2KQKUMEXSGM7FJGB7QC5IKFRII56OOILJTT7O6 \ / AMOS7 \ YOURUM ::
+#\[7]ZSK23KVWSZPKZJO52CMGCYZSTNLM32DB3Q3TVYRJVMVXPTB2YOAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
