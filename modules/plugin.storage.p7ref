@@ -2,35 +2,30 @@
 # name  = plugin.storage.p7ref
 # descr = P7REF unified storage reference - main dispatch
 
-use strict;
-use warnings;
+my ($args) = @ARG;
+$args //= {};
 
-return sub {
-    my ($args) = @ARG;
-    $args //= {};
+my $operation = $args->{operation} // 'resolve';
 
-    my $operation = $args->{operation} // 'resolve';
+if ( $operation eq 'resolve' ) {
+    return <[plugin.storage.p7ref.resolve]>->($args);
+} elsif ( $operation eq 'parse' ) {
+    return <[plugin.storage.p7ref.parse]>->($args);
+} elsif ( $operation eq 'index' ) {
+    return <[plugin.storage.p7ref.index]>->($args);
+} elsif ( $operation eq 'search' ) {
+    return <[plugin.storage.p7ref.search]>->($args);
+} elsif ( $operation eq 'nested' ) {
+    return <[plugin.storage.p7ref.nested-resolve]>->($args);
+} else {
+    return {
+        'mode' => 'false',
+        'data' => "Unknown operation: $operation"
+    };
+}
 
-    if ( $operation eq 'resolve' ) {
-        return <[plugin.storage.p7ref.resolve]>->($args);
-    } elsif ( $operation eq 'parse' ) {
-        return <[plugin.storage.p7ref.parse]>->($args);
-    } elsif ( $operation eq 'index' ) {
-        return <[plugin.storage.p7ref.index]>->($args);
-    } elsif ( $operation eq 'search' ) {
-        return <[plugin.storage.p7ref.search]>->($args);
-    } elsif ( $operation eq 'nested' ) {
-        return <[plugin.storage.p7ref.nested-resolve]>->($args);
-    } else {
-        return {
-            'mode' => 'false',
-            'data' => "Unknown operation: $operation"
-        };
-    }
-};
-
-#,,,,,,..,..,,...,,,.,...,...,..,,.,.,...,,.,,..,,...,...,,,.,.,,,.,.,.,,,..,,
-#SXOVOOREY4SDCMF3SLJAG6GEKFWWUZWOPJ4WZCLPHPHSN6BBY4442ES2NW4BDMQWKNWELBEW4HUQG
-#\\\|ELUL6DN3VXRKMYJWYVSB4ZHR5VP5OMYVH5CXRZ6XFEPGEDW6WDO \ / AMOS7 \ YOURUM ::
-#\[7]JKGN2SSXDSSFVSHW53UBWYFVRVVYOVWIBBKO7UHDQ5S2LYLUOWCY 7  DATA SIGNATURE ::
+#,,..,..,,,.,,..,,,,.,,,.,,..,,,.,.,.,..,,,..,.,.,...,..,,,..,.,,,.,.,.,,,..,,
+#EMYYTMKESP4KTBPDB6MHUZZHLZFFTVAB7EA255U63KBHVXZRQIXOPUFMUFP5QZWCWJETM7RPH4ZNC
+#\\\|FZV5JMHW2QDPIH4PMPSTB2JEPWULINWXFWRKTZZGQU65NA2DCIR \ / AMOS7 \ YOURUM ::
+#\[7]ZU537TG7CD3EPTIAUXQKIYF4WUTUU7JVBJTHMKK7NDCVQLM3AOBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

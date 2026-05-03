@@ -2,112 +2,107 @@
 # name  = plugin.storage.checksum.map-file
 # descr = Map a file to its checksum address
 
-use strict;
-use warnings;
+my ($args) = @ARG;
 
-return sub {
-    my ($args) = @ARG;
+my $path = $args->{path}
+    or return { 'mode' => 'false', 'data' => 'path required' };
+my $algorithm = $args->{algorithm} // 'bmw';
 
-    my $path = $args->{path}
-        or return { 'mode' => 'false', 'data' => 'path required' };
-    my $algorithm = $args->{algorithm} // 'bmw';
+my $registry = $data{'storage'}{'mapping'}{'checksum'};
 
-    my $registry = $data{'storage'}{'mapping'}{'checksum'};
+# Validate algorithm
+my $algo_info = $registry->{'algorithms'}{$algorithm};
+return { 'mode' => 'false', 'data' => "Unknown algorithm: $algorithm" }
+    unless $algo_info;
 
-    # Validate algorithm
-    my $algo_info = $registry->{'algorithms'}{$algorithm};
-    return { 'mode' => 'false', 'data' => "Unknown algorithm: $algorithm" }
-        unless $algo_info;
-
-    # Check cache first
-    if ( exists $registry->{'cache'}{$path} ) {
-        my $cached = $registry->{'cache'}{$path};
-        if ( -f $path ) {
-            my ( $mtime, $size ) = ( stat($path) )[ 9, 7 ];
-            if ( $cached->{mtime} == $mtime and $cached->{size} == $size ) {
-                $registry->{'stats'}{'cached'}++;
-                return {
-                    'mode' => 'true',
-                    'data' => {
-                        'path'      => $path,
-                        'checksum'  => $cached->{checksum},
-                        'algorithm' => $cached->{algorithm},
-                        'cached'    => 1,
-                    }
-                };
-            }
+# Check cache first
+if ( exists $registry->{'cache'}{$path} ) {
+    my $cached = $registry->{'cache'}{$path};
+    if ( -f $path ) {
+        my ( $mtime, $size ) = ( stat($path) )[ 9, 7 ];
+        if ( $cached->{mtime} == $mtime and $cached->{size} == $size ) {
+            $registry->{'stats'}{'cached'}++;
+            return {
+                'mode' => 'true',
+                'data' => {
+                    'path'      => $path,
+                    'checksum'  => $cached->{checksum},
+                    'algorithm' => $cached->{algorithm},
+                    'cached'    => 1,
+                }
+            };
         }
     }
+}
 
-    # Compute checksum
-    return { 'mode' => 'false', 'data' => 'file not found' } unless -f $path;
+# Compute checksum
+return { 'mode' => 'false', 'data' => 'file not found' } unless -f $path;
 
-    my $checksum;
+my $checksum;
 
-    # Dispatch to correct BMW/AMOS checksum module
-    if ( $algorithm eq 'bmw' ) {
-        $checksum = <[chk-sum.bmw.filesum]>->($path);
-    } elsif ( $algorithm eq 'bmw-224' ) {
-        $checksum = <[chk-sum.bmw.224.B32]>->($path);
-    } elsif ( $algorithm eq 'bmw-512' ) {
-        $checksum = <[chk-sum.bmw.512_32]>->($path);
-    } elsif ( $algorithm eq 'bmw-L13' ) {
+# Dispatch to correct BMW/AMOS checksum module
+if ( $algorithm eq 'bmw' ) {
+    $checksum = <[chk-sum.bmw.filesum]>->($path);
+} elsif ( $algorithm eq 'bmw-224' ) {
+    $checksum = <[chk-sum.bmw.224.B32]>->($path);
+} elsif ( $algorithm eq 'bmw-512' ) {
+    $checksum = <[chk-sum.bmw.512_32]>->($path);
+} elsif ( $algorithm eq 'bmw-L13' ) {
 
-        # For L13, we need to read file content as string
-        open my $fh, '<:raw', $path
-            or return { 'mode' => 'false', 'data' => 'cannot read file' };
-        my $content = do { local $/; <$fh> };
-        close $fh;
-        $checksum = <[chk-sum.bmw.L13-str]>->($content);
-    } elsif ( $algorithm eq 'bmw-L13-b32' ) {
-        open my $fh, '<:raw', $path
-            or return { 'mode' => 'false', 'data' => 'cannot read file' };
-        my $content = do { local $/; <$fh> };
-        close $fh;
-        $checksum = <[chk-sum.bmw.str-b32.L13]>->($content);
-    } elsif ( $algorithm eq 'amos' ) {
-        $checksum = <[base.chk-sum.amos]>->($path);
-    } else {
-        return {
-            'mode' => 'false',
-            'data' => "Algorithm handler not implemented: $algorithm"
-        };
-    }
-
-    return { 'mode' => 'false', 'data' => 'checksum computation failed' }
-        unless defined $checksum;
-
-    my ( $mtime, $size ) = ( stat($path) )[ 9, 7 ];
-
-    # Update cache
-    $registry->{'cache'}{$path} = {
-        'checksum'  => $checksum,
-        'algorithm' => $algorithm,
-        'mtime'     => $mtime,
-        'size'      => $size,
-        'cached_at' => time(),
-    };
-
-    # Update reverse mapping
-    push @{ $registry->{'reverse'}{$checksum} }, $path
-        unless grep { $ARG eq $path }
-        @{ $registry->{'reverse'}{$checksum} // [] };
-
-    $registry->{'stats'}{'hashed'}++;
-
+    # For L13, we need to read file content as string
+    open my $fh, '<:raw', $path
+        or return { 'mode' => 'false', 'data' => 'cannot read file' };
+    my $content = do { local $/; <$fh> };
+    close $fh;
+    $checksum = <[chk-sum.bmw.L13-str]>->($content);
+} elsif ( $algorithm eq 'bmw-L13-b32' ) {
+    open my $fh, '<:raw', $path
+        or return { 'mode' => 'false', 'data' => 'cannot read file' };
+    my $content = do { local $/; <$fh> };
+    close $fh;
+    $checksum = <[chk-sum.bmw.str-b32.L13]>->($content);
+} elsif ( $algorithm eq 'amos' ) {
+    $checksum = <[base.chk-sum.amos]>->($path);
+} else {
     return {
-        'mode' => 'true',
-        'data' => {
-            'path'      => $path,
-            'checksum'  => $checksum,
-            'algorithm' => $algorithm,
-            'cached'    => 0,
-        }
+        'mode' => 'false',
+        'data' => "Algorithm handler not implemented: $algorithm"
     };
+}
+
+return { 'mode' => 'false', 'data' => 'checksum computation failed' }
+    unless defined $checksum;
+
+my ( $mtime, $size ) = ( stat($path) )[ 9, 7 ];
+
+# Update cache
+$registry->{'cache'}{$path} = {
+    'checksum'  => $checksum,
+    'algorithm' => $algorithm,
+    'mtime'     => $mtime,
+    'size'      => $size,
+    'cached_at' => time(),
 };
 
-#,,.,,,..,,..,..,,,.,,..,,..,,,..,.,,,.,.,.,.,..,,...,...,.,,,,,,,,,,,...,,.,,
-#N4XHPQNX47TLVHFP4APXJIMCSMV6QOFF4PZJKYI4ONELY466YFEU2EVEL2MJ7FVUTQJTDZSBY6BJG
-#\\\|OUXEVBEADS5TYPCNJYEVTPXFUIG47C22FTK75KL6GAYA2HLKBSI \ / AMOS7 \ YOURUM ::
-#\[7]OXSSEQEXMHOIW4PBACGATRNT2V5O7AVYVPZ37623IHJSW7CILUDA 7  DATA SIGNATURE ::
+# Update reverse mapping
+push @{ $registry->{'reverse'}{$checksum} }, $path
+    unless grep { $ARG eq $path }
+    @{ $registry->{'reverse'}{$checksum} // [] };
+
+$registry->{'stats'}{'hashed'}++;
+
+return {
+    'mode' => 'true',
+    'data' => {
+        'path'      => $path,
+        'checksum'  => $checksum,
+        'algorithm' => $algorithm,
+        'cached'    => 0,
+    }
+};
+
+#,,..,..,,,,.,,,,,.,.,,..,,,.,...,...,..,,..,,.,.,...,...,..,,.,,,,.,,,,.,,,,,
+#UKOOC6XLCPMBVN2E7KUK7YCZTGBWORV5Q6WAAUDBZR4A5LU3UPQCHPVOUHERDZ475CZIUNFFC7QCI
+#\\\|T56I6AJJRCBL26OIO2P7PZONPFWBOPX6N27UQQEUG2HAJ3WAT3P \ / AMOS7 \ YOURUM ::
+#\[7]DYOXGQSY5R5BEIRXU3EMXVBZYOV242YJGBI6M2JIRPFIHNNYRKBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

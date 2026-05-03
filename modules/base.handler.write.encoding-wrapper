@@ -11,52 +11,51 @@
 
 my ( $session_id, $mode ) = @ARG;
 
-return sub {
-    my $data_sref = shift;
-    my $data_str = $$data_sref;
-    my $session = $data{'session'}{$session_id};
+my $data_sref = shift;
+my $data_str  = $$data_sref;
+my $session   = $data{'session'}{$session_id};
 
-    ## Apply encoding transformation based on negotiated link-layer encoding mode
-    if ( not defined $session->{'link_encoding_mode'} ) {
-        return $data_str;
-    }
-
-    my $enc_mode = $session->{'link_encoding_mode'};
-
-    ## BASE32 encoding: 8-bit binary → 5-bit alphabet (7-bit safe linewise)
-    if ( $enc_mode =~ m|^base32$| ) {
-        if ( length $data_str ) {
-            $data_str = Crypt::Misc::encode_b32r($data_str);
-        }
-    }
-    ## BASE32-XZ: compress binary, then BASE32 encode
-    ## Compression happens on encrypted binary (best ratio), BASE32 keeps linewise
-    elsif ( $enc_mode =~ m|^base32-xz$| ) {
-        if ( length $data_str ) {
-            ## Order: encrypt → compress → encode
-            ## (encryption happens at state 3 wrapper level)
-            my $compressed = Compress::Raw::Lzma::compress($data_str);
-            if ( defined $compressed and length $compressed ) {
-                $data_str = Crypt::Misc::encode_b32r($compressed);
-            }
-        }
-    }
-    ## UTF-7: 7-bit safe ASCII encoding (future)
-    elsif ( $enc_mode =~ m|^utf7$| ) {
-        if ( length $data_str ) {
-            # UTF-7 encoding logic placeholder
-            # Implementation depends on specific UTF-7 variant used
-        }
-    }
-    ## utf8 and octets modes: no transformation needed (pass through)
-
+## Apply encoding transformation based on negotiated link-layer encoding mode
+if ( not defined $session->{'link_encoding_mode'} ) {
     return $data_str;
-};
+}
+
+my $enc_mode = $session->{'link_encoding_mode'};
+
+## BASE32 encoding: 8-bit binary → 5-bit alphabet (7-bit safe linewise)
+if ( $enc_mode =~ m|^base32$| ) {
+    if ( length $data_str ) {
+        $data_str = Crypt::Misc::encode_b32r($data_str);
+    }
+}
+## BASE32-XZ: compress binary, then BASE32 encode
+## Compression happens on encrypted binary (best ratio), BASE32 keeps linewise
+elsif ( $enc_mode =~ m|^base32-xz$| ) {
+    if ( length $data_str ) {
+        ## Order: encrypt → compress → encode
+        ## (encryption happens at state 3 wrapper level)
+        my $compressed = Compress::Raw::Lzma::compress($data_str);
+        if ( defined $compressed and length $compressed ) {
+            $data_str = Crypt::Misc::encode_b32r($compressed);
+        }
+    }
+}
+## UTF-7: 7-bit safe ASCII encoding (future)
+elsif ( $enc_mode =~ m|^utf7$| ) {
+    if ( length $data_str ) {
+
+        # UTF-7 encoding logic placeholder
+        # Implementation depends on specific UTF-7 variant used
+    }
+}
+## utf8 and octets modes: no transformation needed (pass through)
+
+return $data_str;
 
 1;
 
-#,,,,,.,.,,.,,,..,,,,,,.,,,..,.,.,,.,,..,,,..,..,,...,..,,.,.,,,.,,..,,..,.,,,
-#XLRKIEA6QKAUQSFX2XWTH6BXLXHHKXMQAU6YKQSBULRKLXYYR5HYVJJTV36DV42H4ZJBNJX5RGM2I
-#\\\|IP4ID7QFA53DPTBZYAWFLYO5T56X56I4IWNMEYM6FQCNFKKB3A7 \ / AMOS7 \ YOURUM ::
-#\[7]BYPK4JUOYHE266Y4VA2XXBXPCMJBBCV5H5DLCYESAGJU6CN6XGCQ 7  DATA SIGNATURE ::
+#,,,,,,,,,.,,,,..,..,,.,,,...,...,...,...,.,.,.,.,...,...,.,.,.,.,,,.,...,,,.,
+#DFM7J65EMVHZTNATFZR2566M4SSTNLNB3EK7RAC3L6IMW5V53ZEVB5I6A57FRQWQBIQOM45PUN4VM
+#\\\|P4Q3534DDFWNUVBKQCO6XTVYXSZUWW7APSPVNMUF2546WPHM37A \ / AMOS7 \ YOURUM ::
+#\[7]MDN5MNPOI2F5MT75YMANWAPP4F763Q4LLDIRW7UROF6LUTKJEADY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

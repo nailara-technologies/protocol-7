@@ -2,31 +2,26 @@
 # name  = plan-9.server.buffer-read-metadata
 # descr = Read buffer metadata
 
-use strict;
-use warnings;
+my ( $amos_id, $offset, $count ) = @ARG;
 
-return sub {
-    my ( $amos_id, $offset, $count ) = @_;
+my $buf = $data{'plan-9'}{'server'}{'buffers'}{$amos_id};
+return '' unless $buf;
 
-    my $buf = $data{'plan-9'}{'server'}{'buffers'}{$amos_id};
-    return '' unless $buf;
+my $window = $buf->{window};
+my $meta   = sprintf(
+    "amos_id: %s\nsession_id: %s\ncreated: %s\nsize: %dx%dx%d\n",
+    $amos_id,
+    $window->{session_id} // 'unknown',
+    scalar( localtime( $window->{created} // time ) ),
+    $window->{buffer}{width}  // 80,
+    $window->{buffer}{height} // 24,
+    $window->{buffer}{depth}  // 13,
+);
 
-    my $window = $buf->{window};
-    my $meta   = sprintf(
-        "amos_id: %s\nsession_id: %s\ncreated: %s\nsize: %dx%dx%d\n",
-        $amos_id,
-        $window->{session_id} // 'unknown',
-        scalar( localtime( $window->{created} // time ) ),
-        $window->{buffer}{width}  // 80,
-        $window->{buffer}{height} // 24,
-        $window->{buffer}{depth}  // 13,
-    );
+return substr( $meta, $offset, $count );
 
-    return substr( $meta, $offset, $count );
-};
-
-#,,.,,.,,,.,.,,.,,.,,,..,,.,.,.,.,.,,,,,.,.,.,..,,...,...,..,,,..,.,.,.,,,...,
-#DW5B6GHSUTSGAASB6FDJ6WMGY3DZYFURSBZISIJUIT4D2J2EXTHRWREVGGJCE4M7A4UGGKDNZKFLY
-#\\\|5JZKDJV5G2KIVLZNBZMBLTKKA4LLMIJV6S3F73VFD6VKAOSCVYN \ / AMOS7 \ YOURUM ::
-#\[7]5ZU4ZLEBBV5DPYWPU57GJG55HHEIAZUXYG77CSGH4HJGMMZG2EBI 7  DATA SIGNATURE ::
+#,,,,,..,,,,,,...,,..,..,,,.,,,.,,...,,,,,,.,,.,.,...,..,,.,.,,.,,,..,...,,,,,
+#DFAX4NLJQTNUBF3CC37RZTRWJFNJCK2J5XHYNI2IIF34OXJQNBCFXL3PE7H4NWCG3CSJA6PODIIUY
+#\\\|2IOPPTMBJPM467DUP3ULQNI5BVHURHBQPHNAXLRFZ5UHOXETUDQ \ / AMOS7 \ YOURUM ::
+#\[7]5YTTKD7AEPO2N3KOSIJTNDDH3XJVEMFRKSJZUIMKTXLYFLLFWGAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -2,83 +2,78 @@
 # name  = plugin.storage.checksum.cluster.lookup
 # descr = Lookup cluster by checksum or find cluster members
 
-use strict;
-use warnings;
+my ($args) = @ARG;
 
-return sub {
-    my ($args) = @ARG;
+my $checksum      = $args->{'checksum'};
+my $type          = $args->{'type'};        # Optional: filter by cluster type
+my $resolve_p7ref = $args->{'resolve_p7ref'}
+    // 1;                                   # Auto-resolve nested clusters
 
-    my $checksum      = $args->{'checksum'};
-    my $type          = $args->{'type'};    # Optional: filter by cluster type
-    my $resolve_p7ref = $args->{'resolve_p7ref'}
-        // 1;                               # Auto-resolve nested clusters
+return undef unless $checksum;
 
-    return undef unless $checksum;
+my $registry = $data{'storage'}{'mapping'}{'checksum-cluster'};
+$checksum = <[plugin.storage.util.normalize_checksum]>->($checksum);
+$registry->{'stats'}{'lookups'}++;
 
-    my $registry = $data{'storage'}{'mapping'}{'checksum-cluster'};
-    $checksum = <[plugin.storage.util.normalize_checksum]>->($checksum);
-    $registry->{'stats'}{'lookups'}++;
+# Direct cluster lookup (checksum IS a cluster ID)
+if ( exists $registry->{'clusters'}{$checksum} ) {
+    my $cluster = $registry->{'clusters'}{$checksum};
 
-    # Direct cluster lookup (checksum IS a cluster ID)
-    if ( exists $registry->{'clusters'}{$checksum} ) {
-        my $cluster = $registry->{'clusters'}{$checksum};
+    # Type filter
+    return undef if $type && $cluster->{'type'} ne $type;
 
-        # Type filter
-        return undef if $type && $cluster->{'type'} ne $type;
-
-        # Resolve P7REFs if requested
-        my $members = $cluster->{'members'};
-        if ( $resolve_p7ref
-            && <[plugin.storage.util.has_p7ref_members]>->($members) ) {
-            $members = <[plugin.storage.util.resolve_all_p7refs]>->(
-                $members, $registry
-            );
-        }
-
-        return {
-            'cluster_id' => $checksum,
-            'type'       => $cluster->{'type'},
-            'members'    => $members,
-            'metadata'   => $cluster->{'metadata'},
-            'p7ref'      => $cluster->{'p7ref'},
-            'is_primary' => 1,
-        };
+    # Resolve P7REFs if requested
+    my $members = $cluster->{'members'};
+    if ( $resolve_p7ref
+        && <[plugin.storage.util.has_p7ref_members]>->($members) ) {
+        $members = <[plugin.storage.util.resolve_all_p7refs]>->(
+            $members, $registry
+        );
     }
 
-    # Reverse index lookup (checksum IS a member of some cluster)
-    if ( $registry->{'config'}{'index_reverse'}
-        && exists $registry->{'index'}{$checksum} ) {
-        my $cluster_id = $registry->{'index'}{$checksum};
-        my $cluster    = $registry->{'clusters'}{$cluster_id};
+    return {
+        'cluster_id' => $checksum,
+        'type'       => $cluster->{'type'},
+        'members'    => $members,
+        'metadata'   => $cluster->{'metadata'},
+        'p7ref'      => $cluster->{'p7ref'},
+        'is_primary' => 1,
+    };
+}
 
-        return undef unless $cluster;
-        return undef if $type && $cluster->{'type'} ne $type;
+# Reverse index lookup (checksum IS a member of some cluster)
+if ( $registry->{'config'}{'index_reverse'}
+    && exists $registry->{'index'}{$checksum} ) {
+    my $cluster_id = $registry->{'index'}{$checksum};
+    my $cluster    = $registry->{'clusters'}{$cluster_id};
 
-        my $members = $cluster->{'members'};
-        if ( $resolve_p7ref
-            && <[plugin.storage.util.has_p7ref_members]>->($members) ) {
-            $members = <[plugin.storage.util.resolve_all_p7refs]>->(
-                $members, $registry
-            );
-        }
+    return undef unless $cluster;
+    return undef if $type && $cluster->{'type'} ne $type;
 
-        return {
-            'cluster_id' => $cluster_id,
-            'type'       => $cluster->{'type'},
-            'members'    => $members,
-            'metadata'   => $cluster->{'metadata'},
-            'p7ref'      => $cluster->{'p7ref'},
-            'is_primary' => 0,
-            'member_of'  => $cluster_id,
-        };
+    my $members = $cluster->{'members'};
+    if ( $resolve_p7ref
+        && <[plugin.storage.util.has_p7ref_members]>->($members) ) {
+        $members = <[plugin.storage.util.resolve_all_p7refs]>->(
+            $members, $registry
+        );
     }
 
-    # Not found
-    return undef;
-};
+    return {
+        'cluster_id' => $cluster_id,
+        'type'       => $cluster->{'type'},
+        'members'    => $members,
+        'metadata'   => $cluster->{'metadata'},
+        'p7ref'      => $cluster->{'p7ref'},
+        'is_primary' => 0,
+        'member_of'  => $cluster_id,
+    };
+}
 
-#,,..,,..,.,,,,,,,,,,,.,,,.,,,.,.,.,.,,..,...,.,.,...,...,...,,..,..,,,,.,.,.,
-#MQTI35LOTRNOYRYINS3PFXM2PU6CVQTQNQAPT7D2HAIFUIPUSIHEIJG5FMZXJKYUN5EX6M2UMBUBS
-#\\\|HY5NOXMNSV6VSYW7NOJDQLE7FAOK5Q4OWEIMDCWOLW5QSN7TUNY \ / AMOS7 \ YOURUM ::
-#\[7]W7LNPGEU5HKASJ57BPJXRTWNCZTI6HZ35V4WM77GO6DMSJQHHODI 7  DATA SIGNATURE ::
+# Not found
+return undef;
+
+#,,,.,...,,..,..,,,,.,,,.,,,.,.,.,...,.,,,.,,,.,.,...,...,.,,,.,.,,..,,,.,..,,
+#DTDTYWAP3UXBMXPNOXZ6QCBNCU3MX5K2A3PYTDXJVMXSEWAUGYQT3X34COBSAWMX2MSA3M5YDORRK
+#\\\|HJH62AR4YMVXV7HMCX7Q2GQYOWKZVQGKKO527WCW4B5A5FPBTPC \ / AMOS7 \ YOURUM ::
+#\[7]5M62EKPMXUO3G7NCFQOMVQESTKUXU7SKBMYPEX5VHFYHVEASCIBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -2,25 +2,20 @@
 # name  = plan-9.client.disconnect
 # descr = Disconnect from 9P server
 
-use strict;
-use warnings;
+my ($client_name) = @ARG;
 
-return sub {
-    my ($client_name) = @_;
+my $client = $data{'plan-9'}{'client'}{$client_name};
+return { 'mode' => 'false', 'data' => 'client not found' } unless $client;
 
-    my $client = $data{'plan-9'}{'client'}{$client_name};
-    return { 'mode' => 'false', 'data' => 'client not found' } unless $client;
+close $client->{socket} if $client->{socket};
+delete $data{'plan-9'}{'client'}{$client_name};
 
-    close $client->{socket} if $client->{socket};
-    delete $data{'plan-9'}{'client'}{$client_name};
+<[base.logs]>->("9P client disconnected from $client_name");
 
-    <[base.logs]>->("9P client disconnected from $client_name");
+return { 'mode' => 'true', 'data' => 'disconnected' };
 
-    return { 'mode' => 'true', 'data' => 'disconnected' };
-};
-
-#,,,.,...,..,,,,,,.,.,.,,,.,.,.,.,,.,,..,,...,..,,...,...,...,,,.,.,,,...,..,,
-#AJJIZMHMRO27FPLMQEFBGCHFS2WGLJ6QRO6B5CLN36DEQMK6QJONPNNEGPT3L3RET453SZXFUVWZM
-#\\\|HZINCR4DPILNUDW2RVXPQCL2EDFVNQ6UTJQIYCO5IWGXLDND3ID \ / AMOS7 \ YOURUM ::
-#\[7]7DL7PVMNGALPLGJUKYSAWFQGMWPDMJWOG2K5KOZCVN2DNXS2JGAI 7  DATA SIGNATURE ::
+#,,.,,...,,.,,...,,,,,.,,,..,,,,,,..,,.,.,.,,,.,.,...,...,...,,,.,,..,..,,,..,
+#YQY74GG5C2E6VEVO3PJIOCWGEHFTQ3CFVPHF5HM2TUV53E6LBRTSDUMOE2VT77MGQ2I43UDLPXPJE
+#\\\|VTWRDMH4GWEUGEAZYKJOOJWTMA2QR5CMAOYVEA7CGAVYMHKG5QE \ / AMOS7 \ YOURUM ::
+#\[7]WZ4G7I4AO67TZBUBW4G5GNASRU3M5YWD2XAJFIBQPJX3MXVXJACQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

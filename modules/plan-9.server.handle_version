@@ -2,35 +2,30 @@
 # name  = plan-9.server.handle_version
 # descr = Handle 9P Tversion/Rversion
 
-use strict;
-use warnings;
+my ( $client, $tag, $data ) = @ARG;
 
-return sub {
-    my ( $client, $tag, $data ) = @_;
+my $msize
+    = <[plan-9.protocol.codec.decode-uint32]>->( substr( $data, 0, 4 ) );
 
-    my $msize
-        = <[plan-9.protocol.codec.decode-uint32]>->( substr( $data, 0, 4 ) );
+my ( $version, $rest )
+    = <[plan-9.protocol.codec.decode-string]>->( substr( $data, 4 ) );
 
-    my ( $version, $rest )
-        = <[plan-9.protocol.codec.decode-string]>->( substr( $data, 4 ) );
+# Negotiate message size (max 65536)
+$client->{msize} = $msize < 65536 ? $msize : 65536;
 
-    # Negotiate message size (max 65536)
-    $client->{msize} = $msize < 65536 ? $msize : 65536;
+# Only support 9P2000
+my $response_version = ( $version eq '9P2000' ) ? '9P2000' : 'unknown';
 
-    # Only support 9P2000
-    my $response_version = ( $version eq '9P2000' ) ? '9P2000' : 'unknown';
+my $resp = <[plan-9.protocol.codec.encode-uint32]>->( $client->{msize} )
+    . <[plan-9.protocol.codec.encode-string]>->($response_version);
 
-    my $resp = <[plan-9.protocol.codec.encode-uint32]>->( $client->{msize} )
-        . <[plan-9.protocol.codec.encode-string]>->($response_version);
+return <[plan-9.protocol.codec.encode-message]>->(
+    <plan-9.protocol.constants.Rversion>,
+    $tag, $resp
+);
 
-    return <[plan-9.protocol.codec.encode-message]>->(
-        <plan-9.protocol.constants.Rversion>,
-        $tag, $resp
-    );
-};
-
-#,,..,.,.,.,.,,..,,,.,.,,,,.,,,.,,...,,,.,,,.,..,,...,..,,...,,,.,..,,,.,,.,.,
-#EKK3J4TFRJTLFAZUTEDDRJN24HKFP4QVU2OMLKWQW7KIPXQC47X2DEQ4JA2S2SPL4R4RLRUN6XMHK
-#\\\|APZP7ZCNKYF3UR7D7RZVFICAAVGYVYG6DHHKEMLEAGDUOEYGWSY \ / AMOS7 \ YOURUM ::
-#\[7]GNFRNZF3INU3BP7U4DEUQAXSXHUXDO65HQYN2UBAANE4QMNCUYAY 7  DATA SIGNATURE ::
+#,,,,,,..,...,,,,,,.,,.,.,,..,..,,..,,.,,,,,,,.,.,...,...,...,.,,,...,.,.,.,.,
+#VXY5GQGDAW2BOMCWWD3ORAGRBHE3QPDT7LLZ4IOWK3ZU4S55K3YWV2RPXHZVC4L3BM4R4A52ZTHZM
+#\\\|3IBJSS6765PTXMWS7KKYMS5SURVBGQICZALH6W6WVFP2YP3QGCG \ / AMOS7 \ YOURUM ::
+#\[7]JVQQX3TRENZKNTFVCXI2QNBYXJJJMV3QCD2ZVWGVW2KWSXHQ2QDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

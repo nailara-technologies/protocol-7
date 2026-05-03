@@ -2,33 +2,28 @@
 # name  = plugin.storage.checksum
 # descr = Checksum-based storage mapping - main dispatch
 
-use strict;
-use warnings;
+my ($args) = @ARG;
+$args //= {};
 
-return sub {
-    my ($args) = @ARG;
-    $args //= {};
+my $operation = $args->{operation} // 'map';
 
-    my $operation = $args->{operation} // 'map';
+if ( $operation eq 'map' ) {
+    return <[plugin.storage.checksum.map-file]>->($args);
+} elsif ( $operation eq 'lookup' ) {
+    return <[plugin.storage.checksum.lookup]>->($args);
+} elsif ( $operation eq 'verify' ) {
+    return <[plugin.storage.checksum.verify]>->($args);
+} elsif ( $operation eq 'cache-invalidate' ) {
+    return <[plugin.storage.checksum.cache-invalidate]>->($args);
+} else {
+    return {
+        'mode' => 'false',
+        'data' => "Unknown operation: $operation"
+    };
+}
 
-    if ( $operation eq 'map' ) {
-        return <[plugin.storage.checksum.map-file]>->($args);
-    } elsif ( $operation eq 'lookup' ) {
-        return <[plugin.storage.checksum.lookup]>->($args);
-    } elsif ( $operation eq 'verify' ) {
-        return <[plugin.storage.checksum.verify]>->($args);
-    } elsif ( $operation eq 'cache-invalidate' ) {
-        return <[plugin.storage.checksum.cache-invalidate]>->($args);
-    } else {
-        return {
-            'mode' => 'false',
-            'data' => "Unknown operation: $operation"
-        };
-    }
-};
-
-#,,..,..,,.,,,,,,,,,.,,,,,.,.,,,.,,.,,.,,,,,.,..,,...,...,,.,,..,,...,,,,,,.,,
-#BDDQE4M44TER2H3G4FYRGJCUON4TUJ3X4XMWSG4GSMXZ4CRFTZVTA4ZRONOHJ6FBRBPGSRJSLKFVQ
-#\\\|6QZ4DGSUIHKL46OSNQY3GCRJKV4BLBSZZHLKXCST3MKLIZZYTBV \ / AMOS7 \ YOURUM ::
-#\[7]NKHFNPERWDA2ECSI4KFLJ7CFSNRNVZUKITSPHTDO6GPXOL66SMAQ 7  DATA SIGNATURE ::
+#,,,.,...,,..,..,,.,,,,.,,,..,..,,,,.,,,,,.,.,.,.,...,...,,,.,,..,,..,.,.,...,
+#2VCN33SKXZAMQOLZ7F6ZGGRCXSYQS4NDW46KVCYI5324HPXR6M5L7QOZ2GQL6OIC43CRYCSFD4VRS
+#\\\|EUGRSCMUJFYCG3UVUTQM54DNVF3NWOFPRBXNMZZJ7UWOKTQSDCX \ / AMOS7 \ YOURUM ::
+#\[7]2HUAP5S3O54JA42EF5OK457V7N3ICYYY4ZDXKTDAF2U65QM6TYBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

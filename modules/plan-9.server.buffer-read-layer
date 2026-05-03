@@ -2,23 +2,18 @@
 # name  = plan-9.server.buffer-read-layer
 # descr = Read layer content
 
-use strict;
-use warnings;
+my ( $amos_id, $z, $offset, $count ) = @ARG;
 
-return sub {
-    my ( $amos_id, $z, $offset, $count ) = @_;
+my $buf = $data{'plan-9'}{'server'}{'buffers'}{$amos_id};
+return '' unless $buf;
 
-    my $buf = $data{'plan-9'}{'server'}{'buffers'}{$amos_id};
-    return '' unless $buf;
+my $window     = $buf->{window};
+my $layer_data = $window->{buffer}{layers}[$z] // '';
 
-    my $window     = $buf->{window};
-    my $layer_data = $window->{buffer}{layers}[$z] // '';
+return substr( $layer_data, $offset, $count );
 
-    return substr( $layer_data, $offset, $count );
-};
-
-#,,.,,,.,,,..,,..,,,.,...,,.,,,.,,,.,,,,,,...,..,,...,...,,.,,..,,...,,.,,,,,,
-#PUF435IQHP2T6GSZOGKNPV2AWPO44TACU27GOXFKKJWWT7GL2KLOXDYFPEDFDF4D77JLUS37MFHKE
-#\\\|MFGTSAM7CNX4IZ2IME5YXIILIWBJ2A6FJOIA2NCHYIFHS4UVVNW \ / AMOS7 \ YOURUM ::
-#\[7]76AY5ERMIGXXJUL6OSEJGYLOBN5LGZKRWOPEJD6P2DHSWYN2SMBQ 7  DATA SIGNATURE ::
+#,,,,,.,.,,.,,,.,,.,,,.,,,.,.,,..,..,,..,,..,,.,.,...,...,..,,.,.,.,.,,,.,,.,,
+#NB3YZJPZKIJHIYTNSISY4RZ5RRV6ZM7QRJ3ANNEIHOLLBBBB5YMASUNLG2L5I2XKFWILF2KIN53VI
+#\\\|QWIQAJZMSHXOUND5JX6EF3P2RGKZ3ZWUJNNX3VUFFWH2XUQTFOF \ / AMOS7 \ YOURUM ::
+#\[7]LKPNVM7OY7XD5JAF6RTGVQEXXRV7BZEZ7HG5BARQBLG3Y37L2SDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

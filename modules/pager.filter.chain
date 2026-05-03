@@ -1,67 +1,67 @@
 ## [:< ##
 
-    # name  = pager.filter.chain
-    # descr = Manage filter chains for virtual buffers
+# name  = pager.filter.chain
+# descr = Manage filter chains for virtual buffers
 
-    my ($args) = @ARG;
+my ($args) = @ARG;
 
-    my $buffer_id = $args->{'buffer_id'};
-    my $action    = $args->{'action'};
-    my $buf       = $data{'pager'}{'buffers'}{$buffer_id};
+my $buffer_id = $args->{'buffer_id'};
+my $action    = $args->{'action'};
+my $buf       = $data{'pager'}{'buffers'}{$buffer_id};
 
-    return undef unless $buf;
+return undef unless $buf;
 
-    if ( $action eq 'add' ) {
-        my $filter_type = $args->{'type'};
-        my $params      = $args->{'params'} // {};
+if ( $action eq 'add' ) {
+    my $filter_type = $args->{'type'};
+    my $params      = $args->{'params'} // {};
 
-        push @{ $buf->{'filters'} },
-            {
-            'type'   => $filter_type,
-            'params' => $params,
-            };
+    push @{ $buf->{'filters'} },
+        {
+        'type'   => $filter_type,
+        'params' => $params,
+        };
 
-        # Mark all pages dirty since filter changed
-        <[pager.buffer.page.invalidate-all]>->( { 'buffer' => $buf } );
+    # Mark all pages dirty since filter changed
+    <[pager.buffer.page.invalidate-all]>->( { 'buffer' => $buf } );
 
-        return scalar( @{ $buf->{'filters'} } );
-    } elsif ( $action eq 'remove' ) {
-        my $index = $args->{'index'};
-        return undef
-            unless defined $index
-            && $index >= 0
-            && $index < @{ $buf->{'filters'} };
+    return scalar( @{ $buf->{'filters'} } );
+} elsif ( $action eq 'remove' ) {
+    my $index = $args->{'index'};
+    return undef
+        unless defined $index
+        && $index >= 0
+        && $index < @{ $buf->{'filters'} };
 
-        splice( @{ $buf->{'filters'} }, $index, 1 );
-        <[pager.buffer.page.invalidate-all]>->( { 'buffer' => $buf } );
-        return 1;
-    } elsif ( $action eq 'clear' ) {
-        $buf->{'filters'} = [];
-        <[pager.buffer.page.invalidate-all]>->( { 'buffer' => $buf } );
-        return 1;
-    } elsif ( $action eq 'list' ) {
-        return $buf->{'filters'};
-    } elsif ( $action eq 'reorder' ) {
-        my $new_order = $args->{'order'};    # Array of indices
-        return undef unless ref($new_order) eq 'ARRAY';
+    splice( @{ $buf->{'filters'} }, $index, 1 );
+    <[pager.buffer.page.invalidate-all]>->( { 'buffer' => $buf } );
+    return 1;
+} elsif ( $action eq 'clear' ) {
+    $buf->{'filters'} = [];
+    <[pager.buffer.page.invalidate-all]>->( { 'buffer' => $buf } );
+    return 1;
+} elsif ( $action eq 'list' ) {
+    return $buf->{'filters'};
+} elsif ( $action eq 'reorder' ) {
+    my $new_order = $args->{'order'};    # Array of indices
+    return undef unless ref($new_order) eq 'ARRAY';
 
-        my @new_filters;
-        for my $idx (@$new_order) {
-            push @new_filters, $buf->{'filters'}[$idx]
-                if defined $buf->{'filters'}[$idx];
-        }
-
-        $buf->{'filters'} = \@new_filters;
-        <[pager.buffer.page.invalidate-all]>->( { 'buffer' => $buf } );
-        return 1;
+    my @new_filters;
+    for my $idx (@$new_order) {
+        push @new_filters, $buf->{'filters'}[$idx]
+            if defined $buf->{'filters'}[$idx];
     }
 
-    return undef;
+    $buf->{'filters'} = \@new_filters;
+    <[pager.buffer.page.invalidate-all]>->( { 'buffer' => $buf } );
+    return 1;
+}
 
-    # SPDX-License-Identifier: ISC
+return undef;
 
-#,,,,,,,.,,.,,.,.,...,,.,,...,.,,,,,,,,,.,..,,..,,...,...,,..,,,.,,,,,,..,,..,
-#GMVJKEVOP3WUPDXWS4SQZPTWZ35376HWVLMW5BIOEYCJLO5EO6L7UZJIN2BGEH35O4CZZK73GCJ2A
-#\\\|OGYSAQ5YQRSC3VJFHZEJXURHG25GFIKZTKNWPAXCVB5CXL4BMQZ \ / AMOS7 \ YOURUM ::
-#\[7]MVQIDEP6UKQVUVFXAAJCU53LIGFFVDV2Y65KA7MKNFMY35HHLCAY 7  DATA SIGNATURE ::
+# SPDX-License-Identifier: ISC
+
+#,,.,,,..,,,,,,,.,..,,.,,,.,.,.,.,,,.,,,,,.,,,..,,...,...,.,.,...,,,,,,.,,,..,
+#EQS6HVQBO7YY7XLTE6XOI4NFIYYNXHTRRU3YQ53V6GY2IWK7QMZTVXXLJE5SKNU72V6JHBESBEB7I
+#\\\|IJTFQYCVWYRESZHO45LIR6HOGOX7DYNABKHP67WOXAENDGXQZ6C \ / AMOS7 \ YOURUM ::
+#\[7]B2WR3VE3PBMFJQX7NUQ7E7CXSA3Z4ZGXJWL3SXOSHSUOUERRLMCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

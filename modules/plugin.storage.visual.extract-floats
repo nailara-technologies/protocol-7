@@ -2,72 +2,62 @@
 # name  = plugin.storage.visual.extract-floats
 # descr = Extract float values from P7REFs for visual positioning
 
-use strict;
-use warnings;
+my ($args) = @ARG;
 
-return sub {
-    my ($args) = @ARG;
+my $p7ref = $args->{p7ref}
+    or return { 'mode' => 'false', 'data' => 'p7ref required' };
+my $layers = $args->{layers} // ['intrinsic'];    # Array of layer names
 
-    my $p7ref = $args->{p7ref}
-        or return { 'mode' => 'false', 'data' => 'p7ref required' };
-    my $layers = $args->{layers} // ['intrinsic'];    # Array of layer names
+my $registry = $data{'storage'}{'mapping'}{'visual'};
+my $result   = {};
 
-    my $registry = $data{'storage'}{'mapping'}{'visual'};
-    my $result   = {};
+# Resolve P7REF to get metadata
+my $resolved = <[plugin.storage.p7ref.resolve]>->( { 'p7ref' => $p7ref } );
+return $resolved if $resolved->{'mode'} eq 'false';
 
-    # Resolve P7REF to get metadata
-    my $resolved
-        = <[plugin.storage.p7ref.resolve]>->( { 'p7ref' => $p7ref } );
-    return $resolved if $resolved->{'mode'} eq 'false';
+my $data = $resolved->{'data'};
 
-    my $data = $resolved->{'data'};
-
-    for my $layer (@$layers) {
-        given ($layer) {
-            when ('intrinsic') {
-                $result = {
-                    %$result,
-                    %{  <[plugin.storage.util.visual.extract_intrinsic]>->(
-                            $data)
-                    }
-                };
-            }
-            when ('temporal') {
-                $result = {
-                    %$result,
-                    %{  <[plugin.storage.util.visual.extract_temporal]>->(
-                            $data)
-                    }
-                };
-            }
-            when ('network') {
-                $result = {
-                    %$result,
-                    %{  <[plugin.storage.util.visual.extract_network]>->(
-                            $data)
-                    }
-                };
-            }
-            when ('L13') {
-                $result = {
-                    %$result,
-                    %{  <[plugin.storage.util.visual.extract_L13]>->($data)
-                    }
-                };
-            }
+for my $layer (@$layers) {
+    given ($layer) {
+        when ('intrinsic') {
+            $result = {
+                %$result,
+                %{  <[plugin.storage.util.visual.extract_intrinsic]>->($data)
+                }
+            };
+        }
+        when ('temporal') {
+            $result = {
+                %$result,
+                %{  <[plugin.storage.util.visual.extract_temporal]>->($data)
+                }
+            };
+        }
+        when ('network') {
+            $result = {
+                %$result,
+                %{  <[plugin.storage.util.visual.extract_network]>->($data)
+                }
+            };
+        }
+        when ('L13') {
+            $result = {
+                %$result,
+                %{ <[plugin.storage.util.visual.extract_L13]>->($data) }
+            };
         }
     }
+}
 
-    $registry->{'stats'}{'refs_processed'}++;
+$registry->{'stats'}{'refs_processed'}++;
 
-    return {
-        'mode' => 'true',
-        'data' => $result,
-    };
+return {
+    'mode' => 'true',
+    'data' => $result,
 };
 
-#,,..,,,,,..,,,..,,.,,.,.,,,.,,,.,,..,.,,,..,,..,,...,...,,,,,..,,,..,.,.,,,.,
-#R6MQFK5E4OKCVVHTIQPAO3IQG64HGTPK3B7ERKIVS4ZZQKQ3EQLEIKWHE42MWM3ZPAWH2AZPMJE2Y
-#\\\|SKDFRHV7PYMOS3HKYWFAGZ7BOAZHVZWWIL7OFNDOLMXLBULOQLM \ / AMOS7 \ YOURUM ::
-#\[7]Y7B2YZ3F6EADF5KHTL3XUFRTWMUOMBEPX2INXB6ANX5VRH7HPABQ 7  DATA SIGNATURE ::
+#,,.,,.,.,...,,..,,.,,,..,..,,..,,...,,,,,.,,,.,.,...,...,...,..,,,.,,...,,..,
+#466TQR5UAPFNNVX2OYO6S2Q43HBBTSZOHBYJ4S6FEGFU7YOCT3R5RFI5IDCQ5UM2NW2DZLK7LUC2O
+#\\\|LJASAZAL3VQPHO7JJKM3HGMNNKU64DEHPX6WCD5OMYAS4SJD47W \ / AMOS7 \ YOURUM ::
+#\[7]4UJURSDG3WKTEEG4X5YCO4RRM7HZ2WBMF32MTC3XYWV5ATF6BGCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -2,66 +2,61 @@
 # name  = plugin.storage.checksum.verify
 # descr = Verify file integrity against cached checksum
 
-use strict;
-use warnings;
+my ($args) = @ARG;
 
-return sub {
-    my ($args) = @ARG;
+my $path = $args->{path}
+    or return { 'mode' => 'false', 'data' => 'path required' };
 
-    my $path = $args->{path}
-        or return { 'mode' => 'false', 'data' => 'path required' };
+my $registry = $data{'storage'}{'mapping'}{'checksum'};
+my $cached   = $registry->{'cache'}{$path};
 
-    my $registry = $data{'storage'}{'mapping'}{'checksum'};
-    my $cached   = $registry->{'cache'}{$path};
+return { 'mode' => 'false', 'data' => 'no cached checksum' }
+    unless $cached;
+return { 'mode' => 'false', 'data' => 'file not found' } unless -f $path;
 
-    return { 'mode' => 'false', 'data' => 'no cached checksum' }
-        unless $cached;
-    return { 'mode' => 'false', 'data' => 'file not found' } unless -f $path;
+# Re-compute checksum based on algorithm
+my $current_checksum;
+my $algorithm = $cached->{algorithm};
 
-    # Re-compute checksum based on algorithm
-    my $current_checksum;
-    my $algorithm = $cached->{algorithm};
+if ( $algorithm eq 'bmw' ) {
+    $current_checksum = <[chk-sum.bmw.filesum]>->($path);
+} elsif ( $algorithm eq 'bmw-224' ) {
+    $current_checksum = <[chk-sum.bmw.224.B32]>->($path);
+} elsif ( $algorithm eq 'bmw-512' ) {
+    $current_checksum = <[chk-sum.bmw.512_32]>->($path);
+} elsif ( $algorithm eq 'bmw-L13' or $algorithm eq 'bmw-L13-b32' ) {
+    open my $fh, '<:raw', $path
+        or return { 'mode' => 'false', 'data' => 'cannot read file' };
+    my $content = do { local $/; <$fh> };
+    close $fh;
 
-    if ( $algorithm eq 'bmw' ) {
-        $current_checksum = <[chk-sum.bmw.filesum]>->($path);
-    } elsif ( $algorithm eq 'bmw-224' ) {
-        $current_checksum = <[chk-sum.bmw.224.B32]>->($path);
-    } elsif ( $algorithm eq 'bmw-512' ) {
-        $current_checksum = <[chk-sum.bmw.512_32]>->($path);
-    } elsif ( $algorithm eq 'bmw-L13' or $algorithm eq 'bmw-L13-b32' ) {
-        open my $fh, '<:raw', $path
-            or return { 'mode' => 'false', 'data' => 'cannot read file' };
-        my $content = do { local $/; <$fh> };
-        close $fh;
-
-        if ( $algorithm eq 'bmw-L13' ) {
-            $current_checksum = <[chk-sum.bmw.L13-str]>->($content);
-        } else {
-            $current_checksum = <[chk-sum.bmw.str-b32.L13]>->($content);
-        }
-    } elsif ( $algorithm eq 'amos' ) {
-        $current_checksum = <[base.chk-sum.amos]>->($path);
+    if ( $algorithm eq 'bmw-L13' ) {
+        $current_checksum = <[chk-sum.bmw.L13-str]>->($content);
+    } else {
+        $current_checksum = <[chk-sum.bmw.str-b32.L13]>->($content);
     }
+} elsif ( $algorithm eq 'amos' ) {
+    $current_checksum = <[base.chk-sum.amos]>->($path);
+}
 
-    return { 'mode' => 'false', 'data' => 'checksum computation failed' }
-        unless defined $current_checksum;
+return { 'mode' => 'false', 'data' => 'checksum computation failed' }
+    unless defined $current_checksum;
 
-    my $valid = $current_checksum eq $cached->{checksum};
+my $valid = $current_checksum eq $cached->{checksum};
 
-    return {
-        'mode' => 'true',
-        'data' => {
-            'path'      => $path,
-            'valid'     => $valid,
-            'cached'    => $cached->{checksum},
-            'current'   => $current_checksum,
-            'algorithm' => $algorithm,
-        }
-    };
+return {
+    'mode' => 'true',
+    'data' => {
+        'path'      => $path,
+        'valid'     => $valid,
+        'cached'    => $cached->{checksum},
+        'current'   => $current_checksum,
+        'algorithm' => $algorithm,
+    }
 };
 
-#,,,,,,..,,.,,.,.,...,,.,,,,,,..,,.,.,.,.,,,,,..,,...,...,...,.,.,..,,..,,...,
-#4UOJDC5QDRBVZHTPCFIZEZEC5I6C5G4XB7MLNKO7BFW2SWR55L4TW6PRJ2HQFE5OFQC56HE2UM66Y
-#\\\|7TTLMQVE2KJOD5TZCI3L6ILLEO2VDCIMZGXTFUUBIHWICP5GL2X \ / AMOS7 \ YOURUM ::
-#\[7]VBXQ3HCLLRS7I2VGTCFDDBJPUF7F2KZVAHO3H6VCNCNXRWKK5SCQ 7  DATA SIGNATURE ::
+#,,,.,,..,,.,,...,,,.,...,,,,,...,..,,.,,,.,,,.,.,...,...,...,,..,,,.,,..,..,,
+#UCKFTHYMXJQRLZZG5ZLESP3TWCQHDU5UFTH3UCCMSXTMLA2JOUVGY2PUDWLX3DNYSU3TFJMPSZBXQ
+#\\\|IKLQ73WY36JNOZNUHA2EFVMCOHITJULOFB4OOB4LI4EDSBHSOFW \ / AMOS7 \ YOURUM ::
+#\[7]FN6TIWV4QYBEPQRSEM4IKE4NASHLR327DR4XPN7CXNQA4LSKIOAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

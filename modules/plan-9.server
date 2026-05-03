@@ -2,9 +2,6 @@
 # name  = plan-9.server
 # descr = 9P protocol server for exporting amos-term buffers
 
-use strict;
-use warnings;
-
 # Server state
 $data{'plan-9'}{'server'} = {
     'buffers'  => {},
@@ -15,43 +12,41 @@ $data{'plan-9'}{'server'} = {
 };
 
 ## Start server ##
-return sub {
-    my ($options) = @_;
-    $options //= {};
+my ($options) = @ARG;
+$options //= {};
 
-    my $port = $options->{port} // <plan-9.config.port> // 15640;
-    my $host = $options->{host} // '127.0.0.1';
+my $port = $options->{port} // <plan-9.config.port> // 15640;
+my $host = $options->{host} // '127.0.0.1';
 
-    if ( defined $data{'plan-9'}{'server'}{'listener'} ) {
-        return {
-            'mode' => 'true',
-            'data' =>
-                "9P server already running on port $data{'plan-9'}{'server'}{'port'}"
-        };
-    }
-
-    $data{'plan-9'}{'server'}{'port'} = $port;
-
-    my $lsock = <[io.ip.tcp.input.open]>->( $host, $port );
-
-    if ( not defined $lsock ) {
-        return {
-            'mode' => 'false',
-            'data' => "Failed to start 9P server on $host:$port"
-        };
-    }
-
-    $data{'plan-9'}{'server'}{'listener'} = $lsock;
-    <[base.logs]>->("9P server listening on $host:$port");
-
+if ( defined $data{'plan-9'}{'server'}{'listener'} ) {
     return {
         'mode' => 'true',
-        'data' => "9P server started on $host:$port"
+        'data' =>
+            "9P server already running on port $data{'plan-9'}{'server'}{'port'}"
     };
+}
+
+$data{'plan-9'}{'server'}{'port'} = $port;
+
+my $lsock = <[io.ip.tcp.input.open]>->( $host, $port );
+
+if ( not defined $lsock ) {
+    return {
+        'mode' => 'false',
+        'data' => "Failed to start 9P server on $host:$port"
+    };
+}
+
+$data{'plan-9'}{'server'}{'listener'} = $lsock;
+<[base.logs]>->("9P server listening on $host:$port");
+
+return {
+    'mode' => 'true',
+    'data' => "9P server started on $host:$port"
 };
 
-#,,,,,..,,.,.,.,,,.,,,.,,,,,,,,..,,,,,.,,,,,.,..,,...,...,,..,,.,,,..,,..,..,,
-#JSGGTO44PFQ33SHBJDLWLOYJ66SKUDTGLGN4YTZBSEMXFRWVAEACHFVHJCIV6T5F5S7DAU27GG7OK
-#\\\|B6ZGJZ5PZZR5B4I3HZPHJE2K6V3RZV77FBIUFVTTCSL53ZBUUUL \ / AMOS7 \ YOURUM ::
-#\[7]JMIBAZAFNKKGIKKRZHQZGLN7OPXEIGJEOWP22XFMV7A4ZJRW5CDA 7  DATA SIGNATURE ::
+#,,,,,,,.,.,,,...,...,..,,.,,,,,.,.,,,..,,...,.,.,...,...,...,...,...,.,.,.,,,
+#R5OV5B2ILY4WV2QXPJ66FIF4YV6LD6KHMFMUWLGZ2RWAH75MVCZECGPW2KNUNUEBAV3OZ4VPV6GMW
+#\\\|6AGQUN5YVJWT2Q3FP4I26L56WCNIYTY56ZPGUSREJMB3ORYC7PX \ / AMOS7 \ YOURUM ::
+#\[7]LL74JW4FJ5XALP6KIKRL2ZR5UKABDUP5QEYGL66ZJJ3X73UXSGAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

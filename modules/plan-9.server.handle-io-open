@@ -2,41 +2,33 @@
 # name  = plan-9.server.handle-io-open
 # descr = Handle 9P Topen/Ropen
 
-use strict;
-use warnings;
+my ( $client, $tag, $data ) = @ARG;
 
-return sub {
-    my ( $client, $tag, $data ) = @_;
+my $fid  = <[plan-9.protocol.codec.decode-uint32]>->( substr( $data, 0, 4 ) );
+my $mode = <[plan-9.protocol.codec.decode-uint8]>->( substr( $data, 4, 1 ) );
 
-    my $fid
-        = <[plan-9.protocol.codec.decode-uint32]>->( substr( $data, 0, 4 ) );
-    my $mode
-        = <[plan-9.protocol.codec.decode-uint8]>->( substr( $data, 4, 1 ) );
+my $f = $client->{fids}{$fid};
+return <[plan-9.protocol.error]>->( $tag, "invalid fid" ) unless $f;
 
-    my $f = $client->{fids}{$fid};
-    return <[plan-9.protocol.error]>->( $tag, "invalid fid" ) unless $f;
+$f->{omode} = $mode;
+$f->{open}  = 1;
 
-    $f->{omode} = $mode;
-    $f->{open}  = 1;
+my $qid = <[plan-9.protocol.codec.encode-qid]>->(
+    $f->{qid}{type}, $f->{qid}{version},
+    $f->{qid}{path}
+);
 
-    my $qid = <[plan-9.protocol.codec.encode-qid]>->(
-        $f->{qid}{type}, $f->{qid}{version},
-        $f->{qid}{path}
-    );
+my $resp
+    = $qid
+    . <[plan-9.protocol.codec.encode-uint32]>->( $client->{msize} // 8192 );
 
-    my $resp
-        = $qid
-        . <[plan-9.protocol.codec.encode-uint32]>
-        ->( $client->{msize} // 8192 );
+return <[plan-9.protocol.codec.encode-message]>->(
+    <plan-9.protocol.constants.Ropen>,
+    $tag, $resp
+);
 
-    return <[plan-9.protocol.codec.encode-message]>->(
-        <plan-9.protocol.constants.Ropen>,
-        $tag, $resp
-    );
-};
-
-#,,,.,,.,,...,..,,,..,,..,,.,,,,.,.,,,.,,,...,..,,...,...,..,,,..,.,,,,.,,.,.,
-#XY5CO7RATDHFTTI3EZD4WEOXJOFNZRE4RPLKGHL2OOUXP62KUB5A56HZXZQVTVWIOGQNRTOMVYDE4
-#\\\|ITQOR73RDKNAZPANHNEEIB4G7BPXBD2U6QAJY3E5MTU6MEIUFAY \ / AMOS7 \ YOURUM ::
-#\[7]WWV24HRKGK77CMAFYR4OW53O3C35ZYRBMPK5RBKXPG35GZ7SH6BQ 7  DATA SIGNATURE ::
+#,,..,,.,,,,,,,,.,,..,,.,,.,,,,,.,.,,,,..,,..,.,.,...,..,,..,,.,.,,.,,.,,,..,,
+#35QLDX3UQ6A6SMKWQ7JJFXPGSOWPILXQZW2VN36SVBHMM7D3PLXCAILU3NISRLTITXSFRKTBZOOSS
+#\\\|H6G4VOA3N5IUUXWDRRGCO2ZZCFANQI4EPVUOILANKFQMLFDS2W3 \ / AMOS7 \ YOURUM ::
+#\[7]QNY5SQPES3PRYJ3UAWSACAXMDHDA6OOPC4HD5OTTCZFNEJSFX2CQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

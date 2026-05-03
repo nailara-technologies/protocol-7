@@ -2,46 +2,41 @@
 # name  = storage.9p.version
 # descr = 9P version negotiation for storage
 
-use strict;
-use warnings;
+my ($conn) = @ARG;
 
-return sub {
-    my ($conn) = @_;
+my $tag     = ++$conn->{tag} & 0xFFFF;
+my $msize   = 8192;
+my $version = '9P2000';
 
-    my $tag     = ++$conn->{tag} & 0xFFFF;
-    my $msize   = 8192;
-    my $version = '9P2000';
+my $req = <[plan-9.protocol.codec.encode-uint32]>->($msize)
+    . <[plan-9.protocol.codec.encode-string]>->($version);
 
-    my $req = <[plan-9.protocol.codec.encode-uint32]>->($msize)
-        . <[plan-9.protocol.codec.encode-string]>->($version);
+my $msg = <[plan-9.protocol.codec.encode-message]>->(
+    <plan-9.protocol.constants.Tversion>,
+    $tag, $req
+);
 
-    my $msg = <[plan-9.protocol.codec.encode-message]>->(
-        <plan-9.protocol.constants.Tversion>,
-        $tag, $req
-    );
+$conn->{socket}->send($msg);
 
-    $conn->{socket}->send($msg);
+my $resp = <[storage.9p.read-message]>->( $conn, $tag );
+return $resp if $resp->{'mode'} eq 'false';
 
-    my $resp = <[storage.9p.read-message]>->( $conn, $tag );
-    return $resp if $resp->{'mode'} eq 'false';
+my $data = $resp->{'data'};
+my $r_msize
+    = <[plan-9.protocol.codec.decode-uint32]>->( substr( $data, 0, 4 ) );
+my ( $r_version, $rest )
+    = <[plan-9.protocol.codec.decode-string]>->( substr( $data, 4 ) );
 
-    my $data = $resp->{'data'};
-    my $r_msize
-        = <[plan-9.protocol.codec.decode-uint32]>->( substr( $data, 0, 4 ) );
-    my ( $r_version, $rest )
-        = <[plan-9.protocol.codec.decode-string]>->( substr( $data, 4 ) );
+if ( $r_version ne '9P2000' ) {
+    return { 'mode' => 'false', 'data' => 'version mismatch' };
+}
 
-    if ( $r_version ne '9P2000' ) {
-        return { 'mode' => 'false', 'data' => 'version mismatch' };
-    }
+$conn->{msize} = $r_msize < $msize ? $r_msize : $msize;
 
-    $conn->{msize} = $r_msize < $msize ? $r_msize : $msize;
+return { 'mode' => 'true', 'data' => $conn->{msize} };
 
-    return { 'mode' => 'true', 'data' => $conn->{msize} };
-};
-
-#,,,,,.,.,...,,,.,...,.,,,.,,,.,.,.,,,,,.,.,.,..,,...,...,,..,,.,,,.,,.,,,,,.,
-#PB65TTGJQ2KOALUBX2S2NI6U4V4SARMGCUDJZK7AUP2W354V2XVIRBXMFALPBRXAA7CFQAN42ITOQ
-#\\\|GWKEZRNGAO5SVW4LVBM2RFIEKYIX4VHEKXHVGS4XLNFLLODMSDN \ / AMOS7 \ YOURUM ::
-#\[7]FXI6SYQG3SJRB5KNFOMHE5UWOWAS7DIJR5RY3DWSJEI2XBIELWAI 7  DATA SIGNATURE ::
+#,,.,,.,.,.,,,,..,,,.,,..,...,,.,,..,,...,,.,,.,.,...,...,.,,,.,.,,,,,.,,,..,,
+#VQQZNKFPYHAB4NSQ375CGJK7D2344KSYURLLTAF2E5QQNSNBQ73UEVO5FD7CIRG6QHSD26FTYXVZI
+#\\\|XVCA2DZCDVOGNBGQN2SK3BOCTDVUW4N32A62PAQZUFECL56N3RB \ / AMOS7 \ YOURUM ::
+#\[7]7W775ZYIXTNHQ56UKI4YAXEO5PUZQ4SNK4KG56RSWUWXR4KBVSAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

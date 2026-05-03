@@ -2,39 +2,33 @@
 # name  = plan-9.server.buffer-read-root-dir
 # descr = Read root directory - list exported buffers
 
-use strict;
-use warnings;
+my ( $offset, $count ) = @ARG;
 
-return sub {
-    my ( $offset, $count ) = @_;
+my $entries = '';
+foreach my $amos_id ( sort keys %{ $data{'plan-9'}{'server'}{'buffers'} } ) {
+    my $buf  = $data{'plan-9'}{'server'}{'buffers'}{$amos_id};
+    my $stat = {
+        type        => 0,
+        dev         => 0,
+        qid_type    => <plan-9.protocol.constants.QTDIR>,
+        qid_version => $buf->{qid_version},
+        qid_path    => $buf->{qid_path},
+        mode        => 0755 | <plan-9.protocol.constants.DMDIR>,
+        atime       => time,
+        mtime       => time,
+        length      => 0,
+        name        => $amos_id,
+        uid         => 'root',
+        gid         => 'root',
+        muid        => 'root',
+    };
+    $entries .= <[plan-9.protocol.codec.encode-stat]>->($stat);
+}
 
-    my $entries = '';
-    foreach
-        my $amos_id ( sort keys %{ $data{'plan-9'}{'server'}{'buffers'} } ) {
-        my $buf  = $data{'plan-9'}{'server'}{'buffers'}{$amos_id};
-        my $stat = {
-            type        => 0,
-            dev         => 0,
-            qid_type    => <plan-9.protocol.constants.QTDIR>,
-            qid_version => $buf->{qid_version},
-            qid_path    => $buf->{qid_path},
-            mode        => 0755 | <plan-9.protocol.constants.DMDIR>,
-            atime       => time,
-            mtime       => time,
-            length      => 0,
-            name        => $amos_id,
-            uid         => 'root',
-            gid         => 'root',
-            muid        => 'root',
-        };
-        $entries .= <[plan-9.protocol.codec.encode-stat]>->($stat);
-    }
+return substr( $entries, $offset, $count );
 
-    return substr( $entries, $offset, $count );
-};
-
-#,,,,,.,,,,,.,..,,...,.,,,,..,..,,,..,,..,..,,..,,...,...,,,,,,,,,,,,,.,,,,,,,
-#T4CFEAHVMFC7RJBZ34CZP32HPSFR2GSC5UV3F2TXPDQCYW24IROYBKMUIZAGTGASBZPWWT3HMGMFU
-#\\\|G5P6S7R7XLJ6VTED5QWB7LODE6J5G76XBWWJ3W3RMFCHDFDBKUC \ / AMOS7 \ YOURUM ::
-#\[7]XPCG4WB6XR6CSKPJGHB3TVMQWW66V2F4OGCWKIV5QNXOFHWS7YCI 7  DATA SIGNATURE ::
+#,,,,,...,.,,,.,,,..,,,,.,.,,,...,,.,,,..,..,,.,.,...,...,.,,,..,,...,..,,...,
+#PRWR5HAQSLXD23GKBQ353B6ZHZPSSTVMCBE7K3MGON5BFAYDGDIBAP7SS7MMZEP6GPDXSRTWMSDJU
+#\\\|ECFEZQXQXRP34MY57DE2U3GH3VGDKSPFZXYSSTNQ6KAY43F37PI \ / AMOS7 \ YOURUM ::
+#\[7]NVZZCKSU667WYVUBDEBVR27OGOJWI2HCFHGSX2672PLK6XEDAWBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

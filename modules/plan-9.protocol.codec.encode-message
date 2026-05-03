@@ -1,16 +1,14 @@
 ## [:< ##
-# name  = plan-9.protocol.codec.encode-message
-# descr = Encode 9P message header
+    # name  = plan-9.protocol.codec.encode-message
+    # descr = Encode 9P message header
 
-return sub {
-    my ( $type, $tag, $payload ) = @_;
+    my ( $type, $tag, $payload ) = @ARG;
     $tag //= 0xFFFF;
     my $size = 4 + 1 + 2 + length($payload);
     return pack( 'V C v', $size, $type, $tag ) . $payload;
-};
 
-#,,,.,,.,,.,.,,,,,,,,,.,.,...,,,.,..,,,..,..,,..,,...,...,...,,.,,...,,.,,,..,
-#QAXI7SXYVFZDEIFGWBXCRISK4KCPLL7NLM2L4GY5JZE7R4PV3PJ7OSL3AD6PYPSSCDWG2GW4Q6IS4
-#\\\|NYIZINWPOV24NLBOBTNORGR4LIYUJED3NFHE6UA2R3WV4TL5AOI \ / AMOS7 \ YOURUM ::
-#\[7]X5HOWO7G4VL5RQN62O7D5HPRHPINMKL4MCJ32SSLS2UEOZJ7I6BA 7  DATA SIGNATURE ::
+#,,..,.,,,,,.,,,,,.,.,,,,,...,...,..,,...,..,,.,.,...,...,,,.,,,.,,..,,..,,,.,
+#H6HEW7OB46AEIHPAYVDARYJ5NWSF7GVHQCNDZORFK3ISBCWBD7BEP2QHSDHAXKP3YVFKTBPCRYP6A
+#\\\|J4EYL6P6MALAZSJ45M2SIOKLXWV72UMB5WZC2FSXBCNH7SZKFKM \ / AMOS7 \ YOURUM ::
+#\[7]S2VCURCCBC6NOLV2DK2ONY6GQ5F22WTXTTMQZLEHPDVJI4VXNYCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

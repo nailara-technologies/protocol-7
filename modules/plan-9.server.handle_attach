@@ -2,48 +2,41 @@
 # name  = plan-9.server.handle_attach
 # descr = Handle 9P Tattach/Rattach
 
-use strict;
-use warnings;
+my ( $client, $tag, $data ) = @ARG;
 
-return sub {
-    my ( $client, $tag, $data ) = @_;
+my $fid  = <[plan-9.protocol.codec.decode-uint32]>->( substr( $data, 0, 4 ) );
+my $afid = <[plan-9.protocol.codec.decode-uint32]>->( substr( $data, 4, 4 ) );
 
-    my $fid
-        = <[plan-9.protocol.codec.decode-uint32]>->( substr( $data, 0, 4 ) );
-    my $afid
-        = <[plan-9.protocol.codec.decode-uint32]>->( substr( $data, 4, 4 ) );
+my ( $uname, $rest )
+    = <[plan-9.protocol.codec.decode-string]>->( substr( $data, 8 ) );
+my ( $aname, $rest2 ) = <[plan-9.protocol.codec.decode-string]>->($rest);
 
-    my ( $uname, $rest )
-        = <[plan-9.protocol.codec.decode-string]>->( substr( $data, 8 ) );
-    my ( $aname, $rest2 ) = <[plan-9.protocol.codec.decode-string]>->($rest);
+$client->{uname} = $uname;
+$client->{aname} = $aname;
 
-    $client->{uname} = $uname;
-    $client->{aname} = $aname;
+# Root Qid - type directory, version 0, path 0
+my $root_qid = <[plan-9.protocol.codec.encode-qid]>->(
+    <plan-9.protocol.constants.QTDIR>,
+    0, 0
+);
 
-    # Root Qid - type directory, version 0, path 0
-    my $root_qid = <[plan-9.protocol.codec.encode-qid]>->(
-        <plan-9.protocol.constants.QTDIR>,
-        0, 0
-    );
-
-    $client->{fids}{$fid} = {
-        type => 'root',
-        qid  => {
-            type    => <plan-9.protocol.constants.QTDIR>,
-            version => 0,
-            path    => 0
-        },
-        path => '/',
-    };
-
-    return <[plan-9.protocol.codec.encode-message]>->(
-        <plan-9.protocol.constants.Rattach>,
-        $tag, $root_qid
-    );
+$client->{fids}{$fid} = {
+    type => 'root',
+    qid  => {
+        type    => <plan-9.protocol.constants.QTDIR>,
+        version => 0,
+        path    => 0
+    },
+    path => '/',
 };
 
-#,,.,,,,,,,,.,,.,,.,,,,,.,,,,,,,.,...,,,,,...,..,,...,..,,,..,,.,,,,,,,,,,,.,,
-#ER5JJEHETZW4XLTBC24BKJWNSK7QDMRYURK2DI3MZBS2DPWNHPATFVVV7QDQSUKVDL7UJZ7TIV4II
-#\\\|5H2CUZO4R3UIQWXVUB45M3PQJNLTTVURRLJPHIQYAG2KLNG6YN6 \ / AMOS7 \ YOURUM ::
-#\[7]TRQERVIIM63LI5LA7DXC2U2SOIGPSMOUPPEWTK5ZMD5IVXQKU4CA 7  DATA SIGNATURE ::
+return <[plan-9.protocol.codec.encode-message]>->(
+    <plan-9.protocol.constants.Rattach>,
+    $tag, $root_qid
+);
+
+#,,..,.,.,.,,,,..,,,.,.,,,...,,..,,,,,,,,,,..,.,.,...,...,..,,,,.,.,,,,..,,..,
+#KTYOCC634FNTAKKMIDFJPA4TVK6RVX5R5HFPC73UCMT7SMKNZO43A4YUMVJXRP4QF5A75ZR4OKFZE
+#\\\|PRFRVQJFTBNONIENQT3FMMR3KGIXR5FR7MUZ6Q7GPTRXKZI5XV7 \ / AMOS7 \ YOURUM ::
+#\[7]OUTYZIQ2SUCB336S3RTJ3TDT2DKKAAF7JXWD42KSS5MXCZKPKSAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

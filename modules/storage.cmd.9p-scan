@@ -8,97 +8,89 @@
 #         :max-depth: <n>        - Maximum recursion depth
 #         :no-recurse:           - Don't recurse
 
-use strict;
-use warnings;
+my $args = $call->{'args'} // '';
 
-return sub {
-    my ($call) = @_;
-    my $args = $call->{'args'} // '';
+# Parse: <name> <path> [options]
+my ( $name, $path, @opts ) = split /\s+/, $args;
 
-    # Parse: <name> <path> [options]
-    my ( $name, $path, @opts ) = split /\s+/, $args;
+$name //= '';
+$path //= '/';
 
-    $name //= '';
-    $path //= '/';
-
-    if ( not length $name ) {
-        return {
-            'mode' => 'false',
-            'data' =>
-                'Usage: 9p-scan <connection-name> <path> [:option: value ...]'
-        };
-    }
-
-    # Parse options
-    my $filters = {
-        inclusion_add => [],
-        inclusion_and => [],
-        exclusion_add => [],
-        exclusion_and => [],
+if ( not length $name ) {
+    return {
+        'mode' => 'false',
+        'data' =>
+            'Usage: 9p-scan <connection-name> <path> [:option: value ...]'
     };
+}
 
-    my $recursive = 1;
-    my $max_depth = 10;
-
-    for ( my $i = 0; $i < @opts; $i++ ) {
-        my $opt = $opts[$i];
-
-        if ( $opt eq ':include:' and $i + 1 < @opts ) {
-            push @{ $filters->{inclusion_add} }, qr/$opts[++$i]/;
-        } elsif ( $opt eq ':include-all:' and $i + 1 < @opts ) {
-            push @{ $filters->{inclusion_and} }, qr/$opts[++$i]/;
-        } elsif ( $opt eq ':exclude:' and $i + 1 < @opts ) {
-            push @{ $filters->{exclusion_add} }, qr/$opts[++$i]/;
-        } elsif ( $opt eq ':exclude-all:' and $i + 1 < @opts ) {
-            push @{ $filters->{exclusion_and} }, qr/$opts[++$i]/;
-        } elsif ( $opt eq ':max-depth:' and $i + 1 < @opts ) {
-            $max_depth = $opts[ ++$i ];
-        } elsif ( $opt eq ':no-recurse:' ) {
-            $recursive = 0;
-        }
-    }
-
-    my $scan_result = <[storage.9p.scan]>->(
-        {   name          => $name,
-            path          => $path,
-            recursive     => $recursive,
-            max_depth     => $max_depth,
-            inclusion_add => $filters->{inclusion_add},
-            inclusion_and => $filters->{inclusion_and},
-            exclusion_add => $filters->{exclusion_add},
-            exclusion_and => $filters->{exclusion_and},
-        }
-    );
-
-    if ( $scan_result->{'mode'} eq 'false' ) {
-        return $scan_result;
-    }
-
-    my $results = $scan_result->{'data'};
-    my $stats   = $scan_result->{'stats'};
-
-    my $output
-        = sprintf( "9P Scan Results for %s:%s\n"
-            . "Scanned: %d, Matched: %d, Rejected: %d, Errors: %d\n"
-            . "---\n",
-        $name, $path,
-        $stats->{scanned}, $stats->{matched}, $stats->{rejected},
-        $stats->{errors} );
-
-    for my $file (@$results) {
-        my $type
-            = $file->{qid}{type} & <plan-9.protocol.constants.QTDIR>
-            ? 'd'
-            : 'f';
-        $output .= sprintf( "%s %10d %s\n", $type, $file->{length},
-            $file->{path} );
-    }
-
-    return { 'mode' => 'size', 'data' => $output };
+# Parse options
+my $filters = {
+    inclusion_add => [],
+    inclusion_and => [],
+    exclusion_add => [],
+    exclusion_and => [],
 };
 
-#,,..,...,...,...,,..,,.,,.,.,,..,..,,,,.,..,,..,,...,...,...,..,,.,.,,,,,...,
-#4GAFPPDM7F5GW4WLZEIJJHTHUZKCDC2ZC6LWL47IBEWUGY3YLO657DT33S55YMQX2IAM7UE2R3K4U
-#\\\|SSNOXHXAOLLXGCDHCCTL6NX5RPPWQMRVXDCS24E4TH3XGUONK3V \ / AMOS7 \ YOURUM ::
-#\[7]6QIWSRGSGFT26A33CI6H75HDEKABU4DJUOW6ZEJBINWVJ4KU3SDI 7  DATA SIGNATURE ::
+my $recursive = 1;
+my $max_depth = 10;
+
+for ( my $i = 0; $i < @opts; $i++ ) {
+    my $opt = $opts[$i];
+
+    if ( $opt eq ':include:' and $i + 1 < @opts ) {
+        push @{ $filters->{inclusion_add} }, qr/$opts[++$i]/;
+    } elsif ( $opt eq ':include-all:' and $i + 1 < @opts ) {
+        push @{ $filters->{inclusion_and} }, qr/$opts[++$i]/;
+    } elsif ( $opt eq ':exclude:' and $i + 1 < @opts ) {
+        push @{ $filters->{exclusion_add} }, qr/$opts[++$i]/;
+    } elsif ( $opt eq ':exclude-all:' and $i + 1 < @opts ) {
+        push @{ $filters->{exclusion_and} }, qr/$opts[++$i]/;
+    } elsif ( $opt eq ':max-depth:' and $i + 1 < @opts ) {
+        $max_depth = $opts[ ++$i ];
+    } elsif ( $opt eq ':no-recurse:' ) {
+        $recursive = 0;
+    }
+}
+
+my $scan_result = <[storage.9p.scan]>->(
+    {   name          => $name,
+        path          => $path,
+        recursive     => $recursive,
+        max_depth     => $max_depth,
+        inclusion_add => $filters->{inclusion_add},
+        inclusion_and => $filters->{inclusion_and},
+        exclusion_add => $filters->{exclusion_add},
+        exclusion_and => $filters->{exclusion_and},
+    }
+);
+
+if ( $scan_result->{'mode'} eq 'false' ) {
+    return $scan_result;
+}
+
+my $results = $scan_result->{'data'};
+my $stats   = $scan_result->{'stats'};
+
+my $output
+    = sprintf( "9P Scan Results for %s:%s\n"
+        . "Scanned: %d, Matched: %d, Rejected: %d, Errors: %d\n" . "---\n",
+    $name, $path, $stats->{scanned}, $stats->{matched}, $stats->{rejected},
+    $stats->{errors} );
+
+for my $file (@$results) {
+    my $type
+        = $file->{qid}{type} & <plan-9.protocol.constants.QTDIR>
+        ? 'd'
+        : 'f';
+    $output
+        .= sprintf( "%s %10d %s\n", $type, $file->{length}, $file->{path} );
+}
+
+return { 'mode' => 'size', 'data' => $output };
+
+#,,,,,.,,,,.,,...,,,.,,,.,,..,..,,,,.,,..,.,,,.,.,...,...,,.,,..,,.,,,,..,,.,,
+#ROBUHUUOYZVIISPHCK6XV6GSUORXO5FSGGGP67W544TJZYHSJUXYF6JWWZBAM6IBMIHADAWZXURLO
+#\\\|VAM4YA46VCX726TIUV6V6X6V2BFYJSRNGSVIPKSRSVCVYNWANYL \ / AMOS7 \ YOURUM ::
+#\[7]ICLNR4CPNEVTONUEDRVW5HFX3333GOB7BXCGMQBU7MUST7SF6QBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

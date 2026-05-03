@@ -2,30 +2,25 @@
 # name  = storage.9p.clunk
 # descr = Release fid on 9P server
 
-use strict;
-use warnings;
+my ( $conn, $fid ) = @ARG;
 
-return sub {
-    my ( $conn, $fid ) = @_;
+my $tag = ++$conn->{tag} & 0xFFFF;
+my $req = <[plan-9.protocol.codec.encode-uint32]>->($fid);
 
-    my $tag = ++$conn->{tag} & 0xFFFF;
-    my $req = <[plan-9.protocol.codec.encode-uint32]>->($fid);
+my $msg = <[plan-9.protocol.codec.encode-message]>->(
+    <plan-9.protocol.constants.Tclunk>,
+    $tag, $req
+);
 
-    my $msg = <[plan-9.protocol.codec.encode-message]>->(
-        <plan-9.protocol.constants.Tclunk>,
-        $tag, $req
-    );
+$conn->{socket}->send($msg);
 
-    $conn->{socket}->send($msg);
+my $resp = <[storage.9p.read-message]>->( $conn, $tag );
+delete $conn->{fids}{$fid};
 
-    my $resp = <[storage.9p.read-message]>->( $conn, $tag );
-    delete $conn->{fids}{$fid};
+return $resp;
 
-    return $resp;
-};
-
-#,,..,.,.,,.,,,..,.,,,,,.,,,,,,..,,,.,,.,,,..,..,,...,...,..,,...,.,.,,.,,,..,
-#ZPUF4VKSMWBTRLJKVJATG3Y4YIS5EEOMVTN7IGGH4FLA4IG65DMBOMC3E56EJDQL3HUHRU6ABQXZM
-#\\\|NFWM7FFCREX7LFWZW4A54TOITS4TRAAWR4ZHQHCIKWUMV6OUOH2 \ / AMOS7 \ YOURUM ::
-#\[7]SB66OVBVXBEIY4GQRYNPXYFGGMS5SU7VIPDNPZZXWCYAZASHZIBQ 7  DATA SIGNATURE ::
+#,,.,,,,.,.,,,,..,..,,,,,,.,.,,.,,...,...,,,.,.,.,...,...,,..,.,.,.,.,,,,,...,
+#33QHNCN3RYFDDO5W43HR7ZI5ICQGRD6UHC6OVLOMI7V3F5S7PUSJTVTUIUKAF6EJPY2NGML5PIUE4
+#\\\|VYL7FV4J75T5CXEMO6HVLIRZNFTUOGWQZFQBA75R5P5X45RGI6D \ / AMOS7 \ YOURUM ::
+#\[7]LLFLP5FBMMNHA2DRQODH2MQFSIZUK5DAMYXJ5C2HVT6LQABW6UBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

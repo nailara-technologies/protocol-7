@@ -1,13 +1,11 @@
 ## [:< ##
-# name  = plan-9.protocol.codec.encode-qid
-return sub {
-    my ( $type, $version, $path ) = @_;
+    # name  = plan-9.protocol.codec.encode-qid
+    my ( $type, $version, $path ) = @ARG;
     my ( $plo, $phi ) = ( $path & 0xFFFFFFFF, $path >> 32 );
     pack( 'C V VV', $type, $version, $plo, $phi );
-};
 
-#,,,.,.,.,,..,.,,,,..,,,,,,,,,,..,...,..,,,,,,..,,...,..,,,..,,..,.,,,.,.,,..,
-#7DOEZTLNYFJRU7AZL2DI5ROQLZ3MZ6ETWGKDOCLOUGDHXMXFFOUQ4DLFDYCVQMNFJIXDATF23LRWI
-#\\\|EJQYJSEQ3LAS337APSO6FJFLNR224PXT3JNBIUAHL6RBVV2U3EC \ / AMOS7 \ YOURUM ::
-#\[7]JMUKI2KHWRPVYZ4FWCMAXXQAI3HALY5PJ3MLRSLMRBBHBN5YSYDQ 7  DATA SIGNATURE ::
+#,,,,,,,,,,,.,.,.,,,.,,,.,,,,,..,,.,.,.,.,..,,.,.,...,...,,,.,,.,,...,..,,,.,,
+#5G2YFMDD35KWCLCOCI6RMQNFOSH7W4OJV36QYYO2J6KR5KVNEAZYNHPEUUTHKFL55EYDSXXRK5YAS
+#\\\|OP4ZTND4QF3SFUFEFXDABNBPTFZ22IWR2Y4SZOHDBSFHHCDN62D \ / AMOS7 \ YOURUM ::
+#\[7]ZLQHCLYQVG6EJ64TQ6ZVFQAW4UMGHVUSYSM32BCZB5DEX2JT3ADQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

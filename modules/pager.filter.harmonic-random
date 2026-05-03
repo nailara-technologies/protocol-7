@@ -1,72 +1,72 @@
 ## [:< ##
 
-    # name  = pager.filter.harmonic-random
-    # descr = Harmonic distribution randomization for "pleasant" ordering
+# name  = pager.filter.harmonic-random
+# descr = Harmonic distribution randomization for "pleasant" ordering
 
-    my ($args) = @ARG;
-    my $items  = $args->{'items'};
-    my $params = $args->{'params'} // {};
+my ($args) = @ARG;
+my $items  = $args->{'items'};
+my $params = $args->{'params'} // {};
 
-    return $items unless @$items > 1;
+return $items unless @$items > 1;
 
-    my $seed     = $params->{'seed'} // int( rand(1000000) );
-    my $strength = $params->{'strength'}
-        // 1.0;    # 0.0 = no random, 1.0 = full harmonic
+my $seed     = $params->{'seed'} // int( rand(1000000) );
+my $strength = $params->{'strength'}
+    // 1.0;    # 0.0 = no random, 1.0 = full harmonic
 
-    # Store seed for reproducibility
-    $params->{'_last_seed'} = $seed;
+# Store seed for reproducibility
+$params->{'_last_seed'} = $seed;
 
-    # Create harmonic weights: 1, 1/2, 1/3, 1/4, ..., 1/N
-    my @weights = map { 1.0 / ( $ARG + 1 ) } 0 .. $#$items;
+# Create harmonic weights: 1, 1/2, 1/3, 1/4, ..., 1/N
+my @weights = map { 1.0 / ( $ARG + 1 ) } 0 .. $#$items;
 
-    # Shuffle indices with reproducible seed
-    srand($seed);
-    my @indices = ( 0 .. $#$items );
+# Shuffle indices with reproducible seed
+srand($seed);
+my @indices = ( 0 .. $#$items );
 
-    # Fisher-Yates shuffle
-    for my $i ( reverse 1 .. $#indices ) {
-        my $j = int( rand( $i + 1 ) );
-        @indices[ $i, $j ] = @indices[ $j, $i ];
-    }
+# Fisher-Yates shuffle
+for my $i ( reverse 1 .. $#indices ) {
+    my $j = int( rand( $i + 1 ) );
+    @indices[ $i, $j ] = @indices[ $j, $i ];
+}
 
-    # Create harmonic priority: items get priority based on harmonic weight
-    # Higher weight = earlier in list (but shuffled)
-    my @scored;
-    for my $i ( 0 .. $#indices ) {
-        my $idx            = $indices[$i];
-        my $harmonic_score = $weights[$i];
+# Create harmonic priority: items get priority based on harmonic weight
+# Higher weight = earlier in list (but shuffled)
+my @scored;
+for my $i ( 0 .. $#indices ) {
+    my $idx            = $indices[$i];
+    my $harmonic_score = $weights[$i];
 
-        # Mix with original position based on strength
-        my $original_score = 1.0 - ( $idx / scalar(@$items) );
-        my $final_score    = ( $harmonic_score * $strength )
-            + ( $original_score * ( 1.0 - $strength ) );
+    # Mix with original position based on strength
+    my $original_score = 1.0 - ( $idx / scalar(@$items) );
+    my $final_score    = ( $harmonic_score * $strength )
+        + ( $original_score * ( 1.0 - $strength ) );
 
-        push @scored,
-            {
-            'item'  => $items->[$idx],
-            'score' => $final_score,
-            'idx'   => $idx,
-            };
-    }
+    push @scored,
+        {
+        'item'  => $items->[$idx],
+        'score' => $final_score,
+        'idx'   => $idx,
+        };
+}
 
-    # Sort by final score (descending)
-    @scored = sort { $b->{'score'} <=> $a->{'score'} } @scored;
+# Sort by final score (descending)
+@scored = sort { $b->{'score'} <=> $a->{'score'} } @scored;
 
-    # Extract items in new order
-    my @result = map { $ARG->{'item'} } @scored;
+# Extract items in new order
+my @result = map { $ARG->{'item'} } @scored;
 
-    # Mark items with their harmonic position for reference
-    for my $i ( 0 .. $#result ) {
-        $result[$i]{'_harmonic_pos'}   = $i;
-        $result[$i]{'_harmonic_score'} = $scored[$i]{'score'};
-    }
+# Mark items with their harmonic position for reference
+for my $i ( 0 .. $#result ) {
+    $result[$i]{'_harmonic_pos'}   = $i;
+    $result[$i]{'_harmonic_score'} = $scored[$i]{'score'};
+}
 
-    return \@result;
+return \@result;
 
-    # SPDX-License-Identifier: ISC
+# SPDX-License-Identifier: ISC
 
-#,,..,,,,,..,,.,,,.,.,,.,,,..,,.,,.,.,..,,,,.,..,,...,..,,,,.,.,.,,.,,,..,.,.,
-#UCCMN7KSQCZZNQHAJQQTTI56TW4VTI7LBIWADRPFYH3EXOJJGMEZVF7WSMDFRZ3QLBMMO2FCPJ25O
-#\\\|QLAAMRTKY6EJOGDGZNICETAXX7ZNM6VV2QKXF7SKX6NSU2F3RJ7 \ / AMOS7 \ YOURUM ::
-#\[7]KPLDQXZ3MJHWDYM3565NCXTYML6MSAJBYVKEHUYGEWJZFA7YYYBA 7  DATA SIGNATURE ::
+#,,,,,,.,,,,.,,,,,,.,,..,,..,,...,.,.,..,,,..,..,,...,...,..,,...,..,,,.,,,..,
+#AQATB6VZHRER7JECZHVAX5CYXPKXVD3G2HB6OGQSIETYTKSKWGXAJ467NOLVX66E6VUYDW4Q5JZJG
+#\\\|45IR4Q3ZBL4ECG47RONTA2ZRTPEJUFPCF6UTYU2MJ457RQRW4ED \ / AMOS7 \ YOURUM ::
+#\[7]SKFJYILCC7WH3VMPZ5BBIH4WZG5I5BYQEFRBY3BBHFRF2JXZEEBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

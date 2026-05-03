@@ -2,96 +2,91 @@
 # name  = plugin.storage.checksum.cluster.traverse
 # descr = Traverse cluster graph with depth limit and cycle detection
 
-use strict;
-use warnings;
+my ($args) = @ARG;
 
-return sub {
-    my ($args) = @ARG;
+my $start_checksum = $args->{'start'};
+my $max_depth      = $args->{'max_depth'} // 3;
+my $type_filter    = $args->{'type'};             # Optional type filter
+my $callback       = $args->{'callback'};    # Optional callback for each node
 
-    my $start_checksum = $args->{'start'};
-    my $max_depth      = $args->{'max_depth'} // 3;
-    my $type_filter    = $args->{'type'};             # Optional type filter
-    my $callback = $args->{'callback'};    # Optional callback for each node
+return { 'mode' => 'false', 'data' => 'start checksum required' }
+    unless $start_checksum;
 
-    return { 'mode' => 'false', 'data' => 'start checksum required' }
-        unless $start_checksum;
+my $registry = $data{'storage'}{'mapping'}{'checksum-cluster'};
+$start_checksum
+    = <[plugin.storage.util.normalize_checksum]>->($start_checksum);
 
-    my $registry = $data{'storage'}{'mapping'}{'checksum-cluster'};
-    $start_checksum
-        = <[plugin.storage.util.normalize_checksum]>->($start_checksum);
+# BFS traversal with cycle detection
+my %visited;                                 # checksum => depth
+my @queue;                                   # [checksum, depth, path]
+my @results;                                 # All visited nodes with metadata
 
-    # BFS traversal with cycle detection
-    my %visited;                           # checksum => depth
-    my @queue;                             # [checksum, depth, path]
-    my @results;                           # All visited nodes with metadata
+push @queue, [ $start_checksum, 0, [$start_checksum] ];
+$visited{$start_checksum} = 0;
 
-    push @queue, [ $start_checksum, 0, [$start_checksum] ];
-    $visited{$start_checksum} = 0;
+while (@queue) {
+    my ( $current, $depth, $path ) = @{ shift @queue };
 
-    while (@queue) {
-        my ( $current, $depth, $path ) = @{ shift @queue };
+    # Get cluster for this checksum
+    my $cluster_data = <[plugin.storage.checksum.cluster.lookup]>->(
+        {   'checksum'      => $current,
+            'resolve_p7ref' => 0,        # We'll handle manually for traversal
+        }
+    );
 
-        # Get cluster for this checksum
-        my $cluster_data = <[plugin.storage.checksum.cluster.lookup]>->(
-            {   'checksum'      => $current,
-                'resolve_p7ref' => 0,    # We'll handle manually for traversal
-            }
-        );
+    next unless $cluster_data;
 
-        next unless $cluster_data;
+    # Type filter
+    next if $type_filter && $cluster_data->{'type'} ne $type_filter;
 
-        # Type filter
-        next if $type_filter && $cluster_data->{'type'} ne $type_filter;
+    # Record visit
+    my $node_info = {
+        'checksum'   => $current,
+        'depth'      => $depth,
+        'path'       => [@$path],
+        'cluster_id' => $cluster_data->{'cluster_id'},
+        'type'       => $cluster_data->{'type'},
+        'members'    => [],    # Will fill with unvisited neighbors
+    };
 
-        # Record visit
-        my $node_info = {
-            'checksum'   => $current,
-            'depth'      => $depth,
-            'path'       => [@$path],
-            'cluster_id' => $cluster_data->{'cluster_id'},
-            'type'       => $cluster_data->{'type'},
-            'members'    => [],    # Will fill with unvisited neighbors
-        };
-
-        # Process members as potential next nodes
-        for my $member ( @{ $cluster_data->{'members'} } ) {
+    # Process members as potential next nodes
+    for my $member ( @{ $cluster_data->{'members'} } ) {
 
         # Skip P7REFs for graph traversal (they're expansion, not graph edges)
-            next if $member =~ m|^p7://|;
+        next if $member =~ m|^p7://|;
 
-            # Normalize
-            $member = <[plugin.storage.util.normalize_checksum]>->($member);
-            next unless $member;
+        # Normalize
+        $member = <[plugin.storage.util.normalize_checksum]>->($member);
+        next unless $member;
 
-            push @{ $node_info->{'members'} }, $member;
+        push @{ $node_info->{'members'} }, $member;
 
-            # Add to queue if not visited and within depth
-            if ( !exists $visited{$member} && $depth < $max_depth ) {
-                $visited{$member} = $depth + 1;
-                push @queue, [ $member, $depth + 1, [ @$path, $member ] ];
-            }
+        # Add to queue if not visited and within depth
+        if ( !exists $visited{$member} && $depth < $max_depth ) {
+            $visited{$member} = $depth + 1;
+            push @queue, [ $member, $depth + 1, [ @$path, $member ] ];
         }
-
-        push @results, $node_info;
-
-        # Call user callback if provided
-        $callback->($node_info) if $callback && ref($callback) eq 'CODE';
     }
 
-    return {
-        'mode' => 'true',
-        'data' => {
-            'start'      => $start_checksum,
-            'max_depth'  => $max_depth,
-            'nodes'      => \@results,
-            'node_count' => scalar(@results),
-            'visited'    => \%visited,
-        }
-    };
+    push @results, $node_info;
+
+    # Call user callback if provided
+    $callback->($node_info) if $callback && ref($callback) eq 'CODE';
+}
+
+return {
+    'mode' => 'true',
+    'data' => {
+        'start'      => $start_checksum,
+        'max_depth'  => $max_depth,
+        'nodes'      => \@results,
+        'node_count' => scalar(@results),
+        'visited'    => \%visited,
+    }
 };
 
-#,,,.,..,,,,.,...,.,,,...,,..,..,,,..,.,.,,..,.,.,...,...,..,,,,,,...,.,,,.,.,
-#EMEVH5NT7X3Z2Z7LB3DGUDHI3ALFJM5FCWKY3CIXGZY5M7OEI6XSIIXAKLT3HOJG4Q6IDKKGX2Q3Y
-#\\\|CUH4KO4DKTZ24TYWZERZ3XXWAKYAQFTEDHY2GOOOERK2EIIMI4K \ / AMOS7 \ YOURUM ::
-#\[7]37CCAYKWDDQ3M5CDYJDPKTSW56D32JEVFVZZZ2KGC5YUKGM4N2DA 7  DATA SIGNATURE ::
+#,,,.,..,,.,.,..,,,,,,,.,,.,,,.,.,...,,,,,.,,,.,.,...,...,.,.,,.,,,..,,,,,...,
+#HHTOBIQPXMOPPNAPT726WIJDCII4EJ7U6MFFRYFIKR4KVB6BHJHJWPFPB4MQ6H6FSIR4I4BBWBOOQ
+#\\\|DZJFLNZD3WTN6OGG5EK2B6LF3KNSHF6KCIVJOGFO6GIIZ3FU26C \ / AMOS7 \ YOURUM ::
+#\[7]7GIULOPZBAQE62E75OFKVAUS4OVCOWWMN3V3YZRCGGVIRLPNL6AQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

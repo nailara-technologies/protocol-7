@@ -2,57 +2,51 @@
 # name  = storage.cmd.lookup-checksum
 # descr = Look up files by checksum
 
-use strict;
-use warnings;
+my $args = $call->{'args'} // '';
 
-return sub {
-    my ($call) = @_;
-    my $args = $call->{'args'} // '';
+my ( $type, $checksum ) = split /\s+/, $args, 2;
 
-    my ( $type, $checksum ) = split /\s+/, $args, 2;
+$type     //= '';
+$checksum //= '';
 
-    $type     //= '';
-    $checksum //= '';
+if ( not length $type or not length $checksum ) {
+    return {
+        'mode' => 'false',
+        'data' => 'Usage: lookup-checksum <mapping-type> <checksum>'
+    };
+}
 
-    if ( not length $type or not length $checksum ) {
-        return {
-            'mode' => 'false',
-            'data' => 'Usage: lookup-checksum <mapping-type> <checksum>'
-        };
+my $module = "plugin.storage.$type";
+
+unless ( exists $data{'storage'}{'mapping'}{$type} ) {
+    return {
+        'mode' => 'false',
+        'data' => "Mapping type '$type' not loaded"
+    };
+}
+
+my $result = <[$module]>->(
+    {   'operation' => 'lookup',
+        'checksum'  => $checksum,
+    }
+);
+
+if ( $result->{'mode'} eq 'true' ) {
+    my $data   = $result->{'data'};
+    my $output = "Checksum: $data->{checksum}\n";
+    $output .= "Found: $data->{count} file(s)\n\n";
+
+    for my $path ( @{ $data->{paths} } ) {
+        $output .= "  $path\n";
     }
 
-    my $module = "plugin.storage.$type";
+    return { 'mode' => 'size', 'data' => $output };
+} else {
+    return $result;
+}
 
-    unless ( exists $data{'storage'}{'mapping'}{$type} ) {
-        return {
-            'mode' => 'false',
-            'data' => "Mapping type '$type' not loaded"
-        };
-    }
-
-    my $result = <[$module]>->(
-        {   'operation' => 'lookup',
-            'checksum'  => $checksum,
-        }
-    );
-
-    if ( $result->{'mode'} eq 'true' ) {
-        my $data   = $result->{'data'};
-        my $output = "Checksum: $data->{checksum}\n";
-        $output .= "Found: $data->{count} file(s)\n\n";
-
-        for my $path ( @{ $data->{paths} } ) {
-            $output .= "  $path\n";
-        }
-
-        return { 'mode' => 'size', 'data' => $output };
-    } else {
-        return $result;
-    }
-};
-
-#,,,.,.,,,.,,,,,,,,.,,...,..,,.,.,,..,.,.,..,,..,,...,...,...,,..,.,,,.,.,...,
-#CJW6MHSOTKDQO4VDQQM2SVP47UOWYC5C3UZ4VFNSDBA2DDVBLJNFN3VGRNR2NK25NI3ZNSPYNUL6K
-#\\\|GCAAHYZSX4SHHGXMNMTFS22ZSZ4NERK7TYK4Q2FXSWJ76YT54MY \ / AMOS7 \ YOURUM ::
-#\[7]DA5NXVTCC3IBI3D2G3TIRWMBL5IY57KZBGG4CZS4JRI6RDEEGKCA 7  DATA SIGNATURE ::
+#,,.,,,,.,..,,,.,,.,.,.,.,,..,..,,,..,,,,,.,,,.,.,...,...,,,.,...,..,,.,.,,,,,
+#OJBVWVKHCW36CPHO644ROVV7HGPJRBW4BYSHGOW4PPQEXZSDQFXGHAFEIYGQFL3IFIQGZKW3NRSKU
+#\\\|IGHCCQLAKL6XLSIFXFLFS2W6NA46EVCQQEJQEXLJWTD2P6CJJGB \ / AMOS7 \ YOURUM ::
+#\[7]GX2UOVF6K7PSDE6SKQSGMLMJRDPTDHIRIGI7CJTXNCFG7BSJJ4AI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

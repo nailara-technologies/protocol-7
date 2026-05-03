@@ -2,57 +2,52 @@
 # name  = plugin.storage.p7ref.index
 # descr = Index P7REF for parallel reference tracking
 
-use strict;
-use warnings;
+my ($args) = @ARG;
 
-return sub {
-    my ($args) = @ARG;
+my $p7ref = $args->{p7ref}
+    or return { 'mode' => 'false', 'data' => 'p7ref required' };
+my $metadata = $args->{metadata} // {};
 
-    my $p7ref = $args->{p7ref}
-        or return { 'mode' => 'false', 'data' => 'p7ref required' };
-    my $metadata = $args->{metadata} // {};
+my $registry = $data{'storage'}{'mapping'}{'p7ref'};
+my $index    = $registry->{'index'};
 
-    my $registry = $data{'storage'}{'mapping'}{'p7ref'};
-    my $index    = $registry->{'index'};
+# Parse to extract components
+my $parse_res = <[plugin.storage.p7ref.parse]>->( { 'p7ref' => $p7ref } );
+return $parse_res if $parse_res->{'mode'} eq 'false';
 
-    # Parse to extract components
-    my $parse_res = <[plugin.storage.p7ref.parse]>->( { 'p7ref' => $p7ref } );
-    return $parse_res if $parse_res->{'mode'} eq 'false';
+my $parsed = $parse_res->{'data'};
 
-    my $parsed = $parse_res->{'data'};
+# Index by type-specific keys
+if ( $parsed->{'type'} eq 'checksum' ) {
+    my $checksum = $parsed->{'address'};
+    $index->{'by-checksum'}{$checksum} //= [];
+    push @{ $index->{'by-checksum'}{$checksum} }, $p7ref
+        unless grep { $ARG eq $p7ref }
+        @{ $index->{'by-checksum'}{$checksum} };
+} elsif ( $parsed->{'type'} eq '9p' ) {
+    my $key = ( $parsed->{'authority'} // 'localhost:5640' )
+        . $parsed->{'address'};
+    $index->{'by-9p'}{$key} //= [];
+    push @{ $index->{'by-9p'}{$key} }, $p7ref
+        unless grep { $ARG eq $p7ref } @{ $index->{'by-9p'}{$key} };
+} elsif ( $parsed->{'type'} eq 'path' ) {
+    $index->{'by-path'}{ $parsed->{'address'} } = $p7ref;
+}
 
-    # Index by type-specific keys
-    if ( $parsed->{'type'} eq 'checksum' ) {
-        my $checksum = $parsed->{'address'};
-        $index->{'by-checksum'}{$checksum} //= [];
-        push @{ $index->{'by-checksum'}{$checksum} }, $p7ref
-            unless grep { $ARG eq $p7ref }
-            @{ $index->{'by-checksum'}{$checksum} };
-    } elsif ( $parsed->{'type'} eq '9p' ) {
-        my $key = ( $parsed->{'authority'} // 'localhost:5640' )
-            . $parsed->{'address'};
-        $index->{'by-9p'}{$key} //= [];
-        push @{ $index->{'by-9p'}{$key} }, $p7ref
-            unless grep { $ARG eq $p7ref } @{ $index->{'by-9p'}{$key} };
-    } elsif ( $parsed->{'type'} eq 'path' ) {
-        $index->{'by-path'}{ $parsed->{'address'} } = $p7ref;
+# Store metadata
+$registry->{'cache'}{$p7ref}{'metadata'} = $metadata;
+
+return {
+    'mode' => 'true',
+    'data' => {
+        'indexed' => 1,
+        'type'    => $parsed->{'type'},
+        'p7ref'   => $p7ref,
     }
-
-    # Store metadata
-    $registry->{'cache'}{$p7ref}{'metadata'} = $metadata;
-
-    return {
-        'mode' => 'true',
-        'data' => {
-            'indexed' => 1,
-            'type'    => $parsed->{'type'},
-            'p7ref'   => $p7ref,
-        }
-    };
 };
 
-#,,,,,..,,.,.,,.,,.,,,,,.,,,,,,..,,.,,...,.,.,..,,...,..,,,..,.,.,,,.,,,.,,,,,
-#W7JMDE3YMH6YTTAUUVKUASPPJTVUUQOLVGY3Y7TXSFFNJFIZ3SMJ6RKKWFIFQFTK3N3ZFBRI25ND4
-#\\\|5X4KFVDILPXK3X57XTYVBHEMTVZN3JX3RUW5B7CYJTBMQ62TGPU \ / AMOS7 \ YOURUM ::
-#\[7]6BWR7XSTZIGCUSPJCT3QS5ATBDJSER4SBWFW7VZOLR6MODZHVEDA 7  DATA SIGNATURE ::
+#,,.,,,.,,.,.,,,.,,,.,,.,,,..,.,.,,,,,.,.,,.,,.,.,...,..,,...,.,,,,,,,,,,,,.,,
+#GYRKINB3RVRDGFZ762GCLQKKRK3D6DENEKGDWOMD7AEYZRBUEP5JB6YPKBO6KID757BRPDEPD46II
+#\\\|Q7KJZ27UKFFLS7LM6UVKCMGDTSDXKGXUHSVSN45E5NGYJC6VWAK \ / AMOS7 \ YOURUM ::
+#\[7]WE35PSQAL63URL4ICCJ5H2OOKT2YRJP7555U3L3WGYTNZCANZABQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

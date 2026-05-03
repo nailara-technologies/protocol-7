@@ -2,37 +2,31 @@
 # name  = storage.cmd.9p-connect
 # descr = Connect to 9P server
 
-use strict;
-use warnings;
+my $args = $call->{'args'} // '';
+my ( $host, $port, $name ) = split /\s+/, $args, 3;
 
-return sub {
-    my ($call) = @_;
-    my $args = $call->{'args'} // '';
-    my ( $host, $port, $name ) = split /\s+/, $args, 3;
+$host //= '127.0.0.1';
+$port //= 5640;
+$name //= "$host:$port";
 
-    $host //= '127.0.0.1';
-    $port //= 5640;
-    $name //= "$host:$port";
-
-    my $result = <[storage.9p.connect]>->(
-        {   host => $host,
-            port => $port,
-            name => $name,
-        }
-    );
-
-    if ( $result->{'mode'} eq 'true' ) {
-        return {
-            'mode' => 'size',
-            'data' => "Connected to 9P server $name at $host:$port\n"
-        };
-    } else {
-        return $result;
+my $result = <[storage.9p.connect]>->(
+    {   host => $host,
+        port => $port,
+        name => $name,
     }
-};
+);
 
-#,,,,,,..,...,.,,,.,.,,..,.,.,,.,,,,.,.,.,,,,,..,,...,...,.,,,..,,,,.,,.,,,,,,
-#L7ADTW4FAASM6RMLBNWNDX25VMEQYU4C4HL5PM6YIKYYY7CEMHY5RHQQ46AR4C67LAUXPQSO52TNS
-#\\\|J25S74YR3Z23BBFXMK7U73AGALUHK6IW5UYPZ3XRCMSXPHN5RXC \ / AMOS7 \ YOURUM ::
-#\[7]HJ5HWOIDAZ4RWMFNP36R4KNWYURHBNUAMUZZSLFBYVYOIVL7AMDQ 7  DATA SIGNATURE ::
+if ( $result->{'mode'} eq 'true' ) {
+    return {
+        'mode' => 'size',
+        'data' => "Connected to 9P server $name at $host:$port\n"
+    };
+} else {
+    return $result;
+}
+
+#,,.,,.,,,.,,,...,,..,...,.,.,.,,,...,.,,,.,,,.,.,...,...,...,,.,,...,...,.,.,
+#AFMKXEX5JMHJNWBLQZ4NZF4MMEXQAKJZH26L5STBZYB4QLJTXWIC22TKAG7K7CJZ7GVNZ235ZI7G6
+#\\\|OC2KHW2TMYQLSCEC4A76UNGF7NTDODT6OPW7TTSKNLYDUHFGQGI \ / AMOS7 \ YOURUM ::
+#\[7]27LT5SRF6RW6R56WTJYMDMKV2ALVCGVUUKWHXR2BCCJHAF3GHUCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
