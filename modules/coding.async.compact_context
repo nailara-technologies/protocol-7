@@ -61,8 +61,10 @@ $protect_end = $protect_start if $protect_end < $protect_start;
 return if $protect_end <= $protect_start;
 
 ## inference-backed compaction path — enqueue sub-task, suspend parent ##
-if ( ( <coding.cfg.compaction_inference> // 'no' ) eq qw| yes |
-    and not defined $state->{'compaction_pending'} ) {
+## skip if compaction already ran this round [prevents infinite re-trigger] ##
+if (    ( <coding.cfg.compaction_inference> // 'no' ) eq qw| yes |
+    and not defined $state->{'compaction_pending'}
+    and ( $state->{'compaction_applied_round'} // -1 ) != $round ) {
 
     ## serialize middle messages into a single text block for the summarizer ##
     my @to_compact = @{$messages}[ $protect_start .. $protect_end - 1 ];
@@ -99,7 +101,7 @@ if ( ( <coding.cfg.compaction_inference> // 'no' ) eq qw| yes |
         . scalar(@to_compact) . " ]";
 
     ## enqueue compaction sub-task with no tools, single round ##
-    my $child_task_id = <[coding.helper.task_id_generator]>;
+    my $child_task_id  = <[coding.helper.task_id_generator]>;
     my $enqueue_result = <[coding.task.enqueue]>->(
         {   id       => $child_task_id,
             type     => 'general',
@@ -240,8 +242,8 @@ if ( $after_tokens > $compact_threshold * 0.8 ) {
 
 return;
 
-#,,..,,.,,,.,,,.,,...,.,,,.,.,.,,,,..,.,.,,,,,.,.,...,...,,,.,..,,,,,,...,.,,,
-#PS5NPSQTWECBK5JBDVVCLOZWBN4F4VE77UCICVZPSFWZNBXKBTDD64KLZRHMBCCDNNOLTF2NK5AI4
-#\\\|7GC2QU5MISRV746MJ6TAX24AI6KGKGDK5KI4GADI4ABZH4CY453 \ / AMOS7 \ YOURUM ::
-#\[7]SMMKRIU7KRTVAYVV6X76KLBU355ZZ3LSNIQU63FWAQAPH5FQVAAA 7  DATA SIGNATURE ::
+#,,..,,,,,...,.,,,..,,.,,,,,,,...,.,,,,..,.,.,.,.,...,..,,.,,,,..,,..,,.,,.,,,
+#PAWZBTFCAK2YDAL5QCYME2VPE2OAZGS2RM5QZWKXASM54SR3FKH2LBYDXGFYBTBPNLDGMPENYN62S
+#\\\|O3K7V5S6LJVITLLU7VQEOAJHAT4BMQCBSIZO3EXJSCX22652J6B \ / AMOS7 \ YOURUM ::
+#\[7]XVD54KE7AWHAHYCTT4HY4OQPWACGEQ6BPBGME7U6A32AKZPNSMBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
