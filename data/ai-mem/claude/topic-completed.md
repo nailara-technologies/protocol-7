@@ -315,3 +315,37 @@ zenki-create/zenki-feature-port/footer-cleanup templates added.
 #\\\|M7PGEUVVWK2VXQJY52KFSDRINSG6MGDGCFDCMFBCUPQRWNYZYSA \ / AMOS7 \ YOURUM ::
 #\[7]MGKRVRTCDQTR4WCWXPURMLLUS267RZMQPDWH7JMYV5J33UTNMGBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+
+## signature "no separator endline" bug fix — verified working (Apr 2026)
+
+### Bug description
+When generating P7 module signatures, the code incorrectly called `harmonize_payload_line_feed`
+when `endline_modification_state == 7` AND `last_line_incomplete` was set. This caused the
+signature footer to be improperly formatted, resulting in:
+- The footer being glued to the last line of code without a separator
+- Example: `return sprintf(...);#,,.,,...` appearing on one line
+- Pre-commit rejects this as "no separator endline" error
+
+### Root cause
+The signature system tracks whether a file ends with incomplete payload (no trailing newline)
+and adjusts endline_modification_state accordingly. However, when both conditions were true:
+1. endline_modification_state == 7 (indicating incomplete payload handling needed)
+2. last_line_incomplete was set (file lacks trailing newline)
+
+The code would call harmonize_payload_line_feed, which was unnecessary and caused the formatting issue.
+
+### Fix
+Skip calling harmonize_payload_line_feed when both conditions are met:
+- endline_modification_state == 7
+- last_line_incomplete is set
+
+### Verification
+- Fix tested and verified working
+- Signatures now properly formatted with correct separator endline
+- Pre-commit validation passes
+
+#,,.,,,.,,,,.,..,,..,,...,.,,,.,.,,..,.,,,,..,..,,...,...,,.,,.,.,...,.,,,,,.,
+#MBG3OQ75JYFKFITPHEHJCVRWVYLHGQ6VVO6JLATGRP5ICUGTCIVKG6N6H3Z2JMQ4O2GUELFMFBNJ4
+#\\\|4ZILLA3YPDEZGFKXTRQ6PGJHAMFVZSJSNA4ZNSXDYWDVFTXIENN \ / AMOS7 \ YOURUM ::
+#\[7]6PERPE3V7HJSTE4RSSEKDSRHD5ZZETCJ6OMGQUIHFL55X3QREECY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

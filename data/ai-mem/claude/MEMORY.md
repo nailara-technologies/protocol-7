@@ -185,6 +185,7 @@
 - **deferred compilation stubs** (Mar 15): partial — deeper namespace/phase work pending
 - **task coordination architecture**: see `topic-task-coordination.md` for full state + roadmap
 - **multi-model consensus**: llm.service.consensus_vote modules extracted but untested
+- **signature "no separator endline" bug fix**: resolved bug where harmonize_payload_line_feed was incorrectly called when endline_modification_state==7 and last_line_incomplete was set; fix tested and verified working
 
 ### Open Bugs / Cleanup
 - **signature missing-endline bug**: footer glues to last code line when file lacks trailing
@@ -326,8 +327,8 @@
 - Pattern: `my @non_num = grep { defined $data_ref->{$ARG}->{$key} and not looks_like_number(...) } keys $data_ref->%*`
 - Global `$SIG{__WARN__}` exists — if wrapping warn handler, capture `$prev_warn = $SIG{__WARN__}` first and call through
 
-#,,..,.,,,..,,...,.,.,,,,,,,,,...,,,,,...,,.,,..,,...,...,..,,.,.,,..,,..,,,,,
-#JGLSHE5PDU3U5WMDTXODRR5AMP4H247IWGIJSFPP252OWQPASBG53ASNGTQNPP7ILO5EPNMWL2KAU
-#\\\|4BHIYYVREUD2PLXK3TGJ7AM7CTB7NUHXQYOMDTZQVVU2QSKOSDD \ / AMOS7 \ YOURUM ::
-#\[7]MDWGGSHA4SBQXMW7VY3TN3SM5XEF4O5SLANG7KEH52FYQQJJ26CI 7  DATA SIGNATURE ::
+#,,.,,,,,,.,.,,.,,,.,,..,,,.,,,,,,..,,.,.,,.,,..,,...,..,,..,,,,,,.,,,.,.,...,
+#4KUOV7LM27URMD72SNLTFQH5XJE4C62OB4PQC7LH27JAU2AFMHRAX3TCOOQGNVTB4HVEXMKTNDNDU
+#\\\|24ZCRID2FINM7MLWDDWVECEIHTZNT3R72TH5LKYQ5KFXPBRNO6Y \ / AMOS7 \ YOURUM ::
+#\[7]OGIS2M3ISI6SNWOWKMVZYBBBQN6QROIURFNEDMCX2HOOFBBT46BI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
