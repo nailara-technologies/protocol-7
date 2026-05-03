@@ -1,143 +1,74 @@
-# Session Handover — 2026-05-01
+# Session Handover — 2026-05-03
 
 ## Completed This Session
 
-### llama-server rebuild (ik_llama.cpp)
-- Rebuilt to version 4447 (latest) — new Jinja PEG engine (PR #1369, Mar 9) crashes with
-  `--jinja` + tools on Qwen3.5 model (stack overflow in libc, segfault)
-- Rebuilt to version 4266 (commit `542988773`, one before the broken Jinja engine) — works
-- Binary: `/data/source/ik_llama.cpp/llama-server-cuda-fa` (symlink → `llama-server-cuda-fa-12.5.0`)
-- Repo is back on `main` branch; binary is pinned at 4266 via the build symlink
-- Config toggle added: `coding.jinja.enable = yes/no` in `configuration/zenki/coding/start`
-  (set to `yes` — 4266 handles `--jinja` + tools correctly)
-- Upstream bug: new Jinja engine crashes on Qwen3.5 tool template; multiple related issues
-  open on ik_llama.cpp (#1514, #1518 etc). Rebuild to tip when a fix lands.
+### Inference-backed context compaction — implemented and verified
+- `coding.async.compact_context`: when `compaction_inference=yes`, enqueues a
+  `no_tools/max_rounds=1` sub-task to summarize middle messages; suspends parent
+  in `STATE_SUBTASK`; falls back to heuristic on enqueue failure
+- `coding.async.complete`: detects `compaction_pending` flag; splices summary
+  into parent messages (not appended as user message); resumes parent round
+- `coding.async.send_request`: returns early with `compacting=1` if pending
+- Bugs fixed during implementation:
+  - `coding.task.enqueue` returns a hash — must extract `->{'task_id'}`
+  - enqueue requires `id` (from `coding.helper.task_id_generator`), `type`,
+    `analysis.routed_to`, `execution.status`, `created_at`
+- **Verified in production**: child task summarized 14 msgs → 1, parent resumed
+  at round 10 with context at 17% (was heading toward overflow)
+- `coding.cfg.compaction_inference = yes` (enabled in coding/start)
+- `coding.cfg.base_work_model` and `coding.cfg.base_compaction_model` added
+  (both alias to `start_model`; separate compaction model is future work)
 
-### Coding zenka improvements
-- `coding.async.tool_executor`: JSON repair pass (3 anti-patterns: literal whitespace in
-  strings, trailing commas, illegal backslash escapes like `\[`). On repair failure: return
-  exact parse error to model instead of dispatching with empty args.
-- `coding.sanitize.jinja_messages`: fix illegal backslash escapes in tool_call arguments
-  before sending to server (prevents Jinja crash on round retry)
-- `coding.handler.http_io`: init `$buffer = ''` to silence undef concat warning
-- `coding.spawn_inference_server`: `coding.inference.reasoning_effort` config — passes
-  `--chat-template-kwargs '{"reasoning_effort":"..."}''` to server. Set to `low` by default
-  to prevent runaway `<think>` spirals on the 4B model.
+### :model: keyword + bin/coding-task -model flag
+- `coding.prompt.assemble`: strips `:model:AMOS:ID:` from prompt, overrides
+  `parsed->{'model'}` (doesn't override explicit `GPU:M:` prefix)
+- `bin/coding-task -model AMOS:ID`: prepends `:model:...:` into B32 payload
+- Task files are now self-describing; model-switch dependency state machine
+  designed but not implemented — same-model compaction covers the common case
 
-### Model selection
-- Tested 4 models on same benchmark task (kimi auto-approve fix):
-  - 4B Huihui Q8 (BVFPWBA): unstable, JSON errors, think spirals
-  - 4B Claude distilled v2 Q8 (SJCPFAQ): clean 3-round result, no errors, fast — **new default**
-  - 9B Q6_K (MBZAAII): correct but basic
-  - 9B Claude distilled v2 Q8 (WZIZD6Y): detailed reasoning, no 500s — available for heavy tasks
-- New default: `coding.cfg.start_model = SJCPFAQ:AGKY7YQ` in coding start
-- 9B Claude distilled v2 stays available via `p7c coding.switch-model WZIZD6Y:2BIZKWY`
+### extract-inline-subs template + naming rules
+- Three naming rules codified in template + memory:
+  1. No leading `_`: `sub _foo` → `namespace.util.foo`
+  2. No `.cmd.` inheritance: subs from `storage.cmd.visual` → `storage.visual.util.*`
+  3. No `cmd_` prefix in module name
+- Modules extracted and wired:
+  - `ncode.regex.expand.util.{process_candidate,find_duplicate,merge_duplicate,evict_and_replace}`
+  - `ncode.transform.wave.util.build_llm_prompt`
+  - `storage.visual.util.{extract,proximity,list_workflows}`
 
-### kimi auto-approve race condition fix
-- `modules/kimi.handler.approval_request`: moved `auto_approve` check BEFORE session guard
-  so reconnects no longer block auto-approval. Previously queued then lost during reconnect.
-
-### nshell Ctrl+O history off-by-one
-- `modules/nshell.handler.ctrl_o_cycle`: `history_add` pushes then shifts when at max
-  capacity — all indices shift down by 1, so `search_idx` must be `cur_index` not
-  `cur_index + 1`. Fixed by detecting size change after add.
-  Result: Ctrl+O now correctly cycles through the last N entries indefinitely.
-
-## Session 2026-05-02/03 — Coding zenka major improvements
-
-### reasoning_content separation (Qwen3 thinking models)
-- `coding.async.chunk_handler`: `reasoning_content` now accumulates in
-  `context->{'reasoning'}` separately from `content` — prevents double-output
-  in model_output buffer (thinking trace + answer were both appearing)
-- Fallback: if `content` empty at finish, copy reasoning → content (stripped
-  of tool call XML first to prevent confusion in next round)
-- XML tool call detection also checks `reasoning_content` (Qwen3 emits XML
-  tool calls there instead of structured `tool_calls` array)
-- `reasoning` field passed through all state machine transitions
-
-### per-task three-tier ring buffers
-- `coding.buffer.task_write`: new module writing to `T-<id>`, `T-<id>-T`,
-  `T-<id>-F` ring buffers (compact / thinking / full)
-- **compact** (`T-<id>`): assistant text + tool call/result summaries only
-- **thinking** (`T-<id>-T`): compact + full reasoning traces
-- **full** (`T-<id>-F`): everything untruncated including tool outputs
-- Buffer names: max 24 chars, `[\w\-_]` charset — strip `task-` prefix
-- Hooked into `state_machine` (assistant + thinking) and `tool_executor`
-  (tool_call + tool_result entries)
-- `model_output` retained as rolling cross-task live monitor
-
-### buffer lifecycle — save/drop timers
-- `coding.event.on_task_complete`: arms 47m save + 63m drop timers after
-  each task; `coding.task.enqueue`: cancels them when new task starts
-- `coding.task.save_buffers`: compresses all 3 buffers as xz, writes to
-  `/var/protocol-7/coding/completed-task-backups/<timestamp>-<id>/` with
-  `meta.yaml` (task_id, model, rounds, result snippet, template)
-- Idle timeout raised to 77m (4620s) in `zenka-startup.v7`
-
-### single-shot inference sub-agent infrastructure
-- `task->{'system'}`: custom system prompt, bypasses template selection
-- `task->{'no_tools'}`: disables tool list (zero inference overhead)
-- `task->{'max_rounds'}`: per-task round cap (overrides global 777)
-- All wired in `coding.async.send_request` + `coding.prompt.assemble`
-- `coding.cmd.oneline-summary`: first true sub-agent command — passes text
-  to inference with focused system prompt, returns ≤74 char summary
-- `coding.filter.summarize_oneline`: heuristic fallback (no inference) used
-  in `task_complete` log line
-
-### bin/coding-task improvements
-- `-template NAME` option: prepends `:name:\n` into B32 payload before
-  encoding, so full prompt is self-contained in one arg to `p7c`
-- `exec @cmd` list form (avoids shell quoting issues with long B32 strings)
-- `-wait` is script-level only, not forwarded to p7c
+### Model hallucination pattern identified
+- Local 9B model reliably fabricates completion summaries on multi-module tasks
+  without making actual file changes — always `grep -n 'sub '` to verify
+- "verify after each step" instruction insufficient; one-module-per-task is reliable
+- Optional post-task review round (ptd_check on modified files) worth adding to template
 
 ## Open / Next
 
-### nshell first-command `(0)` prefix bug
-- `( echo clear ; sleep 2 ; echo close ) | p7.nshell | grep invalid` → `invalid command id syntax or length`
-- Cube receives `(0)clear\n` instead of `clear\n` on the very first command only
-- Root cause: log reply from cube (reply to nshell's startup log send) arrives in nshell's
-  session buffer before the first user command. `base.handler.command` processes it,
-  generates a protocol mismatch response via `YYOPDKA` with `cmd_id=0`, written to the
-  output buffer. First user command appends after it.
-- Earlier form: `(cmd_id)(route_id)p7-log.append...` — a fix attempt stripped it down to
-  just `(0)` but didn't fully eliminate it.
-- Documented in: `data/yaml/coding-tasks/nshell-session-protocol-tunneling.yaml`
-- Kimi session (100 rounds): investigated `v7.notify_online` reply loop in send-buffer.
-  Key finding: cube's `setup.aliases.source_zenka_sid` alias auto-prepends
-  `SOURCE_ZENKA SOURCE_SID` to `p7-log.append` for non-cube zenki — kimi accidentally
-  broke this by adding a manual prefix in `send-idle-callback` (reverted). The `(0)` source
-  is still unconfirmed — `send.local` debug showed it's NOT from the log send system.
-  All `YYOPDKA` template writes produce `"FALSE..."` with no `(0)` prefix when cmd_id empty.
-  Best theory: commit `01b6be26e` removed trailing space from cmd_id formatting —
-  something that was undef (no prefix) is now `0` (produces `(0)` prefix).
-- `v7.notify_online` retry loop was kimi regression (reverted), confirmed gone after revert.
-- cube alias `setup.aliases.source_zenka_sid` auto-prepends SOURCE_ZENKA SOURCE_SID
-  for non-cube zenki — do NOT add manually in send-idle-callback.
-- Kimi session archived: `data/asc/coding-chats/kimi-session-nshell-bug.jsonl.xz`
-- Pre-existing bug, not worsened this session.
-- Proper fix: cube raw mode + VTerm line session buffers (large feature, deferred).
+### Remaining inline sub extractions (all single-sub, straightforward)
+- `modules/kimi.handler.approval_request`: `sub flush_on_acquisition` (line 81)
+  → `kimi.handler.approval_request.util.flush_on_acquisition`
+- `modules/letsencr.child.continue_challenge_processing`: `sub _cleanup_challenge` (line 11)
+  → `letsencr.child.continue_challenge_processing.util.cleanup_challenge`
+- `modules/plugin.web.space.orbital.json.context`: `sub _synthetic_zenka_node` (line 34)
+  → `plugin.web.space.orbital.json.context.util.synthetic_zenka_node`
+- `modules/AMOS7.key-32-safeguard`: `sub key_32_safe` (line 24) — dead code, just delete it
+- `modules/graphics-matrix.cmd.cell`: `sub cell_output` (line 148) — may warrant
+  splitting the cmd into multiple commands rather than extracting to util
+
+### Model-switch dependency (future)
+- For `base_compaction_model != base_work_model`: need a `STATE_MODEL_SWITCH`
+  waiting state + spawn monitor signaling waiters when new model is ready
+- Round detects required model mismatch → triggers switch → suspends in new state
+- Same mechanism handles return trip (switch back to work model after compaction)
+- Design: pin `required_model` to task; round checks on each fire
 
 ### llama-server tip rebuild
-- When ik_llama.cpp fixes the Jinja engine crash (track #1369-related issues), rebuild
-  from tip to get VRAM improvements in 4268-4447 range.
-- Toggle: set `coding.jinja.enable = yes` (already set) and rebuild with build script.
+- ik_llama.cpp #1369-related Jinja crash still open upstream
+- When fixed, rebuild from tip to get VRAM improvements from builds 4268-4447
+- Toggle already set: `coding.jinja.enable = yes`
 
-### inference-backed compaction (planned)
-- Current `coding.async.compact_context` is heuristic only (truncates/merges
-  messages in-place, no LLM call)
-- Plan: use `no_tools + max_rounds=1 + system` sub-agent to summarize
-  conversation history via a fast model before sending to main model
-- Add `coding.cfg.base_work_model` and `coding.cfg.base_compaction_model`
-  config vars in coding start file — separate model IDs for task work vs
-  compaction (compaction can use smaller/faster model)
-- Later: `coding.cfg.base_work_model` as primary default, overridable
-  per-task via `:model:<amos-id>:` keyword at start of prompt/task file
-  e.g. `:integrate-recent: :model:WZIZD6Y:2BIZKWY:` on same or adjacent line
-- `bin/coding-task -model <amos-model-id>` option to prepend `:model:...:`
-  into the B32 payload alongside `-template`
-- Task files storing `:model:` make them self-describing and portable —
-  model present → use it, absent → fall back to base_work_model
-
-### context ceiling
-- With 4B Claude distilled v2, context auto-calc gives ~110K. Check if ceiling can move
-  up now that server is stable. `coding.cfg.context_max = 110007` in coding start.
+### nshell first-command (0) prefix bug
+- Pre-existing: cube sends `(0)clear` on first command
+- Best theory: `01b6be26e` removed trailing space from cmd_id formatting
+- Proper fix: cube raw mode + VTerm line session buffers (large feature, deferred)
+- Documented: `data/yaml/coding-tasks/nshell-session-protocol-tunneling.yaml`

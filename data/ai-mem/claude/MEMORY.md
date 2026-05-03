@@ -44,6 +44,7 @@
   code/data/state/history/planning, branch summarization, universal off-band access
 - `topic-async-tool-loop-debug.md` — RESOLVED: async tool loop fixes, XML parsing, root cause chain
 - `topic-coding-zenka-session8.md` — May 1: llama-server 4266 pinned (Jinja crash), 4B Claude distilled v2 default, tool JSON repair, nshell Ctrl+O + (0) bug
+- `topic-coding-zenka-session10.md` — May 3: inference compaction VERIFIED (14msgs→1, 53%→17% ctx), :model: keyword, extract-inline-subs naming rules, hallucination patterns
 - `topic-coding-zenka-session9.md` — May 2/3: reasoning_content separation, 3-tier task buffers, buffer lifecycle (47m save/63m xz), sub-agent infra, model/compaction config plan
 - `topic-async-round-2-timeout.md` — RESOLVED (Apr 30): double-spawn VRAM starvation + subtask lock deadlock + timeout restart; full subtask round-trip verified
 - `topic-coding-zenka-session7.md` — May 1: spawning guard centralized, drain pipe lifecycle, context floor semantics, task-append + resumption, loop detection fixes, context pressure warning; open: loop_detect_count per-task
@@ -325,8 +326,8 @@
 - Pattern: `my @non_num = grep { defined $data_ref->{$ARG}->{$key} and not looks_like_number(...) } keys $data_ref->%*`
 - Global `$SIG{__WARN__}` exists — if wrapping warn handler, capture `$prev_warn = $SIG{__WARN__}` first and call through
 
-#,,.,,,..,,,,,,,.,...,,,.,.,.,.,,,,..,.,,,.,,,..,,...,...,.,.,,,,,,..,,.,,,,.,
-#R3JEFPLMTKNPSOUPSUDODRWKJBBP7SHTSTKDC7I6GLIQEKPWVIP7G52QOPKSY6NZZKU54CMN45GBW
-#\\\|H267QBGYHVQDVIM6NLMRICVEL6VHGMFYL3JPFU2ODADYXBANEIZ \ / AMOS7 \ YOURUM ::
-#\[7]H5BD7BV2YGFUEBMARNBATK6GCYZSWGQFVSXHH67V3WDM6CB5HGAQ 7  DATA SIGNATURE ::
+#,,..,.,,,..,,...,.,.,,,,,,,,,...,,,,,...,,.,,..,,...,...,..,,.,.,,..,,..,,,,,
+#JGLSHE5PDU3U5WMDTXODRR5AMP4H247IWGIJSFPP252OWQPASBG53ASNGTQNPP7ILO5EPNMWL2KAU
+#\\\|4BHIYYVREUD2PLXK3TGJ7AM7CTB7NUHXQYOMDTZQVVU2QSKOSDD \ / AMOS7 \ YOURUM ::
+#\[7]MDWGGSHA4SBQXMW7VY3TN3SM5XEF4O5SLANG7KEH52FYQQJJ26CI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

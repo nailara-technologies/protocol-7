@@ -1,0 +1,44 @@
+## [:< ##
+
+# name  = storage.visual.util.extract
+# descr = extract float values from p7ref layers
+
+my ( $p7ref, @opts ) = @ARG;
+
+return { 'mode' => 'false', 'data' => 'p7ref required' }
+    unless $p7ref;
+
+# Parse options
+my @layers = ('intrinsic');
+for ( my $i = 0; $i < @opts; $i += 2 ) {
+    my $k = $opts[$i]       // '';
+    my $v = $opts[ $i + 1 ] // '';
+    $k =~ s/^://;
+    $k =~ s/:$//;
+    if ( $k eq 'layer' ) {
+        @layers = split /,/, $v;
+    }
+}
+
+my $result = <[plugin.storage.visual.extract-floats]>->(
+    {   'p7ref'  => $p7ref,
+        'layers' => \@layers,
+    }
+);
+
+if ( $result->{mode} eq 'true' ) {
+    my $data   = $result->{data};
+    my $output = "Float values for $p7ref:\n";
+    for my $k ( sort keys %$data ) {
+        $output .= sprintf( "  %s: %.4f\n", $k, $data->{$k} );
+    }
+    return { 'mode' => 'size', 'data' => $output };
+} else {
+    return $result;
+}
+
+#,,,,,..,,,,,,,.,,,.,,...,...,,.,,...,.,.,...,..,,...,...,.,.,,,,,,.,,...,.,.,
+#4W5GLOJJKPHX23BROH5JC3WS3MNLYHO2ZQIA3Y5XQ6LEOGOUMQF5XSIFNMEQVLBUH3MIQMYBYKUGO
+#\\\|LN345U77HI5KVA6PALXEKCKE57VO2N24LST3GSC6KHDSDINJQUV \ / AMOS7 \ YOURUM ::
+#\[7]JOXSXVXULUMYI74AV4E5MN6FHQIJ3KT5EHV7C5E5YRZJJFCXHADQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

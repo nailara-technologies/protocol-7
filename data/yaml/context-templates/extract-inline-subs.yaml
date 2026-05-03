@@ -121,6 +121,11 @@ sections:
       - use the original sub name WITHOUT the leading underscore as the
         function part: `sub _process_candidate` → `...util.process_candidate`
         NEVER include the _ in the module filename — apply s/\._/./
+      - util modules extracted from a .cmd.X dispatcher must NOT inherit
+        .cmd. in their namespace — they are not network commands.
+        e.g. sub from `storage.cmd.visual` → `storage.visual.util.proximity`
+        NOT `storage.cmd.visual.util.cmd_proximity`
+      - drop any cmd_ prefix from sub names in the target module name
       - NEVER add file extensions [ no .p7, .pm, .pl ] — P7 module files
         have NO extension. the filename IS the module name.
 
@@ -215,8 +220,8 @@ on_complete:
     action: memory_update
     topic: "audit:extract-inline-subs"
 
-#,,..,...,,,.,,..,,..,,,.,..,,,,.,..,,.,,,.,,,.,.,...,...,,.,,,.,,...,.,,,,..,
-#3GT7ZLUKUNDAOZT5XCIB4ZHDDDXOD2NWA7JME7NMAB47B4RG7GPOTNS6YWRJLSFXC5U466XA7ID7E
-#\\\|OFB7OXIMMXLAD2DM77ZECR5YR7UVZNLTJIQIPI3I3TUQGOEKRIR \ / AMOS7 \ YOURUM ::
-#\[7]TCQDCWP6WBFSCZJI2PIPG4DTNBEZXEQAE73D7UVIYTNNC2KYQWDI 7  DATA SIGNATURE ::
+#,,..,.,.,,.,,.,.,,,,,,,.,,.,,,..,,.,,...,..,,.,.,...,...,..,,,.,,,..,,..,..,,
+#7XGKSRD3F5SR35XVF5P7C7X6OX3POYR2NDXPJSEGU2ZSLK4XTIMRZ5WYMTLLS6LIXHMB4PJLEYCKY
+#\\\|UAQGLRGLCSFZOGXJ6XBANHYDX43K2W7VAHHGI4LIE4S4HWA7OUX \ / AMOS7 \ YOURUM ::
+#\[7]JEFFCG2EK5H6HE4MH7ZNVWJ6RBJ2YNZCPEYWJOVZVYHHCOTTOEDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
