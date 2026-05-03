@@ -75,7 +75,7 @@ foreach my $tc (@$tool_calls) {
     my $args = eval { JSON::PP->new->utf8(0)->decode($args_str) };
 
     ## repair common model JSON anti-patterns before retrying ##
-    if ($EVAL_ERROR) {
+    if ( $EVAL_ERROR || !defined $args ) {
         my $repaired = $args_str;
         my $did_repair;
 
@@ -234,14 +234,17 @@ foreach my $tc (@$tool_calls) {
     ## write to per-task buffers ##
     my $round = $state->{'round'} // 0;
     <[coding.buffer.task_write]>->(
-        $task_id, '', 'tool_call',
+        $task_id, '',
+        'tool_call',
         {   'round' => $round,
             'name'  => $tool_name,
             'args'  => ref $args eq 'HASH' ? $args : {},
         }
     );
     <[coding.buffer.task_write]>->(
-        $task_id, $result_content, 'tool_result',
+        $task_id,
+        $result_content,
+        'tool_result',
         {   'round' => $round,
             'name'  => $tool_name,
             'size'  => length($result_content),
@@ -301,8 +304,8 @@ if (<coding.tool_loop.stop>) {
 
 return { success => TRUE, tool_results => \@tool_results };
 
-#,,,.,.,,,,,,,..,,,,,,.,,,,.,,.,.,...,.,.,,,.,.,.,...,...,...,,,.,..,,,,,,...,
-#JGNA63RIPSUSZA2MNG57OSB4RHREPZXZVFXS6GHD7DUIFGZFVCHODYGNTU3XIOGVX4V2OS6NNDAW4
-#\\\|OKXLDVWFOL4GBWK4RL6VUPCONGGRL342JXQZJ6JFAJD4EZRXB2M \ / AMOS7 \ YOURUM ::
-#\[7]DV6IBMEAAMRFMEGF2HAZGWN5CWDWWSWM4H7PHOOZHHUFZQGRLCDQ 7  DATA SIGNATURE ::
+#,,..,...,..,,..,,,.,,...,,,.,,..,..,,.,,,.,,,.,.,...,...,,..,..,,...,.,.,...,
+#IUG4LPGKNDEHJH22UNZLHJFBIOIHJGIOX7LVTEQYV6G7FPOALSUMUJOYDVBQCUOR5SVTU2YXUKQQQ
+#\\\|UCAYKGQLCGWSBIFXJKRS2E6H6ZW73UP47NWVCAQJDZH4Y53MNS3 \ / AMOS7 \ YOURUM ::
+#\[7]BOMZCUUMECU3H37POCOKRBJZ6E2JUCVWVAREM5OCEJ6FZEW22GCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
