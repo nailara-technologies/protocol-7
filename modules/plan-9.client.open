@@ -2,41 +2,36 @@
 # name  = plan-9.client.open
 # descr = Open file on 9P server
 
-use strict;
-use warnings;
+my ( $client, $fid, $mode ) = @ARG;
+$mode //= 0;    # OREAD
 
-return sub {
-    my ( $client, $fid, $mode ) = @_;
-    $mode //= 0;    # OREAD
+my $req = <[plan-9.protocol.codec.encode-uint32]>->($fid)
+    . <[plan-9.protocol.codec.encode-uint8]>->($mode);
 
-    my $req = <[plan-9.protocol.codec.encode-uint32]>->($fid)
-        . <[plan-9.protocol.codec.encode-uint8]>->($mode);
+my $msg = <[plan-9.protocol.codec.encode-message]>->(
+    <plan-9.protocol.constants.Topen>,
+    3, $req
+);
 
-    my $msg = <[plan-9.protocol.codec.encode-message]>->(
-        <plan-9.protocol.constants.Topen>,
-        3, $req
-    );
+$client->{socket}->send($msg);
 
-    $client->{socket}->send($msg);
+my $resp = <[plan-9.client.read-message]>->($client);
+return $resp if $resp->{'mode'} eq 'false';
 
-    my $resp = <[plan-9.client.read-message]>->($client);
-    return $resp if $resp->{'mode'} eq 'false';
+my $data = $resp->{'data'};
+my ( $qid_type, $qid_version, $qid_path )
+    = <[plan-9.protocol.codec.decode-qid]>->( substr( $data, 0, 13 ) );
+my $iounit
+    = <[plan-9.protocol.codec.decode-uint32]>->( substr( $data, 13, 4 ) );
 
-    my $data = $resp->{'data'};
-    my ( $qid_type, $qid_version, $qid_path )
-        = <[plan-9.protocol.codec.decode-qid]>->( substr( $data, 0, 13 ) );
-    my $iounit
-        = <[plan-9.protocol.codec.decode-uint32]>->( substr( $data, 13, 4 ) );
+$client->{fids}{$fid}{open}   = 1;
+$client->{fids}{$fid}{omode}  = $mode;
+$client->{fids}{$fid}{iounit} = $iounit;
 
-    $client->{fids}{$fid}{open}   = 1;
-    $client->{fids}{$fid}{omode}  = $mode;
-    $client->{fids}{$fid}{iounit} = $iounit;
+return { 'mode' => 'true', 'data' => $iounit };
 
-    return { 'mode' => 'true', 'data' => $iounit };
-};
-
-#,,.,,.,,,,,.,.,.,...,,,,,.,.,...,,,.,.,,,,.,,..,,...,..,,..,,.,.,.,,,.,.,...,
-#75QA2KJ3O7JJ4RZDOYUNZHDVPE5KLT6I4PODGCBA2HJTWWMYBWKRRI6N6NYH22DGKUAKFZ7QQOJSY
-#\\\|HXLEVC4QRDAOAABWHAY27KUJDCYROP7ZUBSFRJNXSPIZHIFUHOR \ / AMOS7 \ YOURUM ::
-#\[7]YU6NNOOPIULKMBCJ7LHRJAXABHOP47YDXSDQFJJUSLOKO33SVYCY 7  DATA SIGNATURE ::
+#,,,,,.,,,,,,,...,...,..,,,,.,,,,,.,,,..,,,..,.,.,...,...,.,,,...,...,,..,,..,
+#UK4IN4F3YYGTCAI5CND5WZ3KUEU3WGH36XELCYTBW2KSOQSUNMYRNUUR6BTJBOTTMMNK7BA572IPM
+#\\\|4VJHDIZRHIVGL5B5PS47VEO5OZPI56E22F7LC227ZQW2NED62XV \ / AMOS7 \ YOURUM ::
+#\[7]GBUN2SVK754J7SNJK6LN5PAHZHFNHRCBSRX3VNMG7YKKFP4MHOBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

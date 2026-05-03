@@ -2,59 +2,54 @@
 # name  = plan-9.server.buffer-read-buffer-dir
 # descr = Read buffer directory - list z-layers
 
-use strict;
-use warnings;
+my ( $amos_id, $offset, $count ) = @ARG;
 
-return sub {
-    my ( $amos_id, $offset, $count ) = @_;
+my $buf = $data{'plan-9'}{'server'}{'buffers'}{$amos_id};
+return '' unless $buf;
 
-    my $buf = $data{'plan-9'}{'server'}{'buffers'}{$amos_id};
-    return '' unless $buf;
+my $window  = $buf->{window};
+my $entries = '';
 
-    my $window  = $buf->{window};
-    my $entries = '';
-
-    for my $z ( 0 .. 12 ) {
-        my $stat = {
-            type        => 0,
-            dev         => 0,
-            qid_type    => <plan-9.protocol.constants.QTFILE>,
-            qid_version => 0,
-            qid_path    => $buf->{qid_path} + $z + 1,
-            mode        => 0644,
-            atime       => time,
-            mtime       => time,
-            length      => $window->{buffer}{layer_size} // 8192,
-            name        => "z-$z",
-            uid         => 'root',
-            gid         => 'root',
-            muid        => 'root',
-        };
-        $entries .= <[plan-9.protocol.codec.encode-stat]>->($stat);
-    }
-
-    my $meta_stat = {
+for my $z ( 0 .. 12 ) {
+    my $stat = {
         type        => 0,
         dev         => 0,
         qid_type    => <plan-9.protocol.constants.QTFILE>,
         qid_version => 0,
-        qid_path    => $buf->{qid_path} + 100,
+        qid_path    => $buf->{qid_path} + $z + 1,
         mode        => 0644,
         atime       => time,
         mtime       => time,
-        length      => 1024,
-        name        => 'metadata',
+        length      => $window->{buffer}{layer_size} // 8192,
+        name        => "z-$z",
         uid         => 'root',
         gid         => 'root',
         muid        => 'root',
     };
-    $entries .= <[plan-9.protocol.codec.encode-stat]>->($meta_stat);
+    $entries .= <[plan-9.protocol.codec.encode-stat]>->($stat);
+}
 
-    return substr( $entries, $offset, $count );
+my $meta_stat = {
+    type        => 0,
+    dev         => 0,
+    qid_type    => <plan-9.protocol.constants.QTFILE>,
+    qid_version => 0,
+    qid_path    => $buf->{qid_path} + 100,
+    mode        => 0644,
+    atime       => time,
+    mtime       => time,
+    length      => 1024,
+    name        => 'metadata',
+    uid         => 'root',
+    gid         => 'root',
+    muid        => 'root',
 };
+$entries .= <[plan-9.protocol.codec.encode-stat]>->($meta_stat);
 
-#,,,,,.,.,,..,,,,,,.,,,..,...,,..,.,.,.,.,..,,..,,...,..,,.,.,,,,,..,,,,,,.,,,
-#AMOHF2NA2PPWYEA6N7SVM3ZVXWYZGVGJX534G33OHLPRSPJBS5X4WKNXEOMVNZXDQFU2LT5LN2AR4
-#\\\|HTM6THEKN6L4LLZ4IP2GZFOI5URPIY3J7PXUPLAVAVP2JAKNMIZ \ / AMOS7 \ YOURUM ::
-#\[7]5OC6VYAOBN4TUJCTKHFN5DXGMVUFLWDID7ZUEN73X3LJP5WRDWBI 7  DATA SIGNATURE ::
+return substr( $entries, $offset, $count );
+
+#,,..,,..,.,.,,,.,..,,...,,..,.,,,,,.,.,.,,.,,.,.,...,...,,,.,..,,.,,,...,.,,,
+#HHHENESSAZDLZTWXQRGCFUHGAPQ6SUKEFKC626CRN2BYCDPFPW6SIEF4C3XNCBVTAAD4T5XCDI2XM
+#\\\|ARFYB4ENFD2QYZJMVNGN5GQ7UMMP5G3WZZQSTFHUY2EEMM4ZS3F \ / AMOS7 \ YOURUM ::
+#\[7]VXLZPJL6QJVKX3HHL33BKCGXRZSUMESFWU4QS4XD5DKDX4VHOOCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

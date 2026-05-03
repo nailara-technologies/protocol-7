@@ -1,13 +1,11 @@
 ## [:< ##
-# name  = plan-9.protocol.codec.decode-string
-return sub {
-    my ($data) = @_;
+    # name  = plan-9.protocol.codec.decode-string
+    my ($data) = @ARG;
     my $len = unpack( 'v', substr( $data, 0, 2 ) );
     return ( substr( $data, 2, $len ), substr( $data, 2 + $len ) );
-};
 
-#,,,.,,,.,,,,,.,.,..,,,..,,..,,..,..,,,.,,..,,..,,...,...,.,,,.,.,...,,,,,,.,,
-#7NV3IUBLJTY3NKF7SMSGJU3T2QHDQASS67G7MRMLOAHAXGMKKJ4B3M6MKZKNROI2HXNAE6QD27PLC
-#\\\|LEMMAE7BJJ2UEGDP3AK3ZXWIH7FNKDQ5D3RZCPP4TURJYV7HFHJ \ / AMOS7 \ YOURUM ::
-#\[7]Q6AP7QC7QRK3IC7T2AMFFO2CLJU2R3JKERCHPJVY4VPK5SUNWGAQ 7  DATA SIGNATURE ::
+#,,..,...,,,,,.,.,.,,,,.,,,.,,,..,,..,...,,..,.,.,...,...,,..,,..,,,,,,,,,.,.,
+#C7Q7I3AQ242AD2UO34QQX2S4BDRG74G7Q2AP4ZJUVECIGLHD4744C3H3SGSGQVCHQ6PJLHRTU5FBO
+#\\\|RC6ZUFXBOXMFKL7L4YOWTWX5L6PSCZB4JHPWGAG5UHZJJL3K27D \ / AMOS7 \ YOURUM ::
+#\[7]RWXD2CAQW2ZDJF4YIP6P2YOIOZOJB527KNDXUWVP5YPQXNVPIOBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

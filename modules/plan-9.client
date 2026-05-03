@@ -2,70 +2,65 @@
 # name  = plan-9.client
 # descr = 9P protocol client for mounting remote filesystems
 
-use strict;
-use warnings;
-
 use IO::Socket::INET;
 
 # Client state per connection
 $data{'plan-9'}{'client'} = {};
 
 ## Connect to 9P server ##
-return sub {
-    my ($options) = @_;
-    $options //= {};
+my ($options) = @ARG;
+$options //= {};
 
-    my $host = $options->{host} // '127.0.0.1';
-    my $port = $options->{port} // 5640;
-    my $name = $options->{name} // "$host:$port";
+my $host = $options->{host} // '127.0.0.1';
+my $port = $options->{port} // 5640;
+my $name = $options->{name} // "$host:$port";
 
-    my $socket = IO::Socket::INET->new(
-        PeerAddr => $host,
-        PeerPort => $port,
-        Proto    => 'tcp',
-        Timeout  => 5,
-    );
+my $socket = IO::Socket::INET->new(
+    PeerAddr => $host,
+    PeerPort => $port,
+    Proto    => 'tcp',
+    Timeout  => 5,
+);
 
-    if ( not defined $socket ) {
-        return {
-            'mode' => 'false',
-            'data' => "Cannot connect to $host:$port: $!"
-        };
-    }
-
-    $socket->autoflush(1);
-
-    my $client = {
-        'socket'   => $socket,
-        'host'     => $host,
-        'port'     => $port,
-        'msize'    => 8192,
-        'root_fid' => 0,
-        'next_fid' => 1,
-        'fids'     => {},
-    };
-
-    $data{'plan-9'}{'client'}{$name} = $client;
-
-    # Version negotiation
-    my $version_result = <[plan-9.client.version]>->($client);
-    return $version_result if $version_result->{'mode'} eq 'false';
-
-    # Attach to root
-    my $attach_result
-        = <[plan-9.client.attach]>->( $client, $options->{aname} // '' );
-    return $attach_result if $attach_result->{'mode'} eq 'false';
-
-    <[base.logs]>->("9P client connected to $host:$port");
-
+if ( not defined $socket ) {
     return {
-        'mode' => 'true',
-        'data' => $name
+        'mode' => 'false',
+        'data' => "Cannot connect to $host:$port: $!"
     };
+}
+
+$socket->autoflush(1);
+
+my $client = {
+    'socket'   => $socket,
+    'host'     => $host,
+    'port'     => $port,
+    'msize'    => 8192,
+    'root_fid' => 0,
+    'next_fid' => 1,
+    'fids'     => {},
 };
 
-#,,..,.,,,,,.,.,.,...,,..,,.,,.,,,,.,,,,,,..,,..,,...,...,,..,,.,,..,,..,,.,,,
-#MMKNCN72ITGFMBUJF4A5GSMANLT6WLV5CCXH67H3PMD3CDAVH76XTBXUTWHVRP3CBGVX6YG674N74
-#\\\|EPCFIOHMADFU5M4PCVJYPL27RSWIDQN3G7O4NC5WBYKBEIX7WUX \ / AMOS7 \ YOURUM ::
-#\[7]5VAQ4MD27POR2ZYA32RHREIU3VTA3ZIY66BTI7KY7RL5QFHMUUDA 7  DATA SIGNATURE ::
+$data{'plan-9'}{'client'}{$name} = $client;
+
+# Version negotiation
+my $version_result = <[plan-9.client.version]>->($client);
+return $version_result if $version_result->{'mode'} eq 'false';
+
+# Attach to root
+my $attach_result
+    = <[plan-9.client.attach]>->( $client, $options->{aname} // '' );
+return $attach_result if $attach_result->{'mode'} eq 'false';
+
+<[base.logs]>->("9P client connected to $host:$port");
+
+return {
+    'mode' => 'true',
+    'data' => $name
+};
+
+#,,,,,,.,,..,,,.,,,,.,..,,...,,.,,..,,,,,,,,.,.,.,...,...,,,.,,..,,..,...,,,.,
+#F57XNMHDWSREOZCDBT7QIYYCOW756SJK2XI5KXPOAF54JYKDV3HAK42VR4SGDOTFTBV6HIVGGRRKO
+#\\\|7V4U3ZNWFDIY3Y4N6VY2HWFAUDXI2LT3GC5TZ3QVEWB6F35VHDT \ / AMOS7 \ YOURUM ::
+#\[7]T63JPCAVTTRDVDZTQENQCBIOA4XK7LGFOW7BQSTQU4MFO2JP2OAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

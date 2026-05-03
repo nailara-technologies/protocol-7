@@ -2,42 +2,37 @@
 # name  = plan-9.server.client.data
 # descr = Process data from 9P client
 
-use strict;
-use warnings;
+my ( $fd, $data ) = @ARG;
 
-return sub {
-    my ( $fd, $data ) = @_;
+my $client = $data{'plan-9'}{'server'}{'clients'}{$fd};
+return unless $client;
 
-    my $client = $data{'plan-9'}{'server'}{'clients'}{$fd};
-    return unless $client;
+$client->{'buffer'} .= $data;
 
-    $client->{'buffer'} .= $data;
+while ( length( $client->{'buffer'} ) >= 4 ) {
+    my $size = <[plan-9.protocol.codec.decode-uint32]>
+        ->( substr( $client->{'buffer'}, 0, 4 ) );
 
-    while ( length( $client->{'buffer'} ) >= 4 ) {
-        my $size = <[plan-9.protocol.codec.decode-uint32]>
-            ->( substr( $client->{'buffer'}, 0, 4 ) );
+    return if length( $client->{'buffer'} ) < $size;
 
-        return if length( $client->{'buffer'} ) < $size;
+    my $msg = substr( $client->{'buffer'}, 0, $size, '' );
+    my $type
+        = <[plan-9.protocol.codec.decode-uint8]>->( substr( $msg, 4, 1 ) );
+    my $tag
+        = <[plan-9.protocol.codec.decode-uint16]>->( substr( $msg, 5, 2 ) );
+    my $payload = substr( $msg, 7 );
 
-        my $msg  = substr( $client->{'buffer'}, 0, $size, '' );
-        my $type = <[plan-9.protocol.codec.decode-uint8]>
-            ->( substr( $msg, 4, 1 ) );
-        my $tag = <[plan-9.protocol.codec.decode-uint16]>
-            ->( substr( $msg, 5, 2 ) );
-        my $payload = substr( $msg, 7 );
+    my $response = <[plan-9.server.handle_request]>->(
+        $client, $fd, $type, $tag, $payload
+    );
 
-        my $response = <[plan-9.server.handle_request]>->(
-            $client, $fd, $type, $tag, $payload
-        );
-
-        if ($response) {
-            <[base.net.send_to_socket]>->( $fd, \$response );
-        }
+    if ($response) {
+        <[base.net.send_to_socket]>->( $fd, \$response );
     }
-};
+}
 
-#,,..,,,.,...,.,.,,,.,.,.,,.,,,,,,,,,,,..,,,,,..,,...,...,,..,.,.,,.,,...,..,,
-#T4JRZRNAFTAZ5LKGBQXHRZBTTYCVTODMASFUQD3LPCVJLILNGRXNVLJLXARF3YMB24DYP4EBOB2DI
-#\\\|CU7THLA33S2OPM4M7HGJUP66RTKZNRGUOGXOKMXCRF75JD6X7EI \ / AMOS7 \ YOURUM ::
-#\[7]CC5EXXPULTNC3VK7VQQEC5BNT23L232BJH7ZD5KRHWUDNYTA5CDI 7  DATA SIGNATURE ::
+#,,..,,..,..,,,..,,..,,,,,..,,...,..,,.,,,,,,,.,.,...,...,...,.,.,..,,...,,.,,
+#VSCK6U6UURXFJYNVCQNCLFLZ4LZCW2KOKRUD2DKRXERNXZUL6V2GUUJTYM42ARQGXPMQKAATPQCXU
+#\\\|SFAXFSQX7M6NLL2RIHAX65J7TUH5SA2YYOUXNJDGJXSSC2OUQFP \ / AMOS7 \ YOURUM ::
+#\[7]ILYPWEWHE3LUM24MHRMULOH3L6F5LW3X6IPJDPR4A3B7X7QMY6BY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

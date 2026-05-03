@@ -2,53 +2,47 @@
 # name  = amos-term.cmd.mount-9p-client
 # descr = Mount remote 9P filesystem (e.g., WSL host)
 
-use strict;
-use warnings;
+my $args = $call->{'args'} // '';
+my ( $host, $port, $name ) = split /\s+/, $args, 3;
 
-return sub {
-    my ($call) = @_;
-    my $args = $call->{'args'} // '';
-    my ( $host, $port, $name ) = split /\s+/, $args, 3;
+$host //= '127.0.0.1';
+$port //= 5640;
+$name //= "$host:$port";
 
-    $host //= '127.0.0.1';
-    $port //= 5640;
-    $name //= "$host:$port";
-
-    ## Connect to 9P server ##
-    my $result = <[plan-9.client]>->(
-        {   'host' => $host,
-            'port' => $port,
-            'name' => $name,
-        }
-    );
-
-    if ( $result->{'mode'} eq 'false' ) {
-        return $result;
+## Connect to 9P server ##
+my $result = <[plan-9.client]>->(
+    {   'host' => $host,
+        'port' => $port,
+        'name' => $name,
     }
+);
 
-    ## Test connection by listing root ##
-    my $list_result = <[plan-9.client.list-dir]>->( $name, '/' );
-    my $entry_count = 0;
-    if ( $list_result->{'mode'} eq 'true' ) {
-        my $entries = $list_result->{'data'};
-        $entry_count = scalar @$entries;
-    }
+if ( $result->{'mode'} eq 'false' ) {
+    return $result;
+}
 
-    return {
-        'mode' => 'size',
-        'data' => sprintf(
-            "9P client connected to %s:%d (name: %s)\n"
-                . "Root directory has %d entries\n\n"
-                . "Commands:\n"
-                . "  p7c plan-9.client.list-dir %s /path\n"
-                . "  p7c plan-9.client.read-file %s /path/to/file\n",
-            $host, $port, $name, $entry_count, $name, $name
-        )
-    };
+## Test connection by listing root ##
+my $list_result = <[plan-9.client.list-dir]>->( $name, '/' );
+my $entry_count = 0;
+if ( $list_result->{'mode'} eq 'true' ) {
+    my $entries = $list_result->{'data'};
+    $entry_count = scalar @$entries;
+}
+
+return {
+    'mode' => 'size',
+    'data' => sprintf(
+        "9P client connected to %s:%d (name: %s)\n"
+            . "Root directory has %d entries\n\n"
+            . "Commands:\n"
+            . "  p7c plan-9.client.list-dir %s /path\n"
+            . "  p7c plan-9.client.read-file %s /path/to/file\n",
+        $host, $port, $name, $entry_count, $name, $name
+    )
 };
 
-#,,,.,.,.,..,,..,,,,,,.,,,,,,,,.,,.,,,.,.,,,.,..,,...,...,,.,,...,.,,,...,...,
-#L4VSYGC7A5XDRHSWPXGWN3V3QAYFSJSZJVKTYFWN44EZLSG2CGCX3CVHGG4A2RN3UKT7ASVJUQ7Q4
-#\\\|Q6GKJPAZLOP33K5UOQ32434TTTT3LP2YUQOSSFCIGOVFY76G62U \ / AMOS7 \ YOURUM ::
-#\[7]RXWEKQV6NYGRWD4D2FR4VGUALM4UIGWC5EWCZGAFFYWGP73BAYBI 7  DATA SIGNATURE ::
+#,,.,,,,.,,,.,..,,.,,,.,.,...,,,,,,.,,.,.,,,.,.,.,...,...,,..,,,,,..,,,,,,,..,
+#KFEWDTJSFZSIFWF5PT6EDEENJJBU5JUPG23G7RUG6Q4GI367PI4U2UNLX5GL55PIDFO234FNGMXDA
+#\\\|YYH3EWJ633UEH4WW6ZBK6R3RGSJLIN7THBO5DB7XKZCYFXBWJQ6 \ / AMOS7 \ YOURUM ::
+#\[7]4X5LQUUPAFIVR2OJQLBZQITBWLWCWDKWDLZ3CPCBWYUVGZNAZEDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

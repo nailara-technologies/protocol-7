@@ -2,18 +2,13 @@
 # name  = plan-9.server.client.close
 # descr = Handle 9P client disconnection
 
-use strict;
-use warnings;
+my ($fd) = @ARG;
 
-return sub {
-    my ($fd) = @_;
+<[base.logs]>->("9P client disconnected (fd=$fd)");
+delete $data{'plan-9'}{'server'}{'clients'}{$fd};
 
-    <[base.logs]>->("9P client disconnected (fd=$fd)");
-    delete $data{'plan-9'}{'server'}{'clients'}{$fd};
-};
-
-#,,.,,.,.,,..,,.,,,,,,.,.,..,,.,,,,.,,.,.,,,.,..,,...,...,,.,,..,,..,,.,.,,,.,
-#KV3KWMTAQT27A7IUIKTNXAOOAY3QKLHMAY5J5PXS5HUBD2FVFUNESMGZAWBVL73YFH6K6ZCB4FPYA
-#\\\|UXEVMNDHTD5GFYH5AMEYIZVCAXTANJWXCHILT5JLDKQZPNRLI4Q \ / AMOS7 \ YOURUM ::
-#\[7]BF4J5YQFBSY23IVS7Y2MR6BMWYY4BUMUB4LA4LTV574GSIK44IAQ 7  DATA SIGNATURE ::
+#,,,,,,..,,.,,,..,..,,,.,,...,,,,,,,,,,,.,,,.,.,.,...,...,,.,,,..,...,.,.,..,,
+#7JKSQFDBM52C4ZXRPYVXPSQZKLMHEKINKCJOBM5H2SEXBEKPFC2ISK43PH4TRYGJXROXAJ2EPLWIY
+#\\\|T6JSDHN3YRWWKT3TK3LU4UMDDLIWORZOPGCME4UMUITPJSFXWD5 \ / AMOS7 \ YOURUM ::
+#\[7]H2JD7JN4KTZURQ4PLWIOHNVBMFZOCCHPKQZPVERPCYJISZZYXSDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -2,93 +2,88 @@
 # name  = plugin.storage.p7ref.parse
 # descr = Parse P7REF reference string into components
 
-use strict;
-use warnings;
+my ($args) = @ARG;
 
-return sub {
-    my ($args) = @ARG;
+my $p7ref = $args->{p7ref}
+    or return { 'mode' => 'false', 'data' => 'p7ref required' };
 
-    my $p7ref = $args->{p7ref}
-        or return { 'mode' => 'false', 'data' => 'p7ref required' };
+my $registry = $data{'storage'}{'mapping'}{'p7ref'};
+my $regex    = $registry->{'regex'};
 
-    my $registry = $data{'storage'}{'mapping'}{'p7ref'};
-    my $regex    = $registry->{'regex'};
-
-    # Check cache
-    if ( exists $registry->{'cache'}{$p7ref} and not $args->{nocache} ) {
-        $registry->{'stats'}{'cached'}++;
-        return {
-            'mode'   => 'true',
-            'data'   => $registry->{'cache'}{$p7ref},
-            'cached' => 1,
-        };
-    }
-
-    $registry->{'stats'}{'parsed'}++;
-
-    # Parse nested brackets first
-    my @nested;
-    my $remaining = $p7ref;
-    while ( $remaining =~ /$regex->{'nested'}/ ) {
-        push @nested, $1;
-        $remaining =~ s/\[[^\]]+\]/[NESTED]/;
-    }
-
-    # Parse main reference
-    if ( $remaining !~ /$regex->{'full'}/ ) {
-        return { 'mode' => 'false', 'data' => 'Invalid P7REF format' };
-    }
-
-    my ( $type, $address ) = ( $1, $2 );
-
-    # Parse segments
-    my @segments;
-    while ( $address =~ /$regex->{'segment'}/g ) {
-        push @segments, $1;
-    }
-    $address =~ s/\|[^|]+\|//g;
-
-    # Parse authority
-    my $authority;
-    if ( $address =~ /$regex->{'authority'}/ ) {
-        $authority = $1;
-        $address =~ s/@[^\/]+//;
-    }
-
-    # Parse query
-    my %query;
-    if ( $address =~ /$regex->{'query'}/ ) {
-        my $qstr = $1;
-        for my $pair ( split /&/, $qstr ) {
-            my ( $k, $v ) = split /=/, $pair, 2;
-            $query{$k} = $v // 1;
-        }
-        $address =~ s/\?.+$//;
-    }
-
-    my $parsed = {
-        'original'  => $p7ref,
-        'type'      => $type,
-        'address'   => $address,
-        'authority' => $authority,
-        'segments'  => \@segments,
-        'nested'    => \@nested,
-        'query'     => \%query,
-        'parsed_at' => time(),
-    };
-
-    # Cache result
-    $registry->{'cache'}{$p7ref} = $parsed;
-
+# Check cache
+if ( exists $registry->{'cache'}{$p7ref} and not $args->{nocache} ) {
+    $registry->{'stats'}{'cached'}++;
     return {
         'mode'   => 'true',
-        'data'   => $parsed,
-        'cached' => 0,
+        'data'   => $registry->{'cache'}{$p7ref},
+        'cached' => 1,
     };
+}
+
+$registry->{'stats'}{'parsed'}++;
+
+# Parse nested brackets first
+my @nested;
+my $remaining = $p7ref;
+while ( $remaining =~ /$regex->{'nested'}/ ) {
+    push @nested, $1;
+    $remaining =~ s/\[[^\]]+\]/[NESTED]/;
+}
+
+# Parse main reference
+if ( $remaining !~ /$regex->{'full'}/ ) {
+    return { 'mode' => 'false', 'data' => 'Invalid P7REF format' };
+}
+
+my ( $type, $address ) = ( $1, $2 );
+
+# Parse segments
+my @segments;
+while ( $address =~ /$regex->{'segment'}/g ) {
+    push @segments, $1;
+}
+$address =~ s/\|[^|]+\|//g;
+
+# Parse authority
+my $authority;
+if ( $address =~ /$regex->{'authority'}/ ) {
+    $authority = $1;
+    $address =~ s/@[^\/]+//;
+}
+
+# Parse query
+my %query;
+if ( $address =~ /$regex->{'query'}/ ) {
+    my $qstr = $1;
+    for my $pair ( split /&/, $qstr ) {
+        my ( $k, $v ) = split /=/, $pair, 2;
+        $query{$k} = $v // 1;
+    }
+    $address =~ s/\?.+$//;
+}
+
+my $parsed = {
+    'original'  => $p7ref,
+    'type'      => $type,
+    'address'   => $address,
+    'authority' => $authority,
+    'segments'  => \@segments,
+    'nested'    => \@nested,
+    'query'     => \%query,
+    'parsed_at' => time(),
 };
 
-#,,.,,...,,.,,,..,,..,,..,,..,...,,,.,.,.,,,,,..,,...,..,,,,,,,,.,..,,...,,..,
-#XJT4IHMIJ6AK5IJPQSB7RAN27VCJGGCAO7R2YKINI6OI6ZEPN7SO5MFJUFWBDIYZSU6SKOAYESPLK
-#\\\|AWFVBGTIXL7KEWKCJRPBQG7BU737YKMSTTZDB6VJ2P4AGBLYY6H \ / AMOS7 \ YOURUM ::
-#\[7]FRGCBJU2TFJPKVSQK7H2Y63GN26VQ6K4AWWC6KLQSX7OSSOJ74BY 7  DATA SIGNATURE ::
+# Cache result
+$registry->{'cache'}{$p7ref} = $parsed;
+
+return {
+    'mode'   => 'true',
+    'data'   => $parsed,
+    'cached' => 0,
+};
+
+#,,.,,,,,,,,.,,,.,,,.,,.,,,.,,..,,,.,,...,...,.,.,...,..,,,..,.,.,,,,,,,,,,..,
+#D6ZYR3IUNN2GXASDP2ZZHVSBHVIMYEP5M52S5VTC5KK3AOCMYBNN22FWRJ6KPICI6OJJGEZBYDGFK
+#\\\|SDPPGO5OIHGVAX4OGYSYPR5W2527B6DJV2GH53Z2O26WYOJFJ7Y \ / AMOS7 \ YOURUM ::
+#\[7]H3QOYLY5Z7IQN3U46E2ZEU5XLGFBUV6V5X5KJVFKQIQUUJWZKYCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

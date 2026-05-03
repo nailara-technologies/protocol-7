@@ -2,91 +2,85 @@
 # name  = plugin.storage.checksum.cluster.create
 # descr = Create a new checksum cluster
 
-use strict;
-use warnings;
+my ($args) = @ARG;
 
-return sub {
-    my ($args) = @ARG;
+my $checksum = $args->{'checksum'};          # Primary checksum (cluster ID)
+my $type     = $args->{'type'}     // 'proximity';
+my $members  = $args->{'members'}  // [];    # Arrayref of related checksums
+my $metadata = $args->{'metadata'} // {};
 
-    my $checksum = $args->{'checksum'};    # Primary checksum (cluster ID)
-    my $type     = $args->{'type'}     // 'proximity';
-    my $members  = $args->{'members'}  // [];  # Arrayref of related checksums
-    my $metadata = $args->{'metadata'} // {};
+return { 'mode' => 'false', 'data' => 'checksum required' }
+    unless $checksum;
 
-    return { 'mode' => 'false', 'data' => 'checksum required' }
-        unless $checksum;
+my $registry = $data{'storage'}{'mapping'}{'checksum-cluster'};
 
-    my $registry = $data{'storage'}{'mapping'}{'checksum-cluster'};
+# Normalize checksum format
+$checksum = <[plugin.storage.util.normalize_checksum]>->($checksum);
 
-    # Normalize checksum format
-    $checksum = <[plugin.storage.util.normalize_checksum]>->($checksum);
-
-    # Check if cluster already exists
-    if ( exists $registry->{'clusters'}{$checksum} ) {
-        return {
-            'mode'  => 'false',
-            'data'  => 'cluster already exists',
-            'p7ref' => "p7://checksum-cluster:$checksum",
-        };
-    }
-
-    # Validate member checksums
-    my @valid_members = grep { defined && length } @$members;
-    @valid_members
-        = map { <[plugin.storage.util.normalize_checksum]>->($ARG) }
-        @valid_members;
-
-    # Remove self-reference if present
-    @valid_members = grep { $ARG ne $checksum } @valid_members;
-
-    # Use shared empty arrayref if no members (memory optimization)
-    my $member_array;
-    if ( @valid_members == 0 && $registry->{'config'}{'compress_empty'} ) {
-        $member_array = $registry->{'_empty_array'};
-        $registry->{'stats'}{'memory_shared'}
-            += 24;    # Approximate array overhead
-    } else {
-        $member_array = \@valid_members;
-    }
-
-    # Create cluster
-    my $cluster = {
-        'id'       => $checksum,
-        'type'     => $type,
-        'members'  => $member_array,
-        'metadata' => $metadata,
-        'p7ref'    => "p7://checksum-cluster:$checksum",
-        'created'  => time(),
-        'updated'  => time(),
-    };
-
-    $registry->{'clusters'}{$checksum} = $cluster;
-    $registry->{'by_type'}{$type}{$checksum} = 1;
-    $registry->{'stats'}{'clusters_created'}++;
-    $registry->{'stats'}{'members_added'} += scalar(@valid_members);
-
-    # Update reverse index
-    if ( $registry->{'config'}{'index_reverse'} ) {
-        for my $member (@valid_members) {
-            $registry->{'index'}{$member} = $checksum;
-        }
-    }
-
-    # Cache P7REF
-    $registry->{'p7ref_cache'}{$checksum} = $cluster->{'p7ref'};
-
+# Check if cluster already exists
+if ( exists $registry->{'clusters'}{$checksum} ) {
     return {
-        'mode' => 'true',
-        'data' => {
-            'cluster_id'   => $checksum,
-            'p7ref'        => $cluster->{'p7ref'},
-            'member_count' => scalar(@valid_members),
-        }
+        'mode'  => 'false',
+        'data'  => 'cluster already exists',
+        'p7ref' => "p7://checksum-cluster:$checksum",
     };
+}
+
+# Validate member checksums
+my @valid_members = grep { defined && length } @$members;
+@valid_members
+    = map { <[plugin.storage.util.normalize_checksum]>->($ARG) }
+    @valid_members;
+
+# Remove self-reference if present
+@valid_members = grep { $ARG ne $checksum } @valid_members;
+
+# Use shared empty arrayref if no members (memory optimization)
+my $member_array;
+if ( @valid_members == 0 && $registry->{'config'}{'compress_empty'} ) {
+    $member_array = $registry->{'_empty_array'};
+    $registry->{'stats'}{'memory_shared'} += 24;  # Approximate array overhead
+} else {
+    $member_array = \@valid_members;
+}
+
+# Create cluster
+my $cluster = {
+    'id'       => $checksum,
+    'type'     => $type,
+    'members'  => $member_array,
+    'metadata' => $metadata,
+    'p7ref'    => "p7://checksum-cluster:$checksum",
+    'created'  => time(),
+    'updated'  => time(),
 };
 
-#,,.,,..,,.,.,,,,,,.,,.,,,,..,.,,,,,.,,,,,,..,.,.,...,...,.,.,.,.,.,.,.,,,...,
-#YVDHCVIRYU6EZUYG7FIGBBBIJZ6KMO4P4K2ZTLSQJHSS35Y46CYXVMQEXSCJWDTKDVD3KBM72ZNPW
-#\\\|WZPROZPBRLXWYPSYJXYYHJ3HBE4BGRWRX7JET5V4JQQS2M2JGQN \ / AMOS7 \ YOURUM ::
-#\[7]QK74DLXI4NLPWXEJGAL4RJ5STEPGCU5BFLKH4MBUUFX5OYRCNQBI 7  DATA SIGNATURE ::
+$registry->{'clusters'}{$checksum} = $cluster;
+$registry->{'by_type'}{$type}{$checksum} = 1;
+$registry->{'stats'}{'clusters_created'}++;
+$registry->{'stats'}{'members_added'} += scalar(@valid_members);
+
+# Update reverse index
+if ( $registry->{'config'}{'index_reverse'} ) {
+    for my $member (@valid_members) {
+        $registry->{'index'}{$member} = $checksum;
+    }
+}
+
+# Cache P7REF
+$registry->{'p7ref_cache'}{$checksum} = $cluster->{'p7ref'};
+
+return {
+    'mode' => 'true',
+    'data' => {
+        'cluster_id'   => $checksum,
+        'p7ref'        => $cluster->{'p7ref'},
+        'member_count' => scalar(@valid_members),
+    }
+};
+
+#,,.,,,..,,,,,.,.,,..,..,,,.,,.,,,,..,,,,,,,,,.,.,...,...,...,...,.,,,,,,,.,.,
+#JQKGXPHZM3ROLHNF5HJ54DGLWUV42NLSVUK6V5NH6WJBESTT2H7WFHOR3INTCI6BHPXPMC53EGSJK
+#\\\|K2E62OFI65DBN6E2KPGWNNU46JLSNOE4TPZDYUAFGVXUJALRHX7 \ / AMOS7 \ YOURUM ::
+#\[7]ZK6RZXIF5I3FAE6W3CID3BLSM6F35TMXV373D7B36325VFNHSOAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -2,53 +2,48 @@
 # name  = storage.9p.walk
 # descr = Walk path on 9P server
 
-use strict;
-use warnings;
+my ( $conn, $fid, $newfid, @wnames ) = @ARG;
 
-return sub {
-    my ( $conn, $fid, $newfid, @wnames ) = @_;
+my $tag = ++$conn->{tag} & 0xFFFF;
 
-    my $tag = ++$conn->{tag} & 0xFFFF;
+my $req
+    = <[plan-9.protocol.codec.encode-uint32]>->($fid)
+    . <[plan-9.protocol.codec.encode-uint32]>->($newfid)
+    . <[plan-9.protocol.codec.encode-uint16]>->( scalar @wnames );
 
-    my $req
-        = <[plan-9.protocol.codec.encode-uint32]>->($fid)
-        . <[plan-9.protocol.codec.encode-uint32]>->($newfid)
-        . <[plan-9.protocol.codec.encode-uint16]>->( scalar @wnames );
+for my $name (@wnames) {
+    $req .= <[plan-9.protocol.codec.encode-string]>->($name);
+}
 
-    for my $name (@wnames) {
-        $req .= <[plan-9.protocol.codec.encode-string]>->($name);
+my $msg = <[plan-9.protocol.codec.encode-message]>->(
+    <plan-9.protocol.constants.Twalk>,
+    $tag, $req
+);
+
+$conn->{socket}->send($msg);
+
+my $resp = <[storage.9p.read-message]>->( $conn, $tag );
+return $resp if $resp->{'mode'} eq 'false';
+
+my $data = $resp->{'data'};
+my $nwqid
+    = <[plan-9.protocol.codec.decode-uint16]>->( substr( $data, 0, 2 ) );
+
+# Track new fid
+if ( exists $conn->{fids}{$fid} ) {
+    $conn->{fids}{$newfid} = { %{ $conn->{fids}{$fid} } };
+    if (@wnames) {
+        my $new_path = $conn->{fids}{$newfid}{path} // '/';
+        $new_path .= '/' if $new_path ne '/';
+        $new_path .= join( '/', @wnames );
+        $conn->{fids}{$newfid}{path} = $new_path;
     }
+}
 
-    my $msg = <[plan-9.protocol.codec.encode-message]>->(
-        <plan-9.protocol.constants.Twalk>,
-        $tag, $req
-    );
+return { 'mode' => 'true', 'data' => $nwqid };
 
-    $conn->{socket}->send($msg);
-
-    my $resp = <[storage.9p.read-message]>->( $conn, $tag );
-    return $resp if $resp->{'mode'} eq 'false';
-
-    my $data = $resp->{'data'};
-    my $nwqid
-        = <[plan-9.protocol.codec.decode-uint16]>->( substr( $data, 0, 2 ) );
-
-    # Track new fid
-    if ( exists $conn->{fids}{$fid} ) {
-        $conn->{fids}{$newfid} = { %{ $conn->{fids}{$fid} } };
-        if (@wnames) {
-            my $new_path = $conn->{fids}{$newfid}{path} // '/';
-            $new_path .= '/' if $new_path ne '/';
-            $new_path .= join( '/', @wnames );
-            $conn->{fids}{$newfid}{path} = $new_path;
-        }
-    }
-
-    return { 'mode' => 'true', 'data' => $nwqid };
-};
-
-#,,.,,,.,,,,.,,,,,,,.,,.,,,..,,.,,,,,,,..,,,,,..,,...,...,,.,,.,,,,,,,..,,,,.,
-#TDY2C7FJBTICJZFTR5ENOIP6OGKQZOJZJ6DTFZAP7DQ3SUBR7ZIY7DUVD6WPYLQAV4HAFSEPRMOY6
-#\\\|XMWYN2VAYPKAVWFE2AWKFOP5MC5MUFW24KT4OCLOWUA6RUQ535D \ / AMOS7 \ YOURUM ::
-#\[7]I336MYSTDMWJVDZWD6RIJIY6SRIXRFP7G5MNJW3AHM5YQJEM3EBQ 7  DATA SIGNATURE ::
+#,,.,,,.,,...,,.,,,,,,,,,,,..,...,...,,..,...,.,.,...,...,.,,,..,,...,,,,,.,,,
+#JWE5W22HLM72QHQTW5J6FTJJYCAREJSQ6YE7TFXUZMTZMHKQZH645YZDWSEGZIM3LAAQTQL364SNE
+#\\\|HW7VN66C34VOXVJNGONUDF2375FHE7BMNHKABVBJ7OT3DRPVNUX \ / AMOS7 \ YOURUM ::
+#\[7]EEPN4MW3GRQBT4Y5FEFAI4HWVNCA2XV5ZGKCZQMEPZTKE2CMVGAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

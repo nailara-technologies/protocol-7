@@ -2,39 +2,33 @@
 # name  = plan-9.client.read
 # descr = Read file from 9P server
 
-use strict;
-use warnings;
+my ( $client, $fid, $offset, $count ) = @ARG;
+$offset //= 0;
+$count  //= $client->{msize} // 8192;
 
-return sub {
-    my ( $client, $fid, $offset, $count ) = @_;
-    $offset //= 0;
-    $count  //= $client->{msize} // 8192;
+my $req
+    = <[plan-9.protocol.codec.encode-uint32]>->($fid)
+    . <[plan-9.protocol.codec.encode-uint64]>->($offset)
+    . <[plan-9.protocol.codec.encode-uint32]>->($count);
 
-    my $req
-        = <[plan-9.protocol.codec.encode-uint32]>->($fid)
-        . <[plan-9.protocol.codec.encode-uint64]>->($offset)
-        . <[plan-9.protocol.codec.encode-uint32]>->($count);
+my $msg = <[plan-9.protocol.codec.encode-message]>->(
+    <plan-9.protocol.constants.Tread>,
+    4, $req
+);
 
-    my $msg = <[plan-9.protocol.codec.encode-message]>->(
-        <plan-9.protocol.constants.Tread>,
-        4, $req
-    );
+$client->{socket}->send($msg);
 
-    $client->{socket}->send($msg);
+my $resp = <[plan-9.client.read-message]>->($client);
+return $resp if $resp->{'mode'} eq 'false';
 
-    my $resp = <[plan-9.client.read-message]>->($client);
-    return $resp if $resp->{'mode'} eq 'false';
+my $data = $resp->{'data'};
+my $len  = <[plan-9.protocol.codec.decode-uint32]>->( substr( $data, 0, 4 ) );
+my $content = substr( $data, 4, $len );
 
-    my $data = $resp->{'data'};
-    my $len
-        = <[plan-9.protocol.codec.decode-uint32]>->( substr( $data, 0, 4 ) );
-    my $content = substr( $data, 4, $len );
+return { 'mode' => 'true', 'data' => $content };
 
-    return { 'mode' => 'true', 'data' => $content };
-};
-
-#,,,,,..,,.,.,.,.,.,,,.,.,,.,,.,,,,..,..,,..,,..,,...,...,.,.,.,,,.,,,,,,,,,,,
-#BJLHDASJZ7XPEJRPVDE7QFPXR7LY64TV67NY7ITWMNBXNIXGBQFWLDI6MBQJWE6DVTM36IG2PZSU2
-#\\\|UZUJUJAQZOHXUMZLCLKIBLKJSPX2MULIIHVJU3OFBNFCEWP6OPL \ / AMOS7 \ YOURUM ::
-#\[7]3KEWPUL2X2JSCYCOUZAOYP3X3QG7NQWESPPISING3UKWWDJAVCAI 7  DATA SIGNATURE ::
+#,,,,,,..,,..,,,,,..,,.,,,..,,,,,,.,.,,,,,,,,,.,.,...,...,.,.,.,.,.,.,,..,.,,,
+#334P5PD4ZYC2JCACYWSWUDKDK5MOHT4OOVXTO3R7EFBFUMS73HDAEQS4TAGUN4TUY6KY6XKMTELTW
+#\\\|O2DGSGWH76M5DM6UOSPV6UBCDRF6RWMO35LDLYN4O2HCHDBAHCB \ / AMOS7 \ YOURUM ::
+#\[7]KLFDHRBJLYNZEWHUFYZVT3BTEFJ3Y4RQA6J3XVAS6MJVZHE3VODQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

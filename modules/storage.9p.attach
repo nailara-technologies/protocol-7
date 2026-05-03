@@ -2,52 +2,47 @@
 # name  = storage.9p.attach
 # descr = 9P attach for storage connection
 
-use strict;
-use warnings;
+my ( $conn, $aname ) = @ARG;
+$aname //= '';
 
-return sub {
-    my ( $conn, $aname ) = @_;
-    $aname //= '';
+my $fid  = $conn->{root_fid};
+my $afid = 0xFFFFFFFF;
+my $tag  = ++$conn->{tag} & 0xFFFF;
 
-    my $fid  = $conn->{root_fid};
-    my $afid = 0xFFFFFFFF;
-    my $tag  = ++$conn->{tag} & 0xFFFF;
+my $req
+    = <[plan-9.protocol.codec.encode-uint32]>->($fid)
+    . <[plan-9.protocol.codec.encode-uint32]>->($afid)
+    . <[plan-9.protocol.codec.encode-string]>->( $conn->{uname} )
+    . <[plan-9.protocol.codec.encode-string]>->($aname);
 
-    my $req
-        = <[plan-9.protocol.codec.encode-uint32]>->($fid)
-        . <[plan-9.protocol.codec.encode-uint32]>->($afid)
-        . <[plan-9.protocol.codec.encode-string]>->( $conn->{uname} )
-        . <[plan-9.protocol.codec.encode-string]>->($aname);
+my $msg = <[plan-9.protocol.codec.encode-message]>->(
+    <plan-9.protocol.constants.Tattach>,
+    $tag, $req
+);
 
-    my $msg = <[plan-9.protocol.codec.encode-message]>->(
-        <plan-9.protocol.constants.Tattach>,
-        $tag, $req
-    );
+$conn->{socket}->send($msg);
 
-    $conn->{socket}->send($msg);
+my $resp = <[storage.9p.read-message]>->( $conn, $tag );
+return $resp if $resp->{'mode'} eq 'false';
 
-    my $resp = <[storage.9p.read-message]>->( $conn, $tag );
-    return $resp if $resp->{'mode'} eq 'false';
+my $data = $resp->{'data'};
+my ( $qid_type, $qid_version, $qid_path )
+    = <[plan-9.protocol.codec.decode-qid]>->( substr( $data, 0, 13 ) );
 
-    my $data = $resp->{'data'};
-    my ( $qid_type, $qid_version, $qid_path )
-        = <[plan-9.protocol.codec.decode-qid]>->( substr( $data, 0, 13 ) );
-
-    $conn->{fids}{$fid} = {
-        'type' => 'root',
-        'qid'  => {
-            'type'    => $qid_type,
-            'version' => $qid_version,
-            'path'    => $qid_path
-        },
-        'path' => '/',
-    };
-
-    return { 'mode' => 'true', 'data' => $fid };
+$conn->{fids}{$fid} = {
+    'type' => 'root',
+    'qid'  => {
+        'type'    => $qid_type,
+        'version' => $qid_version,
+        'path'    => $qid_path
+    },
+    'path' => '/',
 };
 
-#,,.,,,.,,...,,,.,.,.,,,,,,,,,,,.,..,,,..,,,,,..,,...,...,.,.,.,,,...,..,,...,
-#4ZEJ5IIIXUQLIXHB5YXAXRXWFXTEZ6SBC4WOGVI5RR56QZFV3HSQRNKCMPWF34NHCGQOYNGUWKWMS
-#\\\|DEINZYZY6EZE5NA7WNQMETW4FIXVW4ELUMJJDKMTRSUJOH5NQON \ / AMOS7 \ YOURUM ::
-#\[7]Z37QFKQBIIATNVZDRGW3JNBAVL6WH7US7W2AZSXS5MTYGO2O42CI 7  DATA SIGNATURE ::
+return { 'mode' => 'true', 'data' => $fid };
+
+#,,.,,...,,.,,,..,,,.,.,,,.,,,.,,,...,.,,,...,.,.,...,...,,.,,..,,,.,,.,,,,,.,
+#EYY5ZPQ2FNUSGEWCJ3ZGJVR7ULSQTXOAXAL6SCQGBUDHKFEAX5YXYC3NP5AFLTXDT27JMQEB7NQBW
+#\\\|F7HP443V246CPRYS7WUIDSOZ5Y4EHYS4WDVS7AX4JXTWWYK5EDY \ / AMOS7 \ YOURUM ::
+#\[7]SPUX2S3D45HMU3TTMM3V5U2HJRHH4ZDHE24NWAZL52GSVJGIBIBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

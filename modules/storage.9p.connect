@@ -2,85 +2,80 @@
 # name  = storage.9p.connect
 # descr = Connect to 9P server for storage integration
 
-use strict;
-use warnings;
-
 use IO::Socket::INET;
 
-return sub {
-    my ($args) = @_;
-    $args //= {};
+my ($args) = @ARG;
+$args //= {};
 
-    my $host  = $args->{host}  // '127.0.0.1';
-    my $port  = $args->{port}  // 5640;
-    my $name  = $args->{name}  // "$host:$port";
-    my $aname = $args->{aname} // '';
-    my $uname = $args->{uname} // 'root';
+my $host  = $args->{host}  // '127.0.0.1';
+my $port  = $args->{port}  // 5640;
+my $name  = $args->{name}  // "$host:$port";
+my $aname = $args->{aname} // '';
+my $uname = $args->{uname} // 'root';
 
-    # Check if already connected
-    if ( exists $data{'storage'}{'9p'}{'connections'}{$name} ) {
-        return {
-            'mode' => 'true',
-            'data' => "Already connected to $name"
-        };
-    }
-
-    # Establish TCP connection
-    my $socket = IO::Socket::INET->new(
-        PeerAddr => $host,
-        PeerPort => $port,
-        Proto    => 'tcp',
-        Timeout  => 5,
-    );
-
-    if ( not defined $socket ) {
-        return {
-            'mode' => 'false',
-            'data' => "Cannot connect to $host:$port: $!"
-        };
-    }
-
-    $socket->autoflush(1);
-
-    my $conn = {
-        'socket'   => $socket,
-        'host'     => $host,
-        'port'     => $port,
-        'name'     => $name,
-        'uname'    => $uname,
-        'msize'    => 8192,
-        'root_fid' => 0,
-        'next_fid' => 1,
-        'fids'     => {},
-        'tag'      => 0,
-    };
-
-    # Version negotiation
-    my $version_res = <[storage.9p.version]>->($conn);
-    if ( $version_res->{'mode'} eq 'false' ) {
-        close $socket;
-        return $version_res;
-    }
-
-    # Attach to root
-    my $attach_res = <[storage.9p.attach]>->( $conn, $aname );
-    if ( $attach_res->{'mode'} eq 'false' ) {
-        close $socket;
-        return $attach_res;
-    }
-
-    $data{'storage'}{'9p'}{'connections'}{$name} = $conn;
-
-    <[base.logs]>->("Storage 9P: connected to $name");
-
+# Check if already connected
+if ( exists $data{'storage'}{'9p'}{'connections'}{$name} ) {
     return {
         'mode' => 'true',
-        'data' => $name
+        'data' => "Already connected to $name"
     };
+}
+
+# Establish TCP connection
+my $socket = IO::Socket::INET->new(
+    PeerAddr => $host,
+    PeerPort => $port,
+    Proto    => 'tcp',
+    Timeout  => 5,
+);
+
+if ( not defined $socket ) {
+    return {
+        'mode' => 'false',
+        'data' => "Cannot connect to $host:$port: $!"
+    };
+}
+
+$socket->autoflush(1);
+
+my $conn = {
+    'socket'   => $socket,
+    'host'     => $host,
+    'port'     => $port,
+    'name'     => $name,
+    'uname'    => $uname,
+    'msize'    => 8192,
+    'root_fid' => 0,
+    'next_fid' => 1,
+    'fids'     => {},
+    'tag'      => 0,
 };
 
-#,,.,,,,.,,,,,,,.,,,,,,..,,.,,...,...,,,,,.,.,..,,...,...,.,,,..,,...,...,.,.,
-#3NK6LBES2CCG3UIASR75PMGAWCXJSDWVSN6SPYP67OFX2WOFZ2TTDK2XG3G2NUAQQCEFY3YNXYYDO
-#\\\|MR3T6BGIIHA6X7J6J4M6GKVDB2D7DOK2SHRZYXBELTMMQ7JFO4G \ / AMOS7 \ YOURUM ::
-#\[7]ZKMROQUCI4NIOAPGMBLE4GNQT4EARRQHW5REFU5IOCPAISGHOSBI 7  DATA SIGNATURE ::
+# Version negotiation
+my $version_res = <[storage.9p.version]>->($conn);
+if ( $version_res->{'mode'} eq 'false' ) {
+    close $socket;
+    return $version_res;
+}
+
+# Attach to root
+my $attach_res = <[storage.9p.attach]>->( $conn, $aname );
+if ( $attach_res->{'mode'} eq 'false' ) {
+    close $socket;
+    return $attach_res;
+}
+
+$data{'storage'}{'9p'}{'connections'}{$name} = $conn;
+
+<[base.logs]>->("Storage 9P: connected to $name");
+
+return {
+    'mode' => 'true',
+    'data' => $name
+};
+
+#,,.,,.,.,,.,,,,.,..,,.,.,,.,,,,,,.,.,.,,,.,,,.,.,...,..,,..,,,,,,.,.,..,,,..,
+#CESYQZSYFEJOD7A7NHDY5J2DXYSKBHOGTO626GK43OJICHO6LLH3YZW4LYJNSCLQVPN7L54RTK3A2
+#\\\|SERD2DAYNUYZSTNLLNWXJBIGTRTFRZ6OTO7LOS75OUCCLEP5QEL \ / AMOS7 \ YOURUM ::
+#\[7]AHIFD2EVCWRTPRRMBOWNJUUOPIKOIX2X4QQD7LEF6WEC6R5JKCAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

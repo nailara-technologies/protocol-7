@@ -2,61 +2,56 @@
 # name  = plan-9.server.buffer-stat
 # descr = Get stat info for buffer entries
 
-use strict;
-use warnings;
+my ($f) = @ARG;
 
-return sub {
-    my ($f) = @_;
+my %stat = (
+    type  => 0,
+    dev   => 0,
+    atime => time,
+    mtime => time,
+    uid   => 'root',
+    gid   => 'root',
+    muid  => 'root',
+);
 
-    my %stat = (
-        type  => 0,
-        dev   => 0,
-        atime => time,
-        mtime => time,
-        uid   => 'root',
-        gid   => 'root',
-        muid  => 'root',
-    );
+if ( $f->{type} eq 'root' ) {
+    $stat{qid_type}    = <plan-9.protocol.constants.QTDIR>;
+    $stat{qid_version} = 0;
+    $stat{qid_path}    = 0;
+    $stat{mode}        = 0755 | <plan-9.protocol.constants.DMDIR>;
+    $stat{name}        = '/';
+    $stat{length}      = 0;
+} elsif ( $f->{type} eq 'buffer' ) {
+    my $buf = $data{'plan-9'}{'server'}{'buffers'}{ $f->{name} };
+    $stat{qid_type}    = <plan-9.protocol.constants.QTDIR>;
+    $stat{qid_version} = $buf->{qid_version} // 0;
+    $stat{qid_path}    = $buf->{qid_path}    // 0;
+    $stat{mode}        = 0755 | <plan-9.protocol.constants.DMDIR>;
+    $stat{name}        = $f->{name};
+    $stat{length}      = 0;
+} elsif ( $f->{type} eq 'layer' ) {
+    my $buf = $data{'plan-9'}{'server'}{'buffers'}{ $f->{buffer} };
+    $stat{qid_type}    = <plan-9.protocol.constants.QTFILE>;
+    $stat{qid_version} = 0;
+    $stat{qid_path}    = ( $buf->{qid_path} // 0 ) + $f->{z} + 1;
+    $stat{mode}        = 0644;
+    $stat{name}        = "z-" . $f->{z};
+    my $layer_data = $buf->{window}{buffer}{layers}[ $f->{z} ] // '';
+    $stat{length} = length($layer_data);
+} elsif ( $f->{type} eq 'metadata' ) {
+    my $buf = $data{'plan-9'}{'server'}{'buffers'}{ $f->{buffer} };
+    $stat{qid_type}    = <plan-9.protocol.constants.QTFILE>;
+    $stat{qid_version} = 0;
+    $stat{qid_path}    = ( $buf->{qid_path} // 0 ) + 100;
+    $stat{mode}        = 0644;
+    $stat{name}        = 'metadata';
+    $stat{length}      = 1024;
+}
 
-    if ( $f->{type} eq 'root' ) {
-        $stat{qid_type}    = <plan-9.protocol.constants.QTDIR>;
-        $stat{qid_version} = 0;
-        $stat{qid_path}    = 0;
-        $stat{mode}        = 0755 | <plan-9.protocol.constants.DMDIR>;
-        $stat{name}        = '/';
-        $stat{length}      = 0;
-    } elsif ( $f->{type} eq 'buffer' ) {
-        my $buf = $data{'plan-9'}{'server'}{'buffers'}{ $f->{name} };
-        $stat{qid_type}    = <plan-9.protocol.constants.QTDIR>;
-        $stat{qid_version} = $buf->{qid_version} // 0;
-        $stat{qid_path}    = $buf->{qid_path}    // 0;
-        $stat{mode}        = 0755 | <plan-9.protocol.constants.DMDIR>;
-        $stat{name}        = $f->{name};
-        $stat{length}      = 0;
-    } elsif ( $f->{type} eq 'layer' ) {
-        my $buf = $data{'plan-9'}{'server'}{'buffers'}{ $f->{buffer} };
-        $stat{qid_type}    = <plan-9.protocol.constants.QTFILE>;
-        $stat{qid_version} = 0;
-        $stat{qid_path}    = ( $buf->{qid_path} // 0 ) + $f->{z} + 1;
-        $stat{mode}        = 0644;
-        $stat{name}        = "z-" . $f->{z};
-        my $layer_data = $buf->{window}{buffer}{layers}[ $f->{z} ] // '';
-        $stat{length} = length($layer_data);
-    } elsif ( $f->{type} eq 'metadata' ) {
-        my $buf = $data{'plan-9'}{'server'}{'buffers'}{ $f->{buffer} };
-        $stat{qid_type}    = <plan-9.protocol.constants.QTFILE>;
-        $stat{qid_version} = 0;
-        $stat{qid_path}    = ( $buf->{qid_path} // 0 ) + 100;
-        $stat{mode}        = 0644;
-        $stat{name}        = 'metadata';
-        $stat{length}      = 1024;
-    }
+return \%stat;
 
-    return \%stat;
-};
-
-#,,..,,.,,.,.,,,,,,,.,,.,,,..,...,..,,.,.,..,,..,,...,...,,,,,.,.,,,.,...,,,,,
-#CJRRGBZVTA6VUY7F6WICOEASVFL3LKZUZN6FWY5AANYSKPRNGAQCCEVSQA5XEND2476XRB2BJCOTW
-#\\\|RC6BEIEA5KOWREJH6W3WLQOLMUZI5SN4SD55YKRD7YYOTAM3MMT \ / AMOS7 \ YOURUM ::
-#\[7]VHH6WFETFYULSLVPE2SP5F4RLQTTHC66R7XCULNNPDQJDYXPB6DI 7  DATA SIGNATURE ::
+#,,.,,,..,,,.,,,.,,,,,,,,,.,.,.,,,.,,,,,.,,,,,.,.,...,...,...,,,.,.,.,,.,,,,.,
+#3T7CN6ONXBPACX56FI3E4H3H4RGOT7DYOA45EFAVVJ7GKSM7UUBXFAHIBZ3TZTI3GCOYJF4FKYSAM
+#\\\|5VM7GSJWSU2TDI7J7P5JDAGF5WYJ5KZ5KZ3IPCBIEXYFKLXF2DA \ / AMOS7 \ YOURUM ::
+#\[7]5OPSGNYVVY4POALILARLUFKPFX6ZBS5YGT42GCNU5VMOBIJ454DA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

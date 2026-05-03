@@ -2,54 +2,47 @@
 # name  = plan-9.server.handle-io-read
 # descr = Handle 9P Tread/Rread
 
-use strict;
-use warnings;
+my ( $client, $tag, $data ) = @ARG;
 
-return sub {
-    my ( $client, $tag, $data ) = @_;
+my $fid = <[plan-9.protocol.codec.decode-uint32]>->( substr( $data, 0, 4 ) );
+my $offset
+    = <[plan-9.protocol.codec.decode-uint64]>->( substr( $data, 4, 8 ) );
+my $count
+    = <[plan-9.protocol.codec.decode-uint32]>->( substr( $data, 12, 4 ) );
 
-    my $fid
-        = <[plan-9.protocol.codec.decode-uint32]>->( substr( $data, 0, 4 ) );
-    my $offset
-        = <[plan-9.protocol.codec.decode-uint64]>->( substr( $data, 4, 8 ) );
-    my $count
-        = <[plan-9.protocol.codec.decode-uint32]>->( substr( $data, 12, 4 ) );
+my $f = $client->{fids}{$fid};
+return <[plan-9.protocol.error]>->( $tag, "invalid fid" ) unless $f;
+return <[plan-9.protocol.error]>->( $tag, "fid not open" )
+    unless $f->{open};
 
-    my $f = $client->{fids}{$fid};
-    return <[plan-9.protocol.error]>->( $tag, "invalid fid" ) unless $f;
-    return <[plan-9.protocol.error]>->( $tag, "fid not open" )
-        unless $f->{open};
+my $content = '';
 
-    my $content = '';
-
-    if ( $f->{type} eq 'root' ) {
-        $content
-            = <[plan-9.server.buffer-read-root-dir]>->( $offset, $count );
-    } elsif ( $f->{type} eq 'buffer' ) {
-        $content = <[plan-9.server.buffer-read-buffer-dir]>->(
-            $f->{name}, $offset, $count
-        );
-    } elsif ( $f->{type} eq 'layer' ) {
-        $content = <[plan-9.server.buffer-read-layer]>->(
-            $f->{buffer}, $f->{z}, $offset, $count
-        );
-    } elsif ( $f->{type} eq 'metadata' ) {
-        $content = <[plan-9.server.buffer-read-metadata]>->(
-            $f->{buffer}, $offset, $count
-        );
-    }
-
-    my $resp = <[plan-9.protocol.codec.encode-uint32]>->( length($content) )
-        . $content;
-
-    return <[plan-9.protocol.codec.encode-message]>->(
-        <plan-9.protocol.constants.Rread>,
-        $tag, $resp
+if ( $f->{type} eq 'root' ) {
+    $content = <[plan-9.server.buffer-read-root-dir]>->( $offset, $count );
+} elsif ( $f->{type} eq 'buffer' ) {
+    $content = <[plan-9.server.buffer-read-buffer-dir]>->(
+        $f->{name}, $offset, $count
     );
-};
+} elsif ( $f->{type} eq 'layer' ) {
+    $content = <[plan-9.server.buffer-read-layer]>->(
+        $f->{buffer}, $f->{z}, $offset, $count
+    );
+} elsif ( $f->{type} eq 'metadata' ) {
+    $content = <[plan-9.server.buffer-read-metadata]>->(
+        $f->{buffer}, $offset, $count
+    );
+}
 
-#,,,,,.,.,.,,,,,.,.,,,,,.,...,,.,,..,,,,,,...,..,,...,.,.,.,,,.,.,,,,,,,.,..,,
-#UKUEQULYUM6BRP2Y7ANUCIJYDJALOYRDXKWJWRREAYHYXWCYCVKE6IAXS4WNJA4RUSIDCA4QRNOP6
-#\\\|NRUBNQ4RMK4J2ZMABUHK2J2BT4WDN7KOI6OZYLRXNKJFLQQNWGM \ / AMOS7 \ YOURUM ::
-#\[7]UTRX2LZ5BKKHD3II2IHAQI7MBCUJQ44GXUBVP7HBW3ZESOLI2YCY 7  DATA SIGNATURE ::
+my $resp = <[plan-9.protocol.codec.encode-uint32]>->( length($content) )
+    . $content;
+
+return <[plan-9.protocol.codec.encode-message]>->(
+    <plan-9.protocol.constants.Rread>,
+    $tag, $resp
+);
+
+#,,,.,.,.,.,,,...,.,,,,..,,,.,,.,,...,,..,..,,.,.,...,...,.,.,.,.,,..,...,,,,,
+#652AMGYEAKALHYBPMXIM6OD2JPOBJ75O6WVPQ5A4SDLXG2KRUS322WUHO3PRELG5I75WZKW6J5VYS
+#\\\|5PAUHSVBWK3NC6XWZGLX4ZWDB65V32NRNKYYJJQA77Y423LIU4K \ / AMOS7 \ YOURUM ::
+#\[7]4TGBOZMZMKJBIKNDC2XDQCLJQPGDJ2GGWDLAPHE5V4CPLS7XLYBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -2,50 +2,43 @@
 # name  = plan-9.server.handle-io-write
 # descr = Handle 9P Twrite/Rwrite
 
-use strict;
-use warnings;
+my ( $client, $tag, $data ) = @ARG;
 
-return sub {
-    my ( $client, $tag, $data ) = @_;
+my $fid = <[plan-9.protocol.codec.decode-uint32]>->( substr( $data, 0, 4 ) );
+my $offset
+    = <[plan-9.protocol.codec.decode-uint64]>->( substr( $data, 4, 8 ) );
+my $count
+    = <[plan-9.protocol.codec.decode-uint32]>->( substr( $data, 12, 4 ) );
+my $content = substr( $data, 16, $count );
 
-    my $fid
-        = <[plan-9.protocol.codec.decode-uint32]>->( substr( $data, 0, 4 ) );
-    my $offset
-        = <[plan-9.protocol.codec.decode-uint64]>->( substr( $data, 4, 8 ) );
-    my $count
-        = <[plan-9.protocol.codec.decode-uint32]>->( substr( $data, 12, 4 ) );
-    my $content = substr( $data, 16, $count );
+my $f = $client->{fids}{$fid};
+return <[plan-9.protocol.error]>->( $tag, "invalid fid" ) unless $f;
+return <[plan-9.protocol.error]>->( $tag, "fid not open" )
+    unless $f->{open};
 
-    my $f = $client->{fids}{$fid};
-    return <[plan-9.protocol.error]>->( $tag, "invalid fid" ) unless $f;
-    return <[plan-9.protocol.error]>->( $tag, "fid not open" )
-        unless $f->{open};
+if ( ( $f->{omode} & 0x03 ) == 0 ) {
+    return <[plan-9.protocol.error]>->( $tag, "read only" );
+}
 
-    if ( ( $f->{omode} & 0x03 ) == 0 ) {
-        return <[plan-9.protocol.error]>->( $tag, "read only" );
-    }
+my $written = 0;
 
-    my $written = 0;
-
-    if ( $f->{type} eq 'layer' ) {
-        $written = <[plan-9.server.buffer-write]>->(
-            $f->{buffer}, $f->{z}, $offset, $content
-        );
-    } else {
-        return
-            <[plan-9.protocol.error]>->( $tag, "cannot write to this file" );
-    }
-
-    my $resp = <[plan-9.protocol.codec.encode-uint32]>->($written);
-
-    return <[plan-9.protocol.codec.encode-message]>->(
-        <plan-9.protocol.constants.Rwrite>,
-        $tag, $resp
+if ( $f->{type} eq 'layer' ) {
+    $written = <[plan-9.server.buffer-write]>->(
+        $f->{buffer}, $f->{z}, $offset, $content
     );
-};
+} else {
+    return <[plan-9.protocol.error]>->( $tag, "cannot write to this file" );
+}
 
-#,,,.,,,.,,.,,,..,,,.,,..,,,.,..,,,,.,..,,,,,,..,,...,...,...,,,.,...,...,...,
-#3AA3IMCE7GBECW2FNBFYRZQXXAKQ2LR5ZYXHZXKINPCESWFMCUJMOAIDGCFR2GBBTFUFESY24O44K
-#\\\|ZXSY4D5VZGL3P4OCNLMGLFBFGVYMQ6VW5XAVVHRMUZ2IJFAKMAA \ / AMOS7 \ YOURUM ::
-#\[7]WRXTUR6YFDTAO32YPGR6MVRJPVWRFCXYJATW3YYJMDZI3544NAAI 7  DATA SIGNATURE ::
+my $resp = <[plan-9.protocol.codec.encode-uint32]>->($written);
+
+return <[plan-9.protocol.codec.encode-message]>->(
+    <plan-9.protocol.constants.Rwrite>,
+    $tag, $resp
+);
+
+#,,,.,,,.,,,,,..,,,.,,,,,,,.,,.,.,,..,,..,,..,.,.,...,...,.,,,...,.,,,,..,,,.,
+#G5Q3RO6MA4WSU33KN4VLS4SZYJKOVDXUHDEBQR44IPDRMC5JAVWNEFQ7QANFZUSV4CV5CRQFQBG2A
+#\\\|SMEW6AZAB2L5US53UAVOIPDAAQTTN773XDSDM5EJFTA4RYIJZXU \ / AMOS7 \ YOURUM ::
+#\[7]4HOIDZE2ZOAZBR4SRBZGQVSVSDSJ2ZAO5ZJ73B73F2KGK5FTZWCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

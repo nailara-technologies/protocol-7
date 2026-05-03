@@ -2,33 +2,28 @@
 # name  = plan-9.server.buffer-write
 # descr = Write to buffer layer
 
-use strict;
-use warnings;
+my ( $amos_id, $z, $offset, $content ) = @ARG;
 
-return sub {
-    my ( $amos_id, $z, $offset, $content ) = @_;
+my $buf = $data{'plan-9'}{'server'}{'buffers'}{$amos_id};
+return 0 unless $buf;
 
-    my $buf = $data{'plan-9'}{'server'}{'buffers'}{$amos_id};
-    return 0 unless $buf;
+my $window = $buf->{window};
 
-    my $window = $buf->{window};
+$window->{buffer}{layers} //= [];
+$window->{buffer}{layers}[$z] //= '';
 
-    $window->{buffer}{layers} //= [];
-    $window->{buffer}{layers}[$z] //= '';
+if ( length( $window->{buffer}{layers}[$z] ) < $offset ) {
+    $window->{buffer}{layers}[$z]
+        .= "\0" x ( $offset - length( $window->{buffer}{layers}[$z] ) );
+}
 
-    if ( length( $window->{buffer}{layers}[$z] ) < $offset ) {
-        $window->{buffer}{layers}[$z]
-            .= "\0" x ( $offset - length( $window->{buffer}{layers}[$z] ) );
-    }
+substr( $window->{buffer}{layers}[$z], $offset, length($content) )
+    = $content;
 
-    substr( $window->{buffer}{layers}[$z], $offset, length($content) )
-        = $content;
+return length($content);
 
-    return length($content);
-};
-
-#,,..,,.,,,,.,..,,,.,,.,.,.,.,,..,,.,,.,,,.,,,..,,...,...,.,.,.,.,,,,,,.,,..,,
-#QOEOA6KV3JLAYFX4XKR7HI7ZW3CJNZMZKRL57EW7TOKKLNZZUUJOJW3577CLQUSAJSMX2VZWNVNXS
-#\\\|IZHKJYRIDBAW6LU4ZGUZLFCTDGGRBR3HBJD2UV3I5F7YPCSREY4 \ / AMOS7 \ YOURUM ::
-#\[7]XP3RGFTOBNMGDOGA6K4RXQ7V3U75YJCO75YUXENVWIAVEIHL2YCI 7  DATA SIGNATURE ::
+#,,,,,.,.,,,.,...,,,.,.,.,,.,,,.,,,,,,..,,,,.,.,.,...,...,..,,,..,,,,,.,,,,.,,
+#SG6GG2YBBX2H3KLKN7PGKRUHVK3MMFB4BV6LLKZAMDBYMJYS24MZCNTUH4YGQNQ2KNN5XC2YN4BD2
+#\\\|WZ4KETJFUMFOO73FDWXTRNSQSL3554VHHAURTI3L6UETGM3KHVQ \ / AMOS7 \ YOURUM ::
+#\[7]HQGWWJARYBAHBB2WC2GKSOM3FHHFJLLQX6FQPLGIDFFZG5ZU7YCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

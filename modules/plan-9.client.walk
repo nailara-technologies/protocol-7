@@ -2,59 +2,52 @@
 # name  = plan-9.client.walk
 # descr = Walk directory path on 9P server
 
-use strict;
-use warnings;
+my ( $client, $fid, $newfid, @wnames ) = @ARG;
 
-return sub {
-    my ( $client, $fid, $newfid, @wnames ) = @_;
+my $req
+    = <[plan-9.protocol.codec.encode-uint32]>->($fid)
+    . <[plan-9.protocol.codec.encode-uint32]>->($newfid)
+    . <[plan-9.protocol.codec.encode-uint16]>->( scalar @wnames );
 
-    my $req
-        = <[plan-9.protocol.codec.encode-uint32]>->($fid)
-        . <[plan-9.protocol.codec.encode-uint32]>->($newfid)
-        . <[plan-9.protocol.codec.encode-uint16]>->( scalar @wnames );
+for my $name (@wnames) {
+    $req .= <[plan-9.protocol.codec.encode-string]>->($name);
+}
 
-    for my $name (@wnames) {
-        $req .= <[plan-9.protocol.codec.encode-string]>->($name);
+my $msg = <[plan-9.protocol.codec.encode-message]>->(
+    <plan-9.protocol.constants.Twalk>,
+    2, $req
+);
+
+$client->{socket}->send($msg);
+
+my $resp = <[plan-9.client.read-message]>->($client);
+return $resp if $resp->{'mode'} eq 'false';
+
+my $data = $resp->{'data'};
+my $nwqid
+    = <[plan-9.protocol.codec.decode-uint16]>->( substr( $data, 0, 2 ) );
+
+my @qids;
+my $pos = 2;
+for ( 1 .. $nwqid ) {
+    my ( $qtype, $qver, $qpath )
+        = <[plan-9.protocol.codec.decode-qid]>->( substr( $data, $pos, 13 ) );
+    push @qids, { 'type' => $qtype, 'version' => $qver, 'path' => $qpath };
+    $pos += 13;
+}
+
+# Clone fid info to newfid
+if ( exists $client->{fids}{$fid} ) {
+    $client->{fids}{$newfid} = { %{ $client->{fids}{$fid} } };
+    if (@wnames) {
+        $client->{fids}{$newfid}{path} .= join( '/', '', @wnames );
     }
+}
 
-    my $msg = <[plan-9.protocol.codec.encode-message]>->(
-        <plan-9.protocol.constants.Twalk>,
-        2, $req
-    );
+return { 'mode' => 'true', 'data' => \@qids };
 
-    $client->{socket}->send($msg);
-
-    my $resp = <[plan-9.client.read-message]>->($client);
-    return $resp if $resp->{'mode'} eq 'false';
-
-    my $data = $resp->{'data'};
-    my $nwqid
-        = <[plan-9.protocol.codec.decode-uint16]>->( substr( $data, 0, 2 ) );
-
-    my @qids;
-    my $pos = 2;
-    for ( 1 .. $nwqid ) {
-        my ( $qtype, $qver, $qpath )
-            = <[plan-9.protocol.codec.decode-qid]>
-            ->( substr( $data, $pos, 13 ) );
-        push @qids,
-            { 'type' => $qtype, 'version' => $qver, 'path' => $qpath };
-        $pos += 13;
-    }
-
-    # Clone fid info to newfid
-    if ( exists $client->{fids}{$fid} ) {
-        $client->{fids}{$newfid} = { %{ $client->{fids}{$fid} } };
-        if (@wnames) {
-            $client->{fids}{$newfid}{path} .= join( '/', '', @wnames );
-        }
-    }
-
-    return { 'mode' => 'true', 'data' => \@qids };
-};
-
-#,,..,,.,,.,.,,,.,.,.,..,,,,,,,,.,..,,,..,,.,,..,,...,...,.,.,...,.,.,,,,,..,,
-#S4FQP4BMCHIAHD6ZDQQBVPEENTCDSANKPMFT4RLZNSYP4XSOVF73PQMNFDSGQPO5SK5B7E7UPSIMM
-#\\\|4IBFIDOSSU3AD6TNJV26FOCDTTCGDLIPFXKHALBSKYCHR55GTRP \ / AMOS7 \ YOURUM ::
-#\[7]DVHCR5QCSY3IDYSG2RORRN3KASYJWZRDO5OABZZTDUBYHNJ6RSCY 7  DATA SIGNATURE ::
+#,,..,...,...,.,,,,..,,,.,,.,,..,,.,.,,..,.,.,.,.,...,...,,,,,,,,,..,,...,..,,
+#EYBLLTOZN6HDT6JKEYOZP6PU5A7HDH6D3KS23JMPYUNINPMX2S75U6VMVGL54GUZXF3VQBQDX74LK
+#\\\|WYQ5YTSZKY7ZLH7EYESTCKW474ZMNU3YIRQPQIMJ6OQTB6DVVOH \ / AMOS7 \ YOURUM ::
+#\[7]6Q6WDHM2NBS7BSV6NYKLTTXEJN3EVTXJARQIGZSLXXVLHNBEQ4DQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
