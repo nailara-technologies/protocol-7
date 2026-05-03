@@ -27,6 +27,7 @@
   (nightly security audits via NIST/security models), model capabilities mapping
 - `topic-checksum-addressing.md` — AMOS checksums as universal routing primitive,
   everything-is-a-group-of-1, expectability principle, delegation via checksum endpoints
+- `feedback-inline-sub-naming.md` — extracted helper subs `_foo` become `namespace.foo` (no underscore) in P7 module names
 - `feedback-ptd-syntax-check.md` — use `ptd -c` not `perl -c` for P7 module syntax checks
 - `feedback-p7c-command.md` — always use `p7c` not `p7`; binary was renamed
 - `feedback-p7-module-call-syntax.md` — `<[mod]>` is implicit no-arg call; never add `->()` for zero args
@@ -324,8 +325,8 @@
 - Pattern: `my @non_num = grep { defined $data_ref->{$ARG}->{$key} and not looks_like_number(...) } keys $data_ref->%*`
 - Global `$SIG{__WARN__}` exists — if wrapping warn handler, capture `$prev_warn = $SIG{__WARN__}` first and call through
 
-#,,,,,.,.,,.,,.,.,,,,,..,,,,,,,,.,,.,,,..,..,,..,,...,...,...,...,.,.,...,.,.,
-#2SWT7H4BBFAJMLLGW5GJ2PKMBWWUG7LADLRUQBOBAKXGSOEDMAGV2VC3SP63GK325PNXQTV447DJU
-#\\\|V4YJ2SWIBZHSVZ7SDCZR64UYY4U3DZWAYJ7TKNYKOCTCI2C4IFI \ / AMOS7 \ YOURUM ::
-#\[7]3MDNNTLRMBVYV2BS235KCLU4GQ6DNREWIK5COOZIKXNB3OX25ICY 7  DATA SIGNATURE ::
+#,,.,,,..,,,,,,,.,...,,,.,.,.,.,,,,..,.,,,.,,,..,,...,...,.,.,,,,,,..,,.,,,,.,
+#R3JEFPLMTKNPSOUPSUDODRWKJBBP7SHTSTKDC7I6GLIQEKPWVIP7G52QOPKSY6NZZKU54CMN45GBW
+#\\\|H267QBGYHVQDVIM6NLMRICVEL6VHGMFYL3JPFU2ODADYXBANEIZ \ / AMOS7 \ YOURUM ::
+#\[7]H5BD7BV2YGFUEBMARNBATK6GCYZSWGQFVSXHH67V3WDM6CB5HGAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

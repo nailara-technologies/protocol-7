@@ -118,7 +118,9 @@ sections:
       - <zenka>.handler.* : event/callback handlers
       - <zenka>.parser.* : data transformation/parsing
       - keep namespace consistent with existing module organization
-      - use the original sub name [ without _ prefix ] as the function part
+      - use the original sub name WITHOUT the leading underscore as the
+        function part: `sub _process_candidate` → `...util.process_candidate`
+        NEVER include the _ in the module filename — apply s/\._/./
       - NEVER add file extensions [ no .p7, .pm, .pl ] — P7 module files
         have NO extension. the filename IS the module name.
 
@@ -213,8 +215,8 @@ on_complete:
     action: memory_update
     topic: "audit:extract-inline-subs"
 
-#,,.,,,.,,,.,,,,,,,,.,...,.,.,...,,,.,..,,.,.,.,.,...,...,..,,,,.,,,.,.,,,.,.,
-#3VAKYO5CE4OZXPEZLRKVCULPFDRCQKGUTCUYUVMIGYATZR47FCOX5RBKKVF67EKPSSMAUNL2BTLVA
-#\\\|XSRRZ5AIXDAMFAY5KJ7D65S6YBLIQKSN2BJK263BI7TEM4BGOI5 \ / AMOS7 \ YOURUM ::
-#\[7]SQL3L4W7PTUIEGEZYKQYSXRRZTVYROLVWISV6FUP57JVXBRD7MDA 7  DATA SIGNATURE ::
+#,,..,...,,,.,,..,,..,,,.,..,,,,.,..,,.,,,.,,,.,.,...,...,,.,,,.,,...,.,,,,..,
+#3GT7ZLUKUNDAOZT5XCIB4ZHDDDXOD2NWA7JME7NMAB47B4RG7GPOTNS6YWRJLSFXC5U466XA7ID7E
+#\\\|OFB7OXIMMXLAD2DM77ZECR5YR7UVZNLTJIQIPI3I3TUQGOEKRIR \ / AMOS7 \ YOURUM ::
+#\[7]TCQDCWP6WBFSCZJI2PIPG4DTNBEZXEQAE73D7UVIYTNNC2KYQWDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
