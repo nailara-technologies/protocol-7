@@ -1,0 +1,62 @@
+## [:< ##
+
+# name  = ncode.transform.wave.util.build_llm_prompt
+# descr = build LLM prompt describing flagged code issues
+
+my ( $code, $flagged, $target, $file_type ) = @ARG;
+
+my @lines;
+
+push @lines, '## Code transformation request ##';
+push @lines, '';
+
+if ( length $target ) {
+    push @lines, "Target style: $target";
+}
+
+push @lines, "File type: $file_type";
+push @lines, '';
+
+push @lines, '## Current code after regex pre-pass ##';
+push @lines, '';
+push @lines, '```';
+
+my @code_lines = split m|\n|, $code;
+push @lines, @code_lines;
+
+push @lines, '```';
+push @lines, '';
+
+push @lines, '## Flagged items requiring transformation ##';
+push @lines, '';
+
+foreach my $flag (@$flagged) {
+    my $name    = $flag->{'name'}    // 'unknown';
+    my $matches = $flag->{'matches'} // 0;
+    my $action  = $flag->{'action'}  // qw| flag_for_review |;
+    my $conf    = $flag->{'conf'}    // 0;
+    my $lines   = $flag->{'lines'}   // [];
+
+    push @lines,
+        sprintf( "- Pattern '%s' [conf=%.2f, action=%s, matches=%d]",
+        $name, $conf, $action, $matches );
+
+    if (@$lines) {
+        push @lines, '  Lines: ' . join( ', ', @$lines );
+    }
+}
+
+push @lines, '';
+push @lines, '## Instructions ##';
+push @lines, '';
+push @lines, 'Transform the code above to resolve all flagged items.';
+push @lines, 'Maintain the existing structure and style where possible.';
+push @lines, 'Return the complete transformed code in a code block.';
+
+return join "\n", @lines;
+
+#,,..,.,,,...,...,.,.,...,,..,.,.,,.,,.,,,,,,,..,,...,...,...,,,,,.,,,,..,,..,
+#GZI5FTTHBLAIKYYHAQFRRRYMNOOSKJLGPMYMN5PC4L6EBEKVVNOAHROSTMTB3AJE3RGSC2BST764Q
+#\\\|4NUMQP64AC5H3EQKTBSE6SF24EJPFUKZPXFI5VSKTL7ZF6HA2KM \ / AMOS7 \ YOURUM ::
+#\[7]O6OZDAVGGMXLH2NYPSZETDCZMMDTNUCJSNGJGJRU47C6SAYIYKAY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

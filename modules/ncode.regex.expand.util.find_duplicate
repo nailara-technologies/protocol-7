@@ -1,0 +1,20 @@
+## [:< ##
+
+# name  = ncode.regex.expand.util.find_duplicate
+# descr = find duplicate pattern by exact pattern string match
+
+my ( $pattern, $patterns ) = @ARG;
+
+foreach my $name ( keys %$patterns ) {
+    my $existing = $patterns->{$name};
+    if ( $existing->{'pattern'} eq $pattern ) {
+        return $name;
+    }
+}
+return undef;
+
+#,,,.,.,.,...,,..,..,,,.,,...,..,,,.,,,.,,,,,,..,,...,...,,,,,,..,,,,,,,.,...,
+#HIPLBJAYZANPCA2DTJH72HDSAMJZ3ALXWS74WLIDYETJISJIOLRQFW4O667GQCVUCZHY6EUEVQUJ6
+#\\\|VERZQ65L4QXSYPYCNM3TKEP3GONT5XXGCDBSALBE3USJHPBBB6O \ / AMOS7 \ YOURUM ::
+#\[7]PR2NAKIAN2F65JEGZVPQ3RUVQFGAPBKWBHZOJTNLMLAGJCIEM6CI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
