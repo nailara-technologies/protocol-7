@@ -59,6 +59,14 @@ use sparingly — rewrite into cleaner form once logic settles.
 <[base.exit]>->()           ## redundant but valid
 ```
 
+### variable module name [ dynamic dispatch ]
+```perl
+<[$handler]>->($arg)        ## correct — resolves to $code{$handler}->($arg)
+<[$handler]>                ## correct — resolves to $code{$handler}->()
+$code{$handler}->($arg)     ## also valid — explicit form
+```
+note: variable form uses NO quotes — `$code{$var}` not `$code{'$var'}`
+
 ---
 
 ## data access patterns [ critical ]
@@ -594,8 +602,8 @@ s|old|new|gsx    ## global + single-line + extended
 
 ---
 
-#,,,,,..,,,..,,,,,.,,,,,.,...,,,,,,..,,,.,..,,.,.,...,...,,.,,,..,,.,,,,,,..,,
-#BLSSBXBBE4CV6ZX4WTCVBU4QUF2P4CZDZGTEGCIYKFXSA7KJHHWX6KOWDKTY4QVLHJ3NLRYWAXTRE
-#\\\|PWFZYRG5LVQISBN2D3MY6D3NLS7IIWPLXYJP2KWO6TSOBQOXXZA \ / AMOS7 \ YOURUM ::
-#\[7]4LSYB5PBQLWA2MAQSKPBX2QHCHP7C5Q7H73ZJ4N3IJYX2RIE2WCQ 7  DATA SIGNATURE ::
+#,,,,,,.,,,..,,.,,..,,.,.,,.,,.,.,.,.,,..,,.,,.,.,...,...,...,.,.,..,,,.,,,,.,
+#JYWR5SRWYYC7YQHMHBJNDUP7PUJL3MAG5COI326DCFZOYWGR2MTOK25UAGPYCEUZYBFLBKTIB5GXW
+#\\\|RVHRW3G24ZQPKAGSEIPP6ELIFIPCV2G3UMDCE46BUZ6SKNMTMGQ \ / AMOS7 \ YOURUM ::
+#\[7]JQMWMI4AJ67GN5UIBISU2ACF4HWIP6RXSEKTEDRQMVEIHSEFWMBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

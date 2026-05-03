@@ -91,7 +91,10 @@ patterns:
       action: flag_for_review
       confidence: 0.95
     origin: manual
-    note: must be <[module.name]>->() with ]> before ->
+    note: |
+      literal form: <[module.name]>->($arg) → $code{'module.name'}->($arg)
+      variable form: <[$var]>->($arg)       → $code{$var}->($arg)  [ no quotes ]
+      no-arg form:   <[module.name]>         → $code{'module.name'}->()  [ implicit call ]
     stats:
       applied: 0
       false_positive: 0
@@ -174,8 +177,8 @@ patterns:
       applied: 0
       false_positive: 0
 
-#,,.,,,,.,,..,.,,,,..,,.,,,,.,..,,,,,,...,..,,..,,...,...,,..,...,...,,.,,.,.,
-#ZRZR5VMXKBWNOXGWMLVWXEHLYD56XGIMPFKDYMRWJ2CJFNGNFTPXICITRKEGU23XMOGEMJZ3XS5SM
-#\\\|GL6C72RLBVJAJBMA727OYB2HZDK4QSPDWRGKZLX7LZCHXQPX65R \ / AMOS7 \ YOURUM ::
-#\[7]VGOMYWOM4GAFWSCR24AMC5UFLTUKWZUUSG24L4OHEOR25UNZTIDA 7  DATA SIGNATURE ::
+#,,,,,,.,,..,,.,.,,..,,,.,,,.,.,.,..,,.,.,.,.,..,,...,..,,..,,.,,,,.,,,,,,,..,
+#YOUGGF37W4H6EY7N5SD472OLCWJBPUGBNT6PHPH2KYZW2ABPELNVE5U3QGEYNRU5UJEZ62VJ2EHB4
+#\\\|WFF3PI3RZ4Q4SB2TWXTOXKC6CP5RUW3J3BTJA44YI3YWYVXX4JO \ / AMOS7 \ YOURUM ::
+#\[7]NDVFDVH4MXVSKSAIBSNOXZMQJJMU6WRWL7JETML6WTY3LWAE4QCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

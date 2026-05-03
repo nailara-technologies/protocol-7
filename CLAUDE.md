@@ -82,8 +82,9 @@ Protocol-7 is a **multi-agent system** where each agent is called a **zenka** (s
 - **Naming**: Module files use dot notation (e.g., `base.init_code`, `httpd.file_transfer.init`)
 - **Structure**: Modules do NOT use `sub { }` declarations - the filename itself becomes the callable subroutine
 - **Invocation**: Two syntax options:
-  - Standard Perl: `$code{'module.name'}->()`
+  - Standard Perl: `$code{'module.name'}->()` or `$code{$var}->()`
   - Special syntax: `<[module.name]>->()` (parsed to Perl before compilation)
+  - Variable form: `<[$var]>->()` (parsed to `$code{$var}->()`, no quotes)
 
 ### Module File Format
 ```perl
