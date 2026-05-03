@@ -1,0 +1,22 @@
+## [:< ##
+
+# name  = storage.visual.util.list_workflows
+# descr = list available visual workflows from storage mapping registry
+
+my $registry  = $data{'storage'}{'mapping'}{'visual'};
+my $workflows = $registry->{workflows};
+
+my $output = "Available visual workflows:\n\n";
+for my $name ( sort keys %$workflows ) {
+    my $wf = $workflows->{$name};
+    $output .= sprintf( "  %-20s %s\n", $name, $wf->{desc} );
+    $output .= sprintf( "    Steps: %d\n", scalar( @{ $wf->{steps} } ) );
+}
+
+return { 'mode' => 'size', 'data' => $output };
+
+#,,,,,,,.,...,.,.,,,.,.,,,.,,,.,,,,,,,,..,.,.,..,,...,...,..,,.,.,,.,,,,.,,.,,
+#RH4WTYKXSJMD5Z5OJN6BGG6CJIUXLRRUYTID6L76D7C7UNOOODHNFI575WT5AV4ZHC2FQGE33QJTU
+#\\\|7UDQ7UTRTQ2LSQ3CSEMZLKB6MBKTREWBU5TLA4WOU6JB2LB3DOV \ / AMOS7 \ YOURUM ::
+#\[7]IWMK6VBZBFFE3LCEZASEF2ST6UKR5MQIQWQIVVOI7NWYWESBBYBY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
