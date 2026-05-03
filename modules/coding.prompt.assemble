@@ -21,6 +21,17 @@ if ( $raw_type =~ m{^(cpu|gpu)$}i ) {
     $parsed = <[coding.parser.query_prefix]>->($raw_prompt);
 }
 
+## :model:AMOS:ID: keyword — task-level model override, stripped from prompt ##
+## allows task files to be self-describing: ":model:WZIZD6Y:2BIZKWY:" ##
+if ( $parsed->{'query'} =~ s{:model:([A-Z2-7]{7}:[A-Z2-7]{7}):}{}i ) {
+    $parsed->{'model'} //= $1;  ## don't override an explicit GPU:M: prefix ##
+    $parsed->{'query'} =~ s{^\s+}{};
+    <[base.logs]>->(
+        2, ':. prompt.assemble: :model: override → %s',
+        $parsed->{'model'}
+    );
+}
+
 ## select best available backend ##
 my $backend_info = <[coding.routing.select_backend]>->(
     {   backend         => $parsed->{'backend'},
@@ -263,8 +274,8 @@ return {
     'hooks'        => $hooks,
 };
 
-#,,,,,,,,,,,.,.,,,,..,,.,,,..,.,,,,,,,,.,,.,.,..,,...,...,...,,..,,.,,,,.,,..,
-#ZME3OFEG2G4FULTZMHTOR4O3UXIDI6QAM7PDVRYLXIF5SYQCFFO6MNBQR65XFN3CRAJY2BRMQHPIW
-#\\\|NWQ6X56ZRBIE4WMEHHRYSLS23RRWNYMCUY7VB3WRUNS73JHCZLU \ / AMOS7 \ YOURUM ::
-#\[7]72GPR2LKS46V4JMTSJXHRKIBD3W7W6I2GEXPN5RPGN4J7GOUBQBA 7  DATA SIGNATURE ::
+#,,..,,.,,...,..,,...,,,,,.,,,.,,,...,..,,.,,,..,,...,...,..,,.,.,..,,..,,..,,
+#DDTPGPPRG5VX4H26W7OKW7KJGQLIJWQFJMDRVVL2N7LFDGZIE7G5BOX2JL3S7UF32OFZOEIOTMAGU
+#\\\|Q56POH2EKVDO24HXNVABIJNI4DV6S3AVRGRMFB5CS3J7ERNJFDP \ / AMOS7 \ YOURUM ::
+#\[7]GRSXHXLSU7C4BDEUNIIESBDR2IX7XTIZJM4DFBHI3YBZ36K6TMAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -64,11 +64,43 @@ if ( defined $result && $result->{'success'} ) {
         if (    defined $parent_state
             and $parent_state->{'state'} eq qw| subtask |
             and ( $parent_state->{'pending_subtask'} // '' ) eq $task_id ) {
-            push @{ $parent_state->{'messages'} },
-                {
-                'role'    => 'user',
-                'content' => "[SUBTASK RESULT: $task_id]\n\n" . $result_text
-                };
+
+            ## compaction sub-task: splice summary into messages, no user msg ##
+            if ( ( $parent_state->{'compaction_pending'} // '' ) eq $task_id )
+            {
+                my $c_start     = $parent_state->{'compact_start'} // 2;
+                my $c_end       = $parent_state->{'compact_end'}   // 2;
+                my $msgs        = $parent_state->{'messages'};
+                my $round       = $parent_state->{'round'} // 0;
+                my $n_compacted = $c_end - $c_start;
+
+                if ( $n_compacted > 0 and $c_end <= scalar @{$msgs} ) {
+                    splice @{$msgs}, $c_start, $n_compacted,
+                        {
+                        'role'    => 'assistant',
+                        'content' => "[ compaction summary | round $round ]\n"
+                            . $result_text,
+                        };
+                    <[base.logs]>->(
+                        1,
+                        "async.complete: compaction applied to %s — %d msgs → 1",
+                        $parent_id,
+                        $n_compacted
+                    );
+                }
+                delete $parent_state->{'compaction_pending'};
+                delete $parent_state->{'compact_start'};
+                delete $parent_state->{'compact_end'};
+            } else {
+                ## regular subtask: append result as user message ##
+                push @{ $parent_state->{'messages'} },
+                    {
+                    'role'    => 'user',
+                    'content' => "[SUBTASK RESULT: $task_id]\n\n"
+                        . $result_text
+                    };
+            }
+
             $parent_state->{'pending_subtask'} = undef;
             ## transition parent from subtask back to streaming ##
             $parent_state->{'state'} = qw| streaming |;
@@ -171,8 +203,8 @@ if ( defined $result && $result->{'success'} ) {
     return { success => FALSE, error => $error_msg, task_id => $task_id };
 }
 
-#,,,,,..,,,,,,,,,,,..,,,.,,,.,,,.,,..,.,.,,,,,.,.,...,...,,.,,..,,,.,,,..,.,,,
-#O57Z47U4DHCTCFMHMJ2AFXEGZ33OOR5KW6AF6LLSREVUQ2DJ7PDBQFLZLN6RVT4KFAQGMWDU4POZA
-#\\\|TM2JICSBDKHNCS3SZZZQ2YCEZGX3GSBA4C4LX2VQLYY74BW3RPM \ / AMOS7 \ YOURUM ::
-#\[7]XXA2UONFSHFH5L4XDOSKE3XYQWSB4Q4VTQMNA4GQQWAVYFW24GAI 7  DATA SIGNATURE ::
+#,,..,...,,.,,,,,,..,,.,.,,,.,,.,,...,,..,,,,,.,.,...,...,.,.,.,,,...,,..,..,,
+#NYX7JZCWTVBUAG2T5TXAJVOXNMG7MAFPSXL3AF3PIPH3G7ZXHZOP46X6VTYWEURQXEX553UQYM25Q
+#\\\|2DVB5GHWKMZJDKBRRPZSJDSEA5EK4KIJH2CQCF4PKSXFSZ72KT4 \ / AMOS7 \ YOURUM ::
+#\[7]BT6RXHXSRYPNO7QUL4ZTYLWGNMAXY2UIEF745UYAQSNPOT5MKQDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

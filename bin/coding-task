@@ -18,6 +18,7 @@ my $prompt       = '';
 my $wait         = 0;
 my $use_readline = 0;
 my $template     = '';
+my $model        = '';
 
 ## parse args ##
 while ( my $arg = shift @ARGV ) {
@@ -32,6 +33,10 @@ while ( my $arg = shift @ARGV ) {
     } elsif ( $arg eq '-template' ) {
         $template = shift @ARGV // die ":: -template requires a name\n";
         $template =~ s/^:+|:+$//g;    ## strip surrounding colons if any ##
+    } elsif ( $arg eq '-model' ) {
+        $model = shift @ARGV
+            // die ":: -model requires an AMOS ID (e.g. WZIZD6Y:2BIZKWY)\n";
+        $model =~ s/^:+|:+$//g;
     } elsif ( $arg eq '-help' or $arg eq '--help' ) {
         print <<~'USAGE';
         usage: coding-task [options] [prompt]
@@ -40,6 +45,7 @@ while ( my $arg = shift @ARGV ) {
           -file PATH        read prompt from file
           -wait             block and wait for result (default: submit and exit)
           -template NAME    use context template via coding.ask-reply :NAME:
+          -model AMOS:ID    override inference model (e.g. WZIZD6Y:2BIZKWY)
           -help             show this help
 
         if no prompt arg:
@@ -135,10 +141,14 @@ my $full_prompt
     ? ":${template}:\n${prompt}"
     : $prompt;
 
+## prepend :model: keyword if specified ##
+$full_prompt = ":model:${model}:\n${full_prompt}" if length $model;
+
 ## encode ##
 my $encoded = encode_b32r($full_prompt);
 
 ## show summary ##
+printf ":: model: %s\n",    $model    if length $model;
 printf ":: template: %s\n", $template if length $template;
 my $preview = substr( $prompt, 0, 80 );
 $preview .= '...' if length $prompt > 80;
@@ -150,8 +160,8 @@ printf ":: encoded: %d bytes → %d b32r chars\n",
 ## -wait is a coding-task option only, not forwarded to p7c ##
 exec 'p7c', 'coding.ask-reply', "B32:$encoded";
 
-#,,.,,,..,.,,,,,.,.,.,,,,,,,,,..,,,..,...,,,.,.,.,...,...,,,.,.,,,...,...,,.,,
-#OSW6RZZEA5LZTSUIGVL3ER4UZ4JSBPAH6K2H57A4MTTYKV7BO3MFWMVXZIEHM6OKK4F7L4UHKN2J2
-#\\\|RVBOMENITVWWEOKMXY5CEKY275TLV3CU6QXOHKZANBP7FMLVBB6 \ / AMOS7 \ YOURUM ::
-#\[7]MBD72Y5CJLUNF533DLJ6DRWL6XKDA2OLJ7XAKR5KNFEJYSB7WKDY 7  DATA SIGNATURE ::
+#,,.,,,,,,,.,,.,,,,.,,.,,,..,,.,,,..,,,,.,,,,,.,.,...,...,..,,.,,,,..,.,.,,,.,
+#4R4JI77BPGJQNI7UEROQWUKBGVVDMFR3DKPLZ67FXJR43B6P4PPSG626W7FPNM2M5VB75JSDRN3I6
+#\\\|VLZLE3B5SP6R3TR6KXQEKC573RFDTSNWJJZICHVL25VSKUOV6R6 \ / AMOS7 \ YOURUM ::
+#\[7]TYV7QBYLPLJZPTFFPXBOFTLAZKGVML2AFJBYFFK3QFHN4NER7UAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
