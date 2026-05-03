@@ -60,6 +60,82 @@ $protect_end = $protect_start if $protect_end < $protect_start;
 
 return if $protect_end <= $protect_start;
 
+## inference-backed compaction path — enqueue sub-task, suspend parent ##
+if ( ( <coding.cfg.compaction_inference> // 'no' ) eq qw| yes |
+    and not defined $state->{'compaction_pending'} ) {
+
+    ## serialize middle messages into a single text block for the summarizer ##
+    my @to_compact = @{$messages}[ $protect_start .. $protect_end - 1 ];
+    my @parts;
+    for my $m (@to_compact) {
+        my $role    = $m->{'role'}    // 'unknown';
+        my $content = $m->{'content'} // '';
+        if ( $role eq qw| assistant |
+            and ref $m->{'tool_calls'} eq qw| ARRAY | ) {
+            my @names = map { $ARG->{'function'}->{'name'} // '?' }
+                $m->{'tool_calls'}->@*;
+            push @parts, "assistant called: " . join( ', ', @names );
+            push @parts,
+                "  args: "
+                . ( $m->{'tool_calls'}[0]{'function'}{'arguments'} // '' )
+                if @{ $m->{'tool_calls'} } == 1;
+        } elsif ( length $content ) {
+            my $snip = substr( $content, 0, 800 );
+            push @parts, "$role: $snip";
+        }
+    }
+    my $history_text = join( "\n---\n", @parts );
+
+    my $sys
+        = "You are a context summarizer. Summarize the following conversation "
+        . "history into a compact but information-dense paragraph. Preserve: "
+        . "files read, edits made, findings, decisions, errors encountered. "
+        . "Omit: tool call mechanics, raw file content, repetition. "
+        . "Reply with only the summary paragraph, no preamble.";
+
+    my $prompt
+        = "Conversation history to summarize:\n\n$history_text\n\n"
+        . "[ round=$round | est_tokens=$est_tokens | msgs="
+        . scalar(@to_compact) . " ]";
+
+    ## enqueue compaction sub-task with no tools, single round ##
+    my $child_id = <[coding.task.enqueue]>->(
+        {   request  => { description => $prompt },
+            metadata => {
+                raw_request    => { type => 'gpu', description => $prompt },
+                parent_task_id => $task_id,
+                is_compaction  => 1,
+                compact_start  => $protect_start,
+                compact_end    => $protect_end,
+            },
+            system     => $sys,
+            no_tools   => 1,
+            max_rounds => 1,
+        }
+    );
+
+    if ( defined $child_id and length $child_id ) {
+        <coding.task.parent>->{$child_id} = $task_id;
+        $state->{'compaction_pending'} = $child_id;
+        $state->{'compact_start'}      = $protect_start;
+        $state->{'compact_end'}        = $protect_end;
+        $state->{'state'}              = qw| subtask |;
+        $state->{'subtask_id'}         = $child_id;
+        $state->{'pending_subtask'}    = $child_id;
+        <coding.async.task_state>->{$task_id} = $state;
+        <[base.logs]>->(
+            1, "compact_context: inference compaction → child %s [ %d msgs ]",
+            $child_id, scalar(@to_compact)
+        );
+        return qw| pending |;    ## signal caller to hold the round ##
+    }
+
+    ## fallback to heuristic if enqueue failed ##
+    <[base.logs]>->(
+        1, "compact_context: inference enqueue failed, falling back"
+    );
+}
+
 ## graduated compaction: older = more aggressive ##
 my $mid = int( ( $protect_start + $protect_end ) / 2 );
 my @summary_parts;
@@ -153,8 +229,8 @@ if ( $after_tokens > $compact_threshold * 0.8 ) {
 
 return;
 
-#,,.,,,,.,.,,,.,,,.,,,,.,,.,,,,..,,,.,.,.,.,,,.,.,...,.,.,...,...,,.,,...,,,.,
-#JKG3JGAAUEEXLR3CT5CRVNNH7T5Q2LDT277AV4DEQ3ITTINN42YYNYZWP3UCHDNCMB4FB2M3YHZ4U
-#\\\|Y2JKYKVYQ4N6SKS2UOK7Z36O3QF22YGWMAINS5WMEU6XJO7CHTL \ / AMOS7 \ YOURUM ::
-#\[7]Z4BXLJQYRVR7K2XOI767FVDU3MLCZWRFY27EEBT7WCRPFRYNX2DA 7  DATA SIGNATURE ::
+#,,.,,,..,,..,..,,.,,,.,.,,..,...,,.,,..,,,,,,.,.,...,..,,..,,..,,,,,,,.,,,..,
+#3FZHT5NOVU47RDWDRKLPCZDUJQPLRR4F76VQHK6IOQ2YDZMTZWQFZVGHHMJ5BROVWX6AT7EQ7APNQ
+#\\\|6CZCPUNZDG7FKQVKW3WMHULRTW7T3NR2B5JRHC234VOVHB5LP6C \ / AMOS7 \ YOURUM ::
+#\[7]VVK4AIJK5MH3FJSITOYEQBOS232B3QA7FH5EB25CGOSTXABAKWBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

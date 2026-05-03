@@ -16,7 +16,14 @@ return { success => FALSE, error => "no state for $task_id" }
     unless defined $state;
 
 ## compact context if approaching token limit ##
-<[coding.async.compact_context]>->($task_id);
+## returns 'pending' when inference compaction sub-task was spawned ##
+my $compact_result = <[coding.async.compact_context]>->($task_id);
+if ( defined $compact_result and $compact_result eq qw| pending | ) {
+    <[base.logs]>->(
+        1, "send_request: %s suspended for inference compaction", $task_id
+    );
+    return { success => TRUE, task_id => $task_id, compacting => 1 };
+}
 
 ## messages already built by state_machine transition handler ##
 ## just use the accumulated conversation from state ##
@@ -235,8 +242,8 @@ if (@messages) {
 return
     <[coding.async.request]>->( $task_id, $request_body, $state->{'job_id'} );
 
-#,,,.,,.,,,..,.,,,.,.,...,.,,,,..,.,.,,,,,...,..,,...,..,,,.,,...,,..,..,,...,
-#73VGMLDIT5Q6P344FBJFXVX5LQS3I4FWI2G3O75PPA36EFOIJ3YOQOS5UZRRJAO5RPDKJJMKM4UBY
-#\\\|NN3GVTETUQ6MRKWZCQQWW32PNDUYCUUG7WJLWEQ7V32D3JQDKJJ \ / AMOS7 \ YOURUM ::
-#\[7]GYOO4VABEQREALGQ4QNXZSZCTUHLPPE6QXMJY42GOGANNRNBV4BA 7  DATA SIGNATURE ::
+#,,,.,,..,,.,,,,,,.,.,,..,,,.,,.,,,..,.,.,...,..,,...,...,.,,,...,,..,,..,...,
+#C6GLU3BJK36Y4AXJMSDKL3NWRTSF4WKWXZO5VI26J6722KXIRO7GMQIQ2LANOZT5ZU6TZXTJRNEAA
+#\\\|VZSF5TO43VAJPINRPKOHVQWXRQCLUE4DCEHK3KIJNMGUPQEI2AJ \ / AMOS7 \ YOURUM ::
+#\[7]NIRAGOD2EH2PDT3OVCVSCANJTEBZHCAJ737B7DOO4WRENMRSEUAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
