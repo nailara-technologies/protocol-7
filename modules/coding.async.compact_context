@@ -99,8 +99,11 @@ if ( ( <coding.cfg.compaction_inference> // 'no' ) eq qw| yes |
         . scalar(@to_compact) . " ]";
 
     ## enqueue compaction sub-task with no tools, single round ##
+    my $child_task_id = <[coding.helper.task_id_generator]>;
     my $enqueue_result = <[coding.task.enqueue]>->(
-        {   request  => { description => $prompt },
+        {   id       => $child_task_id,
+            type     => 'general',
+            request  => { description => $prompt },
             metadata => {
                 raw_request    => { type => 'gpu', description => $prompt },
                 parent_task_id => $task_id,
@@ -108,13 +111,17 @@ if ( ( <coding.cfg.compaction_inference> // 'no' ) eq qw| yes |
                 compact_start  => $protect_start,
                 compact_end    => $protect_end,
             },
+            analysis   => { routed_to => $srv_key },
+            execution  => { status    => 'pending' },
+            created_at => <[base.time]>->(3),
             system     => $sys,
             no_tools   => 1,
             max_rounds => 1,
         }
     );
     my $child_id
-        = ref $enqueue_result eq qw| HASH |
+        = ( ref $enqueue_result eq qw| HASH |
+            and $enqueue_result->{'success'} )
         ? $enqueue_result->{'task_id'}
         : undef;
 
@@ -233,8 +240,8 @@ if ( $after_tokens > $compact_threshold * 0.8 ) {
 
 return;
 
-#,,..,,,.,.,.,,..,,,.,...,,..,.,,,,,.,,,,,,.,,.,.,...,..,,...,,.,,,.,,.,.,,,.,
-#FDX6FHJWI4HHCTREKDWRX5GHZ6KEGNGDQ3UAT4M66LVHPJOMFVJRTZSHPUV74ONAXOD23AN6J3UC2
-#\\\|72XBNLQW4TTC6ZP2NOGDLTBCZPHIR36CER5WTYGDK3CVU3LD7JV \ / AMOS7 \ YOURUM ::
-#\[7]VYRUCEO2IJ4HX53CD6JY4BPETCPB7XTWZCZDXVOFB7TP5TG25ODA 7  DATA SIGNATURE ::
+#,,..,,.,,,.,,,.,,...,.,,,.,.,.,,,,..,.,.,,,,,.,.,...,...,,,.,..,,,,,,...,.,,,
+#PS5NPSQTWECBK5JBDVVCLOZWBN4F4VE77UCICVZPSFWZNBXKBTDD64KLZRHMBCCDNNOLTF2NK5AI4
+#\\\|7GC2QU5MISRV746MJ6TAX24AI6KGKGDK5KI4GADI4ABZH4CY453 \ / AMOS7 \ YOURUM ::
+#\[7]SMMKRIU7KRTVAYVV6X76KLBU355ZZ3LSNIQU63FWAQAPH5FQVAAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
