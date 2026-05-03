@@ -1,0 +1,40 @@
+## [:< ##
+
+# name  = storage.visual.util.proximity
+# descr = calculate proximity between two references using specified method
+
+my ( $ref1, $ref2, @opts ) = @ARG;
+
+return { 'mode' => 'false', 'data' => 'Two refs required' }
+    unless $ref1 and $ref2;
+
+my $method = 'harmonized';
+for ( my $i = 0; $i < @opts; $i += 2 ) {
+    my $k = $opts[$i]       // '';
+    my $v = $opts[ $i + 1 ] // '';
+    $k =~ s/^://;
+    $k =~ s/:$//;
+    $method = $v if $k eq 'method';
+}
+
+my $result = <[plugin.storage.visual.proximity-calc]>->(
+    {   'ref1'   => $ref1,
+        'ref2'   => $ref2,
+        'method' => $method,
+    }
+);
+
+if ( $result->{mode} eq 'true' ) {
+    my $data   = $result->{data};
+    my $output = sprintf( "Proximity: %.4f (similarity: %.4f)\nMethod: %s\n",
+        $data->{distance}, $data->{similarity}, $data->{method} );
+    return { 'mode' => 'size', 'data' => $output };
+} else {
+    return $result;
+}
+
+#,,,.,...,...,.,,,,,.,.,,,,..,,..,,,,,,,.,.,,,..,,...,...,,,,,,.,,,..,,,.,,..,
+#G23KXUDMSPYXOX6C6LIIMJKGJTCPMUV77UOO7JEMYZSSWQE5ZHHRU5T5THULENJOCSJRY3K2OYPTQ
+#\\\|THULMROJ4CYEUABHKHV42GL5PV3VLKZJ2XARRGIYD226CVT4SXG \ / AMOS7 \ YOURUM ::
+#\[7]2BTGUAY3VM7MUJXOWCSFYXWSLKJZQSXBSNLJTZPRTCW3STFT2CAQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
