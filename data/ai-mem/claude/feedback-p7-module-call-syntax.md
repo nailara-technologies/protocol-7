@@ -1,6 +1,6 @@
 ---
 name: feedback-p7-module-call-syntax
-description: P7 module call syntax — ->() is redundant for no-arg calls
+description: P7 module call syntax — literal and variable forms, ->() rules
 type: feedback
 originSessionId: de2c98be-b155-442a-9736-a7ad7941c3cb
 ---
@@ -10,8 +10,10 @@ originSessionId: de2c98be-b155-442a-9736-a7ad7941c3cb
 
 **How to apply:** Only use `<[module.name]>->($arg)` or `<[module.name]>->( \%hash )` when passing arguments. For no-arg calls write `<[module.name]>` alone.
 
-#,,..,,.,,,.,,..,,,.,,.,.,,..,,.,,,..,,.,,..,,..,,...,...,...,...,,.,,.,,,,..,
-#YW76FQZCAONRQRMGDVQ76TSVUV7XW5CZ2LII3OGR3LXLHZWWBMFAMHQAKLAWC2JKPYZQEZXF3W3VK
-#\\\|HEQDU45FB5VIOSIBQPZAFMVJXSMEAR3DJDEIHC3MHMHMPQTBGJP \ / AMOS7 \ YOURUM ::
-#\[7]4643RBHHMNIYQPNHEEBFJMKLYCY7LEZ55CGOUWZAB7TUDKOW54BQ 7  DATA SIGNATURE ::
+Variable form: `<[$var]>->($arg)` resolves to `$code{$var}->($arg)` — no quotes around the variable. Use this when the module name is dynamic. `<[$var]>` alone (no args) also works.
+
+#,,,,,,,.,,,,,.,.,...,,..,..,,..,,,..,.,.,,.,,..,,...,...,..,,,,,,,.,,,,,,.,,,
+#VUBDY74YOIPGL45PQU63CYL6K5NA654AC2JAY4VQSXUJQAMT2UQ5FFKCGY6T6OO6RQMUG3MGDSKBM
+#\\\|Y43HQLRXU47252YD7F3EAHXE4I5ZBIA3FNOTUCMWKZUUS5QIVQC \ / AMOS7 \ YOURUM ::
+#\[7]G3SIMPQAT26BBX4ZBYV7A3FCO7BC3JDLMBUUAAJEZIVSLWQH3CDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

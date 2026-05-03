@@ -1716,6 +1716,8 @@ sub p7_load_code {
                      # preserve escaping with (?<!\\) negative lookbehind
                         s|(?<!\\)<\[([\w\-\.]+)\]>\s*->\(|\$code{'$1'}->(|gr
                             =~ s|(?<!\\)<\[([\w\-\.]+)\]>|\$code{'$1'}->()|gr
+                            =~ s|(?<!\\)<\[(\$\w+)\]>\s*->\(|\$code{$1}->(|gr
+                            =~ s|(?<!\\)<\[(\$\w+)\]>|\$code{$1}->()|gr
                             =~ s|(?<!\\)<([\w\-:]+\.[\w\-\.:]+)>|
                             do { my $k = "\$data{'$1'}";
                                  $k =~ s<\.><'}{'>g; $k }|reg
@@ -5694,8 +5696,8 @@ __DATA__
 :
 :.
 
-#,,,,,,,.,..,,,,.,...,...,,.,,.,,,..,,..,,..,,..,,...,...,.,.,.,.,.,,,.,.,,.,,
-#LMOJIKMPEKBG36RC6LMXKSJUDQHKXOGXKEQ5PQIBJJB3NHYDGNONNODSXO4MZOH7GKAURPRFZKM6C
-#\\\|JKIAKALWVVKEYCUEZEV5RHKNJ24BUQFWEAWXWZ4ZLGIX2BO447X \ / AMOS7 \ YOURUM ::
-#\[7]6HWWPVL2RTHVUTI35LLQFBHLASFZH2X7CWFCYG2MZKGND4TAR2BI 7  DATA SIGNATURE ::
+#,,,,,,..,,,,,,,,,,,.,,..,..,,.,,,.,,,,,.,,..,..,,...,...,...,.,,,,,.,,,,,.,,,
+#CXE2NQOQGFOTZSB23HAFXUC2AU7OMX2KJJHS44AQEYNJRGYTB2CAJ6NNGEMI4VDDWYGOQCCD5WZCO
+#\\\|LLZXBX4KXANB23TKAZSEOQP22EBI7YWY3IVIBEGJS4TT7HECAGK \ / AMOS7 \ YOURUM ::
+#\[7]OSTAIOHNCDBNF5PYDCFQV24CXYNXQKDW5OCE544P6HLR2F3Z52AQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
