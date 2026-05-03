@@ -1,5 +1,18 @@
 # Completed Work Sessions
 
+## session 11 — module cleanup + parser tooling (May 3 2026, late)
+
+- 94 modules across plan-9.*, storage.*, base.editor/encode/decode.*,
+  plugin.storage.*, command.*, amos-term.* had `return sub { }` wrappers —
+  caused modules to return coderefs instead of executing; all fixed
+- `bin/dev/parsers/strip-return-sub`: new tool handling all three sub-patterns
+  (multi-line+`my ($call)=@_`, multi-line plain, single-line); runs with `--all`
+- `AMOS7.key-32-safeguard` deleted — dead code, knowledge in `AMOS7/13.pm`
+- `<[$var]>->()` dynamic dispatch added to bin/Protocol-7 parser:
+  `<[$var]>->($arg)` → `$code{$var}->($arg)`, `<[$var]>` → `$code{$var}->()`
+- docs updated: CLAUDE.md, coding.system_prompt, data/ai-mem/kimi/coding-style.md,
+  data/yaml/ncode-patterns/p7-style.yaml, memory/feedback-p7-module-call-syntax.md
+
 ## session 7 — coding zenka stability: spawning, subtasks, context, loops (May 1 2026)
 
 ### Spawning fixes
@@ -297,8 +310,8 @@ zenki-create/zenki-feature-port/footer-cleanup templates added.
 - philosophy: ETERNAL-TEMPLATE-KITTEN.md (deduplication tree crystallizes truth, kitten as template process)
 - Commits: 98743c227 through 30bbd31b4 + fe3d3a295
 
-#,,.,,.,.,,.,,..,,.,,,.,,,...,...,,.,,,.,,...,..,,...,...,.,,,..,,,,,,..,,..,,
-#XHSYCMWE2VLSMDLWBLAI6VSQLO6D4IC6WJME4ZXTJPJ6AB6JEU7J7WL6TNDD3U3K5QRFJRBMSSPA6
-#\\\|FVMCEI2QB74BSKY5VJTIM6UXMTKLIKRH4N2HZ3UCXAKZZDYWOOV \ / AMOS7 \ YOURUM ::
-#\[7]KQRO6U43MFZSLROFXPD7RCOEWV4M726UOK5FKJIOCST7W55RLQDQ 7  DATA SIGNATURE ::
+#,,,,,,.,,,,,,,..,,,,,.,.,,,.,..,,,.,,.,,,,..,..,,...,...,,..,.,.,,..,.,.,,.,,
+#5OXXM5KOXKLXF6DERMYNQAFF3G6X6OWWQVJGJHI4TJXB6AQCYJXN5WWHLOEQ7YNUODKUTO4XBFWJI
+#\\\|M7PGEUVVWK2VXQJY52KFSDRINSG6MGDGCFDCMFBCUPQRWNYZYSA \ / AMOS7 \ YOURUM ::
+#\[7]MGKRVRTCDQTR4WCWXPURMLLUS267RZMQPDWH7JMYV5J33UTNMGBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

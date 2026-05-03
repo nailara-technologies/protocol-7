@@ -47,6 +47,7 @@ for my $variant ( sort keys %variants ) {
 
     my $content = join "\n", @{$lines};
     $content .= "\n";
+    utf8::encode($content);    ## bytes for xz ##
 
     my $compressed = '';
     IO::Compress::Xz::xz( \$content, \$compressed )
@@ -77,8 +78,8 @@ for my $variant ( sort keys %variants ) {
 
 return $saved > 0 ? TRUE : FALSE;
 
-#,,.,,...,,,,,,,,,,,,,.,,,.,.,,,.,,.,,.,,,..,,..,,...,...,...,.,.,,,.,.,,,,,.,
-#X2GGZ2GNBTZ4YS7FY6HBTHS4AUWFBAFVHX5KR7U37ZKF7LZ57XUWODOYNFNMWKDGEE4AIXZV6XPRY
-#\\\|V76QJLXCPEMEHZM3G2IEVTR4OHFUJB24LLCB7EUX53AD3QNR4KC \ / AMOS7 \ YOURUM ::
-#\[7]N7EZWDLB3SRJXP3JCMXVBLDPHIICH7XX6WKFCE5LHVHAKWGO3GBA 7  DATA SIGNATURE ::
+#,,,,,.,,,,..,,,.,...,,.,,,,.,,,,,..,,...,..,,..,,...,...,.,.,.,.,,..,..,,.,,,
+#AA6WKO4X227Y25FCB6H64TGXUBU4LZEPB5OYH3W27AR3NVWW72KPRPS7JWEWDSF2MBUEB5Z4LPM2A
+#\\\|X2YNOGHRNPVJSM4V2NGX23GRTYHE5RJ7NN6P6YSIZNBTJRAGHEO \ / AMOS7 \ YOURUM ::
+#\[7]VNJ2M4LJDR6HNOJKBQHZ734XZMF5D3PNIRHFAZMXH4ERTFRWFEAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
