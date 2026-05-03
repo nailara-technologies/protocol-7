@@ -2,127 +2,120 @@
 # name  = plugin.storage.checksum.cluster.query
 # descr = Query clusters by type, size, or member patterns
 
-use strict;
-use warnings;
+my ($args) = @ARG;
 
-return sub {
-    my ($args) = @ARG;
+my $query_type  = $args->{'query'} // 'all';
+my $type_filter = $args->{'type'};             # Filter by cluster type
+my $min_size    = $args->{'min_size'};
+my $max_size    = $args->{'max_size'};
+my $pattern = $args->{'pattern'};        # Regex pattern for checksum matching
+my $limit   = $args->{'limit'} // 1000;
 
-    my $query_type  = $args->{'query'} // 'all';
-    my $type_filter = $args->{'type'};             # Filter by cluster type
-    my $min_size    = $args->{'min_size'};
-    my $max_size    = $args->{'max_size'};
-    my $pattern = $args->{'pattern'};    # Regex pattern for checksum matching
-    my $limit   = $args->{'limit'} // 1000;
+my $registry = $data{'storage'}{'mapping'}{'checksum-cluster'};
+my @results;
 
-    my $registry = $data{'storage'}{'mapping'}{'checksum-cluster'};
-    my @results;
+if ( $query_type eq 'all' || $query_type eq 'by_type' ) {
 
-    if ( $query_type eq 'all' || $query_type eq 'by_type' ) {
+    # Query all clusters or by type
+    my $source
+        = $type_filter
+        ? $registry->{'by_type'}{$type_filter}
+        : $registry->{'clusters'};
 
-        # Query all clusters or by type
-        my $source
-            = $type_filter
-            ? $registry->{'by_type'}{$type_filter}
-            : $registry->{'clusters'};
+    my $count = 0;
+    for my $id ( keys %$source ) {
+        last if $count >= $limit;
 
-        my $count = 0;
-        for my $id ( keys %$source ) {
-            last if $count >= $limit;
+        my $cluster = $registry->{'clusters'}{$id};
+        next unless $cluster;
 
-            my $cluster = $registry->{'clusters'}{$id};
-            next unless $cluster;
+        # Size filters
+        my $size = scalar( @{ $cluster->{'members'} } );
+        next if defined $min_size && $size < $min_size;
+        next if defined $max_size && $size > $max_size;
 
-            # Size filters
-            my $size = scalar( @{ $cluster->{'members'} } );
-            next if defined $min_size && $size < $min_size;
-            next if defined $max_size && $size > $max_size;
-
-            # Pattern filter
-            if ($pattern) {
-                next unless $id =~ /$pattern/i;
-            }
-
-            push @results,
-                {
-                'id'       => $id,
-                'type'     => $cluster->{'type'},
-                'size'     => $size,
-                'p7ref'    => $cluster->{'p7ref'},
-                'metadata' => $cluster->{'metadata'},
-                };
-            $count++;
-        }
-    } elsif ( $query_type eq 'orphans' ) {
-
-        # Find checksums that are cluster IDs but not members of any cluster
-        my %all_members;
-        for my $cluster ( values %{ $registry->{'clusters'} } ) {
-            for my $m ( @{ $cluster->{'members'} } ) {
-                $all_members{$m} = 1 unless $m =~ m|^p7://|;
-            }
+        # Pattern filter
+        if ($pattern) {
+            next unless $id =~ /$pattern/i;
         }
 
-        for my $id ( keys %{ $registry->{'clusters'} } ) {
-            push @results, $id unless exists $all_members{$id};
+        push @results,
+            {
+            'id'       => $id,
+            'type'     => $cluster->{'type'},
+            'size'     => $size,
+            'p7ref'    => $cluster->{'p7ref'},
+            'metadata' => $cluster->{'metadata'},
+            };
+        $count++;
+    }
+} elsif ( $query_type eq 'orphans' ) {
+
+    # Find checksums that are cluster IDs but not members of any cluster
+    my %all_members;
+    for my $cluster ( values %{ $registry->{'clusters'} } ) {
+        for my $m ( @{ $cluster->{'members'} } ) {
+            $all_members{$m} = 1 unless $m =~ m|^p7://|;
         }
-    } elsif ( $query_type eq 'hubs' ) {
-
-        # Find checksums that appear in multiple clusters (via reverse index)
-        my %membership_count;
-        for my $cluster_id ( keys %{ $registry->{'clusters'} } ) {
-            my $cluster = $registry->{'clusters'}{$cluster_id};
-            for my $m ( @{ $cluster->{'members'} } ) {
-                next if $m =~ m|^p7://|;
-                $membership_count{$m}++;
-            }
-        }
-
-        # Also count as member if it's a primary cluster ID
-        for my $id ( keys %{ $registry->{'clusters'} } ) {
-            $membership_count{$id}++;
-        }
-
-        # Sort by membership count
-        @results = sort { $membership_count{$b} <=> $membership_count{$a} }
-            grep { $membership_count{$ARG} > 1 }
-            keys %membership_count;
-
-        @results = @results[ 0 .. $limit - 1 ] if @results > $limit;
-
-        return {
-            'mode' => 'true',
-            'data' => { map { $ARG => $membership_count{$ARG} } @results },
-        };
-    } elsif ( $query_type eq 'stats' ) {
-        return {
-            'mode' => 'true',
-            'data' => {
-                'total_clusters' =>
-                    scalar( keys %{ $registry->{'clusters'} } ),
-                'total_members' => $registry->{'stats'}{'members_added'},
-                'by_type'       => {
-                    map {
-                        $ARG =>
-                            scalar( keys %{ $registry->{'by_type'}{$ARG} } )
-                        }
-                        keys %{ $registry->{'by_type'} }
-                },
-                'reverse_index' => scalar( keys %{ $registry->{'index'} } ),
-                'memory_shared' => $registry->{'stats'}{'memory_shared'},
-            }
-        };
     }
 
+    for my $id ( keys %{ $registry->{'clusters'} } ) {
+        push @results, $id unless exists $all_members{$id};
+    }
+} elsif ( $query_type eq 'hubs' ) {
+
+    # Find checksums that appear in multiple clusters (via reverse index)
+    my %membership_count;
+    for my $cluster_id ( keys %{ $registry->{'clusters'} } ) {
+        my $cluster = $registry->{'clusters'}{$cluster_id};
+        for my $m ( @{ $cluster->{'members'} } ) {
+            next if $m =~ m|^p7://|;
+            $membership_count{$m}++;
+        }
+    }
+
+    # Also count as member if it's a primary cluster ID
+    for my $id ( keys %{ $registry->{'clusters'} } ) {
+        $membership_count{$id}++;
+    }
+
+    # Sort by membership count
+    @results = sort { $membership_count{$b} <=> $membership_count{$a} }
+        grep { $membership_count{$ARG} > 1 }
+        keys %membership_count;
+
+    @results = @results[ 0 .. $limit - 1 ] if @results > $limit;
+
     return {
-        'mode'  => 'true',
-        'data'  => \@results,
-        'count' => scalar(@results),
+        'mode' => 'true',
+        'data' => { map { $ARG => $membership_count{$ARG} } @results },
     };
+} elsif ( $query_type eq 'stats' ) {
+    return {
+        'mode' => 'true',
+        'data' => {
+            'total_clusters' => scalar( keys %{ $registry->{'clusters'} } ),
+            'total_members'  => $registry->{'stats'}{'members_added'},
+            'by_type'        => {
+                map {
+                    $ARG => scalar( keys %{ $registry->{'by_type'}{$ARG} } )
+                    }
+                    keys %{ $registry->{'by_type'} }
+            },
+            'reverse_index' => scalar( keys %{ $registry->{'index'} } ),
+            'memory_shared' => $registry->{'stats'}{'memory_shared'},
+        }
+    };
+}
+
+return {
+    'mode'  => 'true',
+    'data'  => \@results,
+    'count' => scalar(@results),
 };
 
-#,,.,,..,,..,,,.,,.,,,,.,,.,,,.,,,.,,,,..,,,.,.,.,...,..,,,.,,..,,,..,,.,,,,.,
-#VOYNPJ4ASJGNUIUKRIWSB6UMFJX4WUIHUTZMPATBUWPL7DSSQRBXZMCGBBC5DRG25QPAX7L7LIU7W
-#\\\|FWGCGEK55H22T4DQGQV2GB7T4VLSZLOG6E2LLXP3VZ7BU5SJJR5 \ / AMOS7 \ YOURUM ::
-#\[7]ZP5GHGKLMTRS3LADHSPJWJZN4OAOPIHEVONWKKAT32NMLCKKPUDY 7  DATA SIGNATURE ::
+#,,..,,..,.,.,.,,,.,,,...,..,,...,,.,,.,,,,.,,.,.,...,...,,..,,..,...,,..,..,,
+#YZRCAZXBWUPYGUZV2DUHZKRYTVDDLEKPIFP3N23OVDBQDHGBBYT4MBTRLY5ZD2YLID6M74ZHU6GHI
+#\\\|F7LXZJPIQKEQRVFVFLXSUB3CZ5JNC5SEUTDG74KND7DDMQPS5FF \ / AMOS7 \ YOURUM ::
+#\[7]RLNGPXF2SHRCJATIB4PTUFJ5TJDQ54RWZ2GQCU4IWYU63NZ5TKCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

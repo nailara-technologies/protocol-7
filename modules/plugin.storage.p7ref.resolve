@@ -2,153 +2,147 @@
 # name  = plugin.storage.p7ref.resolve
 # descr = Resolve P7REF to actual storage location
 
-use strict;
-use warnings;
+my ($args) = @ARG;
 
-return sub {
-    my ($args) = @ARG;
+my $p7ref = $args->{p7ref}
+    or return { 'mode' => 'false', 'data' => 'p7ref required' };
 
-    my $p7ref = $args->{p7ref}
-        or return { 'mode' => 'false', 'data' => 'p7ref required' };
+my $registry = $data{'storage'}{'mapping'}{'p7ref'};
 
-    my $registry = $data{'storage'}{'mapping'}{'p7ref'};
+# Parse first
+my $parse_res = <[plugin.storage.p7ref.parse]>->( { 'p7ref' => $p7ref } );
+return $parse_res if $parse_res->{'mode'} eq 'false';
 
-    # Parse first
-    my $parse_res = <[plugin.storage.p7ref.parse]>->( { 'p7ref' => $p7ref } );
-    return $parse_res if $parse_res->{'mode'} eq 'false';
+my $parsed = $parse_res->{'data'};
+my $type   = $parsed->{'type'};
 
-    my $parsed = $parse_res->{'data'};
-    my $type   = $parsed->{'type'};
+# Check if type is supported
+my $type_info = $registry->{'types'}{$type};
+if ( not $type_info ) {
+    return { 'mode' => 'false', 'data' => "Unknown P7REF type: $type" };
+}
 
-    # Check if type is supported
-    my $type_info = $registry->{'types'}{$type};
-    if ( not $type_info ) {
-        return { 'mode' => 'false', 'data' => "Unknown P7REF type: $type" };
-    }
+$registry->{'stats'}{'resolved'}++;
 
-    $registry->{'stats'}{'resolved'}++;
+# Handle nested references
+if ( $type eq 'nested' or @{ $parsed->{'nested'} } ) {
+    return <[plugin.storage.p7ref.nested-resolve]>->($args);
+}
 
-    # Handle nested references
-    if ( $type eq 'nested' or @{ $parsed->{'nested'} } ) {
-        return <[plugin.storage.p7ref.nested-resolve]>->($args);
-    }
+# Dispatch to type-specific handler
+my $handler = $type_info->{'handler'};
+my $result;
 
-    # Dispatch to type-specific handler
-    my $handler = $type_info->{'handler'};
-    my $result;
+if ( $type eq 'checksum' ) {
+    $result = <[$handler]>->(
+        {   'operation' => 'lookup',
+            'checksum'  => $parsed->{'address'},
+        }
+    );
+} elsif ( $type eq '9p' ) {
 
-    if ( $type eq 'checksum' ) {
-        $result = <[$handler]>->(
-            {   'operation' => 'lookup',
-                'checksum'  => $parsed->{'address'},
-            }
-        );
-    } elsif ( $type eq '9p' ) {
+    # Build 9P path from address and segments
+    my $path = $parsed->{'address'};
+    $path .= '/' . join( '/', @{ $parsed->{'segments'} } )
+        if @{ $parsed->{'segments'} };
 
-        # Build 9P path from address and segments
-        my $path = $parsed->{'address'};
-        $path .= '/' . join( '/', @{ $parsed->{'segments'} } )
-            if @{ $parsed->{'segments'} };
+    $result = {
+        'mode' => 'true',
+        'data' => {
+            'protocol'  => '9p',
+            'authority' => $parsed->{'authority'} // 'localhost:5640',
+            'path'      => $path,
+            'full'      => "9p://"
+                . ( $parsed->{'authority'} // 'localhost:5640' )
+                . $path,
+        }
+    };
+} elsif ( $type eq 'path' ) {
+    $result = {
+        'mode' => 'true',
+        'data' => {
+            'protocol' => 'local',
+            'path'     => $parsed->{'address'},
+            'exists'   => -e $parsed->{'address'} ? 1 : 0,
+        }
+    };
+} elsif ( $type eq 'inference' ) {
 
-        $result = {
-            'mode' => 'true',
-            'data' => {
-                'protocol'  => '9p',
-                'authority' => $parsed->{'authority'} // 'localhost:5640',
-                'path'      => $path,
-                'full'      => "9p://"
-                    . ( $parsed->{'authority'} // 'localhost:5640' )
-                    . $path,
-            }
-        };
-    } elsif ( $type eq 'path' ) {
-        $result = {
-            'mode' => 'true',
-            'data' => {
-                'protocol' => 'local',
-                'path'     => $parsed->{'address'},
-                'exists'   => -e $parsed->{'address'} ? 1 : 0,
-            }
-        };
-    } elsif ( $type eq 'inference' ) {
+    ## resolve inference cache branch ##
+    my $L13     = $parsed->{'address'};
+    my $segment = $parsed->{'segments'}[0] // '';
 
-        ## resolve inference cache branch ##
-        my $L13     = $parsed->{'address'};
-        my $segment = $parsed->{'segments'}[0] // '';
+    if ( exists $code{'plugin.storage.inference.lookup'} ) {
 
-        if ( exists $code{'plugin.storage.inference.lookup'} ) {
-
-            ## segment selects: best | meta | specific B32-224 response ##
-            if ( $segment eq qw| meta | ) {
-                my $root
-                    = $data{'storage'}{'mapping'}{'inference'}{'root_path'}
-                    // '';
-                my $meta_path = "$root/$L13/.meta";
-                $result = {
-                    'mode' => ( -f $meta_path ) ? qw| true | : qw| false |,
-                    'data' => {
-                        'protocol' => 'inference',
-                        'path'     => $meta_path,
-                        'branch'   => $L13,
-                        'segment'  => qw| meta |,
-                    }
-                };
-            } else {
-                ## lookup best or specific result ##
-                my %lookup_args = (
-                    'checksum'    => $L13,
-                    'max_results' => 1,
-                    'prefer'      => qw| recent |,
-                );
-
-                my $lookup = $code{'plugin.storage.inference.lookup'}
-                    ->( \%lookup_args );
-
-                $result = {
-                    'mode' => $lookup->{'mode'},
-                    'data' => {
-                        'protocol'  => 'inference',
-                        'branch'    => $L13,
-                        'segment'   => $segment,
-                        'results'   => $lookup->{'data'}{'results'}   // [],
-                        'hit_count' => $lookup->{'data'}{'hit_count'} // 0,
-                    }
-                };
-            }
-        } else {
+        ## segment selects: best | meta | specific B32-224 response ##
+        if ( $segment eq qw| meta | ) {
+            my $root = $data{'storage'}{'mapping'}{'inference'}{'root_path'}
+                // '';
+            my $meta_path = "$root/$L13/.meta";
             $result = {
-                'mode' => qw| false |,
-                'data' => 'inference cache plugin not loaded',
+                'mode' => ( -f $meta_path ) ? qw| true | : qw| false |,
+                'data' => {
+                    'protocol' => 'inference',
+                    'path'     => $meta_path,
+                    'branch'   => $L13,
+                    'segment'  => qw| meta |,
+                }
+            };
+        } else {
+            ## lookup best or specific result ##
+            my %lookup_args = (
+                'checksum'    => $L13,
+                'max_results' => 1,
+                'prefer'      => qw| recent |,
+            );
+
+            my $lookup
+                = $code{'plugin.storage.inference.lookup'}->( \%lookup_args );
+
+            $result = {
+                'mode' => $lookup->{'mode'},
+                'data' => {
+                    'protocol'  => 'inference',
+                    'branch'    => $L13,
+                    'segment'   => $segment,
+                    'results'   => $lookup->{'data'}{'results'}   // [],
+                    'hit_count' => $lookup->{'data'}{'hit_count'} // 0,
+                }
             };
         }
-
-    } elsif ( $type eq 'segment' ) {
-        $result = {
-            'mode' => 'true',
-            'data' => {
-                'protocol' => 'segment',
-                'segments' => $parsed->{'segments'},
-                'base'     => $parsed->{'address'},
-            }
-        };
     } else {
-        return {
-            'mode' => 'false',
-            'data' => "Handler not implemented for type: $type"
+        $result = {
+            'mode' => qw| false |,
+            'data' => 'inference cache plugin not loaded',
         };
     }
 
-    # Add P7REF metadata
-    if ( $result->{'mode'} eq 'true' ) {
-        $result->{'data'}{'p7ref'} = $p7ref;
-        $result->{'data'}{'type'}  = $type;
-    }
+} elsif ( $type eq 'segment' ) {
+    $result = {
+        'mode' => 'true',
+        'data' => {
+            'protocol' => 'segment',
+            'segments' => $parsed->{'segments'},
+            'base'     => $parsed->{'address'},
+        }
+    };
+} else {
+    return {
+        'mode' => 'false',
+        'data' => "Handler not implemented for type: $type"
+    };
+}
 
-    return $result;
-};
+# Add P7REF metadata
+if ( $result->{'mode'} eq 'true' ) {
+    $result->{'data'}{'p7ref'} = $p7ref;
+    $result->{'data'}{'type'}  = $type;
+}
 
-#,,,.,,,,,.,,,,..,...,,,.,,.,,.,.,,,.,,.,,..,,..,,...,...,..,,,,,,,,.,..,,,..,
-#7NYVWKD4G6E4EL77YMFSQQC5ZMXEIIKQJDIGFV3CXSFNPTMTFTXPNYYA74XOENR5CS5J7BQRWAI3Y
-#\\\|D2ACBAYPJDGOIOCTYIKQAKG5FZ73JBFXTGWTGGA3AX2ZMLPGXZW \ / AMOS7 \ YOURUM ::
-#\[7]X2PSB5DOGDMWNGZQGLLI53TRZLNLNPOORVFQEIVSGNEK522BLYCA 7  DATA SIGNATURE ::
+return $result;
+
+#,,,.,.,,,...,,.,,,.,,.,,,,,.,..,,,,,,...,..,,.,.,...,...,...,,..,..,,.,,,.,.,
+#HOJE3QGQFNPTLYNATYDMYLQCFMOSNE73WRZ7VVV6WWB3ACW45H3SFRU6WZFZCDQWSF44SHL7R2PR4
+#\\\|DX5CYRTE27IUWJCIVZQYSKUFTUOARDLN7QX7B6E7FFC7QWEKVKL \ / AMOS7 \ YOURUM ::
+#\[7]OVS54RCDR7BGAUP2QEI6N3TTO4CQS53NI5O7DXJKMOKJARNFLOBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

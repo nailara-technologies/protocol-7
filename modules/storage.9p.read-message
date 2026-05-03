@@ -2,64 +2,56 @@
 # name  = storage.9p.read-message
 # descr = Read 9P message for storage
 
-use strict;
-use warnings;
+my ( $conn, $expect_tag ) = @ARG;
 
-return sub {
-    my ( $conn, $expect_tag ) = @_;
+my $socket = $conn->{socket};
+my $header = '';
 
-    my $socket = $conn->{socket};
-    my $header = '';
+# Read 4-byte size
+while ( length($header) < 4 ) {
+    my $buf = '';
+    my $n   = $socket->sysread( $buf, 4 - length($header) );
+    return { 'mode' => 'false', 'data' => 'connection closed' }
+        if not defined $n or $n == 0;
+    $header .= $buf;
+}
 
-    # Read 4-byte size
-    while ( length($header) < 4 ) {
-        my $buf = '';
-        my $n   = $socket->sysread( $buf, 4 - length($header) );
-        return { 'mode' => 'false', 'data' => 'connection closed' }
-            if not defined $n or $n == 0;
-        $header .= $buf;
-    }
+my $size = <[plan-9.protocol.codec.decode-uint32]>->($header);
+my $body = '';
 
-    my $size = <[plan-9.protocol.codec.decode-uint32]>->($header);
-    my $body = '';
+while ( length($body) < $size - 4 ) {
+    my $buf = '';
+    my $n   = $socket->sysread( $buf, $size - 4 - length($body) );
+    return { 'mode' => 'false', 'data' => 'connection closed' }
+        if not defined $n or $n == 0;
+    $body .= $buf;
+}
 
-    while ( length($body) < $size - 4 ) {
-        my $buf = '';
-        my $n   = $socket->sysread( $buf, $size - 4 - length($body) );
-        return { 'mode' => 'false', 'data' => 'connection closed' }
-            if not defined $n or $n == 0;
-        $body .= $buf;
-    }
+my $type = <[plan-9.protocol.codec.decode-uint8]>->( substr( $body, 0, 1 ) );
+my $tag  = <[plan-9.protocol.codec.decode-uint16]>->( substr( $body, 1, 2 ) );
+my $data = substr( $body, 3 );
 
-    my $type
-        = <[plan-9.protocol.codec.decode-uint8]>->( substr( $body, 0, 1 ) );
-    my $tag
-        = <[plan-9.protocol.codec.decode-uint16]>->( substr( $body, 1, 2 ) );
-    my $data = substr( $body, 3 );
+if ( $type == <plan-9.protocol.constants.Rerror> ) {
+    my ( $error, $rest ) = <[plan-9.protocol.codec.decode-string]>->($data);
+    return { 'mode' => 'false', 'data' => $error };
+}
 
-    if ( $type == <plan-9.protocol.constants.Rerror> ) {
-        my ( $error, $rest )
-            = <[plan-9.protocol.codec.decode-string]>->($data);
-        return { 'mode' => 'false', 'data' => $error };
-    }
-
-    if ( defined $expect_tag and $tag != $expect_tag ) {
-        return {
-            'mode' => 'false',
-            'data' => "tag mismatch: expected $expect_tag, got $tag"
-        };
-    }
-
+if ( defined $expect_tag and $tag != $expect_tag ) {
     return {
-        'mode' => 'true',
-        'type' => $type,
-        'tag'  => $tag,
-        'data' => $data
+        'mode' => 'false',
+        'data' => "tag mismatch: expected $expect_tag, got $tag"
     };
+}
+
+return {
+    'mode' => 'true',
+    'type' => $type,
+    'tag'  => $tag,
+    'data' => $data
 };
 
-#,,..,,..,,,.,,,,,..,,...,,,,,,.,,.,,,,,.,,..,..,,...,...,...,..,,.,.,,..,,..,
-#HAWBSWVE22VA3Z4X5Y363Q4TJFXINTS6Y4OTVG6XG3QV5573EPWXYWGO4IJWCHJAVBQLI25A3HFPA
-#\\\|D6P6NXJFJXPK4HIL6VEFU4AD4ZCVAE7XSEAKIMZ6NJGQVUI4L5F \ / AMOS7 \ YOURUM ::
-#\[7]E2NFAUULYZBJR4RMAV2XRZDTPYVD7ZNRGPUVREYTBZBJHTFFOIBQ 7  DATA SIGNATURE ::
+#,,..,,..,...,,.,,,,.,.,.,,..,,,.,..,,.,.,,..,.,.,...,..,,,..,.,,,.,,,,,.,...,
+#VQWP2DVIOURWIOH2YZTQA5NUWEGHXPH7G3JVCZB5PYG4KIYQLUZVQFS4G3I6ZVHOUPR5UXR4HH4HC
+#\\\|6CZLSL327P3LSBGAFD546CFQSFPGNLRQQY24L2D5OVAQRND6QMA \ / AMOS7 \ YOURUM ::
+#\[7]D3BUUSJ53VNZJKALDXC5QIQET3RSMGCCOECKI6DLUX2GYYFYZCBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

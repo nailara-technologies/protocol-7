@@ -2,83 +2,76 @@
 # name  = plan-9.client.list-dir
 # descr = List directory contents from 9P server
 
-use strict;
-use warnings;
+my ( $client_name, $path ) = @ARG;
 
-return sub {
-    my ( $client_name, $path ) = @_;
+my $client = $data{'plan-9'}{'client'}{$client_name};
+return { 'mode' => 'false', 'data' => 'client not found' } unless $client;
 
-    my $client = $data{'plan-9'}{'client'}{$client_name};
-    return { 'mode' => 'false', 'data' => 'client not found' } unless $client;
+# Walk to directory
+my @parts = grep {length} split m|/|, $path;
+my $fid   = $client->{next_fid}++;
 
-    # Walk to directory
-    my @parts = grep {length} split m|/|, $path;
-    my $fid   = $client->{next_fid}++;
+my $walk_result;
+if (@parts) {
+    $walk_result = <[plan-9.client.walk]>
+        ->( $client, $client->{root_fid}, $fid, @parts );
+} else {
 
-    my $walk_result;
-    if (@parts) {
-        $walk_result = <[plan-9.client.walk]>->(
-            $client, $client->{root_fid}, $fid, @parts
-        );
-    } else {
+    # Root directory
+    $walk_result
+        = <[plan-9.client.walk]>->( $client, $client->{root_fid}, $fid );
+}
+return $walk_result if $walk_result->{'mode'} eq 'false';
 
-        # Root directory
-        $walk_result
-            = <[plan-9.client.walk]>->( $client, $client->{root_fid}, $fid );
-    }
-    return $walk_result if $walk_result->{'mode'} eq 'false';
+# Open directory
+my $open_result = <[plan-9.client.open]>->( $client, $fid, 0 );    # OREAD
+return $open_result if $open_result->{'mode'} eq 'false';
 
-    # Open directory
-    my $open_result = <[plan-9.client.open]>->( $client, $fid, 0 );    # OREAD
-    return $open_result if $open_result->{'mode'} eq 'false';
+# Read directory entries
+my @entries;
+my $offset = 0;
+my $iounit = $client->{fids}{$fid}{iounit} // 8192;
 
-    # Read directory entries
-    my @entries;
-    my $offset = 0;
-    my $iounit = $client->{fids}{$fid}{iounit} // 8192;
+while (1) {
+    my $read_result
+        = <[plan-9.client.read]>->( $client, $fid, $offset, $iounit );
+    last if $read_result->{'mode'} eq 'false';
 
-    while (1) {
-        my $read_result
-            = <[plan-9.client.read]>->( $client, $fid, $offset, $iounit );
-        last if $read_result->{'mode'} eq 'false';
+    my $data = $read_result->{'data'};
+    last if length($data) == 0;
 
-        my $data = $read_result->{'data'};
-        last if length($data) == 0;
+    # Parse directory entries (stat structures)
+    my $pos = 0;
+    while ( $pos < length($data) ) {
+        last if $pos + 2 > length($data);
+        my $stat_size = <[plan-9.protocol.codec.decode-uint16]>
+            ->( substr( $data, $pos, 2 ) );
+        last if $pos + 2 + $stat_size > length($data);
 
-        # Parse directory entries (stat structures)
-        my $pos = 0;
-        while ( $pos < length($data) ) {
-            last if $pos + 2 > length($data);
-            my $stat_size = <[plan-9.protocol.codec.decode-uint16]>
-                ->( substr( $data, $pos, 2 ) );
-            last if $pos + 2 + $stat_size > length($data);
+        my $stat_data = substr( $data, $pos + 2, $stat_size );
+        $pos += 2 + $stat_size;
 
-            my $stat_data = substr( $data, $pos + 2, $stat_size );
-            $pos += 2 + $stat_size;
+        # Extract name from stat
+        my $name_pos = 2 + 2 + 4 + 13 + 4 + 4 + 4 + 8;    # Skip to name field
+        next if $name_pos >= length($stat_data);
 
-            # Extract name from stat
-            my $name_pos
-                = 2 + 2 + 4 + 13 + 4 + 4 + 4 + 8;    # Skip to name field
-            next if $name_pos >= length($stat_data);
-
-            my ( $name, $rest )
-                = <[plan-9.protocol.codec.decode-string]>
-                ->( substr( $stat_data, $name_pos ) );
-            push @entries, $name if length($name);
-        }
-
-        $offset += length($data);
-        last if length($data) < $iounit;
+        my ( $name, $rest )
+            = <[plan-9.protocol.codec.decode-string]>
+            ->( substr( $stat_data, $name_pos ) );
+        push @entries, $name if length($name);
     }
 
-    # Clunk fid
-    <[plan-9.client.clunk]>->( $client, $fid );
+    $offset += length($data);
+    last if length($data) < $iounit;
+}
 
-    return { 'mode' => 'true', 'data' => \@entries };
-};
+# Clunk fid
+<[plan-9.client.clunk]>->( $client, $fid );
 
-#,,.,,...,,.,,..,,,..,.,.,,,,,.,,,,..,,..,.,.,..,,...,...,..,,...,,,,,.,.,,.,,
-#TD5FMXXAPRNRIRMDQFCHZVSM5K23HRFT4YV7KGIVO4NU4A7YXXFPZ7KL5YSQWL6ZOOFED2YIBGVI6
-#\\\|LGWLD3DU4MK6ILVCTE2PN3NMUMAUY6AAIEWWJFOM3UE4RWHRRKJ \ / AMOS7 \ YOURUM ::
-#\[7]565B7RJRR7RV74GXPM2HRG3GNWD5K3TKWHPL5I3HH2JSZSC2TYDY 7  DATA SIGNATURE ::
+return { 'mode' => 'true', 'data' => \@entries };
+
+#,,,.,...,.,,,,..,,..,,.,,.,,,,,.,,.,,,.,,.,.,.,.,...,...,,..,,,,,,,,,,.,,,,.,
+#LO5OIN5IU2BW7ZP4T75B7UGJNYLK4US2EVD3FPSXG34JQNNMNZXGAOMK32SFLWHVH7MI4CZW6DR2W
+#\\\|3AX3OD7F6BGOJK6NX5MNIDFH6MEV7RGWXDV337IWZFNAHU74FQ3 \ / AMOS7 \ YOURUM ::
+#\[7]BRLY2OPKJL3TK3NXFD3CIGNL6WS3PIJGSKU2CQGPTOVG6XSJ4SCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

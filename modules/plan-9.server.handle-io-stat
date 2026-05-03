@@ -2,32 +2,26 @@
 # name  = plan-9.server.handle-io-stat
 # descr = Handle 9P Tstat/Rstat
 
-use strict;
-use warnings;
+my ( $client, $tag, $data ) = @ARG;
 
-return sub {
-    my ( $client, $tag, $data ) = @_;
+my $fid = <[plan-9.protocol.codec.decode-uint32]>->( substr( $data, 0, 4 ) );
 
-    my $fid
-        = <[plan-9.protocol.codec.decode-uint32]>->( substr( $data, 0, 4 ) );
+my $f = $client->{fids}{$fid};
+return <[plan-9.protocol.error]>->( $tag, "invalid fid" ) unless $f;
 
-    my $f = $client->{fids}{$fid};
-    return <[plan-9.protocol.error]>->( $tag, "invalid fid" ) unless $f;
+my $stat      = <[plan-9.server.buffer-stat]>->($f);
+my $stat_data = <[plan-9.protocol.codec.encode-stat]>->($stat);
 
-    my $stat      = <[plan-9.server.buffer-stat]>->($f);
-    my $stat_data = <[plan-9.protocol.codec.encode-stat]>->($stat);
+my $resp = <[plan-9.protocol.codec.encode-uint16]>->( length($stat_data) )
+    . $stat_data;
 
-    my $resp = <[plan-9.protocol.codec.encode-uint16]>->( length($stat_data) )
-        . $stat_data;
+return <[plan-9.protocol.codec.encode-message]>->(
+    <plan-9.protocol.constants.Rstat>,
+    $tag, $resp
+);
 
-    return <[plan-9.protocol.codec.encode-message]>->(
-        <plan-9.protocol.constants.Rstat>,
-        $tag, $resp
-    );
-};
-
-#,,,,,,.,,.,.,,..,.,,,,,,,,,,,.,,,.,,,...,..,,..,,...,...,.,,,,,.,,,.,,..,,.,,
-#TVFCN66EQJOEHMKZVF74TMBSKSJSXWCUSPCOQQHRTFAVHEQ5OQXLRGO6PEQT3GINGYNWXF5FBLRDQ
-#\\\|EAUE4T3TAP3RD4H6VWGOYYOYHJBBAMR6KRDERDFD65SG3TCRSLB \ / AMOS7 \ YOURUM ::
-#\[7]XXLGZOHLYBNQMMN6ZEXWXNIY366LY6BXFNLZCHDCET6ZCYJMTMDQ 7  DATA SIGNATURE ::
+#,,,,,,,,,,..,,..,,.,,,,.,.,,,...,,..,.,,,.,,,.,.,...,...,..,,...,.,.,...,.,,,
+#KAQJQJ4743WYBHJP4CXEKGA2QI7D5ZMTNOBOKILRUVDYQZ2XBYEFO2EDWMOBQUISYI4Z5W6AWI2XU
+#\\\|FKGIJMUMLLSQHNUSSSXLK2ZM7PUEUD47F3KIXVYNFQQ2IKFVRYZ \ / AMOS7 \ YOURUM ::
+#\[7]7DH5EWFAGFWLNUJEMUXSBAIAKMR2OU4UJHGPCEW6SXZ7QNDL4AAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

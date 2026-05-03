@@ -2,13 +2,10 @@
 # name  = plan-9.protocol.codec
 # descr = 9P protocol encoding/decoding functions
 
-use strict;
-use warnings;
-
 return {
     ## Message encoding ##
     encode_message => sub {
-        my ( $type, $tag, $payload ) = @_;
+        my ( $type, $tag, $payload ) = @ARG;
         $tag //= 0xFFFF;                         # NOTAG
         my $size = 4 + 1 + 2 + length($payload); # size + type + tag + payload
         return pack( 'V C v', $size, $type, $tag ) . $payload;
@@ -34,20 +31,20 @@ return {
 
     ## String encoding/decoding ##
     encode_string => sub {
-        my ($str) = @_;
+        my ($str) = @ARG;
         my $len = length($str);
         return pack( 'v', $len ) . $str;
     },
 
     decode_string => sub {
-        my ($data) = @_;
+        my ($data) = @ARG;
         my $len = unpack( 'v', substr( $data, 0, 2 ) );
         return ( substr( $data, 2, $len ), substr( $data, 2 + $len ) );
     },
 
     ## Qid encoding/decoding ##
     encode_qid => sub {
-        my ( $type, $version, $path ) = @_;
+        my ( $type, $version, $path ) = @ARG;
 
         # Qid: type(1) + version(4) + path(8) = 13 bytes
         my ( $plo, $phi ) = ( $path & 0xFFFFFFFF, $path >> 32 );
@@ -55,7 +52,7 @@ return {
     },
 
     decode_qid => sub {
-        my ($data) = @_;
+        my ($data) = @ARG;
         my ( $type, $version, $plo, $phi ) = unpack( 'C V VV', $data );
         my $path = ( $phi << 32 ) | $plo;
         return ( $type, $version, $path );
@@ -63,7 +60,7 @@ return {
 
     ## Stat encoding ##
     encode_stat => sub {
-        my ($stat) = @_;
+        my ($stat) = @ARG;
 
         # Calculate sizes first
         my $name_len = length( $stat->{name} // '' );
@@ -104,8 +101,8 @@ return {
     },
 };
 
-#,,..,,..,...,.,,,...,,.,,,.,,,.,,..,,.,,,,,.,..,,...,.,,,..,,,,,,,..,,,.,.,.,
-#T5IEX3HL5EJ4WUWF6NTQI62DMQ6XRD55ETBZYAJP5OQ2E7VFNRRRGURQ6EGGS7WJ5HEQ7UKI3V5EQ
-#\\\|MOEC4ZXFF23LQ6SDBDHAXBJZUIGZH4N7FNWGQRP7JRQGGER6UIN \ / AMOS7 \ YOURUM ::
-#\[7]HF3IPKTP5RTGXFJZ2ZSLOAJDOS4REMMTWX6FIOFSXZKX43MTLOBI 7  DATA SIGNATURE ::
+#,,.,,..,,...,,.,,.,,,,..,,..,..,,.,,,...,,,.,..,,...,...,..,,,.,,,,.,,,.,..,,
+#KCU4BMRNFMHAXBUVA5SC2YFNKXKV22X4BAESA7UV5LTDDXZP4HNL2YQRCQQAJSQ2SCPID467KHM52
+#\\\|OTPOSKMBLIJPYR2VOMF36C5OV56QPXT5IZXDM64RHUDAKPVWTNN \ / AMOS7 \ YOURUM ::
+#\[7]C6LVIYRC3SQUWNJAG4KPKTTROLHAJKE3MQX4B6DN6NE547KXIICA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

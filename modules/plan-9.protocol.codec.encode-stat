@@ -1,7 +1,6 @@
 ## [:< ##
-# name  = plan-9.protocol.codec.encode-stat
-return sub {
-    my ($stat) = @_;
+    # name  = plan-9.protocol.codec.encode-stat
+    my ($stat) = @ARG;
 
     my $name_len = length( $stat->{name} // '' );
     my $uid_len  = length( $stat->{uid}  // 'root' );
@@ -27,10 +26,9 @@ return sub {
     # Fix up size
     substr( $encoded, 0, 2 ) = pack( 'v', length($encoded) - 2 );
     return $encoded;
-};
 
-#,,,.,,,,,.,.,,..,,..,.,,,,,.,,,,,,,,,.,.,...,..,,...,...,,..,,,,,,,,,...,.,.,
-#7ASZSIVIPJNMLUETZ5QAP4POFDTHPQXCWHPX5ZY52YYNZAE24CSSEXJFCLJYMEZBLKBLLFKM62SUI
-#\\\|MLDD6DN757PNKC22YLOA7SSK2BPBA26H4IHMLPRE3ERAH3ZTVKK \ / AMOS7 \ YOURUM ::
-#\[7]VFN4WB6BG3GLFLBGJEFNLWFXJG7FPF2VRHW5RNKGQFPDUQ4CYUAQ 7  DATA SIGNATURE ::
+#,,,.,.,.,,,,,.,.,,,.,...,...,,,.,,..,,.,,.,.,.,.,...,...,...,...,...,.,.,..,,
+#WCQ7JBPHSVRHOYIWT6D7QTUNR2HLU35Q224HKQRS5MUNUIUVA2TUNHFINSU7UYSZGZBLAQFLX3L64
+#\\\|OLGGKFP3E3XJNANELDOSENMUFUZPQLFLM6Q27QAGS6GNKSQQ4SE \ / AMOS7 \ YOURUM ::
+#\[7]VGFJBFQ25SVD4FNJF5ZCPPLTBNTKUDY2PI4DDB7BLNIEG23A2ADI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

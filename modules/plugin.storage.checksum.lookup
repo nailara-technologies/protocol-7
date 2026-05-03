@@ -2,41 +2,36 @@
 # name  = plugin.storage.checksum.lookup
 # descr = Look up files by checksum
 
-use strict;
-use warnings;
+my ($args) = @ARG;
 
-return sub {
-    my ($args) = @ARG;
+my $checksum = $args->{checksum}
+    or return { 'mode' => 'false', 'data' => 'checksum required' };
 
-    my $checksum = $args->{checksum}
-        or return { 'mode' => 'false', 'data' => 'checksum required' };
+my $registry = $data{'storage'}{'mapping'}{'checksum'};
+my $paths    = $registry->{'reverse'}{$checksum} // [];
 
-    my $registry = $data{'storage'}{'mapping'}{'checksum'};
-    my $paths    = $registry->{'reverse'}{$checksum} // [];
-
-    # Verify paths still exist and match
-    my @valid_paths;
-    for my $path (@$paths) {
-        if ( -f $path ) {
-            my $cached = $registry->{'cache'}{$path};
-            if ( $cached and $cached->{checksum} eq $checksum ) {
-                push @valid_paths, $path;
-            }
+# Verify paths still exist and match
+my @valid_paths;
+for my $path (@$paths) {
+    if ( -f $path ) {
+        my $cached = $registry->{'cache'}{$path};
+        if ( $cached and $cached->{checksum} eq $checksum ) {
+            push @valid_paths, $path;
         }
     }
+}
 
-    return {
-        'mode' => 'true',
-        'data' => {
-            'checksum' => $checksum,
-            'paths'    => \@valid_paths,
-            'count'    => scalar(@valid_paths),
-        }
-    };
+return {
+    'mode' => 'true',
+    'data' => {
+        'checksum' => $checksum,
+        'paths'    => \@valid_paths,
+        'count'    => scalar(@valid_paths),
+    }
 };
 
-#,,.,,,.,,,,,,,..,,,,,,,,,,,,,,,,,...,..,,..,,..,,...,...,...,..,,,.,,,,,,.,,,
-#B6KSDVFQGAJMYGL7AJVQBZBM4J3LFEK6DZXDEFSM5JGIYH3YAKZKMWOGT6F3RATWG72BEP5SQS54I
-#\\\|OA2TFGOSQ3WYAGJI4VEPAE5RVGUSEXLQAFM7A4LXFOS5QOQ2YVL \ / AMOS7 \ YOURUM ::
-#\[7]L47GIKUL4BAWXQXKB3JNRJF5H4EFAT2BN5UHWJ27YZ3DXTC6QECQ 7  DATA SIGNATURE ::
+#,,,,,,.,,,..,,,.,.,.,.,.,,..,,.,,,,.,,.,,..,,.,.,...,...,..,,,..,..,,..,,..,,
+#MXJBTW5SVPJDWRPZNC5O5HO5N4FDYV2UO3HTYC6EJ3WTME32MGOUSF2ALPEG7SWT2Z5IFC4JBIPOE
+#\\\|C57VWC4CMWVXKDH6W2KUTB6NNDPCC7TMKVJ2C5A6ARUELS77KAG \ / AMOS7 \ YOURUM ::
+#\[7]F6U43WBB66WLNF535QUWHXN24ETQP3VA2VBHQTDPSCVRV6P2XMCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

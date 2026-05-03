@@ -2,54 +2,49 @@
 # name  = plan-9.client.read-file
 # descr = High-level file read from 9P server
 
-use strict;
-use warnings;
+my ( $client_name, $path ) = @ARG;
 
-return sub {
-    my ( $client_name, $path ) = @_;
+my $client = $data{'plan-9'}{'client'}{$client_name};
+return { 'mode' => 'false', 'data' => 'client not found' } unless $client;
 
-    my $client = $data{'plan-9'}{'client'}{$client_name};
-    return { 'mode' => 'false', 'data' => 'client not found' } unless $client;
+# Walk to file
+my @parts = grep {length} split m|/|, $path;
+my $fid   = $client->{next_fid}++;
 
-    # Walk to file
-    my @parts = grep {length} split m|/|, $path;
-    my $fid   = $client->{next_fid}++;
+my $walk_result
+    = <[plan-9.client.walk]>->( $client, $client->{root_fid}, $fid, @parts );
+return $walk_result if $walk_result->{'mode'} eq 'false';
 
-    my $walk_result = <[plan-9.client.walk]>
-        ->( $client, $client->{root_fid}, $fid, @parts );
-    return $walk_result if $walk_result->{'mode'} eq 'false';
+# Open file
+my $open_result = <[plan-9.client.open]>->( $client, $fid, 0 );    # OREAD
+return $open_result if $open_result->{'mode'} eq 'false';
 
-    # Open file
-    my $open_result = <[plan-9.client.open]>->( $client, $fid, 0 );    # OREAD
-    return $open_result if $open_result->{'mode'} eq 'false';
+# Read entire file
+my $content = '';
+my $offset  = 0;
+my $iounit  = $client->{fids}{$fid}{iounit} // 8192;
 
-    # Read entire file
-    my $content = '';
-    my $offset  = 0;
-    my $iounit  = $client->{fids}{$fid}{iounit} // 8192;
+while (1) {
+    my $read_result
+        = <[plan-9.client.read]>->( $client, $fid, $offset, $iounit );
+    last if $read_result->{'mode'} eq 'false';
 
-    while (1) {
-        my $read_result
-            = <[plan-9.client.read]>->( $client, $fid, $offset, $iounit );
-        last if $read_result->{'mode'} eq 'false';
+    my $chunk = $read_result->{'data'};
+    last if length($chunk) == 0;
 
-        my $chunk = $read_result->{'data'};
-        last if length($chunk) == 0;
+    $content .= $chunk;
+    $offset += length($chunk);
 
-        $content .= $chunk;
-        $offset += length($chunk);
+    last if length($chunk) < $iounit;
+}
 
-        last if length($chunk) < $iounit;
-    }
+# Clunk fid
+<[plan-9.client.clunk]>->( $client, $fid );
 
-    # Clunk fid
-    <[plan-9.client.clunk]>->( $client, $fid );
+return { 'mode' => 'true', 'data' => $content };
 
-    return { 'mode' => 'true', 'data' => $content };
-};
-
-#,,,,,,,.,,,.,...,,..,,,,,...,,..,,,,,,.,,..,,..,,...,..,,.,.,.,,,,,.,..,,.,,,
-#YNYZ6WHSUWKIOFFUDZJRM6ILDCCAGBO7LKK4O4ERYOO4R4YIJCEOI2TPTBQBSFRQLCSFCBIKXRKC6
-#\\\|5P6CWGCRYU4QS4J4LEIRDU5CJVEVLD5K2VUQ4ZIF7MGXTPV6V6Z \ / AMOS7 \ YOURUM ::
-#\[7]D7GS5RUDPDIDYHFDXECIKU2IUBD3ZBIMAT2EGAVR4FJV76JPOIAA 7  DATA SIGNATURE ::
+#,,..,..,,...,,.,,.,.,.,.,.,.,.,,,..,,...,,.,,.,.,...,...,.,,,,,.,,.,,...,.,,,
+#FZW4MTGHHO6YUWAQUFSLUEETMIPWOSJ5JI57INYARJRV2IWN7QMGMV53ZZKOIBZYARXXFLCSMRG2Q
+#\\\|JNBFM4HAYLFP6ALMOD6BPMQVN6AZL7AKZHERE7THYAAPCR5FION \ / AMOS7 \ YOURUM ::
+#\[7]FZMHBMUWLAHKROKZDQU7YXROQ5HIKJ2A5M2VIM4TJMTRWTGF6WDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

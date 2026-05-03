@@ -1,31 +1,30 @@
 ## [:< ##
+
 # name  = base.editor.init_buffer
 # descr = initialize amos-term editor buffer
 
 ## [ stub ] create virtual editor buffer for pager integration ##
 
-return sub {
-    my ($args) = @_;
+my ($args) = @ARG;
 
-    my $buffer_id = $args->{'buffer_id'};
-    my $virtual   = $args->{'virtual'}   // 0;
-    my $read_only = $args->{'read_only'} // 0;
+my $buffer_id = $args->{'buffer_id'};
+my $virtual   = $args->{'virtual'}   // 0;
+my $read_only = $args->{'read_only'} // 0;
 
-    ## TODO: allocate editor buffer structure in amos-term ##
+## TODO: allocate editor buffer structure in amos-term ##
 
-    $data{'editor'}{'buffers'}{$buffer_id} = {
-        'virtual'   => $virtual,
-        'read_only' => $read_only,
-        'pager_id'  => $args->{'pager_id'},
-    };
-
-    return $buffer_id;
+$data{'editor'}{'buffers'}{$buffer_id} = {
+    'virtual'   => $virtual,
+    'read_only' => $read_only,
+    'pager_id'  => $args->{'pager_id'},
 };
+
+return $buffer_id;
 
 # SPDX-License-Identifier: ISC
 
-#,,..,,.,,...,.,.,,,,,,,,,,.,,,..,.,,,,,.,.,.,..,,...,...,.,.,,..,..,,.,,,..,,
-#23YDNN76VTBTRGTGW5BPTHUW3VJZIQQG4YR5T24POLOTR3XOR2LOI7256BSWDFRC4NOVCBZ5N5KPW
-#\\\|FZCBKWB77SCKEVFPRCPGJFXQ2C3LMIUPJEZUBJA7M6TVGR3XJOH \ / AMOS7 \ YOURUM ::
-#\[7]3CAXQYG3XXYEEMVFDCR4BURROJBN5URB4MAXTBEOKONTJSKULCDY 7  DATA SIGNATURE ::
+#,,,,,..,,.,,,,,,,,..,,.,,.,.,,,.,,.,,,.,,...,.,.,...,...,.,,,.,,,,,.,.,.,..,,
+#4F5GCHAEGLNXJVXGCXPA7V772KXTG6JUXEUFVBUHWKT5IK7NUQ52SZX7UVF5NNQZU7XGEQVVAHO2W
+#\\\|GVNVTGMXFD6R2PZVJSLQ4PWXUQGRHVDDNT3XKWYRZSC3HLOVIE4 \ / AMOS7 \ YOURUM ::
+#\[7]ONNPBBHUDG4VSS3AEWCTJEG4LUI3PKOOC23KRJSHZGJKU6Q4ZYAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

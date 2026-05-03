@@ -2,46 +2,39 @@
 # name  = plan-9.server.handle_request
 # descr = Dispatch 9P protocol requests
 
-use strict;
-use warnings;
+my ( $client, $fd, $type, $tag, $data ) = @ARG;
 
-return sub {
-    my ( $client, $fd, $type, $tag, $data ) = @_;
+my $Tversion = <plan-9.protocol.constants.Tversion>;
+my $Tattach  = <plan-9.protocol.constants.Tattach>;
+my $Twalk    = <plan-9.protocol.constants.Twalk>;
+my $Topen    = <plan-9.protocol.constants.Topen>;
+my $Tread    = <plan-9.protocol.constants.Tread>;
+my $Twrite   = <plan-9.protocol.constants.Twrite>;
+my $Tclunk   = <plan-9.protocol.constants.Tclunk>;
+my $Tstat    = <plan-9.protocol.constants.Tstat>;
 
-    my $Tversion = <plan-9.protocol.constants.Tversion>;
-    my $Tattach  = <plan-9.protocol.constants.Tattach>;
-    my $Twalk    = <plan-9.protocol.constants.Twalk>;
-    my $Topen    = <plan-9.protocol.constants.Topen>;
-    my $Tread    = <plan-9.protocol.constants.Tread>;
-    my $Twrite   = <plan-9.protocol.constants.Twrite>;
-    my $Tclunk   = <plan-9.protocol.constants.Tclunk>;
-    my $Tstat    = <plan-9.protocol.constants.Tstat>;
+if ( $type == $Tversion ) {
+    return <[plan-9.server.handle_version]>->( $client, $tag, $data );
+} elsif ( $type == $Tattach ) {
+    return <[plan-9.server.handle_attach]>->( $client, $tag, $data );
+} elsif ( $type == $Twalk ) {
+    return <[plan-9.server.handle_walk]>->( $client, $tag, $data );
+} elsif ( $type == $Topen ) {
+    return <[plan-9.server.handle-io-open]>->( $client, $tag, $data );
+} elsif ( $type == $Tread ) {
+    return <[plan-9.server.handle-io-read]>->( $client, $tag, $data );
+} elsif ( $type == $Twrite ) {
+    return <[plan-9.server.handle-io-write]>->( $client, $tag, $data );
+} elsif ( $type == $Tclunk ) {
+    return <[plan-9.server.handle-io-clunk]>->( $client, $tag, $data );
+} elsif ( $type == $Tstat ) {
+    return <[plan-9.server.handle-io-stat]>->( $client, $tag, $data );
+} else {
+    return <[plan-9.protocol.error]>->( $tag, "unknown message type: $type" );
+}
 
-    if ( $type == $Tversion ) {
-        return <[plan-9.server.handle_version]>->( $client, $tag, $data );
-    } elsif ( $type == $Tattach ) {
-        return <[plan-9.server.handle_attach]>->( $client, $tag, $data );
-    } elsif ( $type == $Twalk ) {
-        return <[plan-9.server.handle_walk]>->( $client, $tag, $data );
-    } elsif ( $type == $Topen ) {
-        return <[plan-9.server.handle-io-open]>->( $client, $tag, $data );
-    } elsif ( $type == $Tread ) {
-        return <[plan-9.server.handle-io-read]>->( $client, $tag, $data );
-    } elsif ( $type == $Twrite ) {
-        return <[plan-9.server.handle-io-write]>->( $client, $tag, $data );
-    } elsif ( $type == $Tclunk ) {
-        return <[plan-9.server.handle-io-clunk]>->( $client, $tag, $data );
-    } elsif ( $type == $Tstat ) {
-        return <[plan-9.server.handle-io-stat]>->( $client, $tag, $data );
-    } else {
-        return
-            <[plan-9.protocol.error]>
-            ->( $tag, "unknown message type: $type" );
-    }
-};
-
-#,,,.,,,.,...,..,,,.,,,,.,.,,,...,.,.,,,.,,,.,..,,...,...,...,...,,,.,,,,,,.,,
-#7VHNYKZQFTYQIXJQPV5I2PSZS6YJNPTPVZNDNZL5INWNPGQWBWPNOVVWMFM5WZRQ5LUXLDU4V3H2U
-#\\\|VBT2BRLPXRNXNWTJKMBEIRBVGX64OYEZD5KXSATEBT25CKEJ4V5 \ / AMOS7 \ YOURUM ::
-#\[7]TUTMGHPAZ4GTQJCCKWVN42OYBNVUUFIL4EXQBLRVR5VYCIMZM6DQ 7  DATA SIGNATURE ::
+#,,,.,,,.,,,,,,..,.,,,...,..,,.,.,,,.,,,.,...,.,.,...,...,,,.,...,.,,,...,,..,
+#XPSSODWH7W6TY72OXPKNQTSYXEP75EU27GP2T4GYI74E6RG2IVWIWXEG2YFS2Y3BJHJ4H3A454HEK
+#\\\|JISFMIVN3FG22O6LFNRLFEM6DU2NWOURGFVKUUO2UEAZFNV3WPU \ / AMOS7 \ YOURUM ::
+#\[7]IYI5GMNW6D6CSFJ773FJNIQZPOUOHC2VTWFNYLMLIGC572BVMUAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

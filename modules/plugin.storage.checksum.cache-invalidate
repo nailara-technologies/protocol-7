@@ -2,57 +2,52 @@
 # name  = plugin.storage.checksum.cache-invalidate
 # descr = Invalidate checksum cache entries
 
-use strict;
-use warnings;
+my ($args) = @ARG;
+$args //= {};
 
-return sub {
-    my ($args) = @ARG;
-    $args //= {};
+my $path       = $args->{path};
+my $all        = $args->{all} // 0;
+my $older_than = $args->{older_than};    # seconds
 
-    my $path       = $args->{path};
-    my $all        = $args->{all} // 0;
-    my $older_than = $args->{older_than};    # seconds
+my $registry    = $data{'storage'}{'mapping'}{'checksum'};
+my $invalidated = 0;
 
-    my $registry    = $data{'storage'}{'mapping'}{'checksum'};
-    my $invalidated = 0;
+if ($all) {
 
-    if ($all) {
+    # Clear all cache entries
+    for my $path ( keys %{ $registry->{'cache'} } ) {
+        delete $registry->{'cache'}{$path};
+        $invalidated++;
+    }
+} elsif ( defined $path ) {
 
-        # Clear all cache entries
-        for my $path ( keys %{ $registry->{'cache'} } ) {
+    # Clear specific path
+    if ( exists $registry->{'cache'}{$path} ) {
+        delete $registry->{'cache'}{$path};
+        $invalidated++;
+    }
+} elsif ( defined $older_than ) {
+
+    # Clear entries older than N seconds
+    my $cutoff = time() - $older_than;
+    for my $path ( keys %{ $registry->{'cache'} } ) {
+        if ( $registry->{'cache'}{$path}{'cached_at'} < $cutoff ) {
             delete $registry->{'cache'}{$path};
             $invalidated++;
-        }
-    } elsif ( defined $path ) {
-
-        # Clear specific path
-        if ( exists $registry->{'cache'}{$path} ) {
-            delete $registry->{'cache'}{$path};
-            $invalidated++;
-        }
-    } elsif ( defined $older_than ) {
-
-        # Clear entries older than N seconds
-        my $cutoff = time() - $older_than;
-        for my $path ( keys %{ $registry->{'cache'} } ) {
-            if ( $registry->{'cache'}{$path}{'cached_at'} < $cutoff ) {
-                delete $registry->{'cache'}{$path};
-                $invalidated++;
-            }
         }
     }
+}
 
-    return {
-        'mode' => 'true',
-        'data' => {
-            'invalidated' => $invalidated,
-            'remaining'   => scalar( keys %{ $registry->{'cache'} } ),
-        }
-    };
+return {
+    'mode' => 'true',
+    'data' => {
+        'invalidated' => $invalidated,
+        'remaining'   => scalar( keys %{ $registry->{'cache'} } ),
+    }
 };
 
-#,,..,.,.,,,.,..,,,..,,.,,.,.,.,,,.,,,...,,,,,..,,...,...,,,,,.,.,.,,,...,,,.,
-#QT2LNY7YCUAPYYA2R5XH3J2H5EZ4NMEQ7M3KHR7JC2EIFH3335GCQYHI4NIXP4IXSSRZKFZZK4J3G
-#\\\|HUVCNGJJMBVSQ7KRBAMK3F7VI4GYP2H4KZWLNVAFWC25CJZHUGC \ / AMOS7 \ YOURUM ::
-#\[7]AEPPFZ4SF46PJBDJM3KQ3CYCULT3REFTSSIDPE54QXBL6WPPXKDA 7  DATA SIGNATURE ::
+#,,.,,.,.,,,,,,..,.,,,,,,,..,,.,.,.,,,.,,,,.,,.,.,...,...,,..,.,.,..,,,..,,.,,
+#RSWZ4Y6DKXF4KJDTK7BXSLNOFXVIGGKUJU3C5R4IZEN64KARUX435YCHMNSRSTMH6FUW2QDGZYBJE
+#\\\|GCZJVSQWSNY26XTDEYFQUAETLPJDUYKY23BMXTFNCPDQGBZ6Q2F \ / AMOS7 \ YOURUM ::
+#\[7]LPONAZTXXGE7ZK5WMVL6GRRFKAZ44VL2NRHFA5SBDOYYFDVIXKAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

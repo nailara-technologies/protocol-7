@@ -2,25 +2,19 @@
 # name  = plan-9.server.handle-io-clunk
 # descr = Handle 9P Tclunk/Rclunk
 
-use strict;
-use warnings;
+my ( $client, $tag, $data ) = @ARG;
 
-return sub {
-    my ( $client, $tag, $data ) = @_;
+my $fid = <[plan-9.protocol.codec.decode-uint32]>->( substr( $data, 0, 4 ) );
 
-    my $fid
-        = <[plan-9.protocol.codec.decode-uint32]>->( substr( $data, 0, 4 ) );
+delete $client->{fids}{$fid};
 
-    delete $client->{fids}{$fid};
+return <[plan-9.protocol.codec.encode-message]>->(
+    <plan-9.protocol.constants.Rclunk>,
+    $tag, ''
+);
 
-    return <[plan-9.protocol.codec.encode-message]>->(
-        <plan-9.protocol.constants.Rclunk>,
-        $tag, ''
-    );
-};
-
-#,,,.,.,,,.,,,.,,,,..,,..,,..,,.,,.,,,,,.,,,,,..,,...,...,.,,,...,,,,,,,,,,..,
-#XLXUXMI2ROK5EEHV5HUAF7IN7EPLQS6FO6HIQGP2IARVTOCKIFL7PLBJT47X2AEL7BGWCOJLSI2E4
-#\\\|OMIILD7KXOD2NTQQNQYBCZH5V4TLVINL2UJEYMK3AITPW5CEC36 \ / AMOS7 \ YOURUM ::
-#\[7]EPLN7IW4FLZGR7LRQ3KK3ZHXVIOOWTJA5MY5UKFR2G2IHPJS2IBY 7  DATA SIGNATURE ::
+#,,..,,..,...,...,.,.,,..,.,,,,,,,,..,,..,.,.,.,.,...,...,..,,..,,,,.,,.,,,,.,
+#IZCAJXJGTHAYYYBWUZOCYXY2CIDROPYOYCA4WP7VMSRPOHPAKRJIY5A64BIR36CWJ4VHYAN2EH73K
+#\\\|BU6EWGZWWCP57VHUA7Q53HN2ZXDTD77KECY7C5GML22VJRZALDF \ / AMOS7 \ YOURUM ::
+#\[7]2JLVO2RLH6FC2VPBOYUQCVCCIUJWJENI6Q6DLMDNJILQNBFCS6CY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,0 +1,152 @@
+#!/usr/bin/env perl
+## [:< ##
+# name  = bin.dev.parsers.strip-return-sub
+# descr = strip invalid return sub { } wrappers from P7 module files
+
+use strict;
+use warnings;
+use File::Basename;
+
+## signature footer pattern [ 5-line AMOS7 footer ]
+my $sig_pat = qr{^#[,\.]{5,}};
+
+my @targets = @ARGV;
+
+if ( !@targets ) {
+    die "usage: strip-return-sub <module-file> [<module-file> ...]\n"
+        . "       strip-return-sub --all   # scan modules/ directory\n";
+}
+
+if ( @targets == 1 and $targets[0] eq '--all' ) {
+    @targets = glob('modules/*');
+    @targets = grep { -f $_ } @targets;
+}
+
+my ( $fixed, $skipped, $errors ) = ( 0, 0, 0 );
+
+for my $path (@targets) {
+    my $result = process_file($path);
+    if    ( $result eq 'fixed' )   { $fixed++ }
+    elsif ( $result eq 'skipped' ) { $skipped++ }
+    else                           { $errors++ }
+}
+
+printf "done: %d fixed, %d skipped, %d errors\n", $fixed, $skipped, $errors;
+
+sub process_file {
+    my ($path) = @_;
+
+    open( my $fh, '<', $path ) or do {
+        warn "cannot read $path: $!\n";
+        return 'error';
+    };
+    my @lines = <$fh>;
+    close $fh;
+
+    ## split into code lines and signature footer
+    my @code   = ();
+    my @sig    = ();
+    my $in_sig = 0;
+    for my $line (@lines) {
+        if ( !$in_sig and $line =~ $sig_pat ) {
+            $in_sig = 1;
+        }
+        if   ($in_sig) { push @sig,  $line }
+        else           { push @code, $line }
+    }
+
+    ## check if file has the return sub { pattern
+    my $has_return_sub = grep {/^return sub \{/} @code;
+    unless ($has_return_sub) {
+        return 'skipped';
+    }
+
+    my $new_code = transform( \@code, $path );
+    unless ( defined $new_code ) {
+        return 'skipped';
+    }
+
+    ## write back without signature footer [ signing system re-adds it ]
+    open( my $out, '>', $path ) or do {
+        warn "cannot write $path: $!\n";
+        return 'error';
+    };
+    print $out $new_code;
+    close $out;
+
+    printf "fixed: %s\n", basename($path);
+    return 'fixed';
+}
+
+sub transform {
+    my ( $lines_ref, $path ) = @_;
+    my @lines = @$lines_ref;
+
+    ## single-line case: return sub { EXPR };
+    ## transform to just the bare expression
+    my @new;
+    my $found     = 0;
+    my $skip_call = 0;
+
+    my $i = 0;
+    while ( $i <= $#lines ) {
+        my $line = $lines[$i];
+
+        if ( $line =~ /^return sub \{\s*(.+?)\s*\};\s*$/ ) {
+            ## single-line return sub { EXPR };  →  EXPR;
+            my $expr = $1;
+            $expr .= ';' unless $expr =~ /;\s*$/;
+            push @new, "$expr\n";
+            $found = 1;
+            $i++;
+            next;
+        }
+
+        if ( $line =~ /^return sub \{\s*$/ ) {
+            ## opening line of multi-line return sub {  — skip it
+            $found = 1;
+            $skip_call
+                = 1;    ## look for my ($call) = @_; on next non-blank line
+            $i++;
+            next;
+        }
+
+        if ($skip_call) {
+            $skip_call = 0;
+            if ( $line =~ /^\s*my\s*\(\$call\)\s*=\s*\@_;\s*$/ ) {
+                ## skip the call extraction line
+                $i++;
+                next;
+            }
+            ## not a $call line — fall through and keep it
+        }
+
+        ## detect and skip the outermost closing };
+        if ( $found and $line =~ /^\};\s*$/ ) {
+            push @new, "\n" unless @new and $new[-1] eq "\n";
+            $i++;
+            next;
+        }
+
+        push @new, $line;
+        $i++;
+    }
+
+    unless ($found) {
+        warn "no return sub pattern found in $path (unexpected)\n";
+        return undef;
+    }
+
+    ## trim trailing blank lines [ keep exactly one ]
+    while ( @new > 1 and $new[-1] =~ /^\s*$/ and $new[-2] =~ /^\s*$/ ) {
+        pop @new;
+    }
+
+    return join( '', @new );
+}
+
+#,,,.,,,,,...,.,,,,,.,.,,,,..,,,.,.,.,.,.,.,,,..,,...,...,..,,,..,,,.,,..,.,,,
+#HKMGZOSCYZ5TD37NZ5QLHG7HLXQSQGBZYVGCY5K45YA3LXHUVSYKWNGVXMDJOH6CPI6DBIURY6KLM
+#\\\|JRHZHGOFPAAJVT6F2SC5U5CRSO3CYOI6HF4YPXFJ4WCFYD57HC6 \ / AMOS7 \ YOURUM ::
+#\[7]MU3VO6Q5YV2VVPU5KBWZ476BLQU56XSILKM7N7MNY2HZTASLTQBY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

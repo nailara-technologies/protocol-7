@@ -2,101 +2,94 @@
 # name  = plugin.storage.checksum.cluster.add
 # descr = Add member(s) to existing checksum cluster
 
-use strict;
-use warnings;
+my ($args) = @ARG;
 
-return sub {
-    my ($args) = @ARG;
+my $cluster_id = $args->{'cluster_id'};
+my $members    = $args->{'members'};      # Single checksum or arrayref
 
-    my $cluster_id = $args->{'cluster_id'};
-    my $members    = $args->{'members'};      # Single checksum or arrayref
+return { 'mode' => 'false', 'data' => 'cluster_id required' }
+    unless $cluster_id;
 
-    return { 'mode' => 'false', 'data' => 'cluster_id required' }
-        unless $cluster_id;
+my $registry = $data{'storage'}{'mapping'}{'checksum-cluster'};
+$cluster_id = <[plugin.storage.util.normalize_checksum]>->($cluster_id);
 
-    my $registry = $data{'storage'}{'mapping'}{'checksum-cluster'};
-    $cluster_id = <[plugin.storage.util.normalize_checksum]>->($cluster_id);
+my $cluster = $registry->{'clusters'}{$cluster_id};
+return { 'mode' => 'false', 'data' => 'cluster not found' }
+    unless $cluster;
 
-    my $cluster = $registry->{'clusters'}{$cluster_id};
-    return { 'mode' => 'false', 'data' => 'cluster not found' }
-        unless $cluster;
+# Normalize members input
+my @new_members;
+if ( ref($members) eq 'ARRAY' ) {
+    @new_members = @$members;
+} elsif ( defined $members ) {
+    @new_members = ($members);
+} else {
+    return { 'mode' => 'false', 'data' => 'no members to add' };
+}
 
-    # Normalize members input
-    my @new_members;
-    if ( ref($members) eq 'ARRAY' ) {
-        @new_members = @$members;
-    } elsif ( defined $members ) {
-        @new_members = ($members);
-    } else {
-        return { 'mode' => 'false', 'data' => 'no members to add' };
+# Normalize and filter
+@new_members
+    = map { <[plugin.storage.util.normalize_checksum]>->($ARG) } @new_members;
+@new_members = grep { defined && length } @new_members;
+@new_members = grep { $ARG ne $cluster_id } @new_members;  # No self-reference
+
+# Remove duplicates (both within new and against existing)
+my %existing = map { $ARG => 1 } @{ $cluster->{'members'} };
+@new_members = grep { !$existing{$ARG} } @new_members;
+
+return { 'mode' => 'true', 'data' => { 'added' => 0 } }
+    unless @new_members;
+
+# Check if we need to expand (P7REF chaining for large clusters)
+my $current_count = scalar( @{ $cluster->{'members'} } );
+my $max_members   = $registry->{'config'}{'max_members_default'};
+
+if (   $current_count + scalar(@new_members) > $max_members
+    && $registry->{'config'}{'auto_expand'} ) {
+
+    # Create overflow cluster
+    my $overflow_result = <[plugin.storage.util.create_overflow_cluster]>->(
+        $cluster_id, \@new_members
+    );
+    return $overflow_result if $overflow_result->{'mode'} eq 'false';
+
+    # Add P7REF link to overflow
+    push @{ $cluster->{'members'} }, $overflow_result->{'data'}{'p7ref'};
+    $cluster->{'metadata'}{'overflow'}
+        = $overflow_result->{'data'}{'cluster_id'};
+    $cluster->{'metadata'}{'is_overflow'} = 0;
+} else {
+
+    # Add directly
+    # If currently using shared empty array, create new one
+    if ( $cluster->{'members'} == $registry->{'_empty_array'} ) {
+        $cluster->{'members'} = [];
     }
 
-    # Normalize and filter
-    @new_members = map { <[plugin.storage.util.normalize_checksum]>->($ARG) }
-        @new_members;
-    @new_members = grep { defined && length } @new_members;
-    @new_members
-        = grep { $ARG ne $cluster_id } @new_members;    # No self-reference
+    push @{ $cluster->{'members'} }, @new_members;
+}
 
-    # Remove duplicates (both within new and against existing)
-    my %existing = map { $ARG => 1 } @{ $cluster->{'members'} };
-    @new_members = grep { !$existing{$ARG} } @new_members;
+$cluster->{'updated'} = time();
+$registry->{'stats'}{'members_added'} += scalar(@new_members);
 
-    return { 'mode' => 'true', 'data' => { 'added' => 0 } }
-        unless @new_members;
-
-    # Check if we need to expand (P7REF chaining for large clusters)
-    my $current_count = scalar( @{ $cluster->{'members'} } );
-    my $max_members   = $registry->{'config'}{'max_members_default'};
-
-    if (   $current_count + scalar(@new_members) > $max_members
-        && $registry->{'config'}{'auto_expand'} ) {
-
-        # Create overflow cluster
-        my $overflow_result
-            = <[plugin.storage.util.create_overflow_cluster]>->(
-            $cluster_id, \@new_members
-            );
-        return $overflow_result if $overflow_result->{'mode'} eq 'false';
-
-        # Add P7REF link to overflow
-        push @{ $cluster->{'members'} }, $overflow_result->{'data'}{'p7ref'};
-        $cluster->{'metadata'}{'overflow'}
-            = $overflow_result->{'data'}{'cluster_id'};
-        $cluster->{'metadata'}{'is_overflow'} = 0;
-    } else {
-
-        # Add directly
-        # If currently using shared empty array, create new one
-        if ( $cluster->{'members'} == $registry->{'_empty_array'} ) {
-            $cluster->{'members'} = [];
-        }
-
-        push @{ $cluster->{'members'} }, @new_members;
+# Update reverse index
+if ( $registry->{'config'}{'index_reverse'} ) {
+    for my $member (@new_members) {
+        $registry->{'index'}{$member} = $cluster_id;
     }
+}
 
-    $cluster->{'updated'} = time();
-    $registry->{'stats'}{'members_added'} += scalar(@new_members);
-
-    # Update reverse index
-    if ( $registry->{'config'}{'index_reverse'} ) {
-        for my $member (@new_members) {
-            $registry->{'index'}{$member} = $cluster_id;
-        }
+return {
+    'mode' => 'true',
+    'data' => {
+        'cluster_id'    => $cluster_id,
+        'added'         => scalar(@new_members),
+        'total_members' => scalar( @{ $cluster->{'members'} } ),
     }
-
-    return {
-        'mode' => 'true',
-        'data' => {
-            'cluster_id'    => $cluster_id,
-            'added'         => scalar(@new_members),
-            'total_members' => scalar( @{ $cluster->{'members'} } ),
-        }
-    };
 };
 
-#,,,,,,,,,,..,.,.,,,,,...,,,.,.,.,...,..,,,..,.,.,...,..,,...,,.,,.,.,...,,,.,
-#A53CYNS5JKDOPMCBI6WGJJSOYPVZ5KJP65CS2LYDXK2P65ZNCLQR546EZUOG6QWWYOJ2NA52XDEYS
-#\\\|7DJ3LORL7EX2BLWW6NQDW52P335D7QS757AYTOWGUY47DUOAFSL \ / AMOS7 \ YOURUM ::
-#\[7]RMXIL2HCLGB63ZPMTWM2XOYCMK4K22HLYCSIX34J32AKLDIUXGCY 7  DATA SIGNATURE ::
+#,,.,,.,,,,.,,,,.,,,.,,..,,.,,,..,,,.,.,,,,..,.,.,...,...,..,,,.,,,,.,,,.,,,,,
+#EQPFHSPVPLKXRD2Y24B2LJVQEFJOKBWTDEOB2LTUDEMZWSJPE3SRMC2C3XWPI36TX4LT7WAJDNRHE
+#\\\|DPHYB4L42QD6JU7BQ7YKQSEEIJNFERLU6PTZ3N7LIUJLXS7WTA3 \ / AMOS7 \ YOURUM ::
+#\[7]FH6CVYRZAVURZIXYCLTVKIZ3ODILXVGBLPMCGLDIZCDQVMC746DY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
