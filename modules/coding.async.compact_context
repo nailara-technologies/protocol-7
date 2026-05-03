@@ -99,7 +99,7 @@ if ( ( <coding.cfg.compaction_inference> // 'no' ) eq qw| yes |
         . scalar(@to_compact) . " ]";
 
     ## enqueue compaction sub-task with no tools, single round ##
-    my $child_id = <[coding.task.enqueue]>->(
+    my $enqueue_result = <[coding.task.enqueue]>->(
         {   request  => { description => $prompt },
             metadata => {
                 raw_request    => { type => 'gpu', description => $prompt },
@@ -113,6 +113,10 @@ if ( ( <coding.cfg.compaction_inference> // 'no' ) eq qw| yes |
             max_rounds => 1,
         }
     );
+    my $child_id
+        = ref $enqueue_result eq qw| HASH |
+        ? $enqueue_result->{'task_id'}
+        : undef;
 
     if ( defined $child_id and length $child_id ) {
         <coding.task.parent>->{$child_id} = $task_id;
@@ -229,8 +233,8 @@ if ( $after_tokens > $compact_threshold * 0.8 ) {
 
 return;
 
-#,,.,,,..,,..,..,,.,,,.,.,,..,...,,.,,..,,,,,,.,.,...,..,,..,,..,,,,,,,.,,,..,
-#3FZHT5NOVU47RDWDRKLPCZDUJQPLRR4F76VQHK6IOQ2YDZMTZWQFZVGHHMJ5BROVWX6AT7EQ7APNQ
-#\\\|6CZCPUNZDG7FKQVKW3WMHULRTW7T3NR2B5JRHC234VOVHB5LP6C \ / AMOS7 \ YOURUM ::
-#\[7]VVK4AIJK5MH3FJSITOYEQBOS232B3QA7FH5EB25CGOSTXABAKWBA 7  DATA SIGNATURE ::
+#,,..,,,.,.,.,,..,,,.,...,,..,.,,,,,.,,,,,,.,,.,.,...,..,,...,,.,,,.,,.,.,,,.,
+#FDX6FHJWI4HHCTREKDWRX5GHZ6KEGNGDQ3UAT4M66LVHPJOMFVJRTZSHPUV74ONAXOD23AN6J3UC2
+#\\\|72XBNLQW4TTC6ZP2NOGDLTBCZPHIR36CER5WTYGDK3CVU3LD7JV \ / AMOS7 \ YOURUM ::
+#\[7]VYRUCEO2IJ4HX53CD6JY4BPETCPB7XTWZCZDXVOFB7TP5TG25ODA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
