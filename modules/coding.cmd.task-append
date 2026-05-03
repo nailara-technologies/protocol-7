@@ -99,6 +99,8 @@ if ( $status eq qw| completed | or $status eq qw| failed | ) {
     ## restore task to active state ##
     $task->{'execution'}->{'status'} = qw| in_progress |;
     delete $task->{'execution'}->{'completed'};
+    ## clear any prior stop so run proceeds ##
+    delete $task->{'stop_requested'};
 
     my $aref_completed = <coding.task.completed> // [];
     my $aref_active    = <coding.task.active> //= [];
@@ -126,8 +128,8 @@ return {
     'data' => "cannot append to task $task_id [status:$status]"
 };
 
-#,,..,,..,..,,.,.,...,,.,,,,,,,,,,.,,,,..,.,.,..,,...,...,,,.,,,,,,,.,,..,...,
-#MJ3VGPBJ3TNTGHFS7ZC4K2JCD5G4Z6ZWOTQYH6H7TKJFHYNOTTD6BH2UVHWAZUWCIYMXGPKKJG43Q
-#\\\|L2K4UP5PU4I6D7GJPXYRZWTPHETRMIJQBENKJYCQWPABW55PTN5 \ / AMOS7 \ YOURUM ::
-#\[7]PUHY7TUPJJN623KCCI7LLXXWW3GTH7UVSNYD64ZJ2AWZFJW75QAY 7  DATA SIGNATURE ::
+#,,.,,,..,...,,,.,,,,,,,,,...,,,.,,,,,,..,,..,..,,...,...,...,,.,,,,,,...,.,.,
+#22KVDQUUSWH4J2QZE5T2BBUUH4PTK74SSMDFKLW6F5MNNJAY5CMKXO23SSEDPE32KXUV2IX2MTBT2
+#\\\|2LRLEDK5DHB6VTC7T7K4XSYC25HBATRLTZV2ATXZCB7ICITD3D5 \ / AMOS7 \ YOURUM ::
+#\[7]CNV6EGJTKLPZXCJPBTV2ST34AU7O47GMX75AC7BWAAYGZX5IUGBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
