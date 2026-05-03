@@ -70,6 +70,7 @@ if ( defined $task && $task->{'stop_requested'} ) {
     <[base.logs]>->(
         1, "send_request: stop requested for %s, completing", $task_id
     );
+    delete $task->{'stop_requested'};  ## consume so task-append can resume ##
     <[coding.async.complete_task]>->($task_id);
     return { success => TRUE, stopped => TRUE };
 }
@@ -242,8 +243,8 @@ if (@messages) {
 return
     <[coding.async.request]>->( $task_id, $request_body, $state->{'job_id'} );
 
-#,,,.,,..,,.,,,,,,.,.,,..,,,.,,.,,,..,.,.,...,..,,...,...,.,,,...,,..,,..,...,
-#C6GLU3BJK36Y4AXJMSDKL3NWRTSF4WKWXZO5VI26J6722KXIRO7GMQIQ2LANOZT5ZU6TZXTJRNEAA
-#\\\|VZSF5TO43VAJPINRPKOHVQWXRQCLUE4DCEHK3KIJNMGUPQEI2AJ \ / AMOS7 \ YOURUM ::
-#\[7]NIRAGOD2EH2PDT3OVCVSCANJTEBZHCAJ737B7DOO4WRENMRSEUAI 7  DATA SIGNATURE ::
+#,,..,,,.,.,,,,.,,,,,,,,.,,.,,,,.,..,,,..,..,,..,,...,...,,.,,.,,,.,,,,.,,,,.,
+#3KED52TAFEILKNBKT5MODMXIGMA627MDO6XPTVJ4XGLNKKRD2UJ2FBSKL56I54PGATW6KU5633F3E
+#\\\|LFSVA3FF7CZLA64DGBO7SV35YOEP7NUI4BV7BWV7W2ZVAXIUUEY \ / AMOS7 \ YOURUM ::
+#\[7]OAQQ7TROVGPJW3CWIYF27DYX2JTLMI25YHF3F4VNCFHRU6WX4ABY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
