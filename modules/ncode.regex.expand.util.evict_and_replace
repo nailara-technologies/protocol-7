@@ -1,0 +1,64 @@
+## [:< ##
+
+# name  = ncode.regex.expand.util.evict_and_replace
+# descr = evict lowest scoring pattern if candidate is better
+
+my ( $candidate, $compiled, $patterns, $max_patterns ) = @ARG;
+
+my $app             = $candidate->{'applicability'} // {};
+my $new_conf        = $app->{'confidence'}          // 0.5;
+my $candidate_score = $new_conf * 1;    ## applied = 1 for new ##
+
+## find pattern with lowest (confidence * applied) score ##
+my $lowest_name  = undef;
+my $lowest_score = $candidate_score;
+
+foreach my $name ( keys %$patterns ) {
+    my $p     = $patterns->{$name};
+    my $conf  = $p->{'applicability'}->{'confidence'} // 0.5;
+    my $appd  = $p->{'stats'}->{'applied'}            // 0;
+    my $score = $conf * ( $appd + 1 );    ## +1 to avoid zero ##
+
+    if ( $score < $lowest_score ) {
+        $lowest_score = $score;
+        $lowest_name  = $name;
+    }
+}
+
+## only replace if we found a lower scoring pattern ##
+return undef unless defined $lowest_name;
+
+my $name = $candidate->{'name'};
+
+## remove evicted pattern ##
+delete $patterns->{$lowest_name};
+
+## add new pattern ##
+$patterns->{$name} = {
+    'name'          => $name,
+    'descr'         => $candidate->{'descr'} // '',
+    'pattern'       => $candidate->{'pattern'},
+    'compiled'      => $compiled,
+    'replace'       => $candidate->{'replace'},
+    'applicability' => {
+        'file_type'  => $app->{'file_type'} // qw| module |,
+        'confidence' => $new_conf,
+        'coverage'   => $app->{'coverage'} // qw| partial |
+    },
+    'origin'      => $candidate->{'origin'}      // qw| expanded |,
+    'source_task' => $candidate->{'source_task'} // '',
+    'note'        => $candidate->{'note'}        // '',
+    'stats'       => {
+        'applied'        => 0,
+        'false_positive' => 0,
+        'skipped'        => 0
+    }
+};
+
+return $name;
+
+#,,.,,.,,,.,,,,..,...,.,,,..,,,..,...,...,,,.,..,,...,...,.,.,..,,,,.,.,.,.,,,
+#GZAA4YSZVNHFE5MKAKWQR7E4RH77CJX4RVDN6AVRP7NLN5B6TYTAZSVTKTZZNFH7P4GGXTZZDEXBU
+#\\\|KPYGENV3CXQ6F4XGCFRFJGK7KTGRLLCSTOHRAQAK5AGO6Y2AXW3 \ / AMOS7 \ YOURUM ::
+#\[7]KAOVXNFOT5RMPTZ5JPIHYXM3FFYS5YGVX4NPX2JU7CHSJ67NH2CQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
