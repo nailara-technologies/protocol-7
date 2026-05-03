@@ -18,6 +18,11 @@ return { 'mode' => qw| false |, 'data' => 'message required' }
 
 my $task = <coding.task.queue>->{$task_id};
 
+## buffer names use T- prefix; queue keys use task- prefix — normalize ##
+if ( !defined $task and $task_id =~ s/^T-/task-/i ) {
+    $task = <coding.task.queue>->{$task_id};
+}
+
 return { 'mode' => qw| false |, 'data' => "task not found: $task_id" }
     unless defined $task;
 
@@ -128,8 +133,8 @@ return {
     'data' => "cannot append to task $task_id [status:$status]"
 };
 
-#,,.,,,..,...,,,.,,,,,,,,,...,,,.,,,,,,..,,..,..,,...,...,...,,.,,,,,,...,.,.,
-#22KVDQUUSWH4J2QZE5T2BBUUH4PTK74SSMDFKLW6F5MNNJAY5CMKXO23SSEDPE32KXUV2IX2MTBT2
-#\\\|2LRLEDK5DHB6VTC7T7K4XSYC25HBATRLTZV2ATXZCB7ICITD3D5 \ / AMOS7 \ YOURUM ::
-#\[7]CNV6EGJTKLPZXCJPBTV2ST34AU7O47GMX75AC7BWAAYGZX5IUGBQ 7  DATA SIGNATURE ::
+#,,,.,.,.,,,,,,,.,,,.,,..,...,,,.,,,,,,,.,,.,,..,,...,...,.,.,...,,.,,..,,..,,
+#EHD5XTXM3MDD35SBUMP65E7BVJZV5IZFS5HQ5POF2Q3OPIXKFTE7BWBIMW7EYIALS33RTWP4Y4XE4
+#\\\|SZP6OURENQKG3WYDEBG6YTUVJ4UDWUJHYRQAPLBMQRSE2W5WT5C \ / AMOS7 \ YOURUM ::
+#\[7]7HRBJVKOIAMI2J5RL4QE6EYACZ5DGAH3XQ2A6RMKGW2D7FJX3WDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
