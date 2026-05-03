@@ -37,9 +37,12 @@ if ($@) {
 }
 
 ## check for duplicates (exact pattern string match) ##
-my $existing_name = _find_duplicate( $pattern, $patterns );
+my $existing_name
+    = <[ncode.regex.expand.util.find_duplicate]>->( $pattern, $patterns );
 if ( defined $existing_name ) {
-    my $merged = _merge_duplicate( $existing_name, $candidate, $patterns );
+    my $merged = <[ncode.regex.expand.util.merge_duplicate]>->(
+        $existing_name, $candidate, $patterns
+    );
     return {
         'name'           => $name,
         'status'         => qw| merged |,
@@ -51,8 +54,9 @@ if ( defined $existing_name ) {
 ## capacity check ##
 my $current_count = scalar keys %$patterns;
 if ( $current_count >= $max_patterns ) {
-    my $evicted = _evict_and_replace( $candidate, $compiled, $patterns,
-        $max_patterns );
+    my $evicted = <[ncode.regex.expand.util.evict_and_replace]>->(
+        $candidate, $compiled, $patterns, $max_patterns
+    );
     if ( defined $evicted ) {
         <[base.logs]>->(
             1,
@@ -105,101 +109,8 @@ return {
     'status' => qw| added |
 };
 
-sub _find_duplicate {
-    my ( $pattern, $patterns ) = @ARG;
-
-    foreach my $name ( keys %$patterns ) {
-        my $existing = $patterns->{$name};
-        if ( $existing->{'pattern'} eq $pattern ) {
-            return $name;
-        }
-    }
-    return undef;
-}
-
-sub _merge_duplicate {
-    my ( $existing_name, $candidate, $patterns ) = @ARG;
-
-    my $existing = $patterns->{$existing_name};
-    my $old_conf = $existing->{'applicability'}->{'confidence'}  // 0.5;
-    my $old_app  = $existing->{'stats'}->{'applied'}             // 0;
-    my $new_conf = $candidate->{'applicability'}->{'confidence'} // $old_conf;
-
-    ## weighted average: new_conf = (old_conf * old_applied + candidate_conf)
-    ##     / (old_applied + 1) ##
-    my $merged_conf = ( $old_conf * $old_app + $new_conf ) / ( $old_app + 1 );
-
-    ## round to 2 decimal places ##
-    $merged_conf = sprintf qw| %.2f |, $merged_conf;
-
-    ## update confidence ##
-    $existing->{'applicability'}->{'confidence'} = $merged_conf;
-
-    ## update source tracking to most recent ##
-    $existing->{'source_task'} = $candidate->{'source_task'}
-        if length $candidate->{'source_task'} // '';
-
-    return { 'confidence' => $merged_conf };
-}
-
-sub _evict_and_replace {
-    my ( $candidate, $compiled, $patterns, $max_patterns ) = @ARG;
-
-    my $app             = $candidate->{'applicability'} // {};
-    my $new_conf        = $app->{'confidence'}          // 0.5;
-    my $candidate_score = $new_conf * 1;    ## applied = 1 for new ##
-
-    ## find pattern with lowest (confidence * applied) score ##
-    my $lowest_name  = undef;
-    my $lowest_score = $candidate_score;
-
-    foreach my $name ( keys %$patterns ) {
-        my $p     = $patterns->{$name};
-        my $conf  = $p->{'applicability'}->{'confidence'} // 0.5;
-        my $appd  = $p->{'stats'}->{'applied'}            // 0;
-        my $score = $conf * ( $appd + 1 );    ## +1 to avoid zero ##
-
-        if ( $score < $lowest_score ) {
-            $lowest_score = $score;
-            $lowest_name  = $name;
-        }
-    }
-
-    ## only replace if we found a lower scoring pattern ##
-    return undef unless defined $lowest_name;
-
-    my $name = $candidate->{'name'};
-
-    ## remove evicted pattern ##
-    delete $patterns->{$lowest_name};
-
-    ## add new pattern ##
-    $patterns->{$name} = {
-        'name'          => $name,
-        'descr'         => $candidate->{'descr'} // '',
-        'pattern'       => $candidate->{'pattern'},
-        'compiled'      => $compiled,
-        'replace'       => $candidate->{'replace'},
-        'applicability' => {
-            'file_type'  => $app->{'file_type'} // qw| module |,
-            'confidence' => $new_conf,
-            'coverage'   => $app->{'coverage'} // qw| partial |
-        },
-        'origin'      => $candidate->{'origin'}      // qw| expanded |,
-        'source_task' => $candidate->{'source_task'} // '',
-        'note'        => $candidate->{'note'}        // '',
-        'stats'       => {
-            'applied'        => 0,
-            'false_positive' => 0,
-            'skipped'        => 0
-        }
-    };
-
-    return $name;
-}
-
-#,,,,,,,.,,..,,.,,,..,.,.,,.,,.,,,.,,,,,.,,.,,..,,...,...,..,,,,,,...,.,,,,.,,
-#HY7M7ZDCQNL3X3NYXAITH5XCU2ZHXMTX4ZSN45DKBM5646FT4J4GWWPYJCMPXN4WBM2E44FRNCJDS
-#\\\|YX4R33FAEM3R6IHRKH2NVDA2AKGRTTFZPZ6RHGVLFGDAGW4MWSX \ / AMOS7 \ YOURUM ::
-#\[7]C2TPI54ACZ7PKD6LXIJJ7XL5EGCWGEFKLPZPHT6WJMJQNHSFWMAI 7  DATA SIGNATURE ::
+#,,,.,...,,,.,,.,,.,.,,..,,,.,,.,,,,.,,.,,,,.,..,,...,...,...,..,,,..,..,,,.,,
+#6P4VMPFB64EG6HFITET6ORTW22JBG5XIVMBLD32PP4JZIYVFX5SAEOTXO5I3A6FFK2POVY22O6UGS
+#\\\|6GJNHLYHLCSDMSNZIKVIBFVH27T5HVLEJQFKBIQLGVSDKNZCUMC \ / AMOS7 \ YOURUM ::
+#\[7]KMPQNQCNUP4OSFYW4S6NOVMW3CU4PMTZC3IMU6DCXYRWVYJT4CAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
