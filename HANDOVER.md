@@ -1,4 +1,4 @@
-# Session Handover — 2026-05-03
+# Session Handover — 2026-05-03 (updated)
 
 ## Completed This Session
 
@@ -42,6 +42,19 @@
 - "verify after each step" instruction insufficient; one-module-per-task is reliable
 - Optional post-task review round (ptd_check on modified files) worth adding to template
 
+### return sub {} unwrapping — 94 modules fixed
+- all modules in plan-9.*, storage.*, base.editor.*, base.encode/decode.*,
+  plugin.storage.*, command.*, amos-term.* had `return sub { }` wrappers that
+  caused the module to return a coderef instead of executing
+- `bin/dev/parsers/strip-return-sub` written — handles all three patterns:
+  multi-line with `my ($call)=@_`, multi-line without, single-line
+- 94 files fixed, signatures stripped and re-added; `AMOS7.key-32-safeguard`
+  deleted (dead code, knowledge already in `AMOS7/13.pm`)
+- `<[$var]>->()` dynamic dispatch added to bin/Protocol-7 parser:
+  resolves to `$code{$var}->()` (no quotes); literal forms unchanged
+- documented in CLAUDE.md, coding.system_prompt, data/ai-mem/kimi/coding-style.md,
+  data/yaml/ncode-patterns/p7-style.yaml, and memory
+
 ## Open / Next
 
 ### Remaining inline sub extractions (all single-sub, straightforward)
@@ -51,7 +64,6 @@
   → `letsencr.child.continue_challenge_processing.util.cleanup_challenge`
 - `modules/plugin.web.space.orbital.json.context`: `sub _synthetic_zenka_node` (line 34)
   → `plugin.web.space.orbital.json.context.util.synthetic_zenka_node`
-- `modules/AMOS7.key-32-safeguard`: `sub key_32_safe` (line 24) — dead code, just delete it
 - `modules/graphics-matrix.cmd.cell`: `sub cell_output` (line 148) — may warrant
   splitting the cmd into multiple commands rather than extracting to util
 
