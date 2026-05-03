@@ -77,8 +77,9 @@ unless ( length $llm_cmd ) {
     };
 }
 
-## step 4: build LLM prompt for remaining issues ##
-my $prompt = _build_llm_prompt( $output, $flagged, $target, $file_type );
+my $prompt = <[ncode.transform.wave.util.build_llm_prompt]>->(
+    $output, $flagged, $target, $file_type
+);
 
 ## encode prompt with base32r for safe transmission ##
 <[base.perlmod.load]>->('Crypt::Misc');
@@ -164,63 +165,8 @@ return {
     }
 };
 
-## internal: build LLM prompt describing flagged issues ##
-sub _build_llm_prompt {
-    my ( $code, $flagged, $target, $file_type ) = @_;
-
-    my @lines;
-
-    push @lines, '## Code transformation request ##';
-    push @lines, '';
-
-    if ( length $target ) {
-        push @lines, "Target style: $target";
-    }
-
-    push @lines, "File type: $file_type";
-    push @lines, '';
-
-    push @lines, '## Current code after regex pre-pass ##';
-    push @lines, '';
-    push @lines, '```';
-
-    my @code_lines = split m|\n|, $code;
-    push @lines, @code_lines;
-
-    push @lines, '```';
-    push @lines, '';
-
-    push @lines, '## Flagged items requiring transformation ##';
-    push @lines, '';
-
-    foreach my $flag (@$flagged) {
-        my $name    = $flag->{'name'}    // 'unknown';
-        my $matches = $flag->{'matches'} // 0;
-        my $action  = $flag->{'action'}  // qw| flag_for_review |;
-        my $conf    = $flag->{'conf'}    // 0;
-        my $lines   = $flag->{'lines'}   // [];
-
-        push @lines,
-            sprintf( "- Pattern '%s' [conf=%.2f, action=%s, matches=%d]",
-            $name, $conf, $action, $matches );
-
-        if (@$lines) {
-            push @lines, '  Lines: ' . join( ', ', @$lines );
-        }
-    }
-
-    push @lines, '';
-    push @lines, '## Instructions ##';
-    push @lines, '';
-    push @lines, 'Transform the code above to resolve all flagged items.';
-    push @lines, 'Maintain the existing structure and style where possible.';
-    push @lines, 'Return the complete transformed code in a code block.';
-
-    return join "\n", @lines;
-}
-
-#,,,,,,.,,..,,,..,.,,,.,,,.,,,.,,,.,.,.,,,,,.,.,.,...,...,..,,,..,.,.,.,,,.,.,
-#HRSKWCNB4ZT4MYG6GOHQYCY3Z2HYTJGYPFMFSWCEOS7BZSHURZKFUF7OYTUNPC24C4QB2GS2PIE3S
-#\\\|RSTOKKEWCWUYBX6JCMWR7ET2VOXDFAQAOY5HZKBQIUPROQEJKFP \ / AMOS7 \ YOURUM ::
-#\[7]2HBPW7W53ZVKNGJ4MVGKFQHBP2QJ5PY5C2J72VMIOBPKSSSQ7CCQ 7  DATA SIGNATURE ::
+#,,..,,.,,,,.,,..,.,,,,,.,,,,,,..,.,.,,.,,..,,.,.,...,...,,.,,,,.,,..,,..,,..,
+#EG36OL36OHYLIAOUIP7G7YJLTWI5TRXVHJBPCLB53L265EYJSFCNIBIUAX6JQRSGVSITU2SQ5TEIA
+#\\\|CHTGEQMM6KMR5JGHKTPH4AT5TLHJPZI6FBXBYZ6K3B4MADXISAJ \ / AMOS7 \ YOURUM ::
+#\[7]GCCFS5EEBTRFLYPEVCK72RWR6HTUMRD52JCZ4POW4IPOVQXJB4CY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
