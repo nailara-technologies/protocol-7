@@ -1,17 +1,18 @@
 ## [:< ##
 
 # name  = base.file.write
-# descr = write string content to file (wrapper for file.put)
+# descr = write string content to file [ wrapper for file.write_encoded ]
 
-my $path    = shift // '';
-my $content = shift // '';
+my $path     = shift // '';
+my $content  = shift // '';
+my $encoding = shift // qw| :encoding(UTF-8) |;
 
 return FALSE unless length $path;
 
-return <[file.put]>->( $path, $content );
+return <[file.write_encoded]>->( $encoding, $path, $content );
 
-#,,,,,,..,,.,,,,.,..,,,.,,.,,,...,,,,,,..,,.,,..,,...,...,...,..,,..,,,..,..,,
-#ITSRIL55HT6G7YUJWGQLY3NT5EPPJBESA4XJ5TKLPWJLD4NWVKZXRM3EFKCOU6ESJUVVA65YQQQMY
-#\\\|UR3PEUCH6ZJDLKWQVIEXJ4HIVUP6EQE4GKCO2DRKWBVCTC7YI4V \ / AMOS7 \ YOURUM ::
-#\[7]H4BJJGUKBA5V7TUMRZJ6YHY7YIY7MDZGOVSZDLS2DPCBZKELZCBQ 7  DATA SIGNATURE ::
+#,,..,...,..,,,..,.,,,.,,,,,,,...,,,,,,,.,.,,,..,,...,...,..,,..,,..,,,,.,.,.,
+#XGO5RYV7PBHA57GLHHBH3XWWSJJD5SUXWVHUEQDJA2MRBB65247BDSZMJ4KVHP3J4SDYBFLFKEAJ2
+#\\\|STVPICE74A3DJXEYTGLZOMERNAP6CLK6YU4WML27O76HID5ETC5 \ / AMOS7 \ YOURUM ::
+#\[7]ML5BCQMW42SUC3S4JY4MDFDCBNNUIDPRCHC24UEE3Y37PPNM3MBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
