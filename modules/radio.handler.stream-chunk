@@ -39,6 +39,10 @@ if ( not defined $read_len or $read_len == 0 ) {
 
     ##  connection closed or error  ##
 
+    ##  preserve the httpd relay connection state  ##
+    my $httpd_relay_active
+        = ( defined <radio.httpd.sock> and length <radio.httpd.sock> );
+
     $event->cancel;
     if ( defined <radio.stream.sock> ) {
         close( delete <radio.stream.sock> );
@@ -319,8 +323,8 @@ while ( $offset < $buf_len ) {
 
 return;
 
-#,,,,,,..,.,.,.,,,,..,.,.,.,.,.,.,,,,,,,,,..,,..,,...,...,.,.,...,.,.,..,,.,,,
-#EOUSHJKHESDFNU7SD5P3SIHVK2ZKEPBVKHSB4HGWXLLPO3GBYWGOJSZIEHPK4H666GOA432FOUCB4
-#\\\|6TBCV66MBEUAEZXN44S6DYWL5EXFUCBPKDDFH2K2M2ODWET3H3J \ / AMOS7 \ YOURUM ::
-#\[7]E3VDGTDDAV7T7B7KXJUQMQQYUN6RX4Q2BHL5GIKJNSE5VYAR6EDY 7  DATA SIGNATURE ::
+#,,.,,...,,,.,,.,,..,,,,.,,.,,.,,,..,,,,.,,,,,..,,...,..,,,,.,...,.,,,,.,,.,.,
+#3ITNI2XFEYT4BSUPUR2XP4XTGWOL5XZGEEKMYIBBYGZQ4IDDO4KJJUT6BSMPZISKUIZ32C3TUFXDQ
+#\\\|ACQR34GRLHXAUSX2EEAOSEDQP7MSROEH34OKEEBWIC7S3U6C4DH \ / AMOS7 \ YOURUM ::
+#\[7]4S5BDFOXWXLGQIV5APGFX622KOWGADUKYFXWIV5MM26XTGIPSCCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
