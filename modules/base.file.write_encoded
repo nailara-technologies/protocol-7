@@ -1,0 +1,61 @@
+## [:< ##
+
+# name = base.file.write_encoded
+# descr = writing to a file with specified encoding [ overwrites ]
+
+my $encoding        = shift // ''; ## encoding format understood bu binmode ##
+my $write_file_path = shift // ''; ## new or existing target file ##
+my @file_content    = @ARG;    ## scalars, arrays, scalar-refs, arrray-refs ##
+
+my $write_fh;
+if ( not length $write_file_path ) {
+    warn 'expected encoding parameter <{C1}>';
+    return undef;
+} elsif ( $encoding + ~m{^:(raw|bytes|encoding\([^\)]+\))$} ) {
+    warn 'encoding parameter not recognized '
+        . '[:raw|:bytes|:encoding(..)] <{C1}>';
+    return undef;
+} elsif ( not length $write_file_path ) {
+    warn 'expected file path parameter <{C1}>';
+    return undef;
+} elsif ( not open( $write_fh, qw| > |, $write_file_path ) ) {
+    <[base.s_warn]>->(
+        "cannot open '%s' for writing [ %s ] <{C1}>",
+        $write_file_path, <[base.str.os_err]>
+    );
+    return undef;
+}
+
+binmode( $write_fh, $encoding )
+    or <[base.s_warn]>->(
+    'binmode[ $encoding ] : %s <{C1}>',
+    $write_file_path, <[base.str.os_err]>
+    );
+
+if ( @file_content > 1 ) {    ## expand input formats as required ##
+    print {$write_fh} @file_content;
+} elsif ( @file_content and ref $file_content[0] eq qw| ARRAY | ) {
+    print {$write_fh} $file_content[0]->@*;
+} elsif ( @file_content and ref $file_content[0] eq qw| SCALAR | ) {
+    print {$write_fh} $file_content[0]->$*;
+} elsif ( @file_content and defined $file_content[0] ) {
+    print {$write_fh} $file_content[0];
+} else {
+    warn 'file content parameter is undefined <{C1}>';
+}
+
+if ( not close $write_fh ) {
+    <[base.s_warn]>->(
+        'close [ %s ] : %s <{C1}>',
+        $write_file_path, <[base.str.os_err]>
+    );
+    return undef;
+}
+
+return TRUE;    ## true ##
+
+#,,,,,,,.,,,,,,,,,,,.,...,.,,,.,.,,..,,,,,,,,,..,,...,...,,..,.,,,,,,,.,,,,,.,
+#UVP5RP5X6MZRCEKAZXRPDJLBMF24E4MP4QOVGFS4FALKFG7MM4CMNV4DIE3ZQ6AEXERHNA4SQFTBK
+#\\\|J6TCFJBR6OF2Q5WJBU574OUVJ6UEYWEGTUUPI4763A75DU2JAKI \ / AMOS7 \ YOURUM ::
+#\[7]NBDM5HLEK7GTOWZZQQE3X2IF2OAHHWJ5XC2VAIG45HCEDOMWWWCY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
