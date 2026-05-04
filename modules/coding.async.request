@@ -62,7 +62,7 @@ if (   defined $lock
     && ref($lock) eq qw| HASH |
     && $lock->{'task_id'} ne $task_id ) {
     <[base.logs]>->(
-        1, "async.request: backend %s busy [task %s], deferring %s",
+        1, "async.request : backend %s busy [task %s], deferring %s",
         $backend, $lock->{'task_id'}, $task_id
     );
     ## schedule retry after short delay — event-loop friendly ##
@@ -116,8 +116,8 @@ my $callbacks = {
     timeout    => 780,    ## 13 minutes ##
 };
 
-<[base.logs]>
-    ->( 1, "async.request: connecting to %s for %s", $url, $task_id );
+<[base.logs]>->( 1, "[ %s ] connecting to local backend ..", $task_id );
+<[base.logs]>->( 2, ":. %s .:",                              $url );
 
 ## start HTTP request (returns immediately) ##
 my $http_result
@@ -136,7 +136,7 @@ if ( !$http_result->{'success'} ) {
         && $busy->{'task_id'} eq $task_id ) {
         delete <coding.async.backend_busy>->{$backend};
         <[base.logs]>->(
-            2, "async.request: released lock for %s [immediate error]",
+            2, "async.request : released lock for %s [immediate error]",
             $task_id
         );
     }
@@ -151,7 +151,7 @@ if ( !$http_result->{'success'} ) {
 }
 
 <[base.logs]>->(
-    1, "async.request: http_client returned success for %s", $task_id
+    2, "async.request : http_client returned success [ %s ]", $task_id
 );
 
 return {
@@ -160,8 +160,8 @@ return {
     mode    => qw| streaming |,
 };
 
-#,,,.,,.,,,,,,,,,,..,,,..,.,,,..,,,..,.,.,...,..,,...,...,..,,..,,..,,.,.,,,.,
-#KBG7EPPHB4QIOUK6IDQOHUWVOV5G4HZQLG3EQ4VBDVNOMFISAI6QJXIDRDWXKVVYR6TJWSWXBDZQI
-#\\\|2G25HVK5QGWQ46CE2HD3USES25QCJBX2AZXBB6T5Y3ZA3OWGDGL \ / AMOS7 \ YOURUM ::
-#\[7]MTJW7SBMRN5EBEIWNAFJA7QG3HXH6FHK2VTTOUN5LP7IHSZ72IAY 7  DATA SIGNATURE ::
+#,,..,...,..,,.,.,,,,,,.,,..,,.,.,,..,,.,,...,..,,...,...,.,,,,,,,...,,.,,,,.,
+#D4PYB2TA2DPPYAA5XA42X3TTDPVSXWWB7IH2N5FJBND3MAP3CT5ZADIRUX53VFKTZAXYMGAIUZXU4
+#\\\|3SU3N6NYFLUNTLPBBH6HVJC32C75FJHFQ2Z2WDXL6GVITEM5LYF \ / AMOS7 \ YOURUM ::
+#\[7]YNUAN77M46L7ULFFWS2YNJZWYDOC5SIJDJQDZT6L6IAJCQP3YAAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -36,7 +36,7 @@ if ( !@$tool_calls ) {
     return { success => TRUE, tool_results => [] };
 }
 
-## execute each tool call (sequentially for simplicity) ##
+## execute each tool call [ sequentially for simplicity ] ##
 my @tool_results;
 my @tool_summaries;
 
@@ -56,7 +56,7 @@ foreach my $tc (@$tool_calls) {
     my $args_str  = $tc->{'function'}->{'arguments'} // '{}';
     my $call_id   = $tc->{'id'}                      // '';
 
-    ## generate synthetic call_id if missing (model didn't provide one) ##
+    ## generate synthetic call_id if missing [ model didn't provide one ] ##
     if ( !length($call_id) ) {
         $call_id = sprintf( "call_%s_%d", $task_id, $idx );
         <[base.logs]>->(
@@ -70,7 +70,7 @@ foreach my $tc (@$tool_calls) {
     );
 
     ## parse arguments ##
-    ## use from_json — args may be perl character strings [ wide chars ] ##
+    ## use from_json -- args may be perl character strings [ wide chars ] ##
     ## decode_json expects raw bytes and dies on utf8-flagged strings ##
     my $args = eval { JSON::PP->new->utf8(0)->decode($args_str) };
 
@@ -79,8 +79,8 @@ foreach my $tc (@$tool_calls) {
         my $repaired = $args_str;
         my $did_repair;
 
-        ## anti-pattern 1: literal newlines/tabs inside string values ##
-        ## model emits raw \n instead of \\n — fix by escaping within strings ##
+        ## anti-pattern 1 : literal newlines|tabs inside string values ##
+        ## model emits raw \n instead of \\n -- fix by escaping within strings ##
         if ($repaired =~ s/("(?:[^"\\]|\\.)*")/
             do { (my $s=$1) =~ s|(?<!\\)\n|\\n|g;
                               $s =~ s|(?<!\\)\r|\\r|g;
@@ -89,11 +89,11 @@ foreach my $tc (@$tool_calls) {
             $did_repair = 'escaped literal whitespace in strings';
         }
 
-        ## anti-pattern 2: trailing comma before closing } or ] ##
+        ## anti-pattern 2 : trailing comma before closing } or ] ##
         $repaired =~ s/,(\s*[}\]])/$1/g
             and $did_repair //= 'removed trailing comma';
 
-        ## anti-pattern 3: illegal backslash escapes like \[ \# \< \$ ##
+        ## anti-pattern 3 : illegal backslash escapes like \[ \# \< \$ ##
         ## valid JSON escapes: \" \\ \/ \b \f \n \r \t \uXXXX ##
         if ( $repaired =~ s|\\([^"\\\/bfnrtu])|'\\\\' . $1|ge ) {
             $did_repair //= 'fixed illegal backslash escapes';
@@ -101,17 +101,16 @@ foreach my $tc (@$tool_calls) {
 
         if ($did_repair) {
             $args = eval { JSON::PP->new->utf8(0)->decode($repaired) };
-            unless ($EVAL_ERROR) {
-                <[base.logs]>->(
-                    1,          "tool_executor: repaired args for %s [%s]",
-                    $tool_name, $did_repair
-                );
-                $args_str = $repaired;
-            }
+
+            <[base.logs]>->(
+                1,          "tool_executor: repaired args for %s [%s]",
+                $tool_name, $did_repair
+            ) unless $EVAL_ERROR;
+            $args_str = $repaired;
         }
     }
 
-    ## handle concatenated JSON objects (model error) ##
+    ## handle concatenated JSON objects [ model error ] ##
     if ( $EVAL_ERROR && $args_str =~ m/^\s*\{.*\}\s*\{/s ) {
         ## multiple objects concatenated - try to extract first valid one ##
         if ( $args_str =~ m/^\s*(\{.*?\})\s*(?:\{|\z)/s ) {
@@ -125,7 +124,7 @@ foreach my $tc (@$tool_calls) {
         }
     }
 
-    ## malformed arguments — skip dispatch and return parse error to model ##
+    ## malformed arguments -- skip dispatch and return parse error to model ##
     ## giving the model the exact error lets it fix its JSON rather than   ##
     ## retrying blindly with empty args                                    ##
     if ( $EVAL_ERROR || ref $args ne qw| HASH | ) {
@@ -133,7 +132,7 @@ foreach my $tc (@$tool_calls) {
             = $EVAL_ERROR
             ? <[base.str.eval_error]>
             : "expected object, got " . ref($args);
-        ## sanitize preview — raw broken args in tool result crash Jinja ##
+        ## sanitize preview -- raw broken args in tool result crash Jinja ##
         my $args_preview = substr( $args_str, 0, 120 );
         $args_preview .= '...' if length($args_str) > 120;
         $args_preview =~ s/[^\x20-\x7E]/?/g;
@@ -228,7 +227,7 @@ foreach my $tc (@$tool_calls) {
 
     push @tool_results, $tool_result_msg;
 
-    ## update tool call id in pending_tools (for assistant message) ##
+    ## update tool call id in pending_tools [ for assistant message ] ##
     $tc->{'id'} = $call_id;
 
     ## write to per-task buffers ##
@@ -264,7 +263,7 @@ foreach my $tc (@$tool_calls) {
     scalar(@tool_results), join( ', ', @tool_summaries )
 );
 
-## update state with tool results (keep pending_tools for state_machine) ##
+## update state with tool results [keep pending_tools for state_machine] ##
 $state = <[coding.async.state_machine]>->(
     'set', $task_id,
     {   'tool_results' => \@tool_results,
@@ -292,7 +291,7 @@ if (<coding.tool_loop.stop>) {
     return { success => TRUE, tool_results => \@tool_results };
 }
 
-## transition back to streaming (pass tool_calls for assistant message) ##
+## transition back to streaming [pass tool_calls for assistant message] ##
 <[coding.async.state_machine]>->(
     'transition',
     $task_id,
@@ -304,8 +303,8 @@ if (<coding.tool_loop.stop>) {
 
 return { success => TRUE, tool_results => \@tool_results };
 
-#,,..,...,..,,..,,,.,,...,,,.,,..,..,,.,,,.,,,.,.,...,...,,..,..,,...,.,.,...,
-#IUG4LPGKNDEHJH22UNZLHJFBIOIHJGIOX7LVTEQYV6G7FPOALSUMUJOYDVBQCUOR5SVTU2YXUKQQQ
-#\\\|UCAYKGQLCGWSBIFXJKRS2E6H6ZW73UP47NWVCAQJDZH4Y53MNS3 \ / AMOS7 \ YOURUM ::
-#\[7]BOMZCUUMECU3H37POCOKRBJZ6E2JUCVWVAREM5OCEJ6FZEW22GCY 7  DATA SIGNATURE ::
+#,,,.,...,..,,..,,,.,,,.,,.,.,,,,,,.,,,,,,,,.,.,.,...,..,,.,.,.,,,,,.,,,.,.,,,
+#MTKFPNQPIXGIWZKCEB57XTQA3RPJJFNBNXJ3I2I7T6OYX7IS2DIDJUMXAQISBTQFJLEJB6O3E6XZU
+#\\\|MWECPIAVC4W3WVXT4JMQJSL6Y3U6HQOXB4K3PQCBGLZJLHPRFU6 \ / AMOS7 \ YOURUM ::
+#\[7]NNAAO7VNYISPDMTLOFPV72CFQKDX4RR5TKDICMJYU22ZYINOZ2BY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

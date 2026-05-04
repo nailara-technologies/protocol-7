@@ -7,22 +7,23 @@
 my $args = shift // {};
 
 ## extract parameters ##
-my $path       = $args->{'path'}       // return 'error: path required';
-my $edits      = $args->{'edits'}      // return 'error: edits required';
+my $encoding   = qw| :encoding(UTF-8) |;      ## binmode compatible ##
+my $path       = $args->{'path'}       // return 'error : path required';
+my $edits      = $args->{'edits'}      // return 'error : edits required';
 my $apply      = $args->{'apply'}      // 1;
 my $batch_size = $args->{'batch_size'} // 25; ## default 25 edits per batch ##
 my $continue   = $args->{'continue'} // 0;  ## edit offset for continuation ##
 
 ## resolve file path ##
 my $root     = <system.root_path>;
-my $abs_path = "$root/$path";
-return "error: path not in repository: $path"
+my $abs_path = catfile( $root, $path );
+return ": error : path not in repository : $path"
     unless $abs_path =~ m|^\Q$root\E/|;
-return "error: file not found: $path" unless -f $abs_path;
+return ": error : file not found : $path" unless -f $abs_path;
 
 ## load file content ##
-my $content_ref = <[file.slurp]>->($abs_path);
-return "error: cannot read file: $path" unless defined $content_ref;
+my $content_ref = <[file.slurp]>->( $abs_path, undef, $encoding );
+return ": error : cannot read file : $path" unless defined $content_ref;
 my @lines = split /\n/, $content_ref->$*, -1;
 
 ## parse edits [accepts array ref or JSON string] ##
@@ -32,20 +33,21 @@ if ( ref $edits eq qw| ARRAY | ) {
 } elsif ( !ref $edits && length $edits ) {
     ## try to parse as JSON string ##
     my $parsed = eval { JSON::PP::decode_json($edits) };
-    if ($@) {
-        return "error: edits JSON parse error: $@";
+    if ($EVAL_ERROR) {
+        return ": error : edits JSON parse error : "
+            . <[base.str.eval_error]>;
     }
     if ( defined $parsed && ref $parsed eq qw| ARRAY | ) {
         @all_edits = @$parsed;
     } else {
-        return "error: edits must be an array, got: "
-            . ( ref $parsed || 'scalar' );
+        return ": error : edits must be an array, got : "
+            . ( ref $parsed || qw| scalar | );
     }
 }
 
 my $edit_count = scalar @all_edits;
-return
-    "error: no valid edits found - provide array of {line, old, new} objects"
+return ": error : no valid edits found - provide "
+    . "array of {line, old, new} objects"
     unless $edit_count > 0;
 
 ## handle chunked editing ##
@@ -75,7 +77,7 @@ for my $edit ( sort { $b->{'line'} <=> $a->{'line'} } @batch_edits ) {
 
     ## validate line number ##
     if ( $ln < 1 || $ln > scalar @lines ) {
-        push @preview, sprintf "line %d: OUT OF RANGE [1..%d]", $ln,
+        push @preview, sprintf ": line %d : OUT OF RANGE [1..%d]", $ln,
             scalar @lines;
         $errors++;
         next;
@@ -94,37 +96,38 @@ for my $edit ( sort { $b->{'line'} <=> $a->{'line'} } @batch_edits ) {
 
         if ( $actual_trim ne $old_trim ) {
             push @preview,
-                sprintf "line %d: MISMATCH\n  expected: %s\n  actual:   %s",
+                sprintf ": line %d : MISMATCH\n  "
+                . "expected : %s\n  actual :   %s",
                 $ln, $old, $actual;
             $errors++;
             next;
         }
     }
 
-    push @preview, sprintf "line %d: %s\n     --> %s", $ln, $actual, $new;
+    push @preview, sprintf ": line %d : %s\n     --> %s", $ln, $actual, $new;
     $lines[ $ln - 1 ] = $new if $apply && !$errors;
 }
 
 ## save if applying ##
 if ( $apply && !$errors ) {
     my $new_content = join "\n", @lines;
-    my $result      = <[file.write]>->( $abs_path, \$new_content );
-    return "error: failed to write file: $result" unless $result;
+    my $result      = <[file.write]>->( $abs_path, \$new_content, $encoding );
+    return ": error : failed to write file : $result" unless $result;
 }
 
 ## prepare result ##
 my $has_more      = $end_idx < $edit_count;
 my $next_continue = $has_more ? $end_idx : '';
 
-my $status = $apply ? ( $errors ? 'ERRORS' : 'APPLIED' ) : 'PREVIEW';
+my $status = $apply ? ( $errors ? qw|ERRORS| : qw|APPLIED| ) : qw| PREVIEW |;
 
-return sprintf "## %s batch %d [%d/%d edits] %s ##\n%s",
+return sprintf "## %s batch %d [ %d/%d edits ] %s ##\n%s",
     $status, $batch_num, scalar(@batch_edits), $edit_count,
-    ( $has_more ? "\n[more: continue=$next_continue]" : "" ),
+    ( $has_more ? "\n[ more : continue=$next_continue ]" : "" ),
     join "\n", @preview;
 
-#,,,,,.,,,..,,,..,,,,,,,.,.,.,,,.,.,,,..,,.,,,.,.,...,...,...,,..,.,,,,..,,,,,
-#DBKOZOHNEAWSJOXK5JWZRAG6MYZUYWO6VRZVIWX5EUH3JXCNU6PWNX4ZL24PGFHBQ6A3J34APLVYI
-#\\\|DL7VMKOTMTLBRI4VWRP6TCVASCMALXP7RDAQPKYJCYHCKPPE3XU \ / AMOS7 \ YOURUM ::
-#\[7]5NTHVV5NKDQSGX6QONJ23D56T3RCQ2A4MC2BI3GVTX6OXMEIQQAI 7  DATA SIGNATURE ::
+#,,.,,..,,,.,,,,.,...,.,,,.,,,...,..,,,,.,.,.,.,.,...,..,,,..,.,.,,,,,.,,,,,.,
+#Z5BFK6PDFVFENDGR2F3G63VX65G4WM4GXPW5JRAUDQWU7EQ6TA6HEQ5E7G2J6RSB3DL62R64LKC62
+#\\\|ZFYUUJYTZKPA7EE5NTIWOLRYCQRFRP7YJXWTBC3FTZTRSKDWZJK \ / AMOS7 \ YOURUM ::
+#\[7]ZQRLV4S2NDCXU77PNFHWURL6XOVTDBMVZR6SCZWRK6JNXCRPTAAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
