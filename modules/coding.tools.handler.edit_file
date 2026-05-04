@@ -24,7 +24,7 @@ return ": error : file not found : $path" unless -f $abs_path;
 ## load file content ##
 my $content_ref = <[file.slurp]>->( $abs_path, undef, $encoding );
 return ": error : cannot read file : $path" unless defined $content_ref;
-my @lines = split /\n/, $content_ref->$*, -1;
+my @lines = split "\n", $content_ref->$*, -1;
 
 ## parse edits [accepts array ref or JSON string] ##
 my @all_edits;
@@ -126,8 +126,8 @@ return sprintf "## %s batch %d [ %d/%d edits ] %s ##\n%s",
     ( $has_more ? "\n[ more : continue=$next_continue ]" : "" ),
     join "\n", @preview;
 
-#,,.,,..,,,.,,,,.,...,.,,,.,,,...,..,,,,.,.,.,.,.,...,..,,,..,.,.,,,,,.,,,,,.,
-#Z5BFK6PDFVFENDGR2F3G63VX65G4WM4GXPW5JRAUDQWU7EQ6TA6HEQ5E7G2J6RSB3DL62R64LKC62
-#\\\|ZFYUUJYTZKPA7EE5NTIWOLRYCQRFRP7YJXWTBC3FTZTRSKDWZJK \ / AMOS7 \ YOURUM ::
-#\[7]ZQRLV4S2NDCXU77PNFHWURL6XOVTDBMVZR6SCZWRK6JNXCRPTAAA 7  DATA SIGNATURE ::
+#,,.,,,,,,,,,,..,,...,,,.,.,.,,,.,.,.,.,,,.,,,.,.,...,...,,,,,.,,,...,,,,,,,,,
+#R6ZNRLJVHKVZD3DAPEVHGTSFS6ZQ3477BI3MVXIKZFFTSSNKVGGS6Q2YOH6KZ2ZY27ZV67VZUXPEC
+#\\\|TY2QCOGLQYZRM3SU23LT3P4WMSQ5OOLQP26KFC4XZ37WRF4EFDN \ / AMOS7 \ YOURUM ::
+#\[7]HFGFQZ3QIEBHRY5PF2ISJBFR3WKQIJJNHK3TTSJYXHAC3NU3TODI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
