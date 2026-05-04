@@ -21,14 +21,14 @@ if ( not ref $args and length $args ) {
         $args = $parsed;
     } else {
         <[base.logs]>->(
-            0,     ':. tools.dispatch: JSON parse error for %s: %s',
-            $name, <[base.str.eval_error]> // 'unknown'
+            0,     ':. tools.dispatch : JSON parsing error for %s : %s',
+            $name, <[base.str.eval_error]> // qw| unknown |
         );
         <[base.logs]>->(
             2,             ':. raw args [ %d chars ]: %.200s',
             length($args), $args
         );
-        my $parse_err = <[base.str.eval_error]> // 'unknown parse error';
+        my $parse_err = <[base.str.eval_error]> // 'unknown parser error';
         $parse_err =~ s|\s+at\s+\S+\s+line\s+\d+.*||s;    ## strip location ##
         my $raw_snip = substr( $args, 0, 300 );
         return {
@@ -60,8 +60,8 @@ $args = {} unless ref $args eq qw| HASH |;
 ## dispatch table: tool name => [ module, param builder ] ##
 my %dispatch = (
 
-    ## read_file, read_module, list_modules, module_deps,         ##
-    ## recent_changes, recent_errors, extract_file, ptd_check,    ##
+    ## read_file, read_module, list_modules, module_deps,          ##
+    ## recent_changes, recent_errors, extract_file, ptd_check,     ##
     ## ptd_format, write_new_file → coding.tools.handler.* modules ##
 
     'list_files' => sub {
@@ -437,7 +437,7 @@ my %dispatch = (
             }
             ## stage to zenka dir when no write access ##
             <[file.zenka_dir.write]>->(
-                $stage_rel, \$new_content, '>', 0664, ':encoding(UTF-8)'
+                $stage_rel, \$new_content, '>', 0664, qw| :encoding(UTF-8) |
             );
             <[base.logs]>->(
                 1, ':. edit_file: staged %s [ no write access ]', $path
@@ -571,8 +571,8 @@ return {
     'content' => $content,
 };
 
-#,,,.,..,,,..,,,,,.,.,.,,,,.,,...,.,.,..,,.,,,..,,...,..,,,,.,.,,,.,.,..,,,,.,
-#7PNKN2L5VFWGWYOMZE7DWS2CJALEHAFWHDCDTJWY7VROPOCLAG5NHTEWSUSMON5HROSJFTFCRZAQG
-#\\\|U4ZYN72ED5LOWM3UO6FWPBDQ4K5Z6YDE24HYGTIDHSDOXAVGNTJ \ / AMOS7 \ YOURUM ::
-#\[7]LOT4UTLFDG4EGDIRWFCYTBGV6H22M4HQVD6754DOLV7ULRMJZQDI 7  DATA SIGNATURE ::
+#,,..,...,,.,,.,,,.,.,,..,...,,,,,.,,,,,.,.,.,..,,...,...,.,.,.,,,,..,,,.,,.,,
+#AHZQIMKEFKRB3US2MTUSXH2KV7UKDUA2TSSSB5FTCARFHQB3NRMNG4UHXKMFNNIX6MSBNOQ4GT2WO
+#\\\|BYZKWWULXEWNZ55KXUSQBRBRJAY644VICCB2UQPHSAN2EX7K36F \ / AMOS7 \ YOURUM ::
+#\[7]OX3TANEUFULG3VBCZPVSWSTZZ3FESXQ5YO4FQFKN5T4J7Q2A4CAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
