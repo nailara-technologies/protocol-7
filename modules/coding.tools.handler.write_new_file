@@ -33,7 +33,7 @@ if ( $path !~ m|/| and $path =~ m|\.\w+\.| ) {
 ## validate path stays within project [ resolve symlinks ] ##
 my $real_root = Cwd::abs_path($root)                           // '';
 my $real_dir  = Cwd::abs_path( ( $abs_path =~ s|/[^/]+$||r ) ) // '';
-return 'error: path escapes project root'
+return ': error : path escapes project root'
     if !length $real_dir
     or index( $real_dir, "$real_root/" ) != 0
     or $path =~ m|\.\./|;
@@ -72,19 +72,19 @@ if ( -f $abs_path and -w $abs_path ) {
 ## stage to zenka dir when no write access ##
 my $stage_name = $path;
 $stage_name =~ s|/|__|g;
-my $stage_rel = "staged/$stage_name";
+my $stage_rel = catfile( qw| staged |, $stage_name );
 <[file.zenka_dir.write]>->(
-    $stage_rel, \$content, '>', 0664, ':encoding(UTF-8)'
+    $stage_rel, \$content, qw| > |, 0664, qw| :encoding(UTF-8) |
 );
 <[base.logs]>->(
-    1, ':. write_new_file: staged %s [ no write access ]', $path
+    1, ':. write_new_file : staged %s [ no write access ]', $path
 );
 return sprintf "staged new file %s [ %d bytes, no write access ]\n"
-    . "staged at: %s",
+    . "staged at : %s",
     $path, length($content), $stage_rel;
 
-#,,,,,..,,...,..,,.,.,..,,...,,.,,,,.,,,,,..,,..,,...,...,.,.,.,,,.,.,,..,.,,,
-#I2OJB5CMVB6UEMVDEQ2MNBH26UZTIBIAFSZ7PZBTABQ4FLYB73BIZZMIVG4TRD72EZUN76BQM7SWE
-#\\\|PXVJK2JK265NAJ6LRR6MXLQOFBQ3RN4CNBRBUXUPP5TJKZ6QLTM \ / AMOS7 \ YOURUM ::
-#\[7]HK6S53AU55NEVBXXSNQ5NWMWPTROLSB4AGSGUBM3WVGC6NH32ACY 7  DATA SIGNATURE ::
+#,,,,,..,,.,.,,,.,,..,,,.,.,,,,..,,,,,,,,,.,,,..,,...,...,.,,,,,.,.,.,...,.,,,
+#2PHYOQ22KVDM6B5LP5PWUNDHOQELFOIKUS7W4ZIOVZ5TPW7HSZXSJMD73D4TIQEVABAVTBYTHYER2
+#\\\|T7UNAJJJV5V62DMTTZFFERXG3MEWVOH4FNCHGQ6QPWJXIE7E7DF \ / AMOS7 \ YOURUM ::
+#\[7]OR47E2Y2LMAABAPKLUMGZNYCW4ITE3LQPZGHMVNSI6XOLWFKKYBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

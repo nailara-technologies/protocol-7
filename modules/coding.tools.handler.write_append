@@ -39,18 +39,17 @@ my $stage_name = $path;
 $stage_name =~ s|/|__|g;
 my $stage_rel = "staged/$stage_name";
 <[file.zenka_dir.write]>->(
-    $stage_rel, \$content, '>>', 0664, ':encoding(UTF-8)'
+    $stage_rel, \$content, qw| >> |, 0664, qw| :encoding(UTF-8) |
 );
 <[base.logs]>->(
     1, ':. write_append: staged append %s [ no write access ]', $path
 );
 return sprintf "staged append to %s [ %d bytes, no write access ]\n"
     . "staged at: %s",
-    $path, length($content), $stage_rel
-    ;
+    $path, length($content), $stage_rel;
 
-#,,,.,..,,,,,,,,,,.,,,,.,,,,,,...,,,,,..,,,,.,..,,...,...,..,,,..,,..,.,.,.,,,
-#2TUMREPJOWCC54UIGTWKLKBRZ5OKKEYLT3Q4SPWZCC2IDTCJSQKS4L2RICAHF5KUIHE76ZIAAMFDS
-#\\\|MDXS423REHBPP7YFQEJ6NOVPKU4CBJ665LAYZSRSJHLUN3UC7NL \ / AMOS7 \ YOURUM ::
-#\[7]6EBZSX4TWV7SR33667OOVAD36JFDAHGA2FTDIDZWDM3RH3A664AY 7  DATA SIGNATURE ::
+#,,..,,..,,.,,,,.,.,.,.,.,,.,,,..,,,.,,..,...,..,,...,...,..,,.,.,.,,,,.,,...,
+#BPIRTZLFV5D446WBH2IQL4AG4DL35DVO4V33LVZTK5WRUJSUN6VLPOVSJNOYKOYCBXVSBW63PDCUU
+#\\\|V7IQB4N3GOR5645QEU2CM7PEYYSPF2J6XHX2ZPTYUC2X4OOM5NF \ / AMOS7 \ YOURUM ::
+#\[7]NKMLDBSHKS6TQM3Y5LC27WSOBMXWUBIENNAWWECUKOGWXWNG5MBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -11,7 +11,7 @@ my $write_fh;
 if ( not length $write_file_path ) {
     warn 'expected encoding parameter <{C1}>';
     return undef;
-} elsif ( $encoding + ~m{^:(raw|bytes|encoding\([^\)]+\))$} ) {
+} elsif ( $encoding !~ m{^:(raw|bytes|encoding\([^\)]+\))$} ) {
     warn 'encoding parameter not recognized '
         . '[:raw|:bytes|:encoding(..)] <{C1}>';
     return undef;
@@ -54,8 +54,8 @@ if ( not close $write_fh ) {
 
 return TRUE;    ## true ##
 
-#,,,,,,,.,,,,,,,,,,,.,...,.,,,.,.,,..,,,,,,,,,..,,...,...,,..,.,,,,,,,.,,,,,.,
-#UVP5RP5X6MZRCEKAZXRPDJLBMF24E4MP4QOVGFS4FALKFG7MM4CMNV4DIE3ZQ6AEXERHNA4SQFTBK
-#\\\|J6TCFJBR6OF2Q5WJBU574OUVJ6UEYWEGTUUPI4763A75DU2JAKI \ / AMOS7 \ YOURUM ::
-#\[7]NBDM5HLEK7GTOWZZQQE3X2IF2OAHHWJ5XC2VAIG45HCEDOMWWWCY 7  DATA SIGNATURE ::
+#,,,.,,..,.,.,.,,,,,,,,,.,,.,,...,.,.,..,,...,..,,...,...,.,.,,,.,...,...,.,.,
+#Y2R3QKD2YLYIMTATR4P4JQUGDS32T2G3CUVDNMVGP2BPWUNFUBCCI5FKL3JQJ76B3MWTTRTYAHRG6
+#\\\|3X3EWMDEWKSBCWKXKQREVR4YJXLUGGRA4E7A2MXMGXBDIVO53TE \ / AMOS7 \ YOURUM ::
+#\[7]GTHV6SBCBWI47AKZM4TTOGMGH4DBLMCI32I2WVM6IVYFJVJHMQAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
