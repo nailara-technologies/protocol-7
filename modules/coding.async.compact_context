@@ -24,9 +24,23 @@ my $srv_key       = $backend eq qw| cpu | ? qw| cpu | : qw| gpu |;
 my $srv_info      = ( <coding.inference_servers> // {} )->{$srv_key} // {};
 my $context_limit = $srv_info->{'n_ctx'} // <inference.model.context_length>
     // 16384;
-my $compact_threshold = int( $context_limit * 0.7 );    ## [LLL] --> config
-my $chars_per_token   = 3.2;
-my $keep_recent_msgs  = 6;    ## preserve last 3 tool rounds [ 6 msgs ] ##
+my $auto_compact_threshold_pct = <coding.cfg.context-auto-compact-threshold>
+    // 70;
+my $compact_threshold_pct
+    = $auto_compact_threshold_pct > 0 && $auto_compact_threshold_pct <= 100
+    ? int($auto_compact_threshold_pct)
+    : 70;
+my $absolute_threshold
+    = $auto_compact_threshold_pct > 100
+    && $auto_compact_threshold_pct < 100000
+    ? int($auto_compact_threshold_pct)
+    : 0;
+my $compact_threshold
+    = $absolute_threshold > 0 && $absolute_threshold < $context_limit
+    ? $absolute_threshold
+    : int( $context_limit * $compact_threshold_pct / 100 );
+my $chars_per_token  = 3.2;
+my $keep_recent_msgs = 6;     ## preserve last 3 tool rounds [ 6 msgs ] ##
 
 ## estimate total tokens ##
 my $total_chars = 0;
@@ -242,8 +256,8 @@ if ( $after_tokens > $compact_threshold * 0.8 ) {
 
 return;
 
-#,,.,,,,,,,.,,,..,,..,..,,,.,,,.,,...,,..,...,.,.,...,...,..,,,..,,,.,.,.,,.,,
-#GKMU5BYQADP7IJI4565FGCT6P6W4NWYRDHUXB4JRV2GTS6S2YQG3WQQ7GGTNRYE2RPT6MBI4ZKWDE
-#\\\|WE7LUNT5OQVLWAGYRNFM2OFDHQ2UVIFFAFVDJG3KRMKB3GLM5BS \ / AMOS7 \ YOURUM ::
-#\[7]ZUKHGD7LDTFEBBFQ4Q3JDKJFVM6MC6O25ASVBB3ANZZEIPHQECAI 7  DATA SIGNATURE ::
+#,,,.,,,.,,,.,,..,...,,.,,,..,..,,..,,.,,,..,,.,.,...,...,.,.,,..,.,.,,,,,...,
+#IAC62D3EMKRSGD2Q7F6TXGQMHCHOUDCL3WLN4BKQHD47WY6KU2M3YKQIV2A52SA6URACNY6NXXVRE
+#\\\|MBDSFKJZ5G6K4A7OUVZEPWXTXW7NCO3I7JZCQ7R2C5UKRN5FK5S \ / AMOS7 \ YOURUM ::
+#\[7]HDBKYGODEYKG47DS3CX6QEWK6GWAYLAPC5EHZFQEDMPFBV7C5UAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

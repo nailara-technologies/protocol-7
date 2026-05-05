@@ -326,12 +326,12 @@ my %dispatch = (
         my $auto_split = $args->{'auto_split'} // 0;
 
         ## auto-split detection ##
-        my $edit_count = 0;
+        my $total_edits = 0;
         if ( ref $edits eq qw| ARRAY | ) {
-            $edit_count = scalar @$edits;
+            $total_edits = scalar @$edits;
         } elsif ( $edits and ref $edits ne qw| HASH | ) {
             ## estimate from JSON string length [rough 1 edit = 100 chars] ##
-            $edit_count = length($edits) / 100;
+            $total_edits = length($edits) / 100;
         }
 
         my $split_threshold = 50;
@@ -680,8 +680,8 @@ return {
     'content' => $content,
 };
 
-#,,,,,,..,.,,,...,...,...,,..,.,.,,.,,,,,,...,..,,...,...,.,,,,.,,,.,,,,,,,..,
-#MUAZFJBIUCLTGGCOEH2YOQN44ZVPI7YKE4KVUPCPAN6AZXZAXTLCKB4HXCRPRRN7ZLN35P4S2VUHM
-#\\\|XDOPVU3COD2N5ASWFVI26LPCYU7453J4LSMM4TYY2SEAOTE44PO \ / AMOS7 \ YOURUM ::
-#\[7]R55GSIG7GHXRRVEHNCDCIAAFSJMLIN6C44Z7QHGY5PQQZBHGHIAI 7  DATA SIGNATURE ::
+#,,,,,..,,,,.,...,..,,,.,,,,,,,,,,,.,,,.,,...,..,,...,...,,,.,,,.,,,.,,..,,,.,
+#LF6FUPR46BFJFCEGMKZGWFFN2HFFAXRACKF5F6JNNXZ2W4J7O2VE3FGTJUPGZEWEA5F4W5VPN6UNE
+#\\\|RCUOKODAGNVD3WIBFMYSJC3THE4OA67CRLTHAYSUDWGEECO3K75 \ / AMOS7 \ YOURUM ::
+#\[7]PF3MJMOJNRTJAFRITZWDINJ74FAIAK73GGG4NYGO3B2CMW6LRABQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
