@@ -28,7 +28,10 @@ $path =~ s|^/||;
 my $root     = <system.root_path>;
 my $abs_path = "$root/$path";
 
-## check if file exists ##
+## check if path exists and is a file ##
+if ( -d $abs_path ) {
+    return "<!-- specified path is a directory: $path -->";
+}
 unless ( -f $abs_path and -r $abs_path ) {
     ## try prefixing with modules/ ##
     my $mod_path = "$root/modules/$path";
@@ -80,8 +83,8 @@ $output .= "\n\`\`\`\n";
 
 return $output;
 
-#,,,,,,,,,.,,,.,.,.,.,,.,,,,,,,..,.,.,,,,,,.,,.,.,...,..,,..,,,.,,,..,,.,,,,,,
-#I6E3QUBUZ2ZB6LKVWGEFRZYIU2VX6KCCLTHFTNXCMBHH4PCWIW7BAEMZDMMYY245CQJMZ4NVWW7NC
-#\\\|6SWKWAHQUD65QD2P57G4EEZCYHU37IVW7ZARKPDZCVZOJBWZITY \ / AMOS7 \ YOURUM ::
-#\[7]YGXV4F7V6SE5GK5U3GO5CORXP6X5XAA7Q6VYRK7UTLVVQEQTS4AY 7  DATA SIGNATURE ::
+#,,,,,,,,,.,,,,..,,,,,...,.,,,.,.,.,.,...,,,.,.,.,...,...,...,.,,,.,.,.,.,...,
+#LT7Z7HU225JYIVW7HQJR6EI5FTX4FPXEMBAWU2DIGKNSRDL2EIWUVFMTOWSQQ4ONVIEZXGSW767ZY
+#\\\|LPEEA4R2QGNLROCIQK7CFHWMB5TZC7WJ4GVFTFH5TW6UPBAVTPL \ / AMOS7 \ YOURUM ::
+#\[7]GWU4UNX6QS5ZIRDXTCKAVOM6NHVQLRICRB3HWEDQROJEPS7T4GCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
