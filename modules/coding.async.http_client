@@ -11,7 +11,8 @@ return { success => FALSE, error => 'body required' } unless defined $body;
 return { success => FALSE, error => qw| callbacks hashref required | }
     unless ref($callbacks) eq qw| HASH |;
 
-my $default_http_timeout = <coding.http-timeouts.request-completed> // 780;
+my $default_http_timeout   = <coding.http-timeouts.request-completed> // 780;
+my $data_start_timeout_sec = <coding.http-timeouts.data-start>        // 47;
 
 ## Parse URL ##
 my ( $host, $port, $path ) = $url =~ m{^http://([^:/]+)(?::(\d+))?(/?.*)$};
@@ -108,8 +109,7 @@ while ( $total_written < $req_bytes ) {
 
 <[base.logs]>->( 2, "async.http_client : wrote %d bytes", $total_written );
 
-## Set up timeout ##
-
+## Set up total request timeout ##
 my $timeout_sec     = $callbacks->{'timeout'} // $default_http_timeout;
 my $timeout_watcher = <[event.add_timer]>->(
     {   'after'   => $timeout_sec,
@@ -117,8 +117,16 @@ my $timeout_watcher = <[event.add_timer]>->(
         'data'    => { state => $state, io_watcher => $io_watcher },
     }
 );
-
 $state->{'timeout_watcher'} = $timeout_watcher;
+
+## Set up data-start timeout [ fires if streaming doesn't begin ] ##
+my $data_start_watcher = <[event.add_timer]>->(
+    {   'after'   => $data_start_timeout_sec,
+        'handler' => qw| coding.handler.http_data_start_timeout |,
+        'data'    => { state => $state, io_watcher => $io_watcher },
+    }
+);
+$state->{'data_start_watcher'} = $data_start_watcher;
 
 <[base.logs]>->(
     1,     "async.http_client: connection established to %s:%d",
@@ -130,8 +138,8 @@ return {
     state   => $state,
 };
 
-#,,.,,,,,,.,.,...,,,.,.,.,...,...,,..,..,,,,,,.,.,...,...,.,,,,..,,,.,..,,.,.,
-#FU7AN7JRXYYLOI5MFXIL5FUAF4ZXSJG5SUSICIE4S7JGKX4G4PSEH4ABIACMH3C7BWGIBZLSHLYVY
-#\\\|33Z4NUJKFRP3MXHNOWCAKTF4EKG66O64BUVH7BCXOCBYPA3VH5H \ / AMOS7 \ YOURUM ::
-#\[7]ILJGKIV677WDK4Q2XCGZSWA5RY7TBYRSQ4J46UKFG32DYWEEM2DI 7  DATA SIGNATURE ::
+#,,,.,.,.,,,,,.,,,.,.,.,.,..,,,,,,.,.,,..,..,,.,.,...,...,.,,,.,.,...,,,.,,..,
+#S7E7LSS22JEGAPRYOZPEOW3TZTEQSDXFACXFVRBAJMGDMSPE7ZRLCUADUPMFCDZ4YOGDSHLEPJOOC
+#\\\|WDB6TX54D6JWEIU7EYJOOW4APJAGK7JMCPRORHUMIP2IYQD2WGH \ / AMOS7 \ YOURUM ::
+#\[7]JU66YBLXTPHP3IFPJBTONQKIZ6EBEGWOLX2VBLIYS7I4YRWBNQAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

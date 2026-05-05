@@ -20,6 +20,10 @@ if ( $is_ready && $pid > 0 && kill 0, $pid ) {
     );
     ## reset restart count on successful recovery ##
     $server_info->{'restart_count'} = 0;
+
+    ## trigger dependency recheck for jobs waiting on health-ready server ##
+    <[jobqueue.check_dependencies]>;
+
     return TRUE;
 }
 
@@ -29,7 +33,8 @@ my $restart_count = $server_info->{'restart_count'} // 0;
 if ( $restart_count >= 5 ) {
     <[base.logs]>->(
         0,
-        '[verify_inference_startup] %s server failed to start after max retries',
+        '[verify_inference_startup] %s server '
+            . 'failed to start after max retries',
         $backend
     );
     $server_info->{'status'} = qw| failed |;
@@ -51,8 +56,8 @@ if ( $restart_count >= 5 ) {
 
 return FALSE;
 
-#,,,.,.,,,..,,,.,,.,,,.,.,,,,,...,.,,,,,.,,.,,..,,...,..,,,.,,,.,,..,,,..,..,,
-#LPT7XUWSIB5NKMGSOQEFL344TRGADJ7DZMXF76UJTQQUNDPRZCT2UIKJ74NOFFPLMYNAFEXR4LV4G
-#\\\|5LGZR2DHT2T7VYJAY3CX23EFTDW6Z3UMIAFPQVTVNRANQRPW5EU \ / AMOS7 \ YOURUM ::
-#\[7]OPPNNHYDCRG3O2PUOBTMGFAMH5UQGIJFSQCI6WC5LSPX3JAVG4DQ 7  DATA SIGNATURE ::
+#,,.,,,,.,,,,,,..,.,,,...,,,,,.,.,.,,,,..,.,,,..,,...,...,,.,,...,...,,.,,...,
+#3O56NBK6ZNJIYOWF3MHFB3QGEN2EVKHZIULQBQIG46RE4ETOAWYLQYDJB3VRKF4E25MTULDAKLPMY
+#\\\|ILSH4W74G5DVJ7Y5TYABZUEU6FIR36OIMQAGV7MOD3J2IXKEP2Q \ / AMOS7 \ YOURUM ::
+#\[7]LKT7JFSITSR3POIWBWRG7W3WQXSIGPUET3H2ASNNPS5BX4EQVIBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

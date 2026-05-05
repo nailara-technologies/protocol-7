@@ -93,8 +93,7 @@ if (
         }
 
         ## trigger dependency recheck for waiting jobs ##
-        <[jobqueue.check_dependencies]>
-            if exists $code{'jobqueue.check_dependencies'};
+        <[jobqueue.check_dependencies]>;
     }
 
     ## cancel watcher once ready — no need to keep reading server output ##
@@ -151,8 +150,7 @@ if ( $bytes <= 0 ) {
         }
 
         ## Trigger dependency check so jobs can see failure and fail gracefully ##
-        <[jobqueue.check_dependencies]>
-            if exists $code{'jobqueue.check_dependencies'};
+        <[jobqueue.check_dependencies]>;
     } else {
         <[base.logs]>->(
             2, "[monitor_startup] EOF : backend=%s (normal)", $backend
@@ -160,8 +158,8 @@ if ( $bytes <= 0 ) {
     }
 }
 
-#,,,,,,,,,..,,,..,,..,.,.,,,,,.,,,...,...,,,.,..,,...,...,..,,,.,,,..,.,.,,,.,
-#T4WK36FRDKQJCQ2BXOMOSK7THVIEXEMAV65GNJJ2TSSSN7MG667P77ZCMO3AWZRHOZ4WS4NPSELQ2
-#\\\|LVBELAYUMGJIPFRIPZDYKQ4XZ2RSQCJB3QI6PED7AM4B53KIV7Y \ / AMOS7 \ YOURUM ::
-#\[7]YOYJ3H5CN5D4622SGBVR6XJVZDRKPC4AJDJ4G4SM4H6BGHPKTKAY 7  DATA SIGNATURE ::
+#,,.,,,,.,,.,,,,.,,.,,.,.,.,.,.,,,..,,...,.,,,..,,...,...,.,.,..,,,.,,,.,,,..,
+#JKU2HQEFAVIWLLW5AXE73JKRVO5G6PMMRWDEDAZFFWDS4GZKXFX22CXMRERUP24KJ3WICEKZWIIDE
+#\\\|2GCTUNKR5Z7UXLTLDCAAZARX3CCP6GZZ6HPWY2SSI3XJLYTMQA3 \ / AMOS7 \ YOURUM ::
+#\[7]6XJFDFIL7OKFSUDIER4662NORKUDHO5PBPVFY43FSFJIAOBWICBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

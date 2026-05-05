@@ -1,0 +1,41 @@
+## [:< ##
+
+# name  = coding.handler.http_data_start_timeout
+# descr = Handle HTTP data-start timeout (no streaming data received)
+# purpose = Detect when server accepts connection but stalls before streaming
+
+my $event     = shift->w;
+my $data      = $event->data;
+my $state     = $data->{'state'};
+my $callbacks = $state->{'callbacks'};
+
+## skip if already completed or streaming has started ##
+if ( $state->{'completed'}
+    || !defined $state->{'sock'}
+    || ( $state->{'chunks_received'} // 0 ) > 0 ) {
+    <[base.logs]>->(
+        2,
+        "async.http_data_start_timeout: skipping [already streaming or done]"
+    );
+    return;
+}
+
+<[base.logs]>->(
+    0,
+    "async.http_data_start_timeout: no streaming data after %d seconds",
+    int(
+        <[base.time]>->(3)
+            - ( $state->{'request_start'} // 0 )
+    )
+);
+
+my $error = "Data start timeout";
+$callbacks->{'on_error'}->($error) if exists $callbacks->{'on_error'};
+
+<[coding.async.http_cleanup]>->($state);
+
+#,,,.,.,,,.,.,..,,..,,,.,,.,,,,,,,,.,,...,,..,.,.,...,...,,,,,..,,..,,,..,.,.,
+#CRIQCFFQ3SGDNN2TCGEI3HKI42NXWYMEC5GWBCN4S2MZEBYPVEJ6A567KBKKC4BWATFVE5EDHJ2F2
+#\\\|MMC6BPYOUVRBNK4CGO3EJ7QZ7WD7CRM3GSAW5E3YRVQWOKZJHOG \ / AMOS7 \ YOURUM ::
+#\[7]T54UTOOTHYGCDQGUEGBYYWR4ZQ722ADKTTDJ76CFBE7EZS746IBI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -37,6 +37,14 @@ return unless length($json_str);
 
 $state->{'chunks_received'}++;
 
+## cancel data-start timeout on first chunk ##
+if ( $state->{'chunks_received'} == 1
+    and defined $state->{'data_start_watcher'} ) {
+    eval { $state->{'data_start_watcher'}->cancel() };
+    delete $state->{'data_start_watcher'};
+    <[base.logs]>->( 2, "async.http_io: data-start timeout cancelled" );
+}
+
 ## parse JSON ##
 my $data = eval { $state->{'json_decoder'}->decode($json_str) };
 if ($@) {
@@ -61,8 +69,8 @@ if ( exists $callbacks->{'on_chunk'} ) {
 
 return;
 
-#,,..,,,.,..,,.,.,..,,.,,,,..,,,.,,..,,..,,,,,.,.,...,...,.,,,..,,...,..,,.,.,
-#AGPF4OZ7NWK244NKAAVDY345QXM6KD5HOJKMYTO4NXCZVIZCOM4GPW2JLZAGBFW2ZEIRML426PTBW
-#\\\|ZRTPQ66F7L2SKD7KB656ZWB2LPAKQMNCLUOBYSNS2APM7CO4DR3 \ / AMOS7 \ YOURUM ::
-#\[7]OF7TUDP5ZNQB3SG6HK6ATTW3BZAUVKO37FMHXFRH5HBY3HOOXGBA 7  DATA SIGNATURE ::
+#,,,.,,.,,,..,,.,,...,...,..,,,..,,.,,.,,,...,.,.,...,..,,.,,,,,.,.,,,,..,.,.,
+#3HEXDMEH3BJGOOHUDEIGDMOJRUDTTLCWIHHGPS7Z6WNDKOWQE6C7LBRQU6GJMKR56BHBFUQ3F2MCQ
+#\\\|BCBLJQ4PIBIMIPBLUQSAII2GR7JVZCUJOE4ASL6BSUTCHEALP36 \ / AMOS7 \ YOURUM ::
+#\[7]WZ64JXXK5TPJ2QOLAPRNNIRHZK3YKGPQCAZSI5ECWMTS3WD27WCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
