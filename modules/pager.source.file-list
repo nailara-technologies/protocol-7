@@ -47,8 +47,19 @@ return {
                 if ( length $pattern ) {
                     my $re = eval {qr/$pattern/};
                     if ( not defined $re ) {
-                        ## treat as literal substring match ##
-                        next if index( $entry, $pattern ) == -1;
+                        ## invalid regex — try glob-to-regex conversion ##
+                        my $glob_re = $pattern;
+                        $glob_re =~ s{\.}{\\.}g;
+                        $glob_re =~ s{\*}{.*}g;
+                        $glob_re =~ s{\?}{.}g;
+                        $glob_re = '^' . $glob_re . '$';
+                        $re      = eval {qr/$glob_re/};
+                        if ( defined $re ) {
+                            next if $entry !~ $re;
+                        } else {
+                            ## fall back to literal substring match ##
+                            next if index( $entry, $pattern ) == -1;
+                        }
                     } else {
                         next if $entry !~ $re;
                     }
@@ -96,8 +107,8 @@ return {
 
 # SPDX-License-Identifier: ISC
 
-#,,,.,,..,,..,...,,.,,,,.,,.,,.,,,..,,,.,,,,,,..,,...,...,..,,,,.,.,.,,,.,,..,
-#3UMX4KULDIGNRI57YJFAJGJ7FZHAU4PSZG34AMHXPJ3RKH2W7O23U45HP5354MNX2PMAGYA6RSCUI
-#\\\|AQNANXYJM6SRU65TCFVP5WUODVCWVDLKY66Q27LGFJC2DVPVFVJ \ / AMOS7 \ YOURUM ::
-#\[7]RPTM76J2IJ6FVCJYNBMD6PQHAKGA54GT7SIEMDSKZ3COS7XZJEBI 7  DATA SIGNATURE ::
+#,,..,,,,,,.,,..,,,.,,.,,,..,,,,.,,,,,,,,,,,,,..,,...,...,...,...,.,,,..,,,,.,
+#RRHLGK5NWOBU353MWBDGETRSXUZQQFQTLGORQ2MVRGBDAALVASFK23KXAJW3SOHCDIQDOSCJ6S2TA
+#\\\|7LJD4OC3BW5TQM27C6NRSTZUXQEN6R5TIYI24XCWOZ7FEFLRQOP \ / AMOS7 \ YOURUM ::
+#\[7]Y77RR2IRJWQBNHWP6YDCG6C2PV4M76OBAQ3OW7FQMW474LCTFECQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
