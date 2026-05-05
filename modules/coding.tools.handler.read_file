@@ -7,7 +7,7 @@ my $args = shift // {};
 return unless exists $code{'context.file'};
 
 ## offset/length as line numbers (model-friendly pagination) ##
-my $from_line = $args->{'from_line'} // $args->{'offset'} // 1;
+my $from_line = $args->{'from_line'} // $args->{'offset'} // TRUE;
 my $to_line   = $args->{'to_line'}   // 0;
 
 ## if length given, derive to_line from from_line + length ##
@@ -25,11 +25,15 @@ my $srv_n_ctx = ( <coding.inference_servers> // {} )->{'gpu'}->{'n_ctx'}
 my $default_budget = $srv_n_ctx > 30000 ? 32000 : 8000;
 my $budget         = $args->{'budget'} // $default_budget;
 
+## line numbers on by default, can be disabled ##
+my $show_line_numbers = $args->{'show_line_numbers'} // TRUE;
+
 my $result = $code{'context.file'}->(
-    {   'path'      => $path,
-        'budget'    => $budget,
-        'from_line' => $from_line,
-        'to_line'   => $to_line,
+    {   'path'              => $path,
+        'budget'            => $budget,
+        'from_line'         => $from_line,
+        'to_line'           => $to_line,
+        'show_line_numbers' => $show_line_numbers,
     }
 );
 
@@ -76,8 +80,8 @@ if ( defined $result && $total_lines > 0 ) {
 
 return $result;
 
-#,,,,,.,,,...,.,,,,.,,.,,,,.,,,,,,.,.,,..,,.,,..,,...,..,,.,.,,..,,.,,,.,,..,,
-#4F4E4YRPBNCQGADVHCWQKLSSVHERBA6TAIBM3DSAXQ4MRXIYFQASMQQOERIHEW4LOP6TWOOZYQ5GA
-#\\\|RVTEXE2EACGGTJO4JZ2QDNQGC4QN7GAAQJG6VHN4B7PBDLJBSYH \ / AMOS7 \ YOURUM ::
-#\[7]USXA4R34RCI4KEN7HMH7HM65UBVOIN5H5IU5JZJU6MSOXZJE4GAQ 7  DATA SIGNATURE ::
+#,,.,,..,,.,,,.,,,.,,,,.,,.,,,,,.,.,.,..,,.,,,.,.,...,...,.,.,...,,.,,.,,,.,.,
+#JZ5XLGXJIQW46Q3HQH24J7RFSRTLZM6Y3UUWWKSGEV6JJGQTRUK7DCIC7FU2Y5GLTCTKZIOCFVOEM
+#\\\|G6NP4NR5WUG77OT5UOMODSJAJHWA4VTGAUBGHAI2A5R6WMUNIEG \ / AMOS7 \ YOURUM ::
+#\[7]2EDPBVFWUNECP5RW2TADPLW6KH6UTKBB3EO75U65VMJKSEYWNSDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
