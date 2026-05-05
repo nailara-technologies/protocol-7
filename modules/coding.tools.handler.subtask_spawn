@@ -104,8 +104,34 @@ if ( !$enqueue_result->{'success'} ) {
     };
 }
 
+## compute subtask depth [ walk parent chain ] ##
+my $depth    = 1;
+my $ancestor = $parent_task_id;
+while ( defined $ancestor and length $ancestor ) {
+    my $next = <coding.task.parent>->{$ancestor};
+    last if not defined $next or not length $next;
+    $depth++;
+    $ancestor = $next;
+}
+
 ## record parent/child relationship ##
 <coding.task.parent>->{$child_task_id} = $parent_task_id;
+
+## enforce depth limit [ prevent runaway recursion ] ##
+my $max_depth = <coding.cfg.subtask-max-depth> // 3;
+if ( $depth > $max_depth ) {
+    <[base.logs]>->(
+        0,
+        'subtask_spawn: depth %d exceeds limit %d for parent %s, rejecting',
+        $depth, $max_depth, $parent_task_id
+    );
+    delete <coding.task.parent>->{$child_task_id};
+    return {
+        error   => 'subtask depth exceeded',
+        content => "error: subtask depth $depth exceeds maximum $max_depth. "
+            . 'Use recent_changes, search_code, or read_file directly instead.'
+    };
+}
 
 ## record pending subtask in parent's async state ##
 if ( defined $parent_state ) {
@@ -115,8 +141,8 @@ if ( defined $parent_state ) {
 
 ## release parent's backend lock — parent is now waiting, not using inference ##
 ## child will acquire the lock when it runs via coding.async.request           ##
-my $parent_backend = $parent_state->{'backend'} // 'gpu';
-my $busy_href      = <coding.async.backend_busy> //= {};
+my $parent_backend = $parent_state->{'backend'}  // 'gpu';
+my $busy_href      = <coding.async.backend_busy> // {};
 my $held_lock      = $busy_href->{$parent_backend};
 if (   defined $held_lock
     && ref($held_lock) eq qw| HASH |
@@ -129,8 +155,8 @@ if (   defined $held_lock
 }
 
 <[base.logs]>->(
-    1,               "subtask_spawn: %s spawned child %s",
-    $parent_task_id, $child_task_id
+    1, "subtask_spawn: %s spawned child %s [depth %d/%d]",
+    $parent_task_id, $child_task_id, $depth, $max_depth
 );
 
 return {
@@ -138,8 +164,8 @@ return {
     child_task_id => $child_task_id,
 };
 
-#,,,.,,,,,..,,,,,,..,,,,,,.,,,,.,,.,,,,,.,,,.,..,,...,...,,,.,,,.,,,,,..,,.,,,
-#S7T25SYAZQELLS5Q63Z52KPQ624A56IR37KNNT36CISMI2BJEBXS6ATDIL23PESHPSSCVRZA7W5KC
-#\\\|OLJMAU5M5NQ654NP7OGIIANCGIGACGMVW3JRGBT67XACPE2J5FD \ / AMOS7 \ YOURUM ::
-#\[7]NNMU7BOCTCZWLU6TMIKQI6MU5TCDD2YMN2TUXLQJZRSCMMEHROBY 7  DATA SIGNATURE ::
+#,,.,,..,,.,.,.,,,..,,,..,..,,.,.,,..,,.,,,.,,..,,...,...,.,.,,,,,.,,,...,,..,
+#UZITM56O2EGTO5FKBHGY52CKFPODXXMRV2AP6BMB4U6T24HLZKQVVPP57NWIYGE6X4N5JHF35PEVG
+#\\\|WT675ZTTAEAYILWA6IHYV3SHMQZ34422H7AWD3A52MCJKNBILNL \ / AMOS7 \ YOURUM ::
+#\[7]YFG2ESOVZLYSXGIWPH7OCEEUEU7TQHXYQX6HEPDPGTKPSDGCAKAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
