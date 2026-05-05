@@ -7,12 +7,12 @@
 my $args = shift // {};
 
 ## extract parameters ##
-my $encoding   = qw| :encoding(UTF-8) |;      ## binmode compatible ##
 my $path       = $args->{'path'}       // return 'error : path required';
 my $edits      = $args->{'edits'}      // return 'error : edits required';
-my $apply      = $args->{'apply'}      // 1;
+my $apply      = $args->{'apply'}      // TRUE;
 my $batch_size = $args->{'batch_size'} // 25; ## default 25 edits per batch ##
 my $continue   = $args->{'continue'} // 0;  ## edit offset for continuation ##
+my $encoding   = $args->{'encoding'} // qw| :encoding(UTF-8) |; ## optional ##
 
 ## resolve file path ##
 my $root     = <system.root_path>;
@@ -21,8 +21,16 @@ return ": error : path not in repository : $path"
     unless $abs_path =~ m|^\Q$root\E/|;
 return ": error : file not found : $path" unless -f $abs_path;
 
+## normalize encoding parameter ##
+my $norm_encoding = <[coding.parser.normalize_encoding]>->($encoding);
+return
+      ': error : unsupported encoding : '
+    . $encoding
+    . ' [ supported are :raw, :bytes, :encoding(UTF-8), :encoding(<other>)]'
+    unless length( $norm_encoding // '' );
+
 ## load file content ##
-my $content_ref = <[file.slurp]>->( $abs_path, undef, $encoding );
+my $content_ref = <[file.slurp]>->( $abs_path, undef, $norm_encoding );
 return ": error : cannot read file : $path" unless defined $content_ref;
 my @lines = split "\n", $content_ref->$*, -1;
 
@@ -111,7 +119,7 @@ for my $edit ( sort { $b->{'line'} <=> $a->{'line'} } @batch_edits ) {
 ## save if applying ##
 if ( $apply && !$errors ) {
     my $new_content = join "\n", @lines;
-    my $result      = <[file.write]>->( $abs_path, \$new_content, $encoding );
+    my $result = <[file.write]>->( $abs_path, \$new_content, $norm_encoding );
     return ": error : failed to write file : $result" unless $result;
 }
 
@@ -126,8 +134,8 @@ return sprintf "## %s batch %d [ %d/%d edits ] %s ##\n%s",
     ( $has_more ? "\n[ more : continue=$next_continue ]" : "" ),
     join "\n", @preview;
 
-#,,.,,,,,,,,,,..,,...,,,.,.,.,,,.,.,.,.,,,.,,,.,.,...,...,,,,,.,,,...,,,,,,,,,
-#R6ZNRLJVHKVZD3DAPEVHGTSFS6ZQ3477BI3MVXIKZFFTSSNKVGGS6Q2YOH6KZ2ZY27ZV67VZUXPEC
-#\\\|TY2QCOGLQYZRM3SU23LT3P4WMSQ5OOLQP26KFC4XZ37WRF4EFDN \ / AMOS7 \ YOURUM ::
-#\[7]HFGFQZ3QIEBHRY5PF2ISJBFR3WKQIJJNHK3TTSJYXHAC3NU3TODI 7  DATA SIGNATURE ::
+#,,,,,,,,,,.,,,,.,...,,..,..,,,,.,,,.,..,,,..,.,.,...,..,,.,,,..,,,,.,,.,,..,,
+#MHPHFGQ2N4FZCDHB4EYMVWVXIJ4FVMDQ4P7LS75MJMTX66NOSYO76Z2NQWYNAY7TA37XG4AYP3YWA
+#\\\|TELMRVEFZGAYC52RRG2WFUGAPQF3BYFZBAJP6G6MDFXHNHQ2QNG \ / AMOS7 \ YOURUM ::
+#\[7]SL5OVBFMA4AOHRX6TDQRNWM2DVOZEYTKWGWYNV74BTGXTDB7V4AQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

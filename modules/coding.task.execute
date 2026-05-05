@@ -5,8 +5,6 @@
 # purpose = bridge jobqueue execution to coding task processing
 #         = Phase 2: async streaming support (default: blocking)
 
-use JSON::PP;
-
 ## JSON::XS loaded via coding.init_code
 
 my $params          = shift;
@@ -99,7 +97,8 @@ if ($async_mode) {
         : $max_tokens_safe;
     <[base.logs]>->(
         1,
-        "coding.task.execute: max_tokens capped %d→%d [n_ctx=%d ctx_est=%d]",
+        "coding.task.execute : max_tokens capped %d→%d"
+            . " [ n_ctx=%d ctx_est=%d ]",
         $max_tokens_cfg,
         $max_tokens,
         $n_ctx,
@@ -177,8 +176,8 @@ if ($async_mode) {
 
 return $result;
 
-#,,..,.,.,.,.,...,,,.,,.,,,.,,,.,,,,,,...,,..,.,.,...,..,,,.,,,..,..,,...,.,,,
-#X2CA2ZKGFFCRJTWRRVWJWYXKC7ZUPTSVBAUANFE4GFHG27XSLEJSJE6MJUPV3QCXGQVOXWX6INXNK
-#\\\|3HETTCQEWIJ2VSYT2GZTPK7YVVH3NVCF7UIYBEJMHLL2PS2DF5I \ / AMOS7 \ YOURUM ::
-#\[7]SUUI5B2TZ3FQL6JZWXD7QY5UJXF4FU62S2A7BHM7CLO6JGRGPKBQ 7  DATA SIGNATURE ::
+#,,,.,,,,,,..,,,.,..,,,.,,..,,,..,,..,..,,..,,.,.,...,...,..,,,.,,,..,,.,,,.,,
+#HSBWTDUD2QZPQTMQZ5FOZQ4QG5POAHDCCGE2XCCHGD7I2HYQDMV2HQYVZPUNJUIKO7PH75DMIGSZY
+#\\\|BEBON4MB3D47DF27YNGHOJZBSMDHBZVB6RY2EX5EDFKFRA575KB \ / AMOS7 \ YOURUM ::
+#\[7]WHCLIFQP6WOJ5ZGKIJEVCVLCA6ACR4QOVZRQNEGEDFP2WGANWWDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

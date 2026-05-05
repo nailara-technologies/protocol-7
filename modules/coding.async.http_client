@@ -2,14 +2,16 @@
 
 # name  = coding.async.http_client
 # descr = HTTP streaming client using Protocol-7 event system
-# purpose = Phase 2: Non-blocking HTTP with chunked response handling
+# purpose = Phase 2 : Non-blocking HTTP with chunked response handling
 
 my ( $url, $body, $callbacks ) = @ARG;
 
 return { success => FALSE, error => 'url required' }  unless defined $url;
 return { success => FALSE, error => 'body required' } unless defined $body;
-return { success => FALSE, error => 'callbacks hashref required' }
-    unless ref($callbacks) eq 'HASH';
+return { success => FALSE, error => qw| callbacks hashref required | }
+    unless ref($callbacks) eq qw| HASH |;
+
+my $default_http_timeout = <coding.http-timeouts.request-completed> // 780;
 
 ## Parse URL ##
 my ( $host, $port, $path ) = $url =~ m{^http://([^:/]+)(?::(\d+))?(/?.*)$};
@@ -39,7 +41,7 @@ my $sock = IO::Socket::IP->new(
 );
 
 if ( !$sock ) {
-    my $error = sprintf "Failed to connect to %s:%d :%s", $host, $port,
+    my $error = sprintf "Failed to connect to %s:%d : %s", $host, $port,
         <[base.str.os_err]>;
     <[base.logs]>->( 0, "async.http_client : %s", $error );
     $callbacks->{'on_error'}->($error) if exists $callbacks->{'on_error'};
@@ -76,7 +78,7 @@ my $io_watcher = <[event.add_io]>->(
 
 if ( !defined $io_watcher ) {
     my $error = "event.add_io failed for $host:$port";
-    <[base.logs]>->( 0, "async.http_client: %s", $error );
+    <[base.logs]>->( 0, "async.http_client : %s", $error );
     $callbacks->{'on_error'}->($error) if exists $callbacks->{'on_error'};
     close($sock);
     return { success => FALSE, error => $error };
@@ -94,7 +96,8 @@ while ( $total_written < $req_bytes ) {
     } elsif ( $!{EAGAIN} || $!{EWOULDBLOCK} ) {
         select( undef, undef, undef, 0.001 );
     } else {
-        my $error = "Failed to write request: $!";
+        my $error = sprintf 'Failed to write request : %s',
+            <[base.str.os_err]>;
         <[base.logs]>->( 0, "async.http_client: %s", $error );
         $callbacks->{'on_error'}->($error) if exists $callbacks->{'on_error'};
         eval { $io_watcher->cancel };
@@ -103,14 +106,14 @@ while ( $total_written < $req_bytes ) {
     }
 }
 
-<[base.logs]>->( 2, "async.http_client: wrote %d bytes", $total_written );
+<[base.logs]>->( 2, "async.http_client : wrote %d bytes", $total_written );
 
 ## Set up timeout ##
 
-my $timeout_sec     = $callbacks->{'timeout'} // 780;
+my $timeout_sec     = $callbacks->{'timeout'} // $default_http_timeout;
 my $timeout_watcher = <[event.add_timer]>->(
     {   'after'   => $timeout_sec,
-        'handler' => 'coding.handler.http_timeout',
+        'handler' => qw| coding.handler.http_timeout |,
         'data'    => { state => $state, io_watcher => $io_watcher },
     }
 );
@@ -127,8 +130,8 @@ return {
     state   => $state,
 };
 
-#,,,.,,..,.,,,.,,,,..,,,,,..,,,,.,,,,,,..,...,.,.,...,...,,,,,.,.,,,.,,,.,.,,,
-#2QX7LITRW6RWPC3O4PNJJOTOTPUWHHCWQFMIV7XKG76EFDBLUUQ76E4DNETAPYWHHSSNHLVLZPEBW
-#\\\|2WMRFV57BXNRVGA5BSHR5RLBQANN7X6OSMQPMGKAYLZPDK7QCYR \ / AMOS7 \ YOURUM ::
-#\[7]MZIT7EOVRRDRFIBJ3M2MCONBHTI3D5KYXCXSOT7565OAYGI3WABI 7  DATA SIGNATURE ::
+#,,.,,,,,,.,.,...,,,.,.,.,...,...,,..,..,,,,,,.,.,...,...,.,,,,..,,,.,..,,.,.,
+#FU7AN7JRXYYLOI5MFXIL5FUAF4ZXSJG5SUSICIE4S7JGKX4G4PSEH4ABIACMH3C7BWGIBZLSHLYVY
+#\\\|33Z4NUJKFRP3MXHNOWCAKTF4EKG66O64BUVH7BCXOCBYPA3VH5H \ / AMOS7 \ YOURUM ::
+#\[7]ILJGKIV677WDK4Q2XCGZSWA5RY7TBYRSQ4J46UKFG32DYWEEM2DI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

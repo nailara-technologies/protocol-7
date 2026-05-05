@@ -11,7 +11,7 @@ my ( $task_id, $meta_id );
 ## detect calling context ##
 if ( defined $input && ref($input) && ref($input) =~ m{Event::} ) {
 
-    ## called from event loop (complete-analysis) ##
+    ## called from event loop [complete-analysis] ##
     my $event = $input;
     $meta_id = $event->w->data;
 
@@ -185,9 +185,9 @@ my $max_tool_rounds = 777;
 my $tool_round      = 0;
 my $server_retries  = 5;  ## retries for transient server/connection errors ##
 
-## context size tracking for compaction ##
+## context size tracking for compaction ## [LLL] comp. thr. --> configurable
 my $context_limit     = <inference.model.context_length> // 16384;
-my $compact_threshold = int( $context_limit * 0.53 );    ## compact at 53% ##
+my $compact_threshold = int( $context_limit * 0.7 );    ## compact at 70% ##
 my $chars_per_token   = 3.2;    ## adjusted for tool-calling JSON overhead ##
 my $keep_recent_msgs  = 6;      ## preserve last 3 tool rounds [ 6 msgs ] ##
 
@@ -990,8 +990,8 @@ if ( length $response_text
 ## return result hashref for jobqueue callback ##
 return { success => TRUE, result => $response_text, task_id => $task_id };
 
-#,,,,,.,,,,,,,,,,,,.,,.,,,...,.,.,..,,.,,,,.,,..,,...,...,.,.,.,,,,,,,,.,,,,.,
-#OXHPUTHYPUFPRXFPDGDBMCD7CZT5F7WBBYCPLCUHRDVWRVJGXWMTGVXT6FJ3SDXMG75QAB4ESXBRK
-#\\\|3XZ6FHLHO6A6QWSAZKTMBC4V2U6IVGJJ24KF42VU6DDVFAM33J7 \ / AMOS7 \ YOURUM ::
-#\[7]XUQKGCQAEAP3ZTGPTJWSPCCFUUONRQUC52KFPTLLN2X2E76M6SAA 7  DATA SIGNATURE ::
+#,,,.,,..,..,,...,..,,,,.,..,,,,.,...,,..,,..,..,,...,..,,..,,,,.,.,.,,.,,..,,
+#3ELAQBXAADQXYK5AWQC2HQH32JUTIHAQLPZSKYMRZJKDZ75AOUOWPHBIV5H6LPMDCYUYLV6YU4QZI
+#\\\|Z66X2YX7QE4XSDUOOSMM26G2MV26CATPKA7TT5X7U7DLWWERGJZ \ / AMOS7 \ YOURUM ::
+#\[7]OKEDEGH7ZZBI2SD7MD7SRPO7KSFDHGFB3UBHIDMFQUKJK53CDICA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

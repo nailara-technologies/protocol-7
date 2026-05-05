@@ -1,0 +1,41 @@
+## [:< ##
+
+# name  = coding.parser.normalize_encoding
+# descr = converting encoding parameter to binmode-compatible value
+my $encoding = shift // qw| :encoding(UTF-8) |;
+
+## :raw and :bytes are already binmode-compatible ##
+if ( $encoding eq qw| :raw | or $encoding eq qw| :bytes | ) {
+    return $encoding;
+}
+
+## :encoding(UTF-8) requires explicit binmode specification ##
+if ( $encoding =~ m|^:encoding\(UTF-8\)$|i or $encoding =~ m{utf\-?8}i ) {
+    return qw| :encoding(UTF-8) |;
+}
+
+my $enc_name    ## other encodings with validity check ##
+    = $encoding =~ m{^:encoding\(([^\)]+)\)$}
+    ? $LAST_PAREN_MATCH
+    : $encoding;
+
+## encoding valid as PerlIO layer, returning it.. ##
+return sprintf( qw| :encoding(%s) |, $enc_name )
+    if Encode::find_encoding($enc_name)->perlio_ok;
+
+## not found or not supported by PerlIO layer ##
+<[base.logs]>->(
+    2,
+    ": error : invalid encoding format : '%s'"
+        . " [ use :raw, :bytes, :encoding(UTF-8)"
+        . " or :encoding(<other_format>) ]",
+    $encoding
+);
+
+return undef; ###[ error case : encoding not found or supported by PerlIO ]###
+
+#,,.,,,,.,.,.,,,,,.,.,..,,,,.,,..,,..,,.,,,,.,.,.,...,...,,,,,..,,...,..,,..,,
+#HKBVQCZV5EXJFHTS6LYCERKCGTHSWJIFJV54UGQZQ7SHAZNRK5V74YJP37OEYPEXUZSORZ6NTRI74
+#\\\|WVE7NLQJW4OAMSIT7U44PTYDZ3WFYUHQR4JGLNOMWTVQM6KJYG4 \ / AMOS7 \ YOURUM ::
+#\[7]O47TPUBT6CTEHUVJ5IGZN5TOSWVJLOGTQY33E7BMJL2Q5TTH4YDA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

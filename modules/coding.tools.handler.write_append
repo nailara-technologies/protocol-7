@@ -2,10 +2,12 @@
 
 # name  = coding.tools.handler.write_append
 # descr = append content to existing file with staging support
+# param = $args[{path,content,encoding}], encoding defaults to UTF-8
 
-my $args    = shift              // {};
-my $path    = $args->{'path'}    // return 'path required';
-my $content = $args->{'content'} // return 'content required';
+my $args     = shift               // {};
+my $path     = $args->{'path'}     // return 'path required';
+my $content  = $args->{'content'}  // return 'content required';
+my $encoding = $args->{'encoding'} // qw| :encoding(UTF-8) |;
 
 my $root     = <system.root_path>;
 my $abs_path = "$root/$path";
@@ -24,12 +26,35 @@ return 'error: path escapes project root'
     or index( $real_dir, "$real_root/" ) != 0
     or $path =~ m|\.\./|;
 
+## normalize encoding parameter ##
+my $norm_encoding = <[coding.parser.normalize_encoding]>->($encoding);
+return
+      ': error : unsupported encoding : '
+    . $encoding
+    . ' [ supported are :raw, :bytes, :encoding(UTF-8), :encoding(<other>)]'
+    unless length( $norm_encoding // '' );
+
 ## file must exist to append ##
 return "error: file does not exist [ $path ]" if !-f $abs_path;
 
+## use chmod child to gain write access if needed ##
+my $chmod_fh = <coding.chmod_child.w_fh>;
+my $mode_restore;
+if ( !-w $abs_path and defined $chmod_fh ) {
+    my $cur_mode = ( stat $abs_path )[2] // 0644;
+    $cur_mode &= 07777;
+    print {$chmod_fh} "gw $abs_path\n";
+    select undef, undef, undef, 0.01;    ## yield for child ##
+    $mode_restore = $cur_mode if -w $abs_path;
+}
+
 if ( -w $abs_path ) {
     ## file is writable — append content ##
-    my $result = <[file.append]>->( $abs_path, \$content );
+    my $result = <[file.append]>->( $abs_path, \$content, $norm_encoding );
+    if ( defined $mode_restore and defined $chmod_fh ) {
+        print {$chmod_fh} sprintf "restore %04o %s\n", $mode_restore,
+            $abs_path;
+    }
     return undef if not $result;
     return sprintf "appended %s [ %d bytes ]", $path, length($content);
 }
@@ -39,7 +64,7 @@ my $stage_name = $path;
 $stage_name =~ s|/|__|g;
 my $stage_rel = "staged/$stage_name";
 <[file.zenka_dir.write]>->(
-    $stage_rel, \$content, qw| >> |, 0664, qw| :encoding(UTF-8) |
+    $stage_rel, \$content, qw| >> |, 0664, $norm_encoding
 );
 <[base.logs]>->(
     1, ':. write_append: staged append %s [ no write access ]', $path
@@ -48,8 +73,8 @@ return sprintf "staged append to %s [ %d bytes, no write access ]\n"
     . "staged at: %s",
     $path, length($content), $stage_rel;
 
-#,,..,,..,,.,,,,.,.,.,.,.,,.,,,..,,,.,,..,...,..,,...,...,..,,.,.,.,,,,.,,...,
-#BPIRTZLFV5D446WBH2IQL4AG4DL35DVO4V33LVZTK5WRUJSUN6VLPOVSJNOYKOYCBXVSBW63PDCUU
-#\\\|V7IQB4N3GOR5645QEU2CM7PEYYSPF2J6XHX2ZPTYUC2X4OOM5NF \ / AMOS7 \ YOURUM ::
-#\[7]NKMLDBSHKS6TQM3Y5LC27WSOBMXWUBIENNAWWECUKOGWXWNG5MBA 7  DATA SIGNATURE ::
+#,,,.,,,.,..,,.,.,,,,,,..,,,,,.,,,..,,,.,,..,,.,.,...,..,,.,,,.,,,...,,..,..,,
+#O7YLKBJTQK36D4GM6IJHLMYYHVJMBJMJZAAD2KAVZAV6OGVS464KLKWALDQSWIADC7R34MS4MPBUO
+#\\\|B4327VJV33VWXIRGIZBVQJPEOMHDYETXSSLMWTCZ3I4UAH43UKP \ / AMOS7 \ YOURUM ::
+#\[7]AARLZK5P6JV7KPR45RQ55IZK4JZ3RCBDY2QCOAUD3EMR6APF5WAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -7,10 +7,11 @@
 
 my $params = shift // {};
 
-my $path      = $params->{'path'}      // '';
-my $budget    = $params->{'budget'}    // 2000;
-my $from_line = $params->{'from_line'} // 1;
-my $to_line   = $params->{'to_line'}   // 0;
+my $path              = $params->{'path'}              // '';
+my $budget            = $params->{'budget'}            // 2000;
+my $from_line         = $params->{'from_line'}         // 1;
+my $to_line           = $params->{'to_line'}           // 0;
+my $show_line_numbers = $params->{'show_line_numbers'} // 0;
 
 my $char_budget = int( $budget * 4 );
 
@@ -53,16 +54,21 @@ $to_line   = scalar(@lines) if $to_line == 0 or $to_line > scalar(@lines);
 ## truncate to budget ##
 my $content = '';
 my $used    = 0;
+my $ln      = $from_line;
 
 foreach my $line (@lines) {
-    my $line_len = length($line);
+    my $line_out
+        = $show_line_numbers
+        ? sprintf "%5d\t%s", $ln++, $line
+        : $line;
+    my $line_len = length($line_out);
 
     if ( $used + $line_len > $char_budget ) {
         $content .= "\n... (truncated at line budget)";
         last;
     }
 
-    $content .= $line;
+    $content .= $line_out;
     $used += $line_len;
 }
 
@@ -74,8 +80,8 @@ $output .= "\n\`\`\`\n";
 
 return $output;
 
-#,,.,,,,.,.,,,,..,,..,,..,.,.,,,.,,.,,.,,,...,..,,...,...,...,..,,,,,,,,,,.,.,
-#WS5GYLQLT5GMV2HPSTSJWDVGT6WG3LVFXAOYUGPS2LCIG33LJU4GYKZWBSZC2LWFIDVVUPC54YIEA
-#\\\|KI7A3NVWZK3HX7A7WE7WMMTL4R4PSXUMTQOMNKDYQWTYTZB73OS \ / AMOS7 \ YOURUM ::
-#\[7]HQP67R2QQU7RESCV36BYPJKKZPT6VIWEQYJFAR4PQWOU7FPAICAI 7  DATA SIGNATURE ::
+#,,,,,,,,,.,,,.,.,.,.,,.,,,,,,,..,.,.,,,,,,.,,.,.,...,..,,..,,,.,,,..,,.,,,,,,
+#I6E3QUBUZ2ZB6LKVWGEFRZYIU2VX6KCCLTHFTNXCMBHH4PCWIW7BAEMZDMMYY245CQJMZ4NVWW7NC
+#\\\|6SWKWAHQUD65QD2P57G4EEZCYHU37IVW7ZARKPDZCVZOJBWZITY \ / AMOS7 \ YOURUM ::
+#\[7]YGXV4F7V6SE5GK5U3GO5CORXP6X5XAA7Q6VYRK7UTLVVQEQTS4AY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

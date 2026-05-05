@@ -6,9 +6,12 @@
 
 my ( $task_id, $result ) = @ARG;
 
+my $save_after_secs = <coding.buffer-timeouts.save> // 4200;
+my $drop_after_secs = <coding.buffer-timeouts.drop> // 5700;
+
 <[base.logs]>->(
     1,
-    "[on-task-complete] CALLED with task_id=%s result_len=%d",
+    "[on-task-complete] CALLED for %s result_len=%d",
     $task_id // 'undef',
     length( $result // '' )
 );
@@ -34,7 +37,7 @@ foreach my $mid ( keys %{ <coding.complete_analysis_jobs> // {} } ) {
 # If this is part of a complete-analysis chain, check for resumption
 if ( defined $meta_job ) {
     <[base.logs]>->(
-        1,        "[on-task-complete] task completed: %s (meta=%s)",
+        1,        "[on-task-complete] task completed : %s [meta=%s]",
         $task_id, $meta_id
     );
 
@@ -98,13 +101,13 @@ if ( defined <coding.timer.task_buffer_drop>
 );
 
 <[base.logs]>->(
-    1, "[on-task-complete] buffer save/drop timers set [ 47m / 63m ]"
+    1, "[on-task-complete] buffer save|drop timers set [ 47m | 63m ]"
 );
 
 return TRUE;
 
-#,,..,,,.,...,,,,,,..,..,,...,.,,,,,,,..,,.,,,..,,...,...,...,.,.,,,,,.,,,,,,,
-#GVNPXTZ2TBDWUZHQ356UDNSAZHXOV24F2MU2VGOBJKWJVKX7E7GKI2U6RUIPRXEDHK7YERSUTIELW
-#\\\|4BHKVOHGB37CPEC47W44UYQTTOON34DZG6BH7ZS22EJOUX6DKFE \ / AMOS7 \ YOURUM ::
-#\[7]U44D2GPRUNVFTG7UBQUQIFDRVRQDVKLHKFQTXLEJJ4CI3HWZ7SAY 7  DATA SIGNATURE ::
+#,,..,.,.,.,.,.,.,,..,,,,,,.,,.,,,.,.,..,,,..,..,,...,...,..,,..,,...,,..,..,,
+#F4DRCQMAVRQMFA3YUTIGNBDEQAZTRYBNUTOIUPTNDHYPHH7GRKUJXN2WJAXO77U6RBGSWT4PC7CCI
+#\\\|ZKT6HTJHS3TPIDBIEVIQ7RV6TXKKLTPRESZWZ6OJY7LATDJ3EKO \ / AMOS7 \ YOURUM ::
+#\[7]3ZPVLHOEGRD2NECUUF6AX4R5OC4LZTQWJFX33MSNU47DXP7K3WCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

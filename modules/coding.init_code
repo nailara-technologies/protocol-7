@@ -9,9 +9,18 @@ my $reinit = shift // TRUE;   ### provided by 'base.init_modules' [TRUE|FALSE]
 my $already_initialized = $reinit;    ## use for skipping redundant calls.. ##
 my $first_init          = $already_initialized ? FALSE : TRUE; ## ^ inverse ##
 
+## load json parser modules [without importing] ##
+map { <[base.perlmod.load]>->($ARG) } qw| JSON::XS JSON::PP |;
 ## load all additionally used perl modules ##
-#
-<[base.perlmod.load]>->(qw| JSON::XS |);
+map { <[base.perlmod.autoload]>->($ARG) } qw[
+    Cwd
+    Fcntl
+    Encode
+    YAML::XS
+    FreezeThaw
+    IPC::Open3
+    IO::Compress::Xz
+];
 
 ## Phase 2: Async streaming support ##
 ## Using Protocol-7 native event system, not AnyEvent::HTTP ##
@@ -414,8 +423,8 @@ if ( not $already_initialized ) {
 
 return 0;
 
-#,,,.,.,.,,,,,.,.,,,,,,,,,...,,,.,,.,,.,.,.,.,.,.,...,...,,..,..,,...,,.,,,,,,
-#7NZXST6PZHDDWCRAM7EP52U5CL4VAMKBTWGJ4NXC4TRSVN2TM22UO7IWBS5O5VVMOSXUVJCGMWLKQ
-#\\\|7Z6UXQGMNPD7CF6D356NH47CEOOWZ54MCDV44NZKEGZ5M6LV4PF \ / AMOS7 \ YOURUM ::
-#\[7]QFMVPMS65DPYSBCXDBLJASU5WXJOXNJZA3UJKBKZEFEZCJRUWWDY 7  DATA SIGNATURE ::
+#,,,,,.,.,,.,,,..,,,.,.,.,..,,..,,,,,,.,,,,,,,.,.,...,...,...,,,.,,..,,,.,,,,,
+#ONHO3K7COBH3JH7DXMD7MJGHSYQDWHGX3KLMXWF5XBXVJNVYC54JOZJ5ZGVDRUPQZNTCFMX33PQP6
+#\\\|P627YSAQSUK524TWLDOZE7OXKGGDZ6GGUBZE3VW76BVKZ7W4O6H \ / AMOS7 \ YOURUM ::
+#\[7]6YBXJOFHZQSTBLPWJRJ5TQHPNPKBTYDHK625567IEOAETBCR2GAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

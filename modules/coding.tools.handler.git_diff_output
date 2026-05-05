@@ -1,0 +1,49 @@
+## [:< ##
+
+# name  = coding.tools.handler.git_diff_output
+# descr = core routine for git diff output [ staged or unstaged ] via Git::Wrapper
+
+my $git_args   = shift // '';
+my $stage_type = shift // 'unstaged';    ## 'staged' or 'unstaged' ##
+
+$git_args = '' unless defined $git_args and $git_args =~ m|\S+|;
+
+my $root = <system.root_path>;
+
+## verify git repo ##
+unless ( -d "$root/.git" ) {
+    return {
+        'mode' => qw| false |,
+        'data' => 'not a git repository'
+    };
+}
+
+## load Git::Wrapper ##
+<[base.perlmod.autoload]>->('Git::Wrapper');
+my $git = Git::Wrapper->new($root);
+
+my @cmd_args = grep {length} split ' ', $git_args;
+unshift @cmd_args, '--cached' if $stage_type eq 'staged';
+
+my @output_lines;
+my $error = '';
+eval { @output_lines = $git->diff(@cmd_args); };
+if ($EVAL_ERROR) {
+    $error = $EVAL_ERROR;
+    $error =~ s|\s+at\s+\S+\s+line\s+\d+.*||s;
+    return {
+        'mode' => qw| false |,
+        'data' => "git diff $stage_type failed: $error"
+    };
+}
+
+return {
+    'mode' => qw| true |,
+    'data' => join( "\n", @output_lines )
+};
+
+#,,,,,,,,,,..,...,.,,,...,.,,,,..,,.,,.,,,.,,,..,,...,...,,..,.,.,...,..,,..,,
+#KMMQ7OKS3A2CU3CH5DCKSLJ3JPITFBXDFY3EQXUY6YE3HNSZQT4BV4YQDFFT2FPARLECRF6U4FWYC
+#\\\|GBJBMH66ARNXQFOG74TYR2CDC4K73SIKVEE7RYWATRO3JTVU3AK \ / AMOS7 \ YOURUM ::
+#\[7]KVWSKQYQSSRD7Y7WRIOOE7SIP3K2SNSUWKYGKYEQF4VFFQ6OYWCQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

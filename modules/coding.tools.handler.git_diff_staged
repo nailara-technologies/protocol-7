@@ -1,0 +1,40 @@
+## [:< ##
+
+# name  = coding.tools.handler.git_diff_staged
+# descr = show staged git changes (git diff --cached)
+# param = $args hashref with optional git_args and max_lines
+
+my $args = shift // {};
+
+my $git_args  = $args->{'git_args'}  // '';
+my $max_lines = $args->{'max_lines'} // 50;
+
+$max_lines = int($max_lines);
+$max_lines = 0    if $max_lines < 0;
+$max_lines = 5000 if $max_lines > 5000;
+
+my $result
+    = <[coding.tools.handler.git_diff_output]>->( $git_args, 'staged' );
+
+if ( !defined $result || !$result->{'mode'} ) {
+    return $result->{'data'} // 'error: git diff staged failed';
+}
+
+my $output = $result->{'data'};
+
+if ( $max_lines > 0 ) {
+    my @lines = split /\n/, $output;
+    if ( scalar @lines > $max_lines ) {
+        splice @lines, $max_lines;
+        push @lines, "... (truncated to $max_lines lines)";
+        $output = join "\n", @lines;
+    }
+}
+
+return $output;
+
+#,,,,,,.,,,,.,...,,..,..,,,,,,,..,,,,,..,,,.,,.,.,...,...,,,,,,,,,,,,,..,,.,.,
+#6DXUMTHBHS5SE2SCQRAEFRXVU4JUFVAMBXD6QSZUG2XPZNFLHF4CP5YFHYWMI2C2RF6GHJYJU666A
+#\\\|TVITWMCMLT4NPRMMT3C2UZ6NE73BPZTDLRTQJA3XKIBWW2ELN5F \ / AMOS7 \ YOURUM ::
+#\[7]4WST2VX2G3A6G2VYZHNWMDDUNRGZXUTMMFM67KHB6BJOPGLZKSCI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

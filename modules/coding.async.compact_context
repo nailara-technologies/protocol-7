@@ -24,7 +24,7 @@ my $srv_key       = $backend eq qw| cpu | ? qw| cpu | : qw| gpu |;
 my $srv_info      = ( <coding.inference_servers> // {} )->{$srv_key} // {};
 my $context_limit = $srv_info->{'n_ctx'} // <inference.model.context_length>
     // 16384;
-my $compact_threshold = int( $context_limit * 0.53 );
+my $compact_threshold = int( $context_limit * 0.7 );    ## [LLL] --> config
 my $chars_per_token   = 3.2;
 my $keep_recent_msgs  = 6;    ## preserve last 3 tool rounds [ 6 msgs ] ##
 
@@ -242,8 +242,8 @@ if ( $after_tokens > $compact_threshold * 0.8 ) {
 
 return;
 
-#,,..,,,,,...,.,,,..,,.,,,,,,,...,.,,,,..,.,.,.,.,...,..,,.,,,,..,,..,,.,,.,,,
-#PAWZBTFCAK2YDAL5QCYME2VPE2OAZGS2RM5QZWKXASM54SR3FKH2LBYDXGFYBTBPNLDGMPENYN62S
-#\\\|O3K7V5S6LJVITLLU7VQEOAJHAT4BMQCBSIZO3EXJSCX22652J6B \ / AMOS7 \ YOURUM ::
-#\[7]XVD54KE7AWHAHYCTT4HY4OQPWACGEQ6BPBGME7U6A32AKZPNSMBI 7  DATA SIGNATURE ::
+#,,.,,,,,,,.,,,..,,..,..,,,.,,,.,,...,,..,...,.,.,...,...,..,,,..,,,.,.,.,,.,,
+#GKMU5BYQADP7IJI4565FGCT6P6W4NWYRDHUXB4JRV2GTS6S2YQG3WQQ7GGTNRYE2RPT6MBI4ZKWDE
+#\\\|WE7LUNT5OQVLWAGYRNFM2OFDHQ2UVIFFAFVDJG3KRMKB3GLM5BS \ / AMOS7 \ YOURUM ::
+#\[7]ZUKHGD7LDTFEBBFQ4Q3JDKJFVM6MC6O25ASVBB3ANZZEIPHQECAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
