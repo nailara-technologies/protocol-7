@@ -1,24 +1,12 @@
 ---
 name: task-archive-audit
 descr: audit coding task files and identify completed tasks for archival
-budget: 6000
+budget: 4000
 sections:
   ## system context ##
   - include: system-base
     priority: 1
     budget_pct: 10
-
-  ## archive structure reference ##
-  - provider: context.file.list
-    priority: 2
-    budget_pct: 10
-    params:
-      paths:
-        - data/yaml/archive/completed-coding-tasks/
-        - data/yaml/archive/completed-fix-tasks/
-        - data/yaml/coding-tasks/
-        - data/md/coding-tasks/
-    label: archive and active task directories
 
   ## instructions ##
   - static: |
@@ -83,21 +71,6 @@ sections:
       2. resolve any contradictions (if two subtasks disagree on a file)
       3. present the final report
 
-      ## what "completed" means ##
-
-      a task file is COMPLETED if ANY of the following are true:
-      - the feature/fix described has been implemented and committed to git
-      - the task file references a commit hash that exists in git log
-      - the task file describes work that is clearly done (e.g. "add X" and X exists)
-      - the task file is an old roadmap/phase document and later phases supersede it
-      - the task file has a corresponding handover or memory entry marking it done
-
-      a task file is ACTIVE / INCOMPLETE if:
-      - it describes work not yet visible in the codebase
-      - it is a roadmap for future phases without completion markers
-      - it contains open questions or TODOs without resolution
-      - it was created recently (< 7 days) and has no commit references
-
       ## archive destinations ##
 
       - bug fixes, error corrections, small patches
@@ -110,8 +83,8 @@ sections:
 
       - NEVER move a file marked active or uncertain
       - if unsure, mark as uncertain and skip
-      - prefer false negatives (leave completed file active) over false positives
-      - do not archive files younger than 7 days unless explicitly confirmed done
+      - prefer false negatives over false positives
+      - do not archive files younger than 7 days
       - subtask depth limit is 3 — do NOT spawn sub-subtasks
 
       ## output format ##
@@ -137,8 +110,8 @@ sections:
     budget_pct: 80
     label: task archive audit instructions
 
-#,,..,,..,,.,,,,.,,..,,.,,.,.,...,,,,,...,,,,,..,,...,..,,.,,,,..,,.,,.,,,,..,
-#J4S45GOY4PQO4HO3OI7EUS2MGCTOMJWG2E7I3K7HEHNGO7JNO3SOV3YIQVPJREPBUE525XHVSLY26
-#\\\|TXKWKIEKESIE3AWI6BR3WYBFCAN4K5VPKE7TJWIDFHCEADUCWWX \ / AMOS7 \ YOURUM ::
-#\[7]KHTP3JBWYRNWMH5HMWZA4YXFQH5LNJB32YKEDG46KITT7JTBWUDI 7  DATA SIGNATURE ::
+#,,..,.,,,,..,,,,,,.,,..,,.,.,...,.,,,,..,.,.,..,,...,..,,,..,...,...,,,.,.,.,
+#Z32GJFNP3LMAVLQP7SG55B67MDI6RT6MZFJZAUBAWYOYOUKSZ5SQSRMWCUYCAD2E4PQETQY6MAERM
+#\\\|IHXBOEXSTVOF5KMVJ37XXKDQEWU5QMNGYF223W3CPH5G4YQY2UB \ / AMOS7 \ YOURUM ::
+#\[7]QICFQ55UTSS2BXDAJHKKWHAFCUFLQQNH7AEQEUEQM65OAEHH54BA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
