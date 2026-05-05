@@ -5,6 +5,14 @@
 
 my $write_file_path = shift // '';
 my @file_content    = @ARG;
+my $encoding        = qw| :encoding(UTF-8) |;
+
+## optional encoding as last argument ##
+if (    @file_content
+    and defined $file_content[-1]
+    and $file_content[-1] =~ m{^:(raw|bytes|encoding\([^\)]+\))$} ) {
+    $encoding = pop @file_content;
+}
 
 my $fh;
 if ( not length $write_file_path ) {
@@ -14,6 +22,10 @@ if ( not length $write_file_path ) {
     <[base.s_warn]>->(
         "cannot open '%s' for appending [ %s ] <{C1}>",
         $write_file_path, <[base.str.os_err]>
+    );
+    binmode( $fh, $encoding ) or <[base.s_warn]>->(
+        ': binmode :
+    %s', <[base.str.os_err]>
     );
     return undef;
 }
@@ -39,8 +51,8 @@ if ( not close($fh) ) {
 }
 return TRUE;    ## true ##
 
-#,,,,,,,.,,,,,,.,,...,,,,,,..,..,,.,.,..,,.,,,.,.,...,...,..,,,,,,.,,,.,.,,.,,
-#COLQVCUQ4CNK4WWXI7KWOTZHXRYPU5QSXPCLQW6FPQIDX23F7LPVZPXY7X2WKTD6EKKNDWYBMOQ3Q
-#\\\|3QFU3UPCANRCS5Z2DVNDZY2BQAV5U6NZQWRGBXSVER6U2IK3QLT \ / AMOS7 \ YOURUM ::
-#\[7]TUKBGSMDDH4YXE4FQTX4DXKZCOXSKWIH2C7UCWCXF6NLK45TL2CQ 7  DATA SIGNATURE ::
+#,,,.,...,...,..,,.,,,.,.,...,,,,,.,.,.,,,,,.,.,.,...,...,..,,,,,,,.,,,,.,.,,,
+#SZOLPC2J7TK6WDSZ2INKAU6Y2OSVC7OVFXCJSRJ3QZQZOATYA6KJYYSKPDRCO7HH4UEK7F5LROZQO
+#\\\|CK43GRKSKL3VWMENE7D7CY2ICYKAXKXUOL4KIVJ5IGXLGMHQCZ7 \ / AMOS7 \ YOURUM ::
+#\[7]RMU4UAAS47EFWUBPPW57SIAX2Y6ZMJVJBFSYUACKYTVAK6ZULIDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

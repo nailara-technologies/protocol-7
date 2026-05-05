@@ -1,8 +1,11 @@
 
  .:[ protocol-7 coding zenka - GPU+CPU dual inference ]:.
 
+
+coding.cfg.start_model   = ZDMAPAY:AR3OCKQ ## Qwopus3.5 9B v3 ##
+
+# coding.cfg.start_model = WZIZD6Y:2BIZKWY ## Qwen3.5 9B Claude 4.6 Reasoning Distilled v2 ##
 # coding.cfg.start_model = SJCPFAQ:AGKY7YQ ## Qwen3.5 4B Claude 4.6 Reasoning Distilled v2 ##
-coding.cfg.start_model   = WZIZD6Y:2BIZKWY ## Qwen3.5 9B Claude 4.6 Reasoning Distilled v2 ##
 
 coding.cfg.base_work_model        = <coding.cfg.start_model>
 coding.cfg.base_compaction_model  = <coding.cfg.start_model>  ## same model; swap later for smaller ##
@@ -11,8 +14,12 @@ coding.cfg.compaction_inference   = yes  ## set yes to use inference-based conte
 [load_config_file:'shared-params']
 [zenka.load_sub_list]
 
-[base.white-list.register:'coding.handler']
+## exempt handler routines from deferred loading ##
+#
+[base.white-list.register:'coding.tools.handler']
 
+## enabled zenka network commands ##
+#
 access.cmd.usr.cube = commands heart reload verify-instance list show-buffer \
                       src-age buffer-erase buffer-erase-level budget status \
                       inference-status submit get-result analyze_and_extract \
@@ -25,7 +32,8 @@ access.cmd.usr.cube = commands heart reload verify-instance list show-buffer \
                       tree-write list-tools call-tool get set del dump \
                       inject-message stop-task async-test wait-done \
                       list-tasks task-info pause-task resume-task \
-                      execute_round last-compaction task-append
+                      execute_round last-compaction task-append \
+                      exec-sub eval-code ## <-- temporary [ development only ]
 
 system.verbosity.zenka_buffer  = 2  ##  memory ring buffer verbosity   ##
 system.verbosity.zenka_console = 2  ##  console [debugging] verbosity  ##
@@ -49,7 +57,7 @@ coding.jinja.enable = yes
 coding.jinja.template_file = /data/projects/protocol-7/data/jinja/templates/qwen3.5-fixed.jinja
 ## reasoning effort [low|medium|high] : empty = model default [ no kwarg sent ] ##
 ## low prevents runaway <think> spirals; use medium/high for complex tasks      ##
-coding.inference.reasoning_effort = medium
+coding.inference.reasoning_effort = high
 # coding.jinja.convert_tool_role = yes ## testing..
 coding.jinja.convert_tool_role = false
 
@@ -96,19 +104,25 @@ inference.routing.fallback_on_timeout = yes  ## Try CPU if GPU times out ##
 ## Async Mode Configuration ##
 coding.async.enabled = 1  ## Use non-blocking HTTP streaming with tool execution loop ##
 
+#
+## [timeouts] streaming data begin and total request duration ##
+#
+coding.http-timeouts.data-start = 47
+coding.http-timeouts.request-completed = 777
+
 ## Model Configuration ##
 ## Context length: floor value — auto-calculated from VRAM, but never below this ##
 ## smaller models expand above this automatically; large models use this as a min ##
 ## inference.model.context_length = 63000  ## doubled for multi-round tool sessions ##
-inference.model.context_length = 47777 ## [ temporary override ] ##
-## inference.model.max_tokens = 17777  ## defaults to context_length if unset
+inference.model.context_length = 32000 ## [ temporary override ] ##
+inference.model.max_tokens = 32000  ## defaults to context_length if unset
 inference.model.temperature = 0.7
 inference.model.seed = 0  ## 0 = harmonic seed from ntime+fortuna, >0 = fixed ##
 
 ## VRAM safety margin for context auto-calculation (calculate_safe_context) ##
 ## safety = 30% of remaining VRAM, clamped to [min, max]                   ##
-coding.cfg.vram_safety_min_mb = 512   ## lower to allow larger context windows ##
-coding.cfg.vram_safety_max_mb = 3072  ## cap to reserve VRAM for other use     ##
+coding.cfg.vram_safety_min_mb = 300   ## lower to allow larger context windows ##
+coding.cfg.vram_safety_max_mb = 3000  ## cap to reserve VRAM for other use     ##
 
 ## context ceiling for auto-calculation — 0 = uncapped (VRAM math decides) ##
 ## code default is 131072; override here for this system                   ##
@@ -149,8 +163,8 @@ plugins.load = plugin.storage.inference plugin.storage.util.inference
 
 [zenka.loop]
 
-#,,..,...,,..,,..,..,,.,.,,,,,.,.,,..,,..,,,,,.,.,...,...,,..,,.,,,,,,,..,,,.,
-#QPG6KT6RGSP3PPNDQRXC7L63OBJNFEF3YDREKFWK5LXALLAD3DHI6KQHITCHH73VZCGKP4I4YQRFU
-#\\\|QBG4NZBE34RZBNYWYEV5QVNAAGCYCHUT5ACJJKQOM3Y2AVL7OAT \ / AMOS7 \ YOURUM ::
-#\[7]MLTSTVZGGRZ5V7SMG3G4L3HUODV72WGTBIIZZISGZPY36D3MX2BY 7  DATA SIGNATURE ::
+#,,.,,.,,,.,.,.,,,...,,,.,,,,,,,,,...,..,,...,.,.,...,...,.,,,,,,,...,,,,,,..,
+#ERI36X6MP3BRDYPZAJI7KTKZLFGPA4LXILCXUYLI3DFSSWDVRSQED25JSVXCH7L34OIV4TALY3WW2
+#\\\|C5TC2TA22BAKTKNLQY77NVY6MNMTNGWQD7U2RABUBVWMTZVNBLQ \ / AMOS7 \ YOURUM ::
+#\[7]QEGKBTFZRAJ3BQ6JESRJ47JNH2NNUJYA2T37YSGMXZMIYDVOCIAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

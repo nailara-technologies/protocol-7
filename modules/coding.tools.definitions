@@ -5,6 +5,9 @@
 
 ## returns arrayref of tool definitions in OpenAI format ##
 ## each tool maps to an existing $code{} module          ##
+## encoding parameter defaults to UTF-8 for backwards compatibility
+## recognized encodings: UTF-8 (default), :raw, :bytes
+## normalization will convert any encoding to UTF-8 internally
 
 my @tools;
 
@@ -45,6 +48,11 @@ if ( exists $code{'context.file'} ) {
                         'type'        => 'integer',
                         'description' =>
                             'max characters to read [ default 8000 ]'
+                    },
+                    'show_line_numbers' => {
+                        'type'        => 'boolean',
+                        'description' =>
+                            'prepend line numbers [ default true ]'
                     },
                 },
                 'required' => ['path'],
@@ -163,6 +171,54 @@ if ( exists $code{'context.git.recent_changes'} ) {
         },
         };
 }
+
+## git_diff_staged — show staged changes ##
+push @tools,
+    {
+    'type'     => 'function',
+    'function' => {
+        'name'        => 'git_diff_staged',
+        'description' => 'show staged git changes (git diff --cached)',
+        'parameters'  => {
+            'type'       => 'object',
+            'properties' => {
+                'git_args' => {
+                    'type'        => 'string',
+                    'description' => 'additional git diff arguments'
+                },
+                'max_lines' => {
+                    'type'        => 'integer',
+                    'description' => 'max lines to return [ default 50 ]'
+                },
+            },
+            'required' => [],
+        },
+    },
+    };
+
+## git_diff_unstaged — show unstaged changes ##
+push @tools,
+    {
+    'type'     => 'function',
+    'function' => {
+        'name'        => 'git_diff_unstaged',
+        'description' => 'show unstaged git changes (git diff)',
+        'parameters'  => {
+            'type'       => 'object',
+            'properties' => {
+                'git_args' => {
+                    'type'        => 'string',
+                    'description' => 'additional git diff arguments'
+                },
+                'max_lines' => {
+                    'type'        => 'integer',
+                    'description' => 'max lines to return [ default 50 ]'
+                },
+            },
+            'required' => [],
+        },
+    },
+    };
 
 ## recent_errors — error log with filter ##
 if ( exists $code{'context.error.recent'} ) {
@@ -386,6 +442,10 @@ push @tools,
                     'description' =>
                         'true=write changes [ default ], false=preview only'
                 },
+                'encoding' => {
+                    'type'        => 'string',
+                    'description' => 'character encoding [ default UTF-8 ]'
+                },
             },
             'required' => [ 'path', 'edits' ],
         },
@@ -421,6 +481,10 @@ push @tools,
                     'type'        => 'boolean',
                     'description' =>
                         'replace all occurrences [ default false ]'
+                },
+                'encoding' => {
+                    'type'        => 'string',
+                    'description' => 'character encoding [ default UTF-8 ]'
                 },
             },
             'required' => [ 'path', 'old_string', 'new_string' ],
@@ -840,6 +904,38 @@ push @tools,
                 'content' => {
                     'type'        => 'string',
                     'description' => 'file content to write'
+                },
+                'encoding' => {
+                    'type'        => 'string',
+                    'description' => 'character encoding [ default UTF-8 ]'
+                },
+            },
+            'required' => [ 'path', 'content' ],
+        },
+    },
+    };
+
+## write_append — append to existing file ##
+push @tools,
+    {
+    'type'     => 'function',
+    'function' => {
+        'name'        => 'write_append',
+        'description' => 'append content to an existing file',
+        'parameters'  => {
+            'type'       => 'object',
+            'properties' => {
+                'path' => {
+                    'type'        => 'string',
+                    'description' => 'file path relative to project root'
+                },
+                'content' => {
+                    'type'        => 'string',
+                    'description' => 'content to append'
+                },
+                'encoding' => {
+                    'type'        => 'string',
+                    'description' => 'character encoding [ default UTF-8 ]'
                 },
             },
             'required' => [ 'path', 'content' ],
@@ -1314,8 +1410,8 @@ if ( exists $code{'ncode.cmd.search'} ) {
 
 return \@tools;
 
-#,,..,...,,,,,.,.,,..,..,,...,..,,,..,,.,,,..,..,,...,...,.,.,,.,,,,.,.,,,...,
-#AASTKWFQBC4Z5RYHNXAHZ3FAHUFY5M2QITDCCMUPW4WB6SOH4RHSBN5MXCVTA7QQN4O4B4FNML264
-#\\\|D6OWFTQ6XNKFHYXAPRTBALYOW3XBDB62WBP6WH2IEG7JYWLBGQY \ / AMOS7 \ YOURUM ::
-#\[7]2CHA3UFRYZSZ5M7NRZRI5X3FGBDW3ADDIYE4SSYLD6YTSYXVWMBA 7  DATA SIGNATURE ::
+#,,,,,.,,,,.,,...,,..,,..,.,,,,..,,..,..,,,.,,..,,...,...,,..,.,,,...,,..,,..,
+#ECHJ4PMYY2J4UZADZLUNEB2J4HMMLFAIIBPYS3NXKRYLBL43GG3FKNI77KBKEIGUS3XW7JMB7AYCS
+#\\\|X34MKBPDJAN6IH52CZXSRZ7S3BS5GZRROCI7W2AXIKF7SASZPZE \ / AMOS7 \ YOURUM ::
+#\[7]YALVYBWNPLKQUGIR5HT6ZDDPB6HZ2L7PSEKMUCAW5YWAKAJ5M2DQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -11,6 +11,8 @@ return { success => FALSE, error => 'task_id required' }
 return { success => FALSE, error => 'request_body required' }
     unless defined $request_body;
 
+my $http_timeout_request_total = <coding.http-timeouts.request-completed>;
+
 ## get task info ##
 my $task = <coding.task.queue>->{$task_id};
 return { success => FALSE, error => "task not found: $task_id" }
@@ -113,13 +115,13 @@ my $callbacks = {
     },
     on_error   => sub { <[coding.callback.http_error]>->( $task_id, @ARG ) },
     check_stop => sub { <[coding.callback.http_check_stop]>->($task_id) },
-    timeout    => 780,    ## 13 minutes ##
+    timeout    => $http_timeout_request_total,    ## default 13 minutes ##
 };
 
 <[base.logs]>->( 1, "[ %s ] connecting to local backend ..", $task_id );
 <[base.logs]>->( 2, ":. %s .:",                              $url );
 
-## start HTTP request (returns immediately) ##
+## start HTTP request [ returns immediately ] ##
 my $http_result
     = <[coding.async.http_client]>->( $url, $request_body, $callbacks );
 
@@ -160,8 +162,8 @@ return {
     mode    => qw| streaming |,
 };
 
-#,,..,...,..,,.,.,,,,,,.,,..,,.,.,,..,,.,,...,..,,...,...,.,,,,,,,...,,.,,,,.,
-#D4PYB2TA2DPPYAA5XA42X3TTDPVSXWWB7IH2N5FJBND3MAP3CT5ZADIRUX53VFKTZAXYMGAIUZXU4
-#\\\|3SU3N6NYFLUNTLPBBH6HVJC32C75FJHFQ2Z2WDXL6GVITEM5LYF \ / AMOS7 \ YOURUM ::
-#\[7]YNUAN77M46L7ULFFWS2YNJZWYDOC5SIJDJQDZT6L6IAJCQP3YAAY 7  DATA SIGNATURE ::
+#,,..,,.,,,.,,,..,,.,,,,.,,.,,,.,,,..,,,.,.,.,..,,...,...,.,.,,,,,..,,,,.,.,,,
+#H6UQCFRTPS6BWUPSOPCMQSHG5COSWLQ65YKFD4MRTOVYV4BZ5MYQ2Y6A7XAVFXIDI2A6WGHP6SFXS
+#\\\|5AY33K7AWKS2I5Q525WVNBSQIW6QB7Z3W5MAT6X5JFFR5QOPZUE \ / AMOS7 \ YOURUM ::
+#\[7]35FV43YCR7P76WWYLEFXIN376FU2SZTYNDIFVSG6MH7WHI4GZIDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

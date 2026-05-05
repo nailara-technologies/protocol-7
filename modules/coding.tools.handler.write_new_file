@@ -2,10 +2,11 @@
 
 # name  = coding.tools.handler.write_new_file
 # descr = write new file with validation and staging support
-
-my $args    = shift              // {};
-my $path    = $args->{'path'}    // return 'path required';
-my $content = $args->{'content'} // return 'content required';
+# param = $args[{path,content,encoding}], encoding defaults to UTF-8
+my $args     = shift               // {};
+my $path     = $args->{'path'}     // return 'path required';
+my $content  = $args->{'content'}  // return 'content required';
+my $encoding = $args->{'encoding'} // qw| :encoding(UTF-8) |;
 
 my $content_len = defined $content ? length($content) : 0;
 
@@ -19,72 +20,76 @@ if ( $content_len == 0 ) {
         $path, $content_len;
 }
 
-## note: use write_append for empty files [ <[coding.tools.handler.write_append]> ] ##
-
-my $root     = <system.root_path>;
-my $abs_path = "$root/$path";
+my $root       = <system.root_path>;
+my $abs_path   = catfile( $root, $path );
+my $stage_name = $path;
+$stage_name =~ s|/|__|g;
+my $stage_rel = catfile( qw| staged |, $stage_name );
 
 ## auto-prefix modules/ for dot-notation filenames without directory ##
 if ( $path !~ m|/| and $path =~ m|\.\w+\.| ) {
     $path     = "modules/$path";
-    $abs_path = "$root/$path";
+    $abs_path = catfile( $root, $path );
 }
 
 ## validate path stays within project [ resolve symlinks ] ##
 my $real_root = Cwd::abs_path($root)                           // '';
 my $real_dir  = Cwd::abs_path( ( $abs_path =~ s|/[^/]+$||r ) ) // '';
-return ': error : path escapes project root'
-    if !length $real_dir
+if (  !length $real_dir
     or index( $real_dir, "$real_root/" ) != 0
-    or $path =~ m|\.\./|;
+    or $path =~ m|\.\./| ) {
+    return ': error : path escapes project root' . $path;
+}
 
 ## refuse to overwrite existing files ##
 return "error: file already exists [ $path ]" if -e $abs_path;
 
-## check if parent dir is writable ##
-my $dir = $abs_path;
-$dir =~ s|/[^/]+$||;
-
 ## use chmod child to create empty file as admin user if needed ##
 my $chmod_fh = <coding.chmod_child.w_fh>;
-if ( -d $dir and !-w $dir and defined $chmod_fh ) {
+my $cur_mode;
+if ( !-w $abs_path and defined $chmod_fh ) {
+    my $dir = $abs_path;
+    $dir =~ s|/[^/]+$||;
     print {$chmod_fh} "create $abs_path\n";
-    select undef, undef, undef, 0.01;    ## yield for child ##
+    select undef, undef, undef, 0.01;    ## yield for child
+    $cur_mode = ( stat $abs_path )[2] // 0644 if -w $abs_path;
 }
 
+## normalize encoding parameter ##
+my $norm_encoding = <[coding.parser.normalize_encoding]>->($encoding);
+return
+      ': error : unsupported encoding'
+    . $encoding
+    . '[supported are :raw,:bytes,:encoding(UTF-8)]'
+    unless length( $norm_encoding // '' );
+
+## write content if file is writable ##
 if ( -f $abs_path and -w $abs_path ) {
-    ## file created by chmod child [ 0664 taeki:taeki ] — write content ##
-    <[file.put]>->( $abs_path, \$content );
-    ## restore to 0644 after write ##
-    if ( defined $chmod_fh ) {
-        print {$chmod_fh} sprintf "restore 0644 %s\n", $abs_path;
+    <[file.write]>->( $abs_path, \$content, $norm_encoding );
+    if ( defined $chmod_fh and defined $cur_mode ) {
+        print {$chmod_fh} sprintf "restore %04o %s\n", $cur_mode, $abs_path;
     }
     return sprintf "created %s [ %d bytes ]", $path, length($content);
-} elsif ( -d $dir and -w $dir ) {
-    ## dir is writable directly ##
-    <[file.put]>->( $abs_path, \$content );
+} elsif ( -d ( $abs_path =~ s|/[^/]+$||r )
+    and -w ( $abs_path =~ s|/[^/]+$||r ) ) {
+    <[file.write]>->( $abs_path, \$content, $norm_encoding );
     chmod( 0664, $abs_path );
     return sprintf "created %s [ %d bytes ]", $path, length($content);
 }
 
-## note: empty content creates 0-byte file [ use write_append to fill ] ##
-
 ## stage to zenka dir when no write access ##
-my $stage_name = $path;
-$stage_name =~ s|/|__|g;
-my $stage_rel = catfile( qw| staged |, $stage_name );
 <[file.zenka_dir.write]>->(
-    $stage_rel, \$content, qw| > |, 0664, qw| :encoding(UTF-8) |
+    $stage_rel, \$content, qw| > |, 0664, $norm_encoding
 );
 <[base.logs]>->(
     1, ':. write_new_file : staged %s [ no write access ]', $path
 );
-return sprintf "staged new file %s [ %d bytes, no write access ]\n"
-    . "staged at : %s",
-    $path, length($content), $stage_rel;
+return
+    sprintf "staged new file %s [ %d bytes, no write access ]\n"
+    . "staged at : %s", $path, length($content), $stage_rel;
 
-#,,,,,..,,.,.,,,.,,..,,,.,.,,,,..,,,,,,,,,.,,,..,,...,...,.,,,,,.,.,.,...,.,,,
-#2PHYOQ22KVDM6B5LP5PWUNDHOQELFOIKUS7W4ZIOVZ5TPW7HSZXSJMD73D4TIQEVABAVTBYTHYER2
-#\\\|T7UNAJJJV5V62DMTTZFFERXG3MEWVOH4FNCHGQ6QPWJXIE7E7DF \ / AMOS7 \ YOURUM ::
-#\[7]OR47E2Y2LMAABAPKLUMGZNYCW4ITE3LQPZGHMVNSI6XOLWFKKYBQ 7  DATA SIGNATURE ::
+#,,,,,,,.,...,,..,.,,,,,.,.,.,,,,,.,.,.,.,.,,,.,.,...,...,.,,,,,.,...,.,.,...,
+#LNK7UECNI6KDJXCEUK6TGMCHY6HRBD4IP67FNNXL4TSVVPKFGUYIKGYCB5ZBSY6WXXIHBFJRM6HM6
+#\\\|4PUC52TBGAE5VY5BPNNGA5LQEWVDX3SCEKGQGNBCZNNR6ZGT7Y3 \ / AMOS7 \ YOURUM ::
+#\[7]DDR4D42RPIJEBKR5AW4FLFZZSOZTGY4XGMJ74QGTUIQBDJKFXKDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -2,20 +2,22 @@
 
 # name  = coding.tools.handler.replace_in_file
 # descr = content-based find and replace in existing files
+# param = $args[->{path}], old_string, new_string, replace_all, encoding
 
 my $args        = shift                  // {};
 my $path        = $args->{'path'}        // return 'path required';
 my $old_string  = $args->{'old_string'}  // return 'old_string required';
 my $new_string  = $args->{'new_string'}  // return 'new_string required';
-my $replace_all = $args->{'replace_all'} // 0;
+my $replace_all = $args->{'replace_all'} // FALSE;
+my $encoding    = $args->{'encoding'}    // qw| :encoding(UTF-8) |;
 
 my $root     = <system.root_path>;
 my $abs_path = "$root/$path";
 
 ## auto-prefix modules/ for dot-notation filenames without directory ##
 if ( $path !~ m|/| and $path =~ m|\.\w+\.| ) {
-    $path     = "modules/$path";
-    $abs_path = "$root/$path";
+    $path     = catfile( qw| modules |, $path );
+    $abs_path = catfile( $root,         $path );
 }
 
 ## validate path stays within project [ resolve symlinks ] ##
@@ -27,13 +29,20 @@ return ': error : path escapes project root'
 return ': error : file not found' unless -f $real_path;
 $abs_path = $real_path;
 
+## normalize encoding parameter ##
+my $norm_encoding = <[coding.parser.normalize_encoding]>->($encoding);
+return
+      ': error : unsupported encoding : '
+    . $encoding
+    . ' [ supported are :raw, :bytes, :encoding(UTF-8), :encoding(<other>)]'
+    unless length( $norm_encoding // '' );
+
 ## read current content [ prefer staged version for accumulation ] ##
 my $stage_name = $path;
 $stage_name =~ s|/|__|g;
-my $stage_rel = catfile( qw| staged |, $stage_name );
-my $content_ref
-    = <[file.zenka_dir.load]>->( $stage_rel, qw| :encoding(UTF-8) | );
-$content_ref = <[file.slurp]>->( $abs_path, undef, qw| :encoding(UTF-8) | )
+my $stage_rel   = catfile( qw| staged |, $stage_name );
+my $content_ref = <[file.zenka_dir.load]>->( $stage_rel, $norm_encoding );
+$content_ref = <[file.slurp]>->( $abs_path, undef, $norm_encoding )
     unless defined $content_ref;
 return ': error : cannot read file' unless defined $content_ref;
 my $content = $content_ref->$*;
@@ -54,7 +63,7 @@ while ( ( my $pos = index( $content, $old_string, $search ) ) != -1 ) {
 if ( $count > 1 and not $replace_all ) {
     return
         sprintf ': error : old_string matches %d locations in file'
-        . ' — use replace_all=true or provide more context', $count;
+        . ' -- use replace_all=true or provide more context', $count;
 }
 
 ## perform replacement ##
@@ -91,10 +100,7 @@ if ( !-w $abs_path and defined $chmod_fh ) {
 }
 
 if ( -w $abs_path ) {
-    <[file.write_encoded]>->(
-        qw| :encoding(UTF-8) |,
-        $abs_path, \$new_content
-    );
+    <[file.write_encoded]>->( $norm_encoding, $abs_path, \$new_content );
     if ( defined $mode_restore and defined $chmod_fh ) {
         print {$chmod_fh} sprintf "restore %04o %s\n", $mode_restore,
             $abs_path;
@@ -106,7 +112,7 @@ if ( -w $abs_path ) {
 
 ## stage when no write access ##
 <[file.zenka_dir.write]>->(
-    $stage_rel, \$new_content, '>', 0664, qw| :encoding(UTF-8) |
+    $stage_rel, \$new_content, qw| > |, 0664, $norm_encoding
 );
 <[base.logs]>->(
     1, ':. replace_in_file : staged %s [ no write access ]', $path
@@ -115,8 +121,8 @@ return sprintf "staged replace in %s [ -%d +%d chars, no write access ]\n"
     . "staged at : %s",
     $path, length($old_string), length($new_string), $stage_rel;
 
-#,,..,...,,..,..,,,,,,,,,,,.,,..,,,..,.,,,,.,,.,.,...,...,...,.,.,.,,,..,,,,,,
-#NHEOFLVLBZOVVQ5DWIDLPAV64DCKPTTDTSBQH5M3K7VYZEI26SRQMAXKTJ73RAS2VGTM5ESCT4ZWO
-#\\\|S32UJ3XKQAZGYL4YRZQNNSNGF3R2O4XTWWQXV3J5UWWW5WDSUM5 \ / AMOS7 \ YOURUM ::
-#\[7]YIY4VAJWKETKPUQFZD2GX5WN6AKNGOBRYLJ6ZWHQG6IXNJLDYEBA 7  DATA SIGNATURE ::
+#,,,,,...,..,,.,,,...,,,,,.,,,.,,,,.,,,.,,..,,..,,...,...,..,,,..,.,,,...,,..,
+#7OYDBQ4P5EELDT2KHUNXKQF7VDNVVWNZ5HZ7GSV2FQQLX3OMH2HMJ5ZF2MGKD6NN6DERE47XNR7JG
+#\\\|HDDIDIWAHEDVNKY3I4T47PJ7DJENLHDF27IQCOF3DRGEQ7N4YJL \ / AMOS7 \ YOURUM ::
+#\[7]LUCIBV7FKZ3FVDI5GM6EKARUHN7EPX2SBNAKLD3YKIMJLB6A3KDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
