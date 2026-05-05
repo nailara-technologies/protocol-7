@@ -1736,8 +1736,67 @@ The `200 : streaming started` log is **present** for working rounds, **absent** 
 
 **File**: `data/ai-mem/claude/topic-async-round-2-timeout.md` (handover for Claude)
 
-#,,,.,.,.,,..,.,.,.,.,,.,,...,...,.,.,,,,,,.,,..,,...,...,...,..,,,..,,,.,,,,,
-#RN52WDRXCWZ6BW55DVB3K6KQ3B6ZACPQWQKLGBSMBBCNL3RUPLG7Y4OYIZF7HO77E4MVK22D2ECRM
-#\\\|PHHDUAC2DVISPJVSESCQE2DVYN6JJK53WK3SDQHR3AR3GXEED7Y \ / AMOS7 \ YOURUM ::
-#\[7]PNKRY7322PU3S7EA4GSLBEBKRSE2IOV453ECW6YSSLAHJDZLHEAY 7  DATA SIGNATURE ::
+## Session 2026-05-05 — UTF-8 Encoding, Git Diff Tools, Timeouts, Crash Restart Fixes
+
+### UTF-8 Encoding Support for File Tools
+
+Added optional `encoding` parameter to all file write/edit tools:
+- `write_new_file` — fixed corrupted file (trailing garbage, broken regexes `\.\w+\.` and `\.\./`)
+- `write_append` — added full encoding support + chmod_child `gw` for existing files
+- `edit_file` — already had encoding, verified working
+- `replace_in_file` — already had encoding, verified working
+- `base.file.append` — added optional encoding as last argument (popped from `@file_content` if matches `^:(raw|bytes|encoding\([^\)]+\))$`)
+- `coding.parser.normalize_encoding` — fixed hardcoded `Encode::find_encoding("euc-cn")` -> `Encode::find_encoding($enc_name)`
+- `coding.tools.definitions` — added `encoding` to `write_new_file` and `write_append` schemas
+
+### Line Numbers in `read_file`
+
+- `coding.tools.handler.read_file` — added `show_line_numbers` parameter (default `true`)
+- `modules/context.file` — added `show_line_numbers` support, prepends `sprintf "%5d\t%s"` before markdown backticks
+- `coding.tools.definitions` — added `show_line_numbers` boolean to `read_file` schema
+
+### Git Diff Tools
+
+Created proper AI-callable tools using `Git::Wrapper`:
+- `coding.tools.handler.git_diff_output` — core routine, runs `git diff` or `git diff --cached` via `Git::Wrapper`
+- `coding.tools.handler.git_diff_staged` — tool handler for `git diff --cached`
+- `coding.tools.handler.git_diff_unstaged` — tool handler for `git diff`
+- `coding.tools.definitions` — registered both tools with `git_args` and `max_lines` parameters
+
+### Cleanup of Confused Namespace Routines
+
+Deleted non-conforming/orphaned files:
+- `coding.cmd.unstaged-diff`, `coding.cmd.git-diff-staged`, `coding.cmd.git-diff-unstaged`
+- `coding.cmd.recent-changes`, `coding.cmd.recent-changes-staged`, `coding.cmd.recent-changes-unstaged`
+- `coding.tools.handler.recent_changes_cached`, `coding.tools.handler.recent_changes_unstaged`
+- `coding.tools.handler.git_diff_output` (empty), `git_diff_staged`, `git_diff_unstaged` (recreated properly)
+
+Kept legitimate `coding.cmd.staged-diff` (internal staging diff command).
+
+### Inference Crash Restart — Task Resume Fix
+
+`coding.handler.verify_inference_startup` was only resetting `restart_count` when server came back up, but NOT calling `jobqueue.check_dependencies`. If the dependency callback (`coding.callback.object_inference_server`) found the HTTP health endpoint not yet responding when `monitor_inference_startup` first triggered, jobs stayed blocked forever.
+
+**Fix**: Added `<[jobqueue.check_dependencies]>;` to `verify_inference_startup` ready-path. Also removed unnecessary `exists $code{...}` guards from both `monitor_inference_startup` and `verify_inference_startup` (jobqueue is reliably loaded).
+
+### Data-Start Timeout for Inference Streaming
+
+Added two-tier timeout system:
+- `coding.http-timeouts.data-start = 47` — fires if server accepts connection but no streaming chunks arrive within 47s (catches GPU-stall-before-first-token)
+- `coding.http-timeouts.request-completed = 777` — total request timeout (existing)
+
+**New handler**: `coding.handler.http_data_start_timeout`
+- Cancels itself on first chunk via `coding.handler.http_io_parse_line`
+- Cleaned up by `coding.async.http_cleanup`
+- Set up alongside total timeout in `coding.async.http_client`
+
+### Commits
+
+- `bb1a60bfa` — UTF-8, line numbers, git diff tools, namespace cleanup
+- `9d81d4f83` — data-start timeout, verify_inference_startup dependency recheck
+
+#,,,,,,,,,,,.,,,.,...,...,.,.,,.,,,,.,...,...,.,.,...,...,...,,..,,..,...,,.,,
+#JDYN7OJXYEUVOGIS2SOEE76DRWU5AC3PG7A5BHEPQE3HUHMSSQUFYCLIR4ZY2DMU4ZMMJC46FSVXQ
+#\\\|LWKLZOZCVU6NQ3IYKFY4MZ3ZLACSSB4QGHYFLOYBOUH4MFO2CT5 \ / AMOS7 \ YOURUM ::
+#\[7]57J4K6DXWDL2447NTHZD56WX5PMK4DVJSRPMMNVCS4EKI3QJTKDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
