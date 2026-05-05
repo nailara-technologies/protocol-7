@@ -8,10 +8,12 @@ my ($state) = @ARG;
 
 return unless defined $state;
 
-## Cancel timeout watcher ##
-if ( defined $state->{'timeout_watcher'} ) {
-    eval { $state->{'timeout_watcher'}->cancel() };
-    delete $state->{'timeout_watcher'};
+## Cancel timeout watchers ##
+for my $watcher_key (qw| timeout_watcher data_start_watcher |) {
+    if ( defined $state->{$watcher_key} ) {
+        eval { $state->{$watcher_key}->cancel() };
+        delete $state->{$watcher_key};
+    }
 }
 
 ## Remove I/O watcher ##
@@ -30,8 +32,8 @@ if ( defined $state->{'sock'} ) {
 
 return { success => TRUE };
 
-#,,.,,,,,,,.,,...,..,,,,.,,,.,.,.,,,,,..,,,,,,.,.,...,...,.,.,,..,,,,,,,,,,.,,
-#ZCQ6KNMPD64W66UBNDBTPDR2VS4IPVWOP3KHTMQBCHC4GPQT4IHB66TQUXNBMPUT7GB77O6IXHPMA
-#\\\|OTS34RENR5Z7ESKOPTWWKL6S64GY6VO7CXJOZ2W2DSW5FZRZTK7 \ / AMOS7 \ YOURUM ::
-#\[7]4MQAYQBJLOL2Y4R6I3AHUTYRDG25BJB3MLUG4LVM35BX3YVZSWAA 7  DATA SIGNATURE ::
+#,,,,,...,...,,..,...,,..,..,,..,,,,.,.,,,,.,,.,.,...,,..,,.,,,,.,.,,,,.,,...,
+#W3QUNI2JPNO3IIHO2CSLK3TF6LXSAB34RUGWZ7UF2WJFZ56E53UQXPNZOCLR24UI5LO2A7UNK2MWA
+#\\\|ZW35N7W3UBLAKICCBAXXRRJQOA5DB7R27SC5TDUFRBQ4FSRADOD \ / AMOS7 \ YOURUM ::
+#\[7]7JBAZFANXK5WGLYHEDAARGFUCE3EAB7WELTLDHGOVXN3YMG6XOAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
