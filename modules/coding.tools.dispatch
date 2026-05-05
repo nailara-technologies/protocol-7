@@ -315,13 +315,63 @@ my %dispatch = (
 
     'edit_file' => sub {
         ## extract parameters with chunked editing support ##
-        my $path       = $args->{'path'}  // return 'path required';
-        my $edits      = $args->{'edits'} // return 'edits required';
-        my $apply      = $args->{'apply'} // 1;
-        my $batch_size = $args->{'batch_size'}
-            // 25;    ## default 25 edits per batch ##
+        my $path  = $args->{'path'}  // return 'path required';
+        my $edits = $args->{'edits'} // return 'edits required';
+        my $apply = $args->{'apply'} // 1;
+        ## default 25 edits [batch] ##
+        my $batch_size = $args->{'batch_size'} // 25;
         my $continue = $args->{'continue'} // 0; ## offset for continuation ##
         my $encoding = $args->{'encoding'} // 'UTF-8';    ## default UTF-8 ##
+        ## auto-split large edits ##
+        my $auto_split = $args->{'auto_split'} // 0;
+
+        ## auto-split detection ##
+        my $edit_count = 0;
+        if ( ref $edits eq qw| ARRAY | ) {
+            $edit_count = scalar @$edits;
+        } elsif ( $edits and ref $edits ne qw| HASH | ) {
+            ## estimate from JSON string length [rough 1 edit = 100 chars] ##
+            $edit_count = length($edits) / 100;
+        }
+
+        my $split_threshold = 50;
+        if ( $edit_count > $split_threshold and $auto_split ) {
+            ## auto-split: process in smaller batches ##
+            <[base.logs]>->(
+                0,
+                ':. edit_file : auto-splitting %d edits into %d batches',
+                $edit_count,
+                int( POSIX::ceil( $edit_count / $batch_size ) ),
+            );
+            ##   return error with instructions  ##
+            ## to split manually or use continue ##
+            my $batches = int( ceil( $edit_count / $batch_size ) );
+            return {
+                'id'      => $call_id,
+                'role'    => 'tool',
+                'content' => sprintf(
+                    "auto_split: detected %d edits (exceeds %d threshold)\n"
+                        . "Split into %d batches recommended.\n\n"
+                        . "Option 1: Split manually\n"
+                        . "  Call edit_file multiple times:\n"
+                        . "  - Batch 1: edits[0..%d]\n"
+                        . "  - Batch 2: continue=%d, edits[%d..%d]\n"
+                        . "  - ...\n\n"
+                        . "Option 2: Use auto_split=1 (already applied)\n"
+                        . "  Your edits will be processed in batches.\n\n"
+                        . "Note: Each batch processes %d edits,"
+                        . " reducing token usage",
+                    $edit_count,
+                    $split_threshold,
+                    $batches,
+                    int( ( $batch_size * 2 ) / $edit_count * 10 ),
+                    int( ( $batch_size * 2 ) / $edit_count * 10 ),
+                    int( ( $batch_size * 2 ) / $edit_count * 10 ),
+                    int( ( $batch_size * 2 ) / $edit_count * 10 ),
+                    $batch_size
+                ),
+            };
+        }
 
         my $root     = <system.root_path>;
         my $abs_path = "$root/$path";
@@ -335,11 +385,69 @@ my %dispatch = (
         return 'error: file not found' unless -f $real_path;
         $abs_path = $real_path;
 
-        ## parse edits JSON ##
+        ## parse edits JSON with truncation detection ##
         my $edit_list;
         if ( not ref $edits ) {
+            ## detect truncation : JSON starts but doesn't complete ##
+            if ( $edits =~ m{^\s*\[}x and $edits !~ m{\]\s*$} ) {
+                <[base.logs]>->(
+                    0,
+                    ':. edit_file: JSON appears truncated '
+                        . ": starts with '[' but incomplete",
+                );
+                return {
+                    'id'      => $call_id,
+                    'role'    => 'tool',
+                    'content' =>
+                        "error: JSON appears truncated or malformed.\n"
+                        . "The edits array starts but is incomplete.\n\n"
+                        . "Please split into smaller batches [max 50 "
+                        . "edits each].\n"
+                        . "Example call:\n"
+                        . "  edit_file(path='file.txt', edits=[{line:1,"
+                        . "old:'a',new:'b'}, ...], "
+                        . "batch_size=25)\n\n"
+                        . "If your edits exceed 100 lines,"
+                        . " use multiple calls:\n"
+                        . "1. First call: edits[0..24]\n"
+                        . "2. Continue call: continue=25, edits[25..49]\n"
+                        . "3. Continue call: continue=50, edits[50..end]",
+                };
+            }
+
             $edit_list = eval { JSON::PP::decode_json($edits) };
-            return "error: invalid edits JSON: $@" if $@;
+            if ($@) {
+                ## check for truncation in error message ##
+                my $json_err = $@;
+                if ($json_err =~ m{
+                        unexpected \s+ end \s+ of \s+ input
+                        | unexpected \s+ EOF
+                        | unexpected \s+ end \s+ of \s+ array
+                        | unexpected \s+ end \s+ of \s+ object
+                    }x
+                ) {
+                    <[base.logs]>->(
+                        0, ':. edit_file: JSON truncated - %s', $json_err,
+                    );
+                    return {
+                        'id'      => $call_id,
+                        'role'    => 'tool',
+                        'content' => "error: JSON truncated during "
+                            . "parsing : $json_err\n"
+                            . "\nPlease split your edits into "
+                            . "smaller batches:\n"
+                            . "- Max recommended: 50 edits per call\n"
+                            . "- Each edit ~40-100 tokens\n"
+                            . "- Total per call: ~2000-5000 tokens "
+                            . "[adjust based on your model]\n\n"
+                            . "Split strategy:\n"
+                            . "1. Calculate your total edits\n"
+                            . "2. Use batch_size=25 for each call\n"
+                            . "3. Use continue=N for subsequent batches",
+                    };
+                }
+                return "error: invalid edits JSON: $@";
+            }
         } else {
             $edit_list = $edits;
         }
@@ -369,7 +477,7 @@ my %dispatch = (
         return 'error: cannot read file' unless defined $content_ref;
         my @lines = split /\n/, $content_ref->$*, -1;
 
-        ## validate and apply edits (reverse order to preserve line numbers) ##
+        ## validate and apply edits [reverse order to preserve line nums] ##
         my @preview;
         my $errors = 0;
         for my $edit ( sort { $b->{'line'} <=> $a->{'line'} } @batch_edits ) {
@@ -520,7 +628,7 @@ if ( exists $dispatch{$name} ) {
     if ($@) {
         my $err = $@;
         <[base.logs]>->(
-            0,            ':. tools.dispatch: %s failed: %s',
+            0,            ':. tools.dispatch : %s failed: %s',
             $handler_mod, $err
         );
         return {
@@ -562,7 +670,7 @@ if ( not defined $raw_result ) {
 }
 
 <[base.logs]>->(
-    2,     ':. tools.dispatch: %s → %d chars',
+    2,     ':. tools.dispatch : %s → %d chars',
     $name, length($content)
 );
 
@@ -572,8 +680,8 @@ return {
     'content' => $content,
 };
 
-#,,.,,...,...,.,.,,,.,.,.,.,.,.,.,...,.,.,,.,,..,,...,...,,,.,...,...,,,,,,,,,
-#R77Y5UGOJOJCHR5ZDJNPNUNC2EQXP4EY4JMTREZCLTBFDCUQ3BWZ6M2D67RVTUKWY35O2S4UVJJCI
-#\\\|G5WKKVYCAY6WYREUOVP5QON74IT4KTHF5SI7EF7WMO5JQ6H67PO \ / AMOS7 \ YOURUM ::
-#\[7]3BKLH7WEYPOIB6MOEPGGCV5K36ZYFDQ47EF5EREBIGOBOYGHSQDQ 7  DATA SIGNATURE ::
+#,,,,,,..,.,,,...,...,...,,..,.,.,,.,,,,,,...,..,,...,...,.,,,,.,,,.,,,,,,,..,
+#MUAZFJBIUCLTGGCOEH2YOQN44ZVPI7YKE4KVUPCPAN6AZXZAXTLCKB4HXCRPRRN7ZLN35P4S2VUHM
+#\\\|XDOPVU3COD2N5ASWFVI26LPCYU7453J4LSMM4TYY2SEAOTE44PO \ / AMOS7 \ YOURUM ::
+#\[7]R55GSIG7GHXRRVEHNCDCIAAFSJMLIN6C44Z7QHGY5PQQZBHGHIAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
