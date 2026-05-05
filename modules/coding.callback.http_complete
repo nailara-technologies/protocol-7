@@ -128,18 +128,34 @@ if ( $sm_state eq 'streaming' ) {
             }
         );
     } elsif ( length($content) ) {
-        ## got partial response — complete with what we have ##
+        ## connection closed with content but no finish_reason ##
+        ## model may have run out of max_tokens before emitting tools ##
         <[base.logs]>->(
             1,
             "http_complete: task %s connection "
-                . "closed with partial response [ %d bytes ]",
+                . "closed without finish_reason [ %d bytes, %d tool_calls ]",
             $task_id,
-            length($content)
+            length($content),
+            scalar( @{ $state->{'tool_calls'} // [] } )
         );
-        <[coding.async.state_machine]>->(
-            'transition', $task_id,
-            { 'event' => 'finish_stop', 'content' => $content }
-        );
+        ## if no tool_calls were emitted, assume model needs another round ##
+        ## rather than completing prematurely (e.g. hit max_tokens mid-thought)
+        if ( !@{ $state->{'tool_calls'} // [] } ) {
+            <[base.logs]>->(
+                1,
+                "http_complete: task %s no finish_reason + no tool_calls, "
+                    . "enqueuing another round instead of completing",
+                $task_id,
+            );
+            $state->{'round'}++;
+            <coding.async.task_state>->{$task_id} = $state;
+            <[coding.task.enqueue_round]>->( $task_id, $state->{'round'} );
+        } else {
+            <[coding.async.state_machine]>->(
+                'transition', $task_id,
+                { 'event' => 'finish_stop', 'content' => $content }
+            );
+        }
     } else {
         ## no content at all — check for raw response in buffer ##
         my $body = $http_state->{'buffer'} // '';
@@ -220,8 +236,8 @@ if ( length $backend_early ) {
 
 return;
 
-#,,,,,.,,,.,.,...,..,,,,.,.,.,,..,,.,,.,,,,,.,..,,...,...,,,.,.,,,..,,,.,,,,.,
-#QUWR2EO6HEL6YHCO3QYOUFOJIAKEJ5XX6VFCYNCY64TPVB6HYUMGEFFAUHGJY4EGIIAPZXVZNCK2E
-#\\\|YXCL7IQOGV5OJYUK26QQ7EIAR4DV7N26FPN4GG4D2A4ETOVRAAO \ / AMOS7 \ YOURUM ::
-#\[7]2GSYFU77H7G2PJZZ2G5TNC5BTUAP7SS3LEEOSB2WRMLBYQMT2AAY 7  DATA SIGNATURE ::
+#,,.,,,..,.,.,..,,,,.,...,.,,,.,,,.,.,.,,,..,,..,,...,..,,...,,,,,,.,,.,.,.,.,
+#UQPSCVT77MKSIWAAQQCH2DGDXOXR2NBO3KG2T6NMMCCDUOUZAIJJXB2ZLEPWOXYUNV7XEFZSUR5NY
+#\\\|7YFUCUMRGIHLVAY7DVXTOA7PLLMAAMQK4ZK4VDKCLV4RNIBPWN7 \ / AMOS7 \ YOURUM ::
+#\[7]W7QAMDGWYYAGI7QSVSLPPNAXNMIHE3III7UFVKXL2QTSBHOKCKCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
