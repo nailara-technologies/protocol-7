@@ -48,14 +48,63 @@ sections:
         → data/yaml/archive/completed-coding-tasks/
       - md files follow same logic by content type
 
-      ## investigation steps ##
+      ## strategy: 2-tier hierarchical audit ##
+
+      do NOT investigate every file yourself. instead:
+
+      ### tier 1 — parent task: categorize
 
       1. list all files in data/yaml/coding-tasks/ and data/md/coding-tasks/
-      2. for each file, read its contents to understand the task
-      3. search git log for related commits (keywords from filename/title)
-      4. check if described features exist in the codebase
-      5. classify as: completed / active / uncertain
-      6. for completed tasks, note the archive destination
+      2. read 3-5 representative files from different filename patterns
+      3. group all files into 4-6 categories based on their content:
+         - e.g. "infrastructure/zenka builds", "bug fixes", "roadmaps/phases",
+           "graphics/ui", "network/protocol", "unclear/misc"
+      4. for each category, produce a brief summary of what files belong to it
+      5. spawn ONE subtask per category (max 6 subtasks)
+
+      ### tier 2 — category subtasks: investigate
+
+      each subtask receives:
+      - its category name and file list
+      - the "what completed means" criteria below
+      - archive destination rules
+
+      each subtask must:
+      1. read every file in its category
+      2. search git log for related commits
+      3. check codebase for implemented features
+      4. classify each file: completed / active / uncertain
+      5. return a structured report for its category
+
+      ### tier 3 — parent task: synthesize
+
+      after all subtasks return:
+      1. merge their reports into a single structured output
+      2. resolve any contradictions (if two subtasks disagree on a file)
+      3. present the final report
+
+      ## what "completed" means ##
+
+      a task file is COMPLETED if ANY of the following are true:
+      - the feature/fix described has been implemented and committed to git
+      - the task file references a commit hash that exists in git log
+      - the task file describes work that is clearly done (e.g. "add X" and X exists)
+      - the task file is an old roadmap/phase document and later phases supersede it
+      - the task file has a corresponding handover or memory entry marking it done
+
+      a task file is ACTIVE / INCOMPLETE if:
+      - it describes work not yet visible in the codebase
+      - it is a roadmap for future phases without completion markers
+      - it contains open questions or TODOs without resolution
+      - it was created recently (< 7 days) and has no commit references
+
+      ## archive destinations ##
+
+      - bug fixes, error corrections, small patches
+        → data/yaml/archive/completed-fix-tasks/
+      - feature implementations, zenka builds, infrastructure work
+        → data/yaml/archive/completed-coding-tasks/
+      - md files follow same logic by content type
 
       ## safety rules ##
 
@@ -63,6 +112,7 @@ sections:
       - if unsure, mark as uncertain and skip
       - prefer false negatives (leave completed file active) over false positives
       - do not archive files younger than 7 days unless explicitly confirmed done
+      - subtask depth limit is 3 — do NOT spawn sub-subtasks
 
       ## output format ##
 
@@ -87,8 +137,8 @@ sections:
     budget_pct: 80
     label: task archive audit instructions
 
-#,,..,,,,,,..,,,.,.,.,,,.,.,,,.,.,,.,,..,,..,,..,,...,...,...,...,.,,,..,,,,.,
-#44UUQP7NTU7YEJOC7LBFFZ3HARMGS3G4P3UY3YTB7CTCJ5ZJSIUBAUKGPP6CDW3IHGAJFBW56WIGA
-#\\\|IGPTM3K3ERVGDXATFX4QMMWI5H5E7MAKS4DXXSGBK55AUKD3XIC \ / AMOS7 \ YOURUM ::
-#\[7]2ZI6S36WHJ2TSR3FAZZGAAVVTJSDZ4DEQB6H2YJX22UE5AGRKGDI 7  DATA SIGNATURE ::
+#,,..,,..,,.,,,,.,,..,,.,,.,.,...,,,,,...,,,,,..,,...,..,,.,,,,..,,.,,.,,,,..,
+#J4S45GOY4PQO4HO3OI7EUS2MGCTOMJWG2E7I3K7HEHNGO7JNO3SOV3YIQVPJREPBUE525XHVSLY26
+#\\\|TXKWKIEKESIE3AWI6BR3WYBFCAN4K5VPKE7TJWIDFHCEADUCWWX \ / AMOS7 \ YOURUM ::
+#\[7]KHTP3JBWYRNWMH5HMWZA4YXFQH5LNJB32YKEDG46KITT7JTBWUDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
