@@ -54,15 +54,15 @@ return {
                     }
                 }
 
-                my @stat = stat($path);
-                next unless @stat;
+                my $st = File::stat::stat($path);
+                next unless defined $st;
 
                 my $item = {
                     'path'  => $path,
                     'name'  => $entry,
-                    'size'  => $stat[7],
-                    'mtime' => $stat[9],
-                    'mode'  => $stat[2],
+                    'size'  => $st->size,
+                    'mtime' => $st->mtime,
+                    'mode'  => $st->mode,
                     'type'  => -d $path ? 'dir' : 'file',
                 };
 
@@ -96,8 +96,8 @@ return {
 
 # SPDX-License-Identifier: ISC
 
-#,,.,,,,,,..,,,..,,,,,,..,,,.,.,,,,.,,..,,,,,,..,,...,...,.,,,.,.,,,,,,,.,..,,
-#UU4TLFBLECI5UHZGSF7VAKVIRQMBJ2Z55XGHU7FEU62DFSZHCNSAOHTPWOXY7NJFOIW4AMJDCT4FC
-#\\\|OTVVWDD4CU6ENOHDHEKWRUCGIYUJDMPMZHU4USQLWUC4ELDJBTO \ / AMOS7 \ YOURUM ::
-#\[7]IJUOXNOKYZRL5JZIUPZJJBERIAMX6QDKAA6DVMUSA2NZ7NPJNSCQ 7  DATA SIGNATURE ::
+#,,,.,,..,,..,...,,.,,,,.,,.,,.,,,..,,,.,,,,,,..,,...,...,..,,,,.,.,.,,,.,,..,
+#3UMX4KULDIGNRI57YJFAJGJ7FZHAU4PSZG34AMHXPJ3RKH2W7O23U45HP5354MNX2PMAGYA6RSCUI
+#\\\|AQNANXYJM6SRU65TCFVP5WUODVCWVDLKY66Q27LGFJC2DVPVFVJ \ / AMOS7 \ YOURUM ::
+#\[7]RPTM76J2IJ6FVCJYNBMD6PQHAKGA54GT7SIEMDSKZ3COS7XZJEBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

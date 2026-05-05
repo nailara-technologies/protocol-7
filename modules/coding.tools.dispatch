@@ -335,17 +335,17 @@ my %dispatch = (
         }
 
         my $split_threshold = 50;
-        if ( $edit_count > $split_threshold and $auto_split ) {
+        if ( $total_edits > $split_threshold and $auto_split ) {
             ## auto-split: process in smaller batches ##
             <[base.logs]>->(
                 0,
                 ':. edit_file : auto-splitting %d edits into %d batches',
-                $edit_count,
-                int( POSIX::ceil( $edit_count / $batch_size ) ),
+                $total_edits,
+                int( POSIX::ceil( $total_edits / $batch_size ) ),
             );
             ##   return error with instructions  ##
             ## to split manually or use continue ##
-            my $batches = int( ceil( $edit_count / $batch_size ) );
+            my $batches = int( POSIX::ceil( $total_edits / $batch_size ) );
             return {
                 'id'      => $call_id,
                 'role'    => 'tool',
@@ -361,13 +361,13 @@ my %dispatch = (
                         . "  Your edits will be processed in batches.\n\n"
                         . "Note: Each batch processes %d edits,"
                         . " reducing token usage",
-                    $edit_count,
+                    $total_edits,
                     $split_threshold,
                     $batches,
-                    int( ( $batch_size * 2 ) / $edit_count * 10 ),
-                    int( ( $batch_size * 2 ) / $edit_count * 10 ),
-                    int( ( $batch_size * 2 ) / $edit_count * 10 ),
-                    int( ( $batch_size * 2 ) / $edit_count * 10 ),
+                    int( ( $batch_size * 2 ) / $total_edits * 10 ),
+                    int( ( $batch_size * 2 ) / $total_edits * 10 ),
+                    int( ( $batch_size * 2 ) / $total_edits * 10 ),
+                    int( ( $batch_size * 2 ) / $total_edits * 10 ),
                     $batch_size
                 ),
             };
@@ -680,8 +680,8 @@ return {
     'content' => $content,
 };
 
-#,,,,,..,,,,.,...,..,,,.,,,,,,,,,,,.,,,.,,...,..,,...,...,,,.,,,.,,,.,,..,,,.,
-#LF6FUPR46BFJFCEGMKZGWFFN2HFFAXRACKF5F6JNNXZ2W4J7O2VE3FGTJUPGZEWEA5F4W5VPN6UNE
-#\\\|RCUOKODAGNVD3WIBFMYSJC3THE4OA67CRLTHAYSUDWGEECO3K75 \ / AMOS7 \ YOURUM ::
-#\[7]PF3MJMOJNRTJAFRITZWDINJ74FAIAK73GGG4NYGO3B2CMW6LRABQ 7  DATA SIGNATURE ::
+#,,..,,,,,,,.,,,.,.,,,,.,,...,.,.,.,.,.,,,.,,,..,,...,...,,.,,,,,,.,,,..,,,..,
+#7LE2K7DJNSR5WULBAJN4EBLES5HIQZAIN5PK44W62S3TISQTOIM2HSI7OCD6Q5L6I7OFSINUEWVQI
+#\\\|52C34KI3QGNGIBYPEPVP7QUFDQ242SGDLCS4XUL256NLFVHVU3I \ / AMOS7 \ YOURUM ::
+#\[7]KMB6A7L2GK4H5XLVR5BL3WMSBFKWI767G5LZ6AHNR6XKSJ3E34DY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
