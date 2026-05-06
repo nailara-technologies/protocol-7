@@ -18,12 +18,21 @@ if ( defined $state ) {
     <coding.async.task_state>->{$task_id} = $state;
 }
 
+## reset loop detection tool history on retry [ avoid false stuck_retry positives ] ##
+my $task = <coding.task.queue>->{$task_id};
+if ( defined $task && defined $task->{'execution'}->{'loop_detection'} ) {
+    $task->{'execution'}->{'loop_detection'}->{'tool_history'} = [];
+    <[base.logs]>->(
+        2, "retry_request: cleared loop detection history for %s", $task_id
+    );
+}
+
 <[coding.async.send_request]>->($task_id);
 
 return;
 
-#,,,,,,,,,.,.,,..,,,,,,.,,..,,,,,,.,.,,..,.,,,.,.,...,..,,..,,,..,,,.,.,,,,,.,
-#VXZVQSZUSIIXQHGHUOYEOYTHB6PQE7WXKIOIO5FSQSBWIYYFP5PBUV5B7GPX62T7AIZPK62TF2SYI
-#\\\|I36JHNXN42O6DUAYB6SWBPBQETNACHPIFPXWRIFPL7MS3OESCTS \ / AMOS7 \ YOURUM ::
-#\[7]EFAE5UKIK26PNCLEPUMDQT6RGJX3QOBK4AU2E5AKCT6SDMGENABQ 7  DATA SIGNATURE ::
+#,,,,,.,.,...,.,,,...,..,,..,,,..,.,,,..,,,,.,.,.,...,...,...,..,,...,.,.,...,
+#5TXB2O2U4J6VN5C5HFDV2HSF7PACO6ZYC4DAEVXE5MOBYICUTHWP7ABEIQTSRALRE4DGEMKO7RQ7E
+#\\\|KNGH2ABITV7OB5WWYG33QGU2BWFS4H5VPBDTAPX3IQ4HHQCWF5X \ / AMOS7 \ YOURUM ::
+#\[7]355KHO4KSFAUU7XQMHG4NABEXLLRRVCR57EYNUASR52TNB6U24AA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
