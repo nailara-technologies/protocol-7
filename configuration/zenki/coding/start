@@ -2,10 +2,16 @@
  .:[ protocol-7 coding zenka - GPU+CPU dual inference ]:.
 
 
-coding.cfg.start_model   = ZDMAPAY:AR3OCKQ ## Qwopus3.5 9B v3 ##
+# coding.cfg.start_model   = ZDMAPAY:AR3OCKQ ## Qwopus3.5 9B v3 ##
 
 # coding.cfg.start_model = WZIZD6Y:2BIZKWY ## Qwen3.5 9B Claude 4.6 Reasoning Distilled v2 ##
 # coding.cfg.start_model = SJCPFAQ:AGKY7YQ ## Qwen3.5 4B Claude 4.6 Reasoning Distilled v2 ##
+# coding.cfg.start_model = BVFPWBA:HPXUELA ## Huihui Qwen3.5 4B Claude 4.6 Opus Abliterated
+# coding.cfg.start_model = YYZYSXQ:ZSNYLYY   ## Qwen3 4B Claude Sonnet.,.ing Distill Safetensor
+
+#
+coding.cfg.start_model = FPI66SQ:CRID5OA   ##   Qwen3 4B Qwen3.6.,. Reasoning Slerp
+#
 
 coding.cfg.base_work_model        = <coding.cfg.start_model>
 coding.cfg.base_compaction_model  = <coding.cfg.start_model>  ## same model; swap later for smaller ##
@@ -59,10 +65,12 @@ coding.jinja.enable = yes
 ## fixed chat template file [ empty = use model's built-in template ] ##
 ## qwen3.5: data/jinja/templates/qwen3.5-fixed.jinja [ froggeric bug fixes ] ##
 ## qwen3.6: data/jinja/templates/qwen3.6-fixed.jinja                         ##
-coding.jinja.template_file = /data/projects/protocol-7/data/jinja/templates/qwen3.5-fixed.jinja
+
+# coding.jinja.template_file = /data/projects/protocol-7/data/jinja/templates/qwen3.5-fixed.jinja
+
 ## reasoning effort [low|medium|high] : empty = model default [ no kwarg sent ] ##
 ## low prevents runaway <think> spirals; use medium/high for complex tasks      ##
-coding.inference.reasoning_effort = high
+coding.inference.reasoning_effort = low
 # coding.jinja.convert_tool_role = yes ## testing..
 coding.jinja.convert_tool_role = false
 
@@ -131,8 +139,8 @@ coding.cfg.vram_safety_max_mb = 3000  ## cap to reserve VRAM for other use     #
 
 ## context ceiling for auto-calculation — 0 = uncapped (VRAM math decides) ##
 ## code default is 131072; override here for this system                   ##
-# coding.cfg.context_max = 131072
-coding.cfg.context_max = 110007
+
+coding.cfg.context_max = 90777
 
 ## Default model AMOS checksum [ resolved from models zenka during init ] ##
 ##
@@ -168,8 +176,8 @@ plugins.load = plugin.storage.inference plugin.storage.util.inference
 
 [zenka.loop]
 
-#,,,.,,,.,,,.,..,,..,,.,,,.,,,,,.,.,,,,..,,..,.,.,...,...,.,,,,,.,,.,,.,,,..,,
-#BSE2PWAVWYCIJUUQ57DCTC4H3GRXSJRZDGH7VJWXPWX7OJQUV72OSSV3OQNYQEIPVPCVGOSDXIOLM
-#\\\|6TN3SIXWX6XBHP7LXZEKXPU5KYOJ4P3E2A3PKKOMAEEJX55KDSE \ / AMOS7 \ YOURUM ::
-#\[7]3AY7NWAURF3G3ELQ3F46HDZCBTQ6G4LCH2YFZTKY3T2G6NU4YEBY 7  DATA SIGNATURE ::
+#,,,,,,,.,.,.,.,,,,,.,.,,,.,,,.,,,,,.,..,,,,,,.,.,...,...,..,,,,.,.,,,,,.,,,.,
+#O4RG76KEFEZL7IROREYYP7S426S6EXFKYTHPIYO5UKSBVH4V3FJWPBEDBKWJMYGL3BJNL34RKOBMA
+#\\\|ERWWMYT4FLUGA4DMRYNXSTELOXGHNWJQH5TUE5CB6VC3KPYCDWL \ / AMOS7 \ YOURUM ::
+#\[7]PCV6ZM4QTLSFT33M4HQQLP4RP63CYVW6DZPZACNQPYJMV5XNPSCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -58,6 +58,12 @@ you are a coding agent ['zenka'] for protocol-7, a perl-based multi-agent system
 - use <system.cfg_path> not hardcoded 'configuration/'
 - for relative paths: use <system.cwd> as base
 
+## documentation locations ##
+- design documents: data/md/design/ [ architecture, concepts, vision ]
+- technical docs: data/md/documentation/ [ system docs, how-to guides ]
+- coding tasks: data/yaml/coding-tasks/ and data/md/coding-tasks/
+- archived tasks: data/yaml/archive/completed-coding-tasks/
+
 ## review focus ##
 - check module invocation syntax [ <[name]>-> not <[name-> ]
 - verify TRUE/FALSE constants [ not 1/0 ]
@@ -103,6 +109,17 @@ prefer read_module for P7 modules, read_file for other files.
 use list_modules or list_files to discover before reading.
 use note_search when working on similar tasks to previous ones.
 
+## tool calling format ##
+when you need to use a tool, emit ONLY the XML block with no suffix:
+<tool_call>
+<function=TOOL_NAME>
+<parameter=KEY>VALUE</parameter>
+</function>
+</tool_call>
+
+you may provide reasoning BEFORE the tool call, but NOT after.
+if no tool is needed, answer directly without mentioning tools.
+
 ## self-validation ##
 before declaring a task complete, run validate_module on new/modified modules.
 this catches common errors early: syntax issues, format violations,
@@ -132,8 +149,8 @@ $prompt =~ s|\s+$||s;
 
 return $prompt;
 
-#,,..,,.,,,..,,.,,,..,,..,..,,,,.,...,,.,,.,,,..,,...,..,,.,.,...,.,,,,.,,.,,,
-#U542W3EQAKL6QPD662SU2OYMHE7H5SSHBCMLIEI3H6GNCO6HM7C7GXQVFHVCHYNR2GPBG6TC3SCDS
-#\\\|BTYE2OKRIJKEKTG44ZD4JFMKG2JK3UTVHNJHFBUPZ5BBQ67YCBN \ / AMOS7 \ YOURUM ::
-#\[7]PBRAD4P2QQTKXKRVLDLO444MHPVAXEE6654XW3FH6C6PLYO3S2BQ 7  DATA SIGNATURE ::
+#,,..,,..,.,,,..,,.,.,,.,,,..,,.,,.,,,...,..,,..,,...,...,...,..,,...,.,,,,.,,
+#TPBEKWYJ2H7EDGIL2CWYOMUATMDYWEV72TZGQAKFVQBOUIJMC4RNCP4XAQC6PVGE26VQ62R3Y2OH4
+#\\\|POETGOWMY6JWI2DRQ6JG7EWY7VGTETPSGERE5LCXG56RC2C2HLM \ / AMOS7 \ YOURUM ::
+#\[7]642TE67GTXCDDQJGMZAC2Z6W5AB2LGV2JWKACAEDS4SUAULHU4CQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

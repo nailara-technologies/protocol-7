@@ -2,86 +2,97 @@
 
 # name  = coding.handler.inference_server_sigchld
 # descr = SIGCHLD handler for inference server crash detection
-
-my $signal_data = shift // {};
-
-## extract signal info from event data structure ##
-my $child_pid = $signal_data->{'params'}{'child_pid'}
-    // $signal_data->{'child_pid'} // 0;
-my $exit_status = $signal_data->{'params'}{'exit_status'}
-    // $signal_data->{'exit_status'} // 0;
-
-## skip if no child pid (spurious signal) ##
-return unless $child_pid > 0;
-
-## always reap the child to prevent zombies, even if we don't recognize
-## the PID (e.g. old server killed mid-startup before being replaced)  ##
-POSIX::waitpid( $child_pid, POSIX::WNOHANG() );
+#
+# note  = Event->signal passes no args to the callback.
+#         We reap all children via waitpid(-1, WNOHANG) loop,
+#         same pattern as base.sig_chld.
 
 my $servers = <coding.inference_servers> // {};
+my $reaped  = 0;
 
-## check if this was an inference server process ##
-for my $backend (qw| gpu cpu |) {
-    my $server_info = $servers->{$backend} // {};
-    next unless defined $server_info->{'pid'};
+local ( $OS_ERROR, $CHILD_ERROR );
+while ( ( my $pid = <[base.waitpid]>->(-1) ) > 0 ) {
+    $reaped++;
+    my $exit_status = $CHILD_ERROR;
 
-    if ( $server_info->{'pid'} == $child_pid ) {
-        <[base.logs]>->(
-            0,
-            '[inference_server_sigchld] %s server crashed [pid=%d exit=%d]',
-            $backend, $child_pid, $exit_status
-        );
+    ## check if this was an inference server process ##
+    my $matched = 0;
+    for my $backend (qw| gpu cpu |) {
+        my $server_info = $servers->{$backend} // {};
+        next unless defined $server_info->{'pid'};
 
-        ## mark server as crashed ##
-        $server_info->{'status'}      = qw| crashed |;
-        $server_info->{'crashed_at'}  = <[base.time]>->(3);
-        $server_info->{'exit_status'} = $exit_status;
-
-        ## schedule restart with backoff ##
-        my $restart_count = $server_info->{'restart_count'} // 0;
-        $restart_count++;
-        $server_info->{'restart_count'} = $restart_count;
-
-        ## exponential backoff: 5s, 10s, 20s, 30s, max 60s ##
-        my $backoff
-            = $restart_count <= 1 ? 5
-            : $restart_count == 2 ? 10
-            : $restart_count == 3 ? 20
-            : $restart_count == 4 ? 30
-            :                       60;
-
-        ## max 5 restart attempts ##
-        if ( $restart_count > 5 ) {
+        if ( $server_info->{'pid'} == $pid ) {
+            $matched = 1;
             <[base.logs]>->(
                 0,
-                '[inference_server_sigchld] max restarts exceeded for %s server',
-                $backend
+                '[inference_server_sigchld] %s server crashed [pid=%d exit=%d]',
+                $backend,
+                $pid,
+                $exit_status
             );
-            $server_info->{'status'} = qw| failed |;
-            next;
-        }
 
-        <[base.logs]>->(
-            1,
-            '[inference_server_sigchld] scheduling %s restart in %ds (attempt %d/5)',
-            $backend,
-            $backoff,
-            $restart_count
-        );
+            ## mark server as crashed ##
+            $server_info->{'status'}      = qw| crashed |;
+            $server_info->{'crashed_at'}  = <[base.time]>->(3);
+            $server_info->{'exit_status'} = $exit_status;
 
-        <[event.add_timer]>->(
-            {   'after'   => $backoff,
-                'handler' => 'coding.handler.inference_crash_restart',
-                'params'  => { 'backend' => $backend }
+            ## schedule restart with backoff ##
+            my $restart_count = $server_info->{'restart_count'} // 0;
+            $restart_count++;
+            $server_info->{'restart_count'} = $restart_count;
+
+            ## exponential backoff: 5s, 10s, 20s, 30s, max 60s ##
+            my $backoff
+                = $restart_count <= 1 ? 5
+                : $restart_count == 2 ? 10
+                : $restart_count == 3 ? 20
+                : $restart_count == 4 ? 30
+                :                       60;
+
+            ## max 5 restart attempts ##
+            if ( $restart_count > 5 ) {
+                <[base.logs]>->(
+                    0,
+                    '[inference_server_sigchld] max restarts exceeded for %s server',
+                    $backend
+                );
+                $server_info->{'status'} = qw| failed |;
+                next;
             }
-        );
 
-        last;    ## only handle one server per signal ##
+            <[base.logs]>->(
+                1,
+                '[inference_server_sigchld] scheduling %s restart in %ds (attempt %d/5)',
+                $backend,
+                $backoff,
+                $restart_count
+            );
+
+            <[event.add_timer]>->(
+                {   'after'   => $backoff,
+                    'handler' => 'coding.handler.inference_crash_restart',
+                    'params'  => { 'backend' => $backend }
+                }
+            );
+        }
+    }
+
+    ## log unexpected child exits for debugging ##
+    if ( not $matched ) {
+        <[base.logs]>->(
+            2,
+            '[inference_server_sigchld] reaped unknown child [pid=%d exit=%d]',
+            $pid,
+            $exit_status
+        );
     }
 }
 
-#,,..,...,,,,,,,,,,..,..,,,,.,,..,...,,..,.,.,..,,...,...,.,.,.,.,,..,,..,,..,
-#RNOSFE2UKLHW6FCTKDUI3TQIJHZKGNUAKZJDE2Q3HF7XO4LWYTQ5KDKFYXRLNOC2PWF4L3OAEBC7U
-#\\\|JHKQA4FL654FEFD74PKGLPQ6WHBZCHVTAPD324PUKKTRHADHEX2 \ / AMOS7 \ YOURUM ::
-#\[7]3KY62EUVLDRF6RCIDJ5RR3TEKFYCTN5CBL6QW4C4SZYDCIDYJECY 7  DATA SIGNATURE ::
+## note: if $reaped == 0, the child was already reaped by another path
+## (e.g. Perl's system() waitpid) — this is normal, no action needed.
+
+#,,,,,,,.,,,,,.,,,.,.,...,...,.,.,,.,,..,,,,.,..,,...,...,...,.,.,.,.,.,,,.,,,
+#J5MK7WVI64KAWEBKSCZXEEJSI35IWYPCI5MSOTMDBNW3T5H3T75MYJULM4A4SLQMN44RHCVCZJXTQ
+#\\\|N6SM6UHZSCTJL5JKQTPYF6SI3PVYX6SM2XQPGVR4ZSZKJN4VUV4 \ / AMOS7 \ YOURUM ::
+#\[7]SBX3NE5QYVXG3OXZHSC6ZBQUL4J3356I2F3NQNVO4AKYAUBWJODA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

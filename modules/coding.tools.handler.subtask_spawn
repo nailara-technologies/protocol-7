@@ -90,6 +90,14 @@ my $enqueue_result;
 if ($is_first) {
     $enqueue_result = <[coding.task.enqueue]>->($child_task);
 } else {
+    ## store task record so async.complete can find & enqueue it later ##
+    ## [ coding.task.enqueue rejects duplicates, so we store directly ] ##
+    my $queue_href = <coding.task.queue> //= {};
+    $queue_href->{$child_task_id} = {
+        %$child_task,
+        queued_at      => <[base.time]>->(3),
+        queue_position => -1,                   ## not in pending list yet ##
+    };
     $enqueue_result = { success => TRUE };
 }
 
@@ -176,8 +184,8 @@ return {
     child_task_id => $child_task_id,
 };
 
-#,,..,,.,,,.,,,..,,,,,,..,..,,...,,,.,.,.,,..,..,,...,...,..,,.,,,,,.,..,,,..,
-#DE5Q73YOMU2AXELK2ENOFVR52B3M2OTJKU7QWYUDYB7LGJ4AZZPAB5Z3YLZYNMITINVLZNX7BTRSW
-#\\\|A4HHG3SZRKWEHJQ7FXNIVZWGZ3JOWEIEFQIGQT4ZU6CWJVNT4JS \ / AMOS7 \ YOURUM ::
-#\[7]B5M6I47MS5KCAA623JKJHZFFYHQYIGSNBAEM3CHDI5FK5RMKEOBY 7  DATA SIGNATURE ::
+#,,.,,,,,,...,,,.,.,,,,.,,,,,,...,,.,,.,.,...,..,,...,...,.,,,...,...,,,.,,.,,
+#6UHCLB6QS5AZTIPMBYA6ITV3KZP3FBEAC23PGE35NA5GAOCILLACWX2SPMCF3CFAPROB27GBXLSBY
+#\\\|RUFJ44IQMELJEUQUS2ZDGO6VR2QFNBSNVO2XNZIEJYO4UO5B5WO \ / AMOS7 \ YOURUM ::
+#\[7]4M22WYEZ7HRKRHOYNBZK5ZA3N4R2A2NAX4WNDAU5VEGAPATRREBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
