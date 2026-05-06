@@ -276,6 +276,16 @@ if ( exists $code{'pager.source.file-list'} ) {
                         'description' =>
                             'recurse subdirectories [ default true ]'
                     },
+                    'sort' => {
+                        'type'        => 'string',
+                        'description' =>
+                            'sort by name | size | mtime [ default unsorted ]'
+                    },
+                    'order' => {
+                        'type'        => 'string',
+                        'description' =>
+                            'sort order asc | desc [ default desc ]'
+                    },
                 },
                 'required' => [],
             },
@@ -794,14 +804,55 @@ push @tools,
     },
     };
 
+## task_file_search — find task files across active and archived locations ##
+push @tools,
+    {
+    'type'     => 'function',
+    'function' => {
+        'name'        => 'task_file_search',
+        'description' =>
+            'search task files across active and archived locations. '
+            . 'first searches filenames, then optionally file contents. '
+            . 'knows about data/yaml/coding-tasks, data/md/coding-tasks, '
+            . 'and archive subdirectories.',
+        'parameters' => {
+            'type'       => 'object',
+            'properties' => {
+                'pattern' => {
+                    'type'        => 'string',
+                    'description' =>
+                        'search pattern [ regex or glob, required ]'
+                },
+                'status' => {
+                    'type'        => 'string',
+                    'description' =>
+                        'filter by status: active | archived | all [ default all ]'
+                },
+                'depth' => {
+                    'type'        => 'integer',
+                    'description' =>
+                        'search depth: 1 = filenames only, 2 = +content [ default 1 ]'
+                },
+                'max_results' => {
+                    'type'        => 'integer',
+                    'description' => 'max files to return [ default 50 ]'
+                },
+            },
+            'required' => ['pattern'],
+        },
+    },
+    };
+
 ## tree_list — list children of a branch with type info ##
 push @tools,
     {
     'type'     => 'function',
     'function' => {
         'name'        => 'tree_list',
-        'description' => 'list children of a %data tree branch'
-            . ' [ shows keys, types, and sizes ]',
+        'description' =>
+            'inspect in-memory zenka state hash (%data) — NOT the filesystem. '
+            . 'use list_files to browse disk. '
+            . 'shows keys, types (scalar/hash/array/code), and sizes.',
         'parameters' => {
             'type'       => 'object',
             'properties' => {
@@ -1410,8 +1461,8 @@ if ( exists $code{'ncode.cmd.search'} ) {
 
 return \@tools;
 
-#,,,,,.,,,,.,,...,,..,,..,.,,,,..,,..,..,,,.,,..,,...,...,,..,.,,,...,,..,,..,
-#ECHJ4PMYY2J4UZADZLUNEB2J4HMMLFAIIBPYS3NXKRYLBL43GG3FKNI77KBKEIGUS3XW7JMB7AYCS
-#\\\|X34MKBPDJAN6IH52CZXSRZ7S3BS5GZRROCI7W2AXIKF7SASZPZE \ / AMOS7 \ YOURUM ::
-#\[7]YALVYBWNPLKQUGIR5HT6ZDDPB6HZ2L7PSEKMUCAW5YWAKAJ5M2DQ 7  DATA SIGNATURE ::
+#,,,,,.,,,,,,,.,.,.,.,...,,.,,,.,,,..,,.,,.,.,..,,...,...,,..,.,,,.,,,.,.,...,
+#ESEWK3QCNDFNJFXWGCJZFNFQ3HZSEQ5KR7NB7VRHK6NII5GOVL5HUWMUN2OLEKUMAJNAY5IMUYYBY
+#\\\|ZP6QLWR7Y3AKJPXXOFIXT4EJHNLLKSM5WVSOZKRJLY7Z2YFNCSM \ / AMOS7 \ YOURUM ::
+#\[7]WO2RKNWB37UH7MIEQ6M5RAO5TSURAPYSSCOJ3XTWABNXW5W4VUCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

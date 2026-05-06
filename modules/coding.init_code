@@ -238,55 +238,64 @@ if ( exists $code{'coding.callback.object_memory_gpu'} ) {
     <[base.logs]>->( 2, '[init] registered memory_gpu callback' );
 }
 
-## create memory availability dependencies ##
-<coding.dep.memory_system> = <[dependency.add_object]>->(
-    {   'type'        => 'memory_system',
-        'min_free_mb' => 4096,              ## 4GB free RAM required ##
-        'description' => 'System RAM available (4GB+)'
-    }
-);
+## create dependency objects [ only on first init to avoid leaks ] ##
+if ( not $already_initialized ) {
 
-<coding.dep.memory_gpu> = <[dependency.add_object]>->(
-    {   'type'        => 'memory_gpu',
-        'min_free_mb' => 3072,              ## 3GB free VRAM required ##
-        'description' => 'GPU VRAM available (3GB+)'
-    }
-);
+    ## create memory availability dependencies ##
+    <coding.dep.memory_system> = <[dependency.add_object]>->(
+        {   'type'        => 'memory_system',
+            'min_free_mb' => 4096,              ## 4GB free RAM required ##
+            'description' => 'System RAM available (4GB+)'
+        }
+    );
 
-## add self-chains for memory callbacks ##
-<[dependency.add]>
-    ->( <coding.dep.memory_system>, <coding.dep.memory_system> );
-<[dependency.add]>->( <coding.dep.memory_gpu>, <coding.dep.memory_gpu> );
+    <coding.dep.memory_gpu> = <[dependency.add_object]>->(
+        {   'type'        => 'memory_gpu',
+            'min_free_mb' => 3072,              ## 3GB free VRAM required ##
+            'description' => 'GPU VRAM available (3GB+)'
+        }
+    );
 
-## create dependency objects for inference server ports ##
-my $gpu_port = <inference.backend.gpu.port> // 8000;
-my $cpu_port = <inference.backend.cpu.port> // 8001;
+    ## add self-chains for memory callbacks ##
+    <[dependency.add]>->(
+        <coding.dep.memory_system>, <coding.dep.memory_system>
+    );
+    <[dependency.add]>->( <coding.dep.memory_gpu>, <coding.dep.memory_gpu> );
 
-<coding.dep.gpu_server> = <[dependency.add_object]>->(
-    {   'type'    => 'inference_server',
-        'port'    => $gpu_port,
-        'backend' => 'gpu'
-    }
-);
+    ## create dependency objects for inference server ports ##
+    my $gpu_port = <inference.backend.gpu.port> // 8000;
+    my $cpu_port = <inference.backend.cpu.port> // 8001;
 
-<coding.dep.cpu_server> = <[dependency.add_object]>->(
-    {   'type'    => 'inference_server',
-        'port'    => $cpu_port,
-        'backend' => 'cpu'
-    }
-);
+    <coding.dep.gpu_server> = <[dependency.add_object]>->(
+        {   'type'    => 'inference_server',
+            'port'    => $gpu_port,
+            'backend' => 'gpu'
+        }
+    );
 
-## add self-chains so dependency.ok actually calls our callback ##
-<[dependency.add]>->( <coding.dep.gpu_server>, <coding.dep.gpu_server> );
-<[dependency.add]>->( <coding.dep.cpu_server>, <coding.dep.cpu_server> );
+    <coding.dep.cpu_server> = <[dependency.add_object]>->(
+        {   'type'    => 'inference_server',
+            'port'    => $cpu_port,
+            'backend' => 'cpu'
+        }
+    );
 
-## create memory-aware dependency chains ##
-## GPU server needs both GPU memory and system memory ##
-<[dependency.add]>->( <coding.dep.gpu_server>, <coding.dep.memory_gpu> );
-<[dependency.add]>->( <coding.dep.gpu_server>, <coding.dep.memory_system> );
+    ## add self-chains so dependency.ok actually calls our callback ##
+    <[dependency.add]>->( <coding.dep.gpu_server>, <coding.dep.gpu_server> );
+    <[dependency.add]>->( <coding.dep.cpu_server>, <coding.dep.cpu_server> );
 
-## CPU server needs system memory ##
-<[dependency.add]>->( <coding.dep.cpu_server>, <coding.dep.memory_system> );
+    ## create memory-aware dependency chains ##
+    ## GPU server needs both GPU memory and system memory ##
+    <[dependency.add]>->( <coding.dep.gpu_server>, <coding.dep.memory_gpu> );
+    <[dependency.add]>->(
+        <coding.dep.gpu_server>, <coding.dep.memory_system>
+    );
+
+    ## CPU server needs system memory ##
+    <[dependency.add]>->(
+        <coding.dep.cpu_server>, <coding.dep.memory_system>
+    );
+}
 
 <[base.logs]>->(
     2,                       "inference server deps: gpu=%s cpu=%s",
@@ -423,8 +432,8 @@ if ( not $already_initialized ) {
 
 return 0;
 
-#,,,,,.,.,,.,,,..,,,.,.,.,..,,..,,,,,,.,,,,,,,.,.,...,...,...,,,.,,..,,,.,,,,,
-#ONHO3K7COBH3JH7DXMD7MJGHSYQDWHGX3KLMXWF5XBXVJNVYC54JOZJ5ZGVDRUPQZNTCFMX33PQP6
-#\\\|P627YSAQSUK524TWLDOZE7OXKGGDZ6GGUBZE3VW76BVKZ7W4O6H \ / AMOS7 \ YOURUM ::
-#\[7]6YBXJOFHZQSTBLPWJRJ5TQHPNPKBTYDHK625567IEOAETBCR2GAY 7  DATA SIGNATURE ::
+#,,,,,.,,,,,.,...,.,.,,..,,..,.,.,,..,..,,...,.,.,...,...,.,.,,..,,.,,,..,.,,,
+#BDZ2A2SMVTUS6GADJPWSIVMXGOTZXNKU3XTG67ZSVQJ4FN43SUIBMSHDYMXCN5BMF6D6SKAFRHK5A
+#\\\|T7NAOPQVKFFO5BDINIV563RQBHTLPEBWUBHSO5ROM4VEIKLIZ5T \ / AMOS7 \ YOURUM ::
+#\[7]6EXDIPGWTQUCARE6EUIHYYGBQCJ2RTKIHVMC2L4DAWQQVDEMXKCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

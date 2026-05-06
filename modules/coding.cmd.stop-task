@@ -35,6 +35,39 @@ return {
 ## set stop flag ##
 $task->{'stop_requested'} = 1;
 
+## cascade to subtasks: clear queue and stop any active children ##
+my $subtask_queue = <coding.task.subtask_queue>->{$task_id} // [];
+if (@$subtask_queue) {
+    my $stopped_children = 0;
+    for my $child_id (@$subtask_queue) {
+        my $child_task = <coding.task.queue>->{$child_id};
+        if ( defined $child_task ) {
+            $child_task->{'stop_requested'} = 1;
+            $stopped_children++;
+        }
+    }
+    ## clear the queue so async.complete won't start more ##
+    <coding.task.subtask_queue>->{$task_id} = [];
+    <[base.logs]>->(
+        1,                 "stop-task: cascaded stop to %d subtask(s) of %s",
+        $stopped_children, $task_id
+    );
+}
+
+## also check for any active child that might not be in queue ##
+my $parent_map = <coding.task.parent> // {};
+for my $child_id ( keys %$parent_map ) {
+    next unless $parent_map->{$child_id} eq $task_id;
+    my $child_task = <coding.task.queue>->{$child_id};
+    next unless defined $child_task;
+    next if $child_task->{'stop_requested'};
+    $child_task->{'stop_requested'} = 1;
+    <[base.logs]>->(
+        1,         "stop-task: stopped active child %s of %s",
+        $child_id, $task_id
+    );
+}
+
 <[base.logs]>->( 1, "stop-task: stop requested for %s", $task_id );
 
 return {
@@ -42,8 +75,8 @@ return {
     'data' => "stop requested for task $task_id"
 };
 
-#,,,,,..,,...,,,,,...,.,.,,,.,,,.,,..,.,,,,,.,.,.,...,...,...,,,,,.,.,...,,.,,
-#T3LEQDHG2GC4QUFFB5QHD5QDD4BEDGLF3SXLVGAYTSGUCKNBHSV6FPTZAK7DV7CKYMAEPKBTT2TYW
-#\\\|KOCPKVOSLAU4UPQ5Z7IMKBXB2HMKXXI7MAGADF2TFRJPZAMNBWC \ / AMOS7 \ YOURUM ::
-#\[7]ISVNHZQAVDEQFTJUBDVPPIOF4OT44FBRBIHRT4VCEBCYKP5LBKDQ 7  DATA SIGNATURE ::
+#,,.,,...,.,,,,,.,,,.,...,.,,,.,.,...,,..,.,.,.,.,...,...,,.,,...,,,.,...,,,.,
+#MKBVCSGAVCJWZXW2VTT5GC4QDUUX4UTCRNEKJT3ZNWH7TPOA77ED3F2WPWVV7GFIMIY4BQ5KQET5E
+#\\\|YFU7VAQ33FVNYR7B2G7ILUW5WV6TST5T5WMIASGOI4QHCZNTJHL \ / AMOS7 \ YOURUM ::
+#\[7]XUZZ5RTMFLXKLNOQKTQ3CV3LAJCWXENGRRXWXUDVFJAXXKKJW2BY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

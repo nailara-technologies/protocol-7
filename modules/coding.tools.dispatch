@@ -76,6 +76,8 @@ my %dispatch = (
             : <system.root_path> . '/' . $req_root
             )
             : <system.root_path>;
+        my $sort   = $args->{'sort'}  // '';
+        my $order  = $args->{'order'} // qw| desc |;
         my $source = $code{'pager.source.file-list'}->(
             {   'root'      => $abs_root,
                 'pattern'   => $args->{'pattern'}   // '',
@@ -88,7 +90,29 @@ my %dispatch = (
         my $batch = $source->{'next_batch'}->();
         return '<!-- no files found -->' unless $batch and $batch->@*;
 
-        my $output = "## files in ${\( $source->{'root'} )} ##\n";
+        ## sort if requested [ name | size | mtime ] ##
+        my $desc = ( $order // '' ) eq qw| desc | ? 1 : 0;
+        if ( $sort eq qw| size | ) {
+            $batch
+                = $desc
+                ? [ sort { $b->{'size'} <=> $a->{'size'} } $batch->@* ]
+                : [ sort { $a->{'size'} <=> $b->{'size'} } $batch->@* ];
+        } elsif ( $sort eq qw| mtime | ) {
+            $batch
+                = $desc
+                ? [ sort { $b->{'mtime'} <=> $a->{'mtime'} } $batch->@* ]
+                : [ sort { $a->{'mtime'} <=> $b->{'mtime'} } $batch->@* ];
+        } elsif ( $sort eq qw| name | ) {
+            $batch
+                = $desc
+                ? [ sort { $b->{'name'} cmp $a->{'name'} } $batch->@* ]
+                : [ sort { $a->{'name'} cmp $b->{'name'} } $batch->@* ];
+        }
+
+        my $output = "## files in ${\( $source->{'root'} )}";
+        $output .= " [ pattern: '$args->{'pattern'}' ]"
+            if length $args->{'pattern'};
+        $output .= " ##\n";
         for my $item ( $batch->@* ) {
             $output .= sprintf "%-5s %8d  %s\n",
                 $item->{'type'} // '?',
@@ -680,8 +704,8 @@ return {
     'content' => $content,
 };
 
-#,,..,,,,,,,.,,,.,.,,,,.,,...,.,.,.,.,.,,,.,,,..,,...,...,,.,,,,,,.,,,..,,,..,
-#7LE2K7DJNSR5WULBAJN4EBLES5HIQZAIN5PK44W62S3TISQTOIM2HSI7OCD6Q5L6I7OFSINUEWVQI
-#\\\|52C34KI3QGNGIBYPEPVP7QUFDQ242SGDLCS4XUL256NLFVHVU3I \ / AMOS7 \ YOURUM ::
-#\[7]KMB6A7L2GK4H5XLVR5BL3WMSBFKWI767G5LZ6AHNR6XKSJ3E34DY 7  DATA SIGNATURE ::
+#,,,.,.,,,,,.,,..,,,,,,.,,.,.,,..,...,..,,,,,,..,,...,...,.,,,...,.,.,,,,,.,.,
+#AWGOGPSBWOE6CGJFN5HBYJGS6KYPEAEZ6444V4QIA3PVJHEWK5BE6MKCOOBTCFBINCDF3YIQYZKR2
+#\\\|Q6RBQP4DLCL2WLAEPON3FD7S7WIUMGNNMNRWSNFCXX5OXBUYOVF \ / AMOS7 \ YOURUM ::
+#\[7]EBDNR2YJ2X7OZTQCHFOZX3D43YWROHKCM4O5DHYUPQGRNRLGLSDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
