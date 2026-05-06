@@ -118,16 +118,16 @@ my @pattern_registry = (
     ## no assertion — same tool 3 times in a row is definitively stuck       ##
     {   'name'     => 'stuck_retry',
         'priority' => 3,
-        'min_hits' => 3,
+        'min_hits' => 5,
         'check'    => sub {
             my ( $history, $weights ) = @ARG;
-            return 0 unless @$history >= 3;
+            return 0 unless @$history >= 5;
 
-            my @last3 = @$history[ -3 .. -1 ];
-            my $first = $last3[0];
-            for my $h (@last3) { return 0 if $h ne $first; }
+            my @last5 = @$history[ -5 .. -1 ];
+            my $first = $last5[0];
+            for my $h (@last5) { return 0 if $h ne $first; }
 
-            ## any tool called 3 times in a row is a stuck loop ##
+            ## any tool called 5 times in a row is a stuck loop ##
             return 1;
         },
         'confidence'    => 0.9,
@@ -498,8 +498,8 @@ elsif ( $phase eq 'escalation' ) {
 ## Unknown phase ##
 return qw| false |;
 
-#,,,,,.,,,,,.,,..,...,..,,.,.,.,.,,,,,..,,,.,,.,.,...,...,,.,,...,,..,..,,.,,,
-#34B6ATINXH4CMPCVWI3HE6HZU6AOBEGICGCK4CMSTEBWDDMN37VEJGKBUVZTKSH5JLNQ7CJP7CDN6
-#\\\|BGWZ6CAMQ573X6FNZ2H6BPN4YH3TN3I7QJZJOEIRWPYYMI56TOT \ / AMOS7 \ YOURUM ::
-#\[7]FJEHN65KE7SIHB4T32ICP46RLH4N6ISZZDKCVIIBPPN4VQPECODQ 7  DATA SIGNATURE ::
+#,,..,..,,,.,,.,.,..,,,,.,,,.,...,...,,,.,.,,,.,.,...,...,..,,,,,,...,.,.,,..,
+#KHFZI4AILTJH6M7IOQRAG5QRFTH5FYBAAIQXRMYLYTWURVBDVUO2QOEWDWUYB4AW34O477LPJVKE2
+#\\\|CIDUPYX4KA7BKXINL2QXKLVETRIBW3OHPGBN7MKJMONIFVJP7GE \ / AMOS7 \ YOURUM ::
+#\[7]7MJLRFOAQ7S2KAGZYUFPEQQ5BZTZA6WJKNFFL2WM3CB4HN4RSIBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
