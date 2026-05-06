@@ -58,23 +58,13 @@ if ( length $guiding_message ) {
 ## inherit parent's backend routing ##
 my $routed_to = $parent_task->{'analysis'}->{'routed_to'} // 'gpu';
 
-## check if parent already has a pending subtask [ before creating child ] ##
+## get parent state [ for queue check ] ##
 my $parent_state
     = <[coding.async.state_manager]>->( qw| get |, $parent_task_id );
-if (   defined $parent_state
+my $has_pending
+    = defined $parent_state
     && defined $parent_state->{'pending_subtask'}
-    && length $parent_state->{'pending_subtask'} ) {
-    <[base.logs]>->(
-        1, "subtask_spawn: %s already waiting for %s, rejecting new subtask",
-        $parent_task_id, $parent_state->{'pending_subtask'}
-    );
-    return {
-        error   => 'subtask already pending',
-        content => "error: already waiting for subtask "
-            . $parent_state->{'pending_subtask'}
-            . ". Only one subtask at a time is supported."
-    };
-}
+    && length $parent_state->{'pending_subtask'};
 
 ## create child task ##
 my $child_task = {
@@ -117,6 +107,10 @@ while ( defined $ancestor and length $ancestor ) {
 ## record parent/child relationship ##
 <coding.task.parent>->{$child_task_id} = $parent_task_id;
 
+## add to parent's subtask queue ##
+push @{ <coding.task.subtask_queue>->{$parent_task_id} //= [] },
+    $child_task_id;
+
 ## enforce depth limit [ prevent runaway recursion ] ##
 my $max_depth = <coding.cfg.subtask-max-depth> // 3;
 if ( $depth > $max_depth ) {
@@ -133,24 +127,35 @@ if ( $depth > $max_depth ) {
     };
 }
 
-## record pending subtask in parent's async state ##
-if ( defined $parent_state ) {
+## if no currently pending subtask, start this one and release lock ##
+if ( defined $parent_state && !$has_pending ) {
     $parent_state->{'pending_subtask'} = $child_task_id;
     <coding.async.task_state>->{$parent_task_id} = $parent_state;
-}
 
-## release parent's backend lock — parent is now waiting, not using inference ##
-## child will acquire the lock when it runs via coding.async.request           ##
-my $parent_backend = $parent_state->{'backend'}  // 'gpu';
-my $busy_href      = <coding.async.backend_busy> // {};
-my $held_lock      = $busy_href->{$parent_backend};
-if (   defined $held_lock
-    && ref($held_lock) eq qw| HASH |
-    && ( $held_lock->{'task_id'} // '' ) eq $parent_task_id ) {
-    delete $busy_href->{$parent_backend};
+    ## release parent's backend lock — parent is now waiting, not using inference ##
+    ## child will acquire the lock when it runs via coding.async.request           ##
+    my $parent_backend = $parent_state->{'backend'}  // 'gpu';
+    my $busy_href      = <coding.async.backend_busy> // {};
+    my $held_lock      = $busy_href->{$parent_backend};
+    if (   defined $held_lock
+        && ref($held_lock) eq qw| HASH |
+        && ( $held_lock->{'task_id'} // '' ) eq $parent_task_id ) {
+        delete $busy_href->{$parent_backend};
+        <[base.logs]>->(
+            1,
+            "subtask_spawn: released %s lock for parent %s (child %s pending)",
+            $parent_backend,
+            $parent_task_id,
+            $child_task_id
+        );
+    }
+} else {
     <[base.logs]>->(
-        1, "subtask_spawn: released %s lock for parent %s (child %s pending)",
-        $parent_backend, $parent_task_id, $child_task_id
+        1,
+        "subtask_spawn: %s queued %s (currently waiting for %s)",
+        $parent_task_id,
+        $child_task_id,
+        $parent_state->{'pending_subtask'} // 'none'
     );
 }
 
@@ -164,8 +169,8 @@ return {
     child_task_id => $child_task_id,
 };
 
-#,,.,,..,,.,.,.,,,..,,,..,..,,.,.,,..,,.,,,.,,..,,...,...,.,.,,,,,.,,,...,,..,
-#UZITM56O2EGTO5FKBHGY52CKFPODXXMRV2AP6BMB4U6T24HLZKQVVPP57NWIYGE6X4N5JHF35PEVG
-#\\\|WT675ZTTAEAYILWA6IHYV3SHMQZ34422H7AWD3A52MCJKNBILNL \ / AMOS7 \ YOURUM ::
-#\[7]YFG2ESOVZLYSXGIWPH7OCEEUEU7TQHXYQX6HEPDPGTKPSDGCAKAY 7  DATA SIGNATURE ::
+#,,.,,.,.,.,.,,,.,,,.,..,,,..,,.,,...,,.,,.,.,..,,...,...,.,,,,,.,,,,,...,.,,,
+#6UBHJN4EUZBVXQU4Y22ECDNQJHMOB6FWB4IGHALJSOBBKWQOVRONG4JB3NPUEQR3VRBVBBYBAX66K
+#\\\|53UFB7HEDEZGNH6ZRPWP4SL42M7PPXWP4W2GUHRDEJMUVJ43Z2A \ / AMOS7 \ YOURUM ::
+#\[7]7Z3BPLITXGTCTHSZV7CNJIO53NF6EH7JUJ4B3S2G4PGDNTAQIQCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
