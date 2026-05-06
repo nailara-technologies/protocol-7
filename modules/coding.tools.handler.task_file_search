@@ -1,0 +1,199 @@
+## [:< ##
+
+# name  = coding.tools.handler.task_file_search
+# descr = search task files across active and archived locations
+# purpose = unified task discovery: filename + optional content search
+
+my $args = shift // {};
+
+my $pattern = $args->{'pattern'} // '';
+my $status  = $args->{'status'}  // qw| all |;   ## active | archived | all ##
+my $depth   = $args->{'depth'}   // 1;    ## 1 = filenames, 2 = +content ##
+my $max_results = $args->{'max_results'} // 50;
+
+return "error: pattern required" unless length $pattern;
+
+my $root = <system.root_path> // '.';
+
+## define search paths with status labels ##
+my @search_paths;
+if ( $status eq qw| all | or $status eq qw| active | ) {
+    push @search_paths,
+        { path => "$root/data/yaml/coding-tasks", type => qw| active | },
+        { path => "$root/data/md/coding-tasks",   type => qw| active | };
+}
+if ( $status eq qw| all | or $status eq qw| archived | ) {
+    push @search_paths,
+        {
+        path => "$root/data/yaml/archive/completed-coding-tasks",
+        type => qw| archived |
+        },
+        {
+        path => "$root/data/yaml/archive/completed-fix-tasks",
+        type => qw| archived |
+        },
+        {
+        path => "$root/context.yaml/archive/completed-coding-tasks",
+        type => qw| archived |
+        },
+        {
+        path => "$root/context.yaml/archive/completed-fix-tasks",
+        type => qw| archived |
+        };
+}
+
+## compile regex ##
+my $re = eval {qr/$pattern/i};
+if ( not defined $re ) {
+    ## glob-to-regex fallback ##
+    my $glob_re = $pattern;
+    $glob_re =~ s!\\!\\\\!g;
+    $glob_re =~ s!\^!\\^!g;
+    $glob_re =~ s!\$!\\\$!g;
+    $glob_re =~ s!\*!.*!g;
+    $glob_re =~ s!\?!.!g;
+    $re = eval {qr/$glob_re/i};
+    return "error: invalid pattern: $pattern" unless defined $re;
+}
+
+my @filename_matches;
+my @content_matches;
+my $total_scanned = 0;
+
+## phase 1: filename search ##
+for my $sp (@search_paths) {
+    my $dir = $sp->{'path'};
+    next unless -d $dir;
+
+    opendir( my $dh, $dir ) or next;
+    my @entries = readdir($dh);
+    closedir($dh);
+
+    for my $entry (@entries) {
+        next if $entry eq '.' or $entry eq '..';
+        $total_scanned++;
+
+        next unless $entry =~ $re;
+
+        my $fpath = "$dir/$entry";
+        my $st    = File::stat::stat($fpath);
+        next unless defined $st;
+
+        push @filename_matches,
+            {
+            name  => $entry,
+            path  => $fpath,
+            type  => $sp->{'type'},
+            dir   => $dir,
+            size  => $st->size,
+            mtime => $st->mtime,
+            ext   => ( $entry =~ m{\.(\w+)$} ) ? $1 : '',
+            };
+
+        last if @filename_matches >= $max_results;
+    }
+    last if @filename_matches >= $max_results;
+}
+
+## phase 2: content search [ only if no filename matches and depth >= 2 ] ##
+if ( not @filename_matches and $depth >= 2 ) {
+    for my $sp (@search_paths) {
+        my $dir = $sp->{'path'};
+        next unless -d $dir;
+
+        ## use grep for speed, limit to first 200 matches total ##
+        my $cmd = sprintf(
+            'grep -rln -m %d %s %s 2>/dev/null',
+            $max_results * 2,
+            quotemeta($pattern), $dir
+        );
+        my @grep_results = `$cmd`;
+        chomp @grep_results;
+
+        for my $fpath (@grep_results) {
+            next unless -f $fpath;
+            my $st = File::stat::stat($fpath);
+            next unless defined $st;
+
+            ( my $entry = $fpath ) =~ s|^.*/||;
+
+            ## get matching lines with context ##
+            my $line_cmd = sprintf( 'grep -n -m 3 %s %s 2>/dev/null',
+                quotemeta($pattern), $fpath );
+            my @lines = `$line_cmd`;
+            chomp @lines;
+
+            push @content_matches,
+                {
+                name  => $entry,
+                path  => $fpath,
+                type  => $sp->{'type'},
+                dir   => $dir,
+                size  => $st->size,
+                mtime => $st->mtime,
+                ext   => ( $entry =~ m{\.(\w+)$} ) ? $1 : '',
+                lines => [ map { s|^\s+||; s|\s+$||; $_ } @lines ],
+                };
+
+            last if @content_matches >= $max_results;
+        }
+        last if @content_matches >= $max_results;
+    }
+}
+
+## format output ##
+my $output = '';
+
+if (@filename_matches) {
+    ## group by status ##
+    my %by_type;
+    push @{ $by_type{ $ARG->{'type'} } }, $ARG for @filename_matches;
+
+    for my $type (qw| active archived |) {
+        next unless exists $by_type{$type};
+        my $list = $by_type{$type};
+        $output .= sprintf "## %s matches [%d files] ##\n", $type,
+            scalar @$list;
+
+        for my $m ( sort { $b->{'mtime'} <=> $a->{'mtime'} } @$list ) {
+            my $ts = POSIX::strftime( qw| %Y-%m-%d |,
+                localtime( $m->{'mtime'} ) );
+            $output .= sprintf "  %-5s  %s  %-45s  %7d  %s\n",
+                $m->{'ext'} || '?',
+                $ts,
+                $m->{'name'},
+                $m->{'size'},
+                $m->{'dir'};
+        }
+    }
+}
+
+if (@content_matches) {
+    $output .= sprintf "## content matches [%d files] ##\n",
+        scalar @content_matches;
+    for my $m ( sort { $b->{'mtime'} <=> $a->{'mtime'} } @content_matches ) {
+        my $ts = POSIX::strftime( qw|%Y-%m-%d|, localtime( $m->{'mtime'} ) );
+        $output .= sprintf "  %-5s  %s  %-45s  %7d  %s\n", $m->{'ext'} || '?',
+            $ts,
+            $m->{'name'},
+            $m->{'size'},
+            $m->{'dir'};
+        for my $line ( @{ $m->{'lines'} } ) {
+            $output .= "    > $line\n";
+        }
+    }
+}
+
+if ( not @filename_matches and not @content_matches ) {
+    $output
+        = sprintf "<!-- no task files matched '%s' [scanned %d files] -->",
+        $pattern, $total_scanned;
+}
+
+return $output;
+
+#,,,,,,.,,.,,,..,,..,,...,..,,,..,,,,,,.,,,,,,.,.,...,...,,..,,..,,..,,,.,.,,,
+#57NBHIY2SSMTOUKWVAHQULYTPVN3R4GVPOGQ5SNZKBDI33ENQDLSEUTBPQSFC5V5ECF6TUFSF74LQ
+#\\\|PU64I5RZ4W64I3DSIKLUPALH2QN3P24ZKQYGV7X766GYIU3XYND \ / AMOS7 \ YOURUM ::
+#\[7]GBLUBSEHMKAL6EX7Y2H5VT6WWDQDSQXDFZBBVLU6AJH6PY2QRQAQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

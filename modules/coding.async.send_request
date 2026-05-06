@@ -86,8 +86,16 @@ if ( defined $task && $task->{'pause_requested'} ) {
     return { success => TRUE, paused => TRUE };
 }
 
-## reset retry count on successful new request start ##
-if ( defined $state->{'retry_count'} && $state->{'retry_count'} > 0 ) {
+## consume retry flag — if this was a retry, preserve retry_count ##
+## if this is a fresh request, reset retry_count to 0 ##
+my $is_retry = $state->{'retry_pending'} // FALSE;
+if ($is_retry) {
+    $state->{'retry_pending'} = FALSE;
+    <[coding.async.state_manager]>->(
+        'set', $task_id, { retry_pending => FALSE }
+    );
+    <[base.logs]>->( 2, "send_request: retry execution for %s", $task_id );
+} elsif ( defined $state->{'retry_count'} && $state->{'retry_count'} > 0 ) {
     $state->{'retry_count'} = 0;
     <[coding.async.state_manager]>->( 'set', $task_id, { retry_count => 0 } );
     <[base.logs]>->( 2, "send_request: reset retry_count for %s", $task_id );
@@ -250,8 +258,8 @@ if (@messages) {
 return
     <[coding.async.request]>->( $task_id, $request_body, $state->{'job_id'} );
 
-#,,,,,.,.,...,,..,..,,,,.,,..,..,,...,.,,,,,,,..,,...,...,..,,,,,,,,,,,,.,,..,
-#CUZR7NQ3KDBENDUO77TWW452WXRSXAMUAHBSCELX6BDUDMCF6ORENVMDVF7C2X4DJUIECJ5QUFUQO
-#\\\|2DTGQ7IELWWEBLGFH4AYWEQDW6JYYTO5J6UJJERX6BELZG2ZMYB \ / AMOS7 \ YOURUM ::
-#\[7]FHLVERN34PODRWILJPEH7M25UYHYU2Q6HJNEGVGTCL6B2CQ3YCBA 7  DATA SIGNATURE ::
+#,,.,,,,.,...,.,.,,.,,,.,,,..,,,.,...,,..,..,,..,,...,...,,,.,,..,..,,,,,,,,,,
+#A7WYJJNFEJOXISVNOWGLKTVLNO2N7SCNZ4Q6CC4JOLL6XV7L5SPL7JZCKEWTBT7JIN2BUJXNFQVQM
+#\\\|UZZTSPEWJRCDAGJVCIIZQCQFLG6ZF7EY355DJ74RKJUZ7WPBTDY \ / AMOS7 \ YOURUM ::
+#\[7]GP7WLVXQ4B27GMOR3MN3HYAGZ6WRO6C5D4CQH2UP5KQQVXRKAWBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

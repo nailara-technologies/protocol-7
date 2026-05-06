@@ -70,6 +70,21 @@ if ( length($content) ) {
     $context->{'content'} .= $content;
 }
 
+## extract <think> blocks from content into reasoning [ model may emit them inline ] ##
+## do this after accumulation to handle multi-chunk blocks ##
+while ( $context->{'content'} =~ s|<think>(.*?)</think>||s ) {
+    my $reasoning_text = $1;
+    $reasoning_text =~ s|^\s+||;
+    $reasoning_text =~ s|\s+$||;
+    if ( length $reasoning_text ) {
+        $context->{'reasoning'} .= "\n"
+            if length( $context->{'reasoning'} // '' );
+        $context->{'reasoning'} .= $reasoning_text;
+    }
+}
+## strip stray closing tag if model emits </think> without opening tag ##
+$context->{'content'} =~ s|^\s*</think>\s*||;
+
 ## check for finish reason ##
 if ( defined $choice->{'finish_reason'} ) {
     my $finish = $choice->{'finish_reason'};
@@ -117,6 +132,27 @@ if ( defined $choice->{'finish_reason'} ) {
             );
         }
     } elsif ( $finish eq 'stop' || $finish eq 'end_turn' ) {
+        ## guard: don't complete parent while compaction subtask is pending ##
+        my $task_state
+            = <[coding.async.state_manager]>->( qw| get |, $task_id );
+        if ( defined $task_state
+            && length( $task_state->{'compaction_pending'} // '' ) ) {
+            <[base.logs]>->(
+                1,
+                "chunk_handler: %s finish_stop but compaction %s pending — holding",
+                $task_id,
+                $task_state->{'compaction_pending'}
+            );
+            ## store finish data for later application after compaction ##
+            $task_state->{'finish_hold_content'}   = $context->{'content'};
+            $task_state->{'finish_hold_reasoning'} = $context->{'reasoning'}
+                // '';
+            $task_state->{'finish_hold_tools'} = $context->{'tool_calls'}
+                // [];
+            <coding.async.task_state>->{$task_id} = $task_state;
+            return $context;
+        }
+
         ## check if we have tool calls even on stop (model quirk) ##
         if ( @{ $context->{'tool_calls'} // [] } ) {
             <[base.logs]>->(
@@ -215,8 +251,8 @@ if ( defined $choice->{'finish_reason'} ) {
 
 return $context;
 
-#,,.,,...,.,,,,,,,...,,,,,,,,,..,,,.,,,,.,,.,,.,.,...,..,,,..,,,.,,..,,.,,.,,,
-#MNYTDN6OYMOZAVQOJBISVJISGFK3UTMSAYPDRVBCZAEYBPP2KPPY3O6P6NYZJW6OE7D27PAFPKD7W
-#\\\|2IUPSTPWZHGYR3GXKB5TPGVAM3UVTVF6HTZSUVLC32VEXIZKESN \ / AMOS7 \ YOURUM ::
-#\[7]NYOBA5K6Z5LRRKBZL4235SRR2TC5SY2RZ7BZMWFMATAVLBCURGAA 7  DATA SIGNATURE ::
+#,,..,,.,,.,,,..,,,,.,,..,,,.,.,,,.,,,,..,.,,,.,.,...,...,,..,.,,,...,,,.,,,.,
+#7B42VS5SVYETWDB2EPIJGWLH77OCKXGHZASW3UX3ZZEHDD5VUHGXQ5ITVYMX36Y5U2FJERKNEWV2E
+#\\\|ZNVLDJPYV27HVN7NMUI2PK6BQI2BGP2UR5CBRF2VIWXTIMMGNJA \ / AMOS7 \ YOURUM ::
+#\[7]KKJEROH27EXIA7K4H6P6IWHZ5OTEYNPVCN4ZHPZRYSDAQF3VDEBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
