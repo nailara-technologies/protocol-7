@@ -83,8 +83,15 @@ my $child_task = {
     created_at => <[base.time]>->(3),
 };
 
-## enqueue child task ##
-my $enqueue_result = <[coding.task.enqueue]>->($child_task);
+## enqueue child task [ only if first in queue ] ##
+my $queue    = <coding.task.subtask_queue>->{$parent_task_id} // [];
+my $is_first = @$queue == 0;
+my $enqueue_result;
+if ($is_first) {
+    $enqueue_result = <[coding.task.enqueue]>->($child_task);
+} else {
+    $enqueue_result = { success => TRUE };
+}
 
 if ( !$enqueue_result->{'success'} ) {
     return {
@@ -93,6 +100,10 @@ if ( !$enqueue_result->{'success'} ) {
             . ( $enqueue_result->{'error'} // 'unknown' )
     };
 }
+
+## add to parent's subtask queue [ done after enqueue so queue reflects spawn order ] ##
+push @{ <coding.task.subtask_queue>->{$parent_task_id} //= [] },
+    $child_task_id;
 
 ## compute subtask depth [ walk parent chain ] ##
 my $depth    = 1;
@@ -106,10 +117,6 @@ while ( defined $ancestor and length $ancestor ) {
 
 ## record parent/child relationship ##
 <coding.task.parent>->{$child_task_id} = $parent_task_id;
-
-## add to parent's subtask queue ##
-push @{ <coding.task.subtask_queue>->{$parent_task_id} //= [] },
-    $child_task_id;
 
 ## enforce depth limit [ prevent runaway recursion ] ##
 my $max_depth = <coding.cfg.subtask-max-depth> // 3;
@@ -169,8 +176,8 @@ return {
     child_task_id => $child_task_id,
 };
 
-#,,.,,.,.,.,.,,,.,,,.,..,,,..,,.,,...,,.,,.,.,..,,...,...,.,,,,,.,,,,,...,.,,,
-#6UBHJN4EUZBVXQU4Y22ECDNQJHMOB6FWB4IGHALJSOBBKWQOVRONG4JB3NPUEQR3VRBVBBYBAX66K
-#\\\|53UFB7HEDEZGNH6ZRPWP4SL42M7PPXWP4W2GUHRDEJMUVJ43Z2A \ / AMOS7 \ YOURUM ::
-#\[7]7Z3BPLITXGTCTHSZV7CNJIO53NF6EH7JUJ4B3S2G4PGDNTAQIQCA 7  DATA SIGNATURE ::
+#,,..,,.,,,.,,,..,,,,,,..,..,,...,,,.,.,.,,..,..,,...,...,..,,.,,,,,.,..,,,..,
+#DE5Q73YOMU2AXELK2ENOFVR52B3M2OTJKU7QWYUDYB7LGJ4AZZPAB5Z3YLZYNMITINVLZNX7BTRSW
+#\\\|A4HHG3SZRKWEHJQ7FXNIVZWGZ3JOWEIEFQIGQT4ZU6CWJVNT4JS \ / AMOS7 \ YOURUM ::
+#\[7]B5M6I47MS5KCAA623JKJHZFFYHQYIGSNBAEM3CHDI5FK5RMKEOBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

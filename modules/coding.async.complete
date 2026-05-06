@@ -124,6 +124,11 @@ if ( defined $result && $result->{'success'} ) {
                 $parent_state->{'pending_subtask'} = $next_subtask;
                 ## stay in subtask state — next queued task will run ##
                 <coding.async.task_state>->{$parent_id} = $parent_state;
+                ## enqueue the next subtask so the task queue picks it up ##
+                my $next_task = <coding.task.queue>->{$next_subtask};
+                if ( defined $next_task ) {
+                    <[coding.task.enqueue]>->($next_task);
+                }
                 <[base.logs]>->(
                     1,
                     "async.complete: parent %s starting next queued subtask %s",
@@ -220,6 +225,11 @@ if ( defined $result && $result->{'success'} ) {
                 $parent_state->{'pending_subtask'} = $next_subtask;
                 ## stay in subtask state — next queued task will run ##
                 <coding.async.task_state>->{$parent_id_fail} = $parent_state;
+                ## enqueue the next subtask so the task queue picks it up ##
+                my $next_task = <coding.task.queue>->{$next_subtask};
+                if ( defined $next_task ) {
+                    <[coding.task.enqueue]>->($next_task);
+                }
                 <[base.logs]>->(
                     1,
                     "async.complete: parent %s starting next queued subtask %s after failure",
@@ -256,8 +266,8 @@ if ( defined $result && $result->{'success'} ) {
     return { success => FALSE, error => $error_msg, task_id => $task_id };
 }
 
-#,,,.,...,..,,,,,,,,.,..,,..,,,..,..,,.,.,.,,,.,.,...,.,.,,..,...,,..,,,,,..,,
-#KUROS73Y3CVAFGM55CGZ5K2UJYDRUQ6IHCII74UVDRWJJMMTLEUAS6SPOSLIUJKLBLI3DAPKRZNB4
-#\\\|YSSDFYFXZHNV7URJIUREEOUSDQUUS6N2K2K4ET7FWOQS4V2MIK6 \ / AMOS7 \ YOURUM ::
-#\[7]M4PJWRHYMD3QH7RNT3UGKDCV2DSYWZWDNTBC4IUNCPTSXKU4Q6BQ 7  DATA SIGNATURE ::
+#,,,,,.,.,..,,.,,,,..,,..,,,,,,..,.,.,,,,,,,,,.,.,...,...,,,.,.,.,.,,,..,,,,,,
+#QSI3XJEVSTIIRQZ7LKUQ2VWDW2CAI2W5HMX6CNF2XZ5MKBGP5AMJTQZDEREOJCYCGVIDGHUY2OOLC
+#\\\|7X3RVE34DJZIXY6JDI77JUD7CDWI63ZOOQ5DWPVLFLL5DGUM7BV \ / AMOS7 \ YOURUM ::
+#\[7]5G3DNUTQ7B76T7FADBWKPNSX36NO27THD7375SQV2SCV5L4JKUBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
