@@ -111,17 +111,38 @@ if ( defined $result && $result->{'success'} ) {
                     };
             }
 
-            $parent_state->{'pending_subtask'} = undef;
-            ## transition parent from subtask back to streaming ##
-            $parent_state->{'state'} = qw| streaming |;
-            <coding.async.task_state>->{$parent_id} = $parent_state;
-            <[coding.task.enqueue_round]>->(
-                $parent_id, $parent_state->{'round'}
-            );
-            <[base.logs]>->(
-                1, "async.complete: resumed parent %s from subtask %s",
-                $parent_id, $task_id
-            );
+            ## check subtask queue for more work ##
+            my $queue = <coding.task.subtask_queue>->{$parent_id} // [];
+            ## remove completed subtask from front of queue ##
+            while ( @$queue && $queue->[0] eq $task_id ) {
+                shift @$queue;
+            }
+            <coding.task.subtask_queue>->{$parent_id} = $queue;
+
+            if (@$queue) {
+                my $next_subtask = $queue->[0];
+                $parent_state->{'pending_subtask'} = $next_subtask;
+                ## stay in subtask state — next queued task will run ##
+                <coding.async.task_state>->{$parent_id} = $parent_state;
+                <[base.logs]>->(
+                    1,
+                    "async.complete: parent %s starting next queued subtask %s",
+                    $parent_id,
+                    $next_subtask
+                );
+            } else {
+                $parent_state->{'pending_subtask'} = undef;
+                ## transition parent from subtask back to streaming ##
+                $parent_state->{'state'} = qw| streaming |;
+                <coding.async.task_state>->{$parent_id} = $parent_state;
+                <[coding.task.enqueue_round]>->(
+                    $parent_id, $parent_state->{'round'}
+                );
+                <[base.logs]>->(
+                    1, "async.complete: resumed parent %s from subtask %s",
+                    $parent_id, $task_id
+                );
+            }
         } elsif ( defined $parent_state
             and $parent_state->{'state'} eq qw| subtask | ) {
             <[base.logs]>->(
@@ -186,18 +207,40 @@ if ( defined $result && $result->{'success'} ) {
                 'role'    => 'user',
                 'content' => "[SUBTASK FAILED: $task_id]\n\n" . $error_msg
                 };
-            $parent_state->{'pending_subtask'} = undef;
-            ## transition parent from subtask back to streaming ##
-            $parent_state->{'state'} = qw| streaming |;
-            <coding.async.task_state>->{$parent_id_fail} = $parent_state;
-            <[coding.task.enqueue_round]>->(
-                $parent_id_fail, $parent_state->{'round'}
-            );
-            <[base.logs]>->(
-                1,
-                "async.complete: resumed parent %s after subtask %s failed",
-                $parent_id_fail, $task_id
-            );
+
+            ## check subtask queue for more work ##
+            my $queue = <coding.task.subtask_queue>->{$parent_id_fail} // [];
+            while ( @$queue && $queue->[0] eq $task_id ) {
+                shift @$queue;
+            }
+            <coding.task.subtask_queue>->{$parent_id_fail} = $queue;
+
+            if (@$queue) {
+                my $next_subtask = $queue->[0];
+                $parent_state->{'pending_subtask'} = $next_subtask;
+                ## stay in subtask state — next queued task will run ##
+                <coding.async.task_state>->{$parent_id_fail} = $parent_state;
+                <[base.logs]>->(
+                    1,
+                    "async.complete: parent %s starting next queued subtask %s after failure",
+                    $parent_id_fail,
+                    $next_subtask
+                );
+            } else {
+                $parent_state->{'pending_subtask'} = undef;
+                ## transition parent from subtask back to streaming ##
+                $parent_state->{'state'} = qw| streaming |;
+                <coding.async.task_state>->{$parent_id_fail} = $parent_state;
+                <[coding.task.enqueue_round]>->(
+                    $parent_id_fail, $parent_state->{'round'}
+                );
+                <[base.logs]>->(
+                    1,
+                    "async.complete: resumed parent %s after subtask %s failed",
+                    $parent_id_fail,
+                    $task_id
+                );
+            }
         } elsif ( defined $parent_state
             and $parent_state->{'state'} eq qw| subtask | ) {
             <[base.logs]>->(
@@ -213,8 +256,8 @@ if ( defined $result && $result->{'success'} ) {
     return { success => FALSE, error => $error_msg, task_id => $task_id };
 }
 
-#,,,.,,,.,.,.,.,,,,,,,,,,,,,,,.,.,,,.,,,.,...,.,.,...,...,,..,,..,,,.,,..,..,,
-#PVTUCMW5KJ77BYMREXLBHWF7H25WTSNDQ4VQXSCAWQKTA7S5YQR6OZTIIWF4LK5C3BJA2W5WXURHM
-#\\\|WE7WBEP6QSDFR2KQKUMEXSGM7FJGB7QC5IKFRII56OOILJTT7O6 \ / AMOS7 \ YOURUM ::
-#\[7]ZSK23KVWSZPKZJO52CMGCYZSTNLM32DB3Q3TVYRJVMVXPTB2YOAA 7  DATA SIGNATURE ::
+#,,,.,...,..,,,,,,,,.,..,,..,,,..,..,,.,.,.,,,.,.,...,.,.,,..,...,,..,,,,,..,,
+#KUROS73Y3CVAFGM55CGZ5K2UJYDRUQ6IHCII74UVDRWJJMMTLEUAS6SPOSLIUJKLBLI3DAPKRZNB4
+#\\\|YSSDFYFXZHNV7URJIUREEOUSDQUUS6N2K2K4ET7FWOQS4V2MIK6 \ / AMOS7 \ YOURUM ::
+#\[7]M4PJWRHYMD3QH7RNT3UGKDCV2DSYWZWDNTBC4IUNCPTSXKU4Q6BQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
