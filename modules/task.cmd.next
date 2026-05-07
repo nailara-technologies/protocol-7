@@ -1,0 +1,55 @@
+## [:< ##
+
+# name  = task.cmd.next
+# descr = return highest-priority pending task
+
+my $assignee = $call->{'args'} // '';
+$assignee =~ s{\s+$}{};    ## trim trailing whitespace ##
+
+my $highest_priority = -1.0;
+my $highest_task_id;
+
+for my $task_id ( @{<task.queue.order>} ) {
+    my $task = <task.queue>->{$task_id};
+    next unless defined $task;
+    next unless $task->{'status'} eq 'pending';
+
+    ## assignee filter — skip if set and task does not match ##
+    next
+        if length $assignee
+        and ( $task->{'assignee'} // '' ) ne $assignee;
+
+    my $priority = <[valued.resolve]>->( $task->{'node_id'} // '' ) // 0.0;
+
+    if ( $priority > $highest_priority ) {
+        $highest_priority = $priority;
+        $highest_task_id  = $task_id;
+    }
+}
+
+return { 'mode' => 'false', 'data' => 'nothing executable' }
+    unless defined $highest_task_id;
+
+my $task    = <task.queue>->{$highest_task_id};
+my $summary = sprintf(
+    '%s [%s] %s (priority %.1f)',
+    $highest_task_id,
+    $task->{'assignee'} // 'unassigned',
+    substr( $task->{'description'} // '', 0, 120 ),
+    $highest_priority
+);
+
+<[base.logs]>->(
+    2,                'task.next: returning %s [priority %.1f]',
+    $highest_task_id, $highest_priority
+);
+
+return { 'mode' => 'true', 'data' => $summary };
+
+#,,
+
+#,,..,...,,,,,,,,,...,.,.,..,,.,,,...,.,,,..,,..,,...,...,.,.,,,.,.,.,..,,..,,
+#TBOCAECJWMW6Z4Q4EIUAOB43MSSPO2IBC6WACRHRVHL3USJUG4IHPJBYCJZTWECOVJRXTRDM2HLGS
+#\\\|GZ52QI5MDLTNNM7DEI3Z5E4K2QRZXWMZREDYODKRATLYSVNMOMS \ / AMOS7 \ YOURUM ::
+#\[7]CQUIMP6EIK5OBO2ZL2EAPWPCFWMCZTFLC6MN2NANMVNVEJLUQOCQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
