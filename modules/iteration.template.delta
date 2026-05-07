@@ -1,0 +1,74 @@
+## [:< ##
+
+# name  = iteration.template.delta
+# descr = produce template patch to fix highest-impact unfixed issue
+
+my $params    = shift                      // {};
+my $score     = $params->{'score_record'}  // {};
+my $template  = $params->{'template_name'} // '';
+my $attempt_n = $params->{'attempt_n'}     // 1;
+
+## 1. filter to unfixed template-fixable issues ##
+my @issues = grep {
+    $ARG->{'status'} ne 'pass' and $ARG->{'fixable_by'} eq 'template';
+} @{ $score->{'issues'} };
+
+return undef if @issues == 0;
+
+## 2. pick most specific issue (longest gap description) ##
+my $issue = ( sort { length $b->{'gap'} <=> length $a->{'gap'} } @issues )[0];
+
+my $criterion = $issue->{'criterion'};
+my $gap       = $issue->{'gap'};
+
+## 3. classify and map to patch type ##
+my $change_type;
+my $content;
+
+if ( $criterion =~ m{syntax}i ) {
+    $change_type = 'add_example';
+    $content
+        = "reminder for '$criterion': $gap — add a concrete correct-syntax example directly above the relevant instruction.";
+} elsif ( $criterion =~ m{missing|step|instruction}i ) {
+    $change_type = 'add_instruction';
+    $content
+        = "missing step for '$criterion': $gap — add an explicit instruction with the exact step name and required parameters.";
+} elsif ( $criterion =~ m{tool|command|utility}i ) {
+    $change_type = 'add_example';
+    $content
+        = "tool usage for '$criterion': $gap — add parameter names and an example call to the tool reference section.";
+} elsif ( $criterion =~ m{format|schema|structure|json|xml}i ) {
+    $change_type = 'add_example';
+    $content
+        = "format reminder for '$criterion': $gap — add a minimal correct example of the required output structure.";
+} elsif ( $criterion =~ m{write|disk|file|output}i ) {
+    $change_type = 'strengthen';
+    $content
+        = "write enforcement for '$criterion': $gap — strengthen write-to-disk instruction, add 'do not return code in response'.";
+} else {
+    $change_type = 'add_instruction';
+    $content     = "instruction for '$criterion': $gap";
+}
+
+## 4. produce delta hash ##
+my $delta = {
+    'issue_id'      => $criterion,
+    'change_type'   => $change_type,
+    'location'      => 'append',
+    'content'       => $content,
+    'template_name' => $template,
+    'attempt_n'     => $attempt_n,
+};
+
+<[base.logs]>->(
+    1, 'iteration.template.delta: issue=%s type=%s content=%s',
+    $criterion, $change_type, $content
+);
+
+return $delta;
+
+#,,..,...,,.,,,.,,,..,.,,,.,,,.,.,..,,,.,,.,.,..,,...,...,.,.,,..,.,,,,,.,.,,,
+#MHIKDZQT3W7KN4VMFBM3JBQXYGQJTQMCOSUXEMHWV4HVWOIRZXPORNFBLSQAAIAGPFSK7AXOCQQB4
+#\\\|7H24DOP5UKEKCD5EIXMUMMUE7BILAEQI5Y5TJ4PGSI3W55I4NVX \ / AMOS7 \ YOURUM ::
+#\[7]M7QTFU5RZ6FYRKTAGDBJDOVJYOU4YWE75PXSEUDOWLCMGPO4CGCQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
