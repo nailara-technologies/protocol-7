@@ -1,0 +1,91 @@
+## [:< ##
+
+# name  = task.cmd.handover
+# descr = package task queue state as handover document
+
+my $filter_id = $call->{'args'} // '';
+$filter_id = uc( substr( $filter_id, 0, 7 ) ) if length $filter_id;
+
+my $queue = <task.queue>;
+my @order = @{ <task.queue.order> // [] };
+
+return { 'mode' => 'true', 'data' => 'no tasks in queue' } unless @order;
+
+my ( @claimed, @pending, @blocked, @done );
+
+foreach my $id (@order) {
+    my $task = $queue->{$id} // next;
+    next if length $filter_id and $id ne $filter_id;
+    my $status = $task->{'status'} // '';
+    if    ( $status eq 'claimed' ) { push @claimed, $task }
+    elsif ( $status eq 'pending' ) { push @pending, $task }
+    elsif ( $status eq 'blocked' or $status eq 'failed' ) {
+        push @blocked, $task;
+    }
+    elsif ( $status eq 'done' ) { push @done, $task }
+}
+
+## sort pending by valued tree priority ##
+@pending = sort {
+    ( <[valued.resolve]>->( $b->{'node_id'} // '' ) // 0 )
+        <=> ( <[valued.resolve]>->( $a->{'node_id'} // '' ) // 0 )
+} @pending;
+
+my $out = '';
+
+my $fmt_task = sub {
+    my $t    = shift;
+    my $pri  = <[valued.resolve]>->( $t->{'node_id'} // '' ) // 0.0;
+    my $desc = substr( $t->{'description'}           // '', 0, 60 );
+    return sprintf "  %-7s  [%-10s]  %-60s  (priority: %.2f)\n",
+        $t->{'id'} // '?', $t->{'assignee'} // 'unassigned',
+        $desc,
+        $pri;
+};
+
+if (@claimed) {
+    $out .= "## in progress ##\n";
+    $out .= $fmt_task->($ARG) foreach @claimed;
+    $out .= "\n";
+}
+
+if (@pending) {
+    $out .= "## next executable ##\n";
+    my @top3 = @pending[ 0 .. ( $#pending < 2 ? $#pending : 2 ) ];
+    $out .= $fmt_task->($ARG) foreach @top3;
+    $out .= "\n";
+}
+
+if (@blocked) {
+    $out .= "## blocked ##\n";
+    foreach my $t (@blocked) {
+        my $reason = substr( $t->{'result'} // '', 0, 60 );
+        $out .= sprintf "  %-7s  %-60s  reason: %s\n", $t->{'id'} // '?',
+            substr( $t->{'description'} // '', 0, 60 ),
+            $reason;
+    }
+    $out .= "\n";
+}
+
+if (@done) {
+    $out .= "## recent completions ##\n";
+    my @last3 = @done[ -3 .. -1 ];
+    foreach my $t (@last3) {
+        next unless defined $t;
+        $out .= sprintf "  %-7s  %-60s  result: %s\n", $t->{'id'} // '?',
+            substr( $t->{'description'} // '', 0, 60 ),
+            substr( $t->{'result'}      // '', 0, 80 );
+    }
+}
+
+$out =~ s/\n+$//;
+
+return { 'mode' => 'true', 'data' => $out };
+
+#,,
+
+#,,,.,,.,,,,.,...,...,,.,,,,,,.,.,,..,.,.,,.,,..,,...,...,.,.,...,..,,,..,.,.,
+#JALCO53JNWQA2TRZJYYYPDI3S6VPT2IRAEY5RT6OJ52E3YZ4VYPBY4MROBAT3WLWZT7RB6MCMWMOI
+#\\\|5QKFGDKRKRGWOCPNMMACSOWYFERSVG2SXYXPZWWGS6VXYY2KXPM \ / AMOS7 \ YOURUM ::
+#\[7]XP5ATQIHQNWSINNLXN57KT3K7BPOFFNTLRK4VI5I4D6G6HOR7EBA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
