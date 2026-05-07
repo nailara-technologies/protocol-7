@@ -60,6 +60,24 @@ sections:
         CORRECT : <[module.name]>->($arg)
         CORRECT : <[module.name]>  [ zero args — no ->() needed ]
 
+      ## tool parameter reference ##
+
+      write_new_file:
+        path: "modules/name.here"
+        content: "## [:< ##\n# name  = ..."
+
+      validate_module_format:
+        name: "module.name.here"    [ module name, not file path ]
+
+      ptd_check:
+        path: "modules/name.here"   [ file path, not module name ]
+
+      read_file:
+        path: "modules/name.here"
+        [ optional: offset, length for large files ]
+
+      call validate_module_format at most once per module.
+
       ## p7 style ##
 
       - $ARG not $_ in map/grep/foreach
@@ -70,8 +88,8 @@ sections:
     budget_pct: 35
     label: feature-impl instructions
 
-#,,..,...,...,...,,.,,.,,,,,.,.,,,,.,,,.,,,,.,..,,...,...,...,.,.,.,,,..,,...,
-#BDI5OV6AHJDKDV6QUG7LL77SVTMJGMRDZITME7CFKDK745TK64JSLBNWEZBSYP22GASE23N4KP4GK
-#\\\|7W3NDRDCRVMGZTV3KZBVRN24HPT37H4IKOHKI7JCAEVFRXTQU2R \ / AMOS7 \ YOURUM ::
-#\[7]CDI36N3C4KLIS4HWT5ADWZ3X7ATKQEE3ADTHT5LQUYTID2DMNMAA 7  DATA SIGNATURE ::
+#,,,,,,..,...,.,.,,,.,.,,,.,,,..,,,..,,,.,.,,,..,,...,...,,.,,,.,,,,,,..,,,.,,
+#KQJKK4MK5GZFMOA2IY6ZAT5QA7DB4LWDGLWJPFG4ZP33ES3XYF4PHOB66LX6D4XTPNKWAJANI76FO
+#\\\|6BRH4XHDROPWCFB36LRHEQNJZTXLG4PXNCIZRKCLWDECRKGMBEZ \ / AMOS7 \ YOURUM ::
+#\[7]5CGF4GW4Q2BVSDYOITKPCC7VNUDOJ7GYLGG6HEJYS3DI2JP45ACY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
