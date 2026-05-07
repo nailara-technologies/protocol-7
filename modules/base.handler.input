@@ -23,7 +23,7 @@ my $proto       = $session->{'protocol'};
 my $state       = $session->{'state'};
 my $mode        = $data{'handle'}{$fd}{'mode'};
 my $handler     = $session->{'input'}->{'handler'};
-my $start_len   = length $session->{'buffer'}->{'input'};
+my $start_len   = bytes::length $session->{'buffer'}->{'input'};
 my $len         = $start_len;
 my $handle_href = $data{'handle'}{ $session->{'handle'} };
 
@@ -39,7 +39,7 @@ my $ret_code = 0;    ## track handler return code for later decision logic ##
 if ( defined $handler and exists $code{$handler} ) {
 
     $ret_code = $code{$handler}->($event);    ## call input handler ##
-    $len      = length $session->{'buffer'}->{'input'};
+    $len      = bytes::length $session->{'buffer'}->{'input'};
 
     ## return code 0 ## command processed  [ removed from buffer ]
     ## return code 1 ## ..not complete.,   [ more data expected. ]
@@ -104,7 +104,7 @@ if ( defined $handler and exists $code{$handler} ) {
     }
 }
 
-$len = length $session->{'buffer'}->{'input'};
+$len = bytes::length $session->{'buffer'}->{'input'};
 return $event->w->cancel if not defined $len;   ## <-- buffer 'not defined' ##
 
 if (    $len < <size.buffer.input>
@@ -144,8 +144,8 @@ if ( $session->{'read-mode'} eq qw| linewise | ) {
         and rindex( $session->{'buffer'}->{'input'}, "\n" ) != -1;
 }
 
-#,,..,,,,,.,.,.,,,..,,...,...,.,,,,,.,.,,,,,,,..,,...,...,,..,...,..,,.,,,..,,
-#BZDV5RBN56S74IO6WTBHKFKKZEZLAU2QKCIWNY3G5X4AE7GTSGJ76TC6663DTLTJ2LVORTFD45N5U
-#\\\|CKGKCPQIGM7YRKVLJNEFHTCCRRQK5C4SF5KMND6ASPZV4F2XPU4 \ / AMOS7 \ YOURUM ::
-#\[7]LDIMDRUE4WRZPQRRRVDAZV7UI4T7OQXBXV3W6LR3DGU4Y347ECBQ 7  DATA SIGNATURE ::
+#,,,,,,..,..,,.,,,..,,,,.,,,.,...,,,.,,,,,..,,..,,...,...,...,,,.,..,,.,.,..,,
+#G6OSMMOZFWW2Q5L2FQU6GMA22WN3OMFGHBQTZNCWH7RSJ55VBA6DZAG6ZXGDFBHHZT3JJ6XQW6RN4
+#\\\|HPHSJZV5TTTEUYYV2P4VOK6N3XOMASCN3BPBG4BU2M6WFYXZPFB \ / AMOS7 \ YOURUM ::
+#\[7]77QA6NUEYFHXZLDJXSD52F7VFLDPBXRRUU6YSPEHY4PBZBS3E6AY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

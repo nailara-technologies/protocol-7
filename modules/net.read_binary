@@ -24,7 +24,7 @@ if ( not defined $session->{'bytes-to-read'} ) {
 my $return_code = 2;    ##  set to disconnecting  ##
 
 my $size_left = $data{'size'}->{'buffer'}->{'input'}
-    - length $session->{'buffer'}->{'input'};
+    - bytes::length $session->{'buffer'}->{'input'};
 
 if ( $size_left <= 0 ) {    ##  no space left in buffer  ##
     $handle_href->{'paused'} = TRUE;
@@ -38,19 +38,20 @@ my $bytecount = <[base.s_read]>->(    ## limit : remaining buffer size ##
 
 if ( $bytecount > 0 ) {
     $session->{'fh-last-read-error'} = FALSE;
-    $session->{'last-bytes-read'} = $bytecount;    ## Track bytes read for SSL pending check ##
+    $session->{'last-bytes-read'}
+        = $bytecount;    ## Track bytes read for SSL pending check ##
     $handle_href->{'bytes'}->{'in'} += $bytecount;
     $return_code = 0;    ##  reports request complete [ no size-limit ]  ##
 
 } else {    ##  client is gone \ error  ##
     $session->{'fh-last-read-error'} = TRUE;    ## return code : 2  ##
-    $session->{'last-bytes-read'} = 0;             ## No bytes read ##
+    $session->{'last-bytes-read'}    = 0;       ## No bytes read ##
 }
 
 return $return_code;
 
-#,,.,,,,,,.,.,.,,,...,...,..,,...,,..,..,,..,,..,,...,...,.,.,,.,,,.,,.,,,.,.,
-#FOB5NRRKAV5KOX4EMEYXCBOGC2AMSZ37O5HWDBI3W37C3I74AB7SXZW5IJ3X26ETS3EE3R27MVV22
-#\\\|ZWAYOIBTWPC6LURO3A64Q4EHPFDJEHRY6AOBL7UGOBIWXFOFUIO \ / AMOS7 \ YOURUM ::
-#\[7]R2ZK74BPZPJ3HW2SF6UHSGRHRWLVHBD7E7B7R6DLSR7YLTNSMMCA 7  DATA SIGNATURE ::
+#,,..,,.,,..,,.,,,.,.,,.,,..,,,..,..,,,,.,,,,,..,,...,...,.,.,,.,,.,.,.,,,..,,
+#77SMPCHBOJRUTZOIBTA7NGRAXJHKKR2YGX4RCQTLR43SKS7BSGXYXNR6UPBFSRH3JETB3HCISEAMY
+#\\\|NXG6EFHXB357254QJ3LMNBEWJE73UUYMRKF4Q6VLW2PLTKTIR35 \ / AMOS7 \ YOURUM ::
+#\[7]632EM4UAXSUGBRSVW6KRRXIUYJH2QJHOG5FKM2N6A4UW6CYM7GDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

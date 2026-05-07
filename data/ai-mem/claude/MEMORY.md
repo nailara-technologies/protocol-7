@@ -57,6 +57,7 @@
 - `topic-stream-cancel-design.md` — stream cancel: !TERM! forwarded to route target + source-gone else branch added; session-close teardown NOT yet implemented (open item)
 - `topic-strm-unbounded-gap.md` — STRM/STRM-SIZE require declared total; unbounded needed for audio/webcam relay; protocol extension sketch
 - `topic-stream-transport-layer.md` — STRM stack complete: cancel, base.stream-file, unbounded relay (radio); remaining: formal open-0 sentinel, transport.register (when 2nd consumer), webcam/log-tail
+- `topic-strm-write-blocking.md` — RESOLVED 2026-05-07: STRM-SIZE large-stream blocking root cause (EAGAIN + var watcher), fix in base.handler.write + base.session.cancel_route
 - `topic-radio-relay-zenka.md` — radio COMPLETE: TLS relay, STRM cancel, mpv offline/resilience, gap-fill paced; phase 5 (buffer-fill curve) next
 - `topic-base-curve-system.md` — generic base.curve.* parameter animation; composable signal chain (daytime × ambient × fade); mpv.param.curve is a thin wrapper on top
 - `topic-buffer-access-control.md` — per-buffer-name ACL deferred; revisit when 3+ zenki expose buffers via show-buffer
@@ -327,8 +328,8 @@
 - Pattern: `my @non_num = grep { defined $data_ref->{$ARG}->{$key} and not looks_like_number(...) } keys $data_ref->%*`
 - Global `$SIG{__WARN__}` exists — if wrapping warn handler, capture `$prev_warn = $SIG{__WARN__}` first and call through
 
-#,,.,,,,,,.,.,,.,,,.,,..,,,.,,,,,,..,,.,.,,.,,..,,...,..,,..,,,,,,.,,,.,.,...,
-#4KUOV7LM27URMD72SNLTFQH5XJE4C62OB4PQC7LH27JAU2AFMHRAX3TCOOQGNVTB4HVEXMKTNDNDU
-#\\\|24ZCRID2FINM7MLWDDWVECEIHTZNT3R72TH5LKYQ5KFXPBRNO6Y \ / AMOS7 \ YOURUM ::
-#\[7]OGIS2M3ISI6SNWOWKMVZYBBBQN6QROIURFNEDMCX2HOOFBBT46BI 7  DATA SIGNATURE ::
+#,,..,,.,,...,,,.,,..,..,,...,,..,.,.,...,...,..,,...,...,.,.,,.,,.,,,,,,,,..,
+#5KGNEZMFWAJVDHQ23XJKY2PVEZO6426TVIKRZJHUJL2T7U4FSHPCME3QCDMVWXRIZEYRTHD5HY5SK
+#\\\|FAOV7ZP6GGLSVTAGVA6MZM3LR6TVCMHXN23SJT3L3NVNXM6TCW3 \ / AMOS7 \ YOURUM ::
+#\[7]TDSIVQODUROKVTNLQZHNKD4WAB7WVPRWVHZZUFUXCIXPEUSR2YAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -26,7 +26,7 @@ my $return_code = 2;    ##  set to disconnecting  ##
 ##  calculate read length  ##
 ##
 my $size_left = $data{'size'}->{'buffer'}->{'input'}
-    - length $session->{'buffer'}->{'input'};
+    - bytes::length $session->{'buffer'}->{'input'};
 
 my $read_len = $session->{'bytes-to-read'};
 
@@ -44,7 +44,7 @@ my $bytecount = <[base.s_read]>->(    ##  reading into input buffer  ##
 );
 
 $size_left = $data{'size'}->{'buffer'}->{'input'}
-    - length $session->{'buffer'}->{'input'};
+    - bytes::length $session->{'buffer'}->{'input'};
 
 if ( $bytecount > 0 ) {
 
@@ -73,8 +73,8 @@ if ( $bytecount > 0 ) {
 
 return $return_code;
 
-#,,.,,,..,,.,,..,,.,.,,.,,...,,..,,.,,...,,,,,..,,...,...,.,.,,..,.,.,.,,,..,,
-#JXYDLKN4KXYQPKJHSPO5JFBTQCUKUYVBVG3USEP2T3BDOFDL2WUZENNSOZS4H5F4XJL75UWCKOBNS
-#\\\|JS6QA23GLAXRKYKQOIIWR7LPSLRG6Y6TIVPECLIQKX5WUMF6N5O \ / AMOS7 \ YOURUM ::
-#\[7]GITGFFVFJSSFYEWHWH3X7E2W63VEQKQKTCPVVH3D6I2APYMBZQDY 7  DATA SIGNATURE ::
+#,,,.,,,,,..,,,.,,.,.,.,.,..,,..,,,,.,...,,,,,..,,...,...,.,,,,,.,,..,..,,...,
+#NDNLOJXXDW2JPRDZ57H2HV6GSZUG4UWXVB2ZPHRXIR3IHVK6AP5JWR27YA36DLQD7JKIRLSTBXRCG
+#\\\|YDR2L23VB43VIUXOMJITVN6WE2R3JCEDK3H7HCEDLALGNIEVCHD \ / AMOS7 \ YOURUM ::
+#\[7]CUUNL5OATIPWQDQMURIWVQOXVLDBQNQGVXC2E3V7OVA2C37A5SAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

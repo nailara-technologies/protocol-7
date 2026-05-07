@@ -1,86 +1,47 @@
-# Session Handover — 2026-05-03 (updated)
+# Session Handover — 2026-05-07 (complete)
 
 ## Completed This Session
 
-### Inference-backed context compaction — implemented and verified
-- `coding.async.compact_context`: when `compaction_inference=yes`, enqueues a
-  `no_tools/max_rounds=1` sub-task to summarize middle messages; suspends parent
-  in `STATE_SUBTASK`; falls back to heuristic on enqueue failure
-- `coding.async.complete`: detects `compaction_pending` flag; splices summary
-  into parent messages (not appended as user message); resumes parent round
-- `coding.async.send_request`: returns early with `compacting=1` if pending
-- Bugs fixed during implementation:
-  - `coding.task.enqueue` returns a hash — must extract `->{'task_id'}`
-  - enqueue requires `id` (from `coding.helper.task_id_generator`), `type`,
-    `analysis.routed_to`, `execution.status`, `created_at`
-- **Verified in production**: child task summarized 14 msgs → 1, parent resumed
-  at round 10 with context at 17% (was heading toward overflow)
-- `coding.cfg.compaction_inference = yes` (enabled in coding/start)
-- `coding.cfg.base_work_model` and `coding.cfg.base_compaction_model` added
-  (both alias to `start_model`; separate compaction model is future work)
+### UTF-8 buffer handling fixed across IO stack
+- Root cause: `autoload('bytes')` loads module but does NOT enable `use bytes`
+  pragma, so `length()` and `substr()` remained character-oriented on
+  UTF-8-flagged strings while Protocol-7 headers carry raw byte counts.
+- Fix: explicit `bytes::length()` and `bytes::substr()` for all byte-count
+  protocol logic; downgrade strings with `utf8::downgrade()` before
+  `bytes::substr` (undefined behavior on UTF-8-flagged strings).
+- Files touched: `base.handler.command`, `base.handler.input/read/write`,
+  `net.read_bytewise/binary/linewise_estimated`, `base.stream.push/close/emit`,
+  `base.buffer.add_line`
+- CHRSIZE mode kept character-oriented (uses `substr`/`length` for chars,
+  `bytes::length` only when converting to byte counts).
 
-### :model: keyword + bin/coding-task -model flag
-- `coding.prompt.assemble`: strips `:model:AMOS:ID:` from prompt, overrides
-  `parsed->{'model'}` (doesn't override explicit `GPU:M:` prefix)
-- `bin/coding-task -model AMOS:ID`: prepends `:model:...:` into B32 payload
-- Task files are now self-describing; model-switch dependency state machine
-  designed but not implemented — same-model compaction covers the common case
+### p7c large-stream blocking — RESOLVED
+- **Root cause**: `base.handler.write` var watcher (`output_buffer`, fires on
+  writes to buffer) was restarted after EAGAIN. Worked while STRM-SIZE chunks
+  kept arriving, but once the last chunk was buffered no more writes triggered
+  it. Remaining ~117KB stuck in output buffer, p7c never received it.
+- **Fix**: on EAGAIN, create a per-session IO write-ready watcher (`write_handler`,
+  `poll => 'w'`) on the socket. Fires when p7c drains the kernel buffer. Stays
+  active until buffer empties. Restarts itself on further EAGAIN (tracks the
+  client's read rate). Stops and hands back to var watcher when buffer is empty.
+- **Verified**: `p7c coding.show-buffer U8-TEST | wc -l` → 8000 ✓
+- This fix likely also resolves the radio zenka mystery where regular command
+  replies disappeared until a `heart` command flushed them — same EAGAIN/var-watcher
+  stall was probably occurring with binary STRM data.
 
-### extract-inline-subs template + naming rules
-- Three naming rules codified in template + memory:
-  1. No leading `_`: `sub _foo` → `namespace.util.foo`
-  2. No `.cmd.` inheritance: subs from `storage.cmd.visual` → `storage.visual.util.*`
-  3. No `cmd_` prefix in module name
-- Modules extracted and wired:
-  - `ncode.regex.expand.util.{process_candidate,find_duplicate,merge_duplicate,evict_and_replace}`
-  - `ncode.transform.wave.util.build_llm_prompt`
-  - `storage.visual.util.{extract,proximity,list_workflows}`
+### STRM-SIZE cleanup on client disconnect — FIXED
+- When client disconnects mid-STRM-SIZE, `blocked_by_stream` and timers on the
+  coding zenka session were left running for 12s.
+- Fix in `base.session.cancel_route`: on route cancel, immediately cancel timers,
+  clear `blocked_by_stream`, and delete stream state.
 
-### Model hallucination pattern identified
-- Local 9B model reliably fabricates completion summaries on multi-module tasks
-  without making actual file changes — always `grep -n 'sub '` to verify
-- "verify after each step" instruction insufficient; one-module-per-task is reliable
-- Optional post-task review round (ptd_check on modified files) worth adding to template
+### Test commands and tooling
+- `devmod.cmd.utf8-test-buffer`, `devmod.cmd.utf8-stream-test` — descr strings shortened
+- `bin/coding-task`: `-context NAME` alias fixed
+- `module-header-normalization.yaml` template simplified
 
-### return sub {} unwrapping — 94 modules fixed
-- all modules in plan-9.*, storage.*, base.editor.*, base.encode/decode.*,
-  plugin.storage.*, command.*, amos-term.* had `return sub { }` wrappers that
-  caused the module to return a coderef instead of executing
-- `bin/dev/parsers/strip-return-sub` written — handles all three patterns:
-  multi-line with `my ($call)=@_`, multi-line without, single-line
-- 94 files fixed, signatures stripped and re-added; `AMOS7.key-32-safeguard`
-  deleted (dead code, knowledge already in `AMOS7/13.pm`)
-- `<[$var]>->()` dynamic dispatch added to bin/Protocol-7 parser:
-  resolves to `$code{$var}->()` (no quotes); literal forms unchanged
-- documented in CLAUDE.md, coding.system_prompt, data/ai-mem/kimi/coding-style.md,
-  data/yaml/ncode-patterns/p7-style.yaml, and memory
+## Status
+All issues resolved and verified. Changes signed and staged for commit.
 
-## Open / Next
-
-### Remaining inline sub extractions (all single-sub, straightforward)
-- `modules/kimi.handler.approval_request`: `sub flush_on_acquisition` (line 81)
-  → `kimi.handler.approval_request.util.flush_on_acquisition`
-- `modules/letsencr.child.continue_challenge_processing`: `sub _cleanup_challenge` (line 11)
-  → `letsencr.child.continue_challenge_processing.util.cleanup_challenge`
-- `modules/plugin.web.space.orbital.json.context`: `sub _synthetic_zenka_node` (line 34)
-  → `plugin.web.space.orbital.json.context.util.synthetic_zenka_node`
-- `modules/graphics-matrix.cmd.cell`: `sub cell_output` (line 148) — may warrant
-  splitting the cmd into multiple commands rather than extracting to util
-
-### Model-switch dependency (future)
-- For `base_compaction_model != base_work_model`: need a `STATE_MODEL_SWITCH`
-  waiting state + spawn monitor signaling waiters when new model is ready
-- Round detects required model mismatch → triggers switch → suspends in new state
-- Same mechanism handles return trip (switch back to work model after compaction)
-- Design: pin `required_model` to task; round checks on each fire
-
-### llama-server tip rebuild
-- ik_llama.cpp #1369-related Jinja crash still open upstream
-- When fixed, rebuild from tip to get VRAM improvements from builds 4268-4447
-- Toggle already set: `coding.jinja.enable = yes`
-
-### nshell first-command (0) prefix bug
-- Pre-existing: cube sends `(0)clear` on first command
-- Best theory: `01b6be26e` removed trailing space from cmd_id formatting
-- Proper fix: cube raw mode + VTerm line session buffers (large feature, deferred)
-- Documented: `data/yaml/coding-tasks/nshell-session-protocol-tunneling.yaml`
+## Token Status
+- Kimi weekly tokens exhausted 2026-05-07, resets ~2026-05-12

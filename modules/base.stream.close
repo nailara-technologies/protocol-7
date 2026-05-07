@@ -32,6 +32,8 @@ my $cmd_id_str = $session->{'streams'}->{$cmd_id}->{'cmd_id_str'} // '';
 my $frame      = sprintf "%s%s close\n", $cmd_id_str, $type;
 
 my $written = bytes::length($frame);
+utf8::downgrade( $session->{'buffer'}->{'output'}, 1 )
+    if utf8::is_utf8( $session->{'buffer'}->{'output'} );
 $session->{'buffer'}->{'output'} .= $frame;
 
 <[base.stream.record_emission]>->( $sid, $cmd_id, $written, $type );
@@ -40,8 +42,8 @@ delete $session->{'streams'}->{$cmd_id};
 
 return 1;
 
-#,,,.,,,,,.,,,,.,,.,.,.,.,...,...,,.,,...,.,.,..,,...,...,,.,,.,,,...,.,.,,,,,
-#WTSESOHXM2PO4K5PYIZOZQ3QTTBJRLDONEJAKVT7WIZYTORS6YQEHEII6JUC7PPD552ELMRM46RMK
-#\\\|7L7ASMKREHYFXLQ6GXZLNTQF2HOYC3DKOMETF6N3FWL6FBQSX4X \ / AMOS7 \ YOURUM ::
-#\[7]CUHWUJW46G4NR63SLGIX2Y3KBZ2IFEX55BHVJBY5S7LMAKSAQUDI 7  DATA SIGNATURE ::
+#,,..,.,,,.,,,.,.,,.,,,,.,,,.,,..,,,,,,,,,..,,..,,...,..,,.,,,..,,.,.,,,.,.,.,
+#OS2CD2W52JCDHYAQZV3JZ5HKCWTJVWA5ASAG3JFBLSXFNZVJ7BYGXGOE47NMD7Z2PRZNXIHPUTH22
+#\\\|B4JTZMCR24Q2G43HRZ2QYCKDIF7LMWLCW7MSDQS2FR4T5Q25FLZ \ / AMOS7 \ YOURUM ::
+#\[7]FOY52PMTA7QPCLKBINPLMBB5HMGMSR5BOTTYKQHZ4Q3WURFBZGDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

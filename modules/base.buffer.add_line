@@ -33,7 +33,7 @@ $log_message =~ s{^\s+|\s+$}{} if defined $log_cmd_level;
 $log_message =~ s|\n|\\n|g;
 $log_message =~ s|\r|\\r|g;
 
-my $message_len = length $log_message;
+my $message_len = bytes::length($log_message);
 
 if ( not defined $buffer_size or $buffer_size < $min_b_size ) {
 
@@ -90,7 +90,7 @@ $buffrs->{$name}->{'size'} += $message_len + 1;    ## <--[\n]
 ##
 while ( $buffrs->{$name}->{'size'} + $message_len > $buffer_size ) {
 
-    my $deleted_bytes = length $buffrs->{$name}->{'data'}->[0];
+    my $deleted_bytes = bytes::length( $buffrs->{$name}->{'data'}->[0] );
 
     ##  removing first [ oldest ] line  ##
     shift $buffrs->{$name}->{'data'}->@*;
@@ -131,8 +131,8 @@ if ( defined $buffrs->{$name}->{'log_cmd'}
 
 return TRUE;    ##  true  [ added to buffer ] ##
 
-#,,,.,.,,,,,.,.,,,.,.,.,.,,,,,..,,...,..,,,..,..,,...,...,,..,...,,..,,,,,..,,
-#KEN352OUFT5MFYOBLM2DXUX67W5FV5PJDZORDV2UON5532XBDDCNCNQIVLFQJTM3H2RTJ6GQKCTUS
-#\\\|O7HRLOXIW464YRHG2HLPVB6OFPIL7HY64AVPSF7P2XWVLC6WZB7 \ / AMOS7 \ YOURUM ::
-#\[7]TZZKD6VWPIKHUFKERERMNTV63MF5SYDT5H6ITTWS2NYO3CF6UOBQ 7  DATA SIGNATURE ::
+#,,,.,.,,,,..,,.,,.,.,,.,,..,,,..,.,,,.,,,...,..,,...,...,.,,,.,,,,,,,...,...,
+#W7TUPUZVHJOZPFZTA7K4WZ5OW3GHJ5WQFL7TEL4VRYBKXQ6NCG6ZUUK3ILWQTX6LNR6JAG2IZEPE4
+#\\\|WGA6VR4UIOUGVGDFSIQIKBANZD5CNPCGX2P7NSK24LGZJX2KOWW \ / AMOS7 \ YOURUM ::
+#\[7]G6WUGI7MCPMOLZKD6OZILMG4N5TL57XCROJZVL7FB4VO3GVNHGBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -57,7 +57,11 @@ if ( defined $session->{'ignore_bytes'} ) {    # ..dropped SIZE replies.,
             $id, $ignore_bytes, <[base.cnt_s]>->($ignore_bytes)
         );
         if ( $buffer_length >= $ignore_bytes ) {
-            substr $input->$*, 0, $ignore_bytes, '';
+            my $byte_input = $input->$*;
+            utf8::downgrade( $byte_input, 1 )
+                if utf8::is_utf8($byte_input);
+            bytes::substr( $byte_input, 0, $ignore_bytes, '' );
+            $input->$* = $byte_input;
             $buffer_length = bytes::length( $input->$* );
             delete $session->{'ignore_bytes'};
         } else {
@@ -698,7 +702,12 @@ if ( $cmd =~ m,^(TRUE|FALSE|WAIT|SIZE|CHRSIZE|STRM|STRM-SIZE|GET|TERM)$, ) {
 
                         ## cut out body data ## [ length in bytes ]
                         ##
-                        my $data_reply = substr $input->$*, 0, $msg_len, '';
+                        my $byte_input = $input->$*;
+                        utf8::downgrade( $byte_input, 1 )
+                            if utf8::is_utf8($byte_input);
+                        my $data_reply
+                            = bytes::substr( $byte_input, 0, $msg_len, '' );
+                        $input->$* = $byte_input;
 
                         ## check if reply handler is set ##
                         ##
@@ -780,7 +789,8 @@ if ( $cmd =~ m,^(TRUE|FALSE|WAIT|SIZE|CHRSIZE|STRM|STRM-SIZE|GET|TERM)$, ) {
 
                         ## cut out body data ## [ length in characters ]
                         ##
-                        my $data_reply = substr $input->$*, 0, $msg_len, '';
+                        my $data_reply
+                            = substr( $input->$*, 0, $msg_len, '' );
 
                         ## check if reply handler is set ##
                         ##
@@ -935,8 +945,13 @@ if ( $cmd =~ m,^(TRUE|FALSE|WAIT|SIZE|CHRSIZE|STRM|STRM-SIZE|GET|TERM)$, ) {
                     if ( $buffer_length >= $chunk_size ) {
 
                         ## Extract chunk from input buffer ##
-                        my $chunk_data = substr $input->$*, 0, $chunk_size,
-                            '';
+                        my $byte_input = $input->$*;
+                        utf8::downgrade( $byte_input, 1 )
+                            if utf8::is_utf8($byte_input);
+                        my $chunk_data
+                            = bytes::substr( $byte_input, 0, $chunk_size,
+                            '' );
+                        $input->$* = $byte_input;
 
                         ## Forward chunk to source progressively ##
                         if ( defined $session->{'streams'}->{$cmd_id} ) {
@@ -945,10 +960,12 @@ if ( $cmd =~ m,^(TRUE|FALSE|WAIT|SIZE|CHRSIZE|STRM|STRM-SIZE|GET|TERM)$, ) {
 
                             if ( exists <base.strm.local>->{$cmd_id} ) {
                                 my $lc = <base.strm.local>->{$cmd_id};
+                                utf8::downgrade( $lc->{'buf'}, 1 )
+                                    if utf8::is_utf8( $lc->{'buf'} );
                                 $lc->{'buf'} .= $chunk_data;
                                 $lc->{'bytes'} += $chunk_size;
                                 if ( not $lc->{'max_buf'}
-                                    or length( $lc->{'buf'} )
+                                    or bytes::length( $lc->{'buf'} )
                                     < $lc->{'max_buf'} ) {
                                     $lc->{'watcher'}->($lc)
                                         if defined $lc->{'watcher'};
@@ -957,6 +974,13 @@ if ( $cmd =~ m,^(TRUE|FALSE|WAIT|SIZE|CHRSIZE|STRM|STRM-SIZE|GET|TERM)$, ) {
 
                                 my $src_sid = $route->{'source'}->{'sid'};
                                 if ( exists $data{'session'}{$src_sid} ) {
+                                    utf8::downgrade(
+                                        $data{'session'}{$src_sid}{'buffer'}
+                                            {'output'}, 1
+                                        )
+                                        if utf8::is_utf8(
+                                        $data{'session'}{$src_sid}{'buffer'}
+                                            {'output'} );
                                     $data{'session'}{$src_sid}{'buffer'}
                                         {'output'} .= <[base.sprint_t]>->(
                                         qw| OMQVCCA |, $s_cmd_id, $chunk_size
@@ -1138,8 +1162,13 @@ if ( $cmd =~ m,^(TRUE|FALSE|WAIT|SIZE|CHRSIZE|STRM|STRM-SIZE|GET|TERM)$, ) {
                     if ( $buffer_length >= $chunk_size ) {
 
                         ## Extract chunk from input buffer ##
-                        my $chunk_data = substr $input->$*, 0, $chunk_size,
-                            '';
+                        my $byte_input = $input->$*;
+                        utf8::downgrade( $byte_input, 1 )
+                            if utf8::is_utf8($byte_input);
+                        my $chunk_data
+                            = bytes::substr( $byte_input, 0, $chunk_size,
+                            '' );
+                        $input->$* = $byte_input;
 
                         if ( defined $session->{'streams'}->{$cmd_id} ) {
                             $session->{'streams'}{$cmd_id}->{'received_bytes'}
@@ -1157,12 +1186,26 @@ if ( $cmd =~ m,^(TRUE|FALSE|WAIT|SIZE|CHRSIZE|STRM|STRM-SIZE|GET|TERM)$, ) {
                                 ## handler path: accumulate for delivery at close ##
                                 $session->{'streams'}{$cmd_id}->{'buffer'}
                                     //= '';
+                                utf8::downgrade(
+                                    $session->{'streams'}{$cmd_id}
+                                        ->{'buffer'}, 1
+                                    )
+                                    if utf8::is_utf8(
+                                    $session->{'streams'}{$cmd_id}->{'buffer'}
+                                    );
                                 $session->{'streams'}{$cmd_id}->{'buffer'}
                                     .= $chunk_data;
                             } else {
                                 ## routing path: forward raw data to client ##
                                 my $src_sid = $session->{'streams'}{$cmd_id}
                                     ->{'route_source_sid'};
+                                utf8::downgrade(
+                                    $data{'session'}{$src_sid}{'buffer'}
+                                        {'output'}, 1
+                                    )
+                                    if utf8::is_utf8(
+                                    $data{'session'}{$src_sid}{'buffer'}
+                                        {'output'} );
                                 $data{'session'}{$src_sid}{'buffer'}{'output'}
                                     .= $chunk_data;
                             }
@@ -1401,8 +1444,13 @@ if ( $cmd =~ m,^(TRUE|FALSE|WAIT|SIZE|CHRSIZE|STRM|STRM-SIZE|GET|TERM)$, ) {
 
             if ( $buffer_length >= $ignore_count ) {
                 ## Extract payload data before dropping from buffer
-                my $payload_data = substr $input->$*, 0, $ignore_count;
-                substr $input->$*, 0, $ignore_count, '';
+                my $byte_input = $input->$*;
+                utf8::downgrade( $byte_input, 1 )
+                    if utf8::is_utf8($byte_input);
+                my $payload_data
+                    = bytes::substr( $byte_input, 0, $ignore_count );
+                bytes::substr( $byte_input, 0, $ignore_count, '' );
+                $input->$* = $byte_input;
 
                 <[base.logs]>->(
                     $ignore_log_level,
@@ -1690,6 +1738,10 @@ UNKNOWN_TYPE_HANDLED:
                     my $total_bytes  = bytes::length($data_to_send);
                     my $chunk_size   = <protocol.strm.packet_size> // 8192;
 
+                    ## ensure byte-oriented chunking for UTF-8 content ##
+                    my $chunk_data = $data_to_send;
+                    utf8::encode($chunk_data);
+
                     my $h = <[base.stream.open]>->(
                         {   'sid'        => $id,
                             'cmd_id'     => $cmd_id,
@@ -1707,7 +1759,7 @@ UNKNOWN_TYPE_HANDLED:
                             $chunk_len = $total_bytes - $offset
                                 if $offset + $chunk_len > $total_bytes;
 
-                            my $chunk = substr $data_to_send, $offset,
+                            my $chunk = substr $chunk_data, $offset,
                                 $chunk_len;
                             my $n = <[base.stream.push]>->( $h, \$chunk );
                             last if not $n;    ## cancelled / gone ##
@@ -1731,6 +1783,10 @@ UNKNOWN_TYPE_HANDLED:
                     my $data_to_send = $reply->{'data'};
                     my $session_mode = $session->{'size_mode'} // qw| SIZE |;
                     my $count        = bytes::length($data_to_send);
+
+                    ## ensure byte-oriented chunking for UTF-8 content ##
+                    my $chunk_data = $data_to_send;
+                    utf8::encode($chunk_data);
 
                     ## use STRM-SIZE fragmentation for large replies sent ##
                     ## through cube relay [ not for cube's own responses ] ##
@@ -1759,7 +1815,7 @@ UNKNOWN_TYPE_HANDLED:
                                 $chunk_len = $count - $offset
                                     if $offset + $chunk_len > $count;
 
-                                my $chunk = substr $data_to_send, $offset,
+                                my $chunk = substr $chunk_data, $offset,
                                     $chunk_len;
                                 my $n = <[base.stream.push]>->( $h, \$chunk );
                                 last if not $n;
@@ -2235,8 +2291,8 @@ UNKNOWN_CMD_GLOBAL_HANDLED:
 
 return 0;        ## comand complete ##
 
-#,,,,,...,..,,.,,,.,,,..,,.,,,,.,,,,,,.,,,.,.,..,,...,...,.,.,.,.,,,,,..,,...,
-#6CKIA7AR33H6QXNPIMQWYB7DA6UMQNLP7RIJ6QPLZBMII6E3IH3BY6QKOOAFFYANHRDJVOU6XFX4C
-#\\\|QH5H6WBCHJ3MK7E5MPZJ5HP7NAWVZAFAKIEBCO6H3ODU5DUZM5C \ / AMOS7 \ YOURUM ::
-#\[7]LCEZMILJWOYINUIDWULK4RC44I6RRQNSR6ASERDCFT32WTSL5EDA 7  DATA SIGNATURE ::
+#,,,,,,,.,..,,,,,,..,,,..,,,,,.,,,,,.,..,,,,,,..,,...,...,.,,,.,,,,,.,...,.,.,
+#GIK4D4VW2U5SUPP6SDHANVOMDFSTIL4PQFNCNZU6QORKHFW5FRP2YQ33AZYWY5QTS5C5HFY5XOO2U
+#\\\|ZS5BRGI5AI6TAVBQ2AJA42WSYPEHIPQASTD67MS2VE3NVP6EZFH \ / AMOS7 \ YOURUM ::
+#\[7]O2SZV4VMOSHBW2EQTHJCCYE7DHZXMVMRTTELHCKZXXIU5YMU6EAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

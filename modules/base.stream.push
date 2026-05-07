@@ -54,6 +54,8 @@ my $cmd_id_str = $session->{'streams'}->{$cmd_id}->{'cmd_id_str'} // '';
 my $frame = sprintf "%s%s %d\n%s", $cmd_id_str, $type, $chunk_len, $chunk;
 
 my $written = bytes::length($frame);
+utf8::downgrade( $session->{'buffer'}->{'output'}, 1 )
+    if utf8::is_utf8( $session->{'buffer'}->{'output'} );
 $session->{'buffer'}->{'output'} .= $frame;
 
 $session->{'streams'}->{$cmd_id}->{'sent_bytes'} += $chunk_len;
@@ -62,8 +64,8 @@ $session->{'streams'}->{$cmd_id}->{'sent_bytes'} += $chunk_len;
 
 return $written;
 
-#,,,.,...,,,.,,,.,..,,,,,,,,.,...,,..,,,,,,..,..,,...,..,,...,..,,,.,,,.,,,,.,
-#DXF6QRAEJGPQZXON2CAMNSKKGY2QCFJUDNQEWAS6GKLAG536DD2O4QCVPDD5JHN56WT2UJUGEVLPA
-#\\\|IICAXDNFFRFJESBAHXKVHDZZK6RORNTMYOF5TWJHELFAMZQ6ACS \ / AMOS7 \ YOURUM ::
-#\[7]AARG4TRPLWMTWZGWAOP5TGNPMZS4TXJCT5WSMD3G6SLVUTZSCOBA 7  DATA SIGNATURE ::
+#,,,,,,,,,..,,,.,,,.,,.,,,,,,,,,.,..,,.,.,.,,,..,,...,...,,,.,,,,,,..,.,.,,.,,
+#MHACTP2H6P4FAFHPUHQ3MI5UQGSJKY372R6SJCZH3BO6LCHTXCSTDHCOEWXZQGSFQ77EUBOQIX3GE
+#\\\|UJA4HUABCFG4THPR7UNO2BWHUBQFL43CSOSVVKSNBVQA6VZ36M5 \ / AMOS7 \ YOURUM ::
+#\[7]L7CXOGOTZZHEX3XVNLS355VSQVRD4DW6AJK5A3YCYH2LWLGMAQBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
