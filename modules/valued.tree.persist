@@ -1,0 +1,54 @@
+## [:< ##
+
+# name  = valued.tree.persist
+# descr = save live valued tree to yaml on disk
+
+<[format.yaml.pre_init]>;
+
+my $index = <valued.index>;
+my $count = scalar keys %{$index};
+
+if ( not $count ) {
+    <[base.logs]>->(
+        1, 'valued.tree.persist: nothing to save [ empty tree ]'
+    );
+    return TRUE;
+}
+
+## build plain hashref — no code refs ##
+my %snapshot;
+foreach my $id ( keys %{$index} ) {
+    my $node = $index->{$id};
+    $snapshot{$id} = {
+        'id'       => $node->{'id'},
+        'refs'     => $node->{'refs'}     // 0,
+        'weight'   => $node->{'weight'}   // 0.0,
+        'parents'  => $node->{'parents'}  // [],
+        'children' => $node->{'children'} // [],
+        'type'     => $node->{'type'}     // '',
+    };
+}
+
+my $yaml_str = <[format.yaml.dump_str]>->( \%snapshot );
+if ( not defined $yaml_str or not length $yaml_str ) {
+    <[base.s_warn]>->('valued.tree.persist: yaml serialization failed');
+    return FALSE;
+}
+
+my $written = <[file.zenka_dir.write]>->( 'valued-tree.yaml', \$yaml_str );
+if ( not defined $written ) {
+    <[base.s_warn]>->('valued.tree.persist: failed to write file');
+    return FALSE;
+}
+
+<[base.logs]>->( 1, 'valued.tree.persist: saved %d nodes', $count );
+
+return TRUE;
+
+#,,
+
+#,,.,,,..,...,..,,.,.,,.,,..,,..,,.,.,..,,.,.,..,,...,..,,..,,,,.,,,,,...,,..,
+#JQCVKVQPNMTBG6ODQ3H2PRMJTRLMLQT3XS74QQ66D2GTJBLIKI6OYPAOISOY2OZDT3TUSHM6MDQBE
+#\\\|K2HCCLMWMDQUGVZFFU76NCF24SFGGIIYXJSITPB3NV5P3ALTSTI \ / AMOS7 \ YOURUM ::
+#\[7]CT5OJAERI6JVKNE77DNEGFJINWFOV3SOUWS37KDWZH5UBU2DH2BY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
