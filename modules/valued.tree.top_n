@@ -1,0 +1,59 @@
+## [:< ##
+
+# name  = valued.tree.top_n
+# descr = return N highest-priority nodes [ optional parent + type filter ]
+
+my $params = shift               // {};
+my $n      = $params->{'n'}      // 10;
+my $parent = $params->{'parent'} // '';
+my $type   = $params->{'type'}   // '';
+
+## collect and filter nodes ##
+my @candidates;
+foreach my $id ( keys %{<valued.index>} ) {
+    my $node = <valued.index>->{$id};
+    next unless defined $node;
+
+    ## parent filter — node must list $parent in its parents arrayref ##
+    if ( length $parent ) {
+        my @parents = @{ $node->{'parents'} // [] };
+        next unless grep { $ARG eq $parent } @parents;
+    }
+
+    ## type filter ##
+    if ( length $type ) {
+        next unless ( $node->{'type'} // '' ) eq $type;
+    }
+
+    my $priority = <[valued.resolve]>->($id) // 0.0;
+    push @candidates, { %{$node}, 'priority' => $priority };
+}
+
+## sort descending by priority ##
+my @sorted = sort { $b->{'priority'} <=> $a->{'priority'} } @candidates;
+
+## take top N ##
+my @top = @sorted[ 0 .. ( $n - 1 < $#sorted ? $n - 1 : $#sorted ) ];
+
+my $output = join "\n", map {
+    sprintf '%.2f  %-32s (refs=%d weight=%.3f)',
+        $ARG->{'priority'},
+        $ARG->{'id'},
+        $ARG->{'refs'}   // 0,
+        $ARG->{'weight'} // 0.0
+} @top;
+
+<[base.logs]>->(
+    2,           'valued.tree.top_n: returning %d of %d candidates',
+    scalar @top, scalar @candidates
+);
+
+return { 'mode' => 'size', 'data' => $output };
+
+#,,
+
+#,,,.,,,.,.,.,,,.,.,.,...,,..,.,,,.,,,,,.,,,.,..,,...,..,,,..,,,.,.,,,...,..,,
+#QAWKA6Q43C6F2RLGJRTNLMBVFCRMVVSAVEMXWYQW4E3HTCP7PBWTTNY5YUUFXB7OXUG5GMDLYXZY4
+#\\\|73HUZXVBLXEQWHTHKCPPE4NCQUEWOZD6JHQFKFL6YUJGV5G63ON \ / AMOS7 \ YOURUM ::
+#\[7]4Y2VDW7GJIM7HNJMAPC3OUIYHI3QOYIU4NNHC2QEHITWSC2T44AI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
