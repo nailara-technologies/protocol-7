@@ -1,110 +1,43 @@
 ---
 name: module-header-normalization
-descr: audit and fix module header convention violations — line length, descr length, formatting
-budget: 4000
+descr: audit and fix module header convention violations
+budget: 2500
 sections:
-  ## style conventions reference ##
-  - provider: context.style.guide
-    priority: 1
-    budget_pct: 10
-    label: style conventions
-
-  ## instructions ##
   - static: |
-      audit and fix module header convention violations in protocol-7 modules.
+      ## task: fix module header convention violations ##
 
-      ## round budget: aim for 15-25 tool rounds max ##
-      ## process files in batches, call task_complete when done ##
-
-      ## scope ##
-      the user message below specifies the target file or directory.
-      if it is a single file, process only that file.
-      if it is a directory, scan all modules under it.
-
-      ## conventions ##
-
-      ### line length ###
-      - ALL lines in ALL files: maximum 78 characters
-      - the signature footer width is 78 chars — code must not exceed it
-      - this applies to header comments, code, and strings
-
-      ### descr length for cmd/console modules ###
+      conventions:
+      - ALL lines: maximum 78 characters
       - *.cmd.* and *.console.* modules: descr = max 55 characters
-      - reason: descr content is shown in command list tables
-      - other module types: no specific descr limit beyond 78 chars
+      - header format: ## [:< ## then # name = X, # descr = Y, # param = Z
 
-      ### header format ###
-      ```
-      ## [:< ##
+      available tools:
+      - module_convention_check — scan for violations
+      - regex_replace_preview — preview diff before applying
+      - regex_replace_apply — commit previewed replacement
+      - regex_replace_undo — undo if something went wrong
+      - perltidy — auto-format file
 
-      # name  = namespace.module.name
-      # param = <required> [optional]
-      # descr = concise lowercase description
-      ```
+      process:
+      1. run module_convention_check on the target path
+      2. for each violation: preview fix, apply if correct
+      3. re-run module_convention_check to verify
+      4. call task_complete with summary
 
-      ## available tools ##
-
-      | tool | purpose |
-      |------|---------|
-      | module_convention_check | scan directory for violations, sorted by severity |
-      | regex_replace_preview | preview regex replacement diff before applying |
-      | regex_replace_apply | apply previewed replacement with checksum verification |
-      | regex_replace_undo | undo last replacement if something went wrong |
-      | perltidy | auto-format perl file with project settings |
-      | read_file | read file content for inspection |
-
-      ## process ##
-
-      ### step 1: scan for violations ###
-
-      run module_convention_check on the scope directory.
-      this gives you a sorted list of violations:
-      - longest lines first
-      - shorter filenames first [less contextualized = more important]
-
-      ### step 2: fix in priority order ###
-
-      for each violation:
-      1. read_file to see the full context
-      2. determine the correct fix:
-         - for long lines: split string with concatenation (.), reword, or use perltidy
-         - for long descr in cmd/console: reword to be more concise
-         - for spacing issues in headers: normalize # name =, # descr =, # param =
-      3. use regex_replace_preview to see the diff
-      4. if the diff looks correct, use regex_replace_apply to commit
-      5. if something goes wrong, use regex_replace_undo
-
-      prefer perltidy for structural formatting issues.
-      prefer regex_replace for targeted header fixes.
-
-      ### step 3: verify ###
-
-      re-run module_convention_check on the same scope.
-      confirm no remaining violations.
-
-      ### step 4: summary ###
-
-      ## header normalization summary ##
-
-      **files scanned**: N
-      **violations found**: N
-      **fixed with regex_replace**: N
-      **fixed with perltidy**: N
-      **reworded descr**: N
-      **remaining issues** [if any]: list with reason
-
-      call task_complete with counts.
-    priority: 2
-    budget_pct: 90
-    label: header normalization instructions
+      the user message below specifies the target file or directory.
+      start immediately by calling module_convention_check.
+      do not ask for clarification. do not explain your plan. just execute.
+    priority: 1
+    budget_pct: 100
+    label: header normalization
 
 on_complete:
   - when: [output_contains=fixed]
     action: memory_update
-    topic: "header-normalization:{{scope}}"
+    topic: "header-normalization"
 
-#,,,.,.,.,.,,,..,,...,.,.,,,.,,,,,,,.,,,,,..,,..,,...,...,,,.,,,.,.,,,,,,,.,.,
-#3JUDIOIYCOKXUL7QFZJZMPYE22CUYWG52YMOMLXK2G2JA55CMCHHF3GA3ZDIMEAISFQKUC7J5OWFY
-#\\\|SM4FAINGAR3K6M23T6XPPVJS7QA2G3XLVQS6TU36G3DBFTZW3DZ \ / AMOS7 \ YOURUM ::
-#\[7]KG35M54AOFABLNMTYJQGUCODHC7FGGHFNRRG4MHT6P22UIX7JQBQ 7  DATA SIGNATURE ::
+#,,,,,.,,,..,,,,.,.,.,.,.,.,,,,,,,..,,..,,,,.,..,,...,...,..,,,.,,,..,...,,..,
+#2NQ44QMVZ7V7JKOKWFQG7V4QUNGNN2F3ZOSFUZKCLUL25RWU4TTEICSSZUHU7TIMYKIZRKYKXLYPK
+#\\\|VHO2IO4FUUGFYISO3JEVKJH67PAVMFNBNZQAZI5CAW72WJWFY6J \ / AMOS7 \ YOURUM ::
+#\[7]JOC7A74TYQA3VTQKZQH5UP4ED3YMZAKZRH7RSY42OK3PMHBZDUCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

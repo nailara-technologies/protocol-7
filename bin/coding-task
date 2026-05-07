@@ -30,7 +30,7 @@ while ( my $arg = shift @ARGV ) {
         close $fh;
     } elsif ( $arg eq '-wait' ) {
         $wait = 1;
-    } elsif ( $arg eq '-template' ) {
+    } elsif ( $arg eq '-template' or $arg eq '-context' ) {
         $template = shift @ARGV // die ":: -template requires a name\n";
         $template =~ s/^:+|:+$//g;    ## strip surrounding colons if any ##
     } elsif ( $arg eq '-model' ) {
@@ -45,6 +45,7 @@ while ( my $arg = shift @ARGV ) {
           -file PATH        read prompt from file
           -wait             block and wait for result (default: submit and exit)
           -template NAME    use context template via coding.ask-reply :NAME:
+          -context NAME     alias for -template
           -model AMOS:ID    override inference model (e.g. WZIZD6Y:2BIZKWY)
           -help             show this help
 
@@ -160,8 +161,8 @@ printf ":: encoded: %d bytes → %d b32r chars\n",
 ## -wait is a coding-task option only, not forwarded to p7c ##
 exec 'p7c', 'coding.ask-reply', "B32:$encoded";
 
-#,,.,,,,,,,.,,.,,,,.,,.,,,..,,.,,,..,,,,.,,,,,.,.,...,...,..,,.,,,,..,.,.,,,.,
-#4R4JI77BPGJQNI7UEROQWUKBGVVDMFR3DKPLZ67FXJR43B6P4PPSG626W7FPNM2M5VB75JSDRN3I6
-#\\\|VLZLE3B5SP6R3TR6KXQEKC573RFDTSNWJJZICHVL25VSKUOV6R6 \ / AMOS7 \ YOURUM ::
-#\[7]TYV7QBYLPLJZPTFFPXBOFTLAZKGVML2AFJBYFFK3QFHN4NER7UAI 7  DATA SIGNATURE ::
+#,,..,..,,.,.,..,,,..,,..,,,,,.,.,,..,,.,,.,,,.,.,...,...,.,,,.,,,,.,,.,.,..,,
+#LKQP6PIREM6ZJJL2UX4M2ZRKKMIXNDBFGTBR4XZNYB5VG5WT5DQ2ZFAQUOPPCLDWVJKCVF5JOVYAM
+#\\\|RXCZJXKFE7EAPT2MALDEZNAVXQHXSD52ONJDILBTJKSURSIWUSM \ / AMOS7 \ YOURUM ::
+#\[7]E6CN6XWUZPXI4TPCCYEQK7YNNYRKIPVY4EKQF5MQJHT2ZHJ63GAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
