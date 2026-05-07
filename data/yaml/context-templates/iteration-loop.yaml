@@ -1,0 +1,115 @@
+---
+name: iteration-loop
+descr: self-improving task loop — retry with template optimization, advance best result
+budget: 6000
+
+## loop configuration ##
+config:
+  max_attempts:     5       ## max retries before advancing best ##
+  score_threshold:  0.85    ## advance immediately if score reaches this ##
+  advance_on_best:  true    ## on max_attempts, advance highest-scored attempt ##
+  remainder_routing: auto   ## auto | user | local | remote ##
+
+sections:
+
+  - include: system-base
+    priority: 1
+    budget_pct: 6
+
+  - include: system-review
+    priority: 2
+    budget_pct: 4
+
+  - provider: context.task.active
+    priority: 3
+    budget_pct: 8
+
+  - provider: context.iteration.history
+    priority: 4
+    budget_pct: 20
+    params:
+      max_attempts: 5
+    description: |
+      previous attempt results and their scores + template deltas applied.
+      absent on attempt 1.
+
+  - static: |
+      ## iteration loop — attempt {{attempt_n}} of {{max_attempts}} ##
+
+      you are running attempt {{attempt_n}} of a self-improving task loop.
+      the task has acceptance criteria that must be met to advance.
+
+      ## phase 1: execute [ attempt the task ] ##
+
+      use the task description and context to produce the result.
+      write output to disk if the task requires it [ write_new_file or replace_in_file ].
+      ** PRESERVE $ARG and @ARG — NEVER revert to $_ or @_ **
+      ** use <key.sub>->{}  NOT $data{'key.sub'}{} for dotted data keys **
+      ** write files to disk — do not return code in the response **
+
+      ## phase 2: score [ evaluate your own result ] ##
+
+      after producing the result, score it against each acceptance criterion:
+
+        for each criterion:
+          - did the result meet it fully? [ pass / partial / fail ]
+          - if partial or fail: what specifically is missing or wrong?
+          - is this fixable by a template change, or does it need a different model/user?
+
+      produce a score record:
+        overall:    N/M criteria passed
+        score:      float 0.0–1.0
+        issues:     list of { criterion, status, gap, fixable_by }
+        verdict:    advance | retry | escalate
+
+      ## phase 3: template delta [ if retry ] ##
+
+      if verdict is retry and attempt < max_attempts:
+        identify ONE targeted change to the task template that would have
+        prevented the most significant issue.
+        be precise: "add reminder X at line Y" not "improve the template".
+        record as: { issue_id, change_type, location, content }
+
+      if verdict is advance or attempt == max_attempts:
+        call task_complete with:
+          score:     the float score
+          issues:    unfixed issues list
+          best_attempt: {{attempt_n}}
+          template_delta: accumulated deltas from all attempts
+
+      if verdict is escalate [ issue not fixable by template or model ]:
+        call task_complete with escalate flag and reason.
+    priority: 5
+    budget_pct: 62
+    label: iteration loop instructions
+
+## hooks ##
+on_complete:
+  - when: [score_gte=0.85]
+    action: task_advance
+    note: threshold met — advance without waiting for max_attempts
+
+  - when: [verdict=retry, attempt_lt=max_attempts]
+    action: task_retry
+    template_patch: true   ## apply template_delta before retry ##
+
+  - when: [verdict=escalate]
+    action: task_route
+    routing: remainder_routing
+
+  - when: [attempt_eq=max_attempts]
+    action: task_advance_best
+    note: max attempts reached — advance highest-scored attempt
+
+  - when: [any]
+    action: valued_tree_record
+    node_id: "{{task.node_id}}"
+    weight_field: score
+
+#,,
+
+#,,,.,,..,..,,,,,,,,.,,,,,..,,.,,,,,.,,,,,..,,..,,...,..,,..,,,.,,,..,..,,.,,,
+#CDLRO2FKBIQU3P4TSAZVSJD2ZNFGNHGJE7JRNSJ3SQF4YW2YY37T5IFSE7RQ4CETHBNC5BWFBIYPM
+#\\\|NMYLEMMMN2T7OWZYIIC3GAIYUXFSBDBPYNFFHRGYB2M6N7YC77M \ / AMOS7 \ YOURUM ::
+#\[7]J5PBHBCZXMKE7AQAENZL7NYTTRDJ5S7DVDQK7YEXT4B7WWJLVOCY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
