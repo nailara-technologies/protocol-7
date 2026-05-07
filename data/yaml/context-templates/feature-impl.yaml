@@ -1,31 +1,77 @@
 ---
 name: feature-impl
+descr: implement a new feature or module from a task description
 budget: 4000
 sections:
   - provider: context.memory.load
-    budget_pct: 15
+    budget_pct: 10
     priority: 1
     params:
       topics: "{{related_topic}}"
   - provider: context.modules.list
-    budget_pct: 15
+    budget_pct: 10
     priority: 2
     params:
       namespace: "{{similar_namespace}}"
   - provider: context.file
-    budget_pct: 40
+    budget_pct: 25
     priority: 3
     params:
       path: "{{reference_implementation}}"
   - provider: context.task.active
-    budget_pct: 10
+    budget_pct: 8
     priority: 4
   - provider: context.style.guide
-    budget_pct: 20
+    budget_pct: 12
     priority: 5
 
-#,,,,,.,.,,.,,,.,,,,,,...,..,,,,.,,,,,,..,...,..,,...,...,,..,,,,,..,,,.,,,.,,
-#6DG6LEMGV3PUQJMDOMCSF6DWKS4C4L7FRQXRHJPN33IM5BXZ33XG6EJILTFJSQZ65OJ53KBVQDI2M
-#\\\|77VRST2SMYTCH3MPBVPFKIIHPEJIPXUUTX45X25ZCF3OLJCNHSG \ / AMOS7 \ YOURUM ::
-#\[7]PMI4ADH454AHLXF7R2OTJV6TZLRJ5PZACUKRK4ZEB7APCEDJ2CDA 7  DATA SIGNATURE ::
+  - static: |
+      ## round budget: aim for 20-30 tool rounds ##
+      ## ~8 rounds investigating, ~15 writing, ~3 verifying ##
+      ## call task_complete when modules are written and verified ##
+
+      ## writing modules ##
+
+      use write_new_file to write each module to disk.
+      do NOT return code in the response — write it directly to the file.
+      one module per write_new_file call.
+
+      if running as a subtask [ parent task exists ]:
+        use subtask_spawn to delegate each write to a child task.
+        the parent will receive all results and verify them.
+        this improves reliability — write one module per subtask.
+
+      ## p7 module format ##
+
+      every module file must start with:
+        ## [:< ##
+        # name  = module.name.here
+        # descr = brief description [ max 55 chars ]
+
+      do NOT add `#,,.,,,...` at end — leave clean, signing adds footer.
+
+      ## p7 data key syntax ##
+
+      dotted keys in %data use parser-expanded form:
+        CORRECT : <key.sub>->{$id}
+        WRONG   : $data{'key.sub'}{$id}
+
+      module calls with args:
+        CORRECT : <[module.name]>->($arg)
+        CORRECT : <[module.name]>  [ zero args — no ->() needed ]
+
+      ## p7 style ##
+
+      - $ARG not $_ in map/grep/foreach
+      - <[base.logs]>->( N, fmt, args ) for logging
+      - lowercase comments, [ word ] bracket annotations
+      - no use statements, no pragmas in modules
+    priority: 6
+    budget_pct: 35
+    label: feature-impl instructions
+
+#,,..,...,...,...,,.,,.,,,,,.,.,,,,.,,,.,,,,.,..,,...,...,...,.,.,.,,,..,,...,
+#BDI5OV6AHJDKDV6QUG7LL77SVTMJGMRDZITME7CFKDK745TK64JSLBNWEZBSYP22GASE23N4KP4GK
+#\\\|7W3NDRDCRVMGZTV3KZBVRN24HPT37H4IKOHKI7JCAEVFRXTQU2R \ / AMOS7 \ YOURUM ::
+#\[7]CDI36N3C4KLIS4HWT5ADWZ3X7ATKQEE3ADTHT5LQUYTID2DMNMAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
