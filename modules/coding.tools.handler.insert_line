@@ -9,21 +9,17 @@ my $line    = $args->{'line'}    // return 'error : line number required';
 my $content = $args->{'content'} // return 'error : content required';
 my $apply   = $args->{'apply'}   // TRUE;
 
-## resolve and sanitize path ##
-my $root      = <system.root_path>;
-my $abs_path  = "$root/$path";
-my $real_path = Cwd::abs_path($abs_path) // '';
-my $real_root = Cwd::abs_path($root)     // '';
-return 'error: path escapes project root'
-    if !length $real_path
-    or index( $real_path, "$real_root/" ) != 0;
-return 'error: file not found' unless -f $real_path;
+## resolve and sanitize path — no Cwd, use string check ##
+return 'error: path traversal not allowed' if $path =~ m{\.\.};
+my $root     = <system.root_path>;
+my $abs_path = "$root/$path";
+return 'error: file not found' unless -f $abs_path;
 
 my $line_num = int($line);
 return 'error: line number must be >= 1' if $line_num < 1;
 
 ## read file into lines ##
-my $lines_ref = <[base.file.slurp]>->( $real_path, [], ':encoding(UTF-8)' );
+my $lines_ref = <[base.file.slurp]>->( $abs_path, [], ':encoding(UTF-8)' );
 return 'error: cannot read file' unless defined $lines_ref;
 my @lines = @{$lines_ref};
 
@@ -32,7 +28,7 @@ $line_num = scalar(@lines) + 1 if $line_num > scalar @lines + 1;
 
 if ($apply) {
     splice @lines, $line_num - 1, 0, "$content\n";
-    <[base.file.write_encoded]>->( ':encoding(UTF-8)', $real_path, @lines );
+    <[base.file.write_encoded]>->( ':encoding(UTF-8)', $abs_path, @lines );
     return sprintf "inserted line before %d in %s\n  content: %s",
         $line_num, $path, $content;
 }
@@ -42,8 +38,8 @@ return sprintf "preview: would insert before line %d\n  content: %s",
 
 #,,
 
-#,,,.,..,,,,,,...,...,,.,,..,,,,,,.,.,.,.,,,,,..,,...,..,,...,,..,,..,,..,,,,,
-#VR6JQDOWWGTUUKG4UX2I5VFEFGL6X6UVUX7UPHP2W6L5NTB5SJGHT6KOH5IPORLR4UIKTIEEV5DG4
-#\\\|K27KYAFVF2ENEI7QQWUMW45YJR65OHWSOLX7HPDKO3P55K7BMUI \ / AMOS7 \ YOURUM ::
-#\[7]VYDZ7VGKHGA6ZQXVV4MI2WXBTTAOSPJXXYQF4WNQAUWW3BX4LSDI 7  DATA SIGNATURE ::
+#,,.,,..,,...,.,,,.,.,,,,,.,,,...,.,.,.,,,,.,,..,,...,..,,.,,,,..,,..,.,.,.,.,
+#NV2LZDJCDTWSBROM5GIT7KPTVXXVH5BYGOFNPETNH4TJ4XJNFQDAQPAFTYO347MJB5DSMFGQA2TLM
+#\\\|MIUPDQONPWYQKC4YUHQYNAS22KWPNDDGBRW4AHDNBIOVE4P6VUY \ / AMOS7 \ YOURUM ::
+#\[7]KUDPMSREATB5SWXG6J6WSSO7EFIOW37HR7GIOB62ZMKH4PRAHEDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
