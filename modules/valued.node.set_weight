@@ -1,0 +1,28 @@
+## [:< ##
+
+# name  = valued.node.set_weight
+# descr = update the fractional weight of a node
+
+my $id     = shift // return undef;
+my $weight = shift // return undef;
+
+my $node = <valued.index>->{$id};
+if ( not defined $node ) {
+    <[base.s_warn]>->( "valued node '%s' not found", $id );
+    return undef;
+}
+
+$weight = 0.0   if $weight < 0.0;
+$weight = 0.999 if $weight >= 1.0;
+
+$node->{'weight'} = $weight;
+
+return $weight;
+
+#,,
+
+#,,.,,.,,,...,..,,,.,,,,,,..,,,,.,,,.,.,,,.,,,..,,...,...,...,..,,,,,,,..,,,,,
+#OS5QKUXHJOXV4JHAQRJNIYH5JQUMBAMDEMN5WUVA2ZQES5J53VW722NXNF6AOCEV4WDYZJDCZ6WV2
+#\\\|ZKEGKMBXXPG2TNC6EOSFDZCTN5SLRH3YSXURZMLX2XEWUHDRNCF \ / AMOS7 \ YOURUM ::
+#\[7]PEGFIVGVLTCT4OOVTXLTSW72ASAWYEMKMA72IH4GLTOSZLOZHIBA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,0 +1,36 @@
+## [:< ##
+
+# name  = valued.node.remove_ref
+# descr = decrement ref count on a node — propagates upward
+
+my $id      = shift // return undef;
+my $from_id = shift // '';
+
+my $node = <valued.index>->{$id};
+if ( not defined $node ) {
+    <[base.s_warn]>->( "valued node '%s' not found", $id );
+    return undef;
+}
+
+$node->{'refs'}-- if $node->{'refs'} > 0;
+
+## remove from ref-graph ##
+if ( length $from_id and defined <valued.ref-graph>->{$id} ) {
+    <valued.ref-graph>->{$id}
+        = [ grep { $ARG ne $from_id } @{ <valued.ref-graph>->{$id} } ];
+}
+
+## propagate upward ##
+foreach my $parent_id ( @{ $node->{'parents'} // [] } ) {
+    <[valued.node.remove_ref]>->( $parent_id, $id );
+}
+
+return $node->{'refs'};
+
+#,,
+
+#,,,,,,,.,,..,,..,,.,,,,,,.,.,,.,,,,,,...,...,..,,...,...,...,,,,,.,.,...,..,,
+#2AAN7JJX4NCIYWXGSQCUJF4QGG6VEAIHNX7XFZ3G3YW4YR5RCAD55P7D6KSYQBXQOYH7I2NYOWCQY
+#\\\|LHRMVZQX6RGH4S7H6EFCFXH33GG5ZQGOL465CWBAJG36PBAHHZZ \ / AMOS7 \ YOURUM ::
+#\[7]PPSQKMGSMKSJB36P55KQYCHPZ4WL6DTDW2RJPYD5XFWX6UDKPIDY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

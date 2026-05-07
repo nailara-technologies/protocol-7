@@ -1,0 +1,33 @@
+## [:< ##
+
+# name  = valued.node.add_ref
+# descr = increment ref count on a node — called when a child registers with parent
+
+my $id      = shift // return undef;
+my $from_id = shift // '';          ## which child is adding this reference ##
+
+my $node = <valued.index>->{$id};
+if ( not defined $node ) {
+    <[base.s_warn]>->( "valued node '%s' not found", $id );
+    return undef;
+}
+
+$node->{'refs'}++;
+
+## track which nodes reference this one ##
+push @{ <valued.ref-graph>->{$id} }, $from_id if length $from_id;
+
+## propagate upward — each parent also gains a ref ##
+foreach my $parent_id ( @{ $node->{'parents'} // [] } ) {
+    <[valued.node.add_ref]>->( $parent_id, $id );
+}
+
+return $node->{'refs'};
+
+#,,
+
+#,,,.,,..,,,.,..,,,,.,.,,,...,,,.,..,,,..,,.,,..,,...,...,.,.,.,.,...,...,,.,,
+#I4RBWRY4OFXJIUWSF5OMRCYGPCUVLTZWD5Z4MXIRMAL7UTFKYS7KEULOAF2A7JT7NM3AQX4RZK5HG
+#\\\|5QOGS263OTXI7F5LFYSDE33UBZTIM2GF5DT4C6GIKPFNZV27J4F \ / AMOS7 \ YOURUM ::
+#\[7]P22HAX3D65RWJNY4YL7JTPEMUVLDXGXIK5VRDVPKT6OKN5EADADY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
