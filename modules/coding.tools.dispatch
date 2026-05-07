@@ -337,6 +337,18 @@ my %dispatch = (
             : ( $result // 'no output' );
     },
 
+    'replace_line' => sub {
+        return <[coding.tools.handler.replace_line]>->($args);
+    },
+
+    'delete_lines' => sub {
+        return <[coding.tools.handler.delete_lines]>->($args);
+    },
+
+    'insert_line' => sub {
+        return <[coding.tools.handler.insert_line]>->($args);
+    },
+
     'edit_file' => sub {
         ## extract parameters with chunked editing support ##
         my $path  = $args->{'path'}  // return 'path required';
@@ -704,8 +716,8 @@ return {
     'content' => $content,
 };
 
-#,,,.,.,,,,,.,,..,,,,,,.,,.,.,,..,...,..,,,,,,..,,...,...,.,,,...,.,.,,,,,.,.,
-#AWGOGPSBWOE6CGJFN5HBYJGS6KYPEAEZ6444V4QIA3PVJHEWK5BE6MKCOOBTCFBINCDF3YIQYZKR2
-#\\\|Q6RBQP4DLCL2WLAEPON3FD7S7WIUMGNNMNRWSNFCXX5OXBUYOVF \ / AMOS7 \ YOURUM ::
-#\[7]EBDNR2YJ2X7OZTQCHFOZX3D43YWROHKCM4O5DHYUPQGRNRLGLSDA 7  DATA SIGNATURE ::
+#,,,,,...,.,.,...,,,.,.,.,,.,,,.,,..,,,,,,...,..,,...,...,,,.,,..,..,,...,,.,,
+#KUSSLFPY6S3GDKZN6ASGRGU53V4O7TDJGBTEQ47OW7ZXZZD65ERP6PPM3W7YFBSTIMMDKKNX34EAU
+#\\\|CZTBXQ5GE7U74UXQNX7OU2NEKBA5VKOJFALXLCZQ7WODA3KUAD2 \ / AMOS7 \ YOURUM ::
+#\[7]6LRC35MAVTRR6H32CA2CIAL5DCMXWJMDLVGWAAC2YTOXKS5MKCDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
