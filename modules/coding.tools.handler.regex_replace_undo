@@ -1,0 +1,66 @@
+## [:< ##
+
+# name  = coding.tools.handler.regex_replace_undo
+# descr = undo last regex replacement for a file
+# param = path
+
+my $args = shift // {};
+
+my $path = $args->{'path'} // return 'error: path required';
+
+## resolve path ##
+my $root     = <system.root_path>;
+my $abs_path = "$root/$path";
+
+if ( $path !~ m|/| and $path =~ m|\.\w+\.| ) {
+    $path     = catfile( qw| modules |, $path );
+    $abs_path = catfile( $root,         $path );
+}
+
+my $real_path = Cwd::abs_path($abs_path) // '';
+my $real_root = Cwd::abs_path($root)     // '';
+return 'error: path escapes project root'
+    if !length $real_path
+    or index( $real_path, "$real_root/" ) != 0;
+$abs_path = $real_path;
+
+## lookup backup ##
+my $backups = <coding.regex_replace.backups> // {};
+my $backup  = $backups->{$path};
+return 'error: no backup found for this file [nothing to undo]'
+    unless defined $backup;
+
+my $original = $backup->{'content'};
+
+## write original back using chmod child if needed ##
+my $chmod_fh = <coding.chmod_child.w_fh>;
+my $mode_restore;
+if ( !-w $abs_path and defined $chmod_fh ) {
+    my $cur_mode = ( File::stat::stat($abs_path) )[2] // 0644;
+    $cur_mode &= 07777;
+    print {$chmod_fh} "gw $abs_path\n";
+    select undef, undef, undef, 0.01;
+    $mode_restore = $cur_mode if -w $abs_path;
+}
+
+if ( -w $abs_path ) {
+    <[file.write_encoded]>->( qw| :encoding(UTF-8) |, $abs_path, \$original );
+    if ( defined $mode_restore and defined $chmod_fh ) {
+        print {$chmod_fh} sprintf "restore %04o %s\n", $mode_restore,
+            $abs_path;
+    }
+
+    ## clear backup after successful undo ##
+    delete $backups->{$path};
+
+    return sprintf "undone regex replacement in %s [ restored %d bytes ]",
+        $path, length($original);
+}
+
+return 'error: no write access to file';
+
+#,,.,,.,.,..,,,..,,,,,,..,.,.,,..,..,,.,.,..,,..,,...,...,...,,,,,,,.,...,,.,,
+#WKKQ7G3TWEFQEYYGWKIEZ3ICICPR3OZPIGLYOLSO372LZYCQNFR6ZP36D3Q5DFWSJJF5J2UFLVU2I
+#\\\|AXW52Z3SMFZDQQ3GS7KQUNAXPSQ44WAIZUITFK4MZFX7JCJHO67 \ / AMOS7 \ YOURUM ::
+#\[7]MNX43WYWLFQ4NOMKU7FUYDEVJN7I67BPRTJ3VN6KTDUXX6JZWKBY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

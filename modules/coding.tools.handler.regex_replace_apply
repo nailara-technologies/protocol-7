@@ -1,0 +1,111 @@
+## [:< ##
+
+# name  = coding.tools.handler.regex_replace_apply
+# descr = apply a previewed regex replacement to file
+# param = preview_id
+
+my $args = shift // {};
+
+my $preview_id = $args->{'preview_id'} // return 'error: preview_id required';
+
+## lookup preview state ##
+my $previews = <coding.regex_replace.previews> // {};
+my $preview  = $previews->{$preview_id};
+return 'error: preview not found [run regex_replace_preview first]'
+    unless defined $preview;
+
+my $path        = $preview->{'path'};
+my $abs_path    = $preview->{'abs_path'};
+my $pattern     = $preview->{'pattern'};
+my $replacement = $preview->{'replacement'};
+my $flags       = $preview->{'flags'};
+my $stored_bmw  = $preview->{'file_bmw'};
+
+return 'error: file not found' unless -f $abs_path;
+
+## verify file has not changed since preview ##
+my $current_bmw = <[chk-sum.bmw.filesum]>->( 256, $abs_path );
+if ( $current_bmw ne $stored_bmw ) {
+    return
+          sprintf "error: file changed since preview [ bmw mismatch ]\n"
+        . "  preview bmw: %s\n"
+        . "  current bmw: %s\n"
+        . "run regex_replace_preview again before applying",
+        $stored_bmw, $current_bmw;
+}
+
+## read current content ##
+my $content_ref
+    = <[file.slurp]>->( $abs_path, undef, qw| :encoding(UTF-8) | );
+return 'error: cannot read file' unless defined $content_ref;
+my $content = $content_ref->$*;
+
+## compile regex ##
+my $re_flags = $flags;
+$re_flags =~ s|g||g;    ## g is substitution modifier, not regex flag ##
+my $re
+    = eval { length $re_flags ? qr/(?$re_flags:$pattern)/ : qr/$pattern/; };
+if ( not defined $re ) {
+    my $err = <[base.str.eval_error]> // 'unknown regex error';
+    $err =~ s|\s+at\s+\S+\s+line\s+\d+.*||s;
+    return sprintf "error: invalid regex [ %s ]: %s", $pattern, $err;
+}
+
+## apply replacement ##
+my $new_content = $content;
+my $count       = 0;
+
+if ( $flags =~ m|g| ) {
+    $count = $new_content =~ s|$re|$replacement|g;
+} else {
+    $count = $new_content =~ s|$re|$replacement|;
+}
+
+return sprintf "<!-- no matches applied for pattern '%s' in %s -->",
+    $pattern, $path
+    unless $count;
+
+## store original for undo ##
+my $backups = <coding.regex_replace.backups> // {};
+$backups->{$path} = {
+    'content'     => $content,
+    'preview_id'  => $preview_id,
+    'modified_at' => <[base.time]>->(3),
+};
+<coding.regex_replace.backups> = $backups;
+
+## write file using chmod child if needed ##
+my $chmod_fh = <coding.chmod_child.w_fh>;
+my $mode_restore;
+if ( !-w $abs_path and defined $chmod_fh ) {
+    my $cur_mode = ( File::stat::stat($abs_path) )[2] // 0644;
+    $cur_mode &= 07777;
+    print {$chmod_fh} "gw $abs_path\n";
+    select undef, undef, undef, 0.01;
+    $mode_restore = $cur_mode if -w $abs_path;
+}
+
+if ( -w $abs_path ) {
+    <[file.write_encoded]>->(
+        qw| :encoding(UTF-8) |,
+        $abs_path, \$new_content
+    );
+    if ( defined $mode_restore and defined $chmod_fh ) {
+        print {$chmod_fh} sprintf "restore %04o %s\n", $mode_restore,
+            $abs_path;
+    }
+    return
+        sprintf "applied %d replacement%s to %s [ -%d +%d chars ]\n"
+        . "preview_id: %s",
+        $count, ( $count > 1 ? 's' : '' ), $path,
+        length($content), length($new_content),
+        $preview_id;
+}
+
+return 'error: no write access to file';
+
+#,,,,,,..,...,.,,,,,,,,,.,,..,..,,,,.,...,,,.,..,,...,...,..,,...,,,,,,,.,,,.,
+#3PJHAG5H6LZ4NLOH5FQNKIO4GVWV5EOCLUCUUQ7JOGD3RKEKVC5ZAW3CBOCFVISHZWCUWBSA34AMI
+#\\\|WN6KDU7VG4DRFLO26T2WKI6ZOZOAAUJ4JRB675VQH7RH4EN2ZKD \ / AMOS7 \ YOURUM ::
+#\[7]6ZQH22IAKLIYIJ22OPWZHGVYP4HZPV5MCXG3RJCBVZUKFEOCHACA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
