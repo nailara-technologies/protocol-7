@@ -1,7 +1,7 @@
 ## [:< ##
 
-# name  = coding.tools.handler.replace_line
-# descr = replace single line in file by line number
+# name  = coding.tools.handler.insert_line
+# descr = insert a line before given line number
 
 my $args    = shift              // {};
 my $path    = $args->{'path'}    // return 'error : path required';
@@ -19,36 +19,31 @@ return 'error: path escapes project root'
     or index( $real_path, "$real_root/" ) != 0;
 return 'error: file not found' unless -f $real_path;
 
+my $line_num = int($line);
+return 'error: line number must be >= 1' if $line_num < 1;
+
 ## read file into lines ##
 my $lines_ref = <[base.file.slurp]>->( $real_path, [], ':encoding(UTF-8)' );
 return 'error: cannot read file' unless defined $lines_ref;
 my @lines = @{$lines_ref};
 
-## validate line number ##
-my $line_num = int($line);
-return 'error: line number must be >= 1' if $line_num < 1;
-return sprintf 'error: line %d out of range [1..%d]', $line_num,
-    scalar @lines
-    if $line_num > scalar @lines;
+## clamp to append at end if line > total ##
+$line_num = scalar(@lines) + 1 if $line_num > scalar @lines + 1;
 
-my $old = $lines[ $line_num - 1 ];
-chomp $old;
-
-## apply or preview ##
 if ($apply) {
-    $lines[ $line_num - 1 ] = "$content\n";
+    splice @lines, $line_num - 1, 0, "$content\n";
     <[base.file.write_encoded]>->( ':encoding(UTF-8)', $real_path, @lines );
-    return sprintf "replaced line %d\n  was: %s\n  now: %s", $line_num, $old,
-        $content;
+    return sprintf "inserted line before %d in %s\n  content: %s",
+        $line_num, $path, $content;
 }
 
-return sprintf "preview line %d\n  was: %s\n  now: %s", $line_num, $old,
-    $content;
+return sprintf "preview: would insert before line %d\n  content: %s",
+    $line_num, $content;
 
 #,,
 
-#,,,.,.,.,..,,,..,...,,,.,,.,,.,,,,,.,.,.,,,.,..,,...,...,...,..,,,..,,,,,..,,
-#AGAEDPAT5EJBQIT3B4IJ2N5FVIH2GIHQ7KBOMIQJYJEV45B66EZJSBBV7P57ZA6QPT32CO5VTELHW
-#\\\|RHNHE7JP6AVO4PTVJZUUYZIRDDDFQHCAF3CNSYJONI2YHQ76UGA \ / AMOS7 \ YOURUM ::
-#\[7]EEF3RR47ZOLE2NWQ4REMZZW25Q7FIZARREXC53HTBLUQXDTOZ4AA 7  DATA SIGNATURE ::
+#,,,.,..,,,,,,...,...,,.,,..,,,,,,.,.,.,.,,,,,..,,...,..,,...,,..,,..,,..,,,,,
+#VR6JQDOWWGTUUKG4UX2I5VFEFGL6X6UVUX7UPHP2W6L5NTB5SJGHT6KOH5IPORLR4UIKTIEEV5DG4
+#\\\|K27KYAFVF2ENEI7QQWUMW45YJR65OHWSOLX7HPDKO3P55K7BMUI \ / AMOS7 \ YOURUM ::
+#\[7]VYDZ7VGKHGA6ZQXVV4MI2WXBTTAOSPJXXYQF4WNQAUWW3BX4LSDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

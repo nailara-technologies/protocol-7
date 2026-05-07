@@ -502,6 +502,103 @@ push @tools,
     },
     };
 
+## replace_line — replace single line by line number ##
+push @tools,
+    {
+    'type'     => 'function',
+    'function' => {
+        'name'        => 'replace_line',
+        'description' => 'replace a single line in a file by line number',
+        'parameters'  => {
+            'type'       => 'object',
+            'properties' => {
+                'path' => {
+                    'type'        => 'string',
+                    'description' => 'file path relative to project root'
+                },
+                'line' => {
+                    'type'        => 'integer',
+                    'description' => 'line number to replace (1-based)'
+                },
+                'content' => {
+                    'type'        => 'string',
+                    'description' => 'replacement line content'
+                },
+                'apply' => {
+                    'type'        => 'boolean',
+                    'description' => 'apply change [ default true ]'
+                },
+            },
+            'required' => [ 'path', 'line', 'content' ],
+        },
+    },
+    };
+
+## delete_lines — delete a range of lines by line numbers ##
+push @tools,
+    {
+    'type'     => 'function',
+    'function' => {
+        'name'        => 'delete_lines',
+        'description' => 'delete a range of lines from a file',
+        'parameters'  => {
+            'type'       => 'object',
+            'properties' => {
+                'path' => {
+                    'type'        => 'string',
+                    'description' => 'file path relative to project root'
+                },
+                'from' => {
+                    'type'        => 'integer',
+                    'description' => 'first line to delete (1-based)'
+                },
+                'to' => {
+                    'type'        => 'integer',
+                    'description' =>
+                        'last line to delete (inclusive, defaults to from)'
+                },
+                'apply' => {
+                    'type'        => 'boolean',
+                    'description' => 'apply change [ default true ]'
+                },
+            },
+            'required' => [ 'path', 'from' ],
+        },
+    },
+    };
+
+## insert_line — insert a line before given line number ##
+push @tools,
+    {
+    'type'     => 'function',
+    'function' => {
+        'name'        => 'insert_line',
+        'description' => 'insert a line before a given line number',
+        'parameters'  => {
+            'type'       => 'object',
+            'properties' => {
+                'path' => {
+                    'type'        => 'string',
+                    'description' => 'file path relative to project root'
+                },
+                'line' => {
+                    'type'        => 'integer',
+                    'description' => 'insert before this line (1-based)'
+                },
+                'content' => {
+                    'type'        => 'string',
+                    'description' => 'line content to insert'
+                },
+                'apply' => {
+                    'type'        => 'boolean',
+                    'description' => 'apply change [ default true ]'
+                },
+            },
+            'required' => [ 'path', 'line', 'content' ],
+        },
+    },
+    };
+
 ## list_inline_subs — scan module for sub declarations ##
 push @tools,
     {
@@ -1616,8 +1713,8 @@ if ( exists $code{'coding.tools.handler.module_convention_check'} ) {
 
 return \@tools;
 
-#,,,.,...,.,.,.,,,...,,..,..,,,..,..,,.,.,,.,,..,,...,...,..,,.,,,,..,,,.,.,.,
-#OR5KXS55HAJTDQEESM3BG2SBB2NT4E65HKHMMVHYQ5R7XVT46DJTDORIF2CZW4ON6EL2E46O3JT76
-#\\\|WN7Z7GOBWNQKBEBHH6WQAR7DZLRYHZRVBTJTFKZWLUO25URK4GU \ / AMOS7 \ YOURUM ::
-#\[7]CYRFJYUCMYSU7LQXHQGCRWXXNKKTIK7P5JB62BTKQS7DFQKSLMDA 7  DATA SIGNATURE ::
+#,,.,,,,,,,,,,...,,.,,,.,,.,,,,.,,,,,,,..,..,,..,,...,...,.,.,.,,,..,,,,,,,,,,
+#N2PHKOAIDNFLRWLZE52EQFXLELRKGOFGFUFWGXODD536E54KEAYJREQOKYUNVDUNKQJYQJU2H4NW6
+#\\\|QRJ3WMKDXM5P5UNPU4Z6UFESPDPGCYZSRTBLDBKGTAYTEFNXNL2 \ / AMOS7 \ YOURUM ::
+#\[7]OKJTOEQCLGZSHX2AUV6FL6HSRGIYND2SXBXPUAN4G2GJNUYUJWBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
