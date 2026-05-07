@@ -74,7 +74,8 @@ for my $fpath ( sort @files ) {
         }
 
         ## check 2: descr length for cmd/console modules ##
-        if ( $is_cmd && $line =~ m{^\s*#\s*descr\s*=\s*(.*)} ) {
+        ## match original parser: bin/Protocol-7 [ p7_load_code ] ##
+        if ( $is_cmd && $line =~ m{^\s*#\s*descr\s*=\s*(\S.*)} ) {
             my $descr_text = $1;
             $descr_text =~ s{\s+$}{};
             my $dlen = length($descr_text);
@@ -126,8 +127,8 @@ for my $v (@sorted) {
 
 return $out;
 
-#,,..,,,.,.,.,,..,,,,,,.,,..,,.,,,,..,,,,,...,..,,...,..,,...,.,,,..,,,..,...,
-#DI5OIO7N3QD45WFFDQ5EJU3FOKGNRFCCQ2RMZL3J4DVJM7AC2V6VIBQJLPQ5VJDV25E2TIWXSROGI
-#\\\|HFCFT2Y2QIS2DQ37QON7TXQUD5WCS7UDRKPBTKZDC6JUI223SCU \ / AMOS7 \ YOURUM ::
-#\[7]YUSSQXMTIA2LA4ELRRVIZCQDBCBDUPQ4IZC4P3LN4X6TSFREOUBA 7  DATA SIGNATURE ::
+#,,,,,,..,.,,,,..,.,.,,..,...,...,..,,,..,,.,,..,,...,...,...,,.,,..,,,,,,..,,
+#YJB5NIAUW52OVRAJGVYB7PW4REDOVOVUQPRCAKYCP2PFONJI2UWXF77OUJUVCRESJERYAMX77UPBY
+#\\\|XLZ272WTAIRXHDOKCYXBS55F7FA6BWLICLC2K4YSRKSBJGU3MWV \ / AMOS7 \ YOURUM ::
+#\[7]4GW3KQTZALZRJNDFJMRV2YCWXOTQYFEXBMXHBW2IUVYH6KNL3UCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
