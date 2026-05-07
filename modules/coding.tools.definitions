@@ -515,8 +515,8 @@ push @tools,
             'properties' => {
                 'module' => {
                     'type'        => 'string',
-                    'description' =>
-                        'module name [ e.g. plugin.storage.visual.extract-floats ]'
+                    'description' => 'module name '
+                        . '[ e.g. plugin.storage.visual.extract-floats ]'
                 },
                 'min_lines' => {
                     'type'        => 'integer',
@@ -825,13 +825,13 @@ push @tools,
                 },
                 'status' => {
                     'type'        => 'string',
-                    'description' =>
-                        'filter by status: active | archived | all [ default all ]'
+                    'description' => 'filter by status: '
+                        . 'active | archived | all [ default all ]'
                 },
                 'depth' => {
                     'type'        => 'integer',
-                    'description' =>
-                        'search depth: 1 = filenames only, 2 = +content [ default 1 ]'
+                    'description' => 'search depth: '
+                        . '1 = filenames only, 2 = +content [ default 1 ]'
                 },
                 'max_results' => {
                     'type'        => 'integer',
@@ -1015,8 +1015,8 @@ if ( exists $code{'coding.tools.handler.note_write'} ) {
                 'properties' => {
                     'section' => {
                         'type'        => 'string',
-                        'description' =>
-                            'note section name [ e.g. finding, analysis, todo ]'
+                        'description' => 'note section name '
+                            . '[ e.g. finding, analysis, todo ]'
                     },
                     'content' => {
                         'type'        => 'string',
@@ -1459,10 +1459,99 @@ if ( exists $code{'ncode.cmd.search'} ) {
         };
 }
 
+## regex_replace_preview — preview regex replacement without writing ##
+if ( exists $code{'coding.tools.handler.regex_replace_preview'} ) {
+    push @tools,
+        {
+        'type'     => 'function',
+        'function' => {
+            'name'        => 'regex_replace_preview',
+            'description' =>
+                'preview regex replacement in a file [read-only]. '
+                . 'returns diff, match count, and preview_id. '
+                . 'always call this before regex_replace_apply.',
+            'parameters' => {
+                'type'       => 'object',
+                'properties' => {
+                    'path' => {
+                        'type'        => 'string',
+                        'description' => 'file path relative to project root'
+                    },
+                    'pattern' => {
+                        'type'        => 'string',
+                        'description' => 'perl regex search pattern'
+                    },
+                    'replacement' => {
+                        'type'        => 'string',
+                        'description' =>
+                            'replacement string [supports $1, $2]'
+                    },
+                    'flags' => {
+                        'type'        => 'string',
+                        'description' =>
+                            'regex flags [default g]. g=global, '
+                            . 'i=case-insensitive, m=multiline, '
+                            . 's=dotall'
+                    },
+                },
+                'required' => [ 'path', 'pattern', 'replacement' ],
+            },
+        },
+        };
+}
+
+## regex_replace_apply — apply a previewed regex replacement ##
+if ( exists $code{'coding.tools.handler.regex_replace_apply'} ) {
+    push @tools,
+        {
+        'type'     => 'function',
+        'function' => {
+            'name'        => 'regex_replace_apply',
+            'description' => 'apply a previewed regex replacement to file. '
+                . 'requires preview_id from regex_replace_preview. '
+                . 'aborts if file changed since preview.',
+            'parameters' => {
+                'type'       => 'object',
+                'properties' => {
+                    'preview_id' => {
+                        'type'        => 'string',
+                        'description' =>
+                            'preview id from regex_replace_preview'
+                    },
+                },
+                'required' => ['preview_id'],
+            },
+        },
+        };
+}
+
+## regex_replace_undo — undo last regex replacement ##
+if ( exists $code{'coding.tools.handler.regex_replace_undo'} ) {
+    push @tools,
+        {
+        'type'     => 'function',
+        'function' => {
+            'name'        => 'regex_replace_undo',
+            'description' => 'undo the last regex_replace_apply for a file. '
+                . 'restores original content from backup.',
+            'parameters' => {
+                'type'       => 'object',
+                'properties' => {
+                    'path' => {
+                        'type'        => 'string',
+                        'description' => 'file path relative to project root'
+                    },
+                },
+                'required' => ['path'],
+            },
+        },
+        };
+}
+
 return \@tools;
 
-#,,,,,.,,,,,,,.,.,.,.,...,,.,,,.,,,..,,.,,.,.,..,,...,...,,..,.,,,.,,,.,.,...,
-#ESEWK3QCNDFNJFXWGCJZFNFQ3HZSEQ5KR7NB7VRHK6NII5GOVL5HUWMUN2OLEKUMAJNAY5IMUYYBY
-#\\\|ZP6QLWR7Y3AKJPXXOFIXT4EJHNLLKSM5WVSOZKRJLY7Z2YFNCSM \ / AMOS7 \ YOURUM ::
-#\[7]WO2RKNWB37UH7MIEQ6M5RAO5TSURAPYSSCOJ3XTWABNXW5W4VUCY 7  DATA SIGNATURE ::
+#,,..,,,.,..,,,.,,,.,,.,.,,,.,,..,,.,,..,,...,..,,...,...,...,,.,,...,.,,,,,.,
+#G2JDL25MQTH5VVSWIY2ZUXESJDCKFVEVHLIAJOV6SHX5KPEHA6OE25U5GXOYAZDW64RQQ4MBJDV5M
+#\\\|AB4B5XOUUQSUZV4I2IIBF2HJZSMWLROUGDFDELZTE7YN3Q26BP5 \ / AMOS7 \ YOURUM ::
+#\[7]FBDODMHSKPK5XMK6XH3BLNA6FFQGA35GCMKKSZFVUDFUUUAIVIBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
