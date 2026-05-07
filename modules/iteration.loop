@@ -1,0 +1,94 @@
+## [:< ##
+
+# name  = iteration.loop
+# descr = iteration loop controller — score, decide, retry or advance
+
+my $params       = shift                     // {};
+my $task_id      = $params->{'task_id'}      // return undef;
+my $result       = $params->{'result'}       // '';
+my $criteria     = $params->{'criteria'}     // [];
+my $node_id      = $params->{'node_id'}      // '';
+my $max_attempts = $params->{'max_attempts'} // 5;
+
+## initialize state for this task if first attempt ##
+<iteration.state>->{$task_id} //= {
+    'attempt_n'    => 0,
+    'max_attempts' => $max_attempts,
+    'best_score'   => 0.0,
+    'best_result'  => '',
+    'attempts'     => [],
+    'deltas'       => [],
+};
+
+my $state     = <iteration.state>->{$task_id};
+my $attempt_n = ++$state->{'attempt_n'};
+
+## score this attempt ##
+my $score_record = <[iteration.score_result]>->(
+    {   'result'    => $result,
+        'criteria'  => $criteria,
+        'attempt_n' => $attempt_n,
+    }
+);
+
+my $score   = $score_record->{'score'};
+my $verdict = $score_record->{'verdict'};
+
+## store attempt record ##
+push @{ $state->{'attempts'} },
+    {
+    'attempt_n' => $attempt_n,
+    'result'    => $result,
+    'score'     => $score,
+    'verdict'   => $verdict,
+    'issues'    => $score_record->{'issues'},
+    };
+
+## update best if this attempt scored higher ##
+if ( $score > $state->{'best_score'} ) {
+    $state->{'best_score'}  = $score;
+    $state->{'best_result'} = $result;
+}
+
+<[base.logs]>->(
+    1, 'iteration.loop: task %s attempt %d/%d score=%.2f verdict=%s',
+    $task_id, $attempt_n, $max_attempts, $score, $verdict
+);
+
+## decide action ##
+if ( $verdict eq 'advance' or $attempt_n >= $max_attempts ) {
+
+    ## record positive outcome in valued tree ##
+    <[valued.tree.record_outcome]>->(
+        {   'node_id' => $node_id,
+            'outcome' => 'completed',
+        }
+    ) if length $node_id;
+
+    my $summary = <[iteration.finish]>->($task_id);
+    return { 'mode' => 'true', 'data' => $summary };
+
+} elsif ( $verdict eq 'escalate' ) {
+
+    <[valued.tree.record_outcome]>->(
+        {   'node_id' => $node_id,
+            'outcome' => 'blocked',
+        }
+    ) if length $node_id;
+
+    return { 'mode' => 'escalate', 'data' => $score_record };
+
+} else {
+
+    ## retry — caller applies template delta and re-runs ##
+    return { 'mode' => 'retry', 'data' => $score_record };
+
+}
+
+#,,
+
+#,,,.,.,,,..,,,..,.,,,.,,,,,.,,..,...,.,,,,.,,..,,...,...,,..,,,.,..,,,,,,.,.,
+#JNG7VQHCPORAAS4YWZVGEM2LKTUDQZS2NZ3IN7M5XYW2WU64M7ZTHQF4QYMRUYSX2MN2LKZ63LAHQ
+#\\\|RZXJEXLCQSMHE2JOAVUHYQEOHOFK5YC2VO35VEVP7DTGHFQ5MMI \ / AMOS7 \ YOURUM ::
+#\[7]6F4RVY5GF4CBL256UZBBAH7TYDNN244ZJFAGHKIYCMR7AKPK4QDY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
