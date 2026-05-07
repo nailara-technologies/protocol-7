@@ -33,9 +33,36 @@ chomp $old;
 ## apply or preview ##
 if ($apply) {
     $lines[ $line_num - 1 ] = "$content\n";
-    <[base.file.write_encoded]>->( ':encoding(UTF-8)', $abs_path, @lines );
-    return sprintf "replaced line %d\n  was: %s\n  now: %s", $line_num, $old,
-        $content;
+
+    ## use chmod child for write access if needed ##
+    my $chmod_fh = <coding.chmod_child.w_fh>;
+    my $mode_restore;
+    if ( !-w $abs_path and defined $chmod_fh ) {
+        my $cur_mode = ( stat $abs_path )[2] & 07777;
+        print {$chmod_fh} "gw $abs_path\n";
+        $mode_restore = $cur_mode if -w $abs_path;
+    }
+
+    if ( -w $abs_path ) {
+        <[base.file.write_encoded]>
+            ->( ':encoding(UTF-8)', $abs_path, @lines );
+        if ( defined $mode_restore and defined $chmod_fh ) {
+            print {$chmod_fh} sprintf "restore %04o %s\n", $mode_restore,
+                $abs_path;
+        }
+        return sprintf "replaced line %d\n  was: %s\n  now: %s",
+            $line_num, $old, $content;
+    } else {
+        my $stage_name = $abs_path =~ s{/}{__}gr;
+        my $stage_path = "/var/protocol-7/coding/staged/$stage_name";
+        open my $fh, '>:encoding(UTF-8)', $stage_path;
+        print {$fh} @lines;
+        close $fh;
+        return
+            sprintf
+            "staged replace line %d in %s [ no write access ]\nstaged at: %s",
+            $line_num, $path, $stage_path;
+    }
 }
 
 return sprintf "preview line %d\n  was: %s\n  now: %s", $line_num, $old,
@@ -43,8 +70,8 @@ return sprintf "preview line %d\n  was: %s\n  now: %s", $line_num, $old,
 
 #,,
 
-#,,,,,,,,,,,.,,,.,,..,..,,.,,,,..,..,,..,,.,.,..,,...,...,...,.,,,,.,,,.,,..,,
-#T2XAVQKRMWB4JDHFUWR7HVQZVZXKVARGUS7MMAX6QGUYL73E553IXDSXOWD3AP7YIE3B2GAFPINTI
-#\\\|XROVHZSC5LMD6PVLP7KSCT5SGX7P6ISVATQCIE7LKI5VA44JW3Q \ / AMOS7 \ YOURUM ::
-#\[7]DBP4OP4QZ4LYYRPCXOEBIRPBDJWW3LSXTQO7BCIHHOLPPC4EEIDY 7  DATA SIGNATURE ::
+#,,..,.,.,,..,...,.,,,...,,.,,,,.,,,.,,..,.,,,..,,...,..,,,.,,,,.,,..,,,.,.,.,
+#MOINGFFK6WM63JZ5LOH22ZOJJLQAMF2FS332MB7ER5Y434MUE655ISZSNYEMS4DWHMZTGIKJHNJ3C
+#\\\|FODV2XDPOVNHPUH4ACCUL2GLST7SU2UK3WEDOTGW4NPYVIU3WDK \ / AMOS7 \ YOURUM ::
+#\[7]5K5AMC644PAA5W3RSML7CSBQQYQLP2Q5OEBVURZTTU5KOFTB7SCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

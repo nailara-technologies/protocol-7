@@ -19,10 +19,13 @@ my $job_id = <[jobqueue.add_job]>->(
         'object_id'       => <models.dep.dispatch_slot>,
         'job_callback'    => 'models.task.execute',
         'callback_params' => {
-            'task_id'    => $task_id,
-            'model'      => $model,
-            'prompt'     => $prompt,
-            'target_cmd' => $target_cmd
+            'task_id'             => $task_id,
+            'model'               => $model,
+            'prompt'              => $prompt,
+            'target_cmd'          => $target_cmd,
+            'acceptance_criteria' => $params->{'acceptance_criteria'} // [],
+            'node_id'             => $params->{'node_id'}             // '',
+            'max_attempts'        => $params->{'max_attempts'}        // 5,
         }
     }
 );
@@ -36,8 +39,8 @@ my $job_id = <[jobqueue.add_job]>->(
 
 return $job_id;
 
-#,,,,,,,.,...,..,,.,,,,.,,...,...,,.,,...,,..,.,.,...,...,...,.,,,.,.,,,.,...,
-#X6RCX64GH2YTR2S7XSHZJR4FSCLTMTVDRHYGVROC736HQVSHZRP6HXDX4IYKIU2B3IFHE5P54TEEO
-#\\\|XPJYH6IX67P325CZ35WDIVC3O6U4XLUJKVRFSD6ROIRITY76RXV \ / AMOS7 \ YOURUM ::
-#\[7]EZLMGQOB6AFEXDMCLVDNEZLPH3BZ55L6ZSYSNWUXWSZFJ4Z25MCA 7  DATA SIGNATURE ::
+#,,,.,,,,,.,,,,.,,..,,..,,...,..,,,..,,,.,...,.,.,...,.,.,,,.,,..,.,.,,,.,..,,
+#3JXCAGZ4K24NTE6WW46NCNUZATUQXOHUCN6WJUK3J25EOI2A2TAU3TZRQED6MG762LGALKNF5KNTS
+#\\\|VNCE7WIXSINKMVXC2D44AVEONW7WAR4IZPWX5YJE4W426OTORT6 \ / AMOS7 \ YOURUM ::
+#\[7]FGY47GAUKXHJGD2PCBJQX7LDLPNAW5IZAEY7X6KJ6G3YBEOCOSBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

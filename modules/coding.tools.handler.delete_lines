@@ -33,9 +33,38 @@ my $count = $to_n - $from_n + 1;
 
 if ($apply) {
     splice @lines, $from_n - 1, $count;
-    <[base.file.write_encoded]>->( ':encoding(UTF-8)', $abs_path, @lines );
-    return sprintf "deleted %d line%s [ %d..%d ] from %s",
-        $count, $count == 1 ? '' : 's', $from_n, $to_n, $path;
+
+    ## use chmod child for write access if needed ##
+    my $chmod_fh = <coding.chmod_child.w_fh>;
+    my $mode_restore;
+    if ( !-w $abs_path and defined $chmod_fh ) {
+        my $cur_mode = ( stat $abs_path )[2] & 07777;
+        print {$chmod_fh} "gw $abs_path\n";
+        $mode_restore = $cur_mode if -w $abs_path;
+    }
+
+    if ( -w $abs_path ) {
+        <[base.file.write_encoded]>
+            ->( ':encoding(UTF-8)', $abs_path, @lines );
+        if ( defined $mode_restore and defined $chmod_fh ) {
+            print {$chmod_fh} sprintf "restore %04o %s\n", $mode_restore,
+                $abs_path;
+        }
+        return sprintf "deleted %d line%s [ %d..%d ] from %s",
+            $count, $count == 1 ? '' : 's', $from_n, $to_n, $path;
+    } else {
+        ## stage when no write access ##
+        my $stage_name = $abs_path =~ s{/}{__}gr;
+        my $stage_path = "/var/protocol-7/coding/staged/$stage_name";
+        open my $fh, '>:encoding(UTF-8)', $stage_path;
+        print {$fh} @lines;
+        close $fh;
+        return
+            sprintf "staged delete %d line%s [ %d..%d ] "
+            . "from %s [ no write access ]\nstaged at: %s",
+            $count, $count == 1 ? '' : 's', $from_n, $to_n, $path,
+            $stage_path;
+    }
 }
 
 return sprintf "preview: would delete %d line%s [ %d..%d ]",
@@ -43,8 +72,8 @@ return sprintf "preview: would delete %d line%s [ %d..%d ]",
 
 #,,
 
-#,,..,..,,,.,,,.,,...,..,,.,,,,.,,,,,,,.,,.,,,..,,...,...,.,,,,.,,...,..,,.,,,
-#27NVAGNRGFWIL6GBP4TW3LJKIYJ63VMTFPRNAJQGGDCUVANFVDW2XR5XQVLFFLM5S67IM77D56KO4
-#\\\|QBEKJ4SF5RPKEVSM5IIR32DHXLVDUCWVGIFBLHEEWE6OVIZKMZL \ / AMOS7 \ YOURUM ::
-#\[7]QSTE7LANFGHSVGGDKMDHM6OHINUGE2BQAK2TEXDVQJKEAE33Z4DA 7  DATA SIGNATURE ::
+#,,.,,,,,,.,,,,,,,...,,.,,,,.,,.,,,.,,..,,.,.,..,,...,...,..,,,,,,,,,,.,,,,..,
+#MZQXJ6HK5AHYFFQHKMCYWDLD66TDUFUJR2JUB4SOO3U4S5TT72UMNIABNBHOJWXCXNANTX5T5YTKK
+#\\\|GEAXXUVODI4SOWBKG2JU5MXITTRB7TOFJ42EYORLJWRV27BNTRY \ / AMOS7 \ YOURUM ::
+#\[7]DRPRKQQ5XJHVKXG3LZRWNMILKRNHSXPT4R36YLO4GXZBMBX63MBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
