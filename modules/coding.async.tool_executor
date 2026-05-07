@@ -177,10 +177,10 @@ foreach my $tc (@$tool_calls) {
             0,          "async.tool_executor: tool %s died: %s",
             $tool_name, $@
         );
-        $tool_result = {
-            error => "Tool execution died: %s",
-            <[base.str.eval_error]>
-        };
+        $tool_result
+            = { error =>
+                sprintf( "tool execution died: %s", <[base.str.eval_error]> )
+            };
     } elsif ( !defined $tool_result ) {
         <[base.logs]>->(
             0, "async.tool_executor: tool %s returned undef", $tool_name
@@ -303,8 +303,8 @@ if (<coding.tool_loop.stop>) {
 
 return { success => TRUE, tool_results => \@tool_results };
 
-#,,,.,...,..,,..,,,.,,,.,,.,.,,,,,,.,,,,,,,,.,.,.,...,..,,.,.,.,,,,,.,,,.,.,,,
-#MTKFPNQPIXGIWZKCEB57XTQA3RPJJFNBNXJ3I2I7T6OYX7IS2DIDJUMXAQISBTQFJLEJB6O3E6XZU
-#\\\|MWECPIAVC4W3WVXT4JMQJSL6Y3U6HQOXB4K3PQCBGLZJLHPRFU6 \ / AMOS7 \ YOURUM ::
-#\[7]NNAAO7VNYISPDMTLOFPV72CFQKDX4RR5TKDICMJYU22ZYINOZ2BY 7  DATA SIGNATURE ::
+#,,,,,,,,,.,.,,.,,,.,,,..,...,,.,,.,.,...,.,,,.,.,...,...,...,,,,,..,,.,.,.,,,
+#PHA6AEDKX7BW2F6CPQ35SIO6GN7S4FUQKIYMCJEUFVWBHYDVQHAXVJYDGNXFBJG2NMBRMTUQNLNE6
+#\\\|UL3GQGGVP4GTVYO4RVWNK3IU47RM4MBEEKTHZVRLVQCT6R4DFTK \ / AMOS7 \ YOURUM ::
+#\[7]UVQUF3KGJ3O7IF6IMPK74PJJZPCM3VVZZI3AJWBHV5EE42D64KCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
