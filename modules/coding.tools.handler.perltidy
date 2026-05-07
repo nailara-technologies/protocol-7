@@ -1,0 +1,92 @@
+## [:< ##
+
+# name  = coding.tools.handler.perltidy
+# descr = run perltidy on a file with project settings
+# param = path, check_only
+
+my $args = shift // {};
+
+my $path       = $args->{'path'}       // return 'error: path required';
+my $check_only = $args->{'check_only'} // FALSE;
+
+my $root     = <system.root_path>;
+my $abs_path = "$root/$path";
+
+## auto-prefix modules/ for dot-notation filenames without directory ##
+if ( $path !~ m|/| and $path =~ m|\.\w+\.| ) {
+    $path     = catfile( qw| modules |, $path );
+    $abs_path = catfile( $root,         $path );
+}
+
+## validate path stays within project ##
+my $real_path = Cwd::abs_path($abs_path) // '';
+my $real_root = Cwd::abs_path($root)     // '';
+return 'error: path escapes project root'
+    if !length $real_path
+    or index( $real_path, "$real_root/" ) != 0;
+return 'error: file not found' unless -f $real_path;
+$abs_path = $real_path;
+
+## verify file is perl code [ protocol-7 header or shebang ] ##
+open( my $fh, qw| <:encoding(UTF-8) |, $abs_path )
+    or return 'error: cannot read file';
+my $first = <$fh> // '';
+close($fh);
+return 'error: file does not appear to be perl code'
+    unless $first =~ m|^## \[<:| or $first =~ m|^#!.*perl|;
+
+## fetch perltidy options from config [ init_code sets defaults ] ##
+my $ptd_opts = <coding.tools.perltidy.options>;
+if ( not ref $ptd_opts eq qw| ARRAY | or not @$ptd_opts ) {
+    $ptd_opts = [
+        qw|
+            -q -pbp
+            -wc=13 -cs
+            -utf8 -l=78
+            -bar -sot -ce
+            -nst
+            |
+    ];
+}
+
+my @ptd_args = @$ptd_opts;
+
+if ($check_only) {
+    ## check-only: no backup, output to null ##
+    @ptd_args = grep { $ARG !~ m{^-b} } @ptd_args;
+    push @ptd_args, '-o', qw| /dev/null |;
+} else {
+    ## in-place with backup cleanup ##
+    push @ptd_args, '-b', '-bext=.ptd-bak';
+}
+
+## run perltidy ##
+my $cmd
+    = join( ' ', 'perltidy', map { shell_quote($ARG) } @ptd_args, $abs_path );
+my $exit_code = system($cmd);
+
+## clean up backup file if in-place mode ##
+if ( !$check_only && -f "$abs_path.ptd-bak" ) {
+    unlink "$abs_path.ptd-bak";
+}
+
+## interpret result ##
+if ( $exit_code == 0 ) {
+    return $check_only
+        ? sprintf "perltidy check passed for %s [no issues]", $path
+        : sprintf "perltidy formatted %s", $path;
+} elsif ( ( $exit_code >> 8 ) == 2 ) {
+    return
+        sprintf "perltidy found formatting issues in %s "
+        . "[run again without check_only to fix]",
+        $path;
+} else {
+    my $err = $OS_ERROR // 'unknown error';
+    return sprintf "perltidy failed on %s: %s", $path, $err;
+}
+
+#,,,.,.,,,,.,,,..,,,.,,,,,,.,,,,.,..,,,.,,..,,..,,...,...,,..,..,,,,.,.,,,,.,,
+#7ICKXIMKJEV6Q3HLCNU533BHHLSS2UJMJIABT26VORZ47L6UZV3X7OOMHQ436XNVRZXEJWS4KISBU
+#\\\|ZY2GVUIR6H3SZNKK3PI7FE6AOA6P7I63GXIKJ3V3UXLYXSJH34B \ / AMOS7 \ YOURUM ::
+#\[7]G54XZQ4P4FZECR7B7SS6EM2XKCHRDBODH7OEIJ6NO3HNMZVZMYBA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
