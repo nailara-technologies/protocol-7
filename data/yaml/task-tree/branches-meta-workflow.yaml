@@ -1,0 +1,145 @@
+---
+## [:< ##
+# meta-workflow branch children.
+# these nodes fire as side-effects of outcomes elsewhere in the tree.
+# they never block task execution — they run in parallel.
+# results flow back as reference weight adjustments and template updates.
+
+meta_workflow_branches:
+
+  meta.post-success:
+    id: meta.post-success
+    parent: meta-workflow
+    type: meta
+    title: after a task completes successfully — extract and route insights
+    trigger: task_outcome == completed
+    template: post-task-verify
+    value: { refs: 0, weight: 0.5 }
+    description: |
+      fires when any leaf task completes. asks the model:
+        - what worked well in this task that could generalize?
+        - does this completion change the priority of any sibling tasks?
+        - is there a template that should be updated based on this outcome?
+      result is routed as a record_suggestion to observations stash and
+      as a reference weight increment on the parent branch node.
+    result_routing:
+      - to: observations.suggestions
+        format: record_suggestion
+      - to: parent_branch.value.refs
+        op: increment
+
+  meta.post-blocked:
+    id: meta.post-blocked
+    parent: meta-workflow
+    type: meta
+    title: after a task is blocked — diagnose and surface the constraint
+    trigger: task_outcome == blocked
+    template: error-resilience
+    value: { refs: 0, weight: 0.6 }
+    description: |
+      fires when a task transitions to blocked. asks the model:
+        - what is the precise nature of the blocker?
+        - is this a dependency gap, a design question, or missing information?
+        - which other tasks or branches are affected by the same blocker?
+      result is routed as a record_question to surface to the user,
+      and as a reference weight increment on the blocking constraint node
+      (creating or reinforcing that node in the tree).
+    result_routing:
+      - to: observations.questions
+        format: record_question
+      - to: blocker_node.value.refs
+        op: increment
+
+  meta.post-surprising:
+    id: meta.post-surprising
+    parent: meta-workflow
+    type: meta
+    title: after an unexpected result — investigate and generalize
+    trigger: task_outcome == surprising
+    template: autonomous-direction
+    value: { refs: 0, weight: 0.7 }
+    description: |
+      fires when a task result deviates significantly from expectation
+      (detected by comparing output against accepted_criteria with low
+      confidence). spawns a bounded investigation subtree.
+      result feeds back into the parent task's context as a compact summary.
+    result_routing:
+      - to: parent_task.context
+        format: compact_summary
+      - to: observations.suggestions
+        format: record_suggestion
+        prefix: "SURPRISE:"
+
+  meta.workflow-query:
+    id: meta.workflow-query
+    parent: meta-workflow
+    type: meta
+    title: periodic workflow health query — ask the model about the workflow itself
+    trigger: periodic
+    period: every_N_completions
+    period_n: 7
+    template: autonomous-direction
+    value: { refs: 0, weight: 0.4 }
+    description: |
+      every 7 task completions, ask the current model:
+        - is the task ordering in this branch optimal?
+        - are there tasks that should be merged, split, or reordered?
+        - does the current template set cover the common task patterns?
+      results are routed as suggestions to the meta.template-query node
+      and as potential ref weight adjustments on branch nodes.
+    result_routing:
+      - to: meta.template-query
+        format: input_context
+      - to: observations.suggestions
+        format: record_suggestion
+        prefix: "WORKFLOW:"
+
+  meta.template-query:
+    id: meta.template-query
+    parent: meta-workflow
+    type: meta
+    title: template optimization — evolve templates based on accumulated outcomes
+    trigger: meta.workflow-query.complete OR periodic
+    period: every_N_completions
+    period_n: 20
+    template: observations-triage
+    value: { refs: 0, weight: 0.4 }
+    description: |
+      aggregates workflow-query results and outcome patterns to suggest
+      template updates. does not modify templates directly — produces a
+      structured suggestion that routes to the self.template-evolution branch
+      as a new child task.
+    result_routing:
+      - to: self.template-evolution
+        format: new_child_task
+
+  meta.session-summary:
+    id: meta.session-summary
+    parent: meta-workflow
+    type: meta
+    title: end-of-session summary — package state for next session pickup
+    trigger: session_end
+    template: post-task-verify
+    value: { refs: 0, weight: 0.5 }
+    description: |
+      fires when a model session ends (task_complete called at top level,
+      or session idle timeout). produces a structured handover summary:
+        - what was completed this session
+        - what is in_progress and where it stopped
+        - what is the recommended next entry point
+        - any open questions or surprises from this session
+      output is written to data/yaml/task-tree/session-state.yaml
+      and also routed to task.handover for network accessibility.
+    result_routing:
+      - to: data/yaml/task-tree/session-state.yaml
+        format: yaml_write
+      - to: task.handover
+        format: handover_doc
+
+## [:< ##
+
+#,,,.,,,,,.,,,,,,,.,,,,.,,...,,.,,,,.,,.,,...,..,,...,...,...,..,,,,.,,.,,,.,,
+#HVK4NBL7IXX5UMYZQE5YB4KQWPGAI6YTLIK6TQGWCGVVZ2ZCIR7SDOTY6NMMH7W5GLLLA6CQAC55C
+#\\\|QIM7OWUAC2A7QYT44DNTAJHEJV6GL3AQKAHLOB2ZK55ZYMYI6IF \ / AMOS7 \ YOURUM ::
+#\[7]7EGEPVPLNO2SHOAXESJKPZPQ57TG5SXDTX76ET4NEML7M575H6CA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

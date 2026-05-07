@@ -1,0 +1,44 @@
+## [:< ##
+
+# name  = valued.node.create
+# descr = create a valued tree node — returns node href
+
+my $params = shift // {};
+
+my $id      = $params->{'id'}      // return undef;
+my $weight  = $params->{'weight'}  // 0.0;
+my $parents = $params->{'parents'} // [];
+
+if ( exists <valued.index>->{$id} ) {
+    <[base.s_warn]>->( "valued node '%s' already exists", $id );
+    return <valued.index>->{$id};
+}
+
+## clamp weight to [0.0, 1.0) ##
+$weight = 0.0   if $weight < 0.0;
+$weight = 0.999 if $weight >= 1.0;
+
+my $node = {
+    'id'       => $id,
+    'refs'     => 0,
+    'weight'   => $weight,
+    'parents'  => $parents,
+    'children' => [],
+};
+
+<valued.index>->{$id} = $node;
+
+## register with each parent — increments parent ref count ##
+foreach my $parent_id ( @{$parents} ) {
+    <[valued.node.add_ref]>->( $parent_id, $id );
+}
+
+return $node;
+
+#,,
+
+#,,.,,,,.,.,,,.,,,..,,.,,,,,.,..,,,,,,..,,..,,..,,...,...,,.,,,,.,.,,,.,,,,..,
+#CVMWSI26WF4NW6IKX76CYMDSKUS4T3ZJHI3MS5PU6N5HS4MBTS3EK3LUMTNCRLLYL4P75UTFCOVVI
+#\\\|FWLHN7K7O2VXQXRUEXCYUOI46JMHEX5RRWXB4EMVPMBUZOZEAOR \ / AMOS7 \ YOURUM ::
+#\[7]TTAQQGZBWRHIPUMW6CA5TZONY76XAZBY2EY3NBTGSNKJWLYDDWBI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
