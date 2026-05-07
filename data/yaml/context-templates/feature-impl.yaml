@@ -50,6 +50,17 @@ sections:
 
       do NOT add `#,,.,,,...` at end — leave clean, signing adds footer.
 
+      ## cmd module pattern [ task.cmd.*, cube.cmd.*, etc ] ##
+
+      cmd modules receive the call context via $call — NOT $args:
+        my $id  = $call->{'args'} // '';           [ plain string args ]
+        my $val = $call->{'param'}->{'field'} // ''; [ structured params ]
+
+      return format:
+        { 'mode' => 'true',  'data' => $result }  [ success ]
+        { 'mode' => 'false', 'data' => $reason }  [ failure ]
+        { 'mode' => 'size',  'data' => $list_str } [ list output ]
+
       ## p7 data key syntax ##
 
       dotted keys in %data use parser-expanded form:
@@ -88,8 +99,8 @@ sections:
     budget_pct: 35
     label: feature-impl instructions
 
-#,,.,,,..,,.,,...,,.,,.,,,,,.,.,.,,,.,,.,,,.,,..,,...,..,,...,,,.,,,,,,,.,,.,,
-#66OBHBB34YYUGOXOWYGG42LZJ2YGSTZARJX5HQNKLBG3XHBG72R7MJEZDIQZJEPFNBXDOY23TYKBM
-#\\\|2PQG6VORJMEKJJWTEIUFOMFEHVFQS6FDZQWUTFMY2AKOGD6EMNE \ / AMOS7 \ YOURUM ::
-#\[7]QFDWB3NGVGTG6CBH4ZB56NBUIXOPSQJ7RMBRRBA2K3HSNF4XWCBY 7  DATA SIGNATURE ::
+#,,,,,,..,,..,,..,,.,,,.,,.,,,,..,..,,..,,...,..,,...,...,,,,,...,,,,,..,,,,.,
+#G6OFJNKCO5T2KRLCKGRDLUF4AC3SFQ5N2ISTAGL55BT3QNZ2546YHD6PL4IYXS3NTZKGV4AP6EXCW
+#\\\|RLG4ZEFE3APZ7HFBDXS7M6CFG4WHQHDN3N2JL5FLLD3P2HYZOXF \ / AMOS7 \ YOURUM ::
+#\[7]VNLRTSJFL3X6BLTWYB5YPLH6JQHIQHLCMN4WJW4DLPE2PIQ2TABQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
