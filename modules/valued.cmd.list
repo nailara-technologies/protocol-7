@@ -1,0 +1,35 @@
+## [:< ##
+
+# name  = valued.cmd.list
+# descr = list valued tree nodes sorted by effective priority
+
+my @ids = keys %{<valued.index>};
+
+return { 'mode' => 'size', 'data' => 'no nodes' } unless @ids;
+
+## resolve priority for each node ##
+my %priority;
+foreach my $id (@ids) {
+    $priority{$id} = <[valued.resolve]>->($id) // 0.0;
+}
+
+my @sorted = sort { $priority{$b} <=> $priority{$a} } @ids;
+
+my $output = join "\n", map {
+    my $node = <valued.index>->{$ARG};
+    sprintf '%.2f  %-28s  refs=%-3d weight=%.3f',
+        $priority{$ARG},
+        $ARG,
+        $node->{'refs'}   // 0,
+        $node->{'weight'} // 0.0
+} @sorted;
+
+return { 'mode' => 'size', 'data' => $output };
+
+#,,
+
+#,,..,..,,..,,,,.,,,.,,,.,,,,,,,,,,..,,,,,...,..,,...,...,.,.,,,.,.,.,.,.,..,,
+#KMOUOGIIUKRDN3WQGVUWOYB3YB3JHI3GI4T4FW7XXXLWNNX56N7V3E52CZDWLYAF3MAXDA5M2T7DQ
+#\\\|TRTZINZW4PX6EGY7BIWF4UQ2IWBAMRFY6W4UGTUKO4LWBX4IBPL \ / AMOS7 \ YOURUM ::
+#\[7]V2VCEKDL3LMVIUXA346QLS6LZ63JXSLJLTLHREA464UYQQXGNEAA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
