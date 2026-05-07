@@ -140,8 +140,9 @@ if ( length $task_id ) {    ## single task handover ##
     ## recent completions section [ last 3 done tasks ] ##
     if ( @recent_done > 0 ) {
         @recent_done = reverse sort {
-            $task . queue >->{$b}->{'updated_at'} cmp $task . queue
-                >->{$a}->{'updated_at'}
+            ( <task.queue>->{$b}->{'updated_at'} // '' )
+            cmp
+            ( <task.queue>->{$a}->{'updated_at'} // '' )
         } @recent_done;
         my $recent_count = min( 3, @recent_done );
 
@@ -178,8 +179,8 @@ return { 'mode' => 'true', 'data' => $handover };
 
 #,,.,,..,,.,,,,.,,...,.,.,,,.,...,,.,,,.,,..,,..,,...,.,.,,..,,..,..,,...,.,.,
 
-#,,.,,..,,,,.,..,,.,,,,,.,.,,,,,.,...,,,,,,..,..,,...,...,.,,,.,,,,,.,,..,...,
-#4DO2BCOYQELGQERE2WXKZWNBSDLU3AQKZOI7IGKFSPVF4TFXGEFDTBM5PMBGT43NWRR5BB67XISK6
-#\\\|W5LB3Z5PXIO2VZW5OEKVC6ZDYDRACUQULNOJJX72XI3RUOUAZOU \ / AMOS7 \ YOURUM ::
-#\[7]UX42KAY46REWEVK74EGQE7KHLVHUCQINOJB4RITEUXCUUV65XCBQ 7  DATA SIGNATURE ::
+#,,.,,.,,,,..,..,,...,.,.,..,,.,,,,,.,..,,.,.,..,,...,...,.,.,.,.,,,,,.,.,...,
+#VSMQ665DZ4L3X5XZ7GC4GOSOQQACJ6RZQYIDJU5II222YR2RDDPXEOEW4VQNSHPQLWXD3362XG2SY
+#\\\|MSKFHOABVCH2OONGMC4QFVHUDC4BRZGN3DTQOD5RFGS5D6OQUS5 \ / AMOS7 \ YOURUM ::
+#\[7]EKSF7RFLW2UNGAXZUTPXI3OMNXBSU5PQ55IYUOVZLYVZZ7TRO4AQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
