@@ -1,0 +1,92 @@
+---
+## [:< ##
+# layer 2 — intelligence branch children.
+# these are sub-categories. leaf task items live one level below here.
+
+intelligence_branches:
+
+  intel.task-tree:
+    id: intel.task-tree
+    parent: intelligence
+    type: branch
+    title: task tree implementation — valued nodes, state machine, persistence
+    value: { refs: 0, weight: 0.8 }
+    description: |
+      the task tree itself. bootstrapping priority is high because once the
+      tree is live it routes and weights everything else automatically.
+    on_entry_template: autonomous-direction
+    children:
+      - intel.task-tree.valued-primitive
+      - intel.task-tree.state-machine
+      - intel.task-tree.task-next
+      - intel.task-tree.file-watcher
+      - intel.task-tree.handover
+
+  intel.valued-trees:
+    id: intel.valued-trees
+    parent: intelligence
+    type: branch
+    title: valued tree primitive — N+f composite value, ref counting, weight ops
+    value: { refs: 0, weight: 0.9 }
+    description: |
+      foundation for weighted decisions across ncode, tasks, consensus, and
+      context priority. no dependencies — independently startable now.
+      high bootstrap weight because it makes all other branches more elegant.
+    on_entry_template: feature-impl
+    children:
+      - intel.valued-trees.node-lifecycle
+      - intel.valued-trees.balance
+      - intel.valued-trees.resolve
+      - intel.valued-trees.ncode-integration
+      - intel.valued-trees.consensus-integration
+
+  intel.coding-zenka:
+    id: intel.coding-zenka
+    parent: intelligence
+    type: branch
+    title: coding zenka upgrades — subtasks, review passes, model switching
+    value: { refs: 0, weight: 0.0 }
+    children:
+      - intel.coding-zenka.review-passes
+      - intel.coding-zenka.model-split
+      - intel.coding-zenka.subtask-queue
+
+  intel.kimi-zenka:
+    id: intel.kimi-zenka
+    parent: intelligence
+    type: branch
+    title: kimi zenka upgrades — coordination, delegation, session resilience
+    value: { refs: 0, weight: 0.0 }
+    children:
+      - intel.kimi-zenka.delegation-test
+      - intel.kimi-zenka.auto-approve
+
+  intel.consensus:
+    id: intel.consensus
+    parent: intelligence
+    type: branch
+    title: multi-model consensus — channels zenka, voting, group dispatch
+    value: { refs: 0, weight: 0.0 }
+    children:
+      - intel.consensus.channels-zenka
+      - intel.consensus.vote-wiring
+      - intel.consensus.step-groups
+
+  intel.context-templates:
+    id: intel.context-templates
+    parent: intelligence
+    type: branch
+    title: dynamic context templates — on_complete hooks, outcome routing
+    value: { refs: 0, weight: 0.0 }
+    children:
+      - intel.context-templates.on-complete-hooks
+      - intel.context-templates.outcome-routing
+      - intel.context-templates.tree-entry-templates
+
+## [:< ##
+
+#,,.,,..,,,,,,,..,,..,..,,,,,,,,,,,.,,,.,,.,,,..,,...,...,.,.,.,,,...,..,,...,
+#D6M7FKHFMG5LPNIMLZHYGTJPPKB6C4SOFE6NX3EYBCJDQFZ3L5ORDBYY445H4OHP55LKW3MBXCV26
+#\\\|ZTTP5W3RBR7N2NB6GSBF6S3GIIGDIUBMGDS4OGUYQTFB3QBIWKT \ / AMOS7 \ YOURUM ::
+#\[7]YINKMFI5P6MAH7RAWAYXGYYINOYT2YM5DI3S26QMA5MWOIYHA6BI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
