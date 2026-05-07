@@ -11,10 +11,40 @@ the model's expected string doesn't exactly match the file — causing
 multi-round correction loops. line-addressed tools bypass that entirely.
 
 ## read first
-- `modules/coding.tools.definitions` — tool definition format
-- `modules/coding.tool_executor` — how tools are dispatched
-- `modules/coding.tools.file_ops` or similar — existing file tools
-  [ use list_modules to find the right file tool module ]
+- `modules/coding.tools.definitions` lines 465-503 — `replace_in_file`
+  definition: exact format to follow for the three new tool definitions
+- `modules/coding.tools.dispatch` lines 340-360 — `edit_file` dispatch
+  handler: exact pattern to follow for the three new dispatch handlers
+
+## where to add
+
+coding.tools.definitions:
+  append the three new `push @tools, { ... }` blocks after the
+  existing `replace_in_file` block [ after line ~503 ]
+
+coding.tools.dispatch:
+  add three new entries to the dispatch hashref, alongside `edit_file`
+  [ after the edit_file handler block ]
+
+## path sanitization [ required — copy from edit_file pattern ]
+  my $root     = <system.root_path>;
+  my $abs_path = "$root/$path";
+  my $real_path = Cwd::abs_path($abs_path) // '';
+  my $real_root = Cwd::abs_path($root)     // '';
+  return 'error: path escapes project root'
+      if !length $real_path or index( $real_path, "$real_root/" ) != 0;
+  return 'error: file not found' unless -f $real_path;
+
+## file read/write using P7 base modules
+  ## read into arrayref of lines [ each line retains its newline ] ##
+  my $lines_ref = <[base.file.slurp]>->( $real_path, undef, ':encoding(UTF-8)' );
+  return "cannot read: $path" unless defined $lines_ref;
+  my @lines = ref $lines_ref eq 'ARRAY' ? @{$lines_ref} : split /\n/, ${$lines_ref};
+
+  ## ... modify @lines ...
+
+  ## write back with encoding ##
+  <[base.file.write_encoded]>->( ':encoding(UTF-8)', $real_path, @lines );
 
 ## tool definitions to add [ in coding.tools.definitions ]
 
@@ -71,8 +101,8 @@ error string on failure.
 - lowercase comments, [ word ] bracket annotations
 - no use statements, no pragmas
 
-#,,.,,,,,,,.,,...,.,.,..,,,,,,.,,,,,.,,..,.,,,..,,...,...,.,,,.,,,,,.,...,,,,,
-#DIDQ7GOXSAMKQWP3PLAKX3FGNMZEIAB4SUKOJMXJOAKDCGDP4VG4JE74YSNGDBPAER5YXHT4IUA3I
-#\\\|QZJZIUU42XSQVVWJRHHQAXNUYG2O42IHGSWGANKOBSDKYFSPTX6 \ / AMOS7 \ YOURUM ::
-#\[7]5D2Z6N6R6BY777YSPRGGMBJV3WQKTAGKURKJKO64FJDMQEV5VCCQ 7  DATA SIGNATURE ::
+#,,,.,,.,,,.,,,,.,,,,,,.,,,,,,,,,,,.,,.,,,,..,..,,...,...,.,.,,,.,...,,.,,,.,,
+#AYO77UBG53GOQQ573QD5TPBQPEAWNXFV7NIS25ODB6A6OORFIAJX2Q55LLD2LQ5E7BGSJ625IPZYO
+#\\\|SCNYNQC63WKKRXDCTRZAAXSJBUXPHPKSXMOH3JCXANEYWKYNBNY \ / AMOS7 \ YOURUM ::
+#\[7]BZVKHKEUEEB6O3U4M2FUXKQ67LV4LTSMJALQ4UJP2OGBD67XZWDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

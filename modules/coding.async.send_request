@@ -10,6 +10,22 @@ my ($task_id) = @ARG;
 return { success => FALSE, error => 'task_id required' }
     unless defined $task_id;
 
+## hold dispatch while backend is restarting after crash ##
+if (<coding.task.queue_paused>) {
+    <[base.logs]>->(
+        1, 'send_request: queue paused — rescheduling %s in 5s', $task_id
+    );
+    my $state = <[coding.async.state_machine]>->( qw| get |, $task_id );
+    my $round = $state->{'round'} // 0;
+    <[event.add_timer]>->(
+        {   'after'   => 5.0,
+            'handler' => 'coding.task.enqueue_round',
+            'params'  => { 'task_id' => $task_id, 'round' => $round }
+        }
+    );
+    return { success => FALSE, error => 'queue_paused' };
+}
+
 ## get state machine state ##
 my $state = <[coding.async.state_machine]>->( qw| get |, $task_id );
 return { success => FALSE, error => "no state for $task_id" }
@@ -258,8 +274,8 @@ if (@messages) {
 return
     <[coding.async.request]>->( $task_id, $request_body, $state->{'job_id'} );
 
-#,,.,,,,.,...,.,.,,.,,,.,,,..,,,.,...,,..,..,,..,,...,...,,,.,,..,..,,,,,,,,,,
-#A7WYJJNFEJOXISVNOWGLKTVLNO2N7SCNZ4Q6CC4JOLL6XV7L5SPL7JZCKEWTBT7JIN2BUJXNFQVQM
-#\\\|UZZTSPEWJRCDAGJVCIIZQCQFLG6ZF7EY355DJ74RKJUZ7WPBTDY \ / AMOS7 \ YOURUM ::
-#\[7]GP7WLVXQ4B27GMOR3MN3HYAGZ6WRO6C5D4CQH2UP5KQQVXRKAWBQ 7  DATA SIGNATURE ::
+#,,,,,...,,..,.,.,..,,...,.,,,.,.,.,,,...,..,,..,,...,...,...,.,,,,,.,...,,,.,
+#3PHNS334TDWEBBV4RPGPOX24QQY7VMCQ6DVAMQ3XOZFWGKRGYFI3YLVRI2FZGFJ72VVXLH6AAY7WO
+#\\\|U5XRXWH6C3RWZ6RZ2GKXBVIBVJYCUL2DK2PSVJ47XQUG5SRLZ2G \ / AMOS7 \ YOURUM ::
+#\[7]Y3VP7QWFKGOO3Y7OXLABA7LUX7BD3F7U3XSBT6CBMNCP73PG4SCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
