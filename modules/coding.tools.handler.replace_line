@@ -1,0 +1,82 @@
+## [:< ##
+
+# name  = coding.tools.handler.replace_line
+# descr = Replace a single line in a file by line number
+# param = $args hashref with path, line, content
+
+my $args = shift // {};
+
+## extract parameters ##
+my $path     = $args->{'path'}     // return 'error : path required';
+my $line     = $args->{'line'}     // return 'error : line number required';
+my $content  = $args->{'content'}  // return 'error : content required';
+my $apply    = $args->{'apply'}    // TRUE;
+my $encoding = $args->{'encoding'} // qw| :encoding(UTF-8) |;
+
+## resolve file path ##
+my $root     = <system.root_path>;
+my $abs_path = catfile( $root, $path );
+return ': error : path not in repository : ' . $path
+    unless $abs_path =~ m|^\Q$root\E/|;
+return ': error : file not found : ' . $path unless -f $abs_path;
+
+## normalize encoding parameter ##
+my $norm_encoding = <[coding.parser.normalize_encoding]>->($encoding);
+return
+      ': error : unsupported encoding : '
+    . $encoding
+    . ' [ supported are :raw, :bytes, :encoding(UTF-8), :encoding(<other>)]'
+    unless length( $norm_encoding // '' );
+
+## validate line number ##
+my $line_num = $line;
+if ( !defined $line_num ) {
+    return ': error : line number must be a positive integer';
+}
+if ( $line_num < 1 ) {
+    return ': error : line number must be >= 1';
+}
+
+## load file content ##
+my $content_ref = <[file.slurp]>->( $abs_path, undef, $norm_encoding );
+return ': error : cannot read file : ' . $path unless defined $content_ref;
+
+my @lines       = split "\n", $content_ref->$*, -1;
+my $total_lines = scalar @lines;
+
+## validate line number range ##
+if ( $line_num > $total_lines ) {
+    return
+          ': error : line '
+        . $line_num
+        . ' out of range [1..'
+        . $total_lines . ']';
+}
+
+my $actual_line = $lines[ $line_num - 1 ];
+
+## preview the change ##
+my $preview = sprintf ": line %d : %s\n     --> %s", $line_num, $actual_line,
+    $content;
+
+## apply replacement if apply flag is set ##
+if ($apply) {
+    $lines[ $line_num - 1 ] = $content;
+
+    ## save modified content ##
+    my $new_content = join "\n", @lines;
+    my $result = <[file.write]>->( $abs_path, \$new_content, $norm_encoding );
+    return ': error : failed to write file : ' . $result unless $result;
+}
+
+## prepare result ##
+return sprintf "## %s ##\n%s", ( $apply ? qw|APPLIED| : qw| PREVIEW | ),
+    $preview;
+
+## [:> ##
+
+#,,,.,,,,,..,,,,,,.,,,,.,,,,.,.,,,..,,..,,..,,..,,...,...,...,,,,,.,,,.,.,,,,,
+#7Y43XPZ2M6CVXO2UNUML72SAH7JMRW3NLWNQG2CTEAF3YBJKLDLVZOSFA45MUISY4NDRTGP7VOIJU
+#\\\|JJDPLUGUICD67ZV4UABGDOTAAK6YJEEH3WLZVXUTQIO2NJWUTED \ / AMOS7 \ YOURUM ::
+#\[7]CYUJ5UMVCD6NHYZEQP3FQVXJWFNCCKCU577543JH7ECCVJVXOQAQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
