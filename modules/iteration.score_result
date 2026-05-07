@@ -1,0 +1,94 @@
+## [:< ##
+
+# name  = iteration.score_result
+# descr = score result against criteria — verdict for iteration loop
+
+my $params    = shift                  // {};
+my $result    = $params->{'result'}    // '';
+my $criteria  = $params->{'criteria'}  // [];
+my $attempt_n = $params->{'attempt_n'} // 1;
+
+my $passed = 0;
+my $score  = 0.0;
+my @issues;
+
+foreach my $criterion ( @{$criteria} ) {
+
+    ## heuristic: does result contain evidence of meeting this criterion? ##
+    my ( $status, $gap );
+
+    if ( $result =~ m{\b\Q$criterion\E\b}i ) {
+        $status = 'pass';
+        $gap    = '';
+    } else {
+        $status = 'fail';
+        if ( $criterion =~ m{output|response|code|answer}i ) {
+            $gap = "no output matching '$criterion' found";
+        } elsif ( $criterion =~ m{format|structure|schema}i ) {
+            $gap = "output lacks required '$criterion' structure";
+        } else {
+            $gap = "missing evidence for '$criterion'";
+        }
+    }
+
+    ## classify what could fix this issue ##
+    my $fixable_by;
+    if ( $criterion =~ m{template|example|pattern|format|syntax}i ) {
+        $fixable_by = 'template';
+    } elsif ( $criterion =~ m{decision|human|expert|domain|user}i ) {
+        $fixable_by = 'user';
+    } else {
+        $fixable_by = 'model';
+    }
+
+    $fixable_by = 'none' if $status eq 'pass';
+
+    push @issues,
+        {
+        'criterion'  => $criterion,
+        'status'     => $status,
+        'gap'        => $gap,
+        'fixable_by' => $fixable_by,
+        };
+
+    $passed++ if $status eq 'pass';
+    $score += $status eq 'pass' ? 1.0 : $status eq 'partial' ? 0.5 : 0.0;
+}
+
+my $total = scalar @{$criteria};
+$score = $total > 0 ? $score / $total : 0.0;
+
+## determine verdict ##
+my $verdict;
+if ( $score >= 0.85 ) {
+    $verdict = 'advance';
+} elsif ( grep { $ARG->{'fixable_by'} eq 'user' } @issues ) {
+    $verdict = 'escalate';
+} elsif ( $attempt_n >= 3
+    and grep { $ARG->{'fixable_by'} eq 'model' } @issues ) {
+    $verdict = 'escalate';
+} else {
+    $verdict = 'retry';
+}
+
+<[base.logs]>->(
+    2, 'iteration.score_result: attempt %d score=%.2f verdict=%s [%d/%d]',
+    $attempt_n, $score, $verdict, $passed, $total
+);
+
+return {
+    'score'     => $score,
+    'passed'    => $passed,
+    'total'     => $total,
+    'verdict'   => $verdict,
+    'issues'    => \@issues,
+    'attempt_n' => $attempt_n,
+};
+
+#,,
+
+#,,..,,,,,,,,,,,.,.,.,,.,,,.,,,..,.,,,,.,,.,.,..,,...,...,..,,..,,,,,,...,.,,,
+#4KFMBVHKYY6GHCE7GJHLIIANFSOKRDPH7CXZTL6UGDENG7JX6CLCUUB6PFOWFEDAFQ62MS4YXTZJM
+#\\\|PGNMJD6YZH6UMN5TGRAIUQY2GSA3BKUEQAHDKWIKQ65QWDWN44R \ / AMOS7 \ YOURUM ::
+#\[7]LTUPUIQMGG6TDMR3SGPCJSTZYBA2JLOT7KDBWBI3W7MRDPWMBIAA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
