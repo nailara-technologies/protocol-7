@@ -36,8 +36,9 @@ sections:
 
   ## fix instructions ##
   - static: |
-      fix the tool handler issue described below. output ONLY the corrected
-      code with line numbers. follow P7 style conventions strictly.
+      fix the tool handler issue described below.
+      use write_new_file or replace_in_file to apply changes to disk.
+      do NOT return code in the response — write it directly to the file.
 
       issue: {{issue_description}}
 
@@ -48,15 +49,26 @@ sections:
       - file paths: prepend <system.root_path> for relative paths
       - shell safety: validate/sanitize user input for exec calls
 
-      format fixes as:
-      file: <module name>
-      line N: old → new
+      ## p7 module format ##
+      header must be exactly:  ## [:< ##
+      descr max 55 chars, lowercase, no capitals
+      do NOT add footer lines — leave file ending with #,,
+
+      ## p7 data key syntax ##
+      CORRECT : <key.sub>->{$id}
+      WRONG   : $data{'key.sub'}{$id}
+
+      ## tool parameter reference ##
+      write_new_file:         { path: "modules/name", content: "..." }
+      replace_in_file:        { path: "modules/name", old: "...", new: "..." }
+      validate_module_format: { name: "module.name.here" }
+      ptd_check:              { path: "modules/name" }
     priority: 5
-    budget_pct: 20
+    budget_pct: 25
     label: fix instructions
 
-#,,,,,,..,.,,,...,,.,,...,,,,,...,..,,,,,,.,,,..,,...,...,.,.,,,.,..,,,,.,,..,
-#VR2UDG34SGCVX6DF7Q3RPPFR4AUEJFLPRMA5MTPD2HVSEIGFVKPRJXWLDLPVJRKHEXGCI5OWBG7VA
-#\\\|ZYJIYZ264IAPYFTXNNMGIV22YQHUWQVDCL7Z2B2O2SW57G7CE43 \ / AMOS7 \ YOURUM ::
-#\[7]3O7YRVILNHZ6BQWVQW2ZZQ4MZ72S43P4RW6LWHVYXUMJRS6VA2CY 7  DATA SIGNATURE ::
+#,,,,,.,.,..,,.,,,.,,,,.,,,..,,..,,,,,,,.,..,,..,,...,...,,.,,,,,,.,.,,..,,,,,
+#SSEREHNS5Y7755LAPDB6NLNKQJ3ZRVJYR3HMRCRBEAKJP2JZ4GVWFQHO23PG3PGPICTKSMWHLFCRK
+#\\\|QSUSODG6G5CFOINVXCUVQMAP3463O33PUEH4R34DKWHK4F7OTVT \ / AMOS7 \ YOURUM ::
+#\[7]SK2FYUKCKRWTLW4AU7O46HSHJ5T2ZR52FWF5EOM2AKYORAATOGBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
