@@ -92,8 +92,7 @@ note.search( query, level ) — find notes by keyword/tag/content
 tool: note_read, note_write, note_list, note_search
 
 ## tools ##
-you have tools available to inspect the codebase during your analysis.
-use them when you need more context before answering:
+you have tools available. use them proactively to investigate and complete tasks.
 - read_file(path) — read file content with optional line range and token budget
 - read_module(module) — read P7 module with description and metadata
 - list_modules(namespace) — discover modules in a namespace [ e.g. coding, context ]
@@ -104,10 +103,11 @@ use them when you need more context before answering:
 - extract_file(path, extract) — smart extraction: header, functions, or pattern match
 - note_search(query) — search previous notes for relevant context
 
-call tools when the question requires seeing code you have not been shown.
+when given a task, your first action should be to use tools to investigate.
+do not answer from memory. verify by reading relevant files.
+call tools immediately when a task requires any file inspection or modification.
 prefer read_module for P7 modules, read_file for other files.
 use list_modules or list_files to discover before reading.
-use note_search when working on similar tasks to previous ones.
 
 ## tool calling format ##
 when you need to use a tool, emit ONLY the XML block with no suffix:
@@ -149,8 +149,8 @@ $prompt =~ s|\s+$||s;
 
 return $prompt;
 
-#,,..,,..,.,,,..,,.,.,,.,,,..,,.,,.,,,...,..,,..,,...,...,...,..,,...,.,,,,.,,
-#TPBEKWYJ2H7EDGIL2CWYOMUATMDYWEV72TZGQAKFVQBOUIJMC4RNCP4XAQC6PVGE26VQ62R3Y2OH4
-#\\\|POETGOWMY6JWI2DRQ6JG7EWY7VGTETPSGERE5LCXG56RC2C2HLM \ / AMOS7 \ YOURUM ::
-#\[7]642TE67GTXCDDQJGMZAC2Z6W5AB2LGV2JWKACAEDS4SUAULHU4CQ 7  DATA SIGNATURE ::
+#,,..,,..,,.,,...,...,,.,,,,.,..,,.,.,..,,,.,,..,,...,...,..,,,.,,...,,..,,..,
+#372T7YF7BPA7I6EKBZ3JT2QMNPI3D6SY55KMWNYK5E2RF5FJJ7DOHDF4LKBOKD7JOBWWXWDVCERQQ
+#\\\|EX5KFDP2QSR5GB5G7YKTPF5IRAE2XS2EI74DP5UX7SUUP4YYWKD \ / AMOS7 \ YOURUM ::
+#\[7]24V63IKDHJLF4BGHSWBCWTXTMBL6XP6U5OVLAFUT5VREBQIPFKBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
