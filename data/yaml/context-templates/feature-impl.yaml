@@ -41,6 +41,17 @@ sections:
         the parent will receive all results and verify them.
         this improves reliability — write one module per subtask.
 
+      ## core subs — do NOT search for these as files ##
+
+      some subs are built into bin/Protocol-7 and have no module file:
+        <[base.ntime.b32]>    — current time as base32 string
+        <[base.time]>->(3)    — current unix time with precision
+        <[base.logs]>         — logging [ always available ]
+        <[base.s_warn]>       — warning logger
+
+      if read_file returns "file not found" for a base.* module,
+      it is a core sub — use it directly without reading its source.
+
       ## p7 module format ##
 
       every module file must start with:
@@ -99,8 +110,8 @@ sections:
     budget_pct: 35
     label: feature-impl instructions
 
-#,,,,,,..,,..,,..,,.,,,.,,.,,,,..,..,,..,,...,..,,...,...,,,,,...,,,,,..,,,,.,
-#G6OFJNKCO5T2KRLCKGRDLUF4AC3SFQ5N2ISTAGL55BT3QNZ2546YHD6PL4IYXS3NTZKGV4AP6EXCW
-#\\\|RLG4ZEFE3APZ7HFBDXS7M6CFG4WHQHDN3N2JL5FLLD3P2HYZOXF \ / AMOS7 \ YOURUM ::
-#\[7]VNLRTSJFL3X6BLTWYB5YPLH6JQHIQHLCMN4WJW4DLPE2PIQ2TABQ 7  DATA SIGNATURE ::
+#,,,.,,,.,,,,,...,,,.,,,,,,..,...,,,,,,,,,.,.,..,,...,...,.,,,...,,.,,,..,,..,
+#2WTB6SFW7QKQLDCDW4HWI2H2VNFHGHY27RRRZQ6UYMBUCXX65EI5PEBYJX4M6ZW5W6IDAY3BMLSWI
+#\\\|M2VYDIUSGATIQ3BYB2HWGIMHR4HEVBQYJZ2O7EQJDIP3YNZBBAX \ / AMOS7 \ YOURUM ::
+#\[7]WHALRQE5ERPXDVH26EBMVM6SQUNXS2SUKOAC35VCRXYRZPMI26AI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
