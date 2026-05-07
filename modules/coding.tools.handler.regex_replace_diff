@@ -1,0 +1,94 @@
+## [:< ##
+
+# name  = coding.tools.handler.regex_replace_diff
+# descr = generate simple unified diff for regex replace preview
+# param = hashref with path, old, new, context
+
+my $args = shift // {};
+
+my $path    = $args->{'path'}    // 'a/file';
+my $old     = $args->{'old'}     // '';
+my $new     = $args->{'new'}     // '';
+my $context = $args->{'context'} // 3;
+
+my @old_lines = split m|\n|, $old, -1;
+my @new_lines = split m|\n|, $new, -1;
+
+## drop trailing empty line from split ##
+pop @old_lines if @old_lines && $old_lines[-1] eq '';
+pop @new_lines if @new_lines && $new_lines[-1] eq '';
+
+## find changed line indices ##
+my @changed;
+my $max = @old_lines > @new_lines ? @old_lines : @new_lines;
+for my $i ( 0 .. $max - 1 ) {
+    my $o = $i < @old_lines ? $old_lines[$i] : undef;
+    my $n = $i < @new_lines ? $new_lines[$i] : undef;
+    push @changed, $i if ( defined $o ? $o : '' ) ne ( defined $n ? $n : '' );
+}
+
+return "<!-- no changes -->" unless @changed;
+
+## group changed indices into hunks ##
+my @hunks;
+my @curr = ( $changed[0] );
+for my $i ( 1 .. @changed - 1 ) {
+    if ( $changed[$i] - $changed[ $i - 1 ] <= $context * 2 + 1 ) {
+        push @curr, $changed[$i];
+    } else {
+        push @hunks, [@curr];
+        @curr = ( $changed[$i] );
+    }
+}
+push @hunks, [@curr] if @curr;
+
+## format output ##
+my @diff;
+push @diff, sprintf "--- %s", $path;
+push @diff, sprintf "+++ %s", $path;
+
+my $prev_end = -1;
+for my $hunk (@hunks) {
+    my $hstart = $hunk->[0] - $context;
+    my $hend   = $hunk->[-1] + $context;
+    $hstart = 0             if $hstart < 0;
+    $hstart = $prev_end + 1 if $hstart <= $prev_end;
+    $hend   = $max - 1      if $hend >= $max;
+
+    ## count lines in each side for this hunk ##
+    my $ocount = 0;
+    my $ncount = 0;
+    for my $i ( $hstart .. $hend ) {
+        my $o       = $i < @old_lines ? $old_lines[$i] : undef;
+        my $n       = $i < @new_lines ? $new_lines[$i] : undef;
+        my $changed = ( defined $o ? $o : '' ) ne ( defined $n ? $n : '' );
+        $ocount++ if $changed || defined $o;
+        $ncount++ if $changed || defined $n;
+    }
+
+    push @diff, sprintf "@@ -%d,%d +%d,%d @@",
+        $hstart + 1, $ocount, $hstart + 1, $ncount;
+
+    for my $i ( $hstart .. $hend ) {
+        my $o       = $i < @old_lines ? $old_lines[$i] : undef;
+        my $n       = $i < @new_lines ? $new_lines[$i] : undef;
+        my $changed = ( defined $o ? $o : '' ) ne ( defined $n ? $n : '' );
+
+        if ( !$changed ) {
+            push @diff, ' ' . $o;
+        } else {
+            push @diff, '-' . ( defined $o ? $o : '' ) if defined $o;
+            push @diff, '+' . ( defined $n ? $n : '' ) if defined $n;
+        }
+    }
+
+    $prev_end = $hend;
+}
+
+return join "\n", @diff;
+
+#,,,,,.,,,.,,,,,.,,,,,..,,.,.,.,,,.,,,..,,.,,,..,,...,...,.,.,.,.,,..,.,.,,,,,
+#G7RT7Q2RHHGODRKWVYKREJLAO3WVGFBRNSYBMT2LY7PE5EH5Z2LTZZ45FEHP4P5BH7N4RAYPYPESC
+#\\\|LIV5PCCMJAEWO7THSVG5E3M24GD6XVEQK5TUXLH6KGKWFXEJZDY \ / AMOS7 \ YOURUM ::
+#\[7]OYOASVK7KCJQGQM3B6JPAPKCQZUY5YUQUJ7V2HAQVTJI7TDBHYDI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
