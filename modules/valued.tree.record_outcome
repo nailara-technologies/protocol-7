@@ -1,0 +1,42 @@
+## [:< ##
+
+# name  = valued.tree.record_outcome
+# descr = record task outcome — increments refs on node and its ancestors
+
+my $params = shift // {};
+
+my $node_id = $params->{'node_id'} // return undef;
+my $outcome = $params->{'outcome'}
+    // 'completed';    ## completed | blocked | surprising ##
+
+## only positive outcomes propagate upward — blocked decrements ##
+my $op = $outcome eq 'blocked' ? 'remove' : 'add';
+
+my $node = <valued.index>->{$node_id};
+if ( not defined $node ) {
+    <[base.s_warn]>->(
+        "valued.tree.record_outcome: node '%s' not found", $node_id
+    );
+    return undef;
+}
+
+if ( $op eq 'add' ) {
+    <[valued.node.add_ref]>->( $node_id, 'outcome' );
+} else {
+    <[valued.node.remove_ref]>->( $node_id, 'outcome' );
+}
+
+<[base.logs]>->(
+    2, "outcome '%s' recorded on node '%s' [refs now: %d]",
+    $outcome, $node_id, $node->{'refs'}
+);
+
+return $node->{'refs'};
+
+#,,
+
+#,,..,,,.,...,,,,,.,.,.,.,,..,...,...,.,,,,,.,..,,...,...,...,,,,,,,,,.,.,,.,,
+#634NGUXJYOSQOMWGTHBF77IAGPTALBCUF52E2JPMXHYTMT4AN5KNRE6L7QAT7PTAMSDXX3QSM3ZGM
+#\\\|T5C35L6GYLQJYFIJ6GMCPH2ER3SVGPXKCCVCS3LAB5OMCOOUKRZ \ / AMOS7 \ YOURUM ::
+#\[7]MF5JROUQCYV6OHS4SPBSVFXCI5BHSRQL6HJFKLR4UTTCH5IT7QDY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

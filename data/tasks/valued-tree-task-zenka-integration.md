@@ -1,0 +1,94 @@
+# task: wire valued tree into task zenka state transitions
+
+## objective
+
+implement task zenka step 3 (state transitions + persistence) with valued
+tree integration from the start. when a task transitions to `completed` or
+`blocked`, call `valued.tree.record_outcome` on the task's valued tree node
+id. this closes the feedback loop — task outcomes automatically update the
+gradient.
+
+## signatures note
+
+do NOT add the single-line `#,,.,,,...` stub at end of new files.
+leave files clean — signatures are added by the signing system automatically.
+
+## context
+
+### what exists
+
+- task zenka scaffold: `configuration/zenki/task/` — start, zenka-startup.v7
+- task zenka init: `modules/task.init_code` — loads yaml files from
+  `data/yaml/coding-tasks/` via `format.yaml.load_file`
+- valued tree: `modules/valued.*` — node create/add_ref/remove_ref/resolve,
+  tree load/register_node/record_outcome
+- task tree seed: `data/yaml/task-tree/` — root, branches, branches-intelligence,
+  branches-meta-workflow
+- existing task commands (partial): `modules/task.cmd.*` if present
+
+### what is needed
+
+1. `modules/task.transition` — state machine transitions
+2. `modules/task.cmd.start` — transition open → in_progress
+3. `modules/task.cmd.complete` — transition → completed + record_outcome
+4. `modules/task.cmd.block` — transition → blocked + record_outcome
+
+## state machine
+
+valid states: open → in_progress → completed | blocked | review
+blocked → open (reset)
+each transition appends to task's `history` list with timestamp + actor
+
+## valued tree node id convention
+
+task node ids in the valued tree follow the branch path from the task tree
+seed files. examples:
+  `intel.task-tree.state-machine`
+  `intel.valued-trees.node-lifecycle`
+  `infra.httpd`
+
+for tasks loaded from `data/yaml/coding-tasks/` that have no explicit
+valued tree node, use `task.<yaml-filename-without-extension>` as the
+node id. create the node if it does not exist (weight: 0.0, parent: ROOT).
+
+## task.transition module
+
+```
+my $params  = shift // {};
+my $task_id = $params->{'id'}     // return undef;
+my $to      = $params->{'to'}     // return undef;
+my $actor   = $params->{'actor'}  // 'system';
+my $note    = $params->{'note'}   // '';
+```
+
+- validates the transition is legal for current state
+- updates task hashref in memory
+- appends history entry: `{ time => ntime(), to => $to, actor => $actor, note => $note }`
+- persists updated task back to yaml file via `format.yaml.write_file` (or
+  equivalent — check what exists in `modules/format.yaml.*`)
+- calls `valued.tree.record_outcome` with outcome mapped from state:
+  completed → 'completed', blocked → 'blocked', all others → no call
+
+## style
+
+- lowercase comments, `[ word ]` bracket annotations
+- `$ARG` not `$_`, `@ARG` not `@_` where used implicitly
+- `<valued.index>->{}` not `$data{'valued.index'}{}` for dotted data keys
+- use `<[base.logs]>->( N, fmt, args )` for logging, not warn/print
+- check `modules/task.init_code` for existing data structure layout before
+  writing — match whatever keys it already uses for task storage
+
+## acceptance
+
+- `p7c task.start <id>` transitions a loaded task to in_progress
+- `p7c task.complete <id>` transitions to completed, yaml updated,
+  valued tree node refs incremented
+- `p7c task.block <id> <reason>` transitions to blocked, refs decremented
+- history section present in yaml after each transition
+- no regression in task.init_code yaml loading
+
+#,,..,,..,,,.,,,,,,,.,...,,,,,,.,,.,,,,,.,..,,..,,...,..,,,,.,..,,,,,,..,,,..,
+#XKXCPQDUOTQJHJDDIAEBVYOKODSNQWUVE5VQYD5AVBHJBM5PWBJB4OTNEM4HHRJS7V3Y6TONNKCSM
+#\\\|AQV3NC3CFQDN3AK2FGZEWBGHZY2IYM6BD4UO3SVHEXJD3VNETA5 \ / AMOS7 \ YOURUM ::
+#\[7]GLBTUOQ4CRC54QSYARZW43DVBZWKVSJ3IQHZOFPIYPNUZS23WCBI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
