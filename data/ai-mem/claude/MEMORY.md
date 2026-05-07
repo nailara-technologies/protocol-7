@@ -37,6 +37,7 @@
 - `topic-coding-zenka-templates.md` — 50+ context templates, 16+ tools, tree tools, autonomous loops
 - `feedback-p7c-multiline.md` — p7c cannot handle multiline task descriptions; use single-line or templates
 - `feedback-coding-zenka-edits.md` — local LLM often describes edits instead of applying them; verify results
+- `feedback-coding-zenka-reasoning.md` — low reasoning → premature task_complete mid-investigation; use medium for tasks needing discovery + implementation
 - `feedback-coding-zenka-inject.md` — use `p7c coding.inject-message <id> <msg>` to redirect stuck model mid-task with explicit file paths
 - `feedback-arg-regression.md` — local LLM reverts $ARG→$_ after context compaction; verify all edits
 - `topic-tool-suggestions.md` — LLM-suggested tools/improvements, prioritized; implemented/deferred/sources
@@ -328,8 +329,8 @@
 - Pattern: `my @non_num = grep { defined $data_ref->{$ARG}->{$key} and not looks_like_number(...) } keys $data_ref->%*`
 - Global `$SIG{__WARN__}` exists — if wrapping warn handler, capture `$prev_warn = $SIG{__WARN__}` first and call through
 
-#,,..,,.,,...,,,.,,..,..,,...,,..,.,.,...,...,..,,...,...,.,.,,.,,.,,,,,,,,..,
-#5KGNEZMFWAJVDHQ23XJKY2PVEZO6426TVIKRZJHUJL2T7U4FSHPCME3QCDMVWXRIZEYRTHD5HY5SK
-#\\\|FAOV7ZP6GGLSVTAGVA6MZM3LR6TVCMHXN23SJT3L3NVNXM6TCW3 \ / AMOS7 \ YOURUM ::
-#\[7]TDSIVQODUROKVTNLQZHNKD4WAB7WVPRWVHZZUFUXCIXPEUSR2YAQ 7  DATA SIGNATURE ::
+#,,,.,..,,,.,,,,,,.,.,,,.,,.,,,,.,,..,...,,,,,..,,...,...,.,,,,,.,.,,,,.,,,.,,
+#6CVLVL2TWVF7MJ5E4TZUXI6OTOIWR4HGNZZMWR7USCHPBNWOOMYGW2Y447N7XDN6DSRH3CNSU6XO2
+#\\\|KN23S5BTC6TCWN3I7NOAFYV4CHM7YPRFWFUDYED5E2YCSBVMZR5 \ / AMOS7 \ YOURUM ::
+#\[7]W2F4TGUQLJGZ4S2MVCABTLGQKJBRGXHDENWTBB6MK6SOZRUHFWAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
