@@ -15,22 +15,26 @@ my $max_descr = $args->{'max_descr'} // 55;
 my $root = <system.root_path> // '.';
 
 ## resolve path ##
-my $scan_dir = $path =~ m|^/| ? $path : "$root/$path";
-$scan_dir = Cwd::abs_path($scan_dir) // $scan_dir;
+my $scan_path = $path =~ m|^/| ? $path : "$root/$path";
+$scan_path = Cwd::abs_path($scan_path) // $scan_path;
 
-return 'error: path not found' unless -d $scan_dir;
+return 'error: path not found' unless -e $scan_path;
 
 ## collect files ##
 my @files;
-find(
-    sub {
-        return if -d $ARG;
-        return if $ARG =~ m{\.(orig|bak|~|tmp|swp)$};
-        return if $ARG =~ m{^\.#};                      ## emacs locks ##
-        push @files, $File::Find::name;
-    },
-    $scan_dir
-);
+if ( -f $scan_path ) {
+    push @files, $scan_path;
+} else {
+    find(
+        sub {
+            return if -d $ARG;
+            return if $ARG =~ m{\.(orig|bak|~|tmp|swp)$};
+            return if $ARG =~ m{^\.#};                      ## emacs locks ##
+            push @files, $File::Find::name;
+        },
+        $scan_path
+    );
+}
 
 my @violations;
 
@@ -115,16 +119,15 @@ for my $v (@sorted) {
         $prev_file = $v->{'file'};
     }
     $out .= sprintf "  L%-4d  %-16s  %2d>%-2d  %s\n",
-        $v->{'line'},
-        $v->{'type'}, $v->{'len'},
+        $v->{'line'}, $v->{'type'}, $v->{'len'},
         ( $v->{'type'} eq 'descr_too_long' ? $max_descr : $max_line ),
         $v->{'text'};
 }
 
 return $out;
 
-#,,,.,.,,,,,,,,,,,,..,.,,,.,.,.,,,,,.,.,,,,,.,..,,...,...,.,,,..,,,..,.,,,,.,,
-#UIH6MKCMEWWPSLRSE67AHWEDFAZ77YPAZ5FJCSHES7CYG7LTKVQO3KZG4L7OMCL7W5IWAEH7VSQLS
-#\\\|352AKENZMHSYRFN5FK7ZFJJD5P4DQMWQITQZBJMY2UAGE6ZM5JM \ / AMOS7 \ YOURUM ::
-#\[7]II6BSTOGTH75NGB5RWUX6DQSYLRYKKBRS6IQ4ZEGG54BKO7YG2CQ 7  DATA SIGNATURE ::
+#,,..,,,.,.,.,,..,,,,,,.,,..,,.,,,,..,,,,,...,..,,...,..,,...,.,,,..,,,..,...,
+#DI5OIO7N3QD45WFFDQ5EJU3FOKGNRFCCQ2RMZL3J4DVJM7AC2V6VIBQJLPQ5VJDV25E2TIWXSROGI
+#\\\|HFCFT2Y2QIS2DQ37QON7TXQUD5WCS7UDRKPBTKZDC6JUI223SCU \ / AMOS7 \ YOURUM ::
+#\[7]YUSSQXMTIA2LA4ELRRVIZCQDBCBDUPQ4IZC4P3LN4X6TSFREOUBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
