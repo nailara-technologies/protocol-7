@@ -2,7 +2,17 @@
 name: namespace-tree-intelligence
 description: Architectural vision — the deduplicated namespace tree IS the intelligence layer, unifying code/data/state/history/planning with branch summarization and universal access
 type: project
+originSessionId: 941ef93c-3dcf-4d15-8c40-ccd709e0510b
 ---
+## Implementation Note (2026-05-07)
+
+`valued.*` modules are the universal tree primitive — not task-specific.
+The N+f structure (refs=integer, weight=fraction) is identical whether nodes
+represent task dependencies, deduplication hits, or semantic convergence.
+The deduplication tree, content/semantic tree, and decision tree are all
+the same code with different node payloads and different ref-counting callers.
+`valued.init_code` + `valued.node.*` + `valued.resolve` + `valued.tree.load`
+are the shared substrate for all of them.
 
 ## Core Insight (2026-03-29)
 
@@ -144,8 +154,8 @@ The tree unifies the currently separate concepts:
 
 One namespace, one summarization engine, one access protocol.
 
-#,,.,,.,,,,..,,,.,.,,,.,.,,.,,.,.,,.,,,..,.,.,..,,...,...,...,...,,..,.,.,.,.,
-#3ZKX6S3MIHMG36X2CN3UW5EXVNFS7HZNZYJK7VXV7EN5IKVYS6FSJQBSDPGEFQOO5DXGZ3HI3XMFK
-#\\\|HGJOLT4IFSJHS3QKHG36PQSLLVZI2SUQJL4YEVSVDHK2POQTELH \ / AMOS7 \ YOURUM ::
-#\[7]DIBLFXOMVGPWMTOG2XABLL5TE6MB7EVZI4M4USHSUOG6ISNJZWCY 7  DATA SIGNATURE ::
+#,,,.,,.,,..,,,.,,,,,,,..,.,,,.,,,,..,.,,,.,,,..,,...,...,...,...,,..,.,,,,,.,
+#BSI7ODBZGR5V33WUU3QSJZVCRPCO7ZMB4OB366NHGAE7WUSRVSNYJXZUWWNCUKQV5SCU7E7TB4KOG
+#\\\|IYRV22BOLWYBPCVN4S7NLEPNTINHGUC3GAKHA45ESBFZ2C4XJPD \ / AMOS7 \ YOURUM ::
+#\[7]OHFMYCBNQKI2G6JX2VLWFZMZA77BYTSOLMDIWI2HLOP3PYIMRUDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
