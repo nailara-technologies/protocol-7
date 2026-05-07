@@ -55,12 +55,20 @@ $task->{'updated_at'} = $ntime_b32;
 ## persist to disk
 <[task.persist.save]>;
 
+## record blocked/failed outcome in valued tree ##
+<[valued.tree.record_outcome]>->(
+    {   'node_id' => $task->{'node_id'}
+            // join( qw| . |, 'task', lc $task_id ),
+        'outcome' => 'blocked',
+    }
+);
+
 <[base.logs]>->( 1, ':. task %s failed: %s', $task_id, $error || 'no error' );
 
 return { 'mode' => 'true', 'data' => "failed $task_id" };
 
-#,,,.,...,,,,,.,.,...,.,,,.,.,,.,,...,,,.,,,.,..,,...,...,.,,,,,.,...,,,.,..,,
-#3O7IVFDDKIDYFBV4J4KOZ3SH365S2ERJXO33Y2FGWWWWNCADCYMWVALQZOTYGB5B22SMONMPJT7VG
-#\\\|B2HDLCLK3ZXFOLY4X2WXD2PVMZQ74KQFTU5USKGUI3QC757Y43X \ / AMOS7 \ YOURUM ::
-#\[7]EO6UOX24MLAEMDWTGE7D3YAVS7VPRA2BYZKZBZNDMXYISS57FUAY 7  DATA SIGNATURE ::
+#,,,,,,,,,,,,,.,.,..,,,..,.,.,,,,,...,.,.,.,,,..,,...,...,..,,,..,,,.,.,,,,,,,
+#GZ3ZCIT5LSCIOGW7LIIJXDIOZ4DY5IGLUZVIUDPO35UAWMSGQXWMAWF3QRHZHVGZNHPAVU2G3I354
+#\\\|EEPFSOV7PNXR2VIVIGVCZV5NWNQRLNPE7OKU2ETAADNMXA7CYKQ \ / AMOS7 \ YOURUM ::
+#\[7]SAI7KBBRQYAJ4TSUIT7ZGH3KRYEBZDWHVMK6FWBDS54VUBZLMICY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

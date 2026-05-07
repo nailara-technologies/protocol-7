@@ -55,12 +55,20 @@ $task->{'updated_at'} = $ntime_b32;
 ## persist to disk
 <[task.persist.save]>;
 
+## propagate completion upward in valued tree ##
+<[valued.tree.record_outcome]>->(
+    {   'node_id' => $task->{'node_id'}
+            // join( qw| . |, 'task', lc $task_id ),
+        'outcome' => 'completed',
+    }
+);
+
 <[base.logs]>->( 1, ':. task %s completed', $task_id );
 
 return { 'mode' => 'true', 'data' => "completed $task_id" };
 
-#,,..,...,...,..,,,.,,,.,,,,,,.,.,.,.,,,.,,,,,..,,...,...,..,,,,.,...,..,,,,,,
-#6GWACOCVATOBHZWE4YH2ZL4HPOZZTJQCBS4A2VGE54VK562GV7B5OUIN33FPHRDXPZB62IN4LPUNY
-#\\\|MFQFD54UPSXGFIDRZBE4VHUH4OA2HU2QZL3HNNURCQNL5SOEW6Z \ / AMOS7 \ YOURUM ::
-#\[7]2FOUELVIEMDTKHAII3UB3DH6UAVCE34BFMP3TLIY65VWWZ6J62CA 7  DATA SIGNATURE ::
+#,,,.,.,,,,..,,..,.,.,...,..,,,..,,.,,,,,,,,,,..,,...,...,.,,,,,.,.,.,.,.,,,.,
+#JYDZWRW3CVN3Y5KRYDRNZOTIVSSJC2IVQOJIA7QMT7OJRWELCXIU4FU2UACGPTC7EIWBRHRSFQWHU
+#\\\|CYDBCFLMVBC2AHL6TUZBILYXKKY25S253Q3LH32BUSXQJJ55K3T \ / AMOS7 \ YOURUM ::
+#\[7]45RB6XCA4GP7ZPXJ6XZKYPOYJQ2L7A4ETHLSJIIHROZC5GXCTYCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
