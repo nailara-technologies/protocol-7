@@ -1,0 +1,108 @@
+---
+name: module-header-normalization
+descr: audit and fix module header convention violations — line length, descr length, formatting
+budget: 4000
+sections:
+  ## style conventions reference ##
+  - provider: context.style.guide
+    priority: 1
+    budget_pct: 10
+    label: style conventions
+
+  ## instructions ##
+  - static: |
+      audit and fix module header convention violations in protocol-7 modules.
+
+      ## round budget: aim for 15-25 tool rounds max ##
+      ## process files in batches, call task_complete when done ##
+
+      ## scope ##
+      {{scope}}
+
+      ## conventions ##
+
+      ### line length ###
+      - ALL lines in ALL files: maximum 78 characters
+      - the signature footer width is 78 chars — code must not exceed it
+      - this applies to header comments, code, and strings
+
+      ### descr length for cmd/console modules ###
+      - *.cmd.* and *.console.* modules: descr = max 55 characters
+      - reason: descr content is shown in command list tables
+      - other module types: no specific descr limit beyond 78 chars
+
+      ### header format ###
+      ```
+      ## [:< ##
+
+      # name  = namespace.module.name
+      # param = <required> [optional]
+      # descr = concise lowercase description
+      ```
+
+      ## available tools ##
+
+      | tool | purpose |
+      |------|---------|
+      | module_convention_check | scan directory for violations, sorted by severity |
+      | regex_replace_preview | preview regex replacement diff before applying |
+      | regex_replace_apply | apply previewed replacement with checksum verification |
+      | regex_replace_undo | undo last replacement if something went wrong |
+      | perltidy | auto-format perl file with project settings |
+      | read_file | read file content for inspection |
+
+      ## process ##
+
+      ### step 1: scan for violations ###
+
+      run module_convention_check on the scope directory.
+      this gives you a sorted list of violations:
+      - longest lines first
+      - shorter filenames first [less contextualized = more important]
+
+      ### step 2: fix in priority order ###
+
+      for each violation:
+      1. read_file to see the full context
+      2. determine the correct fix:
+         - for long lines: split string with concatenation (.), reword, or use perltidy
+         - for long descr in cmd/console: reword to be more concise
+         - for spacing issues in headers: normalize # name =, # descr =, # param =
+      3. use regex_replace_preview to see the diff
+      4. if the diff looks correct, use regex_replace_apply to commit
+      5. if something goes wrong, use regex_replace_undo
+
+      prefer perltidy for structural formatting issues.
+      prefer regex_replace for targeted header fixes.
+
+      ### step 3: verify ###
+
+      re-run module_convention_check on the same scope.
+      confirm no remaining violations.
+
+      ### step 4: summary ###
+
+      ## header normalization summary ##
+
+      **files scanned**: N
+      **violations found**: N
+      **fixed with regex_replace**: N
+      **fixed with perltidy**: N
+      **reworded descr**: N
+      **remaining issues** [if any]: list with reason
+
+      call task_complete with counts.
+    priority: 2
+    budget_pct: 90
+    label: header normalization instructions
+
+on_complete:
+  - when: [output_contains=fixed]
+    action: memory_update
+    topic: "header-normalization:{{scope}}"
+
+#,,.,,,..,,,.,,,,,,..,,.,,,..,,..,.,,,,,.,.,.,..,,...,...,...,.,,,,,.,...,...,
+#XNKHAORR67F56T3W7OGB2MUCXMBORS4PEJUXRRDALOSTKAWGE4FYSWUH6XN3IPN62TVFFDDQFFYSK
+#\\\|O75ATVXWMAVE672QSHFR3OKMXP27RXRACGHH2JRBLUPBSYLWEZT \ / AMOS7 \ YOURUM ::
+#\[7]B25SSFVJGAUDFJBBGPHHQAA5GC7VOLBDFS55ZXHNNVNGVSYSFUAA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
