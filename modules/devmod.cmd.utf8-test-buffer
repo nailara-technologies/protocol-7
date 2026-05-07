@@ -1,0 +1,76 @@
+## [:< ##
+
+# name  = devmod.cmd.utf8-test-buffer
+# descr = fill test buffer with multi-byte UTF-8 lines
+# param = [buffer-name] [line-count]
+
+my $param = shift // '';
+my $args  = {};
+
+if ( ref $param eq qw| HASH | ) {
+    $args = $param;
+} elsif ( length $param ) {
+    $args->{'args'} = $param;
+}
+
+my $buffer_name = $args->{'args'} // 'utf8-test';
+$buffer_name =~ s|^[ \t]+||;
+$buffer_name =~ s|[ \t]+$||;
+
+my $line_count = 8000;    ## default: enough to exceed STRM-SIZE threshold ##
+<[base.log]>->( 0, "utf8-test-buffer: version=8000 line_count=$line_count" );
+if ( $buffer_name =~ s|\s+(\d+)$|| ) {
+    $line_count = 0 + $1;
+}
+
+$buffer_name =~ s|\s.*$||;
+$buffer_name = 'utf8-test' if not length $buffer_name;
+
+## ensure buffer exists ##
+$data{'buffer'}{$buffer_name} //= {
+    'data'     => [],
+    'max_size' => 262144,
+};
+
+my $buf = $data{'buffer'}{$buffer_name};
+$buf->{'data'} = [];
+
+my @utf8_chars = (
+    "\x{26A0}",     ## ⚠ warning sign
+    "\x{1F600}",    ## 😀 grinning face
+    "\x{2764}",     ## ❤ heavy heart
+    "\x{2600}",     ## ☀ sun
+    "\x{2601}",     ## ☁ cloud
+    "\x{2615}",     ## ☕ hot beverage
+    "\x{2705}",     ## ✅ check mark
+    "\x{274C}",     ## ❌ cross mark
+    "\x{1F525}",    ## 🔥 fire
+    "\x{1F4A1}",    ## 💡 light bulb
+);
+
+my $line_num = 0;
+while ( $line_num < $line_count ) {
+    my $char = $utf8_chars[ $line_num % @utf8_chars ];
+    my $idx  = $line_num + 1;
+    push $buf->{'data'}->@*,
+        sprintf( 'test-line-%05d : %s UTF-8 test content', $idx, $char );
+    $line_num++;
+}
+
+my $total_chars = @{ $buf->{'data'} };
+my $first_line  = $buf->{'data'}[0]  // '';
+my $last_line   = $buf->{'data'}[-1] // '';
+
+return {
+    'mode' => qw| SIZE |,
+    'data' => join( '',
+        "UTF-8 test buffer '$buffer_name' initialized\n",
+        "lines: $total_chars | first: $first_line | last: $last_line\n",
+        "use: show-buffer $buffer_name\n" )
+};
+
+#,,,,,.,.,,..,.,.,,..,..,,,,.,,..,..,,..,,,,,,.,.,...,.,.,...,,,,,.,.,,..,,,,,
+#WO45N4BCWF32Q6P47R7PGDQ3C4ZM3WEOK2COZB5R7EMTKTHE47PB46SEJR6SJMJV2IPNK3CGNBZ52
+#\\\|EXZKZRO4AHXVAIWEB7UCTF4Q7UDEOZNEYYR676DR7NWOXLLKZAT \ / AMOS7 \ YOURUM ::
+#\[7]G57IT37NI5GLE5FDS7GF4RSHJGPRLLTAEKOOFTEOKEYJQG6UUUBI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -52,6 +52,8 @@ if ( $mode =~ m,^(?:TRUE|FALSE|WAIT|GET|TERM)$, ) {
 }
 
 my $written = bytes::length($frame);
+utf8::downgrade( $session->{'buffer'}->{'output'}, 1 )
+    if utf8::is_utf8( $session->{'buffer'}->{'output'} );
 $session->{'buffer'}->{'output'} .= $frame;
 
 <[base.stream.record_emission]>->( $sid, $cmd_id, $written, $mode )
@@ -61,8 +63,8 @@ $session->{'buffer'}->{'output'} .= $frame;
 
 return $written;
 
-#,,..,.,,,,,.,...,,..,.,,,.,,,.,,,,,.,,..,.,,,..,,...,...,..,,,.,,...,..,,...,
-#VT7HG567IUF6WI23OAVQL3IUCAC36PFIYGICQKC6ZTLX7DY4IPJ56D7OTO6JZT7L4JFAC7WGV7UZE
-#\\\|EJVMDL7WQJGHI5NYG5CCWAZLFJQMJDW4HG2YU3EEKUR356QN3EC \ / AMOS7 \ YOURUM ::
-#\[7]UG6ZZOYFQGXZQABCAYHWUF4V52R442D4BD2ZWHZ5KVDVCSCTNMCA 7  DATA SIGNATURE ::
+#,,.,,..,,.,,,.,.,.,,,,,,,.,,,,,.,,,,,,..,,,,,..,,...,...,..,,,,.,,,,,,..,,..,
+#DX4D3K7X5M27VICFNGVGN3QJOFCRL35Z2L4GW7UZOB62TDXXCV4VMI4IFGQ54YTBQHXLO5JBVSOD4
+#\\\|JIHG5V6ITXWJQYCCNE6GQCZTQCJVZEQIQYTXN6WMHRJQB5FYK3O \ / AMOS7 \ YOURUM ::
+#\[7]VKOH6QQZIYBMJXMN2RTTIIQOI5MGAGNLJQACHDYFTEGFQBH7QYCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

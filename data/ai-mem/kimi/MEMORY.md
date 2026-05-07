@@ -1882,10 +1882,22 @@ Added two-tier timeout system:
 - `finish=undef` (connection closed without finish_reason) → enqueues another round
 - `finish=stop` with no tool calls → completes normally (model chose not to use tools)
 
+## UTF-8 Buffer Handling + Large-Stream Write Fix (2026-05-07) — COMPLETE
+
+- `bytes::length` / `bytes::substr` explicitly used for all byte-count protocol
+  logic (SIZE/STRM/STRM-SIZE). `autoload('bytes')` does NOT enable the pragma.
+- `p7c` large-stream blocking **resolved** (Claude session, same day): root cause
+  was `base.handler.write` var watcher stalling after EAGAIN once no more data was
+  being appended. Fix: on EAGAIN, create a per-session IO write-ready watcher
+  (`write_handler`) that retries when the kernel socket buffer drains. Verified:
+  `p7c coding.show-buffer U8-TEST | wc -l` → 8000 ✓
+- STRM-SIZE stream cleanup on client disconnect also fixed (`base.session.cancel_route`).
+- See `data/ai-mem/kimi/SESSION-2026-05-07-UTF8-STRM-SIZE.md` for full details.
+
 ---
 
-#,,..,,,.,,,,,.,.,.,.,,,,,.,.,.,.,...,,.,,,..,.,.,...,..,,...,..,,,,.,,..,,,.,
-#F7D3KMPRHCQN2Y6R2NUKBOWSAA6SYY6GNQUAW3I2KOHFAUL7XWGOGAQMYY53O7TD6QFDGFBTN7C5C
-#\\\|QSIFTVY2VNLG7P7TVJYRF5AS3UZW2RYYLOV7Q75YQ6YF6TPFH74 \ / AMOS7 \ YOURUM ::
-#\[7]FY6GV73CUFIRBCLGIA23YYMUH7W4BRVUANX57PRIPR22WDKH7MCY 7  DATA SIGNATURE ::
+#,,.,,,.,,.,,,,..,.,,,,,,,...,.,,,..,,,,.,,,.,.,.,...,...,.,.,.,.,,..,...,,,.,
+#7QGJNI4XGQXBUHLEU5OXVM6USQYCLHTWMHJTNIPIOATAVNJQXIJFHP26GJT3KGLSHSRE7KBBT6I3Y
+#\\\|IJOGY7GD2VRZLZMJYD6EVKOVNDPOLPJXADMAKNJMDYZ3AKCXQYJ \ / AMOS7 \ YOURUM ::
+#\[7]GMQFKSS5XU6DQIGTWQO6P6ZAYDM54U23QT4XGHKRNCVYOYGIJGBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

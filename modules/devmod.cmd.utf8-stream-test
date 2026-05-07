@@ -1,0 +1,60 @@
+## [:< ##
+
+# name  = devmod.cmd.utf8-stream-test
+# descr = return large SIZE reply with multi-byte UTF-8 content
+# param = [line-count]
+
+my $param = shift // '';
+my $args  = {};
+
+if ( ref $param eq qw| HASH | ) {
+    $args = $param;
+} elsif ( length $param ) {
+    $args->{'args'} = $param;
+}
+
+my $line_count = $args->{'args'} // 6000;
+$line_count =~ s|[^0-9]||g;
+$line_count = 6000 if not length $line_count or $line_count < 1;
+
+my @utf8_chars = (
+    "\x{26A0}",     ## ⚠ warning sign
+    "\x{1F600}",    ## 😀 grinning face
+    "\x{2764}",     ## ❤ heavy heart
+    "\x{2600}",     ## ☀ sun
+    "\x{2601}",     ## ☁ cloud
+    "\x{2615}",     ## ☕ hot beverage
+    "\x{2705}",     ## ✅ check mark
+    "\x{274C}",     ## ❌ cross mark
+    "\x{1F525}",    ## 🔥 fire
+    "\x{1F4A1}",    ## 💡 light bulb
+    "\x{1F30D}",    ## 🌍 earth globe
+    "\x{1F680}",    ## 🚀 rocket
+);
+
+my @lines;
+my $line_num = 0;
+while ( $line_num < $line_count ) {
+    my $char = $utf8_chars[ $line_num % @utf8_chars ];
+    my $idx  = $line_num + 1;
+    push @lines,
+        sprintf( 'stream-test-line-%06d : %s multi-byte UTF-8 content here',
+        $idx, $char );
+    $line_num++;
+}
+
+my $data = join( "\n", @lines ) . "\n";
+
+return {
+    'mode' => qw| SIZE |,
+    'data' => "UTF-8 stream test: $line_count lines, "
+        . bytes::length($data)
+        . " bytes\n\n"
+        . $data
+};
+
+#,,..,...,,,,,...,,,,,,..,,,,,,.,,...,.,.,..,,.,.,...,...,..,,..,,,..,.,,,.,,,
+#6VMLWHQUVPKYOXRSHLG7O6HHFMWCZ5U5AO27VTDJEQWRSQLRSWYVV3NW6MEZ55UHWPDTEWFRR6VIQ
+#\\\|VKX23OJZHDOWAMFCCL2RBA2QHS3NTYNSMUYNXOX3BEC7MTRFRIG \ / AMOS7 \ YOURUM ::
+#\[7]VJEKQHEJ46AIGJLXV5TAJNYFLQJTUD53A3Y44LK7SBALTXERK2CY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
