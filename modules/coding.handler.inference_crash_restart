@@ -3,8 +3,8 @@
 # name  = coding.handler.inference_crash_restart
 # descr = Restart inference server after crash with same model
 
-my $data    = shift;
-my $backend = $data->{'params'}{'backend'} // 'gpu';
+my $handler_data = shift->w->data;
+my $backend      = $handler_data->{'backend'} // 'gpu';
 
 <[base.logs]>->(
     1, '[inference_crash_restart] restarting %s server after crash', $backend
@@ -27,6 +27,12 @@ if ( not length $model_path ) {
     $server_info->{'status'} = qw| failed |;
     return FALSE;
 }
+
+## pause task queue until backend is ready again ##
+<coding.task.queue_paused> = 1;
+<[base.logs]>->(
+    1, '[inference_crash_restart] task queue paused during restart'
+);
 
 ## clear crashed status ##
 $server_info->{'status'} = qw| restarting |;
@@ -65,8 +71,8 @@ if ($result) {
     return FALSE;
 }
 
-#,,.,,...,...,.,.,.,,,..,,,,,,.,,,,.,,.,,,...,..,,...,...,.,,,.,,,...,,.,,,,,,
-#K3EEKFWCVAZII3QJZB43JQSY6LNA3TDYSMTYKH7LLCUJSNSDJOPMINSO33KI4JMXSFD6IKOVDWQFC
-#\\\|Y7RP7LOCMJHEL7YXMODUA5XEDASAESZ4JMDYVE673UJ7UVZCSOR \ / AMOS7 \ YOURUM ::
-#\[7]RE3TSDQATJ5I3ZQRKUOOA37BXXZVMXFH52N7OU3GS6TOPWJJZUCA 7  DATA SIGNATURE ::
+#,,,.,.,,,,,,,.,.,,.,,..,,...,,.,,.,.,..,,...,..,,...,...,...,.,.,.,.,,.,,,,,,
+#6W3BHLB3FEYRUP6VENVITOI6LWQMUNDL7GIDYBAT2637HWCLC3QHCTJ3PS5GVXYZDQ6MDITHMGYKA
+#\\\|5F47SI7KFVGX3CFEPZK6EZJECUMF5KCUXVGQKNCKZIFKWOAJPEI \ / AMOS7 \ YOURUM ::
+#\[7]YLUONI44NJ37GMBMGKZ5GSRPNFP3OZJWZHQM2AEDZZPQZBB7JUBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
