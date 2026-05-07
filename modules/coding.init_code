@@ -343,6 +343,21 @@ if ( not $already_initialized ) {
 ## register with event system
 <watcher_list.coding.task_processor> //= TRUE;
 
+## perltidy tool options [ matching bin/ptd project defaults ] ##
+my $ptd_opts = <coding.tools.perltidy.options> // [];
+if ( not ref $ptd_opts eq qw| ARRAY | or not @$ptd_opts ) {
+    $ptd_opts = [
+        qw|
+            -q -pbp
+            -wc=13 -cs
+            -utf8 -l=78
+            -bar -sot -ce
+            -nst
+            |
+    ];
+    <coding.tools.perltidy.options> = $ptd_opts;
+}
+
 <coding.state.initialized> = TRUE;
 
 ## validate tool dispatch table at init time [ catch errors early ]
@@ -350,7 +365,8 @@ if ( exists $code{'coding.tools.definitions'} ) {
     my @missing_dispatch;
     my @undefined_dispatch;
 
-    ## tools handled directly in coding.tools.dispatch [ not via handler modules ] ##
+    ## tools handled directly in coding.tools.dispatch ##
+    ## [ not via handler modules ] ##
     my %dispatch_table_tools = map { $_ => 1 } qw(
         list_files search_code dep_graph ncode_search ncode_search_context
         edit_file record_question record_suggestion
@@ -432,8 +448,8 @@ if ( not $already_initialized ) {
 
 return 0;
 
-#,,,,,.,,,,,.,...,.,.,,..,,..,.,.,,..,..,,...,.,.,...,...,.,.,,..,,.,,,..,.,,,
-#BDZ2A2SMVTUS6GADJPWSIVMXGOTZXNKU3XTG67ZSVQJ4FN43SUIBMSHDYMXCN5BMF6D6SKAFRHK5A
-#\\\|T7NAOPQVKFFO5BDINIV563RQBHTLPEBWUBHSO5ROM4VEIKLIZ5T \ / AMOS7 \ YOURUM ::
-#\[7]6EXDIPGWTQUCARE6EUIHYYGBQCJ2RTKIHVMC2L4DAWQQVDEMXKCY 7  DATA SIGNATURE ::
+#,,,,,.,,,,.,,,,.,,..,...,,,,,...,,..,...,...,.,.,...,...,.,.,.,,,..,,,,.,.,.,
+#EDI2WHH47YQSLRCQ2QHY7B6GYQ5POY5W4PMW2K6PYVN7MJYEK2T4V7C6JSEDLEPF2OV2V5F3RA3E6
+#\\\|6KUFUFLYT3VC2V3GHHSVF7QPWCVLWZQJP733BPKXHNXIIK5V2T2 \ / AMOS7 \ YOURUM ::
+#\[7]F5XC26B7QZKXQXDB2QM7OCLTFZXHBHKSUVIO4QMBZNQ7RHB6ZWAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
