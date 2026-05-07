@@ -76,6 +76,115 @@ if ($use_delegation) {
     <models.task.active_job> = $job_id;
 }
 
+## check for iteration flag — supports bool or { enabled => 1 } ##
+my $iter_param = $params->{'iteration'} // 0;
+my $use_iteration
+    = ref $iter_param eq qw| HASH |
+    ? ( $iter_param->{'enabled'} // 0 )
+    : $iter_param;
+
+## route through iteration loop if enabled ##
+if ($use_iteration) {
+    <[base.logs]>->(
+        2, ': task %s: routing through iteration loop', $task_id
+    );
+
+    my $result = <[iteration.loop]>->(
+        {   task_id      => $task_id,
+            result       => '',
+            criteria     => $params->{'acceptance_criteria'} // [],
+            node_id      => $params->{'node_id'}             // '',
+            max_attempts => $params->{'max_attempts'}        // 5,
+        }
+    );
+
+    ## handle iteration result ##
+    if ( $result && ref $result eq qw| HASH | ) {
+        my $mode = $result->{'mode'} // '';
+
+        if ( $mode eq qw| true | ) {
+            ## iteration complete, task success ##
+            <[base.logs]>->(
+                1, ': task %s: iteration complete, task successful', $task_id
+            );
+            <models.task.active_id>  = undef;
+            <models.task.active_job> = undef;
+            <[jobqueue.move_job]>->( $job_id, qw| complete | );
+            return TRUE;
+        } elsif ( $mode eq qw| retry | ) {
+            ## iteration requires retry with updated prompt ##
+            my $issues = $result->{'data'} // '';
+            <[base.logs]>->(
+                2,        ': task %s: iteration requires retry [ issues=%s ]',
+                $task_id, $issues
+            );
+
+            ## append issues to prompt as user message ##
+            my $updated_prompt = $prompt;
+            if ( length $issues ) {
+                $updated_prompt
+                    .= "\n\n[iteration issues to fix: " . $issues . "]";
+            }
+
+            ## re-dispatch task with updated prompt ##
+            <[base.logs]>->(
+                1, ': task %s: re-dispatching through iteration loop',
+                $task_id
+            );
+
+            return <[models.task.execute]>->(
+                {   'job_id' => $job_id,
+                    'params' => {
+                        'task_id'             => $task_id,
+                        'model'               => $model,
+                        'prompt'              => $updated_prompt,
+                        'target_cmd'          => $target_cmd,
+                        'acceptance_criteria' =>
+                            $params->{'acceptance_criteria'} // [],
+                        'node_id'      => $params->{'node_id'}      // '',
+                        'max_attempts' => $params->{'max_attempts'} // 5,
+                    }
+                }
+            );
+        } elsif ( $mode eq qw| escalate | ) {
+            ## iteration escalation - mark task blocked ##
+            my $reason = $result->{'data'} // 'escalation';
+            <[base.logs]>->(
+                0,        ': task %s: iteration escalation triggered [ %s ]',
+                $task_id, $reason
+            );
+
+            <[protocol-7.route-send]>->(
+                {   'command'   => 'task.fail',
+                    'call_args' =>
+                        { 'args' => "$task_id iteration escalated: $reason" }
+                }
+            );
+
+            <models.task.active_id>  = undef;
+            <models.task.active_job> = undef;
+            <[jobqueue.move_job]>->( $job_id, qw| blocked | );
+            return FALSE;
+        } else {
+            ## unknown iteration mode - fail task ##
+            <[base.logs]>->(
+                0,        ': task %s: unknown iteration mode [ %s ]',
+                $task_id, $mode
+            );
+            <[protocol-7.route-send]>->(
+                {   'command'   => 'task.fail',
+                    'call_args' =>
+                        { 'args' => "$task_id unknown iteration mode" }
+                }
+            );
+            <models.task.active_id>  = undef;
+            <models.task.active_job> = undef;
+            <[jobqueue.move_job]>->( $job_id, qw| error | );
+            return FALSE;
+        }
+    }
+}
+
 ## fall back to direct dispatch ##
 return <[models.task.fallback-direct]>->(
     {   'task_id'    => $task_id,
@@ -86,8 +195,8 @@ return <[models.task.fallback-direct]>->(
     }
 );
 
-#,,,.,,,,,,..,,..,.,,,,,,,.,.,.,,,..,,,..,.,,,..,,...,...,,,,,.,.,,..,,,.,,,,,
-#LPDJTMK35VGUZ6MYAFQUB5I4XQ2MI4GLEFP7ZYHVADBVBLUD36EWSASMBJSEKXLHVY7EEGSKCP5FO
-#\\\|C5EFGNXP4ENMGM6K2HULKYYD5XBTWJUHIPWO2ZBAMOJ752WXRS3 \ / AMOS7 \ YOURUM ::
-#\[7]23RRDNL6KRGXTO6M6WZB5UTNHQXX7LXQ26SHL6AX5YLSJVPJLCBA 7  DATA SIGNATURE ::
+#,,.,,.,.,...,,.,,..,,,.,,,,.,..,,.,,,,.,,...,..,,...,...,.,.,...,,,,,.,.,,.,,
+#Y2CHW7UTSHI6PCVLV5CA6PUTCPWVQ3Y35YZBEXM4JMJVANLBJOTMX3MKZZZBYWKRHEINLPSSAEI2Y
+#\\\|MJXWUEDGG7RFNSJDGESCXJJEBQJKQEWWJMVSSS6J6TIFDFZDK4M \ / AMOS7 \ YOURUM ::
+#\[7]H23I6LL2J36O62CY7EBNWPNAXESHMTNHQ3UXUDNZN4RT3N5ZXEBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
