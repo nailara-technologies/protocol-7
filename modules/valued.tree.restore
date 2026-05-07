@@ -1,0 +1,35 @@
+## [:< ##
+
+# name  = valued.tree.restore
+# descr = load persisted valued tree from yaml into live index
+
+<[format.yaml.pre_init]>;
+
+my $content = <[file.zenka_dir.read]>->('valued-tree.yaml');
+
+return FALSE unless defined $content and length $content;
+
+my $snapshot = <[format.yaml.load_str]>->($content);
+if ( not defined $snapshot or ref $snapshot ne 'HASH' ) {
+    <[base.s_warn]>
+        ->('valued.tree.restore: failed to parse valued-tree.yaml');
+    return FALSE;
+}
+
+my $restored = 0;
+foreach my $id ( keys %{$snapshot} ) {
+    <[valued.tree.register_node]>->( $snapshot->{$id} );
+    $restored++;
+}
+
+<[base.logs]>->( 1, 'valued.tree.restore: restored %d nodes', $restored );
+
+return $restored;
+
+#,,
+
+#,,.,,,.,,,..,.,.,,.,,,..,,.,,.,,,.,.,,.,,,,,,..,,...,...,,..,,..,...,.,,,...,
+#FNJPBOXGKETLTAEDFCOWTFC74SWWXBZLWYTC73EKSZ4RKOE66CI7BGIURD7EVUAFEVSWAHG3GS63W
+#\\\|QW3SJ37UHE2QMSLEAPH4HPJWLZTNKCIO4TJ542V2Z5V3KUFCIHN \ / AMOS7 \ YOURUM ::
+#\[7]RVQGJAF53WOAU5UXUM5LQDB72FN2VIPZDKOJ6O2NWDSKZUCA4WAI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
