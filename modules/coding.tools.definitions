@@ -1548,10 +1548,76 @@ if ( exists $code{'coding.tools.handler.regex_replace_undo'} ) {
         };
 }
 
+## perltidy — format a file with project perltidy settings ##
+if ( exists $code{'coding.tools.handler.perltidy'} ) {
+    push @tools,
+        {
+        'type'     => 'function',
+        'function' => {
+            'name'        => 'perltidy',
+            'description' =>
+                'format a perl file with perltidy using project settings. '
+                . 'runs in-place by default. use check_only=true '
+                . 'to preview issues without modifying.',
+            'parameters' => {
+                'type'       => 'object',
+                'properties' => {
+                    'path' => {
+                        'type'        => 'string',
+                        'description' => 'file path relative to project root'
+                    },
+                    'check_only' => {
+                        'type'        => 'boolean',
+                        'description' => 'if true, only report issues '
+                            . 'without modifying [ default false ]'
+                    },
+                },
+                'required' => ['path'],
+            },
+        },
+        };
+}
+
+## module_convention_check — audit module headers for convention violations ##
+if ( exists $code{'coding.tools.handler.module_convention_check'} ) {
+    push @tools,
+        {
+        'type'     => 'function',
+        'function' => {
+            'name'        => 'module_convention_check',
+            'description' =>
+                'audit module files for header convention violations. '
+                . 'reports lines exceeding max length and descr lines '
+                . 'over limit in cmd/console modules. '
+                . 'sorted by longest lines first, shorter filenames first.',
+            'parameters' => {
+                'type'       => 'object',
+                'properties' => {
+                    'path' => {
+                        'type'        => 'string',
+                        'description' => 'directory to scan'
+                            . ' [ default modules ]'
+                    },
+                    'max_line' => {
+                        'type'        => 'integer',
+                        'description' => 'max line length [ default 78 ]'
+                    },
+                    'max_descr' => {
+                        'type'        => 'integer',
+                        'description' => 'max descr length for cmd/console '
+                            . '[ default 55 ]'
+                    },
+                },
+                'required' => [],
+            },
+        },
+        };
+}
+
 return \@tools;
 
-#,,..,,,.,..,,,.,,,.,,.,.,,,.,,..,,.,,..,,...,..,,...,...,...,,.,,...,.,,,,,.,
-#G2JDL25MQTH5VVSWIY2ZUXESJDCKFVEVHLIAJOV6SHX5KPEHA6OE25U5GXOYAZDW64RQQ4MBJDV5M
-#\\\|AB4B5XOUUQSUZV4I2IIBF2HJZSMWLROUGDFDELZTE7YN3Q26BP5 \ / AMOS7 \ YOURUM ::
-#\[7]FBDODMHSKPK5XMK6XH3BLNA6FFQGA35GCMKKSZFVUDFUUUAIVIBQ 7  DATA SIGNATURE ::
+#,,,.,...,.,.,.,,,...,,..,..,,,..,..,,.,.,,.,,..,,...,...,..,,.,,,,..,,,.,.,.,
+#OR5KXS55HAJTDQEESM3BG2SBB2NT4E65HKHMMVHYQ5R7XVT46DJTDORIF2CZW4ON6EL2E46O3JT76
+#\\\|WN7Z7GOBWNQKBEBHH6WQAR7DZLRYHZRVBTJTFKZWLUO25URK4GU \ / AMOS7 \ YOURUM ::
+#\[7]CYRFJYUCMYSU7LQXHQGCRWXXNKKTIK7P5JB62BTKQS7DFQKSLMDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
