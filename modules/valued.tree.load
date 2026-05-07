@@ -1,0 +1,65 @@
+## [:< ##
+
+# name  = valued.tree.load
+# descr = load task tree seed yaml files into live valued nodes
+
+my $tree_dir = 'data/yaml/task-tree';
+
+my @seed_files = glob "$tree_dir/root.yaml $tree_dir/branches*.yaml";
+
+if ( not @seed_files ) {
+    <[base.logs]>->(
+        1, 'valued.tree.load: no seed files found in %s', $tree_dir
+    );
+    return 0;
+}
+
+my $loaded = 0;
+my $errors = 0;
+
+foreach my $path (@seed_files) {
+
+    my $yaml = <[format.yaml.load_file]>->($path);
+    if ( not defined $yaml ) {
+        <[base.s_warn]>->( "valued.tree.load: failed to parse '%s'", $path );
+        $errors++;
+        next;
+    }
+
+    ## root node — single node at top level ##
+    if ( defined $yaml->{'id'} ) {
+        <[valued.tree.register_node]>->($yaml);
+        $loaded++;
+        next;
+    }
+
+    ## branch files — hash of node_id => node_hashref ##
+    foreach my $section_key ( keys %{$yaml} ) {
+        my $section = $yaml->{$section_key};
+        next if ref $section ne 'HASH';
+
+        foreach my $node_id ( keys %{$section} ) {
+            my $node_def = $section->{$node_id};
+            next if ref $node_def ne 'HASH';
+            next if not defined $node_def->{'id'};
+
+            <[valued.tree.register_node]>->($node_def);
+            $loaded++;
+        }
+    }
+}
+
+<[base.logs]>->(
+    0,       'valued tree loaded — %d nodes, %d errors',
+    $loaded, $errors
+);
+
+return $loaded;
+
+#,,
+
+#,,,,,.,.,..,,..,,.,.,..,,,,.,,,,,...,.,,,.,.,..,,...,...,,,.,.,.,,,,,,..,,.,,
+#57KFT7CO5T5PZKDYFDB75O4GQQ5C6C7PWX6BITXRWHLCATPLNWLYXJRTKRK37RM6DN5FVMYUTAE7A
+#\\\|NJW7CJRSC45YZ5DP3UJ2UJ2TZFEEPM4DJ7AQ6XQEBLR23U57GOK \ / AMOS7 \ YOURUM ::
+#\[7]J6ESYIFB4LZAJX42Z74WATPBN2WSGDKRV3QASK3JFPKKYKOU3CDI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

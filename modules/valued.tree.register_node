@@ -1,0 +1,51 @@
+## [:< ##
+
+# name  = valued.tree.register_node
+# descr = register one node definition from yaml into the valued index
+
+my $def = shift // return undef;
+
+my $id      = $def->{'id'}              // return undef;
+my $weight  = $def->{'value'}{'weight'} // 0.0;
+my $parent  = $def->{'parent'}          // undef;
+my $parents = defined $parent ? [$parent] : [];
+
+## skip root — no parent to register with, refs stay 0 ##
+if ( $def->{'type'} // '' eq 'root' ) {
+    <[valued.node.create]>->(
+        {   'id'      => $id,
+            'weight'  => $weight,
+            'parents' => [],
+        }
+    );
+    return 1;
+}
+
+## skip if parent not yet in index — deferred via second pass ##
+if ( defined $parent and not exists <valued.index>->{$parent} ) {
+    push @{ <valued.deferred>->{$parent} }, $def;
+    return 0;
+}
+
+<[valued.node.create]>->(
+    {   'id'      => $id,
+        'weight'  => $weight,
+        'parents' => $parents,
+    }
+);
+
+## flush any nodes that were deferred waiting for this id ##
+my $deferred = delete <valued.deferred>->{$id} // [];
+foreach my $d ( @{$deferred} ) {
+    <[valued.tree.register_node]>->($d);
+}
+
+return 1;
+
+#,,
+
+#,,,,,...,,..,,.,,...,,..,.,,,,,,,...,,.,,...,..,,...,..,,...,,,,,..,,.,,,,..,
+#SG7V6UDYILLMMNWB7IUO2JS2PLRGHW2VKV4YE63IWARV3DGACUW7J23QLIFOKLWY6CCXOLFUHRTUK
+#\\\|NNEVHPKWTNPL7TNFQLZESQ22X7U74UY4R2V4UCDK5GDPRHRXKRU \ / AMOS7 \ YOURUM ::
+#\[7]E5IOHBQJH6QADVDOR3RXPMB7B4WYQZZGBZCR4SP5WLYJ5ZDZI2CA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
