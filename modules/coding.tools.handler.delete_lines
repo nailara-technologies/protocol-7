@@ -38,14 +38,13 @@ if ($apply) {
     my $chmod_fh = <coding.chmod_child.w_fh>;
     my $mode_restore;
     if ( !-w $abs_path and defined $chmod_fh ) {
-        my $cur_mode = ( stat $abs_path )[2] & 07777;
+        my $cur_mode = File::stat::stat($abs_path)->mode & 07777;
         print {$chmod_fh} "gw $abs_path\n";
         $mode_restore = $cur_mode if -w $abs_path;
     }
 
     if ( -w $abs_path ) {
-        <[base.file.write_encoded]>
-            ->( ':encoding(UTF-8)', $abs_path, @lines );
+        <[file.write_encoded]>->( ':encoding(UTF-8)', $abs_path, @lines );
         if ( defined $mode_restore and defined $chmod_fh ) {
             print {$chmod_fh} sprintf "restore %04o %s\n", $mode_restore,
                 $abs_path;
@@ -72,8 +71,8 @@ return sprintf "preview: would delete %d line%s [ %d..%d ]",
 
 #,,
 
-#,,,,,..,,,,,,...,,,,,,,.,.,,,,..,,.,,,.,,..,,..,,...,..,,.,.,.,.,,,.,,,,,,.,,
-#V7NBICKFMBNKSRHVDX7MIAGVP45SUJTRG6WGBYPGDSTEXM7BBTNPDCNDITCKURK3PRH6EYLAWFD7E
-#\\\|6LOCSJ346ZJIEXWIBEHN6E2RME4JUDWFLB5FLM2ISD6RUABJPAK \ / AMOS7 \ YOURUM ::
-#\[7]NGTI2IRIDCVGYKZPEQFXSPHEGRG3XE5RGXFTN6QIRK2KWR4WRUCY 7  DATA SIGNATURE ::
+#,,,.,...,.,.,,.,,.,.,,..,.,.,...,...,...,,.,,..,,...,...,.,,,..,,.,.,.,.,,.,,
+#LVHDLXM6PCXE33ZJ3J3AORHIBR4PLVS6DI5GQ5QOQO6GL45BQDPC7PCJDNZVVE6G5VGHQFIU3V45I
+#\\\|DWSJ77PGBYSECUFSWW4WK6B42IPROWUS2BT3UJ72F7SW6F4QKRT \ / AMOS7 \ YOURUM ::
+#\[7]MPCSNVRBTEZ7JZA6DH2LBVA76NGGEQ6F2RRONGD6BYDWFNVYYSCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

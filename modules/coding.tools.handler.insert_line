@@ -39,8 +39,7 @@ if ($apply) {
     }
 
     if ( -w $abs_path ) {
-        <[base.file.write_encoded]>
-            ->( ':encoding(UTF-8)', $abs_path, @lines );
+        <[file.write_encoded]>->( ':encoding(UTF-8)', $abs_path, @lines );
         if ( defined $mode_restore and defined $chmod_fh ) {
             print {$chmod_fh} sprintf "restore %04o %s\n", $mode_restore,
                 $abs_path;
@@ -65,8 +64,8 @@ return sprintf "preview: would insert before line %d\n  content: %s",
 
 #,,
 
-#,,.,,,.,,,..,,,,,...,.,.,,..,,..,..,,,..,,,,,..,,...,...,...,,..,,,.,,.,,.,.,
-#FSOLM3SOMGKEVCOIVLH4FWNGR6LQI3ADSO4537SCRCAIXP4ZKYP7GP3AY3O4RFE7T44APK43AYRCK
-#\\\|FLV4TPCN32Q3KKVYGVUDKNORE2KBLVX3DAEHANEGJRP3HLXIXAH \ / AMOS7 \ YOURUM ::
-#\[7]XKB7SXTWNXOIJ47FCTBJFEF2ATBSLLEU3RAXKDWCUKIHUWY25SBI 7  DATA SIGNATURE ::
+#,,..,,.,,..,,,.,,,.,,.,.,..,,,..,.,,,,,,,.,.,..,,...,...,...,.,,,,.,,...,.,.,
+#MWTEMWVF7VBEXZF7EAL75MEDL3FTNS6ZPCKRABLWLUTB7OX36YU37ADQPPWMHCZ2WUQ4YJFO6PZMY
+#\\\|63QAWGLARFFEEE2RIUPIMRIPTZ5LQZ4XXFACYPMWVNEPHKIHJMW \ / AMOS7 \ YOURUM ::
+#\[7]RBCTCPO5RCCUSHMJSNVBVXMITAV65AHRYTY45WT2NRW6MCUST4BI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

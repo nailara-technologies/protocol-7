@@ -17,10 +17,14 @@ Use these exact signatures in P7 module code — generated code frequently gets 
 
 **Why:** swap_subs in base.file.pre_init wires these; wrong param order silently passes encoding as target_ref or vice versa, causing empty reads or fatal type errors.
 
-**How to apply:** Any time generating or reviewing code that reads/writes files in a P7 module, verify the call matches one of the above signatures exactly. Never use `base.file.slurp` directly — always use the swapped short name `file.slurp` (or preferably `file.read`).
+**Never use `base.file.*` names** — always use the short swapped names (`file.read`, `file.write_encoded`, etc.). `base.file.*` calls bypass swap_subs and may not exist as callable subs in module context.
 
-#,,.,,,.,,,,.,.,,,,..,.,,,,,,,,.,,,,,,..,,,,.,..,,...,..,,..,,,..,...,.,.,.,,,
-#PEVVS4L5UPTL3D3UFKLDUGZVTZQNKAQ2YSJG5Z7XWQG2MYBJ3ZGHRWZ5P4WAC724YKQSOF7H67HTS
-#\\\|343KUNMWQ4BQLIL762X6MRCR7JSGFKPPKACZCNYASA76WSZOGJS \ / AMOS7 \ YOURUM ::
-#\[7]Q3XYB7NJCEMJE2KG62VHDRL432TXCNGB2HQPNKITFWSEYATDXCDQ 7  DATA SIGNATURE ::
+**stat shadowing:** `bin/Protocol-7` does `use File::stat` which shadows the builtin `stat`. Never use `(stat $path)[2]` in modules — use `File::stat::stat($path)->mode` instead.
+
+**How to apply:** Any time generating or reviewing code that reads/writes files or checks file mode in a P7 module, verify against the above.
+
+#,,,,,,,.,,..,.,.,,..,,,.,,,.,.,,,.,.,,,.,..,,..,,...,...,,.,,,.,,,,,,,,.,,.,,
+#KFDTH2347C42CFZLYZPAUSMUDYKJETVWO7HVQBMG6JQQ3EZNDFJDUE4NTN5VV7IZNL34AJTDSRUNY
+#\\\|LS2QEXE5QV55DVTPGBSPZP6ZHE7FIFXBXVZJB3DODGBUCF5R32H \ / AMOS7 \ YOURUM ::
+#\[7]PLQOMU2FFPZH2FHCJVGGT7MCEWG46FESI5TM46727PGNUFUVOEAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
