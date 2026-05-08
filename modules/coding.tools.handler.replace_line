@@ -3,11 +3,13 @@
 # name  = coding.tools.handler.replace_line
 # descr = replace single line in file by line number
 
-my $args    = shift              // {};
-my $path    = $args->{'path'}    // return 'error : path required';
-my $line    = $args->{'line'}    // return 'error : line number required';
-my $content = $args->{'content'} // return 'error : content required';
-my $apply   = $args->{'apply'}   // TRUE;
+my $args    = shift               // {};
+my $path    = $args->{'path'}     // return 'error : path required';
+my $line    = $args->{'line'}     // return 'error : line number required';
+my $content = $args->{'content'}  // return 'error : content required';
+my $apply   = $args->{'apply'}    // TRUE;
+my $raw_enc = $args->{'encoding'} // 'UTF-8';
+my $norm_encoding = $raw_enc =~ /^:/ ? $raw_enc : ":encoding($raw_enc)";
 
 ## resolve and sanitize path — no Cwd, use string check ##
 return 'error: path traversal not allowed' if $path =~ m{\.\.};
@@ -16,7 +18,7 @@ my $abs_path = "$root/$path";
 return 'error: file not found' unless -f $abs_path;
 
 ## read file into lines ##
-my $file_content = <[file.read]>->($abs_path);
+my $file_content = <[file.read]>->( $abs_path, $norm_encoding );
 return 'error: cannot read file' unless defined $file_content;
 my @lines = split /^/m, $file_content;
 
@@ -44,7 +46,7 @@ if ($apply) {
     }
 
     if ( -w $abs_path ) {
-        <[file.write_encoded]>->( ':encoding(UTF-8)', $abs_path, \@lines );
+        <[file.write_encoded]>->( $norm_encoding, $abs_path, \@lines );
         if ( defined $mode_restore and defined $chmod_fh ) {
             print {$chmod_fh} sprintf "restore %04o %s\n", $mode_restore,
                 $abs_path;
@@ -54,7 +56,7 @@ if ($apply) {
     } else {
         my $stage_name = $abs_path =~ s{/}{__}gr;
         my $stage_path = "/var/protocol-7/coding/staged/$stage_name";
-        open my $fh, '>:encoding(UTF-8)', $stage_path;
+        open my $fh, ">$norm_encoding", $stage_path;
         print {$fh} @lines;
         close $fh;
         return
@@ -71,8 +73,8 @@ return sprintf "preview line %d\n  was: %s\n  now: %s", $line_num, $old,
 
 #,,
 
-#,,,,,..,,,..,,..,,..,...,..,,,.,,,,.,..,,,.,,..,,...,...,...,,,,,,..,,..,,,.,
-#BHCQR5EPDFMY4W24OZDTURT2QQ3CJDGJTBNIVEPMRLFONFTU2YE3I57HMX432QVDJ5UIXQXP3HMVS
-#\\\|SNOQ2LP5AGQXUOFJRVJKNEXQWZL25DVEECKBELZYUOEVCM6K3OD \ / AMOS7 \ YOURUM ::
-#\[7]JKEEY7MODVKZB5PBBBYYAKHCCDT3IOVXQ3YBTCCLVYAEGVLF7QCI 7  DATA SIGNATURE ::
+#,,.,,,,.,...,,,,,.,,,,..,,,,,..,,,,,,.,.,...,..,,...,...,...,,,,,..,,...,,,,,
+#7PGJSQTFBGFDIZW64JQMFRRGYEU4ZPTVS6BNCYI7NGX3U3CWV3STIWNU5N7AJ7F4OPJEOZMC5JN3W
+#\\\|GWDG572RPOL7QRDXO45BOKP2TFTEQFZXFJ73FRGWZ4A67Z7H37H \ / AMOS7 \ YOURUM ::
+#\[7]2XK2AOU6WZWBFAUMDJGMZKFMY5QIUWJAGMBOUO46V6BVHFWJ44AQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
