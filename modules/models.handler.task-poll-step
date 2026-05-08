@@ -24,7 +24,15 @@ if ( $step eq 'claimed' ) {
         return;
     }
 
-    <[base.logs]>->( 2, ': claimed %s, fetching details', $task_id );
+    <[base.logs]>->(
+        2, ': claimed %s, starting + fetching details', $task_id
+    );
+
+    <[protocol-7.route-send]>->(
+        {   'command'   => 'task.start',
+            'call_args' => { 'args' => $task_id }
+        }
+    );
 
     <[protocol-7.route-send]>->(
         {   'command'   => 'task.show',
@@ -210,8 +218,8 @@ if ( $step eq 'check-next' ) {
 <[base.logs]>->( 0, ': task-poll-step: unknown step [ %s ]', $step );
 return;
 
-#,,..,..,,,,.,,,.,,..,..,,..,,..,,.,,,,.,,...,.,.,...,...,.,,,,,.,..,,,,,,...,
-#XNMGHYY3N7XCWP4G5VV2UVJCARMSXXSUJ3EBBBC7C7TNV4N2NX3DD5IQRNZSUWIHTPXASOZ7UZ47S
-#\\\|I2AJ4772KAVHBIJDT6DYXRQA7L57WTX4JHIYRMFBGGEHE4QBV7F \ / AMOS7 \ YOURUM ::
-#\[7]AY6DO7UE432PNPQB7RYTRKUEVPLTROMIREHLMYY6DKEYJHUSHUBQ 7  DATA SIGNATURE ::
+#,,,,,,..,,.,,.,,,,..,,..,..,,,,,,.,,,,,,,,..,.,.,...,...,,..,...,.,,,,,,,.,.,
+#NUJTXGPMI4D5WH242V5Y3WKEIB5DFSOWG5UGXCMI7ESIX3P6VX22VUWZAI5WDKKMWWYNIUQNC7RUC
+#\\\|E4AJ5X2L6PRR2IUBQGEYODW6UES6Z4IAHZOBMULYU65UZXXDKQM \ / AMOS7 \ YOURUM ::
+#\[7]T6X6VRUKHZY3QV2MORIB74RFFZMNJNFJB3DX3MPMNCSKD3I5HEBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

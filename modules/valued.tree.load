@@ -3,7 +3,10 @@
 # name  = valued.tree.load
 # descr = load task tree seed yaml files into live valued nodes
 
-my $tree_dir = 'data/yaml/task-tree';
+<[format.yaml.pre_init]>;
+
+my $tree_dir = sprintf '%s/data/yaml/task-tree',
+    ( <system.root_path> // '.' );
 
 my @seed_files = glob "$tree_dir/root.yaml $tree_dir/branches*.yaml";
 
@@ -28,6 +31,9 @@ foreach my $path (@seed_files) {
 
     ## root node — single node at top level ##
     if ( defined $yaml->{'id'} ) {
+        next
+            if exists <valued.index>->{ $yaml->{'id'} }
+            ;    ## restored already ##
         <[valued.tree.register_node]>->($yaml);
         $loaded++;
         next;
@@ -42,6 +48,9 @@ foreach my $path (@seed_files) {
             my $node_def = $section->{$node_id};
             next if ref $node_def ne 'HASH';
             next if not defined $node_def->{'id'};
+            next
+                if exists <valued.index>->{ $node_def->{'id'} }
+                ;    ## restored ##
 
             <[valued.tree.register_node]>->($node_def);
             $loaded++;
@@ -58,8 +67,8 @@ return $loaded;
 
 #,,
 
-#,,,,,.,.,..,,..,,.,.,..,,,,.,,,,,...,.,,,.,.,..,,...,...,,,.,.,.,,,,,,..,,.,,
-#57KFT7CO5T5PZKDYFDB75O4GQQ5C6C7PWX6BITXRWHLCATPLNWLYXJRTKRK37RM6DN5FVMYUTAE7A
-#\\\|NJW7CJRSC45YZ5DP3UJ2UJ2TZFEEPM4DJ7AQ6XQEBLR23U57GOK \ / AMOS7 \ YOURUM ::
-#\[7]J6ESYIFB4LZAJX42Z74WATPBN2WSGDKRV3QASK3JFPKKYKOU3CDI 7  DATA SIGNATURE ::
+#,,.,,..,,.,,,,.,,...,..,,,,.,.,.,.,.,.,,,...,..,,...,...,..,,.,,,,,,,,.,,.,.,
+#LSIRMGOH2N45W3C4VH4F76D5NHY4KJESI5NTOB6DSYBPUTWLNJAH63OYGWPLNUYR55LBOKS4PVIA4
+#\\\|DVVKUYBGAWJCDC5TQYWXPQVTXDKWSIRTVGOBMK2CL4FHGXA7HDC \ / AMOS7 \ YOURUM ::
+#\[7]K6N3J3CCAYT4L2NQYW7YOGMMPSTOR4SNVJJQUYXOMJLZOX3JQQCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
