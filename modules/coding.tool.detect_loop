@@ -134,9 +134,10 @@ my @pattern_registry = (
         'allow_polling' => 0,
     },
 
-    ## Pattern: File not found spiral (retrying the same path repeatedly)       ##
-    ## requires same path argument repeated — distinguishes spiral from          ##
-    ## legitimate sliding-window reads (different offsets each call)            ##
+    ## Pattern: File not found spiral (retrying identical call repeatedly)       ##
+    ## matches on full tool signature (path + offset + all args) so that        ##
+    ## legitimate sliding-window reads (same file, different offsets) do not    ##
+    ## trigger — only true stuck retries of the exact same call do              ##
     {   'name'     => 'file_not_found_spiral',
         'priority' => 2,
         'min_hits' => 4,
@@ -147,24 +148,22 @@ my @pattern_registry = (
             my $take  = @$history < 8 ? scalar @$history : 8;
             my @last8 = @$history[ -$take .. -1 ];
 
-            ## extract path= argument from read_file entries ##
-            my %path_counts;
+            ## count identical full signatures (name + all args) ##
+            my %sig_counts;
             for my $entry (@last8) {
                 next unless defined $entry && $entry =~ m{^read_file};
-                ## parse path= from arg signature ##
-                if ( $entry =~ m{path=([^,|]+)} ) {
-                    $path_counts{$1}++;
-                }
+                $sig_counts{$entry}++;
             }
 
-            ## spiral = same path called 3+ times, not just many read_file calls ##
-            return 1 if grep { $_ >= 3 } values %path_counts;
+            ## spiral = identical full call repeated 3+ times ##
+            return 1 if grep { $_ >= 3 } values %sig_counts;
             return 0;
         },
         'confidence'    => 0.85,
         'allow_polling' => 0,
-        'warning' => 'same file path retried 3+ times — likely searching for a'
-            . ' file that does not exist. check if it is a core sub'
+        'warning'       =>
+            'identical read_file call repeated 3+ times — file likely'
+            . ' does not exist or path is wrong. check module name vs core sub'
             . ' (base.ntime.b32, base.time etc. live in bin/Protocol-7)',
     },
 
@@ -532,8 +531,8 @@ elsif ( $phase eq 'escalation' ) {
 ## Unknown phase ##
 return qw| false |;
 
-#,,.,,.,.,..,,,,.,,,.,,.,,,,,,.,.,..,,.,.,,.,,.,.,...,...,..,,..,,..,,.,,,,.,,
-#C7BZ3JGSSHPLOAG6477LKHIN4OSVZVIO47JFUICHMZ3WSGJTVUY7KYX6RCQ3BXY5FWKWN5K7AL6TA
-#\\\|YC2U2OVHRQN2LOPSZDOKTQ2N4QWIR56CMXO2HDNBF673SFVT2QG \ / AMOS7 \ YOURUM ::
-#\[7]XX2TRYLXUATW3VBBNU7CCMEWGGZO3GAHBTGQZ22K3KUVDHZKFKCI 7  DATA SIGNATURE ::
+#,,..,,..,,..,.,.,.,.,.,.,.,.,.,,,,,.,,..,,,,,.,.,...,...,..,,,,,,.,.,,,.,.,,,
+#CLTLV7DYHB3O34JHXIFMUTPHDP4MRDNZCOWGQUL36JFRQPL6NTESOFQIQF2E26NPBDIMX3ZCMJLD2
+#\\\|UN5QFI56QKMQ3D5VXTCBG3GGDFBLIV4GFNM6SNTVTLEUKFWHBVR \ / AMOS7 \ YOURUM ::
+#\[7]ZESG65AENM6HLXF6GT32B4B5RDLGCTCSAYLUR4B6YQIJ4DHIXADY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
