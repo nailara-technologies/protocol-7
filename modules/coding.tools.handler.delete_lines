@@ -21,7 +21,7 @@ return 'error: from must be >= 1'  if $from_n < 1;
 return 'error: to must be >= from' if $to_n < $from_n;
 
 ## read file into lines ##
-my $content = <[file.read]>->( $abs_path, ':encoding(UTF-8)' );
+my $content = <[file.read]>->($abs_path);
 return 'error: cannot read file' unless defined $content;
 my @lines = split /^/m, $content;
 
@@ -73,8 +73,8 @@ return sprintf "preview: would delete %d line%s [ %d..%d ]",
 
 #,,
 
-#,,,,,,..,...,.,,,.,,,..,,,,.,...,,,.,,,,,...,..,,...,..,,...,,.,,..,,.,.,.,,,
-#4JSAUP6QTZN35K2SBKN7AJY7ESUE5WUPEEPKMW7QYFUKYJ4Q3NBFCMVIMT2GTYSXZ6OZEMAOPL5SE
-#\\\|WUWCAVO6GOCLFY6EJ5LQX4VQJGEZDIFSPA4A2MWXS4JBHGB2DTT \ / AMOS7 \ YOURUM ::
-#\[7]MSHCYQQOKG66LI2TCUWR3AMDBRV4OAOXMFXIKLLLJKJMG3W2P6CQ 7  DATA SIGNATURE ::
+#,,..,,,,,.,.,,.,,,,.,,,,,..,,.,.,..,,.,,,.,.,..,,...,..,,...,,,.,.,.,,,,,,..,
+#IPG7IXNWFNOV52VGD57T7LYEIB22BZQ2OYNJFYJG5YGLEWPGKTKVMUF4PGHD3TCNYMGTPFRBQ7GCO
+#\\\|ZIDJZIAKL73X4LXO5S3Y3JCB77YDFHC5FACBWYKMCFXGNTV2MJR \ / AMOS7 \ YOURUM ::
+#\[7]5YII2D6SOZRA4TRITIXWUCXJ4HGUV4CMSFXB566KOEA6PQAAXQBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
