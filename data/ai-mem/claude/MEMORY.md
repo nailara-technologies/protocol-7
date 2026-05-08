@@ -30,6 +30,7 @@
 - `feedback-inline-sub-naming.md` — extracted helper subs `_foo` become `namespace.foo` (no underscore) in P7 module names
 - `feedback-ptd-syntax-check.md` — use `ptd -c` not `perl -c` for P7 module syntax checks
 - `feedback-p7c-command.md` — always use `p7c` not `p7`; binary was renamed
+- `feedback-v7-restart-cube.md` — `p7c v7.restart cube` restarts all zenki at once; use after editing cube/access.zenki
 - `feedback-p7-module-call-syntax.md` — `<[mod]>` is implicit no-arg call; never add `->()` for zero args
 - `feedback-kimi-dispatch-pattern.md` — dispatching tasks to kimi via bin/kimi-task is highly
   token-efficient; write detailed task files, review for known issues
@@ -348,8 +349,8 @@
 - Pattern: `my @non_num = grep { defined $data_ref->{$ARG}->{$key} and not looks_like_number(...) } keys $data_ref->%*`
 - Global `$SIG{__WARN__}` exists — if wrapping warn handler, capture `$prev_warn = $SIG{__WARN__}` first and call through
 
-#,,..,,,,,...,,,.,.,,,,..,,,,,...,.,.,,..,,,,,..,,...,..,,...,,..,,.,,.,.,,.,,
-#6H3BXHII27FUJFLWNWQ7JVT6VZWL7TR5YDSILLKDHTDYTHMPYEDTY77GJJ5352WOYNZN7MQWMNRHS
-#\\\|WATUFWMXEOE5MMNUSUE6PN5P54NTFOUDAVRQYBSHGNKKRUL5DXB \ / AMOS7 \ YOURUM ::
-#\[7]NPN47XJASAFTI22KX2UALUVRZES4P2K5QROKJEGVVVPA27ZZIWBI 7  DATA SIGNATURE ::
+#,,..,,..,.,,,,..,.,,,..,,.,,,..,,.,,,...,..,,..,,...,...,,..,,..,..,,...,,,,,
+#MVW5AUGSGBKY5WNNHH7466VW3ZUUOSRJGDEUOMW7LG3OFEVKTT5WFIRV6KVPXGNXOV54DDFYMDBME
+#\\\|JISJIUB2B5CE6YF6MLRT3ZKJSX3VX2VNGGBIVOVQXYVVJC36YN7 \ / AMOS7 \ YOURUM ::
+#\[7]L2FBLU3K5ZCNZVL5WBTGKW44TMSVADNCD6YIZBIGSGJILPMUYWBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

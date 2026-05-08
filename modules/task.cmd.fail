@@ -34,8 +34,10 @@ return {
     }
     unless defined $task;
 
-## only claimed or pending tasks can be failed
-if ( $task->{'status'} ne 'claimed' and $task->{'status'} ne 'pending' ) {
+## pending, claimed, or in_progress tasks can be failed
+if (    $task->{'status'} ne 'claimed'
+    and $task->{'status'} ne 'pending'
+    and $task->{'status'} ne 'in_progress' ) {
     return {
         'mode' => 'false',
         'data' => sprintf(
@@ -55,20 +57,26 @@ $task->{'updated_at'} = $ntime_b32;
 ## persist to disk
 <[task.persist.save]>;
 
-## record blocked/failed outcome in valued tree ##
-<[valued.tree.record_outcome]>->(
-    {   'node_id' => $task->{'node_id'}
-            // join( qw| . |, 'task', lc $task_id ),
-        'outcome' => 'blocked',
-    }
-);
+## fire deferred reply for any pending wait-done ##
+my $wait_reply_id = delete <task.wait.pending>->{$task_id};
+if ( defined $wait_reply_id ) {
+    <[base.callback.cmd_reply]>->(
+        $wait_reply_id, { 'mode' => 'false', 'data' => "failed: $error" }
+    );
+}
+
+## record blocked/failed outcome in valued tree [ only if linked to a node ] ##
+if ( length( $task->{'node_id'} // '' ) ) {
+    <[valued.tree.record_outcome]>
+        ->( { 'node_id' => $task->{'node_id'}, 'outcome' => 'blocked' } );
+}
 
 <[base.logs]>->( 1, ':. task %s failed: %s', $task_id, $error || 'no error' );
 
 return { 'mode' => 'true', 'data' => "failed $task_id" };
 
-#,,,,,,,,,,,,,.,.,..,,,..,.,.,,,,,...,.,.,.,,,..,,...,...,..,,,..,,,.,.,,,,,,,
-#GZ3ZCIT5LSCIOGW7LIIJXDIOZ4DY5IGLUZVIUDPO35UAWMSGQXWMAWF3QRHZHVGZNHPAVU2G3I354
-#\\\|EEPFSOV7PNXR2VIVIGVCZV5NWNQRLNPE7OKU2ETAADNMXA7CYKQ \ / AMOS7 \ YOURUM ::
-#\[7]SAI7KBBRQYAJ4TSUIT7ZGH3KRYEBZDWHVMK6FWBDS54VUBZLMICY 7  DATA SIGNATURE ::
+#,,.,,,,,,,,,,.,,,,,.,,..,...,,..,,.,,,..,,,.,..,,...,..,,,..,..,,,..,...,.,.,
+#I7HSPENNJECHXCJZWQHZ43FLZHYSMNFRGMF7E4VWIJQI43LG5DFHF2PKQMKGAULWOFRAIGAFCDFLW
+#\\\|SF6KQAXNRH2RCZJFPZ4U44FXKOFUKJ5VTOXB4YM27GLB3MO53WJ \ / AMOS7 \ YOURUM ::
+#\[7]6MLDBK75MCOGVLNC5DUDYR7K3RKWPLDDP3AJ6MGV7UVM3MGV7CBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,0 +1,74 @@
+#!/usr/bin/perl
+
+## task-wait — create task and wait for result, or wait for existing task id ##
+##
+## usage:
+##   task-wait <task_id>                  ## wait for existing task
+##   task-wait -create "description"      ## create + wait
+##   task-wait -create ":local: prompt"   ## create for local/coding backend
+##   task-wait -timeout 120 <task_id>     ## custom timeout (default: 300s)
+
+use strict;
+use warnings;
+
+my $task_id  = '';
+my $timeout  = 300;
+my $interval = 2;
+my $create   = 0;
+my $desc     = '';
+
+while ( my $arg = shift @ARGV ) {
+    if ( $arg eq '-create' ) {
+        $create = 1;
+        $desc   = shift @ARGV // die ":: -create requires a description\n";
+    } elsif ( $arg eq '-timeout' ) {
+        $timeout = int( shift @ARGV // 300 );
+    } else {
+        $task_id = uc( substr( $arg, 0, 7 ) );
+    }
+}
+
+## create task if requested ##
+if ($create) {
+    $task_id = `p7c task.create \Q$desc\E 2>/dev/null`;
+    chomp $task_id;
+    die ":: task creation failed\n" unless length $task_id;
+    print ":: created task $task_id\n";
+}
+
+die ":: task_id required\n" unless length $task_id;
+
+print ":: waiting for task $task_id (timeout=${timeout}s)\n";
+
+my $start = time;
+while (1) {
+    my $show = `p7c task.show $task_id 2>/dev/null`;
+    my ($status) = $show =~ m{^status\s+:\s+(\S+)}m;
+
+    if ( defined $status and $status eq 'done' ) {
+        my ($result) = $show =~ m{^result\s+:\s+(.+)}ms;
+        $result //= '(no result)';
+        print ":: done\n$result\n";
+        exit 0;
+    }
+
+    if ( defined $status and $status eq 'failed' ) {
+        my ($result) = $show =~ m{^result\s+:\s+(.+)}ms;
+        print ":: failed: ", $result // '(no reason)', "\n";
+        exit 1;
+    }
+
+    my $elapsed = time - $start;
+    if ( $elapsed >= $timeout ) {
+        print ":: timeout after ${elapsed}s (status: ", $status // 'unknown', ")\n";
+        exit 1;
+    }
+
+    sleep $interval;
+}
+
+#,,,,,...,,.,,.,.,..,,.,.,,,,,.,,,,..,.,.,..,,..,,...,...,,..,,.,,,,,,.,,,,,,,
+#CBL5YWXGB3QDTXUAKNLZSXUEWXF4VVV6MPOQYXBQA7OPE24E3OWBXLIEIOGPJ4A35LQFSVBH6INJI
+#\\\|VUTM5GGGWGYDHQ7JUTRY4IQDA5A3Y3TWIMPIQ7YMPS63EQRAUX7 \ / AMOS7 \ YOURUM ::
+#\[7]KHLC2J5YDWQCPLAHUXPSIXCC7EFUGXDSFFFQ4MGU3YOJYJ7LYQAY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

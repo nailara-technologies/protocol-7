@@ -40,6 +40,15 @@ if ( defined $task->{'result'} ) {
 
 my $turns = $task->{'history'} // [];
 
+my $iter_line = '';
+if ( $task->{'iteration'} ) {
+    $iter_line = sprintf(
+        "iteration   : true  [max_attempts: %s]\n" . "criteria    : %s\n",
+        $task->{'max_attempts'}        // '?',
+        $task->{'acceptance_criteria'} // ''
+    );
+}
+
 my $output = sprintf(
     "id          : %s\n"
         . "status      : %s\n"
@@ -48,7 +57,7 @@ my $output = sprintf(
         . "description : %s\n"
         . "context     : %s\n"
         . "agent       : %s\n"
-        . "turns       : %d\n"
+        . "turns       : %d\n" . "%s"
         . "result      : %s\n",
     $task->{'id'},
     $task->{'status'},
@@ -58,6 +67,7 @@ my $output = sprintf(
     $task->{'context'}     // '',
     $task->{'agent'}       // '(none)',
     scalar(@$turns) + 1,
+    $iter_line,
     $result_str || '(none)'
 );
 
@@ -77,8 +87,8 @@ if (@$turns) {
 
 return { 'mode' => 'size', 'data' => $output };
 
-#,,.,,..,,.,,,,.,,...,.,.,,,.,...,,.,,,.,,..,,..,,...,.,.,,..,,..,..,,...,.,.,
-#RDJC6FGNMFCQVRAPEJJ7EW6HTZFGYUM2Q3EDHUREBUG2FGIBSL7G4VCTLTFZYIWOHHRH3FD5LZBJG
-#\\\|JMYFRNW6Z2PSQFX5PKCVRX76473MO6Z3IW4IBCY5D32VI4U66DW \ / AMOS7 \ YOURUM ::
-#\[7]ZCZC7QLO5XEZMLOT6DIVFK5ZRYTC4YY26TYOFOJBYMOP5NETOCDI 7  DATA SIGNATURE ::
+#,,.,,.,,,,,,,...,..,,.,.,,,,,,..,..,,.,.,,.,,..,,...,..,,.,.,...,.,,,.,,,,,,,
+#TVI4VBG74LV4WENRBAU4ODY426RW3YFKVPF6MGL3JPINEFXT445IO75EDSZO5PPK24PGWE7TOUXGM
+#\\\|X32KXQ2MSLPFKGDOF4TN3TXF6NJUOQXOMZWSM62HLPR6T26WOAS \ / AMOS7 \ YOURUM ::
+#\[7]QCXJRXU3RFNLILN23BINXLRHQYXVNH2SECXPS6YUYV3ECJS6UCCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

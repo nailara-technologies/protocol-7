@@ -34,8 +34,8 @@ return {
     }
     unless defined $task;
 
-## only claimed tasks can be completed
-if ( $task->{'status'} ne 'claimed' ) {
+## claimed or in_progress tasks can be completed
+if ( $task->{'status'} ne 'claimed' and $task->{'status'} ne 'in_progress' ) {
     return {
         'mode' => 'false',
         'data' => sprintf(
@@ -55,20 +55,26 @@ $task->{'updated_at'} = $ntime_b32;
 ## persist to disk
 <[task.persist.save]>;
 
-## propagate completion upward in valued tree ##
-<[valued.tree.record_outcome]>->(
-    {   'node_id' => $task->{'node_id'}
-            // join( qw| . |, 'task', lc $task_id ),
-        'outcome' => 'completed',
-    }
-);
+## propagate completion upward in valued tree [ only if linked to a node ] ##
+if ( length( $task->{'node_id'} // '' ) ) {
+    <[valued.tree.record_outcome]>
+        ->( { 'node_id' => $task->{'node_id'}, 'outcome' => 'completed' } );
+}
+
+## fire deferred reply for any pending wait-done ##
+my $wait_reply_id = delete <task.wait.pending>->{$task_id};
+if ( defined $wait_reply_id ) {
+    <[base.callback.cmd_reply]>->(
+        $wait_reply_id, { 'mode' => 'size', 'data' => $result }
+    );
+}
 
 <[base.logs]>->( 1, ':. task %s completed', $task_id );
 
 return { 'mode' => 'true', 'data' => "completed $task_id" };
 
-#,,,.,.,,,,..,,..,.,.,...,..,,,..,,.,,,,,,,,,,..,,...,...,.,,,,,.,.,.,.,.,,,.,
-#JYDZWRW3CVN3Y5KRYDRNZOTIVSSJC2IVQOJIA7QMT7OJRWELCXIU4FU2UACGPTC7EIWBRHRSFQWHU
-#\\\|CYDBCFLMVBC2AHL6TUZBILYXKKY25S253Q3LH32BUSXQJJ55K3T \ / AMOS7 \ YOURUM ::
-#\[7]45RB6XCA4GP7ZPXJ6XZKYPOYJQ2L7A4ETHLSJIIHROZC5GXCTYCQ 7  DATA SIGNATURE ::
+#,,,,,,.,,..,,..,,,..,.,,,,,,,,,.,...,...,,,.,..,,...,...,.,.,..,,,,,,..,,,,.,
+#KZ672K7QOWKIF5CEOL6TAFOBWDDJ7E7KBEJ2OHET6QF4TKPRD2Y3ALYZNZS7A7ZHNU6HZXCANH24Y
+#\\\|4AZQ572G4OSVEEQA7256EMWIB2L2G3LHSWMABR5G6UGIA2NWGFK \ / AMOS7 \ YOURUM ::
+#\[7]CHDURTYP3JEVKGGP53H4YB2PDEBCB4WWXHLXBCXLLAX7KJRUV2AI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -35,6 +35,9 @@ if ( not defined $yaml_str or not length $yaml_str ) {
     return FALSE;
 }
 
+utf8::encode($yaml_str)
+    ;    ## downgrade wide chars to utf-8 bytes before :raw write ##
+
 my $written = <[file.zenka_dir.write]>->( 'valued-tree.yaml', \$yaml_str );
 if ( not defined $written ) {
     <[base.s_warn]>->('valued.tree.persist: failed to write file');
@@ -47,8 +50,8 @@ return TRUE;
 
 #,,
 
-#,,.,,,..,...,..,,.,.,,.,,..,,..,,.,.,..,,.,.,..,,...,..,,..,,,,.,,,,,...,,..,
-#JQCVKVQPNMTBG6ODQ3H2PRMJTRLMLQT3XS74QQ66D2GTJBLIKI6OYPAOISOY2OZDT3TUSHM6MDQBE
-#\\\|K2HCCLMWMDQUGVZFFU76NCF24SFGGIIYXJSITPB3NV5P3ALTSTI \ / AMOS7 \ YOURUM ::
-#\[7]CT5OJAERI6JVKNE77DNEGFJINWFOV3SOUWS37KDWZH5UBU2DH2BY 7  DATA SIGNATURE ::
+#,,,,,...,,,.,.,.,,,,,,,.,,..,,,,,..,,,,.,,.,,..,,...,...,..,,...,,,.,.,.,.,.,
+#GTTEZ4VZMJRVIECU5DHPDTU2BVCAAYLMUI4OTFNCPRNIZQOJZSBI3JJ6WB2FESPQF5GCVUTT6TGDM
+#\\\|Y625TGWRTHC2BNRJMTSC3T443S4ASQTGGGBNK4FKBHOI2YGP3QY \ / AMOS7 \ YOURUM ::
+#\[7]VFOIORUWLAI5L3WIGXR7U5FAS3WCP45EFXZZ52CIZECUVPQDLUAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
