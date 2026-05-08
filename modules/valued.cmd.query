@@ -15,6 +15,26 @@ if ( $call->{'args'} ) {
     }
 }
 
+if ( !$n && $args ) {
+
+    # positional args fallback: first token = n
+    my @toks = split /[\\\\\\\\\s,]+/, $args;
+    $n = $toks[0] if $toks[0] =~ /^\\\\\\\\\d+$/;
+}
+
+# validate n is a positive integer, clamp to range 1..100
+$n =~ s/[^0-9]//g;
+if ( !$n || $n < 1 ) { $n = 10; }
+if ( $n > 100 )      { $n = 100; }
+
+# call the internal sub
+my $result = <[valued.tree.top_n]>
+    ->( { n => $n, parent => $parent, type => $type } );
+
+# if result is empty/undef, return 'no nodes'
+if ( !defined $result || $result !~ /[^ \t\n\r\\\\\\\\v\f]/ ) {
+    $result = 'no nodes';
+}
 my $n      = $params->{'n'}      // 10;
 my $parent = $params->{'parent'} // '';
 my $type   = $params->{'type'}   // '';
@@ -43,8 +63,8 @@ return { 'mode' => 'size', 'data' => $output };
 
 ## [:< ##
 
-#,,,.,.,.,.,,,..,,,,,,,,.,,.,,.,.,,,,,,,,,...,..,,...,...,,,,,..,,...,,,.,..,,
-#MH2JI6SNECBIPGOR4Z46GD4FJ334REED3AK7XYC7UAF6JCYZ6GDDORZGAS6J7GA57FATWD6THHCIY
-#\\\|BSRSYQ4F2J6WME5355CUHNCCBTXE5O2AJFJW2EPVV3HQKTM75QC \ / AMOS7 \ YOURUM ::
-#\[7]AKVKI5HWFVLQUQ2JBQE6JYJUFYZ3DTUN2Z4YLA26BUMTRVZKV4AQ 7  DATA SIGNATURE ::
+#,,.,,,,.,..,,..,,,.,,.,,,,..,.,.,,..,,,.,,,.,..,,...,...,,,,,.,.,,..,...,..,,
+#AI3ZMSKVFHOQAO3RWF4NVBQ53WSW3AXEYW5LE2DQEEETM6EKGPLS7WGZKW2WOG6MA7SLGK4653CJG
+#\\\|YVKK4A2M4MQFVYGXSNSPNDG4ACEKMTUQI3ZT6GLCY2TTFYNGFZ2 \ / AMOS7 \ YOURUM ::
+#\[7]E7GOGTOBYZFCYZFVAICDSYFM3MOYW2Y74BNPMESGRGK6L3O2BOCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

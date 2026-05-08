@@ -44,7 +44,7 @@ if ($apply) {
     }
 
     if ( -w $abs_path ) {
-        <[file.write_encoded]>->( ':encoding(UTF-8)', $abs_path, @lines );
+        <[file.write_encoded]>->( ':encoding(UTF-8)', $abs_path, \@lines );
         if ( defined $mode_restore and defined $chmod_fh ) {
             print {$chmod_fh} sprintf "restore %04o %s\n", $mode_restore,
                 $abs_path;
@@ -71,8 +71,8 @@ return sprintf "preview: would delete %d line%s [ %d..%d ]",
 
 #,,
 
-#,,,.,...,.,.,,.,,.,.,,..,.,.,...,...,...,,.,,..,,...,...,.,,,..,,.,.,.,.,,.,,
-#LVHDLXM6PCXE33ZJ3J3AORHIBR4PLVS6DI5GQ5QOQO6GL45BQDPC7PCJDNZVVE6G5VGHQFIU3V45I
-#\\\|DWSJ77PGBYSECUFSWW4WK6B42IPROWUS2BT3UJ72F7SW6F4QKRT \ / AMOS7 \ YOURUM ::
-#\[7]MPCSNVRBTEZ7JZA6DH2LBVA76NGGEQ6F2RRONGD6BYDWFNVYYSCQ 7  DATA SIGNATURE ::
+#,,,.,.,,,,..,.,,,,,.,,.,,.,,,..,,,,.,,,,,.,,,..,,...,...,,,.,...,,..,,,,,...,
+#WHDVSSTTXR2JZTZDYI3FAFPVJSARSERYB62I4LN66CGTZDMPGFTZLNJEJRYJAOSKCTNHNK54DTH3A
+#\\\|ZXXDSINYFTIPCY4VQU4F2CSNN2URPLRZJGHYK5JY27JJMH5XIER \ / AMOS7 \ YOURUM ::
+#\[7]WT7A7UDHVEFOAH6A47FI5SKS5MKXDKUWXBFZBBX5CJBAC7BICUBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
