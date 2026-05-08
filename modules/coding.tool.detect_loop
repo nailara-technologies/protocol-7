@@ -134,6 +134,30 @@ my @pattern_registry = (
         'allow_polling' => 0,
     },
 
+    ## Pattern: File not found spiral (searching for core subs as module files)
+    {   'name'     => 'file_not_found_spiral',
+        'priority' => 2,    ## higher priority than stuck_retry ##
+        'min_hits' => 4,
+        'check'    => sub {
+            my ( $history, $weights ) = @ARG;
+            return 0 unless @$history >= 4;
+
+            ## count read_file calls in last 8 entries ##
+            my @last8 = @$history[ -8 .. -1 ];
+            my $read_file_count = grep { m{^read_file} } @last8;
+
+            ## if 4+ of last 8 tool calls were read_file, likely searching ##
+            ## for something that doesn't exist as a module file ##
+            return 1 if $read_file_count >= 4;
+            return 0;
+        },
+        'confidence'    => 0.80,
+        'allow_polling' => 0,
+        'warning' => 'repeated read_file calls suggest searching for a file'
+            . ' that does not exist as a module file — check if it is a core sub'
+            . ' (base.ntime.b32, base.time etc. live in bin/Protocol-7)',
+    },
+
     ## Pattern: Same tool with same parameters (definite loop)                ##
     ## DISABLED: Batched tool calls cause false positives                      ##
 # {   'name'     => 'identical_calls',
@@ -498,8 +522,8 @@ elsif ( $phase eq 'escalation' ) {
 ## Unknown phase ##
 return qw| false |;
 
-#,,..,..,,,.,,.,.,..,,,,.,,,.,...,...,,,.,.,,,.,.,...,...,..,,,,,,...,.,.,,..,
-#KHFZI4AILTJH6M7IOQRAG5QRFTH5FYBAAIQXRMYLYTWURVBDVUO2QOEWDWUYB4AW34O477LPJVKE2
-#\\\|CIDUPYX4KA7BKXINL2QXKLVETRIBW3OHPGBN7MKJMONIFVJP7GE \ / AMOS7 \ YOURUM ::
-#\[7]7MJLRFOAQ7S2KAGZYUFPEQQ5BZTZA6WJKNFFL2WM3CB4HN4RSIBA 7  DATA SIGNATURE ::
+#,,.,,.,.,,..,,.,,.,.,,..,,..,..,,...,.,.,...,.,.,...,..,,,.,,...,..,,,.,,,.,,
+#QQZBXHMM5QYGWX27QSZET3BW22RMOA7DTNATWUXIO36XOREATE2KTWMP7WA6G2PZLCUMZ6KVO4PRA
+#\\\|H6NCWQXSUUBO7O3XC2QS3ZR7PNAIWZ7SYLQEGR6CODR6SL76RDL \ / AMOS7 \ YOURUM ::
+#\[7]NRHLPNF6QCHBPHDLUIJLMMNFN5VQPHKEDTX5BFNC6JKETLYLMACA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
