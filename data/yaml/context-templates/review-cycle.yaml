@@ -24,51 +24,37 @@ sections:
 
   ## review cycle instructions ##
   - static: |
-      perform a self-reviewing iterative analysis of the module above.
+      review the module above. a finding only exists if you have verified
+      it — verification IS the act of finding. follow this protocol exactly.
 
       ## cycle protocol ##
 
-      ### phase 1: initial review ###
-      use tools to gather context: read_module, module_deps, search_code,
-      dep_graph as needed. produce a structured review with findings.
+      ### phase 1: gather context ###
+      call read_module and module_deps to understand the code and its
+      dependencies. do not write any findings yet. just gather.
 
-      ### phase 2: self-review ###
-      review your OWN output from phase 1. for each finding ask:
-      - is this accurate? verify by re-reading the actual code
-      - is this actionable? vague observations are not useful
-      - is this a real issue or a style preference?
-      - did i miss something more important?
+      ### phase 2: verify-then-find [ tool calls required ] ###
 
-      ### phase 2b: consensus verification [ MANDATORY TOOL CALLS ] ###
+      for each potential issue you notice, you MUST call consensus_query
+      before recording it as a finding. the tool call IS the finding step.
+      there are no findings without a preceding tool call.
 
-      STOP. before proceeding to phase 3, you MUST call consensus_query
-      for every finding you rated critical or warning severity.
-      this is not optional. skipping this step is a protocol violation.
-
-      for each critical or warning finding, call the tool NOW:
+      call the tool once per potential issue:
         consensus_query(
           mode: "verify",
-          prompt: "code:\n<paste the exact lines from the module>\n\nfinding: <your claim>\n\nquestion: is this a real bug or issue? explain why."
+          prompt: "code:\n<paste the exact relevant lines>\n\nclaim: <what you think is wrong>\n\nquestion: is this a real bug or issue? or is it valid code?"
         )
 
-      interpret the result:
-      - if critic OR auditor agrees it is a real issue → CONFIRMED
-      - if both disagree or say it is fine → FALSE POSITIVE: remove the
-        finding and add it to the self-review corrections section
+      rule: if critic OR auditor says it is a real issue → record as finding.
+      rule: if both say the code is fine → this was a false positive, discard it.
+      rule: style-only issues (comments, naming) do not need consensus_query.
 
-      if you have zero critical/warning findings, explicitly write:
-        "phase 2b: no critical/warning findings — consensus_query skipped"
+      after processing all potential issues this way, write:
+        "## verification complete: N issues confirmed, M discarded as false positives"
 
-      do NOT write "CONFIDENT" until all critical/warning findings have
-      been through consensus_query and the false positives removed.
+      you may not proceed to phase 3 until you have written that line.
 
-      classify your review quality:
-      - CONFIDENT: all critical/warning findings confirmed by consensus_query,
-        or zero such findings existed
-      - FIXABLE: some findings were wrong (caught by consensus or self-review)
-      - UNCERTAIN: need more context or human judgement — escalate
-
-      ### phase 3: action based on classification ###
+      ### phase 3: action based on confirmed findings ###
 
       if CONFIDENT:
         output the verified findings with fixes.
@@ -108,14 +94,17 @@ sections:
 
       ## review: {{target_module}} ##
 
-      ### findings [ N issues ] ###
-      for each:
+      ### findings [ N confirmed ] ###
+      only list findings that passed consensus_query. for each:
       - severity: critical / warning / style
       - line: N
       - issue: description
       - fix: exact code change or [ESCALATE] with reason
-      - confidence: high / medium / low
-      - verified: yes/no + how [ self-review / consensus_query / both / false-positive ]
+      - consensus: which perspective(s) confirmed it [ critic / auditor / both ]
+
+      ### discarded [ M false positives ] ###
+      for each issue you called consensus_query on but both perspectives
+      rejected: list the claim and why it was wrong.
 
       ### self-review corrections ###
       - what phase 1 got wrong and the correction
@@ -148,8 +137,8 @@ on_complete:
     action: memory_update
     topic: "self-correction:{{target_module}}"
 
-#,,,.,.,,,,..,,..,..,,,,.,,.,,,.,,,,,,,.,,..,,..,,...,...,..,,,,,,..,,,,.,.,.,
-#CNE6722TO5PUKDMNWYDRWYKXMQAKW44HU4PTGUPOBY557IWETW3CKANJYJHMRAOP5IVQZPF4G7YDS
-#\\\|L7F23ESJACQBXQGOJBOG4UNH4KHWABUOCMTDWZ462QQ5JZDH23X \ / AMOS7 \ YOURUM ::
-#\[7]I6DPEIUB7H7FKSTFJEAJTGHOIBCPGRVS5O64Q67V6ITXIT5T5MAA 7  DATA SIGNATURE ::
+#,,,.,,,,,,.,,,,,,,,,,,,,,..,,.,,,.,.,.,,,,,,,..,,...,...,..,,,,,,,,.,.,,,..,,
+#NVB36TH5UD7N4KEH2ONURSMDDODIMZDYFXHJZ4LT27XQEZQENLMWU53QMZK354NWWYOGKN4FYRMZQ
+#\\\|4LN7H24FFQWEOYAPN7ZRJC3G3BOKJ55QGLLEJHVN4LGLNCSPCL6 \ / AMOS7 \ YOURUM ::
+#\[7]7ADIM5NWYSIO4Q7XGEX5NNWQ3XVKBA3GZNXGCBZRMWB3IQAAOMBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
