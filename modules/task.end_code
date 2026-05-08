@@ -1,0 +1,110 @@
+## [:< ##
+
+# name  = task.end_code
+# descr = save task queue handover document on zenka shutdown
+
+## build full queue handover [ same logic as task.cmd.handover with no args ] ##
+my $handover = '';
+
+my @in_progress = ();
+my @blocked     = ();
+my @recent_done = ();
+
+for my $task_id ( @{<task.queue.order>} ) {
+    my $task = <task.queue>->{$task_id};
+    next unless defined $task;
+
+    my $status = $task->{'status'} // '';
+    if ( $status eq 'in_progress' or $status eq 'claimed' ) {
+        push @in_progress, $task_id;
+    } elsif ( $status eq 'blocked' or $status eq 'failed' ) {
+        push @blocked, $task_id;
+    } elsif ( $status eq 'done' ) {
+        push @recent_done, $task_id;
+    }
+}
+
+## in progress ##
+if (@in_progress) {
+    $handover .= "## in progress ##\n";
+    for my $tid (@in_progress) {
+        my $task = <task.queue>->{$tid};
+        my $desc = substr( $task->{'description'} // '', 0, 60 );
+        $handover .= sprintf "  %s  %s\n", $tid, $desc;
+    }
+    $handover .= "\n";
+}
+
+## top 5 pending by valued priority ##
+my @pending;
+for my $task_id ( @{<task.queue.order>} ) {
+    my $task = <task.queue>->{$task_id};
+    next unless defined $task and ( $task->{'status'} // '' ) eq 'pending';
+    my $priority = <[valued.resolve]>->( $task->{'node_id'} // '' ) // 0.0;
+    push @pending,
+        { 'id' => $task_id, 'task' => $task, 'priority' => $priority };
+}
+@pending = sort { $b->{'priority'} <=> $a->{'priority'} } @pending;
+
+if (@pending) {
+    $handover .= "## next pending ##\n";
+    for my $entry ( @pending[ 0 .. ( $#pending < 4 ? $#pending : 4 ) ] ) {
+        my $desc = substr( $entry->{'task'}->{'description'} // '', 0, 60 );
+        $handover .= sprintf "  %s  (%.1f)  %s\n",
+            $entry->{'id'}, $entry->{'priority'}, $desc;
+    }
+    $handover .= "\n";
+}
+
+## blocked ##
+if (@blocked) {
+    $handover .= "## blocked ##\n";
+    for my $tid (@blocked) {
+        my $task   = <task.queue>->{$tid};
+        my $desc   = substr( $task->{'description'} // '', 0, 60 );
+        my $reason = substr( $task->{'reason'}      // '', 0, 40 );
+        $handover .= sprintf "  %s  %s  (%s)\n", $tid, $desc, $reason;
+    }
+    $handover .= "\n";
+}
+
+## recent completions [ last 3 ] ##
+if (@recent_done) {
+    @recent_done = (
+        reverse sort {
+            ( <task.queue>->{$a}->{'updated_at'} // '' )
+                cmp( <task.queue>->{$b}->{'updated_at'} // '' )
+        } @recent_done
+    )[ 0 .. 2 ];
+    @recent_done = grep {defined} @recent_done;
+
+    $handover .= "## recent completions ##\n";
+    for my $tid (@recent_done) {
+        my $task   = <task.queue>->{$tid};
+        my $desc   = substr( $task->{'description'} // '', 0, 60 );
+        my $result = substr( $task->{'result'}      // '', 0, 60 );
+        $handover .= sprintf "  %s  %s  → %s\n", $tid, $desc, $result;
+    }
+    $handover .= "\n";
+}
+
+if ( !length $handover ) {
+    <[base.logs]>
+        ->( 1, 'task.end_code: queue empty, skipping handover save' );
+    return;
+}
+
+## save to zenka dir as handover.txt ##
+<[file.zenka_dir.write]>->( 'handover.txt', \$handover );
+
+<[base.logs]>->(
+    1,
+    'task.end_code: handover saved [ %d bytes ]',
+    length $handover
+);
+
+#,,..,,,,,..,,.,,,.,.,,,.,,,.,.,.,,..,...,...,..,,...,...,...,,,,,.,.,,,.,,..,
+#R6DO5HUVC7SQUI3FBL4VO3TFT6JT77G6BP5UD6EOIS6XV5PIFI623NUHONJUOESVFPQR3GZADKOPC
+#\\\|C5BGYSMLYBFMBML6W227ZFVQ2GYM24JEQAG25Z5G43W6HSDO7K3 \ / AMOS7 \ YOURUM ::
+#\[7]YVSY4CH7KQY7RAZHN2C5CFCOI6YXDHILADUZETSLLO4W5DJQHIBI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
