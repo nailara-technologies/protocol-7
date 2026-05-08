@@ -6,6 +6,9 @@
 ## task queue data structures
 <task.queue>       //= {};    ## { task_id => task_record }
 <task.queue.order> //= [];    ## [ task_id, ... ] preserves insertion order
+<task.wait.pending>
+    //= {};    ## { task_id => reply_id } — deferred wait-done replies
+<task.wait.timeout> //= {};    ## { task_id => timeout_secs } — for cleanup
 
 ## load existing queue from disk [ zenka_dir handles /var/protocol-7/task/ ]
 <[task.persist.load]>;
@@ -18,8 +21,8 @@
 
 return TRUE;
 
-#,,..,,,,,,..,,.,,.,.,..,,.,.,..,,.,,,,,.,..,,..,,...,...,,..,..,,..,,,.,,,..,
-#KSRUUL3KZLQYGZP4FIEAC3I7UIV65LARZIPIQUOWXTJLLP2CLXWFS25JSN7FCQSDEBPZ4KGF6WV4Y
-#\\\|3BLJZRQ27KS3MKYNCKGNX3HB3JIHQF35JGKN7N3XKNKECWMBQHW \ / AMOS7 \ YOURUM ::
-#\[7]YELX2IFJCQ6OS2MQ5PCVRTERDY4RH4QS4QZQVGQ373CSN6STCYDY 7  DATA SIGNATURE ::
+#,,,,,.,,,,..,,..,...,,,,,...,..,,,.,,,.,,,..,..,,...,...,.,.,.,,,,,,,..,,,,,,
+#YMY55OQXVI7JYVT2EYO6PFWCMYKPBRY5RCBFLSKP2HN2G746DBLW4D4Q6QCX6GHBKE4KIYFTG4Q3O
+#\\\|DV5JSLIXJGTL6N4MKT4XC6JQ4SF5FU5CIQYWPARTQYLU7RLJQ7Y \ / AMOS7 \ YOURUM ::
+#\[7]LBWSAHJDTUFFVDH2V33XL3SFJTTPTS3ZJ2YUIF7LWQQHKVUUBUDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

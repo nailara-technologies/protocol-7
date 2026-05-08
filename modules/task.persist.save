@@ -20,6 +20,7 @@ if ( not defined $yaml_str or not length $yaml_str ) {
     return FALSE;
 }
 
+utf8::encode($yaml_str);
 my $written = <[file.zenka_dir.write]>->( $queue_file, \$yaml_str );
 
 if ( not defined $written ) {
@@ -29,8 +30,8 @@ if ( not defined $written ) {
 
 return TRUE;
 
-#,,,.,.,,,..,,,,.,,.,,...,...,..,,,.,,,,,,,,.,.,.,...,...,,.,,,..,..,,.,.,,..,
-#D3AVBA3UCCXSB3PZTDXVP45WRDGY5QC5G37YMFMLQDAH5SX3CCM5NCMSVVW4LQ2EM3V5ERZT2V7B4
-#\\\|DW25L5TZ5BBPRLKUWNGJUHHAHQ36DQL5P6DZK7KXAL3SUJ2JQSJ \ / AMOS7 \ YOURUM ::
-#\[7]YTJKXSZH4I7OCLKWCVUX6BOEJN5L3WHPZKDCKCSGPIE5SZJRHYCI 7  DATA SIGNATURE ::
+#,,,.,..,,,,,,.,,,,,.,.,,,.,,,,,.,,.,,.,.,..,,.,.,...,...,,..,,,,,...,...,,.,,
+#NW62AQFRCCHXYZ4DEYYG22J2KMSVUQPQGBYYWWGWH5B3GCP2364FN7ZYKKPHMWC5ZHPPX7VTKBYU4
+#\\\|3BOUTPEWU5QPS5HTJAUPFWPTRNBYUO523GJIHSJ4YMCSHZSBBFK \ / AMOS7 \ YOURUM ::
+#\[7]IVB4FU7IZ5NMOQPYN3CMP6NCO4JPWEACJ5KGVAYJHZURZUFRCMBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
