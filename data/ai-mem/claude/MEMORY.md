@@ -52,6 +52,7 @@
 - `feedback-list-return-format.md` — list backends: mode 'size' + formatted string, not arrayref
 - `topic-searchable-index-and-visualization.md` — checksum-indexed dataspace, space.v7.ax/source.v7.ax, index/file zenki
 - `feedback-web-serialization-and-inlining.md` — parallel JSON+YAML data endpoints, inline CSS/JS for offline-viewable native-app-like reliability
+- `feedback-file-io-api.md` — file.read/slurp/write/write_encoded/append param order + return types
 - `feedback-file-stat-shadowing.md` — bin/Protocol-7 `use File::stat` shadows builtin stat; always use `File::stat::stat($p)->size/mtime` in modules
 - `feedback-cube-pause-starvation.md` — base.handler.read pause on cube socket starves all routed traffic; size-overflow drop must respect SIZE boundary or injection
 - `feedback-set-capability-session-id.md` — cube.cmd.* modules receive $call_args with 'session_id'/'args'; using 'sid'/'args_list' silently FALSEs out
@@ -347,8 +348,8 @@
 - Pattern: `my @non_num = grep { defined $data_ref->{$ARG}->{$key} and not looks_like_number(...) } keys $data_ref->%*`
 - Global `$SIG{__WARN__}` exists — if wrapping warn handler, capture `$prev_warn = $SIG{__WARN__}` first and call through
 
-#,,,.,.,,,,,.,,,.,.,.,,,,,,.,,.,.,,.,,,,,,,..,..,,...,...,...,.,,,..,,...,,.,,
-#HIKPCPV3BGJ7FGFOFAR5SFNPR4FT3ZYY2D7HLOYSO5TKK6HNOLDSVYGLZNGRSIPJQEAFV6U6S6GJA
-#\\\|TCR7FHCO2TRWDU6PNIXJP3PSS42F3O6B4E4J3QGI4RAELKOEQSU \ / AMOS7 \ YOURUM ::
-#\[7]ZLIXSUOVDIZGC5AX3Z5XWL3WKV7CD7QZMPI3WEVMYJO7GBUN5YAY 7  DATA SIGNATURE ::
+#,,..,,,,,...,,,.,.,,,,..,,,,,...,.,.,,..,,,,,..,,...,..,,...,,..,,.,,.,.,,.,,
+#6H3BXHII27FUJFLWNWQ7JVT6VZWL7TR5YDSILLKDHTDYTHMPYEDTY77GJJ5352WOYNZN7MQWMNRHS
+#\\\|WATUFWMXEOE5MMNUSUE6PN5P54NTFOUDAVRQYBSHGNKKRUL5DXB \ / AMOS7 \ YOURUM ::
+#\[7]NPN47XJASAFTI22KX2UALUVRZES4P2K5QROKJEGVVVPA27ZZIWBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

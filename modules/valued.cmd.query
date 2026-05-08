@@ -1,0 +1,50 @@
+## [:< ##
+
+# name  = valued.cmd.query
+# descr = query valued tree with n, parent, type filters
+
+my $params = {};
+
+## parse params: hash path first, then positional args fallback ##
+if ( $call->{'args'} ) {
+    my $n_arg = $call->{'args'};
+    $n_arg =~ s{\s+$}{};    ## trim trailing whitespace ##
+
+    if ( $n_arg =~ /^\d+$/ ) {
+        $params = { 'n' => $n_arg, 'parent' => '', 'type' => '' };
+    }
+}
+
+my $n      = $params->{'n'}      // 10;
+my $parent = $params->{'parent'} // '';
+my $type   = $params->{'type'}   // '';
+
+## validate n: must be positive integer, clamp to 1..100 ##
+$n = int $n;
+if ( $n < 1 ) {
+    $n = 1;
+}
+if ( $n > 100 ) {
+    $n = 100;
+}
+
+my $output;
+
+## call the internal sub ##
+$output = <[valued.tree.top_n]>
+    ->( { 'n' => $n, 'parent' => $parent, 'type' => $type } );
+
+## handle empty result ##
+if ( !defined $output or ( length $output ) == 0 ) {
+    $output = 'no nodes';
+}
+
+return { 'mode' => 'size', 'data' => $output };
+
+## [:< ##
+
+#,,,.,.,.,.,,,..,,,,,,,,.,,.,,.,.,,,,,,,,,...,..,,...,...,,,,,..,,...,,,.,..,,
+#MH2JI6SNECBIPGOR4Z46GD4FJ334REED3AK7XYC7UAF6JCYZ6GDDORZGAS6J7GA57FATWD6THHCIY
+#\\\|BSRSYQ4F2J6WME5355CUHNCCBTXE5O2AJFJW2EPVV3HQKTM75QC \ / AMOS7 \ YOURUM ::
+#\[7]AKVKI5HWFVLQUQ2JBQE6JYJUFYZ3DTUN2Z4YLA26BUMTRVZKV4AQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
