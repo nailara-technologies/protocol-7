@@ -16,10 +16,9 @@ my $abs_path = "$root/$path";
 return 'error: file not found' unless -f $abs_path;
 
 ## read file into lines ##
-my $content_ref = <[base.file.slurp]>
-    ->( $abs_path, \( my $buf = '' ), ':encoding(UTF-8)' );
-return 'error: cannot read file' unless defined $content_ref;
-my @lines = split /^/m, $buf;
+my $file_content = <[file.read]>->( $abs_path, ':encoding(UTF-8)' );
+return 'error: cannot read file' unless defined $file_content;
+my @lines = split /^/m, $file_content;
 
 ## validate line number ##
 my $line_num = int($line);
@@ -71,8 +70,8 @@ return sprintf "preview line %d\n  was: %s\n  now: %s", $line_num, $old,
 
 #,,
 
-#,,..,...,...,,..,,..,...,,,,,...,...,,,,,.,.,..,,...,..,,...,.,,,,,.,...,.,,,
-#2QADDFPY5IWOUANS2MBM3Y473IJ2RF5F5D2TF3XJPDICK62KUSEZEVSB2XCZEXZATHJFMCTHRSS3E
-#\\\|HM5UD2G2MNXUPGSXKKG7STSMUO4KJZOJPLSXOWD6CKZ7LAE6NJ4 \ / AMOS7 \ YOURUM ::
-#\[7]EYHTCH5PRS4DGJZZXH3BOPISWV2GPEGCTI73BIKCFKGWV6NITIDA 7  DATA SIGNATURE ::
+#,,,,,,.,,,..,..,,.,,,,.,,..,,.,,,,.,,.,,,.,.,..,,...,...,.,.,,.,,,,.,...,,,,,
+#4DUWAAYA5YQ3ZTTCYTAN5ZYHQQZBV3VALEW5WOOOBPT7PV3UKHVG2AMJNFSWFZ2KYC4HCXTUKCOSE
+#\\\|HZVICEPEH6VTE34LENV3I3ETBMKSLHDXO75547GR73RCQ6CZVHK \ / AMOS7 \ YOURUM ::
+#\[7]K2SKJJY7JH35PEBH7BLYJYAQ3PAMPMNW2BDIF666XDWRTQIF6MDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

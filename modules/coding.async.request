@@ -67,13 +67,18 @@ if (   defined $lock
         1, "async.request : backend %s busy [task %s], deferring %s",
         $backend, $lock->{'task_id'}, $task_id
     );
-    ## schedule retry after short delay — event-loop friendly ##
-    <[event.add_timer]>->(
-        {   'after'   => 0.7,
-            'handler' => qw| coding.callback.backend_busy_retry |,
-            'data'    => $task_id
-        }
-    );
+    ## guard: only one retry timer per task — prevents stacking from enqueue_round ##
+    my $state = <coding.async.task_state>->{$task_id} // {};
+    unless ( $state->{'retry_timer_pending'} ) {
+        $state->{'retry_timer_pending'} = 1;
+        <coding.async.task_state>->{$task_id} = $state;
+        <[event.add_timer]>->(
+            {   'after'   => 0.7,
+                'handler' => qw| coding.callback.backend_busy_retry |,
+                'data'    => $task_id
+            }
+        );
+    }
     return { success => TRUE, mode => qw| deferred |, backend_busy => TRUE };
 }
 
@@ -162,8 +167,8 @@ return {
     mode    => qw| streaming |,
 };
 
-#,,..,,.,,,.,,,..,,.,,,,.,,.,,,.,,,..,,,.,.,.,..,,...,...,.,.,,,,,..,,,,.,.,,,
-#H6UQCFRTPS6BWUPSOPCMQSHG5COSWLQ65YKFD4MRTOVYV4BZ5MYQ2Y6A7XAVFXIDI2A6WGHP6SFXS
-#\\\|5AY33K7AWKS2I5Q525WVNBSQIW6QB7Z3W5MAT6X5JFFR5QOPZUE \ / AMOS7 \ YOURUM ::
-#\[7]35FV43YCR7P76WWYLEFXIN376FU2SZTYNDIFVSG6MH7WHI4GZIDQ 7  DATA SIGNATURE ::
+#,,,.,,..,...,.,.,.,.,,,.,,..,..,,.,.,...,,..,..,,...,...,,..,,..,.,.,.,,,,,,,
+#7QUF2LEC7BLI66DMZH7HX2MAT7NWBFM6QYR4D4VO3PLPB5BPDNEJTQ72JITZ5FRT6SYHMBW2UUPXA
+#\\\|FVGEHQ3TVVPHPPOE7CR5R3V4NHVUYKA6FJRX26E2AHFK4RGQ3AK \ / AMOS7 \ YOURUM ::
+#\[7]NJT22ZBKVE2UMW2GHYYZVUOYYA3DNWPAZJRL3D4536BQ6ZN7FWBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

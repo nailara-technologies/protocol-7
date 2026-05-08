@@ -1,0 +1,55 @@
+## [:< ##
+
+# name  = task.cmd.start
+# param = <task_id>
+# descr = transition a claimed task to in_progress
+
+my $task_id = '';
+
+## parse params ##
+if ( defined $call->{'param'} and ref $call->{'param'} eq 'HASH' ) {
+    $task_id = $call->{'param'}->{'id'} // '';
+} else {
+    $task_id = $call->{'args'} // '';
+    $task_id =~ s{\s.*$}{};
+}
+
+$task_id = uc( substr( $task_id, 0, 7 ) );
+
+return { 'mode' => 'false', 'data' => 'task id required' }
+    unless length $task_id;
+
+my $task = <task.queue>->{$task_id};
+
+return {
+    'mode' => 'false',
+    'data' => sprintf( 'task %s not found', $task_id )
+    }
+    unless defined $task;
+
+## only claimed tasks can be started ##
+if ( $task->{'status'} ne 'claimed' ) {
+    return {
+        'mode' => 'false',
+        'data' => sprintf(
+            'task %s is %s, not claimed',
+            $task_id, $task->{'status'}
+        )
+    };
+}
+
+my $ntime_b32 = <[base.ntime.b32]>->();
+
+$task->{'status'}     = 'in_progress';
+$task->{'started_at'} = $ntime_b32;
+$task->{'updated_at'} = $ntime_b32;
+
+<[base.logs]>->( 1, 'task %s started', $task_id );
+
+return { 'mode' => 'true', 'data' => sprintf( 'task %s started', $task_id ) };
+
+#,,.,,.,,,.,,,..,,.,.,,,,,.,.,..,,...,,..,,,.,..,,...,...,.,.,,,,,...,.,.,..,,
+#TRF3RZSXRERRU5QZZDMF5KA5ICCXKZHAC4OZW7ONIVPZ4OZBDZ6GM3BNJXLYOLRFFWY244GPXN77A
+#\\\|HJ23KXV7CI7LCCS6LREUEZNBNTENZBMFYQYAAJX4XK5J7OCZDST \ / AMOS7 \ YOURUM ::
+#\[7]UBYEBTEKOQAA5PDV5RG5CQZO7X7E6I5P6BJPG4UQGJKPE5GTTMAI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
