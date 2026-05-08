@@ -21,10 +21,9 @@ return 'error: from must be >= 1'  if $from_n < 1;
 return 'error: to must be >= from' if $to_n < $from_n;
 
 ## read file into lines ##
-my $content_ref = <[base.file.slurp]>
-    ->( $abs_path, \( my $buf = '' ), ':encoding(UTF-8)' );
-return 'error: cannot read file' unless defined $content_ref;
-my @lines = split /^/m, $buf;
+my $content = <[file.read]>->( $abs_path, ':encoding(UTF-8)' );
+return 'error: cannot read file' unless defined $content;
+my @lines = split /^/m, $content;
 
 return sprintf 'error: from %d out of range [1..%d]', $from_n, scalar @lines
     if $from_n > scalar @lines;
@@ -73,8 +72,8 @@ return sprintf "preview: would delete %d line%s [ %d..%d ]",
 
 #,,
 
-#,,,,,,,.,..,,,,.,.,,,.,,,..,,,,.,..,,.,.,..,,..,,...,...,.,.,,,,,...,..,,,.,,
-#AYXOIZIX5PNMJYAV5F2S5FFDK3U2AWZ6SBFUAYKTYA4VEV33VNOXZ23FW2VZJHZ7YY2S4PFJSHAIC
-#\\\|A7RYWBZUENM6JIEEMRXV6HMUI3OEJRJBQY4D53D7C5AMJV4PJHN \ / AMOS7 \ YOURUM ::
-#\[7]PKI2ILMBRWV2ZBGEV7TMV2YSX22QFSFWAFQNXZ7RHBSQPO5KQGAA 7  DATA SIGNATURE ::
+#,,,,,..,,,,,,...,,,,,,,.,.,,,,..,,.,,,.,,..,,..,,...,..,,.,.,.,.,,,.,,,,,,.,,
+#V7NBICKFMBNKSRHVDX7MIAGVP45SUJTRG6WGBYPGDSTEXM7BBTNPDCNDITCKURK3PRH6EYLAWFD7E
+#\\\|6LOCSJ346ZJIEXWIBEHN6E2RME4JUDWFLB5FLM2ISD6RUABJPAK \ / AMOS7 \ YOURUM ::
+#\[7]NGTI2IRIDCVGYKZPEQFXSPHEGRG3XE5RGXFTN6QIRK2KWR4WRUCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
