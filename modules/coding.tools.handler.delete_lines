@@ -3,11 +3,13 @@
 # name  = coding.tools.handler.delete_lines
 # descr = delete a line range from file by line numbers
 
-my $args  = shift            // {};
-my $path  = $args->{'path'}  // return 'error : path required';
-my $from  = $args->{'from'}  // return 'error : from line required';
-my $to    = $args->{'to'}    // $from;
-my $apply = $args->{'apply'} // TRUE;
+my $args    = shift               // {};
+my $path    = $args->{'path'}     // return 'error : path required';
+my $from    = $args->{'from'}     // return 'error : from line required';
+my $to      = $args->{'to'}       // $from;
+my $apply   = $args->{'apply'}    // TRUE;
+my $raw_enc = $args->{'encoding'} // 'UTF-8';
+my $norm_encoding = $raw_enc =~ /^:/ ? $raw_enc : ":encoding($raw_enc)";
 
 ## resolve and sanitize path — no Cwd, use string check ##
 return 'error: path traversal not allowed' if $path =~ m{\.\.};
@@ -21,7 +23,7 @@ return 'error: from must be >= 1'  if $from_n < 1;
 return 'error: to must be >= from' if $to_n < $from_n;
 
 ## read file into lines ##
-my $content = <[file.read]>->($abs_path);
+my $content = <[file.read]>->( $abs_path, $norm_encoding );
 return 'error: cannot read file' unless defined $content;
 my @lines = split /^/m, $content;
 
@@ -44,7 +46,7 @@ if ($apply) {
     }
 
     if ( -w $abs_path ) {
-        <[file.write_encoded]>->( ':encoding(UTF-8)', $abs_path, \@lines );
+        <[file.write_encoded]>->( $norm_encoding, $abs_path, \@lines );
         if ( defined $mode_restore and defined $chmod_fh ) {
             print {$chmod_fh} sprintf "restore %04o %s\n", $mode_restore,
                 $abs_path;
@@ -55,7 +57,7 @@ if ($apply) {
         ## stage when no write access ##
         my $stage_name = $abs_path =~ s{/}{__}gr;
         my $stage_path = "/var/protocol-7/coding/staged/$stage_name";
-        open my $fh, '>:encoding(UTF-8)', $stage_path;
+        open my $fh, ">$norm_encoding", $stage_path;
         print {$fh} @lines;
         close $fh;
         return
@@ -73,8 +75,8 @@ return sprintf "preview: would delete %d line%s [ %d..%d ]",
 
 #,,
 
-#,,..,,,,,.,.,,.,,,,.,,,,,..,,.,.,..,,.,,,.,.,..,,...,..,,...,,,.,.,.,,,,,,..,
-#IPG7IXNWFNOV52VGD57T7LYEIB22BZQ2OYNJFYJG5YGLEWPGKTKVMUF4PGHD3TCNYMGTPFRBQ7GCO
-#\\\|ZIDJZIAKL73X4LXO5S3Y3JCB77YDFHC5FACBWYKMCFXGNTV2MJR \ / AMOS7 \ YOURUM ::
-#\[7]5YII2D6SOZRA4TRITIXWUCXJ4HGUV4CMSFXB566KOEA6PQAAXQBY 7  DATA SIGNATURE ::
+#,,.,,..,,,,.,..,,.,,,.,.,,..,.,.,.,.,,,.,..,,..,,...,...,,.,,.,.,.,,,.,,,,..,
+#5TEHUSK7YDLRY6IRFXUACEDWPA2A6MO5YELJIDO4GCURSRM6XL3JHHKWYGOJKFTXRGU7HPLGUMYX4
+#\\\|35J2CUBG4W3VFE3DGERQAVUCKARBC2ODNWF2YPIZCBJGYV7XNIB \ / AMOS7 \ YOURUM ::
+#\[7]PDV4TJEELAQVGKZBX3MAFLQOYN5GM7USGRAZQOYUXFZXPMTEJKCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
