@@ -75,7 +75,7 @@ for my $hunk (@hunks) {
         my $changed = ( defined $o ? $o : '' ) ne ( defined $n ? $n : '' );
 
         if ( !$changed ) {
-            push @diff, ' ' . $o;
+            push @diff, ' ' . ( $o // '' );
         } else {
             push @diff, '-' . ( defined $o ? $o : '' ) if defined $o;
             push @diff, '+' . ( defined $n ? $n : '' ) if defined $n;
@@ -87,8 +87,8 @@ for my $hunk (@hunks) {
 
 return join "\n", @diff;
 
-#,,,,,.,,,.,,,,,.,,,,,..,,.,.,.,,,.,,,..,,.,,,..,,...,...,.,.,.,.,,..,.,.,,,,,
-#G7RT7Q2RHHGODRKWVYKREJLAO3WVGFBRNSYBMT2LY7PE5EH5Z2LTZZ45FEHP4P5BH7N4RAYPYPESC
-#\\\|LIV5PCCMJAEWO7THSVG5E3M24GD6XVEQK5TUXLH6KGKWFXEJZDY \ / AMOS7 \ YOURUM ::
-#\[7]OYOASVK7KCJQGQM3B6JPAPKCQZUY5YUQUJ7V2HAQVTJI7TDBHYDI 7  DATA SIGNATURE ::
+#,,,,,,,,,,,,,.,,,.,.,.,,,..,,...,.,,,,..,,,.,..,,...,...,.,,,...,.,.,..,,...,
+#VARQP76YWKGLRC4CCVXTXNF4BEL4BHKJ5IEQYT4LZ2OOBFNPODG63TCXRAGKCXNZ4IAT2TQA6PCOC
+#\\\|RSWXEKGABZGDEA7SLOMGIVTCBQVJMA4JILTY2FFPBZSKZBWGTQP \ / AMOS7 \ YOURUM ::
+#\[7]FJGW3AQUSGDHRD7COI4L5XE6LOTFGFXFT7FQLEQRGWVFBGFNMYDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
