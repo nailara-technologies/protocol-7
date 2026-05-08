@@ -2,8 +2,8 @@
 name: task coordination architecture
 description: current state and roadmap for task zenka as coordinator between kimi, coding, models, and future LLM zenki
 type: project
+originSessionId: 6538e52c-796d-4a00-bc99-63699ca261f0
 ---
-
 ## current state (Mar 23 2026)
 
 ### what works today
@@ -95,16 +95,33 @@ claude code (MCP) → task.create → task zenka stores + notifies models
 - `modules/kimi.connect` — websocket lifecycle, preserved-prompt busy status
 - `modules/task.cmd.*` — task zenka command modules
 
-## near-term next steps
+## session 13 state (2026-05-08)
 
-- refine kimi workflow resilience (in progress — init retry fix deployed)
-- test multi-model consensus with real providers beyond kimi-web
-- task.next command for autonomous work pickup
-- per-backend dispatch slots for parallel kimi + coding execution
-- generic coordination modules extractable from models zenka
+### newly completed
+- `task.cmd.start` — claimed→in_progress transition
+- `task.cmd.create` — stores iteration/acceptance_criteria/node_id/max_attempts
+- `task.end_code` — auto-saves handover.txt via callbacks.end_code on shutdown
+- `valued.cmd.query` — network wrapper for valued.tree.top_n
+- `task.cmd.next` — gradient-sorted next task (written session 12)
+- `task.cmd.handover` — full queue handover packager (written session 12)
+- iteration loop: init/loop/score_result/template.delta/finish + models wiring
+- valued tree: N+f nodes, ref counting, gradient routing, persist/restore
 
-#,,.,,,,,,...,.,,,,.,,..,,,..,.,,,.,.,,,.,,,.,..,,...,...,,.,,,,,,,.,,,..,,..,
-#QRYKQ7SVLBGSZ3KMC6JF4WEGIZ6CPUAMFLH45YJZBZGVBNWINUB7GZ5X2WLC4COUHZFB7E2SIVSCK
-#\\\|BEAYP27LP7WTVBCIDXFIMBZ7Y3MDB42IYUGW4IH7DYN2THMGYB5 \ / AMOS7 \ YOURUM ::
-#\[7]AKFCG3VSMWH5SY7FLBURHGAXJUBCPTK47IM6RQRFBEVWODCKJ6CQ 7  DATA SIGNATURE ::
+### critical gap: task.cmd.start never called in models dispatch
+`models.handler.task-poll-step` flow: `claim → show → enqueue → execute`
+`task.cmd.start` exists but is not called — `in_progress` status never set.
+Fix needed: after `step: claimed` succeeds, route-send `task.start <id>` before `show`.
+
+### next steps toward functional task tree
+1. Wire `task.cmd.start` into `models.handler.task-poll-step` (after claim)
+2. Load `data/yaml/task-tree/` seed into valued tree at startup (gradient needs seeding)
+3. First real e2e: `p7c task.cmd.create` → models dispatch → iteration.loop → done
+4. `task.cmd.show` — add iteration/criteria fields to output
+5. Test `valued.cmd.query` and `task.cmd.next` via p7c after seed load
+6. meta-session-summary → `task.cmd.handover` wiring (Stop hook or explicit trigger)
+
+#,,..,...,..,,,.,,,,.,..,,,,.,...,,,,,,.,,,,.,..,,...,...,...,,..,...,.,.,...,
+#L6MFD6UJLSIQUUTA55M7NUW3KLNKQQR4KKOAD3DJMIW6ZOUVTFWIOCJN2DYTCJ7YFSHRCXEKGARSU
+#\\\|YIVIPP33UF6Z637LLDHRZO4OL4QNT54IFYVD5WOBN3JB3SJOS5F \ / AMOS7 \ YOURUM ::
+#\[7]MYNPG746PWBITNVNEQ22JCHKIINV4KQG35DS2JNSLISAEDBKFYCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
