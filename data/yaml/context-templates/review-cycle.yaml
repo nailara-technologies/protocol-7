@@ -48,6 +48,9 @@ sections:
       rule: if critic OR auditor says it is a real issue → record as finding.
       rule: if both say the code is fine → this was a false positive, discard it.
       rule: style-only issues (comments, naming) do not need consensus_query.
+      rule: if your proposed fix contains a code change, call search_code on
+            the proposed pattern first. zero results = the pattern does not
+            exist in this codebase = discard the finding.
 
       after processing all potential issues this way, write:
         "## verification complete: N issues confirmed, M discarded as false positives"
@@ -137,8 +140,8 @@ on_complete:
     action: memory_update
     topic: "self-correction:{{target_module}}"
 
-#,,,.,,,,,,.,,,,,,,,,,,,,,..,,.,,,.,.,.,,,,,,,..,,...,...,..,,,,,,,,.,.,,,..,,
-#NVB36TH5UD7N4KEH2ONURSMDDODIMZDYFXHJZ4LT27XQEZQENLMWU53QMZK354NWWYOGKN4FYRMZQ
-#\\\|4LN7H24FFQWEOYAPN7ZRJC3G3BOKJ55QGLLEJHVN4LGLNCSPCL6 \ / AMOS7 \ YOURUM ::
-#\[7]7ADIM5NWYSIO4Q7XGEX5NNWQ3XVKBA3GZNXGCBZRMWB3IQAAOMBI 7  DATA SIGNATURE ::
+#,,,.,,.,,...,..,,.,,,,.,,,.,,,,,,,,,,..,,,..,..,,...,...,.,.,.,,,...,.,.,,,.,
+#4KNECBLDMQQJ65N6PESKOSJHPHX65HIWG6CGDW2246GZJE47SUER57KLXUTRFJPJMTSH6O2KF7L32
+#\\\|EHAH3YWVWM5EWFVE7UCEQHGPIWWOAGF7MH2X33FZY7UTXOCU7QN \ / AMOS7 \ YOURUM ::
+#\[7]CWBPPUGGCEZELBWS2CAXJPBYPHKMFHUGX2VZ4C2KTSENT65SDADY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
