@@ -1,70 +1,35 @@
 ## [:< ##
 
 # name  = valued.cmd.query
-# descr = query valued tree with n, parent, type filters
+# param = [n] [parent=<id>] [type=<type>]
+# descr = query top-N valued tree nodes [ parent + type filter ]
 
-my $params = {};
+my ( $n, $parent, $type ) = ( 10, '', '' );
 
-## parse params: hash path first, then positional args fallback ##
-if ( $call->{'args'} ) {
-    my $n_arg = $call->{'args'};
-    $n_arg =~ s{\s+$}{};    ## trim trailing whitespace ##
-
-    if ( $n_arg =~ /^\d+$/ ) {
-        $params = { 'n' => $n_arg, 'parent' => '', 'type' => '' };
-    }
+## parse params: hash path first, positional args fallback ##
+if ( defined $call->{'param'} and ref $call->{'param'} eq 'HASH' ) {
+    $n      = $call->{'param'}->{'n'}      // 10;
+    $parent = $call->{'param'}->{'parent'} // '';
+    $type   = $call->{'param'}->{'type'}   // '';
+} elsif ( length( $call->{'args'} // '' ) ) {
+    my ($first) = split /\s+/, $call->{'args'};
+    $n = $first if defined $first && $first =~ /^\d+$/;
 }
 
-if ( !$n && $args ) {
-
-    # positional args fallback: first token = n
-    my @toks = split /[\\\\\\\\\s,]+/, $args;
-    $n = $toks[0] if $toks[0] =~ /^\\\\\\\\\d+$/;
-}
-
-# validate n is a positive integer, clamp to range 1..100
-$n =~ s/[^0-9]//g;
-if ( !$n || $n < 1 ) { $n = 10; }
-if ( $n > 100 )      { $n = 100; }
-
-# call the internal sub
-my $result = <[valued.tree.top_n]>
-    ->( { n => $n, parent => $parent, type => $type } );
-
-# if result is empty/undef, return 'no nodes'
-if ( !defined $result || $result !~ /[^ \t\n\r\\\\\\\\v\f]/ ) {
-    $result = 'no nodes';
-}
-my $n      = $params->{'n'}      // 10;
-my $parent = $params->{'parent'} // '';
-my $type   = $params->{'type'}   // '';
-
-## validate n: must be positive integer, clamp to 1..100 ##
+## clamp n to valid range ##
 $n = int $n;
-if ( $n < 1 ) {
-    $n = 1;
-}
-if ( $n > 100 ) {
-    $n = 100;
-}
+$n = 1   if $n < 1;
+$n = 100 if $n > 100;
 
-my $output;
-
-## call the internal sub ##
-$output = <[valued.tree.top_n]>
+my $output = <[valued.tree.top_n]>
     ->( { 'n' => $n, 'parent' => $parent, 'type' => $type } );
 
-## handle empty result ##
-if ( !defined $output or ( length $output ) == 0 ) {
-    $output = 'no nodes';
-}
+$output = 'no nodes' if !defined $output or !length $output;
 
 return { 'mode' => 'size', 'data' => $output };
 
-## [:< ##
-
-#,,.,,,,.,..,,..,,,.,,.,,,,..,.,.,,..,,,.,,,.,..,,...,...,,,,,.,.,,..,...,..,,
-#AI3ZMSKVFHOQAO3RWF4NVBQ53WSW3AXEYW5LE2DQEEETM6EKGPLS7WGZKW2WOG6MA7SLGK4653CJG
-#\\\|YVKK4A2M4MQFVYGXSNSPNDG4ACEKMTUQI3ZT6GLCY2TTFYNGFZ2 \ / AMOS7 \ YOURUM ::
-#\[7]E7GOGTOBYZFCYZFVAICDSYFM3MOYW2Y74BNPMESGRGK6L3O2BOCI 7  DATA SIGNATURE ::
+#,,,.,...,,.,,,,.,,.,,..,,,.,,,..,,,.,,..,,.,,..,,...,...,.,,,...,,,,,,,,,...,
+#Y4SB6V2ZR5UU3TVORL7VSYNDN3LOTUQNQGXOPR3ABGZRMA2NTPH2Q7Z7KHSHBMF3QDHHT3VPV6UKI
+#\\\|EF4H7N3C2GX4YZNSSI3EWKYLXQLKFB4O6TMCXBTK7REVEI5VGZ5 \ / AMOS7 \ YOURUM ::
+#\[7]WLO62DYZGBZSVYOEHSKNWHFQG65E5QNU46ACTVTCDETVGLFWJKAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
