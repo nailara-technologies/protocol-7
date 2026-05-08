@@ -134,28 +134,37 @@ my @pattern_registry = (
         'allow_polling' => 0,
     },
 
-    ## Pattern: File not found spiral (searching for core subs as module files)
+    ## Pattern: File not found spiral (retrying the same path repeatedly)       ##
+    ## requires same path argument repeated — distinguishes spiral from          ##
+    ## legitimate sliding-window reads (different offsets each call)            ##
     {   'name'     => 'file_not_found_spiral',
-        'priority' => 2,      ## higher priority than stuck_retry ##
+        'priority' => 2,
         'min_hits' => 4,
         'check'    => sub {
             my ( $history, $weights ) = @ARG;
             return 0 unless @$history >= 4;
 
-            ## count read_file calls in last 8 entries (clamp to actual length) ##
-            my $take            = @$history < 8 ? scalar @$history : 8;
-            my @last8           = @$history[ -$take .. -1 ];
-            my $read_file_count = grep { defined && m{^read_file} } @last8;
+            my $take  = @$history < 8 ? scalar @$history : 8;
+            my @last8 = @$history[ -$take .. -1 ];
 
-            ## if 4+ of last 8 tool calls were read_file, likely searching ##
-            ## for something that doesn't exist as a module file ##
-            return 1 if $read_file_count >= 4;
+            ## extract path= argument from read_file entries ##
+            my %path_counts;
+            for my $entry (@last8) {
+                next unless defined $entry && $entry =~ m{^read_file};
+                ## parse path= from arg signature ##
+                if ( $entry =~ m{path=([^,|]+)} ) {
+                    $path_counts{$1}++;
+                }
+            }
+
+            ## spiral = same path called 3+ times, not just many read_file calls ##
+            return 1 if grep { $_ >= 3 } values %path_counts;
             return 0;
         },
-        'confidence'    => 0.80,
+        'confidence'    => 0.85,
         'allow_polling' => 0,
-        'warning' => 'repeated read_file calls suggest searching for a file'
-            . ' that does not exist as a module file — check if it is a core sub'
+        'warning' => 'same file path retried 3+ times — likely searching for a'
+            . ' file that does not exist. check if it is a core sub'
             . ' (base.ntime.b32, base.time etc. live in bin/Protocol-7)',
     },
 
@@ -373,7 +382,7 @@ if ( $phase eq 'suspicion' ) {
                 'score'       => $cumulative_score,
                 'skip_assert' => 1,
                 'message'     => sprintf(
-                    "[LOOP DETECTED: %s] Pattern '%s' detected",
+                    "[LOOP DETECTED after %d tool calls] Pattern '%s' detected",
                     scalar(@$history), $top_pattern->{'name'}
                 )
             };
@@ -523,8 +532,8 @@ elsif ( $phase eq 'escalation' ) {
 ## Unknown phase ##
 return qw| false |;
 
-#,,,.,,,.,,,,,.,.,...,,,,,,,.,...,..,,,,.,,,,,.,.,...,...,..,,,,,,.,,,.,.,,,.,
-#ICCKQQJF3PT4TBXZDQXZHZNHMKXVYPZQ5O3L2HRXZMMS5WPTTAWUOFLUJXCOOBANFR23NELS34Z5U
-#\\\|BSR73KMNLLQWX4MXCNGJQAL22HMCSDH66HXBBN3FKSD6LU525L3 \ / AMOS7 \ YOURUM ::
-#\[7]UFQLGM3SUGR5IRJNGX637EKXNZWGY75RNJEKUXBE77NHSRII5SBI 7  DATA SIGNATURE ::
+#,,.,,.,.,..,,,,.,,,.,,.,,,,,,.,.,..,,.,.,,.,,.,.,...,...,..,,..,,..,,.,,,,.,,
+#C7BZ3JGSSHPLOAG6477LKHIN4OSVZVIO47JFUICHMZ3WSGJTVUY7KYX6RCQ3BXY5FWKWN5K7AL6TA
+#\\\|YC2U2OVHRQN2LOPSZDOKTQ2N4QWIR56CMXO2HDNBF673SFVT2QG \ / AMOS7 \ YOURUM ::
+#\[7]XX2TRYLXUATW3VBBNU7CCMEWGGZO3GAHBTGQZ22K3KUVDHZKFKCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
