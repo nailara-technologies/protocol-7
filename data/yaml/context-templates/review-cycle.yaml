@@ -39,9 +39,26 @@ sections:
       - is this a real issue or a style preference?
       - did i miss something more important?
 
+      ### phase 2b: consensus verification of critical findings ###
+      for every finding with severity = critical or warning:
+        call consensus_query with:
+          mode: verify
+          prompt: the specific code snippet + your finding, e.g.:
+            "code: <paste the relevant lines>
+             finding: <your claim about what is wrong>
+             question: is this finding accurate? is this actually a bug?"
+
+      a finding is CONFIRMED only if at least one perspective (critic or
+      auditor) independently agrees it is a real issue.
+      if both perspectives disagree or find no issue: downgrade to style
+      or remove the finding entirely and note the false positive.
+
+      do NOT mark the review CONFIDENT if any critical finding was not
+      verified by consensus_query.
+
       classify your review quality:
-      - CONFIDENT: findings verified, fixes are correct — proceed
-      - FIXABLE: some findings were wrong, i can correct them now
+      - CONFIDENT: all critical/warning findings confirmed by consensus_query
+      - FIXABLE: some findings were wrong (caught by consensus or self-review)
       - UNCERTAIN: need more context or human judgement — escalate
 
       ### phase 3: action based on classification ###
@@ -91,7 +108,7 @@ sections:
       - issue: description
       - fix: exact code change or [ESCALATE] with reason
       - confidence: high / medium / low
-      - verified: yes/no [ did phase 2 confirm this? ]
+      - verified: yes/no + how [ self-review / consensus_query / both / false-positive ]
 
       ### self-review corrections ###
       - what phase 1 got wrong and the correction
@@ -124,8 +141,8 @@ on_complete:
     action: memory_update
     topic: "self-correction:{{target_module}}"
 
-#,,,,,,,,,,..,..,,..,,,..,,..,.,.,...,,,.,.,,,..,,...,...,...,,,.,..,,,,.,,,,,
-#DUFZ4EG7KN4EIR732WPTG5S43Q7RRKPIOGNJKUODUNB7FJSZULWHYULQWAYLZRUXWC2SQ7KJRR434
-#\\\|4Z6K55JLSICPA2FYF3PGU3IU73NXTXBSGTBC5LCAGLRMMB2Q4BO \ / AMOS7 \ YOURUM ::
-#\[7]7GJK467HHNIKAE3DPGAZ2MT5PYK4G3QFLHFQDEN4SEJXW6KP44BI 7  DATA SIGNATURE ::
+#,,,,,,..,...,.,,,..,,.,,,,.,,,,,,..,,,,.,.,,,..,,...,...,..,,,,,,,.,,,.,,..,,
+#JICUXJBMFMHT5ACXIL4AQDMQ6ZDXRLVVGXG3JLRACCYYE6Z4DUAIFGI2Z4TEL5X2KUVAJXIV27OVS
+#\\\|2QREZY6G45D4K2MPO4VGGPKXWGILUPSK4HRPODL73VJ4YCKW6KV \ / AMOS7 \ YOURUM ::
+#\[7]HMC3RYDFOIDS77ZELEARXD2H7HAIK6JRKPDMX5ML2SKTU36WYGBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
