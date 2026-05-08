@@ -1,47 +1,49 @@
-# Session Handover — 2026-05-07 (complete)
+# Session Handover — 2026-05-08
 
 ## Completed This Session
 
-### UTF-8 buffer handling fixed across IO stack
-- Root cause: `autoload('bytes')` loads module but does NOT enable `use bytes`
-  pragma, so `length()` and `substr()` remained character-oriented on
-  UTF-8-flagged strings while Protocol-7 headers carry raw byte counts.
-- Fix: explicit `bytes::length()` and `bytes::substr()` for all byte-count
-  protocol logic; downgrade strings with `utf8::downgrade()` before
-  `bytes::substr` (undefined behavior on UTF-8-flagged strings).
-- Files touched: `base.handler.command`, `base.handler.input/read/write`,
-  `net.read_bytewise/binary/linewise_estimated`, `base.stream.push/close/emit`,
-  `base.buffer.add_line`
-- CHRSIZE mode kept character-oriented (uses `substr`/`length` for chars,
-  `bytes::length` only when converting to byte counts).
+### Valued tree primitive
+- `modules/valued.*` — N+f composite nodes, ref counting, gradient routing
+- valued.tree.persist/restore — survives zenka restarts
+- valued.cmd.list, valued.cmd.stats, valued.tree.top_n
+- context.priority.rank wired to live gradient
+- task.cmd.complete/fail wire valued.tree.record_outcome
 
-### p7c large-stream blocking — RESOLVED
-- **Root cause**: `base.handler.write` var watcher (`output_buffer`, fires on
-  writes to buffer) was restarted after EAGAIN. Worked while STRM-SIZE chunks
-  kept arriving, but once the last chunk was buffered no more writes triggered
-  it. Remaining ~117KB stuck in output buffer, p7c never received it.
-- **Fix**: on EAGAIN, create a per-session IO write-ready watcher (`write_handler`,
-  `poll => 'w'`) on the socket. Fires when p7c drains the kernel buffer. Stays
-  active until buffer empties. Restarts itself on further EAGAIN (tracks the
-  client's read rate). Stops and hands back to var watcher when buffer is empty.
-- **Verified**: `p7c coding.show-buffer U8-TEST | wc -l` → 8000 ✓
-- This fix likely also resolves the radio zenka mystery where regular command
-  replies disappeared until a `heart` command flushed them — same EAGAIN/var-watcher
-  stall was probably occurring with binary STRM data.
+### Task tree seed (data/yaml/task-tree/)
+- Eternal root attractor + 5 category branches + meta-workflow nodes
+- meta-workflow: post-success/blocked/surprising, workflow-query, session-summary
 
-### STRM-SIZE cleanup on client disconnect — FIXED
-- When client disconnects mid-STRM-SIZE, `blocked_by_stream` and timers on the
-  coding zenka session were left running for 12s.
-- Fix in `base.session.cancel_route`: on route cancel, immediately cancel timers,
-  clear `blocked_by_stream`, and delete stream state.
+### Iteration loop system
+- iteration.init_code/loop/score_result/template.delta/finish
+- iteration-loop.yaml template
+- Wired into models.task.execute + models.handler.task-result
+- Tasks with iteration:true auto-retry with issues, escalate on failure
 
-### Test commands and tooling
-- `devmod.cmd.utf8-test-buffer`, `devmod.cmd.utf8-stream-test` — descr strings shortened
-- `bin/coding-task`: `-context NAME` alias fixed
-- `module-header-normalization.yaml` template simplified
+### Task zenka commands
+- task.cmd.next (gradient-sorted), task.cmd.handover (session packager)
 
-## Status
-All issues resolved and verified. Changes signed and staged for commit.
+### Coding zenka improvements
+- Line-edit tools: replace_line/delete_lines/insert_line (chmod+stage)
+- Crash restart: shift->w->data watcher fix + queue pause/resume
+- Loop detection: file_not_found_spiral pattern
+- Feature-impl template: core subs note, $call cmd pattern, tool params
+- Sushi coder (Qwen3.5-9B) validated as default model
 
-## Token Status
-- Kimi weekly tokens exhausted 2026-05-07, resets ~2026-05-12
+## Next Steps
+
+1. **task.cmd.start** — task zenka step 3, transitions pending→in_progress
+2. **valued.cmd.query** — wraps valued.tree.top_n as network command
+3. **iteration loop end-to-end test** — dispatch a task with iteration:true
+4. **meta.session-summary wiring** — fire task.cmd.handover on session end
+5. **template improvements** — search_code param reminder, write_new_file newline note
+
+## Model Config
+- Default: Qwen3.5-9B sushi coder, reasoning=high, context=87777
+- SLERP 4B: use low reasoning only, good for style/format tasks
+- 9B deepseek reasoning: untested, queue for comparison
+
+## Known Issues
+- write_new_file can strip newlines if model constructs content as one string
+  → prefer replace_in_file for modifications to existing files
+- chmod child requires root — line-edit tools fall back to staging when unavailable
+- search_code requires non-empty pattern param (model sometimes omits it)

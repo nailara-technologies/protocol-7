@@ -178,6 +178,24 @@
 - coding.inject-message discovered as mid-task redirect tool
 - insight: orbital nodes at low zoom look like planetary system — nested orbit infra already present
 
+### Completed (2026-05-08) — session 12 — valued tree + iteration loop
+- valued tree primitive: N+f nodes, ref counting, gradient routing — details in topic-completed.md
+- task tree seed: eternal root + 5 category branches + meta-workflow nodes
+- iteration loop: score_result, template.delta, loop controller — wired into models dispatch
+- sushi coder (Qwen3.5-9B) validated as default: fast, methodical, survives compaction
+- line-edit tools: replace_line/delete_lines/insert_line with chmod+stage fallback
+- crash restart: watcher pattern fix + queue pause/resume during backend restart
+- loop detection: file_not_found_spiral pattern catches core sub search loops
+- feature-impl template: core subs note, $call cmd pattern, tool param reference
+
+### Next Steps (from session 12)
+- task.cmd.start — task zenka step 3 (state transitions)
+- valued.cmd.query — network command wrapping valued.tree.top_n
+- meta.session-summary → task.cmd.handover wiring on session end
+- model evaluation workflow — first automated comparison run
+- iteration loop end-to-end test with iteration:true task
+- template: search_code parameter reminder, write_new_file newline warning
+
 ### Planned / Future
 - **base.handler.command refactor**: plan at `data/md/development/BASE-HANDLER-COMMAND-REFACTOR-PLAN.md` — identical-behavior extraction steps, namespace map first, per-session isolation as boundary, cross-reference maps (`$data{'route'}`) as only explicit cleanup surface. Claude designs seams + namespace map; local models execute. Related to SIZE packet loss bug below.
 - **SIZE packet loss bug**: STRM interaction causes zenka to stop returning SIZE replies until an unrelated command (e.g. `heart`) is sent. No reliable reproducer yet — radio zenka group expected to trigger it. Investigate alongside or before the refactor.
@@ -329,8 +347,8 @@
 - Pattern: `my @non_num = grep { defined $data_ref->{$ARG}->{$key} and not looks_like_number(...) } keys $data_ref->%*`
 - Global `$SIG{__WARN__}` exists — if wrapping warn handler, capture `$prev_warn = $SIG{__WARN__}` first and call through
 
-#,,,.,..,,,.,,,,,,.,.,,,.,,.,,,,.,,..,...,,,,,..,,...,...,.,,,,,.,.,,,,.,,,.,,
-#6CVLVL2TWVF7MJ5E4TZUXI6OTOIWR4HGNZZMWR7USCHPBNWOOMYGW2Y447N7XDN6DSRH3CNSU6XO2
-#\\\|KN23S5BTC6TCWN3I7NOAFYV4CHM7YPRFWFUDYED5E2YCSBVMZR5 \ / AMOS7 \ YOURUM ::
-#\[7]W2F4TGUQLJGZ4S2MVCABTLGQKJBRGXHDENWTBB6MK6SOZRUHFWAA 7  DATA SIGNATURE ::
+#,,,.,.,,,,,.,,,.,.,.,,,,,,.,,.,.,,.,,,,,,,..,..,,...,...,...,.,,,..,,...,,.,,
+#HIKPCPV3BGJ7FGFOFAR5SFNPR4FT3ZYY2D7HLOYSO5TKK6HNOLDSVYGLZNGRSIPJQEAFV6U6S6GJA
+#\\\|TCR7FHCO2TRWDU6PNIXJP3PSS42F3O6B4E4J3QGI4RAELKOEQSU \ / AMOS7 \ YOURUM ::
+#\[7]ZLIXSUOVDIZGC5AX3Z5XWL3WKV7CD7QZMPI3WEVMYJO7GBUN5YAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

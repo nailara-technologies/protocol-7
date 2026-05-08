@@ -1,5 +1,55 @@
 # Completed Work Sessions
 
+## session 12 — valued tree + iteration loop + sushi coder (2026-05-08)
+
+### valued tree primitive (modules/valued.*)
+- valued.init_code, valued.node.create/add_ref/remove_ref/set_weight
+- valued.resolve (N+f effective priority), valued.tree.load/register_node
+- valued.tree.record_outcome, valued.tree.persist/restore (survives restarts)
+- valued.cmd.list, valued.cmd.stats, valued.tree.top_n
+- context.priority.rank wired to valued tree (live gradient over static weights)
+- task.cmd.complete/fail wired to valued.tree.record_outcome (feedback loop)
+
+### task tree seed (data/yaml/task-tree/)
+- root.yaml (eternal attractor), branches.yaml (5 categories)
+- branches-intelligence.yaml (intel sub-branches with bootstrap weights)
+- branches-meta-workflow.yaml (post-success/blocked/surprising, workflow-query,
+  template-query, session-summary — parallel non-blocking activities)
+
+### iteration loop system (modules/iteration.*)
+- iteration.init_code, iteration.loop, iteration.score_result
+- iteration.template.delta (issue-to-patch classifier)
+- iteration.finish, iteration-loop.yaml template
+- wired into models.task.execute + models.handler.task-result
+- tasks with iteration:true auto-retry with issues appended, escalate on failure
+
+### task zenka commands
+- task.cmd.next (gradient-sorted autonomous routing via valued.resolve)
+- task.cmd.handover (queue state packager for session handover)
+
+### coding zenka improvements
+- line-edit tools: replace_line, delete_lines, insert_line (with chmod+stage)
+- fixed: slurp ARRAY fatal warnings → scalar slurp + split
+- fixed: tool_executor die hash (odd elements bug)
+- fixed: inference_crash_restart watcher pattern (shift->w->data)
+- queue pause/resume during crash restart
+- loop detection: file_not_found_spiral pattern (catches core sub search loops)
+- feature-impl template: core subs note, $call cmd pattern, tool param reference
+
+### sushi coder (Qwen3.5-9B sushi) validated as default model
+- fast, methodical, correct logic on first attempt
+- survived context compaction mid-task (113→1 msgs, 55K→10K tokens)
+- high reasoning + feature-impl template = reliable feature implementation
+- remaining issues: newline-stripping in write_new_file, descr length
+
+### next steps (planned end of session)
+- task.cmd.start — step 3 of task zenka implementation plan
+- valued.cmd.query — network command wrapping valued.tree.top_n  
+- meta.session-summary wiring to task.cmd.handover on session end
+- model evaluation workflow — first automated comparison run
+- template: search_code parameter reminder, write_new_file newline note
+- test iteration loop end-to-end with a real task marked iteration:true
+
 ## session 11 — module cleanup + parser tooling (May 3 2026, late)
 
 - 94 modules across plan-9.*, storage.*, base.editor/encode/decode.*,
@@ -344,8 +394,8 @@ Skip calling harmonize_payload_line_feed when both conditions are met:
 - Signatures now properly formatted with correct separator endline
 - Pre-commit validation passes
 
-#,,.,,,.,,,,.,..,,..,,...,.,,,.,.,,..,.,,,,..,..,,...,...,,.,,.,.,...,.,,,,,.,
-#MBG3OQ75JYFKFITPHEHJCVRWVYLHGQ6VVO6JLATGRP5ICUGTCIVKG6N6H3Z2JMQ4O2GUELFMFBNJ4
-#\\\|4ZILLA3YPDEZGFKXTRQ6PGJHAMFVZSJSNA4ZNSXDYWDVFTXIENN \ / AMOS7 \ YOURUM ::
-#\[7]6PERPE3V7HJSTE4RSSEKDSRHD5ZZETCJ6OMGQUIHFL55X3QREECY 7  DATA SIGNATURE ::
+#,,,.,,,.,.,.,...,,..,,,.,,,.,,.,,.,.,.,.,..,,..,,...,...,...,.,.,...,.,,,,,.,
+#NCJ7XOTXVDFDF43S4LMFQKUUCPOEG57IJUN7LUKFXHZFW3PMZOY3452B7RVZPC5IHLYO2EHJFNH4W
+#\\\|DJXZNZEITPBYE6O57SWLG2JAQF37PGXLM6JEO6YMGU3CYTPDUTD \ / AMOS7 \ YOURUM ::
+#\[7]R6NOLAR5J4IU6PJUBS7UHZDG7JCFQDVUFUUEFAK4AGQ6GGZJMEAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
