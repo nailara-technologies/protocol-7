@@ -19,9 +19,10 @@ my $line_num = int($line);
 return 'error: line number must be >= 1' if $line_num < 1;
 
 ## read file into lines ##
-my $lines_ref = <[base.file.slurp]>->( $abs_path, [], ':encoding(UTF-8)' );
-return 'error: cannot read file' unless defined $lines_ref;
-my @lines = @{$lines_ref};
+my $content_ref = <[base.file.slurp]>
+    ->( $abs_path, \( my $buf = '' ), ':encoding(UTF-8)' );
+return 'error: cannot read file' unless defined $content_ref;
+my @lines = split /^/m, $buf;
 
 ## clamp to append at end if line > total ##
 $line_num = scalar(@lines) + 1 if $line_num > scalar @lines + 1;
@@ -65,8 +66,8 @@ return sprintf "preview: would insert before line %d\n  content: %s",
 
 #,,
 
-#,,,.,,..,.,.,...,.,,,,,,,...,,..,..,,,..,.,.,..,,...,...,.,.,.,.,...,..,,...,
-#4WUYJGJCGSFHM2GG6A27H2YFPIBPHCZK6AA37QG73UFZUAPAWZMYCHZQ6WHIS4UW5Q5OINDOC7JL2
-#\\\|5AUMP4O2UMAK3N65ZLSNREXTR2WLJFNTGJ7Q7WITRVA2WGSZXXL \ / AMOS7 \ YOURUM ::
-#\[7]N77WZG3TAOINK7MZNNAUX3XNDPP4MLIOKLDAHK5C7OKTWKWL2EAQ 7  DATA SIGNATURE ::
+#,,,,,.,,,.,,,,..,,.,,,,,,,..,,..,,.,,.,.,,,.,..,,...,...,...,.,.,.,,,.,.,...,
+#RLNRA6QESWJIU4U2W7OF7N5K3ULA7AKMWPR6O4YYNNZJUWRXWYDSQ3EC7BNU5U7ZYYV7WBFCKQDSW
+#\\\|D22VO3NDOS5AVBWH5DGBZQZS5EXZLSO43FXFVAC3ZGBF3XEVLYA \ / AMOS7 \ YOURUM ::
+#\[7]FPAPV7J3NOP4IAANCIHPMOYIIUSCUU4D3WHBOAUTAULVDLLB2ECI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
