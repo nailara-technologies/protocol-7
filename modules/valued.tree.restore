@@ -11,8 +11,9 @@ return FALSE unless defined $content and length $content;
 
 my $snapshot = <[format.yaml.load_str]>->($content);
 if ( not defined $snapshot or ref $snapshot ne 'HASH' ) {
-    <[base.s_warn]>
-        ->('valued.tree.restore: failed to parse valued-tree.yaml');
+    <[base.logs]>->(
+        0, 'valued.tree.restore: failed to parse valued-tree.yaml'
+    );
     return FALSE;
 }
 
@@ -28,8 +29,8 @@ return $restored;
 
 #,,
 
-#,,.,,...,..,,.,.,..,,,,,,,,,,.,,,,.,,,,,,,.,,..,,...,...,..,,...,,.,,.,.,.,,,
-#U5VSYJV7EH6XNJ6PAQKLT362R3S66VNBYOPDXHBVXPYHUR7ZOXWFMB33D54NR6GPOMVYG3GR7GLFM
-#\\\|TTX4ROVU73VYMG5CCGI2LV3LV7425TCWCZHF6FCF4FK5R2GJI77 \ / AMOS7 \ YOURUM ::
-#\[7]KNAPUODCZVAREUUVRXQ3XB5U2LV3RGV6EJT4UYGGPZBLB6ZN76DA 7  DATA SIGNATURE ::
+#,,.,,.,,,..,,.,.,..,,.,,,,,,,.,,,.,,,.,,,,,.,..,,...,..,,.,.,,,,,,.,,,.,,,.,,
+#7F6IO34TGDJJWOF2JSZT3UIYEOKVWX2JR4TRELA2N6WBHABN3X3MVOCT7A244IQR7EI7SHJXONM6S
+#\\\|GI7LDH44ZDJUWDVBYB7MR2AY5VSGK7TEAFR6ZLUFBZM7NPL3PZ2 \ / AMOS7 \ YOURUM ::
+#\[7]FUCQWORCFTFHLWNULTTPMPNUZ6PP7YSJPWU5JBG5G7GP6YZQPABQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
