@@ -39,25 +39,32 @@ sections:
       - is this a real issue or a style preference?
       - did i miss something more important?
 
-      ### phase 2b: consensus verification of critical findings ###
-      for every finding with severity = critical or warning:
-        call consensus_query with:
-          mode: verify
-          prompt: the specific code snippet + your finding, e.g.:
-            "code: <paste the relevant lines>
-             finding: <your claim about what is wrong>
-             question: is this finding accurate? is this actually a bug?"
+      ### phase 2b: consensus verification [ MANDATORY TOOL CALLS ] ###
 
-      a finding is CONFIRMED only if at least one perspective (critic or
-      auditor) independently agrees it is a real issue.
-      if both perspectives disagree or find no issue: downgrade to style
-      or remove the finding entirely and note the false positive.
+      STOP. before proceeding to phase 3, you MUST call consensus_query
+      for every finding you rated critical or warning severity.
+      this is not optional. skipping this step is a protocol violation.
 
-      do NOT mark the review CONFIDENT if any critical finding was not
-      verified by consensus_query.
+      for each critical or warning finding, call the tool NOW:
+        consensus_query(
+          mode: "verify",
+          prompt: "code:\n<paste the exact lines from the module>\n\nfinding: <your claim>\n\nquestion: is this a real bug or issue? explain why."
+        )
+
+      interpret the result:
+      - if critic OR auditor agrees it is a real issue → CONFIRMED
+      - if both disagree or say it is fine → FALSE POSITIVE: remove the
+        finding and add it to the self-review corrections section
+
+      if you have zero critical/warning findings, explicitly write:
+        "phase 2b: no critical/warning findings — consensus_query skipped"
+
+      do NOT write "CONFIDENT" until all critical/warning findings have
+      been through consensus_query and the false positives removed.
 
       classify your review quality:
-      - CONFIDENT: all critical/warning findings confirmed by consensus_query
+      - CONFIDENT: all critical/warning findings confirmed by consensus_query,
+        or zero such findings existed
       - FIXABLE: some findings were wrong (caught by consensus or self-review)
       - UNCERTAIN: need more context or human judgement — escalate
 
@@ -141,8 +148,8 @@ on_complete:
     action: memory_update
     topic: "self-correction:{{target_module}}"
 
-#,,,,,,..,...,.,,,..,,.,,,,.,,,,,,..,,,,.,.,,,..,,...,...,..,,,,,,,.,,,.,,..,,
-#JICUXJBMFMHT5ACXIL4AQDMQ6ZDXRLVVGXG3JLRACCYYE6Z4DUAIFGI2Z4TEL5X2KUVAJXIV27OVS
-#\\\|2QREZY6G45D4K2MPO4VGGPKXWGILUPSK4HRPODL73VJ4YCKW6KV \ / AMOS7 \ YOURUM ::
-#\[7]HMC3RYDFOIDS77ZELEARXD2H7HAIK6JRKPDMX5ML2SKTU36WYGBQ 7  DATA SIGNATURE ::
+#,,,.,.,,,,..,,..,..,,,,.,,.,,,.,,,,,,,.,,..,,..,,...,...,..,,,,,,..,,,,.,.,.,
+#CNE6722TO5PUKDMNWYDRWYKXMQAKW44HU4PTGUPOBY557IWETW3CKANJYJHMRAOP5IVQZPF4G7YDS
+#\\\|L7F23ESJACQBXQGOJBOG4UNH4KHWABUOCMTDWZ462QQ5JZDH23X \ / AMOS7 \ YOURUM ::
+#\[7]I6DPEIUB7H7FKSTFJEAJTGHOIBCPGRVS5O64Q67V6ITXIT5T5MAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
