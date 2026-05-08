@@ -1,0 +1,132 @@
+## [:< ##
+
+# name  = coding.tools.handler.consensus_query
+# descr = query the local inference model from multiple perspectives and return labeled responses
+
+my $args = shift // {};
+
+my $prompt       = $args->{'prompt'}       // return 'prompt required';
+my $mode         = $args->{'mode'}         // 'review';
+my $max_tokens   = $args->{'max_tokens'}   // 512;
+my $perspectives = $args->{'perspectives'} // [];
+
+## built-in perspective definitions ##
+my %builtin_perspectives = (
+    critic => 'you are a skeptical code reviewer. find flaws, edge cases, '
+        . 'incorrect assumptions, and risks. be direct and specific.',
+    advocate =>
+        'you are an experienced implementer. identify what is correct, '
+        . 'well-structured, and why the approach works. note any strengths.',
+    auditor =>
+        'you are a correctness and safety auditor. focus on invariants, '
+        . 'error handling, data flow correctness, and potential failure modes.',
+    alternative =>
+        'you are an architect considering alternative approaches. suggest '
+        . 'simpler, more robust, or more idiomatic ways to achieve the same goal.',
+);
+
+## default perspective sets per mode ##
+my %mode_defaults = (
+    review   => [ 'critic',   'advocate' ],
+    verify   => [ 'critic',   'auditor' ],
+    explore  => [ 'advocate', 'alternative' ],
+    thorough => [ 'critic',   'advocate', 'auditor' ],
+);
+
+## resolve perspective list ##
+my @active_perspectives;
+if ( ref $perspectives eq 'ARRAY' and $perspectives->@* ) {
+    @active_perspectives = $perspectives->@*;
+} else {
+    @active_perspectives
+        = @{ $mode_defaults{$mode} // $mode_defaults{review} };
+}
+
+## resolve inference port ##
+my $use_cpu = <inference.backend.cpu.enabled> // 0;
+my $port
+    = $use_cpu
+    ? ( <inference.backend.cpu.port> // 8001 )
+    : ( <inference.backend.gpu.port> // 8000 );
+
+my $url = "http://127.0.0.1:${port}/v1/chat/completions";
+
+## collect responses per perspective ##
+my @results;
+
+for my $perspective_name (@active_perspectives) {
+
+    ## resolve system prompt for this perspective ##
+    my $system_prompt;
+    if ( exists $builtin_perspectives{$perspective_name} ) {
+        $system_prompt = $builtin_perspectives{$perspective_name};
+    } else {
+        ## treat unknown perspective name as a literal system prompt ##
+        $system_prompt    = $perspective_name;
+        $perspective_name = 'custom';
+    }
+
+    my $request_body = {
+        messages => [
+            { role => 'system', content => $system_prompt },
+            { role => 'user',   content => $prompt },
+        ],
+        max_tokens  => $max_tokens,
+        temperature => 0.3,
+        stream      => JSON::PP::false,
+    };
+
+    my $json_body = eval { JSON::PP->new->encode($request_body) };
+    if ($@) {
+        push @results,
+            "## $perspective_name ##\nerror: failed to encode request";
+        next;
+    }
+
+    my $response_text = eval {
+        use LWP::UserAgent;
+        my $ua       = LWP::UserAgent->new( timeout => 60 );
+        my $response = $ua->post(
+            $url,
+            'Content-Type' => 'application/json',
+            Content        => $json_body,
+        );
+
+        return "error: inference server returned " . $response->status_line
+            unless $response->is_success;
+
+        my $data = JSON::PP::decode_json( $response->decoded_content );
+        return $data->{'choices'}[0]{'message'}{'content'} // 'no response';
+    };
+
+    if ($@) {
+        my $err = $@;
+        $err =~ s|\s+at\s+\S+\s+line\s+\d+.*||s;
+        push @results, "## $perspective_name ##\nerror: $err";
+        next;
+    }
+
+    push @results, "## $perspective_name ##\n$response_text";
+}
+
+## format output for calling model to synthesize ##
+my $output
+    = "## consensus_query: "
+    . scalar(@active_perspectives)
+    . " perspective(s) on prompt ##\n\n";
+$output .= join "\n\n", @results;
+$output
+    .= "\n\n## synthesis note ##\n"
+    . "the above perspectives are independent responses to the same prompt.\n"
+    . "synthesize them: note where they agree (high confidence), "
+    . "where they diverge (needs judgment), and what each uniquely contributes.";
+
+return $output;
+
+#,,,.,,,,,,.,,.,.,..,,,.,,,,.,.,.,,.,,.,.,,..,..,,...,...,...,,,.,,..,.,,..,.,
+
+#,,,.,.,.,..,,,,.,.,.,,..,,..,.,,,..,,,.,,,,,,..,,...,...,..,,.,.,..,,.,.,,.,,
+#AFYTXSESM4JDLQB4QAFLXUQ3XJSZ5PZ2J2SPNQSQBCFWLXIG45CKWA4LB4H4ZOWDH45EFQYRJLQWO
+#\\\|JPITBPS4N5SLP4CW3UUPIFDHJMEP4LW36IQ5YCX2QCTOQ5IORJV \ / AMOS7 \ YOURUM ::
+#\[7]E723WPZSCWM7X7QTLJUTY6FII6RNP5BVUEHD4FFATUI5P6VC64BQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

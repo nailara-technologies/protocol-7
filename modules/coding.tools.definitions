@@ -1711,10 +1711,62 @@ if ( exists $code{'coding.tools.handler.module_convention_check'} ) {
         };
 }
 
+## consensus_query — multi-perspective analysis via perspective injection ##
+if ( exists $code{'coding.tools.handler.consensus_query'} ) {
+    push @tools,
+        {
+        'type'     => 'function',
+        'function' => {
+            'name'        => 'consensus_query',
+            'description' =>
+                'query the inference model from multiple independent perspectives '
+                . 'and return labeled responses for synthesis. '
+                . 'use when you need to catch blind spots, verify correctness, '
+                . 'or get a multi-angle view of code, a design decision, or a finding. '
+                . 'each perspective uses a different system role (critic, advocate, '
+                . 'auditor, alternative). responses are independent — the calling '
+                . 'model synthesizes them.',
+            'parameters' => {
+                'type'       => 'object',
+                'properties' => {
+                    'prompt' => {
+                        'type'        => 'string',
+                        'description' =>
+                            'the question, code snippet, or finding to evaluate '
+                            . '[ keep focused: one concern per call ]'
+                    },
+                    'mode' => {
+                        'type'        => 'string',
+                        'description' => 'preset perspective combination: '
+                            . 'review (critic+advocate, default), '
+                            . 'verify (critic+auditor), '
+                            . 'explore (advocate+alternative), '
+                            . 'thorough (all three: critic+advocate+auditor)'
+                    },
+                    'perspectives' => {
+                        'type'        => 'array',
+                        'description' =>
+                            'explicit list of perspectives to use — overrides mode. '
+                            . 'built-in: critic, advocate, auditor, alternative. '
+                            . 'any other string is used as a literal system prompt.',
+                        'items' => { 'type' => 'string' },
+                    },
+                    'max_tokens' => {
+                        'type'        => 'integer',
+                        'description' =>
+                            'max tokens per perspective response [ default 512 ]'
+                    },
+                },
+                'required' => ['prompt'],
+            },
+        },
+        };
+}
+
 return \@tools;
 
-#,,.,,,,,,,,,,...,,.,,,.,,.,,,,.,,,,,,,..,..,,..,,...,...,.,.,.,,,..,,,,,,,,,,
-#N2PHKOAIDNFLRWLZE52EQFXLELRKGOFGFUFWGXODD536E54KEAYJREQOKYUNVDUNKQJYQJU2H4NW6
-#\\\|QRJ3WMKDXM5P5UNPU4Z6UFESPDPGCYZSRTBLDBKGTAYTEFNXNL2 \ / AMOS7 \ YOURUM ::
-#\[7]OKJTOEQCLGZSHX2AUV6FL6HSRGIYND2SXBXPUAN4G2GJNUYUJWBQ 7  DATA SIGNATURE ::
+#,,,,,.,.,,..,,..,.,.,,,,,,,.,,..,,..,.,.,.,,,..,,...,...,..,,,..,.,.,.,.,...,
+#DLD5U3P7KSWKMCOS5FYVSPSIC6UJTCJD6HTS4LPY23CZQTO23U7G4JTOZFBQZEN334ODFJJIOLWE6
+#\\\|EL4QEGFJTD5KJSXIZGWZTHQQRM5IEEMHW7ETYF4KF2H4XIFI6H7 \ / AMOS7 \ YOURUM ::
+#\[7]YHT6KILUQEEJKVGVISRA3XKNEMMF47LNHEZJUSBUQTJFET7RTGCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
