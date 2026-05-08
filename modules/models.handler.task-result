@@ -44,6 +44,70 @@ if ( $cmd eq 'TRUE' ) {
     $job_outcome = qw| error |;
 }
 
+## route through iteration loop if task has iteration enabled ##
+if ( $job_outcome ne qw| error | ) {
+    my $task_ref = <task.queue>->{$task_id};
+    if ( defined $task_ref and $task_ref->{'iteration'} ) {
+        my $iter_result = <[iteration.loop]>->(
+            {   'task_id'      => $task_id,
+                'result'       => $response,
+                'criteria'     => $task_ref->{'acceptance_criteria'} // [],
+                'node_id'      => $task_ref->{'node_id'}             // '',
+                'max_attempts' => $task_ref->{'max_attempts'}        // 5,
+            }
+        );
+
+        if ( defined $iter_result and ref $iter_result eq qw| HASH | ) {
+            my $mode = $iter_result->{'mode'} // '';
+
+            if ( $mode eq qw| retry | ) {
+                ## append issues and re-enqueue ##
+                my $issues  = $iter_result->{'data'}{'issues'} // '';
+                my $updated = ( $task_ref->{'prompt'} // '' )
+                    . (
+                    length $issues
+                    ? "\n\n[iteration issues to fix: $issues]"
+                    : ''
+                    );
+                <[models.task.enqueue]>->(
+                    {   'task_id'    => $task_id,
+                        'model'      => $model,
+                        'prompt'     => $updated,
+                        'target_cmd' => $task_ref->{'target_cmd'} // $model,
+                    }
+                );
+                <models.task.active_id>  = undef;
+                <models.task.active_job> = undef;
+                <[base.logs]>->(
+                    1, ': task %s: re-enqueued for iteration retry', $task_id
+                );
+                return;
+
+            } elsif ( $mode eq qw| escalate | ) {
+                my $reason = $iter_result->{'data'} // 'escalation';
+                <[protocol-7.route-send]>->(
+                    {   'command'   => 'task.fail',
+                        'call_args' => {
+                            'args' => "$task_id iteration escalated: $reason"
+                        }
+                    }
+                );
+                <models.task.active_id>  = undef;
+                <models.task.active_job> = undef;
+                <[jobqueue.move_job]>->( $job_id, qw| error | )
+                    if defined $job_id;
+                return;
+
+            } elsif ( $mode eq qw| true | ) {
+                ## iteration complete — fall through to normal completion ##
+                <[base.logs]>->(
+                    1, ': task %s: iteration complete', $task_id
+                );
+            }
+        }
+    }
+}
+
 ## complete the task with response [ when not already failed above ]
 if ( $job_outcome ne qw| error | ) {
     if ( length $task_id and length $response ) {
@@ -91,8 +155,8 @@ if ( defined $job_id ) {
 
 return;
 
-#,,,.,,,.,,.,,,,.,.,,,.,,,,,.,.,,,,,.,..,,,.,,.,.,...,...,...,,,,,,,.,,,,,,,.,
-#G2OMVFPFTK3VK5MIQWIQTVNYUZSJMPXD3Y55JIHXWQOSIE4MPD4Q2HMMBAQRQRPG7EIWPACCZNSDY
-#\\\|LUHDH66VBUN5XZAK42UO6TZDXMY3JQGPLLN7HB2HSJRENWBDQJ7 \ / AMOS7 \ YOURUM ::
-#\[7]YEBPJE4NNKPXNVG5CBYKWRSFFYY2KPQMH3UGULTSM3RUIB7BBYDY 7  DATA SIGNATURE ::
+#,,,,,.,,,,,,,,.,,,.,,,..,..,,,.,,..,,...,..,,.,.,...,...,,,,,,,.,,,.,,,.,,,.,
+#KVLL7JC5QA247A2VWSNMGZHDQAJDIY5TOVG7UNZI5GGJP4HZFBB4KU3EJYLLVE6GQ4EGJHS2O3BZE
+#\\\|WBCJTVJYGCDWOHHKDV4MP2QU7KYG4Z247BBMUC33UYVLK3JNFI4 \ / AMOS7 \ YOURUM ::
+#\[7]FVBOTFH2ZEUR2LNEFDLMBE4B675W6CGS5LUK3LUOISH2SPM6GCBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
