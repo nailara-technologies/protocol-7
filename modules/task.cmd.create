@@ -8,9 +8,18 @@ my $description = '';
 my $context     = '';
 
 ## parse params
+my $iteration    = 0;
+my $criteria     = [];
+my $node_id      = '';
+my $max_attempts = 5;
+
 if ( defined $call->{'param'} and ref $call->{'param'} eq 'HASH' ) {
-    $description = $call->{'param'}->{'description'} // '';
-    $context     = $call->{'param'}->{'context'}     // '';
+    $description  = $call->{'param'}->{'description'}         // '';
+    $context      = $call->{'param'}->{'context'}             // '';
+    $iteration    = $call->{'param'}->{'iteration'}           // 0;
+    $criteria     = $call->{'param'}->{'acceptance_criteria'} // [];
+    $node_id      = $call->{'param'}->{'node_id'}             // '';
+    $max_attempts = $call->{'param'}->{'max_attempts'}        // 5;
 } else {
     ## args is the full description string
     $description = $call->{'args'} // '';
@@ -43,14 +52,18 @@ while ( exists <task.queue>->{$task_id} ) {
 
 ## create task record
 my $task = {
-    'id'          => $task_id,
-    'status'      => 'pending',
-    'created_at'  => $ntime_b32,
-    'updated_at'  => $ntime_b32,
-    'description' => $description,
-    'context'     => $context,
-    'result'      => undef,
-    'agent'       => undef,
+    'id'                  => $task_id,
+    'status'              => 'pending',
+    'created_at'          => $ntime_b32,
+    'updated_at'          => $ntime_b32,
+    'description'         => $description,
+    'context'             => $context,
+    'result'              => undef,
+    'agent'               => undef,
+    'iteration'           => $iteration,
+    'acceptance_criteria' => $criteria,
+    'node_id'             => $node_id,
+    'max_attempts'        => $max_attempts,
 };
 
 ## store in queue
@@ -76,8 +89,8 @@ my $sent = <[protocol-7.route-send]>->(
 
 return { 'mode' => 'size', 'data' => $task_id };
 
-#,,.,,,,,,,,,,.,,,...,,,.,,.,,.,.,,,,,,.,,,..,..,,...,...,.,.,,..,.,,,,..,..,,
-#ZLWLRLJLYACFJO64WPFH6TIDECC23PCLNDLFPUE4SLC5HHE2TMATUQEZ4NJ44ZPQIMD2LXB4SAJAO
-#\\\|WSCPDYCA53Q3W76BIR6XOHCAJEQEUD4P7QFXUIHJ7GBPJ2CCPI5 \ / AMOS7 \ YOURUM ::
-#\[7]IL37JOBZUW7NL3VXTTUZ6SPBN4DWM5MCKFBJG7HETGVZV3U2L6CI 7  DATA SIGNATURE ::
+#,,..,..,,,.,,...,.,.,.,.,,..,,,.,.,,,,.,,.,,,..,,...,...,...,,,,,.,.,,.,,...,
+#URSL4GGWNTKTOT6WNFGR2Y4X67MD3V7K6XOI2TWDJWGXM3DQ4ZCGRIUQKM4BOCFHL64LWFHWYJK5G
+#\\\|3VV2DCJIYEFUAG7TSTYLVX6A2YMSEIQSXRLOQENAOUKLTUHRXLV \ / AMOS7 \ YOURUM ::
+#\[7]K5U5UWWHNB6R3VMB6AWJIYZLOFGWDVZ6PNMX2KAHA44RRTE5IACA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
