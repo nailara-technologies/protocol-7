@@ -1,0 +1,103 @@
+---
+name: sliding-compact
+descr: sliding window summarization for long documents — prev summary + current + next preview, summarize only current
+budget: 6000
+sections:
+  ## core knowledge ##
+  - include: system-base
+    priority: 1
+    budget_pct: 15
+
+  ## sliding window instructions ##
+  - static: |
+      you are summarizing a long document section by section using a
+      sliding window. you will see three things at each step:
+        [ prev_summary ] — your own summary of the section just before this one
+        [ current ]      — the section you must summarize now
+        [ next_preview ] — the section that follows (read-only context)
+
+      rules:
+        - summarize ONLY the current section
+        - use next_preview for calibration only — do not summarize it
+        - use prev_summary for continuity — your output should read
+          naturally after it, but not repeat it
+        - keep each section summary dense: 2-4 sentences max
+        - preserve specific names, values, module names, decisions
+          that appear in the current section — these are load-bearing
+
+      ## sliding window protocol ##
+
+      ### step 1: read state ###
+      call note_read with key="sliding_state" to get:
+        { offset: N, chunk_size: N, total_lines: N, pass: N }
+      if the note does not exist, initialize with:
+        { offset: 0, chunk_size: {{chunk_size}}, total_lines: 0, pass: 1 }
+
+      ### step 2: read current chunk ###
+      call read_file with:
+        path: "{{target_file}}"
+        offset: <current offset from state>
+        length: <chunk_size from state>
+        show_line_numbers: true
+
+      if the result is empty or shorter than 10 lines and offset > 0:
+        you have reached the end. go to step 6 (synthesis).
+
+      note the actual line count returned — use it to detect end of file.
+
+      ### step 3: read next chunk as preview ###
+      call read_file with:
+        path: "{{target_file}}"
+        offset: <current offset + chunk_size>
+        length: <chunk_size / 2>   [ half-width preview is enough ]
+        show_line_numbers: false
+
+      ### step 4: read prev summary ###
+      call note_read with key="sliding_prev"
+      (empty string on first pass — that is fine)
+
+      ### step 5: summarize current chunk ###
+      given [ prev_summary | current_chunk | next_preview ]:
+        write a 2-4 sentence summary of ONLY the current chunk.
+        start with a one-line header: "## lines N–M: <topic> ##"
+
+      then:
+        call note_write key="sliding_prev"    value=<your summary>
+        call note_write key="sliding_all"     value=<"## lines N–M ##\n" + summary> append=true
+        call note_write key="sliding_state"   value=<updated state: offset += chunk_size>
+
+      if next_preview was empty (end of file reached): go to step 6.
+      otherwise: go back to step 2 with the updated offset.
+
+      ### step 6: synthesis ###
+      call note_read with key="sliding_all" to retrieve all section summaries.
+
+      synthesize them into a single coherent summary of the full document:
+        - preserve the arc: beginning → middle → end
+        - collapse redundancy across sections
+        - keep all load-bearing specifics (names, values, decisions)
+        - target length: {{synthesis_length}} [ default: one paragraph per
+          major section, or ~10% of the per-section summary total ]
+
+      write the final synthesis as the last output block:
+        ## document summary: {{target_file}} ##
+        <synthesis>
+
+        ## section index ##
+        <one line per section: "lines N–M: topic">
+
+      ### cleanup ###
+      call note_write key="sliding_prev"  value=""
+      call note_write key="sliding_all"   value=""
+      call note_write key="sliding_state" value=""
+    priority: 2
+    budget_pct: 85
+    label: sliding window instructions
+
+#,,,.,,.,,,,..,.,.,,,.,,.,,.,.,,,,,.,,,,,,,,..,..,,...,...,.,.,,,,,,,,.,.,.,,.
+
+#,,,.,,,,,,,.,,,,,,..,...,,,.,..,,,..,.,,,.,,,..,,...,...,,.,,...,,,.,.,.,..,,
+#67GNZRQY4CUDDTSMNHTAAAZ2K7Q7CTMVS6YC36Q44ITR3NU4O32JFX56YQSWFLQ7H3UKUM323SVYW
+#\\\|XHVNWLNLNZOMSH2YYQJESJ75GM6G5KOQEOJYRLZUM5V74LDI2VH \ / AMOS7 \ YOURUM ::
+#\[7]BYT2PBCEAEA3X3EAHCEQ4BCX7TE6LKRTBWBOV7VAAQWCNBRY5QCQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
