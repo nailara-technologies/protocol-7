@@ -1,0 +1,50 @@
+## [:< ##
+
+# name  = task.cmd.summarize-done
+# descr = receive summarize result from coding zenka
+
+my $args_str = $call->{'args'} // '';
+
+my $callback_id = '';
+my $mode        = 'size';
+
+if ( $args_str =~ s|callback_id=(\S+)|| ) { $callback_id = $1 }
+if ( $args_str =~ s|mode=(\S+)|| )        { $mode        = $1 }
+$args_str =~ s{^\s+|\s+$}{}g;
+
+## decode b32 result ##
+my $result = $args_str;
+if ( $result =~ s{^:B32:}{}i ) {
+    my $decoded = decode_b32r($result);
+    $result = Encode::decode( 'UTF-8', $decoded ) if defined $decoded;
+}
+
+<[base.logs]>->(
+    1, ':. task.summarize-done callback_id=%s mode=%s len=%d',
+    $callback_id, $mode, length $result
+);
+
+## store summary on task record if found ##
+if ( length $callback_id ) {
+    my $task = <task.queue>->{$callback_id} // <task.history>->{$callback_id};
+    if ( defined $task ) {
+        $task->{'summary'} = $result;
+        <[task.persist.save]>;
+    }
+
+    ## fire stored local reply ##
+    my $reply_id = delete( <task.summarize.pending>->{$callback_id} );
+    if ( defined $reply_id ) {
+        <[base.callback.cmd_reply]>->(
+            $reply_id, { 'mode' => $mode, 'data' => $result }
+        );
+    }
+}
+
+return { mode => 'true', data => 'ok' };
+
+#,,,,,,,.,.,.,...,.,,,...,,,.,...,,.,,,,,,...,..,,...,...,.,,,.,.,.,.,,,.,.,.,
+#YYWNMJRZACULCBGU2TFTVNN774E2K4L4RX774XNTVLEU7J3QAUWZUHFPIXFUL32GVVQTZQ5LGRMH2
+#\\\|TCDUBCICSCNVZYFUYMNSIBJWL6IDTFGYJILIGU4VC3TUEESPKTC \ / AMOS7 \ YOURUM ::
+#\[7]LRRCT6ZFLOAVKMSCLNPWEDQDSI6C4JWLMF2NRLQYLVGEUUBAQOBQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

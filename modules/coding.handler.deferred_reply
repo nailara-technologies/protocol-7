@@ -9,68 +9,74 @@ my $deferred_id = shift;
 my $deferred = $data{"coding"}{"deferred_replies"}->{$deferred_id};
 return unless defined $deferred;
 
-my $task_id  = $deferred->{'task_id'};
-my $reply_id = $deferred->{'reply_id'};
-my $task     = <coding.task.queue>->{$task_id};
+my $task_id     = $deferred->{'task_id'};
+my $reply_id    = $deferred->{'reply_id'};
+my $callback_id = $deferred->{'callback_id'} // '';
+my $task        = <coding.task.queue>->{$task_id};
 
 <[base.logs]>->(
-    1, 'deferred_reply: task=%s reply_id=%s task_found=%s',
+    1,
+    'deferred_reply: task=%s reply_id=%s callback_id=%s task_found=%s',
     $task_id,
     $reply_id // 'undef',
+    $callback_id || 'none',
     defined $task ? 'yes' : 'no'
 );
 
+my ( $result_data, $result_mode, $is_error );
+
 unless ( defined $task ) {
-    <[base.callback.cmd_reply]>->(
-        $reply_id, { 'mode' => 'false', 'data' => 'task not found' }
-    );
-    delete $data{"coding"}{"deferred_replies"}->{$deferred_id};
-    return;
-}
+    $result_data = 'task not found';
+    $result_mode = 'false';
+    $is_error    = TRUE;
+} else {
+    my $status = $task->{'execution'}->{'status'} // '';
+    <[base.logs]>->( 1, 'deferred_reply: status=%s', $status );
 
-my $status = $task->{'execution'}->{'status'};
-<[base.logs]>->( 1, 'deferred_reply: status=%s', $status // 'undef' );
-
-if ( $status eq 'completed' ) {
-    my $result = $task->{'execution'}->{'result'} // '';
-
-    # Determine reply mode
-    my $stripped = $result;
-    $stripped =~ s/\n$//;
-    my $newlines = ( $stripped =~ tr/\n// );
-
-    my ( $reply_mode, $final_data );
-    if ( $newlines == 0 ) {
-        $final_data = $result;
-        $final_data =~ s/\n$//;
-        $final_data = '[ no reply message ]' unless length $final_data;
-        $reply_mode = 'true';
+    if ( $status eq 'completed' ) {
+        my $result   = $task->{'execution'}->{'result'} // '';
+        my $stripped = $result;
+        $stripped =~ s/\n$//;
+        $result_mode = ( $stripped =~ tr/\n// ) ? 'size' : 'true';
+        $result_data = $result || '[ no reply message ]';
+    } elsif ( $status eq 'failed' or $status eq 'error' ) {
+        $result_data = $task->{'execution'}->{'error'} // 'task failed';
+        $result_mode = 'false';
+        $is_error    = TRUE;
     } else {
-        $final_data = $result;
-        $final_data .= "\n" if $final_data !~ /\n$/;
-        $reply_mode = 'size';
+        return;    ## not yet complete — will be called again ##
     }
-
-    <[base.callback.cmd_reply]>->(
-        $deferred->{'reply_id'},
-        { 'mode' => $reply_mode, 'data' => $final_data }
-    );
-
-    $deferred->{'status'} = 'complete';
-    delete $data{"coding"}{"deferred_replies"}->{$deferred_id};
-
-} elsif ( $status eq 'failed' || $status eq 'error' ) {
-    my $error = $task->{'execution'}->{'error'} // 'task failed';
-    <[base.callback.cmd_reply]>->(
-        $deferred->{'reply_id'},
-        { 'mode' => 'false', 'data' => $error }
-    );
-    $deferred->{'status'} = 'error';
-    delete $data{"coding"}{"deferred_replies"}->{$deferred_id};
 }
 
-#,,,,,,..,...,,..,..,,.,.,,,,,...,...,...,.,.,.,.,...,...,..,,..,,...,.,,,,..,
-#HOSW4AL3IZ7CK36WBCQMTDRQQZPIMT5DEMWFOW2N6M2IGZOMI57LAILENF6LZB7VD4A3BKENBMTOW
-#\\\|3F22Y3JYT6XIIO6RJ3JMRQMEQYOP3WCYG5FSFJ4VWPOT3W7NB3X \ / AMOS7 \ YOURUM ::
-#\[7]HO6ZXILSCM3Z3NS4EUATUNOWUDJTB2ZWE2KIUKBGXKSDALVO6UDI 7  DATA SIGNATURE ::
+## cross-zenka callback: route result back to task zenka ##
+if ( length $callback_id ) {
+    <[protocol-7.route-send]>->(
+        {   command   => 'task.summarize-done',
+            call_args => {
+                args => join(
+                    ' ',
+                    "callback_id=$callback_id",
+                    "mode=$result_mode",
+                    ':B32:'
+                        . encode_b32r(
+                        Encode::encode( 'UTF-8', $result_data )
+                        ),
+                ),
+            },
+        }
+    );
+} else {
+    ## local reply ##
+    <[base.callback.cmd_reply]>->(
+        $reply_id, { 'mode' => $result_mode, 'data' => $result_data }
+    );
+}
+
+$deferred->{'status'} = $is_error ? 'error' : 'complete';
+delete $data{"coding"}{"deferred_replies"}->{$deferred_id};
+
+#,,.,,...,,.,,,,.,...,...,...,.,,,..,,,..,..,,.,.,...,..,,..,,...,,,.,.,.,,,.,
+#HLBVOXK6DPV7WPOOSL2WWBAXMQOQHGQXV6ZP42O4VLZFUVMBPQEAUBSLHHIKVPAUZ4FHAIION4XTQ
+#\\\|ZZL242A53YT7NYDF3IL2TD72CC57ICR27BLYZNKJ644VT3SBGAU \ / AMOS7 \ YOURUM ::
+#\[7]EHXDHUUSM5XQBI4SNJMZTDBKB32KKQHPVS24QFXH75CQSCT3KWDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -14,13 +14,16 @@ my $node_id = '';
 my $max_len = 800;
 my $path    = '';
 
-if ( $args_str =~ s|focus=(\S+)|| )         { $focus   = $1 }
-if ( $args_str =~ s|model=(\S+:\S+)|| )     { $model   = $1 }
-if ( $args_str =~ s{backend=(cpu\|gpu)}{} ) { $backend = $1 }
-if ( $args_str =~ s|store=(\d+)|| )         { $store   = $1 }
-if ( $args_str =~ s|node_id=(\S+)|| )       { $node_id = $1 }
-if ( $args_str =~ s|max_len=(\d+)|| )       { $max_len = $1 }
-if ( $args_str =~ s|path=(\S+)|| )          { $path    = $1 }
+my $callback_id = '';
+
+if ( $args_str =~ s|focus=(\S+)|| )         { $focus       = $1 }
+if ( $args_str =~ s|model=(\S+:\S+)|| )     { $model       = $1 }
+if ( $args_str =~ s{backend=(cpu\|gpu)}{} ) { $backend     = $1 }
+if ( $args_str =~ s|store=(\d+)|| )         { $store       = $1 }
+if ( $args_str =~ s|node_id=(\S+)|| )       { $node_id     = $1 }
+if ( $args_str =~ s|max_len=(\d+)|| )       { $max_len     = $1 }
+if ( $args_str =~ s|path=(\S+)|| )          { $path        = $1 }
+if ( $args_str =~ s|callback_id=(\S+)|| )   { $callback_id = $1 }
 $args_str =~ s{^\s+|\s+$}{}g;    ## trim remaining whitespace ##
 
 ## content: multiline data takes precedence, else remaining args ##
@@ -92,21 +95,23 @@ return {
     }
     unless $queue_result->{'success'};
 
-## register deferred reply — coding.event.on_task_complete sends it ##
+## register deferred completion — on_task_complete routes result back ##
 $data{'coding'}{'deferred_replies'} //= {};
 my $deferred_id = <[base.gen_id]>->( $data{'coding'}{'deferred_replies'} );
 $data{'coding'}{'deferred_replies'}->{$deferred_id} = {
     'deferred_id' => $deferred_id,
     'reply_id'    => $call->{'reply_id'},
-    'task_id'     => $task->{'id'},
-    'submitted'   => <[base.time]>->(3),
-    'status'      => qw| waiting |,
+    'callback_id' =>
+        $callback_id,    ## task zenka callback key if cross-zenka ##
+    'task_id'   => $task->{'id'},
+    'submitted' => <[base.time]>->(3),
+    'status'    => qw| waiting |,
 };
 
 return { mode => qw| deferred | };
 
-#,,,,,.,.,...,,.,,,..,,,,,,.,,,,,,..,,.,.,,..,..,,...,...,...,,,,,,.,,,.,,,..,
-#GTIPP5L3U2DRI6ODZHPX6PIM6UC2AZAEJWWA6UOZJ47P7RRMX4BGE5LHMK5UCEV2QDGRHPW4TR5SY
-#\\\|LTZIZR3V2ZPIUQROVP5QIVRCCMQIIXZPKJPZWVWW76T2UD7WIPP \ / AMOS7 \ YOURUM ::
-#\[7]MZ6ZHXTGDMSTT54V4MBROTLNH5OKTDBEUBEBIINKJ3ISDQG5TYBQ 7  DATA SIGNATURE ::
+#,,.,,.,,,..,,...,,..,.,,,,,,,,.,,,..,,.,,,.,,..,,...,...,...,,,.,..,,.,.,..,,
+#2VD3ZY3YADDDDJ5DKJTRLBHYBDCO6ZQFJV3TGBSMHURRYJDGGFYVZ72JIDMWIQYH5YPWVGRZGP7KK
+#\\\|45LM7Z66LKSZV4MQQATZD7FXEORHWCVGE7VACBOEOQGRJW4TRHV \ / AMOS7 \ YOURUM ::
+#\[7]QCN4CFHDV6FO2AOQW27WSUCKY23FBGN3R5JPH5CDKWLN3HTJFYCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
