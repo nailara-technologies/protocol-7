@@ -2,8 +2,8 @@
 name: context namespace and forensics zenka vision
 description: context.* module namespace design, forensics zenka for nightly security audits using NIST/security models
 type: project
+originSessionId: 34ca9c97-628c-46af-82f3-d04a171ae8f0
 ---
-
 ## context.* namespace — unified context management
 
 Design doc: `data/md/coding-tasks/context-namespace-design.md`
@@ -30,6 +30,18 @@ then dep-graph modules for batch review pipeline, then wire delegation into task
 - context.* modules provide model communication layer for forensics analysis
 - model routing: security review → NIST coder, pattern analysis → other models
 
+## task tree integration
+
+Forensics/security tasks fit natively into the task tree + watcher architecture:
+- pattern-based subtasks: fast, no inference, resolve immediately
+- inference subtasks: `requires: worker: nist-coder` active dep for security review
+- pattern synthesis: recursive subtask chain — anomaly → analyze → write pattern →
+  `await-event: pattern_registered` watcher confirms registry write before continuing
+- external status slots: `core_dump_captured`, `incident_escalated`, `pattern_registered`
+- nightly 04:07 slot: timer watcher seeds a forensics task tree that fans out autonomously
+- LLM rule-synthesis loop = declarative task chain with depends_on + await-event, no
+  custom orchestration code needed
+
 ## model capabilities mapping
 
 - **nist-coder-v1.1** — security review, network code audit, input validation
@@ -37,8 +49,8 @@ then dep-graph modules for batch review pipeline, then wire delegation into task
 - **kimi** — tool access, file I/O, complex multi-step tasks
 - **coding zenka local models** — fast inference, no file access, good for review/generation
 
-#,,..,..,,.,.,,.,,.,.,,.,,...,,,,,..,,...,...,..,,...,...,..,,,,.,...,..,,.,.,
-#GBFJM3G3KKULSLVPDIORK5HQ2HRY3RDCPDGCM64KDBF575AYAQVGT32Y2H5NWERMTNAYS5SKNYQ6I
-#\\\|YUE6XLMIPPJ6QFZH2DNLQW5XXNEJW6BFHSN5V5UFRGOTDADDC7I \ / AMOS7 \ YOURUM ::
-#\[7]MD4777D5BWT3T7O5VMF4YBKBI6PREJSS4K7WNFT5AOUQFFA6BWBQ 7  DATA SIGNATURE ::
+#,,.,,,,.,.,.,.,.,,.,,,.,,,,.,..,,,.,,...,,,.,..,,...,...,.,.,...,.,,,,,.,,.,,
+#BC6T2C7AFVS5S6AJ2FMFNZ7QF3WLL6XTLXDHBFNAUHTHJWQ3VS5DA7WBEYF4FDJCQ6Q6CEELG6RWU
+#\\\|MSEQMZRRIVNUYSEZ7CN2BPQCKTK2XUV3P473RFKLWBBOUOHMQVJ \ / AMOS7 \ YOURUM ::
+#\[7]3RSE4MQKTD5GPWR2XGMXLSHPNLWIM7U4PAITMA7XQB7Q44HURACQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
