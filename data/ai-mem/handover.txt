@@ -1,96 +1,66 @@
-# Session Handover — 2026-05-09 (session 15, continued)
+# Session Handover — 2026-05-09 (session 15, final)
 
 ## Completed This Session
 
-### Self-improvement infrastructure — review + consensus pipeline
-- `consensus_query` tool: perspective-injection multi-view, LWP blocking calls
-- `:review:` task type: auto-routes to coding zenka + review-cycle template
-- `review-cycle` template: "verification IS the finding" — tool call precedes output,
-  search_code guard for proposed code changes, discarded section for false positives
+### Self-improvement infrastructure
+- `consensus_query` tool: perspective injection (critic/advocate/auditor/alternative)
+- `:review:` task type + review-cycle template (verify-then-find, mandatory tool calls)
 - `sliding-compact` template: tree_read/write state loop, tested on 214K doc end-to-end
+- `event-loop-safety.yaml`: 340 lines, written by coding zenka, LWP=blocking explicit
 
 ### Bug fixes
-- `base.file.read` — encoding param + correct slurp call (SCALAR ref crash fixed)
-- `coding.sanitize.jinja_messages` — idempotent backslash fix via `(?<!\\)` lookbehind
-- `valued.tree.restore` — base.s_warn → base.logs for plain string messages
-- `write_new_file` / chmod child — race condition: now uses readline reply channel
-- `coding.tool.detect_loop` — file_not_found_spiral matches full signature not just path
-- `coding.start.chmod_child` — reply channel added (r_fh captured, child prints ok/skip/err)
-- `coding.chmod_child.readline` — new module, blocking readline with 2s alarm
-- all 6 write handlers updated to use readline instead of blind select() sleep
-- line-edit tools (delete_lines, insert_line, replace_line) — encoding param added
+- `base.file.read` — encoding param + correct slurp call
+- `coding.sanitize.jinja_messages` — idempotent backslash via `(?<!\\)`
+- `valued.tree.restore` — base.s_warn → base.logs for plain string
+- chmod child — reply channel (r_fh, child prints ok/skip/err, readline replaces sleeps)
+- `coding.tool.detect_loop` — file_not_found_spiral: full signature match
+- line-edit tools — encoding param in handlers + definitions
+- `bin/dev/unicode-encoding-repair` — correct direction (decode UTF-8 → encode latin-1),
+  threshold 0.1→0.05, --dry-run flag fixed
 
-### Templates written / refined
-- `event-loop-safety.yaml` — 340 lines, researched and written by coding zenka
-  detection checklist: tight spin / blocking syscall / polling / watcher / regex buffer
-  LWP explicitly flagged as blocking (NOT async at OS level), consensus_query required
-- `review-cycle.yaml` — final form: verify-then-find gating, mandatory tool calls
+### Blocking inference path removed
+- `coding.handler.process-queued-task` deleted (997 lines, dead code, async.enabled=1)
+- `coding.task.execute` blocking fallback removed, fails cleanly if async start fails
+- `coding.cmd.complete-analysis` redirected to async path
+- Investigation by Qwopus (task V7CUGSQ): zero feature gaps, async strictly better
 
-### Model evaluation findings (session 15)
-- Sushi coder (UU4JSVQ:MEHBONI): misclassified LWP blocking as "async at OS level" — SAFE
-- Qwopus 9B v3 (ZDMAPAY:AR3OCKQ): correctly identified LWP as CRITICAL in round 1
-- Default switched to Qwopus until better model is established via evaluation system
+### Model evaluation
+- Sushi coder misclassified LWP as "async at OS level" — SAFE (wrong)
+- Qwopus 9B v3 correctly identified LWP as CRITICAL in round 1
+- Default switched to Qwopus (ZDMAPAY:AR3OCKQ)
 
-### Blocking inference path removal
-- Investigation (task V7CUGSQ): async.enabled=1, blocking path is dead code
-- Zero feature gaps: async path strictly better (13min timeout vs 5min, streaming etc)
-- Task file written: data/md/coding-tasks/remove-blocking-inference-path.md
-- Removal dispatched to Qwopus (task bd7wocqi6) — currently running
-
-### Task files written (pending dispatch or in-flight)
-- `data/md/coding-tasks/summarize-context-command.md` — 3-layer summarization with model pinning
+### Task files written (pending dispatch)
+- `data/md/coding-tasks/summarize-context-command.md` — 3-layer summarization, model pinning
 - `data/md/coding-tasks/tool-hints-and-extended-docs.md` — contextual error hints + register_hint
-- `data/md/coding-tasks/rewind-stack-file-diffs.md` — BMW-L13 content-addressed file diffs
-  + `:read-only:` task flag (dispatch intercept, scratch dir, always-permit notes/tree)
-- `data/md/coding-tasks/remove-blocking-inference-path.md` — in-flight on Qwopus
-
-### Architecture decisions
-- `:model:` keyword: model ID in request body — llama-server ignores it (serves loaded model)
-  actual switching needs coding.cmd.switch-model; model field = distributed routing prep
-- note_read budget: 287+ line notes exceed tool output budget — pagination needed
-- CPU spin bug: still open, coding.async.state_machine not yet audited, heartbeat NOT enabled
-- `summarize_context`: CPU backend = large model compressor, GPU = fast task model
-  AMOS checksum of model ID becomes distributed routing address in network version
-- Rewind stack: BMW-L13 content-addressed, synchronous capture in dispatch, null=file created
-  future: coding.rewind.store becomes distributed content-addressed store
-- `:read-only:` flag: dispatch-level enforcement, always permits notes/tree/scratch/<task_id>/
-
-## Verified Working
-- consensus_query tool live, both backends tested
-- sliding-compact: 5000-line doc end-to-end, wait-done clean
-- note tools: write/list/read clean, unicode preserved
-- chmod child reply channel: no more 000-mode files, no blind sleeps
-- event-loop-safety template: written by coding zenka, 340 lines
-- task pipeline clean: pending → in_progress → done
+- `data/md/coding-tasks/rewind-stack-file-diffs.md` — BMW-L13 content-addressed diffs
+  + `:read-only:` task flag (notes/tree always permitted, scratch/<task_id>/)
 
 ## Open / Next Steps
 
-### In-flight
-- `bd7wocqi6` — remove blocking inference path (Qwopus, currently running)
+1. **note_read pagination** — 287+ line notes exceed tool output budget; add offset/limit
+2. **dispatch**: summarize-context-command, tool-hints, rewind-stack tasks
+3. **CPU spin**: coding.async.state_machine not audited (jinja fix removes interference)
+4. **:model: switching**: model ID in request body ignored; needs switch-model in task.execute
+5. **model eval workflow**: first automated comparison using iteration loop
 
-### Priority queue
-1. **note_read pagination** — offset/limit on sections, model can't read 287+ line notes
-2. **dispatch pending tasks** — summarize-context-command, tool-hints, rewind-stack
-3. **CPU spin investigation** — coding.async.state_machine audit (jinja fix removes interference)
-4. **:model: switching works** — coding.task.execute compare + switch-model call
-5. **model evaluation workflow** — first automated comparison using iteration loop
+## Current State
+- Default model: Qwopus 9B v3 (ZDMAPAY:AR3OCKQ), reasoning=high, context=87777
+- Sushi coder (UU4JSVQ:MEHBONI): good for coding, weak on analysis
+- Task pipeline clean: pending → in_progress → done, wait-done, valued tree (18 nodes)
+- All write handlers: readline-based chmod child sync (no blind sleeps)
+- Blocking inference path: gone. async path only.
+- Codebase unicode: clean. Notes in /var/: corrupted pre-fix, write-offs.
 
-## Model Config (current)
-- Default: Qwopus 9B v3 (ZDMAPAY:AR3OCKQ), reasoning=high, context=87777
-- Sushi coder (UU4JSVQ:MEHBONI): good for methodical coding, weak on analysis
-- SLERP 4B (FPI66SQ:CRID5OA): untested via -model flag
-- Qwen3.5 9B reasoner (WZIZD6Y:2BIZKWY): candidate for CPU summarize_model
-
-## Key Patterns This Session
+## Key Patterns
 - template gating: "verification IS the finding" — tool call precedes output
-- idempotent sanitization: `(?<!\\)` lookbehind prevents backslash multiplication
-- chmod child: reply channel via readline replaces all blind sleep polling
-- base.s_warn requires 2+ args — plain strings must use base.logs
-- event-loop-safety: LWP::UserAgent blocks OS thread — event.once before call does NOT help
-- model precision varies significantly on identical tasks — evaluation system critical
+- `(?<!\\)` lookbehind makes jinja backslash sanitization idempotent
+- chmod child: readline reply channel, always prints ok/skip/err
+- LWP::UserAgent blocks OS thread — event.once before call does NOT help
+- model precision varies on identical tasks — evaluation system critical
+- BMW-L13 hash as content address: dedup + distributed routing ready
 
-#,,.,,,,.,...,.,,,...,,,,,.,.,...,,,,,.,,,..,,..,,...,...,..,,.,,,,.,,.,,,,,,,
-#KH3VNP5QBAJQPD7LOVRZLGCA5QDEB7FQ5PZJPIMSL6EFT5LZ3A7KVRLLLS35C6VRJD3FJQJEHLUWO
-#\\\|G56WXJTONGZCO3H3YCYEKQVW26FD7MVAXN6BOXO4WBNV7DVF5DK \ / AMOS7 \ YOURUM ::
-#\[7]UUB22KY73TDCMCFFLR4RSI4HZLJNZ52MBL3NVZZD3AQWUE27X2DQ 7  DATA SIGNATURE ::
+#,,,,,,..,..,,...,...,,..,..,,,,,,..,,,..,.,,,..,,...,...,..,,,.,,,.,,,..,.,,,
+#65UN7RYYST7MR77MMTH6ZMPQEHUV6N4BI3SE2OHWI54FSNWHEBERDMTGATWVPFMLPNNH3VAYIRTOE
+#\\\|R2CI2YVJ6YKQ5CSFL5HYB4BDTSMDREFZGMXWVE5XGPLB3TG4QCI \ / AMOS7 \ YOURUM ::
+#\[7]7SI426HHZFIELLRZFQBZKVEAN4762TYS5O4TEDLJNPECQ6PTLWAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
