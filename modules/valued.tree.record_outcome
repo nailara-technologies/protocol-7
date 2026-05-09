@@ -14,8 +14,8 @@ my $op = $outcome eq 'blocked' ? 'remove' : 'add';
 
 my $node = <valued.index>->{$node_id};
 if ( not defined $node ) {
-    <[base.s_warn]>->(
-        "valued.tree.record_outcome: node '%s' not found", $node_id
+    <[base.logs]>->(
+        2, "valued.tree.record_outcome: node '%s' not found", $node_id
     );
     return undef;
 }
@@ -35,8 +35,8 @@ return $node->{'refs'};
 
 #,,
 
-#,,..,,,.,...,,,,,.,.,.,.,,..,...,...,.,,,,,.,..,,...,...,...,,,,,,,,,.,.,,.,,
-#634NGUXJYOSQOMWGTHBF77IAGPTALBCUF52E2JPMXHYTMT4AN5KNRE6L7QAT7PTAMSDXX3QSM3ZGM
-#\\\|T5C35L6GYLQJYFIJ6GMCPH2ER3SVGPXKCCVCS3LAB5OMCOOUKRZ \ / AMOS7 \ YOURUM ::
-#\[7]MF5JROUQCYV6OHS4SPBSVFXCI5BHSRQL6HJFKLR4UTTCH5IT7QDY 7  DATA SIGNATURE ::
+#,,..,,,.,,..,,,.,...,,,,,..,,.,.,...,..,,...,..,,...,...,.,.,..,,.,.,.,,,...,
+#AAPWGHR54KPEW5JUKFWFU74JI3BV2FVS3OEU66JOVJ7B2AATHMDOW52XQAWMMWKXH2UA7EO62MOFK
+#\\\|K7UDLEHFXAZBT4TWYW23VBBRAN7NDX6XB5JFXW2QD252PKM5AUA \ / AMOS7 \ YOURUM ::
+#\[7]CX7YAWOISTIXXFNHPU6TNESKGTXGEVO3ZYXKABSDMKGSOMYTWABY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
