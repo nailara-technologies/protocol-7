@@ -3,8 +3,9 @@
 # name  = task.handler.summarize-reply
 # descr = reply handler — store summary in task queue + valued tree
 
-my $task_id = $call->{'params'}{'task_id'} // '';
-my $summary = $call->{'data'}              // '';
+my $args    = shift                        // {};
+my $task_id = $args->{'params'}{'task_id'} // '';
+my $summary = $args->{'data'}              // '';
 
 if ( length $task_id ) {
     ## store summary on task record ##
@@ -20,8 +21,8 @@ if ( length $task_id ) {
 
 return { mode => 'true', data => $summary };
 
-#,,,.,.,,,,..,.,,,..,,...,,,.,,..,,..,.,,,...,..,,...,...,,,.,,..,,..,,,,,...,
-#CJAUQEUGI2IN4IS62EHTGJVWSDKJGPB4EF4RXIBMW4HVQCIOFXRS7ZT3SRNJVTIDZXZ5HH67WXTCY
-#\\\|HZDH6YYZUQHTPHAVIYUCE2NMSLA4SDWOM4NGJAMSXK4BIYPRZWI \ / AMOS7 \ YOURUM ::
-#\[7]LQYIU2RKXFWXUURRL6MMI27F3MGVC6F3VGAX46A5GODUZUGIQKBA 7  DATA SIGNATURE ::
+#,,.,,,.,,,,.,,,,,,,.,,,,,,,.,.,,,...,,.,,,,.,..,,...,..,,.,.,.,.,.,,,,,.,,.,,
+#5JO3MMBBDNEDHMNLTDG74A5B2WK37VV66STKVPF4KWYWTEOLUQP3N3TJVANWMGYZCAOVNO2TYPF72
+#\\\|YRBAADGITI6Z6EYHR7WPJKYIIK7GEG5VVGESNA6ORGUVG4DECSZ \ / AMOS7 \ YOURUM ::
+#\[7]COUCL6XHPW37DPYL7OQUZAHV56QJAT52YARM73HGQKBWDFVRQ2CQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

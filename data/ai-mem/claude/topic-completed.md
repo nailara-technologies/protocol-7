@@ -1,5 +1,30 @@
 # Completed Work Sessions
 
+## session 17 — summarize-context command (2026-05-09)
+
+### summarize-context feature (fully working)
+- `coding.cmd.summarize-context` — async deferred reply via task.enqueue,
+  `:file:`/`:path:` prefix, `:b32:` prefix, `path=` kwarg, base32 auto-detect,
+  relative path via system.root_path, file.encoding + file.read
+- `coding.tools.handler.summarize_context` — LWP handler for tool use within tasks,
+  JSON->utf8->encode bytes fix, port fallback gpu when cpu disabled
+- `base.file.encoding` — BOM + UTF-8 probe, returns :encoding(X) string
+- `task.cmd.summarize` + `task.handler.summarize-reply` — task zenka layer
+- salvage of model-generated .pm files: wrong format, wrong endpoint, wrong args
+
+### feature-impl template improvements
+- handler module pattern (shift not $call), zenka config paths, m{} delimiter rule,
+  base.cmd.* shadow warning, system-tools.yaml summarize_context entry
+
+### model comparison (same file, CONCEPT-HARMONIC-VISUAL-INTELLIGENCE.md)
+- Qwopus 9B v3: clean 4-para summary, no artifacts, preserves all specifics
+- Kimi VL A3B Thinking: think-block leaked, AMOS signature confused for hash,
+  otherwise comparable quality — faster at 3B
+- Deepseek Opus distilled 9B: clean structured summary with headers, most complete,
+  caught implementation status + harmonic entropy research connection
+
+### deferred: think-block stripping for Kimi output, AMOS sig note in system prompt
+
 ## session 12 — valued tree + iteration loop + sushi coder (2026-05-08)
 
 ### valued tree primitive (modules/valued.*)
@@ -394,8 +419,8 @@ Skip calling harmonize_payload_line_feed when both conditions are met:
 - Signatures now properly formatted with correct separator endline
 - Pre-commit validation passes
 
-#,,,.,,,.,.,.,...,,..,,,.,,,.,,.,,.,.,.,.,..,,..,,...,...,...,.,.,...,.,,,,,.,
-#NCJ7XOTXVDFDF43S4LMFQKUUCPOEG57IJUN7LUKFXHZFW3PMZOY3452B7RVZPC5IHLYO2EHJFNH4W
-#\\\|DJXZNZEITPBYE6O57SWLG2JAQF37PGXLM6JEO6YMGU3CYTPDUTD \ / AMOS7 \ YOURUM ::
-#\[7]R6NOLAR5J4IU6PJUBS7UHZDG7JCFQDVUFUUEFAK4AGQ6GGZJMEAA 7  DATA SIGNATURE ::
+#,,,,,,,,,.,.,.,.,...,,.,,.,.,...,..,,,..,,.,,..,,...,.,,,,.,,.,.,,,,,...,.,,,
+#7UBY6VXZDXBRW6GCJ3H4QRPDBN6EWTUV253QC6TA3OGYQOYYJ5PYBJ2FAL5TKFWVJ5L5YLFGZEFZW
+#\\\|NO5CLDQOKGYVILGHTWNDCWUKCEJLU7GI67ZJMJYE4YV7QEVH3JQ \ / AMOS7 \ YOURUM ::
+#\[7]EAP6JDEBR7WP33JKNLC6RULZPXEIXQCGGJTSLRDHWJFCE5HQ4EBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
