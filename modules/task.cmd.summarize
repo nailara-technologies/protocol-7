@@ -15,7 +15,7 @@ for my $opt (@opts) {
 }
 
 ## gather task context: description + recent notes + result so far ##
-my $task = <task.queue>->{$task_id}
+my $task = <task.queue>->{$task_id} // <task.history>->{$task_id}
     // return { mode => 'false', data => "task not found: $task_id" };
 
 my $description = $task->{'description'} // '';
@@ -51,8 +51,8 @@ my $context_text
 
 return { mode => 'deferred' };
 
-#,,..,.,,,..,,,,,,,.,,...,,,.,.,.,,..,,..,,,,,..,,...,...,,,,,,..,,,,,.,,,,..,
-#2M5WL7O3HCMCYOCUGL4NQOMOCCHJ4TGIGX77S6YI27RWKU6JIRE46LXZVOG33FPPT4CB3U2HLJUJU
-#\\\|4CQ74KCSNO322EFEFMD6WROZ2NVVDICPKO77GDBOB4KWGEEPOWB \ / AMOS7 \ YOURUM ::
-#\[7]VFPHL75WNRHDG6OJ6D3F3SCMUGO35GSNXLFPIYOKWKVFUMVHFACI 7  DATA SIGNATURE ::
+#,,,,,,,.,.,,,,..,,.,,.,.,,,,,,,,,,.,,..,,,,.,..,,...,...,..,,..,,,.,,.,.,,.,,
+#3SBT5FBJTIX2GEQJJKKA4TWAT2HEP7HFZHAUNXWBHQZBHBQFX2Y6OGNNVYUQ3XQP4A246GY266Y4I
+#\\\|UXJHKHNIVN6NYAKVIN6KTUACT2ZLWH5HTOCX6XOFE5ZEWB5NJIG \ / AMOS7 \ YOURUM ::
+#\[7]6CMBZI77SWA644SUO2FQENIFT5DWHUEACXL5M2HGSFT2IX2FFOCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
