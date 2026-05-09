@@ -40,58 +40,70 @@ map { \$SIG{\$ARG} = qw| IGNORE | } qw| INT TERM QUIT |;
 \$GID = \$EGID = $admin_user_gid;
 \$UID = \$EUID = $admin_uid;
 \$PROGRAM_NAME = q|$zenka_name-<$admin_user>-chmod-child|;
+\$| = 1;  ## autoflush stdout so parent readline never blocks indefinitely ##
 my \$admin_gid = $admin_gid;
 while ( my \$line = <STDIN> ) {
     chomp \$line;
     exit if not length \$line;
     if ( \$line =~ m|^gw (.+)\$| ) {
         my \$path = \$1;
-        next if not -f \$path;
+        do { print "skip\n"; next } if not -f \$path;
         my \$gid = ( stat \$path )[5];
-        next if not defined \$gid or \$gid != \$admin_gid;
+        do { print "skip\n"; next } if not defined \$gid or \$gid != \$admin_gid;
         my \$cur = ( stat \$path )[2] & 07777;
         chmod( \$cur | 0020, \$path );
+        print "ok\n";
     } elsif ( \$line =~ m|^gwd (.+)\$| ) {
         ## grant group-write on directory ##
         my \$path = \$1;
-        next if not -d \$path;
+        do { print "skip\n"; next } if not -d \$path;
         my \$gid = ( stat \$path )[5];
-        next if not defined \$gid or \$gid != \$admin_gid;
+        do { print "skip\n"; next } if not defined \$gid or \$gid != \$admin_gid;
         my \$cur = ( stat \$path )[2] & 07777;
         chmod( \$cur | 0020, \$path );
+        print "ok\n";
     } elsif ( \$line =~ m|^create (.+)\$| ) {
         my \$path = \$1;
-        next if -e \$path;
+        do { print "skip\n"; next } if -e \$path;
         ## verify parent dir is owned by admin group ##
         ( my \$dir = \$path ) =~ s|/[^/]+\$||;
-        next if not -d \$dir;
+        do { print "skip\n"; next } if not -d \$dir;
         my \$dir_gid = ( stat \$dir )[5];
-        next if not defined \$dir_gid or \$dir_gid != \$admin_gid;
+        do { print "skip\n"; next }
+            if not defined \$dir_gid or \$dir_gid != \$admin_gid;
         ## create empty file as admin user [ 0664 for group write ] ##
         if ( open my \$fh, '>', \$path ) {
             close \$fh;
             chmod( 0664, \$path );
+            print "ok\n";
+        } else {
+            print "err\n";
         }
     } elsif ( \$line =~ m|^mkdir (.+)\$| ) {
         ## create directory (and parents) as admin user ##
         my \$path = \$1;
-        next if -e \$path;
+        do { print "skip\n"; next } if -e \$path;
         ## walk up to find the highest existing ancestor ##
         my \$check = \$path;
         \$check =~ s|/[^/]+\$|| while \$check and not -d \$check;
-        next unless \$check and -d \$check;
+        do { print "skip\n"; next } unless \$check and -d \$check;
         ## verify ancestor is owned by admin group ##
         my \$anc_gid = ( stat \$check )[5];
-        next if not defined \$anc_gid or \$anc_gid != \$admin_gid;
+        do { print "skip\n"; next }
+            if not defined \$anc_gid or \$anc_gid != \$admin_gid;
         ## create full path with group-writable permissions ##
         require File::Path;
         File::Path::make_path( \$path, { mode => 0775 } );
         ## set group on newly created directories ##
         chown( -1, \$admin_gid, \$path ) if -d \$path;
+        print "ok\n";
     } elsif ( \$line =~ m|^restore (\\d+) (.+)\$| ) {
         my ( \$mode, \$path ) = ( oct(\$1), \$2 );
-        next if not -e \$path;
+        do { print "skip\n"; next } if not -e \$path;
         chmod( \$mode, \$path );
+        print "ok\n";
+    } else {
+        print "skip\n";  ## unknown command — always reply ##
     }
 }
 EOT
@@ -100,7 +112,7 @@ EOT
     if not <[base.perlmod.loaded]>->('IPC::Open2');
 
 <coding.chmod_child.pid>
-    = IPC::Open2::open2( undef, <coding.chmod_child.w_fh>,
+    = IPC::Open2::open2( <coding.chmod_child.r_fh>, <coding.chmod_child.w_fh>,
     <system.path.perl_bin>, qw| -e |, $child_code )
     || die sprintf( "cannot start perl chmod child process [ %s ]\n",
     scalar <[base.format_error]>->($OS_ERROR) );
@@ -112,8 +124,8 @@ EOT
     <coding.chmod_child.pid>, $admin_group, $admin_gid
 );
 
-#,,,.,...,,..,...,,..,...,,.,,.,.,.,,,,,,,...,.,.,...,...,...,...,,..,.,,,...,
-#TTYAMQLMHLXU3CEPEWZ23BPX2TOEQH6G5XWSZ3R4BRKBAOY33N5WWEMGFCGBUQJ3IMK6RGBE7762M
-#\\\|YZTOEZLAOJGZCZMHOTTCW4YYLKGHNL7ADQH6Q4QG65AMJ5HTVXR \ / AMOS7 \ YOURUM ::
-#\[7]YF3XSDS4PNK2D3BXNWYYJPI3UC3RIMWJZ3H2MPG673NIOMYYZOAA 7  DATA SIGNATURE ::
+#,,,.,,..,,,,,.,.,,.,,.,.,,,,,,,,,,.,,,..,,,.,.,.,...,...,...,,,,,...,.,,,..,,
+#RTBC3W6TLB3CI6KVHMAKRZALUR3JDQ6VO5FKO2A6A7OUIBVH3J5IKNLWWDKGWV4ZCBUPYVGUFUIDQ
+#\\\|RR4TWALHVUCBDTKYYREMSNQAXPCETIKIWRRDWMKYSEX7D5NP6TF \ / AMOS7 \ YOURUM ::
+#\[7]FLSTMZZTHS4JBCOUTYZWMGBNBEHGLLV6MZEQGDZVKBWIZRJHPQDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -42,6 +42,7 @@ if ($apply) {
     if ( !-w $abs_path and defined $chmod_fh ) {
         my $cur_mode = File::stat::stat($abs_path)->mode & 07777;
         print {$chmod_fh} "gw $abs_path\n";
+        <[coding.chmod_child.readline]>;   ## wait for gw to complete ##
         $mode_restore = $cur_mode if -w $abs_path;
     }
 
@@ -75,8 +76,8 @@ return sprintf "preview: would delete %d line%s [ %d..%d ]",
 
 #,,
 
-#,,.,,..,,,,.,..,,.,,,.,.,,..,.,.,.,.,,,.,..,,..,,...,...,,.,,.,.,.,,,.,,,,..,
-#5TEHUSK7YDLRY6IRFXUACEDWPA2A6MO5YELJIDO4GCURSRM6XL3JHHKWYGOJKFTXRGU7HPLGUMYX4
-#\\\|35J2CUBG4W3VFE3DGERQAVUCKARBC2ODNWF2YPIZCBJGYV7XNIB \ / AMOS7 \ YOURUM ::
-#\[7]PDV4TJEELAQVGKZBX3MAFLQOYN5GM7USGRAZQOYUXFZXPMTEJKCA 7  DATA SIGNATURE ::
+#,,.,,,,.,,..,,,.,,..,,.,,,,,,,,,,...,.,.,,..,..,,...,..,,...,,,,,.,.,...,,,,,
+#C3XYOLN53HFVCQU5VVSY6ONJ6PMOAAW3NADAHJ22D6KPSTBY6G2CBX2NBZLTBMYXTEJNFUKJDSSTS
+#\\\|ACDRSORSHXA5CHPA35NWURGJTYDNGRIXT4DVBPASGFZIPPOYOSC \ / AMOS7 \ YOURUM ::
+#\[7]AXRI7AOU2SFKDODPFNZO3NNUO2UANNJKR2X3OWBGX3I76JWVIAAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

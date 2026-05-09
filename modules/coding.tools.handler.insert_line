@@ -37,6 +37,7 @@ if ($apply) {
     if ( !-w $abs_path and defined $chmod_fh ) {
         my $cur_mode = File::stat::stat($abs_path)->mode & 07777;
         print {$chmod_fh} "gw $abs_path\n";
+        <[coding.chmod_child.readline]>;   ## wait for gw to complete ##
         $mode_restore = $cur_mode if -w $abs_path;
     }
 
@@ -68,8 +69,8 @@ return sprintf "preview: would insert before line %d\n  content: %s",
 
 #,,
 
-#,,,,,,.,,..,,..,,,,.,..,,,.,,,..,.,.,.,,,...,..,,...,...,,..,,,,,..,,,,,,,.,,
-#GWPNGSF2JT5W3P3JIZSLINP7ZTAZKQCUNYUBUUGTPNXJIX6MHRG53EBYQALTYQ5474ARKISNPLB3A
-#\\\|ZWX3IHA4XKCIT4VC5WEFQQCUQOUJZNBIHR2CYLWXYNQBISAQAES \ / AMOS7 \ YOURUM ::
-#\[7]3QWMF6ZILP3CAUY3FFINCUEX27B6NDFVOSVFOQF5GCPMW25SRAAQ 7  DATA SIGNATURE ::
+#,,,.,.,.,,..,,,,,..,,,,,,..,,,.,,..,,,,.,,..,..,,...,.,.,,..,.,,,...,.,.,..,,
+#NGSKPY24ZQOPVBADWXBWD7OEMVR6L4NTODZURZZ4AAUJBVV6GURVBQZ7NJOSFH3TTU2G3OQPRYSGG
+#\\\|HTXING6TFRD3UFW45PTRDL7IIXFUAY5ZKP6XHXGCELGOBWFVX4F \ / AMOS7 \ YOURUM ::
+#\[7]A2LYOPR4AGM42DTGZVTW5YCVRKJPNMA5HJYHGM35CA3PHXKJTOCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

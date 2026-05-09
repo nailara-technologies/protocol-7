@@ -62,9 +62,9 @@ if ( defined $chmod_fh ) {
         my $mode = ( stat $dir )[2] // 0755;
         $mode &= 07777;
         print {$chmod_fh} "gwd $dir\n";
+        <[coding.chmod_child.readline]>;   ## wait for gwd to complete ##
         push @restore, [ $mode, $dir ];
     }
-    select undef, undef, undef, 0.02 if @restore;
 }
 
 my $ok  = rename( $src_real, $tgt_abs );
@@ -87,8 +87,8 @@ if ($ok) {
 
 return { 'content' => "error: rename failed: $err" };
 
-#,,.,,...,.,,,,.,,,,,,...,...,.,.,..,,,,,,,,,,.,.,...,...,..,,...,...,,..,.,.,
-#KH7AEWBIYG6HHXFVK3LARK26HVIPRXBWPQP5ZSMCNCLBUONWOEDBG5YBDEZAEEZZUM2MW3BNTTWWA
-#\\\|6SDJIXYK3DYFTL5NOLYUL5IH3TNEOZOARLJACQQNKNULKTKCUJ4 \ / AMOS7 \ YOURUM ::
-#\[7]AC3GA3DJVSIOJ3YMDFQU2WNL2B7X6YPYSHQ7ITKNMAPPA3EQBKDI 7  DATA SIGNATURE ::
+#,,.,,,,.,.,,,.,.,...,,,.,,..,,..,.,,,...,.,.,.,.,...,...,...,,.,,...,..,,,..,
+#NK6W7LA6E34LJQVQTZHKEPHYNQQ6FP3DVO6GMAFRD6JHPFBZQEKF4OROQTMMDRSHWYGTPDR7WGH2C
+#\\\|5LS3VN5FUNM5ZRCET7PCAUFMN75QLJAZ6QIEXFFLBQ2OAUQNC2W \ / AMOS7 \ YOURUM ::
+#\[7]5UX6ARQJOBAOMFT35N5IZYJYW6GX7NSYBR7JVKOMALMRZZGMWYDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
