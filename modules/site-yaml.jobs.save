@@ -3,15 +3,22 @@
 # name  = site-yaml.jobs.save
 # descr = persist job store to disk
 
-eval { YAML::XS::DumpFile( $data{'jobs.store_file'}, $data{'jobs.store'} ); };
+my $yaml;
+eval { $yaml = YAML::XS::Dump( $data{'jobs.store'} ) };
 if ($@) {
-    <[base.logs]>->( 0, 'jobs.save: error: %s', $@ );
+    <[base.logs]>->( 0, 'jobs.save: serialize error: %s', $@ );
+    return FALSE;
+}
+
+my $written = <[file.zenka_dir.write]>->( 'store.yaml', \$yaml );
+if ( not defined $written ) {
+    <[base.logs]>->( 0, 'jobs.save: write failed' );
     return FALSE;
 }
 return TRUE;
 
-#,,,,,,,.,.,,,,,,,.,.,..,,,..,,,.,.,.,...,,..,..,,...,..,,..,,,..,...,.,,,,.,,
-#ZUELRXYMALNEK36HVJBEDQVFICKT6EDUORHJY5NAJAC6M4ID3G6KDR43IVFEHPSYKUVR5X4XSVN5U
-#\\\|4QNNFOUKROFBWSET5UEM6KME3SOW7MY7MN3L7PEBOYRKRSGWR35 \ / AMOS7 \ YOURUM ::
-#\[7]K22VH3NW2R4MVJ2YS6G5M4E7PCLFHI5W56PCNZR2KUACYAN6HABY 7  DATA SIGNATURE ::
+#,,,,,,,,,..,,,,.,..,,,..,...,..,,...,..,,.,.,..,,...,...,.,.,..,,,,,,..,,,.,,
+#RHPOBMAKNOT3RQWP5K6HZ5U3UKK7B6SI2MDY3OSJYS6SCP5TK6CKTWEHYNPUUL2TS5C6N2IF2HH7C
+#\\\|UQIWQAKIPHUA52FKPK6ZERLHCTWHKRLUHWJGBNDJPGI4MXHIGKP \ / AMOS7 \ YOURUM ::
+#\[7]2IHQC3KX4SW5CAG3C5ERCWSZYBS3C5CNMFV7IB5WM6KKQZMMBWAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
