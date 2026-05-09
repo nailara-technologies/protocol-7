@@ -1,66 +1,79 @@
-# Session Handover — 2026-05-09 (session 15, final)
+# Session Handover — 2026-05-09 (session 17, final)
 
 ## Completed This Session
 
-### Self-improvement infrastructure
-- `consensus_query` tool: perspective injection (critic/advocate/auditor/alternative)
-- `:review:` task type + review-cycle template (verify-then-find, mandatory tool calls)
-- `sliding-compact` template: tree_read/write state loop, tested on 214K doc end-to-end
-- `event-loop-safety.yaml`: 340 lines, written by coding zenka, LWP=blocking explicit
+### summarize-context feature (fully working)
+- `coding.cmd.summarize-context` — async deferred reply via task.enqueue,
+  `:file:`/`:path:` prefix, `:b32:` prefix, `path=` kwarg, base32 auto-detect,
+  relative path via system.root_path, file.encoding + file.read
+- `coding.tools.handler.summarize_context` — LWP handler for tool use within tasks,
+  JSON->utf8->encode bytes fix, gpu port fallback when cpu disabled, 120s timeout
+- `base.file.encoding` — BOM + UTF-8 probe, returns :encoding(X) string
+- `task.cmd.summarize` + `task.handler.summarize-reply` — task zenka layer (shift args)
+- `task.cmd.queue` — false reply instead of SIZE for empty queue
+- `task.persist.load/save` — s_warn → warn, invalid queue file auto-removed + unlinked
 
-### Bug fixes
-- `base.file.read` — encoding param + correct slurp call
-- `coding.sanitize.jinja_messages` — idempotent backslash via `(?<!\\)`
-- `valued.tree.restore` — base.s_warn → base.logs for plain string
-- chmod child — reply channel (r_fh, child prints ok/skip/err, readline replaces sleeps)
-- `coding.tool.detect_loop` — file_not_found_spiral: full signature match
-- line-edit tools — encoding param in handlers + definitions
-- `bin/dev/unicode-encoding-repair` — correct direction (decode UTF-8 → encode latin-1),
-  threshold 0.1→0.05, --dry-run flag fixed
+### feature-impl template improvements
+- handler module pattern (shift not $call), zenka config paths, m{} delimiter rule,
+  base.cmd.* shadow warning, system-tools.yaml summarize_context + ncode_search note
 
-### Blocking inference path removed
-- `coding.handler.process-queued-task` deleted (997 lines, dead code, async.enabled=1)
-- `coding.task.execute` blocking fallback removed, fails cleanly if async start fails
-- `coding.cmd.complete-analysis` redirected to async path
-- Investigation by Qwopus (task V7CUGSQ): zero feature gaps, async strictly better
+### coding.prompt.assemble fix
+- no_tools + max_rounds <= 1 tasks skip template word-scan entirely (goto TEMPLATE_SELECTED)
+- prevents iteration-loop / feature-impl false matches on content words in utility tasks
 
-### Model evaluation
-- Sushi coder misclassified LWP as "async at OS level" — SAFE (wrong)
-- Qwopus 9B v3 correctly identified LWP as CRITICAL in round 1
-- Default switched to Qwopus (ZDMAPAY:AR3OCKQ)
+### coding-state-machine architecture
+- `data/md/coding-tasks/coding-state-machine-namespace.md` — full design:
+  `<coding.state>` namespace, watcher-based backend lock queue, persist/restore
+  lifecycle (pre_init/init_code/end_code), timer inventory
+- `data/yaml/context-templates/timer-to-watcher.yaml` — reusable template for
+  converting polling timers to native event loop variable watchers
 
-### Task files written (pending dispatch)
-- `data/md/coding-tasks/summarize-context-command.md` — 3-layer summarization, model pinning
-- `data/md/coding-tasks/tool-hints-and-extended-docs.md` — contextual error hints + register_hint
-- `data/md/coding-tasks/rewind-stack-file-diffs.md` — BMW-L13 content-addressed diffs
-  + `:read-only:` task flag (notes/tree always permitted, scratch/<task_id>/)
+### model comparison (CONCEPT-HARMONIC-VISUAL-INTELLIGENCE.md + CONTEXT-AWARENESS-TREE.md)
+- Qwopus 9B v3: clean prose, no artifacts, reliable all-rounder
+- Kimi VL A3B Thinking: think-block leaks into output, AMOS sig confused for hash
+- Deepseek Opus distilled 9B (EMQFUAA:VWI5WKQ): best on structured docs — adds
+  headers, catches more sections, clean output — preferred for summarization tasks
+
+### task zenka full-chain test
+- task.create → coding zenka (Deepseek) → subtask_spawn batches → task_complete
+- task.summarize wired but needs completed-task lookup (only checks live queue)
+- cube access.zenki: coding.summarize-context added to access.cmd.usr.task
+- full-path in subtask descriptions required (model hallucinates bare filenames)
 
 ## Open / Next Steps
 
-1. **note_read pagination** — 287+ line notes exceed tool output budget; add offset/limit
-2. **dispatch**: summarize-context-command, tool-hints, rewind-stack tasks
-3. **CPU spin**: coding.async.state_machine not audited (jinja fix removes interference)
-4. **:model: switching**: model ID in request body ignored; needs switch-model in task.execute
-5. **model eval workflow**: first automated comparison using iteration loop
+1. **coding-state-machine** — implement `<coding.state>` namespace + watcher-based
+   backend lock, replace backend_busy_retry polling timer
+2. **task.cmd.summarize** — extend to check completed tasks, not just live queue
+3. **think-block stripping** — Kimi/Deepseek `<think>...</think>` leaks into output;
+   strip in deferred reply handler or state machine output path
+4. **AMOS sig in system prompt** — add note that `#,,,` / `#\\\|` lines are file
+   signatures, model should ignore them in summarization tasks
+5. **model-pinned switching** — `coding.cfg.base_compaction_model` +
+   `coding.cfg.summarize_model` both inert; needs switch-model before inference
+6. **note_read pagination** — 287+ line notes exceed tool output budget
+7. **subtask full-path habit** — add to feature-impl template, model forgets paths
 
 ## Current State
-- Default model: Qwopus 9B v3 (ZDMAPAY:AR3OCKQ), reasoning=high, context=87777
-- Sushi coder (UU4JSVQ:MEHBONI): good for coding, weak on analysis
-- Task pipeline clean: pending → in_progress → done, wait-done, valued tree (18 nodes)
-- All write handlers: readline-based chmod child sync (no blind sleeps)
-- Blocking inference path: gone. async path only.
-- Codebase unicode: clean. Notes in /var/: corrupted pre-fix, write-offs.
+- Default model: Qwopus 9B v3 (ZDMAPAY:AR3OCKQ), reasoning=high
+- Deepseek Opus distilled (EMQFUAA:VWI5WKQ): best for summarization/structured docs
+- Kimi VL A3B (G6LEGQI:VWI5WKQ): needs think-block stripping before use
+- summarize-context: working end-to-end, async, file input, deferred reply
+- task zenka: clean queue, persist/restore, summarize wired, cube access updated
+- prompt.assemble: utility tasks bypass template scan cleanly
+- coding-state-machine: designed, task file written, timer-to-watcher template ready
 
 ## Key Patterns
-- template gating: "verification IS the finding" — tool call precedes output
-- `(?<!\\)` lookbehind makes jinja backslash sanitization idempotent
-- chmod child: readline reply channel, always prints ok/skip/err
-- LWP::UserAgent blocks OS thread — event.once before call does NOT help
-- model precision varies on identical tasks — evaluation system critical
-- BMW-L13 hash as content address: dedup + distributed routing ready
+- `no_tools + max_rounds=1` = utility inference — skip template scan in prompt.assemble
+- `file.read` returns string directly; `file.slurp` returns scalar ref
+- `file.encoding` detects BOM + UTF-8 probe, returns :encoding(X) for slurp
+- `JSON::PP->new->utf8->encode` for bytes — avoids HTTP::Message content error
+- `s{pattern with |alternation|}{}` not `s|...|...|` — pipe clashes with alternation
+- deferred reply: task.enqueue + deferred_replies hash + on_task_complete fires it
+- coding.state machine: watchers not timers, persist state not callbacks
 
-#,,,,,,..,..,,...,...,,..,..,,,,,,..,,,..,.,,,..,,...,...,..,,,.,,,.,,,..,.,,,
-#65UN7RYYST7MR77MMTH6ZMPQEHUV6N4BI3SE2OHWI54FSNWHEBERDMTGATWVPFMLPNNH3VAYIRTOE
-#\\\|R2CI2YVJ6YKQ5CSFL5HYB4BDTSMDREFZGMXWVE5XGPLB3TG4QCI \ / AMOS7 \ YOURUM ::
-#\[7]7SI426HHZFIELLRZFQBZKVEAN4762TYS5O4TEDLJNPECQ6PTLWAA 7  DATA SIGNATURE ::
+#,,..,,,.,.,.,..,,,,.,...,,,.,,,.,.,.,,,.,,,,,..,,...,...,..,,,,.,,..,,..,,..,
+#5JQWVHJTF2MOXYYHVDXCDKYWV7IMJWNTWEIJA6JVWIG5NKL6I4S6CC7446YR5S6TJ7PWCAZRQWPPS
+#\\\|IBJPZUMZLDQJAE3Y3RMM2T37LZXVL5Q34SXT5BISQKACOYHSZ37 \ / AMOS7 \ YOURUM ::
+#\[7]DAFZC3UP3P2XUGRGBLTKDT5YIOBFG6L6PV2F6BTUOVKF3765WUBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
