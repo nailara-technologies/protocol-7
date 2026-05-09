@@ -1,90 +1,99 @@
-# Session Handover — 2026-05-09 (session 18, final)
+# Session Handover — 2026-05-10 (session 19)
 
 ## Completed This Session
 
-### Architecture design + memory
-- task tree: history archive, multi-parent groups, passive/active/await-event deps,
-  external status slots, boolean fields via cfg_bool, state sharing convergence point
-- addressing trinity: named tree + checksums + timestamps as orthogonal primitives,
-  latest/current pointers, rolling 3-epoch validity window
-- project vision: drone→agent→zenka lineage, bin/assimilate 2012→2019 origin
-- site-yaml zenka + job automation workflow planned
-- USB backup zenka: udev+fs foundation, manifest as restoration agent
-- coding-state-machine topic file written
+### site-yaml zenka (cf6508230)
+- on-demand zenka: fetch/search/import/list-jobs/set-status commands
+- stepstone.de extraction: JSON-LD JobPosting from job pages (all 3 tested URLs
+  confirmed identical structure); link list from search results pages (25/page)
+- LWP::UserAgent with no_proxy(stepstone.de) — proxy at 10.0.110.7:4040 blocks it
+- job store: /var/protocol-7/jobs/store.yaml, keyed by numeric job ID
+  status flow: new → assessed → applied/rejected/skipped/archived
+- plugin.web.jobs.{list,stats,init_code}: render store as HTML, read store.yaml directly
+- jobs.html.tmpl on space.v7.ax: dark card list with stats bar, score color coding
+- cube auth.zenki + access.zenki entries, subroutine.white-list generated
 
-### Task tree foundation (implemented + committed)
-- `task.history` — completed/failed tasks move from queue to history on complete/fail
-- `task.persist.archive` — new module, delete from queue/order, store in history
-- `task.persist.save/load` — both queue.yaml and history.yaml persisted/restored
-- `task.cmd.show/result/summarize` — history fallback lookup
-- `task.cmd.create` — parent_id, children, groups, depends_on, requires, slots fields
-- `task.cmd.next` — passive dep check (depends_on)
-- `task.cmd.list` — new list command shadowing valued.cmd.list collision fixed
-- `valued.cmd.valued-nodes` — renamed from valued.cmd.list (no more collision)
-- `valued.cmd.valued-list` duplicate removed
+### job-site-scan coordinator zenka (c5e64e956, 29e6a3272)
+- stage engine: idle → scanning → assessing → reviewing → idle
+- state lives in P7 namespace: <job-site-scan.tasks.JOBID.*>
+  persisted to /var/protocol-7/jobs/scan-state.yaml on every transition
+- scanning/assessing states reset to idle on restart (not resumable mid-flight yet)
+- pending_count var watcher → stage.review fires when all assessments land (no polling)
+- named categories in start file: cfg.categories + cfg.url.<name> per entry
+  defaults: linux-sysadmin, ki-automation, devops, platform-engineer
+  with real stepstone URLs for each
+- fetch stage: dispatches one site-yaml.import per category, waits for all replies
+  via fetch_pending counter before dispatching assessments
+- assess stage: task.create per new job → handler.task-created → task.wait-done
+  deferred reply fires handler.assess-done when coding zenka completes — no polling
+- assess-done: extracts JSON score, updates job stage to 'review' if >= threshold
+  also updates store.yaml status to 'assessed'
+- commands: scan, status, list [stage], approve <id>, reject <id>, set-threshold <n>
+- approve/reject: update both scan-state and store.yaml, return to idle when
+  all review jobs handled
+- job-assess.yaml context template: no_tools=true, max_rounds=1, profile.txt inject
+  returns: {"score": N, "reason": "...", "apply": true/false}
+- cube access: job-site-scan → site-yaml.import, task.create, task.wait-done,
+  coding.summarize-context
 
-### Coding state machine (implemented + committed)
-- `coding.async.backend_acquire` — acquire lock or push to ordered queue
-- `coding.async.backend_release` — release lock + dequeue + resume next task
-- `coding.state.backend` {gpu,cpu} => {lock, queue} in init_code
-- `coding.task.enqueue_round` — now uses backend_acquire + send_request (no timer)
-- All `backend_busy` polling patterns replaced across request/complete/http_complete/
-  http_error/subtask_spawn
-- `coding.callback.backend_busy_retry` removed
-
-### Yaml/log cleanup
-- `valued.cmd.pre_init` calls removed from tree.load/restore/persist
-- `task.persist` pre_init calls removed (base pre_init handles it)
-- valued tree log levels 0 → 1 for init + load messages
-- `format.yaml.load_keyword_path` moved from base.yaml → format.yaml namespace
-
-### task.summarize end-to-end (VERIFIED WORKING)
-- Root cause 1: `call_args.data` not transmitted over routes — content must be base32
-  in args: `:B32:<encode_b32r(content)>`
-- Root cause 2: cross-zenka deferred reply — session closes after `deferred` returns,
-  `cmd_reply` with old reply_id silently drops
-- Fix: store reply_id locally in `<task.summarize.pending>`, pass `callback_id=` to
-  coding; coding routes result back via `task.summarize-done` command
-- `task.cmd.summarize-done` — new: receives result, fires stored local reply_id
-- `coding.handler.deferred_reply` — when callback_id set, route-send to
-  task.summarize-done; otherwise local cmd_reply (for same-zenka use)
-- cube access.zenki: `task.summarize-done` added to coding zenka outbound
-- VERIFIED: summary returned, mode=true, len=267
+## First-run checklist (not yet done)
+1. p7c v7.restart cube         — load new auth/access entries
+2. create /var/protocol-7/jobs/profile.txt — CV/skills text for LLM scoring
+3. p7c job-site-scan.scan      — triggers all 4 categories
+4. p7c job-site-scan.status    — check progress
+5. p7c job-site-scan.list review — see jobs above threshold
+6. p7c job-site-scan.approve <id>
 
 ## Open / Next Steps
 
-1. **active deps execution** — `requires` list processing in dispatcher before
-   task dispatch; switch-model and worker types first
-2. **await-event external slot watcher** — `<task.state.TASKID.slotname>` infra
-3. **think-block stripping** — `<think>...</think>` leaks into output from
-   Kimi/Deepseek; strip in deferred reply handler or state machine output path
-4. **model-pinned switching** — `summarize_model` config key inert; needs
-   switch-model integration before inference
-5. **note_read pagination** — 287+ line notes exceed tool output budget
-6. **task.cmd.summarize client timeout** — deferred reply exceeds p7c default wait;
-   document or wire task.wait-done style for scripted use
+### Job pipeline — immediate
+1. **profile.txt** — write user's skills/profile for LLM context (key unlock for scoring)
+2. **multi-page search** — stepstone returns 25 jobs/page; add cfg.max_pages per category
+   so import fetches page 2, 3 etc. (URL pattern: append ?page=2 or similar — needs check)
+3. **orphan re-queue** — if coding zenka restarts mid-assessment, tasks in 'assessing'
+   stage orphan. On jss restart, re-queue task.create for any job still in 'assessing'
+   after N hours
+4. **assessment quality** — test Qwopus vs CPU-sized model on same 3 job listings;
+   document score differences
+
+### Job pipeline — planned
+5. **HTTP sync endpoint** — /api/jobs/sync on httpd, YAML payload signed with C25519
+   node key; merge: last-write-wins by ntime; uses existing crypt.C25519.* modules
+   deferred until remote server model selection is settled
+6. **web template filter** — jobs.html.tmpl filter tabs currently use href params
+   that aren't wired to the template engine; need ?filter= query param support in
+   web.cmd.render-template or plugin.web.jobs.list arg passthrough
+
+### From session 18 — still open
+7. **active deps execution** — requires list in task dispatcher (switch-model, worker)
+8. **await-event external slot watcher** — task.state.TASKID.slotname infra
+9. **think-block stripping** — <think>...</think> leaks from Kimi/Deepseek into output
+10. **model-pinned switching** — summarize_model config key inert
+11. **note_read pagination** — 287+ line notes exceed tool output budget
+12. **task.cmd.start** — task zenka step 3 (state transitions)
 
 ## Current State
 - Default model: Qwopus 9B v3 (ZDMAPAY:AR3OCKQ), reasoning=high
-- Deepseek Opus distilled (EMQFUAA:VWI5WKQ): best for summarization/structured docs
-- Kimi VL A3B (G6LEGQI:VWI5WKQ): needs think-block stripping before use
-- task.summarize: WORKING end-to-end, cross-zenka, base32 content, local reply_id
-- task tree: history archive + tree fields + passive deps all committed
-- coding state machine: backend lock queue replacing all polling timers — committed
-- valued tree: no collision with base list command
+- Deepseek Opus distilled (EMQFUAA:VWI5WKQ): best for summarization
+- Kimi VL A3B (G6LEGQI:VWI5WKQ): needs think-block stripping
+- site-yaml: COMMITTED, not yet tested live (needs v7.restart cube first)
+- job-site-scan: COMMITTED, not yet tested live
+- task.summarize: working end-to-end (verified session 18)
+- task tree + coding state machine: all committed (session 18)
 
-## Key Patterns
-- `no_tools + max_rounds=1` = utility inference — skip template scan in prompt.assemble
-- `file.read` returns string directly; `file.slurp` returns scalar ref
-- cross-zenka deferred reply: store reply_id locally, pass callback_id, route-send
-  result back to a cmd in the originating zenka that fires cmd_reply locally
-- route-send args are the ONLY transmitted field — never use call_args.data for content
-- multiline content over routes: base32-encode with encode_b32r + :B32: prefix
-- backend lock: coding.async.backend_acquire / backend_release — queue not polling
-- `event.add_var` signature: { var => \$scalar, poll => 'w', handler => 'mod', repeat, data, desc }
+## Key Patterns Confirmed This Session
+- stepstone JSON-LD: <script type="application/ld+json"> block, type=JobPosting
+  fields: title, company (hiringOrganization.name), city (jobLocation.address.addressLocality),
+  industry, employmentType, datePosted, validThrough, directApply, description (HTML)
+  job ID: numeric, extracted from URL slug --(\d+)-inline\.html
+- search page: 25 job hrefs per page, pattern /stellenangebote--...-inline.html
+- proxy bypass: NO_PROXY=stepstone.de or $ua->no_proxy('stepstone.de') required
+- var watcher on pending_count: fires on every write; handler checks == 0 to gate stage transition
+- multi-category fetch: dispatch all, track fetch_pending counter, assess only when counter hits 0
+- job-assess template: file section with optional:true + fallback works cleanly for missing profile
 
-#,,,,,,,,,...,.,,,..,,,..,,..,,..,...,..,,.,.,..,,...,...,...,...,..,,...,,,.,
-#H3BFWV3JNXRVOBLLARYIWK3UACNCI6QLHZPNOEM4C7VT2X5TAXYEDTFZBXPY56FEKWDWGAFR6ULXS
-#\\\|TLTVL6GKOSLP7CBGJIFSVE4LOLCECPFBW4FMQGKPGRDYR723ZCM \ / AMOS7 \ YOURUM ::
-#\[7]VPLMQ2YQYVKAFI5QRRVJYKZEIG6CTGAC2LXW4GCXROB2HSCKW6BQ 7  DATA SIGNATURE ::
+#,,.,,,,,,.,.,.,,,..,,,,,,.,,,.,,,..,,,.,,,,.,..,,...,..,,.,.,.,.,..,,.,,,...,
+#2U44Q2VHGSHZOYUESOY4RCHURPQ2H7IQARS6JNKQZ2YBSPMZPB3RQPTQZFH3IOHALGZW2P557JLYQ
+#\\\|MIVOLLLKUYTGMIX4Y4R4SEUNVC4SKUQHPXPE4APH3MT2MHIA5G3 \ / AMOS7 \ YOURUM ::
+#\[7]PZEQSPSOXBKJP2NLNE4HXVXPHCEZXITVM4F5IPWBGWGCXPO7J6DQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
