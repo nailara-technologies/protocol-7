@@ -5,33 +5,46 @@
 
 <[format.yaml.pre_init]>;
 
-my $queue_file = 'queue.yaml';
+my $saved_at = <[base.time]>->(3);
+my $ok       = TRUE;
 
-my $data = {
-    'queue'       => <task.queue>,
-    'queue_order' => <task.queue.order>,
-    'saved_at'    => <[base.time]>->(3)
-};
-
-my $yaml_str = <[format.yaml.dump_str]>->($data);
-
-if ( not defined $yaml_str or not length $yaml_str ) {
-    warn 'task.persist.save: yaml serialization failed';
-    return FALSE;
+## save live queue ##
+my $queue_yaml = <[format.yaml.dump_str]>->(
+    {   'queue'       => <task.queue>,
+        'queue_order' => <task.queue.order>,
+        'saved_at'    => $saved_at
+    }
+);
+if ( not defined $queue_yaml or not length $queue_yaml ) {
+    warn 'task.persist.save: queue yaml serialization failed';
+    $ok = FALSE;
+} else {
+    utf8::encode($queue_yaml);
+    $ok = FALSE
+        unless defined
+        <[file.zenka_dir.write]>->( 'queue.yaml', \$queue_yaml );
 }
 
-utf8::encode($yaml_str);
-my $written = <[file.zenka_dir.write]>->( $queue_file, \$yaml_str );
-
-if ( not defined $written ) {
-    warn 'task.persist.save: failed to write queue file';
-    return FALSE;
+## save history ##
+my $hist_yaml = <[format.yaml.dump_str]>->(
+    {   'history'  => <task.history>,
+        'saved_at' => $saved_at
+    }
+);
+if ( not defined $hist_yaml or not length $hist_yaml ) {
+    warn 'task.persist.save: history yaml serialization failed';
+    $ok = FALSE;
+} else {
+    utf8::encode($hist_yaml);
+    $ok = FALSE
+        unless defined
+        <[file.zenka_dir.write]>->( 'history.yaml', \$hist_yaml );
 }
 
-return TRUE;
+return $ok;
 
-#,,,,,...,..,,,,,,,,,,,,.,,,,,..,,..,,...,..,,.,.,...,..,,.,,,...,,..,.,.,...,
-#2NPK4W7JOFQ6UJNN7REQZMP524F2KWZTE4J6CE6NSJCRFVIJZG2ZKM5JPTICMT4U57THSQQIY3GY2
-#\\\|J54J3MFUVKICNOPQ43LER5EO6ILOASDNAQ2CRYXZ6APZOM6H3GS \ / AMOS7 \ YOURUM ::
-#\[7]PKXOTW4LUG2BLH7A6JREIPOA2MCGDX7QK6XAM3MWWK2W5LMFD2BI 7  DATA SIGNATURE ::
+#,,.,,,.,,,.,,.,.,.,.,..,,,,.,,..,..,,,..,...,.,.,...,..,,.,,,,,.,,,,,...,.,.,
+#TGVXKFBCN7LH26QOIKUCIUJUDWDCBOO5TZT57NUFHNPPJLAHYP74TYQE5KEPTPVIXKRTHIBS5SGVW
+#\\\|DF22GQCGZ7FVUL6JXFFMJMAO5URVXXYDL4DFVL4PCSTBET6EE55 \ / AMOS7 \ YOURUM ::
+#\[7]PUZY2MVREGEPP2RWYBLXINHHFQQTR4ZGJCYARIH36NXS3NBJSACA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

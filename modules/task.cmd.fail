@@ -54,7 +54,8 @@ $task->{'status'}     = 'failed';
 $task->{'result'}     = $error || 'failed';
 $task->{'updated_at'} = $ntime_b32;
 
-## persist to disk
+## move to history, then persist ##
+<[task.persist.archive]>->($task_id);
 <[task.persist.save]>;
 
 ## fire deferred reply for any pending wait-done ##
@@ -75,8 +76,8 @@ if ( length( $task->{'node_id'} // '' ) ) {
 
 return { 'mode' => 'true', 'data' => "failed $task_id" };
 
-#,,.,,,,,,,,,,.,,,,,.,,..,...,,..,,.,,,..,,,.,..,,...,..,,,..,..,,,..,...,.,.,
-#I7HSPENNJECHXCJZWQHZ43FLZHYSMNFRGMF7E4VWIJQI43LG5DFHF2PKQMKGAULWOFRAIGAFCDFLW
-#\\\|SF6KQAXNRH2RCZJFPZ4U44FXKOFUKJ5VTOXB4YM27GLB3MO53WJ \ / AMOS7 \ YOURUM ::
-#\[7]6MLDBK75MCOGVLNC5DUDYR7K3RKWPLDDP3AJ6MGV7UVM3MGV7CBA 7  DATA SIGNATURE ::
+#,,..,.,.,.,.,.,,,,..,,.,,.,,,...,.,,,.,,,,,.,..,,...,...,...,.,.,,.,,..,,,.,,
+#67AEU5QZDBBLMSEVA2B5BFOZ776V3SF6YYJKDHWDAJZ74FVA3PSKHRYOCQIQNRNM3N2GGJDNRTQAS
+#\\\|Q2R2M7ZQADHCN6R2VVXFAD2DMN7QBS25BDUSXHDT7YBPKOWDE3P \ / AMOS7 \ YOURUM ::
+#\[7]INSBIHQWHLTACFTJNE6U6GCV7XVCJD3BUAG26G6M3LYR6RL6Q4CI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

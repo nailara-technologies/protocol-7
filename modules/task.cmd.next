@@ -19,6 +19,17 @@ for my $task_id ( @{<task.queue.order>} ) {
         if length $assignee
         and ( $task->{'assignee'} // '' ) ne $assignee;
 
+    ## passive dep check — skip if any dependency not yet done ##
+    my $blocked = FALSE;
+    for my $dep_id ( @{ $task->{'depends_on'} // [] } ) {
+        my $dep = <task.queue>->{$dep_id} // <task.history>->{$dep_id};
+        if ( not defined $dep or ( $dep->{'status'} // '' ) ne 'done' ) {
+            $blocked = TRUE;
+            last;
+        }
+    }
+    next if $blocked;
+
     my $priority = <[valued.resolve]>->( $task->{'node_id'} // '' ) // 0.0;
 
     if ( $priority > $highest_priority ) {
@@ -48,8 +59,8 @@ return { 'mode' => 'true', 'data' => $summary };
 
 #,,
 
-#,,..,...,,,,,,,,,...,.,.,..,,.,,,...,.,,,..,,..,,...,...,.,.,,,.,.,.,..,,..,,
-#TBOCAECJWMW6Z4Q4EIUAOB43MSSPO2IBC6WACRHRVHL3USJUG4IHPJBYCJZTWECOVJRXTRDM2HLGS
-#\\\|GZ52QI5MDLTNNM7DEI3Z5E4K2QRZXWMZREDYODKRATLYSVNMOMS \ / AMOS7 \ YOURUM ::
-#\[7]CQUIMP6EIK5OBO2ZL2EAPWPCFWMCZTFLC6MN2NANMVNVEJLUQOCQ 7  DATA SIGNATURE ::
+#,,..,..,,...,.,,,,,,,,,.,...,,,.,,,.,,..,,.,,..,,...,..,,,..,,.,,,.,,.,.,,,.,
+#XV3Y3YTSGXNZEM53GVH3V3ZJ64SLOSOWFQ5XQK6CIJPPANCCHP4ARQA6WDYFN2N7J6P53CJ3BQLYG
+#\\\|I33U7DJGOAIJ6NTDAJHRKU54R4KMTOUDZBRPK6BLXTLPZF755DU \ / AMOS7 \ YOURUM ::
+#\[7]SLV6FRTQCACK3ANSH3Q24FIMFAU4N3UWQ6CBXYN7HQICOLNVRGAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

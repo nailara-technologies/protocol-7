@@ -1,0 +1,25 @@
+## [:< ##
+
+# name  = task.persist.archive
+# param = task_id
+# descr = move completed/failed task to history
+
+my $task_id = shift // '';
+return FALSE unless length $task_id;
+
+my $task = delete <task.queue>->{$task_id};
+return FALSE unless defined $task;
+
+## remove from queue order ##
+<task.queue.order> = [ grep { $ARG ne $task_id } @{<task.queue.order>} ];
+
+## store in history ##
+<task.history>->{$task_id} = $task;
+
+return TRUE;
+
+#,,,.,,..,,..,,,,,,,,,,.,,.,,,,,.,,.,,...,...,..,,...,...,,..,.,.,,..,.,,,..,,
+#UYEQ3TEFGRHEGSXTBOUQ37LFMRGSL4ECC27QVWRO7PBNU4IVHQIOG5KJIUSOLCNUWYSLUOZEX53IK
+#\\\|L4BZWAPOIE6MRE5RYDJPB4L5NMCZNZEPCXW7HYFGJYZF2TVN3YT \ / AMOS7 \ YOURUM ::
+#\[7]HSYQFTKLYQ66PY4IPWKRBPCVV3ZASHLZMMWIY27YJCVXVTOJNUAQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

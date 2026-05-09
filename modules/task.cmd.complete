@@ -52,7 +52,8 @@ $task->{'status'}     = 'done';
 $task->{'result'}     = $result;
 $task->{'updated_at'} = $ntime_b32;
 
-## persist to disk
+## move to history, then persist ##
+<[task.persist.archive]>->($task_id);
 <[task.persist.save]>;
 
 ## propagate completion upward in valued tree [ only if linked to a node ] ##
@@ -73,8 +74,8 @@ if ( defined $wait_reply_id ) {
 
 return { 'mode' => 'true', 'data' => "completed $task_id" };
 
-#,,,,,,.,,..,,..,,,..,.,,,,,,,,,.,...,...,,,.,..,,...,...,.,.,..,,,,,,..,,,,.,
-#KZ672K7QOWKIF5CEOL6TAFOBWDDJ7E7KBEJ2OHET6QF4TKPRD2Y3ALYZNZS7A7ZHNU6HZXCANH24Y
-#\\\|4AZQ572G4OSVEEQA7256EMWIB2L2G3LHSWMABR5G6UGIA2NWGFK \ / AMOS7 \ YOURUM ::
-#\[7]CHDURTYP3JEVKGGP53H4YB2PDEBCB4WWXHLXBCXLLAX7KJRUV2AI 7  DATA SIGNATURE ::
+#,,..,,..,...,...,,,,,,.,,,,,,,,,,,..,.,.,..,,..,,...,...,...,,..,.,,,,.,,.,,,
+#6TC3K2XLTCGIDINVOYZIGW6J65ETR2VTB64SRXSMJYFGPQWPW2SFAWLSSGCOI3EMD4ALPQKVYJ2MS
+#\\\|NRM2XQSRMXW2N2QMDSDCPYFI2FASMWK33N2NNXFBOKJFQUOSBFY \ / AMOS7 \ YOURUM ::
+#\[7]X7UEKWPPPNPHPA3JAPBDOCJZQSMJTCIA467W6YEZCH7MQKWVEOAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
