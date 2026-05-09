@@ -136,10 +136,16 @@ if ($async_mode) {
             $async_result->{'error'} // 'unknown'
         );
         $task->{'execution'}->{'status'} = 'failed';
-        $task->{'execution'}->{'error'} = $async_result->{'error'} // 'async start failed';
+        $task->{'execution'}->{'error'}  = $async_result->{'error'}
+            // 'async start failed';
         <[jobqueue.move_job]>->( $job_id, 'error' );
-        <[coding.task.fail]>->( $task_id, $async_result->{'error'} // 'async start failed' );
-        return { success => FALSE, error => $async_result->{'error'} // 'async start failed' };
+        <[coding.task.fail]>->(
+            $task_id, $async_result->{'error'} // 'async start failed'
+        );
+        return {
+            success => FALSE,
+            error   => $async_result->{'error'} // 'async start failed'
+        };
     } else {
         ## Async started successfully ##
         <[base.logs]>->(
@@ -158,15 +164,11 @@ if ($async_mode) {
 # - Async path is superior: 13 min timeout vs 5 min, streaming, retry timers,
 #   subtask spawning, user input, better error handling
 
-## Clean up async state if we were in async mode ##
-if ($async_mode) {
-    <[coding.async.state_manager]>->( 'delete', $task_id );
-}
+## unreachable — async block always returns before here ##
+return FALSE;
 
-return $result;
-
-#,,,.,.,,,..,,.,,,,,,,,..,...,..,,,,,,...,,,.,.,.,...,...,...,,..,..,,,,.,,,.,
-#6BVO265UTURZSVH7B2YFJ6RDLGACCIXRM64DN2Q474MWRZUGX3ZYE6LA4GCCPB2BI6VZIXMP7TU4A
-#\\\|DT55RJVOF6G6PRLXAFUQCDWXEG5FK472E5YYTKADERYCTEYJJY7 \ / AMOS7 \ YOURUM ::
-#\[7]YUU46NTV5PEJWAJCRCEZWPPRBCFEG5MQ75QQQERKWT2HFTURXAAQ 7  DATA SIGNATURE ::
+#,,,,,,,.,...,.,,,,..,.,.,,,.,.,.,.,.,,,,,..,,.,.,...,...,...,.,.,...,,..,,,,,
+#USWPQIGMWQRTE7KLFIU2W2HRWB4V2TWT7LSKQFSZWEMKO4T5KZYJFNUQEI5IGPYMUKUTBASGKU5JS
+#\\\|QZN65DVXIRJB3FBXN3ETWDFRURGN7UWVLZYSCDK5FI6MMTAVSSH \ / AMOS7 \ YOURUM ::
+#\[7]O5VYMYKJ4H4GHRYIIFR3HBJG5WKK6SV4YP7I3RB7F6AY3DOLLQAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

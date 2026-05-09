@@ -1,0 +1,60 @@
+## [:< ##
+
+# name  = task.cmd.summarize
+# descr = summarize task context via inference [ model-pinned ]
+# usage = p7c task.summarize <task_id> [focus=<topic>] [model=<AMOS:ID>]
+
+my $call = <[protocol-7.call]>;
+
+my ( $task_id, @opts ) = split m{\s+}, ( $call->{'args'} // '' );
+return { mode => 'false', data => 'task_id required' } unless length $task_id;
+
+my $focus = '';
+my $model = '';
+for my $opt (@opts) {
+    $focus = $1 if $opt =~ m{^focus=(.+)};
+    $model = $1 if $opt =~ m{^model=(.+)};
+}
+
+## gather task context: description + recent notes + result so far ##
+my $task = <coding.task.queue>->{$task_id}
+    // return { mode => 'false', data => "task not found: $task_id" };
+
+my $description = $task->{'description'} // '';
+my $notes       = '';
+if ( exists $task->{'notes'} and ref $task->{'notes'} eq 'ARRAY' ) {
+    $notes = join( "\n\n", grep { length $ARG } $task->{'notes'}->@* );
+}
+my $result = $task->{'result'} // '';
+
+my $context_text
+    = "Task: $task_id\n"
+    . ( length($description) ? "Description: $description\n" : '' )
+    . ( length($notes)       ? "Notes:\n$notes\n"            : '' )
+    . ( length($result)      ? "Result so far:\n$result"     : '' );
+
+<[protocol-7.route-send]>->(
+    {   command   => 'coding.summarize-context',
+        call_args => {
+            data => $context_text,
+            args => join( ' ',
+                length($focus) ? "focus=$focus" : (),
+                length($model) ? "model=$model" : (),
+                "store=1",
+                "node_id=$task_id",
+            ),
+        },
+        reply => {
+            handler => 'task.handler.summarize-reply',
+            params  => { task_id => $task_id },
+        },
+    }
+);
+
+return { mode => 'deferred' };
+
+#,,.,,.,.,,,.,,,,,..,,,..,.,,,..,,,.,,.,,,,.,,..,,...,..,,.,,,,..,.,,,.,,,,..,
+#QGZ6FBTRZQGFBCUYR5TNZF4NFRDUHW24ADGJESPKZHX2X6JQ2FPHJ7XM2XK56SGAQLAPRHF6BH6N6
+#\\\|YR6MJDKI7NA7FOXE5MZWLQGJHA3ND4YZU7KHLPOLFBBH3SGHZU2 \ / AMOS7 \ YOURUM ::
+#\[7]63FF45NK274SR6H3DJYZA4EAW2YMD5GR64KNQZDK4PULST7QWEDY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

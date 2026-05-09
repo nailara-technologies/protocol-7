@@ -46,6 +46,7 @@ if ($apply) {
         if ( defined $mode_restore and defined $chmod_fh ) {
             print {$chmod_fh} sprintf "restore %04o %s\n", $mode_restore,
                 $abs_path;
+            <[coding.chmod_child.readline]>;    ## consume restore reply ##
         }
         return sprintf "inserted line before %d in %s\n  content: %s",
             $line_num, $path, $content;
@@ -69,8 +70,8 @@ return sprintf "preview: would insert before line %d\n  content: %s",
 
 #,,
 
-#,,,,,,,.,...,,,,,.,,,.,,,.,,,.,.,.,,,,.,,.,.,..,,...,...,...,..,,...,..,,..,,
-#WGGNA6OY2ED65VRGXG5QH53MBUZOPOCELCIU3YLPK4R5656MLFJRME72DSC5VY77OKZVDSEQ5SF3Q
-#\\\|MPVSTE4K5IE75LDMSQRTNWO42PG5TY4X2J6BB6DMEPYZ6HL3T7C \ / AMOS7 \ YOURUM ::
-#\[7]MYDPYQN6GCQ5XILL6TXWVYZAPBABZWRJG6SMYFVQ4RJDM2YEUWDQ 7  DATA SIGNATURE ::
+#,,,,,.,.,,,.,...,..,,,,,,...,..,,...,..,,,,,,..,,...,..,,..,,,..,..,,...,,.,,
+#QBO53NOE545LE67QX6THUPXYYPT6NX2IXTDJP5T5ZGBLXRGEGJDMEIUWNQA5KTGDYB3727VG4KWTM
+#\\\|HPTMDGXCGIXMV6OG3YI4XWFP7DDQNQ2GOISVF6Z6D3V6CQJ6V6M \ / AMOS7 \ YOURUM ::
+#\[7]Q2BJX4EHMMYK4DPTXT2GVWNTDAUSSKBUUAE54DXSDFY7PS4MCUBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -73,6 +73,7 @@ my $err = <[base.str.os_err]>;
 ## restore directory permissions ##
 if ( defined $restore_mode && defined $chmod_fh ) {
     print {$chmod_fh} sprintf "restore %04o %s\n", $restore_mode, $file_dir;
+    <[coding.chmod_child.readline]>;    ## consume restore reply ##
 }
 
 if ($ok) {
@@ -93,8 +94,8 @@ if ($ok) {
 return { 'content' =>
         "error: delete failed: $err [ backup exists at trash/$trash_name ]" };
 
-#,,,.,.,.,.,,,.,.,,.,,,,.,,,.,,.,,,.,,.,,,,,,,.,.,...,...,,,,,,.,,...,..,,..,,
-#INBP5CPKZR5HAPOGVJRU2VNPSV3EEWR5BMLOG5E7AT5JB7N5YAVIR45L37BCBPBWTXHIIEJUAUSFO
-#\\\|DWP74EMTRFMXJQ5JR3PMYUFUH4JU4227433O644T4FQB7XY62VT \ / AMOS7 \ YOURUM ::
-#\[7]ALVJGA5FSNL5B3FFZZWI6HSF55GQQC2EXL76QFEAVKT43P4BN6CA 7  DATA SIGNATURE ::
+#,,..,,,.,...,,..,,,.,,.,,.,,,...,.,.,...,,..,.,.,...,...,..,,,.,,,,,,.,.,...,
+#QJCUO4FLYKXWMRDFYE75Z4MER2G45ZWYNSUP3OKP54Y4RMII4Q73FREMPVAYHXIRGLIPXUR3IICOM
+#\\\|H3QDIU7ASDPSA6AUFSE2T2RUJSZGV5G45L5DSCXZWCVWN6NA7A4 \ / AMOS7 \ YOURUM ::
+#\[7]JKK5T52BE5UOGG3DLO34PLKP542ZOETZK4F2G4SD3TIPZLF4F6DI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
