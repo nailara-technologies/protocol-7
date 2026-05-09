@@ -76,7 +76,7 @@ for my $perspective_name (@active_perspectives) {
         stream      => JSON::PP::false,
     };
 
-    my $json_body = eval { JSON::PP->new->encode($request_body) };
+    my $json_body = eval { JSON::PP->new->utf8->encode($request_body) };
     if ($@) {
         push @results,
             "## $perspective_name ##\nerror: failed to encode request";
@@ -125,8 +125,8 @@ return $output;
 
 #,,,.,,,,,,.,,.,.,..,,,.,,,,.,.,.,,.,,.,.,,..,..,,...,...,...,,,.,,..,.,,..,.,
 
-#,,,.,.,.,..,,,,.,.,.,,..,,..,.,,,..,,,.,,,,,,..,,...,...,..,,.,.,..,,.,.,,.,,
-#AFYTXSESM4JDLQB4QAFLXUQ3XJSZ5PZ2J2SPNQSQBCFWLXIG45CKWA4LB4H4ZOWDH45EFQYRJLQWO
-#\\\|JPITBPS4N5SLP4CW3UUPIFDHJMEP4LW36IQ5YCX2QCTOQ5IORJV \ / AMOS7 \ YOURUM ::
-#\[7]E723WPZSCWM7X7QTLJUTY6FII6RNP5BVUEHD4FFATUI5P6VC64BQ 7  DATA SIGNATURE ::
+#,,.,,.,,,.,.,,.,,,,,,..,,,.,,.,,,,.,,.,,,.,.,..,,...,...,.,,,,,,,.,.,..,,...,
+#SDX22KUDYPEIZWYDOVEGZADWHFKO2TTFBWYJBTEYIWUG7G5G4ZDTKYVYJKF3XMTMW5ULZHC3BT7OS
+#\\\|57G4I4DB2UYETCAZ64FFM2XWONXOGNG6FPM4B7LOW6HNR3D2RRC \ / AMOS7 \ YOURUM ::
+#\[7]NFK6C7FPSFLVC4Y3BVPDTMMDYEL3CI4UABPNNNOJ2BFJDVW6HMDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
