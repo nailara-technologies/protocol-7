@@ -8,6 +8,7 @@ return warn "[cancel_route] expected termination message"
     if !length $msg // '';
 
 foreach my $s_cid (@route_cids) {
+    next if not exists $data{'session'}->{$sid};
     my $route_id = $data{'session'}{$sid}{'route'}{$s_cid};
     next if not exists $data{'route'}->{$route_id};
     my $s_sid = $data{'route'}{$route_id}{'source'}{'sid'};
@@ -70,8 +71,8 @@ foreach my $s_cid (@route_cids) {
     delete $data{'route'}{$route_id};
 }
 
-#,,,.,.,.,.,,,.,.,..,,,,,,,..,,.,,,,,,.,,,,.,,..,,...,.,.,...,,,.,...,...,,..,
-#2PC7QPBGB6SCBVHC26QX5HO2XVDQOMQ4SNBSPWPHUT2RKXFCFCZINISWYKURJ523P54LZ7RK6E6NI
-#\\\|ZYUNM2R5AYMGVCVSSMMQTROEW7NT7EL26ISWCGI4Q3VLRDSLGKA \ / AMOS7 \ YOURUM ::
-#\[7]6MNQ27PL2IOIW6I7AIQCCNTVDO2UKKSQXYARZYWEV6ISWAQWHUAY 7  DATA SIGNATURE ::
+#,,,.,...,,.,,...,.,,,,.,,,,.,,.,,,..,.,.,..,,..,,...,...,.,,,.,,,,,,,,..,...,
+#E5L26BXO2J6J2VRQKKZE4YBJBIDOCSJRAILGZBJPJORMSV6NB6VJVWXGPTX6DMXWDMZ5XUTSCEECQ
+#\\\|BIXRHHXT6A63AC6IMYK6MRZH7O5UASBADT7AG4O7XASRJNHHISB \ / AMOS7 \ YOURUM ::
+#\[7]2L6LZHEWISD3DJ6J2MSZ7S2DAYSXD5V73FEW7KY5WBUAW5KUR6AQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

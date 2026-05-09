@@ -3,14 +3,7 @@
 # name  = job-site-scan.init_code
 # descr = initialize scan coordinator, restore state
 
-map { <[base.perlmod.autoload]>->($ARG) } qw| YAML::XS File::Path |;
-
-my $state_dir  = '/var/protocol-7/jobs';
-my $state_file = "$state_dir/scan-state.yaml";
-
-File::Path::make_path($state_dir) if not -d $state_dir;
-
-$data{'jss.state_file'} = $state_file;
+<[base.perlmod.autoload]>->('YAML::XS');
 
 ## cycle-level state
 <job-site-scan.cycle>         = 'idle';
@@ -51,8 +44,8 @@ my $job_count = scalar keys %{ <job-site-scan.tasks> // {} };
     <job-site-scan.cycle>, $job_count
 );
 
-#,,,.,,,.,.,.,,..,,.,,.,,,,..,..,,.,,,.,,,.,,,..,,...,..,,,,.,..,,..,,...,...,
-#SVXJIRVW4RIUUMTJAZFNCTJJCFXAHK7527P3N7QNTENJXZSP2LWHDFIZEQFJWPM6IPGNXB77YF2KC
-#\\\|ZDVZD7F2IQ5QDENXVRZ2HIM6ZTJDDB5WAOX3FOOW4GXGTDIQ2NW \ / AMOS7 \ YOURUM ::
-#\[7]7RBOMB6G4BX2O5TLJHPFMPGO2L2RXZV5ST3C4ZHC3K5DX2GE6ODQ 7  DATA SIGNATURE ::
+#,,,.,...,.,.,...,,,,,,.,,,,,,.,.,,.,,,.,,,,.,..,,...,...,...,...,,,,,...,,.,,
+#5B57CAMVLP4M5UBRNJLMQHPUON5XWVX5QP6UZV46H7VQVLPA7OCKZZDH55JLGRBMORGLA2JWXY2D6
+#\\\|TVNAKE4R4CBJAVUPWVVRYXAPUX2BMWOTPKOS7ZQYKQJERC3WHW3 \ / AMOS7 \ YOURUM ::
+#\[7]AKYCOBXJNR65YY5LTRH6A6G7EDJTAUBOSZNJK6S4MZQ2EQWNNMCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

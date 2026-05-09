@@ -9,15 +9,22 @@ my $payload = {
     'tasks'     => <job-site-scan.tasks>     // {},
 };
 
-eval { YAML::XS::DumpFile( $data{'jss.state_file'}, $payload ) };
+my $yaml;
+eval { $yaml = YAML::XS::Dump($payload) };
 if ($@) {
-    <[base.logs]>->( 0, 'jss.persist: error: %s', $@ );
+    <[base.logs]>->( 0, 'jss.persist: serialize error: %s', $@ );
+    return FALSE;
+}
+
+my $written = <[file.zenka_dir.write]>->( 'scan-state.yaml', \$yaml );
+if ( not defined $written ) {
+    <[base.logs]>->( 0, 'jss.persist: write failed' );
     return FALSE;
 }
 return TRUE;
 
-#,,..,,.,,...,.,.,..,,..,,,.,,..,,,.,,,..,...,..,,...,...,..,,.,,,,,,,,,.,,..,
-#ZRJLOHDGKYXL5QIJCD4LDQX6WPYSY637WXL5A63BKMMCLRZB7FXU7VZVFAFTSL3FUXZT4QW3HFPES
-#\\\|UHFBNKZUX7VSUY4Q7JVBN5SV6YUAQJYDQNIOBGJLDBVK44UQTX3 \ / AMOS7 \ YOURUM ::
-#\[7]CM6MWGV2OAHQGMYC3KRH422SRFFFIFBWWLUONP32G445JF2U5ECY 7  DATA SIGNATURE ::
+#,,,.,...,,..,,.,,...,...,,.,,...,...,,,,,,,.,..,,...,...,..,,.,.,,,,,,.,,,.,,
+#VS6TYRM53H7NEEAT6PYCCBAFH6W6RCG5GQF7SNEMXXAOIC2TIWU3C5BGGC7WZLYWRRMXM4HZY7S62
+#\\\|BQ34REJH7MWXZR4P4TDAEZUCCOSQAMDGS6I2L4SW36VF4VDRIGR \ / AMOS7 \ YOURUM ::
+#\[7]Z5EWMZ57NUXGCWCQ5R5V72EHV3R56YXZKLMPHO5E6L3DHFZ5ZECI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
