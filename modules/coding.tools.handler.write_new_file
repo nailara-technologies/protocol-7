@@ -47,12 +47,17 @@ return "error: file already exists [ $path ]" if -e $abs_path;
 ## use chmod child to create empty file as admin user if needed ##
 my $chmod_fh = <coding.chmod_child.w_fh>;
 my $cur_mode;
-if ( !-w $abs_path and defined $chmod_fh ) {
-    my $dir = $abs_path;
-    $dir =~ s|/[^/]+$||;
+if ( !-w ( $abs_path =~ s|/[^/]+$||r ) and defined $chmod_fh ) {
+    ## parent dir not writable — create file via chmod child then open it ##
     print {$chmod_fh} "create $abs_path\n";
-    select undef, undef, undef, 0.01;    ## yield for child
-    $cur_mode = ( stat $abs_path )[2] // 0644 if -w $abs_path;
+    my $reply = <[coding.chmod_child.readline]>;
+    if ( -f $abs_path ) {
+        ## grant world-write so coding zenka can write regardless of group ##
+        my $raw_mode = ( stat $abs_path )[2];
+        $cur_mode = defined $raw_mode ? ( $raw_mode & 07777 ) : 0664;
+        print {$chmod_fh} "gw $abs_path\n";
+        <[coding.chmod_child.readline]>;   ## wait for gw to complete ##
+    }
 }
 
 ## normalize encoding parameter ##
@@ -88,8 +93,8 @@ return
     sprintf "staged new file %s [ %d bytes, no write access ]\n"
     . "staged at : %s", $path, length($content), $stage_rel;
 
-#,,,,,,,.,...,,..,.,,,,,.,.,.,,,,,.,.,.,.,.,,,.,.,...,...,.,,,,,.,...,.,.,...,
-#LNK7UECNI6KDJXCEUK6TGMCHY6HRBD4IP67FNNXL4TSVVPKFGUYIKGYCB5ZBSY6WXXIHBFJRM6HM6
-#\\\|4PUC52TBGAE5VY5BPNNGA5LQEWVDX3SCEKGQGNBCZNNR6ZGT7Y3 \ / AMOS7 \ YOURUM ::
-#\[7]DDR4D42RPIJEBKR5AW4FLFZZSOZTGY4XGMJ74QGTUIQBDJKFXKDA 7  DATA SIGNATURE ::
+#,,,,,,,.,.,.,.,.,,,.,,,.,,,.,..,,.,,,,,.,.,,,.,.,...,...,,.,,.,,,,..,.,.,,,,,
+#U253PRGAQ74CXRGWSKZ23VTA4D7YNOKXQOFM6N5PKEWOH6TA45NQW4U6G2XVCNC6UFOYT7CWYTY2E
+#\\\|3G3XQDSK5CTX4TVY5Y5Q6RGJU3B6SQ3F6NENAXRG4NPLBNGN6CS \ / AMOS7 \ YOURUM ::
+#\[7]XYDK2XEKRZDN2MNPLJS22QPKGTV3DM4NK5URZTXWKOWYVZ24G2AI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
