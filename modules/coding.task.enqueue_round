@@ -1,7 +1,7 @@
 ## [:< ##
 
 # name  = coding.task.enqueue_round
-# descr = schedule next inference round via timer — bypasses jobqueue for N+1 rounds
+# descr = schedule next inference round for task
 # param = <task_id> <round>
 
 my ( $task_id, $round ) = @ARG;
@@ -17,21 +17,19 @@ my $task = <coding.task.queue>->{$task_id};
 return { success => FALSE, error => "task not found: $task_id" }
     unless defined $task;
 
-## schedule send_request via timer — defers to next event loop tick ##
-## [ the jobqueue dispatches synchronously via variable-watcher, which caused  ##
-##   io-watcher registration to fail when nested inside timer/var-watcher chain ] ##
-## [ using the timer directly avoids all nested-watcher issues ] ##
-<[event.add_timer]>->(
-    {   'after'   => 0.1,  ## 100ms: give server time to fully release slot ##
-        'handler' => qw| coding.callback.backend_busy_retry |,
-        'data'    => $task_id,
-    }
-);
+## acquire backend lock or queue — backend_release wakes us if busy ##
+my $backend = ( <coding.async.task_state>->{$task_id} // {} )->{'backend'}
+    // qw| gpu |;
+my $lock_result = <[coding.async.backend_acquire]>->( $task_id, $backend );
 
 <[base.logs]>->(
-    1,        "enqueue_round: %s round=%d [scheduled via timer]",
-    $task_id, $round
+    1, "enqueue_round: %s round=%d [backend %s: %s]",
+    $task_id, $round, $backend,
+    $lock_result->{'acquired'} ? 'acquired' : 'queued'
 );
+
+## proceed immediately if lock acquired — backend_release handles queued case ##
+<[coding.async.send_request]>->($task_id) if $lock_result->{'acquired'};
 
 return {
     success  => TRUE,
@@ -40,8 +38,8 @@ return {
     deferred => TRUE,
 };
 
-#,,,,,,..,,,.,,.,,...,,,,,...,..,,...,...,,..,..,,...,...,,,.,.,,,,,.,.,.,,,,,
-#FKXUIWED6LYRQXP5FTWBIGWKSY3AP53UGMM5W4OEMB2XJGIA5SJ2ES3U2UTLB7CBVZJGDPTFH55TY
-#\\\|64WQNZWBJRA3FEBO5H6FXEJHQOYN6OSK5GUNYBZZBGRL3APVBC2 \ / AMOS7 \ YOURUM ::
-#\[7]2PKVGRWQ4GGN44SQGHWK4RVU4W5OPJ4VNPKNPS2VG5INXJOUB2BY 7  DATA SIGNATURE ::
+#,,.,,,..,,.,,.,.,..,,,.,,,..,,,.,,,,,,.,,,..,..,,...,...,,,.,.,,,,,,,,.,,,..,
+#XFONJRSMPU43O2I3TJT376NWALKOUTMXJZLWHLDUT47LU7KQ5S3KLJ66XW5KX4UMMYHMUF6Y3SPQC
+#\\\|2UL37YZ6OMNBBWXYDAT3OJSDZFVFORO5HIMHPMR3B5P2ZV7IXQA \ / AMOS7 \ YOURUM ::
+#\[7]TT6XJTOUEY77GAR56W72NP62A3L535TQNMZHIPBG63KYN4QOAGCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
