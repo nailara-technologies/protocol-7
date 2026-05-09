@@ -31,7 +31,7 @@ my $context_text
     . ( length($notes)       ? "Notes:\n$notes\n"            : '' )
     . ( length($result)      ? "Result so far:\n$result"     : '' );
 
-<[protocol-7.route-send]>->(
+my $sent = <[protocol-7.route-send]>->(
     {   command   => 'coding.summarize-context',
         call_args => {
             data => $context_text,
@@ -48,10 +48,19 @@ my $context_text
     }
 );
 
-return { mode => 'deferred' };
+<[base.logs]>->(
+    $sent ? 1 : 0,
+    ':. task.summarize %s : route-send to coding.summarize-context : %s',
+    $task_id,
+    $sent ? 'sent' : 'not delivered [ coding zenka offline? ]'
+);
 
-#,,,.,...,,,,,..,,...,,.,,...,,.,,,..,,,.,,..,..,,...,...,...,,,.,.,.,.,,,.,.,
-#KZUTZ45VGKRQXN5JUXTILAHMLTQSLGK7HSJSQGCSN2GUI3HDETVUQFCS3DWRU7S2R5RQ25G3AGRWC
-#\\\|G2V554W77TRS7YLWNNESN5CP4GCCURXEJKLJOI45CXCK5Y57UJE \ / AMOS7 \ YOURUM ::
-#\[7]OFQYJE4R4OM3OC2TZ67MBT4BTHOFO5YN4KZUUSCQEY6ZBFYRRSAY 7  DATA SIGNATURE ::
+return $sent
+    ? { mode => 'deferred' }
+    : { mode => 'false', data => 'coding zenka not reachable' };
+
+#,,,,,,,,,.,,,.,.,...,,..,.,,,...,,,,,,.,,,,.,..,,...,...,...,.,.,,..,.,,,,,,,
+#SXIALZE522ZPRGESR7A6D44SG6U3OA5LXQHL3GJVSHCNK7QOQG7Z5UB3UTBVLFWGW7IZLHBYEN5Z4
+#\\\|SK5LHP3C3NBOZGBFEYDJCQQ3BOMPZOCC7VFXTGZBWMYKG6MI5CN \ / AMOS7 \ YOURUM ::
+#\[7]7SBQGKZJAYLYPSPPVEJM6KGTKXEAWFFNEZQ3BYIFM4W427WHTEAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
