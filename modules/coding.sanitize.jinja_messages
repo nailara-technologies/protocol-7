@@ -52,7 +52,9 @@ for my $msg ( @{$messages} ) {
                 $args =~ s|\{%|\\{%|g;
                 $args =~ s|namespace\s*\(|namespace_(|g;
                 ## fix illegal backslash escapes — server Jinja crashes on \[ etc ##
-                $args =~ s|\\([^"\\\/bfnrtu])|'\\\\' . $1|ge;
+                ## (?<!\\) prevents re-processing already-escaped sequences    ##
+                ## without lookbehind, each round doubles: \. → \\. → \\\\.   ##
+                $args =~ s|(?<!\\)\\([^"\\\/bfnrtu])|'\\\\' . $1|ge;
                 $tc->{'function'}->{'arguments'} = $args;
             }
         }
@@ -93,8 +95,8 @@ if ($convert_tool_role) {
 
 return;
 
-#,,,.,,..,.,.,,..,,,.,,.,,,,,,,,.,...,.,.,,,.,.,.,...,...,...,.,.,,.,,.,.,..,,
-#PWT27GKAIKWHMIZKNN4ZL3TXPKNLW3GD4FQXSKQFBSDCPCJGWKTMWRIVP3355RGTGAUTONYJVSVWG
-#\\\|N5V3XPVIHIBFL5HQLSD3RRUIAENMVWYOLLD4GTA4MN7YC2OAMA4 \ / AMOS7 \ YOURUM ::
-#\[7]KXY4WBFKUA2IDCRNFI2UAE6MYSHMWN2I7NHC3XJICQQY3ZR7C2AQ 7  DATA SIGNATURE ::
+#,,..,.,.,..,,.,,,..,,..,,.,.,.,.,.,.,,,.,,..,.,.,...,...,,,,,..,,,..,.,,,,..,
+#DBYASYGIE3XISPDQ552KX7AT6NPEV5X6OTVOSJZJKIQ326LKRPC5W25KNQK3C2UWMC5NK4JZORQQ6
+#\\\|2M7KUFGGEKWFXE24FMBU62UTBB6WV3MV46CNAARDABWI3MCXBEN \ / AMOS7 \ YOURUM ::
+#\[7]734EHCE57KJMSSDALYL2XVCB5PGC5GDWQRUGCQS7CIG6CH6JLUBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
