@@ -1,0 +1,38 @@
+## [:< ##
+
+# name  = job-site-scan.state.load
+# descr = restore scan state from disk
+
+return if not -f $data{'jss.state_file'};
+
+my $saved;
+eval { $saved = YAML::XS::LoadFile( $data{'jss.state_file'} ) };
+if ($@) {
+    <[base.logs]>->( 0, 'jss.load: parse error: %s', $@ );
+    return;
+}
+return if ref $saved ne 'HASH';
+
+<job-site-scan.last_scan> = $saved->{'last_scan'} // 0;
+<job-site-scan.tasks>     = $saved->{'tasks'}     // {};
+
+## scanning/assessing states don't survive restart — reset to idle
+my $cycle = $saved->{'cycle'} // 'idle';
+if ( $cycle =~ m{^(?:scanning|assessing)$} ) {
+    <[base.logs]>->( 1, 'jss.load: interrupted "%s" reset to idle', $cycle );
+    $cycle = 'idle';
+}
+<job-site-scan.cycle> = $cycle;
+
+<[base.logs]>->(
+    1,
+    'jss.load: restored %d jobs, cycle=%s',
+    scalar keys %{<job-site-scan.tasks>},
+    <job-site-scan.cycle>
+);
+
+#,,.,,,,,,...,,..,,,,,.,.,,,.,,..,..,,.,.,,.,,..,,...,...,,,.,,,.,,..,,..,..,,
+#63M2RASHV626M2V7N74B6F4YJZOZWITSZZOTEN7C5AV2QDAXGJOA7W2S43XMU5FO7XMYYHUJFV6TU
+#\\\|BP7C57XM76BKYTKBT5MECNHZJ7OYHVRMINOCQK76FGFFTIGY7KM \ / AMOS7 \ YOURUM ::
+#\[7]BWTT6LYXGTNYUYPZFS5OLXDHPGAGT5EEERQLFRL22BAJOX46CWBY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

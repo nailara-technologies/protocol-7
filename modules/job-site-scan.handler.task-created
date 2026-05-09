@@ -1,0 +1,41 @@
+## [:< ##
+
+# name  = job-site-scan.handler.task-created
+# descr = receive task id, register wait-done watcher
+
+my $mode    = $call_args->{'mode'}      // '';
+my $task_id = $call_args->{'data'}      // '';
+my $job_id  = $reply_params->{'job_id'} // '';
+
+if ( $mode ne 'size' and $mode ne 'true' and $mode ne '1' ) {
+    <[base.logs]>->(
+        0,       'jss.task-created: failed for job %s: %s',
+        $job_id, $task_id
+    );
+    <job-site-scan.pending_count>--;
+    return;
+}
+
+$task_id = uc( substr( $task_id, 0, 7 ) );
+<[base.logs]>->( 1, 'jss: job %s → task %s', $job_id, $task_id );
+
+<job-site-scan.tasks>->{$job_id}{'task_id'} = $task_id;
+<job-site-scan.tasks>->{$job_id}{'stage'}   = 'assessing';
+<[job-site-scan.state.persist]>;
+
+## deferred watcher — fires when task.complete or task.fail is called
+<[base.protocol-7.route-send]>->(
+    {   'command'   => 'task.wait-done',
+        'call_args' => { 'args' => $task_id },
+        'reply'     => {
+            'handler' => 'job-site-scan.handler.assess-done',
+            'params'  => { 'job_id' => $job_id, 'task_id' => $task_id },
+        },
+    }
+);
+
+#,,.,,.,,,,,,,..,,..,,..,,,,,,..,,...,,,.,,.,,..,,...,...,.,,,.,,,,.,,..,,..,,
+#GSYWF4XGLT4NAAXKVUDIPAX2FVNIDHFYJUUSWNFZA63L6HZVKIB5BO2F3MGVGSUCEZMZY7YFZ3XPM
+#\\\|ZX4E6N4QHEH6XZUSDCYJU2BATYFRFEAM3ICCW3VT3M7UV6XTXJL \ / AMOS7 \ YOURUM ::
+#\[7]CVYX3EIDKYGW5ANGCYVUQIMJKBCU7O7V3MDY3LCBCYIF3JGIBIDA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

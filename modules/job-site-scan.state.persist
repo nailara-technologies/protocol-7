@@ -1,0 +1,23 @@
+## [:< ##
+
+# name  = job-site-scan.state.persist
+# descr = save scan state to disk
+
+my $payload = {
+    'cycle'     => <job-site-scan.cycle>     // 'idle',
+    'last_scan' => <job-site-scan.last_scan> // 0,
+    'tasks'     => <job-site-scan.tasks>     // {},
+};
+
+eval { YAML::XS::DumpFile( $data{'jss.state_file'}, $payload ) };
+if ($@) {
+    <[base.logs]>->( 0, 'jss.persist: error: %s', $@ );
+    return FALSE;
+}
+return TRUE;
+
+#,,..,,.,,...,.,.,..,,..,,,.,,..,,,.,,,..,...,..,,...,...,..,,.,,,,,,,,,.,,..,
+#ZRJLOHDGKYXL5QIJCD4LDQX6WPYSY637WXL5A63BKMMCLRZB7FXU7VZVFAFTSL3FUXZT4QW3HFPES
+#\\\|UHFBNKZUX7VSUY4Q7JVBN5SV6YUAQJYDQNIOBGJLDBVK44UQTX3 \ / AMOS7 \ YOURUM ::
+#\[7]CM6MWGV2OAHQGMYC3KRH422SRFFFIFBWWLUONP32G445JF2U5ECY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

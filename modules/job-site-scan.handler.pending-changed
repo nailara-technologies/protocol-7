@@ -1,0 +1,16 @@
+## [:< ##
+
+# name  = job-site-scan.handler.pending-changed
+# descr = var watcher: fires on pending_count write, 0 triggers review
+
+return if <job-site-scan.pending_count> != 0;
+return if <job-site-scan.cycle> ne 'assessing';
+
+<[base.logs]>->( 1, 'jss: all assessments done — entering review stage' );
+<[job-site-scan.stage.review]>;
+
+#,,,.,...,...,..,,.,,,.,,,..,,.,,,...,.,,,.,,,..,,...,..,,..,,...,,..,.,.,,,.,
+#7REX35O3ERTE25D3JQXVCU4W65S6CWQENARGSIX3E4TKTTD7VJ32OHB5IQVCZCPWG6MN77IFSOJVU
+#\\\|LI6UUGR423EOGAOFEVAGQUBUP67KUPXCTH6DXJNTAEOVQRZPEZX \ / AMOS7 \ YOURUM ::
+#\[7]6KWZDCJCE525WCM7YMQRIADBUTNJ2H77GKIXXFTHHS7Q5YIKE2DY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

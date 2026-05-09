@@ -1,0 +1,46 @@
+## [:< ##
+
+# name  = job-site-scan.cmd.reject
+# descr = reject a job from review queue
+
+my $job_id = uc( $call_args->{'args'} // '' );
+$job_id =~ s/^\s+|\s+$//g;
+
+my $rec = <job-site-scan.tasks>->{$job_id};
+return
+    <[base.protocol-7.command.cmd_reply]>
+    ->( { 'mode' => FALSE, 'data' => "unknown job: $job_id" } )
+    if not defined $rec;
+
+$rec->{'stage'}       = 'rejected';
+$rec->{'rejected_at'} = time;
+
+<[base.perlmod.autoload]>->('YAML::XS');
+my $store_file = '/var/protocol-7/jobs/store.yaml';
+if ( -f $store_file ) {
+    my $store = eval { YAML::XS::LoadFile($store_file) } // {};
+    if ( exists $store->{$job_id} ) {
+        $store->{$job_id}{'status'} = 'rejected';
+        eval { YAML::XS::DumpFile( $store_file, $store ) };
+    }
+}
+
+my $tasks = <job-site-scan.tasks> // {};
+my $remaining
+    = grep { ( $tasks->{$ARG}{'stage'} // '' ) eq 'review' } keys %{$tasks};
+
+if ( not $remaining and <job-site-scan.cycle> eq 'reviewing' ) {
+    <job-site-scan.cycle> = 'idle';
+    <[base.logs]>->( 1, 'jss: review complete, returning to idle' );
+}
+
+<[job-site-scan.state.persist]>;
+
+<[base.protocol-7.command.cmd_reply]>
+    ->( { 'mode' => TRUE, 'data' => "rejected: $job_id" } );
+
+#,,.,,...,,,.,,.,,,.,,.,.,.,.,,,.,.,,,,.,,,..,..,,...,...,..,,,,,,.,,,...,,..,
+#BUJCN3ABRIPCPVDTFJHFGEEEWVUKRUGP62QRKOA4N33QJ5BMHSFHLRXQTC4ROYI3RQ7JBDAKPIAWK
+#\\\|O765UTP5XXPB7WK7QSMICK3PUXOLIR6MWY7BF5FOEMDP43KIIYT \ / AMOS7 \ YOURUM ::
+#\[7]QUM5D56V2R4HZ7YVTVNME2ZIKPLLRERS3ZKAS6DO65SRITOEZSCI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,0 +1,43 @@
+.:[ job-site-scan — job search scan and assessment coordinator ]:.
+
+[load_config_file:'shared-params']
+
+buffer.session.log_cmd  = p7-log.append
+buffer.session.max_size = 795648
+
+system.verbosity.zenka_buffer = 1
+
+## search urls — space separated, site-yaml.fetch template matched per url
+job-site-scan.cfg.search_urls  = https://www.stepstone.de/jobs/linux-administrator/in-deutschland
+
+## minimum llm score (0-10) to flag job for review
+job-site-scan.cfg.threshold    = 6
+
+## seconds between automatic rescans (0 = manual trigger only)
+job-site-scan.cfg.rescan_interval = 0
+
+## path to cv/profile context file injected into assessment prompt
+job-site-scan.cfg.profile_file = /var/protocol-7/jobs/profile.txt
+
+access.cmd.usr.cube = heart subname name commands reload verify-instance \
+                      list src-age src-ver show-buffer \
+                      buffer-erase buffer-erase-level \
+                      scan status list approve reject set-threshold
+
+modules.load = auth net protocol io.unix job-site-scan
+[load_modules:<modules.load>]
+[init_modules]
+
+[root.drop_privs:<system.amos-zenka-user>]
+
+[base.net.connect:'unix']
+
+[base.get_session_id]
+
+[zenka.loop]
+
+#,,.,,.,.,.,,,.,,,.,,,...,..,,..,,..,,,.,,...,..,,...,...,,,,,.,.,.,,,,..,,.,,
+#ERAXLQAC734WNQJXFM2GHOHG3PAN5VKK7NVUJ3YZHDPGEG2XWXDWNQRFNBE6HSJPNTWDVFTN7OHG2
+#\\\|D7NSVG62RQR4YSZE5ZRPLAG4Q34RPDQA4ANJBGKELYXA4TTRCYD \ / AMOS7 \ YOURUM ::
+#\[7]OFDX6QOJEPKH5K4JZP5DJKWEQP5CZID2VHHIRBKT2F2O57DCHSAI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

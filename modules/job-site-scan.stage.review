@@ -1,0 +1,56 @@
+## [:< ##
+
+# name  = job-site-scan.stage.review
+# descr = transition to reviewing, log jobs above threshold
+
+<job-site-scan.cycle> = 'reviewing';
+
+my $tasks = <job-site-scan.tasks> // {};
+my @for_review
+    = grep { ( $tasks->{$ARG}{'stage'} // '' ) eq 'review' } keys %{$tasks};
+
+if ( not @for_review ) {
+    <[base.logs]>->( 1, 'jss.review: no jobs above threshold, idle' );
+    <job-site-scan.cycle> = 'idle';
+    <[job-site-scan.state.persist]>;
+    return;
+}
+
+<[base.logs]>->(
+    1,
+    'jss.review: %d job(s) await approval:',
+    scalar @for_review
+);
+
+<[base.perlmod.autoload]>->('YAML::XS');
+my $store_file = '/var/protocol-7/jobs/store.yaml';
+my $store
+    = -f $store_file
+    ? ( eval { YAML::XS::LoadFile($store_file) } // {} )
+    : {};
+
+for my $job_id ( sort @for_review ) {
+    my $rec = $tasks->{$job_id};
+    my $job = $store->{$job_id} // {};
+    <[base.logs]>->(
+        1,
+        'jss.review:  [%s] score=%s  %s — %s (%s)',
+        $job_id,
+        $rec->{'score'}   // '?',
+        $job->{'title'}   // '',
+        $job->{'company'} // '',
+        $job->{'city'}    // '',
+    );
+}
+
+<[base.logs]>->(
+    1, 'jss.review: use "p7c job-site-scan.approve <id>" to proceed'
+);
+
+<[job-site-scan.state.persist]>;
+
+#,,.,,,..,,.,,,,,,,..,,,,,..,,,..,..,,.,,,.,.,..,,...,...,..,,,..,,.,,...,,..,
+#7O3ZV5PYMEE42WCU6FGEB2X5TEOLKFWVI5ZBBCHR7SA34KM6UMBUOKFY5G7YNVEKM5A7336K7PP4E
+#\\\|S3I7GKABSHTRZPVUZV7SIDAFPHNXZEGHE5766WTCJGIL67MEWTA \ / AMOS7 \ YOURUM ::
+#\[7]JOBHPTEGHOO3L5SUR6JX7DRD2S5SGQHLLRGXWFAI4IXBS25SLCAI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

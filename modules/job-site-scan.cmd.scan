@@ -1,0 +1,24 @@
+## [:< ##
+
+# name  = job-site-scan.cmd.scan
+# descr = trigger a scan cycle manually
+
+if ( $data{'jss.cycle'} ne 'idle' ) {
+    return <[base.protocol-7.command.cmd_reply]>->(
+        {   'mode' => FALSE,
+            'data' => sprintf 'cycle already active: %s',
+            $data{'jss.cycle'},
+        }
+    );
+}
+
+<[base.protocol-7.command.cmd_reply]>
+    ->( { 'mode' => TRUE, 'data' => 'scan started' } );
+
+<[job-site-scan.stage.fetch]>;
+
+#,,..,,..,,.,,,,.,,,,,,,.,,..,,,,,,,,,..,,..,,..,,...,...,..,,,,.,.,.,,,.,...,
+#5FEZIH3O4VYBLY2UDQMKS5EIUW3IZMPNPSRHRUAQDP275E4DNPFMN2XB4DRKBUDOS2GMIGGO5T3OE
+#\\\|B4K5GW63JR3D2H33JZTIJSOH25OCE7XGMCPXZWGLSGO5DLRSGV7 \ / AMOS7 \ YOURUM ::
+#\[7]LJPSGGTM6KI7A3EH6F4UBH3UNADAV6FMIKTCDAEBEFMWKL4HU2DA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
