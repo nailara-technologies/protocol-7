@@ -221,26 +221,33 @@
   removal task dispatched to Qwopus (bd7wocqi6)
 - task files: summarize-context-command, tool-hints, rewind-stack+read-only-flag, remove-blocking
 
-### Next Steps (from session 15, final)
-- note_read pagination (offset/limit on sections)
-- dispatch: summarize-context-command, tool-hints, rewind-stack tasks
-- CPU spin: coding.async.state_machine audit
-- :model: switching in task.execute
-- model eval workflow: first automated comparison
+### Completed (2026-05-10) — session 19 — job pipeline zenki
+- site-yaml zenka: stepstone JSON-LD extraction, job store YAML, web template (jobs.html.tmpl)
+- job-site-scan coordinator: stage engine idle→scanning→assessing→reviewing→idle
+  var watcher on pending_count gates stage.review — fully event-driven, no poll timers
+  named categories (linux-sysadmin, ki-automation, devops, platform-engineer) with real URLs
+- job-assess.yaml context template: no_tools, max_rounds=1, profile.txt inject, JSON score output
+- multi-category fetch: fetch_pending counter, all categories reply before assess dispatch
+- cube auth/access entries for both zenki; plugin.web.jobs.* in web whitelist
+- topic-job-pipeline.md written to memory with first-run checklist + HTTP sync design
 
-### Next Steps (from session 12 — still open)
-- task.cmd.start — task zenka step 3 (state transitions)
-- valued.cmd.query — network command wrapping valued.tree.top_n
-- meta.session-summary → task.cmd.handover wiring on session end
-- model evaluation workflow — first automated comparison run
-- iteration loop end-to-end test with iteration:true task
-- template: search_code parameter reminder, write_new_file newline warning
+### Next Steps (immediate)
+- **first-run**: p7c v7.restart cube → write profile.txt → p7c job-site-scan.scan
+- **profile.txt** at /var/protocol-7/jobs/profile.txt — CV/skills for LLM scoring
+- **multi-page search** — stepstone 25/page; cfg.max_pages per category
+- **orphan re-queue** — re-create tasks for jobs stuck in 'assessing' after restart
+- note_read pagination (offset/limit on sections)
+- active deps execution (requires list in task dispatcher)
+- think-block stripping — <think>...</think> from Kimi/Deepseek leaks into output
+- task.cmd.start — task zenka step 3
 
 ### Planned / Future
-- **USB backup zenka** — udev medium insertion → watcher → backup task tree (prioritize/copy/manifest/verify/eject); udev triggers + fs mount/unmount already exist; see `topic-usb-backup-zenka.md`
-- **site-yaml zenka** — on-demand URL fetcher returning clean YAML via regex/template extraction patterns (no HTML); see `topic-site-yaml-zenka.md` for use cases + job workflow pipeline
-- **site-auth zenka** — session/auth management for scrapers requiring login (companion to site-yaml)
-- **job automation workflow** — stepstone fetch → dedup → LLM categorize → jobtracker (existing HTML/JS tool, CSV/PDF) → apply → email monitor → report send; see `topic-site-yaml-zenka.md`
+- **HTTP sync** — /api/jobs/sync httpd endpoint, C25519-signed YAML payload, last-write-wins merge;
+  see `topic-job-pipeline.md`; deferred until remote server model selection settled
+- **USB backup zenka** — udev medium insertion → watcher → backup task tree; see `topic-usb-backup-zenka.md`
+- **site-auth zenka** — session/auth for scrapers requiring login (companion to site-yaml)
+- **job automation workflow** — pipeline PARTIALLY IMPLEMENTED: site-yaml + job-site-scan zenki done;
+  remaining: jobtracker integration (existing HTML/JS tool, CSV/PDF), email reply monitor (Gmail zenka)
 - **base.handler.command refactor**: plan at `data/md/development/BASE-HANDLER-COMMAND-REFACTOR-PLAN.md` — identical-behavior extraction steps, namespace map first, per-session isolation as boundary, cross-reference maps (`$data{'route'}`) as only explicit cleanup surface. Claude designs seams + namespace map; local models execute. Related to SIZE packet loss bug below.
 - **SIZE packet loss bug**: STRM interaction causes zenka to stop returning SIZE replies until an unrelated command (e.g. `heart`) is sent. No reliable reproducer yet — radio zenka group expected to trigger it. Investigate alongside or before the refactor.
 
@@ -391,8 +398,8 @@
 - Pattern: `my @non_num = grep { defined $data_ref->{$ARG}->{$key} and not looks_like_number(...) } keys $data_ref->%*`
 - Global `$SIG{__WARN__}` exists — if wrapping warn handler, capture `$prev_warn = $SIG{__WARN__}` first and call through
 
-#,,.,,.,,,,,.,..,,,,.,,.,,,.,,...,.,,,.,,,,,,,..,,...,...,.,.,...,,,,,.,.,,..,
-#HPXQOH2LVLWPIYCAYKYB7YY7T7SXPYFPQVKW74755GRTW5DFSQUJAVCUCYOHESHAWNP4YXVLIX7LA
-#\\\|PQ2NIRX3CZSGE6K7E6QYXPR5WWRU7TRWUG7MLW3GZ23KX3PNV2C \ / AMOS7 \ YOURUM ::
-#\[7]PKRNCF4RA52GCNTQVO7FXMKY6KEMTHA2L7SZJ42BYITRRCZ2XQDY 7  DATA SIGNATURE ::
+#,,,,,,,.,.,.,.,.,,..,...,,.,,...,..,,..,,..,,..,,...,...,...,,,,,.,,,..,,.,.,
+#DGW3EYH4EQBYR6G76HZDSNTKL5YBWT4AFFDSHJ3HKYFKWGMNGJMHZMQXPYQNU3UTH6EMECGFGJXCK
+#\\\|K4542AH25R2YQT3XSW3ZU54D4TWNTNPWRPYG7ZNPXBBPUBL3PS7 \ / AMOS7 \ YOURUM ::
+#\[7]NAXBV5X4YE3I76SESK6CDX2PJRZDSLSSMOFMXGLL5KZEKAZQQYDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
