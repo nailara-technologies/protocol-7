@@ -204,13 +204,12 @@
   removal task dispatched to Qwopus (bd7wocqi6)
 - task files: summarize-context-command, tool-hints, rewind-stack+read-only-flag, remove-blocking
 
-### Next Steps (from session 15, updated)
-- bd7wocqi6 in-flight: remove blocking inference path (Qwopus)
-- note_read pagination (287+ line notes exceed tool output budget)
+### Next Steps (from session 15, final)
+- note_read pagination (offset/limit on sections)
 - dispatch: summarize-context-command, tool-hints, rewind-stack tasks
-- CPU spin: coding.async.state_machine not yet audited (jinja fix removes interference)
-- :model: switching — model ID in request body ignored; needs switch-model call in task.execute
-- model eval workflow: first automated comparison using iteration loop
+- CPU spin: coding.async.state_machine audit
+- :model: switching in task.execute
+- model eval workflow: first automated comparison
 
 ### Next Steps (from session 12 — still open)
 - task.cmd.start — task zenka step 3 (state transitions)
@@ -371,8 +370,8 @@
 - Pattern: `my @non_num = grep { defined $data_ref->{$ARG}->{$key} and not looks_like_number(...) } keys $data_ref->%*`
 - Global `$SIG{__WARN__}` exists — if wrapping warn handler, capture `$prev_warn = $SIG{__WARN__}` first and call through
 
-#,,,,,,..,,,,,.,,,...,...,,,,,,,,,.,,,,.,,...,..,,...,...,,.,,,,,,,,,,,,.,,.,,
-#NFOB2LYDYPAJBXN2I2QJ4SMCWIGZGR3JDUZXKSS3QU3WPJDWRLHUWHWZFXTNYEFFVZHP33R7LJWFS
-#\\\|BXHPO77TPRHHXUMPBQM72LV2XOTGSHY5JM5JC6JDQA3EANH53LL \ / AMOS7 \ YOURUM ::
-#\[7]RJFWO7NDQBUT35LFWIUL22A4TIIMQTXIFEX6OUE5ZXDA7IIWY4CY 7  DATA SIGNATURE ::
+#,,,.,..,,,,.,...,.,.,,..,.,,,.,.,...,,,.,,,,,..,,...,.,.,..,,..,,,.,,...,..,,
+#DE73QHZBG6EMN6UIQ2W5MYCRRTU3EVK4CLUXIWONRCKWNZCXKARFAAL22D2CBF7KTSLFHINQK2WWE
+#\\\|RW3HVKPALLDX6XG7D2NM6Q4V4PYHPSSUDOACOQZRV376GYLNR7M \ / AMOS7 \ YOURUM ::
+#\[7]GX6GW47HWMZNUS2KXI6VDMVRXGEPM74ZKQTGL2YVQVPLBCS43UCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -51,6 +51,7 @@ if ($apply) {
         if ( defined $mode_restore and defined $chmod_fh ) {
             print {$chmod_fh} sprintf "restore %04o %s\n", $mode_restore,
                 $abs_path;
+            <[coding.chmod_child.readline]>;    ## consume restore reply ##
         }
         return sprintf "deleted %d line%s [ %d..%d ] from %s",
             $count, $count == 1 ? '' : 's', $from_n, $to_n, $path;
@@ -76,8 +77,8 @@ return sprintf "preview: would delete %d line%s [ %d..%d ]",
 
 #,,
 
-#,,.,,..,,,.,,,..,,..,...,...,...,,,.,...,,,.,..,,...,..,,.,.,..,,...,,..,.,,,
-#65RW2DWSC4MVRHLCEI4XTKYE74SN3YNCHJFR4RGD5TKTIQLUDN5OCY6GYX6YHIK5SPOIOPZPQEFME
-#\\\|6QGDP3PLAH6L7BIYPFC4EOOL7AL4XCYRNRBEJQGOSXXQNEJGUGY \ / AMOS7 \ YOURUM ::
-#\[7]AOTCUQHJARIWDEIELMM4HWHKKC5IBQEDHVND5GDYN2Z2WULN4QAQ 7  DATA SIGNATURE ::
+#,,..,,.,,,,,,,,.,..,,..,,,.,,,,,,.,.,,..,,..,..,,...,...,..,,,,.,,,,,,.,,,,,,
+#R3WNGPPBACBWNMIWRFK2SI6LIJPQOFZSJPBMYCD4C6O4NVRN2KF7APTQVGKNR4M4QICQOAMJMB44O
+#\\\|F2A4CKMMZGA4ZNTKUR2AJB3OIA65XYOEFP5KGDB7IXG6RTQUWM2 \ / AMOS7 \ YOURUM ::
+#\[7]NOWRFIQKPVYW4N2AD6VUAOX7BF5UTFAXOMQ63RUC6WUIDI5Q7WBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

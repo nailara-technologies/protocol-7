@@ -73,6 +73,7 @@ my $err = <[base.str.os_err]>;
 ## restore directory permissions ##
 for my $r (@restore) {
     print {$chmod_fh} sprintf "restore %04o %s\n", $r->[0], $r->[1];
+    <[coding.chmod_child.readline]>;    ## consume restore reply ##
 }
 
 if ($ok) {
@@ -87,8 +88,8 @@ if ($ok) {
 
 return { 'content' => "error: rename failed: $err" };
 
-#,,..,,,.,,..,.,,,.,,,,.,,.,,,,,,,,,,,,,.,.,.,.,.,...,...,.,.,,,.,..,,...,..,,
-#R4L2TX5VFCTWCKQWCXZHR2UNSMLZCJ4KPUIXCAB55X5EIXGYI53SF3QXE6JTFYBH3X2D735TIHLWM
-#\\\|TVXRVCXVKLMNVYWJ2PGUPWO2JBZGD5FGXN5JGOAPD4PAHSYXIKS \ / AMOS7 \ YOURUM ::
-#\[7]CE4OYJYUSKS2EUWGXI3BPVVGGKWGBZBWQYL4LAYXEVAVVANQD6BA 7  DATA SIGNATURE ::
+#,,,,,..,,.,.,..,,,,,,...,...,,,.,..,,,..,,,,,.,.,...,.,.,...,,,,,,..,...,..,,
+#E462ZUV6STHLB2RTTVXZUGCEM3OO44TGXYL55IMHGXLSHEF2PUIBEOI65ME335LISKEG4HW26G5H4
+#\\\|LWLPYCG5I5CLF5KXDKZXRPZCKY4PBMSJSTMCBDXOA6HIAPCMDKL \ / AMOS7 \ YOURUM ::
+#\[7]ACMQBB42AUX6ULFW2GCYG3BZQQGJYE3KS7ABO2TEOUU2TVWB66DA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

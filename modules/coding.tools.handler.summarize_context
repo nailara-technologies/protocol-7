@@ -1,0 +1,89 @@
+## [:< ##
+
+# name  = coding.tools.handler.summarize_context
+# descr = model-pinned inference summarization — direct LWP, no state machine
+
+my $args = shift // {};
+
+my $content = $args->{'content'} // return 'content required';
+my $focus   = $args->{'focus'}   // '';
+my $model   = $args->{'model'}   // <coding.cfg.summarize_model>   // '';
+my $backend = $args->{'backend'} // <coding.cfg.summarize_backend> // 'cpu';
+my $max_len = $args->{'max_len'} // 800;
+my $store   = $args->{'store'}   // 0;
+my $node_id = $args->{'node_id'} // '';
+
+## system prompt: compaction-style, focus-aware ##
+my $system_prompt
+    = 'you are a context compaction assistant. '
+    . 'produce a dense, precise summary that preserves all load-bearing '
+    . 'specifics: module names, line numbers, decisions, open questions. '
+    . 'omit narrative filler. '
+    . ( length($focus) ? "focus on: $focus. " : '' )
+    . 'target length: 2-4 paragraphs.';
+
+## port resolution: respect backend parameter ##
+my $port
+    = ( $backend eq 'cpu' )
+    ? ( <inference.backend.cpu.port> // 8001 )
+    : ( <inference.backend.gpu.port> // 8000 );
+
+my $request_body = {
+    messages => [
+        { role => 'system', content => $system_prompt },
+        {   role    => 'user',
+            content => "summarize the following content:\n\n$content"
+        },
+    ],
+    max_tokens  => $max_len,
+    temperature => 0.2,
+    stream      => JSON::PP::false(),
+};
+$request_body->{'model'} = $model if length($model);
+
+my $json_body = eval { JSON::PP->new->encode($request_body) };
+return "error: failed to encode request: $@" if $@;
+
+## LWP direct call — like consensus_query, blocks event loop intentionally ##
+my $ua = LWP::UserAgent->new(
+    timeout => 30,
+    agent   => 'Protocol-7/summarize_context',
+);
+
+my $response = $ua->post(
+    "http://127.0.0.1:$port/v1/chat/completions",
+    'Content-Type' => 'application/json',
+    Content        => $json_body,
+);
+
+unless ( $response->is_success ) {
+    return "inference error: " . $response->status_line;
+}
+
+my $data    = JSON::PP::decode_json( $response->decoded_content );
+my $summary = $data->{'choices'}[0]{'message'}{'content'} // '';
+
+## valued tree storage [ optional ] ##
+if ( $store and length($node_id) ) {
+    <[valued.tree.register_node]>->(
+        {   id       => $node_id . '.summary',
+            weight   => 0.5,
+            parents  => [$node_id],
+            metadata => {
+                focus   => $focus,
+                model   => $model,
+                ts      => <[base.ntime.b32]>,
+                backend => $backend,
+            },
+        }
+    );
+    $data{ 'valued.summaries.' . $node_id } = $summary;
+}
+
+return $summary;
+
+#,,,.,..,,,,,,.,.,...,,.,,,..,,,.,,..,,..,,,,,..,,...,...,,,.,,..,.,,,,,.,.,.,
+#V3AW6YBD3QG2EPF3EUWASP72WNF7EKOGPOQIDDCU62K7YWNHOQLSW3PBZ3HTED3UTSLFGEXLFL5F4
+#\\\|GA766Z6TITSDDYA5EF3EOJXKSEANNN3Q4A3QSLPW6IS2UKRVHCN \ / AMOS7 \ YOURUM ::
+#\[7]HOQCYRFQMA6CQLUEL2ZNWNMCT4IRPGTQGPZADY4FR2EVMD4E2CCA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -73,6 +73,8 @@ if ( -f $abs_path and -w $abs_path ) {
     <[file.write]>->( $abs_path, \$content, $norm_encoding );
     if ( defined $chmod_fh and defined $cur_mode ) {
         print {$chmod_fh} sprintf "restore %04o %s\n", $cur_mode, $abs_path;
+        <[coding.chmod_child.readline]>
+            ;    ## consume restore reply — keep pipe in sync ##
     }
     return sprintf "created %s [ %d bytes ]", $path, length($content);
 } elsif ( -d ( $abs_path =~ s|/[^/]+$||r )
@@ -93,8 +95,8 @@ return
     sprintf "staged new file %s [ %d bytes, no write access ]\n"
     . "staged at : %s", $path, length($content), $stage_rel;
 
-#,,.,,...,..,,.,.,...,,..,,,,,,..,...,..,,,..,.,.,...,..,,,.,,.,.,.,,,...,,,.,
-#BNZX4DGEDLJF3F2SSG5TMWE3VA4FZU4RBPOQW26LVOAGTUFZV2WSM65GVNEE3OIE23QLPIOJCA2R4
-#\\\|CBWXEPICP3RJPVVPE2WAZJDCPFV6R7522IU3NZM3SU4JJSO6BRN \ / AMOS7 \ YOURUM ::
-#\[7]MFYSIT46PYIJKZSJ4VCGVCJOMIQYX25CCLJW56QLU5R5FOVCOQAA 7  DATA SIGNATURE ::
+#,,..,...,..,,,..,,.,,.,,,..,,,.,,,,,,.,.,.,,,.,.,...,...,..,,,.,,..,,,,,,,..,
+#JDN2DDEYNNNPZV3J4FFJAEFQC6IBVPG67YYN4HAGU4KJ4E3B7N7KPX44DQV6NMX55JD3GPXYEN3YM
+#\\\|PY3MINFQRFAMIGQX5VEYSQMIB4O5LKKO6VMRMTIE6U4J6YH2NPF \ / AMOS7 \ YOURUM ::
+#\[7]KACY33W6TDNKGDAM4HUHRCFN6KNH4A3XSXXWYVZ2MC5CDB6KSSCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
