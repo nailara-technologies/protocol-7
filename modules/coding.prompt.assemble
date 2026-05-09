@@ -112,8 +112,13 @@ my $task_type = $task->{'metadata'}->{'raw_request'}->{'type'} // 'review';
 
 ## dynamic template selection from prompt ##
 ## check if prompt references a known template name ##
+## skip for no-tools single-round tasks [ utility inference, summarization ] ##
 my $selected_template = 'system-default';
-my $target_module     = '';
+if ( $task->{'no_tools'} and ( $task->{'max_rounds'} // 99 ) <= 1 ) {
+    $selected_template = 'system-tools';    ## minimal context, no template ##
+    goto TEMPLATE_SELECTED;
+}
+my $target_module = '';
 
 if ( exists $code{'context.template.load'} ) {
     my $root         = <system.root_path>;
@@ -172,6 +177,8 @@ if ( exists $code{'context.template.load'} ) {
         }
     }
 }
+
+TEMPLATE_SELECTED:
 
 ## extract target module from prompt [ for template vars ] ##
 if ($prompt =~ m{(?:review|explain|check|analyze|fix)\s+
@@ -274,8 +281,8 @@ return {
     'hooks'        => $hooks,
 };
 
-#,,..,,.,,...,..,,...,,,,,.,,,.,,,...,..,,.,,,..,,...,...,..,,.,.,..,,..,,..,,
-#DDTPGPPRG5VX4H26W7OKW7KJGQLIJWQFJMDRVVL2N7LFDGZIE7G5BOX2JL3S7UF32OFZOEIOTMAGU
-#\\\|Q56POH2EKVDO24HXNVABIJNI4DV6S3AVRGRMFB5CS3J7ERNJFDP \ / AMOS7 \ YOURUM ::
-#\[7]GRSXHXLSU7C4BDEUNIIESBDR2IX7XTIZJM4DFBHI3YBZ36K6TMAA 7  DATA SIGNATURE ::
+#,,.,,,,,,,.,,..,,.,.,,.,,,..,,,.,,,.,..,,,..,..,,...,...,.,.,,..,..,,,,,,..,,
+#J7ZWIC53LZKHGLYM3QH62M7KFCXDDSHXAMJ2GBLQEB64ZSPKUIJUPLK7RNZYRVZPLWODHO5NADVZ4
+#\\\|QPPBTUFGD3KGHZW4GZJVFCI4KIWHTVZ4A75EEEN6BZ5Z3PHOW2A \ / AMOS7 \ YOURUM ::
+#\[7]HPO56NN4H36EQDTDSE5U5C3SJBC4XL42QGBD7F3DVAV4JOVK7ODA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

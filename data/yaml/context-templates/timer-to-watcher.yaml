@@ -1,0 +1,82 @@
+---
+name: timer-to-watcher
+descr: convert polling timers to native event loop variable watchers
+sections:
+  - provider: context.task.active
+    budget_pct: 10
+    priority: 1
+  - provider: context.file
+    budget_pct: 30
+    priority: 2
+    params:
+      path: "{{target_module}}"
+
+  - static: |
+      ## goal: replace polling timers with variable watchers ##
+
+      polling timers fire repeatedly on a fixed interval and check a condition.
+      variable watchers fire exactly once when a value changes.
+      watchers are always preferable — no wasted ticks, deterministic wake-up.
+
+      ## pattern: identify the polling timer ##
+
+      look for:
+        <[event.add_timer]>->({ after => N, handler => 'some.retry.handler' })
+      where the handler checks a condition and re-arms the timer if not met.
+
+      ## pattern: replace with variable watcher ##
+
+      1. identify the %data key being polled [ e.g. <coding.async.backend_busy> ]
+      2. move it into a clean state namespace [ e.g. <coding.state.backend.gpu.lock> ]
+      3. register a watcher instead of a timer:
+
+        ## watcher fires once when value changes ##
+        <[event.var_watcher]>->( \<state.key.here>,
+            sub { <[module.that.was.retrying]>->($context) }
+        );
+
+      4. in the release path: assign the new value [ watcher fires automatically ]
+        <state.key.here> = undef;   ## or new value — watcher triggers ##
+
+      5. remove the retry handler module and timer entirely
+
+      ## pattern: state namespace ##
+
+      group related state under a clean dotted namespace initialized in pre_init:
+        <zenka.state>          //= {};
+        <zenka.state.backend>  //= {};
+        <zenka.state.task>     //= {};
+
+      persist in end_code, restore in init_code [ same as valued tree pattern ]:
+        ## end_code ##
+        my $yaml = <[format.yaml.dump_str]>->( <zenka.state> );
+        utf8::encode($yaml);
+        <[file.zenka_dir.write]>->( 'state.yaml', \$yaml );
+
+        ## init_code ##
+        my $snap = <[file.zenka_dir.load]>->('state.yaml');
+        <zenka.state> = <[format.yaml.load_str]>->( $snap->$* ) if defined $snap;
+
+      ## timers that are legitimate [ do not convert ] ##
+
+      keep timers for:
+        - actual timeouts [ kill hung process after N seconds ]
+        - periodic cleanup / persistence [ TTL expiry, buffer save ]
+        - startup readiness polls [ short-lived, self-cancelling ]
+
+      ## verification ##
+
+      after conversion:
+        - confirm the polling timer and retry handler are removed
+        - confirm watcher fires correctly on value change
+        - confirm no timer re-arming in the new code path
+        - use ptd_check to verify module syntax
+    priority: 3
+    budget_pct: 60
+    label: timer-to-watcher instructions
+
+#,,..,.,.,..,,,,,,...,,,,,.,.,..,,,,.,,,,,..,,..,,...,...,.,,,...,...,,..,...,
+#CANNHJLMGGSVN76STDZ666IWBYKK3XMKBBCD37GGNHU56KRI54VGZ4LKZKCNVTFLRAXHETBZB4VFW
+#\\\|WNCFB5WSCYO4E7YWDTR7XZPRLFORKRM3CIUO22E5TO47NJ33MPN \ / AMOS7 \ YOURUM ::
+#\[7]HYRMQPKR7U6HTUCOY4NC2CEPLNL5SZ7GSKAQH2GZ37O7ONFNTYDA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
