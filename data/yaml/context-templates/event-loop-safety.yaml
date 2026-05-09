@@ -41,8 +41,13 @@ sections:
          -> if yes, check minimum interval (0.01-0.07s typical)
 
       2. Does the loop call a blocking syscall (sysread, LWP, HTTP)?
-         -> BLOCKS OS but not event loop
-         -> Must be wrapped in event.add_io or forked child
+         -> DANGER: BLOCKS THE ENTIRE OS THREAD including the event loop
+         -> event.once() BEFORE the call does NOT help — the call itself
+            blocks all watchers for its full duration (seconds to minutes)
+         -> LWP::UserAgent, HTTP::Tiny->get/post ARE blocking — they are
+            NOT async. "async at the OS level" is a false belief.
+         -> must use coding.async.http_client or forked child instead
+         -> use consensus_query(mode: verify) to confirm this classification
 
       3. Does the loop call NEITHER of the above?
          -> DANGER: tight spin loop, no yield mechanism
@@ -333,8 +338,8 @@ sections:
       ## event-loop-safe: <reason> [ annotation text ] ##
       ```
 
-#,,..,...,...,.,.,..,,,,,,,.,,,.,,,.,,..,,,,,,...,...,...,.,.,...,.,.,,..,,..,
-#QSINLOMW3FZSUQJMMUKU5A3X4LKFWERMPPSQKGVKX6QDGDSLHJCAJFB4YSRNNU6RPUTNTLVUP6ZWQ
-#\\\|VFIP4ENRGB73A7WXDWMGYHQDNOWV24S3DBISJUAJXJKJPG5SZR3 \ / AMOS7 \ YOURUM ::
-#\[7]LTQCFKGVN5OECIJ77GTISCLSEO5VFAUNRRQDPEUR6KQ7ZSSLLUAA 7  DATA SIGNATURE ::
+#,,..,.,.,,,.,.,,,,,.,.,,,.,.,,.,,,,.,.,,,,,,,...,...,...,,,,,...,..,,.,.,,,,,
+#Z77F2YH5X652LU3GXHIOISWWJSMU3Y7HWZVLVDWTNLK4SHMOUAYMF6YXDYVF4X4WLN25LP3GVN4A4
+#\\\|PTHK4EBCCFEYGP7253OBQZDWD4RNHLTDCONLJZRSIBJVO5AQRNP \ / AMOS7 \ YOURUM ::
+#\[7]HJ37W4QIKIONEIKEOCAHSGOE4TI3XY36BUY7SBJA76GMECZA4YDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
