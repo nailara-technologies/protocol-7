@@ -1,4 +1,4 @@
-# rewind-stack — per-task file diff capture with BMW content addressing
+# rewind-stack — per-task file diff capture, BMW content addressing, read-only flag
 
 **Priority:** High
 **Type:** Feature — Task Infrastructure
@@ -187,7 +187,73 @@ Add `rewind` to coding zenka access.cmd.usr.cube list.
 - Future: `coding.rewind.store` becomes a distributed content store keyed
   by BMW hash — "restore state BMW:XXXXXXX" routes to any node holding it
 
-## Acceptance Criteria
+## Feature 2: :read-only: Task Flag
+
+Implement in the same dispatch intercept. A task with `read_only: 1` in its
+flags blocks write tools for protected paths, while permitting writes to an
+explicit allowlist.
+
+### Task flags (stored in task record at creation time)
+
+Parse from description prefix — extends the existing `:model:`, `:review:` pattern:
+```
+:local: :read-only: investigate modules/coding.handler.process-queued-task
+:local: :read-only: :write=data/yaml/tool-hints/staged/: review ...
+```
+
+`task.cmd.create` parses these from the description and stores in `task->{'flags'}`:
+```perl
+$flags->{'read_only'}     = 1  if $description =~ s/:read-only:\s*//i;
+($flags->{'write_allowed'}) = $description =~ s/:write=([^:]+):\s*//i;
+## write_allowed is colon-separated list of permitted path prefixes ##
+```
+
+Default allowlist when read-only (always permitted regardless of :write=):
+- `/var/protocol-7/coding/notes/`  — note tools (note_write etc.)
+- `/var/protocol-7/coding/tree/`   — tree_write
+- `data/scratch/<task_id>/`        — task-local scratch space (auto-created)
+
+### Enforcement in coding.tools.dispatch
+
+Add after path resolution, before tool execution:
+```perl
+if ( grep { $_ eq $name } @write_tools ) {
+    my $task_id  = <coding.task.active_id> // '';
+    my $flags    = <coding.task.queue>->{$task_id}{'flags'} // {};
+
+    if ( $flags->{'read_only'} ) {
+        my @always_ok = (
+            '/var/protocol-7/coding/notes/',
+            '/var/protocol-7/coding/tree/',
+            <system.root_path> . "/data/scratch/$task_id/",
+        );
+        my @extra = split m{:}, ( $flags->{'write_allowed'} // '' );
+        my @allowed = ( @always_ok, map { <system.root_path> . "/$_" } @extra );
+
+        my $permitted = grep { index( $capture_path, $_ ) == 0 } @allowed;
+        return "error: write blocked [ read-only task ] path: $capture_path\n"
+            . "permitted prefixes: " . join( ', ', @allowed )
+            unless $permitted;
+    }
+}
+```
+
+### Scratch directory
+
+Auto-create `data/scratch/<task_id>/` when task starts if read_only flag set.
+Clean up after task completes (or keep for review — configurable).
+Read-only tasks produce no rewind_stack entries (nothing to undo by definition).
+
+### Acceptance Criteria (Feature 2)
+
+- `:read-only:` in task description → write tools blocked for protected paths
+- note_write, tree_write always permitted in read-only tasks
+- `:write=data/yaml/tool-hints/staged/:` grants additional path prefix
+- scratch dir auto-created, auto-cleaned after completion
+- `p7c task.show <id>` displays flags including read_only status
+- read-only tasks produce empty rewind_stack (no overhead)
+
+## Acceptance Criteria (Feature 1 — rewind stack)
 
 - `p7c coding.rewind <task_id>` restores file(s) to state before last write
 - `p7c coding.rewind <task_id> round=7` restores all changes from round 7+
@@ -208,8 +274,8 @@ Add `rewind` to coding zenka access.cmd.usr.cube list.
 - rewind.apply uses direct file.write bypassing chmod child since it
   restores to a known-good previous state (already existed with right perms)
 
-#,,.,,,,,,,.,,,,.,.,.,..,,.,.,.,.,..,,..,,.,,,..,,...,...,.,.,,,,,..,,,,.,...,
-#6GDFC4DD3OYYP2YSBZA34W7YAILPKBQIR73H3JVLY7QUNDYHSH3TER3ISU2GYXQEMPBS2E5JC2HJ6
-#\\\|KVGZA5G6QKMM736SNXQQU3VBCCBFHHQNJZHL4ODAHOQX56SLLKU \ / AMOS7 \ YOURUM ::
-#\[7]OFPZN5WZ7DCOEFTMZB6QCXV75URSY2L4P5WNW623VQXRB2CTFGAQ 7  DATA SIGNATURE ::
+#,,,.,,,.,...,,.,,,,.,.,,,...,.,.,...,,,.,,..,..,,...,...,,,.,,,,,,.,,,,,,.,.,
+#KACYXJU4WEGDDCUCEBZVVRB2YYVE3TRCWTXGGS3IYWTKIPJHZNHSZOV33U42EIVUQQR66UBGXBBPO
+#\\\|U5MVW6TRJLWEAQCTLCJF3U3T3QBZR5DE3J2DMS6ONCXT77KNM7H \ / AMOS7 \ YOURUM ::
+#\[7]HYI2SPW7BSXSB2ECMD6335UVCBBPWWLEGRNENGEIUGKV4RPIFAAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
