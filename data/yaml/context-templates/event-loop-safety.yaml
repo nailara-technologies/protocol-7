@@ -1,0 +1,340 @@
+name: event-loop-safety
+descr: detect and repair while loops that bypass the AnyEvent/EV event loop
+budget: 5000
+priority: 2
+rounds: 12
+
+sections:
+  - provider: context.style.guide
+    budget_pct: 8
+    priority: 1
+
+  - provider: context.task.active
+    budget_pct: 5
+    priority: 2
+
+  - provider: context.modules.list
+    budget_pct: 5
+    priority: 3
+    params:
+      namespace: coding.handler
+
+  - provider: context.modules.list
+    budget_pct: 5
+    priority: 4
+    params:
+      namespace: coding.async
+
+  - provider: context.modules.list
+    budget_pct: 5
+    priority: 5
+    params:
+      namespace: base.event
+
+  - static: |
+      ## event-loop-safety detection checklist ##
+
+      When reviewing any while/until loop, apply this checklist:
+
+      1. Does the loop call `event.once()` or `event.add_timer()` inside?
+         -> SAFE: event loop is actively polled
+         -> if yes, check minimum interval (0.01-0.07s typical)
+
+      2. Does the loop call a blocking syscall (sysread, LWP, HTTP)?
+         -> BLOCKS OS but not event loop
+         -> Must be wrapped in event.add_io or forked child
+
+      3. Does the loop call NEITHER of the above?
+         -> DANGER: tight spin loop, no yield mechanism
+         -> ALL watchers frozen - network I/O, timers, other zenki halted
+
+      4. Is the loop bounded by a small constant (< 100 iterations)?
+         -> ACCEPTABLE if documented with annotation (see exceptions below)
+
+      5. Is the loop in a forked child or startup-only path?
+         -> ACCEPTABLE if not blocking parent event loop
+
+      6. Does the loop have an explicit exit condition that will eventually
+         fire (not just "while true" with hope)?
+
+      ## repair patterns ##
+
+      ### tight spin loop -> timer watcher with cancel ###
+      BAD:
+        while ($done == 0) {
+          if ($condition) $done = 1;
+        }
+
+      GOOD:
+        my $timer = <[event.add_timer]>->(
+          {
+            'after'   => 0.01,
+            'repeat'  => 1,
+            'handler' => qw| module.sub |,
+            'data'    => $state,
+          }
+        );
+        # cancel when done
+        $timer->cancel() if $done;
+
+      ### blocking LWP call -> async http_client or forked child ###
+      BAD:
+        my $r = LWP::UserAgent->new->get($url);
+        return $r->decoded_content;
+
+      GOOD:
+        my $result = <[coding.async.http_client]>->($url, {}, $callbacks);
+        # callbacks handle streaming asynchronously
+
+      OR forked child for long operations:
+        my $pid = fork();
+        if ($pid) {
+          # parent continues event loop
+          <[event.add_timer]>->({ 'after' => 30, 'handler' => 'poll_child' });
+        } else {
+          # child does blocking work, exits
+          exit(0);
+        }
+
+      ### regex buffer loop -> add advance guard ###
+      BAD:
+        while (1) {
+          $buffer =~ s/^\r?\n//;
+        }
+
+      GOOD:
+        my $last_len = 0;
+        while (1) {
+          my $len = length($buffer);
+          if ($len == $last_len) {
+            last;  # no progress - prevent infinite loop
+          }
+          $last_len = $len;
+          $buffer =~ s/^\r?\n//;
+        }
+
+      ### polling loop -> event.once with minimum interval ###
+      BAD:
+        while (!$completed) {
+          # poll state
+          <[event.once]>;  # too fast, no minimum interval
+        }
+
+      GOOD:
+        while (!$completed) {
+          <[event.once]>->(0.01);  # minimum 10ms between polls
+          # OR use event.add_timer with repeat=1
+        }
+
+      ### watcher callback loop -> ensure proper cancel ###
+      GOOD (already safe):
+        while ($event->w) {
+          my $watcher = $event->w;
+          $watcher->cancel;  # critical: cancel before continuing
+          # process event
+        }
+
+      ## legitimate exceptions with required annotation ##
+
+      Some while loops are acceptable when properly documented:
+
+      1. Bounded iterations (document N and why):
+         ```perl
+         ## event-loop-safe: bounded 50 iterations, startup probe [ no yield needed ] ##
+         while ($probe_count++ < 50 && $status != 'ready') {
+           sleep(0.001);
+         }
+         ```
+
+      2. Startup-only paths (never in event loop context):
+         ```perl
+         ## event-loop-safe: startup initialization, no event loop active ##
+         while (open($fh, '<', $config_file)) {
+           # read config
+         }
+         ```
+
+      3. Forked child processes (parent event loop not affected):
+         ```perl
+         ## event-loop-safe: forked child, event loop suspended in parent ##
+         my $child = fork();
+         if ($child) {
+           # parent: continue event loop
+         } else {
+           # child: blocking operation safe here
+           while ($result == undef) {
+             $result = blocking_op();
+           }
+           exit(0);
+         }
+         ```
+
+      4. Regex buffer loops with advance guarantee:
+         ```perl
+         ## event-loop-safe: regex advances by at least 1 byte per iteration ##
+         while ($buffer =~ s/^([^\r\n]*)\r?\n//) {
+           # process line
+         }
+         ```
+
+      ## audit instructions ##
+
+      When this template is active:
+
+      1. Search for while/until/for loops in the target module:
+         - Use `search_code(pattern: "while\s*\(`) to find while loops
+         - Check each one against the checklist
+
+      2. For each DANGER classification:
+         - Verify with consensus_query(mode: verify)
+         - Quote the loop code and explain why it's unsafe
+         - Propose concrete repair using the patterns above
+
+      3. Document exceptions:
+         - If a loop appears to be an acceptable exception,
+         - verify it has the proper annotation
+         - if missing, flag for addition
+
+      4. Verify repairs:
+         - After proposing repairs, re-check the loop
+         - Ensure the repair actually yields to the event loop
+
+      ## key patterns from P7 codebase ##
+
+      ### event.once pattern (safe) ###
+      Used in: coding.cmd.wait-done, coding.handler.process-queued-task
+      ```perl
+      <[event.once]>->(0.07);  # poll and yield every 70ms
+      ```
+
+      ### event.add_timer pattern (safe) ###
+      Used in: coding.async.http_client, coding.handler.http_poll
+      ```perl
+      my $next = <[event.add_timer]>->(
+        {
+          'after'   => 0.01,
+          'repeat'  => 1,      # repeat indefinitely
+          'handler' => qw| module.sub |,
+          'data'    => $state,
+        }
+      );
+      ```
+
+      ### event.add_io pattern (safe) ###
+      Used in: coding.async.http_client, coding.handler.http_io
+      ```perl
+      my $io_watcher = <[event.add_io]>->(
+        {
+          'fd'      => $sock,
+          'handler' => qw| coding.handler.http_io |,
+          'data'    => $state,
+        }
+      );
+      ```
+
+      ### sysread loop with syswrite (safe) ###
+      Used in: coding.async.http_client (write request)
+      ```perl
+      while ($total_written < $req_bytes) {
+        my $n = syswrite($sock, $data, $req_bytes - $total_written, $total_written);
+        if (defined $n) {
+          $total_written += $n;
+        } elsif ($!{EAGAIN} || $!{EWOULDBLOCK}) {
+          select(undef, undef, undef, 0.001);  # yield OS
+        } else {
+          # error
+        }
+      }
+      ```
+
+  - static: |
+      ## known P7 patterns verified safe ##
+
+      These patterns from the P7 codebase are verified safe:
+
+      1. **event.once with interval** (min 0.01s recommended)
+         - modules/coding.cmd.wait-done line 66
+         - modules/coding.handler.process-queued-task line 207
+         - modules/nshell.no-tty-debug.cmd.char-add lines 256, 291
+
+      2. **event.add_timer with repeat=1**
+         - modules/coding.async.http_client lines 110-120
+         - modules/coding.handler.http_poll lines 87-99
+         - modules/coding.callback.backend_busy_retry
+
+      3. **event.add_io for socket I/O**
+         - modules/coding.async.http_client lines 82-91
+         - modules/coding.handler.http_io
+         - modules/radio.connect line 114
+
+      4. **sysread/syswrite loops with non-blocking mode**
+         - modules/coding.async.http_client lines 125-137
+         - modules/coding.handler.drain_pipe (safe: pipe watcher context)
+
+      5. **Regex buffer loops with advance guarantee**
+         - modules/coding.handler.http_io (saves headers, parses SSE)
+         - modules/coding.handler.http_io_parse_line
+
+      6. **Watcher callback loops with cancel**
+         - modules/base.list.subroutines:clear_from_disk
+         - modules/base.referenced_subroutines:clear_from_disk
+         - Pattern: watcher->cancel before continuing
+
+  - static: |
+      ## red flags requiring consensus verification ##
+
+      The following loop patterns should trigger consensus_query(mode: verify):
+
+      1. **while(1) or while($var) with no event.once inside**
+         - Classic tight spin
+         - Verify: is there ANY yield mechanism?
+
+      2. **LWP blocking calls in while loops**
+         - modules/coding.handler.process-queued-task line 204 suspected
+         - Verify: is this in forked child? async replacement available?
+
+      3. **Polling loops with very short intervals (< 0.001s)**
+         - Could cause event loop starvation even with event.once
+         - Verify: is minimum interval enforced?
+
+      4. **Regex loops without length check**
+         - Could spin if regex doesn't advance
+         - Verify: does regex have advance guarantee?
+
+      5. **while loops in init_code or startup paths**
+         - May be acceptable but verify event loop not active
+
+  - provider: context.file.extract
+    budget_pct: 20
+    priority: 10
+    params:
+      path: "{target_module}"
+    optional: true
+
+  - static: |
+      ## summary ##
+
+      Event loop safety in Protocol-7 means ensuring that while loops
+      do not bypass the AnyEvent/EV event system. The event loop drives
+      all network I/O, timers, and watcher callbacks - blocking it freezes
+      the entire zenka.
+
+      Detection checklist:
+      1. event.once or event.add_timer inside? -> safe
+      2. Blocking syscall? -> investigate (may block OS thread)
+      3. Neither? -> DANGER (tight spin)
+      4. Bounded iterations? -> acceptable if documented
+      5. Forked child/startup-only? -> acceptable
+
+      Repair patterns available for each class of unsafe loop.
+
+      Legitimate exceptions must be documented with the annotation:
+      ```perl
+      ## event-loop-safe: <reason> [ annotation text ] ##
+      ```
+
+#,,..,...,...,.,.,..,,,,,,,.,,,.,,,.,,..,,,,,,...,...,...,.,.,...,.,.,,..,,..,
+#QSINLOMW3FZSUQJMMUKU5A3X4LKFWERMPPSQKGVKX6QDGDSLHJCAJFB4YSRNNU6RPUTNTLVUP6ZWQ
+#\\\|VFIP4ENRGB73A7WXDWMGYHQDNOWV24S3DBISJUAJXJKJPG5SZR3 \ / AMOS7 \ YOURUM ::
+#\[7]LTQCFKGVN5OECIJ77GTISCLSEO5VFAUNRRQDPEUR6KQ7ZSSLLUAA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
