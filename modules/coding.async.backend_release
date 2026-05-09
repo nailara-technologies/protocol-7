@@ -1,0 +1,45 @@
+## [:< ##
+
+# name  = coding.async.backend_release
+# param = task_id, backend
+# descr = release backend lock and dispatch next queued task if any
+
+my ( $task_id, $backend ) = @ARG;
+$backend //= qw| gpu |;
+
+my $bs = <coding.state.backend>->{$backend} // {};
+
+## guard: only release if this task holds the lock ##
+if ( ( $bs->{'lock'} // '' ) ne $task_id ) {
+    <[base.logs]>->(
+        2, 'backend_release: %s does not hold %s lock [held by %s], skipping',
+        $task_id, $backend, $bs->{'lock'} // 'none'
+    );
+    return FALSE;
+}
+
+$bs->{'lock'} = undef;
+<[base.logs]>->(
+    2,        'backend_release: %s released %s lock',
+    $task_id, $backend
+);
+
+## dequeue next waiting task and resume it ##
+my $next = shift @{ $bs->{'queue'} // [] };
+if ( defined $next ) {
+    <[base.logs]>->(
+        1,     'backend_release: dispatching next queued task %s [%s]',
+        $next, $backend
+    );
+    ## acquire for next task then resume its request ##
+    $bs->{'lock'} = $next;
+    <[coding.async.send_request]>->($next);
+}
+
+return TRUE;
+
+#,,..,,.,,,.,,.,,,,.,,..,,,,.,,,.,.,.,,.,,..,,..,,...,...,.,,,...,,,,,.,,,.,,,
+#EZ5FIRYYUVBBEW2EGITPTPSYFXAJPVPCFX4IIHR4PDNGXJGHX6NPNQEYS5BLN3TMZUAHH4H2RZXQO
+#\\\|BIUWLLAAK5EUSUO5QZ4U2KGNBXJ4H27BXGXWOS53L4MRDG3BS44 \ / AMOS7 \ YOURUM ::
+#\[7]DGDWJH53UXRVFPBF3EUFL3O3C2EFI7FEC6RQZ53JXAB6222ASIDQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

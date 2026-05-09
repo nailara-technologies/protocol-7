@@ -57,36 +57,10 @@ if ( !defined $existing || !defined $existing->{'state'} ) {
 }
 
 ## per-backend serialization: only one inference request at a time per server ##
-## [ prevents concurrent requests from multiple tasks to same backend ] ##
-<coding.async.backend_busy> //= {};
-my $lock = <coding.async.backend_busy>->{$backend};
-if (   defined $lock
-    && ref($lock) eq qw| HASH |
-    && $lock->{'task_id'} ne $task_id ) {
-    <[base.logs]>->(
-        1, "async.request : backend %s busy [task %s], deferring %s",
-        $backend, $lock->{'task_id'}, $task_id
-    );
-    ## guard: only one retry timer per task — prevents stacking from enqueue_round ##
-    my $state = <coding.async.task_state>->{$task_id} // {};
-    unless ( $state->{'retry_timer_pending'} ) {
-        $state->{'retry_timer_pending'} = 1;
-        <coding.async.task_state>->{$task_id} = $state;
-        <[event.add_timer]>->(
-            {   'after'   => 0.7,
-                'handler' => qw| coding.callback.backend_busy_retry |,
-                'data'    => $task_id
-            }
-        );
-    }
+my $lock_result = <[coding.async.backend_acquire]>->( $task_id, $backend );
+if ( not $lock_result->{'acquired'} ) {
     return { success => TRUE, mode => qw| deferred |, backend_busy => TRUE };
 }
-
-## acquire backend lock ##
-<coding.async.backend_busy>->{$backend} = {
-    'task_id' => $task_id,
-    'started' => <[base.time]>->(3),
-};
 
 ## check if state already exists [ follow-up round ] ##
 if ( defined $existing && defined $existing->{'state'} ) {
@@ -137,16 +111,7 @@ if ( $http_result->{'success'} && defined $http_result->{'state'} ) {
 
 if ( !$http_result->{'success'} ) {
     ## immediate error — release backend lock before failing ##
-    my $busy = <coding.async.backend_busy>->{$backend};
-    if (   defined $busy
-        && ref($busy) eq qw| HASH |
-        && $busy->{'task_id'} eq $task_id ) {
-        delete <coding.async.backend_busy>->{$backend};
-        <[base.logs]>->(
-            2, "async.request : released lock for %s [immediate error]",
-            $task_id
-        );
-    }
+    <[coding.async.backend_release]>->( $task_id, $backend );
     <[base.logs]>->(
         0,        "async.request : immediate error for %s : %s",
         $task_id, $http_result->{'error'}
@@ -167,8 +132,8 @@ return {
     mode    => qw| streaming |,
 };
 
-#,,,.,,..,...,.,.,.,.,,,.,,..,..,,.,.,...,,..,..,,...,...,,..,,..,.,.,.,,,,,,,
-#7QUF2LEC7BLI66DMZH7HX2MAT7NWBFM6QYR4D4VO3PLPB5BPDNEJTQ72JITZ5FRT6SYHMBW2UUPXA
-#\\\|FVGEHQ3TVVPHPPOE7CR5R3V4NHVUYKA6FJRX26E2AHFK4RGQ3AK \ / AMOS7 \ YOURUM ::
-#\[7]NJT22ZBKVE2UMW2GHYYZVUOYYA3DNWPAZJRL3D4536BQ6ZN7FWBA 7  DATA SIGNATURE ::
+#,,..,,..,...,.,,,..,,,,,,,,,,,,,,..,,.,,,.,.,..,,...,...,,.,,.,,,,,.,.,,,...,
+#DUE73IUF2U4XO3RNKSIJ5G6FKSV474YLSCPA5MRLSX7IL37XQR457M5KCHA5FAJK2XM5NFRUZNJ7I
+#\\\|OLMTA3C3NCTV2ULA6W6AXZVCGSVRSQ27HN6WEA5SYZWOO6OIFBA \ / AMOS7 \ YOURUM ::
+#\[7]OUH6RDVXUC5FEG3RYWFNV6U2DN6BDXLCMKR6QHMZS7CRNZMWIOCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

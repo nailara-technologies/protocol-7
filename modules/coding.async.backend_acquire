@@ -1,0 +1,46 @@
+## [:< ##
+
+# name  = coding.async.backend_acquire
+# param = task_id, backend
+# descr = acquire backend lock or queue task if busy
+
+my ( $task_id, $backend ) = @ARG;
+$backend //= qw| gpu |;
+
+<coding.state.backend> //= {};
+<coding.state.backend>->{$backend} //= { lock => undef, queue => [] };
+
+my $bs = <coding.state.backend>->{$backend};
+
+## already holds the lock — re-entrancy guard ##
+if ( defined $bs->{'lock'} and $bs->{'lock'} eq $task_id ) {
+    return { acquired => TRUE, queued => FALSE };
+}
+
+## lock is free — acquire ##
+if ( not defined $bs->{'lock'} ) {
+    $bs->{'lock'} = $task_id;
+    <[base.logs]>->(
+        2,        'backend_acquire: %s acquired %s lock',
+        $task_id, $backend
+    );
+    return { acquired => TRUE, queued => FALSE };
+}
+
+## lock is held by another task — queue this task ##
+my $queue = $bs->{'queue'};
+unless ( grep { $ARG eq $task_id } @{$queue} ) {
+    push @{$queue}, $task_id;
+    <[base.logs]>->(
+        1, 'backend_acquire: %s queued behind %s [%s] (%d waiting)',
+        $task_id, $bs->{'lock'}, $backend, scalar @{$queue}
+    );
+}
+
+return { acquired => FALSE, queued => TRUE };
+
+#,,,,,,.,,,,,,,,.,..,,...,,,.,,,.,.,,,,..,.,.,..,,...,...,...,,.,,...,,,.,,..,
+#H64PZPHS2WEBFM4WQEBSX3GSKCN7JPDHGJE4PWKAFROFH6BU26NVLY3QOBS5DXHE4KIIG2H5WKUGA
+#\\\|NFPTX66VILMJIRDWG6M3G5OGHDJJY4MW6UHE4HRWYZGL2QXDSQC \ / AMOS7 \ YOURUM ::
+#\[7]U2FMU25GVPBMPJ3KB3DVQZGCCTHGZR63YUQQBJ6DC4QQZAUR3QCI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

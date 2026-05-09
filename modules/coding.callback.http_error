@@ -21,14 +21,8 @@ if ( $state->{'retry_pending'} ) {
     );
     ## release lock if we own it [ safety net ] ##
     my $backend_dup = $state->{'backend'} // '';
-    if ( length $backend_dup ) {
-        my $lock_dup = <coding.async.backend_busy>->{$backend_dup};
-        if (   defined $lock_dup
-            && ref($lock_dup) eq qw| HASH |
-            && $lock_dup->{'task_id'} eq $task_id ) {
-            delete <coding.async.backend_busy>->{$backend_dup};
-        }
-    }
+    <[coding.async.backend_release]>->( $task_id, $backend_dup )
+        if length $backend_dup;
     return;
 }
 
@@ -76,35 +70,15 @@ if (   $error =~ m{HTTP error:\s*5\d\d|timeout|connection closed}i
     );
     ## release backend lock before scheduling retry ##
     my $backend_retry = $state->{'backend'} // '';
-    if ( length $backend_retry ) {
-        my $lock_retry = <coding.async.backend_busy>->{$backend_retry};
-        if (   defined $lock_retry
-            && ref($lock_retry) eq qw| HASH |
-            && $lock_retry->{'task_id'} eq $task_id ) {
-            delete <coding.async.backend_busy>->{$backend_retry};
-            <[base.logs]>->(
-                2, "http_error: released %s lock for %s [retry scheduled]",
-                $backend_retry, $task_id
-            );
-        }
-    }
+    <[coding.async.backend_release]>->( $task_id, $backend_retry )
+        if length $backend_retry;
     return;
 }
 
 ## release backend lock before failing task ##
 my $backend_fail = $state->{'backend'} // '';
-if ( length $backend_fail ) {
-    my $lock_fail = <coding.async.backend_busy>->{$backend_fail};
-    if (   defined $lock_fail
-        && ref($lock_fail) eq qw| HASH |
-        && $lock_fail->{'task_id'} eq $task_id ) {
-        delete <coding.async.backend_busy>->{$backend_fail};
-        <[base.logs]>->(
-            2,             "http_error: released %s lock for %s [fail]",
-            $backend_fail, $task_id
-        );
-    }
-}
+<[coding.async.backend_release]>->( $task_id, $backend_fail )
+    if length $backend_fail;
 
 ## fail the task ##
 my $result = {
@@ -144,8 +118,8 @@ if ( $error =~ m{timeout}i ) {
 
 return;
 
-#,,,,,.,,,...,,,,,,..,.,.,.,,,.,.,.,.,,,.,,..,..,,...,...,.,.,.,.,,.,,.,,,,.,,
-#RYBSXXFNMPR6CQL3A5E23HCXVBZMBS2HZYBMLBDP325JX2G5GUMWR44NCCWU2E7R4SRFICCOYAPHQ
-#\\\|JIPCVN2RTTM5YNQ4URZHXIZE7X4H7MGF42F6MGXYFKSYHLXNA5Y \ / AMOS7 \ YOURUM ::
-#\[7]YYNKLS65IARXT3V6J7XP3RXIQ3KHUN3MMRU22J7OTNXNIDONOUDQ 7  DATA SIGNATURE ::
+#,,.,,.,,,,..,.,,,,,,,.,,,,..,,,.,,..,,,,,,..,..,,...,..,,,,.,..,,,,.,.,.,,,,,
+#QA3OIJGRXQNFQINSLPPJ5Q7BSH4GHOUVNTPMPZEVADEM4ISGR3SFUAZCQZXIMYDTYPC2IV4YQUIEM
+#\\\|KNZUOEK4XUDZ4KRFBSNIGYCLFKP4DYSY2HTP6ZIAJHKJ6GRO7VJ \ / AMOS7 \ YOURUM ::
+#\[7]T4SH5SDBTNIHS3ITHFBGJVIS3WI6ANRJ3CPXU6FWYSNAHXIRBQBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -106,6 +106,12 @@ if ( defined <system.root_path> and -d <system.root_path> . '/.git' ) {
     status      => qw| ready |
 };
 
+## backend lock + queue state — replaces coding.async.backend_busy ##
+<coding.state.backend> //= {
+    gpu => { lock => undef, queue => [] },
+    cpu => { lock => undef, queue => [] },
+};
+
 ## load persisted model metadata from disk if available
 my $saved_meta_ref = <[file.zenka_dir.load]>->('state/model_metadata.yaml');
 if ( defined $saved_meta_ref && length $saved_meta_ref->$* ) {
@@ -448,8 +454,8 @@ if ( not $already_initialized ) {
 
 return 0;
 
-#,,,,,.,,,,.,,,,.,,..,...,,,,,...,,..,...,...,.,.,...,...,.,.,.,,,..,,,,.,.,.,
-#EDI2WHH47YQSLRCQ2QHY7B6GYQ5POY5W4PMW2K6PYVN7MJYEK2T4V7C6JSEDLEPF2OV2V5F3RA3E6
-#\\\|6KUFUFLYT3VC2V3GHHSVF7QPWCVLWZQJP733BPKXHNXIIK5V2T2 \ / AMOS7 \ YOURUM ::
-#\[7]F5XC26B7QZKXQXDB2QM7OCLTFZXHBHKSUVIO4QMBZNQ7RHB6ZWAY 7  DATA SIGNATURE ::
+#,,,.,.,.,.,,,,,,,,.,,..,,...,.,,,.,,,,..,,,.,.,.,...,...,.,,,.,,,,,,,..,,,.,,
+#FH6WCR7R7GMTVVECOAYNTC6UCU5W4UDV2PKEAYMSLL6TRNWJ3QJU4PUSCJEWYAOIUH4NYJ5L5RFSM
+#\\\|5MVB7MJE6VX5P7RNDZXS3OWJDVCYIEAJESVPFKGNRVYWCF26X2G \ / AMOS7 \ YOURUM ::
+#\[7]HIYXGI5G32ZKSCLP6SBGJHOJ536B3VTBRIEYU5UGIAD24H6MPGCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

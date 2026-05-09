@@ -55,16 +55,7 @@ my $sm_state = $state->{'state'} // '';
 my $release_backend_lock = sub {
     my $backend = $state->{'backend'} // '';
     return unless length $backend;
-    my $lock = <coding.async.backend_busy>->{$backend};
-    if (   defined $lock
-        && ref($lock) eq qw| HASH |
-        && $lock->{'task_id'} eq $task_id ) {
-        delete <coding.async.backend_busy>->{$backend};
-        <[base.logs]>->(
-            1, "http_complete: released %s lock for %s [%s]",
-            $backend, $task_id, $_[0]
-        );
-    }
+    <[coding.async.backend_release]>->( $task_id, $backend );
 };
 
 if ( $sm_state eq 'tool_exec' ) {
@@ -204,40 +195,20 @@ if ( $sm_state eq 'streaming' ) {
     }
     ## release backend lock if we own it ##
     my $backend = $state->{'backend'} // '';
-    if ( length $backend ) {
-        my $lock = <coding.async.backend_busy>->{$backend};
-        if (   defined $lock
-            && ref($lock) eq qw| HASH |
-            && $lock->{'task_id'} eq $task_id ) {
-            delete <coding.async.backend_busy>->{$backend};
-            <[base.logs]>->(
-                2,        "http_complete: released %s lock for %s",
-                $backend, $task_id
-            );
-        }
-    }
+    <[coding.async.backend_release]>->( $task_id, $backend )
+        if length $backend;
     return;
 }
 
 ## release backend lock on early return paths ##
 my $backend_early = $state->{'backend'} // '';
-if ( length $backend_early ) {
-    my $lock_early = <coding.async.backend_busy>->{$backend_early};
-    if (   defined $lock_early
-        && ref($lock_early) eq qw| HASH |
-        && $lock_early->{'task_id'} eq $task_id ) {
-        delete <coding.async.backend_busy>->{$backend_early};
-        <[base.logs]>->(
-            2, "http_complete: released %s lock for %s [early exit]",
-            $backend_early, $task_id
-        );
-    }
-}
+<[coding.async.backend_release]>->( $task_id, $backend_early )
+    if length $backend_early;
 
 return;
 
-#,,.,,,..,.,.,..,,,,.,...,.,,,.,,,.,.,.,,,..,,..,,...,..,,...,,,,,,.,,.,.,.,.,
-#UQPSCVT77MKSIWAAQQCH2DGDXOXR2NBO3KG2T6NMMCCDUOUZAIJJXB2ZLEPWOXYUNV7XEFZSUR5NY
-#\\\|7YFUCUMRGIHLVAY7DVXTOA7PLLMAAMQK4ZK4VDKCLV4RNIBPWN7 \ / AMOS7 \ YOURUM ::
-#\[7]W7QAMDGWYYAGI7QSVSLPPNAXNMIHE3III7UFVKXL2QTSBHOKCKCY 7  DATA SIGNATURE ::
+#,,,,,..,,.,,,...,...,.,.,.,,,,,,,..,,...,,,,,..,,...,...,...,,,.,.,,,,..,,,.,
+#IMWMLFGSY6QKED7EGQCAG3VK25GDF2IEVYRKJTRMXBTQIYOGT5A246UXT5BASTWDZOT4JZUR43CKU
+#\\\|MGEKTQP2I33MMOO6VG6TLSBUJ7WEPRON25WI2VPSIV36XLSSC7Z \ / AMOS7 \ YOURUM ::
+#\[7]7OIQ5Q4SRZT5Y5U46HPVPEUX2F6VHCTXO4HXFMM37RZFKER7OUCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
