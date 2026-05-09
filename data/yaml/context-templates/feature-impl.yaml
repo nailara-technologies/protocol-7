@@ -72,6 +72,23 @@ sections:
         { 'mode' => 'false', 'data' => $reason }  [ failure ]
         { 'mode' => 'size',  'data' => $list_str } [ list output ]
 
+      ## tool handler pattern [ coding.tools.handler.*, etc ] ##
+
+      handler modules receive args via shift — NOT ($args, $call):
+        my $args   = shift // {};
+        my $field  = $args->{'field'} // $default;
+
+      no sub declaration, no use statements, no pragmas — code runs directly.
+      LWP and JSON::PP are always available — use inline, not at top level:
+        my $ua = LWP::UserAgent->new( timeout => 60 );  [ inside eval block ]
+
+      ## zenka configuration ##
+
+      zenka start files:      configuration/zenki/<zenka-name>/start
+      v7 startup params:      configuration/zenki/<zenka-name>/zenka-startup.v7
+      cube routing [ shared ]: configuration/zenki/cube/access.zenki
+      most zenki define their own cmd access list inside their start file
+
       ## p7 data key syntax ##
 
       dotted keys in %data use parser-expanded form:
@@ -111,8 +128,8 @@ sections:
     budget_pct: 35
     label: feature-impl instructions
 
-#,,,,,..,,,,,,.,,,..,,,,,,.,.,,..,.,,,.,.,,,.,..,,...,..,,.,.,,,,,,,,,..,,..,,
-#VHZ5PMXO26LADBF3BZUJZZ7I3HVBWOG4JAK44RYYRDHHHWR3SE24MPPCIHV254GUFTJTM5X7RYKDE
-#\\\|2NLDNG3WKITYKOGVY4PPP3HLBPP63W65T35AC7KQ66BHCX5XAPR \ / AMOS7 \ YOURUM ::
-#\[7]BVUWAE6AMWY5FP7PCZMNNBSYKF5CXNFRLK3X4TPNZ2JDHBBMQAAQ 7  DATA SIGNATURE ::
+#,,,.,,,,,,..,,..,,.,,,.,,,,,,...,,.,,,,,,..,,..,,...,...,,..,.,.,,..,.,,,,,.,
+#BVEP5O6WM5A2WPSTO34RZHJ2NIMXEJEIOJQZSPIYPYQMNJCB4YG2T57OGGU3ARRL3EGAXIQ7SIDHC
+#\\\|IZHMBJNIER4X2JAUSWGLZZLWTUPNJFT2R2NJDVHPYAZWF5M6JVW \ / AMOS7 \ YOURUM ::
+#\[7]6QYPT2OCXONAVTELYSCWXNAJ3ZAJNCCWDKL5P4BM5DZJU4COCCBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
