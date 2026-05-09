@@ -34,6 +34,10 @@ my $context_text
 ## encode multiline content as base32 — plain multiline corrupts framing ##
 my $content_b32 = encode_b32r( Encode::encode( 'UTF-8', $context_text ) );
 
+## store reply_id locally — coding zenka calls task.summarize-done when ready ##
+<task.summarize.pending> //= {};
+<task.summarize.pending>->{$task_id} = $call->{'reply_id'};
+
 my $sent = <[protocol-7.route-send]>->(
     {   command   => 'coding.summarize-context',
         call_args => {
@@ -41,12 +45,9 @@ my $sent = <[protocol-7.route-send]>->(
                 length($focus) ? "focus=$focus" : (),
                 length($model) ? "model=$model" : (),
                 "store=1",
+                "callback_id=$task_id",
                 ":B32:$content_b32",
             ),
-        },
-        reply => {
-            handler => 'task.handler.summarize-reply',
-            params  => { task_id => $task_id },
         },
     }
 );
@@ -58,12 +59,15 @@ my $sent = <[protocol-7.route-send]>->(
     $sent ? 'sent' : 'not delivered [ coding zenka offline? ]'
 );
 
-return $sent
-    ? { mode => 'deferred' }
-    : { mode => 'false', data => 'coding zenka not reachable' };
+unless ($sent) {
+    delete <task.summarize.pending>->{$task_id};
+    return { mode => 'false', data => 'coding zenka not reachable' };
+}
 
-#,,..,..,,,..,,,.,...,...,.,,,.,.,..,,,,,,.,.,..,,...,...,,..,..,,.,.,,..,,..,
-#4BIBGYVT2TV44CBTC4T2QJBBYMKUL4NAONVJWNDK3PE6FCHEAKSFGJEHGIAPCGWMKVX2JLVWV646I
-#\\\|GGXCEA7X7BUPJE7TJOF2MMX77TSJZL5E7WCEMX4WWMDPAU6VTBF \ / AMOS7 \ YOURUM ::
-#\[7]VLISCQC3YEGXAY5EP27KCVKHD44LUNGJJYSGCV3QHDWYEDN34WCA 7  DATA SIGNATURE ::
+return { mode => 'deferred' };
+
+#,,,.,,,.,,.,,,..,.,.,.,.,,..,,.,,,,,,..,,.,.,..,,...,...,,.,,,..,,..,...,,,,,
+#RHERTKJD6Q5YKENSKOTDZWSBFLNPWQEFO5ICK4GVX5Y5IBCLQ3EE7JJUJ6DQQMNZ2ND6XRO65SWUA
+#\\\|HE2PXEKY3NEYPIA6NPXDA5CCVB2OYXAZ54TSYZ3HMP2LSOXA66I \ / AMOS7 \ YOURUM ::
+#\[7]AJMJRMT2D7C4H3YBBM3MWGUCH3VLR3Z5EZGAW7UUA462NAXCQ2AA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
