@@ -38,12 +38,19 @@ Investigate and then write the template. Two phases:
 
 ### Phase 1: Research
 
+**search_code note:** use simple literal patterns only — no \Q, no \s*, no complex
+regex metacharacters. backslashes in search patterns corrupt over rounds.
+good: `search_code(pattern: "while (1)")` or `search_code(pattern: "event.once")`
+bad: `search_code(pattern: "while\s*\(\s*1\s*\)")` — will spiral.
+prefer reading modules directly over searching for complex patterns.
+
 1. Search for well-designed event-integrated patterns in the codebase:
    - How do handler modules register and cancel io/timer watchers?
    - How does `event.once` work and when is it the right tool?
    - What is the `event.add_timer` / `event.add_io` pattern?
    - How do blocking operations (LWP, sysread) get wrapped safely?
    - How do zenki avoid blocking the event loop during long operations?
+   - use search_code(pattern: "event.once") and search_code(pattern: "event.add_timer")
 
 2. Read examples of good event integration:
    - modules/base.event.* — the event primitives themselves
@@ -141,8 +148,8 @@ After writing the template:
 - if you find a clear DANGER case during research, note it in note_write
   with the module name and line — a separate fix task will address it
 
-#,,..,.,.,.,,,.,,,..,,,..,,..,,.,,,..,,,.,,.,,..,,...,...,.,,,,,,,..,,.,.,..,,
-#FBJ6XR3KM2MTO5X7PFS5XYRO2LRQJ73HM5ZHP7WICSG5XBB42NV5ABRNTBDR4XW7LFL4GG5ZIM3BG
-#\\\|6KZPG7X5EMALLKD75RGYQRIINMJN6KEOUERXD2THNX6TWY6SEPV \ / AMOS7 \ YOURUM ::
-#\[7]MPHBULBOPMUIDLL7C2LZR2Q5OOVSQJUMEMTJJRGC35EUM34QUSAY 7  DATA SIGNATURE ::
+#,,.,,..,,..,,..,,,,.,,.,,.,,,.,.,,..,,.,,,.,,..,,...,..,,.,,,.,.,.,,,,,,,..,,
+#4TIDQMAOCLIVKK5IOJOMD2BVC5IRAJH7FE2XNXLAXNM4ADE4XKKNHXMHYEZ4FV5KIRPDLJVWG3FJW
+#\\\|LJA7KQEFHX26P2WNIZR2H7RHGQIEWVVXVO372YJJXD3KG7TTZA7 \ / AMOS7 \ YOURUM ::
+#\[7]6PZH36I2TLGO4UO27U2W7PMC3OHVZPPM4I2FD5PV5TPKI7ICRECQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
