@@ -43,11 +43,10 @@ if ( length $path ) {
         unless -e $path;
     return { mode => qw| false |, data => "not readable : $path" }
         unless -r $path;
-    my $enc         = <[file.encoding]>->($path);
-    my $content_ref = <[file.slurp]>->( $path, $enc );
+    my $enc = <[file.encoding]>->($path);
+    $content = <[file.read]>->( $path, $enc );
     return { mode => qw| false |, data => "failed to read : $path" }
-        unless defined $content_ref;
-    $content = $content_ref->$*;
+        unless defined $content;
 }
 
 ## base32 auto-detect on plain single-line args ##
@@ -56,21 +55,58 @@ elsif ( $content =~ m|^[2-7A-Z]+=*$| ) {
     $content = $decoded if defined $decoded and length $decoded;
 }
 
-my $summary = <[coding.tools.handler.summarize_context]>->(
-    {   content => $content,
-        focus   => $focus,
-        model   => $model,
-        backend => $backend,
-        max_len => $max_len,
-        store   => $store,
-        node_id => $node_id,
+return { mode => qw| false |, data => 'content required' }
+    unless length $content;
+
+## build system prompt — compaction-style, focus-aware ##
+my $system_prompt
+    = 'you are a context compaction assistant. '
+    . 'your response IS the summary — output it directly as plain text. '
+    . 'no tool calls, no apologies, no explanation of what you are doing. '
+    . 'preserve all load-bearing specifics: module names, line numbers, '
+    . 'decisions, open questions. omit narrative filler. '
+    . ( length($focus) ? "focus on: $focus. " : '' )
+    . 'target length: 2-4 paragraphs.';
+
+## enqueue single-round no-tools inference task ##
+my $task = {
+    'id'      => <[base.gen_id]>->(<coding.task.queue>),
+    'type'    => 'summary',
+    'request' =>
+        { description => "summarize the following content:\n\n$content" },
+    'metadata' => {
+        raw_request => {
+            type        => 'gpu',
+            description => "summarize the following content:\n\n$content"
+        }
+    },
+    'system'     => $system_prompt,
+    'no_tools'   => TRUE,
+    'max_rounds' => 1,
+};
+
+my $queue_result = <[coding.task.enqueue]>->($task);
+return {
+    mode => qw| false |,
+    data => "enqueue failed: $queue_result->{'error'}\n"
     }
-);
+    unless $queue_result->{'success'};
 
-return { mode => qw| true |, data => $summary };
+## register deferred reply — coding.event.on_task_complete sends it ##
+$data{'coding'}{'deferred_replies'} //= {};
+my $deferred_id = <[base.gen_id]>->( $data{'coding'}{'deferred_replies'} );
+$data{'coding'}{'deferred_replies'}->{$deferred_id} = {
+    'deferred_id' => $deferred_id,
+    'reply_id'    => $call->{'reply_id'},
+    'task_id'     => $task->{'id'},
+    'submitted'   => <[base.time]>->(3),
+    'status'      => qw| waiting |,
+};
 
-#,,,,,.,.,.,,,,.,,...,.,,,,,.,...,,..,,,,,,,,,..,,...,...,,..,,,,,.,.,...,.,.,
-#FT6NFXJT7TETZ22XWY2N237HS6FBCO24YFY5U4BGQO76ZIA25LA55UJFZQWXIZN75ULIJATJ6MPHC
-#\\\|FTN6NME7B3N45MQDRDKPQFUDSJSLEV2SOFYIBRHGY6CRU4PFOQZ \ / AMOS7 \ YOURUM ::
-#\[7]2C23HOOOCMDYY5WF5RK7MWYUEAYK7GL32IEAYQQIKBKJF3QAEQDQ 7  DATA SIGNATURE ::
+return { mode => qw| deferred | };
+
+#,,,,,.,.,...,,.,,,..,,,,,,.,,,,,,..,,.,.,,..,..,,...,...,...,,,,,,.,,,.,,,..,
+#GTIPP5L3U2DRI6ODZHPX6PIM6UC2AZAEJWWA6UOZJ47P7RRMX4BGE5LHMK5UCEV2QDGRHPW4TR5SY
+#\\\|LTZIZR3V2ZPIUQROVP5QIVRCCMQIIXZPKJPZWVWW76T2UD7WIPP \ / AMOS7 \ YOURUM ::
+#\[7]MZ6ZHXTGDMSTT54V4MBROTLNH5OKTDBEUBEBIINKJ3ISDQG5TYBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
