@@ -16,7 +16,7 @@ my $data = {
 my $yaml_str = <[format.yaml.dump_str]>->($data);
 
 if ( not defined $yaml_str or not length $yaml_str ) {
-    <[base.s_warn]>->('task.persist.save: yaml serialization failed');
+    warn 'task.persist.save: yaml serialization failed';
     return FALSE;
 }
 
@@ -24,14 +24,14 @@ utf8::encode($yaml_str);
 my $written = <[file.zenka_dir.write]>->( $queue_file, \$yaml_str );
 
 if ( not defined $written ) {
-    <[base.s_warn]>->('task.persist.save: failed to write queue file');
+    warn 'task.persist.save: failed to write queue file';
     return FALSE;
 }
 
 return TRUE;
 
-#,,,.,..,,,,,,.,,,,,.,.,,,.,,,,,.,,.,,.,.,..,,.,.,...,...,,..,,,,,...,...,,.,,
-#NW62AQFRCCHXYZ4DEYYG22J2KMSVUQPQGBYYWWGWH5B3GCP2364FN7ZYKKPHMWC5ZHPPX7VTKBYU4
-#\\\|3BOUTPEWU5QPS5HTJAUPFWPTRNBYUO523GJIHSJ4YMCSHZSBBFK \ / AMOS7 \ YOURUM ::
-#\[7]IVB4FU7IZ5NMOQPYN3CMP6NCO4JPWEACJ5KGVAYJHZURZUFRCMBI 7  DATA SIGNATURE ::
+#,,,,,...,..,,,,,,,,,,,,.,,,,,..,,..,,...,..,,.,.,...,..,,.,,,...,,..,.,.,...,
+#2NPK4W7JOFQ6UJNN7REQZMP524F2KWZTE4J6CE6NSJCRFVIJZG2ZKM5JPTICMT4U57THSQQIY3GY2
+#\\\|J54J3MFUVKICNOPQ43LER5EO6ILOASDNAQ2CRYXZ6APZOM6H3GS \ / AMOS7 \ YOURUM ::
+#\[7]PKXOTW4LUG2BLH7A6JREIPOA2MCGDX7QK6XAM3MWWK2W5LMFD2BI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

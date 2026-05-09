@@ -17,7 +17,10 @@ if ( not defined $content_sref ) {
 my $data = <[format.yaml.load_str]>->( $content_sref->$* );
 
 if ( not defined $data or ref $data ne 'HASH' ) {
-    <[base.s_warn]>->('task.persist.load: failed to parse queue file');
+    <[base.logs]>->(
+        1, ': task queue file invalid — removing, starting fresh'
+    );
+    <[file.zenka_dir.unlink_file]>->($queue_file);
     return FALSE;
 }
 
@@ -30,8 +33,8 @@ if ( not defined $data or ref $data ne 'HASH' ) {
 );
 return TRUE;
 
-#,,.,,.,.,.,.,,,,,.,.,,,.,,..,.,,,..,,...,.,,,.,.,...,...,.,,,,.,,.,,,...,.,,,
-#HVSH3O6RVE7WXI6VIHVGRPKRLSBVAJDJ26S55T7F7AMQ5SDNZ52TE6M2G2EDHRRSS7AH56S6K4OWC
-#\\\|HK4CFXYQTF3KHCTVKK5QOTKJIDP7ZGDI5YDSRP2GKKTGSMSTFWR \ / AMOS7 \ YOURUM ::
-#\[7]2BE6BR7N2AKQMPPUPBOKBNYOIRT4B6LJYM2WLWGFB3OC3WQRNEAY 7  DATA SIGNATURE ::
+#,,..,,,,,..,,,,.,,.,,.,.,.,.,...,...,..,,,..,.,.,...,...,.,.,,,,,.,.,..,,...,
+#EOLE3IFOH55RVKPLJD7PA37OXBZLWTD6FR6JHNMU2HJW64GPC5MPSWA4ZYWQ4KMB5TN4DT3ZO67XS
+#\\\|LYT44FF5EEDS6EWHKPF52ZD7WZ3U6OYEIZUM4MBHAFT6KJ6WYVY \ / AMOS7 \ YOURUM ::
+#\[7]KKHD3UWH77YIL2DFCB7Q2QQMD5KSUMA42OUSOFG44ROYFSJ5E2CI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

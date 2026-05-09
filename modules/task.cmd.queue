@@ -40,16 +40,15 @@ foreach my $task_id ( @{<task.queue.order>} ) {
 }
 
 my $output;
-if (@lines) {
-    $output = join( "\n", @lines ) . "\n";
-} else {
-    $output = "no tasks found\n";
-}
+return { mode => qw| false |, data => 'no tasks found' }
+    unless @lines;
+
+$output = join( "\n", @lines ) . "\n";
 
 return { 'mode' => 'size', 'data' => $output };
 
-#,,.,,.,.,.,.,..,,.,.,...,.,,,,,,,.,.,.,.,.,,,..,,...,.,.,.,.,.,.,...,,,.,,,,,
-#D53VRWVOQAY53I4XLT3FJY2RVLGKUDALGGINMCWCIOUDMLQVZFMMZT35HFDWB6LPDSWJQKUQNAZ7Y
-#\\\|J2RT2QEQ5JLFDMTL276LK7U7CTMOGOMEWFENJSB4WI5TP7KQJ23 \ / AMOS7 \ YOURUM ::
-#\[7]EHBPFMTL74TMSVMZFXZ2ECSBFSXK4O3A672BY3GWAGNJVOBAXIDQ 7  DATA SIGNATURE ::
+#,,.,,.,.,...,,,,,,,.,.,,,..,,,..,.,.,.,.,.,,,..,,...,..,,,,.,,..,,,.,...,.,,,
+#MYSDUFDHQNAFK4LA3Y3OYIWKSNEI256BPOPHSHSEYLVQNCD7VFLKSOT4GTZTK372CXBVDROPDLSEA
+#\\\|4XBHPKEUTJDYLSBBQZTZLTMYHIEWA3RGYMU46GXOUUIQBMJKGKG \ / AMOS7 \ YOURUM ::
+#\[7]2DQSNM3B5MXHWLOYE4O5EP7NW24ZC6YVGLITAHBITYCDHJH45IDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

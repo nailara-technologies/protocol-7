@@ -18,8 +18,21 @@ precise technical analysis is less critical.
 
 Default model switched to Qwopus on 2026-05-09 based on this evidence.
 
-#,,..,.,,,,..,,.,,,,.,.,.,.,.,.,.,.,,,,..,.,,,..,,...,...,.,.,,,.,,,,,...,,,,,
-#HV422R2R2MPU2SN6ZTGY2DVMEQ4KXXY2MARQNUS6SUUW67Q3GNXHQVS34W32J5ENDKYBLRIO4V6GU
-#\\\|7BYRO6KOG47D7TP6Z62A2VW6CLWYM7FIZS2NJHQAWULBQ6IDSNN \ / AMOS7 \ YOURUM ::
-#\[7]KQYU3X2JLOM3BNKPOQNB4R5ULX22FRPJGI436OFNEZAJLFYNB2CA 7  DATA SIGNATURE ::
+## summarization comparison (2026-05-09, same file tested on all three)
+
+- **Qwopus 9B v3**: clean 4-paragraph prose, no artifacts, preserves all specifics
+- **Kimi VL A3B Thinking**: think-block leaked into output, AMOS signatures
+  confused for cryptographic hashes, otherwise comparable quality — faster at 3B
+- **Deepseek Opus distilled 9B** (EMQFUAA:VWI5WKQ): best on structured technical docs —
+  adds headers, catches implementation status + research connection sections Qwopus
+  misses, clean output with no artifacts
+
+**How to apply:** For summarization tasks on structured technical documents, prefer
+Deepseek Opus distilled. Kimi VL A3B needs think-block stripping before output is
+usable. Qwopus remains the reliable all-rounder.
+
+#,,,.,,,,,...,...,.,.,.,,,,,,,,.,,.,.,..,,.,,,..,,...,..,,.,.,..,,..,,...,,,.,
+#7NV22B2ARKBMDXHSFVWZLJYGK7GVWSF7TLN2Z245PX3LVLVQVNCGCIBPOHJCOG2GI7667I7R3BSDM
+#\\\|5DYWUSNL3OLZ7IC4QAACXKDAO3T5DPPELAQSJVOTIQRYD6WLGND \ / AMOS7 \ YOURUM ::
+#\[7]LNJB2BFLODLAI63IA335SYOEFL435CTQUPYQREJX6ONGMUJBRWAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
