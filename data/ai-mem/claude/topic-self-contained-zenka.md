@@ -2,8 +2,8 @@
 name: self-contained-zenka-vision
 description: Architectural vision for fully self-contained zenki: __DATA__ registry, file.* abstraction, zenka serialization, coderef P7REF transfer, STDIO transport, roaming zenki
 type: project
+originSessionId: 34ca9c97-628c-46af-82f3-d04a171ae8f0
 ---
-
 ## Self-Contained Zenka Vision
 
 Full design doc: `data/md/documentation/SELF-CONTAINED-ZENKA-VISION.md`
@@ -56,6 +56,31 @@ If target has matching code loaded → wire it. If not → fetch it (with consen
   → SHA1 extracted; multiple mirrors; clean rollback; idempotent
 - Security tiers: known+BMW → auto-accept; known+SHA → accept+record BMW; unknown → consent required
 
+### Origin: bin/assimilate (2012)
+
+Initial git commit already contained `bin/assimilate` — checksum-based content
+import script. The name and primitive were correct from day one; the full scope
+(P7REFs, backup manifests, distributed tree, self-contained zenka) took time to
+become visible. Same integrative pattern: identify by checksum, import what's
+missing, skip what's already satisfied, leave the system more coherent.
+
+"Hyper-worm" — not destructive but integrative. Moves through systems, improves
+topology, friction-free because it works with existing structure via the dependency
+graph. "We are the cats, we are here to improve things, friction is futile." =)
+
+### Convergence with task tree
+
+Once the task tree is expressive enough (deps, watchers, active hooks, recursion),
+a task description and a zenka agent definition are the same thing at different
+resolutions. The start/config files are already a mini-language — task tree extends
+that upward until:
+- a zenka can be spawned *from* a task description
+- a running zenka's behavior can be serialized back into a task tree
+- abstraction/task-description protocols become a natural language layer on top
+
+This closes the loop: self-contained zenka serialization (dump) + task tree
+deserialization = roaming agents defined purely by declarative task graphs.
+
 ### Related
 
 - `data/md/documentation/harmonic-transit-vision-architecture.md` — 4-crossing consent
@@ -64,8 +89,8 @@ If target has matching code loaded → wire it. If not → fetch it (with consen
 - dep-graph: already done ✅ (prerequisite for packing tool)
 - `-use-http-src`: already in `bin/Protocol-7` lines 597, 1162, 1396-1416
 
-#,,,.,,,.,.,.,.,.,.,,,.,.,.,.,,,.,..,,,,,,,..,..,,...,...,..,,,..,,..,.,,,.,.,
-#76ERJPDLHENWQUOPHSJYEWAE6Z7KSF74VKSFINNXEBJFBNB77EVIWLHAO3OOMKHVXIUUJACDQM4PO
-#\\\|KLYGHGOOZMP6YFEBTC3PKL4FN4C3IJKTUWOIK576CPZNRRCJTOT \ / AMOS7 \ YOURUM ::
-#\[7]I27VSC6EXN35BL3YH22VB7W65DXXTZHPNZQJPLIFDN2APMIOUCBQ 7  DATA SIGNATURE ::
+#,,,.,,..,.,,,...,.,,,..,,,,.,,..,...,.,.,...,..,,...,...,.,,,...,.,.,,..,.,.,
+#FCVRR5KSE4SVLRXBJPE6U3JARAL5QA4UVZV6OTMIZMDW3OXHI5VFD456I5HPWHYOFGQ7UACXZZ7IS
+#\\\|IZ22F4XHZTG4IKS6RUII3IPUF7YWHI2VUGIYK4LYO2T7EFH5KY7 \ / AMOS7 \ YOURUM ::
+#\[7]OKG37Q7USM7I5VLRR2ZFUCZZRL7LDSJCYHLSAPNIPGECH4PNZ2AQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
