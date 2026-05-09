@@ -11,11 +11,13 @@ base.fork
 base.exit
 base.regex
 base.cnt_s
+devmod.dump
 base.s_warn
 base.s_read
 base.minmax
 base.getcwd
 base.gen_id
+calc.cmd.val
 base.waitpid
 base.tmp_dir
 base.sig_int
@@ -27,6 +29,7 @@ base.del_key
 task.end_code
 task.cmd.show
 task.cmd.next
+task.cmd.list
 task.cmd.fail
 net.init_code
 net.calc_port
@@ -39,8 +42,10 @@ base.sig_PIPE
 base.pre_init
 base.n2u_time
 base.get_file
+base.cmd.time
 base.cmd.name
 base.cmd.list
+base.cmd.exit
 base.cfg_bool
 valued.resolve
 task.init_code
@@ -66,12 +71,13 @@ base.file.open
 base.dump_data
 base.conf-wrap
 base.cmd.heart
+base.cmd.clear
 auth.auth_list
-valued.cmd.list
 task.cmd.result
 task.cmd.create
 plugin.auth.pwd
 net.read_binary
+devmod.pre_init
 base.zenka.loop
 base.str.os_err
 base.prng.bytes
@@ -82,11 +88,16 @@ base.file.which
 base.file.slurp
 base.event.once
 base.event.loop
+base.cmd.whoami
 base.cmd.reload
 base.calc_gauss
 valued.tree.load
 valued.init_code
+valued.cmd.stats
+valued.cmd.query
 plugin.auth.unix
+devmod.post_init
+devmod.init_code
 base.stream.push
 base.stream.open
 base.stream.gate
@@ -102,6 +113,10 @@ base.get_homedir
 base.cmd.subname
 base.cmd.src-ver
 base.cmd.src-age
+base.cmd.rel-ver
+base.cmd.ptl-ver
+base.cmd.present
+base.cmd.cur-pid
 base.chk-sum.elf
 base.call_filter
 auth.pwd.success
@@ -129,6 +144,10 @@ base.get_warnings
 base.file.content
 base.event.add_io
 base.context.list
+base.cmd.term-all
+base.cmd.last-sid
+base.cmd.epoch_v7
+base.cmd.cpu-time
 base.cmd.commands
 base.chk-sum.amos
 valued.node.create
@@ -145,6 +164,10 @@ base.get_file.aref
 base.file.pre_init
 base.file.line_map
 base.event.add_var
+base.cmd.verbosity
+base.cmd.ntime-dec
+base.cmd.localtime
+base.cmd.epoch-num
 base.clear_p7_mods
 base.clean_unicode
 base.clean_hashref
@@ -153,6 +176,7 @@ valued.tree.persist
 valued.node.add_ref
 plugin.auth.twofish
 io.ip.tcp.init_code
+devmod.console-dump
 base.utf8.clean_str
 base.str.eval_error
 base.round_truncate
@@ -196,6 +220,8 @@ base.eval.comp_regex
 base.disable_command
 base.devmod.dump_var
 base.cmd.show-buffer
+base.cmd.show-access
+base.cmd.amos-chksum
 base.buffer.add_line
 auth.zenka.init_code
 format.yaml.load_file
@@ -212,7 +238,10 @@ base.load_config_file
 base.list.element.add
 base.file.match_files
 base.event.add_signal
+base.console.describe
 base.console.commands
+base.cmd.when-present
+base.cmd.dependencies
 base.cmd.buffer-erase
 base.balanced-average
 valued.node.set_weight
@@ -225,12 +254,15 @@ base.register_src_deps
 base.register_bin_deps
 base.perlmod.init_code
 base.path.resolved_abs
+base.net.cmd.timestamp
 base.get_max_verbosity
 base.file.get-non-dirs
 base.comp-int.is_valid
+base.cmd.cancel-stream
 auth.unix.authenticate
 valued.cmd.valued-stats
 valued.cmd.valued-query
+valued.cmd.valued-nodes
 protocol.sftp.init_code
 io.unix.socket.end_code
 crypt.C25519.key_exists
@@ -248,6 +280,9 @@ base.exists.sub-process
 base.execute_zenka_code
 base.dump.data_key_list
 base.convert.hex_to_int
+base.cmd.set-name-width
+base.cmd.ondemand-zenka
+base.cmd.loaded-configs
 base.chk-sum.elf.inline
 base.callback.cmd_reply
 base.auth.set_zenka_key
@@ -300,6 +335,7 @@ base.max-len.val-hash-keys
 base.handler.session_error
 base.event.io_idle_restart
 base.check_dependency_dirs
+auth.zenka.cmd.session-key
 net.read_linewise_estimated
 io.unix.socket.output.close
 base.templates.register_add
@@ -349,6 +385,7 @@ base.p7refs.get_refaddr_prefix
 base.number-cache.true_upwards
 base.log.send-buffer.add-queue
 base.cache.refaddr-prefix.init
+crypt.C25519.cmd.get-public-key
 base.zenki.set_ondemand_timeout
 base.warnings.compact_statehash
 base.p7refs.gen_template_chksum
@@ -437,8 +474,8 @@ auth.callback.cap-neg.declare-strm-size-support
 protocol.protocol-7.protocol-version-path-set-up
 base.log.send-buffer.reply-handler.notify-online
 
-#,,.,,.,,,...,,,.,,.,,,.,,.,.,,..,,.,,,.,,..,,..,,...,...,..,,,,.,,,.,..,,,,.,
-#QNRD3RFBL7LS6FVZS3S3N24N7LC5KV3O3433TAF4BU45AEEDXI4UJWVQMS52QBJMCFPB3P5S2ACSK
-#\\\|C2RDV2KSZMZRZWQSHYEFNWLIC7JTLQEO56KJR4QLFY4AWWZN52K \ / AMOS7 \ YOURUM ::
-#\[7]PDHHUB3TUITZSVC3IMIU4ZSEKQ2NI53BYYCLWOCYQF53EWQCYOCY 7  DATA SIGNATURE ::
+#,,,,,...,,,,,...,.,,,.,.,,..,..,,,.,,,.,,,,,,..,,...,...,...,,..,,..,.,.,..,,
+#EGIDRG5UTMVIRZ6ORHSLCOWI26XFWD6B27J4JVE5PSO5CW377CJDIOJ4JSFEGBVZ5CFVKFINFFBK4
+#\\\|4IQ3XTTEFAHHVKO64MGIEJC7PN6YONXUE4TV3CVA3DRR2DCXHBG \ / AMOS7 \ YOURUM ::
+#\[7]I4V37GUP2NBO3IUZC4ZLXQCEOSKZ5BA3LKVM7X5UJLVPFJZPUIBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
