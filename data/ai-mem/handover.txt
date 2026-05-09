@@ -1,79 +1,90 @@
-# Session Handover — 2026-05-09 (session 17, final)
+# Session Handover — 2026-05-09 (session 18, final)
 
 ## Completed This Session
 
-### summarize-context feature (fully working)
-- `coding.cmd.summarize-context` — async deferred reply via task.enqueue,
-  `:file:`/`:path:` prefix, `:b32:` prefix, `path=` kwarg, base32 auto-detect,
-  relative path via system.root_path, file.encoding + file.read
-- `coding.tools.handler.summarize_context` — LWP handler for tool use within tasks,
-  JSON->utf8->encode bytes fix, gpu port fallback when cpu disabled, 120s timeout
-- `base.file.encoding` — BOM + UTF-8 probe, returns :encoding(X) string
-- `task.cmd.summarize` + `task.handler.summarize-reply` — task zenka layer (shift args)
-- `task.cmd.queue` — false reply instead of SIZE for empty queue
-- `task.persist.load/save` — s_warn → warn, invalid queue file auto-removed + unlinked
+### Architecture design + memory
+- task tree: history archive, multi-parent groups, passive/active/await-event deps,
+  external status slots, boolean fields via cfg_bool, state sharing convergence point
+- addressing trinity: named tree + checksums + timestamps as orthogonal primitives,
+  latest/current pointers, rolling 3-epoch validity window
+- project vision: drone→agent→zenka lineage, bin/assimilate 2012→2019 origin
+- site-yaml zenka + job automation workflow planned
+- USB backup zenka: udev+fs foundation, manifest as restoration agent
+- coding-state-machine topic file written
 
-### feature-impl template improvements
-- handler module pattern (shift not $call), zenka config paths, m{} delimiter rule,
-  base.cmd.* shadow warning, system-tools.yaml summarize_context + ncode_search note
+### Task tree foundation (implemented + committed)
+- `task.history` — completed/failed tasks move from queue to history on complete/fail
+- `task.persist.archive` — new module, delete from queue/order, store in history
+- `task.persist.save/load` — both queue.yaml and history.yaml persisted/restored
+- `task.cmd.show/result/summarize` — history fallback lookup
+- `task.cmd.create` — parent_id, children, groups, depends_on, requires, slots fields
+- `task.cmd.next` — passive dep check (depends_on)
+- `task.cmd.list` — new list command shadowing valued.cmd.list collision fixed
+- `valued.cmd.valued-nodes` — renamed from valued.cmd.list (no more collision)
+- `valued.cmd.valued-list` duplicate removed
 
-### coding.prompt.assemble fix
-- no_tools + max_rounds <= 1 tasks skip template word-scan entirely (goto TEMPLATE_SELECTED)
-- prevents iteration-loop / feature-impl false matches on content words in utility tasks
+### Coding state machine (implemented + committed)
+- `coding.async.backend_acquire` — acquire lock or push to ordered queue
+- `coding.async.backend_release` — release lock + dequeue + resume next task
+- `coding.state.backend` {gpu,cpu} => {lock, queue} in init_code
+- `coding.task.enqueue_round` — now uses backend_acquire + send_request (no timer)
+- All `backend_busy` polling patterns replaced across request/complete/http_complete/
+  http_error/subtask_spawn
+- `coding.callback.backend_busy_retry` removed
 
-### coding-state-machine architecture
-- `data/md/coding-tasks/coding-state-machine-namespace.md` — full design:
-  `<coding.state>` namespace, watcher-based backend lock queue, persist/restore
-  lifecycle (pre_init/init_code/end_code), timer inventory
-- `data/yaml/context-templates/timer-to-watcher.yaml` — reusable template for
-  converting polling timers to native event loop variable watchers
+### Yaml/log cleanup
+- `valued.cmd.pre_init` calls removed from tree.load/restore/persist
+- `task.persist` pre_init calls removed (base pre_init handles it)
+- valued tree log levels 0 → 1 for init + load messages
+- `format.yaml.load_keyword_path` moved from base.yaml → format.yaml namespace
 
-### model comparison (CONCEPT-HARMONIC-VISUAL-INTELLIGENCE.md + CONTEXT-AWARENESS-TREE.md)
-- Qwopus 9B v3: clean prose, no artifacts, reliable all-rounder
-- Kimi VL A3B Thinking: think-block leaks into output, AMOS sig confused for hash
-- Deepseek Opus distilled 9B (EMQFUAA:VWI5WKQ): best on structured docs — adds
-  headers, catches more sections, clean output — preferred for summarization tasks
-
-### task zenka full-chain test
-- task.create → coding zenka (Deepseek) → subtask_spawn batches → task_complete
-- task.summarize wired but needs completed-task lookup (only checks live queue)
-- cube access.zenki: coding.summarize-context added to access.cmd.usr.task
-- full-path in subtask descriptions required (model hallucinates bare filenames)
+### task.summarize end-to-end (VERIFIED WORKING)
+- Root cause 1: `call_args.data` not transmitted over routes — content must be base32
+  in args: `:B32:<encode_b32r(content)>`
+- Root cause 2: cross-zenka deferred reply — session closes after `deferred` returns,
+  `cmd_reply` with old reply_id silently drops
+- Fix: store reply_id locally in `<task.summarize.pending>`, pass `callback_id=` to
+  coding; coding routes result back via `task.summarize-done` command
+- `task.cmd.summarize-done` — new: receives result, fires stored local reply_id
+- `coding.handler.deferred_reply` — when callback_id set, route-send to
+  task.summarize-done; otherwise local cmd_reply (for same-zenka use)
+- cube access.zenki: `task.summarize-done` added to coding zenka outbound
+- VERIFIED: summary returned, mode=true, len=267
 
 ## Open / Next Steps
 
-1. **coding-state-machine** — implement `<coding.state>` namespace + watcher-based
-   backend lock, replace backend_busy_retry polling timer
-2. **task.cmd.summarize** — extend to check completed tasks, not just live queue
-3. **think-block stripping** — Kimi/Deepseek `<think>...</think>` leaks into output;
-   strip in deferred reply handler or state machine output path
-4. **AMOS sig in system prompt** — add note that `#,,,` / `#\\\|` lines are file
-   signatures, model should ignore them in summarization tasks
-5. **model-pinned switching** — `coding.cfg.base_compaction_model` +
-   `coding.cfg.summarize_model` both inert; needs switch-model before inference
-6. **note_read pagination** — 287+ line notes exceed tool output budget
-7. **subtask full-path habit** — add to feature-impl template, model forgets paths
+1. **active deps execution** — `requires` list processing in dispatcher before
+   task dispatch; switch-model and worker types first
+2. **await-event external slot watcher** — `<task.state.TASKID.slotname>` infra
+3. **think-block stripping** — `<think>...</think>` leaks into output from
+   Kimi/Deepseek; strip in deferred reply handler or state machine output path
+4. **model-pinned switching** — `summarize_model` config key inert; needs
+   switch-model integration before inference
+5. **note_read pagination** — 287+ line notes exceed tool output budget
+6. **task.cmd.summarize client timeout** — deferred reply exceeds p7c default wait;
+   document or wire task.wait-done style for scripted use
 
 ## Current State
 - Default model: Qwopus 9B v3 (ZDMAPAY:AR3OCKQ), reasoning=high
 - Deepseek Opus distilled (EMQFUAA:VWI5WKQ): best for summarization/structured docs
 - Kimi VL A3B (G6LEGQI:VWI5WKQ): needs think-block stripping before use
-- summarize-context: working end-to-end, async, file input, deferred reply
-- task zenka: clean queue, persist/restore, summarize wired, cube access updated
-- prompt.assemble: utility tasks bypass template scan cleanly
-- coding-state-machine: designed, task file written, timer-to-watcher template ready
+- task.summarize: WORKING end-to-end, cross-zenka, base32 content, local reply_id
+- task tree: history archive + tree fields + passive deps all committed
+- coding state machine: backend lock queue replacing all polling timers — committed
+- valued tree: no collision with base list command
 
 ## Key Patterns
 - `no_tools + max_rounds=1` = utility inference — skip template scan in prompt.assemble
 - `file.read` returns string directly; `file.slurp` returns scalar ref
-- `file.encoding` detects BOM + UTF-8 probe, returns :encoding(X) for slurp
-- `JSON::PP->new->utf8->encode` for bytes — avoids HTTP::Message content error
-- `s{pattern with |alternation|}{}` not `s|...|...|` — pipe clashes with alternation
-- deferred reply: task.enqueue + deferred_replies hash + on_task_complete fires it
-- coding.state machine: watchers not timers, persist state not callbacks
+- cross-zenka deferred reply: store reply_id locally, pass callback_id, route-send
+  result back to a cmd in the originating zenka that fires cmd_reply locally
+- route-send args are the ONLY transmitted field — never use call_args.data for content
+- multiline content over routes: base32-encode with encode_b32r + :B32: prefix
+- backend lock: coding.async.backend_acquire / backend_release — queue not polling
+- `event.add_var` signature: { var => \$scalar, poll => 'w', handler => 'mod', repeat, data, desc }
 
-#,,..,,,.,.,.,..,,,,.,...,,,.,,,.,.,.,,,.,,,,,..,,...,...,..,,,,.,,..,,..,,..,
-#5JQWVHJTF2MOXYYHVDXCDKYWV7IMJWNTWEIJA6JVWIG5NKL6I4S6CC7446YR5S6TJ7PWCAZRQWPPS
-#\\\|IBJPZUMZLDQJAE3Y3RMM2T37LZXVL5Q34SXT5BISQKACOYHSZ37 \ / AMOS7 \ YOURUM ::
-#\[7]DAFZC3UP3P2XUGRGBLTKDT5YIOBFG6L6PV2F6BTUOVKF3765WUBQ 7  DATA SIGNATURE ::
+#,,,,,,,,,...,.,,,..,,,..,,..,,..,...,..,,.,.,..,,...,...,...,...,..,,...,,,.,
+#H3BFWV3JNXRVOBLLARYIWK3UACNCI6QLHZPNOEM4C7VT2X5TAXYEDTFZBXPY56FEKWDWGAFR6ULXS
+#\\\|TLTVL6GKOSLP7CBGJIFSVE4LOLCECPFBW4FMQGKPGRDYR723ZCM \ / AMOS7 \ YOURUM ::
+#\[7]VPLMQ2YQYVKAFI5QRRVJYKZEIG6CTGAC2LXW4GCXROB2HSCKW6BQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
