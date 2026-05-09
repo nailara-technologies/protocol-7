@@ -18,6 +18,7 @@
   user as coding zenka; tasks decomposed for autonomous execution between sessions
 - `topic-distributed-consensus.md` — channels zenka, multi-model group chat, consensus groups,
   distributed P7 nodes with ik_llama.cpp on remote servers
+- `topic-model-pinned-switching.md` — model param inert in summarize_context + compaction; needs switch-model integration; config keys ready
 - `topic-task-coordination.md` — task zenka as coordinator between kimi/coding/models,
   current state, dispatch flow, architectural questions, reference to scattered design docs
 - `feedback-kimi-code-review.md` — common issues in kimi-generated P7 code: SUPER:: resolution,
@@ -381,8 +382,8 @@
 - Pattern: `my @non_num = grep { defined $data_ref->{$ARG}->{$key} and not looks_like_number(...) } keys $data_ref->%*`
 - Global `$SIG{__WARN__}` exists — if wrapping warn handler, capture `$prev_warn = $SIG{__WARN__}` first and call through
 
-#,,,,,,,.,,,,,.,.,,,.,,,.,,..,,,,,,.,,,..,,.,,..,,...,...,...,..,,,,,,.,,,,.,,
-#3EC2KGSMDRCKLLLVJWHUMCZJAC7TNXT6J3OAEGXB3CXAPOG2TYZO7EJQPWBNWMXJIWB4X2K2OOJWQ
-#\\\|RKYMB5CBAASX75ZGETHJD24LMCKUW3X32KEPJCJWPOIIARTSHHO \ / AMOS7 \ YOURUM ::
-#\[7]MRH2VVEWCRGKXJ2IIOHH7EX4YVCF6UHNFJHKQZAHZERHS7PX42DQ 7  DATA SIGNATURE ::
+#,,..,..,,,..,,.,,.,,,,,,,.,.,,,,,,..,,,.,,..,..,,...,..,,...,,,.,,,.,,,,,...,
+#CZNHR5SG3CF6MZUNGHV3RPHOMW3KGYEGSHW4UOS6JV256DA6J3LI6IRXOZMWZ7YCIWZQH5OW2G45Q
+#\\\|KPJU6V6G2FKHJX4AJ25QGU3CCUOFN5WXFPKGXKGNQBAM2KO45XD \ / AMOS7 \ YOURUM ::
+#\[7]3EXLPGRABVCRP4GQ7ZV4L2LC6XDDGDD72LZZY7YYTSQGGAR57UAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

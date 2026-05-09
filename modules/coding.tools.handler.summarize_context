@@ -41,7 +41,7 @@ my $request_body = {
 };
 $request_body->{'model'} = $model if length($model);
 
-my $json_body = eval { JSON::PP->new->encode($request_body) };
+my $json_body = eval { JSON::PP->new->utf8->encode($request_body) };
 return "error: failed to encode request: $@" if $@;
 
 ## LWP direct call — like consensus_query, blocks event loop intentionally ##
@@ -82,8 +82,8 @@ if ( $store and length($node_id) ) {
 
 return $summary;
 
-#,,.,,,,,,.,,,,..,,.,,.,,,,.,,.,,,,,,,.,,,.,.,..,,...,...,,..,,,,,,..,..,,.,.,
-#PTPXMSP2J7SAL4L2IEOOKZPFSU5YVDBK7IWOXCI52U35KQJVLLXKMKODMHJDAPQXAVEZD2LBNM4ZG
-#\\\|QFWRZKPZQSIQGB6CGD64ZRWARIB2IBOALFAHB7DIIIOKX4QFSNC \ / AMOS7 \ YOURUM ::
-#\[7]ZXEAAYY4AQIEWRLVILHIU7HAUXPXKYS6N5WNHHRLFFFTWS6SQEDY 7  DATA SIGNATURE ::
+#,,,.,,..,,..,...,,..,...,,..,..,,.,,,,,.,.,.,..,,...,...,.,.,.,,,.,,,..,,,..,
+#5JFJOFSATCNK2X6C4NBAEA64MR6OXQ3JLWVFM5EHP3AYF5SHFSUEQXHSU72HLN7PICAJCXESG3PCU
+#\\\|7237KD5DZ2V4OK43ZA2I7Q7SOWN5FCVNKTM6PKS4FHNV2WB443X \ / AMOS7 \ YOURUM ::
+#\[7]4AKGQARHMXCOGMBD7RRT3FRT67YC5FJODK7T6YCNWSOURNF5O4AY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
