@@ -3,38 +3,49 @@
 # name  = task.persist.load
 # descr = load task queue from disk yaml
 
-my $queue_file = 'queue.yaml';
-
-my $content_sref = <[file.zenka_dir.load]>->($queue_file);
-
-if ( not defined $content_sref ) {
-    <[base.logs]>->( 2, ': task queue file not found, starting fresh' );
-    return FALSE;
-}
-
 <[format.yaml.pre_init]>;
 
-my $data = <[format.yaml.load_str]>->( $content_sref->$* );
-
-if ( not defined $data or ref $data ne 'HASH' ) {
-    <[base.logs]>->(
-        1, ': task queue file invalid — removing, starting fresh'
-    );
-    <[file.zenka_dir.unlink_file]>->($queue_file);
-    return FALSE;
+## load live queue ##
+my $queue_sref = <[file.zenka_dir.load]>->('queue.yaml');
+if ( not defined $queue_sref ) {
+    <[base.logs]>->( 2, ': task queue file not found, starting fresh' );
+} else {
+    my $data = <[format.yaml.load_str]>->( $queue_sref->$* );
+    if ( not defined $data or ref $data ne 'HASH' ) {
+        <[base.logs]>->( 1, ': task queue file invalid — removing' );
+        <[file.zenka_dir.unlink_file]>->('queue.yaml');
+    } else {
+        <task.queue>       = $data->{'queue'}       // {};
+        <task.queue.order> = $data->{'queue_order'} // [];
+        <[base.logs]>->(
+            2,
+            ': task queue loaded [ %d tasks ]',
+            scalar( @{<task.queue.order>} )
+        );
+    }
 }
 
-<task.queue>       = $data->{'queue'}       // {};
-<task.queue.order> = $data->{'queue_order'} // [];
-<[base.logs]>->(
-    2,
-    ': task queue loaded [ %d tasks ]',
-    scalar( @{<task.queue.order>} )
-);
+## load history ##
+my $hist_sref = <[file.zenka_dir.load]>->('history.yaml');
+if ( defined $hist_sref ) {
+    my $hdata = <[format.yaml.load_str]>->( $hist_sref->$* );
+    if ( not defined $hdata or ref $hdata ne 'HASH' ) {
+        <[base.logs]>->( 1, ': task history file invalid — removing' );
+        <[file.zenka_dir.unlink_file]>->('history.yaml');
+    } else {
+        <task.history> = $hdata->{'history'} // {};
+        <[base.logs]>->(
+            2,
+            ': task history loaded [ %d tasks ]',
+            scalar( keys %{<task.history>} )
+        );
+    }
+}
+
 return TRUE;
 
-#,,..,,,,,..,,,,.,,.,,.,.,.,.,...,...,..,,,..,.,.,...,...,.,.,,,,,.,.,..,,...,
-#EOLE3IFOH55RVKPLJD7PA37OXBZLWTD6FR6JHNMU2HJW64GPC5MPSWA4ZYWQ4KMB5TN4DT3ZO67XS
-#\\\|LYT44FF5EEDS6EWHKPF52ZD7WZ3U6OYEIZUM4MBHAFT6KJ6WYVY \ / AMOS7 \ YOURUM ::
-#\[7]KKHD3UWH77YIL2DFCB7Q2QQMD5KSUMA42OUSOFG44ROYFSJ5E2CI 7  DATA SIGNATURE ::
+#,,,,,.,.,..,,..,,.,.,...,,..,,.,,...,..,,,..,.,.,...,...,...,,..,,,,,...,..,,
+#C63AYEINXXGE4USQYF5LMHNQYNY4II3ZDY22XLOBYABK25R6BVCUTHIMXRVFH4SJARMVHLNJMPOQU
+#\\\|YVOY7USOET6Q3XYE6NX4XV5KNHYT3KIYKIYNHH5IRQLXHV2LQZL \ / AMOS7 \ YOURUM ::
+#\[7]HADPYUOAL5GRVIXJPLA6GRDXKPRW7DFPMK7CWD7TWE6OTX5ZEODQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

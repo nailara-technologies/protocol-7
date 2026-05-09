@@ -18,7 +18,7 @@ $task_id = uc( substr( $task_id, 0, 7 ) );
 return { 'mode' => 'false', 'data' => 'task id required' }
     unless length $task_id;
 
-my $task = <task.queue>->{$task_id};
+my $task = <task.queue>->{$task_id} // <task.history>->{$task_id};
 
 return {
     'mode' => 'false',
@@ -87,8 +87,8 @@ if (@$turns) {
 
 return { 'mode' => 'size', 'data' => $output };
 
-#,,.,,.,,,,,,,...,..,,.,.,,,,,,..,..,,.,.,,.,,..,,...,..,,.,.,...,.,,,.,,,,,,,
-#TVI4VBG74LV4WENRBAU4ODY426RW3YFKVPF6MGL3JPINEFXT445IO75EDSZO5PPK24PGWE7TOUXGM
-#\\\|X32KXQ2MSLPFKGDOF4TN3TXF6NJUOQXOMZWSM62HLPR6T26WOAS \ / AMOS7 \ YOURUM ::
-#\[7]QCXJRXU3RFNLILN23BINXLRHQYXVNH2SECXPS6YUYV3ECJS6UCCY 7  DATA SIGNATURE ::
+#,,..,...,..,,,..,..,,,..,.,,,...,,,,,.,.,,..,..,,...,...,..,,,.,,..,,,.,,,,,,
+#ZBTYBIAC56C6RSHDABBEFSACZYX26ASA5WOOF6Y47SMFENEKHXKDTGKGHFHI4AAK4ABYNKB2SKHVG
+#\\\|3OYTWRXGWJL3L23MIZYZ62UQOBZACKL4JODW5VOTZXAO5O3JBUQ \ / AMOS7 \ YOURUM ::
+#\[7]J2PP5NG7C6ICBLJJZOJXBEXWPJCU3FPU7F4VMEK4X7XE5ZC6RCBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

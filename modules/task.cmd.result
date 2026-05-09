@@ -9,7 +9,7 @@ $task_id = uc( substr( $task_id, 0, 7 ) );
 return { 'mode' => qw| false |, 'data' => 'task id required' }
     unless length $task_id;
 
-my $task = <task.queue>->{$task_id};
+my $task = <task.queue>->{$task_id} // <task.history>->{$task_id};
 
 return { 'mode' => qw| false |, 'data' => "task $task_id not found" }
     unless defined $task;
@@ -21,8 +21,8 @@ return { 'mode' => qw| false |, 'data' => 'no result yet' }
 
 return { 'mode' => qw| size |, 'data' => $result };
 
-#,,..,,.,,...,,,.,..,,,.,,...,,.,,...,.,,,...,..,,...,...,..,,.,,,...,..,,.,.,
-#KB5DURY4OIZFQMFBGJOGL3HOYUDTHIPWF57AO44NOY763U4CTXLRD7A6Y7YCTSQJPPKJ4HTK7R4YI
-#\\\|NXCJRH6J63VH3LTJOXQLN74GOLDGTUW6VYVKLVYU3VEQE3SFU6O \ / AMOS7 \ YOURUM ::
-#\[7]UQ7BKUVKYS3JHHO66XQEIC5KEQAZ57S752FYYUERQSOAJKE5TABQ 7  DATA SIGNATURE ::
+#,,,,,,,,,,.,,..,,,,.,...,...,,..,.,,,...,,.,,..,,...,...,,.,,,,.,.,,,.,.,,.,,
+#UM4BLNVYRZ3SF5V2I5FNTM64XOLLKFOTRSIAGFNJBJZO4LG27ZWATKQVIMLJVSNWXSIBAEJLZEUKK
+#\\\|5OWDOVAFAQPJUHFAPXMG6OK7HYVIQLLBLB6IEU2LPM6DMLOBDJE \ / AMOS7 \ YOURUM ::
+#\[7]5OO6FJJEKFCZZOGHN46FQGXZHXHONGNNXHST3AJDLNWEDJZN6QDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
