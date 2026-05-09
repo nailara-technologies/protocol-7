@@ -31,14 +31,17 @@ my $context_text
     . ( length($notes)       ? "Notes:\n$notes\n"            : '' )
     . ( length($result)      ? "Result so far:\n$result"     : '' );
 
+## encode multiline content as base32 — plain multiline corrupts framing ##
+my $content_b32 = encode_b32r( Encode::encode( 'UTF-8', $context_text ) );
+
 my $sent = <[protocol-7.route-send]>->(
     {   command   => 'coding.summarize-context',
         call_args => {
-            data => $context_text,
             args => join( ' ',
                 length($focus) ? "focus=$focus" : (),
                 length($model) ? "model=$model" : (),
                 "store=1",
+                ":B32:$content_b32",
             ),
         },
         reply => {
@@ -59,8 +62,8 @@ return $sent
     ? { mode => 'deferred' }
     : { mode => 'false', data => 'coding zenka not reachable' };
 
-#,,,,,,,,,.,,,.,.,...,,..,.,,,...,,,,,,.,,,,.,..,,...,...,...,.,.,,..,.,,,,,,,
-#SXIALZE522ZPRGESR7A6D44SG6U3OA5LXQHL3GJVSHCNK7QOQG7Z5UB3UTBVLFWGW7IZLHBYEN5Z4
-#\\\|SK5LHP3C3NBOZGBFEYDJCQQ3BOMPZOCC7VFXTGZBWMYKG6MI5CN \ / AMOS7 \ YOURUM ::
-#\[7]7SBQGKZJAYLYPSPPVEJM6KGTKXEAWFFNEZQ3BYIFM4W427WHTEAQ 7  DATA SIGNATURE ::
+#,,..,..,,,..,,,.,...,...,.,,,.,.,..,,,,,,.,.,..,,...,...,,..,..,,.,.,,..,,..,
+#4BIBGYVT2TV44CBTC4T2QJBBYMKUL4NAONVJWNDK3PE6FCHEAKSFGJEHGIAPCGWMKVX2JLVWV646I
+#\\\|GGXCEA7X7BUPJE7TJOF2MMX77TSJZL5E7WCEMX4WWMDPAU6VTBF \ / AMOS7 \ YOURUM ::
+#\[7]VLISCQC3YEGXAY5EP27KCVKHD44LUNGJJYSGCV3QHDWYEDN34WCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
