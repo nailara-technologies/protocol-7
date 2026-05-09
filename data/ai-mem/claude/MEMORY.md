@@ -19,6 +19,7 @@
 - `topic-distributed-consensus.md` — channels zenka, multi-model group chat, consensus groups,
   distributed P7 nodes with ik_llama.cpp on remote servers
 - `topic-model-pinned-switching.md` — model param inert in summarize_context + compaction; needs switch-model integration; config keys ready
+- `topic-coding-state-machine.md` — coding.state namespace design, watcher-based backend lock replacing polling timers, persist/restore lifecycle; timer-to-watcher.yaml template written
 - `topic-task-coordination.md` — task zenka as coordinator between kimi/coding/models,
   current state, dispatch flow, architectural questions, reference to scattered design docs
 - `feedback-kimi-code-review.md` — common issues in kimi-generated P7 code: SUPER:: resolution,
@@ -382,8 +383,8 @@
 - Pattern: `my @non_num = grep { defined $data_ref->{$ARG}->{$key} and not looks_like_number(...) } keys $data_ref->%*`
 - Global `$SIG{__WARN__}` exists — if wrapping warn handler, capture `$prev_warn = $SIG{__WARN__}` first and call through
 
-#,,..,..,,,..,,.,,.,,,,,,,.,.,,,,,,..,,,.,,..,..,,...,..,,...,,,.,,,.,,,,,...,
-#CZNHR5SG3CF6MZUNGHV3RPHOMW3KGYEGSHW4UOS6JV256DA6J3LI6IRXOZMWZ7YCIWZQH5OW2G45Q
-#\\\|KPJU6V6G2FKHJX4AJ25QGU3CCUOFN5WXFPKGXKGNQBAM2KO45XD \ / AMOS7 \ YOURUM ::
-#\[7]3EXLPGRABVCRP4GQ7ZV4L2LC6XDDGDD72LZZY7YYTSQGGAR57UAI 7  DATA SIGNATURE ::
+#,,.,,,.,,,,,,,,,,.,.,..,,.,,,,,.,,..,...,.,.,..,,...,..,,.,,,,..,,..,,..,...,
+#WYS56UFAEWRU3TXBL2MA3UL3QFQIEH6G4YTF5A6YAVPWN7LSCKKXX747VEKTJ4GRIZ76Q4OEOUJ42
+#\\\|S66G3633JU6A4G7FKDBEPGTANMAYD3TBB3CM3HMRDZSKLVPJDRY \ / AMOS7 \ YOURUM ::
+#\[7]ONIDMCA4I6YABKYWKREN6IVEFTMCJQED6I3X2MGVY45VWEY47QCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
