@@ -4,7 +4,7 @@ description: current state and roadmap for task zenka as coordinator between kim
 type: project
 originSessionId: 982c43a3-00c1-40ac-9d1c-a6fafdb428c8
 ---
-## current state (2026-05-08, session 14)
+## current state (2026-05-09, session 15)
 
 ### fully working pipeline
 - `p7c task.create ":local: ..."` → notify → claim → in_progress → done
@@ -25,11 +25,22 @@ originSessionId: 982c43a3-00c1-40ac-9d1c-a6fafdb428c8
 - `v7.restart cube` restarts all zenki at once (fastest config reload path)
 - YAML data files must NOT have `## [:< ##` P7 headers — YAML::XS chokes on them
 
+### session 15 additions (2026-05-09)
+- `:review:` task type: `p7c task.create ":review: module.name"` auto-routes to coding zenka
+  with review-cycle template (models.handler.task-poll-step rewrites description)
+- consensus_query tool live in coding zenka — perspective injection, LWP blocking
+- sliding-compact template: tree_read/write state, tested on 5000-line doc end-to-end
+- task.cmd.summarize planned: coding zenka cmd + task zenka cmd + valued tree storage
+  with model pinning (cpu backend default, AMOS ID in request body for future routing)
+- note_read pagination needed: 287+ line notes exceed tool output budget
+
 ### next steps (priority order)
-1. **task.cmd.wait-timeout module** — internal timer for wait-done timeout (needs registered handler, not coderef)
-2. **task.cmd.next gradient test** — create tasks with `node_id` set, verify valued tree gradient sorting works
-3. **meta-session-summary wiring** — `meta.session-summary` tree node → trigger `task.cmd.handover` at session end (Stop hook or coding zenka template)
-4. **model evaluation workflow** — first automated comparison run using iteration loop
+1. **dispatch pending tasks** — event-loop-safety-template, summarize-context-command, cpu-spin-debug
+2. **note_read pagination** — offset/limit on sections, reuse pager pattern
+3. **task.cmd.wait-timeout module** — internal timer for wait-done timeout
+4. **:model: switching actually works** — coding.task.execute compare + switch-model call
+5. **task.cmd.next gradient test** — create tasks with node_id, verify valued tree gradient
+6. **model evaluation workflow** — first automated comparison run using iteration loop
 
 ### access permissions (cube/access.zenki — models user)
 `task.queue task.show task.claim task.start task.complete task.fail task.wait-done`
@@ -38,8 +49,8 @@ originSessionId: 982c43a3-00c1-40ac-9d1c-a6fafdb428c8
 `modules.load = auth net protocol io.unix calc format.yaml task valued`
 `access.cmd.usr.cube` includes: `create continue queue show result claim complete fail reset start next handover wait-done valued-list valued-query valued-stats`
 
-#,,,.,.,,,..,,.,,,.,.,,..,,,.,...,...,,.,,...,..,,...,..,,...,,,,,,,.,,.,,,,,,
-#RKMTSYKDFRRYRVAS5GIRGRRMWYVT2PCGF24ZDOWVX45NOYSPTQB7ORBB3GFJDX3LE23LYP2HYMHUW
-#\\\|YMGY5OSON2ALBF26GVA5NKFQFPZTSEEDZ7GOHA4U6FZYR55VO7J \ / AMOS7 \ YOURUM ::
-#\[7]WCLDNM4J5LULM4ND5L4ZFYWSWCYI4MCPFTJX4FBQJUXOLJUOFKCY 7  DATA SIGNATURE ::
+#,,,.,...,.,.,...,,,,,.,,,.,.,.,.,,..,.,.,,..,..,,...,.,.,,..,.,,,...,,..,.,.,
+#ND366V7C6IY7RQRR3TSW2SQMGSDJMA65JUSW622FMOITKEQYKBVSNDTD7OHM2WCGMOKDJBC3KQLDQ
+#\\\|FNLTCEL3WVGWQQ5HBMPR2EGQYLIUHU4IURGT7YHHW7Z72KUQG53 \ / AMOS7 \ YOURUM ::
+#\[7]HOGKKK4JOU4WMHZMQ7NZT2EYTUUW43XFGNCQBHJEHEXUUP4NUYCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
