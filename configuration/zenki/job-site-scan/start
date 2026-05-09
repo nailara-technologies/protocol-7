@@ -7,17 +7,23 @@ buffer.session.max_size = 795648
 
 system.verbosity.zenka_buffer = 1
 
-## search urls — space separated, site-yaml.fetch template matched per url
-job-site-scan.cfg.search_urls  = https://www.stepstone.de/jobs/linux-administrator/in-deutschland
+## named search categories — space separated list of category keys
+job-site-scan.cfg.categories         = linux-sysadmin ki-automation devops platform-engineer
+
+## per-category stepstone search urls
+job-site-scan.cfg.url.linux-sysadmin    = https://www.stepstone.de/jobs/linux-administrator/in-deutschland
+job-site-scan.cfg.url.ki-automation     = https://www.stepstone.de/jobs/ki-spezialist/in-deutschland
+job-site-scan.cfg.url.devops            = https://www.stepstone.de/jobs/devops-engineer/in-deutschland
+job-site-scan.cfg.url.platform-engineer = https://www.stepstone.de/jobs/platform-engineer/in-deutschland
 
 ## minimum llm score (0-10) to flag job for review
-job-site-scan.cfg.threshold    = 6
+job-site-scan.cfg.threshold       = 6
 
 ## seconds between automatic rescans (0 = manual trigger only)
 job-site-scan.cfg.rescan_interval = 0
 
 ## path to cv/profile context file injected into assessment prompt
-job-site-scan.cfg.profile_file = /var/protocol-7/jobs/profile.txt
+job-site-scan.cfg.profile_file    = /var/protocol-7/jobs/profile.txt
 
 access.cmd.usr.cube = heart subname name commands reload verify-instance \
                       list src-age src-ver show-buffer \
@@ -36,8 +42,8 @@ modules.load = auth net protocol io.unix job-site-scan
 
 [zenka.loop]
 
-#,,.,,.,.,.,,,.,,,.,,,...,..,,..,,..,,,.,,...,..,,...,...,,,,,.,.,.,,,,..,,.,,
-#ERAXLQAC734WNQJXFM2GHOHG3PAN5VKK7NVUJ3YZHDPGEG2XWXDWNQRFNBE6HSJPNTWDVFTN7OHG2
-#\\\|D7NSVG62RQR4YSZE5ZRPLAG4Q34RPDQA4ANJBGKELYXA4TTRCYD \ / AMOS7 \ YOURUM ::
-#\[7]OFDX6QOJEPKH5K4JZP5DJKWEQP5CZID2VHHIRBKT2F2O57DCHSAI 7  DATA SIGNATURE ::
+#,,.,,,..,...,.,.,...,,..,.,,,,.,,,.,,,,.,..,,..,,...,...,,.,,,,.,.,,,.,,,.,,,
+#DX65LB7XAE7L56Q2SWBPAF4T6MY6ER25SP3W7DHDDH5QFNKRDF2BG756DYTQTMT3WFY7XFTQ5SMQA
+#\\\|T2BL5E2QVBU3SOLC7X4NTN3MKDZIMRWHT7PVZNHUMOFQ2UX324O \ / AMOS7 \ YOURUM ::
+#\[7]GBBEMLAT2BX2OAERLU4CT3PL424JGB24D4J5GXRQAD6XYB7C54BA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

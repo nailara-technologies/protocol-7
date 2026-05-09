@@ -1,38 +1,65 @@
 ## [:< ##
 
 # name  = job-site-scan.stage.fetch
-# descr = begin scanning — route-send to site-yaml.import per search url
+# descr = begin scanning — route-send site-yaml.import per category url
 
 <job-site-scan.cycle>     = 'scanning';
 <job-site-scan.last_scan> = time;
 <[job-site-scan.state.persist]>;
 
-my $urls_cfg = <job-site-scan.cfg.search_urls> // '';
-my @urls     = split m{\s+}, $urls_cfg;
+## build category → url map from config
+my $cats_cfg = <job-site-scan.cfg.categories> // '';
+my @cats     = split m{\s+}, $cats_cfg;
 
-if ( not @urls ) {
-    <[base.logs]>->( 0, 'jss.fetch: no search urls configured' );
+if ( not @cats ) {
+    <[base.logs]>->( 0, 'jss.fetch: no categories configured' );
     <job-site-scan.cycle> = 'idle';
     <[job-site-scan.state.persist]>;
     return;
 }
 
-<[base.logs]>->( 1, 'jss.fetch: scanning %d url(s)', scalar @urls );
+my %cat_urls;
+for my $cat (@cats) {
+    my $url_key = "job-site-scan.cfg.url.$cat";
+    my $url     = $data{$url_key} // '';
+    if ( not length $url ) {
+        <[base.logs]>->( 0, 'jss.fetch: no url for category %s', $cat );
+        next;
+    }
+    $cat_urls{$cat} = $url;
+}
 
-for my $url (@urls) {
+if ( not %cat_urls ) {
+    <[base.logs]>->( 0, 'jss.fetch: no valid category urls found' );
+    <job-site-scan.cycle> = 'idle';
+    <[job-site-scan.state.persist]>;
+    return;
+}
+
+<[base.logs]>->(
+    1,
+    'jss.fetch: scanning %d categories: %s',
+    scalar keys %cat_urls,
+    join( ', ', sort keys %cat_urls )
+);
+
+for my $cat ( sort keys %cat_urls ) {
     <[base.protocol-7.route-send]>->(
         {   'command'   => 'site-yaml.import',
-            'call_args' => { 'args' => $url },
+            'call_args' => { 'args' => $cat_urls{$cat} },
             'reply'     => {
                 'handler' => 'job-site-scan.handler.fetch-done',
-                'params'  => { 'url' => $url },
+                'params'  => { 'category' => $cat, 'url' => $cat_urls{$cat} },
             },
         }
     );
 }
 
-#,,,.,,..,.,.,,,.,,,.,...,...,,,.,,,,,.,.,,..,..,,...,...,,,,,.,.,..,,.,,,,.,,
-#52W4S76WVWVXDEI5MBE2RVE46GZOWLOVN57NZDHMKQTZTEX2C6VSDH4LNPB6EEBZDARCJQNE5U6SE
-#\\\|HLN4YYINYK4VZNVK7JPGSFLHKOGXDHLM2UXCCPSZU7PWEPN5MCX \ / AMOS7 \ YOURUM ::
-#\[7]P45J7MEF6AWYQ2NURHUAK4Z3QBNKSXK3GHWAVUAUFW4YUQAH4MAY 7  DATA SIGNATURE ::
+## track how many fetch replies we expect
+<job-site-scan.fetch_pending> = scalar keys %cat_urls;
+
+#,,.,,.,.,,.,,,,.,,,.,,.,,,,,,.,,,..,,,,,,..,,..,,...,...,.,,,,,.,,,,,,..,.,,,
+#DIHFIVVRQ6UN76RFETWGGYEJYRX5JAOMVXFZD57POM3GWFOTGCVNUEJ7VLQXI45VVCSMUTXW6ISLK
+#\\\|S2I35VRD3J6Z3UPFIDZOVPU2BNACDDWPZ5GMFRM2CBQQGVZOVV4 \ / AMOS7 \ YOURUM ::
+#\[7]QAP37KIQ66PEMQRU4R4SDP6KJMJZN3KCXMRLHAGMQ4NMDDHUTGDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
