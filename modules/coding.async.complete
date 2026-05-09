@@ -17,21 +17,9 @@ return { success => FALSE, error => "no state for task $task_id" }
 
 my $job_id = $state->{'job_id'};
 
-## release backend lock before deleting state ##
-## [ http_complete may see deleted state and skip lock release ] ##
+## release backend lock — wakes next queued task if any ##
 my $backend = $state->{'backend'} // '';
-if ( length $backend ) {
-    my $lock = <coding.async.backend_busy>->{$backend};
-    if (   defined $lock
-        && ref($lock) eq qw| HASH |
-        && $lock->{'task_id'} eq $task_id ) {
-        delete <coding.async.backend_busy>->{$backend};
-        <[base.logs]>->(
-            1,        "async.complete: released %s lock for %s",
-            $backend, $task_id
-        );
-    }
-}
+<[coding.async.backend_release]>->( $task_id, $backend ) if length $backend;
 
 ## save conversation state before cleanup ##
 ##    — needed for task-append resumption ##
@@ -362,8 +350,8 @@ if ( defined $result && $result->{'success'} ) {
     return { success => FALSE, error => $error_msg, task_id => $task_id };
 }
 
-#,,..,...,,.,,,.,,.,,,.,.,,,.,...,...,...,.,,,.,.,...,...,.,.,,..,..,,..,,,.,,
-#PT6ZDRAXOMZD67ZHQLY5JLFJND7GLR7KQKB46E4Q6UZCDLIPXDMGRVLJ4BPH5YDUAO4VFVHPURJXC
-#\\\|HG5ZWVYNBGMJZD2IZPTKAYDJZMWSAHOK7OXGJQC4F35I3TXOFQQ \ / AMOS7 \ YOURUM ::
-#\[7]C2KA56MBKTJJJYOXMNEUTRDR4M2SV3HP7QA5IFKUOTDODLNA3CCY 7  DATA SIGNATURE ::
+#,,.,,,..,,,,,,.,,,,,,..,,.,,,,..,,,.,,,.,.,,,.,.,...,...,,,,,...,..,,,,,,,,.,
+#2PAJN2U5G2EASGL3PZ5XTEVUHCZD7J7NZBG7UF4WBZUJDWCOVZQ4ZCVTNHYYLWNC545SXRMUH4JUE
+#\\\|2CSN6W24RXK66JN7UGP5G3IQUCL7RW4VYDIF3KXB4YTOBNPU7IW \ / AMOS7 \ YOURUM ::
+#\[7]EZ72YVW7K3LXNHSGN6V522HL6U7VDTDROJXIDM6D6FT5Y2F4EMCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
