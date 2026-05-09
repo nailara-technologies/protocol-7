@@ -1,0 +1,35 @@
+## [:< ##
+
+# name  = site-yaml.jobs.init_code
+# descr = initialize job store, load persisted data
+
+map { <[base.perlmod.autoload]>->($ARG) } qw| YAML::XS File::Path |;
+
+my $store_dir  = '/var/protocol-7/jobs';
+my $store_file = "$store_dir/store.yaml";
+
+File::Path::make_path($store_dir) if not -d $store_dir;
+
+$data{'jobs.store_file'} = $store_file;
+$data{'jobs.store'}      = {};
+
+if ( -f $store_file ) {
+    eval {
+        my $loaded = YAML::XS::LoadFile($store_file);
+        $data{'jobs.store'} = $loaded if ref $loaded eq 'HASH';
+    };
+    <[base.logs]>->( 0, 'jobs: load error: %s', $@ ) if $@;
+    <[base.logs]>->(
+        1,
+        'jobs: loaded %d entries from store',
+        scalar keys %{ $data{'jobs.store'} }
+    );
+} else {
+    <[base.logs]>->( 1, 'jobs: store empty, starting fresh' );
+}
+
+#,,.,,.,,,,.,,.,,,,.,,...,,..,,..,,,,,,,,,..,,..,,...,...,...,.,.,,..,...,.,.,
+#FZTJY3W53GXM3DCKAMEVCGZBNF23JVNMZWLNE4PJQ6PMUVIQXBEA5MJJBSUWO6YQT3QIWVWK7DFYQ
+#\\\|S5SD454HFAMPQCYLBRJPN7DNNY7M4SHXRU3ATRI2NICT6GPBQKL \ / AMOS7 \ YOURUM ::
+#\[7]UGLSNZC4QBAW5CGAQA3K4XU6D5LQXLYZH7N2NCY3CB5ARPF64KBY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

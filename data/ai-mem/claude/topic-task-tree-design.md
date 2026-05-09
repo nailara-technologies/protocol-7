@@ -11,8 +11,19 @@ Nodes can freely be members of multiple parents simultaneously.
 task.cmd.summarize. coding zenka subtree and task zenka are parallel disconnected
 universes. History needs to survive restarts and be queryable.
 
-**How to apply:** Reference this when implementing task.persist.history,
-task.cmd.complete archive move, or dependency checking in task.cmd.next/claim.
+**How to apply:** History archive, tree fields, and passive deps are IMPLEMENTED
+(session 18). Reference for active deps + await-event implementation next.
+
+## Implementation status (session 18)
+- ✅ task.history: completed/failed tasks archived, survive restarts
+- ✅ task.persist.archive: moves task from queue→history
+- ✅ task.cmd.show/result/summarize: history fallback lookup
+- ✅ task.cmd.create: parent_id, children, groups, depends_on, requires, slots
+- ✅ task.cmd.next: passive dep check (depends_on blocks unmet tasks)
+- ✅ task.cmd.list: new, shadows valued.cmd.list collision
+- ✅ valued.cmd.valued-nodes: renamed from valued.cmd.list
+- ⬜ active deps execution (requires list)
+- ⬜ await-event external slot watchers
 
 ## Task record additions
 
@@ -94,8 +105,8 @@ The valued tree handles priority/ref-count propagation.
 Task tree parent/child is a separate (simpler) layer on top.
 `queue_order` remains live-queue-only for next/claim iteration.
 
-#,,,,,..,,...,,,.,.,,,...,,,,,,,,,,.,,,.,,,.,,..,,...,...,..,,,..,,.,,..,,,..,
-#7O6HWSLKKFJIOEN5NJFHN6HARDD2QWFAHBCI7OTEDFFQ3VPZHYT4SEP3AW4SGWZAJY2M6FZX64YUE
-#\\\|UCAYWAMNHMBA36JCQS4364CB7HLAQKOYRT3V3GGRPN7BO35FWAZ \ / AMOS7 \ YOURUM ::
-#\[7]XNSRLSCWJW44ATLNRWSOXLKYSVLPKCHQUMZWOJPPOTBH4YRMGMBI 7  DATA SIGNATURE ::
+#,,..,.,.,,,.,,,,,..,,.,.,...,.,.,,,.,...,,..,..,,...,...,...,.,.,,,.,,..,,,,,
+#2TXE57653ILVBVMMDB7OYFF7AOQEOWVQQSNRV4MPVX47Z7FT2BOQC7B4IRKRE47RGCTSAR3IRHX6W
+#\\\|SQMRUSX655BQPPJQMT2YCWND7KPEHDVI4F54XD2MTZVZUFGAPXP \ / AMOS7 \ YOURUM ::
+#\[7]KALHFEJ6IV4POEHLMT3VNCQFJX56LGXWQJZ5G7C5LMLD7TXHPMBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

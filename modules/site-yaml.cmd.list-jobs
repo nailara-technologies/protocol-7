@@ -1,0 +1,48 @@
+## [:< ##
+
+# name  = site-yaml.cmd.list-jobs
+# descr = list jobs from store, optional status filter
+
+my $filter = $call_args->{'args'} // '';
+
+my $store = $data{'jobs.store'};
+my @ids   = sort {
+    ( $store->{$b}{'fetched_at'} // 0 )
+        <=> ( $store->{$a}{'fetched_at'} // 0 )
+} keys %{$store};
+
+@ids = grep { ( $store->{$ARG}{'status'} // '' ) eq $filter } @ids
+    if length $filter;
+
+if ( not @ids ) {
+    return
+        <[base.protocol-7.command.cmd_reply]>
+        ->( { 'mode' => TRUE, 'data' => "no jobs (filter: $filter)" } );
+}
+
+my @lines;
+for my $id (@ids) {
+    my $j = $store->{$id};
+    my $score_str
+        = length( $j->{'score'} // '' )
+        ? sprintf( ' [score:%s]', $j->{'score'} )
+        : '';
+    push @lines, sprintf '%-14s  %-12s%s  %s — %s (%s)',
+        $id, $j->{'status'} // '?',
+        $score_str,
+        $j->{'title'}   // '',
+        $j->{'company'} // '',
+        $j->{'city'}    // '';
+}
+
+<[base.protocol-7.command.cmd_reply]>->(
+    {   'mode' => TRUE,
+        'data' => join( "\n", @lines ),
+    }
+);
+
+#,,..,,.,,,,.,.,.,..,,,,.,.,.,.,,,,,.,,,,,...,..,,...,..,,..,,...,.,,,,,.,.,.,
+#24IRIWSQKAWX4SPQFO3EJZA646OAKZGV3ZQZZ24URH43TQL5S3M5GYPA3JV7P5YZHOV7NCWIZGORM
+#\\\|QYFLIQJZK3JAXFE5NAUFNE2SFFHOUZ35MYRUHIPCD5CQOZSFBUB \ / AMOS7 \ YOURUM ::
+#\[7]CO4H244GAZYU3CWIOZ33PGKP3EOKEWNMVCWXTDRHE7WV2CMT7MAA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
