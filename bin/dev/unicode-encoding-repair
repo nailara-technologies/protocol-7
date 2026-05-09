@@ -1,0 +1,119 @@
+#!/usr/bin/perl
+
+use strict;
+use warnings;
+use Encode;
+use File::Find;
+use File::Spec;
+
+print ".\n:\n";
+
+# Check if arguments are provided
+die ":: usage :: $0 [file1 file2 ...] or [directory]\n" unless @ARGV;
+
+my $dry_run = grep { $_ eq '--dry-run' } @ARGV;
+@ARGV = grep { $_ ne '--dry-run' } @ARGV;
+
+# Function to check if content appears double-encoded
+sub is_double_encoded {
+    my ($content) = @_;
+    my $len = length($content);
+    return 0 unless $len > 10;
+
+    my $lead_count = 0;
+    my $total      = 0;
+
+    for my $i ( 0 .. $len - 2 ) {
+        my $c    = ord( substr( $content, $i,     1 ) );
+        my $next = ord( substr( $content, $i + 1, 1 ) );
+
+        if ( $c == 0xC3 || $c == 0xC2 ) {
+            if ( $next >= 0x80 && $next <= 0xBF ) {
+                $lead_count++;
+            }
+        }
+        $total++;
+    }
+
+    return $lead_count / $total > 0.05;  ## lowered from 0.1 — short files with partial corruption score ~0.08
+}
+
+# Function to repair double-encoding
+sub repair_double_encoding {
+    my ($content) = @_;
+
+    my $result = eval {
+        ## double-encoding: original UTF-8 bytes were read as latin-1   ##
+        ## then re-encoded as UTF-8. to reverse:                        ##
+        ## 1. decode as UTF-8 (undo outer encoding) → latin-1 codepoints ##
+        ## 2. encode as latin-1 → original UTF-8 bytes restored         ##
+        my $decoded   = Encode::decode( 'UTF-8',      $content );
+        my $reencoded = Encode::encode( 'ISO-8859-1', $decoded );
+        $reencoded;
+    };
+
+    return $content if $@;
+    return $result || $content;
+}
+
+# Function to process a single file
+sub process_file {
+    my ($filename) = @_;
+
+    return unless -f $filename && -r $filename && -w $filename;
+
+    open( my $fh, '<:raw', $filename ) or do {
+        print ": error reading $filename: $!\n";
+        return;
+    };
+    my $raw_bytes = do { local $/; <$fh> };
+    close $fh;
+
+    my $was_repaired = 0;
+    if ( is_double_encoded($raw_bytes) ) {
+        my $repaired = repair_double_encoding($raw_bytes);
+        if ( $repaired ne $raw_bytes ) {
+            $raw_bytes    = $repaired;
+            $was_repaired = 1;
+
+            if ( !$dry_run ) {
+                open( my $out, '>:raw', $filename )
+                    or die " :: cannot write $filename: $!\n";
+                print $out $raw_bytes;
+                close $out;
+
+                print ": repaired : $filename\n";
+            } else {
+                print ": would repair : $filename\n";
+            }
+        }
+    } else {
+        print ": skipped (not double-encoded) : $filename\n";
+    }
+}
+
+# If first argument is a directory or '.'
+if ( @ARGV == 1 && ( -d $ARGV[0] || $ARGV[0] eq '.' ) ) {
+    my $dir = $ARGV[0];
+
+    find(
+        sub {
+            return if -d $File::Find::name;
+            process_file($File::Find::name);
+        },
+        $dir
+    );
+} else {
+    foreach my $file (@ARGV) {
+        die ":: file $file does not exist\n" unless -e $file;
+        process_file($file);
+    }
+}
+
+print ":\n:. encoding repair complete. =)\n";
+
+#,,.,,.,.,.,.,,..,.,.,.,,,..,,,.,,..,,..,,,.,,..,,...,...,,..,.,,,.,,,,,,,...,
+#RD66HHYKDSXE4UFZEG45MHAHI7UBK6ZPX5AB2CMJIQZSFQCCGOWAWWJIZBTSIOIDJJWXVZT4D4P3M
+#\\\|VTATQ2NBUWQXMDLHJVWZBEHDNPECULDWYCJVRFDYFQNCH2YO74Q \ / AMOS7 \ YOURUM ::
+#\[7]2Q35CO7TK3NM4DI7HNLK4GZDUANY24GK4QITZ5R4MCOMNOGU3SCI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
