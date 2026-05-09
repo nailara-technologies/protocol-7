@@ -4,8 +4,6 @@
 # descr = summarize task context via inference [ model-pinned ]
 # usage = p7c task.summarize <task_id> [focus=<topic>] [model=<AMOS:ID>]
 
-my $call = <[protocol-7.call]>;
-
 my ( $task_id, @opts ) = split m{\s+}, ( $call->{'args'} // '' );
 return { mode => 'false', data => 'task_id required' } unless length $task_id;
 
@@ -17,7 +15,7 @@ for my $opt (@opts) {
 }
 
 ## gather task context: description + recent notes + result so far ##
-my $task = <coding.task.queue>->{$task_id}
+my $task = <task.queue>->{$task_id}
     // return { mode => 'false', data => "task not found: $task_id" };
 
 my $description = $task->{'description'} // '';
@@ -53,8 +51,8 @@ my $context_text
 
 return { mode => 'deferred' };
 
-#,,.,,.,.,,,.,,,,,..,,,..,.,,,..,,,.,,.,,,,.,,..,,...,..,,.,,,,..,.,,,.,,,,..,
-#QGZ6FBTRZQGFBCUYR5TNZF4NFRDUHW24ADGJESPKZHX2X6JQ2FPHJ7XM2XK56SGAQLAPRHF6BH6N6
-#\\\|YR6MJDKI7NA7FOXE5MZWLQGJHA3ND4YZU7KHLPOLFBBH3SGHZU2 \ / AMOS7 \ YOURUM ::
-#\[7]63FF45NK274SR6H3DJYZA4EAW2YMD5GR64KNQZDK4PULST7QWEDY 7  DATA SIGNATURE ::
+#,,..,.,,,..,,,,,,,.,,...,,,.,.,.,,..,,..,,,,,..,,...,...,,,,,,..,,,,,.,,,,..,
+#2M5WL7O3HCMCYOCUGL4NQOMOCCHJ4TGIGX77S6YI27RWKU6JIRE46LXZVOG33FPPT4CB3U2HLJUJU
+#\\\|4CQ74KCSNO322EFEFMD6WROZ2NVVDICPKO77GDBOB4KWGEEPOWB \ / AMOS7 \ YOURUM ::
+#\[7]VFPHL75WNRHDG6OJ6D3F3SCMUGO35GSNXLFPIYOKWKVFUMVHFACI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

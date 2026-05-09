@@ -3,16 +3,15 @@
 # name  = task.handler.summarize-reply
 # descr = reply handler — store summary in task queue + valued tree
 
-my $call    = <[protocol-7.call]>;
 my $task_id = $call->{'params'}{'task_id'} // '';
 my $summary = $call->{'data'}              // '';
 
 if ( length $task_id ) {
     ## store summary on task record ##
-    <coding.task.queue>->{$task_id}{'summary'} = $summary;
+    <task.queue>->{$task_id}{'summary'} = $summary;
 
-    ## register in valued tree ##
-    <[valued.tree.register_outcome]>->(
+    ## record in valued tree ##
+    <[valued.tree.record_outcome]>->(
         {   node_id      => $task_id,
             outcome_text => $summary,
         }
@@ -21,8 +20,8 @@ if ( length $task_id ) {
 
 return { mode => 'true', data => $summary };
 
-#,,.,,..,,.,.,,..,,.,,,,.,,,,,...,,,.,.,.,.,,,..,,...,...,,.,,.,,,,.,,...,,.,,
-#NXHUGBRLOV7VRJPMDJFGJ447FCTTSMRPZ4KNUTX4BUKZLZROWLC5V6BA2PVJ6NIJUJWSRT7VTMRD6
-#\\\|MHJNT54ZQ5Q5FAQ7QLDCXP7JHK63FQ3FSNERKOGD3O3NDCN3SXD \ / AMOS7 \ YOURUM ::
-#\[7]4MW3VZLPXVYXFWMKGX6R2IK6BNBBPV4WIURRL5YUWZ3KDSZVA6AQ 7  DATA SIGNATURE ::
+#,,,.,.,,,,..,.,,,..,,...,,,.,,..,,..,.,,,...,..,,...,...,,,.,,..,,..,,,,,...,
+#CJAUQEUGI2IN4IS62EHTGJVWSDKJGPB4EF4RXIBMW4HVQCIOFXRS7ZT3SRNJVTIDZXZ5HH67WXTCY
+#\\\|HZDH6YYZUQHTPHAVIYUCE2NMSLA4SDWOM4NGJAMSXK4BIYPRZWI \ / AMOS7 \ YOURUM ::
+#\[7]LQYIU2RKXFWXUURRL6MMI27F3MGVC6F3VGAX46A5GODUZUGIQKBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

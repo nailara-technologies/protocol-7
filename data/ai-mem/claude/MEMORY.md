@@ -40,6 +40,9 @@
 - `feedback-p7c-multiline.md` — p7c cannot handle multiline task descriptions; use single-line or templates
 - `feedback-coding-zenka-edits.md` — local LLM often describes edits instead of applying them; verify results
 - `feedback-coding-zenka-reasoning.md` — low reasoning → premature task_complete mid-investigation; use medium for tasks needing discovery + implementation
+- `feedback-chmod-child-restore-readline.md` — every restore cmd to chmod child needs readline after; missing one desyncs the pipe, all subsequent writes stage silently
+- `feedback-config-in-start-file.md` — coding.cfg.* keys go in configuration/zenki/coding/start; never create modules/coding.cfg (loader treats it as Perl sub); never set key to empty string
+- `feedback-descr-tag-max-55.md` — module # descr = lines enforced to 55 chars max by pre-commit hook
 - `feedback-coding-zenka-inject.md` — use `p7c coding.inject-message <id> <msg>` to redirect stuck model mid-task with explicit file paths
 - `feedback-arg-regression.md` — local LLM reverts $ARG→$_ after context compaction; verify all edits
 - `topic-tool-suggestions.md` — LLM-suggested tools/improvements, prioritized; implemented/deferred/sources
@@ -190,6 +193,14 @@
 - crash restart: watcher pattern fix + queue pause/resume during backend restart
 - loop detection: file_not_found_spiral pattern catches core sub search loops
 - feature-impl template: core subs note, $call cmd pattern, tool param reference
+
+### Completed (2026-05-09) — session 16 — chmod pipe sync, summarize_context, staging UTF-8 bug
+- restore readline missing in all 6 write handlers — pipe desync caused silent staging fallthrough
+- coding.task.execute dangling $result after blocking path removal — compile error on reload
+- summarize_context: 5 new modules written + corrected (cmd loop, LWP endpoint, json encode, data assignment)
+- modules/coding.cfg antipattern caught: config belongs in zenka start file, not modules/
+- staging system UTF-8 corruption: open bug, em dash mangled on write/read cycle
+- descr tag max 55 chars (pre-commit enforced, now in memory)
 
 ### Completed (2026-05-09) — session 15 — review pipeline, templates, chmod child, model eval
 - consensus_query tool + :review: task type + review-cycle template (verify-then-find)
@@ -370,8 +381,8 @@
 - Pattern: `my @non_num = grep { defined $data_ref->{$ARG}->{$key} and not looks_like_number(...) } keys $data_ref->%*`
 - Global `$SIG{__WARN__}` exists — if wrapping warn handler, capture `$prev_warn = $SIG{__WARN__}` first and call through
 
-#,,,.,..,,,,.,...,.,.,,..,.,,,.,.,...,,,.,,,,,..,,...,.,.,..,,..,,,.,,...,..,,
-#DE73QHZBG6EMN6UIQ2W5MYCRRTU3EVK4CLUXIWONRCKWNZCXKARFAAL22D2CBF7KTSLFHINQK2WWE
-#\\\|RW3HVKPALLDX6XG7D2NM6Q4V4PYHPSSUDOACOQZRV376GYLNR7M \ / AMOS7 \ YOURUM ::
-#\[7]GX6GW47HWMZNUS2KXI6VDMVRXGEPM74ZKQTGL2YVQVPLBCS43UCQ 7  DATA SIGNATURE ::
+#,,,,,,,.,,,,,.,.,,,.,,,.,,..,,,,,,.,,,..,,.,,..,,...,...,...,..,,,,,,.,,,,.,,
+#3EC2KGSMDRCKLLLVJWHUMCZJAC7TNXT6J3OAEGXB3CXAPOG2TYZO7EJQPWBNWMXJIWB4X2K2OOJWQ
+#\\\|RKYMB5CBAASX75ZGETHJD24LMCKUW3X32KEPJCJWPOIIARTSHHO \ / AMOS7 \ YOURUM ::
+#\[7]MRH2VVEWCRGKXJ2IIOHH7EX4YVCF6UHNFJHKQZAHZERHS7PX42DQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
