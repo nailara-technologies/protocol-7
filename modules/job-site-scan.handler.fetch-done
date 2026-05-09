@@ -1,0 +1,100 @@
+## [:< ##
+
+# name  = job-site-scan.handler.fetch-done
+# descr = receive site-yaml.import reply, dispatch assessment tasks
+
+my $mode     = $call_args->{'mode'}   // '';
+my $data_str = $call_args->{'data'}   // '';
+my $url      = $reply_params->{'url'} // '';
+
+if ( $mode ne 'true' and $mode ne '1' ) {
+    <[base.logs]>->(
+        0,    'jss.fetch-done: import failed [%s]: %s',
+        $url, $data_str
+    );
+    <job-site-scan.cycle> = 'idle';
+    <[job-site-scan.state.persist]>;
+    return;
+}
+
+## data_str is "import done: N new, M skipped, K errors"
+my ($new_count) = ( $data_str =~ m{(\d+) new} );
+$new_count //= 0;
+
+<[base.logs]>->( 1, 'jss.fetch-done: %s', $data_str );
+
+if ( not $new_count ) {
+    <[base.logs]>->( 1, 'jss.fetch-done: no new jobs, returning to idle' );
+    <job-site-scan.cycle> = 'idle';
+    <[job-site-scan.state.persist]>;
+    return;
+}
+
+## collect job ids from site-yaml store that are status=new and not yet
+## tracked in jss — these are the newly imported ones
+<[base.perlmod.autoload]>->('YAML::XS');
+my $store_file = '/var/protocol-7/jobs/store.yaml';
+my $store      = {};
+eval { $store = YAML::XS::LoadFile($store_file) } if -f $store_file;
+
+my @to_assess;
+for my $job_id ( keys %{$store} ) {
+    my $job = $store->{$job_id};
+    next if ( $job->{'status'} // '' ) ne 'new';
+    next if exists <job-site-scan.tasks>->{$job_id};
+    push @to_assess, $job_id;
+}
+
+if ( not @to_assess ) {
+    <[base.logs]>->( 1, 'jss: no untracked new jobs to assess' );
+    <job-site-scan.cycle> = 'idle';
+    <[job-site-scan.state.persist]>;
+    return;
+}
+
+<job-site-scan.cycle>         = 'assessing';
+<job-site-scan.pending_count> = scalar @to_assess;
+<[job-site-scan.state.persist]>;
+
+<[base.logs]>->( 1, 'jss: queuing %d assessment tasks', scalar @to_assess );
+
+for my $job_id (@to_assess) {
+    ## register job in jss namespace before task is created
+    <job-site-scan.tasks>->{$job_id} = {
+        'stage'   => 'queued',
+        'task_id' => '',
+    };
+
+    ## load job record for assessment context
+    my $job   = $store->{$job_id};
+    my $title = $job->{'title'}    // '';
+    my $co    = $job->{'company'}  // '';
+    my $city  = $job->{'city'}     // '';
+    my $ind   = $job->{'industry'} // '';
+    my $desc  = substr( $job->{'description'} // '', 0, 800 );
+
+    my $task_desc = sprintf
+        'job-assess: [%s] %s at %s (%s, %s)',
+        $job_id, $title, $co, $city, $ind;
+
+    <[base.protocol-7.route-send]>->(
+        {   'command'   => 'task.create',
+            'call_args' => {
+                'args' => sprintf(
+                    "%s\ntype=job-assess\njob_id=%s\ndesc=%s\nco=%s\ncity=%s\nind=%s",
+                    $task_desc, $job_id, $desc, $co, $city, $ind
+                ),
+            },
+            'reply' => {
+                'handler' => 'job-site-scan.handler.task-created',
+                'params'  => { 'job_id' => $job_id },
+            },
+        }
+    );
+}
+
+#,,.,,,,.,,,.,,..,.,.,,.,,,,,,,,.,,..,...,.,.,..,,...,...,,..,.,.,..,,,..,,,,,
+#4VYDUHS44ZVKI54VDS3LA2ZWF5C4TAQBF4IECGOZF76NUEDTITJHCX632LS4UF76RMG6LY3YADQEK
+#\\\|2TDHRGBBRKI2GM6OZJWAOQMB66C3LGZKZ3T7LOW42K3DE7IREWW \ / AMOS7 \ YOURUM ::
+#\[7]MEUCAIOBSL5JKWPRT5WZBZGCM5EWTN6VZSIWD5KTGWAYMO5RQQBQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

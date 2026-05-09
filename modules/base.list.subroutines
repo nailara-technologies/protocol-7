@@ -1242,6 +1242,8 @@ return [ qw[
         letsencr.base.pre_init
         kimi.task.queue_status
         keys.console.duplicate
+        job-site-scan.cmd.scan
+        job-site-scan.cmd.list
         iteration.score_result
         io.ip.tcp.output.close
         invoke.cmd.list-images
@@ -1435,6 +1437,7 @@ return [ qw[
         kimi.handler.ws_message
         keys.console.github-pat
         jobqueue.queue_template
+        job-site-scan.init_code
         io.unix.socket.end_code
         io.ssl.ip.input.connect
         io.ip.tcp.input.connect
@@ -1627,6 +1630,9 @@ return [ qw[
         kimi-web.cmd.list_agents
         keys.select_archive_path
         keys.console.remove-type
+        job-site-scan.state.load
+        job-site-scan.cmd.status
+        job-site-scan.cmd.reject
         iteration.template.delta
         io.unix.socket.init_code
         invoke.handler.poll_jobs
@@ -1816,6 +1822,8 @@ return [ qw[
         kimi.helper.task_priority
         jobqueue.priorities_table
         jobqueue.joblist_template
+        job-site-scan.stage.fetch
+        job-site-scan.cmd.approve
         io.unix.socket.input.open
         impressive.process_subcfg
         image2html.base.init_code
@@ -2003,6 +2011,7 @@ return [ qw[
         keys.console.split-keypair
         keys.console.clear-chksums
         keys.console.change-passwd
+        job-site-scan.stage.review
         io.unix.socket.output.open
         io.unix.socket.input.close
         image2html.child.init_code
@@ -2190,6 +2199,7 @@ return [ qw[
         keys.console.get-sp-pub-key
         keys.console.enc-key-chksum
         jobqueue.check_dependencies
+        job-site-scan.state.persist
         io.unix.socket.output.close
         io.ssl.ip.handshake.cleanup
         io.ssl.ip.handler.handshake
@@ -2846,6 +2856,7 @@ return [ qw[
         letsencr.child.encode_base64url
         letsencr.child.cmd.repair-chain
         kimi-web.internal.http_get_sync
+        job-site-scan.cmd.set-threshold
         invoke-web.handler.check_health
         image2html.base.write_stub_page
         image2html.base.fork_conv_child
@@ -2974,6 +2985,7 @@ return [ qw[
         kimi.handler.process-queued-task
         kimi-web.internal.http_post_sync
         keys.console.keys-backup-archive
+        job-site-scan.handler.fetch-done
         image2html.base.write_image_html
         image2html.base.write_error_page
         httpd.handler.web_template_reply
@@ -3094,6 +3106,7 @@ return [ qw[
         kimi-web.internal.http_post_async
         keys.pack_format.user_key_archive
         keys.console.downgrade-enc-status
+        job-site-scan.handler.assess-done
         impressive.handler.stop_lsp_reply
         impressive.handler.get_list_reply
         image-quality.vision.select_model
@@ -3208,6 +3221,8 @@ return [ qw[
         kimi-web.bridge.ensure_local_agent
         keys.select_archive_path.term_Clui
         jobqueue.event.register_job_queues
+        job-site-scan.handler.task-created
+        job-site-scan.handler.rescan-timer
         invoke-web.handler.monitor_startup
         image2html.child.cmd.convert_image
         httpsd.discover_active_certificate
@@ -3447,6 +3462,7 @@ return [ qw[
         letsencr.child.cmd.revoke-certificate
         letsencr.child.acme_get_authorization
         kimi.handler.session_liveness_timeout
+        job-site-scan.handler.pending-changed
         graphics.matrix.visual.vision-batches
         graphics.matrix.visual.group-by-color
         graphics.matrix.visual.cluster-center
@@ -3786,8 +3802,8 @@ return [ qw[
     ]
 ];
 
-#,,.,,,,,,.,.,...,...,,.,,,..,..,,.,.,.,,,.,,,.,.,...,...,...,,.,,,,.,,.,,..,,
-#TXSFY4Y7YYVIPFBA5U5P2PDOIOBKYX6WJ4TSNWGDS7BLWVTFCMMBYMIYFHRK23C4WBMQOQFSAGHUC
-#\\\|CKW4TOO5SQDPW3EBSV5Z4OYYFKFHD2U74KY4WT66CGWFHMBYRTL \ / AMOS7 \ YOURUM ::
-#\[7]EKSFQSVE7QUVDB6RIFLEMD6CFVV6346BWDOVL3SOYYBEOTFTAQDQ 7  DATA SIGNATURE ::
+#,,,.,...,..,,.,,,.,.,,,,,,,.,..,,,..,..,,,.,,.,.,...,..,,.,.,,,,,..,,,,.,,..,
+#73IC7LPKX6NRVOX4KEMPB3Y3FGQQEVUA57YHWJK6DGP4CRXS7FOW7J6F5B3DZMKWRQHBSU4X3VMVM
+#\\\|K4ZEIXRANWYGYISIN5IIMDHTHJN7E6PF2XDZWWLJICVHPG27SHB \ / AMOS7 \ YOURUM ::
+#\[7]O2RGOA3A7F4OYOG6NZXTXKIIDWB5IL2A53EDTMXXN7APM57K6SAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

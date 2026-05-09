@@ -1,0 +1,77 @@
+## [:< ##
+
+# name  = job-site-scan.handler.assess-done
+# descr = receive assessment result, update job state
+
+my $mode    = $call_args->{'mode'}       // '';
+my $result  = $call_args->{'data'}       // '';
+my $job_id  = $reply_params->{'job_id'}  // '';
+my $task_id = $reply_params->{'task_id'} // '';
+
+my $job_rec = <job-site-scan.tasks>->{$job_id};
+if ( not defined $job_rec ) {
+    <[base.logs]>->( 0, 'jss.assess-done: unknown job %s', $job_id );
+    <job-site-scan.pending_count>--;
+    return;
+}
+
+if ( $mode eq 'false' or $mode eq '0' ) {
+    <[base.logs]>->(
+        0,        'jss.assess-done: task %s failed for job %s',
+        $task_id, $job_id
+    );
+    $job_rec->{'stage'} = 'failed';
+    <job-site-scan.pending_count>--;
+    <[job-site-scan.state.persist]>;
+    return;
+}
+
+## try to extract score from result (json or plain "score: N" line)
+my ( $score, $reason, $apply ) = ( '', '', '' );
+if ( $result =~ m{\{.*"score"\s*:\s*(\d+(?:\.\d+)?)}s ) {
+    $score = $1;
+    ($reason) = ( $result =~ m{"reason"\s*:\s*"([^"]+)"} );
+    ($apply)  = ( $result =~ m{"apply"\s*:\s*(true|false)} );
+} elsif ( $result =~ m{score[:\s]+(\d+(?:\.\d+)?)}i ) {
+    $score = $1;
+}
+
+$job_rec->{'score'}        = $score;
+$job_rec->{'score_reason'} = $reason // '';
+$job_rec->{'stage'}        = 'assessed';
+
+my $threshold = <job-site-scan.cfg.threshold> // 6;
+if ( length($score) and $score >= $threshold ) {
+    $job_rec->{'stage'} = 'review';
+    <[base.logs]>->(
+        1,       'jss: job %s score=%s ABOVE threshold → review',
+        $job_id, $score
+    );
+} else {
+    <[base.logs]>->(
+        1,       'jss: job %s score=%s below threshold',
+        $job_id, length($score) ? $score : '?'
+    );
+}
+
+## update site-yaml store status to 'assessed'
+<[base.perlmod.autoload]>->('YAML::XS');
+my $store_file = '/var/protocol-7/jobs/store.yaml';
+if ( -f $store_file ) {
+    my $store = eval { YAML::XS::LoadFile($store_file) } // {};
+    if ( exists $store->{$job_id} ) {
+        $store->{$job_id}{'status'}       = 'assessed';
+        $store->{$job_id}{'score'}        = $score;
+        $store->{$job_id}{'score_reason'} = $reason // '';
+        eval { YAML::XS::DumpFile( $store_file, $store ) };
+    }
+}
+
+<job-site-scan.pending_count>--;
+<[job-site-scan.state.persist]>;
+
+#,,,.,,,,,.,.,,,,,...,.,.,,..,,.,,,,.,.,.,...,..,,...,...,...,.,,,,.,,,,,,.,,,
+#OHC4ZRUZSUUPHSNLD5CN7VQ4C5SMBZPNHMW4MBQUKSZFZJ3N7VDOKRZ5266QQAVCMXBPGOBK4IYWC
+#\\\|W4LLK6774JD6DHV3OAGEJL5HSSMBZDZGOJR6JGMJDWI6YBUZDOW \ / AMOS7 \ YOURUM ::
+#\[7]FASMEA4OYI6WFVPA2K5SQ4NDWRPLX7AZRLATEWUGVX75I3XY24BI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

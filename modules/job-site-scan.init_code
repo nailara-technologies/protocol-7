@@ -1,0 +1,58 @@
+## [:< ##
+
+# name  = job-site-scan.init_code
+# descr = initialize scan coordinator, restore state
+
+map { <[base.perlmod.autoload]>->($ARG) } qw| YAML::XS File::Path |;
+
+my $state_dir  = '/var/protocol-7/jobs';
+my $state_file = "$state_dir/scan-state.yaml";
+
+File::Path::make_path($state_dir) if not -d $state_dir;
+
+$data{'jss.state_file'} = $state_file;
+
+## cycle-level state
+<job-site-scan.cycle>         = 'idle';
+<job-site-scan.last_scan>     = 0;
+<job-site-scan.pending_count> = 0;
+
+## per-job state lives under job-site-scan.tasks.<job_id>.*
+<job-site-scan.tasks> //= {};
+
+<[job-site-scan.state.load]>;
+
+## var watcher on pending_count — fires when all assessments land
+<[base.event.add_var]>->(
+    {   'var'     => \<job-site-scan.pending_count>,
+        'poll'    => 'w',
+        'handler' => 'job-site-scan.handler.pending-changed',
+        'repeat'  => TRUE,
+        'desc'    => 'jss pending_count watcher',
+    }
+);
+
+## rescan timer — only when interval > 0
+my $interval = <job-site-scan.cfg.rescan_interval> // 0;
+if ( $interval > 0 ) {
+    <[base.event.add_timer]>->(
+        {   'after'    => $interval,
+            'interval' => $interval,
+            'repeat'   => TRUE,
+            'handler'  => 'job-site-scan.handler.rescan-timer',
+        }
+    );
+    <[base.logs]>->( 1, 'job-site-scan: rescan timer %ds', $interval );
+}
+
+my $job_count = scalar keys %{ <job-site-scan.tasks> // {} };
+<[base.logs]>->(
+    1,                     'job-site-scan: ready, cycle=%s, jobs=%d',
+    <job-site-scan.cycle>, $job_count
+);
+
+#,,,.,,,.,.,.,,..,,.,,.,,,,..,..,,.,,,.,,,.,,,..,,...,..,,,,.,..,,..,,...,...,
+#SVXJIRVW4RIUUMTJAZFNCTJJCFXAHK7527P3N7QNTENJXZSP2LWHDFIZEQFJWPM6IPGNXB77YF2KC
+#\\\|ZDVZD7F2IQ5QDENXVRZ2HIM6ZTJDDB5WAOX3FOOW4GXGTDIQ2NW \ / AMOS7 \ YOURUM ::
+#\[7]7RBOMB6G4BX2O5TLJHPFMPGO2L2RXZV5ST3C4ZHC3K5DX2GE6ODQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

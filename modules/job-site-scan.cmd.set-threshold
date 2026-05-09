@@ -1,0 +1,25 @@
+## [:< ##
+
+# name  = job-site-scan.cmd.set-threshold
+# descr = update minimum score threshold for review
+
+my $val = $call_args->{'args'} // '';
+$val =~ s/^\s+|\s+$//g;
+
+return
+    <[base.protocol-7.command.cmd_reply]>
+    ->( { 'mode' => FALSE, 'data' => 'usage: set-threshold <0-10>' } )
+    if not length $val
+    or $val !~ m{^\d+(?:\.\d+)?$}
+    or $val > 10;
+
+<job-site-scan.cfg.threshold> = $val + 0;
+
+<[base.protocol-7.command.cmd_reply]>
+    ->( { 'mode' => TRUE, 'data' => "threshold set to $val" } );
+
+#,,,,,,,,,,,.,.,.,..,,.,,,,,.,,..,...,..,,,..,..,,...,...,,,,,.,,,...,,.,,,,.,
+#IEBEGSQFYOHVHNHDQ2ESDS5B6RNEI3J6AY3JIQF6RRQQH4BYFSFSGG7FT46HF2UTLFH2TPTQKCSN2
+#\\\|VISOGN3SVXAN27Q6UH3ZPORTEGADKNNCANDF5A7XOUZ35XJ7LDV \ / AMOS7 \ YOURUM ::
+#\[7]TUM7BYBC7KIASYXI55HKAONLUZOKN6YNYZDZFAY4CZM6CWLAGABQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
