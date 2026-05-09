@@ -1,0 +1,58 @@
+## [:< ##
+
+# name  = site-yaml.cmd.import
+# descr = fetch search url, import new job records
+
+my $url = $call_args->{'args'} // '';
+$url = $data{'site-yaml.cfg.stepstone_search_url'} // '' if not length $url;
+
+return
+    <[base.protocol-7.command.cmd_reply]>
+    ->( { 'mode' => FALSE, 'data' => 'no url' } )
+    if not length $url;
+
+## step 1: get job link list from search page
+my $links = <[site-yaml.stepstone.search]>->($url);
+if ( ref $links ne 'ARRAY' ) {
+    return
+        <[base.protocol-7.command.cmd_reply]>
+        ->( { 'mode' => FALSE, 'data' => "search failed: $links" } );
+}
+
+my ( $new_count, $skip_count, $err_count ) = ( 0, 0, 0 );
+
+for my $link ( @{$links} ) {
+    my $id = $link->{'id'};
+
+    ## skip already-known jobs to avoid redundant fetches
+    if ( exists $data{'jobs.store'}{$id} ) {
+        $skip_count++;
+        next;
+    }
+
+    ## fetch full job record
+    my $job = <[site-yaml.stepstone.job]>->( $link->{'url'} );
+    if ( ref $job ne 'HASH' ) {
+        <[base.logs]>->( 0, 'import: fetch error id=%s : %s', $id, $job );
+        $err_count++;
+        next;
+    }
+
+    my $result = <[site-yaml.jobs.upsert]>->($job);
+    $new_count++ if $result eq 'new';
+}
+
+<[site-yaml.jobs.save]> if $new_count;
+
+my $summary = sprintf 'import done: %d new, %d skipped, %d errors',
+    $new_count, $skip_count, $err_count;
+<[base.logs]>->( 1, 'site-yaml.import : %s', $summary );
+
+<[base.protocol-7.command.cmd_reply]>
+    ->( { 'mode' => TRUE, 'data' => $summary } );
+
+#,,,,,..,,,,.,.,,,,,,,.,.,..,,.,,,.,.,,,,,.,.,..,,...,...,,,,,..,,...,..,,..,,
+#U5MGIECMVZHMYXPNHPFGN225IXD2MTRGMN7JZAU4GLBK57FHWBYPP6P7T7A7FBWJVGGBI6PXDKOOG
+#\\\|VWMUKRQZDB7TF5K5SHCUXM5TKCBQC4VARG4OQS5FCEDIMDC43YX \ / AMOS7 \ YOURUM ::
+#\[7]ZZHE6XT3RVS45LDVHUZPZXAUR7TV7KZVTUKG46SK2QSPYGACZODA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

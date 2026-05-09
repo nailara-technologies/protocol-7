@@ -1,0 +1,77 @@
+## [:< ##
+
+# name  = plugin.web.jobs.list
+# descr = render job store as html for web template
+
+map { <[base.perlmod.autoload]>->($ARG) } qw| YAML::XS HTML::Entities |;
+
+my $filter = shift // '';
+
+my $store_file = '/var/protocol-7/jobs/store.yaml';
+my $store      = {};
+
+if ( -f $store_file ) {
+    eval { $store = YAML::XS::LoadFile($store_file) };
+    $store = {} if $@;
+}
+
+my @ids = sort {
+    ( $store->{$b}{'fetched_at'} // 0 )
+        <=> ( $store->{$a}{'fetched_at'} // 0 )
+} keys %{$store};
+
+@ids = grep { ( $store->{$ARG}{'status'} // '' ) eq $filter } @ids
+    if length $filter;
+
+if ( not @ids ) {
+    return sprintf '<p class="jobs-empty">no jobs%s</p>',
+        length($filter) ? " with status: $filter" : '';
+}
+
+my @lines;
+push @lines, '<div class="jobs-list">';
+
+for my $id (@ids) {
+    my $j      = $store->{$id};
+    my $status = $j->{'status'} // 'new';
+    my $score  = $j->{'score'}  // '';
+    my $title  = HTML::Entities::encode_entities( $j->{'title'}    // '' );
+    my $co     = HTML::Entities::encode_entities( $j->{'company'}  // '' );
+    my $city   = HTML::Entities::encode_entities( $j->{'city'}     // '' );
+    my $ind    = HTML::Entities::encode_entities( $j->{'industry'} // '' );
+    my $url    = $j->{'url'} // '#';
+    my $date   = substr( $j->{'date_posted'} // '', 0, 10 );
+
+    my $score_html
+        = length($score)
+        ? sprintf '<span class="job-score score-%s">%s/10</span>',
+        ( $score >= 7 ? 'high' : $score >= 4 ? 'mid' : 'low' ), $score
+        : '<span class="job-score score-none">—</span>';
+
+    push @lines,
+          sprintf '<div class="job-card status-%s">'
+        . '<div class="job-header">'
+        . '<a class="job-title" href="%s" target="_blank">%s</a>' . '%s'
+        . '<span class="job-status">%s</span>'
+        . '</div>'
+        . '<div class="job-meta">'
+        . '<span class="job-company">%s</span>'
+        . '<span class="job-city">%s</span>'
+        . '<span class="job-industry">%s</span>'
+        . '<span class="job-date">%s</span>'
+        . '<span class="job-id">%s</span>'
+        . '</div>'
+        . '</div>',
+        $status, $url,  $title, $score_html, $status,
+        $co,     $city, $ind,   $date,       $id;
+}
+
+push @lines, '</div>';
+
+return join( "\n", @lines );
+
+#,,,.,...,...,,.,,,.,,.,,,,.,,,,.,,.,,,..,..,,..,,...,..,,.,,,..,,,..,...,.,,,
+#OA4J572CCTPNTH2HLH5RAFM5Y2UJIOWBN7VX3QSO5HAJG5ICZL2LI6D56R2VWFA3FOKTNU3DKEEO2
+#\\\|THGL2EMPZG46LUDVSCNGJXFXGADAWEETT3SKAMRMCR63GKF7XL2 \ / AMOS7 \ YOURUM ::
+#\[7]YLYBYP7CMDH2HMXSXHHUURE3HOKGY7647CJLV63IPDF2RXXOX6AI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

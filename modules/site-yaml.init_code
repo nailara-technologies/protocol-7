@@ -1,0 +1,29 @@
+## [:< ##
+
+# name  = site-yaml.init_code
+# descr = initialize site-yaml zenka, load http client
+
+map { <[base.perlmod.autoload]>->($ARG) }
+    qw| LWP::UserAgent HTTP::Request JSON YAML::XS HTML::Entities |;
+
+## http user agent — reused across requests
+$data{'site-yaml.ua'} = LWP::UserAgent->new(
+    'agent' =>
+        'Mozilla/5.0 (X11; Linux x86_64; rv:124.0) Gecko/20100101 Firefox/124.0',
+    'timeout' => 30,
+);
+$data{'site-yaml.ua'}
+    ->default_header( 'Accept-Language' => 'de-DE,de;q=0.9,en;q=0.8' );
+$data{'site-yaml.ua'}
+    ->default_header( 'Accept' => 'text/html,application/xhtml+xml' );
+
+## bypass proxy for known direct-access domains
+$data{'site-yaml.ua'}->no_proxy(qw| stepstone.de |);
+
+<[base.logs]>->( 1, 'site-yaml ready' );
+
+#,,..,...,,,,,...,,..,..,,,,,,.,.,.,.,...,.,,,..,,...,...,..,,.,,,.,.,,,.,...,
+#ZS7ANNCZAGHQ7W27KQE25BFWKFHJ7VLAPM2SX2AJ34MK4JYJ7XTZBVAZL5S52RT232VJS2GPBJZMC
+#\\\|7MT457UYTAP7X5TGJHIIBGT2JB2ESM5XKS3C7VP2Y3BO6E6UUZ3 \ / AMOS7 \ YOURUM ::
+#\[7]DKRPOWASB4BVZDDDZK5G5MXSQDV3BOWVIJ3O5PKP6NOT4JIU6YCY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

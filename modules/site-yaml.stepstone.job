@@ -1,0 +1,59 @@
+## [:< ##
+
+# name  = site-yaml.stepstone.job
+# descr = extract job record from stepstone job page via JSON-LD
+
+my $url = $ARG // '';
+
+my $html = <[site-yaml.http.get]>->($url);
+return "fetch failed: $url" if not defined $html;
+
+## extract JSON-LD JobPosting block
+my ($raw)
+    = ( $html
+        =~ m{<script[^>]*type=["']application/ld\+json["'][^>]*>(.*?)</script>}is
+    );
+return "no json-ld block found: $url" if not defined $raw;
+
+my $d;
+eval { $d = JSON::decode_json( Encode::encode( 'UTF-8', $raw ) ) };
+return "json parse error: $@" if $@;
+
+return "unexpected type: $d->{'@type'}"
+    if ( $d->{'@type'} // '' ) ne 'JobPosting';
+
+## extract numeric job id from url slug
+my ($job_id) = ( $url =~ m{--(\d+)-inline\.html} );
+
+## strip HTML from description, decode entities
+my $desc = $d->{'description'} // '';
+$desc =~ s{<[^>]+>}{ }g;
+$desc = HTML::Entities::decode_entities($desc);
+$desc =~ s{\s+}{ }g;
+$desc =~ s{^\s+|\s+$}{}g;
+
+my $loc = $d->{'jobLocation'}{'address'} // {};
+my $org = $d->{'hiringOrganization'}     // {};
+
+return {
+    'id'              => $job_id // '',
+    'url'             => $url,
+    'title'           => $d->{'title'}             // '',
+    'company'         => $org->{'name'}            // '',
+    'company_url'     => $org->{'url'}             // '',
+    'city'            => $loc->{'addressLocality'} // '',
+    'postal_code'     => $loc->{'postalCode'}      // '',
+    'country'         => $loc->{'addressCountry'}  // 'DE',
+    'employment_type' => $d->{'employmentType'}    // '',
+    'industry'        => $d->{'industry'}          // '',
+    'date_posted'     => $d->{'datePosted'}        // '',
+    'valid_through'   => $d->{'validThrough'}      // '',
+    'direct_apply'    => $d->{'directApply'} ? 'true' : 'false',
+    'description'     => $desc,
+};
+
+#,,..,...,..,,..,,,,.,,..,,.,,,.,,,..,.,,,,,.,..,,...,...,.,,,,..,,,.,.,.,.,.,
+#Z7RB4SZ3LGXEVRKSTY4QAHZXV3TQL22LJAUCCJDQWMZI5Z37MTERI5VRY52FGY5AW52WCXPJEF2AW
+#\\\|YAGRBS4ZZXL4CYDGQNUJN5RVYWHR4HNI2K7WYQJDVZ3QPVVS4OO \ / AMOS7 \ YOURUM ::
+#\[7]WN7UTWV23WKULM3WTVKQTB3TKTVVKW2Z53PHVGVW72BOWYAEUCAQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

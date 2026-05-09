@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Job Pipeline — Protocol-7</title>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+    background: #080c10;
+    font-family: monospace;
+    color: #a0b8cc;
+    padding: 24px;
+    min-height: 100vh;
+}
+h1 { color: #60a0d0; font-size: 18px; margin-bottom: 8px; font-weight: normal; }
+.subtitle { color: #506070; font-size: 12px; margin-bottom: 20px; }
+
+/* stats bar */
+.jobs-stats {
+    display: flex; gap: 12px; flex-wrap: wrap;
+    margin-bottom: 20px;
+    padding: 10px 14px;
+    background: rgba(20,35,50,0.7);
+    border-radius: 8px;
+    border: 1px solid #1a2a3a;
+    font-size: 12px;
+}
+.jobs-stats span { padding: 3px 10px; border-radius: 4px; }
+.stat-total    { color: #80a0c0; background: rgba(30,60,90,0.4); }
+.stat-new      { color: #70c0e0; background: rgba(20,80,110,0.3); }
+.stat-assessed { color: #90d090; background: rgba(20,90,20,0.3); }
+.stat-applied  { color: #f0c060; background: rgba(90,70,0,0.3); }
+.stat-rejected { color: #c06060; background: rgba(80,20,20,0.3); }
+.stat-skipped  { color: #606070; background: rgba(30,30,40,0.3); }
+
+/* filter tabs */
+.filter-tabs {
+    display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 16px;
+}
+.filter-tabs a {
+    color: #506880; text-decoration: none; font-size: 12px;
+    padding: 4px 12px; border-radius: 4px;
+    border: 1px solid #1a2a3a;
+    background: rgba(15,25,35,0.5);
+}
+.filter-tabs a:hover, .filter-tabs a.active {
+    color: #80c0e0; border-color: #2a4a6a;
+    background: rgba(20,50,80,0.4);
+}
+
+/* job cards */
+.jobs-list { display: flex; flex-direction: column; gap: 10px; }
+.job-card {
+    padding: 12px 16px;
+    border-radius: 8px;
+    border-left: 3px solid #2a4a6a;
+    background: rgba(12,22,32,0.8);
+    border-top: 1px solid #152030;
+    border-right: 1px solid #152030;
+    border-bottom: 1px solid #152030;
+}
+.job-card.status-new      { border-left-color: #2080b0; }
+.job-card.status-assessed { border-left-color: #40a040; }
+.job-card.status-applied  { border-left-color: #c0a020; }
+.job-card.status-rejected { border-left-color: #903030; opacity: 0.6; }
+.job-card.status-skipped  { border-left-color: #303040; opacity: 0.5; }
+
+.job-header {
+    display: flex; align-items: baseline; gap: 10px;
+    margin-bottom: 6px; flex-wrap: wrap;
+}
+.job-title {
+    color: #80c0e0; text-decoration: none; font-size: 14px;
+    flex: 1; min-width: 200px;
+}
+.job-title:hover { color: #a0e0ff; text-decoration: underline; }
+.job-status {
+    font-size: 10px; padding: 2px 8px; border-radius: 3px;
+    background: rgba(255,255,255,0.04); color: #506070;
+    text-transform: uppercase; letter-spacing: 0.05em;
+}
+.job-score {
+    font-size: 13px; font-weight: bold; padding: 2px 8px; border-radius: 3px;
+}
+.score-high { color: #50e050; background: rgba(20,80,20,0.3); }
+.score-mid  { color: #e0c040; background: rgba(80,70,0,0.3); }
+.score-low  { color: #e06060; background: rgba(80,20,20,0.3); }
+.score-none { color: #303840; }
+
+.job-meta {
+    display: flex; gap: 14px; flex-wrap: wrap;
+    font-size: 11px; color: #506070;
+}
+.job-company { color: #7090a0; }
+.job-city    { color: #608090; }
+.job-industry { color: #405060; }
+.job-date    { color: #384858; }
+.job-id      { color: #2a3840; font-size: 10px; font-family: monospace; }
+
+.jobs-empty { color: #304050; font-size: 13px; padding: 20px 0; }
+
+/* page footer */
+.page-footer {
+    margin-top: 30px; padding-top: 14px;
+    border-top: 1px solid #1a2a3a;
+    font-size: 11px; color: #303840;
+}
+</style>
+</head>
+<body>
+
+<h1>job pipeline</h1>
+<p class="subtitle">protocol-7 · site-yaml · stepstone.de</p>
+
+<[web.jobs.stats]>
+
+<div class="filter-tabs">
+  <a href="jobs.html.tmpl">all</a>
+  <a href="?filter=new">new</a>
+  <a href="?filter=assessed">assessed</a>
+  <a href="?filter=applied">applied</a>
+  <a href="?filter=rejected">rejected</a>
+</div>
+
+<[web.jobs.list]>
+
+<div class="page-footer">
+  rendered by protocol-7 web template engine
+</div>
+
+</body>
+</html>

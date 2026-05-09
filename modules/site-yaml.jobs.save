@@ -1,0 +1,17 @@
+## [:< ##
+
+# name  = site-yaml.jobs.save
+# descr = persist job store to disk
+
+eval { YAML::XS::DumpFile( $data{'jobs.store_file'}, $data{'jobs.store'} ); };
+if ($@) {
+    <[base.logs]>->( 0, 'jobs.save: error: %s', $@ );
+    return FALSE;
+}
+return TRUE;
+
+#,,,,,,,.,.,,,,,,,.,.,..,,,..,,,.,.,.,...,,..,..,,...,..,,..,,,..,...,.,,,,.,,
+#ZUELRXYMALNEK36HVJBEDQVFICKT6EDUORHJY5NAJAC6M4ID3G6KDR43IVFEHPSYKUVR5X4XSVN5U
+#\\\|4QNNFOUKROFBWSET5UEM6KME3SOW7MY7MN3L7PEBOYRKRSGWR35 \ / AMOS7 \ YOURUM ::
+#\[7]K22VH3NW2R4MVJ2YS6G5M4E7PCLFHI5W56PCNZR2KUACYAN6HABY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

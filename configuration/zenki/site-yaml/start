@@ -1,0 +1,31 @@
+.:[ site-yaml — structured site scraping zenka ]:.
+
+[load_config_file:'shared-params']
+
+buffer.session.log_cmd  = p7-log.append
+buffer.session.max_size = 795648
+
+system.verbosity.zenka_buffer = 1
+
+access.cmd.usr.cube = heart subname name commands reload verify-instance \
+                      list src-age src-ver show-buffer \
+                      buffer-erase buffer-erase-level \
+                      fetch search import list-jobs set-status
+
+modules.load = auth net protocol io.unix site-yaml site-yaml.jobs
+[load_modules:<modules.load>]
+[init_modules]
+
+[root.drop_privs:<system.amos-zenka-user>]
+
+[base.net.connect:'unix']
+
+[base.get_session_id]
+
+[zenka.loop]
+
+#,,.,,,,,,.,.,..,,,,,,,..,.,,,.,.,,,.,..,,,.,,..,,...,...,.,.,,.,,.,,,.,,,..,,
+#KAD63FBXNVBI7L2DSM2RJRPEP6HFDE5CHJ43T6XGOMZT5V4SEMXILHKX4SOLXLDGPKXF3HJBGXAYK
+#\\\|3PTZZYBBILENY4DQK43NSKG2U5G6HXS4KK6KT5NTCLH276ATWWH \ / AMOS7 \ YOURUM ::
+#\[7]KZOBRFB56QZBDPPBNBYUPEDRL7LWHKXA2FWFAWA7WYBC6BRMNIBI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

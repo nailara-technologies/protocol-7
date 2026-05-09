@@ -33,6 +33,7 @@
   everything-is-a-group-of-1, expectability principle, delegation via checksum endpoints
 - `feedback-inline-sub-naming.md` — extracted helper subs `_foo` become `namespace.foo` (no underscore) in P7 module names
 - `feedback-ptd-syntax-check.md` — use `ptd -c` not `perl -c` for P7 module syntax checks
+- `feedback-cross-zenka-deferred-reply.md` — cross-zenka deferred replies need local reply_id store + callback_id + route-send back; call_args.data not transmitted; multiline = :B32:
 - `feedback-p7c-command.md` — always use `p7c` not `p7`; binary was renamed
 - `feedback-v7-restart-cube.md` — `p7c v7.restart cube` restarts all zenki at once; use after editing cube/access.zenki
 - `feedback-p7-module-call-syntax.md` — `<[mod]>` is implicit no-arg call; never add `->()` for zero args
@@ -389,8 +390,8 @@
 - Pattern: `my @non_num = grep { defined $data_ref->{$ARG}->{$key} and not looks_like_number(...) } keys $data_ref->%*`
 - Global `$SIG{__WARN__}` exists — if wrapping warn handler, capture `$prev_warn = $SIG{__WARN__}` first and call through
 
-#,,.,,,,.,...,.,,,.,,,,.,,.,.,,,,,,.,,..,,,..,..,,...,...,..,,.,,,..,,.,.,,,.,
-#J5BKDRIYMIWRMX5AVZB3FYQMFPAHLV4YK7G3W6VRPCY4ZJKX5RLCUQV5OYDZUVVGOVYC43AVKKLC2
-#\\\|FSMCTM33YG4JIXH6IMYDQSKVVUW5HD3QCHQXI6QS3KLNMHDGWRT \ / AMOS7 \ YOURUM ::
-#\[7]X3TPR3MFT2WJFRO4WYUKBUKEPCP5GS2PZBXQQKIHDFHNTPNB7ICA 7  DATA SIGNATURE ::
+#,,.,,.,,,,.,,,.,,,,.,.,.,,,.,...,,,,,.,,,.,.,..,,...,...,...,...,,,,,,,,,..,,
+#KG4RMKS2QSVSMRWTGVF6WNDHCJYH54MXVC3BMQT55FVHZIY3B25VIZNBGM3BC5SHL4BKRFJ6TZWBK
+#\\\|QRRBB3PBSLU24ZCKWAH3NVEBLHSLIW2XLS4IYPL5JKHFK53DIDO \ / AMOS7 \ YOURUM ::
+#\[7]DJLGZFQVFZ2JPMBJNM4H2S64OW32CERXCWWOVMD54AYTZLAQZEDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
