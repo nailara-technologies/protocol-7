@@ -1,0 +1,25 @@
+## [:< ##
+
+# name  = coding.cmd.summarize-reply
+# descr = reply handler for routed summarize-context requests
+
+my $call    = <[protocol-7.call]>;
+my $summary = $call->{'data'} // '';
+
+## store in valued tree if node_id was passed ##
+if ( length( $call->{'params'}{'node_id'} // '' ) ) {
+    my $node_id = $call->{'params'}{'node_id'};
+    <[valued.tree.register_outcome]>->(
+        {   node_id      => $node_id,
+            outcome_text => $summary,
+        }
+    );
+}
+
+return { mode => 'true', data => $summary };
+
+#,,,.,,,,,,..,.,,,..,,,..,..,,,,,,,.,,.,.,,,.,..,,...,...,..,,,..,,.,,,,,,,.,,
+#F7BKBNTJYJABMFFMQH6LDI3Z2TFLHTBEM4IBM5DRYVQVWZ7BZC7SA6ZD245CNRYU2FPIDDISQWQYQ
+#\\\|2UOL6U7CE4AKNPA5LXH7IEVBKGFRGS2OPYHFO7C26T5ZDNAKEXU \ / AMOS7 \ YOURUM ::
+#\[7]TKMTZN2K6OD7MN3VERZMDKK5LN3WKEC2F7WFTAMDR74Q44GU7YCY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

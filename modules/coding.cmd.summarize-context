@@ -1,0 +1,42 @@
+## [:< ##
+
+# name  = coding.cmd.summarize-context
+# descr = summarize content via inference [ model-pinned ]
+
+my $call     = <[protocol-7.call]>;
+my $args_str = $call->{'args'} // '';
+
+## content in call->{'data'}, options in args ##
+my $content = $call->{'data'} // $args_str;
+my $focus   = '';
+my $model   = '';
+my $backend = 'cpu';
+my $store   = 0;
+my $node_id = '';
+my $max_len = 800;
+
+if ( $args_str =~ s|focus=(\S+)|| )        { $focus   = $1 }
+if ( $args_str =~ s|model=(\S+:\S+)|| )    { $model   = $1 }
+if ( $args_str =~ s|backend=(cpu\|gpu)|| ) { $backend = $1 }
+if ( $args_str =~ s|store=(\d+)|| )        { $store   = $1 }
+if ( $args_str =~ s|node_id=(\S+)|| )      { $node_id = $1 }
+if ( $args_str =~ s|max_len=(\d+)|| )      { $max_len = $1 }
+
+my $summary = <[coding.tools.handler.summarize_context]>->(
+    {   content => $content,
+        focus   => $focus,
+        model   => $model,
+        backend => $backend,
+        max_len => $max_len,
+        store   => $store,
+        node_id => $node_id,
+    }
+);
+
+return { mode => 'true', data => $summary };
+
+#,,,.,..,,,,.,..,,,,.,..,,..,,...,...,,,,,,.,,..,,...,...,,,,,.,.,.,.,..,,,..,
+#YDGFWRWTRXTOO3GAXHTVOLU6667OD4L5PCIULFGSZBCAPUKVNZGLL74JLUUUDUB7RHHIQHJGR3VMQ
+#\\\|V2MGO4LD5EUEP6TM53EVXVJHKRBZUO3IJETUXDPBYZAN3VSJLTQ \ / AMOS7 \ YOURUM ::
+#\[7]2Y6YXTRY2IPBUWM5DFPMHUBINMDQJRZCGNGWQ6T2P4X3VQSR36DI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

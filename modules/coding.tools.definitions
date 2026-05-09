@@ -1775,10 +1775,65 @@ if ( exists $code{'coding.tools.handler.consensus_query'} ) {
         };
 }
 
+## summarize_context — model-pinned inference summarization ##
+if ( exists $code{'coding.tools.handler.summarize_context'} ) {
+    push @tools,
+        {
+        'type'     => 'function',
+        'function' => {
+            'name'        => 'summarize_context',
+            'description' =>
+                'summarize content using a dedicated inference call. '
+                . 'supports model pinning — specify a large-context model for '
+                . 'compression, small fast model receives the dense result. '
+                . 'routes to cpu backend by default to avoid interrupting active tasks.',
+            'parameters' => {
+                'type'       => 'object',
+                'properties' => {
+                    'content' => {
+                        'type'        => 'string',
+                        'description' => 'text to summarize'
+                    },
+                    'focus' => {
+                        'type'        => 'string',
+                        'description' =>
+                            'summarization focus directive [ optional ]'
+                    },
+                    'model' => {
+                        'type'        => 'string',
+                        'description' =>
+                            'AMOS model ID to use [ empty = loaded model ]'
+                    },
+                    'backend' => {
+                        'type'        => 'string',
+                        'description' => 'cpu|gpu|auto [ default cpu ]'
+                    },
+                    'max_len' => {
+                        'type'        => 'integer',
+                        'description' =>
+                            'target summary tokens [ default 800 ]'
+                    },
+                    'store' => {
+                        'type'        => 'boolean',
+                        'description' =>
+                            'store result in valued tree [ default false ]'
+                    },
+                    'node_id' => {
+                        'type'        => 'string',
+                        'description' =>
+                            'valued tree node to attach summary to'
+                    },
+                },
+                'required' => ['content'],
+            },
+        },
+        };
+}
+
 return \@tools;
 
-#,,,.,,,,,,..,..,,,..,,.,,...,...,.,.,.,.,,..,..,,...,...,.,,,,.,,...,,..,.,.,
-#WEZHANJ3IAFNSM2RCKTYF3DJQOQP6NLTOXY2BKT3ECS2X7P2BRBWS74CNYWLRSRJLHLN2JQS3DQ6W
-#\\\|N36YXLN4J5UDEZK3S737LCSOMMER5LFS7FQW257K5R4V32YSRWN \ / AMOS7 \ YOURUM ::
-#\[7]C56QDMARJ35UZN27GDB7HLEMKW36C6KOITQFKR7WKHJFFBVXXUBY 7  DATA SIGNATURE ::
+#,,.,,,,,,.,,,..,,,..,,,.,,.,,.,.,...,.,.,.,.,..,,...,..,,,..,,..,,.,,,.,,,,,,
+#3MV33ZRGAUH7BKAVWHXKIIEPCZARQP3ITZKVTTUC3YVN4XBDINQKVEFQT3XJL27OIGFPZ32ACSRFC
+#\\\|VQHYNTOFQFCWSPJ634DXHLNENQ7D3VCQYV2BKBIDEODIA2DUPI4 \ / AMOS7 \ YOURUM ::
+#\[7]KYKHAVV34PHMI2TDQBNJYWSROBWV3LWT7MLL56BAENJXUIQLCKDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
