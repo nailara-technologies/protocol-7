@@ -28,12 +28,22 @@ Feedback loop: field activity → route patterns → topology map → routing �
 **Feature-to-topology mapping**: latency/bandwidth/availability map to distance/capacity/
 connectivity. Feature detection IS topology sensing at local scale.
 
+**Checksum chains as holographic frames**: all data in the network is always moving,
+but each checksum describes a chained snapshot — an eternal still moment, frozen by
+the hash. Chains of checksums = sequence of frames, each internally complete and
+self-consistent. Reading the chain is like reading out a slowly rotating data hologram
+cube with blacklight lasers — each frame is a 2D projection of a higher-dimensional
+state, the rotation reveals the full structure. The chain IS the time axis of the
+hologram. This is why route checksums and content checksums are the same primitive —
+a route snapshot and a content snapshot are both eternal frames in the same holographic
+sequence, distinguished only by what they're a projection of.
+
 **Context as position**: zenka context = position in hyperspace defined by reference
 history + intent saturation + local field neighborhood. Clone = clone a position.
 Personality/mood/memory = geometric properties of position in intent-saturated hyperspace.
 
-#,,,.,.,,,,.,,,,.,,,,,,,.,.,,,,,.,.,,,,.,,.,.,..,,...,...,...,.,,,,,.,.,.,,..,
-#BHK23Z37YGHUJ3WOIK3MIOOHOWYHHXTPZVFE27E2ZRNB6U7NKIURY3BDTRXGCHWB6GV7L2PQVIDDW
-#\\\|PRIYTLWV3IHBD372DGBPR33YVOALAFXNYFDXK75D6Q2KNVIVP4S \ / AMOS7 \ YOURUM ::
-#\[7]QAXOIY7BWYQON5LNBTOEFTIHKHY6O5F2C4R2HK7CVKNQK37QMOBA 7  DATA SIGNATURE ::
+#,,,.,.,.,,,,,.,,,,,,,,.,,...,,.,,.,,,,.,,..,,..,,...,...,...,,.,,..,,,,,,.,,,
+#MYCK4BBFE4WIWXT2OHSSIUL2CAN3C5ZDMP2P5H3NDVB3BI3VWMGPGU6YTDJKXFZVCUE6LQHP72WJW
+#\\\|TAW2U4ZSB4YXPP4OLI2HSJDEV3UE3GR7VBKYNF2SAJF2MU4GKVV \ / AMOS7 \ YOURUM ::
+#\[7]D3DJPALJQVDDUH764CLXMLOTK2NRWTKNBCX6MC2HTHV6N5PXUYAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

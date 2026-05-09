@@ -20,6 +20,7 @@
   distributed P7 nodes with ik_llama.cpp on remote servers
 - `topic-model-pinned-switching.md` — model param inert in summarize_context + compaction; needs switch-model integration; config keys ready
 - `topic-coding-state-machine.md` — coding.state namespace design, watcher-based backend lock replacing polling timers, persist/restore lifecycle; timer-to-watcher.yaml template written
+- `topic-task-tree-design.md` — unified task/subtask tree: multi-parent groups, passive deps (depends_on), active deps (requires: switch-model/worker/tool-set), history archive, bool via cfg_bool
 - `topic-task-coordination.md` — task zenka as coordinator between kimi/coding/models,
   current state, dispatch flow, architectural questions, reference to scattered design docs
 - `feedback-kimi-code-review.md` — common issues in kimi-generated P7 code: SUPER:: resolution,
@@ -27,6 +28,7 @@
 - `feedback-kimi-signatures.md` — kimi derails into AMOS7 signature investigation; add signatures_note to every task file
 - `topic-context-and-forensics.md` — context.* module namespace design, forensics zenka vision
   (nightly security audits via NIST/security models), model capabilities mapping
+- `topic-addressing-trinity.md` — named tree + checksums + timestamps as orthogonal trinity; latest/current pointers; rolling 3-epoch validity window; temporal proximity pre-computed into address
 - `topic-checksum-addressing.md` — AMOS checksums as universal routing primitive,
   everything-is-a-group-of-1, expectability principle, delegation via checksum endpoints
 - `feedback-inline-sub-naming.md` — extracted helper subs `_foo` become `namespace.foo` (no underscore) in P7 module names
@@ -233,6 +235,10 @@
 - template: search_code parameter reminder, write_new_file newline warning
 
 ### Planned / Future
+- **USB backup zenka** — udev medium insertion → watcher → backup task tree (prioritize/copy/manifest/verify/eject); udev triggers + fs mount/unmount already exist; see `topic-usb-backup-zenka.md`
+- **site-yaml zenka** — on-demand URL fetcher returning clean YAML via regex/template extraction patterns (no HTML); see `topic-site-yaml-zenka.md` for use cases + job workflow pipeline
+- **site-auth zenka** — session/auth management for scrapers requiring login (companion to site-yaml)
+- **job automation workflow** — stepstone fetch → dedup → LLM categorize → jobtracker (existing HTML/JS tool, CSV/PDF) → apply → email monitor → report send; see `topic-site-yaml-zenka.md`
 - **base.handler.command refactor**: plan at `data/md/development/BASE-HANDLER-COMMAND-REFACTOR-PLAN.md` — identical-behavior extraction steps, namespace map first, per-session isolation as boundary, cross-reference maps (`$data{'route'}`) as only explicit cleanup surface. Claude designs seams + namespace map; local models execute. Related to SIZE packet loss bug below.
 - **SIZE packet loss bug**: STRM interaction causes zenka to stop returning SIZE replies until an unrelated command (e.g. `heart`) is sent. No reliable reproducer yet — radio zenka group expected to trigger it. Investigate alongside or before the refactor.
 
@@ -383,8 +389,8 @@
 - Pattern: `my @non_num = grep { defined $data_ref->{$ARG}->{$key} and not looks_like_number(...) } keys $data_ref->%*`
 - Global `$SIG{__WARN__}` exists — if wrapping warn handler, capture `$prev_warn = $SIG{__WARN__}` first and call through
 
-#,,.,,,.,,,,,,,,,,.,.,..,,.,,,,,.,,..,...,.,.,..,,...,..,,.,,,,..,,..,,..,...,
-#WYS56UFAEWRU3TXBL2MA3UL3QFQIEH6G4YTF5A6YAVPWN7LSCKKXX747VEKTJ4GRIZ76Q4OEOUJ42
-#\\\|S66G3633JU6A4G7FKDBEPGTANMAYD3TBB3CM3HMRDZSKLVPJDRY \ / AMOS7 \ YOURUM ::
-#\[7]ONIDMCA4I6YABKYWKREN6IVEFTMCJQED6I3X2MGVY45VWEY47QCA 7  DATA SIGNATURE ::
+#,,.,,,,.,...,.,,,.,,,,.,,.,.,,,,,,.,,..,,,..,..,,...,...,..,,.,,,..,,.,.,,,.,
+#J5BKDRIYMIWRMX5AVZB3FYQMFPAHLV4YK7G3W6VRPCY4ZJKX5RLCUQV5OYDZUVVGOVYC43AVKKLC2
+#\\\|FSMCTM33YG4JIXH6IMYDQSKVVUW5HD3QCHQXI6QS3KLNMHDGWRT \ / AMOS7 \ YOURUM ::
+#\[7]X3TPR3MFT2WJFRO4WYUKBUKEPCP5GS2PZBXQQKIHDFHNTPNB7ICA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
