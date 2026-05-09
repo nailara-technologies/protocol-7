@@ -32,6 +32,7 @@
 - `feedback-p7c-command.md` — always use `p7c` not `p7`; binary was renamed
 - `feedback-v7-restart-cube.md` — `p7c v7.restart cube` restarts all zenki at once; use after editing cube/access.zenki
 - `feedback-p7-module-call-syntax.md` — `<[mod]>` is implicit no-arg call; never add `->()` for zero args
+- `feedback-model-precision-analysis.md` — Qwopus more precise on analysis; sushi coder hallucinates LWP as async
 - `feedback-kimi-dispatch-pattern.md` — dispatching tasks to kimi via bin/kimi-task is highly
   token-efficient; write detailed task files, review for known issues
 - `topic-tool-shm-architecture.md` — LLM tool calling (8 tools), dispatch loop, SHM+mmap file editing vision
@@ -190,7 +191,28 @@
 - loop detection: file_not_found_spiral pattern catches core sub search loops
 - feature-impl template: core subs note, $call cmd pattern, tool param reference
 
-### Next Steps (from session 12)
+### Completed (2026-05-09) — session 15 — review pipeline, templates, chmod child, model eval
+- consensus_query tool + :review: task type + review-cycle template (verify-then-find)
+- sliding-compact template: tree_read/write state, tested on 214K doc end-to-end
+- chmod child reply channel: r_fh captured, child prints ok/skip/err, readline replaces all sleeps
+- event-loop-safety.yaml template: written by coding zenka, LWP=blocking explicitly stated
+- jinja sanitizer: idempotent backslash fix via (?<!\\) lookbehind
+- base.file.read encoding param fix, write_new_file chmod race fix
+- model eval: Qwopus correctly flagged LWP as CRITICAL, sushi coder misclassified as safe
+- default switched to Qwopus (ZDMAPAY:AR3OCKQ) until evaluation system establishes better
+- blocking inference path: async.enabled=1 means process-queued-task is dead code
+  removal task dispatched to Qwopus (bd7wocqi6)
+- task files: summarize-context-command, tool-hints, rewind-stack+read-only-flag, remove-blocking
+
+### Next Steps (from session 15, updated)
+- bd7wocqi6 in-flight: remove blocking inference path (Qwopus)
+- note_read pagination (287+ line notes exceed tool output budget)
+- dispatch: summarize-context-command, tool-hints, rewind-stack tasks
+- CPU spin: coding.async.state_machine not yet audited (jinja fix removes interference)
+- :model: switching — model ID in request body ignored; needs switch-model call in task.execute
+- model eval workflow: first automated comparison using iteration loop
+
+### Next Steps (from session 12 — still open)
 - task.cmd.start — task zenka step 3 (state transitions)
 - valued.cmd.query — network command wrapping valued.tree.top_n
 - meta.session-summary → task.cmd.handover wiring on session end
@@ -349,8 +371,8 @@
 - Pattern: `my @non_num = grep { defined $data_ref->{$ARG}->{$key} and not looks_like_number(...) } keys $data_ref->%*`
 - Global `$SIG{__WARN__}` exists — if wrapping warn handler, capture `$prev_warn = $SIG{__WARN__}` first and call through
 
-#,,..,,..,.,,,,..,.,,,..,,.,,,..,,.,,,...,..,,..,,...,...,,..,,..,..,,...,,,,,
-#MVW5AUGSGBKY5WNNHH7466VW3ZUUOSRJGDEUOMW7LG3OFEVKTT5WFIRV6KVPXGNXOV54DDFYMDBME
-#\\\|JISJIUB2B5CE6YF6MLRT3ZKJSX3VX2VNGGBIVOVQXYVVJC36YN7 \ / AMOS7 \ YOURUM ::
-#\[7]L2FBLU3K5ZCNZVL5WBTGKW44TMSVADNCD6YIZBIGSGJILPMUYWBY 7  DATA SIGNATURE ::
+#,,,,,,..,,,,,.,,,...,...,,,,,,,,,.,,,,.,,...,..,,...,...,,.,,,,,,,,,,,,.,,.,,
+#NFOB2LYDYPAJBXN2I2QJ4SMCWIGZGR3JDUZXKSS3QU3WPJDWRLHUWHWZFXTNYEFFVZHP33R7LJWFS
+#\\\|BXHPO77TPRHHXUMPBQM72LV2XOTGSHY5JM5JC6JDQA3EANH53LL \ / AMOS7 \ YOURUM ::
+#\[7]RJFWO7NDQBUT35LFWIUL22A4TIIMQTXIFEX6OUE5ZXDA7IIWY4CY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

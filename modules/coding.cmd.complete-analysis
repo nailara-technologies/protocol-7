@@ -102,15 +102,11 @@ $meta_job->{'continuation_watcher'} = <[event.add_var]>->(
     }
 );
 
-# Schedule task execution via async handler (don't block deferred reply)
-<[event.add_timer]>->(
-    {   'after'   => 0.1,
-        'handler' => qw| coding.handler.process-queued-task |,
-        'data'    => $meta_id,
-        'repeat'  => FALSE,
-        'desc'    => sprintf( '[%s] execute queued task', $meta_id )
-    }
-);
+# Task will execute via coding.task.execute (uses async when enabled)
+# The timer was removed because:
+# - coding.task.execute now handles async mode exclusively
+# - Blocking fallback is dead code
+# - Timer was unnecessary; task goes through async path directly
 
 <[base.logs]>->(
     1, "[complete-analysis] returning deferred, monitoring for completion"
@@ -118,8 +114,8 @@ $meta_job->{'continuation_watcher'} = <[event.add_var]>->(
 
 return { 'mode' => qw| deferred | };
 
-#,,,,,,,,,,..,,,.,,..,,.,,.,,,,,,,,,,,,,.,.,,,..,,...,...,.,.,,,.,.,.,.,,,...,
-#DE2ZQUQIZ3YHIZUKGHDX3DBWYSFYJB6CTQBC35QB2ERCYCC7EQUFJXVHMQYD77QBVVQIJY7NTAAT4
-#\\\|GG5IHD73DHOW73PU26CJB6XBFOAI6EHIM3UOCYNL5UJVPDFTUND \ / AMOS7 \ YOURUM ::
-#\[7]W3RN3GVG7VIQPX2CZHGC575JHCCEJXFOEPSNO44GID33VQK75UBY 7  DATA SIGNATURE ::
+#,,..,.,,,..,,.,,,,.,,...,...,.,.,,..,...,...,..,,...,...,...,.,,,,,.,.,,,..,,
+#76YPUUXJV6MP2CVATIJ7WZIIYE5U4XADSVIEK7HNJ4HX5G53ERGUFYKJDUHQE7X7D4YRZMBVCLVH4
+#\\\|NFR3IPC7IIW43AF4PUOJRDMA6LDMYKXEBVPIPWVREWUEXSKMAHY \ / AMOS7 \ YOURUM ::
+#\[7]LZBNXRVPAIFBD5T7MBIGNQPTUXGHJ26ZJGBKQF2XFO5YS44HSWDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

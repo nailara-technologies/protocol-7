@@ -27,20 +27,21 @@ return { 'mode' => qw| false |, 'data' => "request string required" }
 ## run through task intake to get parsed task ##
 my $intake_result = <[coding.task.intake]>->($request_str);
 return {
-    'mode'  => qw| false |,
-    'data'  => "intake failed: $intake_result->{error}"
-} if !$intake_result->{'success'};
+    'mode' => qw| false |,
+    'data' => "intake failed: $intake_result->{error}"
+    }
+    if !$intake_result->{'success'};
 
-my $task = $intake_result->{'task'};
+my $task      = $intake_result->{'task'};
 my $task_type = $task->{'metadata'}->{'raw_request'}->{'type'} // '';
-my $prompt = $task->{'request'}->{'description'} // '';
+my $prompt    = $task->{'request'}->{'description'}            // '';
 
 ## now replicate template matching logic ##
 my $selected_template = 'system-default';
-my $match_source = 'default';
+my $match_source      = 'default';
 
 if ( exists $code{'context.template.load'} ) {
-    my $root = <system.root_path>;
+    my $root         = <system.root_path>;
     my $template_dir = "$root/"
         . ( <context.cfg.template_dir> // 'data/yaml/context-templates' );
 
@@ -49,7 +50,7 @@ if ( exists $code{'context.template.load'} ) {
         my $type_template_path = "$template_dir/$task_type.yaml";
         if ( -f $type_template_path && $task_type !~ m{^system-} ) {
             $selected_template = $task_type;
-            $match_source = 'task_type';
+            $match_source      = 'task_type';
         }
     }
 
@@ -62,7 +63,7 @@ if ( exists $code{'context.template.load'} ) {
             my $tpl_path = "$template_dir/$candidate.yaml";
             if ( -f $tpl_path ) {
                 $selected_template = $candidate;
-                $match_source = 'prompt_word';
+                $match_source      = 'prompt_word';
                 last;
             }
         }
@@ -77,7 +78,7 @@ if ( exists $code{'context.template.load'} ) {
                 my $tpl_path = "$template_dir/$hyph.yaml";
                 if ( -f $tpl_path ) {
                     $selected_template = $hyph;
-                    $match_source = 'dot_to_hyphen';
+                    $match_source      = 'dot_to_hyphen';
                     last;
                 }
             }
@@ -105,8 +106,8 @@ return {
     'data' => $output,
 };
 
-#,,,.,,,.,,,.,,,.,,.,,..,,...,..,,.,,,,,.,..,,..,,...,...,,..,,,.,,.,,..,,,..,
-#4WAN2SYEZUYZPFIES6WZP5BQW2O3GJ2VLXPVF36OI2D3EILGXN7GCHYV5XYUURML4CS7C74SXCA4U
-#\\\|SK42MURERN4UGYHU3LL7CP2JTO22RF5L2KDXC4AKNYNH5GDUIS3 \ / AMOS7 \ YOURUM ::
-#\[7]2OCPLKXPIQLQVAWCMXAI4ZSKCHRKDICFW7TVTWZ2KV7GVKL666AQ 7  DATA SIGNATURE ::
+#,,..,,,.,.,.,.,,,.,.,..,,.,,,,,.,..,,.,,,.,,,..,,...,...,...,.,,,,,,,.,,,...,
+#UKKUZA6FTZN6U7LOF7FS4HZ3J6VTETO46RZA2Z23WYVH7T7NOHQJNGYDYCX2IASX6BWKBE7FAEP2S
+#\\\|3FIVRPWK42WNJYEET2BTKTUYZJ2OAJSU35SZPMWEM63MYBSZAGY \ / AMOS7 \ YOURUM ::
+#\[7]GVNVUVK6D7WWJ5N574VSKTXUE62ZBXGFYA7YOX2GQ6UAEMBBFMCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

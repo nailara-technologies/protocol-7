@@ -1,0 +1,97 @@
+---
+name: coding-zenka-cpu-spin-debug
+descr: investigate and fix 100% CPU spin in coding zenka event loop
+impact: critical
+affects:
+  - modules/coding.handler.*
+  - modules/coding.async.*
+  - modules/coding.tool.*
+  - modules/coding.cmd.wait-done
+
+## symptom ##
+# coding zenka process pegs one CPU core at ~100%
+# event loop becomes unresponsive to network commands
+# llama-server is running and functional — no GPU/inference load visible
+# no timeout fires, no crash — just silent spin
+# only resolution: SIGTERM + restart via v7
+
+## last observed context ##
+# occurred during task EBXI2CY, around round 14
+# 42 messages in context, 2 tool_calls pending
+# process ran for ~5:55 before becoming unresponsive
+# log showed normal round progression immediately before spin onset
+# no error logged — silent transition into spin state
+
+## known while loops in coding zenka (candidates) ##
+# modules/coding.cmd.wait-done          line 27  while(1) + event.once(0.5)  -- safe
+# modules/coding.handler.drain_pipe     line 24  while(1) + sysread           -- safe
+# modules/coding.handler.http_io        line 127 while buffer regex           -- SUSPECT
+# modules/coding.handler.http_poll      line 116 while buffer regex           -- SUSPECT
+# modules/coding.handler.process-queued-task line 204 while tool_round       -- SUSPECT
+# modules/coding.handler.inference_server_sigchld line 14 while waitpid      -- low risk
+
+## investigation approach ##
+#
+# phase 1: identify all AnyEvent/EV watcher registration sites
+#   - look for io/timer watchers that could fire repeatedly without consuming data
+#   - check watcher cancellation: is every watcher guaranteed to be cancelled?
+#   - look for watchers registered inside loops or callbacks that could be re-registered
+#
+# phase 2: audit the buffer regex loops (http_io, http_poll)
+#   - if the regex matches but produces empty string, does the loop terminate?
+#   - is there a guard against infinite regex match on malformed data?
+#
+# phase 3: audit process-queued-task INFERENCE_LOOP
+#   - what exits the loop besides tool_round > max_tool_rounds?
+#   - can the loop re-enter itself via event.once(0.07) if a callback fires?
+#   - is there a case where $tool_round never increments?
+#
+# phase 4: check io watcher + EAGAIN interaction
+#   - if a socket returns EAGAIN but the watcher stays registered,
+#     does the watcher immediately re-fire? (yes in some EV backends)
+#   - look for sysread calls without EAGAIN guard in watcher callbacks
+
+task: |
+  investigate the 100% CPU spin bug in the coding zenka event loop.
+
+  the zenka pegs one CPU core and stops responding to network commands.
+  no crash, no error logged, no inference load — silent spin.
+  only recovery is SIGTERM + restart.
+
+  ## your investigation steps ##
+
+  1. read modules/coding.handler.http_io and modules/coding.handler.http_poll
+     — focus on the while-regex buffer loops. can they spin if the regex
+     matches an empty string or the buffer contains malformed data?
+
+  2. read modules/coding.handler.process-queued-task around the INFERENCE_LOOP
+     (line 204). map all exit conditions. is there any path where $tool_round
+     never increments and the loop runs without yielding properly?
+
+  3. search for all AnyEvent watcher registrations (io/timer) in modules/coding.*
+     list each one and check: is it guaranteed to be cancelled when done?
+     a watcher that fires continuously on a readable-but-empty fd is a classic
+     spin source.
+
+  4. check modules/coding.async.state_machine — is there any timer or io watcher
+     that could get stuck firing without consuming data or advancing state?
+
+  5. for each suspect found: propose a specific fix — either a cancellation guard,
+     an EAGAIN check, a loop termination condition, or a maximum iteration guard.
+
+  produce:
+  - a ranked list of suspects with confidence level
+  - exact file + line for each issue
+  - proposed fix for each (no code changes — document only, use note_write)
+  - recommendation for which fix to implement first
+
+  use consensus_query(mode: verify) to validate your top suspect before
+  recommending a fix.
+
+#,,,,,,,.,.,.,,,.,.,,.,,.,.,,.,,,,,.,.,,,,..,,..,,...,...,.,.,,,..,,.,.,,,,.,
+
+#,,..,...,.,.,,.,,,.,,,,,,,,,,..,,,,,,.,.,...,..,,...,...,,,,,.,.,...,.,,,.,.,
+#ELBVPYM6DSFU2WX6TOZSFCRHMGN2SOVB2UDRIRMAP4XJ5MPZFSIJGK3WPJG6BVJLFPAFIMB764FXU
+#\\\|IUNQFQESK6HJRA5P22K2MJKGSCXECFWL6XA6XOGX6WORUZHMXNK \ / AMOS7 \ YOURUM ::
+#\[7]IGGQHSBVJKVQLBGFTM7BSS3MWXEPYQ5NLYGGRZMCO3WLHGYE3KCA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

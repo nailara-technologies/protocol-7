@@ -10,7 +10,7 @@ my $state     = $data->{'state'};
 my $callbacks = $state->{'callbacks'};
 
 ## skip if already completed or streaming has started ##
-if ( $state->{'completed'}
+if (   $state->{'completed'}
     || !defined $state->{'sock'}
     || ( $state->{'chunks_received'} // 0 ) > 0 ) {
     <[base.logs]>->(
@@ -23,10 +23,7 @@ if ( $state->{'completed'}
 <[base.logs]>->(
     0,
     "async.http_data_start_timeout: no streaming data after %d seconds",
-    int(
-        <[base.time]>->(3)
-            - ( $state->{'request_start'} // 0 )
-    )
+    int( <[base.time]>->(3) - ( $state->{'request_start'} // 0 ) )
 );
 
 my $error = "Data start timeout";
@@ -34,8 +31,8 @@ $callbacks->{'on_error'}->($error) if exists $callbacks->{'on_error'};
 
 <[coding.async.http_cleanup]>->($state);
 
-#,,,.,.,,,.,.,..,,..,,,.,,.,,,,,,,,.,,...,,..,.,.,...,...,,,,,..,,..,,,..,.,.,
-#CRIQCFFQ3SGDNN2TCGEI3HKI42NXWYMEC5GWBCN4S2MZEBYPVEJ6A567KBKKC4BWATFVE5EDHJ2F2
-#\\\|MMC6BPYOUVRBNK4CGO3EJ7QZ7WD7CRM3GSAW5E3YRVQWOKZJHOG \ / AMOS7 \ YOURUM ::
-#\[7]T54UTOOTHYGCDQGUEGBYYWR4ZQ722ADKTTDJ76CFBE7EZS746IBI 7  DATA SIGNATURE ::
+#,,.,,...,..,,,,,,...,.,.,,.,,..,,,,,,,,,,.,.,.,.,...,...,...,.,,,,.,,...,..,,
+#BGUXI7UI7ISO7U3W5JXL4XKV53GRLZFUXBN3MUPQU4WT7QTO5QOL3PXENJ23B6QTUCUXGNVUE75AU
+#\\\|H3DLVQXPVKNQUVJHIBSN6U6RBTYK5NODEVR7WBFWHBZRYHQOGMR \ / AMOS7 \ YOURUM ::
+#\[7]KBACNDVW5FZTIJBYIOAU2VGD6FK4GJVRHPLQIQDSTGT6H2QJFODY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

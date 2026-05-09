@@ -182,7 +182,9 @@ elsif ( $action eq 'transition' ) {
         my $reasoning = $data->{'reasoning'} // $state->{'reasoning'} // '';
         if ( length $reasoning ) {
             <[coding.buffer.task_write]>->(
-                $task_id, $reasoning, 'thinking',
+                $task_id,
+                $reasoning,
+                'thinking',
                 {   'round' => $state->{'round'} // 0,
                     'pct'   => $state->{'pct_used'},
                 }
@@ -200,7 +202,9 @@ elsif ( $action eq 'transition' ) {
         );
         if ( length $display_content ) {
             <[coding.buffer.task_write]>->(
-                $task_id, $display_content, 'assistant',
+                $task_id,
+                $display_content,
+                'assistant',
                 {   'round' => $state->{'round'} // 0,
                     'pct'   => $state->{'pct_used'},
                 }
@@ -463,7 +467,9 @@ elsif ( $action eq 'transition' ) {
                 }
             );
             <[coding.buffer.task_write]>->(
-                $task_id, $final_display, 'assistant',
+                $task_id,
+                $final_display,
+                'assistant',
                 {   'round' => $state->{'round'} // 0,
                     'pct'   => $state->{'pct_used'},
                 }
@@ -547,8 +553,8 @@ elsif ( $action eq 'constants' ) {
 
 return { error => sprintf "unknown action : '%s'", $action };
 
-#,,..,,.,,,.,,..,,,..,,,,,..,,,..,,,,,,,.,,,.,.,.,...,...,.,.,...,,..,,,.,,,.,
-#5PETFK3D6KING7CFLW7QA3IXVBY4N77NBTLNW5FZIF3SIFUG3PC4XQ22V67HZLSPZJE4DTM3N4WVU
-#\\\|7X5X6KNILZSCTBL7NO2Q64TPJ62FX5P6TYJBT62E7GBSHO3AI45 \ / AMOS7 \ YOURUM ::
-#\[7]XLOO4W2W4S2UTNTUS3JSO2MVK2V5NKNX2M2KY2PS4HUXWCGIBGBQ 7  DATA SIGNATURE ::
+#,,,,,...,.,,,,..,,.,,...,,,.,...,,.,,..,,,.,,.,.,...,...,.,,,,.,,.,.,,,,,.,.,
+#5ZEDGEKY75ZY2HYPZ2IOUD5R2ZYW7MZJQGWKSVUM2SNAAM3JOLHC3HX36PUQN35MWMUMJ7H2DTITW
+#\\\|2FQYWRSTHNSTHIWZK6L2BKCBN2MZHKZLUY52OI6F555GXHWSKNH \ / AMOS7 \ YOURUM ::
+#\[7]SW7CLHRAS47GU2D4FFCHRJRKJA34FW7DKQGSBNDQYHRBQDFNQADQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
