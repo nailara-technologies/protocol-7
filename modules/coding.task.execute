@@ -129,13 +129,17 @@ if ($async_mode) {
         = <[coding.async.request]>->( $task_id, $request_body, $job_id );
 
     if ( !$async_result->{'success'} ) {
-        ## Async start failed, fall back to blocking ##
+        ## async start failed — fail task with clear error ##
         <[base.logs]>->(
             0,
-            "coding.task.execute: async start failed, using blocking: %s",
+            "coding.task.execute: async start failed: %s",
             $async_result->{'error'} // 'unknown'
         );
-        ## Fall through to blocking mode below ##
+        $task->{'execution'}->{'status'} = 'failed';
+        $task->{'execution'}->{'error'} = $async_result->{'error'} // 'async start failed';
+        <[jobqueue.move_job]>->( $job_id, 'error' );
+        <[coding.task.fail]>->( $task_id, $async_result->{'error'} // 'async start failed' );
+        return { success => FALSE, error => $async_result->{'error'} // 'async start failed' };
     } else {
         ## Async started successfully ##
         <[base.logs]>->(
@@ -147,27 +151,12 @@ if ($async_mode) {
     }
 }
 
-## BLOCKING MODE: Call the actual inference processor ##
-## expects: { params => { task_id => ... } } for jobqueue callback mode ##
-my $result = <[coding.handler.process-queued-task]>
-    ->( { 'params' => { 'task_id' => $task_id } } );
-
-## handle job completion based on result ##
-if ( defined $result && $result->{'success'} ) {
-    <[jobqueue.move_job]>->( $job_id, 'completed' );
-    ## extract the actual result text from hashref ##
-    my $result_text = $result->{'result'} // '';
-    <[coding.task.complete]>->( $task_id, $result_text );
-} else {
-    my $error_msg = $result->{'error'} // 'unknown error';
-    my $err_short = <[base.parser.center_ellipse_string]>->( $error_msg, 72 );
-    <[base.logs]>->(
-        0,        "coding.task.execute: task %s failed: %s",
-        $task_id, $err_short
-    );
-    <[jobqueue.move_job]>->( $job_id, 'error' );
-    <[coding.task.fail]>->( $task_id, $error_msg );
-}
+## BLOCKING MODE REMOVED: All execution now uses async when enabled
+# The blocking fallback was removed because:
+# - coding.async.enabled = 1 in production (async path always active)
+# - Blocking path only reached when async fails to start (dead code)
+# - Async path is superior: 13 min timeout vs 5 min, streaming, retry timers,
+#   subtask spawning, user input, better error handling
 
 ## Clean up async state if we were in async mode ##
 if ($async_mode) {
@@ -176,8 +165,8 @@ if ($async_mode) {
 
 return $result;
 
-#,,,.,,,,,,..,,,.,..,,,.,,..,,,..,,..,..,,..,,.,.,...,...,..,,,.,,,..,,.,,,.,,
-#HSBWTDUD2QZPQTMQZ5FOZQ4QG5POAHDCCGE2XCCHGD7I2HYQDMV2HQYVZPUNJUIKO7PH75DMIGSZY
-#\\\|BEBON4MB3D47DF27YNGHOJZBSMDHBZVB6RY2EX5EDFKFRA575KB \ / AMOS7 \ YOURUM ::
-#\[7]WHCLIFQP6WOJ5ZGKIJEVCVLCA6ACR4QOVZRQNEGEDFP2WGANWWDI 7  DATA SIGNATURE ::
+#,,,.,.,,,..,,.,,,,,,,,..,...,..,,,,,,...,,,.,.,.,...,...,...,,..,..,,,,.,,,.,
+#6BVO265UTURZSVH7B2YFJ6RDLGACCIXRM64DN2Q474MWRZUGX3ZYE6LA4GCCPB2BI6VZIXMP7TU4A
+#\\\|DT55RJVOF6G6PRLXAFUQCDWXEG5FK472E5YYTKADERYCTEYJJY7 \ / AMOS7 \ YOURUM ::
+#\[7]YUU46NTV5PEJWAJCRCEZWPPRBCFEG5MQ75QQQERKWT2HFTURXAAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
