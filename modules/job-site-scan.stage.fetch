@@ -1,0 +1,38 @@
+## [:< ##
+
+# name  = job-site-scan.stage.fetch
+# descr = begin scanning — route-send to site-yaml.import per search url
+
+<job-site-scan.cycle>     = 'scanning';
+<job-site-scan.last_scan> = time;
+<[job-site-scan.state.persist]>;
+
+my $urls_cfg = <job-site-scan.cfg.search_urls> // '';
+my @urls     = split m{\s+}, $urls_cfg;
+
+if ( not @urls ) {
+    <[base.logs]>->( 0, 'jss.fetch: no search urls configured' );
+    <job-site-scan.cycle> = 'idle';
+    <[job-site-scan.state.persist]>;
+    return;
+}
+
+<[base.logs]>->( 1, 'jss.fetch: scanning %d url(s)', scalar @urls );
+
+for my $url (@urls) {
+    <[base.protocol-7.route-send]>->(
+        {   'command'   => 'site-yaml.import',
+            'call_args' => { 'args' => $url },
+            'reply'     => {
+                'handler' => 'job-site-scan.handler.fetch-done',
+                'params'  => { 'url' => $url },
+            },
+        }
+    );
+}
+
+#,,,.,,..,.,.,,,.,,,.,...,...,,,.,,,,,.,.,,..,..,,...,...,,,,,.,.,..,,.,,,,.,,
+#52W4S76WVWVXDEI5MBE2RVE46GZOWLOVN57NZDHMKQTZTEX2C6VSDH4LNPB6EEBZDARCJQNE5U6SE
+#\\\|HLN4YYINYK4VZNVK7JPGSFLHKOGXDHLM2UXCCPSZU7PWEPN5MCX \ / AMOS7 \ YOURUM ::
+#\[7]P45J7MEF6AWYQ2NURHUAK4Z3QBNKSXK3GHWAVUAUFW4YUQAH4MAY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
