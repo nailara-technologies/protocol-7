@@ -1,0 +1,40 @@
+## [:< ##
+
+# name  = plugin.web.jobs.stats
+# descr = return job store summary stats as html
+
+map { <[base.perlmod.autoload]>->($ARG) } qw| YAML::XS |;
+
+my $store_file = '/var/protocol-7/jobs/store.yaml';
+my $store      = {};
+
+if ( -f $store_file ) {
+    eval { $store = YAML::XS::LoadFile($store_file) };
+    $store = {} if $@;
+}
+
+my %counts;
+for my $id ( keys %{$store} ) {
+    my $st = $store->{$id}{'status'} // 'new';
+    $counts{$st}++;
+}
+my $total = scalar keys %{$store};
+
+my @lines;
+push @lines, '<div class="jobs-stats">';
+push @lines, sprintf '<span class="stat-total">%d total</span>', $total;
+
+for my $st (qw| new assessed applied rejected skipped |) {
+    next if not $counts{$st};
+    push @lines, sprintf '<span class="stat-%s">%d %s</span>',
+        $st, $counts{$st}, $st;
+}
+push @lines, '</div>';
+
+return join( "\n", @lines );
+
+#,,.,,...,.,,,..,,,,,,,,.,,.,,..,,.,.,..,,.,,,..,,...,...,..,,,..,,,,,,,,,,.,,
+#JRAG5OLMM6J2LCCW6VGLFSKKPF3SZQ4EVDDTFLXF3BRWRXUQUSGRQU5ZWPMO2POX4UFA7AXH5UNIQ
+#\\\|PUMCL662JXEQ6AGVYGDSDSCJ4JLGM4IB3H33TCJUII3NTI3245A \ / AMOS7 \ YOURUM ::
+#\[7]4CI6KNG353HDRPCLDA7FOVN3H2F25FXSGH7CAWZET6EN4ANMZEBQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
