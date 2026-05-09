@@ -1,0 +1,29 @@
+---
+task_id: test-event-loop-safety
+status: active
+priority: high
+title: Test event-loop-safety template on process-queued-task
+template: event-loop-safety
+description: |
+  Submit a :review: task for modules/coding.handler.process-queued-task
+  using the event-loop-safety template. Verify that it correctly identifies
+  the LWP blocking loop as SUSPECT.
+
+modules:
+  - modules/coding.handler.process-queued-task
+
+actions:
+  - :review:
+      module: modules/coding.handler.process-queued-task
+      template: event-loop-safety
+
+acceptance: |
+  The review should identify the INFERENCE_LOOP (lines 204-948) as SUSPECT
+  because it contains a blocking LWP call (lines 500-504) without wrapping
+  in event.add_io or forked child.
+
+#,,.,,.,,,.,,,..,,...,,,.,.,.,,..,.,.,,..,.,.,...,...,..,,,,.,,.,,,..,,,,,...,
+#3AIJF5QMZ66MPJQ3VQWXAHZY3AVPU2NVDZQASMNWY3HXVY5BVFVTQ5BPYCLREDKUPUJBDIKXDV5GU
+#\\\|WE64JVV2FFAFAOHHAFNBL2N7UXTSH6Z6TZPFEHEPHKFI74OUYMT \ / AMOS7 \ YOURUM ::
+#\[7]ASEVE6VJXHJS7FINYKLT7KTYR4Q6VY2ESZWNYBB73RHUZP4YHGCI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

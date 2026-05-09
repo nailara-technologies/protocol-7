@@ -18,7 +18,7 @@ my $task = delete $failed_queue->{$task_id};
 ## update retry count and reset status ##
 $task->{'execution'}->{'retry_count'}++;
 $task->{'execution'}->{'resurrected_at'} = <[base.time]>->(3);
-$task->{'execution'}->{'status'} = 'queued';
+$task->{'execution'}->{'status'}         = 'queued';
 delete $task->{'execution'}->{'failed_at'};
 delete $task->{'execution'}->{'error'};
 delete $task->{'execution'}->{'failure_type'};
@@ -30,10 +30,8 @@ delete $task->{'execution'}->{'failure_type'};
 my $enqueue_result = <[coding.task.enqueue]>->($task);
 
 <[base.logs]>->(
-    1,
-    "::task:: resurrected [%s] for retry #%d",
-    $task_id,
-    $task->{'execution'}->{'retry_count'}
+    1,        "::task:: resurrected [%s] for retry #%d",
+    $task_id, $task->{'execution'}->{'retry_count'}
 );
 
 return {
@@ -45,8 +43,8 @@ return {
     }
 };
 
-#,,,,,..,,.,.,,,,,.,.,,.,,.,.,.,.,,,,,..,,..,,.,.,...,..,,,..,.,,,,.,,.,.,,,,,
-#6PARUQQGUXFGXZJNIRC6IHKXR27S3GKELFDNPHNGSOKWQ4WULVLVOSAJ34EHNIIUXAKPR3JHRQNEC
-#\\\|L3EBBJV6KBN53WI5VBLH4GCOIJXXJGBHFFZV455F7VG7X7YSVBO \ / AMOS7 \ YOURUM ::
-#\[7]6FGLPG7B2GKYO5SCWJTOHCOR4NG53IZK77TRYQ23NL3ACQQIT2AY 7  DATA SIGNATURE ::
+#,,,.,.,.,.,,,,,.,,.,,,,.,..,,,..,.,.,,,.,,,,,.,.,...,...,,,,,,..,,,.,,..,,..,
+#5FY5N3BHLTMVKF7JDHAWGLZPVSNUTP4YCYN5TN56KQ72VKWCIAGOOBQEWWY3WGTV7XXXOBXQ2NANK
+#\\\|343237GIGRFSZV5TR5K5MWDNN4I6TW6JZS3OIMQ6R7BGQ7AYQCA \ / AMOS7 \ YOURUM ::
+#\[7]EFVTVFDZDSA7KIQ72GCQXO4SEKZQ2HNTYNSF4LOC5QUUBTG3ZMCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
