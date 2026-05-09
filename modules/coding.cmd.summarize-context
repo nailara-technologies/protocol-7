@@ -13,6 +13,7 @@ my $backend = 'cpu';
 my $store   = 0;
 my $node_id = '';
 my $max_len = 800;
+my $path    = '';
 
 if ( $args_str =~ s|focus=(\S+)|| )        { $focus   = $1 }
 if ( $args_str =~ s|model=(\S+:\S+)|| )    { $model   = $1 }
@@ -20,6 +21,29 @@ if ( $args_str =~ s|backend=(cpu\|gpu)|| ) { $backend = $1 }
 if ( $args_str =~ s|store=(\d+)|| )        { $store   = $1 }
 if ( $args_str =~ s|node_id=(\S+)|| )      { $node_id = $1 }
 if ( $args_str =~ s|max_len=(\d+)|| )      { $max_len = $1 }
+if ( $args_str =~ s|path=(\S+)|| )         { $path    = $1 }
+
+## :file: / :path: keyword prefix [ overrides content ] ##
+if ( $content =~ s|^:(?:file|path):| | ) { $path = $content }
+
+## explicit :b32: prefix ##
+if ( $content =~ s|^:b32:||i ) {
+    my $decoded = decode_b32r($content);
+    $content = $decoded if defined $decoded and length $decoded;
+}
+
+## file path: detect encoding and slurp ##
+if ( length $path ) {
+    my $enc         = <[file.encoding]>->($path);
+    my $content_ref = <[file.slurp]>->( $path, $enc );
+    $content = defined $content_ref ? $content_ref->$* : '';
+}
+
+## base32 auto-detect on plain single-line args ##
+elsif ( $content =~ /^[2-7A-Z]+=*$/ ) {
+    my $decoded = decode_b32r($content);
+    $content = $decoded if defined $decoded and length $decoded;
+}
 
 my $summary = <[coding.tools.handler.summarize_context]>->(
     {   content => $content,
@@ -34,8 +58,8 @@ my $summary = <[coding.tools.handler.summarize_context]>->(
 
 return { mode => 'true', data => $summary };
 
-#,,,.,.,.,,,.,.,.,,..,..,,,.,,,.,,..,,,.,,..,,..,,...,...,..,,.,,,,..,,,.,,,.,
-#DVNYK2EYLGP77BDZNNWQ4WCKVTN4DLJQC3RRXUYOG4OEMT4NLP5YTXTTNMYGG2HX6ARLD2XA6RRKC
-#\\\|PX3VMMMNEPPCF2FBQSOIIL6GADCFQ45NVJO2QHSYPADJCH5HSGY \ / AMOS7 \ YOURUM ::
-#\[7]YOHNSLQUA5F2KD4FPHFBS4UAFH5MK5VVWZJGE6MX3RU4TPUM3MCY 7  DATA SIGNATURE ::
+#,,,.,,..,,..,..,,.,.,,,,,,.,,...,.,.,.,.,...,..,,...,...,...,...,.,,,,.,,,.,,
+#DHAJ3OKASOTT4YJKTWJE7EBPB3F3RJNUOD47AWN5KIANWXIROUIBSNUPTBYQOTUBTANXCVR5BKSJO
+#\\\|7ASVHVUWWFCPTMMLNGJFP53WJDMQMDC5F7GDORTQWIYR4P7WPHD \ / AMOS7 \ YOURUM ::
+#\[7]WYUTKYGOW5B4REJIMCKOXJJQVNWV5K34C5F26LPJRRDBOET7K4CQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
