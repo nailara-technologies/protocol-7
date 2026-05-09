@@ -24,7 +24,7 @@ if ( $args_str =~ s|max_len=(\d+)|| )      { $max_len = $1 }
 if ( $args_str =~ s|path=(\S+)|| )         { $path    = $1 }
 
 ## :file: / :path: keyword prefix [ overrides content ] ##
-if ( $content =~ s|^:(?:file|path):| | ) { $path = $content }
+if ( $content =~ s{^:(?:file|path):}{} ) { $path = $content }
 
 ## explicit :b32: prefix ##
 if ( $content =~ s|^:b32:||i ) {
@@ -58,8 +58,8 @@ my $summary = <[coding.tools.handler.summarize_context]>->(
 
 return { mode => 'true', data => $summary };
 
-#,,,.,,..,,..,..,,.,.,,,,,,.,,...,.,.,.,.,...,..,,...,...,...,...,.,,,,.,,,.,,
-#DHAJ3OKASOTT4YJKTWJE7EBPB3F3RJNUOD47AWN5KIANWXIROUIBSNUPTBYQOTUBTANXCVR5BKSJO
-#\\\|7ASVHVUWWFCPTMMLNGJFP53WJDMQMDC5F7GDORTQWIYR4P7WPHD \ / AMOS7 \ YOURUM ::
-#\[7]WYUTKYGOW5B4REJIMCKOXJJQVNWV5K34C5F26LPJRRDBOET7K4CQ 7  DATA SIGNATURE ::
+#,,.,,...,,,,,...,,..,,,,,,,.,...,...,,,.,,,,,..,,...,...,,..,,,.,,..,.,.,,,.,
+#QJYEZV72RXUH7O3RSD2C7RIYJYQCBXO6VMNB3TQQ3B34GLPU52V3GJSK7POPRQYRGZ5ZAYMMPD7ZG
+#\\\|4HLYJ7BURYANOUN2USB5DP4TZAFZJK35RRNZ2GSVWFENELRMZ6O \ / AMOS7 \ YOURUM ::
+#\[7]MFGKBYRNCDW2BBF2J2XEMC6QUF6XXZX3A53INPVNATOC3ZIVXSCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
