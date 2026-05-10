@@ -5,7 +5,8 @@
 
 my $reply = shift;
 
-my $data   = $reply->{'data'}   // '';
+my $raw    = $reply->{'data'} // '';
+my $data   = ref $raw ? $raw->$* : $raw;
 my $mode   = $reply->{'mode'}   // qw| unknown |;
 my $params = $reply->{'params'} // {};
 
@@ -150,8 +151,8 @@ if ( length $job_id ) {
 
 return;
 
-#,,..,,,,,,..,,,,,...,...,...,,,.,,.,,,..,..,,..,,...,...,,..,,.,,,..,,,.,..,,
-#KIOKG3KFESXO32BIRYO76KGPH57HEILWIUDSQVT52NOKBJEBS6UYMQ4AUKM3QZNZVKMJBQ5V25DT2
-#\\\|67EYLWUMP6TF64YPKZZMK54EA7FF5WM4P2RHF4JYGHYDGKGDRI5 \ / AMOS7 \ YOURUM ::
-#\[7]5JPKN4C3B2SEIEZGWDSNXHCLVCU3ISXHZSYQWQFLLVUOS5XDTGAQ 7  DATA SIGNATURE ::
+#,,,.,,..,..,,,..,,.,,,.,,,.,,,.,,,..,,,,,.,,,..,,...,...,..,,.,.,,.,,.,.,.,,,
+#TWUFF2ZFSFQTTJA5KF5NL3VAVXPLPH6B2V7G4BAVST3ESLIY3DA5D6SJOSIA4MQZLJGYEQWSTUKPA
+#\\\|RJGUF3LYITTZRGGLLZWLN5A67JZ4DP5XZWJ5L37AOEOAYPYO462 \ / AMOS7 \ YOURUM ::
+#\[7]R6ARZNUCU2ORNN5K3MMFTPTCJVGVOWZALWFKROIK6UFCCGY4LGDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
