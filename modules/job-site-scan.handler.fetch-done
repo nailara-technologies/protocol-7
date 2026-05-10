@@ -10,7 +10,7 @@ my $data_str = $call->{'data'}               // '';
 my $category = $call->{'params'}{'category'} // '';
 my $url      = $call->{'params'}{'url'}      // '';
 
-if ( $mode ne 'true' and $mode ne '1' ) {
+if ( lc($mode) eq qw| false | ) {
     <[base.logs]>->(
         0,         'jss.fetch-done [%s]: import failed: %s',
         $category, $data_str
@@ -84,8 +84,8 @@ for my $job_id (@to_assess) {
     );
 }
 
-#,,,,,.,,,.,.,,,,,..,,,,.,,,,,,,,,.,,,,,.,,.,,..,,...,..,,...,.,.,...,,,,,,..,
-#6MEEJ4E7NH23E7GOV3JQ7PSVE2EUKSYMLXLZ4VGU752K56JTYKBUJJ66XXYDKWB6CLFRYP4ZNWC7O
-#\\\|4XWNI6ZYL5XSHJDFGWZNVRGEE4Z4YKFQQVVDCSJGKXD37PLOWET \ / AMOS7 \ YOURUM ::
-#\[7]VVLJ7FRSJOXKR4N5DM2OEM6BQGGN24X7P2E2VVBOHNQ42W55TQBI 7  DATA SIGNATURE ::
+#,,,,,..,,,.,,.,,,.,.,,..,.,,,.,,,.,.,.,.,,,.,..,,...,..,,..,,.,,,.,.,.,.,.,.,
+#GVZSOHPCSVUZRGYI7KXSDXLTOKS4EE5UPPUMYNKGPUPHDN3WMP2QSICO65SBGLS3JZB6IV4TNUPRU
+#\\\|ID3ETLREZH7ECBMS3CRO6CZGURQ7NIIOILDAACXU5Q6WGAITQLP \ / AMOS7 \ YOURUM ::
+#\[7]ZDID2V3BENP25FFUL3XVYXTDN5OTGWOJH5GHORM6NAJG4QGSPSAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
