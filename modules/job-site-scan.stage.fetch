@@ -20,8 +20,7 @@ if ( not @cats ) {
 
 my %cat_urls;
 for my $cat (@cats) {
-    my $url_key = "job-site-scan.cfg.url.$cat";
-    my $url     = $data{$url_key} // '';
+    my $url = $data{'job-site-scan'}{'cfg'}{'url'}{$cat} // '';
     if ( not length $url ) {
         <[base.logs]>->( 0, 'jss.fetch: no url for category %s', $cat );
         next;
@@ -58,8 +57,8 @@ for my $cat ( sort keys %cat_urls ) {
 ## track how many fetch replies we expect
 <job-site-scan.fetch_pending> = scalar keys %cat_urls;
 
-#,,.,,,..,,,.,.,,,...,.,,,..,,.,.,,.,,...,,,.,..,,...,.,,,...,.,.,..,,,,.,,.,,
-#BMQVGHR62J73CULHXGQWZH23WH2APPLPRM277Z5SJC7FHF3BXNU4IF772C2YM3E7SINQXQY2IGJYK
-#\\\|5QR6SZB2QNEIJYBPUQ2MGZQYET7VRLTA5IFR22GEOXJVIVMIGQM \ / AMOS7 \ YOURUM ::
-#\[7]2YUTPO6LLO2VIP6I34H2W3ECALLO3XAYSCKX446GNEUWB4SCI4CQ 7  DATA SIGNATURE ::
+#,,.,,,..,.,.,.,.,,,.,..,,.,,,,,,,.,,,,..,,.,,..,,...,...,.,.,,,.,..,,..,,,,,,
+#PJBO6BROZSRZ6AE2CIH7GYS2UMQPCBBPZRCAFG4FVZEWTTUHHNFYTJOYFH3WFUSDTP7URQAZ5JBNA
+#\\\|3WHX5J7ZKPSHF6CNXACDY4AUKVI6F7MYELMWHCXQJLASHNI4IOW \ / AMOS7 \ YOURUM ::
+#\[7]HLSWK22WXD5B2IEFVSGRJU3EENV3DQGRZ3PT6WNIK72TGFAFQADQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
