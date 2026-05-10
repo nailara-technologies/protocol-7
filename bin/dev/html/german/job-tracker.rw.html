@@ -1,0 +1,661 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Job Tracker</title>
+    <style>
+        body { font-family: Arial, sans-serif; background-color: #000000; color: #8ddeff; font-size: 87%; }
+        .min-h-screen { min-height: 100vh; }
+        .bg-slate-900 { background-color: #0a0a1a; }
+        .text-blue-100 { color: #8ddeff; }
+        .p-4 { padding: 1rem; }
+        .max-w-4xl { max-width: 64rem; margin: auto; }
+        .space-y-6 { display: flex; flex-direction: column; gap: 1.5rem; }
+        .bg-slate-800 { background-color: #131340; }
+        .border-slate-700 { border-color: #2a2260; }
+        .text-xl { font-size: 1.5rem; }
+        .text-blue-300 { color: #40f0ff; }
+        .card-header { padding: 0.6rem 1rem; }
+        .card-title { margin: 0; font-weight: bold; }
+        .card-content { padding: 1rem; display: flex; flex-direction: column; gap: 1rem; }
+        .grid { display: grid; gap: 1rem; }
+        .grid-cols-1 { grid-template-columns: repeat(1, minmax(0, 1fr)); }
+        @media (min-width: 768px) {
+            .md\:grid-cols-2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+        }
+        .gap-4 { gap: 1rem; }
+        .bg-violet-900 { background-color: #4b0082; }
+        .hover\:bg-violet-800:hover { background-color: #5e00a3; }
+        .w-full { width: 100%; }
+        .h-8 { height: 2rem; }
+        button {
+            padding: 0 5px 2px 5px;
+            border: none;
+            border-radius: 0.25rem;
+            color: #e0ffff;
+            cursor: pointer;
+            text-shadow: 0 0 5px #40f0ff;
+            box-shadow: 0 0 8px rgba(64, 240, 255, 0.5);
+        }
+        .action-btn {
+            padding: 0.5rem 1rem;
+        }
+        .hover\:bg-green-800:hover { background-color: #00aa44; }
+        .ml-2 { margin-left: 0.5rem; }
+        .text-sm { font-size: 0.875rem; }
+        .text-red-900 { color: #ff6680; }
+        .hover\:bg-red-800:hover { background-color: #ff3366; cursor: pointer; }
+        .flex { display: flex; gap: 0.5rem; align-items: center; }
+        .justify-between { justify-content: space-between; }
+        .justify-end { justify-content: flex-end; }
+        .items-start { align-items: start; }
+        .space-y-1 { display: flex; flex-direction: column; gap: 0.25rem; }
+        .font-medium { font-weight: bold; }
+        .overflow-x-auto { overflow-x: auto; }
+        table { width: 100%; border-collapse: collapse; }
+        th, td { border: 1px solid #2a2260; padding: 0.5rem; text-align: left; }
+        .bg-slate-700 { background-color: #131340; }
+        input, select {
+            padding: 0.5rem;
+            border-radius: 0.25rem;
+            border: 1px solid #2a2260;
+            background-color: #131340;
+            color: #e0ffff;
+            box-shadow: 0 0 8px rgba(64, 240, 255, 0.3);
+        }
+        input::placeholder {
+            color: #8ddeff;
+        }
+        .application-card {
+            background-color: #131340;
+            border: 1px solid #2a2260;
+            margin-bottom: 1rem;
+            border-radius: 0.25rem;
+            box-shadow: 0 0 15px rgba(64, 240, 255, 0.2);
+            transition: all 0.3s ease;
+        }
+        .application-card:hover {
+            box-shadow: 0 0 20px rgba(64, 240, 255, 0.5);
+        }
+        .bg-green-900 { background-color: #009944; }
+        .bg-red-900 { background-color: #cc3355; }
+        pre {
+            white-space: pre-wrap;
+            word-wrap: break-word;
+            background-color: #131340;
+            padding: 1rem;
+            border-radius: 0.25rem;
+        }
+        .delete-btn {
+            width: 13px !important;
+            height: 13px !important;
+            min-width: 13px !important;
+            min-height: 13px !important;
+            font-size: 10px !important;
+            line-height: 13px !important;
+            padding: 0 !important;
+            display: flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+        }
+        @media print {
+            .no-print {
+                display: none !important;
+            }
+        }
+        .storage-controls {
+            display: flex;
+            gap: 0.5rem;
+        }
+        .glow-button {
+            background-color: #4b0082;
+            transition: all 0.3s ease;
+        }
+        .glow-button:hover {
+            background-color: #5e00a3;
+            box-shadow: 0 0 15px rgba(64, 240, 255, 0.7);
+            text-shadow: 0 0 10px rgba(64, 240, 255, 1);
+        }
+        .neon-border {
+            border: 1px solid transparent;
+            box-shadow: 0 0 12px rgba(75, 0, 130, 0.7);
+        }
+        .csv-actions {
+            display: flex;
+            gap: 0.5rem;
+            margin-top: 1rem;
+        }
+        .download-link {
+            display: inline-block;
+            padding: 0.5rem 1rem;
+            background-color: #4b0082;
+            color: #e0ffff;
+            text-decoration: none;
+            border-radius: 0.25rem;
+            cursor: pointer;
+            text-shadow: 0 0 5px #40f0ff;
+            box-shadow: 0 0 8px rgba(64, 240, 255, 0.5);
+            transition: all 0.3s ease;
+        }
+        .download-link:hover {
+            background-color: #5e00a3;
+            box-shadow: 0 0 15px rgba(64, 240, 255, 0.7);
+            text-shadow: 0 0 10px rgba(64, 240, 255, 1);
+        }
+    </style>
+</head>
+<body>
+    <div id="app" class="min-h-screen bg-slate-900 text-blue-100 p-4">
+        <div class="max-w-4xl mx-auto space-y-6">
+            <!-- Storage Controls -->
+            <div class="bg-slate-800 border-slate-700 no-print neon-border">
+                <div class="card-content">
+                    <div class="flex justify-end">
+                        <div class="storage-controls">
+                            <button id="loadStorageBtn" class="glow-button">Daten Laden</button>
+                            <button id="saveStorageBtn" class="glow-button">Daten Speichern</button>
+                            <button id="clearStorageBtn" class="bg-red-900 hover:bg-red-800">Daten Löschen</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Input Form -->
+            <div class="bg-slate-800 border-slate-700 no-print neon-border">
+                <div class="card-header">
+                    <h1 class="text-xl text-blue-300">Neue Bewerbung</h1>
+                </div>
+                <div class="card-content">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <input type="date" name="date" id="dateInput" class="bg-slate-700 border-slate-600 text-white" required>
+                        <input type="text" name="company" id="companyInput" placeholder="Unternehmen" class="bg-slate-700 border-slate-600 text-white" required>
+                        <input type="text" name="position" id="positionInput" placeholder="Position" class="bg-slate-700 border-slate-600 text-white" required>
+                        <select id="statusSelect" class="bg-slate-700 border-slate-600 text-white">
+                            <option value="pending">Noch ausstehend</option>
+                            <option value="rejected">Absage erhalten</option>
+                            <option value="interview_scheduled">Vorstellungsgespräch geplant</option>
+                            <option value="interview_completed">Vorstellungsgespräch abgeschlossen</option>
+                            <option value="offer_received">Angebot erhalten</option>
+                            <option value="offer_accepted">Angebot angenommen</option>
+                            <option value="offer_declined">Angebot abgelehnt</option>
+                        </select>
+                    </div>
+                    <div class="flex gap-2">
+                        <button id="addApplicationBtn" class="w-full bg-violet-900 hover:bg-violet-800 action-btn glow-button">Bewerbung hinzufügen</button>
+                    </div>
+                </div>
+                <div style="text-align: right; padding-right: 4px;">
+                    <span id="addTestDataBtn"
+                          style="font-size: 10px; opacity: 0.5; cursor: pointer; transition: all 0.2s ease;"
+                          onmouseover="this.style.textShadow='0 0 10px #40f0ff'; this.style.color='#40f0ff'; this.style.opacity='0.9';"
+                          onmouseout="this.style.textShadow='none'; this.style.color='rgb(71, 85, 105)'; this.style.opacity='0.5';"
+                          onmousedown="this.style.textShadow='0 0 10px #40a9ff'; this.style.color='#40a9ff';"
+                          onmouseup="this.style.textShadow='0 0 10px #40f0ff'; this.style.color='#40f0ff';"
+                          class="text-slate-600 select-none">Testdaten</span>
+                </div>
+            </div>
+
+            <!-- Applications List -->
+            <div id="applicationsList" class="space-y-4 no-print"></div>
+
+            <!-- Export Section -->
+            <div id="exportSection" class="p-4 bg-slate-800 rounded no-print neon-border">
+                <div class="flex justify-between items-center mb-4">
+                    <div class="flex items-center gap-2">
+                        <span>Gesamt: <span id="applicationCount">0</span> Bewerbungen</span>
+                    </div>
+                    <div class="flex gap-2">
+                        <button id="toggleExportBtn" class="bg-violet-900 hover:bg-violet-800 glow-button">Export anzeigen</button>
+                    </div>
+                </div>
+                <div id="exportContent" style="display: none;">
+                    <div class="mt-4 flex gap-2 mb-4">
+                        <button id="exportTableBtn" class="bg-violet-900 hover:bg-violet-800 glow-button">Tabelle</button>
+                        <button id="exportCSVBtn" class="bg-violet-900 hover:bg-violet-800 glow-button">CSV</button>
+                    </div>
+                    <div id="printSection" class="p-4 bg-slate-900 rounded"></div>
+                    <div id="csvActions" class="csv-actions" style="display: none;">
+                        <a id="downloadCSVBtn" href="#" class="download-link">Als CSV speichern</a>
+                    </div>
+                    <div class="mt-4">
+                        <button id="printBtn" class="bg-slate-700 hover:bg-slate-600 action-btn glow-button">Drucken</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Initialize applications array
+        let applications = [];
+        let currentFormat = 'table';
+        let isExportVisible = false;
+
+        // LocalStorage keys
+        const STORAGE_KEY = 'jobTrackerApplications';
+
+        // Functions for localStorage operations
+        function saveToLocalStorage() {
+            try {
+                localStorage.setItem(STORAGE_KEY, JSON.stringify(applications));
+                showNotification('Daten erfolgreich gespeichert!', 'success');
+            } catch (error) {
+                console.error('Error saving to localStorage:', error);
+                showNotification('Fehler beim Speichern der Daten!', 'error');
+            }
+        }
+
+        function loadFromLocalStorage() {
+            try {
+                const storedData = localStorage.getItem(STORAGE_KEY);
+                if (storedData) {
+                    applications = JSON.parse(storedData);
+                    renderApplicationsList();
+                    updateApplicationCount();
+                    updateExport();
+                    showNotification('Daten erfolgreich geladen!', 'success');
+                } else {
+                    showNotification('Keine gespeicherten Daten gefunden!', 'info');
+                }
+            } catch (error) {
+                console.error('Error loading from localStorage:', error);
+                showNotification('Fehler beim Laden der Daten!', 'error');
+            }
+        }
+
+        function clearLocalStorage() {
+            try {
+                if (confirm('Möchten Sie wirklich alle gespeicherten Daten löschen?')) {
+                    localStorage.removeItem(STORAGE_KEY);
+                    applications = [];
+                    renderApplicationsList();
+                    updateApplicationCount();
+                    updateExport();
+                    showNotification('Gespeicherte Daten wurden gelöscht!', 'success');
+                }
+            } catch (error) {
+                console.error('Error clearing localStorage:', error);
+                showNotification('Fehler beim Löschen der Daten!', 'error');
+            }
+        }
+
+        // Notification system
+        function showNotification(message, type) {
+            // Create notification element
+            const notification = document.createElement('div');
+            notification.textContent = message;
+            notification.style.position = 'fixed';
+            notification.style.bottom = '20px';
+            notification.style.right = '20px';
+            notification.style.padding = '10px 20px';
+            notification.style.borderRadius = '5px';
+            notification.style.zIndex = '1000';
+            notification.style.opacity = '0';
+            notification.style.transition = 'opacity 0.3s ease';
+
+            // Set color based on type
+            if (type === 'success') {
+                notification.style.backgroundColor = '#131340';
+                notification.style.color = '#40f0ff';
+                notification.style.border = '1px solid #40f0ff';
+                notification.style.boxShadow = '0 0 10px rgba(64, 240, 255, 0.7)';
+            } else if (type === 'error') {
+                notification.style.backgroundColor = '#131340';
+                notification.style.color = '#ff6680';
+                notification.style.border = '1px solid #ff6680';
+                notification.style.boxShadow = '0 0 10px rgba(255, 102, 128, 0.7)';
+            } else {
+                notification.style.backgroundColor = '#131340';
+                notification.style.color = '#40f0ff';
+                notification.style.border = '1px solid #40f0ff';
+                notification.style.boxShadow = '0 0 10px rgba(64, 240, 255, 0.7)';
+            }
+
+            // Add to document
+            document.body.appendChild(notification);
+
+            // Fade in
+            setTimeout(() => {
+                notification.style.opacity = '1';
+            }, 10);
+
+            // Remove after 3 seconds
+            setTimeout(() => {
+                notification.style.opacity = '0';
+                setTimeout(() => {
+                    document.body.removeChild(notification);
+                }, 300);
+            }, 3000);
+        }
+
+        function renderApplicationsList() {
+            const applicationsListDiv = document.getElementById('applicationsList');
+            applicationsListDiv.innerHTML = applications.map(app => `
+                <div id="application-${app.id}" class="application-card">
+                    <div class="p-4">
+                        <div class="flex justify-between items-start">
+                            <div class="space-y-1">
+                                <div class="font-medium text-blue-300">${app.company}</div>
+                                <div class="text-sm text-blue-100">${app.position}</div>
+                                <div class="text-sm text-blue-100">${app.date}</div>
+                                <div class="text-sm">
+                                    <span class="text-blue-300">Status:</span>
+                                    <span class="ml-2 text-blue-100">${getStatusLabel(app.status)}</span>
+                                </div>
+                            </div>
+                            <button class="h-5 w-5 bg-red-900 hover:bg-red-800 flex items-center justify-center rounded text-xs" onclick="deleteApplication(${app.id})" style="min-width: 1.25rem;">×</button></button>
+                        </div>
+                    </div>
+                </div>`).join('');
+        }
+
+        document.getElementById('addApplicationBtn').addEventListener('click', () => {
+            const date = document.getElementById('dateInput').value;
+            const company = document.getElementById('companyInput').value;
+            const position = document.getElementById('positionInput').value;
+            const status = document.getElementById('statusSelect').value;
+
+            if (date && company && position) {
+                const application = { id: Date.now(), date, company, position, status };
+                applications.push(application);
+                renderApplicationsList();
+                resetForm();
+                updateApplicationCount();
+                updateExport();
+            }
+        });
+
+        document.getElementById('addTestDataBtn').addEventListener('click', () => {
+            const testApplications = [
+                { id: Date.now() + 1, date: '2024-02-01', company: 'Tech Innovations Inc.', position: 'Senior Software Engineer', status: 'pending' },
+                { id: Date.now() + 2, date: '2024-02-05', company: 'Global Solutions LLC', position: 'Product Manager', status: 'interview_scheduled' },
+                { id: Date.now() + 3, date: '2024-02-10', company: 'Creative Designs Co.', position: 'UX Designer', status: 'offer_received' }
+            ];
+
+            applications.push(...testApplications);
+            renderApplicationsList();
+            updateApplicationCount();
+            updateExport();
+            showNotification('Testdaten hinzugefügt!', 'info');
+        });
+
+        function resetForm() {
+            document.getElementById('dateInput').value = '';
+            document.getElementById('companyInput').value = '';
+            document.getElementById('positionInput').value = '';
+            document.getElementById('statusSelect').value = 'pending';
+        }
+
+        function deleteApplication(id) {
+            const index = applications.findIndex(app => app.id === id);
+            if (index !== -1) {
+                applications.splice(index, 1);
+                renderApplicationsList();
+                updateApplicationCount();
+                updateExport();
+            }
+        }
+
+        function getStatusLabel(status) {
+            const statusLabels = {
+                pending: 'Noch ausstehend',
+                rejected: 'Absage erhalten',
+                interview_scheduled: 'Vorstellungsgespräch geplant',
+                interview_completed: 'Vorstellungsgespräch abgeschlossen',
+                offer_received: 'Angebot erhalten',
+                offer_accepted: 'Angebot angenommen',
+                offer_declined: 'Angebot abgelehnt'
+            };
+            return statusLabels[status];
+        }
+
+        function updateApplicationCount() {
+            document.getElementById('applicationCount').textContent = applications.length;
+        }
+
+        const toggleExportBtn = document.getElementById('toggleExportBtn');
+        const exportContent = document.getElementById('exportContent');
+
+        toggleExportBtn.addEventListener('click', () => {
+            if (exportContent.style.display === 'none') {
+                exportContent.style.display = 'block';
+                toggleExportBtn.textContent = 'Export verbergen';
+            } else {
+                exportContent.style.display = 'none';
+                toggleExportBtn.textContent = 'Export anzeigen';
+            }
+        });
+
+        document.getElementById('exportTableBtn').addEventListener('click', () => {
+            currentFormat = 'table';
+            updateExport();
+        });
+
+        document.getElementById('exportCSVBtn').addEventListener('click', () => {
+            currentFormat = 'csv';
+            updateExport();
+        });
+
+        function updateExport() {
+            const printSection = document.getElementById('printSection');
+            const csvActions = document.getElementById('csvActions');
+
+            if (currentFormat === 'table') {
+                printSection.innerHTML = `
+                    <h1 class="text-xl font-bold text-blue-300 mb-2">Bewerbungsübersicht</h1>
+                    <p class="text-blue-100">Datum: ${new Date().toLocaleDateString('de-DE')}</p>
+                    <p class="text-blue-100">Anzahl: ${applications.length} Bewerbungen</p>
+                    <div class="overflow-x-auto">
+                        <table>
+                            <thead>
+                                <tr class="bg-slate-800">
+                                    <th>Datum</th>
+                                    <th>Firma</th>
+                                    <th>Position</th>
+                                    <th>Status</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                ${applications.map(app => `
+                                    <tr>
+                                        <td>${app.date}</td>
+                                        <td>${app.company}</td>
+                                        <td>${app.position}</td>
+                                        <td>${getStatusLabel(app.status)}</td>
+                                    </tr>
+                                `).join('')}
+                            </tbody>
+                        </table>
+                    </div>`;
+                csvActions.style.display = 'none';
+            } else {
+                const csvContent = `Datum;Firma;Position;Status\n${
+                    applications.map(app =>
+                        `${app.date};${app.company};${app.position};${getStatusLabel(app.status)}`
+                    ).join('\n')}`;
+                printSection.innerHTML = `
+                    <div class="text-sm text-blue-300 mb-2">CSV Format:</div>
+                    <pre>${csvContent}</pre>`;
+
+                // Show the download button and set up the download link
+                csvActions.style.display = 'flex';
+                setupCSVDownload(csvContent);
+            }
+        }
+
+        function setupCSVDownload(csvContent) {
+            const downloadLink = document.getElementById('downloadCSVBtn');
+            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+            const url = URL.createObjectURL(blob);
+            downloadLink.href = url;
+            downloadLink.download = `bewerbungen_${new Date().toISOString().slice(0,10)}.csv`;
+
+            // Clean up the URL object after download
+            downloadLink.onclick = function() {
+                setTimeout(function() {
+                    URL.revokeObjectURL(url);
+                }, 100);
+            };
+        }
+
+        function handlePrint() {
+            // Store the current UI state
+            const wasExportVisible = isExportVisible;
+
+            // Store the original content
+            const originalContent = document.body.innerHTML;
+
+            // Create print-specific content
+            const printContent = `
+                <div style="padding: 20px;">
+                    <style>
+                        @media print {
+                            body {
+                                font-family: Arial, sans-serif;
+                                color: black;
+                                background: white;
+                            }
+                            table {
+                                width: 100%;
+                                border-collapse: collapse;
+                                margin-top: 20px;
+                            }
+                            th, td {
+                                border: 1px solid black;
+                                padding: 8px;
+                                text-align: left;
+                            }
+                            th {
+                                background-color: #f0f0f0;
+                            }
+                            pre {
+                                background-color: white;
+                                padding: 10px;
+                                border: 1px solid #ccc;
+                            }
+                        }
+                    </style>
+                    ${document.getElementById('printSection').innerHTML}
+                </div>
+            `;
+
+            // Replace body content with print content
+            document.body.innerHTML = printContent;
+
+            // Print
+            window.print();
+
+            // Restore original content
+            document.body.innerHTML = originalContent;
+
+            // Reinitialize all event listeners and restore UI state
+            initializeEventListeners();
+
+            // Restore export visibility state
+            isExportVisible = wasExportVisible;
+            const newExportContent = document.getElementById('exportContent');
+            const newToggleExportBtn = document.getElementById('toggleExportBtn');
+            newExportContent.style.display = isExportVisible ? 'block' : 'none';
+            newToggleExportBtn.textContent = isExportVisible ? 'Export verbergen' : 'Export anzeigen';
+
+            // Refresh the applications list
+            renderApplicationsList();
+            updateApplicationCount();
+
+            // Update the export content if it was visible
+            if (isExportVisible) {
+                updateExport();
+            }
+        }
+
+        function initializeEventListeners() {
+            // Storage controls
+            document.getElementById('loadStorageBtn').addEventListener('click', loadFromLocalStorage);
+            document.getElementById('saveStorageBtn').addEventListener('click', saveToLocalStorage);
+            document.getElementById('clearStorageBtn').addEventListener('click', clearLocalStorage);
+
+            document.getElementById('addApplicationBtn').addEventListener('click', () => {
+                const date = document.getElementById('dateInput').value;
+                const company = document.getElementById('companyInput').value;
+                const position = document.getElementById('positionInput').value;
+                const status = document.getElementById('statusSelect').value;
+
+                if (date && company && position) {
+                    const application = { id: Date.now(), date, company, position, status };
+                    applications.push(application);
+                    renderApplicationsList();
+                    resetForm();
+                    updateApplicationCount();
+                    updateExport();
+                }
+            });
+
+            document.getElementById('addTestDataBtn').addEventListener('click', () => {
+                const testApplications = [
+                    { id: Date.now() + 1, date: '2024-02-01', company: 'Tech Innovations Inc.', position: 'Senior Software Engineer', status: 'pending' },
+                    { id: Date.now() + 2, date: '2024-02-05', company: 'Global Solutions LLC', position: 'Product Manager', status: 'interview_scheduled' },
+                    { id: Date.now() + 3, date: '2024-02-10', company: 'Creative Designs Co.', position: 'UX Designer', status: 'offer_received' }
+                ];
+
+                applications.push(...testApplications);
+                renderApplicationsList();
+                updateApplicationCount();
+                updateExport();
+            });
+
+            const toggleExportBtn = document.getElementById('toggleExportBtn');
+            const exportContent = document.getElementById('exportContent');
+
+            toggleExportBtn.addEventListener('click', () => {
+                isExportVisible = !isExportVisible;
+                exportContent.style.display = isExportVisible ? 'block' : 'none';
+                toggleExportBtn.textContent = isExportVisible ? 'Export verbergen' : 'Export anzeigen';
+                if (isExportVisible) {
+                    updateExport();
+                }
+            });
+
+            document.getElementById('exportTableBtn').addEventListener('click', () => {
+                currentFormat = 'table';
+                updateExport();
+            });
+
+            document.getElementById('exportCSVBtn').addEventListener('click', () => {
+                currentFormat = 'csv';
+                updateExport();
+            });
+
+            document.getElementById('printBtn').addEventListener('click', handlePrint);
+        }
+
+        // Check for existing data on page load
+        function checkForExistingData() {
+            try {
+                const storedData = localStorage.getItem(STORAGE_KEY);
+                if (storedData) {
+                    // Show notification about existing data
+                    const dataCount = JSON.parse(storedData).length;
+                    if (dataCount > 0) {
+                        showNotification(`${dataCount} gespeicherte Bewerbungen gefunden. Klicken Sie auf "Daten Laden", um diese anzuzeigen.`, 'info');
+                    }
+                }
+            } catch (error) {
+                console.error('Error checking for existing data:', error);
+            }
+        }
+
+        // Initialize event listeners on page load
+        initializeEventListeners();
+
+        // Check for existing data
+        window.addEventListener('load', checkForExistingData);
+    </script>
+</body>
+</html>
+
+#,,,.,,,,,..,,..,,...,,,,,,.,,,.,,.,,,,..,,..,..,,...,.,.,...,,.,,,,,,.,.,...,
+#MHLV5HNB5UBBBT37QYLXNJUN3W2H5MQOOSJWEUSIZXLLPHPAP7JXB7FFPX2JW2XCIJDCECX2BFDSG
+#\\\|YFPVWYFRNVYNPX2G7IJBC2XEJQKQC7EGXN67ZMROEMHA7NJ4GJT \ / AMOS7 \ YOURUM ::
+#\[7]IFCL3KZGM5EPAWRBGKHYF25VZR574YCYYOQGQBJ5NY6Q7MIXPGDQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

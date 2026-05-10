@@ -1,0 +1,78 @@
+#!/usr/bin/perl
+## [:< ##
+
+# name  = export-jobs-json
+# descr = export scored jobs from site-yaml store as jobs.json
+
+use strict;
+use warnings;
+use FindBin;
+use lib "$FindBin::Bin/../../data/lib-path/pm";
+
+use YAML::XS ();
+use JSON::XS ();
+use Encode   ();
+
+my $store_file = '/var/protocol-7/site-yaml/store.yaml';
+my $out_file   = $ARGV[0] // '/var/httpd/jobs.taute.re/jobs.json';
+
+-f $store_file or die "store not found: $store_file\n";
+
+my $store = YAML::XS::LoadFile($store_file);
+ref $store eq 'HASH' or die "invalid store format\n";
+
+my @jobs;
+for my $id ( sort keys %{$store} ) {
+    my $j     = $store->{$id};
+    my $stage = $j->{'status'} // 'new';
+    ## only export jobs that have been assessed (have a score)
+    next unless defined $j->{'score'} && length $j->{'score'};
+    ## map store status to tracker stage
+    my $tracker_stage = {
+        'new'      => 'review',
+        'assessed' => 'review',
+        'applied'  => 'applied',
+        'rejected' => 'rejected',
+        'skipped'  => 'skipped',
+        'archived' => 'archived',
+    }->{ $stage } // 'review';
+
+    push @jobs, {
+        id       => $id,
+        title    => $j->{'title'}       // '',
+        company  => $j->{'company'}     // '',
+        city     => $j->{'city'}        // '',
+        industry => $j->{'industry'}    // '',
+        url      => $j->{'url'}         // '',
+        score    => $j->{'score'}       + 0,
+        reason   => $j->{'score_reason'} // '',
+        stage    => $tracker_stage,
+        fetched  => $j->{'fetched_at'}  // '',
+    };
+}
+
+## sort descending by score
+@jobs = sort { $b->{'score'} <=> $a->{'score'} } @jobs;
+
+my $output = {
+    generated => scalar localtime,
+    total     => scalar @jobs,
+    jobs      => \@jobs,
+};
+
+my $json = JSON::XS->new->utf8->pretty->encode($output);
+
+## write atomically via tmp file
+my $tmp = "$out_file.tmp";
+open( my $fh, '>', $tmp ) or die "cannot write $tmp: $!\n";
+print $fh $json;
+close $fh;
+rename $tmp, $out_file or die "cannot rename: $!\n";
+
+printf "exported %d jobs → %s\n", scalar @jobs, $out_file;
+
+#,,,,,,,.,.,.,,.,,.,.,,..,..,,,..,.,.,,.,,..,,..,,...,...,.,,,,..,.,,,,..,.,.,
+#OQKRND45NOOLM64WFT2B45I4HBFIH3FMNIZS4M3WAAOFLW3ZQ5FSMUU6JKSPRJ27RLBVNJ7JBP4FI
+#\\\|YVVXLRRYR3IOL4HYYVFGQ267TMO24WGDY3S5URY5ZU3EWDBRAHE \ / AMOS7 \ YOURUM ::
+#\[7]UIUV2DNJPGJYFTOD4M3R6YPKK57R43JQ5B2H6P2TJLJ4X5MJT2BY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
