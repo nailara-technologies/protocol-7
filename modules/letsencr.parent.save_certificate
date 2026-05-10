@@ -49,8 +49,7 @@ my $metadata = {
 
 ## warn if chain intermediate does not match leaf issuer
 ## [ full AIA repair happens in child.validate_chain — this is a safety net ]
-## [ guard: child already validated; x509_field may not be loaded in parent ]
-if ( length($chain_pem) and defined $code{'letsencr.x509_field'} ) {
+if ( length($chain_pem) ) {
     my $issuer_check
         = <[letsencr.x509_field]>->( $certificate_pem, '-issuer' );
     my $subject_check = <[letsencr.x509_field]>->( $chain_pem, '-subject' );
@@ -177,8 +176,8 @@ return {
     error_msg => undef
 };
 
-#,,.,,,,.,,,,,,.,,,.,,.,.,,,.,,,,,,.,,,.,,,.,,..,,...,...,..,,..,,,,.,,..,,..,
-#2335UOS6LAK5JPFXWJRMVPZQYOVXDOFJPV7C2DPX5D3VTATLNSUJYXK47WTO7XIH3OCR27KBZC6QW
-#\\\|OX6C535OYAD7LPRCEINYDFPDA3ZT6P2EDC5BF7IQDW5UBPQ732F \ / AMOS7 \ YOURUM ::
-#\[7]NVNQPXSRESUA37VZJWIEQM4QYWOKYCREBLGTU5K3ADF5C4XNOUAA 7  DATA SIGNATURE ::
+#,,.,,,,,,.,,,..,,,..,.,,,,,,,,..,.,.,,,,,,,,,..,,...,...,,,,,.,,,...,.,.,...,
+#Y6NKB22OACDIVCWPY4C2HCLRJ62Y2ZKYDKUXAGONZ44SKMO4F4C6QTF5H636BGIH4ZYXCTAD6OL56
+#\\\|XQE2774Y5URLFNO7USMYQ7ZL4TN5A3QBZFF3P5BDKC4QMOMIDCQ \ / AMOS7 \ YOURUM ::
+#\[7]5Q7QUDLC4U5TTJGEBILYAANDME7F4CO3QXG3U2CBSZDVK4OVB4BQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
