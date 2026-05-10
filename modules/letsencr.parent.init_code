@@ -5,6 +5,12 @@
 
 <[base.log]>->( 2, 'initializing ACME parent process.,' );
 
+## shared utility modules used by parent (child loads these too)
+<[base.load_runtime_modules]>->('letsencr.x509_field');
+<[base.load_runtime_modules]>->('letsencr.der_to_pem');
+<[base.load_runtime_modules]>->('letsencr.extract_aia_url');
+<[base.load_runtime_modules]>->('letsencr.fetch_intermediate_via_aia');
+
 ## letsencr.base is already loaded and initialized by zenka startup
 ## No need to reload/reinitialize here
 
@@ -141,8 +147,8 @@ if ( not exists <buffer.acme-activity> ) {
 
 0;
 
-#,,,.,,..,,,.,.,,,...,,,,,,..,..,,,..,..,,,,,,..,,...,...,.,,,,,.,..,,,,,,.,.,
-#KPIM4AOKQRC4Q6KU6EU3OWCD7UXSAXGXCCOBEOHRX7YEZVKAQIS5T5APZIVZP4XNFE4QWMC3YT5YI
-#\\\|JGVAEJXOIGM7VOGROZYUJ46BEMY4T27DHVPN3YQPMK5GNTL6RVV \ / AMOS7 \ YOURUM ::
-#\[7]WRVEAUQ6KP2PAS3BY5NQSQMAKTMYP6NTDTAHFCIOERYY2R2MWQBI 7  DATA SIGNATURE ::
+#,,,.,,.,,.,,,.,,,..,,,,.,,,.,.,,,...,,..,.,,,..,,...,..,,.,,,...,,,.,,,.,,,,,
+#5X7CMFIN6RYMJIOZAUOFCE56UGW4OJHVL5AC33BCLAYFFMUBOZFXHPFFEWWRBD7VFDN4SNIRBVLZ4
+#\\\|ROV2X2ANADFWBRFHTHPF3ITHHBCGAACHELWXP5JOA6EE4EMTQF7 \ / AMOS7 \ YOURUM ::
+#\[7]KS4LMCK52VZFSDDO4PSU4HEB5HZUZESGFXQ5T3WRKOSUGUJCZEAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
