@@ -478,10 +478,10 @@ function sortedJobs() {
             return sb - sa;
         });
     }
-    return all.sort((a, b) => {
-        if (a.sort_order != null && b.sort_order != null) return a.sort_order - b.sort_order;
-        return (b.date_added||'').localeCompare(a.date_added||'');
-    });
+    return all.sort((a, b) =>
+        (b.date_added||'').localeCompare(a.date_added||'') ||
+        (a.sort_order ?? 0) - (b.sort_order ?? 0)
+    );
 }
 
 function render() {
@@ -546,7 +546,7 @@ function exportCSV() {
 function showPrintTable() {
     const rows = sortedJobs().filter(j => j.stage !== 'archived' && j.stage !== 'skipped');
     const div = document.getElementById('print-table');
-    div.style.display = 'block';
+    div.style.display = '';
     div.innerHTML = `<table>
       <tr><th>Nr</th><th>Datum</th><th>Unternehmen</th><th>Position</th><th>Ort</th><th>Score</th><th>Status</th></tr>
       ${rows.map((j,i) => `<tr>
@@ -641,19 +641,31 @@ document.getElementById('btn-show-archive').addEventListener('click', () => {
 });
 
 document.getElementById('btn-export-csv').addEventListener('click', exportCSV);
-document.getElementById('btn-show-table').addEventListener('click', showPrintTable);
+let tableVisible = false;
+document.getElementById('btn-show-table').addEventListener('click', () => {
+    const div  = document.getElementById('print-table');
+    const link = document.getElementById('csv-download');
+    const btn  = document.getElementById('btn-show-table');
+    tableVisible = !tableVisible;
+    if (tableVisible) {
+        showPrintTable();
+        link.style.display = 'inline';
+        link.addEventListener('click', e => { e.preventDefault(); exportCSV(); }, {once:true});
+        btn.textContent = 'tabelle ausblenden';
+        btn.classList.add('active');
+    } else {
+        div.innerHTML = '';
+        div.style.display = 'none';
+        link.style.display = 'none';
+        btn.textContent = 'tabelle anzeigen';
+        btn.classList.remove('active');
+    }
+});
 
 document.getElementById('btn-clear-local').addEventListener('click', () => {
     if (confirm('Lokale Daten wirklich löschen? Pipeline-Daten bleiben erhalten (sync).')) {
         jobs = {}; saveLocal(); syncPipeline();
     }
-});
-
-/* ── CSV download link for print section ── */
-document.getElementById('btn-show-table').addEventListener('click', () => {
-    const link = document.getElementById('csv-download');
-    link.style.display = 'inline';
-    link.addEventListener('click', e => { e.preventDefault(); exportCSV(); }, {once:true});
 });
 
 /* ── init ── */
