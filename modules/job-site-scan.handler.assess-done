@@ -5,8 +5,9 @@
 
 my $call = shift // {};
 
-my $mode    = $call->{'mode'}              // '';
-my $result  = $call->{'data'}              // '';
+my $mode    = $call->{'mode'} // '';
+my $raw     = $call->{'data'} // '';
+my $result  = ref $raw ? $raw->$* : $raw;
 my $job_id  = $call->{'params'}{'job_id'}  // '';
 my $task_id = $call->{'params'}{'task_id'} // '';
 
@@ -72,8 +73,8 @@ if ( -f $store_file ) {
 <job-site-scan.pending_count>--;
 <[job-site-scan.state.persist]>;
 
-#,,,,,..,,,,,,..,,..,,...,...,..,,.,,,.,.,.,.,..,,...,...,.,,,,.,,,,.,,,.,.,.,
-#6Y7M4R56Q77YAXG6WH676HNEGD2MTCF2466FCIXYLQNAXBML6PLRPCM7J3CWLMT3X637Y6SB7ROTG
-#\\\|EGEMZTA65EFR7HQDAVKQIUADCILYQHXXFXQQRDZSJRMA4D7ZD4R \ / AMOS7 \ YOURUM ::
-#\[7]HY6UYE5NS5ISY2ZNKAADIBH4M3JSSZLBHI4ORLTEQKTBNX6L3KAI 7  DATA SIGNATURE ::
+#,,,,,,.,,.,,,..,,,.,,,,.,..,,..,,,..,,.,,.,.,..,,...,...,,,.,.,,,.,,,.,,,.,.,
+#EA5GJFJNCCDLO5HYLEGUBCZ3QZN4VJWTDVQUVALJR5SF7IQH3GVS5UTCZX2KREPLECD67LOGYIXC2
+#\\\|HV7KE65Z4MVEO2SLDYUJ7F6P7PHLQPENEWPCVHGUHXTZ3S2RGKD \ / AMOS7 \ YOURUM ::
+#\[7]SRZ2TFE3DVPRNUE6GEQXEDGOLYKWPMSCBUWVYBJG5WHSYML6RSDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
