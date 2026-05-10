@@ -6,8 +6,9 @@
 my $reply  = shift;
 my $cmd    = $reply->{'cmd'}       // '';
 my $args   = $reply->{'call_args'} // {};
-my $rdata  = $reply->{'data'}      // '';
-my $params = $reply->{'params'}    // {};
+my $raw    = $reply->{'data'}      // '';
+my $rdata  = ref $raw ? $raw->$* : $raw;
+my $params = $reply->{'params'} // {};
 
 my $step = $params->{'step'} // '';
 
@@ -225,8 +226,8 @@ if ( $step eq 'check-next' ) {
 <[base.logs]>->( 0, ': task-poll-step: unknown step [ %s ]', $step );
 return;
 
-#,,,,,,.,,,,.,,,,,..,,...,..,,,,,,,,,,.,,,.,.,.,.,...,...,,,.,,..,...,,..,,,.,
-#D2LYMR3K5IUXWL2S6QWOJ4CWH3VG5GYQRK6QAYRQGRNCF4QIELXWT2CYU3ZXMU7WUP4JKQXIGJR2U
-#\\\|55FQ3OJNTFIAXCBHQW5XYKDC6STITW6HOLGIXBEWOIKPSZVWBP3 \ / AMOS7 \ YOURUM ::
-#\[7]P2CZ55R4UT3N6T4LM2ACLU6IXTYNOCR2NM62WKUEJUA3MHGIUABQ 7  DATA SIGNATURE ::
+#,,,.,,,,,..,,,,,,.,.,,..,,..,,,.,.,.,.,,,,,,,.,.,...,...,...,,,.,..,,,..,,.,,
+#HYYVTA7SNU6WA4ZALU7C7VAF2J34VOQZSWHK6JKD4GP4Y3EFYUYOVEI5SB4FVUN6PYZSWWV5637CO
+#\\\|UHUNJ53ONLGMI4QM56KMROPV7WNVXU7BQO44H64472ZCOVIVUUX \ / AMOS7 \ YOURUM ::
+#\[7]ERYRDA6KXUCFC5LEJUPK5IXQJRFNLN3NWS5WHWQKBIGEFSSXZMCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
