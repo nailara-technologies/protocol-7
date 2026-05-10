@@ -3,20 +3,16 @@
 # name  = site-yaml.cmd.import
 # descr = fetch search url, import new job records
 
-my $reply_id = $call->{'reply_id'};
-my $url      = $call->{'args'} // '';
+my $url = $call->{'args'} // '';
 $url = $data{'site-yaml.cfg.stepstone_search_url'} // '' if not length $url;
 
-return <[base.callback.cmd_reply]>->(
-    $reply_id, { 'mode' => 'false', 'data' => 'no url' }
-) if not length $url;
+return { 'mode' => 'false', 'data' => 'no url' }
+    if not length $url;
 
 ## step 1: get job link list from search page
 my $links = <[site-yaml.stepstone.search]>->($url);
 if ( ref $links ne 'ARRAY' ) {
-    return <[base.callback.cmd_reply]>->(
-        $reply_id, { 'mode' => 'false', 'data' => "search failed: $links" }
-    );
+    return { 'mode' => 'false', 'data' => "search failed: $links" };
 }
 
 my ( $new_count, $skip_count, $err_count ) = ( 0, 0, 0 );
@@ -48,12 +44,10 @@ my $summary = sprintf 'import done: %d new, %d skipped, %d errors',
     $new_count, $skip_count, $err_count;
 <[base.logs]>->( 1, 'site-yaml.import : %s', $summary );
 
-<[base.callback.cmd_reply]>->(
-    $reply_id, { 'mode' => 'size', 'data' => $summary }
-);
+return { 'mode' => 'size', 'data' => $summary };
 
-#,,..,,..,.,,,,.,,,..,..,,,,,,...,.,,,.,,,..,,..,,...,...,,.,,,,.,.,.,.,.,,,.,
-#BGZ4AIC5VKO3ISY5X55U3PVZFQSXUUF3Z36REJQRQVWDYL3CKMWBEWLXJ5ZPPFXBXD6J53OVYLKI6
-#\\\|MTFLX4YGGVUR3OPWN3IIN2UUANDLZFCETOOHJ5QCFLKXZAPCWXO \ / AMOS7 \ YOURUM ::
-#\[7]GE22TYKLCS5Z2JIXCHNMTJQPZVEEOIET244NGQMANBC3QJFDKEBA 7  DATA SIGNATURE ::
+#,,,,,,,.,.,.,,,,,...,,.,,,..,,,,,,.,,..,,,,,,..,,...,..,,.,,,,,,,,.,,,..,,,.,
+#CJAD5PWB2XQEQCOW2XPYODR63WW7BBMD5SVWHDJ4RWVLMJDBJITAXPOOMLMFP75PHTU537SBNOWAM
+#\\\|SROOJUBBU2J36U5DUL2I43BWTRSSLUZI4RZXOPOHGXWRGLQDW64 \ / AMOS7 \ YOURUM ::
+#\[7]HFDM7JQ24CL47QDOS6KJYT2MWIKW5RB4SOKNEDYG7SSY46XEQGDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -3,30 +3,23 @@
 # name  = site-yaml.cmd.fetch
 # descr = fetch a URL and return structured YAML
 
-my $reply_id = $call->{'reply_id'};
-my $url      = $call->{'args'} // '';
+my $url = $call->{'args'} // '';
 
-return <[base.callback.cmd_reply]>->(
-    $reply_id, { 'mode' => 'false', 'data' => 'no url supplied' }
-) if not length $url;
+return { 'mode' => 'false', 'data' => 'no url supplied' }
+    if not length $url;
 
 my $result = <[site-yaml.extract]>->($url);
 
 if ( not defined $result or ref $result ne 'HASH' ) {
-    return <[base.callback.cmd_reply]>->(
-        $reply_id,
-        { 'mode' => 'false', 'data' => $result // 'extraction failed' }
-    );
+    return { 'mode' => 'false', 'data' => $result // 'extraction failed' };
 }
 
 my $yaml = YAML::XS::Dump($result);
 
-<[base.callback.cmd_reply]>->(
-    $reply_id, { 'mode' => 'size', 'data' => $yaml }
-);
+return { 'mode' => 'size', 'data' => $yaml };
 
-#,,..,.,,,,..,.,,,..,,,,,,.,.,.,.,.,.,,,,,...,..,,...,...,...,,..,...,,,.,,,.,
-#TVSPI4JXIYCYBAXGTP6VAQBF34DM345N6VAE5PT2RMIZYN7XVHV6MWC54FCSQD2SZRZCB6YGY2M3K
-#\\\|RRF44Z2DRHGC7IRFKTHMAL7LGMSKAT6MQ4Z25VI5SPHPSPNXBFG \ / AMOS7 \ YOURUM ::
-#\[7]IOCUHA7DSQFYEI3P7MEDCGKDODESZK3WZNP6KAIAVVC7RA3PIEDI 7  DATA SIGNATURE ::
+#,,.,,.,.,,.,,..,,.,,,...,...,,.,,,,,,.,,,..,,..,,...,...,,.,,,,.,,..,,,.,,,.,
+#2WKKF55G3APB4ZJY6GHDX35LIUMZBG76B5SKUXRZDC7UBWLLZGTGBVPHBSYCVY636BGGQW7L4KYO4
+#\\\|GORT3D22VHR4LUEQJJJDWOR2V5WDI2MRQLETMDBKXDMHJNNA737 \ / AMOS7 \ YOURUM ::
+#\[7]XWP5D624MGBAUFTLEFU3AP6JSRK3D76FORRF6T3HWSDPQD4KT4CY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
