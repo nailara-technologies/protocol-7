@@ -8,7 +8,6 @@ my $call = shift // {};
 my $mode     = $call->{'mode'}               // '';
 my $data_str = $call->{'data'}               // '';
 my $category = $call->{'params'}{'category'} // '';
-my $url      = $call->{'params'}{'url'}      // '';
 
 if ( lc($mode) eq qw| false | ) {
     <[base.logs]>->(
@@ -26,10 +25,14 @@ if ( lc($mode) eq qw| false | ) {
 return if <job-site-scan.fetch_pending> > 0;
 
 ## all fetches done — collect new untracked jobs from site-yaml store
-<[base.perlmod.autoload]>->('YAML::XS');
-my $store_file = '/var/protocol-7/site-yaml/store.yaml';
-my $store      = {};
-eval { $store = YAML::XS::LoadFile($store_file) } if -f $store_file;
+my $store = $data{'site-yaml'}{'jobs'}{'store'} // {};
+
+## fallback: read from file if not in shared namespace
+if ( not %{$store} ) {
+    <[base.perlmod.autoload]>->('YAML::XS');
+    my $store_file = '/var/protocol-7/site-yaml/store.yaml';
+    eval { $store = YAML::XS::LoadFile($store_file) } if -f $store_file;
+}
 
 my @to_assess;
 for my $job_id ( keys %{$store} ) {
@@ -50,13 +53,17 @@ if ( not @to_assess ) {
 <job-site-scan.pending_count> = scalar @to_assess;
 <[job-site-scan.state.persist]>;
 
-<[base.logs]>->( 1, 'jss: queuing %d assessment tasks', scalar @to_assess );
+<[base.logs]>->(
+    1,
+    'jss: queuing %d assessment tasks (sequential)',
+    scalar @to_assess
+);
 
+## build queue entries
+my @queue;
 for my $job_id (@to_assess) {
-    <job-site-scan.tasks>->{$job_id} = {
-        'stage'   => 'queued',
-        'task_id' => '',
-    };
+    <job-site-scan.tasks>->{$job_id}
+        = { 'stage' => 'queued', 'task_id' => '' };
 
     my $job   = $store->{$job_id};
     my $title = $job->{'title'}    // '';
@@ -65,27 +72,23 @@ for my $job_id (@to_assess) {
     my $ind   = $job->{'industry'} // '';
     my $desc  = substr( $job->{'description'} // '', 0, 800 );
 
-    my $task_desc = sprintf 'job-assess: [%s] %s at %s (%s, %s)',
+    my $task_desc = sprintf ':local: job-assess: [%s] %s at %s (%s, %s)',
         $job_id, $title, $co, $city, $ind;
+    my $full_args = join( "\n",
+        $task_desc,      "type=job-assess", "job_id=$job_id",
+        "title=$title",  "company=$co",     "city=$city",
+        "industry=$ind", "desc=$desc" );
 
-    <[protocol-7.route-send]>->(
-        {   'command'   => 'task.create',
-            'call_args' => {
-                'args' => join( "\n",
-                    $task_desc,      "type=job-assess", "job_id=$job_id",
-                    "title=$title",  "company=$co",     "city=$city",
-                    "industry=$ind", "desc=$desc", ),
-            },
-            'reply' => {
-                'handler' => 'job-site-scan.handler.task-created',
-                'params'  => { 'job_id' => $job_id },
-            },
-        }
-    );
+    push @queue, { 'job_id' => $job_id, 'desc' => $full_args };
 }
 
-#,,,,,..,,,.,,.,,,.,.,,..,.,,,.,,,.,.,.,.,,,.,..,,...,..,,..,,.,,,.,.,.,.,.,.,
-#GVZSOHPCSVUZRGYI7KXSDXLTOKS4EE5UPPUMYNKGPUPHDN3WMP2QSICO65SBGLS3JZB6IV4TNUPRU
-#\\\|ID3ETLREZH7ECBMS3CRO6CZGURQ7NIIOILDAACXU5Q6WGAITQLP \ / AMOS7 \ YOURUM ::
-#\[7]ZDID2V3BENP25FFUL3XVYXTDN5OTGWOJH5GHORM6NAJG4QGSPSAA 7  DATA SIGNATURE ::
+<job-site-scan.assess_queue> = \@queue;
+
+## dispatch first task — task-created handler will call dispatch.next for each
+<[job-site-scan.dispatch.next]>;
+
+#,,,,,,,.,,..,.,.,..,,,..,..,,,,.,,..,...,...,..,,...,..,,,,,,...,,..,,,.,.,.,
+#MCVUMYSKDAFGF4DCOHRDRRACMNYVNGEFRNYEGPUD357DGOHFSJBXTXMXGWKKY3JGL7DY2SVRRXS24
+#\\\|3IBY5SATKQAW7ROJPU2BGFVDDK7WTPJGRQ7ZGEOJGOLBOW6DJYQ \ / AMOS7 \ YOURUM ::
+#\[7]PKW7U7KIMBPZOFLXNC5FYROHPZTAL74MO5JQ7WWLZXIPWNYGD2CQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -9,12 +9,13 @@ my $mode    = $call->{'mode'}             // '';
 my $task_id = $call->{'data'}             // '';
 my $job_id  = $call->{'params'}{'job_id'} // '';
 
-if ( $mode ne 'size' and $mode ne 'true' and $mode ne '1' ) {
+if ( lc($mode) eq qw| false | ) {
     <[base.logs]>->(
         0,       'jss.task-created: failed for job %s: %s',
         $job_id, $task_id
     );
     <job-site-scan.pending_count>--;
+    <[job-site-scan.dispatch.next]>;    ## continue with next job
     return;
 }
 
@@ -24,6 +25,9 @@ $task_id = uc( substr( $task_id, 0, 7 ) );
 <job-site-scan.tasks>->{$job_id}{'task_id'} = $task_id;
 <job-site-scan.tasks>->{$job_id}{'stage'}   = 'assessing';
 <[job-site-scan.state.persist]>;
+
+## dispatch next job while this one runs async
+<[job-site-scan.dispatch.next]>;
 
 ## deferred watcher — fires when task.complete or task.fail is called
 <[protocol-7.route-send]>->(
@@ -36,8 +40,8 @@ $task_id = uc( substr( $task_id, 0, 7 ) );
     }
 );
 
-#,,.,,.,.,,,,,...,..,,,,,,,.,,,.,,,.,,.,.,...,..,,...,...,...,...,,..,.,.,..,,
-#GUTBQ3ZQGNYIDTVJ3L6Y6GUAJ2OBAZSA5LKJI5QNTQT7ZQVFS5S6E3WYB53ZRH53RG4RUBJNCEACI
-#\\\|MKWQNXVVO43KCQD6FGUKOAM6ED62FJUK2RYACZC3DKBEICHPP6Y \ / AMOS7 \ YOURUM ::
-#\[7]7YBM665MMXNB654BH2QBQ73PMVCFK43X7ZGLYW5FIWJEH46HXIAQ 7  DATA SIGNATURE ::
+#,,..,,,,,..,,.,.,,.,,..,,,.,,,..,,,.,.,.,...,..,,...,...,.,,,...,.,.,,,.,,..,
+#2THHAX6JJLUMHMZUM26TMXD3J3TWDTUABNUWZJZMI57GBML534QMGWEVG4YLKL64BMQZVQJ5VR5HC
+#\\\|ZHFPZO74JNLI6PGXKVMVYBSTAYVEOAFNR535ISQ3OC76X6PZSDK \ / AMOS7 \ YOURUM ::
+#\[7]TRFMONRCFBYZD2QN5BDN5G53M3JLW2JDMH6VJCH3H3CZDLGFVYBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

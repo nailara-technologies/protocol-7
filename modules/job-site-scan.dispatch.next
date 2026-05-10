@@ -1,0 +1,36 @@
+## [:< ##
+
+# name  = job-site-scan.dispatch.next
+# descr = dispatch next assessment task from queue
+
+my $queue = <job-site-scan.assess_queue> // [];
+
+if ( not @{$queue} ) {
+    <[base.logs]>->( 1, 'jss: assessment queue empty, waiting for results' );
+    return;
+}
+
+my $entry  = shift @{$queue};
+my $job_id = $entry->{'job_id'};
+my $desc   = $entry->{'desc'};
+
+<[base.logs]>->(
+    1,       'jss: dispatching assessment for job %s (%d remaining)',
+    $job_id, scalar @{$queue}
+);
+
+<[protocol-7.route-send]>->(
+    {   'command'   => 'task.create',
+        'call_args' => { 'args' => $desc },
+        'reply'     => {
+            'handler' => 'job-site-scan.handler.task-created',
+            'params'  => { 'job_id' => $job_id },
+        },
+    }
+);
+
+#,,..,...,,..,,.,,,.,,.,,,,..,...,..,,,,.,...,..,,...,...,,,.,.,.,.,,,.,,,,,.,
+#IKMIOFUIW2I6367RFGLV3I6247AOLXA47YE3IO3N6NPKSGEI5U4W5N5T27W3NFXGSV2H7PWYNY5LS
+#\\\|EFDER2Z5HERQO437CN25LQJEEKXHCPH5SV6JC7Y7AK2ICIRWSWG \ / AMOS7 \ YOURUM ::
+#\[7]PVLDPNJRYUTCP4DWXIG5JZC3NT67T65VAEGKTYRBLZZKDYDE7QCI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
