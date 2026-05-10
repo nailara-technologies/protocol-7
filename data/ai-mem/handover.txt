@@ -1,99 +1,76 @@
-# Session Handover — 2026-05-10 (session 19)
+# Session Handover — 2026-05-10 (session 20)
 
-## Completed This Session
+## What Was Fixed This Session
 
-### site-yaml zenka (cf6508230)
-- on-demand zenka: fetch/search/import/list-jobs/set-status commands
-- stepstone.de extraction: JSON-LD JobPosting from job pages (all 3 tested URLs
-  confirmed identical structure); link list from search results pages (25/page)
-- LWP::UserAgent with no_proxy(stepstone.de) — proxy at 10.0.110.7:4040 blocks it
-- job store: /var/protocol-7/jobs/store.yaml, keyed by numeric job ID
-  status flow: new → assessed → applied/rejected/skipped/archived
-- plugin.web.jobs.{list,stats,init_code}: render store as HTML, read store.yaml directly
-- jobs.html.tmpl on space.v7.ax: dark card list with stats bar, score color coding
-- cube auth.zenki + access.zenki entries, subroutine.white-list generated
+### Infrastructure bugs (all committed)
+- zenka_dir routines: replaced hardcoded /var/protocol-7/jobs/ paths with proper
+  file.zenka_dir.load/write API; store.yaml → /var/protocol-7/site-yaml/,
+  scan-state.yaml → /var/protocol-7/job-site-scan/
+- profile.txt moved to /etc/protocol-7/job-site-scan/profile.txt (cfg-dir)
+- flat dot-keys ($data{'foo.bar'}) → nested ($data{'foo'}{'bar'}) across all
+  site-yaml and job-site-scan modules (ncode -ai-friendly -confirm replace)
+- $ARG[0] fix: site-yaml subroutines called via ->($arg) need $ARG[0] not $ARG
+- $call_args/$reply_params → $call->{args}/$call->{params}{key} in all cmd/handler modules
+- cmd modules return hashref directly (not base.callback.cmd_reply — that's async only)
+- reply mode checks: lc($mode) eq 'false' instead of ne 'true' whitelist
+- base.protocol-7.* → protocol-7.* (prefix stripped at call time, not on disk)
+- job-site-scan.cmd.list renamed → cmd.list-jobs (collision with base.cmd.list)
+- Sequential task dispatch: assess_queue in namespace, dispatch.next called from
+  task-created handler (was dispatching 98 tasks simultaneously)
+- B32-encode multiline task args in dispatch.next; decode in task.cmd.create
+- HTML::Entities decode for job descriptions (umlaut double-encoding from LWP)
+- YAML load encoding: :raw (default) not :utf8 — matches write encoding
+- no_proxy: added www.stepstone.de explicitly alongside stepstone.de
+- 0.5s delay between individual job page fetches (rate limiting)
+- task.create: adds :local: prefix to route to coding zenka (not kimi default)
 
-### job-site-scan coordinator zenka (c5e64e956, 29e6a3272)
-- stage engine: idle → scanning → assessing → reviewing → idle
-- state lives in P7 namespace: <job-site-scan.tasks.JOBID.*>
-  persisted to /var/protocol-7/jobs/scan-state.yaml on every transition
-- scanning/assessing states reset to idle on restart (not resumable mid-flight yet)
-- pending_count var watcher → stage.review fires when all assessments land (no polling)
-- named categories in start file: cfg.categories + cfg.url.<name> per entry
-  defaults: linux-sysadmin, ki-automation, devops, platform-engineer
-  with real stepstone URLs for each
-- fetch stage: dispatches one site-yaml.import per category, waits for all replies
-  via fetch_pending counter before dispatching assessments
-- assess stage: task.create per new job → handler.task-created → task.wait-done
-  deferred reply fires handler.assess-done when coding zenka completes — no polling
-- assess-done: extracts JSON score, updates job stage to 'review' if >= threshold
-  also updates store.yaml status to 'assessed'
-- commands: scan, status, list [stage], approve <id>, reject <id>, set-threshold <n>
-- approve/reject: update both scan-state and store.yaml, return to idle when
-  all review jobs handled
-- job-assess.yaml context template: no_tools=true, max_rounds=1, profile.txt inject
-  returns: {"score": N, "reason": "...", "apply": true/false}
-- cube access: job-site-scan → site-yaml.import, task.create, task.wait-done,
-  coding.summarize-context
+### Key patterns learned
+- P7 cmd modules: return { 'mode' => 'true'|'false'|'size', 'data' => ... } directly
+- P7 reply handlers (route-send): get $call->{'mode'} as uppercase 'SIZE'/'TRUE'/'FALSE'
+  → always use lc($mode) eq 'false' for error check
+- Multiline call_args->{'args'}: must be B32-encoded or cube parses lines as protocol cmds
+- base.X prefix exists only on disk; called as X in code
+- $ARG = $_ (English.pm); $ARG[0] = $_[0] = first subroutine argument
+- file.zenka_dir.load returns undef if file absent, sref otherwise; use :raw encoding
+- task.create routes to kimi by default; prefix :local: for coding zenka
 
-## First-run checklist (not yet done)
-1. p7c v7.restart cube         — load new auth/access entries
-2. create /var/protocol-7/jobs/profile.txt — CV/skills text for LLM scoring
-3. p7c job-site-scan.scan      — triggers all 4 categories
-4. p7c job-site-scan.status    — check progress
-5. p7c job-site-scan.list review — see jobs above threshold
-6. p7c job-site-scan.approve <id>
+## Current State (end of session)
 
-## Open / Next Steps
+- 100 jobs in job-site-scan (assessing state), scan just triggered
+- site-yaml store: 98 entries loaded from /var/protocol-7/site-yaml/store.yaml
+- task dispatch: sequential via assess_queue, B32 encoding active
+- Coding zenka: running (Qwopus 9B v3 default)
+- All zenki reloaded with fixes
+
+## Open Items
 
 ### Job pipeline — immediate
-1. **profile.txt** — write user's skills/profile for LLM context (key unlock for scoring)
-2. **multi-page search** — stepstone returns 25 jobs/page; add cfg.max_pages per category
-   so import fetches page 2, 3 etc. (URL pattern: append ?page=2 or similar — needs check)
-3. **orphan re-queue** — if coding zenka restarts mid-assessment, tasks in 'assessing'
-   stage orphan. On jss restart, re-queue task.create for any job still in 'assessing'
-   after N hours
-4. **assessment quality** — test Qwopus vs CPU-sized model on same 3 job listings;
-   document score differences
+1. **Verify assessment end-to-end**: watch assess-done handler fire, check scores
+   `p7c job-site-scan.status` — should show review-stage jobs when scoring completes
+2. **Test approve/reject**: `p7c job-site-scan.list-jobs review` then approve/reject
+3. **jobs.html page**: verify space.v7.ax/jobs.html shows scored jobs correctly
+4. **Multi-page search**: stepstone returns 25 jobs/page; add cfg.max_pages
 
 ### Job pipeline — planned
-5. **HTTP sync endpoint** — /api/jobs/sync on httpd, YAML payload signed with C25519
-   node key; merge: last-write-wins by ntime; uses existing crypt.C25519.* modules
-   deferred until remote server model selection is settled
-6. **web template filter** — jobs.html.tmpl filter tabs currently use href params
-   that aren't wired to the template engine; need ?filter= query param support in
-   web.cmd.render-template or plugin.web.jobs.list arg passthrough
+5. **HTTP sync endpoint** — /api/jobs/sync on httpd, YAML+C25519 signed
+6. **web template filter** — ?filter= query param in jobs.html.tmpl
 
 ### From session 18 — still open
-7. **active deps execution** — requires list in task dispatcher (switch-model, worker)
-8. **await-event external slot watcher** — task.state.TASKID.slotname infra
-9. **think-block stripping** — <think>...</think> leaks from Kimi/Deepseek into output
-10. **model-pinned switching** — summarize_model config key inert
-11. **note_read pagination** — 287+ line notes exceed tool output budget
-12. **task.cmd.start** — task zenka step 3 (state transitions)
+7. active deps execution — requires list in task dispatcher
+8. await-event external slot watcher
+9. think-block stripping — <think>...</think> from Kimi/Deepseek
+10. model-pinned switching — summarize_model config key inert
+11. note_read pagination
+12. task.cmd.start — task zenka step 3
 
-## Current State
-- Default model: Qwopus 9B v3 (ZDMAPAY:AR3OCKQ), reasoning=high
-- Deepseek Opus distilled (EMQFUAA:VWI5WKQ): best for summarization
-- Kimi VL A3B (G6LEGQI:VWI5WKQ): needs think-block stripping
-- site-yaml: COMMITTED, not yet tested live (needs v7.restart cube first)
-- job-site-scan: COMMITTED, not yet tested live
-- task.summarize: working end-to-end (verified session 18)
-- task tree + coding state machine: all committed (session 18)
+## Key File Locations
+- Job store: /var/protocol-7/site-yaml/store.yaml
+- Scan state: /var/protocol-7/job-site-scan/scan-state.yaml
+- Profile: /etc/protocol-7/job-site-scan/profile.txt
+- Template: data/yaml/context-templates/job-assess.yaml
 
-## Key Patterns Confirmed This Session
-- stepstone JSON-LD: <script type="application/ld+json"> block, type=JobPosting
-  fields: title, company (hiringOrganization.name), city (jobLocation.address.addressLocality),
-  industry, employmentType, datePosted, validThrough, directApply, description (HTML)
-  job ID: numeric, extracted from URL slug --(\d+)-inline\.html
-- search page: 25 job hrefs per page, pattern /stellenangebote--...-inline.html
-- proxy bypass: NO_PROXY=stepstone.de or $ua->no_proxy('stepstone.de') required
-- var watcher on pending_count: fires on every write; handler checks == 0 to gate stage transition
-- multi-category fetch: dispatch all, track fetch_pending counter, assess only when counter hits 0
-- job-assess template: file section with optional:true + fallback works cleanly for missing profile
-
-#,,.,,,,,,.,.,.,,,..,,,,,,.,,,.,,,..,,,.,,,,.,..,,...,..,,.,.,.,.,..,,.,,,...,
-#2U44Q2VHGSHZOYUESOY4RCHURPQ2H7IQARS6JNKQZ2YBSPMZPB3RQPTQZFH3IOHALGZW2P557JLYQ
-#\\\|MIVOLLLKUYTGMIX4Y4R4SEUNVC4SKUQHPXPE4APH3MT2MHIA5G3 \ / AMOS7 \ YOURUM ::
-#\[7]PZEQSPSOXBKJP2NLNE4HXVXPHCEZXITVM4F5IPWBGWGCXPO7J6DQ 7  DATA SIGNATURE ::
+#,,,.,,,,,,..,.,.,...,..,,,.,,,..,,,.,..,,.,,,..,,...,...,,,,,..,,,..,,,.,...,
+#PMV2X3Y6CIC2OOFPP7GAR7VM7IJ2AJCGLES4RH267JQMHJB5EE3NBJYOI2EU5QZIP2BUQX2JHVMSC
+#\\\|GYVLSTQLZ547C4AABY7T3BCTXDUOZXVNWYH65ZZC7MGRZEAK7WL \ / AMOS7 \ YOURUM ::
+#\[7]PMMKUPYOAHUNIXJPRWZNWA7ERIMZ7SANGXA2A2WOWVPHOOTCYMDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
