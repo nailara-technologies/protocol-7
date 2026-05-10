@@ -53,15 +53,17 @@ if (@orphans) {
         'job-site-scan: re-wiring %d orphaned assessment tasks',
         scalar @orphans
     );
-    for my $job_id (@orphans) {
-        my $task_id = $tasks->{$job_id}{'task_id'};
-        <[base.event.once]>->(
-            {   'after'   => 1,
-                'handler' => 'job-site-scan.handler.rewire-assess',
-                'args'    => { 'job_id' => $job_id, 'task_id' => $task_id },
-            }
-        );
-    }
+    ## store queue — rewire-all handler processes after event loop starts
+    <job-site-scan.rewire_queue>
+        = [
+        map { { 'job_id' => $ARG, 'task_id' => $tasks->{$ARG}{'task_id'} } }
+            @orphans ];
+    <[event.add_timer]>->(
+        {   'after'   => 2,
+            'repeat'  => FALSE,
+            'handler' => 'job-site-scan.handler.rewire-all',
+        }
+    );
 }
 
 my $job_count = scalar keys %{$tasks};
@@ -70,8 +72,8 @@ my $job_count = scalar keys %{$tasks};
     <job-site-scan.cycle>, $job_count
 );
 
-#,,,.,...,,,,,.,,,,,.,..,,..,,..,,,.,,,,,,..,,..,,...,...,.,,,,,,,..,,..,,,,.,
-#WKEHYZFFKBM4CIER7SBTGWXKKNEYJIGCPLIK5B7O7R4TGS3BVGTW35MY3DLAMKASK7SSMM7LGTEEQ
-#\\\|AQDGMIPSULOWJ2TGWYUNET6QGTFPRBLWFAGW4BJ62VBEFVA4WMY \ / AMOS7 \ YOURUM ::
-#\[7]VBXVQ6HBXMC24BEFKVV3VYCQKBG4VM36DA3F6JBK7ZPFYXPNKIBI 7  DATA SIGNATURE ::
+#,,..,..,,...,,,.,,,.,,,.,.,.,,..,.,.,,..,,,.,..,,...,..,,.,,,,,,,.,.,,,.,.,,,
+#7WKBUVJ7HXLVL4PSNQAZ5INOATPLL674W6FUVUIIAH5BZFW6R4IA37CLUOZW4DNS2O4V3H34MD6UA
+#\\\|BUNGFIXUOKEYD7SDEUCVVLOGIAQX7E2ZFLHO7FDNGFK3ANSZLVF \ / AMOS7 \ YOURUM ::
+#\[7]4MZO4WJ7DNSHMKGKLAF5BDHL3A5DX2HWXB66ODL46XCS3F2R3UBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
