@@ -79,6 +79,10 @@ if ( !<letsencr.child.pid> ) {    ## child ##
     <[base.zenki.report_child_pid]>->($child_pid);
 
     <[base.load_runtime_modules]>->('letsencr.parent');
+    <[base.load_runtime_modules]>->('letsencr.x509_field');
+    <[base.load_runtime_modules]>->('letsencr.der_to_pem');
+    <[base.load_runtime_modules]>->('letsencr.extract_aia_url');
+    <[base.load_runtime_modules]>->('letsencr.fetch_intermediate_via_aia');
     <[base.init_modules]>->('letsencr.parent');
 
     ## silencing session shutdown, to log-level 1 ##
@@ -116,8 +120,8 @@ if ( !<letsencr.child.pid> ) {    ## child ##
     <[base.log]>->( 1, 'letsencr parent initialized' );
 }
 
-#,,.,,...,,.,,..,,.,,,...,,,,,,,,,,,.,.,.,.,.,..,,...,...,...,..,,,,,,,..,..,,
-#DJZTII4MQZIAFRJJB57QBX7W46P5O4NYNVVIKADMDE7L3FXQXYI64B7RXOL4463R7TSK7MYJQLFUI
-#\\\|ESRQOMNEEM4IZENFPGTE62XUJHDLHNE7UOOYZ2YSW4TJBMCEUVC \ / AMOS7 \ YOURUM ::
-#\[7]6BCE3TLNHXW3MAXMWBVE5QWMQIQUB2SR3NAHSFKHJB4DD4H42SCQ 7  DATA SIGNATURE ::
+#,,..,...,,,,,,,.,.,.,..,,,.,,.,.,.,,,...,,.,,..,,...,..,,.,,,..,,,..,,,.,.,.,
+#3PQCOWL42RZDVIJMYUSQ3OH6X2VCEHSP4MBZ7O4OOWI3MTJ4DRIJR4XVYANOTTGBUSHAODRKSQU5C
+#\\\|6IUTFJGFYQVMWWWELW43UK3L3FLZJHCEJKOKUXWBERIEQJFBAIR \ / AMOS7 \ YOURUM ::
+#\[7]B3TRDRAGV2AWLTG5VJOQZRN5TF2AVJTO3UGDWHDRRYGPT4CR5ACI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
