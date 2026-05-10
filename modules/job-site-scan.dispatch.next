@@ -19,9 +19,12 @@ my $desc   = $entry->{'desc'};
     $job_id, scalar @{$queue}
 );
 
+## encode multiline args as base32 to avoid protocol framing issues
+my $encoded = ':B32:' . encode_b32r( Encode::encode( 'UTF-8', $desc ) );
+
 <[protocol-7.route-send]>->(
     {   'command'   => 'task.create',
-        'call_args' => { 'args' => $desc },
+        'call_args' => { 'args' => $encoded },
         'reply'     => {
             'handler' => 'job-site-scan.handler.task-created',
             'params'  => { 'job_id' => $job_id },
@@ -29,8 +32,8 @@ my $desc   = $entry->{'desc'};
     }
 );
 
-#,,..,...,,..,,.,,,.,,.,,,,..,...,..,,,,.,...,..,,...,...,,,.,.,.,.,,,.,,,,,.,
-#IKMIOFUIW2I6367RFGLV3I6247AOLXA47YE3IO3N6NPKSGEI5U4W5N5T27W3NFXGSV2H7PWYNY5LS
-#\\\|EFDER2Z5HERQO437CN25LQJEEKXHCPH5SV6JC7Y7AK2ICIRWSWG \ / AMOS7 \ YOURUM ::
-#\[7]PVLDPNJRYUTCP4DWXIG5JZC3NT67T65VAEGKTYRBLZZKDYDE7QCI 7  DATA SIGNATURE ::
+#,,.,,.,.,,..,,,.,...,,.,,,.,,,.,,.,.,,,.,,..,..,,...,...,,..,,..,,.,,,.,,.,,,
+#7KGMP7K5NGQNOPLY7TIWTWN3H7ZBYV6EY2CR3BWCUUABVT5FAZACDT3OUZU6PWDBP7JXYZ6J3MVZW
+#\\\|OMOQDA67JUXEPBEPXKZF5JIYK7C7IK2Q2VPV2JA7DYGG4M6OL2D \ / AMOS7 \ YOURUM ::
+#\[7]6WGG72DDOHWD6TLYUJXYB5WHII34O6FXNZXLCCCL5WR3CFMUXGBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
