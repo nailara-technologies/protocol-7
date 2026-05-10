@@ -224,7 +224,8 @@ button.red:hover { background: rgba(130,0,0,0.6); }
     <button id="btn-sync">↻ sync</button>
     <button id="btn-add-toggle">+ manuell</button>
     <button id="btn-sort-score" class="active">score ↓</button>
-    <button id="btn-sort-date">score ↑</button>
+    <button id="btn-sort-asc">score ↑</button>
+    <button id="btn-sort-date">datum ↓</button>
     <span class="sep">|</span>
     <button id="btn-export-csv" class="orange">CSV export</button>
     <button id="btn-show-archive">archiv</button>
@@ -286,7 +287,7 @@ const JOBS_JSON   = '/jobs.json';
 
 /* ── state ── */
 let jobs = {};           // id → job object
-let sortMode = 'score';  // 'score' | 'date'
+let sortMode = 'score';  // 'score' | 'asc' | 'date'
 let filterMode = 'all';
 let minScore = 6;
 let showArchived = false;
@@ -471,18 +472,15 @@ function reorderCards(srcId, dstId) {
 
 function sortedJobs() {
     const all = Object.values(jobs);
-    if (sortMode === 'score') {
-        return all.sort((a, b) => {
-            const sa = a.score != null ? parseFloat(a.score) : -1;
-            const sb = b.score != null ? parseFloat(b.score) : -1;
-            return sb - sa;
-        });
-    }
-    return all.sort((a, b) => {
+    const byScore = (a, b) => {
         const sa = a.score != null ? parseFloat(a.score) : -1;
         const sb = b.score != null ? parseFloat(b.score) : -1;
-        return sa - sb;  /* ascending */
-    });
+        return sb - sa;
+    };
+    if (sortMode === 'score') return all.sort(byScore);
+    if (sortMode === 'asc')   return all.sort((a, b) => -byScore(a, b));
+    /* date: sort by fetched timestamp descending, newest first */
+    return all.sort((a, b) => (parseFloat(b.fetched)||0) - (parseFloat(a.fetched)||0));
 }
 
 function render() {
@@ -613,18 +611,16 @@ document.getElementById('btn-add-toggle').addEventListener('click', () => {
 });
 document.getElementById('btn-add-save').addEventListener('click', addManual);
 
-document.getElementById('btn-sort-score').addEventListener('click', () => {
-    sortMode = 'score';
-    document.getElementById('btn-sort-score').classList.add('active');
-    document.getElementById('btn-sort-date').classList.remove('active');
+const sortBtns = ['btn-sort-score', 'btn-sort-asc', 'btn-sort-date'];
+function setSortMode(mode) {
+    sortMode = mode;
+    sortBtns.forEach(id => document.getElementById(id).classList.remove('active'));
+    document.getElementById('btn-sort-' + (mode === 'score' ? 'score' : mode === 'asc' ? 'asc' : 'date')).classList.add('active');
     render();
-});
-document.getElementById('btn-sort-date').addEventListener('click', () => {
-    sortMode = 'date';
-    document.getElementById('btn-sort-date').classList.add('active');
-    document.getElementById('btn-sort-score').classList.remove('active');
-    render();
-});
+}
+document.getElementById('btn-sort-score').addEventListener('click', () => setSortMode('score'));
+document.getElementById('btn-sort-asc').addEventListener('click',   () => setSortMode('asc'));
+document.getElementById('btn-sort-date').addEventListener('click',  () => setSortMode('date'));
 
 document.querySelectorAll('.ftab').forEach(tab => {
     tab.addEventListener('click', () => {
