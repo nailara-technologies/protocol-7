@@ -82,6 +82,7 @@
 - `topic-hyperspace-topology.md` — closed observer loop as anti-entropic; intent-saturated chains self-strengthen; sensor cube 3D grid as physical hyperspace; on-route topology teaching; feature-to-topology mapping; context as position; doc at data/md/development/HYPERSPACE-TOPOLOGY.md
 - `topic-field-coherence-synthesis.md`
 - `topic-job-pipeline.md` — WORKING (session 22): jobs.vhost live, German reason+summary in one pass, retry on timeout, letsencr fixed
+- `topic-plugin-web-jobs.md` — plugin.web.jobs.* design: bi-directional sync, B32 backups, replaces export-jobs-json+scp
 - `topic-job-pipeline-title-filter.md` — future: batch title screening via AMOS checksums before page fetch; 30-50% savings
 - `feedback-task-show-multiline.md` — task.show must escape \\n in description/context; line parsers only see first line otherwise
 - `feedback-fork-child-module-loading.md` — parent branch of fork must explicitly load_runtime_modules for all subs it calls; child loads don't reach parent %code
@@ -401,8 +402,8 @@
 - Pattern: `my @non_num = grep { defined $data_ref->{$ARG}->{$key} and not looks_like_number(...) } keys $data_ref->%*`
 - Global `$SIG{__WARN__}` exists — if wrapping warn handler, capture `$prev_warn = $SIG{__WARN__}` first and call through
 
-#,,,,,..,,...,...,,.,,...,,..,,,.,..,,.,,,.,,,..,,...,...,.,,,,..,.,,,,,,,,..,
-#HPKDRBXV2LEFQEPQLG6OBDHR65K6ACYTYTKRGQR5RQFWDFDPWD7W5ILUROLPVJBDCJVHWD3KIGMIQ
-#\\\|RVYWELC6VLBLGY26XWTUFGRS33HLZIPUXHKKJH5K5W2XM7WQCNW \ / AMOS7 \ YOURUM ::
-#\[7]5KEPBZI2UCY43QUUYZJQ6ZZ7BW7T5T6VBFFFJYX3SDGHKTZ5C4CY 7  DATA SIGNATURE ::
+#,,.,,,.,,.,,,,..,,..,.,.,.,.,,.,,.,.,.,.,.,.,..,,...,...,...,,..,,,,,.,,,...,
+#LV74BGKZ66IQY2X4H2TDOT2HZSQ2RJ7O4CBTDBMNHL65CUSIM2AVDPX4UMHPR3DBT4EUB4XCGTIZY
+#\\\|2MXIWEXIUNEU4UGXH27T33EQWANXL3L5WD4O7F4WIGCAMMSP37O \ / AMOS7 \ YOURUM ::
+#\[7]EPEJTANAIYWACK7Z5JZQIS5FMTIGLYFQSNEVA7BPLPJA6W6ACUAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

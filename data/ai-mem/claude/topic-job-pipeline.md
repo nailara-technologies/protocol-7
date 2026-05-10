@@ -63,14 +63,15 @@ originSessionId: 5557aaa4-3476-4c66-9002-955c73ae92a1
   persistence — so categories don't require editing the start file
 - Multi-page search: cfg.max_pages per category (stepstone: 25/page)
 - Task zenka persistence (zenka_dir) — state lost on idle shutdown
-- HTTP sync endpoint — auto-push jobs.json after each run
+- plugin.web.jobs.* — bi-directional sync endpoint, B32 backups, replaces
+  export-jobs-json+scp; see topic-plugin-web-jobs.md for full design
 - Remove debug logs from models.handler.task-poll-step
 - Apply workflow: send application email from review card
 - Exclusion filter from past CSV data (already-applied companies)
 - score_tech + score_location split in assessment JSON
 
-#,,,.,,.,,,..,,.,,.,.,,..,.,.,.,.,.,.,,..,,..,..,,...,...,,..,..,,...,,..,,..,
-#CY6F4NB7EIRWW477E5WDKSBCJEFS2VNGLERKTJZQAESGCMEXL3BYIIXEAR7OQTZX6RIWTM5MWNYKG
-#\\\|SXMCH3AIHYPZ7NEK5TSJPVYEKZ3RNSBLUQZJE73Z7LMWEL63ERB \ / AMOS7 \ YOURUM ::
-#\[7]ICSTWOHBI63OYF26IUVSWCUJPPZUKLV7T5BVO6P3IWD5TBLIDWAY 7  DATA SIGNATURE ::
+#,,.,,,,,,...,,..,...,..,,,..,,.,,...,,..,.,.,..,,...,..,,..,,.,,,,.,,..,,.,,,
+#QLH7C2FSJFJAA2VBASGZ2IMNMYX574QN53XEN3KAK4FDE6PTKXKBHMNIJVZT5WDPOTOPPLZAFO764
+#\\\|FFCJECXYP6VY3IDOM36EPJZUQFWA7BD5WVATN2MSH4VSTU47PFQ \ / AMOS7 \ YOURUM ::
+#\[7]VULZY7P4H3QWHXLF3KVLBANAA3SNTRFBRYYE6WXYPPG5S4PPRYAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
