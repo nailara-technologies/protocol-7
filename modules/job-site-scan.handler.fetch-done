@@ -33,7 +33,15 @@ my $store = $data{'site-yaml'}{'jobs'}{'store'} // {};
 if ( not %{$store} ) {
     <[base.perlmod.autoload]>->('YAML::XS');
     my $store_file = '/var/protocol-7/site-yaml/store.yaml';
-    eval { $store = YAML::XS::LoadFile($store_file) } if -f $store_file;
+    if ( -f $store_file ) {
+        eval { $store = YAML::XS::LoadFile($store_file) };
+        <[base.logs]>->( 0, 'jss: store load error: %s', $@ ) if $@;
+        <[base.logs]>->(
+            1,
+            'jss: loaded %d store entries from file',
+            ref $store eq 'HASH' ? scalar keys %{$store} : 0
+        );
+    }
 }
 
 my @to_assess;
@@ -110,8 +118,8 @@ for my $job_id (@to_assess) {
 ## dispatch first task — task-created handler will call dispatch.next for each
 <[job-site-scan.dispatch.next]>;
 
-#,,,.,.,,,..,,.,,,.,.,.,.,,,,,,,.,..,,,,,,,,,,..,,...,.,.,.,.,.,,,..,,,.,,.,,,
-#DXGITXNFIWXDXQG36W7GBZK7A6TF2GT4DTUFWTSK3SLHNQJPLC3TJUXXAQ7GMV3IPAK6GJENLWMXG
-#\\\|PJXXHOGOZGUM77P54CS37CTAPVAHGQS7THBR4LP65QCHWGWIBDB \ / AMOS7 \ YOURUM ::
-#\[7]W56II7FWSWS42TXVI2KXLKWEVS2WB2BUTE5YQI57XTGQ7OVTXGBQ 7  DATA SIGNATURE ::
+#,,,.,.,,,,,,,,,.,,,.,,..,..,,.,,,,,,,...,...,..,,...,...,...,.,.,,,,,.,,,.,.,
+#TUZAINM4AFA4TQPVXTGZXJHJEDRPGOLV7TA6GPOAUN62WFVWBIW5VBDRZZ4EHMOEH33BZIGOH5G4Y
+#\\\|INWUHCTOUIP3DGEXXJIJ4ATX6NDYBSNRQCKEYPXKCSI3PFBC6IN \ / AMOS7 \ YOURUM ::
+#\[7]5K3ERNHZ3F56RABEOUUJ4Y4RPY7NCBEFVLHPQWNKM7ZGHCBPLODA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
