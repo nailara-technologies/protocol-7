@@ -3,7 +3,8 @@
 # name  = job-site-scan.cmd.status
 # descr = show current cycle state and job counts
 
-my $tasks = <job-site-scan.tasks> // {};
+my $reply_id = $call->{'reply_id'};
+my $tasks    = <job-site-scan.tasks> // {};
 
 my %counts;
 for my $id ( keys %{$tasks} ) {
@@ -25,11 +26,12 @@ for my $stage (
 }
 push @lines, sprintf 'threshold:  %s', <job-site-scan.cfg.threshold> // 6;
 
-<[base.callback.cmd_reply]>
-    ->( { 'mode' => TRUE, 'data' => join( "\n", @lines ) } );
+<[base.callback.cmd_reply]>->(
+    $reply_id, { 'mode' => 'size', 'data' => join( "\n", @lines ) }
+);
 
-#,,,.,,,,,,..,.,,,.,,,...,,,,,,,,,.,,,...,.,,,..,,...,...,,,,,,.,,...,,..,,,,,
-#ZGBPRHILNXOEVOXPGHBSLE2FJFJTGW3VLH2WNZXBB227ERVTWHOTNL3TTDKBSRARWJYVOYKQ55QFQ
-#\\\|QSQEMSOQQZLSK2M2VIK5NMMDRK6NSYYKGHJ6WQZ5LDPKYJGZRVY \ / AMOS7 \ YOURUM ::
-#\[7]W2FJS2ITAN6V2C7VLCI5M3E6QOSSDIS7KAQG247RYEK7VJ6VHCBY 7  DATA SIGNATURE ::
+#,,,.,.,.,...,.,,,..,,..,,,,,,...,,,.,...,.,.,..,,...,..,,,,,,.,,,.,,,.,.,.,,,
+#4CRRSTGPHKRI7SZAHHGUUMJSOELWPNVJHEY6WKJGAPABDL4TAMWHZ3XSBRJXBWMBDX57N3YX34IHQ
+#\\\|63INVSFKIHMKKGKIVRTBG6LPOOUWXJY2TXQUIYPUT2JLK7S6WQP \ / AMOS7 \ YOURUM ::
+#\[7]65NKCHBRAE4CFNANSBVJ6PUTDGP6ESFFRJNRN3QVIDMO7LUUPADQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -3,21 +3,26 @@
 # name  = job-site-scan.cmd.scan
 # descr = trigger a scan cycle manually
 
+my $reply_id = $call->{'reply_id'};
+
 if ( $data{'jss.cycle'} ne 'idle' ) {
     return <[base.callback.cmd_reply]>->(
-        {   'mode' => FALSE,
-            'data' => sprintf 'cycle already active: %s',
-            $data{'jss.cycle'},
+        $reply_id,
+        {   'mode' => 'false',
+            'data' =>
+                sprintf( 'cycle already active: %s', $data{'jss.cycle'} ),
         }
     );
 }
 
-<[base.callback.cmd_reply]>->( { 'mode' => TRUE, 'data' => 'scan started' } );
+<[base.callback.cmd_reply]>->(
+    $reply_id, { 'mode' => 'true', 'data' => 'scan started' }
+);
 
 <[job-site-scan.stage.fetch]>;
 
-#,,,.,,..,.,.,,,,,,,.,,..,...,...,..,,,,,,.,,,..,,...,...,...,.,,,.,.,...,,.,,
-#7KO6TLXRS3VJRTD3QNCK3OIC64V2XCJE52VPBKQONYPL6RLJSZSJKM2VAB3CWLUOZNYCWB67YUKR4
-#\\\|HPAIMUIPZMWNC6U6CTY73235BUOLS5LQAZE2ZEFVBZCOHZEIBB2 \ / AMOS7 \ YOURUM ::
-#\[7]TF4HODENQMFAGEGNTLUK5J7O234POZGGU3ISDGKN6FAT7QVQQQCY 7  DATA SIGNATURE ::
+#,,.,,,.,,,.,,..,,.,.,,.,,..,,..,,,..,,,.,,,,,..,,...,...,.,.,...,,.,,,.,,.,,,
+#BXJ5ZLVVX2WDVAKSEV2MSJG6ZXR2SJHLTC7XMAPQ6T3IP7HT7BGF5NFQ7X5AB2TAAXUXKFQ56MDNY
+#\\\|PN7GVERZ3GWJP2NY2L42DM32PNZSRFRX5ZN6NWYDYZ3RHJZY7AI \ / AMOS7 \ YOURUM ::
+#\[7]4LEBWIG6N4FQMFRKLYKOYTP2CHB36Y76X4C7ISISMVS7YZEIPOAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,9 +1,10 @@
 ## [:< ##
 
-# name  = job-site-scan.cmd.list
+# name  = job-site-scan.cmd.list-jobs
 # descr = list jobs, optional stage filter
 
-my $filter = $call->{'args'} // '';
+my $reply_id = $call->{'reply_id'};
+my $filter   = $call->{'args'} // '';
 
 my $tasks = <job-site-scan.tasks> // {};
 my @ids   = sort keys %{$tasks};
@@ -13,7 +14,8 @@ my @ids   = sort keys %{$tasks};
 
 if ( not @ids ) {
     return <[base.callback.cmd_reply]>->(
-        {   'mode' => TRUE,
+        $reply_id,
+        {   'mode' => 'true',
             'data' => 'no jobs'
                 . ( length $filter ? " (filter: $filter)" : '' )
         }
@@ -44,11 +46,12 @@ for my $id (@ids) {
         $job->{'city'}    // '';
 }
 
-<[base.callback.cmd_reply]>
-    ->( { 'mode' => TRUE, 'data' => join( "\n", @lines ) } );
+<[base.callback.cmd_reply]>->(
+    $reply_id, { 'mode' => 'size', 'data' => join( "\n", @lines ) }
+);
 
-#,,,.,,.,,,..,.,,,,..,,,.,.,.,.,.,.,.,,,.,,,,,..,,...,...,.,,,...,,..,.,.,,,,,
-#IG7LWOZKF3GYF3JB722U7B7S3PN2UNMIIWTFRYPBRQIXB3MOKAYYZQHYPZ4CGKA3WRBYR6K6SBMT6
-#\\\|C2UJZIX747HVMUVK6FB7WZTQMHAI3IJVH6RBW5T5GAH2KQGXN6B \ / AMOS7 \ YOURUM ::
-#\[7]BXDXJISHG2B6ATGOMX2IYAW7LNNCSADZEFGVXJGDSX46I3WXFWCQ 7  DATA SIGNATURE ::
+#,,,.,..,,.,.,..,,...,,.,,,.,,,,.,.,.,,..,,,,,..,,...,...,.,.,,,.,,,.,.,,,...,
+#RGGS6HMQPYOVDEHPU7HIIMKCLWBCFGO75UELF7PASFX5WEF5AZMCS2Z5WO3JCREOIZWGM3VGVRDNU
+#\\\|YCBOMFJZZ37UZSIMUYXELE6FQ4EZ7QXU2J6V6MIRO26J4BFU4IN \ / AMOS7 \ YOURUM ::
+#\[7]S5PCIOTUMHQ3GPI4TTSCES7ROVCNDM3J2QTSNVSOYSNIXWR564AQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

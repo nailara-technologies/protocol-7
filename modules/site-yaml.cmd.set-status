@@ -3,39 +3,41 @@
 # name  = site-yaml.cmd.set-status
 # descr = set job status: args = "<id> <status>"
 
-my $args = $call->{'args'} // '';
+my $reply_id = $call->{'reply_id'};
+my $args     = $call->{'args'} // '';
 my ( $id, $status ) = split /\s+/, $args, 2;
 
-return
-    <[base.callback.cmd_reply]>
-    ->( { 'mode' => FALSE, 'data' => 'usage: set-status <id> <status>' } )
-    if not( defined $id and defined $status );
+return <[base.callback.cmd_reply]>->(
+    $reply_id,
+    { 'mode' => 'false', 'data' => 'usage: set-status <id> <status>' }
+) if not( defined $id and defined $status );
 
 my %valid
     = map { $ARG => 1 } qw| new assessed applied rejected skipped archived |;
 return <[base.callback.cmd_reply]>->(
-    {   'mode' => FALSE,
+    $reply_id,
+    {   'mode' => 'false',
         'data' => "invalid status '$status'; valid: "
             . join( ' ', sort keys %valid )
     }
 ) if not $valid{$status};
 
 my $store = $data{'jobs.store'};
-return
-    <[base.callback.cmd_reply]>
-    ->( { 'mode' => FALSE, 'data' => "unknown job id: $id" } )
-    if not exists $store->{$id};
+return <[base.callback.cmd_reply]>->(
+    $reply_id, { 'mode' => 'false', 'data' => "unknown job id: $id" }
+) if not exists $store->{$id};
 
 $store->{$id}{'status'}     = $status;
 $store->{$id}{'applied_at'} = time if $status eq 'applied';
 
 <[site-yaml.jobs.save]>;
 
-<[base.callback.cmd_reply]>
-    ->( { 'mode' => TRUE, 'data' => "ok: $id => $status" } );
+<[base.callback.cmd_reply]>->(
+    $reply_id, { 'mode' => 'true', 'data' => "ok: $id => $status" }
+);
 
-#,,,.,..,,...,,.,,,,,,,..,,.,,,,.,,..,,,.,.,,,..,,...,...,,.,,..,,..,,,.,,..,,
-#XWYSJ7WXXULIFXOFYMC4T47GICLASU5R45CXC4DLCROMDPNWEPZLXGVPHYHSZPHMPQXI55DWNYAPQ
-#\\\|ROD3BLQ3AGIJH6UPZ2NXQ74TQ4IPLH7LOG5X2Q7TGVQ5NX6PV6U \ / AMOS7 \ YOURUM ::
-#\[7]DOJJH2LPSDEEATTFSCPL5APMKZVRITD5QSCOKLMN5ZMYU2WVGKBQ 7  DATA SIGNATURE ::
+#,,..,...,.,.,.,.,,..,...,,..,,..,.,.,,,.,...,..,,...,...,,,.,...,,.,,,,,,...,
+#2GOYIWWSE46MPUF4FXA3S3MHM3OOA7TQJZIDC3THB6XANPS3BYNYDK5YLYKMQNYDM6LIPD3QQTLZ4
+#\\\|X3USGIU5LSKUEAHKKANVUQYQHIJMRB5DUVB3PV6MN5WZPZWHY4E \ / AMOS7 \ YOURUM ::
+#\[7]NY7ZKHR4Y3R4AMQ2OFS2PPAQ7SIJ4U22JTR7GR6R5AYQNLUOWIAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

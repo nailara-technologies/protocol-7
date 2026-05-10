@@ -3,23 +3,25 @@
 # name  = job-site-scan.cmd.set-threshold
 # descr = update minimum score threshold for review
 
-my $val = $call->{'args'} // '';
+my $reply_id = $call->{'reply_id'};
+my $val      = $call->{'args'} // '';
 $val =~ s/^\s+|\s+$//g;
 
-return
-    <[base.callback.cmd_reply]>
-    ->( { 'mode' => FALSE, 'data' => 'usage: set-threshold <0-10>' } )
+return <[base.callback.cmd_reply]>->(
+    $reply_id, { 'mode' => 'false', 'data' => 'usage: set-threshold <0-10>' }
+    )
     if not length $val
     or $val !~ m{^\d+(?:\.\d+)?$}
     or $val > 10;
 
 <job-site-scan.cfg.threshold> = $val + 0;
 
-<[base.callback.cmd_reply]>
-    ->( { 'mode' => TRUE, 'data' => "threshold set to $val" } );
+<[base.callback.cmd_reply]>->(
+    $reply_id, { 'mode' => 'true', 'data' => "threshold set to $val" }
+);
 
-#,,.,,..,,,..,,,.,.,.,.,.,,..,..,,.,,,.,.,..,,..,,...,..,,.,.,,,.,,,,,,,.,.,.,
-#TFLWRQ6FWTU64R2JX5L6LPLG7WYR4WIW25WGUUADOFMGPEGPR774QOS6FNQNW5PNUDQCFQKIH7CQC
-#\\\|6OIBN7R2IIKFIRHR33RMCLGZL4BZAOLDYVUSLKO25CNMUGAN4FO \ / AMOS7 \ YOURUM ::
-#\[7]ITRQ6RGSPDTFMVOMVT4FVMXRZ2O4XAAQIM5JO4DIIEWVRLMX2WBI 7  DATA SIGNATURE ::
+#,,..,.,,,,..,,,,,..,,,,.,.,.,,,,,...,..,,,..,..,,...,..,,,,,,,,.,.,,,...,,..,
+#VYPS653CSSZA6TBAIXHCXTN2HT2LPJUGPV3FWP3BDIUW7DDANPZVPXPVWRJZ5GCFYC5NUD76WFQQS
+#\\\|FPD2VBTG7LI2XHBAEH6MJLZMT5LOJFAETK62JJH7AG5UZAQ7JUC \ / AMOS7 \ YOURUM ::
+#\[7]T3NCOFFQVO7OYAL5TLLSVPSGMS6U53LDF4PAJCAPCOGCX4B4OCAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
