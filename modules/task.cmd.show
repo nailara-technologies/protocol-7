@@ -61,11 +61,11 @@ my $output = sprintf(
         . "result      : %s\n",
     $task->{'id'},
     $task->{'status'},
-    $task->{'created_at'}  // 'N/A',
-    $task->{'updated_at'}  // 'N/A',
-    $task->{'description'} // '',
-    $task->{'context'}     // '',
-    $task->{'agent'}       // '(none)',
+    $task->{'created_at'} // 'N/A',
+    $task->{'updated_at'} // 'N/A',
+    do { ( my $d = $task->{'description'} // '' ) =~ s{\n}{\\n}g; $d },
+    do { ( my $c = $task->{'context'}     // '' ) =~ s{\n}{\\n}g; $c },
+    $task->{'agent'} // '(none)',
     scalar(@$turns) + 1,
     $iter_line,
     $result_str || '(none)'
@@ -87,8 +87,8 @@ if (@$turns) {
 
 return { 'mode' => 'size', 'data' => $output };
 
-#,,..,...,..,,,..,..,,,..,.,,,...,,,,,.,.,,..,..,,...,...,..,,,.,,..,,,.,,,,,,
-#ZBTYBIAC56C6RSHDABBEFSACZYX26ASA5WOOF6Y47SMFENEKHXKDTGKGHFHI4AAK4ABYNKB2SKHVG
-#\\\|3OYTWRXGWJL3L23MIZYZ62UQOBZACKL4JODW5VOTZXAO5O3JBUQ \ / AMOS7 \ YOURUM ::
-#\[7]J2PP5NG7C6ICBLJJZOJXBEXWPJCU3FPU7F4VMEK4X7XE5ZC6RCBQ 7  DATA SIGNATURE ::
+#,,.,,.,.,,,,,...,.,.,,.,,,,.,,,,,.,,,.,.,,.,,..,,...,...,..,,,.,,,,,,,,.,...,
+#RH4KINJA33R2VLSZEIGWSOCASYRRXQUTFYHDJUGOCRKQBXAM4MA3ELFGSHYLY52HI56PNZNSBHNTW
+#\\\|HDZYDYPIQMBHWFESXRPADFK246AL6QDYFVJOVHV4MZXKBWZQZJP \ / AMOS7 \ YOURUM ::
+#\[7]AHN5HA5J5SXMDRHO3MXDJJOUASSOWSS43FHAIUDIJIKSCXRHXKBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

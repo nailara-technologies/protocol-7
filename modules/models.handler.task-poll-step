@@ -116,6 +116,10 @@ if ( $step eq 'show' ) {
         }
     }
 
+    ## unescape newlines escaped by task.show for protocol safety
+    $description =~ s{\\n}{\n}g;
+    $context     =~ s{\\n}{\n}g;
+
     ## determine model from :name: prefix in description [ @name fallback ]
     my $model = <models.task.default_model> // 'kimi';
     ( my $details_preview = substr( $details, 0, 80 ) ) =~ s/\n/|/g;
@@ -245,8 +249,8 @@ if ( $step eq 'check-next' ) {
 <[base.logs]>->( 0, ': task-poll-step: unknown step [ %s ]', $step );
 return;
 
-#,,.,,,,.,.,.,,..,..,,.,.,,,,,,,,,...,,..,...,.,.,...,...,.,.,,..,.,.,.,,,..,,
-#VJ6SYDC6AX6QMBOUPQWO3NO43ZG6MEXRPBFIT4W3HAS5LQQMCAILRXPKMBM7B6UEDAEF25X5PYETE
-#\\\|ML33J4LK7RX5ZJ2EASYIJ4KBLXPCH6LN25ACCOX7WU25NK3NIDS \ / AMOS7 \ YOURUM ::
-#\[7]JWDROE4U6U4Y4MZAXW2OYCOL2KXPMGIEC6YN5FSKYCBQ6REEUKAQ 7  DATA SIGNATURE ::
+#,,..,..,,.,.,,,.,,..,...,.,.,.,,,.,,,,.,,..,,.,.,...,...,.,.,,..,.,,,,..,,.,,
+#MBLTPN652ZJARGVKGFYSCESMQ2A3L4DPFDZFNK4VWKNNKI27AYW2ZLNQKXMUMXWXARFH62S6YULIG
+#\\\|MPWGLCXGDNM5DANE7RD3EBEOD4K4DQOKMOGZYJ5LP5RNC75HEMA \ / AMOS7 \ YOURUM ::
+#\[7]IXH3WU5C36VFDUNBQVQHYWGQALCM3FEPMB5Y67NU24PXIXDJ7GCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
