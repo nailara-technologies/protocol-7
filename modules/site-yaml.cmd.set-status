@@ -3,17 +3,17 @@
 # name  = site-yaml.cmd.set-status
 # descr = set job status: args = "<id> <status>"
 
-my $args = $call_args->{'args'} // '';
+my $args = $call->{'args'} // '';
 my ( $id, $status ) = split /\s+/, $args, 2;
 
 return
-    <[base.protocol-7.command.cmd_reply]>
+    <[base.callback.cmd_reply]>
     ->( { 'mode' => FALSE, 'data' => 'usage: set-status <id> <status>' } )
     if not( defined $id and defined $status );
 
 my %valid
     = map { $ARG => 1 } qw| new assessed applied rejected skipped archived |;
-return <[base.protocol-7.command.cmd_reply]>->(
+return <[base.callback.cmd_reply]>->(
     {   'mode' => FALSE,
         'data' => "invalid status '$status'; valid: "
             . join( ' ', sort keys %valid )
@@ -22,7 +22,7 @@ return <[base.protocol-7.command.cmd_reply]>->(
 
 my $store = $data{'jobs.store'};
 return
-    <[base.protocol-7.command.cmd_reply]>
+    <[base.callback.cmd_reply]>
     ->( { 'mode' => FALSE, 'data' => "unknown job id: $id" } )
     if not exists $store->{$id};
 
@@ -31,11 +31,11 @@ $store->{$id}{'applied_at'} = time if $status eq 'applied';
 
 <[site-yaml.jobs.save]>;
 
-<[base.protocol-7.command.cmd_reply]>
+<[base.callback.cmd_reply]>
     ->( { 'mode' => TRUE, 'data' => "ok: $id => $status" } );
 
-#,,,.,..,,,..,.,,,,,,,..,,,,,,,,.,.,,,...,,,,,..,,...,...,.,.,...,.,.,,,.,,.,,
-#IXH47XLVM4ZTMIP3VIZSNGY3Z4GWM6LCZW42YNLFQFYTFPNRVLALLDWRDKPC2OIVQRNFEGXPPMITS
-#\\\|APZQV7ELQHDI52YV2DRKWRS6Z65DQO6PKL2CGWG2HI7E55QEHLY \ / AMOS7 \ YOURUM ::
-#\[7]JKBJOFGOA4PCYZ6RHJGE6BW27DSGPEH3EVL3ELJ67KJGY5EMD2BQ 7  DATA SIGNATURE ::
+#,,,.,..,,...,,.,,,,,,,..,,.,,,,.,,..,,,.,.,,,..,,...,...,,.,,..,,..,,,.,,..,,
+#XWYSJ7WXXULIFXOFYMC4T47GICLASU5R45CXC4DLCROMDPNWEPZLXGVPHYHSZPHMPQXI55DWNYAPQ
+#\\\|ROD3BLQ3AGIJH6UPZ2NXQ74TQ4IPLH7LOG5X2Q7TGVQ5NX6PV6U \ / AMOS7 \ YOURUM ::
+#\[7]DOJJH2LPSDEEATTFSCPL5APMKZVRITD5QSCOKLMN5ZMYU2WVGKBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

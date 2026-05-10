@@ -16,7 +16,7 @@
 <[job-site-scan.state.load]>;
 
 ## var watcher on pending_count — fires when all assessments land
-<[base.event.add_var]>->(
+<[event.add_var]>->(
     {   'var'     => \<job-site-scan.pending_count>,
         'poll'    => 'w',
         'handler' => 'job-site-scan.handler.pending-changed',
@@ -28,7 +28,7 @@
 ## rescan timer — only when interval > 0
 my $interval = <job-site-scan.cfg.rescan_interval> // 0;
 if ( $interval > 0 ) {
-    <[base.event.add_timer]>->(
+    <[event.add_timer]>->(
         {   'after'    => $interval,
             'interval' => $interval,
             'repeat'   => TRUE,
@@ -44,8 +44,8 @@ my $job_count = scalar keys %{ <job-site-scan.tasks> // {} };
     <job-site-scan.cycle>, $job_count
 );
 
-#,,,.,...,.,.,...,,,,,,.,,,,,,.,.,,.,,,.,,,,.,..,,...,...,...,...,,,,,...,,.,,
-#5B57CAMVLP4M5UBRNJLMQHPUON5XWVX5QP6UZV46H7VQVLPA7OCKZZDH55JLGRBMORGLA2JWXY2D6
-#\\\|TVNAKE4R4CBJAVUPWVVRYXAPUX2BMWOTPKOS7ZQYKQJERC3WHW3 \ / AMOS7 \ YOURUM ::
-#\[7]AKYCOBXJNR65YY5LTRH6A6G7EDJTAUBOSZNJK6S4MZQ2EQWNNMCI 7  DATA SIGNATURE ::
+#,,,,,,,,,,..,...,,,.,,,.,,,,,,,,,,,,,...,,,.,..,,...,..,,...,,,.,.,.,,.,,,.,,
+#I3KVLDKRRDTJ7ZDPER2Z7BZVQ24MOSZ66F3G23DBEJU7VQUGKCRJT3CGXSETV3LX7C24MQFRGHMME
+#\\\|CMOJ5U7WJLEXNWV4BVHB6MZ4KXKBEKGSNAHL5S6S4GUQKFTTD7Q \ / AMOS7 \ YOURUM ::
+#\[7]MTCI5GZMJEM3RWY4YJ6CJ3V2WGUL7YFOIREIV5GK4BLJFS25LODI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
