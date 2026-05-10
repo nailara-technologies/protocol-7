@@ -9,7 +9,8 @@ my $reply = shift;
 my $cmd       = $reply->{'cmd'}       // '';
 my $call_args = $reply->{'call_args'} // {};
 my $params    = $reply->{'params'}    // {};
-my $data      = $reply->{'data'}      // '';
+my $raw       = $reply->{'data'}      // '';
+my $data      = ref $raw ? $raw->$* : $raw;
 
 my $original_reply_id = $params->{'original_reply_id'} // '';
 my $sender            = $params->{'sender'}            // '';
@@ -53,8 +54,8 @@ if ( length($original_reply_id) ) {
 
 return TRUE;
 
-#,,,,,,..,,..,...,.,.,...,...,,.,,.,.,...,...,.,.,...,..,,,..,,.,,,,.,,.,,,..,
-#DJBFQXKE6KOEP64NZAVXHVN4C4SLIGQR7BUXL3UJ2YHQJ6T4S7C3EY7LETY734APB7CT5AORFSNNM
-#\\\|F75KPLLUSTKRG7W6U2DFYNDCQRPIF5PD6DB5GYSJPKJIKIN4IIO \ / AMOS7 \ YOURUM ::
-#\[7]65X6LMGS34665K3P364SUGAHWCJCY7SWHY2DGGLEFONOR5DOYEDA 7  DATA SIGNATURE ::
+#,,..,..,,,,,,..,,.,,,..,,...,..,,.,.,.,,,.,,,.,.,...,...,...,..,,..,,,..,,,.,
+#PVWQGDAKSHGZPM47LDCMOUBOEPYNDK2TSUTW55324DR4WGW5HWKQBYOI5THD2YLEBEWLLZBOCGBG6
+#\\\|I4OOEKFJ2VBSJ7CDQZP3MRYD32NMMOGFERR3O7FLXGNBWX7X3KS \ / AMOS7 \ YOURUM ::
+#\[7]AFA6E5KS7F4ZI2I77XOOUJIABBS7EF5C5K7IRMVIM6DCEZH2I6BI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

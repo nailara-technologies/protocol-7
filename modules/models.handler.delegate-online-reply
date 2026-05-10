@@ -5,7 +5,8 @@
 
 my $reply = shift;
 
-my $data   = $reply->{'data'}   // '';
+my $raw    = $reply->{'data'} // '';
+my $data   = ref $raw ? $raw->$* : $raw;
 my $mode   = $reply->{'mode'}   // qw| unknown |;
 my $params = $reply->{'params'} // {};
 
@@ -95,8 +96,8 @@ if ( ref $do_result ne qw| HASH |
 
 return;
 
-#,,.,,,..,.,.,.,.,,,,,,..,.,,,,..,...,.,,,.,.,..,,...,...,...,,,,,.,.,,.,,...,
-#G6JFMIBHW2AEWCATNJ3EWZVANS3NWAIIYQOVVYQFD632K3FYBMQSGX7KH2SR3HTHF4Y5GNBXZ6LWQ
-#\\\|MDEV2XIJKRJK2PQBKWWJDDRF37TJMKB5MMXBMVTL5RC7ZSPN5YM \ / AMOS7 \ YOURUM ::
-#\[7]6VUQHBVP4ELXQCJEIEJXU5OFK2LFPY6356GLFRF7M76X7V4JY2AY 7  DATA SIGNATURE ::
+#,,.,,...,...,,..,...,..,,,,,,.,,,,.,,.,.,,.,,..,,...,...,.,,,.,.,.,.,,,.,,..,
+#35GTHL27Y3OZWDPOJDTE6SFBXQZUJGNOF77767N3SQJZNDDDE4CNF2MQPDTBITRBUNLUPAZGI73RG
+#\\\|HIXZGPFG4A46BKA7SKHQDAEBLGLHDHY7FIQOXMN4EXHLSI5WD3U \ / AMOS7 \ YOURUM ::
+#\[7]HS5TEF2A7BL25KFQMJFGKOYK7BC3NFJODZ56KAWBRLAZA3HVGIDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
