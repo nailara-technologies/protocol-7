@@ -31,7 +31,7 @@ if ( lc($mode) eq qw| false | ) {
 }
 
 ## try to extract score from result (json or plain "score: N" line)
-my ( $score, $reason, $apply ) = ( '', '', '' );
+my ( $score, $reason, $summary, $apply ) = ( '', '', '', '' );
 if ( $result =~ m{\{.*?"(?:fit_)?score"\s*:\s*(\d+(?:\.\d+)?)}s ) {
     $score = $1;
     ($reason) = ( $result =~ m{"reason(?:s)?"\s*:\s*"([^"]+)"} );
@@ -39,6 +39,7 @@ if ( $result =~ m{\{.*?"(?:fit_)?score"\s*:\s*(\d+(?:\.\d+)?)}s ) {
         my ($arr) = ( $result =~ m{"reasons"\s*:\s*\[([^\]]+)\]} );
         $arr ? ( split /,/, $arr )[0] =~ s/^\s*"?|"?\s*$//gr : undef;
     };
+    ($summary) = ( $result =~ m{"summary"\s*:\s*"([^"]+)"} );
     ($apply)
         = ( $result
             =~ m{"(?:apply|recommendation)"\s*:\s*"?(true|false|interview|apply)"?}
@@ -47,9 +48,10 @@ if ( $result =~ m{\{.*?"(?:fit_)?score"\s*:\s*(\d+(?:\.\d+)?)}s ) {
     $score = $1;
 }
 
-$job_rec->{'score'}        = $score;
-$job_rec->{'score_reason'} = $reason // '';
-$job_rec->{'stage'}        = 'assessed';
+$job_rec->{'score'}         = $score;
+$job_rec->{'score_reason'}  = $reason  // '';
+$job_rec->{'score_summary'} = $summary // '';
+$job_rec->{'stage'}         = 'assessed';
 
 my $threshold = <job-site-scan.cfg.threshold> // 6;
 if ( length($score) and $score >= $threshold ) {
@@ -71,9 +73,10 @@ my $store_file = '/var/protocol-7/site-yaml/store.yaml';
 if ( -f $store_file ) {
     my $store = eval { YAML::XS::LoadFile($store_file) } // {};
     if ( exists $store->{$job_id} ) {
-        $store->{$job_id}{'status'}       = 'assessed';
-        $store->{$job_id}{'score'}        = $score;
-        $store->{$job_id}{'score_reason'} = $reason // '';
+        $store->{$job_id}{'status'}        = 'assessed';
+        $store->{$job_id}{'score'}         = $score;
+        $store->{$job_id}{'score_reason'}  = $reason  // '';
+        $store->{$job_id}{'score_summary'} = $summary // '';
         eval { YAML::XS::DumpFile( $store_file, $store ) };
     }
 }
@@ -81,31 +84,10 @@ if ( -f $store_file ) {
 <job-site-scan.pending_count>--;
 <[job-site-scan.state.persist]>;
 
-## translate reason to German for review-stage jobs — dispatch.next fires from translate-done
-if ( $job_rec->{'stage'} eq 'review' and length( $reason // '' ) ) {
-    my $translate_prompt
-        = ':local: :simple: Übersetze folgende englische Stelleneinschätzung'
-        . ' in ein bis zwei kurze deutsche Sätze. Antworte nur mit der'
-        . ' deutschen Übersetzung, ohne zusätzlichen Text oder'
-        . ' Anführungszeichen: '
-        . $reason;
-    my $enc = ':B32:'
-        . encode_b32r( Encode::encode( 'UTF-8', $translate_prompt ) );
-    <[protocol-7.route-send]>->(
-        {   'command'   => 'task.create',
-            'call_args' => { 'args' => $enc },
-            'reply'     => {
-                'handler' => 'job-site-scan.handler.translate-done',
-                'params'  => { 'job_id' => $job_id },
-            },
-        }
-    );
-} else {
-    <[job-site-scan.dispatch.next]>;    ## no translation needed, proceed
-}
+<[job-site-scan.dispatch.next]>;
 
-#,,..,...,..,,,.,,,.,,.,.,.,.,,..,..,,...,,..,..,,...,...,,..,.,.,.,.,...,,,,,
-#6VQVGSQSJXSHDZZYEED33ADNKYBL6O6EDBHDHAXASYO53M7MH24KBJCWEA6647M7YNLNHOHLHXMAQ
-#\\\|L6HOQNVWCCTGKTOIZWEPX3KYECNHNSAEVGYZ5KC2HCETUGSHF6W \ / AMOS7 \ YOURUM ::
-#\[7]EKSKZPAXXJS6ZMUOYTIYDINSW4Z52XN2PBD5CSD2OYWRSIJ74OBY 7  DATA SIGNATURE ::
+#,,,.,,,.,,..,.,.,.,,,,.,,,..,..,,.,.,...,.,,,..,,...,...,,..,,,.,..,,...,.,,,
+#XP7GX6RHTWB5WQSNAMZZSHX2PRTS6IH7PJOSYDVHT4XHMXNHCEEYPSULWHXYKFXDQKFSNCCHGWK32
+#\\\|BRWS4B2DRVBBJ66LXDKOZBIG43ZO3R2PPF4A6LMS6MSC5CA3SGP \ / AMOS7 \ YOURUM ::
+#\[7]JNSNDIX4PKGISMYPUTOLB4LDJWNMPUD2CB2LP5RTTQDZD4BGWODA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

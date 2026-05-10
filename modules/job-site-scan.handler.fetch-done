@@ -93,21 +93,23 @@ for my $job_id (@to_assess) {
 
     ## build complete self-contained prompt — no template dependency
     my $prompt = join( "\n\n",
-        ':local: :simple: you are a job matching assistant. assess the fit and return'
-            . ' a JSON object only — no other text.',
-        'scoring criteria: technical skill overlap (weighted highest),'
-            . ' seniority level match, location / remote compatibility,'
-            . ' industry relevance, role scope fit.',
-        'return exactly this json and nothing else:'
-            . ' {"score": <0-10>, "reason": "<one sentence>", "apply": <true|false>}',
-        '## candidate profile ##',
+        ':local: :simple: Du bist ein Job-Matching-Assistent. Bewerte die'
+            . ' Eignung und antworte ausschließlich mit einem JSON-Objekt — kein weiterer Text.',
+        'Bewertungskriterien: technische Übereinstimmung (höchste Gewichtung),'
+            . ' Seniorität, Standort / Remote-Option, Branchenrelevanz, Aufgabenbereich.',
+        'Antworte genau mit diesem JSON-Format und nichts anderem:'
+            . ' {"score": <0-10>, "apply": <true|false>,'
+            . ' "reason": "<1-2 deutsche Sätze: warum der Kandidat passt oder nicht passt>,"'
+            . ' "summary": "<2-3 deutsche Sätze: was die Stelle bietet, gesuchte Skills,'
+            . ' Remote/Standort-Details, Besonderheiten>"}',
+        '## Kandidatenprofil ##',
         $profile_text,
-        '## job listing ##',
-        "title: $title",
-        "company: $co",
-        "city: $city",
-        "industry: $ind",
-        "description:\n$desc",
+        '## Stellenanzeige ##',
+        "Titel: $title",
+        "Unternehmen: $co",
+        "Ort: $city",
+        "Branche: $ind",
+        "Beschreibung:\n$desc",
     );
 
     push @queue, { 'job_id' => $job_id, 'desc' => $prompt };
@@ -118,8 +120,8 @@ for my $job_id (@to_assess) {
 ## dispatch first task — task-created handler will call dispatch.next for each
 <[job-site-scan.dispatch.next]>;
 
-#,,,.,.,,,,,,,,,.,,,.,,..,..,,.,,,,,,,...,...,..,,...,...,...,.,.,,,,,.,,,.,.,
-#TUZAINM4AFA4TQPVXTGZXJHJEDRPGOLV7TA6GPOAUN62WFVWBIW5VBDRZZ4EHMOEH33BZIGOH5G4Y
-#\\\|INWUHCTOUIP3DGEXXJIJ4ATX6NDYBSNRQCKEYPXKCSI3PFBC6IN \ / AMOS7 \ YOURUM ::
-#\[7]5K3ERNHZ3F56RABEOUUJ4Y4RPY7NCBEFVLHPQWNKM7ZGHCBPLODA 7  DATA SIGNATURE ::
+#,,..,,..,.,.,,..,,..,..,,.,.,,,,,,..,,..,,,,,..,,...,..,,.,.,.,,,,.,,,..,,.,,
+#4ZWPRFJQNZDKUUSICRRQWIEEFW257RPAUSU6OQBSLIZIVZ7IFXN2JSPAVOGKHHCPCJ7CA6EXSHDNA
+#\\\|WSJVPYLSNXESDGTJ22HYS3E2HW6G5HRET3OKCGSANGZSIFZ47JV \ / AMOS7 \ YOURUM ::
+#\[7]OD5FBZZN6CUYEWHYQRJEVLN7UPTAAKIR43TRTVFWWZ3IBURTYKBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
