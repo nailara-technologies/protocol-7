@@ -583,7 +583,8 @@ function updateStats(all) {
 /* ── CSV export ── */
 function exportCSV() {
     const cols = ['Nr','Datum','Unternehmen','Position','Ort','Score','Status','Bewerbungsdatum','Notiz','Link'];
-    const rows = sortedJobs().filter(j => j.stage !== 'archived' && j.stage !== 'skipped');
+    const trackStages = new Set(['to_apply','applied','responded','rejected']);
+    const rows = sortedJobs().reverse().filter(j => trackStages.has(j.stage));
     const lines = [cols.join(';')];
     rows.forEach((j, i) => {
         const val = v => `"${String(v||'').replace(/"/g,'""')}"`;
@@ -602,7 +603,9 @@ function exportCSV() {
 
 /* ── print table ── */
 function showPrintTable() {
-    const rows = sortedJobs().filter(j => j.stage !== 'archived' && j.stage !== 'skipped');
+    const trackStages = new Set(['to_apply','applied','responded','rejected']);
+    const rows = sortedJobs().reverse()
+        .filter(j => trackStages.has(j.stage));
     const div = document.getElementById('print-table');
     div.style.display = 'block';
     div.innerHTML = `<table>
