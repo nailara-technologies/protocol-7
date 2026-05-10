@@ -125,11 +125,18 @@ button.red:hover { background: rgba(130,0,0,0.6); }
 
 .card-reason {
     font-size: 0.78rem; color: #506880; font-style: italic;
-    margin-bottom: 0.5rem; padding-left: 0.5rem;
+    margin-bottom: 0.3rem; padding-left: 0.5rem;
     border-left: 2px solid #1a3040;
     max-height: 2.8em; overflow: hidden; transition: max-height 0.2s;
 }
 .card-reason.expanded { max-height: 10em; }
+.card-summary {
+    font-size: 0.76rem; color: #3d5060;
+    margin-bottom: 0.5rem; padding-left: 0.5rem;
+    border-left: 2px solid #12222c;
+    max-height: 3.8em; overflow: hidden; transition: max-height 0.2s;
+}
+.card-summary.expanded { max-height: 12em; }
 
 .card-actions {
     display: flex; gap: 0.4rem; flex-wrap: wrap; align-items: center;
@@ -396,7 +403,8 @@ function renderCard(j) {
         <span class="city">${escHtml(j.city)}</span>
         ${j.industry ? `<span class="ind">${escHtml(j.industry)}</span>` : ''}
       </div>
-      ${j.reason ? `<div class="card-reason" data-full="${escAttr(j.reason)}">${escHtml(j.reason)}</div>` : ''}
+      ${j.reason  ? `<div class="card-reason"  data-full="${escAttr(j.reason)}">${escHtml(j.reason)}</div>`  : ''}
+      ${j.summary ? `<div class="card-summary" data-full="${escAttr(j.summary)}">${escHtml(j.summary)}</div>` : ''}
       <div class="card-actions no-print">
         <select class="stage-select" data-id="${j.id}">
           ${['review','to_apply','applied','responded','rejected','skipped','archived']
@@ -424,9 +432,11 @@ function renderCard(j) {
         if (dragSrcId && dragSrcId !== j.id) reorderCards(dragSrcId, j.id);
     });
 
-    /* expand reason on click */
-    const reasonEl = el.querySelector('.card-reason');
-    if (reasonEl) reasonEl.addEventListener('click', () => reasonEl.classList.toggle('expanded'));
+    /* expand reason / summary on click */
+    const reasonEl  = el.querySelector('.card-reason');
+    const summaryEl = el.querySelector('.card-summary');
+    if (reasonEl)  reasonEl.addEventListener('click',  () => reasonEl.classList.toggle('expanded'));
+    if (summaryEl) summaryEl.addEventListener('click', () => summaryEl.classList.toggle('expanded'));
 
     /* stage select */
     el.querySelector('.stage-select').addEventListener('change', e => {
