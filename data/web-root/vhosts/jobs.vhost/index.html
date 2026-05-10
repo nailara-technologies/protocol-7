@@ -439,12 +439,15 @@ function renderCard(j) {
         to_apply:  () => openNote(),
         applied:   () => { jobs[j.id].stage = 'rejected'; saveLocal(); render(); },
         responded: () => openNote(),
+        skipped:   () => { jobs[j.id].stage = 'archived'; saveLocal(); render(); },
     };
     const longActions = {
-        review:    () => { jobs[j.id].stage = 'to_apply';   saveLocal(); render(); },
-        to_apply:  () => { jobs[j.id].stage = 'applied';    saveLocal(); render(); },
-        applied:   () => { jobs[j.id].stage = 'responded';  saveLocal(); render(); },
-        responded: () => { jobs[j.id].stage = 'rejected';   saveLocal(); render(); },
+        review:    () => { jobs[j.id].stage = 'to_apply';  saveLocal(); render(); },
+        to_apply:  () => { jobs[j.id].stage = 'applied';   saveLocal(); render(); },
+        applied:   () => { jobs[j.id].stage = 'responded'; saveLocal(); render(); },
+        responded: () => { jobs[j.id].stage = 'rejected';  saveLocal(); render(); },
+        rejected:  () => { jobs[j.id].stage = 'archived';  saveLocal(); render(); },
+        archived:  () => { jobs[j.id].stage = 'review';    saveLocal(); render(); },
     };
 
     let longPressTimer = null;
