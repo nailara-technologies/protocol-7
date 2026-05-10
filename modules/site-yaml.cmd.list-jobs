@@ -3,7 +3,7 @@
 # name  = site-yaml.cmd.list-jobs
 # descr = list jobs from store, optional status filter
 
-my $filter = $call_args->{'args'} // '';
+my $filter = $call->{'args'} // '';
 
 my $store = $data{'jobs.store'};
 my @ids   = sort {
@@ -16,7 +16,7 @@ my @ids   = sort {
 
 if ( not @ids ) {
     return
-        <[base.protocol-7.command.cmd_reply]>
+        <[base.callback.cmd_reply]>
         ->( { 'mode' => TRUE, 'data' => "no jobs (filter: $filter)" } );
 }
 
@@ -35,14 +35,14 @@ for my $id (@ids) {
         $j->{'city'}    // '';
 }
 
-<[base.protocol-7.command.cmd_reply]>->(
+<[base.callback.cmd_reply]>->(
     {   'mode' => TRUE,
         'data' => join( "\n", @lines ),
     }
 );
 
-#,,..,,.,,,,.,.,.,..,,,,.,.,.,.,,,,,.,,,,,...,..,,...,..,,..,,...,.,,,,,.,.,.,
-#24IRIWSQKAWX4SPQFO3EJZA646OAKZGV3ZQZZ24URH43TQL5S3M5GYPA3JV7P5YZHOV7NCWIZGORM
-#\\\|QYFLIQJZK3JAXFE5NAUFNE2SFFHOUZ35MYRUHIPCD5CQOZSFBUB \ / AMOS7 \ YOURUM ::
-#\[7]CO4H244GAZYU3CWIOZ33PGKP3EOKEWNMVCWXTDRHE7WV2CMT7MAA 7  DATA SIGNATURE ::
+#,,,,,,,,,..,,,..,..,,...,,,,,.,,,,..,...,.,.,..,,...,...,.,.,...,,,,,,,,,...,
+#WQMTFAZU2HSGJFI7TFI5GQW4APLOAI3I3YCZBG5X3QG6WJSL6JEX7N3DI6KBXN6VROVYZIS72BE2G
+#\\\|2FKR7TNEWEDTGIW4BZRJ7ZAZSZOQ4AZCSZSNYM3G66AKHPMFPFC \ / AMOS7 \ YOURUM ::
+#\[7]AJKXVGHCBBGIE262VKDZQ2BHUDMRVYPPCIPW42HRKJGC25TLEADI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

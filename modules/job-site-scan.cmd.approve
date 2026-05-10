@@ -3,12 +3,12 @@
 # name  = job-site-scan.cmd.approve
 # descr = approve job for application queue
 
-my $job_id = uc( $call_args->{'args'} // '' );
+my $job_id = uc( $call->{'args'} // '' );
 $job_id =~ s/^\s+|\s+$//g;
 
 my $rec = <job-site-scan.tasks>->{$job_id};
 return
-    <[base.protocol-7.command.cmd_reply]>
+    <[base.callback.cmd_reply]>
     ->( { 'mode' => FALSE, 'data' => "unknown job: $job_id" } )
     if not defined $rec;
 
@@ -17,7 +17,7 @@ $rec->{'approved_at'} = time;
 
 ## update site-yaml store
 <[base.perlmod.autoload]>->('YAML::XS');
-my $store_file = '/var/protocol-7/jobs/store.yaml';
+my $store_file = '/var/protocol-7/site-yaml/store.yaml';
 if ( -f $store_file ) {
     my $store = eval { YAML::XS::LoadFile($store_file) } // {};
     if ( exists $store->{$job_id} ) {
@@ -38,11 +38,11 @@ if ( not $remaining and <job-site-scan.cycle> eq 'reviewing' ) {
 
 <[job-site-scan.state.persist]>;
 
-<[base.protocol-7.command.cmd_reply]>
+<[base.callback.cmd_reply]>
     ->( { 'mode' => TRUE, 'data' => "approved: $job_id" } );
 
-#,,,.,,,.,,,.,,..,.,,,.,.,...,...,..,,,,.,..,,..,,...,...,,,,,,..,,.,,,,.,...,
-#7M4634NJHSR7J3UCN7J3G3OQ24IEPNDL4GWUZCWFJF3PTL2YMVLKUGN2NVXT4HCC6CGFBJJBRUGAK
-#\\\|UVXPDNRZXSJ6RK35MGUMQZQYIL32HZPHXNDDKX4XBB3WQF6HN55 \ / AMOS7 \ YOURUM ::
-#\[7]LIQORDTRC2SLAFAJQE4C3M26G27A2VVG3CY5OOTKENXIVHBQIYAY 7  DATA SIGNATURE ::
+#,,..,...,,,,,,,.,,.,,,,,,..,,,..,...,,..,.,.,..,,...,...,,,.,,,.,.,.,...,,,.,
+#UYSGX4I37UB2WJ62K6XO24KYWYYMZFI56H7BGJ326BXM3OECNCJVLEN57XEKAA6QXNTW45H56X7RY
+#\\\|L3BLPEXVXJTA6RMROMCJLRSKDIS53CTKLUN3DU24PISQA4GYMIN \ / AMOS7 \ YOURUM ::
+#\[7]DGXS4VE6OPIJZMIGB43HBJNP5VIEFJ7KFVPGIOUE2CNKJFOBFIAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -3,10 +3,10 @@
 # name  = job-site-scan.handler.fetch-done
 # descr = receive site-yaml.import reply, dispatch assessments when all done
 
-my $mode     = $call_args->{'mode'}        // '';
-my $data_str = $call_args->{'data'}        // '';
-my $category = $reply_params->{'category'} // '';
-my $url      = $reply_params->{'url'}      // '';
+my $mode     = $call->{'mode'}               // '';
+my $data_str = $call->{'data'}               // '';
+my $category = $call->{'params'}{'category'} // '';
+my $url      = $call->{'params'}{'url'}      // '';
 
 if ( $mode ne 'true' and $mode ne '1' ) {
     <[base.logs]>->(
@@ -66,7 +66,7 @@ for my $job_id (@to_assess) {
     my $task_desc = sprintf 'job-assess: [%s] %s at %s (%s, %s)',
         $job_id, $title, $co, $city, $ind;
 
-    <[base.protocol-7.route-send]>->(
+    <[protocol-7.route-send]>->(
         {   'command'   => 'task.create',
             'call_args' => {
                 'args' => join( "\n",
@@ -82,8 +82,8 @@ for my $job_id (@to_assess) {
     );
 }
 
-#,,.,,,,,,,,,,,.,,.,,,..,,,..,,.,,,,,,.,,,,,,,..,,...,...,..,,,,.,...,,.,,.,.,
-#VQIRSWQQFUU2WZYU33I4ISWFIHYFXFIJF66RHEAQPFYUMNCNIA7V375ULFFEWMHHDO4QG3SEFNO2W
-#\\\|7B2MYMWCCS2TNGTAEEAF5F53F2VJ6NNKNX2V4IK7WRQPLXPLPNT \ / AMOS7 \ YOURUM ::
-#\[7]VZRFIPREDQPO3CRVRFSHHFPW74SCP5RD6FDUSZNROSUWI2P6WOCY 7  DATA SIGNATURE ::
+#,,,.,.,.,...,..,,...,.,.,,..,,.,,,..,,..,..,,..,,...,..,,,.,,.,,,...,.,.,,,.,
+#PRV6MUL2C7XDCMFSI26JOBGSVQMF3RJTEISKNY4TWFCNWJTRO5DEHLS5MKHZPCJJXYF7COVQYWB5U
+#\\\|PQFNFGUGVHQZV3VM6RZIMUMVR4NHY2MILJ32XPLHXT62T3CYMIT \ / AMOS7 \ YOURUM ::
+#\[7]Q5WZ33R7IRPGNMHV5MK5UZHZ4B4K3UTIFUMVYIE4YCUAHDROSOBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

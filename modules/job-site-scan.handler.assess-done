@@ -3,10 +3,10 @@
 # name  = job-site-scan.handler.assess-done
 # descr = receive assessment result, update job state
 
-my $mode    = $call_args->{'mode'}       // '';
-my $result  = $call_args->{'data'}       // '';
-my $job_id  = $reply_params->{'job_id'}  // '';
-my $task_id = $reply_params->{'task_id'} // '';
+my $mode    = $call->{'mode'}              // '';
+my $result  = $call->{'data'}              // '';
+my $job_id  = $call->{'params'}{'job_id'}  // '';
+my $task_id = $call->{'params'}{'task_id'} // '';
 
 my $job_rec = <job-site-scan.tasks>->{$job_id};
 if ( not defined $job_rec ) {
@@ -70,8 +70,8 @@ if ( -f $store_file ) {
 <job-site-scan.pending_count>--;
 <[job-site-scan.state.persist]>;
 
-#,,,.,,,,,.,.,,,,,...,.,.,,..,,.,,,,.,.,.,...,..,,...,...,...,.,,,,.,,,,,,.,,,
-#OHC4ZRUZSUUPHSNLD5CN7VQ4C5SMBZPNHMW4MBQUKSZFZJ3N7VDOKRZ5266QQAVCMXBPGOBK4IYWC
-#\\\|W4LLK6774JD6DHV3OAGEJL5HSSMBZDZGOJR6JGMJDWI6YBUZDOW \ / AMOS7 \ YOURUM ::
-#\[7]FASMEA4OYI6WFVPA2K5SQ4NDWRPLX7AZRLATEWUGVX75I3XY24BI 7  DATA SIGNATURE ::
+#,,..,,..,.,.,..,,...,,..,.,.,...,...,..,,.,,,..,,...,...,,.,,,.,,...,,..,.,,,
+#FC7Q5KSV7NYP4HDG66PO6EPDGZOFPBK6LXVQIERJQHEATL6TUVWGQ3O266TTA4TZ5Y7KUZI2MF75A
+#\\\|2ZGS5NCWSDE6JE27TXUPEASM2XRG2X5RBL2WMN4ZQ4IHYEZJSIZ \ / AMOS7 \ YOURUM ::
+#\[7]V3GDOPGFGFDHYIGOZZ5FIZMLNRJYFWOXRADYAPDWEVILDJKJNWBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
