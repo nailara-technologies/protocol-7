@@ -1,4 +1,4 @@
-# Session Handover — 2026-05-10 (session 20)
+# Session Handover — 2026-05-10 (session 20 continued)
 
 ## What Was Fixed This Session
 
@@ -22,55 +22,110 @@
 - YAML load encoding: :raw (default) not :utf8 — matches write encoding
 - no_proxy: added www.stepstone.de explicitly alongside stepstone.de
 - 0.5s delay between individual job page fetches (rate limiting)
-- task.create: adds :local: prefix to route to coding zenka (not kimi default)
+- task.create: adds :local: :simple: prefix to route to coding zenka (not kimi)
+- coding.cmd.ask-reply: :simple: marker → no_tools=TRUE, max_rounds=1
+- models.handler.task-poll-step: scalar-ref dereference for SIZE reply data
+- models.handler.task-poll-step: stop parsing header at 'result :' line
+- models.handler.task-poll-step: require space before colon (matches task.show
+  format 'description : value' not embedded content 'description:value')
+- models.handler.* (4 modules): scalar-ref data dereference fix
+- fetch-done: embed full prompt inline (profile + job details), file.read profile
+- fetch-done: debug logging for store load
+- jss.clear-tasks cmd: reset task state + persist empty state to disk
+- devmod: enabled get/set/dump/del/exec-sub/eval-code in job-site-scan
+- buffer-erase enabled in models zenka
 
-### Key patterns learned
+### Key patterns learned this session
 - P7 cmd modules: return { 'mode' => 'true'|'false'|'size', 'data' => ... } directly
 - P7 reply handlers (route-send): get $call->{'mode'} as uppercase 'SIZE'/'TRUE'/'FALSE'
   → always use lc($mode) eq 'false' for error check
+- SIZE reply data in route-send handler: $reply->{'data'} is a plain STRING (not sref)
+  (sref only in stream path — handler.command line 741)
 - Multiline call_args->{'args'}: must be B32-encoded or cube parses lines as protocol cmds
 - base.X prefix exists only on disk; called as X in code
 - $ARG = $_ (English.pm); $ARG[0] = $_[0] = first subroutine argument
 - file.zenka_dir.load returns undef if file absent, sref otherwise; use :raw encoding
-- task.create routes to kimi by default; prefix :local: for coding zenka
+- file.read returns content string directly; file.slurp returns scalar ref
+- task.show output: 'description : value' (space before :); task content may embed
+  'description:value' (no space) → parser must require \s+ before :
+- models.handler.task-poll-step: reads task.show SIZE reply, parses header until 'result :'
+  then routes by :local: prefix → coding.ask-reply; :simple: → no_tools=1,max_rounds=1
+- ncode -ai-friendly -confirm replace src 'pattern' 'replacement' — bulk safe replace
+- p7c job-site-scan.set key value  (via devmod — much better than eval-code)
+- p7c job-site-scan.del key        (delete namespace key)
 
 ## Current State (end of session)
 
-- 100 jobs in job-site-scan (assessing state), scan just triggered
-- site-yaml store: 98 entries loaded from /var/protocol-7/site-yaml/store.yaml
-- task dispatch: sequential via assess_queue, B32 encoding active
-- Coding zenka: running (Qwopus 9B v3 default)
-- All zenki reloaded with fixes
+### Job pipeline — first working end-to-end run IN PROGRESS
+- GPU inference server starting (coding zenka monitor_startup)
+- First task HAODVZA dispatched to coding.ask-reply with :simple: prompt
+- 100 jobs in assessing state (all reset to new, full scan dispatched)
+- Kimi zenka disabled in v7 config — routing now exclusively to local coding
+- models.task.default_model = kimi (fallback for tasks without :local: prefix)
+  → consider changing to 'local' for job-assess category
+
+### Verified working
+- scan → stepstone fetch → import → fetch-done → sequential dispatch → task.create
+- :local: routing → coding zenka (after task.show header parser fix)
+- :simple: → no_tools=TRUE, max_rounds=1 in coding.cmd.ask-reply
+- B32 encoding of multiline prompts (4000+ byte descriptions)
+- profile.txt read via file.read in fetch-done
+- jss.clear-tasks command
+
+### Still to verify
+- First actual score from coding zenka (in progress as of handover)
+- assess-done JSON extraction from coding result
+- review stage: jobs above threshold showing in list-jobs review
+- approve/reject workflow
+
+## First-run checklist for next session
+1. Check if HAODVZA completed: p7c task.result HAODVZA
+2. Check jss status: p7c job-site-scan.status
+3. If scored jobs in review: p7c job-site-scan.list-jobs review
+4. If coding worked: reset all 100 jobs to new and run full scan
+5. Add linux-entwickler category to job-site-scan/start
 
 ## Open Items
 
 ### Job pipeline — immediate
-1. **Verify assessment end-to-end**: watch assess-done handler fire, check scores
-   `p7c job-site-scan.status` — should show review-stage jobs when scoring completes
-2. **Test approve/reject**: `p7c job-site-scan.list-jobs review` then approve/reject
-3. **jobs.html page**: verify space.v7.ax/jobs.html shows scored jobs correctly
-4. **Multi-page search**: stepstone returns 25 jobs/page; add cfg.max_pages
+1. Verify score extraction end-to-end (first run in progress)
+2. Add linux-entwickler category (user request):
+   cfg.categories += linux-entwickler
+   cfg.url.linux-entwickler = https://www.stepstone.de/jobs/linux-entwickler/in-deutschland
+3. Remove debug logs from models.handler.task-poll-step (cmd=/len=/preview=)
+4. Consider changing models.task.default_model to 'local' to avoid kimi fallback
 
 ### Job pipeline — planned
-5. **HTTP sync endpoint** — /api/jobs/sync on httpd, YAML+C25519 signed
-6. **web template filter** — ?filter= query param in jobs.html.tmpl
+5. Multi-page search: stepstone 25 jobs/page; add cfg.max_pages
+6. HTTP sync endpoint — /api/jobs/sync on httpd
+7. jobs.html.tmpl filter wiring
 
 ### From session 18 — still open
-7. active deps execution — requires list in task dispatcher
-8. await-event external slot watcher
-9. think-block stripping — <think>...</think> from Kimi/Deepseek
-10. model-pinned switching — summarize_model config key inert
-11. note_read pagination
-12. task.cmd.start — task zenka step 3
+8. active deps execution — requires list in task dispatcher
+9. await-event external slot watcher
+10. think-block stripping — <think>...</think> from Kimi/Deepseek
+11. model-pinned switching — summarize_model config key inert
+12. note_read pagination
+13. task.cmd.start — task zenka step 3
 
 ## Key File Locations
 - Job store: /var/protocol-7/site-yaml/store.yaml
 - Scan state: /var/protocol-7/job-site-scan/scan-state.yaml
 - Profile: /etc/protocol-7/job-site-scan/profile.txt
-- Template: data/yaml/context-templates/job-assess.yaml
+- Template: data/yaml/context-templates/job-assess.yaml (no longer used directly)
+- Kimi disabled: configuration/zenki/v7/start-set-up.base (check kimi entry)
 
-#,,,.,,,,,,..,.,.,...,..,,,.,,,..,,,.,..,,.,,,..,,...,...,,,,,..,,,..,,,.,...,
-#PMV2X3Y6CIC2OOFPP7GAR7VM7IJ2AJCGLES4RH267JQMHJB5EE3NBJYOI2EU5QZIP2BUQX2JHVMSC
-#\\\|GYVLSTQLZ547C4AABY7T3BCTXDUOZXVNWYH65ZZC7MGRZEAK7WL \ / AMOS7 \ YOURUM ::
-#\[7]PMMKUPYOAHUNIXJPRWZNWA7ERIMZ7SANGXA2A2WOWVPHOOTCYMDQ 7  DATA SIGNATURE ::
+## Recent Commits (this session)
+- 323fd2de6 fix: dereference scalar-ref data in models handler reply callbacks
+- d862e5f67 feat: clear-tasks cmd + buffer-erase for models, scalar-ref data deref
+- 91273a852 debug: log description prefix and model in task-poll-step
+- afd81369d feat: :simple: marker → no_tools+max_rounds=1 in coding.ask-reply
+- e2c0cde0c fix: add debug logging for store load in fetch-done fallback path
+- b0535a6d2 fix: stop parsing task.show header at result line
+- 7058b8be1 fix: require space before colon in task.show header parser
+
+#,,,.,..,,,..,...,,..,...,..,,,,.,.,.,,.,,,.,,..,,...,..,,...,,.,,.,.,...,..,,
+#QBFNXHHQCLII2VS65A3T7UNQJI4GUYQFLNAM6KKKJYYWOSMJFLVRIFL4M5UZPDOGLIWJ64HM6ZX3E
+#\\\|HEFBDS3JL4URNSGPJN3FH244BIJFGYMHCVRHLV5SXW25523NHJZ \ / AMOS7 \ YOURUM ::
+#\[7]QW6MJAJEU3OPMDJGU3OHIBF3BYRLJ5MFEIMBQ7D7T6NNR3NOZCDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
