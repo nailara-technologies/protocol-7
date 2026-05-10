@@ -42,6 +42,16 @@ Forensics/security tasks fit natively into the task tree + watcher architecture:
 - LLM rule-synthesis loop = declarative task chain with depends_on + await-event, no
   custom orchestration code needed
 
+## task-group note namespace integrity
+
+Autonomous task loops (e.g. job assessment, coding iterations) get scoped
+note namespaces for cross-iteration memory. forensics zenka audits these
+periodically — reads accumulated notes cold against the declared task logic
+to detect prompt injection artifacts, behavioral drift, or dark zones that
+develop silently. a model with no stake in the notes reviews them as a third
+party. prevents maliciously crafted external input (e.g. job listings) from
+shaping model behavior invisibly across iterations.
+
 ## model capabilities mapping
 
 - **nist-coder-v1.1** — security review, network code audit, input validation
@@ -49,8 +59,8 @@ Forensics/security tasks fit natively into the task tree + watcher architecture:
 - **kimi** — tool access, file I/O, complex multi-step tasks
 - **coding zenka local models** — fast inference, no file access, good for review/generation
 
-#,,.,,,,.,.,.,.,.,,.,,,.,,,,.,..,,,.,,...,,,.,..,,...,...,.,.,...,.,,,,,.,,.,,
-#BC6T2C7AFVS5S6AJ2FMFNZ7QF3WLL6XTLXDHBFNAUHTHJWQ3VS5DA7WBEYF4FDJCQ6Q6CEELG6RWU
-#\\\|MSEQMZRRIVNUYSEZ7CN2BPQCKTK2XUV3P473RFKLWBBOUOHMQVJ \ / AMOS7 \ YOURUM ::
-#\[7]3RSE4MQKTD5GPWR2XGMXLSHPNLWIM7U4PAITMA7XQB7Q44HURACQ 7  DATA SIGNATURE ::
+#,,,.,,.,,.,.,,..,.,,,,..,,..,...,,.,,.,,,,,.,..,,...,...,..,,.,.,.,.,...,,,.,
+#QJMAGFQLW6XOAUJDLVLCJIWMGVNTV3ABRBBCFJSA6CPB2SRG3LUZW7425KCR3V6V5SMLTJYZF74RK
+#\\\|57652QAMJVH3MEQWNE34B64OH7MGYVYKIRITWNZBF5CNUJAEMNM \ / AMOS7 \ YOURUM ::
+#\[7]RZOMVMOBRGNAR6QHTG43MUWSJZYSKBXQQEBLOS5ZNP37V3OZWICQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
