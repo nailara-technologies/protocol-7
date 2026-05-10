@@ -82,12 +82,18 @@ if ( -f $store_file ) {
 }
 
 <job-site-scan.pending_count>--;
-<[job-site-scan.state.persist]>;
 
+if ( <job-site-scan.pending_count> <= 0 ) {
+    <job-site-scan.pending_count> = 0;
+    <job-site-scan.cycle>         = 'idle';
+    <[base.logs]>->( 1, 'jss: all assessments complete, cycle=idle' );
+}
+
+<[job-site-scan.state.persist]>;
 <[job-site-scan.dispatch.next]>;
 
-#,,,.,,,.,,..,.,.,.,,,,.,,,..,..,,.,.,...,.,,,..,,...,...,,..,,,.,..,,...,.,,,
-#XP7GX6RHTWB5WQSNAMZZSHX2PRTS6IH7PJOSYDVHT4XHMXNHCEEYPSULWHXYKFXDQKFSNCCHGWK32
-#\\\|BRWS4B2DRVBBJ66LXDKOZBIG43ZO3R2PPF4A6LMS6MSC5CA3SGP \ / AMOS7 \ YOURUM ::
-#\[7]JNSNDIX4PKGISMYPUTOLB4LDJWNMPUD2CB2LP5RTTQDZD4BGWODA 7  DATA SIGNATURE ::
+#,,.,,,,,,..,,,,.,,,,,,.,,,..,.,,,.,,,.,.,.,.,..,,...,..,,...,,,.,.,,,,,,,,,.,
+#6AWEE36PU5GBZXF4ITFWQRZUZ76NZ2AJDK6IICTCSRP63QZGSYBAG7SUA2QS5YV52KPDBENWMUJRW
+#\\\|YCF22MTUCK3WR7GG3FRGSENMZ6NB2NJVDA2LB3R76MPXPMTEUGW \ / AMOS7 \ YOURUM ::
+#\[7]X5LZHZNWWRD7TX2QEBC4KL7U7BBUOIKUTCKHSQAESCMLNYIFJKDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
