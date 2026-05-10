@@ -17,6 +17,7 @@ if ( ref $links ne 'ARRAY' ) {
 }
 
 my ( $new_count, $skip_count, $err_count ) = ( 0, 0, 0 );
+my @retry_queue;
 
 for my $link ( @{$links} ) {
     my $id = $link->{'id'};
@@ -32,12 +33,36 @@ for my $link ( @{$links} ) {
     my $job = <[site-yaml.stepstone.job]>->( $link->{'url'} );
     if ( ref $job ne 'HASH' ) {
         <[base.logs]>->( 0, 'import: fetch error id=%s : %s', $id, $job );
-        $err_count++;
+        push @retry_queue, $link;
         next;
     }
 
     my $result = <[site-yaml.jobs.upsert]>->($job);
     $new_count++ if $result eq 'new';
+}
+
+## retry failed fetches once with longer delay
+if (@retry_queue) {
+    <[base.logs]>->(
+        1,
+        'import: retrying %d failed fetch%s',
+        scalar @retry_queue,
+        scalar @retry_queue == 1 ? '' : 'es'
+    );
+    select( undef, undef, undef, 3 );    ## wait 3s before retry pass
+    for my $link (@retry_queue) {
+        my $id = $link->{'id'};
+        select( undef, undef, undef, 2 );
+        my $job = <[site-yaml.stepstone.job]>->( $link->{'url'} );
+        if ( ref $job ne 'HASH' ) {
+            <[base.logs]>
+                ->( 0, 'import: retry failed id=%s : %s', $id, $job );
+            $err_count++;
+            next;
+        }
+        my $result = <[site-yaml.jobs.upsert]>->($job);
+        $new_count++ if $result eq 'new';
+    }
 }
 
 <[site-yaml.jobs.save]> if $new_count;
@@ -48,8 +73,8 @@ my $summary = sprintf 'import done: %d new, %d skipped, %d errors',
 
 return { 'mode' => 'size', 'data' => $summary };
 
-#,,..,,.,,..,,.,,,,.,,,.,,,.,,,,.,..,,.,,,,..,..,,...,...,...,.,.,..,,,.,,,..,
-#WLFMIOZ5LCE5DZE2B3WYNQNHWZN6UISPBMSSYJ4X7SIP4CJVLN7YLN44DLZFPIFGZASD44WY5CPSE
-#\\\|2BNQ7TQDUAQHKLFZUM2KZRINEAXN7YFC4J2VLCW2FQVWYCNGSIA \ / AMOS7 \ YOURUM ::
-#\[7]6BALB3WONVQ3ZGCIJ5GJSTN2NULI3OO7ZGXQ5LXJJ6HRVZOBJ2CY 7  DATA SIGNATURE ::
+#,,.,,,..,..,,.,,,,.,,,,.,,..,...,,,,,.,.,,..,..,,...,...,...,...,.,.,,..,..,,
+#6HEQMMTUIT6NRCSHYLGS55T4X3Z5SQCMRGASDBPPFTR5DKKYT3YKN6NBBR5RXTOIWDY7NNYKJVSAW
+#\\\|QYOXWGFPZZ6XEUXB2XQQNFYGWNA5QTIZBK4OYRGIE35EWGLKE6O \ / AMOS7 \ YOURUM ::
+#\[7]5RHXG34BLVQRRAEA4QGJRYALKLUJMBV3TAE4W2VFUK666FAAFCAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
