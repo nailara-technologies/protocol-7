@@ -108,9 +108,10 @@ if ( $step eq 'show' ) {
         }
         next unless $in_header;
 
-        if ( $line =~ m{^description\s*:\s*(.*)$}i ) {
+        ## require space before ':' to match task.show header format only
+        if ( $line =~ m{^description\s+:\s+(.*)$}i ) {
             $description = $1;
-        } elsif ( $line =~ m{^context\s*:\s*(.*)$}i ) {
+        } elsif ( $line =~ m{^context\s+:\s*(.*)$}i ) {
             $context = $1;
         }
     }
@@ -244,8 +245,8 @@ if ( $step eq 'check-next' ) {
 <[base.logs]>->( 0, ': task-poll-step: unknown step [ %s ]', $step );
 return;
 
-#,,.,,,.,,,..,,,,,.,,,..,,...,...,..,,...,,,.,.,.,...,...,...,,,.,,.,,..,,,,.,
-#4AOBI6JTEOT3IRF6K3C5JX5S2HLVPNUXXAG3WSDHDGTEGMFNLU3WZ5K6HJ4K4CH3ZJWOAOIPFXRUW
-#\\\|TAFIVFBXXHKZSH2XIWDHQ7B5J34YCKNI4VSTWP22BTVMK6Y2KAD \ / AMOS7 \ YOURUM ::
-#\[7]UF35XVCNZUNOQL2GILDNFEI4CAUSPHKHDR7OV7LCTQ5O5IERNGCY 7  DATA SIGNATURE ::
+#,,.,,,,.,.,.,,..,..,,.,.,,,,,,,,,...,,..,...,.,.,...,...,.,.,,..,.,.,.,,,..,,
+#VJ6SYDC6AX6QMBOUPQWO3NO43ZG6MEXRPBFIT4W3HAS5LQQMCAILRXPKMBM7B6UEDAEF25X5PYETE
+#\\\|ML33J4LK7RX5ZJ2EASYIJ4KBLXPCH6LN25ACCOX7WU25NK3NIDS \ / AMOS7 \ YOURUM ::
+#\[7]JWDROE4U6U4Y4MZAXW2OYCOL2KXPMGIEC6YN5FSKYCBQ6REEUKAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
