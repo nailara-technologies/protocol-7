@@ -2,81 +2,61 @@
 name: job pipeline
 description: job search automation — site-yaml, job-site-scan, assessment, sync
 type: project
-originSessionId: 720400ec-fa5d-4bd0-a47c-8b05d3612ca3
+originSessionId: 240f9c26-e26e-4714-956a-72bd2bd2048d
 ---
-## Implemented (2026-05-10)
+## Implemented (2026-05-10, session 20)
 
 **site-yaml zenka** (on-demand):
-- `site-yaml.import <url>` — fetch stepstone search page → extract JSON-LD per job → store.yaml
-- `site-yaml.list-jobs [status]` — list job store
-- `site-yaml.set-status <id> <status>` — manual status update
-- Store: `/var/protocol-7/jobs/store.yaml`, keyed by job ID
+- `site-yaml.import <url>` — fetch stepstone search page → JSON-LD per job → store.yaml
+- Store: `/var/protocol-7/site-yaml/store.yaml` (moved from /var/protocol-7/jobs/)
 - Status flow: new → assessed → applied/rejected/skipped/archived
-- Proxy bypass: `$ua->no_proxy('stepstone.de')` — proxy at 10.0.110.7:4040 blocks stepstone
+- Proxy bypass: no_proxy('stepstone.de', 'www.stepstone.de')
+- 0.5s delay between job page fetches (rate limiting)
 
 **job-site-scan zenka** (on-demand, coordinator):
 - Stage engine: idle → scanning → assessing → reviewing → idle
-- State namespace: `<job-site-scan.tasks.JOBID.*>`, persisted to scan-state.yaml
-- `pending_count` var watcher fires stage.review when all assessments land (no polling)
-- Named categories in start file: `cfg.categories` + `cfg.url.<category>` per entry
+- State: `/var/protocol-7/job-site-scan/scan-state.yaml`
+- Profile: `/etc/protocol-7/job-site-scan/profile.txt`
+- Commands: scan, status, list-jobs, list-jobs [stage], approve, reject,
+  set-threshold, clear-tasks, get/set/dump/del (devmod)
 - Default categories: linux-sysadmin, ki-automation, devops, platform-engineer
-- Assessment: task.create → task.wait-done (deferred reply via task zenka, no polling)
-- Commands: scan, status, list, approve, reject, set-threshold
+  (add linux-entwickler next session)
 
-**job-assess template** (`data/yaml/context-templates/job-assess.yaml`):
-- no_tools=true, max_rounds=1 — single LLM call, returns JSON
-- Profile injected from `/var/protocol-7/jobs/profile.txt`
-- Output: `{"score": N, "reason": "...", "apply": true/false}`
+**Assessment pipeline (fully wired, first run in progress as of session 20)**:
+- fetch-done builds full inline prompt: profile + job details embedded in description
+- task description: `:local: :simple: <full prompt>` (4000+ bytes, B32-encoded)
+- :local: → models routes to coding.ask-reply
+- :simple: → coding.cmd.ask-reply sets no_tools=TRUE, max_rounds=1
+- assess-done extracts JSON score from result, updates store + scan state
+- Sequential dispatch: one task.create at a time (dispatch.next chain)
+- Restart recovery: rewire-all handler re-wires task.wait-done for orphaned jobs
 
-**web template** (`data/web-root/vhosts/space.v7.ax/jobs.html.tmpl`):
-- plugin.web.jobs.list + plugin.web.jobs.stats read store.yaml directly
-- Dark theme card list with score color coding
+**Key bugs fixed in session 20**:
+- models.handler.task-poll-step: task.show header parser now requires \s+ before ':'
+  (embedded job 'description:' line was overwriting the task metadata 'description : ...')
+- Kimi disabled in v7 config — all assessment goes to local coding zenka
+- clear-tasks command added for clean resets
+- buffer-erase enabled in models zenka
 
-## First-run checklist
-1. `p7c v7.restart cube` — load new auth/access entries
-2. Create `/var/protocol-7/jobs/profile.txt` — CV/skills context for LLM scoring
-3. `p7c job-site-scan.scan` — trigger first scan cycle
-4. `p7c job-site-scan.status` — check progress
-5. `p7c job-site-scan.list review` — see jobs above threshold
-6. `p7c job-site-scan.approve <id>` — approve for application
+**web template**: space.v7.ax/jobs.html.tmpl — dark card list with score color coding
 
-## Planned: HTTP sync between nodes
+## First-run checklist (next session)
+1. Check HAODVZA result: p7c task.result HAODVZA
+2. p7c job-site-scan.status — should show some 'review' jobs
+3. If scored: p7c job-site-scan.list-jobs review
+4. If not scored: check coding zenka result + assess-done JSON parsing
+5. Reset all 100 to new + clear-tasks + scan (full production run)
+6. Add linux-entwickler category to job-site-scan start file
 
-**Why:** local node has larger GPU models for better assessment quality; remote nodes
-(when installed) have CPU inference with smaller models. Need to sync job store +
-scan state so both nodes see the same pipeline state.
+## Planned
+- Multi-page search: stepstone 25 jobs/page — cfg.max_pages per category
+- HTTP sync endpoint — /api/jobs/sync on httpd, C25519-signed YAML
+- jobs.html.tmpl filter tabs — need ?filter= query param wiring
+- Remove debug logs from models.handler.task-poll-step
+- Consider changing models.task.default_model from 'kimi' to 'local'
 
-**Design sketch:**
-- `httpd` exposes `/api/jobs/sync` endpoint (POST to push, GET to pull)
-- Payload: YAML dump of store.yaml + scan-state.yaml, signed with zenka's C25519 key
-- Receiver verifies signature against known node public keys (same key exchange as
-  existing zenki auth — `crypt.C25519.*` modules already present)
-- Merge strategy: last-write-wins per job ID, with `updated_at` ntime timestamp
-- Node identity: zenka name + instance AMOS checksum (already in P7 routing)
-
-**What already exists:**
-- `crypt.C25519.*` — key generation, signing, verification
-- `httpsd` TLS endpoint — already deployed on pri.v7.ax
-- `base.chk-sum.amos` — for node identity checksums
-- Route-send plumbing — could also sync via P7 route rather than HTTP
-
-**Simpler first approach:** sync via P7 route directly (if both nodes share a cube
-federation in future). HTTP only needed for nodes that aren't in the same P7 network.
-
-**Status:** planned, not started. Defer until remote server is set up and CPU
-inference model is selected.
-
-## Open items
-- Profile file: needs to be written (key skills, preferred roles, location prefs)
-- Assessment quality: test with Qwopus vs smaller model on same job listing
-- Multi-page search: stepstone returns 25 jobs/page — add pagination to site-yaml.import
-  for deeper scans (cfg.max_pages per category)
-- Score persistence across restarts: scan-state.yaml survives, store.yaml survives —
-  but if coding zenka is restarted mid-assessment, pending tasks orphan. Add timeout
-  or re-queue on restart if tasks older than N hours are still in 'assessing' stage.
-
-#,,.,,,.,,.,,,.,.,,,,,,,.,.,,,,..,..,,,,,,..,,..,,...,...,...,,,.,,,.,...,,.,,
-#IYEB23FL6Q47G6O2X75PBB2NTPUK7R7T5WFCO6S7Q7YMBKQODLQWJJ7NZMKLIK5OYRQW325Z5CTVQ
-#\\\|XL43LAU64EDQPMA44VAHXMCLTO2NRAYUMZ7QZMT2FQPR7QXIDT6 \ / AMOS7 \ YOURUM ::
-#\[7]2F2QQ7ATIAVQVXV5LRWUJKGG5TKHZQW77FZMJAX3ZQTWNYRO5ADI 7  DATA SIGNATURE ::
+#,,,,,...,,,,,,,.,,..,..,,,.,,...,...,,,,,,,.,..,,...,...,.,,,..,,,..,,,.,..,,
+#FSL7RXPPRNJ4VBG33CZI3KSWCHYEN6EGHNRABHOYVKL4LTYSWKET4C6RPOIFNFJOIAENOTQCME2MA
+#\\\|JYEWK7IJGA4RTDNV3F64SHZARX5WOOCZQTYSDJ2DJUWNXOVREEI \ / AMOS7 \ YOURUM ::
+#\[7]L7PQEEMMHXUGDAW6FO3OUGR2HIGJSCZCLDJOUDK4UG45VEJ3V6BY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
