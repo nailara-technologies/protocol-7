@@ -82,9 +82,12 @@ if ( $step eq 'show' ) {
     my $in_history = FALSE;
     my $current_turn;
 
+    ## parse only the task.show header lines (stop after 'result :' field)
+    my $in_header = TRUE;
     foreach my $line ( split( /\n/, $details ) ) {
         if ( $line =~ m{^---\s*history\s*---}i ) {
             $in_history = TRUE;
+            $in_header  = FALSE;
             next;
         }
         if ($in_history) {
@@ -97,6 +100,14 @@ if ( $step eq 'show' ) {
             }
             next;
         }
+        ## stop header parsing once we hit the result line
+        ## (everything after is task content, not task metadata)
+        if ( $in_header and $line =~ m{^result\s*:\s*}i ) {
+            $in_header = FALSE;
+            next;
+        }
+        next unless $in_header;
+
         if ( $line =~ m{^description\s*:\s*(.*)$}i ) {
             $description = $1;
         } elsif ( $line =~ m{^context\s*:\s*(.*)$}i ) {
@@ -233,8 +244,8 @@ if ( $step eq 'check-next' ) {
 <[base.logs]>->( 0, ': task-poll-step: unknown step [ %s ]', $step );
 return;
 
-#,,,,,.,.,.,.,,,.,,..,...,,,.,,.,,,..,,..,,..,.,.,...,...,,..,.,,,..,,,.,,.,,,
-#L4CXEAO4QKJ366UTBU6SNMXHBMGCW2Y2RI57SCRJ6TXLDYRHM5JIWGAWVZPXC4QUMKPWPLDBJ4ZEU
-#\\\|AKSWQ4I77QPW2MH5LBBVJIWYA2U4SBZW27UBZKWM6FXOT6PPPID \ / AMOS7 \ YOURUM ::
-#\[7]QM5D3GQXG7FHSUEAXBN3XWYMTYGEYP5R72GD2TAC6WS2VP4B5ECY 7  DATA SIGNATURE ::
+#,,.,,,.,,,..,,,,,.,,,..,,...,...,..,,...,,,.,.,.,...,...,...,,,.,,.,,..,,,,.,
+#4AOBI6JTEOT3IRF6K3C5JX5S2HLVPNUXXAG3WSDHDGTEGMFNLU3WZ5K6HJ4K4CH3ZJWOAOIPFXRUW
+#\\\|TAFIVFBXXHKZSH2XIWDHQ7B5J34YCKNI4VSTWP22BTVMK6Y2KAD \ / AMOS7 \ YOURUM ::
+#\[7]UF35XVCNZUNOQL2GILDNFEI4CAUSPHKHDR7OV7LCTQ5O5IERNGCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
