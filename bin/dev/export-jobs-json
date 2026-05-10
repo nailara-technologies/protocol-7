@@ -55,6 +55,7 @@ for my $id ( sort keys %{$store} ) {
         url      => to_unicode( $j->{'url'}          ),
         score    => $j->{'score'} + 0,
         reason   => to_unicode( $j->{'score_reason_de'} || $j->{'score_reason'} ),
+        summary  => to_unicode( $j->{'score_summary'} ),
         stage    => $tracker_stage,
         fetched  => $j->{'fetched_at'} // '',
     };
@@ -80,8 +81,8 @@ rename $tmp, $out_file or die "cannot rename: $!\n";
 
 printf "exported %d jobs → %s\n", scalar @jobs, $out_file;
 
-#,,,,,.,.,..,,..,,.,,,,.,,,,,,,,.,,..,.,.,...,..,,...,...,...,.,,,..,,.,,,,.,,
-#QHZ4YDWPO7TNNZ4LC5OQ52XVD4TSJ6EFDV6K27LVL4VOLYHMI55B5Y6MRLS5OQFFAPBH6AHQHN24U
-#\\\|TKVYE4WWMWI2JAYZRD6ZQJQDKWZUSIQDYIQDJQSHWAJJHAVLNSA \ / AMOS7 \ YOURUM ::
-#\[7]6DXKIMRT55YUMCANKY76CAWFCGVQ5IYFVRLLLW3NORDHRDHPKYBQ 7  DATA SIGNATURE ::
+#,,.,,.,,,.,,,,,,,,,.,,,.,.,.,.,.,,,,,.,.,,,.,..,,...,..,,,..,.,,,.,.,..,,,,,,
+#RNS5GDA25UPHKXDGK2RKJ6C6OPKNFSDFONRFROBEPSULY2XZPDX7TCHI6YBCVB4SXUII3WEFASJHM
+#\\\|YGAJFPKQWQXQIQHXMR7K2JSZHMVQZMY5KQWLDVW3OHSFLIIDE7X \ / AMOS7 \ YOURUM ::
+#\[7]EVPA3LDADFOE4YTVH6AZ24AOA4JNAKE26ZEA2LAHYQJPENLD4SDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
