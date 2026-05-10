@@ -65,13 +65,8 @@ if ( not @to_assess ) {
 my $profile_file = <job-site-scan.cfg.profile_file>
     // '/etc/protocol-7/job-site-scan/profile.txt';
 my $profile_text = '';
-if ( -r $profile_file ) {
-    open( my $fh, '<:utf8', $profile_file )
-        and do { local $/; $profile_text = <$fh>; close $fh };
-} else {
-    $profile_text
-        = 'no profile configured — score based on job listing alone';
-}
+$profile_text = <[file.read]>->($profile_file)
+    // 'no profile configured — score based on job listing alone';
 
 ## build queue entries
 my @queue;
@@ -115,8 +110,8 @@ for my $job_id (@to_assess) {
 ## dispatch first task — task-created handler will call dispatch.next for each
 <[job-site-scan.dispatch.next]>;
 
-#,,.,,.,,,...,.,,,,.,,...,..,,,.,,,.,,.,,,.,.,..,,...,..,,,,.,,..,,.,,,.,,,,.,
-#BLFB7QVVMELK6OO4FAFWRHZIC5YF3UDVJSVYMRGBE77ZUDZ3BPJQSDOMHUIQO3EFIZFZE6QKJNPRI
-#\\\|VU66TQICYAUH3ELOPXHBXNVLYZKDGCBIH3AUFZ4V7GRB7T4OQRT \ / AMOS7 \ YOURUM ::
-#\[7]GL6JY3I7PZIMZJBTBTL3XOCGC2ZUKAN2L54ASAAO5R4VHACT62CI 7  DATA SIGNATURE ::
+#,,.,,..,,.,.,,,.,,.,,,..,,..,,..,.,,,.,,,,,.,..,,...,...,..,,...,.,,,,.,,..,,
+#3MON422JECX5BH2C56BLL53VAR35ZLYWRVRXWUOX2YSNPXXRQN4GL4744TA3VWIPQ36A6YFEF4JRK
+#\\\|LCDYRCYEWGXQZRUDYUMGTPOLLQ6WN3Z24AYSBMTA3AXBUPQXWRX \ / AMOS7 \ YOURUM ::
+#\[7]D47EVJ5NOKTFO7S7OVEWNL72NCDHIZHVCKC3BIF7SCKQZHBQHADQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
