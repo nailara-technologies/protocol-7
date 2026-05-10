@@ -41,6 +41,11 @@ if ( defined $call->{'param'} && ref $call->{'param'} eq qw| HASH | ) {
 return { 'mode' => qw| false |, 'data' => "work request required\n" }
     if !length($request_str);
 
+## detect simple/no-tools mode from :simple: marker anywhere in first 100 chars
+my $simple_mode = FALSE;
+if ( $request_str =~ s{:simple:\s*}{}i ) { $simple_mode = TRUE }
+$request_str =~ s{^:next:\s*}{}i;
+
 # Parse and analyze task
 my $intake_result = <[coding.task.intake]>->($request_str);
 return {
@@ -65,6 +70,12 @@ return {
     if !$routing->{success};
 
 my $routed_task = $routing->{'task'};
+
+## apply simple mode — single round, no tool calls
+if ($simple_mode) {
+    $routed_task->{'no_tools'}   = TRUE;
+    $routed_task->{'max_rounds'} = 1;
+}
 
 # Enqueue task
 my $queue_result = <[coding.task.enqueue]>->($routed_task);
@@ -93,8 +104,8 @@ $data{"coding"}{"deferred_replies"}->{$deferred_id} = {
 
 return { 'mode' => qw| deferred | };
 
-#,,,,,,.,,,..,,.,,..,,,,,,..,,,.,,,.,,..,,..,,.,.,...,..,,.,,,.,,,...,,,.,,,,,
-#QHCXHM3BYSA26UNNQHRLA74FAFBT5CSMLQZYX4OTY26ICOWZ3B2AFH3DWUWPODRCA6OZDN6TVUQIS
-#\\\|44B5UNUF73BYOFGW57MHTNHU6J7EJQIQPPCGR65BODRUA7T3C5T \ / AMOS7 \ YOURUM ::
-#\[7]K6477NKF4TI4DLSF22U5RZZJMPMHG3WPZMUMUEUMNO67AV6JTGBQ 7  DATA SIGNATURE ::
+#,,,.,.,.,...,,..,,..,..,,,,.,,.,,,,,,.,.,.,,,.,.,...,...,,..,,,.,,..,.,.,,.,,
+#5QEVLEVFHMNKXQEMJLSZTNIIHAYF455PV3DSJ34IUCZLOTB7LC6QJ7BZ3FKBOMOE7PPNJTMLRM5KW
+#\\\|MBHP5P7LUXROF5K722QVQAK6QSXVXV2PBAIRCOOOHEKP6EHQWNR \ / AMOS7 \ YOURUM ::
+#\[7]HZKDG63VKI6YZ23UGDCZZOSZ3KNUZLJBZMF6U4Y4RGAGAJM4KGDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
