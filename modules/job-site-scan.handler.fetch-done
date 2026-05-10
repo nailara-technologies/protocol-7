@@ -75,6 +75,9 @@ my $profile_file = <job-site-scan.cfg.profile_file>
 my $profile_text = '';
 $profile_text = <[file.read]>->($profile_file)
     // 'no profile configured — score based on job listing alone';
+<[base.perlmod.autoload]>->('Encode');
+$profile_text = Encode::decode( 'UTF-8', $profile_text )
+    unless utf8::is_utf8($profile_text);
 
 ## build queue entries
 my @queue;
@@ -89,6 +92,9 @@ for my $job_id (@to_assess) {
     my $ind      = $job->{'industry'}    // '';
     my $raw_desc = $job->{'description'} // '';
     HTML::Entities::decode_entities($raw_desc) if length $raw_desc;
+    for ( $title, $co, $city, $ind, $raw_desc ) {
+        $_ = Encode::decode( 'UTF-8', $_ ) unless utf8::is_utf8($_);
+    }
     my $desc = substr( $raw_desc, 0, 1200 );
 
     ## build complete self-contained prompt — no template dependency
@@ -120,8 +126,8 @@ for my $job_id (@to_assess) {
 ## dispatch first task — task-created handler will call dispatch.next for each
 <[job-site-scan.dispatch.next]>;
 
-#,,..,,..,.,.,,..,,..,..,,.,.,,,,,,..,,..,,,,,..,,...,..,,.,.,.,,,,.,,,..,,.,,
-#4ZWPRFJQNZDKUUSICRRQWIEEFW257RPAUSU6OQBSLIZIVZ7IFXN2JSPAVOGKHHCPCJ7CA6EXSHDNA
-#\\\|WSJVPYLSNXESDGTJ22HYS3E2HW6G5HRET3OKCGSANGZSIFZ47JV \ / AMOS7 \ YOURUM ::
-#\[7]OD5FBZZN6CUYEWHYQRJEVLN7UPTAAKIR43TRTVFWWZ3IBURTYKBI 7  DATA SIGNATURE ::
+#,,,.,,,,,..,,.,.,.,.,,.,,..,,,.,,...,,,,,.,,,..,,...,...,...,,,.,,..,.,,,..,,
+#NOPNP7WO6E324HXFBVIO5PMTM7YNYJ3FS4ZZ7JLJR7CUHBWCIJE3ZTFD67ZKDJ7FL2LJ6FXCLZ7FK
+#\\\|O7M2XLZD3UQLJEE7UPMS3FCWVZHELA3NHR4EXLMML2R2QG7KJA7 \ / AMOS7 \ YOURUM ::
+#\[7]UPR4EK4Y3YNXQRYSRPV4VF4P3YTGDVPEP5SPZ5U2YFAPBFCGRADQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
