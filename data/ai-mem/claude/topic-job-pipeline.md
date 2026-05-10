@@ -59,7 +59,8 @@ originSessionId: 5557aaa4-3476-4c66-9002-955c73ae92a1
 - store reset: delete store.yaml (no reset-scores command yet)
 
 ## Planned
-- Add linux-entwickler category to job-site-scan start file
+- Search category management: add/remove/list-categories commands + zenka_dir
+  persistence — so categories don't require editing the start file
 - Multi-page search: cfg.max_pages per category (stepstone: 25/page)
 - Task zenka persistence (zenka_dir) — state lost on idle shutdown
 - HTTP sync endpoint — auto-push jobs.json after each run
@@ -68,8 +69,8 @@ originSessionId: 5557aaa4-3476-4c66-9002-955c73ae92a1
 - Exclusion filter from past CSV data (already-applied companies)
 - score_tech + score_location split in assessment JSON
 
-#,,,.,,,.,.,,,,,,,...,,.,,,..,,,,,.,,,.,,,...,..,,...,..,,.,.,...,,.,,..,,.,,,
-#BQF24RLBCKQ23ZZTVOEI4KGHOOWEJTH2JJHBUS7LVK6YVUPTPBTU46QY2RIBWTSF6MNQBILYCLX3Y
-#\\\|ONGNHHLDCQDZXVYLFC6CBXUQOJHPQSMGOF5CLIRECSW5KFUHV2H \ / AMOS7 \ YOURUM ::
-#\[7]UYTJQ6RUKXQ26AZZR3NBDGFRTK6U5ZDIMHR3ZS3HBSOAQBQCPABA 7  DATA SIGNATURE ::
+#,,,.,,.,,,..,,.,,.,.,,..,.,.,.,.,.,.,,..,,..,..,,...,...,,..,..,,...,,..,,..,
+#CY6F4NB7EIRWW477E5WDKSBCJEFS2VNGLERKTJZQAESGCMEXL3BYIIXEAR7OQTZX6RIWTM5MWNYKG
+#\\\|SXMCH3AIHYPZ7NEK5TSJPVYEKZ3RNSBLUQZJE73Z7LMWEL63ERB \ / AMOS7 \ YOURUM ::
+#\[7]ICSTWOHBI63OYF26IUVSWCUJPPZUKLV7T5BVO6P3IWD5TBLIDWAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
