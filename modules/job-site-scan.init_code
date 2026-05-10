@@ -38,14 +38,40 @@ if ( $interval > 0 ) {
     <[base.logs]>->( 1, 'job-site-scan: rescan timer %ds', $interval );
 }
 
-my $job_count = scalar keys %{ <job-site-scan.tasks> // {} };
+## re-wire task.wait-done for any jobs stuck in 'assessing' after restart
+my $tasks   = <job-site-scan.tasks> // {};
+my @orphans = grep {
+    ( $tasks->{$ARG}{'stage'} // '' ) eq 'assessing'
+        and length( $tasks->{$ARG}{'task_id'} // '' )
+    }
+    keys %{$tasks};
+
+if (@orphans) {
+    <job-site-scan.pending_count> = scalar @orphans;
+    <[base.logs]>->(
+        1,
+        'job-site-scan: re-wiring %d orphaned assessment tasks',
+        scalar @orphans
+    );
+    for my $job_id (@orphans) {
+        my $task_id = $tasks->{$job_id}{'task_id'};
+        <[base.event.once]>->(
+            {   'after'   => 1,
+                'handler' => 'job-site-scan.handler.rewire-assess',
+                'args'    => { 'job_id' => $job_id, 'task_id' => $task_id },
+            }
+        );
+    }
+}
+
+my $job_count = scalar keys %{$tasks};
 <[base.logs]>->(
     1,                     'job-site-scan: ready, cycle=%s, jobs=%d',
     <job-site-scan.cycle>, $job_count
 );
 
-#,,,,,,,,,,..,...,,,.,,,.,,,,,,,,,,,,,...,,,.,..,,...,..,,...,,,.,.,.,,.,,,.,,
-#I3KVLDKRRDTJ7ZDPER2Z7BZVQ24MOSZ66F3G23DBEJU7VQUGKCRJT3CGXSETV3LX7C24MQFRGHMME
-#\\\|CMOJ5U7WJLEXNWV4BVHB6MZ4KXKBEKGSNAHL5S6S4GUQKFTTD7Q \ / AMOS7 \ YOURUM ::
-#\[7]MTCI5GZMJEM3RWY4YJ6CJ3V2WGUL7YFOIREIV5GK4BLJFS25LODI 7  DATA SIGNATURE ::
+#,,,.,...,,,,,.,,,,,.,..,,..,,..,,,.,,,,,,..,,..,,...,...,.,,,,,,,..,,..,,,,.,
+#WKEHYZFFKBM4CIER7SBTGWXKKNEYJIGCPLIK5B7O7R4TGS3BVGTW35MY3DLAMKASK7SSMM7LGTEEQ
+#\\\|AQDGMIPSULOWJ2TGWYUNET6QGTFPRBLWFAGW4BJ62VBEFVA4WMY \ / AMOS7 \ YOURUM ::
+#\[7]VBXVQ6HBXMC24BEFKVV3VYCQKBG4VM36DA3F6JBK7ZPFYXPNKIBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
