@@ -4,65 +4,72 @@ description: job search automation — site-yaml, job-site-scan, assessment, syn
 type: project
 originSessionId: 5557aaa4-3476-4c66-9002-955c73ae92a1
 ---
-## Implemented (2026-05-10, sessions 20-21)
+## Implemented (2026-05-10, sessions 20-22)
 
 **site-yaml zenka** (on-demand):
 - `site-yaml.import <url>` — fetch stepstone search page → JSON-LD per job → store.yaml
-- Store: `/var/protocol-7/site-yaml/store.yaml`
+- Store: `/var/protocol-7/site-yaml/store.yaml` — delete to force full re-fetch
 - Status flow: new → assessed → applied/rejected/skipped/archived
 - Proxy bypass: no_proxy('stepstone.de', 'www.stepstone.de')
-- 0.5s delay between job page fetches (rate limiting)
+- 0.5s delay between fetches; retry queue for timeouts (3s wait + 2s between retries)
 
 **job-site-scan zenka** (on-demand, coordinator):
 - Stage engine: idle → scanning → assessing → reviewing → idle
 - State: `/var/protocol-7/job-site-scan/scan-state.yaml`
 - Profile: `/etc/protocol-7/job-site-scan/profile.txt`
-- Commands: scan, status, list-jobs, list-jobs [stage], approve, reject,
-  set-threshold, clear-tasks, get/set/dump/del (devmod)
-- Default categories: linux-sysadmin, ki-automation, devops, platform-engineer
-  (add linux-entwickler next session)
+- Commands: scan, status, list-jobs [stage], approve, reject, set-threshold,
+  clear-tasks, get/set/dump/del (devmod)
+- Categories: linux-sysadmin, ki-automation, devops, platform-engineer
+  (TODO: add linux-entwickler)
+- Full re-run: `rm store.yaml && p7c job-site-scan.clear-tasks && p7c job-site-scan.scan`
 
-**Assessment pipeline — FULLY WORKING as of session 21**:
-- fetch-done builds full inline prompt: profile + job details embedded in description
-- task description: `:local: :simple: <full prompt>` (4000+ bytes, B32-encoded)
-- :local: → models routes to coding.ask-reply
-- :simple: → coding.cmd.ask-reply sets no_tools=TRUE, max_rounds=1
-- assess-done extracts JSON score, updates store + scan state, dispatches next
-- Sequential: one task in flight at a time (dispatch.next called from assess-done)
-- models.task.default_model = local (no kimi fallback)
-- First real scored run: 6+ jobs in review, scores 7–8.5, reasoning correct
+**Assessment pipeline — FULLY WORKING, session 22**:
+- Prompt: German from the start — asks for score + reason + summary in one pass
+- JSON format: `{"score": 0-10, "apply": bool, "reason": "1-2 German sentences (fit)",
+  "summary": "2-3 German sentences (job overview, skills, remote/location, highlights)"}`
+- reason = why candidate fits/doesn't; summary = what the job actually is
+- Sequential: one task in flight (dispatch.next from assess-done)
+- models.task.default_model = local
+- No separate translation pass — model outputs German natively
+- assess-done stores: score, score_reason, score_summary in task state + store.yaml
+- Future: score_tech + score_location as separate fields (structure ready)
 
-**Key bugs fixed in session 21**:
-- task.cmd.show was emitting multiline description as raw newlines in the header
-  block — task-poll-step only captured the first line (`:local: :simple: ...`)
-  and discarded the entire profile + job data. Fix: task.show now escapes \n in
-  description + context fields; task-poll-step unescapes after header parse.
-- task-created handler was calling dispatch.next immediately, dispatching all 100
-  tasks at once — coding zenka saturated, most returned "awaiting_data". Fix:
-  dispatch.next moved to assess-done (and failure path) so only one task runs.
-- assess-done regex: now also matches "fit_score", "reasons" array, "recommendation"
-  in addition to canonical "score"/"reason" keys.
-- models.task.default_model set to 'local' in models/start config.
-- Store reset for full re-run: perl -MYAML::XS to set all status='new', then
-  p7c job-site-scan.clear-tasks && p7c job-site-scan.scan
+**jobs.vhost — LIVE**:
+- Vhost: atom.protocol-7.network (46.101.115.180), TLS via letsencr
+- Repo: `data/web-root/vhosts/jobs.vhost/` (domain not disclosed)
+- Manifest: `hostname_pattern: jobs.*` + `install_matching: yes` — resolves against
+  deployed /var/httpd/jobs.* dirs at install time
+- `httpd.vhost.read_manifests` extended to handle wildcard pattern vhosts
+- Page features: score filter (slider, default 6), filter tabs, sort score↓/↑/datum,
+  table toggle, CSV export, notes, status changes, drag-reorder, manual add
+- Card layout: title+score → company/city/industry → reason (italic) → summary (muted)
+  both click-to-expand
+- Export: `bin/dev/export-jobs-json [outfile]` — reads store.yaml → jobs.json
+  prefers score_reason_de (legacy) then score_reason; to_unicode() fixes Latin-1/UTF-8
+- Update cycle: `perl bin/dev/export-jobs-json /tmp/jobs.json && scp ... atom:/var/httpd/jobs.vhost/`
 
-**web template**: space.v7.ax/jobs.html.tmpl — dark card list with score color coding
+**letsencr fix (session 22)**:
+- x509_field/der_to_pem/extract_aia_url/fetch_intermediate_via_aia were only loaded
+  in child branch — parent crashed in save_certificate. Fix: load all four in parent
+  branch of fork_letsencr_child alongside letsencr.parent.
 
-## Current state (session 21 end)
-- 100 jobs being assessed sequentially, ~6+ in review already
-- threshold = 6 (scores are 0-10 but model may use 0-100; both work since anything
-  >= 6 on 0-10 is also >= 6 on 0-100 for high scores)
+**Key bugs fixed across sessions**:
+- task.show multiline description truncated to first line — escapes \n now
+- 100 tasks dispatched simultaneously — dispatch.next moved to assess-done
+- store reset: delete store.yaml (no reset-scores command yet)
 
 ## Planned
-- Multi-page search: stepstone 25 jobs/page — cfg.max_pages per category
 - Add linux-entwickler category to job-site-scan start file
-- HTTP sync endpoint — /api/jobs/sync on httpd, C25519-signed YAML
-- jobs.html.tmpl filter tabs — need ?filter= query param wiring
-- Remove debug logs from models.handler.task-poll-step (cmd=/len=/preview=)
-- Task zenka persistence (zenka_dir routines) — task state lost on idle shutdown
+- Multi-page search: cfg.max_pages per category (stepstone: 25/page)
+- Task zenka persistence (zenka_dir) — state lost on idle shutdown
+- HTTP sync endpoint — auto-push jobs.json after each run
+- Remove debug logs from models.handler.task-poll-step
+- Apply workflow: send application email from review card
+- Exclusion filter from past CSV data (already-applied companies)
+- score_tech + score_location split in assessment JSON
 
-#,,,.,,.,,,,,,,..,,..,..,,,,,,,..,...,.,,,,,,,..,,...,...,..,,,..,,..,.,,,.,,,
-#4PYDXMHFVVZAXRBS7JDR5RWGHCJ5EH6TIUJSLHEJIFWPLEOR4T4R4PFLVMICVMJX67IUB6VVNBFG6
-#\\\|4KW4NDGIXP7XVUY7WGZ55WYP6FKNBZDGA33F4WGEULPHRPGK6U2 \ / AMOS7 \ YOURUM ::
-#\[7]YK5CWQLYSFQUTZQ6WWURCT2MQUZFE6SWQ7EWQCSUP5CYK4QYGGBI 7  DATA SIGNATURE ::
+#,,,.,,,.,.,,,,,,,...,,.,,,..,,,,,.,,,.,,,...,..,,...,..,,.,.,...,,.,,..,,.,,,
+#BQF24RLBCKQ23ZZTVOEI4KGHOOWEJTH2JJHBUS7LVK6YVUPTPBTU46QY2RIBWTSF6MNQBILYCLX3Y
+#\\\|ONGNHHLDCQDZXVYLFC6CBXUQOJHPQSMGOF5CLIRECSW5KFUHV2H \ / AMOS7 \ YOURUM ::
+#\[7]UYTJQ6RUKXQ26AZZR3NBDGFRTK6U5ZDIMHR3ZS3HBSOAQBQCPABA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
