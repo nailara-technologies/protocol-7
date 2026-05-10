@@ -5,8 +5,9 @@
 
 my $call = shift // {};
 
-my $mode     = $call->{'mode'}               // '';
-my $data_str = $call->{'data'}               // '';
+my $mode     = $call->{'mode'} // '';
+my $raw      = $call->{'data'} // '';
+my $data_str = ref $raw ? $raw->$* : $raw;
 my $category = $call->{'params'}{'category'} // '';
 
 if ( lc($mode) eq qw| false | ) {
@@ -90,8 +91,8 @@ for my $job_id (@to_assess) {
 ## dispatch first task — task-created handler will call dispatch.next for each
 <[job-site-scan.dispatch.next]>;
 
-#,,,,,..,,.,,,,,,,,..,.,.,...,,..,,..,,,,,.,,,..,,...,..,,..,,,.,,,..,...,,..,
-#7XASPMOKWY244A2SC6XG5NSQWWAYPW7AS73HKY5F26YNKSMQYK3XLMYG4PUNGN75ASOWG4J5OWUTY
-#\\\|557JRVMC6UCCAIBZ4NPS4Q7QKLZER3OIDU2L5CRALTBSBJN2HBN \ / AMOS7 \ YOURUM ::
-#\[7]HIYNCRLXHGTI63PDDJYG2HVK5PZR6P7FJ7AWAFBBTXLRCEO5GIAQ 7  DATA SIGNATURE ::
+#,,.,,..,,,,,,,,.,,,,,,,.,,..,.,.,,..,,.,,.,,,..,,...,...,,,.,,,.,.,,,,,,,,,.,
+#B2FPCAR4SGAYVZHQAJIPX74OLFPMCIDPHUS73CIQFPWYI7LJRXW763RVHRVIECBJPG5AVENKI32IU
+#\\\|4RD5YGA5CKSO5SN5TO3QPQTA7NKEWZET3BNHUUW7QOLXDS7O7AR \ / AMOS7 \ YOURUM ::
+#\[7]LPHLTUQ2HIWQYVKQ3SMEM5FIK3J2RO5CSDR2SQV3PI7JLAUJYSDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
