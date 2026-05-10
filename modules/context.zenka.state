@@ -20,21 +20,20 @@ $output .= sprintf "local: %s [ sid %s ]\n",
 $output .= sprintf "initialized: %s\n",
     <system.zenka.initialized> ? 'yes' : 'no';
 
-## list connected sessions if cube access available ##
-if ( exists $code{'base.protocol-7.command.send.local'} ) {
-    ## query cube for session list ##
-    my $cmd_id = <[base.protocol-7.command.send.local]>->(
-        {   'command'   => 'list sessions',
-            'call_args' => { 'args'    => '' },
-            'reply'     => { 'handler' => 'base.handler.command.eval_reply' }
-        }
-    );
+## list connected sessions [ if cube access available ] ##
 
-    if ( $cmd_id > 0 ) {
-        $output .= "session query dispatched\n";
-    } else {
-        $output .= "cube not connected\n";
+## query cube for session list ##
+my $cmd_id = <[protocol-7.command.send.local]>->(
+    {   'command'   => 'list sessions',
+        'call_args' => { 'args'    => '' },
+        'reply'     => { 'handler' => 'base.handler.command.eval_reply' }
     }
+);
+
+if ( $cmd_id > 0 ) {
+    $output .= "session query dispatched\n";
+} else {
+    $output .= "cube not connected\n";
 }
 
 ## add loaded modules count ##
@@ -49,8 +48,8 @@ if ( length($output) > $char_budget ) {
 
 return $output;
 
-#,,,,,,..,,,,,.,.,,,.,,,.,.,,,.,,,,,.,.,.,,,,,..,,...,...,..,,,,.,,.,,..,,,,,,
-#GRF2QQW7DX4KE2ZVKGJDCPVC2EMN4M4ZIXW5P5DNF65ZWAXEQIJGH5PXHRIQJXEEAJXGTYCRAYI64
-#\\\|UJ3PT6C3YPYKUUNLTC2NBLT2HQBJGDTTTHXCHYDTCHUHZNRHJBQ \ / AMOS7 \ YOURUM ::
-#\[7]HC7GUDQNTZMKIQBUZSVC7X24CB2A3POMVZJPDCWRQBAIWUV4MOCI 7  DATA SIGNATURE ::
+#,,..,,.,,...,,..,...,,..,..,,,,,,,.,,.,,,,,.,..,,...,...,,.,,,,,,.,.,..,,,..,
+#I27ZPHIQHGFC3TAUBZS3PLLUX4UVXYJAVAP7ZSI3EN5N2S35S536IYK6XXZM7TNZRQXYW4WK6BRDO
+#\\\|MPOSHU7BFCCMGAYSGQKNFNUI4YMBCZUBAEX2MLKIGCRRGEL3MSI \ / AMOS7 \ YOURUM ::
+#\[7]QXLXX64XHZXNI6KHNGHRLF4M7KAUOKONC7DMVDTX4CF7WD363QCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

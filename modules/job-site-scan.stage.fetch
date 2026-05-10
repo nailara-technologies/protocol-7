@@ -44,7 +44,7 @@ if ( not %cat_urls ) {
 );
 
 for my $cat ( sort keys %cat_urls ) {
-    <[base.protocol-7.route-send]>->(
+    <[protocol-7.route-send]>->(
         {   'command'   => 'site-yaml.import',
             'call_args' => { 'args' => $cat_urls{$cat} },
             'reply'     => {
@@ -58,8 +58,8 @@ for my $cat ( sort keys %cat_urls ) {
 ## track how many fetch replies we expect
 <job-site-scan.fetch_pending> = scalar keys %cat_urls;
 
-#,,.,,.,.,,.,,,,.,,,.,,.,,,,,,.,,,..,,,,,,..,,..,,...,...,.,,,,,.,,,,,,..,.,,,
-#DIHFIVVRQ6UN76RFETWGGYEJYRX5JAOMVXFZD57POM3GWFOTGCVNUEJ7VLQXI45VVCSMUTXW6ISLK
-#\\\|S2I35VRD3J6Z3UPFIDZOVPU2BNACDDWPZ5GMFRM2CBQQGVZOVV4 \ / AMOS7 \ YOURUM ::
-#\[7]QAP37KIQ66PEMQRU4R4SDP6KJMJZN3KCXMRLHAGMQ4NMDDHUTGDY 7  DATA SIGNATURE ::
+#,,.,,,..,,,.,.,,,...,.,,,..,,.,.,,.,,...,,,.,..,,...,.,,,...,.,.,..,,,,.,,.,,
+#BMQVGHR62J73CULHXGQWZH23WH2APPLPRM277Z5SJC7FHF3BXNU4IF772C2YM3E7SINQXQY2IGJYK
+#\\\|5QR6SZB2QNEIJYBPUQ2MGZQYET7VRLTA5IFR22GEOXJVIVMIGQM \ / AMOS7 \ YOURUM ::
+#\[7]2YUTPO6LLO2VIP6I34H2W3ECALLO3XAYSCKX446GNEUWB4SCI4CQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

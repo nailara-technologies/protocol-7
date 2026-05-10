@@ -3,9 +3,9 @@
 # name  = job-site-scan.handler.task-created
 # descr = receive task id, register wait-done watcher
 
-my $mode    = $call_args->{'mode'}      // '';
-my $task_id = $call_args->{'data'}      // '';
-my $job_id  = $reply_params->{'job_id'} // '';
+my $mode    = $call->{'mode'}             // '';
+my $task_id = $call->{'data'}             // '';
+my $job_id  = $call->{'params'}{'job_id'} // '';
 
 if ( $mode ne 'size' and $mode ne 'true' and $mode ne '1' ) {
     <[base.logs]>->(
@@ -24,7 +24,7 @@ $task_id = uc( substr( $task_id, 0, 7 ) );
 <[job-site-scan.state.persist]>;
 
 ## deferred watcher — fires when task.complete or task.fail is called
-<[base.protocol-7.route-send]>->(
+<[protocol-7.route-send]>->(
     {   'command'   => 'task.wait-done',
         'call_args' => { 'args' => $task_id },
         'reply'     => {
@@ -34,8 +34,8 @@ $task_id = uc( substr( $task_id, 0, 7 ) );
     }
 );
 
-#,,.,,.,,,,,,,..,,..,,..,,,,,,..,,...,,,.,,.,,..,,...,...,.,,,.,,,,.,,..,,..,,
-#GSYWF4XGLT4NAAXKVUDIPAX2FVNIDHFYJUUSWNFZA63L6HZVKIB5BO2F3MGVGSUCEZMZY7YFZ3XPM
-#\\\|ZX4E6N4QHEH6XZUSDCYJU2BATYFRFEAM3ICCW3VT3M7UV6XTXJL \ / AMOS7 \ YOURUM ::
-#\[7]CVYX3EIDKYGW5ANGCYVUQIMJKBCU7O7V3MDY3LCBCYIF3JGIBIDA 7  DATA SIGNATURE ::
+#,,,,,,,,,,,.,,,,,...,...,,,,,,,.,..,,.,,,,..,..,,...,...,.,,,,..,.,,,,,.,,.,,
+#5YYEGAKW6PSYSEF6QZB6C6VHVTLK55KZEEWT2GSZKXIYQKNPTBIWDJW3OHMTOFTMOL32646MGICWA
+#\\\|UTZT2RRGASFZF6656A7NPBT2F7CEKUBPHVGMUJCKIC2RBGQBI25 \ / AMOS7 \ YOURUM ::
+#\[7]B4NGMRTCLT6HKBCH6IBNMHKRTE7J7E5O77U7EMGITG77O2EE24BQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

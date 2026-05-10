@@ -4,7 +4,7 @@
 # descr = trigger a scan cycle manually
 
 if ( $data{'jss.cycle'} ne 'idle' ) {
-    return <[base.protocol-7.command.cmd_reply]>->(
+    return <[base.callback.cmd_reply]>->(
         {   'mode' => FALSE,
             'data' => sprintf 'cycle already active: %s',
             $data{'jss.cycle'},
@@ -12,13 +12,12 @@ if ( $data{'jss.cycle'} ne 'idle' ) {
     );
 }
 
-<[base.protocol-7.command.cmd_reply]>
-    ->( { 'mode' => TRUE, 'data' => 'scan started' } );
+<[base.callback.cmd_reply]>->( { 'mode' => TRUE, 'data' => 'scan started' } );
 
 <[job-site-scan.stage.fetch]>;
 
-#,,..,,..,,.,,,,.,,,,,,,.,,..,,,,,,,,,..,,..,,..,,...,...,..,,,,.,.,.,,,.,...,
-#5FEZIH3O4VYBLY2UDQMKS5EIUW3IZMPNPSRHRUAQDP275E4DNPFMN2XB4DRKBUDOS2GMIGGO5T3OE
-#\\\|B4K5GW63JR3D2H33JZTIJSOH25OCE7XGMCPXZWGLSGO5DLRSGV7 \ / AMOS7 \ YOURUM ::
-#\[7]LJPSGGTM6KI7A3EH6F4UBH3UNADAV6FMIKTCDAEBEFMWKL4HU2DA 7  DATA SIGNATURE ::
+#,,,.,,..,.,.,,,,,,,.,,..,...,...,..,,,,,,.,,,..,,...,...,...,.,,,.,.,...,,.,,
+#7KO6TLXRS3VJRTD3QNCK3OIC64V2XCJE52VPBKQONYPL6RLJSZSJKM2VAB3CWLUOZNYCWB67YUKR4
+#\\\|HPAIMUIPZMWNC6U6CTY73235BUOLS5LQAZE2ZEFVBZCOHZEIBB2 \ / AMOS7 \ YOURUM ::
+#\[7]TF4HODENQMFAGEGNTLUK5J7O234POZGGU3ISDGKN6FAT7QVQQQCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
