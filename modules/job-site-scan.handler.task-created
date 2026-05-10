@@ -27,10 +27,8 @@ $task_id = uc( substr( $task_id, 0, 7 ) );
 <job-site-scan.tasks>->{$job_id}{'stage'}   = 'assessing';
 <[job-site-scan.state.persist]>;
 
-## dispatch next job while this one runs async
-<[job-site-scan.dispatch.next]>;
-
 ## deferred watcher — fires when task.complete or task.fail is called
+## next dispatch happens in assess-done to keep one task in flight at a time
 <[protocol-7.route-send]>->(
     {   'command'   => 'task.wait-done',
         'call_args' => { 'args' => $task_id },
@@ -41,8 +39,8 @@ $task_id = uc( substr( $task_id, 0, 7 ) );
     }
 );
 
-#,,..,,,,,.,,,,.,,.,,,,.,,,.,,.,,,.,,,.,.,,..,..,,...,...,.,.,,,.,..,,,,.,,..,
-#JUL6SNM4LLLHTGU5AEK7LEFOAT6LCYO52CKJLY5KDLRI56E74NCCTB3TWSFHKKX6MB3OSLCXPWZX2
-#\\\|ECJER6SGHHTQQKYW2XZIBSLXASPDEYJ7P2SZVEXZE4VYTRQFLPO \ / AMOS7 \ YOURUM ::
-#\[7]KFXDKWM6FHA3TSE4NR7SVH6WPMJMU7VQ5AC7LHSK6A4J2WT46GDA 7  DATA SIGNATURE ::
+#,,.,,,,,,,.,,.,,,,,,,..,,,,.,,,,,..,,,,.,,,,,..,,...,...,...,...,.,,,,.,,.,,,
+#7FMOMV37IVOUCSBP4LD7TVLI2IEB4SCOQRQ5U5NESWBCBSBGWM7P7BIMVJIYG2MDWGNT2LKR3KHOE
+#\\\|BNWYRH77ON4SCK4L7EZ6VOCUBCSWGMNVQGEWFJNCV4FDK4QBZ4H \ / AMOS7 \ YOURUM ::
+#\[7]BTPF5GGWDEH25ML7GA5OE7GY5UJJKY76BIRT5U2OADVAJC3BFEAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

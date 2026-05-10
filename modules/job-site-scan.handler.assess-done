@@ -26,16 +26,24 @@ if ( lc($mode) eq qw| false | ) {
     $job_rec->{'stage'} = 'failed';
     <job-site-scan.pending_count>--;
     <[job-site-scan.state.persist]>;
+    <[job-site-scan.dispatch.next]>;
     return;
 }
 
 ## try to extract score from result (json or plain "score: N" line)
 my ( $score, $reason, $apply ) = ( '', '', '' );
-if ( $result =~ m{\{.*"score"\s*:\s*(\d+(?:\.\d+)?)}s ) {
+if ( $result =~ m{\{.*?"(?:fit_)?score"\s*:\s*(\d+(?:\.\d+)?)}s ) {
     $score = $1;
-    ($reason) = ( $result =~ m{"reason"\s*:\s*"([^"]+)"} );
-    ($apply)  = ( $result =~ m{"apply"\s*:\s*(true|false)} );
-} elsif ( $result =~ m{score[:\s]+(\d+(?:\.\d+)?)}i ) {
+    ($reason) = ( $result =~ m{"reason(?:s)?"\s*:\s*"([^"]+)"} );
+    ($reason) //= do {
+        my ($arr) = ( $result =~ m{"reasons"\s*:\s*\[([^\]]+)\]} );
+        $arr ? ( split /,/, $arr )[0] =~ s/^\s*"?|"?\s*$//gr : undef;
+    };
+    ($apply)
+        = ( $result
+            =~ m{"(?:apply|recommendation)"\s*:\s*"?(true|false|interview|apply)"?}
+        );
+} elsif ( $result =~ m{(?:fit_)?score[:\s]+(\d+(?:\.\d+)?)}i ) {
     $score = $1;
 }
 
@@ -72,9 +80,11 @@ if ( -f $store_file ) {
 
 <job-site-scan.pending_count>--;
 <[job-site-scan.state.persist]>;
+<[job-site-scan.dispatch.next]>
+    ;    ## sequential: dispatch next after this one completes
 
-#,,,,,,.,,.,,,..,,,.,,,,.,..,,..,,,..,,.,,.,.,..,,...,...,,,.,.,,,.,,,.,,,.,.,
-#EA5GJFJNCCDLO5HYLEGUBCZ3QZN4VJWTDVQUVALJR5SF7IQH3GVS5UTCZX2KREPLECD67LOGYIXC2
-#\\\|HV7KE65Z4MVEO2SLDYUJ7F6P7PHLQPENEWPCVHGUHXTZ3S2RGKD \ / AMOS7 \ YOURUM ::
-#\[7]SRZ2TFE3DVPRNUE6GEQXEDGOLYKWPMSCBUWVYBJG5WHSYML6RSDA 7  DATA SIGNATURE ::
+#,,.,,.,.,.,.,.,,,...,.,.,.,.,.,.,,,.,,,,,,..,..,,...,...,..,,,,.,,,,,.,,,.,,,
+#XY6F5PPB57BEER2OXL43SHFPNPDTMB5U4FIABVNEUADFVFWIHCSTNHWXAVI45XCBMHWNCNY7WKEQ4
+#\\\|DTP42VF5XBVI323TRJEY3TAQPSX3OPLG4YDLYRGQVCKOXKJI77R \ / AMOS7 \ YOURUM ::
+#\[7]SWQYCUQHGR5TP3UQOC2HU7WEDVDBTRDIYSQHTVF6WBSHYF5AP4CQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
