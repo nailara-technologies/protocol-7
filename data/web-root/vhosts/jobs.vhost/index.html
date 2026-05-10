@@ -214,6 +214,12 @@ button.red:hover { background: rgba(130,0,0,0.6); }
     <span id="stat-apply"  class="stat pending">0 bewerben</span>
     <span id="stat-applied" class="stat applied">0 beworben</span>
     <span id="stat-done"   class="stat done">0 erledigt</span>
+    <label style="font-size:0.78rem; color:#506070; display:flex; align-items:center; gap:0.4rem;">
+      min score
+      <input type="range" id="min-score" min="0" max="10" step="0.5" value="6"
+        style="width:80px; accent-color:#3080c0; cursor:pointer;">
+      <span id="min-score-val" style="color:#80c0e0; min-width:2em;">6</span>
+    </label>
     <span class="sep">|</span>
     <button id="btn-sync">↻ sync</button>
     <button id="btn-add-toggle">+ manuell</button>
@@ -282,6 +288,7 @@ const JOBS_JSON   = '/jobs.json';
 let jobs = {};           // id → job object
 let sortMode = 'score';  // 'score' | 'date'
 let filterMode = 'all';
+let minScore = 6;
 let showArchived = false;
 let dragSrcId = null;
 
@@ -484,8 +491,14 @@ function render() {
     const sorted = sortedJobs();
     const visible = sorted.filter(j => {
         if (j.stage === 'archived' && !showArchived) return false;
-        if (filterMode === 'all') return j.stage !== 'archived' || showArchived;
-        return j.stage === filterMode;
+        if (filterMode !== 'all' && j.stage !== filterMode) return false;
+        if (filterMode === 'all' && j.stage === 'archived' && !showArchived) return false;
+        /* min score filter — normalize 0-100 scale to 0-10 */
+        if (j.score != null) {
+            const norm = parseFloat(j.score) > 10 ? parseFloat(j.score) / 10 : parseFloat(j.score);
+            if (norm < minScore) return false;
+        }
+        return true;
     });
 
     if (!visible.length) {
@@ -584,6 +597,14 @@ function notify(msg, err) {
 }
 
 /* ── event wiring ── */
+const minScoreInput = document.getElementById('min-score');
+const minScoreVal   = document.getElementById('min-score-val');
+minScoreInput.addEventListener('input', () => {
+    minScore = parseFloat(minScoreInput.value);
+    minScoreVal.textContent = minScore % 1 === 0 ? minScore : minScore.toFixed(1);
+    render();
+});
+
 document.getElementById('btn-sync').addEventListener('click', syncPipeline);
 
 document.getElementById('btn-add-toggle').addEventListener('click', () => {
