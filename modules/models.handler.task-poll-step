@@ -122,19 +122,11 @@ if ( $step eq 'show' ) {
 
     ## determine model from :name: prefix in description [ @name fallback ]
     my $model = <models.task.default_model> // 'kimi';
-    ( my $details_preview = substr( $details, 0, 80 ) ) =~ s/\n/|/g;
-    <[base.logs]>->(
-        1,    ': task-poll-step cmd=%s len=%d preview=%s desc[40]=%s',
-        $cmd, length($details), $details_preview,
-        substr( $description, 0, 40 )
-    );
     if ( $description =~ s{^:([a-z0-9\-]+):\s*}{}i ) {
         $model = $1;
     } elsif ( $description =~ s{^\@(\S+)\s*}{} ) {
         $model = $1;
     }
-    <[base.logs]>->( 1, ': task-poll-step model=%s', $model );
-
     ## :review: prefix → auto-route to local model with review-cycle template ##
     ## rewrite description so coding.prompt.assemble picks the right template  ##
     if ( $model eq 'review' ) {
@@ -249,8 +241,8 @@ if ( $step eq 'check-next' ) {
 <[base.logs]>->( 0, ': task-poll-step: unknown step [ %s ]', $step );
 return;
 
-#,,..,..,,.,.,,,.,,..,...,.,.,.,,,.,,,,.,,..,,.,.,...,...,.,.,,..,.,,,,..,,.,,
-#MBLTPN652ZJARGVKGFYSCESMQ2A3L4DPFDZFNK4VWKNNKI27AYW2ZLNQKXMUMXWXARFH62S6YULIG
-#\\\|MPWGLCXGDNM5DANE7RD3EBEOD4K4DQOKMOGZYJ5LP5RNC75HEMA \ / AMOS7 \ YOURUM ::
-#\[7]IXH3WU5C36VFDUNBQVQHYWGQALCM3FEPMB5Y67NU24PXIXDJ7GCA 7  DATA SIGNATURE ::
+#,,,,,,,.,.,.,,,.,...,,,.,.,,,,,,,,..,,,.,,..,.,.,...,...,,..,,,,,,.,,,,.,,..,
+#HR7CHI3M5ZHOUQAP7NRTQS7U7RXX36PLZ6SLHVVOBBOIXFV3AFGNZMDXJ77P7EZGACSXD7MV5WATI
+#\\\|WV3YO3ZDEBQAN5R6OP27O4MRLIOT4BKVNFFRLWJAPVYCVCFXL3I \ / AMOS7 \ YOURUM ::
+#\[7]SW4PQEXZLJCDMX6L7GOEB3Q3YE3CDX3NFOXZNISBMH5ZMW4HRADQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
