@@ -1,0 +1,31 @@
+## [:< ##
+
+# name  = job-site-scan.handler.rewire-assess
+# descr = re-register task.wait-done for orphaned assessing job after restart
+
+my $call    = shift                      // {};
+my $job_id  = $call->{'args'}{'job_id'}  // '';
+my $task_id = $call->{'args'}{'task_id'} // '';
+
+return if not length $job_id or not length $task_id;
+
+<[base.logs]>->(
+    1,       'jss: re-wiring wait-done for job %s → task %s',
+    $job_id, $task_id
+);
+
+<[protocol-7.route-send]>->(
+    {   'command'   => 'task.wait-done',
+        'call_args' => { 'args' => $task_id },
+        'reply'     => {
+            'handler' => 'job-site-scan.handler.assess-done',
+            'params'  => { 'job_id' => $job_id, 'task_id' => $task_id },
+        },
+    }
+);
+
+#,,..,,,,,...,...,,.,,,..,,,,,,.,,...,,,,,,,.,..,,...,...,..,,...,,..,,.,,,..,
+#XGO4NTNCBJYKLQJRLOFN355VDYBDEC2X63J5TCY4FHHLUNLESLYYM4ZYGXRHTLF2D3UPW43UXY3FG
+#\\\|Z7FERPF7IQJONVZZTXFYUFV24DE6K2DLJC3SRHRNI7VCBUUJWHP \ / AMOS7 \ YOURUM ::
+#\[7]GTYSLCQ7WLRBNIZ3AUAH2M67PS73FTUGYSLWCBN7ZAC3AGGVBCDQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
