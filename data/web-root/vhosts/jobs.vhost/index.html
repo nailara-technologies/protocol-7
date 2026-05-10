@@ -224,7 +224,7 @@ button.red:hover { background: rgba(130,0,0,0.6); }
     <button id="btn-sync">↻ sync</button>
     <button id="btn-add-toggle">+ manuell</button>
     <button id="btn-sort-score" class="active">↓ score</button>
-    <button id="btn-sort-date">↓ datum</button>
+    <button id="btn-sort-date">↑ score</button>
     <span class="sep">|</span>
     <button id="btn-export-csv" class="orange">CSV export</button>
     <button id="btn-show-archive">archiv</button>
@@ -478,10 +478,11 @@ function sortedJobs() {
             return sb - sa;
         });
     }
-    return all.sort((a, b) =>
-        (b.date_added||'').localeCompare(a.date_added||'') ||
-        (a.sort_order ?? 0) - (b.sort_order ?? 0)
-    );
+    return all.sort((a, b) => {
+        const sa = a.score != null ? parseFloat(a.score) : -1;
+        const sb = b.score != null ? parseFloat(b.score) : -1;
+        return sa - sb;  /* ascending */
+    });
 }
 
 function render() {
@@ -546,7 +547,7 @@ function exportCSV() {
 function showPrintTable() {
     const rows = sortedJobs().filter(j => j.stage !== 'archived' && j.stage !== 'skipped');
     const div = document.getElementById('print-table');
-    div.style.display = '';
+    div.style.display = 'block';
     div.innerHTML = `<table>
       <tr><th>Nr</th><th>Datum</th><th>Unternehmen</th><th>Position</th><th>Ort</th><th>Score</th><th>Status</th></tr>
       ${rows.map((j,i) => `<tr>
