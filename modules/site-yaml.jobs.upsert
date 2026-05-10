@@ -7,7 +7,7 @@ my $job = $ARG         // {};
 my $id  = $job->{'id'} // '';
 return 'no_id' if not length $id;
 
-my $store = $data{'jobs.store'};
+my $store = $data{'jobs'}{'store'};
 
 if ( exists $store->{$id} ) {
     ## preserve status and score set by user or LLM
@@ -26,8 +26,8 @@ $job->{'fetched_at'} = time;
 $store->{$id} = $job;
 return 'new';
 
-#,,,,,..,,...,...,,..,,..,,..,,,,,.,,,...,.,.,..,,...,...,,.,,.,,,...,...,.,,,
-#N4NN3WWJBAOTBHBJBMPJWPOMZXQMWB7QW3OOFKEZZG2LD6WXWU6R3TCIMWEFJWEFCNODPR3JNA6F6
-#\\\|ANWTHLXCI7RYP66MIBZ63IZEEQEYEBQ7TSE5YDDFG4HUJTHYSSA \ / AMOS7 \ YOURUM ::
-#\[7]3RYNC4AH7SV4P5SMGKV63CDRLWKADCUZXPG53RWW5IB5BLEFLGBI 7  DATA SIGNATURE ::
+#,,..,,,,,,,.,,.,,,,.,,.,,,.,,..,,,,.,,.,,,,.,..,,...,.,.,,..,.,.,,,.,...,,,.,
+#7SGBJIJZFPGINWXWBQQK3NIKK6V5ECEBRUWCHDTCLUAXPNSLACJISB6FPHSOL3RAHQSB6J4LOCHXI
+#\\\|XPR35OUBNYTMVFEQOPM6KDHK3RXRIYJ3VRTKE2KKAFADLGFPYNT \ / AMOS7 \ YOURUM ::
+#\[7]TLIKPB7HFETW424H6DY65B6MOKOZFPPB7AXNTBANAGURQR73NUAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -5,26 +5,26 @@
 
 <[base.perlmod.autoload]>->('YAML::XS');
 
-$data{'jobs.store'} = {};
+$data{'jobs'}{'store'} = {};
 
 my $sref = <[file.zenka_dir.load]>->( 'store.yaml', ':utf8' );
 if ( defined $sref ) {
     eval {
         my $loaded = YAML::XS::Load( $sref->$* );
-        $data{'jobs.store'} = $loaded if ref $loaded eq 'HASH';
+        $data{'jobs'}{'store'} = $loaded if ref $loaded eq 'HASH';
     };
     <[base.logs]>->( 0, 'jobs: load error: %s', $@ ) if $@;
     <[base.logs]>->(
         1,
         'jobs: loaded %d entries from store',
-        scalar keys %{ $data{'jobs.store'} }
+        scalar keys %{ $data{'jobs'}{'store'} }
     );
 } else {
     <[base.logs]>->( 1, 'jobs: store empty, starting fresh' );
 }
 
-#,,.,,,..,...,.,.,,.,,,,.,.,.,,..,.,.,...,,,.,..,,...,...,.,.,...,.,,,.,,,,,.,
-#BS5RGRLGGISVTW522H6GINEZEWMPI5ALWE6X7RWVNMISOUDNA2JGMP2JAICHHL37MR2TBGTH5XRCY
-#\\\|44Y5IISTWOR5K22F7MRFWPK4PGNUOFXCKMD5W22MOPC73TTJ7TV \ / AMOS7 \ YOURUM ::
-#\[7]6VZZVQXOI2X3KHNT5NHGU6IGDJTTUCBT4FMUVPCJNHJR75XXZMBQ 7  DATA SIGNATURE ::
+#,,..,.,,,.,.,.,,,,,,,,.,,,,,,..,,,..,...,,..,..,,...,...,...,..,,.,.,..,,,..,
+#EDVDYPMDV6PIF2TQ4XGQACMLAZEC3IS3WMXZMHXPFPEALMTZFJ33C7WABVDULTN4OCVUQJWJE47LO
+#\\\|27NTGCXN3JVGCSWH3UBEPSRDLBEQUFJITUKA2LMUF4I6AISOOHH \ / AMOS7 \ YOURUM ::
+#\[7]NBDZFQ3XYW6NQFAA3H5P46ENHDFJ445FFNCEZ5N5JYWBKV4EEYBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
