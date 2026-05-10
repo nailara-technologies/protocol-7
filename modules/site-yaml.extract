@@ -3,7 +3,7 @@
 # name  = site-yaml.extract
 # descr = route URL to domain-specific extractor, return hashref
 
-my $url = $ARG // '';
+my $url = $ARG[0] // '';
 
 if ( $url =~ m|stepstone\.de/stellenangebote--|i ) {
     return <[site-yaml.stepstone.job]>->($url);
@@ -13,8 +13,8 @@ if ( $url =~ m|stepstone\.de/stellenangebote--|i ) {
 
 return "no extraction template for url: $url";
 
-#,,,,,,,,,,,.,.,.,,,.,..,,..,,,,.,,.,,,..,..,,..,,...,...,,,.,...,.,,,.,,,,,.,
-#7TAZBNOVULGHEXEBIFXCKMJFJTU4QUXV57ERTIKSLPZNLJAK246CSW6EWTV4Y6KTHVCZ22VKNT2HY
-#\\\|XM4HN63PESLIS2747C77ZTLX25QXKJKZYGIQLEKVHQPJFVICZQP \ / AMOS7 \ YOURUM ::
-#\[7]BGUVFA36DDDPB33ISWF7QYLMM2QBJE53S3VGEWW7K2Z5YDQIQGDA 7  DATA SIGNATURE ::
+#,,..,,..,...,,,,,..,,,.,,,..,.,.,.,.,,.,,,,.,..,,...,..,,,,.,,.,,,,,,,,,,,.,,
+#VZLPPN4REXXOHPHALNW243YHLDBNAPCHDFGEJZRKFP6FQF66WMOSNND65MN43RRU4CN4LQD2RRQZ6
+#\\\|BNDGWCLEAQBGXJWK23X4FSVNFDE323NPLMZGEIO7ANGQY4F4BNN \ / AMOS7 \ YOURUM ::
+#\[7]WEPUPZKHSLA4ZZPNNTWTJRUXUMRXGTV7VYMCP7SMZYTLEWGHVEBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

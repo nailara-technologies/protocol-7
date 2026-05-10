@@ -3,7 +3,7 @@
 # name  = site-yaml.http.get
 # descr = fetch URL, return html string or undef on error
 
-my $url = $ARG // '';
+my $url = $ARG[0] // '';
 return undef if not length $url;
 
 my $ua  = $data{'site-yaml'}{'ua'};
@@ -19,8 +19,8 @@ if ( not $res->is_success ) {
 
 return $res->decoded_content;
 
-#,,..,.,.,,..,..,,...,.,.,.,.,.,.,,,,,...,,,.,..,,...,...,,,.,...,...,...,,..,
-#YABC6GXKO4NTC6PVSFHY2CVZUH4LAM36DOCRWSMH5ACES24KU2Y3CO4DGSBEDXQ2ZRELT4V6W2DPA
-#\\\|GYNHHZDVYQESGOF7UF5CK73PUK2O2IEBCW5CQDLY6XQJZX3ZOFX \ / AMOS7 \ YOURUM ::
-#\[7]UKZG6XOSXWSPFAY6YRPD4UXTR6IY3C6DOJG7P22MPON2HGZYF2BY 7  DATA SIGNATURE ::
+#,,.,,,..,..,,..,,.,,,...,..,,...,.,.,,,,,,..,..,,...,...,.,,,.,.,.,,,,..,,.,,
+#LLWVEFV4MI72VYOHAZ2PAWBUTV4RS4D6ZV56ZMS5FJ673MGJZNMBEZE7LJR6FIR42RBT4EDXEDQJC
+#\\\|ZGFSRA7I5KS3452QME7UK2ST7UKQGICZGNL7523LYN7XYBQKGNA \ / AMOS7 \ YOURUM ::
+#\[7]ACRXCMFQKEEYBC6BZ5PPWZDWKHCD4PPKDUYTSN4PNMUL76U2WQBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

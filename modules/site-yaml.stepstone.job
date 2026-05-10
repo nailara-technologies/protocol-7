@@ -3,7 +3,7 @@
 # name  = site-yaml.stepstone.job
 # descr = extract job record from stepstone job page via JSON-LD
 
-my $url = $ARG // '';
+my $url = $ARG[0] // '';
 
 my $html = <[site-yaml.http.get]>->($url);
 return "fetch failed: $url" if not defined $html;
@@ -52,8 +52,8 @@ return {
     'description'     => $desc,
 };
 
-#,,..,...,..,,..,,,,.,,..,,.,,,.,,,..,.,,,,,.,..,,...,...,.,,,,..,,,.,.,.,.,.,
-#Z7RB4SZ3LGXEVRKSTY4QAHZXV3TQL22LJAUCCJDQWMZI5Z37MTERI5VRY52FGY5AW52WCXPJEF2AW
-#\\\|YAGRBS4ZZXL4CYDGQNUJN5RVYWHR4HNI2K7WYQJDVZ3QPVVS4OO \ / AMOS7 \ YOURUM ::
-#\[7]WN7UTWV23WKULM3WTVKQTB3TKTVVKW2Z53PHVGVW72BOWYAEUCAQ 7  DATA SIGNATURE ::
+#,,..,.,,,,.,,.,.,,,.,..,,,..,,..,,.,,...,,.,,..,,...,...,...,,,.,,..,..,,...,
+#LMMYSAKTXZHTDOCIXG75D2FVD5LUYJO73U2ZZS5LMP2LZAE3JDWSJ3TOI6KDLSV6XAHCIOEB563SG
+#\\\|DI3GQGALACVMH4L566WXYV47VUPQVENMJRKECTXEU4PI6VS6FM7 \ / AMOS7 \ YOURUM ::
+#\[7]IFGOOA2FAKHOBAJH76YL2VVDOXZ6O5BWU3JA6YYOPPSYRWSGHMCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
