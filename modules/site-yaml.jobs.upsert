@@ -3,7 +3,7 @@
 # name  = site-yaml.jobs.upsert
 # descr = insert or update a job record; returns 'new'/'updated'/'exists'
 
-my $job = $ARG         // {};
+my $job = $ARG[0]      // {};
 my $id  = $job->{'id'} // '';
 return 'no_id' if not length $id;
 
@@ -26,8 +26,8 @@ $job->{'fetched_at'} = time;
 $store->{$id} = $job;
 return 'new';
 
-#,,..,,,,,,,.,,.,,,,.,,.,,,.,,..,,,,.,,.,,,,.,..,,...,.,.,,..,.,.,,,.,...,,,.,
-#7SGBJIJZFPGINWXWBQQK3NIKK6V5ECEBRUWCHDTCLUAXPNSLACJISB6FPHSOL3RAHQSB6J4LOCHXI
-#\\\|XPR35OUBNYTMVFEQOPM6KDHK3RXRIYJ3VRTKE2KKAFADLGFPYNT \ / AMOS7 \ YOURUM ::
-#\[7]TLIKPB7HFETW424H6DY65B6MOKOZFPPB7AXNTBANAGURQR73NUAQ 7  DATA SIGNATURE ::
+#,,,.,,,,,,,,,...,..,,..,,,,.,,,,,,.,,...,.,.,..,,...,.,.,.,,,,..,...,,,,,,.,,
+#GNGMOPZS4QWVV6UAXHWVQMZTBLUMPCDSNHNNEYPIRSYUZZXZMCU2ALOD45XPU2IAIMFKSRDH7UVR6
+#\\\|RE54VO2M4FBW6IMTM73LLHRHEZGS7ZZQAK2TOAKZITPC73FZ445 \ / AMOS7 \ YOURUM ::
+#\[7]HMARYR6MYQV7A3BDK7UBEEE7AVMH6PGMYKC7KNPCK7XF7DYVBWDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

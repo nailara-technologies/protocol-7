@@ -3,7 +3,7 @@
 # name  = site-yaml.stepstone.search
 # descr = extract job link list from stepstone search results page
 
-my $url = $ARG // '';
+my $url = $ARG[0] // '';
 
 my $html = <[site-yaml.http.get]>->($url);
 return "fetch failed: $url" if not defined $html;
@@ -40,8 +40,8 @@ for my $href (@hrefs) {
 
 return \@jobs;
 
-#,,,.,,,.,..,,.,,,...,.,.,,,,,,.,,.,,,,.,,,,.,..,,...,...,..,,..,,,,.,,..,.,.,
-#NYINWFBFP3EPQ3AXTMY3XNAI4H6HD37UKS4NBZ6PK7B4HOVF3JFKJ5IQBJ4GW6VQU5RRMLJNS72KE
-#\\\|XKLMFGLLC2LPFVLSUSXEVNLE3YGJMKOIK2LUBBFLBDVCP42YYH7 \ / AMOS7 \ YOURUM ::
-#\[7]I5VSUKBWDQSFBPWTEGBWOUTX3RMSKEBNUEIQDYUKB24LGEOPKADY 7  DATA SIGNATURE ::
+#,,,,,,.,,,..,,,.,,.,,.,,,...,...,...,,,.,,,,,..,,...,...,.,.,.,,,.,,,..,,..,,
+#K4AOU6ZP5DB2GUDQIXLE6JRRSBXDMVZN2L7IYGZKKX7P5BS2IMMI2QKHDO5DKC5SD3FYALZOXTCY6
+#\\\|7JJE6VMYZNULYALVEFW6X5FYGBQCGT7UKEXBQSDJFRYIDVGTZGB \ / AMOS7 \ YOURUM ::
+#\[7]7BG5SUH4U6TAOJHC3WQLHZRXLNTKLQCN4GBLBIOLCK6W2GY372BI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
