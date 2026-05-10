@@ -4,7 +4,7 @@
 # descr = persist job store to disk
 
 my $yaml;
-eval { $yaml = YAML::XS::Dump( $data{'jobs.store'} ) };
+eval { $yaml = YAML::XS::Dump( $data{'jobs'}{'store'} ) };
 if ($@) {
     <[base.logs]>->( 0, 'jobs.save: serialize error: %s', $@ );
     return FALSE;
@@ -17,8 +17,8 @@ if ( not defined $written ) {
 }
 return TRUE;
 
-#,,,,,,,,,..,,,,.,..,,,..,...,..,,...,..,,.,.,..,,...,...,.,.,..,,,,,,..,,,.,,
-#RHPOBMAKNOT3RQWP5K6HZ5U3UKK7B6SI2MDY3OSJYS6SCP5TK6CKTWEHYNPUUL2TS5C6N2IF2HH7C
-#\\\|UQIWQAKIPHUA52FKPK6ZERLHCTWHKRLUHWJGBNDJPGI4MXHIGKP \ / AMOS7 \ YOURUM ::
-#\[7]2IHQC3KX4SW5CAG3C5ERCWSZYBS3C5CNMFV7IB5WM6KKQZMMBWAY 7  DATA SIGNATURE ::
+#,,,.,,,.,.,,,,,.,...,.,,,,..,,,,,,..,...,,.,,..,,...,...,..,,,,,,...,.,.,.,,,
+#FXCHDAXIWECWNDXCXJDQ452O32WU5DKWXXY7HWEC77HQBMCGAJJMFXD43A4F5OD4FCYRPPIMPFIQK
+#\\\|ME4VESFWUJECQSQBLABQ54HMO73LGB3SXC5NBWAKY4LCT7Q2MBT \ / AMOS7 \ YOURUM ::
+#\[7]BF6AS3TUWU7N6APNMSINNKBEXEHBMWD2OHW23L3DZKY5C5T25GBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
