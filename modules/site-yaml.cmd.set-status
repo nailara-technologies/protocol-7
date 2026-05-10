@@ -18,7 +18,7 @@ return {
     }
     if not $valid{$status};
 
-my $store = $data{'jobs.store'};
+my $store = $data{'jobs'}{'store'};
 return { 'mode' => 'false', 'data' => "unknown job id: $id" }
     if not exists $store->{$id};
 
@@ -29,8 +29,8 @@ $store->{$id}{'applied_at'} = time if $status eq 'applied';
 
 return { 'mode' => 'true', 'data' => "ok: $id => $status" };
 
-#,,,.,...,.,,,,,.,,,,,.,.,,,,,,.,,..,,,,,,,..,..,,...,..,,...,,..,.,,,,,,,,..,
-#LZ5DNM6RVV73QOLACLTKHFHAUQWUAXIQDJ3Z7V7EB7KKI6LYJZP5RQIYRV7T43DULTVDHNPZNF35I
-#\\\|QEBC2FOBR2WAC6YAI7RMNURR7JYJSEFC46VSHGYG3MIAFN2K6HS \ / AMOS7 \ YOURUM ::
-#\[7]OK44TH4HIIHXPYZYIX6YGM2ZJUJVGSYM3B3UYTN3NILWAHPAMCCY 7  DATA SIGNATURE ::
+#,,.,,...,,,.,..,,.,.,,.,,.,,,,..,.,.,,,,,.,.,..,,...,...,...,...,,,.,...,.,.,
+#42QICNLNQGKMVFN5PQ7TF62QZYUEZKS7AFZTBO636TFO5IECNEERTV2YY3GALAUVTLFCT2IHBA7UY
+#\\\|NO3I6VUKABK3R5PX77LJVQXH5AWIFKC4PDZ5JMB4DXMLIA4PH2B \ / AMOS7 \ YOURUM ::
+#\[7]V5SATCIQWV6MLUUFVT4XCCJBGICRHQ4XHAUXEPWLOAMASKDFQSDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

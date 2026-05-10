@@ -5,7 +5,7 @@
 
 my $filter = $call->{'args'} // '';
 
-my $store = $data{'jobs.store'};
+my $store = $data{'jobs'}{'store'};
 my @ids   = sort {
     ( $store->{$b}{'fetched_at'} // 0 )
         <=> ( $store->{$a}{'fetched_at'} // 0 )
@@ -35,8 +35,8 @@ for my $id (@ids) {
 
 return { 'mode' => 'size', 'data' => join( "\n", @lines ) };
 
-#,,..,.,,,.,,,,.,,,..,.,.,..,,...,...,..,,.,.,..,,...,...,...,,,,,.,.,,..,.,,,
-#EQFBNOMNLAWBFDP7I33RC2NFXSEZ6IEVS6VZUVP3FCSG3FKSTPWLEE5EHQDSSAYVHAKYREQX5GCF6
-#\\\|U24IJBDIOPCA3462DO5FWPJDKIV7NDACG6FYRSJ5BG6HO7CRUFF \ / AMOS7 \ YOURUM ::
-#\[7]XDJTNR42JXWXW5RV4TKIX7W3YV25UYBR2EA4NIDQYFGKNKCP2SCA 7  DATA SIGNATURE ::
+#,,,,,...,.,.,.,,,...,,..,...,.,,,..,,,,.,,..,..,,...,..,,..,,,.,,.,,,..,,,..,
+#MA7YQ4RBOUCK25AOHTVUZZCY4ICAREG3T7OCDPVNXTJZZDVGTR26IDCGMYKPPGONPH732EGTDYRME
+#\\\|2QLLMEK44KE5EYX4NZ5NHLD32STYJZ3KITVAT2RPM4O4ZYOG43K \ / AMOS7 \ YOURUM ::
+#\[7]5LRNTA6A6DPZAWAMW2GCXO5SI7WXFKMKAOAKNR3NOSNNBCM5SGBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
