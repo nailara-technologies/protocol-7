@@ -62,6 +62,40 @@ foreach my $entry ( <[base.sort]>->( readdir $dir_fh ) ) {
         next;
     }
 
+    ## wildcard/pattern vhosts: resolve against already-deployed vhost dirs
+    if (    $manifest->{'install_matching'}
+        and $manifest->{'install_path_pattern'} ) {
+        my $pat = $manifest->{'install_path_pattern'};
+        ## convert glob pattern to deployed hostnames (scan parent dir)
+        my ( $parent, $glob ) = ( $pat =~ m|^(.*)/([^/]+)$| );
+        $parent //= '/var/httpd';
+        if ( -d $parent ) {
+            my $ph;
+            if ( opendir $ph, $parent ) {
+                for my $name ( readdir $ph ) {
+                    next if $name =~ m|^\.|;
+                    my $pat_re = $glob =~ s/\./\\./gr =~ s/\*/[^\/]*/r;
+                    next unless $name =~ m|^$pat_re$|;
+                    next unless -d "$parent/$name";
+                    my $resolved = $name;
+                    <httpd.vhosts.registry>->{$resolved} = {
+                        'manifest' => {
+                            %{$manifest},
+                            'hostname'     => $resolved,
+                            'install_path' => "$parent/$resolved"
+                        },
+                        'source_path'   => $vhost_path,
+                        'hostname'      => $resolved,
+                        'discovered_at' => <[base.time]>->(3)
+                    };
+                    push @hostnames_found, $resolved;
+                }
+                closedir $ph;
+            }
+        }
+        next;    ## skip the literal pattern entry
+    }
+
     my $hostname = $manifest->{'hostname'} // $entry;
 
     <httpd.vhosts.registry>->{$hostname} = {
@@ -85,8 +119,8 @@ closedir($dir_fh);
 
 return \@hostnames_found;
 
-#,,,.,,..,,,.,.,,,,,.,,..,,,,,...,.,.,,..,...,..,,...,...,...,,..,,,.,..,,..,,
-#GBUWXSSHXJX5RH35SNN6CV3SSLT67DTNDK7X6U26JZY6FDCN7ZR6UKHYCMKWLAERO6Q52HSPLEUE4
-#\\\|TIJ4U6F5BMZABUF3322GPR4MSAM2VHXQIKCGWHC4JJNP3DDWCIM \ / AMOS7 \ YOURUM ::
-#\[7]MEHJ5N2TKZ4WU42RUYVZ5SWNZTYS4ABJZL24M7NP7ZBLC2Z73ACQ 7  DATA SIGNATURE ::
+#,,,,,,,.,...,...,.,.,.,,,,..,.,.,,..,...,,,,,..,,...,...,...,.,,,.,.,..,,.,.,
+#MR4M4YVRZBWTGG36VHQZPHHRQ6XQA2ZSCJ6Y6PI6H4O4P6WFYKP4WNRDTVXOA6H6ERSIZYY6CSQS4
+#\\\|UPEVRLKCKYAYVI4SOPPYABZAGDOEYMAUNEB24DXGYJEZ2EMWK6A \ / AMOS7 \ YOURUM ::
+#\[7]SYJWMVDH65TDQY5HWCHDFCJQWMOQK54HZCYQVRHTZV3OYDFDYIAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

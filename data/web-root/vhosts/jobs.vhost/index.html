@@ -1,0 +1,644 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Job Pipeline — Alexander Taute</title>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+    font-family: Arial, sans-serif;
+    background: #000;
+    color: #8ddeff;
+    min-height: 100vh;
+    padding: 1rem;
+}
+.container { max-width: 900px; margin: auto; display: flex; flex-direction: column; gap: 1.2rem; }
+
+h1 { color: #40f0ff; font-size: 1.4rem; margin-bottom: 0.2rem; font-weight: bold; }
+.subtitle { color: #405070; font-size: 0.8rem; }
+
+/* controls bar */
+.controls {
+    background: #131340;
+    border: 1px solid #2a2260;
+    border-radius: 0.4rem;
+    padding: 0.8rem 1rem;
+    display: flex; flex-wrap: wrap; gap: 0.5rem; align-items: center;
+}
+.controls .sep { color: #2a2260; padding: 0 0.2rem; }
+.stat {
+    font-size: 0.78rem; padding: 2px 10px; border-radius: 3px;
+    background: rgba(255,255,255,0.04); color: #607080;
+}
+.stat.review  { color: #50e050; background: rgba(20,80,20,0.3); }
+.stat.pending { color: #60c0e0; background: rgba(20,60,100,0.25); }
+.stat.applied { color: #f0c060; background: rgba(80,60,0,0.3); }
+.stat.done    { color: #807090; background: rgba(40,30,60,0.3); }
+
+button {
+    padding: 4px 12px 5px;
+    border: none; border-radius: 0.25rem; cursor: pointer;
+    color: rgba(224,255,255,0.85);
+    background: rgba(75,0,130,0.5);
+    box-shadow: 0 0 5px rgba(64,240,255,0.3);
+    font-size: 0.82rem;
+    transition: all 0.2s;
+}
+button:hover {
+    color: #fff;
+    box-shadow: 0 0 10px rgba(159,255,128,0.5);
+    background: rgba(94,0,163,0.6);
+}
+button.active {
+    background: rgba(20,80,50,0.6);
+    box-shadow: 0 0 8px rgba(80,220,80,0.4);
+    color: #90f090;
+}
+button.orange { background: rgba(120,60,0,0.5); box-shadow: 0 0 5px rgba(255,160,0,0.3); }
+button.orange:hover { background: rgba(150,80,0,0.6); box-shadow: 0 0 10px rgba(255,160,0,0.5); }
+button.red { background: rgba(100,0,0,0.5); box-shadow: 0 0 5px rgba(255,60,60,0.3); }
+button.red:hover { background: rgba(130,0,0,0.6); }
+
+/* filter tabs */
+.filter-bar {
+    display: flex; gap: 0.4rem; flex-wrap: wrap; align-items: center;
+    font-size: 0.8rem;
+}
+.filter-bar span { color: #304050; margin-right: 0.2rem; }
+.ftab {
+    padding: 3px 12px; border-radius: 3px; cursor: pointer;
+    color: #405060; border: 1px solid #1a2030;
+    background: rgba(10,15,25,0.5); font-size: 0.78rem;
+    transition: all 0.15s;
+}
+.ftab:hover  { color: #80c0e0; border-color: #2a4060; }
+.ftab.active { color: #80e0ff; border-color: #2060a0; background: rgba(20,50,90,0.4); }
+
+/* job cards */
+.job-list { display: flex; flex-direction: column; gap: 0.7rem; }
+.job-card {
+    background: #0c1520;
+    border: 1px solid #152030;
+    border-left: 3px solid #1a3050;
+    border-radius: 0.4rem;
+    padding: 0.8rem 1rem;
+    transition: border-color 0.15s;
+    cursor: grab;
+}
+.job-card.dragging { opacity: 0.5; }
+.job-card.drag-over { border-top: 2px solid #40c0ff; }
+.job-card[data-stage="review"]    { border-left-color: #208040; }
+.job-card[data-stage="to_apply"]  { border-left-color: #6060c0; }
+.job-card[data-stage="applied"]   { border-left-color: #c0a020; }
+.job-card[data-stage="responded"] { border-left-color: #20a080; }
+.job-card[data-stage="rejected"]  { border-left-color: #802020; opacity: 0.65; }
+.job-card[data-stage="skipped"]   { border-left-color: #252530; opacity: 0.45; }
+.job-card[data-stage="archived"]  { display: none; }
+.job-card.show-archived[data-stage="archived"] { display: block; opacity: 0.4; }
+
+.card-header {
+    display: flex; align-items: baseline; gap: 0.6rem; flex-wrap: wrap;
+    margin-bottom: 0.4rem;
+}
+.card-title {
+    color: #80c0e0; font-size: 0.95rem; font-weight: bold;
+    text-decoration: none; flex: 1; min-width: 160px;
+}
+.card-title:hover { color: #a0e8ff; text-decoration: underline; }
+.score-badge {
+    font-size: 0.85rem; font-weight: bold;
+    padding: 1px 8px; border-radius: 3px; white-space: nowrap;
+}
+.score-hi  { color: #50e050; background: rgba(20,80,20,0.4); }
+.score-mid { color: #e0c040; background: rgba(80,70,0,0.35); }
+.score-lo  { color: #e06060; background: rgba(80,20,20,0.3); }
+.score-na  { color: #304050; font-size: 0.75rem; }
+
+.card-meta {
+    font-size: 0.78rem; color: #4a6070;
+    display: flex; gap: 0.8rem; flex-wrap: wrap; margin-bottom: 0.4rem;
+}
+.card-meta .company { color: #6090a0; }
+.card-meta .city    { color: #507080; }
+.card-meta .ind     { color: #3a5060; }
+
+.card-reason {
+    font-size: 0.78rem; color: #506880; font-style: italic;
+    margin-bottom: 0.5rem; padding-left: 0.5rem;
+    border-left: 2px solid #1a3040;
+    max-height: 2.8em; overflow: hidden; transition: max-height 0.2s;
+}
+.card-reason.expanded { max-height: 10em; }
+
+.card-actions {
+    display: flex; gap: 0.4rem; flex-wrap: wrap; align-items: center;
+    font-size: 0.75rem;
+}
+.stage-select {
+    padding: 2px 6px; border-radius: 3px; font-size: 0.75rem;
+    background: #0a1520; border: 1px solid #1e3040; color: #70a0c0;
+    cursor: pointer;
+}
+.stage-select:focus { outline: none; border-color: #3060a0; }
+.card-date { color: #2a4050; font-size: 0.72rem; margin-left: auto; }
+.card-note-input {
+    width: 100%; margin-top: 0.4rem; padding: 4px 8px;
+    background: #080f18; border: 1px solid #1a2a3a; border-radius: 3px;
+    color: #6090b0; font-size: 0.78rem; display: none;
+}
+.card-note-input.visible { display: block; }
+.card-note-preview {
+    font-size: 0.75rem; color: #3a5868; margin-top: 0.3rem; padding-left: 0.5rem;
+    border-left: 2px solid #142030; display: none; white-space: pre-wrap;
+}
+.card-note-preview.visible { display: block; }
+
+/* add form */
+.add-form {
+    background: #0c1420; border: 1px solid #1a2a3a; border-radius: 0.4rem;
+    padding: 0.8rem 1rem; display: none; flex-direction: column; gap: 0.6rem;
+}
+.add-form.open { display: flex; }
+.add-form .row { display: flex; gap: 0.5rem; flex-wrap: wrap; }
+.add-form input, .add-form select {
+    padding: 4px 8px; border-radius: 3px; font-size: 0.82rem;
+    background: #0a1825; border: 1px solid #1e3040; color: #90c0d0;
+    flex: 1; min-width: 140px;
+}
+
+/* export / print */
+.export-section {
+    background: #0c1420; border: 1px solid #1a2a3a; border-radius: 0.4rem;
+    padding: 0.8rem 1rem;
+}
+.export-section h3 { font-size: 0.9rem; color: #506070; margin-bottom: 0.6rem; }
+#print-table { display: none; }
+#print-table table { width: 100%; border-collapse: collapse; font-size: 0.8rem; }
+#print-table th, #print-table td {
+    border: 1px solid #2a3a4a; padding: 4px 8px; text-align: left;
+    color: #7090a0;
+}
+#print-table th { background: #0a1520; color: #5080a0; }
+.download-link {
+    color: #40a0e0; font-size: 0.82rem; text-decoration: none;
+    padding: 3px 10px; border: 1px solid #204060; border-radius: 3px;
+}
+.download-link:hover { color: #60c0ff; }
+
+.empty { color: #243040; padding: 2rem 0; text-align: center; font-size: 0.85rem; }
+
+@media print {
+    .no-print { display: none !important; }
+    body { background: #fff; color: #000; }
+    .job-card { border: 1px solid #ccc; page-break-inside: avoid; }
+    #print-table { display: block !important; }
+    #print-table table { color: #000; }
+    #print-table th, #print-table td { border-color: #ccc; color: #000; }
+}
+</style>
+</head>
+<body>
+<div class="container">
+
+  <!-- header -->
+  <div>
+    <h1>job pipeline</h1>
+    <p class="subtitle">protocol-7 · stepstone.de · automatisierte Bewertung</p>
+  </div>
+
+  <!-- controls -->
+  <div class="controls no-print">
+    <span id="stat-total"  class="stat">0 gesamt</span>
+    <span id="stat-review" class="stat review">0 review</span>
+    <span id="stat-apply"  class="stat pending">0 bewerben</span>
+    <span id="stat-applied" class="stat applied">0 beworben</span>
+    <span id="stat-done"   class="stat done">0 erledigt</span>
+    <span class="sep">|</span>
+    <button id="btn-sync">↻ sync</button>
+    <button id="btn-add-toggle">+ manuell</button>
+    <button id="btn-sort-score" class="active">↓ score</button>
+    <button id="btn-sort-date">↓ datum</button>
+    <span class="sep">|</span>
+    <button id="btn-export-csv" class="orange">CSV export</button>
+    <button id="btn-show-archive">archiv</button>
+    <span class="sep">|</span>
+    <button id="btn-clear-local" class="red" title="lokale Daten löschen">reset</button>
+  </div>
+
+  <!-- filter tabs -->
+  <div class="filter-bar no-print">
+    <span>filter:</span>
+    <span class="ftab active" data-filter="all">alle</span>
+    <span class="ftab" data-filter="review">review</span>
+    <span class="ftab" data-filter="to_apply">bewerben</span>
+    <span class="ftab" data-filter="applied">beworben</span>
+    <span class="ftab" data-filter="responded">rückmeldung</span>
+    <span class="ftab" data-filter="rejected">absage</span>
+    <span class="ftab" data-filter="skipped">übersprungen</span>
+  </div>
+
+  <!-- manual add form -->
+  <div class="add-form no-print" id="add-form">
+    <div class="row">
+      <input type="text" id="f-title"   placeholder="Position / Titel">
+      <input type="text" id="f-company" placeholder="Unternehmen">
+    </div>
+    <div class="row">
+      <input type="text" id="f-city"    placeholder="Ort">
+      <input type="text" id="f-url"     placeholder="Link zur Stellenanzeige">
+    </div>
+    <div class="row">
+      <input type="number" id="f-score" placeholder="Score (0-10)" min="0" max="10" step="0.5">
+      <input type="text" id="f-reason"  placeholder="Begründung">
+      <button id="btn-add-save">hinzufügen</button>
+    </div>
+  </div>
+
+  <!-- job list -->
+  <div class="job-list" id="job-list">
+    <div class="empty" id="empty-msg">lade daten…</div>
+  </div>
+
+  <!-- export section -->
+  <div class="export-section no-print">
+    <h3>export / bericht</h3>
+    <div style="display:flex; gap:0.5rem; flex-wrap:wrap; align-items:center;">
+      <button id="btn-show-table">tabelle anzeigen</button>
+      <a id="csv-download" class="download-link" href="#" style="display:none">CSV speichern</a>
+    </div>
+    <div id="print-table"></div>
+  </div>
+
+</div>
+
+<script>
+'use strict';
+
+const STORAGE_KEY = 'jobs_[vhost]_v1';
+const JOBS_JSON   = '/jobs.json';
+
+/* ── state ── */
+let jobs = {};           // id → job object
+let sortMode = 'score';  // 'score' | 'date'
+let filterMode = 'all';
+let showArchived = false;
+let dragSrcId = null;
+
+/* ── localStorage ── */
+function saveLocal() {
+    try { localStorage.setItem(STORAGE_KEY, JSON.stringify(jobs)); } catch(e) {}
+}
+function loadLocal() {
+    try {
+        const d = localStorage.getItem(STORAGE_KEY);
+        if (d) jobs = JSON.parse(d);
+    } catch(e) { jobs = {}; }
+}
+
+/* ── merge pipeline data ── */
+function mergeJobs(pipelineJobs) {
+    let added = 0;
+    for (const pj of pipelineJobs) {
+        const id = String(pj.id);
+        if (!jobs[id]) {
+            jobs[id] = {
+                id, title: pj.title || '', company: pj.company || '',
+                city: pj.city || '', industry: pj.industry || '',
+                url: pj.url || '', score: pj.score ?? null,
+                reason: pj.reason || '', stage: pj.stage || 'review',
+                date_added: new Date().toISOString().slice(0,10),
+                date_applied: '', note: '', source: 'pipeline',
+                sort_order: Object.keys(jobs).length
+            };
+            added++;
+        } else {
+            /* update pipeline fields, preserve manual fields */
+            const j = jobs[id];
+            if (pj.score != null && j.source === 'pipeline') j.score = pj.score;
+            if (pj.reason && j.source === 'pipeline') j.reason = pj.reason;
+        }
+    }
+    return added;
+}
+
+/* ── sync ── */
+async function syncPipeline() {
+    document.getElementById('btn-sync').textContent = '…';
+    try {
+        const r = await fetch(JOBS_JSON + '?t=' + Date.now());
+        if (!r.ok) throw new Error(r.status);
+        const data = await r.json();
+        const arr = data.jobs || data;
+        const n = mergeJobs(arr);
+        saveLocal();
+        render();
+        document.getElementById('btn-sync').textContent = '↻ sync';
+        if (n > 0) notify(`${n} neue jobs geladen`);
+    } catch(e) {
+        document.getElementById('btn-sync').textContent = '↻ sync';
+        notify('sync fehler: ' + e.message, true);
+    }
+}
+
+/* ── score helpers ── */
+function scoreClass(s) {
+    if (s == null) return 'score-na';
+    const n = parseFloat(s);
+    /* support 0-10 and 0-100 scales */
+    const norm = n > 10 ? n / 10 : n;
+    if (norm >= 7.5) return 'score-hi';
+    if (norm >= 5)   return 'score-mid';
+    return 'score-lo';
+}
+function scoreDisplay(s) {
+    if (s == null) return '?';
+    const n = parseFloat(s);
+    return n > 10 ? (n/10).toFixed(1) : String(s);
+}
+
+/* ── render ── */
+function stageLabel(s) {
+    return {review:'review', to_apply:'bewerben', applied:'beworben',
+            responded:'rückmeldung', rejected:'absage', skipped:'übersp.',
+            archived:'archiv'}[s] || s;
+}
+
+function renderCard(j) {
+    const el = document.createElement('div');
+    el.className = 'job-card';
+    el.dataset.stage = j.stage;
+    el.dataset.id = j.id;
+    el.draggable = true;
+
+    const titleEl = j.url
+        ? `<a class="card-title" href="${escHtml(j.url)}" target="_blank" rel="noopener">${escHtml(j.title)}</a>`
+        : `<span class="card-title">${escHtml(j.title)}</span>`;
+
+    const sc = scoreDisplay(j.score);
+    const scClass = scoreClass(j.score);
+
+    el.innerHTML = `
+      <div class="card-header">
+        ${titleEl}
+        <span class="score-badge ${scClass}">${sc}</span>
+      </div>
+      <div class="card-meta">
+        <span class="company">${escHtml(j.company)}</span>
+        <span class="city">${escHtml(j.city)}</span>
+        ${j.industry ? `<span class="ind">${escHtml(j.industry)}</span>` : ''}
+      </div>
+      ${j.reason ? `<div class="card-reason" data-full="${escAttr(j.reason)}">${escHtml(j.reason)}</div>` : ''}
+      <div class="card-actions no-print">
+        <select class="stage-select" data-id="${j.id}">
+          ${['review','to_apply','applied','responded','rejected','skipped','archived']
+            .map(s => `<option value="${s}"${j.stage===s?' selected':''}>${stageLabel(s)}</option>`).join('')}
+        </select>
+        ${j.stage === 'applied' || j.stage === 'responded' ? `
+          <input type="date" class="date-applied-input" data-id="${j.id}" value="${j.date_applied||''}"
+            title="Bewerbungsdatum" style="width:130px; padding:2px 6px; font-size:0.75rem;
+            background:#0a1825; border:1px solid #1e3040; color:#90c0d0; border-radius:3px;">` : ''}
+        <button class="btn-note-toggle" data-id="${j.id}" style="font-size:0.72rem; padding:2px 8px;">notiz</button>
+        <span class="card-date">${j.date_added || ''}</span>
+      </div>
+      <textarea class="card-note-input${j.note?' visible':''}" data-id="${j.id}"
+        placeholder="notiz…" rows="2">${escHtml(j.note||'')}</textarea>
+      ${j.note ? `<div class="card-note-preview visible">${escHtml(j.note)}</div>` : '<div class="card-note-preview"></div>'}
+    `;
+
+    /* drag */
+    el.addEventListener('dragstart', e => { dragSrcId = j.id; el.classList.add('dragging'); });
+    el.addEventListener('dragend',   () => el.classList.remove('dragging'));
+    el.addEventListener('dragover',  e => { e.preventDefault(); el.classList.add('drag-over'); });
+    el.addEventListener('dragleave', () => el.classList.remove('drag-over'));
+    el.addEventListener('drop', e => {
+        e.preventDefault(); el.classList.remove('drag-over');
+        if (dragSrcId && dragSrcId !== j.id) reorderCards(dragSrcId, j.id);
+    });
+
+    /* expand reason on click */
+    const reasonEl = el.querySelector('.card-reason');
+    if (reasonEl) reasonEl.addEventListener('click', () => reasonEl.classList.toggle('expanded'));
+
+    /* stage select */
+    el.querySelector('.stage-select').addEventListener('change', e => {
+        jobs[j.id].stage = e.target.value;
+        saveLocal(); render();
+    });
+
+    /* date applied */
+    const dateInput = el.querySelector('.date-applied-input');
+    if (dateInput) dateInput.addEventListener('change', e => {
+        jobs[j.id].date_applied = e.target.value; saveLocal();
+    });
+
+    /* note toggle */
+    el.querySelector('.btn-note-toggle').addEventListener('click', () => {
+        const ta = el.querySelector('.card-note-input');
+        ta.classList.toggle('visible');
+        if (ta.classList.contains('visible')) ta.focus();
+    });
+
+    /* note save */
+    el.querySelector('.card-note-input').addEventListener('input', e => {
+        jobs[j.id].note = e.target.value;
+        const preview = el.querySelector('.card-note-preview');
+        preview.textContent = e.target.value;
+        preview.classList.toggle('visible', !!e.target.value);
+        saveLocal();
+    });
+
+    return el;
+}
+
+function reorderCards(srcId, dstId) {
+    const all = Object.values(jobs);
+    const srcIdx = all.findIndex(j => j.id === srcId);
+    const dstIdx = all.findIndex(j => j.id === dstId);
+    if (srcIdx < 0 || dstIdx < 0) return;
+    const [item] = all.splice(srcIdx, 1);
+    all.splice(dstIdx, 0, item);
+    all.forEach((j, i) => { j.sort_order = i; });
+    saveLocal(); render();
+}
+
+function sortedJobs() {
+    const all = Object.values(jobs);
+    if (sortMode === 'score') {
+        return all.sort((a, b) => {
+            const sa = a.score != null ? parseFloat(a.score) : -1;
+            const sb = b.score != null ? parseFloat(b.score) : -1;
+            return sb - sa;
+        });
+    }
+    return all.sort((a, b) => {
+        if (a.sort_order != null && b.sort_order != null) return a.sort_order - b.sort_order;
+        return (b.date_added||'').localeCompare(a.date_added||'');
+    });
+}
+
+function render() {
+    const list = document.getElementById('job-list');
+    list.innerHTML = '';
+
+    const sorted = sortedJobs();
+    const visible = sorted.filter(j => {
+        if (j.stage === 'archived' && !showArchived) return false;
+        if (filterMode === 'all') return j.stage !== 'archived' || showArchived;
+        return j.stage === filterMode;
+    });
+
+    if (!visible.length) {
+        list.innerHTML = '<div class="empty">keine einträge</div>';
+    } else {
+        for (const j of visible) {
+            const card = renderCard(j);
+            if (j.stage === 'archived') card.classList.add('show-archived');
+            list.appendChild(card);
+        }
+    }
+
+    updateStats(sorted);
+}
+
+function updateStats(all) {
+    document.getElementById('stat-total').textContent  = all.length + ' gesamt';
+    document.getElementById('stat-review').textContent = all.filter(j=>j.stage==='review').length + ' review';
+    document.getElementById('stat-apply').textContent  = all.filter(j=>j.stage==='to_apply').length + ' bewerben';
+    document.getElementById('stat-applied').textContent= all.filter(j=>j.stage==='applied'||j.stage==='responded').length + ' beworben';
+    document.getElementById('stat-done').textContent   = all.filter(j=>j.stage==='rejected'||j.stage==='archived').length + ' erledigt';
+}
+
+/* ── CSV export ── */
+function exportCSV() {
+    const cols = ['Nr','Datum','Unternehmen','Position','Ort','Score','Status','Bewerbungsdatum','Notiz','Link'];
+    const rows = sortedJobs().filter(j => j.stage !== 'archived' && j.stage !== 'skipped');
+    const lines = [cols.join(';')];
+    rows.forEach((j, i) => {
+        const val = v => `"${String(v||'').replace(/"/g,'""')}"`;
+        lines.push([
+            i+1, j.date_added||'', j.company, j.title, j.city,
+            scoreDisplay(j.score), stageLabel(j.stage),
+            j.date_applied||'', j.note||'', j.url||''
+        ].map(val).join(';'));
+    });
+    const blob = new Blob(['﻿'+lines.join('\n')], {type:'text/csv;charset=utf-8'});
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url; a.download = 'bewerbungen_' + new Date().toISOString().slice(0,10) + '.csv';
+    a.click(); URL.revokeObjectURL(url);
+}
+
+/* ── print table ── */
+function showPrintTable() {
+    const rows = sortedJobs().filter(j => j.stage !== 'archived' && j.stage !== 'skipped');
+    const div = document.getElementById('print-table');
+    div.style.display = 'block';
+    div.innerHTML = `<table>
+      <tr><th>Nr</th><th>Datum</th><th>Unternehmen</th><th>Position</th><th>Ort</th><th>Score</th><th>Status</th></tr>
+      ${rows.map((j,i) => `<tr>
+        <td>${i+1}</td><td>${j.date_added||''}</td><td>${escHtml(j.company)}</td>
+        <td>${escHtml(j.title)}</td><td>${escHtml(j.city)}</td>
+        <td>${scoreDisplay(j.score)}</td><td>${stageLabel(j.stage)}</td>
+      </tr>`).join('')}
+    </table>`;
+}
+
+/* ── manual add ── */
+function addManual() {
+    const title   = document.getElementById('f-title').value.trim();
+    const company = document.getElementById('f-company').value.trim();
+    if (!title || !company) return;
+    const id = 'manual_' + Date.now();
+    jobs[id] = {
+        id, title, company,
+        city:     document.getElementById('f-city').value.trim(),
+        url:      document.getElementById('f-url').value.trim(),
+        score:    document.getElementById('f-score').value || null,
+        reason:   document.getElementById('f-reason').value.trim(),
+        stage:    'to_apply', date_added: new Date().toISOString().slice(0,10),
+        date_applied: '', note: '', source: 'manual',
+        sort_order: Object.keys(jobs).length
+    };
+    saveLocal(); render();
+    ['f-title','f-company','f-city','f-url','f-score','f-reason'].forEach(id => {
+        document.getElementById(id).value = '';
+    });
+}
+
+/* ── helpers ── */
+function escHtml(s) {
+    return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+function escAttr(s) {
+    return String(s||'').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+}
+function notify(msg, err) {
+    const n = document.createElement('div');
+    n.textContent = msg;
+    n.style.cssText = `position:fixed;bottom:1rem;right:1rem;padding:8px 14px;border-radius:4px;
+      font-size:0.8rem;z-index:9999;background:${err?'rgba(120,20,20,0.9)':'rgba(20,80,40,0.9)'};
+      color:#cef;box-shadow:0 0 8px rgba(0,200,100,0.3);`;
+    document.body.appendChild(n);
+    setTimeout(() => n.remove(), 3000);
+}
+
+/* ── event wiring ── */
+document.getElementById('btn-sync').addEventListener('click', syncPipeline);
+
+document.getElementById('btn-add-toggle').addEventListener('click', () => {
+    document.getElementById('add-form').classList.toggle('open');
+});
+document.getElementById('btn-add-save').addEventListener('click', addManual);
+
+document.getElementById('btn-sort-score').addEventListener('click', () => {
+    sortMode = 'score';
+    document.getElementById('btn-sort-score').classList.add('active');
+    document.getElementById('btn-sort-date').classList.remove('active');
+    render();
+});
+document.getElementById('btn-sort-date').addEventListener('click', () => {
+    sortMode = 'date';
+    document.getElementById('btn-sort-date').classList.add('active');
+    document.getElementById('btn-sort-score').classList.remove('active');
+    render();
+});
+
+document.querySelectorAll('.ftab').forEach(tab => {
+    tab.addEventListener('click', () => {
+        document.querySelectorAll('.ftab').forEach(t => t.classList.remove('active'));
+        tab.classList.add('active');
+        filterMode = tab.dataset.filter;
+        render();
+    });
+});
+
+document.getElementById('btn-show-archive').addEventListener('click', () => {
+    showArchived = !showArchived;
+    document.getElementById('btn-show-archive').classList.toggle('active', showArchived);
+    render();
+});
+
+document.getElementById('btn-export-csv').addEventListener('click', exportCSV);
+document.getElementById('btn-show-table').addEventListener('click', showPrintTable);
+
+document.getElementById('btn-clear-local').addEventListener('click', () => {
+    if (confirm('Lokale Daten wirklich löschen? Pipeline-Daten bleiben erhalten (sync).')) {
+        jobs = {}; saveLocal(); syncPipeline();
+    }
+});
+
+/* ── CSV download link for print section ── */
+document.getElementById('btn-show-table').addEventListener('click', () => {
+    const link = document.getElementById('csv-download');
+    link.style.display = 'inline';
+    link.addEventListener('click', e => { e.preventDefault(); exportCSV(); }, {once:true});
+});
+
+/* ── init ── */
+loadLocal();
+render(); // show what we have immediately
+syncPipeline(); // then merge fresh pipeline data
+</script>
+</body>
+</html>
