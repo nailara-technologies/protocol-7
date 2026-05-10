@@ -128,15 +128,17 @@ button.red:hover { background: rgba(130,0,0,0.6); }
     margin-bottom: 0.3rem; padding-left: 0.5rem;
     border-left: 2px solid #1a3040;
     max-height: 2.8em; overflow: hidden; transition: max-height 0.2s;
+    cursor: pointer;
 }
 .card-reason.expanded { max-height: 10em; }
 .card-summary {
     font-size: 0.76rem; color: #3d5060;
     margin-bottom: 0.5rem; padding-left: 0.5rem;
     border-left: 2px solid #12222c;
-    max-height: 3.8em; overflow: hidden; transition: max-height 0.2s;
+    max-height: 5.5em; overflow: hidden; transition: max-height 0.2s;
+    cursor: pointer;
 }
-.card-summary.expanded { max-height: 12em; }
+.card-summary.expanded { max-height: 20em; }
 
 .card-actions {
     display: flex; gap: 0.4rem; flex-wrap: wrap; align-items: center;
@@ -422,6 +424,48 @@ function renderCard(j) {
       ${j.note ? `<div class="card-note-preview visible">${escHtml(j.note)}</div>` : '<div class="card-note-preview"></div>'}
     `;
 
+    /* stage-aware gestures:
+       review:    dblclick=skip       longpress=to_apply
+       to_apply:  dblclick=open note  longpress=applied
+       applied:   dblclick=rejected   longpress=responded
+       responded: dblclick=open note  longpress=rejected       */
+    const openNote = () => {
+        const ta = el.querySelector('.card-note-input');
+        ta.classList.add('visible');
+        ta.focus();
+    };
+    const dblActions = {
+        review:    () => { jobs[j.id].stage = 'skipped';  saveLocal(); render(); },
+        to_apply:  () => openNote(),
+        applied:   () => { jobs[j.id].stage = 'rejected'; saveLocal(); render(); },
+        responded: () => openNote(),
+    };
+    const longActions = {
+        review:    () => { jobs[j.id].stage = 'to_apply';   saveLocal(); render(); },
+        to_apply:  () => { jobs[j.id].stage = 'applied';    saveLocal(); render(); },
+        applied:   () => { jobs[j.id].stage = 'responded';  saveLocal(); render(); },
+        responded: () => { jobs[j.id].stage = 'rejected';   saveLocal(); render(); },
+    };
+
+    let longPressTimer = null;
+    const isInteractive = e => !!e.target.closest('.card-actions, select, input, textarea, a, button');
+
+    el.addEventListener('dblclick', e => {
+        if (isInteractive(e)) return;
+        const fn = dblActions[jobs[j.id].stage];
+        if (fn) fn();
+    });
+    el.addEventListener('pointerdown', e => {
+        if (isInteractive(e)) return;
+        longPressTimer = setTimeout(() => {
+            longPressTimer = null;
+            const fn = longActions[jobs[j.id].stage];
+            if (fn) fn();
+        }, 600);
+    });
+    el.addEventListener('pointerup',    () => { clearTimeout(longPressTimer); longPressTimer = null; });
+    el.addEventListener('pointerleave', () => { clearTimeout(longPressTimer); longPressTimer = null; });
+
     /* drag */
     el.addEventListener('dragstart', e => { dragSrcId = j.id; el.classList.add('dragging'); });
     el.addEventListener('dragend',   () => el.classList.remove('dragging'));
@@ -455,6 +499,11 @@ function renderCard(j) {
         const ta = el.querySelector('.card-note-input');
         ta.classList.toggle('visible');
         if (ta.classList.contains('visible')) ta.focus();
+    });
+
+    /* note: close on outside click if empty */
+    el.querySelector('.card-note-input').addEventListener('blur', e => {
+        if (!jobs[j.id].note) e.target.classList.remove('visible');
     });
 
     /* note save */
