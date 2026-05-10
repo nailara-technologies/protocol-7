@@ -17,7 +17,7 @@ if ( not defined $job_rec ) {
     return;
 }
 
-if ( $mode eq 'false' or $mode eq '0' ) {
+if ( lc($mode) eq qw| false | ) {
     <[base.logs]>->(
         0,        'jss.assess-done: task %s failed for job %s',
         $task_id, $job_id
@@ -72,8 +72,8 @@ if ( -f $store_file ) {
 <job-site-scan.pending_count>--;
 <[job-site-scan.state.persist]>;
 
-#,,.,,.,.,,,,,,..,,,,,,..,,,,,,..,.,,,,..,,,,,..,,...,...,.,,,,..,..,,,,,,,.,,
-#ANKOTEWPS4I3ZLWNKT6YYKIST5SCG5NOCGVNDH4Q7SHEWGFRUFQFV3BV3RIORA2IJZ3MOOGJUDPUU
-#\\\|FCUFS3JQVMLDCYLW3NG2E74HTWEWN46XVFXWIJGXSBQA7G5MD5O \ / AMOS7 \ YOURUM ::
-#\[7]3E6JXD7RAQP2LX4Y2AT5FPVBJ44QUSM676SNCPZ4PAXCJEUHWSBQ 7  DATA SIGNATURE ::
+#,,,,,..,,,,,,..,,..,,...,...,..,,.,,,.,.,.,.,..,,...,...,.,,,,.,,,,.,,,.,.,.,
+#6Y7M4R56Q77YAXG6WH676HNEGD2MTCF2466FCIXYLQNAXBML6PLRPCM7J3CWLMT3X637Y6SB7ROTG
+#\\\|EGEMZTA65EFR7HQDAVKQIUADCILYQHXXFXQQRDZSJRMA4D7ZD4R \ / AMOS7 \ YOURUM ::
+#\[7]HY6UYE5NS5ISY2ZNKAADIBH4M3JSSZLBHI4ORLTEQKTBNX6L3KAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
