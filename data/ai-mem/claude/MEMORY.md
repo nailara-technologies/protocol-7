@@ -81,8 +81,10 @@
 - `topic-punctuation-topology.md` — `:` as group boundary, `.` as element separator; universal scale-independent addressing; AMOS checksums as atoms; route=session=task=cache at different resolutions; doc at data/md/development/PUNCTUATION-TOPOLOGY.md
 - `topic-hyperspace-topology.md` — closed observer loop as anti-entropic; intent-saturated chains self-strengthen; sensor cube 3D grid as physical hyperspace; on-route topology teaching; feature-to-topology mapping; context as position; doc at data/md/development/HYPERSPACE-TOPOLOGY.md
 - `topic-field-coherence-synthesis.md`
-- `topic-job-pipeline.md` — WORKING (session 21): full pipeline verified, 6+ jobs scored 7-8.5 in review; bugs fixed: multiline desc truncation, 100-task blast, regex variants
+- `topic-job-pipeline.md` — WORKING (session 22): jobs.vhost live, German reason+summary in one pass, retry on timeout, letsencr fixed
+- `topic-job-pipeline-title-filter.md` — future: batch title screening via AMOS checksums before page fetch; 30-50% savings
 - `feedback-task-show-multiline.md` — task.show must escape \\n in description/context; line parsers only see first line otherwise
+- `feedback-fork-child-module-loading.md` — parent branch of fork must explicitly load_runtime_modules for all subs it calls; child loads don't reach parent %code
 
 ## File Creation Notes (CRITICAL)
 - **Never add** the single-line `#,,.,,,...` stub at end of new files
@@ -399,8 +401,8 @@
 - Pattern: `my @non_num = grep { defined $data_ref->{$ARG}->{$key} and not looks_like_number(...) } keys $data_ref->%*`
 - Global `$SIG{__WARN__}` exists — if wrapping warn handler, capture `$prev_warn = $SIG{__WARN__}` first and call through
 
-#,,,,,.,.,.,.,,,,,,..,..,,,,.,,..,..,,,,.,,.,,..,,...,...,.,,,.,.,..,,,..,,,,,
-#BCPVUAIQ7V4FTR5SVUWOWKBHCMYYCZNMTWAIAER5FMN4EFRAG4N6WS64WCKWUTM66UR3VWA2FGPL2
-#\\\|UQKHBDOHIQG6QHZZJ4EMBMWUCDJZMKIPK35QX4VN5Y6WR4QUILE \ / AMOS7 \ YOURUM ::
-#\[7]6MDJGMN3OTO5FNPTYWJG2WDTDPAJGDXZN4WXZWSGBYQHWPF7VWBA 7  DATA SIGNATURE ::
+#,,,,,..,,...,...,,.,,...,,..,,,.,..,,.,,,.,,,..,,...,...,.,,,,..,.,,,,,,,,..,
+#HPKDRBXV2LEFQEPQLG6OBDHR65K6ACYTYTKRGQR5RQFWDFDPWD7W5ILUROLPVJBDCJVHWD3KIGMIQ
+#\\\|RVYWELC6VLBLGY26XWTUFGRS33HLZIPUXHKKJH5K5W2XM7WQCNW \ / AMOS7 \ YOURUM ::
+#\[7]5KEPBZI2UCY43QUUYZJQ6ZZ7BW7T5T6VBFFFJYX3SDGHKTZ5C4CY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
