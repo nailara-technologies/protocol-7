@@ -80,11 +80,32 @@ if ( -f $store_file ) {
 
 <job-site-scan.pending_count>--;
 <[job-site-scan.state.persist]>;
-<[job-site-scan.dispatch.next]>
-    ;    ## sequential: dispatch next after this one completes
 
-#,,.,,.,.,.,.,.,,,...,.,.,.,.,.,.,,,.,,,,,,..,..,,...,...,..,,,,.,,,,,.,,,.,,,
-#XY6F5PPB57BEER2OXL43SHFPNPDTMB5U4FIABVNEUADFVFWIHCSTNHWXAVI45XCBMHWNCNY7WKEQ4
-#\\\|DTP42VF5XBVI323TRJEY3TAQPSX3OPLG4YDLYRGQVCKOXKJI77R \ / AMOS7 \ YOURUM ::
-#\[7]SWQYCUQHGR5TP3UQOC2HU7WEDVDBTRDIYSQHTVF6WBSHYF5AP4CQ 7  DATA SIGNATURE ::
+## translate reason to German for review-stage jobs — dispatch.next fires from translate-done
+if ( $job_rec->{'stage'} eq 'review' and length( $reason // '' ) ) {
+    my $translate_prompt
+        = ':local: :simple: Übersetze folgende englische Stelleneinschätzung'
+        . ' in ein bis zwei kurze deutsche Sätze. Antworte nur mit der'
+        . ' deutschen Übersetzung, ohne zusätzlichen Text oder'
+        . ' Anführungszeichen: '
+        . $reason;
+    my $enc = ':B32:'
+        . encode_b32r( Encode::encode( 'UTF-8', $translate_prompt ) );
+    <[protocol-7.route-send]>->(
+        {   'command'   => 'task.create',
+            'call_args' => { 'args' => $enc },
+            'reply'     => {
+                'handler' => 'job-site-scan.handler.translate-done',
+                'params'  => { 'job_id' => $job_id },
+            },
+        }
+    );
+} else {
+    <[job-site-scan.dispatch.next]>;    ## no translation needed, proceed
+}
+
+#,,..,...,..,,,.,,,.,,.,.,.,.,,..,..,,...,,..,..,,...,...,,..,.,.,.,.,...,,,,,
+#6VQVGSQSJXSHDZZYEED33ADNKYBL6O6EDBHDHAXASYO53M7MH24KBJCWEA6647M7YNLNHOHLHXMAQ
+#\\\|L6HOQNVWCCTGKTOIZWEPX3KYECNHNSAEVGYZ5KC2HCETUGSHF6W \ / AMOS7 \ YOURUM ::
+#\[7]EKSKZPAXXJS6ZMUOYTIYDINSW4Z52XN2PBD5CSD2OYWRSIJ74OBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
