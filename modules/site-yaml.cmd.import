@@ -3,19 +3,20 @@
 # name  = site-yaml.cmd.import
 # descr = fetch search url, import new job records
 
-my $url = $call->{'args'} // '';
+my $reply_id = $call->{'reply_id'};
+my $url      = $call->{'args'} // '';
 $url = $data{'site-yaml.cfg.stepstone_search_url'} // '' if not length $url;
 
-return
-    <[base.callback.cmd_reply]>->( { 'mode' => FALSE, 'data' => 'no url' } )
-    if not length $url;
+return <[base.callback.cmd_reply]>->(
+    $reply_id, { 'mode' => 'false', 'data' => 'no url' }
+) if not length $url;
 
 ## step 1: get job link list from search page
 my $links = <[site-yaml.stepstone.search]>->($url);
 if ( ref $links ne 'ARRAY' ) {
-    return
-        <[base.callback.cmd_reply]>
-        ->( { 'mode' => FALSE, 'data' => "search failed: $links" } );
+    return <[base.callback.cmd_reply]>->(
+        $reply_id, { 'mode' => 'false', 'data' => "search failed: $links" }
+    );
 }
 
 my ( $new_count, $skip_count, $err_count ) = ( 0, 0, 0 );
@@ -47,10 +48,12 @@ my $summary = sprintf 'import done: %d new, %d skipped, %d errors',
     $new_count, $skip_count, $err_count;
 <[base.logs]>->( 1, 'site-yaml.import : %s', $summary );
 
-<[base.callback.cmd_reply]>->( { 'mode' => TRUE, 'data' => $summary } );
+<[base.callback.cmd_reply]>->(
+    $reply_id, { 'mode' => 'size', 'data' => $summary }
+);
 
-#,,,,,,..,..,,,..,.,,,,.,,,.,,,,.,,..,...,.,.,..,,...,...,,..,,.,,.,.,,..,,,,,
-#ODOTENYANRBC6KKCPP64XYONITDLATBRMS5XIDUYGCN3OWPTWJXNIOV6WYPU4K7EDN7OTZHBLX6N4
-#\\\|42VCZLTABAAWWKXE6PBIWZACJZGZI7IVFGDHZTEOFE5JACFWWPF \ / AMOS7 \ YOURUM ::
-#\[7]V2D3WWKVHQXO7K4UHPETSTOXGJBPWLL5UKSJEDAEXQ4JPYDWYIDY 7  DATA SIGNATURE ::
+#,,..,,..,.,,,,.,,,..,..,,,,,,...,.,,,.,,,..,,..,,...,...,,.,,,,.,.,.,.,.,,,.,
+#BGZ4AIC5VKO3ISY5X55U3PVZFQSXUUF3Z36REJQRQVWDYL3CKMWBEWLXJ5ZPPFXBXD6J53OVYLKI6
+#\\\|MTFLX4YGGVUR3OPWN3IIN2UUANDLZFCETOOHJ5QCFLKXZAPCWXO \ / AMOS7 \ YOURUM ::
+#\[7]GE22TYKLCS5Z2JIXCHNMTJQPZVEEOIET244NGQMANBC3QJFDKEBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
