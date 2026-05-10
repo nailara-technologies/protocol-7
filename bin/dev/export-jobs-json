@@ -13,6 +13,15 @@ use YAML::XS ();
 use JSON::XS ();
 use Encode   ();
 
+## normalize a string to a proper Perl Unicode string
+sub to_unicode {
+    my $s = shift // '';
+    return $s if utf8::is_utf8($s);
+    ## try UTF-8 first, fall back to Latin-1
+    my $decoded = eval { Encode::decode( 'UTF-8', $s, Encode::FB_CROAK ) };
+    return defined $decoded ? $decoded : Encode::decode( 'Latin-1', $s );
+}
+
 my $store_file = '/var/protocol-7/site-yaml/store.yaml';
 my $out_file   = $ARGV[0] // '/var/httpd/jobs.taute.re/jobs.json';
 
@@ -39,15 +48,15 @@ for my $id ( sort keys %{$store} ) {
 
     push @jobs, {
         id       => $id,
-        title    => $j->{'title'}       // '',
-        company  => $j->{'company'}     // '',
-        city     => $j->{'city'}        // '',
-        industry => $j->{'industry'}    // '',
-        url      => $j->{'url'}         // '',
-        score    => $j->{'score'}       + 0,
-        reason   => $j->{'score_reason'} // '',
+        title    => to_unicode( $j->{'title'}        ),
+        company  => to_unicode( $j->{'company'}      ),
+        city     => to_unicode( $j->{'city'}         ),
+        industry => to_unicode( $j->{'industry'}     ),
+        url      => to_unicode( $j->{'url'}          ),
+        score    => $j->{'score'} + 0,
+        reason   => to_unicode( $j->{'score_reason_de'} || $j->{'score_reason'} ),
         stage    => $tracker_stage,
-        fetched  => $j->{'fetched_at'}  // '',
+        fetched  => $j->{'fetched_at'} // '',
     };
 }
 
@@ -71,8 +80,8 @@ rename $tmp, $out_file or die "cannot rename: $!\n";
 
 printf "exported %d jobs → %s\n", scalar @jobs, $out_file;
 
-#,,,,,,,.,.,.,,.,,.,.,,..,..,,,..,.,.,,.,,..,,..,,...,...,.,,,,..,.,,,,..,.,.,
-#OQKRND45NOOLM64WFT2B45I4HBFIH3FMNIZS4M3WAAOFLW3ZQ5FSMUU6JKSPRJ27RLBVNJ7JBP4FI
-#\\\|YVVXLRRYR3IOL4HYYVFGQ267TMO24WGDY3S5URY5ZU3EWDBRAHE \ / AMOS7 \ YOURUM ::
-#\[7]UIUV2DNJPGJYFTOD4M3R6YPKK57R43JQ5B2H6P2TJLJ4X5MJT2BY 7  DATA SIGNATURE ::
+#,,,,,.,.,..,,..,,.,,,,.,,,,,,,,.,,..,.,.,...,..,,...,...,...,.,,,..,,.,,,,.,,
+#QHZ4YDWPO7TNNZ4LC5OQ52XVD4TSJ6EFDV6K27LVL4VOLYHMI55B5Y6MRLS5OQFFAPBH6AHQHN24U
+#\\\|TKVYE4WWMWI2JAYZRD6ZQJQDKWZUSIQDYIQDJQSHWAJJHAVLNSA \ / AMOS7 \ YOURUM ::
+#\[7]6DXKIMRT55YUMCANKY76CAWFCGVQ5IYFVRLLLW3NORDHRDHPKYBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
