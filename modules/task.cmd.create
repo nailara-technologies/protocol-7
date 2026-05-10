@@ -31,8 +31,11 @@ if ( defined $call->{'param'} and ref $call->{'param'} eq 'HASH' ) {
     $requires     = $call->{'param'}->{'requires'}            // [];
     $slots        = $call->{'param'}->{'slots'}               // [];
 } else {
-    ## args is the full description string
+    ## args is the full description string — decode B32 if prefixed
     $description = $call->{'args'} // '';
+    if ( $description =~ s|^:B32:||i ) {
+        $description = Encode::decode( 'UTF-8', decode_b32r($description) );
+    }
 }
 
 return { 'mode' => 'false', 'data' => 'description required' }
@@ -111,8 +114,8 @@ my $sent = <[protocol-7.route-send]>->(
 
 return { 'mode' => 'size', 'data' => $task_id };
 
-#,,.,,...,,,.,..,,,,.,,.,,.,.,..,,.,.,.,.,...,..,,...,...,,.,,,.,,,..,,,.,..,,
-#3ZDYKRKC7AJBP65JDZ2SHWMDJYDCQHAI5AP5ZT62TLZNKXVZACLVOKZ7FFIG6XNQK5VQBDMA6LDHE
-#\\\|UY355JYMYKVVZ6SAULO3JIRDWEUVF742ZOK4ET3CIFF2YZEFBUJ \ / AMOS7 \ YOURUM ::
-#\[7]TQKGOLLSOMWIQDTLPSJVSCOSFB5JNFWOLJDZFV74FJLNMHPA2MCI 7  DATA SIGNATURE ::
+#,,..,,,.,.,,,...,,.,,...,,,.,,,,,...,...,..,,..,,...,...,..,,,,.,.,,,..,,,,,,
+#QESWSVQWZTYMRGCC7QHEGSQV5DM4OXD2W4IDG27ZSNYNP62MAVVURKZLYNXJUCAZGXEUMHPULOYZ4
+#\\\|KHXZYOURUNRUVTNT4IU2DKNWTBA2AQ2XN2XO4NDZMAGAZVHGT5B \ / AMOS7 \ YOURUM ::
+#\[7]RYDY5NRWX4PMBTXC4MLWXCW6KUGG34XYJ4AZLM6CIZNT723FREAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
