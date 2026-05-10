@@ -3,6 +3,8 @@
 # name  = job-site-scan.handler.fetch-done
 # descr = receive site-yaml.import reply, dispatch assessments when all done
 
+my $call = shift // {};
+
 my $mode     = $call->{'mode'}               // '';
 my $data_str = $call->{'data'}               // '';
 my $category = $call->{'params'}{'category'} // '';
@@ -25,7 +27,7 @@ return if <job-site-scan.fetch_pending> > 0;
 
 ## all fetches done — collect new untracked jobs from site-yaml store
 <[base.perlmod.autoload]>->('YAML::XS');
-my $store_file = '/var/protocol-7/jobs/store.yaml';
+my $store_file = '/var/protocol-7/site-yaml/store.yaml';
 my $store      = {};
 eval { $store = YAML::XS::LoadFile($store_file) } if -f $store_file;
 
@@ -82,8 +84,8 @@ for my $job_id (@to_assess) {
     );
 }
 
-#,,,.,.,.,...,..,,...,.,.,,..,,.,,,..,,..,..,,..,,...,..,,,.,,.,,,...,.,.,,,.,
-#PRV6MUL2C7XDCMFSI26JOBGSVQMF3RJTEISKNY4TWFCNWJTRO5DEHLS5MKHZPCJJXYF7COVQYWB5U
-#\\\|PQFNFGUGVHQZV3VM6RZIMUMVR4NHY2MILJ32XPLHXT62T3CYMIT \ / AMOS7 \ YOURUM ::
-#\[7]Q5WZ33R7IRPGNMHV5MK5UZHZ4B4K3UTIFUMVYIE4YCUAHDROSOBY 7  DATA SIGNATURE ::
+#,,,,,.,,,.,.,,,,,..,,,,.,,,,,,,,,.,,,,,.,,.,,..,,...,..,,...,.,.,...,,,,,,..,
+#6MEEJ4E7NH23E7GOV3JQ7PSVE2EUKSYMLXLZ4VGU752K56JTYKBUJJ66XXYDKWB6CLFRYP4ZNWC7O
+#\\\|4XWNI6ZYL5XSHJDFGWZNVRGEE4Z4YKFQQVVDCSJGKXD37PLOWET \ / AMOS7 \ YOURUM ::
+#\[7]VVLJ7FRSJOXKR4N5DM2OEM6BQGGN24X7P2E2VVBOHNQ42W55TQBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
