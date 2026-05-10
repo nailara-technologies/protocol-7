@@ -3,6 +3,8 @@
 # name  = job-site-scan.handler.assess-done
 # descr = receive assessment result, update job state
 
+my $call = shift // {};
+
 my $mode    = $call->{'mode'}              // '';
 my $result  = $call->{'data'}              // '';
 my $job_id  = $call->{'params'}{'job_id'}  // '';
@@ -56,7 +58,7 @@ if ( length($score) and $score >= $threshold ) {
 
 ## update site-yaml store status to 'assessed'
 <[base.perlmod.autoload]>->('YAML::XS');
-my $store_file = '/var/protocol-7/jobs/store.yaml';
+my $store_file = '/var/protocol-7/site-yaml/store.yaml';
 if ( -f $store_file ) {
     my $store = eval { YAML::XS::LoadFile($store_file) } // {};
     if ( exists $store->{$job_id} ) {
@@ -70,8 +72,8 @@ if ( -f $store_file ) {
 <job-site-scan.pending_count>--;
 <[job-site-scan.state.persist]>;
 
-#,,..,,..,.,.,..,,...,,..,.,.,...,...,..,,.,,,..,,...,...,,.,,,.,,...,,..,.,,,
-#FC7Q5KSV7NYP4HDG66PO6EPDGZOFPBK6LXVQIERJQHEATL6TUVWGQ3O266TTA4TZ5Y7KUZI2MF75A
-#\\\|2ZGS5NCWSDE6JE27TXUPEASM2XRG2X5RBL2WMN4ZQ4IHYEZJSIZ \ / AMOS7 \ YOURUM ::
-#\[7]V3GDOPGFGFDHYIGOZZ5FIZMLNRJYFWOXRADYAPDWEVILDJKJNWBY 7  DATA SIGNATURE ::
+#,,.,,.,.,,,,,,..,,,,,,..,,,,,,..,.,,,,..,,,,,..,,...,...,.,,,,..,..,,,,,,,.,,
+#ANKOTEWPS4I3ZLWNKT6YYKIST5SCG5NOCGVNDH4Q7SHEWGFRUFQFV3BV3RIORA2IJZ3MOOGJUDPUU
+#\\\|FCUFS3JQVMLDCYLW3NG2E74HTWEWN46XVFXWIJGXSBQA7G5MD5O \ / AMOS7 \ YOURUM ::
+#\[7]3E6JXD7RAQP2LX4Y2AT5FPVBJ44QUSM676SNCPZ4PAXCJEUHWSBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

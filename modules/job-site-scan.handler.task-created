@@ -3,6 +3,8 @@
 # name  = job-site-scan.handler.task-created
 # descr = receive task id, register wait-done watcher
 
+my $call = shift // {};
+
 my $mode    = $call->{'mode'}             // '';
 my $task_id = $call->{'data'}             // '';
 my $job_id  = $call->{'params'}{'job_id'} // '';
@@ -34,8 +36,8 @@ $task_id = uc( substr( $task_id, 0, 7 ) );
     }
 );
 
-#,,,,,,,,,,,.,,,,,...,...,,,,,,,.,..,,.,,,,..,..,,...,...,.,,,,..,.,,,,,.,,.,,
-#5YYEGAKW6PSYSEF6QZB6C6VHVTLK55KZEEWT2GSZKXIYQKNPTBIWDJW3OHMTOFTMOL32646MGICWA
-#\\\|UTZT2RRGASFZF6656A7NPBT2F7CEKUBPHVGMUJCKIC2RBGQBI25 \ / AMOS7 \ YOURUM ::
-#\[7]B4NGMRTCLT6HKBCH6IBNMHKRTE7J7E5O77U7EMGITG77O2EE24BQ 7  DATA SIGNATURE ::
+#,,.,,.,.,,,,,...,..,,,,,,,.,,,.,,,.,,.,.,...,..,,...,...,...,...,,..,.,.,..,,
+#GUTBQ3ZQGNYIDTVJ3L6Y6GUAJ2OBAZSA5LKJI5QNTQT7ZQVFS5S6E3WYB53ZRH53RG4RUBJNCEACI
+#\\\|MKWQNXVVO43KCQD6FGUKOAM6ED62FJUK2RYACZC3DKBEICHPP6Y \ / AMOS7 \ YOURUM ::
+#\[7]7YBM665MMXNB654BH2QBQ73PMVCFK43X7ZGLYW5FIWJEH46HXIAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
