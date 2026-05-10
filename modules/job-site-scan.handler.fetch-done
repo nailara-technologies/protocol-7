@@ -61,6 +61,18 @@ if ( not @to_assess ) {
     scalar @to_assess
 );
 
+## load candidate profile once
+my $profile_file = <job-site-scan.cfg.profile_file>
+    // '/etc/protocol-7/job-site-scan/profile.txt';
+my $profile_text = '';
+if ( -r $profile_file ) {
+    open( my $fh, '<:utf8', $profile_file )
+        and do { local $/; $profile_text = <$fh>; close $fh };
+} else {
+    $profile_text
+        = 'no profile configured — score based on job listing alone';
+}
+
 ## build queue entries
 my @queue;
 for my $job_id (@to_assess) {
@@ -74,16 +86,28 @@ for my $job_id (@to_assess) {
     my $ind      = $job->{'industry'}    // '';
     my $raw_desc = $job->{'description'} // '';
     HTML::Entities::decode_entities($raw_desc) if length $raw_desc;
-    my $desc = substr( $raw_desc, 0, 800 );
+    my $desc = substr( $raw_desc, 0, 1200 );
 
-    my $task_desc = sprintf ':local: job-assess: [%s] %s at %s (%s, %s)',
-        $job_id, $title, $co, $city, $ind;
-    my $full_args = join( "\n",
-        $task_desc,      "type=job-assess", "job_id=$job_id",
-        "title=$title",  "company=$co",     "city=$city",
-        "industry=$ind", "desc=$desc" );
+    ## build complete self-contained prompt — no template dependency
+    my $prompt = join( "\n\n",
+        ':local: you are a job matching assistant. assess the fit and return'
+            . ' a JSON object only — no other text.',
+        'scoring criteria: technical skill overlap (weighted highest),'
+            . ' seniority level match, location / remote compatibility,'
+            . ' industry relevance, role scope fit.',
+        'return exactly this json and nothing else:'
+            . ' {"score": <0-10>, "reason": "<one sentence>", "apply": <true|false>}',
+        '## candidate profile ##',
+        $profile_text,
+        '## job listing ##',
+        "title: $title",
+        "company: $co",
+        "city: $city",
+        "industry: $ind",
+        "description:\n$desc",
+    );
 
-    push @queue, { 'job_id' => $job_id, 'desc' => $full_args };
+    push @queue, { 'job_id' => $job_id, 'desc' => $prompt };
 }
 
 <job-site-scan.assess_queue> = \@queue;
@@ -91,8 +115,8 @@ for my $job_id (@to_assess) {
 ## dispatch first task — task-created handler will call dispatch.next for each
 <[job-site-scan.dispatch.next]>;
 
-#,,.,,..,,,,,,,,.,,,,,,,.,,..,.,.,,..,,.,,.,,,..,,...,...,,,.,,,.,.,,,,,,,,,.,
-#B2FPCAR4SGAYVZHQAJIPX74OLFPMCIDPHUS73CIQFPWYI7LJRXW763RVHRVIECBJPG5AVENKI32IU
-#\\\|4RD5YGA5CKSO5SN5TO3QPQTA7NKEWZET3BNHUUW7QOLXDS7O7AR \ / AMOS7 \ YOURUM ::
-#\[7]LPHLTUQ2HIWQYVKQ3SMEM5FIK3J2RO5CSDR2SQV3PI7JLAUJYSDI 7  DATA SIGNATURE ::
+#,,.,,.,,,...,.,,,,.,,...,..,,,.,,,.,,.,,,.,.,..,,...,..,,,,.,,..,,.,,,.,,,,.,
+#BLFB7QVVMELK6OO4FAFWRHZIC5YF3UDVJSVYMRGBE77ZUDZ3BPJQSDOMHUIQO3EFIZFZE6QKJNPRI
+#\\\|VU66TQICYAUH3ELOPXHBXNVLYZKDGCBIH3AUFZ4V7GRB7T4OQRT \ / AMOS7 \ YOURUM ::
+#\[7]GL6JY3I7PZIMZJBTBTL3XOCGC2ZUKAN2L54ASAAO5R4VHACT62CI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
