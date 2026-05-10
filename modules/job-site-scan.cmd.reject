@@ -3,14 +3,12 @@
 # name  = job-site-scan.cmd.reject
 # descr = reject a job from review queue
 
-my $reply_id = $call->{'reply_id'};
-my $job_id   = uc( $call->{'args'} // '' );
+my $job_id = uc( $call->{'args'} // '' );
 $job_id =~ s/^\s+|\s+$//g;
 
 my $rec = <job-site-scan.tasks>->{$job_id};
-return <[base.callback.cmd_reply]>->(
-    $reply_id, { 'mode' => 'false', 'data' => "unknown job: $job_id" }
-) if not defined $rec;
+return { 'mode' => 'false', 'data' => "unknown job: $job_id" }
+    if not defined $rec;
 
 $rec->{'stage'}       = 'rejected';
 $rec->{'rejected_at'} = time;
@@ -36,12 +34,10 @@ if ( not $remaining and <job-site-scan.cycle> eq 'reviewing' ) {
 
 <[job-site-scan.state.persist]>;
 
-<[base.callback.cmd_reply]>->(
-    $reply_id, { 'mode' => 'true', 'data' => "rejected: $job_id" }
-);
+return { 'mode' => 'true', 'data' => "rejected: $job_id" };
 
-#,,,.,,.,,,,.,...,,..,.,.,,.,,,,.,,,,,,,,,,,.,..,,...,...,,.,,..,,...,.,.,.,.,
-#N6E2ZKXCZSDLQEHNX7ZKBRP7COO2RBMROYMX2F4RIBXLUKRQUSA7WRYO6EZCZHEZ3GSZKFQC6SKWC
-#\\\|LR3XQW6S3DIUGWVEXVIEDDEJWX2O3ZFE6M3ESFYWQ3TVK2MQWM3 \ / AMOS7 \ YOURUM ::
-#\[7]JMXR2ZEMTYZVCGSB6WYZTO25DKMZDHFIWWABAXS5JBFO6M2PIUCI 7  DATA SIGNATURE ::
+#,,,.,,,.,.,.,,,,,.,,,.,.,...,..,,,.,,,..,,.,,..,,...,..,,..,,,.,,.,,,...,.,.,
+#BVD4T2ULXCBBYY6SS4HVFZNSPM3PTRTB4BYXHFJG6OWAYKIKIVH5EUYR4EOEZXCHRRB73HOKX5DAC
+#\\\|TBXJ2AHRR4GRLR2SNWG7T5KDHETNMT55ZU6PTTDBJF7YMX6HM7R \ / AMOS7 \ YOURUM ::
+#\[7]GPBJEW6YTLDSZVXCILHHZFUWOFDDJGDBVGURH7O2QEXULS56IUCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

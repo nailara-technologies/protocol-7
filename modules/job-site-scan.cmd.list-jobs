@@ -3,8 +3,7 @@
 # name  = job-site-scan.cmd.list-jobs
 # descr = list jobs, optional stage filter
 
-my $reply_id = $call->{'reply_id'};
-my $filter   = $call->{'args'} // '';
+my $filter = $call->{'args'} // '';
 
 my $tasks = <job-site-scan.tasks> // {};
 my @ids   = sort keys %{$tasks};
@@ -13,13 +12,10 @@ my @ids   = sort keys %{$tasks};
     if length $filter;
 
 if ( not @ids ) {
-    return <[base.callback.cmd_reply]>->(
-        $reply_id,
-        {   'mode' => 'true',
-            'data' => 'no jobs'
-                . ( length $filter ? " (filter: $filter)" : '' )
-        }
-    );
+    return {
+        'mode' => 'true',
+        'data' => 'no jobs' . ( length $filter ? " (filter: $filter)" : '' ),
+    };
 }
 
 <[base.perlmod.autoload]>->('YAML::XS');
@@ -46,12 +42,10 @@ for my $id (@ids) {
         $job->{'city'}    // '';
 }
 
-<[base.callback.cmd_reply]>->(
-    $reply_id, { 'mode' => 'size', 'data' => join( "\n", @lines ) }
-);
+return { 'mode' => 'size', 'data' => join( "\n", @lines ) };
 
-#,,,.,..,,.,.,..,,...,,.,,,.,,,,.,.,.,,..,,,,,..,,...,...,.,.,,,.,,,.,.,,,...,
-#RGGS6HMQPYOVDEHPU7HIIMKCLWBCFGO75UELF7PASFX5WEF5AZMCS2Z5WO3JCREOIZWGM3VGVRDNU
-#\\\|YCBOMFJZZ37UZSIMUYXELE6FQ4EZ7QXU2J6V6MIRO26J4BFU4IN \ / AMOS7 \ YOURUM ::
-#\[7]S5PCIOTUMHQ3GPI4TTSCES7ROVCNDM3J2QTSNVSOYSNIXWR564AQ 7  DATA SIGNATURE ::
+#,,.,,..,,,..,,..,.,,,..,,,.,,,..,...,.,.,.,.,..,,...,..,,..,,,,,,,..,,,.,.,.,
+#RCOPFJYF4RE3NB6CAUJ3UDOC7YXNMRGAOZ7VGTO5KQ355RHVSVI6Z52BY2ZT6OZB376YI2DHX2XHC
+#\\\|WDUXRSB7NQLOIRX3BXFBPCDLIPXPORP2EBB35YHOA4ACGXO4A2Q \ / AMOS7 \ YOURUM ::
+#\[7]YDTWAYS4SIP6Z46ERBW3OXW5IEQYA4JRLC5FZXCYW5EYOKCCC4CQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -3,8 +3,7 @@
 # name  = site-yaml.cmd.list-jobs
 # descr = list jobs from store, optional status filter
 
-my $reply_id = $call->{'reply_id'};
-my $filter   = $call->{'args'} // '';
+my $filter = $call->{'args'} // '';
 
 my $store = $data{'jobs.store'};
 my @ids   = sort {
@@ -16,9 +15,7 @@ my @ids   = sort {
     if length $filter;
 
 if ( not @ids ) {
-    return <[base.callback.cmd_reply]>->(
-        $reply_id, { 'mode' => 'true', 'data' => "no jobs (filter: $filter)" }
-    );
+    return { 'mode' => 'true', 'data' => "no jobs (filter: $filter)" };
 }
 
 my @lines;
@@ -36,12 +33,10 @@ for my $id (@ids) {
         $j->{'city'}    // '';
 }
 
-<[base.callback.cmd_reply]>->(
-    $reply_id, { 'mode' => 'size', 'data' => join( "\n", @lines ) }
-);
+return { 'mode' => 'size', 'data' => join( "\n", @lines ) };
 
-#,,,,,...,,,.,.,,,,..,,..,..,,,,,,,.,,,.,,.,.,..,,...,...,...,...,,..,.,,,,,.,
-#DHUWENTITE3HWE3QNGJJNQ26PWUZ47ZABRJFRZ26BPFZ5S5DPFXUFMJPWOLBB5MKQS3ZTQSZMXVIC
-#\\\|VFDYMVUFYPH2VEAXMGPZRRHPG7MXLQYDSJ5QSHJPQQZA64FUAPC \ / AMOS7 \ YOURUM ::
-#\[7]IW4FWRD3Y7QWKLOXCSZVYIWAUBODES7FWTPDQVR32CV33UP5WYAQ 7  DATA SIGNATURE ::
+#,,..,.,,,.,,,,.,,,..,.,.,..,,...,...,..,,.,.,..,,...,...,...,,,,,.,.,,..,.,,,
+#EQFBNOMNLAWBFDP7I33RC2NFXSEZ6IEVS6VZUVP3FCSG3FKSTPWLEE5EHQDSSAYVHAKYREQX5GCF6
+#\\\|U24IJBDIOPCA3462DO5FWPJDKIV7NDACG6FYRSJ5BG6HO7CRUFF \ / AMOS7 \ YOURUM ::
+#\[7]XDJTNR42JXWXW5RV4TKIX7W3YV25UYBR2EA4NIDQYFGKNKCP2SCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

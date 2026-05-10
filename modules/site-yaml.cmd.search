@@ -3,24 +3,22 @@
 # name  = site-yaml.cmd.search
 # descr = fetch stepstone search URL, return job list YAML
 
-my $reply_id = $call->{'reply_id'};
-my $url      = $call->{'args'} // '';
+my $url = $call->{'args'} // '';
 
 ## default to configured search url if none supplied
 $url = $data{'site-yaml.cfg.stepstone_search_url'} // ''
     if not length $url;
 
-return <[base.callback.cmd_reply]>->(
-    $reply_id,
-    { 'mode' => 'false', 'data' => 'no search url configured or supplied' }
-) if not length $url;
+return {
+    'mode' => 'false',
+    'data' => 'no search url configured or supplied'
+    }
+    if not length $url;
 
 my $jobs = <[site-yaml.stepstone.search]>->($url);
 
 if ( ref $jobs ne 'ARRAY' ) {
-    return <[base.callback.cmd_reply]>->(
-        $reply_id, { 'mode' => 'false', 'data' => $jobs // 'search failed' }
-    );
+    return { 'mode' => 'false', 'data' => $jobs // 'search failed' };
 }
 
 <[base.logs]>
@@ -28,12 +26,10 @@ if ( ref $jobs ne 'ARRAY' ) {
 
 my $yaml = YAML::XS::Dump( { 'jobs' => $jobs } );
 
-<[base.callback.cmd_reply]>->(
-    $reply_id, { 'mode' => 'size', 'data' => $yaml }
-);
+return { 'mode' => 'size', 'data' => $yaml };
 
-#,,,,,.,,,.,,,,,.,.,,,,,.,,.,,,..,,..,.,.,.,.,..,,...,...,.,.,...,..,,,,,,,,.,
-#ETA5NXPF5EMDGVWJ5VJAOCBUO6UD66G6267WFTK2DOB7PYFK37L6PXCXL5OAIXUE5OIH5IDIAAXDS
-#\\\|2B73LJ3QXOPY5OGCKHAY5OBUX6A6CJWOFX3GL77HPMO72ZTTZ4J \ / AMOS7 \ YOURUM ::
-#\[7]TVEA3ITVC2ZO6APMCE32QULYK3GF5HQJCX72CHMK4UZVC3HP4IBA 7  DATA SIGNATURE ::
+#,,,,,,..,.,,,,,.,,.,,,..,..,,,,,,,..,..,,,..,..,,...,..,,.,,,.,.,.,,,..,,,,.,
+#OWQIY6SKIY43C45TMKQ47LDPSJQYBF3HEEARY4EAW24DSTPSI6MRPMA2MFBJ24OQH6F6D24K6FRS4
+#\\\|F55IWSXU3KQE6DD4IHQYNUAT2HOMDK2H2E5XKATGKGGO6F7QZC5 \ / AMOS7 \ YOURUM ::
+#\[7]D2NZNSMUXTWWSO2FSQL3VFTWJSGS6QZYLY5HJLA3KL7P25342UAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
