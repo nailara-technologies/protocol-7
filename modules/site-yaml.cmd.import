@@ -4,7 +4,8 @@
 # descr = fetch search url, import new job records
 
 my $url = $call->{'args'} // '';
-$url = $data{'site-yaml.cfg.stepstone_search_url'} // '' if not length $url;
+$url = $data{'site-yaml'}{'cfg'}{'stepstone_search_url'} // ''
+    if not length $url;
 
 return { 'mode' => 'false', 'data' => 'no url' }
     if not length $url;
@@ -26,7 +27,8 @@ for my $link ( @{$links} ) {
         next;
     }
 
-    ## fetch full job record
+    ## fetch full job record — small delay to avoid rate limiting
+    select( undef, undef, undef, 0.5 );
     my $job = <[site-yaml.stepstone.job]>->( $link->{'url'} );
     if ( ref $job ne 'HASH' ) {
         <[base.logs]>->( 0, 'import: fetch error id=%s : %s', $id, $job );
@@ -46,8 +48,8 @@ my $summary = sprintf 'import done: %d new, %d skipped, %d errors',
 
 return { 'mode' => 'size', 'data' => $summary };
 
-#,,..,,..,...,,,.,,,.,.,.,,,.,..,,...,..,,..,,..,,...,...,...,,..,..,,.,,,...,
-#ETSYV335N4DQOYWYZVIXHFAPVPTPD6IW2ECXWWJB6U63KY5QYNT56MUSNSI4BZGHVX5HGTI55LH72
-#\\\|I3TBOVYLX2TGIUGFXC74JLSD5ECVAXH4OR2TJ5T3XUV3JPQFEO5 \ / AMOS7 \ YOURUM ::
-#\[7]DLN323O4GXB2H3BWDDYQ2JZSMPXVT5OGWMRHY4RIZYTX4JC2VADY 7  DATA SIGNATURE ::
+#,,..,,.,,..,,.,,,,.,,,.,,,.,,,,.,..,,.,,,,..,..,,...,...,...,.,.,..,,,.,,,..,
+#WLFMIOZ5LCE5DZE2B3WYNQNHWZN6UISPBMSSYJ4X7SIP4CJVLN7YLN44DLZFPIFGZASD44WY5CPSE
+#\\\|2BNQ7TQDUAQHKLFZUM2KZRINEAXN7YFC4J2VLCW2FQVWYCNGSIA \ / AMOS7 \ YOURUM ::
+#\[7]6BALB3WONVQ3ZGCIJ5GJSTN2NULI3OO7ZGXQ5LXJJ6HRVZOBJ2CY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
