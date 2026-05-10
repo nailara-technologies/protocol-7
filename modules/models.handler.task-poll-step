@@ -107,8 +107,8 @@ if ( $step eq 'show' ) {
     ## determine model from :name: prefix in description [ @name fallback ]
     my $model = <models.task.default_model> // 'kimi';
     <[base.logs]>->(
-        1,    ': task-poll-step cmd=%s desc[40]=%s',
-        $cmd, substr( $description, 0, 40 )
+        1,    ': task-poll-step cmd=%s details_len=%d desc[40]=%s',
+        $cmd, length($details), substr( $description, 0, 40 )
     );
     if ( $description =~ s{^:([a-z0-9\-]+):\s*}{}i ) {
         $model = $1;
@@ -231,8 +231,8 @@ if ( $step eq 'check-next' ) {
 <[base.logs]>->( 0, ': task-poll-step: unknown step [ %s ]', $step );
 return;
 
-#,,.,,,..,...,.,,,,,.,...,..,,,.,,.,.,,.,,.,,,.,.,...,...,..,,,,.,,,,,,..,..,,
-#GF2URVP62YFK2EBZUXIKIIPE7PACWNAWKJVSWAFBSROGIK6V6NZOCIM6AMWKZUY3KV2XTZSZLF4PW
-#\\\|63QSSKF5XKSCBLQVPUWTJSNOA56JU6ZFY6FZRFQXBJTJ4WO2D7Z \ / AMOS7 \ YOURUM ::
-#\[7]CAQTWPTR5MS4ZKWTN74YUFZ5JXLW6PIV53J6QKKYPMFQ676NDEAI 7  DATA SIGNATURE ::
+#,,.,,,,.,,..,.,.,..,,,..,,,.,.,,,...,.,.,..,,.,.,...,...,,..,,,.,,,,,.,.,,..,
+#I2P4AVCYHRX2IL6QS7ICNBUQC6HT6ZQBY7KHAPE2FK6C4EMXGIIKHMILYDBZYF7LCGWPX4IRRLV3Q
+#\\\|ZR7G3Y6U45V7E5RDICLRSS6PVOATNDA5AZ5F3O5VAZF2KULIESV \ / AMOS7 \ YOURUM ::
+#\[7]ICWFHGSEXA6G74SB7N7TM3QN6EPEV6ZCF6FAT7DDEQFDXDYDREBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
