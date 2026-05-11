@@ -127,18 +127,18 @@ button.red:hover { background: rgba(130,0,0,0.6); }
     font-size: 0.78rem; color: #506880; font-style: italic;
     margin-bottom: 0.3rem; padding-left: 0.5rem;
     border-left: 2px solid #1a3040;
-    max-height: 2.8em; overflow: hidden; transition: max-height 0.2s;
+    max-height: 6em; overflow: hidden; transition: max-height 0.3s;
     cursor: pointer;
 }
-.card-reason.expanded { max-height: 10em; }
+.card-reason.expanded { max-height: 30em; }
 .card-summary {
     font-size: 0.76rem; color: #3d5060;
     margin-bottom: 0.5rem; padding-left: 0.5rem;
     border-left: 2px solid #12222c;
-    max-height: 5.5em; overflow: hidden; transition: max-height 0.2s;
+    max-height: 8em; overflow: hidden; transition: max-height 0.3s;
     cursor: pointer;
 }
-.card-summary.expanded { max-height: 20em; }
+.card-summary.expanded { max-height: 30em; }
 
 .card-actions {
     display: flex; gap: 0.4rem; flex-wrap: wrap; align-items: center;
@@ -323,7 +323,8 @@ function mergeJobs(pipelineJobs) {
                 id, title: pj.title || '', company: pj.company || '',
                 city: pj.city || '', industry: pj.industry || '',
                 url: pj.url || '', score: pj.score ?? null,
-                reason: pj.reason || '', stage: pj.stage || 'review',
+                reason: pj.reason || '', summary: pj.summary || '',
+                stage: pj.stage || 'review',
                 date_added: new Date().toISOString().slice(0,10),
                 date_applied: '', note: '', source: 'pipeline',
                 sort_order: Object.keys(jobs).length
@@ -332,8 +333,9 @@ function mergeJobs(pipelineJobs) {
         } else {
             /* update pipeline fields, preserve manual fields */
             const j = jobs[id];
-            if (pj.score != null && j.source === 'pipeline') j.score = pj.score;
-            if (pj.reason && j.source === 'pipeline') j.reason = pj.reason;
+            if (pj.score   != null && j.source === 'pipeline') j.score   = pj.score;
+            if (pj.reason  && j.source === 'pipeline') j.reason  = pj.reason;
+            if (pj.summary && j.source === 'pipeline') j.summary = pj.summary;
         }
     }
     return added;
