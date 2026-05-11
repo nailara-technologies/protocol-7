@@ -245,8 +245,8 @@ button.red:hover { background: rgba(130,0,0,0.6); }
   <!-- filter tabs -->
   <div class="filter-bar no-print">
     <span>filter:</span>
-    <span class="ftab active" data-filter="all">alle</span>
-    <span class="ftab" data-filter="review">review</span>
+    <span class="ftab" data-filter="all">alle</span>
+    <span class="ftab active" data-filter="review">review</span>
     <span class="ftab" data-filter="to_apply">bewerben</span>
     <span class="ftab" data-filter="applied">beworben</span>
     <span class="ftab" data-filter="responded">rückmeldung</span>
@@ -297,7 +297,7 @@ const JOBS_JSON   = '/jobs.json';
 /* ── state ── */
 let jobs = {};           // id → job object
 let sortMode = 'score';  // 'score' | 'asc' | 'date'
-let filterMode = 'all';
+let filterMode = 'review';
 let minScore = 6;
 let showArchived = false;
 let dragSrcId = null;
@@ -599,7 +599,7 @@ function updateStats(all) {
 /* ── CSV export ── */
 function exportCSV() {
     const cols = ['Nr','Datum','Unternehmen','Position','Ort','Score','Status','Bewerbungsdatum','Notiz','Link'];
-    const trackStages = new Set(['to_apply','applied','responded','rejected']);
+    const trackStages = new Set(['applied','responded','rejected']);
     const rows = sortedJobs().reverse().filter(j => trackStages.has(j.stage));
     const lines = [cols.join(';')];
     rows.forEach((j, i) => {
@@ -619,7 +619,7 @@ function exportCSV() {
 
 /* ── print table ── */
 function showPrintTable() {
-    const trackStages = new Set(['to_apply','applied','responded','rejected']);
+    const trackStages = new Set(['applied','responded','rejected']);
     const rows = sortedJobs().reverse()
         .filter(j => trackStages.has(j.stage));
     const div = document.getElementById('print-table');
