@@ -41,9 +41,13 @@ originSessionId: 5557aaa4-3476-4c66-9002-955c73ae92a1
   deployed /var/httpd/jobs.* dirs at install time
 - `httpd.vhost.read_manifests` extended to handle wildcard pattern vhosts
 - Page features: score filter (slider, default 6), filter tabs, sort score↓/↑/datum,
-  table toggle, CSV export, notes, status changes, drag-reorder, manual add
+  table toggle, CSV export, print report, notes, status changes, drag-reorder, manual add
 - Card layout: title+score → company/city/industry → reason (italic) → summary (muted)
   both click-to-expand
+- Print report: hybrid layout — overview table + KI-Analyse per job (summary+reason+note);
+  filter: applied/responded/rejected only (same as CSV); light mode at print time, dark preview;
+  "drucken" button appears when table is visible; refreshes on sync + tab switch
+- CSV export: applied/responded/rejected only
 - Export: `bin/dev/export-jobs-json [outfile]` — reads store.yaml → jobs.json
   prefers score_reason_de (legacy) then score_reason; to_unicode() fixes Latin-1/UTF-8
 - Update cycle: `perl bin/dev/export-jobs-json /tmp/jobs.json && scp ... atom:/var/httpd/jobs.*/`
@@ -77,8 +81,8 @@ originSessionId: 5557aaa4-3476-4c66-9002-955c73ae92a1
 - Exclusion filter from past CSV data (already-applied companies)
 - score_tech + score_location split in assessment JSON
 
-#,,,.,..,,,,,,...,.,.,,..,,..,...,.,,,.,.,.,.,..,,...,...,..,,.,,,,..,,.,,,..,
-#FLZGQUWIG4KPGRTFX3LNRERITUJ63GBCPQLFZGQJ3X46HNI5W7STD2IK5XIWKSTJUNDIZJSBMU4JY
-#\\\|44XHAUO7H5F52N2B6OIHZNJ4QF7LKFVTVGZW2CMJWDJESIX42S3 \ / AMOS7 \ YOURUM ::
-#\[7]EH4Q7WO3VY34GF4T7OFSTP345NEA5FRQHCI27X2RCJOPXK7JDIDQ 7  DATA SIGNATURE ::
+#,,,,,,.,,,..,,..,,,,,,,,,...,.,.,..,,..,,,..,..,,...,..,,.,.,,..,,..,,.,,..,,
+#WHLTN75DVK567CPD7E7GOF3ENJVVSQALZNVMXU6L76XRYPCQZS244GPI4ZW5UBFATSRIAEBSAN42O
+#\\\|GE24JP76HE6DPDSMC56GG5JLSAWXVZKJQTVABWIEQEQOZ3HDBKA \ / AMOS7 \ YOURUM ::
+#\[7]WPCQ5OUQLD5QNKB4L4YXB4Z4LCOXQ75NBMIEWGHNQSW446TMRQCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
