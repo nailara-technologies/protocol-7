@@ -203,6 +203,8 @@ button.red:hover { background: rgba(130,0,0,0.6); }
     #print-table { display: block !important; color: #000; }
     #print-table table { color: #000; }
     #print-table th, #print-table td { border-color: #ccc; color: #000; }
+    #print-table strong, #print-table span, #print-table p,
+    #print-table div, #print-table h2, #print-table h3 { color: #000 !important; }
     .print-detail { page-break-inside: avoid; }
 }
 </style>
@@ -353,6 +355,7 @@ async function syncPipeline() {
         const n = mergeJobs(arr);
         saveLocal();
         render();
+        if (tableVisible) showPrintTable();
         document.getElementById('btn-sync').textContent = '↻ sync';
         if (n > 0) notify(`${n} neue jobs geladen`);
     } catch(e) {
@@ -620,15 +623,9 @@ function exportCSV() {
 
 /* ── print table ── */
 function showPrintTable() {
-    /* print always shows all non-archived jobs above minScore — not filtered by tab */
-    const rows = sortedJobs().filter(j => {
-        if (j.stage === 'archived') return false;
-        if (j.score != null) {
-            const norm = parseFloat(j.score) > 10 ? parseFloat(j.score) / 10 : parseFloat(j.score);
-            if (norm < minScore) return false;
-        }
-        return true;
-    });
+    /* print: all actively tracked jobs — excludes review, to_apply, skipped, archived */
+    const printStages = new Set(['applied','responded','rejected']);
+    const rows = sortedJobs().filter(j => printStages.has(j.stage));
     const date = new Date().toLocaleDateString('de-DE');
     const overview = `
       <h2 style="margin:0 0 0.3rem;font-size:1.1rem">Bewerbungsübersicht — ${date}</h2>
