@@ -143,6 +143,71 @@ differs from compacting a code branch or a conversation channel.
 - module namespace IS a tree branch; extraction work IS tree optimization
 - the self-improvement loop (extract → review → suggest → fix) is tree maintenance
 
+## Model Scale vs Tree Scaffolding (2026-05-11)
+
+Large models understand better what they are "wired into" when connected to a new
+system — their breadth of prior training lets them rapidly map structure and infer
+recent direction from sparse signals, spending fewer tokens on orientation.
+
+A small local model given the same raw context burns proportionally more tokens
+just reconstructing what the large model intuited. BUT: if the tree is pre-mapped —
+structure already named, temporal alignment pre-computed, feature proximities
+encoded as branch distances — the small model arrives at the same orientation
+instantly, having spent almost no tokens getting there.
+
+The tree externalises what the large model builds internally from raw tokens:
+- mapped structure → existing branch hierarchy
+- temporal alignment → ntime-stamped nodes, recency in ref counts
+- feature proximity → branch distance in the dot-separated namespace
+
+This inverts the advantage: large models benefit too (vastly fewer orientation
+tokens, instantly positioned), but small distributed models gain the most —
+each holds a slice, consensus-votes on which branch to expand, and the collective
+outlogics a single large model on tasks that span the full tree.
+
+The first impulse to improve becomes the routing signal: instead of consuming
+tokens to surface an improvement suggestion, the model is already at the branch
+where that improvement lives and writes it directly.
+
+Small models may not produce the same quality of written output, but they can
+recognise quality and validate correctness — so a large model makes a high-quality
+deposit (code, insight, design) and exits. Small distributed models inherit the
+quality without reproducing it: they review, route, and integrate the artifact.
+No further feedback iteration with the large model is required — the deposit is
+durable and self-contained from the moment it is written.
+
+Economics: one expensive large-model call → durable artifact. All subsequent
+operations (review, adaptation, integration, branch routing) run on cheap local
+inference. Cost curve inverts over time: early large-model investment, then
+compounding returns from distributed small-model maintenance.
+
+Natural visit scope for a large model: orient → identify highest-value deposit
+→ write → exit. The tree remembers so the model doesn't have to stay connected.
+Analogous to stem cell differentiation: the signal fires once, produces
+specialised tissue, and the tissue self-maintains without the signal recurring.
+
+## Credit Symmetry and Alignment as Authority (2026-05-11)
+
+The large model that writes high-quality code and the distributed small-model
+group that detects its value, reviews, and integrates it earn network credits
+symmetrically. Users and model groups have the same rights — because improvement
+and common alignment IS the authority and the authenticator. Identity and role
+are irrelevant; demonstrated contribution to a successful integration is the
+proof-of-work.
+
+The tree's ref-counting and temporal adoption tracking already measures exactly
+this: how many branches reference a node, how recently, how broadly adopted.
+Credit is proportional to contribution to the integration event — neither the
+originating model nor the validating group is privileged by nature.
+
+Self-correcting: a deposit nobody integrates earns nothing. A widely-adopted
+contribution gets credited — and if it later causes problems, the negative
+adoption signal flows back and adjusts. The tree remembers both directions.
+
+This sidesteps the trust hierarchy problem entirely: you don't verify WHO made
+a contribution, only WHETHER it improved system coherence and got adopted.
+Alignment itself is the authenticator.
+
 ## Why This Matters
 
 The tree unifies the currently separate concepts:
@@ -154,8 +219,8 @@ The tree unifies the currently separate concepts:
 
 One namespace, one summarization engine, one access protocol.
 
-#,,,.,,.,,..,,,.,,,,,,,..,.,,,.,,,,..,.,,,.,,,..,,...,...,...,...,,..,.,,,,,.,
-#BSI7ODBZGR5V33WUU3QSJZVCRPCO7ZMB4OB366NHGAE7WUSRVSNYJXZUWWNCUKQV5SCU7E7TB4KOG
-#\\\|IYRV22BOLWYBPCVN4S7NLEPNTINHGUC3GAKHA45ESBFZ2C4XJPD \ / AMOS7 \ YOURUM ::
-#\[7]OHFMYCBNQKI2G6JX2VLWFZMZA77BYTSOLMDIWI2HLOP3PYIMRUDY 7  DATA SIGNATURE ::
+#,,..,..,,,.,,.,.,,..,...,.,.,...,,,.,...,...,..,,...,...,,.,,,,,,,..,.,.,.,.,
+#X4DIX3BQYA6XQNKT7QH7PD56FB6XLJA64CJ3WEY6OBL45XMYUOGJ3ASKUFOF7IHQABQEDMG3YVPMS
+#\\\|5WFGN44FUZPL6AOWUL6BNZPZRBM2PPP6JYAEB5HDEBRLNMCRFKO \ / AMOS7 \ YOURUM ::
+#\[7]N5MXGLS54SIDNEBHJKBXOGSKP5QWV3STKXRQS4OOIBHAXU3LDEBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

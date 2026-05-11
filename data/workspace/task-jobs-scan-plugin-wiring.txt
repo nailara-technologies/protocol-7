@@ -1,0 +1,45 @@
+TASK: wire job-site-scan assess-done through plugin.web.jobs.state.save
+
+SIGNATURES NOTE: do not add, modify, or investigate AMOS7 signatures at the bottom
+of module files. leave them as-is — signing is handled automatically.
+
+## goal
+
+after plugin.web.jobs.* is implemented (see task-plugin-web-jobs.txt),
+wire the assessment pipeline so that assess-done writes through the plugin
+instead of directly to store.yaml. this makes plugin.web.jobs the single
+source of truth for both pipeline and browser.
+
+## current flow (to replace)
+
+job-site-scan.handler.assess-done currently:
+1. receives score/reason/summary from models task result
+2. writes directly to /var/protocol-7/site-yaml/store.yaml via YAML::XS
+3. calls dispatch.next for next pending job
+
+## new flow
+
+job-site-scan.handler.assess-done should:
+1. receive score/reason/summary as before
+2. update the record in %data{'plugin.web.jobs.store'} (the plugin's in-memory store)
+   — only pipeline-owned fields: score, reason, summary, fetched
+3. call <[plugin.web.jobs.state.save]> to persist + backup
+4. continue with dispatch.next as before
+
+## finding the right module
+
+search for: modules/job-site-scan.handler.assess-done
+or similar — the handler that processes the model's JSON response
+(score + reason + summary) and stores it.
+
+look for where YAML::XS or store.yaml is written in job-site-scan.* modules.
+
+## notes
+
+- job-site-scan should load plugin.web.jobs modules (or call them via route-send
+  if they are in the web zenka — check which zenka loads plugin.web.jobs)
+- if plugin.web.jobs is in a different zenka than job-site-scan, use route-send
+  to call plugin.web.jobs.state.save remotely (same pattern as other cross-zenka calls)
+- keep the old /var/protocol-7/site-yaml/store.yaml write as fallback for now
+  (comment it out rather than delete — we can remove once plugin path is confirmed working)
+- descr = lines max 55 chars, comments lowercase
