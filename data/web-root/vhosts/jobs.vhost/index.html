@@ -620,10 +620,9 @@ function exportCSV() {
 
 /* ── print table ── */
 function showPrintTable() {
+    /* print always shows all non-archived jobs above minScore — not filtered by tab */
     const rows = sortedJobs().filter(j => {
-        if (j.stage === 'archived' && !showArchived) return false;
-        if (filterMode !== 'all' && j.stage !== filterMode) return false;
-        if (filterMode === 'all' && j.stage === 'archived' && !showArchived) return false;
+        if (j.stage === 'archived') return false;
         if (j.score != null) {
             const norm = parseFloat(j.score) > 10 ? parseFloat(j.score) / 10 : parseFloat(j.score);
             if (norm < minScore) return false;
@@ -633,7 +632,7 @@ function showPrintTable() {
     const date = new Date().toLocaleDateString('de-DE');
     const overview = `
       <h2 style="margin:0 0 0.3rem;font-size:1.1rem">Bewerbungsübersicht — ${date}</h2>
-      <p style="margin:0 0 0.8rem;font-size:0.8rem;color:#444">${rows.length} Einträge</p>
+      <p style="margin:0 0 0.8rem;font-size:0.8rem;color:#5080a0">${rows.length} Einträge</p>
       <table>
         <tr><th>Nr</th><th>Datum</th><th>Unternehmen</th><th>Position</th><th>Ort</th><th>Score</th><th>Status</th></tr>
         ${rows.map((j,i) => `<tr>
@@ -643,22 +642,22 @@ function showPrintTable() {
         </tr>`).join('')}
       </table>`;
     const details = rows.map((j,i) => `
-      <div class="print-detail" style="margin-top:1.2rem;padding:0.7rem 0.8rem;border:1px solid #ccc;border-radius:4px">
+      <div class="print-detail" style="margin-top:1.2rem;padding:0.7rem 0.8rem;border:1px solid #1a2a3a;border-radius:4px">
         <div style="display:flex;justify-content:space-between;align-items:baseline">
-          <strong style="font-size:0.95rem">${i+1}. ${escHtml(j.title)}</strong>
-          <span style="font-size:0.8rem;color:#444">Score: ${scoreDisplay(j.score)}</span>
+          <strong style="font-size:0.95rem;color:#c0d8f0">${i+1}. ${escHtml(j.title)}</strong>
+          <span style="font-size:0.8rem;color:#5080a0">Score: ${scoreDisplay(j.score)}</span>
         </div>
-        <div style="font-size:0.82rem;color:#555;margin:0.1rem 0 0.5rem">
+        <div style="font-size:0.82rem;color:#4a6a80;margin:0.1rem 0 0.5rem">
           ${escHtml(j.company)}${j.city ? ' · ' + escHtml(j.city) : ''}${j.industry ? ' · ' + escHtml(j.industry) : ''}
           · ${stageLabel(j.stage)}${j.date_added ? ' · ' + j.date_added : ''}
         </div>
-        ${j.summary ? `<p style="margin:0.3rem 0;font-size:0.83rem"><em>${escHtml(j.summary)}</em></p>` : ''}
-        ${j.reason  ? `<p style="margin:0.3rem 0;font-size:0.83rem;color:#333">${escHtml(j.reason)}</p>` : ''}
-        ${j.note    ? `<p style="margin:0.3rem 0;font-size:0.8rem;color:#555">Notiz: ${escHtml(j.note)}</p>` : ''}
+        ${j.summary ? `<p style="margin:0.3rem 0;font-size:0.83rem;color:#7090a0"><em>${escHtml(j.summary)}</em></p>` : ''}
+        ${j.reason  ? `<p style="margin:0.3rem 0;font-size:0.83rem;color:#6080a0">${escHtml(j.reason)}</p>` : ''}
+        ${j.note    ? `<p style="margin:0.3rem 0;font-size:0.8rem;color:#4a6070">Notiz: ${escHtml(j.note)}</p>` : ''}
       </div>`).join('');
     const div = document.getElementById('print-table');
     div.style.display = 'block';
-    div.innerHTML = overview + `<div style="margin-top:1.5rem"><h3 style="font-size:1rem;margin-bottom:0.5rem">KI-Analyse je Stelle</h3>${details}</div>`;
+    div.innerHTML = overview + `<div style="margin-top:1.5rem"><h3 style="font-size:1rem;margin-bottom:0.5rem;color:#5080a0">KI-Analyse je Stelle</h3>${details}</div>`;
 }
 
 /* ── manual add ── */
@@ -733,6 +732,7 @@ document.querySelectorAll('.ftab').forEach(tab => {
         tab.classList.add('active');
         filterMode = tab.dataset.filter;
         render();
+        if (tableVisible) showPrintTable();
     });
 });
 
