@@ -1,5 +1,5 @@
 
-::: SOURCE-CODE VERSION :: 3SUZB7GUMY-7608.0 :::
+::: SOURCE-CODE VERSION :: 3SU3JTNDHI-7609.0 :::
 
 # [ [nailara 'protocol seven' project](http://protocol-7.network/) ]
 
@@ -286,7 +286,7 @@ Resources in Protocol-7 (especially in the [data/gfx/backgrounds/](data/gfx/back
 
 ## Current Status
 
-Protocol-7 is functional and actively evolving with high iteration frequency on core infrastructure and essential zenki. The system is transitioning from foundational components toward feature-rich distributed capabilities.
+Protocol-7 is a production-active multi-agent system with working HTTPS servers, autonomous LLM-driven self-improvement, live web services, and a growing ecosystem of specialized zenki. Core infrastructure is stable; active development is converging on distributed coordination, self-hosting AI inference, and the full cubic-space topology vision.
 
 ### Established Infrastructure
 
@@ -300,10 +300,14 @@ Protocol-7 is functional and actively evolving with high iteration frequency on 
 
 ### Recent Developments
 
-- **Basic LLM Integration**: Emerging capabilities for AI-assisted operations and analysis
-- **Link-Level Encryption**: Implementation of encrypted communication channels for enhanced security
-- **Network Enhancements**: Upgrading core transport and protocol layers for improved performance and reliability
-- **Essential Zenki Expansion**: Rapid iteration on new core agents for system capabilities
+- **Autonomous Coding Zenka**: A fully operational LLM orchestration agent that can read, edit, and improve its own Protocol-7 source code. Runs local inference servers asynchronously (non-blocking spawn with < 100ms init), maintains a tool-calling loop (50+ task templates, XML tool-call parsing, context compaction), and coordinates with external frontier models (Claude, Kimi) for complex multi-session tasks.
+- **Self-Modifying Infrastructure**: The coding zenka completed numerous autonomous extraction and refactoring tasks — inline sub extraction across 30+ modules, style enforcement, cross-namespace wiring — all applied via direct file write tools without human intervention.
+- **Multi-Model Consensus**: Multiple inference backends (local llama.cpp + remote frontier APIs) can vote on outputs. A dedicated kimi zenka coordinates task dispatch to Kimi/Claude for tasks exceeding local model capability.
+- **Async HTTP Server**: Full non-blocking HTTP/HTTPS implementation with Range request support, TLS via ACME/Let's Encrypt, SNI-based vhost routing, and event-driven file transfer. Live at `space.v7.ax` and `pri.v7.ax`.
+- **Stream Transport Layer (STRM)**: Binary streaming protocol for large files, audio relay, and unbounded streams. Includes cancel propagation, gap-fill pacing, and a working internet radio relay zenka with MPV playback and offline resilience.
+- **Web Template Pipeline**: Server-side template rendering with plugin commands, content-type negotiation, and inline CSS/JS for offline-viewable pages.
+- **Graphics Matrix**: Spatial node visualization with cursor tracking, glow gradients, channel routing, and a live hyperspace field demo at [visual.v7.ax](https://visual.v7.ax/).
+- **Job Pipeline**: Automated job-site scanning, scoring, and reporting with German-language LLM summaries, retry logic, and a live web frontend.
 
 ### Development Pace
 
@@ -336,41 +340,28 @@ Contributions to Protocol-7 are always welcome:
 
 For a comprehensive exploration of the project's philosophical context, please refer to [Philosophical Foundation](/read-me/project-identity/philosophical-foundation.md).
 
-### Core Vision Highlights
+### The Orbital Field Model
 
-- Pool idle network resources
-- Provide low-latency, high-burst capacity computing
-- Create a fair, distributed resource ecosystem
+Protocol-7 models its network topology as an **orbital field**: zenki (agents) orbit a shared work-and-memory ring, rotating freely while routes between them remain stable along the ring. This separation — freely moving agents, static routing geometry — means zenki can migrate, restart, or move between physical nodes without disrupting in-flight messages. Data flows electrically along the ring; agents intercept what belongs to them by orbital proximity, not by fixed address.
 
-### Key Philosophical Principles
+The cubic space grid sits outside the ring as a coordinate system for addressing and routing decisions. Every resource, agent, and message has a position in this 3D space derived from its checksum — deterministic, collision-resistant, and human-readable through Base32 encoding. Shortest-path routing through the cube is a geometric property of the address, not a lookup.
 
-- Resource distribution as network irrigation
-- Positive feedback through participation
-- Minimal barriers to entry
-- Equitable resource allocation
+### Harmonic Computing Principles
+
+Protocol-7's design is grounded in mathematical harmony: routing decisions, resource allocation, and even cryptographic checksums share the same underlying generator (division by 13, the 076923 cycle). This creates coherence at all levels — protocol, topology, and code — so that system behavior at scale is predictable from the structure of a single message.
 
 ### The Overflow Principle
 
-After the network is saturated with what it needs to maintain a stable
-topology, a kind of overflow becomes available that is then distributed
-equally to the individual users.  This ensures fair distribution and creates
-a positive feedback loop where more participation leads to better
-performance for all.  Like water irrigating farmland, each participant
-receives resources proportional to their contribution, while public resource
-pools ensure that even newcomers can participate without barriers.
+The network is self-saturating: once topology stability is maintained, surplus compute, bandwidth, and storage become available as **overflow**. This overflow is distributed proportionally to participants, creating a positive feedback loop where contribution earns capacity. Statistical averages (total network disk / number of users) set resource values without per-account lookups, preserving anonymity throughout.
 
-What makes this approach elegantly simple is the use of statistical average
-user metrics (e.g., total network disk space divided by number of users) to
-determine optimal resource allocation.  This statistical approach enables
-calculating resource values and costs without needing to look up specific
-accounts, thereby enhancing anonymization throughout the network.
+### Self-Improving AI Infrastructure
 
-The full vision document explores Protocol-7's unique approach to
-distributed computing, network participation, and the metaphorical framework
-of resource sharing.
+A long-horizon goal of the project is a network that improves itself: zenki coordinating LLM inference locally and via frontier APIs, autonomously proposing and applying changes to the codebase, reaching consensus across models before committing. The coding zenka represents the first working layer of this — a single agent that already edits its own source. The next layer is multi-node consensus across a distributed P7 network running diverse models.
 
-#,,.,,.,.,.,,,.,.,,..,,,.,..,,,.,,,.,,,,,,,,,,..,,...,...,...,,.,,...,,,,,,..,
-#R3RN3TAUR6H3MU6DVJ5EKV5TNDRI2RTBDFBXRWMO5X744THU5QARISK3HI6E22JJQMJDQKZWWZWTM
-#\\\|T5FYQJYFLO6PBJPBWSQB2NPGMQH5HFZBMNG6BDR7HASEXEMZDM6 \ / AMOS7 \ YOURUM ::
-#\[7]SJGADSCJSO7BDGF4HKG4HOTA36U6AWWXGI3KR627QD3L4XVM2WCY 7  DATA SIGNATURE ::
+The full vision document explores Protocol-7's unique approach to distributed computing, network participation, and the metaphorical framework of resource sharing.
+
+#,,,,,..,,,.,,,..,..,,.,,,.,.,,.,,,,.,,..,..,,..,,...,...,,,,,...,,.,,..,,,.,,
+#JBD6UFIJ6OO4TVHVHAK4CUTETZ7UHAFETS5GB65BLIVBRIIKH7PVYLSMALVFJNJPQESBSB2ZP4S6K
+#\\\|OYCNGRRY4MPZM4XYRYTP6NJYXWR6AYNCFFWGMD22MCEVSRKAPU3 \ / AMOS7 \ YOURUM ::
+#\[7]X3ZWKWGRT2ANTMFWPOI4RUXDLZ6XGREMIBXAHJCOMPM2B4UGKYAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
