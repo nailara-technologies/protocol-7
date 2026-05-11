@@ -78,9 +78,9 @@ button.red:hover { background: rgba(130,0,0,0.6); }
 /* job cards */
 .job-list { display: flex; flex-direction: column; gap: 0.7rem; }
 .job-card {
-    background: #0c1520;
-    border: 1px solid #152030;
-    border-left: 3px solid #1a3050;
+    background: #07080f;
+    border: 1px solid #0e1628;
+    border-left: 3px solid #1a1a40;
     border-radius: 0.4rem;
     padding: 0.8rem 1rem;
     transition: border-color 0.15s;
@@ -88,12 +88,12 @@ button.red:hover { background: rgba(130,0,0,0.6); }
 }
 .job-card.dragging { opacity: 0.5; }
 .job-card.drag-over { border-top: 2px solid #40c0ff; }
-.job-card[data-stage="review"]    { border-left-color: #208040; }
-.job-card[data-stage="to_apply"]  { border-left-color: #6060c0; }
-.job-card[data-stage="applied"]   { border-left-color: #c0a020; }
-.job-card[data-stage="responded"] { border-left-color: #20a080; }
-.job-card[data-stage="rejected"]  { border-left-color: #802020; opacity: 0.65; }
-.job-card[data-stage="skipped"]   { border-left-color: #252530; opacity: 0.45; }
+/* review stage: left accent set dynamically by JS based on score */
+.job-card[data-stage="to_apply"]  { border-left-color: #5050c0; }
+.job-card[data-stage="applied"]   { border-left-color: #a08010; }
+.job-card[data-stage="responded"] { border-left-color: #108070; }
+.job-card[data-stage="rejected"]  { border-left-color: #601818; opacity: 0.65; }
+.job-card[data-stage="skipped"]   { border-left-color: #1a1a28; opacity: 0.45; }
 .job-card[data-stage="archived"]  { display: none; }
 .job-card.show-archived[data-stage="archived"] { display: block; opacity: 0.4; }
 
@@ -123,22 +123,22 @@ button.red:hover { background: rgba(130,0,0,0.6); }
 .card-meta .city    { color: #507080; }
 .card-meta .ind     { color: #3a5060; }
 
-.card-reason {
-    font-size: 0.78rem; color: #506880; font-style: italic;
-    margin-bottom: 0.3rem; padding-left: 0.5rem;
-    border-left: 2px solid #1a3040;
-    max-height: 6em; overflow: hidden; transition: max-height 0.3s;
-    cursor: pointer;
-}
-.card-reason.expanded { max-height: 30em; }
 .card-summary {
-    font-size: 0.76rem; color: #3d5060;
-    margin-bottom: 0.5rem; padding-left: 0.5rem;
-    border-left: 2px solid #12222c;
+    font-size: 0.76rem; color: #405868;
+    margin-bottom: 0.3rem; padding-left: 0.5rem;
+    border-left: 2px solid #0e1e2c;
     max-height: 8em; overflow: hidden; transition: max-height 0.3s;
     cursor: pointer;
 }
 .card-summary.expanded { max-height: 30em; }
+.card-reason {
+    font-size: 0.78rem; color: #4a6275;
+    margin-bottom: 0.5rem; padding-left: 0.5rem;
+    border-left: 2px solid #12283a;
+    max-height: 6em; overflow: hidden; transition: max-height 0.3s;
+    cursor: pointer;
+}
+.card-reason.expanded { max-height: 30em; }
 
 .card-actions {
     display: flex; gap: 0.4rem; flex-wrap: wrap; align-items: center;
@@ -390,6 +390,17 @@ function renderCard(j) {
     el.dataset.id = j.id;
     el.draggable = true;
 
+    /* score-influenced left accent for review stage: dark violet → neon blue */
+    if (j.stage === 'review' && j.score != null) {
+        const n = Math.min(10, Math.max(0, parseFloat(j.score) > 10 ? parseFloat(j.score)/10 : parseFloat(j.score)));
+        const t = n / 10;
+        /* hue: 270 (violet) → 200 (neon blue); sat: 70→100%; lum: 18→45% */
+        const hue = Math.round(270 - t * 70);
+        const sat = Math.round(70  + t * 30);
+        const lum = Math.round(18  + t * 27);
+        el.style.borderLeftColor = `hsl(${hue},${sat}%,${lum}%)`;
+    }
+
     const titleEl = j.url
         ? `<a class="card-title" href="${escHtml(j.url)}" target="_blank" rel="noopener">${escHtml(j.title)}</a>`
         : `<span class="card-title">${escHtml(j.title)}</span>`;
@@ -407,8 +418,8 @@ function renderCard(j) {
         <span class="city">${escHtml(j.city)}</span>
         ${j.industry ? `<span class="ind">${escHtml(j.industry)}</span>` : ''}
       </div>
-      ${j.reason  ? `<div class="card-reason"  data-full="${escAttr(j.reason)}">${escHtml(j.reason)}</div>`  : ''}
       ${j.summary ? `<div class="card-summary" data-full="${escAttr(j.summary)}">${escHtml(j.summary)}</div>` : ''}
+      ${j.reason  ? `<div class="card-reason"  data-full="${escAttr(j.reason)}">${escHtml(j.reason)}</div>`  : ''}
       <div class="card-actions no-print">
         <select class="stage-select" data-id="${j.id}">
           ${['review','to_apply','applied','responded','rejected','skipped','archived']
