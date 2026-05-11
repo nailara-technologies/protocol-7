@@ -1,131 +1,93 @@
-# Session Handover — 2026-05-10 (session 20 continued)
+# Session Handover — 2026-05-11 (session 22)
 
-## What Was Fixed This Session
+## Current State
 
-### Infrastructure bugs (all committed)
-- zenka_dir routines: replaced hardcoded /var/protocol-7/jobs/ paths with proper
-  file.zenka_dir.load/write API; store.yaml → /var/protocol-7/site-yaml/,
-  scan-state.yaml → /var/protocol-7/job-site-scan/
-- profile.txt moved to /etc/protocol-7/job-site-scan/profile.txt (cfg-dir)
-- flat dot-keys ($data{'foo.bar'}) → nested ($data{'foo'}{'bar'}) across all
-  site-yaml and job-site-scan modules (ncode -ai-friendly -confirm replace)
-- $ARG[0] fix: site-yaml subroutines called via ->($arg) need $ARG[0] not $ARG
-- $call_args/$reply_params → $call->{args}/$call->{params}{key} in all cmd/handler modules
-- cmd modules return hashref directly (not base.callback.cmd_reply — that's async only)
-- reply mode checks: lc($mode) eq 'false' instead of ne 'true' whitelist
-- base.protocol-7.* → protocol-7.* (prefix stripped at call time, not on disk)
-- job-site-scan.cmd.list renamed → cmd.list-jobs (collision with base.cmd.list)
-- Sequential task dispatch: assess_queue in namespace, dispatch.next called from
-  task-created handler (was dispatching 98 tasks simultaneously)
-- B32-encode multiline task args in dispatch.next; decode in task.cmd.create
-- HTML::Entities decode for job descriptions (umlaut double-encoding from LWP)
-- YAML load encoding: :raw (default) not :utf8 — matches write encoding
-- no_proxy: added www.stepstone.de explicitly alongside stepstone.de
-- 0.5s delay between individual job page fetches (rate limiting)
-- task.create: adds :local: :simple: prefix to route to coding zenka (not kimi)
-- coding.cmd.ask-reply: :simple: marker → no_tools=TRUE, max_rounds=1
-- models.handler.task-poll-step: scalar-ref dereference for SIZE reply data
-- models.handler.task-poll-step: stop parsing header at 'result :' line
-- models.handler.task-poll-step: require space before colon (matches task.show
-  format 'description : value' not embedded content 'description:value')
-- models.handler.* (4 modules): scalar-ref data dereference fix
-- fetch-done: embed full prompt inline (profile + job details), file.read profile
-- fetch-done: debug logging for store load
-- jss.clear-tasks cmd: reset task state + persist empty state to disk
-- devmod: enabled get/set/dump/del/exec-sub/eval-code in job-site-scan
-- buffer-erase enabled in models zenka
+### jobs.vhost — LIVE and working
+- 96/106 jobs exported with German reason + summary, score-gradient cards
+- 2 jobs (13850414, 13993333) being re-assessed with German prompt (in progress)
+- TLS via letsencr (fixed: x509_field not loaded in parent branch of fork)
+- Page features: review default tab, score↓/↑/datum sort, min-score slider (default 6),
+  filter tabs, score-gradient accent (violet→neon blue), summary above reason,
+  stage-aware dblclick/longpress gestures, note auto-close, archive workflow
+- Export table: only applied/responded/rejected (not to_apply/review)
 
-### Key patterns learned this session
-- P7 cmd modules: return { 'mode' => 'true'|'false'|'size', 'data' => ... } directly
-- P7 reply handlers (route-send): get $call->{'mode'} as uppercase 'SIZE'/'TRUE'/'FALSE'
-  → always use lc($mode) eq 'false' for error check
-- SIZE reply data in route-send handler: $reply->{'data'} is a plain STRING (not sref)
-  (sref only in stream path — handler.command line 741)
-- Multiline call_args->{'args'}: must be B32-encoded or cube parses lines as protocol cmds
-- base.X prefix exists only on disk; called as X in code
-- $ARG = $_ (English.pm); $ARG[0] = $_[0] = first subroutine argument
-- file.zenka_dir.load returns undef if file absent, sref otherwise; use :raw encoding
-- file.read returns content string directly; file.slurp returns scalar ref
-- task.show output: 'description : value' (space before :); task content may embed
-  'description:value' (no space) → parser must require \s+ before :
-- models.handler.task-poll-step: reads task.show SIZE reply, parses header until 'result :'
-  then routes by :local: prefix → coding.ask-reply; :simple: → no_tools=1,max_rounds=1
-- ncode -ai-friendly -confirm replace src 'pattern' 'replacement' — bulk safe replace
-- p7c job-site-scan.set key value  (via devmod — much better than eval-code)
-- p7c job-site-scan.del key        (delete namespace key)
+### Assessment pipeline — fully working
+- Prompt: German from start, one pass returns score+reason+summary JSON
+- Sequential dispatch (one task at a time), model=local, no_tools, max_rounds=1
+- cycle=idle auto-set when pending_count reaches 0
+- Site-yaml retry queue for timeout errors (3s wait + 2s between retries)
+- Profile: /etc/protocol-7/job-site-scan/profile.txt
+  - Locations: Offenburg (primary), Freiburg (friends), Stuttgart (family/quality-dep)
+  - Company culture signals: flat/engineering/OSS/remote = +1-2; Konzern/ITIL/matrix = -1-2
 
-## Current State (end of session)
+### Encoding — fixed
+- fetch-done now decodes profile + job fields from UTF-8 bytes to Unicode before prompt
+- export-jobs-json: 2-pass Mojibake repair with HTMLCREF for non-Latin-1 chars
 
-### Job pipeline — first working end-to-end run IN PROGRESS
-- GPU inference server starting (coding zenka monitor_startup)
-- First task HAODVZA dispatched to coding.ask-reply with :simple: prompt
-- 100 jobs in assessing state (all reset to new, full scan dispatched)
-- Kimi zenka disabled in v7 config — routing now exclusively to local coding
-- models.task.default_model = kimi (fallback for tasks without :local: prefix)
-  → consider changing to 'local' for job-assess category
-
-### Verified working
-- scan → stepstone fetch → import → fetch-done → sequential dispatch → task.create
-- :local: routing → coding zenka (after task.show header parser fix)
-- :simple: → no_tools=TRUE, max_rounds=1 in coding.cmd.ask-reply
-- B32 encoding of multiline prompts (4000+ byte descriptions)
-- profile.txt read via file.read in fetch-done
-- jss.clear-tasks command
-
-### Still to verify
-- First actual score from coding zenka (in progress as of handover)
-- assess-done JSON extraction from coding result
-- review stage: jobs above threshold showing in list-jobs review
-- approve/reject workflow
-
-## First-run checklist for next session
-1. Check if HAODVZA completed: p7c task.result HAODVZA
-2. Check jss status: p7c job-site-scan.status
-3. If scored jobs in review: p7c job-site-scan.list-jobs review
-4. If coding worked: reset all 100 jobs to new and run full scan
-5. Add linux-entwickler category to job-site-scan/start
-
-## Open Items
-
-### Job pipeline — immediate
-1. Verify score extraction end-to-end (first run in progress)
-2. Add linux-entwickler category (user request):
-   cfg.categories += linux-entwickler
-   cfg.url.linux-entwickler = https://www.stepstone.de/jobs/linux-entwickler/in-deutschland
-3. Remove debug logs from models.handler.task-poll-step (cmd=/len=/preview=)
-4. Consider changing models.task.default_model to 'local' to avoid kimi fallback
-
-### Job pipeline — planned
-5. Multi-page search: stepstone 25 jobs/page; add cfg.max_pages
-6. HTTP sync endpoint — /api/jobs/sync on httpd
-7. jobs.html.tmpl filter wiring
-
-### From session 18 — still open
-8. active deps execution — requires list in task dispatcher
-9. await-event external slot watcher
-10. think-block stripping — <think>...</think> from Kimi/Deepseek
-11. model-pinned switching — summarize_model config key inert
-12. note_read pagination
-13. task.cmd.start — task zenka step 3
-
-## Key File Locations
-- Job store: /var/protocol-7/site-yaml/store.yaml
+### Key file locations
+- Store: /var/protocol-7/site-yaml/store.yaml (delete to force full re-fetch)
 - Scan state: /var/protocol-7/job-site-scan/scan-state.yaml
 - Profile: /etc/protocol-7/job-site-scan/profile.txt
-- Template: data/yaml/context-templates/job-assess.yaml (no longer used directly)
-- Kimi disabled: configuration/zenki/v7/start-set-up.base (check kimi entry)
+- Vhost: atom:/var/httpd/jobs.vhost/ (index.html + jobs.json)
+- Export script: bin/dev/export-jobs-json [outfile]
+- Update cycle: perl bin/dev/export-jobs-json /tmp/jobs.json && scp /tmp/jobs.json atom:/var/httpd/jobs.vhost/jobs.json
 
-## Recent Commits (this session)
-- 323fd2de6 fix: dereference scalar-ref data in models handler reply callbacks
-- d862e5f67 feat: clear-tasks cmd + buffer-erase for models, scalar-ref data deref
-- 91273a852 debug: log description prefix and model in task-poll-step
-- afd81369d feat: :simple: marker → no_tools+max_rounds=1 in coding.ask-reply
-- e2c0cde0c fix: add debug logging for store load in fetch-done fallback path
-- b0535a6d2 fix: stop parsing task.show header at result line
-- 7058b8be1 fix: require space before colon in task.show header parser
+## What Was Fixed This Session (22)
 
-#,,,.,..,,,..,...,,..,...,..,,,,.,.,.,,.,,,.,,..,,...,..,,...,,.,,.,.,...,..,,
-#QBFNXHHQCLII2VS65A3T7UNQJI4GUYQFLNAM6KKKJYYWOSMJFLVRIFL4M5UZPDOGLIWJ64HM6ZX3E
-#\\\|HEFBDS3JL4URNSGPJN3FH244BIJFGYMHCVRHLV5SXW25523NHJZ \ / AMOS7 \ YOURUM ::
-#\[7]QW6MJAJEU3OPMDJGU3OHIBF3BYRLJ5MFEIMBQ7D7T6NNR3NOZCDA 7  DATA SIGNATURE ::
+### Pipeline
+- task.show escapes \n in description/context — task-poll-step unescapes after parse
+  (was truncating multiline prompts to first line only)
+- dispatch.next moved from task-created to assess-done (was blasting 100 tasks at once)
+- cycle=idle set in assess-done when pending_count reaches 0
+- site-yaml retry queue for connection timeouts
+- fetch-done: UTF-8 decode of profile + job fields before prompt assembly
+- debug logs removed from models.handler.task-poll-step
+
+### letsencr
+- x509_field/der_to_pem/extract_aia_url/fetch_intermediate_via_aia were only loaded
+  in child branch — parent crashed in save_certificate; fix: load in parent branch
+  of fork_letsencr_child alongside letsencr.parent
+
+### jobs.vhost UI
+- summary field missing from mergeJobs() — now propagated correctly
+- stage-aware dblclick/longpress gestures (review→skip/to_apply, to_apply→note/applied,
+  applied→rejected/responded, responded→note/rejected, skipped→archived,
+  rejected→archived, archived→review)
+- note auto-close on blur when empty
+- score gradient accent: hsl(270→200, 70→100%, 18→45%) violet→neon blue
+- summary before reason; reason non-italic
+- card background darkened: #07080f
+- export table/CSV: only applied/responded/rejected (not to_apply)
+- default tab: review
+- wildcard vhost: jobs.vhost in repo (hostname_pattern: jobs.*)
+
+### Architecture / design (memory)
+- plugin.web.jobs.* design: bi-directional sync, B32 backups, replaces scp workflow
+- consensus template: independent-then-cooperative (forensics, review, debug)
+- context zenka + templates create perspective diversity without different models
+- title pre-filter design: AMOS checksums batch screening before page fetch
+- company culture profile section: concrete signals ±1-2 points, not value filters
+- todos-uncategorized.asc created: timeout routing, Firefox symlink bug, security sandbox
+
+## First-run checklist for next session
+1. Check if 13850414 + 13993333 finished: p7c job-site-scan.status
+2. Export + push: perl bin/dev/export-jobs-json /tmp/jobs.json && scp ...
+3. Verify German output + encoding on live page
+4. Add linux-entwickler category scan run (already in start config)
+5. Implement plugin.web.jobs.* (see topic-plugin-web-jobs.md)
+
+## Open items
+- plugin.web.jobs.* — bi-directional sync endpoint (design in memory)
+- Task zenka persistence (zenka_dir) — state lost on idle shutdown
+- Multi-page search: cfg.max_pages per category
+- Search category management commands
+- Title pre-filter (AMOS checksums batch, see memory)
+- score_tech + score_location split
+- Apply workflow: email from review card
+- Exclusion filter from past CSV data
+
+#,,,.,..,,..,,,..,..,,.,,,,..,.,,,..,,,,.,,..,..,,...,...,,..,,,,,,..,..,,..,,
+#EDFW2VFMFFFGTBPGJEF6V4V4UHNB5A5A3XCH3QHHTK6GD266VUSIIQZ7KYSQD4SN4D4G4WTAADVHS
+#\\\|BYSEYF4I5WC4R2M6QFFJMXU4OHCMKSUGACSRMX2RWPDOF5S7WPW \ / AMOS7 \ YOURUM ::
+#\[7]GAV54LNKY3H7Q2IH2ECOH3AUKUDAXNBMXLQMQPXIIX6KMIZW5MBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

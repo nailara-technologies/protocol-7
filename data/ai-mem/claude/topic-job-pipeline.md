@@ -46,7 +46,8 @@ originSessionId: 5557aaa4-3476-4c66-9002-955c73ae92a1
   both click-to-expand
 - Export: `bin/dev/export-jobs-json [outfile]` — reads store.yaml → jobs.json
   prefers score_reason_de (legacy) then score_reason; to_unicode() fixes Latin-1/UTF-8
-- Update cycle: `perl bin/dev/export-jobs-json /tmp/jobs.json && scp ... atom:/var/httpd/jobs.vhost/`
+- Update cycle: `perl bin/dev/export-jobs-json /tmp/jobs.json && scp ... atom:/var/httpd/jobs.*/`
+  (actual dir matched by wildcard — not kept in repo; personalized)
 
 **letsencr fix (session 22)**:
 - x509_field/der_to_pem/extract_aia_url/fetch_intermediate_via_aia were only loaded
@@ -57,6 +58,12 @@ originSessionId: 5557aaa4-3476-4c66-9002-955c73ae92a1
 - task.show multiline description truncated to first line — escapes \n now
 - 100 tasks dispatched simultaneously — dispatch.next moved to assess-done
 - store reset: delete store.yaml (no reset-scores command yet)
+
+## Current state (session 22 end)
+- 96/106 jobs with German reason+summary; 2 being re-assessed (English from old run)
+- jobs.vhost live: score-gradient cards, gestures, review default tab, culture scoring
+- Profile: Freiburg + Stuttgart as alternates; company culture ±1-2pt signals added
+- Encoding fully fixed: fetch-done UTF-8 decode + export 2-pass Mojibake repair
 
 ## Planned
 - Search category management: add/remove/list-categories commands + zenka_dir
@@ -70,8 +77,8 @@ originSessionId: 5557aaa4-3476-4c66-9002-955c73ae92a1
 - Exclusion filter from past CSV data (already-applied companies)
 - score_tech + score_location split in assessment JSON
 
-#,,.,,,,,,...,,..,...,..,,,..,,.,,...,,..,.,.,..,,...,..,,..,,.,,,,.,,..,,.,,,
-#QLH7C2FSJFJAA2VBASGZ2IMNMYX574QN53XEN3KAK4FDE6PTKXKBHMNIJVZT5WDPOTOPPLZAFO764
-#\\\|FFCJECXYP6VY3IDOM36EPJZUQFWA7BD5WVATN2MSH4VSTU47PFQ \ / AMOS7 \ YOURUM ::
-#\[7]VULZY7P4H3QWHXLF3KVLBANAA3SNTRFBRYYE6WXYPPG5S4PPRYAI 7  DATA SIGNATURE ::
+#,,,.,..,,,,,,...,.,.,,..,,..,...,.,,,.,.,.,.,..,,...,...,..,,.,,,,..,,.,,,..,
+#FLZGQUWIG4KPGRTFX3LNRERITUJ63GBCPQLFZGQJ3X46HNI5W7STD2IK5XIWKSTJUNDIZJSBMU4JY
+#\\\|44XHAUO7H5F52N2B6OIHZNJ4QF7LKFVTVGZW2CMJWDJESIX42S3 \ / AMOS7 \ YOURUM ::
+#\[7]EH4Q7WO3VY34GF4T7OFSTP345NEA5FRQHCI27X2RCJOPXK7JDIDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
