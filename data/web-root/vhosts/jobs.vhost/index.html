@@ -620,9 +620,16 @@ function exportCSV() {
 
 /* ── print table ── */
 function showPrintTable() {
-    const trackStages = new Set(['applied','responded','rejected']);
-    const rows = sortedJobs().reverse()
-        .filter(j => trackStages.has(j.stage));
+    const rows = sortedJobs().filter(j => {
+        if (j.stage === 'archived' && !showArchived) return false;
+        if (filterMode !== 'all' && j.stage !== filterMode) return false;
+        if (filterMode === 'all' && j.stage === 'archived' && !showArchived) return false;
+        if (j.score != null) {
+            const norm = parseFloat(j.score) > 10 ? parseFloat(j.score) / 10 : parseFloat(j.score);
+            if (norm < minScore) return false;
+        }
+        return true;
+    });
     const div = document.getElementById('print-table');
     div.style.display = 'block';
     div.innerHTML = `<table>
