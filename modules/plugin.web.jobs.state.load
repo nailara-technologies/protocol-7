@@ -1,0 +1,133 @@
+## [:< ##
+
+# name  = plugin.web.jobs.state.load
+# descr = load job pipeline state from persistent storage
+
+my $state_key = 'plugin.web.jobs.pipeline';
+
+unless ( exists $data{$state_key} ) {
+    <[base.log]>->( 2, 'no persistent state found: %s', $state_key );
+    return {
+        mode => FALSE,
+        data => {
+            found => 0,
+            state => {
+                state        => 'idle',
+                jobs         => [],
+                running      => 0,
+                paused       => 0,
+                started_at   => '',
+                completed_at => '',
+                errors       => 0,
+            }
+        }
+    };
+}
+
+my $persisted = $data{$state_key};
+
+## validate required fields
+my @missing
+    = grep { not defined $persisted->{$ARG} } qw| state jobs running |;
+
+if (@missing) {
+    <[base.log]>->(
+        1,
+        'corrupted state data: missing fields [%s]',
+        join( ', ', @missing )
+    );
+    return {
+        mode => FALSE,
+        data => {
+            found   => 1,
+            errors  => scalar @missing,
+            missing => [@missing],
+            state   => {
+                state        => 'idle',
+                jobs         => [],
+                running      => 0,
+                paused       => 0,
+                started_at   => '',
+                completed_at => '',
+                errors       => 0,
+            }
+        }
+    };
+}
+
+## assemble loaded state from persisted values
+my $loaded_state = {
+    state        => $persisted->{state},
+    paused       => ( $persisted->{paused}  // 0 ) ? 1 : 0,
+    running      => ( $persisted->{running} // 0 ) ? 1 : 0,
+    started_at   => $persisted->{started_at}   // '',
+    completed_at => $persisted->{completed_at} // '',
+    errors       => int( $persisted->{errors} // 0 ),
+    jobs         => [],
+};
+
+## load and validate jobs list
+my $jobs_ref = $persisted->{jobs} // [];
+if ( ref $jobs_ref eq 'ARRAY' ) {
+    for my $job ( @{$jobs_ref} ) {
+        if ( not defined $job or not length $job ) {
+            $loaded_state->{errors}++;
+            <[base.log]>->(
+                2, 'invalid job id in persisted state: [%s]',
+                $job // ''
+            );
+        }
+    }
+    $loaded_state->{jobs} = [ @{$jobs_ref} ];
+}
+
+## sync with in-memory state
+my $pipeline_state = $data{$state_key};
+
+if ( $loaded_state->{state} ne ( $pipeline_state->{state} // '' ) ) {
+    $pipeline_state->{state} = $loaded_state->{state};
+    <[base.log]>
+        ->( 1, 'restored pipeline state: %s', $loaded_state->{state} );
+}
+
+$pipeline_state->{paused} = 1
+    if $loaded_state->{paused} and not $pipeline_state->{paused};
+
+$pipeline_state->{running} = 0
+    if not $loaded_state->{running} and $pipeline_state->{running};
+
+if ( not @{ $pipeline_state->{jobs} // [] } and @{ $loaded_state->{jobs} } ) {
+    $pipeline_state->{jobs} = [ @{ $loaded_state->{jobs} } ];
+}
+
+$pipeline_state->{started_at} = $loaded_state->{started_at}
+    if $loaded_state->{started_at} and not $pipeline_state->{started_at};
+
+$pipeline_state->{completed_at} = $loaded_state->{completed_at}
+    if $loaded_state->{completed_at} and not $pipeline_state->{completed_at};
+
+$pipeline_state->{errors} = $loaded_state->{errors}
+    if $loaded_state->{errors} > ( $pipeline_state->{errors} // 0 );
+
+<[base.log]>->(
+    1,
+    'loaded pipeline state: state=%s, jobs=%d, errors=%d, key=%s',
+    $loaded_state->{state},
+    scalar @{ $loaded_state->{jobs} },
+    $loaded_state->{errors},
+    $state_key
+);
+
+return {
+    mode => TRUE,
+    data => {
+        found => 1,
+        state => $loaded_state,
+    }
+};
+
+#,,,.,,,.,.,.,.,,,...,,,.,..,,,.,,...,,.,,,,,,..,,...,...,...,,,,,..,,..,,...,
+#2XZLPDUNQCIUC6ENQHAZBCBDNOEWDIAGOIXIYMZOKH33JI5ODIOOPUG2CI7MKDU3GEGFKRG6MOUGS
+#\\\|L2PY2C3YLYS2DTL775RQLGGISAFQF5CEZQZEJCBVC3VTFKPIUZG \ / AMOS7 \ YOURUM ::
+#\[7]3HWIXWIKTTILSVM7HUKJI3BOZYYDBL5WC2M5BZAPDRNO3CPBN2AI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
