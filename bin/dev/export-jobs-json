@@ -13,13 +13,30 @@ use YAML::XS ();
 use JSON::XS ();
 use Encode   ();
 
-## normalize a string to a proper Perl Unicode string
+## normalize a string, repairing UTF-8 double-encoding (Mojibake)
 sub to_unicode {
     my $s = shift // '';
-    return $s if utf8::is_utf8($s);
-    ## try UTF-8 first, fall back to Latin-1
-    my $decoded = eval { Encode::decode( 'UTF-8', $s, Encode::FB_CROAK ) };
-    return defined $decoded ? $decoded : Encode::decode( 'Latin-1', $s );
+    ## raw byte string: just decode as UTF-8
+    unless ( utf8::is_utf8($s) ) {
+        return eval { Encode::decode( 'UTF-8', $s, Encode::FB_CROAK ) }
+            // Encode::decode( 'Latin-1', $s );
+    }
+        ## Unicode string whose codepoints may be Latin-1 values of double-encoded bytes
+    ## use LEAVE_SRC to skip chars outside Latin-1 range (em-dashes etc.) rather
+    ## than croaking, apply up to 2 rounds for complex double-encoding
+    my $cur = $s;
+    for ( 1 .. 2 ) {
+        ## encode to Latin-1 bytes, substituting non-Latin-1 chars with placeholder
+        my $b = Encode::encode( 'Latin-1', $cur, Encode::HTMLCREF );
+        ## HTMLCREF converts non-Latin-1 to &#NNNN; — decode UTF-8 of the result
+        my $fixed = eval { Encode::decode( 'UTF-8', $b, Encode::FB_CROAK ) };
+        last unless defined $fixed;
+        ## restore HTML numeric refs (came from non-Latin-1 chars, already correct)
+        $fixed =~ s{&#(\d+);}{chr($1)}ge;
+        $cur = $fixed;
+        last unless $cur =~ /[\xC0-\xCF]/;    ## still Mojibake?
+    }
+    return $cur;
 }
 
 my $store_file = '/var/protocol-7/site-yaml/store.yaml';
@@ -81,8 +98,8 @@ rename $tmp, $out_file or die "cannot rename: $!\n";
 
 printf "exported %d jobs → %s\n", scalar @jobs, $out_file;
 
-#,,.,,.,,,.,,,,,,,,,.,,,.,.,.,.,.,,,,,.,.,,,.,..,,...,..,,,..,.,,,.,.,..,,,,,,
-#RNS5GDA25UPHKXDGK2RKJ6C6OPKNFSDFONRFROBEPSULY2XZPDX7TCHI6YBCVB4SXUII3WEFASJHM
-#\\\|YGAJFPKQWQXQIQHXMR7K2JSZHMVQZMY5KQWLDVW3OHSFLIIDE7X \ / AMOS7 \ YOURUM ::
-#\[7]EVPA3LDADFOE4YTVH6AZ24AOA4JNAKE26ZEA2LAHYQJPENLD4SDQ 7  DATA SIGNATURE ::
+#,,.,,,,.,.,.,,,,,,,,,.,,,,,,,..,,.,.,,,.,,.,,..,,...,...,.,,,..,,...,,,,,..,,
+#OBKSIQFV7LCAWZQAA2QBZ5HPJTZI6FQ2P7XDJZASYQY5QX24LLRIDH4QBVOSE6KAQKYVEWLN2FI3U
+#\\\|GEYBGK4W3RQWXOVHJJQT4XSX4IUMLVHIQ7NUOXJVSTT6NVXY3CU \ / AMOS7 \ YOURUM ::
+#\[7]QC6Z7PE7PYXGF2UL22OIKT4VOEPPG3ELSOMJH3FIUSPA5DRVKAAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
