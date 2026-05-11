@@ -1,0 +1,93 @@
+TASK: implement plugin.web.jobs.* — job pipeline web plugin
+
+SIGNATURES NOTE: do not add, modify, or investigate AMOS7 signatures at the bottom
+of module files. leave them as-is or leave new files without them — the signing
+system handles signatures automatically via bin/Protocol-7 sourcecode update-signatures.
+
+## goal
+
+implement the plugin.web.jobs.* module set that replaces the manual
+bin/dev/export-jobs-json + scp workflow with a proper web plugin, following
+the plugin.web.space.* pattern already in modules/.
+
+## storage layout
+
+/var/protocol-7/web/jobs-data/store.yaml          # live state (all job records)
+/var/protocol-7/web/jobs-data/store.NTIME_B32.yaml # rolling backups (one per write)
+
+store.yaml format: YAML list of job hashes, each with keys:
+  id, title, company, city, industry, url, score, reason, summary,
+  stage, note, date_added, date_applied, fetched, source
+
+## modules to create
+
+### plugin.web.jobs.init_code
+- load store.yaml into %data{'plugin.web.jobs.store'} on startup
+- register template command: web.jobs.data (calls plugin.web.jobs.cmd.data)
+- register template command: web.jobs.sync (calls plugin.web.jobs.cmd.sync)
+- log "plugin.web.jobs : initialized, N jobs loaded"
+
+### plugin.web.jobs.state.load
+- load /var/protocol-7/web/jobs-data/store.yaml using YAML::XS
+- store as arrayref in %data{'plugin.web.jobs.store'}
+- return count of loaded jobs
+- create dir if not exists
+
+### plugin.web.jobs.state.save
+- backup current store.yaml to store.NTIME_B32.yaml before writing
+  (ntime = <[base.ntime.b32]>, creates a B32 timestamped snapshot)
+- write updated store to /var/protocol-7/web/jobs-data/store.yaml via YAML::XS
+- log count of saved jobs
+
+### plugin.web.jobs.cmd.data
+- serialize %data{'plugin.web.jobs.store'} as JSON
+- return as: { jobs: [...] }  (same format as current export-jobs-json output)
+- used as GET endpoint by jobs.vhost index.html via JOBS_JSON fetch
+
+### plugin.web.jobs.cmd.sync
+- receive POST body (JSON) from browser: { updates: [ {id, stage, note,
+  date_applied, ...} ] }
+- merge browser-owned fields (stage, note, date_applied) into store records
+  browser owns: stage, note, date_applied, manual entries (source='manual')
+  pipeline owns: score, reason, summary, fetched — browser never overwrites these
+- for new manual entries (id starts with 'manual_'): append to store
+- call plugin.web.jobs.state.save after merge
+- return { ok: 1, updated: N }
+
+## two-domain merge rule
+
+pipeline owns: score, score_reason, score_summary, fetched, title, company,
+               city, industry, url (written by job-site-scan)
+browser owns:  stage, note, date_applied (written by browser via sync POST)
+manual entries: entirely browser-owned (source = 'manual')
+
+when merging a browser update: only copy stage/note/date_applied from the
+update into the store record. never overwrite score/reason/summary/fetched.
+
+## template command registration pattern
+
+follow plugin.web.space.init_code for how to register template commands.
+look at: modules/plugin.web.space.init_code (or similar init file)
+and configuration/zenki/web/start for how plugins are loaded.
+
+## httpd routing for POST /jobs-sync
+
+check if there is already a POST handler mechanism in httpd or web zenka.
+if not, note it as a separate follow-up — for now the GET endpoint (cmd.data)
+is the priority since the browser currently fetches a static jobs.json.
+
+## notes
+
+- use YAML::XS for all yaml i/o (not YAML::Syck)
+- file paths via <[base.cfg.zenka_dir]> pattern if available, else hardcoded
+  /var/protocol-7/web/jobs-data/
+- descr = lines in module headers max 55 chars
+- all comments lowercase
+- no inline subs — if helpers needed, create as separate plugin.web.jobs.util.*
+  modules
+
+## reference modules
+
+- modules/plugin.web.space.fetch — async fetch + route-send pattern
+- modules/plugin.web.space.handler.state_reply — reply handler pattern
+- configuration/zenki/web/start — plugin loading syntax
