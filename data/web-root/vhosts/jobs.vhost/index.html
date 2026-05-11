@@ -182,13 +182,12 @@ button.red:hover { background: rgba(130,0,0,0.6); }
     padding: 0.8rem 1rem;
 }
 .export-section h3 { font-size: 0.9rem; color: #506070; margin-bottom: 0.6rem; }
-#print-table { display: none; }
+#print-table { display: none; background: #fff; color: #000; padding: 1rem; border-radius: 4px; margin-top: 0.8rem; }
 #print-table table { width: 100%; border-collapse: collapse; font-size: 0.8rem; }
 #print-table th, #print-table td {
-    border: 1px solid #2a3a4a; padding: 4px 8px; text-align: left;
-    color: #7090a0;
+    border: 1px solid #ccc; padding: 4px 8px; text-align: left; color: #000;
 }
-#print-table th { background: #0a1520; color: #5080a0; }
+#print-table th { background: #f0f0f0; }
 .download-link {
     color: #40a0e0; font-size: 0.82rem; text-decoration: none;
     padding: 3px 10px; border: 1px solid #204060; border-radius: 3px;
@@ -199,11 +198,12 @@ button.red:hover { background: rgba(130,0,0,0.6); }
 
 @media print {
     .no-print { display: none !important; }
-    body { background: #fff; color: #000; }
-    .job-card { border: 1px solid #ccc; page-break-inside: avoid; }
-    #print-table { display: block !important; }
+    body { background: #fff; color: #000; font-family: Arial, sans-serif; }
+    .job-card { display: none !important; }
+    #print-table { display: block !important; color: #000; }
     #print-table table { color: #000; }
     #print-table th, #print-table td { border-color: #ccc; color: #000; }
+    .print-detail { page-break-inside: avoid; }
 }
 </style>
 </head>
@@ -630,16 +630,35 @@ function showPrintTable() {
         }
         return true;
     });
+    const date = new Date().toLocaleDateString('de-DE');
+    const overview = `
+      <h2 style="margin:0 0 0.3rem;font-size:1.1rem">Bewerbungsübersicht — ${date}</h2>
+      <p style="margin:0 0 0.8rem;font-size:0.8rem;color:#444">${rows.length} Einträge</p>
+      <table>
+        <tr><th>Nr</th><th>Datum</th><th>Unternehmen</th><th>Position</th><th>Ort</th><th>Score</th><th>Status</th></tr>
+        ${rows.map((j,i) => `<tr>
+          <td>${i+1}</td><td>${j.date_added||''}</td><td>${escHtml(j.company)}</td>
+          <td>${escHtml(j.title)}</td><td>${escHtml(j.city)}</td>
+          <td>${scoreDisplay(j.score)}</td><td>${stageLabel(j.stage)}</td>
+        </tr>`).join('')}
+      </table>`;
+    const details = rows.map((j,i) => `
+      <div class="print-detail" style="margin-top:1.2rem;padding:0.7rem 0.8rem;border:1px solid #ccc;border-radius:4px">
+        <div style="display:flex;justify-content:space-between;align-items:baseline">
+          <strong style="font-size:0.95rem">${i+1}. ${escHtml(j.title)}</strong>
+          <span style="font-size:0.8rem;color:#444">Score: ${scoreDisplay(j.score)}</span>
+        </div>
+        <div style="font-size:0.82rem;color:#555;margin:0.1rem 0 0.5rem">
+          ${escHtml(j.company)}${j.city ? ' · ' + escHtml(j.city) : ''}${j.industry ? ' · ' + escHtml(j.industry) : ''}
+          · ${stageLabel(j.stage)}${j.date_added ? ' · ' + j.date_added : ''}
+        </div>
+        ${j.summary ? `<p style="margin:0.3rem 0;font-size:0.83rem"><em>${escHtml(j.summary)}</em></p>` : ''}
+        ${j.reason  ? `<p style="margin:0.3rem 0;font-size:0.83rem;color:#333">${escHtml(j.reason)}</p>` : ''}
+        ${j.note    ? `<p style="margin:0.3rem 0;font-size:0.8rem;color:#555">Notiz: ${escHtml(j.note)}</p>` : ''}
+      </div>`).join('');
     const div = document.getElementById('print-table');
     div.style.display = 'block';
-    div.innerHTML = `<table>
-      <tr><th>Nr</th><th>Datum</th><th>Unternehmen</th><th>Position</th><th>Ort</th><th>Score</th><th>Status</th></tr>
-      ${rows.map((j,i) => `<tr>
-        <td>${i+1}</td><td>${j.date_added||''}</td><td>${escHtml(j.company)}</td>
-        <td>${escHtml(j.title)}</td><td>${escHtml(j.city)}</td>
-        <td>${scoreDisplay(j.score)}</td><td>${stageLabel(j.stage)}</td>
-      </tr>`).join('')}
-    </table>`;
+    div.innerHTML = overview + `<div style="margin-top:1.5rem"><h3 style="font-size:1rem;margin-bottom:0.5rem">KI-Analyse je Stelle</h3>${details}</div>`;
 }
 
 /* ── manual add ── */
