@@ -51,8 +51,6 @@ my @jobs;
 for my $id ( sort keys %{$store} ) {
     my $j     = $store->{$id};
     my $stage = $j->{'status'} // 'new';
-    ## only export jobs that have been assessed (have a score)
-    next unless defined $j->{'score'} && length $j->{'score'};
     ## map store status to tracker stage
     my $tracker_stage = {
         'new'      => 'review',
@@ -61,7 +59,36 @@ for my $id ( sort keys %{$store} ) {
         'rejected' => 'rejected',
         'skipped'  => 'skipped',
         'archived' => 'archived',
+        'blocked'  => 'skipped',
     }->{ $stage } // 'review';
+
+    ## build assertions export (compact)
+    my $assertions = {};
+    if ( ref $j->{'assertions'} eq 'HASH' ) {
+        my $as = $j->{'assertions'};
+        if ( ref $as->{'suggest'} eq 'HASH' ) {
+            $assertions->{'suggest'} = {};
+            for my $k ( qw| apply delete archive | ) {
+                my $v = $as->{'suggest'}{$k} // '';
+                $assertions->{'suggest'}{$k} = $v if length $v;
+            }
+        }
+        if ( ref $as->{'dimensions'} eq 'HASH' ) {
+            $assertions->{'dimensions'} = {};
+            for my $dim (
+                qw| location work-profile company-culture compensation
+                    remote-flexibility career-growth tech-stack team-structure |
+            ) {
+                my $d = $as->{'dimensions'}{$dim} // {};
+                my $ds = $d->{'score'} // '';
+                next if $ds eq '' or $ds eq 'unasserted';
+                $assertions->{'dimensions'}{$dim} = {
+                    score  => $ds + 0,
+                    reason => to_unicode( $d->{'reason'} // '' ),
+                };
+            }
+        }
+    }
 
     push @jobs, {
         id       => $id,
@@ -70,16 +97,23 @@ for my $id ( sort keys %{$store} ) {
         city     => to_unicode( $j->{'city'}         ),
         industry => to_unicode( $j->{'industry'}     ),
         url      => to_unicode( $j->{'url'}          ),
-        score    => $j->{'score'} + 0,
-        reason   => to_unicode( $j->{'score_reason_de'} || $j->{'score_reason'} ),
-        summary  => to_unicode( $j->{'score_summary'} ),
+        score    => ( defined $j->{'score'} && length $j->{'score'} ) ? $j->{'score'} + 0 : undef,
+        reason   => to_unicode( $j->{'score_reason_de'} || $j->{'score_reason'} || '' ),
+        summary  => to_unicode( $j->{'score_summary'} || '' ),
         stage    => $tracker_stage,
         fetched  => $j->{'fetched_at'} // '',
+        assertions    => ( keys %$assertions ) ? $assertions : undef,
+        repair_applied=> $j->{'repair_applied'} ? 1 : 0,
+        repair_failed => $j->{'repair_failed'}  ? 1 : 0,
     };
 }
 
-## sort descending by score
-@jobs = sort { $b->{'score'} <=> $a->{'score'} } @jobs;
+## sort descending by score (undef scores sort to bottom)
+@jobs = sort {
+    ( defined $b->{'score'} ? $b->{'score'} : -1 )
+    <=>
+    ( defined $a->{'score'} ? $a->{'score'} : -1 )
+} @jobs;
 
 my $output = {
     generated => scalar localtime,
@@ -98,8 +132,8 @@ rename $tmp, $out_file or die "cannot rename: $!\n";
 
 printf "exported %d jobs → %s\n", scalar @jobs, $out_file;
 
-#,,.,,,,.,.,.,,,,,,,,,.,,,,,,,..,,.,.,,,.,,.,,..,,...,...,.,,,..,,...,,,,,..,,
-#OBKSIQFV7LCAWZQAA2QBZ5HPJTZI6FQ2P7XDJZASYQY5QX24LLRIDH4QBVOSE6KAQKYVEWLN2FI3U
-#\\\|GEYBGK4W3RQWXOVHJJQT4XSX4IUMLVHIQ7NUOXJVSTT6NVXY3CU \ / AMOS7 \ YOURUM ::
-#\[7]QC6Z7PE7PYXGF2UL22OIKT4VOEPPG3ELSOMJH3FIUSPA5DRVKAAY 7  DATA SIGNATURE ::
+#,,,,,,..,.,,,,.,,.,.,,.,,.,,,,,,,.,,,.,.,.,,,..,,...,..,,.,.,,,,,,,.,,.,,...,
+#3L2PF4Z2DVIQJZGM2P3J5WRIQB6UJU2CWKQVHW7YKGWJR3UHDLMEO7LJIWURXZXR4ESJPILOCWARK
+#\\\|ZV6YHE3BMY7KN7WNC6Z7OOBWSTJQOQRITXCPXPOAY55UKCGEHMN \ / AMOS7 \ YOURUM ::
+#\[7]4DTPNIBFH6EQ44JJAS4OG5WGUF2IO6TXIBKDQRBWYVC6H6GGNWAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
