@@ -97,6 +97,43 @@ button.red:hover { background: rgba(130,0,0,0.6); }
 .job-card[data-stage="archived"]  { display: none; }
 .job-card.show-archived[data-stage="archived"] { display: block; opacity: 0.4; }
 
+/* assertion badges */
+.assert-badges { display: flex; gap: 0.3rem; flex-wrap: wrap; align-items: center; }
+.assert-badge {
+    font-size: 0.68rem; padding: 1px 6px; border-radius: 3px;
+    font-weight: bold; text-transform: uppercase; letter-spacing: 0.02em;
+}
+.assert-apply  { background: rgba(20,80,30,0.4); color: #60d060; }
+.assert-delete { background: rgba(80,20,20,0.4); color: #e06060; }
+.assert-archive{ background: rgba(60,60,60,0.3); color: #a0a0a0; }
+.repair-badge {
+    font-size: 0.65rem; padding: 0 4px; border-radius: 2px;
+    background: rgba(80,60,0,0.3); color: #c0a040;
+}
+.repair-fail {
+    background: rgba(80,20,20,0.3); color: #c06060;
+}
+
+/* dimension breakdown */
+.dim-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+    gap: 0.3rem 0.6rem;
+    font-size: 0.72rem;
+    margin-top: 0.4rem; padding: 0.4rem 0.5rem;
+    background: rgba(10,15,25,0.5);
+    border-radius: 3px; border: 1px solid #0e1a28;
+}
+.dim-item { display: flex; justify-content: space-between; gap: 0.4rem; }
+.dim-name { color: #3a5060; }
+.dim-score { color: #6090a0; font-weight: bold; min-width: 1.5em; text-align: right; }
+.dim-score-hi { color: #50c050; }
+.dim-score-lo { color: #c05050; }
+.toggle-dim {
+    font-size: 0.7rem; color: #2a4050; cursor: pointer; margin-left: 0.4rem;
+}
+.toggle-dim:hover { color: #5080a0; }
+
 .card-header {
     display: flex; align-items: baseline; gap: 0.6rem; flex-wrap: wrap;
     margin-bottom: 0.4rem;
@@ -254,6 +291,8 @@ button.red:hover { background: rgba(130,0,0,0.6); }
     <span class="ftab" data-filter="responded">rückmeldung</span>
     <span class="ftab" data-filter="rejected">absage</span>
     <span class="ftab" data-filter="skipped">übersprungen</span>
+    <span class="ftab" data-filter="delete">löschen</span>
+    <span class="ftab" data-filter="repair_failed">fehler</span>
   </div>
 
   <!-- manual add form -->
@@ -330,7 +369,10 @@ function mergeJobs(pipelineJobs) {
                 stage: pj.stage || 'review',
                 date_added: new Date().toISOString().slice(0,10),
                 date_applied: '', note: '', source: 'pipeline',
-                sort_order: Object.keys(jobs).length
+                sort_order: Object.keys(jobs).length,
+                assertions: pj.assertions || null,
+                repair_applied: pj.repair_applied || 0,
+                repair_failed: pj.repair_failed || 0,
             };
             added++;
         } else {
@@ -339,6 +381,9 @@ function mergeJobs(pipelineJobs) {
             if (pj.score   != null && j.source === 'pipeline') j.score   = pj.score;
             if (pj.reason  && j.source === 'pipeline') j.reason  = pj.reason;
             if (pj.summary && j.source === 'pipeline') j.summary = pj.summary;
+            if (pj.assertions && j.source === 'pipeline') j.assertions = pj.assertions;
+            if (pj.repair_applied != null && j.source === 'pipeline') j.repair_applied = pj.repair_applied;
+            if (pj.repair_failed != null && j.source === 'pipeline') j.repair_failed = pj.repair_failed;
         }
     }
     return added;
@@ -412,10 +457,38 @@ function renderCard(j) {
     const sc = scoreDisplay(j.score);
     const scClass = scoreClass(j.score);
 
+    /* assertion badges */
+    const sug = j.assertions?.suggest || {};
+    const badges = [];
+    if (sug.apply === 'true')  badges.push('<span class="assert-badge assert-apply">bewerben</span>');
+    if (sug.delete === 'true') badges.push('<span class="assert-badge assert-delete">löschen</span>');
+    if (sug.archive === 'true')badges.push('<span class="assert-badge assert-archive">archiv</span>');
+    if (j.repair_applied)      badges.push('<span class="repair-badge">repariert</span>');
+    if (j.repair_failed)       badges.push('<span class="repair-badge repair-fail">fehler</span>');
+
+    /* dimension breakdown */
+    const dims = j.assertions?.dimensions || {};
+    const dimKeys = Object.keys(dims);
+    const dimHtml = dimKeys.length ? `
+      <div class="dim-grid" style="display:none">
+        ${dimKeys.map(d => {
+            const ds = dims[d].score;
+            const dc = ds >= 7 ? 'dim-score-hi' : ds <= 3 ? 'dim-score-lo' : '';
+            const dn = d.replace(/-/g,' ');
+            return `<div class="dim-item" title="${escAttr(dims[d].reason||'')}">
+              <span class="dim-name">${dn}</span><span class="dim-score ${dc}">${ds}</span>
+            </div>`;
+        }).join('')}
+      </div>
+    ` : '';
+
     el.innerHTML = `
       <div class="card-header">
         ${titleEl}
-        <span class="score-badge ${scClass}">${sc}</span>
+        <div class="assert-badges">
+          <span class="score-badge ${scClass}">${sc}</span>
+          ${badges.join('')}
+        </div>
       </div>
       <div class="card-meta">
         <span class="company">${escHtml(j.company)}</span>
@@ -424,6 +497,8 @@ function renderCard(j) {
       </div>
       ${j.summary ? `<div class="card-summary" data-full="${escAttr(j.summary)}">${escHtml(j.summary)}</div>` : ''}
       ${j.reason  ? `<div class="card-reason"  data-full="${escAttr(j.reason)}">${escHtml(j.reason)}</div>`  : ''}
+      ${dimHtml}
+      ${dimKeys.length ? `<div class="toggle-dim">▼ dimensionen</div>` : ''}
       <div class="card-actions no-print">
         <select class="stage-select" data-id="${j.id}">
           ${['review','to_apply','applied','responded','rejected','skipped','archived']
@@ -535,6 +610,17 @@ function renderCard(j) {
         saveLocal();
     });
 
+    /* dimension toggle */
+    const toggleDim = el.querySelector('.toggle-dim');
+    const dimGrid = el.querySelector('.dim-grid');
+    if (toggleDim && dimGrid) {
+        toggleDim.addEventListener('click', () => {
+            const show = dimGrid.style.display === 'none';
+            dimGrid.style.display = show ? 'grid' : 'none';
+            toggleDim.textContent = show ? '▲ dimensionen' : '▼ dimensionen';
+        });
+    }
+
     return el;
 }
 
@@ -569,6 +655,12 @@ function render() {
     const sorted = sortedJobs();
     const visible = sorted.filter(j => {
         if (j.stage === 'archived' && !showArchived) return false;
+        if (filterMode === 'delete') {
+            return (j.assertions?.suggest?.delete === 'true') && j.stage !== 'archived';
+        }
+        if (filterMode === 'repair_failed') {
+            return j.repair_failed && j.stage !== 'archived';
+        }
         if (filterMode !== 'all' && j.stage !== filterMode) return false;
         if (filterMode === 'all' && j.stage === 'archived' && !showArchived) return false;
         /* min score filter — normalize 0-100 scale to 0-10 */
@@ -593,25 +685,40 @@ function render() {
 }
 
 function updateStats(all) {
+    const del = all.filter(j => j.assertions?.suggest?.delete === 'true' && j.stage !== 'archived').length;
+    const rfl = all.filter(j => j.repair_failed && j.stage !== 'archived').length;
     document.getElementById('stat-total').textContent  = all.length + ' gesamt';
     document.getElementById('stat-review').textContent = all.filter(j=>j.stage==='review').length + ' review';
     document.getElementById('stat-apply').textContent  = all.filter(j=>j.stage==='to_apply').length + ' bewerben';
     document.getElementById('stat-applied').textContent= all.filter(j=>j.stage==='applied'||j.stage==='responded').length + ' beworben';
-    document.getElementById('stat-done').textContent   = all.filter(j=>j.stage==='rejected'||j.stage==='archived').length + ' erledigt';
+    document.getElementById('stat-done').textContent   = all.filter(j=>j.stage==='rejected'||j.stage==='archived').length + ' erledigt'
+        + (del ? ' · ' + del + ' del' : '')
+        + (rfl ? ' · ' + rfl + ' err' : '');
 }
 
 /* ── CSV export ── */
 function exportCSV() {
-    const cols = ['Nr','Datum','Unternehmen','Position','Ort','Score','Status','Bewerbungsdatum','Notiz','Link'];
+    const cols = ['Nr','Datum','Unternehmen','Position','Ort','Score','Status','Bewerbungsdatum','Notiz','Link',
+                  'Bewerben','Löschen','Archiv','Ort-Score','Profil-Score','Kultur-Score','Gehalt-Score',
+                  'Remote-Score','Wachstum-Score','Tech-Score','Team-Score'];
     const trackStages = new Set(['applied','responded','rejected']);
     const rows = sortedJobs().reverse().filter(j => trackStages.has(j.stage));
     const lines = [cols.join(';')];
     rows.forEach((j, i) => {
         const val = v => `"${String(v||'').replace(/"/g,'""')}"`;
+        const sug = j.assertions?.suggest || {};
+        const dim = j.assertions?.dimensions || {};
+        const dscore = d => dim[d]?.score ?? '';
         lines.push([
             i+1, j.date_added||'', j.company, j.title, j.city,
             scoreDisplay(j.score), stageLabel(j.stage),
-            j.date_applied||'', j.note||'', j.url||''
+            j.date_applied||'', j.note||'', j.url||'',
+            sug.apply === 'true' ? 'ja' : 'nein',
+            sug.delete === 'true' ? 'ja' : 'nein',
+            sug.archive === 'true' ? 'ja' : 'nein',
+            dscore('location'), dscore('work-profile'), dscore('company-culture'),
+            dscore('compensation'), dscore('remote-flexibility'), dscore('career-growth'),
+            dscore('tech-stack'), dscore('team-structure'),
         ].map(val).join(';'));
     });
     const blob = new Blob(['﻿'+lines.join('\n')], {type:'text/csv;charset=utf-8'});
@@ -631,27 +738,37 @@ function showPrintTable() {
       <h2 style="margin:0 0 0.3rem;font-size:1.1rem">Bewerbungsübersicht — ${date}</h2>
       <p style="margin:0 0 0.8rem;font-size:0.8rem;color:#5080a0">${rows.length} Einträge</p>
       <table>
-        <tr><th>Nr</th><th>Datum</th><th>Unternehmen</th><th>Position</th><th>Ort</th><th>Score</th><th>Status</th></tr>
-        ${rows.map((j,i) => `<tr>
-          <td>${i+1}</td><td>${j.date_added||''}</td><td>${escHtml(j.company)}</td>
-          <td>${escHtml(j.title)}</td><td>${escHtml(j.city)}</td>
-          <td>${scoreDisplay(j.score)}</td><td>${stageLabel(j.stage)}</td>
-        </tr>`).join('')}
+        <tr><th>Nr</th><th>Datum</th><th>Unternehmen</th><th>Position</th><th>Ort</th><th>Score</th><th>Status</th><th>Bew.</th><th>Del.</th></tr>
+        ${rows.map((j,i) => {
+            const sug = j.assertions?.suggest || {};
+            return `<tr>
+              <td>${i+1}</td><td>${j.date_added||''}</td><td>${escHtml(j.company)}</td>
+              <td>${escHtml(j.title)}</td><td>${escHtml(j.city)}</td>
+              <td>${scoreDisplay(j.score)}</td><td>${stageLabel(j.stage)}</td>
+              <td>${sug.apply==='true'?'✓':''}</td><td>${sug.delete==='true'?'✗':''}</td>
+            </tr>`;
+        }).join('')}
       </table>`;
-    const details = rows.map((j,i) => `
-      <div class="print-detail" style="margin-top:1.2rem;padding:0.7rem 0.8rem;border:1px solid #1a2a3a;border-radius:4px">
-        <div style="display:flex;justify-content:space-between;align-items:baseline">
-          <strong style="font-size:0.95rem;color:#6090b0">${i+1}. ${escHtml(j.title)}</strong>
-          <span style="font-size:0.8rem;color:#5080a0">Score: ${scoreDisplay(j.score)}</span>
-        </div>
-        <div style="font-size:0.82rem;color:#4a6a80;margin:0.1rem 0 0.5rem">
-          ${escHtml(j.company)}${j.city ? ' · ' + escHtml(j.city) : ''}${j.industry ? ' · ' + escHtml(j.industry) : ''}
-          · ${stageLabel(j.stage)}${j.date_added ? ' · ' + j.date_added : ''}
-        </div>
-        ${j.summary ? `<p style="margin:0.3rem 0;font-size:0.83rem;color:#7090a0"><em>${escHtml(j.summary)}</em></p>` : ''}
-        ${j.reason  ? `<p style="margin:0.3rem 0;font-size:0.83rem;color:#6080a0">${escHtml(j.reason)}</p>` : ''}
-        ${j.note    ? `<p style="margin:0.3rem 0;font-size:0.8rem;color:#4a6070">Notiz: ${escHtml(j.note)}</p>` : ''}
-      </div>`).join('');
+    const details = rows.map((j,i) => {
+        const sug = j.assertions?.suggest || {};
+        const dim = j.assertions?.dimensions || {};
+        const dimList = Object.entries(dim).map(([k,v]) => `${k.replace(/-/g,' ')}:${v.score}`).join(', ');
+        return `
+        <div class="print-detail" style="margin-top:1.2rem;padding:0.7rem 0.8rem;border:1px solid #1a2a3a;border-radius:4px">
+          <div style="display:flex;justify-content:space-between;align-items:baseline">
+            <strong style="font-size:0.95rem;color:#6090b0">${i+1}. ${escHtml(j.title)}</strong>
+            <span style="font-size:0.8rem;color:#5080a0">Score: ${scoreDisplay(j.score)}</span>
+          </div>
+          <div style="font-size:0.82rem;color:#4a6a80;margin:0.1rem 0 0.5rem">
+            ${escHtml(j.company)}${j.city ? ' · ' + escHtml(j.city) : ''}${j.industry ? ' · ' + escHtml(j.industry) : ''}
+            · ${stageLabel(j.stage)}${j.date_added ? ' · ' + j.date_added : ''}
+          </div>
+          ${dimList ? `<p style="margin:0.2rem 0;font-size:0.78rem;color:#507060">Dimensionen: ${escHtml(dimList)}</p>` : ''}
+          ${j.summary ? `<p style="margin:0.3rem 0;font-size:0.83rem;color:#7090a0"><em>${escHtml(j.summary)}</em></p>` : ''}
+          ${j.reason  ? `<p style="margin:0.3rem 0;font-size:0.83rem;color:#6080a0">${escHtml(j.reason)}</p>` : ''}
+          ${j.note    ? `<p style="margin:0.3rem 0;font-size:0.8rem;color:#4a6070">Notiz: ${escHtml(j.note)}</p>` : ''}
+        </div>`;
+    }).join('');
     const div = document.getElementById('print-table');
     div.style.display = 'block';
     div.innerHTML = overview + `<div style="margin-top:1.5rem"><h3 style="font-size:1rem;margin-bottom:0.5rem;color:#5080a0">KI-Analyse je Stelle</h3>${details}</div>`;
