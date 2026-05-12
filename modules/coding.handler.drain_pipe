@@ -2,9 +2,8 @@
 
 # name  = coding.handler.drain_pipe
 # descr = drain server stdout/stderr pipe to prevent write() blocking
-# note  = after startup monitoring ends, the server still has pipes open.
-#         if nobody reads them the buffer fills and inference blocks.
-#         this handler reads and discards all available data.
+# note  = single-read io watcher — returns to event loop after each
+#         invocation. modeled after v7.handler.zenka_output.
 
 my $event = shift;
 
@@ -19,40 +18,38 @@ unless ( defined fileno($fh) ) {
     return;
 }
 
-my $buf   = '';
-my $total = 0;
-while (1) {
-    my $n = sysread( $fh, $buf, 4096 );
+## single read per watcher invocation — yields to event loop ##
+## the watcher fires again automatically if more data arrives    ##
+my $buf = '';
+my $n   = sysread( $fh, $buf, 4096 );
 
-    if ( !defined $n ) {
-        ## EBADF/EINVAL: FD closed between precheck and read ##
-        if ( $! == 9 or $! == 22 ) {
-            $watcher->cancel if defined $watcher;
-            <[base.logs]>
-                ->( 2, "drain_pipe: pipe closed, watcher cancelled" );
-        }
-        last;
-    }
-
-    if ( $n == 0 ) {
-        ## EOF — server closed its write end ##
+if ( !defined $n ) {
+    ## EBADF/EINVAL: fd closed between precheck and read ##
+    if ( $! == 9 or $! == 22 ) {
         $watcher->cancel if defined $watcher;
-        <[base.logs]>->( 2, "drain_pipe: pipe EOF, watcher cancelled" );
-        last;
+        <[base.logs]>->( 2, "drain_pipe: pipe closed, watcher cancelled" );
     }
-
-    $total += $n;
+    ## EAGAIN and other transient errors: return without cancelling ##
+    ## the watcher stays alive and fires again when readable        ##
+    return;
 }
 
-## only log if we actually drained something notable ##
-if ( $total > 0 ) {
-    <[base.logs]>->(
-        3, "drain_pipe: discarded %d bytes from server pipe", $total
-    );
+if ( $n == 0 ) {
+    ## EOF — server closed its write end ##
+    $watcher->cancel if defined $watcher;
+    <[base.logs]>->( 2, "drain_pipe: pipe EOF, watcher cancelled" );
+    return;
 }
+
+## successfully discarded $n bytes ##
+<[base.logs]>->( 3, "drain_pipe: discarded %d bytes from server pipe", $n );
+
+return;
 
 #,,,.,,..,,..,,.,,,.,,,,.,,,,,.,.,..,,.,.,,,.,..,,...,..,,,.,,,..,,.,,.,,,,,,,
-#JLYPQIDJEKTYK5TWOB7FZVDZEELOFPDHFOORATRMRWLDFMSW4X2CFWM3HCLXMQKOAMTNEIOSIG6NY
-#\\\|XU5OWT6QVPJAVVD5K7FGJ6O47JYBEMNT3ZSIUEBWQ3AGAS334IL \ / AMOS7 \ YOURUM ::
-#\[7]ZCOH3ZJSMJE6JDK66ZKSTACW3OX7BLW5YGW4RYQ3XZASGEFHCEAI 7  DATA SIGNATURE ::
+
+#,,..,..,,...,.,.,,,.,,..,,,,,...,,.,,.,.,...,..,,...,...,.,.,,..,.,,,,..,...,
+#EGFMBHR2SMPACZT67BJWK6BFHT65SONFI4WWSE2CTUS7RCEWXVVORIYIUPM5KF5NGA4ADVXOZ5M56
+#\\\|Z2JG6LWYZZUKZYF5FFBLSP46GSJTB7TKRE57WYX3BVUFYVQKB4U \ / AMOS7 \ YOURUM ::
+#\[7]QDHLSDU6PR3DLZR42TWA7IHRB6LOKXMNLM7DAMFY3GMDGJGFYADY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

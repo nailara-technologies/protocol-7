@@ -1,0 +1,112 @@
+## [:< ##
+
+# name  = job-site-scan.dispatch.repair
+# descr = dispatch repair assessment task for a job with defects
+
+my $job_id  = shift // '';
+my $defects = shift // [];
+
+return unless length $job_id;
+
+my $job_rec = <job-site-scan.tasks>->{$job_id};
+return unless defined $job_rec;
+
+## load job data from site-yaml store ##
+<[base.perlmod.autoload]>->('YAML::XS');
+my $store_file = '/var/protocol-7/site-yaml/store.yaml';
+my $store      = {};
+if ( -f $store_file ) {
+    $store = eval { YAML::XS::LoadFile($store_file) } // {};
+}
+
+my $job      = $store->{$job_id}     // {};
+my $title    = $job->{'title'}       // '';
+my $co       = $job->{'company'}     // '';
+my $city     = $job->{'city'}        // '';
+my $ind      = $job->{'industry'}    // '';
+my $raw_desc = $job->{'description'} // '';
+
+## decode html entities ##
+<[base.perlmod.autoload]>->('HTML::Entities');
+HTML::Entities::decode_entities($raw_desc) if length $raw_desc;
+
+<[base.perlmod.autoload]>->('Encode');
+for ( $title, $co, $city, $ind, $raw_desc ) {
+    $_ = Encode::decode( 'UTF-8', $_ ) unless utf8::is_utf8($_);
+}
+my $desc = substr( $raw_desc, 0, 1200 );
+
+## load profile ##
+my $profile_file = <job-site-scan.cfg.profile_file>
+    // '/etc/protocol-7/job-site-scan/profile.txt';
+my $profile_text = '';
+$profile_text = <[file.read]>->($profile_file)
+    // 'no profile configured — score based on job listing alone';
+$profile_text = Encode::decode( 'UTF-8', $profile_text )
+    unless utf8::is_utf8($profile_text);
+
+## build defect note ##
+my $defect_note = join( ', ', @$defects );
+
+## build repair prompt — stronger than original ##
+my $prompt = join( "\n\n",
+    ':local: :simple: Du bist ein Job-Matching-Assistent.'
+        . ' BEWERTE DIESE STELLE ERNEUT.',
+    "VORHERIGE BEWERTUNG HAT FEHLER: $defect_note",
+    'Bewertungskriterien: technische Übereinstimmung (höchste Gewichtung),'
+        . ' Seniorität, Standort / Remote-Option, Branchenrelevanz,'
+        . ' Aufgabenbereich.',
+    'Antworte GENAU mit diesem JSON-Format und NICHTS ANDEREM:'
+        . ' {"score": <0-10>, "apply": <true|false>,'
+        . ' "reason": "<1-2 deutsche Sätze: warum der Kandidat passt'
+        . ' oder nicht passt>",'
+        . ' "summary": "<2-3 deutsche Sätze: was die Stelle bietet,'
+        . ' gesuchte Skills, Remote/Standort-Details, Besonderheiten>",'
+        . ' "assertions": {'
+        . '   "suggest": {'
+        . '     "apply": <true|false>,'
+        . '     "delete": <true|false>,'
+        . '     "archive": <true|false>' . '   },'
+        . '   "dimensions": {'
+        . '     "location": {"score": <0-10>, "reason": "<1 Satz>"},'
+        . '     "work-profile": {"score": <0-10>, "reason": "<1 Satz>"},'
+        . '     "company-culture": {"score": <0-10>, "reason": "<1 Satz>"},'
+        . '     "compensation": {"score": <0-10>, "reason": "<1 Satz>"},'
+        . '     "remote-flexibility": {"score": <0-10>, "reason": "<1 Satz>"},'
+        . '     "career-growth": {"score": <0-10>, "reason": "<1 Satz>"},'
+        . '     "tech-stack": {"score": <0-10>, "reason": "<1 Satz>"},'
+        . '     "team-structure": {"score": <0-10>, "reason": "<1 Satz>"}'
+        . '   }'
+        . ' } }',
+    'WICHTIG: Antworte AUSSCHLIESSLICH auf Deutsch.'
+        . ' Kein Englisch. Kein Chinesisch.',
+    '## Kandidatenprofil ##',
+    $profile_text,
+    '## Stellenanzeige ##',
+    "Titel: $title",
+    "Unternehmen: $co",
+    "Ort: $city",
+    "Branche: $ind",
+    "Beschreibung:\n$desc",
+);
+
+## dispatch repair task ##
+my $encoded = ':B32:' . encode_b32r( Encode::encode( 'UTF-8', $prompt ) );
+
+<[protocol-7.route-send]>->(
+    {   'command'   => 'task.create',
+        'call_args' => { 'args' => $encoded },
+        'reply'     => {
+            'handler' => 'job-site-scan.handler.repair-created',
+            'params'  => { 'job_id' => $job_id },
+        },
+    }
+);
+
+#,,..,,.,,,,.,.,,,..,,..,,,..,.,.,...,,.,,.,,,..,,...,...,..,,.,.,..,,,.,,.,,,
+
+#,,,,,.,.,,.,,,.,,.,,,...,..,,..,,..,,,..,,..,..,,...,...,..,,,.,,...,,,.,,,.,
+#P2JLRDEQZHIDP7OVSURTNZX7345HRA3AUHWTRBROWI2KDSYWLVCQV2XM7QMVXYYJCKYHW3XPHGC6E
+#\\\|BZUUH7O2LJRFHNNRLDGB2V2PNCRIBO3XAOVA57CCSS643BYP7PA \ / AMOS7 \ YOURUM ::
+#\[7]COP5T6JFHG3H54NGHUFDGEIRBWM5JLAYWAIPDUNIPN26UP6YXADI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
