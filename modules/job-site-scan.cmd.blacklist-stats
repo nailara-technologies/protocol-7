@@ -1,0 +1,19 @@
+## [:< ##
+
+# name  = job-site-scan.cmd.blacklist-stats
+# descr = show checksum index statistics
+
+my $stats = <[job-site-scan.checksum.index]>->(qw| stats |);
+
+my $out = sprintf( "checksum index: companies=%d titles=%d urls=%d",
+    $stats->{'companies'}, $stats->{'titles'}, $stats->{'urls'} );
+
+return { 'mode' => qw| true |, 'data' => $out };
+
+#,,..,,.,,,,.,.,,,..,,..,,,..,.,.,...,,.,,.,,,..,,...,...,..,,.,.,..,,,.,,.,,,
+
+#,,,.,,..,...,.,,,,,,,,.,,,..,,.,,,,.,,,.,,..,..,,...,...,..,,.,.,,,.,,,.,,.,,
+#FU5CQ3VJCCZRJVPQ67S3AAHOT3VXXTFDTJD4673ZPDSGIKHKRW7QICXJCXR76IATNSN53P6NDEE54
+#\\\|6N7M2VL2AFE3EKU37BLMDOOPORYP7UGOTABJ2IQMH25VVAYQPUA \ / AMOS7 \ YOURUM ::
+#\[7]ZQQKZE6VHPV5WO2DMY4H24WL2CLBU2FXXTYRFMVK26VZWROBTSAY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -49,6 +49,18 @@ for my $job_id ( keys %{$store} ) {
     my $job = $store->{$job_id};
     next if ( $job->{'status'} // '' ) ne 'new';
     next if exists <job-site-scan.tasks>->{$job_id};
+
+    ## checksum dedup / blacklist check ##
+    my $chk = <[job-site-scan.checksum.index]>->( qw| check |, $job );
+    if ( $chk->{'is_blocked'} ) {
+        <[base.logs]>->(
+            2,       'jss: job %s blocked by checksum index [%s]',
+            $job_id, join( ', ', $chk->{'hits'}->@* )
+        );
+        $job->{'status'} = 'blocked';
+        next;
+    }
+
     push @to_assess, $job_id;
 }
 
@@ -97,6 +109,9 @@ for my $job_id (@to_assess) {
     }
     my $desc = substr( $raw_desc, 0, 1200 );
 
+    ## initialize assertion tree for this job ##
+    <[job-site-scan.assert.init]>->($job_id);
+
     ## build complete self-contained prompt — no template dependency
     my $prompt = join( "\n\n",
         ':local: :simple: Du bist ein Job-Matching-Assistent. Bewerte die'
@@ -105,9 +120,28 @@ for my $job_id (@to_assess) {
             . ' Seniorität, Standort / Remote-Option, Branchenrelevanz, Aufgabenbereich.',
         'Antworte genau mit diesem JSON-Format und nichts anderem:'
             . ' {"score": <0-10>, "apply": <true|false>,'
-            . ' "reason": "<1-2 deutsche Sätze: warum der Kandidat passt oder nicht passt>,"'
+            . ' "reason": "<1-2 deutsche Sätze: warum der Kandidat passt oder nicht passt>",'
             . ' "summary": "<2-3 deutsche Sätze: was die Stelle bietet, gesuchte Skills,'
-            . ' Remote/Standort-Details, Besonderheiten>"}',
+            . ' Remote/Standort-Details, Besonderheiten>",'
+            . ' "assertions": {'
+            . '   "suggest": {'
+            . '     "apply": <true|false>,      /* soll der Nutzer sich bewerben? */'
+            . '     "delete": <true|false>,      /* soll der Eintrag gelöscht werden? */'
+            . '     "archive": <true|false>      /* soll der Eintrag archiviert werden? */'
+            . '   },'
+            . '   "dimensions": {'
+            . '     "location": {"score": <0-10>, "reason": "<1 Satz>"},'
+            . '     "work-profile": {"score": <0-10>, "reason": "<1 Satz>"},'
+            . '     "company-culture": {"score": <0-10>, "reason": "<1 Satz>"},'
+            . '     "compensation": {"score": <0-10>, "reason": "<1 Satz>"},'
+            . '     "remote-flexibility": {"score": <0-10>, "reason": "<1 Satz>"},'
+            . '     "career-growth": {"score": <0-10>, "reason": "<1 Satz>"},'
+            . '     "tech-stack": {"score": <0-10>, "reason": "<1 Satz>"},'
+            . '     "team-structure": {"score": <0-10>, "reason": "<1 Satz>"}'
+            . '   }'
+            . ' } }',
+        'Bewerte JEDE Dimension aus der Perspektive des Kandidatenprofils.'
+            . ' Begründe kurz.',
         '## Kandidatenprofil ##',
         $profile_text,
         '## Stellenanzeige ##',
@@ -126,8 +160,8 @@ for my $job_id (@to_assess) {
 ## dispatch first task — task-created handler will call dispatch.next for each
 <[job-site-scan.dispatch.next]>;
 
-#,,,.,,,,,..,,.,.,.,.,,.,,..,,,.,,...,,,,,.,,,..,,...,...,...,,,.,,..,.,,,..,,
-#NOPNP7WO6E324HXFBVIO5PMTM7YNYJ3FS4ZZ7JLJR7CUHBWCIJE3ZTFD67ZKDJ7FL2LJ6FXCLZ7FK
-#\\\|O7M2XLZD3UQLJEE7UPMS3FCWVZHELA3NHR4EXLMML2R2QG7KJA7 \ / AMOS7 \ YOURUM ::
-#\[7]UPR4EK4Y3YNXQRYSRPV4VF4P3YTGDVPEP5SPZ5U2YFAPBFCGRADQ 7  DATA SIGNATURE ::
+#,,.,,.,.,.,.,,,.,..,,,.,,..,,.,,,,,.,.,,,,,,,..,,...,...,..,,,.,,,..,,.,,,,.,
+#2TXQ5EJGYKXD2BTZTZGLSR5PHXUIGA7CUDWX7WUZNFIBZQPPVUJXHVO2GP5BRWO27FY4F2YV3YK54
+#\\\|W3EKKA62CY73532FN5XTCD5O3ZAILJ7KBQI7YPAW6253W3ED7BP \ / AMOS7 \ YOURUM ::
+#\[7]EAO2NF5CUIXAJFCSPNQXEPCNPNCZTSVMEKSUGPCOEHCL72ROTQCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

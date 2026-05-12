@@ -1,0 +1,269 @@
+---
+title: refactor wait-done + drain_pipe to watcher-based state machines
+descr: |
+  eliminate polling and tight loops in coding zenka blocking-wait routines.
+  replace while(1)/while(event.once) with variable watchers and io watchers
+  that fire exactly once per state transition, modeled after v7's
+  zenka_output / process_output_line pattern.
+priority: high
+status: open
+type: refactoring
+
+depends_on:
+  - coding-zenka-cpu-spin-debug.yaml
+  - queue-intelligence-and-event-loop-safety.yaml
+
+## motivation ##
+# the current coding.cmd.wait-done uses while(<[event.once]>->(0.5)) — better
+# than while(1) but still polling. the event loop wakes every 500ms to check
+# a condition that changes far less often. this wastes CPU and adds latency.
+#
+# coding.handler.drain_pipe uses while(1) { sysread(...) } inside an io watcher
+# callback. if sysread returns -1 with unexpected errno, or if the fd bounces
+# between readable and error states, the loop can spin without yielding.
+#
+# v7.handler.zenka_output shows the correct pattern:
+#   - io watcher fires once when fd is readable
+#   - read ONCE via base.s_read
+#   - process buffered data
+#   - return to event loop
+#   - let the watcher fire again if more data arrives
+# this never blocks the event loop and never spins.
+
+reference_patterns:
+  v7_zenka_output:
+    file: modules/v7.handler.zenka_output
+    lines: 9-65
+    pattern: |
+      watcher callback reads ONCE per invocation.
+      $read_bytes = base.s_read($read_fh, \$buffer, $read_length);
+      if ($read_bytes <= 0) { cancel watcher; close fh; return; }
+      process buffered content.
+      return to event loop.
+
+  v7_process_output_line:
+    file: modules/v7.handler.process_output_line
+    lines: 46-124
+    pattern: |
+      while loop operates on IN-MEMORY buffer, not fd.
+      line extraction via regex — safe because buffer only grows by s_read.
+      $watcher->now if can_read(0) — optional eager re-trigger, still yields.
+
+phases:
+
+  p1_drain_pipe:
+    title: P1 — refactor coding.handler.drain_pipe to single-read io watcher
+    status: open
+    description: |
+      replace the while(1) sysread loop with a watcher that reads once
+      per invocation and reschedules itself via the event loop.
+
+    current_code:
+      file: modules/coding.handler.drain_pipe
+      lines: 24-45
+      problem: |
+        while(1) {
+            my $n = sysread($fh, $buf, 4096);
+            # if $n is undef and $! not 9/22, loop continues forever
+            # if $n == 0, cancels and exits — correct
+            # if $n > 0, loops again — may starve event loop on fast streams
+        }
+
+    proposed_design:
+      handler_name: coding.handler.drain_pipe
+      pattern: io_watcher_single_read
+      steps:
+        - get watcher and fh from event args (shift->w, ->fd)
+        - precheck fileno($fh) — cancel if undefined
+        - read ONCE: $n = sysread($fh, my $chunk, 4096)
+        - if !defined $n:
+            - errno 9 or 22 → cancel watcher, return
+            - errno EAGAIN → return (watcher will fire again when readable)
+            - other errno → log, cancel watcher, return
+        - if $n == 0:
+            - EOF → cancel watcher, return
+        - if $n > 0:
+            - accumulate to total_discarded counter
+            - optionally log if total > threshold
+            - return (watcher fires again if more data pending)
+        - no while loop inside handler
+
+    state_tracking:
+      note: |
+        the watcher is already registered as 'watcher_drain_stdout' or
+        'watcher_drain_stderr' in the inference_servers hash.
+        ensure the new handler still accesses the same watcher reference
+        so cancellation from spawn_inference_server still works.
+
+    acceptance: |
+      - no while() remains in drain_pipe
+      - handler returns to event loop after at most one sysread
+      - drain still empties pipes effectively (verified under load)
+      - spawn_inference_server cancel logic unchanged
+      - no Perl warning on closed fh (fileno precheck)
+
+  p2_wait_done_var_watcher:
+    title: P2 — refactor coding.cmd.wait-done to var watcher + deferred reply
+    status: open
+    description: |
+      replace polling loop with a variable watcher on the task's execution
+      status. the command returns immediately in deferred mode; the reply
+      is sent when the task completes or fails.
+
+    current_code:
+      file: modules/coding.cmd.wait-done
+      pattern: while(<[event.once]>->(0.5)) { poll task status }
+      problem: wakes every 500ms regardless of activity
+
+    proposed_design:
+      module: coding.cmd.wait-done
+      approach: deferred_reply_with_var_watcher
+      steps:
+        - parse args (task_id, timeout)
+        - validate task_id exists in <coding.task.queue>
+        - if task already completed/failed: return immediate reply
+        - if timeout > 0: register one-shot timer for timeout
+        - register var watcher on <coding.task.queue>.TASK_ID.execution.status
+        - return { mode => 'deferred', data => 'waiting' }
+        - watcher fires on status change:
+            - completed → send reply with result
+            - failed    → send reply with error
+            - timeout   → send reply 'timeout'
+        - cancel timeout timer if watcher fires first
+        - cancel watcher if timeout fires first
+
+    state_machine:
+      states:
+        - waiting:    watcher registered, no status change yet
+        - completed:  task done, reply sent, cleanup done
+        - failed:     task error, reply sent, cleanup done
+        - timeout:    timer fired, reply sent, watcher cancelled
+      transitions:
+        waiting → completed: on var watcher fire, status == completed
+        waiting → failed:    on var watcher fire, status == failed
+        waiting → timeout:   on timer fire
+
+    acceptance: |
+      - p7c coding.wait-done <task_id> returns immediately (deferred)
+      - reply arrives when task completes, not on poll interval
+      - timeout still works exactly as before
+      - no event.once polling inside the command
+      - memory cleaned up: watcher + timer cancelled in all exit paths
+
+  p3_wait_done_similar_routines:
+    title: P3 — audit and convert other polling routines
+    status: open
+    description: |
+      find all other coding zenka commands or handlers that poll with
+      event.once in a loop and refactor them to watcher-based patterns.
+
+    audit_targets:
+      - pattern: while.*event\.once
+        search_in: modules/coding.*
+      - pattern: event\.once\s*\(\s*0?\.
+        search_in: modules/coding.*
+      - pattern: for\s*\(.*;.*;.*\)\s*\{\s*<\[event
+        search_in: modules/coding.*
+
+    known_candidates:
+      - file: modules/coding.handler.http_io
+        note: while buffer regex — not polling, but spins on malformed data
+        fix: max_iter guard (separate task, see P4)
+
+      - file: modules/coding.handler.http_poll
+        note: REMOVED 2026-05-12 — dead timer-polling workaround, never
+              registered from outside its own self-reschedule
+        fix: deleted
+
+    acceptance: |
+      - zero polling loops in modules/coding.*
+      - all waits use watchers, timers, or deferred reply chains
+      - document each conversion in this task file
+
+  p4_buffer_regex_safety:
+    title: P4 — buffer-regex loop safety guards
+    status: open
+    description: |
+      the while loops in http_io and http_poll operate on in-memory buffers
+      (good) but can spin if the regex matches an empty string. add explicit
+      guards without changing the event-loop contract.
+
+    proposed_helper:
+      module: base.buffer.extract_lines
+      input: \$buffer, max_lines_per_call
+      output: @lines, $exhausted_bool
+      behavior: |
+        my @lines;
+        my $max = $max_lines_per_call // 1000;
+        my $iter = 0;
+        while ( $buffer =~ s/^([^\r\n]*)\r?\n// ) {
+            push @lines, $1;
+            last if ++$iter >= $max;
+        }
+        return (\@lines, $iter >= $max);
+
+    acceptance: |
+      - http_io and http_poll use base.buffer.extract_lines
+      - max_lines_per_call prevents infinite regex spin
+      - buffer never shrinks by zero bytes (regex always consumes \n)
+      - event loop yields between calls if more data pending
+
+shared_infrastructure:
+  - module: coding.state.wait_watcher
+    purpose: |
+      shared helper for registering a var watcher + timeout timer pair,
+      returning a handle that can be cancelled. used by wait-done and
+      any future blocking-wait command.
+    interface: |
+      my $handle = <[coding.state.wait_watcher]>->({
+          var_path    => 'coding.task.queue.XX.execution.status',
+          on_change   => sub { ... },
+          timeout     => 30,
+          on_timeout  => sub { ... },
+      });
+      $handle->cancel;  # manual cleanup
+
+  - module: coding.state.drain_watcher
+    purpose: |
+      shared helper for io watcher registration on inference server pipes.
+      returns watcher handle, registers single-read handler, auto-cancels
+      on EOF/error.
+    interface: |
+      my $watcher = <[coding.state.drain_watcher]>->({
+          fh       => $pfh,
+          on_read  => sub { my $bytes = shift; ... },
+          on_eof   => sub { ... },
+          on_error => sub { my $errno = shift; ... },
+      });
+
+verification:
+  - stress test: 20 rapid task spawns, all waited on concurrently
+    → verify no CPU spin, all replies arrive, no memory growth
+  - drain test: start inference server, let it log 10MB to stderr
+    → verify drain empties pipe, no event loop stalls
+  - malformed data test: inject buffer with no newlines
+    → verify http_io/http_poll yield after max_lines, do not spin
+
+risks:
+  - var watcher on deep hash path may not work if intermediate keys change
+    mitigation: watch parent key, filter in handler
+  - deferred reply mode may confuse callers expecting synchronous return
+    mitigation: document in cmd help, ensure p7c handles deferred correctly
+  - drain_watcher cancellation from spawn_inference_server must still work
+    mitigation: keep watcher reference in same hash key
+
+next_session_primer: |
+  start with P1 (drain_pipe) — it is the smallest scope, well-understood,
+  and removes the most dangerous spin risk. model it exactly after
+  v7.handler.zenka_output: shift->w, fd, single sysread, cancel on <=0.
+  then P2 (wait-done var watcher) — design the shared helper first so
+  coding.state.wait_watcher can be reused by job-site-scan.rewire-all
+  and any future blocking command.
+
+#,,..,,.,,,,.,.,,,..,,..,,,..,.,.,...,,.,,.,,,..,,...,...,..,,.,.,..,,,.,,.,,,
+
+#,,.,,,,,,.,.,,,,,.,.,,.,,,..,,.,,.,.,..,,,,,,..,,...,...,,.,,,,.,.,.,.,.,,,,,
+#6QIR5MXI6GY35KVJKVDIWPTKRU33MEGDFLOGBYV72XZ63XTRFPMGP7Z7YTHPF6NLASNP4QHQJPZGI
+#\\\|25YOC6EAR2OCDVCA3SSRBXOZHWUMIRTTZBI3X2R62JWVXJRWD5M \ / AMOS7 \ YOURUM ::
+#\[7]MTNMUCKO3L6X4VFXEYT77TQGYQHEFTWR5OJYH2ABIUNJPT6CRUBY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

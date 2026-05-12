@@ -9,6 +9,12 @@ my $deferred_id = shift;
 my $deferred = $data{"coding"}{"deferred_replies"}->{$deferred_id};
 return unless defined $deferred;
 
+## cancel timeout timer if wait-done registered one ##
+my $timer = $deferred->{'timeout_timer'};
+if ( defined $timer and eval { $timer->is_active } ) {
+    $timer->cancel;
+}
+
 my $task_id     = $deferred->{'task_id'};
 my $reply_id    = $deferred->{'reply_id'};
 my $callback_id = $deferred->{'callback_id'} // '';
@@ -75,8 +81,8 @@ if ( length $callback_id ) {
 $deferred->{'status'} = $is_error ? 'error' : 'complete';
 delete $data{"coding"}{"deferred_replies"}->{$deferred_id};
 
-#,,.,,...,,.,,,,.,...,...,...,.,,,..,,,..,..,,.,.,...,..,,..,,...,,,.,.,.,,,.,
-#HLBVOXK6DPV7WPOOSL2WWBAXMQOQHGQXV6ZP42O4VLZFUVMBPQEAUBSLHHIKVPAUZ4FHAIION4XTQ
-#\\\|ZZL242A53YT7NYDF3IL2TD72CC57ICR27BLYZNKJ644VT3SBGAU \ / AMOS7 \ YOURUM ::
-#\[7]EHXDHUUSM5XQBI4SNJMZTDBKB32KKQHPVS24QFXH75CQSCT3KWDA 7  DATA SIGNATURE ::
+#,,,.,.,.,.,,,.,.,.,.,.,.,,,.,..,,.,.,,,,,...,.,.,...,...,...,,,.,,..,...,.,,,
+#CYOQ4TODK44E6TUMX6OVUBN5AIV2YV3UFRPXBUYT6QUD2XYNPWMU5CC6RB4NFIY7HO2EC63MGARAU
+#\\\|52DXYAMJ3K6R3M74FEJEJCMLYAYAZ7YZI7DZRPFN43UQSFP36J3 \ / AMOS7 \ YOURUM ::
+#\[7]VYXIR5CNC25WUO5O4BNG2C2GE66RDOOCVJTXGXKCNVAVJQIPN6DI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

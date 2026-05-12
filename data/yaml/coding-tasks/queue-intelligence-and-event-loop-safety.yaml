@@ -1,0 +1,277 @@
+---
+title: queue intelligence + event loop safety — coding zenka tight loops, job pipeline self-repair, generic message-queue foundation
+descr: |
+  fix tight while-loop bugs in coding zenka using watcher-based state machines,
+  add review + self-repair to job-site-scan pipeline, build exclusion-list safety,
+  and lay the generic queue-sorting / regex-routing substrate that will later
+  power mail prioritization, job-application automation, and zenki mail accounts.
+priority: critical
+status: open
+type: implementation
+
+depends_on:
+  - task-zenka-implementation.yaml
+  - coding-zenka-cpu-spin-debug.yaml
+
+notes: |
+  signatures_note: this task file itself is NOT signed yet — sign before commit
+
+## overview ##
+# this is a multi-phase task touching three interconnected systems:
+#   1. coding zenka event loop — eliminate tight while(1) loops that starve EV
+#   2. job-site-scan pipeline — data-quality repair, exclusion lists, safe state
+#   3. generic queue intelligence — inference-based sorting + regex routing,
+#      designed from the start to generalize to mail / messaging / attention
+#
+# all three share a common architectural pattern: watcher-driven state machines
+# replace blocking or spinning loops with event-driven transitions.
+
+phases:
+
+  p1_event_loop_safety:
+    title: P1 — coding zenka event loop safety (tight-loop elimination)
+    status: in_progress
+    description: |
+      replace tight while(1) loops in coding zenka with watcher-based or
+      event.yield patterns so the EV loop always returns to poll().
+
+    known_loops:
+      - file: modules/coding.cmd.wait-done
+        line: 27
+        was: while(1) { ... event.once(0.5) }
+        fix: while(<[event.once]>->($poll_interval)) { ... }
+        fix_status: done_on_disk_unstaged
+        note: single line change, already tested
+
+      - file: modules/coding.handler.drain_pipe
+        line: 24
+        was: while(1) { sysread(...) }
+        fix: io watcher with bounded read + self-cancel on EOF/EBADF
+        fix_status: planned
+        note: |
+          current loop can spin if sysread returns undef repeatedly with
+          errno other than 9/22. replace with read-ready watcher that
+          reads once per invocation and reschedules via event loop.
+
+      - file: modules/coding.handler.http_io
+        line: 127
+        was: while( $buffer =~ s/^...// ) { }
+        risk: regex matches empty string → infinite loop on malformed data
+        fix: add max_iter guard + length check before loop entry
+        fix_status: planned
+
+      - file: modules/coding.handler.http_poll
+        line: 116
+        was: while( $buffer =~ s/^...// ) { }
+        risk: same as http_io
+        fix: REMOVED 2026-05-12 — dead timer-polling workaround, deleted
+        fix_status: done
+
+    acceptance: |
+      - no while(1) remains in modules/coding.* except drain_pipe (which uses
+        watcher-bound single-read pattern)
+      - all buffer-regex loops have max-iteration guards
+      - event loop responsiveness verified under load (subtask spawn + inference)
+
+  p2_job_pipeline_review:
+    title: P2 — job-site-scan data-quality review + self-repair
+    status: open
+    description: |
+      the current assessment pipeline produces mixed-quality results:
+        - empty score_reason / score_summary fields
+        - english text where german was requested
+        - chinese text leakage from model output
+        - stale entries re-fetched and overwritten despite user review
+
+      build a review layer that detects these defects and re-queues repair
+      tasks autonomously.
+
+    defect_detection:
+      - name: empty_field
+        check: length($field) == 0 after trim
+        action: re-queue assessment with stronger prompt + model switch
+
+      - name: wrong_language
+        check: |
+          detect non-german output when german requested.
+          heuristic: presence of common english stop-words (the, and, for)
+          OR han unicode range (\p{Han}) for chinese leakage.
+        action: re-queue with explicit "nur deutsch" prefix + temperature down
+
+      - name: stale_overwrite
+        check: job stage is 'applied', 'responded', 'rejected', or 'archived'
+        action: block assessment update — log skip, do not overwrite
+
+    repair_pipeline:
+      - stage: detect
+        module: job-site-scan.handler.assess-done
+        note: add validation gate before persisting result
+
+      - stage: queue_repair
+        module: job-site-scan.dispatch.repair
+        note: creates repair task with defect type annotated
+
+      - stage: retry_with_context
+        module: job-site-scan.handler.repair-done
+        note: receives repair result, merges if improved, keeps best
+
+    acceptance: |
+      - assess-done validates all four fields before write
+      - wrong-language jobs are re-assessed within 2 minutes
+      - no applied/archived/rejected job ever loses user-set stage
+      - scan-state.yaml contains repair history per job (attempt count, defect type)
+
+  p3_exclusion_lists:
+    title: P3 — exclusion lists + applied-job safekeeping
+    status: open
+    description: |
+      prevent the queue engine from destroying user decisions during re-scan.
+      maintain exclusion lists that survive pipeline restarts.
+
+    exclusion_domains:
+      - domain: company_name
+        source: past CSV exports, manual entries
+        effect: skip all jobs from excluded company
+
+      - domain: job_id
+        source: user archived/rejected jobs
+        effect: skip fetch, skip assess
+
+      - domain: already_applied
+        source: browser sync (future plugin.web.jobs), manual flag
+        effect: never overwrite stage, preserve notes
+
+    implementation:
+      - file: /var/protocol-7/job-site-scan/exclusions.yaml
+        format: { companies: [...], job_ids: [...], applied: [...] }
+        load: job-site-scan.init_code
+
+      - module: job-site-scan.stage.fetch
+        change: filter store entries against exclusion lists before assess
+
+      - module: job-site-scan.handler.assess-done
+        change: skip update if job_id in exclusion.applied
+
+    acceptance: |
+      - exclusions.yaml loaded on startup
+      - excluded companies never appear in assessment queue
+      - user-applied jobs survive full pipeline restart
+
+  p4_inference_sorting:
+    title: P4 — inference-based queue status sorting
+    status: open
+    description: |
+      add a query interface that lets a model inspect queue state and
+      re-prioritize entries based on semantic criteria.
+
+    use_cases:
+      - "prioritize jobs with remote=yes and score>7"
+      - "deprioritize jobs mentioning java-spring"
+      - "surface jobs where company culture signals are positive"
+
+    design:
+      - module: queue.intent.parse
+        input: natural language query string
+        output: structured filter + sort directive
+
+      - module: queue.sort.apply
+        input: job array + directive
+        output: sorted array, reason per item
+
+      - module: queue.query.inference
+        note: |
+          dispatches to local model with structured prompt:
+          "given these jobs and their scores, sort by X and explain why"
+          result is advisory — human or zenka can accept/reject
+
+    acceptance: |
+      - p7c job-site-scan.query "remote jobs score above 7" returns sorted list
+      - query result includes explanation per item
+      - sorting does not mutate persistent state unless explicitly saved
+
+  p5_regex_routing:
+    title: P5 — regex-based routing system (model-editable, inference-optional)
+    status: open
+    description: |
+      build a rule engine that operates without inference for fast path
+      filtering, but can be edited by inference for rule creation/refinement.
+      designed to generalize from job queues to mail queues.
+
+    rule_format:
+      - field: pattern on job/mail field (title, body, sender, subject)
+      - condition: regex or literal match
+      - action: tag / score_delta / move_to / escalate / reply_template
+      - priority: numeric (higher = earlier evaluation)
+      - enabled: bool
+      - source: manual | inferred | hybrid
+      - confidence: 0..1 (for inferred rules)
+
+    modules:
+      - queue.rule.init_code
+      - queue.rule.load / queue.rule.save
+      - queue.rule.match — evaluate rules against item, return actions
+      - queue.rule.suggest — inference entrypoint: "propose a rule for X"
+      - queue.rule.validate — test rule against sample set, report precision
+
+    mail_future_compatibility:
+      - field names abstract: from, to, subject, body, date, tags
+      - actions abstract: move_to, tag, reply, forward, escalate, defer
+      - same rule engine loads mail rules by changing rule_file path
+
+    acceptance: |
+      - 1000 items filtered through rules in < 50ms (no inference)
+      - model can propose rule via queue.rule.suggest, human approves
+      - rule validation shows true_pos / false_pos before activation
+      - rule file is valid YAML, editable by hand
+
+  p6_integration:
+    title: P6 — integration + cross-cutting patterns
+    status: open
+    description: |
+      ensure all phases share common infrastructure and naming.
+
+    shared_modules:
+      - queue.state.watcher — var watcher helper for stage transitions
+      - queue.repair.history — defect tracking per item
+      - queue.sort.cache — memoize sort results with invalidation
+
+    state_machine_pattern:
+      note: |
+        all new code uses the watcher-based pattern proven in job-site-scan:
+        var watcher on pending_count gates stage transitions, no poll loops.
+        extend this to repair_queue, exclusion_sync, and rule compilation.
+
+    acceptance: |
+      - no polling timers in new code
+      - all state transitions observable via p7c show-buffer or var query
+      - coding zenka event loop stays responsive during full pipeline run
+
+verification:
+  - run coding zenka subtask stress test: 10 sequential subtask spawns,
+    verify no CPU spin, all complete within timeout
+  - inject 5 malformed assessment results (empty, english, chinese),
+    verify repair pipeline detects and re-queues all 5
+  - set a job to 'applied', restart job-site-scan, re-scan same category,
+    verify applied job stage survives
+  - run queue.rule.match against 1000 synthetic jobs, verify < 50ms
+  - propose rule via queue.rule.suggest, validate, activate, verify match
+
+risks:
+  - local model may produce poor repair results — fallback to stronger model
+  - exclusion lists grow unbounded — add pruning (keep 90d active)
+  - regex rules can be slow — compile once, cache qr//
+
+next_session_primer: |
+  start with P1: commit the unstaged wait-done fix, then audit drain_pipe,
+  http_io. document exact spin scenario, propose fix,
+  get consensus, implement. only then move to P2 (job pipeline repair).
+  the generic infrastructure (P4-P5) should be designed during P2-P3 so
+  patterns are extracted, not re-built later.
+
+#,,..,,.,,,,.,.,,,..,,..,,,..,.,.,...,,.,,.,,,..,,...,...,..,,.,.,..,,,.,,.,,,
+
+#,,.,,,,.,.,.,,,.,,,.,..,,,,.,...,,..,,,,,,,,,..,,...,...,,.,,.,,,,..,.,,,.,,,
+#CICSJXE6Y6KHXKCKJV2Y4YWQ6X6WKRDD3UV4WINHJTH62434AP4RGIX4QOB5SKH5T3RXSDLQA2DW6
+#\\\|IBDJTHIEQESXWKEIKB7TWZMEYAFZ42PLQ6VSB6P45OHZASEZ2GF \ / AMOS7 \ YOURUM ::
+#\[7]74ECHHMBESSEL35VAXGKZB2KU7SHZI4SU3G5KQWHOIIIVAF7DOCI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

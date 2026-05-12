@@ -1680,7 +1680,6 @@ return [ qw[
         coding.task.analyze_full
         coding.start.chmod_child
         coding.init_dependencies
-        coding.handler.http_poll
         coding.cmd.clear-applied
         coding.buffer.task_write
         coding.async.http_client
@@ -1823,6 +1822,7 @@ return [ qw[
         jobqueue.joblist_template
         job-site-scan.stage.fetch
         job-site-scan.cmd.approve
+        job-site-scan.assert.init
         io.unix.socket.input.open
         impressive.process_subcfg
         image2html.base.init_code
@@ -2388,6 +2388,7 @@ return [ qw[
         keys.console.gen-pwd-keyfile
         keys.console.decrypt-archive
         keys.console.create-stub-key
+        job-site-scan.checksum.index
         io.unix.socket.input.connect
         impressive.autoinstall_check
         httpsd.request_capture.write
@@ -2542,6 +2543,7 @@ return [ qw[
         keys.select_archive_path.curs
         keys.console.remove-signature
         keys.console.encoding-upgrade
+        job-site-scan.dispatch.repair
         job-site-scan.cmd.clear-tasks
         index.handler.summarize-reply
         image2html.parent.cmd.get_url
@@ -2860,6 +2862,7 @@ return [ qw[
         letsencr.child.cmd.repair-chain
         kimi-web.internal.http_get_sync
         job-site-scan.cmd.set-threshold
+        job-site-scan.cmd.blacklist-add
         invoke-web.handler.check_health
         image2html.base.write_stub_page
         image2html.base.fork_conv_child
@@ -3036,6 +3039,7 @@ return [ qw[
         coding.parser.normalize_encoding
         coding.parser.ellipse_model_name
         coding.parser.dependency_backend
+        coding.handler.wait_done_timeout
         coding.handler.refresh_mem_stats
         channels.cmd.next-data-timestamp
         channels.cmd.last-data-timestamp
@@ -3110,7 +3114,10 @@ return [ qw[
         kimi-web.internal.http_post_async
         keys.pack_format.user_key_archive
         keys.console.downgrade-enc-status
+        job-site-scan.validate.assessment
+        job-site-scan.handler.repair-done
         job-site-scan.handler.assess-done
+        job-site-scan.cmd.blacklist-stats
         impressive.handler.stop_lsp_reply
         impressive.handler.get_list_reply
         image-quality.vision.select_model
@@ -3397,6 +3404,7 @@ return [ qw[
         kimi.handler.reconnect_grace_timeout
         kimi-web.handler.batch_timeout_check
         job-site-scan.handler.translate-done
+        job-site-scan.handler.repair-created
         image2html.child.check_cache_timeout
         httpsd.startup.validate_certificates
         httpd.handler.download_transfer.test
@@ -3808,8 +3816,8 @@ return [ qw[
     ]
 ];
 
-#,,,,,,,,,.,.,.,.,,..,,,.,.,,,...,,..,,,,,.,.,.,.,...,...,..,,,..,.,.,,.,,..,,
-#6PSL3POG52O7G4QG7MP4O2SZLTJ5DQAOTXXMTDBQNFQNSES2OBPXGNTN3EVNSU56QW3QNNO4U7KEW
-#\\\|MZAU34PSTVOWRM2Q4DZPNHYYMUGEOZ6JH3OENODESA52M6BXDFW \ / AMOS7 \ YOURUM ::
-#\[7]PV3RVSVFIKLTIPW36WJILXCYK2DDQ23HCXTM4BK5VM3LGERY7MAI 7  DATA SIGNATURE ::
+#,,,.,,.,,,,,,,.,,...,...,,.,,...,,,.,,,.,,,.,.,.,...,..,,..,,,.,,,.,,.,.,.,.,
+#RVRY3L7UI4J2JOKL4VETCLF66DTCDTXQ57U62SRKG34KFEWQROT2WE4RZHDMAZC7F7QPHKNA3ZADG
+#\\\|HLE6AHAYQ6VJSRXW4VAIDNV3N3TUN3XUEA7PU4DAHRLMZDS4ODR \ / AMOS7 \ YOURUM ::
+#\[7]7LDXJBMVIAKW3H2MDVBCGS34OZTNBXH57PHXLYQ64C6AQLBGL2DI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

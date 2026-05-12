@@ -1,7 +1,7 @@
 ## [:< ##
 
 # name  = job-site-scan.handler.assess-done
-# descr = receive assessment result, update job state
+# descr = receive assessment result, validate, update job state or dispatch repair
 
 my $call = shift // {};
 
@@ -30,6 +30,20 @@ if ( lc($mode) eq qw| false | ) {
     return;
 }
 
+## protected stages — user decisions must survive pipeline activity ##
+my %protected_stage
+    = map { $ARG => 1 } qw| applied responded rejected archived |;
+
+if ( $protected_stage{ $job_rec->{'stage'} // '' } ) {
+    <[base.logs]>->(
+        1,       'jss: job %s stage=%s protected, skipping overwrite',
+        $job_id, $job_rec->{'stage'}
+    );
+    <job-site-scan.pending_count>--;
+    <[job-site-scan.dispatch.next]>;
+    return;
+}
+
 ## try to extract score from result (json or plain "score: N" line)
 my ( $score, $reason, $summary, $apply ) = ( '', '', '', '' );
 if ( $result =~ m{\{.*?"(?:fit_)?score"\s*:\s*(\d+(?:\.\d+)?)}s ) {
@@ -37,7 +51,9 @@ if ( $result =~ m{\{.*?"(?:fit_)?score"\s*:\s*(\d+(?:\.\d+)?)}s ) {
     ($reason) = ( $result =~ m{"reason(?:s)?"\s*:\s*"([^"]+)"} );
     ($reason) //= do {
         my ($arr) = ( $result =~ m{"reasons"\s*:\s*\[([^\]]+)\]} );
-        $arr ? ( split /,/, $arr )[0] =~ s/^\s*"?|"?\s*$//gr : undef;
+        $arr
+            ? ( split /,/, $arr )[0] =~ s/^\s*"?|"?\s*$//gr
+            : undef;
     };
     ($summary) = ( $result =~ m{"summary"\s*:\s*"([^"]+)"} );
     ($apply)
@@ -48,6 +64,75 @@ if ( $result =~ m{\{.*?"(?:fit_)?score"\s*:\s*(\d+(?:\.\d+)?)}s ) {
     $score = $1;
 }
 
+## validate assessment quality ##
+my $validation
+    = <[job-site-scan.validate.assessment]>->( $result, $reason, $summary );
+
+if (    not $validation->{'is_valid'}
+    and not $job_rec->{'repair_attempted'} ) {
+    ## first defect — dispatch repair, do NOT decrement pending_count ##
+    $job_rec->{'repair_attempted'} = TRUE;
+    <[base.logs]>->(
+        1,       'jss: job %s defects [%s] — dispatching repair',
+        $job_id, join( ', ', $validation->{'defects'}->@* )
+    );
+    <[job-site-scan.state.persist]>;
+    <[job-site-scan.dispatch.repair]>->( $job_id, $validation->{'defects'} );
+    return;
+}
+
+if ( not $validation->{'is_valid'} and $job_rec->{'repair_attempted'} ) {
+    ## repair already tried and failed — store original, mark, move on ##
+    <[base.logs]>->(
+        1, 'jss: job %s still invalid after repair (%s), keeping original',
+        $job_id, join( ', ', $validation->{'defects'}->@* )
+    );
+    $job_rec->{'repair_failed'} = TRUE;
+}
+
+## parse assertions if present ##
+my $assertions = $job_rec->{'assertions'} // {};
+if (   $result =~ m{"assertions"\s*:\s*(\{.*?\})\s*[,\}]\s*$}s
+    or $result =~ m{"assertions"\s*:\s*(\{.*\})\s*}s ) {
+    my $assert_json = $1;
+    ## best-effort extraction of assertion values ##
+    if ( $assert_json =~ m{"suggest"\s*:\s*\{(.*?)\}}s ) {
+        my $suggest_block = $1;
+        if ( $suggest_block =~ m{"apply"\s*:\s*(true|false)}i ) {
+            $assertions->{'suggest'}{'apply'}
+                = lc($1) eq 'true' ? 'true' : 'false';
+        }
+        if ( $suggest_block =~ m{"delete"\s*:\s*(true|false)}i ) {
+            $assertions->{'suggest'}{'delete'}
+                = lc($1) eq 'true' ? 'true' : 'false';
+        }
+        if ( $suggest_block =~ m{"archive"\s*:\s*(true|false)}i ) {
+            $assertions->{'suggest'}{'archive'}
+                = lc($1) eq 'true' ? 'true' : 'false';
+        }
+    }
+    if (   $assert_json =~ m{"dimensions"\s*:\s*\{(.*?)\}\s*[,\}]}s
+        or $assert_json =~ m{"dimensions"\s*:\s*\{(.*)\}}s ) {
+        my $dim_block = $1;
+        for my $dim (
+            qw| location work-profile company-culture compensation
+            remote-flexibility career-growth tech-stack team-structure |
+        ) {
+            if ( $dim_block =~ m{"$dim"\s*:\s*\{(.*?)\}}s ) {
+                my $d    = $1;
+                my ($ds) = ( $d =~ m{"score"\s*:\s*(\d+(?:\.\d+)?)} );
+                my ($dr) = ( $d =~ m{"reason"\s*:\s*"([^"]+)"} );
+                $assertions->{'dimensions'}{$dim}{'score'}
+                    = defined $ds ? $ds : 'unasserted';
+                $assertions->{'dimensions'}{$dim}{'reason'}
+                    = defined $dr ? $dr : '';
+            }
+        }
+    }
+}
+$job_rec->{'assertions'} = $assertions;
+
+## store result (original or post-repair) ##
 $job_rec->{'score'}         = $score;
 $job_rec->{'score_reason'}  = $reason  // '';
 $job_rec->{'score_summary'} = $summary // '';
@@ -77,7 +162,12 @@ if ( -f $store_file ) {
         $store->{$job_id}{'score'}         = $score;
         $store->{$job_id}{'score_reason'}  = $reason  // '';
         $store->{$job_id}{'score_summary'} = $summary // '';
+        $store->{$job_id}{'assertions'}    = $assertions
+            if %{ $assertions // {} };
         eval { YAML::XS::DumpFile( $store_file, $store ) };
+
+        ## add to checksum index for dedup on future scans ##
+        <[job-site-scan.checksum.index]>->( qw| add |, $store->{$job_id} );
     }
 }
 
@@ -90,10 +180,12 @@ if ( <job-site-scan.pending_count> <= 0 ) {
 }
 
 <[job-site-scan.state.persist]>;
-<[job-site-scan.dispatch.next]>;
+<[job-site-scan.dispatch.next]>
 
-#,,.,,,,,,..,,,,.,,,,,,.,,,..,.,,,.,,,.,.,.,.,..,,...,..,,...,,,.,.,,,,,,,,,.,
-#6AWEE36PU5GBZXF4ITFWQRZUZ76NZ2AJDK6IICTCSRP63QZGSYBAG7SUA2QS5YV52KPDBENWMUJRW
-#\\\|YCF22MTUCK3WR7GG3FRGSENMZ6NB2NJVDA2LB3R76MPXPMTEUGW \ / AMOS7 \ YOURUM ::
-#\[7]X5LZHZNWWRD7TX2QEBC4KL7U7BBUOIKUTCKHSQAESCMLNYIFJKDA 7  DATA SIGNATURE ::
+#,,.,,,,,,..,,,,.,,,,,,.,,,..,.,,,.,,,.,.,.,.,..,,...,..,,...,,,.,.,,,,,,,,,.,,
+
+#,,,.,...,..,,...,,..,...,.,,,...,,,,,...,,,.,..,,...,..,,.,.,,.,,..,,.,,,,,.,
+#DXNS7U3U3JME2WN2WKSEIC4FROMP7DKSPCWGCWV2JODGE7SMAGAJ6LC52AKAS6NML6QKQYRY46SBK
+#\\\|V7SPSJIROI7AY4J3NJRQIRRXE4KW2FYNP7V7YBL5GNTWUK3GWX3 \ / AMOS7 \ YOURUM ::
+#\[7]HSUKYJCQESZOLNUQ6C6ARNIBUWIGOAHRCJXCIJCKUEDXX774HKCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
