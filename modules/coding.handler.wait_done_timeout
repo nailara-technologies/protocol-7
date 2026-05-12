@@ -1,0 +1,41 @@
+## [:< ##
+
+# name  = coding.handler.wait_done_timeout
+# descr = send timeout reply for coding.cmd.wait-done
+
+my $event = shift;
+my $data  = eval { $event->data } // {};
+
+my $deferred_id = $data->{'deferred_id'} // '';
+my $reply_id    = $data->{'reply_id'}    // '';
+my $task_id     = $data->{'task_id'}     // '';
+
+## remove deferred reply so task completion won't also reply ##
+if ( length $deferred_id ) {
+    delete $data{'coding'}{'deferred_replies'}->{$deferred_id};
+}
+
+<[base.logs]>->(
+    1,        "wait-done: timeout for task %s (deferred_id=%s)",
+    $task_id, $deferred_id
+);
+
+## send timeout reply ##
+if ( length $reply_id ) {
+    <[base.callback.cmd_reply]>->(
+        $reply_id,
+        {   'mode' => qw| false |,
+            'data' => "timeout after waiting for $task_id"
+        }
+    );
+}
+
+return;
+
+#,,.,,..,,.,.,.,,,,..,.,,,.,.,,,.,..,,.,.,.,.,.,.,...,...,...,,,.,...,,,.,,,,,
+
+#,,.,,...,.,,,,,,,.,.,,..,...,,..,,.,,,,.,,,.,..,,...,...,.,,,..,,,,.,.,.,...,
+#2QKQBJMPAYQ7DN6IVMC3GLOFGO745ZS6FSJXB2UNWZORNRHOOBH2XS5BGZSMMD2HQE7TUAL7RHHIY
+#\\\|WBJIJBTS523AH4K4E6SKUY74TSO4DHMEHJI44QMTT77QU4GLTIC \ / AMOS7 \ YOURUM ::
+#\[7]7NKMBQHS2SH7DMERWCHR2OM7NUY6L24OIOYDRBJ7546O63SEFSDI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
