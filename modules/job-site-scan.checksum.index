@@ -1,0 +1,142 @@
+## [:< ##
+
+# name  = job-site-scan.checksum.index
+# descr = checksum-based deduplication and blacklist index for job entries
+# note  = stores AMOS checksums for companies, BMW-L13 for titles/urls.
+#         no raw strings preserved — only checksums.
+
+my $action = shift // 'check';
+
+my $index_file = '/var/protocol-7/job-site-scan/checksum-index.yaml';
+
+## ensure index exists ##
+<job-site-scan.checksum.data> //= {};
+my $idx = <job-site-scan.checksum.data>;
+
+if ( $action eq qw| load | ) {
+    <[base.perlmod.autoload]>->('YAML::XS');
+    if ( -f $index_file ) {
+        my $loaded = eval { YAML::XS::LoadFile($index_file) } // {};
+        <job-site-scan.checksum.data> = $loaded;
+    }
+    return <job-site-scan.checksum.data>;
+}
+
+if ( $action eq qw| persist | ) {
+    <[base.perlmod.autoload]>->('YAML::XS');
+    eval { YAML::XS::DumpFile( $index_file, $idx ) };
+    return;
+}
+
+if ( $action eq qw| check | ) {
+    my $job = shift // {};
+
+    ## compute checksums ##
+    my $company = $job->{'company'} // '';
+    my $title   = $job->{'title'}   // '';
+    my $url     = $job->{'url'}     // '';
+
+    utf8::encode($company) if utf8::is_utf8($company);
+    utf8::encode($title)   if utf8::is_utf8($title);
+    utf8::encode($url)     if utf8::is_utf8($url);
+
+    my @hits;
+
+    if ( length $company ) {
+        my $c_sum = <[chk-sum.amos]>->($company);
+        if ( length $c_sum
+            and exists $idx->{'companies'}{$c_sum} ) {
+            push @hits, "company:$c_sum";
+        }
+    }
+
+    if ( length $title ) {
+        my $t_sum = <[chk-sum.bmw.str-b32.L13]>->($title);
+        if ( length $t_sum
+            and exists $idx->{'titles'}{$t_sum} ) {
+            push @hits, "title:$t_sum";
+        }
+    }
+
+    if ( length $url ) {
+        my $u_sum = <[chk-sum.bmw.str-b32.L13]>->($url);
+        if ( length $u_sum
+            and exists $idx->{'urls'}{$u_sum} ) {
+            push @hits, "url:$u_sum";
+        }
+    }
+
+    return {
+        'is_blocked' => scalar(@hits) > 0,
+        'hits'       => \@hits,
+    };
+}
+
+if ( $action eq qw| add | ) {
+    my $job   = shift // {};
+    my $ntime = shift // <[base.ntime.b32]>->();
+
+    my $company = $job->{'company'} // '';
+    my $title   = $job->{'title'}   // '';
+    my $url     = $job->{'url'}     // '';
+
+    utf8::encode($company) if utf8::is_utf8($company);
+    utf8::encode($title)   if utf8::is_utf8($title);
+    utf8::encode($url)     if utf8::is_utf8($url);
+
+    $idx->{'companies'} //= {};
+    $idx->{'titles'}    //= {};
+    $idx->{'urls'}      //= {};
+
+    if ( length $company ) {
+        my $c_sum = <[chk-sum.amos]>->($company);
+        $idx->{'companies'}{$c_sum} = $ntime if length $c_sum;
+    }
+
+    if ( length $title ) {
+        my $t_sum = <[chk-sum.bmw.str-b32.L13]>->($title);
+        $idx->{'titles'}{$t_sum} = $ntime if length $t_sum;
+    }
+
+    if ( length $url ) {
+        my $u_sum = <[chk-sum.bmw.str-b32.L13]>->($url);
+        $idx->{'urls'}{$u_sum} = $ntime if length $u_sum;
+    }
+
+    return TRUE;
+}
+
+if ( $action eq qw| blacklist_company | ) {
+    my $company = shift // '';
+    my $ntime   = shift // <[base.ntime.b32]>->();
+
+    return FALSE unless length $company;
+
+    utf8::encode($company) if utf8::is_utf8($company);
+
+    my $c_sum = <[chk-sum.amos]>->($company);
+    return FALSE unless length $c_sum;
+
+    $idx->{'companies'} //= {};
+    $idx->{'companies'}{$c_sum} = $ntime;
+
+    return TRUE;
+}
+
+if ( $action eq qw| stats | ) {
+    return {
+        'companies' => scalar keys %{ $idx->{'companies'} // {} },
+        'titles'    => scalar keys %{ $idx->{'titles'}    // {} },
+        'urls'      => scalar keys %{ $idx->{'urls'}      // {} },
+    };
+}
+
+return { 'mode' => qw| false |, 'data' => "unknown action: $action" };
+
+#,,..,,.,,,,.,.,,,..,,..,,,..,.,.,...,,.,,.,,,..,,...,...,..,,.,.,..,,,.,,.,,,
+
+#,,,,,,..,.,.,,.,,.,.,,..,,.,,,,.,.,.,,.,,...,..,,...,...,..,,.,.,...,,,,,.,,,
+#4NB723ATRVMTRUZMT6FHX5AVV5VZ6WYAVJKBMARCZHKFBNF4CEQ3BO6NJTTWLTMREXPAHA7DG4JZY
+#\\\|M6WZIEMXGUDLUQ6VHIFZA5JWWBCQUGIR62OCWU5CMU2BHXZSQWM \ / AMOS7 \ YOURUM ::
+#\[7]KVOEDTHVRANZUIW3INFPD4375TPEEM45BUY5X3FJQ6BX5VA4E4AI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

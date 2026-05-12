@@ -15,6 +15,9 @@
 
 <[job-site-scan.state.load]>;
 
+## load checksum-based dedup / blacklist index ##
+<[job-site-scan.checksum.index]>->(qw| load |);
+
 ## var watcher on pending_count — fires when all assessments land
 <[event.add_var]>->(
     {   'var'     => \<job-site-scan.pending_count>,
@@ -72,8 +75,8 @@ my $job_count = scalar keys %{$tasks};
     <job-site-scan.cycle>, $job_count
 );
 
-#,,..,..,,...,,,.,,,.,,,.,.,.,,..,.,.,,..,,,.,..,,...,..,,.,,,,,,,.,.,,,.,.,,,
-#7WKBUVJ7HXLVL4PSNQAZ5INOATPLL674W6FUVUIIAH5BZFW6R4IA37CLUOZW4DNS2O4V3H34MD6UA
-#\\\|BUNGFIXUOKEYD7SDEUCVVLOGIAQX7E2ZFLHO7FDNGFK3ANSZLVF \ / AMOS7 \ YOURUM ::
-#\[7]4MZO4WJ7DNSHMKGKLAF5BDHL3A5DX2HWXB66ODL46XCS3F2R3UBY 7  DATA SIGNATURE ::
+#,,..,,..,,..,..,,...,,..,.,.,..,,,,,,,,,,..,,..,,...,...,.,.,,,.,,,.,,,.,,..,
+#ZN54PYAIVU4P6HX3SV4RVUVUP5W5FO4PKMKQDWMZNYP2IBEZLCA62A6AK3H3PE5QZ3EDXJPYJ7E7E
+#\\\|3GGR4VMX7OGVKMDSGOULZAP4WAB2KQUA3PUAYQ2UMFQNVQ7CTAV \ / AMOS7 \ YOURUM ::
+#\[7]P4GVVGC7BWZL7EJMAQCUA3TNGWFL7SVMZBQI3XG3DJDY226LYYDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
