@@ -1,7 +1,7 @@
 ## [:< ##
 
 # name  = site-yaml.cmd.import
-# descr = fetch search url, import new job records
+# descr = queue search results for async detail fetching
 
 my $url = $call->{'args'} // '';
 $url = $data{'site-yaml'}{'cfg'}{'stepstone_search_url'} // ''
@@ -15,10 +15,8 @@ $max_pages = 1 if $max_pages < 1;
 $max_pages = 5 if $max_pages > 5;    ## safety cap
 
 my $delay_search = <site-yaml.import_delay_search> // 1.5;
-my $delay_detail = <site-yaml.import_delay_detail> // 2.0;
 
-my ( $new_count, $skip_count, $err_count ) = ( 0, 0, 0 );
-my @retry_queue;
+my ( $queued_count, $skip_count, $err_count ) = ( 0, 0, 0 );
 
 for my $page ( 1 .. $max_pages ) {
     my $page_url = $url;
@@ -45,23 +43,19 @@ for my $page ( 1 .. $max_pages ) {
     for my $link ( @{$links} ) {
         my $id = $link->{'id'};
 
-        ## skip already-known jobs to avoid redundant fetches
+        ## skip already-known jobs
         if ( exists $data{'jobs'}{'store'}{$id} ) {
             $skip_count++;
             next;
         }
 
-        ## fetch full job record — delay to avoid rate limiting
-        select( undef, undef, undef, $delay_detail );
-        my $job = <[site-yaml.stepstone.job]>->( $link->{'url'} );
-        if ( ref $job ne 'HASH' ) {
-            <[base.logs]>->( 0, 'import: fetch error id=%s : %s', $id, $job );
-            push @retry_queue, $link;
-            next;
-        }
-
-        my $result = <[site-yaml.jobs.upsert]>->($job);
-        $new_count++ if $result eq 'new';
+        ## queue for async fetch with adaptive backoff ##
+        push @{ $data{'site-yaml'}{'fetch_queue'} },
+            {
+            'id'  => $id,
+            'url' => $link->{'url'},
+            };
+        $queued_count++;
     }
 
     ## delay between search pages
@@ -69,40 +63,21 @@ for my $page ( 1 .. $max_pages ) {
         if $page < $max_pages;
 }
 
-## retry failed fetches once with longer delay
-if (@retry_queue) {
-    <[base.logs]>->(
-        1,
-        'import: retrying %d failed fetch%s',
-        scalar @retry_queue,
-        scalar @retry_queue == 1 ? '' : 'es'
-    );
-    select( undef, undef, undef, 5 );    ## wait 5s before retry pass
-    for my $link (@retry_queue) {
-        my $id = $link->{'id'};
-        select( undef, undef, undef, 3 );
-        my $job = <[site-yaml.stepstone.job]>->( $link->{'url'} );
-        if ( ref $job ne 'HASH' ) {
-            <[base.logs]>
-                ->( 0, 'import: retry failed id=%s : %s', $id, $job );
-            $err_count++;
-            next;
-        }
-        my $result = <[site-yaml.jobs.upsert]>->($job);
-        $new_count++ if $result eq 'new';
-    }
+## start async fetch timer if queue has items and timer not running ##
+if ( $queued_count and not defined $data{'site-yaml'}{'fetch_timer'} ) {
+    <[site-yaml.fetch.schedule}>;
 }
 
-<[site-yaml.jobs.save]> if $new_count;
+<[site-yaml.fetch.state]>->('save');
 
-my $summary = sprintf 'import done: %d new, %d skipped, %d errors',
-    $new_count, $skip_count, $err_count;
+my $summary = sprintf 'import queued: %d new, %d skipped, %d errors',
+    $queued_count, $skip_count, $err_count;
 <[base.logs]>->( 1, 'site-yaml.import : %s', $summary );
 
 return { 'mode' => 'size', 'data' => $summary };
 
-#,,,,,.,.,,,.,,,.,.,,,..,,,,.,.,,,,..,,.,,,,,,..,,...,...,..,,..,,...,..,,..,,
-#FTHEU3VZ4ELVXERXXNA7TOJRPBQ6VOYRQSFGCE3JS6JJ3PJA7ONQKTOIRAZNUFTQ5DU2CVQD7VOIK
-#\\\|2AJJMXMVODEWCJUIWFISQYAX253RBCOKN2TURHV3VMJSP27MOWP \ / AMOS7 \ YOURUM ::
-#\[7]BBVH26NLMSIEV6K3PIZABCN2QUIGVMEARFSMDN45DI2BGNNRQGBA 7  DATA SIGNATURE ::
+#,,,,,,..,,..,...,...,,.,,,,.,...,...,,,,,.,,,..,,...,...,..,,,..,,,.,,,.,,..,
+#QANHZ6TWOO3TUGYJGX4QHHAKSSNWIWN3367VZZEE3OUTO6IIOBKAM2WQWEATAMDJUBSPMPHSUCFTY
+#\\\|74AGQZDSX2HF367HQRLD5KHS72CBSOL54A5DDI6EJHRRBJI2QYM \ / AMOS7 \ YOURUM ::
+#\[7]FPUWMPEW7LMKDTQI4NCRMMBEB74AKQYZIKCJS5XLCZPIWVMNZGCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

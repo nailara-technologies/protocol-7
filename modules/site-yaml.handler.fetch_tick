@@ -1,0 +1,65 @@
+## [:< ##
+
+# name  = site-yaml.handler.fetch_tick
+# descr = process one item from fetch queue, adjust delay, reschedule
+
+my $queue = $data{'site-yaml'}{'fetch_queue'} // [];
+
+if ( not @{$queue} ) {
+    <[site-yaml.fetch.schedule}>;
+    return;
+}
+
+my $item = shift @{$queue};
+my $url  = $item->{'url'} // '';
+my $id   = $item->{'id'}  // '';
+
+return unless length $url;
+
+## fetch job detail ##
+my $job = <[site-yaml.stepstone.job]>->($url);
+
+my $ql = scalar @{$queue} + 1;    ## including current item
+
+if ( ref $job ne 'HASH' ) {
+    my $err          = $job // 'unknown';
+    my $is_ratelimit = $err =~ m{403|rate.?limit|too.?many}i;
+    my $tag          = $is_ratelimit ? '403' : 'err';
+
+    if ($is_ratelimit) {
+        unshift @{$queue}, $item;
+        <[site-yaml.fetch.backoff]>->('error');
+    } else {
+        $item->{'retry_count'} //= 0;
+        $item->{'retry_count'}++;
+        if ( $item->{'retry_count'} <= 2 ) {
+            push @{$queue}, $item;
+            $tag .= ' retry=' . $item->{'retry_count'};
+        } else {
+            $tag = 'drop';
+        }
+    }
+
+    <[base.logs]>->( 0, 'fetch: %s [%s] q=%d', $id, $tag, scalar @{$queue} );
+    <[site-yaml.fetch.state]>->('save');
+    <[site-yaml.fetch.schedule}>;
+    return;
+}
+
+## success ##
+my $result = <[site-yaml.jobs.upsert]>->($job);
+my $tag    = $result eq 'new' ? 'new' : 'skip';
+<[base.logs]>->( 1, 'fetch: %s [%s] q=%d', $id, $tag, $ql - 1 );
+
+<[site-yaml.fetch.backoff]>->('success');
+<[site-yaml.jobs.save]> if $result eq 'new';
+<[site-yaml.fetch.state]>->('save');
+<[site-yaml.fetch.schedule}>;
+
+return;
+
+#,,,,,,.,,,..,.,,,...,,,.,,,,,,..,...,..,,,..,.,.,...,...,...,,,.,,..,.,.,,,.,
+#OFZCSGVDOPGS3JWEFCTZPDQ4GU5RHVRTVVPMMXBE77SMDQJNSPCEYRCPZ4IEO6OQ7MNJZL6ZUXOGU
+#\\\|55TQL7GAGORJ3GNPCKVVNNJ3WS3A7SBOHHOBTX62OVJAHMWDHEG \ / AMOS7 \ YOURUM ::
+#\[7]ESJ32R4QDNJXTGYSPKK3LK5K7OJHU5U6VFW72I54ZC4VYR2P6KDA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
