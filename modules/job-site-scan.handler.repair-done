@@ -113,12 +113,12 @@ if ( $validation->{'is_valid'} ) {
     if ( length($score) and $score >= $threshold ) {
         $job_rec->{'stage'} = 'review';
         <[base.logs]>->(
-            1,       'jss: repair for job %s score=%s → review',
+            1,       'repair for job %s score=%s → review',
             $job_id, $score
         );
     } else {
         <[base.logs]>->(
-            1,       'jss: repair for job %s score=%s below threshold',
+            1,       'repair for job %s score=%s below threshold',
             $job_id, length($score) ? $score : '?'
         );
     }
@@ -148,7 +148,7 @@ if ( $validation->{'is_valid'} ) {
     ## repair still invalid — mark and keep whatever we have ##
     $job_rec->{'repair_failed'} = TRUE;
     <[base.logs]>->(
-        1, 'jss: repair for job %s still invalid (%s), keeping original',
+        1,       'repair for job %s still invalid (%s), keeping original',
         $job_id, join( ', ', $validation->{'defects'}->@* )
     );
 }
@@ -158,7 +158,7 @@ if ( $validation->{'is_valid'} ) {
 if ( <job-site-scan.pending_count> <= 0 ) {
     <job-site-scan.pending_count> = 0;
     <job-site-scan.cycle>         = 'idle';
-    <[base.logs]>->( 1, 'jss: all assessments complete, cycle=idle' );
+    <[base.logs]>->( 1, 'all assessments complete, cycle=idle' );
 }
 
 <[job-site-scan.state.persist]>;
@@ -166,8 +166,8 @@ if ( <job-site-scan.pending_count> <= 0 ) {
 
 #,,..,,.,,,,.,.,,,..,,..,,,..,.,.,...,,.,,.,,,..,,...,...,..,,.,.,..,,,.,,.,,,,
 
-#,,,,,...,..,,.,,,,,.,..,,,,.,,,.,.,.,...,,,.,..,,...,...,,..,,.,,,,,,,.,,,.,,
-#TLSXZ36RJE6DU44FKYA3DYDFTDKJYSLSLROBSNXCYERQ4GBTB4YAZWW6M5V22GPCHCI6SOH6T55IG
-#\\\|5YK5S564TLT7QAIMZIPUS5Q4E3MS3QDQNIUMBIGHUV774YHL4MO \ / AMOS7 \ YOURUM ::
-#\[7]UWNI53HZXAZIDQWG5AUQTW5G6PERGB74TS6K7OD2PIU37VGLMUBA 7  DATA SIGNATURE ::
+#,,.,,,,,,,..,,..,..,,,,.,,..,..,,,,.,.,.,,..,..,,...,...,,,,,,,.,,..,..,,.,,,
+#FFFDBNO5SCTOQ2P63K4VSZQUECI4LORQEBQEHRMH5ZD4G6LBD77DCQPCYXAMPHDD5Z26DDQLM72KO
+#\\\|2EU3MMPEALU4Y7TFS5XQTAPQJLWUCPCQJ34BK4JFFOIFSUZZ5CR \ / AMOS7 \ YOURUM ::
+#\[7]IJILYIEF3BU67XI2ANZIKXPXODAMHMXFL7DJQ2LR3S7Q3WKZFUDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

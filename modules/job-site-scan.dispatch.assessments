@@ -13,10 +13,10 @@ if ( not %{$store} ) {
     my $store_file = '/var/protocol-7/site-yaml/store.yaml';
     if ( -f $store_file ) {
         eval { $store = YAML::XS::LoadFile($store_file) };
-        <[base.logs]>->( 0, 'jss: store load error: %s', $@ ) if $@;
+        <[base.logs]>->( 0, 'store load error: %s', $@ ) if $@;
         <[base.logs]>->(
             1,
-            'jss: loaded %d store entries from file',
+            'loaded %d store entries from file',
             ref $store eq 'HASH' ? scalar keys %{$store} : 0
         );
     }
@@ -32,7 +32,7 @@ for my $job_id ( keys %{$store} ) {
     my $chk = <[job-site-scan.checksum.index]>->( qw| check |, $job );
     if ( $chk->{'is_blocked'} ) {
         <[base.logs]>->(
-            2,       'jss: job %s blocked by checksum index [%s]',
+            2,       'job %s blocked by checksum index [%s]',
             $job_id, join( ', ', $chk->{'hits'}->@* )
         );
         $job->{'status'} = 'blocked';
@@ -43,7 +43,7 @@ for my $job_id ( keys %{$store} ) {
 }
 
 if ( not @to_assess ) {
-    <[base.logs]>->( 1, 'jss: no new untracked jobs to assess, idle' );
+    <[base.logs]>->( 1, 'no new untracked jobs to assess, idle' );
     <job-site-scan.cycle> = 'idle';
     <[job-site-scan.state.persist]>;
     return;
@@ -55,7 +55,7 @@ if ( not @to_assess ) {
 
 <[base.logs]>->(
     1,
-    'jss: queuing %d assessment tasks (sequential)',
+    'queuing %d assessment tasks (sequential)',
     scalar @to_assess
 );
 
@@ -75,63 +75,10 @@ for my $job_id (@to_assess) {
     <job-site-scan.tasks>->{$job_id}
         = { 'stage' => 'queued', 'task_id' => '' };
 
-    my $job      = $store->{$job_id};
-    my $title    = $job->{'title'}       // '';
-    my $co       = $job->{'company'}     // '';
-    my $city     = $job->{'city'}        // '';
-    my $ind      = $job->{'industry'}    // '';
-    my $raw_desc = $job->{'description'} // '';
-    HTML::Entities::decode_entities($raw_desc) if length $raw_desc;
-    for ( $title, $co, $city, $ind, $raw_desc ) {
-        $_ = Encode::decode( 'UTF-8', $_ ) unless utf8::is_utf8($_);
-    }
-    my $desc = substr( $raw_desc, 0, 1200 );
-
     ## initialize assertion tree for this job ##
     <[job-site-scan.assert.init]>->($job_id);
 
-    ## build complete self-contained prompt — english first, then german output
-    my $prompt = join( "\n\n",
-        ':local: :simple: You are a job-matching assistant. Assess the fit,'
-            . ' then translate your analysis into German and output ONLY a German JSON object — no other text.',
-        'Assessment criteria: technical alignment (highest weight),'
-            . ' seniority, location / remote option, industry relevance, role scope.',
-        'Step 1 — Analyze in English: think through technical fit, location,'
-            . ' culture, compensation, remote flexibility, career growth, tech stack, team structure.',
-        'Step 2 — Translate into German and output EXACTLY this JSON format:'
-            . ' {"score": <0-10>, "apply": <true|false>,'
-            . ' "reason": "<1-2 deutsche Sätze: warum der Kandidat passt oder nicht passt>",'
-            . ' "summary": "<2-3 deutsche Sätze: was die Stelle bietet, gesuchte Skills,'
-            . ' Remote/Standort-Details, Besonderheiten>",'
-            . ' "assertions": {'
-            . '   "suggest": {'
-            . '     "apply": <true|false>,      /* soll der Nutzer sich bewerben? */'
-            . '     "delete": <true|false>,      /* soll der Eintrag gelöscht werden? */'
-            . '     "archive": <true|false>      /* soll der Eintrag archiviert werden? */'
-            . '   },'
-            . '   "dimensions": {'
-            . '     "location": {"score": <0-10>, "reason": "<1 Satz>"},'
-            . '     "work-profile": {"score": <0-10>, "reason": "<1 Satz>"},'
-            . '     "company-culture": {"score": <0-10>, "reason": "<1 Satz>"},'
-            . '     "compensation": {"score": <0-10>, "reason": "<1 Satz>"},'
-            . '     "remote-flexibility": {"score": <0-10>, "reason": "<1 Satz>"},'
-            . '     "career-growth": {"score": <0-10>, "reason": "<1 Satz>"},'
-            . '     "tech-stack": {"score": <0-10>, "reason": "<1 Satz>"},'
-            . '     "team-structure": {"score": <0-10>, "reason": "<1 Satz>"}'
-            . '   }'
-            . ' } }',
-        'CRITICAL: All text values MUST be valid UTF-8 encoded German.'
-            . ' Use proper umlauts (ä ö ü ß) — never escape them as ae oe ue ss.'
-            . ' No English in the JSON fields. No Chinese.',
-        '## Kandidatenprofil ##',
-        $profile_text,
-        '## Stellenanzeige ##',
-        "Titel: $title",
-        "Unternehmen: $co",
-        "Ort: $city",
-        "Branche: $ind",
-        "Beschreibung:\n$desc",
-    );
+    my $prompt = <[job-site-scan.util.build_prompt]>->( $store->{$job_id} );
 
     push @queue, { 'job_id' => $job_id, 'desc' => $prompt };
 }
@@ -143,8 +90,8 @@ for my $job_id (@to_assess) {
 
 return;
 
-#,,,.,,.,,.,,,...,...,.,,,,.,,..,,.,.,..,,,.,,..,,...,...,...,,,.,,..,...,,..,
-#O622VBYYMKIWZGUKRMNMHKTKRIX3HMJA4JBUUPVIQZLWQYXHE4IFAYDW3TCHNBWIBHPH6JEI7HSJC
-#\\\|EGV2UQ5ILUSSGTWNQFJG37JSNBAABAL6PHEEVA7F4XYM2ROPMQ7 \ / AMOS7 \ YOURUM ::
-#\[7]5KYM7DY7KOHLG5C5HUSYH7SSXNNPNEHC426UBI2ZUDZBMTLKY6DQ 7  DATA SIGNATURE ::
+#,,,,,.,.,..,,..,,..,,..,,.,,,,..,.,.,.,,,,..,..,,...,...,,.,,,,,,.,.,.,,,,..,
+#EKCHWSXFWOX5H26BI3FAOZYFBAUAMB5UUUONYOPMO7E2XTGGPCLESUVWSNVGRWAGFPYVHS7KOO6KM
+#\\\|5XYSWBBWYRQFMDNG756C64KA6HH6S3MO3XTA3G5GE5JTWM6YB7C \ / AMOS7 \ YOURUM ::
+#\[7]6K5UM7ESB7C3MARQDRTAE264LRN6WZMGLR3CRICIFGGZ3O2XDUCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
