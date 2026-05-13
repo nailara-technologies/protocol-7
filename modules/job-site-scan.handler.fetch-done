@@ -25,146 +25,24 @@ if ( lc($mode) eq qw| false | ) {
 
 return if <job-site-scan.fetch_pending> > 0;
 
-## all fetches done — collect new untracked jobs from site-yaml store
-<[base.perlmod.autoload]>->('HTML::Entities');
-my $store = $data{'site-yaml'}{'jobs'}{'store'} // {};
-
-## fallback: read from file if not in shared namespace
-if ( not %{$store} ) {
-    <[base.perlmod.autoload]>->('YAML::XS');
-    my $store_file = '/var/protocol-7/site-yaml/store.yaml';
-    if ( -f $store_file ) {
-        eval { $store = YAML::XS::LoadFile($store_file) };
-        <[base.logs]>->( 0, 'jss: store load error: %s', $@ ) if $@;
-        <[base.logs]>->(
-            1,
-            'jss: loaded %d store entries from file',
-            ref $store eq 'HASH' ? scalar keys %{$store} : 0
-        );
-    }
-}
-
-my @to_assess;
-for my $job_id ( keys %{$store} ) {
-    my $job = $store->{$job_id};
-    next if ( $job->{'status'} // '' ) ne 'new';
-    next if exists <job-site-scan.tasks>->{$job_id};
-
-    ## checksum dedup / blacklist check ##
-    my $chk = <[job-site-scan.checksum.index]>->( qw| check |, $job );
-    if ( $chk->{'is_blocked'} ) {
-        <[base.logs]>->(
-            2,       'jss: job %s blocked by checksum index [%s]',
-            $job_id, join( ', ', $chk->{'hits'}->@* )
-        );
-        $job->{'status'} = 'blocked';
-        next;
-    }
-
-    push @to_assess, $job_id;
-}
-
-if ( not @to_assess ) {
-    <[base.logs]>->( 1, 'jss: no new untracked jobs to assess, idle' );
-    <job-site-scan.cycle> = 'idle';
-    <[job-site-scan.state.persist]>;
+## all imports replied — check if async detail fetches are still running ##
+my $queue = $data{'site-yaml'}{'fetch_queue'} // [];
+if ( @{$queue} ) {
+    <[base.logs]>->(
+        1,
+        'jss: %d detail fetches in progress, waiting for queue drain',
+        scalar @{$queue}
+    );
+    $data{'site-yaml'}{'fetch_drain_cb'}
+        = 'job-site-scan.handler.fetch-drain';
     return;
 }
 
-<job-site-scan.cycle>         = 'assessing';
-<job-site-scan.pending_count> = scalar @to_assess;
-<[job-site-scan.state.persist]>;
+## queue empty — proceed to assessments immediately ##
+<[job-site-scan.dispatch.assessments]>;
 
-<[base.logs]>->(
-    1,
-    'jss: queuing %d assessment tasks (sequential)',
-    scalar @to_assess
-);
-
-## load candidate profile once
-my $profile_file = <job-site-scan.cfg.profile_file>
-    // '/etc/protocol-7/job-site-scan/profile.txt';
-my $profile_text = '';
-$profile_text = <[file.read]>->($profile_file)
-    // 'no profile configured — score based on job listing alone';
-<[base.perlmod.autoload]>->('Encode');
-$profile_text = Encode::decode( 'UTF-8', $profile_text )
-    unless utf8::is_utf8($profile_text);
-
-## build queue entries
-my @queue;
-for my $job_id (@to_assess) {
-    <job-site-scan.tasks>->{$job_id}
-        = { 'stage' => 'queued', 'task_id' => '' };
-
-    my $job      = $store->{$job_id};
-    my $title    = $job->{'title'}       // '';
-    my $co       = $job->{'company'}     // '';
-    my $city     = $job->{'city'}        // '';
-    my $ind      = $job->{'industry'}    // '';
-    my $raw_desc = $job->{'description'} // '';
-    HTML::Entities::decode_entities($raw_desc) if length $raw_desc;
-    for ( $title, $co, $city, $ind, $raw_desc ) {
-        $_ = Encode::decode( 'UTF-8', $_ ) unless utf8::is_utf8($_);
-    }
-    my $desc = substr( $raw_desc, 0, 1200 );
-
-    ## initialize assertion tree for this job ##
-    <[job-site-scan.assert.init]>->($job_id);
-
-    ## build complete self-contained prompt — english first, then german output
-    my $prompt = join( "\n\n",
-        ':local: :simple: You are a job-matching assistant. Assess the fit,'
-            . ' then translate your analysis into German and output ONLY a German JSON object — no other text.',
-        'Assessment criteria: technical alignment (highest weight),'
-            . ' seniority, location / remote option, industry relevance, role scope.',
-        'Step 1 — Analyze in English: think through technical fit, location,'
-            . ' culture, compensation, remote flexibility, career growth, tech stack, team structure.',
-        'Step 2 — Translate into German and output EXACTLY this JSON format:'
-            . ' {"score": <0-10>, "apply": <true|false>,'
-            . ' "reason": "<1-2 deutsche Sätze: warum der Kandidat passt oder nicht passt>",'
-            . ' "summary": "<2-3 deutsche Sätze: was die Stelle bietet, gesuchte Skills,'
-            . ' Remote/Standort-Details, Besonderheiten>",'
-            . ' "assertions": {'
-            . '   "suggest": {'
-            . '     "apply": <true|false>,      /* soll der Nutzer sich bewerben? */'
-            . '     "delete": <true|false>,      /* soll der Eintrag gelöscht werden? */'
-            . '     "archive": <true|false>      /* soll der Eintrag archiviert werden? */'
-            . '   },'
-            . '   "dimensions": {'
-            . '     "location": {"score": <0-10>, "reason": "<1 Satz>"},'
-            . '     "work-profile": {"score": <0-10>, "reason": "<1 Satz>"},'
-            . '     "company-culture": {"score": <0-10>, "reason": "<1 Satz>"},'
-            . '     "compensation": {"score": <0-10>, "reason": "<1 Satz>"},'
-            . '     "remote-flexibility": {"score": <0-10>, "reason": "<1 Satz>"},'
-            . '     "career-growth": {"score": <0-10>, "reason": "<1 Satz>"},'
-            . '     "tech-stack": {"score": <0-10>, "reason": "<1 Satz>"},'
-            . '     "team-structure": {"score": <0-10>, "reason": "<1 Satz>"}'
-            . '   }'
-            . ' } }',
-        'CRITICAL: All text values MUST be valid UTF-8 encoded German.'
-            . ' Use proper umlauts (ä ö ü ß) — never escape them as ae oe ue ss.'
-            . ' No English in the JSON fields. No Chinese.',
-        '## Kandidatenprofil ##',
-        $profile_text,
-        '## Stellenanzeige ##',
-        "Titel: $title",
-        "Unternehmen: $co",
-        "Ort: $city",
-        "Branche: $ind",
-        "Beschreibung:\n$desc",
-    );
-
-    push @queue, { 'job_id' => $job_id, 'desc' => $prompt };
-}
-
-<job-site-scan.assess_queue> = \@queue;
-
-## dispatch first task — task-created handler will call dispatch.next for each
-<[job-site-scan.dispatch.next]>;
-
-#,,..,.,.,.,.,.,.,.,,,,.,,..,,,.,,.,,,,,,,,,,,..,,...,...,.,.,.,,,,.,,.,,,,.,,
-#IKZCVGXVB3AR2KYMZBCFMVRXF34X6AB7DJ5KFSLHWYL4S4LTQ7WFE7XXFBIEVP3HZDD7D6LLUTOGC
-#\\\|NAO6OS3UQLR4TEUJ5OWHNBWWYGGNFD6IFLDQTR2YHESLGBRGHUU \ / AMOS7 \ YOURUM ::
-#\[7]NQQEYAH36ICPVO3PXFJSYMG5P2BZGHOKCEAXOAKNLMDTGI5UIIDY 7  DATA SIGNATURE ::
+#,,,.,.,,,,,,,..,,...,.,,,,,,,...,..,,.,.,,..,..,,...,...,..,,,.,,..,,.,,,.,.,
+#4537CYEP4KLX5S3KKHO6J62GKECUYYWTJGOEMITRT75NOIGNRUKVVSEH36KKKDFIJJ2SEMNJZOI2K
+#\\\|7V3F32LJWEZ6MIMT5HXTZX2DQQCLSLAUAB2GCLSMW2MGIVECMQ4 \ / AMOS7 \ YOURUM ::
+#\[7]64OKBCYAX7WP4ZUJMG6PNZCMUWQIK4OUC6EPHRXHHNPFETXKB4DQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

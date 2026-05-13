@@ -1,0 +1,68 @@
+## [:< ##
+
+# name  = site-yaml.fetch.state
+# descr = load/save fetch queue state from zenka_dir
+
+my $op = shift // 'load';
+
+my $state_file = 'fetch-state.yaml';
+
+if ( $op eq qw| load | ) {
+    my $sref = <[file.zenka_dir.load]>->($state_file);
+    return if not defined $sref;
+
+    my $loaded;
+    eval { $loaded = YAML::XS::Load( $sref->$* ) };
+    if ($@) {
+        <[base.logs]>->( 0, 'fetch.state: load error: %s', $@ );
+        return;
+    }
+    return if ref $loaded ne 'HASH';
+
+    $data{'site-yaml'}{'fetch_delay'}     = $loaded->{'delay'}     // 1.5;
+    $data{'site-yaml'}{'fetch_delay_min'} = $loaded->{'delay_min'} // 0.5;
+    $data{'site-yaml'}{'fetch_delay_max'} = $loaded->{'delay_max'} // 10.0;
+    $data{'site-yaml'}{'fetch_errors'}    = $loaded->{'errors'}    // 0;
+    $data{'site-yaml'}{'fetch_successes'} = $loaded->{'successes'} // 0;
+    $data{'site-yaml'}{'fetch_queue'}     = $loaded->{'queue'}     // [];
+    $data{'site-yaml'}{'fetch_drain_cb'}  = $loaded->{'drain_cb'}  // '';
+    $data{'site-yaml'}{'fetch_timer'}     = undef;
+
+    <[base.logs]>->(
+        1,
+        'fetch: state loaded delay=%.1fs queue=%d',
+        $data{'site-yaml'}{'fetch_delay'},
+        scalar @{ $data{'site-yaml'}{'fetch_queue'} }
+    );
+    return TRUE;
+}
+
+if ( $op eq qw| save | ) {
+    my $payload = {
+        'delay'     => $data{'site-yaml'}{'fetch_delay'}     // 1.5,
+        'delay_min' => $data{'site-yaml'}{'fetch_delay_min'} // 0.5,
+        'delay_max' => $data{'site-yaml'}{'fetch_delay_max'} // 10.0,
+        'errors'    => $data{'site-yaml'}{'fetch_errors'}    // 0,
+        'successes' => $data{'site-yaml'}{'fetch_successes'} // 0,
+        'queue'     => $data{'site-yaml'}{'fetch_queue'}     // [],
+        'drain_cb'  => $data{'site-yaml'}{'fetch_drain_cb'}  // '',
+    };
+
+    my $yaml;
+    eval { $yaml = YAML::XS::Dump($payload) };
+    if ($@) {
+        <[base.logs]>->( 0, 'fetch.state: save error: %s', $@ );
+        return FALSE;
+    }
+
+    my $written = <[file.zenka_dir.write]>->( $state_file, \$yaml );
+    return defined $written ? TRUE : FALSE;
+}
+
+return FALSE;
+
+#,,..,,,,,..,,...,,..,,.,,,..,,.,,,.,,..,,.,.,.,.,...,...,,,,,...,,,,,,..,.,.,
+#HNE5AZ6AAROAFAZSBR54QCLSC6JEU42VIWDUSA7Y2YZ72PYAEBWNXQTUI4LUZ5ZEGEC5YEAEDLABS
+#\\\|NX2YHGARKVXR2I3RWFBMTEJQV4ALUKVU67WS24NZYAI5ONFGNDB \ / AMOS7 \ YOURUM ::
+#\[7]5RFBFJKDP2OP7M7GAYRVOCYWKIVAK627EZEWUZG7TOMAMI7MJ2DY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
