@@ -1,0 +1,84 @@
+## [:< ##
+
+# name  = job-site-scan.util.build_prompt
+# descr = build assessment prompt for a single job
+
+my $job = shift // {};
+
+my $title    = $job->{'title'}       // '';
+my $co       = $job->{'company'}     // '';
+my $city     = $job->{'city'}        // '';
+my $ind      = $job->{'industry'}    // '';
+my $raw_desc = $job->{'description'} // '';
+
+<[base.perlmod.autoload]>->('HTML::Entities');
+HTML::Entities::decode_entities($raw_desc) if length $raw_desc;
+
+<[base.perlmod.autoload]>->('Encode');
+for ( $title, $co, $city, $ind, $raw_desc ) {
+    $_ = Encode::decode( 'UTF-8', $_ ) unless utf8::is_utf8($_);
+}
+my $desc = substr( $raw_desc, 0, 1200 );
+
+## load candidate profile once and cache ##
+my $profile_text = $data{'job-site-scan'}{'cached_profile'} // '';
+if ( not length $profile_text ) {
+    my $profile_file = <job-site-scan.cfg.profile_file>
+        // '/etc/protocol-7/job-site-scan/profile.txt';
+    $profile_text = <[file.read]>->($profile_file)
+        // 'no profile configured — score based on job listing alone';
+    $profile_text = Encode::decode( 'UTF-8', $profile_text )
+        unless utf8::is_utf8($profile_text);
+    $data{'job-site-scan'}{'cached_profile'} = $profile_text;
+}
+
+my $prompt = join( "\n\n",
+    ':local: :simple: You are a job-matching assistant. Your task: evaluate whether'
+        . ' Alexander Taute fits the job below. Output ONLY a German JSON object — no other text.',
+    'IMPORTANT: Alexander Taute is a Senior Software Architect with 25+ years in Perl,'
+        . ' Unix/Linux, security, and distributed systems. He is NOT the job description.'
+        . ' Do NOT confuse his profile with the role being advertised.',
+    'Assessment criteria: technical alignment (highest weight),'
+        . ' seniority, location / remote option, industry relevance, role scope.',
+    'Step 1 — Analyze in English: compare Alexander\'s profile against the job requirements.',
+    'Step 2 — Translate into German and output EXACTLY this JSON format:'
+        . ' {"score": <0-10>, "apply": <true|false>,'
+        . ' "reason": "<1-2 deutsche Sätze: passt Alexander zu dieser Stelle oder nicht>",'
+        . ' "summary": "<2-3 deutsche Sätze: was die Stelle bietet, gesuchte Skills,'
+        . ' Remote/Standort-Details, Besonderheiten>",'
+        . ' "assertions": {'
+        . '   "suggest": {'
+        . '     "apply": <true|false>,      /* soll Alexander sich bewerben? */'
+        . '     "delete": <true|false>,      /* Eintrag löschen? */'
+        . '     "archive": <true|false>      /* Eintrag archivieren? */'
+        . '   },'
+        . '   "dimensions": {'
+        . '     "location": {"score": <0-10>, "reason": "<1 Satz>"},'
+        . '     "work-profile": {"score": <0-10>, "reason": "<1 Satz>"},'
+        . '     "company-culture": {"score": <0-10>, "reason": "<1 Satz>"},'
+        . '     "compensation": {"score": <0-10>, "reason": "<1 Satz>"},'
+        . '     "remote-flexibility": {"score": <0-10>, "reason": "<1 Satz>"},'
+        . '     "career-growth": {"score": <0-10>, "reason": "<1 Satz>"},'
+        . '     "tech-stack": {"score": <0-10>, "reason": "<1 Satz>"},'
+        . '     "team-structure": {"score": <0-10>, "reason": "<1 Satz>"}'
+        . '   }'
+        . ' } }',
+    'CRITICAL: All text MUST be valid UTF-8 German with proper umlauts (ä ö ü ß).'
+        . ' Never use ae/oe/ue/ss. No English. No Chinese.',
+    '## Kandidatenprofil — Alexander Taute ##',
+    $profile_text,
+    '## Stellenanzeige — DIESE STELLE BEWERTEN ##',
+    "Titel: $title",
+    "Unternehmen: $co",
+    "Ort: $city",
+    "Branche: $ind",
+    "Beschreibung:\n$desc",
+);
+
+return $prompt;
+
+#,,,.,,,,,...,.,.,..,,,,,,..,,.,,,,..,.,.,.,.,.,.,...,...,,.,,,,,,.,.,.,.,,,.,
+#XNZ6HW2FE2P2UVRSRIUYXPQ3ZMJCSDBG4P2SF4KCGZXOEPJEDJCBNNVNUJGGSMY7OVZJXLMWKXFUI
+#\\\|QSKEA2X7MWFQG5XISEBS7MVKRT23VDLVYGT24BAID3BK6U5BAT6 \ / AMOS7 \ YOURUM ::
+#\[7]OJ5ZADKS4K2JVUKGSK4FQ5Q5SNXAKO57LPKEMB7T5UXT5JOVUKCQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

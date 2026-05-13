@@ -1901,3 +1901,70 @@ Added two-tier timeout system:
 #\\\|IJOGY7GD2VRZLZMJYD6EVKOVNDPOLPJXADMAKNJMDYZ3AKCXQYJ \ / AMOS7 \ YOURUM ::
 #\[7]GMQFKSS5XU6DQIGTWQO6P6ZAYDM54U23QT4XGHKRNCVYOYGIJGBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+
+## Job-Site-Scan Major Refactor (2026-05-12) — COMPLETE
+
+### Coding Zenka Event Loop Safety
+- **drain_pipe**: Single `sysread` per io-watcher invocation, no `while(1)`. Cancels watcher on EOF/EBADF.
+- **wait-done**: Deferred reply pattern with timeout timer. Returns `{mode => 'deferred'}`, registers in `$data{'coding'}{'deferred_replies'}`. Fast path for already-completed tasks.
+- **deferred_reply**: Cancels timeout timer on task completion to prevent race.
+- **Deleted**: `coding.handler.http_poll` (dead code).
+- Files: `modules/coding.handler.drain_pipe`, `modules/coding.cmd.wait-done`, `modules/coding.handler.wait_done_timeout`, `modules/coding.handler.deferred_reply`
+
+### Job Assessment Pipeline — New Features
+- **Checksum dedup/blacklist**: AMOS7 for companies, BMW-L13 for titles/urls. Zero raw string storage.
+  - `job-site-scan.checksum.index`: check/add/blacklist_company/persist/stats operations
+  - `job-site-scan.cmd.blacklist-add`, `job-site-scan.cmd.blacklist-stats`
+- **Assessment validation**: Detects `empty_reason`, `empty_summary`, `wrong_language_english`, `wrong_language_chinese`
+- **Repair pipeline**: Auto-dispatches repair on first defect. Accepts if improved, marks `repair_failed` on second failure.
+- **Protected stages**: `applied`/`responded`/`rejected`/`archived` survive pipeline overwrites.
+- **Assertion trees**: Per-job valued tree with `suggest.{apply,delete,archive}` + 8 dimension scores parsed from model JSON.
+- **Encoding fix**: `job-site-scan.util.fix_encoding` repairs mojibake (ISO-8859-15 first, then ISO-8859-1).
+- **Ghost queue fix**: `job-site-scan.state.load` resets `queued`/`assessing` tasks to `idle` on restart.
+
+### Proxy & Network Fixes
+- **site-yaml.init_code**: Added `$ua->env_proxy()` to actually use `HTTP_PROXY`/`HTTPS_PROXY`. `bypass_proxy` config now works.
+- **Pagination**: `site-yaml.import_max_pages` config (default 1, cap 5). StepStone uses `?page=N`.
+- **Rate limiting**: Configurable delays `import_delay_search` / `import_delay_detail`.
+
+### Fetch Queue Architecture (Async)
+- **site-yaml.fetch.state**: Load/save queue + delay state from `zenka_dir/fetch-state.yaml`
+- **site-yaml.fetch.backoff**: Discrete adaptive delay. ×1.5-2.0 (with jitter) on 403 error. ×0.9 after 3 consecutive successes. Clamped to min/max.
+- **site-yaml.fetch.schedule**: One-shot timer manager. Fires drain callback when queue empties.
+- **site-yaml.handler.fetch_tick**: Pops one URL, fetches, handles 403 (re-queue front + backoff) vs transient errors (retry ×2), persists state, reschedules.
+- **site-yaml.cmd.import**: Queues job URLs instead of inline fetching. Search pages still fetched synchronously.
+- **job-site-scan.dispatch.assessments**: Extracted assessment queuing logic.
+- **job-site-scan.handler.fetch-drain**: Callback fired when queue drains → triggers assessments.
+- **job-site-scan.handler.fetch-done**: Waits for queue drain before dispatching assessments.
+
+### Prompt Improvements
+- **English-first-then-German**: Step 1 analyze in English, Step 2 output German JSON.
+- **Explicit candidate framing**: "Alexander Taute is a Senior Software Architect... He is NOT the job description."
+- **UTF-8 guardrail**: "Use proper umlauts (ä ö ü ß) — never escape them as ae oe ue ss."
+- **Shared prompt builder**: `job-site-scan.util.build_prompt` used by both dispatch.assessments and dispatch.repair.
+- **show-prompt command**: `job-site-scan.cmd.show-prompt <job_id>` returns the exact prompt the model would receive.
+
+### HTML UI Updates
+- **New filters**: `löschen` (delete-suggested), `fehler` (repair_failed)
+- **Assertion badges**: `bewerben` (green), `löschen` (red), `archiv` (gray)
+- **Repair badges**: `repariert`, `fehler`
+- **Dimension grid**: Expandable with color-coded scores
+- **CSV export**: 11 new assertion columns
+- **Print table**: Apply/delete checkmarks + dimension list
+
+### Export Script Updates
+- `bin/dev/export-jobs-json`: Surfaces `assertions`, `repair_applied`, `repair_failed`. Maps `blocked` → `skipped`.
+
+### Commits
+- `ac1fc96a6`: job-site-scan repair pipeline + coding zenka event loop safety + proxy config fix
+- `2f4ede445`: export script + HTML UI assertion support
+- `b9467a894`: proxy env fix, pagination, rate-limiting delays, encoding repair, ghost queue fix
+- `3b0dd9e40`: fetch queue with adaptive backoff + clean logging
+
+---
+
+#,,,.,,.,,.,,,,..,,.,,,..,,,.,,,,,,.,,,,,,,..,.,.,...,...,...,.,,,,.,,...,..,,
+#GHPXUCSF3QWHK5BPVYUHI24Y4U7PYZU6JAKY2WOQUEGKBXWZYHKFDJ5T7Y2QCD7VED7K4Z6HJ6YO2
+#\\\|DQIZJOC64CCUAWVYOPFUFW33YYGWGKZSFIJ4XOS335S5BT7N76Y \ / AMOS7 \ YOURUM ::
+#\[7]AFG4WYG5A35TPLI43DNCOCK625RX4EYSPANDBKLYAVEZKRM3D6BY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
