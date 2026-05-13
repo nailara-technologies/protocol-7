@@ -8,13 +8,17 @@ buffer.session.max_size = 795648
 system.verbosity.zenka_buffer = 1
 
 access.cmd.usr.cube = heart subname name commands reload verify-instance \
-                      list src-age src-ver show-buffer \
+                      list src-age src-ver show-buffer src-age src-ver \
                       buffer-erase buffer-erase-level \
-                      fetch search import list-jobs set-status
+                      fetch search import list-jobs set-status \
+                      dump set get del exec-sub eval-code
 
 site-yaml.bypass_proxy = no  ## bypass proxy for stepstone domains ? ##
+site-yaml.import_max_pages = 4  ## pages per search term (25 jobs/page) ##
+site-yaml.import_delay_search = 1.5  ## seconds between search page fetches ##
+site-yaml.import_delay_detail = 2.0  ## seconds between job detail fetches ##
 
-modules.load = auth net protocol io.unix site-yaml site-yaml.jobs
+modules.load = auth net protocol io.unix site-yaml site-yaml.jobs devmod
 [load_modules:<modules.load>]
 [init_modules]
 
@@ -26,8 +30,8 @@ modules.load = auth net protocol io.unix site-yaml site-yaml.jobs
 
 [zenka.loop]
 
-#,,,.,,.,,,,,,,,,,.,,,...,,,.,,..,,,,,,.,,.,.,..,,...,...,.,,,,.,,...,,.,,.,.,
-#7PWYCFDBW53JSOF2YCDBIRSGHZUP527DZAEELVRDXKUY2672NJMBZSUFTT6HG337HKA2SOTPGLRA6
-#\\\|W3QDTDAIQI6LNH75KV4W4DBM4XFPOWPTF2CCRTJFZDKVTA4FQOJ \ / AMOS7 \ YOURUM ::
-#\[7]44LLS4OMGXVQVQ6ORMNMK6RSCT4NIRBSGEJGL7TFVHQENNUBWIBI 7  DATA SIGNATURE ::
+#,,,,,.,.,,,,,..,,,.,,.,,,.,.,.,,,,,.,,.,,.,.,..,,...,..,,,.,,..,,..,,,,,,...,
+#H2UNQ2YFNQRL4YEFU5HYQ7QXP5S5VUYXLNUZWN3IAICJEJTEHWY3BGBJ4RZFA6NR6IP4QPBSVEW6A
+#\\\|B6GQANQHOFSNJX2MVPXH4HBUH532RW2YC7CPP4KMVQS2VFDUK3O \ / AMOS7 \ YOURUM ::
+#\[7]4QHA66EEXHXQQGQPPXC4UXT4BOMSKI4LCY4ZH236JZ6JH5W4HOCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
