@@ -48,15 +48,16 @@ $profile_text = Encode::decode( 'UTF-8', $profile_text )
 ## build defect note ##
 my $defect_note = join( ', ', @$defects );
 
-## build repair prompt — stronger than original ##
+## build repair prompt — stronger than original, english first ##
 my $prompt = join( "\n\n",
-    ':local: :simple: Du bist ein Job-Matching-Assistent.'
-        . ' BEWERTE DIESE STELLE ERNEUT.',
-    "VORHERIGE BEWERTUNG HAT FEHLER: $defect_note",
-    'Bewertungskriterien: technische Übereinstimmung (höchste Gewichtung),'
-        . ' Seniorität, Standort / Remote-Option, Branchenrelevanz,'
-        . ' Aufgabenbereich.',
-    'Antworte GENAU mit diesem JSON-Format und NICHTS ANDEREM:'
+    ':local: :simple: You are a job-matching assistant.'
+        . ' RE-ASSESS this job.',
+    "PREVIOUS ASSESSMENT HAD DEFECTS: $defect_note",
+    'Assessment criteria: technical alignment (highest weight),'
+        . ' seniority, location / remote option, industry relevance,'
+        . ' role scope.',
+    'Step 1 — Analyze in English: think through all dimensions carefully.',
+    'Step 2 — Translate into German and output EXACTLY this JSON format:'
         . ' {"score": <0-10>, "apply": <true|false>,'
         . ' "reason": "<1-2 deutsche Sätze: warum der Kandidat passt'
         . ' oder nicht passt>",'
@@ -78,8 +79,9 @@ my $prompt = join( "\n\n",
         . '     "team-structure": {"score": <0-10>, "reason": "<1 Satz>"}'
         . '   }'
         . ' } }',
-    'WICHTIG: Antworte AUSSCHLIESSLICH auf Deutsch.'
-        . ' Kein Englisch. Kein Chinesisch.',
+    'CRITICAL: All text values MUST be valid UTF-8 encoded German.'
+        . ' Use proper umlauts (ä ö ü ß) — never escape them as ae oe ue ss.'
+        . ' No English in the JSON fields. No Chinese.',
     '## Kandidatenprofil ##',
     $profile_text,
     '## Stellenanzeige ##',
@@ -105,8 +107,8 @@ my $encoded = ':B32:' . encode_b32r( Encode::encode( 'UTF-8', $prompt ) );
 
 #,,..,,.,,,,.,.,,,..,,..,,,..,.,.,...,,.,,.,,,..,,...,...,..,,.,.,..,,,.,,.,,,
 
-#,,,,,.,.,,.,,,.,,.,,,...,..,,..,,..,,,..,,..,..,,...,...,..,,,.,,...,,,.,,,.,
-#P2JLRDEQZHIDP7OVSURTNZX7345HRA3AUHWTRBROWI2KDSYWLVCQV2XM7QMVXYYJCKYHW3XPHGC6E
-#\\\|BZUUH7O2LJRFHNNRLDGB2V2PNCRIBO3XAOVA57CCSS643BYP7PA \ / AMOS7 \ YOURUM ::
-#\[7]COP5T6JFHG3H54NGHUFDGEIRBWM5JLAYWAIPDUNIPN26UP6YXADI 7  DATA SIGNATURE ::
+#,,,.,.,.,.,.,...,,..,.,.,..,,...,,,,,,..,,..,..,,...,...,..,,,,.,,,.,.,.,,,,,
+#5LLK52PURQH3Z7HYBUB2UAPTBACQJ5A7PZGKRIDMSXMO2CRF27FRBKMJQYTKPAFMAQGEVLTTJNGJO
+#\\\|7C2ITB4WUNTWEKU3HGI4QFB36LAMJV4P2ZJG7NGJYH2MS6HBVG5 \ / AMOS7 \ YOURUM ::
+#\[7]R56LBJ56NR46AHPOGSLWHJIX6LVIAZIIUTEIKCOJORST7B45AQDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,0 +1,36 @@
+## [:< ##
+
+# name  = job-site-scan.util.fix_encoding
+# descr = repair mojibake: UTF-8 bytes misinterpreted as Latin-1, then re-encoded
+
+my $s = shift // '';
+return $s unless length $s;
+
+## pattern: UTF-8 flag set and contains classic mojibake sequences ##
+if ( utf8::is_utf8($s) and $s =~ /[ÃÂ][\x{80}-\x{BF}]/ ) {
+    for my $enc (qw| ISO-8859-15 ISO-8859-1 |) {
+        my $fixed = eval {
+            Encode::decode( 'UTF-8', Encode::encode( $enc, $s ),
+                Encode::FB_CROAK );
+        };
+        return $fixed if defined $fixed and not $@;
+    }
+}
+
+## raw bytes: decode as UTF-8, fall back to Latin-9 then Latin-1 ##
+if ( not utf8::is_utf8($s) ) {
+    my $decoded = eval { Encode::decode( 'UTF-8', $s, Encode::FB_CROAK ) };
+    return $decoded if defined $decoded and not $@;
+    for my $enc (qw| ISO-8859-15 ISO-8859-1 |) {
+        my $fixed = eval { Encode::decode( $enc, $s, Encode::FB_CROAK ) };
+        return $fixed if defined $fixed and not $@;
+    }
+}
+
+return $s;
+
+#,,.,,...,,.,,.,,,..,,.,.,,,.,,.,,..,,..,,,,.,.,.,...,..,,...,,..,.,.,,..,,,.,
+#47U3RAG7P62UGXQRWHL6LO35QYLOY5T4BVNYJW76YTFKPLCDQLF3ZYJEOWRHGK7MXPNB5UYTU2YQK
+#\\\|5WDMYAK2WITO6CS7B757IM3WS5HXYA2A4ZSA6FZY2R6TJIYCNDX \ / AMOS7 \ YOURUM ::
+#\[7]HLNZWNM3NCDFSA3O537ZEJP7YN73TMX2RVYVOGRH5Y32NS5EI6BI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
