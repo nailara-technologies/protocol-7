@@ -1,0 +1,46 @@
+## [:< ##
+
+# name  = site-yaml.fetch.schedule
+# descr = schedule next fetch timer or cancel if queue empty
+
+my $delay = shift;
+
+## cancel existing timer ##
+my $timer = $data{'site-yaml'}{'fetch_timer'};
+if ( defined $timer and eval { $timer->is_active } ) {
+    $timer->cancel;
+}
+
+## if no delay given, use current delay ##
+$delay //= $data{'site-yaml'}{'fetch_delay'} // 1.5;
+
+## if queue empty, stop and fire drain callback ##
+my $queue = $data{'site-yaml'}{'fetch_queue'} // [];
+if ( not @{$queue} ) {
+    $data{'site-yaml'}{'fetch_timer'} = undef;
+
+    my $cb = $data{'site-yaml'}{'fetch_drain_cb'} // '';
+    if ( length $cb ) {
+        $data{'site-yaml'}{'fetch_drain_cb'} = '';
+        <[base.logs]>->( 1, 'fetch: drained → %s', $cb );
+        eval { <[$cb}> };
+        <[base.logs]>->( 0, 'fetch.schedule: drain cb error: %s', $@ ) if $@;
+    }
+    return;
+}
+
+## schedule next tick ##
+$data{'site-yaml'}{'fetch_timer'} = <[event.add_timer]>->(
+    {   after   => $delay,
+        repeat  => FALSE,
+        handler => 'site-yaml.handler.fetch_tick',
+    }
+);
+
+return;
+
+#,,.,,,..,,.,,..,,.,,,.,.,..,,...,.,.,..,,,..,.,.,...,...,..,,,.,,,,.,...,.,,,
+#P6PAREIDH2G2MFXY3V2Y3QJFNUAL6SD4OETSMZU4WXQIW57DZZG4G2TPXDGGWKDHCAXWOQJQHNEDU
+#\\\|227R3JJ4YIKIZT7ODMQUTBTXU4WEZZLPKXKQBUROP4BQHLGRHP4 \ / AMOS7 \ YOURUM ::
+#\[7]K5MKJMR5OPV4TW4GHQ53IA25DXQCCU24UQVMWNWT53H6AWJQ7EBI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,0 +1,50 @@
+## [:< ##
+
+# name  = site-yaml.fetch.backoff
+# descr = adjust fetch delay based on success/error history
+
+my $result = shift // 'success';
+
+my $delay     = $data{'site-yaml'}{'fetch_delay'}     // 1.5;
+my $delay_min = $data{'site-yaml'}{'fetch_delay_min'} // 0.5;
+my $delay_max = $data{'site-yaml'}{'fetch_delay_max'} // 10.0;
+my $errors    = $data{'site-yaml'}{'fetch_errors'}    // 0;
+my $successes = $data{'site-yaml'}{'fetch_successes'} // 0;
+
+my $new_delay;
+if ( $result eq qw| error | ) {
+    $errors++;
+    $successes = 0;
+    ## exponential backoff with jitter: multiply by 1.5-2.0
+    my $factor = 1.5 + rand(0.5);
+    $new_delay = $delay * $factor;
+    $new_delay = $delay_max if $new_delay > $delay_max;
+} else {
+    $successes++;
+    ## after 3 consecutive successes, slowly decay delay
+    if ( $successes >= 3 ) {
+        $new_delay = $delay * 0.9;
+        $successes = 0 if $new_delay <= $delay_min;
+    } else {
+        $new_delay = $delay;
+    }
+    $new_delay = $delay_min if $new_delay < $delay_min;
+}
+
+$data{'site-yaml'}{'fetch_delay'}     = $new_delay;
+$data{'site-yaml'}{'fetch_errors'}    = $errors;
+$data{'site-yaml'}{'fetch_successes'} = $successes;
+
+my $tag = $result eq 'error' ? '↑' : '↓';
+<[base.logs]>->(
+    1,    'backoff: %s %.2f→%.2fs err=%d ok=%d',
+    $tag, $delay, $new_delay, $errors, $successes
+);
+
+return $new_delay;
+
+#,,,,,.,,,.,.,...,.,.,,.,,,,,,,..,,,.,..,,,..,.,.,...,..,,,,,,,.,,,..,,,.,,..,
+#5OUTCI3VQZGHPSJBA7A4WM6KWI6TTEZB2SNINCR4YRSVSRQUOU4NIED4I5RK54AQEGVFXEITE5ZZA
+#\\\|TOI6B5G34PXP5GMM2QOOKMF3W2DR2EIYUI65CQMKJMZOF2K3GBG \ / AMOS7 \ YOURUM ::
+#\[7]O3SJMIFYZE7VACM3EMMP6US2BVLIQFYWO7N2VJQJJ2EN5JTLSCDA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
