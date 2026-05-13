@@ -1,0 +1,30 @@
+## [:< ##
+
+# name  = job-site-scan.cmd.show-prompt
+# descr = output the assessment prompt for a given job id
+
+my $job_id = $call->{'args'} // '';
+return { 'mode' => 'false', 'data' => 'job id required' }
+    unless length $job_id;
+
+## load from store ##
+<[base.perlmod.autoload]>->('YAML::XS');
+my $store_file = '/var/protocol-7/site-yaml/store.yaml';
+my $store      = {};
+if ( -f $store_file ) {
+    $store = eval { YAML::XS::LoadFile($store_file) } // {};
+}
+
+my $job = $store->{$job_id};
+return { 'mode' => 'false', 'data' => "job $job_id not found" }
+    unless defined $job;
+
+my $prompt = <[job-site-scan.util.build_prompt]>->($job);
+
+return { 'mode' => 'size', 'data' => $prompt };
+
+#,,,,,.,,,,..,,..,,.,,,,.,,.,,,..,,,,,,.,,.,,,.,.,...,..,,.,.,,..,.,,,.,,,...,
+#CGMFHMKK65EJ546IG74CCOHUREBBOHIJLMV75H7DVTNER5PAWPJYPAHWX5LVOCD3UMZIR5PUYTPNO
+#\\\|IWBTLMT62QEU4ONU3FZIQA2H7UGVVY3CKLEQMT5SC7X3XUGOEUN \ / AMOS7 \ YOURUM ::
+#\[7]VZCP5Q43YZUDZ5DXMECL2JICKBN7NA7A7WP5KNG5DJPZ6AOQZECI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

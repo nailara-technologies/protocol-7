@@ -30,15 +30,15 @@ my $remaining
 
 if ( not $remaining and <job-site-scan.cycle> eq 'reviewing' ) {
     <job-site-scan.cycle> = 'idle';
-    <[base.logs]>->( 1, 'jss: review complete, returning to idle' );
+    <[base.logs]>->( 1, 'review complete, returning to idle' );
 }
 
 <[job-site-scan.state.persist]>;
 
 return { 'mode' => 'true', 'data' => "approved: $job_id" };
 
-#,,,,,..,,,,,,..,,...,.,,,,..,,..,,.,,...,.,.,..,,...,...,...,...,,,,,,..,,,.,
-#FKKY6SG6O4E5YQ3ZNIVVRLZFZ5H3OOKRKNVYOGLTMCHZGH5TUOH5J5KMSEWCUNFKLNYPXVRGXNU6Y
-#\\\|GNBUNOGMZPXJLEFGLCY6TINYDLJ4PCLA2MJTPVFKJXRWHXFLEHV \ / AMOS7 \ YOURUM ::
-#\[7]R6GEZFFJTGVYNEGNQ6D2EV5WHIUZ4WLBJIZJSMVVG3P5VZ63K2CQ 7  DATA SIGNATURE ::
+#,,.,,,,.,,,.,.,.,.,,,,,.,.,,,,,,,..,,..,,,.,,..,,...,...,...,...,,,,,,,,,,.,,
+#2XSNOWJSP7FSWLDCAPI5VWUTEUPA5NNNKA635TWOVB7CL7PBJISZFSISWHCAFYIY5N7TPST3D7NCG
+#\\\|BSFLAYSVXZJMGYDAHTYKETXW4MTFNOD2YIR4YGAD52PVR7ZYY6Z \ / AMOS7 \ YOURUM ::
+#\[7]SHLPUNH3J6TE5GZAJS3OJJMIEHCAQKRZJQCDLTVNRWKYBZNQFUCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

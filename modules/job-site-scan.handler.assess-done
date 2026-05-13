@@ -36,7 +36,7 @@ my %protected_stage
 
 if ( $protected_stage{ $job_rec->{'stage'} // '' } ) {
     <[base.logs]>->(
-        1,       'jss: job %s stage=%s protected, skipping overwrite',
+        1,       'job %s stage=%s protected, skipping overwrite',
         $job_id, $job_rec->{'stage'}
     );
     <job-site-scan.pending_count>--;
@@ -73,7 +73,7 @@ if (    not $validation->{'is_valid'}
     ## first defect — dispatch repair, do NOT decrement pending_count ##
     $job_rec->{'repair_attempted'} = TRUE;
     <[base.logs]>->(
-        1,       'jss: job %s defects [%s] — dispatching repair',
+        1,       'job %s defects [%s] — dispatching repair',
         $job_id, join( ', ', $validation->{'defects'}->@* )
     );
     <[job-site-scan.state.persist]>;
@@ -84,7 +84,7 @@ if (    not $validation->{'is_valid'}
 if ( not $validation->{'is_valid'} and $job_rec->{'repair_attempted'} ) {
     ## repair already tried and failed — store original, mark, move on ##
     <[base.logs]>->(
-        1, 'jss: job %s still invalid after repair (%s), keeping original',
+        1,       'job %s still invalid after repair (%s), keeping original',
         $job_id, join( ', ', $validation->{'defects'}->@* )
     );
     $job_rec->{'repair_failed'} = TRUE;
@@ -153,12 +153,12 @@ my $threshold = <job-site-scan.cfg.threshold> // 6;
 if ( length($score) and $score >= $threshold ) {
     $job_rec->{'stage'} = 'review';
     <[base.logs]>->(
-        1,       'jss: job %s score=%s ABOVE threshold → review',
+        1,       'job %s score=%s ABOVE threshold → review',
         $job_id, $score
     );
 } else {
     <[base.logs]>->(
-        1,       'jss: job %s score=%s below threshold',
+        1,       'job %s score=%s below threshold',
         $job_id, length($score) ? $score : '?'
     );
 }
@@ -187,7 +187,7 @@ if ( -f $store_file ) {
 if ( <job-site-scan.pending_count> <= 0 ) {
     <job-site-scan.pending_count> = 0;
     <job-site-scan.cycle>         = 'idle';
-    <[base.logs]>->( 1, 'jss: all assessments complete, cycle=idle' );
+    <[base.logs]>->( 1, 'all assessments complete, cycle=idle' );
 }
 
 <[job-site-scan.state.persist]>;
@@ -195,8 +195,8 @@ if ( <job-site-scan.pending_count> <= 0 ) {
 
 #,,.,,,,,,..,,,,.,,,,,,.,,,..,.,,,.,,,.,.,.,.,..,,...,..,,...,,,.,.,,,,,,,,,.,,
 
-#,,.,,..,,,..,...,...,,,.,..,,,,,,.,.,.,.,..,,..,,...,...,,.,,.,,,,..,,,,,...,
-#ELMRWBT6TPCHMGCBZ7SZN3FBGMRSTIBEGZXEMHKWMTWSPWFFN7JQ6IO2FI5QDSNYRCQMTXAORKAVC
-#\\\|WQPG2XD5XNAVMOMU62XIT3EXVGXZ7SCV7Y4VBQCQNSKCQKXFLDA \ / AMOS7 \ YOURUM ::
-#\[7]CPCVVYIGA4QDUVBTDBCPRCR3CBHH3HPWFNZM3GVMAHF2KO3SOUCI 7  DATA SIGNATURE ::
+#,,,,,,,.,,,,,.,,,,.,,.,,,,,.,,,.,.,.,,..,,.,,..,,...,...,..,,,.,,,,.,...,,..,
+#EMVNDHCGNXEOWJEYN6BKVPNCBSONU25UBBDTG34ECDRZ75JXD6DI25WFRBLWOBFSFB2UU2RGLIYGO
+#\\\|CDLTDAV7M5JKCPX7SQ6PCDGQEOD3VQLGPPMNNXXYGRP4L5T2RWG \ / AMOS7 \ YOURUM ::
+#\[7]ZIMUHKSVXSJAK4AGZI6TP2OTGWGKHG4V2VMHBRCROCUTFEBH76BY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

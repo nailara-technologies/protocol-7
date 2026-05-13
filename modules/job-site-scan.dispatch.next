@@ -6,7 +6,7 @@
 my $queue = <job-site-scan.assess_queue> // [];
 
 if ( not @{$queue} ) {
-    <[base.logs]>->( 1, 'jss: assessment queue empty, waiting for results' );
+    <[base.logs]>->( 1, 'assessment queue empty, waiting for results' );
     return;
 }
 
@@ -15,7 +15,7 @@ my $job_id = $entry->{'job_id'};
 my $desc   = $entry->{'desc'};
 
 <[base.logs]>->(
-    1,       'jss: dispatching assessment for job %s (%d remaining)',
+    1,       'dispatching assessment for job %s (%d remaining)',
     $job_id, scalar @{$queue}
 );
 
@@ -32,8 +32,8 @@ my $encoded = ':B32:' . encode_b32r( Encode::encode( 'UTF-8', $desc ) );
     }
 );
 
-#,,.,,.,.,,..,,,.,...,,.,,,.,,,.,,.,.,,,.,,..,..,,...,...,,..,,..,,.,,,.,,.,,,
-#7KGMP7K5NGQNOPLY7TIWTWN3H7ZBYV6EY2CR3BWCUUABVT5FAZACDT3OUZU6PWDBP7JXYZ6J3MVZW
-#\\\|OMOQDA67JUXEPBEPXKZF5JIYK7C7IK2Q2VPV2JA7DYGG4M6OL2D \ / AMOS7 \ YOURUM ::
-#\[7]6WGG72DDOHWD6TLYUJXYB5WHII34O6FXNZXLCCCL5WR3CFMUXGBQ 7  DATA SIGNATURE ::
+#,,.,,..,,.,,,..,,,.,,,,.,,.,,.,.,,..,..,,,,,,..,,...,...,,,,,..,,,.,,.,.,,,.,
+#WWSIH3LLXGV2NQZXBHM453HNX2XADSNN5ZV45ZVL35XLZCWB264RVTI6EFML7JM2LNKH6H2T6UZYW
+#\\\|UQ7YABPJI62KALN3UMV3263N5EF2VPSQ3BMWWSBMNWZJCVNEIEN \ / AMOS7 \ YOURUM ::
+#\[7]XEJJXHGPN6ZRYRUBOWEQ352GBZOKKPNU6ARJBJ4UKNWHF2HAQIDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
