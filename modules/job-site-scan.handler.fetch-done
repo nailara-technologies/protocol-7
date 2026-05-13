@@ -112,13 +112,15 @@ for my $job_id (@to_assess) {
     ## initialize assertion tree for this job ##
     <[job-site-scan.assert.init]>->($job_id);
 
-    ## build complete self-contained prompt — no template dependency
+    ## build complete self-contained prompt — english first, then german output
     my $prompt = join( "\n\n",
-        ':local: :simple: Du bist ein Job-Matching-Assistent. Bewerte die'
-            . ' Eignung und antworte ausschließlich mit einem JSON-Objekt — kein weiterer Text.',
-        'Bewertungskriterien: technische Übereinstimmung (höchste Gewichtung),'
-            . ' Seniorität, Standort / Remote-Option, Branchenrelevanz, Aufgabenbereich.',
-        'Antworte genau mit diesem JSON-Format und nichts anderem:'
+        ':local: :simple: You are a job-matching assistant. Assess the fit,'
+            . ' then translate your analysis into German and output ONLY a German JSON object — no other text.',
+        'Assessment criteria: technical alignment (highest weight),'
+            . ' seniority, location / remote option, industry relevance, role scope.',
+        'Step 1 — Analyze in English: think through technical fit, location,'
+            . ' culture, compensation, remote flexibility, career growth, tech stack, team structure.',
+        'Step 2 — Translate into German and output EXACTLY this JSON format:'
             . ' {"score": <0-10>, "apply": <true|false>,'
             . ' "reason": "<1-2 deutsche Sätze: warum der Kandidat passt oder nicht passt>",'
             . ' "summary": "<2-3 deutsche Sätze: was die Stelle bietet, gesuchte Skills,'
@@ -140,8 +142,9 @@ for my $job_id (@to_assess) {
             . '     "team-structure": {"score": <0-10>, "reason": "<1 Satz>"}'
             . '   }'
             . ' } }',
-        'Bewerte JEDE Dimension aus der Perspektive des Kandidatenprofils.'
-            . ' Begründe kurz.',
+        'CRITICAL: All text values MUST be valid UTF-8 encoded German.'
+            . ' Use proper umlauts (ä ö ü ß) — never escape them as ae oe ue ss.'
+            . ' No English in the JSON fields. No Chinese.',
         '## Kandidatenprofil ##',
         $profile_text,
         '## Stellenanzeige ##',
@@ -160,8 +163,8 @@ for my $job_id (@to_assess) {
 ## dispatch first task — task-created handler will call dispatch.next for each
 <[job-site-scan.dispatch.next]>;
 
-#,,.,,.,.,.,.,,,.,..,,,.,,..,,.,,,,,.,.,,,,,,,..,,...,...,..,,,.,,,..,,.,,,,.,
-#2TXQ5EJGYKXD2BTZTZGLSR5PHXUIGA7CUDWX7WUZNFIBZQPPVUJXHVO2GP5BRWO27FY4F2YV3YK54
-#\\\|W3EKKA62CY73532FN5XTCD5O3ZAILJ7KBQI7YPAW6253W3ED7BP \ / AMOS7 \ YOURUM ::
-#\[7]EAO2NF5CUIXAJFCSPNQXEPCNPNCZTSVMEKSUGPCOEHCL72ROTQCY 7  DATA SIGNATURE ::
+#,,..,.,.,.,.,.,.,.,,,,.,,..,,,.,,.,,,,,,,,,,,..,,...,...,.,.,.,,,,.,,.,,,,.,,
+#IKZCVGXVB3AR2KYMZBCFMVRXF34X6AB7DJ5KFSLHWYL4S4LTQ7WFE7XXFBIEVP3HZDD7D6LLUTOGC
+#\\\|NAO6OS3UQLR4TEUJ5OWHNBWWYGGNFD6IFLDQTR2YHESLGBRGHUU \ / AMOS7 \ YOURUM ::
+#\[7]NQQEYAH36ICPVO3PXFJSYMG5P2BZGHOKCEAXOAKNLMDTGI5UIIDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

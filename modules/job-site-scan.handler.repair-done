@@ -91,6 +91,18 @@ if ( $validation->{'is_valid'} ) {
     }
     $job_rec->{'assertions'} = $assertions;
 
+    ## sanitize encoding before storing ##
+    $reason = <[job-site-scan.util.fix_encoding]>->($reason)
+        if defined $reason;
+    $summary = <[job-site-scan.util.fix_encoding]>->($summary)
+        if defined $summary;
+    for my $dim ( keys %{ $assertions->{'dimensions'} // {} } ) {
+        my $dr = $assertions->{'dimensions'}{$dim}{'reason'} // '';
+        $assertions->{'dimensions'}{$dim}{'reason'}
+            = <[job-site-scan.util.fix_encoding]>->($dr)
+            if length $dr;
+    }
+
     ## apply repair ##
     $job_rec->{'score'}         = $score;
     $job_rec->{'score_reason'}  = $reason  // '';
@@ -154,8 +166,8 @@ if ( <job-site-scan.pending_count> <= 0 ) {
 
 #,,..,,.,,,,.,.,,,..,,..,,,..,.,.,...,,.,,.,,,..,,...,...,..,,.,.,..,,,.,,.,,,,
 
-#,,.,,.,,,,,.,...,,..,..,,.,.,.,,,,,,,,..,,.,,..,,...,...,.,.,,..,..,,,,,,.,,,
-#BWQWXOTOTMNZDTTNZARW36BKJI3BFQPFUEB243SQFY7UMZLVCFMDQJKYNOF4JSCPPLCO5O4MYE2UY
-#\\\|H5A2M4MMY2EUIFGFPIPWP3XCJ7UOVNM25IRAAE3L3V3CZZZ25VI \ / AMOS7 \ YOURUM ::
-#\[7]PTJZCKTULTHMCI2QDDRCKFEZQLVFGCNB3KMBTRLERJXIA5YYS6CY 7  DATA SIGNATURE ::
+#,,,,,...,..,,.,,,,,.,..,,,,.,,,.,.,.,...,,,.,..,,...,...,,..,,.,,,,,,,.,,,.,,
+#TLSXZ36RJE6DU44FKYA3DYDFTDKJYSLSLROBSNXCYERQ4GBTB4YAZWW6M5V22GPCHCI6SOH6T55IG
+#\\\|5YK5S564TLT7QAIMZIPUS5Q4E3MS3QDQNIUMBIGHUV774YHL4MO \ / AMOS7 \ YOURUM ::
+#\[7]UWNI53HZXAZIDQWG5AUQTW5G6PERGB74TS6K7OD2PIU37VGLMUBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
