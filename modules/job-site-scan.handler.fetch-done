@@ -30,7 +30,7 @@ my $queue = $data{'site-yaml'}{'fetch_queue'} // [];
 if ( @{$queue} ) {
     <[base.logs]>->(
         1,
-        'jss: %d detail fetches in progress, waiting for queue drain',
+        '%d detail fetches in progress, waiting for queue drain',
         scalar @{$queue}
     );
     $data{'site-yaml'}{'fetch_drain_cb'}
@@ -41,8 +41,8 @@ if ( @{$queue} ) {
 ## queue empty — proceed to assessments immediately ##
 <[job-site-scan.dispatch.assessments]>;
 
-#,,,.,.,,,,,,,..,,...,.,,,,,,,...,..,,.,.,,..,..,,...,...,..,,,.,,..,,.,,,.,.,
-#4537CYEP4KLX5S3KKHO6J62GKECUYYWTJGOEMITRT75NOIGNRUKVVSEH36KKKDFIJJ2SEMNJZOI2K
-#\\\|7V3F32LJWEZ6MIMT5HXTZX2DQQCLSLAUAB2GCLSMW2MGIVECMQ4 \ / AMOS7 \ YOURUM ::
-#\[7]64OKBCYAX7WP4ZUJMG6PNZCMUWQIK4OUC6EPHRXHHNPFETXKB4DQ 7  DATA SIGNATURE ::
+#,,,,,,,.,...,,..,,,.,..,,,..,.,,,...,...,,,.,..,,...,...,,..,..,,,,,,.,,,...,
+#YCC4TBIPXQNXQ2T2ZGHGJ7764CAOUZ3VQFQGWJ5H35CZGKSQTGPYDUTSWTXVHNLX7JKVATB7NHEXS
+#\\\|WOFQ4CBCTGL53ZF25ERDPMGRSCBCGOLW2MG2RRORZBUPJDQTQYB \ / AMOS7 \ YOURUM ::
+#\[7]SUH6SR4MQ4PUGP4XUBBI4M4FNSHSBWQL73KG426F45S5V5P7EICQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

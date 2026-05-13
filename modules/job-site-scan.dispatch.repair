@@ -51,16 +51,18 @@ my $defect_note = join( ', ', @$defects );
 ## build repair prompt — stronger than original, english first ##
 my $prompt = join( "\n\n",
     ':local: :simple: You are a job-matching assistant.'
-        . ' RE-ASSESS this job.',
+        . ' RE-ASSESS this job for Alexander Taute.',
     "PREVIOUS ASSESSMENT HAD DEFECTS: $defect_note",
+    'IMPORTANT: Alexander Taute is a Senior Software Architect with 25+ years in Perl,'
+        . ' Unix/Linux, security, and distributed systems. He is NOT the job description.'
+        . ' Do NOT confuse his profile with the role being advertised.',
     'Assessment criteria: technical alignment (highest weight),'
         . ' seniority, location / remote option, industry relevance,'
         . ' role scope.',
-    'Step 1 — Analyze in English: think through all dimensions carefully.',
+    'Step 1 — Analyze in English: compare Alexander against the job requirements.',
     'Step 2 — Translate into German and output EXACTLY this JSON format:'
         . ' {"score": <0-10>, "apply": <true|false>,'
-        . ' "reason": "<1-2 deutsche Sätze: warum der Kandidat passt'
-        . ' oder nicht passt>",'
+        . ' "reason": "<1-2 deutsche Sätze: passt Alexander zu dieser Stelle oder nicht>",'
         . ' "summary": "<2-3 deutsche Sätze: was die Stelle bietet,'
         . ' gesuchte Skills, Remote/Standort-Details, Besonderheiten>",'
         . ' "assertions": {'
@@ -79,12 +81,11 @@ my $prompt = join( "\n\n",
         . '     "team-structure": {"score": <0-10>, "reason": "<1 Satz>"}'
         . '   }'
         . ' } }',
-    'CRITICAL: All text values MUST be valid UTF-8 encoded German.'
-        . ' Use proper umlauts (ä ö ü ß) — never escape them as ae oe ue ss.'
-        . ' No English in the JSON fields. No Chinese.',
-    '## Kandidatenprofil ##',
+    'CRITICAL: All text MUST be valid UTF-8 German with proper umlauts (ä ö ü ß).'
+        . ' Never use ae/oe/ue/ss. No English. No Chinese.',
+    '## Kandidatenprofil — Alexander Taute ##',
     $profile_text,
-    '## Stellenanzeige ##',
+    '## Stellenanzeige — DIESE STELLE BEWERTEN ##',
     "Titel: $title",
     "Unternehmen: $co",
     "Ort: $city",
@@ -107,8 +108,8 @@ my $encoded = ':B32:' . encode_b32r( Encode::encode( 'UTF-8', $prompt ) );
 
 #,,..,,.,,,,.,.,,,..,,..,,,..,.,.,...,,.,,.,,,..,,...,...,..,,.,.,..,,,.,,.,,,
 
-#,,,.,.,.,.,.,...,,..,.,.,..,,...,,,,,,..,,..,..,,...,...,..,,,,.,,,.,.,.,,,,,
-#5LLK52PURQH3Z7HYBUB2UAPTBACQJ5A7PZGKRIDMSXMO2CRF27FRBKMJQYTKPAFMAQGEVLTTJNGJO
-#\\\|7C2ITB4WUNTWEKU3HGI4QFB36LAMJV4P2ZJG7NGJYH2MS6HBVG5 \ / AMOS7 \ YOURUM ::
-#\[7]R56LBJ56NR46AHPOGSLWHJIX6LVIAZIIUTEIKCOJORST7B45AQDY 7  DATA SIGNATURE ::
+#,,.,,..,,,,,,...,.,.,..,,,,,,,..,.,.,.,.,,,.,..,,...,...,,,,,,,,,...,...,.,,,
+#TTXOXBJEBKWGIFKV2X6ZY33H6OIKCE44BUNH7IXVCFASNNR7DCU6NHKPHYM73HYTLO3QE4FSCR26M
+#\\\|Z2R22OAEVTHVIO6TVKCRIIUSTPVYDNWUKOTVTF6TYOOH26QA3V3 \ / AMOS7 \ YOURUM ::
+#\[7]KNI2ISRDOCUN7WH3NELIUMYKCO4752I6REPFE7ZQE4TWD5FAIUDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
