@@ -1002,6 +1002,7 @@ return [ qw[
         storage.map-dirs.tree
         source.valid_src_name
         site-yaml.jobs.upsert
+        site-yaml.fetch.state
         set-up.json.init_code
         session.console.stats
         reenc-msg.open_window
@@ -1389,6 +1390,7 @@ return [ qw[
         ssh.cmd.profile_disable
         source.extract_sig_body
         site-yaml.stepstone.job
+        site-yaml.fetch.backoff
         site-yaml.cmd.list-jobs
         set-up.json.import_file
         rss.ticker.fetch.single
@@ -1573,6 +1575,7 @@ return [ qw[
         system.cleanup.init_code
         source.acquire_checksums
         site-yaml.jobs.init_code
+        site-yaml.fetch.schedule
         site-yaml.cmd.set-status
         set-up.cmd.export-config
         session.parent.init_code
@@ -2339,6 +2342,7 @@ return [ qw[
         ssh.parser.connection_status
         ssh.handler.connection_retry
         source.cmd.update-to-current
+        site-yaml.handler.fetch_tick
         rss.ticker.cmd.resend_update
         protocol.protocol-7.pre_init
         protocol.amos_term.init_code
@@ -3117,6 +3121,7 @@ return [ qw[
         keys.console.downgrade-enc-status
         job-site-scan.validate.assessment
         job-site-scan.handler.repair-done
+        job-site-scan.handler.fetch-drain
         job-site-scan.handler.assess-done
         job-site-scan.cmd.blacklist-stats
         impressive.handler.stop_lsp_reply
@@ -3235,6 +3240,7 @@ return [ qw[
         jobqueue.event.register_job_queues
         job-site-scan.handler.task-created
         job-site-scan.handler.rescan-timer
+        job-site-scan.dispatch.assessments
         invoke-web.handler.monitor_startup
         image2html.child.cmd.convert_image
         httpsd.discover_active_certificate
@@ -3817,8 +3823,8 @@ return [ qw[
     ]
 ];
 
-#,,.,,.,,,..,,,..,.,,,,..,,..,,.,,...,,..,.,.,.,.,...,...,,,.,..,,,.,,,.,,...,
-#HP7GVWRA7MJ5GNTZ5SCCWLYPLGTPBTIIAEFV7EFBAML3SNFL4OL35XI3O2OETGSJIUOGOADYNLPRE
-#\\\|FLW4JPOYZC4TL67LGY7M4APXD756J626RSNCHUOVPSCZ46XVR2X \ / AMOS7 \ YOURUM ::
-#\[7]7HU5O5Q2UAHFBFPBLHLJF34H7R7KCL5KGWMM3Y3XCSOY6ELNXCDI 7  DATA SIGNATURE ::
+#,,,,,.,.,.,.,.,,,...,.,.,...,...,...,,..,..,,.,.,...,..,,...,...,,,.,,,,,...,
+#WQBUPPPODR22KLNSK2BPJXONQW6FKDKEEMVATWVBL76VO57EMRETMXO22N4NLZS4NJKZXLCULEN7K
+#\\\|HA6HU5NYKF6G42OOOGOA7IFIURN7B775AJZ3CQOHFRRDBYKKVGQ \ / AMOS7 \ YOURUM ::
+#\[7]EVBWIE6OLFX5VXGEVUFV5OV5CDRPMMAV2YGUG2DYLZZRRGHM7WAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
