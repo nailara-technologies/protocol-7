@@ -25,6 +25,19 @@ if ( $cycle =~ m{^(?:scanning|assessing)$} ) {
 }
 <job-site-scan.cycle> = $cycle;
 
+## reset task stages that were in-flight — they won't resume automatically ##
+my $tasks       = <job-site-scan.tasks> // {};
+my $reset_count = 0;
+for my $id ( keys %{$tasks} ) {
+    my $st = $tasks->{$id}{'stage'} // '';
+    next unless $st =~ m{^(?:queued|assessing)$};
+    $tasks->{$id}{'stage'} = 'idle';
+    $reset_count++;
+}
+<[base.logs]>->(
+    1, 'jss.load: reset %d in-flight tasks to idle', $reset_count
+) if $reset_count;
+
 <[base.logs]>->(
     1,
     'jss.load: restored %d jobs, cycle=%s',
@@ -32,8 +45,8 @@ if ( $cycle =~ m{^(?:scanning|assessing)$} ) {
     <job-site-scan.cycle>
 );
 
-#,,,.,,,.,,..,..,,,,.,...,..,,.,.,,,,,.,,,..,,..,,...,..,,...,.,,,,..,.,,,,.,,
-#4VWVSFTGJX7B3RZJZKU6ADW5RI6VUBCUU6CHODWB2SNS2HGZ6OFJMFGB3C2PKLKNCQSZHC57Z273G
-#\\\|CABTIQNYYMFASCJ745OC5BJM4CDVUNGSKLCMLBM654VIZLTFC5P \ / AMOS7 \ YOURUM ::
-#\[7]4IGIHE7TH2TFUZHW4YX43B7U4ZVFVHQAEQITRS6RXV5BK3GTRGDQ 7  DATA SIGNATURE ::
+#,,.,,...,...,,.,,,,,,,.,,...,,,,,,..,...,,.,,..,,...,...,.,.,,..,.,.,.,,,...,
+#6PW334MO7MFEZHNHZSJWID5XLKQIXU3OCKN3DFEK3RC3VP3CKSSSVGU3C5OAMKJOXLR5INDXOD5FE
+#\\\|3DMSAEAYQIUASHMML4FTW5BJWFUQXUDXA656HTNZCA3PJGFFRKG \ / AMOS7 \ YOURUM ::
+#\[7]C5TFC3OSQHSPKP4V6RT3L3XA6ICTA3DQ3EKHBI3ZFRUWTM3E3ADQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

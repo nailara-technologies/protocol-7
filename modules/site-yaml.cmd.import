@@ -10,35 +10,63 @@ $url = $data{'site-yaml'}{'cfg'}{'stepstone_search_url'} // ''
 return { 'mode' => 'false', 'data' => 'no url' }
     if not length $url;
 
-## step 1: get job link list from search page
-my $links = <[site-yaml.stepstone.search]>->($url);
-if ( ref $links ne 'ARRAY' ) {
-    return { 'mode' => 'false', 'data' => "search failed: $links" };
-}
+my $max_pages = <site-yaml.import_max_pages> // 1;
+$max_pages = 1 if $max_pages < 1;
+$max_pages = 5 if $max_pages > 5;    ## safety cap
+
+my $delay_search = <site-yaml.import_delay_search> // 1.5;
+my $delay_detail = <site-yaml.import_delay_detail> // 2.0;
 
 my ( $new_count, $skip_count, $err_count ) = ( 0, 0, 0 );
 my @retry_queue;
 
-for my $link ( @{$links} ) {
-    my $id = $link->{'id'};
-
-    ## skip already-known jobs to avoid redundant fetches
-    if ( exists $data{'jobs'}{'store'}{$id} ) {
-        $skip_count++;
-        next;
+for my $page ( 1 .. $max_pages ) {
+    my $page_url = $url;
+    if ( $page > 1 ) {
+        $page_url .= ( $url =~ m{\?} ) ? '&' : '?';
+        $page_url .= "page=$page";
     }
 
-    ## fetch full job record — small delay to avoid rate limiting
-    select( undef, undef, undef, 0.5 );
-    my $job = <[site-yaml.stepstone.job]>->( $link->{'url'} );
-    if ( ref $job ne 'HASH' ) {
-        <[base.logs]>->( 0, 'import: fetch error id=%s : %s', $id, $job );
-        push @retry_queue, $link;
-        next;
+    <[base.logs]>->( 1, 'import: fetching page %d/%d', $page, $max_pages )
+        if $max_pages > 1;
+
+    my $links = <[site-yaml.stepstone.search]>->($page_url);
+    if ( ref $links ne 'ARRAY' ) {
+        <[base.logs]>->(
+            0,     'import: page %d search failed: %s',
+            $page, $links
+        );
+        last;
     }
 
-    my $result = <[site-yaml.jobs.upsert]>->($job);
-    $new_count++ if $result eq 'new';
+    ## stop if empty page (end of results)
+    last if not @{$links};
+
+    for my $link ( @{$links} ) {
+        my $id = $link->{'id'};
+
+        ## skip already-known jobs to avoid redundant fetches
+        if ( exists $data{'jobs'}{'store'}{$id} ) {
+            $skip_count++;
+            next;
+        }
+
+        ## fetch full job record — delay to avoid rate limiting
+        select( undef, undef, undef, $delay_detail );
+        my $job = <[site-yaml.stepstone.job]>->( $link->{'url'} );
+        if ( ref $job ne 'HASH' ) {
+            <[base.logs]>->( 0, 'import: fetch error id=%s : %s', $id, $job );
+            push @retry_queue, $link;
+            next;
+        }
+
+        my $result = <[site-yaml.jobs.upsert]>->($job);
+        $new_count++ if $result eq 'new';
+    }
+
+    ## delay between search pages
+    select( undef, undef, undef, $delay_search )
+        if $page < $max_pages;
 }
 
 ## retry failed fetches once with longer delay
@@ -49,10 +77,10 @@ if (@retry_queue) {
         scalar @retry_queue,
         scalar @retry_queue == 1 ? '' : 'es'
     );
-    select( undef, undef, undef, 3 );    ## wait 3s before retry pass
+    select( undef, undef, undef, 5 );    ## wait 5s before retry pass
     for my $link (@retry_queue) {
         my $id = $link->{'id'};
-        select( undef, undef, undef, 2 );
+        select( undef, undef, undef, 3 );
         my $job = <[site-yaml.stepstone.job]>->( $link->{'url'} );
         if ( ref $job ne 'HASH' ) {
             <[base.logs]>
@@ -73,8 +101,8 @@ my $summary = sprintf 'import done: %d new, %d skipped, %d errors',
 
 return { 'mode' => 'size', 'data' => $summary };
 
-#,,.,,,..,..,,.,,,,.,,,,.,,..,...,,,,,.,.,,..,..,,...,...,...,...,.,.,,..,..,,
-#6HEQMMTUIT6NRCSHYLGS55T4X3Z5SQCMRGASDBPPFTR5DKKYT3YKN6NBBR5RXTOIWDY7NNYKJVSAW
-#\\\|QYOXWGFPZZ6XEUXB2XQQNFYGWNA5QTIZBK4OYRGIE35EWGLKE6O \ / AMOS7 \ YOURUM ::
-#\[7]5RHXG34BLVQRRAEA4QGJRYALKLUJMBV3TAE4W2VFUK666FAAFCAY 7  DATA SIGNATURE ::
+#,,,,,.,.,,,.,,,.,.,,,..,,,,.,.,,,,..,,.,,,,,,..,,...,...,..,,..,,...,..,,..,,
+#FTHEU3VZ4ELVXERXXNA7TOJRPBQ6VOYRQSFGCE3JS6JJ3PJA7ONQKTOIRAZNUFTQ5DU2CVQD7VOIK
+#\\\|2AJJMXMVODEWCJUIWFISQYAX253RBCOKN2TURHV3VMJSP27MOWP \ / AMOS7 \ YOURUM ::
+#\[7]BBVH26NLMSIEV6K3PIZABCN2QUIGVMEARFSMDN45DI2BGNNRQGBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

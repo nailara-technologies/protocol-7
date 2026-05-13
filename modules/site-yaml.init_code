@@ -17,6 +17,9 @@ $data{'site-yaml'}{'ua'}
 $data{'site-yaml'}{'ua'}
     ->default_header( 'Accept' => 'text/html,application/xhtml+xml' );
 
+## enable proxy from environment variables (HTTP_PROXY / HTTPS_PROXY) ##
+$data{'site-yaml'}{'ua'}->env_proxy;
+
 ## bypass proxy for known direct-access domains [ configurable, default false ] ##
 if ( <[base.cfg_bool]>->( <site-yaml.bypass_proxy> // FALSE ) ) {
     $data{'site-yaml'}{'ua'}->no_proxy(qw| stepstone.de www.stepstone.de |);
@@ -24,8 +27,8 @@ if ( <[base.cfg_bool]>->( <site-yaml.bypass_proxy> // FALSE ) ) {
 
 <[base.logs]>->( 1, 'site-yaml ready' );
 
-#,,,.,,.,,,,,,.,,,,,,,..,,,.,,.,.,..,,,.,,,..,..,,...,..,,..,,,..,,..,..,,,..,
-#UYN57QPOWYBQ6DJOLYRD7VNFQCTQHGRYKX36F4UTQFCWS3OX3ONQVHN2YHF5LGPTXMYNMFRTSWFT2
-#\\\|QB5EAAEMSKE3AAKUOELDEAP7JCNXEQN3L6WFMXRY33P2EADC4VC \ / AMOS7 \ YOURUM ::
-#\[7]H7HKSKNLQHX2QFYEO7FVI5TCM7I5GROQ65RHAJQ5W4C7WPG5QCAQ 7  DATA SIGNATURE ::
+#,,..,,,,,.,,,,.,,.,.,,,.,,..,,,,,,,,,,,.,...,..,,...,..,,...,.,,,,,.,,.,,..,,
+#5YBK46KZ4X4CSJJFFK67VKJLMOND7L6HNLW7TLX4KG2DBCCSZ356MKQ4O4AB6CUPEUT4Y2SXHRZJS
+#\\\|IQEH7EAYVLYGTUA37HRZOSVQWCTTMBWZYJCGZ735QFCV6J5LXSX \ / AMOS7 \ YOURUM ::
+#\[7]Z2ZTEOYC4NPAISVNC6FI6FU756M7D37PQY47OC4JKQAUVEN7BKAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
