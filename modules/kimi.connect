@@ -9,7 +9,6 @@ if (<kimi.ws.connected>) {
     return;
 }
 
-<kimi.ws.status>        = qw| connecting |;
 <kimi.connect.retrying> = FALSE;
 
 ## verify restored session id is still valid at the backend [ api child ]
@@ -62,7 +61,6 @@ if ( not defined <kimi.session_id> ) {
 
     if ( not defined $session_id ) {
         <kimi.ws.status> = qw| disconnected |;
-        <[kimi.connect.schedule_retry]>;
         return;
     }
 
@@ -81,7 +79,6 @@ if ( not defined $sock ) {
     );
     <kimi.ws.status>  = qw| disconnected |;
     <kimi.session_id> = undef;    ## clear so next retry creates fresh session
-    <[kimi.connect.schedule_retry]>;
     return;
 }
 
@@ -122,7 +119,10 @@ if ($has_preserved_prompt) {
     <[base.logs]>->(
         1, ': reconnected with preserved prompt — status set to busy'
     );
-}    ## else status stays 'connecting' until history_complete + initialize
+} else {
+    ## status change triggers watcher — starts liveness timeout
+    <kimi.ws.status> = qw| connecting |;
+}
 
 ## clear responded cache so re-sent approvals on new ws session are not
 ## silently dropped — previous response may not have been received by backend
@@ -146,20 +146,10 @@ if (@stale) {
     }
 }
 
-## session liveness timeout — if status doesn't leave 'connecting' within
-## 15s, the session is likely dead/archived. clear and retry with fresh one.
-## [ must fit within v7 start timeout of ~65s with room for fresh connect ]
-<[event.add_timer]>->(
-    {   'after'   => 15,
-        'handler' => qw| kimi.handler.session_liveness_timeout |,
-        'desc'    => 'detect dead kimi-web session'
-    }
-);
-
 <[base.logs]>->( 2, 'kimi.connect: websocket connected [ %s ]', $ws_url );
 
-#,,..,,.,,,,,,.,.,.,,,...,,,,,.,,,...,.,.,...,.,.,...,...,,.,,..,,,..,...,,..,
-#5ZJMRBJWQYW6U7GQOGCZS57SYUXUW4J3WA67VX3HJ3GL6WEBEI5K3UWS2M3FCSDIOSUOXFZEVSHEQ
-#\\\|MRTY7H7LLU4FA3JOAMV3WNYZEJNV253HZ33XXFB2PKDFEG4FNES \ / AMOS7 \ YOURUM ::
-#\[7]Q5USFWABPDZ7OIRZPJ3CMPKB3UU45GCEQWXPQG5K2J2C4WFMNICY 7  DATA SIGNATURE ::
+#,,..,,.,,,..,,,,,,,.,,,,,,,.,.,.,.,,,,,.,...,.,.,...,...,..,,,.,,.,.,.,.,,,.,
+#HNR52ISF22OJLIO25GEDCNWBONRK6NURVEXTAJ7OVECUF6SDJD6WX3COXCTUVINW2XPDATIVT4OBA
+#\\\|4OKP6L3RDWKIA7VPVJYWJMV2LR2Q6U7IYISU7ZYUJZHTOC7EISZ \ / AMOS7 \ YOURUM ::
+#\[7]A7F27BERWKXVPPTXWQCODHERH2ZYNFYAS3YDUHDH4WSCCG3AFACI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

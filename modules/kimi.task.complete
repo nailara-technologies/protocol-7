@@ -29,6 +29,11 @@ $task->{'execution'}->{'result'}    = $result;
 $task->{'execution'}->{'success'}   = TRUE;
 $task->{'execution'}->{'completed'} = <[base.time]>->(3);
 
+# Move jobqueue job to completed if job_id is tracked
+if ( defined $task->{'job_id'} ) {
+    <[jobqueue.move_job]>->( $task->{'job_id'}, 'completed' );
+}
+
 # Move task to completed list
 my $aref_pending   = <kimi.task.pending>;
 my $aref_active    = <kimi.task.active>;
@@ -60,8 +65,8 @@ return {
     message => "task completed : $task_id"
 };
 
-#,,..,.,.,.,.,..,,.,.,.,,,.,.,...,...,.,.,,.,,..,,...,...,.,.,,,.,.,.,,.,,,..,
-#RJK2IAHRWQLZSPURHNIMBQMTBKJ4BXZBFOM66AH7ELMFSDKRM5PE54T76DGT2AYC4ZPYAZYA7663K
-#\\\|XG7WMSIZLAI3OBOHNCUZLNXGG4YCWEVOCCLGHQSH23LU3DE6CL4 \ / AMOS7 \ YOURUM ::
-#\[7]EWDNN3EB4LKNEUXFVT3PQHZ55VAWKNF74WDRBAVNBGDE563VU2DY 7  DATA SIGNATURE ::
+#,,,,,...,,,.,,,,,.,.,,.,,,,,,,..,..,,...,.,,,..,,...,...,...,.,.,,,,,,.,,,,,,
+#PSL5JFZMNVZKE7IVZBDJJ5RN6BC22F3GZLU7Z2LULH6WDIVXB7KLDPKFQAFJWIIG7FGIDGBT5YZJ4
+#\\\|G2OJG3KUNQDAUVWGYWL2DMGS27GGZ7QK7D77CUOE5JYKWEJNK6Q \ / AMOS7 \ YOURUM ::
+#\[7]YMZY42OKLHCV3V3JOTDUMMPDRXXEC64DYY4I4A5ZVV2WDELU4IAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

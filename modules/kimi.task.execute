@@ -25,6 +25,9 @@ unless ( defined $task ) {
     return FALSE;
 }
 
+## store job_id for later completion
+$task->{'job_id'} = $job_id;
+
 ## mark task as in_progress ##
 $task->{'execution'}->{'status'}  = qw| in_progress |;
 $task->{'execution'}->{'started'} = <[base.time]>->(3);
@@ -47,8 +50,13 @@ my $result = <[kimi.handler.process-queued-task]>
 
 ## handle job completion based on result ##
 if ( defined $result && $result->{'success'} ) {
+    if ( $result->{'deferred'} ) {
+        ## prompt submitted — completion arrives via TurnEnd
+        ## job stays in running until kimi.task.complete is called
+        return { success => TRUE, deferred => TRUE };
+    }
+    ## synchronous result [ fallback path ]
     <[jobqueue.move_job]>->( $job_id, 'completed' );
-    ## extract the actual result text from hashref ##
     my $result_text = $result->{'result'} // '';
     <kimi.task.complete>->( $task_id, $result_text );
 } else {
@@ -56,6 +64,24 @@ if ( defined $result && $result->{'success'} ) {
         = defined $result
         ? $result->{'error'} // 'unknown error'
         : 'handler returned undef';
+
+    ## if kimi is not ready, defer instead of failing
+    ## the status watcher will retry when ready
+    if ( defined $result and $error_msg =~ m{^kimi not ready} ) {
+        my $aref_pending = <kimi.task.pending> //= [];
+        my $aref_active  = <kimi.task.active>  //= [];
+        $aref_active->@* = grep { $ARG ne $task_id } $aref_active->@*;
+        push $aref_pending->@*, $task_id
+            unless grep { $ARG eq $task_id } $aref_pending->@*;
+        <kimi.task.active_id> = undef;
+        $task->{'execution'}->{'status'} = qw| pending |;
+        delete $task->{'execution'}->{'started'};
+        <[base.logs]>->(
+            2, "kimi.task.execute: task %s deferred [ not ready ]", $task_id
+        );
+        return { success => TRUE, deferred => TRUE };
+    }
+
     my $err_short = <[base.parser.center_ellipse_string]>->( $error_msg, 72 );
     $err_short //= $error_msg;    ## fallback if center_ellipse fails ##
     <[base.logs]>->(
@@ -68,8 +94,8 @@ if ( defined $result && $result->{'success'} ) {
 
 return $result;
 
-#,,.,,,..,,,.,,,.,.,,,..,,,,.,,.,,..,,..,,,,,,..,,...,...,,..,.,.,..,,.,.,.,.,
-#BWE5UI4UUY2W5SRQ4SE2RT5TWPRXJ5AJDMIFNL77G2QOBBD6WPKDCFUG6CFLC47PWFAZCUFV56ESQ
-#\\\|6VGTCMIJPIVW3UYIDDVBAOFWEAA6USR6ERUACDGSEZ56PJSNPH4 \ / AMOS7 \ YOURUM ::
-#\[7]NQ2ZO3GCMSDVXVVS6B7CCDSMTOVE6XSTS5DFT4HB4QQJNHS6AABA 7  DATA SIGNATURE ::
+#,,.,,,,,,,,,,.,,,,..,.,.,,..,..,,,,.,,.,,...,..,,...,...,.,.,.,,,,.,,,,.,,.,,
+#XMWEEHNDZZFROD57JNLVJTWSJNRDBRHYVYN7QFW32TMNZ7U54FECFKO56IQMKLWUSGXG5WC3KY6I2
+#\\\|WGLU4Z4GNYV73OODKLN27MOWNYLBR6G7VAPFYKH6CNQUFL6GMFH \ / AMOS7 \ YOURUM ::
+#\[7]HEFMOXNSNMXDH5QMO3I4ZUVGB6RNI2WOHA3WR5JXTYJLYSA3ICDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

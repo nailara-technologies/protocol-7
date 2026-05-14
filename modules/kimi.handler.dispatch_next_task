@@ -1,0 +1,42 @@
+## [:< ##
+
+# name  = kimi.handler.dispatch_next_task
+# descr = dispatch next pending kimi task when websocket is ready
+
+return unless <kimi.ws.status> eq qw| ready |;
+return if defined <kimi.task.active_id>;
+
+my $aref_pending = <kimi.task.pending> // [];
+return unless @$aref_pending;
+
+my $task_id = $aref_pending->[0];
+my $task    = <kimi.task.queue>->{$task_id};
+
+return unless defined $task;
+
+my $result = <[kimi.handler.process-queued-task]>
+    ->( { 'params' => { 'task_id' => $task_id } } );
+
+if ( defined $result and $result->{'success'} ) {
+    <kimi.task.active_id> = $task_id;
+    $task->{'execution'}->{'status'}  = qw| in_progress |;
+    $task->{'execution'}->{'started'} = <[base.time]>->(3);
+
+    $aref_pending->@* = grep { $ARG ne $task_id } $aref_pending->@*;
+    my $aref_active = <kimi.task.active> //= [];
+    push $aref_active->@*, $task_id;
+} elsif ( defined $result ) {
+    my $err = $result->{'error'} // 'dispatch failed';
+    <[base.logs]>->( 1, 'dispatch_next_task: %s failed: %s', $task_id, $err );
+
+    $aref_pending->@* = grep { $ARG ne $task_id } $aref_pending->@*;
+    <[kimi.task.queue_fail]>->( $task_id, $err );
+}
+
+return;
+
+#,,,.,..,,..,,..,,,..,..,,.,,,,..,,,,,,,,,.,,,..,,...,...,,.,,...,,,,,,..,,.,,
+#4IG6WEMWJZO5H7PEZW364RNCBXLWEXHPMYAACLPJDP7IKT2F3B2ON35VVMF7YCBVWDYMX7LHDX33Y
+#\\\|E6A36J5VAZJKZRGLU5GM3WX2ZTLCRNZLG7M6PT4TTG4U65YTWL4 \ / AMOS7 \ YOURUM ::
+#\[7]SECDXFE3R2CPHJR3YJUD4SPG45C5EZQONYVN7RDEG3LEDLUOWABQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

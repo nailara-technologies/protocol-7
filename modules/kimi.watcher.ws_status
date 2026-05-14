@@ -1,0 +1,151 @@
+## [:< ##
+
+# name  = kimi.watcher.ws_status
+# descr = watcher-driven state machine for kimi websocket lifecycle
+
+my $new_status = <kimi.ws.status>;
+
+<[base.logs]>->( 2, 'kimi.watcher.ws_status: status → %s', $new_status );
+
+## cancel init retry timer on any status change away from connecting
+if ( $new_status ne qw| connecting | and defined <kimi.init.retry_timer> ) {
+    <kimi.init.retry_timer>->cancel
+        if <kimi.init.retry_timer>->is_active;
+    <kimi.init.retry_timer> = undef;
+    <kimi.init.retry_count> = 0;
+}
+
+if ( $new_status eq qw| disconnected | ) {
+
+    ## cancel liveness timer
+    if ( defined <kimi.liveness.timer> ) {
+        <kimi.liveness.timer>->cancel
+            if <kimi.liveness.timer>->is_active;
+        <kimi.liveness.timer> = undef;
+    }
+
+    ## schedule reconnect if work is pending or session was previously ready
+    my $has_preserved_prompt = FALSE;
+    for my $pend_id ( keys %{<kimi.wire.pending>} ) {
+        if ( ( <kimi.wire.pending>->{$pend_id}{'type'} // '' ) eq qw| prompt |
+        ) {
+            $has_preserved_prompt = TRUE;
+            last;
+        }
+    }
+
+    if ( $has_preserved_prompt or ( <kimi.session.was_ready> // FALSE ) ) {
+        if ( $has_preserved_prompt
+            and not defined <kimi.reconnect.grace_timer> ) {
+            <kimi.reconnect.grace_timer> = <[event.add_timer]>->(
+                {   'after'   => 90,
+                    'handler' => qw| kimi.handler.reconnect_grace_timeout |,
+                    'desc'    => 'fail preserved prompts if still pending'
+                }
+            );
+        }
+        <[kimi.connect.schedule_retry]>;
+    }
+} elsif ( $new_status eq qw| connecting | ) {
+
+    ## cancel reconnect timer
+    if ( defined <kimi.reconnect.timer> ) {
+        <kimi.reconnect.timer>->cancel
+            if <kimi.reconnect.timer>->is_active;
+        <kimi.reconnect.timer> = undef;
+    }
+
+    ## cancel grace timer
+    if ( defined <kimi.reconnect.grace_timer> ) {
+        <kimi.reconnect.grace_timer>->cancel
+            if <kimi.reconnect.grace_timer>->is_active;
+        <kimi.reconnect.grace_timer> = undef;
+    }
+
+    ## start liveness timeout
+    <kimi.liveness.timer> = <[event.add_timer]>->(
+        {   'after'   => 15,
+            'handler' => qw| kimi.handler.session_liveness_timeout |,
+            'desc'    => 'detect dead kimi-web session'
+        }
+    );
+} elsif ( $new_status eq qw| ready | or $new_status eq qw| busy | ) {
+
+    ## cancel reconnect timer
+    if ( defined <kimi.reconnect.timer> ) {
+        <kimi.reconnect.timer>->cancel
+            if <kimi.reconnect.timer>->is_active;
+        <kimi.reconnect.timer> = undef;
+    }
+
+    ## cancel liveness timer
+    if ( defined <kimi.liveness.timer> ) {
+        <kimi.liveness.timer>->cancel
+            if <kimi.liveness.timer>->is_active;
+        <kimi.liveness.timer> = undef;
+    }
+
+    ## cancel grace timer
+    if ( defined <kimi.reconnect.grace_timer> ) {
+        <kimi.reconnect.grace_timer>->cancel
+            if <kimi.reconnect.grace_timer>->is_active;
+        <kimi.reconnect.grace_timer> = undef;
+    }
+
+    ## reset backoff
+    <kimi.connect.retry_cur> = 2;
+
+    if ( $new_status eq qw| ready | ) {
+
+        ## dispatch deferred prompt
+        if ( defined <kimi.next.deferred> ) {
+            my $def         = delete <kimi.next.deferred>;
+            my $def_task_id = $def->{'task_id'};
+            my $def_msg_id
+                = <[kimi.wire.prompt]>
+                ->( $def->{'prompt'}, $def->{'reply_id'} );
+
+            if ( defined $def_msg_id ) {
+                if ( defined $def_task_id ) {
+                    <kimi.task.active_id> = $def_task_id;
+                    my $task = <kimi.task.queue>->{$def_task_id};
+                    if ( defined $task ) {
+                        $task->{'execution'}->{'status'} = qw| in_progress |;
+                        $task->{'execution'}->{'started'}
+                            = <[base.time]>->(3);
+                    }
+                    my $aref_pending = <kimi.task.pending> //= [];
+                    my $aref_active  = <kimi.task.active>  //= [];
+                    $aref_pending->@*
+                        = grep { $ARG ne $def_task_id } $aref_pending->@*;
+                    push $aref_active->@*, $def_task_id;
+                    <kimi.wire.pending>->{$def_msg_id}->{'task_id'}
+                        = $def_task_id;
+                }
+            } elsif ( defined $def_task_id ) {
+                <[base.logs]>->(
+                    0,
+                    ': deferred prompt failed for task %s — marking failed',
+                    $def_task_id
+                );
+                <kimi.task.active_id> = undef;
+                <[kimi.task.queue_fail]>->(
+                    $def_task_id, 'wire.prompt failed'
+                );
+                ## try next task
+                <[kimi.handler.dispatch_next_task]>;
+            }
+        }
+
+        ## dispatch next queued task if any
+        <[kimi.handler.dispatch_next_task]>;
+    }
+}
+
+return TRUE;
+
+#,,.,,.,,,..,,..,,.,,,,.,,,,.,,..,,,.,.,.,.,,,..,,...,...,.,.,.,,,.,.,.,.,,,,,
+#HKKQWFZAW2QZLCHURXNL36WZFIXMIWWNQEU2KUNTRC6UOSXRDY7CF2F7TKGPAD2CWWPBWIEDKROUS
+#\\\|6CZ4URZCQR7UKKLJGSSMLLG4NZ2TUV64MY6BUUOB32DKVGQY4HZ \ / AMOS7 \ YOURUM ::
+#\[7]EDGKPLGOU6TC35BT6HB25CMBF222F26QCCF3KSXN4KI3H6GG3CCA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
