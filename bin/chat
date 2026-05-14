@@ -46,7 +46,8 @@ BEGIN {
 
 ##[ AMOS7 COLORS ]############################################################
 
-use AMOS7;
+use AMOS7 qw| %C |;
+use AMOS7::TERM qw| terminal_size |;
 
 ##[ CONSTANTS ]###############################################################
 
@@ -73,21 +74,21 @@ my $option_list = <<'EOL';
 
     .: chat command line options :.
 
-    -w  .......  wait for reply before exiting [ --wait-reply [seconds] ]
-    -f  .......  read message from file        [ --file <path> ]
-    -c  .......  specify channel               [ --channel <name> ]
-    -m  .......  specify model                 [ --model <id> ]
+    -w  .......  wait for reply before exiting [ -wait-reply [seconds] ]
+    -f  .......  read message from file        [ -file <path> ]
+    -c  .......  specify channel               [ -channel <name> ]
+    -m  .......  specify model                 [ -model <id> ]
     -q  .......  quiet — no decorative output
 
-    -clear  ...  archive current channel and start fresh
+    -clear       archive current channel and start fresh
     -clear-all   archive all channels and start fresh
-    -clear-msg   remove single message by index [ --clear-msg <n> ]
+    -clear-msg   remove single message by index [ -clear-msg <n> ]
     -trim <n>    archive messages older than n, keep recent n lines
     -archive     show archive list for current channel
     -channels    list all channels with last-active timestamps
     -models      list known models and their status
-    -search      literal search in history      [ --search <term> ]
-    -grep        regex search in history        [ --grep <pattern> ]
+    -search      literal search in history      [ -search <term> ]
+    -grep        regex search in history        [ -grep <pattern> ]
     -summarize   trigger memory rotation for current channel
     -summary     show channel summary (lazy, via coding zenka)
 
@@ -1168,6 +1169,7 @@ sub show_timeline {
     }
 
     say colored(".: active channels :.");
+    my $use_color = defined terminal_size() && not $option{'quiet'};
     for my $name ( sort @ch ) {
         my $hpath = history_path($name);
         my $spath = summary_path($name);
@@ -1184,17 +1186,21 @@ sub show_timeline {
             $summary_snip = $sent if length $sent;
         }
 
-        say sprintf(
-            "  %s  #%s   %s",
-            $ts, $name, $summary_snip
-        );
+        if ($use_color) {
+            say sprintf( "$C{0}  %s  $C{T}#%s$C{0}   %s$C{R}",
+                $ts, $name, $summary_snip );
+        } else {
+            say sprintf( "  %s  #%s   %s", $ts, $name, $summary_snip );
+        }
     }
     say '';
-    say sprintf(
-        "active: #%s  model: %s",
-        $state->{'active_channel'},
-        $state->{'active_model'}
-    );
+    if ($use_color) {
+        say "$C{0}active: $C{T}#$state->{'active_channel'}$C{0}"
+            . "  model: $C{T}$state->{'active_model'}$C{R}";
+    } else {
+        say "active: #$state->{'active_channel'}"
+            . "  model: $state->{'active_model'}";
+    }
 }
 
 sub list_options {
@@ -1208,11 +1214,12 @@ sub list_options {
 sub colored {
     my $text = shift;
     return $text if $option{'quiet'};
+    return ": $text" if not defined terminal_size();
     return "$C{0}:\n::$C{b} $C{T}$text$C{0} $C{R}\n:$C{R}";
 }
 
-#,,,.,,,.,.,,,,,,,...,..,,,..,,.,,,,.,,.,,,..,..,,...,...,...,...,,,,,,,.,.,.,
-#BFBSVF5FIQISOEM44IDZARZB7OIXHMR463ECXITFT5IIXYX32272GGW2WG3TMKQFGMSYGJA4IE5KS
-#\\\|A2KETJRNEEXHQWWRM46A7RCMJFCFRO64D24U3KWN53TEREJTK4F \ / AMOS7 \ YOURUM ::
-#\[7]DB5R4NVHIGD2F7DYFHC22UOUK64YKSBTQQCUOMSGIHXVVFM7DABA 7  DATA SIGNATURE ::
+#,,.,,,.,,...,,,.,,,,,.,,,...,,,,,,.,,,,.,,,,,..,,...,..,,...,,,,,.,.,...,...,
+#QFMAGJAPSEYPQLJHOOYSV322TAZDDC7WMFLH3YHWVDBTPKT36FFEP6DGQZDSW3WPFOPIV7P3HR7I6
+#\\\|FRJBDTBKW73TVGUJAN2GYMS7VT64WMWY7UHA5OWZVWG5ZIJVTIY \ / AMOS7 \ YOURUM ::
+#\[7]4YVLB74S7F7HKJ7VVQGQA6E42BZ5AQQ6D3SP6ECMY46I7HJ2YOAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
