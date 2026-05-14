@@ -33,6 +33,19 @@ if ( $content_length > $max_post_size ) {
     return <[httpd.send_error_page]>->( $id, 413 );    ## Payload Too Large
 }
 
+## route registry dispatch (exact + ANY, before ACME body handling) ##
+my $registry = $data{'httpd'}{'route'} // {};
+for my $try_method (qw| POST ANY |) {
+    my $sub_name = ( $registry->{'exact'}{$try_method} // {} )->{$http_uri};
+    if ( defined $sub_name and exists $code{$sub_name} ) {
+        <[base.logs]>->(
+            1,   '[%d] route registry [%s:%s] → %s',
+            $id, $try_method, $http_uri, $sub_name
+        );
+        return $code{$sub_name}->($id);
+    }
+}
+
 ## For ACME endpoints, wait for complete body before processing
 if (   $http_uri =~ m|^/api/certificate|
     || $http_uri =~ m|^/\.well-known/acme-challenge| ) {
@@ -103,45 +116,6 @@ if (   $http_uri =~ m|^/api/certificate|
     } elsif ( $http_uri =~ m|^/api/certificate/list| ) {
         return <[httpd.handler.acme_request]>->( $id, $http_uri );
     }
-} elsif ( $http_uri eq qw| /cursor | ) {
-
-    ## visualization cursor update — selX/Y/Z from browser ##
-    return <[plugin.web.space.handler.cursor_update]>->($id);
-
-} elsif ( $http_uri eq qw| /context | ) {
-
-    ## visualization context update — zoom + intent from browser ##
-    my $body = $session->{'buffer'}->{'input'} // '';
-    $session->{'buffer'}->{'input'} = '';
-    <[protocol-7.route-send]>->(
-        {   qw| command |   => qw| web.context |,
-            qw| call_args | => { qw| args | => $body },
-        }
-    );
-    ## force close — body may arrive after headers in separate chunk,
-    ## keeping alive would bleed body bytes into next request parse ##
-    $session->{'http'}->{'close'} = 1;
-    my $reply_body   = qw| {} |;
-    my $reply_header = {
-        qw| Content-Type   | => qw| application/json |,
-        qw| Content-Length | => length($reply_body),
-        qw| Connection     | => qw| close |,
-    };
-    $session->{'buffer'}->{'output'}
-        .= <[httpd.new_header]>->( 200, $reply_header );
-    $session->{'buffer'}->{'output'} .= $reply_body;
-    return 2;
-
-} elsif ( $http_uri eq qw| /jobs.json | ) {
-
-    ## serve job store as JSON array ##
-    return <[plugin.web.jobs.handler.get]>->($id);
-
-} elsif ( $http_uri eq qw| /jobs-sync | ) {
-
-    ## browser delta sync for job records ##
-    return <[plugin.web.jobs.handler.sync]>->($id);
-
 } else {
     ## Unsupported POST endpoint
     <[base.logs]>->( 1, '[%d] POST not supported for: %s', $id, $http_uri );
@@ -150,8 +124,8 @@ if (   $http_uri =~ m|^/api/certificate|
 
 return 2;    ## Should not reach here
 
-#,,,.,...,,..,,,,,.,.,,..,,..,,..,,..,,..,,..,..,,...,...,.,,,.,,,.,,,,..,,.,,
-#6Y6H6P3GTVKLWGDIUM3U4HQSM4JEX7NABWPEDSSPBPVDHBRZCQXR4ZRPSWWEMAONX4GGL5QTCUCO6
-#\\\|PQTGGBVYF3EHPN6SEFNAYJGPTUYQOE2Q7XNGOO3S7TQYBEMHA2K \ / AMOS7 \ YOURUM ::
-#\[7]DQ7BM7Y6276NTBSTTKEYZF5JLRNPOSWA2CQ2FV2MUUWGP3T4AKAY 7  DATA SIGNATURE ::
+#,,,,,,..,,,,,,..,.,,,.,.,..,,,..,..,,,..,,,.,..,,...,..,,.,,,..,,.,,,,,,,,,,,
+#KS3K3N3HERLFRFST3ZHLGMMN4IFR76KMCXGLVUYFIUUHC6GUH5CWVCKVXU22XXPY6PQUETPLAYBPS
+#\\\|GB4UGUGOJVPZMDYHXNARFCRQUQMDTA2EQAFJIHUK7BIDJJMNY4X \ / AMOS7 \ YOURUM ::
+#\[7]D3NMH66YIRNCGL2CGNOWS7SH2JYKZYIZFIRKIQOF563524IIOCBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

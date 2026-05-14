@@ -335,78 +335,104 @@ button.red:hover { background: rgba(130,0,0,0.6); }
 
 const STORAGE_KEY = 'jobs_[vhost]_v1';
 const JOBS_JSON   = '/jobs.json';
+const JOBS_SYNC   = '/jobs-sync';
+const POLL_MS     = 30000;
 
 /* ── state ── */
-let jobs = {};           // id → job object
+let jobs = {};           // id → job object (in-memory, server is source of truth)
+let lastNtime = 0;       // watermark: only fetch jobs changed after this ntime
 let sortMode = 'score';  // 'score' | 'asc' | 'date'
 let filterMode = 'review';
 let minScore = 6;
 let showArchived = false;
 let dragSrcId = null;
+let pollTimer = null;
 
-/* ── localStorage ── */
-function saveLocal() {
-    try { localStorage.setItem(STORAGE_KEY, JSON.stringify(jobs)); } catch(e) {}
+/* ── localStorage — reload cache only, not source of truth ── */
+function saveCache() {
+    try { localStorage.setItem(STORAGE_KEY, JSON.stringify({jobs, lastNtime})); } catch(e) {}
 }
-function loadLocal() {
+function loadCache() {
     try {
         const d = localStorage.getItem(STORAGE_KEY);
-        if (d) jobs = JSON.parse(d);
-    } catch(e) { jobs = {}; }
+        if (!d) return;
+        const parsed = JSON.parse(d);
+        /* accept both old format (plain object) and new {jobs, lastNtime} */
+        if (parsed && parsed.jobs) {
+            jobs = parsed.jobs;
+            lastNtime = parsed.lastNtime || 0;
+        } else if (parsed && typeof parsed === 'object') {
+            jobs = parsed; /* old format — treat as jobs map, ntime unknown */
+        }
+    } catch(e) { jobs = {}; lastNtime = 0; }
 }
 
-/* ── merge pipeline data ── */
-function mergeJobs(pipelineJobs) {
-    let added = 0;
-    for (const pj of pipelineJobs) {
-        const id = String(pj.id);
+/* ── merge server data into local map ── */
+function mergeJobs(serverJobs) {
+    let added = 0, updated = 0;
+    for (const sj of serverJobs) {
+        const id = String(sj.id ?? sj.job_id ?? '');
+        if (!id) continue;
         if (!jobs[id]) {
-            jobs[id] = {
-                id, title: pj.title || '', company: pj.company || '',
-                city: pj.city || '', industry: pj.industry || '',
-                url: pj.url || '', score: pj.score ?? null,
-                reason: pj.reason || '', summary: pj.summary || '',
-                stage: pj.stage || 'review',
-                date_added: new Date().toISOString().slice(0,10),
-                date_applied: '', note: '', source: 'pipeline',
-                sort_order: Object.keys(jobs).length,
-                assertions: pj.assertions || null,
-                repair_applied: pj.repair_applied || 0,
-                repair_failed: pj.repair_failed || 0,
-            };
+            jobs[id] = { ...sj, id };
             added++;
         } else {
-            /* update pipeline fields, preserve manual fields */
-            const j = jobs[id];
-            if (pj.score   != null && j.source === 'pipeline') j.score   = pj.score;
-            if (pj.reason  && j.source === 'pipeline') j.reason  = pj.reason;
-            if (pj.summary && j.source === 'pipeline') j.summary = pj.summary;
-            if (pj.assertions && j.source === 'pipeline') j.assertions = pj.assertions;
-            if (pj.repair_applied != null && j.source === 'pipeline') j.repair_applied = pj.repair_applied;
-            if (pj.repair_failed != null && j.source === 'pipeline') j.repair_failed = pj.repair_failed;
+            /* server is authoritative — overwrite all fields */
+            jobs[id] = { ...jobs[id], ...sj, id };
+            updated++;
         }
     }
-    return added;
+    return { added, updated };
 }
 
-/* ── sync ── */
-async function syncPipeline() {
-    document.getElementById('btn-sync').textContent = '…';
+/* ── POST a single field change to server, advance ntime ── */
+async function pushChange(id, fields) {
     try {
-        const r = await fetch(JOBS_JSON + '?t=' + Date.now());
+        const r = await fetch(JOBS_SYNC, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ id, ...fields }),
+        });
         if (!r.ok) throw new Error(r.status);
         const data = await r.json();
-        const arr = data.jobs || data;
-        const n = mergeJobs(arr);
-        saveLocal();
-        render();
-        if (tableVisible) showPrintTable();
-        document.getElementById('btn-sync').textContent = '↻ sync';
-        if (n > 0) notify(`${n} neue jobs geladen`);
+        if (data.ntime) lastNtime = data.ntime;
+        saveCache();
     } catch(e) {
-        document.getElementById('btn-sync').textContent = '↻ sync';
         notify('sync fehler: ' + e.message, true);
     }
+}
+
+/* ── sync: full on first load, delta on subsequent polls ── */
+async function syncPipeline() {
+    const btn = document.getElementById('btn-sync');
+    btn.textContent = '…';
+    try {
+        const url = lastNtime > 0
+            ? JOBS_JSON + '?since=' + lastNtime
+            : JOBS_JSON;
+        const r = await fetch(url);
+        if (!r.ok) throw new Error(r.status);
+        const data = await r.json();
+
+        /* support both {ntime, jobs:[...]} wrapper and plain array */
+        const arr = Array.isArray(data) ? data : (data.jobs || []);
+        if (!Array.isArray(data) && data.ntime) lastNtime = data.ntime;
+
+        const { added } = mergeJobs(arr);
+        saveCache();
+        render();
+        if (tableVisible) showPrintTable();
+        btn.textContent = '↻ sync';
+        if (added > 0) notify(`${added} neue jobs geladen`);
+    } catch(e) {
+        btn.textContent = '↻ sync';
+        notify('sync fehler: ' + e.message, true);
+    }
+}
+
+function startPoll() {
+    if (pollTimer) clearInterval(pollTimer);
+    pollTimer = setInterval(syncPipeline, POLL_MS);
 }
 
 /* ── score helpers ── */
@@ -526,20 +552,25 @@ function renderCard(j) {
         ta.classList.add('visible');
         ta.focus();
     };
+    const setStage = (id, stage) => {
+        jobs[id].stage = stage;
+        saveCache(); render();
+        pushChange(id, { stage });
+    };
     const dblActions = {
-        review:    () => { jobs[j.id].stage = 'skipped';  saveLocal(); render(); },
+        review:    () => setStage(j.id, 'skipped'),
         to_apply:  () => openNote(),
-        applied:   () => { jobs[j.id].stage = 'rejected'; saveLocal(); render(); },
+        applied:   () => setStage(j.id, 'rejected'),
         responded: () => openNote(),
-        skipped:   () => { jobs[j.id].stage = 'archived'; saveLocal(); render(); },
+        skipped:   () => setStage(j.id, 'archived'),
     };
     const longActions = {
-        review:    () => { jobs[j.id].stage = 'to_apply';  saveLocal(); render(); },
-        to_apply:  () => { jobs[j.id].stage = 'applied';   saveLocal(); render(); },
-        applied:   () => { jobs[j.id].stage = 'responded'; saveLocal(); render(); },
-        responded: () => { jobs[j.id].stage = 'rejected';  saveLocal(); render(); },
-        rejected:  () => { jobs[j.id].stage = 'archived';  saveLocal(); render(); },
-        archived:  () => { jobs[j.id].stage = 'review';    saveLocal(); render(); },
+        review:    () => setStage(j.id, 'to_apply'),
+        to_apply:  () => setStage(j.id, 'applied'),
+        applied:   () => setStage(j.id, 'responded'),
+        responded: () => setStage(j.id, 'rejected'),
+        rejected:  () => setStage(j.id, 'archived'),
+        archived:  () => setStage(j.id, 'review'),
     };
 
     let longPressTimer = null;
@@ -579,14 +610,15 @@ function renderCard(j) {
 
     /* stage select */
     el.querySelector('.stage-select').addEventListener('change', e => {
-        jobs[j.id].stage = e.target.value;
-        saveLocal(); render();
+        setStage(j.id, e.target.value);
     });
 
     /* date applied */
     const dateInput = el.querySelector('.date-applied-input');
     if (dateInput) dateInput.addEventListener('change', e => {
-        jobs[j.id].date_applied = e.target.value; saveLocal();
+        jobs[j.id].date_applied = e.target.value;
+        saveCache();
+        pushChange(j.id, { date_applied: e.target.value });
     });
 
     /* note toggle */
@@ -601,13 +633,18 @@ function renderCard(j) {
         if (!jobs[j.id].note) e.target.classList.remove('visible');
     });
 
-    /* note save */
+    /* note save — debounce push to avoid a POST per keystroke */
+    let noteDebounce = null;
     el.querySelector('.card-note-input').addEventListener('input', e => {
         jobs[j.id].note = e.target.value;
         const preview = el.querySelector('.card-note-preview');
         preview.textContent = e.target.value;
         preview.classList.toggle('visible', !!e.target.value);
-        saveLocal();
+        saveCache();
+        clearTimeout(noteDebounce);
+        noteDebounce = setTimeout(() => {
+            pushChange(j.id, { notes: jobs[j.id].note });
+        }, 1200);
     });
 
     /* dimension toggle */
@@ -632,7 +669,7 @@ function reorderCards(srcId, dstId) {
     const [item] = all.splice(srcIdx, 1);
     all.splice(dstIdx, 0, item);
     all.forEach((j, i) => { j.sort_order = i; });
-    saveLocal(); render();
+    saveCache(); render();
 }
 
 function sortedJobs() {
@@ -790,7 +827,7 @@ function addManual() {
         date_applied: '', note: '', source: 'manual',
         sort_order: Object.keys(jobs).length
     };
-    saveLocal(); render();
+    saveCache(); render();
     ['f-title','f-company','f-city','f-url','f-score','f-reason'].forEach(id => {
         document.getElementById(id).value = '';
     });
@@ -884,14 +921,15 @@ document.getElementById('btn-show-table').addEventListener('click', () => {
 
 document.getElementById('btn-clear-local').addEventListener('click', () => {
     if (confirm('Lokale Daten wirklich löschen? Pipeline-Daten bleiben erhalten (sync).')) {
-        jobs = {}; saveLocal(); syncPipeline();
+        jobs = {}; lastNtime = 0; saveCache(); syncPipeline();
     }
 });
 
 /* ── init ── */
-loadLocal();
-render(); // show what we have immediately
-syncPipeline(); // then merge fresh pipeline data
+loadCache();
+render(); // show cached data immediately
+syncPipeline(); // full sync from server (may advance lastNtime)
+startPoll();    // delta polls every 30s thereafter
 </script>
 </body>
 </html>

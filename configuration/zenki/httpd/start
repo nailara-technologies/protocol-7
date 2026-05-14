@@ -3,9 +3,11 @@
 
 [load_config_file:'shared-params']
 
-modules.load         =  auth net protocol io.unix io.ip format.json httpd   ## devmod
+modules.load  =  auth net protocol io.unix io.ip format.json httpd jobsite.job httpd.route   devmod
 
-plugins.load = plugin.httpd.radio
+[base.white-list.register:'plugin.web.jobs']
+
+plugins.load = plugin.httpd.radio plugin.web.jobs
 [load_plugins:<plugins.load>]
 
 net.http.addr        =  0:0:0:0:0:0:0:0
@@ -54,8 +56,8 @@ httpd.sock = [base.open:'ip.tcp','input',<net.http.addr>,<net.http.port>]
 
 [zenka.loop]
 
-#,,,,,.,.,,..,,..,.,,,,,.,,,.,,,,,,,.,.,.,.,,,..,,...,...,.,,,.,.,,,.,..,,.,.,
-#F2GGYCRLNKZCW7AJVUH6B7V42DALCJWU2JHF3DTKSEN5FPZKNVIT5DVT6S3CEGESPBMDCFNOF4R36
-#\\\|WCMW25CQTL7MG54I2NY7QQKFVVJCYWNFTBJLTL7CWXHETJGMHRK \ / AMOS7 \ YOURUM ::
-#\[7]76HU44NC2XBIWDMVWSXBOZGHUC3CS3UOAC5PEP4HJG7H3EMFWMBQ 7  DATA SIGNATURE ::
+#,,,.,..,,,,,,,,.,,.,,,.,,,.,,...,.,.,,,.,,..,..,,...,...,..,,..,,,,.,,..,...,
+#QPMJUBWMDBK4LZ24OQNM77NUGC4MZ656SF6V3ZG7EQ23X2GSZAYS2EFSPDKGJHKQZHMPYZJA26O4M
+#\\\|B5KJPEI2HE33C3MKO3BISCRY4P4EDAKSJ7YHJUJA7EEMWRRRRC6 \ / AMOS7 \ YOURUM ::
+#\[7]3XHEHLZQD5OYWSJFBCQPRY6LGWIMJF5N6HGPCBGX7FXKKJFTDYBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
