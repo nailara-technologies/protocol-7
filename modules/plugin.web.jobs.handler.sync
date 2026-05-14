@@ -1,0 +1,99 @@
+## [:< ##
+
+# name  = plugin.web.jobs.handler.sync
+# descr = handle POST delta sync for a single job record
+
+my $id = shift;
+
+my $session = $data{'session'}->{$id};
+
+my $body = $session->{'buffer'}->{'input'} // '';
+$session->{'buffer'}->{'input'} = '';
+
+<[base.perlmod.autoload]>->('JSON::XS');
+
+my $delta = eval { JSON::XS::decode_json($body) };
+if ( $@ or ref $delta ne 'HASH' ) {
+    my $reply_body   = '{"ok":false,"error":"invalid json"}';
+    my $reply_header = {
+        qw| Content-Type   | => qw| application/json |,
+        qw| Content-Length | => length($reply_body),
+        qw| Connection     | => qw| close |,
+    };
+    $session->{'buffer'}->{'output'}
+        .= <[httpd.new_header]>->( 400, $reply_header );
+    $session->{'buffer'}->{'output'} .= $reply_body;
+    return 2;
+}
+
+my $job_id = $delta->{'id'} // '';
+
+if ( not length $job_id ) {
+    my $reply_body   = '{"ok":false,"error":"missing job id"}';
+    my $reply_header = {
+        qw| Content-Type   | => qw| application/json |,
+        qw| Content-Length | => length($reply_body),
+        qw| Connection     | => qw| close |,
+    };
+    $session->{'buffer'}->{'output'}
+        .= <[httpd.new_header]>->( 400, $reply_header );
+    $session->{'buffer'}->{'output'} .= $reply_body;
+    return 2;
+}
+
+my $job_file = "/var/protocol-7/jobsite/jobs/$job_id.yaml";
+
+if ( not -f $job_file ) {
+    my $reply_body   = '{"ok":false,"error":"job not found"}';
+    my $reply_header = {
+        qw| Content-Type   | => qw| application/json |,
+        qw| Content-Length | => length($reply_body),
+        qw| Connection     | => qw| close |,
+    };
+    $session->{'buffer'}->{'output'}
+        .= <[httpd.new_header]>->( 404, $reply_header );
+    $session->{'buffer'}->{'output'} .= $reply_body;
+    return 2;
+}
+
+## strip id from delta before saving — state.save expects browser fields only ##
+my %save_delta;
+for my $field (qw| stage notes date_applied |) {
+    $save_delta{$field} = $delta->{$field}
+        if exists $delta->{$field};
+}
+
+my $ok = eval { <[plugin.web.jobs.state.save]>->( $job_id, \%save_delta ); };
+
+if ( not $ok or $@ ) {
+    my $err        = $@ // 'save failed';
+    my $reply_body = JSON::XS::encode_json( { 'ok' => \0, 'error' => $err } );
+    my $reply_header = {
+        qw| Content-Type   | => qw| application/json |,
+        qw| Content-Length | => length($reply_body),
+        qw| Connection     | => qw| close |,
+    };
+    $session->{'buffer'}->{'output'}
+        .= <[httpd.new_header]>->( 500, $reply_header );
+    $session->{'buffer'}->{'output'} .= $reply_body;
+    return 2;
+}
+
+my $reply_body   = '{"ok":true}';
+my $reply_header = {
+    qw| Content-Type   | => qw| application/json |,
+    qw| Content-Length | => length($reply_body),
+    qw| Connection     | => qw| close |,
+};
+
+$session->{'buffer'}->{'output'}
+    .= <[httpd.new_header]>->( 200, $reply_header );
+$session->{'buffer'}->{'output'} .= $reply_body;
+
+return 2;
+
+#,,.,,.,,,..,,,..,...,.,,,...,..,,...,,,.,,,.,..,,...,...,...,,..,.,.,.,,,..,,
+#FI5KRMUPIJON62EKMKVDZMGM63ROW2CCFPKNS3RR3PNSJ7QBILA4OFDDHSCCXGHNJDYCAHXAMJVHA
+#\\\|U7IJD6XRFL62OISQFKJCO3AY3NE4JLDC6JRBFJN2T7DG3VXKQLQ \ / AMOS7 \ YOURUM ::
+#\[7]GEQFF44HL7H7QFFGRXUUVVKLAL5K3HOHMHVUY4XUJWC2XBFZXOBI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
