@@ -55,11 +55,50 @@ if ( defined $defects and @$defects ) {
     $task_preamble
         = ':local: :simple: You are a job-matching assistant. Your task:'
         . " evaluate whether $candidate_name fits the job below."
-        . ' Output ONLY a German JSON object — no other text.';
+        . ' Output ONLY a YAML block — no other text.';
     $step1_preamble
         = "Step 1 — Analyze in English: compare $candidate_name's profile"
         . ' against the job requirements.';
 }
+
+my $yaml_format = <<'YAML_TEMPLATE';
+Step 2 — Translate into German and output EXACTLY this YAML format:
+
+score: <0-10>
+apply: <true|false>
+reason: "<1-2 deutsche Sätze: passt der Kandidat zu dieser Stelle oder nicht>"
+summary: "<2-3 deutsche Sätze: was die Stelle bietet, gesuchte Skills, Remote/Standort-Details, Besonderheiten>"
+assertions:
+  suggest:
+    apply: <true|false>
+    delete: <true|false>
+    archive: <true|false>
+  dimensions:
+    location:
+      score: <0-10>
+      reason: "<1 Satz>"
+    work-profile:
+      score: <0-10>
+      reason: "<1 Satz>"
+    company-culture:
+      score: <0-10>
+      reason: "<1 Satz>"
+    compensation:
+      score: <0-10>
+      reason: "<1 Satz>"
+    remote-flexibility:
+      score: <0-10>
+      reason: "<1 Satz>"
+    career-growth:
+      score: <0-10>
+      reason: "<1 Satz>"
+    tech-stack:
+      score: <0-10>
+      reason: "<1 Satz>"
+    team-structure:
+      score: <0-10>
+      reason: "<1 Satz>"
+YAML_TEMPLATE
 
 my $prompt = join( "\n\n",
     $task_preamble,
@@ -71,29 +110,7 @@ my $prompt = join( "\n\n",
     'Assessment criteria: technical alignment (highest weight),'
         . ' seniority, location / remote option, industry relevance, role scope.',
     $step1_preamble,
-    'Step 2 — Translate into German and output EXACTLY this JSON format:'
-        . ' {"score": <0-10>, "apply": <true|false>,'
-        . " \"reason\": \"<1-2 deutsche Sätze:"
-        . " passt der Kandidat zu dieser Stelle oder nicht>\","
-        . " \"summary\": \"<2-3 deutsche Sätze:"
-        . ' was die Stelle bietet, gesuchte Skills,'
-        . ' Remote/Standort-Details, Besonderheiten>",'
-        . ' "assertions": {'
-        . '   "suggest": {'
-        . '     "apply": <true|false>,'
-        . '     "delete": <true|false>,'
-        . '     "archive": <true|false>' . '   },'
-        . '   "dimensions": {'
-        . '     "location": {"score": <0-10>, "reason": "<1 Satz>"},'
-        . '     "work-profile": {"score": <0-10>, "reason": "<1 Satz>"},'
-        . '     "company-culture": {"score": <0-10>, "reason": "<1 Satz>"},'
-        . '     "compensation": {"score": <0-10>, "reason": "<1 Satz>"},'
-        . '     "remote-flexibility": {"score": <0-10>, "reason": "<1 Satz>"},'
-        . '     "career-growth": {"score": <0-10>, "reason": "<1 Satz>"},'
-        . '     "tech-stack": {"score": <0-10>, "reason": "<1 Satz>"},'
-        . '     "team-structure": {"score": <0-10>, "reason": "<1 Satz>"}'
-        . '   }'
-        . ' } }',
+    $yaml_format,
     'CRITICAL: All text MUST be valid UTF-8 German with proper umlauts (ä ö ü ß).'
         . ' Never use ae/oe/ue/ss. No English. No Chinese.',
     "## Kandidatenprofil — $candidate_name ##",
@@ -108,8 +125,8 @@ my $prompt = join( "\n\n",
 
 return $prompt;
 
-#,,.,,.,,,,.,,...,..,,.,,,...,...,.,.,.,.,..,,.,.,...,..,,.,.,.,,,.,,,,,,,.,.,
-#YGZ2FLEDM72BCP6CFAZ37ZGQI3LNDYOQJN57JEW3GABAVVRITBBREKSD3E5OUVRD4KJKGKXPWCUTQ
-#\\\|WU4GPGIIRGYDWAOWUK5UJOOKQRGQFXGJ3JWUC5S2PPYA6A6NIRY \ / AMOS7 \ YOURUM ::
-#\[7]E6PYA7XV4CR7UIULJW426375HVCQVZMJYAQ2ZKJA2R32L33STMBY 7  DATA SIGNATURE ::
+#,,..,,,.,...,..,,...,...,...,,..,,.,,.,,,,.,,.,.,...,...,..,,,,,,.,.,,.,,,.,,
+#6OKKGLWMFGNS3DSLKMG6UIDCSBUAYKAYSISVPR4SRKVV3C5IKBUSHF5KGABLFGNRQFZL3WFX34LDK
+#\\\|QBP4QUMOV5RGR55IZCGLNWN5CX4Z7HLIGQUS6A4CMP22RNKH6WJ \ / AMOS7 \ YOURUM ::
+#\[7]ENIOXH4Y5EBTL5AMATEHWWFFRWAUD7WUYPDGXMFTGD3EQUFSKQCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
