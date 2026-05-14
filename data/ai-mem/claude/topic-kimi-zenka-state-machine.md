@@ -1,24 +1,36 @@
 ---
 name: kimi zenka state machine upgrade
-description: kimi zenka has same overlapping-reconnect hang as coding zenka had before watcher upgrade
+description: COMPLETE — watcher-based state machine implemented, reconnect fix applied
 type: project
 originSessionId: 327ba945-ac12-456a-985f-690320d1550f
 ---
-kimi zenka suffers from approval timeout + overlapping reconnect state bug — same class
-of issue that was fixed in the coding zenka by replacing polling timers with a
-variable-watcher based state machine.
+## completed (2026-05-14, session 23)
 
-**Why:** when approval request times out and kimi reconnects, the old reconnect state
-is not cleaned up. subsequent commands block waiting on a state that never resolves.
-symptom: `kimi not ready [ status=busy ]` with no forward progress.
+kimi zenka upgraded to `<[event.add_var]>` variable watcher state machine. task
+multiplexing foundation laid. full round-trip verified: `p7c kimi.ask-reply` → "Four".
 
-**How to apply:** when scheduling kimi zenka work, plan a state machine upgrade task
-modeled on the coding zenka watcher refactor (see topic-coding-state-machine.md).
-the fix is to replace timer-based reconnect polling with IO::Async variable watchers
-so overlapping reconnects are detected and resolved cleanly.
+**what was built:**
+- `kimi.watcher.ws_status` — Event.pm variable watcher (`repeat=>TRUE, poll=>'w'`) on
+  `<kimi.ws.status>`, drives all lifecycle transitions (disconnected/connecting/ready/busy)
+- `kimi.handler.dispatch_next_task` — dispatches next pending task when ws is ready
+- `kimi.cmd.status` — shows ws status, task queue, active task, pending approvals
+- task queue: pending/active/completed/failed arrays with `kimi.task.active_id`
 
-#,,..,,.,,,..,.,.,.,.,,,.,,,,,,,.,...,,..,...,..,,...,...,.,,,.,.,,..,,.,,,..,
-#5JAC7GZO5GQ74LN456ISCAHD5WJIXP6A2BDZWPSIZO5IWAOH5QG35UTF3I4FLNTG5M5BCO7VZUT32
-#\\\|NIYQXFPVKQMKVG3AZLTSZFWUCXU3CKI67KZYI2X2O53GWOQP3O3 \ / AMOS7 \ YOURUM ::
-#\[7]AEVEHWHACXNNLSYFW3SHLYKCJKJRW4H7ZCHG7VMHKQXWXNXYJIDQ 7  DATA SIGNATURE ::
+**reconnect stuck bug fixed:**
+- root cause: watcher doesn't fire when value written is same as current value
+- symptom: `ws.status` already `disconnected`, written again → watcher silent → no retry
+- fix: in `kimi.handler.ws_message` and `kimi.handler.session_liveness_timeout`,
+  call `<[kimi.connect.schedule_retry]>` directly after writing `disconnected`,
+  not relying solely on the watcher
+
+## open items
+
+- `flush_on_acquisition` inline sub extraction (coding zenka extract-inline-subs template)
+- redefined warning in `kimi.handler.approval_request:81` — minor cleanup
+- task multiplexing: currently max_concurrent=1; design ready for N when needed
+
+#,,,,,,..,..,,.,,,...,,,,,..,,,.,,...,,.,,,.,,..,,...,..,,..,,,,,,,,.,.,.,.,.,
+#DE4WNTMCXN5MBHPQHXETHOFT625QL7Z6ZEBB7S5DHW7UTWCEPPK2DDEMFAQKTYTVVRRPSIMSN27GG
+#\\\|YL6M7FBIBIRF35CXV5DZDQJRQMBMQSKYMBY2WZQH4DIATBD5M64 \ / AMOS7 \ YOURUM ::
+#\[7]CZQXNV5V2XX2DNYFLKBXPGSX62CUT7CNFLCQA7WB4K3NLL3ZUGDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
