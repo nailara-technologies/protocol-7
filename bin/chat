@@ -54,11 +54,12 @@ my $ARCHIVE_DIR = File::Spec->catdir( $CHAT_DIR,  qw| archive channel | );
 my $MODEL_DIR   = File::Spec->catdir( $CHAT_DIR,  qw| model | );
 my $STATE_DIR   = File::Spec->catfile( $ENV{'HOME'} // $ENV{'PWD'},
     qw| .config protocol-7 | );
-my $STATE_FILE    = File::Spec->catfile( $STATE_DIR, qw| chat-state | );
-my $MAX_HISTORY   = 512 * 1024;    ## 512 KB auto-rotation threshold ##
-my $WAIT_INTERVAL = 0.5;           ## poll interval for -wait-reply  ##
-my $WAIT_DEFAULT  = 60;            ## default wait timeout           ##
-my @KNOWN_MODELS  = qw| kimi-code claude-code |;
+my $STATE_FILE       = File::Spec->catfile( $STATE_DIR, qw| chat-state | );
+my $MAX_HISTORY      = 512 * 1024;   ## 512 KB auto-rotation threshold ##
+my $MAX_MEMORY_LINES = 500;          ## line-count trigger for model memory ##
+my $WAIT_INTERVAL    = 0.5;          ## poll interval for -wait-reply  ##
+my $WAIT_DEFAULT     = 60;           ## default wait timeout           ##
+my @KNOWN_MODELS     = qw| kimi-code claude-code |;
 
 ##[ OPTION LIST ]#############################################################
 
@@ -79,12 +80,19 @@ my $option_list = <<'EOL';
     -archive     show archive list for current channel
     -channels    list all channels with last-active timestamps
     -models      list known models and their status
+    -search      literal search in history      [ --search <term> ]
+    -grep        regex search in history        [ --grep <pattern> ]
+    -summarize   trigger memory rotation for current channel
 
     keywords inside the message text :
 
         :#channel:         switch active channel
         :model:            switch active model
         :all:              broadcast next message to all models
+        :note:             write to history, skip model dispatch
+        :reply-to:N:       thread reply to history line N
+        :->>#channel:      quote last 5 lines from another channel
+        :->>#channel:N:    quote last N lines from another channel
 
 
 EOL
@@ -97,7 +105,8 @@ GetOptions(
     \%option,      'wait-reply|w:s', 'file|f=s',  'channel|c=s',
     'model|m=s',   'quiet|q',        'clear',     'clear-all',
     'clear-msg=i', 'trim=i',         'archive:s', 'channels',
-    'models',      'help|h',
+    'models',      'search=s',       'grep=s',    'all-channels',
+    'summarize',   'help|h',
 ) or do { list_options(); exit(2) };
 
 if ( $option{'help'} ) {
@@ -168,6 +177,21 @@ if ( defined $option{'archive'} ) {
     exit(0);
 }
 
+if ( defined $option{'search'} or defined $option{'grep'} ) {
+    search_history(
+        $option{'search'} // $option{'grep'},
+        defined $option{'grep'},
+        $option{'all-channels'}
+    );
+    exit(0);
+}
+
+if ( $option{'summarize'} ) {
+    rotate_with_summary( $state->{'active_channel'},
+        $state->{'active_model'} );
+    exit(0);
+}
+
 if ( $option{'clear'} ) {
     clear_channel( $state->{'active_channel'} );
     exit(0) if not length $clean_msg;
@@ -205,13 +229,22 @@ if ( not length $clean_msg ) {
 
 write_history( $state->{'active_channel'}, $CALLER, $clean_msg );
 
+my $dispatch_text = build_dispatch_text( $state->{'active_channel'},
+    $clean_msg, $switches );
+
 my $broadcast = $switches->{'broadcast'} || $state->{'active_model'} eq 'all';
 
-if ($broadcast) {
-    broadcast_message( $state->{'active_channel'}, $CALLER, $clean_msg );
-} elsif ( $state->{'active_model'} ne 'user' ) {
-    dispatch_model( $state->{'active_channel'},
-        $state->{'active_model'}, $clean_msg );
+if ( not $switches->{'note_only'} ) {
+    if ($broadcast) {
+        broadcast_message( $state->{'active_channel'},
+            $CALLER, $dispatch_text );
+    } elsif ( $state->{'active_model'} ne 'user' ) {
+        dispatch_model(
+            $state->{'active_channel'},
+            $state->{'active_model'},
+            $dispatch_text
+        );
+    }
 }
 
 ##[ WAIT FOR REPLY ]##########################################################
@@ -297,6 +330,25 @@ sub parse_keywords {
     my $text = shift // '';
     my %sw;
 
+    ## silent annotation :note: prefix — preserve in history, skip dispatch ##
+    my $has_note = 0;
+    if ( $text =~ s{^\s*:note:\s*}{} ) {
+        $has_note = 1;
+        $sw{'note_only'} = 1;
+    }
+
+    ## reply-to threading — protect marker, extract number ##
+    while ( $text =~ s{:reply-to:(\d+):?\s*}{__REPLY_TO_$1__ } ) {
+        $sw{'reply_to'} = int($1);
+    }
+
+    ## cross-channel references — strip from text, capture channel + count ##
+    while ( $text =~ s{\s*:->>#([^:\s/]+(?:/[^:\s/]+)*)(?::(\d+))?:\s*}{ }g )
+    {
+        my ( $ch, $n ) = ( $1, $2 // 5 );
+        push @{ $sw{'cross_ref'} }, [ $ch, int($n) ];
+    }
+
     ## channel switches :#name: or :#name/sub: ##
     while ( $text =~ s{\s*:#([^:\s/]+(?:/[^:\s/]+)*):\s*}{ }g ) {
         $sw{'channel'} = $1;
@@ -311,6 +363,10 @@ sub parse_keywords {
             $sw{'model'} = $m;
         }
     }
+
+    ## restore protected placeholders ##
+    $text =~ s{__REPLY_TO_(\d+)__}{:reply-to:$1:}g;
+    $text = ':note: ' . $text if $has_note;
 
     $text =~ s{^\s+|\s+$}{}g;
     return ( $text, \%sw );
@@ -336,6 +392,16 @@ sub write_history {
         or die colored(": cannot write history : $path : $!");
     print {$fh} format_entry( $caller_id, $text );
     close $fh;
+
+    ## rolling model memory check ##
+    if ( -f $path ) {
+        open my $rfh, '<:encoding(UTF-8)', $path or return;
+        my @lines = <$rfh>;
+        close $rfh;
+        if ( @lines > $MAX_MEMORY_LINES ) {
+            rotate_with_summary( $channel, $state->{'active_model'} );
+        }
+    }
 }
 
 sub auto_rotate {
@@ -465,6 +531,24 @@ sub trim_history {
 
 sub dispatch_model {
     my ( $channel, $model, $text ) = @_;
+
+    ## prepend channel persona if exists ##
+    my $persona_file
+        = File::Spec->catfile( $CHANNEL_DIR, $channel, 'persona' );
+    if ( -f $persona_file ) {
+        my $persona = read_file($persona_file);
+        chomp $persona;
+        $text = "[ channel persona: $persona ]\n\n$text" if length $persona;
+    }
+
+    ## prepend model memory if exists (before persona block) ##
+    my $memory_file = File::Spec->catfile( $MODEL_DIR, $model, 'memory' );
+    if ( -f $memory_file ) {
+        my $memory = read_file($memory_file);
+        chomp $memory;
+        $text = "[ model memory: $memory ]\n\n$text" if length $memory;
+    }
+
     my $encoded = encode_b32r( encode_utf8($text) );
 
     if ( $model eq 'kimi-code' ) {
@@ -615,6 +699,217 @@ sub list_archives {
     say $C{R};
 }
 
+sub search_history {
+    my ( $pattern, $is_regex, $all_channels ) = @_;
+    my @channels;
+
+    if ($all_channels) {
+        opendir my $dh, $CHANNEL_DIR or return;
+        @channels = grep {
+            $_ !~ m{^\.\.?$}
+                and -d File::Spec->catdir( $CHANNEL_DIR, $_ )
+        } readdir $dh;
+        closedir $dh;
+    } else {
+        @channels = ( $state->{'active_channel'} );
+    }
+
+    for my $ch (@channels) {
+        my $path = history_path($ch);
+        next if not -f $path;
+
+        open my $fh, '<:encoding(UTF-8)', $path or next;
+        my @lines = <$fh>;
+        close $fh;
+
+        for my $i ( 0 .. $#lines ) {
+            my $line = $lines[$i];
+            chomp $line;
+            my $match
+                = $is_regex
+                ? ( $line =~ m{$pattern} )
+                : ( index( $line, $pattern ) >= 0 );
+            if ($match) {
+                say "  [" . ( $i + 1 ) . "]  $line";
+            }
+        }
+    }
+}
+
+sub build_dispatch_text {
+    my ( $channel, $text, $switches ) = @_;
+    my $dispatch = $text;
+
+    ## prepend cross-channel context ##
+    if ( $switches->{'cross_ref'} ) {
+        for my $ref ( @{ $switches->{'cross_ref'} } ) {
+            my ( $ch, $n ) = @$ref;
+            my @lines = fetch_history_tail( $ch, $n );
+            if (@lines) {
+                chomp @lines;
+                my $ctx = join( "\n", map {"> [#$ch] $_"} @lines );
+                $dispatch = "$ctx\n\n$dispatch";
+            }
+        }
+    }
+
+    ## prepend reply-to context ##
+    if ( $switches->{'reply_to'} ) {
+        $dispatch =~ s{\s*:reply-to:\d+:?\s*}{ }g;
+        $dispatch =~ s{^\s+|\s+$}{}g;
+
+        my $line_num = $switches->{'reply_to'};
+        my $quoted   = fetch_history_line( $channel, $line_num );
+        if ( defined $quoted ) {
+            $dispatch = "> [reply to line $line_num]: $quoted\n\n$dispatch";
+        }
+    }
+
+    return $dispatch;
+}
+
+sub fetch_history_line {
+    my ( $channel, $line_num ) = @_;
+    my $path = history_path($channel);
+    return undef if not -f $path;
+
+    open my $fh, '<:encoding(UTF-8)', $path or return undef;
+    my @lines = <$fh>;
+    close $fh;
+
+    return undef if $line_num < 1 or $line_num > scalar @lines;
+
+    my $line = $lines[ $line_num - 1 ];
+    chomp $line;
+
+    ## extract just the message text after timestamp and caller ##
+    if ( $line =~ m{^\[[^\]]+\]\s*<[^>]+>\s*(.*)$} ) {
+        return $1;
+    }
+    return $line;
+}
+
+sub fetch_history_tail {
+    my ( $channel, $n ) = @_;
+    my $path = history_path($channel);
+    return () if not -f $path;
+
+    open my $fh, '<:encoding(UTF-8)', $path or return ();
+    my @lines = <$fh>;
+    close $fh;
+
+    my $start = scalar(@lines) > $n ? scalar(@lines) - $n : 0;
+    return @lines[ $start .. $#lines ];
+}
+
+sub rotate_with_summary {
+    my ( $channel, $model ) = @_;
+    $model = 'kimi-code' if not $model or $model eq 'all';
+
+    my $path = history_path($channel);
+    return if not -f $path;
+
+    open my $fh, '<:encoding(UTF-8)', $path or return;
+    my @lines = <$fh>;
+    close $fh;
+
+    return if @lines < 4;
+
+    my $mid   = int( @lines / 2 );
+    my @older = @lines[ 0 .. $mid - 1 ];
+    my @newer = @lines[ $mid .. $#lines ];
+
+    my $prompt
+        = "Please summarize the following conversation history concisely, "
+        . "preserving key facts, decisions, and context:\n\n"
+        . join( '', @older );
+
+    my $summary = dispatch_summary( $model, $prompt );
+
+    if ( defined $summary and length $summary ) {
+        my $mdir = File::Spec->catdir( $MODEL_DIR, $model );
+        make_path($mdir) unless -d $mdir;
+        my $memory_file = File::Spec->catfile( $mdir, 'memory' );
+
+        open my $mfh, '>>:encoding(UTF-8)', $memory_file
+            or warn "chat: cannot write memory file: $!\n";
+        print {$mfh} "[", timestamp(), "] $summary\n" if $mfh;
+        close $mfh if $mfh;
+    }
+
+    ## archive older lines ##
+    my $archive_ch = File::Spec->catdir( $ARCHIVE_DIR, $channel );
+    make_path($archive_ch) unless -d $archive_ch;
+
+    my $ts     = strftime( '%Y-%m-%dT%H:%M:%S', gmtime() );
+    my $azPath = File::Spec->catfile( $archive_ch, "$ts-memory.xz" );
+
+    my $older_str = encode_utf8( join( '', @older ) );
+    xz( \$older_str, $azPath, 'Preset' => 6 )
+        or warn colored(": archive compression failed");
+
+    open my $out, '>:encoding(UTF-8)', $path
+        or die colored(": cannot rewrite history : $path : $!");
+    print {$out} @newer;
+    close $out;
+
+    say colored(": memory rotation — archived older half to $azPath")
+        unless $option{'quiet'};
+}
+
+sub dispatch_summary {
+    my ( $model, $prompt ) = @_;
+
+    if ( $model eq 'kimi-code' ) {
+        my $encoded = encode_b32r( encode_utf8($prompt) );
+        open( my $fh, '-|', 'p7c', 'kimi.ask-reply', $encoded )
+            or warn "chat: p7c kimi.ask-reply failed: $!\n";
+        my $reply = do { local $/; <$fh> } if $fh;
+        close $fh                          if $fh;
+        chomp $reply                       if defined $reply;
+        return $reply;
+    } elsif ( $model eq 'claude-code' ) {
+        ## async inbox — write prompt and poll history for response ##
+        my $inbox_dir = File::Spec->catdir( $CHAT_DIR, qw| inbox | );
+        make_path($inbox_dir) unless -d $inbox_dir;
+        my $inbox_file = File::Spec->catfile( $inbox_dir, 'claude-code' );
+        open( my $fh, '>:encoding(UTF-8)', $inbox_file )
+            or warn "chat: cannot write claude-code inbox: $!\n";
+        print $fh $prompt, "\n" if $fh;
+        close $fh if $fh;
+
+        ## poll active channel history for claude reply ##
+        my $path      = history_path( $state->{'active_channel'} );
+        my $pre_count = 0;
+        if ( -f $path ) {
+            open my $cfh, '<', $path or return undef;
+            $pre_count++ while <$cfh>;
+            close $cfh;
+        }
+
+        my $timeout = 120;
+        my $elapsed = 0;
+        while ( $elapsed <= $timeout ) {
+            sleep $WAIT_INTERVAL;
+            $elapsed += $WAIT_INTERVAL;
+
+            open my $rfh, '<:encoding(UTF-8)', $path or next;
+            my @lines = <$rfh>;
+            close $rfh;
+
+            for my $i ( $pre_count .. $#lines ) {
+                if ( $lines[$i] =~ m{<claude-code>} ) {
+                    chomp $lines[$i];
+                    $lines[$i] =~ s{^\[[^\]]+\]\s*<claude-code>\s*}{};
+                    return $lines[$i];
+                }
+            }
+        }
+        return undef;
+    }
+    return undef;
+}
+
 sub list_options {
     chomp( my $opt_str = $option_list );
     my @lines = split "\n", $opt_str;
@@ -629,8 +924,8 @@ sub colored {
     return "$C{0}:\n::$C{b} $C{T}$text$C{0} $C{R}\n:$C{R}";
 }
 
-#,,.,,,..,.,,,,..,,.,,...,.,.,..,,,,,,,,,,.,.,..,,...,...,...,..,,,,,,...,,,.,
-#SIZYNYX2SVPJ4UHG736QCLUEJQCNUDUQQGI76IY7BJHHOTN6ZQBMTIPDGJFF4G3EIM55ZQW7UJTIU
-#\\\|JSQS4XPARZFYAFT6SUXCA6FTEBCYJXZSVUB5VEDTWBVMUY7WLP5 \ / AMOS7 \ YOURUM ::
-#\[7]HP56ZPHUZYWYDOAGGIXEC7G27XHRCGULSAY7FMGWF5TBV6GNQEBA 7  DATA SIGNATURE ::
+#,,.,,,..,,.,,,..,,,,,,..,,..,.,,,...,,,,,.,.,..,,...,...,..,,.,,,.,,,,..,.,,,
+#4YQOVGF2DIWVRTG7IYXUJ25TXNM3BE54FQD65VC6GNVSRBWNF3FYUN6IW7M47ZGURY43W5LUG7V7A
+#\\\|GT2XZFXMRDKRNA3BMQ36JNJR5U6RMR2HQXOPOGK7WWQIMKA4QAI \ / AMOS7 \ YOURUM ::
+#\[7]74TRJ45F6MZF5JP626L4JYWIBG75R4AWMWMQIEHVX36KSELQZEAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,0 +1,124 @@
+task:
+  id: bin-chat-features
+  title: bin/chat — implement kimi-proposed feature set
+  file: bin/chat
+  signatures_note: >
+    do NOT add or modify the signature footer lines at the end of any module
+    file. do NOT add the single-line stub #,,..,... — leave new files clean.
+    only bin/Protocol-7 sourcecode update-signatures adds real signatures.
+
+context: >
+  bin/chat is a file-backed multi-model conversation script committed at
+  bin/chat (617 lines, Phase 1 complete). dispatch is now wired: kimi via
+  p7c kimi.ask-reply + b32r encoding, claude-code via inbox file. history
+  format is plain text: [2026-05-14T04:38:15] <caller>   message text.
+  channel files live at data/chat/channel/<name>/history.
+  design doc: data/md/development/CHAT-SCRIPT-DESIGN.md
+
+  the task is to implement the six features kimi proposed in the design doc,
+  plus answer the open questions by making concrete choices in the code.
+
+decisions:
+  history_format: >
+    keep plain text — it is human-readable when committed and grep-friendly.
+    JSONL is not needed for Phase 1; if it becomes necessary for threading,
+    a separate index file can be added alongside.
+  consensus_storage: >
+    store one entry per model response — attribution matters more than
+    compactness. :all: round produces N history lines, one per model.
+  xz_on_clear: >
+    keep xz-on-clear. it is lossless, reversible, and space-efficient.
+    the -trim command offers a softer alternative when needed.
+
+features:
+  1_silent_annotations:
+    syntax: ":note: message text"
+    behaviour: >
+      messages with :note: prefix are written to history as-is but skip
+      model dispatch entirely. the :note: prefix is preserved in the entry
+      so it is visually distinct in history. useful for TODO markers,
+      context hints, mid-conversation asides.
+    impl_hint: >
+      detect in parse_keywords or just before dispatch. set a flag like
+      $switches->{'note_only'} = 1, skip dispatch block if set.
+
+  2_cross_channel_references:
+    syntax: ":->>#channel: N" or inline ":->>#channel:"
+    behaviour: >
+      when a message contains :->>#channel: (or :->>#channel:N: with count),
+      quote the last N lines (default 5) from that channel's history and
+      prepend them to the dispatched text as context. the inline marker is
+      stripped from the outgoing message; the quoted lines are prefixed with
+      "> [#channel]". does not alter local history entry.
+    impl_hint: >
+      resolve in parse_keywords — extract channel name + optional count,
+      read the tail of that channel's history file, prepend to $clean_msg
+      before dispatch. keep the original $clean_msg for local write_history.
+
+  3_per_channel_persona:
+    file: "data/chat/channel/<name>/persona"
+    behaviour: >
+      if persona file exists for the active channel, its content is prepended
+      to the message sent to the model as a system-style context block,
+      formatted as: "[ channel persona: <content> ]\n\n" before the message.
+      persona is NOT written to history — it is injection-only.
+    impl_hint: >
+      load in dispatch_model before encoding. check for
+      data/chat/channel/$channel/persona, slurp if present, prepend to $text.
+
+  4_search_grep:
+    flags: "--search <term>  or  --grep <pattern>"
+    behaviour: >
+      scan the active channel's history file (and optionally all channels
+      with --all-channels) for matching lines. print each match with its
+      line index (1-based) so the user can reference it with --clear-msg N
+      or :reply-to:N:. --search does literal substring match,
+      --grep treats the term as a perl regex.
+    output_format: "  [N]  [2026-05-14T04:38:15] <caller>   matched text"
+    impl_hint: >
+      add 'search=s' and 'grep=s' to GetOptions. implement sub search_history
+      that opens the file, iterates with index, prints matches. exit after.
+
+  5_rolling_model_memory:
+    trigger: "history file exceeds MAX_MEMORY_LINES lines (suggested: 500)"
+    behaviour: >
+      when auto-rotation triggers (or manually via --summarize), take the
+      oldest half of lines, send them to the active model with a summarization
+      prompt, write the returned summary to data/chat/model/<name>/memory,
+      xz-archive the raw lines, truncate history to the newer half.
+      on dispatch, if model memory file exists, prepend it to the message
+      as: "[ model memory: <content> ]\n\n" before the persona block.
+    impl_hint: >
+      add MAX_MEMORY_LINES constant. check line count in write_history after
+      appending. if exceeded, call rotate_with_summary(channel, model).
+      rotate_with_summary dispatches a summarization request and blocks for
+      the reply (use dispatch_model + wait_reply with long timeout).
+
+  6_message_threading:
+    syntax: ":reply-to:N: message text"
+    behaviour: >
+      when a message contains :reply-to:N:, look up line N in the current
+      channel history and include it as a quoted context block in the
+      dispatched text: "> [reply to line N]: <original text>\n\n<message>".
+      the :reply-to:N: marker is preserved in the local history entry for
+      attribution. in :all: consensus mode, each model receives the same
+      quoted context.
+    impl_hint: >
+      detect in parse_keywords. extract N, read line N from history,
+      prepend quoted version to dispatch text. store original (with marker)
+      in history.
+
+deliverables:
+  - all six features implemented in bin/chat
+  - --search and --grep flags added to GetOptions and documented in $option_list
+  - MAX_MEMORY_LINES constant added (suggested value 500)
+  - persona injection tested with a test persona file
+  - no new module files needed — all changes in bin/chat only
+  - syntax check: perl -c bin/chat must pass
+  - do not add signatures to bin/chat (it is a plain perl script, not a module)
+
+#,,,,,.,,,.,.,.,.,.,.,,.,,,,.,,,,,.,.,,,,,.,,,..,,...,.,.,..,,.,,,.,.,.,,,...,
+#MDT3F6YVXUBCPG5EBWR5JVPCJSEFFCX2YKPOICXMD5L5TST3PAZAYVOSSQDLAJQ4QNSTSD4RW26BG
+#\\\|DSBI3K6QRNNRADMJGDMOGSLODEHSEGEPLZ4ZZVRUBP3AGTFC4DN \ / AMOS7 \ YOURUM ::
+#\[7]ST3TR5CD4PDESKAB7WUNALUF5OIBPE3V73RHUI73AODUKGPDZQCA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
