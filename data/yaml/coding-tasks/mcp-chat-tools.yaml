@@ -1,0 +1,149 @@
+task:
+  id: mcp-chat-tools
+  title: MCP server — add bin/chat tools to p7 MCP server
+  signatures_note: >
+    do NOT add or modify signature footer lines in any module file.
+    do NOT add the single-line stub #,,..,... to new files.
+    leave new files clean — bin/Protocol-7 sourcecode update-signatures
+    adds the real 4-line footer. new module files need the ## [:< ## header
+    and # name = / # descr = tags.
+
+context: >
+  the Protocol-7 MCP server is implemented in modules/mcp.* and
+  configuration/zenki/mcp-server/. tools are defined as perl hashrefs
+  in modules/mcp.tools.* files and registered via mcp.list_tools.
+  existing tools follow the pattern in modules/mcp.tool.* handler files.
+
+  bin/chat is a file-backed multi-model chat script at bin/chat.
+  it supports these flags (all single-dash):
+    -channel <name>    select channel (default: main)
+    -model <name>      select model (kimi or claude)
+    -wait-reply [N]    wait for reply (indefinite or N seconds)
+    -search <term>     literal history search
+    -grep <pattern>    regex history search
+    -all-channels      flag for search/summary across all channels
+    -summary           lazy on-demand summary via coding zenka
+    -channels          list all channels with timestamps
+    -clear-msg <n>     remove message by 1-based index
+    -trim <n>          keep last n lines, archive rest
+
+  history format: [2026-05-14T13:01:03] <caller>   message text
+  history path:   data/chat/channel/<name>/history
+  summary path:   data/chat/channel/<name>/summary.md
+  model names:    kimi, claude (short form)
+
+  caller detection: auto via /proc/$PPID/comm or P7_CHAT_CALLER env var.
+  MCP tools should set P7_CHAT_CALLER=mcp when invoking bin/chat so
+  messages are attributed correctly in history.
+
+  look at existing MCP tool definitions and handlers for the exact
+  module format to follow. use modules/mcp.tool.p7_command as a
+  reference for tools that shell out to system commands.
+
+tools_to_implement:
+
+  p7_chat_send:
+    description: >
+      send a message to a chat channel. writes to history and dispatches
+      to the active model unless -model user is specified.
+    parameters:
+      message:
+        type: string
+        required: true
+        description: message text to send
+      channel:
+        type: string
+        required: false
+        description: target channel (default: current active channel)
+      model:
+        type: string
+        required: false
+        description: target model — kimi, claude, user, or all
+      wait_reply:
+        type: integer
+        required: false
+        description: seconds to wait for reply (omit for no wait, 0 for indefinite)
+    impl: >
+      build bin/chat args: -q for quiet, -channel if given, -model if given,
+      -wait-reply [N] if wait_reply defined (empty string for indefinite),
+      P7_CHAT_CALLER=mcp. capture stdout for reply text.
+
+  p7_chat_read:
+    description: >
+      read recent messages from a channel history. returns last N lines
+      (default 20) as formatted text.
+    parameters:
+      channel:
+        type: string
+        required: false
+        description: channel to read (default: main)
+      lines:
+        type: integer
+        required: false
+        description: number of recent lines to return (default 20, max 200)
+    impl: >
+      read history_path directly — open file, take last N lines, return as string.
+      no bin/chat invocation needed, just file read.
+
+  p7_chat_summary:
+    description: >
+      get the summary for a channel. triggers coding zenka summarization
+      if summary is stale or missing (lazy, blocks until done).
+    parameters:
+      channel:
+        type: string
+        required: false
+        description: channel to summarize (default: main)
+      all_channels:
+        type: boolean
+        required: false
+        description: summarize all channels and return combined overview
+    impl: >
+      invoke bin/chat -summary [-channel X] [-all-channels] -q,
+      capture stdout. P7_CHAT_CALLER=mcp.
+
+  p7_chat_search:
+    description: >
+      search chat history for a term or pattern.
+    parameters:
+      term:
+        type: string
+        required: true
+        description: search term (literal) or regex pattern
+      regex:
+        type: boolean
+        required: false
+        description: treat term as regex (default false = literal)
+      channel:
+        type: string
+        required: false
+        description: channel to search (default: active channel)
+      all_channels:
+        type: boolean
+        required: false
+        description: search across all channels
+    impl: >
+      invoke bin/chat -search/-grep <term> [-channel X] [-all-channels] -q.
+      capture stdout. P7_CHAT_CALLER=mcp.
+
+  p7_chat_channels:
+    description: >
+      list all channels with last-active timestamps and summary snippets.
+    parameters: {}
+    impl: >
+      invoke bin/chat -channels -q. capture stdout. P7_CHAT_CALLER=mcp.
+      alternatively read CHANNEL_DIR directly for speed.
+
+deliverables:
+  - tool definition module for each tool (mcp.tools.chat or similar)
+  - handler module for each tool (mcp.tool.p7_chat_send etc.)
+  - tools registered in mcp.list_tools
+  - all tools tested via p7c mcp-server.call_tool p7_chat_send ...
+  - ptd -c check passes on all new modules
+  - no signatures added to new files (sourcecode update-signatures does that)
+
+#,,..,,..,.,,,,,.,,,,,..,,.,.,,,,,.,,,.,.,..,,..,,...,...,...,,,.,,,,,...,..,,
+#4YF74WTB3DYCKYKAJRR77OYGHGKXNU4NRMNWK4GPLJIHE6LKFGMGTQZWFATLR3EOOCQSQHAZXTPPW
+#\\\|DRMXR65CX2JHVIUOK4GWFVG7PUODCQS5PVWLHYE5AR2WUPIWWWS \ / AMOS7 \ YOURUM ::
+#\[7]ITT47CQ7R25FXJKUEGBHUC64Y6BXQ3CKDUWAQ62GUUEXIKX4GIAQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
