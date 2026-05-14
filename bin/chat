@@ -1,0 +1,617 @@
+#!/usr/bin/perl
+
+use v5.24;
+use strict;
+use English;
+use warnings;
+use utf8;
+use Getopt::Long;
+use open ':std', ':encoding(UTF-8)';
+use POSIX      qw| strftime |;
+use File::Path qw| make_path |;
+use File::Spec;
+use Cwd                  qw| abs_path |;
+use FindBin              qw| $RealBin |;
+use IO::Compress::Xz     qw| xz |;
+use IO::Uncompress::UnXz qw| unxz |;
+use Encode               qw| encode_utf8 |;
+
+####        ####
+##   chat   ##
+###       ####
+
+##[ LOCAL PM LIB PATH ]#######################################################
+
+BEGIN {
+    use File::Spec;
+    use Cwd     qw| abs_path |;
+    use FindBin qw| $RealBin |;
+    my $up_dir         = File::Spec->updir;
+    my $data_pm_path   = qw| data/lib-path/pm |;
+    my $root_path      = abs_path( r2_abs( c_dir( $RealBin, $up_dir ) ) );
+    my $local_lib_path = abs_path( c_dir( $root_path, $data_pm_path ) );
+    $local_lib_path //= $data_pm_path;
+    die "\n:\n:: not found : $local_lib_path\n:\n" if !-d $local_lib_path;
+    unshift( @INC, $local_lib_path )               if -d $local_lib_path;
+    sub c_dir  { File::Spec->catdir(@ARG) }
+    sub r2_abs { File::Spec->rel2abs(@ARG) }
+}
+
+##[ AMOS7 COLORS ]############################################################
+
+use AMOS7;
+
+##[ CONSTANTS ]###############################################################
+
+use constant TRUE  => 5;
+use constant FALSE => 0;
+
+my $ROOT_PATH   = abs_path( r2_abs( c_dir( $RealBin, File::Spec->updir ) ) );
+my $CHAT_DIR    = File::Spec->catdir( $ROOT_PATH, qw| data chat | );
+my $CHANNEL_DIR = File::Spec->catdir( $CHAT_DIR,  qw| channel | );
+my $ARCHIVE_DIR = File::Spec->catdir( $CHAT_DIR,  qw| archive channel | );
+my $MODEL_DIR   = File::Spec->catdir( $CHAT_DIR,  qw| model | );
+my $STATE_DIR   = File::Spec->catfile( $ENV{'HOME'} // $ENV{'PWD'},
+    qw| .config protocol-7 | );
+my $STATE_FILE    = File::Spec->catfile( $STATE_DIR, qw| chat-state | );
+my $MAX_HISTORY   = 512 * 1024;    ## 512 KB auto-rotation threshold ##
+my $WAIT_INTERVAL = 0.5;           ## poll interval for -wait-reply  ##
+my $WAIT_DEFAULT  = 60;            ## default wait timeout           ##
+my @KNOWN_MODELS  = qw| kimi-code claude-code |;
+
+##[ OPTION LIST ]#############################################################
+
+my $option_list = <<'EOL';
+
+    .: chat command line options :.
+
+    -w  .......  wait for reply before exiting [ --wait-reply [seconds] ]
+    -f  .......  read message from file        [ --file <path> ]
+    -c  .......  specify channel               [ --channel <name> ]
+    -m  .......  specify model                 [ --model <id> ]
+    -q  .......  quiet — no decorative output
+
+    -clear  ...  archive current channel and start fresh
+    -clear-all   archive all channels and start fresh
+    -clear-msg   remove single message by index [ --clear-msg <n> ]
+    -trim <n>    archive messages older than n, keep recent n lines
+    -archive     show archive list for current channel
+    -channels    list all channels with last-active timestamps
+    -models      list known models and their status
+
+    keywords inside the message text :
+
+        :#channel:         switch active channel
+        :model:            switch active model
+        :all:              broadcast next message to all models
+
+
+EOL
+
+##[ RUNTIME OPTIONS ]#########################################################
+
+my %option;
+Getopt::Long::Configure(qw| bundling_override |);
+GetOptions(
+    \%option,      'wait-reply|w:s', 'file|f=s',  'channel|c=s',
+    'model|m=s',   'quiet|q',        'clear',     'clear-all',
+    'clear-msg=i', 'trim=i',         'archive:s', 'channels',
+    'models',      'help|h',
+) or do { list_options(); exit(2) };
+
+if ( $option{'help'} ) {
+    list_options();
+    exit(0);
+}
+
+##[ CALLER DETECTION ]########################################################
+
+my $CALLER = detect_caller();
+
+##[ STATE MANAGEMENT ]########################################################
+
+my $state = load_state();
+
+## apply command-line overrides ##
+$state->{'active_channel'} = $option{'channel'} if $option{'channel'};
+$state->{'active_model'}   = $option{'model'}   if $option{'model'};
+
+##[ MESSAGE INPUT ]###########################################################
+
+my $message = '';
+
+if ( $option{'file'} ) {
+    $message = read_file( $option{'file'} );
+} elsif (@ARGV) {
+    $message = join( ' ', @ARGV );
+} elsif ( not -t STDIN ) {
+    local $/;
+    $message = <STDIN> // '';
+}
+
+chomp $message if defined $message;
+
+##[ KEYWORD PARSING ]#########################################################
+
+my ( $clean_msg, $switches ) = parse_keywords($message);
+
+## apply keyword switches ##
+if ( $switches->{'channel'} ) {
+    $state->{'active_channel'} = $switches->{'channel'};
+    ensure_channel( $state->{'active_channel'} );
+}
+if ( $switches->{'model'} and not $switches->{'broadcast'} ) {
+    $state->{'active_model'} = $switches->{'model'};
+}
+
+save_state($state);
+
+##[ LIST / CLEAR COMMANDS ]###################################################
+
+if ( $option{'channels'} ) {
+    list_channels();
+    exit(0);
+}
+
+if ( $option{'models'} ) {
+    list_models();
+    exit(0);
+}
+
+if ( defined $option{'archive'} ) {
+    my $ch
+        = $option{'archive'} eq ''
+        ? $state->{'active_channel'}
+        : $option{'archive'};
+    list_archives($ch);
+    exit(0);
+}
+
+if ( $option{'clear'} ) {
+    clear_channel( $state->{'active_channel'} );
+    exit(0) if not length $clean_msg;
+}
+
+if ( $option{'clear-all'} ) {
+    clear_all_channels();
+    exit(0);
+}
+
+if ( defined $option{'clear-msg'} ) {
+    clear_message( $state->{'active_channel'}, $option{'clear-msg'} );
+    exit(0);
+}
+
+if ( defined $option{'trim'} ) {
+    trim_history( $state->{'active_channel'}, $option{'trim'} );
+    exit(0);
+}
+
+##[ NO MESSAGE — SHOW STATUS OR HELP ]########################################
+
+if ( not length $clean_msg ) {
+    if ( $switches->{'channel'} or $switches->{'model'} ) {
+        say colored(
+            ": switched to channel $state->{'active_channel'}, model $state->{'active_model'}"
+        ) unless $option{'quiet'};
+        exit(0);
+    }
+    list_options();
+    exit(0);
+}
+
+##[ WRITE & DISPATCH ]########################################################
+
+write_history( $state->{'active_channel'}, $CALLER, $clean_msg );
+
+my $broadcast = $switches->{'broadcast'} || $state->{'active_model'} eq 'all';
+
+if ($broadcast) {
+    broadcast_message( $state->{'active_channel'}, $CALLER, $clean_msg );
+} elsif ( $state->{'active_model'} ne 'user' ) {
+    dispatch_stub( $state->{'active_channel'},
+        $state->{'active_model'}, $clean_msg );
+}
+
+##[ WAIT FOR REPLY ]##########################################################
+
+if ( $option{'wait-reply'} // '' ne '' or exists $option{'wait-reply'} ) {
+    my $timeout = $option{'wait-reply'} // $WAIT_DEFAULT;
+    $timeout = $WAIT_DEFAULT if $timeout eq '';
+    my $target = $broadcast ? undef : $state->{'active_model'};
+    my $reply  = wait_reply( $state->{'active_channel'}, $target, $timeout,
+        $CALLER );
+    say $reply if defined $reply;
+}
+
+exit(0);
+
+##[ SUBROUTINES ]#############################################################
+
+sub detect_caller {
+    if ( my $env = $ENV{'P7_CHAT_CALLER'} ) {
+        return $env;
+    }
+    my $ppid      = getppid() or return 'user';
+    my $comm_path = "/proc/$ppid/comm";
+    if ( open my $fh, '<', $comm_path ) {
+        my $comm = <$fh>;
+        close $fh;
+        chomp $comm          if defined $comm;
+        return 'kimi-code'   if defined $comm and $comm =~ m|kimi|i;
+        return 'claude-code' if defined $comm and $comm =~ m|claude|i;
+    }
+    return 'user';
+}
+
+sub load_state {
+    my %st = ( 'active_channel' => 'main', 'active_model' => 'kimi-code' );
+    if ( -f $STATE_FILE ) {
+        open my $fh, '<', $STATE_FILE or return \%st;
+        while ( my $line = <$fh> ) {
+            chomp $line;
+            next if $line =~ m{^\s*#} or $line !~ m{=};    ## skip comments ##
+            my ( $k, $v ) = split m{=}, $line, 2;
+            $st{$k} = $v if defined $k and defined $v;
+        }
+        close $fh;
+    }
+    return \%st;
+}
+
+sub save_state {
+    my $st = shift;
+    make_path($STATE_DIR) unless -d $STATE_DIR;
+    open my $fh, '>', $STATE_FILE
+        or die colored(": cannot write state file : $!");
+    print {$fh} "# protocol-7 chat state\n";
+    print {$fh} "active_channel=$st->{'active_channel'}\n";
+    print {$fh} "active_model=$st->{'active_model'}\n";
+    close $fh;
+}
+
+sub ensure_channel {
+    my $name = shift;
+    my $path = File::Spec->catdir( $CHANNEL_DIR, $name );
+    make_path( $path, File::Spec->catdir( $path, 'context' ) )
+        unless -d $path;
+}
+
+sub history_path {
+    my $channel = shift;
+    return File::Spec->catfile( $CHANNEL_DIR, $channel, 'history' );
+}
+
+sub read_file {
+    my $path = shift;
+    open my $fh, '<:encoding(UTF-8)', $path
+        or die colored(": cannot read file : $path : $!");
+    local $/;
+    my $content = <$fh>;
+    close $fh;
+    return $content // '';
+}
+
+sub parse_keywords {
+    my $text = shift // '';
+    my %sw;
+
+    ## channel switches :#name: or :#name/sub: ##
+    while ( $text =~ s{\s*:#([^:\s/]+(?:/[^:\s/]+)*):\s*}{ }g ) {
+        $sw{'channel'} = $1;
+    }
+
+    ## model switches and :all: broadcast ##
+    while ( $text =~ s{\s*:([a-zA-Z0-9_-]+):\s*}{ }g ) {
+        my $m = $1;
+        if ( $m eq 'all' ) {
+            $sw{'broadcast'} = 1;
+        } else {
+            $sw{'model'} = $m;
+        }
+    }
+
+    $text =~ s{^\s+|\s+$}{}g;
+    return ( $text, \%sw );
+}
+
+sub timestamp {
+    return strftime( '%Y-%m-%dT%H:%M:%S', localtime() );
+}
+
+sub format_entry {
+    my ( $caller_id, $text ) = @_;
+    return sprintf( "[%s] <%s>   %s\n", timestamp(), $caller_id, $text );
+}
+
+sub write_history {
+    my ( $channel, $caller_id, $text ) = @_;
+    ensure_channel($channel);
+    my $path = history_path($channel);
+
+    auto_rotate($channel) if -f $path and -s $path > $MAX_HISTORY;
+
+    open my $fh, '>>:encoding(UTF-8)', $path
+        or die colored(": cannot write history : $path : $!");
+    print {$fh} format_entry( $caller_id, $text );
+    close $fh;
+}
+
+sub auto_rotate {
+    my $channel = shift;
+    my $path    = history_path($channel);
+    my $size    = -s $path // 0;
+    return if $size < $MAX_HISTORY;
+
+    open my $fh, '<:encoding(UTF-8)', $path or return;
+    my @lines = <$fh>;
+    close $fh;
+
+    return if @lines < 4;    ## too small to split ##
+
+    my $mid   = int( @lines / 2 );
+    my @older = @lines[ 0 .. $mid - 1 ];
+    my @newer = @lines[ $mid .. $#lines ];
+
+    my $archive_ch = File::Spec->catdir( $ARCHIVE_DIR, $channel );
+    make_path($archive_ch) unless -d $archive_ch;
+
+    my $ts     = strftime( '%Y-%m-%dT%H:%M:%S', gmtime() );
+    my $azPath = File::Spec->catfile( $archive_ch, "$ts.xz" );
+
+    my $older_str = encode_utf8( join( '', @older ) );
+    xz( \$older_str, $azPath, 'Preset' => 6 )
+        or warn colored(": archive compression failed");
+
+    open my $out, '>:encoding(UTF-8)', $path
+        or die colored(": cannot rewrite history : $path : $!");
+    print {$out} @newer;
+    close $out;
+
+    say colored(": archived older half to $azPath")
+        unless $option{'quiet'};
+}
+
+sub clear_channel {
+    my $channel = shift;
+    my $path    = history_path($channel);
+    return if not -f $path or -z $path;
+
+    my $archive_ch = File::Spec->catdir( $ARCHIVE_DIR, $channel );
+    make_path($archive_ch) unless -d $archive_ch;
+
+    my $ts     = strftime( '%Y-%m-%dT%H:%M:%S', gmtime() );
+    my $azPath = File::Spec->catfile( $archive_ch, "$ts.xz" );
+
+    xz( $path, $azPath, 'Preset' => 6 )
+        or die colored(": archive compression failed");
+
+    truncate( $path, 0 )
+        or die colored(": cannot truncate history : $path : $!");
+
+    say colored(": cleared channel '$channel' — archived to $ts.xz")
+        unless $option{'quiet'};
+}
+
+sub clear_all_channels {
+    opendir my $dh, $CHANNEL_DIR or return;
+    my @ch = grep {
+        $_ !~ m{^\.\.?$} and -d File::Spec->catdir( $CHANNEL_DIR, $_ )
+    } readdir $dh;
+    closedir $dh;
+    clear_channel($_) for @ch;
+}
+
+sub clear_message {
+    my ( $channel, $index ) = @_;
+    $index = int($index);
+    return if $index < 1;
+
+    my $path = history_path($channel);
+    return if not -f $path;
+
+    open my $fh, '<:encoding(UTF-8)', $path or return;
+    my @lines = <$fh>;
+    close $fh;
+
+    return if $index > scalar @lines;
+
+    splice @lines, $index - 1, 1;
+
+    open my $out, '>:encoding(UTF-8)', $path
+        or die colored(": cannot rewrite history : $path : $!");
+    print {$out} @lines;
+    close $out;
+
+    say colored(": removed message $index from channel '$channel'")
+        unless $option{'quiet'};
+}
+
+sub trim_history {
+    my ( $channel, $keep ) = @_;
+    $keep = int($keep);
+    return if $keep < 1;
+
+    my $path = history_path($channel);
+    return if not -f $path;
+
+    open my $fh, '<:encoding(UTF-8)', $path or return;
+    my @lines = <$fh>;
+    close $fh;
+
+    return if @lines <= $keep;
+
+    my @archive = splice @lines, 0, scalar(@lines) - $keep;
+
+    my $archive_ch = File::Spec->catdir( $ARCHIVE_DIR, $channel );
+    make_path($archive_ch) unless -d $archive_ch;
+
+    my $ts     = strftime( '%Y-%m-%dT%H:%M:%S', gmtime() );
+    my $azPath = File::Spec->catfile( $archive_ch, "$ts.xz" );
+
+    my $arch_str = encode_utf8( join( '', @archive ) );
+    xz( \$arch_str, $azPath, 'Preset' => 6 )
+        or warn colored(": archive compression failed");
+
+    open my $out, '>:encoding(UTF-8)', $path
+        or die colored(": cannot rewrite history : $path : $!");
+    print {$out} @lines;
+    close $out;
+
+    say colored(": trimmed channel '$channel' to $keep lines — archived rest")
+        unless $option{'quiet'};
+}
+
+sub dispatch_stub {
+    my ( $channel, $model, $text ) = @_;
+    ## phase 1 stub: write placeholder reply after tiny delay ##
+    select( undef, undef, undef, 0.2 );
+    my $reply = "[stub reply from $model — backend not yet connected]";
+    write_history( $channel, $model, $reply );
+}
+
+sub broadcast_message {
+    my ( $channel, $caller_id, $text ) = @_;
+    for my $m (@KNOWN_MODELS) {
+        next if $m eq $caller_id;
+        dispatch_stub( $channel, $m, $text );
+    }
+}
+
+sub wait_reply {
+    my ( $channel, $target_model, $timeout, $caller_id ) = @_;
+    $timeout //= $WAIT_DEFAULT;
+
+    my $path = history_path($channel);
+    return undef if not -f $path;
+
+    my $elapsed = 0;
+    while ( $elapsed <= $timeout ) {
+        open my $rfh, '<:encoding(UTF-8)', $path or next;
+        my @lines = <$rfh>;
+        close $rfh;
+
+        ## find last line from caller, then collect replies after it ##
+        my $last_user_idx = -1;
+        for my $i ( 0 .. $#lines ) {
+            $last_user_idx = $i
+                if defined $caller_id
+                and $lines[$i] =~ m{<$caller_id>};
+        }
+
+        my @candidates;
+        my $start = $last_user_idx >= 0 ? $last_user_idx + 1 : 0;
+        for my $i ( $start .. $#lines ) {
+            my $line = $lines[$i];
+            if ( defined $target_model ) {
+                push @candidates, $line if $line =~ m{<$target_model>};
+            } else {
+                ## broadcast mode: collect any model reply ##
+                push @candidates, $line
+                    if $line =~ m{<(?!user>)[^>]+>};
+            }
+        }
+
+        if (@candidates) {
+            chomp @candidates;
+            return join( "\n", @candidates );
+        }
+
+        last if $elapsed >= $timeout;
+        sleep $WAIT_INTERVAL;
+        $elapsed += $WAIT_INTERVAL;
+    }
+
+    return colored(": timeout waiting for reply ($timeout s)");
+}
+
+sub list_channels {
+    opendir my $dh, $CHANNEL_DIR or do {
+        say colored(": no channels yet");
+        return;
+    };
+    my @ch = grep {
+        $_ !~ m{^\.\.?$} and -d File::Spec->catdir( $CHANNEL_DIR, $_ )
+    } readdir $dh;
+    closedir $dh;
+
+    if ( not @ch ) {
+        say colored(": no channels yet");
+        return;
+    }
+
+    say colored(".: channels :.");
+    for my $name ( sort @ch ) {
+        my $hpath = history_path($name);
+        my $mtime = -f $hpath ? ( stat($hpath) )[9] : 0;
+        my $ts
+            = $mtime
+            ? strftime( '%Y-%m-%d %H:%M', localtime($mtime) )
+            : 'never';
+        my $size = -f $hpath ? -s $hpath : 0;
+        say sprintf(
+            "  $C{T}%-20s$C{0}  last: $C{T}%s$C{0}  size: $C{T}%d$C{0} bytes",
+            $name, $ts, $size );
+    }
+    say $C{R};
+}
+
+sub list_models {
+    say colored(".: models :.");
+    for my $m (@KNOWN_MODELS) {
+        my $mdir   = File::Spec->catdir( $MODEL_DIR, $m );
+        my $status = -d $mdir ? 'configured' : 'not configured';
+        say sprintf( "  $C{T}%-15s$C{0}  $C{T}%s$C{0}", $m, $status );
+    }
+    say "  $C{T}user$C{0}  (interactive caller)";
+    say $C{R};
+}
+
+sub list_archives {
+    my $channel = shift;
+    my $adir    = File::Spec->catdir( $ARCHIVE_DIR, $channel );
+
+    if ( not -d $adir ) {
+        say colored(": no archives for channel '$channel'");
+        return;
+    }
+
+    opendir my $dh, $adir or return;
+    my @files = sort
+        grep { $_ =~ m{\.xz$} and -f File::Spec->catfile( $adir, $_ ) }
+        readdir $dh;
+    closedir $dh;
+
+    if ( not @files ) {
+        say colored(": no archives for channel '$channel'");
+        return;
+    }
+
+    say colored(".: archives for channel '$channel' :.");
+    for my $f (@files) {
+        my $path = File::Spec->catfile( $adir, $f );
+        my $size = -s $path;
+        say sprintf( "  $C{T}%s$C{0}  $C{T}%d$C{0} bytes", $f, $size );
+    }
+    say $C{R};
+}
+
+sub list_options {
+    chomp( my $opt_str = $option_list );
+    my @lines = split "\n", $opt_str;
+    map { $ARG =~ s{(\s?\W+\s?)}{$C{B01}$C{0}$1$C{B02}$C{T}}g } @lines;
+    map { $ARG = sprintf "$C{B00}$C{0}$ARG$C{R}\n" } @lines;
+    say join '', @lines;
+}
+
+sub colored {
+    my $text = shift;
+    return $text if $option{'quiet'};
+    return "$C{0}:\n::$C{b} $C{T}$text$C{0} $C{R}\n:$C{R}";
+}
+
+#,,..,.,,,.,,,...,...,,..,.,,,,,.,,..,,,,,..,,..,,...,...,,,,,,..,.,,,,,,,.,,,
+#AVTSYKKAK6AF4XA7YFQP5SDITGFPBA4N3XE7UHSX27O3QPE7CEDMNFNCAGR4CCPZP3GK3SSWNGD6C
+#\\\|UQW7LLNBJO7YF3DJR377P4UI7A6MTSZGXWTKYQIMDRZGYTNGLK5 \ / AMOS7 \ YOURUM ::
+#\[7]QRDX6NQMPDEBLJMPGBVDDUUIXCIQ7HVHJLXKFVSKABU3BJKTKODI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
