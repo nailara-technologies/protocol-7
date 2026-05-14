@@ -119,7 +119,34 @@ while ( my $file_path = shift @files ) {
         $err_msg = 'syntax error in perl code' if $return_code == 512;
         my $colored_msg = color_msg( $err_msg, $file_path );
         if ( $return_code == 512 ) {
-            warn $colored_msg;
+            if ($check_only) {
+                ## run perl -c and filter P7-specific false positives ##
+                my @perl_c_output = qx{ perl -c "$file_path" 2>&1 };
+                my @real_errors;
+                for my $line (@perl_c_output) {
+                    next if $line =~ m{Can't modify glob in scalar assignment};
+                    next if $line =~ m{^\s*$};
+                    push @real_errors, $line;
+                }
+                ## remove trailing "had compilation errors" if it's the only line left ##
+                if (    @real_errors == 1
+                    and $real_errors[0] =~ m{had compilation errors\.?$} )
+                {
+                    @real_errors = ();
+                }
+                if (@real_errors) {
+                    my $detail = join( '', @real_errors );
+                    chomp($detail);
+                    $colored_msg = color_msg( $detail, $file_path );
+                    warn $colored_msg;
+                } else {
+                    ## only P7 false positives — treat as ok ##
+                    print color_msg( 'syntax ok [P7]', $file_path,
+                        $NEON_green_yellow );
+                }
+            } else {
+                warn $colored_msg;
+            }
             Time::HiRes::sleep 2.1;
         } else {
             die $colored_msg;
@@ -204,8 +231,8 @@ sub show_progress {
         $perc_chars, $filename );
 }
 
-#,,.,,.,.,...,,..,.,,,..,,.,,,..,,.,.,,,.,,,,,..,,...,.,.,.,.,,.,,,,.,..,,,,.,
-#VZVPLYYTVX7E2CD52XO6XNDCKOOIN2VCZVVTX62D5RM2JCY77OWL67OJGJ2YTHXYNRLIBSDSSA7PC
-#\\\|W22VKA6XGAMJJWNA6MUNBYKYHQJNNIDULRH3RPYYYSCB6B43HQQ \ / AMOS7 \ YOURUM ::
-#\[7]OQFEHAV4O2EX7D4HKKSNDDDLGMIRVT6XXSSVRQKRPSJMX4V7IMCQ 7  DATA SIGNATURE ::
+#,,,.,,.,,...,,.,,,,,,,,,,,.,,,,.,...,,,.,.,.,..,,...,...,,.,,,..,..,,,,,,,..,
+#LY6Z5IDATNWQL2FKX4BPNR4HHZMWTJCYDPKVLUCEM5K66LRFLS733ALYGNBRNGATBSU3JXEINB7ZQ
+#\\\|OFJRVLYDQZKOCNH5CCTUFLUJX2OWN4676CL5Q4HEFMTY4AQDZCB \ / AMOS7 \ YOURUM ::
+#\[7]YGDYXB7RKZCCZXR6VYMHFJG4XTROK2UGT7MRUANUIOHCJ2MAYSCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
