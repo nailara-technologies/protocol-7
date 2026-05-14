@@ -1,0 +1,47 @@
+## [:< ##
+
+# name  = jobsite.handler.repair-created
+# descr = receive repair task id, register wait-done watcher
+
+my $call = shift // {};
+
+my $mode    = $call->{'mode'} // '';
+my $raw     = $call->{'data'} // '';
+my $task_id = ref $raw ? $raw->$* : $raw;
+my $job_id  = $call->{'params'}{'job_id'} // '';
+
+if ( lc($mode) eq qw| false | ) {
+    <[base.logs]>->(
+        0,       'jss.repair-created: failed for job %s: %s',
+        $job_id, $task_id
+    );
+    ## do not decrement pending_count — repair failed, job still needs resolution ##
+    $job_id = uc( substr( $job_id, 0, 7 ) );
+    <jobsite.tasks>->{$job_id}{'repair_failed'} = TRUE;
+    <[jobsite.state.persist]>;
+    <[jobsite.dispatch.next]>;
+    return;
+}
+
+$task_id = uc( substr( $task_id, 0, 7 ) );
+<[base.logs]>->( 1, 'job %s → repair task %s', $job_id, $task_id );
+
+<jobsite.tasks>->{$job_id}{'repair_task_id'} = $task_id;
+<[jobsite.state.persist]>;
+
+## register wait-done — repair-done will decrement pending_count ##
+<[protocol-7.route-send]>->(
+    {   'command'   => 'task.wait-done',
+        'call_args' => { 'args' => $task_id },
+        'reply'     => {
+            'handler' => 'jobsite.handler.repair-done',
+            'params'  => { 'job_id' => $job_id, 'task_id' => $task_id },
+        },
+    }
+);
+
+#,,,,,,,.,,,.,...,...,...,,,.,...,,,.,.,,,,.,,..,,...,..,,,.,,...,...,,,.,,,.,
+#ZKAFGA2KXGHQ2QG2L377PBTWUJSVDG24URIK26ZAWCUWKTP62E7IM6FMSFBQBMM4XJYIVRSDUVC6C
+#\\\|W47W7QOW7IFXB4SW2E7TR3YHHPIYHIWBGEAJRNNBJ5YRXE4QS2S \ / AMOS7 \ YOURUM ::
+#\[7]2FFB7ECZLXZE53B4CJUI3K55DAFKS36PFTDT6XQAOOUQ5BR3VWBA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

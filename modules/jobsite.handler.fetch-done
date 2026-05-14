@@ -1,0 +1,47 @@
+## [:< ##
+
+# name  = jobsite.handler.fetch-done
+# descr = receive site-yaml.import reply, dispatch assessments when all done
+
+my $call = shift // {};
+
+my $mode     = $call->{'mode'} // '';
+my $raw      = $call->{'data'} // '';
+my $data_str = ref $raw ? $raw->$* : $raw;
+my $category = $call->{'params'}{'category'} // '';
+
+if ( lc($mode) eq qw| false | ) {
+    <[base.logs]>->(
+        0,         'jss.fetch-done [%s]: import failed: %s',
+        $category, $data_str
+    );
+} else {
+    <[base.logs]>->( 1, 'jss.fetch-done [%s]: %s', $category, $data_str );
+}
+
+## decrement fetch counter — only proceed when all categories replied
+<jobsite.fetch_pending> //= 1;
+<jobsite.fetch_pending>--;
+
+return if <jobsite.fetch_pending> > 0;
+
+## all imports replied — check if async detail fetches are still running ##
+my $queue = $data{'site-yaml'}{'fetch_queue'} // [];
+if ( @{$queue} ) {
+    <[base.logs]>->(
+        1,
+        '%d detail fetches in progress, waiting for queue drain',
+        scalar @{$queue}
+    );
+    $data{'site-yaml'}{'fetch_drain_cb'} = 'jobsite.handler.fetch-drain';
+    return;
+}
+
+## queue empty — proceed to assessments immediately ##
+<[jobsite.dispatch.assessments]>;
+
+#,,.,,..,,,.,,...,,.,,,,.,...,.,.,,.,,..,,...,..,,...,...,.,.,,.,,..,,,..,,..,
+#2KQNHNPX3OZRMRAVNIV26NZXF5SV3SJHVEQN6BQKCND7BZ5QTRWCOLVPHVGD7XG4TEXAEP7WJLLIS
+#\\\|ZPPANJM3NZJFUFKAHATQKN6GYX5M27I6TUJA2COCPLF663B72EL \ / AMOS7 \ YOURUM ::
+#\[7]NXK3GV3TWZEKHQUEQOBXUGRCC3SM7FTCSAY3ZQKXGHYQFPGXOEDA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

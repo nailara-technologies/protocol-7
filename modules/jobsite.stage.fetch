@@ -1,0 +1,67 @@
+## [:< ##
+
+# name  = jobsite.stage.fetch
+# descr = begin scanning — route-send site-yaml.import per category url
+
+my $full_mode = shift // FALSE;
+
+<jobsite.cycle>     = qw| scanning |;
+<jobsite.last_scan> = time;
+<[jobsite.state.persist]>;
+
+## build category → url map from config
+my $cats_cfg = <jobsite.cfg.categories> // '';
+my @cats     = split m|\s+|, $cats_cfg;
+
+if ( not @cats ) {
+    <[base.logs]>->( 0, '[fetch] no categories configured' );
+    <jobsite.cycle> = qw| idle |;
+    <[jobsite.state.persist]>;
+    return;
+}
+
+my %cat_urls;
+for my $cat (@cats) {
+    my $url = $data{'jobsite'}{'cfg'}{'url'}{$cat} // '';
+    if ( not length $url ) {
+        <[base.logs]>->( 0, '[fetch] no url for category %s', $cat );
+        next;
+    }
+    $cat_urls{$cat} = $url;
+}
+
+if ( not %cat_urls ) {
+    <[base.logs]>->( 0, '[fetch] no valid category urls found' );
+    <jobsite.cycle> = qw| idle |;
+    <[jobsite.state.persist]>;
+    return;
+}
+
+<[base.logs]>->(
+    1,
+    ':: scanning %d categories [full=%d] : %s',
+    scalar keys %cat_urls,
+    $full_mode, join( ', ', sort keys %cat_urls )
+);
+
+for my $cat ( sort keys %cat_urls ) {
+    <[protocol-7.route-send]>->(
+        {   'command'   => qw| site-yaml.import |,
+            'call_args' =>
+                { 'args' => $cat_urls{$cat}, 'full' => $full_mode },
+            'reply' => {
+                'handler' => qw| jobsite.handler.fetch-done |,
+                'params'  => { 'category' => $cat, 'url' => $cat_urls{$cat} },
+            },
+        }
+    );
+}
+
+## track how many fetch replies we expect
+<jobsite.fetch_pending> = scalar keys %cat_urls;
+
+#,,,.,...,,,,,,,,,,,.,.,.,...,...,,..,.,.,.,,,..,,...,...,.,,,.,.,,.,,..,,,,.,
+#73WASNSLTVIH4PD4HUW2B2OPVROG7RQGW7CV52Q3OOEVJI3YDBHBVEBFAHW7LRBRQVDBCXSNT4IMG
+#\\\|TPDW4QVWAOM5G6HK6A56ILM6YZ2RDJUCODP6OPEXTZGMVENWRKQ \ / AMOS7 \ YOURUM ::
+#\[7]2TDGFWTMB26L6C3YK5IS7D3OVB2FWRUS4QRZQKQTO2JVVEVXOEAY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
