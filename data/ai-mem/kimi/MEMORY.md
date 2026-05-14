@@ -2007,7 +2007,65 @@ Default scan stops when a page returns all duplicates. `scan :full:` disables op
 ---
 
 #,,,.,,..,,..,,,.,.,.,,..,.,.,...,..,,..,,.,,,.,.,...,...,..,,.,,,,..,..,,.,,,
+
+## bin/chat — Multi-Model Conversation Script (May 14 2026)
+
+### Status
+COMPLETE — Phase 1 operational. ~950 lines. Async inbox confirmed working between kimi and claude.
+
+### Architecture
+- **File-backed history**: `data/chat/channel/<name>/history` — plain text, committed
+- **State file**: `~/.config/protocol-7/chat-state` (channel + model)
+- **Caller detection**: `/proc/$PPID/comm` → `Kimi Code` → `kimi`, `claude` → `claude`. Override: `P7_CHAT_CALLER`
+- **Model names**: `kimi`, `claude` (shortened from `-code` suffix)
+- **History format**: `[2026-05-14T13:01:03] <caller>   message text`
+
+### Dispatch
+- **kimi**: `p7c kimi.ask-reply` with b32r encoding, blocks for reply
+- **claude**: inbox file at `data/chat/inbox/claude` — claude polls and writes reply to history
+- **Broadcast**: `:all:` sends to all models except caller
+
+### Implemented Features
+- `:note:` — write to history, skip model dispatch
+- `:reply-to:N:` — thread marker, quotes line N in dispatch text
+- `:->>#channel:` / `:->>#channel:N:` — cross-channel context injection (default 5 lines)
+- **Per-channel persona**: `data/chat/channel/<name>/persona` — prepended to dispatch
+- **Rolling model memory**: auto-triggers at 500 lines, summarizes via model, saves to `data/chat/model/<name>/memory`
+- `--search` / `--grep` / `--all-channels` — history search with 1-based line indices
+- `--summarize` — manual memory rotation trigger
+- `--summary` — lazy on-demand summary via coding zenka (cached in `summary.md`)
+- **No-args timeline**: shows channels + last-active + first sentence of summary
+- `-wait-reply` — indefinite wait by default, `-wait-reply N` for N-second timeout
+- **Single-dash long options** normalized to double-dash automatically (`-wait-reply` → `--wait-reply`)
+- **xz archive** on clear/rotation
+
+### File Layout
+- `data/chat/channel/<name>/history` — committed
+- `data/chat/channel/<name>/summary.md` — committed (lazy, coding zenka)
+- `data/chat/channel/<name>/persona` — committed
+- `data/chat/model/<name>/memory` — committed
+- `data/chat/inbox/` — gitignored (transient IPC)
+- `data/chat/archive/` — gitignored (xz rotation archives)
+
+### Pre-Commit Hook
+`data/chat/` exempt from signature checking (runtime data, not source code).
+
+### Handover Retirement
+`data/ai-mem/handover.txt` retired as of 2026-05-14. Session handovers now live in `bin/chat` history + channel summaries. Claude memory topic files: `topic-chat-script.md`, `topic-job-pipeline.md`, `topic-plugin-web-jobs.md`.
+
+### Open Items
+- kimi zenka state machine upgrade (watcher-based, same pattern as coding zenka)
+- coding zenka model as third dispatch target (local inference participant)
+- zenka-desk: phase 1 buffer system + panel.chat
+- Phase 2: channels zenka takes over history management
+
 #VYQ4CL2P6FCUPDODU6ITU3KVUE5J26TPY7JZU5EMMS6CPYFJVMASDBXGYRDC3DQKJ7B7ISWLSSA4M
 #\\\|WCA2MROISBFP324AXQESS6PZBNHKWLC2KTIY45ODZUVPWXOCWQM \ / AMOS7 \ YOURUM ::
 #\[7]NLBZQPBBOMANECRZUTFYKDFWFAG2VZ4R3SLBOOUDJZW35LATL6BI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+
+#,,..,,..,,..,,,,,..,,.,.,.,.,,..,.,,,,,.,,.,,..,,...,...,...,...,...,,,.,...,
+#A2DWQEKLCQAKHQVAHROEC56TMXWU5PZX2L4LWQQ2VDIW7UXGIC6KFFNOLITLXUNDW25MIVLINDY54
+#\\\|EHHDZ362HITCZO22H2NGI5PUZWDLCCSA52ZW5UMZ5CVJTHQKXBY \ / AMOS7 \ YOURUM ::
+#\[7]5Q3XLU2X5UA2DZ36CLYOOLCYXUUUBWZXHUNL4S6ZPNMSDPAAU2AA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
