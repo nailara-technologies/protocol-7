@@ -18,16 +18,10 @@ if ( defined $job_rec and lc($mode) ne qw| false | and length $result ) {
     $de =~ s{^["„]|[""]$}{}g;
     $job_rec->{'score_reason_de'} = $de;
 
-    ## persist to store.yaml
-    <[base.perlmod.autoload]>->('YAML::XS');
-    my $store_file = '/var/protocol-7/site-yaml/store.yaml';
-    if ( -f $store_file ) {
-        my $store = eval { YAML::XS::LoadFile($store_file) } // {};
-        if ( exists $store->{$job_id} ) {
-            $store->{$job_id}{'score_reason_de'} = $de;
-            eval { YAML::XS::DumpFile( $store_file, $store ) };
-        }
-    }
+    ## persist to per-job file
+    my $job = <[jobsite.job.read]>->($job_id) // {};
+    $job->{'score_reason_de'} = $de;
+    <[jobsite.job.write]>->( $job_id, $job );
 
     <[base.logs]>->( 1, 'job %s reason_de stored', $job_id );
 } else {
@@ -40,8 +34,8 @@ if ( defined $job_rec and lc($mode) ne qw| false | and length $result ) {
 <[jobsite.state.persist]>;
 <[jobsite.dispatch.next]>;    ## proceed to next job in queue
 
-#,,,.,,..,,,,,.,.,,.,,.,.,,,,,,,,,.,.,..,,,..,..,,...,...,..,,...,.,.,,,.,,.,,
-#OHB6EVRJV7GITIHJ6RV6AGP2TU4XX4AVQUNZ2K7DJQPY3MUSA3UUR2BO6EQ5AOO27RUHA6VKNYEIQ
-#\\\|LFWGSQTAWDQLWLFE737QBK2CVJVHMM7C577NHRWSDAYQC5TM662 \ / AMOS7 \ YOURUM ::
-#\[7]ADZTK3NS3GD5WPZLRQ5CVR6KBZEWJJS4ZIAJUDDF6DI3YZN6B4CQ 7  DATA SIGNATURE ::
+#,,,.,,.,,,.,,,.,,,..,,..,,..,..,,,..,,.,,,..,..,,...,...,...,,..,...,,..,,..,
+#H7CO56TL4O5GBE7U3OEIK5O4FRCT43QHRRJ2JM6AHOOFUFPKPOEQUSGN2WTX7I32OFXVRR7OTNC6A
+#\\\|XKJJO7RPHWSJBDTVICKWMRURXRMC5WUFDSJKM4PKMMMMICVVSCK \ / AMOS7 \ YOURUM ::
+#\[7]MD24GVHOFNMUXCJRVK2VYVPRUNQECLPHQ5D4L4MDSG6OJ7VC6WCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

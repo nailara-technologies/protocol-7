@@ -7,13 +7,7 @@ map { <[base.perlmod.autoload]>->($ARG) } qw| YAML::XS HTML::Entities |;
 
 my $filter = shift // '';
 
-my $store_file = '/var/protocol-7/jobs/store.yaml';
-my $store      = {};
-
-if ( -f $store_file ) {
-    eval { $store = YAML::XS::LoadFile($store_file) };
-    $store = {} if $@;
-}
+my $store = <[jobsite.job.load_all]>->();
 
 my @ids = sort {
     ( $store->{$b}{'fetched_at'} // 0 )
@@ -70,8 +64,8 @@ push @lines, '</div>';
 
 return join( "\n", @lines );
 
-#,,,.,...,...,,.,,,.,,.,,,,.,,,,.,,.,,,..,..,,..,,...,..,,.,,,..,,,..,...,.,,,
-#OA4J572CCTPNTH2HLH5RAFM5Y2UJIOWBN7VX3QSO5HAJG5ICZL2LI6D56R2VWFA3FOKTNU3DKEEO2
-#\\\|THGL2EMPZG46LUDVSCNGJXFXGADAWEETT3SKAMRMCR63GKF7XL2 \ / AMOS7 \ YOURUM ::
-#\[7]YLYBYP7CMDH2HMXSXHHUURE3HOKGY7647CJLV63IPDF2RXXOX6AI 7  DATA SIGNATURE ::
+#,,.,,.,.,,,.,,,.,,,.,,.,,,..,,,,,..,,,.,,.,,,..,,...,..,,,,.,.,.,,.,,,,.,...,
+#FFY5HTL5TUNCI3E5BLJBK6VBDKQ6UOG7IJZFKFVABUOAI6CCCQR3PR2WG73DXCJ6MXM4L34UN22O2
+#\\\|E3S5VRW4GOV4J4IPQJKN3V47WJTEH7TKXXISET22CYSZWA5YHQE \ / AMOS7 \ YOURUM ::
+#\[7]LFMGG5UJEYT5YJBMYKZVKRBCBSFFNTL3TX5PTINXSBI6P2P6USCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,0 +1,54 @@
+## [:< ##
+
+# name  = jobsite.index.rebuild
+# descr = rebuild index.yaml from all job files in jobs/ dir
+
+my $jobs_dir   = '/var/protocol-7/jobsite/jobs';
+my $index_file = '/var/protocol-7/jobsite/index.yaml';
+
+my $index = {};
+if ( -d $jobs_dir ) {
+    opendir my $dh, $jobs_dir or return FALSE;
+    my @files = grep { /\.yaml$/ && !/^\./ } readdir($dh);
+    closedir $dh;
+
+    for my $file (@files) {
+        my $job_id = $file;
+        $job_id =~ s/\.yaml$//;
+
+        my $job = eval { YAML::XS::LoadFile("$jobs_dir/$file") };
+        next if $@ or ref $job ne 'HASH';
+
+        $index->{$job_id} = {
+            'status' => $job->{'status'} // '',
+            'score'  => $job->{'score'}  // '',
+            'stage'  => $job->{'stage'}  // '',
+        };
+    }
+}
+
+my $tmp_file = "$index_file.tmp";
+eval { YAML::XS::DumpFile( $tmp_file, $index ) };
+if ($@) {
+    <[base.logs]>->( 0, 'jss.index.rebuild: dump error: %s', $@ );
+    return FALSE;
+}
+
+if ( not rename( $tmp_file, $index_file ) ) {
+    <[base.logs]>->( 0, 'jss.index.rebuild: rename failed: %s', $! );
+    return FALSE;
+}
+
+<[base.logs]>->(
+    1,
+    'jss.index.rebuild: rebuilt index with %d entries',
+    scalar keys %{$index}
+);
+
+return TRUE;
+
+#,,.,,,..,.,,,,.,,.,,,.,,,.,,,.,.,,.,,.,.,.,.,..,,...,...,.,,,..,,,,.,,..,,,,,
+#3ML7KU345DMPCKVDAFDYKXNZYIC6XZ6KFG7K4RF5I2CFTGIMABN4TCX4ZFTRLOPJRVAAEKNW2CHDS
+#\\\|WXUOWO7S23U4HXYWKFPX5CGFX72J4VQLGOR5NRCMM7QX7QZ2BE2 \ / AMOS7 \ YOURUM ::
+#\[7]ZNEYWX35OZYEBXG7JJYPSBRUA2V5RMQDKYHW2TBBZQTBAZE7MYAA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

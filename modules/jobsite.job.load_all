@@ -1,0 +1,37 @@
+## [:< ##
+
+# name  = jobsite.job.load_all
+# descr = load all job records from per-file storage
+
+my $jobs_dir = '/var/protocol-7/jobsite/jobs';
+my %jobs;
+
+if ( -d $jobs_dir ) {
+    opendir my $dh, $jobs_dir or return \%jobs;
+    my @files = grep { /\.yaml$/ && !/^\./ } readdir($dh);
+    closedir $dh;
+
+    for my $file (@files) {
+        my $job_id = $file;
+        $job_id =~ s/\.yaml$//;
+
+        my $job_file = "$jobs_dir/$file";
+        my $job      = eval { YAML::XS::LoadFile($job_file) };
+        if ($@) {
+            <[base.logs]>->(
+                0,     'jss.load_all: error loading %s: %s',
+                $file, $@
+            );
+            next;
+        }
+        $jobs{$job_id} = $job if ref $job eq 'HASH';
+    }
+}
+
+return \%jobs;
+
+#,,.,,..,,.,,,...,..,,..,,..,,,..,.,.,,,,,.,.,..,,...,..,,,..,,.,,,..,,,,,,.,,
+#VYP6GXYC3EY4I2UWUHLU2BV4TR2T4B5VJ65QSSQXKGHDONLVBT6MGWWQRXHANCJZWD5JEJLV53IWC
+#\\\|MJ3ZVF4Z3LJKDKZNJ3EAPFX4XPDMJQ67TBAD26UF3VV6HZXGLHG \ / AMOS7 \ YOURUM ::
+#\[7]6CZKX67OYE53QRBUMNW4BIYSJVEOE3PFVHCVJK6WYQPFQ7ETT4BI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
