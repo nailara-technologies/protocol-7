@@ -4,27 +4,29 @@
 # descr = mark kimi task as failed
 # purpose = kimi task management : wrapper around jobqueue.move_job to mark job failed with error
 
-my ( $job_id, $error_msg ) = @ARG;
+my ( $task_id, $error_msg ) = @ARG;
 
 return {
     success => FALSE,
-    error   => 'job_id required'
+    error   => 'task_id required'
     }
-    unless defined $job_id;
+    unless defined $task_id;
 
 $error_msg //= 'task execution failed';
 
-# Get job data before moving to verify it exists
-my $job_data = <[jobqueue.get_job_data]>->($job_id);
+# Get task from queue
+my $task = <kimi.task.queue>->{$task_id};
 
 return {
     success => FALSE,
-    error   => "task not found : $job_id"
+    error   => "task not found : $task_id"
     }
-    unless defined $job_data;
+    unless defined $task;
 
-# Move job to error queue
-<[jobqueue.move_job]>->( $job_id, 'error' );
+# Move job to error queue if job_id is tracked
+if ( defined $task->{'job_id'} ) {
+    <[jobqueue.move_job]>->( $task->{'job_id'}, 'error' );
+}
 
 ## update budget tracking [ if wired ] ##
 if ( defined <kimi.budget.track_tokens> ) {
@@ -38,14 +40,13 @@ if ( defined <kimi.budget.track_tokens> ) {
 
 return {
     success => TRUE,
-    job_id  => $job_id,
-    task_id => $job_data->{object_id},
+    task_id => $task_id,
     error   => $error_msg,
-    message => "task failed : $job_id"
+    message => "task failed : $task_id"
 };
 
-#,,..,..,,..,,,..,.,,,..,,.,.,...,.,.,,..,..,,..,,...,...,...,.,,,.,,,..,,.,.,
-#TRDBRWT2GEYSYB7Q7RYL3COEW5RHQ4PIFEADVLABKRW5T2S7D3OKLKD3AJUE7ONVD2WG45TAYPKUW
-#\\\|DXVD4FNV46M3NBCUULR2V46MGVI7K42EWOWJFVIP4UC3DZ7UN6S \ / AMOS7 \ YOURUM ::
-#\[7]VIQ6VU7U6ROHE6B454TIIIP2NQ3ZLS3DTGVYVGFUUCONKRR5Z2BQ 7  DATA SIGNATURE ::
+#,,,,,...,,.,,,..,.,,,.,,,..,,,..,..,,...,,.,,..,,...,...,.,.,...,,..,,,.,,.,,
+#PGRGWAHDZWN7ZC22SHT37XZALFG3VFMFMQ6MBAUM4SJOZWWQZKY2JOYYP66SIHR5AT4KXPVULG5LQ
+#\\\|FV7DACCCSWINMCGN4HU3A4RB4VTMD5VRQQFRQHGHJTAM27GNON5 \ / AMOS7 \ YOURUM ::
+#\[7]Y2KF2IFDNXDIDYF43RUNN5YUVWWJNW2LY2XLANZPAUWAJA7QC2CY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

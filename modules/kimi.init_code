@@ -48,14 +48,18 @@ if ( not defined <kimi.session_id> ) {
 
 ## reconnect state
 <kimi.reconnect.grace_timer> //= undef;    ## cancellable timer ref
+<kimi.reconnect.timer>       //= undef;    ## reconnect attempt timer ref
+<kimi.liveness.timer>        //= undef;    ## session liveness timer ref
+<kimi.init.retry_timer>      //= undef;    ## init retry timer ref
 
 ## task queue state ##
-<kimi.task.active_id> //= undef;    ## task id currently being processed
-<kimi.task.queue>     //= {};       ## task_id => task hashref
-<kimi.task.pending>   //= [];       ## task ids awaiting execution
-<kimi.task.active>    //= [];       ## task ids in progress
-<kimi.task.completed> //= [];       ## task ids finished
-<kimi.task.failed>    //= [];       ## task ids that failed
+<kimi.task.max_concurrent> //= 1;        ## start sequential, design for N
+<kimi.task.active_id>      //= undef;    ## task id currently being processed
+<kimi.task.queue>          //= {};       ## task_id => task hashref
+<kimi.task.pending>        //= [];       ## task ids awaiting execution
+<kimi.task.active>         //= [];       ## task ids in progress
+<kimi.task.completed>      //= [];       ## task ids finished
+<kimi.task.failed>         //= [];       ## task ids that failed
 
 ## tool approval state
 <kimi.approval.pending>      //= {};     ## { $request_id => { action, ... } }
@@ -89,6 +93,16 @@ if ( not keys %{<kimi.approval.responded>} ) {
 <kimi.connect.retry_cur>   //= 2;       ## current delay [ reset on connect ]
 <kimi.connect.retrying>    //= FALSE;
 
+## install variable watcher for websocket status state machine
+<kimi.watcher.ws_status> = <[event.add_var]>->(
+    {   'var'     => \<kimi.ws.status>,
+        'poll'    => qw| w |,
+        'repeat'  => TRUE,
+        'handler' => qw| kimi.watcher.ws_status |,
+        'desc'    => 'kimi websocket lifecycle state machine'
+    }
+);
+
 ## schedule kimi-web connection attempt after event loop starts
 <[event.add_timer]>->(
     {   'after'   => 0.5,
@@ -101,8 +115,8 @@ if ( not keys %{<kimi.approval.responded>} ) {
 
 return TRUE;
 
-#,,..,.,.,,..,..,,...,.,,,,,,,,.,,.,,,,,,,.,.,..,,...,...,...,,,,,,,,,.,.,.,.,
-#LJG3VANTPQ6E4WTRHNA3KKE2BC5PZHQIMNA3MCAYPYVWUFC556QJ37PUCUUOKGJGP6TCLWFYK7LI4
-#\\\|EJG6UAWGT74DIQANH6ASJWPFFUV35JGUUB5BHU7LTNLQAVCR2EL \ / AMOS7 \ YOURUM ::
-#\[7]7KVZCZZ3YNZJNHU7U4WQGEXQFSO5HT7XSEQH3CIRODQ2B6P5JGCQ 7  DATA SIGNATURE ::
+#,,,,,,..,,,.,,.,,,,.,.,,,..,,,,.,,.,,,.,,...,..,,...,..,,..,,,,.,..,,...,,.,,
+#JMU34AMLVI7WAJJSL7GV2IPF2M6IWES7J3BM7NBKPZ6LIGM7YIZC5XMATAVEFGHJ3SX5HHNZFKZ4A
+#\\\|5RI7G5TW43RPIH5GDWVOECOUHO63HDYJ5HNQM75FLX4QNZ6YS6W \ / AMOS7 \ YOURUM ::
+#\[7]W35AKHS5CBHDTEI4VA5HFFFBHW5R2ZNUWBBBWXC4IHIFUKXTIGCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

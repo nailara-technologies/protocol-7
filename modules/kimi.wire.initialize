@@ -5,8 +5,15 @@
 
 my $msg_id = 'p7-kimi-init';
 
-## clear retry pending flag [ timer has fired ]
+## clear retry pending state
 <kimi.init.retry_pending> = FALSE;
+
+## cancel any existing retry timer
+if ( defined <kimi.init.retry_timer> ) {
+    <kimi.init.retry_timer>->cancel
+        if <kimi.init.retry_timer>->is_active;
+    <kimi.init.retry_timer> = undef;
+}
 
 <[base.logs]>->( 2, 'kimi.wire.initialize: sending initialize handshake' );
 
@@ -24,8 +31,8 @@ my $msg_id = 'p7-kimi-init';
     }
 );
 
-#,,..,,,.,,.,,,.,,.,.,..,,...,.,,,..,,...,.,,,.,.,...,...,...,,..,,..,,,.,..,,
-#L7DYEWMNCHVBAH6YD74K6XGUYLBPLXUVXFX6WINNAJH2XZC37J7XB5UO766SYF5GLRTCREEI5RWMQ
-#\\\|YR4WBAVA4ZEJMGS53UHKITCOZ6AQULKQQZTLHSNSI6DRLWA3RJC \ / AMOS7 \ YOURUM ::
-#\[7]33M6A4R5QQYE54KAQC74DYNE3DM5JKQI25COGOFB2EYR2UVTG6BY 7  DATA SIGNATURE ::
+#,,,.,..,,.,.,..,,..,,,.,,...,,,,,..,,.,,,...,.,.,...,...,.,.,...,,,,,..,,,,.,
+#3B6LPFGCNAY77KX2QICJ6GATO2B534EDYEYDYJ5SEUKKPGS5R5UYM54OKB276FHF5LDOHBNHQOQEE
+#\\\|X7GBUSRCOBNTTLASY4XIQBVEPFWG5YL64O5FR2G6WZYIMXSSOYL \ / AMOS7 \ YOURUM ::
+#\[7]GHZFEM7VHLN6F22B5YVOVHUJDAE25LBQLFYTJVDCAVSDH4Z7NUCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -44,29 +44,6 @@ if ($wants_next) {
     return { 'mode' => qw| deferred | };
 }
 
-## reconnect on demand if disconnected [ idle disconnect or first use ]
-if ( not <kimi.ws.connected> or <kimi.ws.status> eq qw| disconnected | ) {
-    ## create task entry before deferring ##
-    my $def_intake = <[kimi.intake.process]>->( { 'prompt' => $prompt } );
-    my $def_task_id
-        = $def_intake->{'success'} ? $def_intake->{'task_id'} : undef;
-
-    <kimi.next.deferred> = {
-        'prompt'   => $prompt,
-        'reply_id' => $call->{'reply_id'},
-        'task_id'  => $def_task_id
-    };
-    <[kimi.connect]>;
-    return { 'mode' => qw| deferred | };
-}
-
-unless ( <kimi.ws.status> eq qw| ready | ) {
-    return {
-        'mode' => qw| false |,
-        'data' => sprintf( 'kimi not ready [ status=%s ]', <kimi.ws.status> )
-    };
-}
-
 my $reply_id = $call->{'reply_id'};
 
 ## create task entry for queue tracking ##
@@ -74,6 +51,33 @@ my $intake_result = <[kimi.intake.process]>->( { 'prompt' => $prompt } );
 my $task_id;
 if ( $intake_result->{'success'} ) {
     $task_id = $intake_result->{'task_id'};
+}
+
+## reconnect on demand if disconnected [ idle disconnect or first use ]
+if ( not <kimi.ws.connected> or <kimi.ws.status> eq qw| disconnected | ) {
+    <kimi.next.deferred> = {
+        'prompt'   => $prompt,
+        'reply_id' => $reply_id,
+        'task_id'  => $task_id
+    };
+    <[kimi.connect]>;
+    return { 'mode' => qw| deferred | };
+}
+
+## if busy, defer — task is already in pending queue
+## dispatch_next_task will start it when current work completes
+if ( <kimi.ws.status> ne qw| ready | ) {
+    if ( defined $task_id ) {
+        <[base.logs]>->(
+            2,        '[ask-reply] task %s deferred [ status=%s ]',
+            $task_id, <kimi.ws.status>
+        );
+    }
+    return { 'mode' => qw| deferred | };
+}
+
+## ready — submit directly ##
+if ( defined $task_id ) {
     <kimi.task.active_id> = $task_id;
 
     ## mark as in_progress ##
@@ -113,8 +117,8 @@ if ( defined $task_id ) {
 
 return { 'mode' => qw| deferred | };
 
-#,,,.,,.,,,,,,..,,.,,,..,,...,,.,,..,,,..,..,,.,.,...,...,...,...,..,,,,,,...,
-#NUGV632O6EU7AMJMPM2BFHGADK7H6KNILGAMILEOATUQYGNQ3BSWBFMABQ6LUGLGRKNXIBX63M4HC
-#\\\|5D256NSQUF4PS7I2REZJ5ZFKYDWIX343IDVA76GW4YO5AYZGQOS \ / AMOS7 \ YOURUM ::
-#\[7]6SXT2ZI6SWIXY4FCD2AZJLVDYBJGMOAB3NYMFVSE73BEQLI2LUDI 7  DATA SIGNATURE ::
+#,,,.,...,,.,,,..,,,.,,..,..,,.,,,,.,,,,.,,..,.,.,...,...,,.,,,.,,,,.,.,,,..,,
+#MR53BIVQ7LZBYIMPONGPLGBGLTWBWY3S4EMVOU5KQBTT76HL3LKB763MRPZKTIWUCGEDNQW7LMI7Y
+#\\\|MFNTEDRBTQVK2644UBYGKKEQBUELDF62NDKWERCYPGS2CM2YCHZ \ / AMOS7 \ YOURUM ::
+#\[7]LZD65SJI3IIBZUNVLIAMOBFPTR2B44C74M5WPBXXHOHN4PS32ODQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -21,7 +21,6 @@ if (<kimi.ws.connected>) {
 <kimi.session_id>       = undef;
 <kimi.wire.accumulator> = '';
 <kimi.wire.pending>     = {};
-<kimi.ws.status>        = qw| connecting |;
 
 ## create fresh session via rest api
 my $new_session_id = <[kimi.session.create]>;
@@ -31,7 +30,6 @@ if ( not defined $new_session_id ) {
         0, 'kimi.session.reset_and_reconnect: session create failed'
     );
     <kimi.ws.status> = qw| disconnected |;
-    <[kimi.connect.schedule_retry]>;
     return;
 }
 
@@ -51,7 +49,6 @@ if ( not defined $sock ) {
     );
     <kimi.ws.status>  = qw| disconnected |;
     <kimi.session_id> = undef;
-    <[kimi.connect.schedule_retry]>;
     return;
 }
 
@@ -77,18 +74,13 @@ if ( not defined $sock ) {
 
 <kimi.ws.connected> = TRUE;
 
-## schedule session liveness timeout
-<[event.add_timer]>->(
-    {   'after'   => 15,
-        'handler' => qw| kimi.handler.session_liveness_timeout |,
-        'desc'    => 'detect dead kimi-web session after reset'
-    }
-);
+## status change triggers watcher — starts liveness timeout
+<kimi.ws.status> = qw| connecting |;
 
 <[base.logs]>->( 1, ': session reset complete — awaiting ready' );
 
-#,,,,,.,.,,..,,,.,,..,...,,,.,,.,,...,,,,,.,,,.,.,...,...,,..,.,.,.,,,..,,,..,
-#WYFPVMB6TXY65DESCITL3MAINGEK67UL7YEWZZUUOROV7BWVZQHYNG6LZZV5WKYAWK4RU4ZMCXKSQ
-#\\\|FEMXLBNCMMTSWBPHFSGCNNUVG4VNTWB5SD7PCFOBJJ4MXZ2OF2A \ / AMOS7 \ YOURUM ::
-#\[7]4KJWNDXKDVYOWK254ZSC4WHLEYVU3VW5TRVZBNDNWXSQS4PNSEBA 7  DATA SIGNATURE ::
+#,,,,,,,.,,,.,.,,,,,,,.,,,...,,,.,.,.,,,,,,.,,.,.,...,...,..,,.,.,,,.,,,.,,,,,
+#ENT6GOJAUX4JPKCSHMOZ7QWQXSVWOB4S2AGBOBTTCFKKR6DFZTEZCR7V534A3GT632QCQGIYRQDRM
+#\\\|7DPUX7GTGKWX637FHF7QGLURZTNBGXYGK7ZHDBNNFON67FC5MKC \ / AMOS7 \ YOURUM ::
+#\[7]45MOJZAKLRA6ELZLAJ6FI6AXWJ3GSM6BSERYIHV7MSZXMYUP7ACA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
