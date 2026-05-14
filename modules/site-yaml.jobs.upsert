@@ -9,6 +9,7 @@ return 'no_id' if not length $id;
 
 my $store = $data{'jobs'}{'store'};
 
+my $is_new = 0;
 if ( exists $store->{$id} ) {
     ## preserve status and score set by user or LLM
     my $existing = $store->{$id};
@@ -16,18 +17,22 @@ if ( exists $store->{$id} ) {
         $job->{$key} = $existing->{$key} if defined $existing->{$key};
     }
     $store->{$id} = $job;
-    return 'updated';
+} else {
+    ## new job — set defaults
+    $job->{'status'} //= 'new';
+    $job->{'score'}  //= '';
+    $job->{'fetched_at'} = time;
+    $store->{$id}        = $job;
+    $is_new              = 1;
 }
 
-## new job — set defaults
-$job->{'status'} //= 'new';
-$job->{'score'}  //= '';
-$job->{'fetched_at'} = time;
-$store->{$id} = $job;
-return 'new';
+## write per-job file
+<[jobsite.job.write]>->( $id, $store->{$id} );
 
-#,,,.,,,,,,,,,...,..,,..,,,,.,,,,,,.,,...,.,.,..,,...,.,.,.,,,,..,...,,,,,,.,,
-#GNGMOPZS4QWVV6UAXHWVQMZTBLUMPCDSNHNNEYPIRSYUZZXZMCU2ALOD45XPU2IAIMFKSRDH7UVR6
-#\\\|RE54VO2M4FBW6IMTM73LLHRHEZGS7ZZQAK2TOAKZITPC73FZ445 \ / AMOS7 \ YOURUM ::
-#\[7]HMARYR6MYQV7A3BDK7UBEEE7AVMH6PGMYKC7KNPCK7XF7DYVBWDA 7  DATA SIGNATURE ::
+return $is_new ? 'new' : 'updated';
+
+#,,.,,..,,,..,,..,,.,,.,,,,..,..,,...,,.,,,,,,..,,...,...,,.,,,,.,,..,,,,,,,.,
+#GSWG75OPQB6XFMVXBFYHV4K4LXQRQRVPJI2PTDC4GBG4YFFSOJG3JH44OIDFMJ6BBUGS2CSGIVARO
+#\\\|BQC3FRGJYOYRV4ISQLZ46EWN7SPU74WGYAJ6JHP4RY6WH2PJKV2 \ / AMOS7 \ YOURUM ::
+#\[7]5DFZCESASTBASGUNESDD6TH4J6PAXWUSQ76TIHYGYY2VI4DWLWDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

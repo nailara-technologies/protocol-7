@@ -1,7 +1,7 @@
 ## [:< ##
 
 # name  = jobsite.state.persist
-# descr = save scan state to disk
+# descr = save scan state to disk, ensure index exists
 
 my $payload = {
     'cycle'     => <jobsite.cycle>     // 'idle',
@@ -21,10 +21,17 @@ if ( not defined $written ) {
     <[base.logs]>->( 0, 'jss.persist: write failed' );
     return FALSE;
 }
+
+## ensure index.yaml exists — rebuild if missing
+my $index_file = '/var/protocol-7/jobsite/index.yaml';
+if ( not -f $index_file ) {
+    <[jobsite.index.rebuild]>->();
+}
+
 return TRUE;
 
-#,,,,,,,,,.,.,...,,,.,.,,,...,..,,...,..,,,,,,..,,...,...,.,.,,.,,,..,...,..,,
-#6YC6AKIIFBPFVGPKA4ETOMCOPPEDNFIILQYVTY2LRXSNMSWYTDF6ONQCKWWN6DBYBZQQX43WAAAFA
-#\\\|T7Y26IWRXEX5EFD7TYKQYZZAGNV24TNCNE6SQT22IEGCSV22J2H \ / AMOS7 \ YOURUM ::
-#\[7]IJFT6DJK5LM46UIULQUNBXZ2EM3MTONPJVEX7Q7QUPSKIOASK2AQ 7  DATA SIGNATURE ::
+#,,.,,.,.,.,,,..,,...,..,,,..,,.,,,,,,,,,,,.,,..,,...,.,.,...,.,.,,,.,...,,,.,
+#W27W7A7NHPN3XF3FNIXVTHKGHYH4YNGSPKMMZWGE3THDO6DU3Z2BBGWRPDX6SVUE5AZL2CDLVZCEW
+#\\\|EFEL5OQMQS7MXOMAI7JGBSXVEHSP7MGA5RKJUPOLO7VNVIS4RB5 \ / AMOS7 \ YOURUM ::
+#\[7]FRGJX3FD6LIVWBRHGHCEW622UBEE5ELAY7SCTZ5FPJPD46YKLSCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

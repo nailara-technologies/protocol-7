@@ -1,30 +1,54 @@
 ## [:< ##
 
 # name  = site-yaml.jobs.init_code
-# descr = initialize job store, load persisted data
+# descr = initialize job store, load persisted data from per-file layout
 
 <[base.perlmod.autoload]>->('YAML::XS');
+<[base.perlmod.autoload]>->('File::Path');
 
 $data{'jobs'}{'store'} = {};
 
-my $sref = <[file.zenka_dir.load]>->('store.yaml');
-if ( defined $sref ) {
-    eval {
-        my $loaded = YAML::XS::Load( $sref->$* );
-        $data{'jobs'}{'store'} = $loaded if ref $loaded eq 'HASH';
-    };
-    <[base.logs]>->( 0, 'jobs: load error: %s', $@ ) if $@;
+## load from per-file layout
+my $jobs = <[jobsite.job.load_all]>->();
+if ( ref $jobs eq 'HASH' and %{$jobs} ) {
+    $data{'jobs'}{'store'} = $jobs;
     <[base.logs]>->(
         1,
-        'jobs: loaded %d entries from store',
-        scalar keys %{ $data{'jobs'}{'store'} }
+        'jobs: loaded %d entries from per-file layout',
+        scalar keys %{$jobs}
     );
 } else {
-    <[base.logs]>->( 1, 'jobs: store empty, starting fresh' );
+    ## fallback: load from legacy store.yaml and migrate to per-file
+    my $sref = <[file.zenka_dir.load]>->('store.yaml');
+    if ( defined $sref ) {
+        eval {
+            my $loaded = YAML::XS::Load( $sref->$* );
+            $data{'jobs'}{'store'} = $loaded if ref $loaded eq 'HASH';
+        };
+        <[base.logs]>->( 0, 'jobs: load error: %s', $@ ) if $@;
+        my $count = scalar keys %{ $data{'jobs'}{'store'} };
+        <[base.logs]>->(
+            1, 'jobs: loaded %d entries from legacy store', $count
+        );
+
+        ## migrate to per-file layout
+        if ($count) {
+            for my $job_id ( keys %{ $data{'jobs'}{'store'} } ) {
+                my $job = $data{'jobs'}{'store'}{$job_id};
+                next if ref $job ne 'HASH';
+                <[jobsite.job.write]>->( $job_id, $job );
+            }
+            <[base.logs]>->(
+                1, 'jobs: migrated %d entries to per-file layout', $count
+            );
+        }
+    } else {
+        <[base.logs]>->( 1, 'jobs: store empty, starting fresh' );
+    }
 }
 
-#,,,,,,,.,,,.,...,,,,,,,.,.,,,,,,,,,,,,,.,...,..,,...,...,.,.,,,,,,.,,...,,.,,
-#QJGQ7DQRV5UJTAS2QE6HQKEITJ7AHZADQ6FFV25HFIDHOZRCJQSZGHXGK7DNCL7IZE4JBGYY3BDGK
-#\\\|UWMDQBTRIHMMAQNVVMJEM7NEK46WTPBKC46FQSQVTCKBBTWMG4A \ / AMOS7 \ YOURUM ::
-#\[7]XH6K4W3Y2LMOJGSE5RM3XB6YBTFWOVGDBS3VWZEFUOXSZJ77YACA 7  DATA SIGNATURE ::
+#,,.,,..,,,..,...,,..,,.,,...,,,,,.,,,.,.,,..,..,,...,...,...,.,.,,..,.,.,.,,,
+#32OAYV6GV62R3O4HLB7FNPJD5RK7VKQ4X6DINH4DOSVQJYHQZFGI4GAIT2Q4NLIYIO4ZXEJXRIOMI
+#\\\|YYLGHRFAFCCL5MF3QBCGWF76WI2HTDQKAIXLY7LD4P5GGBISLTU \ / AMOS7 \ YOURUM ::
+#\[7]ADVMLPI6IOHQM572CXVIRY22SAG23IO2D5CWMWPOHHDLUJ4BAEDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
