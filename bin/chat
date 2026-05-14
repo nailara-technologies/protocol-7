@@ -20,6 +20,9 @@ use Crypt::Misc          qw| encode_b32r |;
 ## decode argv from terminal byte strings to perl unicode ##
 @ARGV = map { decode_utf8($_) } @ARGV;
 
+## normalize single-dash long options to double-dash ##
+@ARGV = map { m{^-([a-z]{2}[a-z\-]*)(.*)$} ? "--$1$2" : $_ } @ARGV;
+
 ####        ####
 ##   chat   ##
 ###       ####
@@ -61,7 +64,7 @@ my $STATE_FILE       = File::Spec->catfile( $STATE_DIR, qw| chat-state | );
 my $MAX_HISTORY      = 512 * 1024;   ## 512 KB auto-rotation threshold ##
 my $MAX_MEMORY_LINES = 500;          ## line-count trigger for model memory ##
 my $WAIT_INTERVAL    = 0.5;          ## poll interval for -wait-reply  ##
-my $WAIT_DEFAULT     = 60;           ## default wait timeout           ##
+my $WAIT_DEFAULT     = undef;        ## no timeout by default          ##
 my @KNOWN_MODELS     = qw| kimi-code claude-code |;
 
 ##[ OPTION LIST ]#############################################################
@@ -105,11 +108,17 @@ EOL
 my %option;
 Getopt::Long::Configure(qw| bundling_override |);
 GetOptions(
-    \%option,      'wait-reply|w:s', 'file|f=s',  'channel|c=s',
-    'model|m=s',   'quiet|q',        'clear',     'clear-all',
-    'clear-msg=i', 'trim=i',         'archive:s', 'channels',
-    'models',      'search=s',       'grep=s',    'all-channels',
-    'summarize',   'help|h',
+    \%option,
+    'wait-reply|wait_reply|w:s',
+    'file|f=s',        'channel|c=s',
+    'model|m=s',       'quiet|q',
+    'clear',           'clear-all|clear_all',
+    'clear-msg|clear_msg=i',
+    'trim=i',          'archive:s',
+    'channels',        'models',
+    'search=s',        'grep=s',
+    'all-channels|all_channels',
+    'summarize',       'help|h',
 ) or do { list_options(); exit(2) };
 
 if ( $option{'help'} ) {
@@ -253,8 +262,9 @@ if ( not $switches->{'note_only'} ) {
 ##[ WAIT FOR REPLY ]##########################################################
 
 if ( $option{'wait-reply'} // '' ne '' or exists $option{'wait-reply'} ) {
-    my $timeout = $option{'wait-reply'} // $WAIT_DEFAULT;
-    $timeout = $WAIT_DEFAULT if $timeout eq '';
+    my $timeout = ( defined $option{'wait-reply'} and length $option{'wait-reply'} )
+        ? $option{'wait-reply'} + 0
+        : $WAIT_DEFAULT;
     my $target = $broadcast ? undef : $state->{'active_model'};
     my $reply  = wait_reply( $state->{'active_channel'}, $target, $timeout,
         $CALLER );
@@ -623,12 +633,14 @@ sub wait_reply {
             return join( "\n", @candidates );
         }
 
-        last if $elapsed >= $timeout;
+        last if defined $timeout and $elapsed >= $timeout;
         sleep $WAIT_INTERVAL;
         $elapsed += $WAIT_INTERVAL;
     }
 
-    return colored(": timeout waiting for reply ($timeout s)");
+    return defined $timeout
+        ? colored(": timeout waiting for reply ($timeout s)")
+        : undef;
 }
 
 sub list_channels {
@@ -927,8 +939,8 @@ sub colored {
     return "$C{0}:\n::$C{b} $C{T}$text$C{0} $C{R}\n:$C{R}";
 }
 
-#,,..,,,.,..,,..,,.,.,...,.,,,,.,,..,,..,,,.,,..,,...,...,...,..,,.,,,.,.,,..,
-#3XBT5NJF3HIO7SCAYQHCWVEAVM5IAOOYUYJ52XB65JVXMD7E6GIFCDB3RZIF5GHUDGU6THDMI7LSG
-#\\\|JZHIB4LYVW5ZVYDR4JAOO2MB3GZWEHMSR2R426F2KXV56JTKSI5 \ / AMOS7 \ YOURUM ::
-#\[7]2L4P2RBFFRZ6EU3ZTFG6X44CWT42BAM576473PNP2QZBYW5BB6BQ 7  DATA SIGNATURE ::
+#,,,.,.,.,,,,,,,,,,,.,...,,.,,..,,,.,,.,.,...,..,,...,...,..,,,.,,,.,,.,.,..,,
+#26IJBKESVRXNXQTPMP7FTFJK6O562JAM56XSAP6XO6YRKZF4XESQE757WEHLWJ3OBGJXCICHE4P6K
+#\\\|UBRIX5R6X4T7ZEJGHGRTNAJU6CXYFJKAMSDIJLDLSJ75GDNQGMO \ / AMOS7 \ YOURUM ::
+#\[7]YCQU3H3DVOQP4LV2VVR52C447WDBGFBGYYJD2ZZOSAP7G5ZZ3KAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
