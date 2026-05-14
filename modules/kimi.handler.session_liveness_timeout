@@ -61,11 +61,12 @@ if ( <kimi.session.was_ready> // FALSE ) {
 
 <[base.logs]>->( 1, ': cleared dead session — scheduling fresh connect' );
 
-## status change triggers watcher — handles reconnect scheduling
+## watcher only fires if value changed — call schedule_retry directly
 <kimi.ws.status> = qw| disconnected |;
+<[kimi.connect.schedule_retry]>;
 
-#,,,.,,.,,...,.,,,..,,..,,...,.,,,..,,,,,,...,.,.,...,...,...,,..,,,,,...,,,,,
-#GSXYVCSB6UQ3HFNBKUVDFHA5CV34DGHXGQQ7PNGEI445LNDUSEL4K2PNPMBTC6WMZR4YNEIN45YWK
-#\\\|QF74ZINGOAHFVIRIY44WOPQN3I7HUV2NO2W3OLN3Y7CSFAYJK3O \ / AMOS7 \ YOURUM ::
-#\[7]ITIW3WY5VB7XFPBBG32AJGSFIBP6VPIQHE45X33ZFUDI7PB4TWDY 7  DATA SIGNATURE ::
+#,,,,,.,,,.,,,.,.,..,,.,.,,,,,,,.,.,.,..,,,,,,.,.,...,..,,.,.,,..,..,,..,,.,,,
+#AKEAJL2AU3LNTUP6JKA3CQ32MWWXLVUZQKC3E3SSHARKOGJ7GM5T66TUGY6DDU7AGCNJYBYJQBRAK
+#\\\|F7BJLLCF6VGV3RO4L2GPDKHC4ZJ5XVQS264ZC2MWRHVCDE34UZP \ / AMOS7 \ YOURUM ::
+#\[7]V24ENZ5VINJSXGSFUFPJDBXJZJTMJ2FAPYFFWTNPBFSVTKIRMWAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
