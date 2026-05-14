@@ -83,7 +83,7 @@
 - `topic-hyperspace-topology.md` — closed observer loop as anti-entropic; intent-saturated chains self-strengthen; sensor cube 3D grid as physical hyperspace; on-route topology teaching; feature-to-topology mapping; context as position; doc at data/md/development/HYPERSPACE-TOPOLOGY.md
 - `topic-field-coherence-synthesis.md`
 - `topic-job-pipeline.md` — WORKING (session 22): jobs.vhost live, German reason+summary in one pass, retry on timeout, letsencr fixed
-- `topic-chat-script.md` — bin/chat design: file-backed multi-model chat, channels, :#channel:/:model:/:all: keywords, xz archive, consensus mode; task file ready for kimi
+- `topic-chat-script.md` — bin/chat COMPLETE (session 23): dispatch wired, all 6 features + summary, timeline, -wait-reply; open: kimi state machine, coding zenka dispatch, phase 2 channels zenka
 - `topic-language-detection.md` — three-layer detection (heuristic→wordlist→inference), encoding_map 30 langs, locale vision pipeline with terminal+web+matrix render targets; fix_encoding rewritten generically
 - `topic-plugin-web-jobs.md` — plugin.web.jobs.* design: bi-directional sync, B32 backups, replaces export-jobs-json+scp
 - `topic-job-pipeline-title-filter.md` — future: batch title screening via AMOS checksums before page fetch; 30-50% savings
@@ -405,8 +405,8 @@
 - Pattern: `my @non_num = grep { defined $data_ref->{$ARG}->{$key} and not looks_like_number(...) } keys $data_ref->%*`
 - Global `$SIG{__WARN__}` exists — if wrapping warn handler, capture `$prev_warn = $SIG{__WARN__}` first and call through
 
-#,,,.,,..,.,,,,..,,..,.,,,,,,,,..,,,,,..,,,.,,..,,...,...,,,,,,,,,..,,,..,.,.,
-#W6HG5CJ2LCJ35OUNIJONK7XFWQN2XGH5552N32HTGETFSONLD4R7PL7W7LACIFQNRE4W244AS57P4
-#\\\|SAY5YCNVCDLFGHIEAEJOVY5RF266KM7HJSCJ2TTHRFDDLHOYUUO \ / AMOS7 \ YOURUM ::
-#\[7]L7CEFWHUQEZV4EJ7C3DSOHBGCIGLAZK2WY22PJT44RL4HFCUT2AQ 7  DATA SIGNATURE ::
+#,,..,,,,,...,...,.,.,.,,,.,,,.,.,.,,,..,,.,,,..,,...,...,,,.,...,,,.,,,,,...,
+#JOPNNRA6BZC74UQFETRFHYZ3LORSFKOPGPVGLAKN66M5H7XK42BLTAPER25PKNNTW6GZUSCLRJZ7W
+#\\\|VPDOEC3IU5V5SYBJYXZXTFSP4CXF53JBUWONGH6RWCMKRUVAOEY \ / AMOS7 \ YOURUM ::
+#\[7]JRPQTMM32KF7P45ES6QHW6KDS2BWNPXWRDF6WKC373U7G4JUHYBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
