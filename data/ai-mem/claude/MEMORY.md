@@ -83,7 +83,8 @@
 - `style-philosophy.md` — living manifesto: coding as artform, style-as-function, harmonization layers, fractal self-similarity, normalization resistance; give to LLMs before structural/refactor work; models update it after sessions
 - `topic-punctuation-topology.md` — `:` as group boundary, `.` as element separator; universal scale-independent addressing; AMOS checksums as atoms; route=session=task=cache at different resolutions; doc at data/md/development/PUNCTUATION-TOPOLOGY.md
 - `topic-hyperspace-topology.md` — closed observer loop as anti-entropic; intent-saturated chains self-strengthen; sensor cube 3D grid as physical hyperspace; on-route topology teaching; feature-to-topology mapping; context as position; doc at data/md/development/HYPERSPACE-TOPOLOGY.md
-- `topic-field-coherence-synthesis.md`
+- `topic-field-coherence-synthesis.md` — bridges all topology docs; one structure, multiple readings
+- `topic-friction-visualization.md` — friction as flow turbulence; harmony as coherence artifact; optimization direction as fixed truth; live readout as priority queue; profile drift/recalibration; stats+curve infrastructure
 - `topic-job-pipeline.md` — WORKING (session 22): jobs.vhost live, German reason+summary in one pass, retry on timeout, letsencr fixed
 - `topic-chat-script.md` — bin/chat COMPLETE (session 23): dispatch wired, all 6 features + summary, timeline, -wait-reply; open: kimi state machine, coding zenka dispatch, phase 2 channels zenka
 - `topic-language-detection.md` — three-layer detection (heuristic→wordlist→inference), encoding_map 30 langs, locale vision pipeline with terminal+web+matrix render targets; fix_encoding rewritten generically
@@ -407,8 +408,8 @@
 - Pattern: `my @non_num = grep { defined $data_ref->{$ARG}->{$key} and not looks_like_number(...) } keys $data_ref->%*`
 - Global `$SIG{__WARN__}` exists — if wrapping warn handler, capture `$prev_warn = $SIG{__WARN__}` first and call through
 
-#,,.,,.,.,...,,,.,,..,.,,,,.,,,..,.,,,,.,,,.,,..,,...,..,,,,,,,..,,..,,..,,.,,
-#RKVS3G2SISRU72FG5KYIJGBPMR6JEVRUEJPIZHNWP2OSJFDXB6B6P3VV3CE3CVBILH4N5H54BHK6O
-#\\\|LWHKPHXI6RQEGP6F3BWCHET7IULW3SSCPCENSV2PSMHH2ZWQ57K \ / AMOS7 \ YOURUM ::
-#\[7]S5JGUGWPFBFJFI67LQNIKXS3JZ22ZEUPFCI3ISIXADOCYKOUFYAA 7  DATA SIGNATURE ::
+#,,,,,,..,.,.,..,,.,,,,,,,,..,,..,,,,,,,.,,.,,..,,...,...,.,,,.,.,...,,,.,,,,,
+#4KTDPGTLX3UH5P7QI547U3UKHL25NEBWECF4AG5JVJSTX7BFAYGPUPSKF6R6TXW4BAJPDAJQJRBU4
+#\\\|FZG7DYFOABW56ICFTBXVRGPYN3VXE2OSPQCZ3Q5TSPRRHHQUFMJ \ / AMOS7 \ YOURUM ::
+#\[7]QX6OFR3NRJDFIMNPDLUDDGBVWIUAD7PWO2FDCFL2NFQCE2OGCAAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
