@@ -128,7 +128,23 @@
     cyrillic          : bg ru uk sr mk
     other european    : el tr lt lv et
     semitic           : ar he
-    east asian        : ja zh ko   [ multi-byte: mojibake logic skipped ]
+    east asian        : ja zh ko   [ multi-byte: different repair path ]
+
+    .: east asian repair path — validate not substitute :.
+
+        latin/cyrillic mojibake: known byte → known wrong char → substitute
+        east asian mojibake: multi-byte sequences produce garbage runs, not
+        substitutable char-by-char. correct approach:
+
+          1. detect script: hiragana U+3040-309F / katakana U+30A0-30BF /
+             cjk unified U+4E00-9FFF are unmistakable — script detection
+             alone is near-certain, no bigram scoring needed
+          2. try each encoding from the map in order
+          3. validate: decoded result has plausible kana/kanji/hangul ratio?
+          4. return first clean decode — no substitution needed
+
+        bigram context scoring does not apply to logographic text.
+        do not pass east asian text through the latin FFFD repair path.
 
     %aspell_package maps each code to its debian package name for
     auto-install. the encoding_map module is the single source of truth
@@ -231,8 +247,8 @@
 
 #############################################################################
 
-#,,..,,..,,,.,,,,,...,.,.,..,,.,,,,.,,...,,,.,..,,...,...,..,,..,,,..,..,,..,,
-#FDFO7ZMOH5IK6MQCN7SPKZQSANMKO3I5P3MYOZD7WFVOX65BYB5YE3T5JPNPDQ3XSS7U6GJB6XBIY
-#\\\|XXTOP7OW7WCYROCE5AIWHUM5BSWOTZTE6X3FMPIW2QQLNOPYLCK \ / AMOS7 \ YOURUM ::
-#\[7]QDJ6MACO4YAPHKP2WMM4E46MWA5JTYSZS4WJ3NFKY2T26OFIXIAY 7  DATA SIGNATURE ::
+#,,,,,...,,..,..,,.,.,..,,,,,,..,,...,.,,,,,,,..,,...,..,,...,,..,,.,,,..,,.,,
+#D76YNK544XWHX5WFAVDPWPU7LJAE27T4PNLG4WOR4RD7KJAEJ4GOIRVYVHWYV5UMVSJ3UDC4DXG6M
+#\\\|7IHHONN4DQE26E4A7HASSZKR64SIUB6YRU2EF7VXOSWL32KKRF2 \ / AMOS7 \ YOURUM ::
+#\[7]IMTQUXX4433Q7EOP247UEBSQRU5FWOPQZKURV3LLQ23ZYRKVRMAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
