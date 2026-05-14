@@ -92,6 +92,7 @@
 - `topic-plugin-web-jobs.md` — plugin.web.jobs.* design: bi-directional sync, B32 backups, replaces export-jobs-json+scp
 - `topic-job-pipeline-title-filter.md` — future: batch title screening via AMOS checksums before page fetch; 30-50% savings
 - `topic-site-yaml-zenka.md` — on-demand zenka: fetch URL → clean structured YAML; domain regex templates; job/music/podcast discovery; site-auth companion for login-gated sites
+- `topic-site-yaml-web-research.md` — safe coding zenka web research: checksum-as-capability tokens, same-site vs open-research modes, cleanup tiers, DuckDuckGo starting point
 - `topic-usb-backup-zenka.md` — udev insertion → task tree: mount→prioritize(LLM)→write→manifest→verify→safe-eject; manifest is self-contained restore agent with P7REFs
 - `feedback-task-show-multiline.md` — task.show must escape \\n in description/context; line parsers only see first line otherwise
 - `feedback-fork-child-module-loading.md` — parent branch of fork must explicitly load_runtime_modules for all subs it calls; child loads don't reach parent %code
@@ -409,8 +410,8 @@
 - Pattern: `my @non_num = grep { defined $data_ref->{$ARG}->{$key} and not looks_like_number(...) } keys $data_ref->%*`
 - Global `$SIG{__WARN__}` exists — if wrapping warn handler, capture `$prev_warn = $SIG{__WARN__}` first and call through
 
-#,,..,,..,,.,,...,,,,,.,.,,,.,...,.,.,,,.,,,.,..,,...,..,,..,,,,,,..,,.,,,..,,
-#QJSW5OCAGHI6W63RWFI3DVPPEVWYLHUINOHH27C226TLNI5PUMD4QD5BWOBLRMI5ORVE4LEG4JKHE
-#\\\|XXEW74BXC3OUJIPIAYJA7I6JLTZLM7GXOJHDRRIR6TGZBLYZ3JL \ / AMOS7 \ YOURUM ::
-#\[7]YLZYWUKERJTGTJYDOEROGLNSLNLD3LMZFU23WDWIC5YOXSBPBODQ 7  DATA SIGNATURE ::
+#,,,.,,,.,.,,,,,,,...,.,,,...,..,,,..,..,,...,..,,...,...,..,,,,.,.,,,,..,.,.,
+#SI55QX2H2UNNVGTTNUWML3VAYWFMCE4ZQVDWIQXL2DQLWP2KU6SJEDQWMS5XZTUVVYV5NJBFK3ZY6
+#\\\|WY4BDOARM26NWKK7ASBS64VOTRZX3DW5GU2LLOCXCXL5SHYBZT4 \ / AMOS7 \ YOURUM ::
+#\[7]6PBLHWK7HVYBBM4OWJINRYKCEZATUMIS7YHKPCTU2KT2JMZIL6DA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
