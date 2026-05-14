@@ -411,8 +411,124 @@
    strategy: extract  # Key learnings → warm layer
 ```
 
-#,,,.,,,,,.,.,,..,...,..,,.,,,...,,,.,,,,,..,,.,.,...,...,...,,,,,..,,.,.,..,,
-#TZTMBUPPWIW3TZG3WGBNROPIJHG24KHK3QZWHZU6LKPLAPCFF2HETYHRZ2NQP56KQMSVIS3WIRYGI
-#\\\|WHEBX7OU5ZTJOFKRZRADYIG65CES7MZ6FS7NM4YATQG7MQHEDC7 \ / AMOS7 \ YOURUM ::
-#\[7]GWF3BUTZMQMFTIB3IQGFS4V2BUS2URF6B5MEK5YQ2PRSPBUZOIBY 7  DATA SIGNATURE ::
+---
+
+## Phase 5: Zenka-Desk — ASCII + Graphical Interface Layer
+
+zenka-desk is a unified interface zenka providing both terminal and graphical
+desktop surfaces for users and llm zenki alike. it extends bin/chat with a
+full interactive environment: message system, notes, task view, detachable
+buffers, and optional X11 graphical layer.
+
+
+### architecture
+
+```
+zenka-desk
+  ├── tui layer          — ascii art panels, ncurses-style layout
+  │     ├── panel.chat   — bin/chat frontend, channel list, history view
+  │     ├── panel.notes  — note_read / note_list / note_write via coding tools
+  │     ├── panel.tasks  — task tree view, status, subtask drill-down
+  │     ├── panel.plan   — live plan editor, linked to task tree
+  │     └── panel.log    — tail of /dev/shm/.7/STDOUT/* or zenka stdout
+  │
+  ├── buffer system      — named, pipeable, shareable buffers
+  │     ├── attach/detach any panel to a named buffer
+  │     ├── pipe external command output → buffer → panel
+  │     ├── models and users subscribe to buffers by name
+  │     └── buffers committed to data/chat/channel/<name>/ on demand
+  │
+  ├── menu layer         — protocol-7-menu zenka for interactive routines
+  │     ├── command palette (fuzzy match over zenka commands)
+  │     ├── modal dialogs, confirmations, selection lists
+  │     └── composable menus from yaml or live zenka command sets
+  │
+  └── x11 layer          — optional graphical desktop via X11 zenka
+        ├── Xvfb virtual display (headless or forwarded)
+        ├── openbox window manager + tile-groups zenka for layout
+        ├── web-browser zenka for page rendering
+        ├── screenshot zenka for capturing rendered output
+        └── image pipeline → vision model → context injection
+```
+
+
+### key properties
+
+- **node-transcending** — zenka-desk sessions roam with the user across nodes
+  (same self-contained zenka design as topic-self-contained-zenka.md)
+- **model-native** — llm zenki use the same interface as human users;
+  context.* modules already provide most of the data access primitives
+- **pipeable** — any zenka stdout can be piped to a named buffer and shared;
+  models see the same output stream as the terminal user
+- **detachable** — panels can detach (like tmux panes) and re-attach to
+  any session or zenka-desk instance on any node
+- **integrated with existing infrastructure** — reuses:
+    - bin/chat for message routing
+    - context.* for memory and note access
+    - coding zenka tools for task/note/tree operations
+    - protocol-7-menu zenka for interactive routines
+    - X11/Xvfb + openbox + tile-groups for graphical layer
+    - screenshot + web-browser zenki (needed anyway for job-site screenshots)
+
+
+### mcp tools for zenka-desk
+
+```perl
+p7_desk_open       # open or attach to a zenka-desk session
+p7_desk_panel      # show / hide / resize a named panel
+p7_desk_buffer     # write to / read from / subscribe to a named buffer
+p7_desk_pipe       # pipe command output to a buffer
+p7_desk_menu       # invoke a protocol-7-menu routine by name
+p7_desk_screenshot # capture current graphical display (x11 layer)
+p7_desk_browser    # navigate browser zenka, return rendered html + screenshot
+```
+
+
+### x11 layer — screenshot + browser pipeline
+
+```
+web-browser zenka (chromium headless or firefox)
+  → renders url inside Xvfb display
+  → screenshot zenka captures framebuffer
+  → image written to data/chat/channel/<name>/screenshots/
+  → vision model analyzes image
+  → summary injected into chat history or task context
+
+same pipeline used for:
+  - job site page rendering (job-pipeline)
+  - visualization snapshots (space.v7.ax orbital view)
+  - ui regression capture
+  - document / pdf screenshot ingestion
+```
+
+
+### implementation path
+
+```
+phase 1 — buffer system + panel.chat
+  wire bin/chat history into a scrollable tui panel
+  named buffers with attach/detach and pipe-in support
+  no x11 required
+
+phase 2 — panel.notes + panel.tasks + menu layer
+  context.* read/write via panel.notes
+  task tree view via coding tools
+  protocol-7-menu integration for command palette
+
+phase 3 — x11 layer
+  X11 zenka + Xvfb + openbox + tile-groups
+  web-browser zenka (headless chromium)
+  screenshot zenka
+  image → vision pipeline
+
+phase 4 — node-transcending sessions
+  self-contained zenka serialization (topic-self-contained-zenka.md)
+  session handover across nodes
+  roaming panels follow the user
+```
+
+#,,..,,,.,,,,,...,,,,,.,,,.,.,,..,...,,,.,..,,.,.,...,...,...,.,.,...,,,,,,,.,
+#XHZG424ZUBYJGJJI5LAIFCRZDSEPIHM3GSGLN6G3YJP5JNZ3CYOQGKLLJF7WEZPQELAKXNFGP3FNM
+#\\\|2ZGNARDTFR64IU2VZC3SU7KUJPWUYQO4PLJBMWFM5KCAEUVOBFA \ / AMOS7 \ YOURUM ::
+#\[7]C6RQ6ZHYLAYJZAQP6RRMBZ6TI3CZO3HIABVLELZP7N6O5DHWBSAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
