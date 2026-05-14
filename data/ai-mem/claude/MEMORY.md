@@ -20,6 +20,7 @@
   distributed P7 nodes with ik_llama.cpp on remote servers
 - `topic-model-pinned-switching.md` — model param inert in summarize_context + compaction; needs switch-model integration; config keys ready
 - `topic-coding-state-machine.md` — coding.state namespace design, watcher-based backend lock replacing polling timers, persist/restore lifecycle; timer-to-watcher.yaml template written
+- `topic-kimi-zenka-state-machine.md` — kimi zenka has same overlapping-reconnect hang as coding zenka had; needs watcher-based state machine upgrade
 - `topic-task-tree-design.md` — unified task/subtask tree: multi-parent groups, passive deps (depends_on), active deps (requires: switch-model/worker/tool-set), history archive, bool via cfg_bool
 - `topic-task-coordination.md` — task zenka as coordinator between kimi/coding/models,
   current state, dispatch flow, architectural questions, reference to scattered design docs
@@ -404,8 +405,8 @@
 - Pattern: `my @non_num = grep { defined $data_ref->{$ARG}->{$key} and not looks_like_number(...) } keys $data_ref->%*`
 - Global `$SIG{__WARN__}` exists — if wrapping warn handler, capture `$prev_warn = $SIG{__WARN__}` first and call through
 
-#,,..,..,,.,,,..,,.,.,,,,,,..,,.,,,..,,.,,..,,..,,...,...,...,...,...,.,,,,..,
-#HZ4FATQ56VEUPEBSDYJUB6XWZO2HQR7UZ24G35KIF2Z2ZH34D32VXIWQ25YHE532K25VUDLVL5ATK
-#\\\|VBAZSUCXDDUA72SWHNRBTW33H7KCGKY2BXQ7VRTLLO3SRCN3BPA \ / AMOS7 \ YOURUM ::
-#\[7]ZLYTRIABDPWUDKII54PPGB6ZILOLS5AIRVAVIGPO2UPSHTGUS4AY 7  DATA SIGNATURE ::
+#,,,.,,..,.,,,,..,,..,.,,,,,,,,..,,,,,..,,,.,,..,,...,...,,,,,,,,,..,,,..,.,.,
+#W6HG5CJ2LCJ35OUNIJONK7XFWQN2XGH5552N32HTGETFSONLD4R7PL7W7LACIFQNRE4W244AS57P4
+#\\\|SAY5YCNVCDLFGHIEAEJOVY5RF266KM7HJSCJ2TTHRFDDLHOYUUO \ / AMOS7 \ YOURUM ::
+#\[7]L7CEFWHUQEZV4EJ7C3DSOHBGCIGLAZK2WY22PJT44RL4HFCUT2AQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
