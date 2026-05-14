@@ -36,6 +36,7 @@
   everything-is-a-group-of-1, expectability principle, delegation via checksum endpoints
 - `feedback-inline-sub-naming.md` — extracted helper subs `_foo` become `namespace.foo` (no underscore) in P7 module names
 - `feedback-ptd-syntax-check.md` — use `ptd -c` not `perl -c` for P7 module syntax checks
+- `feedback-ptd-formatting.md` — use `ptd` (not `ptd -c`) after writing modules — formats + checks syntax in one pass; skip separate syntax check step
 - `feedback-cross-zenka-deferred-reply.md` — cross-zenka deferred replies need local reply_id store + callback_id + route-send back; call_args.data not transmitted; multiline = :B32:
 - `feedback-p7c-command.md` — always use `p7c` not `p7`; binary was renamed
 - `feedback-v7-restart-cube.md` — `p7c v7.restart cube` restarts all zenki at once; use after editing cube/access.zenki
@@ -90,6 +91,8 @@
 - `topic-language-detection.md` — three-layer detection (heuristic→wordlist→inference), encoding_map 30 langs, locale vision pipeline with terminal+web+matrix render targets; fix_encoding rewritten generically
 - `topic-plugin-web-jobs.md` — plugin.web.jobs.* design: bi-directional sync, B32 backups, replaces export-jobs-json+scp
 - `topic-job-pipeline-title-filter.md` — future: batch title screening via AMOS checksums before page fetch; 30-50% savings
+- `topic-site-yaml-zenka.md` — on-demand zenka: fetch URL → clean structured YAML; domain regex templates; job/music/podcast discovery; site-auth companion for login-gated sites
+- `topic-usb-backup-zenka.md` — udev insertion → task tree: mount→prioritize(LLM)→write→manifest→verify→safe-eject; manifest is self-contained restore agent with P7REFs
 - `feedback-task-show-multiline.md` — task.show must escape \\n in description/context; line parsers only see first line otherwise
 - `feedback-fork-child-module-loading.md` — parent branch of fork must explicitly load_runtime_modules for all subs it calls; child loads don't reach parent %code
 
@@ -269,8 +272,6 @@
 - **signature "no separator endline" bug fix**: resolved bug where harmonize_payload_line_feed was incorrectly called when endline_modification_state==7 and last_line_incomplete was set; fix tested and verified working
 
 ### Open Bugs / Cleanup
-- **signature missing-endline bug**: footer glues to last code line when file lacks trailing
-  newline — `return sprintf(...);#,,.,,...` on one line. pre-commit rejects as "no separator endline"
 - **config double-load bug**: duplicate config key warnings — see `bug-config-double-load.md`
 - **signature oscillation Variant B**: double-footer on never-signed non-empty files
 - **repo var/ cleanup**: `var/httpd/` tracked from Nov 2025 AI error
@@ -408,8 +409,8 @@
 - Pattern: `my @non_num = grep { defined $data_ref->{$ARG}->{$key} and not looks_like_number(...) } keys $data_ref->%*`
 - Global `$SIG{__WARN__}` exists — if wrapping warn handler, capture `$prev_warn = $SIG{__WARN__}` first and call through
 
-#,,,,,,..,.,.,..,,.,,,,,,,,..,,..,,,,,,,.,,.,,..,,...,...,.,,,.,.,...,,,.,,,,,
-#4KTDPGTLX3UH5P7QI547U3UKHL25NEBWECF4AG5JVJSTX7BFAYGPUPSKF6R6TXW4BAJPDAJQJRBU4
-#\\\|FZG7DYFOABW56ICFTBXVRGPYN3VXE2OSPQCZ3Q5TSPRRHHQUFMJ \ / AMOS7 \ YOURUM ::
-#\[7]QX6OFR3NRJDFIMNPDLUDDGBVWIUAD7PWO2FDCFL2NFQCE2OGCAAQ 7  DATA SIGNATURE ::
+#,,..,,..,,.,,...,,,,,.,.,,,.,...,.,.,,,.,,,.,..,,...,..,,..,,,,,,..,,.,,,..,,
+#QJSW5OCAGHI6W63RWFI3DVPPEVWYLHUINOHH27C226TLNI5PUMD4QD5BWOBLRMI5ORVE4LEG4JKHE
+#\\\|XXEW74BXC3OUJIPIAYJA7I6JLTZLM7GXOJHDRRIR6TGZBLYZ3JL \ / AMOS7 \ YOURUM ::
+#\[7]YLZYWUKERJTGTJYDOEROGLNSLNLD3LMZFU23WDWIC5YOXSBPBODQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
