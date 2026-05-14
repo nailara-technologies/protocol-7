@@ -21,6 +21,8 @@
 - `topic-model-pinned-switching.md` — model param inert in summarize_context + compaction; needs switch-model integration; config keys ready
 - `topic-coding-state-machine.md` — coding.state namespace design, watcher-based backend lock replacing polling timers, persist/restore lifecycle; timer-to-watcher.yaml template written
 - `topic-kimi-zenka-state-machine.md` — kimi zenka has same overlapping-reconnect hang as coding zenka had; needs watcher-based state machine upgrade
+- `feedback-watcher-state-machines.md` — IO::Async variable watchers are the proven reliable pattern; never use polling timers/sleep loops for state; coding zenka is the reference
+- `topic-amos7-p7-loader.md` — dep-graph P7 module loader vision: AMOS7::P7 makes <[...]> modules callable from standalone scripts/MCP handlers without a zenka
 - `topic-task-tree-design.md` — unified task/subtask tree: multi-parent groups, passive deps (depends_on), active deps (requires: switch-model/worker/tool-set), history archive, bool via cfg_bool
 - `topic-task-coordination.md` — task zenka as coordinator between kimi/coding/models,
   current state, dispatch flow, architectural questions, reference to scattered design docs
@@ -405,8 +407,8 @@
 - Pattern: `my @non_num = grep { defined $data_ref->{$ARG}->{$key} and not looks_like_number(...) } keys $data_ref->%*`
 - Global `$SIG{__WARN__}` exists — if wrapping warn handler, capture `$prev_warn = $SIG{__WARN__}` first and call through
 
-#,,..,,,,,...,...,.,.,.,,,.,,,.,.,.,,,..,,.,,,..,,...,...,,,.,...,,,.,,,,,...,
-#JOPNNRA6BZC74UQFETRFHYZ3LORSFKOPGPVGLAKN66M5H7XK42BLTAPER25PKNNTW6GZUSCLRJZ7W
-#\\\|VPDOEC3IU5V5SYBJYXZXTFSP4CXF53JBUWONGH6RWCMKRUVAOEY \ / AMOS7 \ YOURUM ::
-#\[7]JRPQTMM32KF7P45ES6QHW6KDS2BWNPXWRDF6WKC373U7G4JUHYBI 7  DATA SIGNATURE ::
+#,,.,,,..,,,.,,.,,,..,,,.,,,,,...,,,,,.,.,..,,..,,...,...,...,,,,,...,..,,.,.,
+#GCA44HICFMYB57M3L5HVAAIIQI6WIDGKFEBPGHDH754H7UHRIIFSK6PVBI6KIC2A5Y6O6OA53SV3C
+#\\\|GVFHSHZG2BEAHKH5IKG7T54SSF3KWE3WRCJF227DW42NS5LMRQA \ / AMOS7 \ YOURUM ::
+#\[7]B54Z7WK3SC7I3GPWIE45PFIEJQJVDWRSODH7MIFUF6E6BCA45YDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -8,6 +8,19 @@ use warnings;
 
 use JSON;
 use IO::Socket::UNIX;
+use FindBin qw| $RealBin |;
+use File::Spec;
+use Cwd     qw| abs_path |;
+
+BEGIN {
+    use File::Spec;
+    use Cwd     qw| abs_path |;
+    use FindBin qw| $RealBin |;
+    sub c_dir  { File::Spec->catdir(@ARG) }
+    sub r2_abs { File::Spec->rel2abs(@ARG) }
+}
+
+my $ROOT_PATH = abs_path( r2_abs( c_dir( $RealBin, File::Spec->updir ) ) );
 
 ## mcp-server-p7 — model context protocol server for protocol-7 network
 ##
@@ -44,7 +57,7 @@ $SIG{'PIPE'} = 'IGNORE';         ## prevent death on closed cube socket write
 
 ##[ tool definitions ]##
 
-my @tools = (
+our @tools = (
     {   'name'        => 'p7_command',
         'description' => 'send any command to the protocol-7 zenka network '
             . 'and return the response. use dot notation for zenka routing '
@@ -297,6 +310,16 @@ my @tools = (
     },
 );
 
+##[ load chat tool definitions ]##
+{
+    my $chat_tools_fn = do "$ROOT_PATH/modules/mcp.tools.chat";
+    if ( ref $chat_tools_fn eq qw| CODE | ) {
+        $chat_tools_fn->(\@tools);
+    } elsif ($@) {
+        log_msg( 'chat tools load error: %s', $@ );
+    }
+}
+
 ##[ main loop ]##
 
 log_msg( 'mcp-server-p7 starting [ auth=%s socket=%s ]',
@@ -399,9 +422,135 @@ sub handle_tools_call {
         tool_list_tools( $id, $args );
     } elsif ( $name eq 'p7_call_tool' ) {
         tool_call_tool( $id, $args );
+    } elsif ( $name eq 'p7_chat_send' ) {
+        tool_p7_chat_send( $id, $args );
+    } elsif ( $name eq 'p7_chat_read' ) {
+        tool_p7_chat_read( $id, $args );
+    } elsif ( $name eq 'p7_chat_summary' ) {
+        tool_p7_chat_summary( $id, $args );
+    } elsif ( $name eq 'p7_chat_search' ) {
+        tool_p7_chat_search( $id, $args );
+    } elsif ( $name eq 'p7_chat_channels' ) {
+        tool_p7_chat_channels( $id, $args );
     } else {
         send_error( $id, -32602, "unknown tool: $name" );
     }
+}
+
+## =========================================================================
+## chat tool implementations
+## =========================================================================
+
+sub tool_p7_chat_send {
+    my ( $id, $args ) = @ARG;
+
+    my $message = $args->{'message'} // '';
+    return send_tool_result( $id, 'message is required', 1 )
+        if not length $message;
+
+    my $channel    = $args->{'channel'}    // '';
+    my $model      = $args->{'model'}      // '';
+    my $wait_reply = $args->{'wait_reply'} // undef;
+
+    ( my $safe_msg = $message ) =~ s{\n}{ }g;
+
+    my @cmd = ( "$ROOT_PATH/bin/chat", qw| -q | );
+    push @cmd, '-channel', $channel if length $channel;
+    push @cmd, '-model',   $model   if length $model;
+    if ( defined $wait_reply ) {
+        push @cmd, '-wait-reply';
+        push @cmd, $wait_reply if length $wait_reply;
+    }
+    push @cmd, '--', $safe_msg;
+
+    local $ENV{'P7_CHAT_CALLER'} = qw| mcp |;
+    open( my $fh, '-|', @cmd )
+        or return send_tool_result( $id,
+        'failed to run chat: ' . $OS_ERROR, 1 );
+    my $output = do { local $/; <$fh> };
+    close $fh;
+    chomp( $output //= '' );
+    send_tool_result( $id, $output, 0 );
+}
+
+sub tool_p7_chat_read {
+    my ( $id, $args ) = @ARG;
+
+    my $channel = $args->{'channel'} // qw| main |;
+    my $lines   = $args->{'lines'}   // 20;
+    $lines = 200 if $lines > 200;
+    $lines = 1   if $lines < 1;
+
+    my $path = "$ROOT_PATH/data/chat/channel/$channel/history";
+    return send_tool_result( $id, "channel '$channel' has no history", 0 )
+        if not -f $path;
+
+    open( my $fh, '<:encoding(UTF-8)', $path )
+        or return send_tool_result( $id,
+        'cannot read history: ' . $OS_ERROR, 1 );
+    my @all = <$fh>;
+    close $fh;
+    my $start = @all > $lines ? @all - $lines : 0;
+    send_tool_result( $id, join( '', @all[ $start .. $#all ] ), 0 );
+}
+
+sub tool_p7_chat_summary {
+    my ( $id, $args ) = @ARG;
+
+    my $channel      = $args->{'channel'}      // '';
+    my $all_channels = $args->{'all_channels'} // 0;
+
+    my @cmd = ( "$ROOT_PATH/bin/chat", qw| -q -summary | );
+    push @cmd, '-channel',      $channel if length $channel;
+    push @cmd, '-all-channels'           if $all_channels;
+
+    local $ENV{'P7_CHAT_CALLER'} = qw| mcp |;
+    open( my $fh, '-|', @cmd )
+        or return send_tool_result( $id,
+        'failed to run chat: ' . $OS_ERROR, 1 );
+    my $output = do { local $/; <$fh> };
+    close $fh;
+    chomp( $output //= '' );
+    send_tool_result( $id, $output, 0 );
+}
+
+sub tool_p7_chat_search {
+    my ( $id, $args ) = @ARG;
+
+    my $term         = $args->{'term'}         // '';
+    my $regex        = $args->{'regex'}        // 0;
+    my $channel      = $args->{'channel'}      // '';
+    my $all_channels = $args->{'all_channels'} // 0;
+
+    return send_tool_result( $id, 'term is required', 1 )
+        if not length $term;
+
+    my @cmd = ( "$ROOT_PATH/bin/chat", qw| -q | );
+    push @cmd, ( $regex ? '-grep' : '-search' ), $term;
+    push @cmd, '-channel',      $channel if length $channel;
+    push @cmd, '-all-channels'           if $all_channels;
+
+    local $ENV{'P7_CHAT_CALLER'} = qw| mcp |;
+    open( my $fh, '-|', @cmd )
+        or return send_tool_result( $id,
+        'failed to run chat: ' . $OS_ERROR, 1 );
+    my $output = do { local $/; <$fh> };
+    close $fh;
+    chomp( $output //= '' );
+    send_tool_result( $id, $output, 0 );
+}
+
+sub tool_p7_chat_channels {
+    my ( $id, $args ) = @ARG;
+
+    local $ENV{'P7_CHAT_CALLER'} = qw| mcp |;
+    open( my $fh, '-|', "$ROOT_PATH/bin/chat", qw| -q -channels | )
+        or return send_tool_result( $id,
+        'failed to run chat: ' . $OS_ERROR, 1 );
+    my $output = do { local $/; <$fh> };
+    close $fh;
+    chomp( $output //= '' );
+    send_tool_result( $id, $output, 0 );
 }
 
 ## =========================================================================
@@ -852,8 +1001,8 @@ sub log_msg {
     printf STDERR "[mcp-server-p7] %s\n", $msg;
 }
 
-#,,.,,,,.,.,.,,.,,,,.,...,...,...,,..,,..,,.,,..,,...,...,...,..,,..,,,.,,,,.,
-#SEYKDZYEEJPCK6RMNXXXAUAD7BYJU2YXMXIUEQ76JM3XRYJCVJCWPZWZH23YJQ2TE3G6QD2AF22FG
-#\\\|DK2JH5NQUBFYPDOJUVYKN2ZXGT3UASVMOODLKE3AFPZPEWKRKMQ \ / AMOS7 \ YOURUM ::
-#\[7]TAZQUDDSMEIKHX3XLKVCXP6XBSHAFCWMQF3F2AORG36FNSYH44BA 7  DATA SIGNATURE ::
+#,,,.,,,.,.,,,.,,,..,,...,..,,,..,,,.,,..,.,.,..,,...,...,...,.,.,...,,..,,.,,
+#OWYYH7NSP5QC2J7NFDD2JUV7E4MFL26OFYT5O6TNGSEYT6ICN76GESCMND6TP4EEUOD6V6BNBZV7Q
+#\\\|M2EPTSW3BMGPLEJGJ76KFQAJDV7XTRHOGTR7XPI4IEFTNWUGN27 \ / AMOS7 \ YOURUM ::
+#\[7]FKKPZXRY7A6R2767AWZ27BRSBGNQETFLUPUBSTQQ3BJY66R4EABI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
