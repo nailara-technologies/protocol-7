@@ -1,27 +1,176 @@
 ## [:< ##
 
 # name  = job-site-scan.util.fix_encoding
-# descr = repair mojibake: UTF-8 bytes misinterpreted as Latin-1, then re-encoded
+# descr = repair mojibake using encoding tables +
 
-my $s = shift // '';
+my ( $s, $lang ) = ( shift // '', lc( shift // 'german' ) );
 return $s unless length $s;
 
-## pattern: UTF-8 flag set and contains classic mojibake sequences ##
-if ( utf8::is_utf8($s) and $s =~ /[ÃÂ][\x{80}-\x{BF}]/ ) {
-    for my $enc (qw| ISO-8859-15 ISO-8859-1 |) {
-        my $fixed = eval {
-            Encode::decode( 'UTF-8', Encode::encode( $enc, $s ),
-                Encode::FB_CROAK );
+##  language → encoding candidates [ ordered by likelihood ]  ##
+##
+my %lang_encodings = (
+    german    => [qw| ISO-8859-15 ISO-8859-1 Windows-1252 |],
+    french    => [qw| ISO-8859-15 ISO-8859-1 Windows-1252 |],
+    polish    => [qw| ISO-8859-2  Windows-1250             |],
+    bulgarian => [qw| Windows-1251 ISO-8859-5              |],
+    russian   => [qw| Windows-1251 KOI8-R                  |],
+);
+
+my $enc_list = $lang_encodings{$lang} // [qw| ISO-8859-15 ISO-8859-1 |];
+
+## bigram context tables — compact alternative to word lists ##
+## prev/next are sets of chars that commonly surround each special char ##
+##
+my %lang_bigrams = (
+    german => {
+        'ä' => { prev => 'bdfghklmnrst',  next => 'hlnrstu'   },
+        'ö' => { prev => 'bdfghklmnrs',   next => 'fklnrs'    },
+        'ü' => { prev => 'bdfghklmnrs',   next => 'blnrs'     },
+        'ß' => { prev => 'aeiou',         next => 'aeilnst'   },
+        'Ä' => { prev => '',              next => 'hlnrstu'   },
+        'Ö' => { prev => '',              next => 'fklnrs'    },
+        'Ü' => { prev => '',              next => 'blnrs'     },
+        'é' => { prev => 'aeilnrs',       next => 'cilnrst'   },
+    },
+    french => {
+        'é' => { prev => 'bcdfglmnprst',  next => 'aeilnrst'  },
+        'è' => { prev => 'bcdfglmnprst',  next => 'aeilnrst'  },
+        'ê' => { prev => 'bcdfglmnprst',  next => 'aeilnrst'  },
+        'à' => { prev => '',              next => 'aeilnrstu'  },
+        'ç' => { prev => 'aeiou',         next => 'aeiou'     },
+        'ô' => { prev => 'bcdfglmnprst',  next => 'aeilnrst'  },
+        'û' => { prev => 'bcdfglmnprst',  next => 'aeilnrst'  },
+    },
+);
+
+##[ BUILD MOJIBAKE TABLE ]#####################################################
+## for each encoding: encode every special unicode char as utf-8, then
+## treat those utf-8 bytes as latin-1 codepoints — yields the exact
+## sequence that appears in mojibake text, mapped back to correct char ##
+
+sub _build_mojibake_table {
+    my $enc   = shift;
+    my %table = ();
+    for my $byte ( 0x80 .. 0xFF ) {
+        my $uni = eval { Encode::decode( $enc, chr($byte), Encode::FB_CROAK ) };
+        next unless defined $uni and not $@;
+        my $utf8_bytes = Encode::encode( 'UTF-8', $uni );
+        my $as_latin1  = eval {
+            Encode::decode( 'ISO-8859-1', $utf8_bytes, Encode::FB_CROAK );
         };
-        return $fixed if defined $fixed and not $@;
+        next unless defined $as_latin1 and not $@;
+        $table{$as_latin1} = $uni if $as_latin1 ne $uni;
+    }
+    return \%table;
+}
+
+##[ SCORE FFFD CANDIDATE ]#####################################################
+## returns 0..3 : higher = more likely replacement for this position ##
+
+sub _score_candidate {
+    my ( $candidate, $prev, $next, $bigrams ) = @_;
+    my $score = 1;    ## base: any special char is a candidate ##
+    return $score unless defined $bigrams->{$candidate};
+    my $lc_candidate = lc($candidate);
+    my $spec          = $bigrams->{ $lc_candidate } // $bigrams->{$candidate};
+    return $score unless $spec;
+    $score++ if defined $prev and $spec->{'prev'} =~ /\Q$prev\E/i;
+    $score++ if defined $next and $spec->{'next'} =~ /\Q$next\E/i;
+    return $score;
+}
+
+##[ BUILD SPECIAL CHAR SET FROM ENCODING ]#####################################
+## extract all non-ascii chars the encoding maps to — these are FFFD candidates
+
+sub _encoding_special_chars {
+    my $enc   = shift;
+    my %seen  = ();
+    my @chars = ();
+    for my $byte ( 0x80 .. 0xFF ) {
+        my $uni = eval { Encode::decode( $enc, chr($byte), Encode::FB_CROAK ) };
+        next unless defined $uni and not $@ and length $uni;
+        push @chars, $uni unless $seen{$uni}++;
+    }
+    return @chars;
+}
+
+##[ REPAIR: MOJIBAKE ]#########################################################
+## utf-8 flag set, contains classic latin-1-misread utf-8 sequences ##
+
+if ( utf8::is_utf8($s) and $s =~ /[\xC3\xC2][\x80-\xBF]|\x{00C3}|\x{00C2}/ ) {
+    for my $enc ( @{$enc_list} ) {
+        my $table = _build_mojibake_table($enc);
+        my $fixed = $s;
+        my $did_replace = 0;
+
+        ## replace longest matches first ##
+        for my $bad ( sort { length($b) <=> length($a) } keys %{$table} ) {
+            my $correct = $table->{$bad};
+            if ( $fixed =~ s/\Q$bad\E/$correct/g ) {
+                $did_replace++;
+            }
+        }
+
+        ## validate: result should be valid utf-8 with no residual mojibake ##
+        if ( $did_replace and $fixed !~ /[\xC3\xC2][\x80-\xBF]/ ) {
+            $s = $fixed;
+            last;
+        }
     }
 }
 
-## raw bytes: decode as UTF-8, fall back to Latin-9 then Latin-1 ##
+##[ REPAIR: U+FFFD REPLACEMENT CHARACTERS ]####################################
+## replacement char appeared because a byte was invalid in the detected encoding;
+## use context-scored candidate set from the target encoding's special chars ##
+
+if ( utf8::is_utf8($s) and $s =~ /\x{FFFD}/ ) {
+    my @candidates    = _encoding_special_chars( $enc_list->[0] );
+    my $bigrams       = $lang_bigrams{$lang} // {};
+    my $repair        = $s;
+    my $pos           = 0;
+
+    while ( $repair =~ /\x{FFFD}/g ) {
+        my $at   = pos($repair) - 1;
+        my $prev = $at > 0             ? substr( $repair, $at - 1, 1 ) : undef;
+        my $next = $at < length($repair) - 1
+            ? substr( $repair, $at + 1, 1 )
+            : undef;
+
+        ## skip adjacent filler or non-alpha context — too ambiguous ##
+        next
+            if ( defined $prev and $prev =~ /\x{FFFD}/ )
+            or ( defined $next and $next =~ /\x{FFFD}/ );
+
+        my $best_char  = undef;
+        my $best_score = 0;
+
+        for my $candidate (@candidates) {
+            my $score
+                = _score_candidate( $candidate, $prev, $next, $bigrams );
+            if ( $score > $best_score ) {
+                $best_score = $score;
+                $best_char  = $candidate;
+            }
+        }
+
+        ## minimum score 2 : at least one context match required ##
+        if ( defined $best_char and $best_score >= 2 ) {
+            substr( $repair, $at, 1 ) = $best_char;
+        }
+    }
+
+    ## strip any unresolved replacement chars ##
+    $repair =~ s/\x{FFFD}//g;
+    $s = $repair;
+}
+
+##[ REPAIR: RAW BYTES ]########################################################
+## no utf-8 flag: try decode as utf-8 first, then fall through encoding list ##
+
 if ( not utf8::is_utf8($s) ) {
     my $decoded = eval { Encode::decode( 'UTF-8', $s, Encode::FB_CROAK ) };
     return $decoded if defined $decoded and not $@;
-    for my $enc (qw| ISO-8859-15 ISO-8859-1 |) {
+    for my $enc ( @{$enc_list} ) {
         my $fixed = eval { Encode::decode( $enc, $s, Encode::FB_CROAK ) };
         return $fixed if defined $fixed and not $@;
     }
@@ -29,8 +178,8 @@ if ( not utf8::is_utf8($s) ) {
 
 return $s;
 
-#,,.,,...,,.,,.,,,..,,.,.,,,.,,.,,..,,..,,,,.,.,.,...,..,,...,,..,.,.,,..,,,.,
-#47U3RAG7P62UGXQRWHL6LO35QYLOY5T4BVNYJW76YTFKPLCDQLF3ZYJEOWRHGK7MXPNB5UYTU2YQK
-#\\\|5WDMYAK2WITO6CS7B757IM3WS5HXYA2A4ZSA6FZY2R6TJIYCNDX \ / AMOS7 \ YOURUM ::
-#\[7]HLNZWNM3NCDFSA3O537ZEJP7YN73TMX2RVYVOGRH5Y32NS5EI6BI 7  DATA SIGNATURE ::
+#,,,,,.,.,,.,,.,,,,..,,..,.,.,...,.,,,..,,.,,,.,.,...,...,.,.,.,,,,,,,.,.,,,.,
+#XCYCP7VKAT3PWRYOTKBM7BNIS2RFRU2C4VR25DYFLGQ7DVSCY6GIU4F3MTZUQCDRGBUJE65DTRSZU
+#\\\|AL5GL4LYGIW2QMTXENSNT7SCAVA4R36JMUB6I2JVU7KZDF6UQXP \ / AMOS7 \ YOURUM ::
+#\[7]WFZ4NHZRH7LV7OEUOU2FD4FOLODV4RLQXXEE5SLICSMMZ6DSE2DY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

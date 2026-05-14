@@ -2,21 +2,26 @@
 
 # name  = job-site-scan.cmd.scan
 # descr = trigger a scan cycle manually
+# param = [:full:]
 
-if ( <job-site-scan.cycle> ne 'idle' ) {
+my $args      = $call->{'args'} // '';
+my $full_mode = ( $args =~ m{:full:} ) ? TRUE : FALSE;
+
+if ( <job-site-scan.cycle> ne qw| idle | ) {
     return {
-        'mode' => 'false',
+        'mode' => qw| false |,
         'data' =>
-            sprintf( 'cycle already active: %s', <job-site-scan.cycle> ),
+            sprintf( 'cycle already active : %s', <job-site-scan.cycle> ),
     };
 }
 
-<[job-site-scan.stage.fetch]>;
+<[job-site-scan.stage.fetch]>->($full_mode);
 
-return { 'mode' => 'true', 'data' => 'scan started' };
+my $msg = $full_mode ? 'full scan started' : 'scan started';
+return { 'mode' => qw| true |, 'data' => $msg };
 
-#,,..,...,.,,,,..,..,,.,.,.,,,,,.,...,,,.,..,,..,,...,...,,..,,..,,..,..,,...,
-#JUTBHYNCQ4E5PCLAY4QKKDU2GCEHSMAKYS7IK77JRLTMSLL5DII6GX5BJOY5AEVHALQH33O5M7KMK
-#\\\|7F2PFNUUCS2JU3CAQMHTTLO5OMMUBRQXWUV2CROT5RGHFVBAKUR \ / AMOS7 \ YOURUM ::
-#\[7]3C62KRXYMALWRIZDXL56QC4HOVBNKFMEV4PZK5IUWLBZSDWE2IBY 7  DATA SIGNATURE ::
+#,,,.,,.,,,,.,..,,,,,,,,,,,,.,,,.,..,,,..,,..,..,,...,...,..,,,.,,.,,,...,,..,
+#KEDOQOHQD6VJOWZBN4KB3YHHHGW7R3J3XW7EAVDWWNCUSOBIY363JBT37ZSDGW3TSPZHE7GEZ7FHE
+#\\\|WJBHZAF5JQJN6LCDYWGSIYO6T6BZLOP2MYTFJDJDXALDS5PLKTB \ / AMOS7 \ YOURUM ::
+#\[7]U6MYPN3CDTPZYKZWOF5FWH5FRJG3WCHI6VXTRIKHRJV2VRFKDWDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
