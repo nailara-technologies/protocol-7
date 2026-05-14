@@ -29,11 +29,6 @@ $session->{'http'}->{'request'}->{'matched_host'} = $http_host;
 my $uri_obj  = URI->new($http_uri);
 my $uri_path = $uri_obj->path // '/';
 
-## direct JSON endpoint — bypass route_dispatcher ##
-if ( $uri_path eq qw| /jobs.json | ) {
-    return <[plugin.web.jobs.handler.get]>->($id);
-}
-
 <[base.logs]>->(
     2,   "[%d] route_dispatcher : GET %s [vhost=%s]",
     $id, $uri_path, $http_host
@@ -87,8 +82,8 @@ if ( $handler_name eq qw| httpd.process_template | ) {
 <[base.logs]>->( 0, "[%d] http_get : unexpected fallthrough", $id );
 return <[httpd.send_error_page]>->( $id, 500 );
 
-#,,,,,,..,.,,,.,.,,,,,..,,.,,,..,,,..,,..,,.,,..,,...,...,.,.,,..,,.,,,,.,,,.,
-#G5DCREVVRE4AAQDVE3HGVVDT2D7GGPUF6MJGEGQPTRSWYUZWLARTJGTDFXWWPGMIH7HSAWJQZC2CA
-#\\\|RRKNJ2ONWLK2FG4MVODUOUVCO2XX4FR65O6YNDQMQGREBX7VIPY \ / AMOS7 \ YOURUM ::
-#\[7]4TCOQZ5Q6FGML7GW7AACLK6QYODTZXF73XQWPPTHPFFPLDHHU4AI 7  DATA SIGNATURE ::
+#,,,.,.,.,,,.,...,.,,,,..,..,,.,.,.,.,,.,,,,,,..,,...,...,.,.,,,.,,,.,...,...,
+#NVP3S7W5CTVT3GQR6APJLFABYVBAMDIA3AHTWJG2AXMB2AHZPH5JKYD3RCI67GG6YKE7XC3DCB2SQ
+#\\\|BEZKQ3NCVM6UFVENJYPOMGCMHPEO7JGVYMKRCF2ES74EAIPDUSF \ / AMOS7 \ YOURUM ::
+#\[7]F4KTY5GGHEF6UURYXHMDGTB3EHDG523KM3N634XZ5OZ6YTSJEWBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
