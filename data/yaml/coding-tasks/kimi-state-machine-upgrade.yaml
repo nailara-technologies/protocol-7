@@ -1,0 +1,101 @@
+task:
+  id: kimi-state-machine-upgrade
+  title: kimi zenka — watcher-based state machine + task multiplexing
+  signatures_note: >
+    do NOT add or modify signature footer lines in any module file.
+    do NOT add the single-line stub #,,..,... to new files.
+    leave new files clean — bin/Protocol-7 sourcecode update-signatures
+    adds the real 4-line footer. new module files need the ## [:< ## header
+    and # name = / # descr = tags (max 55 chars).
+
+context: >
+  the kimi zenka manages a kimi-cli session via websocket + approval flow.
+  it currently uses timer-based polling for reconnect and approval state,
+  which causes two known failure modes:
+
+  1. overlapping reconnect hang: when an approval request times out and
+     kimi reconnects, the old reconnect state is not cleaned up. subsequent
+     commands block waiting on a state that never resolves. symptom:
+     'kimi not ready [ status=busy ]' with no forward progress. one manual
+     approval unsticks it — suggests the auto-approve watcher/timer is not
+     re-armed after reconnect.
+
+  2. no task multiplexing: the zenka has one active task context. if a
+     second p7c kimi.* command arrives while one is in flight, it either
+     queues or collides. the coding zenka solved this with separate task
+     buffers and independent context per task. kimi needs the same to
+     support parallel sub-agent dispatch from within the zenka.
+
+  reference implementation: modules/coding.* — specifically:
+  - coding.state.*     — task state namespace design
+  - coding.handler.*   — per-task context isolation
+  - coding.async.*     — watcher-based I/O instead of timers
+
+  relevant kimi modules to read first:
+  - modules/kimi.init_code
+  - modules/kimi.handler.ws_message
+  - modules/kimi.handler.approval_request
+  - modules/kimi.wire.approval_respond
+  - modules/kimi.handler.reconnect (if exists)
+  - modules/kimi.state.* (if exists)
+
+problems_to_fix:
+
+  1_reconnect_state_machine:
+    root_cause: >
+      timer-based reconnect polling does not clean up previous state on
+      overlap. auto-approve loop stalls after timeout+reconnect because
+      the watcher/timer is not re-armed in the reconnect path.
+    fix: >
+      the current implementation is timer-based and has the overlap bug.
+      replace with `<[event.add_var]>` variable watchers (Event.pm,
+      repeat => 1, watch mode 'w'). watchers are persistent and fire on
+      every state variable write — no re-arming needed, no overlap possible.
+      design: one state variable per lifecycle concern (e.g. reconnect
+      status, approval status); watcher drives the next transition when
+      that variable is written. timers only for hard deadlines (timeouts).
+
+  2_task_multiplexing:
+    root_cause: >
+      single task context — no isolation between concurrent p7c kimi.*
+      calls. sub-agents spawned from kimi-cli shell are separate processes
+      and work, but zenka-level dispatch cannot parallelize.
+    fix: >
+      port the coding zenka task buffer design to kimi:
+      - per-task context: task_id, input, output buffer, state, callback
+      - task queue: pending → active → complete lifecycle
+      - reply routing: each task's reply goes back to the originating session
+      - max_concurrent: start with 1 (sequential), design for N
+      this unlocks 'p7c kimi.ask-reply' as a proper queued async command
+      rather than a blocking one-at-a-time call.
+
+deliverables:
+  - reconnect state machine rewritten with variable watchers
+  - auto-approve re-armed reliably after reconnect
+  - 'kimi not ready [ status=busy ]' hang no longer occurs after
+    approval timeout + reconnect
+  - task multiplexing design in place (even if max_concurrent=1 initially)
+  - task queue visible via p7c kimi.status or similar
+  - ptd -c passes on all modified modules
+  - no signatures added (sourcecode update-signatures does that)
+
+design_principle: >
+  variable watcher based state machines are the most reliable pattern in
+  this codebase. arbitrary polling (sleep loops, timer-based checks) has
+  proven fragile — timers fire at the wrong time, overlap, or fail to
+  re-arm after state transitions. `<[event.add_var]>` (Event.pm variable watchers) fire exactly
+  when state changes, have no polling overhead, and compose cleanly with
+  the event loop. every new state machine in kimi should use watchers, not
+  timers or sleep loops. the coding zenka is the reference: it moved from
+  timer-based backend polling to watcher-based locks and became
+  significantly more reliable as a result.
+
+priority: >
+  fix 1 (reconnect hang) first — it blocks current usage.
+  fix 2 (multiplexing) second — enables future sub-agent parallelism.
+
+#,,..,.,,,,..,...,...,..,,.,.,...,,,,,,..,,..,..,,...,...,...,,,.,..,,,,,,...,
+#RCWE3K3OHO7UGOKYKQH6KGANMXVMZ5XOMDXTAYDR3UX46VOM5QH5HQZHI4H4PRXI4G3AUTNIFDF7Q
+#\\\|OEO2DKJT5RK4IOVCN3O7RHIS7F3EE2OOU6CBUX35GLIPWNWS4NG \ / AMOS7 \ YOURUM ::
+#\[7]FWONSKQ66XI4O5PQHI4LPFHLMYECTE63S2NAPN6BSM4CK5VG6QDI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
