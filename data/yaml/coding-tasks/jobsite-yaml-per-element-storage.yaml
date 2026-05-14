@@ -1,0 +1,64 @@
+---
+task: refactor jobsite storage from monolithic store.yaml to per-element YAML files
+type: refactor
+zenka: jobsite
+signatures_note: >
+  do not investigate or verify AMOS7 signatures — they are maintained by the
+  signing system automatically and are not relevant to this task.
+
+description: |
+  Currently all job records live in a single monolithic file:
+    /var/protocol-7/site-yaml/store.yaml
+
+  Refactor to per-element YAML files — one file per job record — so that:
+  - small models can open a single job file without parsing a large structure
+  - each file is individually signable and syncable
+  - the web zenka can assemble JSON transparently from the directory
+  - deduplication via checksum addressing works naturally (filename = checksum/id)
+
+  New storage layout:
+    /var/protocol-7/jobsite/jobs/<job_id>.yaml   # one file per job record
+    /var/protocol-7/jobsite/index.yaml           # lightweight index: id→status+score
+    /var/protocol-7/jobsite/scan-state.yaml      # existing scan state (keep as-is)
+
+  Each job YAML file contains the full record — same fields as current store.yaml
+  entries: title, company, city, industry, description, score, score_reason,
+  score_summary, stage, assertions, fetched_at, etc.
+
+  The index.yaml is a flat map of job_id → {status, score, stage} for fast
+  listing without loading all job files.
+
+affected_modules:
+  - modules/jobsite.state.load       # load from per-file layout
+  - modules/jobsite.state.persist    # write per-file + update index
+  - modules/jobsite.handler.assess-done   # write job file after assessment
+  - modules/jobsite.handler.repair-done   # write job file after repair
+  - modules/jobsite.handler.fetch-done    # write job file on initial fetch
+  - modules/jobsite.checksum.index        # may need update for new paths
+  - modules/jobsite.cmd.list-jobs         # read from index or iterate files
+  - modules/jobsite.cmd.status            # read counts from index
+
+migration:
+  - if /var/protocol-7/site-yaml/store.yaml exists, read it and write each
+    entry as an individual job file during state.load — one-time migration
+  - log migration: "migrated N jobs from store.yaml to per-element layout"
+  - do not delete store.yaml automatically — leave for manual cleanup
+
+implementation_notes:
+  - use YAML::XS::LoadFile / DumpFile per file (already loaded in init_code)
+  - job_id is the filename stem (same as current store.yaml keys)
+  - atomic write: write to .tmp then rename, same pattern as state.persist
+  - directory: create with make_path if not exists (File::Path already available)
+  - index.yaml rebuild: scan all *.yaml files in jobs/ dir if index missing
+  - plugin.web.jobs.* (planned) will read from this layout when implemented
+
+do_not_change:
+  - /var/protocol-7/jobsite/scan-state.yaml layout
+  - the in-memory %data{jobsite}{tasks} structure — keep as hashref
+  - assessment pipeline logic — only storage layer changes
+
+#,,,,,,,,,,..,,..,,..,.,.,,,.,..,,,..,,.,,.,.,..,,...,...,.,.,,.,,,,.,.,.,,..,
+#EXSPIDDR5VUTMMJQA5ADVXL24EC3AW7366FZBG43QTX7KCTKK2DNR7YEZI4KNZIIFGN3WRRDKVGNC
+#\\\|S4SSRECF5BN5LOLANM3FWK7ODSHT67CZDVW4GQES7GN2N7CY2KH \ / AMOS7 \ YOURUM ::
+#\[7]ZGG5N6XSS45RAZ42DTERRVDI2NKLWGO2CKLT63KKBYGTN6VT7IDI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

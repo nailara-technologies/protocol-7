@@ -63,6 +63,14 @@ originSessionId: 5557aaa4-3476-4c66-9002-955c73ae92a1
 - 100 tasks dispatched simultaneously — dispatch.next moved to assess-done
 - store reset: delete store.yaml (no reset-scores command yet)
 
+## Session 24 changes (2026-05-14)
+- zenka renamed job-site-scan → jobsite (89 files, all modules, config, /etc/, /var/)
+- assessment prompt switched JSON → YAML heredoc template (cleaner model output)
+- assess-done + repair-done: YAML::XS::Load primary parser, JSON regex as fallback
+- validate.assessment: assertion check updated for YAML format
+- YAML::XS autoload moved to init_code (was duplicated inline in handlers)
+- task files written for kimi: flush_on_acquisition extraction + per-element storage
+
 ## Current state (session 22 end)
 - 96/106 jobs with German reason+summary; 2 being re-assessed (English from old run)
 - jobs.vhost live: score-gradient cards, gestures, review default tab, culture scoring
@@ -81,8 +89,8 @@ originSessionId: 5557aaa4-3476-4c66-9002-955c73ae92a1
 - Exclusion filter from past CSV data (already-applied companies)
 - score_tech + score_location split in assessment JSON
 
-#,,,,,,.,,,..,,..,,,,,,,,,...,.,.,..,,..,,,..,..,,...,..,,.,.,,..,,..,,.,,..,,
-#WHLTN75DVK567CPD7E7GOF3ENJVVSQALZNVMXU6L76XRYPCQZS244GPI4ZW5UBFATSRIAEBSAN42O
-#\\\|GE24JP76HE6DPDSMC56GG5JLSAWXVZKJQTVABWIEQEQOZ3HDBKA \ / AMOS7 \ YOURUM ::
-#\[7]WPCQ5OUQLD5QNKB4L4YXB4Z4LCOXQ75NBMIEWGHNQSW446TMRQCY 7  DATA SIGNATURE ::
+#,,..,,..,..,,,,.,.,.,.,.,..,,.,,,,..,,,,,...,..,,...,...,,..,,,,,,,.,,,,,.,,,
+#LHMB4I6Z3WRK3IQUUXY2Z6WBIWBWULNYYP2L35WU4J3VXAIGG4DWS6XHXWAGYMUFTN63NKBLYX7KO
+#\\\|UUMZU5I5NLPI65GODUUSUZZQNCI7VLHKQW7YZ27P45CY42BF6Y5 \ / AMOS7 \ YOURUM ::
+#\[7]SW3P6X5PT2YYUZP7FAMSFQNEUEYZI5MUFBPAAFJW6HFEQI7OXABI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
