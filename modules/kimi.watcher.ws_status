@@ -137,6 +137,67 @@ if ( $new_status eq qw| disconnected | ) {
             }
         }
 
+        ## re-send in-flight prompt if connection dropped mid-turn
+        ## kimi-web does not resume automatically after reconnect —
+        ## find the preserved pending prompt and re-submit it
+        if ( not defined <kimi.next.deferred>
+            and defined <kimi.task.active_id> ) {
+            my $active_id     = <kimi.task.active_id>;
+            my $repend_msg_id = do {
+                my $found;
+                for my $mid ( keys %{<kimi.wire.pending>} ) {
+                    if ( ( <kimi.wire.pending>->{$mid}{'type'} // '' ) eq
+                        qw| prompt | ) {
+                        $found = $mid;
+                        last;
+                    }
+                }
+                $found;
+            };
+
+            if ( defined $repend_msg_id ) {
+                my $old_pend  = delete <kimi.wire.pending>->{$repend_msg_id};
+                my $task      = <kimi.task.queue>->{$active_id};
+                my $re_prompt = defined $task ? $task->{'prompt'} : undef;
+                my $reply_id  = $old_pend->{'reply_id'};
+
+                if ( defined $re_prompt and length $re_prompt ) {
+                    <[base.logs]>->(
+                        1,
+                        ': re-sending in-flight prompt for task %s after reconnect',
+                        $active_id
+                    );
+                    my $new_mid
+                        = <[kimi.wire.prompt]>->( $re_prompt, $reply_id );
+                    if ( defined $new_mid ) {
+                        <kimi.wire.pending>->{$new_mid}->{'task_id'}
+                            = $active_id;
+                    } else {
+                        <[base.logs]>->(
+                            0,
+                            ': re-send failed for task %s — marking failed',
+                            $active_id
+                        );
+                        <kimi.task.active_id> = undef;
+                        <[kimi.task.queue_fail]>->(
+                            $active_id, 're-send after reconnect failed'
+                        );
+                        <[kimi.handler.dispatch_next_task]>;
+                    }
+                } else {
+                    <[base.logs]>->(
+                        0, ': no prompt text for task %s — cannot re-send',
+                        $active_id
+                    );
+                    <kimi.task.active_id> = undef;
+                    <[kimi.task.queue_fail]>->(
+                        $active_id, 'no prompt text for re-send'
+                    );
+                    <[kimi.handler.dispatch_next_task]>;
+                }
+            }
+        }
+
         ## dispatch next queued task if any
         <[kimi.handler.dispatch_next_task]>;
     }
@@ -144,8 +205,8 @@ if ( $new_status eq qw| disconnected | ) {
 
 return TRUE;
 
-#,,.,,.,,,..,,..,,.,,,,.,,,,.,,..,,,.,.,.,.,,,..,,...,...,.,.,.,,,.,.,.,.,,,,,
-#HKKQWFZAW2QZLCHURXNL36WZFIXMIWWNQEU2KUNTRC6UOSXRDY7CF2F7TKGPAD2CWWPBWIEDKROUS
-#\\\|6CZ4URZCQR7UKKLJGSSMLLG4NZ2TUV64MY6BUUOB32DKVGQY4HZ \ / AMOS7 \ YOURUM ::
-#\[7]EDGKPLGOU6TC35BT6HB25CMBF222F26QCCF3KSXN4KI3H6GG3CCA 7  DATA SIGNATURE ::
+#,,.,,,,.,,.,,.,.,,..,,.,,,,,,.,,,,,.,...,,.,,..,,...,...,...,.,,,,,,,,,.,.,,,
+#H3HTR7UD3J4V6NJLTCR3NODISODMFZA3AUSWPUE2K3MYUMLL2IHK3VRZUSQUXCMIEWPOTMK7TXMMY
+#\\\|PCOCOED26CLW7GQFLC7V26TA6QBKSI4UFB3PTBJZUA4U45JDSAL \ / AMOS7 \ YOURUM ::
+#\[7]4Q3FUJR5UA6MTJ7NIDUOH62BHXWJXK4SVJN7XEOCXJE2YUN6COAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
