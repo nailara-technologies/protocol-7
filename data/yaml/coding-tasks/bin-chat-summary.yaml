@@ -1,0 +1,94 @@
+task:
+  id: bin-chat-summary
+  title: bin/chat — lazy on-demand channel summaries via coding zenka
+  file: bin/chat
+  signatures_note: >
+    do NOT add or modify the signature footer lines at the end of any module
+    file. do NOT add the single-line stub #,,..,... — leave new files clean.
+    only bin/Protocol-7 sourcecode update-signatures adds real signatures.
+
+context: >
+  bin/chat is a file-backed multi-model conversation script. channel history
+  lives at data/chat/channel/<name>/history (plain text, one entry per line).
+  the coding zenka is accessible via p7c and handles async inference.
+  model names are 'kimi' and 'claude' (no -code suffix).
+  current dispatch for kimi: open('-|', 'p7c', 'kimi.ask-reply', $encoded)
+  design doc: data/md/development/CHAT-SCRIPT-DESIGN.md
+
+feature: >
+  lazy on-demand summary: bin/chat -summary reads the cached summary if
+  fresh, otherwise triggers the coding zenka to produce one and waits
+  for the result. always synchronous from the caller's perspective.
+  models call this at session start to load context cheaply.
+
+summary_file: "data/chat/channel/<name>/summary.md"
+
+staleness_rule: >
+  summary is fresh if summary.md exists AND
+  mtime(summary.md) >= mtime(history file).
+  any new write_history call makes the summary stale automatically —
+  no extra bookkeeping needed.
+
+flags:
+  summary:
+    syntax: "bin/chat -summary [-c channel] [--all-channels]"
+    behaviour: >
+      1. check staleness of data/chat/channel/<name>/summary.md
+      2. if fresh: print summary.md content and exit
+      3. if stale or missing: call summarize_channel(channel), wait for
+         result, write to summary.md, print result and exit
+      4. with --all-channels: run per-channel lazily for all channels,
+         then do a second pass combining all fresh per-channel summaries
+         into a combined summary printed at the end. combined summary is
+         NOT saved to disk — it is ephemeral output only.
+
+summarize_channel:
+  dispatch: >
+    use the coding zenka via p7c coding.submit with a structured prompt.
+    read the full history file, build the prompt, submit, poll for result.
+  prompt_template: >
+    produce a concise structured summary of this conversation channel.
+    preserve: key decisions made, open questions, recent focus (weight
+    the last 20% of messages more heavily), participant names, any action
+    items or TODOs. format as plain markdown with sections:
+    ## recent focus, ## decisions, ## open questions, ## participants.
+    keep total length under 400 words.
+    --- channel: <name> ---
+    <history content>
+  polling: >
+    use p7c coding.get-result <task_id> polling loop, same pattern as
+    existing dispatch_summary in bin/chat but via coding zenka instead
+    of kimi.ask-reply. timeout: 120s with 2s poll interval.
+    on timeout: warn and return undef (no summary written).
+  result_handling: >
+    on success: write result to summary.md, set mtime, print to stdout.
+    on failure/timeout: print warning, exit non-zero.
+
+no_args_behaviour: >
+  bin/chat called with no args currently shows help. change to show a
+  timeline overview instead:
+    - one line per channel: last-active timestamp + channel name +
+      first sentence of summary (or '(no summary yet)' if missing)
+    - followed by current active channel and model
+    - help moved to bin/chat -help (already supported)
+  example output:
+    .: active channels :.
+    2026-05-14 13:01  #main     hi kimi — indefinite wait confirmed...
+    2026-05-14 12:30  #design   zenka-desk vision: tui+x11 interface...
+
+    active: #main  model: kimi
+
+deliverables:
+  - -summary flag added to GetOptions
+  - sub summarize_channel implemented (coding zenka dispatch + poll)
+  - sub get_summary implemented (staleness check → cache or summarize)
+  - --all-channels flag works with -summary
+  - no-args behaviour shows timeline overview
+  - perl -c bin/chat must pass
+  - do not add signatures to bin/chat (plain perl script, not a module)
+
+#,,..,..,,,,,,,.,,,..,,.,,..,,,..,.,,,,..,..,,..,,...,...,..,,,.,,,,,,,.,,...,
+#7QDRLI5SMAI5A4UYVITFPFNFRHSKRUVI47ZQR7FNVCDR7QEB6COULYWJ5S24CM3JASDSYA4INSK7Y
+#\\\|FC373EIUJ43H3FQG27DQGTFZHMEPPNAKVV4OVJ6ZD4NDRRNIZDV \ / AMOS7 \ YOURUM ::
+#\[7]PC3KPLISISXNDOV2RSF3L7ZG35SQ55N3UOW5P5PY25EZNFCPPEDY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
