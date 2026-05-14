@@ -3,13 +3,15 @@
 # name  = kimi.connect.schedule_retry
 # descr = schedule a reconnect attempt after retry_delay seconds
 
-return if <kimi.connect.retrying>;
-
-<kimi.connect.retrying> = TRUE;
+## cancel any existing reconnect timer to prevent overlap
+if ( defined <kimi.reconnect.timer> ) {
+    <kimi.reconnect.timer>->cancel
+        if <kimi.reconnect.timer>->is_active;
+}
 
 my $delay = <kimi.connect.retry_cur>;
 
-<[event.add_timer]>->(
+<kimi.reconnect.timer> = <[event.add_timer]>->(
     {   'after'   => $delay,
         'handler' => qw| kimi.connect |,
         'desc'    => 'kimi-web reconnect attempt'
@@ -23,8 +25,8 @@ my $next = $delay * 2;
 <kimi.connect.retry_cur>
     = $next < <kimi.connect.retry_delay> ? $next : <kimi.connect.retry_delay>;
 
-#,,..,...,,,,,..,,...,,,,,,,,,..,,.,,,.,,,...,..,,...,...,,,,,..,,,,,,,,.,,.,,
-#5TY2EF2Q2OSIR74KGFPNHUQ37PGJ2RGKORUPSSZBATIVGYZ4M2QTYYFL6OXKF3ZO55J3GHVYC4H7M
-#\\\|OWR2VWZINXPVFERMBVDGRK7SWYCYCQDKYVSQHVQ75E2I57YQ4WJ \ / AMOS7 \ YOURUM ::
-#\[7]JF4YNG4RIAQFZFSYCO6K2MUSUWINMR3KC7YNQORW52QBPE2CVGCQ 7  DATA SIGNATURE ::
+#,,..,...,.,,,...,,,,,,..,..,,.,,,.,.,.,,,.,.,..,,...,...,.,,,..,,,,,,.,.,,,.,
+#GMCWBQA5YDSRZ3M3LN4OBSL5DPAFZHPKYU57M2LGKEQ2LIX7RKXM26IKS2HJUISKXTDQBULR2BDAO
+#\\\|TS3Y5EZYWYZCIOCGABOLQC5YW3GS4UAZWJ667HZL46RORSQWCT4 \ / AMOS7 \ YOURUM ::
+#\[7]JKI2C6WVGOGVK7YESWBABUAKKNZQVU6HX7IWI3AQKBKL5HRAZCBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
