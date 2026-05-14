@@ -5,7 +5,7 @@ type: project
 originSessionId: b0b8f206-7222-40ca-8773-87ffa6d21352
 ---
 Replace `coding.async.backend_busy` polling (0.7s retry timer) with proper reactive
-state under `<coding.state>` namespace, using AnyEvent variable watchers.
+state under `<coding.state>` namespace, using `<[event.add_var]>` (Event.pm variable watchers).
 
 **Why:** Polling timers are blind — they fire repeatedly regardless of whether
 state changed. Watchers fire exactly once on change, deterministic, no wasted ticks.
@@ -29,8 +29,8 @@ persisted), re-registered when tasks resume after restart.
 **How to apply:** When implementing, verify `event.var_watcher` call signature
 in base.event.* before writing the watcher registration code.
 
-#,,,.,..,,.,.,,.,,.,,,,,,,.,.,.,,,,..,,..,..,,..,,...,..,,..,,,..,,..,,.,,..,,
-#DEQRZBO6ZMR5TMG3BKBF4ZPH4ZRPQLAOK2Q2QN7SGZ3OZQNZF6QGXYMY4T67T6W7TEFFPTW5VGUKM
-#\\\|6VQUPIPEP7REQP7LRJZKWOJ7IC67M5WDWKJYDHJJAC75IESOLXP \ / AMOS7 \ YOURUM ::
-#\[7]JWFVKXK2CJX5A6CLSIBJKES5ZTDMC4SSMY63F6ASRKSP5UK3E2DY 7  DATA SIGNATURE ::
+#,,..,,..,.,,,,,.,,,.,..,,...,.,,,,,,,,..,,,,,..,,...,...,...,..,,.,.,,,,,...,
+#WRHTNT5Q6XMKAWG6JILKIIGKHJUU2DMRYSPXY2PSAEF5IRUJFTR6O3BFBJ43UWGNLI7ER3RRL6E6A
+#\\\|DTQWU2PP22BR2KB6CHDFYBTCPYWAT3CKBBP3YAAQBA2SUDDIJXG \ / AMOS7 \ YOURUM ::
+#\[7]ZXHQ327GYJ7F6LTAUVAFFDRYLEZCAPNZ6CLJDSGMIOVCCK6ZUODQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
