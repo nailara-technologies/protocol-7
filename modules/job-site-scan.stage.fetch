@@ -3,17 +3,19 @@
 # name  = job-site-scan.stage.fetch
 # descr = begin scanning — route-send site-yaml.import per category url
 
-<job-site-scan.cycle>     = 'scanning';
+my $full_mode = shift // FALSE;
+
+<job-site-scan.cycle>     = qw| scanning |;
 <job-site-scan.last_scan> = time;
 <[job-site-scan.state.persist]>;
 
 ## build category → url map from config
 my $cats_cfg = <job-site-scan.cfg.categories> // '';
-my @cats     = split m{\s+}, $cats_cfg;
+my @cats     = split m|\s+|, $cats_cfg;
 
 if ( not @cats ) {
-    <[base.logs]>->( 0, 'jss.fetch: no categories configured' );
-    <job-site-scan.cycle> = 'idle';
+    <[base.logs]>->( 0, '[fetch] no categories configured' );
+    <job-site-scan.cycle> = qw| idle |;
     <[job-site-scan.state.persist]>;
     return;
 }
@@ -22,32 +24,33 @@ my %cat_urls;
 for my $cat (@cats) {
     my $url = $data{'job-site-scan'}{'cfg'}{'url'}{$cat} // '';
     if ( not length $url ) {
-        <[base.logs]>->( 0, 'jss.fetch: no url for category %s', $cat );
+        <[base.logs]>->( 0, '[fetch] no url for category %s', $cat );
         next;
     }
     $cat_urls{$cat} = $url;
 }
 
 if ( not %cat_urls ) {
-    <[base.logs]>->( 0, 'jss.fetch: no valid category urls found' );
-    <job-site-scan.cycle> = 'idle';
+    <[base.logs]>->( 0, '[fetch] no valid category urls found' );
+    <job-site-scan.cycle> = qw| idle |;
     <[job-site-scan.state.persist]>;
     return;
 }
 
 <[base.logs]>->(
     1,
-    'jss.fetch: scanning %d categories: %s',
+    ':: scanning %d categories [full=%d] : %s',
     scalar keys %cat_urls,
-    join( ', ', sort keys %cat_urls )
+    $full_mode, join( ', ', sort keys %cat_urls )
 );
 
 for my $cat ( sort keys %cat_urls ) {
     <[protocol-7.route-send]>->(
-        {   'command'   => 'site-yaml.import',
-            'call_args' => { 'args' => $cat_urls{$cat} },
-            'reply'     => {
-                'handler' => 'job-site-scan.handler.fetch-done',
+        {   'command'   => qw| site-yaml.import |,
+            'call_args' =>
+                { 'args' => $cat_urls{$cat}, 'full' => $full_mode },
+            'reply' => {
+                'handler' => qw| job-site-scan.handler.fetch-done |,
                 'params'  => { 'category' => $cat, 'url' => $cat_urls{$cat} },
             },
         }
@@ -57,8 +60,8 @@ for my $cat ( sort keys %cat_urls ) {
 ## track how many fetch replies we expect
 <job-site-scan.fetch_pending> = scalar keys %cat_urls;
 
-#,,.,,,..,.,.,.,.,,,.,..,,.,,,,,,,.,,,,..,,.,,..,,...,...,.,.,,,.,..,,..,,,,,,
-#PJBO6BROZSRZ6AE2CIH7GYS2UMQPCBBPZRCAFG4FVZEWTTUHHNFYTJOYFH3WFUSDTP7URQAZ5JBNA
-#\\\|3WHX5J7ZKPSHF6CNXACDY4AUKVI6F7MYELMWHCXQJLASHNI4IOW \ / AMOS7 \ YOURUM ::
-#\[7]HLSWK22WXD5B2IEFVSGRJU3EENV3DQGRZ3PT6WNIK72TGFAFQADQ 7  DATA SIGNATURE ::
+#,,,.,,.,,.,.,,.,,,,.,.,.,,,.,,,.,.,,,..,,.,,,..,,...,..,,,,,,,..,.,.,.,,,..,,
+#MI7N6OL4LDIRB4WKFEQ364H4Q5YBEC567NVW7CAVRVXDJ4E73Y7SAKYIEHA2SOMM5DEZKCMRSMSRI
+#\\\|WUFXEHJXQ4OBTO7AIIQVOBJ2AQP3LNYJ55MJ73ZDSRO3U66WL63 \ / AMOS7 \ YOURUM ::
+#\[7]T52T4V2EMN3XBZYF6UGKHWJMTD7GZ7UCK6NU6USXI3OUG7NPK4AA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
