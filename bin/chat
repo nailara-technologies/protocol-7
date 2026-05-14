@@ -14,8 +14,11 @@ use Cwd                  qw| abs_path |;
 use FindBin              qw| $RealBin |;
 use IO::Compress::Xz     qw| xz |;
 use IO::Uncompress::UnXz qw| unxz |;
-use Encode               qw| encode_utf8 |;
+use Encode               qw| encode_utf8 decode_utf8 |;
 use Crypt::Misc          qw| encode_b32r |;
+
+## decode argv from terminal byte strings to perl unicode ##
+@ARGV = map { decode_utf8($_) } @ARGV;
 
 ####        ####
 ##   chat   ##
@@ -924,8 +927,8 @@ sub colored {
     return "$C{0}:\n::$C{b} $C{T}$text$C{0} $C{R}\n:$C{R}";
 }
 
-#,,.,,,..,,.,,,..,,,,,,..,,..,.,,,...,,,,,.,.,..,,...,...,..,,.,,,.,,,,..,.,,,
-#4YQOVGF2DIWVRTG7IYXUJ25TXNM3BE54FQD65VC6GNVSRBWNF3FYUN6IW7M47ZGURY43W5LUG7V7A
-#\\\|GT2XZFXMRDKRNA3BMQ36JNJR5U6RMR2HQXOPOGK7WWQIMKA4QAI \ / AMOS7 \ YOURUM ::
-#\[7]74TRJ45F6MZF5JP626L4JYWIBG75R4AWMWMQIEHVX36KSELQZEAY 7  DATA SIGNATURE ::
+#,,..,,,.,..,,..,,.,.,...,.,,,,.,,..,,..,,,.,,..,,...,...,...,..,,.,,,.,.,,..,
+#3XBT5NJF3HIO7SCAYQHCWVEAVM5IAOOYUYJ52XB65JVXMD7E6GIFCDB3RZIF5GHUDGU6THDMI7LSG
+#\\\|JZHIB4LYVW5ZVYDR4JAOO2MB3GZWEHMSR2R426F2KXV56JTKSI5 \ / AMOS7 \ YOURUM ::
+#\[7]2L4P2RBFFRZ6EU3ZTFG6X44CWT42BAM576473PNP2QZBYW5BB6BQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
