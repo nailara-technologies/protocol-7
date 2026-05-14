@@ -47,10 +47,21 @@ my $template_str
 warn sprintf( "sprintf template '%s' not detined", $template_name )
     if not defined $template_str;
 
+my $index = 0;
+my $count = 0;
+foreach my $arg_val (@ARG) {
+    if ( not defined $arg_val ) {
+        warn 'base.sprint_t param ' . $index . ' is undefined <{C1}>';
+        $count++;
+    }
+    $index++;
+}
+return undef if $count;
+
 return sprintf( $template_str, @ARG );    ##  <-- can be without argument  ##
 
-#,,.,,.,.,.,.,,..,,..,...,.,,,,..,..,,.,,,..,,..,,...,...,.,,,,.,,,,,,..,,,..,
-#GVOR4TNT7PTYOXUFZEVIZZICE2TA6ZZ4Y7LOVD7YWYXMGERUOBDCZTSFCIVI53QH7EMUHYTSMDAEM
-#\\\|F5XR43K2SNDQBQDMMFCKPNJEFJHAHKJ6FYTNWSGH7HIRNU74CQC \ / AMOS7 \ YOURUM ::
-#\[7]WHOVT3ABZTVZNDQRM6K6JIFSGCU2IT55VGQ2R4J5MJNFYTAT74CY 7  DATA SIGNATURE ::
+#,,,.,,..,.,.,.,,,,,.,.,,,,.,,.,.,,,.,,.,,,..,..,,...,...,...,.,,,...,,,.,...,
+#XBC75K2PGW4FF5BZ4T32HFSWQXLWC2KLFQAUDPYUIMNLLZAHEGMKCFP4M6W2NY3BUGTR2WF5IQIUY
+#\\\|CRU6ZXIKMINKLO7GF5E4IDBGNYEXLBX76UW2BVCMD5J4IP36TPP \ / AMOS7 \ YOURUM ::
+#\[7]7NOG4Z7YRA4W53RCH4RGUCJ45FBS4R537RPLMNDHLTSILDHGFODI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

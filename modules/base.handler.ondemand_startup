@@ -9,14 +9,15 @@ my $v_id  = $reply->{'params'}->{'v_id'};
 if ( $reply->{'cmd'} eq qw| FALSE | ) {
     delete <zenki.virtual>->{$v_id}->{'starting'};
     my $reason = $reply->{'call_args'}->{'args'};
-    <[base.log]>->( 0, "ondemand zenka startup error [ $reason ]" );
+    <[base.log]>->( 0, "ondemand zenka startup not successful [ $reason ]" );
     while ( my $element = shift @{ <zenki.virtual>->{$v_id}->{'queue'} } ) {
         my $sid    = $element->{'source_id'};
-        my $cmd_id = $element->{'cmd_id'};
+        my $cmd_id = $element->{'src_cmd_id'} // 0;
         next if not exists $data{'session'}{$sid};
 
+        my $cmd_id_str = $cmd_id > 0 ? sprintf( '(%d)', $cmd_id ) : '';
         $data{'session'}{$sid}{'buffer'}{'output'}
-            .= <[base.sprint_t]>->( qw| VPB3EKI |, $cmd_id );
+            .= <[base.sprint_t]>->( qw| IRW7V6A |, $cmd_id_str );
     }
 } else {
     <[protocol-7.command.send.local]>->(
@@ -30,8 +31,8 @@ if ( $reply->{'cmd'} eq qw| FALSE | ) {
     );
 }
 
-#,,..,.,,,..,,.,,,,,.,.,.,,,,,,..,.,,,,.,,,,.,..,,...,...,,..,...,,,.,.,.,,..,
-#PSBFDJNSPBNZZ377U7SXWQFUXZGDO22HIOL3SVOTKGJGNDWR63TA3JM26C7NAECLXW3OQVQ2DHSNM
-#\\\|RPXE7LSJDBG7PBUN6PLHJGTA3IAVWDPDTR3Y26P3FBFUA5FKMGN \ / AMOS7 \ YOURUM ::
-#\[7]B2LSEVACUC77BRMMSYB726MVBDKBH35EQBKXPJBXEUYJE45OUKDQ 7  DATA SIGNATURE ::
+#,,,,,,..,...,...,..,,,.,,,,,,,,.,,,,,..,,,,.,..,,...,...,,..,,..,,,,,,..,,,,,
+#NFOT45CM2E54XDRJGPM4BT7BQNNRT2EKB6KL7PXUYSIZDKVGS3GFVDYJ2W3G4D73B2QWK524QOYRW
+#\\\|IJXUD3XRHIQTF4F6GZZRFCO5JMMXYSQGR5D46LN7VKAQRSAKNQF \ / AMOS7 \ YOURUM ::
+#\[7]FW5KN2F67X324TTRBUMHXXFABKCRAV33XUOAN5TWQ3GRO2IGFUBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
