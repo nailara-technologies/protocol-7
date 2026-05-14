@@ -1,0 +1,63 @@
+task: bin/chat — multi-model file-backed conversation script
+priority: high
+status: ready
+
+context: |
+  A new standalone Perl script bin/chat is needed. Full design spec at:
+    data/md/development/CHAT-SCRIPT-DESIGN.md
+  Read that first — it covers everything including directory layout,
+  keyword protocol, caller detection, archiving, and consensus mode.
+
+  Style reference: look at bin/amos-chksum and bin/ptd for the exact
+  visual style, option list format, and code conventions to follow.
+  This script is user-facing so style matters.
+
+notes: |
+  - SIGNATURES NOTE: never add the single-line stub signature at end of
+    new files. leave new files clean, user runs signing separately.
+  - use `p7c` not `p7` for all protocol-7 commands
+  - descr tag max 55 chars (pre-commit hook enforces this)
+  - this is a standalone bin/ script, not a P7 module — regular Perl,
+    no P7 module format required. use standard sub {} declarations.
+
+implementation_order: |
+  1. create data/chat/channel/main/ directory structure (mkdir in script
+     on first run, not pre-created)
+  2. implement core: read active channel/model from state file
+     (~/.config/protocol-7/chat-state), write history entries
+  3. keyword parsing: :#channel: and :model: in message text
+  4. caller detection: P7_CHAT_CALLER env, fallback /proc/<ppid>/comm
+  5. -wait-reply: poll history file until target model replies, timeout
+  6. -file: read message from file (like kimi-task -file)
+  7. -clear: xz archive + truncate (use timestamp filename)
+  8. auto-rotation: check file size on each write, archive older half if > 512KB
+  9. -archive, -channels, -models list commands
+  10. :all: consensus mode: broadcast + collect side-by-side
+
+model_integration: |
+  for now, model dispatch can be stubs that write a placeholder reply
+  to the history file — actual kimi/claude/inference dispatch comes later.
+  the file format and channel/model switching must be fully correct.
+  focus on the shell infrastructure, not the model backends.
+
+history_entry_format: |
+  [2026-05-14T15:32:11] <caller>   message text here
+
+state_file: |
+  ~/.config/protocol-7/chat-state  (plain text key=value)
+  active_channel=main
+  active_model=kimi-code
+
+archive_path: |
+  data/chat/archive/channel/<name>/<ISO8601-timestamp>.xz
+
+open_questions_for_later: |
+  - :all: consensus model backends (deferred, stubs ok for now)
+  - kimi zenka and claude MCP integration for actual model dispatch
+  - bin/chat as thin frontend to channels zenka (phase 2)
+
+#,,.,,,,.,.,,,,..,,,.,.,,,...,.,,,...,,..,.,,,..,,...,...,...,...,.,.,,,.,,,.,
+#S6FJTUVN6YXZGDQU3KJPSNXHPEK6ALULB6IVP4SDVDLIU4UTR5MGYMCSBJNYU3WIQBWBJW5F3SV2K
+#\\\|CUIJ7E27RSCQJXD2J5TYUYEKPPJ2E6O6VCQX4SIJK6KDOTHERFZ \ / AMOS7 \ YOURUM ::
+#\[7]SH2BHWVEN4JCVHSQI74JCEB2A4XKVQEUY3DBOU7ZGHLTQBGNP2CQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
