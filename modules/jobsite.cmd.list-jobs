@@ -1,0 +1,51 @@
+## [:< ##
+
+# name  = jobsite.cmd.list-jobs
+# descr = list jobs, optional stage filter
+
+my $filter = $call->{'args'} // '';
+
+my $tasks = <jobsite.tasks> // {};
+my @ids   = sort keys %{$tasks};
+
+@ids = grep { ( $tasks->{$ARG}{'stage'} // '' ) eq $filter } @ids
+    if length $filter;
+
+if ( not @ids ) {
+    return {
+        'mode' => 'true',
+        'data' => 'no jobs' . ( length $filter ? " (filter: $filter)" : '' ),
+    };
+}
+
+<[base.perlmod.autoload]>->('YAML::XS');
+my $store_file = '/var/protocol-7/site-yaml/store.yaml';
+my $store
+    = -f $store_file
+    ? ( eval { YAML::XS::LoadFile($store_file) } // {} )
+    : {};
+
+my @lines;
+for my $id (@ids) {
+    my $rec = $tasks->{$id};
+    my $job = $store->{$id} // {};
+    my $score
+        = length( $rec->{'score'} // '' )
+        ? sprintf( ' [%s]', $rec->{'score'} )
+        : '';
+    push @lines, sprintf '%-14s %-11s%s  %s — %s (%s)',
+        $id,
+        $rec->{'stage'} // '?',
+        $score,
+        $job->{'title'}   // '',
+        $job->{'company'} // '',
+        $job->{'city'}    // '';
+}
+
+return { 'mode' => 'size', 'data' => join( "\n", @lines ) };
+
+#,,,.,...,,,,,,..,..,,.,,,,..,.,,,..,,...,...,..,,...,...,,,,,,..,...,..,,,,,,
+#ZMAFHIHPWQW63HWYL47ZWVM7WYSKKHFCWXSUAWIWRR2VX3B7U4RZ7BVVG3BBF4YLBCMMEXG5XFII6
+#\\\|SRBS2SYOV75ZVLK6YNCG73NOA5TRSNPKE6Q2EY4D22WBWNOXZ22 \ / AMOS7 \ YOURUM ::
+#\[7]SRN2ZDZBWSDEGX4GUQRRQHRSY2ZHYP7XFBYMVBTMIKNETGKE4KBI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
