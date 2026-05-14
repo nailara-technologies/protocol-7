@@ -23,14 +23,17 @@ multiplexing foundation laid. full round-trip verified: `p7c kimi.ask-reply` →
   call `<[kimi.connect.schedule_retry]>` directly after writing `disconnected`,
   not relying solely on the watcher
 
-## open items
+## open items (session 24 — all prior items closed)
 
-- `flush_on_acquisition` inline sub extraction (coding zenka extract-inline-subs template)
-- redefined warning in `kimi.handler.approval_request:81` — minor cleanup
+- `flush_on_acquisition` extracted to `kimi.flush_on_acquisition` (session 24);
+  fixed hashref vs arrayref bug in original; redefined warning eliminated
+- sudo auto-decline added to `kimi.handler.approval_request` — rejects with message,
+  checks `$description` and `$action` fields; `kimi.wire.approval_respond` accepts
+  optional decline reason message parameter
 - task multiplexing: currently max_concurrent=1; design ready for N when needed
 
-#,,,,,,..,..,,.,,,...,,,,,..,,,.,,...,,.,,,.,,..,,...,..,,..,,,,,,,,.,.,.,.,.,
-#DE4WNTMCXN5MBHPQHXETHOFT625QL7Z6ZEBB7S5DHW7UTWCEPPK2DDEMFAQKTYTVVRRPSIMSN27GG
-#\\\|YL6M7FBIBIRF35CXV5DZDQJRQMBMQSKYMBY2WZQH4DIATBD5M64 \ / AMOS7 \ YOURUM ::
-#\[7]CZQXNV5V2XX2DNYFLKBXPGSX62CUT7CNFLCQA7WB4K3NLL3ZUGDI 7  DATA SIGNATURE ::
+#,,,.,,,,,,.,,.,,,,,,,.,,,,,.,..,,,.,,..,,,.,,..,,...,..,,...,.,,,.,,,,,,,,..,
+#HJJJDY5LWALPEWLIK3ZGNTGW6SCKRVFXIQKKKAQCEPABVZYTHQ3OGLKALHJ4YICYYPTOF575O4B2E
+#\\\|JS3XF3V2QKJSNCWYHWCK4N5SJXOZSRY7NYA2TCSCMSWPJZ2KK77 \ / AMOS7 \ YOURUM ::
+#\[7]JBTGNJRBV7PFJS6SLRTBPYZ63URUCKJRW7SVNHGO3ZTJJQ4NISDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
