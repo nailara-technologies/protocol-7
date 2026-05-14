@@ -1,0 +1,145 @@
+## [:< ##
+
+# name  = base.language.encoding_map
+# descr = language → encoding candidates table for mojibake repair
+
+my $lang = lc( shift // '' );
+
+## centralized encoding map — one table, all modules use it ##
+## ordered by likelihood for that language's typical source data ##
+##
+my %language_encoding = (
+
+    ## western european [ latin-1 / latin-9 family ] ##
+    de => [qw| ISO-8859-15 ISO-8859-1  Windows-1252 |],     ## german
+    fr => [qw| ISO-8859-15 ISO-8859-1  Windows-1252 |],     ## french
+    es => [qw| ISO-8859-1  Windows-1252              |],    ## spanish
+    it => [qw| ISO-8859-1  Windows-1252              |],    ## italian
+    pt => [qw| ISO-8859-1  Windows-1252              |],    ## portuguese
+    nl => [qw| ISO-8859-1  Windows-1252              |],    ## dutch
+    sv => [qw| ISO-8859-15 ISO-8859-1  Windows-1252 |],     ## swedish
+    no => [qw| ISO-8859-1  Windows-1252              |],    ## norwegian
+    da => [qw| ISO-8859-1  Windows-1252              |],    ## danish
+    fi => [qw| ISO-8859-15 ISO-8859-1  Windows-1252 |],     ## finnish
+    ca => [qw| ISO-8859-1  Windows-1252              |],    ## catalan
+
+    ## central / eastern european [ latin-2 family ] ##
+    pl => [qw| ISO-8859-2  Windows-1250              |],    ## polish
+    cs => [qw| ISO-8859-2  Windows-1250              |],    ## czech
+    sk => [qw| ISO-8859-2  Windows-1250              |],    ## slovak
+    hu => [qw| ISO-8859-2  Windows-1250              |],    ## hungarian
+    ro => [qw| ISO-8859-16 ISO-8859-2  Windows-1250 |],     ## romanian
+    hr => [qw| ISO-8859-2  Windows-1250              |],    ## croatian
+    sl => [qw| ISO-8859-2  Windows-1250              |],    ## slovenian
+
+    ## cyrillic family ##
+    bg => [qw| Windows-1251 ISO-8859-5               |],    ## bulgarian
+    ru => [qw| Windows-1251 KOI8-R                   |],    ## russian
+    uk => [qw| Windows-1251 KOI8-U                   |],    ## ukrainian
+    sr => [qw| Windows-1251 ISO-8859-5               |]
+    ,    ## serbian [ cyrillic ]
+    mk => [qw| Windows-1251 ISO-8859-5               |],    ## macedonian
+
+    ## other european ##
+    el => [qw| ISO-8859-7  Windows-1253              |],    ## greek
+    tr => [qw| ISO-8859-9  Windows-1254              |],    ## turkish
+    lt => [qw| ISO-8859-13 Windows-1257              |],    ## lithuanian
+    lv => [qw| ISO-8859-13 Windows-1257              |],    ## latvian
+    et => [qw| ISO-8859-13 Windows-1257              |],    ## estonian
+
+    ## middle east / semitic ##
+    ar => [qw| Windows-1256 ISO-8859-6               |],    ## arabic
+    he => [qw| Windows-1255 ISO-8859-8               |],    ## hebrew
+
+    ## east asian [ multi-byte — repair logic skips mojibake for these ] ##
+    ja => [qw| Shift_JIS EUC-JP ISO-2022-JP          |],  ## japanese
+    zh => [qw| GBK GB2312 GB18030                    |],  ## chinese [ simp. ]
+    ko => [qw| EUC-KR    CP949                       |],  ## korean
+);
+
+## human-readable aliases → canonical code ##
+my %alias = (
+    german     => 'de',
+    french     => 'fr',
+    spanish    => 'es',
+    italian    => 'it',
+    portuguese => 'pt',
+    dutch      => 'nl',
+    swedish    => 'sv',
+    norwegian  => 'no',
+    danish     => 'da',
+    finnish    => 'fi',
+    catalan    => 'ca',
+    polish     => 'pl',
+    czech      => 'cs',
+    slovak     => 'sk',
+    hungarian  => 'hu',
+    romanian   => 'ro',
+    croatian   => 'hr',
+    slovenian  => 'sl',
+    bulgarian  => 'bg',
+    russian    => 'ru',
+    ukrainian  => 'uk',
+    serbian    => 'sr',
+    macedonian => 'mk',
+    greek      => 'el',
+    turkish    => 'tr',
+    lithuanian => 'lt',
+    latvian    => 'lv',
+    estonian   => 'et',
+    arabic     => 'ar',
+    hebrew     => 'he',
+    japanese   => 'ja',
+    chinese    => 'zh',
+    korean     => 'ko',
+);
+
+## aspell package names for auto-install via debian zenka ##
+## data/language/wordlist/<code>.txt extracted on first use ##
+our %aspell_package = (
+    de => 'aspell-de',
+    fr => 'aspell-fr',
+    es => 'aspell-es',
+    it => 'aspell-it',
+    pt => 'aspell-pt',
+    nl => 'aspell-nl',
+    sv => 'aspell-sv',
+    no => 'aspell-no',
+    da => 'aspell-da',
+    fi => 'aspell-fi',
+    pl => 'aspell-pl',
+    cs => 'aspell-cs',
+    sk => 'aspell-sk',
+    hu => 'aspell-hu',
+    ro => 'aspell-ro',
+    hr => 'aspell-hr',
+    bg => 'aspell-bg',
+    ru => 'aspell-ru',
+    uk => 'aspell-uk',
+    el => 'aspell-el',
+    tr => 'aspell-tr',
+    ar => 'aspell-ar',
+    he => 'aspell-he',
+);
+
+## when wordlist not installed: encoding char table is always available ##
+## _encoding_special_chars(enc) returns the 0x80-0xFF set from Encode  ##
+## — usable as a minimal character-map for layer 1 scoring with no deps ##
+
+## if called with a language argument, return that language's list ##
+if ( length $lang ) {
+    my $code = $alias{$lang} // $lang;
+    my $list = $language_encoding{$code};
+    return $list if defined $list;
+    ## unknown language — return safe western-european default ##
+    return [qw| ISO-8859-15 ISO-8859-1 |];
+}
+
+## no argument — return full table hashref ##
+return \%language_encoding;
+
+#,,..,,,.,,.,,...,,..,,,.,.,,,.,.,,..,,..,.,.,.,.,...,...,.,,,,.,,..,,...,,,,,
+#WLWKJ3F7CL5VTLIQQHCX57S7II7A5QHNVAPKDF7ZXZUMZ5WIRDQJSMYNBDMTLTW4XWKIQ3JNXWMA4
+#\\\|3SVOL7HASG7FPJAP5ZKCGOZATP4XKASCBJYGRWAKWE2MWMF2STH \ / AMOS7 \ YOURUM ::
+#\[7]7U6FDAG3BOR7UX4VI2NC3TXHJR26JPDM56CCYOYQ5RJDLDIE5OAA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
