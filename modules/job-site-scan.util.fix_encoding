@@ -6,40 +6,31 @@
 my ( $s, $lang ) = ( shift // '', lc( shift // 'german' ) );
 return $s unless length $s;
 
-##  language → encoding candidates [ ordered by likelihood ]  ##
-##
-my %lang_encodings = (
-    german    => [qw| ISO-8859-15 ISO-8859-1 Windows-1252 |],
-    french    => [qw| ISO-8859-15 ISO-8859-1 Windows-1252 |],
-    polish    => [qw| ISO-8859-2  Windows-1250             |],
-    bulgarian => [qw| Windows-1251 ISO-8859-5              |],
-    russian   => [qw| Windows-1251 KOI8-R                  |],
-);
-
-my $enc_list = $lang_encodings{$lang} // [qw| ISO-8859-15 ISO-8859-1 |];
+## load encoding candidates from centralized map ##
+my $enc_list = <[base.language.encoding_map]>->($lang);
 
 ## bigram context tables — compact alternative to word lists ##
 ## prev/next are sets of chars that commonly surround each special char ##
 ##
 my %lang_bigrams = (
     german => {
-        'ä' => { prev => 'bdfghklmnrst',  next => 'hlnrstu'   },
-        'ö' => { prev => 'bdfghklmnrs',   next => 'fklnrs'    },
-        'ü' => { prev => 'bdfghklmnrs',   next => 'blnrs'     },
-        'ß' => { prev => 'aeiou',         next => 'aeilnst'   },
-        'Ä' => { prev => '',              next => 'hlnrstu'   },
-        'Ö' => { prev => '',              next => 'fklnrs'    },
-        'Ü' => { prev => '',              next => 'blnrs'     },
-        'é' => { prev => 'aeilnrs',       next => 'cilnrst'   },
+        'ä' => { prev => 'bdfghklmnrst', next => 'hlnrstu' },
+        'ö' => { prev => 'bdfghklmnrs',  next => 'fklnrs' },
+        'ü' => { prev => 'bdfghklmnrs',  next => 'blnrs' },
+        'ß' => { prev => 'aeiou',        next => 'aeilnst' },
+        'Ä' => { prev => '',             next => 'hlnrstu' },
+        'Ö' => { prev => '',             next => 'fklnrs' },
+        'Ü' => { prev => '',             next => 'blnrs' },
+        'é' => { prev => 'aeilnrs',      next => 'cilnrst' },
     },
     french => {
-        'é' => { prev => 'bcdfglmnprst',  next => 'aeilnrst'  },
-        'è' => { prev => 'bcdfglmnprst',  next => 'aeilnrst'  },
-        'ê' => { prev => 'bcdfglmnprst',  next => 'aeilnrst'  },
-        'à' => { prev => '',              next => 'aeilnrstu'  },
-        'ç' => { prev => 'aeiou',         next => 'aeiou'     },
-        'ô' => { prev => 'bcdfglmnprst',  next => 'aeilnrst'  },
-        'û' => { prev => 'bcdfglmnprst',  next => 'aeilnrst'  },
+        'é' => { prev => 'bcdfglmnprst', next => 'aeilnrst' },
+        'è' => { prev => 'bcdfglmnprst', next => 'aeilnrst' },
+        'ê' => { prev => 'bcdfglmnprst', next => 'aeilnrst' },
+        'à' => { prev => '',             next => 'aeilnrstu' },
+        'ç' => { prev => 'aeiou',        next => 'aeiou' },
+        'ô' => { prev => 'bcdfglmnprst', next => 'aeilnrst' },
+        'û' => { prev => 'bcdfglmnprst', next => 'aeilnrst' },
     },
 );
 
@@ -52,7 +43,8 @@ sub _build_mojibake_table {
     my $enc   = shift;
     my %table = ();
     for my $byte ( 0x80 .. 0xFF ) {
-        my $uni = eval { Encode::decode( $enc, chr($byte), Encode::FB_CROAK ) };
+        my $uni
+            = eval { Encode::decode( $enc, chr($byte), Encode::FB_CROAK ) };
         next unless defined $uni and not $@;
         my $utf8_bytes = Encode::encode( 'UTF-8', $uni );
         my $as_latin1  = eval {
@@ -72,7 +64,7 @@ sub _score_candidate {
     my $score = 1;    ## base: any special char is a candidate ##
     return $score unless defined $bigrams->{$candidate};
     my $lc_candidate = lc($candidate);
-    my $spec          = $bigrams->{ $lc_candidate } // $bigrams->{$candidate};
+    my $spec         = $bigrams->{$lc_candidate} // $bigrams->{$candidate};
     return $score unless $spec;
     $score++ if defined $prev and $spec->{'prev'} =~ /\Q$prev\E/i;
     $score++ if defined $next and $spec->{'next'} =~ /\Q$next\E/i;
@@ -87,7 +79,8 @@ sub _encoding_special_chars {
     my %seen  = ();
     my @chars = ();
     for my $byte ( 0x80 .. 0xFF ) {
-        my $uni = eval { Encode::decode( $enc, chr($byte), Encode::FB_CROAK ) };
+        my $uni
+            = eval { Encode::decode( $enc, chr($byte), Encode::FB_CROAK ) };
         next unless defined $uni and not $@ and length $uni;
         push @chars, $uni unless $seen{$uni}++;
     }
@@ -99,8 +92,8 @@ sub _encoding_special_chars {
 
 if ( utf8::is_utf8($s) and $s =~ /[\xC3\xC2][\x80-\xBF]|\x{00C3}|\x{00C2}/ ) {
     for my $enc ( @{$enc_list} ) {
-        my $table = _build_mojibake_table($enc);
-        my $fixed = $s;
+        my $table       = _build_mojibake_table($enc);
+        my $fixed       = $s;
         my $did_replace = 0;
 
         ## replace longest matches first ##
@@ -124,15 +117,16 @@ if ( utf8::is_utf8($s) and $s =~ /[\xC3\xC2][\x80-\xBF]|\x{00C3}|\x{00C2}/ ) {
 ## use context-scored candidate set from the target encoding's special chars ##
 
 if ( utf8::is_utf8($s) and $s =~ /\x{FFFD}/ ) {
-    my @candidates    = _encoding_special_chars( $enc_list->[0] );
-    my $bigrams       = $lang_bigrams{$lang} // {};
-    my $repair        = $s;
-    my $pos           = 0;
+    my @candidates = _encoding_special_chars( $enc_list->[0] );
+    my $bigrams    = $lang_bigrams{$lang} // {};
+    my $repair     = $s;
+    my $pos        = 0;
 
     while ( $repair =~ /\x{FFFD}/g ) {
         my $at   = pos($repair) - 1;
-        my $prev = $at > 0             ? substr( $repair, $at - 1, 1 ) : undef;
-        my $next = $at < length($repair) - 1
+        my $prev = $at > 0 ? substr( $repair, $at - 1, 1 ) : undef;
+        my $next
+            = $at < length($repair) - 1
             ? substr( $repair, $at + 1, 1 )
             : undef;
 
@@ -178,8 +172,8 @@ if ( not utf8::is_utf8($s) ) {
 
 return $s;
 
-#,,,,,.,.,,.,,.,,,,..,,..,.,.,...,.,,,..,,.,,,.,.,...,...,.,.,.,,,,,,,.,.,,,.,
-#XCYCP7VKAT3PWRYOTKBM7BNIS2RFRU2C4VR25DYFLGQ7DVSCY6GIU4F3MTZUQCDRGBUJE65DTRSZU
-#\\\|AL5GL4LYGIW2QMTXENSNT7SCAVA4R36JMUB6I2JVU7KZDF6UQXP \ / AMOS7 \ YOURUM ::
-#\[7]WFZ4NHZRH7LV7OEUOU2FD4FOLODV4RLQXXEE5SLICSMMZ6DSE2DY 7  DATA SIGNATURE ::
+#,,.,,..,,,,.,...,,.,,...,.,.,...,.,,,...,..,,.,.,...,...,...,,..,,,.,..,,,,.,
+#CZERKVNG6N6L5C6BJ6V2A7OJ2VCU6V4LCRV5SAYEO4HECWHQLMLDESR2STLP27GG556KY6Y4PLCP4
+#\\\|6YKCQBSQML5LHEJA3IRNAMW733JGV3UCPVBKJUWCLMBZAXAPAI5 \ / AMOS7 \ YOURUM ::
+#\[7]U64LLAXP4ZN2X77RECIMSTQA3XQA4YEKIOLFMK3NRGWEOH7EFWCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

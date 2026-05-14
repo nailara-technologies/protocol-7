@@ -38,25 +38,52 @@
         - confidence: high for long text, low for short strings < 20 chars
           threshold: score_leader / score_second > 2.0  →  confident
 
+    .: layer 1b — character map scoring [ always available, no deps ] :.
+
+        when no wordlist is installed, the encoding table itself is a
+        character map. _encoding_special_chars( $enc ) enumerates all
+        unicode chars in the 0x80-0xFF range of each encoding via Encode.
+        these sets are language-characteristic without any external files:
+          ISO-8859-15 → { ä ö ü ß Ä Ö Ü é è ê à ç ... }
+          Windows-1251 → { а б в г д е ё ж з и й к ... }
+          ISO-8859-7  → { α β γ δ ε ζ η θ ι κ λ ... }
+
+        score = count of chars from each encoding's set in the input text,
+        weighted by unicode block frequency for that language.
+        this is always computed — wordlist layer adds precision on top.
+
+        auto-install also includes character map extraction :
+          aspell dict install → extract word list → extract char frequency table
+          stored as data/language/charmap/<lang>.freq [ yaml, lightweight ]
+          charmap is available immediately after install, before wordlist ready
+
     .: layer 2 — wordlist match :.
 
         activated when layer 1 confidence < threshold.
         milliseconds, small memory footprint.
 
+        graceful degradation when not installed :
+          - layer 2 skipped cleanly, layer 1b char map used instead
+          - confidence ceiling lowered: max reportable confidence = 0.75
+          - result tagged: { method => 'charmap', wordlist => 0 }
+          - auto-install queued via debian zenka if configured language missing
+
         wordlist sources [ in priority order ] :
           1. data/locales/<zenka>/locales.<lang>  — existing locale strings
           2. /usr/share/dict/<lang>               — system aspell/hunspell dicts
-          3. data/language/wordlist/<lang>.txt    — downloaded wordlists [ see below ]
+          3. data/language/wordlist/<lang>.txt    — downloaded wordlists
 
         scoring: tokenize input → intersect with wordlist → hit_ratio
           hit_ratio = matched_tokens / total_alpha_tokens
           confident when hit_ratio > 0.35 for winning language
           and gap to second place > 0.15
 
-        wordlist download [ via debian zenka ] :
+        wordlist + charmap auto-install [ via debian zenka ] :
           configured languages trigger automatic aspell dict install:
             debian.install_package( "aspell-$lang_code" )
+          aspell_package names stored in base.language.encoding_map [ %aspell_package ]
           extracted to data/language/wordlist/<lang>.txt on first use
+          char frequency table extracted to data/language/charmap/<lang>.freq
           refreshed when package version changes
 
     .: layer 3 — inference fallback :.
@@ -94,19 +121,18 @@
 
     centralized table, shared between detection and fix_encoding :
 
-    %language_encoding = (
-        de => [qw| ISO-8859-15 ISO-8859-1  Windows-1252 |],
-        fr => [qw| ISO-8859-15 ISO-8859-1  Windows-1252 |],
-        pl => [qw| ISO-8859-2  Windows-1250              |],
-        bg => [qw| Windows-1251 ISO-8859-5               |],
-        ru => [qw| Windows-1251 KOI8-R                   |],
-        cs => [qw| ISO-8859-2  Windows-1250              |],
-        el => [qw| ISO-8859-7  Windows-1253              |],
-        tr => [qw| ISO-8859-9  Windows-1254              |],
-    );
+    see base.language.encoding_map for the full table — excerpt:
 
-    job-site-scan.util.fix_encoding imports this via base.language.encoding_map
-    instead of maintaining its own copy. one table, all modules use it.
+    western european  : de fr es it pt nl sv no da fi ca
+    central european  : pl cs sk hu ro hr sl
+    cyrillic          : bg ru uk sr mk
+    other european    : el tr lt lv et
+    semitic           : ar he
+    east asian        : ja zh ko   [ multi-byte: mojibake logic skipped ]
+
+    %aspell_package maps each code to its debian package name for
+    auto-install. the encoding_map module is the single source of truth
+    for all consumers: fix_encoding, language.detect, translation dispatch.
 
 
 ##[ data.language tree ]######################################################
@@ -205,8 +231,8 @@
 
 #############################################################################
 
-#,,.,,..,,...,,..,.,,,.,.,...,,.,,,.,,,,.,,..,..,,...,...,..,,,..,,..,,..,...,
-#WYBKKSCKIKKXYYLWZOKOKT4V2E7HKHW6NCDFBPZZUT2N3W63JYBTJ3K22H4REMQCUZ2EPLHVXN6YK
-#\\\|NC67GJ62VPXLTOHUECJ43YASPXR2I6AZ2J3ZYFWEKH4FYQE723N \ / AMOS7 \ YOURUM ::
-#\[7]MQ2DJLE3W222K6AIIMMG3LLG47LNNTLFESHQXCOXMUXRAOHT7GBA 7  DATA SIGNATURE ::
+#,,..,,..,,,.,,,,,...,.,.,..,,.,,,,.,,...,,,.,..,,...,...,..,,..,,,..,..,,..,,
+#FDFO7ZMOH5IK6MQCN7SPKZQSANMKO3I5P3MYOZD7WFVOX65BYB5YE3T5JPNPDQ3XSS7U6GJB6XBIY
+#\\\|XXTOP7OW7WCYROCE5AIWHUM5BSWOTZTE6X3FMPIW2QQLNOPYLCK \ / AMOS7 \ YOURUM ::
+#\[7]QDJ6MACO4YAPHKP2WMM4E46MWA5JTYSZS4WJ3NFKY2T26OFIXIAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
