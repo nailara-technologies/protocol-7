@@ -1,0 +1,39 @@
+## [:< ##
+
+# name  = plugin.web.jobs.state.save
+# descr = save browser-owned fields of a single job record
+
+<[base.perlmod.autoload]>->('YAML::XS');
+
+my $id    = shift // '';
+my $delta = shift // {};
+
+return FALSE if not length $id;
+return FALSE if ref $delta ne 'HASH';
+
+my $job_file = "/var/protocol-7/jobsite/jobs/$id.yaml";
+
+my $job = eval { YAML::XS::LoadFile($job_file) };
+if ($@) {
+    <[base.logs]>->(
+        0,   'plugin.web.jobs.state.save: load error %s: %s',
+        $id, $@
+    );
+    return FALSE;
+}
+
+return FALSE if ref $job ne 'HASH';
+
+## merge only browser-owned fields ##
+for my $field (qw| stage notes date_applied |) {
+    $job->{$field} = $delta->{$field}
+        if exists $delta->{$field};
+}
+
+return <[jobsite.job.write]>->( $id, $job );
+
+#,,,.,,,.,.,,,,,.,,,.,.,,,...,...,.,,,.,,,...,..,,...,,..,..,,,.,,,,,,.,.,,,.,
+#E4WIBNDAQU5FKS5DQQ3HFLNBQQRUHRYZ54QXB5TVE2HMYAHLGZFX7M5QOOSDZSI2S4JKLI5N3WEYG
+#\\\|RXHVZ2GZ73FXO3XCQBARIADQ5GATCTS4V4JUBJJIXQRFIB7JGVN \ / AMOS7 \ YOURUM ::
+#\[7]TI3VFNLM64YCF3VS567BR5ZCICL5GGBXXF7QNXSLZSIFXJW3CABQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

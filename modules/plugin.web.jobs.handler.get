@@ -1,0 +1,45 @@
+## [:< ##
+
+# name  = plugin.web.jobs.handler.get
+# descr = serve all jobs as JSON array sorted by fetched_at
+
+my $id = shift;
+
+my $session = $data{'session'}->{$id};
+
+<[base.perlmod.autoload]>->('JSON::XS');
+
+my $jobs = <[jobsite.job.load_all]>;
+
+my @ids = sort {
+    ( $jobs->{$b}{'fetched_at'} // 0 ) <=> ( $jobs->{$a}{'fetched_at'} // 0 )
+} keys %{$jobs};
+
+my @array;
+for my $job_id (@ids) {
+    my $job = { %{ $jobs->{$job_id} }, 'id' => $job_id };
+    push @array, $job;
+}
+
+my $reply_body = eval { JSON::XS::encode_json( \@array ) };
+if ($@) {
+    <[base.logs]>->( 0, 'plugin.web.jobs.handler.get: json error: %s', $@ );
+    return <[httpd.send_error_page]>->( $id, 500 );
+}
+
+my $reply_header = {
+    qw| Content-Type   | => qw| application/json |,
+    qw| Content-Length | => length($reply_body),
+};
+
+$session->{'buffer'}->{'output'}
+    .= <[httpd.new_header]>->( 200, $reply_header );
+$session->{'buffer'}->{'output'} .= $reply_body;
+
+return 2;
+
+#,,,.,,,,,.,.,,,.,,.,,.,.,...,.,,,...,,..,,,,,..,,...,.,.,.,,,.,,,.,,,..,,,,.,
+#25K3JKR3ZVGTCTG5GO5ZUVSEUVG4PRSDPOEQQP7HZJBKYQUNDZQDAOZ5NFTGRQ45CJEOXUGJSRQKC
+#\\\|QZ4I5SPOG4SAZUS5EHZXTJKZ264527FJMZ74GCV3PIT6DZ62Q5A \ / AMOS7 \ YOURUM ::
+#\[7]TYC2PZLGT5ECRGPKP7JVY2KZKQMTMXGG3GG4SRFXH2ABELAXIMCQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
