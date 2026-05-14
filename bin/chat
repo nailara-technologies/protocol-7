@@ -65,7 +65,7 @@ my $MAX_HISTORY      = 512 * 1024;   ## 512 KB auto-rotation threshold ##
 my $MAX_MEMORY_LINES = 500;          ## line-count trigger for model memory ##
 my $WAIT_INTERVAL    = 0.5;          ## poll interval for -wait-reply  ##
 my $WAIT_DEFAULT     = undef;        ## no timeout by default          ##
-my @KNOWN_MODELS     = qw| kimi-code claude-code |;
+my @KNOWN_MODELS     = qw| kimi claude |;
 
 ##[ OPTION LIST ]#############################################################
 
@@ -285,14 +285,14 @@ sub detect_caller {
         my $comm = <$fh>;
         close $fh;
         chomp $comm          if defined $comm;
-        return 'kimi-code'   if defined $comm and $comm =~ m|kimi|i;
-        return 'claude-code' if defined $comm and $comm =~ m|claude|i;
+        return 'kimi'   if defined $comm and $comm =~ m|kimi|i;
+        return 'claude' if defined $comm and $comm =~ m|claude|i;
     }
     return 'user';
 }
 
 sub load_state {
-    my %st = ( 'active_channel' => 'main', 'active_model' => 'kimi-code' );
+    my %st = ( 'active_channel' => 'main', 'active_model' => 'kimi' );
     if ( -f $STATE_FILE ) {
         open my $fh, '<', $STATE_FILE or return \%st;
         while ( my $line = <$fh> ) {
@@ -564,7 +564,7 @@ sub dispatch_model {
 
     my $encoded = encode_b32r( encode_utf8($text) );
 
-    if ( $model eq 'kimi-code' ) {
+    if ( $model eq 'kimi' ) {
         open( my $fh, '-|', 'p7c', 'kimi.ask-reply', $encoded )
             or warn "chat: p7c kimi.ask-reply failed: $!\n";
         my $reply = do { local $/; <$fh> } if $fh;
@@ -572,13 +572,13 @@ sub dispatch_model {
         chomp $reply                       if defined $reply;
         write_history( $channel, $model, $reply )
             if defined $reply and length $reply;
-    } elsif ( $model eq 'claude-code' ) {
-        ## write to inbox file — claude-code polls data/chat/inbox/claude-code ##
+    } elsif ( $model eq 'claude' ) {
+        ## write to inbox file — claude polls data/chat/inbox/claude ##
         my $inbox_dir = File::Spec->catdir( $CHAT_DIR, qw| inbox | );
         make_path($inbox_dir) unless -d $inbox_dir;
-        my $inbox_file = File::Spec->catfile( $inbox_dir, 'claude-code' );
+        my $inbox_file = File::Spec->catfile( $inbox_dir, 'claude' );
         open( my $fh, '>:encoding(UTF-8)', $inbox_file )
-            or warn "chat: cannot write claude-code inbox: $!\n";
+            or warn "chat: cannot write claude inbox: $!\n";
         print $fh $text, "\n" if $fh;
         close $fh if $fh;
     } else {
@@ -602,7 +602,7 @@ sub wait_reply {
     return undef if not -f $path;
 
     my $elapsed = 0;
-    while ( $elapsed <= $timeout ) {
+    while ( not defined $timeout or $elapsed <= $timeout ) {
         open my $rfh, '<:encoding(UTF-8)', $path or next;
         my @lines = <$rfh>;
         close $rfh;
@@ -819,7 +819,7 @@ sub fetch_history_tail {
 
 sub rotate_with_summary {
     my ( $channel, $model ) = @_;
-    $model = 'kimi-code' if not $model or $model eq 'all';
+    $model = 'kimi' if not $model or $model eq 'all';
 
     my $path = history_path($channel);
     return if not -f $path;
@@ -875,7 +875,7 @@ sub rotate_with_summary {
 sub dispatch_summary {
     my ( $model, $prompt ) = @_;
 
-    if ( $model eq 'kimi-code' ) {
+    if ( $model eq 'kimi' ) {
         my $encoded = encode_b32r( encode_utf8($prompt) );
         open( my $fh, '-|', 'p7c', 'kimi.ask-reply', $encoded )
             or warn "chat: p7c kimi.ask-reply failed: $!\n";
@@ -883,13 +883,13 @@ sub dispatch_summary {
         close $fh                          if $fh;
         chomp $reply                       if defined $reply;
         return $reply;
-    } elsif ( $model eq 'claude-code' ) {
+    } elsif ( $model eq 'claude' ) {
         ## async inbox — write prompt and poll history for response ##
         my $inbox_dir = File::Spec->catdir( $CHAT_DIR, qw| inbox | );
         make_path($inbox_dir) unless -d $inbox_dir;
-        my $inbox_file = File::Spec->catfile( $inbox_dir, 'claude-code' );
+        my $inbox_file = File::Spec->catfile( $inbox_dir, 'claude' );
         open( my $fh, '>:encoding(UTF-8)', $inbox_file )
-            or warn "chat: cannot write claude-code inbox: $!\n";
+            or warn "chat: cannot write claude inbox: $!\n";
         print $fh $prompt, "\n" if $fh;
         close $fh if $fh;
 
@@ -913,9 +913,9 @@ sub dispatch_summary {
             close $rfh;
 
             for my $i ( $pre_count .. $#lines ) {
-                if ( $lines[$i] =~ m{<claude-code>} ) {
+                if ( $lines[$i] =~ m{<claude>} ) {
                     chomp $lines[$i];
-                    $lines[$i] =~ s{^\[[^\]]+\]\s*<claude-code>\s*}{};
+                    $lines[$i] =~ s{^\[[^\]]+\]\s*<claude>\s*}{};
                     return $lines[$i];
                 }
             }
@@ -939,8 +939,8 @@ sub colored {
     return "$C{0}:\n::$C{b} $C{T}$text$C{0} $C{R}\n:$C{R}";
 }
 
-#,,,.,.,.,,,,,,,,,,,.,...,,.,,..,,,.,,.,.,...,..,,...,...,..,,,.,,,.,,.,.,..,,
-#26IJBKESVRXNXQTPMP7FTFJK6O562JAM56XSAP6XO6YRKZF4XESQE757WEHLWJ3OBGJXCICHE4P6K
-#\\\|UBRIX5R6X4T7ZEJGHGRTNAJU6CXYFJKAMSDIJLDLSJ75GDNQGMO \ / AMOS7 \ YOURUM ::
-#\[7]YCQU3H3DVOQP4LV2VVR52C447WDBGFBGYYJD2ZZOSAP7G5ZZ3KAA 7  DATA SIGNATURE ::
+#,,.,,.,.,,,,,,,,,,..,,,.,,..,.,,,,.,,.,,,,,,,..,,...,..,,,,,,,.,,.,.,,..,,,,,
+#UX7JEEP5HOACM7NOOCVFLOHU34KCXTZPD62LWAYM7BEN2WWPXPKTZS2LPCPMUDHKL7F4KHHPYLCZA
+#\\\|XB6OC7J366WZKU5KUULJOGZEXFAB4KBKPXZNHZBIRGTDT6R64UH \ / AMOS7 \ YOURUM ::
+#\[7]EPUBEEELAY4IZRVJYM5DOCA26N637TZSKOPMRDXD4XKNAOCXJYBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
