@@ -15,6 +15,7 @@ use FindBin              qw| $RealBin |;
 use IO::Compress::Xz     qw| xz |;
 use IO::Uncompress::UnXz qw| unxz |;
 use Encode               qw| encode_utf8 |;
+use Crypt::Misc          qw| encode_b32r |;
 
 ####        ####
 ##   chat   ##
@@ -209,7 +210,7 @@ my $broadcast = $switches->{'broadcast'} || $state->{'active_model'} eq 'all';
 if ($broadcast) {
     broadcast_message( $state->{'active_channel'}, $CALLER, $clean_msg );
 } elsif ( $state->{'active_model'} ne 'user' ) {
-    dispatch_stub( $state->{'active_channel'},
+    dispatch_model( $state->{'active_channel'},
         $state->{'active_model'}, $clean_msg );
 }
 
@@ -462,19 +463,37 @@ sub trim_history {
         unless $option{'quiet'};
 }
 
-sub dispatch_stub {
+sub dispatch_model {
     my ( $channel, $model, $text ) = @_;
-    ## phase 1 stub: write placeholder reply after tiny delay ##
-    select( undef, undef, undef, 0.2 );
-    my $reply = "[stub reply from $model — backend not yet connected]";
-    write_history( $channel, $model, $reply );
+    my $encoded = encode_b32r( encode_utf8($text) );
+
+    if ( $model eq 'kimi-code' ) {
+        open( my $fh, '-|', 'p7c', 'kimi.ask-reply', $encoded )
+            or warn "chat: p7c kimi.ask-reply failed: $!\n";
+        my $reply = do { local $/; <$fh> } if $fh;
+        close $fh                          if $fh;
+        chomp $reply                       if defined $reply;
+        write_history( $channel, $model, $reply )
+            if defined $reply and length $reply;
+    } elsif ( $model eq 'claude-code' ) {
+        ## write to inbox file — claude-code polls data/chat/inbox/claude-code ##
+        my $inbox_dir = File::Spec->catdir( $CHAT_DIR, qw| inbox | );
+        make_path($inbox_dir) unless -d $inbox_dir;
+        my $inbox_file = File::Spec->catfile( $inbox_dir, 'claude-code' );
+        open( my $fh, '>:encoding(UTF-8)', $inbox_file )
+            or warn "chat: cannot write claude-code inbox: $!\n";
+        print $fh $text, "\n" if $fh;
+        close $fh if $fh;
+    } else {
+        warn "chat: unknown model '$model' — no dispatch configured\n";
+    }
 }
 
 sub broadcast_message {
     my ( $channel, $caller_id, $text ) = @_;
     for my $m (@KNOWN_MODELS) {
         next if $m eq $caller_id;
-        dispatch_stub( $channel, $m, $text );
+        dispatch_model( $channel, $m, $text );
     }
 }
 
@@ -610,8 +629,8 @@ sub colored {
     return "$C{0}:\n::$C{b} $C{T}$text$C{0} $C{R}\n:$C{R}";
 }
 
-#,,..,.,,,.,,,...,...,,..,.,,,,,.,,..,,,,,..,,..,,...,...,,,,,,..,.,,,,,,,.,,,
-#AVTSYKKAK6AF4XA7YFQP5SDITGFPBA4N3XE7UHSX27O3QPE7CEDMNFNCAGR4CCPZP3GK3SSWNGD6C
-#\\\|UQW7LLNBJO7YF3DJR377P4UI7A6MTSZGXWTKYQIMDRZGYTNGLK5 \ / AMOS7 \ YOURUM ::
-#\[7]QRDX6NQMPDEBLJMPGBVDDUUIXCIQ7HVHJLXKFVSKABU3BJKTKODI 7  DATA SIGNATURE ::
+#,,.,,,..,.,,,,..,,.,,...,.,.,..,,,,,,,,,,.,.,..,,...,...,...,..,,,,,,...,,,.,
+#SIZYNYX2SVPJ4UHG736QCLUEJQCNUDUQQGI76IY7BJHHOTN6ZQBMTIPDGJFF4G3EIM55ZQW7UJTIU
+#\\\|JSQS4XPARZFYAFT6SUXCA6FTEBCYJXZSVUB5VEDTWBVMUY7WLP5 \ / AMOS7 \ YOURUM ::
+#\[7]HP56ZPHUZYWYDOAGGIXEC7G27XHRCGULSAY7FMGWF5TBV6GNQEBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
