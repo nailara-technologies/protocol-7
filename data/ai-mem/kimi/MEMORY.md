@@ -1911,16 +1911,29 @@ Added two-tier timeout system:
 - **Deleted**: `coding.handler.http_poll` (dead code).
 - Files: `modules/coding.handler.drain_pipe`, `modules/coding.cmd.wait-done`, `modules/coding.handler.wait_done_timeout`, `modules/coding.handler.deferred_reply`
 
+### Session 24 changes (2026-05-14)
+- zenka renamed `job-site-scan` → `jobsite` (89 files, all modules, config, /etc/, /var/)
+- assessment prompt switched JSON → YAML heredoc; `assess-done`/`repair-done` use
+  `YAML::XS::Load` as primary parser, JSON regex kept as fallback
+- per-element YAML storage: one file per job in `/var/protocol-7/jobsite/jobs/`,
+  lightweight `index.yaml`; migration from `store.yaml` on first load
+  new modules: `jobsite.job.read`, `jobsite.job.write`, `jobsite.job.load_all`,
+  `jobsite.index.rebuild`
+- `flush_on_acquisition` extracted from `kimi.handler.approval_request` →
+  `kimi.flush_on_acquisition`; hashref iteration bug fixed in the process
+- kimi sudo auto-decline: `kimi.handler.approval_request` rejects sudo tool calls
+  with message; `kimi.wire.approval_respond` accepts optional decline reason
+
 ### Job Assessment Pipeline — New Features
 - **Checksum dedup/blacklist**: AMOS7 for companies, BMW-L13 for titles/urls. Zero raw string storage.
-  - `job-site-scan.checksum.index`: check/add/blacklist_company/persist/stats operations
-  - `job-site-scan.cmd.blacklist-add`, `job-site-scan.cmd.blacklist-stats`
+  - `jobsite.checksum.index`: check/add/blacklist_company/persist/stats operations
+  - `jobsite.cmd.blacklist-add`, `jobsite.cmd.blacklist-stats`
 - **Assessment validation**: Detects `empty_reason`, `empty_summary`, `wrong_language_english`, `wrong_language_chinese`
 - **Repair pipeline**: Auto-dispatches repair on first defect. Accepts if improved, marks `repair_failed` on second failure.
 - **Protected stages**: `applied`/`responded`/`rejected`/`archived` survive pipeline overwrites.
 - **Assertion trees**: Per-job valued tree with `suggest.{apply,delete,archive}` + 8 dimension scores parsed from model JSON.
-- **Encoding fix**: `job-site-scan.util.fix_encoding` repairs mojibake (ISO-8859-15 first, then ISO-8859-1).
-- **Ghost queue fix**: `job-site-scan.state.load` resets `queued`/`assessing` tasks to `idle` on restart.
+- **Encoding fix**: `jobsite.util.fix_encoding` repairs mojibake (ISO-8859-15 first, then ISO-8859-1).
+- **Ghost queue fix**: `jobsite.state.load` resets `queued`/`assessing` tasks to `idle` on restart.
 
 ### Proxy & Network Fixes
 - **site-yaml.init_code**: Added `$ua->env_proxy()` to actually use `HTTP_PROXY`/`HTTPS_PROXY`. `bypass_proxy` config now works.
@@ -1933,16 +1946,16 @@ Added two-tier timeout system:
 - **site-yaml.fetch.schedule**: One-shot timer manager. Fires drain callback when queue empties.
 - **site-yaml.handler.fetch_tick**: Pops one URL, fetches, handles 403 (re-queue front + backoff) vs transient errors (retry ×2), persists state, reschedules.
 - **site-yaml.cmd.import**: Queues job URLs instead of inline fetching. Search pages still fetched synchronously.
-- **job-site-scan.dispatch.assessments**: Extracted assessment queuing logic.
-- **job-site-scan.handler.fetch-drain**: Callback fired when queue drains → triggers assessments.
-- **job-site-scan.handler.fetch-done**: Waits for queue drain before dispatching assessments.
+- **jobsite.dispatch.assessments**: Extracted assessment queuing logic.
+- **jobsite.handler.fetch-drain**: Callback fired when queue drains → triggers assessments.
+- **jobsite.handler.fetch-done**: Waits for queue drain before dispatching assessments.
 
 ### Prompt Improvements
 - **English-first-then-German**: Step 1 analyze in English, Step 2 output German JSON.
 - **Explicit candidate framing**: "Alexander Taute is a Senior Software Architect... He is NOT the job description."
 - **UTF-8 guardrail**: "Use proper umlauts (ä ö ü ß) — never escape them as ae oe ue ss."
-- **Shared prompt builder**: `job-site-scan.util.build_prompt` used by both dispatch.assessments and dispatch.repair.
-- **show-prompt command**: `job-site-scan.cmd.show-prompt <job_id>` returns the exact prompt the model would receive.
+- **Shared prompt builder**: `jobsite.util.build_prompt` used by both dispatch.assessments and dispatch.repair.
+- **show-prompt command**: `jobsite.cmd.show-prompt <job_id>` returns the exact prompt the model would receive.
 
 ### HTML UI Updates
 - **New filters**: `löschen` (delete-suggested), `fehler` (repair_failed)
@@ -1956,7 +1969,7 @@ Added two-tier timeout system:
 - `bin/dev/export-jobs-json`: Surfaces `assertions`, `repair_applied`, `repair_failed`. Maps `blocked` → `skipped`.
 
 ### Commits
-- `ac1fc96a6`: job-site-scan repair pipeline + coding zenka event loop safety + proxy config fix
+- `ac1fc96a6`: jobsite rename+refactor pipeline + coding zenka event loop safety + proxy config fix
 - `2f4ede445`: export script + HTML UI assertion support
 - `b9467a894`: proxy env fix, pagination, rate-limiting delays, encoding repair, ghost queue fix
 - `3b0dd9e40`: fetch queue with adaptive backoff + clean logging
@@ -1984,9 +1997,9 @@ Layer 1 complete, Layer 2 stub, Layer 3 stub. Design docs committed. Code change
 | `base.language.heuristic` | Layer 1: script range + encoding char-map scoring |
 | `base.language.encoding_map` | Centralized `%language_encoding` for 25+ languages + aliases + aspell packages |
 | `base.language.encoding_special_chars` | Extract non-ASCII char set from any single-byte encoding (bytes 0x80-0xFF) |
-| `job-site-scan.util.fix_encoding` | Mojibake repair; east-asian guard prevents bigram substitution for ja/zh/ko |
-| `job-site-scan.util.build_prompt` | Generic prompt builder; extracts candidate name from `profile.txt` dynamically; no hardcoded personal info |
-| `job-site-scan.dispatch.repair` | Now calls shared `build_prompt` with `$defects` arrayref |
+| `jobsite.util.fix_encoding` | Mojibake repair; east-asian guard prevents bigram substitution for ja/zh/ko |
+| `jobsite.util.build_prompt` | Generic prompt builder; extracts candidate name from `profile.txt` dynamically; no hardcoded personal info |
+| `jobsite.dispatch.repair` | Now calls shared `build_prompt` with `$defects` arrayref |
 
 ### Key Technical Decisions
 
@@ -1994,7 +2007,7 @@ Layer 1 complete, Layer 2 stub, Layer 3 stub. Design docs committed. Code change
 
 **East-asian FFFD rule**: Bigram context scoring does NOT apply to logographic text. `ja/zh/ko` must use validate-not-substitute (try encodings → validate decoded result has plausible script ratio > 20%).
 
-**Generic prompt builder**: Candidate name extracted from `/etc/protocol-7/job-site-scan/profile.txt` first-line header (`# Candidate Profile — Name`). Repair mode accepts `$defects` arrayref and prepends "RE-ASSESS" framing.
+**Generic prompt builder**: Candidate name extracted from `/etc/protocol-7/jobsite/profile.txt` first-line header (`# Candidate Profile — Name`). Repair mode accepts `$defects` arrayref and prepends "RE-ASSESS" framing.
 
 **Checksum algorithms**: AMOS7 (`<[chk-sum.amos]>`) → 7-char; BMW-L13 (`<[chk-sum.bmw.str-b32.L13]>`) → 13-char base32.
 
@@ -2064,8 +2077,8 @@ COMPLETE — Phase 1 operational. ~950 lines. Async inbox confirmed working betw
 #\[7]NLBZQPBBOMANECRZUTFYKDFWFAG2VZ4R3SLBOOUDJZW35LATL6BI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
-#,,..,,..,,..,,,,,..,,.,.,.,.,,..,.,,,,,.,,.,,..,,...,...,...,...,...,,,.,...,
-#A2DWQEKLCQAKHQVAHROEC56TMXWU5PZX2L4LWQQ2VDIW7UXGIC6KFFNOLITLXUNDW25MIVLINDY54
-#\\\|EHHDZ362HITCZO22H2NGI5PUZWDLCCSA52ZW5UMZ5CVJTHQKXBY \ / AMOS7 \ YOURUM ::
-#\[7]5Q3XLU2X5UA2DZ36CLYOOLCYXUUUBWZXHUNL4S6ZPNMSDPAAU2AA 7  DATA SIGNATURE ::
+#,,.,,,..,..,,,.,,,,.,.,.,,..,,.,,...,,,.,..,,..,,...,...,...,.,.,.,.,,,,,,.,,
+#JXTNUNO6X4QH5CZGARDRNHM6XQPLG3H2IYHB242DDCKQOTF6IQDV46J47MY3GADYEYBD7M7ELDDB2
+#\\\|Y7DZLGT3WL3M7W23CTXS7O5BUIAGYV5BOTQYK6A6A6YB5NIHCMN \ / AMOS7 \ YOURUM ::
+#\[7]5DHUKIXOIIPS7FFCQMLVD7Y7I42OKYPUSOWFRK6LJ5ZDYK5TZEDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
