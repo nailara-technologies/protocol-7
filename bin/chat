@@ -89,6 +89,7 @@ my $option_list = <<'EOL';
     -search      literal search in history      [ --search <term> ]
     -grep        regex search in history        [ --grep <pattern> ]
     -summarize   trigger memory rotation for current channel
+    -summary     show channel summary (lazy, via coding zenka)
 
     keywords inside the message text :
 
@@ -118,7 +119,8 @@ GetOptions(
     'channels',        'models',
     'search=s',        'grep=s',
     'all-channels|all_channels',
-    'summarize',       'help|h',
+    'summarize',       'summary',
+    'help|h',
 ) or do { list_options(); exit(2) };
 
 if ( $option{'help'} ) {
@@ -204,6 +206,21 @@ if ( $option{'summarize'} ) {
     exit(0);
 }
 
+if ( $option{'summary'} ) {
+    if ( $option{'all-channels'} ) {
+        summarize_all_channels();
+    } else {
+        my $summary = get_summary( $state->{'active_channel'} );
+        if ( defined $summary ) {
+            say $summary;
+            exit(0);
+        } else {
+            exit(1);
+        }
+    }
+    exit(0);
+}
+
 if ( $option{'clear'} ) {
     clear_channel( $state->{'active_channel'} );
     exit(0) if not length $clean_msg;
@@ -224,7 +241,7 @@ if ( defined $option{'trim'} ) {
     exit(0);
 }
 
-##[ NO MESSAGE — SHOW STATUS OR HELP ]########################################
+##[ NO MESSAGE — SHOW TIMELINE OR HELP ]#####################################
 
 if ( not length $clean_msg ) {
     if ( $switches->{'channel'} or $switches->{'model'} ) {
@@ -233,7 +250,7 @@ if ( not length $clean_msg ) {
         ) unless $option{'quiet'};
         exit(0);
     }
-    list_options();
+    show_timeline();
     exit(0);
 }
 
@@ -925,6 +942,261 @@ sub dispatch_summary {
     return undef;
 }
 
+sub summary_path {
+    my $channel = shift;
+    return File::Spec->catfile( $CHANNEL_DIR, $channel, 'summary.md' );
+}
+
+sub get_summary {
+    my ($channel) = @_;
+    my $hpath = history_path($channel);
+    my $spath = summary_path($channel);
+
+    my $fresh = 0;
+    if ( -f $spath and -f $hpath ) {
+        my $s_mtime = ( stat($spath) )[9] // 0;
+        my $h_mtime = ( stat($hpath) )[9] // 0;
+        $fresh = 1 if $s_mtime >= $h_mtime;
+    } elsif ( -f $spath and not -f $hpath ) {
+        $fresh = 1;
+    }
+
+    if ($fresh) {
+        return read_file($spath);
+    }
+
+    return summarize_channel($channel);
+}
+
+sub summarize_channel {
+    my ($channel) = @_;
+    my $hpath = history_path($channel);
+    my $spath = summary_path($channel);
+
+    my $history = '';
+    if ( -f $hpath ) {
+        $history = read_file($hpath);
+    }
+
+    my $prompt
+        = "produce a concise structured summary of this conversation channel. "
+        . "preserve: key decisions made, open questions, recent focus (weight "
+        . "the last 20% of messages more heavily), participant names, any action "
+        . "items or TODOs. format as plain markdown with sections: "
+        . "## recent focus, ## decisions, ## open questions, ## participants. "
+        . "keep total length under 400 words.\n"
+        . "--- channel: $channel ---\n"
+        . $history;
+
+    my $encoded = encode_b32r( encode_utf8($prompt) );
+
+    open( my $fh, '-|', 'p7c', 'coding.submit', "B32:$encoded" )
+        or do {
+        warn colored(": p7c coding.submit failed: $!\n");
+        return undef;
+        };
+    my $submit_line = do { local $/; <$fh> } if $fh;
+    close $fh if $fh;
+    chomp $submit_line if defined $submit_line;
+
+    if ( not defined $submit_line
+        or $submit_line !~ m{^task:(task-[^|]+)} )
+    {
+        warn colored(": failed to submit summary request for '$channel'\n");
+        return undef;
+    }
+
+    my $task_id = $1;
+
+    my $timeout   = 120;
+    my $interval  = 2;
+    my $elapsed   = 0;
+    my $result;
+
+    while ( $elapsed <= $timeout ) {
+        sleep $interval;
+        $elapsed += $interval;
+
+        open( my $rfh, '-|', 'p7c', 'coding.get-result', $task_id )
+            or next;
+        my $line = do { local $/; <$rfh> } if $rfh;
+        close $rfh if $rfh;
+        chomp $line if defined $line;
+
+        next if not defined $line;
+        next if $line =~ m{^task \Q$task_id\E is still (pending|in_progress)};
+
+        $result = $line;
+        last;
+    }
+
+    if ( not defined $result ) {
+        warn colored(": summary request timed out for '$channel'\n");
+        return undef;
+    }
+
+    ## write result ##
+    ensure_channel($channel);
+    open my $sfh, '>:encoding(UTF-8)', $spath
+        or die colored(": cannot write summary : $spath : $!");
+    print {$sfh} $result, "\n";
+    close $sfh;
+
+    return $result;
+}
+
+sub summarize_all_channels {
+    opendir my $dh, $CHANNEL_DIR or do {
+        say colored(": no channels yet");
+        return;
+    };
+    my @ch = grep {
+        $_ !~ m{^\.\.?$} and -d File::Spec->catdir( $CHANNEL_DIR, $_ )
+    } readdir $dh;
+    closedir $dh;
+
+    if ( not @ch ) {
+        say colored(": no channels yet");
+        return;
+    }
+
+    my %summaries;
+    for my $name ( sort @ch ) {
+        my $summary = get_summary($name);
+        if ( defined $summary ) {
+            $summaries{$name} = $summary;
+        }
+    }
+
+    if ( not keys %summaries ) {
+        warn colored(": no summaries available\n");
+        return;
+    }
+
+    my $combined_prompt = "produce a concise combined overview of these "
+        . "channel summaries. highlight cross-channel themes, dependencies, "
+        . "and any conflicting information. keep under 300 words.\n\n";
+    for my $name ( sort keys %summaries ) {
+        $combined_prompt .= "--- channel: $name ---\n";
+        $combined_prompt .= $summaries{$name} . "\n\n";
+    }
+
+    my $encoded = encode_b32r( encode_utf8($combined_prompt) );
+
+    open( my $fh, '-|', 'p7c', 'coding.submit', "B32:$encoded" )
+        or do {
+        warn colored(": p7c coding.submit failed: $!\n");
+        return;
+        };
+    my $submit_line = do { local $/; <$fh> } if $fh;
+    close $fh if $fh;
+    chomp $submit_line if defined $submit_line;
+
+    if ( not defined $submit_line
+        or $submit_line !~ m{^task:(task-[^|]+)} )
+    {
+        warn colored(": failed to submit combined summary request\n");
+        return;
+    }
+
+    my $task_id = $1;
+
+    my $timeout  = 120;
+    my $interval = 2;
+    my $elapsed  = 0;
+    my $result;
+
+    while ( $elapsed <= $timeout ) {
+        sleep $interval;
+        $elapsed += $interval;
+
+        open( my $rfh, '-|', 'p7c', 'coding.get-result', $task_id )
+            or next;
+        my $line = do { local $/; <$rfh> } if $rfh;
+        close $rfh if $rfh;
+        chomp $line if defined $line;
+
+        next if not defined $line;
+        next if $line =~ m{^task \Q$task_id\E is still (pending|in_progress)};
+
+        $result = $line;
+        last;
+    }
+
+    if ( not defined $result ) {
+        warn colored(": combined summary request timed out\n");
+        return;
+    }
+
+    say $result;
+}
+
+sub first_sentence {
+    my $text = shift // '';
+    my @lines = split m{\n}, $text;
+
+    ## skip empty lines and markdown headers ##
+    for my $line (@lines) {
+        next if $line =~ m{^\s*$};
+        next if $line =~ m{^\s*#+\s*};
+        my $s = $line;
+        $s =~ s{^\s+|\s+$}{}g;
+        ## if there's a sentence terminator within 120 chars, truncate there ##
+        if ( $s =~ m{^(.{10,120}?[\.!?])\s+} ) {
+            my $trunc = $1;
+            $trunc =~ s{^\s+|\s+$}{}g;
+            return $trunc;
+        }
+        return substr( $s, 0, 80 ) . ( length $s > 80 ? '...' : '' );
+    }
+    return '';
+}
+
+sub show_timeline {
+    opendir my $dh, $CHANNEL_DIR or do {
+        say colored(": no channels yet");
+        return;
+    };
+    my @ch = grep {
+        $_ !~ m{^\.\.?$} and -d File::Spec->catdir( $CHANNEL_DIR, $_ )
+    } readdir $dh;
+    closedir $dh;
+
+    if ( not @ch ) {
+        say colored(": no channels yet");
+        return;
+    }
+
+    say colored(".: active channels :.");
+    for my $name ( sort @ch ) {
+        my $hpath = history_path($name);
+        my $spath = summary_path($name);
+        my $mtime = -f $hpath ? ( stat($hpath) )[9] : 0;
+        my $ts
+            = $mtime
+            ? strftime( '%Y-%m-%d %H:%M', localtime($mtime) )
+            : 'never';
+
+        my $summary_snip = '(no summary yet)';
+        if ( -f $spath ) {
+            my $content = read_file($spath);
+            my $sent    = first_sentence($content);
+            $summary_snip = $sent if length $sent;
+        }
+
+        say sprintf(
+            "  %s  #%s   %s",
+            $ts, $name, $summary_snip
+        );
+    }
+    say '';
+    say sprintf(
+        "active: #%s  model: %s",
+        $state->{'active_channel'},
+        $state->{'active_model'}
+    );
+}
+
 sub list_options {
     chomp( my $opt_str = $option_list );
     my @lines = split "\n", $opt_str;
@@ -939,8 +1211,8 @@ sub colored {
     return "$C{0}:\n::$C{b} $C{T}$text$C{0} $C{R}\n:$C{R}";
 }
 
-#,,.,,.,.,,,,,,,,,,..,,,.,,..,.,,,,.,,.,,,,,,,..,,...,..,,,,,,,.,,.,.,,..,,,,,
-#UX7JEEP5HOACM7NOOCVFLOHU34KCXTZPD62LWAYM7BEN2WWPXPKTZS2LPCPMUDHKL7F4KHHPYLCZA
-#\\\|XB6OC7J366WZKU5KUULJOGZEXFAB4KBKPXZNHZBIRGTDT6R64UH \ / AMOS7 \ YOURUM ::
-#\[7]EPUBEEELAY4IZRVJYM5DOCA26N637TZSKOPMRDXD4XKNAOCXJYBA 7  DATA SIGNATURE ::
+#,,,.,,,.,.,,,,,,,...,..,,,..,,.,,,,.,,.,,,..,..,,...,...,...,...,,,,,,,.,.,.,
+#BFBSVF5FIQISOEM44IDZARZB7OIXHMR463ECXITFT5IIXYX32272GGW2WG3TMKQFGMSYGJA4IE5KS
+#\\\|A2KETJRNEEXHQWWRM46A7RCMJFCFRO64D24U3KWN53TEREJTK4F \ / AMOS7 \ YOURUM ::
+#\[7]DB5R4NVHIGD2F7DYFHC22UOUK64YKSBTQQCUOMSGIHXVVFM7DABA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
