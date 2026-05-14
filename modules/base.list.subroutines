@@ -325,6 +325,7 @@ return [ qw[
         kimi.task.status
         kimi.task.intake
         kimi.cmd.approve
+        jobsite.cmd.scan
         jobqueue.add_job
         iteration.finish
         invoke.init_code
@@ -440,6 +441,7 @@ return [ qw[
         keys.get_keyfiles
         keys.console.path
         keys.console.list
+        jobsite.init_code
         jobqueue.pre_init
         jobqueue.move_job
         jobqueue.exec_job
@@ -566,6 +568,9 @@ return [ qw[
         kimi.cmd.approvals
         kimi-web.init_code
         keys.checksum_href
+        jobsite.state.load
+        jobsite.cmd.status
+        jobsite.cmd.reject
         jobqueue.init_code
         jobqueue.find_jobs
         index.cmd.stop-job
@@ -714,6 +719,9 @@ return [ qw[
         keys.console.rename
         keys.console.remove
         keys.console.create
+        jobsite.stage.fetch
+        jobsite.cmd.approve
+        jobsite.assert.init
         jobqueue.remove_job
         iteration.init_code
         io.ip.tcp.init_code
@@ -870,6 +878,7 @@ return [ qw[
         kimi.cmd.new-session
         keys.console.enc-key
         keys.console.dec-key
+        jobsite.stage.review
         io.ssl.ip.input.open
         io.ip.tcp.input.open
         invoke-web.init_code
@@ -1047,6 +1056,9 @@ return [ qw[
         keys.read_key_archive
         keys.list_remote_keys
         keys.console.sign-key
+        jobsite.state.persist
+        jobsite.dispatch.next
+        jobsite.cmd.list-jobs
         jobqueue.get_next_job
         jobqueue.get_job_data
         io.ssl.ip.input.close
@@ -1247,7 +1259,7 @@ return [ qw[
         kimi.watcher.ws_status
         kimi.task.queue_status
         keys.console.duplicate
-        job-site-scan.cmd.scan
+        jobsite.checksum.index
         iteration.score_result
         io.ip.tcp.output.close
         invoke.cmd.list-images
@@ -1441,8 +1453,10 @@ return [ qw[
         kimi.task.queue_enqueue
         kimi.handler.ws_message
         keys.console.github-pat
+        jobsite.dispatch.repair
+        jobsite.cmd.show-prompt
+        jobsite.cmd.clear-tasks
         jobqueue.queue_template
-        job-site-scan.init_code
         io.unix.socket.end_code
         io.ssl.ip.input.connect
         io.ip.tcp.input.connect
@@ -1637,9 +1651,6 @@ return [ qw[
         kimi-web.cmd.list_agents
         keys.select_archive_path
         keys.console.remove-type
-        job-site-scan.state.load
-        job-site-scan.cmd.status
-        job-site-scan.cmd.reject
         iteration.template.delta
         io.unix.socket.init_code
         invoke.handler.poll_jobs
@@ -1826,11 +1837,12 @@ return [ qw[
         letsencr.child.create_jws
         letsencr.child.acme_renew
         kimi.helper.task_priority
+        jobsite.util.fix_encoding
+        jobsite.util.build_prompt
+        jobsite.cmd.set-threshold
+        jobsite.cmd.blacklist-add
         jobqueue.priorities_table
         jobqueue.joblist_template
-        job-site-scan.stage.fetch
-        job-site-scan.cmd.approve
-        job-site-scan.assert.init
         io.unix.socket.input.open
         impressive.process_subcfg
         image2html.base.init_code
@@ -2019,7 +2031,8 @@ return [ qw[
         keys.console.split-keypair
         keys.console.clear-chksums
         keys.console.change-passwd
-        job-site-scan.stage.review
+        jobsite.handler.rewire-all
+        jobsite.handler.fetch-done
         io.unix.socket.output.open
         io.unix.socket.input.close
         image2html.child.init_code
@@ -2207,10 +2220,12 @@ return [ qw[
         keys.write_key_archive_file
         keys.console.get-sp-pub-key
         keys.console.enc-key-chksum
+        jobsite.validate.assessment
+        jobsite.handler.repair-done
+        jobsite.handler.fetch-drain
+        jobsite.handler.assess-done
+        jobsite.cmd.blacklist-stats
         jobqueue.check_dependencies
-        job-site-scan.state.persist
-        job-site-scan.dispatch.next
-        job-site-scan.cmd.list-jobs
         io.unix.socket.output.close
         io.ssl.ip.handshake.cleanup
         io.ssl.ip.handler.handshake
@@ -2398,7 +2413,9 @@ return [ qw[
         keys.console.gen-pwd-keyfile
         keys.console.decrypt-archive
         keys.console.create-stub-key
-        job-site-scan.checksum.index
+        jobsite.handler.task-created
+        jobsite.handler.rescan-timer
+        jobsite.dispatch.assessments
         io.unix.socket.input.connect
         impressive.autoinstall_check
         httpsd.request_capture.write
@@ -2553,9 +2570,7 @@ return [ qw[
         keys.select_archive_path.curs
         keys.console.remove-signature
         keys.console.encoding-upgrade
-        job-site-scan.dispatch.repair
-        job-site-scan.cmd.show-prompt
-        job-site-scan.cmd.clear-tasks
+        jobsite.handler.rewire-assess
         index.handler.summarize-reply
         image2html.parent.cmd.get_url
         image2html.base.get_html_path
@@ -2736,6 +2751,8 @@ return [ qw[
         letsencr.child.cmd.query-algos
         kimi-web.cmd.dispatch_parallel
         keys.console.gen-file-seed-key
+        jobsite.handler.translate-done
+        jobsite.handler.repair-created
         jobqueue.handler.queue_counter
         index.callback.wordlist-import
         impressive.cmd.playlist_update
@@ -2873,10 +2890,7 @@ return [ qw[
         letsencr.child.cmd.repair-chain
         kimi.handler.dispatch_next_task
         kimi-web.internal.http_get_sync
-        job-site-scan.util.fix_encoding
-        job-site-scan.util.build_prompt
-        job-site-scan.cmd.set-threshold
-        job-site-scan.cmd.blacklist-add
+        jobsite.handler.pending-changed
         invoke-web.handler.check_health
         image2html.base.write_stub_page
         image2html.base.fork_conv_child
@@ -3005,8 +3019,6 @@ return [ qw[
         kimi.handler.process-queued-task
         kimi-web.internal.http_post_sync
         keys.console.keys-backup-archive
-        job-site-scan.handler.rewire-all
-        job-site-scan.handler.fetch-done
         image2html.base.write_image_html
         image2html.base.write_error_page
         httpd.handler.web_template_reply
@@ -3128,11 +3140,6 @@ return [ qw[
         kimi-web.internal.http_post_async
         keys.pack_format.user_key_archive
         keys.console.downgrade-enc-status
-        job-site-scan.validate.assessment
-        job-site-scan.handler.repair-done
-        job-site-scan.handler.fetch-drain
-        job-site-scan.handler.assess-done
-        job-site-scan.cmd.blacklist-stats
         impressive.handler.stop_lsp_reply
         impressive.handler.get_list_reply
         image-quality.vision.select_model
@@ -3247,9 +3254,6 @@ return [ qw[
         kimi-web.bridge.ensure_local_agent
         keys.select_archive_path.term_Clui
         jobqueue.event.register_job_queues
-        job-site-scan.handler.task-created
-        job-site-scan.handler.rescan-timer
-        job-site-scan.dispatch.assessments
         invoke-web.handler.monitor_startup
         image2html.child.cmd.convert_image
         httpsd.discover_active_certificate
@@ -3347,7 +3351,6 @@ return [ qw[
         letsencr.child.cmd.inst-self-signed
         kimi-web.internal.aggregate_results
         kimi-web.handler.agent_health_check
-        job-site-scan.handler.rewire-assess
         io.ssl.ip.handler.handshake_timeout
         impressive.callback.stop_start-anim
         image2html.child.handler.conversion
@@ -3419,8 +3422,6 @@ return [ qw[
         letsencr.child.acme_register_account
         kimi.handler.reconnect_grace_timeout
         kimi-web.handler.batch_timeout_check
-        job-site-scan.handler.translate-done
-        job-site-scan.handler.repair-created
         image2html.child.check_cache_timeout
         httpsd.startup.validate_certificates
         httpd.handler.download_transfer.test
@@ -3493,7 +3494,6 @@ return [ qw[
         letsencr.child.cmd.revoke-certificate
         letsencr.child.acme_get_authorization
         kimi.handler.session_liveness_timeout
-        job-site-scan.handler.pending-changed
         graphics.matrix.visual.vision-batches
         graphics.matrix.visual.group-by-color
         graphics.matrix.visual.cluster-center
@@ -3833,8 +3833,8 @@ return [ qw[
     ]
 ];
 
-#,,..,,,.,...,,,.,,.,,,.,,,..,,,,,...,,,,,..,,.,.,...,...,...,...,,,.,..,,,,,,
-#GPYQOPLCKEY2PDJTUJK574IV3ZNXI7H3TMYCAYAQ5K4FZDR5MVT7CUVJ3HL4CUHHGIAZN5QN7NHY6
-#\\\|SIZKHTEXBG5RFMD3OYVNCBBXWM2JSCV5KK45VBC5MVKGSUB4CRE \ / AMOS7 \ YOURUM ::
-#\[7]EOYHCHXEB2YLKE7VSVUZNOR2AZNNQSR4NIEJSXC7B3TC2KF5DUAQ 7  DATA SIGNATURE ::
+#,,.,,...,,,,,,,,,.,.,.,.,,,.,,..,...,,.,,,..,.,.,...,...,.,,,,.,,,.,,...,...,
+#LG4L66SHVX2W6W6VWIAPV6OPZ6QAOI4SIXGDMPGIT64SX2YVFNL7TKRVGHZNAQP26RHUTKHCEONGG
+#\\\|WYUUEJHQMZXQPZBDUXE56H2JQMH57ILQF6VEOTJJMRASPNXW7EK \ / AMOS7 \ YOURUM ::
+#\[7]GLHV5XBMSC2CCY4WQ2T7Y76VYKUCPBDW6S4W7ARH7CCPBTXDFWAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,0 +1,34 @@
+## [:< ##
+
+# name  = jobsite.cmd.status
+# descr = show current cycle state and job counts
+
+my $tasks = <jobsite.tasks> // {};
+
+my %counts;
+for my $id ( keys %{$tasks} ) {
+    my $stage = $tasks->{$id}{'stage'} // 'unknown';
+    $counts{$stage}++;
+}
+
+my $last = <jobsite.last_scan> // 0;
+my $age  = $last ? sprintf( '%ds ago', time - $last ) : 'never';
+
+my @lines;
+push @lines, sprintf 'cycle:      %s', <jobsite.cycle> // 'idle';
+push @lines, sprintf 'last scan:  %s', $age;
+push @lines, sprintf 'jobs total: %d', scalar keys %{$tasks};
+for my $stage (
+    qw| queued assessing assessed review approved rejected failed |) {
+    push @lines, sprintf '  %-12s %d', $stage, $counts{$stage} // 0
+        if $counts{$stage};
+}
+push @lines, sprintf 'threshold:  %s', <jobsite.cfg.threshold> // 6;
+
+return { 'mode' => 'size', 'data' => join( "\n", @lines ) };
+
+#,,.,,..,,,.,,,.,,,,,,...,,,,,.,.,,..,,,.,..,,..,,...,...,,,,,,.,,,..,,..,,,,,
+#4XTSSKFMPBU52TSHPR63LDZVP2WYGCOVKAUP4QJWZ5GUPY45KP22R2Y2IJ4V6ITL7ZIEZMT6BTNP4
+#\\\|KHZWZHRKGOFMXJJW5P3PA4SK74MABKBXYVEZE4G32J5HRMJNVEA \ / AMOS7 \ YOURUM ::
+#\[7]PGGOIURU6PNFWJC6BIBVKVUIOXRC2NZA6Z33SJGDHRBQ4BF5KYBA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

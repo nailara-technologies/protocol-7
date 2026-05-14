@@ -1,0 +1,96 @@
+## [:< ##
+
+# name  = jobsite.dispatch.assessments
+# descr = collect new untracked jobs and queue assessment tasks
+
+## collect new untracked jobs from site-yaml store ##
+<[base.perlmod.autoload]>->('HTML::Entities');
+my $store = $data{'site-yaml'}{'jobs'}{'store'} // {};
+
+## fallback: read from file if not in shared namespace
+if ( not %{$store} ) {
+    <[base.perlmod.autoload]>->('YAML::XS');
+    my $store_file = '/var/protocol-7/site-yaml/store.yaml';
+    if ( -f $store_file ) {
+        eval { $store = YAML::XS::LoadFile($store_file) };
+        <[base.logs]>->( 0, 'store load error: %s', $@ ) if $@;
+        <[base.logs]>->(
+            1,
+            'loaded %d store entries from file',
+            ref $store eq 'HASH' ? scalar keys %{$store} : 0
+        );
+    }
+}
+
+my @to_assess;
+for my $job_id ( keys %{$store} ) {
+    my $job = $store->{$job_id};
+    next if ( $job->{'status'} // '' ) ne 'new';
+    next if exists <jobsite.tasks>->{$job_id};
+
+    ## checksum dedup / blacklist check ##
+    my $chk = <[jobsite.checksum.index]>->( qw| check |, $job );
+    if ( $chk->{'is_blocked'} ) {
+        <[base.logs]>->(
+            2,       'job %s blocked by checksum index [%s]',
+            $job_id, join( ', ', $chk->{'hits'}->@* )
+        );
+        $job->{'status'} = 'blocked';
+        next;
+    }
+
+    push @to_assess, $job_id;
+}
+
+if ( not @to_assess ) {
+    <[base.logs]>->( 1, 'no new untracked jobs to assess, idle' );
+    <jobsite.cycle> = 'idle';
+    <[jobsite.state.persist]>;
+    return;
+}
+
+<jobsite.cycle>         = 'assessing';
+<jobsite.pending_count> = scalar @to_assess;
+<[jobsite.state.persist]>;
+
+<[base.logs]>->(
+    1,
+    'queuing %d assessment tasks (sequential)',
+    scalar @to_assess
+);
+
+## load candidate profile once
+my $profile_file = <jobsite.cfg.profile_file>
+    // '/etc/protocol-7/jobsite/profile.txt';
+my $profile_text = '';
+$profile_text = <[file.read]>->($profile_file)
+    // 'no profile configured — score based on job listing alone';
+<[base.perlmod.autoload]>->('Encode');
+$profile_text = Encode::decode( 'UTF-8', $profile_text )
+    unless utf8::is_utf8($profile_text);
+
+## build queue entries
+my @queue;
+for my $job_id (@to_assess) {
+    <jobsite.tasks>->{$job_id} = { 'stage' => 'queued', 'task_id' => '' };
+
+    ## initialize assertion tree for this job ##
+    <[jobsite.assert.init]>->($job_id);
+
+    my $prompt = <[jobsite.util.build_prompt]>->( $store->{$job_id} );
+
+    push @queue, { 'job_id' => $job_id, 'desc' => $prompt };
+}
+
+<jobsite.assess_queue> = \@queue;
+
+## dispatch first task — task-created handler will call dispatch.next for each
+<[jobsite.dispatch.next]>;
+
+return;
+
+#,,,.,...,,,,,,,,,,..,,.,,,.,,,.,,,.,,,,.,...,..,,...,..,,..,,...,,,.,.,,,,,,,
+#OAUHDZLKB2BOHQOIRXINZRYOQM26XWVJ3H67QEPEANZJCSSZ75MKN6WAXPMN5AWOQAFN3RECQJ7EO
+#\\\|6PX6WEEBWMPXJITMQ3LEAOLWERI627QODZYCZW2F2BBSRB3SO5M \ / AMOS7 \ YOURUM ::
+#\[7]EYKMTOVHHUC72LZHWD2Q3CR4MYUPDSJTZ7KU7LSOT437DOQGYMDQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

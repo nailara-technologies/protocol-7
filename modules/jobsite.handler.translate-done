@@ -1,0 +1,47 @@
+## [:< ##
+
+# name  = jobsite.handler.translate-done
+# descr = receive german translation of score reason, store and dispatch next
+
+my $call = shift // {};
+
+my $mode   = $call->{'mode'} // '';
+my $raw    = $call->{'data'} // '';
+my $result = ref $raw ? $raw->$* : $raw;
+my $job_id = $call->{'params'}{'job_id'} // '';
+
+my $job_rec = <jobsite.tasks>->{$job_id};
+
+if ( defined $job_rec and lc($mode) ne qw| false | and length $result ) {
+    ## strip surrounding whitespace and any stray quotes
+    ( my $de = $result ) =~ s{^\s+|\s+$}{}g;
+    $de =~ s{^["„]|[""]$}{}g;
+    $job_rec->{'score_reason_de'} = $de;
+
+    ## persist to store.yaml
+    <[base.perlmod.autoload]>->('YAML::XS');
+    my $store_file = '/var/protocol-7/site-yaml/store.yaml';
+    if ( -f $store_file ) {
+        my $store = eval { YAML::XS::LoadFile($store_file) } // {};
+        if ( exists $store->{$job_id} ) {
+            $store->{$job_id}{'score_reason_de'} = $de;
+            eval { YAML::XS::DumpFile( $store_file, $store ) };
+        }
+    }
+
+    <[base.logs]>->( 1, 'job %s reason_de stored', $job_id );
+} else {
+    <[base.logs]>->(
+        1,       'translate-done skipped for job %s (mode=%s)',
+        $job_id, $mode
+    );
+}
+
+<[jobsite.state.persist]>;
+<[jobsite.dispatch.next]>;    ## proceed to next job in queue
+
+#,,,.,,..,,,,,.,.,,.,,.,.,,,,,,,,,.,.,..,,,..,..,,...,...,..,,...,.,.,,,.,,.,,
+#OHB6EVRJV7GITIHJ6RV6AGP2TU4XX4AVQUNZ2K7DJQPY3MUSA3UUR2BO6EQ5AOO27RUHA6VKNYEIQ
+#\\\|LFWGSQTAWDQLWLFE737QBK2CVJVHMM7C577NHRWSDAYQC5TM662 \ / AMOS7 \ YOURUM ::
+#\[7]ADZTK3NS3GD5WPZLRQ5CVR6KBZEWJJS4ZIAJUDDF6DI3YZN6B4CQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

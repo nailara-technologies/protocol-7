@@ -1,0 +1,30 @@
+## [:< ##
+
+# name  = jobsite.cmd.blacklist-add
+# descr = add company name to checksum blacklist
+# param = <company_name>
+
+my $args = $call->{'args'} // '';
+$args =~ s/^\s+|\s+$//g;
+
+return { 'mode' => qw| false |, 'data' => 'company_name required' }
+    unless length $args;
+
+my $ok = <[jobsite.checksum.index]>->( qw| blacklist_company |, $args );
+
+if ($ok) {
+    <[jobsite.checksum.index]>->(qw| persist |);
+    my $sum = <[chk-sum.amos]>->($args);
+    return {
+        'mode' => qw| true |,
+        'data' => "blacklisted company '$args' [amos:$sum]"
+    };
+}
+
+return { 'mode' => qw| false |, 'data' => 'failed to blacklist' };
+
+#,,,.,,.,,,..,,,.,..,,.,,,...,.,.,,..,.,,,...,..,,...,...,,,,,...,...,.,,,.,.,
+#5SHUXB4GHTGHJRXVMJGSXKMNKLNI4LMZHOKOBHBVTTT22GLGMHE2YRUCXCGWKU3LFYSQC44QCRANC
+#\\\|SD5RE56DHLVFZX5AX5OPQZ4K42ZBBNSKYYIYD4LETEZCAIXHYLK \ / AMOS7 \ YOURUM ::
+#\[7]2DKE3EERNZLW7YIH4IQNQURARLWXJTYBGPXWKQSYQQSKTSRAR6BY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

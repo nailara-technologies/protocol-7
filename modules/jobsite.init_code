@@ -1,0 +1,82 @@
+## [:< ##
+
+# name  = jobsite.init_code
+# descr = initialize scan coordinator, restore state
+
+<[base.perlmod.autoload]>->('YAML::XS');
+
+## cycle-level state
+<jobsite.cycle>         = 'idle';
+<jobsite.last_scan>     = 0;
+<jobsite.pending_count> = 0;
+
+## per-job state lives under jobsite.tasks.<job_id>.*
+<jobsite.tasks> //= {};
+
+<[jobsite.state.load]>;
+
+## load checksum-based dedup / blacklist index ##
+<[jobsite.checksum.index]>->(qw| load |);
+
+## var watcher on pending_count — fires when all assessments land
+<[event.add_var]>->(
+    {   'var'     => \<jobsite.pending_count>,
+        'poll'    => 'w',
+        'handler' => 'jobsite.handler.pending-changed',
+        'repeat'  => TRUE,
+        'desc'    => 'jss pending_count watcher',
+    }
+);
+
+## rescan timer — only when interval > 0
+my $interval = <jobsite.cfg.rescan_interval> // 0;
+if ( $interval > 0 ) {
+    <[event.add_timer]>->(
+        {   'after'    => $interval,
+            'interval' => $interval,
+            'repeat'   => TRUE,
+            'handler'  => 'jobsite.handler.rescan-timer',
+        }
+    );
+    <[base.logs]>->( 1, 'jobsite: rescan timer %ds', $interval );
+}
+
+## re-wire task.wait-done for any jobs stuck in 'assessing' after restart
+my $tasks   = <jobsite.tasks> // {};
+my @orphans = grep {
+    ( $tasks->{$ARG}{'stage'} // '' ) eq 'assessing'
+        and length( $tasks->{$ARG}{'task_id'} // '' )
+    }
+    keys %{$tasks};
+
+if (@orphans) {
+    <jobsite.pending_count> = scalar @orphans;
+    <[base.logs]>->(
+        1,
+        'jobsite: re-wiring %d orphaned assessment tasks',
+        scalar @orphans
+    );
+    ## store queue — rewire-all handler processes after event loop starts
+    <jobsite.rewire_queue>
+        = [
+        map { { 'job_id' => $ARG, 'task_id' => $tasks->{$ARG}{'task_id'} } }
+            @orphans ];
+    <[event.add_timer]>->(
+        {   'after'   => 2,
+            'repeat'  => FALSE,
+            'handler' => 'jobsite.handler.rewire-all',
+        }
+    );
+}
+
+my $job_count = scalar keys %{$tasks};
+<[base.logs]>->(
+    1,               'jobsite: ready, cycle=%s, jobs=%d',
+    <jobsite.cycle>, $job_count
+);
+
+#,,..,,.,,.,.,.,,,,,.,,,,,..,,,..,..,,,,,,...,..,,...,...,...,,.,,...,...,,,.,
+#Y4RLICJIGNF2WYK4WU3NFG544USPCT63RLG26YGV6WYBIHFZB2ODMCMBG5O5BHNRSFMV6XY6FHONQ
+#\\\|6TBHVMFKOJ2GGYC3UM4ZDBL5EFCMSJXYZQHQR4VFDTJ3FSFMSSA \ / AMOS7 \ YOURUM ::
+#\[7]AQGHCRWYEEYHK3VK6UVYQ4SHCJVMUDCMEH2JZJI7V6V7BLCDGADA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

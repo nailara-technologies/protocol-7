@@ -1,0 +1,38 @@
+## [:< ##
+
+# name  = jobsite.handler.rewire-all
+# descr = re-register task.wait-done for all orphaned assessing jobs
+
+my $queue = <jobsite.rewire_queue> // [];
+
+<[base.logs]>->(
+    1,
+    'rewire-all: processing %d orphaned tasks',
+    scalar @{$queue}
+);
+
+for my $entry ( @{$queue} ) {
+    my $job_id  = $entry->{'job_id'}  // '';
+    my $task_id = $entry->{'task_id'} // '';
+    next if not length $job_id or not length $task_id;
+
+    <[base.logs]>->( 2, 're-wiring job %s → task %s', $job_id, $task_id );
+
+    <[protocol-7.route-send]>->(
+        {   'command'   => 'task.wait-done',
+            'call_args' => { 'args' => $task_id },
+            'reply'     => {
+                'handler' => 'jobsite.handler.assess-done',
+                'params'  => { 'job_id' => $job_id, 'task_id' => $task_id },
+            },
+        }
+    );
+}
+
+<jobsite.rewire_queue> = [];
+
+#,,,,,,,,,.,,,.,.,,,.,,..,,,.,...,...,,..,.,,,..,,...,...,..,,.,.,..,,.,,,.,,,
+#KAIYEBNULN5IMO7XHCGISZAOBT3KWKA5WSKOAZUVWU7GX7OJNXLG3SD6IMLN655EAVY3WG3VUSEN2
+#\\\|QUXMFHTN7ZZLAN6YUX3RUOEJF3QJ3M2HTUTGP6ZES5WDJVYT27O \ / AMOS7 \ YOURUM ::
+#\[7]Z2Y4LHVHR3EOAPDSXH76HPRFRVLGZQQ74KS3EGI4FGJT7VRUNWCA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
