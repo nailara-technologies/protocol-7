@@ -1,0 +1,55 @@
+.:[ jobsite — job search scan and assessment coordinator ]:.
+
+[load_config_file:'shared-params']
+
+buffer.session.log_cmd  = p7-log.append
+buffer.session.max_size = 795648
+
+system.verbosity.zenka_buffer = 1
+
+## named search categories — space separated list of category keys
+jobsite.cfg.categories         = linux-sysadmin linux-developer devops platform-engineer \
+                                       security-engineer ki-infrastruktur backend-architect
+
+## per-category stepstone search urls
+jobsite.cfg.url.linux-sysadmin    = https://www.stepstone.de/jobs/linux-administrator/in-deutschland
+jobsite.cfg.url.linux-developer   = https://www.stepstone.de/jobs/linux-entwickler/in-deutschland
+jobsite.cfg.url.devops            = https://www.stepstone.de/jobs/devops-engineer/in-deutschland
+jobsite.cfg.url.platform-engineer = https://www.stepstone.de/jobs/platform-engineer/in-deutschland
+jobsite.cfg.url.security-engineer = https://www.stepstone.de/jobs/security-engineer/in-deutschland
+jobsite.cfg.url.ki-infrastruktur  = https://www.stepstone.de/jobs/ki-infrastruktur/in-deutschland
+jobsite.cfg.url.backend-architect = https://www.stepstone.de/jobs/softwarearchitekt/in-deutschland
+
+## minimum llm score (0-10) to flag job for review
+jobsite.cfg.threshold       = 6
+
+## seconds between automatic rescans (0 = manual trigger only)
+jobsite.cfg.rescan_interval = 0
+
+## path to cv/profile context file injected into assessment prompt
+jobsite.cfg.profile_file    = /etc/protocol-7/jobsite/profile.txt
+
+access.cmd.usr.cube = heart subname name commands reload verify-instance \
+                      list-jobs src-age src-ver show-buffer \
+                      buffer-erase buffer-erase-level \
+                      scan status list approve reject set-threshold \
+                      clear-tasks blacklist-add blacklist-stats show-prompt \
+                      get set dump del exec-sub eval-code
+
+modules.load = auth net protocol io.unix jobsite devmod
+[load_modules:<modules.load>]
+[init_modules]
+
+[root.drop_privs:<system.amos-zenka-user>]
+
+[base.net.connect:'unix']
+
+[base.get_session_id]
+
+[zenka.loop]
+
+#,,,,,.,,,,,,,...,.,,,,,,,,,.,...,.,,,.,.,,,,,..,,...,...,...,.,.,,.,,,,.,.,,,
+#2N7DU75RFK2YR74U5E4ZOYYSGIJPEU3XQPRIF3HZHGHR57CBI2DBBTCSRSHKZIVNY4Q4ATPJKENWU
+#\\\|VBILW7BYR2YVTDRENOYB54LAJADJIUPZXJR7QPNI3CQB5L26U3Z \ / AMOS7 \ YOURUM ::
+#\[7]SMO3OOVVDXSR4ERWGZERFYFKXE4KQJGWP55DVCD7J6DODL5LEOBI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

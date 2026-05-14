@@ -1,0 +1,44 @@
+## [:< ##
+
+# name  = jobsite.dispatch.repair
+# descr = dispatch repair assessment task for a job with defects
+
+my $job_id  = shift // '';
+my $defects = shift // [];
+
+return unless length $job_id;
+
+my $job_rec = <jobsite.tasks>->{$job_id};
+return unless defined $job_rec;
+
+## load job data from site-yaml store ##
+<[base.perlmod.autoload]>->('YAML::XS');
+my $store_file = '/var/protocol-7/site-yaml/store.yaml';
+my $store      = {};
+if ( -f $store_file ) {
+    $store = eval { YAML::XS::LoadFile($store_file) } // {};
+}
+
+my $job = $store->{$job_id} // {};
+
+## build repair prompt via shared builder ##
+my $prompt = <[jobsite.util.build_prompt]>->( $job, $defects );
+
+## dispatch repair task ##
+my $encoded = ':B32:' . encode_b32r( Encode::encode( 'UTF-8', $prompt ) );
+
+<[protocol-7.route-send]>->(
+    {   'command'   => 'task.create',
+        'call_args' => { 'args' => $encoded },
+        'reply'     => {
+            'handler' => 'jobsite.handler.repair-created',
+            'params'  => { 'job_id' => $job_id },
+        },
+    }
+);
+
+#,,.,,.,,,,.,,.,,,,.,,.,.,.,,,,,,,,.,,,..,,..,..,,...,...,.,.,,..,...,.,.,.,,,
+#CP5WDOVYRLNPVMTQB3NQE622X5GNOHTKRSLNM5E7QP6CMHVQYFWN34K4CR4EKFC2EABIMIGFLU53C
+#\\\|EWNY7NNP3XHLTQLYQK2XMUPQAXEDJAZJNUR67UQ66XFS5E3TC52 \ / AMOS7 \ YOURUM ::
+#\[7]PEH2RZDNFTIBYWOXCVFJIKUZYF2FHE2NIZLIKD7UJWA5WINKFICQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

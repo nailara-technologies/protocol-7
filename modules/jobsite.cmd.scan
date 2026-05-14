@@ -1,0 +1,26 @@
+## [:< ##
+
+# name  = jobsite.cmd.scan
+# descr = trigger a scan cycle manually
+# param = [:full:]
+
+my $args      = $call->{'args'} // '';
+my $full_mode = ( $args =~ m{:full:} ) ? TRUE : FALSE;
+
+if ( <jobsite.cycle> ne qw| idle | ) {
+    return {
+        'mode' => qw| false |,
+        'data' => sprintf( 'cycle already active : %s', <jobsite.cycle> ),
+    };
+}
+
+<[jobsite.stage.fetch]>->($full_mode);
+
+my $msg = $full_mode ? 'full scan started' : 'scan started';
+return { 'mode' => qw| true |, 'data' => $msg };
+
+#,,..,,,.,...,,,.,...,...,...,,,,,..,,...,,,.,..,,...,...,,,,,.,,,,..,.,.,,,.,
+#RFPVMG4AM5QWS64PA3J44XGHG42Z2EJAUBG2ABOVG6EA54AVIAGRWZQKIRY3C3PYYJRVGQRY4VVUG
+#\\\|UC3FCYD2N4SLV4ZU6ZHEUMANFODRNXDI7IVRHQPJWSC7FD6X63R \ / AMOS7 \ YOURUM ::
+#\[7]EL6Z353DHDBBSEJJG6RRZECC2LNHILGUN4KEW5LQLIFYGXADYUCA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

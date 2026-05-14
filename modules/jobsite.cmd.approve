@@ -1,0 +1,44 @@
+## [:< ##
+
+# name  = jobsite.cmd.approve
+# descr = approve job for application queue
+
+my $job_id = uc( $call->{'args'} // '' );
+$job_id =~ s/^\s+|\s+$//g;
+
+my $rec = <jobsite.tasks>->{$job_id};
+return { 'mode' => 'false', 'data' => "unknown job: $job_id" }
+    if not defined $rec;
+
+$rec->{'stage'}       = 'approved';
+$rec->{'approved_at'} = time;
+
+## update site-yaml store
+<[base.perlmod.autoload]>->('YAML::XS');
+my $store_file = '/var/protocol-7/site-yaml/store.yaml';
+if ( -f $store_file ) {
+    my $store = eval { YAML::XS::LoadFile($store_file) } // {};
+    if ( exists $store->{$job_id} ) {
+        $store->{$job_id}{'status'} = 'applied';
+        eval { YAML::XS::DumpFile( $store_file, $store ) };
+    }
+}
+
+my $tasks = <jobsite.tasks> // {};
+my $remaining
+    = grep { ( $tasks->{$ARG}{'stage'} // '' ) eq 'review' } keys %{$tasks};
+
+if ( not $remaining and <jobsite.cycle> eq 'reviewing' ) {
+    <jobsite.cycle> = 'idle';
+    <[base.logs]>->( 1, 'review complete, returning to idle' );
+}
+
+<[jobsite.state.persist]>;
+
+return { 'mode' => 'true', 'data' => "approved: $job_id" };
+
+#,,,.,.,,,.,,,,..,.,,,.,.,.,,,,,,,,,.,...,..,,..,,...,...,...,,,.,.,.,..,,,,.,
+#IF26EOQNWNZIVLHSZWIAQK5CYPK7IC2VLSLZXVMLINIO2TIKRXR5XYL5IHKLAZMMZY4WPO6UUNF2U
+#\\\|YKPGKINNIBPTW7LXADDGBHMQD45PFGRCL72B6HQAVXT5B4IXDGS \ / AMOS7 \ YOURUM ::
+#\[7]TUJ7GRGTL27Y6BXP4V327VCFH2GWTRGBQ553O7JEX4PXXNPF3YAA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

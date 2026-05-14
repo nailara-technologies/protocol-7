@@ -1,0 +1,60 @@
+## [:< ##
+
+# name  = jobsite.validate.assessment
+# descr = validate assessment result for data quality defects
+
+my $result  = shift // '';
+my $reason  = shift // '';
+my $summary = shift // '';
+
+my @defects;
+
+## check empty fields ##
+push @defects, qw| empty_reason |
+    unless length( $reason // '' ) > 0;
+push @defects, qw| empty_summary |
+    unless length( $summary // '' ) > 0;
+
+## language heuristics on combined text ##
+my $text = "$reason $summary";
+
+## english detection: common english stop-words that are unlikely in   ##
+## german job-assessment text. requires at least 2 matches for confidence. ##
+my @en_markers = qw| the and for with you your this that job work experience
+    skills team company position role remote location salary benefits |;
+my $en_hits = 0;
+for my $word (@en_markers) {
+    $en_hits++ if $text =~ m{\b$word\b}i;
+}
+
+## german counter-signals — if these are present, likely correct language ##
+my @de_markers = qw| der die das und für mit ist sind bei einem eine
+    arbeit erfahrung kenntnisse team firma stelle remote standort |;
+my $de_hits = 0;
+for my $word (@de_markers) {
+    $de_hits++ if $text =~ m{\b$word\b}i;
+}
+
+## flag as english if strong english signals and weak german signals    ##
+push @defects, qw| wrong_language_english |
+    if $en_hits >= 2 and $de_hits < 2;
+
+## chinese detection: han unicode range                                 ##
+push @defects, qw| wrong_language_chinese |
+    if $text =~ m{\p{Han}};
+
+## optional assertion validation — only if result looks like json ##
+if ( $result =~ m{^\s*\{.*\}\s*$}s and $result !~ m{"assertions"} ) {
+    push @defects, qw| missing_assertions |;
+}
+
+return {
+    'is_valid' => scalar(@defects) == 0,
+    'defects'  => \@defects,
+};
+
+#,,,.,,,,,..,,.,.,.,.,,,.,...,.,,,.,.,,,.,.,,,..,,...,..,,..,,,,.,...,.,,,,,,,
+#ODPHVXKNVXWBONYOD5UEHM6S32IMYGQRGAS6LBAE54IYQ2YS5VL5PVS5W6OZDN3G47FLZ7SYSPWTK
+#\\\|AN5X2WUT675SZU37K6TOOMAQ7ISGGSKAYKAEBJWXHU7Z3Q3IK4A \ / AMOS7 \ YOURUM ::
+#\[7]TRTIVYO67SBEYA7YEI7VLA2HE5W4YOAW3GEE5SUFAZIHRMI3RIBA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

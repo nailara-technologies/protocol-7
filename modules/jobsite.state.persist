@@ -1,0 +1,30 @@
+## [:< ##
+
+# name  = jobsite.state.persist
+# descr = save scan state to disk
+
+my $payload = {
+    'cycle'     => <jobsite.cycle>     // 'idle',
+    'last_scan' => <jobsite.last_scan> // 0,
+    'tasks'     => <jobsite.tasks>     // {},
+};
+
+my $yaml;
+eval { $yaml = YAML::XS::Dump($payload) };
+if ($@) {
+    <[base.logs]>->( 0, 'jss.persist: serialize error: %s', $@ );
+    return FALSE;
+}
+
+my $written = <[file.zenka_dir.write]>->( 'scan-state.yaml', \$yaml );
+if ( not defined $written ) {
+    <[base.logs]>->( 0, 'jss.persist: write failed' );
+    return FALSE;
+}
+return TRUE;
+
+#,,,,,,,,,.,.,...,,,.,.,,,...,..,,...,..,,,,,,..,,...,...,.,.,,.,,,..,...,..,,
+#6YC6AKIIFBPFVGPKA4ETOMCOPPEDNFIILQYVTY2LRXSNMSWYTDF6ONQCKWWN6DBYBZQQX43WAAAFA
+#\\\|T7Y26IWRXEX5EFD7TYKQYZZAGNV24TNCNE6SQT22IEGCSV22J2H \ / AMOS7 \ YOURUM ::
+#\[7]IJFT6DJK5LM46UIULQUNBXZ2EM3MTONPJVEX7Q7QUPSKIOASK2AQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

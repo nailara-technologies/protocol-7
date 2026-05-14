@@ -1,0 +1,52 @@
+## [:< ##
+
+# name  = jobsite.state.load
+# descr = restore scan state from disk
+
+my $sref = <[file.zenka_dir.load]>->('scan-state.yaml');
+return if not defined $sref;
+
+my $saved;
+eval { $saved = YAML::XS::Load( $sref->$* ) };
+if ($@) {
+    <[base.logs]>->( 0, 'jss.load: parse error: %s', $@ );
+    return;
+}
+return if ref $saved ne 'HASH';
+
+<jobsite.last_scan> = $saved->{'last_scan'} // 0;
+<jobsite.tasks>     = $saved->{'tasks'}     // {};
+
+## scanning/assessing states don't survive restart — reset to idle
+my $cycle = $saved->{'cycle'} // 'idle';
+if ( $cycle =~ m{^(?:scanning|assessing)$} ) {
+    <[base.logs]>->( 1, 'jss.load: interrupted "%s" reset to idle', $cycle );
+    $cycle = 'idle';
+}
+<jobsite.cycle> = $cycle;
+
+## reset task stages that were in-flight — they won't resume automatically ##
+my $tasks       = <jobsite.tasks> // {};
+my $reset_count = 0;
+for my $id ( keys %{$tasks} ) {
+    my $st = $tasks->{$id}{'stage'} // '';
+    next unless $st =~ m{^(?:queued|assessing)$};
+    $tasks->{$id}{'stage'} = 'idle';
+    $reset_count++;
+}
+<[base.logs]>->(
+    1, 'jss.load: reset %d in-flight tasks to idle', $reset_count
+) if $reset_count;
+
+<[base.logs]>->(
+    1,
+    'jss.load: restored %d jobs, cycle=%s',
+    scalar keys %{<jobsite.tasks>},
+    <jobsite.cycle>
+);
+
+#,,.,,,.,,..,,.,,,.,,,..,,..,,...,...,.,.,.,.,..,,...,...,.,.,...,,.,,,.,,,.,,
+#JSGFTAZMVRVC7APZVDKFPIZ3N4QBNPQOXIQZI6NCJIENKKIJBEKRP6QUGRKU7MVRWNW4U7Y7EO35O
+#\\\|KTAZNU4JCIUPIOODCLG2PSMDWJVYYQYPKGPJBPUEOV63LGTN23C \ / AMOS7 \ YOURUM ::
+#\[7]2DJQP3QZXTAQOLYE6T6KLJZFCSGNT2FXPOE7KFDL5PGGB7C75YBQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
