@@ -43,8 +43,10 @@ push @defects, qw| wrong_language_english |
 push @defects, qw| wrong_language_chinese |
     if $text =~ m{\p{Han}};
 
-## optional assertion validation — only if result looks like json ##
-if ( $result =~ m{^\s*\{.*\}\s*$}s and $result !~ m{"assertions"} ) {
+## optional assertion validation — yaml or json structured output ##
+my $looks_structured = $result =~ m{^\s*score\s*:}m
+    || $result =~ m{^\s*\{.*\}\s*$}s;
+if ( $looks_structured and $result !~ m{assertions\s*:} ) {
     push @defects, qw| missing_assertions |;
 }
 
@@ -53,8 +55,8 @@ return {
     'defects'  => \@defects,
 };
 
-#,,,.,,,,,..,,.,.,.,.,,,.,...,.,,,.,.,,,.,.,,,..,,...,..,,..,,,,.,...,.,,,,,,,
-#ODPHVXKNVXWBONYOD5UEHM6S32IMYGQRGAS6LBAE54IYQ2YS5VL5PVS5W6OZDN3G47FLZ7SYSPWTK
-#\\\|AN5X2WUT675SZU37K6TOOMAQ7ISGGSKAYKAEBJWXHU7Z3Q3IK4A \ / AMOS7 \ YOURUM ::
-#\[7]TRTIVYO67SBEYA7YEI7VLA2HE5W4YOAW3GEE5SUFAZIHRMI3RIBA 7  DATA SIGNATURE ::
+#,,,.,.,.,,,.,,,,,...,.,,,,,.,,,.,,,,,,,.,...,..,,...,..,,...,,,,,,.,,.,,,,.,,
+#K6XJQPKDJVTX6SDEMV7W5DQFMV7GD7FQJ6HO7PR6DINDV6TRW6ATMUMNXV2IO7VUW3Z7U5OKQP4E4
+#\\\|EUR6I6AOKOVJSV5ZOXKEHNOVE6OF5YQSDMF5NNDQDAFATMBNYO3 \ / AMOS7 \ YOURUM ::
+#\[7]I4FKSN7CIQY2KBO5MWSGGLMAN2Z3BC6IJTGXYPWQMXILJ3L5DSAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

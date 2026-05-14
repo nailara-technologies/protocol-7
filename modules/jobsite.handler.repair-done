@@ -31,9 +31,17 @@ if ( lc($mode) eq qw| false | ) {
     return;
 }
 
-## extract fields same as assess-done ##
-my ( $score, $reason, $summary ) = ( '', '', '' );
-if ( $result =~ m{\{.*?"(?:fit_)?score"\s*:\s*(\d+(?:\.\d+)?)}s ) {
+## parse yaml result — fall back to json regex for backward compat ##
+my ( $score, $reason, $summary, $parsed ) = ( '', '', '', undef );
+my $yaml_src = $result;
+$yaml_src =~ s{^.*?(?=^score\s*:)}{}ms;
+$parsed = eval { YAML::XS::Load($yaml_src) } if length $yaml_src;
+if ( ref $parsed eq 'HASH' ) {
+    $score   = $parsed->{'score'}   // '';
+    $reason  = $parsed->{'reason'}  // '';
+    $summary = $parsed->{'summary'} // '';
+} elsif ( $result =~ m{\{.*?"(?:fit_)?score"\s*:\s*(\d+(?:\.\d+)?)}s ) {
+    ## legacy json fallback ##
     $score = $1;
     ($reason) = ( $result =~ m{"reason(?:s)?"\s*:\s*"([^"]+)"} );
     ($reason) //= do {
@@ -50,24 +58,37 @@ my $validation
     = <[jobsite.validate.assessment]>->( $result, $reason, $summary );
 
 if ( $validation->{'is_valid'} ) {
-    ## parse assertions if present ##
+    ## parse assertions — from yaml parse or legacy json regex ##
     my $assertions = $job_rec->{'assertions'} // {};
-    if (   $result =~ m{"assertions"\s*:\s*(\{.*?\})\s*[,\}]\s*$}s
+    if ( ref $parsed eq 'HASH' && ref $parsed->{'assertions'} eq 'HASH' ) {
+        my $pa = $parsed->{'assertions'};
+        if ( ref $pa->{'suggest'} eq 'HASH' ) {
+            for my $k (qw| apply delete archive |) {
+                $assertions->{'suggest'}{$k}
+                    = $pa->{'suggest'}{$k} ? 'true' : 'false'
+                    if exists $pa->{'suggest'}{$k};
+            }
+        }
+        if ( ref $pa->{'dimensions'} eq 'HASH' ) {
+            for my $dim ( keys %{ $pa->{'dimensions'} } ) {
+                my $d = $pa->{'dimensions'}{$dim};
+                $assertions->{'dimensions'}{$dim}{'score'} = $d->{'score'}
+                    // 'unasserted';
+                $assertions->{'dimensions'}{$dim}{'reason'} = $d->{'reason'}
+                    // '';
+            }
+        }
+    } elsif ( $result =~ m{"assertions"\s*:\s*(\{.*?\})\s*[,\}]\s*$}s
         or $result =~ m{"assertions"\s*:\s*(\{.*\})\s*}s ) {
+        ## legacy json fallback ##
         my $assert_json = $1;
         if ( $assert_json =~ m{"suggest"\s*:\s*\{(.*?)\}}s ) {
             my $suggest_block = $1;
-            if ( $suggest_block =~ m{"apply"\s*:\s*(true|false)}i ) {
-                $assertions->{'suggest'}{'apply'}
-                    = lc($1) eq 'true' ? 'true' : 'false';
-            }
-            if ( $suggest_block =~ m{"delete"\s*:\s*(true|false)}i ) {
-                $assertions->{'suggest'}{'delete'}
-                    = lc($1) eq 'true' ? 'true' : 'false';
-            }
-            if ( $suggest_block =~ m{"archive"\s*:\s*(true|false)}i ) {
-                $assertions->{'suggest'}{'archive'}
-                    = lc($1) eq 'true' ? 'true' : 'false';
+            for my $k (qw| apply delete archive |) {
+                $assertions->{'suggest'}{$k}
+                    = $suggest_block =~ m{"$k"\s*:\s*(true|false)}i
+                    ? ( lc($1) eq 'true' ? 'true' : 'false' )
+                    : undef;
             }
         }
         if (   $assert_json =~ m{"dimensions"\s*:\s*\{(.*?)\}\s*[,\}]}s
@@ -78,13 +99,12 @@ if ( $validation->{'is_valid'} ) {
                 remote-flexibility career-growth tech-stack team-structure |
             ) {
                 if ( $dim_block =~ m{"$dim"\s*:\s*\{(.*?)\}}s ) {
-                    my $d    = $1;
-                    my ($ds) = ( $d =~ m{"score"\s*:\s*(\d+(?:\.\d+)?)} );
-                    my ($dr) = ( $d =~ m{"reason"\s*:\s*"([^"]+)"} );
+                    my $d = $1;
                     $assertions->{'dimensions'}{$dim}{'score'}
-                        = defined $ds ? $ds : 'unasserted';
+                        = ( $d =~ m{"score"\s*:\s*(\d+(?:\.\d+)?)} )[0]
+                        // 'unasserted';
                     $assertions->{'dimensions'}{$dim}{'reason'}
-                        = defined $dr ? $dr : '';
+                        = ( $d =~ m{"reason"\s*:\s*"([^"]+)"} )[0] // '';
                 }
             }
         }
@@ -126,7 +146,6 @@ if ( $validation->{'is_valid'} ) {
     $job_rec->{'repair_applied'} = TRUE;
 
     ## update site-yaml store ##
-    <[base.perlmod.autoload]>->('YAML::XS');
     my $store_file = '/var/protocol-7/site-yaml/store.yaml';
     if ( -f $store_file ) {
         my $store = eval { YAML::XS::LoadFile($store_file) } // {};
@@ -163,8 +182,8 @@ if ( <jobsite.pending_count> <= 0 ) {
 <[jobsite.state.persist]>;
 <[jobsite.dispatch.next]>;
 
-#,,,.,,..,...,,.,,...,,.,,,,.,...,.,.,,.,,,,,,..,,...,..,,,.,,.,,,.,.,.,.,,,,,
-#P3RWROAIGPMLLI6WI6J7QUO4KTMV5GPPIXOI6TRUZOESF2CHUDIR5LYXDWWBXRO3QEOPPJAULO5J4
-#\\\|EZDINJ52JU6KJOJS4WOQO44VAC4W43IHN5HAZPYQJZABJPPBP5L \ / AMOS7 \ YOURUM ::
-#\[7]AKJSDNJXGQM6SD7IWQCM2M3GUOLCK4JLLQD5OKSJUV55BDLADQBA 7  DATA SIGNATURE ::
+#,,,,,.,.,.,,,,.,,..,,,.,,,,.,.,,,,,.,.,,,,,.,..,,...,...,..,,.,,,...,,.,,..,,
+#NQAU3SL7FOLOK6YMMJUPMGU4URXP52ULNCSWOPSTN5M6PEA6LREVHPKNQ2AUIRBPTPP3T3AAF37IA
+#\\\|NTUG43AD3ZFH3ZMWKMMOUTMLTDJULSLKXXVOSWOO7O4UBEDBVA4 \ / AMOS7 \ YOURUM ::
+#\[7]AIXZUMM4JQY3GYEUFJLWXD2IBW6J2ZOI2EOR676XH7F5JEQRSWDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
