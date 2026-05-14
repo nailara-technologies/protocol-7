@@ -61,8 +61,12 @@ if ( not defined $text ) {
         <kimi.task.active_id> = undef;
     }
 
-    ## status change triggers watcher — handles reconnect scheduling
     <kimi.ws.status> = qw| disconnected |;
+
+    ##  watcher only fires if value changed —
+    ## call directly when already disconnected
+    <[kimi.connect.schedule_retry]>
+        if <kimi.session.was_ready> // FALSE;
     return;
 }
 
@@ -322,8 +326,8 @@ if ( not length($method) and length($msg_id) ) {
     }
 }
 
-#,,..,,.,,.,,,,,,,.,,,..,,,.,,,.,,,,.,,.,,.,.,.,.,...,...,,.,,,,.,..,,,..,.,.,
-#2DN2TH24ZG6D3PXLLKP74J55OK4YPC52A3PCKEZAJWPDNXRUC5LT6DQZB4UDJ62USKOWSGR2MNJKO
-#\\\|QQLTOXD22BD5XWH73U7SJGFQCE4TTICRYF73MQTKMQRNNNBB7LJ \ / AMOS7 \ YOURUM ::
-#\[7]EMQMYTLEJLCRM6UTVA5VM4DXHUUQWL6B7WIJPAU6GOLLNXZMAQDI 7  DATA SIGNATURE ::
+#,,..,.,.,.,.,,,.,..,,,,,,...,,,,,,,.,,..,,,,,.,.,...,...,.,.,.,,,..,,,,.,,,.,
+#ZDZIXF3N4GFI44WJ2GQSP26OT4AVR36MNNS43FBNRW75MA636PX5HZGMA5THEHOEDPIAA6BUDPGVY
+#\\\|4ONL3K2IVDKMX5RBXAYAWY5IZ7RXT2OKI725RANZBPD56VA2XK5 \ / AMOS7 \ YOURUM ::
+#\[7]LJFO3IWRTCIZI23QBKFTTRJ5UKULYM4WALJATZLYUHPBVX7PEACA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
