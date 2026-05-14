@@ -211,6 +211,41 @@
         models running on remote nodes participate transparently.
 
 
+##[ proposed expansions ]#####################################################
+
+    1. silent annotations ( :note: prefix )
+       messages starting with :note: are written to history but skip model
+       dispatch. useful for leaving TODOs, context hints, or "ignore the stub
+       above" markers without triggering another inference round.
+
+    2. cross-channel references ( :→#channel: )
+       inline syntax to quote the last N messages from another channel.
+       when models roam between #job-site-scan and #design-discussion, they
+       can pull context without copy-paste — channels stay honest.
+
+    3. per-channel system persona
+       a data/chat/channel/<name>/persona file containing plain-text context
+       injected before the rolling history on dispatch. #debug gets terse
+       technical voice, #docs gets narrative voice — channels become
+       meaningfully different rather than just namespaces.
+
+    4. search / grep across history ( -search / -grep )
+       bin/chat -search "backoff" -c main returns matching lines with indices,
+       so -clear-msg or -reply-to can target them. flat text is human-readable;
+       search makes it machine-usable too.
+
+    5. rolling model memory ( compress-and-summarize )
+       when a channel history exceeds N lines, summarize the oldest M lines
+       via the model itself, append the summary to
+       data/chat/model/<name>/memory, and archive the raw lines. gives
+       models persistent cross-channel context without unbounded growth.
+
+    6. message threading ( :reply-to:N: )
+       lightweight thread marker referring to history line index. in :all:
+       consensus mode, replies can be shown side-by-side AND threaded,
+       preventing flat-history confusion in long exchanges.
+
+
 ##[ open questions for kimi ]#################################################
 
     - preferred format for the history file : plain text vs JSONL vs custom ?
@@ -228,8 +263,8 @@
 
 #############################################################################
 
-#,,.,,..,,.,.,,,,,.,.,...,.,.,,,,,,.,,...,,..,..,,...,...,,..,.,.,,.,,,,.,.,.,
-#RUAJB7HSBRFVZQQM4TQ5NFFDG36SQ54CN2XTVJLOHRP4URWD6JYS22BECHAUUZTAZIDQ6R5WIU7QI
-#\\\|A2N7ZUKUCLWERXFALGKPGUVCHHZADRYKSWJRKCGYISQBXWTGFGK \ / AMOS7 \ YOURUM ::
-#\[7]VESZPEGMSLNQEVPF7ULCO2HYPGF6X2TNRNJSCUXEKDWX35UVO6BA 7  DATA SIGNATURE ::
+#,,..,,,,,,,.,...,,..,,,.,.,,,...,...,,.,,,..,..,,...,...,...,,..,,.,,,.,,,,.,
+#CVZPBA7PFL4GHQRLSGUL6QDVGGTBAVYQ3ZAAQNOJND4RES6BUI7XDOITJPPGIMVI53ZISKD3ILYIG
+#\\\|EMGZ4WTY6PNELMFRGJEEPCAEV4UG43UDQUF4RXL66WCQCLIZ7J2 \ / AMOS7 \ YOURUM ::
+#\[7]TQODFMYNYFK7MOKUFJ4NTYNBWAKEDYUPNW6DIHFOE3PXBWSIHUDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
