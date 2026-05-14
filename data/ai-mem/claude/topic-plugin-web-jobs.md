@@ -58,6 +58,27 @@ Web zenka template commands registered by init_code:
   <[web.jobs.stats]>    — summary counts per stage (reuses existing jobs.html.tmpl cmd)
   <[web.jobs.sync]>     — handles POST body, returns merge result
 
+## Session 24 architecture decisions (2026-05-14)
+
+**browser as pure render client** — no localStorage as source of truth; jobsite zenka
+owns all state. browser fetches on load, sends events back. loss of browser state = reload.
+sync relationships collapse to: jobsite zenka ↔ server ↔ other P7 nodes.
+
+**per-element YAML files** — one .yaml file per job record in /var/protocol-7/jobsite/jobs/
++ lightweight index.yaml. small models open one file, no tool gymnastics. web zenka
+assembles JSON transparently. each file individually signable for sync.
+
+**sync architecture** (three relationships, two trust boundaries):
+1. jobsite ↔ server: TOFU + C25519 signed per-element envelopes
+2. server ↔ other P7 nodes: same TOFU + link-upgrade (already tested)
+3. jobsite zenka ↔ jobsite zenka (future): same sync channel, clean upgrade
+TOFU infrastructure: plugin.auth.auth-keypair.validate-incoming-tofu already works.
+Incoming buffer: in-memory, bounded by entry count (~500), per-key, accept-sync-key
+replays buffer + pins key → auto-apply thereafter.
+
+**model output**: assessment prompt now outputs YAML (session 24), parseable directly
+into per-element files without conversion.
+
 ## Replaces
 
 - `bin/dev/export-jobs-json` — export script
@@ -72,8 +93,8 @@ Web zenka template commands registered by init_code:
 - jobs.vhost index.html fetches /jobs.json from web zenka endpoint
 - B32 backup naming uses `<[base.ntime.b32]>` — same as task/event timestamps
 
-#,,.,,,..,,,,,,,.,,..,,,,,.,,,...,.,,,,..,..,,..,,...,...,...,.,.,,.,,..,,...,
-#W33QBIIIMDBFMKRCPGAE7SOLRF5N56VS7AJQEE2UVSR75C652EHOWXHTWLAMYQ3B6KMK43XOZRTRK
-#\\\|EGZ2GIPQAEVZYPJO4YFZYNHEMTYXSDAWVOKRG5GV4HAQY6X6G2S \ / AMOS7 \ YOURUM ::
-#\[7]2URHGCAN6KHHS2FEN3QPS74NHB7N6HZHIUS2F3MMQXDXJ4PMPUCY 7  DATA SIGNATURE ::
+#,,..,..,,.,.,..,,.,.,.,,,,..,,,,,...,.,,,,.,,..,,...,...,...,.,.,..,,...,.,.,
+#QMJE6P2IONGVRUS4K5GY26MNAWWCNISPRTZH74RHNPGAU76DF7IUUHXXFX46G7JKRTCXTR7AAEEBU
+#\\\|FECAFMBFC3P6CX4GGDRP5JCKEF5FSXCYRE2BLBPMSXYPWNBWIRK \ / AMOS7 \ YOURUM ::
+#\[7]ASXSNZEWJDEP2JKXAGJJXFGNZUJ2PM4APMCADMFODBOQQX3N6SCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
