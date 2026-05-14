@@ -1,190 +1,7 @@
 ## [:< ##
 
 # name  = plugin.web.jobs.init_code
-# descr = initialize jobs web plugin, register template command aliases
-
-## initialize job pipeline state manager ##
-my $pipeline_state = $data{'plugin.web.jobs.pipeline'} || {
-    state => 'idle',
-    jobs => [],
-    running => 0,
-    paused => 0,
-    started_at => '',
-    completed_at => '',
-    errors => []
-};
-
-my $state_key = 'plugin.web.jobs.pipeline';
-
-# Pipeline state management functions ##
-
-## start_job_pipeline ##
-my $start_job_pipeline = sub {
-    my ($jobs, $config) = @_;
-    
-    if (!@jobs) {
-        $pipeline_state->{state} = 'idle';
-        return { mode => qw| false |, data => 'no jobs provided' };
-    }
-    
-    if ($pipeline_state->{state} eq 'running') {
-        $pipeline_state->{errors}++;
-        <[base.log]>->( 2, 'pipeline already running: %s', $state_key );
-        return { mode => qw| false |, data => 'pipeline already running' };
-    }
-    
-    my @job_ids = @jobs;
-    
-    # Validate jobs
-    for my $job (@job_ids) {
-        unless ($job->{id} && $job->{command}) {
-            $pipeline_state->{errors}++;
-            <[base.log]>->( 1, 'invalid job: %s', $job );
-        }
-    }
-    
-    # Update state
-    $pipeline_state->{state} = 'running';
-    $pipeline_state->{running} = @job_ids;
-    $pipeline_state->{started_at} = get_current_time();
-    $pipeline_state->{jobs} = [ @job_ids ];
-    
-    # Store in data tree for persistence
-    $data{$state_key}{state} = $pipeline_state->{state};
-    $data{$state_key}{running} = $pipeline_state->{running};
-    $data{$state_key}{started_at} = $pipeline_state->{started_at};
-    
-    <[base.log]>->( 1, 'pipeline started: %d jobs, %s', @job_ids, $state_key );
-    
-    return { mode => qw| true |, data => { jobs => \@job_ids, count => @job_ids } };
-};
-
-## pause_job_pipeline ##
-my $pause_job_pipeline = sub {
-    unless ($pipeline_state->{state} eq 'running') {
-        return { mode => qw| false |, data => 'pipeline not running' };
-    }
-    
-    $pipeline_state->{paused} = 1;
-    $pipeline_state->{state} = 'paused';
-    
-    $data{$state_key}{paused} = 1;
-    $data{$state_key}{state} = 'paused';
-    
-    <[base.log]>->( 1, 'pipeline paused: %s', $state_key );
-    
-    return { mode => qw| true |, data => { paused => 1 } };
-};
-
-## resume_job_pipeline ##
-my $resume_job_pipeline = sub {
-    unless ($pipeline_state->{state} eq 'paused') {
-        return { mode => qw| false |, data => 'pipeline not paused' };
-    }
-    
-    $pipeline_state->{paused} = 0;
-    $pipeline_state->{state} = 'running';
-    
-    $data{$state_key}{paused} = 0;
-    $data{$state_key}{state} = 'running';
-    
-    <[base.log]>->( 1, 'pipeline resumed: %s', $state_key );
-    
-    return { mode => qw| true |, data => { resumed => 1 } };
-};
-
-## cancel_job_pipeline ##
-my $cancel_job_pipeline = sub {
-    unless ($pipeline_state->{state} eq 'running') {
-        return { mode => qw| false |, data => 'pipeline not running' };
-    }
-    
-    $pipeline_state->{state} = 'cancelled';
-    $pipeline_state->{completed_at} = get_current_time();
-    
-    $data{$state_key}{state} = 'cancelled';
-    $data{$state_key}{completed_at} = $pipeline_state->{completed_at};
-    
-    <[base.log]>->( 1, 'pipeline cancelled: %s', $state_key );
-    
-    return { mode => qw| true |, data => { cancelled => 1 } };
-};
-
-## get_pipeline_status ##
-my $get_pipeline_status = sub {
-    my $result = {
-        state => $pipeline_state->{state},
-        running => $pipeline_state->{running},
-        paused => $pipeline_state->{paused},
-        jobs => $pipeline_state->{jobs} || [],
-        started_at => $pipeline_state->{started_at},
-        completed_at => $pipeline_state->{completed_at},
-        errors => $pipeline_state->{errors} || 0
-    };
-    
-    return { mode => qw| true |, data => $result };
-};
-
-## reset_pipeline ##
-my $reset_pipeline = sub {
-    $pipeline_state = {
-        state => 'idle',
-        jobs => [],
-        running => 0,
-        paused => 0,
-        started_at => '',
-        completed_at => '',
-        errors => []
-    };
-    
-    delete $data{$state_key}{state};
-    delete $data{$state_key}{running};
-    delete $data{$state_key}{started_at};
-    delete $data{$state_key}{completed_at};
-    
-    <[base.log]>->( 2, 'pipeline reset: %s', $state_key );
-    
-    return { mode => qw| true |, data => { reset => 1 } };
-};
-
-## register_pipeline_callbacks ##
-my $register_pipeline_callbacks = sub {
-    my ($on_start, $on_complete) = @_;
-    
-    $data{'plugin.web.jobs.callbacks'} = {
-        on_start => $on_start,
-        on_complete => $on_complete
-    } if $on_start || $on_complete;
-    
-    return { mode => qw| true |, data => { callbacks => 1 } };
-};
-
-## execute_pipeline ##
-my $execute_pipeline = sub {
-    my ($job_id) = @_;
-    
-    unless ($pipeline_state->{state} eq 'running') {
-        <[base.log]>->( 1, 'cannot execute: pipeline state is %s', $pipeline_state->{state} );
-        return { mode => qw| false |, data => 'pipeline not running' };
-    }
-    
-    # Check if job is in pipeline
-    my $jobs = $pipeline_state->{jobs} || [];
-    my $found = 0;
-    for my $job (@$jobs) {
-        if ($job eq $job_id) {
-            $found = 1;
-            last;
-        }
-    }
-    
-    unless ($found) {
-        <[base.log]>->( 1, 'job not found in pipeline: %s', $job_id );
-        return { mode => qw| false |, data => 'job not in pipeline' };
-    }
-    
-    return { mode => qw| true |, data => 'job ready to execute' };
-};
+# descr = initialize jobs web plugin, register template aliases
 
 ## register template command aliases for use in .tmpl files ##
 for my $suffix (qw| list stats |) {
@@ -193,23 +10,17 @@ for my $suffix (qw| list stats |) {
     $code{$alias} = $code{$full} if exists $code{$full};
 }
 
-# Export pipeline functions ##
-$code{'plugin.web.jobs.pipeline.start'} = $start_job_pipeline;
-$code{'plugin.web.jobs.pipeline.pause'} = $pause_job_pipeline;
-$code{'plugin.web.jobs.pipeline.resume'} = $resume_job_pipeline;
-$code{'plugin.web.jobs.pipeline.cancel'} = $cancel_job_pipeline;
-$code{'plugin.web.jobs.pipeline.status'} = $get_pipeline_status;
-$code{'plugin.web.jobs.pipeline.reset'} = $reset_pipeline;
-$code{'plugin.web.jobs.pipeline.execute'} = $execute_pipeline;
-$code{'plugin.web.jobs.pipeline.callbacks'} = $register_pipeline_callbacks;
+$code{'web.jobs.data'} = $code{'plugin.web.jobs.handler.get'}
+    if exists $code{'plugin.web.jobs.handler.get'};
+$code{'web.jobs.sync'} = $code{'plugin.web.jobs.handler.sync'}
+    if exists $code{'plugin.web.jobs.handler.sync'};
 
-# Initialize logging ##
-<[base.log]>->( 1, 'plugin.web.jobs : pipeline state manager initialized' );
+<[base.logs]>->( 1, 'plugin.web.jobs : initialized' );
 
 0;
 
-#,,,,,.,,,,,,,,.,,.,,,,..,,..,,..,,,,,.,,,.,.,..,,...,...,,..,,.,,...,,,.,.,,,
-#6WJO2IIDWJ4E6SR22DXNMBB35GI2PAS3RHJWXKKGBHU2VQL5S6745X5WEBP4XHFCYU6LXVNXARQ7S
-#\\\|F2SDNO72J4CEWUGCVEDLWETVNZNQNTSG45JT4MXJ4JZBMRFFX36 \ / AMOS7 \ YOURUM ::
-#\[7]MRENESQJF7WPMU56RV43YFYP3R5NFFMI3LQBRBCCWVUV6FCU24DQ 7  DATA SIGNATURE ::
+#,,,,,,.,,.,.,...,..,,,.,,,,.,.,.,,,,,...,,.,,..,,...,...,,..,.,.,,,.,.,,,.,.,
+#3UE6KW4LTD7QQHKLKIJKKLVBGT2XVQ6EIKEQ64SIZPGFNG3IB35WD57EQ6D4LXSWGJI5IVG5WHBOS
+#\\\|LAVME7EZB7MDDXRJ3MOZU2SV6FZAV2MOUO2PF2GV7L6GSSTPGHA \ / AMOS7 \ YOURUM ::
+#\[7]DZXJGBRX4OIXOKOWYMCGSM3ACPYIL7EYWKCLISWTXBBNQFXJIQBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
