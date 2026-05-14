@@ -1,13 +1,11 @@
 ## [:< ##
 
-# name  = plugin.web.jobs.handler.get
-# descr = serve all jobs as JSON array sorted by fetched_at
+# name  = plugin.web.jobs.data
+# descr = return all jobs as JSON for GET endpoint / template
 
 my $id = shift;
 
 my $session = $data{'session'}->{$id};
-
-<[base.perlmod.autoload]>->('JSON::XS');
 
 my $jobs = <[jobsite.job.load_all]>;
 
@@ -38,8 +36,8 @@ $session->{'buffer'}->{'output'} .= $reply_body;
 
 return 2;
 
-#,,,.,,,,,.,.,,,.,,.,,.,.,...,.,,,...,,..,,,,,..,,...,.,.,.,,,.,,,.,,,..,,,,.,
-#25K3JKR3ZVGTCTG5GO5ZUVSEUVG4PRSDPOEQQP7HZJBKYQUNDZQDAOZ5NFTGRQ45CJEOXUGJSRQKC
-#\\\|QZ4I5SPOG4SAZUS5EHZXTJKZ264527FJMZ74GCV3PIT6DZ62Q5A \ / AMOS7 \ YOURUM ::
-#\[7]TYC2PZLGT5ECRGPKP7JVY2KZKQMTMXGG3GG4SRFXH2ABELAXIMCQ 7  DATA SIGNATURE ::
+#,,,,,,,.,,..,.,.,,.,,.,,,.,,,,,.,,,.,,,,,..,,..,,...,...,...,.,.,.,,,,.,,,,.,
+#3KKMW74VMVO3PCA5JFRJ6YR3HKPU34D3KA64D4SNLEWDB7SAKMSANLWE73B4Z4LV3QILYMRXAUEHK
+#\\\|NNH7C62WXCD3UUDT7VSMIKLUXZRYVP5WG7A3QGELBKH6QSV7II3 \ / AMOS7 \ YOURUM ::
+#\[7]J25JD4YKJW652J6UYAPZZIABMESOG4ER7WL3KHWPCBGOWRM5UGDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -63,6 +63,42 @@ if ( exists $data{'route_cache'}->{$cache_key} ) {
     return $cached_route;
 }
 
+## Route 0: registered route registry (exact, then prefix, then ANY) ##
+my $registry = $data{'httpd'}{'route'} // {};
+for my $match_type (qw| exact prefix |) {
+    my $by_method = $registry->{$match_type} // {};
+    for my $try_method ( $method, 'ANY' ) {
+        my $routes = $by_method->{$try_method} // {};
+        my $sub_name;
+        if ( $match_type eq 'exact' ) {
+            $sub_name = $routes->{$path};
+        } else {
+            ## longest matching prefix wins ##
+            my $best;
+            for my $pfx ( sort { length($b) <=> length($a) } keys %$routes ) {
+                if ( index( $path, $pfx ) == 0 ) {
+                    $best = $routes->{$pfx};
+                    last;
+                }
+            }
+            $sub_name = $best;
+        }
+        if ( defined $sub_name ) {
+            <[base.logs]>->(
+                1, '[%d] route registry [%s:%s] → %s',
+                $session_id, $try_method, $path, $sub_name
+            );
+            my $route = {
+                handler      => $sub_name,
+                handler_args => {},
+                cache_ttl    => 0,
+            };
+            $data{'route_cache'}->{$cache_key} = $route;
+            return $route;
+        }
+    }
+}
+
 ## Route 1: ACME challenges (Let's Encrypt HTTP-01 validation) ##
 ## Pattern: /.well-known/acme-challenge/{token}
 if ( $path =~ m|^/.well-known/acme-challenge/(.+)$| ) {
@@ -134,8 +170,8 @@ my $route = {
 $data{'route_cache'}->{$cache_key} = $route;
 return $route;
 
-#,,,,,.,,,,..,,,,,,.,,,.,,..,,..,,.,.,...,...,..,,...,...,.,.,,,.,,.,,.,.,,,,,
-#UKOLJVLQUIBASMSTHTBYWSHOVKGX5VI2PV4UX6CWXLUN4N7SQPWRQCMXRCR334INQPNERZGR4NOZ4
-#\\\|EDRAYUP2YMXBIN5OLEQLA2LN2AQXONQQDLJFAT6DTBNXU5J27LS \ / AMOS7 \ YOURUM ::
-#\[7]35VCB6KBP4BNTHETJDHOIZAXWWNHFEROCYK562WDEEAO4FBIGACI 7  DATA SIGNATURE ::
+#,,,.,.,.,,,.,,,,,..,,,,.,,.,,,..,,,.,..,,.,.,..,,...,...,,.,,,..,,..,..,,,.,,
+#IAGRGT3U3RJAMI4ZHK3BWX3DM34NCCWCAFUV7WRQBXBFFG33AWVZGNBTZWVFB2KHLPBAHMTUXSWDA
+#\\\|N3A2ZAOGRZZTHCBVNQUDUJ6Y5NLDJH4HYQHNDEGVWQWIND6RNT2 \ / AMOS7 \ YOURUM ::
+#\[7]FZVFSAFP3PPNND635EHGE6LRC6UAI3SWMK2BJEAGEO7NOCIVZIAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

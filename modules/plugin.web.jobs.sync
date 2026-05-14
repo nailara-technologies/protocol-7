@@ -1,6 +1,6 @@
 ## [:< ##
 
-# name  = plugin.web.jobs.handler.sync
+# name  = plugin.web.jobs.sync
 # descr = handle POST delta sync for a single job record
 
 my $id = shift;
@@ -9,8 +9,6 @@ my $session = $data{'session'}->{$id};
 
 my $body = $session->{'buffer'}->{'input'} // '';
 $session->{'buffer'}->{'input'} = '';
-
-<[base.perlmod.autoload]>->('JSON::XS');
 
 my $delta = eval { JSON::XS::decode_json($body) };
 if ( $@ or ref $delta ne 'HASH' ) {
@@ -92,8 +90,8 @@ $session->{'buffer'}->{'output'} .= $reply_body;
 
 return 2;
 
-#,,.,,.,,,..,,,..,...,.,,,...,..,,...,,,.,,,.,..,,...,...,...,,..,.,.,.,,,..,,
-#FI5KRMUPIJON62EKMKVDZMGM63ROW2CCFPKNS3RR3PNSJ7QBILA4OFDDHSCCXGHNJDYCAHXAMJVHA
-#\\\|U7IJD6XRFL62OISQFKJCO3AY3NE4JLDC6JRBFJN2T7DG3VXKQLQ \ / AMOS7 \ YOURUM ::
-#\[7]GEQFF44HL7H7QFFGRXUUVVKLAL5K3HOHMHVUY4XUJWC2XBFZXOBI 7  DATA SIGNATURE ::
+#,,..,,,.,,,,,,.,,,.,,...,...,,,.,.,.,.,.,..,,..,,...,..,,...,,..,.,.,,.,,,.,,
+#OE43WXT5E6X22JWW3MPNU5B3PWECL2WF7ZHGMKHNCLC7J747FURARITWB4L23DZHISLFJDZ2ZAXG2
+#\\\|T3WU4GYQJUCRFNWQYROY2FE5GARKCYQLNNHAB4WW7INAQ5JYB25 \ / AMOS7 \ YOURUM ::
+#\[7]MVOSO4NHQEVTMSQ7SSXINPZEPP7BGI4526ORRCPLP3AGSYJUBGCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

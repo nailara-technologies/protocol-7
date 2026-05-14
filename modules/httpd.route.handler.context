@@ -1,0 +1,41 @@
+## [:< ##
+
+# name  = httpd.route.handler.context
+# descr = visualization context update — zoom + intent from browser
+
+my $id      = shift;
+my $session = $data{'session'}->{$id};
+
+my $body = $session->{'buffer'}->{'input'} // '';
+$session->{'buffer'}->{'input'} = '';
+
+<[protocol-7.route-send]>->(
+    {   qw| command |   => qw| web.context |,
+        qw| call_args | => { qw| args | => $body },
+    }
+);
+
+## force close — body may arrive after headers in separate chunk,
+## keeping alive would bleed body bytes into next request parse ##
+$session->{'http'}->{'close'} = 1;
+
+my $reply_body   = qw| {} |;
+my $reply_header = {
+    qw| Content-Type   | => qw| application/json |,
+    qw| Content-Length | => length($reply_body),
+    qw| Connection     | => qw| close |,
+};
+
+$session->{'buffer'}->{'output'}
+    .= <[httpd.new_header]>->( 200, $reply_header );
+$session->{'buffer'}->{'output'} .= $reply_body;
+
+return 2;
+
+#,,.,,,.,,..,,...,,,.,,..,,,,,.,,...,,.,,.,.,..,,...,..,,...,,...,,,.,,,.,.,,,,
+
+#,,,,,.,.,.,.,.,,,.,.,..,,.,.,,.,,,.,,...,.,.,..,,...,..,,..,,,,,,.,,,.,,,...,
+#MQOYVUQ5PMJPPHJ6PFAF4EEHTIMITZO6ZZG3RNVDWAB3VFKYCYPWQ6CP4YAG3NMGSSAKIWUZY7JTK
+#\\\|KGNHQWCJCK3P7BRWD3TOY5ZI722M52XL3XRKHO3MJQ7X7KNBKCQ \ / AMOS7 \ YOURUM ::
+#\[7]44ZHEYGQM575MWEAAUCH2TUWW7F4V5F6G27KATMG7RWQRA64RODY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
