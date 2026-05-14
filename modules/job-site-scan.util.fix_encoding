@@ -9,6 +9,11 @@ return $s unless length $s;
 ## load encoding candidates from centralized map ##
 my $enc_list = <[base.language.encoding_map]>->($lang);
 
+## east asian languages: validate-not-substitute path ##
+## do NOT run ja/zh/ko through latin/cyrillic FFFD bigram repair ##
+my $is_east_asian
+    = ( $lang =~ m{^(?:ja|zh|ko|japanese|chinese|korean)$} ) ? 1 : 0;
+
 ## bigram context tables — compact alternative to word lists ##
 ## prev/next are sets of chars that commonly surround each special char ##
 ##
@@ -71,21 +76,8 @@ sub _score_candidate {
     return $score;
 }
 
-##[ BUILD SPECIAL CHAR SET FROM ENCODING ]#####################################
-## extract all non-ascii chars the encoding maps to — these are FFFD candidates
-
-sub _encoding_special_chars {
-    my $enc   = shift;
-    my %seen  = ();
-    my @chars = ();
-    for my $byte ( 0x80 .. 0xFF ) {
-        my $uni
-            = eval { Encode::decode( $enc, chr($byte), Encode::FB_CROAK ) };
-        next unless defined $uni and not $@ and length $uni;
-        push @chars, $uni unless $seen{$uni}++;
-    }
-    return @chars;
-}
+## _encoding_special_chars now lives in base.language.heuristic ##
+## imported here for FFFD candidate generation ##
 
 ##[ REPAIR: MOJIBAKE ]#########################################################
 ## utf-8 flag set, contains classic latin-1-misread utf-8 sequences ##
@@ -117,45 +109,74 @@ if ( utf8::is_utf8($s) and $s =~ /[\xC3\xC2][\x80-\xBF]|\x{00C3}|\x{00C2}/ ) {
 ## use context-scored candidate set from the target encoding's special chars ##
 
 if ( utf8::is_utf8($s) and $s =~ /\x{FFFD}/ ) {
-    my @candidates = _encoding_special_chars( $enc_list->[0] );
-    my $bigrams    = $lang_bigrams{$lang} // {};
-    my $repair     = $s;
-    my $pos        = 0;
+    if ($is_east_asian) {
+        ## east asian: try each encoding, validate decoded result ##
+        my $repaired = 0;
+        for my $enc ( @{$enc_list} ) {
+            my $decoded
+                = eval { Encode::decode( $enc, $s, Encode::FB_CROAK ) };
+            next unless defined $decoded and not $@;
+            ## validate: plausible kana/kanji/hangul ratio? ##
+            my $kana = 0;
+            $kana++ while $decoded =~ /[\x{3040}-\x{309F}\x{30A0}-\x{30BF}]/g;
+            my $kanji = 0;
+            $kanji++ while $decoded =~ /[\x{4E00}-\x{9FFF}]/g;
+            my $hangul = 0;
+            $hangul++ while $decoded =~ /[\x{AC00}-\x{D7AF}]/g;
+            my $total_cjk = $kana + $kanji + $hangul;
+            my $total_len = length($decoded);
+            ## accept if > 20% of text is recognizable east asian chars ##
+            if ( $total_len > 0 and $total_cjk / $total_len > 0.20 ) {
+                $s        = $decoded;
+                $repaired = 1;
+                last;
+            }
+        }
+        ## if no encoding validated, strip replacement chars as last resort ##
+        $s =~ s/\x{FFFD}//g unless $repaired;
+    } else {
+        ## latin/cyrillic: context-scored bigram substitution ##
+        my @candidates
+            = <[base.language.encoding_special_chars]>->( $enc_list->[0] );
+        my $bigrams = $lang_bigrams{$lang} // {};
+        my $repair  = $s;
+        my $pos     = 0;
 
-    while ( $repair =~ /\x{FFFD}/g ) {
-        my $at   = pos($repair) - 1;
-        my $prev = $at > 0 ? substr( $repair, $at - 1, 1 ) : undef;
-        my $next
-            = $at < length($repair) - 1
-            ? substr( $repair, $at + 1, 1 )
-            : undef;
+        while ( $repair =~ /\x{FFFD}/g ) {
+            my $at   = pos($repair) - 1;
+            my $prev = $at > 0 ? substr( $repair, $at - 1, 1 ) : undef;
+            my $next
+                = $at < length($repair) - 1
+                ? substr( $repair, $at + 1, 1 )
+                : undef;
 
-        ## skip adjacent filler or non-alpha context — too ambiguous ##
-        next
-            if ( defined $prev and $prev =~ /\x{FFFD}/ )
-            or ( defined $next and $next =~ /\x{FFFD}/ );
+            ## skip adjacent filler or non-alpha context — too ambiguous ##
+            next
+                if ( defined $prev and $prev =~ /\x{FFFD}/ )
+                or ( defined $next and $next =~ /\x{FFFD}/ );
 
-        my $best_char  = undef;
-        my $best_score = 0;
+            my $best_char  = undef;
+            my $best_score = 0;
 
-        for my $candidate (@candidates) {
-            my $score
-                = _score_candidate( $candidate, $prev, $next, $bigrams );
-            if ( $score > $best_score ) {
-                $best_score = $score;
-                $best_char  = $candidate;
+            for my $candidate (@candidates) {
+                my $score
+                    = _score_candidate( $candidate, $prev, $next, $bigrams );
+                if ( $score > $best_score ) {
+                    $best_score = $score;
+                    $best_char  = $candidate;
+                }
+            }
+
+            ## minimum score 2 : at least one context match required ##
+            if ( defined $best_char and $best_score >= 2 ) {
+                substr( $repair, $at, 1 ) = $best_char;
             }
         }
 
-        ## minimum score 2 : at least one context match required ##
-        if ( defined $best_char and $best_score >= 2 ) {
-            substr( $repair, $at, 1 ) = $best_char;
-        }
+        ## strip any unresolved replacement chars ##
+        $repair =~ s/\x{FFFD}//g;
+        $s = $repair;
     }
-
-    ## strip any unresolved replacement chars ##
-    $repair =~ s/\x{FFFD}//g;
-    $s = $repair;
 }
 
 ##[ REPAIR: RAW BYTES ]########################################################
@@ -172,8 +193,8 @@ if ( not utf8::is_utf8($s) ) {
 
 return $s;
 
-#,,.,,..,,,,.,...,,.,,...,.,.,...,.,,,...,..,,.,.,...,...,...,,..,,,.,..,,,,.,
-#CZERKVNG6N6L5C6BJ6V2A7OJ2VCU6V4LCRV5SAYEO4HECWHQLMLDESR2STLP27GG556KY6Y4PLCP4
-#\\\|6YKCQBSQML5LHEJA3IRNAMW733JGV3UCPVBKJUWCLMBZAXAPAI5 \ / AMOS7 \ YOURUM ::
-#\[7]U64LLAXP4ZN2X77RECIMSTQA3XQA4YEKIOLFMK3NRGWEOH7EFWCQ 7  DATA SIGNATURE ::
+#,,.,,..,,,.,,,,,,...,.,,,..,,.,,,,.,,,..,,..,.,.,...,...,,.,,...,...,,.,,,,,,
+#3VYKQHIDBOHZQQHGPDX7KRHLUNCEJ7TPPH26LQ3CD3HG3E5KB4AIDRCOIBUZHJO3A5KE7EXMVIGNI
+#\\\|KLIFWJVVLEMX3VVQX6SNUVJSBQXBL2F5K5CV5JBGQFVS4U2QKQT \ / AMOS7 \ YOURUM ::
+#\[7]HL7QJDB6OH7JBV2SBCKO7YEZT4GHLREYQ32EEQUDUYPPZ7ROMICQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

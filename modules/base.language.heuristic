@@ -1,0 +1,179 @@
+## [:< ##
+
+# name  = base.language.heuristic
+# descr = layer 1 language detection: script ranges + encoding char map scoring
+
+my $text = shift // '';
+return { language => '', confidence => 0, method => 'heuristic' }
+    unless length $text;
+
+##[ ENCODING SPECIAL CHARS — shared helper ]###################################
+## extract all non-ascii chars an encoding maps from 0x80-0xFF ##
+## used by both fix_encoding (FFFD candidates) and here (char map scoring) ##
+
+sub _encoding_special_chars {
+    my $enc   = shift;
+    my %seen  = ();
+    my @chars = ();
+    for my $byte ( 0x80 .. 0xFF ) {
+        my $uni
+            = eval { Encode::decode( $enc, chr($byte), Encode::FB_CROAK ) };
+        next unless defined $uni and not $@ and length $uni;
+        push @chars, $uni unless $seen{$uni}++;
+    }
+    return @chars;
+}
+
+##[ SCRIPT RANGE DETECTION ]###################################################
+## classify text into script families by unicode block ranges ##
+
+my %script_ranges = (
+    latin    => qr/[\x{0000}-\x{024F}]/,
+    cyrillic => qr/[\x{0400}-\x{04FF}]/,
+    greek    => qr/[\x{0370}-\x{03FF}]/,
+    arabic   => qr/[\x{0600}-\x{06FF}]/,
+    hebrew   => qr/[\x{0590}-\x{05FF}]/,
+    cjk      => qr/[\x{4E00}-\x{9FFF}]/,
+    hiragana => qr/[\x{3040}-\x{309F}]/,
+    katakana => qr/[\x{30A0}-\x{30BF}]/,
+    hangul   => qr/[\x{AC00}-\x{D7AF}]/,
+);
+
+my %script_langs = (
+    latin => [
+        qw| de fr es it pt nl sv no da fi ca pl cs sk hu ro hr sl tr lt lv et |
+    ],
+    cyrillic => [qw| bg ru uk sr mk |],
+    greek    => [qw| el |],
+    arabic   => [qw| ar |],
+    hebrew   => [qw| he |],
+    cjk      => [qw| zh |],
+    hiragana => [qw| ja |],
+    katakana => [qw| ja |],
+    hangul   => [qw| ko |],
+);
+
+## count script presence ##
+my %script_counts = ();
+for my $script ( keys %script_ranges ) {
+    my $re    = $script_ranges{$script};
+    my $count = 0;
+    $count++ while $text =~ /$re/g;
+    $script_counts{$script} = $count if $count > 0;
+}
+
+## east asian: hiragana/katakana/hangul/cjk are near-certain ##
+for my $ea (qw| hiragana katakana hangul cjk |) {
+    if ( $script_counts{$ea} ) {
+        my $lang = $ea eq 'hangul' ? 'ko' : ( $ea eq 'cjk' ? 'zh' : 'ja' );
+        return {
+            language     => $lang,
+            confidence   => 0.97,
+            method       => 'heuristic',
+            script       => $ea,
+            alternatives => [],
+        };
+    }
+}
+
+## no recognizable script at all ##
+if ( not %script_counts ) {
+    return {
+        language     => '',
+        confidence   => 0,
+        method       => 'heuristic',
+        alternatives => [],
+    };
+}
+
+## dominant script (excluding cjk/hiragana/katakana/hangul already handled) ##
+my @scripts_by_count = sort { $script_counts{$b} <=> $script_counts{$a} }
+    grep {
+    $_ ne 'cjk' and $_ ne 'hiragana' and $_ ne 'katakana' and $_ ne 'hangul'
+    }
+    keys %script_counts;
+
+my $dominant_script = $scripts_by_count[0] // '';
+return {
+    language     => '',
+    confidence   => 0,
+    method       => 'heuristic',
+    alternatives => [],
+    }
+    unless length $dominant_script;
+
+## candidate languages for this script family ##
+my @candidates = @{ $script_langs{$dominant_script} // [] };
+return {
+    language     => '',
+    confidence   => 0,
+    method       => 'heuristic',
+    alternatives => [],
+    }
+    unless @candidates;
+
+##[ CHARACTER MAP SCORING — layer 1b ]#########################################
+## score each candidate by how many of its encoding's special chars appear ##
+
+my $full_table = <[base.language.encoding_map]>->();
+my %scores     = ();
+
+for my $lang_code (@candidates) {
+    my $enc_list = $full_table->{$lang_code} // [];
+    next unless @{$enc_list};
+    ## use first (most likely) encoding for char map ##
+    my @special = _encoding_special_chars( $enc_list->[0] );
+    my $score   = 0;
+    for my $char (@special) {
+        my $count = 0;
+        $count++ while $text =~ /\Q$char\E/g;
+        $score += $count;
+    }
+    $scores{$lang_code} = $score if $score > 0;
+}
+
+## if no special chars matched, fall back to simple candidate ordering ##
+if ( not %scores ) {
+    return {
+        language     => $candidates[0],
+        confidence   => 0.40,
+        method       => 'heuristic',
+        script       => $dominant_script,
+        alternatives => [ @candidates[ 1 .. $#candidates ] ],
+    };
+}
+
+## rank by score ##
+my @ranked       = sort { $scores{$b} <=> $scores{$a} } keys %scores;
+my $leader       = $ranked[0];
+my $runner       = $ranked[1]       // '';
+my $leader_score = $scores{$leader} // 0;
+my $runner_score = $scores{$runner} // 0;
+
+## confidence: score ratio + text length factor ##
+my $ratio      = $runner_score > 0  ? $leader_score / $runner_score : 999;
+my $len_factor = length($text) < 20 ? 0.5                           : 1.0;
+my $confidence = $ratio >= 2.0      ? 0.85 * $len_factor : 0.55 * $len_factor;
+$confidence = 0.30 if $leader_score < 2;    ## too few matching chars ##
+
+return {
+    language     => $leader,
+    confidence   => $confidence,
+    method       => 'heuristic',
+    script       => $dominant_script,
+    score        => $leader_score,
+    ratio        => $ratio,
+    alternatives => [ grep { $_ ne $leader } @ranked ],
+};
+
+#,,.,,.,.,.,,,..,,,.,,,,.,,,,,.,..,,,,.,.,,,..,,...,...,.,.,..,,,..,.,,.,,.,,.-
+#G3JRLXSTWWQ3AYEPJJRCSKVUD4WVSW4XJ5FTECAJ2XNQX5H5WRJXC5KAOEZO25T3RX2FOOFH4VJ7K
+#\\\|AQK4VWZDVNJY7RKOSE2DJF2S7ASJPMTT4SZYJ5UCWFZPAFJ5CKL \ / AMOS7 \ YOURUM ::
+#\[7]CWX4B5BJV2S7Y3JTXIB5EJUN2E7JBR3VDFA2K7D3MBL5KZ4Y2JDQ 7  DATA SIGNATURE ::
+#::::::::::::::::::;:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+
+#,,.,,.,,,..,,,.,,.,.,.,,,,.,,.,.,.,,,,,.,.,.,..,,...,..,,..,,,.,,.,.,,,.,...,
+#337WI5YZSDZLEKURZ47TOT55NAY4MFRNZDX2KJTKUPL5O572DDZ3SHDDHNK6E4QWZWWF5VMVPPL4K
+#\\\|OXR5GIXQKKUVRUAIOEANQ2ZSX3KUBDBLNQH3M7CR7VQZQ7ER5FB \ / AMOS7 \ YOURUM ::
+#\[7]SNXZ2APK6SEMMDMRQYNZ4EWTOBB7EQZQGMVQAGR3KITDPAZSMOBQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
