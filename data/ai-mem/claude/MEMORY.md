@@ -82,6 +82,8 @@
 - `topic-hyperspace-topology.md` — closed observer loop as anti-entropic; intent-saturated chains self-strengthen; sensor cube 3D grid as physical hyperspace; on-route topology teaching; feature-to-topology mapping; context as position; doc at data/md/development/HYPERSPACE-TOPOLOGY.md
 - `topic-field-coherence-synthesis.md`
 - `topic-job-pipeline.md` — WORKING (session 22): jobs.vhost live, German reason+summary in one pass, retry on timeout, letsencr fixed
+- `topic-chat-script.md` — bin/chat design: file-backed multi-model chat, channels, :#channel:/:model:/:all: keywords, xz archive, consensus mode; task file ready for kimi
+- `topic-language-detection.md` — three-layer detection (heuristic→wordlist→inference), encoding_map 30 langs, locale vision pipeline with terminal+web+matrix render targets; fix_encoding rewritten generically
 - `topic-plugin-web-jobs.md` — plugin.web.jobs.* design: bi-directional sync, B32 backups, replaces export-jobs-json+scp
 - `topic-job-pipeline-title-filter.md` — future: batch title screening via AMOS checksums before page fetch; 30-50% savings
 - `feedback-task-show-multiline.md` — task.show must escape \\n in description/context; line parsers only see first line otherwise
@@ -402,8 +404,8 @@
 - Pattern: `my @non_num = grep { defined $data_ref->{$ARG}->{$key} and not looks_like_number(...) } keys $data_ref->%*`
 - Global `$SIG{__WARN__}` exists — if wrapping warn handler, capture `$prev_warn = $SIG{__WARN__}` first and call through
 
-#,,.,,,.,,.,,,,..,,..,.,.,.,.,,.,,.,.,.,.,.,.,..,,...,...,...,,..,,,,,.,,,...,
-#LV74BGKZ66IQY2X4H2TDOT2HZSQ2RJ7O4CBTDBMNHL65CUSIM2AVDPX4UMHPR3DBT4EUB4XCGTIZY
-#\\\|2MXIWEXIUNEU4UGXH27T33EQWANXL3L5WD4O7F4WIGCAMMSP37O \ / AMOS7 \ YOURUM ::
-#\[7]EPEJTANAIYWACK7Z5JZQIS5FMTIGLYFQSNEVA7BPLPJA6W6ACUAI 7  DATA SIGNATURE ::
+#,,..,..,,.,,,..,,.,.,,,,,,..,,.,,,..,,.,,..,,..,,...,...,...,...,...,.,,,,..,
+#HZ4FATQ56VEUPEBSDYJUB6XWZO2HQR7UZ24G35KIF2Z2ZH34D32VXIWQ25YHE532K25VUDLVL5ATK
+#\\\|VBAZSUCXDDUA72SWHNRBTW33H7KCGKY2BXQ7VRTLLO3SRCN3BPA \ / AMOS7 \ YOURUM ::
+#\[7]ZLYTRIABDPWUDKII54PPGB6ZILOLS5AIRVAVIGPO2UPSHTGUS4AY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
