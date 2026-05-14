@@ -1966,5 +1966,48 @@ Added two-tier timeout system:
 #,,,.,,.,,.,,,,..,,.,,,..,,,.,,,,,,.,,,,,,,..,.,.,...,...,...,.,,,,.,,...,..,,
 #GHPXUCSF3QWHK5BPVYUHI24Y4U7PYZU6JAKY2WOQUEGKBXWZYHKFDJ5T7Y2QCD7VED7K4Z6HJ6YO2
 #\\\|DQIZJOC64CCUAWVYOPFUFW33YYGWGKZSFIJ4XOS335S5BT7N76Y \ / AMOS7 \ YOURUM ::
-#\[7]AFG4WYG5A35TPLI43DNCOCK625RX4EYSPANDBKLYAVEZKRM3D6BY 7  DATA SIGNATURE ::
+## Language Detection System — Three-Layer Architecture (May 12 2026)
+
+### Status
+Layer 1 complete, Layer 2 stub, Layer 3 stub. Design docs committed. Code changes staged (awaiting signature password).
+
+### Design Docs
+- `data/md/design/LANGUAGE-DETECTION-DESIGN.md` — Three-layer spec + encoding strategy + east-asian rules
+- `data/md/design/CHAT-SCRIPT-DESIGN.md` — File-backed multi-model conversation with channels, caller detection, `:all:` consensus mode
+- `data/md/design/LOCALE-VISION-DESIGN.md` — Locale-aware visual rendering pipeline
+
+### Modules Created/Modified
+
+| module | purpose |
+|--------|---------|
+| `base.language.detect` | Orchestrator: heuristic → wordlist → inference |
+| `base.language.heuristic` | Layer 1: script range + encoding char-map scoring |
+| `base.language.encoding_map` | Centralized `%language_encoding` for 25+ languages + aliases + aspell packages |
+| `base.language.encoding_special_chars` | Extract non-ASCII char set from any single-byte encoding (bytes 0x80-0xFF) |
+| `job-site-scan.util.fix_encoding` | Mojibake repair; east-asian guard prevents bigram substitution for ja/zh/ko |
+| `job-site-scan.util.build_prompt` | Generic prompt builder; extracts candidate name from `profile.txt` dynamically; no hardcoded personal info |
+| `job-site-scan.dispatch.repair` | Now calls shared `build_prompt` with `$defects` arrayref |
+
+### Key Technical Decisions
+
+**Layer 1b char-map scoring**: When no wordlist installed, `encoding_map`'s encoding tables provide minimal character-map scoring (always available, zero deps). Confidence ceiling 0.75 when wordlist missing.
+
+**East-asian FFFD rule**: Bigram context scoring does NOT apply to logographic text. `ja/zh/ko` must use validate-not-substitute (try encodings → validate decoded result has plausible script ratio > 20%).
+
+**Generic prompt builder**: Candidate name extracted from `/etc/protocol-7/job-site-scan/profile.txt` first-line header (`# Candidate Profile — Name`). Repair mode accepts `$defects` arrayref and prepends "RE-ASSESS" framing.
+
+**Checksum algorithms**: AMOS7 (`<[chk-sum.amos]>`) → 7-char; BMW-L13 (`<[chk-sum.bmw.str-b32.L13]>`) → 13-char base32.
+
+### ptd -c Enhancement
+`bin/ptd -c` (perl syntax checker) now reports real `perl -c` errors while filtering out false positives from P7 angle-bracket syntax (`<site-yaml.import_max_pages>`). Returns exit code matching `perl -c`.
+
+### Early Pagination Break Optimization
+Default scan stops when a page returns all duplicates. `scan :full:` disables optimization. Queue-preload protection for resumed scans prevents re-fetching already-queued jobs.
+
+---
+
+#,,,.,,..,,..,,,.,.,.,,..,.,.,...,..,,..,,.,,,.,.,...,...,..,,.,,,,..,..,,.,,,
+#VYQ4CL2P6FCUPDODU6ITU3KVUE5J26TPY7JZU5EMMS6CPYFJVMASDBXGYRDC3DQKJ7B7ISWLSSA4M
+#\\\|WCA2MROISBFP324AXQESS6PZBNHKWLC2KTIY45ODZUVPWXOCWQM \ / AMOS7 \ YOURUM ::
+#\[7]NLBZQPBBOMANECRZUTFYKDFWFAG2VZ4R3SLBOOUDJZW35LATL6BI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

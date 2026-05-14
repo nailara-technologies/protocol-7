@@ -1,0 +1,28 @@
+## [:< ##
+
+# name  = base.language.encoding_special_chars
+# descr = extract all non-ascii chars an encoding maps from 0x80-0xFF
+
+my $enc = shift // '';
+return () unless length $enc;
+
+my %seen  = ();
+my @chars = ();
+for my $byte ( 0x80 .. 0xFF ) {
+    my $uni = eval { Encode::decode( $enc, chr($byte), Encode::FB_CROAK ) };
+    next unless defined $uni and not $@ and length $uni;
+    push @chars, $uni unless $seen{$uni}++;
+}
+return @chars;
+
+#,,.,,..,,.,.,,.,,,.,..,,.,,,..,.,.,,,.,.,,,..,,...,...,.,.,..,,,..,.,,.,,.,,.-
+#A3B5C7D9E1F3G5H7I9J1K3L5M7N9O1P3Q5R7S9T1U3V5W7X9Y1Z3A5B7C9D1E3F5G7H9I1J3K5
+#\\\|L7M9N1O3P5Q7R9S1T3U5V7W9X1Y3Z5A7B9C1D3E5F7G9H1I3J5K7L9M1N3O5P7Q9R1S3 \ /
+#\[7]T5U7V9W1X3Y5Z7A9B1C3D5E7F9G1H3I5J7K9L1M3N5O7P9Q1R3S5T7U9V1W3X5Y7Z9A1B3 7
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+
+#,,..,,.,,..,,,,.,,,,,.,,,..,,...,,,.,,.,,...,..,,...,..,,.,,,..,,,..,..,,..,,
+#E32U4ZKSE5H7DK2LP4SZKKDWAVTZFLIECM4VTUA4L2BVKLB53TUXKUJ3OJX6Y4KJKZOW7OTFCDPEY
+#\\\|KEFADOAZIYOFHEYCZME6AY2MHMABUV4KYDBTEZ2QPZ4AU3P6S7B \ / AMOS7 \ YOURUM ::
+#\[7]ANCLVIG4KP2WKPPG6TCAW3DIX4CESLT7GRQRMXHK7FBHTQ35TSAY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
