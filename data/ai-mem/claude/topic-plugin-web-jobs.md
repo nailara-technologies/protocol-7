@@ -86,6 +86,34 @@ into per-element files without conversion.
 - localStorage as primary state (becomes cache/override layer only)
 - `data/web-root/vhosts/jobs.vhost/` static jobs.json file
 
+## Delta sync via ntime watermark (session 25, 2026-05-15)
+
+**browser sends its last known ntime in every request** — server returns only
+what changed since then. no full reload needed after initial load.
+
+**ntime stamping:**
+- `jobsite.job.write` stamps `last_modified = <[base.ntime]>->(0)` into each
+  job record on every write
+- `index.yaml` also gets `last_modified` = max ntime across all jobs — cheap
+  "anything changed?" sentinel without loading all job files
+
+**endpoint behaviour:**
+- `GET /jobs.json` (no param) → full array + `{"ntime":N,"jobs":[...]}` — first load
+- `GET /jobs.json?since=3173387294154` → only jobs with `last_modified > since`
+  + new ntime — subsequent polls; browser merges delta into local state
+- `POST /jobs-sync` response includes new ntime → `{"ok":true,"ntime":N}`
+  so browser watermark advances after its own writes
+
+**index.yaml as cheap filter:**
+- scan index.yaml (one file) to find job IDs with `last_modified > since`
+- load only those YAML files — avoids reading 100+ files on every poll
+- index already written by `jobsite.job.write`; just add `last_modified` per entry
+
+**browser merge strategy:**
+- on delta response: update matching jobs in local array by id, append new ones
+- deleted jobs: server includes `deleted:[id,...]` list if any were removed since ntime
+- ntime stored in JS variable (not localStorage — browser as pure render client)
+
 ## Connection to existing infrastructure
 
 - Follows `plugin.web.space.*` pattern (space.v7.ax already uses this)
@@ -93,8 +121,8 @@ into per-element files without conversion.
 - jobs.vhost index.html fetches /jobs.json from web zenka endpoint
 - B32 backup naming uses `<[base.ntime.b32]>` — same as task/event timestamps
 
-#,,..,..,,.,.,..,,.,.,.,,,,..,,,,,...,.,,,,.,,..,,...,...,...,.,.,..,,...,.,.,
-#QMJE6P2IONGVRUS4K5GY26MNAWWCNISPRTZH74RHNPGAU76DF7IUUHXXFX46G7JKRTCXTR7AAEEBU
-#\\\|FECAFMBFC3P6CX4GGDRP5JCKEF5FSXCYRE2BLBPMSXYPWNBWIRK \ / AMOS7 \ YOURUM ::
-#\[7]ASXSNZEWJDEP2JKXAGJJXFGNZUJ2PM4APMCADMFODBOQQX3N6SCI 7  DATA SIGNATURE ::
+#,,.,,,.,,...,...,,..,,,.,.,.,..,,.,.,.,.,...,..,,...,.,.,...,,,,,.,,,,,.,..,,
+#UPUVWLUBDJU6YLJPN3HMDXD6QMYVRPVELDXVLASFRC4MKOVHBTGEXB5RUCVSB6UZ3C3SXRTHI3Q52
+#\\\|YWZPAFLYRXQCTBHEPQ6BIRONOFYQYZWHO2ZRC56VNPEA76S4V6J \ / AMOS7 \ YOURUM ::
+#\[7]S27W7APZJLMRYSCUL4LNDL4ZZ7RHIWYM2UWMHGRQ3BMZIP3VY6BQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

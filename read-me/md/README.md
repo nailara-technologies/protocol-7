@@ -1,5 +1,5 @@
 
-::: SOURCE-CODE VERSION :: 3SW6HXNUII-7645.0 :::
+::: SOURCE-CODE VERSION :: 3SW6LTEIPI-7646.0 :::
 
 # [ [nailara 'protocol seven' project](http://protocol-7.network/) ]
 
@@ -360,8 +360,8 @@ A long-horizon goal of the project is a network that improves itself: zenki coor
 
 The full vision document explores Protocol-7's unique approach to distributed computing, network participation, and the metaphorical framework of resource sharing.
 
-#,,.,,.,,,,..,.,.,..,,,,.,.,,,,,.,.,.,,,.,,,.,..,,...,...,,..,,.,,,.,,..,,.,.,
-#RLKBG5QWUOE5UTTPAFDEDTLBPJY2NHMJ57SMGK2WV6UKMY4OVRXLVEUK3JTAKUZRINR5VNBCUTGZ4
-#\\\|PJVSZRC4BD3R762HFGUPNPRV67UV4E7F6MU2APXIKBMSVFWRF37 \ / AMOS7 \ YOURUM ::
-#\[7]Z3IJYN72OI27NMUAKCUPK4GBUUUOKEENVBBQBWFKOTBJ32TIVIDI 7  DATA SIGNATURE ::
+#,,.,,..,,,,,,.,,,.,.,,,.,.,.,...,,,,,.,,,.,,,..,,...,...,.,.,,,,,.,.,...,.,,,
+#DB4IFE67CDT2ZI7KX473DXECFTCATGJTAKHJJDKWPDLRXZDKXF3EBFPPADSGFMCXZQUXRUH5DIM54
+#\\\|C3CX4HTBIYIDEEJMIFIFJWBXNLKMER72KCFW7XT2TZRUNUHWEZL \ / AMOS7 \ YOURUM ::
+#\[7]OCG44Q43WON5B7QEQA4POQ62A4B45RDIFI4SLTQ65KSTJ7CZ3ADQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
