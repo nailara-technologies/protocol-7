@@ -1,0 +1,27 @@
+
+## httpd route registry
+## format: METHOD  PATH  SUBROUTINE
+##
+## METHOD    : GET POST PUT DELETE HEAD ANY
+## PATH      : exact path, or prefix:<path> for prefix matching
+## SUBROUTINE: module name (called with session id as first arg)
+##
+## routes are checked before template and static file routing
+##
+## note: subroutines from a foreign module namespace (e.g. plugin.web.*)
+##       need [base.white-list.register:'plugin.name'] in the start file.
+##       plugins under the loaded namespace (plugin.httpd.*) work as-is.
+
+## job pipeline api
+GET   /jobs.json    plugin.web.jobs.data
+POST  /jobs-sync    plugin.web.jobs.sync
+
+## visualization — space.v7.ax
+POST  /cursor       plugin.web.space.handler.cursor_update
+POST  /context      httpd.route.handler.context
+
+#,,.,,,,.,,.,,.,,,..,,,,.,,,.,...,..,,,..,,.,,..,,...,...,..,,,,,,...,..,,,..,
+#AKDLP656QR37OJLQ7AA3IHZUSVSCZBULCUVLJD2EXU6WEWS3SFRJ7G4VMV5OLD4VCGO2DODAGOQWW
+#\\\|MG3L6BDGRGC67QL33OLFUZJ44V37JCDXTDNUKVIQZJ2S5Z2NY3X \ / AMOS7 \ YOURUM ::
+#\[7]TGM5DFMHNTSCL3QBSAJJRNSTVHUAU3DLPP276CO55AQQWFSGASAY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

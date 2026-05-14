@@ -3,24 +3,16 @@
 # name  = plugin.web.jobs.init_code
 # descr = initialize jobs web plugin, register template aliases
 
-## register template command aliases for use in .tmpl files ##
-for my $suffix (qw| list stats |) {
-    my $full  = "plugin.web.jobs.$suffix";
-    my $alias = "web.jobs.$suffix";
-    $code{$alias} = $code{$full} if exists $code{$full};
-}
-
-$code{'web.jobs.data'} = $code{'plugin.web.jobs.handler.get'}
-    if exists $code{'plugin.web.jobs.handler.get'};
-$code{'web.jobs.sync'} = $code{'plugin.web.jobs.handler.sync'}
-    if exists $code{'plugin.web.jobs.handler.sync'};
+## load shared perl modules once at init ##
+<[base.perlmod.autoload]>->('JSON::XS');
+<[base.perlmod.autoload]>->('YAML::XS');
 
 <[base.logs]>->( 1, 'plugin.web.jobs : initialized' );
 
 0;
 
-#,,,,,,.,,.,.,...,..,,,.,,,,.,.,.,,,,,...,,.,,..,,...,...,,..,.,.,,,.,.,,,.,.,
-#3UE6KW4LTD7QQHKLKIJKKLVBGT2XVQ6EIKEQ64SIZPGFNG3IB35WD57EQ6D4LXSWGJI5IVG5WHBOS
-#\\\|LAVME7EZB7MDDXRJ3MOZU2SV6FZAV2MOUO2PF2GV7L6GSSTPGHA \ / AMOS7 \ YOURUM ::
-#\[7]DZXJGBRX4OIXOKOWYMCGSM3ACPYIL7EYWKCLISWTXBBNQFXJIQBY 7  DATA SIGNATURE ::
+#,,..,..,,...,,,.,.,.,.,.,.,,,..,,.,.,,,.,..,,..,,...,..,,,.,,...,..,,,.,,..,,
+#DOPTEJPXIGHN7DPBJ652XYYGRCYEO6IL2D5JKKNAUT7NND6JZLZDCVS5BTSWI5R33VMBFZT6HAGJE
+#\\\|YPZOIFZUBWXRNDREIMZPXIONFUR5ZONZS3DUJH23APNA6AGSDIC \ / AMOS7 \ YOURUM ::
+#\[7]J5PBE3D7UODWH7KMT6TDJM2HJZJREC3I55VCAJGG5RRCRSBKAQDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

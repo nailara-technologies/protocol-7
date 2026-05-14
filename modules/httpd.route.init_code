@@ -1,0 +1,62 @@
+## [:< ##
+
+# name  = httpd.route.init_code
+# descr = parse routes config file, populate httpd route registry
+
+my $root_path  = <system.root_path> // qw| . |;
+my $routes_cfg = "$root_path/configuration/zenki/httpd/routes";
+
+$data{'httpd'}{'route'} //= { 'exact' => {}, 'prefix' => {} };
+
+if ( not -f $routes_cfg ) {
+    <[base.logs]>->(
+        1, 'httpd.route: no routes file found [ %s ]', $routes_cfg
+    );
+    return 0;
+}
+
+my $fh;
+if ( not open $fh, '<', $routes_cfg ) {
+    <[base.logs]>->( 0, 'httpd.route: cannot open routes file: %s', $! );
+    return 0;
+}
+
+my ( $exact_count, $prefix_count ) = ( 0, 0 );
+
+while ( my $line = <$fh> ) {
+    chomp $line;
+    $line =~ s|^\s+||;
+    next if !length($line) or $line =~ m|^#|;
+
+    my ( $method, $path, $sub_name ) = split /\s+/, $line, 3;
+    next unless defined $method and defined $path and defined $sub_name;
+
+    $method = uc $method;
+
+    ## prefix routes: prefix:/api/ or prefix: /api/
+    if ( $path =~ s|^prefix:|| ) {
+        $data{'httpd'}{'route'}{'prefix'}{$method}{$path} = $sub_name;
+        $prefix_count++;
+    } else {
+        $data{'httpd'}{'route'}{'exact'}{$method}{$path} = $sub_name;
+        $exact_count++;
+    }
+}
+
+close $fh;
+
+<[base.logs]>->(
+    1,            'httpd.route: loaded %d exact + %d prefix route%s',
+    $exact_count, $prefix_count,
+    <[base.cnt_s]>->( $exact_count + $prefix_count )
+);
+
+0;
+
+#,,.,,,.,,..,,...,,,.,,..,,,,,.,,...,,.,,.,.,..,,...,..,,...,,...,,,.,,,,,.,,,,
+
+#,,,.,,,.,...,.,,,...,.,.,...,.,.,.,.,,,.,,,,,..,,...,...,.,,,,,,,..,,...,,,.,
+#BAW2LILTTJANJPC7TBJ65IANKMMMF7WBYKIC3QE5ZELY2C6XZUVWLV755YDSZLM7A5L36TS4O2J2E
+#\\\|E6UDHGZ6OJUHWTO7X2B4IUD7DOHE3DKMO3MH5QPGS2DTGJKTRCH \ / AMOS7 \ YOURUM ::
+#\[7]FEM5FBAYDTU7ZEYB6G4PQOUGQGUZVEBDORSF64JDTF7AC6GPZ2AY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
