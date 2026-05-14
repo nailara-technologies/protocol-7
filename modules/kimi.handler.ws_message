@@ -8,11 +8,10 @@
 my $text    = shift;
 my $context = shift // {};
 
-## disconnect signal — tear down and schedule reconnect
+## disconnect signal — tear down and let watcher handle reconnect
 if ( not defined $text ) {
     <[base.logs]>->( 2, 'kimi.handler.ws_message: websocket disconnected' );
     <kimi.ws.connected> = FALSE;
-    <kimi.ws.status>    = qw| disconnected |;
     if ( defined <kimi.ws.io_watcher> ) {
         <kimi.ws.io_watcher>->cancel
             if <kimi.ws.io_watcher>->is_active;
@@ -62,25 +61,8 @@ if ( not defined $text ) {
         <kimi.task.active_id> = undef;
     }
 
-    ## schedule grace timeout to fail preserved prompts if reconnect stalls
-    ## [ timer reference stored so it can be cancelled on successful reconnect ]
-    if ($has_active_prompt) {
-        <kimi.reconnect.grace_timer> = <[event.add_timer]>->(
-            {   'after'   => 90,
-                'handler' => qw| kimi.handler.reconnect_grace_timeout |,
-                'desc'    => 'fail preserved prompts if still pending'
-            }
-        );
-    }
-
-    ## only retry if work is pending — idle disconnect is normal
-    if ($has_active_prompt) {
-        <[kimi.connect.schedule_retry]>;
-    } else {
-        <[base.logs]>->(
-            2, ': idle disconnect — will reconnect on next request'
-        );
-    }
+    ## status change triggers watcher — handles reconnect scheduling
+    <kimi.ws.status> = qw| disconnected |;
     return;
 }
 
@@ -124,43 +106,12 @@ if ( $method eq qw| history_complete | ) {
     ## skip initialize if already ready, busy, or retry in progress
     if (   <kimi.ws.status> eq qw| ready |
         or <kimi.ws.status> eq qw| busy |
-        or ( <kimi.init.retry_pending> // FALSE ) ) {
+        or defined <kimi.init.retry_timer> ) {
         <[base.logs]>->(
-            2, ': skipping init [ status=%s retry_pending=%s ]',
-            <kimi.ws.status>, <kimi.init.retry_pending> // 0
+            2, ': skipping init [ status=%s retry_timer=%s ]',
+            <kimi.ws.status>,
+            defined <kimi.init.retry_timer> ? 'active' : 'none'
         );
-
-        ## dispatch deferred prompt if ready [ init path handles its own ]
-        if ( <kimi.ws.status> eq qw| ready |
-            and defined <kimi.next.deferred> ) {
-            my $def         = delete <kimi.next.deferred>;
-            my $def_task_id = $def->{'task_id'};
-
-            ## activate task before sending prompt ##
-            if ( defined $def_task_id ) {
-                <kimi.task.active_id> = $def_task_id;
-                my $task = <kimi.task.queue>->{$def_task_id};
-                if ( defined $task ) {
-                    $task->{'execution'}->{'status'}  = qw| in_progress |;
-                    $task->{'execution'}->{'started'} = <[base.time]>->(3);
-                }
-                my $aref_pending = <kimi.task.pending> //= [];
-                my $aref_active  = <kimi.task.active>  //= [];
-                $aref_pending->@*
-                    = grep { $ARG ne $def_task_id } $aref_pending->@*;
-                push $aref_active->@*, $def_task_id;
-            }
-
-            my $def_msg_id
-                = <[kimi.wire.prompt]>
-                ->( $def->{'prompt'}, $def->{'reply_id'} );
-
-            ## inject task_id for TurnEnd completion detection ##
-            if ( defined $def_msg_id and defined $def_task_id ) {
-                <kimi.wire.pending>->{$def_msg_id}->{'task_id'}
-                    = $def_task_id;
-            }
-        }
         return;
     }
     <[kimi.wire.initialize]>;
@@ -206,9 +157,7 @@ if ( $method eq qw| event | ) {
             my $pend     = delete <kimi.wire.pending>->{$pend_id};
             my $reply_id = $pend->{'reply_id'} // '';
             my $response = <kimi.wire.accumulator>;
-            <kimi.wire.accumulator>  = '';
-            <kimi.ws.status>         = qw| ready |;
-            <kimi.session.was_ready> = TRUE;
+            <kimi.wire.accumulator> = '';
 
             ## check if this was a task submission
             my $task_id = $pend->{'task_id'} // '';
@@ -238,10 +187,12 @@ if ( $method eq qw| event | ) {
                 );
             }
         } else {
-            <kimi.wire.accumulator>  = '';
-            <kimi.ws.status>         = qw| ready |;
-            <kimi.session.was_ready> = TRUE;
+            <kimi.wire.accumulator> = '';
         }
+
+        ## status change triggers watcher — dispatches next task if any
+        <kimi.ws.status>         = qw| ready |;
+        <kimi.session.was_ready> = TRUE;
         return;
     }
 
@@ -299,10 +250,7 @@ if ( not length($method) and length($msg_id) ) {
 
     if ( $pend->{'type'} eq qw| initialize | ) {
         if ( defined $msg->{'result'} ) {
-            <kimi.ws.status>          = qw| ready |;
-            <kimi.session.was_ready>  = TRUE;
-            <kimi.init.retry_count>   = 0;
-            <kimi.init.retry_pending> = FALSE;
+            <kimi.init.retry_count> = 0;
 
             ## cancel reconnect grace timer — fully recovered
             if ( defined <kimi.reconnect.grace_timer> ) {
@@ -311,49 +259,18 @@ if ( not length($method) and length($msg_id) ) {
                 <kimi.reconnect.grace_timer> = undef;
             }
 
-            ## dispatch deferred prompt after fresh session ready
-            if ( defined <kimi.next.deferred> ) {
-                my $def         = delete <kimi.next.deferred>;
-                my $def_task_id = $def->{'task_id'};
-
-                ## activate task before sending prompt ##
-                if ( defined $def_task_id ) {
-                    <kimi.task.active_id> = $def_task_id;
-                    my $task = <kimi.task.queue>->{$def_task_id};
-                    if ( defined $task ) {
-                        $task->{'execution'}->{'status'} = qw| in_progress |;
-                        $task->{'execution'}->{'started'}
-                            = <[base.time]>->(3);
-                    }
-                    my $aref_pending = <kimi.task.pending> //= [];
-                    my $aref_active  = <kimi.task.active>  //= [];
-                    $aref_pending->@*
-                        = grep { $ARG ne $def_task_id } $aref_pending->@*;
-                    push $aref_active->@*, $def_task_id;
-                }
-
-                my $def_msg_id = <[kimi.wire.prompt]>->(
-                    $def->{'prompt'}, $def->{'reply_id'}
-                );
-
-                ## inject task_id for TurnEnd completion detection ##
-                if ( defined $def_msg_id and defined $def_task_id ) {
-                    <kimi.wire.pending>->{$def_msg_id}->{'task_id'}
-                        = $def_task_id;
-                }
-            }
-
             if ( not <kimi.session.acquired> ) {
                 ## first successful handshake
                 <kimi.session.acquired> = TRUE;
                 <[base.logs]>
                     ->( 1, ': kimi-web ready to serve requests :..' );
-
-                ## flush pending approvals queued during reconnect ##
-                ## [ LLL: kimi.approval.flush_on_acquisition — not yet impl ] ##
             } else {
                 <[base.logs]>->( 2, 'kimi: reconnected — status ready' );
             }
+
+            ## status change triggers watcher — dispatches deferred + next task
+            <kimi.ws.status>         = qw| ready |;
+            <kimi.session.was_ready> = TRUE;
         } else {
             my $err = $msg->{'error'}{'message'} // 'unknown';
             ## log at level 2 for expected "agent turn in progress" retries
@@ -364,28 +281,29 @@ if ( not length($method) and length($msg_id) ) {
             );
 
             ## retry initialize when agent turn is still in progress
-            ## [ kimi-web is finishing work from before the reconnect ]
             if ( $err =~ m|agent turn.*in progress|i ) {
                 <kimi.init.retry_count> //= 0;
                 <kimi.init.retry_count>++;
-                if ( not( <kimi.init.retry_pending> // FALSE ) ) {
-                    <kimi.init.retry_pending> = TRUE;
 
-                    ## adaptive interval: 5s for first 12, then 15s
-                    ## no hard limit — session is alive if agent turn runs
-                    my $interval = <kimi.init.retry_count> <= 12 ? 5 : 15;
+                my $interval = <kimi.init.retry_count> <= 12 ? 5 : 15;
 
-                    <[base.logs]>->(
-                        2, ': init retry %d in %ds [ agent turn active ]',
-                        <kimi.init.retry_count>, $interval
-                    );
-                    <[event.add_timer]>->(
-                        {   'after'   => $interval,
-                            'handler' => qw| kimi.wire.initialize |,
-                            'desc'    => 'init retry after agent turn'
-                        }
-                    );
+                <[base.logs]>->(
+                    2, ': init retry %d in %ds [ agent turn active ]',
+                    <kimi.init.retry_count>, $interval
+                );
+
+                ## cancel existing retry timer
+                if ( defined <kimi.init.retry_timer> ) {
+                    <kimi.init.retry_timer>->cancel
+                        if <kimi.init.retry_timer>->is_active;
                 }
+
+                <kimi.init.retry_timer> = <[event.add_timer]>->(
+                    {   'after'   => $interval,
+                        'handler' => qw| kimi.wire.initialize |,
+                        'desc'    => 'init retry after agent turn'
+                    }
+                );
             }
         }
         return;
@@ -404,8 +322,8 @@ if ( not length($method) and length($msg_id) ) {
     }
 }
 
-#,,,.,,,,,.,.,..,,,..,,.,,..,,,,.,.,,,,.,,,..,.,.,...,...,...,,..,,,.,...,,.,,
-#ORUBGD2LI7PUPVHLMEE3FSHN6YWGSZCTGBC5CFIPUWCSJ2O4KSZISN3AGOZ4JMDZFWALNJ7FJY7FE
-#\\\|OAKJDP6FEICKFBBTFRPNKTXL7QINV25WENH7FYUV2S7J77TQEAP \ / AMOS7 \ YOURUM ::
-#\[7]XBKV3UOJVROGEHCKVD3GL6MH36CAN5OPW2RQF7MGH2U3TN3WNCDA 7  DATA SIGNATURE ::
+#,,..,,.,,.,,,,,,,.,,,..,,,.,,,.,,,,.,,.,,.,.,.,.,...,...,,.,,,,.,..,,,..,.,.,
+#2DN2TH24ZG6D3PXLLKP74J55OK4YPC52A3PCKEZAJWPDNXRUC5LT6DQZB4UDJ62USKOWSGR2MNJKO
+#\\\|QQLTOXD22BD5XWH73U7SJGFQCE4TTICRYF73MQTKMQRNNNBB7LJ \ / AMOS7 \ YOURUM ::
+#\[7]EMQMYTLEJLCRM6UTVA5VM4DXHUUQWL6B7WIJPAU6GOLLNXZMAQDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
