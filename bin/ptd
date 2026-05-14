@@ -124,14 +124,14 @@ while ( my $file_path = shift @files ) {
                 my @perl_c_output = qx{ perl -c "$file_path" 2>&1 };
                 my @real_errors;
                 for my $line (@perl_c_output) {
-                    next if $line =~ m{Can't modify glob in scalar assignment};
+                    next
+                        if $line =~ m{Can't modify glob in scalar assignment};
                     next if $line =~ m{^\s*$};
                     push @real_errors, $line;
                 }
                 ## remove trailing "had compilation errors" if it's the only line left ##
                 if (    @real_errors == 1
-                    and $real_errors[0] =~ m{had compilation errors\.?$} )
-                {
+                    and $real_errors[0] =~ m{had compilation errors\.?$} ) {
                     @real_errors = ();
                 }
                 if (@real_errors) {
@@ -141,8 +141,8 @@ while ( my $file_path = shift @files ) {
                     warn $colored_msg;
                 } else {
                     ## only P7 false positives — treat as ok ##
-                    print color_msg( 'syntax ok [P7]', $file_path,
-                        $NEON_green_yellow );
+                    print color_msg( 'syntax ok [P7]',
+                        $file_path, $NEON_green_yellow );
                 }
             } else {
                 warn $colored_msg;
@@ -231,8 +231,8 @@ sub show_progress {
         $perc_chars, $filename );
 }
 
-#,,,.,,.,,...,,.,,,,,,,,,,,.,,,,.,...,,,.,.,.,..,,...,...,,.,,,..,..,,,,,,,..,
-#LY6Z5IDATNWQL2FKX4BPNR4HHZMWTJCYDPKVLUCEM5K66LRFLS733ALYGNBRNGATBSU3JXEINB7ZQ
-#\\\|OFJRVLYDQZKOCNH5CCTUFLUJX2OWN4676CL5Q4HEFMTY4AQDZCB \ / AMOS7 \ YOURUM ::
-#\[7]YGDYXB7RKZCCZXR6VYMHFJG4XTROK2UGT7MRUANUIOHCJ2MAYSCY 7  DATA SIGNATURE ::
+#,,,.,.,,,..,,,,.,,.,,,,.,,,.,,,.,,,,,.,.,.,.,..,,...,..,,...,..,,..,,,,.,,,.,
+#QJXD4XT3ITW5NW7JLO7YSENVTSWJJAOEDB2KHHNGZBO6ZK6HE2NGSZARPKWBHKSXDT4YRHWYNJ7U4
+#\\\|IHKWYQS4IMLACNRPIRWMCDXAIUPSNNS6MDK3VNK5JKJX32ECT2H \ / AMOS7 \ YOURUM ::
+#\[7]5YNCQYW6GIYTHAKXJCUS53NKYAGGKCSSYUKKVU7IAEPOUHKAAYBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
