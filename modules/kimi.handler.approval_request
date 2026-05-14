@@ -93,26 +93,10 @@ if ( defined $auto_allow->{$action} ) {
     $request_id, $action, $short_desc
 );
 
-## flush pending approvals when session is acquired
-sub flush_on_acquisition {
-    my $aref_pending = <kimi.approval.pending> // [];
-    foreach my $request_id (@$aref_pending) {
-        my $payload = {
-            'id'           => $request_id,
-            'tool_call_id' => '',
-            'sender'       => '',
-            'action'       => '',
-            'description'  => ''
-        };
-        <kimi.handler.approval_request>->( $request_id, $payload );
-    }
-    <kimi.approval.pending> = [];
-}
-
 return;
 
-#,,..,,,,,,..,..,,...,..,,,.,,,,.,.,,,,,,,.,,,.,.,...,...,,.,,...,,.,,,.,,..,,
-#UDYWVCNRGBLN37LL4ZQEXQUHOYI2VQY24I6NWNQKBA34G6KRUGVUIJDGIQ2VAWHBD4L6FSAGXCQGY
-#\\\|DPZMJFYFFQ2ZUNUQXNDW5UJ7BMZ6YSLH4ZYKEMSZBVIUWG7QVHN \ / AMOS7 \ YOURUM ::
-#\[7]FEMU4ACA52FC2MU56PIXEEHGGZJBR3ROEWZGKQWB2YDO4FJ4VADA 7  DATA SIGNATURE ::
+#,,.,,.,,,...,..,,,.,,,,.,...,...,.,,,,..,..,,.,.,...,...,.,,,.,.,,.,,..,,,..,
+#5FOH2MIGXT4E6O3AHZBF3BATK4WNKV4GLNCVR3NEM3DX4EKP3IIAUBBD6HXIHWY5S5RF7XGJB2CWU
+#\\\|CXHTEZOQDRGMHE4VRDNHKSVBU6Z457ET4OWFZDF6JDYUEOWDKZK \ / AMOS7 \ YOURUM ::
+#\[7]K6KYDFET5UO2JFSLTQHDBWLRWGHMNSHGKH4HBPAW5VJAAMX6L2BQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
