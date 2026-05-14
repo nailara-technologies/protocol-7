@@ -185,23 +185,19 @@ if ( length($score) and $score >= $threshold ) {
     );
 }
 
-## update site-yaml store status to 'assessed'
-my $store_file = '/var/protocol-7/site-yaml/store.yaml';
-if ( -f $store_file ) {
-    my $store = eval { YAML::XS::LoadFile($store_file) } // {};
-    if ( exists $store->{$job_id} ) {
-        $store->{$job_id}{'status'}        = 'assessed';
-        $store->{$job_id}{'score'}         = $score;
-        $store->{$job_id}{'score_reason'}  = $reason  // '';
-        $store->{$job_id}{'score_summary'} = $summary // '';
-        $store->{$job_id}{'assertions'}    = $assertions
-            if %{ $assertions // {} };
-        eval { YAML::XS::DumpFile( $store_file, $store ) };
+## update per-job file
+my $job = <[jobsite.job.read]>->($job_id) // {};
+$job->{'status'}        = 'assessed';
+$job->{'score'}         = $score;
+$job->{'score_reason'}  = $reason  // '';
+$job->{'score_summary'} = $summary // '';
+$job->{'assertions'}    = $assertions if %{ $assertions // {} };
+$job->{'stage'}         = $job_rec->{'stage'};
 
-        ## add to checksum index for dedup on future scans ##
-        <[jobsite.checksum.index]>->( qw| add |, $store->{$job_id} );
-    }
-}
+<[jobsite.job.write]>->( $job_id, $job );
+
+## add to checksum index for dedup on future scans ##
+<[jobsite.checksum.index]>->( qw| add |, $job );
 
 <jobsite.pending_count>--;
 
@@ -214,8 +210,8 @@ if ( <jobsite.pending_count> <= 0 ) {
 <[jobsite.state.persist]>;
 <[jobsite.dispatch.next]>
 
-#,,,,,,..,,.,,,,.,,.,,,.,,.,.,,,.,...,,..,.,,,..,,...,.,.,..,,,..,.,.,,,,,.,,,
-#66LHA3EDXSBVKKZ2P6VEVLNLBX3PQUDCJWBFVSEODPRNVM4QU3VL7EPDHL6VTXHHRRO4IP354FGCY
-#\\\|H76FEIHMYVFRGTTMXJGX54QGF2AMNDFPI2GK22HMIGGTWF7A3XQ \ / AMOS7 \ YOURUM ::
-#\[7]5TH6BSJXBJ5WYH6GGSGVCGPTTUC5M5Q6HZXTXAPJYFB56HOWDABQ 7  DATA SIGNATURE ::
+#,,.,,.,.,,..,,..,,..,.,,,,,,,,.,,..,,,..,,.,,..,,...,...,...,...,.,,,,.,,,,.,
+#TESPTWNTLKUV2FTF7VD73KMJAVYHHLVK6KYGQSHOOCWMVJKDCTZ3UQ6QV4YLBUPY3LGZTSGWTCIYG
+#\\\|YCBDT2CJXSTNL3HV26VFQ7VUMSP6I4UIDJ3KAMVIWH3NMHH5YTR \ / AMOS7 \ YOURUM ::
+#\[7]UBKX4CCLG35ZO4NZJGPRBUBIIBFDD4U7PG5EFONJA7FELR6QSGDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

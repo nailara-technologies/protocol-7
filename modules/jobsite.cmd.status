@@ -3,12 +3,30 @@
 # name  = jobsite.cmd.status
 # descr = show current cycle state and job counts
 
-my $tasks = <jobsite.tasks> // {};
-
 my %counts;
-for my $id ( keys %{$tasks} ) {
-    my $stage = $tasks->{$id}{'stage'} // 'unknown';
-    $counts{$stage}++;
+my $total = 0;
+
+## prefer index.yaml for fast counts
+my $index_file = '/var/protocol-7/jobsite/index.yaml';
+if ( -f $index_file ) {
+    my $index = eval { YAML::XS::LoadFile($index_file) } // {};
+    if ( ref $index eq 'HASH' ) {
+        for my $id ( keys %{$index} ) {
+            my $stage = $index->{$id}{'stage'} // 'unknown';
+            $counts{$stage}++;
+        }
+        $total = scalar keys %{$index};
+    }
+}
+
+## fallback to in-memory tasks
+if ( not $total ) {
+    my $tasks = <jobsite.tasks> // {};
+    for my $id ( keys %{$tasks} ) {
+        my $stage = $tasks->{$id}{'stage'} // 'unknown';
+        $counts{$stage}++;
+    }
+    $total = scalar keys %{$tasks};
 }
 
 my $last = <jobsite.last_scan> // 0;
@@ -17,7 +35,7 @@ my $age  = $last ? sprintf( '%ds ago', time - $last ) : 'never';
 my @lines;
 push @lines, sprintf 'cycle:      %s', <jobsite.cycle> // 'idle';
 push @lines, sprintf 'last scan:  %s', $age;
-push @lines, sprintf 'jobs total: %d', scalar keys %{$tasks};
+push @lines, sprintf 'jobs total: %d', $total;
 for my $stage (
     qw| queued assessing assessed review approved rejected failed |) {
     push @lines, sprintf '  %-12s %d', $stage, $counts{$stage} // 0
@@ -27,8 +45,8 @@ push @lines, sprintf 'threshold:  %s', <jobsite.cfg.threshold> // 6;
 
 return { 'mode' => 'size', 'data' => join( "\n", @lines ) };
 
-#,,.,,..,,,.,,,.,,,,,,...,,,,,.,.,,..,,,.,..,,..,,...,...,,,,,,.,,,..,,..,,,,,
-#4XTSSKFMPBU52TSHPR63LDZVP2WYGCOVKAUP4QJWZ5GUPY45KP22R2Y2IJ4V6ITL7ZIEZMT6BTNP4
-#\\\|KHZWZHRKGOFMXJJW5P3PA4SK74MABKBXYVEZE4G32J5HRMJNVEA \ / AMOS7 \ YOURUM ::
-#\[7]PGGOIURU6PNFWJC6BIBVKVUIOXRC2NZA6Z33SJGDHRBQ4BF5KYBA 7  DATA SIGNATURE ::
+#,,,,,,,,,.,.,...,,,,,,..,,,.,,,.,.,.,,,.,,..,..,,...,..,,..,,,,,,..,,..,,,,,,
+#EV4W56HVH2Z3M6RFEDOA6VJB2U5IKWS62G55T7TM3ANPPFGHPUXW74AVRWDU7MAJPS5DE6VGGY6BI
+#\\\|CE743RISFCCOUCTYQX2CTUCLJLXZVF4MFURUN4EQ76ANA6XNWCV \ / AMOS7 \ YOURUM ::
+#\[7]H2RBSTQ7RA36UVVP6KP4UT2DWS2663MTLQ52UAKK5CKTWYHCCOCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,24 +1,24 @@
 ## [:< ##
 
 # name  = site-yaml.jobs.save
-# descr = persist job store to disk
+# descr = persist job store to disk as per-job files
 
-my $yaml;
-eval { $yaml = YAML::XS::Dump( $data{'jobs'}{'store'} ) };
-if ($@) {
-    <[base.logs]>->( 0, 'jobs.save: serialize error: %s', $@ );
-    return FALSE;
+my $store = $data{'jobs'}{'store'} // {};
+my $count = 0;
+
+for my $job_id ( keys %{$store} ) {
+    my $job = $store->{$job_id};
+    next if ref $job ne 'HASH';
+    <[jobsite.job.write]>->( $job_id, $job );
+    $count++;
 }
 
-my $written = <[file.zenka_dir.write]>->( 'store.yaml', \$yaml );
-if ( not defined $written ) {
-    <[base.logs]>->( 0, 'jobs.save: write failed' );
-    return FALSE;
-}
+<[base.logs]>->( 2, 'jobs.save: wrote %d per-job files', $count ) if $count;
+
 return TRUE;
 
-#,,,.,,,.,.,,,,,.,...,.,,,,..,,,,,,..,...,,.,,..,,...,...,..,,,,,,...,.,.,.,,,
-#FXCHDAXIWECWNDXCXJDQ452O32WU5DKWXXY7HWEC77HQBMCGAJJMFXD43A4F5OD4FCYRPPIMPFIQK
-#\\\|ME4VESFWUJECQSQBLABQ54HMO73LGB3SXC5NBWAKY4LCT7Q2MBT \ / AMOS7 \ YOURUM ::
-#\[7]BF6AS3TUWU7N6APNMSINNKBEXEHBMWD2OHW23L3DZKY5C5T25GBI 7  DATA SIGNATURE ::
+#,,..,..,,.,,,,,.,...,,,.,.,,,,.,,,,.,...,,,.,..,,...,...,...,.,.,.,.,,.,,.,.,
+#PA2VHEIXUZK4RKMMKB4X2OVF6QILQPWHMXUEOX56CHUR4TK3O5DQMIZZLLTLF3ZTANZ3G4T6J4LAQ
+#\\\|6FEDSYKKZXVQW5CPLJIZNNMZFDE7YV3P7NEBLF4QS2EISABDV2N \ / AMOS7 \ YOURUM ::
+#\[7]TUJJQ2ATZUALQMNFNNM4DTSOHPBWA5FOAWV2IUTA75PGCIUKZUDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

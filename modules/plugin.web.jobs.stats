@@ -5,13 +5,7 @@
 
 map { <[base.perlmod.autoload]>->($ARG) } qw| YAML::XS |;
 
-my $store_file = '/var/protocol-7/jobs/store.yaml';
-my $store      = {};
-
-if ( -f $store_file ) {
-    eval { $store = YAML::XS::LoadFile($store_file) };
-    $store = {} if $@;
-}
+my $store = <[jobsite.job.load_all]>->();
 
 my %counts;
 for my $id ( keys %{$store} ) {
@@ -33,8 +27,8 @@ push @lines, '</div>';
 
 return join( "\n", @lines );
 
-#,,.,,...,.,,,..,,,,,,,,.,,.,,..,,.,.,..,,.,,,..,,...,...,..,,,..,,,,,,,,,,.,,
-#JRAG5OLMM6J2LCCW6VGLFSKKPF3SZQ4EVDDTFLXF3BRWRXUQUSGRQU5ZWPMO2POX4UFA7AXH5UNIQ
-#\\\|PUMCL662JXEQ6AGVYGDSDSCJ4JLGM4IB3H33TCJUII3NTI3245A \ / AMOS7 \ YOURUM ::
-#\[7]4CI6KNG353HDRPCLDA7FOVN3H2F25FXSGH7CAWZET6EN4ANMZEBQ 7  DATA SIGNATURE ::
+#,,,.,,.,,.,.,.,.,...,,,.,...,..,,,,.,,.,,..,,..,,...,...,,..,..,,,..,,,,,.,,,
+#VXCAWOOH6BRLTTMYWHGA4QZZIRTMMWWFWJ6G4VU5F26SM23NZOLTC7HCMDGG2ZMJKMY56CUOJ32LE
+#\\\|DTRH2QNXQN6FM2WAKWY7J37GZ2SAEHJAI6NYT3IECG7V3VH7AYI \ / AMOS7 \ YOURUM ::
+#\[7]F3DCQZJLKKUTSPQZ6PUMXMJSR27W3VUPKXGJAQGTJ7NE4COJIKBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

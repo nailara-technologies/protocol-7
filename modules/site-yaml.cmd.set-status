@@ -25,12 +25,12 @@ return { 'mode' => 'false', 'data' => "unknown job id: $id" }
 $store->{$id}{'status'}     = $status;
 $store->{$id}{'applied_at'} = time if $status eq 'applied';
 
-<[site-yaml.jobs.save]>;
+<[jobsite.job.write]>->( $id, $store->{$id} );
 
 return { 'mode' => 'true', 'data' => "ok: $id => $status" };
 
-#,,.,,...,,,.,..,,.,.,,.,,.,,,,..,.,.,,,,,.,.,..,,...,...,...,...,,,.,...,.,.,
-#42QICNLNQGKMVFN5PQ7TF62QZYUEZKS7AFZTBO636TFO5IECNEERTV2YY3GALAUVTLFCT2IHBA7UY
-#\\\|NO3I6VUKABK3R5PX77LJVQXH5AWIFKC4PDZ5JMB4DXMLIA4PH2B \ / AMOS7 \ YOURUM ::
-#\[7]V5SATCIQWV6MLUUFVT4XCCJBGICRHQ4XHAUXEPWLOAMASKDFQSDY 7  DATA SIGNATURE ::
+#,,.,,,.,,...,...,.,,,,,.,,,.,..,,.,.,,,.,,.,,..,,...,...,.,,,...,,..,,,.,...,
+#SAWQVE4KGFTWJQEWYDD2JLEOSAUN57CEGHKK256QR66PET2VZ7DYCUZNVP55JXR6ENOGFAQKEWWA4
+#\\\|ABUPVUONBCNZUJTEWSD3GWVAPLXJINMWZQG4UITIICLI7ZSOFNE \ / AMOS7 \ YOURUM ::
+#\[7]LN7M7CVXTWO4YHG4APYM6YBTEXI4JWMFR5LCWLLXFLIQEBVTCECQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

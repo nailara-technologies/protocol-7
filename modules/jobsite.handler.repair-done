@@ -145,23 +145,19 @@ if ( $validation->{'is_valid'} ) {
 
     $job_rec->{'repair_applied'} = TRUE;
 
-    ## update site-yaml store ##
-    my $store_file = '/var/protocol-7/site-yaml/store.yaml';
-    if ( -f $store_file ) {
-        my $store = eval { YAML::XS::LoadFile($store_file) } // {};
-        if ( exists $store->{$job_id} ) {
-            $store->{$job_id}{'status'}        = 'assessed';
-            $store->{$job_id}{'score'}         = $score;
-            $store->{$job_id}{'score_reason'}  = $reason  // '';
-            $store->{$job_id}{'score_summary'} = $summary // '';
-            $store->{$job_id}{'assertions'}    = $assertions
-                if %{ $assertions // {} };
-            eval { YAML::XS::DumpFile( $store_file, $store ) };
+    ## update per-job file
+    my $job = <[jobsite.job.read]>->($job_id) // {};
+    $job->{'status'}        = 'assessed';
+    $job->{'score'}         = $score;
+    $job->{'score_reason'}  = $reason  // '';
+    $job->{'score_summary'} = $summary // '';
+    $job->{'assertions'}    = $assertions if %{ $assertions // {} };
+    $job->{'stage'}         = $job_rec->{'stage'};
 
-            ## add to checksum index for dedup on future scans ##
-            <[jobsite.checksum.index]>->( qw| add |, $store->{$job_id} );
-        }
-    }
+    <[jobsite.job.write]>->( $job_id, $job );
+
+    ## add to checksum index for dedup on future scans ##
+    <[jobsite.checksum.index]>->( qw| add |, $job );
 } else {
     ## repair still invalid — mark and keep whatever we have ##
     $job_rec->{'repair_failed'} = TRUE;
@@ -182,8 +178,8 @@ if ( <jobsite.pending_count> <= 0 ) {
 <[jobsite.state.persist]>;
 <[jobsite.dispatch.next]>;
 
-#,,,,,.,.,.,,,,.,,..,,,.,,,,.,.,,,,,.,.,,,,,.,..,,...,...,..,,.,,,...,,.,,..,,
-#NQAU3SL7FOLOK6YMMJUPMGU4URXP52ULNCSWOPSTN5M6PEA6LREVHPKNQ2AUIRBPTPP3T3AAF37IA
-#\\\|NTUG43AD3ZFH3ZMWKMMOUTMLTDJULSLKXXVOSWOO7O4UBEDBVA4 \ / AMOS7 \ YOURUM ::
-#\[7]AIXZUMM4JQY3GYEUFJLWXD2IBW6J2ZOI2EOR676XH7F5JEQRSWDI 7  DATA SIGNATURE ::
+#,,..,...,.,,,..,,..,,,,,,.,.,...,,.,,,,.,,..,..,,...,...,.,,,.,,,.,.,.,,,..,,
+#GOBIXUYM2BK2S7B6P3SH3IKRZU4PSTLTCH4CPEI4ZXELSLAEPKDRD3FETA2VMZJMTPXXEQAOSO6CE
+#\\\|HML76T2WVW4I43D74673XJ5AJCXJC2B7DC6HNCKXEFE6P5QQCSY \ / AMOS7 \ YOURUM ::
+#\[7]EAKBGXRPMNOAEOXXVE7R7D6EQ5ACWZPYCE2YWVME5TMA4UWHAMDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

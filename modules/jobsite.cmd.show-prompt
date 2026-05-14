@@ -10,12 +10,7 @@ return {
     }
     unless length $arg;
 
-<[base.perlmod.autoload]>->('YAML::XS');
-my $store_file = '/var/protocol-7/site-yaml/store.yaml';
-my $store      = {};
-if ( -f $store_file ) {
-    $store = eval { YAML::XS::LoadFile($store_file) } // {};
-}
+my $store = <[jobsite.job.load_all]>->();
 
 ## list all jobs ##
 if ( $arg eq qw| list | ) {
@@ -75,8 +70,8 @@ my $prompt = <[jobsite.util.build_prompt]>->($job);
 
 return { 'mode' => 'size', 'data' => $prompt };
 
-#,,..,,..,,,.,..,,,,.,.,.,...,,..,...,,..,,,,,.,.,...,...,...,...,..,,,..,...,
-#MPQW2OYU3YX2VQFEGTGJVARM2SSZWK77TGTN73VB3QJ4U5TJBP4BPYLKPFZU6RRVA4QLVILOAKWB6
-#\\\|RXMSRYHCNTPVI4Y2OHP62DNMZX7KMP5WNBYTXUGFUQTP3WXHIIV \ / AMOS7 \ YOURUM ::
-#\[7]ULFP2BDAHZ7VVAH7USJNOUDXY4FVSVHPKUEOWFMQVHQVPUGE4SCI 7  DATA SIGNATURE ::
+#,,,.,.,,,,..,,.,,...,..,,..,,..,,,.,,,..,..,,.,.,...,...,.,,,,.,,,,.,.,.,,.,,
+#Z5OS5BDOI4R7VFYGTWQXMT4EN2X3I32BZ64UIEE56NMOJAQI5BYYGBUCFOIOZJWQ2MXMMC3N7AP2S
+#\\\|3AYADEJWDLZGU5KZ6OKPQ4ROHKIYMRWMEOCXEZU3U4VHTD57LRU \ / AMOS7 \ YOURUM ::
+#\[7]IH2JR5UEHD76QC3HTG7H6NIY4QSDRJRW6P346BDCNXM532Q5KEBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

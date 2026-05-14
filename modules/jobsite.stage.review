@@ -22,12 +22,7 @@ if ( not @for_review ) {
     scalar @for_review
 );
 
-<[base.perlmod.autoload]>->('YAML::XS');
-my $store_file = '/var/protocol-7/jobs/store.yaml';
-my $store
-    = -f $store_file
-    ? ( eval { YAML::XS::LoadFile($store_file) } // {} )
-    : {};
+my $store = <[jobsite.job.load_all]>->();
 
 for my $job_id ( sort @for_review ) {
     my $rec = $tasks->{$job_id};
@@ -47,8 +42,8 @@ for my $job_id ( sort @for_review ) {
 
 <[jobsite.state.persist]>;
 
-#,,,.,,.,,..,,...,,.,,,,.,,,,,,.,,.,.,,,,,,,,,..,,...,..,,.,,,.,,,,.,,,.,,,,.,
-#HHINGUEUQQHHOO4VKI7HLBUUZNIHTXPB3FGAUIVNHUXXU3BTCYCQA62CNO3NXO5P6K36QVC5R2BPO
-#\\\|LYEMJV3LC64EY6MNVSA64XWECFESLKRH6FGD42Y53BHYIWVDHFJ \ / AMOS7 \ YOURUM ::
-#\[7]3K3BVEXUCFRDOQA4LII2GDF3B652M444MSXTJLHDGC2URGD7RADA 7  DATA SIGNATURE ::
+#,,,.,,.,,,,,,...,...,...,,.,,,,.,..,,,..,..,,..,,...,...,.,.,.,.,..,,,,,,,,,,
+#2V65MIQKMXAWBCNXMNOP4OHVPH6664ESGOF2C64SPCI224CSJFXRTNZQRZHLVAOM6ALUGJARWVDGW
+#\\\|45JUPCD7HCEOLKIKP5MP2EWHCCRNR6RXUGNEOCDMT2OLVRIVEG5 \ / AMOS7 \ YOURUM ::
+#\[7]43Y3JRJTHE6A2XY3YG5HK7JWJTQ6JSEWFUMA6XFHZG5MCRYM76BI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
