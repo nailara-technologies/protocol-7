@@ -69,6 +69,8 @@
 - [web-serialization-and-inlining](feedback-web-serialization-and-inlining.md) — parallel JSON+YAML endpoints, inline CSS/JS
 - [task-show-multiline](feedback-task-show-multiline.md) — task.show must escape \\n; line parsers only see first line
 - [list-return-format](feedback-list-return-format.md) — list backends: `{ mode => 'size', data => $formatted_string }`
+- [stop-and-revert](feedback-stop-and-revert.md) — don't chain speculative fixes; stop, revert, confirm root cause first
+- [utf8-module-literals](feedback-utf8-module-literals.md) — non-ASCII in module format strings corrupts output; keep format strings ASCII-only
 
 ## Completed Sessions
 - [topic-completed](topic-completed.md) — all session summaries (Feb 2026 → present)
@@ -104,8 +106,8 @@
 - **repo var/ cleanup** — `var/httpd/` tracked from Nov 2025 AI error
 - **kimi auto-approval regression** (Apr 16) — some tool calls not auto-approved during kimi tasks
 
-#,,,.,,..,..,,..,,..,,,,,,..,,,.,,,.,,.,,,,,,,..,,...,...,,.,,..,,,.,,..,,..,,
-#W3CTVWDBRSZ6WR433GOLQJ7TMOSF4DUPRLA65QZ76BCC7XCTGIHOLYJAZ64FTBYDY5NPKCVEEXT7I
-#\\\|X2RWMWGQZXUZVASVCU6YEHL4UGJCZ23ATERUW2ZTLF5UJDK6NES \ / AMOS7 \ YOURUM ::
-#\[7]DDHMO3BQXZTOOYP2QR27TVCTGRDNWYEXT4VLPEIV2Y6AP6CRLKCY 7  DATA SIGNATURE ::
+#,,,.,,,,,,,,,.,,,,.,,...,,..,.,.,,..,,,.,,..,..,,...,...,,..,.,,,.,.,.,.,,.,,
+#ECX2A4FMIOQFYGIS6TFPP4FB74NIYM72HHJRLECPDILBXTYU7X6DYH62AGA72557OY5HH43KVPZ4M
+#\\\|IJRJVICUY6THXAVM4TNCGXXPH4XQLWNILN2L75JFIYA5LGROOJG \ / AMOS7 \ YOURUM ::
+#\[7]3ISYR6BNGRAZ52V4D7NYRCH44HM3SBOYDTRCNDQO6ATW6JSUSGCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
