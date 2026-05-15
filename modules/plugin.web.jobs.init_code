@@ -7,12 +7,15 @@
 <[base.perlmod.autoload]>->('JSON::XS');
 <[base.perlmod.autoload]>->('YAML::XS');
 
+## ensure httpd-owned jobs cache dir exists [ var_P7/httpd/jobs/ ] ##
+<[base.path-set-up.check-zenka-paths]>->( TRUE, 0750, FALSE, 0700, 'jobs' );
+
 <[base.logs]>->( 1, 'plugin.web.jobs : initialized' );
 
 0;
 
-#,,..,..,,...,,,.,.,.,.,.,.,,,..,,.,.,,,.,..,,..,,...,..,,,.,,...,..,,,.,,..,,
-#DOPTEJPXIGHN7DPBJ652XYYGRCYEO6IL2D5JKKNAUT7NND6JZLZDCVS5BTSWI5R33VMBFZT6HAGJE
-#\\\|YPZOIFZUBWXRNDREIMZPXIONFUR5ZONZS3DUJH23APNA6AGSDIC \ / AMOS7 \ YOURUM ::
-#\[7]J5PBE3D7UODWH7KMT6TDJM2HJZJREC3I55VCAJGG5RRCRSBKAQDA 7  DATA SIGNATURE ::
+#,,,.,...,,,,,,.,,..,,...,..,,,.,,,.,,...,.,,,..,,...,..,,,,.,..,,,..,.,.,,..,
+#V7D6UILSKGS6OGNBMGWAWFPZSBXY2HZTDOLFZQ3SZW5BLIY4KHOWPDAEVAO6VLKU5G6WAHOKBY35U
+#\\\|PGAORXLW6XWD3XD7KJ37QNZQE4OM6IFAVLGHMTNVO73QXUEDG7B \ / AMOS7 \ YOURUM ::
+#\[7]WD6YZHVATVWTM76LRRNS4RZGLXTHERAPRG6AV57QT3XZGYAPJ6AI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

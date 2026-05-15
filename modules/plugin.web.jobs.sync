@@ -1,79 +1,100 @@
 ## [:< ##
 
 # name  = plugin.web.jobs.sync
-# descr = handle POST delta sync for a single job record
+# descr = handle POST sync — jobsite push or browser field update
 
 my $id = shift;
 
 my $session = $data{'session'}->{$id};
 
-my $body = $session->{'buffer'}->{'input'} // '';
+my $body = $session->{'http'}->{'body'} // $session->{'buffer'}->{'input'}
+    // '';
+$session->{'http'}->{'body'}    = undef;
 $session->{'buffer'}->{'input'} = '';
 
-my $delta = eval { JSON::XS::decode_json($body) };
-if ( $@ or ref $delta ne 'HASH' ) {
-    my $reply_body   = '{"ok":false,"error":"invalid json"}';
-    my $reply_header = {
-        qw| Content-Type   | => qw| application/json |,
-        qw| Content-Length | => length($reply_body),
-        qw| Connection     | => qw| close |,
-    };
-    $session->{'buffer'}->{'output'}
-        .= <[httpd.new_header]>->( 400, $reply_header );
-    $session->{'buffer'}->{'output'} .= $reply_body;
+my $payload = eval { JSON::XS::decode_json($body) };
+if ( $@ or ref $payload ne 'HASH' ) {
+    my $rb = '{"ok":false,"error":"invalid json"}';
+    $session->{'buffer'}->{'output'} .= <[httpd.new_header]>->(
+        400,
+        {   'Content-Type'   => 'application/json',
+            'Content-Length' => length($rb)
+        }
+    );
+    $session->{'buffer'}->{'output'} .= $rb;
     return 2;
 }
 
-my $job_id = $delta->{'id'} // '';
+my $job_id = $payload->{'id'} // '';
 if ( not length $job_id ) {
-    my $reply_body   = '{"ok":false,"error":"missing job id"}';
-    my $reply_header = {
-        qw| Content-Type   | => qw| application/json |,
-        qw| Content-Length | => length($reply_body),
-        qw| Connection     | => qw| close |,
-    };
-    $session->{'buffer'}->{'output'}
-        .= <[httpd.new_header]>->( 400, $reply_header );
-    $session->{'buffer'}->{'output'} .= $reply_body;
+    my $rb = '{"ok":false,"error":"missing id"}';
+    $session->{'buffer'}->{'output'} .= <[httpd.new_header]>->(
+        400,
+        {   'Content-Type'   => 'application/json',
+            'Content-Length' => length($rb)
+        }
+    );
+    $session->{'buffer'}->{'output'} .= $rb;
     return 2;
 }
 
-my $job = <[jobsite.job.read]>->($job_id);
-if ( not defined $job ) {
-    my $reply_body   = '{"ok":false,"error":"job not found"}';
-    my $reply_header = {
-        qw| Content-Type   | => qw| application/json |,
-        qw| Content-Length | => length($reply_body),
-        qw| Connection     | => qw| close |,
-    };
-    $session->{'buffer'}->{'output'}
-        .= <[httpd.new_header]>->( 404, $reply_header );
-    $session->{'buffer'}->{'output'} .= $reply_body;
-    return 2;
+## load cached record or start fresh ##
+my $job = eval {
+    my $f = <[plugin.web.jobs.cache.path]> . "/$job_id.yaml";
+    -f $f ? YAML::XS::LoadFile($f) : {};
+} // {};
+
+## jobsite push: has pipeline-owned fields — overwrite pipeline fields,
+## preserve browser-owned fields already in cache ##
+my @pipeline_fields = qw| title company url score score_reason score_summary
+    fetched_at status description |;
+my @browser_fields = qw| stage notes date_applied |;
+
+if ( exists $payload->{'fetched_at'} or exists $payload->{'score'} ) {
+    ## jobsite push — update pipeline fields, keep browser fields ##
+    for my $f (@pipeline_fields) {
+        $job->{$f} = $payload->{$f} if exists $payload->{$f};
+    }
+} else {
+    ## browser update — only browser-owned fields, queue reverse change ##
+    my %changed;
+    for my $f (@browser_fields) {
+        if ( exists $payload->{$f} ) {
+            $job->{$f} = $payload->{$f};
+            $changed{$f} = $payload->{$f};
+        }
+    }
+    if (%changed) {
+        <[plugin.web.jobs.reverse.queue]>->( { 'id' => $job_id, %changed } );
+    }
 }
 
-## merge only browser-owned fields ##
-for my $field (qw| stage notes date_applied |) {
-    $job->{$field} = $delta->{$field} if exists $delta->{$field};
-}
+my $ok = <[plugin.web.jobs.cache.write]>->( $job_id, $job );
 
-my $ok = <[jobsite.job.write]>->( $job_id, $job );
+## return reverse queue to jobsite callers ##
+my $reverse = <[plugin.web.jobs.reverse.flush]>;
+my $rb      = eval {
+    JSON::XS::encode_json(
+        {   'ok'      => $ok ? JSON::XS::true() : JSON::XS::false(),
+            'reverse' => $reverse
+        }
+    );
+} // '{"ok":false,"error":"encode failed"}';
 
-my $reply_body = $ok ? '{"ok":true}' : '{"ok":false,"error":"write failed"}';
 my $reply_header = {
     qw| Content-Type   | => qw| application/json |,
-    qw| Content-Length | => length($reply_body),
+    qw| Content-Length | => length($rb),
     qw| Connection     | => qw| close |,
 };
 
 $session->{'buffer'}->{'output'}
     .= <[httpd.new_header]>->( 200, $reply_header );
-$session->{'buffer'}->{'output'} .= $reply_body;
+$session->{'buffer'}->{'output'} .= $rb;
 
 return 2;
 
-#,,.,,,,.,.,.,,,,,,.,,,..,,,.,,..,,.,,..,,,.,,...,...,...,,,.,,,.,,.,,...,.,.,
-#JZI3KCQGZHAVC7USY5C2DPSJEXKTVTG5JNNCY4TVJH7M6FWOWWIZKBSIQUJJQOZE5EGDCX7F5JEY6
-#\\\|QYNACT2A4RHYWERVT3IWHSKERYDIVRKNMW4E5SVRBJE5DS5WN6Z \ / AMOS7 \ YOURUM ::
-#\[7]HPHG66K3KYC5OWJTALHCRRVLGAKEESSPYOAX27ZAZE35XMR2REAA 7  DATA SIGNATURE ::
+#,,,,,...,.,,,.,.,.,.,..,,,,.,.,.,,.,,..,,,,,,.,.,...,...,.,.,,,,,,,.,,,.,,,.,
+#HSI35IF4EXD7F7DYYPI4KU3VVSO3O56SPPYEM6UZIRDRASPQHULKWAS32I7I33TRCYLTLHTGUD5AE
+#\\\|UBUHTJ6E6DJ57UFMKPLADPV7OMMG4FYOUDP53M7WKT3IN2SMMXW \ / AMOS7 \ YOURUM ::
+#\[7]YNJTY2IBP3MTPE4YZ2NJ22OHKZMRL5FMIP2DX6KGQDNG6UTFTEBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -33,17 +33,48 @@ if ( $content_length > $max_post_size ) {
     return <[httpd.send_error_page]>->( $id, 413 );    ## Payload Too Large
 }
 
-## route registry dispatch (exact + ANY, before ACME body handling) ##
+## route registry dispatch — wait for full body first ##
 my $registry = $data{'httpd'}{'route'} // {};
+my $route_sub;
 for my $try_method (qw| POST ANY |) {
     my $sub_name = ( $registry->{'exact'}{$try_method} // {} )->{$http_uri};
     if ( defined $sub_name and exists $code{$sub_name} ) {
-        <[base.logs]>->(
-            1,   '[%d] route registry [%s:%s] → %s',
-            $id, $try_method, $http_uri, $sub_name
-        );
-        return $code{$sub_name}->($id);
+        $route_sub = $sub_name;
+        last;
     }
+}
+
+if ( defined $route_sub ) {
+    my $current_body   = $session->{'buffer'}->{'input'} // '';
+    my $bytes_received = length($current_body);
+
+    if ( $content_length > 0 and $bytes_received < $content_length ) {
+        $session->{'http'}->{'pending_route_sub'}   = $route_sub;
+        $session->{'http'}->{'acme_request_uri'}    = $http_uri;
+        $session->{'http'}->{'acme_content_length'} = $content_length;
+        $session->{'http'}->{'original_input_watcher'}
+            = $session->{'watcher'}->{'input_buffer'};
+        if ( defined $session->{'watcher'}->{'input_buffer'} ) {
+            $session->{'watcher'}->{'input_buffer'}->stop;
+        }
+        $session->{'watcher'}->{'input_buffer'} = <[event.add_var]>->(
+            {   'var'     => \$session->{'buffer'}->{'input'},
+                'handler' => qw| httpd.handler.input.body_remainder |,
+                'poll'    => qw| w |,
+                'repeat'  => TRUE,
+                'data'    => $id,
+                'desc'    => sprintf( '[%d] body accumulator watcher', $id )
+            }
+        );
+        $session->{'watcher'}->{'input_buffer'}->now;
+        return 1;
+    }
+
+    <[base.logs]>->(
+        1,   '[%d] route registry [POST:%s] → %s',
+        $id, $http_uri, $route_sub
+    );
+    return $code{$route_sub}->($id);
 }
 
 ## For ACME endpoints, wait for complete body before processing
@@ -124,8 +155,8 @@ if (   $http_uri =~ m|^/api/certificate|
 
 return 2;    ## Should not reach here
 
-#,,,,,,..,,,,,,..,.,,,.,.,..,,,..,..,,,..,,,.,..,,...,..,,.,,,..,,.,,,,,,,,,,,
-#KS3K3N3HERLFRFST3ZHLGMMN4IFR76KMCXGLVUYFIUUHC6GUH5CWVCKVXU22XXPY6PQUETPLAYBPS
-#\\\|GB4UGUGOJVPZMDYHXNARFCRQUQMDTA2EQAFJIHUK7BIDJJMNY4X \ / AMOS7 \ YOURUM ::
-#\[7]D3NMH66YIRNCGL2CGNOWS7SH2JYKZYIZFIRKIQOF563524IIOCBY 7  DATA SIGNATURE ::
+#,,,,,,,.,,..,..,,.,,,...,...,,,.,,..,...,,,,,..,,...,...,,.,,.,.,,.,,,..,...,
+#TUBJAKQMPK7IX4BDAJTYFKB4JUMGBP2VXLU2YJRUKCMMUUQKO4LJ3DK62HSRRNGDACVDNDOMLLCR6
+#\\\|OJZJJ35DZUTR2NQHTNKKNCSAYZYW6IK5WY6WK5ZQVHJVYUZCYLP \ / AMOS7 \ YOURUM ::
+#\[7]GIAJH37IRQ3FCCP3OSIUEF5T267UZXZFH7K7ZPLJJR5USZQ7JCDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

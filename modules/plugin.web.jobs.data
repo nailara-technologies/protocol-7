@@ -7,7 +7,7 @@ my $id = shift;
 
 my $session = $data{'session'}->{$id};
 
-my $jobs = <[jobsite.job.load_all]>;
+my $jobs = <[plugin.web.jobs.cache.read_all]>;
 
 my @ids = sort {
     ( $jobs->{$b}{'fetched_at'} // 0 ) <=> ( $jobs->{$a}{'fetched_at'} // 0 )
@@ -35,8 +35,8 @@ $session->{'buffer'}->{'output'} .= $reply_body;
 
 return 2;
 
-#,,.,,...,,,.,,,,,...,...,.,.,...,...,.,.,...,..,,...,...,.,.,,..,.,,,,,.,...,
-#4A5TGP6KPDA5SD7QG6WUZVVTSRR56FHSOXLO2DRSEMF2QCZRBBACKOFAH55BJYZMZMLH626RE5ABE
-#\\\|ISSIAO7WMAQS3TO62OMDYBS6YISU2RBYJIBMJVQVGOIQLRG4XEU \ / AMOS7 \ YOURUM ::
-#\[7]MOHXXFRYYMF2L4JNQGJ7AUBTYZSSNUBUZ2MY4CAQ3WHNTVURI6BI 7  DATA SIGNATURE ::
+#,,..,,..,...,,..,.,.,..,,.,,,..,,,,.,,..,..,,..,,...,...,.,,,,.,,,,,,,,,,.,,,
+#PHCSLF3GJT74M7KFTPR63H3VQ57S5ZGIMCI7RO3U22BLBA2ELULYZ54DEWQUULQO2ZF4CUDAGQJTY
+#\\\|ALHXMXDFRWD5OUIN7II65OOIWXHDRXQGOGSFYEIWH7KRJ7TTIVW \ / AMOS7 \ YOURUM ::
+#\[7]ZGWSE6BBPJFSPJV3PEEDQHSDFUWPTPF6WJPPOHH757LYO4CHXAAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,0 +1,92 @@
+## [:< ##
+
+# name  = jobsite.sync.push
+# descr = periodic http push to httpd cache, one job per tick
+
+my $ev    = shift;
+my $phase = 'init';
+if ( ref $ev and ref $ev eq 'Event' ) {
+    $phase = $ev->w->data // 'init';
+}
+
+if ( $phase eq 'init' ) {
+    return if <jobsite.sync.push_in_progress>;
+
+    my $jobs = <[jobsite.job.load_all]>;
+    my @ids  = keys %{$jobs};
+
+    if ( not @ids ) {
+        <[jobsite.sync.apply_reverse]>->( [] );
+        return;
+    }
+
+    <jobsite.sync.push_queue>       = \@ids;
+    <jobsite.sync.push_jobs>        = $jobs;
+    <jobsite.sync.push_reverse>     = [];
+    <jobsite.sync.push_in_progress> = TRUE;
+
+    <[event.add_timer]>->(
+        {   'after'   => 0,
+            'handler' => 'jobsite.sync.push',
+            'data'    => 'tick',
+        }
+    );
+    <[base.logs]>->( 1, 'jobsite: sync push started, %d jobs', scalar @ids );
+    return;
+}
+
+## tick phase — process one job
+my $queue   = <jobsite.sync.push_queue>   // [];
+my $jobs    = <jobsite.sync.push_jobs>    // {};
+my $reverse = <jobsite.sync.push_reverse> // [];
+
+my $id = shift @{$queue};
+if ( not defined $id ) {
+    ## queue empty — finish cycle
+    my $all_reverse = delete <jobsite.sync.push_reverse> // [];
+    delete <jobsite.sync.push_queue>;
+    delete <jobsite.sync.push_jobs>;
+    <jobsite.sync.push_in_progress> = FALSE;
+    <[jobsite.sync.apply_reverse]>->($all_reverse);
+    return;
+}
+
+my $job     = $jobs->{$id} // {};
+my $payload = { %{$job}, id => $id };
+my $body    = eval { JSON::XS::encode_json($payload) } // '';
+
+my $url = <jobsite.cfg.sync_url> // '';
+if ( not length $url or not length $body ) {
+    <[base.logs]>->( 0, 'jss.sync.push: skip %s, bad payload or url', $id );
+} else {
+    my $req = HTTP::Request->new( POST => $url );
+    $req->header( 'Content-Type' => 'application/json' );
+    $req->content($body);
+    my $resp = <jobsite.obj.lwp>->request($req);
+
+    if ( $resp->is_success ) {
+        my $reply = eval { JSON::XS::decode_json( $resp->decoded_content ) };
+        if ( ref $reply eq 'HASH' and ref $reply->{'reverse'} eq 'ARRAY' ) {
+            push( @{$reverse}, @{ $reply->{'reverse'} } );
+        }
+    } else {
+        <[base.logs]>->(
+            0,   'jss.sync.push: post failed for %s: %s',
+            $id, $resp->status_line
+        );
+    }
+}
+
+## schedule next tick (will finish when queue runs out)
+<[event.add_timer]>->(
+    {   'after'   => 0,
+        'handler' => 'jobsite.sync.push',
+        'data'    => 'tick',
+    }
+);
+
+#,,..,...,.,,,..,,,,,,,.,,.,.,.,,,.,,,..,,,.,,..,,...,..,,,,,,,,.,...,,..,,,,,
+#WFQEUF5JSHD5WIFLDOTR6X6WBKDYIIFYRXMIWDCGFZIJZHST4ELYQS4JR6CYA4B5JX6G6GOAGUOFK
+#\\\|43F6ASIETZORG7AU7GKSLWEP7VUJG43TSYK5X44MMJGWKQ6YH7M \ / AMOS7 \ YOURUM ::
+#\[7]UJUELMLIS3WXHXJKCVZY4OBV422QPMPLFKBAJ56ZPPVY2423DIAI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

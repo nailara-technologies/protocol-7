@@ -5,6 +5,11 @@
 
 <[base.perlmod.autoload]>->('YAML::XS');
 <[base.perlmod.autoload]>->('File::Path');
+<[base.perlmod.autoload]>->('LWP::UserAgent');
+<[base.perlmod.autoload]>->('HTTP::Request');
+<[base.perlmod.autoload]>->('JSON::XS');
+
+<jobsite.obj.lwp> //= LWP::UserAgent->new( timeout => 10 );
 
 ## cycle-level state
 <jobsite.cycle>         = 'idle';
@@ -42,6 +47,19 @@ if ( $interval > 0 ) {
     <[base.logs]>->( 1, 'jobsite: rescan timer %ds', $interval );
 }
 
+## sync push timer — only when interval > 0
+my $sync_interval = <jobsite.cfg.sync_interval> // 0;
+if ( $sync_interval > 0 ) {
+    <[event.add_timer]>->(
+        {   'after'    => 30,
+            'interval' => $sync_interval,
+            'repeat'   => TRUE,
+            'handler'  => 'jobsite.sync.push',
+        }
+    );
+    <[base.logs]>->( 1, 'jobsite: sync push timer %ds', $sync_interval );
+}
+
 ## re-wire task.wait-done for any jobs stuck in 'assessing' after restart
 my $tasks   = <jobsite.tasks> // {};
 my @orphans = grep {
@@ -76,8 +94,8 @@ my $job_count = scalar keys %{$tasks};
     <jobsite.cycle>, $job_count
 );
 
-#,,,.,.,.,,.,,,.,,,..,,,,,.,.,.,,,.,,,.,.,..,,..,,...,...,...,..,,.,,,...,..,,
-#B4JRG4CM3OHRICQAMMP2IF4MXH5GJQCSFIL7J7S5L2E5PCJMWNQBQAZJKNYQWC2HWLLJKALYZH67G
-#\\\|HE5KB4OG3NU2VRIOPWR3WRCVBRMXXTG4RB55UN4A6IWEZ7LWUBZ \ / AMOS7 \ YOURUM ::
-#\[7]KMNVUSJOYDJUW6TYRWQVLYGDTTNBKJCX2H24RS2Y2XMVDOWQIKAQ 7  DATA SIGNATURE ::
+#,,,.,,,.,...,.,,,.,.,.,,,,.,,,,,,,,,,.,,,...,..,,...,...,..,,,..,..,,,,.,,.,,
+#JXULAW2FCSP6ZAIJTHOLT5NFQF4OPI5TE6MNEJPDOFHTDTYKJP2T7XLHVANNFOA3RQZX27GSUDQCU
+#\\\|6WGVCU45GLU44FIQMQLWJH43USESKYY7AYBE6YC4POWK3XPQWJZ \ / AMOS7 \ YOURUM ::
+#\[7]WOJFU6WXVJWWLCUVKIRC3MEH7Z7CCWGTHKIPEXVR2SFHAUTQUEAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
