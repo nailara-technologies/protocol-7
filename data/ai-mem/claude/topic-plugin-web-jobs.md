@@ -76,6 +76,13 @@ served from cache — synchronous, no deferred reply needed.
 (existing P7 network connection). Cross-host push must use HTTP since that
 link doesn't exist yet. Same sync channel as browser but from server side.
 
+**nameserv integration**: nameserv zenka runs on remote hosts, handles service
+discovery + key storage. jobsite asks nameserv for the remote httpd's public key
+and endpoint → no hardcoded addresses or manually distributed keys. Zero-config:
+new host registers with nameserv, existing nodes discover and trust it automatically.
+HTTP is the transport; auth + discovery are fully P7-native via nameserv.
+Link-upgrade can later promote the HTTP push to a native P7 connection.
+
 ## Toolbar UI (session 25)
 
 - Two-row layout: stats+slider|manuell top, sort|export|reset+sync bottom
@@ -92,8 +99,8 @@ link doesn't exist yet. Same sync channel as browser but from server side.
 
 #,,.,,,.,,..,,...,,,.,,..,,,,,.,,...,,.,,.,.,..,,...,..,,...,,...,,,.,,,,,.,,,,
 
-#,,..,.,,,.,.,,.,,.,.,.,,,.,,,.,,,,,,,,,,,,.,,..,,...,...,..,,.,.,,,,,...,.,.,
-#W4AXDA6XTNUOVMIMEQKOQHYOMJ2YUOGIQT3BRQYSEQB4KER5KYMV2GOL65A5UI5LQ53ST752AN3HO
-#\\\|3ZB2QQ3VBJMK2KXFAUCRF2LY4NNL5HPTYDGOYIMOD6S5M75VA5B \ / AMOS7 \ YOURUM ::
-#\[7]F6TOB7BAW6AHBNFVPCRGFTF4ZWRDOMYFK4JDUOS2G5GFIJV76ADQ 7  DATA SIGNATURE ::
+#,,,,,.,,,...,,.,,..,,.,,,,.,,,.,,,,.,.,.,,.,,..,,...,..,,,,.,,.,,,..,.,.,.,.,
+#XRWB66C4KKEACPEAWRCQBLPTQR5DQJC5JUPD7ERMD2CMX7QERZC4ETMRRL5NGDRAISY3GICIGPQR6
+#\\\|3QGBGDCTQEFDRIXQWKKESA3QBFFZSN4RUGJ4MGS4KXEAR422QZU \ / AMOS7 \ YOURUM ::
+#\[7]HO5QPIJIQ5GBXZL6TVTHBZ7MBQY4AR2IO775RADE2NPIOSRGV4BY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
