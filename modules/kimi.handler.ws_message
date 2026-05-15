@@ -162,6 +162,7 @@ if ( $method eq qw| event | ) {
             my $reply_id = $pend->{'reply_id'} // '';
             my $response = <kimi.wire.accumulator>;
             <kimi.wire.accumulator> = '';
+            <kimi.last.result>      = $response;
 
             ## check if this was a task submission
             my $task_id = $pend->{'task_id'} // '';
@@ -326,8 +327,8 @@ if ( not length($method) and length($msg_id) ) {
     }
 }
 
-#,,..,.,.,.,.,,,.,..,,,,,,...,,,,,,,.,,..,,,,,.,.,...,...,.,.,.,,,..,,,,.,,,.,
-#ZDZIXF3N4GFI44WJ2GQSP26OT4AVR36MNNS43FBNRW75MA636PX5HZGMA5THEHOEDPIAA6BUDPGVY
-#\\\|4ONL3K2IVDKMX5RBXAYAWY5IZ7RXT2OKI725RANZBPD56VA2XK5 \ / AMOS7 \ YOURUM ::
-#\[7]LJFO3IWRTCIZI23QBKFTTRJ5UKULYM4WALJATZLYUHPBVX7PEACA 7  DATA SIGNATURE ::
+#,,,.,,.,,,.,,..,,.,,,,,,,,..,..,,,.,,,.,,...,.,.,...,...,,..,,..,,.,,.,.,,.,,
+#C5QC6RKOQKZ4NRZULZBMBOH4T6VYZQA6IJXGL2U3276KGDECNWWQYD552OQEOSP2Y5VQUOOTIXOHK
+#\\\|AEJAZCYDS2T5K5BVXU7M6ZFOEXHVPU7J7WXO35LXKELSOSNL6G5 \ / AMOS7 \ YOURUM ::
+#\[7]WCPE4AHGS7BIYREUQQ3GQTM3JFZIEQG4LQJLZMQRF6B5ABH6V4AI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

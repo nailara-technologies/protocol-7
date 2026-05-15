@@ -4,9 +4,9 @@
 # descr = read task file from disk and dispatch to kimi ask-reply
 # param = [:next:] <file-path>
 
-my $args      = $call->{'args'} // '';
+my $args       = $call->{'args'} // '';
 my $wants_next = $args =~ s{^:next:\s+}{};
-my $file_path = $args;
+my $file_path  = $args;
 
 if ( not length $file_path ) {
     return { 'mode' => 'false', 'data' => 'file parameter expected' };
@@ -46,10 +46,11 @@ if ( not length $file_content ) {
 <[kimi.cmd.new-session]> if $wants_next;
 
 my $fwd_call = { %{$call}, 'args' => $file_content };
-return <[kimi.cmd.ask-reply]>->($fwd_call);
+<[kimi.cmd.ask-reply]>->($fwd_call);
+return { 'mode' => qw| deferred | };
 
-#,,,.,,.,,,,,,,,,,...,,,,,.,,,..,,,,,,,,,,.,.,..,,...,...,..,,,,.,,.,,...,,,.,
-#WSHRBX7KLBQRPOVA5GIHFHXCGV3LUCMXES5NR673R5YZSIKRCDXBDVQ4YY6AHOIBDPHPCQEAAXHDS
-#\\\|A56HM22YACCIPJYSBHNOOMYZG5V5VYCLTLHV3SWCL7FLXQG7KD2 \ / AMOS7 \ YOURUM ::
-#\[7]6WTNOLCG5ZI35YWORMLKN7EMDKFEVGJRTL4QUM5G7MRKCV7JCWDA 7  DATA SIGNATURE ::
+#,,.,,..,,,..,,,,,..,,.,.,.,,,...,,.,,,,,,.,,,..,,...,...,..,,..,,,.,,,,,,...,
+#KGTIMEVELVAG3Q3XC7TTC4O2OUEJLMXSISHUOXQMX7DX6BE3GC33ZFQPIFSWN4IS5IWYZ34GN56YI
+#\\\|GX7EQTP43BDXNXDKJGLCGH7FI2MH6DSIZHNTWQ45IYS6NMQ2STJ \ / AMOS7 \ YOURUM ::
+#\[7]DC6MVFVA2O6VWL5YKKPUNQS7B6DOAJULXDRRR2VEO22P35MJX2CA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

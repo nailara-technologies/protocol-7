@@ -1,0 +1,54 @@
+## [:< ##
+
+# name  = base.bmw384.cmd.visual-wheel
+# descr = command handler for BMW384 field wheel visualization
+
+my $args = $call->{'args'} // '';
+my ( $mode, @rest ) = split m{\s+}, $args;
+$mode //= '';
+
+if ( not length $mode or $mode eq 'svg' ) {
+    my $svg = <[base.bmw384.visual.wheel]>->();
+    if ( not defined $svg ) {
+        return {
+            qw| mode | => qw| size |,
+            qw| data | => 'bmw384 index not initialized'
+        };
+    }
+    return { qw| mode | => qw| size |, qw| data | => $svg };
+}
+
+if ( $mode eq 'html' ) {
+    my $html = <[base.bmw384.visual.wheel-html]>->();
+    if ( not defined $html ) {
+        return {
+            qw| mode | => qw| size |,
+            qw| data | => 'bmw384 index not initialized'
+        };
+    }
+    return { qw| mode | => qw| size |, qw| data | => $html };
+}
+
+if ( $mode eq 'file' ) {
+    my $html = <[base.bmw384.visual.wheel-html]>->();
+    if ( not defined $html ) {
+        return {
+            qw| mode | => qw| size |,
+            qw| data | => 'bmw384 index not initialized'
+        };
+    }
+    my $path = '/tmp/bmw384-wheel.html';
+    <[base.file.write]>->( $path, $html );
+    return { qw| mode | => qw| size |, qw| data | => $path };
+}
+
+return {
+    qw| mode | => qw| size |,
+    qw| data | => 'usage: visual-wheel [svg|html|file]'
+};
+
+#,,..,...,.,.,...,,.,,.,.,.,,,...,,,,,,..,...,..,,...,...,.,.,.,,,,,.,...,.,.,
+#7FZLVFBGGLZLW3RTKJQZXXIY73SU7K3EFNJQWAHGQNITMXFX7U7KTSDPJQDT5GFS2B7GBECWI53WO
+#\\\|YG73MAQ7FP7OFTHXRPC3QG6ENO3MH5BA46M25HBXYNWQYCEV7VD \ / AMOS7 \ YOURUM ::
+#\[7]PUWMFC3QRC75OT224FGF4Z5MYQZSX4JEIVMNLV32BXPGQ2RBIWAI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
