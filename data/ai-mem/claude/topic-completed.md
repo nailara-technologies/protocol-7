@@ -1,5 +1,31 @@
 # Completed Work Sessions
 
+## session 25 — httpd route registry + jobs UI (2026-05-15)
+
+- **httpd route registry**: `configuration/zenki/httpd/routes` config file,
+  `httpd.route.init_code` parses at startup, route_dispatcher checks as Route 0.
+  Exact + prefix matching, ANY wildcard. cursor/context handlers moved out of http_post.
+- **plugin.web.jobs cleanup**: swap_subs removed, JSON::XS+YAML::XS preloaded in init_code,
+  handler.get→data + handler.sync→sync rename, per-call autoloads removed
+- **jobsite.job.* path fix**: hardcoded 'jobsite' subdir via system.path.zenka-dirs —
+  cross-zenka safe. file.make_path (post-swap name) for dir creation with correct ownership.
+- **jobsite.util.build_prompt**: `${candidate_name}'s` apostrophe warning fixed
+- **client sync rewrite**: lastNtime watermark, pushChange() POSTs on field change,
+  30s auto-poll, localStorage demoted to reload cache
+- **drain_pipe fix**: poll:'r' not 're' — eliminates IO::Async 'unexpectedly closed'
+  warnings on coding.switch-model
+- **jobs.vhost toolbar**: two-row layout, no-flicker sync button (label span),
+  styled score slider, buttons scaled to match filter tabs
+
+**Key lesson**: deferred P7 reply from httpd (route-send to jobsite, reply handler
+writes HTTP response) is fragile — flush_shutdown vs flush, session lifetime,
+crashes in loops. Web zenka is the right relay for distributed case because it
+runs parallel to httpd as a stateful zenka, not as a request handler.
+
+**Key lesson**: plugin.web.* belongs to web module dep namespace — httpd needs
+explicit `[base.white-list.register:'plugin.web.jobs']` in start file. plugin.httpd.*
+loads automatically. Foreign namespace plugins don't pre-load without registration.
+
 ## session 17 — summarize-context command (2026-05-09)
 
 ### summarize-context feature (fully working)
@@ -419,8 +445,8 @@ Skip calling harmonize_payload_line_feed when both conditions are met:
 - Signatures now properly formatted with correct separator endline
 - Pre-commit validation passes
 
-#,,,,,,,,,.,.,.,.,...,,.,,.,.,...,..,,,..,,.,,..,,...,.,,,,.,,.,.,,,,,...,.,,,
-#7UBY6VXZDXBRW6GCJ3H4QRPDBN6EWTUV253QC6TA3OGYQOYYJ5PYBJ2FAL5TKFWVJ5L5YLFGZEFZW
-#\\\|NO5CLDQOKGYVILGHTWNDCWUKCEJLU7GI67ZJMJYE4YV7QEVH3JQ \ / AMOS7 \ YOURUM ::
-#\[7]EAP6JDEBR7WP33JKNLC6RULZPXEIXQCGGJTSLRDHWJFCE5HQ4EBY 7  DATA SIGNATURE ::
+#,,..,...,,,,,...,.,.,,..,...,,.,,..,,...,,,.,..,,...,...,..,,...,...,,,.,.,.,
+#4DUTGZVD3U4XJD5PKMACQAGT3TCKEMA7CKKWOBF3COJQ5YKNE4USSHTDLVRVUCJXMHE62ZDDP3C76
+#\\\|LHQ65RHAFQOD3HOXQCQWUMUHGW6PEDEZWUX6PRSCU2NEVURHTFE \ / AMOS7 \ YOURUM ::
+#\[7]CW4TYRLSUIHJ4Z4HLE555P4T5A37CLJXIYAAK7NNVZCIWE4DNYDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
