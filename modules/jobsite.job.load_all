@@ -3,7 +3,8 @@
 # name  = jobsite.job.load_all
 # descr = load all job records from per-file storage
 
-my $jobs_dir = '/var/protocol-7/jobsite/jobs';
+my $jobs_dir = join qw| / |,
+    <system.path.zenka-dirs>->{'var_P7'}, qw| jobsite jobs |;
 my %jobs;
 
 if ( -d $jobs_dir ) {
@@ -30,8 +31,8 @@ if ( -d $jobs_dir ) {
 
 return \%jobs;
 
-#,,.,,..,,.,,,...,..,,..,,..,,,..,.,.,,,,,.,.,..,,...,..,,,..,,.,,,..,,,,,,.,,
-#VYP6GXYC3EY4I2UWUHLU2BV4TR2T4B5VJ65QSSQXKGHDONLVBT6MGWWQRXHANCJZWD5JEJLV53IWC
-#\\\|MJ3ZVF4Z3LJKDKZNJ3EAPFX4XPDMJQ67TBAD26UF3VV6HZXGLHG \ / AMOS7 \ YOURUM ::
-#\[7]6CZKX67OYE53QRBUMNW4BIYSJVEOE3PFVHCVJK6WYQPFQ7ETT4BI 7  DATA SIGNATURE ::
+#,,..,..,,..,,,.,,...,,..,.,,,,..,..,,..,,,.,,..,,...,...,,,.,,,.,,..,,..,,,.,
+#L2QI5TY662VP45BU2R6LSAPJOCD5OFI7B5W4KXC3XJV4ME5SF55ZI6MOYHILNQBYDO5ZF7DNWYFGS
+#\\\|5ANGU6RBT4MC7YLG4RGJST3OE62X72QPQXAZWXJANFPCUEKBGL3 \ / AMOS7 \ YOURUM ::
+#\[7]74CRKISFRGMLYT4RTXAPP5KCDPXSYIPA24A46NIMJWGLZV7MUGCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

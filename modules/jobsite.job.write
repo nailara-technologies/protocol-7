@@ -3,25 +3,24 @@
 # name  = jobsite.job.write
 # descr = write a single job record to per-file storage, update index
 
-<[base.perlmod.autoload]>->('File::Path');
-
 my $job_id = shift // '';
 my $job    = shift // {};
 
 return FALSE if not length $job_id;
 return FALSE if ref $job ne 'HASH';
 
-my $jobs_dir   = '/var/protocol-7/jobsite/jobs';
-my $index_file = '/var/protocol-7/jobsite/index.yaml';
+my $base_dir = join qw| / |,
+    <system.path.zenka-dirs>->{'var_P7'}, qw| jobsite |;
+my $jobs_dir   = join qw| / |, $base_dir, qw| jobs |;
+my $index_file = join qw| / |, $base_dir, qw| index.yaml |;
 
-## ensure directory exists
-eval { make_path($jobs_dir) };
-if ($@) {
-    <[base.logs]>->( 0, 'jss.job.write: make_path failed: %s', $@ );
-    return FALSE;
+## ensure jobs directory exists with correct ownership ##
+if ( not -d $jobs_dir ) {
+    my $p7_user = <system.amos-zenka-user> // qw| protocol-7 |;
+    <[file.make_path]>->( $jobs_dir, 0750, $p7_user, $p7_user );
 }
 
-## write job file atomically
+## write job file atomically ##
 my $job_file = "$jobs_dir/$job_id.yaml";
 my $tmp_file = "$job_file.tmp";
 
@@ -39,7 +38,7 @@ if ( not rename( $tmp_file, $job_file ) ) {
     return FALSE;
 }
 
-## update index.yaml atomically
+## update index.yaml atomically ##
 my $index = {};
 if ( -f $index_file ) {
     $index = eval { YAML::XS::LoadFile($index_file) } // {};
@@ -58,15 +57,13 @@ if ($@) {
     return FALSE;
 }
 
-if ( not rename( $index_tmp, $index_file ) ) {
-    <[base.logs]>->( 0, 'jss.job.write: index rename failed: %s', $! );
-    return FALSE;
-}
+rename( $index_tmp, $index_file )
+    or <[base.logs]>->( 0, 'jss.job.write: index rename failed: %s', $! );
 
 return TRUE;
 
-#,,.,,,,,,...,,.,,...,...,,,.,..,,..,,..,,..,,..,,...,...,,.,,.,,,.,,,,..,,.,,
-#776KT5FLBQ3DBSNJKQ6PM3FO2LTV3KF6QZSFUBVZH7KCFLXXPHQSXFNSXURZDMAGT6O4H3HJGWUZM
-#\\\|4FLUB5M6QYATSYENVWGSHBUPEPQPSIWEJGA6SMRHRZIFHJGZ4ZE \ / AMOS7 \ YOURUM ::
-#\[7]R44JIH3F2VZVS6X6NOEQSUNZZ7ROCXJEBQAM4DBFK6XIY7ZLYQCA 7  DATA SIGNATURE ::
+#,,,.,...,,..,,.,,...,.,.,.,.,..,,,.,,,,.,..,,...,...,...,,,.,..,,...,,.,,.,.,
+#BZP2NNS6CTLGKNCVWLKRDS64DCYJSPJ7IGJFNJTS45H2H3DHBVLLORZUAUQPM2HNR4FQ34AVN4WN2
+#\\\|MPQU2GCZGMCG76Q3GCBXY2UILUUETVRSTO4DH3UPZ5RSE2XTHGP \ / AMOS7 \ YOURUM ::
+#\[7]FKEADX4TKSQDCZXH4HAH6SVQROZITPZYSP7KXXJND2UVQAMHH6DI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
