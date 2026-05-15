@@ -47,7 +47,8 @@ if ($wants_next) {
 my $reply_id = $call->{'reply_id'};
 
 ## create task entry for queue tracking ##
-my $intake_result = <[kimi.intake.process]>->( { 'prompt' => $prompt } );
+my $intake_result = <[kimi.intake.process]>
+    ->( { 'prompt' => $prompt, 'reply_id' => $reply_id } );
 my $task_id;
 if ( $intake_result->{'success'} ) {
     $task_id = $intake_result->{'task_id'};
@@ -117,8 +118,8 @@ if ( defined $task_id ) {
 
 return { 'mode' => qw| deferred | };
 
-#,,,.,...,,.,,,..,,,.,,..,..,,.,,,,.,,,,.,,..,.,.,...,...,,.,,,.,,,,.,.,,,..,,
-#MR53BIVQ7LZBYIMPONGPLGBGLTWBWY3S4EMVOU5KQBTT76HL3LKB763MRPZKTIWUCGEDNQW7LMI7Y
-#\\\|MFNTEDRBTQVK2644UBYGKKEQBUELDF62NDKWERCYPGS2CM2YCHZ \ / AMOS7 \ YOURUM ::
-#\[7]LZD65SJI3IIBZUNVLIAMOBFPTR2B44C74M5WPBXXHOHN4PS32ODQ 7  DATA SIGNATURE ::
+#,,..,,..,.,.,..,,...,.,,,,.,,..,,...,,.,,,.,,.,.,...,..,,.,.,,,.,,..,,..,,.,,
+#HZWTCUWRO2QAOQJJKAFEOBZU7WCLPZ5PSRRFUOCNDKLHT4Y46RAP2A7P5KJB4FM7BRF7OBSVRUDSW
+#\\\|B4DUWYGR5NRTN73D4UQEHH6N3DWBP4YXGSVIA6DJIF2SXE372WT \ / AMOS7 \ YOURUM ::
+#\[7]LPFSC3NUTULHI4UKUET6M7KUWH6DGFO7I44U44YKQRTNSJTONYAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -63,6 +63,18 @@ $session->{'buffer'}->{'input'} = '';
     2, '[%d] restored input_buffer watcher, processing ACME request', $id
 );
 
+## dispatch to route registry handler if set ##
+if ( defined $session->{'http'}->{'pending_route_sub'} ) {
+    my $sub_name = delete $session->{'http'}->{'pending_route_sub'};
+    <[base.logs]>->(
+        2,   '[%d] body complete, dispatching route: %s',
+        $id, $sub_name
+    );
+    return $code{$sub_name}->($id) if exists $code{$sub_name};
+    <[base.logs]>->( 0, '[%d] route sub missing: %s', $id, $sub_name );
+    return <[httpd.send_error_page]>->( $id, 500 );
+}
+
 ## Process the ACME request
 if ( $http_uri =~ m|^/\.well-known/acme-challenge| ) {
     return <[httpd.handler.acme_request]>->( $id, $http_uri );
@@ -81,8 +93,8 @@ if ( $http_uri =~ m|^/\.well-known/acme-challenge| ) {
 );
 return 2;
 
-#,,..,..,,,,.,,..,,,.,,.,,.,.,,,,,,,.,,..,...,.,.,...,...,..,,.,,,.,.,,..,,,,,
-#UYLMXJ3BSMVUCR2757726M7LPUUZX4DFLAQPITOEOYSJSDIHZ3SWFUNNBEWRUR4OZOAAPW5FTW3M6
-#\\\|EINHG5SDPRZKKKMAUAAP33KRRRB727TT77JSN67XVT3M5PFLLDR \ / AMOS7 \ YOURUM ::
-#\[7]HP4DSZB26EL2MHJDWZVZ227XOS62L2WP22RUPHRWI6BMM7QY26BQ 7  DATA SIGNATURE ::
+#,,..,,,,,..,,.,.,.,,,,..,,,,,..,,..,,.,,,...,.,.,...,...,,,,,,..,..,,,..,.,,,
+#3M4GKAQE6IOONMABDMC3DJO5YYOWGPPJ276H7EXM4JL4TLGJESISOL4XQP4Q4PG4KFFM35UKGVKCA
+#\\\|UEORQHMLXGZCD2YPCKRX3T32T6CQ4IMTPEMDNC5UIPO4RXIWC5G \ / AMOS7 \ YOURUM ::
+#\[7]24XQ72IOFFUS4JOM56FHLHGAFNULVNIBBTCB7HAIA2YXRXP7ZGCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

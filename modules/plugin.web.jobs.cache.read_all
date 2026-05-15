@@ -1,0 +1,31 @@
+## [:< ##
+
+# name  = plugin.web.jobs.cache.read_all
+# descr = load all job records from httpd cache dir
+
+my $cache_dir = <[plugin.web.jobs.cache.path]>;
+my %jobs;
+
+return \%jobs unless -d $cache_dir;
+
+opendir my $dh, $cache_dir or return \%jobs;
+my @files = grep { /\.yaml$/ && !/^\./ } readdir $dh;
+closedir $dh;
+
+for my $file (@files) {
+    my $job_id = $file =~ s/\.yaml$//r;
+    my $job    = eval { YAML::XS::LoadFile("$cache_dir/$file") };
+    if ($@) {
+        <[base.logs]>->( 0, 'jobs.cache.read_all: error %s: %s', $file, $@ );
+        next;
+    }
+    $jobs{$job_id} = $job if ref $job eq 'HASH';
+}
+
+return \%jobs;
+
+#,,,,,,,,,..,,,,.,,,.,...,,,.,,,,,,,,,..,,.,,,..,,...,...,.,,,.,.,,,.,.,.,..,,
+#INEH6W7OUPHOHOJ4NV6FFWB4Q6GHOKGR5PNZXAAO7NYPE4JA4ANOALLXBUVGWRAE4MJIP6Q5TK3OW
+#\\\|R7D5U3YWDNNIC6FHUL6K5SXI63TLSDPEC6BVL6XRE5QYH3EJSHE \ / AMOS7 \ YOURUM ::
+#\[7]5ETXDRNFEFEJYNVC4MOMT3IKRS52TX2C2YVJ7YQM37ZVE4DSPWAA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

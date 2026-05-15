@@ -8,28 +8,22 @@ my $domain_filter = $call->{'args'} // '';
 
 if ($domain_filter) {
     ## Show specific vhost details
-    my $vhost_id = <httpd.vhosts.by_domain>->{$domain_filter};
+    my $vhost = <httpd.vhosts.registry>->{$domain_filter};
 
-    if ( !defined $vhost_id ) {
+    if ( !defined $vhost ) {
         return {
             'mode' => qw| false |,
             'data' => "vhost '$domain_filter' not found in registry"
         };
     }
 
-    my $vhost = <httpd.vhosts.registry>->{$vhost_id};
-
-    my $cert_status = $vhost->{cert} ? 'active' : 'none';
-    my $age         = time() - ( $vhost->{added_at} || 0 );
-    my $age_str     = sprintf( "%dd %dh",
+    my $age     = time() - ( $vhost->{'discovered_at'} || 0 );
+    my $age_str = sprintf( "%dd %dh",
         int( $age / 86400 ),
         int( ( $age % 86400 ) / 3600 ) );
 
-    my $output = sprintf(
-        "VHost: %s\n  ID: %s\n  Path: %s\n  Certificate: %s\n  Status: %s\n  Added: %s ago",
-        $domain_filter, $vhost_id,        $vhost->{path},
-        $cert_status,   $vhost->{status}, $age_str
-    );
+    my $output = sprintf( "VHost: %s\n  Path: %s\n  Discovered: %s ago",
+        $domain_filter, $vhost->{'source_path'} // '?', $age_str );
 
     return {
         'mode' => qw| true |,
@@ -51,17 +45,10 @@ if ( $count == 0 ) {
 push @output, sprintf( "Configured virtual hosts: %d\n", $count );
 
 ## Use fallback manual display since base.list.formatted.show doesn't exist
-foreach my $id (
-    sort {
-        <httpd.vhosts.registry>->{$a}->{domain} cmp
-            <httpd.vhosts.registry>->{$b}->{domain}
-    }
-    keys %{<httpd.vhosts.registry>}
-) {
+foreach my $id ( sort keys %{<httpd.vhosts.registry>} ) {
     my $vh   = <httpd.vhosts.registry>->{$id};
     my $cert = $vh->{cert} ? '✓' : '✗';
-    push @output,
-        sprintf( "  [%s] %s (cert: %s)", $id, $vh->{domain}, $cert );
+    push @output, sprintf( "  [%s]  (cert: %s)", $id, $cert );
 }
 
 return {
@@ -69,8 +56,8 @@ return {
     'data' => join( "\n", @output )
 };
 
-#,,,,,.,.,,,,,..,,,..,,,,,...,.,.,,.,,.,,,..,,..,,...,...,,,,,.,,,.,.,.,,,,,,,
-#DZVLZ5SLS24AEOK5QKHQP55HEOBIZI5DA6Z5DOKQ6P6TXNZ74T5TNNESCEWRV242CRU7VR64BLCZE
-#\\\|VB4GEMJUX3EECH4W7RHQA57KJCEIFDSUA52U6UPRBDUFUDZEPMO \ / AMOS7 \ YOURUM ::
-#\[7]MPH675I4JPXQQ6DYAAJMGWOROUGBBS3DTQKLCLE357J4V6EBWQBA 7  DATA SIGNATURE ::
+#,,,.,,,.,,.,,.,,,...,...,.,,,,,.,,.,,.,.,.,.,..,,...,...,,..,...,,.,,.,,,.,,,
+#5DVDIKHCX4D53BOWGFFA3BZNAPEANJTYSNYN5X7NQTF2KLQ6KH6WN4HUSPR6BSLNUCIALHRLSI7UI
+#\\\|QDHZIRUVGWOYDY4Q3ZKLXHNVAKHPQDDBBIVA3JWTGXKE3FJEB37 \ / AMOS7 \ YOURUM ::
+#\[7]C66OELMUEWHUTIPAGKIKFKZAH5A6JXTPYUB6ZKURR4B5V7CZ4GCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

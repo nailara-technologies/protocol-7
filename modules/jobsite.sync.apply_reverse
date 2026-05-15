@@ -1,0 +1,73 @@
+## [:< ##
+
+# name  = jobsite.sync.apply_reverse
+# descr = apply reverse changes from httpd to local records
+
+my $entries = shift;
+return if ref $entries ne 'ARRAY';
+
+my $jobs_dir = join qw| / |,
+    <system.path.zenka-dirs>->{'var_P7'}, qw| jobsite jobs |;
+
+for my $entry ( @{$entries} ) {
+    next if ref $entry ne 'HASH';
+
+    my $id = $entry->{'id'} // '';
+    next if not length $id;
+
+    my $action = $entry->{'action'} // '';
+
+    if ( $action eq 'delete' ) {
+        my $path = "$jobs_dir/$id.yaml";
+        if ( -f $path and unlink($path) ) {
+            <[base.logs]>->( 1, 'jss.sync.apply: deleted %s', $id );
+        } else {
+            <[base.logs]>->( 0, 'jss.sync.apply: delete %s failed', $id );
+        }
+        next;
+    }
+
+    if ( $action eq 'blacklist' ) {
+        my $job = <[jobsite.job.read]>->($id);
+        my $company
+            = ( ref $job eq 'HASH' ) ? ( $job->{'company'} // '' ) : '';
+        if ( length $company ) {
+            <[jobsite.cmd.blacklist-add]>->( { 'args' => $company } );
+            <[base.logs]>->(
+                1,   'jss.sync.apply: blacklisted %s (%s)',
+                $id, $company
+            );
+        } else {
+            <[base.logs]>->(
+                0, 'jss.sync.apply: blacklist %s failed, no company', $id
+            );
+        }
+        next;
+    }
+
+    ## update browser-owned fields
+    my $job = <[jobsite.job.read]>->($id);
+    if ( ref $job ne 'HASH' ) {
+        <[base.logs]>->( 0, 'jss.sync.apply: cannot read %s', $id );
+        next;
+    }
+
+    my $updated = 0;
+    for my $field (qw| stage notes date_applied |) {
+        if ( exists $entry->{$field} ) {
+            $job->{$field} = $entry->{$field};
+            $updated = 1;
+        }
+    }
+
+    if ($updated) {
+        <[jobsite.job.write]>->( $id, $job );
+        <[base.logs]>->( 1, 'jss.sync.apply: updated %s', $id );
+    }
+}
+
+#,,,,,,.,,,..,,,.,...,..,,.,,,...,,..,,,.,..,,..,,...,...,,.,,,.,,,,,,.,,,,,.,
+#IKECBNTJRN7XBZXFN2C4IR2BIISMJEY5ZZETO7EVUKWGZH5DLUKCHEKJH7BGPVYC5L23GVSGBT726
+#\\\|4SGFL75IBLHRSIUK6GHLQFLMSRVNWRZBOLKVNWKMNHVXBGIMFW5 \ / AMOS7 \ YOURUM ::
+#\[7]SFKBHLD3OOGF6ARTIG4536SNB746K2OOXNVFWP3AZBN2JYZVEYBI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

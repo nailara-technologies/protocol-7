@@ -1,0 +1,37 @@
+## [:< ##
+
+# name  = plugin.web.jobs.cache.write
+# descr = write a single job record to httpd cache dir
+
+my $job_id = shift // '';
+my $job    = shift // {};
+
+return FALSE if not length $job_id;
+return FALSE if ref $job ne 'HASH';
+
+my $cache_dir = <[plugin.web.jobs.cache.path]>;
+
+my $job_file = "$cache_dir/$job_id.yaml";
+my $tmp_file = "$job_file.tmp";
+
+eval { YAML::XS::DumpFile( $tmp_file, $job ) };
+if ($@) {
+    <[base.logs]>->( 0, 'jobs.cache.write: dump error %s: %s', $job_id, $@ );
+    return FALSE;
+}
+
+rename $tmp_file, $job_file or do {
+    <[base.logs]>->(
+        0,       'jobs.cache.write: rename failed %s: %s',
+        $job_id, $!
+    );
+    return FALSE;
+};
+
+return TRUE;
+
+#,,..,.,.,,.,,,,.,,,.,..,,..,,,.,,.,.,,,.,...,..,,...,...,..,,..,,..,,,,,,.,,,
+#PDCKVY7MYPERX4NVA4DLTHFB7S4PUDBZJ56LXKT3M5VPQ63DNBYVJ2IWUZ3LVCQX3OYZSSGASU4WO
+#\\\|RGCBTGLJTNLXWFPMWHAXEYNNBPSXYZ5HAQRZMNYTNJ3E2UGND5H \ / AMOS7 \ YOURUM ::
+#\[7]TGV2PKHB7VEHXCLETBQ5BKSHZWLNEO6VPC26XB4S7XUWFTCJJUAQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
