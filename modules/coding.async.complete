@@ -77,10 +77,8 @@ if ( defined $result && $result->{'success'} ) {
                             . $result_text,
                         };
                     <[base.logs]>->(
-                        1,
-                        "async.complete: compaction applied to %s — %d msgs → 1",
-                        $parent_id,
-                        $n_compacted
+                        1, "[%s] compaction applied : msgs : %d -> 1",
+                        $parent_id, $n_compacted
                     );
                 }
                 delete $parent_state->{'compaction_pending'};
@@ -190,7 +188,7 @@ if ( defined $result && $result->{'success'} ) {
                     . " but parent %s waits for %s",
                 $task_id,
                 $parent_id,
-                $parent_state->{'pending_subtask'} // 'none'
+                $parent_state->{'pending_subtask'} // qw| none |
             );
         }
     }
@@ -208,7 +206,7 @@ if ( defined $result && $result->{'success'} ) {
     );
 
     ## move job to error ##
-    <[jobqueue.move_job]>->( $job_id, 'error' )
+    <[jobqueue.move_job]>->( $job_id, qw| error | )
         if defined $job_id;
 
     ## mark task failed and remove from active/pending lists ##
@@ -299,9 +297,9 @@ if ( defined $result && $result->{'success'} ) {
                             <coding.task.queue>->{$next_subtask} = $next_task;
                             <[base.logs]>->(
                                 0,
-                                "async.complete: enqueue of %s failed: %s",
+                                "async.complete: enqueue of %s failed : %s",
                                 $next_subtask,
-                                $enq->{'error'} // 'unknown'
+                                $enq->{'error'} // qw| unknown |
                             );
                         }
                     } else {
@@ -342,7 +340,7 @@ if ( defined $result && $result->{'success'} ) {
                 "async.complete: subtask %s failed but parent %s waits for %s",
                 $task_id,
                 $parent_id_fail,
-                $parent_state->{'pending_subtask'} // 'none'
+                $parent_state->{'pending_subtask'} // qw| none |
             );
         }
     }
@@ -350,8 +348,8 @@ if ( defined $result && $result->{'success'} ) {
     return { success => FALSE, error => $error_msg, task_id => $task_id };
 }
 
-#,,.,,,..,,,,,,.,,,,,,..,,.,,,,..,,,.,,,.,.,,,.,.,...,...,,,,,...,..,,,,,,,,.,
-#2PAJN2U5G2EASGL3PZ5XTEVUHCZD7J7NZBG7UF4WBZUJDWCOVZQ4ZCVTNHYYLWNC545SXRMUH4JUE
-#\\\|2CSN6W24RXK66JN7UGP5G3IQUCL7RW4VYDIF3KXB4YTOBNPU7IW \ / AMOS7 \ YOURUM ::
-#\[7]EZ72YVW7K3LXNHSGN6V522HL6U7VDTDROJXIDM6D6FT5Y2F4EMCI 7  DATA SIGNATURE ::
+#,,..,.,,,,,.,..,,.,.,,.,,,,,,.,,,.,.,.,.,..,,.,.,...,...,..,,,..,,.,,,.,,,,,,
+#NNEVW3ZG4YDDT4IND6A66YV7ZI6IYUH4ENRSI44F5EANIOKHITFST7Z5SW7HUWIR66MQDAQSHTYSM
+#\\\|RXMX6GUTNUBJX435A3RFBKOKTXBFV6C6Q24QKFEBWCNWUBWD3F2 \ / AMOS7 \ YOURUM ::
+#\[7]SVK6UNZ4X5N5BEZBXQVB3GLHYRNSEUX6TJO4HCPDCZ3LVUQZA2BY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

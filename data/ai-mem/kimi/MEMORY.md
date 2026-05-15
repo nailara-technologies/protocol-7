@@ -1051,112 +1051,12 @@ p7c amos-term.list-windows
 
 ## Coding Zenka Massive Cleanup — March 30 2026
 
-### Inline Sub Extraction Complete
-
-**Scope**: pager.*, plugin.storage.*, context.* namespaces — 45+ inline subs extracted to .util.* modules.
-
-**Key commits**:
-- `50d6a8a4a` — Removed 12 remaining pager inline subs, created 4 missing util modules (load_page_items, apply_filters, apply_sort, update_lru). **Zero inline subs remain in pager.* namespace.**
-- `40c9d0ec5` — Extracted 18 inline subs, fixed compilation errors, removed 5 .disabled modules.
-- `f4b3da34c` — Modernized pager namespace: unwrapped return sub declarations, fixed headers, renamed commands.
-- `f300f68f7` — Extracted 6 inline subs from plugin.storage.visual.proximity-calc.
-- `c0f31ed72` — Extracted context.* inline subs, hardened coding zenka paths and security.
-
-**Pattern established**: `extract-inline-subs` template refined through 8+ autonomous tasks. Handles:
-- Return sub unwrap (`sub { return sub { ... } }` → flat sub)
-- One-call-per-round discipline
-- `task_complete` signal for clean loop exit
-- Known pitfalls documented
-
-### Tree Tools Layer 1
-
-**Commit**: `42d44704a`
-
-Exposed `%data` namespace to coding zenka inference model and interactive P7 commands:
-- `coding.tools.handler.tree_read` / `coding.cmd.tree-read`
-- `coding.tools.handler.tree_write` / `coding.cmd.tree-write`
-- `coding.tools.handler.tree_list` / `coding.cmd.tree-list`
-
-Wraps existing `base.resolve_key` / `base.set_key` / `data.*` infrastructure.
-
-**Fixes**:
-- `5decf1906` — `tree_list` uses `base.resolve_key` instead of broken `data.resolve_hash_path`
-- `e74d30053` — Fixed undef warning in `tree_read` array/hash preview slice
-- `e0ea93b56` — Improved error resilience in `tree_read`
-
-### Event Loop Hardening
-
-**Commit**: `4e9b5dfda`
-
-Added explicit stop signals to prevent infinite inference loops:
-- `task_complete` — clean success exit
-- `escalate` — human handover exit
-
-`coding.handler.process-queued-task` resets and checks the stop flag each tool round.
-
-**Additional hardening**:
-- `e3e763a0b` — Retry on timeout/5xx errors in inference loop
-- `30ca7a286` / `49829741b` — Refined "working" log message style
-- `0bcfa4668` — Fixed storage module loading, log truncation, spawn race, log levels
-
-### Passive Observation Collection
-
-**Commit**: `4e9b5dfda`
-
-- `record_question` / `record_suggestion` — off-band observation tools
-- Append to `observations/questions.jsonl` and `suggestions.jsonl` via zenka_dir
-- Observations directory created at init alongside other zenka paths
-
-**Commit**: `48bba2967`
-
-- `observations-triage` template — processes accumulated JSONL, dismisses invalid items, acts on clear ones, escalates uncertain items
-- `post-task-verify` template — quality gate after code-editing tasks (syntax, `$ARG` regressions, module format, style, reference integrity)
-
-### Autonomous Task Templates Added
-
-**March 30 batch** (commits `42d44704a`, `dc50af1b2`, `927dd0d18`, `090d77f4f`, `5f91d5f9d`, `931cd871b`, `99ba2c161`, `48bba2967`, `ca1925fc1`):
-- `namespace-audit` — scan namespace for style/structure issues
-- `sub-task-decompose` — break large tasks into extractable chunks
-- `tree-explore` — navigate %data tree for investigation
-- `review-and-improve` — self-review cycle
-- `autonomous-direction` — project intelligence and task triage
-- `integrate-recent` — incorporate recent changes
-- `p7-style-enforce` — style correction pass
-- `header-tags-fix` — fix missing descr/param tags
-- `fix-format-issues` — formatting cleanup
-- `git-diff-review` — review diff before commit
-- `regex-style-fix` — regex pattern corrections
-- `param-validation-fix` — argument validation improvements
-- `error-resilience` — defensive coding additions
-- `cross-namespace-wiring` — inter-namespace call fixes
-- `observations-triage` — process observation stash
-- `post-task-verify` — post-task quality gate
-
-**Template refinements**:
-- `ca1925fc1` — Added round budget hints to autonomous task templates
-- `99ba2c161` — Added `$ARG` preservation reminder to 12 code-editing templates + system-review
-- `3e65f857c` — Refined extraction template: return sub unwrap, one-call-per-round, `task_complete`
-
-### NShell History Fix
-
-**Commit**: `496e91f34`
-
-Repaired off-by-one history navigation bug in `nshell.history.arrow_up`.
-
-### Plugin Init Order Fix
-
-**Commits**: `952cbe3b9`, `d75743f99`
-
-- Fixed plugin initialization order: `load_plugins` before `init_modules`
-- Storage plugins now loaded via `load_plugins` in coding zenka start
-
-### Verbosity Reset
-
-Coding zenka verbosity reset from 3 (debug) back to 2 in `configuration/zenki/coding/start`.
+See [topic-coding-zenka-massive-cleanup.md](topic-coding-zenka-massive-cleanup.md)
 
 ---
 
-## Context Template System (April 2026)
+
+## Context Template System — April 2026 — topic-context-template-system.md
 
 **Location**: `data/yaml/context-templates/` (63 templates)
 **Used by**: coding zenka (via `coding.cmd.ask` with `template=` parameter)
@@ -1279,120 +1179,12 @@ Priority = 0.30*momentum + 0.25*explicit_priority + 0.20*dependencies
 
 ---
 
-## Zenka Creation Guide (April 2026)
+## Zenka Creation Guide — April 2026
 
-**Template**: `data/yaml/context-templates/zenki-create.yaml`
-
-Based on successful implementation of kimi-web zenka, this guide covers
-creating new protocol-7 zenki with proper structure.
-
-### Zenka Types
-
-| Type | Characteristics | Examples |
-|------|-----------------|----------|
-| **Standard** | Background service, no console | coding, models, data, storage |
-| **Console** | Interactive terminal | amos-term, nshell |
-| **Child-bearing** | Spawns sub-processes/zenki | v7, kimi-web |
-| **Hybrid** | Multiple characteristics | coding (service + inference) |
-
-### Critical Implementation Rules
-
-1. **Never `my $call = shift` in *.cmd.* modules**
-   - $call is pre-declared by dispatcher
-   - Use: `my $args = $call->{'args'} // {}`
-
-2. **Auth wiring is mandatory**
-   ```
-   # configuration/zenki/cube/auth.zenki:
-   auth.setup.usr.<zenka-name> = :zenka:
-   ```
-   Missing this causes: "user not accepted for auth type :zenka:"
-
-3. **Don't load self in modules.load**
-   ```
-   # WRONG:
-   modules.load = auth net ... <zenka-name>
-
-   # RIGHT:
-   modules.load = auth net ...  # <zenka-name> auto-loaded
-   ```
-
-4. **Return format for cmd modules**
-   ```perl
-   return { 'mode' => qw| true |, 'data' => $result };
-   # NOT: return { mode => TRUE, ... }
-   ```
-
-5. **$ARG/@ARG preservation**
-   - ALWAYS use English.pm aliases
-   - NEVER use `$_` or `@_`
-
-### File Structure
-
-```
-modules/<zenka-name>.init_code                    # required
-modules/<zenka-name>.cmd.<command>                 # exposed commands
-modules/<zenka-name>.handler.<event>               # event handlers
-modules/<zenka-name>.internal.<helper>             # utilities
-
-configuration/zenki/<zenka-name>/
-├── start                                          # main config
-├── zenka-startup.v7                               # v7 integration
-├── pm-dep/                                        # perl deps
-└── source/                                        # source tracking
-
-cube/access.zenki: access.cmd.usr.<name> = <commands>
-cube/auth.zenki:   auth.setup.usr.<name> = :zenka:
-```
-
-### Child-Bearing Zenki Specifics
-
-From kimi-web implementation:
-- Call `<[v7.register_child_zenka]>->(qw| <name> |)` in init_code
-- Track child PIDs in registry hash: `<zenka-name>.agent.registry`
-- Use `event.add_timer` for health checks
-- Implement graceful shutdown with context preservation
-
-### Console Zenki Specifics
-
-- Use AMOS7::TERM patterns for input handling
-- Handle terminal state (raw mode, echo)
-- Restore terminal on exit
-- Consider SHM buffer for output
-
-### Testing Checklist
-
-```bash
-# 1. Syntax check
-./bin/ptd modules/<zenka-name>.*
-
-# 2. Start zenka
-p7c v7.start <zenka-name>
-
-# 3. Test command
-p7c <zenka-name>.commands
-
-# 4. Check logs if failure
-p7c show-buffer <zenka-name>
-```
-
-### Common Error Messages
-
-| Error | Cause | Fix |
-|-------|-------|-----|
-| "my variable $call masks earlier declaration" | `my $call = shift` in cmd | Remove `my $call = shift` |
-| "file.zenka_dir.make_path not defined" | Using non-existent function | Use `file.make_path` or create on-demand |
-| "user not accepted for auth type :zenka:" | Missing auth.zenki entry | Add `auth.setup.usr.<name>` |
-| "no match /modules/<zenka-name>" | Loading self in modules.load | Remove from modules.load |
-
-### Template Usage
-
-```bash
-# Use the zenka creation template
-p7c coding.ask template=zenki-create zenka_name=my-zenka zenka_type=standard
-```
+See [topic-zenki-creation-guide.md](topic-zenki-creation-guide.md)
 
 ---
+
 
 ## Footer Cleanup Template (April 2026)
 
@@ -1896,13 +1688,7 @@ Added two-tier timeout system:
 
 ---
 
-#,,.,,,.,,.,,,,..,.,,,,,,,...,.,,,..,,,,.,,,.,.,.,...,...,.,.,.,.,,..,...,,,.,
-#7QGJNI4XGQXBUHLEU5OXVM6USQYCLHTWMHJTNIPIOATAVNJQXIJFHP26GJT3KGLSHSRE7KBBT6I3Y
-#\\\|IJOGY7GD2VRZLZMJYD6EVKOVNDPOLPJXADMAKNJMDYZ3AKCXQYJ \ / AMOS7 \ YOURUM ::
-#\[7]GMQFKSS5XU6DQIGTWQO6P6ZAYDM54U23QT4XGHKRNCVYOYGIJGBI 7  DATA SIGNATURE ::
-#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
-
-## Job-Site-Scan Major Refactor (2026-05-12) — COMPLETE
+## Job-Site-Scan Major Refactor — May 12 2026 — topic-jobsite-scan-refactor.md
 
 ### Coding Zenka Event Loop Safety
 - **drain_pipe**: Single `sysread` per io-watcher invocation, no `while(1)`. Cancels watcher on EOF/EBADF.
@@ -1976,10 +1762,7 @@ Added two-tier timeout system:
 
 ---
 
-#,,,.,,.,,.,,,,..,,.,,,..,,,.,,,,,,.,,,,,,,..,.,.,...,...,...,.,,,,.,,...,..,,
-#GHPXUCSF3QWHK5BPVYUHI24Y4U7PYZU6JAKY2WOQUEGKBXWZYHKFDJ5T7Y2QCD7VED7K4Z6HJ6YO2
-#\\\|DQIZJOC64CCUAWVYOPFUFW33YYGWGKZSFIJ4XOS335S5BT7N76Y \ / AMOS7 \ YOURUM ::
-## Language Detection System — Three-Layer Architecture (May 12 2026)
+## Language Detection System — Three-Layer Architecture (May 12 2026) — topic-language-detection.md
 
 ### Status
 Layer 1 complete, Layer 2 stub, Layer 3 stub. Design docs committed. Code changes staged (awaiting signature password).
@@ -2018,8 +1801,6 @@ Layer 1 complete, Layer 2 stub, Layer 3 stub. Design docs committed. Code change
 Default scan stops when a page returns all duplicates. `scan :full:` disables optimization. Queue-preload protection for resumed scans prevents re-fetching already-queued jobs.
 
 ---
-
-#,,,.,,..,,..,,,.,.,.,,..,.,.,...,..,,..,,.,,,.,.,...,...,..,,.,,,,..,..,,.,,,
 
 ## bin/chat — Multi-Model Conversation Script (May 14 2026)
 
@@ -2072,13 +1853,8 @@ COMPLETE — Phase 1 operational. ~950 lines. Async inbox confirmed working betw
 - zenka-desk: phase 1 buffer system + panel.chat
 - Phase 2: channels zenka takes over history management
 
-#VYQ4CL2P6FCUPDODU6ITU3KVUE5J26TPY7JZU5EMMS6CPYFJVMASDBXGYRDC3DQKJ7B7ISWLSSA4M
-#\\\|WCA2MROISBFP324AXQESS6PZBNHKWLC2KTIY45ODZUVPWXOCWQM \ / AMOS7 \ YOURUM ::
-#\[7]NLBZQPBBOMANECRZUTFYKDFWFAG2VZ4R3SLBOOUDJZW35LATL6BI 7  DATA SIGNATURE ::
-#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
-
-#,,.,,,..,..,,,.,,,,.,.,.,,..,,.,,...,,,.,..,,..,,...,...,...,.,.,.,.,,,,,,.,,
-#JXTNUNO6X4QH5CZGARDRNHM6XQPLG3H2IYHB242DDCKQOTF6IQDV46J47MY3GADYEYBD7M7ELDDB2
-#\\\|Y7DZLGT3WL3M7W23CTXS7O5BUIAGYV5BOTQYK6A6A6YB5NIHCMN \ / AMOS7 \ YOURUM ::
-#\[7]5DHUKIXOIIPS7FFCQMLVD7Y7I42OKYPUSOWFRK6LJ5ZDYK5TZEDA 7  DATA SIGNATURE ::
+#,,..,...,...,,,.,...,...,,.,,,,.,,.,,.,.,,.,,..,,...,...,,,.,...,...,..,,...,
+#HMIFJOZEABYKGH732FBRA6WWPD4PYOXEVAPK2NG3I4LMGS6KNGZWAZA53C7FUR55PWCZINX4JO6XQ
+#\\\|XVHPQO3SH72LIEUSY2Q4PBMMM53CVVMBATCRKGD3WRUEEOKFSLQ \ / AMOS7 \ YOURUM ::
+#\[7]ADILPLKDFP2FV35KEISWGPFVCHT4F6NMNOULVMETABLCK6ZSLSBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
