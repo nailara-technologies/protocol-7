@@ -411,6 +411,71 @@ zenki-create/zenki-feature-port/footer-cleanup templates added.
 - philosophy: ETERNAL-TEMPLATE-KITTEN.md (deduplication tree crystallizes truth, kitten as template process)
 - Commits: 98743c227 through 30bbd31b4 + fe3d3a295
 
+## Feb–Mar 2026 — early foundations
+- HTTPS httpsd, models memory, models-coding integration, data zenka + SHM
+- v7 stdout SHM log, fork-child cleanup, kimi-web WebSocket client
+- route-send migration, standalone log_cmd race, non-blocking socket read
+- models registry consolidation, coding zenka event loop + switch-model
+- zulum→decoder entropy wiring, harmonic transit vision architecture
+- signature oscillation Variant A (`2bf1b3d46`), task zenka, models task dispatch
+- kimi task-poll async fix, MCP server for Claude Code (`9901a539d`)
+- kimi zenka upgrades (JSON/websocket/approval/session), httpsd crash capture
+- httpsd non-blocking SSL accept (deployed pri.v7.ax), favicon binary read fix
+- kimi reconnect busy-status preservation (`0799bb8d6`)
+- llm inline subroutine extraction — kimi task AKXEYFQ (`526d91760`)
+
+## Mar 28-29 2026 — coding zenka chmod child
+- Coding zenka chmod child: runs as admin user (taeki), gw/restore/create commands
+- edit_file/write_new_file wired through chmod child for direct file writes
+- Context compaction verified working: 71→1 msgs, 47%→10% context
+- Token estimation 1.4x JSON overhead multiplier, round limit 42→247
+- Learning persistence: outcomes.json, get_statistics, check_cache_first, update_success_rate
+- edit_file defaults to apply=true; whats-next + cmd-style-fix templates
+- Inline sub extraction: context.* (8 modules), plugin.storage.cluster.* (5 modules)
+- New tools: replace_in_file, validate_module_format, list_inline_subs
+- First fully autonomous extraction succeeded (plugin.storage.cluster.* via task-THFSFBY)
+
+## Mar 30 2026 — inline sub extraction + templates
+- Inline sub extraction complete: pager.* (30 subs), plugin.storage.* (7 subs), context.* (8 subs)
+- All extracted to .util.* namespaces, source call sites updated, zero inline subs remain in pager.*
+- Coding zenka tool loop: task_complete + escalate stop signals, record_question/record_suggestion
+- Observations stash: JSONL in /var/protocol-7/coding/observations/
+- 13 new autonomous templates (all with round budget hints + $ARG preservation)
+- Bug fixes: tree_read slice undef, pager.source.file-list regex crash
+- Coding zenka autonomously fixed 6 modules via templates
+
+## Apr 2 2026 — async HTTP streaming
+- Async HTTP streaming infrastructure: http_client, handler.http_io, chunk_handler, state_machine
+- tool_executor, buffer.model_output, callback.http_complete — all committed
+- Vision system overhaul, inference crash detect/restart, retry on timeout/5xx
+- B32 prefix fix, Jinja sanitization, NShell history fix, 3 new templates
+
+## Apr 2-4 2026 — async tool loop resolution
+- Async tool loop RESOLVED: 29+ rounds, 30+ tools verified autonomously
+- XML tool call parser (coding.parse.xml_tool_calls) — root cause: model emits XML in reasoning_content
+- Context compaction (coding.async.compact_context), loop detection ported to async state_machine
+- XML markup stripping, shared jinja sanitization, Jinja-safe argument re-encoding
+
+## Apr 5 2026 — notes tools expansion
+- Notes system expanded from 7 to 12 tools: note_tag, note_recent, note_filter, note_history, note_merge
+- Bug fix: note.filter crash — `$meta->{'tags'}` needs `ref eq 'HASH'` guard
+
+## Apr 16 2026 — graphics-matrix critical path
+- 36 new modules across 6 kimi tasks: cursor, glow, channels, address, cells, graph
+- Full pipeline: cells → graph edges → clusters → survey → glow → channels → color
+
+## Apr 16-17 2026 — web template pipeline + space.v7.ax
+- pattern_split capture group fix; web template pipeline: httpd → web → process_template_recursive
+- space.v7.ax vhost: plugin.web.space.* modules
+- content-type override, .tmpl routing, HEAD for templates (full render, body suppressed)
+- inline sub extraction (kimi): 3 util modules from plugin.web.content.dirlist + menu.tree
+
+## May 10 2026 — job pipeline zenki (session 19)
+- site-yaml zenka: stepstone JSON-LD extraction, job store YAML, web template (jobs.html.tmpl)
+- job-site-scan coordinator: idle→scanning→assessing→reviewing→idle via var watcher
+- job-assess.yaml context template: no_tools, max_rounds=1, profile.txt inject, JSON score output
+- cube auth/access entries for both zenki; plugin.web.jobs.* in web whitelist
+
 #,,,,,,.,,,,,,,..,,,,,.,.,,,.,..,,,.,,.,,,,..,..,,...,...,,..,.,.,,..,.,.,,.,,
 #5OXXM5KOXKLXF6DERMYNQAFF3G6X6OWWQVJGJHI4TJXB6AQCYJXN5WWHLOEQ7YNUODKUTO4XBFWJI
 #\\\|M7PGEUVVWK2VXQJY52KFSDRINSG6MGDGCFDCMFBCUPQRWNYZYSA \ / AMOS7 \ YOURUM ::
@@ -445,8 +510,8 @@ Skip calling harmonize_payload_line_feed when both conditions are met:
 - Signatures now properly formatted with correct separator endline
 - Pre-commit validation passes
 
-#,,..,...,,,,,...,.,.,,..,...,,.,,..,,...,,,.,..,,...,...,..,,...,...,,,.,.,.,
-#4DUTGZVD3U4XJD5PKMACQAGT3TCKEMA7CKKWOBF3COJQ5YKNE4USSHTDLVRVUCJXMHE62ZDDP3C76
-#\\\|LHQ65RHAFQOD3HOXQCQWUMUHGW6PEDEZWUX6PRSCU2NEVURHTFE \ / AMOS7 \ YOURUM ::
-#\[7]CW4TYRLSUIHJ4Z4HLE555P4T5A37CLJXIYAAK7NNVZCIWE4DNYDI 7  DATA SIGNATURE ::
+#,,,.,.,,,,.,,.,,,.,.,,,.,,,.,,,.,,,.,,,.,.,,,..,,...,...,.,.,,,,,..,,,.,,,.,,
+#4YT5EMBUEGVCVB22B2LKVXF3FFN3OLD3AAWDR63KWNLGB43OGG3DVJASXVAETYWPEBWBRXTII2WLU
+#\\\|5REXZQMJ4D234YJ7E35K2UDUAPKZ3LLJ5JDJXBVVA755NTFCM4G \ / AMOS7 \ YOURUM ::
+#\[7]3VZVFHTMOQE33PVJLOCJQRT6K5SA2JCVUMEFVTDX3UYZDHVJY6BA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
