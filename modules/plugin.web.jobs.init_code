@@ -8,14 +8,31 @@
 <[base.perlmod.autoload]>->('YAML::XS');
 
 ## ensure httpd-owned jobs cache dir exists [ var_P7/httpd/jobs/ ] ##
+my %_web_zenka_identity = (
+    httpd => {
+        user  => <httpd.system.user>  // qw| httpd |,
+        group => <httpd.system.group> // qw| httpd |
+    },
+    httpsd => {
+        user  => <httpsd.system.user>  // qw| httpsd |,
+        group => <httpsd.system.group> // qw|  httpd |
+    },
+    ##[ protocol-7 user, primary group ]##
+    web => { user => <system.amos-zenka-user> },
+);
+if ( exists $_web_zenka_identity{<system.zenka.name>} ) {
+    my $id = $_web_zenka_identity{<system.zenka.name>};
+    <system.zenka-user.current>  //= $id->{'user'};
+    <system.zenka-group.current> //= $id->{'group'};
+}
 <[base.path-set-up.check-zenka-paths]>->( TRUE, 0750, FALSE, 0700, 'jobs' );
 
 <[base.logs]>->( 1, 'plugin.web.jobs : initialized' );
 
 0;
 
-#,,,.,...,,,,,,.,,..,,...,..,,,.,,,.,,...,.,,,..,,...,..,,,,.,..,,,..,.,.,,..,
-#V7D6UILSKGS6OGNBMGWAWFPZSBXY2HZTDOLFZQ3SZW5BLIY4KHOWPDAEVAO6VLKU5G6WAHOKBY35U
-#\\\|PGAORXLW6XWD3XD7KJ37QNZQE4OM6IFAVLGHMTNVO73QXUEDG7B \ / AMOS7 \ YOURUM ::
-#\[7]WD6YZHVATVWTM76LRRNS4RZGLXTHERAPRG6AV57QT3XZGYAPJ6AI 7  DATA SIGNATURE ::
+#,,,,,.,,,,,,,.,.,...,,..,..,,.,.,.,.,,..,.,,,..,,...,...,,,.,,.,,,.,,..,,,.,,
+#MGKL5BPLQDR2ZDA5CQY2DTAKIGMX2JPG6SLSUWP22FIDMKTD6OZ5GBJ4MA2NUEUGZQPR5YJNAXCWA
+#\\\|L3MZRWU5N2I2XZSOTOB7AFJD7WMNFQNX5P6MYZVOZCIHUTQFNAX \ / AMOS7 \ YOURUM ::
+#\[7]KU364JHY7S64I4XGZ5PY3XEX23TZWNRYGCTZW7VTK4DA4MLJZCCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
