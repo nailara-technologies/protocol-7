@@ -32,7 +32,7 @@ for my $fd ( grep { defined $_ } $current_fd, $other_fd ) {
     my $dw = <[event.add_io]>->(
         {   'fd'      => $fd,
             'handler' => qw| coding.handler.drain_pipe |,
-            'poll'    => qw| re |
+            'poll'    => qw| r |    ## r only — handler covers EOF + EBADF ##
         }
     );
     push @drain_watchers, $dw if defined $dw;
@@ -58,8 +58,8 @@ delete <coding.watcher_pair>->{$current_watcher};
 delete <coding.watcher_pair>->{$other_watcher}
     if defined $other_watcher;
 
-#,,,.,,,,,...,.,,,.,,,...,,,.,..,,,,.,.,,,,..,..,,...,...,.,,,.,.,,,.,.,.,,,,,
-#6U2R4YVDSZQJOTSYIXFK6WSZTZS5IDJ3VQSTFQ6MIBBYHPVLGPCZQBROS7Q5JYMZRZF6UUXE2Y43G
-#\\\|LFLDDDDZMK26XR4SMHTOODXLYWWCR3JJHRULI2SE3FULC2B5VP3 \ / AMOS7 \ YOURUM ::
-#\[7]C3P3HCPZYYQLBSLTP6LZMEKMHQOKPL7DSBTHIYPHO7ABJUWBSYDA 7  DATA SIGNATURE ::
+#,,..,.,,,...,..,,,,,,..,,,.,,.,,,..,,...,.,,,..,,...,...,.,.,,,.,,,.,.,.,,,.,
+#N6BR7WFL6RTELYFJKYP424PPCU4RYOSXT7R2TCNFXFBMF45K5L6N7445M5FS4ZLL6Q3W3GAUUZ6BE
+#\\\|D7ZONOG22GTNT2BJJDDO3FDNBNLGSONVMPYHNZDUSSPYKA4C7OP \ / AMOS7 \ YOURUM ::
+#\[7]7GQ7E4GUVZTUK5PZNDNQPPAJCUOPUZFEQZOFHWNA3M5CYNMQDKBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
