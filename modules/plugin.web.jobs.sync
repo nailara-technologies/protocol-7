@@ -25,7 +25,6 @@ if ( $@ or ref $delta ne 'HASH' ) {
 }
 
 my $job_id = $delta->{'id'} // '';
-
 if ( not length $job_id ) {
     my $reply_body   = '{"ok":false,"error":"missing job id"}';
     my $reply_header = {
@@ -39,9 +38,8 @@ if ( not length $job_id ) {
     return 2;
 }
 
-my $job_file = "/var/protocol-7/jobsite/jobs/$job_id.yaml";
-
-if ( not -f $job_file ) {
+my $job = <[jobsite.job.read]>->($job_id);
+if ( not defined $job ) {
     my $reply_body   = '{"ok":false,"error":"job not found"}';
     my $reply_header = {
         qw| Content-Type   | => qw| application/json |,
@@ -54,30 +52,14 @@ if ( not -f $job_file ) {
     return 2;
 }
 
-## strip id from delta before saving — state.save expects browser fields only ##
-my %save_delta;
+## merge only browser-owned fields ##
 for my $field (qw| stage notes date_applied |) {
-    $save_delta{$field} = $delta->{$field}
-        if exists $delta->{$field};
+    $job->{$field} = $delta->{$field} if exists $delta->{$field};
 }
 
-my $ok = eval { <[plugin.web.jobs.state.save]>->( $job_id, \%save_delta ); };
+my $ok = <[jobsite.job.write]>->( $job_id, $job );
 
-if ( not $ok or $@ ) {
-    my $err        = $@ // 'save failed';
-    my $reply_body = JSON::XS::encode_json( { 'ok' => \0, 'error' => $err } );
-    my $reply_header = {
-        qw| Content-Type   | => qw| application/json |,
-        qw| Content-Length | => length($reply_body),
-        qw| Connection     | => qw| close |,
-    };
-    $session->{'buffer'}->{'output'}
-        .= <[httpd.new_header]>->( 500, $reply_header );
-    $session->{'buffer'}->{'output'} .= $reply_body;
-    return 2;
-}
-
-my $reply_body   = '{"ok":true}';
+my $reply_body = $ok ? '{"ok":true}' : '{"ok":false,"error":"write failed"}';
 my $reply_header = {
     qw| Content-Type   | => qw| application/json |,
     qw| Content-Length | => length($reply_body),
@@ -90,8 +72,8 @@ $session->{'buffer'}->{'output'} .= $reply_body;
 
 return 2;
 
-#,,..,,,.,,,,,,.,,,.,,...,...,,,.,.,.,.,.,..,,..,,...,..,,...,,..,.,.,,.,,,.,,
-#OE43WXT5E6X22JWW3MPNU5B3PWECL2WF7ZHGMKHNCLC7J747FURARITWB4L23DZHISLFJDZ2ZAXG2
-#\\\|T3WU4GYQJUCRFNWQYROY2FE5GARKCYQLNNHAB4WW7INAQ5JYB25 \ / AMOS7 \ YOURUM ::
-#\[7]MVOSO4NHQEVTMSQ7SSXINPZEPP7BGI4526ORRCPLP3AGSYJUBGCA 7  DATA SIGNATURE ::
+#,,.,,,,.,.,.,,,,,,.,,,..,,,.,,..,,.,,..,,,.,,...,...,...,,,.,,,.,,.,,...,.,.,
+#JZI3KCQGZHAVC7USY5C2DPSJEXKTVTG5JNNCY4TVJH7M6FWOWWIZKBSIQUJJQOZE5EGDCX7F5JEY6
+#\\\|QYNACT2A4RHYWERVT3IWHSKERYDIVRKNMW4E5SVRBJE5DS5WN6Z \ / AMOS7 \ YOURUM ::
+#\[7]HPHG66K3KYC5OWJTALHCRRVLGAKEESSPYOAX27ZAZE35XMR2REAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
