@@ -98,6 +98,22 @@ BMW384 = 360 + 24 bits. The decomposition is not arbitrary:
 - Signals resonant with the node's coordinate pass through by field coherence, not rule.
 - Arbitrarily complex upstream history compressed to one 384-bit geometric identity.
 
+**24-bit prefix as separator + fast-reject + self-locator (May 2026):**
+- 24 separators divide the circle into 26 elements = 2 × 13 — the generator
+  reappearing in the packet geometry; maps directly to a 26-hour day (one segment
+  per hour), making the color prefix simultaneously a content-type and a clock position
+- **Fast-reject**: receiver checks color prefix against target range first; if no match,
+  the entire 360-bit body is skipped — bloom-filter-like cost before any parsing
+- **Hierarchical routing**: coarse color-range filtering at outer nodes, fine angular
+  resolution only within the matching segment — no routing table, just progressive narrowing
+- **Self-locating stream position**: on a color gradient or wheel, the color prefix encodes
+  the packet's exact position in the stream — no sequence numbers, no external clock needed.
+  A packet knows where it is in the flow from its own content.
+- **Closed wheel wrap**: color 0 and color 25 are neighbors, not endpoints — stream is
+  continuous and unambiguous, wrap-around is natural
+- **Unordered reassembly**: an unordered set of packets can be sorted into correct stream
+  order purely from color prefixes — lossless ordering with zero overhead
+
 **Actionable near-term:**
 - Dimension branches in assertion tree each compute a BMW384 → angular proximity
   gives dedup clustering, color channel gives branch-type identity
@@ -114,8 +130,8 @@ capability inherits the reliability of the base — no need to re-prove routing
 for each use case. Complexity investment is front-loaded but repaid through
 minimization and reuse at every subsequent scale.
 
-#,,..,,..,..,,,,,,,,,,.,.,..,,,,.,..,,,,.,,..,..,,...,...,,,.,.,.,,..,,.,,...,
-#ZOEBTMNDHPUZNEQ6HIC5UMJ5FBVHIX6Q7WII73AQGOXEIMTGJT5IOZSFPEZOJVY5FGDCO6IFTJPSM
-#\\\|QAD3QY6RC4ES6MNXPIUSZ6KG3CP5564ZCKYM643LERCCITY633R \ / AMOS7 \ YOURUM ::
-#\[7]2SZMRRMCIWEJSRNFQHEHKWM3O6ARG6G5O5IASRVGQZJVUAUX5EDQ 7  DATA SIGNATURE ::
+#,,,.,...,...,.,,,,..,.,.,..,,,,.,,,.,.,,,,,,,..,,...,...,...,..,,...,,,,,,..,
+#2THMS4EVRSXETIUBYRKGICTCPBOTCAEHCWYLZVQQUQYPKXLSJR6WPRA2LK55F4SZAZBM5IIROZHWK
+#\\\|LQFY77JP7MYVHJWLZOEU7IE7JJ6K4BYOUZUQS3IQZKR2MQRPIKU \ / AMOS7 \ YOURUM ::
+#\[7]54Z7RRE3GC2GAGCBV2QKZUTKM2O7NS2UOF5CVT26BMTTDLQ4FYBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
