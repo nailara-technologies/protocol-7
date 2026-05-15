@@ -60,10 +60,18 @@ my ( undef, undef, $p7_uid, $p7_gid ) = getpwnam $proto_7_user;
 my ( undef, undef, $zenka_uid, $zenka_gid )
     = getpwnam $current_zenka_username;
 
+## override gid when zenka has a configured group  ##
+##           [ e.g. httpsd runs as httpsd:httpd ]  ##
+if ( defined <system.zenka-group.current> ) {
+    my ( undef, undef, $override_gid )
+        = getgrnam <system.zenka-group.current>;
+    $zenka_gid = $override_gid if defined $override_gid;
+}
+
 ## counting filesystem alterations ##
 my $fs_changes_made = 0;
 my $error_count     = 0;
-my $report_level    = 1;      ## reporting changes at this log level ##
+my $report_level    = 1;    ## reporting changes at this log level ##
 
 <[base.log]>->( $report_level + 1, 'checking configured zenka paths.,' );
 
@@ -151,8 +159,8 @@ return ( $error_count == 0 ? TRUE : FALSE, $fs_changes_made, $error_count )
 ##[ success status in scalar context ]##
 return $error_count == 0 ? TRUE : FALSE;
 
-#,,.,,,..,..,,,.,,,..,...,...,..,,,,,,...,,,,,..,,...,...,,..,,..,,,.,,,.,,,.,
-#EFK54HM6VDFPF2MKGDGQE7WUOL3ILJTQHP3P5PUHAGMHZW466SODL5ZSUZSSTKWGK3JJU5Z4GOBOQ
-#\\\|7OJBLNVIHYBQOAB7WUAKYKTAHSBOYCSBC4RCZWECFJEUYWOG3R4 \ / AMOS7 \ YOURUM ::
-#\[7]T3GPJYHER7YHDAKMSTWCBP34ZGSD6HC6CGYNPQNMNABZSEDTOKAY 7  DATA SIGNATURE ::
+#,,,.,,.,,,.,,,,,,...,.,.,.,,,..,,,..,,.,,.,.,..,,...,...,.,,,...,...,,,,,.,.,
+#SN4JLS5DK4DCWTGCZ7EVQFTTIVI6LDW7IDSDHIJ2GV36D6UCEHELM4J3JV4ZQZQFNEKRZW27ZQAII
+#\\\|XX6FHQQGP5TOGFQKYBFWPYGIATG5AO7KLNMQRIWEK7XJ6XQH3EM \ / AMOS7 \ YOURUM ::
+#\[7]BMUTPZVJ57JGMFDOEIU7ATGUWXESF6GC65GO5I55QEWCTVC6BSCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
