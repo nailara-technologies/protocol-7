@@ -23,10 +23,46 @@ h1 { color: #40f0ff; font-size: 1.4rem; margin-bottom: 0.2rem; font-weight: bold
     background: #131340;
     border: 1px solid #2a2260;
     border-radius: 0.4rem;
-    padding: 0.8rem 1rem;
-    display: flex; flex-wrap: wrap; gap: 0.5rem; align-items: center;
+    padding: 0.7rem 1rem;
+    display: flex; flex-direction: column; gap: 0.45rem;
 }
-.controls .sep { color: #2a2260; padding: 0 0.2rem; }
+.ctrl-row {
+    display: flex; flex-wrap: nowrap; gap: 0.45rem;
+    align-items: center; min-width: 0;
+}
+.ctrl-row .spacer { flex: 1; }
+.controls .sep { color: #2a2260; padding: 0 0.1rem; }
+#btn-sync { min-width: 4.8rem; text-align: center; }
+
+/* score filter slider */
+#min-score {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 90px; height: 3px;
+    background: #0e1a30;
+    border-radius: 2px;
+    outline: none; border: none;
+    cursor: pointer;
+    vertical-align: middle;
+}
+#min-score::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 11px; height: 11px;
+    border-radius: 50%;
+    background: #2860c0;
+    border: 1px solid #60a0ff;
+    box-shadow: 0 0 4px rgba(64,160,255,0.5);
+    cursor: pointer;
+}
+#min-score::-moz-range-thumb {
+    width: 11px; height: 11px;
+    border-radius: 50%;
+    background: #2860c0;
+    border: 1px solid #60a0ff;
+    box-shadow: 0 0 4px rgba(64,160,255,0.5);
+    cursor: pointer;
+}
 .stat {
     font-size: 0.78rem; padding: 2px 10px; border-radius: 3px;
     background: rgba(255,255,255,0.04); color: #607080;
@@ -37,12 +73,12 @@ h1 { color: #40f0ff; font-size: 1.4rem; margin-bottom: 0.2rem; font-weight: bold
 .stat.done    { color: #807090; background: rgba(40,30,60,0.3); }
 
 button {
-    padding: 4px 12px 5px;
+    padding: 3px 9px 4px;
     border: none; border-radius: 0.25rem; cursor: pointer;
     color: rgba(224,255,255,0.85);
     background: rgba(75,0,130,0.5);
     box-shadow: 0 0 5px rgba(64,240,255,0.3);
-    font-size: 0.82rem;
+    font-size: 0.72rem;
     transition: all 0.2s;
 }
 button:hover {
@@ -257,28 +293,33 @@ button.red:hover { background: rgba(130,0,0,0.6); }
 
   <!-- controls -->
   <div class="controls no-print">
-    <span id="stat-total"  class="stat">0 gesamt</span>
-    <span id="stat-review" class="stat review">0 review</span>
-    <span id="stat-apply"  class="stat pending">0 bewerben</span>
-    <span id="stat-applied" class="stat applied">0 beworben</span>
-    <span id="stat-done"   class="stat done">0 erledigt</span>
-    <label style="font-size:0.78rem; color:#506070; display:flex; align-items:center; gap:0.4rem;">
-      min score
-      <input type="range" id="min-score" min="0" max="10" step="0.5" value="6"
-        style="width:80px; accent-color:#3080c0; cursor:pointer;">
-      <span id="min-score-val" style="color:#80c0e0; min-width:2em;">6</span>
-    </label>
-    <span class="sep">|</span>
-    <button id="btn-sync">↻ sync</button>
-    <button id="btn-add-toggle">+ manuell</button>
-    <button id="btn-sort-score" class="active">score ↓</button>
-    <button id="btn-sort-asc">score ↑</button>
-    <button id="btn-sort-date">datum ↓</button>
-    <span class="sep">|</span>
-    <button id="btn-export-csv" class="orange">CSV export</button>
-    <button id="btn-show-archive">archiv</button>
-    <span class="sep">|</span>
-    <button id="btn-clear-local" class="red" title="lokale Daten löschen">reset</button>
+    <!-- row 1: stats + slider | manuell -->
+    <div class="ctrl-row">
+      <span id="stat-total"   class="stat">0 gesamt</span>
+      <span id="stat-review"  class="stat review">0 review</span>
+      <span id="stat-apply"   class="stat pending">0 bewerben</span>
+      <span id="stat-applied" class="stat applied">0 beworben</span>
+      <span id="stat-done"    class="stat done">0 erledigt</span>
+      <label style="font-size:0.78rem; color:#506070; display:flex; align-items:center; gap:0.4rem; margin-left:0.3rem;">
+        min score
+        <input type="range" id="min-score" min="0" max="10" step="0.5" value="6">
+        <span id="min-score-val" style="color:#80c0e0; min-width:2em;">6</span>
+      </label>
+      <span class="spacer"></span>
+      <button id="btn-add-toggle">+ manuell</button>
+    </div>
+    <!-- row 2: sort | export/archive | reset sync -->
+    <div class="ctrl-row">
+      <button id="btn-sort-score" class="active">score ↓</button>
+      <button id="btn-sort-asc">score ↑</button>
+      <button id="btn-sort-date">datum ↓</button>
+      <span class="sep">|</span>
+      <button id="btn-export-csv" class="orange">CSV export</button>
+      <button id="btn-show-archive">archiv</button>
+      <span class="spacer"></span>
+      <button id="btn-clear-local" class="red" title="lokale Daten löschen">reset</button>
+      <button id="btn-sync">↻ <span id="btn-sync-label">sync</span></button>
+    </div>
   </div>
 
   <!-- filter tabs -->
@@ -405,7 +446,8 @@ async function pushChange(id, fields) {
 /* ── sync: full on first load, delta on subsequent polls ── */
 async function syncPipeline() {
     const btn = document.getElementById('btn-sync');
-    btn.textContent = '…';
+    const lbl = document.getElementById('btn-sync-label');
+    lbl.textContent = '…';
     try {
         const url = lastNtime > 0
             ? JOBS_JSON + '?since=' + lastNtime
@@ -422,10 +464,10 @@ async function syncPipeline() {
         saveCache();
         render();
         if (tableVisible) showPrintTable();
-        btn.textContent = '↻ sync';
+        lbl.textContent = 'sync';
         if (added > 0) notify(`${added} neue jobs geladen`);
     } catch(e) {
-        btn.textContent = '↻ sync';
+        lbl.textContent = 'sync';
         notify('sync fehler: ' + e.message, true);
     }
 }
