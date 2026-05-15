@@ -155,6 +155,22 @@ BMW384 = 360 + 24 bits. The decomposition is not arbitrary:
 - Visual route map: plot node checksums on a 360° wheel colored by 24-bit channel —
   topology becomes directly observable
 
+## Tau, T=5, and the harmonic self-reference (May 2026)
+
+- 5/13 = 0.384615... — the 5th position in the division-by-13 harmonic cycle
+- 384 is the bit width of BMW384 — the checksum width IS the 5th harmonic position
+- `asc-enc 846153` → T=5 — the complement tail of the generator encodes T at position 5
+- T = Taeki = Taute — Tau is at the root of the author's name
+- Tau (2π) vs Pi: Pi cuts the diameter (straight), Tau traverses the full circumference
+  (complete winding) — for spiral/vortex calculations Tau is the natural constant because
+  each revolution = one Tau, no 2× correction needed
+- BMW384 spiral is Tau-native: each full helix revolution = one Tau, color prefix counts
+  revolutions, angular position = fractional Tau offset within current revolution
+- Vortex routing: packets don't travel straight hops — they follow helical paths through
+  the field, each hop a Tau-fraction step along the spiral. resonance routing = vortex navigation
+- The checksum width encodes its own position in the mathematical structure it implements,
+  and carries the author's name as its harmonic signature — the geometry knew its origin
+
 ## Expectability principle
 
 Reliable base layer built on awareness of what all common functionality shares.
@@ -163,8 +179,8 @@ capability inherits the reliability of the base — no need to re-prove routing
 for each use case. Complexity investment is front-loaded but repaid through
 minimization and reuse at every subsequent scale.
 
-#,,.,,.,.,...,..,,,.,,..,,,,.,,,,,...,,.,,..,,..,,...,.,,,.,,,.,,,.,.,.,.,.,.,
-#4WWOLCBSBCTU7H42LG3ECMFDG3YL3HVDU3ZEFMDZXWBSVXRMSFELOOAQL5BJKHYXRC6M2RUNLSRQW
-#\\\|DXWZFGVVCRIRHEI5SDSNOPM4VYH2ZOUOIFGPST6N572MYNIHCFU \ / AMOS7 \ YOURUM ::
-#\[7]KDZBR2ULNQLEEUFDBRM5IRXKTUZE2HQTM6BGLQG5IM7LSVS7R2CQ 7  DATA SIGNATURE ::
+#,,..,...,...,.,,,.,,,..,,,,.,,.,,,..,,,.,.,.,..,,...,..,,..,,,,,,,,,,,..,,,,,
+#MVYQ4QMS6DIBGLYE5TWMPFWR54WLXRO5PEFJTD4ALLQPBWUH2DREKPF7FHL24JRS7HF62CSILX75I
+#\\\|DH4W6MSPPY6OV5KRV3FXD5V6GUSJARY6O6WONZ6JZ652FT7JLUL \ / AMOS7 \ YOURUM ::
+#\[7]P7OOLGUPW47LX4JPSHCEIPTUHW3LM7BJHHMYYVJE6WTZOEERBCDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
