@@ -42,7 +42,8 @@ unless ( <kimi.ws.connected> and <kimi.ws.status> eq qw| ready | ) {
 }
 
 ## submit prompt — completion arrives via TurnEnd in ws_message ##
-my $msg_id = <[kimi.wire.prompt]>->( $prompt, undef );
+my $reply_id = $task->{'reply_id'};
+my $msg_id   = <[kimi.wire.prompt]>->( $prompt, $reply_id );
 
 unless ( defined $msg_id ) {
     <[base.logs]>->(
@@ -63,8 +64,8 @@ unless ( defined $msg_id ) {
 ## return deferred — actual result arrives via TurnEnd ##
 return { success => TRUE, deferred => TRUE };
 
-#,,,.,,,,,...,..,,.,,,.,.,,.,,...,..,,,.,,.,.,.,.,...,...,...,.,,,...,..,,.,.,
-#CQVF366IBWG6EUH4G7YCCUQ3G2ZIBA5NZ7HINSFPEK65YLMIAFBXQWFX47EWLZ2DYUAFC6L5RJ6JW
-#\\\|F6XQXCABLHTNFC2QAA37M72QBQ44N5OAKKXZXUC76CB5CKSIHAC \ / AMOS7 \ YOURUM ::
-#\[7]FGEJNLQSQYNWONSSH7YQSQFJLAL73CRVDXGE2YRIGOWRYAU36UDQ 7  DATA SIGNATURE ::
+#,,,.,.,.,,..,,..,...,..,,.,,,..,,,,.,,,,,,,.,.,.,...,...,...,.,,,,,,,..,,.,,,
+#FYQSAREHFUFJVWDOI6RC7KNIYCMWUBQBQO3TONJ3B3Q25VKKIAF5FH2BGL7U7LBKCBLNM7AZKWL3S
+#\\\|S6X7PTNBEKRK5UGOUA7PBIZJLYZC43JSJSEUHIS23QUHKW7LEVR \ / AMOS7 \ YOURUM ::
+#\[7]UFDWJRE2EOKUJTLWL7RC2JTQCB72CKPDJ2ALOIWEGZSFCYGZEQAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
