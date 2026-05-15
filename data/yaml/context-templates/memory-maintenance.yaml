@@ -1,111 +1,98 @@
-# name  = memory-maintenance
-# descr = restructure and summarize an ai-mem directory
+---
+name: memory-maintenance
+descr: restructure and compress an ai-mem directory to fit load window
+sections:
+  - static: |
+      ## memory maintenance ##
 
-system:
-  - system-tools
-  - system-default
+      execute all 4 phases below autonomously on the directory path given in
+      the task. do not ask for clarification. do not summarize what you found
+      and wait — just do the work and call task_complete when done.
 
-rounds: 42
+      the user message contains the target directory path. begin phase 1
+      immediately on that path — do not wait for further instructions.
 
-description: >
-  Maintain the memory directory at the given path. This means restructuring
-  MEMORY.md so the full index fits within a ~150 line load window, condensing
-  verbose topic files, and migrating large completed-session blocks into a
-  topic-completed.md file. Preserve all content — compress, don't delete.
+      goal: MEMORY.md index fits within ~150 lines so it fully loads on every
+      session. all content is preserved — compressed or relocated, never deleted.
 
-  Phase 1 — survey:
-    Read MEMORY.md and list all topic files with their line counts.
-    Identify which content exceeds the load window or is redundant in the index.
+      ## context budget discipline ##
 
-  Phase 2 — restructure MEMORY.md:
-    Rewrite the index so it fits in ~150 lines.
-    Each entry: one line, filename link + one-line hook.
-    Group entries under clear section headers (Active / Vision / Reference /
-    Feedback / Completed). Move all verbose completed-session blocks out of
-    the index into topic-completed.md (append, don't overwrite existing content).
+      read files in chunks using offset + length params. process one topic
+      file at a time. discard file content from working memory before moving
+      to the next. never hold more than one large file in context at once.
 
-  Phase 3 — compress verbose topic files:
-    For any topic file over 200 lines: read it, summarize dense sections,
-    rewrite in place. Preserve all facts — compress prose, not information.
-    Keep CRITICAL notes and code patterns verbatim.
+      ## phase 1 — survey [ read only, no writes ] ##
 
-  Phase 4 — verify:
-    Confirm MEMORY.md is under 160 lines.
-    Confirm all files referenced in the index actually exist.
-    Report a summary of changes made (lines before/after per file).
+      - use search_code to list all .md files in the directory with line counts
+      - read MEMORY.md in 200-line pages (offset=0 length=200, then offset=200, etc.)
+      - note which sections are verbose and which topic files exceed 200 lines
 
-  Rules:
-    - Never delete information — only compress or relocate it
-    - Preserve all CRITICAL / WARNING markers verbatim
-    - Code snippets and exact command syntax stay verbatim
-    - Do not add the #,,...,, signature stub to new or modified files
-    - Use replace_in_file for targeted edits, write_new_file only for new files
-    - Run ptd after editing any .pm file; memory files are .md so skip ptd
-    - $ARG not $_
+      ## phase 2 — restructure MEMORY.md ##
 
-user:
-  - args.memory_path
+      rewrite the index using write_new_file (full rewrite is cleaner than
+      many small edits on a large file). target: under 150 lines.
 
-args:
-  memory_path:
-    type: string
-    required: true
-    description: "path to the ai-mem directory to maintain (e.g. data/ai-mem/kimi)"
-    extract: "memory-maintenance[: ]+(.+)"
+      each entry is one line:  - [slug](filename.md) — one-line hook
 
-context:
-  static:
-    - type: instructions
-      content: |
-        ## Memory Maintenance Protocol
+      section order:
+        ## CRITICAL              [ file-creation rules, must-know facts ]
+        ## Active Topics         [ in-progress work with open items ]
+        ## Vision / Design       [ architectural ideas, future direction ]
+        ## Reference             [ patterns, templates, how-to ]
+        ## Feedback              [ behavior rules — always apply ]
+        ## Completed Sessions    [ single pointer to topic-completed.md only ]
+        ## System Status         [ next steps, planned, bugs — ~30 lines max ]
 
-        Goal: a MEMORY.md that fully loads (under ~150 lines), with all detail
-        preserved in topic files that can be read on demand.
+      completed-session blocks belong in topic-completed.md:
+        - read existing topic-completed.md in pages first
+        - append the blocks under matching ## date — title headers
+        - write back the combined file
+        - replace each block in MEMORY.md with a single pointer line
 
-        ### Load window constraint
-        The memory system truncates at 200 lines on load. Anything past that
-        is invisible until explicitly read. The index must fit within ~150 lines
-        to leave room for any frontmatter or footer the system adds.
+      ## phase 3 — compress verbose topic files [ one at a time ] ##
 
-        ### Index entry format
-        One line per file:
-          - [slug](filename.md) — one-line hook describing what's inside
+      for each topic file over 200 lines:
+        - read it in 300-line pages
+        - build a compressed version: all facts kept, prose condensed to bullets
+        - write_new_file to replace it
 
-        ### Section structure
-        Use these headers in this order:
-          ## CRITICAL               (file-creation rules, must-know facts)
-          ## Active Topics          (in-progress work with open items)
-          ## Vision / Design        (architectural ideas, future direction)
-          ## Reference              (patterns, templates, how-to)
-          ## Feedback               (behavior rules — always apply)
-          ## Completed Sessions     (pointer to topic-completed.md only)
-          ## System Status          (next steps, planned, bugs — inline, ~30 lines max)
-
-        ### Completed session blocks
-        Any `### Completed (date)` block in MEMORY.md belongs in topic-completed.md.
-        Append it there under a matching `## date — title` header.
-        Replace the block in MEMORY.md with a single pointer line.
-
-        ### Compression rules for topic files
-        - Bullet lists: keep all bullets, compress prose descriptions to 1 line each
-        - Code blocks: always verbatim
+      compression rules:
+        - bullet lists: keep all bullets, shorten descriptions to 1 line each
+        - code blocks: always verbatim
         - CRITICAL / WARNING / Key lesson markers: always verbatim
-        - Repeated context that's now in MEMORY.md index: trim to one line
-        - Session narrative prose: compress to bullet facts
+        - session narrative prose: compress to bullet facts
 
-        ### Report format (final output)
-          Memory Maintenance Report: <path>
+      ## phase 4 — verify ##
 
-          MEMORY.md: <before> → <after> lines
-          Files compressed:
-            <filename>: <before> → <after> lines
-          Files created:
-            <filename> (N lines)
-          Index entries: <count>
-          All references valid: yes / no (list missing)
+      - read MEMORY.md, confirm under 160 lines
+      - confirm all filenames in the index exist (search_code)
+      - report changes made
 
-#,,,.,,.,,...,...,,..,,,.,,,.,,,.,,..,,,,,..,,..,,...,...,...,,,,,,,.,,,.,,..,
-#GHD6F3PWQZKPZ25RUCDMITEWDVPLYCZ32OCRGTSDJSS7A3OT4QOSTRU4NEBT6DSH3XEWGYPQLD45S
-#\\\|M6LTKRN3G5GUDFJIZC2LNYIBZ6XIXRLALV4YHWDCRQAZAXTE2YO \ / AMOS7 \ YOURUM ::
-#\[7]FXF7C3BUR75R6U45Q3VM6JOBM7QDDOASYKQPQPN7S3TPMCRUPCCA 7  DATA SIGNATURE ::
+      ## rules ##
+
+      - never delete information — only compress or relocate
+      - do not add the #,,...,, signature stub to any file
+      - memory files are .md — do not run ptd on them
+      - $ARG not $_
+
+      ## report format ##
+
+        Memory Maintenance Report: <path>
+
+        MEMORY.md: <before> → <after> lines
+        Files compressed:
+          <filename>: <before> → <after> lines
+        Files created:
+          <filename> (N lines)
+        Index entries: <count>
+        All references valid: yes / no [ list any missing ]
+
+    priority: 1
+    budget_pct: 80
+    label: memory maintenance instructions
+
+#,,,.,.,.,,..,,.,,..,,,,,,,..,,,.,,,.,,.,,,.,,..,,...,...,...,,,.,.,.,.,,,..,,
+#PGN5QLRSKBOWQD2TXKW4IPKDZAOFXXAWAVBW2CVHYVGKGDDR7ZJORAL75NZ2FCEEBQ4ICY54WLVEI
+#\\\|GFEBKUJAEK6DAQ5OAXWZ6NXRWVSVDNM5FCT5Q53VW4BC7YUZJB5 \ / AMOS7 \ YOURUM ::
+#\[7]3PHMCPWWJEDG6PHPTTFZRL3PCDF5JQ6ICOAENSG32P73J5I2HIAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
