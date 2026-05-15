@@ -1,7 +1,10 @@
 ---
-name: checksum-based universal addressing
-description: AMOS checksums as universal routing primitive — models, tasks, deps, groups all addressed by CHKSUM7; everything is a group of size 1 by default
-type: project
+name: checksum-based-universal-addressing
+description: "AMOS checksums as universal routing primitive — models, tasks, deps, groups all addressed by CHKSUM7; everything is a group of size 1 by default"
+metadata: 
+  node_type: memory
+  type: project
+  originSessionId: 124780a7-b4bc-4883-b77e-aa7f28703036
 ---
 
 ## Core principle (Mar 25 2026)
@@ -67,6 +70,42 @@ means an applicability condition can be a sub-tree in the same format — self-s
 every depth. Addition composes naturally: summing a subtree gives aggregate priority
 with reference count built in.
 
+## BMW384 as resonance routing geometry (May 2026)
+
+BMW384 = 360 + 24 bits. The decomposition is not arbitrary:
+- **360-bit angular space** — directional resolution on the unit circle; a node's
+  checksum places it at a specific angle, making routing a field-proximity operation
+- **24-bit color channel** — maps onto a continuous spectral wheel; nearby values
+  on the spectrum imply relationship proximity, orthogonal to the angular axis
+- Together: every checksum is a *positioned, colored point* in a resonance field
+
+**Route discovery as visual operation:**
+- Nodes broadcast their BMW384 coordinate; any other node can estimate relatedness
+  immediately — before any explicit connection. Discovery is field sensing, not lookup.
+- Neighborhood in color-space IS the set of routing candidates. No graph traversal needed.
+- Translucent layered composition: merging N checksum layers produces a single
+  384-bit image that is equally precise at depth 1 or depth 1000 — agnostic to layer count.
+  The representation doesn't degrade; it converges toward a stable attractor.
+
+**Exclusion principle → homogeneous distribution:**
+- A node committed to its checksum coordinate cannot simultaneously be another.
+  Distribution emerges from identity, not from external balancing. No coordinator,
+  no hash ring. New nodes join and self-place by the same principle — field self-organizes.
+
+**Branch nodes as filter elements:**
+- A branch node IS its accumulated BMW384 coordinate — simultaneously a filter,
+  a position, and a compressed summary of everything that contributed to it.
+- Signals resonant with the node's coordinate pass through by field coherence, not rule.
+- Arbitrarily complex upstream history compressed to one 384-bit geometric identity.
+
+**Actionable near-term:**
+- Dimension branches in assertion tree each compute a BMW384 → angular proximity
+  gives dedup clustering, color channel gives branch-type identity
+- Auto-archive / routing threshold can be a color-space distance check rather than
+  a hand-coded rule
+- Visual route map: plot node checksums on a 360° wheel colored by 24-bit channel —
+  topology becomes directly observable
+
 ## Expectability principle
 
 Reliable base layer built on awareness of what all common functionality shares.
@@ -75,8 +114,8 @@ capability inherits the reliability of the base — no need to re-prove routing
 for each use case. Complexity investment is front-loaded but repaid through
 minimization and reuse at every subsequent scale.
 
-#,,.,,,.,,..,,,..,,,.,,.,,,..,,..,..,,,..,.,.,..,,...,...,.,,,,..,...,,.,,,..,
-#E7F7NGO34QP53YVH6FCEWFORSD2K4BOSVEOS3SBCAKQW3KKPL6Z56CSG7BZRVSHNAHVW3DHPDJDPC
-#\\\|YWUKBY3AWNMUTQ2TCKMPD5URV4XYQVQK5TF5WLZHB4SAY3BDYJ7 \ / AMOS7 \ YOURUM ::
-#\[7]3I7I3DMIT3ZN6KCEZUXTYC7MZWUF63EUQ66A7T6332KO6DRD2MBY 7  DATA SIGNATURE ::
+#,,..,,..,..,,,,,,,,,,.,.,..,,,,.,..,,,,.,,..,..,,...,...,,,.,.,.,,..,,.,,...,
+#ZOEBTMNDHPUZNEQ6HIC5UMJ5FBVHIX6Q7WII73AQGOXEIMTGJT5IOZSFPEZOJVY5FGDCO6IFTJPSM
+#\\\|QAD3QY6RC4ES6MNXPIUSZ6KG3CP5564ZCKYM643LERCCITY633R \ / AMOS7 \ YOURUM ::
+#\[7]2SZMRRMCIWEJSRNFQHEHKWM3O6ARG6G5O5IASRVGQZJVUAUX5EDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
