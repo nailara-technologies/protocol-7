@@ -1,0 +1,43 @@
+## [:< ##
+
+# name  = base.bmw384.route.direct
+# args  = $src_coord, $dst_coord, $src_name, $dst_name
+# descr = same-arc routing with angular proximity check
+
+my $src_coord = shift;
+my $dst_coord = shift;
+my $src_name  = shift;
+my $dst_name  = shift;
+
+if ( not defined $src_coord or not defined $dst_coord ) {
+    <[base.logs]>
+        ->( 1, 'source and destination coordinates required <{C1}>' );
+    return undef;
+}
+
+my $hamming_dist = <[base.bmw384.route.hamming-dist]>->(
+    $src_coord->{'angle_bits'},
+    $dst_coord->{'angle_bits'}
+);
+
+my $threshold = <bmw384.cfg.direct_threshold> // 90;
+
+if ( $hamming_dist < $threshold ) {
+    return {
+        qw| path |     => [ $src_name,           $dst_name ],
+        qw| arcs |     => [ $src_coord->{'arc'}, $dst_coord->{'arc'} ],
+        qw| hops |     => 0,
+        qw| resonant | => TRUE
+    };
+}
+
+# [ fall through ] to vortex for large angular separation within same arc
+return <[base.bmw384.route.vortex]>->(
+    $src_coord, $dst_coord, $src_name, $dst_name
+);
+
+#,,,.,,,,,.,,,.,.,,.,,.,.,..,,,,,,...,.,.,,,.,..,,...,..,,,..,,,.,..,,...,,..,
+#G4HBC7KBGEODGKIZG3BDASB7UMEWTGXHMGKZ5ZHNZDE53FW4YR36KBX6PXI3OIBDOBTMK7OND2UFE
+#\\\|KCNQ5NNWTICWIJ3T3LDMCCGBECVG3UTUCKSJLANTAHQYM5OODCS \ / AMOS7 \ YOURUM ::
+#\[7]KHACD7ZZCZ7HNE3O77KDDELYU4GY7VMLIWIZKNJ24VIDDLDK2QAQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
