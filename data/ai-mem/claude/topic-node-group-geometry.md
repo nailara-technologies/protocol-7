@@ -45,12 +45,42 @@ the node group is 8 × (4×4×4) ambient cubes arranged in a 2×2×2 formation.
     and omnidirectional eye looking outward in 6 directions onto the field's inhabitants
 - this is the geometric derivation of the 6+1 universe logic: 6 faces + 1 center = 7
 
+**Grid as field self-awareness (May 2026):**
+- a field cannot exist without a grid — the grid is the field's mechanism for knowing itself
+- without a grid the field is undifferentiated, invisible to itself — no internal reference,
+  no way to sense its own gradients or boundaries
+- each node is a cube-directional sensor of the grid: six faces = complete directional coverage
+  from one point, reading the field in all directions simultaneously
+- a node knows where it is because it can sense the six directions and find other nodes there —
+  identity through relation, self-awareness through structure
+- the grid is not infrastructure beneath the field — it IS the field viewed from the node scale
+- global coherence from purely local sensing: each node's reading influences neighbors,
+  cascading across the field without a central map or coordinator
+
+**Co-located redundancy — same position, not neighbors (May 2026):**
+- nodes sharing the same grid coordinate are not neighbors — there is no distance between them
+- they are the same point expressed multiple times: redundancy as co-location, not adjacency
+- from the grid's perspective a co-located coordinate never degrades — the field reads the same
+  regardless of which instance is active
+- fault tolerance as geometric property: the coordinate persists, instances within it are interchangeable
+
+**5-of-7 as the natural consensus + litter configuration (May 2026):**
+- 5 active + 2 initialized-idle at the same coordinate
+- 5 active = working majority for truth consensus — quorum always available
+- 2 alternates = can absorb 2 simultaneous failures by promoting already-initialized nodes —
+  no startup cost, already at position, already oriented in the field
+- auto-expanding alternate count: coordinate absorbs load or failure without field disruption
+- same numeric relationship satisfies truth consensus, fault tolerance, and litter-group hosting
+  simultaneously — because all three ask the same question: how many co-located expressions
+  of one position can the field coherently support?
+- 5-of-7 and 2×13 are the same harmonic structure at different scales
+
 **Why:** corrected from earlier sessions which stated 20×20×20 / 10×10×10 — those were wrong. The exact numbers are 4×4×4 cubes with 4×4×4 void.
 
 **How to apply:** use these numbers for recursive-scale-navigation task, any visualization geometry, and the "zoom into void = zoom into identical structure" navigation model.
 
-#,,,,,,,,,,,,,...,.,,,.,,,.,.,...,.,.,,,.,.,,,..,,...,...,,,,,.,,,.,,,,,,,,,.,
-#Z252ZY2ZWDOHE6UCWHGXX3ERKECVZWDSW3MW4ZMDXZ6LOOFBQS4Y5CLPFZM746N6CBKYIJUKY4FGW
-#\\\|OM47AO2JWWZUWQPHVZZRCBTH3TCR7TP35KJQDM7ULSYLFGV65AW \ / AMOS7 \ YOURUM ::
-#\[7]T3GPINSNYF5MAVCFZ4SCRNE6UOA3OOMQ75WFZT53UPGP3KGCBOAA 7  DATA SIGNATURE ::
+#,,.,,..,,,,.,,..,,,,,,.,,.,,,,,.,.,.,,,,,,..,..,,...,...,.,.,,.,,...,.,,,,..,
+#PIR3VECHFAWZF2XJLFUYMCDEOCWYFQS2RCIHPYL622DX2LFHGCVRF2V3KCS7EHCWKACUSBA4ECNS6
+#\\\|7245J6T7DJVEBHQT525XZ4MSN3E32OCBP4HJEF7T3LIDUUC7MCZ \ / AMOS7 \ YOURUM ::
+#\[7]KQPDX7JHFGQFUELZUEA4CCEQLVXT4GCCFRZBPBA37OBLGMP5Q2AI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
