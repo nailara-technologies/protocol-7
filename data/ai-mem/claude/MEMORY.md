@@ -38,6 +38,8 @@
 - `feedback-ptd-syntax-check.md` — use `ptd -c` not `perl -c` for P7 module syntax checks
 - `feedback-ptd-formatting.md` — use `ptd` (not `ptd -c`) after writing modules — formats + checks syntax in one pass; skip separate syntax check step
 - `feedback-cross-zenka-deferred-reply.md` — cross-zenka deferred replies need local reply_id store + callback_id + route-send back; call_args.data not transmitted; multiline = :B32:
+- `feedback-httpd-deferred-reply.md` — deferred P7 reply from httpd handler crashes (flush_shutdown vs flush, session lifetime); use web zenka push/cache instead
+- `feedback-plugin-namespace-loading.md` — plugin.web.* in httpd needs [base.white-list.register] in start file; file.zenka_dir.data_path returns caller's zenka dir not owner's
 - `feedback-p7c-command.md` — always use `p7c` not `p7`; binary was renamed
 - `feedback-v7-restart-cube.md` — `p7c v7.restart cube` restarts all zenki at once; use after editing cube/access.zenki
 - `feedback-p7-module-call-syntax.md` — `<[mod]>` is implicit no-arg call; never add `->()` for zero args
@@ -89,7 +91,7 @@
 - `topic-job-pipeline.md` — WORKING (session 22): jobs.vhost live, German reason+summary in one pass, retry on timeout, letsencr fixed
 - `topic-chat-script.md` — bin/chat COMPLETE (session 23): dispatch wired, all 6 features + summary, timeline, -wait-reply; open: kimi state machine, coding zenka dispatch, phase 2 channels zenka
 - `topic-language-detection.md` — three-layer detection (heuristic→wordlist→inference), encoding_map 30 langs, locale vision pipeline with terminal+web+matrix render targets; fix_encoding rewritten generically
-- `topic-plugin-web-jobs.md` — plugin.web.jobs.* design: bi-directional sync, B32 backups, replaces export-jobs-json+scp
+- `topic-plugin-web-jobs.md` — plugin.web.jobs.* WORKING (session 25): route registry, direct file reads, client delta sync, toolbar UI; open: server-side ?since=N, remote deploy, distributed push/cache
 - `topic-job-pipeline-title-filter.md` — future: batch title screening via AMOS checksums before page fetch; 30-50% savings
 - `topic-site-yaml-zenka.md` — on-demand zenka: fetch URL → clean structured YAML; domain regex templates; job/music/podcast discovery; site-auth companion for login-gated sites
 - `topic-site-yaml-web-research.md` — safe coding zenka web research: checksum-as-capability tokens, same-site vs open-research modes, cleanup tiers, DuckDuckGo starting point
@@ -410,8 +412,8 @@
 - Pattern: `my @non_num = grep { defined $data_ref->{$ARG}->{$key} and not looks_like_number(...) } keys $data_ref->%*`
 - Global `$SIG{__WARN__}` exists — if wrapping warn handler, capture `$prev_warn = $SIG{__WARN__}` first and call through
 
-#,,,.,,,.,.,,,,,,,...,.,,,...,..,,,..,..,,...,..,,...,...,..,,,,.,.,,,,..,.,.,
-#SI55QX2H2UNNVGTTNUWML3VAYWFMCE4ZQVDWIQXL2DQLWP2KU6SJEDQWMS5XZTUVVYV5NJBFK3ZY6
-#\\\|WY4BDOARM26NWKK7ASBS64VOTRZX3DW5GU2LLOCXCXL5SHYBZT4 \ / AMOS7 \ YOURUM ::
-#\[7]6PBLHWK7HVYBBM4OWJINRYKCEZATUMIS7YHKPCTU2KT2JMZIL6DA 7  DATA SIGNATURE ::
+#,,,,,,,.,.,,,.,,,,..,,.,,..,,..,,,..,,,.,,..,..,,...,...,...,...,,.,,..,,.,.,
+#SA2LAY33Z3FFGKSBTMHC222ZE43VZQ4EOSNKU3QF623LV4M737LIFQJNZXTMZOAJRJYWEVAO5OHSY
+#\\\|5CRY5ZJ2HKGHI3FCRQFEEOU56QO5LFRF4AJGZ63E223DEA5XA4P \ / AMOS7 \ YOURUM ::
+#\[7]LB7RXEJCYIFEXMX4OBIQEQEOE6TGB2LSRJV6JDW2QH2SQTVB7UDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
