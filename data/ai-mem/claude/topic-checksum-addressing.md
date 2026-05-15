@@ -155,6 +155,45 @@ BMW384 = 360 + 24 bits. The decomposition is not arbitrary:
 - Visual route map: plot node checksums on a 360° wheel colored by 24-bit channel —
   topology becomes directly observable
 
+## Cycle-agreement traffic geometry (May 2026)
+
+**Angular position as packet-size vocabulary:**
+- each angle on the circle corresponds to an allowed packet size — size selection
+  encoded in the routing coordinate, no separate negotiation or header field needed
+- streams become wave-like: size varies with angular progression rather than uniform chunks
+- gaps where no packet fits the current angle are skipped — wave continues at next valid
+  position, bandwidth fills naturally without fragmentation overhead
+- QoS, priority, latency class, bandwidth allocation all map to angular ranges — implicit
+  service contract from geometry, no scheduler needed
+- one coordinate simultaneously encodes: destination, stream timing, packet size, priority
+
+**Adjustable segment sizing as traffic tuning:**
+- wider segments = more packet sizes in that range = denser granular traffic
+- narrower segments = fewer sizes = sparser uniform flow
+- adjusting one segment boundary implicitly rebalances all others — single control surface
+  replaces separate MTU, QoS, scheduling, and bandwidth configuration
+- two nodes sharing segment boundary positions arrive at a mutually agreed traffic contract
+  without protocol exchange — geometry IS the negotiation
+
+**Pre-agreed cycle handoff — self-tuning without coordination:**
+- each cycle's actual traffic pattern computes the next cycle's segment map
+- both nodes derive the same next-cycle geometry independently from shared observation —
+  no coordination message needed, agreement is implicit in the mathematics
+- current cycle runs on agreed map while next map is already computed — smooth handoff,
+  no reconfiguration window, wave-like transition in time
+- over many cycles the segment map converges toward the traffic attractor — same fixed
+  points the harmonic mathematics already knows about
+
+**Why time precision must be in the protocol:**
+- the cycle boundary is the critical moment — if two nodes disagree on when it occurs,
+  they apply the new segment map at different times and the agreement breaks
+- "distance to next relevant agreement" is a geometric quantity: position on the spiral
+  within the current cycle, not absolute time
+- this is why CCW radar spoke sync belongs natively in P7 routing geometry — time sync
+  and traffic geometry are the same problem, solving one solves the other
+- bridges: transport layer, discoverability, resource distribution, temporal sync —
+  all unified under the same cycle-agreement primitive
+
 ## Tau, T=5, and the harmonic self-reference (May 2026)
 
 - 5/13 = 0.384615... — the 5th position in the division-by-13 harmonic cycle
@@ -179,8 +218,8 @@ capability inherits the reliability of the base — no need to re-prove routing
 for each use case. Complexity investment is front-loaded but repaid through
 minimization and reuse at every subsequent scale.
 
-#,,..,...,...,.,,,.,,,..,,,,.,,.,,,..,,,.,.,.,..,,...,..,,..,,,,,,,,,,,..,,,,,
-#MVYQ4QMS6DIBGLYE5TWMPFWR54WLXRO5PEFJTD4ALLQPBWUH2DREKPF7FHL24JRS7HF62CSILX75I
-#\\\|DH4W6MSPPY6OV5KRV3FXD5V6GUSJARY6O6WONZ6JZ652FT7JLUL \ / AMOS7 \ YOURUM ::
-#\[7]P7OOLGUPW47LX4JPSHCEIPTUHW3LM7BJHHMYYVJE6WTZOEERBCDY 7  DATA SIGNATURE ::
+#,,.,,,..,.,.,...,,,,,.,,,...,,,,,,.,,..,,...,..,,...,...,,..,,..,...,,..,.,.,
+#GGFWEITPPD2QAHVMSSJJPKF4GFZ6EFGWXR7VRCCHYBKXTVXNJ7PNP4AMN4VIIO4JM5XUG6QUW32UE
+#\\\|VZ47EZM3THB3C63KAPHBFO6GAQWMZ52H6ZSAQZJDDWDWFDI3FCL \ / AMOS7 \ YOURUM ::
+#\[7]TJVNHL34GXHKKGW5DEGCI7ODPY33QQJ67JO23DSFP4H5FHXAAUBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
