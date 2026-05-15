@@ -114,6 +114,7 @@ auth.auth_select
 web.skin_resolver
 plugin.auth.zenka
 net.read_bytewise
+jobsite.sync.push
 jobsite.job.write
 jobsite.init_code
 base.stream.close
@@ -308,6 +309,7 @@ plugin.web.jobs.init_code
 plugin.web.attention.json
 jobsite.util.fix_encoding
 jobsite.util.build_prompt
+jobsite.cmd.blacklist-add
 io.unix.socket.input.open
 base.stream.advance_drain
 base.sourcecode.init_code
@@ -332,8 +334,10 @@ plugin.web.space.init_code
 plugin.web.space.grid.scan
 plugin.web.jobs.state.save
 plugin.web.jobs.state.load
+plugin.web.jobs.cache.path
 plugin.web.content.dirlist
 plugin.web.attention.blend
+jobsite.sync.apply_reverse
 jobsite.handler.rewire-all
 jobsite.handler.fetch-done
 io.unix.socket.output.open
@@ -354,6 +358,7 @@ base.check_dependency_dirs
 auth.zenka.cmd.session-key
 plugin.web.space.index.scan
 plugin.web.space.index.load
+plugin.web.jobs.cache.write
 plugin.web.attention.states
 net.read_linewise_estimated
 jobsite.validate.assessment
@@ -392,6 +397,8 @@ base.chk-sum.bmw.str-b32.L13
 base.access.special-user-map
 protocol.protocol-7.init_code
 plugin.web.space.orbital.json
+plugin.web.jobs.reverse.queue
+plugin.web.jobs.reverse.flush
 crypt.C25519.get_usr_keys_dir
 base.validate.data_key_syntax
 base.source.collect_file_list
@@ -414,6 +421,7 @@ protocol.sftp.connect_callback
 protocol.amos-chksum.init_code
 plugin.web.space.orbital.fetch
 plugin.web.space.index.persist
+plugin.web.jobs.cache.read_all
 plugin.web.attention.pop_state
 plugin.web.attention.init_code
 jobsite.handler.repair-created
@@ -533,8 +541,8 @@ base.log.send-buffer.reply-handler.notify-online
 plugin.web.space.template-resolver.update_context
 plugin.web.space.template-resolver.available_data
 
-#,,..,...,,,.,..,,...,.,.,,,.,.,.,,,.,.,.,,.,,..,,...,...,,..,,..,.,.,..,,..,,
-#URFDP4UXUHF45P7RTPHJRG4FP3OYRK7JVX4VOWOT6SW5RRCTWJPUZLKAVHESON5H7KIVQZNFFEAYI
-#\\\|OSIONPE3IESNEIRWJHBWR4FXJSGWLJCRJFDB4E2HGN2EWHE4YRX \ / AMOS7 \ YOURUM ::
-#\[7]ZXSQQLOP4XS3JJUEJHPZYHHSNQTHPB7VUGT4Y6LUW3SJKCLVMIDI 7  DATA SIGNATURE ::
+#,,..,...,...,..,,,.,,,,,,..,,,,,,,.,,..,,,..,..,,...,...,...,.,,,.,.,.,,,,.,,
+#F3KQ6LNJWGNXHNVOLZJIOWABQTDDAYGPRWYAZTAWS26VAK2FEI6EKC5OHDTZ4BDSMPON6XGS6PCIE
+#\\\|KZJY3DQWUPVRRDCZQLAIXDQCRYQRENWLVCKSK6GQX5GGMBHZ3ZB \ / AMOS7 \ YOURUM ::
+#\[7]ZX5M372CZMNBCYRRVW4UXZNIMPHUAILDGHDZTVBQFG6VHOS4FYDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
