@@ -1,0 +1,86 @@
+## [:< ##
+
+# name  = base.bmw384.route.vortex
+# args  = $src_coord, $dst_coord, $src_name, $dst_name
+# descr = cross-arc resonant routing via destination-arc candidates
+
+my $src_coord = shift;
+my $dst_coord = shift;
+my $src_name  = shift;
+my $dst_name  = shift;
+
+if ( not defined $src_coord or not defined $dst_coord ) {
+    <[base.logs]>
+        ->( 1, 'source and destination coordinates required <{C1}>' );
+    return undef;
+}
+
+my $candidates = <[base.bmw384.index.query-arc]>->( $dst_coord->{'arc'} );
+
+if ( not defined $candidates or not scalar @$candidates ) {
+    <[base.logs]>->(
+        1, 'no candidates in destination arc %d <{C1}>',
+        $dst_coord->{'arc'}
+    );
+    return {
+        qw| path |     => [ $src_name,           $dst_name ],
+        qw| arcs |     => [ $src_coord->{'arc'}, $dst_coord->{'arc'} ],
+        qw| hops |     => 0,
+        qw| resonant | => FALSE
+    };
+}
+
+my @scored;
+for my $ARG (@$candidates) {
+    my $candidate_name  = $ARG->{'name'};
+    my $candidate_coord = $ARG->{'coord'};
+
+    # [ skip ] source and destination themselves
+    next if $candidate_name eq $src_name or $candidate_name eq $dst_name;
+
+    my $color_dist = <[base.chk-sum.bmw384.color-dist]>->(
+        $candidate_coord->{'color'},
+        $dst_coord->{'color'}
+    );
+
+    my $angle_dist = <[base.bmw384.route.hamming-dist]>->(
+        $candidate_coord->{'angle_bits'},
+        $dst_coord->{'angle_bits'}
+    );
+
+    my $score = $color_dist / 16777216 + $angle_dist / 360;
+
+    push @scored,
+        {
+        qw| name |  => $candidate_name,
+        qw| coord | => $candidate_coord,
+        qw| score | => $score
+        };
+}
+
+if ( not scalar @scored ) {
+    <[base.logs]>->( 1, 'no valid intermediate candidates found <{C1}>' );
+    return {
+        qw| path |     => [ $src_name,           $dst_name ],
+        qw| arcs |     => [ $src_coord->{'arc'}, $dst_coord->{'arc'} ],
+        qw| hops |     => 0,
+        qw| resonant | => FALSE
+    };
+}
+
+my @sorted = sort { $a->{'score'} <=> $b->{'score'} } @scored;
+my $best   = $sorted[0];
+
+return {
+    qw| path | => [ $src_name, $best->{'name'}, $dst_name ],
+    qw| arcs | =>
+        [ $src_coord->{'arc'}, $best->{'coord'}{'arc'}, $dst_coord->{'arc'} ],
+    qw| hops |     => 1,
+    qw| resonant | => TRUE
+};
+
+#,,.,,,.,,,..,,..,,,,,..,,,..,...,.,.,.,,,..,,..,,...,...,.,.,,..,,,,,..,,,.,,
+#JOZPJ3UAZ6UIZVLVQSHJEF5ADO5QPU3NJNWKCFB35GPQ3KDP64BZWYLIW54JZWD2LNWQSCZIFUGXM
+#\\\|YFHAJGBJLLKOGTM5CGCEHRDA76BUCXNQMEJ3PWSFSKYUEHIGD4W \ / AMOS7 \ YOURUM ::
+#\[7]7LYEKPGBSULMZJTKXE2M3AXVLFDKVXMK77MVKYCQORKKARDRU2BA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
