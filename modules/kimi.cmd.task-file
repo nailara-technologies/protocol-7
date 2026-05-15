@@ -1,10 +1,11 @@
 ## [:< ##
 
 # name  = kimi.cmd.task-file
+# descr = read task file from disk and dispatch to kimi ask-reply
 # param = [:next:] <file-path>
 
 my $args      = $call->{'args'} // '';
-my $prefix    = $args =~ s{^(:next:)\s+}{} ? $1 . ' ' : '';
+my $wants_next = $args =~ s{^:next:\s+}{};
 my $file_path = $args;
 
 if ( not length $file_path ) {
@@ -13,8 +14,7 @@ if ( not length $file_path ) {
 
 ## try relative to repo root, then as absolute/literal path ##
 my $resolved;
-for my $candidate ( <[base.path.join]>->( <system.root_path>, $file_path ),
-    $file_path ) {
+for my $candidate ( <system.root_path> . '/' . $file_path, $file_path ) {
     if ( -f $candidate and -r $candidate ) {
         $resolved = $candidate;
         last;
@@ -36,10 +36,20 @@ if ( not length $file_content ) {
     };
 }
 
-return <[kimi.cmd.ask-reply]>->( { 'args' => $prefix . $file_content } );
+<[base.logs]>->(
+    1, 'task-file: dispatching %s [ %d bytes%s]',
+    $resolved, length($file_content), $wants_next ? ', :next:' : ' '
+);
 
-#,,..,,,,,,,,,.,.,.,.,...,,.,,.,.,.,.,...,...,..,,...,...,.,.,..,,...,.,.,...,
-#AXGLZS4MSFHS7T45CKDIZNEC6J5V67UDULEJKI5JEHOINQ6IRSQC2UETAJNMOEVREMB5CTNGWRP7C
-#\\\|BFKFZUK7FMA72LDMUSDY5NXTWZCDYGJBEJONXR4G5GMC5FBXRF5 \ / AMOS7 \ YOURUM ::
-#\[7]ROBIDGZDB3J7ALZSOVKDP56N6ETNZOEJ3UKYTL5JCGLDTGRAIOBA 7  DATA SIGNATURE ::
+## handle :next: here — reset session first, then dispatch without :next: prefix
+## so ask-reply gets a stable ready session rather than a deferred chain
+<[kimi.cmd.new-session]> if $wants_next;
+
+my $fwd_call = { %{$call}, 'args' => $file_content };
+return <[kimi.cmd.ask-reply]>->($fwd_call);
+
+#,,,.,,.,,,,,,,,,,...,,,,,.,,,..,,,,,,,,,,.,.,..,,...,...,..,,,,.,,.,,...,,,.,
+#WSHRBX7KLBQRPOVA5GIHFHXCGV3LUCMXES5NR673R5YZSIKRCDXBDVQ4YY6AHOIBDPHPCQEAAXHDS
+#\\\|A56HM22YACCIPJYSBHNOOMYZG5V5VYCLTLHV3SWCL7FLXQG7KD2 \ / AMOS7 \ YOURUM ::
+#\[7]6WTNOLCG5ZI35YWORMLKN7EMDKFEVGJRTL4QUM5G7MRKCV7JCWDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
