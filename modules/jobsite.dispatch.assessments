@@ -5,13 +5,16 @@
 
 ## collect new untracked jobs from per-file store ##
 <[base.perlmod.autoload]>->('HTML::Entities');
-my $store = <[jobsite.job.load_all}>;
+my $store = <[jobsite.job.load_all]>;
 
 my @to_assess;
 for my $job_id ( keys %{$store} ) {
     my $job = $store->{$job_id};
     next if ( $job->{'status'} // '' ) ne 'new';
-    next if exists <jobsite.tasks>->{$job_id};
+
+    ## skip only if an active task is already in flight for this job ##
+    my $existing = ( <jobsite.tasks>->{$job_id} // {} )->{'stage'} // '';
+    next if $existing =~ m{^(?:queued|assessing|assessed|done)$};
 
     ## checksum dedup / blacklist check ##
     my $chk = <[jobsite.checksum.index]>->( qw| check |, $job );
@@ -75,8 +78,8 @@ for my $job_id (@to_assess) {
 
 return;
 
-#,,,,,.,,,,.,,,..,,.,,.,,,...,...,,,,,.,,,.,.,..,,...,...,,,,,.,,,,,.,,,.,,,.,
-#JJ2COJT33NK7XHEOMGPYYBK4VSWC2EINIXKMMAWL7JBRVZMPB45BMP4E42YYRJCTPCSZRYV5A6KCE
-#\\\|SOD6OV4YKZJNWOEMCI5Z4NHKBC65FPH3TO5UHWDEIO2C2KIVOYG \ / AMOS7 \ YOURUM ::
-#\[7]772GVTHXM4MNNGSGPZNJSKN5ER3YIXXIOHLO6YXJZSFA5LUS2IDI 7  DATA SIGNATURE ::
+#,,,,,...,,.,,,..,...,,..,.,,,,,,,,.,,,.,,,.,,..,,...,...,.,.,...,,..,,..,.,.,
+#CP3VHXRZG6GPT24VLJ4MZ2RTBVENWWLQAFRSJMUUT4GESZAZP2QBVQA4HWBO6MQ5FH5CENQMZQHJS
+#\\\|NHE7CQYN4AGVGHGR5Z6D4GSQTOLRDQTQKM46YMHI4CDJKYUVGWU \ / AMOS7 \ YOURUM ::
+#\[7]SO7ETJQ3KG5SKNXQY26I3DORABYSD3QJKP6VX3FHZNOE2SMDBABY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
