@@ -46,6 +46,10 @@ if ($wants_next) {
 
 my $reply_id = $call->{'reply_id'};
 
+## move current result to previous — new prompt displaces it ##
+<kimi.result.previous> = delete <kimi.last.result>
+    if defined <kimi.last.result>;
+
 ## create task entry for queue tracking ##
 my $intake_result = <[kimi.intake.process]>
     ->( { 'prompt' => $prompt, 'reply_id' => $reply_id } );
@@ -118,8 +122,8 @@ if ( defined $task_id ) {
 
 return { 'mode' => qw| deferred | };
 
-#,,..,,..,.,.,..,,...,.,,,,.,,..,,...,,.,,,.,,.,.,...,..,,.,.,,,.,,..,,..,,.,,
-#HZWTCUWRO2QAOQJJKAFEOBZU7WCLPZ5PSRRFUOCNDKLHT4Y46RAP2A7P5KJB4FM7BRF7OBSVRUDSW
-#\\\|B4DUWYGR5NRTN73D4UQEHH6N3DWBP4YXGSVIA6DJIF2SXE372WT \ / AMOS7 \ YOURUM ::
-#\[7]LPFSC3NUTULHI4UKUET6M7KUWH6DGFO7I44U44YKQRTNSJTONYAI 7  DATA SIGNATURE ::
+#,,..,,.,,...,,,.,,..,..,,,,,,,,,,.,.,..,,.,,,.,.,...,..,,,.,,..,,...,.,.,,.,,
+#66BHG5LWS77YSFPVF56YLVQUUUK73QWUTC7Q67O7KX6VP7FXBCLLQ7OTKRJHCY3LAINVGWYNM54R6
+#\\\|KDVZVEO4QV5RGB7UYOH7GR7STIOVXSOKV2SFKPSTAYMTPQ2SOAN \ / AMOS7 \ YOURUM ::
+#\[7]G5GCVHTIFFLTT7DYVMSFN2XR3JFTBDZM4CQAIJIIM2N62ZBKIIBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

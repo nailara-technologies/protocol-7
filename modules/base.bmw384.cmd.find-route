@@ -1,0 +1,50 @@
+## [:< ##
+
+# name  = base.bmw384.cmd.find-route
+# descr = find bmw384 resonant route between two nodes
+
+my $args = $call->{'args'} // '';
+my @args = split m{\ +}, $args;
+
+if ( scalar @args < 2 ) {
+    return {
+        qw| mode | => qw| size |,
+        qw| data | => 'usage: find-route <src_name> <dst_name>'
+    };
+}
+
+my $src_name = $args[0];
+my $dst_name = $args[1];
+
+my $result = <[base.bmw384.route.find]>->( $src_name, $dst_name );
+
+if ( not defined $result ) {
+    return {
+        qw| mode | => qw| size |,
+        qw| data | => 'route discovery failed'
+    };
+}
+
+my @path = @{ $result->{'path'} };
+my $route_line;
+if ( scalar @path == 2 ) {
+    $route_line = sprintf 'route: %s → %s', $path[0], $path[1];
+} else {
+    $route_line = sprintf 'route: %s → [%s] → %s', $path[0], $path[1],
+        $path[2];
+}
+
+my @arc_labels = map { chr( ord('A') + $_ ) } @{ $result->{'arcs'} };
+my $arcs_str   = join( ' → ', @arc_labels );
+my $resonant   = $result->{'resonant'} ? 'yes' : 'no';
+
+my $output = sprintf "%s\nhops: %d  |  arcs: %s  |  resonant: %s",
+    $route_line, $result->{'hops'}, $arcs_str, $resonant;
+
+return { qw| mode | => qw| size |, qw| data | => $output };
+
+#,,.,,...,,.,,,.,,...,.,.,,,,,,,,,.,,,,..,..,,..,,...,..,,..,,,,.,...,..,,,,,,
+#L6MOYQTQKEPDMR6SEM2Y5HQKKPHATKNC6NLHHVOVY5DHLVLC3DGXSQQQ56BOBNW4WUKBG6RGDWCXG
+#\\\|3HJ4WKDOUFLJK46FBAJ56BTSNXLHBV4S4B64P62A7T7YK5F3EAG \ / AMOS7 \ YOURUM ::
+#\[7]N5P7VRMXTV4A3QDW5NQUVLBG6IF6336L5CCY2DDGIAJLGE5MLSCI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

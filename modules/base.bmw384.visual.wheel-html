@@ -1,0 +1,41 @@
+## [:< ##
+
+# name  = base.bmw384.visual.wheel-html
+# descr = wrap BMW384 field SVG in a minimal standalone HTML page
+
+my $svg = <[base.bmw384.visual.wheel]>->();
+
+if ( not defined $svg ) {
+    <[base.logs]>->(
+        1, 'bmw384 index not available for visualization <{C1}>'
+    );
+    return undef;
+}
+
+my $stats = <[base.bmw384.index.stats]>->();
+my $count = $stats->{'total'} // 0;
+
+my $html = '<!DOCTYPE html>' . "\n";
+$html .= '<html lang="en">' . "\n";
+$html .= '<head>' . "\n";
+$html .= '  <meta charset="UTF-8">' . "\n";
+$html .= '  <title>BMW384 Field — ' . $count . ' nodes</title>' . "\n";
+$html .= '  <style>' . "\n";
+$html
+    .= '    body { background: #0a0a0f; margin: 0; display: flex; justify-content: center; align-items: center; min-height: 100vh; }'
+    . "\n";
+$html .= '    svg { max-width: 95vw; max-height: 95vh; }' . "\n";
+$html .= '  </style>' . "\n";
+$html .= '</head>' . "\n";
+$html .= '<body>' . "\n";
+$html .= $svg;
+$html .= '</body>' . "\n";
+$html .= '</html>' . "\n";
+
+return $html;
+
+#,,,,,...,...,,,.,,,.,...,,.,,,,.,.,,,,,.,,..,..,,...,...,.,.,,..,,,.,,,.,.,,,
+#HUBX6BJ7CQKE46URJVPZGHPUOHJBBNCPKBGKZFNSJSPYCAKVOQSLPJFEL5U2DZCZT5ZQZ3F4ND2Q6
+#\\\|4MA4Z244GBL7WMB2WWDTUMYPZVLV5IZBEQUFT4X7CU4GLHN5VAR \ / AMOS7 \ YOURUM ::
+#\[7]ODAIKUVG3QWCKLWMWJOZAY3KQEKJAQU7TKBHEE554NJ3FZNBKEDA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

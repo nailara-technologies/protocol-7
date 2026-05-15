@@ -1,0 +1,26 @@
+## [:< ##
+
+# name  = base.bmw384.route.hamming-dist
+# args  = $bits_a, $bits_b
+# descr = count differing bits between two 360-char angle bitstrings
+
+my $bits_a = shift;
+my $bits_b = shift;
+
+if ( not defined $bits_a or not defined $bits_b ) {
+    <[base.logs]>->( 1, 'both bit strings required <{C1}>' );
+    return undef;
+}
+
+my $dist = 0;
+for my $ARG ( 0 .. 359 ) {
+    $dist++ if substr( $bits_a, $ARG, 1 ) ne substr( $bits_b, $ARG, 1 );
+}
+
+return $dist;
+
+#,,.,,.,,,...,.,.,,,.,,,.,...,..,,.,,,.,,,,.,,..,,...,...,,..,,.,,.,,,...,...,
+#34DCB35MKPHE4IM5NIQQWMB3XZQ4NBGNIEDKI6447V7MBW5SIBORBR55RNJFNYXIAYJYHT5NZOD4Y
+#\\\|7JG5RRBLFMSSI7IZA4X4FYCANUQ5RGVSZNFX7PPHEL4HQQXGIO5 \ / AMOS7 \ YOURUM ::
+#\[7]JOAML65RLD2PRQQMTZE6PS5XNFTNKUZLD426TGX3BU6WP447UUBA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
