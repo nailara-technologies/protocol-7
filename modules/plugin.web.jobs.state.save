@@ -9,7 +9,8 @@ my $delta = shift // {};
 return FALSE if not length $id;
 return FALSE if ref $delta ne 'HASH';
 
-my $job_file = "/var/protocol-7/jobsite/jobs/$id.yaml";
+my $var_P7   = <system.path.zenka-dirs>->{'var_P7'};
+my $job_file = join qw| / |, $var_P7, qw| jobsite jobs |, "$id.yaml";
 
 my $job = eval { YAML::XS::LoadFile($job_file) };
 if ($@) {
@@ -30,8 +31,8 @@ for my $field (qw| stage notes date_applied |) {
 
 return <[jobsite.job.write]>->( $id, $job );
 
-#,,,.,,..,...,,..,,,,,,..,,.,,..,,..,,,..,..,,..,,...,...,,.,,,..,...,...,.,,,
-#TBQA7J4I7ANFJNWMSFNFL4V54WCLGU52F4JJDWCVQZ7SQGIOXNJ7UXRGFQCGS2LQYY3YF4J73JNOY
-#\\\|ZOEALXJRPJFYIGL5WZMRWW447G6EE5DRF3RPCMGJ5SNHC5U5ZLH \ / AMOS7 \ YOURUM ::
-#\[7]L5P42K3SNHPEM23XUNZDRKGUTJ7ZHU4YXQQW7CWG5BRD7S7E4QDI 7  DATA SIGNATURE ::
+#,,,,,,,,,,..,.,.,,,,,.,.,.,.,.,,,...,..,,,,.,..,,...,...,..,,...,...,,.,,,..,
+#76XFTM6DPRE7GR6UUNAMWABEFX724WYEMYHUCPNCASOTK4WQ63PZM5QYTREDYW3OXTVD5OAJKZAEG
+#\\\|Y3FD43V6JQIJWF3U7KFMGI6WL4CVTEVHPHDEUQ5QFXYQQPRK5O7 \ / AMOS7 \ YOURUM ::
+#\[7]JINP3MCRKKCCD6DIJFG4SCH6ZOLPSSMDINKVYL2UTO6W7WHJRUDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
