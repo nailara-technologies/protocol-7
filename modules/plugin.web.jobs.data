@@ -1,13 +1,13 @@
 ## [:< ##
 
 # name  = plugin.web.jobs.data
-# descr = return all jobs as JSON for GET endpoint / template
+# descr = serve all jobs as JSON array sorted by fetched_at
 
 my $id = shift;
 
 my $session = $data{'session'}->{$id};
 
-my $jobs = <[jobsite.job.load_all]>;
+my $jobs = <[jobsite.job.load_all}>;
 
 my @ids = sort {
     ( $jobs->{$b}{'fetched_at'} // 0 ) <=> ( $jobs->{$a}{'fetched_at'} // 0 )
@@ -15,13 +15,12 @@ my @ids = sort {
 
 my @array;
 for my $job_id (@ids) {
-    my $job = { %{ $jobs->{$job_id} }, 'id' => $job_id };
-    push @array, $job;
+    push @array, { %{ $jobs->{$job_id} }, 'id' => $job_id };
 }
 
 my $reply_body = eval { JSON::XS::encode_json( \@array ) };
 if ($@) {
-    <[base.logs]>->( 0, 'plugin.web.jobs.handler.get: json error: %s', $@ );
+    <[base.logs]>->( 0, 'plugin.web.jobs.data: json error: %s', $@ );
     return <[httpd.send_error_page]>->( $id, 500 );
 }
 
@@ -36,8 +35,8 @@ $session->{'buffer'}->{'output'} .= $reply_body;
 
 return 2;
 
-#,,,,,,,.,,..,.,.,,.,,.,,,.,,,,,.,,,.,,,,,..,,..,,...,...,...,.,.,.,,,,.,,,,.,
-#3KKMW74VMVO3PCA5JFRJ6YR3HKPU34D3KA64D4SNLEWDB7SAKMSANLWE73B4Z4LV3QILYMRXAUEHK
-#\\\|NNH7C62WXCD3UUDT7VSMIKLUXZRYVP5WG7A3QGELBKH6QSV7II3 \ / AMOS7 \ YOURUM ::
-#\[7]J25JD4YKJW652J6UYAPZZIABMESOG4ER7WL3KHWPCBGOWRM5UGDI 7  DATA SIGNATURE ::
+#,,,,,..,,.,,,.,,,...,,,.,,.,,..,,...,.,.,,..,..,,...,..,,,,.,...,...,.,.,.,.,
+#NGUEUOJMYLHBSH7UWENHYHMBI6J673MBLLJK646HKGNMVV3QG6QYPNLUU5WOR2E36DHPWHBSZT7VC
+#\\\|64HVX3M7ICJMCEILZULPI4PRJZUG7W5WFSRLPDZOSRPOYDU5CL6 \ / AMOS7 \ YOURUM ::
+#\[7]ESKLFL6XERAHPKBCZSVLMERENPX7O6D4DCXEWKZQH7BQWODHLSCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

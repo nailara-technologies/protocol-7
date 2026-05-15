@@ -6,7 +6,9 @@
 my $job_id = shift // '';
 return undef if not length $job_id;
 
-my $job_file = "/var/protocol-7/jobsite/jobs/$job_id.yaml";
+my $jobs_dir = join qw| / |,
+    <system.path.zenka-dirs>->{'var_P7'}, qw| jobsite jobs |;
+my $job_file = "$jobs_dir/$job_id.yaml";
 return undef if not -f $job_file;
 
 my $job = eval { YAML::XS::LoadFile($job_file) };
@@ -17,8 +19,8 @@ if ($@) {
 
 return ref $job eq 'HASH' ? $job : undef;
 
-#,,..,,..,,..,..,,,,.,.,,,,.,,,,.,,,.,.,,,,,.,..,,...,...,,,,,,,,,,.,,.,.,.,,,
-#W2RS7A6EHDUPICJOZDQ3EAZO4UA2MWO236KHTUH2XBU7SYJGV3EYORBINXCPZIUGIU6CEW4ETOCDS
-#\\\|LJ5QLCKGK35UNAFTWE7WLYEGEF63JXKLV4PSQZEPFZKB7HGCVDD \ / AMOS7 \ YOURUM ::
-#\[7]SHOLYKKAGV7DK5KZIGTYSWIJHEI64KVSYVMLKU6VMFS4IESMVGAQ 7  DATA SIGNATURE ::
+#,,..,,,.,,.,,...,...,,,.,,.,,..,,.,,,.,.,,,,,..,,...,...,.,,,,,,,,,,,,..,.,,,
+#A7UFZMAOM5JRTLE56BTQ4KWMGNOFDN4EMDAEO4DBYB33UVOQLYKDXCUNMAIHTROKMLRNVVK5O2PKC
+#\\\|JYFFDOJXQ4PABUK6FFIDKD47WYUQEPAWBMXQBULWOWYXUZ6YBFJ \ / AMOS7 \ YOURUM ::
+#\[7]6NU4S5NFDZI5DFG5RQNFGCW3WEZYVC4X2POBK23XSO63PKJSNCAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
