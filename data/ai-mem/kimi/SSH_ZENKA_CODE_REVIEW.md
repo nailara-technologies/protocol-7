@@ -312,13 +312,6 @@ The `#<-FIX` comment suggests this was a temporary configuration. Verify if this
 
 The code works for basic SSH tunneling but needs cleanup before production use. The most critical issues are the typo, the `$$call` bug, and the missing error handling in nailara_io.
 
-#,,,,,,..,..,,,.,,..,,,..,,,,,.,,,,,.,,.,,.,,,..,,...,...,,..,.,.,,,.,..,,.,.,
-#37FCQNS37SAMP42SRYHCTF6PHYZGBLKZ5ZSPTL7C3WK6MWKKRJHBA574RAZVCJPL73YLL2S4RHK2E
-#\\\|T5ZH7TXFRSUVFKA3YHM26BEQXUVM3YNWYPXFVO5PFMU2E6QRUN5 \ / AMOS7 \ YOURUM ::
-#\[7]2TOIZGTLUJAWL4MDKC4JPRMOBXAJKIEWQDLNYBAER4U6YTOQFEBY 7  DATA SIGNATURE ::
-#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
-
-
 ---
 
 ## Post-Review Update (February 2026)
@@ -343,8 +336,8 @@ All critical and high-priority issues have been addressed:
 
 The SSH zenka now starts cleanly and maintains its robust connection recovery behavior that was refined over years of laptop sleep/wake cycle testing. The fixes bring the 11-year-old codebase into better alignment with modern Protocol-7 conventions.
 
-#,,.,,,.,,.,,,,.,,,.,,,..,.,,,,,,,,,,,...,...,.,.,...,...,.,.,,.,,,,.,,.,,..,,
-#WBR6JDBLDFPMFOLLITPVK6HNQRD3SSNWXRJOZ3FAMX7KDZKYOGK6XE4MPCMDLLW245TRPELF2B252
-#\\\|O7OLRQK5TWSGXQMTG5NQHMLWHA55XP6CW663DF22S3JT4X3ZDG5 \ / AMOS7 \ YOURUM ::
-#\[7]HLJJROK5B2HUNFX35IXRCIMTL3MIFQA5T565NHEYBWGQG7LT5ADY 7  DATA SIGNATURE ::
+#,,.,,..,,,.,,.,,,...,,,,,,,,,,,,,.,.,,..,,,,,.,.,...,...,,.,,,.,,,,,,,..,...,
+#6ZWPQQV75FVG5JX3HYEG5XA75MTTXNAIOO4TH6W3IUQS4DU2UTVYCCWC3PZE7SWKAQQGI3TKRNJ3E
+#\\\|3PZXZI55NWKU6MYNIBHX5P5N4UE4J3B6LWRRM467NFDYZOOKAOG \ / AMOS7 \ YOURUM ::
+#\[7]VBAHLQ5HMSEWQAKNHS5OWGGJ3LREEBEGELR3NZBEGNJ7GD3JRCAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
