@@ -22,6 +22,7 @@
 ## Vision / Design Topics
 - [project-vision-origin](project-vision-origin.md) — 24-year foundational vision, threshold reached Apr 2026
 - [self-improving-system](topic-self-improving-system.md) — LLM coordination as P7 self-improvement foundation
+- [network-as-computer](topic-network-as-computer.md) — network IS the computer; Base32/15-bit/32-bit closure, holographic console, liquid crystal mainboard
 - [namespace-tree-intelligence](topic-namespace-tree-intelligence.md) — the tree IS the intelligence
 - [orbital-data-space](topic-orbital-data-space.md) — zenki-as-satellites, orbital field theory, ring routing
 - [distributed-consensus](topic-distributed-consensus.md) — channels zenka, multi-model group chat, distributed P7 nodes
@@ -106,8 +107,8 @@
 - **repo var/ cleanup** — `var/httpd/` tracked from Nov 2025 AI error
 - **kimi auto-approval regression** (Apr 16) — some tool calls not auto-approved during kimi tasks
 
-#,,,.,,,,,,,,,.,,,,.,,...,,..,.,.,,..,,,.,,..,..,,...,...,,..,.,,,.,.,.,.,,.,,
-#ECX2A4FMIOQFYGIS6TFPP4FB74NIYM72HHJRLECPDILBXTYU7X6DYH62AGA72557OY5HH43KVPZ4M
-#\\\|IJRJVICUY6THXAVM4TNCGXXPH4XQLWNILN2L75JFIYA5LGROOJG \ / AMOS7 \ YOURUM ::
-#\[7]3ISYR6BNGRAZ52V4D7NYRCH44HM3SBOYDTRCNDQO6ATW6JSUSGCQ 7  DATA SIGNATURE ::
+#,,.,,,..,,..,,,.,...,,,.,.,.,,..,,,.,,,.,...,..,,...,..,,,..,,.,,,..,..,,,.,,
+#YWJJORE5JD5DC2UNBACM6R7TF64NL7CIQPASEXKX5GH4HM3GIQRLRVVCXRSZ7363ZA7PKDN6GDJ7O
+#\\\|YTN4KEKZ7ZP2U7HFDMLBNYCPVRVJMBCU2MLSXLH3JEZP5YVGXTF \ / AMOS7 \ YOURUM ::
+#\[7]Q4YS4PHDSGNLA726SXRVB6PBOU4R5W2WJNAIKZ777RC7TIJQG6DI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
