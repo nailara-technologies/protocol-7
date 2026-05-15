@@ -1,0 +1,111 @@
+# name  = memory-maintenance
+# descr = restructure and summarize an ai-mem directory
+
+system:
+  - system-tools
+  - system-default
+
+rounds: 42
+
+description: >
+  Maintain the memory directory at the given path. This means restructuring
+  MEMORY.md so the full index fits within a ~150 line load window, condensing
+  verbose topic files, and migrating large completed-session blocks into a
+  topic-completed.md file. Preserve all content — compress, don't delete.
+
+  Phase 1 — survey:
+    Read MEMORY.md and list all topic files with their line counts.
+    Identify which content exceeds the load window or is redundant in the index.
+
+  Phase 2 — restructure MEMORY.md:
+    Rewrite the index so it fits in ~150 lines.
+    Each entry: one line, filename link + one-line hook.
+    Group entries under clear section headers (Active / Vision / Reference /
+    Feedback / Completed). Move all verbose completed-session blocks out of
+    the index into topic-completed.md (append, don't overwrite existing content).
+
+  Phase 3 — compress verbose topic files:
+    For any topic file over 200 lines: read it, summarize dense sections,
+    rewrite in place. Preserve all facts — compress prose, not information.
+    Keep CRITICAL notes and code patterns verbatim.
+
+  Phase 4 — verify:
+    Confirm MEMORY.md is under 160 lines.
+    Confirm all files referenced in the index actually exist.
+    Report a summary of changes made (lines before/after per file).
+
+  Rules:
+    - Never delete information — only compress or relocate it
+    - Preserve all CRITICAL / WARNING markers verbatim
+    - Code snippets and exact command syntax stay verbatim
+    - Do not add the #,,...,, signature stub to new or modified files
+    - Use replace_in_file for targeted edits, write_new_file only for new files
+    - Run ptd after editing any .pm file; memory files are .md so skip ptd
+    - $ARG not $_
+
+user:
+  - args.memory_path
+
+args:
+  memory_path:
+    type: string
+    required: true
+    description: "path to the ai-mem directory to maintain (e.g. data/ai-mem/kimi)"
+    extract: "memory-maintenance[: ]+(.+)"
+
+context:
+  static:
+    - type: instructions
+      content: |
+        ## Memory Maintenance Protocol
+
+        Goal: a MEMORY.md that fully loads (under ~150 lines), with all detail
+        preserved in topic files that can be read on demand.
+
+        ### Load window constraint
+        The memory system truncates at 200 lines on load. Anything past that
+        is invisible until explicitly read. The index must fit within ~150 lines
+        to leave room for any frontmatter or footer the system adds.
+
+        ### Index entry format
+        One line per file:
+          - [slug](filename.md) — one-line hook describing what's inside
+
+        ### Section structure
+        Use these headers in this order:
+          ## CRITICAL               (file-creation rules, must-know facts)
+          ## Active Topics          (in-progress work with open items)
+          ## Vision / Design        (architectural ideas, future direction)
+          ## Reference              (patterns, templates, how-to)
+          ## Feedback               (behavior rules — always apply)
+          ## Completed Sessions     (pointer to topic-completed.md only)
+          ## System Status          (next steps, planned, bugs — inline, ~30 lines max)
+
+        ### Completed session blocks
+        Any `### Completed (date)` block in MEMORY.md belongs in topic-completed.md.
+        Append it there under a matching `## date — title` header.
+        Replace the block in MEMORY.md with a single pointer line.
+
+        ### Compression rules for topic files
+        - Bullet lists: keep all bullets, compress prose descriptions to 1 line each
+        - Code blocks: always verbatim
+        - CRITICAL / WARNING / Key lesson markers: always verbatim
+        - Repeated context that's now in MEMORY.md index: trim to one line
+        - Session narrative prose: compress to bullet facts
+
+        ### Report format (final output)
+          Memory Maintenance Report: <path>
+
+          MEMORY.md: <before> → <after> lines
+          Files compressed:
+            <filename>: <before> → <after> lines
+          Files created:
+            <filename> (N lines)
+          Index entries: <count>
+          All references valid: yes / no (list missing)
+
+#,,,.,,.,,...,...,,..,,,.,,,.,,,.,,..,,,,,..,,..,,...,...,...,,,,,,,.,,,.,,..,
+#GHD6F3PWQZKPZ25RUCDMITEWDVPLYCZ32OCRGTSDJSS7A3OT4QOSTRU4NEBT6DSH3XEWGYPQLD45S
+#\\\|M6LTKRN3G5GUDFJIZC2LNYIBZ6XIXRLALV4YHWDCRQAZAXTE2YO \ / AMOS7 \ YOURUM ::
+#\[7]FXF7C3BUR75R6U45Q3VM6JOBM7QDDOASYKQPQPN7S3TPMCRUPCCA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

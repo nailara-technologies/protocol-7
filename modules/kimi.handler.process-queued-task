@@ -41,6 +41,18 @@ unless ( <kimi.ws.connected> and <kimi.ws.status> eq qw| ready | ) {
     };
 }
 
+## prepend memory index when configured [ gives kimi awareness of its memory files ] ##
+my $mem_path = <kimi.cfg.memory_path> // '';
+if ( length $mem_path ) {
+    my $mem_index = catfile( <system.root_path>, $mem_path, 'MEMORY.md' );
+    my $mem_ref   = <[file.slurp]>->($mem_index);
+    if ( defined $mem_ref and length $$mem_ref ) {
+        $prompt
+            = sprintf( "## kimi memory index [ %s ] ##\n\n%s\n\n---\n\n%s",
+            $mem_path, $$mem_ref, $prompt );
+    }
+}
+
 ## submit prompt — completion arrives via TurnEnd in ws_message ##
 my $reply_id = $task->{'reply_id'};
 my $msg_id   = <[kimi.wire.prompt]>->( $prompt, $reply_id );
@@ -64,8 +76,8 @@ unless ( defined $msg_id ) {
 ## return deferred — actual result arrives via TurnEnd ##
 return { success => TRUE, deferred => TRUE };
 
-#,,,.,.,.,,..,,..,...,..,,.,,,..,,,,.,,,,,,,.,.,.,...,...,...,.,,,,,,,..,,.,,,
-#FYQSAREHFUFJVWDOI6RC7KNIYCMWUBQBQO3TONJ3B3Q25VKKIAF5FH2BGL7U7LBKCBLNM7AZKWL3S
-#\\\|S6X7PTNBEKRK5UGOUA7PBIZJLYZC43JSJSEUHIS23QUHKW7LEVR \ / AMOS7 \ YOURUM ::
-#\[7]UFDWJRE2EOKUJTLWL7RC2JTQCB72CKPDJ2ALOIWEGZSFCYGZEQAA 7  DATA SIGNATURE ::
+#,,..,..,,..,,,,.,,..,...,..,,,..,..,,.,.,...,.,.,...,...,..,,,.,,...,,..,.,.,
+#IXI24QICI3QHK6IXMXLNX5R7BGA6RUOFVIPLM5T6IAAXCM3XM6UCZZA4QMRIVB7US7AIHK3K4MVUI
+#\\\|5PNC6AJCHBX6CEPXM6L2TIFW7PE44AKEBM2MAFD7KV5M4DSLRL6 \ / AMOS7 \ YOURUM ::
+#\[7]D22OHN5XPFJCA4MBQNKPXVAI2DQ7QC7ELPJO7LTCQS277TG55GCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
