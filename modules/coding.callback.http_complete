@@ -79,11 +79,21 @@ if ( $sm_state eq 'complete' || $sm_state eq 'error' ) {
 
 if ( $sm_state eq 'subtask' ) {
     ## parent transitioned to subtask-wait state during streaming ##
-    ## lock already released by subtask_spawn — nothing else to do  ##
-    <[base.logs]>->(
-        2, "http_complete: task %s in subtask-wait, stream ended cleanly",
-        $task_id
-    );
+    ## compaction subtasks: lock NOT released by compact_context — release here ##
+    ## tool subtasks: lock already released by subtask_spawn ##
+    if ( defined $state->{'compaction_pending'} ) {
+        <[base.logs]>->(
+            2,
+            "http_complete: task %s compaction subtask-wait, releasing backend",
+            $task_id
+        );
+        $release_backend_lock->('compaction');
+    } else {
+        <[base.logs]>->(
+            2, "http_complete: task %s in subtask-wait, stream ended cleanly",
+            $task_id
+        );
+    }
     return;
 }
 
@@ -207,8 +217,8 @@ my $backend_early = $state->{'backend'} // '';
 
 return;
 
-#,,,,,..,,.,,,...,...,.,.,.,,,,,,,..,,...,,,,,..,,...,...,...,,,.,.,,,,..,,,.,
-#IMWMLFGSY6QKED7EGQCAG3VK25GDF2IEVYRKJTRMXBTQIYOGT5A246UXT5BASTWDZOT4JZUR43CKU
-#\\\|MGEKTQP2I33MMOO6VG6TLSBUJ7WEPRON25WI2VPSIV36XLSSC7Z \ / AMOS7 \ YOURUM ::
-#\[7]7OIQ5Q4SRZT5Y5U46HPVPEUX2F6VHCTXO4HXFMM37RZFKER7OUCY 7  DATA SIGNATURE ::
+#,,.,,,.,,.,,,,,,,,,,,,,,,,,,,.,,,...,...,.,,,..,,...,...,,..,...,...,.,.,,..,
+#2LXLMQUJHQFQUALE5QI3PVUD23JAWZ6VLBD4KREN2A4KLDXQZBSRCDPBAIL3SGON37HVCURB7YPW4
+#\\\|LIYRXIGHUY3JUAO54AX3JZ5VO7V7FW5RGIOPI5NBOL6J2NIUXJK \ / AMOS7 \ YOURUM ::
+#\[7]IBWKKBL7O3UU4DAHGZ7HOJT4A3MEPKIWXLDXK4HYFM3TUKW6JUCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
