@@ -21,13 +21,20 @@ task prompt (3-5KB) can produce 10+ modules of implementation from kimi.
 - `-template` flag is coding zenka only — kimi does NOT support it; write
   the full task context directly in the task file instead
 - Kimi v2 is faster at orientation and has more consistent result quality
+- Network dispatch: `kimi.ask-reply :next: :file: data/tasks/foo.md`
+  kimi sees the path string, pattern-matches it as a file reference, and calls
+  ReadFile() on it autonomously — the file content drives the task
+- `:next:` token starts a fresh session; without it, kimi appends to the current
+  session context and the ask-reply return value may be the previous task's cached result
+- Real results for network-dispatched tasks arrive via the approval queue in the
+  web frontend, not as the MCP return value from ask-reply — fire and watch the frontend
 - Review kimi output for known issues: fake signature stubs, `base.log` vs
   `base.logs`, `my $call` redeclaration, `sprintf qw|...|` misuse
 - User signs and stages; Claude commits — keeps the flow fast
 - Kimi can work autonomously on tasks while waiting for token reset
 
-#,,..,,,,,.,.,.,.,,.,,,..,,..,...,,,.,.,,,.,,,..,,...,...,.,.,,.,,...,..,,,,.,
-#UTKNAVPGI2DFS2E4YGE6CNAY2PMAEZ74DONIZR3NR53OJ3HMDZLBKEI5AQSDZBLSMC5DQ7QWUOFOY
-#\\\|P6CQC2PG4PHXMFDZUBCGY7RME27ZYF6EXMTGBMEBLZDOGHDBF6D \ / AMOS7 \ YOURUM ::
-#\[7]WGNA5QVYMZXK7BLO2UEU6QRAJFB5ERIT26BRA5U6OHANY6YU2KBY 7  DATA SIGNATURE ::
+#,,.,,,,,,..,,,.,,,,,,,,.,...,,,.,...,.,,,..,,..,,...,...,...,,,,,.,.,.,,,,,.,
+#QKUTHHUUBXNXA645QTXOBFTVKA55ZRRILNHPMBCVBYEODVIBL7JTBCXQQUOPHHBTAGVUEQR3ATO4O
+#\\\|RBAEWSQO4SD3IMO36IQQWQYCSSIB5JSC4LHDJRNFVVWKDKK7NE5 \ / AMOS7 \ YOURUM ::
+#\[7]KTPFNO3DY5NKSJBUIGZZZZE2OJOUVCOTACWVOKES2K4LRDOVYUBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

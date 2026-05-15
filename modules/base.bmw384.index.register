@@ -1,0 +1,48 @@
+## [:< ##
+
+# name  = base.bmw384.index.register
+# args  = $name, $input
+# descr = register a node in the bmw384 field index
+
+my $name  = shift;
+my $input = shift;
+
+if ( not defined $name or not length $name ) {
+    <[base.logs]>->( 1, 'node name required <{C1}>' );
+    return undef;
+}
+
+if ( not defined $input ) {
+    <[base.logs]>->( 1, 'input scalar required <{C1}>' );
+    return undef;
+}
+
+<[base.bmw384.index.init]>->()
+    if not defined <bmw384.index>;
+
+my $coord = <[base.chk-sum.bmw384.coordinate]>->($input);
+
+<bmw384.index>->{'by_name'}{$name} = $coord;
+
+my $arc   = $coord->{'arc'};
+my $arc_r = <bmw384.index>->{'by_arc'}{$arc};
+
+my $already_present = FALSE;
+for my $ARG (@$arc_r) {
+    $already_present = TRUE and last if $ARG eq $name;
+}
+
+push @$arc_r, $name if not $already_present;
+
+<[base.logs]>->(
+    2, 'bmw384: registered %s at arc %s [%s]',
+    $name, $arc, $coord->{'segment_label'}
+);
+
+return $coord;
+
+#,,,.,,,,,,,,,.,.,..,,,,,,...,,,.,...,,,.,,..,..,,...,...,...,,.,,...,...,,..,
+#VEV5NAU47IXAXLVM2TFP35FX5ENZ7AOKPOAPMKJ7SGKV7S3YYRKBJ5XRPLG6Y2GVAMVPFSEJFOI56
+#\\\|S3GEJK4W6K3YIGWNFBUZYDXHV4HEK5OO3RMUYMA4PZLK4FNR3WK \ / AMOS7 \ YOURUM ::
+#\[7]RZENEBWFVUM255E3XOQXTT625NSFMUIOH2IPBHDJEBJOM7UI7IDY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,0 +1,24 @@
+## [:< ##
+
+# name  = base.chk-sum.bmw384.group
+# args  = $center_color, $radius, @digest_list
+# descr = filter digests by color proximity to center [ closed-wheel ]
+
+my $center_color = shift;
+my $radius       = shift;
+
+if ( not defined $center_color or not defined $radius ) {
+    <[base.logs]>->( 1, 'center color and radius required <{C1}>' );
+    return undef;
+}
+
+<[base.perlmod.autoload]>->('AMOS7::CHKSUM::BMW384')
+    if not <[base.perlmod.loaded]>->('AMOS7::CHKSUM::BMW384');
+
+return AMOS7::CHKSUM::BMW384::bmw384_group( $center_color, $radius, @ARG );
+
+#,,.,,.,.,.,.,,..,,..,.,.,,,.,,.,,,..,...,,.,,..,,...,...,..,,.,.,,.,,,,.,,,.,
+#QGDUHPKN6VHUE5RHOV6BP6E3A2JGMIBFJQZDDGPRAZC6AEMP6A6PZYHPGSFTJ5PHGPEGSXLFIP7HW
+#\\\|MMNBIYMOHDDU3DEPJ6LOCOBDCWHHBBG5HWVHGQW3ALKNSBLQ7JR \ / AMOS7 \ YOURUM ::
+#\[7]EIVD5C4QSCUCED5OG2BDCMQRNP36YGTZPKQ33SDFUFNCUKORA6CI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
