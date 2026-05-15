@@ -1,0 +1,23 @@
+## [:< ##
+
+# name  = base.chk-sum.bmw384.angle-bits
+# args  = $digest_bytes
+# descr = extract 360-bit angle bitstring from raw 48-byte BMW384 digest
+
+my $digest_bytes = shift;
+
+if ( not defined $digest_bytes or length $digest_bytes != 48 ) {
+    <[base.logs]>->( 1, 'expected 48-byte digest <{C1}>' );
+    return undef;
+}
+
+<[base.perlmod.autoload]>->('AMOS7::CHKSUM::BMW384')
+    if not <[base.perlmod.loaded]>->('AMOS7::CHKSUM::BMW384');
+
+return AMOS7::CHKSUM::BMW384::bmw384_angle_bits($digest_bytes);
+
+#,,,.,,..,,..,,,.,...,.,,,,.,,.,.,,.,,..,,,..,..,,...,...,,.,,..,,.,.,.,,,.,,,
+#DUG2N7NXCZA2CJ326XXEHE4EITERW2QTHIYH4GRVBRIAX4ESX5FKHZL7ZERAA6CLWUD54W7YINPDQ
+#\\\|ZWOBIZZ2NDDEQNB5HQNNYQ74C3RKTZC5Y7EBGCIAUIYLTRF7ESY \ / AMOS7 \ YOURUM ::
+#\[7]EM7UBVL2D2INJXMFKLUMUWXSIMJHTJN7EWZYJ72PQL2JI6IB7WCQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

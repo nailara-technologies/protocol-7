@@ -1,0 +1,43 @@
+## [:< ##
+
+# name  = base.bmw384.index.query-radius
+# args  = $center_coord, $radius
+# descr = find nodes within color distance of center coordinate
+
+my $center_coord = shift;
+my $radius       = shift;
+
+if ( not defined $center_coord or not defined $radius ) {
+    <[base.logs]>->( 1, 'center coordinate and radius required <{C1}>' );
+    return undef;
+}
+
+return []
+    if not defined <bmw384.index>;
+
+my @result;
+for my $ARG ( keys %{ <bmw384.index>->{'by_name'} } ) {
+    my $node_coord = <bmw384.index>->{'by_name'}{$ARG};
+    next if not defined $node_coord;
+
+    my $dist = <[base.chk-sum.bmw384.color-dist]>->(
+        $center_coord->{'color'},
+        $node_coord->{'color'}
+    );
+
+    push @result,
+        {
+        qw| name |  => $ARG,
+        qw| coord | => $node_coord,
+        qw| dist |  => $dist
+        }
+        if $dist <= $radius;
+}
+
+return [ sort { $a->{'dist'} <=> $b->{'dist'} } @result ];
+
+#,,.,,..,,,,.,..,,.,,,...,..,,,.,,,.,,..,,.,,,..,,...,...,,.,,,,.,,,,,,.,,,..,
+#BQ2QORSYEKWQRADRMUFWVYWEMXPYG6GG7G3C3FX5LPP7CAHARHYVVTFULJZKSVBFOLLFG6QZ3FQKW
+#\\\|BRRRBQQO6KXDA2XZBEEJQT777DZ5HJ36R544TBXBNKXMWX3F4ZL \ / AMOS7 \ YOURUM ::
+#\[7]FAS37NPRGLSN2MP7WPUUQEMXG63EQUC3NZYPYFBPKI5JLMPS6GAA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

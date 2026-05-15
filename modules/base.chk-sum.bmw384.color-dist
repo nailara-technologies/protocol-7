@@ -1,0 +1,24 @@
+## [:< ##
+
+# name  = base.chk-sum.bmw384.color-dist
+# args  = $color_a, $color_b
+# descr = closed-wheel distance between two 24-bit color values
+
+my $color_a = shift;
+my $color_b = shift;
+
+if ( not defined $color_a or not defined $color_b ) {
+    <[base.logs]>->( 1, 'both color values must be defined <{C1}>' );
+    return undef;
+}
+
+<[base.perlmod.autoload]>->('AMOS7::CHKSUM::BMW384')
+    if not <[base.perlmod.loaded]>->('AMOS7::CHKSUM::BMW384');
+
+return AMOS7::CHKSUM::BMW384::bmw384_color_dist( $color_a, $color_b );
+
+#,,.,,...,.,,,.,.,..,,.,,,.,,,,.,,.,.,,,,,...,..,,...,...,,,.,,..,..,,,,,,,,,,
+#BF2EQJHICMPT7UKE6ZSC3RPEGDGQXGQKTUXBMJSWDEJLGS5MQBH472VBTFOIR2VGPTMUAMCFSGDAQ
+#\\\|XYJFUC7U6RP7GECUOQZP2UHR5FWL5ONQLAV6I723CJQOABIDN5C \ / AMOS7 \ YOURUM ::
+#\[7]RD53O2NBBKGSKQ2CYJCY3WNM7RAIG3JZQXIER3VPUIMU7UQWBOCY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

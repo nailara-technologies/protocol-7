@@ -1,0 +1,35 @@
+## [:< ##
+
+# name  = base.bmw384.index.query-neighbors
+# args  = $name, $radius
+# descr = find nodes near given node excluding the node itself
+
+my $name   = shift;
+my $radius = shift;
+
+if ( not defined $name or not defined $radius ) {
+    <[base.logs]>->( 1, 'node name and radius required <{C1}>' );
+    return undef;
+}
+
+my $coord = <[base.bmw384.index.lookup]>->($name);
+
+if ( not defined $coord ) {
+    <[base.logs]>->( 1, "node '%s' not found in index <{C1}>", $name );
+    return undef;
+}
+
+my $all = <[base.bmw384.index.query-radius]>->( $coord, $radius );
+
+my @filtered;
+for my $ARG (@$all) {
+    push @filtered, $ARG if $ARG->{'name'} ne $name;
+}
+
+return \@filtered;
+
+#,,,,,,.,,..,,..,,.,,,,..,,..,.,.,..,,...,.,,,..,,...,...,...,,,,,,,,,...,,,.,
+#3NL5JGGRTRGJOO6C7CYNP4BF6IWZROXTDMG4FASL55UPOUFRQOIZO3U6RWM2WDVILEKS3JHOZ3LAW
+#\\\|SNZJIEUXUS3RQF46D7SXIGTOFT3UIW4GF3YYA4BAOWKGGO42NPA \ / AMOS7 \ YOURUM ::
+#\[7]YFH62Z5LCODTTBTUB4M22WCIGP44LP55GUMZ7SH22KZTOHFYUEBY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,0 +1,21 @@
+## [:< ##
+
+# name  = base.chk-sum.bmw384.init_code
+# descr = load BMW384 geometry module at startup — fail early if unavailable
+
+<[base.perlmod.load]>->('Digest::BMW');
+<[base.perlmod.load]>->('Math::BigInt');
+<[base.perlmod.load]>->(
+    'AMOS7::CHKSUM::BMW384',
+    qw| bmw384_color bmw384_angle_bits bmw384_color_dist
+        bmw384_arc_segment bmw384_group
+        bmw384_coordinate bmw384_coordinate_str |
+);
+
+0;
+
+#,,.,,,,.,..,,,..,,..,,..,.,,,,,.,...,,..,,.,,..,,...,..,,,,.,,.,,...,,..,,..,
+#Z6JNUYFKBJUDMOFQZPB7MMNHL2XN6VINK2ZLGBSBCBFR2YFQSOWBJJX6QJO42JUHM6AVDARZTBXPU
+#\\\|LKVOGOA2FZKGBRI6J2MSAUMMSS6W3LP7J6LPOWSZ75PNPX7ZGJT \ / AMOS7 \ YOURUM ::
+#\[7]D5MFFFAXTICDSJTMFMRVDEMNGJRMVUWOTRH7PKH3IYVGICWSVICI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

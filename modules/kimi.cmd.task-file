@@ -1,0 +1,45 @@
+## [:< ##
+
+# name  = kimi.cmd.task-file
+# param = [:next:] <file-path>
+
+my $args      = $call->{'args'} // '';
+my $prefix    = $args =~ s{^(:next:)\s+}{} ? $1 . ' ' : '';
+my $file_path = $args;
+
+if ( not length $file_path ) {
+    return { 'mode' => 'false', 'data' => 'file parameter expected' };
+}
+
+## try relative to repo root, then as absolute/literal path ##
+my $resolved;
+for my $candidate ( <[base.path.join]>->( <system.root_path>, $file_path ),
+    $file_path ) {
+    if ( -f $candidate and -r $candidate ) {
+        $resolved = $candidate;
+        last;
+    }
+}
+
+if ( not defined $resolved ) {
+    return {
+        'mode' => 'false',
+        'data' => sprintf( 'cannot read file [%s]', $file_path )
+    };
+}
+
+my $file_content = <[file.read]>->($resolved) // '';
+if ( not length $file_content ) {
+    return {
+        'mode' => 'false',
+        'data' => sprintf( 'empty or unreadable [%s]', $resolved )
+    };
+}
+
+return <[kimi.cmd.ask-reply]>->( { 'args' => $prefix . $file_content } );
+
+#,,..,,,,,,,,,.,.,.,.,...,,.,,.,.,.,.,...,...,..,,...,...,.,.,..,,...,.,.,...,
+#AXGLZS4MSFHS7T45CKDIZNEC6J5V67UDULEJKI5JEHOINQ6IRSQC2UETAJNMOEVREMB5CTNGWRP7C
+#\\\|BFKFZUK7FMA72LDMUSDY5NXTWZCDYGJBEJONXR4G5GMC5FBXRF5 \ / AMOS7 \ YOURUM ::
+#\[7]ROBIDGZDB3J7ALZSOVKDP56N6ETNZOEJ3UKYTL5JCGLDTGRAIOBA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
