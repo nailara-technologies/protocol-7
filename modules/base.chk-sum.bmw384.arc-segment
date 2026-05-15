@@ -1,0 +1,23 @@
+## [:< ##
+
+# name  = base.chk-sum.bmw384.arc-segment
+# args  = $color
+# descr = map a 24-bit color value to its arc segment (0..25)
+
+my $color = shift;
+
+if ( not defined $color ) {
+    <[base.logs]>->( 1, 'color value must be defined <{C1}>' );
+    return undef;
+}
+
+<[base.perlmod.autoload]>->('AMOS7::CHKSUM::BMW384')
+    if not <[base.perlmod.loaded]>->('AMOS7::CHKSUM::BMW384');
+
+return AMOS7::CHKSUM::BMW384::bmw384_arc_segment($color);
+
+#,,,.,..,,,,.,,..,.,,,,,,,..,,...,.,,,.,.,,.,,..,,...,...,.,.,..,,...,..,,,,.,
+#XLGIMF2XH3VTIHAWTUESRFKD4GI36CXJ2EOWS7YR2K3YXVZPFZ2TQ5LPZLSAGBFMJW7NJ5LXI6ZPS
+#\\\|DAX4CJNOBO5C5RL6MNTEUDPDWD7E2BNURTIIDBRXQ6OCYEAGZQJ \ / AMOS7 \ YOURUM ::
+#\[7]2EFQBYYL7YXOL4QIR5WRUVHWH5ND6KUK6R3WFT7VTN6HUK3RTUCQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,0 +1,23 @@
+## [:< ##
+
+# name  = base.chk-sum.bmw384.color
+# args  = $digest_bytes
+# descr = extract 24-bit color value from raw 48-byte BMW384 digest
+
+my $digest_bytes = shift;
+
+if ( not defined $digest_bytes or length $digest_bytes != 48 ) {
+    <[base.logs]>->( 1, 'expected 48-byte digest <{C1}>' );
+    return undef;
+}
+
+<[base.perlmod.autoload]>->('AMOS7::CHKSUM::BMW384')
+    if not <[base.perlmod.loaded]>->('AMOS7::CHKSUM::BMW384');
+
+return AMOS7::CHKSUM::BMW384::bmw384_color($digest_bytes);
+
+#,,,.,,,,,,..,,..,.,,,..,,.,,,,,,,.,.,...,..,,..,,...,...,,.,,..,,,,.,,,,,...,
+#YO7RY3NDT2LKU3DZXFFZ3F2SG6MRPU4GF7ICOJ3SKEE5VSAIJREZRXBF7O2YGIKS373NA7Z6IWK4Y
+#\\\|3TFAMXKLIBC7DKYBQNOXC7KBJCNSSRB2KJXZNO5YAPJVXO7V6CX \ / AMOS7 \ YOURUM ::
+#\[7]KDQI6MXND7ZIFPBFPVS56REGRMKBUVY7PDLQP24HOUDWM6Q43CCY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
