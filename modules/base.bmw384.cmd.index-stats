@@ -1,0 +1,29 @@
+## [:< ##
+
+# name  = base.bmw384.cmd.index-stats
+# descr = formatted table of bmw384 field index statistics
+
+my $stats = <[base.bmw384.index.stats]>->();
+
+if ( not defined $stats ) {
+    return {
+        qw| mode | => qw| size |,
+        qw| data | => 'bmw384 index not initialized'
+    };
+}
+
+my @lines;
+for my $ARG ( 0 .. 25 ) {
+    my $label = chr( ord('A') + $ARG );
+    push @lines, sprintf 'arc %s: %d nodes', $label, $stats->{'by_arc'}{$ARG};
+}
+
+push @lines, sprintf 'total: %d nodes', $stats->{'total'};
+
+return { qw| mode | => qw| size |, qw| data | => join( "\n", @lines ) };
+
+#,,,,,,,.,..,,,,,,,..,...,...,...,...,,..,..,,..,,...,.,.,,,.,,,,,,,.,.,,,,,,,
+#Z7T63JB3NIK4UMTRM5AOWVZRR6JP7AX4XW5WA3CFOCVLDXVIRFOTU6YWR5MPIOEDJZKMFBZWCTVAW
+#\\\|FON467XJVMV6TGXLSSETTCJJWOEJEDM66MHRFZCDE7XIHN5PASQ \ / AMOS7 \ YOURUM ::
+#\[7]DMEZIEISZ3VYHFAMDLIWOUFFMXFFLFJYK5E2NTHRO42YDGUMIMBQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

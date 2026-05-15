@@ -1,0 +1,23 @@
+## [:< ##
+
+# name  = base.chk-sum.bmw384.coordinate-str
+# args  = $input
+# descr = compact string representation of BMW384 field coordinate
+
+my $input = shift;
+
+if ( not defined $input ) {
+    <[base.logs]>->( 1, 'input must be defined <{C1}>' );
+    return undef;
+}
+
+<[base.perlmod.autoload]>->('AMOS7::CHKSUM::BMW384')
+    if not <[base.perlmod.loaded]>->('AMOS7::CHKSUM::BMW384');
+
+return AMOS7::CHKSUM::BMW384::bmw384_coordinate_str($input);
+
+#,,,,,,.,,,,.,..,,.,.,,,,,,.,,.,,,,,,,,,,,..,,..,,...,..,,..,,,.,,,..,,..,.,,,
+#R6DR6XAW54H7SHTBKT2CGLCCCV5YYMGITN47C5N3JQLOQ4D7QBLJRYLFCMH3CT3GGHJZBOAXROQFO
+#\\\|4DCJMMDXC67QE2CFII4LZBBJXOBQPV5INGZSZCSVJU7OFAWMSE2 \ / AMOS7 \ YOURUM ::
+#\[7]QUB7OD6EKYQCOVYOSNM7LPKQBQ5IJLAR7BATZWPJMZAQVDRT5MCA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
