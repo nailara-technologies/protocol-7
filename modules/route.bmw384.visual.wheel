@@ -73,8 +73,9 @@ for my $ARG (@sorted_names) {
     my $x = 400 + 320 * sin($rad);
     my $y = 400 - 320 * cos($rad);
 
-    my $color_hex = sprintf '#%06X', $coord->{'color'};
-    my $r = 4 + ( $colocated_index * 3 );
+    my $hue       = ( int( $coord->{'color'} / 16777216 * 360 ) + 180 ) % 360;
+    my $color_hex = sprintf 'hsl(%d,90%%,60%%)', $hue;
+    my $r         = 4 + ( $colocated_index * 3 );
 
     my $coord_str = sprintf '%s:%06X:%s',
         $coord->{'segment_label'},
@@ -97,8 +98,8 @@ $svg .= '</svg>' . "\n";
 
 return $svg;
 
-#,,..,,..,,..,...,.,,,,,,,.,,,..,,...,.,.,,,,,..,,...,..,,..,,...,,,.,,,,,...,
-#7QKDSA6AUKOAWKAO5VDT4NJHORMQPY2HJ6AFANVJDYQYAR2GF3JIREXZEE35ODYWOGO2R4NK2WKJC
-#\\\|T2KNYFD2XWMLFZDWFWAWRYYDTTJJX5HAF26NYHAODDFQUNXJ6FT \ / AMOS7 \ YOURUM ::
-#\[7]URBMIKLHGJ5BLOP6EPNJRH7HIXW7TJE5FXDEV4ECYBCVZUQMMWBA 7  DATA SIGNATURE ::
+#,,,,,,,,,,.,,,.,,,,,,,..,.,.,,,.,.,,,.,.,...,..,,...,...,...,.,,,.,.,.,,,..,,
+#ICP55EREMLKSUNV4W653TLXXE6K7TIG2QKAHHGJERHYM3O2HCZYGFLMI3ZXUOARHG5AMKYH7IEPR4
+#\\\|WV6CJNRQ2ZV37Q5UOBFF5RYLFSHZEBLEANBIF6NGIHS6PBOGMVZ \ / AMOS7 \ YOURUM ::
+#\[7]Q2PUQERXMZCQDJSRXL6AUK7AJ2XDW6PY6U7PKPK7LNJ2OU6TWYCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
