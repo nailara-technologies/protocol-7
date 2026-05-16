@@ -1,0 +1,94 @@
+## [:< ##
+
+# name  = route.bmw384.cmd.verify-coordinate
+# descr = compare stored vs name-derived BMW384 coordinate
+
+my $args = $call->{'args'} // '';
+$args =~ s{^ *| *$}{};
+
+if ( not length $args ) {
+    return {
+        qw| mode | => qw| size |,
+        qw| data | => 'usage: verify-coordinate <module-name>'
+    };
+}
+
+my $name = $args;
+
+my $stored_coord = <[route.bmw384.index.lookup]>->($name);
+
+if ( not defined $stored_coord ) {
+    return {
+        qw| mode | => qw| size |,
+        qw| data | => sprintf 'module not found in index: %s',
+        $name
+    };
+}
+
+my $name_coord = <[chk-sum.bmw384.coordinate]>->($name);
+
+if ( not defined $name_coord ) {
+    return {
+        qw| mode | => qw| size |,
+        qw| data | => 'coordinate computation failed'
+    };
+}
+
+my $color_dist = <[chk-sum.bmw384.color-dist]>->(
+    $stored_coord->{'color'},
+    $name_coord->{'color'}
+);
+
+my $angle_hamming = <[route.bmw384.route.hamming-dist]>->(
+    $stored_coord->{'angle_bits'},
+    $name_coord->{'angle_bits'}
+);
+
+my $stored_arc = $stored_coord->{'arc'};
+my $name_arc   = $name_coord->{'arc'};
+
+my $arc_diff = abs( $stored_arc - $name_arc );
+$arc_diff = 26 - $arc_diff if $arc_diff > 13;    # [ wrap around ]
+
+my $verdict;
+if ( $stored_arc == $name_arc ) {
+    $verdict = 'resonant [ same arc ]';
+} elsif ( $arc_diff <= 2 ) {
+    $verdict = sprintf 'near-resonant [ arc %s vs %s ]',
+        $stored_label, $name_label;
+} else {
+    $verdict = sprintf 'divergent [ arc %s vs %s ]',
+        $stored_label, $name_label;
+}
+
+my $stored_label = chr( ord('A') + $stored_arc );
+my $name_label   = chr( ord('A') + $name_arc );
+
+my $color_pct = sprintf '%.2f', ( $color_dist / 16777216 ) * 100;
+
+my @lines;
+push @lines, sprintf 'module:        %s', $name;
+push @lines,
+    sprintf 'stored arc:    %s  color: %06X',
+    $stored_label, $stored_coord->{'color'};
+push @lines,
+    sprintf 'name arc:      %s  color: %06X',
+    $name_label, $name_coord->{'color'};
+push @lines,
+    sprintf 'color dist:    %d  (%s%% of wheel)',
+    $color_dist, $color_pct;
+push @lines, sprintf 'angle hamming: %d / 360 bits', $angle_hamming;
+push @lines, sprintf 'verdict:       %s',            $verdict;
+
+my $report = join "\n", @lines;
+
+return {
+    qw| mode | => qw| size |,
+    qw| data | => $report,
+};
+
+#,,,.,,,,,,,,,,..,,,.,...,,..,.,,,...,,..,,.,,..,,...,..,,.,.,..,,.,.,..,,.,,,
+#AXQEMOIEW6ANZEHTQXVIEMO5T6EYXTTB2NOVN55MIAKBWKDMTOTHNWXLEGYFU64CT5MO2URP2DEBY
+#\\\|V2ERNKCNWRPDD54MBQJ7YSVJST3KEWGXXTLIFUCXK5T3KFXT7JQ \ / AMOS7 \ YOURUM ::
+#\[7]4Y7I6HZVRRLKCLWOUC6YNBHXM4Y4DJHKA3HHT6IY25F362653IAA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,0 +1,102 @@
+## [:< ##
+
+# name  = route.bmw384.index.from-file
+# args  = $filepath
+# descr = extract BMW384 digest from signed P7 file footer and register in index
+
+my $filepath = shift;
+
+if ( not defined $filepath or not length $filepath or not -f $filepath ) {
+    <[base.logs]>->( 1, 'valid file path required <{C1}>' );
+    return undef;
+}
+
+# [ read file content ]
+my $content = <[base.file.read]>->( $filepath, qw| :raw | );
+if ( not defined $content ) {
+    <[base.logs]>->( 1, 'unable to read file: %s <{C1}>', $filepath );
+    return undef;
+}
+
+# [ examine last 6 lines for B32 BMW384 footer ]
+my @lines      = split m{\n}, $content;
+my @last_lines = splice @lines, -6;
+
+my $b32_str;
+for my $ARG (@last_lines) {
+    if ( $ARG =~ m{^#([2-9A-Z]{70,80})$} ) {
+        $b32_str = $1;
+        last;
+    }
+}
+
+if ( not defined $b32_str ) {
+    <[base.logs]>->( 2, 'no B32 BMW384 footer found in %s', $filepath );
+    return undef;
+}
+
+# [ decode B32 to raw 48-byte digest ]
+<[base.perlmod.autoload]>->('Crypt::Misc')
+    if not <[base.perlmod.loaded]>->('Crypt::Misc');
+
+my $raw_digest = eval { Crypt::Misc::decode_b32r($b32_str) };
+
+if ( $@ or not defined $raw_digest or length $raw_digest != 48 ) {
+    <[base.logs]>->(
+        1,         'B32 decode failed for %s (got %d bytes) <{C1}>',
+        $filepath, length( $raw_digest // '' )
+    );
+    return undef;
+}
+
+# [ derive normalized dot-path name ]
+my $name = $filepath;
+$name =~ s{.*/modules/}{};
+$name =~ s{^modules/}{};
+
+# [ register in bmw384 index ]
+my $coord = <[route.bmw384.index.register-digest]>->( $name, $raw_digest );
+
+if ( not defined $coord ) {
+    <[base.logs]>->( 1, 'registration failed for %s <{C1}>', $name );
+    return undef;
+}
+
+# [ register in harmonic cluster if plugin.storage.checksum.cluster is loaded ]
+if (    exists $code{'plugin.storage.checksum.cluster.add'}
+    and exists $code{'plugin.storage.checksum.cluster.create'}
+    and exists $code{'plugin.storage.checksum.cluster.lookup'} ) {
+    my $arc_label  = $coord->{'segment_label'};
+    my $cluster_id = 'bmw384-harmonic-arc-' . $arc_label;
+
+    my $lookup = <[plugin.storage.checksum.cluster.lookup]>
+        ->( { qw| checksum | => $cluster_id, qw| type | => qw| harmonic | } );
+
+    if ( not defined $lookup ) {
+        <[plugin.storage.checksum.cluster.create]>->(
+            {   qw| checksum | => $cluster_id,
+                qw| type     | => qw| harmonic |,
+                qw| members  | => [],
+            }
+        );
+    }
+
+    <[plugin.storage.checksum.cluster.add]>->(
+        {   qw| cluster_id | => $cluster_id,
+            qw| members    | => [$name],
+        }
+    );
+}
+
+return {
+    qw| name       | => $name,
+    qw| color      | => $coord->{'color'},
+    qw| arc        | => $coord->{'arc'},
+    qw| digest_len | => length($raw_digest),
+};
+
+#,,,,,,,.,,,,,,.,,...,,,.,,,,,.,.,,.,,,,,,,..,..,,...,..,,.,.,,..,.,.,,,,,..,,
+#IUG72JXV4557VUJICWJ6OTWEZMJ6TR7AXU65DUHLJM4VIQ4Z4OMCE4BT35SFWQDRGHU7OPM2KSKQQ
+#\\\|XJYNHQOF3CMLBGX3R52A5XILWJ3NLSXC5JQ45XDDAU2XDHKDVQP \ / AMOS7 \ YOURUM ::
+#\[7]R4XGHS7ZSUSZMAV6UUC3PFEGPV3NPBYZEZ5OFMARPAEABCQ7AUAA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,0 +1,60 @@
+## [:< ##
+
+# name  = route.bmw384.index.register-digest
+# args  = $name, $raw_digest
+# descr = register a node in the bmw384 field index with pre-computed raw digest
+
+my $name       = shift;
+my $raw_digest = shift;
+
+if ( not defined $name or not length $name ) {
+    <[base.logs]>->( 1, 'node name required <{C1}>' );
+    return undef;
+}
+
+if ( not defined $raw_digest or length $raw_digest != 48 ) {
+    <[base.logs]>->( 1, 'expected 48-byte raw digest <{C1}>' );
+    return undef;
+}
+
+<[route.bmw384.index.init}>
+    if not defined <bmw384.index>;
+
+my $color = <[chk-sum.bmw384.color]>->($raw_digest);
+my $arc   = <[chk-sum.bmw384.arc-segment]>->($color);
+my $bits  = <[chk-sum.bmw384.angle-bits]>->($raw_digest);
+
+my $angle_int = Math::BigInt->new( '0b' . $bits );
+
+my $coord = {
+    qw| color         | => $color,
+    qw| arc           | => $arc,
+    qw| segment_label | => chr( ord('A') + $arc ),
+    qw| angle_bits    | => $bits,
+    qw| angle_int     | => $angle_int,
+    qw| digest        | => $raw_digest,
+};
+
+<bmw384.index>->{'by_name'}{$name} = $coord;
+
+my $arc_r = <bmw384.index>->{'by_arc'}{$arc};
+
+my $already_present = FALSE;
+for my $ARG (@$arc_r) {
+    $already_present = TRUE and last if $ARG eq $name;
+}
+
+push @$arc_r, $name if not $already_present;
+
+<[base.logs]>->(
+    2, 'bmw384: registered %s at arc %s [%s]',
+    $name, $arc, $coord->{'segment_label'}
+);
+
+return $coord;
+
+#,,,.,.,.,,,.,,..,..,,,.,,,,,,,,,,,,.,.,.,...,..,,...,...,...,..,,,.,,,.,,,.,,
+#I4GL4RA255CKQXQWT26FIWBFXOBXBP3FNRI4CJN5I53BUVDESBXPUL22GTTNF7UOQD4XJGLYIL2EW
+#\\\|P3UMZFBMWTUPQQJUB6NRBI7PFWYZLWEB2WEOSSADX5XHJ7NXGMZ \ / AMOS7 \ YOURUM ::
+#\[7]POPGGB2CSV5FV73G354SESAKRIW3D3IN5ENZHWF27OLVBFEUIMCI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
