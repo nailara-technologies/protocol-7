@@ -6,7 +6,7 @@
 my $queue = $data{'site-yaml'}{'fetch_queue'} // [];
 
 if ( not @{$queue} ) {
-    <[site-yaml.fetch.schedule}>;
+    <[site-yaml.fetch.schedule]>;
     return;
 }
 
@@ -42,7 +42,7 @@ if ( ref $job ne 'HASH' ) {
 
     <[base.logs]>->( 0, 'fetch: %s [%s] q=%d', $id, $tag, scalar @{$queue} );
     <[site-yaml.fetch.state]>->('save');
-    <[site-yaml.fetch.schedule}>;
+    <[site-yaml.fetch.schedule]>;
     return;
 }
 
@@ -54,12 +54,12 @@ my $tag    = $result eq 'new' ? 'new' : 'skip';
 <[site-yaml.fetch.backoff]>->('success');
 
 <[site-yaml.fetch.state]>->('save');
-<[site-yaml.fetch.schedule}>;
+<[site-yaml.fetch.schedule]>;
 
 return;
 
-#,,,.,,,,,..,,,,,,,.,,,.,,...,...,.,.,,.,,,,.,.,.,...,...,..,,,..,,.,,..,,..,,
-#CSH32UUX6WL4UMFNP46XDIGZZC5APXZZQ7XGW36WYPSHLP4W5IGTXX5HFJN3XWPL5JQHZB6JXLE3A
-#\\\|W6ZANTM6M6DGVSEJXRSHLCLMLRQWYMJHRUGSUR3L3DBUHMCVXBV \ / AMOS7 \ YOURUM ::
-#\[7]UH3IK7NUXMEOIKWDBRLZWXN3RKGCSSYAO6IGQJXOSQNCMEW5P4DI 7  DATA SIGNATURE ::
+#,,,,,..,,.,,,.,,,.,.,..,,,..,..,,...,..,,,,,,.,.,...,...,...,,,.,,..,...,...,
+#D36KYRPTWFNB4DGDCDL2GDC6BPGM5UQB4XYB6RO4TLK64SD6HTF623DXB2VHNHYPRZL6HIMKZ7KV4
+#\\\|IZ4SU7IJQFDIAEKA4K6NN6CGPNF7IRKZ7QPY4ZMXC64VA6UPBRZ \ / AMOS7 \ YOURUM ::
+#\[7]3STTBNJA7OG3LCBNS2XPULAEIMVOXF7NLM5X2H7BP4FOMUSC2YAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
