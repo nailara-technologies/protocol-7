@@ -3,13 +3,16 @@
 
 [load_config_file:'shared-params']
 
-modules.load          = net protocol io.unix auth index ## devmod
+modules.load          = net protocol io.unix auth index \
+                        base.chk-sum.bmw384 route.bmw384 ## devmod
 
 access.cmd.usr.cube   = verify-instance commands heart reload \
                         list show-buffer buffer-erase buffer-erase-level \
                         add-wordlist del-wordlist stop-job dependencies \
                         add-path gen-path write lookup cluster correlate \
-                        rescan-paths search # *
+                        rescan-paths search \
+                        index-path index-stats find-route verify-coordinate \
+                        visual-wheel # *
 
 index.path.index-cfg   = /data/index/set-up/index-paths
 index.path.index-files = /data/index/data/index-state
@@ -27,8 +30,8 @@ index.permissions.index_root_path = 0770
 
 [zenka.loop]
 
-#,,,,,,..,,,,,,,,,.,.,,.,,,,.,..,,...,,.,,,..,.,.,...,...,,,,,,,.,.,.,.,,,.,,,
-#Z6E2VPFVMQFERYOWIPYL4C4ZG4JSJ7E76LVYIUGOHA7SFIJRLCF3AMMV3PRGJTJ76JP3H4V6M6Y32
-#\\\|O5BQQFU32B225QY2ICVPCHTRZMMPGQZT2ZYW23EKQ2RUXB3QIMY \ / AMOS7 \ YOURUM ::
-#\[7]RQBJIISBMD7PDIPQPVF554RVGJKYBLVGNFL3K6NERE3TMOYUOGCI 7  DATA SIGNATURE ::
+#,,,.,...,,..,..,,,,.,,,,,,.,,,,.,..,,,,.,..,,.,.,...,...,..,,..,,...,,..,,,,,
+#BUP3H3RGYINECR3HFY64ESZN7VDOU6OS6ZDBKFS4PI4TIRGV62RVWQGCTHXWG6T5MOC4MFLF7NHWW
+#\\\|3NKFH54SPXM2NC4MWITIWAQNDCOIOWBWOUBBBDL5PBZQFRPQGRI \ / AMOS7 \ YOURUM ::
+#\[7]TZLBEEAY5P2SGPRB5T73VTV54QSYBW5JMLPL35LMJ5CCTRBJKIBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
