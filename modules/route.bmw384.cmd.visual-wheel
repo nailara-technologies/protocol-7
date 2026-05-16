@@ -4,28 +4,57 @@
 # descr = command handler for BMW384 field wheel visualization
 
 my $args = $call->{'args'} // '';
-my ( $mode, @rest ) = split m{\s+}, $args;
-$mode //= '';
+my ( $output_mode, @rest ) = split m{\s+}, $args;
+$output_mode //= '';
 
-# [ rings override ]
+# [ parse ring count, visual mode, and mode params from @rest ]
 my $rings_override;
+my $visual_mode;
+my $mode_param;
+
 for my $ARG (@rest) {
-    if ( $ARG =~ m{^\d+$} ) {
+    if ( $ARG =~ m{^\d+$} and not defined $rings_override ) {
         $rings_override = $ARG + 0;
-        last;
+    } elsif (
+        $ARG =~ m{^(?:arc-width|density|gauss|overlay|metric|heatmap|ring)$} )
+    {
+        $visual_mode = $ARG;
+    } elsif ( not defined $mode_param ) {
+        $mode_param = $ARG;
     }
 }
 
+# [ save and apply rings override ]
 my $rings_saved;
 if ( defined $rings_override ) {
     $rings_saved = <route.bmw384.cfg.rings>;
     <route.bmw384.cfg.rings> = $rings_override;
 }
 
+# [ save and apply visual mode ]
+my $visual_mode_saved;
+if ( defined $visual_mode ) {
+    $visual_mode_saved = <route.bmw384.cfg.visual_mode>;
+    <route.bmw384.cfg.visual_mode> = $visual_mode;
+}
+
+# [ apply mode-specific param ]
+my $gauss_arcs_saved;
+my $overlay_ns_saved;
+if ( defined $mode_param ) {
+    if ( defined $visual_mode and $visual_mode eq 'gauss' ) {
+        $gauss_arcs_saved = <route.bmw384.cfg.gauss_arcs>;
+        <route.bmw384.cfg.gauss_arcs> = $mode_param;
+    } elsif ( defined $visual_mode and $visual_mode eq 'overlay' ) {
+        $overlay_ns_saved = <route.bmw384.cfg.overlay_namespaces>;
+        <route.bmw384.cfg.overlay_namespaces> = $mode_param;
+    }
+}
+
 my $result;
 
-if ( not length $mode or $mode eq 'svg' ) {
-    my $svg = <[route.bmw384.visual.wheel]>;
+if ( not length $output_mode or $output_mode eq 'svg' ) {
+    my $svg = <[route.bmw384.visual.wheel-mode]>;
     if ( not defined $svg ) {
         $result = {
             qw| mode | => qw| size |,
@@ -34,7 +63,7 @@ if ( not length $mode or $mode eq 'svg' ) {
     } else {
         $result = { qw| mode | => qw| size |, qw| data | => $svg };
     }
-} elsif ( $mode eq 'html' ) {
+} elsif ( $output_mode eq 'html' ) {
     my $html = <[route.bmw384.visual.wheel-html]>;
     if ( not defined $html ) {
         $result = {
@@ -44,7 +73,7 @@ if ( not length $mode or $mode eq 'svg' ) {
     } else {
         $result = { qw| mode | => qw| size |, qw| data | => $html };
     }
-} elsif ( $mode eq 'file' ) {
+} elsif ( $output_mode eq 'file' ) {
     my $html = <[route.bmw384.visual.wheel-html]>;
     if ( not defined $html ) {
         $result = {
@@ -60,9 +89,12 @@ if ( not length $mode or $mode eq 'svg' ) {
     $result = {
         qw| mode | => qw| size |,
         qw| data | => 'usage: visual-wheel [svg|html|file] [rings]'
+            . ' [arc-width|density|gauss|overlay|metric|heatmap]'
+            . ' [mode-param]'
     };
 }
 
+# [ restore saved state ]
 if ( defined $rings_override ) {
     if ( defined $rings_saved ) {
         <route.bmw384.cfg.rings> = $rings_saved;
@@ -70,11 +102,32 @@ if ( defined $rings_override ) {
         delete <route.bmw384.cfg.rings>;
     }
 }
+if ( defined $visual_mode ) {
+    if ( defined $visual_mode_saved ) {
+        <route.bmw384.cfg.visual_mode> = $visual_mode_saved;
+    } else {
+        delete <route.bmw384.cfg.visual_mode>;
+    }
+}
+if ( defined $gauss_arcs_saved ) {
+    <route.bmw384.cfg.gauss_arcs> = $gauss_arcs_saved;
+} elsif ( defined $mode_param
+    and defined $visual_mode
+    and $visual_mode eq 'gauss' ) {
+    delete <route.bmw384.cfg.gauss_arcs>;
+}
+if ( defined $overlay_ns_saved ) {
+    <route.bmw384.cfg.overlay_namespaces> = $overlay_ns_saved;
+} elsif ( defined $mode_param
+    and defined $visual_mode
+    and $visual_mode eq 'overlay' ) {
+    delete <route.bmw384.cfg.overlay_namespaces>;
+}
 
 return $result;
 
-#,,..,.,,,,..,,,.,.,,,...,.,,,,..,,..,,,.,.,,,..,,...,...,.,.,,,,,.,.,.,,,,,,,
-#FMGVDHS53U5JGT2C6UNFRQCNW3EB6HJR2U5CWBCV3LVRRKQ6WA63DXTCQHZMC7VDH2TQZ7VKCAKSC
-#\\\|OHQH7QKXB7JOYFU66HW73GANL52AVL6Q644RFA3URC7WPBNECFQ \ / AMOS7 \ YOURUM ::
-#\[7]ES6TA33WESFYQZ2MDKOJYJUM3L3NBVBIRR7TBDMMYTUBTZ3D3ODQ 7  DATA SIGNATURE ::
+#,,..,,,,,..,,,.,,,.,,,,.,,..,,..,...,,,,,.,,,..,,...,...,..,,,..,.,,,...,..,,
+#6QOVRRABX7FGPJUML77IZU52VDYZOGEVQSZPQGHM4R3EWQA4L6PPT7B6TY4C2CWYJS4X7HQCSIDIE
+#\\\|C4PAZZXJMRYJLVLIINDIAGKEPT72W7MZ2LOCX7WXLA5OCGB2GYJ \ / AMOS7 \ YOURUM ::
+#\[7]F3A3IBSQN6TVVDEDP2GGFGVNP6FBHS5P4HD6DYISAR4YYCPCJSAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
