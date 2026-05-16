@@ -50,6 +50,9 @@ my $name_arc   = $name_coord->{'arc'};
 my $arc_diff = abs( $stored_arc - $name_arc );
 $arc_diff = 26 - $arc_diff if $arc_diff > 13;    # [ wrap around ]
 
+my $stored_label = chr( ord('A') + $stored_arc );
+my $name_label   = chr( ord('A') + $name_arc );
+
 my $verdict;
 if ( $stored_arc == $name_arc ) {
     $verdict = 'resonant [ same arc ]';
@@ -60,9 +63,6 @@ if ( $stored_arc == $name_arc ) {
     $verdict = sprintf 'divergent [ arc %s vs %s ]',
         $stored_label, $name_label;
 }
-
-my $stored_label = chr( ord('A') + $stored_arc );
-my $name_label   = chr( ord('A') + $name_arc );
 
 my $color_pct = sprintf '%.2f', ( $color_dist / 16777216 ) * 100;
 
@@ -87,8 +87,8 @@ return {
     qw| data | => $report,
 };
 
-#,,,.,,,,,,,,,,..,,,.,...,,..,.,,,...,,..,,.,,..,,...,..,,.,.,..,,.,.,..,,.,,,
-#AXQEMOIEW6ANZEHTQXVIEMO5T6EYXTTB2NOVN55MIAKBWKDMTOTHNWXLEGYFU64CT5MO2URP2DEBY
-#\\\|V2ERNKCNWRPDD54MBQJ7YSVJST3KEWGXXTLIFUCXK5T3KFXT7JQ \ / AMOS7 \ YOURUM ::
-#\[7]4Y7I6HZVRRLKCLWOUC6YNBHXM4Y4DJHKA3HHT6IY25F362653IAA 7  DATA SIGNATURE ::
+#,,.,,,.,,.,.,,,,,..,,..,,..,,,..,.,,,,.,,,.,,..,,...,...,,..,.,,,.,,,,..,,.,,
+#6VLNHVVNABIQPV76NYQUDETYJBCFV57ZMTKITHAQ3AB4VD274UB76ZCXCLTEJ4UTO65SKYNYSI36Q
+#\\\|SF7W4SJTZF76ELQPHNIGIFARY4CC54UWT774JZH7ALJHIQHQ2C6 \ / AMOS7 \ YOURUM ::
+#\[7]KQLNVIAHDKZKKXHOM52J7LQXKQO6NLIIS2ZDMM66ALVPRSSI4WAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
