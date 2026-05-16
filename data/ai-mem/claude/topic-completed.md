@@ -1,5 +1,30 @@
 # Completed Work Sessions
 
+## session 27 — BMW384 iris visualization + kimi :next: dispatch fix (2026-05-16)
+
+- **kimi :next: dispatch fixed**: root cause — variable watchers don't fire
+  recursively from within IO event callbacks. fix: call `kimi.watcher.ws_status`
+  directly from `ws_message` after setting status=ready. also: store deferred
+  prompt BEFORE calling reset_and_reconnect (event loop can fire during the call).
+  session_id stamp (for_session_id) prevents old session consuming new deferred.
+  re-send block guarded with busy check to prevent double-dispatch.
+- **kimi.cmd.task-file**: fixed file.read return (plain string not ref), fixed
+  reply_id passthrough, fixed :next: handling, returns deferred immediately
+- **route.bmw384 signature indexer**: from-file, from-path, register-digest,
+  cmd.index-path, cmd.verify-coordinate — indexes 3873 modules from signatures
+- **BMW384 visual iris**: 26-ring CCW spiral disc, counter-rotating color field,
+  exponential depth opacity, blue tint deepening inward (ring_blue_tint=0.6),
+  per-ring alphabet advance, cmd supports ring count arg (p7c index.visual-wheel file 26)
+  result: psychedelic iris — living map of codebase topology
+- **base.chk-sum.bmw384.pre_init**: swap_subs for chk-sum.bmw384.* short form
+- **route.bmw384.init_code**: initializes field index
+- **index zenka**: now loads base.chk-sum.bmw384 + route.bmw384, hosts all BMW384 cmds
+- **kimi chat via bin/chat**: -c channel, -m model, avoid :keyword: in message text
+
+**Logo**: nailara logo XCF originals lost ~2003, PNG at data/gfx/logos/nailara_logo.trans-dark.png
+only — opus-level model needed for recreation at larger scales. iris disc is perfect
+background for logo overlay (SVG <image> at center void, 400,400).
+
 ## session 26 — BMW384 field geometry + jobsite fix + kimi.task-file (2026-05-16)
 
 - **jobsite dispatch fix**: `dispatch.assessments` skip guard changed from
@@ -533,8 +558,8 @@ Skip calling harmonize_payload_line_feed when both conditions are met:
 - Signatures now properly formatted with correct separator endline
 - Pre-commit validation passes
 
-#,,,,,,..,...,,.,,,,.,.,.,,..,,..,..,,,.,,...,..,,...,...,..,,,,,,,..,...,..,,
-#KEXB5VBFUEEN7H4BTU4SWSIZOWZMW6MLUYVI3X5POXXGAOLHYW32ZNPEPYBP45KZUEISKEPF6AQZQ
-#\\\|YQVIHFH6FRYXZBDCLW2US3MMSLSSCHCTGTDTRJHDHTCJ7D4IETU \ / AMOS7 \ YOURUM ::
-#\[7]52ZOSRQ37HRFI3Q23ONFVCMLBT2IJQG4CFZ5HYY5ZIIUW66KVUDY 7  DATA SIGNATURE ::
+#,,.,,,.,,.,,,,.,,,..,..,,...,,,,,..,,..,,,,.,..,,...,...,...,...,,,.,,,,,,..,
+#GA74KDNAFXFATZ4PITW73GRQLDCW5BKCGRFMYJNVVDOJJCN7423UXFVUPXJS6HTWNETJZONNMOBCG
+#\\\|NNJXGBBRAL7LOT36Y3NRFB26W5EW5YORKWFS2UC7JMRFAE4JQXA \ / AMOS7 \ YOURUM ::
+#\[7]O7P7VYJASBVLKPUOPHAM5ZS25R2FMYMIX2JVRCMUIJWG2KQQDEBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
