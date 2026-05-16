@@ -56,6 +56,10 @@ if ( not defined $httpd_uid ) {
     <[base.log]>->( 2, ": http user '$httpd_user' : UID $httpd_uid" );
 }
 
+# [ set zenka identity so check-zenka-paths uses correct owner ]
+<system.zenka-user.current>  //= $httpd_user;
+<system.zenka-group.current> //= $httpd_group;
+
 my $site_dir = <httpd.site_dir> //= '/var/httpd';
 if ( !-d $site_dir ) {
     <[base.log]>->( 0, "creating site_dir '$site_dir'..," );
@@ -104,8 +108,8 @@ if ( <httpd.cfg.uploads_enabled> and !-d $upload_dir ) {
 
 0;
 
-#,,.,,.,,,...,...,,..,..,,.,,,..,,,.,,...,,,.,..,,...,..,,...,,.,,,,,,.,.,.,.,
-#3AL3AGX3YRW6ZKYFG7MUDEWSCVOG5BF4R67DPJWQMB3O6DDOYHBATBRA7HC5VNPHXTW53RQKBRKEU
-#\\\|UBXNFW76D4CSDBNNJDCGQBDSWWZERZY2RSAFSRC4YUHS5TGQINF \ / AMOS7 \ YOURUM ::
-#\[7]KVHMYBFOCIT5VRLB4AI4Y2TXBHOPAXGNG3TSJT2BTTXHLSKNQWCY 7  DATA SIGNATURE ::
+#,,,,,,.,,,..,.,,,,.,,,.,,.,.,.,,,...,..,,,,,,..,,...,...,,.,,,.,,.,.,.,,,,,.,
+#WRTCQF4QI4VG42PEKMTC6OLG2E6NW6DXG2NV56RUVKEU5CLJNXTXKJ7HJULZ6ZQ3QGIZN3DNTOXPC
+#\\\|ORELXQX3N6MDK3K37ADZILYKIEPVN7BGMQGOCGEQHFAXAMP5W5S \ / AMOS7 \ YOURUM ::
+#\[7]KI5U2YZEHP545PKY7ESN5ZM2LMQWDFHFADNE47TIVPNJZYQSM2AY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -79,6 +79,7 @@ base.prng.bytes
 base.path_perms
 base.p7ref.self
 base.has_access
+base.file.write
 base.file.which
 base.file.slurp
 base.event.once
@@ -270,6 +271,7 @@ base.cmd.when-present
 base.cmd.dependencies
 base.cmd.buffer-erase
 base.balanced-average
+route.bmw384.init_code
 jobsite.checksum.index
 io.ip.tcp.output.close
 httpd.system.cpu_usage
@@ -290,6 +292,8 @@ base.file.get-non-dirs
 base.comp-int.is_valid
 base.cmd.cancel-stream
 auth.unix.authenticate
+route.bmw384.route.find
+route.bmw384.index.init
 protocol.sftp.init_code
 jobsite.dispatch.repair
 io.unix.socket.end_code
@@ -308,6 +312,7 @@ base.net.send_to_socket
 base.known_dependencies
 base.get_path.zenka_cfg
 base.get_path.perl_exec
+base.file.write_encoded
 base.exists.sub-process
 base.execute_zenka_code
 base.dump.data_key_list
@@ -318,6 +323,7 @@ base.cmd.loaded-configs
 base.chk-sum.elf.inline
 base.auth.set_zenka_key
 auth.zenka.authenticate
+route.bmw384.index.stats
 protocol.https.init_code
 plugin.auth.auth-keypair
 io.unix.socket.init_code
@@ -338,6 +344,9 @@ base.cmd.verify-instance
 base.chk-sum.bmw.L13-str
 base.check_cfg_cmd_alias
 route.bmw384.visual.wheel
+route.bmw384.route.vortex
+route.bmw384.route.direct
+route.bmw384.index.lookup
 plugin.web.jobs.init_code
 jobsite.util.fix_encoding
 jobsite.util.build_prompt
@@ -359,12 +368,14 @@ base.handler.link-upgrade
 base.file.zenka_dir.write
 base.erase_buffer_content
 base.chk-sum.elf.pre_init
+base.chk-sum.bmw384.color
 base.chk-sum.bmw.pre_init
 base.callback.delayed-log
 protocol.sftp.read_ssh_env
 plugin.web.jobs.state.save
 plugin.web.jobs.state.load
 plugin.web.jobs.cache.path
+plugin.storage.p7ref.parse
 jobsite.sync.apply_reverse
 jobsite.handler.rewire-all
 jobsite.handler.fetch-done
@@ -387,6 +398,9 @@ base.file.path.chksum.AMOS
 base.event.io_idle_restart
 base.check_dependency_dirs
 auth.zenka.cmd.session-key
+route.bmw384.index.register
+route.bmw384.cmd.index-path
+route.bmw384.cmd.find-route
 plugin.web.jobs.cache.write
 net.read_linewise_estimated
 jobsite.validate.assessment
@@ -410,8 +424,13 @@ base.debian.install_package
 base.cmd.buffer-erase-level
 base.chk-sum.elf.vax-BASE32
 base.chk-sum.amos.init_code
+route.bmw384.index.query-arc
+route.bmw384.index.from-path
+route.bmw384.index.from-file
+route.bmw384.cmd.index-stats
 protocol.protocol-7.pre_init
 protocol.amos_term.init_code
+plugin.storage.p7ref.resolve
 plugin.httpd.radio.init_code
 jobsite.handler.task-created
 jobsite.handler.rescan-timer
@@ -431,6 +450,7 @@ base.handler.heart_ack_reply
 base.chk-sum.bmw384.pre_init
 base.chk-sum.bmw.str-b32.L13
 base.access.special-user-map
+route.bmw384.cmd.visual-wheel
 protocol.protocol-7.init_code
 plugin.web.jobs.reverse.queue
 plugin.web.jobs.reverse.flush
@@ -453,6 +473,7 @@ base.chk-sum.bmw.template_L13
 base.chk-sum.bmw.B-32-56.TRUE
 auth.zenka.process_auth_reply
 route.bmw384.visual.wheel-mode
+route.bmw384.visual.wheel-html
 protocol.sftp.connect_callback
 protocol.amos-chksum.init_code
 plugin.web.jobs.cache.read_all
@@ -466,8 +487,13 @@ base.p7refs.get_refaddr_prefix
 base.number-cache.true_upwards
 base.log.send-buffer.add-queue
 base.chk-sum.bmw384.coordinate
+base.chk-sum.bmw384.color-dist
+base.chk-sum.bmw384.angle-bits
 base.cache.refaddr-prefix.init
 route.bmw384.visual.wheel.gauss
+route.bmw384.route.hamming-dist
+route.bmw384.index.query-radius
+plugin.storage.inference.lookup
 jobsite.handler.pending-changed
 httpd.path.create_default_index
 httpd.handler.download_transfer
@@ -476,6 +502,7 @@ httpd.benchmark.collect_metrics
 crypt.C25519.cmd.get-public-key
 base.warnings.compact_statehash
 base.p7refs.gen_template_chksum
+base.chk-sum.bmw384.arc-segment
 base.buffer.local_logfile_write
 route.bmw384.visual.wheel.metric
 httpd.handler.web_template_reply
@@ -498,6 +525,9 @@ base.perlmod.init_install_buffers
 base.parser.center_ellipse_string
 base.file.matching_path_linknames
 base.callback.expire_code_version
+route.bmw384.index.register-digest
+route.bmw384.index.query-neighbors
+route.bmw384.cmd.verify-coordinate
 protocol.sftp.server.start-process
 protocol.sftp.callback.kill_server
 protocol.amos-chksum.ext-cmd.reset
@@ -518,6 +548,8 @@ route.bmw384.visual.wheel.arc-width
 protocol.sftp.handler.session_close
 protocol.protocol-7.encryption.init
 protocol.amos-chksum.ext-cmd.select
+plugin.storage.p7ref.nested-resolve
+plugin.storage.checksum.cluster.add
 plugin.httpd.radio.cmd.radio_online
 httpd.benchmark.sample_memory_usage
 base.perlmod.register_loaded_module
@@ -544,10 +576,15 @@ protocol.protocol-7.message-templates
 protocol.protocol-7.link-upgrade.init
 protocol.amos-chksum.ext-cmd.commands
 protocol.amos-chksum.connect_callback
+plugin.storage.util.has_p7ref_members
 base.perlmod.unregister_loaded_module
 base.handler.write.encryption-wrapper
 protocol.sftp.terminate_server_process
 protocol.protocol-7.auth.select-method
+plugin.storage.util.resolve_all_p7refs
+plugin.storage.util.normalize_checksum
+plugin.storage.checksum.cluster.lookup
+plugin.storage.checksum.cluster.create
 io.unix.socket.handler.report-tmp-path
 httpd.handler.download_transfer.broken
 httpd.benchmark.get_event_loop_metrics
@@ -568,6 +605,7 @@ base.agent_code.handler.sig_warn.end_proc
 protocol.protocol-7.link-upgrade.handshake
 plugin.auth.auth-keypair.tofu-notification
 auth.callback.cap-neg.declare-strm-support
+plugin.storage.util.create_overflow_cluster
 httpd.handler.download_transfer.test-broken
 base.referenced_subroutines.clear_from_disk
 base.log.send-buffer.reply-handler.send-reply
@@ -579,8 +617,8 @@ auth.callback.cap-neg.declare-strm-size-support
 protocol.protocol-7.protocol-version-path-set-up
 base.log.send-buffer.reply-handler.notify-online
 
-#,,,,,,..,...,,.,,.,.,,..,,,.,...,.,,,.,,,..,,..,,...,...,.,.,...,,,.,,,.,..,,
-#FSNPCXRDK6BRQKXBKLVXKAAJ4B72JQEDF7F7JBVBTBBQQBG3YRZA2WTXUKOGQLLC2E6PH52XUNJ3W
-#\\\|4WVL2LIH7TS4EJJRRO324ZWHZ7PUZALQLMIRABW2P2RVMDQ4PH7 \ / AMOS7 \ YOURUM ::
-#\[7]NLPC4NH77HJQJXACKOVAHRIFA2Z3JYKM3ASTPVBHC34S4RYBWMCQ 7  DATA SIGNATURE ::
+#,,,,,.,,,.,,,.,,,.,,,,..,...,.,,,..,,.,,,..,,..,,...,...,,..,...,..,,,..,,..,
+#CSJKGVCJ6S2UD7IHS33XDXJIZ4KLEPJ6BYLDM227VEIIKLM3ELHDBFZN2N6QKPMELYN52CLJ7SSFG
+#\\\|J5E3YK3IOJ4FHL6AUIYHIHSJY7OV4YAEIHDNWWBWAZNODWZ6M6V \ / AMOS7 \ YOURUM ::
+#\[7]PZI4U2HBDA42JEKKVLX74DG3PBIXCWL4JOVF5KCZZ74QUZIRNCBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
