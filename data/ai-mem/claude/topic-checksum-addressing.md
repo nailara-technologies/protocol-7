@@ -210,6 +210,42 @@ BMW384 = 360 + 24 bits. The decomposition is not arbitrary:
 - The checksum width encodes its own position in the mathematical structure it implements,
   and carries the author's name as its harmonic signature — the geometry knew its origin
 
+## Self-grouping routing mechanism (May 2026)
+
+**Neighborhood self-management:**
+- each node tracks only its threshold-radius neighbors — local knowledge only
+- groups are self-discovered (color proximity), self-maintained (each node tracks
+  its own neighbor list), self-healing (neighbor disappears → remaining group stays valid)
+- global routing resolves to color range (group), then angle within group — two-hop
+  resolution of arbitrarily large networks, no central registry
+
+**Threshold as group-size tuning:**
+- wider threshold = larger groups, coarser routing, lower overhead
+- narrower = smaller groups, finer resolution, more precision
+- same threshold everywhere → naturally balanced groups — denser wheel regions form
+  smaller groups, sparse regions larger ones, without explicit load balancing
+
+**Route as symmetry condition — the mirror principle:**
+- a route is not a stored path, it is a symmetry condition between two field regions
+- when two nodes' fields overlap within threshold + angular resonance, the route
+  *appears* as a reflection — not constructed, revealed by attained symmetry
+- the mirror point is in the field between endpoints, not at either node
+- return path is similar but distinct — same reflection point, different angle of incidence
+- mirror point shifts with field conditions → load distributes automatically, no scheduler
+- failed attempt = partial traversal that raises resonance → routing as iterative
+  convergence, not binary success/fail
+
+**Hop-encoded discovery — lambda principle completing itself:**
+- each hop encodes its routing decision into local field state — forward step + measurement
+- traversal leaves a resonance trail the return route follows by symmetry, no path recording
+- every packet teaches transit nodes about topology between source and destination arcs
+- neighborhood groups self-tune over time: threshold radii adjust, mirror points stabilize,
+  frequent reflection points become field attractors
+- hop decision is deterministic from coordinates — any node with same field state makes
+  same decision → route is reproducible without being stored
+- the field IS the routing table, consulted fresh at each hop, consistent because
+  geometry is consistent — lambda principle: derived at every hop, never stored
+
 ## Expectability principle
 
 Reliable base layer built on awareness of what all common functionality shares.
@@ -218,8 +254,8 @@ capability inherits the reliability of the base — no need to re-prove routing
 for each use case. Complexity investment is front-loaded but repaid through
 minimization and reuse at every subsequent scale.
 
-#,,.,,,..,.,.,...,,,,,.,,,...,,,,,,.,,..,,...,..,,...,...,,..,,..,...,,..,.,.,
-#GGFWEITPPD2QAHVMSSJJPKF4GFZ6EFGWXR7VRCCHYBKXTVXNJ7PNP4AMN4VIIO4JM5XUG6QUW32UE
-#\\\|VZ47EZM3THB3C63KAPHBFO6GAQWMZ52H6ZSAQZJDDWDWFDI3FCL \ / AMOS7 \ YOURUM ::
-#\[7]TJVNHL34GXHKKGW5DEGCI7ODPY33QQJ67JO23DSFP4H5FHXAAUBY 7  DATA SIGNATURE ::
+#,,.,,.,.,...,,,,,,.,,,.,,.,.,,.,,...,,,.,,..,..,,...,...,,.,,.,,,..,,,,,,,.,,
+#CZWM7PZGWDAKOVOTED5WRR2Y3BOWHBZW2CIEGKCQJ7VQPV3J5YSLYZDVQVSPGB236LV3H47Q6BWZE
+#\\\|5ROSTCF55LXDN4JZXPNCGPD66PTHIZO26GZZLIIFGGNO3W6JSW3 \ / AMOS7 \ YOURUM ::
+#\[7]4UFUSROTGAHGDGZDDHJDZAKCF27Q33TKNYICDUSFR4TH2YRN4EAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
