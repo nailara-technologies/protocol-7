@@ -7,48 +7,74 @@ my $args = $call->{'args'} // '';
 my ( $mode, @rest ) = split m{\s+}, $args;
 $mode //= '';
 
+# [ rings override ]
+my $rings_override;
+for my $ARG (@rest) {
+    if ( $ARG =~ m{^\d+$} ) {
+        $rings_override = $ARG + 0;
+        last;
+    }
+}
+
+my $rings_saved;
+if ( defined $rings_override ) {
+    $rings_saved = <route.bmw384.cfg.rings>;
+    <route.bmw384.cfg.rings> = $rings_override;
+}
+
+my $result;
+
 if ( not length $mode or $mode eq 'svg' ) {
     my $svg = <[route.bmw384.visual.wheel]>;
     if ( not defined $svg ) {
-        return {
+        $result = {
             qw| mode | => qw| size |,
             qw| data | => 'bmw384 index not initialized'
         };
+    } else {
+        $result = { qw| mode | => qw| size |, qw| data | => $svg };
     }
-    return { qw| mode | => qw| size |, qw| data | => $svg };
-}
-
-if ( $mode eq 'html' ) {
+} elsif ( $mode eq 'html' ) {
     my $html = <[route.bmw384.visual.wheel-html]>;
     if ( not defined $html ) {
-        return {
+        $result = {
             qw| mode | => qw| size |,
             qw| data | => 'bmw384 index not initialized'
         };
+    } else {
+        $result = { qw| mode | => qw| size |, qw| data | => $html };
     }
-    return { qw| mode | => qw| size |, qw| data | => $html };
-}
-
-if ( $mode eq 'file' ) {
+} elsif ( $mode eq 'file' ) {
     my $html = <[route.bmw384.visual.wheel-html]>;
     if ( not defined $html ) {
-        return {
+        $result = {
             qw| mode | => qw| size |,
             qw| data | => 'bmw384 index not initialized'
         };
+    } else {
+        my $path = '/tmp/bmw384-wheel.html';
+        <[file.write]>->( $path, \$html );
+        $result = { qw| mode | => qw| size |, qw| data | => $path };
     }
-    my $path = '/tmp/bmw384-wheel.html';
-    <[file.write]>->( $path, \$html );
-    return { qw| mode | => qw| size |, qw| data | => $path };
+} else {
+    $result = {
+        qw| mode | => qw| size |,
+        qw| data | => 'usage: visual-wheel [svg|html|file] [rings]'
+    };
 }
 
-return {
-    qw| mode | => qw| size |,
-    qw| data | => 'usage: visual-wheel [svg|html|file]'
-};
+if ( defined $rings_override ) {
+    if ( defined $rings_saved ) {
+        <route.bmw384.cfg.rings> = $rings_saved;
+    } else {
+        delete <route.bmw384.cfg.rings>;
+    }
+}
 
-#,,.,,,,,,,,.,.,.,,..,..,,...,,,,,...,,,.,...,..,,...,...,..,,,.,,.,.,.,.,,,,,
-#OS6RSR4CKP5RZVSN2D7OPRD7RM6NHUDVWX4F62GQKRFQVPMJRIBXY6VH3EXQ4YNMUXYHPFLF4MFOA
-#\\\|MXKAC3XQOGSTXO3QVDIV2RAXZZQI7RMBQTFCGCKLGCGFIQBJ3NK \ / AMOS7 \ YOURUM ::
-#\[7]XUZBPNTY2Z3DPACREK7GMZZY6OS2DALWAFAQLLYGH742TIDLI2CY 7  DATA SIGNATURE ::
+return $result;
+
+#,,..,.,,,,..,,,.,.,,,...,.,,,,..,,..,,,.,.,,,..,,...,...,.,.,,,,,.,.,.,,,,,,,
+#FMGVDHS53U5JGT2C6UNFRQCNW3EB6HJR2U5CWBCV3LVRRKQ6WA63DXTCQHZMC7VDH2TQZ7VKCAKSC
+#\\\|OHQH7QKXB7JOYFU66HW73GANL52AVL6Q644RFA3URC7WPBNECFQ \ / AMOS7 \ YOURUM ::
+#\[7]ES6TA33WESFYQZ2MDKOJYJUM3L3NBVBIRR7TBDMMYTUBTZ3D3ODQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
