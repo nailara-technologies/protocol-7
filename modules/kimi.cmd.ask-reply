@@ -33,6 +33,9 @@ if ($wants_next) {
     my $def_task_id
         = $def_intake->{'success'} ? $def_intake->{'task_id'} : undef;
 
+    ## mark not-ready before storing deferred — prevents watcher firing early
+    <kimi.ws.status> = qw| connecting |;
+
     ## store deferred prompt for post-reconnect dispatch
     <kimi.next.deferred> = {
         'prompt'   => $prompt,
@@ -129,8 +132,8 @@ if ( defined $task_id ) {
 
 return { 'mode' => qw| deferred | };
 
-#,,..,.,,,,,,,.,,,...,,..,,,.,...,,,,,,,.,...,.,.,...,...,,.,,,,.,...,.,.,...,
-#BUWPKLBXPNJ3X47IZDUDASB6MUEBBRHJMPPBIVT4VM2A25CRCN43WC5WQ5GYDWWQG3BKVNMZTABGO
-#\\\|Z4QND6GKIUPZSVSYGTKWXZVCUPVRDLNGRSGDVFSSWJEUIY5G6UJ \ / AMOS7 \ YOURUM ::
-#\[7]HDB4MSDHLZJJGE3Y6VMF4RSATJHTGPG4WFIQBNSPXUMAK3JFAECQ 7  DATA SIGNATURE ::
+#,,,,,.,,,...,.,,,.,.,.,.,.,,,.,,,,,.,,..,,.,,.,.,...,...,.,.,.,.,,,.,,.,,.,.,
+#F7WMEWK6XAAGOQHCRWIC4W6PGFZLOIQRT7NVW25CYYJQEBINKBMIVTRQNLVOYU5ROOELOZT3NR2VY
+#\\\|7MV74V5FGLAN36X7GOT733AWZYTZRGQZQZPZ55QD3W2OAJLCYBK \ / AMOS7 \ YOURUM ::
+#\[7]QJLYWJR7DOCREA5C3IARE4DQ4V7REE4KH3JWEFVBRJKTE6WIIIDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
