@@ -1,6 +1,6 @@
 ## [:< ##
 
-# name  = base.bmw384.route.vortex
+# name  = route.bmw384.route.vortex
 # args  = $src_coord, $dst_coord, $src_name, $dst_name
 # descr = cross-arc resonant routing via destination-arc candidates
 
@@ -15,7 +15,7 @@ if ( not defined $src_coord or not defined $dst_coord ) {
     return undef;
 }
 
-my $candidates = <[base.bmw384.index.query-arc]>->( $dst_coord->{'arc'} );
+my $candidates = <[route.bmw384.index.query-arc]>->( $dst_coord->{'arc'} );
 
 if ( not defined $candidates or not scalar @$candidates ) {
     <[base.logs]>->(
@@ -43,7 +43,7 @@ for my $ARG (@$candidates) {
         $dst_coord->{'color'}
     );
 
-    my $angle_dist = <[base.bmw384.route.hamming-dist]>->(
+    my $angle_dist = <[route.bmw384.route.hamming-dist]>->(
         $candidate_coord->{'angle_bits'},
         $dst_coord->{'angle_bits'}
     );
@@ -79,8 +79,8 @@ return {
     qw| resonant | => TRUE
 };
 
-#,,.,,,.,,,..,,..,,,,,..,,,..,...,.,.,.,,,..,,..,,...,...,.,.,,..,,,,,..,,,.,,
-#JOZPJ3UAZ6UIZVLVQSHJEF5ADO5QPU3NJNWKCFB35GPQ3KDP64BZWYLIW54JZWD2LNWQSCZIFUGXM
-#\\\|YFHAJGBJLLKOGTM5CGCEHRDA76BUCXNQMEJ3PWSFSKYUEHIGD4W \ / AMOS7 \ YOURUM ::
-#\[7]7LYEKPGBSULMZJTKXE2M3AXVLFDKVXMK77MVKYCQORKKARDRU2BA 7  DATA SIGNATURE ::
+#,,..,,,.,,,.,.,.,,,.,,,,,,.,,.,,,.,.,.,.,,.,,..,,...,...,...,,,.,.,,,,,.,.,,,
+#HLRIA5SCZQZEQUSKKE4LAQD2S4Y56JKR46YT2ADRZAGDN4NHPV3YI2HFARDNQTNJG4DERWJTW4OPK
+#\\\|H7UEFWWAIFHCUBJWTSGDJ2HIWVXQES5OWT7A62MJOENUYMXAFI6 \ / AMOS7 \ YOURUM ::
+#\[7]Q2CIWC4USJK5B5XWKZJCN4KLWHMMZ3IQTSGME5TJG2PBWVIZG4DA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
