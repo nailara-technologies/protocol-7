@@ -5,8 +5,10 @@
 
 my ( $pem, $field ) = @ARG;
 
-my $x509
-    = eval { Crypt::OpenSSL::X509->new_from_string( $pem, FORMAT_PEM ); };
+my $x509 = eval {
+    Crypt::OpenSSL::X509->new_from_string( $pem,
+        Crypt::OpenSSL::X509::FORMAT_PEM() );
+};
 return undef unless defined $x509;
 
 ## map openssl CLI field names to X509 methods
@@ -18,8 +20,8 @@ if ( $field eq '-subject' ) {
 
 return undef;
 
-#,,,,,,,,,.,,,.,,,,,,,.,,,,.,,.,,,.,.,..,,,,.,..,,...,..,,...,,..,,.,,...,...,
-#56QCYM6MM3NUZM4X26C62EYGTY2OFVGPBNODXB2G4OLENWAWYVT33FVD2YYLGNEN2UDQHEQ6YMNGA
-#\\\|LEBS7J44SCFOWE2NIFYN55V3XYGB2XVEANKDGJ7MGZVQJK4RNXJ \ / AMOS7 \ YOURUM ::
-#\[7]RAB7BYNAL4PTXQVK2ESLKYCREY227NH24IX2VUZAOLZ5D4JOWGAI 7  DATA SIGNATURE ::
+#,,,,,.,,,,,.,...,.,.,...,,.,,..,,,,.,,..,,,,,..,,...,...,,,,,...,..,,,,,,.,,,
+#JP2IOWB56MONY5PG56JXBQFCSMNT6JWWYOGV32ZSC3MVQ4Q2KUMX4TXFMNPVIBU74VSRMMHMBH76U
+#\\\|2YUHE6HD3TDY5HPX6TQUDGJGPDA6B7EGXFLYTXIA7PSVULZ2M6X \ / AMOS7 \ YOURUM ::
+#\[7]BI5QI4PLPPTTFYJ55WQJGU6SBSDORO7H2GYCN65BEH2JNEQWNYCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

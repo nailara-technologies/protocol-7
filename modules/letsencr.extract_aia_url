@@ -5,8 +5,10 @@
 
 my ($pem) = @ARG;
 
-my $x509
-    = eval { Crypt::OpenSSL::X509->new_from_string( $pem, FORMAT_PEM ); };
+my $x509 = eval {
+    Crypt::OpenSSL::X509->new_from_string( $pem,
+        Crypt::OpenSSL::X509::FORMAT_PEM() );
+};
 return undef unless defined $x509;
 
 ## extract AIA extension
@@ -23,8 +25,8 @@ if ( $aia_text =~ m{CA Issuers\s*-\s*URI:(\S+)} ) {
 
 return undef;
 
-#,,,.,,,,,,,.,.,,,.,.,.,,,,.,,.,,,.,,,.,.,.,.,..,,...,...,..,,,..,.,.,,,.,.,.,
-#PUIP3PKD7H57PHZY4MY2ZLNXFKGMUIWURK66J56D24I4XV7URNHW4BT5RQOASVSXKOQJD2QY2ZUCE
-#\\\|BCT6C5GMNTZRSIYP6EN5WL2W6XHHE33POTBO73D4WVXKH6UTIHJ \ / AMOS7 \ YOURUM ::
-#\[7]NMYKPLTQ2B4ZQTBFH3YTIDW34Q7NBCBTWIKDXB3V434YPOZLVUCY 7  DATA SIGNATURE ::
+#,,,.,.,,,,,.,.,.,.,.,..,,.,.,,,.,..,,,,,,..,,..,,...,...,.,,,..,,,..,...,.,,,
+#APMHLNTVBF4CQJ677YDYOILXDJ65PWYW4G5P6XYWENULOCO4REQTLV2DSB6YZMSOM7GOPCM7BK2VI
+#\\\|TUFCB67QI2PHS4DQXV2UTSTPZFDNPBQOXNLKEBC6U2YYX3CONPT \ / AMOS7 \ YOURUM ::
+#\[7]NJFYDTB56Y5LLSHTFVTNKE7MKBYVGMPKJVXQCIJAEXFGKSFDCWCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
