@@ -12,8 +12,9 @@ my @names   = keys %$by_name;
 my $rings            = <route.bmw384.cfg.rings>              // 1;
 my $ring_hue_drift   = <route.bmw384.cfg.ring_hue_drift>     // 14;
 my $ring_label_adv   = <route.bmw384.cfg.ring_label_advance> // 1;
-my $ring_radius_step = <route.bmw384.cfg.ring_radius_step>   // 40;
+my $ring_radius_step = <route.bmw384.cfg.ring_radius_step>   // 11;
 my $outer_radius     = <route.bmw384.cfg.outer_radius>       // 320;
+my $ring_blue_tint   = <route.bmw384.cfg.ring_blue_tint>     // 0.6;
 
 # [ co-location ] count nodes per coordinate key
 my %coord_count;
@@ -98,9 +99,15 @@ for my $ring ( 0 .. $rings - 1 ) {
         my $x = 400 + $radius * sin($rad);
         my $y = 400 - $radius * cos($rad);
 
-        my $hue
+        my $base_hue
             = (
-            180 - int( $coord->{'color'} / 16777216 * 360 ) - $hue_offset )
+            180 - int( $coord->{'color'} / 16777216 * 360 ) + $hue_offset )
+            % 360;
+        my $blue_blend
+            = $rings > 1
+            ? ( $ring / ( $rings - 1 ) ) * $ring_blue_tint
+            : 0;
+        my $hue = int( $base_hue * ( 1 - $blue_blend ) + 220 * $blue_blend )
             % 360;
         my $color_hex = sprintf 'hsl(%d,90%%,60%%)', $hue;
         my $r = $node_base_r + ( $colocated_index * 2 );
@@ -126,8 +133,8 @@ $svg .= '</svg>' . "\n";
 
 return $svg;
 
-#,,,.,.,,,.,.,...,,..,,,.,..,,.,.,,,.,,,,,..,,..,,...,...,,..,,..,,.,,,,.,.,.,
-#XMIM5UZ2HX5N2YHWT7LADVVUYLYKYVTSJJX4VQ7KHCOE2NO72Y55DOKOE2GE42TOYMCLZWBPRLG24
-#\\\|MS4M4E37PIZRFHR2XKG6ICYBSD3FDQFIRRSY65XRJ6VNJ3BODKO \ / AMOS7 \ YOURUM ::
-#\[7]ANAUOVDUJKQA3W5NFPQPX6E27LQYLXXSM6G7WOAB3QTFEN434IAQ 7  DATA SIGNATURE ::
+#,,.,,.,,,,..,,,.,,.,,,..,.,.,,,,,.,,,,,,,.,,,..,,...,...,..,,.,.,,,.,..,,.,.,
+#PC6X3ZFS57OGC2N6UAVRDQMVXL5TFARRO7MLLNVVIZVLVRI6KKQZJHFLIICYU35CXHSSCV62EIABQ
+#\\\|2XI7Q6JSOQDNW3OWBSQ4EKRWNOOL5C5KQZH5YGAPUEEOZPPCQVQ \ / AMOS7 \ YOURUM ::
+#\[7]NF7FEDT4G4EEICIMUPAHMBCHL4HOUATLRJZSGJJBPHUCI7CWTIDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
