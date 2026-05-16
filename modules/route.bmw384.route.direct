@@ -1,6 +1,6 @@
 ## [:< ##
 
-# name  = base.bmw384.route.direct
+# name  = route.bmw384.route.direct
 # args  = $src_coord, $dst_coord, $src_name, $dst_name
 # descr = same-arc routing with angular proximity check
 
@@ -15,7 +15,7 @@ if ( not defined $src_coord or not defined $dst_coord ) {
     return undef;
 }
 
-my $hamming_dist = <[base.bmw384.route.hamming-dist]>->(
+my $hamming_dist = <[route.bmw384.route.hamming-dist]>->(
     $src_coord->{'angle_bits'},
     $dst_coord->{'angle_bits'}
 );
@@ -32,12 +32,12 @@ if ( $hamming_dist < $threshold ) {
 }
 
 # [ fall through ] to vortex for large angular separation within same arc
-return <[base.bmw384.route.vortex]>->(
+return <[route.bmw384.route.vortex]>->(
     $src_coord, $dst_coord, $src_name, $dst_name
 );
 
-#,,,.,,,,,.,,,.,.,,.,,.,.,..,,,,,,...,.,.,,,.,..,,...,..,,,..,,,.,..,,...,,..,
-#G4HBC7KBGEODGKIZG3BDASB7UMEWTGXHMGKZ5ZHNZDE53FW4YR36KBX6PXI3OIBDOBTMK7OND2UFE
-#\\\|KCNQ5NNWTICWIJ3T3LDMCCGBECVG3UTUCKSJLANTAHQYM5OODCS \ / AMOS7 \ YOURUM ::
-#\[7]KHACD7ZZCZ7HNE3O77KDDELYU4GY7VMLIWIZKNJ24VIDDLDK2QAQ 7  DATA SIGNATURE ::
+#,,,,,.,,,...,,,,,,.,,.,.,.,,,.,,,,.,,.,.,,.,,..,,...,..,,...,,,.,,,.,,,.,..,,
+#SEEET6FWXNGILYQXRV6SHO3IPVT6WAICGQR5J7CVRXVG7RM7JQZDKEXI5YDGVR6MNJM77NLNH2V6E
+#\\\|JTBP6LO6V2TFJXXCOHACFTLEFIEQOHH65G5LI3J7MQCZ3SIZYJV \ / AMOS7 \ YOURUM ::
+#\[7]5AKDCTDSO7RTBT3UYBGPEIJBSLC4KDYUIMNRFSMADOLVVCZ6DSAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,6 +1,6 @@
 ## [:< ##
 
-# name  = base.bmw384.cmd.find-route
+# name  = route.bmw384.cmd.find-route
 # descr = find bmw384 resonant route between two nodes
 
 my $args = $call->{'args'} // '';
@@ -16,7 +16,7 @@ if ( scalar @args < 2 ) {
 my $src_name = $args[0];
 my $dst_name = $args[1];
 
-my $result = <[base.bmw384.route.find]>->( $src_name, $dst_name );
+my $result = <[route.bmw384.route.find]>->( $src_name, $dst_name );
 
 if ( not defined $result ) {
     return {
@@ -43,8 +43,8 @@ my $output = sprintf "%s\nhops: %d  |  arcs: %s  |  resonant: %s",
 
 return { qw| mode | => qw| size |, qw| data | => $output };
 
-#,,.,,...,,.,,,.,,...,.,.,,,,,,,,,.,,,,..,..,,..,,...,..,,..,,,,.,...,..,,,,,,
-#L6MOYQTQKEPDMR6SEM2Y5HQKKPHATKNC6NLHHVOVY5DHLVLC3DGXSQQQ56BOBNW4WUKBG6RGDWCXG
-#\\\|3HJ4WKDOUFLJK46FBAJ56BTSNXLHBV4S4B64P62A7T7YK5F3EAG \ / AMOS7 \ YOURUM ::
-#\[7]N5P7VRMXTV4A3QDW5NQUVLBG6IF6336L5CCY2DDGIAJLGE5MLSCI 7  DATA SIGNATURE ::
+#,,.,,,.,,...,,.,,...,.,.,,.,,,,.,..,,...,,..,..,,...,...,...,,.,,.,,,,.,,,.,,
+#G43JEDODALKMNQOSXTCQ2WSXFQNO46QNGBK2Z2RA5LM7SLKS2YWLZA2BJBF3223YHV27KHDUN4UWS
+#\\\|KLL5YZNGAQF4Z3QOLBDKIQ6JTMBGORD67CETQUSUJZRQWHWDWJD \ / AMOS7 \ YOURUM ::
+#\[7]GPFVOVVL7X5U3S6BQUCA7SHUJMARTDYGVPG2PXTNXTDHTYUF5GCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
