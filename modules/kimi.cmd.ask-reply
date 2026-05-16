@@ -28,22 +28,38 @@ if ( $prompt =~ m{^[2-9A-Z]+$} ) {
 }
 
 if ($wants_next) {
-    ## create task entry before deferring ##
-    my $def_intake = <[kimi.intake.process]>->( { 'prompt' => $prompt } );
-    my $def_task_id
-        = $def_intake->{'success'} ? $def_intake->{'task_id'} : undef;
-
-    ## mark not-ready before storing deferred — prevents watcher firing early
-    <kimi.ws.status> = qw| connecting |;
-
-    ## store deferred prompt for post-reconnect dispatch
+    ## store deferred FIRST — before any calls that might trigger event loop
+    ## reset_and_reconnect processes WebSocket frames synchronously so the
+    ## watcher can fire before we return — deferred must already be present
     <kimi.next.deferred> = {
         'prompt'   => $prompt,
         'reply_id' => $call->{'reply_id'},
-        'task_id'  => $def_task_id
+        'task_id'  => undef,    ## task_id filled in below after intake
     };
-    ## trigger session reset + reconnect
+    <[base.logs]>->(
+        1, '[ask-reply] deferred pre-stored, prompt len=%d',
+        length($prompt)
+    );
+
+    ## mark not-ready before reset — cancels any in-flight reconnect timer
+    <kimi.ws.status> = qw| connecting |;
+
+    ## trigger session reset + reconnect — stamps for_session_id on deferred
     <[kimi.session.reset_and_reconnect]>;
+
+    <[base.logs]>->(
+        1,
+        '[ask-reply] after reset, deferred=%s status=%s',
+        defined <kimi.next.deferred> ? 'present' : 'GONE',
+        <kimi.ws.status> // 'undef'
+    );
+
+    ## create task entry after reset (won't trigger event loop)
+    my $def_intake = <[kimi.intake.process]>->( { 'prompt' => $prompt } );
+    if ( $def_intake->{'success'} and defined <kimi.next.deferred> ) {
+        <kimi.next.deferred>->{'task_id'} = $def_intake->{'task_id'};
+    }
+
     return { 'mode' => qw| deferred | };
 }
 
@@ -132,8 +148,8 @@ if ( defined $task_id ) {
 
 return { 'mode' => qw| deferred | };
 
-#,,,,,.,,,...,.,,,.,.,.,.,.,,,.,,,,,.,,..,,.,,.,.,...,...,.,.,.,.,,,.,,.,,.,.,
-#F7WMEWK6XAAGOQHCRWIC4W6PGFZLOIQRT7NVW25CYYJQEBINKBMIVTRQNLVOYU5ROOELOZT3NR2VY
-#\\\|7MV74V5FGLAN36X7GOT733AWZYTZRGQZQZPZ55QD3W2OAJLCYBK \ / AMOS7 \ YOURUM ::
-#\[7]QJLYWJR7DOCREA5C3IARE4DQ4V7REE4KH3JWEFVBRJKTE6WIIIDA 7  DATA SIGNATURE ::
+#,,,.,.,.,..,,.,.,.,,,,.,,,..,..,,...,..,,,,,,.,.,...,..,,.,.,,,,,,,.,,,.,..,,
+#L7KU4MQVH7V7F2UIDFK2EXS447HF2IPUP3KRI52GV6N7F4JXWZWPNRQHY3IVCZTTS5VJ5EQPZ3MP2
+#\\\|VK6GUY4QHC7ONXE6PHXH4ZU5XU7CER6I2MRGQEJ56APHULB6MGR \ / AMOS7 \ YOURUM ::
+#\[7]KDQOLP7QLML7ERZ2HVXK2FDM2NCR2CNHILHROWWBF6X6CWDH6WBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

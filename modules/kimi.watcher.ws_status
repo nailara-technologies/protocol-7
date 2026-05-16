@@ -24,6 +24,17 @@ if ( $new_status eq qw| disconnected | ) {
         <kimi.liveness.timer> = undef;
     }
 
+    ## drop session binding when the bound session is lost so a retry
+    ## to a fresh session can pick up the deferred prompt
+    if (    defined <kimi.next.deferred>
+        and defined <kimi.next.deferred>->{'for_session_id'} ) {
+        my $bound_id   = <kimi.next.deferred>->{'for_session_id'};
+        my $current_id = <kimi.session_id> // '';
+        if ( $current_id eq '' or $current_id ne $bound_id ) {
+            delete <kimi.next.deferred>->{'for_session_id'};
+        }
+    }
+
     ## schedule reconnect if work is pending or session was previously ready
     my $has_preserved_prompt = FALSE;
     for my $pend_id ( keys %{<kimi.wire.pending>} ) {
@@ -97,53 +108,85 @@ if ( $new_status eq qw| disconnected | ) {
 
     if ( $new_status eq qw| ready | ) {
 
+        <[base.logs]>->(
+            1,
+            ': watcher ready — checking deferred [ %s ]',
+            defined <kimi.next.deferred> ? 'present' : 'undef'
+        );
+
         ## dispatch deferred prompt
         if ( defined <kimi.next.deferred> ) {
-            my $def         = delete <kimi.next.deferred>;
-            my $def_task_id = $def->{'task_id'};
-            my $def_msg_id
-                = <[kimi.wire.prompt]>
-                ->( $def->{'prompt'}, $def->{'reply_id'} );
+            my $def = <kimi.next.deferred>;
 
-            if ( defined $def_msg_id ) {
-                if ( defined $def_task_id ) {
-                    <kimi.task.active_id> = $def_task_id;
-                    my $task = <kimi.task.queue>->{$def_task_id};
-                    if ( defined $task ) {
-                        $task->{'execution'}->{'status'} = qw| in_progress |;
-                        $task->{'execution'}->{'started'}
-                            = <[base.time]>->(3);
-                    }
-                    my $aref_pending = <kimi.task.pending> //= [];
-                    my $aref_active  = <kimi.task.active>  //= [];
-                    $aref_pending->@*
-                        = grep { $ARG ne $def_task_id } $aref_pending->@*;
-                    push $aref_active->@*, $def_task_id;
-                    <kimi.wire.pending>->{$def_msg_id}->{'task_id'}
-                        = $def_task_id;
-                    <kimi.wire.pending>->{$def_msg_id}->{'reply_id'}
-                        = $def->{'reply_id'};
-                }
-            } elsif ( defined $def_task_id ) {
+            <[base.logs]>->(
+                1,
+                ': deferred found [ for_session=%s current=%s ]',
+                $def->{'for_session_id'} // 'none',
+                <kimi.session_id> // 'none'
+            );
+
+            ## guard: old session became ready before new one —
+            ## do NOT consume deferred prompt
+            if ( defined $def->{'for_session_id'}
+                and ( <kimi.session_id> // '' ) ne $def->{'for_session_id'} )
+            {
                 <[base.logs]>->(
-                    0,
-                    ': deferred prompt failed for task %s — marking failed',
-                    $def_task_id
+                    1,
+                    ': ws_status ready on old session %s — '
+                        . 'holding deferred prompt for new session %s',
+                    <kimi.session_id> // 'none',
+                    $def->{'for_session_id'}
                 );
-                <kimi.task.active_id> = undef;
-                <[kimi.task.queue_fail]>->(
-                    $def_task_id, 'wire.prompt failed'
+            } else {
+                my $def         = delete <kimi.next.deferred>;
+                my $def_task_id = $def->{'task_id'};
+                my $def_msg_id  = <[kimi.wire.prompt]>->(
+                    $def->{'prompt'}, $def->{'reply_id'}
                 );
-                ## try next task
-                <[kimi.handler.dispatch_next_task]>;
-            }
+
+                if ( defined $def_msg_id ) {
+                    if ( defined $def_task_id ) {
+                        <kimi.task.active_id> = $def_task_id;
+                        my $task = <kimi.task.queue>->{$def_task_id};
+                        if ( defined $task ) {
+                            $task->{'execution'}->{'status'}
+                                = qw| in_progress |;
+                            $task->{'execution'}->{'started'}
+                                = <[base.time]>->(3);
+                        }
+                        my $aref_pending = <kimi.task.pending> //= [];
+                        my $aref_active  = <kimi.task.active>  //= [];
+                        $aref_pending->@*
+                            = grep { $ARG ne $def_task_id } $aref_pending->@*;
+                        push $aref_active->@*, $def_task_id;
+                        <kimi.wire.pending>->{$def_msg_id}->{'task_id'}
+                            = $def_task_id;
+                        <kimi.wire.pending>->{$def_msg_id}->{'reply_id'}
+                            = $def->{'reply_id'};
+                    }
+                } elsif ( defined $def_task_id ) {
+                    <[base.logs]>->(
+                        0,
+                        ': deferred prompt failed for task %s — marking failed',
+                        $def_task_id
+                    );
+                    <kimi.task.active_id> = undef;
+                    <[kimi.task.queue_fail]>->(
+                        $def_task_id, 'wire.prompt failed'
+                    );
+                    ## try next task
+                    <[kimi.handler.dispatch_next_task]>;
+                }
+            } ## end of guarded deferred dispatch
         }
 
         ## re-send in-flight prompt if connection dropped mid-turn
         ## kimi-web does not resume automatically after reconnect —
         ## find the preserved pending prompt and re-submit it
-        if ( not defined <kimi.next.deferred>
-            and defined <kimi.task.active_id> ) {
+        ## skip if we just dispatched a fresh deferred prompt above
+        if (    not defined <kimi.next.deferred>
+            and defined <kimi.task.active_id>
+            and ( <kimi.ws.status> // '' ) ne qw| busy | ) {
             my $active_id     = <kimi.task.active_id>;
             my $repend_msg_id = do {
                 my $found;
@@ -207,8 +250,8 @@ if ( $new_status eq qw| disconnected | ) {
 
 return TRUE;
 
-#,,,.,..,,,.,,.,,,,,,,.,,,,..,,..,,.,,.,.,,,.,..,,...,...,.,,,,,,,,,.,,,,,..,,
-#62TTUGRCZLUBGVAALSE6ZTYNBS4KV6IFCXG6RW4XNQBHTEAKY2AGUBHZMUFCVPLNBHIDSUDAUZOPI
-#\\\|SUUAJHGUW2VAEJH35QMW2BDAO5N4HV5JXZPNX7CLOAJJHYUOWMN \ / AMOS7 \ YOURUM ::
-#\[7]TY67RAVH5YM2JQEXDSE5DKCNYDUJWTSIBLYU2ZKR5EYIT5E33YCI 7  DATA SIGNATURE ::
+#,,,.,..,,.,,,,.,,.,,,...,,.,,,,,,,.,,,.,,..,,..,,...,...,,,.,,..,...,,,.,.,,,
+#4ZOHRUZCNKQLRY2XQCISUE2WJWIJNQM5KAIZSSQXXGJSPRL73ERBCZ67KJZXMKVHGJYBDC6U3A3II
+#\\\|VY3OHXXFCUC2XN3EVMHWQIKPCW6XXJLW3EJHWJXIK2WMHBFDCXF \ / AMOS7 \ YOURUM ::
+#\[7]RDOIGPZS7IHFGYFS2NUSDS4I7RVMI4QKZWKHUIATSPYW2RHLMEBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
