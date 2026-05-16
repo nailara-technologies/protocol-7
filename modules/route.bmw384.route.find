@@ -1,6 +1,6 @@
 ## [:< ##
 
-# name  = base.bmw384.route.find
+# name  = route.bmw384.route.find
 # args  = $src_name, $dst_name
 # descr = main entry point for bmw384 geometric route discovery
 
@@ -12,8 +12,8 @@ if ( not defined $src_name or not defined $dst_name ) {
     return undef;
 }
 
-my $src_coord = <[base.bmw384.index.lookup]>->($src_name);
-my $dst_coord = <[base.bmw384.index.lookup]>->($dst_name);
+my $src_coord = <[route.bmw384.index.lookup]>->($src_name);
+my $dst_coord = <[route.bmw384.index.lookup]>->($dst_name);
 
 if ( not defined $src_coord ) {
     <[base.logs]>->(
@@ -31,19 +31,19 @@ if ( not defined $dst_coord ) {
 
 my $result;
 if ( $src_coord->{'arc'} == $dst_coord->{'arc'} ) {
-    $result = <[base.bmw384.route.direct]>->(
+    $result = <[route.bmw384.route.direct]>->(
         $src_coord, $dst_coord, $src_name, $dst_name
     );
 } else {
-    $result = <[base.bmw384.route.vortex]>->(
+    $result = <[route.bmw384.route.vortex]>->(
         $src_coord, $dst_coord, $src_name, $dst_name
     );
 }
 
 return $result;
 
-#,,,.,,,,,,,,,,..,.,.,.,.,.,.,..,,,.,,,.,,.,,,..,,...,...,...,.,.,.,,,,,.,,.,,
-#ATC6DRVATCDNGNR6276U2QSDLCCWYTNS6CNJQ7YW6X3ZDAJEGPF36P5CK5EPKWZUQW55NAHYHR6SO
-#\\\|W4KNU6MBFM4XYD67Z7E6QEZ5V6GXWTGLZKNJE6QTJMPOO4U6AQN \ / AMOS7 \ YOURUM ::
-#\[7]3QHRNDJPVHTYCEL7P2RYNSKUTLKDVCPQTE2ASWAN7SRXM7CKBADA 7  DATA SIGNATURE ::
+#,,.,,..,,,.,,..,,..,,..,,..,,.,,,,,.,,,,,.,,,..,,...,...,..,,,..,.,.,...,.,.,
+#6Z27UYJNCHXO5VZKO5SYXEUE77DX2TX6GZP23FMGBOO34IJYMTPULJGE2MPNBX3WE7WMVWTCIRSSS
+#\\\|FWTID5OOXIU52OXDHY7LHOHV67TLEE7JDGHE2RISDUS3WCKZXO6 \ / AMOS7 \ YOURUM ::
+#\[7]3UBRMRAR4SQJZIH6CZDT4754LH6QGHMCZ5YU2FGJDHDUQWPX6SAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
