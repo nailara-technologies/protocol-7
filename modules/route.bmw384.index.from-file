@@ -12,7 +12,7 @@ if ( not defined $filepath or not length $filepath or not -f $filepath ) {
 }
 
 # [ read file content ]
-my $content = <[base.file.read]>->( $filepath, qw| :raw | );
+my $content = <[file.read]>->( $filepath );
 if ( not defined $content ) {
     <[base.logs]>->( 1, 'unable to read file: %s <{C1}>', $filepath );
     return undef;
@@ -95,8 +95,8 @@ return {
     qw| digest_len | => length($raw_digest),
 };
 
-#,,,,,,,.,,,,,,.,,...,,,.,,,,,.,.,,.,,,,,,,..,..,,...,..,,.,.,,..,.,.,,,,,..,,
-#IUG72JXV4557VUJICWJ6OTWEZMJ6TR7AXU65DUHLJM4VIQ4Z4OMCE4BT35SFWQDRGHU7OPM2KSKQQ
-#\\\|XJYNHQOF3CMLBGX3R52A5XILWJ3NLSXC5JQ45XDDAU2XDHKDVQP \ / AMOS7 \ YOURUM ::
-#\[7]R4XGHS7ZSUSZMAV6UUC3PFEGPV3NPBYZEZ5OFMARPAEABCQ7AUAA 7  DATA SIGNATURE ::
+#,,.,,,,,,,,.,,.,,..,,,.,,,..,.,.,,,.,,,,,..,,..,,...,..,,.,.,,,,,..,,..,,.,,,
+#D7XTV7CT3QIVMVFUJQC2IJAOEO2YHXRAZIQ4ZRMSKUFV7EF6LVYMEXNUKSAYYLQWAEHPZQX7KT6LY
+#\\\|2BFBYDDD6JXYL4MEXXTWDHCAVZGFWBNQMOTASFWEAUJNBXTJKZK \ / AMOS7 \ YOURUM ::
+#\[7]4L4ARCS3JB2LOOCOUFWVY6VKDKVEO3TH6ONV25GBZKLNPVVOEKCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
