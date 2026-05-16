@@ -79,8 +79,13 @@
 ## System Status
 
 ### Next Steps (immediate)
-- **route.bmw384 testing**: load into a zenka, register nodes, run find-route + visual-wheel
-- **jobsite BMW384 dedup**: dispatch bmw384-arc-grouping-filter.md to kimi once route.bmw384 verified
+- **iris logo overlay**: embed nailara_logo.trans-dark.png at SVG center void (400,400)
+  via `<image>` element — iris disc as living logo background
+- **logo recreation**: opus-level model needed; original XCF lost ~2003; PNG at
+  data/gfx/logos/nailara_logo.trans-dark.png — recreate at 4K+ scale when budget allows
+- **jobsite BMW384 dedup**: dispatch bmw384-arc-grouping-filter.md to kimi
+- **route.bmw384 find-route testing**: register nodes, run find-route + verify-coordinate
+- **kimi.task-file :next: dispatch**: now working — variable watcher fix confirmed
 - **profile.txt** at /var/protocol-7/jobs/profile.txt — CV/skills for LLM scoring
 - **multi-page search** — stepstone 25/page; cfg.max_pages per category
 - **orphan re-queue** — re-create tasks for jobs stuck in 'assessing' after restart
@@ -88,6 +93,13 @@
 - active deps execution (requires list in task dispatcher)
 - think-block stripping — `<think>...</think>` from Kimi/Deepseek leaks into output
 - task.cmd.start — task zenka step 3
+
+### BMW384 Iris — Future Directions
+- **animated**: auto-refresh as modules are signed, live topology monitor
+- **interactive**: click node → highlight color-radius neighbors, show routing candidates
+- **route arcs**: find-route result drawn as arc across wheel, color-coded by resonance
+- **namespace layers**: separate rings per namespace (base.*, kimi.*, jobsite.*) — layer boundaries visible
+- **favicon/header**: 26-ring iris at thumbnail scale as live system-state favicon
 
 ### Planned / Future
 - **HTTP sync** — /api/jobs/sync httpd endpoint, C25519-signed YAML; see [job-pipeline](topic-job-pipeline.md)
@@ -108,8 +120,8 @@
 - **repo var/ cleanup** — `var/httpd/` tracked from Nov 2025 AI error
 - **kimi auto-approval regression** (Apr 16) — some tool calls not auto-approved during kimi tasks
 
-#,,..,..,,.,,,.,.,,..,,,,,,,.,,..,.,,,..,,...,..,,...,...,,,.,,..,..,,.,.,.,.,
-#5J2DSFN3F5JTHEJQ4AWVCFIADI6VLVQ57CLTAGVGJ6Y57I57JFIRCTOA3DHNLEUVI2EFIG7272354
-#\\\|53M4WCFYI5L5O7VDNJD7NOZB5V23NWBVURDM7UAAY2LDG3ALL3B \ / AMOS7 \ YOURUM ::
-#\[7]KBZUMMJTPBJZR74LA537ARDP3Y2PCH4ILWEMY42R6QTPMR6CFABY 7  DATA SIGNATURE ::
+#,,.,,,.,,..,,..,,.,.,..,,...,...,,,,,,,,,,,.,..,,...,...,,..,,.,,.,.,..,,,,,,
+#BGMANKS2T723LU2PB3I5VCUDAO6GBZTDQ56UDPMLCIMVPSWNSTFF352YPXEZEKF6VD2JMNY55KCEU
+#\\\|JGOYNDS7E46B2ZWTFWMT7VZRB3ASEMFZIMAAQKH6ZY2CLXY2DXC \ / AMOS7 \ YOURUM ::
+#\[7]GW3ROD6E6A4DRLLCDWT2SEA3P7QAFJLHY67D3ZJUAWAK63EYMMCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
