@@ -34,7 +34,7 @@
 - [field-coherence-synthesis](topic-field-coherence-synthesis.md) — bridges all topology docs
 - [creative-field-behaviour](topic-creative-field-behaviour.md) — emergent cooperative field dynamics, purring field, zenki as entropy subsystem
 - [addressing-trinity](topic-addressing-trinity.md) — named tree + checksums + timestamps as orthogonal trinity
-- [checksum-addressing](topic-checksum-addressing.md) — AMOS checksums as universal routing primitive
+- [checksum-addressing](topic-checksum-addressing.md) — AMOS checksums, BMW384 geometry, route.bmw384.* implementation
 - [node-group-geometry](topic-node-group-geometry.md) — exact geometry: 8×(4×4×4-1=63) cubes, void derivation
 - [style-philosophy](style-philosophy.md) — coding as artform, style-as-function; give to LLMs before structural work
 
@@ -79,7 +79,8 @@
 ## System Status
 
 ### Next Steps (immediate)
-- **first-run**: `p7c v7.restart cube` → write profile.txt → `p7c job-site-scan.scan`
+- **route.bmw384 testing**: load into a zenka, register nodes, run find-route + visual-wheel
+- **jobsite BMW384 dedup**: dispatch bmw384-arc-grouping-filter.md to kimi once route.bmw384 verified
 - **profile.txt** at /var/protocol-7/jobs/profile.txt — CV/skills for LLM scoring
 - **multi-page search** — stepstone 25/page; cfg.max_pages per category
 - **orphan re-queue** — re-create tasks for jobs stuck in 'assessing' after restart
@@ -107,8 +108,8 @@
 - **repo var/ cleanup** — `var/httpd/` tracked from Nov 2025 AI error
 - **kimi auto-approval regression** (Apr 16) — some tool calls not auto-approved during kimi tasks
 
-#,,.,,,..,,..,,,.,...,,,.,.,.,,..,,,.,,,.,...,..,,...,..,,,..,,.,,,..,..,,,.,,
-#YWJJORE5JD5DC2UNBACM6R7TF64NL7CIQPASEXKX5GH4HM3GIQRLRVVCXRSZ7363ZA7PKDN6GDJ7O
-#\\\|YTN4KEKZ7ZP2U7HFDMLBNYCPVRVJMBCU2MLSXLH3JEZP5YVGXTF \ / AMOS7 \ YOURUM ::
-#\[7]Q4YS4PHDSGNLA726SXRVB6PBOU4R5W2WJNAIKZ777RC7TIJQG6DI 7  DATA SIGNATURE ::
+#,,..,..,,.,,,.,.,,..,,,,,,,.,,..,.,,,..,,...,..,,...,...,,,.,,..,..,,.,.,.,.,
+#5J2DSFN3F5JTHEJQ4AWVCFIADI6VLVQ57CLTAGVGJ6Y57I57JFIRCTOA3DHNLEUVI2EFIG7272354
+#\\\|53M4WCFYI5L5O7VDNJD7NOZB5V23NWBVURDM7UAAY2LDG3ALL3B \ / AMOS7 \ YOURUM ::
+#\[7]KBZUMMJTPBJZR74LA537ARDP3Y2PCH4ILWEMY42R6QTPMR6CFABY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
