@@ -27,9 +27,9 @@ $svg
     . "\n";
 $svg .= '  <rect width="800" height="800" fill="#0a0a0f"/>' . "\n";
 
-# [ arc spokes ]
+# [ arc spokes — counterclockwise ]
 for my $ARG ( 0 .. 25 ) {
-    my $angle_deg = $ARG * $segment_deg;
+    my $angle_deg = -$ARG * $segment_deg;
     my $rad       = $angle_deg * $PI / 180;
     my $x2        = 400 + 360 * sin($rad);
     my $y2        = 400 - 360 * cos($rad);
@@ -39,9 +39,9 @@ for my $ARG ( 0 .. 25 ) {
         . "\n", $x2, $y2;
 }
 
-# [ arc labels ]
+# [ arc labels — counterclockwise ]
 for my $ARG ( 0 .. 25 ) {
-    my $angle_deg = $ARG * $segment_deg;
+    my $angle_deg = -$ARG * $segment_deg;
     my $rad       = $angle_deg * $PI / 180;
     my $x         = 400 + 350 * sin($rad);
     my $y         = 400 - 350 * cos($rad);
@@ -63,17 +63,17 @@ for my $ARG (@sorted_names) {
     my $colocated_index = $drawn_index{$key} // 0;
     $drawn_index{$key} = $colocated_index + 1;
 
-    my $arc_start_deg = $coord->{'arc'} * $segment_deg;
+    my $arc_start_deg = -$coord->{'arc'} * $segment_deg;
     my $within_arc_frac
         = ( $coord->{'color'} / $segment_width )
         - int( $coord->{'color'} / $segment_width );
-    my $angle_deg = $arc_start_deg + $within_arc_frac * $segment_deg;
+    my $angle_deg = $arc_start_deg - $within_arc_frac * $segment_deg;
     my $rad       = $angle_deg * $PI / 180;
 
     my $x = 400 + 320 * sin($rad);
     my $y = 400 - 320 * cos($rad);
 
-    my $hue       = ( int( $coord->{'color'} / 16777216 * 360 ) + 180 ) % 360;
+    my $hue       = ( 180 - int( $coord->{'color'} / 16777216 * 360 ) ) % 360;
     my $color_hex = sprintf 'hsl(%d,90%%,60%%)', $hue;
     my $r         = 4 + ( $colocated_index * 3 );
 
@@ -98,8 +98,8 @@ $svg .= '</svg>' . "\n";
 
 return $svg;
 
-#,,,,,,,,,,.,,,.,,,,,,,..,.,.,,,.,.,,,.,.,...,..,,...,...,...,.,,,.,.,.,,,..,,
-#ICP55EREMLKSUNV4W653TLXXE6K7TIG2QKAHHGJERHYM3O2HCZYGFLMI3ZXUOARHG5AMKYH7IEPR4
-#\\\|WV6CJNRQ2ZV37Q5UOBFF5RYLFSHZEBLEANBIF6NGIHS6PBOGMVZ \ / AMOS7 \ YOURUM ::
-#\[7]Q2PUQERXMZCQDJSRXL6AUK7AJ2XDW6PY6U7PKPK7LNJ2OU6TWYCY 7  DATA SIGNATURE ::
+#,,..,...,,,,,,,,,,,,,,..,.,.,,,.,,.,,.,.,,..,..,,...,...,,..,,,.,,,.,,.,,...,
+#XTBV575QOEXJ6AFFBDMCV6H5527KPOCBHGTXHGE5AVSWA2WBYTFEEONPSMYLUALDR26Q552FV447K
+#\\\|SE4KVVMJMYZDM4Q7CDIDN52A3NEL2PW6JWK7EG2XEU3LBHUIV2M \ / AMOS7 \ YOURUM ::
+#\[7]HOFHBS46CBY5KW4VFS27GCGPFQKER2ZECRLEM6BQ2Z4VFF3W4ADA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
