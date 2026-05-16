@@ -1,0 +1,170 @@
+## [:< ##
+
+# name  = route.bmw384.visual.wheel.density
+# descr = BMW384 wheel — ring thickness proportional to node density per band
+
+return undef if not defined <bmw384.index>;
+
+my $by_name = <bmw384.index>->{'by_name'};
+my @names   = keys %$by_name;
+
+# [ parameters ]
+my $rings          = <route.bmw384.cfg.rings>                  // 26;
+my $ring_hue_drift = <route.bmw384.cfg.ring_hue_drift>         // 14;
+my $ring_label_adv = <route.bmw384.cfg.ring_label_advance>     // 1;
+my $outer_radius   = <route.bmw384.cfg.outer_radius>           // 320;
+my $ring_blue_tint = <route.bmw384.cfg.ring_blue_tint>         // 0.6;
+my $base_thickness = <route.bmw384.cfg.density_base_thickness> // 8;
+my $inner_clamp    = 30;
+
+my $PI            = 3.14159265358979;
+my $segment_deg   = 360 / 26;
+my $band_width    = 16777216 / $rings;
+my $segment_width = $band_width;         # within-band angular fraction
+
+# [ count nodes per color band ]
+my @band_count = (0) x $rings;
+for my $ARG (@names) {
+    my $color = $by_name->{$ARG}{'color'};
+    my $band  = int( $color / $band_width );
+    $band = $rings - 1 if $band >= $rings;
+    $band_count[$band]++;
+}
+my $max_band = 1;
+for my $ARG (@band_count) { $max_band = $ARG if $ARG > $max_band; }
+
+# [ compute per-ring radius from variable thickness, outer → inner ]
+my @ring_outer;
+my @ring_inner;
+my $cur_r = $outer_radius;
+for my $ring ( 0 .. $rings - 1 ) {
+    $ring_outer[$ring] = $cur_r;
+    my $t = $base_thickness * ( $band_count[$ring] / $max_band );
+    $t = 2 if $t < 2;
+    my $next_r = $cur_r - $t;
+    $next_r            = $inner_clamp if $next_r < $inner_clamp;
+    $ring_inner[$ring] = $next_r;
+    $cur_r             = $next_r;
+    last if $cur_r <= $inner_clamp;
+}
+
+# [ co-location count ]
+my %coord_count;
+for my $ARG (@names) {
+    my $coord = $by_name->{$ARG};
+    my $key   = join( ':', $coord->{'color'}, $coord->{'arc'} );
+    $coord_count{$key}++;
+}
+
+my $svg = '<?xml version="1.0" encoding="UTF-8"?>' . "\n";
+$svg .= '<svg xmlns="http://www.w3.org/2000/svg"'
+    . ' viewBox="0 0 800 800" width="800" height="800">' . "\n";
+$svg .= '  <rect width="800" height="800" fill="#0a0a0f"/>' . "\n";
+
+# [ ring boundary circles ]
+for my $ring ( 0 .. $rings - 1 ) {
+    last unless defined $ring_outer[$ring];
+    my $op = sprintf '%.2f', 0.04 * ( 0.9**$ring );
+    $svg
+        .= sprintf '  <circle cx="400" cy="400" r="%.1f" fill="none"'
+        . ' stroke="rgba(255,255,255,%s)" stroke-width="1"/>'
+        . "\n", $ring_outer[$ring], $op;
+}
+
+# [ arc spokes ]
+for my $ARG ( 0 .. 25 ) {
+    my $angle_deg = -$ARG * $segment_deg;
+    my $rad       = $angle_deg * $PI / 180;
+    my $x2        = 400 + ( $outer_radius + 5 ) * sin($rad);
+    my $y2        = 400 - ( $outer_radius + 5 ) * cos($rad);
+    $svg
+        .= sprintf '  <line x1="400" y1="400" x2="%.2f" y2="%.2f"'
+        . ' stroke="rgba(255,255,255,0.06)" stroke-width="1"/>'
+        . "\n", $x2, $y2;
+}
+
+# [ arc labels ]
+for my $ring ( 0 .. $rings - 1 ) {
+    last unless defined $ring_outer[$ring];
+    my $label_offset = $ring * $ring_label_adv;
+    my $lop = sprintf '%.2f', 0.25 * ( 0.8**$ring );
+    $lop = 0.05 if $lop < 0.05;
+    my $label_r = $ring_outer[$ring] + 10;
+
+    for my $ARG ( 0 .. 25 ) {
+        my $angle_deg = -$ARG * $segment_deg;
+        my $rad       = $angle_deg * $PI / 180;
+        my $x         = 400 + $label_r * sin($rad);
+        my $y         = 400 - $label_r * cos($rad);
+        my $label     = chr( ord('A') + ( $ARG + $label_offset ) % 26 );
+        $svg
+            .= sprintf
+            '  <text x="%.2f" y="%.2f" fill="rgba(255,255,255,%s)"'
+            . ' font-size="7" text-anchor="middle"'
+            . ' dominant-baseline="middle">%s</text>'
+            . "\n", $x, $y, $lop, $label;
+    }
+}
+
+# [ nodes — each band rendered at its variable-radius ring ]
+my @sorted_names = sort @names;
+my %drawn_index;
+
+for my $ARG (@sorted_names) {
+    my $coord = $by_name->{$ARG};
+    my $color = $coord->{'color'};
+    my $band  = int( $color / $band_width );
+    $band = $rings - 1 if $band >= $rings;
+    last unless defined $ring_outer[$band];
+
+    my $key             = join( ':', $color, $coord->{'arc'} );
+    my $colocated_index = $drawn_index{$key} // 0;
+    $drawn_index{$key} = $colocated_index + 1;
+
+    # [ radius = midpoint of band ring ]
+    my $radius = ( $ring_outer[$band] + $ring_inner[$band] ) / 2;
+
+    my $arc_start_deg = -$coord->{'arc'} * $segment_deg;
+    my $within_arc_frac
+        = ( $color / $segment_width ) - int( $color / $segment_width );
+    my $angle_deg = $arc_start_deg - $within_arc_frac * $segment_deg;
+    my $rad       = $angle_deg * $PI / 180;
+
+    my $x = 400 + $radius * sin($rad);
+    my $y = 400 - $radius * cos($rad);
+
+    my $hue_offset = $band * $ring_hue_drift;
+    my $blue_blend
+        = $rings > 1 ? ( $band / ( $rings - 1 ) ) * $ring_blue_tint : 0;
+    my $base_hue
+        = ( 180 - int( $color / 16777216 * 360 ) + $hue_offset ) % 360;
+    my $hue
+        = int( $base_hue * ( 1 - $blue_blend ) + 220 * $blue_blend ) % 360;
+
+    my $opacity = sprintf '%.2f', 0.8 * ( $band_count[$band] / $max_band );
+    $opacity = '0.20' if $opacity < 0.20;
+    my $color_hex = sprintf 'hsl(%d,90%%,60%%)', $hue;
+    my $r = 2 + $colocated_index;
+
+    my $coord_str = sprintf '%s:%06X', $coord->{'segment_label'}, $color;
+    $svg
+        .= sprintf
+        '  <circle cx="%.2f" cy="%.2f" r="%d" fill="%s" opacity="%s">' . "\n",
+        $x, $y, $r, $color_hex, $opacity;
+    $svg .= sprintf '    <title>%s — %s  band=%d n=%d</title>' . "\n",
+        $ARG, $coord_str, $band, $band_count[$band];
+    $svg .= '  </circle>' . "\n";
+}
+
+# [ center void ]
+$svg .= '  <circle cx="400" cy="400" r="24" fill="none"'
+    . ' stroke="rgba(255,255,255,0.12)" stroke-width="1"/>' . "\n";
+$svg .= '</svg>' . "\n";
+
+return $svg;
+
+#,,.,,,..,,..,...,,,.,,,,,,..,,,.,,,,,.,.,.,.,..,,...,.,.,,.,,..,,,,.,..,,...,
+#7HHTAI22YH4DPBUPG6MBOXTCLK5II7XNM6SWC4KIASJT3F4KJ3KTSV6IKS4RD3WBSRQDSCQCYLDGE
+#\\\|2UAHN63WLM5FXFS7RFMNFHFRI3EAXAA6GO4NXT6TCF4QY4OUWGG \ / AMOS7 \ YOURUM ::
+#\[7]FK32C6LPHRHJQ7PLO6ZFCUKZSXP5J3YDJ2RQNFSNDWCOV3HK44BI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

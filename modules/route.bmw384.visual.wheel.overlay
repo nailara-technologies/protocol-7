@@ -1,0 +1,160 @@
+## [:< ##
+
+# name  = route.bmw384.visual.wheel.overlay
+# descr = BMW384 wheel — namespace layers as translucent hue-tinted passes
+
+return undef if not defined <bmw384.index>;
+
+my $by_name = <bmw384.index>->{'by_name'};
+my @names   = keys %$by_name;
+
+# [ parameters ]
+my $rings            = <route.bmw384.cfg.rings>              // 1;
+my $ring_hue_drift   = <route.bmw384.cfg.ring_hue_drift>     // 14;
+my $ring_label_adv   = <route.bmw384.cfg.ring_label_advance> // 1;
+my $ring_radius_step = <route.bmw384.cfg.ring_radius_step>   // 11;
+my $outer_radius     = <route.bmw384.cfg.outer_radius>       // 320;
+my $overlay_ns_cfg   = <route.bmw384.cfg.overlay_namespaces>
+    // 'base,kimi,jobsite,route';
+
+my @ns_list = split m{,}, $overlay_ns_cfg;
+@ns_list = map  {s{\s+}{}gr} @ns_list;
+@ns_list = grep { length $_ } @ns_list;
+@ns_list = ('base') unless @ns_list;
+
+# [ hue shift per namespace — evenly spaced ]
+my @ns_hue;
+for my $ARG ( 0 .. $#ns_list ) {
+    $ns_hue[$ARG] = int( $ARG * 360 / scalar @ns_list );
+}
+
+# [ co-location count — global ]
+my %coord_count;
+for my $ARG (@names) {
+    my $coord = $by_name->{$ARG};
+    my $key   = join( ':', $coord->{'color'}, $coord->{'arc'} );
+    $coord_count{$key}++;
+}
+
+my $PI            = 3.14159265358979;
+my $segment_deg   = 360 / 26;
+my $segment_width = 16777216 / 26;
+
+my $svg = '<?xml version="1.0" encoding="UTF-8"?>' . "\n";
+$svg .= '<svg xmlns="http://www.w3.org/2000/svg"'
+    . ' viewBox="0 0 800 800" width="800" height="800">' . "\n";
+$svg .= '  <rect width="800" height="800" fill="#0a0a0f"/>' . "\n";
+
+# [ arc spokes ]
+for my $ARG ( 0 .. 25 ) {
+    my $angle_deg = -$ARG * $segment_deg;
+    my $rad       = $angle_deg * $PI / 180;
+    my $x2        = 400 + 360 * sin($rad);
+    my $y2        = 400 - 360 * cos($rad);
+    $svg
+        .= sprintf '  <line x1="400" y1="400" x2="%.2f" y2="%.2f"'
+        . ' stroke="rgba(255,255,255,0.05)" stroke-width="1"/>'
+        . "\n", $x2, $y2;
+}
+
+# [ arc labels — outermost ring only ]
+{
+    my $label_radius  = $outer_radius + 12;
+    my $label_opacity = '0.25';
+    for my $ARG ( 0 .. 25 ) {
+        my $angle_deg = -$ARG * $segment_deg;
+        my $rad       = $angle_deg * $PI / 180;
+        my $x         = 400 + $label_radius * sin($rad);
+        my $y         = 400 - $label_radius * cos($rad);
+        my $label     = chr( ord('A') + $ARG );
+        $svg
+            .= sprintf
+            '  <text x="%.2f" y="%.2f" fill="rgba(255,255,255,%s)"'
+            . ' font-size="9" text-anchor="middle"'
+            . ' dominant-baseline="middle">%s</text>'
+            . "\n", $x, $y, $label_opacity, $label;
+    }
+}
+
+# [ namespace overlay passes ]
+for my $ns_idx ( 0 .. $#ns_list ) {
+    my $prefix   = $ns_list[$ns_idx];
+    my $hue_base = $ns_hue[$ns_idx];
+
+    my @ns_names = grep { index( $_, $prefix ) == 0 } @names;
+    next unless @ns_names;
+
+    my @sorted = sort @ns_names;
+
+    for my $ring ( 0 .. $rings - 1 ) {
+        my $radius      = $outer_radius - $ring * $ring_radius_step;
+        my $node_base_r = 4 - int( $ring / 3 );
+        $node_base_r = 2 if $node_base_r < 2;
+
+        my %drawn_index;
+
+        for my $ARG (@sorted) {
+            my $coord = $by_name->{$ARG};
+            my $key   = join( ':', $coord->{'color'}, $coord->{'arc'} );
+
+            my $colocated_index = $drawn_index{$key} // 0;
+            $drawn_index{$key} = $colocated_index + 1;
+
+            my $arc_start_deg = -$coord->{'arc'} * $segment_deg;
+            my $within_arc_frac
+                = ( $coord->{'color'} / $segment_width )
+                - int( $coord->{'color'} / $segment_width );
+            my $angle_deg = $arc_start_deg - $within_arc_frac * $segment_deg;
+            my $rad       = $angle_deg * $PI / 180;
+
+            my $x = 400 + $radius * sin($rad);
+            my $y = 400 - $radius * cos($rad);
+
+            # [ hue from color with namespace hue shift ]
+            my $hue
+                = (
+                180 - int( $coord->{'color'} / 16777216 * 360 ) + $hue_base )
+                % 360;
+            my $color_hex = sprintf 'hsl(%d,85%%,60%%)', $hue;
+            my $r = $node_base_r + ( $colocated_index * 2 );
+
+            $svg
+                .= sprintf '  <circle cx="%.2f" cy="%.2f" r="%d"'
+                . ' fill="%s" opacity="0.45">'
+                . "\n", $x, $y, $r, $color_hex;
+            $svg .= sprintf '    <title>[%s] %s</title>' . "\n",
+                $prefix, $ARG;
+            $svg .= '  </circle>' . "\n";
+        }
+    }
+}
+
+# [ center void ]
+$svg .= '  <circle cx="400" cy="400" r="24" fill="none"'
+    . ' stroke="rgba(255,255,255,0.15)" stroke-width="1"/>' . "\n";
+
+# [ namespace legend ]
+my $legend_x = 20;
+for my $ARG ( 0 .. $#ns_list ) {
+    my $hue = $ns_hue[$ARG];
+    my $lbl = $ns_list[$ARG];
+    $svg
+        .= sprintf '  <circle cx="%d" cy="780" r="5"'
+        . ' fill="hsl(%d,85%%,60%%)" opacity="0.8"/>'
+        . "\n", $legend_x + 5, $hue;
+    $svg
+        .= sprintf '  <text x="%d" y="784" fill="rgba(255,255,255,0.5)"'
+        . ' font-size="9" dominant-baseline="middle">%s</text>'
+        . "\n", $legend_x + 14, $lbl;
+    $legend_x += 20 + length($lbl) * 6;
+}
+
+$svg .= '</svg>' . "\n";
+
+return $svg;
+
+#,,.,,...,,,,,.,,,,..,.,.,,,.,..,,,..,.,,,,..,..,,...,...,,..,.,,,.,,,,.,,,..,
+#J66CLCVAQV5NNCSWRC6O5MESKCRRKHSEO6ZVQNUBHBIDWRNFMN3DRBND7GVGMR3S7CXBQQMO2WB2Y
+#\\\|YDIPMCDVFGWR4I3ZNE3OJVMMWSDWQAXHCXOVCVX35YQA74L7YYG \ / AMOS7 \ YOURUM ::
+#\[7]F4PM5ALVABFQBEFHOKVS45ML7IBA4DW5HP47CX6S3JZMBYD2TIAY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,0 +1,187 @@
+## [:< ##
+
+# name  = route.bmw384.visual.wheel.metric
+# descr = BMW384 wheel — 4 rings each driven by a different checksum dimension
+
+return undef if not defined <bmw384.index>;
+
+my $by_name = <bmw384.index>->{'by_name'};
+my @names   = keys %$by_name;
+
+# [ parameters ]
+my $ring_radius_step = <route.bmw384.cfg.ring_radius_step> // 14;
+my $outer_radius     = <route.bmw384.cfg.outer_radius>     // 320;
+
+my $PI            = 3.14159265358979;
+my $segment_deg   = 360 / 26;
+my $segment_width = 16777216 / 26;
+
+# [ metric ring definitions ]
+# ring 0: stored coordinate (content BMW384)
+# ring 1: name BMW384
+# ring 2: parent namespace BMW384  (strip last .element)
+# ring 3: grandparent namespace BMW384
+
+my @ring_labels = ( 'content', 'name', 'parent', 'grandparent' );
+my $num_rings   = 4;
+
+# [ precompute name/parent/grandparent coordinates ]
+my %name_coord;
+my %parent_coord;
+my %grand_coord;
+
+for my $ARG (@names) {
+    my $nc = <[chk-sum.bmw384.coordinate]>->($ARG);
+    $name_coord{$ARG} = $nc if defined $nc;
+
+    ( my $parent = $ARG ) =~ s{\.[^.]+$}{};
+    if ( $parent ne $ARG ) {
+        my $pc = <[chk-sum.bmw384.coordinate]>->($parent);
+        $parent_coord{$ARG} = $pc if defined $pc;
+
+        ( my $grand = $parent ) =~ s{\.[^.]+$}{};
+        if ( $grand ne $parent ) {
+            my $gc = <[chk-sum.bmw384.coordinate]>->($grand);
+            $grand_coord{$ARG} = $gc if defined $gc;
+        }
+    }
+}
+
+# [ co-location count — global ]
+my %coord_count;
+for my $ARG (@names) {
+    my $coord = $by_name->{$ARG};
+    my $key   = join( ':', $coord->{'color'}, $coord->{'arc'} );
+    $coord_count{$key}++;
+}
+
+my $svg = '<?xml version="1.0" encoding="UTF-8"?>' . "\n";
+$svg .= '<svg xmlns="http://www.w3.org/2000/svg"'
+    . ' viewBox="0 0 800 800" width="800" height="800">' . "\n";
+$svg .= '  <rect width="800" height="800" fill="#0a0a0f"/>' . "\n";
+
+# [ arc spokes ]
+for my $ARG ( 0 .. 25 ) {
+    my $angle_deg = -$ARG * $segment_deg;
+    my $rad       = $angle_deg * $PI / 180;
+    my $x2        = 400 + ( $outer_radius + 20 ) * sin($rad);
+    my $y2        = 400 - ( $outer_radius + 20 ) * cos($rad);
+    $svg
+        .= sprintf '  <line x1="400" y1="400" x2="%.2f" y2="%.2f"'
+        . ' stroke="rgba(255,255,255,0.06)" stroke-width="1"/>'
+        . "\n", $x2, $y2;
+}
+
+# [ arc labels ]
+my $label_r = $outer_radius + 18;
+for my $ARG ( 0 .. 25 ) {
+    my $angle_deg = -$ARG * $segment_deg;
+    my $rad       = $angle_deg * $PI / 180;
+    my $x         = 400 + $label_r * sin($rad);
+    my $y         = 400 - $label_r * cos($rad);
+    my $label     = chr( ord('A') + $ARG );
+    $svg
+        .= sprintf '  <text x="%.2f" y="%.2f" fill="rgba(255,255,255,0.25)"'
+        . ' font-size="9" text-anchor="middle"'
+        . ' dominant-baseline="middle">%s</text>'
+        . "\n", $x, $y, $label;
+}
+
+# [ ring separator circles ]
+for my $ring ( 0 .. $num_rings ) {
+    my $r = $outer_radius - $ring * $ring_radius_step;
+    next if $r < 20;
+    $svg
+        .= sprintf '  <circle cx="400" cy="400" r="%.1f" fill="none"'
+        . ' stroke="rgba(255,255,255,0.04)" stroke-width="1"/>'
+        . "\n", $r;
+}
+
+# [ per-ring node rendering ]
+for my $ring ( 0 .. $num_rings - 1 ) {
+    my $radius  = $outer_radius - $ring * $ring_radius_step;
+    my $opacity = sprintf '%.2f', 0.75 * ( 0.8**$ring );
+
+    # [ hue tint per metric dimension ]
+    my $dim_hue = $ring * 90;    # 0°, 90°, 180°, 270°
+
+    my %drawn_index;
+    my @sorted = sort @names;
+
+    for my $ARG (@sorted) {
+
+        # [ select coordinate based on ring ]
+        my $coord;
+        if    ( $ring == 0 ) { $coord = $by_name->{$ARG} }
+        elsif ( $ring == 1 ) { $coord = $name_coord{$ARG} }
+        elsif ( $ring == 2 ) { $coord = $parent_coord{$ARG} }
+        elsif ( $ring == 3 ) { $coord = $grand_coord{$ARG} }
+        next unless defined $coord;
+
+        my $key             = join( ':', $coord->{'color'}, $coord->{'arc'} );
+        my $colocated_index = $drawn_index{$key} // 0;
+        $drawn_index{$key} = $colocated_index + 1;
+
+        my $arc_start_deg = -$coord->{'arc'} * $segment_deg;
+        my $within_arc_frac
+            = ( $coord->{'color'} / $segment_width )
+            - int( $coord->{'color'} / $segment_width );
+        my $angle_deg = $arc_start_deg - $within_arc_frac * $segment_deg;
+        my $rad       = $angle_deg * $PI / 180;
+
+        my $x = 400 + $radius * sin($rad);
+        my $y = 400 - $radius * cos($rad);
+
+        # [ coherence check: does name arc match content arc? ]
+        my $content_arc = $by_name->{$ARG}{'arc'} // -1;
+        my $this_arc    = $coord->{'arc'};
+        my $coherent    = ( $this_arc == $content_arc ) ? 1 : 0;
+
+        # [ hue from coordinate color, tinted by dimension ]
+        my $base_hue
+            = ( 180 - int( $coord->{'color'} / 16777216 * 360 ) ) % 360;
+        my $hue       = ( $base_hue + $dim_hue ) % 360;
+        my $lightness = $coherent ? 65 : 40;    # coherent nodes brighter
+        my $color_hex = sprintf 'hsl(%d,85%%,%d%%)', $hue, $lightness;
+
+        my $r = 3 + $colocated_index * 2;
+        $r = 2 if $r < 2;
+
+        $svg
+            .= sprintf
+            '  <circle cx="%.2f" cy="%.2f" r="%d" fill="%s" opacity="%s">'
+            . "\n", $x, $y, $r, $color_hex, $opacity;
+        $svg .= sprintf '    <title>%s [%s]%s</title>' . "\n",
+            $ARG, $ring_labels[$ring], ( $coherent ? ' coherent' : '' );
+        $svg .= '  </circle>' . "\n";
+    }
+}
+
+# [ center void ]
+$svg .= '  <circle cx="400" cy="400" r="24" fill="none"'
+    . ' stroke="rgba(255,255,255,0.15)" stroke-width="1"/>' . "\n";
+
+# [ legend ]
+my $lx = 20;
+for my $ARG ( 0 .. $num_rings - 1 ) {
+    my $hue = $ARG * 90;
+    $svg
+        .= sprintf '  <circle cx="%d" cy="780" r="5"'
+        . ' fill="hsl(%d,85%%,55%%)" opacity="0.8"/>'
+        . "\n", $lx + 5, $hue;
+    $svg
+        .= sprintf '  <text x="%d" y="784" fill="rgba(255,255,255,0.5)"'
+        . ' font-size="9" dominant-baseline="middle">%s</text>'
+        . "\n", $lx + 14, $ring_labels[$ARG];
+    $lx += 70;
+}
+
+$svg .= '</svg>' . "\n";
+
+return $svg;
+
+#,,,.,,.,,,,,,,,,,,..,.,,,,.,,.,,,.,.,.,,,.,,,..,,...,..,,.,.,,,.,,..,.,,,.,.,
+#CCF7BM5OWSSPFLKWCTIA3XE3F7S5MYDJBQO2LU4JSPD56QAKYRO6N3WYDKJSOYGK4THFRNHQE45BA
+#\\\|CDNJCSDU4QZOLAMNIBLPGT33T3KNFWD6YLSNPRPDAX3ZS7LTZDY \ / AMOS7 \ YOURUM ::
+#\[7]K7JIBB5ZQKFRHKPFPMSO6VIAUWN6A36SIW4XWUCDQJYGONQZQIBQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
