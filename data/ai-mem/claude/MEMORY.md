@@ -18,6 +18,8 @@
 - [radio-relay-zenka](topic-radio-relay-zenka.md) — radio COMPLETE; phase 5 (buffer-fill curve) next
 - [vhost-install](topic-vhost-install.md) — space.v7.ax live; open items remain
 - [cursor-model](topic-cursor-model.md) — true cursor from hyperspace plane density; next: remove wireframe cube, queue glow task
+- [iris-spoke-labels](topic-iris-spoke-labels.md) — 63-ring spoke sequence: A-Z · dot-fold · Z-A · 9-0 · BASE32/binary bottom; protocol=visual vision
+- [stream-framing-protocol](topic-stream-framing-protocol.md) — 3+1 bit frame, separator inversion on 000, expanding assertion window, dot=0 comma=1
 
 ## Vision / Design Topics
 - [project-vision-origin](project-vision-origin.md) — 24-year foundational vision, threshold reached Apr 2026
@@ -32,6 +34,7 @@
 - [hyperspace-topology](topic-hyperspace-topology.md) — closed observer loop, sensor cube 3D grid; doc at data/md/development/HYPERSPACE-TOPOLOGY.md
 - [punctuation-topology](topic-punctuation-topology.md) — `:` as group boundary, `.` as element separator; doc at data/md/development/PUNCTUATION-TOPOLOGY.md
 - [field-coherence-synthesis](topic-field-coherence-synthesis.md) — bridges all topology docs
+- [field-capability-emergence](topic-field-capability-emergence.md) — protocol vs external management; feature completeness + complementary behavior → native network capability
 - [creative-field-behaviour](topic-creative-field-behaviour.md) — emergent cooperative field dynamics, purring field, zenki as entropy subsystem
 - [addressing-trinity](topic-addressing-trinity.md) — named tree + checksums + timestamps as orthogonal trinity
 - [checksum-addressing](topic-checksum-addressing.md) — AMOS checksums, BMW384 geometry, route.bmw384.* implementation
@@ -79,6 +82,8 @@
 ## System Status
 
 ### Next Steps (immediate)
+- **:::: litter row**: encode 15-bit zenka involvement bitmap in signature footer line 4
+- **iris 63-ring labels**: implement A-Z · `.` at 27 · Z-A · 9-0 label sequence
 - **iris logo overlay**: embed nailara_logo.trans-dark.png at SVG center void (400,400)
   via `<image>` element — iris disc as living logo background
 - **logo recreation**: opus-level model needed; original XCF lost ~2003; PNG at
@@ -120,8 +125,8 @@
 - **repo var/ cleanup** — `var/httpd/` tracked from Nov 2025 AI error
 - **kimi auto-approval regression** (Apr 16) — some tool calls not auto-approved during kimi tasks
 
-#,,.,,,.,,..,,..,,.,.,..,,...,...,,,,,,,,,,,.,..,,...,...,,..,,.,,.,.,..,,,,,,
-#BGMANKS2T723LU2PB3I5VCUDAO6GBZTDQ56UDPMLCIMVPSWNSTFF352YPXEZEKF6VD2JMNY55KCEU
-#\\\|JGOYNDS7E46B2ZWTFWMT7VZRB3ASEMFZIMAAQKH6ZY2CLXY2DXC \ / AMOS7 \ YOURUM ::
-#\[7]GW3ROD6E6A4DRLLCDWT2SEA3P7QAFJLHY67D3ZJUAWAK63EYMMCI 7  DATA SIGNATURE ::
+#,,.,,.,.,.,.,,,,,,,,,,,.,,..,.,,,...,.,,,,..,..,,...,...,...,,..,,,.,,..,,..,
+#UNIKFZD2ILGZ5AXZGKXE4KJEYZUDAJLVROJNFUCKATFK4MHH6RFVKKXI7CUCSCS324IV2KBXMGZ5M
+#\\\|UJDJQYYHYB6MNDT75BBRH4BZUEKXIJFUYZKOUVGZCEGBL6DEBP7 \ / AMOS7 \ YOURUM ::
+#\[7]LWNIKITOK6YUFWEFIAMZBW6JIEWZ2FGXXVMSCZJWGTM3REIFMIAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
