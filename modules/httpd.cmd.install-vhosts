@@ -7,7 +7,9 @@
 my $args_str = $call->{'args'} // '';
 my $target_hostname;
 my $force_install = FALSE;
+my $skip_cert     = FALSE;
 $force_install   = TRUE if $args_str =~ s|\s*:force:\s*||i;
+$skip_cert       = TRUE if $args_str =~ s{\s*:noc(?:ert|ssl):\s*}{}i;
 $target_hostname = $1   if $args_str =~ m|^\s*([a-zA-Z0-9\.\-]+)\s*$|;
 
 my $hostnames = <[httpd.vhost.read_manifests]>;
@@ -178,10 +180,13 @@ foreach my $hostname (@$hostnames) {
 
     ## step 4: request TLS cert if needed ##
     my $cert_status = qw| none |;
-    if (    exists $manifest->{'tls'}
+    if (    not $skip_cert
+        and exists $manifest->{'tls'}
         and $manifest->{'tls'}
         and $manifest->{'tls'} =~ m{^(yes|1|true)$}i ) {
         $cert_status = <[httpd.vhost.request_tls_cert]>->($hostname);
+    } elsif ($skip_cert) {
+        $cert_status = qw| skipped |;
     }
 
     ## step 5: register installed vhost ##
@@ -236,8 +241,8 @@ return {
     'summary' => $result_summary
 };
 
-#,,..,...,..,,.,.,...,..,,.,.,.,.,,.,,,,.,..,,..,,...,...,.,,,,,,,,,,,...,,..,
-#YU43WOXULSGJGINWDLJZUILMRWI37SGMC3UWRXTL4NOAZKQPKTMOGWKLIFRHZJFOTK3A3Y43B2MJY
-#\\\|BGXLADN4SGJQN57MTCFZBVGLYT7S7M4XHCWUAU4OFVOMQWZ65C4 \ / AMOS7 \ YOURUM ::
-#\[7]BDIELIXRI7CDATVHK2KRA7SYLE5SLX7YKRIILTI3SWKJIURABMDY 7  DATA SIGNATURE ::
+#,,..,.,,,,,.,.,,,,,.,,..,,..,,,.,,.,,,..,..,,..,,...,...,.,.,,.,,.,,,.,,,,.,,
+#S6D6XIYZWIVFZJJ67SHM5QZQBJAM7RJ6JKIR562JHHJLEXRGJOJ5KLT56LI5EHPKIJAHDMCV75QQ4
+#\\\|P2JERUM5AVQF243NYCOIXLJLIEWXXNTGRMLMBIAMGJB5AZRPYH2 \ / AMOS7 \ YOURUM ::
+#\[7]SEDGVONTDC6M7VMWCII6OHSKUJWX2ON4ZH3GCXL443ATDGBF56BQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
