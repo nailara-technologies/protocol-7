@@ -4,6 +4,41 @@ description: Architectural vision — the deduplicated namespace tree IS the int
 type: project
 originSessionId: 941ef93c-3dcf-4d15-8c40-ccd709e0510b
 ---
+## Normalized dot-namespace as universal routing primitive (May 2026)
+
+**Canonical form**: dot-only notation, no mixed separators, no filesystem artifacts.
+- `modules/base.init_code` → `code.base.init_code` (when modules/ renamed to code/)
+- `configuration/zenki/cube/access.zenki` → `conf.zenki.cube.access.zenki`
+- `data/tasks/bmw384-route-discovery` → `data.tasks.bmw384-route-discovery`
+
+**Planned directory renames**: `modules/` → `code/`, `configuration/` → `conf/`
+— both map cleanly to dot-only notation without ambiguity.
+
+**Hybrid flat+directory form with precedence**:
+- flat file `code/base.chk-sum.init_code` takes precedence over
+  directory tree `code/base/chk-sum/init_code` when both exist
+- files supersede directories silently — flat is the more intentional form
+- already planned; precedence rule makes the implicit behavior explicit
+
+**Namespace as checksum chain — bidirectional routing**:
+- each dot-element gets its own BMW384 coordinate, computed incrementally:
+  `code` → BMW384("code"), `code.base` → BMW384("code.base"),
+  `code.base.init_code` → BMW384("code.base.init_code")
+- parent and child coordinates are geometrically related by construction —
+  siblings share ancestry, cousins share partial ancestry
+- the namespace tree maps onto a coherent field topology where structural
+  proximity implies coordinate proximity
+- **forward**: traverse dot-elements left to right → arrive at leaf coordinate
+- **backward**: given a BMW384 coordinate → find arc → find namespace prefix
+  candidates → narrow by angle → arrive at module name
+- discovery and naming are the same operation traversed in opposite directions
+
+**Storage-layout independence**:
+- BMW384 coordinate computed from normalized dot-path, not filesystem path
+- renaming `modules/` → `code/` does NOT change any module's coordinate
+- the dot-namespace IS the address; the filesystem is one possible backing store
+- routing identity is stable across filesystem reorganizations
+
 ## Implementation Note (2026-05-07)
 
 `valued.*` modules are the universal tree primitive — not task-specific.
@@ -219,8 +254,8 @@ The tree unifies the currently separate concepts:
 
 One namespace, one summarization engine, one access protocol.
 
-#,,..,..,,,.,,.,.,,..,...,.,.,...,,,.,...,...,..,,...,...,,.,,,,,,,..,.,.,.,.,
-#X4DIX3BQYA6XQNKT7QH7PD56FB6XLJA64CJ3WEY6OBL45XMYUOGJ3ASKUFOF7IHQABQEDMG3YVPMS
-#\\\|5WFGN44FUZPL6AOWUL6BNZPZRBM2PPP6JYAEB5HDEBRLNMCRFKO \ / AMOS7 \ YOURUM ::
-#\[7]N5MXGLS54SIDNEBHJKBXOGSKP5QWV3STKXRQS4OOIBHAXU3LDEBI 7  DATA SIGNATURE ::
+#,,,,,,,.,,,,,,,,,,,,,,..,,,,,,,,,,..,,.,,,,.,..,,...,...,..,,.,.,.,,,.,.,,..,
+#BXCCAJTISTIA7GPYRFUWAFS2SNVMXH7DCPBIQUJQEOV4BBFRJQ66STNF7JDRHGN7EK3D4JAE3XJZU
+#\\\|PFIVNHXCKO7P5FUGIBMF677H5IHDNLAXQLZLXF2KY5UNOAHMZUI \ / AMOS7 \ YOURUM ::
+#\[7]IPXNYHO2ZZFWJRNITR4PV54BFLT2ESJGBNVR263B5MT4IARQD4CI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
