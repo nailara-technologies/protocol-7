@@ -3,6 +3,25 @@
 # name  = kimi.session.reset_and_reconnect
 # descr = lightweight session reset : tear down, create fresh session, reconnect
 
+## cancel all reconnect / retry / liveness timers before teardown
+## prevents old session from resurrecting itself mid-reset
+if ( defined <kimi.reconnect.timer> ) {
+    <kimi.reconnect.timer>->cancel
+        if <kimi.reconnect.timer>->is_active;
+    <kimi.reconnect.timer> = undef;
+}
+if ( defined <kimi.init.retry_timer> ) {
+    <kimi.init.retry_timer>->cancel
+        if <kimi.init.retry_timer>->is_active;
+    <kimi.init.retry_timer> = undef;
+}
+if ( defined <kimi.liveness.timer> ) {
+    <kimi.liveness.timer>->cancel
+        if <kimi.liveness.timer>->is_active;
+    <kimi.liveness.timer> = undef;
+}
+<kimi.session.was_ready> = FALSE;
+
 ## tear down websocket if connected
 if (<kimi.ws.connected>) {
     if ( defined <kimi.ws.io_watcher> ) {
@@ -30,10 +49,17 @@ if ( not defined $new_session_id ) {
         0, 'kimi.session.reset_and_reconnect: session create failed'
     );
     <kimi.ws.status> = qw| disconnected |;
+    delete <kimi.next.deferred>->{'for_session_id'}
+        if defined <kimi.next.deferred>;
     return;
 }
 
 <kimi.session_id> = $new_session_id;
+
+## lock deferred prompt to this new session so an old session
+## that becomes ready first cannot consume it
+<kimi.next.deferred>->{'for_session_id'} = <kimi.session_id>
+    if defined <kimi.next.deferred>;
 
 ## websocket connect
 my $ws_url = sprintf( '%s/api/sessions/%s/stream',
@@ -49,6 +75,8 @@ if ( not defined $sock ) {
     );
     <kimi.ws.status>  = qw| disconnected |;
     <kimi.session_id> = undef;
+    delete <kimi.next.deferred>->{'for_session_id'}
+        if defined <kimi.next.deferred>;
     return;
 }
 
@@ -79,8 +107,8 @@ if ( not defined $sock ) {
 
 <[base.logs]>->( 1, ': session reset complete — awaiting ready' );
 
-#,,,,,,,.,,,.,.,,,,,,,.,,,...,,,.,.,.,,,,,,.,,.,.,...,...,..,,.,.,,,.,,,.,,,,,
-#ENT6GOJAUX4JPKCSHMOZ7QWQXSVWOB4S2AGBOBTTCFKKR6DFZTEZCR7V534A3GT632QCQGIYRQDRM
-#\\\|7DPUX7GTGKWX637FHF7QGLURZTNBGXYGK7ZHDBNNFON67FC5MKC \ / AMOS7 \ YOURUM ::
-#\[7]45MOJZAKLRA6ELZLAJ6FI6AXWJ3GSM6BSERYIHV7MSZXMYUP7ACA 7  DATA SIGNATURE ::
+#,,.,,,..,,..,..,,...,...,.,.,,,,,,..,..,,,,,,.,.,...,..,,.,,,.,,,,..,,..,.,.,
+#56G7JD2RSHMAYSPX4VIJ4LYVN5BDIUXHLQK75WCEURKTVLHY3ZITXI7ELIZV63DW4CHI5ZDA4Q3KQ
+#\\\|LD2MYI4LHJHCGHXWUMEKZZX2CVYMC3DM3GCNKY3JWN6DSR3V23R \ / AMOS7 \ YOURUM ::
+#\[7]4JRXR7VAWVVTJD7AAI6B32KJFRGSYOO6FCLRB236EOOKJD4SASCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

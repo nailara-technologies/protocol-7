@@ -195,9 +195,10 @@ if ( $method eq qw| event | ) {
             <kimi.wire.accumulator> = '';
         }
 
-        ## status change triggers watcher — dispatches next task if any
+        ## status change — call watcher directly (no recursive var watcher in IO cb)
         <kimi.ws.status>         = qw| ready |;
         <kimi.session.was_ready> = TRUE;
+        <[kimi.watcher.ws_status]>;
         return;
     }
 
@@ -273,9 +274,11 @@ if ( not length($method) and length($msg_id) ) {
                 <[base.logs]>->( 2, 'kimi: reconnected — status ready' );
             }
 
-            ## status change triggers watcher — dispatches deferred + next task
+            ## status change — call watcher directly since variable watchers
+            ## do not fire recursively from within IO event callbacks
             <kimi.ws.status>         = qw| ready |;
             <kimi.session.was_ready> = TRUE;
+            <[kimi.watcher.ws_status]>;
         } else {
             my $err = $msg->{'error'}{'message'} // 'unknown';
             ## log at level 2 for expected "agent turn in progress" retries
@@ -327,8 +330,8 @@ if ( not length($method) and length($msg_id) ) {
     }
 }
 
-#,,,.,,.,,,.,,..,,.,,,,,,,,..,..,,,.,,,.,,...,.,.,...,...,,..,,..,,.,,.,.,,.,,
-#C5QC6RKOQKZ4NRZULZBMBOH4T6VYZQA6IJXGL2U3276KGDECNWWQYD552OQEOSP2Y5VQUOOTIXOHK
-#\\\|AEJAZCYDS2T5K5BVXU7M6ZFOEXHVPU7J7WXO35LXKELSOSNL6G5 \ / AMOS7 \ YOURUM ::
-#\[7]WCPE4AHGS7BIYREUQQ3GQTM3JFZIEQG4LQJLZMQRF6B5ABH6V4AI 7  DATA SIGNATURE ::
+#,,,.,.,.,,,,,,,.,...,,.,,...,,..,,,.,,,,,.,,,.,.,...,...,.,.,,..,.,,,,,,,.,,,
+#NMWLLRAF55KDW2F5TURGGZZKHEO7QIX5LL7N47ZTNZHYJIARWQWCLOXJXEIUKIO4A7V7NDP5RKXFK
+#\\\|RUXDPX2QF7F56BJ2AXIIJ2PFGO4CWYQWSH5H6YAF5VEZQUU4QNW \ / AMOS7 \ YOURUM ::
+#\[7]OVW632VTF5BS7MO3ZFUG2ONH2STOGSXEIGGKEB7JMDCUFDTPAKBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
