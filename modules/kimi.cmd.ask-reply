@@ -103,6 +103,13 @@ my $msg_id = <[kimi.wire.prompt]>->( $prompt, $reply_id );
 
 unless ( defined $msg_id ) {
     ## roll back task state on prompt failure ##
+    <[base.logs]>->(
+        0,
+        '[ask-reply] wire.prompt failed [ reply_id=%s task=%s status=%s ]',
+        $reply_id // 'none',
+        $task_id  // 'none',
+        <kimi.ws.status>
+    );
     if ( defined $task_id ) {
         <kimi.task.active_id> = undef;
         <[kimi.task.queue_fail]>->( $task_id, 'wire.prompt failed' );
@@ -122,8 +129,8 @@ if ( defined $task_id ) {
 
 return { 'mode' => qw| deferred | };
 
-#,,..,,.,,...,,,.,,..,..,,,,,,,,,,.,.,..,,.,,,.,.,...,..,,,.,,..,,...,.,.,,.,,
-#66BHG5LWS77YSFPVF56YLVQUUUK73QWUTC7Q67O7KX6VP7FXBCLLQ7OTKRJHCY3LAINVGWYNM54R6
-#\\\|KDVZVEO4QV5RGB7UYOH7GR7STIOVXSOKV2SFKPSTAYMTPQ2SOAN \ / AMOS7 \ YOURUM ::
-#\[7]G5GCVHTIFFLTT7DYVMSFN2XR3JFTBDZM4CQAIJIIM2N62ZBKIIBI 7  DATA SIGNATURE ::
+#,,..,.,,,,,,,.,,,...,,..,,,.,...,,,,,,,.,...,.,.,...,...,,.,,,,.,...,.,.,...,
+#BUWPKLBXPNJ3X47IZDUDASB6MUEBBRHJMPPBIVT4VM2A25CRCN43WC5WQ5GYDWWQG3BKVNMZTABGO
+#\\\|Z4QND6GKIUPZSVSYGTKWXZVCUPVRDLNGRSGDVFSSWJEUIY5G6UJ \ / AMOS7 \ YOURUM ::
+#\[7]HDB4MSDHLZJJGE3Y6VMF4RSATJHTGPG4WFIQBNSPXUMAK3JFAECQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
