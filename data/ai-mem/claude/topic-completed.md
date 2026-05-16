@@ -1,5 +1,28 @@
 # Completed Work Sessions
 
+## session 26 — BMW384 field geometry + jobsite fix + kimi.task-file (2026-05-16)
+
+- **jobsite dispatch fix**: `dispatch.assessments` skip guard changed from
+  `exists <jobsite.tasks>->{$job_id}` to stage-aware check — idle-stage tasks
+  (reset from aborted runs) now re-queued. Fixed 26 stuck jobs.
+- **BMW384 primitives**: `AMOS7::CHKSUM::BMW384` — color/angle/distance/arc/group/
+  coordinate extraction. `base.chk-sum.bmw384.*` zenka wrappers + init_code.
+- **route.bmw384.***: field index (register/lookup/arc/radius/neighbor/stats),
+  vortex route discovery (hamming-dist, direct, vortex, find), SVG visual wheel.
+  Namespace: `base.chk-sum.bmw384.*` for raw ops, `route.bmw384.*` for field geometry.
+- **kimi.cmd.task-file**: new command — reads task file from disk, dispatches to
+  ask-reply. `:next:` handled internally via new-session call. Returns deferred.
+  `kimi.task-file :next: data/tasks/foo.md` is the correct invocation.
+- **kimi ask-reply**: `<kimi.last.result>` set on TurnEnd, moved to
+  `<kimi.result.previous>` on new prompt dispatch.
+- **BMW384 geometry insights captured**: 360÷26=13.̄846153̄ (complement of generator),
+  5/13=0.384615 (T=5/Tau), spiral trunk, cake-arc mapping, CCW radar spoke temporal
+  sync, cycle-agreement traffic geometry, network-as-computer, node-group grid
+  self-awareness, 5-of-7 consensus/litter config. All in memory files.
+- **task files written**: bmw384-color-extract, bmw384-node-coordinate,
+  bmw384-field-index, bmw384-route-discovery, bmw384-visual-wheel, 
+  bmw384-arc-grouping-filter (jobsite dedup via BMW384 branch colors)
+
 ## session 25 — httpd route registry + jobs UI (2026-05-15)
 
 - **httpd route registry**: `configuration/zenki/httpd/routes` config file,
@@ -510,8 +533,8 @@ Skip calling harmonize_payload_line_feed when both conditions are met:
 - Signatures now properly formatted with correct separator endline
 - Pre-commit validation passes
 
-#,,,.,.,,,,.,,.,,,.,.,,,.,,,.,,,.,,,.,,,.,.,,,..,,...,...,.,.,,,,,..,,,.,,,.,,
-#4YT5EMBUEGVCVB22B2LKVXF3FFN3OLD3AAWDR63KWNLGB43OGG3DVJASXVAETYWPEBWBRXTII2WLU
-#\\\|5REXZQMJ4D234YJ7E35K2UDUAPKZ3LLJ5JDJXBVVA755NTFCM4G \ / AMOS7 \ YOURUM ::
-#\[7]3VZVFHTMOQE33PVJLOCJQRT6K5SA2JCVUMEFVTDX3UYZDHVJY6BA 7  DATA SIGNATURE ::
+#,,,,,,..,...,,.,,,,.,.,.,,..,,..,..,,,.,,...,..,,...,...,..,,,,,,,..,...,..,,
+#KEXB5VBFUEEN7H4BTU4SWSIZOWZMW6MLUYVI3X5POXXGAOLHYW32ZNPEPYBP45KZUEISKEPF6AQZQ
+#\\\|YQVIHFH6FRYXZBDCLW2US3MMSLSSCHCTGTDTRJHDHTCJ7D4IETU \ / AMOS7 \ YOURUM ::
+#\[7]52ZOSRQ37HRFI3Q23ONFVCMLBT2IJQG4CFZ5HYY5ZIIUW66KVUDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
