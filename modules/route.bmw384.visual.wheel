@@ -8,6 +8,13 @@ return undef if not defined <bmw384.index>;
 my $by_name = <bmw384.index>->{'by_name'};
 my @names   = keys %$by_name;
 
+# [ parameters ]
+my $rings            = <route.bmw384.cfg.rings>              // 1;
+my $ring_hue_drift   = <route.bmw384.cfg.ring_hue_drift>     // 14;
+my $ring_label_adv   = <route.bmw384.cfg.ring_label_advance> // 1;
+my $ring_radius_step = <route.bmw384.cfg.ring_radius_step>   // 40;
+my $outer_radius     = <route.bmw384.cfg.outer_radius>       // 320;
+
 # [ co-location ] count nodes per coordinate key
 my %coord_count;
 for my $ARG (@names) {
@@ -22,9 +29,8 @@ my $segment_deg   = 360 / 26;
 my $segment_width = 16777216 / 26;
 
 my $svg = '<?xml version="1.0" encoding="UTF-8"?>' . "\n";
-$svg
-    .= '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 800" width="800" height="800">'
-    . "\n";
+$svg .= '<svg xmlns="http://www.w3.org/2000/svg"'
+    . ' viewBox="0 0 800 800" width="800" height="800">' . "\n";
 $svg .= '  <rect width="800" height="800" fill="#0a0a0f"/>' . "\n";
 
 # [ arc spokes — counterclockwise ]
@@ -34,72 +40,94 @@ for my $ARG ( 0 .. 25 ) {
     my $x2        = 400 + 360 * sin($rad);
     my $y2        = 400 - 360 * cos($rad);
     $svg
-        .= sprintf
-        '  <line x1="400" y1="400" x2="%.2f" y2="%.2f" stroke="rgba(255,255,255,0.08)" stroke-width="1"/>'
+        .= sprintf '  <line x1="400" y1="400" x2="%.2f" y2="%.2f"'
+        . ' stroke="rgba(255,255,255,0.08)" stroke-width="1"/>'
         . "\n", $x2, $y2;
 }
 
-# [ arc labels — counterclockwise ]
-for my $ARG ( 0 .. 25 ) {
-    my $angle_deg = -$ARG * $segment_deg;
-    my $rad       = $angle_deg * $PI / 180;
-    my $x         = 400 + 350 * sin($rad);
-    my $y         = 400 - 350 * cos($rad);
-    my $label     = chr( ord('A') + $ARG );
-    $svg
-        .= sprintf
-        '  <text x="%.2f" y="%.2f" fill="rgba(255,255,255,0.3)" font-size="10" text-anchor="middle" dominant-baseline="middle">%s</text>'
-        . "\n", $x, $y, $label;
+# [ arc labels — counterclockwise, per ring ]
+for my $ring ( 0 .. $rings - 1 ) {
+    my $radius        = $outer_radius - $ring * $ring_radius_step;
+    my $label_offset  = $ring * $ring_label_adv;
+    my $label_opacity = sprintf( '%.2f', 0.3 * ( 0.75**$ring ) );
+    $label_opacity = 0.05 if $label_opacity < 0.05;
+    my $label_font_size = 10 - $ring;
+    $label_font_size = 7 if $label_font_size < 7;
+    my $label_radius = $radius + 12;
+
+    for my $ARG ( 0 .. 25 ) {
+        my $angle_deg = -$ARG * $segment_deg;
+        my $rad       = $angle_deg * $PI / 180;
+        my $x         = 400 + $label_radius * sin($rad);
+        my $y         = 400 - $label_radius * cos($rad);
+        my $label     = chr( ord('A') + ( $ARG + $label_offset ) % 26 );
+        $svg
+            .= sprintf
+            '  <text x="%.2f" y="%.2f" fill="rgba(255,255,255,%s)"'
+            . ' font-size="%d" text-anchor="middle"'
+            . ' dominant-baseline="middle">%s</text>'
+            . "\n", $x, $y, $label_opacity, $label_font_size, $label;
+    }
 }
 
-# [ nodes ] concentric rings for co-located coordinates
-my %drawn_index;
-my @sorted_names = sort @names;
+# [ nodes ] concentric rings for co-located coordinates, per ring
+for my $ring ( 0 .. $rings - 1 ) {
+    my $radius      = $outer_radius - $ring * $ring_radius_step;
+    my $hue_offset  = $ring * $ring_hue_drift;
+    my $opacity     = sprintf( '%.2f', 0.85 * ( 0.75**$ring ) );
+    my $node_base_r = 4 - int( $ring / 3 );
+    $node_base_r = 2 if $node_base_r < 2;
 
-for my $ARG (@sorted_names) {
-    my $coord = $by_name->{$ARG};
-    my $key   = join( ':', $coord->{'color'}, $coord->{'arc'} );
+    my %drawn_index;
+    my @sorted_names = sort @names;
 
-    my $colocated_index = $drawn_index{$key} // 0;
-    $drawn_index{$key} = $colocated_index + 1;
+    for my $ARG (@sorted_names) {
+        my $coord = $by_name->{$ARG};
+        my $key   = join( ':', $coord->{'color'}, $coord->{'arc'} );
 
-    my $arc_start_deg = -$coord->{'arc'} * $segment_deg;
-    my $within_arc_frac
-        = ( $coord->{'color'} / $segment_width )
-        - int( $coord->{'color'} / $segment_width );
-    my $angle_deg = $arc_start_deg - $within_arc_frac * $segment_deg;
-    my $rad       = $angle_deg * $PI / 180;
+        my $colocated_index = $drawn_index{$key} // 0;
+        $drawn_index{$key} = $colocated_index + 1;
 
-    my $x = 400 + 320 * sin($rad);
-    my $y = 400 - 320 * cos($rad);
+        my $arc_start_deg = -$coord->{'arc'} * $segment_deg;
+        my $within_arc_frac
+            = ( $coord->{'color'} / $segment_width )
+            - int( $coord->{'color'} / $segment_width );
+        my $angle_deg = $arc_start_deg - $within_arc_frac * $segment_deg;
+        my $rad       = $angle_deg * $PI / 180;
 
-    my $hue       = ( 180 - int( $coord->{'color'} / 16777216 * 360 ) ) % 360;
-    my $color_hex = sprintf 'hsl(%d,90%%,60%%)', $hue;
-    my $r         = 4 + ( $colocated_index * 3 );
+        my $x = 400 + $radius * sin($rad);
+        my $y = 400 - $radius * cos($rad);
 
-    my $coord_str = sprintf '%s:%06X:%s',
-        $coord->{'segment_label'},
-        $coord->{'color'},
-        substr( $coord->{'angle_bits'}, 0, 16 );
+        my $hue
+            = (
+            180 - int( $coord->{'color'} / 16777216 * 360 ) - $hue_offset )
+            % 360;
+        my $color_hex = sprintf 'hsl(%d,90%%,60%%)', $hue;
+        my $r = $node_base_r + ( $colocated_index * 2 );
 
-    $svg
-        .= sprintf
-        '  <circle cx="%.2f" cy="%.2f" r="%d" fill="%s" opacity="0.85">'
-        . "\n", $x, $y, $r, $color_hex;
-    $svg .= sprintf '    <title>%s — %s</title>' . "\n", $ARG, $coord_str;
-    $svg .= '  </circle>' . "\n";
+        my $coord_str = sprintf '%s:%06X:%s',
+            $coord->{'segment_label'},
+            $coord->{'color'},
+            substr( $coord->{'angle_bits'}, 0, 16 );
+
+        $svg
+            .= sprintf
+            '  <circle cx="%.2f" cy="%.2f" r="%d" fill="%s" opacity="%s">'
+            . "\n", $x, $y, $r, $color_hex, $opacity;
+        $svg .= sprintf '    <title>%s — %s</title>' . "\n", $ARG, $coord_str;
+        $svg .= '  </circle>' . "\n";
+    }
 }
 
 # [ center void ]
-$svg
-    .= '  <circle cx="400" cy="400" r="24" fill="none" stroke="rgba(255,255,255,0.15)" stroke-width="1"/>'
-    . "\n";
+$svg .= '  <circle cx="400" cy="400" r="24" fill="none"'
+    . ' stroke="rgba(255,255,255,0.15)" stroke-width="1"/>' . "\n";
 $svg .= '</svg>' . "\n";
 
 return $svg;
 
-#,,..,...,,,,,,,,,,,,,,..,.,.,,,.,,.,,.,.,,..,..,,...,...,,..,,,.,,,.,,.,,...,
-#XTBV575QOEXJ6AFFBDMCV6H5527KPOCBHGTXHGE5AVSWA2WBYTFEEONPSMYLUALDR26Q552FV447K
-#\\\|SE4KVVMJMYZDM4Q7CDIDN52A3NEL2PW6JWK7EG2XEU3LBHUIV2M \ / AMOS7 \ YOURUM ::
-#\[7]HOFHBS46CBY5KW4VFS27GCGPFQKER2ZECRLEM6BQ2Z4VFF3W4ADA 7  DATA SIGNATURE ::
+#,,,.,.,,,.,.,...,,..,,,.,..,,.,.,,,.,,,,,..,,..,,...,...,,..,,..,,.,,,,.,.,.,
+#XMIM5UZ2HX5N2YHWT7LADVVUYLYKYVTSJJX4VQ7KHCOE2NO72Y55DOKOE2GE42TOYMCLZWBPRLG24
+#\\\|MS4M4E37PIZRFHR2XKG6ICYBSD3FDQFIRRSY65XRJ6VNJ3BODKO \ / AMOS7 \ YOURUM ::
+#\[7]ANAUOVDUJKQA3W5NFPQPX6E27LQYLXXSM6G7WOAB3QTFEN434IAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
