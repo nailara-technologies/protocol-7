@@ -103,8 +103,10 @@ if ( length $expanse and $expanse =~ m{^\d+$} ) {
 my $svg = <[route.bmw384.visual.wheel-mode]>;
 
 # [ add flying route elements ]
-my $flying = <[route.bmw384.visual.flying-elements]>;
-$svg =~ s{</svg>}{$flying</svg>} if defined $flying and length $flying;
+if ( $mode ne 'oscilloscope' ) {
+    my $flying = <[route.bmw384.visual.flying-elements]>;
+    $svg =~ s{</svg>}{$flying</svg>} if defined $flying and length $flying;
+}
 
 # [ restore cfg state ]
 if ( defined $saved_mode ) {
@@ -165,7 +167,9 @@ if ( not defined $svg ) {
     return 2;
 }
 
-<bmw384.svg.cache>->{$cache_key} = $svg;
+if ( $mode ne 'oscilloscope' ) {
+    <bmw384.svg.cache>->{$cache_key} = $svg;
+}
 
 <[base.logs]>->(
     2,          'iris-svg generated [%s]: %.3fs',
@@ -183,8 +187,8 @@ $session->{'buffer'}->{'output'} .= $svg;
 
 return 2;
 
-#,,.,,,,,,.,,,.,,,,..,,,,,,,.,.,.,...,,,,,...,..,,...,...,,,.,,,.,,,,,...,,,,,
-#CY2T72F3PZ5TXDLHS7HRQ2XMRZWCF2IOYWZUBJ2QUMKFXG4YCQA67F2IW4SRS7V3DVPJUQINNEL4E
-#\\\|QAKEDVXKXE5D6O3QTWVJGRT75STUPVTXKIDYG3HH4ZYF3EMXMCB \ / AMOS7 \ YOURUM ::
-#\[7]SZTAX3OAEFH6XWLQCSETQ4HO5R43BNYPBTWFZTCVC7JLMH2TX6BA 7  DATA SIGNATURE ::
+#,,,.,,.,,,.,,.,,,.,,,.,,,,,,,..,,,,.,,,,,.,,,..,,...,...,...,,,.,,,,,,,.,...,
+#IHBTFWKPG4SONEZI6TYT2DPVH574FIVXMSS33AJ3KEM7BL6SZZLKS7IJ5GWORW663JFXUQZZUPNC6
+#\\\|2BZB42KPO3F3HNON2OITFMBTJPVV5TR7M444E6B55QG2HXS2G26 \ / AMOS7 \ YOURUM ::
+#\[7]UQ3UFUTPJL66UIDLCP2THNI52VHDULBC5O4QFRXRI74ITT5D4WCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
