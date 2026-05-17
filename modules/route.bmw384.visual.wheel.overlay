@@ -9,11 +9,10 @@ my $by_name = <bmw384.index>->{'by_name'};
 my @names   = keys %$by_name;
 
 # [ parameters ]
-my $rings            = <route.bmw384.cfg.rings>              // 1;
-my $ring_hue_drift   = <route.bmw384.cfg.ring_hue_drift>     // 14;
-my $ring_label_adv   = <route.bmw384.cfg.ring_label_advance> // 1;
-my $ring_radius_step = <route.bmw384.cfg.ring_radius_step>   // 11;
-my $outer_radius     = <route.bmw384.cfg.outer_radius>       // 320;
+my $rings            = <route.bmw384.cfg.rings>            // 1;
+my $ring_hue_drift   = <route.bmw384.cfg.ring_hue_drift>   // 14;
+my $ring_radius_step = <route.bmw384.cfg.ring_radius_step> // 11;
+my $outer_radius     = <route.bmw384.cfg.outer_radius>     // 320;
 my $overlay_ns_cfg   = <route.bmw384.cfg.overlay_namespaces>
     // 'base,kimi,jobsite,route';
 
@@ -66,7 +65,7 @@ for my $ARG ( 0 .. 25 ) {
         my $rad       = $angle_deg * $PI / 180;
         my $x         = 400 + $label_radius * sin($rad);
         my $y         = 400 - $label_radius * cos($rad);
-        my $label     = chr( ord('A') + $ARG );
+        my $label     = <[route.bmw384.visual.ring-label]>->( 0, $ARG );
         $svg
             .= sprintf
             '  <text x="%.2f" y="%.2f" fill="rgba(255,255,255,%s)"'
@@ -163,8 +162,8 @@ $svg .= '</svg>' . "\n";
 
 return $svg;
 
-#,,.,,.,.,.,,,,..,..,,,,,,...,,,.,..,,...,..,,..,,...,...,.,.,,.,,,.,,,..,..,,
-#5HEWMDWSTPHSMZGRJZ6GVWTQL6VERYUZTHQP7HWALECHUKTONTSBRXCTEJYODGICRU3KNVFELLZVW
-#\\\|GZ5EVBWI2FGYHPTTDRJ3IV5WQSTKQA7ILMGX7DYLGQR7KZV3RIM \ / AMOS7 \ YOURUM ::
-#\[7]QOEA3AD7DW53HUHOIGOLF4VONMALBUACAEVS45RLRWGGJZXV7CCY 7  DATA SIGNATURE ::
+#,,,,,,,,,,.,,..,,...,.,,,,..,,,.,...,,,.,.,.,..,,...,...,.,.,.,.,,.,,,.,,,..,
+#MHOHKQAO5XTTVF2XXBJZXZTNCF3EODMHK6GHSJWOTJNHEMSSKIPUK7FXA5AX2UVHKG25MS4IMSSUE
+#\\\|BPN4J7CCYCNH7QNN466FM7UMTTPT6QG7P5MAEIQJDGZ3J3IEIVT \ / AMOS7 \ YOURUM ::
+#\[7]7T74Y5ZWWXIVVW7W72OMTQA2TYIVV4DYRBLHBZSBI3NWGABJLOCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
