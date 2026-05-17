@@ -9,12 +9,44 @@ the iris disc is a living visualization of the BMW384 field index.
 the center void at (400,400) radius 24 is the darksun — position 27.
 the nailara logo belongs at this center: the iris as living logo background.
 
-## source file
+## logo reference files
 
-data/gfx/logos/nailara_logo.trans-dark.png
+primary source (transparent PNG for overlay):
+  data/gfx/logos/nailara_logo.trans-dark.png
 
-verify it exists:
-  ls -la data/gfx/logos/nailara_logo.trans-dark.png
+additional logo variants (for visual reference):
+  data/gfx/logos/nailara.png
+  data/gfx/logos/nailara.jpg
+  data/gfx/nailara/nailara-test.png
+
+## logo recreation attempts — study these for visual intent
+
+four previous AI attempts to reconstruct the logo
+(original XCF lost ~2003, these show what the logo looks like):
+
+  data/gfx/nailara/iterations/nailara-logo-v2.html
+    canvas-based with interactive controls
+    "Circle Cutout Construction" approach
+    dark background #08081a, blue-purple palette #6060ff
+    
+  data/gfx/nailara/iterations/nailara-logo-debug.html
+    debug/analysis version
+    
+  data/asc/what-AI-thinks/html-form/branding/logo-html.html
+    "Psychedelic Logo Recreation"
+    background #000014, animated
+    
+  data/asc/what-AI-thinks/html-form/branding/logo-html-v1.html
+    earlier version
+
+read these files to understand:
+  - the color palette (deep blue/purple/black aesthetic)
+  - the geometric structure being recreated
+  - what "nailara logo" looks like visually
+  - how it relates to the iris disc as its natural background
+
+the logo at the center void (position 27 = the darksun)
+should feel like the iris was always built around it.
 
 ## what to implement
 
@@ -100,8 +132,8 @@ new symlinks: not signed (not perl modules)
 $ARG not $_ in loops
 lowercase comments, [ word ] bracket annotations
 
-#,,..,.,.,,.,,...,.,.,...,.,.,,.,,.,.,..,,.,,,..,,...,...,,,.,..,,...,...,,,,,
-#HJ2RI7E77SDTHTLV3UQZRSHKISGMZ6CV6LHUPT2S7UYCZNRYYDIVHXTRGDRPIKHU4WXHCSXBXDZZ4
-#\\\|3AJS4AZEPYLKBPDTLWLSKDERMAXJLFIJF4T2Y4NCWYY4HBLF4CG \ / AMOS7 \ YOURUM ::
-#\[7]RGGN36MNU433VUO37KW3I6SFQFN4SMMGKLDZ3BALRBHD3737O4BI 7  DATA SIGNATURE ::
+#,,..,.,,,,.,,,,.,,,,,,..,,,,,,..,,,,,..,,,.,,..,,...,...,...,,,,,,,,,.,,,,.,,
+#3NLELWBHYNXNSDXHXO2EZTCSPZRZF6BBGNNE75XK4T255GTRX6IZVWSL4MPFLW4IYH5RSABCVHJQI
+#\\\|YC6TO3VQO2G4ZMX6JRCUIKIOQDXFOMPHK4N2ZQWGXTAMLSS274M \ / AMOS7 \ YOURUM ::
+#\[7]FTCAORTJCBY3P3PV6FZHBUTWCB5AWF2Q52KZ7YSP6WYY4C5VOCDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
