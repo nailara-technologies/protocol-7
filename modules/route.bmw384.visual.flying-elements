@@ -1,0 +1,73 @@
+## [:< ##
+
+# name  = route.bmw384.visual.flying-elements
+# descr = generate SVG path elements for animated route traversal
+
+return ''
+    if not defined <bmw384.route.curves>
+    or not keys <bmw384.route.curves>->%*;
+
+my $svg = '';
+
+my %colors = (
+    qw| vortex_spiral | => 'rgba(255,0,255,0.8)',      # [ magenta ]
+    qw| orbital_arc   | => 'rgba(0,255,255,0.8)',      # [ cyan ]
+    qw| linear_hop    | => 'rgba(255,255,255,0.8)',    # [ white ]
+);
+
+for my $id ( sort keys <bmw384.route.curves>->%* ) {
+    my $curve    = <bmw384.route.curves>->{$id};
+    my $type     = $curve->{'type'};
+    my $params   = $curve->{'params'};
+    my $duration = $curve->{'duration'} // 5;
+
+    my $color = $colors{$type} // 'rgba(255,255,255,0.8)';
+
+    # [ generate path data ]
+    my $path_d;
+
+    if ( $type eq 'vortex_spiral' ) {
+        my @points;
+        for my $i ( 0 .. 50 ) {
+            my $t   = $i / 50;
+            my $pos = <[base.curve.eval.position]>->( $type, $t, $params );
+            push @points, sprintf( '%.2f,%.2f', $pos->{'x'}, $pos->{'y'} );
+        }
+        $path_d = 'M ' . join( ' L ', @points );
+
+    } elsif ( $type eq 'orbital_arc' ) {
+        my $pos0 = <[base.curve.eval.position]>->( $type, 0, $params );
+        my $pos1 = <[base.curve.eval.position]>->( $type, 1, $params );
+
+        my $rx = $params->{'radius'};
+        my $ry = $params->{'radius'};
+
+        $path_d = sprintf( 'M %.2f,%.2f A %.2f,%.2f 0 0 0 %.2f,%.2f',
+            $pos0->{'x'}, $pos0->{'y'}, $rx, $ry,
+            $pos1->{'x'}, $pos1->{'y'} );
+
+    } elsif ( $type eq 'linear_hop' ) {
+        my $pos0 = $params->{'from'};
+        my $pos1 = $params->{'to'};
+        $path_d = sprintf( 'M %.2f,%.2f L %.2f,%.2f',
+            $pos0->{'x'}, $pos0->{'y'}, $pos1->{'x'}, $pos1->{'y'} );
+    }
+
+    next if not defined $path_d;
+
+    $svg .= qq|<path id="route_$id" d="$path_d" fill="none"/>\n|;
+    $svg .= qq|<circle r="4" fill="$color">\n|;
+    $svg
+        .= qq|  <animateMotion dur="${duration}s" repeatCount="indefinite">\n|;
+    $svg .= qq|    <mpath href="#route_$id"/>\n|;
+    $svg .= qq|  </animateMotion>\n|;
+    $svg .= qq|</circle>\n|;
+}
+
+return $svg;
+
+#,,..,,.,,.,.,,.,,...,.,.,,..,..,,,,,,.,,,.,,,..,,...,..,,.,,,..,,,.,,.,.,...,
+#YFP2WVL6VYY63NNJMO4BBHKIIDONXXWJK2NIWDM6XWEHBAKYR3WGXCMRIZJC6MXFRZ6KNVZM2AU6K
+#\\\|FNV3N22A4ZUCUVNTJRCZHTRSHMK44ZM43ENIIJME6JLETEPU6YF \ / AMOS7 \ YOURUM ::
+#\[7]U3NHJ4QE53X6JGQVEOZLG4AVHED7YBAQ3IKPAIELLDDZUQRTVCAA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
