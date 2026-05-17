@@ -6,7 +6,8 @@
 return undef if not defined <bmw384.index>;
 
 my $by_name = <bmw384.index>->{'by_name'};
-my @names   = keys %$by_name;
+my @sorted_names
+    = @{ <bmw384.index>->{'sorted_names'} // [ sort keys %$by_name ] };
 
 # [ parameters ]
 my $rings            = <route.bmw384.cfg.rings>            // 1;
@@ -17,7 +18,7 @@ my $ring_blue_tint   = <route.bmw384.cfg.ring_blue_tint>   // 0.6;
 
 # [ co-location ] count nodes per coordinate key
 my %coord_count;
-for my $ARG (@names) {
+for my $ARG (@sorted_names) {
     my $coord = $by_name->{$ARG};
     my $key   = join( ':', $coord->{'color'}, $coord->{'arc'} );
     $coord_count{$key}++;
@@ -88,7 +89,6 @@ for my $ring ( 0 .. $rings - 1 ) {
     $node_base_r = 2 if $node_base_r < 2;
 
     my %drawn_index;
-    my @sorted_names = sort @names;
 
     for my $ARG (@sorted_names) {
         my $coord = $by_name->{$ARG};
@@ -151,8 +151,8 @@ $svg .= '</svg>' . "\n";
 
 return $svg;
 
-#,,.,,,..,,,.,.,,,,.,,.,,,...,...,.,.,...,.,.,..,,...,...,.,.,,,,,,,,,,,.,,,.,
-#47ATKV3LX2TIYBBWSWVSJFPGK2AWJV3QKYXUMA5YWGQ7YARYPJLFELVIDDTJLHSDYX76LQEFC5UZG
-#\\\|UUOIJAWBPU7UAYZWYJXKEGRUCGMXIVQPQ2LF2VSMHKDAADT7WUB \ / AMOS7 \ YOURUM ::
-#\[7]KIVDTJ7QXXU2XSOYUD3GTTOR3VSVDAZ6I3746NLIUWETQNGXQACQ 7  DATA SIGNATURE ::
+#,,,,,,,.,...,...,,,,,,.,,,,.,,,.,,,.,..,,.,.,..,,...,..,,.,,,,..,...,.,.,,,.,
+#IGBXQRALLHNHNFQA5VYGDWX2H7Y6YHC263E3ZY4JMIC2QSDZVRJJ5MUHHXCITN3JKYHOGNIOB4TMA
+#\\\|VHRRPOOMDRBF7DM2TGUMU6CS6I54HQ3ZFB5ZIHZPWZ2XQQ6B2DI \ / AMOS7 \ YOURUM ::
+#\[7]ZB5TXRVQMNV77ZF6CZBFZCGK6TWIYMYS6AJOKFVYT3R2WXM4GUBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
