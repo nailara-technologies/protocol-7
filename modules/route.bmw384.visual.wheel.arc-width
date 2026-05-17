@@ -12,12 +12,16 @@ my @sorted_names
 # [ optional namespace filter ]
 my $ns_filter = <route.bmw384.cfg.namespace_filter> // '';
 if ( length $ns_filter ) {
-    my $ns_pat = $ns_filter =~ s{^\^}{}r;
-    @sorted_names = grep {
-        length($ns_filter) == length($ns_pat)
-            ? index( $_, $ns_filter ) != -1
-            : index( $_, $ns_pat ) == 0
-    } @sorted_names;
+    my $ns_pat   = $ns_filter =~ s{^\^}{}r;
+    my $anywhere = length($ns_filter) == length($ns_pat);
+    my @sorted_names_f;
+    for my $ARG (@sorted_names) {
+        push @sorted_names_f, $ARG
+            if $anywhere
+            ? index( $ARG, $ns_filter ) != -1
+            : index( $ARG, $ns_pat ) == 0;
+    }
+    @sorted_names = @sorted_names_f;
 }
 
 # [ parameters ]
@@ -204,8 +208,8 @@ $svg .= '</svg>' . "\n";
 
 return $svg;
 
-#,,,,,,,,,.,,,,..,,,.,,..,,..,,,.,,,,,,.,,...,..,,...,..,,..,,.,,,,,.,...,,..,
-#2FUAHK6G7LFIJRRGGO4XFSCIWR7W4CZU4SDVTIIQE3G5E2M6BQQMMECEUMLX2Y7VIOB44E4LOCE5E
-#\\\|U6Q3V4LFCCOXOQSD7FE6EIZSZRC46Y4GGJDYXJDAQRMSAZUM2JR \ / AMOS7 \ YOURUM ::
-#\[7]HLRP2AOHJELJPPOIDDRFBULFOJIAXXGPXRJ5TMU54TITDGQGTEAI 7  DATA SIGNATURE ::
+#,,,,,,.,,...,,,.,,,.,,.,,..,,,,.,.,,,.,,,,.,,..,,...,...,,,.,.,,,.,.,,,.,,,.,
+#X2U63DQRFRZZIPBPEVN2BB2G5LJJ32N5Z6F6BW4ZS5KIGERCEQOS5RNYSDX7NJ5FZR2DL7XL2YEQQ
+#\\\|MUFGOE6DC7QMJ6FHQQCK2CTHLA2LRNCYLFTWLESWNEQFT4XSKWC \ / AMOS7 \ YOURUM ::
+#\[7]2G6OTFEWRW4NTHT27P7WJZMMRFZVDIJP6YEXN2EBUOLIELLH7UDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
