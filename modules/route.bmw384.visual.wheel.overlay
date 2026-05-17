@@ -129,9 +129,19 @@ for my $ns_idx ( 0 .. $#ns_list ) {
     }
 }
 
-# [ center void ]
+# [ center logo — nailara at the darksun ]
+my $logo_size = 44;    # diameter covering the void circle (r=24)
+my $logo_xy   = 400 - $logo_size / 2;
+
+$svg
+    .= sprintf '  <image x="%.1f" y="%.1f" width="%d" height="%d"'
+    . ' href="%s" opacity="0.7"'
+    . ' style="mix-blend-mode:screen"/>' . "\n",
+    $logo_xy, $logo_xy, $logo_size, $logo_size,
+    '/gfx/logos/nailara_logo.trans-dark.png';
+
 $svg .= '  <circle cx="400" cy="400" r="24" fill="none"'
-    . ' stroke="rgba(255,255,255,0.15)" stroke-width="1"/>' . "\n";
+    . ' stroke="rgba(255,255,255,0.08)" stroke-width="0.5"/>' . "\n";
 
 # [ namespace legend ]
 my $legend_x = 20;
@@ -153,8 +163,8 @@ $svg .= '</svg>' . "\n";
 
 return $svg;
 
-#,,.,,...,,,,,.,,,,..,.,.,,,.,..,,,..,.,,,,..,..,,...,...,,..,.,,,.,,,,.,,,..,
-#J66CLCVAQV5NNCSWRC6O5MESKCRRKHSEO6ZVQNUBHBIDWRNFMN3DRBND7GVGMR3S7CXBQQMO2WB2Y
-#\\\|YDIPMCDVFGWR4I3ZNE3OJVMMWSDWQAXHCXOVCVX35YQA74L7YYG \ / AMOS7 \ YOURUM ::
-#\[7]F4PM5ALVABFQBEFHOKVS45ML7IBA4DW5HP47CX6S3JZMBYD2TIAY 7  DATA SIGNATURE ::
+#,,.,,.,.,.,,,,..,..,,,,,,...,,,.,..,,...,..,,..,,...,...,.,.,,.,,,.,,,..,..,,
+#5HEWMDWSTPHSMZGRJZ6GVWTQL6VERYUZTHQP7HWALECHUKTONTSBRXCTEJYODGICRU3KNVFELLZVW
+#\\\|GZ5EVBWI2FGYHPTTDRJ3IV5WQSTKQA7ILMGX7DYLGQR7KZV3RIM \ / AMOS7 \ YOURUM ::
+#\[7]QOEA3AD7DW53HUHOIGOLF4VONMALBUACAEVS45RLRWGGJZXV7CCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
