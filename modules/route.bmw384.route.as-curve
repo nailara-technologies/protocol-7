@@ -35,24 +35,23 @@ if ( scalar @coords < 2 ) {
 }
 
 # [ helper: bmw384 coord to svg position ]
-my $PI            = 3.14159265358979;
-my $segment_deg   = 360 / 26;
-my $segment_width = 16777216 / 26;
-
 sub _svg_pos {
     my $coord           = shift;
     my $radius_override = shift;
 
+    my $PI            = 3.14159265358979;
+    my $segment_deg   = 360 / 26;
+    my $segment_width = 16777216 / 26;
+
     my $arc   = $coord->{'arc'}   // 0;
     my $color = $coord->{'color'} // 0;
 
-    my $arc_start_deg = -$arc * $segment_deg;
-    my $within_arc_frac
-        = ( $color / $segment_width ) - int( $color / $segment_width );
+    my $arc_start_deg   = -$arc * $segment_deg;
+    my $within_arc_frac = ( $color / $segment_width )
+        - int( $color / $segment_width );
     my $angle_deg = $arc_start_deg - $within_arc_frac * $segment_deg;
     my $angle     = $angle_deg * $PI / 180;
-
-    my $radius = $radius_override // 280;
+    my $radius    = $radius_override // 280;
 
     return {
         x     => 400 + $radius * sin($angle),
@@ -152,8 +151,8 @@ if ( defined $callback and ref $callback eq qw| CODE | ) {
 
 return $curve_id;
 
-#,,..,,.,,,..,..,,...,,.,,,..,...,...,.,,,.,.,..,,...,...,..,,..,,,,,,,.,,..,,
-#HU7D3KNUURFI7475RUSGSVMESPYG6N5LS3KRDQUV6RLMX35PJF7X4UE7AWCMBSCOMF5PCZFLDHGO2
-#\\\|Z5S5YGODLISNUZPJ6SUWYCMN4OT4DC4UUVAJXMM7YFZN7PHLXJF \ / AMOS7 \ YOURUM ::
-#\[7]DJXBO4WP7VGTH4FKKH43FHYPND7JS36OZ6UP7PUKFEY27ET4MOAQ 7  DATA SIGNATURE ::
+#,,,.,...,,.,,,,.,...,.,,,..,,,..,,.,,,,.,,..,..,,...,...,,.,,,.,,..,,,,,,,.,,
+#7CQ2WP26O7YJCW7TDPR4WF3UHONOWDSAHKWDGC2F7J47N5O33HCHN5A2DMRUB4NLXKGHZ5SYZ4DLA
+#\\\|TNAL42W7UGYULWISJLAJ6NWRHPZZVAX7YLH7NWMQZWTFQEXEBZ7 \ / AMOS7 \ YOURUM ::
+#\[7]NYNG7EMMMJNIITVV4J4XPWRFWL267RLNITDDTCW7HXSKQCQTMMAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
