@@ -37,9 +37,10 @@ if (<kimi.ws.connected>) {
 }
 
 ## clear session state
-<kimi.session_id>       = undef;
-<kimi.wire.accumulator> = '';
-<kimi.wire.pending>     = {};
+<kimi.session_id>            = undef;
+<kimi.wire.accumulator>      = '';
+<kimi.wire.pending>          = {};
+<kimi.approval.auto_approve> = TRUE;    # [ restore on reconnect ]
 
 ## create fresh session via rest api
 my $new_session_id = <[kimi.session.create]>;
@@ -107,8 +108,8 @@ if ( not defined $sock ) {
 
 <[base.logs]>->( 1, ': session reset complete — awaiting ready' );
 
-#,,.,,,..,,..,..,,...,...,.,.,,,,,,..,..,,,,,,.,.,...,..,,.,,,.,,,,..,,..,.,.,
-#56G7JD2RSHMAYSPX4VIJ4LYVN5BDIUXHLQK75WCEURKTVLHY3ZITXI7ELIZV63DW4CHI5ZDA4Q3KQ
-#\\\|LD2MYI4LHJHCGHXWUMEKZZX2CVYMC3DM3GCNKY3JWN6DSR3V23R \ / AMOS7 \ YOURUM ::
-#\[7]4JRXR7VAWVVTJD7AAI6B32KJFRGSYOO6FCLRB236EOOKJD4SASCY 7  DATA SIGNATURE ::
+#,,..,,.,,..,,,..,.,.,.,,,,,.,,..,,.,,...,...,.,.,...,...,,,.,,..,,.,,.,.,.,,,
+#6UR3FB7TN3HN3FHKWOGTLPIDZPZVG3V6XTTXQ7LAS2ZLYPCO7K5C65S3V33DOCSIATWAWNFA62GX2
+#\\\|MZ7NDP5TDHBI64X5NDDEWVWGWFSM6XUYUE4SISQBQ3PHYKYOTMX \ / AMOS7 \ YOURUM ::
+#\[7]H2VZENNZHH5ID3HM4J54E6BYMIY3WCWPYD4VPTFFKZMLISGZWWAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
