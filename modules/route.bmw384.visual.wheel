@@ -9,12 +9,11 @@ my $by_name = <bmw384.index>->{'by_name'};
 my @names   = keys %$by_name;
 
 # [ parameters ]
-my $rings            = <route.bmw384.cfg.rings>              // 1;
-my $ring_hue_drift   = <route.bmw384.cfg.ring_hue_drift>     // 14;
-my $ring_label_adv   = <route.bmw384.cfg.ring_label_advance> // 1;
-my $ring_radius_step = <route.bmw384.cfg.ring_radius_step>   // 11;
-my $outer_radius     = <route.bmw384.cfg.outer_radius>       // 320;
-my $ring_blue_tint   = <route.bmw384.cfg.ring_blue_tint>     // 0.6;
+my $rings            = <route.bmw384.cfg.rings>            // 1;
+my $ring_hue_drift   = <route.bmw384.cfg.ring_hue_drift>   // 14;
+my $ring_radius_step = <route.bmw384.cfg.ring_radius_step> // 11;
+my $outer_radius     = <route.bmw384.cfg.outer_radius>     // 320;
+my $ring_blue_tint   = <route.bmw384.cfg.ring_blue_tint>   // 0.6;
 
 # [ co-location ] count nodes per coordinate key
 my %coord_count;
@@ -49,7 +48,6 @@ for my $ARG ( 0 .. 25 ) {
 # [ arc labels — counterclockwise, per ring ]
 for my $ring ( 0 .. $rings - 1 ) {
     my $radius        = $outer_radius - $ring * $ring_radius_step;
-    my $label_offset  = $ring * $ring_label_adv;
     my $label_opacity = sprintf( '%.2f', 0.3 * ( 0.75**$ring ) );
     $label_opacity = 0.05 if $label_opacity < 0.05;
     my $label_font_size = 10 - $ring;
@@ -61,13 +59,23 @@ for my $ring ( 0 .. $rings - 1 ) {
         my $rad       = $angle_deg * $PI / 180;
         my $x         = 400 + $label_radius * sin($rad);
         my $y         = 400 - $label_radius * cos($rad);
-        my $label     = chr( ord('A') + ( $ARG + $label_offset ) % 26 );
+        my $label     = <[route.bmw384.visual.ring-label]>->( $ring, $ARG );
+
+        # [ ring 27 darksun marker — special rendering ]
+        my ( $label_fill, $label_font_size_actual );
+        if ( $label eq '.' ) {
+            $label_fill             = 'rgba(100,150,255,0.6)';
+            $label_font_size_actual = $label_font_size + 2;
+        } else {
+            $label_fill             = "rgba(255,255,255,$label_opacity)";
+            $label_font_size_actual = $label_font_size;
+        }
+
         $svg
-            .= sprintf
-            '  <text x="%.2f" y="%.2f" fill="rgba(255,255,255,%s)"'
+            .= sprintf '  <text x="%.2f" y="%.2f" fill="%s"'
             . ' font-size="%d" text-anchor="middle"'
             . ' dominant-baseline="middle">%s</text>'
-            . "\n", $x, $y, $label_opacity, $label_font_size, $label;
+            . "\n", $x, $y, $label_fill, $label_font_size_actual, $label;
     }
 }
 
@@ -143,8 +151,8 @@ $svg .= '</svg>' . "\n";
 
 return $svg;
 
-#,,,.,,.,,,..,.,,,..,,,,.,...,,,.,...,,,.,..,,..,,...,...,..,,..,,..,,...,,.,,
-#3CKAVU42AYIDQ6UP2IOYTDFCE3ST7B2CUFWOO3FR43Z4UXWMEKIWVR3GCMKLAFQDFH3SQG7OTJ43Y
-#\\\|KWG6JEDZ4E54LN2OH257XOMD254QVMKQFNZ5PU3GPBZO26KSQ3C \ / AMOS7 \ YOURUM ::
-#\[7]YE3A7CU73WIGYMKRTVSL6AXHGJQD7DU5AK236RVKWMNM2GZ2LQDA 7  DATA SIGNATURE ::
+#,,.,,,..,,,.,.,,,,.,,.,,,...,...,.,.,...,.,.,..,,...,...,.,.,,,,,,,,,,,.,,,.,
+#47ATKV3LX2TIYBBWSWVSJFPGK2AWJV3QKYXUMA5YWGQ7YARYPJLFELVIDDTJLHSDYX76LQEFC5UZG
+#\\\|UUOIJAWBPU7UAYZWYJXKEGRUCGMXIVQPQ2LF2VSMHKDAADT7WUB \ / AMOS7 \ YOURUM ::
+#\[7]KIVDTJ7QXXU2XSOYUD3GTTOR3VSVDAZ6I3746NLIUWETQNGXQACQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

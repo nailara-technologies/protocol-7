@@ -1,0 +1,36 @@
+## [:< ##
+
+# name  = route.bmw384.visual.ring-label
+# descr = return spoke label for ring index in current label mode
+
+my $ring  = shift;    # 0-indexed ring number
+my $spoke = shift;    # 0-25 arc index
+
+my $mode = <route.bmw384.cfg.ring_label_mode> // 'linear';
+
+if ( $mode eq 'namespace63' ) {
+
+    # [ 63-position lookup table ]
+    my @labels = (
+        'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M',
+        'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z',
+        '.',    # position 27 (index 26)
+        'Z', 'Y', 'X', 'W', 'V', 'U', 'T', 'S', 'R', 'Q', 'P', 'O', 'N',
+        'M', 'L', 'K', 'J', 'I', 'H', 'G', 'F', 'E', 'D', 'C', 'B', 'A',
+        '9', '8', '7', '6', '5', '4', '3', '2', '1', '0'
+    );
+    my $idx = $ring % 63;
+    return $labels[$idx];
+
+} else {
+
+    # [ existing linear behavior ]
+    my $advance = <route.bmw384.cfg.ring_label_advance> // 1;
+    return chr( ord('A') + ( $spoke + $ring * $advance ) % 26 );
+}
+
+#,,,,,,,.,..,,,.,,,,,,..,,,..,...,,,.,.,.,.,.,..,,...,...,,.,,.,,,,,.,,,,,,..,
+#4PJ75PPICRYSKGD3ZIV2CD4DDSMKA3UXB262OGEYDSDQWCE2SGLH3BNIPTROY4525QOA7YYUIMZHE
+#\\\|SYIRXNLXKMFQ7C66WOQYEVM66WCG7AJNBMJAIZEEFZFOEAWH2PW \ / AMOS7 \ YOURUM ::
+#\[7]4LVOBS2IUIWO27D5WGBSPR4ENRCHMF3PE6VIWZQOTL7SJ6VPCABQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

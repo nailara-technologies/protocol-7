@@ -11,7 +11,6 @@ my @names   = keys %$by_name;
 # [ parameters ]
 my $rings          = <route.bmw384.cfg.rings>                  // 26;
 my $ring_hue_drift = <route.bmw384.cfg.ring_hue_drift>         // 14;
-my $ring_label_adv = <route.bmw384.cfg.ring_label_advance>     // 1;
 my $outer_radius   = <route.bmw384.cfg.outer_radius>           // 320;
 my $ring_blue_tint = <route.bmw384.cfg.ring_blue_tint>         // 0.6;
 my $base_thickness = <route.bmw384.cfg.density_base_thickness> // 8;
@@ -86,7 +85,6 @@ for my $ARG ( 0 .. 25 ) {
 # [ arc labels ]
 for my $ring ( 0 .. $rings - 1 ) {
     last unless defined $ring_outer[$ring];
-    my $label_offset = $ring * $ring_label_adv;
     my $lop = sprintf '%.2f', 0.25 * ( 0.8**$ring );
     $lop = 0.05 if $lop < 0.05;
     my $label_r = $ring_outer[$ring] + 10;
@@ -96,13 +94,23 @@ for my $ring ( 0 .. $rings - 1 ) {
         my $rad       = $angle_deg * $PI / 180;
         my $x         = 400 + $label_r * sin($rad);
         my $y         = 400 - $label_r * cos($rad);
-        my $label     = chr( ord('A') + ( $ARG + $label_offset ) % 26 );
+        my $label     = <[route.bmw384.visual.ring-label]>->( $ring, $ARG );
+
+        # [ ring 27 darksun marker — special rendering ]
+        my ( $label_fill, $label_font_size_actual );
+        if ( $label eq '.' ) {
+            $label_fill             = 'rgba(100,150,255,0.6)';
+            $label_font_size_actual = 9;
+        } else {
+            $label_fill             = "rgba(255,255,255,$lop)";
+            $label_font_size_actual = 7;
+        }
+
         $svg
-            .= sprintf
-            '  <text x="%.2f" y="%.2f" fill="rgba(255,255,255,%s)"'
-            . ' font-size="7" text-anchor="middle"'
+            .= sprintf '  <text x="%.2f" y="%.2f" fill="%s"'
+            . ' font-size="%d" text-anchor="middle"'
             . ' dominant-baseline="middle">%s</text>'
-            . "\n", $x, $y, $lop, $label;
+            . "\n", $x, $y, $label_fill, $label_font_size_actual, $label;
     }
 }
 
@@ -173,8 +181,8 @@ $svg .= '</svg>' . "\n";
 
 return $svg;
 
-#,,.,,,..,...,,.,,,,.,..,,..,,.,.,.,.,.,,,...,..,,...,...,.,.,.,,,...,.,,,.,.,
-#FFEZ2BIQTSG2XB3OS5KBJSA2NRV2CVRNXFAOYJRCEKIWF4WV6GPFJMUZV7SUWCGHTW6DKCWPWJ7OW
-#\\\|P6LG7SEXUKW5NKFAAQAAK2UCUDQ7F5T2HG6KPFNXF77KL4MR3FZ \ / AMOS7 \ YOURUM ::
-#\[7]5E3MGOLRNPJJFZ36ILXIVX7MQP6ZSNV6FSJP77C6KGZUSYG4VOAA 7  DATA SIGNATURE ::
+#,,,,,.,,,,,.,..,,.,.,.,,,,,,,,,.,,,.,,,.,.,,,..,,...,...,...,,,.,,,,,.,,,..,,
+#VWXJ26OU4NLBUBKXMFYIXK7OWDWEP2WQ7CSN63R3PD5YUZZDF3YTETUQ4G6BKWFKOMMDTPKGSJOOS
+#\\\|E3KUTUQAY2K5WAZOG7C3UEYQ54FGTZGFAUK3LK46VPQGDFLMIYD \ / AMOS7 \ YOURUM ::
+#\[7]XOU5NOBJSUWWNRFTWEDOBV5DWAP7KYYIL2ECHM5DAL42O5QQMGBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
