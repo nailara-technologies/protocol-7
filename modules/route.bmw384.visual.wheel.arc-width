@@ -168,15 +168,25 @@ for my $ring ( 0 .. $rings - 1 ) {
     }
 }
 
-# [ center void ]
+# [ center logo — nailara at the darksun ]
+my $logo_size = 44;    # diameter covering the void circle (r=24)
+my $logo_xy   = 400 - $logo_size / 2;
+
+$svg
+    .= sprintf '  <image x="%.1f" y="%.1f" width="%d" height="%d"'
+    . ' href="%s" opacity="0.7"'
+    . ' style="mix-blend-mode:screen"/>' . "\n",
+    $logo_xy, $logo_xy, $logo_size, $logo_size,
+    '/gfx/logos/nailara_logo.trans-dark.png';
+
 $svg .= '  <circle cx="400" cy="400" r="24" fill="none"'
-    . ' stroke="rgba(255,255,255,0.15)" stroke-width="1"/>' . "\n";
+    . ' stroke="rgba(255,255,255,0.08)" stroke-width="0.5"/>' . "\n";
 $svg .= '</svg>' . "\n";
 
 return $svg;
 
-#,,,,,,..,,..,.,,,,,.,.,,,,..,,,.,.,.,,..,..,,..,,...,...,..,,,,,,.,,,.,,,.,,,
-#Y4BSDFVXKDKYPC6HAMPCKRJ2VRYHJYCH34K67XO47O6MC4MUGRNN5SBMAGSTBLJUKJPIL6TG4666U
-#\\\|CN7JTNN3L4CRGJB37B73JOAJNUMHPXMBSKPN7MLZR6LG6GQYXYP \ / AMOS7 \ YOURUM ::
-#\[7]KDVG5HB4XOB5H2SHCOZXFILB4KNQ6RJSR2F354PJ5UQJUXPTVABQ 7  DATA SIGNATURE ::
+#,,,,,...,..,,.,.,.,.,,,.,,..,,.,,,,,,.,,,..,,..,,...,...,,,.,,..,...,.,.,,.,,
+#3QFXFLAIJRCEANO5M6VYB6EFYN5Y6AW4LHHIOXQ5KBARUKC2YRXFLNBD3VD6P3H7G32HAC4WKLUR4
+#\\\|XWZ4JSWCCVIDZBXEEO6HBCIZ4PTJCKCDJXTDTVQIKRF3WBJ5QD4 \ / AMOS7 \ YOURUM ::
+#\[7]Q37IMAFGCCSZ2XJVBZKJAP5DNZIM4HSNWTPZI4ZVENKJFIVXTABI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
