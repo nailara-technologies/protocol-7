@@ -44,6 +44,23 @@ my $cache_key = join ':', $mode, $rings, $param, $label_mode, $ns, $tl,
     $intensity, $expanse;
 <bmw384.svg.cache> //= {};
 
+# [ oscilloscope: route to index zenka for cross-zenka zulum data ]
+# [ uses SIZE reply pattern: index assembles complete SVG, fires reply handler ]
+if ( $mode eq 'oscilloscope' ) {
+    $session->{'http'}->{'close'} = 1;
+    my $args_str = "svg $rings oscilloscope";
+    <[protocol-7.route-send]>->(
+        {   'command'   => 'index.visual-wheel',
+            'call_args' => { 'args' => $args_str },
+            'reply'     => {
+                'handler' => 'httpd.handler.iris-svg.relay',
+                'params'  => { 'http_sid' => $id },
+            },
+        }
+    );
+    return 0;    # [ deferred — reply handler writes response ]
+}
+
 if ( defined <bmw384.svg.cache>->{$cache_key} ) {
     my $svg = <bmw384.svg.cache>->{$cache_key};
     $session->{'buffer'}->{'output'} .= <[httpd.new_header]>->(
@@ -187,8 +204,8 @@ $session->{'buffer'}->{'output'} .= $svg;
 
 return 2;
 
-#,,,.,,.,,,.,,.,,,.,,,.,,,,,,,..,,,,.,,,,,.,,,..,,...,...,...,,,.,,,,,,,.,...,
-#IHBTFWKPG4SONEZI6TYT2DPVH574FIVXMSS33AJ3KEM7BL6SZZLKS7IJ5GWORW663JFXUQZZUPNC6
-#\\\|2BZB42KPO3F3HNON2OITFMBTJPVV5TR7M444E6B55QG2HXS2G26 \ / AMOS7 \ YOURUM ::
-#\[7]UQ3UFUTPJL66UIDLCP2THNI52VHDULBC5O4QFRXRI74ITT5D4WCI 7  DATA SIGNATURE ::
+#,,,.,,.,,,.,,...,,,.,,..,.,.,,..,..,,,.,,.,,,..,,...,...,...,,,.,.,,,...,,.,,
+#AL7VGJ4KLDTI6E6FVHVEJE3IL76M6DGU7LQG6ITYS4JLW7JPQK3GDDZDHR65JXDG2GE4BWV3P7CR4
+#\\\|RD3VXDE34UFRJ4R5L5SJCLGU43WGINTNJ5VLMQ3LKQHAIKHA4GU \ / AMOS7 \ YOURUM ::
+#\[7]XUBIRCONHFTZUXVD2QUQ55VNTJGNTHG2QKBUG4W3EGUELGBCN4CY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
