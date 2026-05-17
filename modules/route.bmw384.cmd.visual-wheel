@@ -14,6 +14,8 @@ my $mode_param;
 my $label_mode;
 my $ns_filter_saved;
 my $tl_mode;
+my $intensity_val;
+my $expanse_val;
 
 for my $ARG (@rest) {
     if ( $ARG =~ m{^\d+$} and not defined $rings_override ) {
@@ -30,6 +32,10 @@ for my $ARG (@rest) {
         <route.bmw384.cfg.namespace_filter> = $1;
     } elsif ( $ARG =~ m{^(?:tl|translucency)=(\d)$} ) {
         $tl_mode = $1 + 0;
+    } elsif ( $ARG =~ m{^(?:intensity)=(\d*\.?\d+)$} ) {
+        $intensity_val = $1 + 0;
+    } elsif ( $ARG =~ m{^(?:expanse)=(\d+)$} ) {
+        $expanse_val = int($1);
     } elsif ( not defined $mode_param ) {
         $mode_param = $ARG;
     }
@@ -61,6 +67,16 @@ my $tl_saved;
 if ( defined $tl_mode ) {
     $tl_saved = <route.bmw384.cfg.translucency_mode>;
     <route.bmw384.cfg.translucency_mode> = $tl_mode;
+}
+
+# [ save and apply intensity / expanse ]
+my $intensity_saved = <route.bmw384.cfg.translucency_intensity>;
+my $expanse_saved   = <route.bmw384.cfg.translucency_expanse>;
+if ( defined $intensity_val ) {
+    <route.bmw384.cfg.translucency_intensity> = $intensity_val;
+}
+if ( defined $expanse_val ) {
+    <route.bmw384.cfg.translucency_expanse> = $expanse_val;
 }
 
 # [ apply mode-specific param ]
@@ -115,7 +131,8 @@ if ( not length $output_mode or $output_mode eq 'svg' ) {
         qw| mode | => qw| size |,
         qw| data | => 'usage: visual-wheel [svg|html|file] [rings]'
             . ' [arc-width|density|gauss|overlay|metric|heatmap]'
-            . ' [mode-param] [linear|namespace63] [ns=filter] [tl=0..3]'
+            . ' [mode-param] [linear|namespace63] [ns=filter]'
+            . ' [tl=0..3] [intensity=N] [expanse=N]'
     };
 }
 
@@ -167,11 +184,21 @@ if ( defined $tl_mode ) {
         delete <route.bmw384.cfg.translucency_mode>;
     }
 }
+if ( defined $intensity_saved ) {
+    <route.bmw384.cfg.translucency_intensity> = $intensity_saved;
+} else {
+    delete <route.bmw384.cfg.translucency_intensity>;
+}
+if ( defined $expanse_saved ) {
+    <route.bmw384.cfg.translucency_expanse> = $expanse_saved;
+} else {
+    delete <route.bmw384.cfg.translucency_expanse>;
+}
 
 return $result;
 
-#,,,,,,,,,,..,,,.,,,,,,.,,,..,.,.,.,.,,,.,.,.,..,,...,...,,.,,...,,,.,...,,,,,
-#W32PD7GORZSTV5PQORFEU7NQD5KEB7E5KEC4JYWHMTKH7QPHMTHES2JEMNROG4KDXJ3MM7ALNSVPW
-#\\\|NJ4YLK6CFGBJ5ZG2AZREJX2NHEKMSHQHFOHZPFSCWENHGOIHCX5 \ / AMOS7 \ YOURUM ::
-#\[7]7AURTNSTVV6VC42QQIRUCMCBKF62KAJN5O7RBUONI3R7LDOH5ADI 7  DATA SIGNATURE ::
+#,,..,.,,,,,.,,,.,..,,..,,.,.,,.,,,,,,,,,,.,,,..,,...,...,..,,.,.,...,,,,,.,.,
+#IIZVA66GQHZ3A3LFAUPORCJCWUP5EL73HT6OSOCFGRTQFWXDIJ5Q2MX5NTANYBMRUR7CEBG7ZSRZ6
+#\\\|LX2G4OVQG2LWO2JNF654K4MS4XOQGZHRGIM3R4Y5I4CVQABHI44 \ / AMOS7 \ YOURUM ::
+#\[7]GPNVDWV7EAGSFRZALVIJCURPQXBS7IIGGMEXA7O4IMQAYIQVCUDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -24,6 +24,8 @@ my $param      = $qparam{'param'}      // '';
 my $label_mode = $qparam{'label_mode'} // '';
 my $ns         = $qparam{'ns'}         // '';
 my $tl         = $qparam{'tl'}         // '';
+my $intensity  = $qparam{'intensity'}  // '';
+my $expanse    = $qparam{'expanse'}    // '';
 $rings = int($rings);
 $rings = 1  if $rings < 1;
 $rings = 63 if $rings > 63;
@@ -38,7 +40,8 @@ if ( not scalar keys %{ <bmw384.index>->{'by_name'} // {} } ) {
 <[base.logs]>->( 2, 'iris-svg index ready: %.3fs', <[base.time]>->(3) - $t0 );
 
 # [ svg cache key ]
-my $cache_key = join ':', $mode, $rings, $param, $label_mode, $ns, $tl;
+my $cache_key = join ':', $mode, $rings, $param, $label_mode, $ns, $tl,
+    $intensity, $expanse;
 <bmw384.svg.cache> //= {};
 
 if ( defined <bmw384.svg.cache>->{$cache_key} ) {
@@ -66,6 +69,8 @@ my $saved_ns         = <route.bmw384.cfg.overlay_namespaces>;
 my $saved_label_mode = <route.bmw384.cfg.ring_label_mode>;
 my $saved_ns_filter  = <route.bmw384.cfg.namespace_filter>;
 my $saved_tl         = <route.bmw384.cfg.translucency_mode>;
+my $saved_intensity  = <route.bmw384.cfg.translucency_intensity>;
+my $saved_expanse    = <route.bmw384.cfg.translucency_expanse>;
 
 # [ apply request params ]
 <route.bmw384.cfg.rings>       = $rings;
@@ -87,6 +92,12 @@ if ( length $ns ) {
 }
 if ( length $tl and $tl =~ m{^\d$} ) {
     <route.bmw384.cfg.translucency_mode> = int($tl);
+}
+if ( length $intensity and $intensity =~ m{^\d*\.?\d+$} ) {
+    <route.bmw384.cfg.translucency_intensity> = $intensity + 0;
+}
+if ( length $expanse and $expanse =~ m{^\d+$} ) {
+    <route.bmw384.cfg.translucency_expanse> = int($expanse);
 }
 
 my $svg = <[route.bmw384.visual.wheel-mode]>;
@@ -131,6 +142,16 @@ if ( defined $saved_tl ) {
 } else {
     delete <route.bmw384.cfg.translucency_mode>;
 }
+if ( defined $saved_intensity ) {
+    <route.bmw384.cfg.translucency_intensity> = $saved_intensity;
+} else {
+    delete <route.bmw384.cfg.translucency_intensity>;
+}
+if ( defined $saved_expanse ) {
+    <route.bmw384.cfg.translucency_expanse> = $saved_expanse;
+} else {
+    delete <route.bmw384.cfg.translucency_expanse>;
+}
 
 if ( not defined $svg ) {
     my $body = '{"error":"bmw384 index not initialized"}';
@@ -162,8 +183,8 @@ $session->{'buffer'}->{'output'} .= $svg;
 
 return 2;
 
-#,,,,,,..,..,,.,.,,.,,.,.,.,.,.,,,,,,,,,,,,,.,..,,...,...,,..,..,,,.,,,..,..,,
-#INC25NVZK6IELEGPV4HTRTDLQYKDQVU7KP6ZVSH7YXXYTADW6MXN7RFI3ZTIYIF53AHRBD5G3ICZW
-#\\\|BPWKVJ2XUUBABKPICQRIIYYWPTQRS4ESRSYD2STCKKLXXBUSG3Z \ / AMOS7 \ YOURUM ::
-#\[7]2NCDRZYGKJJV5OTWFYLSKFXW35X3426ZMDXL5G7PAXXIQGZMQADI 7  DATA SIGNATURE ::
+#,,.,,,,,,.,,,.,,,,..,,,,,,,.,.,.,...,,,,,...,..,,...,...,,,.,,,.,,,,,...,,,,,
+#CY2T72F3PZ5TXDLHS7HRQ2XMRZWCF2IOYWZUBJ2QUMKFXG4YCQA67F2IW4SRS7V3DVPJUQINNEL4E
+#\\\|QAKEDVXKXE5D6O3QTWVJGRT75STUPVTXKIDYG3HH4ZYF3EMXMCB \ / AMOS7 \ YOURUM ::
+#\[7]SZTAX3OAEFH6XWLQCSETQ4HO5R43BNYPBTWFZTCVC7JLMH2TX6BA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

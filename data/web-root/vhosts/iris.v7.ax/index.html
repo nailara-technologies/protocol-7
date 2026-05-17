@@ -210,6 +210,15 @@
   </div>
 
   <div class="param-row">
+    <span class="param-label">intensity</span>
+    <input class="rings-input" id="tl-intensity" type="number"
+           min="0" max="1" step="0.1" value="0.5" style="width:4.5rem">
+    <span class="param-label" style="margin-left:0.5rem">expanse</span>
+    <input class="rings-input" id="tl-expanse" type="number"
+           min="1" max="5" step="1" value="3" style="width:3rem">
+  </div>
+
+  <div class="param-row">
     <span class="param-label">namespace</span>
     <input class="param-input" id="ns-input" type="text"
            placeholder="base, kimi, jobsite..." style="width:8rem">
@@ -249,6 +258,8 @@
   let currentRings     = 26;
   let currentLabelMode = 'linear';
   let currentTlMode    = '0';
+  let currentIntensity = '0.5';
+  let currentExpanse   = '3';
 
   const frame      = document.getElementById('iris-frame');
   const statusLine = document.getElementById('status-line');
@@ -256,8 +267,10 @@
   const paramLabel = document.getElementById('param-label');
   const paramInput = document.getElementById('param-input');
   const ringsInput = document.getElementById('rings-input');
-  const nsInput    = document.getElementById('ns-input');
-  const tlButtons  = document.querySelectorAll('.mode-btn[data-tl]');
+  const nsInput      = document.getElementById('ns-input');
+  const tlButtons    = document.querySelectorAll('.mode-btn[data-tl]');
+  const tlIntensity  = document.getElementById('tl-intensity');
+  const tlExpanse    = document.getElementById('tl-expanse');
 
   function setStatus(msg, cls) {
     statusLine.textContent = msg;
@@ -304,6 +317,8 @@
   document.getElementById('render-btn').addEventListener('click', render);
   ringsInput.addEventListener('change', render);
   paramInput.addEventListener('keydown', e => { if (e.key === 'Enter') render(); });
+  tlIntensity.addEventListener('change', render);
+  tlExpanse.addEventListener('change', render);
 
   document.getElementById('add-vortex-btn').addEventListener('click', () => addRoute('vortex_spiral'));
   document.getElementById('add-arc-btn').addEventListener('click', () => addRoute('orbital_arc'));
@@ -338,6 +353,7 @@
     if (param && modeParams[currentMode]) url += `&param=${encodeURIComponent(param)}`;
     if (ns) url += `&ns=${encodeURIComponent(ns)}`;
     if (currentTlMode !== '0') url += `&tl=${currentTlMode}`;
+    url += `&intensity=${tlIntensity.value}&expanse=${tlExpanse.value}`;
 
     setStatus('rendering...', 'loading');
     const t0 = performance.now();
