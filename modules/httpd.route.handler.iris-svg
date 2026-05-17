@@ -25,47 +25,18 @@ $rings = int($rings);
 $rings = 1  if $rings < 1;
 $rings = 52 if $rings > 52;
 
-# [ save cfg state ]
-my $saved_mode  = <route.bmw384.cfg.visual_mode>;
-my $saved_rings = <route.bmw384.cfg.rings>;
-my $saved_gauss = <route.bmw384.cfg.gauss_arcs>;
-my $saved_ns    = <route.bmw384.cfg.overlay_namespaces>;
+# [ call index zenka via p7c — it holds the BMW384 index ]
+my $cmd = "p7c index.visual-wheel svg $rings";
+$cmd .= " $mode"  if $mode ne 'ring';
+$cmd .= " $param" if length $param;
 
-# [ apply request params ]
-<route.bmw384.cfg.rings>       = $rings;
-<route.bmw384.cfg.visual_mode> = $mode;
-
-if ( length $param ) {
-    if ( $mode eq 'gauss' ) {
-        <route.bmw384.cfg.gauss_arcs> = $param;
-    } elsif ( $mode eq 'overlay' ) {
-        <route.bmw384.cfg.overlay_namespaces> = $param;
-    }
+my $svg = '';
+if ( open( my $fh, '-|', $cmd ) ) {
+    local $INPUT_RECORD_SEPARATOR = undef;
+    $svg = <$fh>;
+    close $fh;
 }
-
-my $svg = <[route.bmw384.visual.wheel-mode]>;
-
-# [ restore cfg state ]
-if ( defined $saved_mode ) {
-    <route.bmw384.cfg.visual_mode> = $saved_mode;
-} else {
-    delete <route.bmw384.cfg.visual_mode>;
-}
-if ( defined $saved_rings ) {
-    <route.bmw384.cfg.rings> = $saved_rings;
-} else {
-    delete <route.bmw384.cfg.rings>;
-}
-if ( defined $saved_gauss ) {
-    <route.bmw384.cfg.gauss_arcs> = $saved_gauss;
-} else {
-    delete <route.bmw384.cfg.gauss_arcs>;
-}
-if ( defined $saved_ns ) {
-    <route.bmw384.cfg.overlay_namespaces> = $saved_ns;
-} else {
-    delete <route.bmw384.cfg.overlay_namespaces>;
-}
+$svg = undef unless defined $svg and $svg =~ m{^<\?xml};
 
 if ( not defined $svg ) {
     my $body = '{"error":"bmw384 index not initialized"}';
@@ -90,8 +61,8 @@ $session->{'buffer'}->{'output'} .= $svg;
 
 return 2;
 
-#,,.,,.,,,...,.,.,..,,.,.,,,.,,,,,,.,,,,,,...,..,,...,...,,.,,,,,,.,,,,.,,...,
-#4VACACKNOZM7KYE6QRN4K2ZWRVB6N5MA3JUY2NTPKESZS2KVZCFHYPSJ5TTBY5HNDUED3A2T4GG76
-#\\\|3QXMQKK3TVQPE3T7ESPEBS5SBBT5SMHAYQ2DKDV6V2MVZQ546OF \ / AMOS7 \ YOURUM ::
-#\[7]B535YCGZRBCF7D43JUBFKZXFPVNR7FXRYDAT32FK7NY5RTNET4CI 7  DATA SIGNATURE ::
+#,,,.,,..,,,,,,..,.,.,..,,,,,,.,.,,.,,...,,.,,..,,...,...,...,,..,.,.,,..,,..,
+#ZZJ5GYIHPMI5B73JKMSLUY6Y6OWIB2VHVZRREAWMYC6OVKFU4PPQ424RFXHI3AF5KC3WA7O6RWDVM
+#\\\|4DWJT4CNLVJKHIOLD7K77F6STJYYWDFFDKELKPZQ4VBO7WSUR5Y \ / AMOS7 \ YOURUM ::
+#\[7]GVKEBD7XCSH3E7YHGJGLYCL6M2RGJEBCD4GHPWFF3PQ6JHLFJUAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
