@@ -1,5 +1,38 @@
 # Completed Work Sessions
 
+## session 29 — iris visualization, cubic routing geometry, space dimensions (2026-05-17/18)
+
+**iris improvements**: vortex mode (angle_bits density), α-density mode, subtractive
+translucency (bi/ccw/cw + intensity + expanse controls), universal namespace filter
+(anywhere match, ^ for prefix), overlay-search.html fingerprint page live at viz.v7.ax,
+iris.html at viz.v7.ax/iris.html, gallery preview scale fixed.
+
+**kimi fixes**: auto-approve restored on reconnect+reload (init_code = always, 
+reset_and_reconnect + new-session); content filter rejection detected + failed cleanly.
+
+**cubic routing geometry** (deep design session):
+- helix descent: apparent CCW rotation IS floor descent (-90° per floor)
+- separator cubes: routing layer between non-adjacent content cubes, invisible
+- 4-lane orientation multiplexing: floor mod 4 = sensing direction
+- sandwich layers: 90° rotation per hop, orthogonal flow, one-bit turn decision
+- passive cube / active grid: routing intelligence in separator cubes not travelers
+- pre-computed route: math complete before departure, only clock remains
+- logical route (discrete hops) vs physical route (continuous vertical descent)
+- vertical = time buffer: keep descending while next hop negotiates
+- spiral as program: arc colors = opcodes, arc lengths = durations, object = execution
+- future arcs = modifiable agreement until crossed
+- disc = history-buffer blockchain across cube floors
+- seamless loop space: L\[-scale,0,+scale]|\L[OOP] in all dimensions
+- sub-layers (planes) within floors: 7 planes × frequency comb
+
+**new documents**:
+- SPACE-AND-ELEMENT-DIMENSIONS.md (5D coordinate geometry, full address space ~10^14)
+- ROUTE-CALCULATION-METHODS.md extended (helix, separator, multiplexing, passive routing)
+- VORTEX-INTAKE-CUBE-SPACE-MASKS.md (correlated approximations, spiral as color tube)
+- KITTEN-HOLOGRAM-RESOURCE-FILTER.md (litter entropy as crypto resource filter)
+
+**next**: dispatch alpha-density v2 task to kimi (filter-safe rewrite ready)
+
 ## session 28 — iris modes, deep design, roadmap, crystals (2026-05-16/17)
 
 **iris**: 6 visualization modes (gauss/heatmap/arc-width/overlay/metric/density),
@@ -584,8 +617,8 @@ Skip calling harmonize_payload_line_feed when both conditions are met:
 - Signatures now properly formatted with correct separator endline
 - Pre-commit validation passes
 
-#,,..,,,.,,,.,,.,,.,.,...,.,,,.,.,..,,..,,,..,..,,...,.,.,...,,..,,..,...,..,,
-#6UEWHOLYYWPN3JB2Q2QXP236RKIA6WJIMDSY4H5FWG3UC4OJ4YLA2ZAWHFDTVJ6TRVNRVPLLWX3XY
-#\\\|SVIOV4EJZ5DSKNQ777ZLCMOCKJNVMYHQOXDLOIWPJ53SVQPMWF7 \ / AMOS7 \ YOURUM ::
-#\[7]C5LL4KPNKWSFZCWGJPQZFQFJFOUJ3KN66LNCXM5MHDYKYUVWTAAY 7  DATA SIGNATURE ::
+#,,,.,.,,,...,.,.,,,,,.,,,,,,,.,.,,.,,,..,...,..,,...,...,.,.,.,.,.,,,,,,,..,,
+#HU26PC5W3BLYNFII5RYLB7LHHCU65MQ5PTTYMSPABXVZS7746LWTQXTJK5UUS47LYYZTHO7PMB3M4
+#\\\|JWBC75TVB43BOIDMH3O2VUYJ6CEQV4QS4FOVZI7UQ2TS252ITAG \ / AMOS7 \ YOURUM ::
+#\[7]RSLJNQ6R6RZVYYPS33FUGRO4IBMMQDJ4VLNLHWR3ZQ6CRQRVTCAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
