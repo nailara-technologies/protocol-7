@@ -3,11 +3,16 @@
 # name  = route.bmw384.visual.arc-opacity-map
 # descr = compute per-arc opacity modifiers for subtractive translucency
 
-my $names   = shift;        # arrayref of module names to consider
-my $by_name = shift;        # BMW384 index by_name
-my $mode    = shift // 0;
+my $names     = shift;    # arrayref of module names to consider
+my $by_name   = shift;    # BMW384 index by_name
+my $mode      = shift // 0;
+my $intensity = shift // <route.bmw384.cfg.translucency_intensity> // 0.5;
+my $expanse   = shift // <route.bmw384.cfg.translucency_expanse>   // 3;
 
 return {} if $mode == 0;
+
+$expanse = 1 if $expanse < 1;
+$expanse = 5 if $expanse > 5;
 
 # [ build occupancy map ]
 my @occupied = (0) x 26;
@@ -30,7 +35,7 @@ for my $arc ( 0 .. 25 ) {
     push @directions,  1 if $mode == 1 or $mode == 2;    # CCW = +1
 
     for my $dir (@directions) {
-        for my $dist ( 1 .. 3 ) {
+        for my $dist ( 1 .. $expanse ) {
             my $neighbor = ( $arc + $dir * $dist ) % 26;
             my $weight   = 1 / $dist;
             if ( $occupied[$neighbor] ) {
@@ -42,7 +47,9 @@ for my $arc ( 0 .. 25 ) {
         }
     }
 
-    my $modifier = 1.0 - ( $leak * 0.25 ) + $resilience;
+    my $leak_factor
+        = $intensity * 0.5;    # 0.5 at intensity=1.0 matches original
+    my $modifier = 1.0 - ( $leak * $leak_factor ) + $resilience;
     $modifier  = 0.25 if $modifier < 0.25;
     $modifier  = 1.0  if $modifier > 1.0;
     $mod{$arc} = $modifier;
@@ -50,8 +57,8 @@ for my $arc ( 0 .. 25 ) {
 
 return \%mod;
 
-#,,..,.,.,,,,,,.,,,,,,,.,,,.,,..,,,,.,,,.,,,,,..,,...,...,.,,,,,,,..,,..,,...,
-#E2HWUYEOSWTDOZVUMCBHKCG5GJZ67PN3MQF2WAKPX2OFNVVG535VHDVPGLJI5XI5P2IJFTGTNGAGE
-#\\\|PEXW6EKGLAGYNQGLSNAJ2ELPLFL4UJ7INHRUHALS57ILHHI7TJY \ / AMOS7 \ YOURUM ::
-#\[7]MZKYU7H53NHTLNBJV476O3DHYAYXCENGP4BZL6DBPTLP7OIA62DI 7  DATA SIGNATURE ::
+#,,,.,.,.,,,.,,,,,.,,,,,.,..,,,,,,...,,,,,,,.,..,,...,...,..,,.,.,...,,.,,...,
+#WNQTH2KOW3CMY3DKUTYHPDGI6LUD2PCHSRXEDN5PVAGTR7F6B4SGB7Z24T6MKU2XLYEYLDXU3KH3S
+#\\\|EHP4SSV55ASH4WSZC635WFHBOO6H5TSFG2FU22UWRAPO3UKZ4D4 \ / AMOS7 \ YOURUM ::
+#\[7]HBI35SV3AMIWAPBW6FH7NWVR3XN7UVW2DTVGQALJ6H23AZ327WAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

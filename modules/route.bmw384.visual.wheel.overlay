@@ -37,7 +37,9 @@ for my $ARG (@names) {
 
 my $PI = 3.14159265358979;
 
-my $translucency_mode = <route.bmw384.cfg.translucency_mode> // 1;
+my $translucency_mode      = <route.bmw384.cfg.translucency_mode>      // 1;
+my $translucency_intensity = <route.bmw384.cfg.translucency_intensity> // 0.5;
+my $translucency_expanse   = <route.bmw384.cfg.translucency_expanse>   // 3;
 
 my $segment_deg   = 360 / 26;
 my $segment_width = 16777216 / 26;
@@ -96,7 +98,8 @@ for my $ns_idx ( 0 .. $#ns_list ) {
 
     # [ per-namespace arc opacity map — based on filtered names only ]
     my $arc_opacity_mod = <[route.bmw384.visual.arc-opacity-map]>->(
-        \@ns_names, $by_name, $translucency_mode
+        \@ns_names, $by_name,
+        $translucency_mode, $translucency_intensity, $translucency_expanse
     );
 
     my @sorted = sort @ns_names;
@@ -186,8 +189,8 @@ $svg .= '</svg>' . "\n";
 
 return $svg;
 
-#,,,,,,.,,,,,,..,,,.,,...,...,..,,,,.,...,.,.,..,,...,..,,.,.,,,.,,,.,.,,,.,.,
-#TP5RRJ6UYIT2MQ4WHVT4M7MOQHYVC63ZXAVJ7E4Q4PVUUOCLASYHMZYDOKAZWTKTFY4R2ZVQQJSBA
-#\\\|LSFT7TQRKR4GL3OSFR5BOUPT5VWABH3BQOFJBGZM4GPLWUNF5PK \ / AMOS7 \ YOURUM ::
-#\[7]64SBLV4RHKY2MTWJPGM4SK6CSQSK7255AEWHZ3AIWMK6DB7VIGDY 7  DATA SIGNATURE ::
+#,,,.,,..,.,,,,.,,,,,,,,.,.,.,,..,...,,,.,,,.,..,,...,..,,..,,,.,,.,,,,..,,.,,
+#76KAWAKQWYBJONTE4CJIY4GSIY4VKQNROVPVREQQL7XJHCCZ3KEOTUG3S7YSDXL3B2KHNSDAX3PNO
+#\\\|PS444NWPKDU7RNDZXGVNV6D3U26ZGQ67FY4IXAIJQNLH4RFBYCK \ / AMOS7 \ YOURUM ::
+#\[7]UMBAMIPMBATOAY2TK35JEPWRLANH6EEMNWEOYAEJPH2TNRULJYAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

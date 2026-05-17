@@ -49,9 +49,12 @@ for my $ARG (@sorted_names) {
 my $PI = 3.14159265358979;
 
 # [ subtractive translucency arc opacity map ]
-my $translucency_mode = <route.bmw384.cfg.translucency_mode> // 1;
-my $arc_opacity_mod   = <[route.bmw384.visual.arc-opacity-map]>->(
-    \@sorted_names, $by_name, $translucency_mode
+my $translucency_mode      = <route.bmw384.cfg.translucency_mode>      // 1;
+my $translucency_intensity = <route.bmw384.cfg.translucency_intensity> // 0.5;
+my $translucency_expanse   = <route.bmw384.cfg.translucency_expanse>   // 3;
+my $arc_opacity_mod        = <[route.bmw384.visual.arc-opacity-map]>->(
+    \@sorted_names,     $by_name,
+    $translucency_mode, $translucency_intensity, $translucency_expanse
 );
 
 my $segment_deg   = 360 / 26;
@@ -186,8 +189,8 @@ $svg .= '</svg>' . "\n";
 
 return $svg;
 
-#,,,.,,..,...,.,,,...,...,...,.,.,.,.,,..,.,,,..,,...,...,,..,,,,,...,,.,,.,.,
-#IFPBV5KBAC67ERLNGRIJFWVMHA7V3Q76R4XL4MQ7J5L2FZND35YV3YIAV2DDNRVYQ4S55O5E4MIWM
-#\\\|WJBKEZN442AO5CFBGGBHURF4FBISINQIIEIKPBYY77LOUS3CAOC \ / AMOS7 \ YOURUM ::
-#\[7]JIOLUHZ7H2SBV5ZFKZH25RAZZPTM6SBEZEM7AG7TOTE5MPWSE2DA 7  DATA SIGNATURE ::
+#,,,.,.,.,.,.,,,.,.,,,,,.,,.,,...,.,.,,,,,,,.,..,,...,...,..,,...,,.,,,.,,...,
+#2IDJBDYD67IUZJSZLESP26SOJUAUMVYGL5AHXWQIVNICFVYEWBOXUCGBNPYN4IQ73WTG5H2HJ7HVK
+#\\\|ZOUT3PZJOKKRV62ZRJGMYGLIXAKAOLTE2XS6AEZYYRZ55GWUPML \ / AMOS7 \ YOURUM ::
+#\[7]WNDIMVZCMT3WCS2ZNXI5PHU45AJKP42GR2L4F7ZVDVOZ6PFK7ECQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
