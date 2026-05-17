@@ -99,6 +99,59 @@ as an overlay layer on the iris:
   cube-transit    (the space transition function)
   stargate-map    (the route visualization application)
 
+## why the bridging works: correlated approximations
+
+the visualization and the routing are both approximations
+of the same field, derived by the same algorithm (BMW384).
+
+```
+their imprecisions are correlated — they round the same way.
+their coupling surface = where they agree = everywhere
+the algorithm is consistent, so the approximations are consistent.
+
+optimizing representation (ring count, gradient width, color mapping)
+= engineering the coupling surface between the two approximations
+= determining where they will do functional work together
+
+wider gradient → wider coupling surface (more forgiving threshold)
+sharper gradient → narrower coupling surface (more precise threshold)
+more rings → deeper coupling surface (more boundary layers visible)
+
+this is not aesthetic choice — it is shaping the exposure surfaces
+of the coupling between visualization and routing.
+```
+
+## the spiral as propagation-trackable color tube
+
+the spiral distributes a color spectrum along a 'tube' through space
+better than a linear sunburst:
+
+```
+linear sunburst:     equal angular slices, all same width
+                     inner rings: compressed, hard to distinguish
+                     outer rings: expanded, over-separated
+                     propagation: untrackable (all radii same structure)
+
+spiral arm:          each arm traces a different phase
+                     of the same rotational progression
+                     color along the arm = proportional to distance traveled
+                     the arm IS the propagation path
+                     the color along it IS the propagation state
+
+propagation tracking by spiral arm behavior:
+  arm expands:        propagation accelerating
+  arm compresses:     propagation decelerating
+  arm brightens:      density increasing
+  arm dims:           density dispersing
+  arm color shifts:   domain transition approaching
+
+three coordinates compressed into one readable curve:
+  angular phase + radial depth + propagation state
+  all readable from position on the spiral arm
+  the arm is its own coordinate system
+  and its own propagation record
+```
+
 ## visualization as active event horizon infrastructure
 
 the visualization is not merely observing the event horizon.
@@ -163,8 +216,8 @@ the vortex mask renders this geometrically:
     arrival at center: all cube transitions complete
     =)
 
-#,,..,.,.,..,,.,,,..,,,,,,.,,,.,,,,,.,,,,,,,,,..,,...,...,,,.,,.,,.,.,,,.,,,,,
-#7GK4JIQZ2F76WZ2YUJO4GS4RBXJY66HBT4A4RGNRTBXPXH5OAZEGO3EO63W64LXHBS2SR2GJXMPZO
-#\\\|YXCI7QEB2WOQR7XJE6WVI7ZSC2UV6NZCBRES52USOMDKWZ6GYQR \ / AMOS7 \ YOURUM ::
-#\[7]Y42YRN5ZUZXFOLJBB2SKITEGGCMVYCQVOTZDN3K32YIPQVKWLKBY 7  DATA SIGNATURE ::
+#,,,,,,,.,.,,,.,.,.,,,,.,,.,.,,,,,,..,,,.,..,,..,,...,...,,..,,..,,..,,.,,.,,,
+#UUNX3OWMG5XMHEZO4A3CRMMDC6QZM47M72HTEYF63G64X2PJG3MXY47RLUEBYQLDL6PKX42IG6PDC
+#\\\|VGTDHBGBGC6S43JTLGKZ6GRU7NAF2O45PN5SJA3QFINHSTBBQPQ \ / AMOS7 \ YOURUM ::
+#\[7]GVFPNTBWBZZBQS3IF4SAITSJHHWSVSC6AJSSTPFJQGUUV2LZOABA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
