@@ -186,12 +186,21 @@ if ( $file_path =~ m{\.tmpl$} ) {
 ## will be checked when we attempt to open the file [line 182+] If file is
 ## not readable, open() will fail and we'll return 500 error
 
-# Get file metadata
-my $file_stat     = File::stat::stat($file_path);
+# Get file metadata — resolve symlinks for correct type/size
+my $real_file_path = Cwd::realpath($file_path) // $file_path;
+my $file_stat      = File::stat::stat($real_file_path);
+if ( not defined $file_stat ) {
+    <[base.logs]>->(
+        1,           '[%s] serve_static: stat failed for %s',
+        $session_id, $file_path
+    );
+    return <[httpd.send_error_page]>->( $session_id, 404 );
+}
 my $content_inode = $file_stat->ino;
 my $content_size  = $file_stat->size;
 my $content_date  = time2str( $file_stat->mtime );
-my $content_type  = mimetype($file_path) // qw| application/octet-stream |;
+my $content_type  = mimetype($real_file_path)
+    // qw| application/octet-stream |;
 
 # add utf-8 charset for text-based content types
 if ( $content_type =~ m{^(?:text|application/(?:json|xml|javascript|xhtml))} )
@@ -294,8 +303,8 @@ return <[httpd.download_init]>->(
     }
 );
 
-#,,.,,,..,,.,,.,.,..,,,,,,..,,,,.,,.,,,,,,.,.,..,,...,...,.,.,,..,,,.,,,.,,.,,
-#6HEHFS3I47T5LJ2YCL7BFY6DQ52U3QAGNRZQJ5MDTHWLRZPVTLGQ7VCNUQV2GKDBL3S62Z67ZCAVC
-#\\\|SHJCWJJGN42NX7L2VSQCZUGT542X5SXFHLVCA34JSBBRLDOAEN2 \ / AMOS7 \ YOURUM ::
-#\[7]RRAX3QQ6CXNHKSUWNFFOX3O5UTAKHDTVTWWQGCU2QGS2GT3FXSBA 7  DATA SIGNATURE ::
+#,,,.,..,,,.,,.,.,,,,,...,,,.,...,,,,,.,.,...,..,,...,...,,.,,,,,,,.,,,,.,,,,,
+#4USEQTNFQ736C4AHMV7KLUYG5K5GWOC5V5QVYS6SCIKRWIKVM4Y24QUMPFMCAP2BAGGTUWRC5WDKC
+#\\\|Z2TCF7Z4YR5JNUZLDCEYTLJB2TYHDOICNS327MF6X7XXN4WUGLH \ / AMOS7 \ YOURUM ::
+#\[7]HU4V2WG37AKCQ534GXWYWPJEFLHZTVYDNW25AVXXB733KZJGVYCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
