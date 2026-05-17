@@ -202,6 +202,14 @@
   </div>
 
   <div class="param-row">
+    <span class="param-label">translucency</span>
+    <button class="mode-btn active" data-tl="0">off</button>
+    <button class="mode-btn" data-tl="1">bi</button>
+    <button class="mode-btn" data-tl="2">ccw</button>
+    <button class="mode-btn" data-tl="3">cw</button>
+  </div>
+
+  <div class="param-row">
     <span class="param-label">namespace</span>
     <input class="param-input" id="ns-input" type="text"
            placeholder="base, kimi, jobsite..." style="width:8rem">
@@ -240,6 +248,7 @@
   let currentMode      = 'ring';
   let currentRings     = 26;
   let currentLabelMode = 'linear';
+  let currentTlMode    = '0';
 
   const frame      = document.getElementById('iris-frame');
   const statusLine = document.getElementById('status-line');
@@ -248,6 +257,7 @@
   const paramInput = document.getElementById('param-input');
   const ringsInput = document.getElementById('rings-input');
   const nsInput    = document.getElementById('ns-input');
+  const tlButtons  = document.querySelectorAll('.mode-btn[data-tl]');
 
   function setStatus(msg, cls) {
     statusLine.textContent = msg;
@@ -281,6 +291,11 @@
         document.querySelectorAll('.mode-btn[data-label-mode]').forEach(b => b.classList.remove('active'));
         btn.classList.add('active');
         currentLabelMode = btn.dataset.labelMode;
+        render();
+      } else if ( btn.dataset.tl !== undefined ) {
+        tlButtons.forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        currentTlMode = btn.dataset.tl;
         render();
       }
     });
@@ -322,6 +337,7 @@
     let url = `/iris/svg?mode=${currentMode}&rings=${rings}&label_mode=${currentLabelMode}`;
     if (param && modeParams[currentMode]) url += `&param=${encodeURIComponent(param)}`;
     if (ns) url += `&ns=${encodeURIComponent(ns)}`;
+    if (currentTlMode !== '0') url += `&tl=${currentTlMode}`;
 
     setStatus('rendering...', 'loading');
     const t0 = performance.now();
