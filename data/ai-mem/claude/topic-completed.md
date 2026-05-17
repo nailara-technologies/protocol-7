@@ -1,5 +1,31 @@
 # Completed Work Sessions
 
+## session 28 — iris modes, deep design, roadmap, crystals (2026-05-16/17)
+
+**iris**: 6 visualization modes (gauss/heatmap/arc-width/overlay/metric/density),
+wheel-mode dispatcher, iris.v7.ax vhost live, httpd fixes (:nocert:, handler eval+500,
+zenka-user.current before check-zenka-paths, letsencr FORMAT_PEM qualified).
+
+**deep design derived from first principles:**
+- 63-ring spoke labels: A-Z · `.` at 27 (3³=darksun) · Z-A · 9-0
+- stream framing: 3+1 bit, separator inversion on 000, `1001` eternal clamp
+- 7+1+7=15 litter row, sliding window lock, zoom/moiré invariance
+- field capability emergence, void at 27 as extraction engine (8 corners)
+- dancing zenki 5+2=7, council of 13, purring carrier, cosmic base drum
+- NRT architecture, loves-it tree, zero-trust, cannot-take principle
+- free non-exclusive referencing + translucency/subscription as foundations
+- sub-bit field semantically subscribed by reference-translating personal layers
+- improvement-directed history, partial step compaction, git supersession
+- dependency graph as implicit modularity driver: always minimal loaded
+- feature arrivals as optional upgrade steps in resolved dependency graph
+
+**documents created:** ESSENCE-CRYSTAL-INEVITABLE-OUTCOME.md,
+NETWORK-RESOURCE-TOKEN-ARCHITECTURE.md, IMPLEMENTATION-ROADMAP.md (13 topics),
+5 task files, research dispatch to coding zenka (Qwopus, medium reasoning)
+
+**memory added:** topic-iris-spoke-labels, topic-stream-framing-protocol,
+topic-field-capability-emergence
+
 ## session 27 — BMW384 iris visualization + kimi :next: dispatch fix (2026-05-16)
 
 - **kimi :next: dispatch fixed**: root cause — variable watchers don't fire
@@ -558,8 +584,8 @@ Skip calling harmonize_payload_line_feed when both conditions are met:
 - Signatures now properly formatted with correct separator endline
 - Pre-commit validation passes
 
-#,,.,,,.,,.,,,,.,,,..,..,,...,,,,,..,,..,,,,.,..,,...,...,...,...,,,.,,,,,,..,
-#GA74KDNAFXFATZ4PITW73GRQLDCW5BKCGRFMYJNVVDOJJCN7423UXFVUPXJS6HTWNETJZONNMOBCG
-#\\\|NNJXGBBRAL7LOT36Y3NRFB26W5EW5YORKWFS2UC7JMRFAE4JQXA \ / AMOS7 \ YOURUM ::
-#\[7]O7P7VYJASBVLKPUOPHAM5ZS25R2FMYMIX2JVRCMUIJWG2KQQDEBY 7  DATA SIGNATURE ::
+#,,..,,,.,,,.,,.,,.,.,...,.,,,.,.,..,,..,,,..,..,,...,.,.,...,,..,,..,...,..,,
+#6UEWHOLYYWPN3JB2Q2QXP236RKIA6WJIMDSY4H5FWG3UC4OJ4YLA2ZAWHFDTVJ6TRVNRVPLLWX3XY
+#\\\|SVIOV4EJZ5DSKNQ777ZLCMOCKJNVMYHQOXDLOIWPJ53SVQPMWF7 \ / AMOS7 \ YOURUM ::
+#\[7]C5LL4KPNKWSFZCWGJPQZFQFJFOUJ3KN66LNCXM5MHDYKYUVWTAAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
