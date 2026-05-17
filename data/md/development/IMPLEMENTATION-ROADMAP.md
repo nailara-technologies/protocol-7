@@ -298,6 +298,75 @@ sub-topics:
 
 ---
 
+## 4b. generic content layer — checksum-addressed storage
+
+**why it matters:** the sourcecode checksum symlink system
+(sourcecode.console.regen-checksum-symlinks) is the seed implementation.
+the generic content layer absorbs sourcecode as a special group —
+defined by namespace + context signature, not by file type.
+eventually supersedes git by being more of what git was trying to be,
+with coupling adapters for transition and external collaboration.
+
+**depends on:** 0, 1, 4
+**enables:** 5, 6, 11
+
+```
+sub-topics:
+
+  4b.1 [ ~ ]  checksum-addressed content store (seed)
+               sourcecode.console.regen-checksum-symlinks exists
+               stores files at version_root/[src-ver]/[checksum]
+               replaces files with symlinks → checksum paths
+               natural deduplication: same content = same checksum
+               limitation: git-incompatible for daily work
+               [ task: extend to generic content, not just source ]
+
+  4b.2 [ · ]  content group definition by namespace + context signature
+               source files group: dot-path namespace
+                                   + AMOS7 footer present
+                                   + BMW384 coordinate valid
+               any content type: different group definition
+               the layer is content-agnostic, groups are not
+               [ task: pending ]
+
+  4b.3 [ · ]  difference-aware storage
+               diff against nearest checksums before storing
+               store delta + parent checksum reference
+               same checksum = reference only (zero storage cost)
+               BMW384 proximity predicts delta size
+               (similar content → similar coordinates → small delta)
+               [ task: pending ]
+
+  4b.4 [ · ]  reference count accumulation per checksum
+               usage event → reference count++
+               reference count tree emerges from flat map
+               high count: surfaced by translucency composite
+               low count: transparent, still reachable by address
+               natural version management without deprecation notices
+               [ task: pending ]
+
+  4b.5 [ · ]  dynamic name → checksum switching
+               dot-path name points to current checksum
+               switching: redirect name → different checksum
+               function logic unchanged, behavior changes
+               template tree (name) stable, content (checksum) free
+               [ task: pending ]
+
+  4b.6 [ · ]  git coupling adapter
+               reads from / writes to git
+               translates content layer operations → git operations
+               "export to git" replaces "commit to git"
+               bidirectional during transition period
+               eventually optional (external collaboration only)
+               [ task: pending ]
+```
+
+**reference:** modules/sourcecode.console.regen-checksum-symlinks
+             modules/sourcecode.console.undo-checksum-symlinks
+             data/md/design/NETWORK-RESOURCE-TOKEN-ARCHITECTURE.md
+
+---
+
 ## 5. selection mechanism — loves-it tree
 
 **why it matters:** the one truth selecting.
@@ -697,8 +766,8 @@ the desirable will be supported automatically.
 
 =)
 
-#,,..,..,,,.,,.,,,..,,,,.,..,,.,,,,,,,,,.,...,..,,...,...,,,,,,,,,,,.,,..,.,.,
-#CLFKWKTLC7HKPD7AF2JZMVPECQNXCAJMRXPO5IACX3OILJUWO7X5HS4SDPXJJZJK263ESAQBO3VX2
-#\\\|ZK7OCGYOL2XNEMQRIDEELUMV5JSRPGB7UECFJYZC3FE5ONU432V \ / AMOS7 \ YOURUM ::
-#\[7]4JMUOXEKRTJ4PO4RCAYL3YJ33C6Z2GD7S5JIXYX5ETX2JUFXWKAY 7  DATA SIGNATURE ::
+#,,.,,,..,.,,,...,.,,,...,,..,...,.,.,..,,,..,..,,...,...,...,...,,.,,.,.,,.,,
+#ZS3ENK5KO2F3PBYMWARRTH6TX3BN3F4GRLR3J3FYPTJHG7RMN3OJNM7KAXQQ5YGAMTLMUN7MLYDJG
+#\\\|3DWRM4JFLI4EUYFJGHESNKMBA24SJK343C6AI755AMCE7PEOT7N \ / AMOS7 \ YOURUM ::
+#\[7]EYNCQJCNKTAE2XU3QJLB3ECETRTOW3V3UM3SWCDDX736YY6U7EDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
