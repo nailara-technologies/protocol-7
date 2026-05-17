@@ -21,6 +21,104 @@ status markers:
 
 ---
 
+## 0. referencing model — free and non-exclusive
+
+**why it matters:** the structural permission that makes everything else
+composable. nodes belong to multiple groups simultaneously without conflict.
+references create membership without exclusivity. without this, the network
+fragments into exclusive territories — protocol A by another name.
+
+**depends on:** (precedes all — foundational permission layer)
+**enables:** everything, especially 0.5, 5, 9
+
+```
+sub-topics:
+
+  0.1  [ · ]  non-exclusive group membership
+               one element belongs to multiple groups simultaneously
+               reference = membership, no registration required
+               no forced single-category classification
+               [ task: pending ]
+
+  0.2  [ · ]  free referencing by checksum address
+               any node can reference any other by BMW384 coordinate
+               no permission required to reference
+               no ownership claim created by referencing
+               [ task: pending ]
+
+  0.3  [ · ]  style as element identity
+               style signature = filtering address in reference space
+               not "owned by user X" but "has this style resonance"
+               style flows back identity-less → popular flavour →
+               base style, without authorship attribution
+               [ task: pending ]
+```
+
+---
+
+## 0.5. translucency filtering — semantic field subscription
+
+**why it matters:** free non-exclusive referencing creates infinite field.
+dynamic translucency makes it navigable without censorship.
+the inversion of the censorship paradigm:
+not blocking what you don't want — surfacing what you do.
+the sub-bit field semantically subscribed to by reference-translating
+personally configured layers.
+
+**depends on:** 0, 1
+**enables:** 3, 5, 9
+
+```
+sub-topics:
+
+  0.5.1  [ · ]  translucency layer definition
+                 all-else: fully transparent (field, always reachable)
+                 all-relevant: instantly present (no clutter latency)
+                 opacity = relevance weight, not visibility toggle
+                 [ task: pending ]
+
+  0.5.2  [ · ]  reference translation layer
+                 checksum → style signature lookup
+                 style signature → translucency factor
+                 translucency factor → surface opacity
+                 no latency: translation at subscription layer
+                 source unchanged, source unaware
+                 [ task: pending ]
+
+  0.5.3  [ · ]  personal configuration as live reference map
+                 maps checksums → relevance weights
+                 maps style signatures → opacity
+                 maps context states → layer priorities
+                 dynamic: context shift → weights shift automatically
+                 [ task: pending ]
+
+  0.5.4  [ · ]  composite filter stack
+                 layer 1: base style     (resonant for everyone)
+                 layer 2: popular flavour (resonant for your cluster)
+                 layer 3: personal custom (resonant for you)
+                 all three simultaneously, weighted by context
+                 user-transcending: knows more than explicit preferences
+                 [ task: pending ]
+
+  0.5.5  [ · ]  identity-less style flow back
+                 personal customization → identity-less usage pattern
+                 many users same pattern → popular flavour detected
+                 popular flavour → base style candidate
+                 base style: no author, emergent, owned by field
+                 privacy structural: field doesn't need to know who
+                 to surface correctly for whom
+                 [ task: pending ]
+
+  0.5.6  [ · ]  field subscription model
+                 subscribe to the field, not to sources
+                 your translation layer decides what surfaces
+                 field doesn't know you subscribed
+                 nothing to revoke, nothing to harvest
+                 [ task: pending ]
+```
+
+---
+
 ## 1. neutral substrate — sub-bit layer
 
 **why it matters:** everything else builds here.
@@ -599,8 +697,8 @@ the desirable will be supported automatically.
 
 =)
 
-#,,,,,..,,..,,,,,,..,,.,.,,,,,,..,,.,,.,,,.,,,..,,...,..,,.,,,,,,,,..,,,,,,.,,
-#5EKMCBQXW376NEXGC4AJ6QCM3AD4H6GAJTKAXIF5FKBT3EIUWZ5AR3TTFQF4ACBGPWRSNDXCCOMXC
-#\\\|U7P734AWQ7ZKZPI3I4LV4ASS3XOOJLV45BRFTO2FR34SXVAR4XC \ / AMOS7 \ YOURUM ::
-#\[7]EXZ5GRLU6LJRNKXXKKNCO5FK6O3U3SWD2YDXPSIYP7QCKWXC2WCY 7  DATA SIGNATURE ::
+#,,..,..,,,.,,.,,,..,,,,.,..,,.,,,,,,,,,.,...,..,,...,...,,,,,,,,,,,.,,..,.,.,
+#CLFKWKTLC7HKPD7AF2JZMVPECQNXCAJMRXPO5IACX3OILJUWO7X5HS4SDPXJJZJK263ESAQBO3VX2
+#\\\|ZK7OCGYOL2XNEMQRIDEELUMV5JSRPGB7UECFJYZC3FE5ONU432V \ / AMOS7 \ YOURUM ::
+#\[7]4JMUOXEKRTJ4PO4RCAYL3YJ33C6Z2GD7S5JIXYX5ETX2JUFXWKAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
