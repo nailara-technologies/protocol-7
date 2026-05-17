@@ -62,10 +62,11 @@ if ( not defined <kimi.session_id> ) {
 <kimi.task.failed>         //= [];       ## task ids that failed
 
 ## tool approval state
-<kimi.approval.pending>      //= {};     ## { $request_id => { action, ... } }
-<kimi.approval.auto_approve> //= TRUE;   ## auto-approve all [ task mode ]
-<kimi.approval.auto_allow>   //= {};     ## policy allowlist { action => 1 }
-<kimi.approval.responded>    //= {};     ## { $request_id => 1 } dedup set
+<kimi.approval.pending> //= {};          ## { $request_id => { action, ... } }
+<kimi.approval.auto_approve>
+    = TRUE;    ## auto-approve all [ task mode / always restore on reload ]
+<kimi.approval.auto_allow> //= {};    ## policy allowlist { action => 1 }
+<kimi.approval.responded>  //= {};    ## { $request_id => 1 } dedup set
 
 ## restore responded set from previous run
 if ( not keys %{<kimi.approval.responded>} ) {
@@ -115,8 +116,8 @@ if ( not keys %{<kimi.approval.responded>} ) {
 
 return TRUE;
 
-#,,,,,,..,,,.,,.,,,,.,.,,,..,,,,.,,.,,,.,,...,..,,...,..,,..,,,,.,..,,...,,.,,
-#JMU34AMLVI7WAJJSL7GV2IPF2M6IWES7J3BM7NBKPZ6LIGM7YIZC5XMATAVEFGHJ3SX5HHNZFKZ4A
-#\\\|5RI7G5TW43RPIH5GDWVOECOUHO63HDYJ5HNQM75FLX4QNZ6YS6W \ / AMOS7 \ YOURUM ::
-#\[7]W35AKHS5CBHDTEI4VA5HFFFBHW5R2ZNUWBBBWXC4IHIFUKXTIGCA 7  DATA SIGNATURE ::
+#,,,.,,,,,,..,,,,,...,,,.,,..,,.,,.,.,.,.,...,..,,...,...,,,.,.,,,,,,,,,.,.,,,
+#W4AZAJCAOXVGFMV7O3FXPTWQ3RDKZCLLKNQSZOVOJQO3654O5PR2GYGRWFWAQCWABM5MXUQCAQFOE
+#\\\|VLP3322BSHDJLPIWR67ALVX32BZHJDEK2U2OKQ5E5JCFNKO6BK2 \ / AMOS7 \ YOURUM ::
+#\[7]LX5QOG6CNNW2CJGC2FUYCYHO2ANXI44UFXYIGSYLB2L6E3XUW2DI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
