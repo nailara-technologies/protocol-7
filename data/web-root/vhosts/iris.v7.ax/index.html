@@ -201,6 +201,12 @@
     <input class="param-input" id="param-input" type="text" value="">
   </div>
 
+  <div class="param-row">
+    <span class="param-label">namespace</span>
+    <input class="param-input" id="ns-input" type="text"
+           placeholder="base, kimi, jobsite..." style="width:8rem">
+  </div>
+
   <div class="rings-row">
     <span class="param-label">rings</span>
     <input class="rings-input" id="rings-input" type="number"
@@ -227,7 +233,7 @@
 
 <script>
   const modeParams = {
-    gauss:   { label: 'arcs',       placeholder: 'D,H',              default: 'A' },
+    gauss:   { label: 'arcs to glow', placeholder: 'D,H — all nodes still visible', default: 'A' },
     overlay: { label: 'namespaces', placeholder: 'base,kimi,jobsite', default: 'base,kimi,jobsite,route' },
   };
 
@@ -241,6 +247,7 @@
   const paramLabel = document.getElementById('param-label');
   const paramInput = document.getElementById('param-input');
   const ringsInput = document.getElementById('rings-input');
+  const nsInput    = document.getElementById('ns-input');
 
   function setStatus(msg, cls) {
     statusLine.textContent = msg;
@@ -265,6 +272,9 @@
         document.querySelectorAll('.mode-btn[data-mode]').forEach(b => b.classList.remove('active'));
         btn.classList.add('active');
         currentMode = btn.dataset.mode;
+        if ( currentMode === 'heatmap' && parseInt(ringsInput.value) > 13 ) {
+          ringsInput.value = '13';
+        }
         updateParamRow(currentMode);
         render();
       } else if ( btn.dataset.labelMode ) {
@@ -308,8 +318,10 @@
   function render() {
     const rings = parseInt(ringsInput.value) || 26;
     const param = paramInput.value.trim();
+    const ns    = nsInput.value.trim();
     let url = `/iris/svg?mode=${currentMode}&rings=${rings}&label_mode=${currentLabelMode}`;
     if (param && modeParams[currentMode]) url += `&param=${encodeURIComponent(param)}`;
+    if (ns) url += `&ns=${encodeURIComponent(ns)}`;
 
     setStatus('rendering...', 'loading');
     const t0 = performance.now();
