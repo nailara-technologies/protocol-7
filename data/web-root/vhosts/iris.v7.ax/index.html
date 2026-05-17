@@ -75,6 +75,13 @@
       margin-left: 0.4rem;
     }
 
+    .label-mode-row {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      margin-left: 0.4rem;
+    }
+
     .param-label {
       font-size: 0.72rem;
       color: rgba(255,255,255,0.25);
@@ -176,6 +183,12 @@
   <button class="mode-btn" data-mode="metric">metric</button>
   <button class="mode-btn" data-mode="density">density</button>
 
+  <div class="label-mode-row">
+    <span class="param-label">labels</span>
+    <button class="mode-btn active" data-label-mode="linear">linear</button>
+    <button class="mode-btn" data-label-mode="namespace63">namespace63</button>
+  </div>
+
   <div class="param-row" id="param-row" style="display:none">
     <span class="param-label" id="param-label">arcs</span>
     <input class="param-input" id="param-input" type="text" value="">
@@ -184,7 +197,7 @@
   <div class="rings-row">
     <span class="param-label">rings</span>
     <input class="rings-input" id="rings-input" type="number"
-           min="1" max="52" value="26">
+           min="1" max="63" value="26">
   </div>
 
   <button class="render-btn" id="render-btn">render</button>
@@ -202,8 +215,9 @@
     overlay: { label: 'namespaces', placeholder: 'base,kimi,jobsite', default: 'base,kimi,jobsite,route' },
   };
 
-  let currentMode  = 'ring';
-  let currentRings = 26;
+  let currentMode      = 'ring';
+  let currentRings     = 26;
+  let currentLabelMode = 'linear';
 
   const frame      = document.getElementById('iris-frame');
   const statusLine = document.getElementById('status-line');
@@ -231,11 +245,18 @@
 
   document.querySelectorAll('.mode-btn').forEach(btn => {
     btn.addEventListener('click', () => {
-      document.querySelectorAll('.mode-btn').forEach(b => b.classList.remove('active'));
-      btn.classList.add('active');
-      currentMode = btn.dataset.mode;
-      updateParamRow(currentMode);
-      render();
+      if ( btn.dataset.mode ) {
+        document.querySelectorAll('.mode-btn[data-mode]').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        currentMode = btn.dataset.mode;
+        updateParamRow(currentMode);
+        render();
+      } else if ( btn.dataset.labelMode ) {
+        document.querySelectorAll('.mode-btn[data-label-mode]').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        currentLabelMode = btn.dataset.labelMode;
+        render();
+      }
     });
   });
 
@@ -246,7 +267,7 @@
   function render() {
     const rings = parseInt(ringsInput.value) || 26;
     const param = paramInput.value.trim();
-    let url = `/iris/svg?mode=${currentMode}&rings=${rings}`;
+    let url = `/iris/svg?mode=${currentMode}&rings=${rings}&label_mode=${currentLabelMode}`;
     if (param && modeParams[currentMode]) url += `&param=${encodeURIComponent(param)}`;
 
     setStatus('rendering...', 'loading');

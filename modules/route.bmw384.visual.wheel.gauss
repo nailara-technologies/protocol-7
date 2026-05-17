@@ -9,15 +9,14 @@ my $by_name = <bmw384.index>->{'by_name'};
 my @names   = keys %$by_name;
 
 # [ parameters ]
-my $rings            = <route.bmw384.cfg.rings>              // 1;
-my $ring_hue_drift   = <route.bmw384.cfg.ring_hue_drift>     // 14;
-my $ring_label_adv   = <route.bmw384.cfg.ring_label_advance> // 1;
-my $ring_radius_step = <route.bmw384.cfg.ring_radius_step>   // 11;
-my $outer_radius     = <route.bmw384.cfg.outer_radius>       // 320;
-my $ring_blue_tint   = <route.bmw384.cfg.ring_blue_tint>     // 0.6;
-my $gauss_arcs_cfg   = <route.bmw384.cfg.gauss_arcs>         // 'A';
-my $gauss_sigma      = <route.bmw384.cfg.gauss_sigma>        // 3;
-my $gauss_boost      = <route.bmw384.cfg.gauss_boost>        // 2.0;
+my $rings            = <route.bmw384.cfg.rings>            // 1;
+my $ring_hue_drift   = <route.bmw384.cfg.ring_hue_drift>   // 14;
+my $ring_radius_step = <route.bmw384.cfg.ring_radius_step> // 11;
+my $outer_radius     = <route.bmw384.cfg.outer_radius>     // 320;
+my $ring_blue_tint   = <route.bmw384.cfg.ring_blue_tint>   // 0.6;
+my $gauss_arcs_cfg   = <route.bmw384.cfg.gauss_arcs>       // 'A';
+my $gauss_sigma      = <route.bmw384.cfg.gauss_sigma>      // 3;
+my $gauss_boost      = <route.bmw384.cfg.gauss_boost>      // 2.0;
 
 # [ parse selected arc labels -> indices ]
 my @gauss_idx;
@@ -98,7 +97,6 @@ for my $ARG ( 0 .. 25 ) {
 # [ arc labels ]
 for my $ring ( 0 .. $rings - 1 ) {
     my $radius        = $outer_radius - $ring * $ring_radius_step;
-    my $label_offset  = $ring * $ring_label_adv;
     my $label_opacity = sprintf '%.2f', 0.3 * ( 0.75**$ring );
     $label_opacity = 0.05 if $label_opacity < 0.05;
     my $label_font_size = 10 - $ring;
@@ -110,15 +108,25 @@ for my $ring ( 0 .. $rings - 1 ) {
         my $rad       = $angle_deg * $PI / 180;
         my $x         = 400 + $label_radius * sin($rad);
         my $y         = 400 - $label_radius * cos($rad);
-        my $label     = chr( ord('A') + ( $ARG + $label_offset ) % 26 );
+        my $label     = <[route.bmw384.visual.ring-label]>->( $ring, $ARG );
         my $w         = $arc_weight[$ARG];
         my $lop       = $label_opacity + ( 0.7 - $label_opacity ) * $w;
+
+        # [ ring 27 darksun marker — special rendering ]
+        my ( $label_fill, $label_font_size_actual );
+        if ( $label eq '.' ) {
+            $label_fill             = 'rgba(100,150,255,0.6)';
+            $label_font_size_actual = $label_font_size + 2;
+        } else {
+            $label_fill             = sprintf 'rgba(255,255,255,%.2f)', $lop;
+            $label_font_size_actual = $label_font_size;
+        }
+
         $svg
-            .= sprintf
-            '  <text x="%.2f" y="%.2f" fill="rgba(255,255,255,%.2f)"'
+            .= sprintf '  <text x="%.2f" y="%.2f" fill="%s"'
             . ' font-size="%d" text-anchor="middle"'
             . ' dominant-baseline="middle">%s</text>'
-            . "\n", $x, $y, $lop, $label_font_size, $label;
+            . "\n", $x, $y, $label_fill, $label_font_size_actual, $label;
     }
 }
 
@@ -211,8 +219,8 @@ $svg .= '</svg>' . "\n";
 
 return $svg;
 
-#,,,,,,..,,.,,...,.,,,,,,,,,,,,..,,..,,..,,..,..,,...,...,..,,,.,,,,,,...,...,
-#OWLEY7DUT6PDNK446NIBTJLCFGYSXOR5AYSDR2QRIIRT7EBCHYQRRHY3UJEAX66E3QFE7GOB4LQVC
-#\\\|2TZ7HZJEFQWIKCEXVLGYDTVVFOE2K5QGJG64S4WGMM7ANTSJ464 \ / AMOS7 \ YOURUM ::
-#\[7]EHOOTPYXYBOBCMFE6P7IHAUTQ3JW3BWZVJBP3RQLVV3RXU2VMOCQ 7  DATA SIGNATURE ::
+#,,..,..,,,,,,.,.,,,.,,,.,...,,.,,.,.,.,,,.,,,..,,...,...,,,,,..,,.,,,.,,,,.,,
+#AWYITPZ47NHWQEJBPEZW4DWDP4UVO4LWH3XRGKR6ONBD7NM7OA3MRYTGW4BOVTQ6PKZW26VHPXEHW
+#\\\|H4YZBRTPKPFJCRU2H45PF6BGAFDZV5JRWERDF54LK5KHXFD2IZL \ / AMOS7 \ YOURUM ::
+#\[7]UDFR43XHUNLNDICDPCSLYRL67GVAWRGIFCA2OZ624BZV2RJ2E2DY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
