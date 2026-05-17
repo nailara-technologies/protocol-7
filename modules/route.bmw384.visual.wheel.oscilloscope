@@ -4,17 +4,33 @@
 # descr = iris rings as live zulum stream oscilloscope
 #         ring N = stream N, brightness = normalized stream value
 
-# [ fetch zulum stream states — direct memory read, same-zenka fallback ]
+# [ fetch zulum stream states — file export path ]
+my $export_path = ( <system.path.zenka-dirs.var_P7> // '/var/protocol-7' )
+    . '/zulum/streams.json';
+
 my $streams = {};
-for my $sid ( 1 .. 13 ) {
-    my $stream = <zulum.stream>->{$sid};
-    next unless defined $stream;
-    $streams->{$sid} = {
-        'state'     => $stream->{'state'}     // 0,
-        'entropy'   => $stream->{'entropy'}   // ( '0' x 42 ),
-        'is_true'   => $stream->{'is_true'}   // 0,
-        'iteration' => $stream->{'iteration'} // 0,
-    };
+
+if ( -f $export_path ) {
+    <[base.perlmod.autoload]>->('JSON');
+    my $json_ref = <[file.load]>->($export_path);
+    if ( defined $json_ref and length $$json_ref ) {
+        my $data = eval { JSON::from_json($$json_ref) };
+        $streams = $data if ref $data eq 'HASH';
+    }
+}
+
+# [ fall back to direct memory if file not available ]
+if ( not scalar keys %$streams ) {
+    for my $sid ( 1 .. 13 ) {
+        my $stream = <zulum.stream>->{$sid};
+        next unless defined $stream;
+        $streams->{$sid} = {
+            'state'     => $stream->{'state'}     // 0,
+            'entropy'   => $stream->{'entropy'}   // ( '0' x 42 ),
+            'is_true'   => $stream->{'is_true'}   // 0,
+            'iteration' => $stream->{'iteration'} // 0,
+        };
+    }
 }
 
 # [ parameters ]
@@ -88,8 +104,8 @@ $svg
 $svg .= '</svg>' . "\n";
 return $svg;
 
-#,,,,,.,.,,,,,,,.,,,.,,..,,.,,...,,,.,...,,..,..,,...,...,.,.,,,.,...,...,.,,,
-#TY3NLOUHPVPFZFU6QLLEMBO5BR6RA5DGNN4OZQURA5BVYAZ53WYOVYDBUDR73OCSIRK3OM4O64BQ4
-#\\\|XMPFAPDHKHBMYXRMMTCAGKOLZQXP7XDWE7OXOKJ5WVHTCKMN6JT \ / AMOS7 \ YOURUM ::
-#\[7]PHVGTL3TQEDXFV7RXCUJM6R34OE6FOENFCBTWAAWPJWXU4ADDGAQ 7  DATA SIGNATURE ::
+#,,.,,,..,,..,,..,..,,.,.,,,,,,..,.,.,.,.,..,,..,,...,..,,...,..,,,,.,,.,,.,.,
+#VKMFMPYOBLERJCGAZV2IMNHP6JJQJXH7Z3GBAQY7F5Y2U5L5VSFE3H2ENQSGESVRGXORQDR6AZE4S
+#\\\|GSJ4FJDJUCB32G2EFZTGHDG3VUG5X4H3CV64OQML3QUVDDBC7ZI \ / AMOS7 \ YOURUM ::
+#\[7]XM74XUF2CI3KAQ42PJZYZ67S53JYZ463ZGXJDPN76BR65BD34SAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -51,10 +51,20 @@ for my $stream_id ( 1 .. 13 ) {
 
 <[base.log]>->( 1, "[zulum] all 13 streams attached to decoder" );
 
+## export stream states periodically for iris oscilloscope ##
+<[event.add_timer]>->(
+    {   'after'   => 1,
+        'handler' => qw| zulum.cmd.export-streams |,
+        'repeat'  => 0.2,
+        'desc'    => 'stream state export for iris oscilloscope'
+    }
+);
+<[base.log]>->( 2, "[zulum] stream export timer started [ 200ms ]" );
+
 return TRUE;
 
-#,,,.,,,,,,.,,,,,,..,,...,,.,,,..,.,,,.,,,,,,,.,.,...,..,,..,,,,.,,.,,...,..,,
-#Y2SX3NTL4VJBDP5LGLDH4ED75JBFW6EO4VDT67QYRJMM5EWFN5LFOS62WJRUN2BV2NUFZ4SVATKUA
-#\\\|NIRAT5576RY2K4XPGJU3AMKTMHPVXCSD4DXMRTBRXMXJA5VQOYQ \ / AMOS7 \ YOURUM ::
-#\[7]M4AXNZZPFGOMBU3HSKD5LGAD6YK6TYLMMXBYD4TTHZGS65W334BI 7  DATA SIGNATURE ::
+#,,,,,..,,.,,,...,,..,,.,,.,,,..,,,,.,.,.,,,.,.,.,...,...,...,.,,,,,.,,,.,.,,,
+#MH7A5AS6XBCJNPE5NEQKZW2MJMW4Q3PJGFSDYOF6QCTDX55H3PVJD2DLKTMJKQNLTEXQU2SZW477G
+#\\\|V4BOGYJUBHOO4T7O3ZJF6SLEIH34TFGR6HOB5JHX2BGMVZR42P3 \ / AMOS7 \ YOURUM ::
+#\[7]LM24DTIRIMYG5VLAJE2UFJQKP57FLHGSQQBJSMRLNT2WP7IW4ACI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
