@@ -20,6 +20,8 @@
 - [cursor-model](topic-cursor-model.md) — true cursor from hyperspace plane density; next: remove wireframe cube, queue glow task
 - [iris-spoke-labels](topic-iris-spoke-labels.md) — 63-ring spoke sequence: A-Z · dot-fold · Z-A · 9-0 · BASE32/binary bottom; protocol=visual vision
 - [stream-framing-protocol](topic-stream-framing-protocol.md) — 3+1 bit frame, separator inversion on 000, expanding assertion window, dot=0 comma=1
+- [orbital-cycle-clock](topic-orbital-cycle-clock.md) — angle_bits as generic mapping canvas; velocity multipliers; network cycle clock; 45 compatible feature combinations
+- [self-optimizing-code](topic-self-optimizing-code.md) — prior impl as spec+test generator+fallback; benchmark as reviewer; autonomous performance optimization paradigm
 
 ## Vision / Design Topics
 - [project-vision-origin](project-vision-origin.md) — 24-year foundational vision, threshold reached Apr 2026
@@ -82,12 +84,10 @@
 ## System Status
 
 ### Next Steps (immediate)
-- **:::: litter row**: encode 15-bit zenka involvement bitmap in signature footer line 4
-- **iris 63-ring labels**: implement A-Z · `.` at 27 · Z-A · 9-0 label sequence
-- **iris logo overlay**: embed nailara_logo.trans-dark.png at SVG center void (400,400)
-  via `<image>` element — iris disc as living logo background
-- **logo recreation**: opus-level model needed; original XCF lost ~2003; PNG at
-  data/gfx/logos/nailara_logo.trans-dark.png — recreate at 4K+ scale when budget allows
+- **iris 63-ring labels**: task file written (data/tasks/iris-63-ring-spoke-labels.md) — dispatch to kimi next
+- **:::: litter row**: task file written (data/tasks/litter-row-encoding.md) — pending dispatch
+- **iris logo overlay**: DONE — kimi implemented, nailara logo at darksun position 27 ✓
+- **iris live**: iris.v7.ax live at 172.24.33.224, BMW384 index self-populates on first request
 - **jobsite BMW384 dedup**: dispatch bmw384-arc-grouping-filter.md to kimi
 - **route.bmw384 find-route testing**: register nodes, run find-route + verify-coordinate
 - **kimi.task-file :next: dispatch**: now working — variable watcher fix confirmed
@@ -125,8 +125,8 @@
 - **repo var/ cleanup** — `var/httpd/` tracked from Nov 2025 AI error
 - **kimi auto-approval regression** (Apr 16) — some tool calls not auto-approved during kimi tasks
 
-#,,.,,.,.,.,.,,,,,,,,,,,.,,..,.,,,...,.,,,,..,..,,...,...,...,,..,,,.,,..,,..,
-#UNIKFZD2ILGZ5AXZGKXE4KJEYZUDAJLVROJNFUCKATFK4MHH6RFVKKXI7CUCSCS324IV2KBXMGZ5M
-#\\\|UJDJQYYHYB6MNDT75BBRH4BZUEKXIJFUYZKOUVGZCEGBL6DEBP7 \ / AMOS7 \ YOURUM ::
-#\[7]LWNIKITOK6YUFWEFIAMZBW6JIEWZ2FGXXVMSCZJWGTM3REIFMIAQ 7  DATA SIGNATURE ::
+#,,,,,...,..,,.,,,,,.,,,.,,..,,,,,..,,,..,...,..,,...,...,...,.,,,,.,,..,,...,
+#7JBJRCB47YZHY26DYHJOLN4WUL33T5IIFYFWSZXISXO6X33M4GLBFZ2O6F7RFBZTTY2D2TRJ67PI6
+#\\\|RYR2Z7GD2OCZXLGI2KCPJBDRQXMVVRWJTQOXMF56KPPH7XVWNOY \ / AMOS7 \ YOURUM ::
+#\[7]YJORF5KRYFFJ3XIKZUHDEDNDLAJVD2GQRKNUYUBYD2OTXDGHK2BI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
