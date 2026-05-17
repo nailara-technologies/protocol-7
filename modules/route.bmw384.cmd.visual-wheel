@@ -13,6 +13,7 @@ my $visual_mode;
 my $mode_param;
 my $label_mode;
 my $ns_filter_saved;
+my $tl_mode;
 
 for my $ARG (@rest) {
     if ( $ARG =~ m{^\d+$} and not defined $rings_override ) {
@@ -27,6 +28,8 @@ for my $ARG (@rest) {
     } elsif ( $ARG =~ m{^(?:ns|namespace)=(.+)$} ) {
         $ns_filter_saved = <route.bmw384.cfg.namespace_filter>;
         <route.bmw384.cfg.namespace_filter> = $1;
+    } elsif ( $ARG =~ m{^(?:tl|translucency)=(\d)$} ) {
+        $tl_mode = $1 + 0;
     } elsif ( not defined $mode_param ) {
         $mode_param = $ARG;
     }
@@ -51,6 +54,13 @@ my $label_mode_saved;
 if ( defined $label_mode ) {
     $label_mode_saved = <route.bmw384.cfg.ring_label_mode>;
     <route.bmw384.cfg.ring_label_mode> = $label_mode;
+}
+
+# [ save and apply translucency mode ]
+my $tl_saved;
+if ( defined $tl_mode ) {
+    $tl_saved = <route.bmw384.cfg.translucency_mode>;
+    <route.bmw384.cfg.translucency_mode> = $tl_mode;
 }
 
 # [ apply mode-specific param ]
@@ -105,7 +115,7 @@ if ( not length $output_mode or $output_mode eq 'svg' ) {
         qw| mode | => qw| size |,
         qw| data | => 'usage: visual-wheel [svg|html|file] [rings]'
             . ' [arc-width|density|gauss|overlay|metric|heatmap]'
-            . ' [mode-param] [linear|namespace63] [ns=filter]'
+            . ' [mode-param] [linear|namespace63] [ns=filter] [tl=0..3]'
     };
 }
 
@@ -150,11 +160,18 @@ if ( defined $ns_filter_saved ) {
 } else {
     delete <route.bmw384.cfg.namespace_filter>;
 }
+if ( defined $tl_mode ) {
+    if ( defined $tl_saved ) {
+        <route.bmw384.cfg.translucency_mode> = $tl_saved;
+    } else {
+        delete <route.bmw384.cfg.translucency_mode>;
+    }
+}
 
 return $result;
 
-#,,.,,,,,,..,,,.,,,,.,,.,,.,,,.,,,,.,,,.,,.,,,..,,...,...,..,,,..,.,,,...,,,,,
-#BU63R6YPVVH5B5XFKOKQ2E3FTFI7Y3KWF4AMWPPVZHVFUOTLW6PDJ7BMG27ICCKLATWGRY6WH4GPU
-#\\\|CYNIOIR7L6AHE76CPP65DZ6TMP3MNZQN5TJCZNVR7M2JJJCA52W \ / AMOS7 \ YOURUM ::
-#\[7]GVYUK3V3WDLKT5TEXPLHV6U7BKW4B2XZIRNRPDUPSBAJIPYBSSBA 7  DATA SIGNATURE ::
+#,,,,,,,,,,..,,,.,,,,,,.,,,..,.,.,.,.,,,.,.,.,..,,...,...,,.,,...,,,.,...,,,,,
+#W32PD7GORZSTV5PQORFEU7NQD5KEB7E5KEC4JYWHMTKH7QPHMTHES2JEMNROG4KDXJ3MM7ALNSVPW
+#\\\|NJ4YLK6CFGBJ5ZG2AZREJX2NHEKMSHQHFOHZPFSCWENHGOIHCX5 \ / AMOS7 \ YOURUM ::
+#\[7]7AURTNSTVV6VC42QQIRUCMCBKF62KAJN5O7RBUONI3R7LDOH5ADI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
