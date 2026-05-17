@@ -1,0 +1,188 @@
+## [:< ##
+
+# name  = route.bmw384.visual.wheel.vortex
+# descr = generate SVG wheel with node opacity proportional to degree density
+
+return undef if not defined <bmw384.index>;
+
+my $by_name = <bmw384.index>->{'by_name'};
+my @sorted_names
+    = @{ <bmw384.index>->{'sorted_names'} // [ sort keys %$by_name ] };
+
+# [ optional namespace filter ]
+my $ns_filter = <route.bmw384.cfg.namespace_filter> // '';
+if ( length $ns_filter ) {
+    my $prefix_only = substr( $ns_filter, 0, 1 ) eq '^';
+    my $ns_pat      = $prefix_only ? substr( $ns_filter, 1 ) : $ns_filter;
+    my $anywhere    = not $prefix_only;
+    <[base.logs]>->(
+        1, 'ns filter: [%s] prefix_only=%s anywhere=%s',
+        $ns_filter,
+        $prefix_only ? 'yes' : 'no',
+        $anywhere    ? 'yes' : 'no'
+    );
+    my @sorted_names_f;
+    for my $ARG (@sorted_names) {
+        push @sorted_names_f, $ARG
+            if $anywhere
+            ? index( $ARG, $ns_filter ) != -1
+            : index( $ARG, $ns_pat ) == 0;
+    }
+    @sorted_names = @sorted_names_f;
+}
+
+# [ parameters ]
+my $rings            = <route.bmw384.cfg.rings>            // 1;
+my $ring_hue_drift   = <route.bmw384.cfg.ring_hue_drift>   // 14;
+my $ring_radius_step = <route.bmw384.cfg.ring_radius_step> // 11;
+my $outer_radius     = <route.bmw384.cfg.outer_radius>     // 320;
+my $ring_blue_tint   = <route.bmw384.cfg.ring_blue_tint>   // 0.6;
+
+# [ degree density data ]
+my $density_arr = <bmw384.index>->{'degree_density'}     // [];
+my $density_max = <bmw384.index>->{'degree_density_max'} // 0;
+$density_max = 1 if $density_max < 1;
+
+# [ co-location ] count nodes per coordinate key
+my %coord_count;
+for my $ARG (@sorted_names) {
+    my $coord = $by_name->{$ARG};
+    my $key   = join( ':', $coord->{'color'}, $coord->{'arc'} );
+    $coord_count{$key}++;
+}
+
+my $PI = 3.14159265358979;
+
+my $segment_deg   = 360 / 26;
+my $segment_width = 16777216 / 26;
+
+my $svg = '<?xml version="1.0" encoding="UTF-8"?>' . "\n";
+$svg .= '<svg xmlns="http://www.w3.org/2000/svg"'
+    . ' viewBox="0 0 800 800" width="800" height="800">' . "\n";
+$svg .= '  <rect width="800" height="800" fill="#0a0a0f"/>' . "\n";
+
+# [ arc spokes — counterclockwise ]
+for my $ARG ( 0 .. 25 ) {
+    my $angle_deg = -$ARG * $segment_deg;
+    my $rad       = $angle_deg * $PI / 180;
+    my $x2        = 400 + 360 * sin($rad);
+    my $y2        = 400 - 360 * cos($rad);
+    $svg
+        .= sprintf '  <line x1="400" y1="400" x2="%.2f" y2="%.2f"'
+        . ' stroke="rgba(255,255,255,0.08)" stroke-width="1"/>'
+        . "\n", $x2, $y2;
+}
+
+# [ arc labels — counterclockwise, per ring ]
+for my $ring ( 0 .. $rings - 1 ) {
+    my $radius        = $outer_radius - $ring * $ring_radius_step;
+    my $label_opacity = sprintf( '%.2f', 0.3 * ( 0.75**$ring ) );
+    $label_opacity = 0.05 if $label_opacity < 0.05;
+    my $label_font_size = 10 - $ring;
+    $label_font_size = 7 if $label_font_size < 7;
+    my $label_radius = $radius + 12;
+
+    for my $ARG ( 0 .. 25 ) {
+        my $angle_deg = -$ARG * $segment_deg;
+        my $rad       = $angle_deg * $PI / 180;
+        my $x         = 400 + $label_radius * sin($rad);
+        my $y         = 400 - $label_radius * cos($rad);
+        my $label     = <[route.bmw384.visual.ring-label]>->( $ring, $ARG );
+
+        # [ ring 27 darksun marker — special rendering ]
+        my ( $label_fill, $label_font_size_actual );
+        if ( $label eq '.' ) {
+            $label_fill             = 'rgba(100,150,255,0.6)';
+            $label_font_size_actual = $label_font_size + 2;
+        } else {
+            $label_fill             = "rgba(255,255,255,$label_opacity)";
+            $label_font_size_actual = $label_font_size;
+        }
+
+        $svg
+            .= sprintf '  <text x="%.2f" y="%.2f" fill="%s"'
+            . ' font-size="%d" text-anchor="middle"'
+            . ' dominant-baseline="middle">%s</text>'
+            . "\n", $x, $y, $label_fill, $label_font_size_actual, $label;
+    }
+}
+
+# [ nodes ] concentric rings with opacity from degree density
+for my $ring ( 0 .. $rings - 1 ) {
+    my $radius      = $outer_radius - $ring * $ring_radius_step;
+    my $hue_offset  = $ring * $ring_hue_drift;
+    my $node_base_r = 4 - int( $ring / 3 );
+    $node_base_r = 2 if $node_base_r < 2;
+
+    my %drawn_index;
+
+    for my $ARG (@sorted_names) {
+        my $coord = $by_name->{$ARG};
+        my $key   = join( ':', $coord->{'color'}, $coord->{'arc'} );
+
+        my $colocated_index = $drawn_index{$key} // 0;
+        $drawn_index{$key} = $colocated_index + 1;
+
+        my $arc_start_deg = -$coord->{'arc'} * $segment_deg;
+        my $within_arc_frac
+            = ( $coord->{'color'} / $segment_width )
+            - int( $coord->{'color'} / $segment_width );
+        my $angle_deg = $arc_start_deg - $within_arc_frac * $segment_deg;
+        my $rad       = $angle_deg * $PI / 180;
+
+        my $x = 400 + $radius * sin($rad);
+        my $y = 400 - $radius * cos($rad);
+
+        my $base_hue
+            = (
+            180 - int( $coord->{'color'} / 16777216 * 360 ) + $hue_offset )
+            % 360;
+        my $blue_blend
+            = $rings > 1
+            ? ( $ring / ( $rings - 1 ) ) * $ring_blue_tint
+            : 0;
+        my $hue = int( $base_hue * ( 1 - $blue_blend ) + 220 * $blue_blend )
+            % 360;
+        my $color_hex = sprintf 'hsl(%d,90%%,60%%)', $hue;
+        my $r = $node_base_r + ( $colocated_index * 2 );
+
+        # [ compute density-based opacity ]
+        my $degree_position = int( -$angle_deg ) % 360;
+        my $count           = $density_arr->[$degree_position] // 0;
+        my $alpha = sprintf '%.2f', 0.15 + 0.85 * ( $count / $density_max );
+
+        my $pct = sprintf '%.1f', 100 * $count / $density_max;
+
+        $svg
+            .= sprintf
+            '  <circle cx="%.2f" cy="%.2f" r="%d" fill="%s" opacity="%s">'
+            . "\n", $x, $y, $r, $color_hex, $alpha;
+        $svg
+            .= sprintf '    <title>%s — count:%d (%s%%)</title>' . "\n",
+            $ARG, $count, $pct;
+        $svg .= '  </circle>' . "\n";
+    }
+}
+
+# [ center logo — nailara at the darksun ]
+my $logo_size = 44;
+my $logo_xy   = 400 - $logo_size / 2;
+
+$svg
+    .= sprintf '  <image x="%.1f" y="%.1f" width="%d" height="%d"'
+    . ' href="%s" opacity="0.7"'
+    . ' style="mix-blend-mode:screen"/>' . "\n",
+    $logo_xy, $logo_xy, $logo_size, $logo_size,
+    '/gfx/logos/nailara_logo.trans-dark.png';
+
+$svg .= '  <circle cx="400" cy="400" r="24" fill="none"'
+    . ' stroke="rgba(255,255,255,0.08)" stroke-width="0.5"/>' . "\n";
+$svg .= '</svg>' . "\n";
+
+return $svg;
+
+#,,.,,,.,,,,.,,,.,,.,,.,,,,,,,,,,,,,,,.,,,,..,..,,...,...,,..,,.,,,,,,,,.,.,,,
+#BFU5QHJD3HS5VH2GVCQJCCNYVM2RM5QLQPUV36S7NUHQBFIE4EDQRPP6MUNFNIFHFXV4HW5YS3JMC
+#\\\|W6JG26CMHA5N3IEO34QWLVRUTFXXIERXJD6FKD27TKCQRHWATMU \ / AMOS7 \ YOURUM ::
+#\[7]CABYTZL3GFBY3BMQ27J43PHCQOKWLRL75YJGOMIJICPFHVRE4EDI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
