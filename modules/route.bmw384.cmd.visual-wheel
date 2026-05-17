@@ -12,6 +12,7 @@ my $rings_override;
 my $visual_mode;
 my $mode_param;
 my $label_mode;
+my $ns_filter_saved;
 
 for my $ARG (@rest) {
     if ( $ARG =~ m{^\d+$} and not defined $rings_override ) {
@@ -23,6 +24,9 @@ for my $ARG (@rest) {
         $visual_mode = $ARG;
     } elsif ( $ARG =~ m{^(?:namespace63|linear)$} ) {
         $label_mode = $ARG;
+    } elsif ( $ARG =~ m{^(?:ns|namespace)=(.+)$} ) {
+        $ns_filter_saved = <route.bmw384.cfg.namespace_filter>;
+        <route.bmw384.cfg.namespace_filter> = $1;
     } elsif ( not defined $mode_param ) {
         $mode_param = $ARG;
     }
@@ -101,7 +105,7 @@ if ( not length $output_mode or $output_mode eq 'svg' ) {
         qw| mode | => qw| size |,
         qw| data | => 'usage: visual-wheel [svg|html|file] [rings]'
             . ' [arc-width|density|gauss|overlay|metric|heatmap]'
-            . ' [mode-param] [linear|namespace63]'
+            . ' [mode-param] [linear|namespace63] [ns=filter]'
     };
 }
 
@@ -141,11 +145,16 @@ if ( defined $overlay_ns_saved ) {
     and $visual_mode eq 'overlay' ) {
     delete <route.bmw384.cfg.overlay_namespaces>;
 }
+if ( defined $ns_filter_saved ) {
+    <route.bmw384.cfg.namespace_filter> = $ns_filter_saved;
+} else {
+    delete <route.bmw384.cfg.namespace_filter>;
+}
 
 return $result;
 
-#,,,,,.,,,.,,,,,,,..,,,,,,,,.,,,.,,..,,.,,.,.,..,,...,...,,,.,,,.,..,,..,,,.,,
-#3TS6WJ32TIAELYVLHWXENCSANEI2GRMCVZQMLCWSPKKXYW53DWVWMXBQRBXHEH5FJE535QS4W36EI
-#\\\|45KP6CEB62IOC7PWEXKFQVUTYXRRCTAUZ64JF5JZYQMYMMBTKEO \ / AMOS7 \ YOURUM ::
-#\[7]XUHZRYDDVAILL5J25ZJU6TYOD5F5L6MV2QEFM5REGODJJLZPSEBI 7  DATA SIGNATURE ::
+#,,.,,,,,,..,,,.,,,,.,,.,,.,,,.,,,,.,,,.,,.,,,..,,...,...,..,,,..,.,,,...,,,,,
+#BU63R6YPVVH5B5XFKOKQ2E3FTFI7Y3KWF4AMWPPVZHVFUOTLW6PDJ7BMG27ICCKLATWGRY6WH4GPU
+#\\\|CYNIOIR7L6AHE76CPP65DZ6TMP3MNZQN5TJCZNVR7M2JJJCA52W \ / AMOS7 \ YOURUM ::
+#\[7]GVYUK3V3WDLKT5TEXPLHV6U7BKW4B2XZIRNRPDUPSBAJIPYBSSBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -8,6 +8,12 @@ return undef if not defined <bmw384.index>;
 my $by_name = <bmw384.index>->{'by_name'};
 my @names   = keys %$by_name;
 
+# [ optional namespace filter ]
+my $ns_filter = <route.bmw384.cfg.namespace_filter> // '';
+if ( length $ns_filter ) {
+    @names = grep { index( $ARG, $ns_filter ) == 0 } @names;
+}
+
 # [ parameters ]
 my $rings        = <route.bmw384.cfg.rings>        // 26;
 my $outer_radius = <route.bmw384.cfg.outer_radius> // 320;
@@ -17,6 +23,14 @@ my $PI          = 3.14159265358979;
 my $segment_deg = 360 / 26;
 my $band_width  = 16777216 / $rings;
 my $ring_step   = ( $outer_radius - $inner_radius ) / $rings;
+
+# [ precompute arc boundary angles ]
+my @theta;
+for my $arc ( 0 .. 26 ) {
+    $theta[$arc] = -$arc * $segment_deg * $PI / 180;
+}
+my @sin_theta = map { sin( $theta[$ARG] ) } 0 .. 26;
+my @cos_theta = map { cos( $theta[$ARG] ) } 0 .. 26;
 
 # [ count nodes per (arc, ring_band) cell ]
 my %cell;
@@ -41,8 +55,8 @@ $svg .= '  <rect width="800" height="800" fill="#0a0a0f"/>' . "\n";
 
 # [ heatmap cells — annular sectors ]
 for my $arc ( 0 .. 25 ) {
-    my $theta_s = -$arc * $segment_deg * $PI / 180;
-    my $theta_e = -( $arc + 1 ) * $segment_deg * $PI / 180;
+    my $theta_s = $theta[$arc];
+    my $theta_e = $theta[ $arc + 1 ];
 
     for my $band ( 0 .. $rings - 1 ) {
         my $count = $cell{"$arc:$band"} // 0;
@@ -53,6 +67,8 @@ for my $arc ( 0 .. 25 ) {
         my $r_inner = $r_outer - $ring_step;
         $r_inner = $inner_radius if $r_inner < $inner_radius;
 
+        next if $r_inner >= $r_outer;
+
         # [ color by density ratio ]
         my $ratio = $count / $max_count;
         my $hue   = int( 240 - $ratio * 240 );    # blue → red
@@ -60,20 +76,20 @@ for my $arc ( 0 .. 25 ) {
         my $op    = 0.3 + $ratio * 0.65;
 
         my ( $ox1, $oy1 ) = (
-            400 + $r_outer * sin($theta_s),
-            400 - $r_outer * cos($theta_s)
+            400 + $r_outer * $sin_theta[$arc],
+            400 - $r_outer * $cos_theta[$arc]
         );
         my ( $ox2, $oy2 ) = (
-            400 + $r_outer * sin($theta_e),
-            400 - $r_outer * cos($theta_e)
+            400 + $r_outer * $sin_theta[ $arc + 1 ],
+            400 - $r_outer * $cos_theta[ $arc + 1 ]
         );
         my ( $ix2, $iy2 ) = (
-            400 + $r_inner * sin($theta_e),
-            400 - $r_inner * cos($theta_e)
+            400 + $r_inner * $sin_theta[ $arc + 1 ],
+            400 - $r_inner * $cos_theta[ $arc + 1 ]
         );
         my ( $ix1, $iy1 ) = (
-            400 + $r_inner * sin($theta_s),
-            400 - $r_inner * cos($theta_s)
+            400 + $r_inner * $sin_theta[$arc],
+            400 - $r_inner * $cos_theta[$arc]
         );
 
         my $d
@@ -156,8 +172,8 @@ $svg .= '</svg>' . "\n";
 
 return $svg;
 
-#,,,.,.,,,,..,.,,,.,.,..,,,,,,...,..,,..,,,,,,..,,...,...,,,.,.,,,,,.,.,.,...,
-#FOB64FXER5XKUMHIQOY7EW364B6EA43WKI4OXAF62UYCFAITPL3C5AL2TAIBDFEMT73BVD4EFBLVK
-#\\\|F4Z7CRWL7WCSJHRKD2UHBNEPOQXZQYW7O3QFOEONPN4YH455CSW \ / AMOS7 \ YOURUM ::
-#\[7]XFWWY4GOZR6ZKSQZADG5WPSI3HJK5XZ2T7UZR7UCXZE35WVKFMAA 7  DATA SIGNATURE ::
+#,,..,,,,,...,,.,,.,.,..,,...,,,.,...,...,.,.,..,,...,..,,,,.,,,,,,,.,,,,,.,,,
+#XU7BQOCRBNKH53NTLSQ5ZFLVQL5DKHTFZHN7JEC75S56IVKJFSF6VQC35PUITHHEWK6422CYUWWI6
+#\\\|4UQKEROOVSYKA7PQ7WCY2BWGX37BMOV66CJQAFEBVQFOAPISJPD \ / AMOS7 \ YOURUM ::
+#\[7]6LPF6BC2VDAVQ5PBC4D6FX6A45GV3ZAKEQXVOYU6OSUABX5LLSAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
