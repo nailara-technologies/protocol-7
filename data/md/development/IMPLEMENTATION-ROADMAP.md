@@ -352,7 +352,28 @@ sub-topics:
                template tree (name) stable, content (checksum) free
                [ task: pending ]
 
-  4b.6 [ · ]  git coupling adapter
+  4b.6 [ · ]  improvement-directed history
+               integrity = evolutionary coherence, not archaeological preservation
+               bug fix arrives → bug introduction extracted from history
+               bug essence → detection matrix (more precise than the bug code)
+               bug code → removed from history (learning survives, mistake doesn't)
+               SHA chain replaced by directed improvement graph:
+                 nodes = content checksums
+                 edges = improvement direction (this is better than that)
+               reference count drop = natural fade to translucent blue pixel
+               [ task: pending ]
+
+  4b.7 [ · ]  partial step compaction
+               WIP commits = temporary states, not permanent history
+               feature complete = branch sum event
+               history collapses: many partial commits → one clean arrival
+               intermediate patterns worth keeping → detection matrix
+               intermediate noise → composted
+               history readable as clean sequence of feature arrivals
+               not archaeological record of implementation fumbling
+               [ task: pending ]
+
+  4b.8 [ · ]  git coupling adapter
                reads from / writes to git
                translates content layer operations → git operations
                "export to git" replaces "commit to git"
@@ -766,8 +787,8 @@ the desirable will be supported automatically.
 
 =)
 
-#,,.,,,..,.,,,...,.,,,...,,..,...,.,.,..,,,..,..,,...,...,...,...,,.,,.,.,,.,,
-#ZS3ENK5KO2F3PBYMWARRTH6TX3BN3F4GRLR3J3FYPTJHG7RMN3OJNM7KAXQQ5YGAMTLMUN7MLYDJG
-#\\\|3DWRM4JFLI4EUYFJGHESNKMBA24SJK343C6AI755AMCE7PEOT7N \ / AMOS7 \ YOURUM ::
-#\[7]EYNCQJCNKTAE2XU3QJLB3ECETRTOW3V3UM3SWCDDX736YY6U7EDY 7  DATA SIGNATURE ::
+#,,,.,,,,,.,,,,.,,,,,,,.,,..,,.,,,.,.,,,.,,,.,..,,...,...,,..,,,,,,..,...,,.,,
+#OOJTHVWYFC5YWTZJXLVCKEDQ7OOO3EKKCBGUFBS6GK4YHPREQU6RZYGCPS777SUQQ6SE42TZXGVQC
+#\\\|DB2UK62ELLHANFIQQCGXGB4RNUXLZIHFC27RNZGYCLCMQURW423 \ / AMOS7 \ YOURUM ::
+#\[7]D6OFZDXNDZTEC4M72IKQUDD5XTTC4RZBA4DQ6PY2MJ4UYRPWEICY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
