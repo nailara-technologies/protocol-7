@@ -26,7 +26,7 @@ $rings = 1  if $rings < 1;
 $rings = 52 if $rings > 52;
 
 # [ populate local BMW384 index if needed — code_path = modules/ ]
-if ( not defined <bmw384.index> ) {
+if ( not scalar keys %{ <bmw384.index>->{'by_name'} // {} } ) {
     <[route.bmw384.index.from-path]>->();
 }
 
@@ -95,8 +95,8 @@ $session->{'buffer'}->{'output'} .= $svg;
 
 return 2;
 
-#,,..,.,,,,,,,.,,,.,,,,..,.,.,.,,,,..,,.,,.,,,..,,...,...,...,.,.,,,.,.,.,...,
-#T64BWUADQZ5XRGAUS4I6YSUDRFEPZ6PF67TD4FHLE7JGNU3NX4R2WGHBCJZ24D63ZOOPYAPE3XQN2
-#\\\|D2U3RHPIEFUVC4ESSLT6GYWMVPUWRP44XCYFMZLUUKVF56LXXYZ \ / AMOS7 \ YOURUM ::
-#\[7]7BQ2HII3VSHGJA3YPP2J2JIVHPXEZSDFLBJZNAVD2YJ5SHJIJSAI 7  DATA SIGNATURE ::
+#,,.,,..,,,,.,,,,,,..,...,,..,,..,,,.,,,.,...,..,,...,..,,..,,.,,,...,.,.,,,.,
+#KB5J3AOSPDLWLKOZGPX7MY4QMJWLE4MTGLXEKWADEJUXR7BEFCDNEY6DUN2FGUME7BXMZPDPQ4R7G
+#\\\|IPH4YLFB6ERWI2PVQSQTSVIJMV7VMPETGWRVUC67WXY5WJV6LLP \ / AMOS7 \ YOURUM ::
+#\[7]2H227YILKVN7H3YWZBOPYQ5RX3DQJE7RMURCTJ32RAC6AWSTRUCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
