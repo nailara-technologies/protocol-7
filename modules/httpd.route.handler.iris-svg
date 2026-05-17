@@ -25,18 +25,54 @@ $rings = int($rings);
 $rings = 1  if $rings < 1;
 $rings = 52 if $rings > 52;
 
-# [ call index zenka via p7c — it holds the BMW384 index ]
-my $cmd = "p7c index.visual-wheel svg $rings";
-$cmd .= " $mode"  if $mode ne 'ring';
-$cmd .= " $param" if length $param;
-
-my $svg = '';
-if ( open( my $fh, '-|', $cmd ) ) {
-    local $INPUT_RECORD_SEPARATOR = undef;
-    $svg = <$fh>;
-    close $fh;
+# [ populate local BMW384 index if needed ]
+if ( not defined <bmw384.index> ) {
+    my $modules_path = ( <system.root_path> // '' ) . '/modules';
+    <[route.bmw384.index.from-path]>->($modules_path)
+        if -d $modules_path;
 }
-$svg = undef unless defined $svg and $svg =~ m{^<\?xml};
+
+# [ save cfg state ]
+my $saved_mode  = <route.bmw384.cfg.visual_mode>;
+my $saved_rings = <route.bmw384.cfg.rings>;
+my $saved_gauss = <route.bmw384.cfg.gauss_arcs>;
+my $saved_ns    = <route.bmw384.cfg.overlay_namespaces>;
+
+# [ apply request params ]
+<route.bmw384.cfg.rings>       = $rings;
+<route.bmw384.cfg.visual_mode> = $mode;
+
+if ( length $param ) {
+    if ( $mode eq 'gauss' ) {
+        <route.bmw384.cfg.gauss_arcs> = $param;
+    } elsif ( $mode eq 'overlay' ) {
+        <route.bmw384.cfg.overlay_namespaces> = $param;
+    }
+}
+
+my $svg = <[route.bmw384.visual.wheel-mode]>;
+
+# [ restore cfg state ]
+if ( defined $saved_mode ) {
+    <route.bmw384.cfg.visual_mode> = $saved_mode;
+} else {
+    delete <route.bmw384.cfg.visual_mode>;
+}
+if ( defined $saved_rings ) {
+    <route.bmw384.cfg.rings> = $saved_rings;
+} else {
+    delete <route.bmw384.cfg.rings>;
+}
+if ( defined $saved_gauss ) {
+    <route.bmw384.cfg.gauss_arcs> = $saved_gauss;
+} else {
+    delete <route.bmw384.cfg.gauss_arcs>;
+}
+if ( defined $saved_ns ) {
+    <route.bmw384.cfg.overlay_namespaces> = $saved_ns;
+} else {
+    delete <route.bmw384.cfg.overlay_namespaces>;
+}
 
 if ( not defined $svg ) {
     my $body = '{"error":"bmw384 index not initialized"}';
@@ -61,8 +97,8 @@ $session->{'buffer'}->{'output'} .= $svg;
 
 return 2;
 
-#,,,.,,..,,,,,,..,.,.,..,,,,,,.,.,,.,,...,,.,,..,,...,...,...,,..,.,.,,..,,..,
-#ZZJ5GYIHPMI5B73JKMSLUY6Y6OWIB2VHVZRREAWMYC6OVKFU4PPQ424RFXHI3AF5KC3WA7O6RWDVM
-#\\\|4DWJT4CNLVJKHIOLD7K77F6STJYYWDFFDKELKPZQ4VBO7WSUR5Y \ / AMOS7 \ YOURUM ::
-#\[7]GVKEBD7XCSH3E7YHGJGLYCL6M2RGJEBCD4GHPWFF3PQ6JHLFJUAA 7  DATA SIGNATURE ::
+#,,..,,,.,,..,,.,,,,.,,.,,,,.,,,.,,.,,,.,,..,,..,,...,...,.,.,.,,,...,.,,,.,.,
+#QB6GG37QR7HA3LNVQNOUOLCTHNH3GJLUIPSOSGXLCZFRLAQE4OKP6XT2D2BQZCRHFBXDVM3OWZUS2
+#\\\|CG4CWNHRO6EL4VOIPE5QVLRFUGKFEFQU7ZTRFQFEW7C3OXBD5HN \ / AMOS7 \ YOURUM ::
+#\[7]3FWFT2DOQ434NXEGSRVVAP5OPIPOR3ZACVX24LIMI7YALJ2OJMDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
