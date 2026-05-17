@@ -1,0 +1,159 @@
+## [:< ##
+
+# name  = route.bmw384.route.as-curve
+# descr = register a BMW384 route as an animated position curve
+# args  = $route_spec, $duration_secs, $curve_type, $callback
+
+my $route    = shift;
+my $duration = shift // 5;
+my $type     = shift // 'vortex_spiral';
+my $callback = shift;
+
+my $curve_id = do {
+    state $auto_id = 0;
+    'route_' . ++$auto_id;
+};
+
+# [ resolve coordinates from route spec ]
+my @coords;
+
+if ( defined $route->{'hops_coords'}
+    and ref $route->{'hops_coords'} eq 'ARRAY' ) {
+    @coords = @{ $route->{'hops_coords'} };
+} elsif ( defined $route->{'from'} and defined $route->{'to'} ) {
+    @coords = ( $route->{'from'}, $route->{'to'} );
+} elsif ( defined $route->{'path'} and ref $route->{'path'} eq 'ARRAY' ) {
+    for my $ARG ( @{ $route->{'path'} } ) {
+        my $coord = <[route.bmw384.index.lookup]>->($ARG);
+        push @coords, $coord if defined $coord;
+    }
+}
+
+if ( scalar @coords < 2 ) {
+    <[base.logs]>->( 1, 'route curve needs at least 2 coordinates <{C1}>' );
+    return undef;
+}
+
+# [ helper: bmw384 coord to svg position ]
+my $PI            = 3.14159265358979;
+my $segment_deg   = 360 / 26;
+my $segment_width = 16777216 / 26;
+
+sub _svg_pos {
+    my $coord           = shift;
+    my $radius_override = shift;
+
+    my $arc   = $coord->{'arc'}   // 0;
+    my $color = $coord->{'color'} // 0;
+
+    my $arc_start_deg = -$arc * $segment_deg;
+    my $within_arc_frac
+        = ( $color / $segment_width ) - int( $color / $segment_width );
+    my $angle_deg = $arc_start_deg - $within_arc_frac * $segment_deg;
+    my $angle     = $angle_deg * $PI / 180;
+
+    my $radius = $radius_override // 280;
+
+    return {
+        x     => 400 + $radius * sin($angle),
+        y     => 400 - $radius * cos($angle),
+        angle => $angle,
+    };
+}
+
+my $src_pos = _svg_pos( $coords[0] );
+my $dst_pos = _svg_pos( $coords[-1] );
+
+my $params;
+
+if ( $type eq 'vortex_spiral' ) {
+    my $turns = abs( $coords[-1]->{'arc'} - $coords[0]->{'arc'} ) / 26 + 1.5;
+    $params = {
+        radius_start => 280,
+        angle_start  => $src_pos->{'angle'},
+        turns        => $turns,
+    };
+
+} elsif ( $type eq 'orbital_arc' ) {
+    my $dx    = $dst_pos->{'x'} - $src_pos->{'x'};
+    my $dy    = $dst_pos->{'y'} - $src_pos->{'y'};
+    my $mid_x = ( $src_pos->{'x'} + $dst_pos->{'x'} ) / 2;
+    my $mid_y = ( $src_pos->{'y'} + $dst_pos->{'y'} ) / 2;
+    my $dist  = sqrt( $dx * $dx + $dy * $dy );
+
+    $dist = 0.001 if $dist < 0.001;
+
+    my $arc_radius = $dist * 1.5;
+    my $perp_x     = -$dy / $dist;
+    my $perp_y     = $dx / $dist;
+    my $offset     = sqrt( $arc_radius * $arc_radius - ( $dist / 2 )**2 );
+
+    my $center_x = $mid_x + $perp_x * $offset;
+    my $center_y = $mid_y + $perp_y * $offset;
+
+    my $angle_start
+        = -atan2( $src_pos->{'y'} - $center_y, $src_pos->{'x'} - $center_x );
+    my $angle_end
+        = -atan2( $dst_pos->{'y'} - $center_y, $dst_pos->{'x'} - $center_x );
+
+    # [ ensure CCW direction ]
+    $angle_end += 6.28318530717959 while $angle_end <= $angle_start;
+
+    $params = {
+        center_x    => $center_x,
+        center_y    => $center_y,
+        radius      => $arc_radius,
+        angle_start => $angle_start,
+        angle_end   => $angle_end,
+    };
+
+} elsif ( $type eq 'linear_hop' ) {
+    $params = {
+        from => $src_pos,
+        to   => $dst_pos,
+    };
+
+} else {
+    $type   = 'linear_hop';
+    $params = {
+        from => $src_pos,
+        to   => $dst_pos,
+    };
+}
+
+# [ store in route curves registry ]
+<bmw384.route.curves> //= {};
+<bmw384.route.curves>->{$curve_id} = {
+    route    => $route,
+    type     => $type,
+    params   => $params,
+    duration => $duration,
+    started  => <[base.time]>->(3),
+    callback => $callback,
+};
+
+# [ optionally register scalar progress curve ]
+if ( defined $callback and ref $callback eq qw| CODE | ) {
+    <[base.curve.register]>->(
+        {   id       => $curve_id . '_progress',
+            from     => 0,
+            to       => 1,
+            duration => $duration,
+            type     => 'linear',
+            callback => sub {
+                my $t = shift;
+                my $pos
+                    = <[base.curve.eval.position]>->( $type, $t, $params );
+                $callback->($pos);
+            },
+        }
+    );
+}
+
+return $curve_id;
+
+#,,..,,.,,,..,..,,...,,.,,,..,...,...,.,,,.,.,..,,...,...,..,,..,,,,,,,.,,..,,
+#HU7D3KNUURFI7475RUSGSVMESPYG6N5LS3KRDQUV6RLMX35PJF7X4UE7AWCMBSCOMF5PCZFLDHGO2
+#\\\|Z5S5YGODLISNUZPJ6SUWYCMN4OT4DC4UUVAJXMM7YFZN7PHLXJF \ / AMOS7 \ YOURUM ::
+#\[7]DJXBO4WP7VGTH4FKKH43FHYPND7JS36OZ6UP7PUKFEY27ET4MOAQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

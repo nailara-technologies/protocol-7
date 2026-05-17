@@ -109,6 +109,13 @@
       gap: 0.5rem;
     }
 
+    .route-controls {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      margin-left: 0.4rem;
+    }
+
     .rings-input {
       background: rgba(255,255,255,0.04);
       border: 1px solid rgba(255,255,255,0.12);
@@ -201,6 +208,15 @@
   </div>
 
   <button class="render-btn" id="render-btn">render</button>
+
+  <div class="route-controls">
+    <button class="mode-btn" id="add-vortex-btn">+ vortex</button>
+    <button class="mode-btn" id="add-arc-btn">+ arc</button>
+    <span class="param-label">from arc</span>
+    <input class="rings-input" id="route-from" value="13" min="0" max="25">
+    <span class="param-label">to</span>
+    <input class="rings-input" id="route-to" value="0" min="0" max="25">
+  </div>
 </div>
 
 <div class="iris-frame" id="iris-frame">
@@ -263,6 +279,31 @@
   document.getElementById('render-btn').addEventListener('click', render);
   ringsInput.addEventListener('change', render);
   paramInput.addEventListener('keydown', e => { if (e.key === 'Enter') render(); });
+
+  document.getElementById('add-vortex-btn').addEventListener('click', () => addRoute('vortex_spiral'));
+  document.getElementById('add-arc-btn').addEventListener('click', () => addRoute('orbital_arc'));
+
+  function addRoute(curveType) {
+    const fromArc = parseInt(document.getElementById('route-from').value) || 13;
+    const toArc   = parseInt(document.getElementById('route-to').value)   || 0;
+    setStatus('registering route...', 'loading');
+    fetch('/iris/route', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ from_arc: fromArc, to_arc: toArc, curve_type: curveType, duration: 5 })
+    })
+    .then(r => {
+      if (!r.ok) return r.text().then(t => Promise.reject(t));
+      return r.json();
+    })
+    .then(data => {
+      setStatus(`route ${data.curve_id} registered (${data.hop_count} hops)`);
+      render();
+    })
+    .catch(err => {
+      setStatus('route error: ' + err, 'error');
+    });
+  }
 
   function render() {
     const rings = parseInt(ringsInput.value) || 26;

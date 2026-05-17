@@ -1,0 +1,86 @@
+## [:< ##
+
+# name  = httpd.route.handler.iris-route
+# descr = register a new animated route curve from arc params
+
+my $id = shift;
+
+my $session = $data{'session'}->{$id};
+
+my $body = $session->{'http'}->{'body'} // $session->{'buffer'}->{'input'}
+    // '';
+$session->{'http'}->{'body'}    = undef;
+$session->{'buffer'}->{'input'} = '';
+
+my $payload = eval { JSON::XS::decode_json($body) };
+if ( $@ or ref $payload ne 'HASH' ) {
+    my $rb = '{"error":"invalid json"}';
+    $session->{'buffer'}->{'output'} .= <[httpd.new_header]>->(
+        400,
+        {   'Content-Type'   => 'application/json',
+            'Content-Length' => length($rb),
+        }
+    );
+    $session->{'buffer'}->{'output'} .= $rb;
+    return 2;
+}
+
+my $from_arc = $payload->{'from_arc'};
+my $to_arc   = $payload->{'to_arc'};
+my $type     = $payload->{'curve_type'} // 'vortex_spiral';
+my $duration = $payload->{'duration'}   // 5;
+
+if ( not defined $from_arc or not defined $to_arc ) {
+    my $rb = '{"error":"from_arc and to_arc required"}';
+    $session->{'buffer'}->{'output'} .= <[httpd.new_header]>->(
+        400,
+        {   'Content-Type'   => 'application/json',
+            'Content-Length' => length($rb),
+        }
+    );
+    $session->{'buffer'}->{'output'} .= $rb;
+    return 2;
+}
+
+# [ build route spec from arc parameters ]
+my $route_spec = {
+    from => { arc => int($from_arc), color => 0 },
+    to   => { arc => int($to_arc),   color => 0 },
+};
+
+my $curve_id
+    = <[route.bmw384.route.as-curve]>->( $route_spec, $duration, $type );
+
+if ( not defined $curve_id ) {
+    my $rb = '{"error":"route curve registration failed"}';
+    $session->{'buffer'}->{'output'} .= <[httpd.new_header]>->(
+        500,
+        {   'Content-Type'   => 'application/json',
+            'Content-Length' => length($rb),
+        }
+    );
+    $session->{'buffer'}->{'output'} .= $rb;
+    return 2;
+}
+
+my $rb = <[httpd.json.encode]>->(
+    {   qw| curve_id  | => $curve_id,
+        qw| hop_count | => 1,
+    }
+);
+
+$session->{'buffer'}->{'output'} .= <[httpd.new_header]>->(
+    200,
+    {   'Content-Type'   => 'application/json',
+        'Content-Length' => length($rb),
+    }
+);
+$session->{'buffer'}->{'output'} .= $rb;
+
+return 2;
+
+#,,..,.,,,..,,,..,.,.,..,,,,,,.,.,...,.,.,,..,..,,...,..,,...,.,,,.,,,.,,,.,.,
+#4Q57YL6BFHI7NXTEUOUW3M7SKBL2RHA3JMM6NDGFPNP26GIA4GTZDDI6RTKJ5MA2D6U23MK55QSW2
+#\\\|K3FHZZ5LSNVPXVKLNW6WSOTCCFL44MJF3AU7UZAGCGL4OSFAZZE \ / AMOS7 \ YOURUM ::
+#\[7]P7AGXD5M67LYWYDDDIECTWAGBUVGBJB4ONGV7CIY6WZBLTO3S2DQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
