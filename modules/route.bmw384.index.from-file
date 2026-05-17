@@ -12,7 +12,7 @@ if ( not defined $filepath or not length $filepath or not -f $filepath ) {
 }
 
 # [ read file content ]
-my $content = <[file.read]>->( $filepath );
+my $content = <[file.read]>->($filepath);
 if ( not defined $content ) {
     <[base.logs]>->( 1, 'unable to read file: %s <{C1}>', $filepath );
     return undef;
@@ -57,6 +57,20 @@ $name =~ s{^modules/}{};
 # [ register in bmw384 index ]
 my $coord = <[route.bmw384.index.register-digest]>->( $name, $raw_digest );
 
+if (    defined $coord
+    and defined $coord->{'angle_bits'}
+    and length( $coord->{'angle_bits'} ) == 360 ) {
+    my $arr = <bmw384.index>->{'degree_density'};
+    my $max = <bmw384.index>->{'degree_density_max'} // 0;
+    for my $d ( 0 .. 359 ) {
+        if ( substr( $coord->{'angle_bits'}, $d, 1 ) eq '1' ) {
+            $arr->[$d]++;
+            $max = $arr->[$d] if $arr->[$d] > $max;
+        }
+    }
+    <bmw384.index>->{'degree_density_max'} = $max;
+}
+
 if ( not defined $coord ) {
     <[base.logs]>->( 1, 'registration failed for %s <{C1}>', $name );
     return undef;
@@ -95,8 +109,8 @@ return {
     qw| digest_len | => length($raw_digest),
 };
 
-#,,.,,,,,,,,.,,.,,..,,,.,,,..,.,.,,,.,,,,,..,,..,,...,..,,.,.,,,,,..,,..,,.,,,
-#D7XTV7CT3QIVMVFUJQC2IJAOEO2YHXRAZIQ4ZRMSKUFV7EF6LVYMEXNUKSAYYLQWAEHPZQX7KT6LY
-#\\\|2BFBYDDD6JXYL4MEXXTWDHCAVZGFWBNQMOTASFWEAUJNBXTJKZK \ / AMOS7 \ YOURUM ::
-#\[7]4L4ARCS3JB2LOOCOUFWVY6VKDKVEO3TH6ONV25GBZKLNPVVOEKCI 7  DATA SIGNATURE ::
+#,,..,.,.,,.,,,.,,,.,,,.,,,,,,,..,,,.,...,.,.,..,,...,...,..,,.,,,,,.,,..,,.,,
+#4TMLEQWCRVBNPVRWSYLPDL5MRZ2OSWAO4B2AXECIYRVGNH5IJ6EXSH7YWBG7VORRL7FTHA6ABKUBI
+#\\\|4SZ2FPSCRNV42PVJNOCIMGTWPGMPKWHPDCNDWAVSFPKC5LT7RIS \ / AMOS7 \ YOURUM ::
+#\[7]CIHHEDEYEVUY22DLTOXO3WZ6FYMCTXPWGKJIXVKMCK3IWB7GTAAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
