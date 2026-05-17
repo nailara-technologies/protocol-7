@@ -1,0 +1,43 @@
+## [:< ##
+
+# name  = httpd.handler.iris-svg.relay
+# descr = reply handler for routed iris SVG requests (e.g. oscilloscope)
+#         receives completed SIZE data from index zenka, writes HTTP response
+
+my $reply  = shift;
+my $params = shift // {};
+
+my $http_sid = $params->{'http_sid'};
+return unless defined $http_sid;
+
+my $session = $data{'session'}->{$http_sid};
+return unless defined $session;
+
+my $svg = ( ref $reply eq 'HASH' ) ? $reply->{'data'} : $reply;
+
+if ( not defined $svg or $svg !~ m{^<\?xml} ) {
+    <[base.logs]>->( 1, 'iris-svg.relay: invalid SVG from index zenka' );
+    $session->{'buffer'}->{'output'} .= <[httpd.new_header]>->(
+        503,
+        {   'Content-Type'   => 'application/json',
+            'Content-Length' => 27,
+        }
+    );
+    $session->{'buffer'}->{'output'} .= '{"error":"index unavailable"}';
+    return;
+}
+
+$session->{'buffer'}->{'output'} .= <[httpd.new_header]>->(
+    200,
+    {   'Content-Type'   => 'image/svg+xml',
+        'Content-Length' => length($svg),
+        'Cache-Control'  => 'no-cache',
+    }
+);
+$session->{'buffer'}->{'output'} .= $svg;
+
+#,,,,,,,,,...,,,.,.,.,,..,,,.,...,.,,,,.,,..,,..,,...,...,...,...,.,,,..,,,..,
+#6PXGLJY2EQAHCGFTQYNGH2THVRDWDCBTO7BC3FSOMLSHLTFEIMLPN3RVJ5S5I4WPRQXZUE6X5AIVU
+#\\\|K5ARWIR5QCHRLMJBODVXP26A455DKTH5NEUHZP2JQ4MABYWQ2V6 \ / AMOS7 \ YOURUM ::
+#\[7]N4BEKGNTY2VREOEE2QSBJAI6EYJKQCABAHREFDXVAGMT5GGTZ2AI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
