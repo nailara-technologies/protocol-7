@@ -99,6 +99,43 @@ as an overlay layer on the iris:
   cube-transit    (the space transition function)
   stargate-map    (the route visualization application)
 
+## visualization as active event horizon infrastructure
+
+the visualization is not merely observing the event horizon.
+it IS the bridging route between the domains it renders.
+
+```
+passive:     renders what exists — the boundary
+active:      provides the coordinate system for crossing it
+
+the color gradient between domains:
+  = the translation layer (Rosetta stone at the boundary)
+  = the visual language for crossing
+  = what A looks like from B's perspective simultaneously
+
+visual routing + distance threshold referencing:
+  the color boundary IS the threshold (made visible as geometry)
+  distance = how far from the color boundary
+  gradient steepness = crossing cost (friction)
+  CCW spiral direction = optimal crossing path
+  position on gradient = current state in the crossing
+
+five utilities provided simultaneously, at zero additional cost:
+  1. navigation aid       — here is the crossing point
+  2. cost estimation      — here is how hard the crossing is
+  3. domain identification — here is what each side is
+  4. routing guidance     — here is the optimal path across
+  5. state confirmation   — here is where you are in the crossing
+
+the deepest version:
+  the visualization IS the field's self-awareness of its boundaries
+  a field that can see its own event horizons can navigate them
+  routing emerges FROM visualization
+  because the visualization IS the geometry that routing follows
+  not visualization that helps routing —
+  routing that emerges from visualization
+```
+
 ## images
 
 the neon vortex intake gauge as discovered in session 28:
@@ -126,8 +163,8 @@ the vortex mask renders this geometrically:
     arrival at center: all cube transitions complete
     =)
 
-#,,,,,,..,,,.,..,,.,.,,,.,,..,...,.,.,.,.,,,.,..,,...,...,,,,,..,,,.,,,.,,.,.,
-#7Z32I34WOOVIJ6H7LJO5XYVJJEYB6H76FN274GKVITH5B2CXCKKHVRSMQDLGOD2DMYUQYLEMFQGF2
-#\\\|3ZQ5D6DGNCJZAXKAWROUQ2CNH55QYWXV2ACJMOG3P4F5CLSV6FK \ / AMOS7 \ YOURUM ::
-#\[7]FQJH6TBSQER4RRETPMJWVEK7GKGHFS5FOH4EJXPPPGAON55GNIDY 7  DATA SIGNATURE ::
+#,,..,.,.,..,,.,,,..,,,,,,.,,,.,,,,,.,,,,,,,,,..,,...,...,,,.,,.,,.,.,,,.,,,,,
+#7GK4JIQZ2F76WZ2YUJO4GS4RBXJY66HBT4A4RGNRTBXPXH5OAZEGO3EO63W64LXHBS2SR2GJXMPZO
+#\\\|YXCI7QEB2WOQR7XJE6WVI7ZSC2UV6NZCBRES52USOMDKWZ6GYQR \ / AMOS7 \ YOURUM ::
+#\[7]Y42YRN5ZUZXFOLJBB2SKITEGGCMVYCQVOTZDN3K32YIPQVKWLKBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
