@@ -56,6 +56,10 @@ if ( length $param ) {
 
 my $svg = <[route.bmw384.visual.wheel-mode]>;
 
+# [ add flying route elements ]
+my $flying = <[route.bmw384.visual.flying-elements]>;
+$svg =~ s{</svg>}{$flying</svg>} if defined $flying and length $flying;
+
 # [ restore cfg state ]
 if ( defined $saved_mode ) {
     <route.bmw384.cfg.visual_mode> = $saved_mode;
@@ -106,8 +110,8 @@ $session->{'buffer'}->{'output'} .= $svg;
 
 return 2;
 
-#,,,.,,,.,,.,,..,,.,.,,,,,,,.,...,,,,,,,,,..,,..,,...,...,...,.,,,,,.,,.,,.,,,
-#2X525UNIYGLBW4FHMILNNPDPEVYN6YVLLEELKEZZF6KMNEMASHDSJAIAPZJRVBXFYYNZ2DQAL6RKQ
-#\\\|B2VQTFWXOWLFRLULTATVAQE622N76MIOWGMERUQ4FS6SZLLVJ7W \ / AMOS7 \ YOURUM ::
-#\[7]ISYGMXHUKNBUA5AUAX63Y45TRFACYAJC37UXWFHTXACM2E3PAEDA 7  DATA SIGNATURE ::
+#,,.,,..,,,..,,.,,,.,,,,.,..,,,,.,,..,,,.,.,,,..,,...,..,,...,..,,,,,,...,,,,,
+#KXC7DNKTIU4LTV7JHMSSW37U63ZR7ENPXB6CW4AHPWKDQFERQQW5P5BP5LPPVLZYVECV7FWP36JZE
+#\\\|IFVNNR3NNL6DQIDMMH6ABZNBKO2WCCT73VLXQQWODE3IYKHNCSX \ / AMOS7 \ YOURUM ::
+#\[7]ZB5QYQ6CQ3U5PJA4GK3ND3LFYMWKTXDFKGM44ISWAVWLLQNEOIAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
