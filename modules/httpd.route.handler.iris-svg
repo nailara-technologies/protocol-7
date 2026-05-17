@@ -25,11 +25,9 @@ $rings = int($rings);
 $rings = 1  if $rings < 1;
 $rings = 52 if $rings > 52;
 
-# [ populate local BMW384 index if needed ]
+# [ populate local BMW384 index if needed — code_path = modules/ ]
 if ( not defined <bmw384.index> ) {
-    my $modules_path = ( <system.root_path> // '' ) . '/modules';
-    <[route.bmw384.index.from-path]>->($modules_path)
-        if -d $modules_path;
+    <[route.bmw384.index.from-path]>->();
 }
 
 # [ save cfg state ]
@@ -97,8 +95,8 @@ $session->{'buffer'}->{'output'} .= $svg;
 
 return 2;
 
-#,,..,,,.,,..,,.,,,,.,,.,,,,.,,,.,,.,,,.,,..,,..,,...,...,.,.,.,,,...,.,,,.,.,
-#QB6GG37QR7HA3LNVQNOUOLCTHNH3GJLUIPSOSGXLCZFRLAQE4OKP6XT2D2BQZCRHFBXDVM3OWZUS2
-#\\\|CG4CWNHRO6EL4VOIPE5QVLRFUGKFEFQU7ZTRFQFEW7C3OXBD5HN \ / AMOS7 \ YOURUM ::
-#\[7]3FWFT2DOQ434NXEGSRVVAP5OPIPOR3ZACVX24LIMI7YALJ2OJMDY 7  DATA SIGNATURE ::
+#,,..,.,,,,,,,.,,,.,,,,..,.,.,.,,,,..,,.,,.,,,..,,...,...,...,.,.,,,.,.,.,...,
+#T64BWUADQZ5XRGAUS4I6YSUDRFEPZ6PF67TD4FHLE7JGNU3NX4R2WGHBCJZ24D63ZOOPYAPE3XQN2
+#\\\|D2U3RHPIEFUVC4ESSLT6GYWMVPUWRP44XCYFMZLUUKVF56LXXYZ \ / AMOS7 \ YOURUM ::
+#\[7]7BQ2HII3VSHGJA3YPP2J2JIVHPXEZSDFLBJZNAVD2YJ5SHJIJSAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
