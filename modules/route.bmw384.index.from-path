@@ -49,14 +49,22 @@ for my $ARG (@entries) {
     $count, $skip_count, $path
 );
 
+# [ cache sorted names for wheel renders — avoids re-sorting on every svg ]
+<bmw384.index>->{'sorted_names'}
+    = [ sort keys %{ <bmw384.index>->{'by_name'} // {} } ];
+
+# [ invalidate svg cache — coordinates changed ]
+<bmw384.svg.cache> //= {};
+%{<bmw384.svg.cache>} = ();
+
 return {
     qw| indexed | => $count,
     qw| skipped | => $skip_count,
     qw| path    | => $path,
 };
 
-#,,.,,,,.,,,,,,,,,,,.,,..,..,,...,.,.,..,,..,,..,,...,...,...,.,.,.,.,...,..,,
-#EE4RRCLCL3A6WIUYFRQF6JJHYOOELAWJH2EHNAIXQ6VV63PTFQLHVZNLI2IJAGZCGT5TUXAR26LRY
-#\\\|GFBYVHCHFDFUWXL3T5XQVDT2UHAQIALLRBMV2YQYABL4MVPLTMO \ / AMOS7 \ YOURUM ::
-#\[7]SXKYLAOFXOSKQYIK64ZVTYBEVH7OLMF56DSR37EJVI62D3ZZAWDA 7  DATA SIGNATURE ::
+#,,,.,..,,.,,,,,.,,,,,..,,..,,,.,,,,.,,.,,,..,..,,...,...,.,,,,..,...,.,.,.,.,
+#5GVW5NO4JNGN6PUVVGHUQQHJCZYGJUI53P5XNWRPHXMDSC7XYQA277X6AKWZQ3JRDX3H3EZPRBEUI
+#\\\|G6TFYK27PRPF7CQPQXDQE62GURJYAJVCB2ZGBUJ6WPQUYG66P25 \ / AMOS7 \ YOURUM ::
+#\[7]IR4ZDKUC5NQSGS5BV4QNOLXBIGKZOWEQWRMYOMDCRGRDMUTEG6BQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
