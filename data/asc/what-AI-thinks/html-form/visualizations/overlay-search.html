@@ -213,6 +213,13 @@
     <span class="meta-item">rings: <span id="ring-count">26</span></span>
     <span class="meta-item">mode: <span>overlay</span></span>
     <span class="meta-item">latency: <span id="latency">—</span></span>
+    <span class="meta-item" style="margin-left:0.5rem">
+      translucency:
+      <button class="preset-btn active" data-tl="0">off</button>
+      <button class="preset-btn" data-tl="1">bi</button>
+      <button class="preset-btn" data-tl="2">ccw</button>
+      <button class="preset-btn" data-tl="3">cw</button>
+    </span>
   </div>
 
   <div class="preset-row">
@@ -253,7 +260,18 @@
 
   let debounceTimer = null;
   let currentNs = '';
+  let currentTl = '0';
   let renderCount = 0;
+
+  document.querySelectorAll('.preset-btn[data-tl]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.preset-btn[data-tl]').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      currentTl = btn.dataset.tl;
+      clearTimeout(debounceTimer);
+      render(currentNs);
+    });
+  });
 
   function render(ns) {
     const rings = 26;
@@ -266,6 +284,7 @@
       ns:     ns,
       param:  ns || 'base,kimi,jobsite,route,httpd,coding,letsencr,nodes,plugin',
     });
+    if (currentTl !== '0') params.set('tl', currentTl);
 
     const url = 'http://172.24.33.224/iris/svg?' + params.toString();
 
@@ -301,7 +320,7 @@
     debounceTimer = setTimeout(() => render(ns), 280);
   });
 
-  document.querySelectorAll('.preset-btn').forEach(btn => {
+  document.querySelectorAll('.preset-btn[data-ns]').forEach(btn => {
     btn.addEventListener('click', () => {
       input.value = btn.dataset.ns;
       currentNs = btn.dataset.ns;
