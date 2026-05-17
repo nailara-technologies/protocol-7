@@ -41,7 +41,14 @@ my $ring_blue_tint = <route.bmw384.cfg.ring_blue_tint>         // 0.6;
 my $base_thickness = <route.bmw384.cfg.density_base_thickness> // 8;
 my $inner_clamp    = 30;
 
-my $PI            = 3.14159265358979;
+my $PI = 3.14159265358979;
+
+# [ subtractive translucency arc opacity map ]
+my $translucency_mode = <route.bmw384.cfg.translucency_mode> // 0;
+my $arc_opacity_mod   = <[route.bmw384.visual.arc-opacity-map]>->(
+    \@sorted_names, $by_name, $translucency_mode
+);
+
 my $segment_deg   = 360 / 26;
 my $band_width    = 16777216 / $rings;
 my $segment_width = $band_width;         # within-band angular fraction
@@ -178,6 +185,13 @@ for my $ARG (@sorted_names) {
     my $color_hex = sprintf 'hsl(%d,90%%,60%%)', $hue;
     my $r = 2 + $colocated_index;
 
+    # [ apply arc opacity modifier ]
+    if ( $translucency_mode
+        and exists $arc_opacity_mod->{ $coord->{'arc'} } ) {
+        $opacity = sprintf '%.2f',
+            $opacity * $arc_opacity_mod->{ $coord->{'arc'} };
+    }
+
     my $coord_str = sprintf '%s:%06X', $coord->{'segment_label'}, $color;
     $svg
         .= sprintf
@@ -205,8 +219,8 @@ $svg .= '</svg>' . "\n";
 
 return $svg;
 
-#,,..,,..,..,,..,,...,,,,,.,,,...,,..,.,.,,.,,..,,...,...,,,,,.,.,,,.,...,,.,,
-#2YTFLUBYJKQ5ILC2HLXKUNJO3RTPKIVJTTBSEDCKGYPG6EZ5P4YLWSFIU5IEBBWQU7ECIO25JK24U
-#\\\|K4X527PWH6V5XRSN47HYIE3DTC5UWD62P4SQQLGB5RU43XXT6QD \ / AMOS7 \ YOURUM ::
-#\[7]FA5OJJ7EET6GHZELUBICQK3XBSNW5WVK7TDIKD4SA2VUIHPHROAA 7  DATA SIGNATURE ::
+#,,,.,,..,.,.,,..,...,.,,,.,.,,..,,..,.,,,.,.,..,,...,...,.,.,,.,,,,,,...,,.,,
+#T4L7G2EJPZVIL2DH55B5OMUQCGNBMFBPAHZGHD7RLHBNF4MFRJX6OPRCQ2N36KKJ74DMHP2L6LEYO
+#\\\|ICITJU6DFQOVGOAM5Y26OO3ORY26PUFGGHOMC6SS4E72N4VYBO7 \ / AMOS7 \ YOURUM ::
+#\[7]4QFEBZWD7XVP4M7G7TXIRNZB3O4DVUVKVAM5GKJV2MXGJ7KALOBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

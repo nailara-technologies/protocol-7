@@ -23,6 +23,7 @@ my $rings      = $qparam{'rings'}      // 26;
 my $param      = $qparam{'param'}      // '';
 my $label_mode = $qparam{'label_mode'} // '';
 my $ns         = $qparam{'ns'}         // '';
+my $tl         = $qparam{'tl'}         // '';
 $rings = int($rings);
 $rings = 1  if $rings < 1;
 $rings = 63 if $rings > 63;
@@ -37,7 +38,7 @@ if ( not scalar keys %{ <bmw384.index>->{'by_name'} // {} } ) {
 <[base.logs]>->( 2, 'iris-svg index ready: %.3fs', <[base.time]>->(3) - $t0 );
 
 # [ svg cache key ]
-my $cache_key = join ':', $mode, $rings, $param, $label_mode, $ns;
+my $cache_key = join ':', $mode, $rings, $param, $label_mode, $ns, $tl;
 <bmw384.svg.cache> //= {};
 
 if ( defined <bmw384.svg.cache>->{$cache_key} ) {
@@ -64,6 +65,7 @@ my $saved_gauss      = <route.bmw384.cfg.gauss_arcs>;
 my $saved_ns         = <route.bmw384.cfg.overlay_namespaces>;
 my $saved_label_mode = <route.bmw384.cfg.ring_label_mode>;
 my $saved_ns_filter  = <route.bmw384.cfg.namespace_filter>;
+my $saved_tl         = <route.bmw384.cfg.translucency_mode>;
 
 # [ apply request params ]
 <route.bmw384.cfg.rings>       = $rings;
@@ -82,6 +84,9 @@ if ( length $param ) {
 }
 if ( length $ns ) {
     <route.bmw384.cfg.namespace_filter> = $ns;
+}
+if ( length $tl and $tl =~ m{^\d$} ) {
+    <route.bmw384.cfg.translucency_mode> = int($tl);
 }
 
 my $svg = <[route.bmw384.visual.wheel-mode]>;
@@ -121,6 +126,11 @@ if ( defined $saved_ns_filter ) {
 } else {
     delete <route.bmw384.cfg.namespace_filter>;
 }
+if ( defined $saved_tl ) {
+    <route.bmw384.cfg.translucency_mode> = $saved_tl;
+} else {
+    delete <route.bmw384.cfg.translucency_mode>;
+}
 
 if ( not defined $svg ) {
     my $body = '{"error":"bmw384 index not initialized"}';
@@ -152,8 +162,8 @@ $session->{'buffer'}->{'output'} .= $svg;
 
 return 2;
 
-#,,,.,..,,,,,,,..,,..,..,,..,,.,.,,.,,..,,.,,,..,,...,.,.,...,,,,,,,.,.,.,.,.,
-#W2UC3A3EXQSDB6FETFQ5SKWKU4AQT3KWV6PQNMQ7YEAR2ZJOWI4OKZJ6N3M7SJUXJB7VCQKZOXRG6
-#\\\|R5KSTGLLVYMY666WR6SMSNXVEICWW2XGFA3J6IE5RHJXPLIJSAE \ / AMOS7 \ YOURUM ::
-#\[7]72MC662M6AYCOICXG4FDJMHLHBQ2DB4D5Z4UCN7445GA4VM26ECA 7  DATA SIGNATURE ::
+#,,,,,,..,..,,.,.,,.,,.,.,.,.,.,,,,,,,,,,,,,.,..,,...,...,,..,..,,,.,,,..,..,,
+#INC25NVZK6IELEGPV4HTRTDLQYKDQVU7KP6ZVSH7YXXYTADW6MXN7RFI3ZTIYIF53AHRBD5G3ICZW
+#\\\|BPWKVJ2XUUBABKPICQRIIYYWPTQRS4ESRSYD2STCKKLXXBUSG3Z \ / AMOS7 \ YOURUM ::
+#\[7]2NCDRZYGKJJV5OTWFYLSKFXW35X3426ZMDXL5G7PAXXIQGZMQADI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
