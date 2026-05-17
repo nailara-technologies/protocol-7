@@ -5,10 +5,17 @@
 
 <[route.bmw384.index.init]>;
 
+# [ populate index at startup if modules dir exists ]
+my $code_path = <system.code_path> // 'modules';
+if ( -d $code_path
+    and not scalar keys %{ <bmw384.index>->{'by_name'} // {} } ) {
+    <[route.bmw384.index.from-path]>->($code_path);
+}
+
 0;
 
-#,,,,,.,.,,,,,,..,,,.,,..,,,.,..,,,.,,.,.,...,..,,...,...,.,.,,..,..,,,..,,.,,
-#YBN65HWMIGW5FEXCBKDYQHSM2LCV6XAZV6NGIOWMNQY6HR7B27VAQTTWNF35LRZMIP5J6F5QCUJTW
-#\\\|OM2GT3Z3BFWAK4GT44ELBAFS77H4ZA3E2SAJEPJVPNI6FITPWJS \ / AMOS7 \ YOURUM ::
-#\[7]OV4HPJJEYTAORW44FIMRQC5ZSU47DASG3FNN73H6WFELNGYOF2BI 7  DATA SIGNATURE ::
+#,,..,.,,,,.,,,.,,,.,,.,.,...,,,,,...,.,.,..,,..,,...,..,,...,.,.,..,,.,,,..,,
+#VU23MWRWUEPDU3MDWZJQDE63Y7EMZU3ORZR5TETZ6X63XAGCLKAIKBS7LLS2HLC4YN4D7ZRCT2YGK
+#\\\|FIIMDB33VWWFEDGWSCQKXWXZLOCCPJKBEZTSQF675XITTQF74QD \ / AMOS7 \ YOURUM ::
+#\[7]XLGUC77IP6ONYTY6W2LUJXY4INGFSWF7F3FXRHWYRR2HCJWM42DY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

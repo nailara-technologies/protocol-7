@@ -26,9 +26,34 @@ $rings = int($rings);
 $rings = 1  if $rings < 1;
 $rings = 63 if $rings > 63;
 
+my $t0 = <[base.time]>->(3);
+
 # [ populate local BMW384 index if needed — code_path = modules/ ]
 if ( not scalar keys %{ <bmw384.index>->{'by_name'} // {} } ) {
     <[route.bmw384.index.from-path]>->();
+}
+
+<[base.logs]>->( 2, 'iris-svg index ready: %.3fs', <[base.time]>->(3) - $t0 );
+
+# [ svg cache key ]
+my $cache_key = join ':', $mode, $rings, $param, $label_mode;
+<bmw384.svg.cache> //= {};
+
+if ( defined <bmw384.svg.cache>->{$cache_key} ) {
+    my $svg = <bmw384.svg.cache>->{$cache_key};
+    $session->{'buffer'}->{'output'} .= <[httpd.new_header]>->(
+        200,
+        {   'Content-Type'   => 'image/svg+xml',
+            'Content-Length' => length($svg),
+            'Cache-Control'  => 'no-cache',
+        }
+    );
+    $session->{'buffer'}->{'output'} .= $svg;
+    <[base.logs]>->(
+        2,          'iris-svg cache hit [%s]: %.3fs',
+        $cache_key, <[base.time]>->(3) - $t0
+    );
+    return 2;
 }
 
 # [ save cfg state ]
@@ -99,6 +124,13 @@ if ( not defined $svg ) {
     return 2;
 }
 
+<bmw384.svg.cache>->{$cache_key} = $svg;
+
+<[base.logs]>->(
+    2,          'iris-svg generated [%s]: %.3fs',
+    $cache_key, <[base.time]>->(3) - $t0
+);
+
 $session->{'buffer'}->{'output'} .= <[httpd.new_header]>->(
     200,
     {   'Content-Type'   => 'image/svg+xml',
@@ -110,8 +142,8 @@ $session->{'buffer'}->{'output'} .= $svg;
 
 return 2;
 
-#,,.,,..,,,..,,.,,,.,,,,.,..,,,,.,,..,,,.,.,,,..,,...,..,,...,..,,,,,,...,,,,,
-#KXC7DNKTIU4LTV7JHMSSW37U63ZR7ENPXB6CW4AHPWKDQFERQQW5P5BP5LPPVLZYVECV7FWP36JZE
-#\\\|IFVNNR3NNL6DQIDMMH6ABZNBKO2WCCT73VLXQQWODE3IYKHNCSX \ / AMOS7 \ YOURUM ::
-#\[7]ZB5QYQ6CQ3U5PJA4GK3ND3LFYMWKTXDFKGM44ISWAVWLLQNEOIAQ 7  DATA SIGNATURE ::
+#,,.,,,,.,,,.,.,.,,..,,,.,...,.,,,..,,,.,,.,,,..,,...,...,.,,,.,.,,,.,.,.,,,.,
+#HAY46ONWUB54KX6SZ7PVDFSO3PCWN3ZAXWRKZBBWHR6ER7CPIQTQBW3D25NYCK2YZVVM62MW67T52
+#\\\|CLUF47OQWKZAF57IMCOJ77PKS2TXXYVO5FQP4YGRJ6NBBTXITJG \ / AMOS7 \ YOURUM ::
+#\[7]GHHIY5MWSROF5KVJQSRKFH7IVWIZGCYEGW7RTVUUDCIQXG2TQ2BA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

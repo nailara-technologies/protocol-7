@@ -5,8 +5,9 @@
 
 return undef if not defined <bmw384.index>;
 
-my $by_name = <bmw384.index>->{'by_name'};
-my @names   = keys %$by_name;
+my $by_name      = <bmw384.index>->{'by_name'};
+my @names        = keys %$by_name;
+my @sorted_names = @{ <bmw384.index>->{'sorted_names'} // [ sort @names ] };
 
 # [ parameters ]
 my $ring_radius_step = <route.bmw384.cfg.ring_radius_step> // 14;
@@ -106,9 +107,8 @@ for my $ring ( 0 .. $num_rings - 1 ) {
     my $dim_hue = $ring * 90;    # 0°, 90°, 180°, 270°
 
     my %drawn_index;
-    my @sorted = sort @names;
 
-    for my $ARG (@sorted) {
+    for my $ARG (@sorted_names) {
 
         # [ select coordinate based on ring ]
         my $coord;
@@ -190,8 +190,8 @@ $svg .= '</svg>' . "\n";
 
 return $svg;
 
-#,,,.,,,,,,..,.,.,,..,,,.,,.,,..,,.,.,,.,,,..,..,,...,...,.,,,,..,,,.,,,.,,..,
-#YVTPBT2XQWY34BEXAEG75P5MWBXPM5TZRDQWJC6CLLDVJAPDD7OQX7SAVUU2R4MBYY6DZVZBFUQ2C
-#\\\|SONJOHX2JIHM5BRFE6Y7TAR776S2GURIELVCHULMPDOTVYLW67H \ / AMOS7 \ YOURUM ::
-#\[7]NT2K5WYQWCFS3XVSVXJ22ACEJAETSZPTCJ2EEMKAPB7QLBAUDMBI 7  DATA SIGNATURE ::
+#,,,.,,..,,,.,,..,...,.,.,...,.,.,,,.,,,.,,,.,..,,...,...,..,,.,.,,.,,...,,..,
+#FM4DD6HVYSC4MD2X3AQ5MPQ25EQYSKA2F52TBKWPKCILH3J555N7XJGEUCIF4VTVYX5KVGUQAMPAA
+#\\\|ZTTSEKT3TVCGFK2LHBDO5XEISKEDMOML5TERACJTTIZ6IC42Q46 \ / AMOS7 \ YOURUM ::
+#\[7]XRNSJVKG2VIZD2ULOR4VTKBUQ6FCFO3BLYNFHJIWFBUV3ZB56EBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
