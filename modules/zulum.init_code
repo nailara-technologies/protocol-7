@@ -53,18 +53,19 @@ for my $stream_id ( 1 .. 13 ) {
 
 ## export stream states periodically for iris oscilloscope ##
 <[event.add_timer]>->(
-    {   'after'   => 1,
-        'handler' => qw| zulum.cmd.export-streams |,
-        'repeat'  => 0.2,
-        'desc'    => 'stream state export for iris oscilloscope'
+    {   'after'    => 1,
+        'interval' => 0.2,
+        'repeat'   => TRUE,
+        'handler'  => qw| zulum.cmd.export-streams |,
+        'desc'     => 'stream state export for iris oscilloscope'
     }
 );
 <[base.log]>->( 2, "[zulum] stream export timer started [ 200ms ]" );
 
 return TRUE;
 
-#,,,,,..,,.,,,...,,..,,.,,.,,,..,,,,.,.,.,,,.,.,.,...,...,...,.,,,,,.,,,.,.,,,
-#MH7A5AS6XBCJNPE5NEQKZW2MJMW4Q3PJGFSDYOF6QCTDX55H3PVJD2DLKTMJKQNLTEXQU2SZW477G
-#\\\|V4BOGYJUBHOO4T7O3ZJF6SLEIH34TFGR6HOB5JHX2BGMVZR42P3 \ / AMOS7 \ YOURUM ::
-#\[7]LM24DTIRIMYG5VLAJE2UFJQKP57FLHGSQQBJSMRLNT2WP7IW4ACI 7  DATA SIGNATURE ::
+#,,.,,,,,,,..,,,,,...,.,,,.,,,,,,,,,,,,.,,.,,,.,.,...,...,.,.,,.,,...,,..,...,
+#6G32PRVPREIE3J73O62N553A7TMJFHPWPCZD5QVMJNMEBJISGVQNSVQSDKIKFDF5ST33EQL6YXC4S
+#\\\|FR3J7FENU2HT6MGEPM6ZK6Q7QJAXYSYVOO5KWRWKOCARFWGJESV \ / AMOS7 \ YOURUM ::
+#\[7]V5UY2DE4ANM7V72A2D625U3SMB6ZR4CG6EGOML6XJPWRHD7HZWAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
