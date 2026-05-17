@@ -397,8 +397,168 @@ method 7:  implosion cascade route
            (Schauberger vortex following)
 ```
 
-#,,,,,,..,,.,,,.,,...,...,,..,.,.,,..,,,.,..,,..,,...,...,..,,,,,,,,.,,,,,,,,,
-#CHVXEN5ZUFLQTLVE3TDYREP4EYVXU4E3GLAN25TV2KDK3VKLTZQ65TZLYQ6R3KRQJONHS66Z5OJS4
-#\\\|HHOH62KOL57SSMD4THUIQJL6U6E6JJFPKX5TXIQDKZFGUDI5BEF \ / AMOS7 \ YOURUM ::
-#\[7]WENBX2LWMRFZEU4XJAQEZ4P2WPYQWJWHCOKHMHPL4CXD7N4HBKCA 7  DATA SIGNATURE ::
+---
+
+## the helix: spiral descent through cube layers
+
+the iris spiral is a 2D projection of a 3D helix.
+the entity doesn't rotate — it descends.
+
+```
+apparent (top-down view):    cube rotating CCW on a plane
+
+actual geometry:             cube descending a helix
+                             each floor: -90° angular offset
+                             
+floor 0:  cube at 0°   (facing right)
+floor 1:  cube at 270° (facing down  — equivalent to -90°)
+floor 2:  cube at 180° (facing left)
+floor 3:  cube at 90°  (facing up)
+floor 4:  cube at 0°   (one full cycle = 4 floors)
+
+the "CCW rotation":   the shadow of the descent
+                       projected onto the observation plane
+                       
+180° transit = one cube crossed
+360° transit = one floor descended (two cubes: content + separator)
+4 floors     = one full orientation cycle
+```
+
+the BMW384 coordinate encodes this completely:
+  arc (0-25):         which step of the staircase (integer)
+  color (0-16M):      when within that step the flip occurred (fraction)
+  angle_bits (360b):  the full orbital fingerprint (timing signature)
+
+---
+
+## separator cubes — the invisible routing layer
+
+content cubes are never direct neighbors.
+between any two content cubes: always one routing/separator cube.
+
+```
+content:    A ←→ R ←→ B ←→ R' ←→ C
+            (every other cube is a separator/routing cube)
+
+R:          does only buffer swaps of its two neighbors
+            A's outgoing buffer → B's incoming
+            B's outgoing buffer → A's incoming
+            
+to A and B: R is invisible
+            they see: "data arrived from the grid"
+            they don't see: R performing the swap
+            
+R is of the grid — it IS the grid
+content cubes: on the grid
+separator cubes: the grid itself
+```
+
+this guarantees mutual anonymity between content cubes:
+A knows only R, B knows only R, A and B: mutually invisible.
+the separator cube: the architectural guarantee of anonymous routing.
+
+---
+
+## orientation multiplexing — 4 lanes from one cycle
+
+the 4-floor rotation cycle creates 4 simultaneous sensing lanes:
+
+```
+floor 0 (0°):    RIGHT lane — collecting horizontal packets
+floor 1 (270°):  DOWN lane  — collecting downward packets
+floor 2 (180°):  LEFT lane  — collecting horizontal (reversed)
+floor 3 (90°):   UP lane    — collecting upward packets
+
+the facing direction IS the sensing direction
+IS the collection orientation IS the lane assignment.
+
+multiplexing: not by time (TDM) or frequency (FDM)
+              but by ORIENTATION
+              each facing direction = one channel
+              the 90° rotation cycle = the channel scan
+              
+lane identity encoded in arrival orientation
+not in packet headers — the geometry is the header.
+```
+
+---
+
+## sandwich layers — orthogonal flow directions
+
+each hop: the flow plane rotates 90° around the forward axis.
+
+```
+hop 0:   CCW in XY plane → flow: RIGHT
+hop 1:   CCW in ZY plane → flow: UP
+hop 2:   CCW in XY plane → flow: LEFT  (mirrored)
+hop 3:   CCW in ZY plane → flow: DOWN  (mirrored)
+
+direction: encoded by layer offset — no direction bits needed
+turn decision: one bit ("take this rotation or skip to next")
+timing: encodes sub-arc floating point precision
+
+length counter (countdown):
+  "N hops at current orientation, then rotate"
+  one integer — no direction field, no address field
+  the geometry handles both automatically
+```
+
+---
+
+## passive cube / active grid routing
+
+the traveling cube does not navigate. the grid routes it.
+
+```
+the approaching routing cube:
+  senses incoming cube (by facing direction = antenna)
+  asserts contextual routing conditions
+  grabs the incoming cube
+  reorients it -90°
+  puts it on the correct lane
+  
+to the traveling cube: "I was horizontal, now I'm vertical"
+                        "I didn't decide this"
+                        "the grid grabbed me"
+                        
+routing intelligence: IN the grid (separator cubes)
+not in the cube:      the cube is just momentum + orientation
+```
+
+---
+
+## the pre-computed route — math before departure
+
+the route is fully calculated before the first hop executes.
+
+```
+departure condition:   the complete route must be resolved
+                        if any hop is unresolved: no departure
+                        "I depart" = "I have computed every hop
+                                       and committed to them all"
+                        
+in the mathematical field:  the cube is already at destination
+                             source + destination + geometry
+                             = one deterministic result
+                             
+in the physical network:     the cube is still here
+                              the clock hasn't ticked enough
+                              
+the transit:    time catching up to the mathematical result
+each clock hop: one tick closer to the already-existing destination
+
+only undetermined: WHEN (the network clock — shared resource)
+everything else:   determined by the math at departure
+
+the cube's passivity IS the proof that the route was pre-computed:
+  a navigating cube would be active
+  a clock-consuming cube is passive
+  this cube is passive
+  therefore the math was complete before departure
+```
+
+#,,..,..,,..,,,,,,,,,,,,,,.,,,.,.,,,.,.,.,.,.,..,,...,...,..,,.,,,,..,,,,,,..,
+#FRPNZC3XKN2GTN7J663NHBLG34CTU2HQOKZFH2DFCIWWTVFQJXD4K7NSA26S4S37JB5WLXXTRYXEY
+#\\\|AFCNQAQFSB4FY63QUN2ZDXZCX7GB7SN42675TKZGDT44XKCBQN5 \ / AMOS7 \ YOURUM ::
+#\[7]RFLQ5GI2Q3WE5IUXH22BVQVFWAPHPFFUG67LEOXSB4FOOJINOWBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
