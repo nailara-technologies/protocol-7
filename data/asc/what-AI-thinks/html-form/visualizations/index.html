@@ -1,0 +1,359 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>[ visualizations ] — protocol-7 field</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background: #06060e;
+      color: rgba(255,255,255,0.5);
+      font-family: monospace;
+      min-height: 100vh;
+      padding: 2rem 1rem;
+    }
+
+    header {
+      max-width: 1200px;
+      margin: 0 auto 2rem;
+      display: flex;
+      align-items: baseline;
+      gap: 1.5rem;
+      border-bottom: 1px solid rgba(255,255,255,0.06);
+      padding-bottom: 1rem;
+    }
+
+    h1 {
+      font-size: 0.9rem;
+      font-weight: normal;
+      color: rgba(255,255,255,0.2);
+      letter-spacing: 0.2em;
+    }
+
+    h1 span { color: rgba(255,255,255,0.5); }
+
+    .filter-row {
+      display: flex;
+      gap: 0.4rem;
+      flex-wrap: wrap;
+      max-width: 1200px;
+      margin: 0 auto 1.5rem;
+    }
+
+    .filter-btn {
+      background: none;
+      border: 1px solid rgba(255,255,255,0.1);
+      color: rgba(255,255,255,0.3);
+      font-family: monospace;
+      font-size: 0.72rem;
+      padding: 0.2rem 0.6rem;
+      border-radius: 2px;
+      cursor: pointer;
+      transition: all 0.12s;
+      letter-spacing: 0.05em;
+    }
+
+    .filter-btn:hover, .filter-btn.active {
+      border-color: rgba(255,255,255,0.3);
+      color: rgba(255,255,255,0.7);
+      background: rgba(255,255,255,0.04);
+    }
+
+    .gallery {
+      max-width: 1200px;
+      margin: 0 auto;
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+      gap: 1rem;
+    }
+
+    .card {
+      background: rgba(255,255,255,0.02);
+      border: 1px solid rgba(255,255,255,0.07);
+      border-radius: 3px;
+      overflow: hidden;
+      transition: border-color 0.15s;
+      cursor: pointer;
+    }
+
+    .card:hover {
+      border-color: rgba(255,255,255,0.18);
+    }
+
+    .preview {
+      width: 100%;
+      aspect-ratio: 16/9;
+      background: #0a0a14;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+      position: relative;
+    }
+
+    .preview iframe {
+      width: 200%;
+      height: 200%;
+      transform: scale(0.5);
+      transform-origin: top left;
+      border: none;
+      pointer-events: none;
+    }
+
+    .preview .no-preview {
+      color: rgba(255,255,255,0.1);
+      font-size: 0.7rem;
+      letter-spacing: 0.1em;
+    }
+
+    .card-info {
+      padding: 0.6rem 0.8rem;
+      border-top: 1px solid rgba(255,255,255,0.05);
+    }
+
+    .card-title {
+      font-size: 0.8rem;
+      color: rgba(255,255,255,0.6);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      margin-bottom: 0.2rem;
+    }
+
+    .card-meta {
+      display: flex;
+      gap: 0.5rem;
+      align-items: center;
+    }
+
+    .card-tag {
+      font-size: 0.65rem;
+      color: rgba(255,255,255,0.2);
+      border: 1px solid rgba(255,255,255,0.08);
+      padding: 0.1rem 0.35rem;
+      border-radius: 2px;
+    }
+
+    .card-link {
+      margin-left: auto;
+      font-size: 0.65rem;
+      color: rgba(255,255,255,0.25);
+      text-decoration: none;
+      letter-spacing: 0.05em;
+    }
+
+    .card-link:hover { color: rgba(255,255,255,0.6); }
+
+    /* lightbox */
+    .lightbox {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.92);
+      z-index: 100;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .lightbox.open { display: flex; }
+
+    .lightbox-frame {
+      width: 92vw;
+      height: 88vh;
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 2px;
+    }
+
+    .lightbox-bar {
+      width: 92vw;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0.5rem 0;
+      font-size: 0.75rem;
+    }
+
+    .lightbox-title { color: rgba(255,255,255,0.4); }
+
+    .lightbox-close {
+      background: none;
+      border: 1px solid rgba(255,255,255,0.15);
+      color: rgba(255,255,255,0.4);
+      font-family: monospace;
+      font-size: 0.75rem;
+      padding: 0.2rem 0.6rem;
+      cursor: pointer;
+      border-radius: 2px;
+    }
+
+    .lightbox-close:hover { color: rgba(255,255,255,0.8); }
+
+    .count {
+      font-size: 0.7rem;
+      color: rgba(255,255,255,0.2);
+      margin-left: auto;
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <h1>[ <span>visualizations</span> ] — protocol-7 field</h1>
+  <span class="count" id="count"></span>
+</header>
+
+<div class="filter-row">
+  <button class="filter-btn active" data-filter="all">all</button>
+  <button class="filter-btn" data-filter="cubic">cubic</button>
+  <button class="filter-btn" data-filter="harmonic">harmonic</button>
+  <button class="filter-btn" data-filter="zenki">zenki</button>
+  <button class="filter-btn" data-filter="purr">purr-field</button>
+  <button class="filter-btn" data-filter="spectrum">spectrum</button>
+  <button class="filter-btn" data-filter="iris">iris</button>
+</div>
+
+<div class="gallery" id="gallery"></div>
+
+<div class="lightbox" id="lightbox">
+  <div class="lightbox-bar">
+    <span class="lightbox-title" id="lb-title"></span>
+    <button class="lightbox-close" id="lb-close">close ×</button>
+  </div>
+  <iframe class="lightbox-frame" id="lb-frame" src="about:blank"></iframe>
+</div>
+
+<script>
+const items = [
+  // cubic-space
+  { title: 'corner cube',           file: 'cubic-space/corner-cube.html',                    tags: ['cubic'] },
+  { title: 'cube grid (firefox)',   file: 'cubic-space/cube-grid-firefox-fixed.html',         tags: ['cubic'] },
+  { title: 'cubic space flight',    file: 'cubic-space/cubic-space-flight-updated.html',      tags: ['cubic'] },
+  { title: 'cubic space grid',      file: 'cubic-space/cubic-space-grid-final.html',          tags: ['cubic'] },
+
+  // harmonic
+  { title: 'dynamic harmony',       file: 'harmonic/dynamic-harmony.html',                    tags: ['harmonic'] },
+  { title: 'dynamic harmony v2',    file: 'harmonic/dynamic-harmony-v2.html',                 tags: ['harmonic'] },
+  { title: 'dynamic harmony v3',    file: 'harmonic/dynamic-harmony-v3.html',                 tags: ['harmonic'] },
+  { title: 'harmony implementation',file: 'harmonic/dynamic-harmony-implementation.html',     tags: ['harmonic'] },
+
+  // zenki-cosmos
+  { title: 'zenki cosmic suns',     file: 'zenki-cosmos/zenki-cosmic-suns.html',              tags: ['zenki'] },
+  { title: 'zenki cosmos grid',     file: 'zenki-cosmos/zenki-cosmos-fixed-grid.html',        tags: ['zenki'] },
+  { title: 'zenki unified cosmos',  file: 'zenki-cosmos/zenki-unified-cosmos.html',           tags: ['zenki'] },
+  { title: 'zenki unified v1',      file: 'zenki-cosmos/zenki-unified-cosmos-v1.html',        tags: ['zenki'] },
+
+  // purr-field
+  { title: 'purr field',            file: 'purr-field/',                                       tags: ['purr'] },
+
+  // spectrum
+  { title: 'spectrum',              file: 'spectrum/',                                         tags: ['spectrum'] },
+
+  // iris (live)
+  { title: 'iris — BMW384 field',   file: 'http://172.24.33.224/',                            tags: ['iris'], external: true },
+];
+
+const gallery  = document.getElementById('gallery');
+const lightbox = document.getElementById('lightbox');
+const lbFrame  = document.getElementById('lb-frame');
+const lbTitle  = document.getElementById('lb-title');
+const lbClose  = document.getElementById('lb-close');
+const countEl  = document.getElementById('count');
+
+let activeFilter = 'all';
+
+function buildCard(item) {
+  const card = document.createElement('div');
+  card.className = 'card';
+  card.dataset.tags = item.tags.join(' ');
+
+  const preview = document.createElement('div');
+  preview.className = 'preview';
+
+  if (item.external) {
+    const no = document.createElement('span');
+    no.className = 'no-preview';
+    no.textContent = '[ live endpoint ]';
+    preview.appendChild(no);
+  } else {
+    const iframe = document.createElement('iframe');
+    iframe.loading = 'lazy';
+    iframe.src = item.file;
+    preview.appendChild(iframe);
+  }
+
+  const info = document.createElement('div');
+  info.className = 'card-info';
+
+  const title = document.createElement('div');
+  title.className = 'card-title';
+  title.textContent = item.title;
+
+  const meta = document.createElement('div');
+  meta.className = 'card-meta';
+
+  item.tags.forEach(t => {
+    const tag = document.createElement('span');
+    tag.className = 'card-tag';
+    tag.textContent = t;
+    meta.appendChild(tag);
+  });
+
+  const link = document.createElement('a');
+  link.className = 'card-link';
+  link.href = item.external ? item.file : item.file;
+  link.target = '_blank';
+  link.textContent = 'open →';
+  link.addEventListener('click', e => e.stopPropagation());
+  meta.appendChild(link);
+
+  info.appendChild(title);
+  info.appendChild(meta);
+  card.appendChild(preview);
+  card.appendChild(info);
+
+  card.addEventListener('click', () => {
+    lbTitle.textContent = item.title;
+    lbFrame.src = item.external ? item.file : item.file;
+    lightbox.classList.add('open');
+  });
+
+  return card;
+}
+
+function render(filter) {
+  gallery.innerHTML = '';
+  const visible = filter === 'all'
+    ? items
+    : items.filter(i => i.tags.includes(filter));
+  visible.forEach(i => gallery.appendChild(buildCard(i)));
+  countEl.textContent = visible.length + ' visualizations';
+}
+
+document.querySelectorAll('.filter-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    activeFilter = btn.dataset.filter;
+    render(activeFilter);
+  });
+});
+
+lbClose.addEventListener('click', () => {
+  lightbox.classList.remove('open');
+  lbFrame.src = 'about:blank';
+});
+
+lightbox.addEventListener('click', e => {
+  if (e.target === lightbox) {
+    lightbox.classList.remove('open');
+    lbFrame.src = 'about:blank';
+  }
+});
+
+render('all');
+</script>
+</body>
+</html>
