@@ -352,7 +352,7 @@
     let url = `/iris/svg?mode=${currentMode}&rings=${rings}&label_mode=${currentLabelMode}`;
     if (param && modeParams[currentMode]) url += `&param=${encodeURIComponent(param)}`;
     if (ns) url += `&ns=${encodeURIComponent(ns)}`;
-    if (currentTlMode !== '0') url += `&tl=${currentTlMode}`;
+    url += `&tl=${currentTlMode}`;
     url += `&intensity=${tlIntensity.value}&expanse=${tlExpanse.value}`;
 
     setStatus('rendering...', 'loading');
