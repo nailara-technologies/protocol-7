@@ -318,11 +318,41 @@ if ( not length($method) and length($msg_id) ) {
     }
 
     if ( $pend->{'type'} eq qw| prompt | ) {
-        ## success/cancel response for the prompt request itself
-        ## actual content arrives via event stream — re-insert pending
-        ## entry so TurnEnd can find it [ delete above was premature ]
+        my $result = $msg->{'result'}    // {};
+        my $status = $result->{'status'} // 'unknown';
+        my $err    = $msg->{'error'}     // {};
+        my $errmsg = $err->{'message'}   // '';
+
+        # [ content filter or policy rejection — fail immediately ]
+        if (   $status eq 'error'
+            or $status eq 'rejected'
+            or ( length $errmsg
+                and $errmsg =~ m{high.risk|reject|filter|policy|sensitive}i )
+        ) {
+            <[base.logs]>->(
+                0,       'kimi: prompt rejected [ %s ] : %s',
+                $status, length($errmsg) ? $errmsg : 'no details'
+            );
+            my $reply_id = $pend->{'reply_id'} // '';
+            my $task_id  = $pend->{'task_id'}  // '';
+            my $msg_out  = "kimi rejected: $errmsg";
+            if ( length $task_id and defined <kimi.task.active_id> ) {
+                <[kimi.task.complete]>->( $task_id, $msg_out );
+                <kimi.task.active_id> = undef;
+            }
+            if ( length $reply_id ) {
+                <[base.callback.cmd_reply]>->(
+                    $reply_id, { 'mode' => qw| false |, 'data' => $msg_out }
+                );
+            }
+            <kimi.wire.accumulator> = '';
+            <kimi.ws.status>        = qw| ready |;
+            <[kimi.watcher.ws_status]>;
+            return;
+        }
+
+        ## normal ack — content arrives via event stream, re-insert pending
         <kimi.wire.pending>->{$msg_id} = $pend;
-        my $status = ( $msg->{'result'} // {} )->{'status'} // 'unknown';
         <[base.logs]>->(
             2, 'kimi.handler.ws_message: prompt ack [ status=%s ]', $status
         );
@@ -330,8 +360,8 @@ if ( not length($method) and length($msg_id) ) {
     }
 }
 
-#,,,.,.,.,,,,,,,.,...,,.,,...,,..,,,.,,,,,.,,,.,.,...,...,.,.,,..,.,,,,,,,.,,,
-#NMWLLRAF55KDW2F5TURGGZZKHEO7QIX5LL7N47ZTNZHYJIARWQWCLOXJXEIUKIO4A7V7NDP5RKXFK
-#\\\|RUXDPX2QF7F56BJ2AXIIJ2PFGO4CWYQWSH5H6YAF5VEZQUU4QNW \ / AMOS7 \ YOURUM ::
-#\[7]OVW632VTF5BS7MO3ZFUG2ONH2STOGSXEIGGKEB7JMDCUFDTPAKBA 7  DATA SIGNATURE ::
+#,,,,,.,.,...,,,.,,..,..,,,.,,,,,,...,...,..,,.,.,...,...,...,,,,,...,,..,,..,
+#JLBRCRB7MB6TJBBTQP75K6DXW7HTC6T326OCNDV3Z2MZT4BWMSOTYWG3VKWYKX2ZU7WAN2PXCANVE
+#\\\|RDYR37KI3U7XDAEJLS77UPVSEJ2L2YKCWXKADYEZWBSNFGBJ5YS \ / AMOS7 \ YOURUM ::
+#\[7]MSZGHCCL4VRUA3OCWZK7B2QRPPUKU52DXM2E734GUAOWQT4G5ICI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
