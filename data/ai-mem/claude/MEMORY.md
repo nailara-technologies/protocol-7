@@ -22,6 +22,9 @@
 - [stream-framing-protocol](topic-stream-framing-protocol.md) — 3+1 bit frame, separator inversion on 000, expanding assertion window, dot=0 comma=1
 - [orbital-cycle-clock](topic-orbital-cycle-clock.md) — angle_bits as generic mapping canvas; velocity multipliers; network cycle clock; 45 compatible feature combinations
 - [self-optimizing-code](topic-self-optimizing-code.md) — prior impl as spec+test generator+fallback; benchmark as reviewer; autonomous performance optimization paradigm
+- [space-dimensions](topic-space-dimensions.md) — 5D coordinate geometry (arc×floor×plane×scale×timing), helix descent, separator cubes, seamless loops, ~10^14 address space
+- [vortex-intake](topic-vortex-intake.md) — vortex mode as event horizon interpreter; spiral as color tube; correlated approximations; cube space transition masks
+- [kitten-hologram-filter](topic-kitten-hologram-filter.md) — litter entropy as cryptographic resource filter; blue hologram at cube face event horizon
 
 ## Vision / Design Topics
 - [project-vision-origin](project-vision-origin.md) — 24-year foundational vision, threshold reached Apr 2026
@@ -84,10 +87,15 @@
 ## System Status
 
 ### Next Steps (immediate)
-- **iris 63-ring labels**: task file written (data/tasks/iris-63-ring-spoke-labels.md) — dispatch to kimi next
+- **iris alpha-density v2**: data/tasks/iris-alpha-density-mode-v2.md ready — dispatch to kimi (filter-safe rewrite)
 - **:::: litter row**: task file written (data/tasks/litter-row-encoding.md) — pending dispatch
-- **iris logo overlay**: DONE — kimi implemented, nailara logo at darksun position 27 ✓
-- **iris live**: iris.v7.ax live at 172.24.33.224, BMW384 index self-populates on first request
+- **iris 63-ring labels**: DONE ✓ — kimi implemented, namespace63 mode with . at ring 27
+- **iris logo overlay**: DONE ✓ — nailara logo at darksun position 27
+- **iris live**: viz.v7.ax/iris.html live, overlay-search.html at viz.v7.ax
+- **iris vortex mode**: angle_bits density visualization, renamed from alpha-density ✓
+- **iris subtractive translucency**: bi-dir default, intensity+expanse controls ✓
+- **kimi auto-approve**: fixed in init_code + reset_and_reconnect + new-session ✓
+- **kimi content filter**: rejection now detected and failed cleanly ✓
 - **jobsite BMW384 dedup**: dispatch bmw384-arc-grouping-filter.md to kimi
 - **route.bmw384 find-route testing**: register nodes, run find-route + verify-coordinate
 - **kimi.task-file :next: dispatch**: now working — variable watcher fix confirmed
@@ -125,8 +133,8 @@
 - **repo var/ cleanup** — `var/httpd/` tracked from Nov 2025 AI error
 - **kimi auto-approval regression** (Apr 16) — some tool calls not auto-approved during kimi tasks
 
-#,,,,,...,..,,.,,,,,.,,,.,,..,,,,,..,,,..,...,..,,...,...,...,.,,,,.,,..,,...,
-#7JBJRCB47YZHY26DYHJOLN4WUL33T5IIFYFWSZXISXO6X33M4GLBFZ2O6F7RFBZTTY2D2TRJ67PI6
-#\\\|RYR2Z7GD2OCZXLGI2KCPJBDRQXMVVRWJTQOXMF56KPPH7XVWNOY \ / AMOS7 \ YOURUM ::
-#\[7]YJORF5KRYFFJ3XIKZUHDEDNDLAJVD2GQRKNUYUBYD2OTXDGHK2BI 7  DATA SIGNATURE ::
+#,,.,,,,.,.,,,.,,,..,,,,.,..,,..,,.,,,,,,,,,.,..,,...,...,..,,..,,,.,,,,.,..,,
+#BVUROAGU7Z2PSY42OC7CF5UXYL5TDE2EILU2TAGNTPNHF5X3M3KGKDN6GE7VJKACOAHRVIJEFXZMG
+#\\\|TMAV4DGDHWSN3WE3K5JD4TSXMML7EQKHN6WXG3W7QJGHLN2QSRF \ / AMOS7 \ YOURUM ::
+#\[7]WLVMLKBODJVLIDDVEIBT3M3TR4TSS42PMCHRIEIKC2DUR66UJUBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
