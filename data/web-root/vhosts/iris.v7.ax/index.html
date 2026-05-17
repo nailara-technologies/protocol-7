@@ -199,6 +199,7 @@
   <button class="mode-btn" data-mode="density">density</button>
   <button class="mode-btn" data-mode="vortex">vortex</button>
   <button class="mode-btn" data-mode="alpha-density">α-density</button>
+  <button class="mode-btn" data-mode="oscilloscope">osc</button>
 
   <div class="label-mode-row">
     <span class="param-label">labels</span>
@@ -270,6 +271,7 @@
   let currentTlMode    = '0';
   let currentIntensity = '0.5';
   let currentExpanse   = '3';
+  let oscInterval      = null;
 
   const frame      = document.getElementById('iris-frame');
   const statusLine = document.getElementById('status-line');
@@ -309,6 +311,10 @@
           ringsInput.value = '13';
         }
         updateParamRow(currentMode);
+        if ( oscInterval ) { clearInterval(oscInterval); oscInterval = null; }
+        if ( currentMode === 'oscilloscope' ) {
+          oscInterval = setInterval(render, 500);
+        }
         render();
       } else if ( btn.dataset.labelMode ) {
         document.querySelectorAll('.mode-btn[data-label-mode]').forEach(b => b.classList.remove('active'));
@@ -385,6 +391,10 @@
   }
 
   render();
+
+  window.addEventListener('beforeunload', () => {
+    if ( oscInterval ) { clearInterval(oscInterval); }
+  });
 </script>
 </body>
 </html>

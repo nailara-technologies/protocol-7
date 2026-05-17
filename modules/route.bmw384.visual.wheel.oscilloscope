@@ -1,0 +1,95 @@
+## [:< ##
+
+# name  = route.bmw384.visual.wheel.oscilloscope
+# descr = iris rings as live zulum stream oscilloscope
+#         ring N = stream N, brightness = normalized stream value
+
+# [ fetch zulum stream states — direct memory read, same-zenka fallback ]
+my $streams = {};
+for my $sid ( 1 .. 13 ) {
+    my $stream = <zulum.stream>->{$sid};
+    next unless defined $stream;
+    $streams->{$sid} = {
+        'state'     => $stream->{'state'}     // 0,
+        'entropy'   => $stream->{'entropy'}   // ( '0' x 42 ),
+        'is_true'   => $stream->{'is_true'}   // 0,
+        'iteration' => $stream->{'iteration'} // 0,
+    };
+}
+
+# [ parameters ]
+my $outer_radius = <route.bmw384.cfg.outer_radius> // 320;
+my $rings        = 13;                                # one per zulum stream
+my $ring_step    = ( $outer_radius - 30 ) / $rings;
+
+my $PI          = 3.14159265358979;
+my $segment_deg = 360 / 26;
+
+my $svg = '<?xml version="1.0" encoding="UTF-8"?>' . "\n";
+$svg .= '<svg xmlns="http://www.w3.org/2000/svg"'
+    . ' viewBox="0 0 800 800" width="800" height="800">' . "\n";
+$svg .= '  <rect width="800" height="800" fill="#0a0a0f"/>' . "\n";
+
+# [ render 13 rings, one per stream ]
+for my $sid ( 1 .. 13 ) {
+    my $stream  = $streams->{$sid}     // {};
+    my $entropy = $stream->{'entropy'} // '0' x 42;
+    my $is_true = $stream->{'is_true'} // 0;
+    my $radius  = $outer_radius - ( $sid - 1 ) * $ring_step;
+
+# [ hue: TRUE family = warm (orange/yellow), FALSE family = cool (blue/cyan) ]
+# streams 1-6: FALSE family (076923 rotations)
+# streams 7-12: TRUE family (153846 rotations)
+# stream 13: convergence (special)
+    my $hue = $sid <= 6
+        ? int( 200 + $sid * 10 )                        # blue-cyan
+        : $sid <= 12 ? int( 30 + ( $sid - 7 ) * 15 )    # orange-yellow
+        :              120;                             # green (convergence)
+
+    # [ brightness from entropy bit density ]
+    my $bit_count  = ( $entropy =~ tr/1// );
+    my $brightness = $bit_count / 42;
+
+    # [ is_true ring: slightly brighter, different saturation ]
+    my $sat     = $is_true ? '95%' : '70%';
+    my $light   = int( 20 + $brightness * 50 );
+    my $opacity = sprintf '%.2f', 0.3 + $brightness * 0.65;
+
+    # [ render full ring circle ]
+    $svg
+        .= sprintf '  <circle cx="400" cy="400" r="%.1f" fill="none"'
+        . ' stroke="hsl(%d,%s,%d%%)" stroke-width="%.1f"'
+        . ' opacity="%s"/>' . "\n",
+        $radius, $hue, $sat, $light,
+        2 + $brightness * 4,    # thicker when more active
+        $opacity;
+
+    # [ stream label ]
+    $svg
+        .= sprintf '  <text x="%.1f" y="%.1f" fill="hsl(%d,%s,%d%%)"'
+        . ' font-size="7" text-anchor="middle"'
+        . ' dominant-baseline="middle" opacity="0.5">%d</text>' . "\n",
+        400 + ( $radius + 8 ) * sin(-0.1),
+        400 - ( $radius + 8 ) * cos(-0.1),
+        $hue, $sat, $light + 20, $sid;
+}
+
+# [ center void ]
+$svg .= '  <circle cx="400" cy="400" r="24" fill="none"'
+    . ' stroke="rgba(255,255,255,0.15)" stroke-width="1"/>' . "\n";
+
+# [ legend ]
+$svg
+    .= '  <text x="400" y="790" fill="rgba(255,255,255,0.3)"'
+    . ' font-size="9" text-anchor="middle">'
+    . 'zulum &#183; 13 streams &#183; blue=FALSE &#183; amber=TRUE &#183; brightness=entropy</text>'
+    . "\n";
+
+$svg .= '</svg>' . "\n";
+return $svg;
+
+#,,,,,.,.,,,,,,,.,,,.,,..,,.,,...,,,.,...,,..,..,,...,...,.,.,,,.,...,...,.,,,
+#TY3NLOUHPVPFZFU6QLLEMBO5BR6RA5DGNN4OZQURA5BVYAZ53WYOVYDBUDR73OCSIRK3OM4O64BQ4
+#\\\|XMPFAPDHKHBMYXRMMTCAGKOLZQXP7XDWE7OXOKJ5WVHTCKMN6JT \ / AMOS7 \ YOURUM ::
+#\[7]PHVGTL3TQEDXFV7RXCUJM6R34OE6FOENFCBTWAAWPJWXU4ADDGAQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
