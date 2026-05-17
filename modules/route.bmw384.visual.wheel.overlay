@@ -80,7 +80,15 @@ for my $ns_idx ( 0 .. $#ns_list ) {
     my $prefix   = $ns_list[$ns_idx];
     my $hue_base = $ns_hue[$ns_idx];
 
-    my @ns_names = grep { index( $_, $prefix ) == 0 } @names;
+    my $prefix_only = substr( $prefix, 0, 1 ) eq '^';
+    my $ns_pat      = $prefix_only ? substr( $prefix, 1 ) : $prefix;
+    my @ns_names;
+    for my $ARG (@names) {
+        push @ns_names, $ARG
+            if $prefix_only
+            ? index( $ARG, $ns_pat ) == 0
+            : index( $ARG, $prefix ) != -1;
+    }
     next unless @ns_names;
 
     my @sorted = sort @ns_names;
@@ -162,8 +170,8 @@ $svg .= '</svg>' . "\n";
 
 return $svg;
 
-#,,,,,,,,,,.,,..,,...,.,,,,..,,,.,...,,,.,.,.,..,,...,...,.,.,.,.,,.,,,.,,,..,
-#MHOHKQAO5XTTVF2XXBJZXZTNCF3EODMHK6GHSJWOTJNHEMSSKIPUK7FXA5AX2UVHKG25MS4IMSSUE
-#\\\|BPN4J7CCYCNH7QNN466FM7UMTTPT6QG7P5MAEIQJDGZ3J3IEIVT \ / AMOS7 \ YOURUM ::
-#\[7]7T74Y5ZWWXIVVW7W72OMTQA2TYIVV4DYRBLHBZSBI3NWGABJLOCI 7  DATA SIGNATURE ::
+#,,,,,,,.,,,.,,,.,.,.,.,,,,..,.,.,,,.,..,,...,..,,...,...,,.,,..,,.,,,...,.,.,
+#B6A3F4ZTJNPTTRW3IXUJ3B4KETUSMEQ5YK7G2HCB4LHAM5M45LQOPK6LY5FB3YLVPQOL4MTOSMBUQ
+#\\\|UUKZYSR3XZIMJ4QK3VV3PCSIBVREWN3RJE5DSBCRP7ZH74UM4OS \ / AMOS7 \ YOURUM ::
+#\[7]LBLAZT3LZ2OGY6L5FWODBRJYZBJRMV52JHFTV2SR5U3I6D4UWWDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
