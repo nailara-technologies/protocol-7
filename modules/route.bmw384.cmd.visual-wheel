@@ -7,18 +7,22 @@ my $args = $call->{'args'} // '';
 my ( $output_mode, @rest ) = split m{\s+}, $args;
 $output_mode //= '';
 
-# [ parse ring count, visual mode, and mode params from @rest ]
+# [ parse ring count, visual mode, mode params, and label mode from @rest ]
 my $rings_override;
 my $visual_mode;
 my $mode_param;
+my $label_mode;
 
 for my $ARG (@rest) {
     if ( $ARG =~ m{^\d+$} and not defined $rings_override ) {
         $rings_override = $ARG + 0;
+        $rings_override = 63 if $rings_override > 63;
     } elsif (
         $ARG =~ m{^(?:arc-width|density|gauss|overlay|metric|heatmap|ring)$} )
     {
         $visual_mode = $ARG;
+    } elsif ( $ARG =~ m{^(?:namespace63|linear)$} ) {
+        $label_mode = $ARG;
     } elsif ( not defined $mode_param ) {
         $mode_param = $ARG;
     }
@@ -36,6 +40,13 @@ my $visual_mode_saved;
 if ( defined $visual_mode ) {
     $visual_mode_saved = <route.bmw384.cfg.visual_mode>;
     <route.bmw384.cfg.visual_mode> = $visual_mode;
+}
+
+# [ save and apply label mode ]
+my $label_mode_saved;
+if ( defined $label_mode ) {
+    $label_mode_saved = <route.bmw384.cfg.ring_label_mode>;
+    <route.bmw384.cfg.ring_label_mode> = $label_mode;
 }
 
 # [ apply mode-specific param ]
@@ -90,7 +101,7 @@ if ( not length $output_mode or $output_mode eq 'svg' ) {
         qw| mode | => qw| size |,
         qw| data | => 'usage: visual-wheel [svg|html|file] [rings]'
             . ' [arc-width|density|gauss|overlay|metric|heatmap]'
-            . ' [mode-param]'
+            . ' [mode-param] [linear|namespace63]'
     };
 }
 
@@ -107,6 +118,13 @@ if ( defined $visual_mode ) {
         <route.bmw384.cfg.visual_mode> = $visual_mode_saved;
     } else {
         delete <route.bmw384.cfg.visual_mode>;
+    }
+}
+if ( defined $label_mode ) {
+    if ( defined $label_mode_saved ) {
+        <route.bmw384.cfg.ring_label_mode> = $label_mode_saved;
+    } else {
+        delete <route.bmw384.cfg.ring_label_mode>;
     }
 }
 if ( defined $gauss_arcs_saved ) {
@@ -126,8 +144,8 @@ if ( defined $overlay_ns_saved ) {
 
 return $result;
 
-#,,..,,,,,..,,,.,,,.,,,,.,,..,,..,...,,,,,.,,,..,,...,...,..,,,..,.,,,...,..,,
-#6QOVRRABX7FGPJUML77IZU52VDYZOGEVQSZPQGHM4R3EWQA4L6PPT7B6TY4C2CWYJS4X7HQCSIDIE
-#\\\|C4PAZZXJMRYJLVLIINDIAGKEPT72W7MZ2LOCX7WXLA5OCGB2GYJ \ / AMOS7 \ YOURUM ::
-#\[7]F3A3IBSQN6TVVDEDP2GGFGVNP6FBHS5P4HD6DYISAR4YYCPCJSAQ 7  DATA SIGNATURE ::
+#,,,,,.,,,.,,,,,,,..,,,,,,,,.,,,.,,..,,.,,.,.,..,,...,...,,,.,,,.,..,,..,,,.,,
+#3TS6WJ32TIAELYVLHWXENCSANEI2GRMCVZQMLCWSPKKXYW53DWVWMXBQRBXHEH5FJE535QS4W36EI
+#\\\|45KP6CEB62IOC7PWEXKFQVUTYXRRCTAUZ64JF5JZYQMYMMBTKEO \ / AMOS7 \ YOURUM ::
+#\[7]XUHZRYDDVAILL5J25ZJU6TYOD5F5L6MV2QEFM5REGODJJLZPSEBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
