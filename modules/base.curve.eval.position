@@ -1,0 +1,70 @@
+## [:< ##
+
+# name  = base.curve.eval.position
+# descr = position curve evaluator: type × t × params → {x, y}
+#         maps t [0,1] to SVG coordinate on iris (800×800 canvas)
+
+my $type   = shift;    # [ curve type ]
+my $t      = shift;    # [ progress 0.0 → 1.0 ]
+my $params = shift;    # [ curve-specific parameters ]
+
+## clamp t to [0,1] ##
+$t = 0 if $t < 0;
+$t = 1 if $t > 1;
+
+my $pos;
+
+if ( $type eq 'orbital_arc' ) {
+
+    # [ CCW arc between two BMW384 coordinates ]
+    # params: center_x, center_y, radius, angle_start, angle_end
+    my $angle = $params->{'angle_start'}
+        + $t * ( $params->{'angle_end'} - $params->{'angle_start'} );
+    $pos = {
+        x => $params->{'center_x'} + $params->{'radius'} * cos($angle),
+        y => $params->{'center_y'} - $params->{'radius'} * sin($angle),
+    };
+
+} elsif ( $type eq 'vortex_spiral' ) {
+
+    # [ CCW implosion spiral: harmonic radius reduction ]
+    # params: radius_start, angle_start, turns
+    my $angle = $params->{'angle_start'}
+        + $t * $params->{'turns'} * 6.28318530717959;
+    my $radius = $params->{'radius_start'} * ( 1 - $t * ( 1 - 1 / 13 ) );
+    $pos = {
+        x => 400 + $radius * cos($angle),
+        y => 400 - $radius * sin($angle),
+    };
+
+} elsif ( $type eq 'linear_hop' ) {
+
+    # [ direct hop between two BMW384 positions ]
+    # params: from {x,y}, to {x,y}
+    # motion profile from base.curve.eval (ease-in-out)
+    my $ease = <[base.curve.eval]>->( 'ease-in-out', $t );
+    $pos = {
+        x => $params->{'from'}{'x'}
+            + $ease * ( $params->{'to'}{'x'} - $params->{'from'}{'x'} ),
+        y => $params->{'from'}{'y'}
+            + $ease * ( $params->{'to'}{'y'} - $params->{'from'}{'y'} ),
+    };
+
+} else {
+
+    # [ default: linear interpolation ]
+    $pos = {
+        x => $params->{'from'}{'x'}
+            + $t * ( $params->{'to'}{'x'} - $params->{'from'}{'x'} ),
+        y => $params->{'from'}{'y'}
+            + $t * ( $params->{'to'}{'y'} - $params->{'from'}{'y'} ),
+    };
+}
+
+return $pos;
+
+#,,,,,,,,,,,.,...,..,,.,.,.,,,.,.,,.,,...,.,.,..,,...,...,.,.,.,,,..,,,,.,..,,
+#WZSGKSYRE236B4P7F7R6RYGMMXV2M54JMJZWWR7TJAZB4WJHEXOP5CGRRXGBG6BZUDE7VMLRV2TD6
+#\\\|5MUNRMCWT6CJX2K7QCY5ZEUY7L2PY2FRNXCTX37SNW3RDCOSPK6 \ / AMOS7 \ YOURUM ::
+#\[7]PHWP5PKB23Z6UO7GEAEBFUUXBVAWKPC6ZQY6WLUCCJ4QJCLZUQAA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
