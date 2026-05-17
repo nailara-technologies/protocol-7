@@ -185,9 +185,19 @@ for my $ring ( 0 .. $rings - 1 ) {
     }
 }
 
-# [ center void ]
+# [ center logo — nailara at the darksun ]
+my $logo_size = 44;    # diameter covering the void circle (r=24)
+my $logo_xy   = 400 - $logo_size / 2;
+
+$svg
+    .= sprintf '  <image x="%.1f" y="%.1f" width="%d" height="%d"'
+    . ' href="%s" opacity="0.7"'
+    . ' style="mix-blend-mode:screen"/>' . "\n",
+    $logo_xy, $logo_xy, $logo_size, $logo_size,
+    '/gfx/logos/nailara_logo.trans-dark.png';
+
 $svg .= '  <circle cx="400" cy="400" r="24" fill="none"'
-    . ' stroke="rgba(255,255,255,0.15)" stroke-width="1"/>' . "\n";
+    . ' stroke="rgba(255,255,255,0.08)" stroke-width="0.5"/>' . "\n";
 
 # [ legend: selected arcs ]
 my $legend_labels = join ', ', map { chr( ord('A') + $_ ) } @gauss_idx;
@@ -201,8 +211,8 @@ $svg .= '</svg>' . "\n";
 
 return $svg;
 
-#,,..,.,,,...,.,,,,,.,,,.,,..,,,.,,,.,,.,,,..,..,,...,..,,,..,...,,,,,,,.,,,,,
-#EZCEEZYGBSKRHYKWREG2ADK3NQYAA3FY6KJ3C5ROM6535RZNPC23ZGJTWJXC2ORHRODG44IUWHPQA
-#\\\|WIXVKC2OEVCTJOWR3GCRMHB7SMUPPCRTQ5ZGNXKPJNFBQUMQJG4 \ / AMOS7 \ YOURUM ::
-#\[7]UCHJY3ZV5WOZ63WVKRKIREUPHDHIDP5H6YRYPU5EFVY5DYYSGIDA 7  DATA SIGNATURE ::
+#,,,,,,..,,.,,...,.,,,,,,,,,,,,..,,..,,..,,..,..,,...,...,..,,,.,,,,,,...,...,
+#OWLEY7DUT6PDNK446NIBTJLCFGYSXOR5AYSDR2QRIIRT7EBCHYQRRHY3UJEAX66E3QFE7GOB4LQVC
+#\\\|2TZ7HZJEFQWIKCEXVLGYDTVVFOE2K5QGJG64S4WGMM7ANTSJ464 \ / AMOS7 \ YOURUM ::
+#\[7]EHOOTPYXYBOBCMFE6P7IHAUTQ3JW3BWZVJBP3RQLVV3RXU2VMOCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

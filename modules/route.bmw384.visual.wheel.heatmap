@@ -139,15 +139,25 @@ $svg
     . 'high (n=%d)</text>'
     . "\n", 50 + 9 * 30, $max_count;
 
-# [ center void ]
+# [ center logo — nailara at the darksun ]
+my $logo_size = 44;    # diameter covering the void circle (r=24)
+my $logo_xy   = 400 - $logo_size / 2;
+
+$svg
+    .= sprintf '  <image x="%.1f" y="%.1f" width="%d" height="%d"'
+    . ' href="%s" opacity="0.7"'
+    . ' style="mix-blend-mode:screen"/>' . "\n",
+    $logo_xy, $logo_xy, $logo_size, $logo_size,
+    '/gfx/logos/nailara_logo.trans-dark.png';
+
 $svg .= '  <circle cx="400" cy="400" r="24" fill="none"'
-    . ' stroke="rgba(255,255,255,0.12)" stroke-width="1"/>' . "\n";
+    . ' stroke="rgba(255,255,255,0.08)" stroke-width="0.5"/>' . "\n";
 $svg .= '</svg>' . "\n";
 
 return $svg;
 
-#,,.,,,,.,,..,...,..,,.,,,,,.,.,.,.,.,...,.,,,..,,...,...,.,,,,,,,..,,..,,.,.,
-#QDBL4WFCXDJGFASMMO65KS2F3WUPIF4NJTWDLIP5BVUVFHKTUBCWGEVJH5E4DLIMEMOE7RDK4RY6G
-#\\\|ILRQPJRKAYVMRREFT6WHGTTA3RXCE637JWOTQBKQQH4J2YLOWEN \ / AMOS7 \ YOURUM ::
-#\[7]HRTPH6WRGL43BIQ3JWLE66FWHR35KDNAIWEYMYERPMPV4M4RZMAQ 7  DATA SIGNATURE ::
+#,,,.,.,,,,..,.,,,.,.,..,,,,,,...,..,,..,,,,,,..,,...,...,,,.,.,,,,,.,.,.,...,
+#FOB64FXER5XKUMHIQOY7EW364B6EA43WKI4OXAF62UYCFAITPL3C5AL2TAIBDFEMT73BVD4EFBLVK
+#\\\|F4Z7CRWL7WCSJHRKD2UHBNEPOQXZQYW7O3QFOEONPN4YH455CSW \ / AMOS7 \ YOURUM ::
+#\[7]XFWWY4GOZR6ZKSQZADG5WPSI3HJK5XZ2T7UZR7UCXZE35WVKFMAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
