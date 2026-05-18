@@ -3,18 +3,13 @@
 # name  = kimi-web.handler.batch_timeout_check
 # descr = handle timeout for parallel dispatch batches
 
-my $data     = shift;
-my $batch_id = $data->{'params'}{'batch_id'} // '';
-my $timer    = $data->{'timer'};
+my $batch_id = shift->w->data->{'batch_id'} // '';
 
 my $batches = <kimi-web.agent.batches> // {};
 my $batch   = $batches->{$batch_id};
 
 ## batch already complete ##
-if ( not defined $batch ) {
-    $timer->cancel() if defined $timer;
-    return;
-}
+return if not defined $batch;
 
 ## timeout reached - aggregate partial results ##
 my $pending = $batch->{'total'} - $batch->{'completed'};
@@ -56,10 +51,8 @@ if ( length $reply_id ) {
 delete $batches->{$batch_id};
 <kimi-web.agent.batches> = $batches;
 
-$timer->cancel() if defined $timer;
-
-#,,.,,,..,,,,,...,.,,,,.,,.,.,...,.,,,.,,,..,,.,.,...,...,...,...,,,.,,,,,,,,,
-#VUGH7TZHCLLV4272WYEQTZMTJS7YHQNXDFSNWYOGGZLDFMZT7L7Q2QD6RE7KMRBWZEMAGGUJDLEHE
-#\\\|YKSYBKO2NNXW2AMWP3SHPYMU5LSWUYVTND6SEJCK24BH2N4Z73S \ / AMOS7 \ YOURUM ::
-#\[7]VXU54SRI6R55VNFB2CLI57RXZHB5JKNYYA7YXD22YSNXNQKJ34CA 7  DATA SIGNATURE ::
+#,,,.,..,,..,,,..,.,,,.,.,..,,.,.,,,.,,.,,..,,.,.,...,...,.,.,,..,,,.,...,..,,
+#YB6OH6UJPFWZGVK42HZ4TACYH6NDCO7ONL2YXEQGYZHHLEKCC6BK5KWYNUOG6JVIDB5MFBIDF2SPY
+#\\\|FGOH7YWVZTSMZJPJGKOIHAKFKE6SESKCH33X27V6GH2ZGN3GA5Y \ / AMOS7 \ YOURUM ::
+#\[7]ELZAJUSF2YENSZDNNS5CYVHIMISXV2WWSXQYK5ATZKTR7U7D5CBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
