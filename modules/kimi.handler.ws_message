@@ -218,10 +218,16 @@ if ( $method eq qw| request | ) {
     }
 
     if ( $type eq qw| ToolCallRequest | ) {
-        ## external tool execution — not yet implemented
+        ## log full payload so we can see the field structure
+        my $payload_str = eval { JSON::XS::encode_json($payload) } // '?';
         <[base.logs]>->(
-            1,       ': tool call request [ %s ] name=%s — not handled',
-            $msg_id, $payload->{'name'} // '?'
+            1,       ': ToolCallRequest [ %s ] payload=%s',
+            $msg_id, $payload_str
+        );
+        ## send reject so kimi-web does not hang waiting for a response
+        <[kimi.wire.approval_respond]>->(
+            $msg_id, 'reject',
+            'ToolCallRequest not yet implemented — log captured for analysis'
         );
         return;
     }
@@ -360,8 +366,8 @@ if ( not length($method) and length($msg_id) ) {
     }
 }
 
-#,,,,,.,.,...,,,.,,..,..,,,.,,,,,,...,...,..,,.,.,...,...,...,,,,,...,,..,,..,
-#JLBRCRB7MB6TJBBTQP75K6DXW7HTC6T326OCNDV3Z2MZT4BWMSOTYWG3VKWYKX2ZU7WAN2PXCANVE
-#\\\|RDYR37KI3U7XDAEJLS77UPVSEJ2L2YKCWXKADYEZWBSNFGBJ5YS \ / AMOS7 \ YOURUM ::
-#\[7]MSZGHCCL4VRUA3OCWZK7B2QRPPUKU52DXM2E734GUAOWQT4G5ICI 7  DATA SIGNATURE ::
+#,,..,..,,.,,,,,.,.,.,.,.,..,,,.,,,.,,..,,.,.,.,.,...,...,.,,,,.,,,.,,..,,.,,,
+#PZVSVBM4XFJ6K4O7O3UDZZVYKQMPNDMQDDRFAZQ73BUHKLPBBPTMWYUMG75WU3IDGR44T5CIVAYMK
+#\\\|KDKXBBP54SZCUD7FKM6Y3D7DYV2FJAMIJEMVDQMR5ROIKMSALY3 \ / AMOS7 \ YOURUM ::
+#\[7]GXPG77P4ULSWYPFB4Q57BWYMR5IN3RPYCCLY4EIATSPLZWARBOCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
