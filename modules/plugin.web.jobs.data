@@ -1,11 +1,9 @@
 ## [:< ##
 
 # name  = plugin.web.jobs.data
-# descr = serve all jobs as JSON array sorted by fetched_at
+# descr = command handler for jobs data — returns SIZE reply with JSON
 
-my $id = shift;
-
-my $session = $data{'session'}->{$id};
+my $call = shift // {};
 
 my $jobs = <[plugin.web.jobs.cache.read_all]>;
 
@@ -18,25 +16,24 @@ for my $job_id (@ids) {
     push @array, { %{ $jobs->{$job_id} }, 'id' => $job_id };
 }
 
-my $reply_body = eval { JSON::XS::encode_json( \@array ) };
+my $json = eval { JSON::XS::encode_json( \@array ) };
 if ($@) {
-    <[base.logs]>->( 0, 'plugin.web.jobs.data: json error: %s', $@ );
-    return <[httpd.send_error_page]>->( $id, 500 );
+    <[base.logs]>->( 0, 'web.jobs.data: json error: %s', $@ );
+    return {
+        'mode'         => 'size',
+        'data'         => '[]',
+        'content_type' => 'application/json'
+    };
 }
 
-my $reply_header = {
-    qw| Content-Type   | => qw| application/json |,
-    qw| Content-Length | => length($reply_body),
+return {
+    'mode'         => 'size',
+    'data'         => $json,
+    'content_type' => 'application/json'
 };
 
-$session->{'buffer'}->{'output'}
-    .= <[httpd.new_header]>->( 200, $reply_header );
-$session->{'buffer'}->{'output'} .= $reply_body;
-
-return 2;
-
-#,,..,,..,...,,..,.,.,..,,.,,,..,,,,.,,..,..,,..,,...,...,.,,,,.,,,,,,,,,,.,,,
-#PHCSLF3GJT74M7KFTPR63H3VQ57S5ZGIMCI7RO3U22BLBA2ELULYZ54DEWQUULQO2ZF4CUDAGQJTY
-#\\\|ALHXMXDFRWD5OUIN7II65OOIWXHDRXQGOGSFYEIWH7KRJ7TTIVW \ / AMOS7 \ YOURUM ::
-#\[7]ZGWSE6BBPJFSPJV3PEEDQHSDFUWPTPF6WJPPOHH757LYO4CHXAAQ 7  DATA SIGNATURE ::
+#,,..,..,,,..,,..,..,,,..,,,.,...,..,,,,,,..,,..,,...,..,,,,,,.,,,..,,,..,,,.,
+#BIP3IIUTJT3KLOB4KJDZC5XXVVISKFWI4ULTHTU35ZGU7CTIWRK4LXFKHA763VGBELSUVDQXPSBKY
+#\\\|L5EXHHSXMRYN7FA3PC5IGQUJTPLZUXNG43X3UFNZQMZKC76FOHY \ / AMOS7 \ YOURUM ::
+#\[7]GNGN6FE7ANSK3G64ST4E7AXEKO4P7THCDPUIBDGAAOEJS2KD3MBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
