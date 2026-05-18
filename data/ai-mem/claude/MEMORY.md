@@ -8,7 +8,8 @@
 - Leave new files clean; `bin/Protocol-7 sourcecode update-signatures` adds real 4-line footer
 
 ## Active Topics
-- [plugin-web-jobs](topic-plugin-web-jobs.md) — WORKING (session 25): route registry, direct file reads, client delta sync, toolbar UI; open: server-side ?since=N, remote deploy, distributed push/cache
+- [plugin-web-jobs](topic-plugin-web-jobs.md) — WORKING (session 33): sync wired via clients.http.post; open: server-side ?since=N, remote deploy, https switch when distributed
+- [clients-http](topic-clients-http.md) — clients.http.* + clients.https.* async namespaces; kimi-web parallel dispatch fixed; see completed session 33
 - [job-pipeline](topic-job-pipeline.md) — WORKING (session 22): jobs.vhost live, German reason+summary, retry on timeout
 - [task-coordination](topic-task-coordination.md) — task zenka as coordinator; current state, dispatch flow, roadmap
 - [coding-state-machine](topic-coding-state-machine.md) — coding.state namespace, watcher-based backend lock, persist/restore lifecycle
@@ -154,8 +155,8 @@
 - **repo var/ cleanup** — `var/httpd/` tracked from Nov 2025 AI error
 - **kimi auto-approval regression** (Apr 16) — some tool calls not auto-approved during kimi tasks
 
-#,,.,,..,,..,,.,.,,,,,,,,,,..,,,.,.,.,.,,,,,,,..,,...,...,..,,.,,,,,.,,,,,,,.,
-#ILODIHN7LQK62ARULUFQTBUK5TOGXNZJKJ2RV77I4MBTBQVSCRMYNWD6GXHMPPNTX46IRVGNZMRXW
-#\\\|F7NDAHBRL73G3SESPBJCFWCIYGYZSE6ICXEX5PVAR4GTNDNLVDO \ / AMOS7 \ YOURUM ::
-#\[7]QEGHXSUDBW72QQGE5TTSF7EVLD4MOTN26J6NINP5YRWBZXDQFOBA 7  DATA SIGNATURE ::
+#,,,.,...,,,,,.,,,...,,,,,,,.,,,,,,,,,.,.,,,.,..,,...,...,...,...,,..,,.,,.,.,
+#5AFXGIMP75UHOZOQHS5IMYGFWPOEY55XVVQXYXDW6X6GLWQ2DCTCRT4YGZZOZL4JY6R2KEBNSYDEY
+#\\\|EIAZ6OFQZHX5XE2VCSKS2WRY6M5FKFTZIARABF3HZAY3NPQCIOT \ / AMOS7 \ YOURUM ::
+#\[7]NWMFRAVE2BAAU22WO2SSTGNHT4ZBRIWXULL6ORCSVNA33DMTKSCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

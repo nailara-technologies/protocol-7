@@ -7,7 +7,14 @@ metadata:
   originSessionId: 095ef9b6-c744-46c5-bac8-4d54a2d5ce45
 ---
 
-## Current State (session 32, 2026-05-18) — WORKING END-TO-END
+## Current State (session 33, 2026-05-19) — SYNC WIRED END-TO-END
+
+**jobsite → httpd sync now uses clients.http.post** (non-blocking, no fork).
+sync.push → sync.push_next → clients.http.post → handler.sync-response chain.
+sync_url config stays as-is (http:// for now, switch to https:// + ssl_verify=>0
+for self-signed when deploying to remote). LWP removed from jobsite.
+
+## Previous state (session 32, 2026-05-18) — WORKING END-TO-END
 
 **Working**: GET /jobs.json and POST /jobs-sync fully operational via web zenka.
 Verified with curl. Cache at var_P7/web/jobs/ (web zenka owns it, not httpd).
@@ -107,8 +114,8 @@ Link-upgrade can later promote the HTTP push to a native P7 connection.
 
 #,,.,,,.,,..,,...,,,.,,..,,,,,.,,...,,.,,.,.,..,,...,..,,...,,...,,,.,,,,,.,,,,
 
-#,,,,,,.,,..,,..,,.,,,,,.,..,,,,.,..,,...,,.,,..,,...,...,,.,,,.,,,.,,..,,.,.,
-#B2YRXEAR4KQWJADSL6WZFCOKN5R64APGQ5Y3AVFOKOUKKGZASKL5ELJ6PKWO4NHZVKWBAJ4HTLMBW
-#\\\|372SKBM7ETENMXH6SA6YSG6RORYOJQCIZKQDEKWDHWBWNBGQM77 \ / AMOS7 \ YOURUM ::
-#\[7]TNVB7JWJSHP67Q3W6WKRLIIR77MB5TI26T6M55NERHL6NABKEWBY 7  DATA SIGNATURE ::
+#,,.,,,.,,.,.,.,.,.,.,.,,,,,,,.,.,,,,,.,,,,,,,..,,...,...,..,,.,,,..,,.,.,,..,
+#XK6LUA2Z47K4KHFYJYNV7I76FD47ZUD4TJ2KWDVBIVYHL7B2WXS2XQJX77EPND4ML3KB4SJZABDXA
+#\\\|SJENJAJICHBXHQCDTQBDRJOC5DQMMEV2U2O2YQXT56GBDKXDN6Y \ / AMOS7 \ YOURUM ::
+#\[7]2MBUNOCXVVMPTSDOCJNLKCP54AWBOE6QHZY4KLU4Z4RNI2HO5SDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
