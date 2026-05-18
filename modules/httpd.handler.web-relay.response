@@ -1,0 +1,39 @@
+## [:< ##
+
+# name  = httpd.handler.web-relay.response
+# descr = write web zenka SIZE reply to HTTP session
+
+my $reply    = shift;
+my $params   = shift // {};
+my $http_sid = $params->{'http_sid'};
+
+return unless defined $http_sid;
+my $session = $data{'session'}->{$http_sid};
+return unless defined $session;
+
+my $data_ref = ( ref $reply eq 'HASH' ) ? $reply->{'data'} : $reply;
+my $ct
+    = ( ref $reply eq 'HASH' )
+    ? ( $reply->{'content_type'} // 'application/json' )
+    : 'application/json';
+
+if ( not defined $data_ref ) {
+    $session->{'buffer'}->{'output'}
+        .= <[httpd.send_error_page]>->( $http_sid, 502 );
+    return;
+}
+
+$session->{'buffer'}->{'output'} .= <[httpd.new_header]>->(
+    200,
+    {   'Content-Type'   => $ct,
+        'Content-Length' => length($data_ref),
+        'Cache-Control'  => 'no-cache',
+    }
+);
+$session->{'buffer'}->{'output'} .= $data_ref;
+
+#,,,.,,.,,.,,,...,,,,,...,.,,,...,,,.,.,,,...,..,,...,...,...,,,.,...,..,,,.,,
+#PYYSBOQKXQRTUPOUHF5B4JZWQKN7MWYVJOQI2V5G6ETSOJU53YG3ZIIIFKVNG7DNNODKB4MVFPG3W
+#\\\|GOT7T4PKBBANIN67ZTPGY24ZA4EZR5J7JD5AHD6NERU5HTGHQOK \ / AMOS7 \ YOURUM ::
+#\[7]JRNEOL3HU2DQ3VQ3DRVXZKXYRLB7AIZ3XHMJPMHRUADJIBHC5WCA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
