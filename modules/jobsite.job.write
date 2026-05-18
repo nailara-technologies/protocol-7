@@ -20,6 +20,8 @@ if ( not -d $jobs_dir ) {
     <[file.make_path]>->( $jobs_dir, 0750, $p7_user, $p7_user );
 }
 
+$job->{'last_modified'} = <[ntime.b32]>;
+
 ## write job file atomically ##
 my $job_file = "$jobs_dir/$job_id.yaml";
 my $tmp_file = "$job_file.tmp";
@@ -62,8 +64,8 @@ rename( $index_tmp, $index_file )
 
 return TRUE;
 
-#,,,.,...,,..,,.,,...,.,.,.,.,..,,,.,,,,.,..,,...,...,...,,,.,..,,...,,.,,.,.,
-#BZP2NNS6CTLGKNCVWLKRDS64DCYJSPJ7IGJFNJTS45H2H3DHBVLLORZUAUQPM2HNR4FQ34AVN4WN2
-#\\\|MPQU2GCZGMCG76Q3GCBXY2UILUUETVRSTO4DH3UPZ5RSE2XTHGP \ / AMOS7 \ YOURUM ::
-#\[7]FKEADX4TKSQDCZXH4HAH6SVQROZITPZYSP7KXXJND2UVQAMHH6DI 7  DATA SIGNATURE ::
+#,,.,,.,,,,..,.,.,...,,,.,,,,,,,.,.,.,,,.,..,,...,...,...,,..,,,.,,..,,,.,,.,,
+#CW6NCJHPUZGSW5UVYPCZSF3HHMQ7NKSX2QSIB2WZO7IU2ZDCPVKCZP76FPHUILXGO6ZOB3O7OMRK2
+#\\\|XWQWNLDAKE7VPME52RFCDIUPE7J67YM6ZO4UMVNUTWACPEKNHKT \ / AMOS7 \ YOURUM ::
+#\[7]IWIFWTBPU57F2YIGALNLNZMNWB3AHOFD645BTLDEEXDFSOCT3UDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

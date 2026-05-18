@@ -1,7 +1,7 @@
 ## [:< ##
 
 # name  = jobsite.sync.push
-# descr = start async http push cycle — one job per callback chain
+# descr = batch async http push — sends only jobs changed since last server ack
 
 return if <jobsite.sync.push_in_progress>;
 
@@ -11,24 +11,56 @@ if ( not length $url ) {
     return;
 }
 
-my $jobs = <[jobsite.job.load_all]>;
-my @ids  = keys %{ $jobs // {} };
+my $jobs       = <[jobsite.job.load_all]>;
+my $last_ntime = <jobsite.sync.last_server_ntime> // '';
 
-if ( not @ids ) {
-    <[jobsite.sync.apply_reverse]>->( [] );
+## filter to jobs changed since server last acknowledged ##
+my @changed;
+for my $id ( keys %{ $jobs // {} } ) {
+    my $job = $jobs->{$id};
+    my $mod = $job->{'last_modified'} // '';
+    if ( not length $last_ntime or $mod gt $last_ntime ) {
+        push @changed, { %{$job}, 'id' => $id };
+    }
+}
+
+if ( not @changed ) {
+    <[base.logs]>->( 2, 'jobsite: sync push skipped [ no changes ]' );
     return;
 }
 
-<jobsite.sync.push_queue>       = \@ids;
-<jobsite.sync.push_reverse>     = [];
+my $body = eval {
+    JSON::XS::encode_json(
+        {   'since' => $last_ntime,
+            'jobs'  => \@changed,
+        }
+    );
+} // '';
+
+if ( not length $body ) {
+    <[base.logs]>->( 0, 'jss.sync.push: encode failed' );
+    return;
+}
+
 <jobsite.sync.push_in_progress> = TRUE;
+<[base.logs]>->(
+    1,
+    'jobsite: sync push %d/%d jobs',
+    scalar @changed,
+    scalar keys %{ $jobs // {} }
+);
 
-<[base.logs]>->( 1, 'jobsite: sync push starting, %d jobs', scalar @ids );
+<[clients.http.post]>->(
+    {   'url'     => $url,
+        'body'    => $body,
+        'timeout' => 30,
+        'on_done' => 'jobsite.handler.sync-response',
+        'params'  => {},
+    }
+);
 
-<[jobsite.sync.push_next]>->($jobs);
-
-#,,,,,...,,.,,.,,,,,,,...,,,.,...,,,.,,,.,.,.,..,,...,...,...,...,,..,,,,,.,,,
-#24ZPZBEVBGW53DQIM32INRVS6ZVCNDIZNUNOSNJPVE2GVWY75PY4FS7W5NIINJ3P3ZV46VU56RGBG
-#\\\|ZPRUIHR2ACMUZAAEJVPF724ZWVV6GSGEKKPADLVY4R4QMJG3OZN \ / AMOS7 \ YOURUM ::
-#\[7]ZANIOHNKPXQAFORLHEDZRTGZTNSY73UBBR2UZB5HXZBGTQVH3ADQ 7  DATA SIGNATURE ::
+#,,..,.,.,,..,.,.,,,,,,,.,...,...,.,.,..,,,..,..,,...,..,,,,,,,,,,.,.,,,.,,.,,
+#VJ7GEBHW2RHYM42VKVHNYXS6BLA7M7CNXMI6RE5C3ADR2MLALY4C2U5KZS2RHQEVM5H3ZZI5HSX72
+#\\\|DYZ7P3ZXTU6FD4UQOU2HPQLS75NZH25BQ5CXZD4EPV54C7EE3WO \ / AMOS7 \ YOURUM ::
+#\[7]FMZSAKL2PXGDSF5XF6FA2XZVQZUQUPHWD27775HHE5NSDU6U36AA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

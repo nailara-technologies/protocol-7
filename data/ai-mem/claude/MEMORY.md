@@ -152,11 +152,12 @@
 ### Open Bugs
 - **config double-load bug** — duplicate config key warnings; see `bug-config-double-load.md`
 - **signature oscillation Variant B** — double-footer on never-signed non-empty files
+- [signature endline restoration](bug-signature-endline-restoration.md) — stale encoded delta applied after edit changes last content line → concatenated footer; fix in restore_payload_endline_state sanity check
 - **repo var/ cleanup** — `var/httpd/` tracked from Nov 2025 AI error
 - **kimi auto-approval regression** (Apr 16) — some tool calls not auto-approved during kimi tasks
 
-#,,,.,...,,,,,.,,,...,,,,,,,.,,,,,,,,,.,.,,,.,..,,...,...,...,...,,..,,.,,.,.,
-#5AFXGIMP75UHOZOQHS5IMYGFWPOEY55XVVQXYXDW6X6GLWQ2DCTCRT4YGZZOZL4JY6R2KEBNSYDEY
-#\\\|EIAZ6OFQZHX5XE2VCSKS2WRY6M5FKFTZIARABF3HZAY3NPQCIOT \ / AMOS7 \ YOURUM ::
-#\[7]NWMFRAVE2BAAU22WO2SSTGNHT4ZBRIWXULL6ORCSVNA33DMTKSCA 7  DATA SIGNATURE ::
+#,,,.,,,,,,,,,.,,,,..,.,,,,.,,..,,,..,.,.,,.,,..,,...,...,.,.,,,,,,,.,,,.,,,.,
+#KF6AB6E4HZXH5BP5WOQMQB65MB5GT7GWGFCZF6J6QY42KCTQJYEFJ5SLHFQVTCVD4TEEGZ7NC4ZGS
+#\\\|3WRM6N5IWSLMVZBOPSUCUJRJ2JEKZNAOAPAPAVQ3HYKMUZZ2MES \ / AMOS7 \ YOURUM ::
+#\[7]7O3YN7IPKYEDDMXUGAKBR3XS2FFIU55DKN5ZHSKBATLNBBVDJWCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
