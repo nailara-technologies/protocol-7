@@ -1,5 +1,24 @@
 # Completed Work Sessions
 
+## session 31 — plugin.web.* migration to web zenka (2026-05-18)
+
+**plugin.web migration**: all plugin.web.* moved from httpd to web zenka.
+httpd now thin proxy only (plugin.httpd.radio stays — needs direct STRM socket).
+new generic relay pattern: httpd.route.handler.web-relay + web-relay.response
+using route-send SIZE pattern (same as radio/oscilloscope).
+route arg syntax: [command=web.jobs.data] in routes config.
+web.jobs.data + web.jobs.sync created as web zenka command handlers.
+httpd.route_dispatcher + http_post + body_remainder extended for route args passthrough.
+
+**oscilloscope**: proper P7 route-send SIZE relay to index zenka implemented.
+zulum pre_init creates /var/protocol-7/zulum/ dir. export timer: after+interval+repeat:TRUE.
+relay handler: httpd.handler.iris-svg.relay writes complete SVG to http session.
+
+**architecture now correct**:
+  httpd: thin proxy, never blocks on data zenki
+  web zenka: owns all plugin.web.* logic, isolated crash/restart
+  cube/access.zenki: web.* covers web.jobs.data/sync ✓
+
 ## session 30 — iris features, cubic routing docs, P7 cross-zenka relay (2026-05-18)
 
 **iris new modes**: ledger (3+1 octal counters, separator flash), oscilloscope (13 zulum
@@ -647,8 +666,8 @@ Skip calling harmonize_payload_line_feed when both conditions are met:
 - Signatures now properly formatted with correct separator endline
 - Pre-commit validation passes
 
-#,,,.,...,,..,,.,,,..,.,,,.,.,,.,,,,.,,..,..,,..,,...,...,.,,,,..,,..,,..,.,.,
-#XC4QU7K2SGC6SY3INOLWQTQVW6ISYCVNBYQGBFJNIJSJEELT2STQFC76JFOXR5MGJAAWPPAXNMX4A
-#\\\|TEWX36XQK4GUT3CMNOHUIRPKH4NDLN3UNEUTCMJO4STVPPHGEBU \ / AMOS7 \ YOURUM ::
-#\[7]JROLQWCKYACZSLOSULYFHLEBGRYRHCW7O22LAMZUVKVYKMTPKSBY 7  DATA SIGNATURE ::
+#,,..,.,,,...,.,.,..,,..,,...,,,,,,,.,.,.,...,..,,...,.,.,..,,.,.,.,,,.,.,,..,
+#QMIOKYLSDKOK4ZXGN4SRO3RGRB3PXWPBKNP2NA4I2NZI5CUVRE3OWPGUZPKHY3SXF65OJ7RG4F57A
+#\\\|FPDEUQQE3QREVONMB3INSQRINWHYNGBTKINMFSI4Q3QYJHIKHBY \ / AMOS7 \ YOURUM ::
+#\[7]QXTWL7GUYRJFZ4CXQZWG23YQYMNS77Q6REAAA7C6K6ZTN4H7DSCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

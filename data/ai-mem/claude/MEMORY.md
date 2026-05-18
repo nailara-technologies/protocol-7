@@ -66,6 +66,9 @@
 - [migration](topic-migration.md) — Windows 11 host instability, KVM/Debian migration priority, avoid /tmp/
 
 ## Feedback (behavior rules — always apply)
+- **httpd architecture**: httpd is a thin proxy — never load plugin.web.* in httpd. all cross-zenka data goes through web zenka via route-send SIZE. blocking reply-wait in httpd crashes sessions.
+- **P7 cross-zenka data**: use route-send + SIZE reply handler pattern (like radio relay). file system access between zenki is forbidden by design (different users). SHM or route-send for cross-zenka data.
+- **repeating timers**: need after + interval + repeat:TRUE (not just repeat with a value)
 - [watcher-state-machines](feedback-watcher-state-machines.md) — IO::Async variable watchers only; never polling timers for state
 - [kimi-code-review](feedback-kimi-code-review.md) — common kimi P7 code issues: SUPER::, namespace swaps, fake signatures
 - [kimi-signatures](feedback-kimi-signatures.md) — kimi derails into signature investigation; add signatures_note to every task file
@@ -87,7 +90,9 @@
 ## System Status
 
 ### Next Steps (immediate)
-- **iris oscilloscope**: live zulum streams via P7 route-send SIZE relay — restart index+httpd to activate
+- **plugin.web.* migration**: DONE ✓ — web zenka owns all plugin.web.*, httpd is thin proxy
+- **iris oscilloscope**: P7 route-send SIZE relay implemented — needs index+zulum running
+- **web zenka relay pattern**: httpd.route.handler.web-relay generic, [command=X] syntax in routes
 - **iris alpha-density v2**: data/tasks/iris-alpha-density-mode-v2.md — pending kimi dispatch (content filter safe)
 - **:::: litter row**: data/tasks/litter-row-encoding.md — pending dispatch
 - **8 iris feature tasks**: ledger, route-commitment, dimension-rotator, cascade-warning, separator-pulse, temporal, boundary, negotiation-window — ready for kimi
@@ -131,8 +136,8 @@
 - **repo var/ cleanup** — `var/httpd/` tracked from Nov 2025 AI error
 - **kimi auto-approval regression** (Apr 16) — some tool calls not auto-approved during kimi tasks
 
-#,,,,,,,,,,..,.,.,,.,,...,,.,,.,,,.,.,.,,,..,,..,,...,...,,.,,.,.,,..,.,,,,,,,
-#RYN2B6JFXKYN545YHQ43CMWTTFADFSU7HBUQQZYNEJIJKOZI7QZIGLKDUD7UKS7HC424XLX2KBKY4
-#\\\|YZHXXRHQK6YUDOMJFLDK7WHSNSIXKIOOE3FVU3XHTOMJ5T5UPVE \ / AMOS7 \ YOURUM ::
-#\[7]KFQLYQTORMZPMNEXDR74AE5GMW3Y35NTKTVGWUAM377AAYWAOIAI 7  DATA SIGNATURE ::
+#,,..,.,,,,..,,.,,,.,,..,,,,,,,,.,,.,,...,...,..,,...,.,.,.,,,,.,,,,,,...,,,,,
+#EOALAR2AZ4VSMBGPL5FUS7XEHLKSGNIVDZJ2WINGNLPCX2GW47PCLYFPOZYYULEMV6KAEQKZDFIEI
+#\\\|3BHFR5YLNSSTZQXLKFOW5X4BTCM2XS2I3MWA45VR3F55HIAFDRN \ / AMOS7 \ YOURUM ::
+#\[7]OM2QNPLTXH2XLBSR7GX3MPUHLWKTCLA3SA7LY6SVFZ2H7C6IZAAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
