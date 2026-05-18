@@ -42,14 +42,19 @@ my %state_desc = (
     7 => 'delta +2 [ 2 added : content + separator ]',
 );
 
-foreach my $source_path (@source_paths) {
-    next unless -f $source_path;
+my $root_path = <system.root_path> // '';
 
-    ( my $path_rel = $source_path ) =~ s|^/data/projects/protocol-7/?||;
+foreach my $source_path (@source_paths) {
+    my $abs_path
+        = length($root_path)
+        ? join( qw| / |, $root_path, $source_path )
+        : $source_path;
+
+    next unless -f $abs_path;
 
     my $src_str;
-    if ( not <[file.slurp]>->( $source_path, \$src_str, qw| :raw | ) ) {
-        <[base.logs]>->( 0, ':E: unable to read: %s', $path_rel );
+    if ( not <[file.slurp]>->( $abs_path, \$src_str, qw| :raw | ) ) {
+        <[base.logs]>->( 0, ':E: unable to read: %s', $source_path );
         next;
     }
 
@@ -57,7 +62,7 @@ foreach my $source_path (@source_paths) {
     my ($footer_first_line) = $src_str =~ m|($footer_start_regex)\n|;
 
     unless ( defined $footer_first_line ) {
-        <[base.logs]>->( 1, ': %s : no footer', $path_rel );
+        <[base.logs]>->( 1, ': %s : no footer', $source_path );
         next;
     }
 
@@ -65,22 +70,22 @@ foreach my $source_path (@source_paths) {
     my $header = <[amos7.decode_octal_bit_header]>->($footer_first_line);
 
     unless ( defined $header and $header->{'structure-was-valid'} ) {
-        <[base.logs]>->( 1, ': %s : header decode failed', $path_rel );
+        <[base.logs]>->( 1, ': %s : header decode failed', $source_path );
         next;
     }
 
     my $state = $header->{'endline-state-encoded'};
     my $desc  = $state_desc{$state} // 'unknown';
 
-    <[base.logs]>->( 1, ': %s : state %d : %s', $path_rel, $state, $desc );
+    <[base.logs]>->( 1, ': %s : state %d : %s', $source_path, $state, $desc );
 }
 
 <[base.log]>->( 1, ':' );
 
 return FALSE;
 
-#,,,,,.,,,.,,,,..,,.,,...,,.,,,.,,.,.,,..,,,.,..,,...,..,,,,.,,..,,,,,..,,..,,
-#B4OI37DUVBJV7MMVL62YNBXP5DTDON7U22JFWDXXL47KITAC6Z77OCRMXJAY765W6J5AIGSXLYYVO
-#\\\|DCFQ5J456VGA5K5V6DML6CCVI5BMAON7JUADIGU6VN2IWO2OWY6 \ / AMOS7 \ YOURUM ::
-#\[7]RYYJFHWS7SKETU77JCCSJFJ7ZYMSSFWGRKFP4YTZD6PUX4C5C6AQ 7  DATA SIGNATURE ::
+#,,..,,..,,,.,..,,,..,,,.,.,.,,..,,,.,,..,.,,,..,,...,...,...,.,,,,,,,,..,,.,,
+#NZPENEJH2GYS5SE77THKRMJLBLTYFUDUUI5WNAZ6WBSVIXEN54AMIGNCM6CD36MXUXFDL7IUYEIAC
+#\\\|4DBB2ROSKALGW6H3TLOOWEGLDJKWTKGDHUPZKI5U5OT4CC65PQY \ / AMOS7 \ YOURUM ::
+#\[7]ZUAUEQHMK6TU67QUM6XAEP6AFGPZNM5VYXEYBKCSMGH5JNLXBCAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
