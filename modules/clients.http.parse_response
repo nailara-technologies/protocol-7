@@ -1,0 +1,32 @@
+## [:< ##
+
+# name  = clients.http.parse_response
+# descr = split raw http response into status, headers, body
+
+my $raw = shift // '';
+
+if ( $raw =~ /\A(.*?)\r?\n\r?\n(.*)\z/s ) {
+    my ( $header_section, $body ) = ( $1, $2 );
+    my @lines       = split /\r?\n/, $header_section;
+    my $status_line = shift @lines;
+    my ($status)    = ( $status_line // '' ) =~ m{HTTP/\d\.\d\s+(\d+)};
+    my %headers;
+    for my $line (@lines) {
+        if ( $line =~ /^([^:]+):\s*(.+)/ ) {
+            $headers{ lc $1 } = $2;
+        }
+    }
+    return {
+        'status'  => ( $status // 0 ) + 0,
+        'headers' => \%headers,
+        'body'    => $body
+    };
+}
+
+return { 'status' => 0, 'headers' => {}, 'body' => $raw };
+
+#,,.,,,,,,.,.,,,,,...,.,,,,.,,...,,..,.,,,.,.,..,,...,...,...,.,,,..,,,,,,,,,,
+#FVIEBRTOUR6MAPCU4OCCUG5MF4QGNTLIQ4U5LW4TQVTX7P5RIC2HCINKI6I6I743MXRZJGVSSKGJY
+#\\\|5J7UMC4P7RGG4IC7JQGJIESYD3JRH6ZPQETTOWHVRKYM6XBTKBG \ / AMOS7 \ YOURUM ::
+#\[7]OBOQLT27MSN7NZGM2SCLFFEXKVDVK2RKW4LORT7H2CU5WSD47GAQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

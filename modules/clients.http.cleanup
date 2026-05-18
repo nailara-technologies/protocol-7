@@ -1,0 +1,24 @@
+## [:< ##
+
+# name  = clients.http.cleanup
+# descr = cancel watchers and close socket for a request state
+
+my $state = shift // {};
+
+for my $key (qw| timeout_watcher io_watcher |) {
+    if ( defined $state->{$key} ) {
+        eval { $state->{$key}->cancel };
+        delete $state->{$key};
+    }
+}
+
+if ( defined $state->{'sock'} ) {
+    eval { $state->{'sock'}->close };
+    delete $state->{'sock'};
+}
+
+#,,..,,.,,.,.,,..,,,,,,..,...,,.,,.,.,,,,,,.,,..,,...,...,,.,,.,,,,,,,...,..,,
+#OJWY2CCE2G7KTM5A256L3Z37RKLD4A5TVQBCLFI6XPPDJ5VKUOHOF3EFV27FYX5YUH45HNRH2U5XY
+#\\\|KUDY3PKYY2LU6I2SFFEHCKTZWNYNG33PXVG6TSXFCI7VDQX4MXJ \ / AMOS7 \ YOURUM ::
+#\[7]UDO4XYQZTE5YDEKAMZ7CACDPTVWHDQJX7N2QIBU2LRMEXRCXGYDI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
