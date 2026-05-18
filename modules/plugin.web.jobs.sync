@@ -1,70 +1,87 @@
 ## [:< ##
 
 # name  = plugin.web.jobs.sync
-# descr = command handler for jobs sync — receives body via args, returns SIZE reply
+# descr = jobs sync endpoint — handles batch jobsite push or single browser update
 
 my $call = shift           // {};
 my $body = $call->{'args'} // '';
 
 my $payload = eval { JSON::XS::decode_json($body) };
 if ( $@ or ref $payload ne 'HASH' ) {
-    my $rb = '{"ok":false,"error":"invalid json"}';
     return {
         'mode'         => 'size',
-        'data'         => $rb,
-        'content_type' => 'application/json'
+        'data'         => '{"ok":false,"error":"invalid json"}',
+        'content_type' => 'application/json',
     };
 }
 
-my $job_id = $payload->{'id'} // '';
-if ( not length $job_id ) {
-    my $rb = '{"ok":false,"error":"missing id"}';
-    return {
-        'mode'         => 'size',
-        'data'         => $rb,
-        'content_type' => 'application/json'
-    };
-}
-
-## load cached record or start fresh ##
-my $job = eval {
-    my $f = <[plugin.web.jobs.cache.path]> . "/$job_id.yaml";
-    -f $f ? YAML::XS::LoadFile($f) : {};
-} // {};
-
-## jobsite push: has pipeline-owned fields — overwrite pipeline fields,
-## preserve browser-owned fields already in cache ##
 my @pipeline_fields = qw| title company url score score_reason score_summary
-    fetched_at status description |;
+    fetched_at status description last_modified |;
 my @browser_fields = qw| stage notes date_applied |;
 
-if ( exists $payload->{'fetched_at'} or exists $payload->{'score'} ) {
-    ## jobsite push — update pipeline fields, keep browser fields ##
-    for my $f (@pipeline_fields) {
-        $job->{$f} = $payload->{$f} if exists $payload->{$f};
-    }
+my $since    = '';
+my @job_list = ();
+
+if ( ref $payload->{'jobs'} eq 'ARRAY' ) {
+    ## batch push from jobsite ##
+    $since    = $payload->{'since'} // '';
+    @job_list = @{ $payload->{'jobs'} };
 } else {
-    ## browser update — only browser-owned fields, queue reverse change ##
-    my %changed;
-    for my $f (@browser_fields) {
-        if ( exists $payload->{$f} ) {
-            $job->{$f} = $payload->{$f};
-            $changed{$f} = $payload->{$f};
-        }
-    }
-    if (%changed) {
-        <[plugin.web.jobs.reverse.queue]>->( { 'id' => $job_id, %changed } );
-    }
+    ## single update from browser ##
+    @job_list = ($payload);
 }
 
-my $ok = <[plugin.web.jobs.cache.write]>->( $job_id, $job );
+my $ok = TRUE;
+for my $job_data (@job_list) {
+    my $job_id = $job_data->{'id'} // '';
+    next if not length $job_id;
 
-## return reverse queue to jobsite callers ##
-my $reverse = <[plugin.web.jobs.reverse.flush]>;
-my $rb      = eval {
+    ## load cached record or start fresh ##
+    my $cached = eval {
+        my $f = <[plugin.web.jobs.cache.path]> . "/$job_id.yaml";
+        -f $f ? YAML::XS::LoadFile($f) : {};
+    } // {};
+
+    if (   exists $job_data->{'fetched_at'}
+        or exists $job_data->{'score'}
+        or exists $job_data->{'last_modified'} ) {
+        ## jobsite push — update pipeline fields, keep browser fields ##
+        for my $f (@pipeline_fields) {
+            $cached->{$f} = $job_data->{$f} if exists $job_data->{$f};
+        }
+    } else {
+        ## browser update — browser-owned fields only, queue reverse ##
+        my %changed;
+        for my $f (@browser_fields) {
+            if ( exists $job_data->{$f} ) {
+                $cached->{$f} = $job_data->{$f};
+                $changed{$f} = $job_data->{$f};
+            }
+        }
+        if (%changed) {
+            <[plugin.web.jobs.reverse.queue]>
+                ->( { 'id' => $job_id, %changed } );
+        }
+    }
+
+    my $wrote = <[plugin.web.jobs.cache.write]>->( $job_id, $cached );
+    $ok = FALSE if not $wrote;
+}
+
+## flush reverse queue, filtered to entries newer than since ##
+my $all_reverse = <[plugin.web.jobs.reverse.flush]>;
+my @reverse
+    = length($since)
+    ? grep { ( $_->{'ntime'} // '' ) gt $since } @{$all_reverse}
+    : @{$all_reverse};
+
+my $current_ntime = <[ntime.b32]>;
+
+my $rb = eval {
     JSON::XS::encode_json(
         {   'ok'      => $ok ? JSON::XS::true() : JSON::XS::false(),
-            'reverse' => $reverse
+            'reverse' => \@reverse,
+            'ntime'   => $current_ntime,
         }
     );
 } // '{"ok":false,"error":"encode failed"}';
@@ -72,11 +89,11 @@ my $rb      = eval {
 return {
     'mode'         => 'size',
     'data'         => $rb,
-    'content_type' => 'application/json'
+    'content_type' => 'application/json',
 };
 
-#,,,,,,..,,..,,,.,,,.,,..,...,.,.,,,.,..,,,..,..,,...,...,,..,,,.,,..,,.,,.,.,
-#XUPQBHO6UBPJDIFJA55YIM3WV6C22ESQWLZKAAPHL7FZJQRMPFYYBBZ74HOIXL33G565RNE5IBJIK
-#\\\|5BUDQMLR4UFUTHAD7OTIC2KB66WGYH4GS3EF3HISCRTABOU7CYS \ / AMOS7 \ YOURUM ::
-#\[7]LRFBTGFEZZEWCFRFJLXDO7ORVEMMPEVY3UQ4DYKI6LRD6L7RWOAI 7  DATA SIGNATURE ::
+#,,,,,..,,,,.,,.,,,,.,...,.,,,..,,,,.,...,.,.,..,,...,...,...,,.,,.,,,,..,,,.,
+#CPT7IJDST6WIUVDITBRFOVNO5OOG3BLOTBVA7HDCBDVQUG5ZV7KPKNTN4U4CTBML76BIQUKFIE4ZG
+#\\\|SVE2APFSODC4GQ3V2XF7Y4QRNHW7QQWNI555H6IRPQN5GQUMYM7 \ / AMOS7 \ YOURUM ::
+#\[7]GC4JXVNIZUBGHIVHLMMDYNTQYT4IHMDTJTM5JUSN33WI2XQFPABA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

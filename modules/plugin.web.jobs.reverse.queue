@@ -7,13 +7,15 @@ my $entry = shift // {};    ## hashref: { id, action, fields... }
 
 return FALSE if ref $entry ne 'HASH' or not length( $entry->{'id'} // '' );
 
+$entry->{'ntime'} = <[ntime.b32]>;
+
 <plugin.web.jobs.reverse> //= [];
 push @{<plugin.web.jobs.reverse>}, $entry;
 
 return TRUE;
 
-#,,..,.,.,,,.,,..,.,.,,.,,,.,,,..,,,.,..,,.,,,..,,...,..,,.,,,.,,,,,,,,.,,,..,
-#7ELHQ522SW3G6PBKUKPVJYPQUJS5BGPBVCGDYFPZI72A5UOGXMP53ETMQXH3SVUFIZN2HGUPATF7G
-#\\\|JAPRSR2VFEXAPV6X7MJURVDBA7V7O32AKU4BLG3WXNQEAGYLLBB \ / AMOS7 \ YOURUM ::
-#\[7]PUYZDE7EKIQTSTFI7W5LKFRLVPOK6Q3BHMCLMHU75UQT6FLPA6DA 7  DATA SIGNATURE ::
+#,,,.,,..,...,..,,.,,,.,,,,.,,,..,.,.,...,.,.,..,,...,..,,,..,,,,,.,.,,.,,...,
+#VOH7C7TEIR6YCMZFHDHDOZRTQCGIQB6OWKOQRENANVJQXGWOS6O6G6XRFB4HWNZAEY5DZQZITA5JO
+#\\\|DPBRJUQYI57UZD4USO2TZTI4M6NRBCQHNMQX4ZO3R3XMUHAEYAX \ / AMOS7 \ YOURUM ::
+#\[7]QACMPUHMXJO3VNA3WLWGGG7DYGGHJQ7VQMJ5NMNDA6MSFYWIAWBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
