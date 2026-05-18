@@ -64,24 +64,32 @@ if ( exists $data{'route_cache'}->{$cache_key} ) {
 }
 
 ## Route 0: registered route registry (exact, then prefix, then ANY) ##
-my $registry = $data{'httpd'}{'route'} // {};
+my $registry      = $data{'httpd'}{'route'}      // {};
+my $args_registry = $data{'httpd'}{'route_args'} // {};
 for my $match_type (qw| exact prefix |) {
-    my $by_method = $registry->{$match_type} // {};
+    my $by_method      = $registry->{$match_type}      // {};
+    my $args_by_method = $args_registry->{$match_type} // {};
     for my $try_method ( $method, 'ANY' ) {
-        my $routes = $by_method->{$try_method} // {};
+        my $routes      = $by_method->{$try_method}      // {};
+        my $args_routes = $args_by_method->{$try_method} // {};
         my $sub_name;
+        my $handler_args = {};
         if ( $match_type eq 'exact' ) {
-            $sub_name = $routes->{$path};
+            $sub_name     = $routes->{$path};
+            $handler_args = $args_routes->{$path} // {};
         } else {
             ## longest matching prefix wins ##
             my $best;
+            my $best_args = {};
             for my $pfx ( sort { length($b) <=> length($a) } keys %$routes ) {
                 if ( index( $path, $pfx ) == 0 ) {
-                    $best = $routes->{$pfx};
+                    $best      = $routes->{$pfx};
+                    $best_args = $args_routes->{$pfx} // {};
                     last;
                 }
             }
-            $sub_name = $best;
+            $sub_name     = $best;
+            $handler_args = $best_args;
         }
         if ( defined $sub_name ) {
             <[base.logs]>->(
@@ -90,7 +98,7 @@ for my $match_type (qw| exact prefix |) {
             );
             my $route = {
                 handler      => $sub_name,
-                handler_args => {},
+                handler_args => $handler_args,
                 cache_ttl    => 0,
             };
             $data{'route_cache'}->{$cache_key} = $route;
@@ -170,8 +178,8 @@ my $route = {
 $data{'route_cache'}->{$cache_key} = $route;
 return $route;
 
-#,,,.,.,.,,,.,,,,,..,,,,.,,.,,,..,,,.,..,,.,.,..,,...,...,,.,,,..,,..,..,,,.,,
-#IAGRGT3U3RJAMI4ZHK3BWX3DM34NCCWCAFUV7WRQBXBFFG33AWVZGNBTZWVFB2KHLPBAHMTUXSWDA
-#\\\|N3A2ZAOGRZZTHCBVNQUDUJ6Y5NLDJH4HYQHNDEGVWQWIND6RNT2 \ / AMOS7 \ YOURUM ::
-#\[7]FZVFSAFP3PPNND635EHGE6LRC6UAI3SWMK2BJEAGEO7NOCIVZIAI 7  DATA SIGNATURE ::
+#,,.,,,.,,...,..,,,,,,..,,,,.,.,,,..,,,.,,...,..,,...,..,,.,.,..,,,.,,,..,...,
+#OD2LRZT574PGBWUP77GPXZE4SF5OGRQ44STSCM4YYEKNMXNLJT7QP7OI3KQODBTLSZ3LQKHXGS3TC
+#\\\|H6XAEJJ4R6PR4RGQ4KJUZJG3KXGMLMGSKNEFGVWTRN2LVN2CSVD \ / AMOS7 \ YOURUM ::
+#\[7]AEH4TGXRUS7DIGT5IQ7Y4V3VATO4XFJLPDI6R7DP6L7SAH5JG2AI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
