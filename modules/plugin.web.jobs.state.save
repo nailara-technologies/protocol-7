@@ -9,8 +9,9 @@ my $delta = shift // {};
 return FALSE if not length $id;
 return FALSE if ref $delta ne 'HASH';
 
-my $var_P7   = <system.path.zenka-dirs>->{'var_P7'};
-my $job_file = join qw| / |, $var_P7, qw| jobsite jobs |, "$id.yaml";
+## load from web cache [ web zenka owns var_P7/web/jobs/ ] ##
+my $cache_dir = <[plugin.web.jobs.cache.path]>;
+my $job_file  = "$cache_dir/$id.yaml";
 
 my $job = eval { YAML::XS::LoadFile($job_file) };
 if ($@) {
@@ -29,10 +30,13 @@ for my $field (qw| stage notes date_applied |) {
         if exists $delta->{$field};
 }
 
-return <[jobsite.job.write]>->( $id, $job );
+## queue reverse change so jobsite learns of browser update ##
+<[plugin.web.jobs.reverse.queue]>->( { 'id' => $id, %{$delta} } );
 
-#,,,,,,,,,,..,.,.,,,,,.,.,.,.,.,,,...,..,,,,.,..,,...,...,..,,...,...,,.,,,..,
-#76XFTM6DPRE7GR6UUNAMWABEFX724WYEMYHUCPNCASOTK4WQ63PZM5QYTREDYW3OXTVD5OAJKZAEG
-#\\\|Y3FD43V6JQIJWF3U7KFMGI6WL4CVTEVHPHDEUQ5QFXYQQPRK5O7 \ / AMOS7 \ YOURUM ::
-#\[7]JINP3MCRKKCCD6DIJFG4SCH6ZOLPSSMDINKVYL2UTO6W7WHJRUDI 7  DATA SIGNATURE ::
+return <[plugin.web.jobs.cache.write]>->( $id, $job );
+
+#,,,,,,.,,..,,...,,,.,,..,,.,,,,.,..,,,,,,.,.,..,,...,...,,,.,...,,,,,,.,,.,.,
+#CGKEAFBMD3BGG2HKQGBTQGPLVAB3EMLLHJCGBS6TXFKOGDTHTTMUP6D4VLVK4PRPMJQW3FKJ52IT2
+#\\\|GDETEYBTUNNKBWCJYKV7MCZTHA7MKT5NQFGRYDUQZHPFX5AXEIO \ / AMOS7 \ YOURUM ::
+#\[7]T4YSPXWG645XVLTTPDZOBDV6XCVQDKSMXBH2QVSNAMM3KAYF42CY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
