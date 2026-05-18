@@ -7,17 +7,25 @@ metadata:
   originSessionId: 095ef9b6-c744-46c5-bac8-4d54a2d5ce45
 ---
 
-## Current State (session 25, 2026-05-15)
+## Current State (session 32, 2026-05-18) — WORKING END-TO-END
 
-**Working**: GET /jobs.json and POST /jobs-sync served by httpd directly via
-route registry. Direct file reads from /var/protocol-7/jobsite/jobs/ — correct
-for single-server deployment where httpd and jobsite share a host.
+**Working**: GET /jobs.json and POST /jobs-sync fully operational via web zenka.
+Verified with curl. Cache at var_P7/web/jobs/ (web zenka owns it, not httpd).
+
+## Route flow
+
+httpd route registry → httpd.route.handler.web-relay → route-send to web zenka
+→ web.cmd.jobs-data / web.cmd.jobs-sync → plugin.web.jobs.data/sync → SIZE reply
+→ httpd.handler.web-relay.response → flush_shutdown → client
+
+Key fix: reply handler reads params from `$reply->{'params'}` not second shift arg.
+`shift // {}` was silently masking missing http_sid causing early return with no response.
 
 ## Module layout
 
-- `plugin.web.jobs.init_code` — preloads JSON::XS + YAML::XS once at startup (no per-call autoload)
-- `plugin.web.jobs.data` — GET handler: reads jobsite YAML files, encodes JSON, writes to session buffer
-- `plugin.web.jobs.sync` — POST handler: reads session input buffer, merges browser fields, calls jobsite.job.write
+- `plugin.web.jobs.init_code` — preloads JSON::XS + YAML::XS, creates var_P7/web/jobs/
+- `plugin.web.jobs.data` — SIZE reply handler: reads web cache, returns JSON array
+- `plugin.web.jobs.sync` — SIZE reply handler: merges browser/jobsite fields, writes cache
 - `plugin.web.jobs.state.save` — merge browser-owned fields into a job record
 - `plugin.web.jobs.state.load` — thin pass-through to jobsite.job.load_all
 - `plugin.web.jobs.list` / `.stats` — utility commands
@@ -99,8 +107,8 @@ Link-upgrade can later promote the HTTP push to a native P7 connection.
 
 #,,.,,,.,,..,,...,,,.,,..,,,,,.,,...,,.,,.,.,..,,...,..,,...,,...,,,.,,,,,.,,,,
 
-#,,,,,.,,,...,,.,,..,,.,,,,.,,,.,,,,.,.,.,,.,,..,,...,..,,,,.,,.,,,..,.,.,.,.,
-#XRWB66C4KKEACPEAWRCQBLPTQR5DQJC5JUPD7ERMD2CMX7QERZC4ETMRRL5NGDRAISY3GICIGPQR6
-#\\\|3QGBGDCTQEFDRIXQWKKESA3QBFFZSN4RUGJ4MGS4KXEAR422QZU \ / AMOS7 \ YOURUM ::
-#\[7]HO5QPIJIQ5GBXZL6TVTHBZ7MBQY4AR2IO775RADE2NPIOSRGV4BY 7  DATA SIGNATURE ::
+#,,,,,,.,,..,,..,,.,,,,,.,..,,,,.,..,,...,,.,,..,,...,...,,.,,,.,,,.,,..,,.,.,
+#B2YRXEAR4KQWJADSL6WZFCOKN5R64APGQ5Y3AVFOKOUKKGZASKL5ELJ6PKWO4NHZVKWBAJ4HTLMBW
+#\\\|372SKBM7ETENMXH6SA6YSG6RORYOJQCIZKQDEKWDHWBWNBGQM77 \ / AMOS7 \ YOURUM ::
+#\[7]TNVB7JWJSHP67Q3W6WKRLIIR77MB5TI26T6M55NERHL6NABKEWBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
