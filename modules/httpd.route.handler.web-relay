@@ -8,19 +8,19 @@ my $id      = shift;
 my $args    = shift // {};
 my $session = $data{'session'}->{$id};
 
-my $command = $args->{'command'}           // 'web.request';
+my $command = $args->{'command'}           // qw| web.request |;
 my $body    = $session->{'http'}->{'body'} // $session->{'buffer'}->{'input'}
     // '';
-$session->{'http'}->{'body'}    = undef;
+$session->{'http'}->{'body'}    = '';
 $session->{'buffer'}->{'input'} = '';
 
-$session->{'http'}->{'close'} = 1;
+$session->{'http'}->{'close'} = TRUE;
 
 <[protocol-7.route-send]>->(
     {   'command'   => $command,
         'call_args' => { 'args' => $body },
         'reply'     => {
-            'handler' => 'httpd.handler.web-relay.response',
+            'handler' => qw| httpd.handler.web-relay.response |,
             'params'  => { 'http_sid' => $id },
         },
     }
@@ -28,8 +28,8 @@ $session->{'http'}->{'close'} = 1;
 
 return 0;    # [ deferred — reply handler writes response ]
 
-#,,,.,.,.,..,,...,,,,,.,.,.,.,...,...,,,,,,..,..,,...,...,...,,,.,,,,,,.,,.,.,
-#L4R6BV7MOFFC63L4OOLG4IPCFYJOXPNHFMFTV7LITXYPTMUNO2W4FJOF6H4LYN5HFIWTR5MDXHR2U
-#\\\|KJHZ4UZRVGVJGZSVW2VUNSIDR5DKQMQXCKGTZYVD3NGPYZQO56M \ / AMOS7 \ YOURUM ::
-#\[7]DM2MLI5MEISY4UULDIGTHHULAO7MANK3NLZSOMV3T6ZFQEES7EDQ 7  DATA SIGNATURE ::
+#,,,.,,.,,,,.,,,,,,..,,,.,...,,.,,,,.,,,,,,.,,..,,...,...,.,.,.,.,...,,,.,,,,,
+#STGYDSGARCBMB5S2NLGWDR3WTS7LCCE4FDDQLI3VCD7ASZZJR3V2OXC27TA5C7ADQHTTM57TBQL5Y
+#\\\|FIZRCVANJGKSOGK7UODRS7CLSA2J56PWAQ225TGBPYUFGLUSNXO \ / AMOS7 \ YOURUM ::
+#\[7]GYYD6EOY55R2OOYRFNVFD4SCTQG7NCA3OUVZNGGN363TEXN7Q6DQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
