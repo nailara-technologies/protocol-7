@@ -87,15 +87,13 @@
 ## System Status
 
 ### Next Steps (immediate)
-- **iris alpha-density v2**: data/tasks/iris-alpha-density-mode-v2.md ready — dispatch to kimi (filter-safe rewrite)
-- **:::: litter row**: task file written (data/tasks/litter-row-encoding.md) — pending dispatch
-- **iris 63-ring labels**: DONE ✓ — kimi implemented, namespace63 mode with . at ring 27
-- **iris logo overlay**: DONE ✓ — nailara logo at darksun position 27
-- **iris live**: viz.v7.ax/iris.html live, overlay-search.html at viz.v7.ax
-- **iris vortex mode**: angle_bits density visualization, renamed from alpha-density ✓
-- **iris subtractive translucency**: bi-dir default, intensity+expanse controls ✓
-- **kimi auto-approve**: fixed in init_code + reset_and_reconnect + new-session ✓
-- **kimi content filter**: rejection now detected and failed cleanly ✓
+- **iris oscilloscope**: live zulum streams via P7 route-send SIZE relay — restart index+httpd to activate
+- **iris alpha-density v2**: data/tasks/iris-alpha-density-mode-v2.md — pending kimi dispatch (content filter safe)
+- **:::: litter row**: data/tasks/litter-row-encoding.md — pending dispatch
+- **8 iris feature tasks**: ledger, route-commitment, dimension-rotator, cascade-warning, separator-pulse, temporal, boundary, negotiation-window — ready for kimi
+- **iris live**: viz.v7.ax/iris.html, overlay-search.html at viz.v7.ax ✓
+- **iris vortex + α-density + translucency + namespace filter**: all working ✓
+- **kimi auto-approve + content filter rejection**: fixed ✓
 - **jobsite BMW384 dedup**: dispatch bmw384-arc-grouping-filter.md to kimi
 - **route.bmw384 find-route testing**: register nodes, run find-route + verify-coordinate
 - **kimi.task-file :next: dispatch**: now working — variable watcher fix confirmed
@@ -133,8 +131,8 @@
 - **repo var/ cleanup** — `var/httpd/` tracked from Nov 2025 AI error
 - **kimi auto-approval regression** (Apr 16) — some tool calls not auto-approved during kimi tasks
 
-#,,.,,,,.,.,,,.,,,..,,,,.,..,,..,,.,,,,,,,,,.,..,,...,...,..,,..,,,.,,,,.,..,,
-#BVUROAGU7Z2PSY42OC7CF5UXYL5TDE2EILU2TAGNTPNHF5X3M3KGKDN6GE7VJKACOAHRVIJEFXZMG
-#\\\|TMAV4DGDHWSN3WE3K5JD4TSXMML7EQKHN6WXG3W7QJGHLN2QSRF \ / AMOS7 \ YOURUM ::
-#\[7]WLVMLKBODJVLIDDVEIBT3M3TR4TSS42PMCHRIEIKC2DUR66UJUBA 7  DATA SIGNATURE ::
+#,,,,,,,,,,..,.,.,,.,,...,,.,,.,,,.,.,.,,,..,,..,,...,...,,.,,.,.,,..,.,,,,,,,
+#RYN2B6JFXKYN545YHQ43CMWTTFADFSU7HBUQQZYNEJIJKOZI7QZIGLKDUD7UKS7HC424XLX2KBKY4
+#\\\|YZHXXRHQK6YUDOMJFLDK7WHSNSIXKIOOE3FVU3XHTOMJ5T5UPVE \ / AMOS7 \ YOURUM ::
+#\[7]KFQLYQTORMZPMNEXDR74AE5GMW3Y35NTKTVGWUAM377AAYWAOIAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
