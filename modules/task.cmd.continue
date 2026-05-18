@@ -18,6 +18,8 @@ if ( defined $call->{'param'} and ref $call->{'param'} eq 'HASH' ) {
     } else {
         $task_id = $args;
     }
+    ## multiline body takes precedence for message ##
+    $message = $call->{'data'} if length( $call->{'data'} // '' );
 }
 
 $task_id = uc( substr( $task_id, 0, 7 ) );
@@ -102,8 +104,8 @@ my $sent = <[protocol-7.route-send]>->(
 
 return { 'mode' => 'true', 'data' => "continued $task_id" };
 
-#,,,.,,,,,.,.,...,,..,.,,,,..,,,,,.,,,,..,...,.,.,...,...,,,,,...,.,,,,..,.,,,
-#PMYVDU4GAROL6LGHIXHKT76WVIGIK4LDVQJXUIA4VX2YIJR6RWHQJFDLU7OSIWHP6QPCYWAFJXLO2
-#\\\|ETS3UFBRQPHCRUXNVFOYIIPTBMUWCPAHON7ZHLOMUAS4ZWBKPLI \ / AMOS7 \ YOURUM ::
-#\[7]3GMYOH5PFI2Q4RWTCFPWWC5DKNCSRKXHRY7AQ7MEIL6BPFWTHWCA 7  DATA SIGNATURE ::
+#,,.,,,,.,.,.,..,,,,.,,,,,...,.,,,,.,,.,.,.,.,.,.,...,.,,,,..,,,.,..,,...,,..,
+#Q5PIG7Z466DMDK22BAJPA3ID43SSM7PWBTTJG6YTW3FMMFB6HAFHQFCSRWALUFJSBJFLANAPJEWD2
+#\\\|L6XHDECJ4WPXCJKVRLZNDXLCBYCBQXHIOKNFBKD2DUPWX3YDRM6 \ / AMOS7 \ YOURUM ::
+#\[7]ZXBYHA2UR6FYG3XI5SJKJYPGSQLVWACFWQXYWHRFEBRRZRP4T4AI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
