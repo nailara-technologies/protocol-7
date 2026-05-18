@@ -1,0 +1,137 @@
+## [:< ##
+
+# name  = clients.http.request
+# descr = open non-blocking http connection, write request, register io watcher
+# note  = https not supported; use method, url, body, headers, timeout, on_done, params
+
+my $p = shift // {};
+
+my $method        = uc( $p->{'method'} // 'GET' );
+my $url           = $p->{'url'}     // '';
+my $body          = $p->{'body'}    // '';
+my $timeout       = $p->{'timeout'} // 30;
+my $on_done       = $p->{'on_done'} // '';
+my $params        = $p->{'params'}  // {};
+my $extra_headers = $p->{'headers'} // {};
+
+if ( not length $url or not length $on_done ) {
+    <[base.logs]>->( 0, 'clients.http.request: url and on_done required' );
+    return undef;
+}
+
+if ( not exists $code{$on_done} ) {
+    <[base.logs]>->(
+        0, 'clients.http.request: on_done handler %s not found', $on_done
+    );
+    return undef;
+}
+
+## parse url — http only ##
+my ( $host, $port, $path )
+    = $url =~ m{^https?://([^/:]+)(?::(\d+))?(/.*)?\z}s;
+if ( not defined $host ) {
+    <[base.logs]>->( 0, 'clients.http.request: cannot parse url: %s', $url );
+    return undef;
+}
+$port //= ( $url =~ m{^https://} ? 443 : 80 );
+$path = '/' unless defined $path and length $path;
+
+## connect ##
+my $sock = IO::Socket::IP->new(
+    PeerHost => $host,
+    PeerPort => $port,
+    Type     => SOCK_STREAM,
+    Timeout  => 7,
+);
+
+if ( not $sock ) {
+    <[base.logs]>->(
+        0, 'clients.http.request: connect %s:%d failed: %s',
+        $host, $port, $OS_ERROR
+    );
+    <[event.add_idle]>->(
+        {   'handler' => $on_done,
+            'params'  => {
+                'ok'     => FALSE,
+                'error'  => "connect failed: $OS_ERROR",
+                'params' => $params
+            },
+        }
+    );
+    return undef;
+}
+
+## build request string ##
+my $header_str
+    = sprintf "Host: %s\r\nContent-Length: %d\r\nConnection: close\r\n",
+    $host, length($body);
+for my $k ( keys %{$extra_headers} ) {
+    $header_str .= sprintf "%s: %s\r\n", $k, $extra_headers->{$k};
+}
+my $request = sprintf "%s %s HTTP/1.1\r\n%s\r\n%s", $method, $path,
+    $header_str, $body;
+
+## set non-blocking and write request synchronously (small payload fits in buffer) ##
+$sock->blocking(0);
+my $total   = length($request);
+my $written = 0;
+while ( $written < $total ) {
+    my $n = syswrite( $sock, $request, $total - $written, $written );
+    if ( defined $n ) {
+        $written += $n;
+    } elsif ( $OS_ERROR{EAGAIN} or $OS_ERROR{EWOULDBLOCK} ) {
+        select( undef, undef, undef, 0.001 );
+    } else {
+        <[base.logs]>->(
+            0, 'clients.http.request: write failed: %s', $OS_ERROR
+        );
+        $sock->close;
+        <[event.add_idle]>->(
+            {   'handler' => $on_done,
+                'params'  => {
+                    'ok'     => FALSE,
+                    'error'  => "write failed: $OS_ERROR",
+                    'params' => $params
+                },
+            }
+        );
+        return undef;
+    }
+}
+
+## register io watcher for reading response ##
+my $state = {
+    'sock'    => $sock,
+    'buffer'  => '',
+    'on_done' => $on_done,
+    'params'  => $params,
+};
+
+my $io_watcher = <[event.add_io]>->(
+    {   'fd'      => $sock,
+        'poll'    => 'r',
+        'handler' => 'clients.http.handler.io',
+        'data'    => $state,
+    }
+);
+
+my $timeout_watcher = <[event.add_timer]>->(
+    {   'after'   => $timeout,
+        'handler' => 'clients.http.handler.timeout',
+        'data'    => $state,
+    }
+);
+
+$state->{'io_watcher'}      = $io_watcher;
+$state->{'timeout_watcher'} = $timeout_watcher;
+
+<[base.logs]>
+    ->( 2, 'clients.http: %s %s:%d%s', $method, $host, $port, $path );
+
+return $state;
+
+#,,..,..,,.,,,,.,,...,,,.,,..,,..,..,,...,,.,,..,,...,...,...,.,,,,..,,,,,.,.,
+#L5N4HOVEL5QELJQEK5KXDOLW4LV5LNOCBW7KZTECUWM72QYUHNBHO42YWS6SLTC74SSFPTXITJBT4
+#\\\|KBZAB7NZAKN2JWPGIU2M3K27HGTTLSIUAUWPDENKLB6ZM5EOEM7 \ / AMOS7 \ YOURUM ::
+#\[7]5SIOWVESQRSXHRDCVUDRXXREUO5T7V4YGZYONR5YRTALFFHNPQCA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

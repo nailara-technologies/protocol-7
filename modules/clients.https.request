@@ -1,0 +1,142 @@
+## [:< ##
+
+# name  = clients.https.request
+# descr = open non-blocking https connection, defer ssl handshake, register io watcher
+# note  = after handshake completes, clients.https.handler.handshake writes request
+
+my $p = shift // {};
+
+my $method        = uc( $p->{'method'} // qw| GET | );
+my $url           = $p->{'url'}        // '';
+my $body          = $p->{'body'}       // '';
+my $timeout       = $p->{'timeout'}    // 30;
+my $on_done       = $p->{'on_done'}    // '';
+my $params        = $p->{'params'}     // {};
+my $extra_headers = $p->{'headers'}    // {};
+my $ssl_verify    = $p->{'ssl_verify'} // TRUE;
+
+if ( not length $url or not length $on_done ) {
+    <[base.logs]>->( 0, 'clients.https.request: url and on_done required' );
+    return undef;
+}
+
+if ( not exists $code{$on_done} ) {
+    <[base.logs]>->(
+        0, 'clients.https.request: on_done handler %s not found', $on_done
+    );
+    return undef;
+}
+
+## parse url ##
+my ( $host, $port, $path )
+    = $url =~ m{^https?://([^/:]+)(?::(\d+))?(/.*)?\z}s;
+if ( not defined $host ) {
+    <[base.logs]>->( 0, 'clients.https.request: cannot parse url: %s', $url );
+    return undef;
+}
+$port //= 443;
+$path = '/' unless defined $path and length $path;
+
+## tcp connect ##
+my $tcp_sock = IO::Socket::IP->new(
+    PeerHost => $host,
+    PeerPort => $port,
+    Type     => SOCK_STREAM,
+    Timeout  => 7,
+);
+
+if ( not $tcp_sock ) {
+    <[base.logs]>->(
+        0, 'clients.https.request: tcp connect %s:%d failed: %s',
+        $host, $port, $OS_ERROR
+    );
+    <[event.add_idle]>->(
+        {   'handler' => $on_done,
+            'params'  => {
+                'ok'     => FALSE,
+                'error'  => "connect failed: $OS_ERROR",
+                'params' => $params
+            },
+        }
+    );
+    return undef;
+}
+
+$tcp_sock->blocking(0);
+binmode( $tcp_sock, ':raw' );
+
+## upgrade to ssl with deferred handshake ##
+my $ssl_sock = eval {
+    IO::Socket::SSL->start_SSL(
+        $tcp_sock,
+        SSL_server         => 0,
+        SSL_startHandshake => 0,
+        SSL_hostname       => $host,
+        SSL_verify_mode    => $ssl_verify
+        ? IO::Socket::SSL::SSL_VERIFY_PEER()
+        : IO::Socket::SSL::SSL_VERIFY_NONE(),
+    );
+};
+
+if ( $EVAL_ERROR or not $ssl_sock ) {
+    my $err = $EVAL_ERROR || IO::Socket::SSL::errstr() || 'ssl init failed';
+    <[base.logs]>->( 0, 'clients.https.request: start_SSL failed: %s', $err );
+    $tcp_sock->close;
+    <[event.add_idle]>->(
+        {   'handler' => $on_done,
+            'params'  =>
+                { 'ok' => FALSE, 'error' => $err, 'params' => $params },
+        }
+    );
+    return undef;
+}
+
+## build request string (sent after handshake completes) ##
+my $header_str
+    = sprintf "Host: %s\r\nContent-Length: %d\r\nConnection: close\r\n",
+    $host, length($body);
+for my $k ( keys %{$extra_headers} ) {
+    $header_str .= sprintf "%s: %s\r\n", $k, $extra_headers->{$k};
+}
+my $request = sprintf "%s %s HTTP/1.1\r\n%s\r\n%s", $method, $path,
+    $header_str, $body;
+
+my $state = {
+    'sock'    => $ssl_sock,
+    'buffer'  => '',
+    'request' => $request,
+    'on_done' => $on_done,
+    'params'  => $params,
+};
+
+## poll='rw' — ssl handshake may need either direction ##
+my $io_watcher = <[event.add_io]>->(
+    {   'fd'      => $ssl_sock,
+        'poll'    => 'rw',
+        'handler' => 'clients.https.handler.handshake',
+        'data'    => $state,
+    }
+);
+
+my $timeout_watcher = <[event.add_timer]>->(
+    {   'after'   => $timeout,
+        'handler' => 'clients.https.handler.timeout',
+        'data'    => $state,
+    }
+);
+
+$state->{'io_watcher'}      = $io_watcher;
+$state->{'timeout_watcher'} = $timeout_watcher;
+
+<[base.logs]>->(
+    2, 'clients.https: %s %s:%d%s [ handshake pending ]',
+    $method, $host, $port, $path
+);
+
+return $state;
+
+#,,..,.,,,.,,,...,.,,,.,.,.,.,,,,,,,.,,.,,.,,,..,,...,...,...,...,,.,,.,.,...,
+#ZWVEU4S45D3EUDF62YEBJPK5PATXXIJBGNTRG2V3LMDDFFUOKFFJG63SC6VL2RXSX3X7VEGGGXSLC
+#\\\|ABYA7WCHGOA5WVT6TWA33AKJDEQ4RD6C76DAAGBVYPNNF5ONIN5 \ / AMOS7 \ YOURUM ::
+#\[7]DX3KM2KBRMPZKS2PN73LLK2BWJRAHE7E4PXVGPWANRAJ6V6AF4BA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

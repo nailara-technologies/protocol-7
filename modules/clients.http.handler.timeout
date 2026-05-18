@@ -1,0 +1,24 @@
+## [:< ##
+
+# name  = clients.http.handler.timeout
+# descr = fired when http request exceeds timeout — cleans up and signals error
+
+my $state = shift->w->data;
+
+return if not defined $state->{'sock'};    ## already completed ##
+
+<[base.logs]>->( 0, 'clients.http.handler.timeout: request timed out' );
+<[clients.http.cleanup]>->($state);
+
+$code{ $state->{'on_done'} }->(
+    {   'ok'     => FALSE,
+        'error'  => 'timeout',
+        'params' => $state->{'params'},
+    }
+);
+
+#,,..,...,,.,,.,.,,.,,..,,..,,..,,,,,,,,.,...,..,,...,...,..,,,..,,..,,..,.,,,
+#ARHH56FFP4QO7FNIGEXDBE4TP7I7RA7PFWOPYSXSFX3SQK7CQPJBQ2BCQPI2YYXO5U7CMDEANCV5I
+#\\\|K7HPK3PLCYLQSIJNNKE6JRHE63S6DNKNRFEYCKSU6YTTUU4HWJO \ / AMOS7 \ YOURUM ::
+#\[7]WVZ425VUJF7Q2YFGUFSF3HOZZJQ7EUIBMLJIBQFFBN4GT65MY2AI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
