@@ -7,6 +7,7 @@ use English;
 use warnings;
 
 use JSON;
+use List::Util qw| max |;
 use IO::Socket::UNIX;
 use FindBin qw| $RealBin |;
 use File::Spec;
@@ -579,11 +580,12 @@ sub tool_task_create {
         return send_tool_result( $id, 'description is required', 1 );
     }
 
-    ## collapse newlines for single-line IPC
-    ( my $safe_desc = $desc ) =~ s{\n}{ }g;
-    my $cmd = "task.create $safe_desc";
-
-    my ( $ok, $response ) = cube_command($cmd);
+    my ( $ok, $response );
+    if ( $desc =~ /\n/ or length($desc) > 200 ) {
+        ( $ok, $response ) = cube_command_multiline( 'task.create', {}, $desc );
+    } else {
+        ( $ok, $response ) = cube_command("task.create $desc");
+    }
     send_tool_result( $id, $response, $ok ? 0 : 1 );
 }
 
@@ -620,11 +622,14 @@ sub tool_task_complete {
         return send_tool_result( $id, 'task_id and result are required', 1 );
     }
 
-    ## collapse newlines for single-line IPC
-    ( my $safe_result = $result ) =~ s{\n}{ }g;
-
-    my ( $ok, $response )
-        = cube_command("task.complete $task_id $safe_result");
+    my ( $ok, $response );
+    if ( $result =~ /\n/ or length($result) > 200 ) {
+        ( $ok, $response ) = cube_command_multiline(
+            'task.complete', { 'id' => $task_id }, $result
+        );
+    } else {
+        ( $ok, $response ) = cube_command("task.complete $task_id $result");
+    }
     send_tool_result( $id, $response, $ok ? 0 : 1 );
 }
 
@@ -638,10 +643,14 @@ sub tool_task_continue {
         return send_tool_result( $id, 'task_id and message are required', 1 );
     }
 
-    ## collapse newlines for single-line IPC
-    ( my $safe_msg = $message ) =~ s{\n}{ }g;
-
-    my ( $ok, $response ) = cube_command("task.continue $task_id $safe_msg");
+    my ( $ok, $response );
+    if ( $message =~ /\n/ or length($message) > 200 ) {
+        ( $ok, $response ) = cube_command_multiline(
+            'task.continue', { 'id' => $task_id }, $message
+        );
+    } else {
+        ( $ok, $response ) = cube_command("task.continue $task_id $message");
+    }
     send_tool_result( $id, $response, $ok ? 0 : 1 );
 }
 
@@ -755,6 +764,74 @@ sub cube_connect {
 
     log_msg('connected and authenticated');
     return $cube_sock;
+}
+
+## send a multiline command [ command+\n headers\n\n body\n.\n ]
+## headers: hashref of key=>value, body: string (may contain newlines)
+sub cube_command_multiline {
+    my ( $command, $headers, $body ) = @ARG;
+    $headers //= {};
+    $body    //= '';
+
+    my $sock = cube_connect();
+    if ( not defined $sock ) {
+        return ( 0, 'not connected to protocol-7 network' );
+    }
+
+    ## build header block ##
+    my $header_block = '';
+    if ( keys %{$headers} ) {
+        my $max_w = max( map { length } keys %{$headers} );
+        for my $key ( sort keys %{$headers} ) {
+            $header_block .= sprintf " %*s : %s\n", $max_w, $key, $headers->{$key};
+        }
+    }
+
+    ## ensure body is newline-terminated ##
+    $body .= "\n" if length($body) and $body !~ /\n\z/;
+
+    my $packet = sprintf "%s+\n%s\n%s.\n", $command, $header_block, $body;
+
+    log_msg( 'sending multiline: %s (%d bytes)', $command, length($packet) );
+
+    my $written = sock_write( $sock, $packet );
+    if ( not defined $written ) {
+        log_msg('write failed — connection stale');
+        cube_disconnect();
+        return ( 0, 'connection lost during write' );
+    }
+
+    ## read response — same as cube_command ##
+    my $first_line = sock_readline($sock);
+    if ( not defined $first_line ) {
+        log_msg('connection lost during read');
+        cube_disconnect();
+        return ( 0, 'connection lost' );
+    }
+
+    my ( $reply_type, $reply_data ) = split( /\s+/, $first_line, 2 );
+    $reply_type //= '';
+    $reply_data //= '';
+
+    log_msg( 'reply type: %s', $reply_type );
+
+    return ( 1, $reply_data ) if $reply_type eq 'TRUE';
+    return ( 0, $reply_data ) if $reply_type eq 'FALSE';
+    return ( 0, "command not acknowledged: $reply_data" ) if $reply_type eq 'NACK';
+
+    if ( $reply_type eq 'SIZE' ) {
+        my $byte_count = $reply_data + 0;
+        my $data       = sock_read_bytes( $sock, $byte_count );
+        if ( not defined $data ) {
+            log_msg('connection lost during SIZE read');
+            cube_disconnect();
+            return ( 0, 'connection lost during read' );
+        }
+        $data =~ s{\n\z}{};
+        return ( 1, $data );
+    }
+
+    return ( 1, $first_line );
 }
 
 sub cube_disconnect {
@@ -1001,8 +1078,8 @@ sub log_msg {
     printf STDERR "[mcp-server-p7] %s\n", $msg;
 }
 
-#,,,.,,,.,.,,,.,,,..,,...,..,,,..,,,.,,..,.,.,..,,...,...,...,.,.,...,,..,,.,,
-#OWYYH7NSP5QC2J7NFDD2JUV7E4MFL26OFYT5O6TNGSEYT6ICN76GESCMND6TP4EEUOD6V6BNBZV7Q
-#\\\|M2EPTSW3BMGPLEJGJ76KFQAJDV7XTRHOGTR7XPI4IEFTNWUGN27 \ / AMOS7 \ YOURUM ::
-#\[7]FKKPZXRY7A6R2767AWZ27BRSBGNQETFLUPUBSTQQ3BJY66R4EABI 7  DATA SIGNATURE ::
+#,,..,...,.,.,,,,,,.,,...,.,.,...,,,,,...,,,,,..,,...,..,,.,.,...,,,,,...,..,,
+#TBJ5B5RFTCSEWDGHOKU7P5QMS5F6XDWO5OEOKBM7KYUMY2A4GQZGH6SJT33TIVVO7LMBRLTKTDJGE
+#\\\|ENJS7O3E6A37C77QYFIXCDRTOZGU7G77UW3B32SBZGJ3ACSD7DN \ / AMOS7 \ YOURUM ::
+#\[7]54IDQ7SYWIVNOWWLVCTAKZL5QC73VW25PTRFSZO275N4VAIC5CCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

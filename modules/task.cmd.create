@@ -30,12 +30,16 @@ if ( defined $call->{'param'} and ref $call->{'param'} eq 'HASH' ) {
     $depends_on   = $call->{'param'}->{'depends_on'}          // [];
     $requires     = $call->{'param'}->{'requires'}            // [];
     $slots        = $call->{'param'}->{'slots'}               // [];
+    ## multiline body takes precedence for description ##
+    $description = $call->{'data'} if length( $call->{'data'} // '' );
 } else {
     ## args is the full description string — decode B32 if prefixed
     $description = $call->{'args'} // '';
     if ( $description =~ s|^:B32:||i ) {
         $description = Encode::decode( 'UTF-8', decode_b32r($description) );
     }
+    ## multiline body takes precedence for description ##
+    $description = $call->{'data'} if length( $call->{'data'} // '' );
 }
 
 return { 'mode' => 'false', 'data' => 'description required' }
@@ -114,8 +118,8 @@ my $sent = <[protocol-7.route-send]>->(
 
 return { 'mode' => 'size', 'data' => $task_id };
 
-#,,..,,,.,.,,,...,,.,,...,,,.,,,,,...,...,..,,..,,...,...,..,,,,.,.,,,..,,,,,,
-#QESWSVQWZTYMRGCC7QHEGSQV5DM4OXD2W4IDG27ZSNYNP62MAVVURKZLYNXJUCAZGXEUMHPULOYZ4
-#\\\|KHXZYOURUNRUVTNT4IU2DKNWTBA2AQ2XN2XO4NDZMAGAZVHGT5B \ / AMOS7 \ YOURUM ::
-#\[7]RYDY5NRWX4PMBTXC4MLWXCW6KUGG34XYJ4AZLM6CIZNT723FREAY 7  DATA SIGNATURE ::
+#,,..,...,,.,,,,.,...,,..,,.,,,,.,,,,,,,.,.,.,..,,...,...,.,.,,..,.,.,.,.,.,,,
+#DQVOS27CIEQCTUN454A6UCYGL6LHWXP6AJO2PIS77MRPNVONXRKQVU6EFQEBM52KG6QYG3LDRU6QQ
+#\\\|GU2CVC2O6WHTFLBWVANMGLAT6ALZRXMDDCPVKSILMFDYRSAPEIU \ / AMOS7 \ YOURUM ::
+#\[7]S73FZJAAPLQRWFV5NJ2KHYGVMJKVNDHRGALZ5I2FMB647D5JZCDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
