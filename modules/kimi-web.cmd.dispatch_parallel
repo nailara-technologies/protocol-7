@@ -77,14 +77,12 @@ for my $agent_id (@ready_agents) {
         }
     );
 
-    ## async request with callback ##
-    <[kimi-web.internal.http_post_async]>->(
-        {   'url'      => $url,
-            'body'     => $request_body,
-            'agent_id' => $agent_id,
-            'batch_id' => $batch_id,
-            'handler'  => 'kimi-web.handler.batch_result',
-            'timeout'  => $timeout,
+    <[clients.http.post]>->(
+        {   'url'     => $url,
+            'body'    => $request_body,
+            'timeout' => $timeout,
+            'on_done' => 'kimi-web.handler.batch_result',
+            'params'  => { 'agent_id' => $agent_id, 'batch_id' => $batch_id },
         }
     );
 }
@@ -93,7 +91,7 @@ for my $agent_id (@ready_agents) {
 <[event.add_timer]>->(
     {   'after'   => $timeout + 5,
         'handler' => 'kimi-web.handler.batch_timeout_check',
-        'params'  => { 'batch_id' => $batch_id }
+        'data'    => { 'batch_id' => $batch_id },
     }
 );
 
@@ -104,8 +102,8 @@ for my $agent_id (@ready_agents) {
 
 return { 'mode' => qw| deferred | };
 
-#,,..,...,,,,,.,.,...,,,.,,.,,,,,,,..,,.,,,.,,.,.,...,...,..,,,..,,,,,..,,,..,
-#DHV76PV6PBXFNUC5BURLDZY45EP52J7NUBTZ226XS63PX6KMVTKALEQ5M5AMBYWMOGOE52EXBMCXG
-#\\\|6M6CMIXHY4ML7KASRA2K7GEL2EBAIFSDZMYKJJRX67J7R23FDFZ \ / AMOS7 \ YOURUM ::
-#\[7]PVT23RPYIW762IG2H5UIVG4NO5B34IWB5NCRKLNMYJ3BA4XNHSDY 7  DATA SIGNATURE ::
+#,,,.,.,.,...,,,.,,..,,..,.,.,.,.,.,.,,.,,.,,,.,.,...,...,.,,,,..,,,,,..,,.,,,
+#XTGI7RC5BS3N4U7CBAMQSB7HOLDKS222FLRIPJF7MEOOIP6OCZN4ISBYH3TE6NEWVRB5GBXUSELMC
+#\\\|6GVJ3KACYSISKJBNNAIUMG7JO2PDK4LWHLCXB2MI3PK3A7N4LX3 \ / AMOS7 \ YOURUM ::
+#\[7]74LCHAU6SPPP2UKUI6V4E7OJIXL75QGBVLJHRGWD5AE57UNSH4BA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

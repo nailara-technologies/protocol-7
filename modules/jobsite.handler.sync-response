@@ -1,0 +1,32 @@
+## [:< ##
+
+# name  = jobsite.handler.sync-response
+# descr = called when one job's sync post completes — collects reverse, sends next
+
+my $result = shift // {};
+
+my $ok     = $result->{'ok'}     // FALSE;
+my $body   = $result->{'body'}   // '';
+my $params = $result->{'params'} // {};
+my $job_id = $params->{'job_id'} // '';
+my $jobs   = $params->{'jobs'}   // {};
+
+if ($ok) {
+    my $reply = eval { JSON::XS::decode_json($body) };
+    if ( ref $reply eq 'HASH' and ref $reply->{'reverse'} eq 'ARRAY' ) {
+        push @{<jobsite.sync.push_reverse>}, @{ $reply->{'reverse'} };
+    }
+} else {
+    <[base.logs]>->(
+        0,       'jss.sync: post failed for %s: %s',
+        $job_id, $result->{'error'} // $result->{'status'} // '?'
+    );
+}
+
+<[jobsite.sync.push_next]>->($jobs);
+
+#,,,.,.,,,,,,,,.,,,.,,,.,,.,,,,,.,.,.,.,.,,..,..,,...,...,...,,.,,,..,,,.,,..,
+#CK2KQDJWQZBW6X3G52AWU2HQSF23CMATWMPYVZ2ZVBJPBYV5HFC5VZ7WY752ERBG3CKHGVNSFYYJK
+#\\\|XFX352DNH4BG2G7IGKRKMBXFVRSXVGATZ44QFYW3DMUNYPPJGIJ \ / AMOS7 \ YOURUM ::
+#\[7]6I7AZ3GPA4JO2H2R5HKCSDWWTHJ7UG3WM3ZGQPY4EVVHXT6KK6AA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

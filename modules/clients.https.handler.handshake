@@ -1,0 +1,84 @@
+## [:< ##
+
+# name  = clients.https.handler.handshake
+# descr = advance ssl client handshake; on completion write request, switch to read watcher
+
+my $w     = shift->w;
+my $state = $w->data;
+my $sock  = $state->{'sock'};
+
+## attempt handshake step ##
+my $result = $sock->connect_SSL();
+
+if ( not $result ) {
+    my $ssl_err = $IO::Socket::SSL::SSL_ERROR;
+
+    ## want more io — event loop will re-fire ##
+    return
+        if $ssl_err == IO::Socket::SSL::SSL_WANT_READ()
+        or $ssl_err == IO::Socket::SSL::SSL_WANT_WRITE();
+
+    ## fatal handshake error ##
+    my $err = IO::Socket::SSL::errstr() || 'ssl handshake failed';
+    <[base.logs]>->( 0, 'clients.https.handler.handshake: %s', $err );
+    eval { $w->cancel };
+    delete $state->{'io_watcher'};
+    <[clients.https.cleanup]>->($state);
+    $code{ $state->{'on_done'} }->(
+        {   'ok'     => FALSE,
+            'error'  => $err,
+            'params' => $state->{'params'},
+        }
+    );
+    return;
+}
+
+## handshake complete — cancel rw watcher ##
+eval { $w->cancel };
+delete $state->{'io_watcher'};
+
+<[base.logs]>->( 2, 'clients.https.handler.handshake: complete' );
+
+## write request synchronously (small payload fits in ssl send buffer) ##
+my $request = delete $state->{'request'};
+my $total   = length($request);
+my $written = 0;
+while ( $written < $total ) {
+    my $n = syswrite( $sock, $request, $total - $written, $written );
+    if ( defined $n ) {
+        $written += $n;
+    } elsif ( $OS_ERROR{EAGAIN}
+        or $OS_ERROR{EWOULDBLOCK}
+        or $IO::Socket::SSL::SSL_ERROR == IO::Socket::SSL::SSL_WANT_WRITE()
+        or $IO::Socket::SSL::SSL_ERROR == IO::Socket::SSL::SSL_WANT_READ() ) {
+        select( undef, undef, undef, 0.001 );
+    } else {
+        my $err = "ssl write failed: $OS_ERROR";
+        <[base.logs]>->( 0, 'clients.https.handler.handshake: %s', $err );
+        <[clients.https.cleanup]>->($state);
+        $code{ $state->{'on_done'} }->(
+            {   'ok'     => FALSE,
+                'error'  => $err,
+                'params' => $state->{'params'},
+            }
+        );
+        return;
+    }
+}
+
+## switch to read-only watcher for response ##
+my $io_watcher = <[event.add_io]>->(
+    {   'fd'      => $sock,
+        'poll'    => 'r',
+        'handler' => 'clients.https.handler.io',
+        'data'    => $state,
+    }
+);
+
+$state->{'io_watcher'} = $io_watcher;
+
+#,,,.,...,..,,...,..,,..,,,,,,,,,,,.,,,,,,.,.,..,,...,..,,...,.,.,..,,,,,,,,,,
+#HNRHDZVBPAPQTBH3BJQLTETCCRNXUL5IBARN7GIV4LNVV44Y6QZXLC22XJ63YKG5EE2KIASDYMJV2
+#\\\|SWAZSO4IRBBRTGDYOE36S6LBJTYXIXNBVRGBVAFVXM2YSQAGFIF \ / AMOS7 \ YOURUM ::
+#\[7]6JMGKX5HW65GVORPQR3KO76PHVHA6NRI4NAYB37A5A4CZ5WEG4DI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

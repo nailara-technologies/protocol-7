@@ -75,6 +75,7 @@ base.calc_gauss
 plugin.auth.unix
 jobsite.job.read
 jobsite.cmd.scan
+clients.http.get
 base.stream.push
 base.stream.open
 base.stream.gate
@@ -99,6 +100,7 @@ net.read_bytewise
 jobsite.sync.push
 jobsite.job.write
 jobsite.init_code
+clients.http.post
 base.stream.close
 base.session.init
 base.reverse-sort
@@ -154,11 +156,14 @@ base.file.all_links
 base.file.all_files
 base.extract_values
 base.event.pre_init
+base.event.add_idle
 base.diff.hash_keys
 base.calc_unix_path
 jobsite.stage.review
 jobsite.job.load_all
 io.ip.tcp.input.open
+clients.http.request
+clients.http.cleanup
 base.route.init_code
 base.root.drop_privs
 base.read_proc_times
@@ -201,7 +206,9 @@ base.event.add_signal
 base.console.commands
 base.cmd.buffer-erase
 base.balanced-average
+jobsite.sync.push_next
 jobsite.checksum.index
+clients.http.init_code
 base.session.init_code
 base.required_bin_path
 base.register_src_deps
@@ -218,6 +225,7 @@ jobsite.cmd.show-prompt
 jobsite.cmd.clear-tasks
 io.unix.socket.end_code
 crypt.C25519.key_exists
+clients.http.handler.io
 base.templates.pre_init
 base.strip_chksum_lines
 base.start.unlink_child
@@ -295,6 +303,7 @@ jobsite.handler.fetch-drain
 jobsite.handler.assess-done
 jobsite.cmd.blacklist-stats
 io.unix.socket.output.close
+clients.http.parse_response
 base.templates.register_add
 base.stream.record_emission
 base.session.calc_cmd_stats
@@ -312,6 +321,7 @@ jobsite.handler.task-created
 jobsite.handler.rescan-timer
 jobsite.dispatch.assessments
 io.unix.socket.input.connect
+clients.http.handler.timeout
 base.validate.composite_name
 base.session.check_remaining
 base.process-into-background
@@ -322,6 +332,7 @@ base.handler.heart_ack_reply
 base.chk-sum.bmw.str-b32.L13
 base.access.special-user-map
 protocol.protocol-7.init_code
+jobsite.handler.sync-response
 jobsite.handler.rewire-assess
 crypt.C25519.get_usr_keys_dir
 base.validate.data_key_syntax
@@ -436,8 +447,8 @@ auth.callback.cap-neg.declare-strm-size-support
 protocol.protocol-7.protocol-version-path-set-up
 base.log.send-buffer.reply-handler.notify-online
 
-#,,,.,,,.,...,...,.,,,.,,,,..,...,,,,,.,,,,..,..,,...,...,...,,,,,.,.,,,.,.,,,
-#5VFC7GFXNSH26MC2CUIRAQMFMECPSWWB636OOLYQNUO2PFKLXSXRJFSNJUWKR57FSV3TLAHOHFGP4
-#\\\|YPAP4S7KYJ573OHGT7LZ3QGXLY3FF2YEB545M46UD7TE2Q76QIM \ / AMOS7 \ YOURUM ::
-#\[7]JGPGQTUBP4EDUXA4TLANPSRNZJJHMAJ3LB376HV4JO3RXJXFYADA 7  DATA SIGNATURE ::
+#,,,,,.,.,,.,,,..,,,,,,..,..,,,,,,.,.,,,.,,,.,..,,...,..,,..,,...,.,,,,,,,..,,
+#3ID4ZINXKQTZ4N7GRWP5VACXT5NUCDXI57RCNI2MO3H6TM3TPNNKGBKWN54WDZM47EBKCHF3PGRJG
+#\\\|2IDFH2L6X4RBHNMYWWOKYQK6AFV6EHGRYSPT2P5RRWVNSWJLAEZ \ / AMOS7 \ YOURUM ::
+#\[7]ZT6GZEHTYJYHCD5G7FEWTW5PDMNZYDMT3YVYVNGYLEOZSWNVHEDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
