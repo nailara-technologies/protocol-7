@@ -1,0 +1,85 @@
+## [:< ##
+
+# name  = web.jobs.sync
+# descr = command handler for jobs sync — receives body via args, returns SIZE reply
+
+my $call     = shift           // {};
+my $args_str = $call->{'args'} // '';
+my ( $method, $path, $body ) = split( /\n/, $args_str, 3 );
+
+$body //= '';
+
+my $payload = eval { JSON::XS::decode_json($body) };
+if ( $@ or ref $payload ne 'HASH' ) {
+    my $rb = '{"ok":false,"error":"invalid json"}';
+    return {
+        'mode'         => 'size',
+        'data'         => $rb,
+        'content_type' => 'application/json'
+    };
+}
+
+my $job_id = $payload->{'id'} // '';
+if ( not length $job_id ) {
+    my $rb = '{"ok":false,"error":"missing id"}';
+    return {
+        'mode'         => 'size',
+        'data'         => $rb,
+        'content_type' => 'application/json'
+    };
+}
+
+## load cached record or start fresh ##
+my $job = eval {
+    my $f = <[plugin.web.jobs.cache.path]> . "/$job_id.yaml";
+    -f $f ? YAML::XS::LoadFile($f) : {};
+} // {};
+
+## jobsite push: has pipeline-owned fields — overwrite pipeline fields,
+## preserve browser-owned fields already in cache ##
+my @pipeline_fields = qw| title company url score score_reason score_summary
+    fetched_at status description |;
+my @browser_fields = qw| stage notes date_applied |;
+
+if ( exists $payload->{'fetched_at'} or exists $payload->{'score'} ) {
+    ## jobsite push — update pipeline fields, keep browser fields ##
+    for my $f (@pipeline_fields) {
+        $job->{$f} = $payload->{$f} if exists $payload->{$f};
+    }
+} else {
+    ## browser update — only browser-owned fields, queue reverse change ##
+    my %changed;
+    for my $f (@browser_fields) {
+        if ( exists $payload->{$f} ) {
+            $job->{$f} = $payload->{$f};
+            $changed{$f} = $payload->{$f};
+        }
+    }
+    if (%changed) {
+        <[plugin.web.jobs.reverse.queue]>->( { 'id' => $job_id, %changed } );
+    }
+}
+
+my $ok = <[plugin.web.jobs.cache.write]>->( $job_id, $job );
+
+## return reverse queue to jobsite callers ##
+my $reverse = <[plugin.web.jobs.reverse.flush]>;
+my $rb      = eval {
+    JSON::XS::encode_json(
+        {   'ok'      => $ok ? JSON::XS::true() : JSON::XS::false(),
+            'reverse' => $reverse
+        }
+    );
+} // '{"ok":false,"error":"encode failed"}';
+
+return {
+    'mode'         => 'size',
+    'data'         => $rb,
+    'content_type' => 'application/json'
+};
+
+#,,..,,..,..,,..,,..,,.,.,...,,.,,.,.,..,,...,..,,...,...,,,,,,,.,,,.,,,.,,,.,
+#7RGI6ZIWJTMXGY6AM4SL2TUMHFJS234I732P2Z2QUL5CADVMWAQ6JCQ6Q5F7ZXDWDFQI53JAGH43I
+#\\\|ZR5B7GWL2SDMSWNN5U5FU5L54GK6XJH67KFE62CZNK5OD7FBB6S \ / AMOS7 \ YOURUM ::
+#\[7]PWYGRXBLTWXRQGQSIZQIBHSDXEWEUFPSPZJ5HOK27VR2UKXR5WAQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
