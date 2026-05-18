@@ -1,5 +1,35 @@
 # Completed Work Sessions
 
+## session 30 — iris features, cubic routing docs, P7 cross-zenka relay (2026-05-18)
+
+**iris new modes**: ledger (3+1 octal counters, separator flash), oscilloscope (13 zulum
+streams as live rings via P7 route-send SIZE relay), boundary (stained glass event
+horizons), temporal (radial=time), dimension-rotator (H/V view), cascade-warning
+(pre-flash amber), separator-pulse (routing infrastructure visible), negotiation-window
+(floor budget urgency), route-commitment (future arcs bright/past dim).
+
+**P7 architecture**: oscilloscope uses proper route-send + SIZE reply pattern (like radio
+relay) — httpd → index zenka → zulum stream data → SIZE assembled → relay handler writes
+SVG. No filesystem bypass, no security violation.
+
+**zulum**: stream export via file.zenka_dir.write + pre_init for path setup. Timer fixed:
+after + interval + repeat:TRUE. Export path: /var/protocol-7/zulum/streams.json.
+
+**kimi**: content filter rejection now detected + failed cleanly. Auto-approve restored
+on reconnect (init_code=always, reset_and_reconnect, new-session all set TRUE).
+
+**design documents added**:
+- SPACE-AND-ELEMENT-DIMENSIONS.md (5D: arc×floor×plane×scale×timing, ~10^14 addresses)
+- ROUTE-CALCULATION-METHODS.md extended (helix descent, separator cubes, passive routing)
+- VORTEX-INTAKE-CUBE-SPACE-MASKS.md (correlated approximations, spiral as color tube,
+  event horizon interpreter, active utility)
+- KITTEN-HOLOGRAM-RESOURCE-FILTER.md (litter entropy as crypto resource filter)
+- ORBITAL-CYCLE-CLOCK-AND-MAPPING-CANVAS.md extended
+
+**8 new task files**: iris-ring-ledger, iris-stream-oscilloscope, iris-route-commitment,
+iris-dimension-rotator, iris-cascade-warning, iris-separator-pulse, iris-temporal-mode,
+iris-boundary-mode, iris-negotiation-window
+
 ## session 29 — iris visualization, cubic routing geometry, space dimensions (2026-05-17/18)
 
 **iris improvements**: vortex mode (angle_bits density), α-density mode, subtractive
@@ -617,8 +647,8 @@ Skip calling harmonize_payload_line_feed when both conditions are met:
 - Signatures now properly formatted with correct separator endline
 - Pre-commit validation passes
 
-#,,,.,.,,,...,.,.,,,,,.,,,,,,,.,.,,.,,,..,...,..,,...,...,.,.,.,.,.,,,,,,,..,,
-#HU26PC5W3BLYNFII5RYLB7LHHCU65MQ5PTTYMSPABXVZS7746LWTQXTJK5UUS47LYYZTHO7PMB3M4
-#\\\|JWBC75TVB43BOIDMH3O2VUYJ6CEQV4QS4FOVZI7UQ2TS252ITAG \ / AMOS7 \ YOURUM ::
-#\[7]RSLJNQ6R6RZVYYPS33FUGRO4IBMMQDJ4VLNLHWR3ZQ6CRQRVTCAY 7  DATA SIGNATURE ::
+#,,,.,...,,..,,.,,,..,.,,,.,.,,.,,,,.,,..,..,,..,,...,...,.,,,,..,,..,,..,.,.,
+#XC4QU7K2SGC6SY3INOLWQTQVW6ISYCVNBYQGBFJNIJSJEELT2STQFC76JFOXR5MGJAAWPPAXNMX4A
+#\\\|TEWX36XQK4GUT3CMNOHUIRPKH4NDLN3UNEUTCMJO4STVPPHGEBU \ / AMOS7 \ YOURUM ::
+#\[7]JROLQWCKYACZSLOSULYFHLEBGRYRHCW7O22LAMZUVKVYKMTPKSBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
