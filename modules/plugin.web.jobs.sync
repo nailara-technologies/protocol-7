@@ -1,41 +1,29 @@
 ## [:< ##
 
 # name  = plugin.web.jobs.sync
-# descr = handle POST sync — jobsite push or browser field update
+# descr = command handler for jobs sync — receives body via args, returns SIZE reply
 
-my $id = shift;
-
-my $session = $data{'session'}->{$id};
-
-my $body = $session->{'http'}->{'body'} // $session->{'buffer'}->{'input'}
-    // '';
-$session->{'http'}->{'body'}    = undef;
-$session->{'buffer'}->{'input'} = '';
+my $call = shift           // {};
+my $body = $call->{'args'} // '';
 
 my $payload = eval { JSON::XS::decode_json($body) };
 if ( $@ or ref $payload ne 'HASH' ) {
     my $rb = '{"ok":false,"error":"invalid json"}';
-    $session->{'buffer'}->{'output'} .= <[httpd.new_header]>->(
-        400,
-        {   'Content-Type'   => 'application/json',
-            'Content-Length' => length($rb)
-        }
-    );
-    $session->{'buffer'}->{'output'} .= $rb;
-    return 2;
+    return {
+        'mode'         => 'size',
+        'data'         => $rb,
+        'content_type' => 'application/json'
+    };
 }
 
 my $job_id = $payload->{'id'} // '';
 if ( not length $job_id ) {
     my $rb = '{"ok":false,"error":"missing id"}';
-    $session->{'buffer'}->{'output'} .= <[httpd.new_header]>->(
-        400,
-        {   'Content-Type'   => 'application/json',
-            'Content-Length' => length($rb)
-        }
-    );
-    $session->{'buffer'}->{'output'} .= $rb;
-    return 2;
+    return {
+        'mode'         => 'size',
+        'data'         => $rb,
+        'content_type' => 'application/json'
+    };
 }
 
 ## load cached record or start fresh ##
@@ -81,20 +69,14 @@ my $rb      = eval {
     );
 } // '{"ok":false,"error":"encode failed"}';
 
-my $reply_header = {
-    qw| Content-Type   | => qw| application/json |,
-    qw| Content-Length | => length($rb),
-    qw| Connection     | => qw| close |,
+return {
+    'mode'         => 'size',
+    'data'         => $rb,
+    'content_type' => 'application/json'
 };
 
-$session->{'buffer'}->{'output'}
-    .= <[httpd.new_header]>->( 200, $reply_header );
-$session->{'buffer'}->{'output'} .= $rb;
-
-return 2;
-
-#,,,,,...,.,,,.,.,.,.,..,,,,.,.,.,,.,,..,,,,,,.,.,...,...,.,.,,,,,,,.,,,.,,,.,
-#HSI35IF4EXD7F7DYYPI4KU3VVSO3O56SPPYEM6UZIRDRASPQHULKWAS32I7I33TRCYLTLHTGUD5AE
-#\\\|UBUHTJ6E6DJ57UFMKPLADPV7OMMG4FYOUDP53M7WKT3IN2SMMXW \ / AMOS7 \ YOURUM ::
-#\[7]YNJTY2IBP3MTPE4YZ2NJ22OHKZMRL5FMIP2DX6KGQDNG6UTFTEBA 7  DATA SIGNATURE ::
+#,,,,,,..,,..,,,.,,,.,,..,...,.,.,,,.,..,,,..,..,,...,...,,..,,,.,,..,,.,,.,.,
+#XUPQBHO6UBPJDIFJA55YIM3WV6C22ESQWLZKAAPHL7FZJQRMPFYYBBZ74HOIXL33G565RNE5IBJIK
+#\\\|5BUDQMLR4UFUTHAD7OTIC2KB66WGYH4GS3EF3HISCRTABOU7CYS \ / AMOS7 \ YOURUM ::
+#\[7]LRFBTGFEZZEWCFRFJLXDO7ORVEMMPEVY3UQ4DYKI6LRD6L7RWOAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
