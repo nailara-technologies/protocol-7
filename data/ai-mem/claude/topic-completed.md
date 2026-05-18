@@ -1,5 +1,37 @@
 # Completed Work Sessions
 
+## session 33 — clients.http.* + clients.https.* async client namespaces (2026-05-19)
+
+**clients.http.*** — 8 modules: non-blocking HTTP using IO::Socket::IP + event.add_io.
+request: connect, sync-write small payload, register r watcher. handler.io: accumulate
+→ parse_response → on_done callback on EOF. cleanup, timeout handler, post/get wrappers.
+interface: `{ url, body, timeout, on_done, params, headers }` → handler gets
+`{ ok, status, body, params }`.
+
+**clients.https.*** — parallel namespace with SSL handshake phase. request: TCP connect
+→ start_SSL deferred → rw watcher. handler.handshake: connect_SSL loop (WANT_READ/WRITE
+retry) → sync write → switch to r watcher. handler.io: checks SSL_ERROR before treating
+0 bytes as EOF (SSL internal frames fire watcher with no app data — not real EOF).
+ssl_verify param: default TRUE (SSL_VERIFY_PEER), pass 0 for self-signed/internal certs.
+clients.http.parse_response shared by both namespaces.
+
+**jobsite sync rewritten**: blocking LWP fork → clients.http.post callback chain.
+sync.push sets queue → sync.push_next calls clients.http.post → handler.sync-response
+collects reverse entries → push_next again → apply_reverse when queue empty.
+LWP::UserAgent removed from jobsite.init_code.
+
+**kimi-web parallel dispatch fixed** — three bugs all present since introduction:
+- http_post_async child used route-send to 'event.add_idle' (not a routable command
+  — cube rejected it, batch_result never fired, dispatch always timed out at 305s)
+- batch timeout timer registered with 'params' key (add_timer only supports 'data'
+  — batch_id never reached timeout handler, stale batches never cleaned up)
+- batch_timeout_check accessed $data->{'params'}{'batch_id'} (wrong nesting)
+Fixed: dispatch_parallel uses clients.http.post; batch_result reads clients.http format;
+batch_timeout_check reads shift->w->data->{'batch_id'}.
+clients.http added to kimi-web modules.load.
+
+commit: 05f53dc34
+
 ## session 31 — plugin.web.* migration to web zenka (2026-05-18)
 
 **plugin.web migration**: all plugin.web.* moved from httpd to web zenka.
@@ -666,8 +698,8 @@ Skip calling harmonize_payload_line_feed when both conditions are met:
 - Signatures now properly formatted with correct separator endline
 - Pre-commit validation passes
 
-#,,..,.,,,...,.,.,..,,..,,...,,,,,,,.,.,.,...,..,,...,.,.,..,,.,.,.,,,.,.,,..,
-#QMIOKYLSDKOK4ZXGN4SRO3RGRB3PXWPBKNP2NA4I2NZI5CUVRE3OWPGUZPKHY3SXF65OJ7RG4F57A
-#\\\|FPDEUQQE3QREVONMB3INSQRINWHYNGBTKINMFSI4Q3QYJHIKHBY \ / AMOS7 \ YOURUM ::
-#\[7]QXTWL7GUYRJFZ4CXQZWG23YQYMNS77Q6REAAA7C6K6ZTN4H7DSCI 7  DATA SIGNATURE ::
+#,,,,,..,,.,.,,,.,,,,,...,.,,,.,,,,.,,,,,,...,..,,...,..,,.,,,,.,,...,..,,...,
+#WFGPRBE2KJ6NOPBHWDH2H27LFALEOL4Q56YV4GGQGUEM6CF6C2MRERBO4TZNVWDUIEV46HZNV2F4C
+#\\\|ZZ4ZO3WCHOGTOEXAGJLQZKY7RIWYEXGPMYO4AC5UDNPQ5636F3Z \ / AMOS7 \ YOURUM ::
+#\[7]ZGG2GD4U6OVIB2TYK7LFTE6XSNWJDYH5NJZWWCYTVMK53DZIJ4BA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
