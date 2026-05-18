@@ -90,21 +90,39 @@
 ## System Status
 
 ### Next Steps (immediate)
-- **plugin.web.* migration**: DONE ✓ — web zenka owns all plugin.web.*, httpd is thin proxy
-- **iris oscilloscope**: P7 route-send SIZE relay implemented — needs index+zulum running
-- **web zenka relay pattern**: httpd.route.handler.web-relay generic, [command=X] syntax in routes
-- **iris alpha-density v2**: data/tasks/iris-alpha-density-mode-v2.md — pending kimi dispatch (content filter safe)
-- **:::: litter row**: data/tasks/litter-row-encoding.md — pending dispatch
-- **8 iris feature tasks**: ledger, route-commitment, dimension-rotator, cascade-warning, separator-pulse, temporal, boundary, negotiation-window — ready for kimi
-- **iris live**: viz.v7.ax/iris.html, overlay-search.html at viz.v7.ax ✓
-- **iris vortex + α-density + translucency + namespace filter**: all working ✓
-- **kimi auto-approve + content filter rejection**: fixed ✓
+
+**iris visualization** (dispatch to kimi one by one):
+- **iris alpha-density v2**: data/tasks/iris-alpha-density-mode-v2.md — filter-safe, dispatch next
+- **iris ring ledger**: data/tasks/iris-ring-ledger-mode.md — 3+1 octal counters, separator flash
+- **iris route-commitment**: data/tasks/iris-route-commitment.md — future arcs bright/past dim
+- **iris dimension-rotator**: data/tasks/iris-dimension-rotator.md — H/V view toggle
+- **iris cascade-warning**: data/tasks/iris-cascade-warning.md — pre-flash amber warning
+- **iris separator-pulse**: data/tasks/iris-separator-pulse.md — routing infrastructure visible
+- **iris temporal**: data/tasks/iris-temporal-mode.md — radial=time, git blame as orbital map
+- **iris boundary**: data/tasks/iris-boundary-mode.md — stained glass event horizons
+- **iris negotiation-window**: data/tasks/iris-negotiation-window.md — floor budget urgency
+
+**iris oscilloscope**: route-send SIZE relay to index — verify working after httpd+index+zulum restart
+
+**infrastructure**:
+- **:::: litter row**: data/tasks/litter-row-encoding.md — 15-bit zenka bitmap in footer
+- **iris 63-ring labels**: DONE ✓ namespace63 mode with . at ring 27
+- **iris logo overlay**: DONE ✓ nailara at darksun
+- **plugin.web.* migration**: DONE ✓ web zenka owns all plugin.web.*
 - **jobsite BMW384 dedup**: dispatch bmw384-arc-grouping-filter.md to kimi
-- **route.bmw384 find-route testing**: register nodes, run find-route + verify-coordinate
-- **kimi.task-file :next: dispatch**: now working — variable watcher fix confirmed
-- **profile.txt** at /var/protocol-7/jobs/profile.txt — CV/skills for LLM scoring
-- **multi-page search** — stepstone 25/page; cfg.max_pages per category
-- **orphan re-queue** — re-create tasks for jobs stuck in 'assessing' after restart
+- **route.bmw384 find-route testing**: register nodes, verify-coordinate
+
+**roadmap topics** (see IMPLEMENTATION-ROADMAP.md):
+- **sub-bit element definition**: data/tasks/sub-bit-element-definition.md
+- **generic content layer**: 4b.6 improvement-directed history, git supersession path
+- **flexible offset mapping**: 4.7 angle_bits as φ_offset + seed per ring
+- **orbital velocity signatures**: 4.8 per-ring speed multipliers, TRUE/FALSE CCW/CW lanes
+- **network cycle clock**: 4.9 logically mapping orbital timebase
+
+**jobs pipeline**:
+- **profile.txt**: /var/protocol-7/jobs/profile.txt — CV/skills for LLM scoring
+- **multi-page search**: stepstone 25/page; cfg.max_pages per category
+- **orphan re-queue**: re-create tasks stuck in 'assessing' after restart
 - note_read pagination (offset/limit on sections)
 - active deps execution (requires list in task dispatcher)
 - think-block stripping — `<think>...</think>` from Kimi/Deepseek leaks into output
@@ -136,8 +154,8 @@
 - **repo var/ cleanup** — `var/httpd/` tracked from Nov 2025 AI error
 - **kimi auto-approval regression** (Apr 16) — some tool calls not auto-approved during kimi tasks
 
-#,,..,.,,,,..,,.,,,.,,..,,,,,,,,.,,.,,...,...,..,,...,.,.,.,,,,.,,,,,,...,,,,,
-#EOALAR2AZ4VSMBGPL5FUS7XEHLKSGNIVDZJ2WINGNLPCX2GW47PCLYFPOZYYULEMV6KAEQKZDFIEI
-#\\\|3BHFR5YLNSSTZQXLKFOW5X4BTCM2XS2I3MWA45VR3F55HIAFDRN \ / AMOS7 \ YOURUM ::
-#\[7]OM2QNPLTXH2XLBSR7GX3MPUHLWKTCLA3SA7LY6SVFZ2H7C6IZAAQ 7  DATA SIGNATURE ::
+#,,.,,..,,..,,.,.,,,,,,,,,,..,,,.,.,.,.,,,,,,,..,,...,...,..,,.,,,,,.,,,,,,,.,
+#ILODIHN7LQK62ARULUFQTBUK5TOGXNZJKJ2RV77I4MBTBQVSCRMYNWD6GXHMPPNTX46IRVGNZMRXW
+#\\\|F7NDAHBRL73G3SESPBJCFWCIYGYZSE6ICXEX5PVAR4GTNDNLVDO \ / AMOS7 \ YOURUM ::
+#\[7]QEGHXSUDBW72QQGE5TTSF7EVLD4MOTN26J6NINP5YRWBZXDQFOBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
