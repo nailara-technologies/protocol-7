@@ -19,6 +19,8 @@ if ( defined $call->{'param'} and ref $call->{'param'} eq 'HASH' ) {
     } else {
         $task_id = $args;
     }
+    ## multiline body takes precedence for result ##
+    $result = $call->{'data'} if length( $call->{'data'} // '' );
 }
 
 $task_id = uc( substr( $task_id, 0, 7 ) );
@@ -74,8 +76,8 @@ if ( defined $wait_reply_id ) {
 
 return { 'mode' => 'true', 'data' => "completed $task_id" };
 
-#,,..,,..,...,...,,,,,,.,,,,,,,,,,,..,.,.,..,,..,,...,...,...,,..,.,,,,.,,.,,,
-#6TC3K2XLTCGIDINVOYZIGW6J65ETR2VTB64SRXSMJYFGPQWPW2SFAWLSSGCOI3EMD4ALPQKVYJ2MS
-#\\\|NRM2XQSRMXW2N2QMDSDCPYFI2FASMWK33N2NNXFBOKJFQUOSBFY \ / AMOS7 \ YOURUM ::
-#\[7]X7UEKWPPPNPHPA3JAPBDOCJZQSMJTCIA467W6YEZCH7MQKWVEOAY 7  DATA SIGNATURE ::
+#,,,.,,,.,...,,..,,..,,,,,..,,...,,,.,,.,,,.,,..,,...,...,...,,..,,,,,..,,.,.,
+#23Q3C453C2RXHDZGKKHNADPSPPNPQHRV347QBZOIXHAM4VTSVCL7R4AL3VCFYSVMFFB2DMBSEZEGS
+#\\\|XAXLN7UDTFJGM3OYMN6R5RLBU5HXFN6CNYJSHS2M6UHRQEBAHY6 \ / AMOS7 \ YOURUM ::
+#\[7]UUGG2IV5BH64L2IP4QNTOWTVLWQFIIW7G5ZZJHNM4E2MF3472ABY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
