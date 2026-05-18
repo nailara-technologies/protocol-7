@@ -6,7 +6,8 @@
 my $root_path  = <system.root_path> // qw| . |;
 my $routes_cfg = "$root_path/configuration/zenki/httpd/routes";
 
-$data{'httpd'}{'route'} //= { 'exact' => {}, 'prefix' => {} };
+$data{'httpd'}{'route'}      //= { 'exact' => {}, 'prefix' => {} };
+$data{'httpd'}{'route_args'} //= { 'exact' => {}, 'prefix' => {} };
 
 if ( not -f $routes_cfg ) {
     <[base.logs]>->(
@@ -28,17 +29,28 @@ while ( my $line = <$fh> ) {
     $line =~ s|^\s+||;
     next if !length($line) or $line =~ m|^#|;
 
-    my ( $method, $path, $sub_name ) = split /\s+/, $line, 3;
+    my ( $method, $path, $sub_name, $arg_str ) = split /\s+/, $line, 4;
     next unless defined $method and defined $path and defined $sub_name;
 
     $method = uc $method;
 
+    my $handler_args = {};
+    if ( defined $arg_str and length $arg_str ) {
+        ## parse [key=value] or key=value pairs ##
+        while ( $arg_str =~ m/\[?([a-zA-Z0-9_.-]+)=([^\]\s]+)\]?/g ) {
+            $handler_args->{$1} = $2;
+        }
+    }
+
     ## prefix routes: prefix:/api/ or prefix: /api/
     if ( $path =~ s|^prefix:|| ) {
         $data{'httpd'}{'route'}{'prefix'}{$method}{$path} = $sub_name;
+        $data{'httpd'}{'route_args'}{'prefix'}{$method}{$path}
+            = $handler_args;
         $prefix_count++;
     } else {
-        $data{'httpd'}{'route'}{'exact'}{$method}{$path} = $sub_name;
+        $data{'httpd'}{'route'}{'exact'}{$method}{$path}      = $sub_name;
+        $data{'httpd'}{'route_args'}{'exact'}{$method}{$path} = $handler_args;
         $exact_count++;
     }
 }
@@ -55,8 +67,8 @@ close $fh;
 
 #,,.,,,.,,..,,...,,,.,,..,,,,,.,,...,,.,,.,.,..,,...,..,,...,,...,,,.,,,,,.,,,,
 
-#,,,.,,,.,...,.,,,...,.,.,...,.,.,.,.,,,.,,,,,..,,...,...,.,,,,,,,..,,...,,,.,
-#BAW2LILTTJANJPC7TBJ65IANKMMMF7WBYKIC3QE5ZELY2C6XZUVWLV755YDSZLM7A5L36TS4O2J2E
-#\\\|E6UDHGZ6OJUHWTO7X2B4IUD7DOHE3DKMO3MH5QPGS2DTGJKTRCH \ / AMOS7 \ YOURUM ::
-#\[7]FEM5FBAYDTU7ZEYB6G4PQOUGQGUZVEBDORSF64JDTF7AC6GPZ2AY 7  DATA SIGNATURE ::
+#,,,,,,,,,..,,,,.,,..,,,.,...,..,,..,,...,,..,..,,...,...,..,,.,,,,,.,,,,,,..,
+#FXQBINEWSWSBNQJRVX2AJCLJJQSKIMXXCJMK2ADIHD5BHXQVCKK2GWM2F6YW7Q3YKOQDGSJCXWZUW
+#\\\|2SDBGLGIGCKAJT4XTH24KGI6MY63DCOS4ELV3OCUUMEZZNEIQ4H \ / AMOS7 \ YOURUM ::
+#\[7]DGVLGJMPACFJCQLZJ3GXEMDJ2LZNWQOEUVDTMMA3QHJABN4VJCDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

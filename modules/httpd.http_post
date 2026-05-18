@@ -34,12 +34,15 @@ if ( $content_length > $max_post_size ) {
 }
 
 ## route registry dispatch — wait for full body first ##
-my $registry = $data{'httpd'}{'route'} // {};
+my $registry      = $data{'httpd'}{'route'}      // {};
+my $args_registry = $data{'httpd'}{'route_args'} // {};
 my $route_sub;
+my $route_args = {};
 for my $try_method (qw| POST ANY |) {
     my $sub_name = ( $registry->{'exact'}{$try_method} // {} )->{$http_uri};
     if ( defined $sub_name and exists $code{$sub_name} ) {
-        $route_sub = $sub_name;
+        $route_sub  = $sub_name;
+        $route_args = $args_registry->{'exact'}{$try_method}{$http_uri} // {};
         last;
     }
 }
@@ -50,6 +53,7 @@ if ( defined $route_sub ) {
 
     if ( $content_length > 0 and $bytes_received < $content_length ) {
         $session->{'http'}->{'pending_route_sub'}   = $route_sub;
+        $session->{'http'}->{'pending_route_args'}  = $route_args;
         $session->{'http'}->{'acme_request_uri'}    = $http_uri;
         $session->{'http'}->{'acme_content_length'} = $content_length;
         $session->{'http'}->{'original_input_watcher'}
@@ -74,7 +78,7 @@ if ( defined $route_sub ) {
         1,   '[%d] route registry [POST:%s] → %s',
         $id, $http_uri, $route_sub
     );
-    return $code{$route_sub}->($id);
+    return $code{$route_sub}->( $id, $route_args );
 }
 
 ## For ACME endpoints, wait for complete body before processing
@@ -155,8 +159,8 @@ if (   $http_uri =~ m|^/api/certificate|
 
 return 2;    ## Should not reach here
 
-#,,,,,,,.,,..,..,,.,,,...,...,,,.,,..,...,,,,,..,,...,...,,.,,.,.,,.,,,..,...,
-#TUBJAKQMPK7IX4BDAJTYFKB4JUMGBP2VXLU2YJRUKCMMUUQKO4LJ3DK62HSRRNGDACVDNDOMLLCR6
-#\\\|OJZJJ35DZUTR2NQHTNKKNCSAYZYW6IK5WY6WK5ZQVHJVYUZCYLP \ / AMOS7 \ YOURUM ::
-#\[7]GIAJH37IRQ3FCCP3OSIUEF5T267UZXZFH7K7ZPLJJR5USZQ7JCDI 7  DATA SIGNATURE ::
+#,,..,,,,,,..,,,,,,.,,.,,,,..,.,,,,,.,,,.,,..,..,,...,...,...,,..,.,,,.,,,.,,,
+#6ENWFO2VZWWMZRW4RTW2R4LRR2T2OV2PW3IDZPKKAS2KX67XUI6B72INIHXOZG6GLDHVPRVO4DMLW
+#\\\|EL2IU4B6GYDQ7JIBF7TUEYRCNBA3MSOL2YSV7EYCB33TPH7JWWI \ / AMOS7 \ YOURUM ::
+#\[7]NW5E3UAH6VLJ5IQLE2YQRYFSX7NSCEK2HCX3ZXEYGAZOBYHJYKBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
