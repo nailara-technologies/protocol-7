@@ -18,6 +18,10 @@ more body lines
 
 Key characteristics:
 - Command name ends with `+` (e.g., `coding.ask-reply+`)
+- **Dot escaping**: a body line consisting of exactly `.` must be sent as `..`
+  and is unescaped to `.` by the receiver. All other lines pass through verbatim.
+  This is the only escaping required — lines starting with `.` but containing
+  other characters are never ambiguous and need no transformation.
 - Optional headers section (key: value pairs)
 - Empty line separates headers from body
 - Body content is raw (no encoding needed)
@@ -164,79 +168,34 @@ cat /var/log/large.log | p7c process.log+
 3. Update documentation
 4. Base32 encoding becomes fallback for non-upgraded clients
 
-## Future Consideration: Dot-Safe Mode (`++`)
+## Dot Safety
 
-The `+` suffix has a limitation: body content containing `.` on its own line will prematurely terminate the command. This is acceptable for:
-- User-generated content (no stray dots)
-- Base64/gzip encoded data (no bare newlines)
-- Manual testing
+The `+` mode is fully dot-safe via minimal escaping — no alternative mode or
+suffix is needed. The rule is:
 
-But problematic for:
-- Arbitrary file content (source code, logs, configs)
-- Pre-formatted text with horizontal rules (`---` becomes `-` after markdown processing, but `.` literals exist)
-- Quoted email messages (which may contain `.` lines)
+- **Sender**: replace any body line that is exactly `.` with `..` before sending
+- **Receiver**: unescape any body line that is exactly `..` back to `.`
 
-### Proposed Solution: `++` Suffix (Space-Prefix Framing)
+That is the complete escaping contract. Lines starting with `.` but containing
+other characters (e.g. `.something`, `.. `) are never ambiguous and pass through
+untouched. This applies to `p7c`, `p-7-r`, and the Perl `protocol-7.send-multiline`
+wrapper equally.
 
-A `command++` mode uses mandatory line-prefixing to make the protocol unambiguous. **Note:** `p7c` stays "raw" — it validates and passes through. The caller handles space-prefixing.
-
-**Wire format:**
-```
-command++
-Header: value
-
- body line 1
- body line 2
- .
- still part of body
- .
-EOF
-```
-
-**`p7c` responsibilities (raw passthrough):**
-1. Detect `++` suffix (check before `+` to avoid ambiguity)
-2. Pass stdin through unchanged
-3. Treat line containing only ` .` (space-dot) as terminator (not `\n.\n`)
-4. Optional: warn if line doesn't start with space (protocol compliance)
-
-**Wrapper/script responsibilities (transformation):**
-```bash
-## Wrapper script adds space prefixing
-space_prefix() {
-    while IFS= read -r line; do
-        printf ' %s\n' "$line"
-    done
-    printf ' .\n'  ## terminator
-}
-
-space_prefix < file.txt | p7c doc.upload++
-```
-
-**Server responsibilities:**
-1. Detect `++` suffix on command
-2. Strip first space from each received line
-3. Treat line containing only ` .` as terminator
-
-**Zenka convenience routines:**
-Perl modules should provide helpers:
 ```perl
-## High-level: handles space-prefixing automatically
+## Perl wrapper applies dot escaping automatically
 <[protocol-7.send-multiline]>->(
-    command => 'doc.upload++',
-    content => $arbitrary_text,  ## dots, newlines, whatever
+    command => 'doc.upload',
+    content => $arbitrary_text,  ## bare dots handled transparently
 );
 ```
 
-**Advantages over SMTP dot-stuffing:**
-- Simpler: always prefix with space, always strip first char
-- No conditional logic per line
-- Binary-safe: works with any byte content (space is 0x20)
+```bash
+## p7c: caller is responsible for dot escaping when using heredoc/pipe
+sed 's/^\.$/../' file.txt | p7c doc.upload+
+```
 
-**Performance note:**
-Native C auto-prefixing in `p7c` can be postponed until file zenka / data zenka performance actually requires it. Wrapper scripts are sufficient for scripting use cases.
-
-#,,..,.,.,,.,,,,.,..,,..,,.,,,.,,,...,,.,,,,,,..,,...,..,,,.,,.,,,.,,,...,.,,,
-#R2I3TPFR4TRMDQYF43IBTOXYG6GD5KFGPPASZBCNW42XIX4SQY2UPEHS5DYSUUCIFU7565672WKTK
-#\\\|2XLZDJAHQ5MYIIP3UHZ3HCH7ZODNGZ3B4RUHQO2DI3OOLDY26VE \ / AMOS7 \ YOURUM ::
-#\[7]N2FFNJLFT3AW5GPJCGY6FA5G235BE2DIVLA5DD3XIQBV7QU4TKDA 7  DATA SIGNATURE ::
+#,,,.,...,,,,,.,.,,.,,,,.,,,.,,,,,...,.,.,,.,,..,,...,...,,,.,,,.,.,.,,,,,,,,,
+#7ZIKLNGZ2TJBVBCB6PTT2IGLKR4WFVL5CUNGXY2F4ILIEW2XXRROO6UJEN3PHZPQTXONS5H5TBQTM
+#\\\|BGNSZZMFUWZ7HO7O2TDHDIMUTHNP7VM2RCVYACM5LUWVSV5XAQC \ / AMOS7 \ YOURUM ::
+#\[7]7FW6NWWK25E6QG6KF5WDFP4NJURQVDYG6TDX7ZZBFOIU5IIGWOBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
