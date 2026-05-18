@@ -23,12 +23,16 @@ cycle, but breaks when an edit changes the endline state between sign cycles.
 **Root cause**: no sanity check on the encoded state vs. actual current state
 before applying the delta.
 
-**Fix direction**: restoration should verify actual trailing newlines match
-what the encoded state expects before applying. If they don't match → treat
-as state 5 (no-op) or re-derive from current content, ignore stored delta.
+**Fix direction**: in `restore_payload_endline_state`, before removing N
+trailing newlines (states 0-4, negative delta), count actual trailing newlines
+in the content. If `actual < N` → encoded state is stale/corrupt → log warning
+with discrepancy, clamp removal to actual count (don't underflow).
 
-**Not the fix**: adding normalization rules per-path (e.g. modules/) would
-mask the bug rather than fix it.
+Zero trailing newlines after restore is valid for many file types (JSON, YAML,
+generated files, binaries) — cannot assume it's wrong without file-type context.
+File-path heuristics (e.g. modules/) would couple signing to content conventions
+and avoid the real fix. The only safe invariant: cannot remove more newlines than
+exist.
 
 **After fix**: add normalization config to the existing path set-up for
 signing so modules/ always converges cleanly as a belt-and-suspenders layer.
@@ -41,8 +45,8 @@ line → run update-signatures → inspect result for missing newline before `#,
 - data/yaml/docs/processing/signature-endline-handling.yaml
 - data/yaml/code-reviews/modules/source.signature-endline-policy-system.yaml
 
-#,,..,,,,,.,,,...,,.,,,,,,,,.,..,,,,,,.,,,,.,,..,,...,..,,,.,,,.,,,.,,,.,,.,,,
-#IS23KNTBUGOM4VQ2BTTX4SCR3HQOGX4NXORNGMCVJRD6AVDTRRUSJ5VTNGA4OOKSXKBRGVQVQDG2Y
-#\\\|HV5PX2SO6K3BXHOY2VYZ4LVSYGWYCTIJAFZX3ILM7NODWYNP7JZ \ / AMOS7 \ YOURUM ::
-#\[7]EE5R6FHCJ5DTR5POU6LC2ITMZ2SBDVGGDKEFXLXAZCCD2LO2JMCQ 7  DATA SIGNATURE ::
+#,,,.,,,,,..,,.,.,,.,,...,,,.,...,..,,,,,,,,.,..,,...,...,...,.,.,.,.,,..,..,,
+#5XHQILL5HUXWSA6A5PFG6EK2WV63BSESSX2K7KPF4EMOWKJLTBB2M2SWHRDRM44TD3LOMDC7W2THA
+#\\\|WNZKQ2QRHNNZFE3D4SF7HFXZY5TECLWGWHLT3HN2LW2C2JUZOFV \ / AMOS7 \ YOURUM ::
+#\[7]3EXFPIVQOSBJK4B6KYYA53IJPUPF4OG2RKWJ6ZOXRITQTRI6KIAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
