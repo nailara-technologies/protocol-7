@@ -14,12 +14,27 @@ if ( not length $url ) {
 my $jobs       = <[jobsite.job.load_all]>;
 my $last_ntime = <jobsite.sync.last_server_ntime> // '';
 
-## filter to jobs changed since server last acknowledged ##
+## record local ntime at cycle start — used as new watermark after success ##
+my $cycle_ntime_b32 = <[base.ntime.b32]>;
+<jobsite.sync.push_cycle_ntime> = $cycle_ntime_b32;
+
+## ntime is encode_b32r (reverse byte order) — NOT lexicographically sortable ##
+## must compare numerically via base.ntime_BASE32_to_numerical               ##
+my $last_ntime_num
+    = length($last_ntime)
+    ? ( <[base.ntime_BASE32_to_numerical]>->($last_ntime) // 0 )
+    : 0;
+
+## filter to jobs changed since last sync watermark ##
 my @changed;
 for my $id ( keys %{ $jobs // {} } ) {
     my $job = $jobs->{$id};
     my $mod = $job->{'last_modified'} // '';
-    if ( not length $last_ntime or $mod gt $last_ntime ) {
+    my $mod_num
+        = length($mod)
+        ? ( <[base.ntime_BASE32_to_numerical]>->($mod) // 0 )
+        : 0;
+    if ( not $last_ntime_num or $mod_num > $last_ntime_num ) {
         push @changed, { %{$job}, 'id' => $id };
     }
 }
@@ -53,8 +68,8 @@ while (@changed) {
 
 <[jobsite.sync.push_chunk]>;
 
-#,,,.,.,,,,,,,,.,,,,,,,.,,,,,,...,.,,,...,,,.,..,,...,.,,,.,.,,..,,,,,..,,.,.,
-#5Q7WZDUOYSKFHGT5JAS35IFA4ZNRP7BMMKOJSVBIXLW7DHB2ZC5S7PO4GAAF5EDZLR3XZ4UU44OD4
-#\\\|6HZ47B5OOHN6J4KRMOCUZ7XU73Q5MTB2OFNIISJQM6MB4D6XFIV \ / AMOS7 \ YOURUM ::
-#\[7]BVQIWKEKGBQ5MJNHE4OTDZWFCTWUGSWVYMDSGO5CBURM5NKO74CY 7  DATA SIGNATURE ::
+#,,,,,,..,,,,,,.,,,.,,.,,,.,,,...,...,,,,,,,,,..,,...,.,.,.,.,...,.,,,,.,,..,,
+#RTMGR2O3TFAR2FWZGYHZVP5CTD3YVXVEIW3ATYVSMN7FEXVU26ZCB42TNNTXNLBBEUOJDE4KFTQVY
+#\\\|EDVVWMWFPFM7RTRJUSJXHL24KBUGS4S5RJ6MWE7E2TKT5PWWUZH \ / AMOS7 \ YOURUM ::
+#\[7]Q2LHM7AC33MJR2UIDPWSWWOYDMPUQSZEKO5EADUYSX3X32PNY2BQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
