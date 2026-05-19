@@ -13,50 +13,62 @@ stream the body directly to disk/shm as it arrives, secured by four independent
 cryptographic layers. pass only a tiny path reference + key through the P7 network.
 
 ```
-header format:  X-P7-Content-Hash: <ntime>:<size>:<B32-BMW384>
+header format:  X-P7-Content-Hash: <ntime>:<bytes>:<lines>:<B32-BMW384>
 
-  ntime first  : freshness + replay anchor — temporal context
-  size second  : cryptographic constraint — collapses brute-force search space
-                 attacker must find a collision of EXACTLY <size> bytes
-                 for small payloads: verifiably impossible if size range scanned
-                 for large payloads: multiplicatively harder than unconstrained
-  checksum last: BMW384 integrity over the exact <size> bytes
+  this mirrors the proven inline subroutine format in bin/Protocol-7:
+    <BMW256-B32:lines:word_count:bytes>
+  which validates line count + BMW-256 checksum on every inline sub load.
+  the SHM pipeline extends it with ntime (replay protection) and uses BMW-384.
 
-  signature is over the full "<ntime>:<size>:<B32>" string — all three bound
-  together. size mismatch alone invalidates the signature even if collision found.
+  attribute order = progressive validation cost (cheapest gate first):
+
+  ntime   : ~nanoseconds  — single subtraction against current time
+            reject stale/future before reading anything
+  bytes   : ~free         — count as chunks arrive, no extra work
+            attacker must produce EXACTLY N bytes, collapses search space
+            for small N: verifiably impossible if N-byte space scanned for collisions
+  lines   : ~free         — count newlines inline while scanning chunks
+            independent constraint: same bytes, different structure → rejected
+  BMW384  : O(n) incremental — $bmw_ctx->add($chunk) during write, already done
+            full integrity: final compare is ~nanoseconds once streaming completes
+
+  all four attributes signed together — mismatch on ANY attribute invalidates
+  the signature even if the others match.
 
 sender side (jobsite → httpd):
   1. compute BMW384(body) → B32 encode
-     build header: "<ntime>:<length>:<B32>"
+     count bytes and lines
+     build header: "<ntime>:<bytes>:<lines>:<B32>"
   2. sign header with C25519 host key
   3. POST body with headers:
-       X-P7-Content-Hash: <ntime>:<length>:<B32>
+       X-P7-Content-Hash: <ntime>:<bytes>:<lines>:<B32>
        X-P7-Signature:    <C25519-sig-of-full-header>
        X-P7-Host-Key:     <sender-pubkey-B32>
        X-P7-Key-Cert:     <parent-name>:<parent-sig-of-hostkey-B32>
 
-httpd receive pipeline:
-  1. parse all X-P7-* headers
-  2. verify X-P7-Key-Cert: parent signature on host key (key hierarchy)
-  3. verify X-P7-Signature: C25519 sig over full content-hash header
-     → reject before reading any body if invalid (instant, zero cost)
-  4. check ntime within replay window (e.g. 60 seconds)
-     → reject stale or future-dated packets
-  5. generate random temp filename: /var/protocol-7/shm/<ntime-b32>-<random>
-     chmod 000 — unreadable by anyone during transfer
-  6. generate ephemeral Twofish key (held in memory only, never written)
-  7. as body chunks arrive:
-       $bmw_ctx->add($chunk)           # rolling BMW384
-       $twofish->encrypt($chunk)       # stream encrypt
-       write encrypted chunk to temp file
-  8. on body complete:
-       verify received_length == header size
-       verify encode_b32r($bmw_ctx->digest) == header B32
-     if VALID:
+httpd receive pipeline — progressive gates, cheapest first:
+
+  gate 1 [ ~ns  ]: parse X-P7-Content-Hash — extract ntime, bytes, lines, B32
+  gate 2 [ ~ns  ]: check ntime within replay window (e.g. 60s)
+                   → reject stale/future before any sig verification
+  gate 3 [ ~μs  ]: verify X-P7-Key-Cert — parent signature on host key
+  gate 4 [ ~μs  ]: verify X-P7-Signature — C25519 over full content-hash header
+                   → reject unauthorized sender before reading any body
+  gate 5 [ free ]: generate temp filename + Twofish key, open file chmod 000
+  gate 6 [ O(n) ]: as chunks arrive — single pass, all in parallel:
+                     byte_count += length($chunk)
+                     line_count += ($chunk =~ tr/\n//)
+                     $bmw_ctx->add($chunk)
+                     $twofish->encrypt($chunk) → write to temp file
+  gate 7 [ ~ns  ]: on body complete — final comparisons:
+                     byte_count == header bytes  → reject if mismatch
+                     line_count == header lines  → reject if mismatch
+                     encode_b32r($bmw_ctx->digest) == header B32 → reject if mismatch
+     if ALL VALID:
        rename temp file → /var/protocol-7/shm/<B32-BMW384-sum>
        chmod +r for httpd/protocol-7 user
        pass to web zenka via P7: { path => <B32-sum>, key => <twofish-key> }
-     if INVALID:
+     if ANY GATE FAILS:
        unlink temp file
        destroy Twofish key (undef + memory clear)
        return HTTP 400 — data cryptographically irrecoverable
@@ -96,20 +108,32 @@ signing the full body requires buffering or two-pass processing.
 signing `"<ntime>:<size>:<B32>"` is signing a commitment to the data —
 mathematically stronger than signing the data alone:
 
-**ntime**: binds the commitment to a specific moment — prevents replay
-**size**: collapses the collision search space to inputs of exactly N bytes
-  - for small N: verifiably impossible if N-byte collision space has been scanned
-  - for large N: multiplicatively harder than unconstrained collision search
-  - size mismatch alone invalidates the signature even with a valid BMW384 collision
-**BMW384**: integrity over the exact content
+this pattern is already proven in `bin/Protocol-7`: every inline subroutine
+is verified against `<BMW256-B32:lines:word_count:bytes>` on load. the SHM
+pipeline extends the same principle with ntime and BMW-384.
 
-together they form a triple commitment: WHEN + HOW MUCH + WHAT
+**ntime**:  WHEN — temporal anchor, prevents replay
+**bytes**:  HOW MUCH — exact byte count, collapses collision search space
+**lines**:  STRUCTURE — independent constraint, different arrangement = rejected
+**BMW384**: WHAT — integrity over exact content
 
-this enables:
-- instant rejection (sig verification before body read — zero body buffering)
-- replay protection (ntime window, e.g. 60s)
-- streaming body directly to disk (incremental `$bmw_ctx->add($chunk)`)
-- provable uniqueness for small payloads where collision space is bounded
+four orthogonal commitments. breaking any one invalidates all.
+
+each attribute is progressively more expensive to validate, so rejection
+always happens at the earliest, cheapest possible gate:
+
+```
+ntime   → reject stale/future:     ~nanoseconds, no body read
+C25519  → reject unauthorized:     ~microseconds, no body read
+bytes   → reject wrong size:       free, counted during write
+lines   → reject wrong structure:  free, counted during write
+BMW384  → reject tampered content: O(n) incremental, already done during write
+final compare → nanoseconds
+```
+
+attack rejected at ntime costs one subtraction.
+attack rejected at signature costs one sig verify.
+no attack ever reaches the disk without clearing all four header gates first.
 
 ## implementation
 
@@ -154,7 +178,9 @@ use args as before (browser updates still use inline body)
 ```perl
 my $ntime    = <[base.ntime.b32]>->(3, TRUE);
 my $b32_hash = <[base.chk-sum.bmw.strsum]>->($body);   # BMW384 → B32
-my $header   = join ':', $ntime, length($body), $b32_hash;
+my $bytes    = length($body);
+my $lines    = () = $body =~ /\n/g;
+my $header   = join ':', $ntime, $bytes, $lines, $b32_hash;
 my $sig      = <[crypt.C25519.sign_data]>->(\$header, $host_key);
 
 <[clients.http.post]>->({
@@ -239,8 +265,8 @@ curl -X POST http://localhost/jobs-sync \
 - use `encode_b32r()` from AMOS7 for B32 encoding of digest bytes
 - do not add the stub signature to new files — signing adds footer
 
-#,,,,,..,,,.,,,..,,.,,,,,,.,.,,.,,.,,,.,.,,,.,..,,...,..,,,..,..,,,,.,,.,,,.,,
-#4RYU33Q2G3VGNV3TKV4CHNBCDMJUUHESXIEQTYGTRJPYGKFICIA2YZKX7X7KDQVHTWALWGKHSY25I
-#\\\|LPNI3NSO5AZS54SOOCM3HS55NX4JB5GEN3E3TGXBLXYI7ZKKU7M \ / AMOS7 \ YOURUM ::
-#\[7]A3BOVAMBYM3BBY6NXZR7ONRPHHTL5WYP3YRIYCUMFLPSBTA6FCCI 7  DATA SIGNATURE ::
+#,,,.,.,,,..,,,.,,...,,,.,,,.,...,..,,...,.,,,..,,...,..,,,.,,,.,,..,,.,,,,,.,
+#7GXOPOCH2BL634IMFRPJGSITV5L7ELO5LJY23B2HO2NBNXLEKZMFDQ6KDBVYU7NYZ3TEJBZBGQFOW
+#\\\|VRL64O2LG225PFNZL43HXS6YHRF4DT67YX7ETEYMEWI3GUC767Q \ / AMOS7 \ YOURUM ::
+#\[7]PMY6WTMIGCQ46BDA7WHZ3SLWDDINCHAUCZYUVS73DQQEZCJHGIAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
