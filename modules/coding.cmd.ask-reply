@@ -41,9 +41,11 @@ if ( defined $call->{'param'} && ref $call->{'param'} eq qw| HASH | ) {
 return { 'mode' => qw| false |, 'data' => "work request required\n" }
     if !length($request_str);
 
-## detect simple/no-tools mode from :simple: marker anywhere in first 100 chars
-my $simple_mode = FALSE;
-if ( $request_str =~ s{:simple:\s*}{}i ) { $simple_mode = TRUE }
+## detect simple/no-tools mode from :simple: or :no_tools: marker
+my $simple_mode   = FALSE;
+my $no_tools_mode = FALSE;
+if ( $request_str =~ s{:simple:\s*}{}i )   { $simple_mode   = TRUE }
+if ( $request_str =~ s{^:no_tools:\n?}{}i ) { $no_tools_mode = TRUE }
 $request_str =~ s{^:next:\s*}{}i;
 
 # Parse and analyze task
@@ -77,6 +79,11 @@ if ($simple_mode) {
     $routed_task->{'max_rounds'} = 1;
 }
 
+## apply no_tools mode — tools disabled, rounds unrestricted
+if ($no_tools_mode) {
+    $routed_task->{'no_tools'} = TRUE;
+}
+
 # Enqueue task
 my $queue_result = <[coding.task.enqueue]>->($routed_task);
 return {
@@ -104,8 +111,8 @@ $data{"coding"}{"deferred_replies"}->{$deferred_id} = {
 
 return { 'mode' => qw| deferred | };
 
-#,,,.,.,.,...,,..,,..,..,,,,.,,.,,,,,,.,.,.,,,.,.,...,...,,..,,,.,,..,.,.,,.,,
-#5QEVLEVFHMNKXQEMJLSZTNIIHAYF455PV3DSJ34IUCZLOTB7LC6QJ7BZ3FKBOMOE7PPNJTMLRM5KW
-#\\\|MBHP5P7LUXROF5K722QVQAK6QSXVXV2PBAIRCOOOHEKP6EHQWNR \ / AMOS7 \ YOURUM ::
-#\[7]HZKDG63VKI6YZ23UGDCZZOSZ3KNUZLJBZMF6U4Y4RGAGAJM4KGDQ 7  DATA SIGNATURE ::
+#,,,,,,,.,...,,,,,...,...,,,,,,,.,.,,,,,.,...,.,.,...,...,..,,,.,,,.,,..,,,.,,
+#4GXRPZ6AZZKSWWERA5HSD4GUPGQIQWRNDOM7OEYNOG3LECEHLPNRTSY4GEUMOLNQQ2CWJUSJ5X3EK
+#\\\|XIJZB5PB7GXZH6OC3KCPKSVQG36N3MKB62AIOVXE3LARL4YV7CS \ / AMOS7 \ YOURUM ::
+#\[7]F5R5IFWPHXGDDJZROUVFXKP3XWHKUWKKHGFSETEBNMMCHYZWIYAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
