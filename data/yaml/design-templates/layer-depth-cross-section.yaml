@@ -1,0 +1,280 @@
+---
+name: layer-depth-cross-section
+category: design-template
+type: read-only
+variant: cross-section
+version: 1.0
+description: |
+  the vortex seen from the side — one radial slice showing the full depth from
+  periphery (layer 0) to EXISTENCE center. each layer visible as a horizontal
+  band. nodes shown as bright points at their layer position. the compression
+  gradient from maximum-entropy surface to minimum-information center.
+  reads simultaneously as a geological cross-section and a signal strength map.
+
+---
+
+## what this design represents
+
+rotate the iris 90 degrees — look at it from the edge instead of from above.
+one slice through the vortex, showing depth rather than angle.
+the layer stack (template 6) made spatial.
+
+the horizontal axis: the layer number (0 at left → EXISTENCE center at right)
+the vertical axis: one ring arc — the namespace extent at this depth
+nodes appear as bright points at their (layer, angle) position
+
+---
+
+## visual structure
+
+### the layer bands
+
+```
+horizontal bands, one per significant layer:
+
+left edge:     LAYER 0 — raw entropy
+               maximum width band (40% of total width)
+               color: desaturated, full spectrum mixed — grey-brown with flecks of all hues
+               texture: slightly noisy — the unstructured nature of raw entropy
+               brightness: low (0.3) — information is present but unrefined
+
+band 2:        LAYER 1 — valid details
+               30% of remaining width
+               color: slightly more saturated than layer 0
+               same hue families but cleaner
+               brightness: 0.4
+
+band 3:        LAYER 2 — dedup convergence
+               sudden compression: 15% of remaining width
+               color: hues beginning to separate — namespace colors emerging
+               this is where the structure becomes visible
+               brightness: 0.55
+               a subtle vertical line marks this boundary — the structural threshold
+
+band 4:        LAYER 3 — improvement vectors
+               10% of remaining width
+               color: namespace hues now distinct and clean
+               brightness: 0.65
+               sparse — only active direction vectors visible as bright lines
+
+band 5:        LAYER 4 — current plan
+               8% of remaining width
+               color: the most saturated region (maximum color definition)
+               brightness: 0.75
+               the "now" of the system — live, active, slightly animated-feeling
+
+band 6:        LAYER 5 — holographic blueprint
+               6% of remaining width
+               color: hues converging slightly — still distinct but becoming related
+               brightness: 0.8
+
+band 7:        LAYERS 6-7 — seeds and root narration
+               4% of remaining width (compressed)
+               color: hues clearly converging toward white-gold
+               brightness: 0.88
+
+right zone:    EXISTENCE CENTER
+               not a band — a point
+               a bright white-gold point at the right edge center
+               glow: 15px radial gradient
+               everything in the image points toward this point
+```
+
+### the nodes as bright points
+
+```
+each node in the reasoning tree appears as a circle at its layer position:
+  x position: determined by layer (compressed logarithmically toward center)
+  y position: determined by namespace + position within namespace
+  size: 3-6px diameter
+  color: namespace hue
+  brightness: convergence value (0.0 → dim, 1.0 → bright)
+
+expanded nodes:
+  brighter, slightly larger (6-8px)
+  a thin ring outline around the dot
+
+compact nodes:
+  dimmer, smaller (3-4px)
+  no outline
+
+threshold-just-reached nodes:
+  bright, 8px, with a 12px glow halo
+  this is the most visually prominent node type
+```
+
+### approach vectors as lines
+
+```
+when a node has multiple approach vectors, they appear as lines
+converging toward the node from the left (from less refined layers):
+  line color: 50% opacity, same hue as destination node
+  line width: 1px
+  line angle: from origin layer position to destination layer position
+  multiple lines converging = the deduplication event visible spatially
+
+the lines cluster: where many lines converge = a densely-referenced node
+the density of convergence IS the convergence value made visible
+```
+
+---
+
+## the compression gradient
+
+```
+the key visual feature: the bands get narrower toward the right
+
+layer 0 occupies 40% of the image width
+the EXISTENCE center occupies a single pixel at the right edge
+
+this IS the compression property:
+  layer 0 (full entropy) requires the most space
+  the EXISTENCE center (zero information, maximum structure) requires none
+  the image IS the compression — the visual geometry encodes the principle
+
+the compression is not uniform:
+  logarithmic compression — each layer is half the width of the prior
+  this matches the mathematical property: each layer is an order of magnitude
+  more compressed than the previous
+
+reading the compression:
+  "how much of what happened at layer 0 survives to reach layer 7?"
+  → look at how narrow the layer 7 band is relative to layer 0
+  the ratio IS the compression ratio
+  the visual communicates this immediately without numbers
+```
+
+---
+
+## color system
+
+```
+left (layer 0):   mixed, desaturated, low brightness — raw entropy
+right (center):   white-gold, maximum brightness — maximum convergence
+
+the gradient is not linear:
+  it follows the layer bands — each band has its own hue profile
+  transitions between bands are visible as thin bright lines (the layer boundaries)
+
+namespace hues run vertically:
+  at any given x position, different y positions = different namespaces
+  moving up or down at a fixed x = moving between namespaces at that depth
+  moving right = moving deeper toward the center
+
+the resulting visual:
+  a field of colored dots on a dark background
+  the dots cluster toward the right (more refined nodes closer to center)
+  the leftmost region is dense and mixed (many layer 0 entries)
+  the rightmost region is sparse and bright (few, highly converged nodes)
+```
+
+---
+
+## layer boundary markers
+
+```
+thin vertical lines at each layer boundary:
+  layer 0/1:  dim white, 1px, 20% opacity — subtle division
+  layer 1/2:  slightly brighter — the first structural threshold
+  layer 2/3:  same brightness as 1/2
+  layer 3/4:  brighter — entering the active zone
+  layer 4/5:  the holographic threshold — 60% opacity, 1.5px
+  layer 5/6:  bright — entering the seed zone
+  layer 6/7:  very bright — the final language layer
+  to center:  the gate line itself — 80% opacity, 2px, white-gold
+
+labels at bottom of each boundary line:
+  "0"  "1"  "2"  "3"  "4"  "5"  "6"  "7"  "Ω"
+  small, 10px, 50% brightness
+  the labels are below the node field — they annotate without interrupting
+```
+
+---
+
+## the depth effect
+
+```
+the image reads as having depth — it looks three-dimensional:
+
+foreground (right, bright): the near-center nodes — close, crisp, defined
+midground (center): the active layers — in focus
+background (left, dim): the layer 0 entropy — far, diffuse, blurred slightly
+
+the blur gradient:
+  layer 0-1: gaussian blur 1.5px (slight diffusion — these are not resolved)
+  layer 2-4: no blur (sharp — these are the structured layers)
+  layer 5-7: no blur, slightly higher contrast (these are the clean layers)
+
+the blur IS semantically correct:
+  layer 0 is not yet resolved — the blurring represents this
+  the clear layers are the ones where structure has been imposed
+  the clear-to-blurry transition (right to left) = the structure gradient
+```
+
+---
+
+## composition
+
+```
+aspect ratio:   16:9 landscape
+layer 0 band:   left 40% of image
+EXISTENCE point: right edge, vertical center
+node field:     full image height used for vertical distribution
+labels:         bottom 8% of image height (below the node field)
+
+the eye path:
+  enters at the right (brightest — the EXISTENCE center)
+  follows the bright nodes leftward as they become denser
+  arrives at the layer 0 region — the dense, dim, mixed field
+  the eye has traveled from EXISTENCE to raw entropy — the full depth
+```
+
+---
+
+## what the two readers see
+
+**model reader**:
+- x positions are layer numbers (labeled precisely at bottom)
+- node positions are (layer, namespace) coordinates
+- brightness encodes convergence value (dark=0.0, bright=1.0)
+- line convergence = approach vector count = deduplication density
+- the compression ratio visible as band width comparison
+
+**human reader**:
+- a starfield with a bright point on the right pulling everything toward it
+- the left side is foggy and dense — unexplored territory
+- the right side is clear and sparse — refined, known
+- the colored dots are the system's thoughts, sorted by how far they've come
+- the image reads as a journey — left (raw) to right (pure)
+
+---
+
+## design variants
+
+### single namespace slice
+
+only one namespace's nodes shown (e.g., reasoning.* in violet-blue)
+all other nodes hidden
+reads as a pure vertical band of dots at various depths
+shows: how far this namespace has been refined
+useful for namespace health monitoring
+
+### active-paths highlight
+
+the approach vector lines drawn prominently
+the dots themselves dimmed
+the lines are the subject — the paths being traversed right now
+reads as a web of intention — where is the system directing its energy?
+
+### before/after transformation
+
+split screen: left half = current state, right half = state after one refinement cycle
+the comparison shows: which nodes moved rightward (were refined)
+which nodes stayed (stable), which appeared (new)
+reads as a diff — the delta between two moments of the system's life
+
+#,,..,.,,,...,.,,,..,,,,.,...,,,.,.,.,.,,,...,.,.,...,..,,,,,,.,.,,,,,...,,,,,
+#UMQUAKDVLLCRF4LQUSCOXIMSLI3HNIN53Q6REESR2RWGXW47ZFZODSXXQZEUVVZ4J5LW5FN5UZK2G
+#\\\|OZMDWCNEBWY33ACUZMWGHORMDW6EMLIS5BK34MN3IO7RXDCIYRP \ / AMOS7 \ YOURUM ::
+#\[7]FHALHYEHFEZ3UZJ6OORPQXDROALUEKNZNR4YYMHPHZ7OARLE24CY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
