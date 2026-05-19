@@ -1,5 +1,47 @@
 # Completed Work Sessions
 
+## session 34 — sync pipeline fixes, site-yaml polish, discover replay protection (2026-05-19)
+
+**sync delta filter working**: `last_server_ntime` now persisted/restored via
+jobsite.state.persist/load — survives restarts. first sync sends all, subsequent
+syncs only send jobs changed since last server ack. chunked 30 jobs/POST to stay
+within session buffer limits (242KB ceiling).
+
+**site-yaml improvements**:
+- 410/404: drop without retry (was infinite loop), log at level 2
+- 403 ratelimit: push to back of queue (not front), max 5 retries, level 1
+- retry=N errors: level 1 (not 0)
+- skip-known pre-check in fetch_tick before HTTP request
+- init_code pre-loads 655 known job IDs from disk — avoids re-fetching
+- site-yaml loads jobsite.job namespace → upsert stamps last_modified
+
+**discover zenka**: per-sender ntime watermark replay protection added.
+`discover.ntime_watermark{key_L13}` updated on each valid packet (accept-but-
+don't-advance for lagging packets, 3s slack for jitter). sweep in check_packet_timeouts.
+Generic for all packet types, keyed by sender hostkey.
+
+**coding zenka**:
+- `:no_tools:` marker in assessment prompts — detected in ask-reply, strips tools
+  from task. state_machine skips tool_executor when no_tools set (handles models
+  that ignore empty tools array like Glitter 4B)
+- `httpd.init_code`: upload_dir creation non-fatal, non-root reload skips silently
+- `route.bmw384.svg_pos` extracted from inline sub — eliminates redefinition warning
+
+**design documents**:
+- PRIVACY-PRESERVING-IDENTITY-CREDENTIALS.md — signature-as-identity, progressive
+  forensic resistance, credential upgrade with traceable/historyless modes
+- COMPLEMENTARY-GENERATORS-7-AND-13.md — vortex navigation vs data readout,
+  +1 boundary, doubling as rotation, Tesla convergence, compound assertions,
+  deduplication tree as lie detector, researchers as convergent witnesses
+
+**task files**:
+- coding-model-selection-template.md — model self-selection via subtasks with
+  mandatory reason field as confusion filter + forensics audit trail
+- shm-streaming-payload-pipeline.md — ntime:bytes:lines:BMW384 header, progressive
+  validation gates, two-layer replay protection, Twofish per-zenka isolation
+
+commits: d268c19da → 8c28b7a02
+
 ## session 33 — clients.http.* + clients.https.* async client namespaces (2026-05-19)
 
 **clients.http.*** — 8 modules: non-blocking HTTP using IO::Socket::IP + event.add_io.
@@ -698,8 +740,8 @@ Skip calling harmonize_payload_line_feed when both conditions are met:
 - Signatures now properly formatted with correct separator endline
 - Pre-commit validation passes
 
-#,,,,,..,,.,.,,,.,,,,,...,.,,,.,,,,.,,,,,,...,..,,...,..,,.,,,,.,,...,..,,...,
-#WFGPRBE2KJ6NOPBHWDH2H27LFALEOL4Q56YV4GGQGUEM6CF6C2MRERBO4TZNVWDUIEV46HZNV2F4C
-#\\\|ZZ4ZO3WCHOGTOEXAGJLQZKY7RIWYEXGPMYO4AC5UDNPQ5636F3Z \ / AMOS7 \ YOURUM ::
-#\[7]ZGG2GD4U6OVIB2TYK7LFTE6XSNWJDYH5NJZWWCYTVMK53DZIJ4BA 7  DATA SIGNATURE ::
+#,,.,,.,,,.,.,,..,,,,,,,.,.,.,,,.,,,.,...,,.,,..,,...,..,,.,.,,,.,.,.,...,,..,
+#MZXGZNNQIGAO5XCVVLTTJGSVGWZO4TEMVYJ3WC6IFQOKYMJVFSODGZMYWD3N5GZ6FJBHRA5ZNON7S
+#\\\|DYXFYLBWV2A6ANCA2ILDSTR4K7UFFETT6KVTYZFJ3VTULJUPLCQ \ / AMOS7 \ YOURUM ::
+#\[7]5ZECI2OHMFONVCAE22FC3CGLPLYD33XRQC6FRB5I6I4WU5FK66AI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
