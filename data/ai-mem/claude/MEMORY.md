@@ -10,6 +10,7 @@
 ## Active Topics
 - [plugin-web-jobs](topic-plugin-web-jobs.md) — WORKING (session 33): sync wired via clients.http.post; open: server-side ?since=N, remote deploy, https switch when distributed
 - [clients-http](topic-clients-http.md) — clients.http.* + clients.https.* async namespaces; kimi-web parallel dispatch fixed; see completed session 33
+- [plugin-web-jobs](topic-plugin-web-jobs.md) — delta sync WORKING (session 34): ntime persisted, chunked push, last_modified stamps flowing
 - [job-pipeline](topic-job-pipeline.md) — WORKING (session 22): jobs.vhost live, German reason+summary, retry on timeout
 - [task-coordination](topic-task-coordination.md) — task zenka as coordinator; current state, dispatch flow, roadmap
 - [coding-state-machine](topic-coding-state-machine.md) — coding.state namespace, watcher-based backend lock, persist/restore lifecycle
@@ -128,6 +129,25 @@
 - active deps execution (requires list in task dispatcher)
 - think-block stripping — `<think>...</think>` from Kimi/Deepseek leaks into output
 - task.cmd.start — task zenka step 3
+- **model selection for assessment**: Glitter 4B good for scoring, but repair tasks
+  may need heavier model — `preferred_model` param on task.create needed
+- **site-yaml 403 backoff**: currently fixed at 10s; should scale with consecutive count
+- **sync ?since=N browser delta**: browser JS still sends full fetch, server-side
+  filtering not yet implemented (needs last_modified in index.yaml per entry)
+
+**shm pipeline** (next major infra):
+- task file: data/tasks/shm-streaming-payload-pipeline.md
+- replaces chunked sync with single authenticated streaming POST
+- ntime:bytes:lines:BMW384 header, C25519 sig, Twofish per-zenka encryption
+- progressive validation gates — reject at cheapest gate first
+- two-layer replay protection (time window + per-sender ntime watermark)
+- dispatch to kimi when clients.http.* is proven stable
+
+**model self-selection**:
+- task file: data/tasks/coding-model-selection-template.md
+- model selects backend via subtask dispatch with preferred_model + mandatory reason
+- reason field as confusion filter AND forensics audit trail
+- reason quality heuristics → eventually feeds benchmarking classifier
 
 ### BMW384 Iris — Future Directions
 - **animated**: auto-refresh as modules are signed, live topology monitor
@@ -137,6 +157,10 @@
 - **favicon/header**: 26-ring iris at thumbnail scale as live system-state favicon
 
 ### Planned / Future
+- **SHM streaming pipeline** — see data/tasks/shm-streaming-payload-pipeline.md; replaces chunked sync with single auth POST; dispatch to kimi after clients.http.* stable
+- **model self-selection** — see data/tasks/coding-model-selection-template.md; subtask-based routing with mandatory reason field
+- **sourcecode normalize-endline-state** — see data/tasks/sourcecode-normalize-endline-paths.md; path normalization config + new command; dispatch to kimi
+- **privacy credentials** — see data/md/design/PRIVACY-PRESERVING-IDENTITY-CREDENTIALS.md; signature-as-identity, no username/key stored, upgrade modes
 - **HTTP sync** — /api/jobs/sync httpd endpoint, C25519-signed YAML; see [job-pipeline](topic-job-pipeline.md)
 - **USB backup zenka** — udev insertion → backup task tree; see [usb-backup-zenka](topic-usb-backup-zenka.md)
 - **site-auth zenka** — session/auth for login-gated scrapers
@@ -156,8 +180,8 @@
 - **repo var/ cleanup** — `var/httpd/` tracked from Nov 2025 AI error
 - **kimi auto-approval regression** (Apr 16) — some tool calls not auto-approved during kimi tasks
 
-#,,,.,,,,,,,,,.,,,,..,.,,,,.,,..,,,..,.,.,,.,,..,,...,...,.,.,,,,,,,.,,,.,,,.,
-#KF6AB6E4HZXH5BP5WOQMQB65MB5GT7GWGFCZF6J6QY42KCTQJYEFJ5SLHFQVTCVD4TEEGZ7NC4ZGS
-#\\\|3WRM6N5IWSLMVZBOPSUCUJRJ2JEKZNAOAPAPAVQ3HYKMUZZ2MES \ / AMOS7 \ YOURUM ::
-#\[7]7O3YN7IPKYEDDMXUGAKBR3XS2FFIU55DKN5ZHSKBATLNBBVDJWCA 7  DATA SIGNATURE ::
+#,,,.,,,,,,.,,,.,,,,.,.,.,,.,,.,.,,,.,,,.,,,.,..,,...,..,,,..,..,,,..,.,,,...,
+#PSFFOEDAU4IMHDAI3KT6XA4HSWDG7W4ASQMHGIGP5X3F7FVW3SEM33DW4SN66EEIRNVL5OAEUOK6O
+#\\\|PSC77SQ7ZVQPFR4CESD3FUTLEVEAUGJUXCRMFWFI6M6QKXIMD7Y \ / AMOS7 \ YOURUM ::
+#\[7]KX3QQTPF5POLWILT373NK5RUPNXP4DAKHYLFURGVRUHGM2RVDSDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
