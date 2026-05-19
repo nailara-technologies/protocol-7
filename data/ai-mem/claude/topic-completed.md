@@ -2,10 +2,12 @@
 
 ## session 34 — sync pipeline fixes, site-yaml polish, discover replay protection (2026-05-19)
 
-**sync delta filter working**: `last_server_ntime` now persisted/restored via
-jobsite.state.persist/load — survives restarts. first sync sends all, subsequent
-syncs only send jobs changed since last server ack. chunked 30 jobs/POST to stay
-within session buffer limits (242KB ceiling).
+**sync delta filter CONFIRMED WORKING**: `sync push skipped [ no changes ]` verified.
+Root cause of full syncs: `encode_b32r` = reverse-byte-order, NOT lexicographically
+sortable. String `gt` comparison was always wrong. Fix: `base.ntime_BASE32_to_numerical`
+for numerical comparison. Watermark = local ntime at cycle start (not server ntime),
+persisted in state.persist after all chunks complete. `p7c localtime <ntime>` for diagnosis.
+chunked 30 jobs/POST within 242KB session buffer ceiling.
 
 **site-yaml improvements**:
 - 410/404: drop without retry (was infinite loop), log at level 2
@@ -740,8 +742,8 @@ Skip calling harmonize_payload_line_feed when both conditions are met:
 - Signatures now properly formatted with correct separator endline
 - Pre-commit validation passes
 
-#,,.,,.,,,.,.,,..,,,,,,,.,.,.,,,.,,,.,...,,.,,..,,...,..,,.,.,,,.,.,.,...,,..,
-#MZXGZNNQIGAO5XCVVLTTJGSVGWZO4TEMVYJ3WC6IFQOKYMJVFSODGZMYWD3N5GZ6FJBHRA5ZNON7S
-#\\\|DYXFYLBWV2A6ANCA2ILDSTR4K7UFFETT6KVTYZFJ3VTULJUPLCQ \ / AMOS7 \ YOURUM ::
-#\[7]5ZECI2OHMFONVCAE22FC3CGLPLYD33XRQC6FRB5I6I4WU5FK66AI 7  DATA SIGNATURE ::
+#,,,.,...,,,,,,,,,,,.,,..,,..,,,,,..,,,.,,.,.,..,,...,...,..,,..,,,.,,,.,,,.,,
+#D5DWVDNWCZAGVILC3LWUCNUREPMYZUAF56LNW5R7SOQUEYBT2IKEARGIVPZIZ2CZ4MG7GJYTFDEU4
+#\\\|O3QSMPQXZ6AERGQT7XR4KPFJOJ4D574326AG4HZ4HQV4ENNVSDA \ / AMOS7 \ YOURUM ::
+#\[7]R5IF734ZZVXRZ2DHW24U6EG4IQO4W7F22HAK32EC6JO3XLBESOCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
