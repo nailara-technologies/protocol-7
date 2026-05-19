@@ -40,7 +40,28 @@ if (   $error =~ m{HTTP error:\s*5\d\d|timeout|connection closed}i
     ## model keeps content and tool results for context ##
     if ( $error =~ m{HTTP error:\s*500}i ) {
         my $msgs = $state->{'messages'} // [];
+
+        ## detect gemma/llama jinja templates that reject role:tool messages ##
+        ## pattern: raise_exception("Invalid content type") in else branch  ##
+        my $convert_tool_role = (
+            $error =~ m{Invalid content type}i
+            || $error =~ m{raise_exception}i
+        ) ? 1 : 0;
+
         for my $msg ( @{$msgs} ) {
+            ## convert role:tool → role:user when template rejects tool role ##
+            if (   $convert_tool_role
+                && ( $msg->{'role'} // '' ) eq qw| tool | ) {
+                my $tc_id = $msg->{'tool_call_id'} // 'unknown';
+                $msg->{'role'}    = qw| user |;
+                $msg->{'content'} = "[TOOL RESULT: $tc_id]\n"
+                    . ( $msg->{'content'} // '' );
+                delete $msg->{'tool_call_id'};
+                <[base.logs]>->(
+                    1, "http_error: converted tool role → user (jinja template mismatch)"
+                );
+            }
+            ## strip tool_calls from assistant messages ##
             if ( ( $msg->{'role'} // '' ) eq 'assistant'
                 and ref $msg->{'tool_calls'} eq qw| ARRAY | ) {
                 <[base.logs]>->(
@@ -118,8 +139,8 @@ if ( $error =~ m{timeout}i ) {
 
 return;
 
-#,,.,,.,,,,..,.,,,,,,,.,,,,..,,,.,,..,,,,,,..,..,,...,..,,,,.,..,,,,.,.,.,,,,,
-#QA3OIJGRXQNFQINSLPPJ5Q7BSH4GHOUVNTPMPZEVADEM4ISGR3SFUAZCQZXIMYDTYPC2IV4YQUIEM
-#\\\|KNZUOEK4XUDZ4KRFBSNIGYCLFKP4DYSY2HTP6ZIAJHKJ6GRO7VJ \ / AMOS7 \ YOURUM ::
-#\[7]T4SH5SDBTNIHS3ITHFBGJVIS3WI6ANRJ3CPXU6FWYSNAHXIRBQBA 7  DATA SIGNATURE ::
+#,,,,,,.,,.,.,..,,.,,,,,,,,.,,..,,.,.,...,...,..,,...,...,..,,,.,,.,.,,..,,,.,
+#YCD4Z3KETZZ4MMUE25B2ASSOOY7POWYUEV7BOZF5VTOEAVQ3FBBCEDXKENCQHK5AULMPZRZJ2WAVU
+#\\\|6UMGWZTL5FQDGI344GISLV7TCVXEABQRJ3CV67JEL3LPOIHG7FZ \ / AMOS7 \ YOURUM ::
+#\[7]MM6PFOP35FBSPHGTCFCIMLQALXUROIZYXVIOFO45UGJQJEK6JOBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

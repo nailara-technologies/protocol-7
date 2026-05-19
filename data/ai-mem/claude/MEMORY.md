@@ -190,3 +190,10 @@
 #\\\|YBHIEP5PFVYUON6ZQWEPQSHJPNSJPQJCFWJAKKICKFKASXA44RU \ / AMOS7 \ YOURUM ::
 #\[7]NV3FVBMRSJXDTY7GQ4FCKMS52NW6IZCPOCIZKZGG6OPTA6DLPYBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+- **Glitter 4B restart**: after a failed tool-using task, the Glitter backend needs restart before `:no_tools:` tasks work. The model gets stuck in tool-mode from the previous failed session. Restart coding zenka or wait for it to reset before dispatching `:no_tools:` priming tasks.
+
+#,,,,,...,.,,,,,,,.,.,,,,,,,,,.,.,.,.,...,...,..,,...,...,,..,,,,,...,,,.,...,
+#73GTCXMGOTQAYAX5N24SVO6U73FIMSVFBHXCCX7GDQAA25LAJ5AEZ5M77MQEWF2KIMOGTQCIPNZU2
+#\\\|X3ZHBBSXLVYI6GLFB2JC6YKJZTOMHBKRQYREYXK54X6LPFJCNCH \ / AMOS7 \ YOURUM ::
+#\[7]OQTM25CRYJBQ3RKHCZZBTU2X23DQ2THUAUQ3YOAF73OAVBM4MMCQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
