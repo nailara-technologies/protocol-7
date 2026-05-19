@@ -28,10 +28,26 @@ if ( <[base.cfg_bool]>->( <site-yaml.bypass_proxy> // FALSE ) ) {
 ## init fetch queue state ##
 <[site-yaml.fetch.state]>->('load');
 
+## pre-populate job store with known IDs from disk — prevents re-fetching known jobs ##
+my $jobs_dir = join qw| / |,
+    <system.path.zenka-dirs>->{'var_P7'}, qw| jobsite jobs |;
+if ( opendir my $dh, $jobs_dir ) {
+    my $known = 0;
+    $data{'jobs'}{'store'} //= {};
+    while ( my $f = readdir $dh ) {
+        next unless $f =~ s|\.yaml$||;
+        $data{'jobs'}{'store'}{$f}
+            //= {};    ## placeholder — prevents refetch ##
+        $known++;
+    }
+    closedir $dh;
+    <[base.logs]>->( 1, 'site-yaml: %d known job ids pre-loaded', $known );
+}
+
 <[base.logs]>->( 1, 'site-yaml ready' );
 
-#,,..,,..,,.,,.,,,.,.,,.,,,,.,.,.,...,..,,...,..,,...,...,,.,,,,.,,,.,,..,..,,
-#3ZIPTDSHWZTERSVKTHRMUOTZQRVZXDSDKJU45GAKLQKL7LUVEZOIPJ35W7BB2VX7E7DCCTHGKQVO2
-#\\\|BS225QL4UE5AOSVE7276JQSL4VPCG4DIDZ32QDOZHPQWD2EZY3Y \ / AMOS7 \ YOURUM ::
-#\[7]54USQOFS2ACU3QLN3OHUSBSV4IGO2DMMSKJKLDXT5KU6UMXZV4DQ 7  DATA SIGNATURE ::
+#,,.,,.,.,.,,,,,,,,,.,.,,,.,.,.,,,..,,.,,,..,,..,,...,...,,,.,,.,,,..,...,,,.,
+#QY3AC7ZVZ3ZUC3NPDTO2ALAGKN3SXVRIIDSRZXI7KMYGPAGFCBJNG72ULF7T222B36FJHFCP5Y4O6
+#\\\|LVOPDZ4EJB3EDHVDOA5CXRF2W3RIAW2745UNDXJH5NXVB4PCSK3 \ / AMOS7 \ YOURUM ::
+#\[7]UIOPZ3HE3KFH2W2S2JPNWTAV3VBNUJG4VPNNLQQ7GL4E6I4I5MCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

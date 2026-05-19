@@ -16,6 +16,14 @@ my $id   = $item->{'id'}  // '';
 
 return unless length $url;
 
+## skip fetch if job already known — check in-memory store and on-disk ##
+if ( exists $data{'jobs'}{'store'}{$id} ) {
+    <[base.logs]>
+        ->( 2, 'fetch: %s [skip-known] q=%d', $id, scalar @{$queue} );
+    <[site-yaml.fetch.schedule]>;
+    return;
+}
+
 ## fetch job detail ##
 my $job = <[site-yaml.stepstone.job]>->($url);
 
@@ -74,8 +82,8 @@ my $tag    = $result eq 'new' ? 'new' : 'skip';
 
 return;
 
-#,,,.,,,.,,..,,,.,,.,,,,,,,,,,...,...,..,,.,,,.,.,...,...,...,,,.,,.,,...,,..,
-#2GNZNJZODEXRC7KI54Z52C67HZEDJYXTY6HZ5LMJZJ5UQ7H6V3SBFPBCNLCSQ42C2C56NHNFIHKPK
-#\\\|U5URRTMGLADH3OMLABBI2LPVY36PM34QE6XQTTSWNOURQEMCMUN \ / AMOS7 \ YOURUM ::
-#\[7]5VQKSODYNOY3KA5PBX4W6PGKDR5RNQNAX75IO7EBVFLZKFOALMBY 7  DATA SIGNATURE ::
+#,,..,...,,.,,,,,,.,.,.,.,,,,,,..,.,.,.,,,..,,.,.,...,...,,..,,,.,,,,,.,.,,,,,
+#BQ4SMNH4BBA5YUCTEHFEU7SWLHVYD3GWPDD2NR3CKJB6YAYAW3W3I56HTFYAORLYOZSAWAOEQZHLQ
+#\\\|T2XK3QARRP5QQQKYAX7R27QBCU333T7A6ZD6Y2UVYLP52AFLB2A \ / AMOS7 \ YOURUM ::
+#\[7]E2CPDQSPVVXAB6UHAKGLJ7NL5ISRFGCDWYSK52ARCECKY7UKRSCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
