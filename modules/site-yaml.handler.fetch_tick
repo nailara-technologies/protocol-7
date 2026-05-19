@@ -22,11 +22,15 @@ my $job = <[site-yaml.stepstone.job]>->($url);
 my $ql = scalar @{$queue} + 1;    ## including current item
 
 if ( ref $job ne 'HASH' ) {
-    my $err          = $job // 'unknown';
-    my $is_ratelimit = $err =~ m{403|rate.?limit|too.?many}i;
-    my $tag          = $is_ratelimit ? '403' : 'err';
+    my $code    = $job // 0;
+    my $is_gone = $code =~ m{^4(10|04)$};    ## 410 Gone, 404 Not Found ##
+    my $is_ratelimit
+        = $code =~ m{403|429} || ( $code // '' ) =~ m{rate.?limit|too.?many}i;
+    my $tag = $is_gone ? 'gone' : $is_ratelimit ? '403' : 'err';
 
-    if ($is_ratelimit) {
+    if ($is_gone) {
+        ## permanent — drop immediately, no retry ##
+    } elsif ($is_ratelimit) {
         unshift @{$queue}, $item;
         <[site-yaml.fetch.backoff]>->('error');
     } else {
@@ -58,8 +62,8 @@ my $tag    = $result eq 'new' ? 'new' : 'skip';
 
 return;
 
-#,,,,,..,,.,,,.,,,.,.,..,,,..,..,,...,..,,,,,,.,.,...,...,...,,,.,,..,...,...,
-#D36KYRPTWFNB4DGDCDL2GDC6BPGM5UQB4XYB6RO4TLK64SD6HTF623DXB2VHNHYPRZL6HIMKZ7KV4
-#\\\|IZ4SU7IJQFDIAEKA4K6NN6CGPNF7IRKZ7QPY4ZMXC64VA6UPBRZ \ / AMOS7 \ YOURUM ::
-#\[7]3STTBNJA7OG3LCBNS2XPULAEIMVOXF7NLM5X2H7BP4FOMUSC2YAA 7  DATA SIGNATURE ::
+#,,,.,...,,,,,,.,,,.,,..,,,,,,,,,,,..,.,.,,..,.,.,...,...,..,,..,,...,,..,,..,
+#M4QSY7PV5NPZR4OGLU5KAH2K6GQB6IC7HQEY2FZ3TX5DQIYQKJXFVVPICDLNEAXHNADPD6P23EATO
+#\\\|BHIWH5RA5LR7WT7DKSOQOV6B36PCJT5QK6S7OAAQGVCFM62STQL \ / AMOS7 \ YOURUM ::
+#\[7]EV2FE4T5YANBYBHHZY4DAU5YDOH44LC2O3IZB2WQYNOACJMVYUDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
