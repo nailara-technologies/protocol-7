@@ -20,7 +20,8 @@ my $mode  = $data{'handle'}{$fd_srv}{'mode'};
 
 <[base.logs]>->(
     2,
-    "[%d] base.handler.connect: server_handle_protocol='%s', derived_protocol='%s'",
+    "[%d] base.handler.connect : server_handle_protocol"
+        . "='%s', derived_protocol='%s'",
     $id,
     $data{'handle'}{$fd_srv}{'protocol'} // 'UNDEF',
     $proto
@@ -97,10 +98,7 @@ if ( not defined $data{'handle'}{$fd_srv}{'protocol'} ) {
         if ( length($banner_string) and $mode eq qw| input | ) {
             <[base.net.send_to_socket]>->( $fd_client, $banner_string );
         }
-        <[base.logs]>->(
-            1,    '[%d] :. %s .: connection established. ::',
-            $cid, $proto
-        );
+        <[base.logs]>->( 1, '[%d] :: established :: %s ::', $cid, $proto );
 
     } else {
         <[base.logs]>->( 1, '[%d] connection was closed [?] .,', $id );
@@ -108,8 +106,8 @@ if ( not defined $data{'handle'}{$fd_srv}{'protocol'} ) {
     }
 }
 
-#,,,.,...,,..,,..,,,.,...,.,,,,,,,,,.,,..,,..,..,,...,..,,..,,,..,.,.,,..,.,.,
-#VL7YT772DQHVNJCEGG44EKUM3XENEAAAMP3X4FNRLPTWDESLS77SUOIDGOXLGMOG26PEKY55TO7SO
-#\\\|UUDCFD4JFQNH6BF2SAN7Y5ETDOA6RGM4GUNFDIVOOKYLL7OORKR \ / AMOS7 \ YOURUM ::
-#\[7]NDLKODQ6R3S2I52SHQGPU64TCM7FI57XWU4QVUHRSFY4MVAO5YDQ 7  DATA SIGNATURE ::
+#,,,.,,,.,.,,,..,,...,,..,,.,,.,.,,,.,,,,,,,,,..,,...,...,...,,..,,,,,.,,,...,
+#HIB42DCHDRHJ4Z6NVTGRDZZTGWU2ZXMNDFTGCPL4IMFAFJVR5RIDSRCFZBTIPZU5Y6BTFKBK57AYG
+#\\\|WMWW32C6LE6PQ6356CLA756XE2XWXFO3QJLNAREIQ6QCIIHCV5V \ / AMOS7 \ YOURUM ::
+#\[7]BV7U4VBUH75DRUGRHNRA2N32XPTRPU753SOKO4UDMP2C5BNQRCAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

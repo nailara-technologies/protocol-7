@@ -1,0 +1,33 @@
+## [:< ##
+
+# name  = route.bmw384.svg_pos
+# descr = convert bmw384 coordinate to svg x/y position and angle
+
+my $coord           = shift;
+my $radius_override = shift;
+
+my $PI            = 3.14159265358979;
+my $segment_deg   = 360 / 26;
+my $segment_width = 16777216 / 26;
+
+my $arc   = $coord->{'arc'}   // 0;
+my $color = $coord->{'color'} // 0;
+
+my $arc_start_deg = -$arc * $segment_deg;
+my $within_arc_frac
+    = ( $color / $segment_width ) - int( $color / $segment_width );
+my $angle_deg = $arc_start_deg - $within_arc_frac * $segment_deg;
+my $angle     = $angle_deg * $PI / 180;
+my $radius    = $radius_override // 280;
+
+return {
+    x     => 400 + $radius * sin($angle),
+    y     => 400 - $radius * cos($angle),
+    angle => $angle,
+};
+
+#,,..,.,,,,.,,,,.,,..,...,,.,,,,.,,,.,.,,,.,.,..,,...,..,,.,.,,.,,.,,,,,,,,,,,
+#6K7LWHC7RMN4NXDM2NJF33ZS2OXBI6GWZW2OUJBV36KJGCTTCZLPZPK6PB2AOAAMBDDCBVIK3DK6S
+#\\\|NWFR4H6WAZ366IVBQUMAIG45IUADIZHKU2UHXPCFVCXGJPRIO56 \ / AMOS7 \ YOURUM ::
+#\[7]KA64ALXSLYYLORY653WMK4SRQXXBMDCMACENMZSKB5RIG3VWS2BQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
