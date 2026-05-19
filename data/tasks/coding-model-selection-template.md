@@ -44,6 +44,49 @@ mandatory reason serves three purposes:
    with reason Z succeeded at rate R" — the reasons are the natural
    feature vectors for the routing classifier.
 
+## model selection via subtasks
+
+the natural switching unit is the subtask, not the round. a task running on
+a fast model discovers it needs more power, spawns a subtask on the heavier
+backend, waits for the result, continues on the fast model:
+
+```
+parent task [ fast model ]:
+  round 0: read task, explore structure
+  round 1: "synthesis requires 35K context across 8 modules"
+           → task.create: {
+               description:     "synthesize module X",
+               preferred_model: "gpu",
+               max_context:     35000,
+               reason:          "estimated 30K tokens, multi-file edit synthesis",
+               parent_id:       current_task_id
+             }
+  round 2: wait for subtask result
+  round 3: receive compact result, continue on fast model
+
+subtask [ gpu, 35K context ]:
+  runs to completion, returns result
+  fast parent never touches the large context
+```
+
+**each task is a clean unit on one backend** — no hot-swap mid-conversation,
+no state migration, no context window fragmentation. the subtask boundary IS
+the model boundary.
+
+**reason field on subtask creation** — the parent model justifies why it's
+spawning to a heavier backend. mandatory reason applies here:
+- "estimated 30K tokens, multi-file edit synthesis" → credible
+- "need gpu because hard" → flagged as vague, default used instead
+
+**resource isolation by design** — heavy subtask completes, returns compact
+result. parent fast model gets the synthesis without ever loading the full
+context. heavy backend freed immediately when subtask completes.
+
+**depth-aware routing** — subtask can itself spawn sub-subtasks on different
+models. the task tree becomes a model routing tree. each level logs its
+selection reason, creating a full audit narrative of how complexity was
+distributed across backends.
+
 ## model pinning vs self-selection
 
 two modes:
@@ -116,8 +159,8 @@ how often self-selection matches caller expectation, success rate correlation.
 - reason field: freeform text, min length enforced at validation
 - backend names match existing `coding.inference_servers` keys
 
-#,,.,,,..,,..,,.,,.,.,...,...,,..,..,,,..,.,,,..,,...,...,,.,,,..,,,,,,,.,.,,,
-#HQABS2RUDB4NLUOLVJQ727ESBNFKKYS2RYSTXNWOQGG5MJWV747RTQRQP7SHTKVIISZCT2P6QMDUE
-#\\\|WHWFRUD7JN4HB7H3PJ7ZVLW6T2AVJG4FK7ZZIVRBEJZRLXZOART \ / AMOS7 \ YOURUM ::
-#\[7]ZZD237TQGNXVXRD3SPGG5PX4R4SST7SSQCNQFU32N6NGPRRR2GCA 7  DATA SIGNATURE ::
+#,,,.,,.,,..,,,,.,..,,,..,,..,,,,,.,.,,.,,,,.,..,,...,..,,...,...,,.,,,.,,..,,
+#5PEJBTKQHEQ7KVPQGZLMYPL37ZZAWXWGUNSMQ6QXC5W2OEY6MV5VURN7QSJ4B2WFQ3HV4BNV2JRFS
+#\\\|KVUDD5NMXRCKD4SI3344R6UX4EOKSX536JBK7QTMHEK42WW5E5L \ / AMOS7 \ YOURUM ::
+#\[7]UBXA7BJC6POKGEUN24DL7AHMNAQIZ4CH6JRBQLDHJOMBSFLHPMDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
