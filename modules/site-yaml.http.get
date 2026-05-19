@@ -14,13 +14,15 @@ if ( not $res->is_success ) {
         0,    'site-yaml.http.get : %s => %s',
         $url, $res->status_line
     );
-    return undef;
+    return
+        $res->code
+        ; ## return numeric code — callers can distinguish permanent vs transient ##
 }
 
 return $res->decoded_content;
 
-#,,.,,,..,..,,..,,.,,,...,..,,...,.,.,,,,,,..,..,,...,...,.,,,.,.,.,,,,..,,.,,
-#LLWVEFV4MI72VYOHAZ2PAWBUTV4RS4D6ZV56ZMS5FJ673MGJZNMBEZE7LJR6FIR42RBT4EDXEDQJC
-#\\\|ZGFSRA7I5KS3452QME7UK2ST7UKQGICZGNL7523LYN7XYBQKGNA \ / AMOS7 \ YOURUM ::
-#\[7]ACRXCMFQKEEYBC6BZ5PPWZDWKHCD4PPKDUYTSN4PNMUL76U2WQBY 7  DATA SIGNATURE ::
+#,,..,.,,,,,,,...,,.,,,,,,.,.,.,,,,,,,...,...,..,,...,...,...,..,,..,,.,.,,..,
+#IV2XK66JQVSEWUB4KHGP6EJBTN5MMNWOLICSAYGRIGFQJBMGOOB5TL4FKVGWNBQEMDADRCDGRJUQM
+#\\\|HTJX24NZ5CNN4TWVXTRSA2H3LACDPWPG2GA34XPUC3FS2EUB3Q5 \ / AMOS7 \ YOURUM ::
+#\[7]O3GAME3A6RSGBFVSS73C6IUOUY5QBDZQIR5NTRZ3QKJHFTQPNIBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
