@@ -1,0 +1,46 @@
+## [:< ##
+
+# name  = fetch.file.huggingface.list
+# descr = list available GGUF quantizations for a HuggingFace repo
+# param = { repo => 'user/repo-GGUF' }
+
+my $call = shift;
+my $args = $call->{'args'} // {};
+$args = {} if ref $args ne qw| HASH |;
+
+my $repo = $args->{'repo'} // '';
+
+return { 'mode' => qw| false |, 'data' => 'repo parameter required' }
+    if !length($repo);
+
+my $reply_id = $call->{'reply_id'} // '';
+
+## store pending request ##
+<fetch.file.hf_pending> //= {};
+my $req_id = <[base.gen_id]>->(<fetch.file.hf_pending>);
+<fetch.file.hf_pending>->{$req_id} = {
+    'reply_id' => $reply_id,
+    'type'     => qw| list |,
+    'repo'     => $repo,
+};
+
+## query HuggingFace API (no auth needed for public models) ##
+my $api_url = sprintf( 'https://huggingface.co/api/models/%s', $repo );
+
+<[clients.http.get]>->(
+    {   'url'     => $api_url,
+        'timeout' => 30,
+        'on_done' => qw| fetch.file.huggingface.handler.list_response |,
+        'params'  => { 'req_id' => $req_id },
+    }
+);
+
+<[base.logs]>->( 2, "[hf.list] querying repo: %s", $repo );
+
+return { 'mode' => qw| deferred | };
+
+#,,..,...,,,,,,..,.,,,...,...,..,,..,,,,.,,.,,..,,...,...,...,..,,,..,,,.,,,.,
+#QVTLRLQ6XAUOAV7XURLCB5A2PEW4M7HJSNFWYMA2SRSS2LJSRHOQXWO72Y6EFGDJEVBCV5JUE3IDI
+#\\\|THDQAKYTT53EKPXUJCMJYW7YXMLRZGTLFII4RCB7GYOFYEVIJUI \ / AMOS7 \ YOURUM ::
+#\[7]RUVHSZCUJQSECVM6EIANXGCH7NOQGYKOQMWRRQOF7PZ5RPV3F4DI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

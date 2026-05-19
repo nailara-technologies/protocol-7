@@ -1,0 +1,72 @@
+## [:< ##
+
+# name  = fetch.file.huggingface.status
+# descr = show download progress for active downloads
+
+my $call = shift;
+my $args = $call->{'args'} // {};
+$args = {} if ref $args ne qw| HASH |;
+
+my $dl_id_filter = $args->{'dl_id'} // '';
+
+my $downloads = <fetch.file.downloads> // {};
+
+if ( !keys %$downloads ) {
+    return { 'mode' => qw| true |, 'data' => 'no active downloads' };
+}
+
+my @lines = sprintf( "%-40s %10s %10s %10s %8s",
+    'filename', 'downloaded', 'total', 'speed', 'status' );
+push @lines, '-' x 82;
+
+for my $dl_id ( sort keys %$downloads ) {
+    next if length($dl_id_filter) && $dl_id !~ m|\Q$dl_id_filter\E|;
+
+    my $dl = $downloads->{$dl_id};
+
+    my $file       = $dl->{'file'}       // 'unknown';
+    my $downloaded = $dl->{'downloaded'} // 0;
+    my $total      = $dl->{'total'}      // 0;
+    my $speed      = $dl->{'speed'}      // 0;
+    my $status     = $dl->{'status'}     // 'unknown';
+    my $eta        = $dl->{'eta'}        // 0;
+    my $percent    = $dl->{'percent'}    // 0;
+
+    my $down_mb = sprintf( '%.1f', $downloaded / ( 1024**2 ) );
+    my $total_str
+        = $total > 0
+        ? sprintf( '%.1f MB', $total * 1024 )
+        : '?';
+    $total_str = sprintf( '%.1f GB', $total ) if $total > 1;
+
+    my $speed_str = $speed > 0 ? "${speed}MB/s" : '-';
+    $speed_str .= " eta=${eta}s" if $eta > 0;
+
+    push @lines,
+        sprintf(
+        "%-40s %10s %10s %10s %8s",
+        $file, $down_mb . ' MB',
+        $total_str, $speed_str, $status
+        );
+
+    if ( $percent > 0 ) {
+        my $bar_width = 30;
+        my $filled    = int( $bar_width * $percent / 100 );
+        $filled = $bar_width if $filled > $bar_width;
+        my $bar
+            = '['
+            . ( '=' x $filled )
+            . ( ' ' x ( $bar_width - $filled ) ) . ']';
+        push @lines, sprintf( "  %s %d%%", $bar, $percent );
+    }
+}
+
+my $output = join( "\n", @lines );
+
+return { 'mode' => qw| true |, 'data' => $output };
+
+#,,,.,...,.,.,.,.,.,.,...,,,,,..,,.,.,.,,,,,,,..,,...,...,...,...,,..,,,,,,,.,
+#XIUG7NMHIK76V7DJ5AGLVVRLTKWKYW53OMJPGTLMBAXMGEK24RX7FLWADG3WDOYOM24CR7LDVEUUY
+#\\\|KNXSPFSQ7GXUWZEZXTMDCJBDJ52HN4YVCWTGF3AHHGWEE2NURRI \ / AMOS7 \ YOURUM ::
+#\[7]PVKMP2LBYSNXPFM66IX7AZK3B2YBAUNEEZ3O56T7BCO2PDFPHKDI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

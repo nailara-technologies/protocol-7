@@ -1,0 +1,175 @@
+## [:< ##
+
+# name  = fetch.file.huggingface
+# descr = download GGUF model from HuggingFace Hub
+# param = { repo => 'user/repo', file => 'model-Q4_K_S.gguf', dest => undef }
+
+use IPC::Open3;
+use Symbol qw| gensym |;
+use POSIX  qw| WNOHANG |;
+
+my $call = shift;
+my $args = $call->{'args'} // {};
+$args = {} if ref $args ne qw| HASH |;
+
+my $repo = $args->{'repo'} // '';
+my $file = $args->{'file'} // '';
+my $dest = $args->{'dest'} // '';
+
+## validate args ##
+return { 'mode' => qw| false |, 'data' => 'repo parameter required' }
+    if !length($repo);
+return { 'mode' => qw| false |, 'data' => 'file parameter required' }
+    if !length($file);
+
+## auto-detect destination for GGUF files ##
+if ( !length($dest) ) {
+    if ( $file =~ m\.gguf$\i ) {
+        $dest = <external.models.lmstudio.path> // <external.models.path>
+            // '/mnt/ext-xfs-data/models-lmstudio';
+    } else {
+        $dest = <external.models.download.temp> // '/tmp/model-downloads';
+    }
+}
+
+## ensure destination directory exists ##
+if ( !-d $dest ) {
+    eval { make_path( $dest, { 'mode' => 0755 } ) };
+    if ($EVAL_ERROR) {
+        return {
+            'mode' => qw| false |,
+            'data' => "cannot create destination directory: $dest"
+        };
+    }
+}
+
+my $dest_path = "$dest/$file";
+
+## check if already exists ##
+if ( -f $dest_path ) {
+    my $size_gb = ( -s $dest_path ) / ( 1024**3 );
+    return {
+        'mode' => qw| true |,
+        'data' => sprintf(
+            "file already exists: %s (%.2f GB)",
+            $dest_path, $size_gb
+        )
+    };
+}
+
+## LAN check first (faster than WAN) ##
+my $lan_result = <[fetch.file.huggingface.lan-check]>
+    ->( { 'args' => { 'filename' => $file } } );
+
+if ( ref $lan_result eq qw| HASH |
+    and $lan_result->{'found'} ) {
+    ## TODO: initiate rsync from LAN host ##
+    ## for now, report that LAN copy is available ##
+    <[base.logs]>->(
+        1,
+        "[hf.fetch] LAN copy found on %s: %s",
+        $lan_result->{'host'} // 'unknown',
+        $lan_result->{'path'} // 'unknown'
+    );
+}
+
+## determine download tool ##
+my @cmd;
+my $use_hf_cli = 0;
+
+if ( open( my $null, '-|', 'which', 'huggingface-cli' ) ) {
+    while (<$null>) { $use_hf_cli = 1 }
+    close($null);
+}
+
+my $hf_token = <fetch.file.hf_token> // <external.hf.token> // '';
+
+if ($use_hf_cli) {
+    @cmd = (
+        'huggingface-cli', 'download', $repo, $file, '--local-dir', $dest
+    );
+    push @cmd, '--token', $hf_token if length($hf_token);
+} else {
+    my $url = sprintf( 'https://huggingface.co/%s/resolve/main/%s',
+        $repo, $file );
+    @cmd = ( 'wget', '--progress=dot:giga', '-O', $dest_path, $url );
+}
+
+## spawn download process ##
+my ( $chld_in, $chld_out, $chld_err );
+$chld_err = gensym;
+
+my $pid = eval { IPC::Open3::open3( $chld_in, $chld_out, $chld_err, @cmd ) };
+
+if ( !$pid || $EVAL_ERROR ) {
+    <[base.logs]>->(
+        0,
+        "[hf.fetch] failed to spawn download: %s",
+        $EVAL_ERROR // 'unknown error'
+    );
+    return {
+        'mode' => qw| false |,
+        'data' => 'download spawn failed: ' . ( $EVAL_ERROR // 'unknown' )
+    };
+}
+
+close($chld_in) if defined $chld_in;
+
+## register progress tracking ##
+<fetch.file.downloads> //= {};
+
+my $dl_id = sprintf( '%s:%s', $repo, $file );
+<fetch.file.downloads>->{$dl_id} = {
+    'repo'       => $repo,
+    'file'       => $file,
+    'dest'       => $dest_path,
+    'pid'        => $pid,
+    'start_time' => <[base.time]>->(3),
+    'downloaded' => 0,
+    'total'      => 0,
+    'status'     => qw| downloading |,
+    'speed'      => 0,
+    'eta'        => 0,
+    'reply_id'   => $call->{'reply_id'} // '',
+};
+
+## set up non-blocking read on stderr for progress output ##
+for my $fh ( $chld_out, $chld_err ) {
+    next if !defined $fh;
+    my $flags = fcntl( $fh, Fcntl::F_GETFL(), 0 );
+    fcntl( $fh, Fcntl::F_SETFL(), $flags | Fcntl::O_NONBLOCK() )
+        if defined $flags;
+}
+
+## register file handle watchers for stderr progress parsing ##
+if ( defined $chld_err ) {
+    <[event.add_io]>->(
+        {   'fd'      => $chld_err,
+            'poll'    => qw| r |,
+            'handler' => qw| fetch.file.huggingface.handler.download_stderr |,
+            'data'    => { 'dl_id' => $dl_id },
+        }
+    );
+}
+
+## register repeating timer for progress polling and completion check ##
+<fetch.file.downloads>->{$dl_id}{'timer'} = <[event.add_timer]>->(
+    {   'interval' => 2.0,
+        'repeat'   => 1,
+        'handler'  => qw| fetch.file.huggingface.handler.download_progress |,
+        'data'     => { 'dl_id' => $dl_id },
+    }
+);
+
+<[base.logs]>->(
+    1, "[hf.fetch] started download: %s/%s -> %s [pid=%d]",
+    $repo, $file, $dest_path, $pid
+);
+
+return { 'mode' => qw| deferred | };
+
+#,,,.,,.,,,,.,,..,.,.,...,.,.,,,,,,..,.,.,.,,,..,,...,...,...,.,,,,.,,.,,,,,,,
+#NATZA3EL37YCXG5YMSNVPBSDD4ZVI4VCTJECJLXEWBFCODYOVA4RN6XXK7P5S6ATMFNN3RIWGIK3W
+#\\\|2SFQMZTYQ4VOUN5AF3PJ3JV5GFMKZC2LMBOZUUMBHHECKVOMXVI \ / AMOS7 \ YOURUM ::
+#\[7]LQBNUPY3VWLP5VX7IPWRWNOFGQNXOUKRPPEHKTFL2LNRLK4RMQCQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
