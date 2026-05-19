@@ -31,8 +31,15 @@ if ( ref $job ne 'HASH' ) {
     if ($is_gone) {
         ## permanent — drop immediately, no retry ##
     } elsif ($is_ratelimit) {
-        unshift @{$queue}, $item;
-        <[site-yaml.fetch.backoff]>->('error');
+        $item->{'retry_count'} //= 0;
+        $item->{'retry_count'}++;
+        if ( $item->{'retry_count'} <= 5 ) {
+            push @{$queue}, $item;  ## back of queue — allow others through ##
+            $tag .= ' retry=' . $item->{'retry_count'};
+            <[site-yaml.fetch.backoff]>->('error');
+        } else {
+            $tag = 'drop';          ## give up after 5 ratelimit retries ##
+        }
     } else {
         $item->{'retry_count'} //= 0;
         $item->{'retry_count'}++;
@@ -44,7 +51,8 @@ if ( ref $job ne 'HASH' ) {
         }
     }
 
-    my $log_level = $is_gone ? 2 : $is_ratelimit ? 1 : 0;
+    my $is_retry  = $tag =~ m{retry=};
+    my $log_level = $is_gone ? 2 : ( $is_ratelimit || $is_retry ) ? 1 : 0;
     <[base.logs]>->(
         $log_level, 'fetch: %s [%s] q=%d',
         $id, $tag, scalar @{$queue}
@@ -66,8 +74,8 @@ my $tag    = $result eq 'new' ? 'new' : 'skip';
 
 return;
 
-#,,,,,,.,,.,,,,.,,,,,,,,.,,,,,...,..,,...,.,.,.,.,...,...,,.,,.,,,,,.,,,.,..,,
-#TGE373TZR42MP5BVH5ZOUY7A2ITSPFJRTOC4SQZRZA6KMW6PB734CQU6I7JA2PZMTZTGZHT37NACA
-#\\\|E3BKRDSDXW32HKUIS2RMW57JRLGVQRN2DZOZB4K2QZWLLBB3ZID \ / AMOS7 \ YOURUM ::
-#\[7]YKP5WHZVXGAULQVNWEVKTVYUGWABQMCKFWEKCVUVAEJYXLNKUOBQ 7  DATA SIGNATURE ::
+#,,,.,,,.,,..,,,.,,.,,,,,,,,,,...,...,..,,.,,,.,.,...,...,...,,,.,,.,,...,,..,
+#2GNZNJZODEXRC7KI54Z52C67HZEDJYXTY6HZ5LMJZJ5UQ7H6V3SBFPBCNLCSQ42C2C56NHNFIHKPK
+#\\\|U5URRTMGLADH3OMLABBI2LPVY36PM34QE6XQTTSWNOURQEMCMUN \ / AMOS7 \ YOURUM ::
+#\[7]5VQKSODYNOY3KA5PBX4W6PGKDR5RNQNAX75IO7EBVFLZKFOALMBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
