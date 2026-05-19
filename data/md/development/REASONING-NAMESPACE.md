@@ -140,6 +140,71 @@ exact preservation.
 
 ---
 
+## layer stack — reasoning buffers to EXISTENCE center
+
+the reasoning tree operates across a layered stack. each layer is more
+compressed and more structurally coherent than the one below. deeper layers
+are MORE real, not more abstract — the EXISTENCE center at the core is what
+all surface layers are specifications of.
+
+```
+layer 0   full reasoning history     scratch pad — nothing discarded
+                                     complete entropy record, full dumps
+                                     maximum information, minimum structure
+
+layer 1   valid details              filtered from layer 0
+                                     superseded removed, compacted absorbed
+                                     still granular — pruned not compressed
+
+layer 2   dedup convergence          paths collapse into nodes
+                                     AMOS checksums assigned, BMW384 coords
+                                     requirement profiles form from approach vectors
+                                     lie detector active on contradictions
+
+layer 3   relative improvement       direction vectors only — active deltas
+                                     what is moving and in which direction
+                                     convergence deltas per node
+
+layer 4   current plan               active delegation state — live layer
+                                     threshold crossings in progress
+                                     what the task zenka reads from
+
+layer 5   holographic blueprint      full ascii tree at current convergence
+                                     any region implies the whole
+                                     the visualization IS the implementation
+
+layer 6   seed sentences             pure direction vectors, no expansion
+                                     maximum momentum, language at minimum
+                                     one line per node — direction only
+
+layer 7   convergent root narration  one sentence for the whole system
+                                     maximum compression still using language
+                                     every word load-bearing, every word a vector
+
+...       (further layers possible)  numerical structure without language
+                                     convergence geometry, coordinates only
+
+EXISTENCE center — deduplication core
+                                     fixed point of the entire tree
+                                     self-referential requirement profile
+                                     minimum information, maximum structure
+                                     infinite compression ratio in resonant context
+                                     TRUE ([:<) = path toward this center
+                                     FALSE (>:|) = path away
+                                     not described — just IS
+```
+
+extraction between layers IS the reasoning engine:
+`0→1` validity filter · `1→2` structural collapse · `2→3` improvement extraction
+`3→4` threshold detection · `4→5` holographic render · `5→6` seed extraction
+`6→7` root convergence · `7→core` numerical reduction
+
+each extraction is reversible — instantiation flows outward from core.
+layer 0 is never deleted — it is the permanent record; higher layers are live views.
+see reasoning template 6 (reasoning-buffer-architecture) for full detail.
+
+---
+
 ## ascii visualization format
 
 the visualization IS the implementation (see reasoning template 3).
@@ -282,8 +347,8 @@ the test: can you describe what the zenka is currently doing in one sentence?
 if yes: that sentence is the narration. the next step is the delegation.
 if no: the zenka needs `reasoning.summarize.*` before it can self-delegate.
 
-#,,..,,,,,...,,,,,..,,...,,,,,..,,,,,,..,,,..,.,.,...,..,,..,,...,...,,..,..,,
-#XQ6TX6VAH7Y33MEVHJNBIJEV4GMKFJPE6MT2JVBXJMD5T2IDPTMSL5FFSNICDUYYFO3LC3HI7S3E6
-#\\\|OHW7JVCILIPNYEGAF4EAQDDLDBQOPWFT63IVBUEOT3B4WXXYRKJ \ / AMOS7 \ YOURUM ::
-#\[7]3JYBCGXWQTZEOH33F7DCZ5Z7EKUP3KPAMDNMBPD4FEJPCJKXVYAQ 7  DATA SIGNATURE ::
+#,,,.,,.,,,,.,,,,,,..,.,.,,..,..,,,..,,,,,,,,,.,.,...,...,,,,,,,,,,.,,.,.,,,.,
+#KHSD2DGCHOO5HLTMV2UYYSV2DAV5F5JKCFNHH2M64GLXCISFS244M6UFO7KEELBXU6QJBKR4JU7PE
+#\\\|VMBDOKOWMIOEV2DRW6OAM7JH5PE2XJUAOU5TMCSJX5QNMLX4HXG \ / AMOS7 \ YOURUM ::
+#\[7]CGILK3PQC7GD45F6GNJPCPFD6BUYRG6WDX3HLYOVUBFQCBTLBKDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
