@@ -3,12 +3,10 @@
 # name  = jobsite.handler.sync-response
 # descr = called when batch sync post completes — stores server ntime, applies reverse
 
-my $result = shift // {};
-
-my $ok   = $result->{'ok'}   // FALSE;
-my $body = $result->{'body'} // '';
-
-<jobsite.sync.push_in_progress> = FALSE;
+my $result     = shift // {};
+my $ok         = $result->{'ok'}             // FALSE;
+my $body       = $result->{'body'}           // '';
+my $chunk_size = $result->{'params'}{'chunk_size'} // 0;
 
 if ($ok) {
     my $reply = eval { JSON::XS::decode_json($body) };
@@ -16,23 +14,24 @@ if ($ok) {
         my $ntime   = $reply->{'ntime'}   // '';
         my $reverse = $reply->{'reverse'} // [];
         <jobsite.sync.last_server_ntime> = $ntime if length $ntime;
+        push @{ <jobsite.sync.push_reverse> }, @{$reverse};
         <[base.logs]>->(
-            1,
-            'jobsite: sync done, reverse=%d ntime=%s',
-            scalar @{$reverse}, $ntime
+            2, 'jobsite: chunk done (%d jobs), reverse=%d',
+            $chunk_size, scalar @{$reverse}
         );
-        <[jobsite.sync.apply_reverse]>->($reverse) if @{$reverse};
     }
 } else {
     <[base.logs]>->(
-        0,
-        'jss.sync: push failed: %s',
+        0, 'jss.sync: chunk failed: %s',
         $result->{'error'} // $result->{'status'} // '?'
     );
 }
 
-#,,..,.,,,...,.,.,,,,,,,,,,.,,,.,,,,.,,..,,,.,..,,...,...,.,.,..,,,,.,.,.,.,.,
-#MQLHRYS3F45JZFNTSB7SRYZQ3HSCYOD3YH5NMYEX7RS227JHOIIS3OHRNRXV54IOW7TEUOWNLJDR2
-#\\\|GAYLGQAZSWIEBYJ3REEZQ3XCXKROIVSKDLB3TILRJEDUDU65QCJ \ / AMOS7 \ YOURUM ::
-#\[7]2WP7AJJWLJDYTMXBDHXQ75LZ2Z6MDKY4TSZO7KEOJRO3LERRJ4DY 7  DATA SIGNATURE ::
+## advance to next chunk regardless of success ##
+<[jobsite.sync.push_chunk]>;
+
+#,,.,,,,.,,..,,.,,,,.,.,,,,,.,.,,,..,,.,.,,,.,..,,...,...,..,,,,,,.,,,...,..,,
+#V6LQLNPBMQHGDGDPFNDIGPFU5BPLAOTDWCAG7BY2FPUHBRQGV6OLP4Q2IAM5HU6LOXO3J44MYB2J4
+#\\\|BLCV26WPS7JVTJANNTGR4HQHRUZDJEGX7NZVHRGEBNSNLQEXJKI \ / AMOS7 \ YOURUM ::
+#\[7]MMU2B2OITX7VG2NAHMTJMUVSSYUVBZKYHJ34UI6IXHFQM76NC4BA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
