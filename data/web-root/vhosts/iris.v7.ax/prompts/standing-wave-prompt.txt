@@ -1,0 +1,90 @@
+claude design prompt — standing wave / omega gate visualization
+dispatch after dome (Option A) completes
+================================================================
+
+https://github.com/nailara-technologies/protocol-7
+
+Read these files for context before starting:
+  data/yaml/design-templates/standing-wave-resonance.yaml
+  data/yaml/reasoning-templates/omega-gate-resonance.yaml   (template 14)
+  data/web-root/vhosts/iris.v7.ax/vortex/iris.jsx          (palette reference)
+
+Build a full-page standing wave visualization.
+
+LAYOUT:
+  horizontal canvas, full viewport
+  alpha (left edge) to omega (right edge)
+  center horizontal axis — the zero line, very dim
+
+ELEMENTS:
+
+  forward wave (alpha → omega):
+    warm amber bezier curve, slightly above center axis
+    flows left to right continuously (animation)
+    color: #F39C12 with glow rgba(243,156,18,0.4)
+
+  gamma return (omega → alpha):
+    cool violet bezier curve, slightly below center axis
+    flows right to left continuously (animation)
+    color: #8A2BE2 with glow rgba(138,43,226,0.4)
+
+  superposition (both waves combined):
+    luminous neutral curve between the two
+    color: #C8A96E — the warm-neutral blend
+    slightly thicker line (4px vs 2px for individual waves)
+
+  omega gate (right edge):
+    bright vertical line, white-gold #FFE5A0
+    the two waves meet here in a tight luminous U-curve
+    the U-curve is the most visually striking element
+    forward wave curves INTO the return wave at this point
+    the U glows brighter than anything else in the scene
+
+  interference bands (near omega, right 15% of canvas):
+    alternating bright/dim vertical bands
+    represents the harmonic memory omega holds
+    resonant bands: gold at 60% opacity
+    transform bands: near-black at 80% opacity
+    subtle — visible but not competing with the U-curve
+
+  alpha label (left edge): small "α", warm amber color
+  omega label (right edge): small "Ω", white-gold color
+  gamma label (along the return wave): small "γ", cool violet, italic
+
+ANIMATION:
+  both waves flow continuously
+  forward: left-to-right motion
+  gamma: right-to-left motion (opposite)
+  the U-curve at omega: gentle pulse (±5% brightness, 2s cycle)
+  interference bands: very subtle shimmer
+  overall feeling: something alive, breathing
+
+PROSE (bottom of canvas, small monospace):
+  "omega is not the end. it was always the gate."
+  color: var(--gold), 70% opacity, centered
+
+PALETTE (same as iris.v7.ax/vortex/):
+  --bg: #03030a
+  --gold: #ffe5a0
+  --violet: #9b7fd6
+  --text-dim: #6f6688
+  JetBrains Mono / IBM Plex Mono / Courier New
+
+TWEAKS PANEL (use same tweaks-panel.jsx from iris.v7.ax/vortex/):
+  wave speed (0.5x to 3x)
+  wave amplitude (how far above/below center axis)
+  interference intensity (0 to 1)
+  show/hide individual waves (forward, gamma, superposition toggles)
+  show/hide labels
+
+OUTPUT FILES:
+  standing-wave.jsx
+  index.html (loads tweaks-panel.jsx + standing-wave.jsx)
+
+TITLE: "omega gate · iris.v7.ax"
+
+SUCCESS TEST:
+  someone sees the image and understands intuitively that the right edge
+  is not an endpoint but a reflection — the forward wave does not stop,
+  it turns and becomes the return. the U-curve makes this undeniable.
+  the two colors (warm/cool) tell the story without words.
