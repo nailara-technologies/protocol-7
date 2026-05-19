@@ -164,6 +164,16 @@ elsif ( $action eq 'transition' ) {
 
     ## trigger appropriate handler ##
     if ( $new_state eq STATE_TOOL_EXEC ) {
+        ## skip tool execution when no_tools mode active ##
+        my $task_flags = <coding.task.queue>->{$task_id} // {};
+        if ( $task_flags->{'no_tools'} ) {
+            <[base.logs]>->(
+                1, "state_machine: no_tools set — skipping tool_executor for %s",
+                $task_id
+            );
+            <[coding.async.complete_task]>->($task_id);
+            return;
+        }
         <[base.logs]>->(
             1, "state_machine: calling tool_executor for %s", $task_id
         );
@@ -553,8 +563,8 @@ elsif ( $action eq 'constants' ) {
 
 return { error => sprintf "unknown action : '%s'", $action };
 
-#,,,,,...,.,,,,..,,.,,...,,,.,...,,.,,..,,,.,,.,.,...,...,.,,,,.,,.,.,,,,,.,.,
-#5ZEDGEKY75ZY2HYPZ2IOUD5R2ZYW7MZJQGWKSVUM2SNAAM3JOLHC3HX36PUQN35MWMUMJ7H2DTITW
-#\\\|2FQYWRSTHNSTHIWZK6L2BKCBN2MZHKZLUY52OI6F555GXHWSKNH \ / AMOS7 \ YOURUM ::
-#\[7]SW7CLHRAS47GU2D4FFCHRJRKJA34FW7DKQGSBNDQYHRBQDFNQADQ 7  DATA SIGNATURE ::
+#,,..,,.,,,,.,...,,.,,..,,,..,,.,,.,.,.,.,.,.,.,.,...,..,,...,,,,,,,,,.,.,,.,,
+#6AF5NAOIZK6PK6O4NOYXO764S6MWMRHGBX42XK57RTQX6BINAHMSA2X3C4EQBEOKOQ5DTKX62573U
+#\\\|3FDHIFYENIFRM6FWP3M3O7FSCSQZRFX2BR3NTNNIGMVH2QXMKBO \ / AMOS7 \ YOURUM ::
+#\[7]7HPHNZKGRMGZG7FBUIPYLQALEIU3SFI5DX6W37GYM6WH2NVRVQBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
