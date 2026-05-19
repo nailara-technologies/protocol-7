@@ -1,0 +1,51 @@
+## [:< ##
+
+# name  = jobsite.sync.push_chunk
+# descr = send next chunk from queue, or finish cycle when all chunks sent
+
+my $chunks = <jobsite.sync.push_chunks> // [];
+my $chunk  = shift @{$chunks};
+
+if ( not defined $chunk ) {
+    ## all chunks done ##
+    my $reverse = delete <jobsite.sync.push_reverse> // [];
+    delete <jobsite.sync.push_chunks>;
+    <jobsite.sync.push_in_progress> = FALSE;
+    <[base.logs]>->(
+        1, 'jobsite: sync push complete, reverse=%d',
+        scalar @{$reverse}
+    );
+    <[jobsite.sync.apply_reverse]>->($reverse);
+    return;
+}
+
+my $last_ntime = <jobsite.sync.last_server_ntime> // '';
+
+my $body = eval {
+    JSON::XS::encode_json(
+        {   'since' => $last_ntime,
+            'jobs'  => $chunk,
+        }
+    );
+} // '';
+
+if ( not length $body ) {
+    <[base.logs]>->( 0, 'jss.sync.push_chunk: encode failed, skipping chunk' );
+    <[jobsite.sync.push_chunk]>;
+    return;
+}
+
+<[clients.http.post]>->(
+    {   'url'     => <jobsite.cfg.sync_url>,
+        'body'    => $body,
+        'timeout' => 30,
+        'on_done' => 'jobsite.handler.sync-response',
+        'params'  => { 'chunk_size' => scalar @{$chunk} },
+    }
+);
+
+#,,..,,..,,,.,,,.,,,.,.,.,,,,,,.,,,..,,,,,,,,,..,,...,...,,,,,,,.,.,.,..,,,,,,
+#JN5DUDURCIFRRSQEGSCARDHLOIV2LP2JOM2SRRD54YFXCNDX6LMPFNB5RJ6MITCGAE63JJFIJB46Q
+#\\\|FULKMXWROJ2KSWY6NEPC2DEYFH42ARRCYF6ZY63THEMAH3REP54 \ / AMOS7 \ YOURUM ::
+#\[7]67RS7TFVKRIVYQARHFVMSOLIQVHTYVEINQXNGGCKCFKAYMISHQAI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
