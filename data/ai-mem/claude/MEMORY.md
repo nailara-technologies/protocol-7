@@ -69,6 +69,7 @@
 ## Feedback (behavior rules — always apply)
 - **httpd architecture**: httpd is a thin proxy — never load plugin.web.* in httpd. all cross-zenka data goes through web zenka via route-send SIZE. blocking reply-wait in httpd crashes sessions.
 - **P7 cross-zenka data**: use route-send + SIZE reply handler pattern (like radio relay). file system access between zenki is forbidden by design (different users). SHM or route-send for cross-zenka data.
+- **ntime comparison**: `encode_b32r` is reverse-byte-order — NOT lexicographically sortable. Never use `gt`/`lt` string comparison on ntime B32 values. Always use `<[base.ntime_BASE32_to_numerical]>` for numerical comparison. Diagnose with `p7c localtime <ntime_b32>`.
 - **repeating timers**: need after + interval + repeat:TRUE (not just repeat with a value)
 - [watcher-state-machines](feedback-watcher-state-machines.md) — IO::Async variable watchers only; never polling timers for state
 - [kimi-code-review](feedback-kimi-code-review.md) — common kimi P7 code issues: SUPER::, namespace swaps, fake signatures
@@ -179,8 +180,8 @@
 - **repo var/ cleanup** — `var/httpd/` tracked from Nov 2025 AI error
 - **kimi auto-approval regression** (Apr 16) — some tool calls not auto-approved during kimi tasks
 
-#,,..,.,.,,.,,..,,...,.,.,,..,...,.,,,,..,,..,..,,...,...,,..,...,.,.,...,,,.,
-#BPZRST5J672OW4W4W5L27BG7KHVH5MFFQVWKIIRIB23N6AWXKYXAUH3XSWOQA7BOUWBEZAIL52BM6
-#\\\|B5DWMZKNKV6WBNDHXP7NJMAH45G6VMLPKJ2WWDYVWUB7VRMDNOQ \ / AMOS7 \ YOURUM ::
-#\[7]5OU4XJDA5YHRKPH54TTIP75QJP4JZRUDDINOYXFGB7HOCQKVMECQ 7  DATA SIGNATURE ::
+#,,,.,.,,,,.,,..,,,,,,,..,,..,.,.,,..,,..,...,..,,...,...,.,,,.,,,.,.,,,,,...,
+#XI2NUFZBID5DHORWRSDBXMH4IUWINRW2ZOQZYALTDK7MTWDIXHAUWJKPSRC7WYIJ4TV5HAGA5JOM6
+#\\\|NV5GVRTLD3BI6QF2GH2RY6NRA7KH5AOJV53YL56AG3FNFMKWKUV \ / AMOS7 \ YOURUM ::
+#\[7]NY7WL5QHJCQ25PZTZFLSWCM2C6FP6TB37S7SGOTW6HQSQ4IGIGAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
