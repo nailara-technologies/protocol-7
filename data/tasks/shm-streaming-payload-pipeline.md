@@ -13,35 +13,53 @@ stream the body directly to disk/shm as it arrives, secured by four independent
 cryptographic layers. pass only a tiny path reference + key through the P7 network.
 
 ```
+header format:  X-P7-Content-Hash: <ntime>:<size>:<B32-BMW384>
+
+  ntime first  : freshness + replay anchor — temporal context
+  size second  : cryptographic constraint — collapses brute-force search space
+                 attacker must find a collision of EXACTLY <size> bytes
+                 for small payloads: verifiably impossible if size range scanned
+                 for large payloads: multiplicatively harder than unconstrained
+  checksum last: BMW384 integrity over the exact <size> bytes
+
+  signature is over the full "<ntime>:<size>:<B32>" string — all three bound
+  together. size mismatch alone invalidates the signature even if collision found.
+
 sender side (jobsite → httpd):
-  1. compute BMW384(body) → B32 encode → build header "<length>:<B32>"
-  2. sign header with C25519: C25519.sign("<length>:<B32>")
+  1. compute BMW384(body) → B32 encode
+     build header: "<ntime>:<length>:<B32>"
+  2. sign header with C25519 host key
   3. POST body with headers:
-       X-P7-Content-Hash: <length>:<B32>
-       X-P7-Signature:    <C25519-signature>
+       X-P7-Content-Hash: <ntime>:<length>:<B32>
+       X-P7-Signature:    <C25519-sig-of-full-header>
+       X-P7-Host-Key:     <sender-pubkey-B32>
+       X-P7-Key-Cert:     <parent-name>:<parent-sig-of-hostkey-B32>
 
 httpd receive pipeline:
-  1. parse X-P7-Content-Hash + X-P7-Signature from HTTP headers
-  2. verify C25519 sig immediately — reject before reading any body if invalid
-     (instant, zero cost — sig is over the tiny header string only)
-  3. generate random temp filename: /var/protocol-7/shm/<random-noperms>
+  1. parse all X-P7-* headers
+  2. verify X-P7-Key-Cert: parent signature on host key (key hierarchy)
+  3. verify X-P7-Signature: C25519 sig over full content-hash header
+     → reject before reading any body if invalid (instant, zero cost)
+  4. check ntime within replay window (e.g. 60 seconds)
+     → reject stale or future-dated packets
+  5. generate random temp filename: /var/protocol-7/shm/<ntime-b32>-<random>
      chmod 000 — unreadable by anyone during transfer
-  4. optionally: generate ephemeral Twofish key (held in memory, not written)
-  5. as body chunks arrive:
-       $bmw_ctx->add($chunk)          # rolling BMW384
-       $twofish->encrypt($chunk)      # optional, stream encrypt
+  6. generate ephemeral Twofish key (held in memory only, never written)
+  7. as body chunks arrive:
+       $bmw_ctx->add($chunk)           # rolling BMW384
+       $twofish->encrypt($chunk)       # stream encrypt
        write encrypted chunk to temp file
-  6. on body complete:
-       verify length == X-P7-Content-Hash length
-       verify encode_b32r($bmw_ctx->digest) == X-P7-Content-Hash B32
+  8. on body complete:
+       verify received_length == header size
+       verify encode_b32r($bmw_ctx->digest) == header B32
      if VALID:
        rename temp file → /var/protocol-7/shm/<B32-BMW384-sum>
        chmod +r for httpd/protocol-7 user
        pass to web zenka via P7: { path => <B32-sum>, key => <twofish-key> }
      if INVALID:
        unlink temp file
-       destroy Twofish key
-       return HTTP 400 — data never accessible
+       destroy Twofish key (undef + memory clear)
+       return HTTP 400 — data cryptographically irrecoverable
 
 web zenka receive:
   1. receive { path, key } via P7 route
@@ -75,13 +93,23 @@ file permissions   :  access control — chmod 000 during transfer (no one reads
 ## why sign the header not the data
 
 signing the full body requires buffering or two-pass processing.
-signing `"<length>:<B32>"` is signing a commitment to the data — mathematically
-equivalent to signing the data, since BMW384 is collision-resistant.
+signing `"<ntime>:<size>:<B32>"` is signing a commitment to the data —
+mathematically stronger than signing the data alone:
+
+**ntime**: binds the commitment to a specific moment — prevents replay
+**size**: collapses the collision search space to inputs of exactly N bytes
+  - for small N: verifiably impossible if N-byte collision space has been scanned
+  - for large N: multiplicatively harder than unconstrained collision search
+  - size mismatch alone invalidates the signature even with a valid BMW384 collision
+**BMW384**: integrity over the exact content
+
+together they form a triple commitment: WHEN + HOW MUCH + WHAT
 
 this enables:
-- instant rejection of unauthorized senders (before reading body)
-- streaming body directly to disk (no buffer needed for verification)
-- incremental hash via `$bmw_ctx->add($chunk)` as chunks arrive
+- instant rejection (sig verification before body read — zero body buffering)
+- replay protection (ntime window, e.g. 60s)
+- streaming body directly to disk (incremental `$bmw_ctx->add($chunk)`)
+- provable uniqueness for small payloads where collision space is bounded
 
 ## implementation
 
@@ -122,11 +150,12 @@ use args as before (browser updates still use inline body)
 
 ### sender side (jobsite)
 
-**`jobsite.sync.push`** — add `X-P7-Content-Hash` + `X-P7-Signature` headers:
+**`jobsite.sync.push`** — add signed content-hash headers:
 ```perl
+my $ntime    = <[base.ntime.b32]>->(3, TRUE);
 my $b32_hash = <[base.chk-sum.bmw.strsum]>->($body);   # BMW384 → B32
-my $header   = length($body) . ':' . $b32_hash;
-my $sig      = <[crypt.C25519.sign]>->($header);        # sign the tiny header
+my $header   = join ':', $ntime, length($body), $b32_hash;
+my $sig      = <[crypt.C25519.sign_data]>->(\$header, $host_key);
 
 <[clients.http.post]>->({
     url     => $url,
@@ -210,8 +239,8 @@ curl -X POST http://localhost/jobs-sync \
 - use `encode_b32r()` from AMOS7 for B32 encoding of digest bytes
 - do not add the stub signature to new files — signing adds footer
 
-#,,,,,,,.,..,,..,,,..,.,,,.,,,..,,..,,..,,...,..,,...,...,..,,..,,.,.,,,.,.,,,
-#DWQFOU2NRSCPHZVFG7RPZ5DMRTHVBZSLT6PYJWHNFY7DDLU535BHF6I4TIWBZDSRIAJ26IDBVOHD4
-#\\\|TQJYRHOPHDOE7KJ574LU5DAZUSHTIGOPFF4ROF5IGRFL3OS2GSJ \ / AMOS7 \ YOURUM ::
-#\[7]AIFUBU52WU4VBJE7M6KD5GLWXR5YD43VOM463FTCEDYXKE6UNUBI 7  DATA SIGNATURE ::
+#,,,,,..,,,.,,,..,,.,,,,,,.,.,,.,,.,,,.,.,,,.,..,,...,..,,,..,..,,,,.,,.,,,.,,
+#4RYU33Q2G3VGNV3TKV4CHNBCDMJUUHESXIEQTYGTRJPYGKFICIA2YZKX7X7KDQVHTWALWGKHSY25I
+#\\\|LPNI3NSO5AZS54SOOCM3HS55NX4JB5GEN3E3TGXBLXYI7ZKKU7M \ / AMOS7 \ YOURUM ::
+#\[7]A3BOVAMBYM3BBY6NXZR7ONRPHHTL5WYP3YRIYCUMFLPSBTA6FCCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
