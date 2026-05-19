@@ -10,19 +10,19 @@ my $ua  = $data{'site-yaml'}{'ua'};
 my $res = $ua->get($url);
 
 if ( not $res->is_success ) {
+    my $code  = $res->code;
+    my $level = ( $code == 410 or $code == 404 ) ? 2 : 0;
     <[base.logs]>->(
-        0,    'site-yaml.http.get : %s => %s',
-        $url, $res->status_line
+        $level, 'site-yaml.http.get : %s => %s',
+        $url,   $res->status_line
     );
-    return
-        $res->code
-        ; ## return numeric code — callers can distinguish permanent vs transient ##
+    return $code;
 }
 
 return $res->decoded_content;
 
-#,,..,.,,,,,,,...,,.,,,,,,.,.,.,,,,,,,...,...,..,,...,...,...,..,,..,,.,.,,..,
-#IV2XK66JQVSEWUB4KHGP6EJBTN5MMNWOLICSAYGRIGFQJBMGOOB5TL4FKVGWNBQEMDADRCDGRJUQM
-#\\\|HTJX24NZ5CNN4TWVXTRSA2H3LACDPWPG2GA34XPUC3FS2EUB3Q5 \ / AMOS7 \ YOURUM ::
-#\[7]O3GAME3A6RSGBFVSS73C6IUOUY5QBDZQIR5NTRZ3QKJHFTQPNIBQ 7  DATA SIGNATURE ::
+#,,,,,,..,.,,,,.,,.,.,,,.,..,,,.,,,.,,,.,,,.,,..,,...,...,,..,,,.,..,,,,.,.,.,
+#RNZ7FLNAAYOZC62N2OIR4EQGBR47BONK7XFMIOSJCLPGRBU4FYIJMGQAQ3LD3A77WSUY4CZV4CI3M
+#\\\|3KB5B44EGDROJ3LK2YPHPLSQFHOOGBHRTXGCMIVBMIRELVIXV5J \ / AMOS7 \ YOURUM ::
+#\[7]GZICLDGYH2MILQ47EF2XAX5GFBV4XRAU4Y3AJIFZMQNPAP63HKBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
