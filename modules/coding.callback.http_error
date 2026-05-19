@@ -49,26 +49,34 @@ if (   $error =~ m{HTTP error:\s*5\d\d|timeout|connection closed}i
         ) ? 1 : 0;
 
         for my $msg ( @{$msgs} ) {
+            my $role = $msg->{'role'} // '';
+
             ## convert role:tool → role:user when template rejects tool role ##
-            if (   $convert_tool_role
-                && ( $msg->{'role'} // '' ) eq qw| tool | ) {
+            if ( $convert_tool_role && $role eq qw| tool | ) {
                 my $tc_id = $msg->{'tool_call_id'} // 'unknown';
                 $msg->{'role'}    = qw| user |;
                 $msg->{'content'} = "[TOOL RESULT: $tc_id]\n"
                     . ( $msg->{'content'} // '' );
                 delete $msg->{'tool_call_id'};
                 <[base.logs]>->(
-                    1, "http_error: converted tool role → user (jinja template mismatch)"
+                    1, "http_error: converted tool role → user (jinja mismatch)"
+                );
+
+            ## convert role:assistant → role:model for gemma-family templates ##
+            ## gemma uses 'model' not 'assistant' as the AI turn role name    ##
+            } elsif ( $convert_tool_role && $role eq qw| assistant | ) {
+                $msg->{'role'} = qw| model |;
+                <[base.logs]>->(
+                    1, "http_error: converted assistant → model (gemma jinja)"
                 );
             }
-            ## strip tool_calls from assistant messages ##
-            if ( ( $msg->{'role'} // '' ) eq 'assistant'
-                and ref $msg->{'tool_calls'} eq qw| ARRAY | ) {
-                <[base.logs]>->(
-                    1,
-                    "http_error: stripping tool_calls from assistant msg for retry"
-                );
+
+            ## strip tool_calls from assistant/model messages ##
+            if ( ref $msg->{'tool_calls'} eq qw| ARRAY | ) {
                 delete $msg->{'tool_calls'};
+                <[base.logs]>->(
+                    1, "http_error: stripped tool_calls from %s msg", $role
+                );
             }
         }
     }
@@ -139,8 +147,8 @@ if ( $error =~ m{timeout}i ) {
 
 return;
 
-#,,,,,,.,,.,.,..,,.,,,,,,,,.,,..,,.,.,...,...,..,,...,...,..,,,.,,.,.,,..,,,.,
-#YCD4Z3KETZZ4MMUE25B2ASSOOY7POWYUEV7BOZF5VTOEAVQ3FBBCEDXKENCQHK5AULMPZRZJ2WAVU
-#\\\|6UMGWZTL5FQDGI344GISLV7TCVXEABQRJ3CV67JEL3LPOIHG7FZ \ / AMOS7 \ YOURUM ::
-#\[7]MM6PFOP35FBSPHGTCFCIMLQALXUROIZYXVIOFO45UGJQJEK6JOBI 7  DATA SIGNATURE ::
+#,,.,,.,.,..,,,,,,..,,...,.,.,,.,,,.,,,.,,.,.,..,,...,...,.,,,.,,,.,.,,,.,.,.,
+#DZDHFBZID4DDZJDIDED66NXYKBH55NYYCON2A5NOXIKR36PJRPAICXKH27QBEB2JGLRA7GUOSCMH4
+#\\\|HYH5WWB2EHGBAM3J3FS4ZNVK3JRZWB3347OAU6DLJGMDWH2MBTN \ / AMOS7 \ YOURUM ::
+#\[7]AYBQBGOYQTVDTH5ACN7WRC4KYLCWVFKJ4E4IGQN5CEB2NH5VQEAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
