@@ -73,6 +73,7 @@ base.event.loop
 base.cmd.reload
 base.calc_gauss
 plugin.auth.unix
+clients.http.get
 base.stream.push
 base.stream.open
 base.stream.gate
@@ -94,6 +95,7 @@ auth.pwd.success
 auth.auth_select
 plugin.auth.zenka
 net.read_bytewise
+clients.http.post
 base.stream.close
 base.session.init
 base.reverse-sort
@@ -144,12 +146,15 @@ base.file.all_links
 base.file.all_files
 base.extract_values
 base.event.pre_init
+base.event.add_idle
 base.diff.hash_keys
 base.calc_unix_path
 io.ip.tcp.input.open
 format.yaml.pre_init
 format.yaml.load_str
 format.yaml.dump_str
+clients.http.request
+clients.http.cleanup
 base.route.init_code
 base.root.drop_privs
 base.read_proc_times
@@ -179,6 +184,7 @@ crypt.C25519.keyfiles
 crypt.C25519.key_vars
 crypt.C25519.key_type
 crypt.C25519.gen_keys
+clients.http.pre_init
 base.session.shutdown
 base.reload_whitelist
 base.register_pm_deps
@@ -198,6 +204,7 @@ crypt.C25519.sign_keys
 crypt.C25519.sign_data
 crypt.C25519.post_init
 crypt.C25519.init_code
+clients.http.init_code
 base.session.init_code
 base.required_bin_path
 base.register_src_deps
@@ -215,6 +222,7 @@ crypt.C25519.write_keys
 crypt.C25519.unload_key
 crypt.C25519.sig_fnames
 crypt.C25519.key_exists
+clients.http.handler.io
 base.templates.pre_init
 base.strip_chksum_lines
 base.start.unlink_child
@@ -296,6 +304,7 @@ crypt.C25519.key_is_virtual
 crypt.C25519.get_remote_key
 crypt.C25519.gen_keys_typed
 crypt.C25519.compute_shared
+clients.http.parse_response
 base.templates.register_add
 base.stream.record_emission
 base.session.calc_cmd_stats
@@ -312,6 +321,7 @@ protocol.amos_term.init_code
 io.unix.socket.input.connect
 crypt.C25519.keystr_is_valid
 crypt.C25519.compare_keypair
+clients.http.handler.timeout
 base.validate.composite_name
 base.session.check_remaining
 base.process-into-background
@@ -456,8 +466,8 @@ auth.callback.cap-neg.declare-strm-size-support
 protocol.protocol-7.protocol-version-path-set-up
 base.log.send-buffer.reply-handler.notify-online
 
-#,,,,,,,,,..,,.,.,..,,.,.,,..,,.,,.,.,,,,,.,.,..,,...,...,.,.,,..,,,,,,..,,..,
-#UIDSU5QOTZVWTYX5USGWUT7O4VVK2ZEQ7OGNBMS4QIXEOTGY43MJXRYHKYXBRMSXEDLVKY26VBJHI
-#\\\|OCHCFCIVYHWNMX4CADFOLSH2DEA76ECGK35FKRNCAGYZI5S2DTS \ / AMOS7 \ YOURUM ::
-#\[7]E6AELLQFD4HMJDUHM2VAN3FVFCJGQT6ILRSOMDYKG6E7R3UG2CCQ 7  DATA SIGNATURE ::
+#,,..,,,.,..,,,,.,,.,,,..,,..,.,,,,..,,,.,...,..,,...,..,,,,,,.,.,.,,,.,,,.,.,
+#GBM65DUG6BIFG2N6QCATG77BWA4VD6OKS4DMB4CELUAOXCUXGOYEDITHYVOH77QVGD3Z52NBKMO2M
+#\\\|N7L46SZMRSYLTPHDEXGDRJGLVI6X6MXAZTZ3OABQPMJYFMH7KZZ \ / AMOS7 \ YOURUM ::
+#\[7]ZPNF4SF4LW4GCWOZZJUM2LDNT4JJZCL3I73W645ZOEHKGTMUKECQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

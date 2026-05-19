@@ -25,7 +25,11 @@ for my $id ( keys %{ $jobs // {} } ) {
 }
 
 if ( not @changed ) {
-    <[base.logs]>->( 2, 'jobsite: sync push skipped [ no changes ]' );
+    <[base.logs]>->(
+        1,
+        'jobsite: sync push skipped [ no changes since %s ]',
+        <jobsite.sync.last_server_ntime>
+    );
     return;
 }
 
@@ -41,15 +45,16 @@ while (@changed) {
 <jobsite.sync.push_reverse>     = [];
 
 <[base.logs]>->(
-    1, 'jobsite: sync push %d jobs in %d chunks',
+    1,
+    'jobsite: sync push %d jobs in %d chunks',
     scalar( map { @{$ARG} } @chunks ),
     scalar @chunks,
 );
 
 <[jobsite.sync.push_chunk]>;
 
-#,,,.,.,.,,..,,,,,.,.,...,,.,,.,,,,..,...,..,,..,,...,...,,..,,.,,.,.,..,,.,.,
-#3CPJB5XTYZUTK2BA6VONUTG6YL4OF4ZJOUAS3CK4VWY26RORUAOVULIDW45TDM72ZLDAMOZUUEZSM
-#\\\|TXPUXPIY3N3F3I65Z25JETCMUVYJR6GNKX2AU6M4E76J6TBRFLF \ / AMOS7 \ YOURUM ::
-#\[7]7SEIEFE4T2SP2BN53R4KV5MROSXBLRSHEK5MHFDKNKAK74BY54CA 7  DATA SIGNATURE ::
+#,,,.,.,,,,,,,,.,,,,,,,.,,,,,,...,.,,,...,,,.,..,,...,.,,,.,.,,..,,,,,..,,.,.,
+#5Q7WZDUOYSKFHGT5JAS35IFA4ZNRP7BMMKOJSVBIXLW7DHB2ZC5S7PO4GAAF5EDZLR3XZ4UU44OD4
+#\\\|6HZ47B5OOHN6J4KRMOCUZ7XU73Q5MTB2OFNIISJQM6MB4D6XFIV \ / AMOS7 \ YOURUM ::
+#\[7]BVQIWKEKGBQ5MJNHE4OTDZWFCTWUGSWVYMDSGO5CBURM5NKO74CY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
