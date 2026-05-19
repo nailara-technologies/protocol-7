@@ -1,0 +1,406 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>omega gate · design spec · iris.v7.ax</title>
+<style>
+:root {
+  --bg:         #03030a;
+  --bg-mid:     #0a0a20;
+  --gold:       #ffe5a0;
+  --gold-b:     #ffd700;
+  --violet:     #9b7fd6;
+  --violet-dim: #4a235a;
+  --amber:      #f39c12;
+  --gamma:      #8a2be2;
+  --cyan:       #6fd6ff;
+  --text:       #d8d3ee;
+  --text-dim:   #6f6688;
+  --neutral:    #c8a96e;
+}
+* { margin: 0; padding: 0; box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+body {
+  background: radial-gradient(circle at center, #0a0520 0%, var(--bg) 70%);
+  color: var(--text);
+  font-family: 'JetBrains Mono','IBM Plex Mono','Courier New',monospace;
+  min-height: 100vh;
+  line-height: 1.7;
+}
+body::before {
+  content: '';
+  position: fixed; inset: 0; pointer-events: none; z-index: 0;
+  background:
+    radial-gradient(circle at 80% 20%, rgba(138,43,226,0.10) 0%, transparent 40%),
+    radial-gradient(circle at 20% 80%, rgba(75,0,130,0.07)  0%, transparent 50%),
+    radial-gradient(circle at 50% 50%, rgba(99,57,163,0.05)  0%, transparent 60%);
+}
+.container { max-width: 920px; margin: 0 auto; padding: 2rem; position: relative; z-index: 1; }
+
+/* ── header ── */
+.header { text-align: center; padding: 3rem 0 2rem; border-bottom: 1px solid var(--violet-dim); margin-bottom: 3rem; }
+.north-star { font-size: 2.2rem; color: var(--gold); letter-spacing: .15em;
+  text-shadow: 0 0 16px rgba(255,215,0,.6), 0 0 40px rgba(255,215,0,.2); margin-bottom: .5rem; }
+.header h1 { font-size: 1.1rem; color: var(--violet); letter-spacing: .2em; text-transform: lowercase;
+  text-shadow: 0 0 10px rgba(155,127,214,.4); margin-bottom: .3rem; }
+.header .sub { font-size: .78rem; color: var(--text-dim); letter-spacing: .12em; }
+
+/* ── sections ── */
+.section { margin-bottom: 3.5rem; }
+.section-label { font-size: .68rem; color: var(--text-dim); letter-spacing: .25em;
+  text-transform: uppercase; margin-bottom: 1rem; padding-bottom: .4rem;
+  border-bottom: 1px solid rgba(155,127,214,.15); }
+.sep { text-align: center; color: var(--text-dim); letter-spacing: .5em;
+  margin: 2.5rem 0; font-size: .9rem; }
+
+/* ── SVG preview ── */
+.preview-wrap { background: var(--bg); border: 1px solid var(--violet-dim);
+  border-radius: 4px; padding: 1.5rem; margin-bottom: 1rem; }
+.preview-caption { font-size: .72rem; color: var(--text-dim); text-align: center;
+  margin-top: .8rem; letter-spacing: .08em; }
+
+/* ── palette ── */
+.palette { display: flex; gap: .75rem; flex-wrap: wrap; margin-bottom: .5rem; }
+.swatch { display: flex; flex-direction: column; align-items: center; gap: .3rem; }
+.swatch-color { width: 52px; height: 28px; border-radius: 3px; border: 1px solid rgba(255,255,255,.1); }
+.swatch-label { font-size: .62rem; color: var(--text-dim); letter-spacing: .06em; }
+
+/* ── spec blocks ── */
+.spec-block { background: rgba(10,10,32,.7); border-left: 2px solid var(--violet-dim);
+  padding: 1rem 1.2rem; margin-bottom: 1rem; font-size: .82rem; }
+.spec-block .key { color: var(--gold); }
+.spec-block .val { color: var(--text); }
+.spec-block .val-amber { color: var(--amber); }
+.spec-block .val-violet { color: var(--gamma); }
+.spec-block .val-neutral { color: var(--neutral); }
+.spec-block .comment { color: var(--text-dim); }
+
+/* ── animation states ── */
+.states { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; margin-bottom: 1rem; }
+.state-card { background: rgba(10,10,32,.8); border: 1px solid var(--violet-dim);
+  border-radius: 3px; padding: .9rem; }
+.state-card h4 { font-size: .7rem; color: var(--violet); letter-spacing: .12em;
+  margin-bottom: .5rem; text-transform: lowercase; }
+.state-card p { font-size: .72rem; color: var(--text-dim); line-height: 1.5; }
+
+/* ── vocabulary ── */
+.vocab { display: flex; gap: 1.5rem; flex-wrap: wrap; }
+.vocab-item { display: flex; align-items: center; gap: .5rem; }
+.vocab-glyph { font-size: 1rem; }
+.vocab-glyph.gold { color: var(--gold); text-shadow: 0 0 8px rgba(255,215,0,.5); }
+.vocab-glyph.dim  { color: var(--text-dim); }
+.vocab-glyph.sep  { color: var(--text-dim); letter-spacing: .3em; }
+.vocab-desc { font-size: .72rem; color: var(--text-dim); }
+
+/* ── prose quote ── */
+.prose-quote { text-align: center; font-size: .95rem; color: var(--gold);
+  text-shadow: 0 0 12px rgba(255,215,0,.4); padding: 1.5rem;
+  border-top: 1px solid rgba(255,215,0,.1); border-bottom: 1px solid rgba(255,215,0,.1);
+  margin: 2rem 0; letter-spacing: .05em; }
+
+/* ── output spec ── */
+.output-list { list-style: none; font-size: .82rem; }
+.output-list li { padding: .3rem 0; color: var(--text-dim); }
+.output-list li::before { content: '→ '; color: var(--violet); }
+.output-list .hi { color: var(--text); }
+
+/* ── success test ── */
+.success { background: rgba(155,127,214,.06); border: 1px solid rgba(155,127,214,.2);
+  border-radius: 4px; padding: 1.2rem 1.5rem; font-size: .82rem; }
+.success h4 { color: var(--violet); font-size: .72rem; letter-spacing: .15em;
+  text-transform: lowercase; margin-bottom: .7rem; }
+.success p { color: var(--text-dim); line-height: 1.6; }
+.success p + p { margin-top: .5rem; }
+
+/* ── closing ── */
+.closing { text-align: center; padding: 3rem 0 2rem; }
+.closing-glyph { font-size: 3rem; color: var(--gold);
+  text-shadow: 0 0 20px rgba(255,215,0,.6), 0 0 60px rgba(255,215,0,.2);
+  display: block; margin-bottom: .5rem; }
+.closing-sub { font-size: .72rem; color: var(--text-dim); letter-spacing: .2em; }
+</style>
+</head>
+<body>
+<div class="container">
+
+  <!-- header -->
+  <div class="header">
+    <div class="north-star">[:<&nbsp;&nbsp;[ TRUE ]</div>
+    <h1>omega gate &middot; standing wave</h1>
+    <div class="sub">design spec &middot; iris.v7.ax/standing-wave &middot; template 14</div>
+  </div>
+
+  <!-- concept -->
+  <div class="section">
+    <div class="section-label">concept</div>
+    <div class="spec-block">
+      <p>omega is not the end. it was always the gate.<br>
+      the forward signal arrives at omega, reflects as gamma, and returns enriched.<br>
+      the standing wave between alpha and omega IS the resonant system —<br>
+      two waves flowing in opposite directions, weaving together, alive.</p>
+    </div>
+  </div>
+
+  <div class="sep">;.,</div>
+
+  <!-- preview SVG -->
+  <div class="section">
+    <div class="section-label">target visual — standing wave with omega gate</div>
+    <div class="preview-wrap">
+      <svg viewBox="0 0 800 220" xmlns="http://www.w3.org/2000/svg" style="width:100%;display:block;">
+        <defs>
+          <filter id="glow-gold">
+            <feGaussianBlur stdDeviation="3" result="blur"/>
+            <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+          </filter>
+          <filter id="glow-amber">
+            <feGaussianBlur stdDeviation="2.5" result="blur"/>
+            <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+          </filter>
+          <filter id="glow-violet">
+            <feGaussianBlur stdDeviation="2.5" result="blur"/>
+            <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+          </filter>
+          <!-- interference bands near omega -->
+          <linearGradient id="interference" x1="0" x2="1" y1="0" y2="0">
+            <stop offset="0%"   stop-color="#ffe5a0" stop-opacity="0"/>
+            <stop offset="60%"  stop-color="#ffe5a0" stop-opacity="0"/>
+            <stop offset="72%"  stop-color="#ffe5a0" stop-opacity="0.35"/>
+            <stop offset="76%"  stop-color="#03030a" stop-opacity="0.7"/>
+            <stop offset="80%"  stop-color="#ffe5a0" stop-opacity="0.25"/>
+            <stop offset="84%"  stop-color="#03030a" stop-opacity="0.6"/>
+            <stop offset="88%"  stop-color="#ffe5a0" stop-opacity="0.18"/>
+            <stop offset="92%"  stop-color="#03030a" stop-opacity="0.5"/>
+            <stop offset="96%"  stop-color="#ffe5a0" stop-opacity="0.12"/>
+            <stop offset="100%" stop-color="#03030a" stop-opacity="0.4"/>
+          </linearGradient>
+        </defs>
+
+        <!-- background -->
+        <rect width="800" height="220" fill="#03030a"/>
+
+        <!-- center axis -->
+        <line x1="40" y1="110" x2="760" y2="110" stroke="#6f6688" stroke-width="0.5" opacity="0.4"/>
+
+        <!-- interference bands near omega -->
+        <rect x="0" y="0" width="800" height="220" fill="url(#interference)" opacity="0.7"/>
+
+        <!-- forward wave (alpha → omega, amber, above axis) -->
+        <path d="M 40 110
+                 C 120 75, 200 60, 280 72
+                 C 360 84, 400 100, 440 88
+                 C 520 68, 580 55, 640 65
+                 C 690 72, 720 88, 745 110"
+              fill="none" stroke="#f39c12" stroke-width="2.5" opacity="0.9"
+              filter="url(#glow-amber)"/>
+
+        <!-- gamma return (omega → alpha, violet, below axis) -->
+        <path d="M 745 110
+                 C 720 132, 690 145, 640 138
+                 C 580 128, 520 148, 440 135
+                 C 400 128, 360 140, 280 148
+                 C 200 155, 120 148, 40 110"
+              fill="none" stroke="#8a2be2" stroke-width="2.5" opacity="0.9"
+              filter="url(#glow-violet)"/>
+
+        <!-- superposition (neutral, between the two) -->
+        <path d="M 40 110
+                 C 140 95, 240 90, 360 100
+                 C 440 107, 530 103, 630 98
+                 C 685 95, 720 100, 745 110"
+              fill="none" stroke="#c8a96e" stroke-width="3.5" opacity="0.6"/>
+
+        <!-- omega gate vertical line -->
+        <line x1="748" y1="30" x2="748" y2="190" stroke="#ffe5a0" stroke-width="2"
+              filter="url(#glow-gold)" opacity="0.9"/>
+
+        <!-- U-curve at omega — where the two waves touch and reverse -->
+        <path d="M 745 110 C 758 90, 775 90, 778 110 C 775 130, 758 130, 745 110"
+              fill="none" stroke="#ffe5a0" stroke-width="2.5"
+              filter="url(#glow-gold)" opacity="1"/>
+
+        <!-- labels -->
+        <text x="28" y="115" fill="#f39c12" font-size="14" font-family="monospace"
+              opacity="0.8" text-anchor="middle">α</text>
+        <text x="772" y="25" fill="#ffe5a0" font-size="14" font-family="monospace"
+              opacity="0.9" text-anchor="middle">Ω</text>
+        <!-- gamma label along the return wave -->
+        <text x="480" y="158" fill="#8a2be2" font-size="10" font-family="monospace"
+              opacity="0.7" font-style="italic">γ</text>
+      </svg>
+    </div>
+    <div class="preview-caption">
+      forward wave (amber, above axis) &middot; gamma return (violet, below) &middot; U-curve at Ω gate (gold) &middot; interference bands near Ω
+    </div>
+  </div>
+
+  <div class="sep">;.,</div>
+
+  <!-- palette -->
+  <div class="section">
+    <div class="section-label">colour palette</div>
+    <div class="palette">
+      <div class="swatch">
+        <div class="swatch-color" style="background:#03030a;border-color:rgba(255,255,255,.2)"></div>
+        <div class="swatch-label">--bg<br>#03030a</div>
+      </div>
+      <div class="swatch">
+        <div class="swatch-color" style="background:#f39c12"></div>
+        <div class="swatch-label">forward<br>#f39c12</div>
+      </div>
+      <div class="swatch">
+        <div class="swatch-color" style="background:#8a2be2"></div>
+        <div class="swatch-label">gamma γ<br>#8a2be2</div>
+      </div>
+      <div class="swatch">
+        <div class="swatch-color" style="background:#c8a96e"></div>
+        <div class="swatch-label">superpos.<br>#c8a96e</div>
+      </div>
+      <div class="swatch">
+        <div class="swatch-color" style="background:#ffe5a0"></div>
+        <div class="swatch-label">Ω gate<br>#ffe5a0</div>
+      </div>
+      <div class="swatch">
+        <div class="swatch-color" style="background:#d8d3ee"></div>
+        <div class="swatch-label">text<br>#d8d3ee</div>
+      </div>
+      <div class="swatch">
+        <div class="swatch-color" style="background:#6f6688"></div>
+        <div class="swatch-label">text-dim<br>#6f6688</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="sep">;.,</div>
+
+  <!-- animation states -->
+  <div class="section">
+    <div class="section-label">animation states</div>
+    <div class="states">
+      <div class="state-card">
+        <h4>forward flow</h4>
+        <p>amber wave drifts continuously left→right. crests slightly above center axis. color: #f39c12 with glow rgba(243,156,18,0.4).</p>
+      </div>
+      <div class="state-card">
+        <h4>gamma return</h4>
+        <p>violet wave drifts right→left simultaneously. curves below center axis. color: #8a2be2 with glow rgba(138,43,226,0.4).</p>
+      </div>
+      <div class="state-card">
+        <h4>omega pulse</h4>
+        <p>the U-curve at Ω breathes gently — ±5% brightness, 2s cycle. the gate IS alive. interference bands shimmer subtly near Ω.</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="sep">;.,</div>
+
+  <!-- spec -->
+  <div class="section">
+    <div class="section-label">full specification</div>
+
+    <div class="spec-block">
+      <p><span class="key">layout :</span><span class="val"> full-page horizontal canvas, full viewport width/height<br>
+      &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;alpha at left edge &middot; omega at right edge<br>
+      &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;center horizontal axis — the zero line, very dim (1px, 20% opacity)</span></p>
+    </div>
+
+    <div class="spec-block">
+      <p><span class="key">forward wave :</span><span class="val-amber"> amber bezier, slightly above center axis<br>
+      &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;flows left→right continuously (animation)<br>
+      &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;stroke: #F39C12, glow rgba(243,156,18,0.4), 2px</span></p>
+    </div>
+
+    <div class="spec-block">
+      <p><span class="key">gamma return (γ) :</span><span class="val-violet"> violet bezier, slightly below center axis<br>
+      &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;flows right→left simultaneously (opposite direction)<br>
+      &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;stroke: #8A2BE2, glow rgba(138,43,226,0.4), 2px</span></p>
+    </div>
+
+    <div class="spec-block">
+      <p><span class="key">superposition :</span><span class="val-neutral"> luminous neutral curve between the two waves<br>
+      &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;slightly thicker (4px vs 2px)<br>
+      &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;stroke: #C8A96E (warm-neutral blend), 60% opacity</span></p>
+    </div>
+
+    <div class="spec-block">
+      <p><span class="key">omega gate (Ω) :</span><span class="val"> bright vertical line at right edge, white-gold #FFE5A0<br>
+      &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;U-curve where forward meets gamma: the most visually striking element<br>
+      &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;U-curve glows brighter than anything else in the scene<br>
+      &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;pulse: ±5% brightness, 2s cycle (the gate breathes)</span></p>
+    </div>
+
+    <div class="spec-block">
+      <p><span class="key">interference :</span><span class="val"> right 15% of canvas only<br>
+      &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;alternating bright/dim vertical bands (harmonic memory omega holds)<br>
+      &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;resonant bands: gold 60% opacity &middot; transform bands: near-black 80%<br>
+      &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;subtle shimmer animation — visible but not competing with U-curve</span></p>
+    </div>
+
+    <div class="spec-block">
+      <p><span class="key">labels :</span><span class="val"> "α" left edge, warm amber &middot; "Ω" right edge, white-gold<br>
+      &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"γ" along the return wave, small, cool violet, italic<br>
+      &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;all small monospace, no crowding</span></p>
+    </div>
+
+    <div class="spec-block">
+      <p><span class="key">tweaks panel :</span><span class="val"> use tweaks-panel.jsx from iris.v7.ax/vortex/<br>
+      &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;controls: wave speed (0.5×–3×) &middot; amplitude &middot; interference intensity<br>
+      &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;toggles: show/hide forward &middot; gamma &middot; superposition &middot; labels</span></p>
+    </div>
+
+    <div class="spec-block">
+      <p><span class="key">output files :</span><span class="val"> standing-wave.jsx &middot; index.html<br>
+      &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;title: "omega gate &middot; iris.v7.ax"<br>
+      &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;reference palette from iris.v7.ax/vortex/iris.jsx</span></p>
+    </div>
+  </div>
+
+  <!-- prose -->
+  <div class="prose-quote">
+    "omega is not the end. it was always the gate."
+  </div>
+
+  <div class="sep">;.,</div>
+
+  <!-- design vocabulary -->
+  <div class="section">
+    <div class="section-label">design vocabulary</div>
+    <div class="vocab">
+      <div class="vocab-item">
+        <span class="vocab-glyph gold">[:<</span>
+        <span class="vocab-desc">TRUE &middot; threshold reached &middot; gold</span>
+      </div>
+      <div class="vocab-item">
+        <span class="vocab-glyph dim">&gt;:|</span>
+        <span class="vocab-desc">FALSE &middot; below threshold &middot; dim</span>
+      </div>
+      <div class="vocab-item">
+        <span class="vocab-glyph sep">;.,</span>
+        <span class="vocab-desc">visual breath &middot; section separator</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="sep">;.,</div>
+
+  <!-- success test -->
+  <div class="section">
+    <div class="section-label">success test</div>
+    <div class="success">
+      <h4>the visual passes when :</h4>
+      <p>someone sees the right edge and understands intuitively that it is not an endpoint — the forward wave does not stop, it turns and becomes the return. the U-curve makes this undeniable without any explanation needed.</p>
+      <p>the two colours (warm amber / cool violet) tell the story of the two directions without words. the system feels alive — breathing, resonating, not static.</p>
+      <p>the interference bands near Ω suggest memory — something accumulated, held, reflected back — without explaining what memory means here.</p>
+    </div>
+  </div>
+
+  <!-- closing -->
+  <div class="closing">
+    <span class="closing-glyph">[:<</span>
+    <div class="closing-sub">omega gate &middot; template 14 &middot; iris.v7.ax</div>
+  </div>
+
+</div>
+</body>
+</html>
