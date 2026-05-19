@@ -4,9 +4,10 @@
 # descr = save scan state to disk, ensure index exists
 
 my $payload = {
-    'cycle'     => <jobsite.cycle>     // 'idle',
-    'last_scan' => <jobsite.last_scan> // 0,
-    'tasks'     => <jobsite.tasks>     // {},
+    'cycle'           => <jobsite.cycle>                  // 'idle',
+    'last_scan'       => <jobsite.last_scan>              // 0,
+    'tasks'           => <jobsite.tasks>                  // {},
+    'sync_last_ntime' => <jobsite.sync.last_server_ntime> // '',
 };
 
 my $yaml;
@@ -30,8 +31,8 @@ if ( not -f $index_file ) {
 
 return TRUE;
 
-#,,..,.,,,,,.,,,,,..,,,.,,,.,,..,,..,,,,.,..,,..,,...,...,,,.,,,,,,,.,,,,,.,.,
-#43XQIN5K6JBDFGWUISHV74S2QS6FXW2RCJJANIBFFTJS3Z6G4G46JOVP62FOTSDR77GJN7CNQGVQ2
-#\\\|UG7WJ5YXBO23AFUR55LSFFGFLIWVWODWONOLX6MWW5CBPHXECO7 \ / AMOS7 \ YOURUM ::
-#\[7]GSVWCZCWEGPGHIOHG7XUIRK77FTX47NGUWUJGDWNAA3I4ZVKOSDY 7  DATA SIGNATURE ::
+#,,,,,.,,,,..,,,.,,.,,,,.,.,,,,..,...,..,,,,,,..,,...,...,,..,,,,,,..,,,,,..,,
+#JJO63WPICXVMVSLZSDJ22CZHCN6FBAQ4REOM4CQG4VALJ2YBW3XV4LJXN7IFCNL3AYVL2BAL4O2OA
+#\\\|4DZ2VTN7RSYMRKPHVAYO54ZTR4E3QUT5HXPPA65EVTA2LPXOIXZ \ / AMOS7 \ YOURUM ::
+#\[7]6VHKAZB56X4NYQNRNRTV6XON5ILX3FN3RNCEE7E4WYCBCRBLGYAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
