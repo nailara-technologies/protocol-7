@@ -43,6 +43,7 @@
 - [punctuation-topology](topic-punctuation-topology.md) — `:` as group boundary, `.` as element separator; doc at data/md/development/PUNCTUATION-TOPOLOGY.md
 - [field-coherence-synthesis](topic-field-coherence-synthesis.md) — bridges all topology docs
 - [field-capability-emergence](topic-field-capability-emergence.md) — protocol vs external management; feature completeness + complementary behavior → native network capability
+- [self-assembling-network](topic-self-assembling-network.md) — spec repository as pre-loaded potential (layer 5/6); zenki self-implement on idle or urgent need; threshold recalculates from load×urgency×spec_confidence×momentum; design doc: SELF-ASSEMBLING-NETWORK.md
 - [creative-field-behaviour](topic-creative-field-behaviour.md) — emergent cooperative field dynamics, purring field, zenki as entropy subsystem
 - [addressing-trinity](topic-addressing-trinity.md) — named tree + checksums + timestamps as orthogonal trinity
 - [checksum-addressing](topic-checksum-addressing.md) — AMOS checksums, BMW384 geometry, route.bmw384.* implementation
@@ -58,6 +59,7 @@
 - [site-yaml-zenka](topic-site-yaml-zenka.md) — on-demand zenka: URL → structured YAML, domain regex templates
 - [site-yaml-web-research](topic-site-yaml-web-research.md) — safe coding zenka web research, checksum-as-capability tokens
 - [usb-backup-zenka](topic-usb-backup-zenka.md) — udev insertion → task tree → manifest restore agent
+- [git-watch-zenka](topic-git-watch-zenka.md) — force-push detection → pre-fetch snapshot; mode 1: local guardian; mode 2: remote watcher; git alternates chain dedup; task: data/tasks/git-watch-zenka.md
 - [tls-acme](topic-tls-acme.md) — SNI/SSL internals, ACME/letsencr details, cert discovery
 - [amos7-p7-loader](topic-amos7-p7-loader.md) — AMOS7::P7 makes <[...]> modules callable from standalone scripts
 - [invoke-model-management](topic-invoke-model-management.md) — uuid vs verbose paths, config.json, :raw binary writes
@@ -182,8 +184,8 @@
 - **repo var/ cleanup** — `var/httpd/` tracked from Nov 2025 AI error
 - **kimi auto-approval regression** (Apr 16) — some tool calls not auto-approved during kimi tasks
 
-#,,,.,..,,...,,,.,..,,,,,,,..,,,,,,.,,,..,.,.,..,,...,...,.,.,..,,...,,,,,.,.,
-#HS3JBAPJRZ6YEKAWHHA4Q76OO3OI44C5GQ3K3KFYXJXITQJHZTCVK4VBNKMD74JZ7HUHWGFNRIII6
-#\\\|PXU27Z63Z3DK2ODVHMF6TPAIDFY2GX6446PK3FN6H2EXD45K67X \ / AMOS7 \ YOURUM ::
-#\[7]M5RNWQEOB5463ZFNDONFSTNKAX3FWBPBRCT6STZ7UX7A3HUTP4CQ 7  DATA SIGNATURE ::
+#,,,.,,,.,,..,.,.,,..,.,.,,,.,,,.,.,,,...,.,.,..,,...,...,...,,.,,.,.,,..,,.,,
+#Y2C5PEGV5LNLGTULHCUZQHVP2K5S5DR72BTTOFQQKOAFZX7RGMXRV3GTISZGJPLG4VU2535NOTHUA
+#\\\|TNQG3YTAPMQS5JUH6WXGXUNWA5CSVIZRNGFZVYJ4K3NBJ7EQZQZ \ / AMOS7 \ YOURUM ::
+#\[7]L3WAZOFMMQIYF6NA4C5ZPEOQBRJCYL3KSBHUUXJX4G5YGY6QESBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
