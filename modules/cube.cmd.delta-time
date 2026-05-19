@@ -1,0 +1,78 @@
+## [:< ##
+
+# name  = cube.cmd.delta-time
+# param = <ntime-b32> [<ntime-b32>]
+# descr = return human-readable duration between two ntimes
+# note  = second param defaults to current time
+#       [ encode_b32r: not lexicographically sortable ]
+
+my $args = $call->{'args'} // '';
+$args =~ s|^\s+||;
+$args =~ s|\s+$||;
+
+my @params = split m|\s+|, $args;
+
+return {
+    'mode' => qw| false |,
+    'data' => 'usage: delta-time <ntime-b32> [<ntime-b32>]'
+    }
+    if not @params
+    or not length $params[0];
+
+## decode first ntime to unix ##
+my $ntime_a_num = <[base.ntime_BASE32_to_numerical]>->( $params[0] );
+return {
+    'mode' => qw| false |,
+    'data' => sprintf 'cannot decode ntime: %s',
+    $params[0]
+    }
+    if not defined $ntime_a_num;
+
+my $unix_a = <[base.n2u_time]>->($ntime_a_num);
+return {
+    'mode' => qw| false |,
+    'data' => 'ntime-a: n2u_time conversion failed'
+    }
+    if not defined $unix_a;
+
+## decode second ntime or use current time ##
+my $unix_b;
+if ( defined $params[1] and length $params[1] ) {
+    my $ntime_b_num = <[base.ntime_BASE32_to_numerical]>->( $params[1] );
+    return {
+        'mode' => qw| false |,
+        'data' => sprintf 'cannot decode ntime: %s',
+        $params[1]
+        }
+        if not defined $ntime_b_num;
+    $unix_b = <[base.n2u_time]>->($ntime_b_num);
+    return {
+        'mode' => qw| false |,
+        'data' => 'ntime-b: n2u_time conversion failed'
+        }
+        if not defined $unix_b;
+} else {
+    $unix_b = <[base.time]>;
+}
+
+## compute delta — always earlier→later ##
+my ( $t_start, $t_end )
+    = $unix_a <= $unix_b
+    ? ( $unix_a, $unix_b )
+    : ( $unix_b, $unix_a );
+
+my $delta_secs = $t_end - $t_start;
+
+## reuse base.parser.duration by passing (now - delta) as start time ##
+my $duration_str = <[base.parser.duration]>->( <[base.time]> - $delta_secs );
+
+return {
+    'mode' => qw| true |,
+    'data' => $duration_str
+};
+
+#,,,.,,..,,,,,,,.,,,,,,,,,,.,,,,,,...,,..,,,,,..,,...,..,,..,,.,,,...,,..,,,,,
+#XXSAOH3QHY7PRAQMGWRDA6UEXNR7A5MMTVIOXCX4DUYHKCZFCHCOYN4MMFRRKB3UJRASNQ7FRBUV2
+#\\\|KHOXIG2Y4O7NKGVULUVBDIPJBJRIIHXBL6ZJBVPXVMMLGWIAUDW \ / AMOS7 \ YOURUM ::
+#\[7]2GCIAXCZNBBQRFN73JXQD3DG64LWO3FA2P3WRAPD3PL27E6EZOBQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
