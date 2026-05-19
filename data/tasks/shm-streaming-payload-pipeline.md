@@ -160,6 +160,27 @@ no attack ever reaches the disk without clearing all four header gates first.
 - `/var/protocol-7/shm/` (created at startup if absent)
 - world-unreadable dir: chmod 711, owned by root or p7-admin
 
+### replay protection — two-layer design
+
+**layer 1 — time window** (from discover.process_incoming_packet):
+```perl
+my $timestamp_num = <[base.ntime_BASE32_to_numerical]>->($ntime_b32);
+my $delta_secs    = ($timestamp_num - <[base.ntime]>->(3)) / 4200;
+return HTTP_403 if abs($delta_secs) > 60;   ## 60s window for HTTP ##
+```
+reuse `base.ntime_BASE32_to_numerical` directly — already proven in discover.
+
+**layer 2 — per-sender ntime cache** (stricter than discover):
+discover overwrites host entries on each packet (replay of presence = harmless).
+for authenticated data transfer, exact replay within the window must be rejected:
+```perl
+## $data{'shm.seen_ntimes'}{$hostkey_L13}{$ntime_b32} = expiry_time ##
+return HTTP_403 if exists $data{'shm.seen_ntimes'}{$pkey_L13}{$ntime_b32};
+$data{'shm.seen_ntimes'}{$pkey_L13}{$ntime_b32} = <[base.ntime]>->(3) + (60 * 4200);
+```
+a sweep timer (matching replay window) removes expired ntime entries.
+storage cost: one entry per request within the window — negligible.
+
 ### existing modules to extend
 
 **`httpd.http_post`** — detect `X-P7-Content-Hash` + `X-P7-Signature` headers,
@@ -265,8 +286,8 @@ curl -X POST http://localhost/jobs-sync \
 - use `encode_b32r()` from AMOS7 for B32 encoding of digest bytes
 - do not add the stub signature to new files — signing adds footer
 
-#,,,.,.,,,..,,,.,,...,,,.,,,.,...,..,,...,.,,,..,,...,..,,,.,,,.,,..,,.,,,,,.,
-#7GXOPOCH2BL634IMFRPJGSITV5L7ELO5LJY23B2HO2NBNXLEKZMFDQ6KDBVYU7NYZ3TEJBZBGQFOW
-#\\\|VRL64O2LG225PFNZL43HXS6YHRF4DT67YX7ETEYMEWI3GUC767Q \ / AMOS7 \ YOURUM ::
-#\[7]PMY6WTMIGCQ46BDA7WHZ3SLWDDINCHAUCZYUVS73DQQEZCJHGIAI 7  DATA SIGNATURE ::
+#,,,,,,,.,,..,...,,.,,.,.,...,.,,,,,,,.,,,.,.,..,,...,...,...,.,.,...,.,.,,,.,
+#57HFFQ4SLEGLJESR5CUPUNRDD7PM5UZDBS3BV5L32IMOG3UAAL6TMOMFWQWH3B2NAK67BNP6HD6KO
+#\\\|PWIWQHK3KK6BKJXZKDHKD6RTH5NGTHXY634SIXJPP2WX63FAU4I \ / AMOS7 \ YOURUM ::
+#\[7]TZNJCIO4DDL3UNU32PX7CMYZDLUVNB3YNBD4FQT524VVDEZSWMDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
