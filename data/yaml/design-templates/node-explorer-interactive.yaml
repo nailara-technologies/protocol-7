@@ -1,0 +1,311 @@
+---
+name: node-explorer-interactive
+category: design-template
+type: interactive
+variant: node-explorer
+version: 1.0
+description: |
+  interactive reasoning tree explorer. nodes expand on click revealing full
+  narration, overlaps, children. convergence values live-update as approach
+  vectors arrive. compact nodes show potential; expanded nodes show actuality.
+  the tree is navigable — drill into any branch, collapse others, follow overlap
+  references across the tree. the interaction IS the reasoning.
+
+---
+
+## what this design represents
+
+the full tree as an explorable space rather than a static snapshot.
+the user (or model) navigates by interest — expanding what matters,
+collapsing what doesn't, following connections between nodes.
+the tree narrates itself on demand: click a node and it speaks.
+
+interaction principle (from template 3 — visualization IS implementation):
+  clicking a compact node = threshold crossing triggered by observation
+  the node expands because attention IS the convergence pressure
+  attention is itself an approach vector
+
+---
+
+## interaction model
+
+### click to expand (compact → expanded)
+
+```
+compact node (initial state):
+  [ node.name ]  >:|  0.538   compact
+
+click event:
+  brief pulse animation (50ms): node brightens, then settles
+  expansion: node grows downward revealing:
+    - narration text (appears line by line, typing animation optional)
+    - depth and checksum
+    - overlap references (clickable links)
+    - child nodes (appear below, initially compact)
+
+expanded node:
+  [ node.name ]  [:<  0.923076923076923
+  │
+  │  'narration text — coherent statement at this node's depth'
+  │
+  │  depth : 3   chksum : AMOS·4K3R2M   threshold : reached
+  │  overlap : other.node.reference  ←  [clickable, navigates to that node]
+  │
+  ├─[ .child-a ]  >:|  0.307   compact   ← click to expand
+  └─[ .child-b ]  [:<  0.769   'child narration'
+```
+
+the expansion animation:
+  not a slide-down (too mechanical)
+  a fade-in from top: the narration appears as if being read for the first time
+  the border draws itself: left edge first, then top, then right, bottom last
+  duration: 200-300ms — fast enough to feel responsive, slow enough to feel deliberate
+
+### click to collapse (expanded → compact)
+
+```
+click an expanded node's header:
+  reverse of expansion — narration fades, border retracts
+  node returns to compact single-line form
+  children collapse recursively (each with a slight delay — cascade effect)
+  the cascade makes the tree's hierarchy visible kinetically
+```
+
+### hover state
+
+```
+compact node hover:
+  slight brightness increase (+15%)
+  cursor: pointer
+  tooltip: convergence value + depth (appear after 300ms delay)
+  no expansion yet — hover is preview, click is commitment
+
+expanded node header hover:
+  slight brightness increase on header only
+  cursor: pointer (signals collapsibility)
+
+overlap reference hover:
+  the referenced node highlights in the tree (even if off-screen)
+  a subtle connecting line draws between current node and referenced node
+  color: dim white, 40% opacity, 1px, dashed
+```
+
+### overlap navigation
+
+```
+overlap references are clickable links within the tree
+click an overlap reference:
+  if referenced node is on screen: smooth scroll + brief highlight pulse
+  if referenced node is off screen: smooth scroll to bring it into view
+  the clicked reference gains a persistent dim connector line
+    showing the relationship even after the hover ends
+
+these connectors are the approach vectors made interactive:
+  you can build a visual web of connections by clicking overlaps
+  the web accumulates during a session — the connections you've followed
+  remain as dim lines until deliberately cleared
+```
+
+---
+
+## layout and navigation
+
+### tree positioning
+
+```
+left panel (30% width):
+  navigation tree — all root-level nodes listed
+  click a root node: centers the main view on that subtree
+  current position indicator: bright dot beside active root
+
+main panel (70% width):
+  the expanded tree from the currently selected root
+  scrollable vertically (the tree can be very tall)
+  the tree is always left-anchored — indentation is spatial meaning
+```
+
+### keyboard navigation
+
+```
+arrow keys:
+  ↓/↑: move to next/previous node (compact or expanded)
+  →: expand current node (if compact) or move to first child (if expanded)
+  ←: collapse current node (if expanded) or move to parent (if compact)
+
+enter:        toggle expand/collapse
+tab:          jump to next overlap reference in current node
+shift+tab:    jump to previous overlap reference
+/             open search (see below)
+escape:       close search, clear connector lines
+```
+
+### search
+
+```
+/ key opens a search field at top of main panel
+  searches: node names, narration text, checksum fragments
+  results highlighted in tree as bright outlines
+  results outside current view: navigation arrows appear at edge of screen
+  pressing enter on a result: navigates to it and expands it
+  search is harmonic-aware: partial checksum matches also surface
+```
+
+### breadcrumb trail
+
+```
+above the main panel:
+  reasoning.tree  >  reasoning.narrate  >  reasoning.narrate.delta
+  each element is clickable — navigates up the hierarchy
+  the breadcrumb IS the current position in the layer stack
+  at maximum depth: the breadcrumb IS a direction vector home
+```
+
+---
+
+## live convergence updates
+
+```
+when the system is active (approach vectors arriving):
+  convergence values update in real-time
+  compact nodes: the numerical value ticks upward
+  the moment a node crosses threshold: it auto-expands with a gold pulse
+  the gold pulse: the border briefly glows gold for 500ms, then settles
+  this IS the threshold crossing event made visible as it happens
+
+the auto-expand on threshold:
+  does not interrupt user interaction
+  if user is currently reading a different expanded node: brief notification dot
+    appears on the auto-expanded node, user can navigate to it when ready
+  the notification dot: small, amber, at the node's position in the nav tree
+```
+
+---
+
+## visual specifications
+
+### expanded node
+
+```
+background:   slightly lighter than tree background (not white — very subtle)
+border:       left edge: 2px, namespace hue, full opacity
+              other edges: 1px, namespace hue, 40% opacity
+narration:    font-size 13px, line-height 1.5, readable weight
+              color: near-white (95% brightness) — the most important text
+metadata:     font-size 11px, 60% brightness — present but subordinate
+overlap refs: font-size 11px, namespace hue color, underline on hover
+              the color IS the signal: these are connections, not just text
+```
+
+### compact node
+
+```
+single line, no border, no background
+color: 50% brightness (dim but legible)
+the >:| marker: 40% brightness (even dimmer — it's the false marker)
+convergence value: 45% brightness
+on hover: all elements → 70% brightness
+```
+
+### connector lines (overlap relationships)
+
+```
+style: dashed, 1px
+color: white at 30% opacity
+the dashes: 4px dash, 4px gap
+animation (when first drawn): dash-offset animates from source to target
+  takes 300ms — the connection draws itself along its path
+  the direction of drawing IS the direction of the relationship
+```
+
+---
+
+## state persistence
+
+```
+per-session state (survives scroll, stays until refresh):
+  - which nodes are expanded
+  - which overlap connectors are visible
+  - scroll position
+  - search query
+
+the session state IS a partial snapshot of the user's reasoning:
+  the pattern of expanded nodes = what the user found significant
+  the connector web = what relationships the user traced
+  this could be saved as a named "view" — a personal layer 4 snapshot
+
+named views:
+  save current expansion + connector state as a named snapshot
+  name it: "my current understanding of reasoning.narrate"
+  load it later: the tree returns to this expansion pattern
+  share it: the view is a direction vector for another reader
+```
+
+---
+
+## what the two readers experience
+
+**model reader** (navigating programmatically):
+- the tree structure is fully parseable via keyboard navigation
+- search surfaces any node by name, narration fragment, or checksum
+- convergence values are exact — the model can read the current state precisely
+- the API: `tree.expand(node)`, `tree.collapse(node)`, `tree.query(term)`
+
+**human reader** (exploring by intuition):
+- expand what looks interesting — the narration rewards the click
+- follow overlap references to understand relationships
+- watch the gold pulses to see where the system is currently active
+- the connector web that builds up IS your understanding of the tree
+- when you close the session: your connector web was your own layer 4
+
+---
+
+## design variants
+
+### minimal (mobile-first)
+
+single-column layout — no left panel
+swipe left/right to navigate parent/child
+expanded nodes take full screen width — maximum reading comfort
+the tree depth shown as a dots indicator at bottom (like presentation slides)
+
+### dense (terminal mode)
+
+no animations, no transitions
+keyboard only, no mouse
+renders in true monospace — every pixel a character
+the tree as it would appear in a 256-color terminal
+maximum information density, minimum visual decoration
+
+### overlay mode
+
+the interactive tree overlaid on the static iris visualization
+the iris rings highlight as you navigate — your position in the tree
+IS your position in the vortex
+expanding a node = that node's ring position glows
+the iris and the tree are the same structure — the overlay makes it explicit
+
+---
+
+## inspiration notes for design generation
+
+the interaction feel:
+  the tree should feel like reading a book that reads back
+  each expansion is a conversation turn — you asked, the tree answered
+  the connector lines you build: a web of your own making
+  the gold pulses: the system telling you where it is, unprompted
+
+not like:
+  a file browser (too mechanical, no meaning in the structure)
+  a mind map (nodes aren't free-floating — topology is everything)
+  a chat interface (not conversational — spatial, navigable)
+
+like:
+  walking through a library where the books open when you approach
+  a city map where the buildings describe themselves as you enter
+  something between reading and exploring — neither pure, both present
+
+#,,.,,..,,.,,,,..,..,,.,,,,.,,.,.,,.,,.,,,,.,,.,.,...,...,.,.,,,.,,,.,.,.,.,.,
+#EASIT26XIKHVKMBELWNZ7QAFZQINHZBRLBPU7R5PROYG4PZUZNWFUG5O44D3HMHBHBE4YT3R7DG7W
+#\\\|WRMCBRKPLLNFY6KUQZPO3PNFFFQM72U24Q2WDXXU3LQQGPXYKKD \ / AMOS7 \ YOURUM ::
+#\[7]JW2F46ACD3V2BVNRS75IAWADXVCSUOHWWSNZWDUE4WQ4XEFZJ6AY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

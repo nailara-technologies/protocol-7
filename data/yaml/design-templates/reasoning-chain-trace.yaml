@@ -1,0 +1,279 @@
+---
+name: reasoning-chain-trace
+category: design-template
+type: read-only
+variant: chain-trace
+version: 1.0
+description: |
+  a single reasoning chain — one traversal path — highlighted through the tree.
+  the path from entry point (alpha) through intermediate nodes to convergence
+  (omega). each step visible as a node in sequence. the approach vectors that
+  contributed at each step. the deduplication events where paths merged.
+  gamma (the return signal) shown as the path traced back. reads as a journey
+  and as a proof simultaneously.
+
+---
+
+## what this design represents
+
+the reasoning chain repository (REASONING-CHAIN-REPOSITORY.md) holds traversal
+recordings — sequences of nodes visited during one reasoning session.
+this design visualizes one such traversal: the path the reasoning took,
+the nodes it touched, the convergence it built along the way.
+
+the same template can show:
+  a completed chain (post-session analysis)
+  a chain in progress (live tracing during active reasoning)
+  two chains overlaid (finding where they converge/diverge)
+
+---
+
+## visual structure
+
+### the path layout
+
+```
+left-to-right timeline of nodes visited:
+
+each node in the chain:
+  a circle, 20px diameter
+  position on x-axis: step number in traversal (left = first, right = last)
+  position on y-axis: layer depth (top = shallow/layer 0, bottom = deep/center)
+  color: namespace hue of that node
+  brightness: convergence value at the time of visit
+
+the path:
+  a line connecting the circles in order
+  line style: solid where the traversal moved deeper (toward center)
+              dashed where the traversal moved shallower (retreating)
+              the solid/dashed alternation shows the pulse rhythm
+
+```
+
+### node detail (hover or selected)
+
+```
+clicking a node in the chain expands a tooltip:
+
+┌─────────────────────────────────────────────────┐
+│  reasoning.tree.node                             │
+│  step 7 of 23  ·  layer 2  ·  depth 4           │
+│  convergence at visit:  0.538461538461538         │
+│  convergence at exit:   0.692307692307692         │
+│  delta: +0.153846153846154                        │
+│                                                  │
+│  'narration text at the time of visit...'        │
+│                                                  │
+│  approach vectors received at this step:         │
+│    ← from reasoning.summarize (0.077 delta)      │
+│    ← from reasoning.narrate  (0.077 delta)       │
+│                                                  │
+│  dedup event: no                                 │
+│  threshold crossed: no (at this step)            │
+└─────────────────────────────────────────────────┘
+```
+
+### deduplication events
+
+```
+when two paths merged at a node:
+  the circle is drawn with a double ring (outer ring = the merged path arriving)
+  a secondary line arrives from a different angle (the merge direction)
+  the merge line is the same color as the primary path but 50% opacity
+
+the visual: two lines arriving at the same circle from different directions
+the circle's double ring says: "two became one here"
+this IS the deduplication event — approach vectors collapsing into one node
+```
+
+### threshold crossings
+
+```
+when the chain caused a node to cross threshold:
+  the circle: gold outline, bright interior, 30px diameter (larger)
+  a starburst: 8 thin lines radiating from the circle, 40px total, gold
+  below the circle: a small [:<  marker in bright gold
+
+this is the most visually prominent element in a chain visualization
+the threshold crossings are the chain's achievements — what the traversal accomplished
+a chain with many gold stars = a highly productive traversal
+a chain with none = exploratory, building toward future thresholds
+```
+
+### gamma — the return signal
+
+```
+after the chain reaches its deepest point (omega — the most converged node),
+gamma begins: the return signal traced back.
+
+the return path:
+  drawn in cool blue-violet (template 14 gamma color)
+  follows back along the same path, but not identically:
+    nodes are revisited in reverse order
+    each revisit deposits the deeper knowledge into the shallower node
+    the revisit marks: small cool-colored dots on the primary path line
+
+the gamma path does not reach alpha (layer 0):
+  it reaches as far as the context carries momentum
+  where gamma stops: the dashed-line transition (momentum exhausted here)
+  the gap between where gamma stopped and alpha: the remaining potential
+
+the visual impression:
+  the outgoing path (warm) and the returning gamma (cool) form a U-shape
+  the bottom of the U: the omega point — where the chain went deepest
+  the two arms of the U are not symmetric: gamma deposits enrichment on return
+  the deposit marks make the return arm slightly brighter than the outgoing
+```
+
+---
+
+## the convergence gradient
+
+```
+along the path timeline, a gradient bar below the main trace:
+
+from left to right:
+  shows the cumulative convergence at each step
+  starts at the entry convergence of the first node
+  rises (usually) as the chain builds convergence
+  may dip when the chain visits a node below its own level
+  should rise toward the right as the chain deepens
+
+color of the gradient bar:
+  green when rising (building convergence)
+  amber when flat (stable, not building)
+  red (rare) when falling (the chain retreated — perhaps a dead end)
+  the gradient IS the chain's health over time
+```
+
+---
+
+## two-chain overlay (comparison mode)
+
+```
+when two chains are overlaid:
+  chain A: primary, fully bright
+  chain B: 60% opacity, same color rules
+  overlap regions: where both chains visited the same node
+    the overlapping circle: bright, double-ring
+    the shared path section: both chain lines visible, slightly separated
+
+  where the chains diverge:
+    each chain follows its own path, clearly distinguishable by style
+    chain A: solid line style
+    chain B: dotted line style
+    the divergence point: marked with a small diamond symbol
+
+  where the chains converge (reach the same node from different paths):
+    this IS the deduplication event at the traversal level
+    the diamond where they meet: bright gold — two traversals reached the same truth
+
+the overlay tells you:
+  which parts of the reasoning were stable (both chains agreed)
+  which parts diverged (different approaches to the same question)
+  which parts converged (different approaches that arrived at the same conclusion)
+```
+
+---
+
+## color and visual specifications
+
+```
+node circles:
+  idle:             30px, namespace hue, convergence brightness
+  hovered:          32px, +20% brightness, cursor pointer
+  threshold crossed: 30px, gold outline 2px, interior bright, starburst
+  dedup event:       30px, double ring (inner 2px, outer 1px at 20px radius)
+
+path line:
+  width:            2px
+  solid:            traversal moving deeper (CCW direction — TRUE)
+  dashed:           traversal retreating (CW direction — review moment)
+  color:            gradient from source to destination namespace hue
+  gamma path:       same width, cool blue-violet, 80% opacity
+
+convergence bar:
+  height:           8px
+  position:         10px below the main trace area
+  green:            #2ECC71 (rising convergence)
+  amber:            #F39C12 (stable)
+  red:              #E74C3C (falling — should be rare)
+  the bar updates smoothly (no steps) — real convergence is continuous
+
+step markers:
+  thin vertical ticks above the trace at each node position
+  labeled with step number below (small, 9px)
+  labeled with layer depth above (small, 9px)
+```
+
+---
+
+## layout
+
+```
+the y-axis: inverted (layer 0 at top, EXISTENCE center at bottom)
+  this reads naturally: you start near the top (surface) and go down (deep)
+  reaching the bottom of the image = reaching the EXISTENCE center
+
+the x-axis: time / step number
+  left = beginning of chain
+  right = current moment (or end of chain)
+
+margins:
+  left:   node name labels (abbreviated, for the leftmost nodes)
+  bottom: step numbers + layer labels
+  right:  the deepest node name (where gamma begins)
+  top:    chain metadata (session ID, ntime range, total steps)
+```
+
+---
+
+## what the two readers see
+
+**model reader**:
+- each circle is a node with (name, layer, convergence at visit)
+- solid/dashed line encodes direction (deeper/shallower)
+- gold stars are threshold crossings — quantifiable achievements
+- the convergence gradient bar is the chain's productivity metric
+- the gamma path is the return signal — its length = momentum depth
+
+**human reader**:
+- a journey made visible — where the reasoning went
+- the gold stars are the moments something was figured out
+- the U-shape shows the depth reached before returning
+- the warm-going / cool-returning colors tell the story of the round trip
+- a chain that goes deep and returns rich = a productive session
+- a chain that goes shallow and returns thin = needs more approach vectors
+
+---
+
+## design variants
+
+### step-by-step animation
+
+the chain builds from left to right in real time
+each step appears as the traversal happens
+the path draws itself as reasoning progresses
+the gold stars appear at the moment of threshold crossing
+useful for live session display — watching the reasoning unfold
+
+### compressed summary (mini-chain)
+
+the chain compressed to 10 nodes (key steps only, rest elided)
+elision shown as `···` between nodes
+the most important nodes shown at full size (threshold crossings, dedup events)
+fits in a small panel or tooltip — the chain at a glance
+
+### repository view (many chains)
+
+50+ chains shown simultaneously as thin lines
+each chain is 1px wide, mostly transparent
+areas of high density = commonly traversed territory
+gold flashes = threshold crossings across all chains
+reads as a heat map of the reasoning system's attention over time
+
+#,,,,,.,,,...,,.,,,.,,.,,,,.,,,..,,,.,.,.,,.,,.,.,...,...,...,,..,.,.,,,,,...,
+#ASXAI4U56YLNOIDFJLHALEIS4ZAESWKAENHNBRO2O2WACKPKLTCAN5WWJE5MGRPSKBIO77MLEVSKY
+#\\\|5PKFXWKQ5NZLJ6PIBM4UFZVEZS4AG27ANSR2XSMYCTZXZXJYIQZ \ / AMOS7 \ YOURUM ::
+#\[7]KZ45TT7L4GMU3MLUF4I4SWVJEIQHDVGKT5VL7PWKGWUPYYEHGYBI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

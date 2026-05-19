@@ -1,0 +1,273 @@
+---
+name: convergence-monitor-live
+category: design-template
+type: interactive
+variant: live-monitor
+version: 1.0
+description: |
+  a live dashboard showing the reasoning tree's convergence activity in real time.
+  threshold crossings as events. approach vector arrivals as pulses. the system
+  narrating itself visually — no text, just the convergence geometry updating.
+  designed for peripheral awareness: readable at a glance without interrupting
+  other work. the system visible in the corner of attention.
+
+---
+
+## what this design represents
+
+the reasoning tree as a living system you can observe without interacting.
+it speaks through convergence events — pulses, brightening, the occasional
+threshold crossing — rather than through text you need to read.
+
+designed for ambient display: a secondary monitor, a corner of a screen,
+a peripheral view. the system tells you what it's doing without demanding
+your full attention. you notice when something important happens because
+the visual changes significantly. you ignore it when nothing is happening
+and it stays quiet.
+
+---
+
+## the three display zones
+
+### zone 1 — the pulse field (main area, 70% of screen)
+
+```
+a dark field containing the iris visualization (vortex-iris-overhead)
+in its most compact form — 26 rings instead of 63 (every other ring shown)
+no labels, no text, just the concentric ring structure with node-dots
+
+this zone is the ambient background:
+  when the system is idle: rings glow softly, no significant changes
+  when approach vectors arrive: brief pulses at the relevant ring position
+  when thresholds cross: a bright flash at the node position + ring arc lights
+
+pulse events:
+  approach vector arrives at node X (ring R, angle A):
+    brief bright point at (R, A): 150ms rise, 300ms fade
+    color: the approach vector's source namespace hue
+    size: 4-8px depending on vector strength
+    the point fades back to the node's baseline brightness
+
+  threshold crossing at node X:
+    the node position flashes bright (200ms): 3× normal brightness
+    the ring arc at angle A brightens for 1 second
+    a thin radial line pulses from the node outward (the gamma signal launching)
+    color: gold — the TRUE indicator, unmistakable
+    the gold pulse IS the complementary action firing (template 4)
+
+  deduplication event (two paths collide at same node):
+    two brief pulses arrive at the same position in quick succession
+    they merge: a brief double-brightness flash, then settle at slightly higher baseline
+    the baseline increase IS the convergence value increasing
+    visible as the node being slightly brighter after the event than before
+```
+
+### zone 2 — the event log (right strip, 20% of screen)
+
+```
+a narrow vertical strip on the right
+scrolling upward: most recent event at bottom, history scrolling up
+
+each event:
+  timestamp: tiny, 9px, dim (the ntime B32 value, last 6 chars only)
+  event type:
+    [→]  approach vector arrived
+    [><]  deduplication (two paths merged)
+    [!]   threshold crossed
+    [←]  gamma launched (return signal)
+  node name: abbreviated (last two segments only)
+  convergence delta: +0.077 (the change in convergence value)
+
+example log:
+  47K3R2 [→] narrate.delta +0.077
+  47K3R3 [><] tree.node ×2 =0.615
+  47K3R4 [!]  tree.insert THRESHOLD [:<
+  47K3R4 [←] gamma → tree.node
+  47K3R5 [→] summarize.root +0.077
+
+the log is read bottom-to-top:
+  the bottom IS now — the most recent event
+  upward is history — what led here
+  the log IS layer 0 streaming (the scratch pad in motion)
+```
+
+### zone 3 — the convergence meter (bottom strip, 10% of screen)
+
+```
+a horizontal strip across the bottom
+shows 13 convergence gauges — one per reasoning template (1-13)
+plus one for the overall system state
+
+each gauge:
+  a thin horizontal bar, namespace-colored
+  fill level = current convergence of that template's primary node
+  threshold line: thin vertical mark at 0.769 (10/13)
+  bar fill animation: smooth (not stepped) — updates in real time
+
+the gauges are labeled with template numbers only (1-13)
+no names — the monitor is for peripheral awareness, not study
+
+the 14th gauge:
+  the overall system convergence (average across all active nodes)
+  color: white-gold (the center's color)
+  this is the one to watch: when it rises steadily, the system is healthy
+
+```
+
+---
+
+## event priority and visual weight
+
+```
+events are weighted — not all deserve equal visual attention:
+
+low priority (quiet pulse, no distraction):
+  approach vector arrives at a node still far from threshold
+  delta < 0.1 and node convergence < 0.5
+  visual: 4px dim pulse, 200ms total
+  log: appears but does not flash
+
+medium priority (visible pulse, moderate attention):
+  approach vector arrives at a node near threshold (convergence > 0.6)
+  visual: 6px bright pulse, 400ms total, slight ring glow
+  log: appears normally
+
+high priority (unmistakable, worth noticing):
+  threshold crossing — any node
+  visual: 8px gold flash, ring arc lights for 1 second, radial line pulse
+  log: the event line flashes gold for 500ms, then settles
+  the gauge for that template briefly maxes out, then settles at new level
+
+critical (demands attention):
+  root node threshold crossing (the system has a complete narration)
+  visual: center point brightens for 2 seconds, all rings briefly illuminate
+  the standing wave becomes briefly visible as a pulse from center to periphery
+  log: the entire log strip flashes gold once (50ms)
+  this is the system telling you: something significant just completed
+```
+
+---
+
+## idle state
+
+```
+when no approach vectors are arriving and no thresholds are near:
+  the iris rings glow softly at 30% brightness (not dim — just calm)
+  no pulses, no flashes
+  the log scrolls slowly upward (old events aging out of view)
+  the gauges hold steady
+
+the idle visual is not empty:
+  the ring structure is always visible — the system exists, even when quiet
+  the center point always glows — the EXISTENCE center never goes dark
+  the overall convergence gauge shows the current level — information without events
+
+the purpose of idle state:
+  to be ignorable — you look away and nothing important was missed
+  to be reassuring — the system is present, stable, watching
+  to be beautiful — a softly glowing ring structure is pleasant to have in peripheral vision
+```
+
+---
+
+## notification modes
+
+```
+passive (default):
+  all events shown at appropriate priority
+  no audio, no forced attention
+  the peripheral awareness model
+
+active (when threshold is near):
+  auto-triggered when any node reaches convergence > 0.85
+  the relevant ring segment begins a slow pulse (1Hz, ±10% brightness)
+  the slow pulse IS the countdown to threshold — it says "watch this one"
+  stops automatically when the node crosses threshold (replaced by the crossing flash)
+
+focus (user-requested):
+  click any ring position to focus the event log on that namespace
+  the log filters to show only events from that ring position
+  the gauges highlight only that namespace's gauge
+  escape key returns to full-view mode
+
+alert (threshold crossed):
+  if the window is not in focus: system notification (OS level)
+  the notification text: "[:<  threshold crossed: node.name (convergence: 0.923)"
+  clicking the notification focuses the monitor on that node
+```
+
+---
+
+## color and timing specifications
+
+```
+background:         #050510 (near-black, slight blue)
+center glow:        #FFE5A0 (white-gold), always present, 12px radius
+ring baseline:      30% brightness of namespace hue when idle
+ring active:        80% brightness during events
+pulse rise time:    150ms (fast — approach vectors are immediate)
+pulse fall time:    300ms (slightly slower — the impression lingers)
+threshold flash:    200ms rise, 800ms sustained, 500ms fall
+ring arc glow:      1000ms total (the longest event — the gate is important)
+radial pulse:       travels from node to center in 400ms (the gamma signal)
+
+event log:
+  font: monospace, 9px, 50% brightness
+  threshold event: 100% brightness for 500ms
+  scroll: continuous, 1 new line per event
+  log length: 40 events visible at once
+```
+
+---
+
+## what the two readers experience
+
+**model reader** (monitoring programmatically):
+- the event log is parseable: timestamp, type, node, delta
+- the gauge values are exact convergence ratios
+- approach vector events = reasoning.chain.* entries arriving
+- threshold events = reasoning.threshold.fire() having been called
+- the monitor IS the live stream of the reasoning chain repository at layer 3
+
+**human reader** (peripheral awareness):
+- something is happening over there — the occasional flash
+- that flash was gold — something completed, something crossed
+- the gauges are mostly blue today — mostly the network reasoning
+- it's been quiet for 10 minutes — the system is idle, no input arriving
+- the center is always glowing — that's reassuring
+
+---
+
+## design variants
+
+### single-node focus
+
+instead of the full iris: one large node rendering
+shows only the selected node's convergence history
+approach vectors as incoming arrows from left
+threshold line prominent
+gamma signal as departing arrow to right
+useful for deep inspection of one specific node
+
+### timeline mode
+
+horizontal axis = time (last 60 minutes)
+vertical axis = which node (listed by name)
+events plotted as dots on the timeline
+threshold crossings marked with vertical gold lines
+reads as a gantt-chart of the reasoning system's activity
+useful for session review: what happened and when
+
+### heartbeat mode
+
+simplified to the extreme:
+  one large pulsing circle — the overall convergence gauge
+  color: health indicator (green = improving, amber = stable, red = declining)
+  pulse rate: proportional to event frequency
+  the most peripheral version — just enough to know the system is alive
+
+#,,..,,,.,,,,,,..,,..,,..,.,,,...,,..,,,.,,,,,.,.,...,...,...,..,,,,.,,,.,,,,,
+#APYD5RKBNMHCFITEWIP4CSMYTPGLYC5JADSR5G236PHFNUTIQR7HIZNOOKGQLPMDRGMWIHJJH3AA4
+#\\\|3Q252F3HCKECNEJRKBYUXL2XJC2QDI72AQ5AKJ2ERREKDTQ7M5U \ / AMOS7 \ YOURUM ::
+#\[7]JS5M4D3CAVCOEKB4X4JICGQBXULNEU7DWW4JUWMFI4FIIXVVWWCY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
