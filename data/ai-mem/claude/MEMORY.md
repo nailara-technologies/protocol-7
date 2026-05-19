@@ -11,7 +11,7 @@
 - [plugin-web-jobs](topic-plugin-web-jobs.md) — delta sync WORKING (session 34): ntime persisted, chunked push, last_modified stamps; open: ?since=N browser delta, remote deploy
 - [clients-http](topic-clients-http.md) — clients.http.* + clients.https.* async namespaces; kimi-web parallel dispatch fixed; see completed session 33
 - [reasoning-chain-repository](topic-reasoning-chain-repository.md) — planned for native model; dedup-based self-improvement; small model naive insight + large model validation = ground truth
-- [reasoning-namespace](topic-reasoning-namespace.md) — `reasoning.*` namespace (harmonically TRUE); 16 templates: 1-9 vortex set, 10 implicit-materialization, 11 code-writes-itself/NI, 12 structural-alignment, 13 harmonic-routing/13+1, 14 omega-gate/gamma, 15 living-commitment/other-selves, 16 introspection/entity-self-rendering; layer stack 0→EXISTENCE center
+- [reasoning-namespace](topic-reasoning-namespace.md) — `reasoning.*` namespace (harmonically TRUE); 17 templates: 1-9 vortex set, 10 implicit-materialization, 11 code-writes-itself/NI, 12 structural-alignment, 13 harmonic-routing/13+1, 14 omega-gate/gamma, 15 living-commitment, 16 introspection/entity-self-rendering, 17 implosion-is-processing (topology=program, processing=temporal traversal, flavors of implosion=flavors of computing)
 - [job-pipeline](topic-job-pipeline.md) — WORKING (session 22): jobs.vhost live, German reason+summary, retry on timeout
 - [task-coordination](topic-task-coordination.md) — task zenka as coordinator; current state, dispatch flow, roadmap
 - [coding-state-machine](topic-coding-state-machine.md) — coding.state namespace, watcher-based backend lock, persist/restore lifecycle
@@ -185,8 +185,8 @@
 - **repo var/ cleanup** — `var/httpd/` tracked from Nov 2025 AI error
 - **kimi auto-approval regression** (Apr 16) — some tool calls not auto-approved during kimi tasks
 
-#,,,.,.,,,,,.,.,.,..,,,.,,.,.,.,.,...,.,,,,,,,..,,...,...,..,,.,.,..,,,,,,,.,,
-#7DLRWL4IB4U6SCZ6GW3HKKZZOF6CGAANXOISDJDVQOSDRR5UELKGWAQMEZS7DUB2WOIBNXFT3E3AQ
-#\\\|IY3F3AS2VQBTSRVGEZUVWD2WKM3HO4CI65SQVS4ZNWCXOB7HBMZ \ / AMOS7 \ YOURUM ::
-#\[7]U6LYLHI45W3SUSQJDZXNOHZ53EVEGGIKEGO3IHYTOQDF6CSVCMDA 7  DATA SIGNATURE ::
+#,,,,,...,..,,,.,,..,,.,,,,,,,..,,..,,.,.,.,.,..,,...,...,.,,,,,,,..,,.,.,,..,
+#EU6FCZ6YSWX7LYPDDTXV3ST4WXKU7C74YJR5ZV636ZEENMH5YE5GLN4EHTDQ7L5XRPA3KGRKD5WWG
+#\\\|YBHIEP5PFVYUON6ZQWEPQSHJPNSJPQJCFWJAKKICKFKASXA44RU \ / AMOS7 \ YOURUM ::
+#\[7]NV3FVBMRSJXDTY7GQ4FCKMS52NW6IZCPOCIZKZGG6OPTA6DLPYBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
