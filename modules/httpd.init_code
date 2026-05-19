@@ -99,17 +99,34 @@ if ( !-d $site_dir ) {
 );
 
 my $upload_dir = <httpd.upload_dir> //= '/var/httpd/..incoming..';
-if ( <httpd.cfg.uploads_enabled> and !-d $upload_dir ) {
-    <[base.log]>->( 0, "creating upload_dir '$upload_dir'..," );
-    <[file.make_path]>->( "$upload_dir", 0770, $httpd_user, $httpd_group )
-        or die
-        "<< unable to create upload dir '$upload_dir' >> [ \l$OS_ERROR ]";
+if (<httpd.cfg.uploads_enabled>) {
+    if ( -d $upload_dir ) {
+        ## already exists — nothing to do ##
+    } elsif ( !$UID ) {
+        ## running as root — safe to create ##
+        <[base.log]>->( 0, "creating upload_dir '$upload_dir'..," );
+        if (not <[file.make_path]>->(
+                "$upload_dir", 0770, $httpd_user, $httpd_group
+            )
+        ) {
+            <[base.logs]>->(
+                1,           "<< cannot create upload dir '%s' >> [ %s ]",
+                $upload_dir, lc $OS_ERROR
+            );
+            <httpd.cfg.uploads_enabled> = FALSE;
+        }
+    } else {
+        ## non-root reload — dir may exist but be untraversable; skip silently ##
+        <[base.logs]>->(
+            2, "upload_dir not verified [ non-root, skipping check ]"
+        );
+    }
 }
 
 0;
 
-#,,,,,,.,,,..,.,,,,.,,,.,,.,.,.,,,...,..,,,,,,..,,...,...,,.,,,.,,.,.,.,,,,,.,
-#WRTCQF4QI4VG42PEKMTC6OLG2E6NW6DXG2NV56RUVKEU5CLJNXTXKJ7HJULZ6ZQ3QGIZN3DNTOXPC
-#\\\|ORELXQX3N6MDK3K37ADZILYKIEPVN7BGMQGOCGEQHFAXAMP5W5S \ / AMOS7 \ YOURUM ::
-#\[7]KI5U2YZEHP545PKY7ESN5ZM2LMQWDFHFADNE47TIVPNJZYQSM2AY 7  DATA SIGNATURE ::
+#,,..,..,,.,,,,,,,.,.,.,.,...,...,.,,,,.,,,..,..,,...,...,,,,,,..,..,,,,.,,..,
+#AHEQM654N5WZMT46XYGRSX5AJMMOZRDSBFFN2XOEQWMXVAXGVR3VUGYPSQWNYGPWNBBSAXYHUZLPM
+#\\\|K5N6HTPCSK2A22JZZKPWN6QKBTV3LMBUTE7HGWG3LNRT6TTQTNK \ / AMOS7 \ YOURUM ::
+#\[7]NYBP4Q2SAZYK5CVIKRE5JUJO6VBCROLOMJJ2NVASRDQG3AKF2QAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
