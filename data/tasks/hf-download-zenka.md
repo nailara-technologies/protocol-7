@@ -1,14 +1,14 @@
-# task: file.fetch.huggingface — model download zenka
+# task: fetch.file.huggingface — model download zenka
 
 ## context
 
 local model availability is a recurring friction point: GPU crashes on wrong
 quantization, models missing after disk events, switching between sizes manually.
-this task implements `file.fetch.huggingface.*` — a p7 command interface for
+this task implements `fetch.file.huggingface.*` — a p7 command interface for
 downloading GGUF models from HuggingFace into the correct local storage paths.
 
 design is distributed across:
-  data/md/documentation/SELF-CONTAINED-ZENKA-VISION.md  → file.fetch.huggingface namespace
+  data/md/documentation/SELF-CONTAINED-ZENKA-VISION.md  → fetch.file.huggingface namespace
   data/md/design/MODELS-PATH-ADAPTERS.md                → category subdir routing
   data/md/coding-tasks/invoke-ai-model-storage-management.md → LAN-first, HF-second pattern
   data/md/documentation/MODELS-PATH-CONFIGURATION.md    → storage paths and config keys
@@ -22,7 +22,7 @@ do not add signature stubs. run `bin/Protocol-7 sourcecode update-signatures` wh
 
 ## what to implement
 
-### file.fetch.huggingface
+### fetch.file.huggingface
 
 primary download command:
 
@@ -50,7 +50,7 @@ returns: {
 }
 ```
 
-### file.fetch.huggingface.list
+### fetch.file.huggingface.list
 
 list available quantizations for a model repo:
 
@@ -71,7 +71,7 @@ uses clients.http.get (non-blocking) — see modules/clients.http.*
 HF API does not require auth for public models
 ```
 
-### file.fetch.huggingface.search
+### fetch.file.huggingface.search
 
 search HuggingFace for GGUF models by name:
 
@@ -87,7 +87,7 @@ formatted output:
   lmstudio-community/gemma-2-9b   28,103      2025-02-28
 ```
 
-### file.fetch.huggingface.lan-check
+### fetch.file.huggingface.lan-check
 
 check if a model file is available on LAN hosts before downloading from HF:
 
@@ -101,7 +101,7 @@ returns: { found => 1, host => '192.168.1.X', path => '/mnt/models/...' }
          OR { found => 0 }
 ```
 
-### file.fetch.huggingface.status
+### fetch.file.huggingface.status
 
 show download progress for active downloads:
 
@@ -122,8 +122,8 @@ updated by the download handler in real-time
 <external.hf.token>                 ## HuggingFace API token (optional for public)
 
 ## new config keys to add:
-file.fetch.lan_hosts = 192.168.1.X 192.168.1.Y  ## space-separated LAN hosts to check
-file.fetch.hf_token  = <token>                   ## same as external.hf.token alias
+fetch.file.lan_hosts = 192.168.1.X 192.168.1.Y  ## space-separated LAN hosts to check
+fetch.file.hf_token  = <token>                   ## same as external.hf.token alias
 ```
 
 ---
@@ -131,16 +131,16 @@ file.fetch.hf_token  = <token>                   ## same as external.hf.token al
 ## zenka config
 
 ```
-## configuration/zenki/file-fetch/start
-[load_modules:file.fetch.huggingface file.fetch.huggingface.list
-              file.fetch.huggingface.search file.fetch.huggingface.lan-check
-              file.fetch.huggingface.status]
+## configuration/zenki/fetch-file/start
+[load_modules:fetch.file.huggingface fetch.file.huggingface.list
+              fetch.file.huggingface.search fetch.file.huggingface.lan-check
+              fetch.file.huggingface.status]
 [init_modules]
 [zenka.loop]
 ```
 
 ```
-## configuration/zenki/file-fetch/zenka-startup.v7
+## configuration/zenki/fetch-file/zenka-startup.v7
 start.on-demand = 1
 restart.disabled = 1
 heartbeat.disabled = 1
@@ -152,19 +152,19 @@ heartbeat.disabled = 1
 
 ```bash
 ## list quantizations available for a model
-p7 file.fetch.huggingface.list '{"repo":"bartowski/gemma-3-4b-it-GGUF"}'
+p7 fetch.file.huggingface.list '{"repo":"bartowski/gemma-3-4b-it-GGUF"}'
 
 ## search for models
-p7 file.fetch.huggingface.search '{"query":"gemma 4b uncensored GGUF"}'
+p7 fetch.file.huggingface.search '{"query":"gemma 4b uncensored GGUF"}'
 
 ## download specific file
-p7 file.fetch.huggingface '{"repo":"bartowski/gemma-3-4b-it-GGUF","file":"gemma-3-4b-it-Q4_K_S.gguf"}'
+p7 fetch.file.huggingface '{"repo":"bartowski/gemma-3-4b-it-GGUF","file":"gemma-3-4b-it-Q4_K_S.gguf"}'
 
 ## check LAN first
-p7 file.fetch.huggingface.lan-check '{"filename":"gemma-3-4b-it-Q4_K_S.gguf"}'
+p7 fetch.file.huggingface.lan-check '{"filename":"gemma-3-4b-it-Q4_K_S.gguf"}'
 
 ## check download progress
-p7 file.fetch.huggingface.status
+p7 fetch.file.huggingface.status
 ```
 
 ---
@@ -183,17 +183,17 @@ p7 file.fetch.huggingface.status
 
 ## success criteria
 
-- [ ] `file.fetch.huggingface.list` returns gguf files for a given repo
-- [ ] `file.fetch.huggingface.search` returns repos matching query
-- [ ] `file.fetch.huggingface` downloads a file to correct destination path
-- [ ] progress visible via `file.fetch.huggingface.status` during download
+- [ ] `fetch.file.huggingface.list` returns gguf files for a given repo
+- [ ] `fetch.file.huggingface.search` returns repos matching query
+- [ ] `fetch.file.huggingface` downloads a file to correct destination path
+- [ ] progress visible via `fetch.file.huggingface.status` during download
 - [ ] LAN check runs before HF download (lan-check returns found/not-found)
 - [ ] HF token read from config if present (works without token for public models)
 - [ ] zenka starts on-demand cleanly
 - [ ] downloaded file appears in `p7c coding.list-models` output after completion
 
-#,,..,.,.,.,.,.,,,.,,,,..,...,,,,,...,,,.,..,,..,,...,..,,.,.,.,.,,,,,...,,,,,
-#YDS2FVCZALCP6HIZE73ZEBQ4WCYQ7EXK75ZN3XDNUACSCZQYXAWPA7F7A4RBIGIFRSHSV7OSSK3KS
-#\\\|BG4EFGHXUVNVD34GYFM5IO22CAJ7XYVMMSDQELNI3YTBCWKSRRZ \ / AMOS7 \ YOURUM ::
-#\[7]BOXWDNVVILGBAQG3V6CHG4TF36KJFWWH5JLPTMMLK5EFEDAUWEBQ 7  DATA SIGNATURE ::
+#,,..,,,.,,..,,.,,,.,,,.,,,..,,.,,,,,,..,,,..,..,,...,...,.,.,.,.,.,,,..,,.,,,
+#7VPAK2MF3UKP5OTULQBZU4GDI7NZR7MTSEIPPG5L2PMCCVMRDNKY6EATRHZCD5KSOTTFKRLI6E45E
+#\\\|5BXJJXV56ERP4KLPZGMPEEPNIQOKKQFMVEPAHUTUDBTJHLD7ZMN \ / AMOS7 \ YOURUM ::
+#\[7]OJK6NPKV2SFUEK7FSKA2BXAOL6PGRLEWDQ2AQQNQFH57NKW6MAAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

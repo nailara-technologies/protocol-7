@@ -1,0 +1,78 @@
+## [:< ##
+
+# name  = fetch.file.huggingface.handler.search_response
+# descr = parse HF API search response and format results
+
+my $data   = shift;
+my $params = $data->{'params'}   // {};
+my $req_id = $params->{'req_id'} // '';
+my $body   = $data->{'body'}     // '';
+my $ok     = $data->{'ok'};
+
+my $pending = <fetch.file.hf_pending>->{$req_id};
+return if !defined $pending;
+
+delete <fetch.file.hf_pending>->{$req_id};
+
+my $reply_id = $pending->{'reply_id'};
+
+if ( !$ok ) {
+    <[base.callback.cmd_reply]>->(
+        $reply_id,
+        {   'mode' => qw| false |,
+            'data' => 'HF API search request failed'
+        }
+    ) if length $reply_id;
+    return;
+}
+
+## parse JSON response ##
+my $results = eval { JSON::PP::decode_json($body) };
+if ( $EVAL_ERROR || ref $results ne qw| ARRAY | ) {
+    <[base.callback.cmd_reply]>->(
+        $reply_id,
+        {   'mode' => qw| false |,
+            'data' => 'failed to parse HF API search response'
+        }
+    ) if length $reply_id;
+    return;
+}
+
+if ( !@$results ) {
+    <[base.callback.cmd_reply]>->(
+        $reply_id,
+        {   'mode' => qw| true |,
+            'data' => 'no results found'
+        }
+    ) if length $reply_id;
+    return;
+}
+
+## format table ##
+my @lines = sprintf( "%-48s %12s %12s", 'repo id', 'downloads', 'updated' );
+push @lines, '-' x 74;
+
+for my $r (@$results) {
+    my $repo_id  = $r->{'id'}           // $r->{'modelId'} // 'unknown';
+    my $dl_count = $r->{'downloads'}    // 0;
+    my $updated  = $r->{'lastModified'} // $r->{'createdAt'} // '-';
+    $updated =~ s|T.*||;    ## truncate to date only ##
+
+    push @lines, sprintf( "%-48s %12s %12s", $repo_id, $dl_count, $updated );
+}
+
+my $output = join( "\n", @lines );
+
+if ( length $reply_id ) {
+    <[base.callback.cmd_reply]>->(
+        $reply_id, { 'mode' => qw| true |, 'data' => $output }
+    );
+} else {
+    <[base.logs]>->( 1, "[hf.search]\n%s", $output );
+}
+
+#,,,,,,.,,,,,,,,.,..,,,,.,,,,,..,,,,,,...,,,.,..,,...,...,...,..,,,,.,,.,,,,,,
+#UVVCBYUJ6KUURYVQIXQDMQ7DMT522O72GN4DEZHYTNCCDPOISGFUHBL4LJMXZ2WWVDMMOAEOSMJHC
+#\\\|YJDCIHKHGD7KCNADF3CESEAJQ4OS5J6EJLVHWLNK5A43R5R7ZAX \ / AMOS7 \ YOURUM ::
+#\[7]F3N47IWDVBG4HOZ4YL2TXTWZRXCOGAMVZLUCDN6UR27XZKX2JUAI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

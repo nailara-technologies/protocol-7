@@ -1,0 +1,75 @@
+## [:< ##
+
+# name  = fetch.file.huggingface.lan-check
+# descr = check if a model file is available on LAN hosts
+# param = { filename => 'model-Q4_K_S.gguf' }
+
+my $call = shift;
+my $args = $call->{'args'} // {};
+$args = {} if ref $args ne qw| HASH |;
+
+my $filename = $args->{'filename'} // '';
+
+return { 'mode' => qw| false |, 'data' => 'filename parameter required' }
+    if !length($filename);
+
+## get configured LAN hosts ##
+my $hosts_str = <fetch.file.lan_hosts> // '';
+my @hosts     = grep {length} split( m|\s+|, $hosts_str );
+
+if ( !@hosts ) {
+    return {
+        'mode' => qw| true |,
+        'data' => 'no LAN hosts configured (fetch.file.lan_hosts)'
+    };
+}
+
+## models path on remote hosts (assumed same layout) ##
+my $models_path = <external.models.lmstudio.path> // <external.models.path>
+    // '/mnt/ext-xfs-data/models-lmstudio';
+
+my $found = 0;
+my $found_host;
+my $found_path;
+
+## check each host with short timeout ##
+for my $host (@hosts) {
+    ## use ssh with short connect timeout to test file existence ##
+    my $remote_path = "$models_path/$filename";
+    my $test_cmd
+        = sprintf( 'ssh -o ConnectTimeout=2 -o StrictHostKeyChecking=no '
+            . '-o BatchMode=yes %s "test -f %s" 2>/dev/null',
+        $host, $remote_path );
+
+    my $result = system($test_cmd);
+
+    if ( $result == 0 ) {
+        $found      = 1;
+        $found_host = $host;
+        $found_path = $remote_path;
+        last;
+    }
+}
+
+if ($found) {
+    return {
+        'mode' => qw| true |,
+        'data' =>
+            sprintf( "found on LAN host %s at %s", $found_host, $found_path ),
+        'found' => 1,
+        'host'  => $found_host,
+        'path'  => $found_path,
+    };
+} else {
+    return {
+        'mode'  => qw| true |,
+        'data'  => 'not found on any configured LAN host',
+        'found' => 0,
+    };
+}
+
+#,,..,.,.,.,.,,,,,,,.,,..,,,.,,,,,,.,,.,.,,,,,..,,...,..,,..,,,.,,,,,,,,,,.,.,
+#JGPEJJ5BJPPJI7QSIUIPNGVI43VW2AP7SNQ54KQNAQ2WGGNNSE3Z4QX3KFZFOE722CFY3ZFWC4M54
+#\\\|IMLTLDK6RIM4CUBWJC3KKHXCKDBQ4T2R4DXPDCKFLQUAQYFKXLX \ / AMOS7 \ YOURUM ::
+#\[7]LWPZLJKTYYPUO5YQJPXPJPCQG2PNVDA7E43QIE3SXZ32GCADM2CA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
