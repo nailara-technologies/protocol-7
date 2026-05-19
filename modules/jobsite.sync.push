@@ -1,7 +1,7 @@
 ## [:< ##
 
 # name  = jobsite.sync.push
-# descr = batch async http push — sends only jobs changed since last server ack
+# descr = start chunked async http push — sends changed jobs in small batches
 
 return if <jobsite.sync.push_in_progress>;
 
@@ -29,38 +29,27 @@ if ( not @changed ) {
     return;
 }
 
-my $body = eval {
-    JSON::XS::encode_json(
-        {   'since' => $last_ntime,
-            'jobs'  => \@changed,
-        }
-    );
-} // '';
-
-if ( not length $body ) {
-    <[base.logs]>->( 0, 'jss.sync.push: encode failed' );
-    return;
+## split into chunks to stay well within session buffer limits ##
+my $chunk_size = <jobsite.cfg.sync_chunk_size> // 30;
+my @chunks;
+while (@changed) {
+    push @chunks, [ splice @changed, 0, $chunk_size ];
 }
 
 <jobsite.sync.push_in_progress> = TRUE;
+<jobsite.sync.push_chunks>      = \@chunks;
+<jobsite.sync.push_reverse>     = [];
+
 <[base.logs]>->(
-    1,
-    'jobsite: sync push %d/%d jobs',
-    scalar @changed,
-    scalar keys %{ $jobs // {} }
+    1, 'jobsite: sync push %d jobs in %d chunks',
+    scalar( map { @{$ARG} } @chunks ),
+    scalar @chunks,
 );
 
-<[clients.http.post]>->(
-    {   'url'     => $url,
-        'body'    => $body,
-        'timeout' => 30,
-        'on_done' => 'jobsite.handler.sync-response',
-        'params'  => {},
-    }
-);
+<[jobsite.sync.push_chunk]>;
 
-#,,..,.,.,,..,.,.,,,,,,,.,...,...,.,.,..,,,..,..,,...,..,,,,,,,,,,.,.,,,.,,.,,
-#VJ7GEBHW2RHYM42VKVHNYXS6BLA7M7CNXMI6RE5C3ADR2MLALY4C2U5KZS2RHQEVM5H3ZZI5HSX72
-#\\\|DYZ7P3ZXTU6FD4UQOU2HPQLS75NZH25BQ5CXZD4EPV54C7EE3WO \ / AMOS7 \ YOURUM ::
-#\[7]FMZSAKL2PXGDSF5XF6FA2XZVQZUQUPHWD27775HHE5NSDU6U36AA 7  DATA SIGNATURE ::
+#,,,.,.,.,,..,,,,,.,.,...,,.,,.,,,,..,...,..,,..,,...,...,,..,,.,,.,.,..,,.,.,
+#3CPJB5XTYZUTK2BA6VONUTG6YL4OF4ZJOUAS3CK4VWY26RORUAOVULIDW45TDM72ZLDAMOZUUEZSM
+#\\\|TXPUXPIY3N3F3I65Z25JETCMUVYJR6GNKX2AU6M4E76J6TBRFLF \ / AMOS7 \ YOURUM ::
+#\[7]7SEIEFE4T2SP2BN53R4KV5MROSXBLRSHEK5MHFDKNKAK74BY54CA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
