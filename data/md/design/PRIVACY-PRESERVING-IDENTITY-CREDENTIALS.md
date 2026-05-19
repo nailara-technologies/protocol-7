@@ -224,6 +224,52 @@ credential storage in p7: `$data{'auth.credentials'}{bmw384_b32(credential)}`
 
 ---
 
+## credential upgrade — self-replacing checksums
+
+content-addressing makes upgrades self-consistent. the credential IS its
+address. changing settings creates a new address. two upgrade modes:
+
+```
+old_credential  →  BMW384(old)  →  store entry
+new_credential  →  BMW384(new)  →  new store entry
+```
+
+**mode A — with reference** [ traceable upgrade ]:
+```
+store[ BMW384(old) ] = { credential: old_bytes, next: BMW384(new), ntime: T }
+store[ BMW384(new) ] = { credential: new_bytes }
+```
+creates an auditable chain: "this identity upgraded to new state at ntime T."
+traceability is explicit, voluntary — the user chose a referencing network.
+the chain can be followed forward: old → new → newer.
+
+**mode B — without history** [ clean replacement ]:
+```
+delete store[ BMW384(old) ]
+store[ BMW384(new) ] = { credential: new_bytes }
+```
+old entry vanishes, new entry appears. no link between them.
+forensic view: one account ceased, one appeared — unprovably the same user.
+
+**equally safe either way**: new credential's cryptographic strength is
+independent of history. the signature validates regardless of whether the
+chain exists. safety lives in the signature, not the lineage.
+
+**network-configurable policy**:
+```
+require_upgrade_reference = yes   ## compliance / accountability network
+allow_historyless_upgrade = yes   ## privacy-first network
+```
+different P7 nodes enforce different policies. the user presents the upgrade
+on a network whose policy matches their desired traceability level.
+
+**ntime as voluntary ordering**: `new_credential.ntime > old_credential.ntime`
+— if the user voluntarily presents both credentials (e.g. during upgrade
+window), sequencing is verifiable even in no-history mode. but the user
+controls whether to present both — forced correlation is not possible.
+
+---
+
 ## what this does not provide
 
 - **anonymity from the user themselves**: the user knows their own credentials
@@ -233,8 +279,8 @@ credential storage in p7: `$data{'auth.credentials'}{bmw384_b32(credential)}`
 - **resistance against the user's own voluntary disclosure**: privacy is a
   choice, not a constraint
 
-#,,..,...,,..,,,,,,..,.,,,,,.,..,,,..,..,,,..,..,,...,...,.,,,,..,..,,...,.,.,
-#DX4DFTX57T56AADMGPBJVS6FDUDBHBDNLX66R3SDZ4FCNN544GGFD2PVHJKFCXQ4FGJI4JOFCV6CS
-#\\\|6RBD7MU5VQ5RB5IPGKCFELGWCZQUFYQT4RBDKZMPYLURL3L4BM6 \ / AMOS7 \ YOURUM ::
-#\[7]VKEQIYI6CAXK7IXD7D3WCSVNQZYDH4GUICYUPBBLQNKD5CC2ESBY 7  DATA SIGNATURE ::
+#,,..,,,,,.,.,,..,,,.,,,.,,.,,,,,,.,.,,,,,,,,,..,,...,..,,.,.,...,...,,,,,,.,,
+#XZXJ4FJ6UDZ7KMZH44XDR2IJO2EU7AVUBW4VJIQ4FDU4YOIQFU5RRDJ2XNYVNZPQDGQFQC5G5DVOS
+#\\\|Q3GFNQAW7OMZ6YNKHFC5BCDUNYU5NTRCCMX4RGW4TC2QWOSHNTR \ / AMOS7 \ YOURUM ::
+#\[7]F2EX6YDQ7ZYXLIDR4GZT6D6BABP4XTB43EOTRZLS3S665GMZ4CAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
