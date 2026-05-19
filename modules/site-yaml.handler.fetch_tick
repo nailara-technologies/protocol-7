@@ -44,7 +44,11 @@ if ( ref $job ne 'HASH' ) {
         }
     }
 
-    <[base.logs]>->( 0, 'fetch: %s [%s] q=%d', $id, $tag, scalar @{$queue} );
+    my $log_level = $is_gone ? 2 : $is_ratelimit ? 1 : 0;
+    <[base.logs]>->(
+        $log_level, 'fetch: %s [%s] q=%d',
+        $id, $tag, scalar @{$queue}
+    );
     <[site-yaml.fetch.state]>->('save');
     <[site-yaml.fetch.schedule]>;
     return;
@@ -62,8 +66,8 @@ my $tag    = $result eq 'new' ? 'new' : 'skip';
 
 return;
 
-#,,,.,...,,,,,,.,,,.,,..,,,,,,,,,,,..,.,.,,..,.,.,...,...,..,,..,,...,,..,,..,
-#M4QSY7PV5NPZR4OGLU5KAH2K6GQB6IC7HQEY2FZ3TX5DQIYQKJXFVVPICDLNEAXHNADPD6P23EATO
-#\\\|BHIWH5RA5LR7WT7DKSOQOV6B36PCJT5QK6S7OAAQGVCFM62STQL \ / AMOS7 \ YOURUM ::
-#\[7]EV2FE4T5YANBYBHHZY4DAU5YDOH44LC2O3IZB2WQYNOACJMVYUDQ 7  DATA SIGNATURE ::
+#,,,,,,.,,.,,,,.,,,,,,,,.,,,,,...,..,,...,.,.,.,.,...,...,,.,,.,,,,,.,,,.,..,,
+#TGE373TZR42MP5BVH5ZOUY7A2ITSPFJRTOC4SQZRZA6KMW6PB734CQU6I7JA2PZMTZTGZHT37NACA
+#\\\|E3BKRDSDXW32HKUIS2RMW57JRLGVQRN2DZOZB4K2QZWLLBB3ZID \ / AMOS7 \ YOURUM ::
+#\[7]YKP5WHZVXGAULQVNWEVKTVYUGWABQMCKFWEKCVUVAEJYXLNKUOBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
