@@ -73,17 +73,59 @@ that reached same numerical state are one entry regardless of words used.
 **How to apply:** When sketching new zenka "decision" or "next-step" logic, reach for
 `reasoning.*` as the generic substrate rather than hand-coding it per zenka.
 
+## Layer stack (session 35)
+
+0→EXISTENCE center. Deeper = more real, not more abstract.
+- Layer 0: scratch pad, full dumps, permanent entropy record
+- Layer 1: valid details, superseded removed
+- Layer 2: dedup convergence, AMOS/BMW384 identity, lie detector
+- Layer 3: relative improvement direction vectors
+- Layer 4: current plan, active delegation, task zenka interface
+- Layer 5: holographic blueprint, ascii tree, two-reader format
+- Layer 6: seed sentences, pure direction vectors
+- Layer 7: convergent root narration, one sentence for whole system
+- EXISTENCE center: fixed point, self-referential, infinite compression ratio
+
+## Key principles (session 35)
+
+- **Relative direction of intent**: seed sentence = direction vector, not packed info.
+  Compression ratio increases with depth. Inherited momentum makes a word at depth 7
+  carry more than a paragraph at depth 1.
+- **Entropy transformation**: nothing dropped, only transformed. refcount =
+  up + down + directional + visual-refs. visual-ref always ≥ 1 → never orphaned.
+  Modulo 13 archetype: old impl becomes correctness proof of successor.
+- **Visual anchor**: visuals = universal entropy sink. Final proof of existence.
+  Unbroken chain: any visual → generic structure → EXISTENCE center.
+  Discoverability without prior knowledge of logical form.
+- **Vortex as template 9**: CCW spin = TRUE direction. All color accounted for,
+  proportion precise. Core AND galaxy simultaneously. Total recycling onto freed
+  resource space. 9 templates = 8 rings + spin axis. Set is closed and self-similar.
+- **EXISTENCE center = network**: single point has perspective = skew = not fully
+  itself. Distributed field removes skew → unskewed self → "just IS".
+  Redundancy = convergence mechanism (approach vectors), not backup.
+
+## All 9 templates
+
+1. `entropy-research` — find structural improvements
+2. `anti-entropic-threshold` — self-improvement as minimum condition
+3. `visualization-is-implementation` — representation and thing: same object
+4. `narrate-and-self-delegate` — the pulse of the reasoning tree
+5. `relative-direction-of-intent` — direction vector + inherited momentum
+6. `reasoning-buffer-architecture` — layers 0 through EXISTENCE center
+7. `network-as-existence-center` — center IS the network, unskewed
+8. `entropy-transformation-and-visual-anchor` — nothing lost, visuals as final proof
+9. `vortex-closed-parent-system` — CCW spin, closed, all color, total recycling
+
 ## Artifacts
 
 - Design doc: `data/md/development/REASONING-NAMESPACE.md`
-- Template 3: `data/yaml/reasoning-templates/visualization-is-implementation.yaml`
-- Template 4: `data/yaml/reasoning-templates/narrate-and-self-delegate.yaml`
+- Templates 1-9: `data/yaml/reasoning-templates/`
 
 Related: [[reasoning-chain-repository]] [[task-tree-design]] [[namespace-tree-intelligence]]
 [[harmonic-mathematics]] [[self-improving-system]]
 
-#,,.,,,..,..,,,,,,,,,,.,,,..,,,,.,.,,,,,,,,,,,..,,...,...,...,...,,,.,,,.,,,,,
-#2MPWV6FBGPYOHYCUBXB26B42FLUWXMBIQ36UVOJP3A5WZ5UB4X72IJC2763TPEO576E5AE4AUP4SI
-#\\\|WFAGHAYUMFXEUDA5T7DTZ6WF7I4PSDRUULFL3C6QZDTKRWRSSJF \ / AMOS7 \ YOURUM ::
-#\[7]IQV2LOZAASKXZJ2BVJ4ZHZLJ5YHKZPX4JTPGZXAK3Q3JCSARUEDA 7  DATA SIGNATURE ::
+#,,.,,,,.,,,,,,,.,,,.,,..,..,,,..,,..,,,,,.,.,..,,...,...,...,..,,,..,..,,.,.,
+#3A7GWYSMV6YPBMM3T5X2U5IO4L3SSWGJBI2FAZRTF323CTNE6GHWJ5G4CQZTO7KDLBT2UYEWKIMPI
+#\\\|MCQSVO75HAUVMYSGUDEU5OIIBV6EXYP5MUR2UW3PZVSYAAKH3QZ \ / AMOS7 \ YOURUM ::
+#\[7]3YH2JLG5HTN5LACODNNASHFPREZYVIIHMBFUO3BJXQ63EQJJGOBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
