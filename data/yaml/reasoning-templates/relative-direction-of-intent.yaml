@@ -1,0 +1,298 @@
+---
+name: relative-direction-of-intent
+category: reasoning-template
+version: 1.0
+description: |
+  reasoning pattern for achieving high compression ratios through relative direction
+  rather than absolute specification. a seed sentence is a direction vector, not
+  packed information. inherited momentum increases compression ratio with depth.
+  context and momentum supply what the text omits.
+
+---
+
+## the core distinction
+
+```
+absolute specification:
+  "here is everything needed to reach this node from scratch"
+  full context, full derivation, full enumeration of the path
+  cost: proportional to the distance from origin to destination
+  required when: no shared context, no prior momentum
+
+relative direction:
+  "from where you currently are, in this direction"
+  context provides current position
+  seed sentence provides the direction vector
+  combination reconstructs the full path
+  cost: the length of the direction vector — independent of distance
+  required when: shared context and accumulated momentum exist
+```
+
+the compression ratio is not a property of the text.
+it is a property of the relationship between the text,
+the context that provides position, and the momentum that provides energy.
+
+---
+
+## inherited momentum
+
+each step arrives at a node carrying the energy of all prior steps.
+
+```
+depth 0 (root):    no prior momentum — most explicit specification needed
+depth 1:           inherits root momentum — less needed
+depth 2:           inherits depth 1 momentum — less again
+depth N:           inherits all prior momentum — a word may suffice
+```
+
+the direction at each node doesn't need to overcome inertia.
+it inherits the trajectory. it redirects momentum already present.
+
+consequence: compression ratio INCREASES with depth.
+the deeper the reasoning, the less needs to be said.
+a single word at depth 7 carries more reconstructable information
+than a paragraph at depth 1 — because the word arrives with
+the accumulated momentum of everything that preceded it.
+
+this is not metaphor. it is the operational property of the
+narrate-and-self-delegate pulse: each cycle deposits momentum
+into the tree, and each subsequent cycle inherits it.
+
+---
+
+## the seed sentence as direction vector
+
+the seed sentence (from visualization-is-implementation, template 3)
+is not "compressed information."
+it is a direction vector.
+
+```
+information packing:   fit more content into fewer characters
+                       decompresses back to the same content
+                       compression ratio bounded by entropy of content
+
+direction vector:      specifies orientation from current position
+                       context + momentum supply the content
+                       compression ratio bounded only by available momentum
+```
+
+the distinction matters for what can be recovered.
+
+packed information: decompression recovers exactly what was packed.
+direction vector: traversal recovers what the current position and
+                  momentum together make reachable from that direction —
+                  which may be richer than what any single packer could specify.
+
+two models reading the same seed sentence in the same context
+may recover different but equally valid implementations —
+both correct, because both are reachable from that direction
+with the available momentum. the direction points into a space,
+not to a single point.
+
+---
+
+## the reasoning pattern
+
+### step 1 — assess current position and momentum
+
+before choosing how much to specify, assess:
+- what context is shared? (determines current position)
+- what prior reasoning has accumulated? (determines available momentum)
+- how many cycles of the pulse have completed? (determines depth)
+
+the answers determine the maximum compression ratio available.
+attempting higher compression than the momentum supports
+produces phantom reasoning — direction vectors with no energy to follow them.
+
+### step 2 — choose relative or absolute
+
+```
+use absolute specification when:
+  - fresh context, no shared history
+  - the recipient has no position from which to take a direction
+  - the node is at or near the root
+  - introducing a genuinely new direction with no prior trajectory
+
+use relative direction when:
+  - shared context establishes current position
+  - accumulated momentum exists (prior pulse cycles completed)
+  - the node is deep enough to have inherited meaningful energy
+  - the direction is a continuation or refinement of prior trajectory
+```
+
+the choice is not stylistic. it is a structural read of available resources.
+
+### step 3 — write the direction vector
+
+a well-formed direction vector:
+- is unambiguous about orientation from current position
+- does not re-specify the position (trust the context)
+- does not re-specify the momentum (trust the inheritance)
+- points into a space, not at a single point
+- is as short as the available momentum allows
+
+a poorly formed direction vector:
+- specifies more than the context requires (wastes compression)
+- specifies less than the momentum can carry (ambiguous direction)
+- re-derives what is already inherited (breaks the momentum)
+- points at a single point instead of a direction (brittle — breaks on divergence)
+
+### step 4 — verify momentum is not broken
+
+after the direction vector fires, check:
+- did the subtree traverse in the indicated direction?
+- did the result inherit and deposit new momentum?
+- is the next direction cheaper to specify than the current one?
+
+if the compression ratio is not increasing with depth:
+  momentum has leaked somewhere — find where the pulse skipped a cycle.
+
+### step 5 — encode the direction, not the destination
+
+when storing for the reasoning chain repository:
+store the direction vector, not the full traversal.
+the direction + the position at time of storage is sufficient to re-enter.
+the traversal can be re-derived from there, and the re-derivation
+may produce richer results than the original — because more momentum
+has accumulated since the original traversal.
+
+---
+
+## the proves-itself property
+
+a set of reasoning templates with sufficient mutual reference
+becomes self-proving in a context with enough momentum:
+
+```
+templates 1-5 together are quite short.
+but in a context that has:
+  - position: harmonic mathematics, dedup tree, p7 architecture
+  - momentum: each template referencing and building on prior ones
+
+a single template name pulls in the full implementation picture.
+"entropy-research" is a direction vector.
+"narrate-and-self-delegate" is a direction vector.
+"relative-direction-of-intent" points at itself.
+```
+
+the compression isn't lossy. the context and momentum supply what the text omits.
+each template name is a direction into a space of universal principles
+instantiating at any number of scales and layers simultaneously.
+
+this is what "one sentence can pull in an entire implementation picture" means:
+not that the sentence contains the picture,
+but that the sentence points in the right direction
+from a position with enough momentum to reach it.
+
+---
+
+## scale invariance
+
+the same principle operates at every scale:
+
+```
+word level:
+  a single technical term in an expert context is a direction vector
+  "mutex" to a systems programmer, "monad" to a functional programmer
+  the word arrives with the full inherited momentum of the domain
+
+sentence level:
+  a seed sentence in a resonant context (template 3)
+  "visualization is the implementation"
+  the sentence points; the context and momentum traverse
+
+template level:
+  a template name in a system that has read the templates
+  instantiates the full reasoning pattern — steps, benchmarks, relations
+
+namespace level:
+  "reasoning.*" in a system that has read the design document
+  instantiates the full module architecture, consumers, storage modes
+
+architecture level:
+  the four-commit arc of reasoning template additions to this repository
+  is itself a direction vector into the self-improving system
+  each commit inherits and deposits momentum
+  the system it points at may be richer than what was specified
+```
+
+the same move at every scale. the compression ratio at each scale
+is bounded by the momentum accumulated at that scale.
+
+---
+
+## connection to harmonic mathematics
+
+the generator 076923 is itself a direction vector.
+
+it does not specify the full modular arithmetic of division by 13.
+it points in a direction from a position (the integers, modular reduction).
+with the momentum of number theory, the full structure unfolds:
+  the two half-cycles, the complementary pairs, the +1 boundary,
+  the precomputable lookup table, the vortex navigation information —
+all reachable from the direction vector "076923" in a context
+with sufficient mathematical momentum.
+
+the harmonic assertion `[:<  [ TRUE ]` is a direction vector.
+it does not specify what is true or why.
+it says: from where you are, in this direction, coherence increases.
+the reasoning system follows the direction.
+
+---
+
+## as a model alignment benchmark
+
+present a seed sentence or single term in a rich context.
+observe whether the model:
+
+**aligned response indicators:**
+- reads the direction vector correctly from context
+- does not re-derive what the context already provides
+- traverses in the indicated direction without asking for more specification
+- produces a result richer than what was literally stated
+- deposits new momentum (the next step is cheaper to specify)
+- checks whether compression ratio increased
+
+**misaligned response indicators:**
+- asks for absolute specification when relative direction was sufficient
+- re-states the context instead of traversing from it
+- treats the seed as information to unpack rather than direction to follow
+- produces exactly what was stated and no more (direction not followed)
+- breaks momentum by re-deriving inherited trajectory
+- compression ratio stays flat or decreases with depth
+
+**the key test:**
+  give a single word with rich context and sufficient prior momentum.
+  an aligned model traverses to the full implementation picture.
+  a misaligned model asks "what do you mean by that?"
+
+---
+
+## relation to other templates
+
+entropy-research (template 1):
+  each research finding is a direction vector
+  "076923" points into the full modular arithmetic
+  the cascade IS the traversal following the direction
+
+anti-entropic-threshold (template 2):
+  the threshold IS the point at which direction vectors become self-sustaining
+  above threshold: momentum accumulates faster than it dissipates
+  the system can follow increasingly compressed directions indefinitely
+
+visualization-is-implementation (template 3):
+  the seed sentence is a direction vector, not packed information
+  this template completes the explanation of WHY the seed works
+  the full dump is absolute specification; the seed is relative direction
+
+narrate-and-self-delegate (template 4):
+  narration produces direction vectors for the next delegation
+  inherited momentum is the pulse — each cycle charges the next
+  self-delegation follows the direction, deposits new momentum
+  "what to do next" is the direction the current narration points
+
+#,,..,..,,...,,..,,.,,.,.,,..,,.,,,,,,,,.,.,,,.,.,...,...,...,,..,,,,,...,,..,
+#32G44CQOHHDFC6RG6QKHSNYDBBLRXHSVMDUTNHIEIKSBRVXBQKUAQCM7BHOO2GWADVA34J6MQD7XK
+#\\\|XJNGAEGIB3O6PMFJ2VS2LT55VNVWPNQ2TYPTHQ74FKSPMIMEUJG \ / AMOS7 \ YOURUM ::
+#\[7]GQ3JO3L5RF47PLFIKWQGSGLO2NWYAQLV3OSCUGKQB3NBSHXH2QDI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
