@@ -1,0 +1,95 @@
+## [:< ##
+
+# name  = fetch.file.huggingface.handler.list_response
+# descr = parse HF API repo response and format GGUF file list
+
+my $data   = shift;
+my $params = $data->{'params'}   // {};
+my $req_id = $params->{'req_id'} // '';
+my $body   = $data->{'body'}     // '';
+my $ok     = $data->{'ok'};
+
+my $pending = <fetch.file.hf_pending>->{$req_id};
+return if !defined $pending;
+
+delete <fetch.file.hf_pending>->{$req_id};
+
+my $reply_id = $pending->{'reply_id'};
+
+if ( !$ok ) {
+    <[base.callback.cmd_reply]>->(
+        $reply_id,
+        {   'mode' => qw| false |,
+            'data' => 'HF API request failed'
+        }
+    ) if length $reply_id;
+    return;
+}
+
+## parse JSON response ##
+my $repo_info = eval { JSON::PP::decode_json($body) };
+if ( $EVAL_ERROR || !ref $repo_info ) {
+    <[base.callback.cmd_reply]>->(
+        $reply_id,
+        {   'mode' => qw| false |,
+            'data' => 'failed to parse HF API response'
+        }
+    ) if length $reply_id;
+    return;
+}
+
+my $siblings = $repo_info->{'siblings'} // [];
+my @gguf_files;
+
+for my $sib (@$siblings) {
+    my $rfilename = $sib->{'rfilename'} // '';
+    next if $rfilename !~ m\.gguf$\i;
+
+    my $size     = $sib->{'size'} // 0;
+    my $gb       = $size / ( 1024**3 );
+    my $dl_count = $sib->{'download_count'} // $sib->{'downloads'} // 0;
+
+    push @gguf_files,
+        {
+        'file'      => $rfilename,
+        'size_gb'   => sprintf( '%.2f', $gb ),
+        'downloads' => $dl_count,
+        };
+}
+
+if ( !@gguf_files ) {
+    <[base.callback.cmd_reply]>->(
+        $reply_id,
+        {   'mode' => qw| true |,
+            'data' => 'no .gguf files found in repository'
+        }
+    ) if length $reply_id;
+    return;
+}
+
+## format table ##
+my @lines = sprintf( "%-50s %10s %12s", 'file', 'size', 'downloads' );
+push @lines, '-' x 74;
+
+for my $f ( sort { $b->{'downloads'} <=> $a->{'downloads'} } @gguf_files ) {
+    push @lines,
+        sprintf( "%-50s %10s %12s",
+        $f->{'file'}, $f->{'size_gb'} . ' GB',
+        $f->{'downloads'} );
+}
+
+my $output = join( "\n", @lines );
+
+if ( length $reply_id ) {
+    <[base.callback.cmd_reply]>->(
+        $reply_id, { 'mode' => qw| true |, 'data' => $output }
+    );
+} else {
+    <[base.logs]>->( 1, "[hf.list]\n%s", $output );
+}
+
+#,,..,,,.,,..,,..,...,,.,,,,,,,,,,,,,,.,.,,,.,..,,...,...,...,,,.,,,,,.,.,,.,,
+#TY25E7FQE5Y2W37XVLTEGRJVFE3ACWILEPLL5HPJGP54FZD46QA4CWD2DIND6N4R3CCVRYCCCLZ3U
+#\\\|TTHHU4BWXSWSKQDOG24I7RBHS7NWEOYVH6VWDJCBTCKCBGSGD7N \ / AMOS7 \ YOURUM ::
+#\[7]HVLAJPG3KDL5HEEWMSPVZNHEQGATEUU5PRJ7YFFGFVPZ6TK3XEBA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

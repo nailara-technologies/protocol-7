@@ -1,0 +1,54 @@
+## [:< ##
+
+# name  = fetch.file.huggingface.search
+# descr = search HuggingFace for GGUF models
+# param = { query => 'gemma 4b GGUF', limit => 10 }
+
+my $call = shift;
+my $args = $call->{'args'} // {};
+$args = {} if ref $args ne qw| HASH |;
+
+my $query = $args->{'query'} // '';
+my $limit = $args->{'limit'} // 10;
+$limit = 20 if $limit > 20;    ## cap at 20 ##
+
+return { 'mode' => qw| false |, 'data' => 'query parameter required' }
+    if !length($query);
+
+my $reply_id = $call->{'reply_id'} // '';
+
+## store pending request ##
+<fetch.file.hf_pending> //= {};
+my $req_id = <[base.gen_id]>->(<fetch.file.hf_pending>);
+<fetch.file.hf_pending>->{$req_id} = {
+    'reply_id' => $reply_id,
+    'type'     => qw| search |,
+    'query'    => $query,
+};
+
+## query HuggingFace search API ##
+## simple URI encoding for query string ##
+( my $enc_query = $query )
+    =~ s|([^A-Za-z0-9_.~-])|sprintf('%%%02X', ord($1))|ge;
+my $api_url
+    = sprintf(
+    'https://huggingface.co/api/models?search=%s&filter=gguf&limit=%d',
+    $enc_query, $limit );
+
+<[clients.http.get]>->(
+    {   'url'     => $api_url,
+        'timeout' => 30,
+        'on_done' => qw| fetch.file.huggingface.handler.search_response |,
+        'params'  => { 'req_id' => $req_id },
+    }
+);
+
+<[base.logs]>->( 2, "[hf.search] query: %s", $query );
+
+return { 'mode' => qw| deferred | };
+
+#,,,,,,,,,.,,,,,.,..,,.,,,,.,,,.,,,..,,..,.,.,..,,...,...,,..,.,,,,..,,,,,,,.,
+#623KRTRZH56BXMH3BPGU32RAYE4HRGDWELZBBVFJHM3BLTIE4HPYWKRMT4ENSLNIGSPQ647UA5WHE
+#\\\|ICHB3MCEVUT7HXWRWRNGWOOVQB7BYGGBIBQXTRHLTAZJXUYSZ43 \ / AMOS7 \ YOURUM ::
+#\[7]HW23O4CKYHVMPME46S7KOAOXWKIGXB77BI2P54HRJ2KNMPWJRYCY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
