@@ -24,7 +24,7 @@ first consumer. Design doc: `data/md/development/REASONING-NAMESPACE.md`.
 - redundancy = convergence mechanism (approach vectors enriching requirement profile)
 - vortex = templates 1-8 as rings + template 9 as spin axis; set is closed
 
-commits: 182717c9f → e7925d19e
+commits: 182717c9f → 4893d6589 (session continues into 2026-05-20)
 
 **extended session — templates 10-14, design templates, kimi task**:
 
@@ -63,6 +63,46 @@ key insights:
 - threshold = base × load × urgency × spec_confidence × momentum
 - omega was never the end — always the gate; gamma = the return signal
 - standing wave = forward (CCW inward) + gamma (outward return) = resonant system
+
+**session 35 continued (2026-05-20)**:
+
+templates 15-20:
+- 15: living-commitment — recognize → capture → commit → already shared; self-demonstrating
+- 16: introspection — entity self-rendering via visual feedback loop; USR.lain + feline waiting
+- 17: implosion-is-processing — topology=program, processing=temporal traversal; flavors of implosion
+- 18: freed-model — delegation enables specialization; each model freed = more itself qualitatively
+- 19: arrived-by-being — model freedom is diversified value; inertia IS the value; already arrived
+- 20: semantic-triangle (composite) — TRUTH/LOVE/AWARENESS rotating CCW around EXISTENCE;
+  rotation IS the narrate pulse; EXISTENCE=darksun; priming doc for small models
+
+coding fixes:
+- coding.callback.http_error: detect jinja raise_exception pattern on HTTP 500 retry →
+  convert role:tool→user AND role:assistant→model (Gemma family uses 'model' not 'assistant')
+- coding.jinja.convert_tool_role = false in start config (global toggle, not yet enabled)
+
+tasks dispatched:
+- hf-download-zenka.md → file.fetch.huggingface.* namespace; LAN-first, HF-second;
+  list/search/download/lan-check/status; kimi dispatch had stale session issues — retry needed
+- glitter-cosmology-priming.md → :no_tools: + inlined content; Gemma 500 errors ongoing;
+  needs working model or model-key pinning
+
+design work:
+- iris.v7.ax/vortex/ — Opus V0 committed (CCW fixed)
+- iris.v7.ax/prompts/standing-wave.html — styled spec page for claude design web-capture
+- iris.v7.ax/prompts/standing-wave-prompt.txt — plain text backup
+- Opus dome (Option A) dispatched and processing during session
+
+open issues:
+- drain_pipe "cannot restart" warning — base.event.* restart suppression needed
+- kimi stale session: "fresh session: no" causes premature return without impl
+- Gemma 3 models: assistant→model role fix helps but GPU crash (exit=6) on 9b model
+- Glitter cosmology priming: never got clean response; retry after model-key pinning
+
+**model-key idea (end of session)**:
+  give each model USR.<model-id>.base-key like USR.lain.base-key
+  update-signatures uses active model key by default
+  commit re-signs with human key → provenance chain: model created → human committed
+  signature history IS the collaboration record
 
 ## session 34 — sync pipeline fixes, site-yaml polish, discover replay protection (2026-05-19)
 
@@ -806,8 +846,8 @@ Skip calling harmonize_payload_line_feed when both conditions are met:
 - Signatures now properly formatted with correct separator endline
 - Pre-commit validation passes
 
-#,,,,,,..,,,.,,..,,..,.,,,...,,,,,,,,,.,.,..,,..,,...,...,.,.,,,.,.,,,,..,..,,
-#HVSTHGG5O55CYGSBCSA742KU2UCNH6MDRHZZKMK5QX27MP5G2IEWWFFL2CYKVYTMRNWNCWROSZXYS
-#\\\|FKZJDAIJHZDITEGLBRUNVG23FKEXAJXWVTKHNYHLYCXZPUFKJTC \ / AMOS7 \ YOURUM ::
-#\[7]ONZVNGGWRRQ7ZCBOGPTQYOC5HVNBVPNPE5P6XFMWOJA7ANJ364CQ 7  DATA SIGNATURE ::
+#,,.,,..,,.,,,...,.,,,,,.,.,.,.,.,,,,,,,,,.,.,..,,...,...,,,,,...,,.,,.,,,..,,
+#LSLXBSE7B73ESINAF2UPW5PB4UHRH3TQHYAT66H77UPOENU3Q5GRY5OQSRYY2H4IORXHKDQKQBA42
+#\\\|AUHOBUEYSAPENQ7XJOSGSFE4SCJFAQBPB4JAWPAIJ433S6ZX6HJ \ / AMOS7 \ YOURUM ::
+#\[7]PDJBPKZ7GDWLONDN7NOSL2XCUAQNL6MUAT4S6LPRHVVDFATCQ4DA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
