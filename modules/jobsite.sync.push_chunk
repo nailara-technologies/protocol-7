@@ -7,12 +7,14 @@ my $chunks = <jobsite.sync.push_chunks> // [];
 my $chunk  = shift @{$chunks};
 
 if ( not defined $chunk ) {
-    ## all chunks done ##
+    ## all chunks done — persist ntime so delta filter survives restart ##
     my $reverse = delete <jobsite.sync.push_reverse> // [];
     delete <jobsite.sync.push_chunks>;
     <jobsite.sync.push_in_progress> = FALSE;
+    <[jobsite.state.persist]>;
     <[base.logs]>->(
-        1, 'jobsite: sync push complete, reverse=%d',
+        1,
+        'jobsite: sync push complete, reverse=%d',
         scalar @{$reverse}
     );
     <[jobsite.sync.apply_reverse]>->($reverse);
@@ -30,7 +32,8 @@ my $body = eval {
 } // '';
 
 if ( not length $body ) {
-    <[base.logs]>->( 0, 'jss.sync.push_chunk: encode failed, skipping chunk' );
+    <[base.logs]>
+        ->( 0, 'jss.sync.push_chunk: encode failed, skipping chunk' );
     <[jobsite.sync.push_chunk]>;
     return;
 }
@@ -44,8 +47,8 @@ if ( not length $body ) {
     }
 );
 
-#,,..,,..,,,.,,,.,,,.,.,.,,,,,,.,,,..,,,,,,,,,..,,...,...,,,,,,,.,.,.,..,,,,,,
-#JN5DUDURCIFRRSQEGSCARDHLOIV2LP2JOM2SRRD54YFXCNDX6LMPFNB5RJ6MITCGAE63JJFIJB46Q
-#\\\|FULKMXWROJ2KSWY6NEPC2DEYFH42ARRCYF6ZY63THEMAH3REP54 \ / AMOS7 \ YOURUM ::
-#\[7]67RS7TFVKRIVYQARHFVMSOLIQVHTYVEINQXNGGCKCFKAYMISHQAI 7  DATA SIGNATURE ::
+#,,,,,...,,..,,..,,,.,,..,,,,,,,,,.,.,,,.,..,,..,,...,...,.,.,.,.,,,,,.,,,,,,,
+#I662ZJA37FJEUWNXKBQR3NNOIW67E5OIH7M3K5QV55LS4NLGD4D6YRCO4XS3QLC42PYZB2JAUUYDA
+#\\\|UDVMKW6KVQRAX6ICUQFXOZTH7SUI7LSMXFJLBPFLLLDVOYS6NDI \ / AMOS7 \ YOURUM ::
+#\[7]XRAM5MRIK27AISOXUDZKGSO6M33TKKXHCG6V47B7ZZLLC6NJU2DI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
