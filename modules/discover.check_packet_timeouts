@@ -109,6 +109,19 @@ foreach my $id ( keys $data{'hosts'}->%* ) {
     }
 }
 
+## sweep ntime watermark entries for keys no longer in active host table ##
+if ( defined $data{'discover.ntime_watermark'} ) {
+    my %active_keys = map {
+        index( $ARG, ':', 0 ) == -1
+            ? ( $ARG => 1 )
+            : ( ( split ':', $ARG, 2 )[0] => 1 )
+    } keys $data{'hosts'}->%*;
+    for my $key_L13 ( keys $data{'discover.ntime_watermark'}->%* ) {
+        delete $data{'discover.ntime_watermark'}{$key_L13}
+            if not exists $active_keys{$key_L13};
+    }
+}
+
 if (<[base.is_defined_recursive]>->(
         qw| discover.timer.check_host_list_timeout |)
     ) {    ##  stopping any previous timer  ##
@@ -126,8 +139,8 @@ my $next_timeout_in = sprintf qw| %.3f |, min @next_host_timeout;
     { 'after' => $next_timeout_in, 'repeat' => FALSE, 'handler' => __FILE__ }
     ) if @next_host_timeout;
 
-#,,,.,,.,,,.,,...,,.,,..,,,,,,,,.,.,,,..,,,.,,..,,...,...,.,.,.,,,,,.,.,,,.,,,
-#GAO3SM6CO64H3GEQP6FJROFO2R3UWTAMQZZCAVCSKL4IVDNO7SHOPRMNFS22PHS5BOLXI5YW74IIU
-#\\\|3RKZMV7D3MDUTFDZXVQWRQ7OTSZLIEQSN7NVRZOW3QQPE72FY4M \ / AMOS7 \ YOURUM ::
-#\[7]THPW6GFTL5PSMP3747SASPQPOJH2WOBYAXOXNOWMPA55MQLNOUCY 7  DATA SIGNATURE ::
+#,,.,,,,.,,.,,,,.,,,,,,,,,..,,,..,,..,...,,.,,..,,...,...,.,.,,,.,.,,,,,,,,..,
+#HCMAHVB2IBL636JW4XKTBILCJ476XM5MLNT2Y4UCC2OGFNXLZDZU53ELWK265AVEJPTGZIEKT7YV6
+#\\\|WZRA2JCAW4FGZV4RKL35FWQLV7GB3JJPAJRMW6ZE5TMFNOOGS6I \ / AMOS7 \ YOURUM ::
+#\[7]OSWH2WP46BJGXDWFIMY2WKGSMLUTDLJD6GKXZGO45LYNBXG4Q2AY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
