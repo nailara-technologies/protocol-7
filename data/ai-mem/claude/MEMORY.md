@@ -10,6 +10,7 @@
 ## Active Topics
 - [plugin-web-jobs](topic-plugin-web-jobs.md) — delta sync WORKING (session 34): ntime persisted, chunked push, last_modified stamps; open: ?since=N browser delta, remote deploy
 - [clients-http](topic-clients-http.md) — clients.http.* + clients.https.* async namespaces; kimi-web parallel dispatch fixed; see completed session 33
+- [reasoning-chain-repository](topic-reasoning-chain-repository.md) — planned for native model; dedup-based self-improvement; small model naive insight + large model validation = ground truth
 - [job-pipeline](topic-job-pipeline.md) — WORKING (session 22): jobs.vhost live, German reason+summary, retry on timeout
 - [task-coordination](topic-task-coordination.md) — task zenka as coordinator; current state, dispatch flow, roadmap
 - [coding-state-machine](topic-coding-state-machine.md) — coding.state namespace, watcher-based backend lock, persist/restore lifecycle
@@ -180,8 +181,8 @@
 - **repo var/ cleanup** — `var/httpd/` tracked from Nov 2025 AI error
 - **kimi auto-approval regression** (Apr 16) — some tool calls not auto-approved during kimi tasks
 
-#,,,.,.,,,,.,,..,,,,,,,..,,..,.,.,,..,,..,...,..,,...,...,.,,,.,,,.,.,,,,,...,
-#XI2NUFZBID5DHORWRSDBXMH4IUWINRW2ZOQZYALTDK7MTWDIXHAUWJKPSRC7WYIJ4TV5HAGA5JOM6
-#\\\|NV5GVRTLD3BI6QF2GH2RY6NRA7KH5AOJV53YL56AG3FNFMKWKUV \ / AMOS7 \ YOURUM ::
-#\[7]NY7WL5QHJCQ25PZTZFLSWCM2C6FP6TB37S7SGOTW6HQSQ4IGIGAQ 7  DATA SIGNATURE ::
+#,,,.,,,.,,.,,...,...,,,,,.,.,,.,,...,...,.,.,..,,...,...,,..,.,,,.,.,,,,,...,
+#G26HRYQCXRXXGQVAWDP62JIUKZR32AKAELHLITLPOHAE4FFPBLFIAI4OBM55G6YQP3V42SXDXPX3W
+#\\\|DQYOOINX2ODHJWKPGKJFZECOCRMLP3LAKAEQOPDN7DZQ52B7XTN \ / AMOS7 \ YOURUM ::
+#\[7]FMY3I52AZW6FOFPZNFAHEVVISOMLYXM6OAZHK542O4LGBO2EF4BI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
