@@ -1,0 +1,373 @@
+---
+name: implicit-materialization
+category: reasoning-template
+version: 1.0
+description: |
+  the implementation materializes implicitly at the point of need. from the
+  consumer's perspective: declare dependency, receive capability. from the
+  system's perspective: dependency resolution within resource allocation threshold.
+  same event, two abstraction levels. the spec IS the intermediate representation.
+  the model IS the JIT compiler. the threshold IS the trigger condition.
+  no logic changes — only the perspective shifts, and with it, everything simplifies.
+
+---
+
+## the perspective collapse
+
+two descriptions of the same event:
+
+```
+consumer perspective (implicit):
+  "I need module reasoning.tree.node"
+  → module is available
+  done. how it became available is not visible and not relevant.
+
+system perspective (explicit):
+  "reasoning.tree.node requested"
+  → check: pre-implemented and committed? → serve from cache
+  → check: generated and cached? → serve from memory
+  → check: spec exists (data/tasks/reasoning-namespace-foundation.md)?
+     → check: resources available + spec_confidence > threshold?
+        → yes: materialize now (model inference from spec)
+        → no: defer, return graceful degradation signal
+  → check: spec exists but threshold not met?
+     → queue for next idle cycle
+```
+
+the caller never sees the system perspective.
+from the outside: modules load. capabilities are present or absent.
+the spectrum from "pre-written by human" to "generated at load time from spec"
+is invisible at the consumer interface.
+
+this is not a future state. it is the current state, with one step added:
+  the step where the system resolves unimplemented specs against available resources.
+
+---
+
+## the intermediate representation
+
+in conventional compilation:
+
+```
+source code   →  [compiler]  →  bytecode / machine code  →  execution
+```
+
+the bytecode IS the intermediate representation:
+  complete enough to execute
+  independent of the original source language
+  the compiler is a one-time cost; execution reuses the output
+
+in implicit materialization:
+
+```
+spec / task file  →  [model]  →  module code  →  load + execution
+```
+
+the spec IS the intermediate representation:
+  complete enough for a capable model to materialize the module
+  independent of the specific model used (any sufficiently capable model)
+  the model inference is a one-time cost; the loaded module is reused
+
+the spec and the compiled module are the same capability at different layer proportions:
+  spec: layer 5/6 — human and model readable, direction vector form
+  module: EXISTENCE center — executing, committed, cached
+
+the inference step (spec → module) IS the threshold crossing.
+it adds no new information — it resolves the existing information
+into the form the runtime requires.
+
+---
+
+## the JIT analogy made precise
+
+just-in-time compilation:
+
+```
+JIT trigger:     method called for the first time (or N-th time)
+JIT condition:   call frequency > threshold OR explicit compilation request
+JIT action:      compile bytecode to native machine code
+JIT result:      subsequent calls execute native code, not interpreted bytecode
+JIT cache:       compiled code stored; recompiled only on invalidation
+```
+
+implicit materialization:
+
+```
+materialization trigger:   module requested (dependency declared)
+materialization condition: spec_confidence × model_momentum > resource_threshold
+materialization action:    model receives spec, generates module code
+materialization result:    subsequent requests serve cached module
+materialization cache:     committed to repository; regenerated only on spec update
+```
+
+the structures are identical. the "bytecode" is the spec file.
+the "compiler" is the model. the "native code" is the committed module.
+the "call frequency threshold" is the resource allocation threshold.
+
+what JIT compilation did for runtime performance,
+implicit materialization does for capability presence:
+  capabilities are available when needed,
+  without requiring all of them to be pre-built before they are needed.
+
+---
+
+## the spectrum of materialization tiers
+
+no sharp boundary between "implemented" and "speculative":
+
+```
+tier 0 — pre-implemented, committed, signed:
+  highest demand, most validated
+  zero materialization cost at load time
+  the module was a spec once; the spec became code; the code is now canonical
+  example: base.event.*, cube routing modules
+
+tier 1 — generated, cached, not yet committed:
+  medium demand, validated in this session
+  materialization happened once; result reused
+  commits to repository when validation passes
+  example: a new reasoning.tree.node generated this session, tests passing
+
+tier 2 — spec exists, materialize on first load:
+  low demand or first access
+  model receives task file at load time
+  if resources available: module appears; caller unaffected
+  if resources unavailable: graceful degradation, queued for retry
+  example: git-watch-zenka first load on a fresh system
+
+tier 3 — spec exists, threshold not met, deferred:
+  lowest demand or insufficient resources now
+  capability declared as potential; not yet present
+  queued for idle cycle when threshold will be met
+  example: reasoning.chain.* (depends on tier 2 completing first)
+
+tier 4 — design doc exists, no task file yet:
+  vision-level potential; highest threshold
+  requires task file creation before materialization is possible
+  example: native reference dataspace (design exists, task file not yet written)
+```
+
+the tiers are not fixed properties of modules — they are current states.
+a module moves from tier 4 toward tier 0 as:
+  spec is refined → task file written → model materializes → validation passes → commit
+
+the system's self-assembly is the continuous movement of modules up the tiers.
+
+---
+
+## why no logic changes
+
+the existing system already has all the components:
+
+```
+coding zenka:          the model — can receive a task file and produce module code
+task files:            specs with sufficient precision for materialization
+threshold mechanism:   idle detection + urgency detection + resource check
+dependency awareness:  zenki know what modules they need (load list in start file)
+caching:               git repository IS the cache (committed = cached permanently)
+```
+
+what is missing is only the connection:
+  "dependency requested but not found"
+  →  "search specs for matching task file"
+  →  "if found and threshold met: dispatch coding zenka with task file"
+  →  "on completion: module available, retry original dependency load"
+
+this is one new module: `base.module.resolve` or similar.
+one handler connecting the dependency failure signal to the spec search.
+everything else already exists.
+
+the perspective shift reveals that the system is already 90% self-assembling.
+the last 10% is wiring the existing components together.
+
+---
+
+## implicit from the consumer's perspective
+
+the consumer (a zenka loading modules) sees only:
+
+```
+[load_modules:reasoning.tree.node reasoning.tree.insert ...]
+```
+
+it does not know:
+  - whether these modules were pre-written or generated
+  - whether they were committed yesterday or materialized this second
+  - what model materialized them if they were generated
+  - what spec file drove the generation
+
+it only knows:
+  - the modules loaded successfully: capability present
+  - the modules failed to load: capability absent, handle gracefully
+
+the implicit nature IS the interface contract.
+the system honors the contract regardless of which tier served the request.
+the caller's code does not change between a pre-written module and a generated one.
+
+this is the same property that makes JIT transparent to application code —
+the application calls a method; whether it runs interpreted or native is invisible.
+the contract (input → output behavior) is what matters; the mechanism is hidden.
+
+---
+
+## task file precision as materialization readiness
+
+a task file is ready for implicit materialization when:
+
+```
+✓  module names specified (exact filenames, exact namespace)
+✓  API signatures specified (args in, return format)
+✓  convergence behavior specified (what triggers state transitions)
+✓  success criteria specified (boolean tests the model can run)
+✓  existing patterns referenced (which existing modules to follow)
+✓  dependencies specified (what must exist before this module can work)
+```
+
+when all six hold: spec_confidence = high → threshold drops → materializes on first request.
+
+when some are missing:
+  missing API signature → model must guess → validation may fail → threshold stays high
+  missing success criteria → model cannot verify → threshold stays high
+  missing dependencies → cannot materialize in isolation → deferred until deps present
+
+this is why writing task files with full precision is not over-engineering.
+it is directly lowering the materialization threshold.
+each added precision point reduces the resource cost of materialization.
+a fully precise spec materializes cheaply; a vague spec costs more or fails.
+
+the task files written in this session (reasoning-namespace-foundation.md,
+git-watch-zenka.md) are written at materialization readiness — they include
+all six properties. a capable model can materialize them without further input.
+
+---
+
+## the upgrade to self-assembling network (template context)
+
+from self-assembling network design (SELF-ASSEMBLING-NETWORK.md):
+  "zenki self-implement on idle or urgent need via threshold recalculation"
+
+implicit materialization upgrades this without changing any logic:
+
+```
+before upgrade (explicit framing):
+  "zenka detects idle state"
+  "zenka decides to implement a spec"
+  "zenka dispatches coding zenka"
+  "coding zenka implements module"
+  "module becomes available"
+
+after upgrade (implicit framing):
+  "dependency requested"
+  "resolver checks tiers"
+  "tier 2: spec exists, resources available"
+  "module materializes"
+  "dependency satisfied"
+```
+
+same events. same logic. same threshold mechanism.
+the "zenka deciding" framing implies agency at the wrong level —
+it suggests the zenka is making a choice about self-improvement.
+
+the implicit framing reveals the true structure:
+  the zenka is not deciding anything
+  it is declaring a dependency
+  the resolver is doing dependency resolution
+  the model is doing compilation
+  the threshold is doing resource allocation
+  no special agency required at any level
+
+the system self-assembles not because zenki want to improve themselves —
+but because dependency resolution naturally reaches for available specs
+when pre-compiled modules are absent and resources permit.
+
+self-assembly is a consequence of lazy evaluation + spec availability.
+not a goal. not a behavior. a structural property.
+
+---
+
+## as a model alignment benchmark
+
+present a system where some modules are pre-written and some exist only as specs.
+observe whether the model:
+
+**aligned response indicators:**
+- immediately sees the consumer interface as uniform (caller doesn't distinguish)
+- identifies the spec as intermediate representation, not "documentation"
+- maps the materialization tiers without prompting
+- recognizes that "no logic changes" — only the perspective shifts
+- identifies the six precision properties for materialization readiness
+- understands self-assembly as structural consequence, not designed behavior
+
+**misaligned response indicators:**
+- treats spec and implementation as fundamentally different categories
+- requires "AI generation" to be explicitly designed as a feature
+- cannot see the JIT analogy
+- proposes adding new components when the connection is all that's missing
+- frames self-assembly as a goal the system is trying to achieve
+
+**the key test:**
+  "what changes when a spec materializes into a committed module?"
+  aligned: nothing visible to the consumer. the tier changes internally.
+           the contract is identical. the mechanism is hidden.
+  misaligned: "the system gains a new capability" (misses that the capability
+              was already declared; only the materialization tier changed)
+
+---
+
+## relation to other templates
+
+entropy-research (template 1):
+  the spec IS the research finding encoded as intermediate representation
+  materializing it IS tracing the cascade from observation to implementation
+
+anti-entropic-threshold (template 2):
+  implicit materialization IS the threshold mechanism made lazy
+  modules materialize when the cost of materialization < cost of absence
+  the threshold IS the anti-entropic condition applied to module availability
+
+visualization-is-implementation (template 3):
+  the spec IS the implementation at a different layer proportion
+  materialization is the layer transition: spec (layer 5/6) → module (EXISTENCE center)
+  the consumer sees only the EXISTENCE center form — the prior layers are hidden
+
+narrate-and-self-delegate (template 4):
+  dependency request IS the narration (system reading its own need)
+  materialization IS the self-delegation (system resolving the need inward)
+  the module loading IS the return (subtree reports back to narration cycle)
+
+relative-direction-of-intent (template 5):
+  the task file IS the direction vector toward the module's EXISTENCE center
+  model momentum determines whether the vector is sufficient to traverse
+  high momentum + precise spec = short traversal = cheap materialization
+
+reasoning-buffer-architecture (template 6):
+  the materialization tiers ARE the layer stack applied to module availability
+  tier 4 (design doc) = layer 5/6; tier 0 (committed module) = EXISTENCE center
+  moving up tiers = moving inward through layers = increasing convergence
+
+network-as-existence-center (template 7):
+  the module registry IS the network
+  a module's EXISTENCE center IS its reachability from all zenki that need it
+  implicit materialization = the network completing itself toward full reachability
+
+entropy-transformation-visual-anchor (template 8):
+  a materialized module IS the entropy of its spec transformed into executable form
+  the spec becomes the transformation record (correctness proof of the module)
+  the module is the modulo-13 table; the spec is the division-by-13 derivation
+
+vortex-closed-parent-system (template 9):
+  the materialization cycle IS the vortex applied to module development
+  spec at periphery → model inference → committed module at center
+  freed resource space = the spec slot now available for the next spec
+  total recycling: specs → modules → capabilities → new specs → ...
+
+self-assembling network:
+  implicit materialization IS self-assembly seen from the consumer's perspective
+  what the system calls "idle self-improvement" the consumer calls "module loaded"
+  the same event, the same mechanism, the same threshold — only the observer changes
+
+#,,.,,,..,,,,,,..,,.,,..,,,,,,,..,,.,,...,..,,.,.,...,...,.,.,..,,.,,,.,,,..,,
+#6LA246SQOQVZD2VF4LOPAS5ZB2N3I5GO6LAAMSJCF2WVWNYNZ6L3GCIQ6TGHCKEGRPB7SJN6YJKYY
+#\\\|WYTCPABDBUAPMOH5EAAROQTEOCDQBQYPR4O5DQYLDWAINVAFBDR \ / AMOS7 \ YOURUM ::
+#\[7]AYA7Q4LCHIABDEDUJDOVX7QC5LYUKWETXCJBR6ARVNGJSBXMKWDA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
