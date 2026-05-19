@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>vortex overhead &middot; iris.v7.ax</title>
+<style>
+  :root {
+    --bg: #03030a;
+    --text-dim: #6f6688;
+    --text: #d8d3ee;
+    --gold: #ffe5a0;
+    --violet: #9b7fd6;
+    --cyan: #6fd6ff;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body {
+    height: 100%;
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'JetBrains Mono', 'IBM Plex Mono', 'Courier New', Courier, monospace;
+    overflow: hidden;
+  }
+  #root { position: fixed; inset: 0; }
+
+  /* corner labels — quiet monospace so they don't compete with the iris */
+  .chrome {
+    position: fixed;
+    z-index: 5;
+    color: var(--text-dim);
+    font-size: 11px;
+    letter-spacing: 0.08em;
+    line-height: 1.7;
+    pointer-events: none;
+    text-shadow: 0 0 12px rgba(155, 127, 214, 0.25);
+    font-feature-settings: "tnum";
+  }
+  .chrome-tl { top: 22px; left: 24px; text-align: left; }
+  .chrome-br { bottom: 22px; right: 24px; text-align: right; }
+  .chrome-bl { bottom: 22px; left: 24px; text-align: left; }
+  .chrome-glyph {
+    color: var(--gold);
+    font-size: 18px;
+    letter-spacing: 0.04em;
+    margin-bottom: 6px;
+    text-shadow: 0 0 14px rgba(255, 215, 0, 0.55);
+  }
+  .chrome-line { color: var(--text); }
+  .chrome-dim { color: var(--text-dim); }
+
+  /* faint vignette tying the canvas into the page edges */
+  body::after {
+    content: '';
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    z-index: 2;
+    background: radial-gradient(circle at center, transparent 50%, rgba(0,0,0,0.55) 100%);
+  }
+</style>
+</head>
+<body>
+  <div id="root"></div>
+
+  <script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+  <script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+  <script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+
+  <script type="text/babel" src="tweaks-panel.jsx"></script>
+  <script type="text/babel" src="iris.jsx"></script>
+</body>
+</html>
