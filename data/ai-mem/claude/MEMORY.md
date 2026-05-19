@@ -60,6 +60,7 @@
 - [site-yaml-web-research](topic-site-yaml-web-research.md) — safe coding zenka web research, checksum-as-capability tokens
 - [usb-backup-zenka](topic-usb-backup-zenka.md) — udev insertion → task tree → manifest restore agent
 - [git-watch-zenka](topic-git-watch-zenka.md) — force-push detection → pre-fetch snapshot; mode 1: local guardian; mode 2: remote watcher; git alternates chain dedup; task: data/tasks/git-watch-zenka.md
+- [reasoning-design-templates](topic-reasoning-design-templates.md) — 7 viz designs in data/yaml/design-templates/; kimi task dispatched → reasoning-design-inspiration.html; feeds claude design testing
 - [tls-acme](topic-tls-acme.md) — SNI/SSL internals, ACME/letsencr details, cert discovery
 - [amos7-p7-loader](topic-amos7-p7-loader.md) — AMOS7::P7 makes <[...]> modules callable from standalone scripts
 - [invoke-model-management](topic-invoke-model-management.md) — uuid vs verbose paths, config.json, :raw binary writes
@@ -184,8 +185,8 @@
 - **repo var/ cleanup** — `var/httpd/` tracked from Nov 2025 AI error
 - **kimi auto-approval regression** (Apr 16) — some tool calls not auto-approved during kimi tasks
 
-#,,.,,.,.,...,...,.,.,,,.,,..,,,.,,.,,..,,,,.,..,,...,...,..,,,,.,.,.,,,,,,,,,
-#SY4E7334T73UQZZWRAE4UVGIVSQYYKKCZ4YXOZ2QX32BXF6GET63VLRWCCEEDQMTKX2D5GWNQLC22
-#\\\|L2UOIV5VZDFKTO4EKAIWHHA2SYPNRW4W4TRE3JGXNRLLZPPBQ5D \ / AMOS7 \ YOURUM ::
-#\[7]OXBOUJ6KB7NX6FMN2AMWTUYJDRI2MMUNLU4J2U3KHSL3MFFEGACI 7  DATA SIGNATURE ::
+#,,,,,,..,...,..,,,..,...,.,.,,.,,...,,.,,,..,..,,...,...,..,,...,,,.,,..,.,.,
+#T7MU2OGIQGM37XM2V5G5UTH5JXVDBHNKETUQKLSTQYSAQLIKVKKJKCROGPNLWRGBAIXUI7JDVDIKK
+#\\\|BMTXA543VHFHIOKTWCYYO6SGFLOLLB6HODP3OVZCNRR6NJ5B3OF \ / AMOS7 \ YOURUM ::
+#\[7]LLLV4Q6ELLCLNAQDHQR46WBGTGNXDHCPGOHRDGJUWWV5OASCRMDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
