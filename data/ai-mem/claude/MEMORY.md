@@ -8,9 +8,8 @@
 - Leave new files clean; `bin/Protocol-7 sourcecode update-signatures` adds real 4-line footer
 
 ## Active Topics
-- [plugin-web-jobs](topic-plugin-web-jobs.md) — WORKING (session 33): sync wired via clients.http.post; open: server-side ?since=N, remote deploy, https switch when distributed
+- [plugin-web-jobs](topic-plugin-web-jobs.md) — delta sync WORKING (session 34): ntime persisted, chunked push, last_modified stamps; open: ?since=N browser delta, remote deploy
 - [clients-http](topic-clients-http.md) — clients.http.* + clients.https.* async namespaces; kimi-web parallel dispatch fixed; see completed session 33
-- [plugin-web-jobs](topic-plugin-web-jobs.md) — delta sync WORKING (session 34): ntime persisted, chunked push, last_modified stamps flowing
 - [job-pipeline](topic-job-pipeline.md) — WORKING (session 22): jobs.vhost live, German reason+summary, retry on timeout
 - [task-coordination](topic-task-coordination.md) — task zenka as coordinator; current state, dispatch flow, roadmap
 - [coding-state-machine](topic-coding-state-machine.md) — coding.state namespace, watcher-based backend lock, persist/restore lifecycle
@@ -180,8 +179,8 @@
 - **repo var/ cleanup** — `var/httpd/` tracked from Nov 2025 AI error
 - **kimi auto-approval regression** (Apr 16) — some tool calls not auto-approved during kimi tasks
 
-#,,,.,,,,,,.,,,.,,,,.,.,.,,.,,.,.,,,.,,,.,,,.,..,,...,..,,,..,..,,,..,.,,,...,
-#PSFFOEDAU4IMHDAI3KT6XA4HSWDG7W4ASQMHGIGP5X3F7FVW3SEM33DW4SN66EEIRNVL5OAEUOK6O
-#\\\|PSC77SQ7ZVQPFR4CESD3FUTLEVEAUGJUXCRMFWFI6M6QKXIMD7Y \ / AMOS7 \ YOURUM ::
-#\[7]KX3QQTPF5POLWILT373NK5RUPNXP4DAKHYLFURGVRUHGM2RVDSDA 7  DATA SIGNATURE ::
+#,,..,.,.,,.,,..,,...,.,.,,..,...,.,,,,..,,..,..,,...,...,,..,...,.,.,...,,,.,
+#BPZRST5J672OW4W4W5L27BG7KHVH5MFFQVWKIIRIB23N6AWXKYXAUH3XSWOQA7BOUWBEZAIL52BM6
+#\\\|B5DWMZKNKV6WBNDHXP7NJMAH45G6VMLPKJ2WWDYVWUB7VRMDNOQ \ / AMOS7 \ YOURUM ::
+#\[7]5OU4XJDA5YHRKPH54TTIP75QJP4JZRUDDINOYXFGB7HOCQKVMECQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
