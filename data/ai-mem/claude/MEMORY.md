@@ -11,6 +11,7 @@
 - [plugin-web-jobs](topic-plugin-web-jobs.md) — delta sync WORKING (session 34): ntime persisted, chunked push, last_modified stamps; open: ?since=N browser delta, remote deploy
 - [clients-http](topic-clients-http.md) — clients.http.* + clients.https.* async namespaces; kimi-web parallel dispatch fixed; see completed session 33
 - [reasoning-chain-repository](topic-reasoning-chain-repository.md) — planned for native model; dedup-based self-improvement; small model naive insight + large model validation = ground truth
+- [reasoning-namespace](topic-reasoning-namespace.md) — `reasoning.*` generic namespace (harmonically TRUE); summarizing node narration tree, threshold-triggered action, narrate+self-delegate pulse; task zenka first consumer
 - [job-pipeline](topic-job-pipeline.md) — WORKING (session 22): jobs.vhost live, German reason+summary, retry on timeout
 - [task-coordination](topic-task-coordination.md) — task zenka as coordinator; current state, dispatch flow, roadmap
 - [coding-state-machine](topic-coding-state-machine.md) — coding.state namespace, watcher-based backend lock, persist/restore lifecycle
@@ -181,8 +182,8 @@
 - **repo var/ cleanup** — `var/httpd/` tracked from Nov 2025 AI error
 - **kimi auto-approval regression** (Apr 16) — some tool calls not auto-approved during kimi tasks
 
-#,,,.,,,.,,.,,...,...,,,,,.,.,,.,,...,...,.,.,..,,...,...,,..,.,,,.,.,,,,,...,
-#G26HRYQCXRXXGQVAWDP62JIUKZR32AKAELHLITLPOHAE4FFPBLFIAI4OBM55G6YQP3V42SXDXPX3W
-#\\\|DQYOOINX2ODHJWKPGKJFZECOCRMLP3LAKAEQOPDN7DZQ52B7XTN \ / AMOS7 \ YOURUM ::
-#\[7]FMY3I52AZW6FOFPZNFAHEVVISOMLYXM6OAZHK542O4LGBO2EF4BI 7  DATA SIGNATURE ::
+#,,,.,..,,...,,,.,..,,,,,,,..,,,,,,.,,,..,.,.,..,,...,...,.,.,..,,...,,,,,.,.,
+#HS3JBAPJRZ6YEKAWHHA4Q76OO3OI44C5GQ3K3KFYXJXITQJHZTCVK4VBNKMD74JZ7HUHWGFNRIII6
+#\\\|PXU27Z63Z3DK2ODVHMF6TPAIDFY2GX6446PK3FN6H2EXD45K67X \ / AMOS7 \ YOURUM ::
+#\[7]M5RNWQEOB5463ZFNDONFSTNKAX3FWBPBRCT6STZ7UX7A3HUTP4CQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
