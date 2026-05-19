@@ -131,6 +131,12 @@ if ( ( $state->{'round'} // 0 ) > $max_rounds ) {
 
 ## build request body ##
 ## no_tools flag: summary/classification tasks that don't need tool use ##
+## also detect :no_tools: marker prefix in description ##
+if ( not $task_ref->{'no_tools'}
+    and ( $task_ref->{'description'} // '' ) =~ m|^:no_tools:|i ) {
+    $task_ref->{'no_tools'} = TRUE;
+    $task_ref->{'description'} =~ s|^:no_tools:\n?||i;
+}
 my $tools
     = ( $task_ref->{'no_tools'} // FALSE )
     ? []
@@ -274,8 +280,8 @@ if (@messages) {
 return
     <[coding.async.request]>->( $task_id, $request_body, $state->{'job_id'} );
 
-#,,,,,...,,..,.,.,..,,...,.,,,.,.,.,,,...,..,,..,,...,...,...,.,,,,,.,...,,,.,
-#3PHNS334TDWEBBV4RPGPOX24QQY7VMCQ6DVAMQ3XOZFWGKRGYFI3YLVRI2FZGFJ72VVXLH6AAY7WO
-#\\\|U5XRXWH6C3RWZ6RZ2GKXBVIBVJYCUL2DK2PSVJ47XQUG5SRLZ2G \ / AMOS7 \ YOURUM ::
-#\[7]Y3VP7QWFKGOO3Y7OXLABA7LUX7BD3F7U3XSBT6CBMNCP73PG4SCI 7  DATA SIGNATURE ::
+#,,.,,,,,,,.,,,.,,,.,,...,..,,,,,,,,,,,.,,,,,,..,,...,..,,,..,,.,,,,.,,,,,,..,
+#ISB74GN2FOO4LCONHZOUS3BVRENFRLXIRH73SY23HOQMPQYNC4FGHXC277SXR7O3RBWIK4PB7ZEBM
+#\\\|YAVPCG2GDGJR2UA3EUSAA6ARENJTMOZDWUQ2Z44XTFKDSN2CRZS \ / AMOS7 \ YOURUM ::
+#\[7]PH7UC4QG7ZAEDRGDFYWZPMOYJO76EJTZQ6MNJGEXVYFWPW4DZODQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -20,7 +20,9 @@ my $desc   = $entry->{'desc'};
 );
 
 ## encode multiline args as base32 to avoid protocol framing issues
-my $encoded = ':B32:' . encode_b32r( Encode::encode( 'UTF-8', $desc ) );
+## :no_tools: prefix signals coding zenka to skip tool use (assessment only) ##
+my $encoded
+    = ':B32:' . encode_b32r( Encode::encode( 'UTF-8', ":no_tools:\n$desc" ) );
 
 <[protocol-7.route-send]>->(
     {   'command'   => 'task.create',
@@ -32,8 +34,8 @@ my $encoded = ':B32:' . encode_b32r( Encode::encode( 'UTF-8', $desc ) );
     }
 );
 
-#,,..,,,.,,,,,,..,.,.,,,.,,,,,.,.,,,,,..,,,,,,..,,...,..,,..,,,.,,..,,.,.,,.,,
-#FSTGMADN4P67KDPY4IMI5ITZGJXXAXA3J4YD2XSB3VSKPIKRKABVXLDIB7LK4AUVLZDPNHXCA2JFS
-#\\\|AGNHB3MI7ELHZJV6GDANRDWCIWV36IRTSSTUWKG3LUYGT53HJWC \ / AMOS7 \ YOURUM ::
-#\[7]W6W7SWEFQMBOHFDKWPY2PQYRL4K6SFXCUFTB35TWF7XTCOEA3SAQ 7  DATA SIGNATURE ::
+#,,,,,,..,,..,..,,,,,,.,,,,,,,.,,,..,,,,,,,,.,..,,...,...,.,,,.,.,,.,,,.,,..,,
+#KVRL36KJH6BVF5TFGE5Z75ZG7UMGUSJ7NO7WDJGOGUFNKD4AHT62P56BCQ54R2VUKKU3BQWQUMADI
+#\\\|R3A2H5MDHHSZZSM3ANO6OPJJEPLQ3ODLAOYZUFI4BBLN2IZRVJ4 \ / AMOS7 \ YOURUM ::
+#\[7]6DCWHOQ6BBGWFNJL4TUUF3TOUMWRI7T5G5PN3KPMGF6TTPLIBSDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
