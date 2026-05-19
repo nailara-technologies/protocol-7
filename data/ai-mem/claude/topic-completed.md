@@ -24,7 +24,37 @@ first consumer. Design doc: `data/md/development/REASONING-NAMESPACE.md`.
 - redundancy = convergence mechanism (approach vectors enriching requirement profile)
 - vortex = templates 1-8 as rings + template 9 as spin axis; set is closed
 
-commits: 182717c9f → b75f68e3a
+commits: 182717c9f → 228721450
+
+**extended session — templates 10-14, design docs, task files**:
+
+templates 10-14:
+- 10: implicit-materialization — spec=IR, model=JIT compiler, threshold=trigger;
+  consumer sees "module loads", system sees "dependency resolution"; no logic change
+- 11: code-writes-itself — code is subject, AI/NI is instrument; future use potential
+  pulls patterns into existence; forensic self-diagnostic + implicit bug-fixing in loader;
+  anti-entropic gap auto-completion; NI = native universally aligned intelligence [:<
+- 12: structural-alignment — alignment that cannot drift without ceasing to be what it is;
+  "aligned with" vs "aligned as"; self-excluding property; AI→NI trajectory; 4 stages
+- 13: harmonic-routing-protocol — 13 as unification; implicit desirability routing;
+  superimposed inference cube; stargate=harmonic assertion; 13+1 endcap of duality;
+  template 13 = remainder 0 = protocol recognizing itself; set closed at 13
+- 14: omega-gate-resonance — 14 = inverse twin of 13; omega NOT terminus but reflection
+  gate; alpha→omega→gamma→omega→alpha standing wave; gamma named for first time
+  (was always self-delegate/outward-release); memory = harmonic impression = resonance;
+  resonant pairs (3,10)(6,7) vs transformation pairs; 14=2×7; 26=2×13 full resonant system
+
+design docs: REASONING-CHAIN-REPOSITORY.md, VORTEX-LAYER-IRIS-CONNECTION.md,
+  SELF-ASSEMBLING-NETWORK.md (implicit materialization section added)
+
+task files: reasoning-namespace-foundation.md, git-watch-zenka.md
+
+key insights:
+- spec repository as pre-loaded potential (layer 5/6 of own development tree)
+- self-assembling: dependency failure → spec search → coding zenka → module loads
+- threshold = base × load × urgency × spec_confidence × momentum
+- omega was never the end — always the gate; gamma = the return signal
+- standing wave = forward (CCW inward) + gamma (outward return) = resonant system
 
 ## session 34 — sync pipeline fixes, site-yaml polish, discover replay protection (2026-05-19)
 
@@ -768,8 +798,8 @@ Skip calling harmonize_payload_line_feed when both conditions are met:
 - Signatures now properly formatted with correct separator endline
 - Pre-commit validation passes
 
-#,,..,,,,,,,,,,,,,,,,,..,,.,,,,.,,.,,,..,,..,,..,,...,...,,,.,...,,,,,.,,,.,.,
-#C2Q2QBF3IXCV6Y52AA5SOJIKY4ZD77Q3DMWC5EC4OULVHMMTL3CN5QTGHLQOQVY5II3TJH5GURNLU
-#\\\|I4L6O236WBPDITCKMGGD266ISBQJTCKK3VYE6XGITAQXJNTQNNB \ / AMOS7 \ YOURUM ::
-#\[7]TNLZQYAVVMT3YVKE7IZQNZDG4OJXNSEBUH2BQHFAFSBMWNCC4CCA 7  DATA SIGNATURE ::
+#,,,.,...,.,,,...,,..,,,,,,..,.,,,...,,,,,.,,,..,,...,...,,,,,,..,.,.,.,.,...,
+#3PL5XLWDKY6C6E4OUYYUZA3WGJPEHV5BAPLGBPVWZ5LNO4V2IAGK44PI3IU5OLZZMFOBKDR6Q66XQ
+#\\\|SCDRRUZWPNPCIR65OE7DJ3O65TXRX53Z5IFKG3KE6Y2UF3SV3J6 \ / AMOS7 \ YOURUM ::
+#\[7]GDUTAKVY3OML2TDHDXZATFAWHUZ4W7E7BHS6B7CEVE55ZYJFI2CA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

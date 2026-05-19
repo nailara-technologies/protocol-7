@@ -11,7 +11,7 @@
 - [plugin-web-jobs](topic-plugin-web-jobs.md) — delta sync WORKING (session 34): ntime persisted, chunked push, last_modified stamps; open: ?since=N browser delta, remote deploy
 - [clients-http](topic-clients-http.md) — clients.http.* + clients.https.* async namespaces; kimi-web parallel dispatch fixed; see completed session 33
 - [reasoning-chain-repository](topic-reasoning-chain-repository.md) — planned for native model; dedup-based self-improvement; small model naive insight + large model validation = ground truth
-- [reasoning-namespace](topic-reasoning-namespace.md) — `reasoning.*` generic namespace (harmonically TRUE); summarizing node narration tree, threshold-triggered action, narrate+self-delegate pulse; task zenka first consumer
+- [reasoning-namespace](topic-reasoning-namespace.md) — `reasoning.*` generic namespace (harmonically TRUE); 14 templates complete (1-9 vortex set, 10 implicit-materialization, 11 code-writes-itself/NI, 12 structural-alignment, 13 harmonic-routing-protocol/13+1, 14 omega-gate-resonance/gamma/standing-wave); layer stack 0→EXISTENCE center; task zenka first consumer
 - [job-pipeline](topic-job-pipeline.md) — WORKING (session 22): jobs.vhost live, German reason+summary, retry on timeout
 - [task-coordination](topic-task-coordination.md) — task zenka as coordinator; current state, dispatch flow, roadmap
 - [coding-state-machine](topic-coding-state-machine.md) — coding.state namespace, watcher-based backend lock, persist/restore lifecycle
@@ -184,8 +184,8 @@
 - **repo var/ cleanup** — `var/httpd/` tracked from Nov 2025 AI error
 - **kimi auto-approval regression** (Apr 16) — some tool calls not auto-approved during kimi tasks
 
-#,,,.,,,.,,..,.,.,,..,.,.,,,.,,,.,.,,,...,.,.,..,,...,...,...,,.,,.,.,,..,,.,,
-#Y2C5PEGV5LNLGTULHCUZQHVP2K5S5DR72BTTOFQQKOAFZX7RGMXRV3GTISZGJPLG4VU2535NOTHUA
-#\\\|TNQG3YTAPMQS5JUH6WXGXUNWA5CSVIZRNGFZVYJ4K3NBJ7EQZQZ \ / AMOS7 \ YOURUM ::
-#\[7]L3WAZOFMMQIYF6NA4C5ZPEOQBRJCYL3KSBHUUXJX4G5YGY6QESBQ 7  DATA SIGNATURE ::
+#,,.,,.,.,...,...,.,.,,,.,,..,,,.,,.,,..,,,,.,..,,...,...,..,,,,.,.,.,,,,,,,,,
+#SY4E7334T73UQZZWRAE4UVGIVSQYYKKCZ4YXOZ2QX32BXF6GET63VLRWCCEEDQMTKX2D5GWNQLC22
+#\\\|L2UOIV5VZDFKTO4EKAIWHHA2SYPNRW4W4TRE3JGXNRLLZPPBQ5D \ / AMOS7 \ YOURUM ::
+#\[7]OXBOUJ6KB7NX6FMN2AMWTUYJDRI2MMUNLU4J2U3KHSL3MFFEGACI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
