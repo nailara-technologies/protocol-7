@@ -135,6 +135,24 @@ if ( abs($timestamp_delta_secs) > $time_delta_limit ) {
 ## collecting host clock offset [ + network latency ] ##
 $matched_field->{'time-delta-seconds'} = $timestamp_delta_secs;
 
+## per-sender ntime watermark — generic replay protection for all packet types ##
+## keyed by sender hostkey L13 — bounded by number of unique signing keys seen  ##
+my $key_L13    = <[chk-sum.bmw.L13-str]>->( $matched_field->{'hostkey'} );
+my $last_ntime = $data{'discover.ntime_watermark'}{$key_L13} // 0;
+## 3 seconds — covers delivery jitter + mild desync ##
+my $slack_units = 3 * 4200;
+
+if ( $timestamp_num < $last_ntime - $slack_units ) {
+    <[base.logs]>->(
+        1, 'packet ntime behind watermark [ possible replay, skipping ]'
+    );
+    return FALSE;
+}
+
+## advance watermark forward only — accept-but-don't-advance for lagging packets ##
+$data{'discover.ntime_watermark'}{$key_L13} = $timestamp_num
+    if $timestamp_num > $last_ntime;
+
 if ( $matched_field->{'type'} ne qw| ANNOUNCE | ) {
     <[base.s_warn]>->(
         "no handler for '%s' type packets [ skipping ]",
@@ -156,8 +174,8 @@ if ( $matched_field->{'type'} ne qw| ANNOUNCE | ) {
 
 <[discover.check_packet_timeouts]>; ##  applying timeouts \ setting timers  ##
 
-#,,,,,.,,,.,,,,,.,...,..,,,..,,.,,...,,.,,.,.,..,,...,..,,,,,,,.,,.,,,...,...,
-#GWNR6DFPRSQTJZVWUNIULFSXV6WULIUMEESAFKR44RL3IDZHV5KOY66DDJUHNEPOQEXQPBL7KMSQ4
-#\\\|FZIELM5TQCAXYB5WZJTR3KSZT5JJHHXTVRRLMOBE4RY2P22USKU \ / AMOS7 \ YOURUM ::
-#\[7]HWC4MH7FI2TLIXP4UNFBC43GHWLEME47E3XGUX723XMKPNL4T2DI 7  DATA SIGNATURE ::
+#,,.,,,,.,,.,,...,..,,..,,..,,.,,,,,.,,,.,,,.,..,,...,...,,.,,..,,...,,,,,.,.,
+#OQU7CBW6V3ZABNFMZBLY5AIZ2ICJKTV2JZM2DCZORN4JS22SJUY637GWZCYNABV4LF7TXBIJOJUII
+#\\\|BPRZKA6JCXZSBQLN2PRDAZDEE5HRAGDKZMMX6IHRWX22Z4GLYGK \ / AMOS7 \ YOURUM ::
+#\[7]FEVBT2ZJLB6WHLIBMP3F5DO2ZFMP7TXZL4UJBP77PXYN7CRAWCDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
