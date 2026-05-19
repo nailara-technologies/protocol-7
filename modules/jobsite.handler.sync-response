@@ -3,9 +3,9 @@
 # name  = jobsite.handler.sync-response
 # descr = called when batch sync post completes — stores server ntime, applies reverse
 
-my $result     = shift // {};
-my $ok         = $result->{'ok'}             // FALSE;
-my $body       = $result->{'body'}           // '';
+my $result     = shift                             // {};
+my $ok         = $result->{'ok'}                   // FALSE;
+my $body       = $result->{'body'}                 // '';
 my $chunk_size = $result->{'params'}{'chunk_size'} // 0;
 
 if ($ok) {
@@ -13,16 +13,18 @@ if ($ok) {
     if ( ref $reply eq 'HASH' ) {
         my $ntime   = $reply->{'ntime'}   // '';
         my $reverse = $reply->{'reverse'} // [];
-        <jobsite.sync.last_server_ntime> = $ntime if length $ntime;
-        push @{ <jobsite.sync.push_reverse> }, @{$reverse};
+        ## server ntime stored for reference; local cycle ntime used as filter watermark ##
+        <jobsite.sync.last_remote_ntime> = $ntime if length $ntime;
+        push @{<jobsite.sync.push_reverse>}, @{$reverse};
         <[base.logs]>->(
-            2, 'jobsite: chunk done (%d jobs), reverse=%d',
+            2,           'jobsite: chunk done (%d jobs), reverse=%d',
             $chunk_size, scalar @{$reverse}
         );
     }
 } else {
     <[base.logs]>->(
-        0, 'jss.sync: chunk failed: %s',
+        0,
+        'jss.sync: chunk failed: %s',
         $result->{'error'} // $result->{'status'} // '?'
     );
 }
@@ -30,8 +32,8 @@ if ($ok) {
 ## advance to next chunk regardless of success ##
 <[jobsite.sync.push_chunk]>;
 
-#,,.,,,,.,,..,,.,,,,.,.,,,,,.,.,,,..,,.,.,,,.,..,,...,...,..,,,,,,.,,,...,..,,
-#V6LQLNPBMQHGDGDPFNDIGPFU5BPLAOTDWCAG7BY2FPUHBRQGV6OLP4Q2IAM5HU6LOXO3J44MYB2J4
-#\\\|BLCV26WPS7JVTJANNTGR4HQHRUZDJEGX7NZVHRGEBNSNLQEXJKI \ / AMOS7 \ YOURUM ::
-#\[7]MMU2B2OITX7VG2NAHMTJMUVSSYUVBZKYHJ34UI6IXHFQM76NC4BA 7  DATA SIGNATURE ::
+#,,,,,,..,,..,,..,..,,,.,,,.,,,,,,,.,,.,,,.,.,..,,...,...,.,,,...,,,,,,.,,,.,,
+#ZFGM2O55I76OE2MOTTVZWMQ2V7O55PJYLJHY3SQQIL2M6BK7QMMSEJLCMNYX5Z2KJ33JXQBM5UJT2
+#\\\|F7WGGOKTM3LV62Q7UZ4KUVJAYWXI5SBRZERWWN7MQYOIHNDVKRN \ / AMOS7 \ YOURUM ::
+#\[7]YFWWDI5VV3LO5JH7UPE3VTMC7OH5W4C7GFPKJIAN6QBEFZYDLGBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
