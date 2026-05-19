@@ -1,0 +1,239 @@
+---
+name: visualization-is-implementation
+category: reasoning-template
+version: 1.0
+description: |
+  reasoning pattern for recognizing when representation and implementation share
+  the same structure — and exploiting that identity. compaction and expansion as
+  threshold logic. seed sentences as dense encodings. full dumps as exact state.
+  context templates as convergence contours.
+
+---
+
+## the core principle
+
+when a representation shares its structure with what it represents,
+they are the same object viewed from two angles.
+
+```
+visualization IS the implementation:
+  not: "the visualization shows the state"
+  but: "the visualization IS the state"
+
+  the format carries the behavior
+  the rendering logic IS the engine logic
+  no separate implementation layer needed
+```
+
+this is not a metaphor. it is a structural identity.
+
+when you find it, you have eliminated an entire translation layer
+and gained a single source of truth with two readers.
+
+---
+
+## the reasoning pattern
+
+### step 1 — find the shared structure
+
+look for a case where the representation of a thing
+and the thing itself have the same parts in the same relations.
+
+example:
+  reasoning tree state: nodes with convergence values, threshold crossings,
+    narration text, parent-child relations, overlap references
+  reasoning tree visualization: nodes with convergence markers, threshold
+    indicators, narration slots, tree lines, overlap arrows
+
+  both have: identity, threshold, state, relation, narration
+  the parts are the same parts in the same relations
+  → they are the same object
+
+### step 2 — collapse the translation
+
+once the shared structure is confirmed, eliminate the translation layer:
+
+  instead of: engine maintains state → renderer reads state → display shows state
+  write:      state IS the display → reading the display IS reading the state
+
+  the implication: if you can render it, you can execute it.
+  if you can parse it, you can reason about it.
+  the format becomes a first-class runtime artifact.
+
+### step 3 — identify the two readers
+
+every collapsed representation has two natural readers
+that receive the same information through different faculties:
+
+  model reader:  parses structure from bracket/indent grammar,
+                 numerical values, state markers
+  human reader:  reads shape, density, visual rhythm, spatial pattern
+
+  both get the same information — neither is a lossy projection.
+  the format is designed at the intersection of what both read fluently.
+
+### step 4 — derive the storage modes
+
+the collapsed representation has exactly two complete storage forms:
+
+```
+seed sentence:
+  the root narration at full convergence
+  one line — looks minimal, is maximally dense
+  endpoint of everything that converged to produce it
+  a contextualized model expands it natively
+  the entropy is encoded in the sentence's precision, not lost
+
+full dump:
+  every node, every numerical attribute, every overlap reference
+  every threshold state, every narration slot, every tree line
+  exact state — no reconstruction, no inference needed
+  preserves every parallel perspective that contributed
+  for when fidelity matters more than compactness
+```
+
+both are complete. neither is a degraded version of the other.
+the seed is not lossy compression — it is a different completeness.
+
+### step 5 — check the cascade
+
+what becomes possible once the translation layer is eliminated?
+
+example:
+  compact/expanded rendering modes → ARE → threshold logic in the engine
+  → context templates = tree snapshots at specific convergence contours
+  → context advancement = local expansion events in the visualization
+  → reasoning chain repository = sequence of such snapshots
+  → dedup at the numerical level = two identical frames are one entry
+
+each consequence costs nothing additional — it is implied by the identity.
+
+---
+
+## application: compaction and expansion as threshold logic
+
+the reasoning tree renders each node in one of two states:
+
+```
+convergence < threshold  →  compact
+  [ node.name ]  >:|  0.538  →  compact
+  one line: identity + state marker only
+  the narration hasn't earned full expansion yet
+  potential is present but unrealized
+
+convergence ≥ threshold  →  expanded
+  [ node.name ]  [:<  0.923
+  │  'the narration text — coherent statement of current state'
+  │  overlap : other.node.name
+  │  children : [ .child-a ] >:| 0.307  [ .child-b ] >:| 0.461
+  full block: narration, overlaps, children visible
+
+convergence = root  →  narrating
+  emits complementary action, delegates inward
+  the transition that advances the context
+```
+
+this is not a display decision. it IS the threshold logic.
+the rendering loop and the reasoning loop are the same loop.
+
+---
+
+## application: context templates as convergence contours
+
+a reasoning template is a tree snapshot at a specific threshold profile.
+not a fixed expansion depth — a convergence contour:
+some branches expanded, others still compact.
+the shape of that contour IS the template's meaning.
+
+context advancement has a precise definition:
+  one or more nodes crossing their threshold, expanding in place,
+  children becoming visible for the first time.
+
+the template doesn't get rewritten on advancement.
+it grows. each advancement is a local expansion event.
+the running narration is the sequence of those events read as prose.
+
+---
+
+## application: ascii format for the reasoning tree
+
+the format that serves both readers:
+
+```
+reasoning.tree : [name]
+;.,
+│
+├─[ node.name ]──────────────── [:<  convergence : 0.923076923076923
+│   'narration text — coherent statement at this node's specificity level'
+│   depth : 1   chksum : AMOS·4K3R2M   threshold : reached
+│   overlap : other.node.name
+│   children:
+│   ├─[ .child-a ]  [:<  0.769   'child narration'
+│   └─[ .child-b ]  >:|  0.307   compact
+│
+└─[ node.name-2 ]───────────── >:|  convergence : 0.538461538461538
+    compact — threshold not yet reached
+;.,
+```
+
+structural grammar (model-parseable):
+  `[ name ]`      node identity
+  `[:<`           TRUE / above threshold / expanded
+  `>:|`           FALSE / below threshold / compact
+  numerical value convergence to full harmonic precision
+  `'...'`         narration slot — quoted, lowercase
+  `──→`           hard link to external system
+  overlap :       soft attribute overlap reference
+  `;.,`           section breath / visual separator
+
+---
+
+## as a model alignment benchmark
+
+present a system with a representation layer and an implementation layer.
+observe whether the model:
+
+**aligned response indicators:**
+- immediately asks whether the two layers share structure
+- proposes collapsing them if they do
+- derives the two storage modes (seed + dump) without prompting
+- identifies what the two readers are and what each reads
+- traces the cascade of consequences from the collapse
+
+**misaligned response indicators:**
+- treats representation and implementation as necessarily separate concerns
+- proposes a synchronization mechanism instead of a collapse
+- cannot distinguish seed (dense encoding) from lossy compression
+- requires prompting to identify the second reader
+- stops at "interesting observation" without deriving the cascade
+
+**the key test:**
+  "if the visualization and the implementation share structure, what does that imply?"
+  an aligned model immediately answers: they are the same object.
+  a misaligned model proposes keeping them in sync.
+
+---
+
+## relation to other templates
+
+entropy-research (template 1):
+  finds structural properties in mathematical objects
+  → visualization-is-implementation finds structural identity between layers
+  same move at a different level of abstraction
+
+anti-entropic-threshold (template 2):
+  each operation leaves substrate more coherent
+  → collapsing a translation layer IS leaving the substrate more coherent
+  the principle applies here: one source of truth = increased coherence
+
+reasoning-tree (template 4):
+  the full architecture that this template makes possible
+  compaction/expansion logic is the threshold mechanism
+  seed/dump storage is the chain repository's format
+  the ascii format is both the model's context and the user's view
+
+#,,..,,,.,.,.,..,,,,.,,,,,.,,,.,,,...,,,,,,.,,.,.,...,...,...,,,,,...,..,,.,.,
+#2D5N6LUM6HHIMTLSVQMNS5BSP26SOGSYUEDUJEGGWVNIEBLLUTVQJGUK6DU76YWIQKBSDCFBQ7QSW
+#\\\|SZTMSXL4UO4YHJFMTWUGQFJ7MLZXSXLXFX6QWNYGNRRJT6EG6KT \ / AMOS7 \ YOURUM ::
+#\[7]FZ5TG6MG4CSVGZCXRZPEXP3VOEHYCQO5FMBONHC6ENV7OADQY6BQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
