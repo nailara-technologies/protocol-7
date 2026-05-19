@@ -24,6 +24,19 @@ metadata:
 **Trace:**
 - `reasoning-chain-trace.yaml` — single traversal as U-shape; warm amber outgoing + cool violet gamma return; gold star circles at threshold crossings; double-ring for dedup events; convergence gradient bar; two-chain overlay comparison; repository heat-map variant
 
+## Visualizations committed
+
+`iris.v7.ax/vortex/` — Opus V0 vortex overhead (CCW fixed, title fixed)
+  iris.jsx + tweaks-panel.jsx + index.html + screenshots/
+  fix applied: canvas y-axis inversion → spin==='cw' → visual CCW
+
+`iris.v7.ax/prompts/standing-wave-prompt.txt` — Option B ready to dispatch
+
+Opus model session: dome (Option A) dispatched and processing.
+Next: standing-wave (Option B) if tokens remain after dome.
+
+Versioning pattern: V0.vortex.v7.ax, V1.vortex.v7.ax etc for iteration branches.
+
 ## The claude design testing pipeline
 
 ```
@@ -56,8 +69,8 @@ this vocabulary for consistency. Feed the HTML document to claude design as cont
 
 Related: [[reasoning-namespace]] [[harmonic-mathematics]] [[vortex-intake]]
 
-#,,,.,,,,,..,,,..,,.,,.,.,,.,,,,.,,.,,.,.,,..,..,,...,...,...,,..,,.,,.,,,...,
-#T2AWQ5YXDM7LFINOPBEEBCYKJMMX7DWJSMI2IDN7HVCUVE5227FH2RN5NTBZ5V5AJGMT72IQ77MPG
-#\\\|J5RZKNGZSNEMULWOHCHP6HNXLPKCHRWAY537LGKSO7SMSOGERKT \ / AMOS7 \ YOURUM ::
-#\[7]Z542GUWKX2PV4WI27C2BQWO72DBCWNQPS7J4XMXFUARBEAL7IEBY 7  DATA SIGNATURE ::
+#,,.,,,..,,.,,...,.,.,,.,,..,,,.,,.,,,.,,,,..,..,,...,..,,...,.,,,.,.,.,,,,..,
+#2CCBYLTEXXQMXEWQRHDTDNTFWOAGN2YH5ND4KILDLO3L56U2WHRZMMET73WO77T3GAGO6G2JDAFWW
+#\\\|YT5EFJS3DHATQHMVPEQSHYPNNVKY7I2NZFA3OOWQU5BR2P4HYRA \ / AMOS7 \ YOURUM ::
+#\[7]K5PNOXAB6GZTWKKP5TSCKATSJKHCNYYWYEFQIEK2ACE2NMIFIYAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
