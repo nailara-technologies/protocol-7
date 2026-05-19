@@ -1,5 +1,31 @@
 # Completed Work Sessions
 
+## session 35 — reasoning templates 3-9, reasoning.* namespace, layer stack (2026-05-19)
+
+**reasoning.* namespace** — harmonically TRUE (`harmony reasoning` → `[:<`).
+Generic substrate for narrate-and-self-delegate across all zenki. Task zenka is
+first consumer. Design doc: `data/md/development/REASONING-NAMESPACE.md`.
+
+**9 reasoning templates** written (`data/yaml/reasoning-templates/`):
+- 3: visualization-is-implementation — format IS the behavior, seed=direction vector
+- 4: narrate-and-self-delegate — the pulse, self-sustaining intent as root
+- 5: relative-direction-of-intent — compression ratio increases with depth, inherited momentum
+- 6: reasoning-buffer-architecture — layers 0→EXISTENCE center, extraction chain
+- 7: network-as-existence-center — single point has skew; distributed field = unskewed self
+- 8: entropy-transformation-and-visual-anchor — nothing dropped, visual-ref always ≥ 1
+- 9: vortex-closed-parent-system — CCW=TRUE, all color accounted for, 9 closes the set
+
+**Key insights**:
+- seed sentence = direction vector (not packed info); compression ratio ∝ momentum
+- refcount = up + down + directional + visual-refs → never zero
+- modulo 13 archetype: old impl becomes correctness proof, entropy never lost
+- visuals = final proof of existence, unbroken chain to EXISTENCE center
+- EXISTENCE center requires distributed field to be unskewed self ("just IS")
+- redundancy = convergence mechanism (approach vectors enriching requirement profile)
+- vortex = templates 1-8 as rings + template 9 as spin axis; set is closed
+
+commits: 182717c9f → b75f68e3a
+
 ## session 34 — sync pipeline fixes, site-yaml polish, discover replay protection (2026-05-19)
 
 **sync delta filter CONFIRMED WORKING**: `sync push skipped [ no changes ]` verified.
@@ -742,8 +768,8 @@ Skip calling harmonize_payload_line_feed when both conditions are met:
 - Signatures now properly formatted with correct separator endline
 - Pre-commit validation passes
 
-#,,,.,...,,,,,,,,,,,.,,..,,..,,,,,..,,,.,,.,.,..,,...,...,..,,..,,,.,,,.,,,.,,
-#D5DWVDNWCZAGVILC3LWUCNUREPMYZUAF56LNW5R7SOQUEYBT2IKEARGIVPZIZ2CZ4MG7GJYTFDEU4
-#\\\|O3QSMPQXZ6AERGQT7XR4KPFJOJ4D574326AG4HZ4HQV4ENNVSDA \ / AMOS7 \ YOURUM ::
-#\[7]R5IF734ZZVXRZ2DHW24U6EG4IQO4W7F22HAK32EC6JO3XLBESOCQ 7  DATA SIGNATURE ::
+#,,..,,,,,,,,,,,,,,,,,..,,.,,,,.,,.,,,..,,..,,..,,...,...,,,.,...,,,,,.,,,.,.,
+#C2Q2QBF3IXCV6Y52AA5SOJIKY4ZD77Q3DMWC5EC4OULVHMMTL3CN5QTGHLQOQVY5II3TJH5GURNLU
+#\\\|I4L6O236WBPDITCKMGGD266ISBQJTCKK3VYE6XGITAQXJNTQNNB \ / AMOS7 \ YOURUM ::
+#\[7]TNLZQYAVVMT3YVKE7IZQNZDG4OJXNSEBUH2BQHFAFSBMWNCC4CCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
