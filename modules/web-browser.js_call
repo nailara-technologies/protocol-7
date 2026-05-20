@@ -26,41 +26,40 @@ if ( $caller_sub_name eq 'web-browser.callback.scroll_start_js_exec' ) {
     <[base.log]>->( 2, "<js_call> [$view_uri] : '$js_string'" );
 }
 
-$js_string = "throw $js_string";  # <-prepares result access through exception
-
-$view->run_javascript(
+$view->evaluate_javascript(
     $js_string,
-    undef,
+    -1,       ## length: -1 = null-terminated string
+    undef,    ## world_name: default world
+    undef,    ## source_uri
+    undef,    ## cancellable
     sub {
-        my $self     = shift;    # <-- WebView
-        my $result   = shift;    # <-- WebKitJavascriptResult
-        my $usr_data = shift;    # {'re_cb' => .., 'cb_params' => .., }
-        my $s_res    = '';
+        my ( $view, $result ) = @_;
+        my $result_str = '';
+        my $jsc_value  = eval { $view->evaluate_javascript_finish($result) };
 
-        ## --------------------------- js exec \\ using throw to access // -----
+        if ($@) {
+            ( my $ex_str = $@ ) =~ s| at /usr/.+\n$||;
+            $ex_str =~ s|^[^ ]+ ||;
+            my $has_err = $ex_str =~ m|^[^:]*Error[^:]*:| ? 1 : 0;
+            <[base.log]>->(
+                0,              sprintf '<!JSerr!> [%s] %s',
+                $view->get_uri, $ex_str
+            ) if $has_err;
+            $result_str = $ex_str;
+        } elsif ( defined $jsc_value ) {
+            $result_str = $jsc_value->to_string;
+        }
 
-        eval { $s_res = $self->run_javascript_finish($result) };
-        ( my $ex_str = $EVAL_ERROR ) =~ s| at /usr/.+\n$||;
-        $ex_str =~ s|^[^ ]+ ||;
-
-        my $has_err = $ex_str =~ m|^[^:]*Error[^:]*:| ? 1 : 0;
-
-        <[base.log]>->(
-            0,              sprintf '<!JSerr!> [%s] %s',
-            $self->get_uri, $ex_str
-        ) if $has_err;
-
-        # --------------------------------------------------------------------
-
-        $usr_data->{'re_cb'}->( $ex_str, $usr_data->{'cb_params'} )
-            ;    # <-deliver
-
+        $result_callback->( $result_str, $re_cb_params )
+            if defined $result_callback;
     },
-    { 're_cb' => $result_callback, 'cb_params' => $re_cb_params }
+    undef    ## user_data
 );
 
 #,,,,,,,,,.,.,,..,,,.,,,.,.,.,..,,.,,,.,.,.,,,..,,...,...,...,..,,.,,,,,,,...,
-#2HEQLB44RVMROUKSZDCF4PGWFNBF2QCHYRZWBAI2QZXI6RQNSZBQU2Q53QNOMMHVQIEEAGDVJ6EYE
-#\\\|KRX2IBA4EXCBQK3T5YS5RKPBIAW33YIO2LKOWFXW2KCG7MPJ3BE \ / AMOS7 \ YOURUM ::
-#\[7]KQSCTOVN4OMIH7BQGO3A2WXOSMBAAXW7DPQGZ5N5E2RRSBIF2ODI 7  DATA SIGNATURE ::
+
+#,,,,,,,,,,,.,,.,,.,,,,..,..,,,.,,.,,,...,,..,..,,...,...,..,,.,.,,,.,,.,,.,.,
+#2YI6OHEKT2XQ4LKOVCVUMMUWCV5MLFPGKJKBTDLMLFQRUPCDHCWA3TYQEVU2IF6QPGK2P3ZEYF4OC
+#\\\|XQRKH5XKKNNRFSYPO2AXD35PZA7DOKI7RGXGDVDL3XU7CWEPZM7 \ / AMOS7 \ YOURUM ::
+#\[7]LPGUVX24SISK4YSYG5KRRDUQL5M2665LDFGXWWRAT3KAV2CH5SCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
