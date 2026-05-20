@@ -31,6 +31,7 @@ return [ qw[
         base.close
         v7.teardown
         v7.call_cmd
+        smtpd.route
         note.update
         note.search
         note.recent
@@ -87,6 +88,7 @@ return [ qw[
         task.cmd.next
         task.cmd.fail
         ssh.init_code
+        smtpd.archive
         radio.connect
         power.dev_obj
         power.cmd.off
@@ -96,6 +98,7 @@ return [ qw[
         pcycle.switch
         net.init_code
         net.calc_port
+        ncode.cmd.doc
         mpv.init_code
         mpv.cmd.pause
         httpd.version
@@ -139,6 +142,7 @@ return [ qw[
         task.cmd.reset
         task.cmd.queue
         task.cmd.claim
+        smtpd.classify
         radio.cmd.stop
         radio.cmd.skip
         radio.cmd.keep
@@ -215,6 +219,7 @@ return [ qw[
         ssl.cmd.del_tcp
         ssl.cmd.add_ssl
         ssh.load_config
+        smtpd.init_code
         radio.post_init
         radio.init_code
         radio.cmd.start
@@ -299,6 +304,8 @@ return [ qw[
         storage.9p.clunk
         source.sign_data
         source.init_code
+        smtpd.parse_mail
+        smtpd.cmd.inject
         set-up.init_code
         radio.cmd.status
         radio.cmd.listen
@@ -544,6 +551,7 @@ return [ qw[
         ssl.client_handler
         ssh.handler.ssh_io
         ssh.enable_profile
+        smtpd.cmd.get-mail
         site-yaml.http.get
         power.cmd.show_all
         plan-9.client.walk
@@ -689,6 +697,8 @@ return [ qw[
         ssh.connection.stop
         sourcecode.pre_init
         source.cmd.get-code
+        smtpd.cmd.set_route
+        smtpd.cmd.list-mail
         site-yaml.jobs.save
         site-yaml.init_code
         site-yaml.cmd.fetch
@@ -838,6 +848,7 @@ return [ qw[
         ssh.connection.start
         sourcecode.post_init
         sourcecode.init_code
+        smtpd.cmd.reclassify
         site-yaml.cmd.search
         site-yaml.cmd.import
         screenshot.init_code
@@ -1032,6 +1043,8 @@ return [ qw[
         storchencam.init_code
         storage.map-dirs.tree
         source.valid_src_name
+        smtpd.parse_mail.mime
+        smtpd.archive.encrypt
         site-yaml.jobs.upsert
         site-yaml.fetch.state
         set-up.json.init_code
@@ -1741,6 +1754,8 @@ return [ qw[
         channels.cmd.unsubscribe
         base.zenka.load_sub_list
         base.zenka.is_v7_started
+        window.profile.save
+        window.profile.load
         base.white-list.register
         base.time.year_utc_float
         base.templates.init_code
@@ -1822,6 +1837,7 @@ return [ qw[
         storage.map-dirs.tree.add
         ssh.parser.profile_status
         source.load_signature_key
+        smtpd.parse_mail.fallback
         set-up.cmd.create-profile
         rss.ticker.fetch.multiple
         route.bmw384.visual.wheel
@@ -1882,6 +1898,7 @@ return [ qw[
         jobsite.util.fix_encoding
         jobsite.util.build_prompt
         jobsite.cmd.set-threshold
+        jobsite.cmd.mail_received
         jobsite.cmd.blacklist-add
         jobqueue.priorities_table
         jobqueue.joblist_template
@@ -1935,6 +1952,7 @@ return [ qw[
         channels.util.yaml_decode
         channels.test-oscillation
         channels.memory-sync.init
+        window.profile.apply
         base.stream.advance_drain
         base.sourcecode.init_code
         base.session.cancel_route
@@ -2345,6 +2363,7 @@ return [ qw[
         channels.cmd.test-strm-size
         channels.cmd.channels-since
         base.zenki.report_child_pid
+        window.get_screen_size
         base.templates.register_add
         base.stream.record_emission
         base.session.calc_cmd_stats
@@ -2582,6 +2601,7 @@ return [ qw[
         tile-groups.cmd.get-underscan
         tile-groups.cmd.assign_window
         ticker.handler.gpu_load_reply
+        ticker.cmd.set-window-profile
         terminal.curses_ui.app.models
         system.handler.X-11_restarted
         system.handler.X-11_pid_reply
@@ -2708,6 +2728,7 @@ return [ qw[
         channels.subscription.manager
         channels.cmd.ai-review-submit
         channels.cmd.ai-review-status
+        window.profile.calculate
         base.validate.data_key_syntax
         base.source.collect_file_list
         base.parser.human.fsize_fixed
@@ -2779,6 +2800,7 @@ return [ qw[
         terminal.curses_ui.keybindings
         ssh.parser.profile_connections
         ssh.handler.heartbeat_response
+        smtpd.internal.message_id_hash
         rss.ticker.warn_urls_undefined
         rss-ticker.set-up.import_rules
         rss-ticker.set-up.export_rules
@@ -3948,8 +3970,8 @@ return [ qw[
     ]
 ];
 
-#,,,,,.,.,,,.,.,.,..,,,,.,,,.,...,,..,,,.,,..,.,.,...,...,,.,,..,,,,.,,..,,.,,
-#ZIWFTXQW7UCHDE5WUO2O2CV3CZXR2MS4TQ6DIYUTTOUB2DBTMF6FZ3PXC2AKAX5ZZR2YT47CVGZ7S
-#\\\|GRJV3DSZSY6EHT7ARYONNYFWRBJ2AF4CITNHWJDLA5HUDKTKUHW \ / AMOS7 \ YOURUM ::
-#\[7]EB5CN4BWPFLJ4BKXGH6XL6MVL6JTVIACIMNXEAWMZNGXZP4HZ4CA 7  DATA SIGNATURE ::
+#,,,,,.,,,,,.,..,,,..,,..,..,,,.,,,,,,,.,,,,.,.,.,...,...,...,.,.,.,,,,,,,,.,,
+#ERVQWL5H4ZYIK4Y7NGQOLJB2DR3XMXGJ44KZWUMXMGEMZ22MGP766NE3F4NKO7VGKWR6TKRU65HVC
+#\\\|LTWIRFJECS3L4KMOFZGAU5LG7SAPBXM5RHZZ66T55I6Z4WNBUGI \ / AMOS7 \ YOURUM ::
+#\[7]CQO2RQKBBMIH54BAEKMDKWGZCJQ4EKUN7Y6TLM4HUOPBWWWA7QBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
