@@ -80,6 +80,7 @@
 - [migration](topic-migration.md) — Windows 11 host instability, KVM/Debian migration priority, avoid /tmp/
 
 ## Feedback (behavior rules — always apply)
+- [ncode-tools](feedback-ncode-tools.md) — use ncode replace/parse-headers for namespace renames; not sed/perl -i loops
 - **httpd architecture**: httpd is a thin proxy — never load plugin.web.* in httpd. all cross-zenka data goes through web zenka via route-send SIZE. blocking reply-wait in httpd crashes sessions.
 - **P7 cross-zenka data**: use route-send + SIZE reply handler pattern (like radio relay). file system access between zenki is forbidden by design (different users). SHM or route-send for cross-zenka data.
 - **ntime comparison**: `encode_b32r` is reverse-byte-order — NOT lexicographically sortable. Never use `gt`/`lt` string comparison on ntime B32 values. Always use `<[base.ntime_BASE32_to_numerical]>` for numerical comparison. Diagnose with `p7c localtime <ntime_b32>`.
@@ -98,6 +99,16 @@
 - [list-return-format](feedback-list-return-format.md) — list backends: `{ mode => 'size', data => $formatted_string }`
 - [stop-and-revert](feedback-stop-and-revert.md) — don't chain speculative fixes; stop, revert, confirm root cause first
 - [utf8-module-literals](feedback-utf8-module-literals.md) — non-ASCII in module format strings corrupts output; keep format strings ASCII-only
+
+## Open Bugs (session 37)
+- **source.extract_sig_body**: YOURUM fake stubs (kimi-generated) are 1 char too long per line → size mismatch → error instead of strip. fix: enter strip path on size mismatch with valid YOURUM structure. affects strip-signature-footer, verify, and sign commands (dual-use code).
+- **v7 start-once + error status**: `v7.start_once X-11` reports "already running" when instance is in error state. fix: exclude error-status instances from start_count check.
+
+## New Tools / Zenki (session 37)
+- `bin/todo` — self-contained todo CLI, YAML backend at ~/.p7/todo.yaml, ASCII-framed output, priority markers, tag filter, TTY color
+- `ncode doc` — unified doc lookup in bin/ncode + ncode.cmd.doc; delegates GObject to dump-class subprocess
+- `smtpd` zenka — receive mail → YAML + LLM classify → route; xz+twofish archive; bin/p7-mail-inject bridge
+- `window.*` namespace — generic proportional window placement for GTK zenki; 8 profiles; ticker integrated
 
 ## Completed Sessions
 - [topic-completed](topic-completed.md) — all session summaries (Feb 2026 → present)
@@ -118,6 +129,21 @@
 - **iris negotiation-window**: data/tasks/iris-negotiation-window.md — floor budget urgency
 
 **iris oscilloscope**: route-send SIZE relay to index — verify working after httpd+index+zulum restart
+
+**session 37 task queue** (ready to dispatch via kimi-cli tabs):
+- `data/tasks/v7-teardown-whitelist.md` — restrict teardown to system zenka (tiny)
+- `data/tasks/source-code-header-check.md` — FALSE→TRUE one-liner (tiny)
+- `data/tasks/weather-forecast-humidity.md` — re-enable humidity API field (tiny)
+- `data/tasks/web-browser-evaluate-javascript.md` — replace throw hack with JSCValue
+- `data/tasks/mpv-xephyr-vo-override.md` — test gpu vs sdl under xephyr
+- `data/tasks/diff-modified-no-color-mode.md` — --no-color flag for LLM-readable diff
+- `data/tasks/x11-gpu-monitoring-vendor-detect.md` — nvidia-smi + intel_gpu_top auto-detect
+- `data/tasks/kimi-zenka-multiplexer.md` — STRM dispatch + queue + sudo auto-decline (kimi-cli only)
+- `data/tasks/credentials-zenka.md` — encrypted credential store, per-zenka authorization
+- `data/tasks/x11-wait-visible-host-mode-skip.md` — capability flag, skip on WSL
+- `data/tasks/zenka-window-placement-profiles.md` — window.* namespace (needs re-dispatch after rename)
+- `data/tasks/bin-todo.md` — DONE ✓
+- `data/tasks/smtp-zenka.md` — DONE ✓ (as smtpd)
 
 **infrastructure**:
 - **:::: litter row**: data/tasks/litter-row-encoding.md — 15-bit zenka bitmap in footer
@@ -200,8 +226,8 @@
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 - **Glitter 4B restart**: after a failed tool-using task, the Glitter backend needs restart before `:no_tools:` tasks work. The model gets stuck in tool-mode from the previous failed session. Restart coding zenka or wait for it to reset before dispatching `:no_tools:` priming tasks.
 
-#,,,,,.,,,,,.,.,.,...,,..,,.,,,,,,,.,,,..,,..,..,,...,...,...,..,,.,.,,..,,,,,
-#X55U2G2FO4BRV6ACLDUVQINZE5ZKKDYUR5DNRYOWAUAP3BO7KLIMUIFFR7FNZZFBLRISFWMU2M7JM
-#\\\|UWXJ5R2YOW3NNN42ZZG6IH6OYFZFFAKN7L2N4LYULCBHVXEJUKA \ / AMOS7 \ YOURUM ::
-#\[7]ZAA5XGP6EZPCPN3WFP2Q4Q7LR76OA7PNODMNYR2HXEILEW6M24BA 7  DATA SIGNATURE ::
+#,,,.,,,,,,,.,..,,.,.,.,.,,..,..,,..,,...,,,.,..,,...,...,..,,,..,,..,,,.,,,.,
+#KEZ6E2YCT4XNNYXRW4GH4HJLXGBY7V6TIBGU5AFXFDE74AHAUQVCHB2AV3L2VWJHLDTZFR76CMLJK
+#\\\|3IY7VSMQG545OFEBEQMBFRKNQ4J5YT3DZ5MAAUPJ6V2C5UCVMEH \ / AMOS7 \ YOURUM ::
+#\[7]YBLAA2JVWXNDCODMLM4B7QHXM3QEC6USR7C2NNM4WMNSWNPQTCBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

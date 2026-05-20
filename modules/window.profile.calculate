@@ -1,0 +1,129 @@
+## [:< ##
+
+# name  = window.profile.calculate
+# descr = calculate window geometry from named proportional profile
+
+my $args = shift // {};
+
+my $profile  = $args->{'profile'}  // 'bottom-strip';
+my $screen_w = $args->{'screen_w'} // 1920;
+my $screen_h = $args->{'screen_h'} // 1080;
+
+my $zenka_name = <system.zenka.name> // '';
+
+## built-in profile definitions [ screen percentages from top-left ] ##
+my %profiles = (
+    'fullscreen'   => { x => 0,  y => 0,  w => 100, h => 100 },
+    'bottom-strip' => { x => 0,  y => 95, w => 100, h => 5 },
+    'top-strip'    => { x => 0,  y => 0,  w => 100, h => 5 },
+    'bottom-right' => { x => 75, y => 90, w => 25,  h => 8 },
+    'top-right'    => { x => 75, y => 0,  w => 25,  h => 8 },
+    'center'       => { x => 25, y => 25, w => 50,  h => 50 },
+);
+
+my ( $x, $y, $width, $height, $anchor );
+
+## saved profile: load user-dragged position ##
+if ( $profile eq 'saved' ) {
+    my $saved = <[window.profile.load]>->();
+    if ( defined $saved ) {
+        return {
+            'x'       => $saved->{'x'}      // 0,
+            'y'       => $saved->{'y'}      // 0,
+            'width'   => $saved->{'width'}  // $screen_w,
+            'height'  => $saved->{'height'} // $screen_h,
+            'profile' => 'saved'
+        };
+    }
+    ## no saved position, fall back to bottom-strip ##
+    <[base.log]>->( 1, ': no saved position, falling back to bottom-strip' );
+    $profile = 'bottom-strip';
+}
+
+## config profile: read from zenka config values ##
+if ( $profile eq 'config' ) {
+    my $cfg = length $zenka_name ? $data{$zenka_name}{'window'} // {} : {};
+    $x      = $cfg->{'x_pct'}  // 0;
+    $y      = $cfg->{'y_pct'}  // 0;
+    $width  = $cfg->{'w_pct'}  // 100;
+    $height = $cfg->{'h_pct'}  // 100;
+    $anchor = $cfg->{'anchor'} // 'top-left';
+
+} elsif ( exists $profiles{$profile} ) {
+    my $p = $profiles{$profile};
+    $x      = $p->{'x'};
+    $y      = $p->{'y'};
+    $width  = $p->{'w'};
+    $height = $p->{'h'};
+    $anchor = 'top-left';    ## built-ins use absolute screen percentages ##
+
+} else {
+    ## unknown profile, fall back to bottom-strip ##
+    <[base.logs]>->(
+        1, "unknown window profile '%s', falling back to bottom-strip",
+        $profile
+    );
+    my $p = $profiles{'bottom-strip'};
+    $x       = $p->{'x'};
+    $y       = $p->{'y'};
+    $width   = $p->{'w'};
+    $height  = $p->{'h'};
+    $anchor  = 'top-left';
+    $profile = 'bottom-strip';
+}
+
+## calculate pixel dimensions from percentages ##
+$width  = sprintf( '%.0f', ( $screen_w / 100 ) * $width );
+$height = sprintf( '%.0f', ( $screen_h / 100 ) * $height );
+
+## calculate position based on anchor ##
+if ( $anchor eq 'top-left' ) {
+    $x = sprintf( '%.0f', ( $screen_w / 100 ) * $x );
+    $y = sprintf( '%.0f', ( $screen_h / 100 ) * $y );
+
+} elsif ( $anchor eq 'bottom-left' ) {
+    $x = sprintf( '%.0f', ( $screen_w / 100 ) * $x );
+    $y = sprintf( '%.0f',
+        $screen_h - ( ( $screen_h / 100 ) * $y ) - $height );
+
+} elsif ( $anchor eq 'top-right' ) {
+    $x = sprintf( '%.0f', $screen_w - ( ( $screen_w / 100 ) * $x ) - $width );
+    $y = sprintf( '%.0f', ( $screen_h / 100 ) * $y );
+
+} elsif ( $anchor eq 'bottom-right' ) {
+    $x = sprintf( '%.0f', $screen_w - ( ( $screen_w / 100 ) * $x ) - $width );
+    $y = sprintf( '%.0f',
+        $screen_h - ( ( $screen_h / 100 ) * $y ) - $height );
+
+} elsif ( $anchor eq 'center' ) {
+    my $center_x = $screen_w / 2;
+    my $center_y = $screen_h / 2;
+    $x = sprintf( '%.0f',
+        $center_x
+            - ( $width / 2 )
+            + ( ( $screen_w / 100 ) * $x )
+            - ( $screen_w / 100 * 25 ) );
+    $y = sprintf( '%.0f',
+        $center_y
+            - ( $height / 2 )
+            + ( ( $screen_h / 100 ) * $y )
+            - ( $screen_h / 100 * 25 ) );
+
+} else {
+    $x = sprintf( '%.0f', ( $screen_w / 100 ) * $x );
+    $y = sprintf( '%.0f', ( $screen_h / 100 ) * $y );
+}
+
+return {
+    'x'       => $x,
+    'y'       => $y,
+    'width'   => $width,
+    'height'  => $height,
+    'profile' => $profile
+};
+
+#,,,,,...,.,.,.,,,.,.,...,..,,...,...,...,.,,,..,,...,...,,,,,,,.,..,,...,,.,,
+#Q2UROS5RPB2OYAP253WR2XFD6U2GQPWYCVVEEL6OVWFAPP4ETBOHU7RWMKPC2YKCU2HW2VJQLYJEC
+#\\\|U6IG6T2IUOP6ITPCLDY55K4MXO6JZT7IZ72FJUZT2LWCRI5X4GK \ / AMOS7 \ YOURUM ::
+#\[7]MFYIJK2BLTJPT7LHII2EAAN6KYOZ33HT2O7HVIGIBTJAMNT2AUBI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

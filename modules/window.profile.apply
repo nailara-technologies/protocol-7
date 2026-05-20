@@ -1,0 +1,30 @@
+## [:< ##
+
+# name  = window.profile.apply
+# descr = apply calculated geometry to a GTK window object
+
+my ( $window, $geometry ) = @ARG;
+
+return undef if not defined $window;
+return undef if not defined $geometry;
+
+$window->move( $geometry->{'x'}, $geometry->{'y'} );
+$window->resize( $geometry->{'width'}, $geometry->{'height'} );
+
+<[base.logs]>->(
+    1,
+    'applied window geometry: x=%d y=%d w=%d h=%d [profile=%s]',
+    $geometry->{'x'},
+    $geometry->{'y'},
+    $geometry->{'width'},
+    $geometry->{'height'},
+    $geometry->{'profile'} // 'unknown'
+);
+
+return 1;
+
+#,,..,,,,,,..,,..,...,,.,,.,.,,.,,.,.,.,.,,.,,..,,...,...,.,.,.,.,,,,,,,,,.,,,
+#S4VJHDUH5NXDJDOL2AWKFGOFZQKMJVO4GJIZULQIGXD3EMQOBSBWWVRLFKHIQBXNZXYIRBF7XFB4U
+#\\\|KFWOUKVHP3CFZVLOJR3PEFWERWOG7PXOG6MC5DIVUUCLKASTHJY \ / AMOS7 \ YOURUM ::
+#\[7]5VWIXHR4W2QFV5CPKVR62CVA3XAEEQVSR4Q6OXP26YOQYF34XKAI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
