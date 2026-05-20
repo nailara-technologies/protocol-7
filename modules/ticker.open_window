@@ -26,14 +26,14 @@ if ( $window->is_composited ) {
 }
 
 ## apply window placement profile ##
-my $screen_geom = <[window.get_screen_size]>;
+my $screen_geom = <[window.gtk.get_screen_size]>;
 my $geo         = <[window.profile.calculate]>->(
     {   profile  => <ticker.window.profile>,
         screen_w => $screen_geom->{'width'},
         screen_h => $screen_geom->{'height'}
     }
 );
-<[window.profile.apply]>->( $window, $geo );
+<[window.gtk.profile.apply]>->( $window, $geo );
 
 <x11.window.width>       = $geo->{'width'};
 <x11.window.height>      = $geo->{'height'};
@@ -90,8 +90,8 @@ my $ft_face   = $freetype->face($font_path);
 
 <ticker.obj.window>->queue_draw;
 
-#,,.,,.,.,..,,..,,,,,,.,,,...,,,.,,..,...,,,,,..,,...,...,.,,,,.,,...,...,.,.,
-#3YFUVAHTSNNI3ZXJP3D6B2SWLUA3S2FYVVUYBMG5EPBDBY7YTJ7IFEYVR6GBUAO4CJG6FKUT2ANGM
-#\\\|HOX33NK6WUOI3IJ2HXLHAL4CADIGOAVI34N7SP5SAIBUKSYS2HQ \ / AMOS7 \ YOURUM ::
-#\[7]AMR2OWO3ZNFQIAXOSWRY5VNKYWZVXAO4IRG5CHHXLP3WOB2YQEDI 7  DATA SIGNATURE ::
+#,,,.,..,,,.,,,..,..,,,..,.,,,...,.,,,,..,,.,,..,,...,..,,.,.,...,..,,,,,,,.,,
+#B63PB7NCBG3NZEWZCBXPSF4D6HE6VTJVXPK2VHKNCHIRHTCLAJDBOO5IQSJ66BE4JBKFFQDJCIH5Q
+#\\\|KB5JRUZREVEQF54S7QHAYMBFDTO44OCRSQNNDSRJ3CCZ6UFYSCV \ / AMOS7 \ YOURUM ::
+#\[7]HUM5HI3BZTTQLMODJABEBVY53FYZCL2S434LNXTDUEOUM7PHNODY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
