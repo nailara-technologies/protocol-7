@@ -1,0 +1,70 @@
+## [:< ##
+
+# name  = window.profile.load
+# descr = load saved window position from zenka-local yaml
+
+<[base.perlmod.load]>->( 'YAML::XS', qw| Load | );
+
+<[base.log]>->( 1, "[profile.load] attempting to load window/position.yaml" );
+
+my $yaml_content_ref = <[file.zenka_dir.load]>->('window/position.yaml');
+
+unless ( defined $yaml_content_ref ) {
+    <[base.log]>->( 1, "[profile.load] file not found or unreadable" );
+    return undef;
+}
+
+my $yaml_content
+    = ref($yaml_content_ref) eq qw| SCALAR |
+    ? $$yaml_content_ref
+    : $yaml_content_ref;
+
+my $position = undef;
+if ( defined $yaml_content and length $yaml_content ) {
+    eval {
+        my $parsed = Load($yaml_content);
+        if ( ref($parsed) eq qw| HASH | ) {
+            $position = $parsed;
+        }
+    };
+    if ($EVAL_ERROR) {
+        <[base.logs]>->(
+            0, '[profile.load] YAML parse error: %s',
+            <[base.str.eval_error]>
+        );
+        return undef;
+    }
+}
+
+if ( defined $position and ref($position) eq qw| HASH | ) {
+    if (    defined $position->{'x'}
+        and defined $position->{'y'}
+        and defined $position->{'width'}
+        and defined $position->{'height'} ) {
+        <[base.logs]>->(
+            1,
+            '[profile.load] loaded position: x=%d y=%d w=%d h=%d',
+            $position->{'x'},
+            $position->{'y'},
+            $position->{'width'},
+            $position->{'height'}
+        );
+        return $position;
+    } else {
+        <[base.log]>->(
+            1, "[profile.load] position hash missing required coordinates"
+        );
+        return undef;
+    }
+}
+
+<[base.log]>->(
+    1, "[profile.load] position data is not a hash or is undefined"
+);
+return undef;
+
+#,,.,,...,..,,.,,,,.,,,..,..,,,.,,..,,,..,...,..,,...,...,..,,.,.,,.,,,.,,..,,
+#34T23CTM5KTYWNXWR36YIHHZS7F2M25YRED6VE2U4GEJEWEWAPWMFN37243TMSNDY6EAQDN3PA5O2
+#\\\|F7MKNCQYN2KNMDGMBIWCZVBKHBQMDGUPS4II5OENFCYFJUZDWER \ / AMOS7 \ YOURUM ::
+#\[7]52E36YHGV2IXZQY55OQZK6XH5DC5SY7DP7BRMYZMGJBHUP6G5KBA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

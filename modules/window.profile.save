@@ -1,0 +1,74 @@
+## [:< ##
+
+# name  = window.profile.save
+# descr = save current window position to zenka-local yaml
+
+<[base.perlmod.load]>->( 'YAML::XS', qw| Dump | );
+
+my ( $zenka_name, $x, $y, $width, $height ) = @ARG;
+
+unless ( defined $x and defined $y and defined $width and defined $height ) {
+    <[base.s_warn]>->('x, y, width and height required for save');
+    return undef;
+}
+
+## clamp to non-negative ##
+$x      = 0 if $x < 0;
+$y      = 0 if $y < 0;
+$width  = 1 if $width < 1;
+$height = 1 if $height < 1;
+
+<[base.logs]>->(
+    1,  "[profile.save] saving position: x=%d y=%d w=%d h=%d",
+    $x, $y, $width, $height
+);
+
+my $yaml_data = {
+    'x'        => $x,
+    'y'        => $y,
+    'width'    => $width,
+    'height'   => $height,
+    'profile'  => 'saved',
+    'metadata' => { 'saved_at' => <[base.time]>->(3) }
+};
+
+my $yaml_content;
+eval { $yaml_content = Dump($yaml_data); };
+if ($EVAL_ERROR) {
+    <[base.s_warn]>->(
+        'YAML serialization failed: %s',
+        <[base.str.eval_error]>
+    );
+    return undef;
+}
+
+unless ( defined $yaml_content and length $yaml_content ) {
+    <[base.s_warn]>->('YAML serialization produced empty content');
+    return undef;
+}
+
+my $bytes_written = <[file.zenka_dir.write]>->(
+    'window/position.yaml',
+    \$yaml_content,
+    '>',       # overwrite mode
+    0600,      # permissions
+    ':utf8'    # encoding
+);
+
+unless ( defined $bytes_written ) {
+    <[base.s_warn]>->('failed to write position YAML file');
+    return undef;
+}
+
+<[base.logs]>->(
+    1, '[profile.save] saved window position [bytes:%d]',
+    $bytes_written
+);
+
+return $bytes_written;
+
+#,,,,,,.,,..,,,..,.,.,,,.,,,.,..,,...,,,,,,..,..,,...,...,.,.,,,.,...,,,.,,..,
+#G2I3SSMW27GUCVVLSF5QHUXIHGTHPT7JTJXNXQEGKQMZ6DUFWJ3FF26WHGTK4YO4NVLBAHXQFD7Z2
+#\\\|XCBRAOGRJ3JUUWOPW7PM4EWLRYZ5PGBA5BNYVNWUUPSFT3A7NWE \ / AMOS7 \ YOURUM ::
+#\[7]DHI5PTYAUG6ZMTUFFNQYTQO6TVMB4GMRSWB4PR33DOV5CYPDUODA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

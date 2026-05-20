@@ -25,13 +25,24 @@ if ( $window->is_composited ) {
     <[base.log]>->( 1, ': : no compositor running :|' );
 }
 
-<x11.window.width>  = <x11.coordinates.right> - <x11.coordinates.left>;
-<x11.window.height> = <x11.coordinates.bottom> - <x11.coordinates.top>;
+## apply window placement profile ##
+my $screen_geom = <[window.get_screen_size]>;
+my $geo         = <[window.profile.calculate]>->(
+    {   profile  => <ticker.window.profile>,
+        screen_w => $screen_geom->{'width'},
+        screen_h => $screen_geom->{'height'}
+    }
+);
+<[window.profile.apply]>->( $window, $geo );
+
+<x11.window.width>       = $geo->{'width'};
+<x11.window.height>      = $geo->{'height'};
+<x11.coordinates.left>   = $geo->{'x'};
+<x11.coordinates.top>    = $geo->{'y'};
+<x11.coordinates.right>  = $geo->{'x'} + $geo->{'width'};
+<x11.coordinates.bottom> = $geo->{'y'} + $geo->{'height'};
 
 <[ticker.load_font_offsets_table]>;    ## <--  uses window-height ##
-
-$window->move( <x11.coordinates.left>, <x11.coordinates.top> );
-$window->set_default_size( <x11.window.width>, <x11.window.height> );
 
 $window->set_title(<x11.title_str>);
 $window->set_border_width(0);
@@ -79,8 +90,8 @@ my $ft_face   = $freetype->face($font_path);
 
 <ticker.obj.window>->queue_draw;
 
-#,,.,,,..,,,.,,,,,.,,,,.,,..,,,..,,,.,.,.,,.,,..,,...,..,,..,,,,,,,,.,...,,,,,
-#24CVFST2IZ6ZMU6I3HB46ONCEMAB44EG3OOKW76LMAFVLHV7CSGEKRJDYNDQSHMWLU75TSHUP5GKA
-#\\\|CWHJG2G5TY2BRRFOQWGPND3KJVZXQQVUFNOFJ33HS3QWVZIZ2JE \ / AMOS7 \ YOURUM ::
-#\[7]QICUSACNTIG6L4VDEZPMVMSUMOZ7H2CXMKPVYLPOP7LMLISXVOBA 7  DATA SIGNATURE ::
+#,,.,,.,.,..,,..,,,,,,.,,,...,,,.,,..,...,,,,,..,,...,...,.,,,,.,,...,...,.,.,
+#3YFUVAHTSNNI3ZXJP3D6B2SWLUA3S2FYVVUYBMG5EPBDBY7YTJ7IFEYVR6GBUAO4CJG6FKUT2ANGM
+#\\\|HOX33NK6WUOI3IJ2HXLHAL4CADIGOAVI34N7SP5SAIBUKSYS2HQ \ / AMOS7 \ YOURUM ::
+#\[7]AMR2OWO3ZNFQIAXOSWRY5VNKYWZVXAO4IRG5CHHXLP3WOB2YQEDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

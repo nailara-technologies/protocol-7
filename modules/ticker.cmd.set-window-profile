@@ -1,0 +1,57 @@
+## [:< ##
+
+# name  = ticker.cmd.set-window-profile
+# descr = switch window placement profile at runtime
+
+my $profile = $call->{'args'} // 'bottom-strip';
+
+my $valid_profiles = qr{^(fullscreen|bottom-strip|top-strip
+          |bottom-right|top-right|center|saved|config)$}x;
+
+if ( $profile !~ $valid_profiles ) {
+    return {
+        'mode' => qw| false |,
+        'data' => "invalid profile '$profile'"
+    };
+}
+
+<ticker.window.profile> = $profile;
+
+## recalculate and apply ##
+my $window = <ticker.obj.window>;
+
+if ( not defined $window ) {
+    return {
+        'mode' => qw| false |,
+        'data' => 'ticker window not initialized'
+    };
+}
+
+my $screen = <[window.get_screen_size]>;
+my $geo    = <[window.profile.calculate]>->(
+    {   profile  => $profile,
+        screen_w => $screen->{'width'},
+        screen_h => $screen->{'height'}
+    }
+);
+
+<[window.profile.apply]>->( $window, $geo );
+
+## update legacy coordinate vars ##
+<x11.window.width>       = $geo->{'width'};
+<x11.window.height>      = $geo->{'height'};
+<x11.coordinates.left>   = $geo->{'x'};
+<x11.coordinates.top>    = $geo->{'y'};
+<x11.coordinates.right>  = $geo->{'x'} + $geo->{'width'};
+<x11.coordinates.bottom> = $geo->{'y'} + $geo->{'height'};
+
+return {
+    'mode' => qw| true |,
+    'data' => "window profile: $profile"
+};
+
+#,,..,,,.,.,,,...,,,.,,.,,,.,,...,...,..,,.,,,..,,...,...,..,,,.,,,,.,..,,,,.,
+#6KEC4E2FUFHU4HAJEW64NPHZLXFZCOXBPF5JJSVRWRNBS6ZMJMNGIHXTH2Q7TR73QDJ4WS3QCWPMQ
+#\\\|XJACG4L2E6JL4BFWLIFMO3LK2XL6SJ3XMRPMAM5URTSZDUYZYA7 \ / AMOS7 \ YOURUM ::
+#\[7]JJXDAZNACCOUBAQTVUP73TFQBKPV7YROAB6EE5FDICAUPIOM6IDI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
