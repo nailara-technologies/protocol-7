@@ -1,0 +1,55 @@
+## [:< ##
+
+# name  = smtpd.parse_mail.mime
+# descr = parse mail using Email::MIME
+# param = $raw_mail_bytes
+# return = $parsed_hash or undef on error
+
+my $raw = shift // '';
+return undef if not length $raw;
+
+my $email = eval { Email::MIME->new($raw) };
+return undef if not defined $email;
+
+my $parsed = {
+    'message_id'  => $email->header('Message-ID')  // '',
+    'from'        => $email->header('From')        // '',
+    'to'          => $email->header('To')          // '',
+    'subject'     => $email->header('Subject')     // '',
+    'date'        => $email->header('Date')        // '',
+    'in_reply_to' => $email->header('In-Reply-To') // '',
+    'references'  => $email->header('References')  // '',
+    'body_text'   => '',
+    'body_html'   => '',
+    'attachments' => [],
+    'raw_path'    => '',
+};
+
+## extract body parts ##
+$email->walk_parts(
+    sub {
+        my $part = shift;
+        my $ct   = $part->content_type // '';
+
+        if ( $ct =~ m|text/plain|i ) {
+            $parsed->{'body_text'} = $part->body_str // '';
+        } elsif ( $ct =~ m|text/html|i ) {
+            $parsed->{'body_html'} = $part->body_str // '';
+        } elsif ( $part->filename ) {
+            push $parsed->{'attachments'}->@*,
+                {
+                'filename'     => $part->filename,
+                'content_type' => $ct,
+                'size'         => length( $part->body // '' ),
+                };
+        }
+    }
+);
+
+return $parsed;
+
+#,,.,,.,,,,.,,.,,,.,,,.,.,..,,.,.,...,,,.,.,.,.,.,...,...,...,,.,,,.,,.,.,,,,,
+#JZJBFNIT2ZMB5FD5TJQSSIZLBA27RRJ62PCPAIA2AUOTAWWVBBSLIAV2FDINBEJVAVVQGIEMT4V24
+#\\\|FOYYV6OMKAG2XFXHK2T2F5IMY7D5VBLC4555R4HPGOS3E6YWH4J \ / AMOS7 \ YOURUM ::
+#\[7]5Y3YOQZZEAWIIQICXG3CLF4LGWCLZPSADFMJKL6MIRI53TLYLUAY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

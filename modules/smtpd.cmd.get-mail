@@ -1,0 +1,62 @@
+## [:< ##
+
+# name  = smtpd.cmd.get-mail
+# descr = retrieve full parsed mail by message-id or archive path
+# param = <message_id_or_path>
+
+my $query = $call->{'args'} // '';
+$query =~ s|^\s+|\s+$| | g;
+
+return { 'mode' => qw| false |, 'data' => 'message-id or path required' }
+    if not length $query;
+
+## search in-memory index first ##
+my $index = <smtpd.mail_index> // [];
+for my $e ( @{$index} ) {
+    if (   ( $e->{'message_id'} // '' ) eq $query
+        or ( $e->{'yaml_path'} // '' ) eq $query ) {
+        my $yaml_path = $e->{'yaml_path'} // '';
+        if ( -f $yaml_path ) {
+            my $content = eval { YAML::XS::LoadFile($yaml_path) };
+            if ( defined $content and ref $content eq qw| HASH | ) {
+                my $yaml_str = eval { YAML::XS::Dump($content) } // '';
+                return { 'mode' => qw| size |, 'data' => $yaml_str };
+            }
+        }
+        ## fall back to in-memory data ##
+        my $yaml_str = eval { YAML::XS::Dump($e) } // '';
+        return { 'mode' => qw| size |, 'data' => $yaml_str };
+    }
+}
+
+## try direct file path ##
+if ( -f $query ) {
+    my $content = eval { YAML::XS::LoadFile($query) };
+    if ( defined $content and ref $content eq qw| HASH | ) {
+        my $yaml_str = eval { YAML::XS::Dump($content) } // '';
+        return { 'mode' => qw| size |, 'data' => $yaml_str };
+    }
+}
+
+## try constructing path from message-id hash ##
+my $hash      = <[smtpd.internal.message_id_hash]>->($query);
+my $store_dir = <smtpd.cfg.store_dir> // '/var/protocol-7/mail/';
+my ( $sec, $min, $hour, $mday, $mon, $year ) = gmtime(time);
+my $ymd        = sprintf '%04d/%02d/%02d', $year + 1900, $mon + 1, $mday;
+my $guess_path = join qw| / |, $store_dir, $ymd, "$hash.yaml";
+
+if ( -f $guess_path ) {
+    my $content = eval { YAML::XS::LoadFile($guess_path) };
+    if ( defined $content and ref $content eq qw| HASH | ) {
+        my $yaml_str = eval { YAML::XS::Dump($content) } // '';
+        return { 'mode' => qw| size |, 'data' => $yaml_str };
+    }
+}
+
+return { 'mode' => qw| false |, 'data' => 'message not found' };
+
+#,,..,,,.,,,,,...,,.,,,,,,...,...,.,.,,.,,,.,,.,.,...,...,,,.,.,.,,,,,,.,,,.,,
+#H5WSOO3LYE4NPXUDEYGGSHCQKY2GUNT6UCGYWP3QUGOUTEL6HOWGX3PIASCZSWBQWALKW5NEAHVJG
+#\\\|Z3B6LK5EBV3L3UEHL6YUX2EC4YJKTGS3KCQVVAP3J67YHC5SNQA \ / AMOS7 \ YOURUM ::
+#\[7]UV2MLIO37K4SMBP4SE3SCMHUOOXFLRWB2544RYMKYFYAJZDC4GCY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,0 +1,61 @@
+## [:< ##
+
+# name  = smtpd.route
+# descr = match To: address against routing table, dispatch to target zenka
+# param = $parsed_hash
+# return = $target_zenka_name
+
+my $parsed = shift // {};
+return qw| mail.store | if ref $parsed ne qw| HASH |;
+
+my $to_addr = $parsed->{'to'} // '';
+
+## extract local part of address ##
+( my $local = lc $to_addr ) =~ s|<([^>]+)>|$1|;
+$local                      =~ s|@.*$||;
+$local                      =~ s|^\s+|\s+$| | g;
+
+## match routing table ##
+my $routes = <smtpd.cfg.route> // {};
+my $target = $routes->{$local} // $routes->{'*'} // qw| mail.store |;
+
+## always archive first ##
+<[smtpd.archive]>->($parsed);
+
+## route to target zenka ##
+my $json = eval { encode_json($parsed) } // '';
+return $target if not length $json;
+
+my $encoded = encode_b32r($json);
+
+## send to target if it exists and is not the default sink ##
+if ( $target ne qw| mail.store | ) {
+    my $sent = <[base.protocol-7.command.send.local]>->(
+        {   'command'   => "$target.mail_received",
+            'call_args' => { 'args' => $encoded },
+        }
+    );
+    <[base.logs]>
+        ->( 2, 'smtpd: routed to %s (sent=%d)', $target, $sent // 0 );
+}
+
+## notify on actionable mail ##
+if ( ( $parsed->{'action_required'} // 0 )
+    and length( $parsed->{'subject'} // '' ) ) {
+    <[base.protocol-7.command.send.local]>->(
+        {   'command'   => qw| cube.notify.message |,
+            'call_args' => {
+                'args' => 'mail: '
+                    . substr( $parsed->{'subject'} // '', 0, 120 )
+            },
+        }
+    );
+}
+
+return $target;
+
+#,,,.,,.,,,,,,.,,,,..,,..,..,,..,,,.,,,,,,...,.,.,...,...,.,.,,,.,,,,,..,,...,
+#LC2CCFZYFJCDAGLA65T2IGFE3SFEBA57ZRNUZUPWVXM6CBNEWERJMZ3CZ5U2NCSLP6GP44KZ3S6JQ
+#\\\|YLALWS6YUNLZ7JGQM77JN4Y3MLUY5T2KVUSTKVZACRXERXFZEJY \ / AMOS7 \ YOURUM ::
+#\[7]WHQXMGLRSNMC2JZM5PQSWCX3Z7R7ZXF6BYEEE35Y4CFOYCAACODY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

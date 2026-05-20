@@ -1,0 +1,78 @@
+## [:< ##
+
+# name  = smtpd.parse_mail.fallback
+# descr = simple regex-based RFC 2822 parser when Email::MIME unavailable
+# param = $raw_mail_bytes
+# return = $parsed_hash
+
+my $raw = shift // '';
+
+my $parsed = {
+    'message_id'  => '',
+    'from'        => '',
+    'to'          => '',
+    'subject'     => '',
+    'date'        => '',
+    'in_reply_to' => '',
+    'references'  => '',
+    'body_text'   => '',
+    'body_html'   => '',
+    'attachments' => [],
+    'raw_path'    => '',
+};
+
+## split headers and body ##
+my ( $headers, $body ) = split( m|\n\r?\n|, $raw, 2 );
+$headers //= '';
+$body    //= '';
+
+## unfold continuations ##
+$headers =~ s|\r?\n[ \t]+| |g;
+
+## parse headers ##
+for my $line ( split( m|\r?\n|, $headers ) ) {
+    if ( $line =~ m|^Message-Id:\s*(.+)|i ) {
+        $parsed->{'message_id'} = $1;
+    } elsif ( $line =~ m|^From:\s*(.+)|i ) {
+        $parsed->{'from'} = $1;
+    } elsif ( $line =~ m|^To:\s*(.+)|i ) {
+        $parsed->{'to'} = $1;
+    } elsif ( $line =~ m|^Subject:\s*(.*)|i ) {
+        $parsed->{'subject'} = $1;
+    } elsif ( $line =~ m|^Date:\s*(.+)|i ) {
+        $parsed->{'date'} = $1;
+    } elsif ( $line =~ m|^In-Reply-To:\s*(.+)|i ) {
+        $parsed->{'in_reply_to'} = $1;
+    } elsif ( $line =~ m|^References:\s*(.+)|i ) {
+        $parsed->{'references'} = $1;
+    }
+}
+
+## simple content-type detection ##
+if ( $raw =~ m|Content-Type:\s*multipart|i ) {
+    ## crude multipart extraction — look for text/plain boundary ##
+    my ($boundary) = $raw =~ m|boundary=["']?([^"';\s]+)["']?|i;
+    if ( defined $boundary ) {
+        my @parts = split( m|--\Q$boundary\E|, $raw );
+        for my $part (@parts) {
+            next if $part =~ m|^--|;
+            my ( $ph, $pb ) = split( m|\n\r?\n|, $part, 2 );
+            $pb //= '';
+            if ( $ph =~ m|text/plain|i ) {
+                $parsed->{'body_text'} = $pb;
+            } elsif ( $ph =~ m|text/html|i ) {
+                $parsed->{'body_html'} = $pb;
+            }
+        }
+    }
+} else {
+    $parsed->{'body_text'} = $body;
+}
+
+return $parsed;
+
+#,,,.,,..,.,.,,.,,,..,,..,,.,,..,,,..,.,.,.,,,.,.,...,..,,,,.,..,,,,.,...,.,.,
+#LQLGMFGSOYTW2DCSVVO4MLFUHP7KNJXW5BBXXSNJRB63ACMRGGXG37XARWCWL3H37WRG7VTBMYAES
+#\\\|54CTRJXN6THJS3RI6OKXJJIPLRVXQXGG5RW2QTMHZ4WOHWREDV6 \ / AMOS7 \ YOURUM ::
+#\[7]SBN74XTZ55UCITGNOXZXPTRUJFZGY3CHUIGHNB6YEUWXMDOR2KCI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,0 +1,26 @@
+#!/usr/bin/perl
+use strict;
+use warnings;
+use Crypt::Misc qw| encode_b32r |;
+use Encode qw| encode_utf8 |;
+
+local $/;
+my $raw = <STDIN>;
+
+if ( not defined $raw or not length $raw ) {
+    warn "p7-mail-inject: no data on stdin\n";
+    exit 1;
+}
+
+my $encoded = encode_b32r( encode_utf8($raw) );
+
+exec "p7c", "smtpd.cmd.inject", $encoded;
+
+warn "p7-mail-inject: exec failed: $!\n";
+exit 1;
+
+#,,,.,,,.,,.,,.,,,...,.,.,,,,,,.,,..,,,,.,.,,,.,.,...,...,,.,,.,.,.,.,,.,,,,.,
+#YS626F5CLAHURGBJWEJCNIQMCSBOTL47RJKFSF4NYXEHHZIWZKZ5YZAVTPQLRRGS63CNZDLK7FD2G
+#\\\|3XGGWRQYAYOUVEGHJ6DICQLQ2C63QBU7DJYMOUWZNHLKO73C5O5 \ / AMOS7 \ YOURUM ::
+#\[7]65ZHZZE7FWUZ2OC3SALHN3WCSCOJEEXW6Q3DUVU2S3KHCPNGGKCY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
