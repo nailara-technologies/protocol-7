@@ -6,7 +6,26 @@
     =~ s|([\[\]\.])|\\$1|g;
 
 if ( <[window.gtk.is_mapped]>->(<web-browser.gtk_obj.window>) ) {
-    <[base.log]>->( 2, ': window mapped (gtk confirmed)' );
+    ## get X11 window ID directly from GTK — requires GdkX11 introspection ##
+    eval {
+        Glib::Object::Introspection->setup(
+            basename => 'GdkX11',
+            version  => '3.0',
+            package  => 'Gdk::X11'
+        );
+    };
+    my $gdk_win = <web-browser.gtk_obj.window>->get_window;
+    if ( defined $gdk_win ) {
+        my $xid = eval { $gdk_win->get_xid };
+        if ( defined $xid ) {
+            <x11.id> = $xid;
+            <[base.logs]>->(
+                2, ': window mapped, X11 id: %d (gtk)', <x11.id>
+            );
+        } else {
+            <[base.log]>->( 2, ': window mapped (gtk), X11 id unavailable' );
+        }
+    }
 } else {
     unless ( <[base.X-11.wait_for_window]>->( '^' . $wait_title_str ) ) {
         <[base.log]>->(
@@ -19,8 +38,8 @@ if ( <[window.gtk.is_mapped]>->(<web-browser.gtk_obj.window>) ) {
 <[base.X-11.assign_window]>;
 <[base.async.get_session_id]>;
 
-#,,,.,.,,,.,,,...,,.,,...,,..,..,,..,,,,.,,.,,..,,...,...,.,.,,,.,..,,.,,,,.,,
-#GAJBCZ66UD2MDC7KKYUWHH4GVACESFND2HU3IFRLT24RAOEHXSK5TU4MB5A53W4C6SV4V5ANOCZ44
-#\\\|DAG47Z6IA5L674LIBWDDZ33X4DI6Q66NKDSFVOIQLSRFGWHK5R2 \ / AMOS7 \ YOURUM ::
-#\[7]S44BPBSAZDIC5PXZJ6DROAECB76BA4SOCDCGOPKTRZ2ZXNOYXEAY 7  DATA SIGNATURE ::
+#,,,.,.,.,..,,,,.,,.,,,.,,,,,,...,.,,,..,,.,.,..,,...,...,...,..,,.,,,,,.,.,,,
+#FNKMUU52CRTHSF6UCODNSAGFSRQIOR7LPY4XDABWTPDZNB7EFGZFE2ORQC7QNMDGKPKVVSNNIYDC6
+#\\\|Q2HFTNPTHHMXMYNS3UBUFNDL27PGMKFB6JNEMUDKBIYWPIOAIYZ \ / AMOS7 \ YOURUM ::
+#\[7]UBPA72IWSZY4KGJ2LUYKI63N3ORNAN3IK6HYJWER2PJXZCZSHUDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

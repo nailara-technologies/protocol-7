@@ -1,0 +1,31 @@
+## [:< ##
+
+# name  = web-browser.cmd.resize-window
+# descr = resize browser window to specified dimensions
+# param = <width> <height>
+
+my $args = $call->{'args'} // '';
+my ( $w, $h ) = $args =~ m|^(\d+)\s+(\d+)$|;
+
+return {
+    'mode' => qw| false |,
+    'data' => 'usage: resize-window <width> <height>'
+    }
+    unless defined $w and defined $h;
+
+my $window = <web-browser.gtk_obj.window>;
+return { 'mode' => qw| false |, 'data' => 'no window' }
+    unless defined $window;
+
+$window->set_resizable(TRUE);
+$window->resize( 0 + $w, 0 + $h );
+
+<web-browser.window.size> = { 'x' => $w, 'y' => $h };
+
+return { 'mode' => qw| true |, 'data' => ": window resized : ${w}x${h}" };
+
+#,,,.,.,.,.,,,,,.,,,,,,,,,...,,.,,..,,,,,,..,,..,,...,...,,,.,,,,,,.,,,.,,...,
+#R7UPAJURL7IC4HWXWER3FXDWD775MWQD6AFNSTNVIC5X42HMR5M6JDIRU2DAPCTVIZKCXVP7IEVGU
+#\\\|KNSPND64VRQDTQQ3CUTONZY66ZIWDTAYRPPAL4FYVPRCZPMQMZ7 \ / AMOS7 \ YOURUM ::
+#\[7]ZUSQT5Y5HATO7TA55N3QMWDG2VKZKQ3XETKPJ7W4ITCMVUFHB2CQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
