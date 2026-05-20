@@ -140,6 +140,21 @@ my $tools = [
             }
         ],
         'example' => 'ncode.coverage.report { threshold: 0.50 }'
+    },
+    {   'name'  => qw| doc |,
+        'descr' =>
+            'look up documentation for a perl class, built-in function,'
+            . ' or p7 module -- auto-selects perldoc / introspection / source',
+        'params' => [
+            {   'name'     => 'arg',
+                'type'     => 'string',
+                'required' => qw| true |,
+                'descr'    => 'class name (Gtk3::WebKit2::WebView),'
+                    . ' built-in (push, splice), or p7 module'
+                    . ' (web-browser.open_window)',
+            },
+        ],
+        'example' => "ncode.doc { arg: 'Gtk3::WebKit2::WebView' }",
     }
 ];
 
@@ -149,8 +164,8 @@ return {
     'data' => { 'tools' => $tools }
 };
 
-#,,..,..,,.,.,.,,,,,.,.,,,...,.,,,,,,,...,..,,..,,...,...,,..,...,,.,,,.,,.,,,
-#2MAH6BDGAZYUH3B6EY7Y6T6N2O7WH4SUVFOJ5XBS4DLJIB7HZNZT5XDHFPQEBB2H7FNNJZGQ4SCFQ
-#\\\|QQ74CAWKIR32YIQS67JGEQHRWOYVEVMPSBBEGIZX46DFVBJDI4Z \ / AMOS7 \ YOURUM ::
-#\[7]HVT77342OPUWV6VV3CDCHTOZ7JPI6T2GPXK3PSR7BDKKEANUWECA 7  DATA SIGNATURE ::
+#,,,,,.,.,,,,,.,,,..,,,,.,,.,,...,..,,,,,,,,,,..,,...,...,,..,..,,,.,,.,.,,.,,
+#WCE5LEOUGSPZXNL6V6I75VQ36IW5CDUKLEUWY65UJ5RBALXDG5Y7QVEYLUZ5ODITJR3HJ4ZEXTUSS
+#\\\|FZ7KGMTPT6VJWUJZL5HGZXCA4Z6V23COAP6T6ZYBNTPYBEXI553 \ / AMOS7 \ YOURUM ::
+#\[7]GVQBI22LVJ3B3DM37ZD56VXBUZN4L3F5YVXML2KSXPZK3YDLXSBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

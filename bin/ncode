@@ -17,6 +17,8 @@ no warnings 'experimental';
 use Digest::BMW     qw| bmw_256 |;
 use List::MoreUtils qw| minmax uniq |;
 use Crypt::Misc     qw| encode_b32r |;
+use Data::Dumper;
+use IPC::Open2;
 
 my @params       = @ARGV;
 my $USE_ANSI     = 1;
@@ -137,6 +139,7 @@ my %commands = (
     'restore-backup' => \&cmd_restore_backup,
     'undo'           => \&cmd_undo,
     'undo-move'      => \&cmd_undo_move,
+    'doc'            => \&cmd_doc,
     'description'    => \&cmd_description
 );
 
@@ -178,6 +181,146 @@ if ( ref $commands{$cmd} eq qw| CODE | ) {
 exit(00000);
 
 # ::: parser commands :::
+
+# :: cmd_doc :: look up documentation for perl class, built-in, or p7 module
+
+sub cmd_doc {
+
+    my @params = @ARG;
+
+    if ( defined $params[0] and $params[0] eq qw| description_txt | ) {
+        return description_txt(
+            '<arg>', '
+
+<arg> ..... look up documentation for a perl class, built-in function,
+            or p7 module -- auto-selects perldoc / introspection / source
+
+            <arg>  class name (Gtk3::WebKit2::WebView),
+                   built-in function name (push, splice),
+                   or p7 module name (web-browser.open_window)
+          ', @params
+        );
+    }
+
+    my $arg = shift(@params) // '';
+    if ( !length $arg ) {
+        say "  :: <arg> parameter required ::\n";
+        exit(0010);
+    }
+
+    my @gobject_roots = qw( Gtk3 Glib Gdk Pango Cairo Gio GObject GLib );
+    my $out           = '';
+
+    ## 1. P7 module: contains '.' but no '::'
+    if ( $arg =~ m|\\.| and $arg !~ m|::| ) {
+        my $mod_path = "$root_path/modules/$arg";
+        if ( -f $mod_path ) {
+            open my $fh, '<', $mod_path or do {
+                say "  :: cannot read module '$arg' ::\n";
+                exit(0010);
+            };
+            my @lines = <$fh>;
+            close $fh;
+
+            my %header;
+            for my $line (@lines) {
+                if ( $line =~ m{^#\s+(name|descr|param|todo)\s+=\s+(.+)$} ) {
+                    $header{$1} = $2;
+                }
+                last if $line =~ m|^\s*$| and %header;
+            }
+
+            $out = "[ p7 module ]\n\n";
+            $out .= "name  : $header{name}\n"  if $header{name};
+            $out .= "descr : $header{descr}\n" if $header{descr};
+            $out .= "param : $header{param}\n" if $header{param};
+            $out .= "\n" . join( '', @lines );
+        }
+    }
+
+    ## 2. GObject Introspection: delegate to dump-class subprocess
+    if ( !length $out and grep { $arg =~ m|^$_| } @gobject_roots ) {
+        my $dump_class = "$root_path/bin/dev/dump-class";
+        if ( -x $dump_class ) {
+            my $dump = qx( '$dump_class' '$arg' 2>/dev/null );
+            $out = "[ introspection: $arg ]\n\n$dump" if length $dump;
+        }
+    }
+
+    ## 3. contains '::' -> perldoc + introspection supplement
+    if ( !length $out and $arg =~ m|::| ) {
+        my $pdoc = qx( perldoc -t '$arg' 2>/dev/null );
+
+        my $idoc = '';
+        if ( grep { $arg =~ m|^$_| } @gobject_roots ) {
+            my $dump_class = "$root_path/bin/dev/dump-class";
+            $idoc = qx( '$dump_class' '$arg' 2>/dev/null )
+                if -x $dump_class;
+        }
+
+        if ( length $pdoc ) {
+            $out .= "[ perldoc: $arg ]\n\n$pdoc";
+        }
+        if ( length $idoc ) {
+            $out .= "\n\n[ introspection: $arg ]\n\n$idoc";
+        }
+    }
+
+    ## 4. single word -> perldoc -f then perldoc
+    if ( !length $out and $arg !~ m|::| and $arg !~ m|\\.| ) {
+        my $fdoc = qx( perldoc -t -f '$arg' 2>/dev/null );
+        if ( length $fdoc ) {
+            $out = "[ perldoc -f: $arg ]\n\n$fdoc";
+        } else {
+            my $mdoc = qx( perldoc -t '$arg' 2>/dev/null );
+            if ( length $mdoc ) {
+                $out = "[ perldoc: $arg ]\n\n$mdoc";
+            }
+        }
+    }
+
+    ## 5. fallback: try all
+    if ( !length $out ) {
+        my $mod_path = "$root_path/modules/$arg";
+        if ( -f $mod_path ) {
+            open my $fh, '<', $mod_path or do {
+                say "  :: cannot read module '$arg' ::\n";
+                exit(0010);
+            };
+            my @lines = <$fh>;
+            close $fh;
+
+            my %header;
+            for my $line (@lines) {
+                if ( $line =~ m{^#\s+(name|descr|param|todo)\s+=\s+(.+)$} ) {
+                    $header{$1} = $2;
+                }
+                last if $line =~ m|^\s*$| and %header;
+            }
+
+            $out = "[ p7 module ]\n\n";
+            $out .= "name  : $header{name}\n"  if $header{name};
+            $out .= "descr : $header{descr}\n" if $header{descr};
+            $out .= "param : $header{param}\n" if $header{param};
+            $out .= "\n" . join( '', @lines );
+        }
+
+        if ( !length $out ) {
+            my $mdoc = qx( perldoc -t '$arg' 2>/dev/null );
+            if ( length $mdoc ) {
+                $out = "[ perldoc: $arg ]\n\n$mdoc";
+            }
+        }
+    }
+
+    if ( length $out ) {
+        print $out;
+    } else {
+        say "  :: no documentation found for '$arg' ::\n";
+        exit(0010);
+    }
+    exit(00000);
+}
 
 # :: cmd_description :: display description text [ command or full list ]
 
@@ -225,7 +368,8 @@ sub cmd_description {
                     $description_txt
                         = $commands{$cmd}->(qw| description_txt params |);
                     $description_txt = '[ alias to command below ]'
-                        if length($cmd) <= 3 or $cmd eq qw| parse |;
+                        if ( length($cmd) <= 3 and $cmd ne qw| doc | )
+                        or $cmd eq qw| parse |;
                 };
 
                 if ( length $EVAL_ERROR
@@ -2994,8 +3138,8 @@ sub print_usage {
     print "\n    " . $C{'T'} . $usage_txt . $C{'R'};
 }
 
-#,,,,,,..,,,.,,.,,.,,,.,.,,,.,.,.,,..,..,,,,.,..,,...,...,..,,,,.,...,.,,,,.,,
-#WEDZ4SYQAWOOJLHCD7DKEDGFGKBKFBF5H5NF4ANSYH3TNDYBC4SQQP7XFZKUX3RE7GGENDMOFQHAG
-#\\\|VPRL5ZQWPQL435XLRGVCXPPNW6AJA2IVB4UFRKZCSS4PKWW6AO7 \ / AMOS7 \ YOURUM ::
-#\[7]A4J2DUJF2GEGLI7SFCAVTV7MLEFQ5J76QFUI6PAW5LKOX2AKHUBQ 7  DATA SIGNATURE ::
+#,,,.,,.,,,,,,,.,,,,,,.,.,,,,,,,,,,,.,,.,,.,.,..,,...,...,,..,.,,,,..,,..,,,,,
+#KHF5MNUVB5EDDJ3N5TRD4HSVMZ7U5S6PJMSSCXIGKPW2BM53IZKHEHILK5XKWP4N3MOIAF6PSSBF4
+#\\\|YLE74BE5ZEBY5WR4KYXH6WZ7AZ7AMAWBCSIBJYTQTB4ZKMZOK75 \ / AMOS7 \ YOURUM ::
+#\[7]3CHAHFBP7VJUDRVHGMDILM3ZYJLEHZHB7ESJWIXPSANCFLQ5USDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
