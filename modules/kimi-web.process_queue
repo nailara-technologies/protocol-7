@@ -1,0 +1,28 @@
+## [:< ##
+
+# name  = kimi-web.process_queue
+# descr = start next queued task when no active stream
+
+## busy check: any active task in registry? ##
+return if scalar keys %{ <kimi-web.task.registry> // {} } > 0;
+
+## empty queue check ##
+return unless @{ <kimi-web.task.queue> // [] };
+
+my $next = shift <kimi-web.task.queue>->@*;
+
+<[base.logs]>->( 2, ': starting queued task %s', $next->{'id'} );
+
+## dispatch via stream — deferred reply, events via STRM ##
+<[kimi-web.cmd.dispatch_stream]>->(
+    {   'args'       => $next->{'args'},
+        'session_id' => $next->{'sid'},
+        'cmd_id'     => $next->{'cmd_id'},
+    }
+);
+
+#,,,.,..,,..,,.,,,.,,,..,,..,,,,.,,,.,...,..,,.,.,...,...,..,,.,.,,..,,..,,.,,
+#BZ2HCFPFCEUX5S2BG6FKD44ZKATCX4OJSRMHLXYZACVPCQUUFK2CDLYZMPS5BJMY6Z6RVOQAPTS4K
+#\\\|7IL74GPPNA43Y5M6HOIC6VEPKPHIGZKYGYYLE6I4NK7V4QIKBCF \ / AMOS7 \ YOURUM ::
+#\[7]OAS6QH3OFEJ4SIN7ITJVVKQSFY67NPDLQGXB77PLGT7I6QMGPOAA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,0 +1,109 @@
+## [:< ##
+
+# name  = kimi-web.handler.dispatch_stream_start
+# descr = open WebSocket stream after HTTP dispatch
+#         session_id, open websocket to agent stream, register io watcher
+#         open websocket to agent stream, register io watcher
+
+my $data   = shift;
+my $ok     = $data->{'ok'}     // FALSE;
+my $status = $data->{'status'} // 0;
+my $body   = $data->{'body'}   // '';
+my $params = $data->{'params'} // {};
+
+my $task_id = $params->{'task_id'} // '';
+my $agent   = $params->{'agent'}   // {};
+my $timeout = $params->{'timeout'} // 300;
+
+my $task = <kimi-web.task.registry>->{$task_id};
+if ( not defined $task ) {
+    <[base.logs]>->(
+        0, 'kimi-web: stream_start called for unknown task %s', $task_id
+    );
+    return;
+}
+
+my $handle = $task->{'handle'};
+
+## handle HTTP failure ##
+if ( not $ok ) {
+    <[base.logs]>->(
+        0,       'kimi-web: dispatch failed [status=%d task=%s]',
+        $status, $task_id
+    );
+    my $err_json = eval {
+        JSON::encode_json(
+            { 'type' => 'error', 'data' => 'dispatch failed' } );
+    } // '{"type":"error","data":"dispatch failed"}';
+    <[base.stream.push]>->( $handle, $err_json . "\n" );
+    <[base.stream.close]>->($handle);
+    delete <kimi-web.task.registry>->{$task_id};
+    <[kimi-web.process_queue]>;
+    return;
+}
+
+## parse response for session_id ##
+my $response   = eval { JSON::from_json($body) } // {};
+my $session_id = $response->{'session_id'}       // '';
+
+if ( not length $session_id ) {
+    <[base.logs]>->( 0, 'kimi-web: no session_id for task %s', $task_id );
+    my $err_json = eval {
+        JSON::encode_json( { 'type' => 'error', 'data' => 'no session id' } );
+    } // '{"type":"error","data":"no session id"}';
+    <[base.stream.push]>->( $handle, $err_json . "\n" );
+    <[base.stream.close]>->($handle);
+    delete <kimi-web.task.registry>->{$task_id};
+    <[kimi-web.process_queue]>;
+    return;
+}
+
+## connect websocket to session stream ##
+my $ws_url = sprintf( 'ws://127.0.0.1:%d/api/sessions/%s/stream',
+    $agent->{'port'}, $session_id );
+
+my $ws_sock = <[websocket.connect]>->($ws_url);
+
+if ( not defined $ws_sock ) {
+    <[base.logs]>->( 0, 'kimi-web: websocket failed for task %s', $task_id );
+    my $err_json = eval {
+        JSON::encode_json(
+            { 'type' => 'error', 'data' => 'websocket connect failed' } );
+    } // '{"type":"error","data":"websocket connect failed"}';
+    <[base.stream.push]>->( $handle, $err_json . "\n" );
+    <[base.stream.close]>->($handle);
+    delete <kimi-web.task.registry>->{$task_id};
+    <[kimi-web.process_queue]>;
+    return;
+}
+
+## register websocket state in task ##
+$task->{'session_id'} = $session_id;
+$task->{'ws_sock'}    = $ws_sock;
+$task->{'frame'}      = Protocol::WebSocket::Frame->new;
+
+## install io watcher for incoming websocket frames ##
+my $io_watcher = <[event.add_io]>->(
+    {   'fd'      => $ws_sock,
+        'handler' => qw| websocket.handler.read |,
+        'data'    => {
+            'frame'      => $task->{'frame'},
+            'on_message' => qw| kimi-web.handler.stream_event |,
+            'context'    => { 'task_id' => $task_id },
+        },
+        'poll' => qw| r |,
+    }
+);
+
+$task->{'io_watcher'} = $io_watcher;
+
+<[base.logs]>->(
+    2, ': stream started [task=%s session=%s agent=%s]',
+    $task_id, $session_id, $agent->{'agent_id'} // '?'
+);
+
+#,,..,.,.,,..,,,,,.,,,,,.,.,,,.,.,.,.,,,.,...,.,.,...,...,.,,,,,.,,,.,,..,.,,,
+#7NK2EDFBC7HJEJIAQ26TNRO2FRKA6G3M3I5TKXVRJP3DJTDKLREPZMW25OHZKCYVXCHXK4M3OVRVU
+#\\\|6QOXOTJM6VNGTMRYLV272L6ERVJBSNRDU6WXDGPVGCU7SZDOM6X \ / AMOS7 \ YOURUM ::
+#\[7]HVU3VU2A6OPF7MJTWJXU4QIPQKX72B5CSL7SQKWHYK6TR57M7SBI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
