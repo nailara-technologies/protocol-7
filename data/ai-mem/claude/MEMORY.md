@@ -61,6 +61,7 @@
 - [usb-backup-zenka](topic-usb-backup-zenka.md) — udev insertion → task tree → manifest restore agent
 - [git-watch-zenka](topic-git-watch-zenka.md) — force-push detection → pre-fetch snapshot; mode 1: local guardian; mode 2: remote watcher; git alternates chain dedup; task: data/tasks/git-watch-zenka.md
 - [reasoning-design-templates](topic-reasoning-design-templates.md) — 7 viz designs in data/yaml/design-templates/; kimi task dispatched → reasoning-design-inspiration.html; feeds claude design testing
+- [fetch-files-zenka](topic-fetch-files-zenka.md) — fetch-files zenka LIVE; fetch.file.huggingface.* → huggingface.* via pre_init swap_subs; cmd wrappers hf-{download,list,search,lan-check,status}; tasks: hf-download-zenka.md + sourcecode-recently-modified.md
 - [tls-acme](topic-tls-acme.md) — SNI/SSL internals, ACME/letsencr details, cert discovery
 - [amos7-p7-loader](topic-amos7-p7-loader.md) — AMOS7::P7 makes <[...]> modules callable from standalone scripts
 - [invoke-model-management](topic-invoke-model-management.md) — uuid vs verbose paths, config.json, :raw binary writes
@@ -192,8 +193,8 @@
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 - **Glitter 4B restart**: after a failed tool-using task, the Glitter backend needs restart before `:no_tools:` tasks work. The model gets stuck in tool-mode from the previous failed session. Restart coding zenka or wait for it to reset before dispatching `:no_tools:` priming tasks.
 
-#,,,,,...,.,,,,,,,.,.,,,,,,,,,.,.,.,.,...,...,..,,...,...,,..,,,,,...,,,.,...,
-#73GTCXMGOTQAYAX5N24SVO6U73FIMSVFBHXCCX7GDQAA25LAJ5AEZ5M77MQEWF2KIMOGTQCIPNZU2
-#\\\|X3ZHBBSXLVYI6GLFB2JC6YKJZTOMHBKRQYREYXK54X6LPFJCNCH \ / AMOS7 \ YOURUM ::
-#\[7]OQTM25CRYJBQ3RKHCZZBTU2X23DQ2THUAUQ3YOAF73OAVBM4MMCQ 7  DATA SIGNATURE ::
+#,,..,.,.,,..,,.,,,,.,,..,,.,,,,.,,..,,..,,,.,..,,...,...,,,,,...,.,,,..,,,.,,
+#VZH2BO5PG5WI7RZW3P7XS7V55WYBQLT673SLPL6FFCDY4VD44T2ENGEL7B7K2NWAHJTRFRMSKTGGE
+#\\\|CNK5UMQNEN7DOQ2VPWBXXGJPJCFFNKZSBXPYK7HPEVURZVNQ3GO \ / AMOS7 \ YOURUM ::
+#\[7]NFJ7VE6PJUUV2PC4OLLEOM4QOVVYGEU62ESZ6LBILEP3P2NSIIBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

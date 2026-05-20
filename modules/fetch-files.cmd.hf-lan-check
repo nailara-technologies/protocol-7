@@ -1,0 +1,24 @@
+## [:< ##
+
+# name  = fetch-files.cmd.hf-lan-check
+# descr = check LAN before downloading from HuggingFace
+# param = '{"filename":"model.gguf"}'
+
+my $args_str = $call->{'args'} // '';
+
+return {
+    'mode' => qw| false |,
+    'data' => 'args required: {"filename":"..."}'
+    }
+    if not length $args_str;
+
+my $args = eval { JSON::PP::decode_json($args_str) };
+return { 'mode' => qw| false |, 'data' => "invalid JSON: $@" } if $@;
+
+return <[fetch.file.huggingface.lan-check]>->($args);
+
+#,,..,,,,,.,,,..,,..,,,,,,..,,..,,.,,,,,.,.,.,..,,...,...,..,,,.,,...,,.,,.,,,
+#TSQE6RORI7JSYY2QKOBOUOLEUTSPH76IMU67ZDRM4WH3PERQ6GGBXAZCXSKQNS5F4ETUIMD4YM35E
+#\\\|JK5QN2HLI7FVDWHTKIIH3DBNO4A37ZEIIWZU4QGX7ABVIJM4LPT \ / AMOS7 \ YOURUM ::
+#\[7]OLFWJFKEZT2KJOUWMMX6REI72YRZ5AIBLQKPMKXRRVUHD6CKDMDY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

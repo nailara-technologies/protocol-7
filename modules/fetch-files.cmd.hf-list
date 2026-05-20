@@ -1,0 +1,24 @@
+## [:< ##
+
+# name  = fetch-files.cmd.hf-list
+# descr = list GGUF quantizations for HuggingFace repo
+# param = '{"repo":"user/repo-GGUF"}'
+
+my $args_str = $call->{'args'} // '';
+
+return {
+    'mode' => qw| false |,
+    'data' => 'args required: {"repo":"user/model-GGUF"}'
+    }
+    if not length $args_str;
+
+my $args = eval { JSON::PP::decode_json($args_str) };
+return { 'mode' => qw| false |, 'data' => "invalid JSON: $@" } if $@;
+
+return <[fetch.file.huggingface.list]>->($args);
+
+#,,.,,,,,,...,,,,,.,.,,.,,...,,..,,..,,,.,,..,..,,...,...,...,,,,,...,..,,,..,
+#UZSAPHPRNA4S5KVSQ7DJJQORUQKDAZER3AKC75PBYJRMW6OX7NVSTRKVJBHZTLC4HUTBRBH7J7CRK
+#\\\|RVMDUVHDO37IPG4RLUIEEAV5ESGENM5WXGHQX2REM3GEEGEUCTA \ / AMOS7 \ YOURUM ::
+#\[7]7T5TARFUHINV62UDJY72AEBFSPCEBZ62BLUZVWIVCEFKMFWPKCAQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
