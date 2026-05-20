@@ -49,19 +49,21 @@ if (<web-browser.init_proxy>) {
     my $proxy_addr = <web-browser.cfg.proxy_addr>;
     my $proxy_port = <web-browser.cfg.proxy_port>;
     my $context    = <web-browser.gtk_obj.web_context>;
-    my $proxy_uri  = HTTP::Soup::URI->new("http://$proxy_addr:$proxy_port");
 
-#    my $proxy_settings = Gtk3::WebKit2::NetworkProxySettings->new($proxy_uri);
-
-    #    $context->set_network_proxy_settings($proxy_settings);
+    my $proxy_settings = Gtk3::WebKit2::NetworkProxySettings->new(
+        "http://$proxy_addr:$proxy_port",
+        []    ## ignore-hosts: empty array = no exceptions
+    );
+    $context->set_network_proxy_settings( 'WEBKIT_NETWORK_PROXY_MODE_CUSTOM',
+        $proxy_settings );
 }
 
 return
     <web-browser.init_proxy>
     ;    # no checks performed if use_proxy set to 'yes' ..,
 
-#,,.,,..,,,..,.,.,,..,.,,,,..,...,.,,,,,,,.,,,..,,...,...,.,,,,..,,.,,...,,..,
-#AMFU2NTTTFMTHMTRE455F7CIHAZYVTSQRPFZW7XVCYUU33GE3IWIJ542Z6QZKXCFIOK3JHBB4HIA6
-#\\\|XBAAWDILSXFABK2KGVZJYJBIICF2KUKV72GYWYGEMFJBHMMXB6X \ / AMOS7 \ YOURUM ::
-#\[7]FKOAVPQEDRUUGRZAF6WQAQGYJUO4ESK3UTZM2OLDYW6ZDDHT5ECA 7  DATA SIGNATURE ::
+#,,.,,.,.,,.,,...,...,,..,..,,,..,,..,..,,.,,,..,,...,..,,,..,..,,..,,.,.,...,
+#5CMUT3YVDCOPHRVKCR23PROIG2L5KIFCZQIJPQT4CU5OOCDQHVW6F24STLFO235GSSJS2BVHLULMS
+#\\\|75HEGFBID4BCLJDQ2C34L4FNLM5VDY4YYMRAAH2WCGCEDBKHRM5 \ / AMOS7 \ YOURUM ::
+#\[7]X4ECXM5XQOY7TY2ZG4RJAR4F3BQS3QWYJW6GWBPSODUHQLD6YAAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

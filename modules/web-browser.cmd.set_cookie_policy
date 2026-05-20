@@ -1,0 +1,26 @@
+## [:< ##
+
+# name = web-browser.cmd.set_cookie_policy
+
+my $call   = shift;
+my $policy = $call->{'data'} // 'never';
+
+## valid policies: never  no-third-party  always
+my %policy_map = (
+    qw| never         WEBKIT_COOKIE_POLICY_ACCEPT_NEVER        |,
+    qw| no-third-party WEBKIT_COOKIE_POLICY_ACCEPT_NO_THIRD_PARTY |,
+    qw| always        WEBKIT_COOKIE_POLICY_ACCEPT_ALWAYS       |,
+);
+
+my $wk_policy = $policy_map{$policy} // return "unknown policy '$policy'";
+
+my $cookie_manager = <web-browser.gtk_obj.web_context>->get_cookie_manager;
+$cookie_manager->set_accept_policy($wk_policy);
+
+return "cookie policy: $policy";
+
+#,,..,..,,.,.,...,.,.,.,,,.,,,,,,,,.,,,,,,,,.,.,.,...,..,,..,,,..,,.,,,.,,,..,
+#YSOYHIUOQK67P4OGJNJ2XRIQSQXEZRSHBL4G2WSG3GFJ2HSHRIOZT2L7IDJ334NQIXXLAPJIN5ZUO
+#\\\|ON34JWYQCW6WMVW2AUGQGOKWTYBDGO4KSHCNN6LVJOYVA373HY2 \ / AMOS7 \ YOURUM ::
+#\[7]AEXLBU4XHLJAZ7AHLDI3RSLEXKZI2Q2ONTRP2NVAAJBNGMS366DQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

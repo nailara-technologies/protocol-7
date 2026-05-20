@@ -1,0 +1,50 @@
+## [:< ##
+
+# name = web-browser.handler.snapshot_result
+
+my ( $view, $async_result ) = @_;
+
+my $out_path = delete <web-browser.snapshot.pending_path>;
+my $reply_id = delete <web-browser.snapshot.pending_reply>;
+
+my $pixbuf = eval { $view->get_snapshot_finish($async_result) };
+
+if ( $@ or not defined $pixbuf ) {
+    <[base.log]>->( 1, "snapshot failed: $@" );
+    <[base.callback.cmd_reply]>->(
+        $reply_id,
+        {   'mode' => qw| false |,
+            'data' => 'snapshot failed'
+        }
+    ) if defined $reply_id;
+    return;
+}
+
+## save to PNG
+my $err;
+$pixbuf->save( $out_path, 'png', \$err );
+
+if ( defined $err ) {
+    <[base.log]>->( 1, "snapshot save failed: $err" );
+    <[base.callback.cmd_reply]>->(
+        $reply_id,
+        {   'mode' => qw| false |,
+            'data' => "save failed: $err"
+        }
+    ) if defined $reply_id;
+    return;
+}
+
+<[base.log]>->( 2, "snapshot saved: $out_path" );
+<[base.callback.cmd_reply]>->(
+    $reply_id,
+    {   'mode' => qw| true |,
+        'data' => $out_path
+    }
+) if defined $reply_id;
+
+#,,..,..,,..,,.,,,.,.,,..,,,,,,..,.,,,.,.,,,,,..,,...,...,..,,.,.,..,,.,,,.,.,
+#XU7IE3CULOM4U5KUDI4OD2W3NWWOXUZBOV4MFHUMN7MC4WBQXMMHJBANFLAPS4UXLYBAEIQXF6QNC
+#\\\|K5NAJ7NX7M7KVYUUBGSCVONEY2FTMU667235EJAOBA2D62BF6Q2 \ / AMOS7 \ YOURUM ::
+#\[7]SHUQTIBTVOIPEL7FWK45CN6IVU5NMDVTF5THQEB43HQSAPQSDOBA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

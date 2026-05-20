@@ -58,8 +58,8 @@ if ( <X-11.mode> eq qw| auto-xephyr | ) { ## detect if Xorg running --> xephyr
 <X-11.disable_glamor> //= 0;
 <X-11.blank_timeout>  //= 60 * 13;    ## 13 minutes default timeout setting ##
 
-<X-11.bg_gfx_directory> //= sprintf( '%s/data/gfx/backgrounds',
-    <system.root_path> );
+<X-11.bg_gfx_directory>
+    //= sprintf( '%s/data/gfx/backgrounds', <system.root_path> );
 
 <X-11.bg_color> //= qw| 000000 |;
 <X-11.bg_color> =~ s|^#?([0-9a-f]{6})$|#$1|i;
@@ -69,6 +69,11 @@ if ( <X-11.mode> eq qw| auto-xephyr | ) { ## detect if Xorg running --> xephyr
 
 <X-11.collect_intel_gpu_stats> //= FALSE;
 
+<X-11.reconnect.enabled>       //= TRUE;
+<X-11.reconnect.max_attempts>  //= 7;
+<X-11.reconnect.initial_delay> //= 1;
+<X-11.reconnect.max_delay>     //= 60;
+
 <[X-11.maximize_intel_gpu_frequency]>
     if <[base.cfg_bool]>->(<X-11.max_intel_gpu_freq>)
     and <X-11.mode> eq qw| xorg |
@@ -76,8 +81,8 @@ if ( <X-11.mode> eq qw| auto-xephyr | ) { ## detect if Xorg running --> xephyr
 
 0;
 
-#,,..,,,.,.,.,,.,,,..,.,.,..,,,.,,...,..,,.,.,..,,...,...,..,,,,.,,,,,,..,...,
-#AMZFG2AU557VX524NUHA6RS77EYMBGMG7KGWJ722JAKWS52V4HTWD24YMP5DRQGBDATESX3NEFCUM
-#\\\|K6KNHTQMOEOMQAOLAFB5WRTGIA57C7DG5WUGJELAB7HZOZLHYCY \ / AMOS7 \ YOURUM ::
-#\[7]S4UZDTJEJ63TY4YYWUMGHP4IZMAZG6RGZSJTU3L66QNDM3DSPOAY 7  DATA SIGNATURE ::
+#,,,.,...,,..,.,,,...,.,.,,.,,.,,,,.,,,,,,.,,,..,,...,..,,..,,,,,,,,,,...,..,,
+#6XJN64J2YI7ANRU4ZT543TMEHP2ZZBJJDEC5ETZI3LH66K54Z5ZGHN4M55VLL3RON5KLIAYFNH3UM
+#\\\|3TGYQWHYHCYVJL57G2DDARMR665QLYYXVLP3KMKOJ45UAQRMKU6 \ / AMOS7 \ YOURUM ::
+#\[7]KOEQLF2DMDXSO6J3XS62SXPXNJKCIKBXEWG5SC4ODR4CM45HFSCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

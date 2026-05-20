@@ -18,7 +18,6 @@ my $filter_events = 1;
     run-as-modal
     context-menu
     authenticate
-    decide-policy
     script-dialog
     enter-fullscreen
     leave-fullscreen
@@ -85,6 +84,9 @@ $view->load_alternate_html( "<html><body bgcolor=\"$bg_color\"></body><html>",
 map {    # filtering blocked signal types
     $view->signal_connect( $ARG, sub { return 1 } )
 } keys %{<web-browser.blocked_signal_types>};
+
+$view->signal_connect(
+    'decide-policy' => $code{'web-browser.handler.request_starting_signal'} );
 
 $view->signal_connect
     (    # filtering all events according to blocklist setup above
@@ -178,8 +180,8 @@ $overlay->add_overlay($scrolled_window);
 <web-browser.gtk_obj.scrolled_window>->{$id} = $scrolled_window;
 <web-browser.gtk_obj.view>->{$id}            = $view;
 
-#,,.,,.,,,..,,.,,,...,,,,,,,.,...,,,.,,,,,.,.,..,,...,...,...,,.,,,,,,...,..,,
-#BEJBXM6WBTKBRFCMLUQF5GKCHGEWKFBNOLVOZBNG2WJIPUHYJGDAD4A7WLATAV52OFHZWZARARH7K
-#\\\|P2GTUO7YCHIPFF4DUDQX67WKOQ4NKCZNBG7FDJHUHNU6I6NG7EO \ / AMOS7 \ YOURUM ::
-#\[7]DV2M3WCF5YD5PCC6UR2HYBFM7RUJBEXSYYHBOCOAOSYZ6I3WICBY 7  DATA SIGNATURE ::
+#,,..,...,,.,,.,,,,..,.,.,,,,,,..,,,.,,.,,,,.,..,,...,...,,.,,,..,,..,.,,,.,.,
+#3T5MNVUR2NFGEVD2CI6VV5UQVWB2XI27SSF4MBZCEQKG7EXKQZ6QQFPJJZ3DQMLUAX5VSPL2RLKGI
+#\\\|BVSUM3UCWTP5HR3VG3A6SU3YK7JPC34YAO7U37GHN6SPPWJOP7L \ / AMOS7 \ YOURUM ::
+#\[7]GGIPPD4CSMLGNIEYPAGMAK52Q47J77WCHFEDL5PUIDNZHY3LGWDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

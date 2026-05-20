@@ -6,15 +6,16 @@ my $log_level = shift // 1;
 
 if (<web-browser.init_proxy>) {
 
-    my $session = Gtk3::WebKit2::get_default_session();
-    $session->set( 'proxy-uri' => undef );
+    my $context = <web-browser.gtk_obj.web_context>;
+    $context->set_network_proxy_settings(
+        'WEBKIT_NETWORK_PROXY_MODE_NO_PROXY', undef );
     <web-browser.init_proxy> = 0;
 
     <[base.log]>->( $log_level, "http proxy disabled" );
 }
 
-#,,,,,,.,,,.,,.,,,,.,,.,.,,.,,,.,,.,.,.,.,,,,,..,,...,...,...,...,...,..,,,..,
-#FSPNO32ZFVBSLSCFC2CKNV232WEUA53UH5TLIJKIVOGRIJ5J4Z47TGGIV5BYSVQSO7NICCTQ6MPF6
-#\\\|IK4T7CJM32TYJKZP6HSQFLTCI7LRO35JT4N5BM6TGWV2RR4225G \ / AMOS7 \ YOURUM ::
-#\[7]M7BCTYMHTJAS7C5CHTKPYX6ERLLN36Y3AVRCADT7G2CR5XQIGUDI 7  DATA SIGNATURE ::
+#,,,.,...,..,,,.,,,..,..,,..,,..,,,..,..,,.,.,..,,...,...,,..,,..,.,.,,,,,,,.,
+#WKF7MEIBYJATMM7SJE5XNCTZ327H2O2W7PMVEES3K4UFBQSWUHFPDJNACR6XPMEM66UN3LE6FPMS6
+#\\\|UPG5UNX7PQFI6UCN4GEBVKD5MNHPKIXLGL4VPYT6OIE6DCR3NIO \ / AMOS7 \ YOURUM ::
+#\[7]N52Q3EBJKZ737WA4DBDPAEB7MIUYG4LHNOGQ6IYDOJ5T6RZVXOCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
