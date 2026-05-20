@@ -4,8 +4,6 @@
 # descr = reload json config file
 # todo  = LLL: handle only changed set-up
 
-return { 'mode' => qw| false |, 'data' => 'currently disabled! (buggy)' };
-
 <[set-up.json.import_file]>->('ticker.set-up.json');
 
 my $font_name = <ticker.font.name>;
@@ -21,12 +19,12 @@ if ( defined <ticker.current_file> and -f <ticker.current_file> ) {
     <[ticker.cmd.read_file]>->(<ticker.current_file>);
 }
 
-<[base.init_modules]>;
+<[base.init_modules]>->('ticker');
 
 return { 'mode' => qw| true |, 'data' => 'config reloaded' }
 
-#,,,,,,.,,,.,,.,,,,.,,.,.,..,,,.,,..,,.,.,.,,,..,,...,...,,.,,,,,,,.,,.,,,.,.,
-#4P7FTW5RWPBT57XLMI4CYZBMDFCYRTUFMHNSDOD5ZLPK4DRQCILPB53B3MCD3JPT6O3WTORKGFZEA
-#\\\|LL3BNPCDC2ZICUEVTI2RRQRNB7MTKEU6CYWPC22F7RLDOMLZHBS \ / AMOS7 \ YOURUM ::
-#\[7]SC7PUII2DQ2JQUJMFW7BOODTOSD62TQP4OZVWP7VUKQDGXY6RYDQ 7  DATA SIGNATURE ::
+#,,,.,,,.,,,.,..,,..,,...,.,,,,..,..,,,,.,,,,,..,,...,...,...,...,.,,,..,,.,.,
+#422MJKUH4M6HDKJGFCZY4TDSDAD4K3Z5FZ5YHUIDZRST44M47LY62LC7NEAI2EQWFQDZUAOANBIH6
+#\\\|QPGXQ5X3FOPSPUXHFPTPZ2I7LKM7AWBJSFFE4PDYBXVIHFF3AAQ \ / AMOS7 \ YOURUM ::
+#\[7]SYO7CNUB2YTBQGEPGKXYUZCK3OWCBUFXF7Y6TL6CR2F77H26SCCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

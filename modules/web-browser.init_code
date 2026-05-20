@@ -6,7 +6,6 @@
 
 <[base.perlmod.autoload]>->('Gtk3');
 <[base.perlmod.autoload]>->('Glib');
-<[base.perlmod.autoload]>->('HTTP::Soup');
 <[base.perlmod.autoload]>->('Gtk3::WebKit2');
 <[base.perlmod.autoload]>->('Glib::Object::Introspection');
 <[base.perlmod.load]>->( 'Crypt::Misc', qw| encode_b32r | );
@@ -39,30 +38,33 @@ $ENV{'GDK_DEBUG'}    = qw| no |;
 <web-browser.zoom_factor> //= 1; # adjusts configured or calculated zoom level
 <web-browser.zoom_text_only> //= 0;
 
-<web-browser.slideshow.no_scroll>        //= 0;
-<web-browser.slideshow.no_switch>        //= 0;
-<web-browser.cfg.user_can_scroll>        //= 0;
-<web-browser.cfg.links_clickable>        //= 0;
-<web-browser.cfg.allow_text_edit>        //= 0;
-<web-browser.cfg.allow_scrollbars>       //= 0;
-<web-browser.cfg.overlay_scrolling>      //= 1;
-<web-browser.cfg.force_overlay>          //= 0;
-<web-browser.cfg.show_progress_bar>      //= 1;
-<web-browser.cfg.javascript_enabled>     //= 1;
-<web-browser.cfg.plugins_enabled>        //= 0;
-<web-browser.cfg.load_timeout>           //= 13;
-<web-browser.cfg.use_transparency>       //= 1;
-<web-browser.cfg.autospeed_notrans>      //= 1;
-<web-browser.slideshow.swap_delay>       //= 2;
-<web-browser.slideshow.err_delay>        //= 2;
-<web-browser.slideshow.iteration>        //= 0;
-<web-browser.slideshow.paused>           //= 0;
-<web-browser.scroll.fail.timeout>        //= 2.7;
-<web-browser.scroll.fail.js_disabled>    //= 0;
-<web-browser.cfg.no_memory_cache>        //= 0;
-<web-browser.redraw_fps.slowdown>        //= 0;
+<web-browser.slideshow.no_scroll>     //= 0;
+<web-browser.slideshow.no_switch>     //= 0;
+<web-browser.cfg.user_can_scroll>     //= 0;
+<web-browser.cfg.links_clickable>     //= 0;
+<web-browser.cfg.allow_text_edit>     //= 0;
+<web-browser.cfg.allow_scrollbars>    //= 0;
+<web-browser.cfg.overlay_scrolling>   //= 1;
+<web-browser.cfg.force_overlay>       //= 0;
+<web-browser.cfg.show_progress_bar>   //= 1;
+<web-browser.cfg.use_proxy>           //= 0;
+<web-browser.cfg.javascript_enabled>  //= 1;
+<web-browser.cfg.load_timeout>        //= 13;
+<web-browser.cfg.use_transparency>    //= 1;
+<web-browser.cfg.autospeed_notrans>   //= 1;
+<web-browser.slideshow.swap_delay>    //= 2;
+<web-browser.slideshow.err_delay>     //= 2;
+<web-browser.slideshow.iteration>     //= 0;
+<web-browser.slideshow.paused>        //= 0;
+<web-browser.scroll.fail.timeout>     //= 2.7;
+<web-browser.scroll.fail.js_disabled> //= 0;
+<web-browser.cfg.no_memory_cache>     //= 0;
+<web-browser.cfg.ephemeral>           //= 1; ## default: no persistent storage
+<web-browser.redraw_fps.slowdown>     //= 0;
 <web-browser.redraw_fps.slowdown_target> //= 0;
 <web-browser.cfg.max_gpu_load> //= 67;    # % [ auto-speed mode load target ]
+<web-browser.cfg.snapshot_dir> //= '/var/protocol-7/visual-feedback/capture/';
+<web-browser.cfg.snapshot_region> //= 'WEBKIT_SNAPSHOT_REGION_VISIBLE';
 
 <[web-browser.calc_scroll_speed]>
     if not defined <web-browser.subcfg>
@@ -112,7 +114,7 @@ package Browser::WebView;
 ################################################################################
 
 Glib::Object::Introspection->setup(
-    qw| basename WebKit2 version 4.0 package Gtk3::WebKit2 |);
+    qw| basename WebKit2 version 4.1 package Gtk3::WebKit2 |);
 
 use Glib::Object::Subclass qw| Gtk3::WebKit2::WebView |,
     properties => [
@@ -140,8 +142,8 @@ $code{'base.handler.end_code'} = sub {
 
 0;
 
-#,,.,,.,,,,,.,...,.,.,.,.,.,,,..,,,,,,.,,,,,,,..,,...,...,,,,,,,.,..,,.,,,,..,
-#MTB7WO4JCO6XEKQQJKZDKZU2G3EUFOVADZNZ7R2UFJXRN3XU7VIPLQRAW7GRKAQZOBSCOZCFMMUUM
-#\\\|4NYOLLDQ3YNIXRV5L7WW6GPCP5U55O3KRKR63YDKLVACF5Q766S \ / AMOS7 \ YOURUM ::
-#\[7]CV4J4Z26UDGSKYZZBAYVD26FKFHDYCZH3Z5VMAT2AIYG3IO2F6BY 7  DATA SIGNATURE ::
+#,,,.,..,,,,,,...,.,,,,.,,...,,.,,,..,,.,,,,.,..,,...,...,.,,,...,,.,,,,.,.,.,
+#VLBXAT26MXUIRPJMZGS7JUCQCSVZDAPJE7S54CGQYPDQ6FGUHFIL6WI247PIPCRQX647F4AKYNVFY
+#\\\|7DQB6ZVCS27VUFBSI3BTLUMTIYE6JW5LQN7UHDOYUQTRAWGWDN7 \ / AMOS7 \ YOURUM ::
+#\[7]RLVKN5VNTV2XXPQDTLDMSGGKVZXPXWLSVUFZ7WKYYVZRSSQZAIBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

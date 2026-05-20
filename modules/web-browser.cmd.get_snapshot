@@ -1,0 +1,44 @@
+## [:< ##
+
+# name  = web-browser.cmd.get_snapshot
+# descr = capture visible viewport of foreground view to PNG
+
+my $reply_id = $call->{'reply_id'};
+
+## get the active foreground view
+my $view_index = <web-browser.overlay.index.fg> // 1;
+my $view       = <web-browser.gtk_obj.view>->{$view_index};
+
+return { 'mode' => qw| false |, 'data' => 'no active view' }
+    unless defined $view;
+
+## determine output path
+my $snap_dir  = <web-browser.cfg.snapshot_dir>;
+my $timestamp = time;
+my $out_path  = "$snap_dir/snapshot_${timestamp}_$$.png";
+
+## ensure output directory exists
+<[base.file.make_path]>->($snap_dir) unless -d $snap_dir;
+
+my $region = <web-browser.cfg.snapshot_region>;
+
+## async snapshot — result delivered via handler
+<web-browser.snapshot.pending_path>  = $out_path;
+<web-browser.snapshot.pending_reply> = $reply_id;
+
+$view->get_snapshot(
+    $region,
+    'WEBKIT_SNAPSHOT_OPTIONS_NONE',
+    undef,    ## cancellable
+    $code{'web-browser.handler.snapshot_result'},
+    undef     ## user_data
+);
+
+## return deferred — handler sends reply when snapshot completes
+return { 'mode' => 'deferred' };
+
+#,,.,,,.,,...,,,,,.,,,,.,,,.,,,,,,,,.,,..,,,.,..,,...,...,.,,,.,.,..,,..,,...,
+#TVNY2ZBQD7ISTTGVZN4B6RH4GQUXZT5K5HYFJ3HBH3JNZXTVXUFRFTYFWPSCN5VKZ7F2FHPAG77OC
+#\\\|UR2PXZ6RN3JF2U742HNNDNXWHFXUAG6YCNAMTZNKRCNY4HVLMEI \ / AMOS7 \ YOURUM ::
+#\[7]WQPQ3JMDEYOROHUKUNFCLAZPNTYYBZLIPWLXGAXNFSASBIRAQQBA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

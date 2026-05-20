@@ -7,6 +7,13 @@
 - **Never add** the `#,,.,,,...` stub at end of new files — blocks signing system
 - Leave new files clean; `bin/Protocol-7 sourcecode update-signatures` adds real 4-line footer
 
+## Architecture Docs (session 37)
+- `data/md/development/CHILD-PROCESS-LIFECYCLE-POLICY.md` — disposable/decoupled/monitored child categories; kill_list review; v7 coordination
+- `data/md/development/X11-RELIABILITY-AND-WINDOW-REGISTRY.md` — reconnect backoff, wrapper process, window registry+STRM, wait_visible replacement
+- `data/md/development/WEB-BROWSER-WEBKIT2-UPGRADE-ANALYSIS.md` — full WebKit2GTK 4.1 upgrade analysis, 8 task descriptions
+- `data/md/development/P7-LLM-REFERENCE.md` — verified live command reference for kimi/LLM sessions
+- `data/md/development/DEGRADED-FEATURES-AUDIT.md` — 5 high-priority + 3 medium candidates with stub task files
+
 ## Active Topics
 - [plugin-web-jobs](topic-plugin-web-jobs.md) — delta sync WORKING (session 34): ntime persisted, chunked push, last_modified stamps; open: ?since=N browser delta, remote deploy
 - [clients-http](topic-clients-http.md) — clients.http.* + clients.https.* async namespaces; kimi-web parallel dispatch fixed; see completed session 33
@@ -193,8 +200,8 @@
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 - **Glitter 4B restart**: after a failed tool-using task, the Glitter backend needs restart before `:no_tools:` tasks work. The model gets stuck in tool-mode from the previous failed session. Restart coding zenka or wait for it to reset before dispatching `:no_tools:` priming tasks.
 
-#,,,,,,..,,.,,.,.,.,,,.,.,.,.,.,.,,,.,,.,,..,,..,,...,...,,..,..,,,..,.,.,.,,,
-#XG3XNQSO2OXINWEAJOGULGY4O7H3MYXV6NJGYW2VNNUEQ7HH234VU22SMKELGGUPXG4W6UDFOPVHK
-#\\\|3JESCJYMYWWE4B7ZWSQJUZLE3P6SEJ6S77NN3PWNZLEUAA3PLYI \ / AMOS7 \ YOURUM ::
-#\[7]Y2YHLLY4LXBKLYPVNTUI2X2HVLGEFJN4L2VJI5EYG3HQKIH75GBA 7  DATA SIGNATURE ::
+#,,,,,.,,,,,.,.,.,...,,..,,.,,,,,,,.,,,..,,..,..,,...,...,...,..,,.,.,,..,,,,,
+#X55U2G2FO4BRV6ACLDUVQINZE5ZKKDYUR5DNRYOWAUAP3BO7KLIMUIFFR7FNZZFBLRISFWMU2M7JM
+#\\\|UWXJ5R2YOW3NNN42ZZG6IH6OYFZFFAKN7L2N4LYULCBHVXEJUKA \ / AMOS7 \ YOURUM ::
+#\[7]ZAA5XGP6EZPCPN3WFP2Q4Q7LR76OA7PNODMNYR2HXEILEW6M24BA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

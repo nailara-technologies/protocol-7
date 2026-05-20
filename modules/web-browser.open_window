@@ -48,7 +48,14 @@ EOT
 
 # web context setup #
 
-my $web_context = Gtk3::WebKit2::WebContext->new();
+my $web_context;
+if (<web-browser.cfg.ephemeral>) {
+    my $data_manager = Gtk3::WebKit2::WebsiteDataManager->new_ephemeral;
+    $web_context = Gtk3::WebKit2::WebContext->new_with_website_data_manager(
+        $data_manager);
+} else {
+    $web_context = Gtk3::WebKit2::WebContext->new;
+}
 
 my $proc_model = 'WEBKIT_PROCESS_MODEL_MULTIPLE_SECONDARY_PROCESSES';
 $web_context->set_process_model($proc_model);
@@ -138,8 +145,8 @@ foreach my $signal_name (qw|  INT  TERM  |) {
     );
 }
 
-#,,,,,,..,.,,,,..,..,,,..,..,,.,.,.,.,,,.,,,.,..,,...,...,,..,..,,,,.,,..,..,,
-#SS3N5TPBCNO2PU7O6YSAOA3PTPD6GIFMSGWNPZV6OQ5DK5VNNO6OL4RBGHOMGFSDGIFVMDS625IQC
-#\\\|3LJK6ZXRYTJVZXRSRRB6LSLGDMFGZHZEBCPV5ASCBUHJ5SFVYD2 \ / AMOS7 \ YOURUM ::
-#\[7]GCVH473YXTET2LCIGLZ7RTPDYCWS6LWCGMPH2AMQAPEZHCTD4EDA 7  DATA SIGNATURE ::
+#,,..,,,.,.,.,.,,,,,,,..,,.,,,,.,,,.,,,.,,,..,..,,...,...,,.,,,.,,,,.,,,,,...,
+#24OO72MNJJK75HF6TZAM2NZB7B46A7LSTZFGKK3PRQEAAEF3MC33WLGVQ7XQF7HUBF47IBX3IFPN6
+#\\\|QIMBPG7QGT27RW4K7PYNVOYCPC54N5LRINYYQ4SP37233JLCP6F \ / AMOS7 \ YOURUM ::
+#\[7]NS5BWMLCTZV67UC4RG4WIUEPVPY2RGMWX5UTIAYIQZFFMJSDACCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

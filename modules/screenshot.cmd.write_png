@@ -4,11 +4,6 @@
 # param = [coords]
 # descr = grab screen or region and return path
 
-return {
-    'mode' => qw| false |,
-    'data' => "not implemented yet"
-};    # <-- << ! >>
-
 my $param_str = shift->{'args'} // '';
 return {
     'mode' => qw| false |,
@@ -26,8 +21,28 @@ return {
     }
     if defined $err_str;
 
-#,,.,,..,,,.,,,.,,.,.,,.,,,,,,...,...,,,,,,,.,..,,...,...,,..,,.,,,..,..,,,.,,
-#ELG7AMKS4IGOSMSLZOWNZXNQNO3C62XK37YEZAX6B437QDKK6IMWVIAXERPRLWZOM7KEVOXWCP5BM
-#\\\|2YKO2XLGMQ5T5EHF7RRPKPVBN5PNNNJAEAR4HKZFJVYU37LFBSH \ / AMOS7 \ YOURUM ::
-#\[7]RFO2ENM3P4G5JK2GMCZSVY7JX7C3WUSXAWOOW5UTQGREF76TRWBI 7  DATA SIGNATURE ::
+my $out_dir = <screenshot.cfg.output_dir>;
+<[base.file.make_path]>->($out_dir) unless -d $out_dir;
+my $out_path = sprintf '%s/screenshot_%d_%d.png', $out_dir, time, $$;
+
+my $write_ok = $image->write(
+    'file' => $out_path,
+    'type' => 'png'
+);
+
+return {
+    'mode' => qw| false |,
+    'data' => "unable to write PNG [ " . Imager->errstr . " ]"
+    }
+    if not $write_ok;
+
+return {
+    'mode' => qw| true |,
+    'data' => $out_path
+};
+
+#,,..,.,.,.,,,..,,,,.,,,,,,..,.,,,.,,,.,,,.,,,..,,...,...,,.,,.,,,...,...,,,.,
+#KXOHKUUXSSEU76GXZSZL3WU6VFXTUVF4YAXOUHGB6ET2S6KR2UWSP7CWOB57O2PBPCRE5ZVBAMKOI
+#\\\|RV2XTYEH7GHLVMRTFVPKMMI4WW5DESM6ZYWZYS4HQNEBM4NRHPF \ / AMOS7 \ YOURUM ::
+#\[7]6DXLO65E7ROCL3ING4FAOBY4QPVXOPDURKGRBBPOAIZHQE5GXYAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

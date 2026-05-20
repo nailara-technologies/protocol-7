@@ -1,0 +1,24 @@
+## [:< ##
+
+# name = web-browser.cmd.clear_data
+
+my $context = <web-browser.gtk_obj.web_context>;
+return 'no web context' unless defined $context;
+
+## clear all data types
+my $data_manager = $context->get_website_data_manager;
+$data_manager->clear(
+    'WEBKIT_WEBSITE_DATA_ALL',
+    0,    ## timespan 0 = all time
+    undef,
+    sub { <[base.log]>->( 1, 'website data cleared' ) },
+    undef
+);
+
+return 'ok';
+
+#,,.,,,,.,.,.,.,.,.,.,.,,,,,.,,,.,.,.,...,,.,,.,.,...,...,,,,,...,,,.,,,.,.,.,
+#TWWCATRWDOYUEBW2QS6F22AO7Q6ZFXUJBM2RZZSUVQ2JL4IR2MZQFFN67BKWKXY5QIAHGTRJ3LUAU
+#\\\|RNGBCVRDLHVVWKPTMC37Z5C3U7R4FNCDF76XXN2RQCBXBNBSIPC \ / AMOS7 \ YOURUM ::
+#\[7]NTNKI7OOTHGM7PUZTIVYSBM5QLWVOYFFHFSVF36ANUOUI45LIIDA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

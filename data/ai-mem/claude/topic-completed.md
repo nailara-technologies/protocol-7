@@ -113,7 +113,71 @@ open issues:
   task: data/tasks/hf-download-zenka.md
   task: data/tasks/sourcecode-recently-modified.md
 
-**model-key idea (end of session)**:
+## session 37 — web-browser WebKit2 repair + display stack + X-11 architecture (2026-05-20)
+
+**web-browser zenka — complete repair batch** (5 kimi sessions):
+- task 1: WebKit2GTK 4.0→4.1 typelib fix + all deprecated settings removed
+- task 2: proxy rewritten — HTTP::Soup gone, NetworkProxySettings in, disable_proxy fixed
+- task 3: request interception ported to decide-policy; was in blocked_signal_types!
+- task 4: ephemeral WebView default (WebsiteDataManager), clear_data + set_cookie_policy cmds
+- task 5: get_snapshot native screenshot — eliminates Xvfb+scrot for visual-feedback pipeline
+- analysis doc: data/md/development/WEB-BROWSER-WEBKIT2-UPGRADE-ANALYSIS.md
+- test profile: configuration/zenki/v7/start-set-up.browser-test
+- X-11 mode: changed host→auto-xephyr (detects WSLg/desktop automatically, safe for production)
+- XEmbed confirmed NOT viable for UI separation — P7 command routing is correct model
+
+**dump-class fixed and elevated**:
+- was broken: installed typelib is 4.1, script targeted 4.0; perltidy failed on GObject globs
+- fixed: WebKit2 4.1 introspection + skip_load_re + perltidy fallback
+- moved from bin/dev/tools/ → bin/dev/ (daily-use tool)
+- `bin/dev/dump-class Gtk3::WebKit2::WebView` → 178 methods including get_snapshot
+
+**ncode doc command** (task file ready, not yet dispatched):
+- `ncode doc` unified documentation: perldoc-f / perldoc / GObject introspection / P7 module
+- decision logic by argument shape: `.` → P7 module, `::` GObject root → introspection,
+  `::` other → perldoc + introspection, single word → perldoc -f → perldoc
+- adds to ncode.cmd.tool_list → coding zenka can call it during code generation
+
+**git history degraded features audit** (COMPLETE):
+- produced data/md/development/DEGRADED-FEATURES-AUDIT.md
+- 5 high-priority candidates: screenshot.write_png, ticker.reread_config,
+  source-code-header-check, mpv-xephyr-vo-override, weather-forecast-humidity
+- kimi fabricated "dual commits" claim — git history has 1 duplicate line total
+  confirmed: dual commits are structurally impossible in git (unique SHA)
+  source: likely saw ANSI-stripped diff output where color=only semantic marker
+
+**degraded features fixed (same session)**:
+- screenshot.write_png: stub removed, PNG write path added, cfg.output_dir added
+  full implementation was already written but hidden behind early return
+- ticker.reread_config: stub removed; actual bug found — base.init_modules called
+  without args re-ran ALL module init codes on every reload; fixed to 'ticker' only
+- X-11 addgroup→adduser: modern Debian removed addgroup two-arg form; fixed
+- X-11 duplicate xvfb config line removed
+- X-11 mode: reverted auto-xephyr→host (auto-xephyr breaks on WSL2 WSLg)
+
+**X-11 reliability architecture designed**:
+- design docs: CHILD-PROCESS-LIFECYCLE-POLICY.md, X11-RELIABILITY-AND-WINDOW-REGISTRY.md
+- child categories: disposable (kill_list) / decoupled (survive restart) / monitored
+- window registry: self-registration via source_zenka_sid cube alias (cube-authenticated)
+- STRM subscription: tile-groups opens stream, X-11 pushes window.appeared/gone/moved
+- unregister paths: v7.handler.zenka_status on offline + DestroyNotify fallback
+- X-11 protocol reconnect: exponential backoff (1→2→4→...→60s, 7 attempts)
+  LLL in X-11.post_init RESOLVED — new X-11.reconnect module wired into error handler
+- wrapper process: decoupled X server survives zenka restart (design only, not impl yet)
+- wait_visible: capability flag + STRM subscription replaces polling model
+- v7.teardown whitelist: currently unprotected (access.cmd.usr.cube = *); needs fix
+
+**P7 LLM reference doc**: data/md/development/P7-LLM-REFERENCE.md (kimi verified live)
+  corrections: p7c v7.list zenki, p7c p7-log.show-buffer, no cmd. prefix on routing
+
+**kimi task file standard note added**:
+- "if in doubt: cat data/ai-mem/kimi/MEMORY.md" in all new task files
+- signatures note: do not run update-signatures, do not modify subroutine whitelists
+
+**diff-modified --no-color**: task file ready; pipe detection means raw format used
+  when piped — color IS the only semantic diff marker (no +/- prefix in this format)
+
+**model-key idea (end of session):**
   give each model USR.<model-id>.base-key like USR.lain.base-key
   update-signatures uses active model key by default
   commit re-signs with human key → provenance chain: model created → human committed
@@ -861,8 +925,8 @@ Skip calling harmonize_payload_line_feed when both conditions are met:
 - Signatures now properly formatted with correct separator endline
 - Pre-commit validation passes
 
-#,,,.,,..,,,.,..,,...,,,.,...,.,.,.,,,.,.,,,.,..,,...,...,...,...,..,,.,.,...,
-#3OH4WQE3546WRCSLHBO7YOMD3XLVOVHBJSLUP32SYS3DLC7EWHH5FFIIZHDWLJBJCR42P5L35AB56
-#\\\|AF3WV5WVFJLJ5BW4MDNO2JKBC4W6QQ2IRLLV5TCI443BUHKX4B2 \ / AMOS7 \ YOURUM ::
-#\[7]BQWGQFGX5MJOF33HH7V3CITB7QNSOVZNUKVHDCO55V2JUW2NSMBI 7  DATA SIGNATURE ::
+#,,,,,..,,.,,,,,.,..,,..,,,,,,.,.,...,,..,,.,,..,,...,...,,.,,...,,.,,,..,,..,
+#4NU5FYL7U2YJB2UOYAO3WZ2MXCYEORJIP7EAUDBAN4O5ZD3F4HYYONNRFJN6ZJV3RMVEGEKHU4SHA
+#\\\|X4DLRXOHV6ADXFOZTFQ42E74LTJM4EQLTRKPM2AW2YCONUVBILM \ / AMOS7 \ YOURUM ::
+#\[7]M2DYHFW2FLFCDTQEIZNSSZXBBRVI5IVMHPOCOOCDNOSUAECRFGAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
