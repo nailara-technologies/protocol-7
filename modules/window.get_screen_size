@@ -1,0 +1,42 @@
+## [:< ##
+
+# name  = window.get_screen_size
+# descr = fetch screen dimensions: X-11 zenka, Gtk3, or fallback
+
+## try X-11 zenka first ##
+my ( $screen_w, $screen_h ) = eval {<[base.X-11.get_screen_size]>};
+if ( defined $screen_w and defined $screen_h ) {
+    return {
+        'width'  => $screen_w,
+        'height' => $screen_h,
+        'source' => 'X-11'
+    };
+}
+
+<[base.log]>->( 1, ': X-11 screen size unavailable, trying Gtk3 fallback' );
+
+## Gtk3 fallback ##
+my ( $gtk_w, $gtk_h );
+eval {
+    my $screen = Gtk3::Gdk::Screen::get_default();
+    if ( defined $screen ) {
+        $gtk_w = $screen->get_width();
+        $gtk_h = $screen->get_height();
+    }
+};
+if ( defined $gtk_w and defined $gtk_h ) {
+    return { 'width' => $gtk_w, 'height' => $gtk_h, 'source' => 'Gtk3' };
+}
+
+<[base.log]>->(
+    1, ': Gtk3 screen size unavailable, using fallback 1920x1080'
+);
+
+## hardcoded fallback ##
+return { 'width' => 1920, 'height' => 1080, 'source' => 'fallback' };
+
+#,,.,,,,.,,,,,...,,,.,,..,,.,,...,,,,,,..,.,.,..,,...,...,...,,,,,,.,,.,,,,..,
+#KA5H7IBBCWWRNDUJEFIIYAOVGNDTBI26FNR7K6NQFJLCPN25YNZFY7EU3KOHMZ75XVJ5AQMIFRXQG
+#\\\|ARGG2RPMXMT6PR4PWLVNIRLLZTXFMMEAYXHVPSK4RJZA6Q7FK5H \ / AMOS7 \ YOURUM ::
+#\[7]QVZ2SWIW52J5L6D5J26SPXGXXKCS26D5MYV7C6SZSQYCXMDMOCBQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

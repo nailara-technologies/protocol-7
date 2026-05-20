@@ -32,9 +32,16 @@ task prompt (3-5KB) can produce 10+ modules of implementation from kimi.
   `base.logs`, `my $call` redeclaration, `sprintf qw|...|` misuse
 - User signs and stages; Claude commits — keeps the flow fast
 - Kimi can work autonomously on tasks while waiting for token reset
+- **Parallel tasks (pre-queue-module)**: open multiple kimi-cli browser tabs as
+  independent workers, coordinate via `bin/chat` script — each tab is its own
+  session, chat provides the P7-native coordination channel for task assignment,
+  status updates, and result handoff. zero new code needed until kimi.queue exists.
+- When parallel tasks hang on update-signatures: check if modules were written
+  before the hang (`ls modules/the.new.module`) — usually yes, just resume and
+  tell kimi signatures are handled by the human
 
-#,,.,,,,,,..,,,.,,,,,,,,.,...,,,.,...,.,,,..,,..,,...,...,...,,,,,.,.,.,,,,,.,
-#QKUTHHUUBXNXA645QTXOBFTVKA55ZRRILNHPMBCVBYEODVIBL7JTBCXQQUOPHHBTAGVUEQR3ATO4O
-#\\\|RBAEWSQO4SD3IMO36IQQWQYCSSIB5JSC4LHDJRNFVVWKDKK7NE5 \ / AMOS7 \ YOURUM ::
-#\[7]KTPFNO3DY5NKSJBUIGZZZZE2OJOUVCOTACWVOKES2K4LRDOVYUBY 7  DATA SIGNATURE ::
+#,,.,,..,,.,,,..,,..,,,.,,.,,,..,,,,,,.,.,...,..,,...,...,,,,,,,,,,..,.,.,,,,,
+#NIIILLGOGHIMZLXNXGXIMKR2PAUYGSJ7RTKZGBNV5IEGKQCXSKIOOVGUTWGFL3KCQUZ2VV3XJ2B5K
+#\\\|RJEJVV4BUYOH2UXPCVNKA3J7U36OVXVTFIUU74HP4KDFSLF5KOP \ / AMOS7 \ YOURUM ::
+#\[7]JM4E2REUPSQACANCTEYOJGHECQNJIP7SM24RCVHT53OJBS264QCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
