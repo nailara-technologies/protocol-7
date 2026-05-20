@@ -1,0 +1,25 @@
+## [:< ##
+
+# name  = smtpd.parse_mail
+# descr = parse raw RFC 2822 mail into structured hash
+# param = $raw_mail_bytes
+# return = $parsed_hash or undef
+
+my $raw = shift // '';
+return undef if not length $raw;
+
+## try Email::MIME first ##
+if (<smtpd.has_email_mime>) {
+    my $parsed = eval { <[smtpd.parse_mail.mime]>->($raw) };
+    return $parsed if defined $parsed;
+    <[base.logs]>->( 0, 'smtpd: Email::MIME parse failed, trying fallback' );
+}
+
+## fallback to simple parser ##
+return <[smtpd.parse_mail.fallback]>->($raw);
+
+#,,,.,...,..,,.,,,,,.,.,.,..,,.,.,.,.,.,.,,..,.,.,...,...,..,,.,.,...,,.,,.,.,
+#VZDRED4FMDMZEPPXYMWXNDCCGXSZH2FVEBPEMBWRZOARXESJMAM3TMNPQZPCU77LJNYFESP2SFYS6
+#\\\|3H5PKS2QGYLYGSJ67FSECEHDKW52GLMNAHWCZZ42HQCUKO3CH7Y \ / AMOS7 \ YOURUM ::
+#\[7]EIFHSOH4OFBZUWISYQL3ZSNCH4UZWD5JKEWMJTXNYDL2NZXGTYCQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

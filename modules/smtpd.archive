@@ -1,0 +1,109 @@
+## [:< ##
+
+# name  = smtpd.archive
+# descr = store raw mail and YAML struct to cfg.store_dir
+# param = $parsed_hash
+# return = $parsed_hash with raw_path and yaml_path set
+
+my $parsed = shift // {};
+return $parsed if ref $parsed ne qw| HASH |;
+
+my $store_dir = <smtpd.cfg.store_dir>   // '/var/protocol-7/mail/';
+my $msg_id    = $parsed->{'message_id'} // '';
+my $hash      = <[smtpd.internal.message_id_hash]>->($msg_id);
+
+## date-based subdirectory ##
+my ( $sec, $min, $hour, $mday, $mon, $year ) = gmtime(time);
+my $ymd     = sprintf '%04d/%02d/%02d', $year + 1900, $mon + 1, $mday;
+my $day_dir = join qw| / |, $store_dir, $ymd;
+
+my $p7_user = <system.amos-zenka-user> // qw| protocol-7 |;
+if ( not -d $day_dir ) {
+    <[file.make_path]>->( $day_dir, 0750, $p7_user, $p7_user );
+}
+
+my $base_path = join qw| / |, $day_dir, $hash;
+
+## store YAML (working copy — unencrypted) ##
+my $yaml_path = "$base_path.yaml";
+my $yaml_data = eval { YAML::XS::Dump($parsed) } // '';
+if ( length $yaml_data ) {
+    <[base.file.put]>->( $yaml_path, $yaml_data );
+    chmod 0640, $yaml_path;
+    $parsed->{'yaml_path'} = $yaml_path;
+}
+
+## archive raw mail ##
+my $raw = $parsed->{'_raw'} // '';
+if ( length $raw ) {
+    my $enc_path    = "$base_path.eml.xz.enc";
+    my $plain_path  = "$base_path.eml.xz";
+    my $target_path = $plain_path;
+
+    ## compress raw mail ##
+    my $compressed = '';
+    if ( <smtpd.cfg.compress_raw> // 1 ) {
+        my $xz = IO::Compress::Xz->new( \$compressed );
+        if ( defined $xz ) {
+            $xz->print($raw);
+            $xz->close();
+        } else {
+            $compressed = $raw;
+        }
+    } else {
+        $compressed = $raw;
+    }
+
+    ## optional twofish encryption ##
+    my $archive_key = <smtpd.cfg.archive_key> // '';
+    if ( length $archive_key
+        and ( <smtpd.cfg.encrypt_raw> // 1 ) ) {
+        my $encrypted = eval {
+            <[smtpd.archive.encrypt]>->( \$compressed, $archive_key );
+        };
+        if ( defined $encrypted and length $encrypted ) {
+            $target_path = $enc_path;
+            $compressed  = $encrypted;
+        } else {
+            <[base.logs]>->(
+                0, "archive key '%s' unavailable — storing unencrypted",
+                $archive_key
+            );
+        }
+    }
+
+    <[base.file.put_bin]>->( $target_path, \$compressed );
+    chmod 0600, $target_path;
+    $parsed->{'raw_path'} = $target_path;
+} else {
+    $parsed->{'raw_path'} = '';
+}
+
+## update in-memory index ##
+my $index_entry = {
+    'message_id'  => $msg_id,
+    'from'        => $parsed->{'from'}      // '',
+    'to'          => $parsed->{'to'}        // '',
+    'subject'     => $parsed->{'subject'}   // '',
+    'date'        => $parsed->{'date'}      // '',
+    'intent'      => $parsed->{'intent'}    // '',
+    'received_at' => <[base.ntime.b32]>     // '',
+    'yaml_path'   => $parsed->{'yaml_path'} // '',
+    'raw_path'    => $parsed->{'raw_path'}  // '',
+};
+
+unshift <smtpd.mail_index>->@*, $index_entry;
+
+## trim index to last 500 entries ##
+my $max_index = 500;
+if ( scalar( <smtpd.mail_index>->@* ) > $max_index ) {
+    <smtpd.mail_index> = [ splice( <smtpd.mail_index>->@*, 0, $max_index ) ];
+}
+
+return $parsed;
+
+#,,,.,...,,,,,,.,,.,.,.,,,.,,,.,.,,,.,...,.,,,.,.,...,...,,.,,..,,.,,,...,.,,,
+#HGRUWJ7CYKKQYUX7YF57PD2W7BUNQTBN32XSUSZAHVXLYN6FXYKRF6XXHQCENL3NILP6OUJ5T2CBM
+#\\\|SSMVWR6GCMVRYRROA4ANFYHPNEJWYMWE7357QSY6ZEHDSXU6UJE \ / AMOS7 \ YOURUM ::
+#\[7]SKJ2VDNC4ZEOE5JFIC223QBMJT3MDWZRVMKG3XVZHSHW6HCOGQCI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

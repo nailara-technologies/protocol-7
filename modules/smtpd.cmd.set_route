@@ -1,0 +1,34 @@
+## [:< ##
+
+# name  = smtpd.cmd.set_route
+# descr = runtime routing table update
+# param = <local_part> <target_zenka>
+
+my $args = $call->{'args'} // '';
+$args =~ s|^\s+|\s+$| | g;
+
+return {
+    'mode' => qw| false |,
+    'data' => 'usage: set_route <local> <zenka>'
+    }
+    if not length $args
+    or $args !~ m|^\S+\s+\S+$|;
+
+my ( $local, $target ) = split( m|\s+|, $args, 2 );
+
+<smtpd.cfg.route> //= {};
+<smtpd.cfg.route>->{$local} = $target;
+
+<[base.logs]>->( 1, 'smtpd: route %s -> %s', $local, $target );
+
+return {
+    'mode' => qw| true |,
+    'data' => sprintf "route set: %s -> %s",
+    $local, $target
+};
+
+#,,,,,...,,..,...,..,,.,.,.,,,.,.,,..,,,,,,.,,.,.,...,...,,,,,.,,,,,.,..,,...,
+#A3QMX7ZQVRKSIGKV45ZLY4RWUIA23NJH3R7D33HFCRF57XL3OYJCVRHIKCNYX667US2EAPV5TM4P2
+#\\\|QYUYLRQHI6IUMAYRILM26ZJJENMTUSBXUHKFL7FC6DQWKALUOQM \ / AMOS7 \ YOURUM ::
+#\[7]QKUHCESOYFJJHJR7K4AYBURXCN62P64HR7UA6MRR7N7NEEYECABY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

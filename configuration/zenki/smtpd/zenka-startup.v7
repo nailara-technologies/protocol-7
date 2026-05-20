@@ -1,0 +1,24 @@
+## [:< ##
+
+# name  = zenka-startup.v7
+# descr = 'smtpd' zenka startup config
+
+dependencies       = cube
+start.on-demand    = 1
+restart.disabled   = 1
+heartbeat.disabled = 1
+
+: v7-init :
+  start_mode = stdin-zenka
+  cube.key = [base.prng.chars-anum:44]
+  [v7.callback.setup_zenka_key:<instance_id>,'<zenka_name>',<cube.key>]
+
+: zenka-init :
+  [base.auth.set_zenka_key:'<{cube.key}>']
+  [base.zenki.set_ondemand_timeout:7200]
+
+#,,.,,,,.,...,,.,,.,.,.,.,,,.,,.,,,..,..,,,,.,.,.,...,...,,,.,,,,,,,.,.,,,..,,
+#CLO7YBWHZUQR2EKBELTKH7LTUGXQNXH5DIFMHRWBE6LO7RVDYAYIC4KQN66IMVFO2S4BTDSCS4D2E
+#\\\|PEHQPRMCJUBO2USDF3NZ3IXJO6CEOXYPXL4LBRQCFL7YB2RKBSF \ / AMOS7 \ YOURUM ::
+#\[7]J36MSG6B3OEMEXUW2BFZBDLI5B7TPQCKUZKIB7LQYU4M6JGQN2BY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

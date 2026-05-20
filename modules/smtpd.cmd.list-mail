@@ -1,0 +1,49 @@
+## [:< ##
+
+# name  = smtpd.cmd.list-mail
+# descr = list recent mail with optional address/subject filter
+# param = [filter]
+
+my $filter = lc( $call->{'args'} // '' );
+$filter =~ s|^\s+|\s+$| | g;
+
+my $index   = <smtpd.mail_index> // [];
+my @entries = @{$index};
+
+## apply filter on local address part or subject ##
+if ( length $filter ) {
+    @entries = grep {
+        my $to_local = lc( $_->{'to'} // '' );
+        $to_local =~ s|@.*$||;
+        $to_local =~ s|^\s+|\s+$| | g;
+        index( $to_local, $filter ) >= 0
+            or index( lc( $_->{'subject'} // '' ), $filter )
+            >= 0
+    } @entries;
+}
+
+## limit to recent 20 unless filter narrows ##
+if ( not length $filter and scalar @entries > 20 ) {
+    @entries = @entries[ 0 .. 19 ];
+}
+
+if ( not @entries ) {
+    return { 'mode' => qw| true |, 'data' => 'no messages' };
+}
+
+my @lines;
+for my $e (@entries) {
+    push @lines, sprintf "%s  %-20s  %-30s  %s",
+        substr( $e->{'received_at'} // '', 0, 12 ),
+        substr( $e->{'from'}        // '', 0, 20 ),
+        substr( $e->{'intent'}      // '', 0, 12 ),
+        substr( $e->{'subject'}     // '', 0, 50 );
+}
+
+return { 'mode' => qw| size |, 'data' => join( "\n", @lines ) };
+
+#,,,,,.,.,...,...,,..,..,,.,.,..,,..,,.,,,...,.,.,...,...,..,,...,,,,,,,.,,,,,
+#TU6CX3GM5INFGEBYZD7XXCZFGZFHR7VY5LA3MVROY24G3IYPIDHZBXXQNTT57PXRL2QKOYLNYRLTK
+#\\\|H5FQHU5X3VPTFYKLTKZKUXDQFAHVJTFEV5JH7CX3ARTGWP4HNBQ \ / AMOS7 \ YOURUM ::
+#\[7]NUE7RRRGDQWIOYCDIN2WXXKJO3HUJY62IBFULIDRLOAFQI7ISUCQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

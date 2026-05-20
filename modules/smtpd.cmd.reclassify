@@ -1,0 +1,62 @@
+## [:< ##
+
+# name  = smtpd.cmd.reclassify
+# descr = re-run classification on archived message by message-id
+# param = <message_id>
+
+my $msg_id = $call->{'args'} // '';
+$msg_id =~ s|^\s+|\s+$| | g;
+
+return { 'mode' => qw| false |, 'data' => 'message-id required' }
+    if not length $msg_id;
+
+## find in index ##
+my $index = <smtpd.mail_index> // [];
+my $entry;
+for my $e ( @{$index} ) {
+    if ( ( $e->{'message_id'} // '' ) eq $msg_id ) {
+        $entry = $e;
+        last;
+    }
+}
+
+return { 'mode' => qw| false |, 'data' => 'message not in index' }
+    if not defined $entry;
+
+my $yaml_path = $entry->{'yaml_path'} // '';
+return { 'mode' => qw| false |, 'data' => 'yaml path missing' }
+    if not -f $yaml_path;
+
+my $parsed = eval { YAML::XS::LoadFile($yaml_path) };
+return { 'mode' => qw| false |, 'data' => 'yaml load failed' }
+    if not defined $parsed
+    or ref $parsed ne qw| HASH |;
+
+## re-classify ##
+<[smtpd.classify]>->($parsed);
+
+## re-write yaml ##
+my $yaml_data = eval { YAML::XS::Dump($parsed) } // '';
+if ( length $yaml_data ) {
+    <[base.file.put]>->( $yaml_path, $yaml_data );
+}
+
+## update index entry ##
+$entry->{'intent'} = $parsed->{'intent'} // '';
+
+<[base.logs]>->(
+    1,       'smtpd: reclassified %s intent=%s',
+    $msg_id, $parsed->{'intent'}
+);
+
+return {
+    'mode' => qw| true |,
+    'data' => sprintf "reclassified: intent=%s",
+    $parsed->{'intent'}
+};
+
+#,,,,,...,,.,,,,.,,..,..,,...,...,.,.,,.,,,.,,.,.,...,...,.,.,..,,,.,,,,.,..,,
+#JFS4VT3LQALDNTD53HMCVWDA2235ERORK74RW43E24VRBF6JIJVHGVQYAK7TH5IL6FAZ2YS2GGMS4
+#\\\|VFT7PMYZI5SWWSUOEFCJQBFMXTVVUYF5OPCHAG57TMAMSEIKOYY \ / AMOS7 \ YOURUM ::
+#\[7]FIIUKKYR3X7Y2ONM6IW7T3CFPL52HJLKNUQF5OM55MXHPETMOCCA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
