@@ -79,17 +79,24 @@ foreach my $source_path (@source_paths) {
     }
 
     if ( not $footer_data->{'structure-was-valid'} ) {
-        my $footer_error = $footer_data->{'encountered-error'};
-        if ( not defined $footer_error or not length $footer_error ) {
-            $footer_error
-                = 'signature footer present but could not be validated';
+        if ( $footer_data->{'yourum-fake-signature'} ) {
+
+            # Fake YOURUM signature: enter strip path anyway
+            <[base.log]>->( 2, ': fake YOURUM signature detected, stripping' )
+                if $strip_verbosity >= 2;
+        } else {
+            my $footer_error = $footer_data->{'encountered-error'};
+            if ( not defined $footer_error or not length $footer_error ) {
+                $footer_error
+                    = 'signature footer present but could not be validated';
+            }
+            <[base.logs]>->(
+                0, ':E: invalid signature structure: %s',
+                $footer_error
+            );
+            $files_error++;
+            next;
         }
-        <[base.logs]>->(
-            0, ':E: invalid signature structure: %s',
-            $footer_error
-        );
-        $files_error++;
-        next;
     }
 
     # The payload in $src_str has now been restored to pre-signature state
@@ -164,8 +171,8 @@ if ( $files_error > 0 ) {
 
 return FALSE;
 
-#,,,.,.,,,,,,,,,,,...,.,.,.,,,.,.,..,,.,.,.,.,..,,...,...,.,,,.,,,.,.,...,...,
-#XE64HER6JSSQ3HNNTCWM5Q5CY2ULUWKLGHKMZSF3SZPYPOAOZGSX6K4TDKNYOLKXGZGJ2GNJFKK4K
-#\\\|CAKAEFUPYT2NN52EULTORC5VTP7SXOB6LMGDWFYK2YF36P6IOJ6 \ / AMOS7 \ YOURUM ::
-#\[7]X7HSACHNBWVSCVOR2D4LXBKXRUPNJBARESJE6LPWHQI2YZQGW2DA 7  DATA SIGNATURE ::
+#,,,.,.,.,.,.,.,.,,,.,,..,,,.,...,,,,,..,,.,,,..,,...,...,,,,,,,,,,.,,...,,,.,
+#YD4XWF5EASZK3LICOH4OJ5QEFW6D3HA5PUZVNLT7LC5CDMYD3YYLZQJBH5Q3PVOOQCW5QVFJBDW34
+#\\\|IRCQTH5AAPOWGVDK2E34NRA6A4ZVG5KPMKRAGX66KT654DN2W6C \ / AMOS7 \ YOURUM ::
+#\[7]WX7R2MQAQLZGYBHQEMGOPXGTE6QJOAWH53IMWYYQPIKD75BFDIDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

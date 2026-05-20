@@ -116,6 +116,15 @@ foreach my $path_rel (@source_paths) {
 
     # Check signature structure
     if ( not $footer_data->{'structure-was-valid'} ) {
+        if ( $footer_data->{'yourum-fake-signature'} ) {
+            <[base.logs]>->(
+                0,
+                ':E: fake signature detected :: %s',
+                <[base.parser.ellipse_center]>->( $path_rel, 44 )
+            );
+            $invalid_count++;
+            next;
+        }
         my $footer_error = $footer_data->{'encountered-error'};
         my $err_msg
             = $footer_data->{'extraction_failed_with_markers'}
@@ -294,8 +303,8 @@ if ( $verify_mode eq 'repair' ) {
 # Exit with count of invalid signatures (0 = success)
 <[base.exit]>->( sprintf( '%04d', $invalid_count ) );
 
-#,,,.,...,,,,,...,,,.,,,,,,..,,,.,,..,,,.,.,,,..,,...,.,.,,.,,,,,,,.,,,.,,.,,,
-#RA7XIXDYTVEHSNXEHK7S4XCIWJ5NTAWD7ZOFMSIEV36EZD4HB3JW2ENF7UBTBRSG45LBGC7DQGPXS
-#\\\|NM55JTVA55FMVFHU7VZIP25TFIUT7ATUVT4GZKBNNWODCGXRJGG \ / AMOS7 \ YOURUM ::
-#\[7]3ORCZ3RKLUISU6BQUVPGOGAKRMVJ4FUK2IH6W57VIIQHDL4EGEDI 7  DATA SIGNATURE ::
+#,,.,,,,.,.,,,,,,,,,,,,.,,,,.,..,,..,,.,.,,.,,..,,...,...,.,.,..,,.,.,.,,,,..,
+#OGEKQHHNQJZ6NDFRSOE5NHXYWODLZTJ37R5JQYSMROO7WH4MB3O5UL7ONZ3M323BDSW2RYBHVDIXS
+#\\\|OYHCGJ6CRJDPAPJZSX3KUWR7NYTQ2VQUIME46FFEBKIYJ3OKCXH \ / AMOS7 \ YOURUM ::
+#\[7]FEZPQZ3KV4PUOZL77ASYIZ7N5IPNKDDJQXD3PZGD6FM5DZ4JN4BI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

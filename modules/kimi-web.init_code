@@ -5,12 +5,19 @@
 
 use Socket qw| AF_UNIX SOCK_STREAM |;
 
+## ensure websocket frame parser is available ##
+<[base.perlmod.load]>->(qw| Protocol::WebSocket::Frame |);
+
 ## configuration ##
 <kimi-web.agent.base_port>  = 16000;    ## starting port for agents
 <kimi-web.agent.max_agents> = 8;        ## max concurrent agents
 <kimi-web.agent.registry>   = {};
 <kimi-web.agent.port_alloc> = {};       ## port -> agent_id mapping
 <kimi-web.agent.id_counter> = 0;
+
+## task queue and stream registry for dispatch_stream / enqueue ##
+<kimi-web.task.registry> = {};
+<kimi-web.task.queue>    = [];
 
 ## zenka directories created on-demand by file.zenka_dir.write ##
 
@@ -35,8 +42,8 @@ for my $i ( 0 .. <kimi-web.agent.max_agents> - 1 ) {
 
 return TRUE;
 
-#,,,.,,,.,...,..,,..,,,,,,,..,,..,,.,,.,.,,..,.,.,...,...,.,,,.,.,.,.,,..,,,,,
-#KKNHKKAASXYCQVCOT3WY7Z64ATC34FM6K3R5A6J3XGNRDBEROXL4D7AZKWVGL5LTCQ67HVAXLGXDI
-#\\\|XIAD4YJ6JWNFJ7MCF3LTJO2JI7XHS2KUXZKGWKPOBEZVZLTTKQR \ / AMOS7 \ YOURUM ::
-#\[7]BYGT42JWPLRXELF4H5LAS6ITEUY6ZYVF2UV2GTMCDW5ASSP6O4DA 7  DATA SIGNATURE ::
+#,,..,.,,,,,,,,..,...,,,,,..,,.,,,,,,,.,,,,.,,.,.,...,...,...,,,,,...,...,...,
+#TDG2NRVXVL65VH6BBJA2AUVIKCIV2NBVCWYIDUCKPJXTUQPV2KP4XV6NK7SIUICB5HK36BCNUVBMU
+#\\\|SA5F5OXQJDYEPRHT3BVHFGNSWTE27JFWWG277YSZB6ZYEHKE57N \ / AMOS7 \ YOURUM ::
+#\[7]2BP4LDSID6LHYVSXR5K7EDKFI2DWOLUEAVOC4IA2B7QO6N2CTEBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

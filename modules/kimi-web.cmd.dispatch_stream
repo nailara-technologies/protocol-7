@@ -1,0 +1,119 @@
+## [:< ##
+
+# name  = kimi-web.cmd.dispatch_stream
+# descr = dispatch to agent with persistent STRM channel
+# param = { agent_id, prompt, timeout, fresh }
+
+my $args = $call->{'args'} // {};
+
+my $agent_id = $args->{'agent_id'} // '';
+my $prompt   = $args->{'prompt'}   // '';
+my $timeout  = $args->{'timeout'}  // 300;
+my $fresh    = $args->{'fresh'}    // 0;
+
+## validate ##
+if ( not length $prompt ) {
+    return {
+        'mode' => qw| false |,
+        'data' => 'prompt is required'
+    };
+}
+
+## resolve agent ##
+my $agent;
+if ( length $agent_id ) {
+    my $registry = <kimi-web.agent.registry> // {};
+    $agent = $registry->{$agent_id};
+    if ( not defined $agent ) {
+        return {
+            'mode' => qw| false |,
+            'data' => "agent $agent_id not found"
+        };
+    }
+    if ( $agent->{'status'} ne qw| ready | ) {
+        return {
+            'mode' => qw| false |,
+            'data' => "agent $agent_id not ready"
+        };
+    }
+} else {
+    $agent = <[kimi-web.bridge.ensure_local_agent]>->();
+    if ( not defined $agent ) {
+        return {
+            'mode' => qw| false |,
+            'data' => 'no agent available'
+        };
+    }
+}
+
+## open unbounded STRM reply channel ##
+my $stream_handle = <[base.stream.open]>->(
+    {   'sid'    => $call->{'session_id'},
+        'cmd_id' => $call->{'cmd_id'},
+        'type'   => qw| STRM |,
+        'total'  => undef,                   ## unbounded
+    }
+);
+
+if ( not defined $stream_handle ) {
+    return {
+        'mode' => qw| false |,
+        'data' => 'stream open failed'
+    };
+}
+
+## generate task id and pre-register so handler can find it ##
+my $task_registry = <kimi-web.task.registry> // {};
+<kimi-web.task.registry> = $task_registry;
+my $task_id = <[base.gen_id]>->($task_registry);
+
+<kimi-web.task.registry>->{$task_id} = {
+    'handle'  => $stream_handle,
+    'agent'   => $agent,
+    'prompt'  => $prompt,
+    'timeout' => $timeout,
+    'started' => <[base.time]>->(3),
+    'sid'     => $call->{'session_id'},
+    'cmd_id'  => $call->{'cmd_id'},
+};
+
+## dispatch prompt via async http post ##
+my $url          = $agent->{'url'} . '/v1/chat';
+my $request_body = <[base.json.encode]>->(
+    {   'prompt'  => $prompt,
+        'stream'  => \1,
+        'timeout' => $timeout,
+        'fresh'   => $fresh ? \1 : \0,
+    }
+);
+
+my $post_state = <[clients.http.post]>->(
+    {   'url'     => $url,
+        'body'    => $request_body,
+        'timeout' => $timeout,
+        'on_done' => 'kimi-web.handler.dispatch_stream_start',
+        'params'  => {
+            'task_id' => $task_id,
+            'agent'   => $agent,
+            'timeout' => $timeout,
+        },
+    }
+);
+
+if ( not defined $post_state ) {
+    <[base.stream.close]>->($stream_handle);
+    delete <kimi-web.task.registry>->{$task_id};
+    return {
+        'mode' => qw| false |,
+        'data' => 'failed to start dispatch request'
+    };
+}
+
+## return deferred — STRM delivers events as they arrive ##
+return { 'mode' => qw| deferred | };
+
+#,,..,,,.,...,...,,,.,,..,.,,,.,.,,,.,...,,,,,.,.,...,...,,..,..,,.,.,,,,,.,,,
+#GMZ33WVSIVBAWPKDF3JMNLQC3NFZ7HG74HBLK27Q5N5AJLDEGUNQE4OZDVTFS3NP2ZSRYLYFEKD7M
+#\\\|N3PZHH2A5MB2JXEXT6WBYS5WBW6KEIR5PP63M3XDNTZYU3WIVWL \ / AMOS7 \ YOURUM ::
+#\[7]AZYRWYNB5PWP27MYCYTPREBJRLY57KEQ33RMS4SNAESNVJHC2MDI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

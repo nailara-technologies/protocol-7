@@ -1,0 +1,34 @@
+## [:< ##
+
+# name  = kimi-web.is_auto_approvable
+# descr = TRUE for tool calls safe to auto-approve
+
+my $event = shift;
+my $tool  = $event->{'tool'} // '';
+my $path  = $event->{'path'} // $event->{'args'} // '';
+
+## always approve file reads ##
+return TRUE if $tool eq qw| ReadFile |;
+return TRUE if $tool eq qw| ListDirectory |;
+
+## approve writes only to safe paths ##
+if ( $tool eq qw| WriteFile | ) {
+    return TRUE if $path =~ m|^modules/|;
+    return TRUE if $path =~ m|^configuration/zenki/|;
+    return TRUE if $path =~ m{^data/(tasks|md|yaml)/};
+}
+
+## approve safe bash commands ##
+if ( $tool eq qw| BashCommand | ) {
+    return TRUE if $path =~ m{^(grep|cat|ls|find|wc|head|tail|perl -c)};
+    return TRUE if $path =~ m{^(git (log|diff|show|status))};
+    return TRUE if $path =~ m|^(p7c? \w)|;
+}
+
+return FALSE;
+
+#,,,.,...,.,,,..,,,.,,,,.,..,,,,.,.,.,,..,,..,.,.,...,...,...,,.,,,,,,,,.,.,,,
+#LNUODPL5FXMVXZ3BQ6FIE2T7SS4W5UBGY7ROW42FVWKEFDKF34ZD7QQQAG66XWXVPMYXEEUACGCYG
+#\\\|B2X7BP53N4ORHQUEIYHFSZ5OY4ZVBF6P45YAR7HOWJWEDE6PYHK \ / AMOS7 \ YOURUM ::
+#\[7]R6IZQZKFVN36LROIPWCIQII72TASNSN6NP7VZJC3YXE5G3WENCCQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
