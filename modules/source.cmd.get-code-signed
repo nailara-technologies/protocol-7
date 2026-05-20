@@ -8,8 +8,8 @@ my $skip_unchanged = $call->{'skip-valid'} // FALSE;
 my $sign_verbosity = $call->{'verbosity'}  // 0;       ## [ 0 | 1 | 2 ] ##
 
 ##  expect [:< headers in ./modules/..,  ##
-my $expect_valid_code_header = FALSE;    ## temporarely disabled ##
-my $report_true_on_failure   = FALSE;    ##
+my $expect_valid_code_header = $call->{'expect-header'} // TRUE;
+my $report_true_on_failure   = FALSE;                              ##
 
 my $code_dir = <source.code_path>;
 $code_dir = <source.path.work_tree> if $code_name =~ m|/|;
@@ -35,11 +35,11 @@ return { 'mode' => qw| false |, 'data' => 'no success reading source file' }
 #
 return {
     'mode' => qw| false |,
-    'data' => "requested code file has no '[:<' header"
+    'data' => sprintf( "no '[:<' header in '%s'", $code_name )
     }
     if $expect_valid_code_header
-    and $src_path =~ m|/modules/|
-    and substr( $src_str, 0, 5 ) ne "## [:< ##\n";
+    and $code_dir eq <source.code_path>
+    and index( $src_str, "## [:< ##" ) != 0;
 
 ## Extract signature in strict mode for update-signatures
 ## Repair mode is for verify-signatures where we need flexible extraction
@@ -202,8 +202,8 @@ if (   not defined $present_checksum
 ##  current \ updated source  ##
 return { 'mode' => qw| size |, 'data' => $src_str }
 
-#,,..,,..,.,,,,.,,.,,,...,,,.,...,,.,,.,.,..,,..,,...,...,.,,,...,.,,,..,,,,,,
-#5NV2SKKFSBGWU2LMOWGTCBJDS56XPNN7CGJLAEICK4OHXZI7DRPZ3D36RBHOCPFS2YWJTGOTN5W3U
-#\\\|OLGLCV7RWCRPHN2NEWR4YTXIN3K4IGBTXGNWXNZ7YYZLG6GMCJ2 \ / AMOS7 \ YOURUM ::
-#\[7]DWEJINREOBHR7ZRPYXQKKSXMIMODUUOZUHPTUWJD5OG6HRGFF6AI 7  DATA SIGNATURE ::
+#,,,.,,,.,.,.,...,,,,,..,,,.,,,..,.,.,,..,.,.,..,,...,...,,..,,..,,,.,,,.,,..,
+#N4HDSUJBONJCMUD4UKVGGDXGRS7NNZEG42CEPFHOELLZOYUXAYTCTIH4O7LS25R442KVI4LZGFW3G
+#\\\|QLAGJ5ZI4DZSMREZZZBWBLD5RCNJY3DYCDTNTUTT2KDW5J66K5R \ / AMOS7 \ YOURUM ::
+#\[7]3HO5NZJ2BHN6JFSNU7DEBJFHCYZVJMZFOGDGDEK3PJSJPQIKVQCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
