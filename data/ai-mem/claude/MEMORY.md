@@ -105,7 +105,7 @@
 - **v7 start-once + error status**: `v7.start_once X-11` reports "already running" when instance is in error state. fix: exclude error-status instances from start_count check.
 
 ## New Tools / Zenki (session 37)
-- `bin/todo` — self-contained todo CLI, YAML backend at ~/.p7/todo.yaml, ASCII-framed output, priority markers, tag filter, TTY color
+- `bin/todo` — self-contained todo CLI; project-local `data/yaml/todo/default.yaml` auto-detected via $RealBin, fallback `~/.p7/todo.yaml`; named lists with `-list <name>`; add/done/rm/edit/tag/untag/clear commands; priority -h/-l; ASCII-framed TTY output
 - `ncode doc` — unified doc lookup in bin/ncode + ncode.cmd.doc; delegates GObject to dump-class subprocess
 - `smtpd` zenka — receive mail → YAML + LLM classify → route; xz+twofish archive; bin/p7-mail-inject bridge
 - `window.*` namespace — generic proportional window placement for GTK zenki; 8 profiles; ticker integrated
@@ -226,8 +226,8 @@
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 - **Glitter 4B restart**: after a failed tool-using task, the Glitter backend needs restart before `:no_tools:` tasks work. The model gets stuck in tool-mode from the previous failed session. Restart coding zenka or wait for it to reset before dispatching `:no_tools:` priming tasks.
 
-#,,,.,,,,,,,.,..,,.,.,.,.,,..,..,,..,,...,,,.,..,,...,...,..,,,..,,..,,,.,,,.,
-#KEZ6E2YCT4XNNYXRW4GH4HJLXGBY7V6TIBGU5AFXFDE74AHAUQVCHB2AV3L2VWJHLDTZFR76CMLJK
-#\\\|3IY7VSMQG545OFEBEQMBFRKNQ4J5YT3DZ5MAAUPJ6V2C5UCVMEH \ / AMOS7 \ YOURUM ::
-#\[7]YBLAA2JVWXNDCODMLM4B7QHXM3QEC6USR7C2NNM4WMNSWNPQTCBA 7  DATA SIGNATURE ::
+#,,,.,..,,.,.,...,,..,,..,,,,,.,,,.,,,,,.,..,,..,,...,...,...,,,.,,,,,,,.,,.,,
+#KKSWUNFEI2AWDVNMRHJBFAJ45Y3WV7NWMT5NTNWYKPVQBEZDGLAZUN7JNKCULHURHO7U33KTFXDKY
+#\\\|HVZS56L3RQOIAZFDMPRPY3SPT5SUCBGKCSBOUNNI2X2II3PVPQE \ / AMOS7 \ YOURUM ::
+#\[7]K7EEAPTLBPXFVLGZLWSFXJFJJUY5VOZASQKAUXA5TXW4EEOOZ4BY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
