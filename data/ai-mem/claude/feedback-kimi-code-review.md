@@ -40,13 +40,22 @@ Kimi (Claude via kimi-web) generates functional P7 modules but consistently hits
 10. **`#` in qw() lists** — `qw| #000000 |` triggers Perl's "comments in qw() list"
     warning because `#` starts a comment. Use regular string quoting for hex colors.
 
+11. **Fabricated methodology stats in analysis tasks** — when kimi reports grep/git
+    counts ("51 matches", "58 matches") or patterns ("dual commits in this era"),
+    treat these as unverified. The actual file-level findings (reading specific modules)
+    are reliable; aggregate counts and historical patterns are often confabulated.
+    Verify any statistical claim with a direct command before relying on it.
+    Note: "dual commits" is structurally impossible in git (each commit is a unique
+    SHA over content+parent+timestamp). Any kimi claim about duplicate commit patterns
+    is fabricated. The only duplicate you can get is an empty merge message line.
+
 **Why:** kimi doesn't have deep P7 runtime knowledge (namespace swaps, compilation context,
 preprocessor transforms).
 **How to apply:** always review + live-test kimi-generated P7 code before considering it done.
 Expect 2-3 iterative fix rounds for non-trivial modules.
 
-#,,..,..,,,.,,,,,,...,,,.,,.,,,,,,,,,,,,.,,,.,..,,...,...,..,,,..,.,.,,,,,...,
-#Z6JK5JVBFDK2AYFX2UQ5VO5VOEWOXFWURZ6HAGUTACWHL6X3I4LDXOL6Z5SJPVLCCYUVN6SKJGBJ2
-#\\\|2GAKX7RANESDKXZHKCDDOIUDDYYVOXR3DKN3YSC6I7LBQRUEDH7 \ / AMOS7 \ YOURUM ::
-#\[7]MZ2VCQMMTQWTEJY5JQSXUULNVEC52JYI6EQ5RSR3RYGHLGIYJGBA 7  DATA SIGNATURE ::
+#,,,,,..,,,,.,,.,,,..,,.,,,..,,.,,,..,..,,.,.,..,,...,...,.,,,,,.,,..,,,.,.,.,
+#XQC7RD6EGVPE6OJ2XJR3HZERILDYV4ZMCSV6XGCVOOHQV4XM6EKWXE6ZWT7EOWE7CZ3XC4XW7XWOI
+#\\\|4VCRLA5WCBIFXWHM24UUOTQVNILK2RD5BQLXAEXJDSVM4QX6SV4 \ / AMOS7 \ YOURUM ::
+#\[7]IAHQT6KSHS2ZYT26EM6GYPVGUMESQA7AOPZU3D4OVU4AAHPVV6AQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

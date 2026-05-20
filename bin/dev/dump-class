@@ -35,9 +35,15 @@ eval {
         version  => '3.0',
         package  => 'Gtk3'
     );
+    Glib::Object::Introspection->setup(
+        basename => 'WebKit2',
+        version  => '4.1',
+        package  => 'Gtk3::WebKit2'
+    ) if $class_str =~ /^Gtk3::WebKit2/;
 } if $class_str =~ /^Gtk3/;
 
-my $skip_load_re = qr/^(IPC::Open2|Data::Dumper|Class::Inspector|Gtk3)$/;
+my $skip_load_re
+    = qr/^(IPC::Open2|Data::Dumper|Class::Inspector|Gtk3|Gtk3::WebKit2)$/;
 
 eval "use $class_str" if not $class_str =~ /$skip_load_re/;
 my $header_str = "\n   ###  perl module/class : $class_str  ###";
@@ -52,11 +58,14 @@ if ( $@ and $class_str =~ /::/ ) {
 my $dump_str = Data::Dumper::Dumper( { eval "%{$class_str\::}" } );
 
 if ( length($perltidy_path) ) {
-    my $pid = open2( my $fh_out, my $fh_in, "$perltidy_path -l=0 -" );
+    my $pid
+        = open2( my $fh_out, my $fh_in, "$perltidy_path -l=0 - 2>/dev/null" );
     die $! if not defined $pid;
     print {$fh_in} $dump_str;
     close($fh_in);
-    $dump_str = join( '', <$fh_out> ) . "\n";
+    my $tidy = join( '', <$fh_out> ) . "\n";
+    $dump_str = $tidy
+        if length($tidy) > 2;    ## fall back if perltidy can't parse it
 }
 
 my @lines = split( /\n/, $dump_str );
@@ -81,8 +90,8 @@ die "\n   [ module or class '$class_str' not found ]\n\n"
 
 print "$header_str\n\n$dump_str\n";
 
-#,,.,,.,,,...,...,.,,,..,,,..,.,.,...,,,,,.,,,..,,...,...,.,.,.,,,.,.,..,,..,,
-#LLCXYHNEFR3OD6MYLCLGIO564GO4ZLYHJ426WFFJ7OB2AYMASXR4XM57AMXMVR7TWKDY4XCB2Y34K
-#\\\|AOJHB3OJCBZJUDN4Y5OSDWFISNRKIKQPFUSRXFYZ3ZFBKFCAFEL \ / AMOS7 \ YOURUM ::
-#\[7]VOKLIKYCUI46B7LTQAYBE3EKZIRVZSORXGH55CP3AEWZN4GXJUDA 7  DATA SIGNATURE ::
+#,,.,,,.,,.,,,,..,..,,.,,,,,,,,.,,,.,,,..,..,,..,,...,...,,,.,..,,..,,.,,,.,,,
+#ZQC6GSI5QC77WJFY3I2SLUDMSX7IDLZNJQVJ4OUZ33D4FVIO6WFMC7VXCVKP4HUCIOOGGKMABWCEE
+#\\\|OKMEHWROYXCSBTR2IR2ZBXSRY3OO4OJYDEHYHE2VOVPKEG3WWVP \ / AMOS7 \ YOURUM ::
+#\[7]MV5UVBR4DVQYVFU6HEZXHD6ZSDIJP6LNZCTY6APNXWO6GBT3YWAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
