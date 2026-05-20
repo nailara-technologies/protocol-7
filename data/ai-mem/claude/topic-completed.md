@@ -104,13 +104,14 @@ open issues:
   $call fix: non-.cmd.* modules need 'my $call = shift;' explicitly
   JSON: JSON::PP::decode_json() is the correct pattern (not base.json.decode)
   cmd wrappers: fetch-files.cmd.hf-{download,list,search,lan-check,status}
-  namespace plan: fetch-files.pre_init + swap_subs('fetch.file.huggingface','huggingface')
-    → <[huggingface.list]>->() etc. — clean, short, available to other zenki
-    → user doing rename+ncode replace now
-  access list: short hyphenated names (hf-download hf-list etc), no wildcard
-  modules.load: auth net protocol io.unix fetch.file fetch-files.cmd devmod
-  task: data/tasks/hf-download-zenka.md (fetch.file.* namespace after ncode rename)
-  task: data/tasks/sourcecode-recently-modified.md (duration+filepath two-column history)
+  namespace DONE: fetch.file.huggingface → fetch.file.huggingface.download (ncode rename)
+    fetch.file.huggingface.pre_init with swap_subs → huggingface.* namespace
+    cmd wrappers call <[huggingface.download]>->() etc.
+  commands listing: clean column alignment, param strings ≤55 chars
+  open: on-demand startup not yet wired
+  commits: b19f46ae8
+  task: data/tasks/hf-download-zenka.md
+  task: data/tasks/sourcecode-recently-modified.md
 
 **model-key idea (end of session)**:
   give each model USR.<model-id>.base-key like USR.lain.base-key
@@ -860,8 +861,8 @@ Skip calling harmonize_payload_line_feed when both conditions are met:
 - Signatures now properly formatted with correct separator endline
 - Pre-commit validation passes
 
-#,,.,,,,,,,,,,.,.,,,.,,.,,,.,,,..,.,.,..,,,,.,..,,...,..,,.,.,,..,,,.,,,,,.,.,
-#VXL3RPNWAHZSOUOUWKF3NGKIG63SZAJUQ4STHMAU6LFZQKJKJ45XTH3537O2EWIIQJXUEXUNEIJKC
-#\\\|WPPAR4QPHMPOKIGEDO2AUETQY3XHTOLHGB7IHCKHMTFSKPFPT5J \ / AMOS7 \ YOURUM ::
-#\[7]BEDWAHIBCSNMBHQBSO23NBIYOG7M6NBNV4UKIORCPYWYQHDVXWBQ 7  DATA SIGNATURE ::
+#,,,.,,..,,,.,..,,...,,,.,...,.,.,.,,,.,.,,,.,..,,...,...,...,...,..,,.,.,...,
+#3OH4WQE3546WRCSLHBO7YOMD3XLVOVHBJSLUP32SYS3DLC7EWHH5FFIIZHDWLJBJCR42P5L35AB56
+#\\\|AF3WV5WVFJLJ5BW4MDNO2JKBC4W6QQ2IRLLV5TCI443BUHKX4B2 \ / AMOS7 \ YOURUM ::
+#\[7]BQWGQFGX5MJOF33HH7V3CITB7QNSOVZNUKVHDCO55V2JUW2NSMBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
