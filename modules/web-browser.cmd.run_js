@@ -24,53 +24,49 @@ return {
 
 <[base.log]>->( 2, "[$view_uri] running javascript : '$js_string'" );
 
-$js_string = "throw $js_string";    # see comment below for reason ..,
+$view->evaluate_javascript(
+    $js_string,
+    -1,       ## length: -1 = null-terminated string
+    undef,    ## world_name: default world
+    undef,    ## source_uri
+    undef,    ## cancellable
+    sub {
+        my ( $view, $result ) = @_;
+        my $result_str = '';
+        my $re_mode    = qw| true |;
+        my $jsc_value  = eval { $view->evaluate_javascript_finish($result) };
 
-$view->run_javascript(
-    $js_string,    # <-- raw javascript
-    undef,         # <-- GCancellable
-    sub {          # <-- :[LLL]: create external (reloadable) handler... <<!>>
-        my $self   = shift;    # <-- WebView
-        my $result = shift;    # <-- WebKitJavascriptResult
-        my $rep_id = shift;    # <-- nailara internal reply id
-        my $s_res  = '';
-
-        ## [ was unable to access value, so using exception \ throw to get it. ]
-        #
-        #         my $s_val = $s_res->get_js_value();
-        #         my $s_con = $s_val->get_property('context');
-        #         my $js_vm = $s_con->get_property('virtual-machine');
-
-        eval { $s_res = $self->run_javascript_finish($result) };
-        ( my $ex_str = $EVAL_ERROR ) =~ s| at /usr/.+\n$||;
-        $ex_str =~ s|^[^ ]+ ||;
-
-        my $re_mode
-            = $ex_str =~ /^[^:]*Error[^:]*:/ ? qw| false | : qw| true |;
-        $re_mode = 'data' if $ex_str =~ /\n/;
-        $ex_str = '<< ! >> "throw" already being prepended internally << ! >>'
-            if $ex_str eq "SyntaxError: Unexpected keyword 'throw'";
-
-        <[base.log]>->(
-            0,              sprintf '<!JSerr!> [%s] %s',
-            $self->get_uri, $ex_str
-        ) if $re_mode eq qw| false |;    # <-- has JS error..,
+        if ($@) {
+            ( my $ex_str = $@ ) =~ s| at /usr/.+\n$||;
+            $ex_str =~ s|^[^ ]+ ||;
+            $re_mode    = qw| false |;
+            $result_str = $ex_str;
+            <[base.log]>->(
+                0,              sprintf '<!JSerr!> [%s] %s',
+                $view->get_uri, $ex_str
+            );
+        } elsif ( defined $jsc_value ) {
+            $result_str = $jsc_value->to_string;
+            $re_mode    = qw| data | if $result_str =~ /\n/;
+        }
 
         <[base.callback.cmd_reply]>->(
-            $rep_id,
+            $reply_id,
             {   'mode' => $re_mode,
-                'data' => $ex_str
+                'data' => $result_str
             }
         );
 
     },
-    $reply_id
+    undef    ## user_data
 );
 
 return { 'mode' => 'deferred' };
 
 #,,,.,.,.,,..,,.,,.,,,..,,...,,,,,...,...,..,,..,,...,...,...,...,,,.,,.,,,,.,
-#I7I4SU676QJ3TXRTLYS5XT3QYI35J52XNHXREEVWCM25AUTXN6CQJE4J25C7JBCNLTDQNB7SMUWXK
-#\\\|35JANFE4XGEETUIIF2HR52ASD5HNSSXWHM7RKRLYYCE5SXME5UF \ / AMOS7 \ YOURUM ::
-#\[7]FA6GUSPXKQ3L2HK6O7XSA24E3JZ6XLS56HMBYYW4CKKG5BKCWYAI 7  DATA SIGNATURE ::
+
+#,,,,,,,.,...,,,.,.,.,,,,,.,,,..,,,..,.,,,..,,..,,...,...,.,.,,.,,.,,,,..,.,,,
+#DKYEXPN6RJ2CXQKSRIZ24CNG5WMY5UVIC5D2OJY2J5TV4L2C4OMINMEEPH7Y5BCGBUO2RUPCIBEIG
+#\\\|4PJS7FLMHCO6DO364EBE2NPK6DMCVHE2WPQ3IKILPK4XCUUUPZ5 \ / AMOS7 \ YOURUM ::
+#\[7]7Z4AU4UT3YHF7J6RXTQHOCUOQRMVBXA64U6KRID3T2ZX5FTVG4BI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
