@@ -7,7 +7,12 @@ metadata:
   originSessionId: cdd64615-ffac-4aad-8bb6-53bd6445a768
 ---
 
-## Status: LIVE — commands working, on-demand startup pending (session 36)
+## Status: FULLY LIVE [:<  (session 36)
+
+On-demand startup works after full v7 backend restart.
+Shows in `v7.list available fetch` alongside rss-ticker.
+Note: v7 reload does NOT pick up new on-demand zenki — needs full v7 restart.
+Bug: v7 reload should re-scan zenki dir for new on-demand configs (v7 rescan-ondemand?)
 
 Zenka starts cleanly: 74 subs, no errors, cube authorized, 33s on-demand timeout.
 Commands listing aligned and correct. On-demand auto-start not yet wired.
@@ -66,8 +71,8 @@ modules.load: `auth net protocol io.unix fetch.file fetch-files.cmd devmod`
 `p7 fetch-files.hf-list '{"repo":"..."}` to see quantizations, then download with hf-download.
 LAN check happens automatically before HF download.
 
-#,,..,,.,,,.,,,.,,.,.,...,,.,,,,.,,,,,.,,,...,..,,...,...,,..,,,.,..,,.,,,,.,,
-#VJORYXVMCYI3OJ54Z5SARMQVVI6Z463URADWTCHWKNNTIALU5CCZFI3ZKBSIUE4HHXQWB4SQ26XJW
-#\\\|Y5BZZMBMBA72SLZUUZNQAUINMQS3L4DCKA66NWKRBJIZT6XZ3I5 \ / AMOS7 \ YOURUM ::
-#\[7]HM3HNTGTPFWGWCCOUFRRHEBS4HT2RWTMNBCSEMJOTB5R6H7AUIAA 7  DATA SIGNATURE ::
+#,,.,,.,,,,,,,.,.,.,,,.,.,,..,..,,..,,,,.,,.,,..,,...,...,,.,,.,.,,.,,.,.,.,.,
+#FTP5SUP4R23KVNCFICNDIDM24AZ5AK2ACZJCVRKKS4QJCXSTE5ZR2SUN2ZG7ISN6CZSB37PD4WRXY
+#\\\|DWX3PQ44FNDIW6XUD4TZ2C4EYSV4OIXK34UICKUSAUQBTMZAOER \ / AMOS7 \ YOURUM ::
+#\[7]VSWZN4UDYWTTZRAFMEHSLYGWIOCYYJBT2C3IX5VVIQURBMYH3CCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

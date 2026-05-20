@@ -61,7 +61,7 @@
 - [usb-backup-zenka](topic-usb-backup-zenka.md) — udev insertion → task tree → manifest restore agent
 - [git-watch-zenka](topic-git-watch-zenka.md) — force-push detection → pre-fetch snapshot; mode 1: local guardian; mode 2: remote watcher; git alternates chain dedup; task: data/tasks/git-watch-zenka.md
 - [reasoning-design-templates](topic-reasoning-design-templates.md) — 7 viz designs in data/yaml/design-templates/; kimi task dispatched → reasoning-design-inspiration.html; feeds claude design testing
-- [fetch-files-zenka](topic-fetch-files-zenka.md) — fetch-files LIVE; fetch.file.huggingface.download + pre_init swap→huggingface.*; cmd wrappers hf-{download,list,search,lan-check,status} committed; open: on-demand startup
+- [fetch-files-zenka](topic-fetch-files-zenka.md) — fetch-files FULLY LIVE [:<; huggingface.* namespace; hf-{download,list,search,lan-check,status}; v7 reload bug: new on-demand zenki need full v7 restart to register
 - [tls-acme](topic-tls-acme.md) — SNI/SSL internals, ACME/letsencr details, cert discovery
 - [amos7-p7-loader](topic-amos7-p7-loader.md) — AMOS7::P7 makes <[...]> modules callable from standalone scripts
 - [invoke-model-management](topic-invoke-model-management.md) — uuid vs verbose paths, config.json, :raw binary writes
@@ -193,8 +193,8 @@
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 - **Glitter 4B restart**: after a failed tool-using task, the Glitter backend needs restart before `:no_tools:` tasks work. The model gets stuck in tool-mode from the previous failed session. Restart coding zenka or wait for it to reset before dispatching `:no_tools:` priming tasks.
 
-#,,..,...,,,,,,..,,,,,,,,,,,,,,,,,.,.,..,,,,,,..,,...,...,..,,..,,.,,,,..,.,,,
-#VNVOU5V5INHJW6WOKXLLLGS2G4F4V5BKV7DRNUVSPWQPAY7BU7MECFJQUGYXVQ2CBONUN2BQC26YQ
-#\\\|5MRYQLPN3BXJC277DKEVKIPJEPLKJOOKTW6DDW4WQCKIDAQMAPT \ / AMOS7 \ YOURUM ::
-#\[7]3PYZPWBVRHXT3B64VBLEDHMZ7BLH3QXQZAFGD4FKNTNMNC4FEADA 7  DATA SIGNATURE ::
+#,,,,,...,,,,,..,,,,.,,.,,,.,,,..,..,,,.,,,.,,..,,...,...,,.,,,.,,.,,,.,.,,,.,
+#RLANJWTO2NFZTKV45HLMOLPGG2MMODC5ZLE3PDHJ5NPJSQMQBBMZRUEWFNDSXQNESPOB3CCSSHWVW
+#\\\|E5FU36QRLW7J6TIM7OXPSGYKZNOH5YVMLI3EYEICEJPKZEQYI6P \ / AMOS7 \ YOURUM ::
+#\[7]GJVWYMMNHHYYJVZB3OQTDKZQIY7LSRXRY5LENH3Y6BJBNWGND6AA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
