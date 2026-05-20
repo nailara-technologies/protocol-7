@@ -1,0 +1,19 @@
+## [:< ##
+
+# name  = smtpd.internal.message_id_hash
+# descr = generate short hash from message-id for filesystem storage
+# param = $message_id
+# return = $hash_string
+
+my $msg_id = shift // '';
+return 'unknown' if not length $msg_id;
+
+my $hash = <[chk-sum.amos]>->($msg_id);
+$hash =~ s|[^A-Za-z0-9]||g;
+return substr( $hash, 0, 16 );
+
+#,,.,,,..,,..,...,.,.,,..,,..,,,.,,,.,..,,...,.,.,...,...,...,...,,,,,,,,,.,.,
+#6XCIJO3DD74X33PC7LN6VAKHUMFPRCCVGVH5DHBWDT6JFR63NGBS27UUCTBGXJJC4VB2CGFIZO3G2
+#\\\|5JHZIJDC6Z7ERTG3RC5RTXAHENNUWZWDV2HEY6Y5OWRMO7BQ4RR \ / AMOS7 \ YOURUM ::
+#\[7]W7JEKRWCZ6RJSQSAOFYQMLVLB7OCOYTMZ3XXDDPVBXK5EK3MWMBI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

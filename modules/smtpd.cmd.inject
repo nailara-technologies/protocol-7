@@ -1,0 +1,58 @@
+## [:< ##
+
+# name  = smtpd.cmd.inject
+# descr = receive raw mail, parse, classify, archive, route
+# param = <base32r_raw_mail>
+
+my $args = $call->{'args'} // '';
+
+return { 'mode' => qw| false |, 'data' => 'no raw mail provided' }
+    if not length $args;
+
+## decode base32r argument ##
+my $raw = eval { decode_b32r($args) };
+if ( not defined $raw or not length $raw ) {
+    return { 'mode' => qw| false |, 'data' => 'invalid base32 encoding' };
+}
+
+## parse into structured hash ##
+my $parsed = <[smtpd.parse_mail]>->($raw);
+if ( not defined $parsed or ref $parsed ne qw| HASH | ) {
+    return { 'mode' => qw| false |, 'data' => 'mail parse failed' };
+}
+
+## preserve raw for archive ##
+$parsed->{'_raw'} = $raw;
+
+## add processing metadata ##
+$parsed->{'received_at'} = <[base.ntime.b32]> // '';
+
+## derive thread_id from In-Reply-To or References ##
+$parsed->{'thread_id'} = $parsed->{'in_reply_to'} // $parsed->{'references'}
+    // '';
+
+## classify intent and sentiment ##
+<[smtpd.classify]>->($parsed);
+
+## archive and route ##
+my $target = <[smtpd.route]>->($parsed);
+
+<[base.logs]>->(
+    1,
+    'smtpd: injected msg=%s intent=%s target=%s',
+    substr( $parsed->{'message_id'} // '', 0, 30 ),
+    $parsed->{'intent'}, $target
+);
+
+return {
+    'mode' => qw| true |,
+    'data' => sprintf 'archived intent=%s target=%s',
+    $parsed->{'intent'},
+    $target
+};
+
+#,,..,,..,,,.,.,.,,,,,...,,..,,,,,.,,,...,.,.,.,.,...,...,.,.,,,.,...,.,.,,..,
+#RJAOZUWBLWJ5ETVPI7GRBW4WZJRZDRORJYXH46SENNUSJJ2O4D6B4XZMS65GTLLPOZWIZSCCFPIGG
+#\\\|CPFA3RKUEGUDZLO5GS4AH7H6JMJIIEEVT2GYKA5NVIHV2IL7NRP \ / AMOS7 \ YOURUM ::
+#\[7]UQOWF2JHZ2J234ZMPCFV2VKRPUG6NDBLHY2ATQWVAARZ3Y6AEWAY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
