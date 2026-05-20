@@ -474,6 +474,15 @@ $footer_data->{'footer-length-found'} = $footer_length;
 ## We completely bypass size check in repair mode - any size is acceptable
 if ( $mode eq 'strict' && $footer_length != length <source.sign_template> )
 {    ## [ ERR: length ]
+     # YOURUM-format fake signature stubs: size mismatch but structurally
+     # valid. Mark as fake and return so callers can handle mode-awarely.
+    if ( $footer_body =~ /YOURUM/ ) {
+        $footer_data->{'yourum-fake-signature'} = TRUE;
+        <[base.logs]>->(
+            2, ': YOURUM footer size mismatch detected, marking as fake'
+        );
+        return $footer_data;
+    }
     $footer_data->{'encountered-error'}
         = sprintf 'data signature footer size mismatch [ %d != %d ]',
         $footer_length, length <source.sign_template>;
@@ -766,8 +775,8 @@ if ( $mode eq qw| repair | ) {
 
 return $footer_data;
 
-#,,,.,.,.,.,,,...,.,,,,,,,.,,,...,,..,,.,,..,,..,,...,...,.,,,,,,,...,,..,,..,
-#WFBCIARLXRHFPDJGNKY7EI4NWCEQYWOCTEH5LXGQ4KTIB2ETL7C4SIRQSIEMUUAVSFTKC2WFZYJ5Y
-#\\\|HQQVWVPSOSFOJ5AZ4J5VNSLHD3EASL7LXUT24GFCYLDZQ7DGP3F \ / AMOS7 \ YOURUM ::
-#\[7]BXLTZ55Z64VGICWDMLWTETS5Q7EZFH4Q424ZOV6AP66BGLZ4OYDQ 7  DATA SIGNATURE ::
+#,,..,,.,,,,.,,,.,,..,,.,,..,,,,,,,,.,,..,..,,..,,...,...,,,,,,..,,..,...,..,,
+#5WGESTXCUOIVMIH2TJ5S7MHRQ2WO3HKZUKG2YT4RNEQEVLJHWE5IVNHNU46NV5OSNBCO2EPFN2BRK
+#\\\|GF7MUREZXFNKUTUZ2TS2ECAPDPOJ7TS6EZWQ4OUZNSNTHJLTRSD \ / AMOS7 \ YOURUM ::
+#\[7]OLHKQZ4Y64QBI4W2YBSURYBUSH3Q353WS7SXM5UPXJIMTJWKLIAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

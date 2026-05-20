@@ -910,6 +910,7 @@ return [ qw[
         kimi.task.queue_next
         kimi.task.queue_fail
         kimi.cmd.new-session
+        kimi-web.cmd.enqueue
         keys.console.enc-key
         keys.console.dec-key
         jobsite.stage.review
@@ -1306,6 +1307,7 @@ return [ qw[
         letsencr.base.pre_init
         kimi.watcher.ws_status
         kimi.task.queue_status
+        kimi-web.process_queue
         keys.console.duplicate
         jobsite.checksum.index
         iteration.score_result
@@ -1741,6 +1743,7 @@ return [ qw[
         crypt.C25519.load_single
         crypt.C25519.get_keyname
         crypt.C25519.chk_key_dir
+        credentials.read_archive
         context.template.resolve
         context.string.ellipsize
         context.module.dep_order
@@ -2299,6 +2302,7 @@ return [ qw[
         letsencr.child.generate_csr
         kimi.event.on_task_complete
         kimi.connect.schedule_retry
+        kimi-web.is_auto_approvable
         keys.write_key_archive_file
         keys.console.get-sp-pub-key
         keys.console.enc-key-chksum
@@ -2499,6 +2503,7 @@ return [ qw[
         letsencr.child.sign_rsa_data
         kimi.session.start_api_child
         kimi-web.cmd.terminate_agent
+        kimi-web.cmd.dispatch_stream
         keys.console.list-upgradable
         keys.console.get-encoded-key
         keys.console.gen-pwd-keyfile
@@ -2665,6 +2670,7 @@ return [ qw[
         letsencr.child.validate_chain
         letsencr.child.send_to_parent
         kimi.handler.approval_request
+        kimi-web.handler.stream_event
         kimi-web.handler.batch_result
         kimi-web.cmd.resolve_template
         keys.select_archive_path.curs
@@ -2896,6 +2902,7 @@ return [ qw[
         crypt.C25519.key_name_and_type
         crypt.C25519.key_bin_checksums
         crypt.C25519.chksum_cache.retr
+        credentials.write_archive_file
         context.tree.summary.init-code
         context.tree.summary.add-event
         context.tree.checksum.template
@@ -3041,6 +3048,7 @@ return [ qw[
         crypt.C25519.decrypt_secret_key
         crypt.C25519.cmd.set-client-key
         crypt.C25519.cmd.get-public-key
+        credentials.pack_format.archive
         credentials.cmd.request_session
         context.tree.summary.get-branch
         context.tree.summary.checkpoint
@@ -3701,6 +3709,7 @@ return [ qw[
         letsencr.parent.cmd.revoke-certificate
         letsencr.child.create_http01_challenge
         letsencr.child.cmd.request-certificate
+        kimi-web.handler.dispatch_stream_start
         keys.unpack_format.key_archive_payload
         io.unix.socket.handler.report-tmp-path
         impressive.callback.rendering_finished
@@ -3824,6 +3833,7 @@ return [ qw[
         graphics.matrix.visual.group-by-proximity
         data.init_holographic.generate_field_line
         crypt.C25519.validate_remote_key_checksum
+        credentials.unpack_format.archive_payload
         coding.vision-parser.handler.vision_reply
         base.zenki.ondemand.handler.startup_reply
         base.agent_code.handler.sig_warn.end_proc
@@ -3980,8 +3990,8 @@ return [ qw[
     ]
 ];
 
-#,,,.,...,,,,,,..,,..,,,,,...,,.,,..,,.,,,.,.,.,.,...,...,.,,,.,.,..,,.,.,,,.,
-#CKDRYDZJB4ATSISP5FVUXPZCFINNIYFGIMERSJP66JQOPP24UO5LIAEIZKVZMAQ5VR5SXRPGLVB3E
-#\\\|RQAXCCEJTGTJ6GWHOZAWZ4I3B2OH4T3PVW6I6UBRULMY4IEUHZT \ / AMOS7 \ YOURUM ::
-#\[7]CW46CMQTES73O4BWNUY22TZBIY6SXIRFSSII3PIY5RMTMAGNAMAA 7  DATA SIGNATURE ::
+#,,..,...,,.,,.,.,..,,,..,..,,,,,,..,,,.,,.,.,.,.,...,...,.,,,,,.,,..,.,,,.,,,
+#YUKMJDIIK2LIMGUKNOPMCM75IYAUEHOYJ6JQ2KJSZJVV34SPEWSYSYTQVIZWAECAANCO3Y254RYPG
+#\\\|LZVUORUUMJCJ3EA7LUIQ6NWDVPDOD7LD436CGV2JFZIIIMBD55Q \ / AMOS7 \ YOURUM ::
+#\[7]JBAGALWTUIFWLMHN2VRVJHUQ6N3S2YOPJP3GTT4DN5ZHMVVGPYCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

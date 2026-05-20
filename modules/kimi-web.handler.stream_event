@@ -1,0 +1,125 @@
+## [:< ##
+
+# name  = kimi-web.handler.stream_event
+# descr = classify websocket events, push to STRM caller
+# note  = called by websocket.handler.read : ( $text, $context )
+#         $text is undef on disconnect
+
+my $text    = shift;
+my $context = shift // {};
+
+my $task_id = $context->{'task_id'} // '';
+
+my $task = <kimi-web.task.registry>->{$task_id};
+if ( not defined $task ) {
+    <[base.logs]>->(
+        2, 'kimi-web: stream_event for unknown task %s', $task_id
+    );
+    return;
+}
+
+my $handle = $task->{'handle'};
+my $agent  = $task->{'agent'} // {};
+
+## disconnect signal ##
+if ( not defined $text ) {
+    <[base.logs]>
+        ->( 2, 'kimi-web: websocket disconnect [task=%s]', $task_id );
+    my $term_json = eval {
+        JSON::encode_json(
+            { 'type' => 'complete', 'status' => 'disconnected' } );
+    } // '{"type":"complete","status":"disconnected"}';
+    <[base.stream.push]>->( $handle, $term_json . "\n" );
+    <[base.stream.close]>->($handle);
+    delete <kimi-web.task.registry>->{$task_id};
+    <[kimi-web.process_queue]>;
+    return;
+}
+
+## parse json event ##
+my $event = eval { JSON::from_json($text) } // {};
+if ($@) {
+    <[base.logs]>->(
+        0,        'kimi-web: json parse error [task=%s] : %s',
+        $task_id, $@
+    );
+    return;
+}
+
+my $type = $event->{'type'} // 'progress';
+my $data = $event->{'data'} // '';
+
+## auto-handle sudo prompts ##
+if ( $type eq qw| sudo | or $data =~ m|password for|i ) {
+    <[base.logs]>->(
+        1, 'kimi-web: auto-declining sudo prompt [task=%s]', $task_id
+    );
+
+    ## send decline to agent via http post ##
+    my $resp_body
+        = eval { JSON::encode_json( { 'response' => '' } ); } // '{}';
+    <[kimi-web.internal.http_post_sync]>->(
+        $agent->{'url'} . '/respond',
+        $resp_body, 10
+    );
+
+    my $decl_json = eval {
+        JSON::encode_json( { 'type' => 'sudo_declined', 'data' => $data } );
+    } // '{"type":"sudo_declined"}';
+    <[base.stream.push]>->( $handle, $decl_json . "\n" );
+    return;
+}
+
+## auto-approve safe tool calls ##
+if ( $type eq qw| approval | ) {
+    my $tool = $event->{'tool'} // '';
+    my $auto = <[kimi-web.is_auto_approvable]>->($event);
+    if ($auto) {
+        my $approve_body = eval {
+            JSON::encode_json(
+                {   'request_id' => $event->{'id'} // '',
+                    'approved'   => 1,
+                }
+            );
+        } // '{}';
+        <[kimi-web.internal.http_post_sync]>->(
+            $agent->{'url'} . '/approve',
+            $approve_body, 10
+        );
+
+        my $appr_json = eval {
+            JSON::encode_json(
+                { 'type' => 'auto_approved', 'tool' => $tool } );
+        } // '{"type":"auto_approved"}';
+        <[base.stream.push]>->( $handle, $appr_json . "\n" );
+        return;
+    }
+    ## non-auto-approvable: fall through to push to caller ##
+}
+
+## push event to STRM caller ##
+my $push_json = eval { JSON::encode_json($event) } // '{}';
+<[base.stream.push]>->( $handle, $push_json . "\n" );
+
+## close stream on completion or error ##
+if ( $type eq qw| complete | or $type eq qw| error | ) {
+    <[base.stream.close]>->($handle);
+    delete <kimi-web.task.registry>->{$task_id};
+
+    ## cancel websocket watcher ##
+    if ( defined $task->{'io_watcher'} ) {
+        $task->{'io_watcher'}->cancel
+            if $task->{'io_watcher'}->is_active;
+    }
+    if ( defined $task->{'ws_sock'} ) {
+        $task->{'ws_sock'}->close;
+    }
+
+    <[kimi-web.process_queue]>;
+}
+
+#,,,,,...,.,,,.,,,,,,,...,,..,.,,,,.,,,,,,.,.,.,.,...,...,...,...,,,,,.,,,.,,,
+#QBJXBQGF2HEMFJOJSEJIO4W6IBIQITW5MX3OAD7BFUY5PL4J4NPPXWUCSUGJNUIUMU7YE56CIDK5S
+#\\\|VFTAK62SGUPKULJRJW4BIFLYFUXINW36URIBUURP334DNEKZ7D4 \ / AMOS7 \ YOURUM ::
+#\[7]HIMPESEK2ZN625BCO2NGH7GJJ2W6JHKQ2K2LWVV43F6PAVVK2CBA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

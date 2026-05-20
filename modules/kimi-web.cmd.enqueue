@@ -1,0 +1,31 @@
+## [:< ##
+
+# name  = kimi-web.cmd.enqueue
+# descr = add task to queue, start processing if idle
+
+my $args = $call->{'args'} // {};
+
+## use a hash for id generation (gen_id requires hashref) ##
+my $queue_ids = <kimi-web.task.queue_ids> // {};
+<kimi-web.task.queue_ids> = $queue_ids;
+my $task_id = <[base.gen_id]>->($queue_ids);
+
+my $task = {
+    'id'     => $task_id,
+    'args'   => $args,
+    'sid'    => $call->{'session_id'},
+    'cmd_id' => $call->{'cmd_id'},
+    'queued' => <[base.time]>->(3),
+};
+
+push <kimi-web.task.queue>->@*, $task;
+
+<[kimi-web.process_queue]>;
+
+return { 'mode' => qw| true |, 'data' => "queued: $task->{id}" };
+
+#,,.,,,..,.,,,,,.,,..,...,.,,,..,,..,,,..,...,.,.,...,...,,,.,.,.,..,,,.,,,,,,
+#6UXI7OLMBHQJ3LEHKOJKVT2PVP6WGBKYKCYSQYBS3YW676K6DJXK7TCUKQHGZFVJSUYASF7A7LLU4
+#\\\|3DBXY7NNNTEUGN2YRFCPNTXBSJBFELUTNINLZYABLYEGPOHPLTT \ / AMOS7 \ YOURUM ::
+#\[7]NRHWJIAUDZLAE6QOVTHZQXQCGF5WRIY7JQG5QMEXSMMDJABDXODI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
