@@ -1,9 +1,9 @@
 ## [:< ##
 
-# name = web-browser.cmd.set_cookie_policy
+# name  = web-browser.cmd.set_cookie_policy
+# descr = set cookie acceptance policy on web context
 
-my $call   = shift;
-my $policy = $call->{'data'} // 'never';
+my $policy = $call->{'args'} // 'never';
 
 ## valid policies: never  no-third-party  always
 my %policy_map = (
@@ -19,8 +19,8 @@ $cookie_manager->set_accept_policy($wk_policy);
 
 return "cookie policy: $policy";
 
-#,,..,..,,.,.,...,.,.,.,,,.,,,,,,,,.,,,,,,,,.,.,.,...,..,,..,,,..,,.,,,.,,,..,
-#YSOYHIUOQK67P4OGJNJ2XRIQSQXEZRSHBL4G2WSG3GFJ2HSHRIOZT2L7IDJ334NQIXXLAPJIN5ZUO
-#\\\|ON34JWYQCW6WMVW2AUGQGOKWTYBDGO4KSHCNN6LVJOYVA373HY2 \ / AMOS7 \ YOURUM ::
-#\[7]AEXLBU4XHLJAZ7AHLDI3RSLEXKZI2Q2ONTRP2NVAAJBNGMS366DQ 7  DATA SIGNATURE ::
+#,,,,,...,,.,,..,,..,,,..,.,.,,,,,.,,,,.,,,.,,.,.,...,...,.,.,,,,,.,.,.,,,,.,,
+#U2TRHFBNRZQSXZ5DJBR4W4B47RSAUUFNUECNOQNI3VPZW6REMY5APPOQ6ALDDYD7UNGL4VW7Y57YC
+#\\\|RE53SVXXPFRQT3V3YWD4WB574O5NFF77LFH3QMY75Z4U2PYQC7P \ / AMOS7 \ YOURUM ::
+#\[7]ZWONKYBRCCH2NT4GGUUWSHMCFH57RKTKY6UEH7TFSKKICEJDXUCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

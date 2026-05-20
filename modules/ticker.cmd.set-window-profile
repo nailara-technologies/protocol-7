@@ -27,7 +27,7 @@ if ( not defined $window ) {
     };
 }
 
-my $screen = <[window.get_screen_size]>;
+my $screen = <[window.gtk.get_screen_size]>;
 my $geo    = <[window.profile.calculate]>->(
     {   profile  => $profile,
         screen_w => $screen->{'width'},
@@ -35,7 +35,7 @@ my $geo    = <[window.profile.calculate]>->(
     }
 );
 
-<[window.profile.apply]>->( $window, $geo );
+<[window.gtk.profile.apply]>->( $window, $geo );
 
 ## update legacy coordinate vars ##
 <x11.window.width>       = $geo->{'width'};
@@ -50,8 +50,8 @@ return {
     'data' => "window profile: $profile"
 };
 
-#,,..,,,.,.,,,...,,,.,,.,,,.,,...,...,..,,.,,,..,,...,...,..,,,.,,,,.,..,,,,.,
-#6KEC4E2FUFHU4HAJEW64NPHZLXFZCOXBPF5JJSVRWRNBS6ZMJMNGIHXTH2Q7TR73QDJ4WS3QCWPMQ
-#\\\|XJACG4L2E6JL4BFWLIFMO3LK2XL6SJ3XMRPMAM5URTSZDUYZYA7 \ / AMOS7 \ YOURUM ::
-#\[7]JJXDAZNACCOUBAQTVUP73TFQBKPV7YROAB6EE5FDICAUPIOM6IDI 7  DATA SIGNATURE ::
+#,,,,,.,.,.,.,,,,,,..,,,.,,,,,,..,,,,,.,.,.,.,..,,...,...,..,,.,.,.,,,...,.,,,
+#56SBUHA4VV5USJCKPLAXDXOU3EX4LVMHVPVZU6L3WZGG5IA5A2YYEBQYSVZMBX53PWJ22ODKNIW54
+#\\\|Z54HLEUQ2JWV54QT4DNVQH2MWRBQRCCUONRIAPUAAKFPBW4ELR3 \ / AMOS7 \ YOURUM ::
+#\[7]XPNHVTSGQ73Z53VDHSNC63RDVLNTLF5K3E3CRDYD33QXELCZGEAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -12,6 +12,24 @@ my ( $size_x, $size_y, $pos_x, $pos_y )
 <web-browser.window.pos>  = { 'x' => $pos_x,  'y' => $pos_y };
 <web-browser.window.size> = { 'x' => $size_x, 'y' => $size_y };
 
+## window profile fallback when tile-groups had no geometry (used screen size) ##
+if (<x11.geometry_was_undefined>) {
+    my $profile = <web-browser.window.profile> // 'automatic';
+    $profile = <web-browser.window.profile-fallback> // 'fullscreen'
+        if $profile eq 'automatic';
+    my $screen = <[window.gtk.get_screen_size]>;
+    my $geo    = <[window.profile.calculate]>->(
+        {   profile  => $profile,
+            screen_w => $screen->{'width'},
+            screen_h => $screen->{'height'},
+        }
+    );
+    ( $size_x, $size_y, $pos_x, $pos_y )
+        = @{$geo}{qw| width height x y |};
+    <web-browser.window.pos>  = { 'x' => $pos_x,  'y' => $pos_y };
+    <web-browser.window.size> = { 'x' => $size_x, 'y' => $size_y };
+}
+
 Gtk3->init;
 
 <[base.log]>->( 1, 'window initializaion .,' );
@@ -145,8 +163,8 @@ foreach my $signal_name (qw|  INT  TERM  |) {
     );
 }
 
-#,,..,,,.,.,.,.,,,,,,,..,,.,,,,.,,,.,,,.,,,..,..,,...,...,,.,,,.,,,,.,,,,,...,
-#24OO72MNJJK75HF6TZAM2NZB7B46A7LSTZFGKK3PRQEAAEF3MC33WLGVQ7XQF7HUBF47IBX3IFPN6
-#\\\|QIMBPG7QGT27RW4K7PYNVOYCPC54N5LRINYYQ4SP37233JLCP6F \ / AMOS7 \ YOURUM ::
-#\[7]NS5BWMLCTZV67UC4RG4WIUEPVPY2RGMWX5UTIAYIQZFFMJSDACCQ 7  DATA SIGNATURE ::
+#,,..,..,,...,,.,,,..,.,,,,.,,,,.,.,,,,.,,,,.,..,,...,...,..,,.,.,.,.,,.,,,..,
+#TBWWWK37P7MLHWSA4ODBWAAOTWRAH7XF74YGVVZAWFD7Y46BNBTWSWIQJ2AXR6K3FP3E6LTEWX654
+#\\\|DG56W5AZIPWCJP4P2NI7MXTSEX7NVBECZV5DTVFHWXQFEMRN2DH \ / AMOS7 \ YOURUM ::
+#\[7]K5JCSMEV7NFJJIZ3EERDZ45G5NGEHTTRLU56IUQHDNLWHEW2LYCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
