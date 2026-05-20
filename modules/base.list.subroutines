@@ -360,6 +360,8 @@ return [ qw[
         debian.cmd.check
         dbus.cmd.get-pid
         cube-13.cmd.jump
+        credentials.save
+        credentials.load
         coding.task.fail
         coding.task.bury
         coding.init_code
@@ -477,6 +479,7 @@ return [ qw[
         cube.cmd.unselect
         cube.cmd.epoch_v7
         cube.cmd.basepath
+        credentials.audit
         context.init_code
         content.load_file
         content.init_code
@@ -672,6 +675,8 @@ return [ qw[
         work.console.search
         work.console.commit
         work.aggregate_bugs
+        window.profile.save
+        window.profile.load
         websocket.init_code
         web.assets.registry
         web.assets.register
@@ -771,6 +776,7 @@ return [ qw[
         cube.cmd.clear-cons
         crypt.cbc.init_code
         crypt.XTEA.pre_init
+        credentials.cmd.add
         context.zenka.state
         context.task.active
         context.style.guide
@@ -827,6 +833,7 @@ return [ qw[
         work.scan_yaml_tasks
         work.console.release
         work.aggregate_todos
+        window.profile.apply
         web.assets.by_status
         web-browser.load_uri
         weather.cmd.forecast
@@ -940,6 +947,7 @@ return [ qw[
         data.mount.fuse.open
         data.get_array_entry
         data.cmd.detach-cube
+        credentials.cmd.list
         context.share.import
         context.share.export
         context.pattern.find
@@ -1130,6 +1138,7 @@ return [ qw[
         crypt.C25519.key_vars
         crypt.C25519.key_type
         crypt.C25519.gen_keys
+        credentials.init_code
         context.template.load
         context.priority.rank
         context.delegate.role
@@ -1213,6 +1222,7 @@ return [ qw[
         work.console.sig-cycle
         work.console.shortcuts
         work.console.run-tests
+        window.get_screen_size
         websocket.handler.read
         web.template_cache.set
         web.template_cache.get
@@ -1612,6 +1622,7 @@ return [ qw[
         zenki.parent.ensure_cube
         work.parent.scan_history
         work.parent.fix_versions
+        window.profile.calculate
         web.process_template_ipc
         web.process-template-ipc
         web.cmd.process-template
@@ -1754,8 +1765,6 @@ return [ qw[
         channels.cmd.unsubscribe
         base.zenka.load_sub_list
         base.zenka.is_v7_started
-        window.profile.save
-        window.profile.load
         base.white-list.register
         base.time.year_utc_float
         base.templates.init_code
@@ -1929,6 +1938,7 @@ return [ qw[
         cube.cmd.select-strm-mode
         cube-13.cmd.stream-status
         crypt.C25519.load_keypair
+        credentials.cmd.authorize
         context.delegate.dispatch
         content.cmd.resolve_b32id
         content.cmd.clear-entries
@@ -1952,7 +1962,6 @@ return [ qw[
         channels.util.yaml_decode
         channels.test-oscillation
         channels.memory-sync.init
-        window.profile.apply
         base.stream.advance_drain
         base.sourcecode.init_code
         base.session.cancel_route
@@ -2363,7 +2372,6 @@ return [ qw[
         channels.cmd.test-strm-size
         channels.cmd.channels-since
         base.zenki.report_child_pid
-        window.get_screen_size
         base.templates.register_add
         base.stream.record_emission
         base.session.calc_cmd_stats
@@ -2705,6 +2713,7 @@ return [ qw[
         crypt.C25519.key_name_to_skey
         crypt.C25519.get_usr_keys_dir
         crypt.C25519.chksum_cache.add
+        credentials.spawn_web_session
         context.pattern.generate_name
         content.cmd.get_playlist_path
         coding.tools.handler.perltidy
@@ -2728,7 +2737,6 @@ return [ qw[
         channels.subscription.manager
         channels.cmd.ai-review-submit
         channels.cmd.ai-review-status
-        window.profile.calculate
         base.validate.data_key_syntax
         base.source.collect_file_list
         base.parser.human.fsize_fixed
@@ -3033,6 +3041,7 @@ return [ qw[
         crypt.C25519.decrypt_secret_key
         crypt.C25519.cmd.set-client-key
         crypt.C25519.cmd.get-public-key
+        credentials.cmd.request_session
         context.tree.summary.get-branch
         context.tree.summary.checkpoint
         context.tree.checksum.init_code
@@ -3493,6 +3502,7 @@ return [ qw[
         graphics-matrix.cmd.harmonic-coords
         graphics-3d.handler.cursor_navigate
         external.orbital.sync_grid_fragment
+        credentials.handler.session_cleanup
         context.util.template.evaluate_when
         context.pattern.extract_from_change
         content.handler.get_exclusive_reply
@@ -3970,8 +3980,8 @@ return [ qw[
     ]
 ];
 
-#,,,,,.,,,,,.,..,,,..,,..,..,,,.,,,,,,,.,,,,.,.,.,...,...,...,.,.,.,,,,,,,,.,,
-#ERVQWL5H4ZYIK4Y7NGQOLJB2DR3XMXGJ44KZWUMXMGEMZ22MGP766NE3F4NKO7VGKWR6TKRU65HVC
-#\\\|LTWIRFJECS3L4KMOFZGAU5LG7SAPBXM5RHZZ66T55I6Z4WNBUGI \ / AMOS7 \ YOURUM ::
-#\[7]CQO2RQKBBMIH54BAEKMDKWGZCJQ4EKUN7Y6TLM4HUOPBWWWA7QBA 7  DATA SIGNATURE ::
+#,,,.,...,,,,,,..,,..,,,,,...,,.,,..,,.,,,.,.,.,.,...,...,.,,,.,.,..,,.,.,,,.,
+#CKDRYDZJB4ATSISP5FVUXPZCFINNIYFGIMERSJP66JQOPP24UO5LIAEIZKVZMAQ5VR5SXRPGLVB3E
+#\\\|RQAXCCEJTGTJ6GWHOZAWZ4I3B2OH4T3PVW6I6UBRULMY4IEUHZT \ / AMOS7 \ YOURUM ::
+#\[7]CW46CMQTES73O4BWNUY22TZBIY6SXIRFSSII3PIY5RMTMAGNAMAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
