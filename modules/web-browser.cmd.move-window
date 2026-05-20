@@ -1,0 +1,27 @@
+## [:< ##
+
+# name  = web-browser.cmd.move-window
+# descr = move browser window to specified position
+# param = <x> <y>
+
+my $args = $call->{'args'} // '';
+my ( $x, $y ) = $args =~ m|^(-?\d+)\s+(-?\d+)$|;
+
+return { 'mode' => qw| false |, 'data' => 'usage: move-window <x> <y>' }
+    unless defined $x and defined $y;
+
+my $window = <web-browser.gtk_obj.window>;
+return { 'mode' => qw| false |, 'data' => 'no window' }
+    unless defined $window;
+
+$window->move( 0 + $x, 0 + $y );
+
+<web-browser.window.pos> = { 'x' => $x, 'y' => $y };
+
+return { 'mode' => qw| true |, 'data' => ": window moved : ${x},${y}" };
+
+#,,,,,.,.,..,,,,,,.,.,.,.,.,.,,..,.,,,,,,,,,.,..,,...,...,,,,,.,.,,,.,...,,,.,
+#G2DIOXPSJJPHLH5EG3DVQ2OBXHP3DWG5FLEEFYAMJN4JGL3QRCSG4Q4NPAAE42HH7G2AZSSWHGVHO
+#\\\|TBBUOC52LJMEPZPXX2IWVQFSZMV4LR4QKFJ2LS6YNJI25UVJWHY \ / AMOS7 \ YOURUM ::
+#\[7]CYCHDSZ6WRVNQNLVTCOCCURMEYL2HSEBFLAVNIOZNVV3CSTHXKCQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
