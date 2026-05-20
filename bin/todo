@@ -1,0 +1,494 @@
+#!/usr/bin/perl
+use v5.24;
+use strict;
+use warnings;
+use English;
+use utf8;
+
+###         ###
+##   todo    ##
+###         ###
+
+##[ PROJECT ROOT + DEFAULT TODO PATH ]########################################
+
+BEGIN {
+    use File::Spec;
+    use Cwd     qw| abs_path |;
+    use FindBin qw| $RealBin |;
+    my $up_dir    = File::Spec->updir;
+    my $root_path = abs_path(
+        File::Spec->rel2abs( File::Spec->catdir( $RealBin, $up_dir ) ) );
+    $ENV{'P7_ROOT'} //= $root_path if defined $root_path and -d $root_path;
+}
+
+my $root      = $ENV{'P7_ROOT'} // '';
+my $list_name = 'default';
+
+## parse --file / --list / $P7_TODO_FILE before other args
+my @argv_clean;
+my $i = 0;
+while ( $i < @ARGV ) {
+    if ( $ARGV[$i] eq '--file' and defined $ARGV[ $i + 1 ] ) {
+        $ENV{'P7_TODO_FILE'} = $ARGV[ $i + 1 ];
+        $i += 2;
+    } elsif ( $ARGV[$i] eq '-list' and defined $ARGV[ $i + 1 ] ) {
+        $list_name = $ARGV[ $i + 1 ];
+        $i += 2;
+    } elsif ( $ARGV[$i] =~ m{^-list=(.+)$} ) {
+        $list_name = $1;
+        $i++;
+    } else {
+        push @argv_clean, $ARGV[$i];
+        $i++;
+    }
+}
+@ARGV = @argv_clean;
+
+my $TODO_FILE
+    = defined $ENV{'P7_TODO_FILE'} ? $ENV{'P7_TODO_FILE'}
+    : length $root
+    && -d "$root/data/yaml/todo" ? "$root/data/yaml/todo/$list_name.yaml"
+    : length $root
+    && -d "$root/data/yaml" ? do {
+    mkdir "$root/data/yaml/todo", 0755;
+    "$root/data/yaml/todo/$list_name.yaml";
+    }
+    : $ENV{'HOME'} . "/.p7/todo.yaml";
+my $TTY = -t STDOUT;
+
+binmode( STDOUT, ':utf8' );
+
+##[ terminal width ]##########################################################
+
+my $TERM_WIDTH = 72;
+if ($TTY) {
+    my $cols = `tput cols 2>/dev/null`;
+    chomp $cols if defined $cols;
+    $TERM_WIDTH = int($cols)
+        if defined $cols
+        and $cols =~ m{^\d+$}
+        and $cols >= 40;
+}
+
+##[ color scheme ]############################################################
+
+my %C;
+if ($TTY) {
+    %C = (
+        T   => "\e[38;2;6;71;195m",     ## bright blue (titles)
+        0   => "\e[38;2;68;39;172m",    ## purple
+        2   => "\e[38;2;170;94;2m",     ## amber / orange
+        3   => "\e[38;2;9;170;94m",     ## green
+        g   => "\e[38;2;9;170;94m",     ## green
+        B   => "\e[1m",                 ## bold
+        R   => "\e[0m",                 ## reset
+        dim => "\e[2m",                 ## dim
+    );
+}
+
+##[ yaml module selection ]###################################################
+
+my ( $yaml_load, $yaml_dump );
+
+for my $mod (qw| YAML::PP YAML::XS YAML |) {
+    my $file = $mod;
+    $file =~ s|::|/|g;
+    $file .= '.pm';
+    eval { require $file; 1 } or next;
+
+    if ( $mod eq 'YAML::PP' ) {
+        my $yp = YAML::PP->new;
+        $yaml_load = sub { $yp->load_string(shift) };
+        $yaml_dump = sub { $yp->dump_string(shift) };
+    } elsif ( $mod eq 'YAML::XS' ) {
+        $yaml_load = \&YAML::XS::Load;
+        $yaml_dump = \&YAML::XS::Dump;
+    } else {
+        $yaml_load = \&YAML::Load;
+        $yaml_dump = \&YAML::Dump;
+    }
+    last;
+}
+
+die "no yaml module found (need YAML::PP, YAML::XS, or YAML)\n"
+    unless defined $yaml_load;
+
+##[ data access ]#############################################################
+
+sub iso_now {
+    my @t = localtime;
+    return sprintf '%04d-%02d-%02dT%02d:%02d:%02d',
+        $t[5] + 1900, $t[4] + 1, $t[3], $t[2], $t[1], $t[0];
+}
+
+sub load_data {
+    return { items => [], next_id => 1 } unless -f $TODO_FILE;
+
+    open my $fh, '<', $TODO_FILE
+        or die "cannot read todo file: $!\n";
+    local $/;
+    my $content = <$fh>;
+    close $fh;
+
+    my $data = eval { $yaml_load->($content) };
+    $data = { items => [], next_id => 1 } if not defined $data;
+    $data->{items}   //= [];
+    $data->{next_id} //= 1;
+
+    return $data;
+}
+
+sub save_data {
+    my $data = shift;
+
+    my $dir = $TODO_FILE;
+    $dir =~ s|/[^/]+$||;
+    if ( not -d $dir ) {
+        require File::Path;
+        File::Path::make_path($dir);
+    }
+
+    open my $fh, '>', $TODO_FILE
+        or die "cannot write todo file: $!\n";
+    print $fh $yaml_dump->($data);
+    close $fh;
+}
+
+##[ item helpers ]############################################################
+
+sub count_items {
+    my $items = shift;
+    my $open  = scalar grep { $_->{status} eq 'open' } $items->@*;
+    my $done  = scalar grep { $_->{status} eq 'done' } $items->@*;
+    my $high
+        = scalar grep { $_->{status} eq 'open' and $_->{priority} eq 'high' }
+        $items->@*;
+    return ( $open, $done, $high );
+}
+
+##[ display ]#################################################################
+
+sub draw_header {
+    my $width = shift // $TERM_WIDTH;
+    my $text  = ' .: todo :.';
+    my $fill  = $width - length($text);
+    $fill = 0 if $fill < 0;
+    say $text . ( '─' x $fill );
+}
+
+sub draw_footer {
+    my ( $width, $open, $done, $high ) = @_;
+    $width //= $TERM_WIDTH;
+    my $text  = "$open open  ·  $done done  ·  $high high";
+    my $total = length($text) + 3;    ## space before, space after, trailing ─
+    my $left  = $width - $total;
+    $left = 0 if $left < 0;
+    say( '─' x $left ) . " $text ─";
+}
+
+sub format_items {
+    my ( $items, $show_done ) = @_;
+
+    my $max_id_len = 1;
+    foreach my $item ( $items->@* ) {
+        my $l = length( $item->{id} );
+        $max_id_len = $l if $l > $max_id_len;
+    }
+
+    my $max_width = 0;
+    my @rows;
+
+    foreach my $item ( $items->@* ) {
+        my ( $marker, $c_start, $c_end ) = ( '', '', '' );
+
+        if ( $item->{status} eq 'done' ) {
+            $marker = '✓';
+            if ( $TTY and $show_done ) {
+                $c_start = $C{dim};
+                $c_end   = $C{R};
+            }
+        } elsif ( $item->{priority} eq 'high' ) {
+            $marker = '▲';
+            if ($TTY) {
+                $c_start = $C{2};
+                $c_end   = $C{R};
+            }
+        } elsif ( $item->{priority} eq 'low' ) {
+            $marker = '▽';
+            if ($TTY) {
+                $c_start = $C{dim};
+                $c_end   = $C{R};
+            }
+        }
+
+        my $id_str = sprintf "%*d", $max_id_len, $item->{id};
+        my $prefix = "  $marker  $id_str ·  ";
+        my $text   = $item->{text} // '';
+        my $tags   = '';
+        if ( $item->{tags} and $item->{tags}->@* ) {
+            $tags = ' [ ' . join( ' · ', $item->{tags}->@* ) . ' ]';
+        }
+
+        my $vis_len = length($prefix) + length($text) + length($tags);
+        $max_width = $vis_len if $vis_len > $max_width;
+
+        push @rows,
+            {
+            prefix  => $prefix,
+            text    => $text,
+            tags    => $tags,
+            c_start => $c_start,
+            c_end   => $c_end,
+            vis_len => $vis_len,
+            };
+    }
+
+    $max_width = 50 if $max_width < 50;
+
+    my @lines;
+    foreach my $row (@rows) {
+        my $pad = '';
+        if ( length( $row->{tags} ) > 0 ) {
+            my $n = $max_width - $row->{vis_len};
+            $n   = 0 if $n < 0;
+            $pad = ' ' x $n;
+        }
+        push @lines,
+              $row->{c_start}
+            . $row->{prefix}
+            . $row->{text}
+            . $pad
+            . $row->{tags}
+            . $row->{c_end};
+    }
+
+    return ( \@lines, $max_width );
+}
+
+##[ commands ]################################################################
+
+sub cmd_list {
+    my $filter = shift // 'open';
+
+    my $data  = load_data();
+    my @items = $data->{items}->@*;
+
+    my $show_done = 0;
+    if ( $filter eq 'all' ) {
+        $show_done = 1;
+    } elsif ( $filter eq 'done' ) {
+        @items     = grep { $_->{status} eq 'done' } @items;
+        $show_done = 1;
+    } elsif ( $filter eq 'open' ) {
+        @items = grep { $_->{status} eq 'open' } @items;
+    } else {
+        my $tag = $filter;
+        @items = grep {
+            my $t = $_;
+            grep { $_ eq $tag } $t->{tags}->@*
+        } @items;
+    }
+
+    @items = sort { $a->{id} <=> $b->{id} } @items;
+
+    my ( $lines, $content_width ) = format_items( \@items, $show_done );
+    my $width = $TERM_WIDTH;
+    $width = $content_width + 4 if $content_width + 4 > $width;
+
+    draw_header($width);
+    say "";
+
+    if ( @items == 0 ) {
+        say "  no items";
+    } else {
+        say for @$lines;
+    }
+
+    say "";
+    my ( $open, $done, $high ) = count_items( $data->{items} );
+    draw_footer( $width, $open, $done, $high );
+}
+
+sub cmd_add {
+    my @args = @_;
+
+    my $priority = 'normal';
+    my @tags;
+
+    while ( @args and $args[0] =~ m{^-} ) {
+        my $flag = shift @args;
+        if    ( $flag eq '-h' ) { $priority = 'high' }
+        elsif ( $flag eq '-l' ) { $priority = 'low' }
+        elsif ( $flag eq '-t' ) {
+            die "expected tag list after -t\n" unless @args;
+            @tags = split /,/, shift @args;
+        } else {
+            die "unknown flag: $flag\n";
+        }
+    }
+
+    die "expected todo text\n" unless @args;
+    my $text = join ' ', @args;
+
+    my $data = load_data();
+    my $id   = $data->{next_id}++;
+
+    push $data->{items}->@*,
+        {
+        id       => $id,
+        text     => $text,
+        status   => 'open',
+        priority => $priority,
+        tags     => [@tags],
+        added    => iso_now(),
+        done_at  => undef,
+        };
+
+    save_data($data);
+}
+
+sub cmd_done {
+    my @ids = @_;
+    die "expected item id\n" unless @ids;
+
+    my $data  = load_data();
+    my $found = 0;
+
+    foreach my $id_str (@ids) {
+        my $id = int($id_str);
+        foreach my $item ( $data->{items}->@* ) {
+            next unless $item->{id} == $id;
+            $item->{status}  = 'done';
+            $item->{done_at} = iso_now();
+            $found           = 1;
+            last;
+        }
+    }
+
+    die "item not found\n" unless $found;
+    save_data($data);
+}
+
+sub cmd_rm {
+    my $id = int( shift // die "expected item id\n" );
+
+    my $data   = load_data();
+    my $before = scalar $data->{items}->@*;
+    $data->{items} = [ grep { $_->{id} != $id } $data->{items}->@* ];
+
+    die "item $id not found\n"
+        if scalar( $data->{items}->@* ) == $before;
+    save_data($data);
+}
+
+sub cmd_edit {
+    my $id = int( shift // die "expected item id\n" );
+    die "expected new text\n" unless @_;
+
+    my $text = join ' ', @_;
+    my $data = load_data();
+
+    foreach my $item ( $data->{items}->@* ) {
+        next unless $item->{id} == $id;
+        $item->{text} = $text;
+        save_data($data);
+        return;
+    }
+
+    die "item $id not found\n";
+}
+
+sub cmd_tag {
+    my ( $id, $tag ) = @_;
+    die "expected item id and tag\n"
+        unless defined $id and defined $tag;
+
+    $id = int($id);
+    my $data = load_data();
+
+    foreach my $item ( $data->{items}->@* ) {
+        next unless $item->{id} == $id;
+        my %have = map { $_ => 1 } $item->{tags}->@*;
+        push $item->{tags}->@*, $tag unless $have{$tag};
+        save_data($data);
+        return;
+    }
+
+    die "item $id not found\n";
+}
+
+sub cmd_untag {
+    my ( $id, $tag ) = @_;
+    die "expected item id and tag\n"
+        unless defined $id and defined $tag;
+
+    $id = int($id);
+    my $data = load_data();
+
+    foreach my $item ( $data->{items}->@* ) {
+        next unless $item->{id} == $id;
+        $item->{tags} = [ grep { $_ ne $tag } $item->{tags}->@* ];
+        save_data($data);
+        return;
+    }
+
+    die "item $id not found\n";
+}
+
+sub cmd_clear {
+    my $data = load_data();
+    $data->{items}
+        = [ grep { $_->{status} ne 'done' } $data->{items}->@* ];
+    save_data($data);
+}
+
+sub cmd_reset {
+    if ($TTY) {
+        print "remove all items? [y/N] ";
+        my $ans = <STDIN>;
+        chomp $ans if defined $ans;
+        if ( not defined $ans or $ans !~ m{^y}i ) {
+            say "cancelled" if $TTY;
+            return;
+        }
+    } else {
+        die "reset requires tty for confirmation\n";
+    }
+
+    save_data( { items => [], next_id => 1 } );
+}
+
+##[ dispatch ]################################################################
+
+my $cmd = shift @ARGV // 'list';
+
+if ( $cmd eq 'list' or $cmd eq '' ) {
+    my $filter = shift @ARGV // 'open';
+    cmd_list($filter);
+} elsif ( $cmd eq 'add' ) {
+    cmd_add(@ARGV);
+} elsif ( $cmd eq 'done' ) {
+    cmd_done(@ARGV);
+} elsif ( $cmd eq 'rm' ) {
+    cmd_rm(@ARGV);
+} elsif ( $cmd eq 'edit' ) {
+    cmd_edit(@ARGV);
+} elsif ( $cmd eq 'tag' ) {
+    cmd_tag(@ARGV);
+} elsif ( $cmd eq 'untag' ) {
+    cmd_untag(@ARGV);
+} elsif ( $cmd eq 'clear' ) {
+    cmd_clear();
+} elsif ( $cmd eq 'reset' ) {
+    cmd_reset();
+} else {
+    die "unknown command: $cmd\n";
+}
+
+exit 0;
+
+#,,,.,,,,,..,,,,.,,,,,,,,,,,.,...,.,,,,,.,,.,,..,,...,...,,,,,,,,,.,.,,,.,.,,,
+#A3KQWICMZODPO4RLASYE63GOKZ47P5KDJNJQU4DBRPTFALHSC2E7USE7YIYRMQGH3PJJDWEQMZ4CE
+#\\\|VS5LAMIPJ6CCTIDOXTR7AZNBEOWBLTSFMAFNC3UPSW7IRTTGGYO \ / AMOS7 \ YOURUM ::
+#\[7]2OEM32KMSDXI25C3CBNBZXPDODWEXBQJ2RONXSNZNB7WZV3BT4CI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
