@@ -1,20 +1,20 @@
-## {:< ##
+## [:< ##
 
 # name  = nshell.handler.debug_input
 # descr = trigger reading from debug buffer
 
-my $event = shift; ## get var_watcher event ##
-my $id    = $event->w->data; ## get session id ##
-my $session = $data{'session'}->{$id};## acquire session hash ##
+my $event   = shift;                      ## get var_watcher event ##
+my $id      = $event->w->data;            ## get session id ##
+my $session = $data{'session'}->{$id};    ## acquire session hash ##
 
-<[base.log]>->(2, "[debug_input] called read handler..,");
+<[base.log]>->( 2, "[debug_input] called read handler..," );
 
-$session->{'watcher'}{'stdin_handler'}->now; ## nshell.read_from_buffer ##
+$session->{'watcher'}{'stdin_handler'}->now;    ## nshell.read_from_buffer ##
 
 return 0;
 
-#,,..,...,,.,,,..,,,.,,,,,,.,,...,,..,..,,,..,..,,...,...,.,.,,,.,..,,.,.,,,.,
-#QDSQOVMHTFW2E5VX5SQZFEZTI4O4YM34XTPRQIQO2OKDE4X7FX4T5TTSEB2QHF4MTDNHLUIOOLE6Y
-#\\\|A2YMR2MFPUXXULEUAWVRRPL6PSG6D723762KTMQ7ELZKFQLY7LH \ / AMOS7 \ YOURUM ::
-#\[7]GFCRJMR7CNVMB7B2TJ5KZIIDLMVOA3EMKEWR35VIKMSOQPAY36AQ 7  DATA SIGNATURE ::
+#,,,.,.,.,.,.,.,.,,,.,,..,,,.,,.,,,..,...,..,,..,,...,...,.,,,,..,,,,,..,,.,,,
+#O2IKF3FGQYPMIYJPHYWJ7BKWOQ3AWRHS2W4VLUMIMK4HILHJ2CL2D2IW7JIDWOSOK5GONG6SCZSTY
+#\\\|TTKZVLXLIDSFJDFK7K46S3ESSMJFANZT43NIUEKVAUEGFBIYMND \ / AMOS7 \ YOURUM ::
+#\[7]GARG7QKXE6KWDET5T3F62UQN3D2TPE4HU2NWJV6X57JRRKWCFOCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
