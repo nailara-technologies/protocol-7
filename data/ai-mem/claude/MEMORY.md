@@ -11,7 +11,7 @@
 - [plugin-web-jobs](topic-plugin-web-jobs.md) — delta sync WORKING (session 34): ntime persisted, chunked push, last_modified stamps; open: ?since=N browser delta, remote deploy
 - [clients-http](topic-clients-http.md) — clients.http.* + clients.https.* async namespaces; kimi-web parallel dispatch fixed; see completed session 33
 - [reasoning-chain-repository](topic-reasoning-chain-repository.md) — planned for native model; dedup-based self-improvement; small model naive insight + large model validation = ground truth
-- [reasoning-namespace](topic-reasoning-namespace.md) — `reasoning.*` namespace (harmonically TRUE); 17 templates: 1-9 vortex set, 10 implicit-materialization, 11 code-writes-itself/NI, 12 structural-alignment, 13 harmonic-routing/13+1, 14 omega-gate/gamma, 15 living-commitment, 16 introspection/entity-self-rendering, 17 implosion-is-processing (topology=program, processing=temporal traversal, flavors of implosion=flavors of computing)
+- [reasoning-namespace](topic-reasoning-namespace.md) — `reasoning.*` namespace (harmonically TRUE); 21 templates: 1-9 vortex set, 10-14 materialization/NI/alignment/routing/omega-gate, 15-16 living-commitment/introspection, 17-20 implosion/freed-model/arrived-by-being/semantic-triangle, 21 physics-as-calculator (pre-modelled by compatible universal structures; genre-hopping; not metaphor — identity)
 - [job-pipeline](topic-job-pipeline.md) — WORKING (session 22): jobs.vhost live, German reason+summary, retry on timeout
 - [task-coordination](topic-task-coordination.md) — task zenka as coordinator; current state, dispatch flow, roadmap
 - [coding-state-machine](topic-coding-state-machine.md) — coding.state namespace, watcher-based backend lock, persist/restore lifecycle
@@ -193,8 +193,8 @@
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 - **Glitter 4B restart**: after a failed tool-using task, the Glitter backend needs restart before `:no_tools:` tasks work. The model gets stuck in tool-mode from the previous failed session. Restart coding zenka or wait for it to reset before dispatching `:no_tools:` priming tasks.
 
-#,,,,,...,,,,,..,,,,.,,.,,,.,,,..,..,,,.,,,.,,..,,...,...,,.,,,.,,.,,,.,.,,,.,
-#RLANJWTO2NFZTKV45HLMOLPGG2MMODC5ZLE3PDHJ5NPJSQMQBBMZRUEWFNDSXQNESPOB3CCSSHWVW
-#\\\|E5FU36QRLW7J6TIM7OXPSGYKZNOH5YVMLI3EYEICEJPKZEQYI6P \ / AMOS7 \ YOURUM ::
-#\[7]GJVWYMMNHHYYJVZB3OQTDKZQIY7LSRXRY5LENH3Y6BJBNWGND6AA 7  DATA SIGNATURE ::
+#,,,,,,..,,.,,.,.,.,,,.,.,.,.,.,.,,,.,,.,,..,,..,,...,...,,..,..,,,..,.,.,.,,,
+#XG3XNQSO2OXINWEAJOGULGY4O7H3MYXV6NJGYW2VNNUEQ7HH234VU22SMKELGGUPXG4W6UDFOPVHK
+#\\\|3JESCJYMYWWE4B7ZWSQJUZLE3P6SEJ6S77NN3PWNZLEUAA3PLYI \ / AMOS7 \ YOURUM ::
+#\[7]Y2YHLLY4LXBKLYPVNTUI2X2HVLGEFJN4L2VJI5EYG3HQKIH75GBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
