@@ -98,6 +98,20 @@ open issues:
 - Gemma 3 models: assistant→model role fix helps but GPU crash (exit=6) on 9b model
 - Glitter cosmology priming: never got clean response; retry after model-key pinning
 
+**fetch-files zenka (session 36 continuation)**:
+  fetch-files zenka live — 74 subs, no errors, cube authorized, 33s idle timeout
+  modules: fetch.file.huggingface.* (download/list/search/lan-check/status + handlers)
+  $call fix: non-.cmd.* modules need 'my $call = shift;' explicitly
+  JSON: JSON::PP::decode_json() is the correct pattern (not base.json.decode)
+  cmd wrappers: fetch-files.cmd.hf-{download,list,search,lan-check,status}
+  namespace plan: fetch-files.pre_init + swap_subs('fetch.file.huggingface','huggingface')
+    → <[huggingface.list]>->() etc. — clean, short, available to other zenki
+    → user doing rename+ncode replace now
+  access list: short hyphenated names (hf-download hf-list etc), no wildcard
+  modules.load: auth net protocol io.unix fetch.file fetch-files.cmd devmod
+  task: data/tasks/hf-download-zenka.md (fetch.file.* namespace after ncode rename)
+  task: data/tasks/sourcecode-recently-modified.md (duration+filepath two-column history)
+
 **model-key idea (end of session)**:
   give each model USR.<model-id>.base-key like USR.lain.base-key
   update-signatures uses active model key by default
@@ -846,8 +860,8 @@ Skip calling harmonize_payload_line_feed when both conditions are met:
 - Signatures now properly formatted with correct separator endline
 - Pre-commit validation passes
 
-#,,.,,..,,.,,,...,.,,,,,.,.,.,.,.,,,,,,,,,.,.,..,,...,...,,,,,...,,.,,.,,,..,,
-#LSLXBSE7B73ESINAF2UPW5PB4UHRH3TQHYAT66H77UPOENU3Q5GRY5OQSRYY2H4IORXHKDQKQBA42
-#\\\|AUHOBUEYSAPENQ7XJOSGSFE4SCJFAQBPB4JAWPAIJ433S6ZX6HJ \ / AMOS7 \ YOURUM ::
-#\[7]PDJBPKZ7GDWLONDN7NOSL2XCUAQNL6MUAT4S6LPRHVVDFATCQ4DA 7  DATA SIGNATURE ::
+#,,.,,,,,,,,,,.,.,,,.,,.,,,.,,,..,.,.,..,,,,.,..,,...,..,,.,.,,..,,,.,,,,,.,.,
+#VXL3RPNWAHZSOUOUWKF3NGKIG63SZAJUQ4STHMAU6LFZQKJKJ45XTH3537O2EWIIQJXUEXUNEIJKC
+#\\\|WPPAR4QPHMPOKIGEDO2AUETQY3XHTOLHGB7IHCKHMTFSKPFPT5J \ / AMOS7 \ YOURUM ::
+#\[7]BEDWAHIBCSNMBHQBSO23NBIYOG7M6NBNV4UKIORCPYWYQHDVXWBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

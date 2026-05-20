@@ -1,0 +1,28 @@
+## [:< ##
+
+# name  = fetch-files.cmd.hf-download
+# descr = download GGUF model file [HuggingFace]
+# param = '{"repo":"..","file":"..gguf"}'
+
+my $args_str = $call->{'args'} // '';
+
+return {
+    'mode' => qw| false |,
+    'data' => 'args required : {"repo":"...","file":"..."}'
+    }
+    if not length $args_str;
+
+my $args = eval { JSON::PP::decode_json($args_str) };
+return {
+    'mode' => qw| false |,
+    'data' => sprintf( "invalid  JSON: %s", <[base.str.eval_error]> )
+    }
+    if $EVAL_ERROR;
+
+return <[huggingface.download]>->($args);
+
+#,,,.,.,.,...,,,,,.,.,,..,...,,,.,,.,,,..,...,..,,...,...,..,,,,,,..,,,,.,,,.,
+#64AJTFIAVTCZG2WGWPQDY6HCEDHCFEJTBXMFHDB6N62NWBUOIFZZCOCWGVPAHHW5EZN3TB3NLTSCC
+#\\\|6XGQ3YNSE3GCV7AHJWEMUS3RDJPYF3PQS35AZ4KIUCON6FI3XAV \ / AMOS7 \ YOURUM ::
+#\[7]SJ7JEW2A74JOUQQDDNLRRM3WCKOETENAVPEXFZ6RJSLSKVKNKUDY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

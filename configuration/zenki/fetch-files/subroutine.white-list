@@ -37,8 +37,6 @@ base.pre_init
 base.n2u_time
 base.get_file
 base.cmd.name
-base.cmd.list
-base.cmd.exit
 base.cfg_bool
 base.wrap_text
 base.swap_subs
@@ -57,11 +55,9 @@ base.file.open
 base.dump_data
 base.conf-wrap
 base.cmd.heart
-base.cmd.clear
 auth.auth_list
 plugin.auth.pwd
 net.read_binary
-devmod.pre_init
 base.zenka.loop
 base.str.os_err
 base.prng.bytes
@@ -72,12 +68,9 @@ base.file.which
 base.file.slurp
 base.event.once
 base.event.loop
-base.cmd.whoami
 base.cmd.reload
 base.calc_gauss
 plugin.auth.unix
-devmod.post_init
-devmod.init_code
 clients.http.get
 base.stream.push
 base.stream.open
@@ -94,10 +87,6 @@ base.get_homedir
 base.cmd.subname
 base.cmd.src-ver
 base.cmd.src-age
-base.cmd.rel-ver
-base.cmd.ptl-ver
-base.cmd.present
-base.cmd.cur-pid
 base.chk-sum.elf
 base.call_filter
 auth.pwd.success
@@ -119,9 +108,6 @@ base.get_warnings
 base.file.content
 base.event.add_io
 base.context.list
-base.cmd.term-all
-base.cmd.last-sid
-base.cmd.cpu-time
 base.cmd.commands
 base.chk-sum.amos
 base.reload_values
@@ -135,13 +121,11 @@ base.get_file.aref
 base.file.pre_init
 base.file.line_map
 base.event.add_var
-base.cmd.verbosity
 base.clear_p7_mods
 base.clean_unicode
 base.clean_hashref
 plugin.auth.twofish
 io.ip.tcp.init_code
-devmod.console-dump
 base.utf8.clean_str
 base.str.eval_error
 base.round_truncate
@@ -184,8 +168,6 @@ base.eval.comp_regex
 base.disable_command
 base.devmod.dump_var
 base.cmd.show-buffer
-base.cmd.show-access
-base.cmd.amos-chksum
 base.buffer.add_line
 auth.zenka.init_code
 crypt.C25519.key_vars
@@ -201,27 +183,22 @@ base.load_config_file
 base.list.element.add
 base.file.match_files
 base.event.add_signal
-base.console.describe
 base.console.commands
-base.cmd.when-present
-base.cmd.dependencies
 base.cmd.buffer-erase
 base.balanced-average
-fetch.file.huggingface
 base.session.init_code
 base.required_bin_path
 base.register_src_deps
 base.register_bin_deps
 base.perlmod.init_code
 base.path.resolved_abs
-base.net.cmd.timestamp
 base.get_max_verbosity
 base.file.get-non-dirs
 base.comp-int.is_valid
-base.cmd.cancel-stream
 auth.unix.authenticate
 protocol.sftp.init_code
 io.unix.socket.end_code
+fetch-files.cmd.hf-list
 crypt.C25519.key_exists
 clients.http.handler.io
 base.templates.pre_init
@@ -238,9 +215,6 @@ base.exists.sub-process
 base.execute_zenka_code
 base.dump.data_key_list
 base.convert.hex_to_int
-base.cmd.set-name-width
-base.cmd.ondemand-zenka
-base.cmd.loaded-configs
 base.chk-sum.elf.inline
 base.callback.cmd_reply
 base.auth.set_zenka_key
@@ -258,6 +232,8 @@ base.cmd.verify-instance
 base.chk-sum.bmw.L13-str
 base.check_cfg_cmd_alias
 io.unix.socket.input.open
+fetch-files.cmd.hf-status
+fetch-files.cmd.hf-search
 base.stream.advance_drain
 base.sourcecode.init_code
 base.session.cancel_route
@@ -286,10 +262,10 @@ base.max-len.val-hash-keys
 base.handler.session_error
 base.event.io_idle_restart
 base.check_dependency_dirs
-auth.zenka.cmd.session-key
 net.read_linewise_estimated
 io.unix.socket.output.close
 fetch.file.huggingface.list
+fetch-files.cmd.hf-download
 clients.http.parse_response
 base.templates.register_add
 base.stream.record_emission
@@ -304,6 +280,7 @@ base.chk-sum.amos.init_code
 protocol.protocol-7.pre_init
 protocol.amos_term.init_code
 io.unix.socket.input.connect
+fetch-files.cmd.hf-lan-check
 clients.http.handler.timeout
 base.validate.composite_name
 base.session.check_remaining
@@ -338,7 +315,8 @@ base.p7refs.get_refaddr_prefix
 base.number-cache.true_upwards
 base.log.send-buffer.add-queue
 base.cache.refaddr-prefix.init
-crypt.C25519.cmd.get-public-key
+fetch.file.huggingface.pre_init
+fetch.file.huggingface.download
 base.zenki.set_ondemand_timeout
 base.warnings.compact_statehash
 base.p7refs.gen_template_chksum
@@ -430,8 +408,8 @@ protocol.protocol-7.protocol-version-path-set-up
 fetch.file.huggingface.handler.download_progress
 base.log.send-buffer.reply-handler.notify-online
 
-#,,,,,..,,.,,,,,,,,,.,.,,,,..,,,,,.,.,.,,,..,,..,,...,...,,,,,..,,,.,,.,,,,.,,
-#JW25ZHEW2WBGIOEJQ65E5CS3RNENPX2JRQ2FRVHPWADECBPQFPNAOZM76G6X2ESM6LTFZ3NLLE3UO
-#\\\|HNL5GXME54J44GPOJVZWE5KVIO4G5RAMY6JM6MEQFCO3DR2WRUF \ / AMOS7 \ YOURUM ::
-#\[7]3R34K7C5KKFCQORHLVROIZ5GSK4NNGDUMWKR6XT5FPZYIC6KNCCI 7  DATA SIGNATURE ::
+#,,.,,..,,.,,,..,,...,.,.,.,.,.,,,,..,,,,,,..,..,,...,...,..,,,,.,,,,,,,.,.,,,
+#FPAPYXIQHBMGLTF5YA36WFXQEETLN5FWKABUN27PJAUPLVXMBSFTAADKPQBJ2OSV3DNNCLLTSTDHU
+#\\\|OV3GBUQPR3GBZMOXYTVHN6HQG3OESBLMEYTDZ5WLDAOZT3XMOOU \ / AMOS7 \ YOURUM ::
+#\[7]SGK3DLDTMRENCQEBMZHRGCU4FNW5VQSEYQDU43F23NZKV3EYUEDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
