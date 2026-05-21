@@ -6,6 +6,7 @@
 my $arg_3 = $ARG[3];
 
 my $encode_perl_refs = <base.dump_data.encode_perl_refs> //= 5;    ## true ##
+my $reverse_sort     = <base.dump_data.reverse_sort>     //= 0;
 
 if ( defined $ARG[3] and defined $ARG[0] ) {
     $ARG[5] = $ARG[2];
@@ -17,7 +18,8 @@ if ( not defined $ARG[5] ) { $ARG[5] = '' }
 if ( not defined $ARG[6] ) { $ARG[6] = '' }
 my $out = '';
 
-foreach my $ARGkey ( <[base.sort]>->($arg_3) ) {
+my $sort_fn = $reverse_sort ? 'base.reverse-sort' : 'base.sort';
+foreach my $ARGkey ( $code{$sort_fn}->($arg_3) ) {
     my $ARGval = $arg_3->{$ARGkey};
     $ARGval = '' if not defined $ARGval;
     $ARGval =~ s|\\|\\\\|g;
@@ -125,8 +127,8 @@ else {
     warn 'undefined \\ outdated subroutine usage';
 }
 
-#,,,.,,,.,...,,.,,...,,,.,,.,,.,.,,.,,,.,,.,.,..,,...,...,,.,,...,,,.,,.,,,.,,
-#KF7IAAM4PU6XABPYU42ZPVDLEC6KHU5FHT3ASIPC44NOEBAHGNF3LWOHB2FOROCGZ63NKLQQ3HAGQ
-#\\\|AP2NVBKAZNLRNQCTRMCZSOPZKKHATRTRGNBWJX6XEWH4Z6PJOXB \ / AMOS7 \ YOURUM ::
-#\[7]VUMRQMGK4V2H7BCVITA5F3OOVFLR27H2J2VAILXQEFRRJ4YVXGBA 7  DATA SIGNATURE ::
+#,,,,,,,,,,..,,,,,,.,,,.,,...,,,.,..,,.,.,,.,,..,,...,..,,,..,.,,,...,,.,,.,.,
+#HF64AASJGP7U6LSDOGAYGDPV3I6XZC4D2Z4MFV253DEYDNNFXR3MRJPDID4ZOK6GCRYPHUOS7VOFY
+#\\\|U5LTD2HAXMO4I7EX2AJ6EP2WCVSJ3S4EBDARBPFB3J7GUOHWDNB \ / AMOS7 \ YOURUM ::
+#\[7]Z67VSJTMN66KRRAQ3JJWMNTTZHMBCDDBOY6E4X552JXNE6EMGMDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

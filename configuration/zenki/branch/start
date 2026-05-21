@@ -1,0 +1,53 @@
+.:[ branch — unifying addressable layer for all protocol-7 resources ]:.
+
+[load_config_file:'shared-params']
+
+buffer.session.log_cmd  = p7-log.append
+buffer.session.max_size = 795648
+
+system.verbosity.zenka_buffer = 1
+
+access.cmd.usr.cube = heart subname name commands reload verify-instance \
+                      src-age src-ver show-buffer \
+                      buffer-erase buffer-erase-level \
+                      branch.node.create branch.node.info branch.node.path \
+                      branch.attach branch.detach branch.resolve branch.list \
+                      branch.group.add branch.group.remove branch.group.list \
+                      branch.group.members branch.group.propagate \
+                      branch.route.establish branch.route.release \
+                      branch.route.list branch.route.key.propagate \
+                      branch.route.key.request branch.route.key.verify \
+                      branch.dep.declare branch.dep.remove branch.dep.check \
+                      branch.dep.mark branch.dep.propagate branch.dep.resolve \
+                      branch.dep.cycle branch.dep.graph \
+                      branch.resource.attach branch.resource.detach \
+                      branch.resource.list branch.resource.get \
+                      branch.resource.find branch.resource.context \
+                      branch.resource.task branch.resource.stream \
+                      branch.storage.persist branch.storage.restore \
+                      branch.storage.sync branch.storage.list \
+                      branch.data.bind branch.data.unbind branch.data.query \
+                      branch.discover.register branch.discover.resolve \
+                      branch.discover.announce branch.discover.watch \
+                      branch.9p.client.mount branch.9p.client.sync \
+                      branch.file.open branch.file.read branch.file.write \
+                      branch.file.stat branch.file.list branch.file.close \
+                      branch.file.adapter.register
+
+modules.load = auth net protocol io.unix branch
+[load_modules:<modules.load>]
+[init_modules]
+
+[root.drop_privs:<system.amos-zenka-user>]
+
+[base.net.connect:'unix']
+
+[base.get_session_id]
+
+[zenka.loop]
+
+#,,,.,,,,,,,,,..,,...,...,,,.,.,,,..,,,..,.,.,..,,...,...,,,,,.,.,,,.,,,,,,,,,
+#BVXL6PFTRAPDCY2BAI2GCQC3IODO4HGM7TJQX274KOGY42LMEUJBQXLWN6AYG6PGYBCLJZDBC6F26
+#\\\|O22AZVBSMBBMT3MANV2VFARVSM2XG3CF2NKHRWXQL6DEL5ZWVKX \ / AMOS7 \ YOURUM ::
+#\[7]WTKTDMCYP6FSAXLSBTU4U63WHNX2U2UADIRKMFNFXHP4X6BPU6BQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

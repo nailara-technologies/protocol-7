@@ -1,0 +1,36 @@
+## [:< ##
+
+# name  = branch.dep.check
+# descr = check whether all required deps of a node are satisfied
+# param = node_id [ string or { id => ... } ]
+
+my $params  = shift                                   // '';
+my $node_id = ref $params eq 'HASH' ? $params->{'id'} // '' : $params;
+
+return { 'mode' => 'false', 'data' => 'node id required' }
+    unless length $node_id;
+return { 'mode' => 'false', 'data' => 'node not found' }
+    unless exists $data{'branch.nodes'}{$node_id};
+
+my $deps = $data{'branch.deps'}{$node_id} // {};
+
+my @unsatisfied;
+
+for my $dep_id ( sort keys %$deps ) {
+    my $dep = $deps->{$dep_id};
+    next unless $dep->{'type'} eq 'required';
+    my $state = $data{'branch.nodes'}{$dep_id}{'satisfied'};
+    push @unsatisfied, $dep_id
+        unless defined $state and $state eq 'satisfied';
+}
+
+return { 'mode' => 'false', 'data' => \@unsatisfied }
+    if @unsatisfied;
+
+return { 'mode' => 'true', 'data' => 'satisfied' };
+
+#,,,,,,.,,..,,..,,,..,.,.,..,,,,,,.,.,.,,,,,,,..,,...,...,,,.,...,...,,,.,,,,,
+#6LQMQVDRYLLQAZB5EW7OUKVKD3MGZRTEQBWQQLFIOH2UHHPLHFOG5ND334H24IZ55LPO77ZHEH4OU
+#\\\|DFCAJMJTZJHFR57IG543RWV5BLVKFDFNWE2O4NNC477II46LQ7O \ / AMOS7 \ YOURUM ::
+#\[7]NGTC3DFBALFGCWAGUITU5YON5FH7L3FLLWHWTKLQHYQQ24HRMUDA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,0 +1,41 @@
+## [:< ##
+
+# name  = branch.resource.get
+# descr = retrieve specific resource data from branch node
+# param = { node, type, id }
+#
+# id is optional — returns first match if omitted
+
+my $params = shift             // {};
+my $node   = $params->{'node'} // '';
+my $type   = $params->{'type'} // '';
+my $id     = $params->{'id'}   // '';
+
+return { 'mode' => 'false', 'data' => 'node id required' }
+    unless length $node;
+return { 'mode' => 'false', 'data' => 'type required' }
+    unless length $type;
+return { 'mode' => 'false', 'data' => 'node not found' }
+    unless exists $data{'branch.nodes'}{$node};
+
+return { 'mode' => 'false', 'data' => 'not found' }
+    unless exists $data{'branch.resources'}{$node}{$type};
+
+my $list = $data{'branch.resources'}{$node}{$type};
+
+if ( length $id ) {
+    foreach my $res (@$list) {
+        return { 'mode' => 'true', 'data' => $res->{'data'} }
+            if $res->{'id'} eq $id;
+    }
+} elsif ( scalar @$list ) {
+    return { 'mode' => 'true', 'data' => $list->[0]{'data'} };
+}
+
+return { 'mode' => 'false', 'data' => 'not found' };
+
+#,,,,,.,,,,..,,.,,,..,,,,,,,,,.,,,..,,.,,,,..,..,,...,...,...,,,.,.,,,.,.,,..,
+#BIENJMETQAYUUHL7EAPCBHF2SJOCK4XVNHZLT3BGZR5JOSPLRQMV2J7HTJHF5FQNLA3O2CV65QLMM
+#\\\|BVUZKEQJZSAYU5Z7XCPTTTKMLUZLIKNXNIZTAJVPJWYOW3K3HF2 \ / AMOS7 \ YOURUM ::
+#\[7]7K63WJOI6V2YMDIFOAJPZIBMOMQLH6KHC552KIEVZTB3QC7WXSAA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

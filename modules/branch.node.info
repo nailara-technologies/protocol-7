@@ -1,0 +1,35 @@
+## [:< ##
+
+# name  = branch.node.info
+# descr = return node metadata by id
+# param = node_id [ string or { id => ... } ]
+
+my $params = shift // '';
+my $node_id
+    = ref $params eq 'HASH'
+    ? $params->{'id'} // ''
+    : $params;
+
+return { 'mode' => 'false', 'data' => 'node id required' }
+    unless length $node_id;
+return { 'mode' => 'false', 'data' => 'node not found' }
+    unless exists $data{'branch.nodes'}{$node_id};
+
+my $node      = $data{'branch.nodes'}{$node_id};
+my $path      = <[branch.node.path]>->($node_id);
+my $sub_count = scalar keys %{ $data{'branch.children'}{$node_id} // {} };
+
+return {
+    'mode' => 'true',
+    'data' => {
+        %$node,
+        'path'        => $path->{'data'} // '',
+        'child_count' => $sub_count,
+    },
+};
+
+#,,,,,...,.,.,,.,,.,,,,..,,.,,...,.,.,.,,,...,..,,...,...,,..,,,,,,,.,.,.,.,.,
+#T4NAKQA47DQJJUILJ3IIWXOUFYR7HB6J7G4Q3FRU3H725WD63NL7JFX4KLIDR3ONWP5LFLPNJ4VCC
+#\\\|IDTD4TUD5J5UVOIJTV3PW3RGPN73YFW5WRW3STSVIFPI6D45NFS \ / AMOS7 \ YOURUM ::
+#\[7]TZPSMKHRU4TECGKOX7REOPSVK2D4ERRDNVBDHUTUNXDEEEZ6ZUBA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

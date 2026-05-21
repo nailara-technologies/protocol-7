@@ -1,0 +1,48 @@
+## [:< ##
+
+# name  = branch.list
+# descr = enumerate children of a node
+# param = node_id or { id } or { address }
+#
+# returns arrayref of { name, id, child_count, groups }
+# sorted by name; empty array at leaf nodes
+
+my $params  = shift // '';
+my $node_id = ref $params eq 'HASH' ? $params->{'id'}      // '' : $params;
+my $address = ref $params eq 'HASH' ? $params->{'address'} // '' : '';
+
+## resolve by address when id not given ##
+if ( not length $node_id and length $address ) {
+    my $r = <[branch.resolve]>->($address);
+    return $r unless $r->{'mode'} eq 'true';
+    $node_id = $r->{'data'};
+}
+
+$node_id ||= $data{'branch.root'};
+
+return { 'mode' => 'false', 'data' => 'no root set' }
+    unless defined $node_id and length $node_id;
+return { 'mode' => 'false', 'data' => 'node not found' }
+    unless exists $data{'branch.nodes'}{$node_id};
+
+my $children = $data{'branch.children'}{$node_id} // {};
+
+my @entries = map {
+    my $cid = $children->{$ARG};
+    my $cn  = $data{'branch.nodes'}{$cid} // {};
+    {   'name'        => $ARG,
+        'id'          => $cid,
+        'face'        => $cn->{'face'} // 0,
+        'child_count' => scalar
+            keys %{ $data{'branch.children'}{$cid} // {} },
+        'groups' => scalar @{ $cn->{'groups'} // [] },
+    }
+} sort keys %$children;
+
+return { 'mode' => 'true', 'data' => \@entries };
+
+#,,..,..,,,.,,,..,..,,,,.,,,,,,,.,.,.,..,,,..,..,,...,...,,,,,.,.,.,.,..,,..,,
+#25LOJZ27CVRM2BEHSP32SR3RGJUHJTUTKNTXQFEB75C4DIWM2PXKQJSYAH2J2O6FX5QV4DGR3ERIQ
+#\\\|QQ66BFPCIPGXETJHPCDFWV25GJHSZJPDSYC6H5C5TRRZO66CYHZ \ / AMOS7 \ YOURUM ::
+#\[7]NUXH4DVQFSMATKJG5PPCH6MEZA66BQK6XZWKDK4SUTT5YPXAQGCQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

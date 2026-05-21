@@ -1,0 +1,24 @@
+## [:< ##
+
+# name  = branch.discover.handler.register_reply
+# descr = handle reply from discover.branch.register
+
+my $reply   = shift;
+my $node_id = $reply->{'params'}{'node_id'} // '';
+
+return unless length $node_id;
+return unless exists $data{'branch.nodes'}{$node_id};
+
+$data{'branch.nodes'}{$node_id}{'discovered'} = TRUE;
+delete $data{'branch.discover.pending'}{$node_id};
+
+<[base.logs]>
+    ->( 2, 'branch.discover.register_reply: %s confirmed', $node_id );
+
+return { 'mode' => 'true', 'data' => $node_id };
+
+#,,.,,.,.,.,.,..,,.,.,...,...,,.,,,.,,.,,,,..,.,.,...,...,,.,,,,,,.,,,,.,,,,.,
+#BWCWUJLFZ2PUUIAD3EKJIZLZFGH67B2UW4M7Q3GDYTDHYZSYHAMQH7XMDAYU2KCDIYIHW26RAHDZK
+#\\\|BNRAJQV45CFLNJN4T4IGOYH7HFB6NEZBZ24GHFNU42D2JMATTZK \ / AMOS7 \ YOURUM ::
+#\[7]U6DLZUSP66HBDUFP3I5B6FYEFM6IOTD6IXZPOHAWWLDA3PNYDMAY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

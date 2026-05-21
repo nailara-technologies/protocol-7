@@ -1,0 +1,48 @@
+## [:< ##
+
+# name  = branch.discover.announce
+# descr = announce node state change to discover zenka
+# param = { id, event }  [ event = available | changed | removed ]
+#
+# fire-and-forget after branch.attach / branch.detach
+
+use YAML::XS qw| Dump |;
+
+my $params  = shift              // {};
+my $node_id = $params->{'id'}    // '';
+my $event   = $params->{'event'} // '';
+
+return { 'mode' => 'false', 'data' => 'node id required' }
+    unless length $node_id;
+return { 'mode' => 'false', 'data' => 'event required' }
+    unless length $event;
+return { 'mode' => 'false', 'data' => 'invalid event' }
+    unless $event =~ m{^(available|changed|removed)$};
+
+my $path_result = <[branch.node.path]>->($node_id);
+my $address     = $path_result->{'data'} // '';
+
+my $args = {
+    'node_id' => $node_id,
+    'address' => $address,
+    'event'   => $event,
+    'ntime'   => <[base.time]>->(4),
+};
+
+my $args_yaml = eval { Dump($args) } // '';
+
+<[protocol-7.route-send]>->(
+    {   'command'   => 'discover.branch.announce',
+        'call_args' => { 'args' => $args_yaml }
+    }
+);
+
+<[base.logs]>->( 2, 'branch.discover.announce: %s [%s]', $node_id, $event );
+
+return { 'mode' => 'true', 'data' => $event };
+
+#,,,,,,.,,.,,,.,,,,,,,,..,,..,,,,,,..,,,.,,,,,.,.,...,...,,..,,,.,...,..,,...,
+#OUXGRLXWABJTQZTO6XO42NYONJGNTRZRBJGHAKCYIR2YK52VEUZQPQ5ZR7MWPJ6I5FQ6VCR5BCEOY
+#\\\|TBBHMH43WOTSGQ5J6XPQK5ATTNCIXGVIS7RRWURESKJ35X4JDOR \ / AMOS7 \ YOURUM ::
+#\[7]EP2YJOR7XZUCAX334OFQX2XFG5IIOXAMB2BSHPQEDPQITQ3L7YAQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

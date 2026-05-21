@@ -1,0 +1,42 @@
+## [:< ##
+
+# name  = branch.detach
+# descr = detach node from parent; node identity and subtree preserved
+# param = node_id [ string or { id => ... } ]
+#
+# detached node retains checksum identity and all children
+# can be reattached anywhere with branch.attach
+
+my $params = shift // '';
+my $node_id
+    = ref $params eq 'HASH'
+    ? $params->{'id'} // ''
+    : $params;
+
+return { 'mode' => 'false', 'data' => 'node id required' }
+    unless length $node_id;
+return { 'mode' => 'false', 'data' => 'node not found' }
+    unless exists $data{'branch.nodes'}{$node_id};
+
+my $node        = $data{'branch.nodes'}{$node_id};
+my $prev_parent = $node->{'parent'};
+
+return { 'mode' => 'false', 'data' => 'node has no parent' }
+    unless defined $prev_parent;
+
+my $prev_name = $node->{'name'};
+delete $data{'branch.children'}{$prev_parent}{$prev_name};
+$node->{'parent'} = undef;
+
+<[base.logs]>->(
+    2, 'branch.detach: %s from %s [%s]',
+    $node_id, $prev_parent, $prev_name
+);
+
+return { 'mode' => 'true', 'data' => $node_id };
+
+#,,..,.,,,...,,.,,...,.,,,..,,...,..,,,,,,.,,,..,,...,..,,,..,,.,,,.,,,..,.,.,
+#I5SKLFPQFH4RX5EDW67DWWIWIO2ZOXIRT3NIQIMPADIF6VWHTFID4OEAQ662GLZG5E7AN5HATQS2Q
+#\\\|6WDV5QALMAM6XK6IPT5IP7F2ENLCSRBDW65L4KTRDIEYV4YZ7UX \ / AMOS7 \ YOURUM ::
+#\[7]THBGUGQY4FJTJPQMKY334MQG5JEJMFSMWLQ4S5MRUPZ6TOIGZYDY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

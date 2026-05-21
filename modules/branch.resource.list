@@ -1,0 +1,45 @@
+## [:< ##
+
+# name  = branch.resource.list
+# descr = list all resources on a node grouped by type
+# param = node_id [ string or { node => ... } ]
+
+my $params = shift // '';
+my $node
+    = ref $params eq 'HASH'
+    ? $params->{'node'} // ''
+    : $params;
+
+return { 'mode' => 'false', 'data' => 'node id required' }
+    unless length $node;
+return { 'mode' => 'false', 'data' => 'node not found' }
+    unless exists $data{'branch.nodes'}{$node};
+
+my %by_type;
+
+if ( exists $data{'branch.resources'}{$node} ) {
+    foreach my $type ( keys %{ $data{'branch.resources'}{$node} } ) {
+        my @entries;
+        foreach my $res ( @{ $data{'branch.resources'}{$node}{$type} } ) {
+            my $data_str = '';
+            if ( defined $res->{'data'} ) {
+                $data_str = "" . $res->{'data'};
+            }
+            push @entries,
+                {
+                'id'           => $res->{'id'},
+                'data_summary' => substr( $data_str, 0, 40 ),
+                'attached_at'  => $res->{'attached_at'},
+                };
+        }
+        $by_type{$type} = \@entries;
+    }
+}
+
+return { 'mode' => 'true', 'data' => \%by_type };
+
+#,,.,,...,..,,..,,,,,,,.,,,.,,.,.,.,.,...,.,,,..,,...,...,.,.,,,,,...,,,.,,..,
+#27UORNG5NDMB7WAUWKXBZJ3GWFCMBON7BFP5FHODPTNIUGHF3ETEIN36ZYB6LNTJWX45A4ODW5SQ2
+#\\\|PTN5HYCEEKE56YY2HJUWVNY46ALVZIEGCYX5E3GBUFS6TBWUNKG \ / AMOS7 \ YOURUM ::
+#\[7]T4MD6B7KZXKSFVUCJVH3NOKTO7JVLVGADPIBW6ZU7VHCB2WMH6AI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

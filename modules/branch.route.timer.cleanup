@@ -1,0 +1,35 @@
+## [:< ##
+
+# name  = branch.route.timer.cleanup
+# descr = sweep expired routes and release them
+
+my $now     = <[base.time]>->(4);
+my $expired = 0;
+
+for my $route_id ( keys %{ $data{'branch.routes'} // {} } ) {
+    my $route = $data{'branch.routes'}{$route_id};
+    next unless defined $route;
+    next if $route->{'state'} eq 'released';
+
+    my $age = $now - $route->{'created'};
+    if ( $age > $route->{'ttl'} ) {
+        <[branch.route.release]>->($route_id);
+        $expired++;
+    }
+}
+
+<[base.logs]>->(
+    2, 'branch.route.timer.cleanup: released %d expired routes', $expired
+) if $expired;
+
+#,,,.,.,,,..,,,,.,,.,,,,.,,,.,,,.,,,,,.,.,.,.,..,,...,..,,...,..,,..,,,,.,,,. ,
+#QJXD4XT3ITW5NW7JLO7YSENVTSWJJAOEDB2KHHNGZBO6ZK6HE2NGSZARPKWBHKSXDT4YRHWYNJ7U4
+#\\\|IHKWYQS4IMLACNRPIRWMCDXAIUPSNNS6MDK3VNK5JKJX32ECT2H \ / AMOS7 \ YOURUM ::
+#\[7]5YNCQYW6GIYTHAKXJCUS53NKYAGGKCSSYUKKVU7IAEPOUHKAAYBA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+
+#,,,.,.,.,,..,,,.,,..,,,.,,.,,.,,,...,..,,.,,,..,,...,...,.,,,..,,.,,,,..,.,,,
+#D3MMZHRJLZHVVF5AAKDYXX545EFPA35HSXM35K4XLNPUHM7TJM6PBGRNZDM4CKD743B4A7RK44KLG
+#\\\|32Y6LP2B7OPCBCVV24L7VE66HFYVNT37DNFBIOBKH72KIF54XBT \ / AMOS7 \ YOURUM ::
+#\[7]HMPTNUD5CK3DIKCFTCBPGE5YELQTUU5RQYVEG5RSUETFPN6TFWCY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,0 +1,25 @@
+## [:< ##
+
+# name  = zenka-startup.v7
+# descr = 'branch' zenka startup configuration used by 'v7' zenka
+
+dependencies       = cube
+start.on-demand    = 1
+restart.disabled   = 1
+heartbeat.disabled = 1
+
+: v7-init :
+  start_mode = stdin-zenka
+  cube.key = [base.prng.chars-anum:44]
+  [v7.callback.setup_zenka_key:<instance_id>,'<zenka_name>',<cube.key>]
+
+: zenka-init :
+  [base.auth.set_zenka_key:'<{cube.key}>']
+
+  ## no idle timeout — branch is shared infrastructure, stays up once started ##
+
+#,,,,,,..,,,,,,,,,,,.,..,,,.,,,..,..,,,,,,...,..,,...,...,...,,,,,..,,.,.,,.,,
+#QMXLTLWD6SUNK663QQOEMAQ2WBUIKOFN7WBOVTC2TOUOAECWGWSBPX3TWVB4VV2K75RR4L7OQH724
+#\\\|KOK736Z7KARBZU4ZYOYQUSANJXOD6YOO7LFTJVHSZYNMFFOBZAF \ / AMOS7 \ YOURUM ::
+#\[7]YMU4JUMLDMVNQWQGBKEG2OSS5EHAD7FJCKVR2H63OH2SRRYGHYCI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

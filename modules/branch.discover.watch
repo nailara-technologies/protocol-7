@@ -1,0 +1,29 @@
+## [:< ##
+
+# name  = branch.discover.watch
+# descr = register watcher for discover events affecting a subtree
+# param = { subtree, handler }
+#
+# discover zenka sends 'branch.discover.event' commands when matching
+# events occur under the watched subtree
+
+my $params  = shift                // {};
+my $subtree = $params->{'subtree'} // '';
+my $handler = $params->{'handler'} // '';
+
+return { 'mode' => 'false', 'data' => 'subtree required' }
+    unless length $subtree;
+return { 'mode' => 'false', 'data' => 'handler required' }
+    unless length $handler;
+
+$data{'branch.discover.watchers'}{$subtree} = $handler;
+
+<[base.logs]>->( 2, 'branch.discover.watch: %s -> %s', $subtree, $handler );
+
+return { 'mode' => 'true', 'data' => $subtree };
+
+#,,,.,..,,,..,..,,,,,,,..,...,.,,,,.,,,.,,..,,.,.,...,...,,,,,,,.,..,,...,...,
+#NNHQSMNUA4TUIPPVNRRQTJOKDK7QVHG7VZWA7Q45NBBUM3UZTIYUK3EGF3ZRRYYKBFIS6A7XQ6DZO
+#\\\|JXC4QEPML3RVEEABFCAEQKVTQQVNSC4FEQRZYONYOLNGVZJYNBS \ / AMOS7 \ YOURUM ::
+#\[7]56ZICV64GAVQ3GA234XMQJCCEZEWL2HPVTYZYSP4OIEC54QHWMDQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,0 +1,47 @@
+## [:< ##
+
+# name  = branch.resolve
+# descr = walk dotted address to node id
+# param = address string or { address, from }
+#
+# address segments are dot-separated names [ protocol-7.users.taeki ]
+# 'from' overrides the root as starting node id
+# empty address returns the start node itself
+
+my $params = shift // '';
+my $address
+    = ref $params eq 'HASH'
+    ? $params->{'address'} // ''
+    : $params;
+my $from = ref $params eq 'HASH' ? $params->{'from'} // '' : '';
+
+my $current = length $from ? $from : $data{'branch.root'};
+
+return { 'mode' => 'false', 'data' => 'no root set' }
+    unless defined $current;
+return { 'mode' => 'false', 'data' => 'start node not found' }
+    unless exists $data{'branch.nodes'}{$current};
+
+## empty address resolves to start node ##
+return { 'mode' => 'true', 'data' => $current }
+    unless length $address;
+
+for my $segment ( split m|\.+|, $address ) {
+    my $children = $data{'branch.children'}{$current} // {};
+    unless ( exists $children->{$segment} ) {
+        return {
+            'mode' => 'false',
+            'data' => sprintf 'segment not found: %s',
+            $segment
+        };
+    }
+    $current = $children->{$segment};
+}
+
+return { 'mode' => 'true', 'data' => $current };
+
+#,,,,,,,,,...,.,,,,,.,..,,,,,,...,,..,,,,,.,,,..,,...,...,.,,,.,.,.,.,,,,,,,.,
+#TVHUS4AI4ZBTVX2KQ5WME7EZZQECFIU5WUFVX74PI57HX7STKFTBICT35VQZW767MRPEXGCUYNTAO
+#\\\|DYSZB3GHBFMK2FPOOAWGUXHK7RO2X45DH5ZUXI5FZNZWLTOVNPP \ / AMOS7 \ YOURUM ::
+#\[7]PLMSRKIWNAPWJW3D5EFWBWM3RUU6TJUAEIDJVPD2XZLMIW6Q3IBQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

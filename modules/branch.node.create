@@ -1,0 +1,59 @@
+## [:< ##
+
+# name  = branch.node.create
+# descr = commit new branch node, return { id, ntime }
+# param = { name, parent, pubkey, face, meta }
+#
+# node identity = AMOS-chksum( ntime :: pubkey :: parent :: name )
+# identity is permanent — survives detach and reattach
+#
+# face [ 0-7 ]: cube face of origin, octal-encoded
+# face 0 [ 000 bits ] = network / branch / parent orientation
+
+my $params = shift // {};
+
+my $name   = $params->{'name'}   // '';
+my $parent = $params->{'parent'} // '';
+my $pubkey = $params->{'pubkey'} // $keys{'public'} // '';
+my $face   = $params->{'face'}   // 0;
+my $meta   = $params->{'meta'}   // {};
+
+$face = int($face) % 8;
+
+my $ntime = <[base.time]>->(4);
+
+## node identity payload: timestamp :: pubkey :: parent :: name ##
+my $id_payload = join( '::', $ntime, $pubkey, $parent, $name );
+
+## derive immutable identity checksum ##
+my $chksum_fn = $code{'chk-sum.amos'} // $code{'base.chk-sum.amos'};
+my $node_id   = $chksum_fn->( \$id_payload );
+
+$data{'branch.nodes'}{$node_id} = {
+    'id'      => $node_id,
+    'name'    => $name,
+    'parent'  => length $parent ? $parent : undef,
+    'created' => $ntime,
+    'pubkey'  => $pubkey,
+    'face'    => $face,
+    'meta'    => $meta,
+    'groups'  => [],
+};
+
+$data{'branch.children'}{$node_id} //= {};
+
+## auto-set root on first parentless node ##
+$data{'branch.root'} //= $node_id unless length $parent;
+
+<[base.logs]>->(
+    2, 'branch.node.create: %s face=%d [%s]',
+    $node_id, $face, $name
+);
+
+return { 'id' => $node_id, 'ntime' => $ntime };
+
+#,,,.,.,,,..,,.,,,,,,,,..,..,,...,,.,,..,,,,.,..,,...,..,,,,.,,.,,,,,,,,,,..,,
+#4Q5PCEPSH7LH35MWT23UO3O7XVQMRD4HBXWFGKUBW3YYSSQ6PLDX5MLFVJ6UK3QCOHYYUDWZ4WKD6
+#\\\|QOWGZLMQORB7L3NT5QAWMUVWQOSPBYE7IHXQOS5XYKMAKXAFY3Y \ / AMOS7 \ YOURUM ::
+#\[7]A5TITFWJ5H67GAU7XZ3YBLA2QID37TTARCOHXGMLLF5DR5XX4MAA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
