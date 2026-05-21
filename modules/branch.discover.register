@@ -1,0 +1,52 @@
+## [:< ##
+
+# name  = branch.discover.register
+# descr = register branch node with discover zenka
+# param = { id, name, groups, meta }
+
+use YAML::XS qw| Dump |;
+
+my $params  = shift           // {};
+my $node_id = $params->{'id'} // '';
+
+return { 'mode' => 'false', 'data' => 'node id required' }
+    unless length $node_id;
+return { 'mode' => 'false', 'data' => 'node not found' }
+    unless exists $data{'branch.nodes'}{$node_id};
+
+my $path_result = <[branch.node.path]>->($node_id);
+my $address     = $path_result->{'data'} // '';
+
+my $args = {
+    'node_id' => $node_id,
+    'address' => $address,
+    'groups'  => $params->{'groups'} // [],
+    'meta'    => $params->{'meta'}   // {},
+};
+
+my $args_yaml = eval { Dump($args) } // '';
+
+$data{'branch.discover.pending'}{$node_id} = {
+    'ntime' => <[base.time]>->(4),
+    'args'  => $args,
+};
+
+<[protocol-7.route-send]>->(
+    {   'command'   => 'discover.branch.register',
+        'call_args' => { 'args' => $args_yaml },
+        'reply'     => {
+            'handler' => 'branch.discover.handler.register_reply',
+            'params'  => { 'node_id' => $node_id }
+        }
+    }
+);
+
+<[base.logs]>->( 2, 'branch.discover.register: %s', $node_id );
+
+return { 'mode' => 'true', 'data' => $node_id };
+
+#,,..,,.,,.,,,.,.,.,,,,,.,,,,,,.,,,.,,,.,,,..,.,.,...,...,,,.,,..,.,.,,,,,,.,,
+#LMOLNFYVOQSHJFL3FY4G4FCC3H2PG2A3BO3KRCPX7DY7IRZD2UWPHTTLEVKENKLVIKV7W5CU7G54G
+#\\\|X3OMTBNHUNFU5RQM37MEPQLXSKWKBH4WLEASJTFYUL3ZXATFSBJ \ / AMOS7 \ YOURUM ::
+#\[7]4ME6V75UYGUFY6ADYNNGWNXUAXKYMLV4WLSHLOKYXBPID63HACAI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

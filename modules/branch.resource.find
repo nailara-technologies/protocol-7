@@ -1,0 +1,82 @@
+## [:< ##
+
+# name  = branch.resource.find
+# descr = scan all nodes for resources of given type matching filter
+# param = { type, filter }
+#
+# filter = sub ref or { key => val } match against resource data
+# returns up to 100 results [ logs warning if capped ]
+
+my $params = shift               // {};
+my $type   = $params->{'type'}   // '';
+my $filter = $params->{'filter'} // '';
+
+return { 'mode' => 'false', 'data' => 'type required' }
+    unless length $type;
+
+my @results;
+my $cap = 100;
+
+## narrow to group members when group filter is given ##
+my @scan_nodes;
+if ( ref $filter eq 'HASH' and exists $filter->{'group'} ) {
+    my $members = <[branch.group.members]>->( $filter->{'group'} );
+    return $members unless $members->{'mode'} eq 'true';
+    @scan_nodes = map { $ARG->{'id'} } @{ $members->{'data'} };
+    my %gf = %$filter;
+    delete $gf{'group'};
+    $filter = %gf ? \%gf : '';
+} else {
+    @scan_nodes = keys %{ $data{'branch.resources'} // {} };
+}
+
+foreach my $node (@scan_nodes) {
+    next unless exists $data{'branch.resources'}{$node}{$type};
+
+    foreach my $res ( @{ $data{'branch.resources'}{$node}{$type} } ) {
+        my $match = 0;
+
+        if ( not $filter ) {
+            $match = 1;
+        } elsif ( ref $filter eq 'CODE' ) {
+            $match = $filter->( $res->{'data'} );
+        } elsif ( ref $filter eq 'HASH' ) {
+            if ( ref $res->{'data'} eq 'HASH' ) {
+                $match = 1;
+                foreach my $key ( keys %$filter ) {
+                    if ( not exists $res->{'data'}{$key}
+                        or $res->{'data'}{$key} ne $filter->{$key} ) {
+                        $match = 0;
+                        last;
+                    }
+                }
+            }
+        }
+
+        if ($match) {
+            push @results,
+                {
+                'node_id' => $node,
+                'res_id'  => $res->{'id'},
+                'data'    => $res->{'data'},
+                };
+            last if scalar @results >= $cap;
+        }
+    }
+
+    last if scalar @results >= $cap;
+}
+
+if ( scalar @results >= $cap ) {
+    <[base.logs]>->(
+        2, 'branch.resource.find: result cap reached [%d]', $cap
+    );
+}
+
+return { 'mode' => 'true', 'data' => \@results };
+
+#,,..,..,,..,,.,,,,,,,,,,,,,.,,,,,.,.,.,,,.,.,..,,...,...,,,.,...,.,.,,,.,.,.,
+#LYYISLR3ZBVTYR7CRLETMA44ONPYEDJCCMFRSWR6LRRTC3YBH5H5VDUYYVRLPTZGLKMZ3MZ6SUYOW
+#\\\|CWSH3VW3IMVSL5CQFAODCTJ7IVRUXXRZRGGGO2EYQFWKVY65TJ6 \ / AMOS7 \ YOURUM ::
+#\[7]W4OV2ZEDFU22HD372WJELSOUPROPGHDGQS6C5A7GD66CDDCJ44CQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

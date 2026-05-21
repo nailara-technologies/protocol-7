@@ -27,6 +27,9 @@
 - `data/md/development/P7-LLM-REFERENCE.md` — verified live command reference for kimi/LLM sessions
 - `data/md/development/DEGRADED-FEATURES-AUDIT.md` — 5 high-priority + 3 medium candidates with stub task files
 
+## Branch Namespace (session 43)
+- [topic-branch-namespace](topic-branch-namespace.md) — unifying addressable layer; layer 1 DONE (10 modules); 7 task files for parallel kimi dispatch
+
 ## Active Topics
 - [plugin-web-jobs](topic-plugin-web-jobs.md) — delta sync WORKING (session 34): ntime persisted, chunked push, last_modified stamps; open: ?since=N browser delta, remote deploy
 - [clients-http](topic-clients-http.md) — clients.http.* + clients.https.* async namespaces; kimi-web parallel dispatch fixed; see completed session 33
@@ -130,8 +133,8 @@
 - **pager.sort.multi-key**: ntime_b32 + priority_map sort types added (session 42)
 - **task dispatch sections**: all dispatched tasks now carry ## dispatch + prompt for reuse
 
-#,,..,..,,,..,...,.,,,.,.,,,,,,..,.,.,.,.,,,,,..,,...,...,...,,.,,,,,,,,,,.,,,
-#UCGLXKTUUIDCQLXAAKXSL67DX643FXGVIAYAFX25WXYMP5NBMH5FSGN2XZ53OKQVOTSS3S4J4OCMM
-#\\\|PNMM77JX3RZRFMXFOWLNFHRB5NR6UIMQWNDGHGMSV2TFZGJZOIK \ / AMOS7 \ YOURUM ::
-#\[7]KC7ZC2YZNI4RJR4IEBVGN47VXPXFF6OCOC2ONO6FR2CESDI27EDQ 7  DATA SIGNATURE ::
+#,,,,,..,,...,,..,.,.,..,,...,.,.,,,.,...,,,.,..,,...,...,.,.,,.,,,,.,..,,,.,,
+#EH5YD22WYMBHG6RHB4WUDAGTPDTFPQEXDQHTQNMJMM36J27FU5NCI2PR3LXHLKFJTOUIJIOXZBD3Q
+#\\\|JXAJCGANNA7HNBBX5CL57JEJ4FL6WJR55NTG4BTKRSXZ3TSOKKO \ / AMOS7 \ YOURUM ::
+#\[7]H2FVMXVWQCOQVSSWJBUU364IEYDCO7PC242GNYNPGPADGRC2LADY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

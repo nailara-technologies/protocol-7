@@ -18,16 +18,19 @@ if ( not defined $regex_compiled_result ) {
     };
 }
 
+<base.dump_data.reverse_sort> = TRUE;
+
 $reply = {
     'mode' => qw| size |,
     'data' => <[base.dump_data]>->( undef, undef, $keyword )
 };
 
-##  reset to default setting  ##
+##  reset to default settings  ##
 <base.dump_data.encode_perl_refs> = 5;    ## true ##
+<base.dump_data.reverse_sort>     = 0;
 
-#,,,.,...,..,,...,.,.,,..,...,,,.,,.,,...,,..,..,,...,...,..,,..,,.,,,,,,,.,.,
-#45QL5J4DLLK5DHPEVIMDXZZNXPTLTKSLI566GQVCNWQBDAQOGNIJ45JUFD27ZP5XPXYWTCCRHL4FY
-#\\\|7SGCFTDZFLJ2QQ2MTCP3EBNS6CDY3YB5Q7S4JKUNGXOYWMOADDD \ / AMOS7 \ YOURUM ::
-#\[7]J6SNEZVDQ4K7JAMBDF5DTQCF4UF5PLKI45BQIR3FYOD43BZ7MQCY 7  DATA SIGNATURE ::
+#,,.,,.,,,.,,,,,,,..,,..,,..,,.,,,...,,,,,,,.,..,,...,...,...,.,,,,,.,...,..,,
+#LVGRRLODHOXX6PT6YLLLZXUMSNCOK7R5SNI37ZJ7LC3JFOJWFFHXVIOSEW7RXBKQN5ENHYRXGJRJC
+#\\\|O7PMFLOEXE3MI4SYBI4VOYO7YZNAQ4VY5LMX24NGGXRWX2YDZZX \ / AMOS7 \ YOURUM ::
+#\[7]GJEN5PUX5LEPRABEQ7VJA2VI6NSRL26VMKB6CFANUZEDE3QFOKBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

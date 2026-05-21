@@ -1,0 +1,46 @@
+## [:< ##
+
+# name  = branch.node.path
+# descr = return full tree path of a node by walking parents upward
+# param = node_id [ string or { id => ... } ]
+#
+# path is relative to root [ or the topmost detached ancestor ]
+# returns dot-joined address string
+
+my $params = shift // '';
+my $node_id
+    = ref $params eq 'HASH'
+    ? $params->{'id'} // ''
+    : $params;
+
+return { 'mode' => 'false', 'data' => 'node id required' }
+    unless length $node_id;
+return { 'mode' => 'false', 'data' => 'node not found' }
+    unless exists $data{'branch.nodes'}{$node_id};
+
+my @segments;
+my $cur     = $node_id;
+my $visited = {};
+
+while ( defined $cur ) {
+    ## cycle guard ##
+    last if $visited->{$cur}++;
+
+    my $node = $data{'branch.nodes'}{$cur};
+    last unless defined $node;
+
+    my $name = $node->{'name'};
+    unshift @segments, $name if length $name;
+    $cur = $node->{'parent'};
+}
+
+return {
+    'mode' => 'true',
+    'data' => join( '.', @segments ),
+};
+
+#,,,.,..,,,..,...,.,,,,.,,...,...,.,.,,,.,,..,..,,...,...,.,.,.,.,.,,,.,.,,,.,
+#4LBQTMHHHX6MPPBG577QK6B3FWYIH3PFEABSRPUWS7LNOW5ZO6BVTSPE5NBZQENF37N6PVONJHFNG
+#\\\|DQFIWPONBAWQE23JDXD4KN2WOPP5HDIITDSN3BX4PDUYBTWTRAC \ / AMOS7 \ YOURUM ::
+#\[7]KZMSAG6IJZ4QBKHBA3VRYABKY3AMXRBFXS6VPD2VIC4KTHYSV2BI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

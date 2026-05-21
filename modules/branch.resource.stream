@@ -1,0 +1,54 @@
+## [:< ##
+
+# name  = branch.resource.stream
+# descr = STRM stream handle convenience wrapper
+# param = { node, op, stream_handle }
+#
+# op = 'attach' | 'get' | 'detach'
+# data is a stream handle ref
+
+my $params        = shift             // {};
+my $node          = $params->{'node'} // '';
+my $op            = $params->{'op'}   // '';
+my $stream_handle = $params->{'stream_handle'};
+
+return { 'mode' => 'false', 'data' => 'node id required' }
+    unless length $node;
+return { 'mode' => 'false', 'data' => 'operation required' }
+    unless length $op;
+
+if ( $op eq 'attach' ) {
+    return { 'mode' => 'false', 'data' => 'stream_handle required' }
+        unless defined $stream_handle;
+
+    return <[branch.resource.attach]>->(
+        {   'node' => $node,
+            'type' => 'stream',
+            'data' => $stream_handle
+        }
+    );
+} elsif ( $op eq 'get' ) {
+    my $get_params = {
+        'node' => $node,
+        'type' => 'stream'
+    };
+    $get_params->{'id'} = $stream_handle if defined $stream_handle;
+
+    return <[branch.resource.get]>->($get_params);
+} elsif ( $op eq 'detach' ) {
+    my $detach_params = {
+        'node' => $node,
+        'type' => 'stream'
+    };
+    $detach_params->{'id'} = $stream_handle if defined $stream_handle;
+
+    return <[branch.resource.detach]>->($detach_params);
+}
+
+return { 'mode' => 'false', 'data' => 'unknown operation' };
+
+#,,,.,...,,..,.,,,.,.,.,.,.,,,,,.,...,,..,,.,,..,,...,...,,.,,,..,,.,,,,,,,,.,
+#EDCKM3TXPIK6K3QFI6EKQR7TP4YFA4WEXEGU5MDBY6LMPHMFHE4FRH3FNBDBA4O2HEQOCN3J5CKN4
+#\\\|KEQ4HOTPQ5N236SBMSXCE3S3NNQG2Y2ZILLITMDOWCAPDHK7D2Y \ / AMOS7 \ YOURUM ::
+#\[7]S6PIMLA3PKLZJ3GUG4W4SEZ4Z6ZPNWOVL73EQF3MUDVWYRKWIAAQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

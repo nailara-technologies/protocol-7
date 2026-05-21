@@ -1,0 +1,89 @@
+## [:< ##
+
+# name  = branch.dep.graph
+# descr = emit dependency graph as ASCII tree or DOT notation
+# param = { root, format, depth }
+
+my $params = shift // {};
+
+my $root   = $params->{'root'}   // '';
+my $format = $params->{'format'} // 'ascii';
+my $depth  = $params->{'depth'}  // 5;
+
+return { 'mode' => 'false', 'data' => 'root node id required' }
+    unless length $root;
+return { 'mode' => 'false', 'data' => 'node not found' }
+    unless exists $data{'branch.nodes'}{$root};
+
+if ( $format eq 'dot' ) {
+    my @lines = 'digraph branch_deps {';
+    my %visited;
+    my @stack = ($root);
+
+    while (@stack) {
+        my $n = pop @stack;
+        next if $visited{$n};
+        $visited{$n} = TRUE;
+
+        my $deps = $data{'branch.deps'}{$n} // {};
+        for my $dep_id ( sort keys %$deps ) {
+            my $type = $deps->{$dep_id}{'type'} // 'required';
+            push @lines,
+                sprintf '    "%s" -> "%s" [label="%s"]',
+                $n, $dep_id, $type;
+            push @stack, $dep_id unless $visited{$dep_id};
+        }
+    }
+
+    push @lines, '}';
+    return { 'mode' => 'true', 'data' => join( "\n", @lines ) };
+}
+
+## ascii tree format ##
+my @lines;
+
+my $build_ascii;
+$build_ascii = sub {
+    my ( $n, $prefix, $is_last, $current_depth, $edge_type ) = @_;
+    return if $current_depth > $depth;
+
+    my $display = $n;
+    $display .= sprintf '  [%s]', $edge_type if defined $edge_type;
+
+    my $line = $prefix;
+    if ( length $prefix ) {
+        $line .= $is_last ? '└── ' : '├── ';
+    }
+    $line .= $display;
+    push @lines, $line;
+
+    return if $current_depth >= $depth;
+
+    my $deps    = $data{'branch.deps'}{$n} // {};
+    my @dep_ids = sort keys %$deps;
+
+    for my $i ( 0 .. $#dep_ids ) {
+        my $dep_id = $dep_ids[$i];
+        my $last   = ( $i == $#dep_ids );
+        my $type   = $deps->{$dep_id}{'type'} // 'required';
+
+        my $child_prefix = $prefix;
+        if ( length $prefix ) {
+            $child_prefix .= $is_last ? '    ' : '│   ';
+        }
+
+        $build_ascii->(
+            $dep_id, $child_prefix, $last, $current_depth + 1, $type
+        );
+    }
+};
+
+$build_ascii->( $root, '', 1, 0, undef );
+
+return { 'mode' => 'true', 'data' => join( "\n", @lines ) };
+
+#,,..,.,,,...,.,,,...,...,,,,,.,.,...,,.,,.,,,..,,...,...,...,..,,,..,.,,,,.,,
+#FL2N76RNJCILTEZH4O7QB6H3RJI6B7SRF6B3M7TYZOAAG46CHIRB7GSFBM7AFUQJKJJS26XY5G4HC
+#\\\|CWGR3CFUZGXI5FH6RANF5LQKEFQFROVLL4WRCLVVH7GDLAHU6MT \ / AMOS7 \ YOURUM ::
+#\[7]2BAKQHJZPIMUU435B7TYBP5DPF4P4267WGUX5CLJDWXPCMZDEIDY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

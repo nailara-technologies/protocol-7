@@ -1,0 +1,43 @@
+## [:< ##
+
+# name  = branch.group.list
+# descr = list all reference groups with member count and sample
+# param = none or { pattern }  [ substring match on group name ]
+#
+# returns arrayref sorted by count descending
+
+my $params  = shift                                        // {};
+my $pattern = ref $params eq 'HASH' ? $params->{'pattern'} // '' : '';
+
+my $groups = $data{'branch.groups'} // {};
+my @result;
+
+for my $group_name ( keys %$groups ) {
+    ## pattern filter ##
+    if ( length $pattern ) {
+        next if index( $group_name, $pattern ) < 0;
+    }
+
+    my $members = $groups->{$group_name}{'members'} // [];
+    my $count   = scalar @$members;
+
+    push @result,
+        {
+        'name'   => $group_name,
+        'count'  => $count,
+        'sample' => [ @$members[ 0 .. ( $count > 3 ? 2 : $count - 1 ) ] ]
+        };
+}
+
+## sort by count descending ##
+@result = sort { $b->{'count'} <=> $a->{'count'} } @result;
+
+<[base.logs]>->( 2, 'branch.group.list: %d groups', scalar @result );
+
+return { 'mode' => 'true', 'data' => \@result };
+
+#,,..,,,,,,..,.,.,.,.,.,,,.,.,...,,.,,...,.,,,.,.,...,...,.,.,,..,,,.,.,,,,..,
+#XGEVEXJ2HE33527CS7N2H7QWOEWDWD5FXCD7VRJ4R7XA676GFUGICBRBVA24O5V4NPRG7CV5YYZ2K
+#\\\|32DDBPXUPKBVGBYTDU6JJNN4VPFGB62LX5RBT7SSEPHHNDRIXN7 \ / AMOS7 \ YOURUM ::
+#\[7]TBHB22BTLPQU2WCOJSKXSO2LJ6KN7CFUNXY2YODNQ5OYEIAECOAI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

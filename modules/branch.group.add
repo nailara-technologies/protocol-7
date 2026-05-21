@@ -1,0 +1,38 @@
+## [:< ##
+
+# name  = branch.group.add
+# descr = add node to reference group [ non-exclusive, overlapping ]
+# param = { id, group }
+#
+# groups are a second dimension of membership, orthogonal to tree position
+# a node can belong to any number of groups simultaneously
+
+my $params  = shift              // {};
+my $node_id = $params->{'id'}    // '';
+my $group   = $params->{'group'} // '';
+
+return { 'mode' => 'false', 'data' => 'node id required' }
+    unless length $node_id;
+return { 'mode' => 'false', 'data' => 'group name required' }
+    unless length $group;
+return { 'mode' => 'false', 'data' => 'node not found' }
+    unless exists $data{'branch.nodes'}{$node_id};
+
+$data{'branch.groups'}{$group} //= { 'members' => [] };
+my $members = $data{'branch.groups'}{$group}{'members'};
+
+## idempotent ##
+unless ( grep { $_ eq $node_id } @$members ) {
+    push @$members,                                      $node_id;
+    push @{ $data{'branch.nodes'}{$node_id}{'groups'} }, $group;
+
+    <[base.logs]>->( 2, 'branch.group.add: %s -> [%s]', $node_id, $group );
+}
+
+return { 'mode' => 'true', 'data' => scalar @$members };
+
+#,,,,,.,.,,.,,,.,,.,,,.,.,,,.,..,,,..,.,,,,,,,..,,...,..,,..,,...,,,,,...,...,
+#KECLRD2AZVJ5GT6QA7LHDEOFC7Q3EJORPUTGCTTZUZ3B3G7IGCAB2NSICKV3RVMRHG6QYC2AEF4W6
+#\\\|PQYPETB5L63Z2M5XZKHILDB3GRAM5EDMPTFH3W2WRT2DRCD5I2N \ / AMOS7 \ YOURUM ::
+#\[7]2TKZ3COFLQBHUFAU5KXQINMGKDUMSQWZYI2PZ62H4QFUCRSKIQAY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
