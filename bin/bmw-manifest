@@ -2,9 +2,12 @@
 ## bmw-manifest — generate or verify BMW384 checksum manifest for binary assets
 ##
 ## usage:
-##   bmw-manifest <directory>            ## generate manifest
+##   bmw-manifest <directory>            ## generate manifest (recursive)
 ##   bmw-manifest --verify <directory>   ## verify against existing manifest
 ##   bmw-manifest --verify <file.bmw>    ## verify specific manifest file
+##
+## paths in manifest are relative to dirname(<directory>), so scanning
+## data/web-root/vhosts/ produces vhosts.bmw with paths vhosts/iris.v7.ax/...
 ##
 
 use v5.24;
@@ -14,6 +17,7 @@ use English;
 use Digest::BMW;
 use Crypt::Misc  qw| encode_b32r |;
 use File::Spec;
+use File::Find   qw| find |;
 use File::Basename;
 use Cwd          qw| abs_path |;
 use FindBin      qw| $RealBin |;
@@ -56,15 +60,25 @@ if ( $target =~ m|\.bmw$| and -f $target ) {
     die ":\n: not found: $target\n:\n";
 }
 
-## collect files to checksum (non-hidden, non-.bmw, sorted)
-opendir my $dh, $dir or die "cannot read dir $dir: $!";
-## base.sort order: inverse alpha-numeric, length ascending as second pass
-my @files
-    = sort { length $a <=> length $b }
-    reverse sort
-    grep { -f File::Spec->catfile( $dir, $ARG ) and $ARG !~ m|^\.| }
-    readdir $dh;
-closedir $dh;
+## collect files recursively — paths relative to dirname($dir)
+my $root = dirname($dir);
+my @files;
+find(
+    {   wanted => sub {
+            return unless -f $File::Find::name;
+            my $rel = File::Spec->abs2rel( $File::Find::name, $root );
+            return if $rel =~ m|^\.|;           ## skip hidden at root
+            return if $rel =~ m|/\.|;           ## skip hidden in subdir
+            return if $rel =~ m|\.bmw$|;        ## skip existing manifests
+            push @files, $rel;
+        },
+        no_chdir => 1,
+    },
+    $dir
+);
+
+## base.sort order: length ascending, reverse alpha as tiebreaker
+@files = sort { length $a <=> length $b || $b cmp $a } @files;
 
 die ":\n: no files found in $dir\n:\n" unless @files;
 
@@ -96,7 +110,7 @@ if ( $verify ) {
 
     my $ok = 0; my $fail = 0;
     for my $fname ( sort keys %expected ) {
-        my $path = File::Spec->catfile( $dir, $fname );
+        my $path = File::Spec->catfile( $root, $fname );
         unless ( -f $path ) {
             printf ": MISSING  %s\n", $fname;
             $fail++;
@@ -127,24 +141,27 @@ if ( $verify ) {
         or die "cannot write manifest: $!";
 
     printf $out "## bmw384 manifest : %s\n", basename($dir);
+    printf $out "## root            : %s\n", basename($root);
     printf $out "## generated       : %s\n", scalar localtime;
     print  $out "##\n";
 
     for my $fname (@files) {
-        my $path     = File::Spec->catfile( $dir, $fname );
+        my $path     = File::Spec->catfile( $root, $fname );
         my $checksum = bmw384_file($path);
         printf $out "%s  %s\n", $checksum, $fname;
         printf     ": %s  %s\n", substr($checksum,0,16).'..',  $fname;
     }
 
     close $out;
+
     say ":";
     say ": manifest written =)";
+    say ": run 'bin/Protocol-7 sourcecode update-signatures' to sign";
     say ":";
 }
 
-#,,..,,,.,,.,,.,.,,.,,,..,,,,,,..,,.,,,,,,.,,,..,,...,...,.,,,,,.,,..,.,.,,.,,
-#FF6TSJAFZWK3HNJXMAWU32T2J3WGNR6F6KF6BSJSUSEFUCO4C2Y32WTEO5A532UTJGNU2LNALW4K6
-#\\\|UQ45JZ3MEG6CLSHWVIVZO4ZFOI6OGFB2MPTNWFB2MA6DZNXI6ZI \ / AMOS7 \ YOURUM ::
-#\[7]6O5Q7HCSLKEGCBMFX47Q6WIR4KYYLNQYVCFV4RMWLZIX6SEZX2AY 7  DATA SIGNATURE ::
+#,,.,,.,,,.,,,,..,,.,,,..,...,.,.,,,.,.,,,,..,..,,...,...,,.,,.,,,,.,,,,.,..,,
+#67HVTYMNVA4GX3RBOBRVQ4B4ZZ3KL65WVKQ6L5GLPAQCIEX5PYA6V3LEZPPB6FNXKIUQFKAEYASSC
+#\\\|NFXLQRL5P5RGBP3MXPMPZY6Q4I2W4GK3O7VL4LTEWPJ6ZJEQKTI \ / AMOS7 \ YOURUM ::
+#\[7]52ZEDCAX4R2AIEFOUGAPSTO5VXZ53CDBQWIDGAC3GY57JU65HQDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
