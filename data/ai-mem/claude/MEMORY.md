@@ -27,6 +27,9 @@
 - `data/md/development/P7-LLM-REFERENCE.md` — verified live command reference for kimi/LLM sessions
 - `data/md/development/DEGRADED-FEATURES-AUDIT.md` — 5 high-priority + 3 medium candidates with stub task files
 
+## Spawnable Perspective Layers / Desktop (session 43)
+- [topic-perspective-layers](topic-perspective-layers.md) — desktop=data space+UI intent; perspective tree; bandwidth reduction; nested resolution=derivation route; no layout engine
+
 ## Observer-Centric Reference Space (session 43)
 - [topic-observer-centric-space](topic-observer-centric-space.md) — client always 0; signed -n/2..0..+n/2; reference-count gravity; buffer swap navigation; EM field outer transport; dedup = convergence to center; routing = magnitude gradient
 
@@ -35,6 +38,9 @@
 
 ## Checksum Tree Wire Format (session 43)
 - [topic-checksum-tree-wire](topic-checksum-tree-wire.md) — 1[zeros]1 bit-length separators; 01/10 direction-of-travel encoding; 11 pivot/LCA; type-free; append-only; connects stream-framing + DATA + reference bubble
+
+## TREE Protocol (session 43)
+- [topic-tree-protocol](topic-tree-protocol.md) — structural control layer parallel to DATA; node metadata+REF pointers; bi-directional; namespace registry for all DATA streams; dump-keys:dump :: TREE:DATA
 
 ## DATA Protocol + Sync (session 43)
 - [topic-data-protocol](topic-data-protocol.md) — DATA reply mode (base32/line/stream); DELTA transparent sync; branch node file access; to add to base.callback.cmd_reply
@@ -148,8 +154,8 @@
 - **pager.sort.multi-key**: ntime_b32 + priority_map sort types added (session 42)
 - **task dispatch sections**: all dispatched tasks now carry ## dispatch + prompt for reuse
 
-#,,.,,,..,,,,,.,.,,,,,...,,.,,.,.,,..,.,,,,..,..,,...,...,,,,,.,,,.,,,.,,,...,
-#LVGSHYY3GX762U6VFOPWWB5I5UTV3MUMUNPEVF37LHYJQCVU66ZT2OHWOGCQVEXD5GRHR3REWFMHW
-#\\\|QXILMLS3YHCJFZJMMMNMPXVOL2PEBTPEQ2GK6ARKOF5TSC4MMCA \ / AMOS7 \ YOURUM ::
-#\[7]7CTA5RPFJWVLJ2NIZTWEDXUABEPSEDASED4PYQ3RVDRFZ4FKOEAY 7  DATA SIGNATURE ::
+#,,,.,...,.,,,..,,,.,,.,.,.,,,.,,,,,,,,.,,,.,,..,,...,...,...,,..,,..,...,..,,
+#C3KW7SNNMFR227JID2IFOCEL2TWEBYJVNXROWH2GWUA2WZ7HEDBNVEJY6PVD465FXDZCGXYDMH44W
+#\\\|6WYBM2UCYPEDFBX4A6L3IXWSWP72NAYSIMF26UUP5QQCXOGDQDW \ / AMOS7 \ YOURUM ::
+#\[7]POO2TBUGHHJ36ME73ZZ3IF3J44IJUCIPVQSVFXTELYZVEUT37QAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
