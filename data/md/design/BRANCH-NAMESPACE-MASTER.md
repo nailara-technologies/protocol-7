@@ -229,12 +229,12 @@ round 3 [ parallel, after D+E ]:
 | branch-layer3-routes-keys.md | 3 | DONE | 9 modules incl. timer + wave cache |
 | branch-dep-graph.md | dep | DONE | 8 modules, Kahn + DFS cycle detect |
 | branch-layer7-resource-attach.md | 7 | DONE | 8 modules, group-filter stub removed |
-| branch-layer4-storage-data.md | 4 | pending | dispatch round 2 |
-| branch-layer5-9p-bridge.md | 5 | pending | needs round 2 |
-| branch-layer6-file-abstraction.md | 6 | pending | needs round 2 |
+| branch-layer4-storage-data.md | 4 | DONE | 7 modules, YAML fallback + data zenka binding |
+| branch-layer5-9p-bridge.md | 5 | pending | dispatch round 3 |
+| branch-layer6-file-abstraction.md | 6 | pending | dispatch round 3 |
 
-#,,.,,,..,,.,,,.,,,,.,..,,,..,,,,,.,.,,,,,.,,,..,,...,...,...,.,,,,.,,.,.,,..,
-#A4IPGRATPRHEABXBAYDLPGRVKWPVFAKAJ3GJUCUCEFT65FPHDCGX3LLXKT5QW74MTGIJA5VINVXGG
-#\\\|VIRTENKRLVHS467PSUH5IKEV3SOXLS7LT3PNU4CMNES3XMIYDB2 \ / AMOS7 \ YOURUM ::
-#\[7]35ISG37FZAIJGNNCCUFVNTE7UGL5ZWXH72F4FNNZHWV4KOK3COBA 7  DATA SIGNATURE ::
+#,,,.,,,,,,.,,,..,,.,,...,,,.,,.,,,,,,...,.,,,..,,...,...,..,,,,,,..,,,,.,.,.,
+#YQSJG2MGURNTFMROMTLK2NH7RCRTZCFTNZBDARFEG7SQORLMQDQSNLQVHMWR4JXMLTRXDRRZPQX7S
+#\\\|7AEIGPABAV2SRESBNC6SMFII3BH7XFIFDRSTKSGJPFMPKXG4VPK \ / AMOS7 \ YOURUM ::
+#\[7]4LLK3OAXIAANNTWHGJ2YCC2DNLAPQZJRE6UO5WNP2QDDFKT7HQCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

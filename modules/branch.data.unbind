@@ -1,0 +1,49 @@
+## [:< ##
+
+# name  = branch.data.unbind
+# descr = unbind data zenka namespace from branch node
+# param = { node }
+
+my $params = shift // {};
+
+my $node = $params->{'node'} // '';
+return { 'mode' => 'false', 'data' => 'node required' }
+    unless length $node;
+
+my $binding = $data{'branch.data.bindings'}{$node} // {};
+my $zenka   = $binding->{'zenka'}                  // 'data';
+
+my $args_yaml;
+eval {
+    <[base.perlmod.autoload]>->('YAML::XS');
+    $args_yaml = YAML::XS::Dump( { 'node_id' => $node } );
+    1;
+} or do {
+    my $err = $@ // 'unknown';
+    <[base.logs]>->(
+        0, 'branch.data.unbind: yaml serialize error [ %s ]', $err
+    );
+    return { 'mode' => 'false', 'data' => 'yaml serialization failed' };
+};
+
+my $sent = <[protocol-7.route-send]>->(
+    {   'command'   => 'data.branch.unbind',
+        'call_args' => { 'args' => $args_yaml },
+    }
+);
+
+## clear binding ##
+delete $data{'branch.data.bindings'}{$node};
+
+<[base.logs]>->(
+    2, 'branch.data.unbind: %s [ zenka=%s sent=%s ]',
+    $node, $zenka, $sent ? 'yes' : 'no'
+);
+
+return { 'mode' => 'true', 'data' => $node };
+
+#,,.,,.,,,,..,,,,,.,,,.,,,.,.,..,,.,.,,,.,,,,,.,.,...,...,,,,,,..,,..,,,,,,,.,
+#CRR72FUY6QTCVVNUNOFOC26WW3UUSKEW4NJK3HAYCQIMVESNXGBVS4M4ELMPMUJSDLYTCVCKHDTTE
+#\\\|VYK4CRJE6YZKXOFAIVI6I6YMIPE5K7JR5GAGCSV3BIAJ62Y2QD5 \ / AMOS7 \ YOURUM ::
+#\[7]5IMR5IVVRK44E3AR2T7NMCBJWFPNLHWNDNIYPSJDKPWC6OOOZKBQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
