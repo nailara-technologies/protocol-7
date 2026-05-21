@@ -4,26 +4,39 @@
 # descr = handle scheduled renewal retry from timer
 #         - resend renewal request to child
 
-my $timer_data = shift;
+my $event_obj = shift;
+my $timer_data
+    = ref($event_obj) eq qw| HASH |                  ? $event_obj
+    : ( ref($event_obj) && $event_obj->can('data') ) ? $event_obj->data
+    :                                                  {};
 
-my $domain  = $timer_data->{domain};
+my $domain  = $timer_data->{domain}  // '';
 my $attempt = $timer_data->{attempt} // 1;
 
-<[base.log]>->( 2, "renewal retry for domain : $domain (attempt $attempt)" );
+unless ( length $domain ) {
+    <[base.log]>->( 0, 'renewal retry: no domain in timer data' );
+    return FALSE;
+}
+
+<[base.logs]>->(
+    2,       "renewal retry for domain : %s (attempt %d)",
+    $domain, $attempt
+);
 
 ## Get certificate info
 my $cert_info = <letsencr.parent.certs>->{$domain};
 return FALSE unless $cert_info;
 
-## Send renewal command to child via Protocol-7 command protocol
-my $renewal_cmd = sprintf 'letsencr.child.cmd.renew-certificate %s', $domain;
+## Send renewal command to child via parent pipe (same as queue_renewal_requests)
 <[protocol-7.command.send.local]>->(
-    {   'command'   => $renewal_cmd,
+    {   'command'   => qw| child.renew-certificate |,
         'call_args' => {
-            'args'  => '',
+            'args'  => $domain,
             'param' => {
-                'cert_info'     => $cert_info,
-                'retry_attempt' => $attempt,
+                'alt_names'       => $cert_info->{alt_names} // [],
+                'account_id'      => $cert_info->{account_id},
+                'certificate_url' => $cert_info->{certificate_url},
+                'retry_attempt'   => $attempt,
             }
         },
         'reply' => {
@@ -40,8 +53,8 @@ if ( exists <letsencr.parent.renewal_timers>->{$domain} ) {
 
 return TRUE;
 
-#,,..,.,,,,,.,,,.,,,.,,,.,,.,,.,,,.,,,,.,,,,,,..,,...,...,.,.,,,,,.,.,...,,.,,
-#BBQZDJQIELLDYCE5IYOATKPTFL5LWKAFV5DSLKQSBTBCAYEPXCI6TSBKAN47DDY6OGZV4QLDUR2GQ
-#\\\|SLTZ346KAM6WF5LPFFVJI6RUBU4ZXPA7MVJNOIN7UGAMMVIFQNR \ / AMOS7 \ YOURUM ::
-#\[7]PVVZPRB6VI6PEWROY5MWSX2LA4YH6IUYHGMFMKNCIZ2X6RAC6EAY 7  DATA SIGNATURE ::
+#,,.,,,.,,,,.,,,,,,..,...,...,,..,..,,,.,,.,,,..,,...,...,...,,,,,..,,.,.,,,.,
+#DR2WDNVBGO7IETQFDIAVJWL35QDU6FN5DITEMZZGWHXC25MEOEMXPF4XIL37FZQ6EXQGF2KVEQG2M
+#\\\|6MYFUGJUTO7R4Z5ATKIQIPDUKHYDJCJHDI3SUBKBIBFFAGBVW6P \ / AMOS7 \ YOURUM ::
+#\[7]6TQ6CIXQEFVL7SPLY7MB2KSLXIJMEQ2FILOEUUQLTQNAYRBKK2BA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
