@@ -4,17 +4,23 @@
 # descr = handle scheduled renewal retry from timer
 #         - resend renewal request to child
 
-my $event_obj = shift;
-my $timer_data
-    = ref($event_obj) eq qw| HASH |                  ? $event_obj
-    : ( ref($event_obj) && $event_obj->can('data') ) ? $event_obj->data
-    :                                                  {};
+my $event = shift;    ## event object — retry data stored in renewal_timers
 
-my $domain  = $timer_data->{domain}  // '';
-my $attempt = $timer_data->{attempt} // 1;
+## find the first domain scheduled for retry
+my $timers  = <letsencr.parent.renewal_timers> // {};
+my $domain  = '';
+my $attempt = 1;
+
+for my $d ( keys %{$timers} ) {
+    if ( $timers->{$d}{status} eq qw| retry | ) {
+        $domain  = $d;
+        $attempt = $timers->{$d}{attempts} // 1;
+        last;
+    }
+}
 
 unless ( length $domain ) {
-    <[base.log]>->( 0, 'renewal retry: no domain in timer data' );
+    <[base.log]>->( 2, 'renewal retry: no domains pending retry' );
     return FALSE;
 }
 
@@ -53,8 +59,8 @@ if ( exists <letsencr.parent.renewal_timers>->{$domain} ) {
 
 return TRUE;
 
-#,,.,,,.,,,,.,,,,,,..,...,...,,..,..,,,.,,.,,,..,,...,...,...,,,,,..,,.,.,,,.,
-#DR2WDNVBGO7IETQFDIAVJWL35QDU6FN5DITEMZZGWHXC25MEOEMXPF4XIL37FZQ6EXQGF2KVEQG2M
-#\\\|6MYFUGJUTO7R4Z5ATKIQIPDUKHYDJCJHDI3SUBKBIBFFAGBVW6P \ / AMOS7 \ YOURUM ::
-#\[7]6TQ6CIXQEFVL7SPLY7MB2KSLXIJMEQ2FILOEUUQLTQNAYRBKK2BA 7  DATA SIGNATURE ::
+#,,,,,,,,,.,,,,..,,,,,,,,,.,.,..,,,.,,,.,,.,,,..,,...,..,,.,.,..,,...,..,,,,,,
+#7OGTDN2LO3BCX27QFGSRAM3DFL6R3CQWCNX3NFUD3JKZUYRCIQNABN27KGUG62KW7DIQRAXQH2LVO
+#\\\|3HRXASIYT5U34IJNOWU4LGBGX6SZSIOMIKNO7SVZL5HDN7TD7W4 \ / AMOS7 \ YOURUM ::
+#\[7]DKXP7OLRXBBQIE7WJD3BYHN2ZUKED7P2ZFW64Q3MR7LVNY326UDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
