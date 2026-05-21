@@ -1,0 +1,51 @@
+## [:< ##
+
+# name  = reasoning.branch.internal.check_stuck
+# descr = periodic timer handler to check stuck scores
+
+my $registry  = <reasoning.branch.registry>        // {};
+my $threshold = <reasoning.branch.stuck_threshold> // 0.75;
+
+my @triggered;
+
+foreach my $id ( keys %$registry ) {
+    my $branch = $registry->{$id};
+    next unless $branch->{'state'} eq qw| running |;
+
+    my $score = <[reasoning.branch.stuck_score]>->($id);
+    $branch->{'stuck_score'} = $score;
+
+    if ( $score >= $threshold ) {
+        <[base.logs]>->(
+            0,
+            "reasoning.branch.check_stuck: %s stuck_score=%.2f"
+                . " >= %.2f, triggering rescue",
+            $id,
+            $score,
+            $threshold
+        );
+        <[reasoning.branch.spawn_rescue]>->(
+            {   id       => $id,
+                strategy => 'auto-rescue: stuck threshold exceeded'
+            }
+        );
+        push @triggered, $id;
+    }
+}
+
+if (@triggered) {
+    <[base.logs]>->(
+        1,
+        "reasoning.branch.check_stuck: rescue triggered"
+            . " for %d branch(es)",
+        scalar @triggered
+    );
+}
+
+return scalar @triggered;
+
+#,,..,,..,,,.,,.,,.,,,..,,,,.,.,.,...,,.,,..,,..,,...,...,...,,,,,..,,,,,,,,,,
+#HNSY5PTH7ATRPBPJKHKPFXNYMUQIBCHWSFAIHWBOY6EFASFONAKALLE6DA2IRXVTBD2FPRIT6FBPY
+#\\\|VN7OY6BUZ6L6OK3B4O4OMA6G7KDQ65S73VUJS5VGMPLGSBC4WAK \ / AMOS7 \ YOURUM ::
+#\[7]TLPZNZ2IL2N5HTTYGDFTHW34EZ2R4JSLVCIGB4YVNOQ3AFG25MDI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

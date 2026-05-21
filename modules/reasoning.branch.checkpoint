@@ -1,0 +1,42 @@
+## [:< ##
+
+# name  = reasoning.branch.checkpoint
+# param = { id, activity_summary, output_so_far }
+
+my $params = shift // {};
+
+my $id = $params->{'id'} // '';
+return { 'mode' => qw| false |, 'data' => 'branch id required' }
+    unless length $id;
+
+my $registry = <reasoning.branch.registry> // {};
+my $branch   = $registry->{$id};
+
+return { 'mode' => qw| false |, 'data' => "branch not found: $id" }
+    unless defined $branch;
+
+my $summary = $params->{'activity_summary'} // '';
+my $output  = $params->{'output_so_far'}    // '';
+
+push $branch->{'checkpoints'}->@*,
+    {
+    summary       => $summary,
+    output_so_far => $output,
+    timestamp     => <[base.time]>->(4),
+    };
+
+## keep only last 10 checkpoints ##
+if ( scalar $branch->{'checkpoints'}->@* > 10 ) {
+    shift $branch->{'checkpoints'}->@*;
+}
+
+## update stuck score automatically ##
+$branch->{'stuck_score'} = <[reasoning.branch.stuck_score]>->($id);
+
+return { 'mode' => qw| true |, 'data' => 'checkpoint saved' };
+
+#,,.,,.,,,,,.,,.,,.,,,.,.,,..,..,,..,,.,.,.,,,..,,...,...,,,.,..,,,,,,.,.,,,.,
+#6LAB37SZQ4R67YIO4JOMDWFZCKR4FRMGLDJAFBT64VXVGZTY5IIDYHTZNUQ4FVE4JIR7AO3TIHOIW
+#\\\|4JE6M462UK66PKYGUS5A3JPWDXKOGKL3SACNIK3EETWDKJKQBK5 \ / AMOS7 \ YOURUM ::
+#\[7]5D2DRL2R4373PLNXHNEFFBUDQ2LG5R2KUGCZIZ6CAUF4KSKF7MAQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
