@@ -27,6 +27,9 @@
 - `data/md/development/P7-LLM-REFERENCE.md` — verified live command reference for kimi/LLM sessions
 - `data/md/development/DEGRADED-FEATURES-AUDIT.md` — 5 high-priority + 3 medium candidates with stub task files
 
+## Routing Crystal (session 43)
+- [topic-routing-crystal](topic-routing-crystal.md) — cube node group as crystal; harmonic memory = route cache; inference = 5-beam convergence; face-000 = reflection surface; total internal reflection = security boundary
+
 ## Checksum Tree Wire Format (session 43)
 - [topic-checksum-tree-wire](topic-checksum-tree-wire.md) — 1[zeros]1 bit-length separators; 01/10 direction-of-travel encoding; 11 pivot/LCA; type-free; append-only; connects stream-framing + DATA + reference bubble
 
@@ -142,8 +145,8 @@
 - **pager.sort.multi-key**: ntime_b32 + priority_map sort types added (session 42)
 - **task dispatch sections**: all dispatched tasks now carry ## dispatch + prompt for reuse
 
-#,,..,,,.,.,.,...,..,,..,,..,,..,,,..,...,,,.,..,,...,...,.,,,.,.,,,.,.,,,.,,,
-#3JVD4HGAZOW27YZ35G7J2LVZ6Z55PQH4INDEGENTDZAW6CP3CQGD3OKYJOWM6A5EVUNBWHJV6VEV2
-#\\\|JNDVG2SDX2XPMLUCMXGZDV2KWU5HFAD2QGJQ57GPSYVEBPR6Y2G \ / AMOS7 \ YOURUM ::
-#\[7]JRUACFJ46JRDGXOB2OY4XP2MF476WF2IB35WOPLHTCCQBR6GQGDY 7  DATA SIGNATURE ::
+#,,,,,,,.,,,,,,.,,,.,,,..,.,,,...,...,,..,,,,,..,,...,..,,...,,.,,,,.,.,.,,..,
+#DZEZ62YCAKX4C6D3GTQEB6GVT5BBQJZE3JZMUD32MZXH2WNMVPOL4VBKBZRY6G56TSW275HNGYQAA
+#\\\|PCABIMAHUMUZGMUAT2EDN2RTAR6LLVBO4H6XULGRMOYWG6TD24P \ / AMOS7 \ YOURUM ::
+#\[7]QJHEKN35UTE63BRFEQOWNOWUVCS777273RZ2UBMKKOYIQWCNYKCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
