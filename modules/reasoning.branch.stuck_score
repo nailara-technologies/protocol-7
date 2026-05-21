@@ -1,0 +1,53 @@
+## [:< ##
+
+# name  = reasoning.branch.stuck_score
+# param = $branch_id
+# return = $score (0.0..1.0)
+
+my $branch_id = shift // '';
+return 0.0 unless length $branch_id;
+
+my $registry = <reasoning.branch.registry> // {};
+my $branch   = $registry->{$branch_id};
+
+return 0.0 unless defined $branch;
+
+my $checkpoints = $branch->{'checkpoints'} // [];
+my $n           = scalar @$checkpoints;
+
+return 0.0 if $n < 3;
+
+## compute similarity of last N summaries ##
+my $window_size = ( $n < 5 ) ? $n : 5;
+my @recent      = ( $checkpoints->@* )[ -$window_size .. -1 ];
+
+my %seen;
+my $unique_count      = 0;
+my $loop_phrase_count = 0;
+
+foreach my $cp (@recent) {
+    my $sum = $cp->{'summary'} // '';
+    $unique_count++ unless $seen{$sum}++;
+    $loop_phrase_count++
+        if $sum =~ m{re-read|loop|stuck|same|repeated|no progress}i;
+}
+
+## identical ratio: fewer unique = higher stuck ##
+my $identical_ratio = 1.0 - ( $unique_count / $window_size );
+
+## loop phrase boost ##
+my $phrase_ratio = $loop_phrase_count / $window_size;
+
+## combine: weight identical summaries heavily ##
+my $score = ( $identical_ratio * 0.7 ) + ( $phrase_ratio * 0.3 );
+
+## require at least 5 checkpoints before full high score ##
+$score *= 0.5 if $n < 5;
+
+return sprintf( qw| %.2f |, $score > 1.0 ? 1.0 : $score );
+
+#,,,,,,,.,.,,,.,,,...,,.,,,.,,.,.,...,,,,,..,,..,,...,...,.,,,...,,,.,.,.,...,
+#ZCYB73RUU5ZKN2BGFOLKFEB4JA2JLD7OOAPRQAVAQPPIJTX6PTVYRHBHZJYIPGQAXBKGIXZ75GPWI
+#\\\|7ROU2FPVSKTXMYE4YAICMMJBX4UZEJ7GVHL7FLXQ67OKB6LGHDO \ / AMOS7 \ YOURUM ::
+#\[7]EVF2HZL5JMTCBS27JPIQTLZBQ3MQXLBTY3Z6B5HOB335UJC67MDI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

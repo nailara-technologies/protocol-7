@@ -33,6 +33,13 @@ if ( exists <coding.task.queue>->{ $task->{'id'} } ) {
     $task->{'execution'}->{'retry_count'}
 );
 
+## resolve reasoning branch as failed ##
+<[reasoning.branch.resolve]>->(
+    {   id     => $task->{'id'},
+        output => 'failed: ' . ( $error // 'unknown error' )
+    }
+);
+
 return {
     'mode' => qw| true |,
     'data' => {
@@ -42,8 +49,8 @@ return {
     }
 };
 
-#,,.,,..,,.,.,.,,,,..,.,,,.,.,,,.,..,,.,.,.,.,.,.,...,...,...,,,.,...,,,.,,,,,
-#R57US463VKTYKSXAKBMF6CBISXGNJS72XNZP5GJ6HBJ533DZMB7OUCSD4QHDV5ESXY3TF6RQ7FHY2
-#\\\|TX6Q53NGGKGTZYGP5ENO4I6GDA7LK7AG65AKBKMFXMYJ6TUMRAV \ / AMOS7 \ YOURUM ::
-#\[7]Q6L5VS533RCKVPD2JMFSRS4IXUHSDCR2Y3O3XGWS6GLGYNFKXWCQ 7  DATA SIGNATURE ::
+#,,,.,,..,,,,,...,.,,,,,.,,.,,...,.,,,...,...,.,.,...,...,.,,,.,,,.,.,.,.,,.,,
+#ND47GP3UMY37SVKTODDGBUM72N6KLDDYVR33ZU4MFNM7GYMWHTKBO6BXZ2XW5MRPUZEWZSVB2PQW2
+#\\\|6Z447YHB7X5ETGH4MSQDM4SNSRLB7LZ7FFJXCUTDIV74W5WTBBJ \ / AMOS7 \ YOURUM ::
+#\[7]5UODM6BPCA4XQ2M2BA4HIPDCXULVMV7DZJO2OUZ7MML7W6TEZKAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

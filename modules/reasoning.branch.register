@@ -1,0 +1,52 @@
+## [:< ##
+
+# name  = reasoning.branch.register
+# param = { id, agent, task_id, deps, context_path }
+
+my $params = shift // {};
+
+my $id = $params->{'id'} // '';
+return { 'mode' => qw| false |, 'data' => 'branch id required' }
+    unless length $id;
+
+my $registry = <reasoning.branch.registry> //= {};
+
+## reject duplicate registration ##
+return {
+    'mode' => qw| false |,
+    'data' => sprintf( 'branch %s already registered', $id )
+    }
+    if exists $registry->{$id};
+
+my $deps = $params->{'deps'} // [];
+$deps = [$deps] if ref $deps ne qw| ARRAY |;
+
+## if deps specified, start as paused; otherwise running ##
+my $initial_state = ( scalar @$deps ) ? qw| paused | : qw| running |;
+
+$registry->{$id} = {
+    agent        => $params->{'agent'}   // 'unknown',
+    task_id      => $params->{'task_id'} // $id,
+    state        => $initial_state,
+    deps         => $deps,
+    context_path => $params->{'context_path'} // '',
+    checkpoints  => [],
+    stuck_score  => 0.0,
+    output       => undef,
+    rescue_of    => undef,
+    spawned_at   => <[base.time]>->(4),
+};
+
+<[base.logs]>->(
+    1,              "reasoning.branch.register: %s [%s] state=%s deps=%d",
+    $id,            $registry->{$id}->{'agent'},
+    $initial_state, scalar @$deps
+);
+
+return { 'mode' => qw| true |, 'data' => $id };
+
+#,,,,,..,,...,,..,,,.,..,,.,,,.,.,..,,,..,,,,,..,,...,...,.,.,,,,,,..,..,,.,,,
+#2YW4AGBUPGC3MG4362JXZKZCCW7BMSIMSZ4I6O2U3LBPT3V7ONGFGBINL7DLYXDT2TXCU2Z2PSFY4
+#\\\|3FBIC5ZCCSY6A6LYYC4VJXEF7XZVZ36UMZLBL7VCNYYZJHKILAK \ / AMOS7 \ YOURUM ::
+#\[7]GM565VM5NTN2P333KCUPSKOCJ66IHEB3HGCJQMYENM4YICRNEKBQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

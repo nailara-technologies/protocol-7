@@ -1,0 +1,29 @@
+## [:< ##
+
+# name  = task.post_init
+# descr = set up reasoning branch stuck-check timer
+
+my $interval = <reasoning.branch.check_interval> // 300;
+
+<[event.add_timer]>->(
+    {   'after'    => $interval,
+        'interval' => $interval,
+        'repeat'   => TRUE,
+        'handler'  => 'reasoning.branch.internal.check_stuck',
+    }
+);
+
+<[base.logs]>->(
+    2,
+    'task.post_init: reasoning branch stuck-check timer started'
+        . ' [interval=%ds]',
+    $interval
+);
+
+0;
+
+#,,.,,...,...,,.,,.,.,.,,,.,.,..,,,..,.,,,.,.,..,,...,...,,,.,,,,,...,,..,.,.,
+#4KTT3AFGZUUHJGRLK7WMZ57W5MWD33TNTO7DIQJ2J64DPSLMYLRRYRSDPPFIPCUITK3AF5S3CCAAE
+#\\\|Z2QUVVJBMWQWYPRYKLJURLTGQVDPAGNCDUJLWQEEXCRA4LDGCBQ \ / AMOS7 \ YOURUM ::
+#\[7]ODM4T5Z2YCNEAKWPKUU2MMVVB3FK4ODA2TM3D4CRMZPLXGO5P6DQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

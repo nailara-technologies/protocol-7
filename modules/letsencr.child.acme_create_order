@@ -61,9 +61,30 @@ unless ( $response->{status} == 201 ) {
     <[base.log]>->(
         1, "error: order creation returned status $response->{status}"
     );
-    if ( $response->{data}{detail} ) {
-        <[base.log]>->( 1, "  details : $response->{data}{detail}" );
+    my $detail = $response->{data}{detail} // '';
+    my $type   = $response->{data}{type}   // '';
+    <[base.log]>->( 1, "  details : $detail" ) if length $detail;
+
+    ## detect rate limit — parse retry-after timestamp from detail string
+    if (   $response->{status} == 429
+        or $type =~ m|rateLimited|i ) {
+        my $retry_after = '';
+        if ( $detail
+            =~ m|retry after (\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2} UTC)| ) {
+            $retry_after = $1;
+        }
+        <[base.logs]>->(
+            0,
+            'ACME rate limited — retry after: %s',
+            $retry_after || 'unknown'
+        );
+        return {
+            error       => 'rate_limited',
+            retry_after => $retry_after,
+            detail      => $detail,
+        };
     }
+
     return undef;
 }
 
@@ -103,8 +124,8 @@ return {
     finalize_url   => $order_data->{finalize},
 };
 
-#,,,,,..,,,,,,...,,,.,..,,,,,,...,,.,,,..,,,.,..,,...,...,,,.,,,,,..,,.,,,,.,,
-#BX3WYRTXVIEKHQSPG63DF47WSYM4LFW5HIES53MQNCQQC5KPXTWC5HSHAXH53FB7MFRI6AIGN3PM4
-#\\\|FWL5MHY36TSQWQWDBGYZMQXY566QWBNMJCADDCIFA2CXPT3YGSQ \ / AMOS7 \ YOURUM ::
-#\[7]FNHDSNLLSNBDG76LURUPQVP23PF4BMHJWFSNWJW3MJYP5HW3OMDY 7  DATA SIGNATURE ::
+#,,,.,,..,..,,..,,,.,,,,,,.,,,,,.,.,.,.,.,.,.,..,,...,...,...,..,,,,.,,,.,.,.,
+#IW4BP3MM7WRIGKNBIUHHU73U6DV2BHFNLZN2UNXYCLCEUEJDY36ID54XAR56PEVNDIZTQV7PJZSKY
+#\\\|AFQXTOUWQKXFGXSICLAEK3EBIE4AOSBHPAPMIFYF3QH3TFXKBHQ \ / AMOS7 \ YOURUM ::
+#\[7]32RS5MNXSIJATLCM6W5Z74Q4YE2HIFRRUIZNW5HYTRI6BZFNV4DI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
