@@ -73,8 +73,23 @@ note this as a comment in jobsite.chksum.group-by-branch but do not implement.
 - autoload Digest::BMW via <[base.perlmod.autoload]>->('Digest::BMW')
 - autoload AMOS7::CHKSUM::BMW384 the same way
 
-#,,,,,..,,,..,.,.,,,.,..,,.,.,...,.,.,.,.,,..,..,,...,..,,..,,,,,,,..,,..,..,,
-#XXKNRLA7A7K6JYQDC5P6USL7KOFZJHIEF5BWZI4YVT6K5T3XQROAQZEZ6FO2P434YEVIFMTN44F2G
-#\\\|Q234QMKUY6WLSWF2U7IC5DBZVQJC5JO5FCY3J3SEYNR2356LPMP \ / AMOS7 \ YOURUM ::
-#\[7]LL4JZ6QRO4VLJ34OAYTDWTZQTFSAMH72K4Z7ZPSEFCVWFP6WHYCQ 7  DATA SIGNATURE ::
+## dispatch
+
+model: kimi
+reasoning: medium
+
+prompt: |
+  Implement the task at data/tasks/bmw384-arc-grouping-filter.md
+
+  Read the task file carefully. The dependency (bmw384-color-extract.md) is already
+  implemented — base.chk-sum.bmw384.color and base.chk-sum.bmw384.color-dist are
+  available. Read modules/jobsite.job.read and modules/jobsite.job.load_all first to
+  understand the job data structure. Return format for the list command:
+  { mode => 'size', data => $formatted_string }. New modules: leave clean, no signature
+  stubs. Use $ARG not $_, lowercase comments.
+
+#,,,,,.,.,,,,,...,,..,,,,,,..,..,,,,.,,,,,.,.,..,,...,...,.,,,...,,,,,.,,,,,.,
+#K4BZEQX4ZFDDBMJDDW43T4B7HVXLS6MT7COFNRBYIPHCISCOZZZVJLT4X2MCOVCDYTTVJKXAYLEZI
+#\\\|4O222RAJ6VQGAZ2NKP3C6LQLL7DNQA2KHEBXS7W2UDVXPDZ5WAO \ / AMOS7 \ YOURUM ::
+#\[7]5XXFMCXWWS4EINYBTDGJK6FTSSW7EIMEMOTN7ORGWQNWCZM3IQCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

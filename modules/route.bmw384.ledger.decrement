@@ -1,0 +1,32 @@
+## [:< ##
+
+# name  = route.bmw384.ledger.decrement
+# descr = decrement a ledger counter, trigger flash on separator inversion
+# args  = $arc, $ring
+
+my $arc  = shift;
+my $ring = shift;
+my $key  = "$arc:$ring";
+
+<route.bmw384.cfg.ledger_counts> //= {};
+my $count = <route.bmw384.cfg.ledger_counts>->{$key} // 7;
+
+if ( $count > 0 ) {
+    $count--;
+    <route.bmw384.cfg.ledger_counts>->{$key} = $count;
+}
+
+# [ separator inversion at 0 — trigger flash ]
+if ( $count == 0 ) {
+    <route.bmw384.cfg.ledger_flash> //= {};
+    <route.bmw384.cfg.ledger_flash>->{$key} = <[base.time]>->(3);
+    <[base.logs]>->( 1, 'ledger: arc %d ring %d → 0 [FLASH]', $arc, $ring );
+}
+
+return $count;
+
+#,,,.,.,,,,.,,,..,,,.,.,.,,,.,,,.,,.,,.,,,...,..,,...,...,..,,,..,..,,,.,,.,.,
+#A3M5N4NKUQJNRZYNEKFRZ34ANQNHKP5DRDEKTOXEOU23NUUSAWBVRUXR7OSONZGNR5WAYBWBST4W6
+#\\\|WLJX6VIJDYDEY4RQW246SPCIDQIBE74IAK4XLC4SW3WNGR6QTWT \ / AMOS7 \ YOURUM ::
+#\[7]QZKY3GO7CKRBZDCPMHL7NYNWIDGVXKLI5DQE3CI35ID7ROSOGMAA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
