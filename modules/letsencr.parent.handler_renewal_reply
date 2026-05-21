@@ -93,8 +93,9 @@ if ( $mode eq 'TRUE' ) {
     );
 
     ## Certificate data returned — decode base32r JSON bundle from child
-    ## decode_b32r is available globally from bin/Protocol-7 runtime
-    my $bundle_json = eval { decode_b32r($data) };
+    ## trim trailing whitespace/newlines from SIZE protocol framing
+    ( my $data_clean = $data // '' ) =~ s|\s+$||;
+    my $bundle_json = eval { decode_b32r($data_clean) };
     my $cert_bundle
         = defined $bundle_json
         ? eval { JSON::XS::decode_json($bundle_json) }
@@ -207,8 +208,8 @@ if ( $mode eq 'TRUE' ) {
 
 return FALSE;
 
-#,,,.,,,,,.,.,,.,,.,.,...,,,,,..,,,..,,.,,,.,,..,,...,..,,..,,.,,,...,,..,,..,
-#VIDXM3P5KWBBVUMVOH2LLCBLOFQOZJTVXGDKLZPNO2UNKR3JVRMVURHQAK6PKWAWKCERPDHE6E6TK
-#\\\|OBCRFNK54L6SF73AXLSAKTYHNIGOEYEBJX4ZJES6WOBJGFEBZR3 \ / AMOS7 \ YOURUM ::
-#\[7]TRDODXRD2RWYDWBGNA5AXATPMOFCZ5OYR6VVLGTWHJZHVWTJMUCQ 7  DATA SIGNATURE ::
+#,,..,.,,,.,.,.,,,,.,,.,.,...,.,.,,,,,...,,,,,..,,...,...,..,,,,.,..,,..,,,,.,
+#32MM66WFCFXGNVJS26NCWG5JIVBKQ525K2MOSPGDHWZA5QDI5QIXFCBQ5JM72MTMZ2F5KFNA674FO
+#\\\|WW3SO6GM6DQ5XOJDSMCH5NSGZ7UE5JI2PC7UF3S3PLZ4XAS6G6L \ / AMOS7 \ YOURUM ::
+#\[7]RE23ZMVKAOK5IVN5TV4ZF7AKBSW4OP3Z6SK2GARZSVM3XLIX22BA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
