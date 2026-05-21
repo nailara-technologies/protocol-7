@@ -853,9 +853,15 @@ sub file_change_string {
         $old = trim($old);
         $new = trim($new);
 
+        if ($no_color_mode) {
+            $old = bleach_text($old);
+            $new = bleach_text($new);
+        } else {
+
        # highlight_pair resets the colors, but we want it to be the meta color
-        $old =~ s|(\e0?\[m)|$1$meta_color|g;
-        $new =~ s|(\e0?\[m)|$1$meta_color|g;
+            $old =~ s|(\e0?\[m)|$1$meta_color|g;
+            $new =~ s|(\e0?\[m)|$1$meta_color|g;
+        }
 
         return ": renamed : $old --> $new";
 
@@ -1074,8 +1080,8 @@ sub get_terminal_width {
 
 # vim: tabstop=4 shiftwidth=4 noexpandtab autoindent softtabstop=4
 
-#,,.,,,,,,...,...,,,,,...,,,.,...,,,.,,,,,.,.,..,,...,...,.,,,.,,,...,,..,,,.,
-#NZ4SE4L7CQCTBWZYF7DKFSMBUDVK66LFPFLCQIOGTOKUIIEELJZDKVXNEYBYV5ZFK4SAGAVMDT5QW
-#\\\|MLOJX6SEMRDGWYVJEPQKR5REKJHPZFNDN7XB7QD22F3X26SHI7P \ / AMOS7 \ YOURUM ::
-#\[7]X5R2WB3PD4UDKN2NWWMZHX2GJMUFO4KASNZCANNMSK4KP2Q7X4BQ 7  DATA SIGNATURE ::
+#,,,,,.,,,.,,,,..,,.,,...,...,,.,,...,..,,..,,..,,...,...,...,,,,,.,.,.,,,,,.,
+#CBKHPVT23LNCIIYHFQ3VMW5VRYR3G2PZ7IQBKGVIJYBYT66GPJJ7IIIB5CRRKYCJ55PXI3VU3DB5K
+#\\\|WG2JMBWIHR2X5BP7MDLI6V6VSEJCFW5JY22QXTX4I2QR2DLOWI5 \ / AMOS7 \ YOURUM ::
+#\[7]DMY2DAPYZHCZZZJ33EKV7W6ZQSAZ6JAQLPFAUTVIE3M6S7LWEMDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

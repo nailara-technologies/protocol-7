@@ -42,17 +42,24 @@ while ( !$matched_reply ) {
 if ( $reply_string =~ m{^\($cmd_id\)TRUE (\d+)\n$} and <x11.id> = $1 ) {
     <[base.log]>->( 1, ": received X window id '" . <x11.id> . "'.," );
     return <x11.id>;
-} elsif ( $reply_string =~ m|^\($cmd_id\)FALSE window startup timed out| ) {
-    <[base.log]>
-        ->( 0, ": window startup timed out after $timeout seconds.," );
+} elsif ( $reply_string =~ m|^\($cmd_id\)FALSE | ) {
+    if ( $reply_string =~ m|unavailable| ) {
+        <[base.log]>->(
+            2, ": window wait skipped [ enumeration unavailable ]"
+        );
+    } elsif ( $reply_string =~ m|timed out| ) {
+        <[base.log]>->(
+            0, ": window startup timed out after $timeout seconds.,"
+        );
+    }
     return undef;
 } else {
     <[base.log]>->( 0, "not expected X-11 reply ['$reply_string' ] " );
     return undef;
 }
 
-#,,..,,,,,,.,,.,.,,.,,.,,,,..,,,,,,,.,,..,.,.,..,,...,..,,,,,,,,.,...,.,,,.,,,
-#36YR6KASN2PGYUFSP7E37Z4PCZFE4LBT5AZWP5NMZ4XVQQSKGTXIVGOL2FRAZWM7SFEILY4XKO7CA
-#\\\|TS7Z5UTRQQUFUFSBJRIDRWKRBSA4RRQJZUMGGKMFWUA5U342MKR \ / AMOS7 \ YOURUM ::
-#\[7]ADINS3PIDNSJBZNDEDR74ZLDZORIAQ6UXMEUH32AVAPIJ6ISUACQ 7  DATA SIGNATURE ::
+#,,..,...,,,,,,..,..,,...,.,.,.,.,.,.,,..,,,,,..,,...,...,,,.,,,,,.,,,,.,,.,.,
+#QJG35SQIQWRNDTFWLX3VNL7CS4FD2UKIDB6PDGD7UIN7LNWPQ5LCM2BQQQ4VFRK2PKAQPQKZEVESA
+#\\\|O3MB5FAXJGX44S5H3T54BUVECD44S2WEHB7GELLNYSEHTNSY7JH \ / AMOS7 \ YOURUM ::
+#\[7]7RXUWPG6NZPMHVQGD7GG32256ULEZLDH5MM7W5QVHIYY7U4S3OBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

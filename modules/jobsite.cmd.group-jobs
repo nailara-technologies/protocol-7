@@ -1,0 +1,77 @@
+## [:< ##
+
+# name  = jobsite.cmd.group-jobs
+# descr = group jobs by bmw384 color proximity on a dimension
+
+my $args = $call->{'args'} // '';
+$args =~ s/^\s+|\s+$//g;
+
+my ( $dimension, $job_id, $radius ) = split /\s+/, $args, 3;
+
+my @valid_dims = qw|
+    location work-profile company-culture compensation
+    remote-flexibility career-growth tech-stack team-structure
+    |;
+
+my %is_valid = map { $ARG => 1 } @valid_dims;
+
+if ( not length( $dimension // '' ) or not $is_valid{$dimension} ) {
+    return {
+        'mode' => 'false',
+        'data' => 'usage: jobsite.group-jobs <dimension> <job_id> [radius]'
+            . "\nvalid dimensions: "
+            . join( ', ', @valid_dims ),
+    };
+}
+
+if ( not length( $job_id // '' ) ) {
+    return {
+        'mode' => 'false',
+        'data' => 'usage: jobsite.group-jobs <dimension> <job_id> [radius]',
+    };
+}
+
+$radius //= 500000;
+if ( $radius !~ m/^\d+$/ ) {
+    return {
+        'mode' => 'false',
+        'data' => 'radius must be a positive integer'
+    };
+}
+
+my $group
+    = <[jobsite.chksum.group-by-branch]>->( $dimension, $job_id, $radius );
+
+if ( not @{$group} ) {
+    return {
+        'mode' => 'true',
+        'data' => "no jobs within radius $radius of $job_id on $dimension",
+    };
+}
+
+my $all_jobs = <[jobsite.job.load_all]>;
+
+my @lines;
+for my $rec ( @{$group} ) {
+    my $job   = $all_jobs->{ $rec->{'job_id'} }                         // {};
+    my $score = $job->{'assertions'}{'dimensions'}{$dimension}{'score'} // '';
+    push @lines,
+        sprintf(
+        '%-14s %3s %8s %6s  %s — %s (%s)',
+        $rec->{'job_id'},
+        $rec->{'arc'}  // '?',
+        $rec->{'dist'} // '?',
+        length($score) ? $score : '-',
+        $job->{'title'}   // '',
+        $job->{'company'} // '',
+        $job->{'city'}    // '',
+        );
+}
+
+return { 'mode' => 'size', 'data' => join( "\n", @lines ) };
+
+#,,,.,.,,,,,.,,,.,,.,,..,,,,.,,,,,,.,,,..,..,,..,,...,..,,,.,,,,,,.,,,,,.,.,,,
+#TGNJQOBMDZIEFI6JWKS52Z2SKH25JYI26SJHQ3BVKALSTBIPZ65XYMCUKH3P2HL36DM6DKE43PA7Q
+#\\\|3MAB3NSTICHBC5PTKHCHAEHELXBHDTWH4GEEOO2E7TSGWGXBXHG \ / AMOS7 \ YOURUM ::
+#\[7]RVLQCEK6R2IYTFFBNNH5X2YFMKZVUEL2TOV36PDSAK6JPCCM5YAA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

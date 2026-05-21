@@ -25,6 +25,18 @@ my $end_match   = $title_pattern =~ s|(\$)$||g ? ${^CAPTURE}[0] : '';
 
 $title_pattern = qr|$start_match\Q$title_pattern\E$end_match|;
 
+## in host mode without window enumeration, skip the wait entirely
+## callers handle FALSE gracefully — they proceed without the window id
+if ( not <X-11.window_enumeration> ) {
+    <[base.log]>->(
+        1, "wait_visible: skipping [ window enumeration unavailable ]"
+    );
+    return {
+        'mode' => qw| false |,
+        'data' => 'window enumeration unavailable — skipping wait'
+    };
+}
+
 foreach my $window_id (<[X-11.get_window_ids]>) {
     my $window_title = <[X-11.get_window_title]>->($window_id);
 
@@ -69,8 +81,8 @@ push(
 
 return { 'mode' => qw| deferred | }
 
-#,,..,...,,..,,,,,,,,,,,,,...,,,,,.,,,,.,,,..,..,,...,...,..,,..,,,,.,,,,,,,.,
-#CKRXCB6S2NWVWEWW2KAQV2DJO4I54DSHK66MR3JFY64HRLGTP2LOU3XRVT3G7ILDI5RF6ZH3ALOD6
-#\\\|PCS4MYAICXPFZXURAKW2W4KYYSK4NFU25G4VLEQNOEYS4LS63JX \ / AMOS7 \ YOURUM ::
-#\[7]ENRLM5F6Z77NIK5LAO623WSS43QGFB6CTAEKNAKMNM3JLPIX4QAA 7  DATA SIGNATURE ::
+#,,,.,..,,,,.,.,,,,,.,.,,,.,.,,,,,.,,,,,.,...,..,,...,...,...,,.,,.,,,...,,,.,
+#7KUFAZNFPU2QAEMPB6IKCGK44X4BRMQLUJXBQGUGFD7G5NT55NBL3X7SZUG73747QKPH53GWATOJQ
+#\\\|4XWSJABPK6RL5F2WV6YVJOMK4ZQOTXCUI5AVTRHWGPXAZS5ZWVG \ / AMOS7 \ YOURUM ::
+#\[7]JUYO6Y7MIRDMX3F7X7UVCEW7XQZWIXR5YCIWEX44YPIGSELXKMAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
