@@ -1,0 +1,69 @@
+## [:< ##
+
+# name  = reasoning.branch.resolve
+# param = { id, output }
+
+my $params = shift // {};
+
+my $id = $params->{'id'} // '';
+return { 'mode' => qw| false |, 'data' => 'branch id required' }
+    unless length $id;
+
+my $registry = <reasoning.branch.registry> // {};
+my $branch   = $registry->{$id};
+
+return { 'mode' => qw| false |, 'data' => "branch not found: $id" }
+    unless defined $branch;
+
+$branch->{'state'}       = qw| resolved |;
+$branch->{'output'}      = $params->{'output'} // '';
+$branch->{'resolved_at'} = <[base.time]>->(4);
+
+<[base.logs]>->( 1, "reasoning.branch.resolve: %s resolved", $id );
+
+## notify waiting dependents ##
+my @resumed;
+foreach my $dep_id ( keys %$registry ) {
+    my $dep_branch = $registry->{$dep_id};
+    next unless $dep_branch->{'state'} eq qw| paused |;
+
+    my $deps = $dep_branch->{'deps'} // [];
+    next unless grep { $ARG eq $id } @$deps;
+
+    ## remove resolved dependency ##
+    $dep_branch->{'deps'} = [ grep { $ARG ne $id } @$deps ];
+
+    ## if no more deps, resume ##
+    if ( scalar $dep_branch->{'deps'}->@* == 0 ) {
+        ## inject resolved output as context ##
+        my $injected = sprintf( "[DEPENDENCY RESOLVED] %s found: %s",
+            $id, $branch->{'output'} );
+        <[reasoning.branch.inject]>->(
+            {   id               => $dep_id,
+                context          => $injected,
+                source_branch_id => $id
+            }
+        );
+        push @resumed, $dep_id;
+    }
+}
+
+if (@resumed) {
+    <[base.logs]>->(
+        1,
+        "reasoning.branch.resolve: resumed %d dependent(s) [%s]",
+        scalar @resumed,
+        join( ', ', @resumed )
+    );
+}
+
+return {
+    'mode' => qw| true |,
+    'data' => { resolved => $id, resumed => \@resumed }
+};
+
+#,,,.,.,,,...,,..,.,,,...,,.,,.,,,,,,,.,,,,..,..,,...,..,,,.,,.,.,,,,,...,,,,,
+#DHBFE6EY6OB64DIVSNBUINSGPHNLITKQJKIADD6YM2QIAFLFWG3E2CFE54EYYFYR474NQCB2BMEOE
+#\\\|DTTZCKDL4J36RIBDGZVVU3CBWPVVGWY7RZ3NHODF4XLZZTOQOUP \ / AMOS7 \ YOURUM ::
+#\[7]P4OGBM23G3X2KBLLI3HZJPAVHZUNYX4VC6ISV4WMBK62SORBJYAQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

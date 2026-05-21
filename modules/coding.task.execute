@@ -44,6 +44,15 @@ push $aref_active->@*, $task_id;
 
 <[base.logs]>->( 2, "coding.task.execute: starting task %s", $task_id );
 
+## register as reasoning branch ##
+<[reasoning.branch.register]>->(
+    {   id      => $task_id,
+        agent   => qw| coding |,
+        task_id => $task_id,
+        deps    => $task->{'dependencies'} // [],
+    }
+);
+
 ## Phase 2: Check for async mode ##
 my $async_mode = <coding.async.enabled> // FALSE;
 
@@ -167,8 +176,8 @@ if ($async_mode) {
 ## unreachable — async block always returns before here ##
 return FALSE;
 
-#,,,,,,,.,...,.,,,,..,.,.,,,.,.,.,.,.,,,,,..,,.,.,...,...,...,.,.,...,,..,,,,,
-#USWPQIGMWQRTE7KLFIU2W2HRWB4V2TWT7LSKQFSZWEMKO4T5KZYJFNUQEI5IGPYMUKUTBASGKU5JS
-#\\\|QZN65DVXIRJB3FBXN3ETWDFRURGN7UWVLZYSCDK5FI6MMTAVSSH \ / AMOS7 \ YOURUM ::
-#\[7]O5VYMYKJ4H4GHRYIIFR3HBJG5WKK6SV4YP7I3RB7F6AY3DOLLQAY 7  DATA SIGNATURE ::
+#,,,,,.,,,.,,,.,.,,,.,.,.,,,.,.,.,,,,,.,,,.,,,.,.,...,.,,,..,,.,,,.,,,,,.,,,,,
+#BMBAPPZVDTZS5PHNXSLVZXBHLAIBXFQEFOUC5XALIYQG5S57SO6KWHDTN4DQNSGOMFXYU6CZLGVHI
+#\\\|OU4JRG7B5TYJJENU4N2PTBDGXWZG75F6PVRTVLHGQI3HYXJC5NK \ / AMOS7 \ YOURUM ::
+#\[7]JRFQMQGIEHINYB6P3ET7AVF45X5QRNXAKXK547JQX24KBEVB34DY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

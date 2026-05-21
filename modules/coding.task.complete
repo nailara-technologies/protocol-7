@@ -40,6 +40,13 @@ push $aref_completed->@*, $task_id;
 
 <[base.logs]>->( 2, "task completed : %s", $task_id );
 
+## resolve reasoning branch ##
+<[reasoning.branch.resolve]>->(
+    {   id     => $task_id,
+        output => $result
+    }
+);
+
 ## persist result to disk for recovery after idle shutdown ##
 if ( defined $result && length $result ) {
     my $written = <[file.zenka_dir.write]>->(
@@ -62,8 +69,8 @@ return {
     message => "task completed : $task_id"
 };
 
-#,,,.,..,,..,,,..,.,.,,,,,,,.,,..,,.,,.,.,...,..,,...,...,..,,,,.,,,.,,.,,,,.,
-#OWRVGU6YC27KMUTJXMBEMR4EN6ELXZUMLZDOMBMX7O5MM7AZPTRXPA53HOE526RCXINH2TEQQIZHE
-#\\\|D2I465GVAXOD4LX64QXFKJXWNPK74XCDE6WE763GTDIKPIITOKJ \ / AMOS7 \ YOURUM ::
-#\[7]Q7KTLSCDSK4D7MD5QOP7NTHYLYPZUOBYAWCNNQ2J6GARVZVK6OAA 7  DATA SIGNATURE ::
+#,,.,,...,.,.,,..,.,,,,..,,..,,..,..,,,,,,.,.,..,,...,...,..,,...,.,,,...,,..,
+#UNPNKMAQRUBGHLON75ZA5TJTD2U3SR62WGYGDQL6GUAG67C27IEGBHVDXGIGLNIBRGYA6IURB4QKU
+#\\\|K7MXNJBE4RQSHLIW5P5EBB2I64S5R4DP2NIUNFXINOA335UGDXJ \ / AMOS7 \ YOURUM ::
+#\[7]IBFI4QGLOP6RMH3WKE7UDXWVN37DOBOCUKRKQLEGWU3ZDXCLWWBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
