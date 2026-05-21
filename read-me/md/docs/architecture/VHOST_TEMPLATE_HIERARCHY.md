@@ -565,8 +565,10 @@ This vhost/template architecture should be reflected in:
 **Next Step**: Implement vhost_resolver and template_resolver modules
 **Contact**: Protocol-7 Development Team
 
-#,,,.,,,,,,..,,..,.,.,,,.,,.,,,,,,.,,,.,,,,.,,..,,...,,..,...,,..,...,,,,,.,.,
-#E33YOIP2GT6AS3BNSYVTOAIGA6METKDXJL5B2L673CW7K5ZO2HQR25HMOFIBJVJELZECPADTG2VSQ
-#\\\|ME3CV3UHVS7XYLO6QM6NWIVYZVXNMN25WH7FL2CCK4PEDYONJZJ \ / AMOS7 \ YOURUM ::
-#\[7]WC3U3H55YCK6DEB3RCDUNWZB43QBOXM3ZDLG6MFMD3ZF6P3M4KDQ 7  DATA SIGNATURE ::
+```
+
+#,,.,,,,,,...,,,.,,,.,,.,,.,.,.,,,..,,,,,,,,.,...,...,...,.,.,,.,,,,.,..,,,.,,
+#V4JHZTPVBND6XYMRE7B5OBLUVUUIX4Q6OGL4QTO6WYABRGCZWYMDFPXZYUTKBT2XHRBCWYF3QCOE4
+#\\\|AEQ42HHTBGD6PN6T6W3UKKO5U7U6VMENJ7OCNQPQRF67LVSL6TW \ / AMOS7 \ YOURUM ::
+#\[7]WWBRWSYECZWVD7NLWS4MRYITQQFI3FIPEFJOMBVMSYW3MX3ZX2CQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -433,8 +433,10 @@ When implementing similar patterns in new zenka:
 
 *This document describes patterns extracted from Protocol-7's nodes and channels zenka. Use these patterns as blueprints when implementing similar distributed infrastructure.*
 
-#,,,.,.,,,.,,,,,.,..,,,,,,.,.,..,,...,.,.,,.,,..,,...,...,..,,..,,.,,,..,,,,,,
-#MNYQWAUXIJNNAS637Z5PWEYYLI64OHADT3QAYCTOALFCWHEGK2AJARQTOPZYWJHZUNLIHMXMPGEG4
-#\\\|Q5ZRT37IHRJWVTWRKSDS6AFOXGHJVBPXQTGORAPWVCFAW3M5GD7 \ / AMOS7 \ YOURUM ::
-#\[7]F4NXSKQQOQD4S4BRC3QG3YIW5WM2D235TQRQ6CAICGVKNERXUKCY 7  DATA SIGNATURE ::
+```
+
+#,,.,,..,,...,,..,..,,.,.,,..,.,,,,.,,.,.,,,,,...,...,...,..,,,.,,,,.,,..,.,.,
+#RFXMVSHKTFNUSSM23D5GSVTOVATIMLUTA5CMQM43RSEYEWRZEVCPKGZJYORLA3Y2ACJGUHMN4LARI
+#\\\|N7CRMOADXALK57FZKBWTPSTPTZEGBJHW2X4XSBUJMSEGNGTIND7 \ / AMOS7 \ YOURUM ::
+#\[7]BT7X3LOD5FT7AR2AUUVRHRYUEQ53NKNNWYNF4RSXENZ7PIXIGSDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
