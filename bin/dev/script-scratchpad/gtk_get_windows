@@ -3,7 +3,8 @@ use strict;
 use warnings;
 use feature 'say';
 
-## apt install libwnck-3-dev ##
+## optional: apt install gir1.2-wnck-3.0  (for Wnck window names/workspaces)
+## fallback: GDK window stack (no window names, empty under Wayland/WSLg)
 
 use Gtk3 -init;
 use Glib::Object::Introspection;
@@ -12,36 +13,44 @@ Glib::Object::Introspection->setup(
     version  => '3.0',
     package  => 'Gtk3::Gdk'
 );
-Glib::Object::Introspection->setup(
-    basename => 'Wnck',
-    version  => '3.0',
-    package  => 'Wnck'
-);
+
+my $have_wnck = eval {
+    Glib::Object::Introspection->setup(
+        basename => 'Wnck', version => '3.0', package => 'Wnck'
+    ); 1;
+};
 
 my $screen_gdk = Gtk3::Gdk::Screen::get_default();
 
-# $screen_gdk->signal_connect(
-#     'window-openend' => sub { say '< window-openend >' } );
+if ( $have_wnck ) {
+    my $screen = Wnck::Screen::get_default();
+    $screen->force_update;
 
-my $screen = Wnck::Screen::get_default();
-
-###
-
-$screen->force_update;
-
-for my $win ( @{ $screen->get_windows } ) {
-    my $name = $win->get_name;
-    my $ws   = $win->get_workspace;
-    my $w    = $ws ? $ws->get_number : -1;
-    printf "(%04d, %04d) %04dx%04d:%2s $name\n", $win->get_geometry, $w;
+    for my $win ( @{ $screen->get_windows } ) {
+        my $name = $win->get_name;
+        my $ws   = $win->get_workspace;
+        my $w    = $ws ? $ws->get_number : -1;
+        printf "(%04d, %04d) %04dx%04d:%2s $name\n", $win->get_geometry, $w;
+    }
+} else {
+    say '[ Wnck not available — using GDK window stack (no names, empty on Wayland) ]';
+    my $windows = $screen_gdk->get_window_stack() // [];
+    if ( @$windows ) {
+        for my $w (@$windows) {
+            printf "(%04d, %04d) %04dx%04d\n",
+                $w->get_x, $w->get_y, $w->get_width, $w->get_height;
+        }
+    } else {
+        say '[ no windows visible — compositor may not expose window list ]';
+    }
 }
 
 # Gtk3->main;
 
 exit;
 
-#,,..,,.,,,,.,,.,,.,,,..,,...,,,.,,..,.,.,.,.,..,,...,...,...,...,.,.,..,,,,,,
-#7M3R6BPRI2DIPV2SSHQ5XDRV6LHBGE2OPBAO7PLBKW6H7UUYZXEEK3VWA7XKAHIVI37I5RTAZYJHS
-#\\\|6ACIPT7KQ53V2TIYI77ZRCA4USVDQ7I5VHUKKMSKKZDPYUSF7T2 \ / AMOS7 \ YOURUM ::
-#\[7]MDM73RED35NA34HT2WJDUYFBMHZZH54TQHHVQU63Y2JGH2VDAUDI 7  DATA SIGNATURE ::
+#,,.,,,,,,.,,,,,,,,,,,...,.,.,.,,,,.,,,.,,,,.,..,,...,...,,.,,.,,,.,,,..,,,,,,
+#HRXDBOXEUOL62Q3SL2L3ALE7SL6XE27RNLE2VGM7MIQDQ2EZ3S3IHPBTS2OGYP4PN75XN3FWLWA3W
+#\\\|TNGGWSQ4ZZTAR4RS4AEHN3YMN7SKXXTKKIFO4PH2QTTRXMCADWB \ / AMOS7 \ YOURUM ::
+#\[7]PI4ZPMVFGCMW5LBOQYA6A2U4BZFIOIHFZ6RMCDIB4CBIEATGBKCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
