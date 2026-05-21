@@ -27,6 +27,9 @@
 - `data/md/development/P7-LLM-REFERENCE.md` — verified live command reference for kimi/LLM sessions
 - `data/md/development/DEGRADED-FEATURES-AUDIT.md` — 5 high-priority + 3 medium candidates with stub task files
 
+## Observer-Centric Reference Space (session 43)
+- [topic-observer-centric-space](topic-observer-centric-space.md) — client always 0; signed -n/2..0..+n/2; reference-count gravity; buffer swap navigation; EM field outer transport; dedup = convergence to center; routing = magnitude gradient
+
 ## Routing Crystal (session 43)
 - [topic-routing-crystal](topic-routing-crystal.md) — cube node group as crystal; harmonic memory = route cache; inference = 5-beam convergence; face-000 = reflection surface; total internal reflection = security boundary
 
@@ -145,8 +148,8 @@
 - **pager.sort.multi-key**: ntime_b32 + priority_map sort types added (session 42)
 - **task dispatch sections**: all dispatched tasks now carry ## dispatch + prompt for reuse
 
-#,,,,,,,.,,,,,,.,,,.,,,..,.,,,...,...,,..,,,,,..,,...,..,,...,,.,,,,.,.,.,,..,
-#DZEZ62YCAKX4C6D3GTQEB6GVT5BBQJZE3JZMUD32MZXH2WNMVPOL4VBKBZRY6G56TSW275HNGYQAA
-#\\\|PCABIMAHUMUZGMUAT2EDN2RTAR6LLVBO4H6XULGRMOYWG6TD24P \ / AMOS7 \ YOURUM ::
-#\[7]QJHEKN35UTE63BRFEQOWNOWUVCS777273RZ2UBMKKOYIQWCNYKCI 7  DATA SIGNATURE ::
+#,,.,,,..,,,,,.,.,,,,,...,,.,,.,.,,..,.,,,,..,..,,...,...,,,,,.,,,.,,,.,,,...,
+#LVGSHYY3GX762U6VFOPWWB5I5UTV3MUMUNPEVF37LHYJQCVU66ZT2OHWOGCQVEXD5GRHR3REWFMHW
+#\\\|QXILMLS3YHCJFZJMMMNMPXVOL2PEBTPEQ2GK6ARKOF5TSC4MMCA \ / AMOS7 \ YOURUM ::
+#\[7]7CTA5RPFJWVLJ2NIZTWEDXUABEPSEDASED4PYQ3RVDRFZ4FKOEAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
