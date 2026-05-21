@@ -64,6 +64,7 @@ if ( $mode eq 'TRUE' ) {
     );
 
     ## Certificate data returned — decode base32r JSON bundle from child
+    ## decode_b32r is available globally from bin/Protocol-7 runtime
     my $bundle_json = eval { decode_b32r($data) };
     my $cert_bundle
         = defined $bundle_json
@@ -77,8 +78,21 @@ if ( $mode eq 'TRUE' ) {
         return FALSE;
     }
 
+    ## remap child bundle fields to save_certificate format
+    my $cert_data = {
+        domain          => $cert_bundle->{domain} // $domain,
+        certificate_pem => $cert_bundle->{certificate},
+        chain_pem       => $cert_bundle->{chain}     // '',
+        private_key_pem => $cert_bundle->{key}       // '',
+        issued_at       => $cert_bundle->{issued_at} // time(),
+        expires_at      => $cert_bundle->{expires_at},
+        certificate_url => $cert_bundle->{cert_url},
+        alt_names       => $cert_bundle->{domains} // [],
+        account_id      => $cert_bundle->{account_id},
+    };
+
     ## save certificate using the established save_certificate module
-    my $save_result = <[letsencr.parent.save_certificate]>->($cert_bundle);
+    my $save_result = <[letsencr.parent.save_certificate]>->($cert_data);
     unless ( $save_result && $save_result->{status} eq qw| success | ) {
         <[base.logs]>->(
             0, "renewal: failed to save certificate for %s", $domain
@@ -163,8 +177,8 @@ if ( $mode eq 'TRUE' ) {
 
 return FALSE;
 
-#,,..,.,.,,..,,,.,.,,,.,,,.,.,..,,..,,.,,,,..,..,,...,...,..,,,..,,,,,,,,,...,
-#2PFDCYJJMC2KZO273NEFZSOCR4AHR44A72UWZQOD6TIKAD4FYWS376QAWA6PL4L6JBGX4T3HKHPCG
-#\\\|ACSHV4V3H5LOIZ2XTTC7JEI7Z7XICGMTB6S5G7HE7Y7Y2SGHITU \ / AMOS7 \ YOURUM ::
-#\[7]L5JWFOBIMQKZ7N4YNZYVAQJPKF7BLESNTPZHUEYWMSUD7PABF6BQ 7  DATA SIGNATURE ::
+#,,..,,,,,,,.,...,,..,,,,,,,,,,..,..,,.,.,...,..,,...,...,.,,,...,.,.,...,,..,
+#EY3JFXWXERRY4ST2AEZEHYR4U7J2CFWMHNSAW4KYUXLU7QWCNUZIGFP6OVQ2CLMMCBKORV6JILYFK
+#\\\|SETYEUBVAANCTYKMC26AJTCI2MVMSPYTJLSEBWFO7JN5KPWNRQY \ / AMOS7 \ YOURUM ::
+#\[7]ISSWJKBCN7IWNDMKU2S7HKY3KJALLCBTUHVK662XGG5IPQ6KRCCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
