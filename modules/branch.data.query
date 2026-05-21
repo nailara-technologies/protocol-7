@@ -1,0 +1,56 @@
+## [:< ##
+
+# name  = branch.data.query
+# descr = send query through bound branch node to data zenka namespace
+# param = { node, query }
+
+my $params = shift // {};
+
+my $node = $params->{'node'} // '';
+return { 'mode' => 'false', 'data' => 'node required' }
+    unless length $node;
+
+my $query = $params->{'query'} // '';
+return { 'mode' => 'false', 'data' => 'query required' }
+    unless length $query;
+
+my $binding = $data{'branch.data.bindings'}{$node};
+return { 'mode' => 'false', 'data' => 'node not bound' }
+    unless defined $binding;
+
+my $zenka     = $binding->{'zenka'}     // 'data';
+my $namespace = $binding->{'namespace'} // '';
+
+my $args_yaml;
+eval {
+    <[base.perlmod.autoload]>->('YAML::XS');
+    $args_yaml = YAML::XS::Dump(
+        {   'node_id'   => $node,
+            'namespace' => $namespace,
+            'query'     => $query,
+        }
+    );
+    1;
+} or do {
+    my $err = $@ // 'unknown';
+    <[base.logs]>->(
+        0, 'branch.data.query: yaml serialize error [ %s ]', $err
+    );
+    return { 'mode' => 'false', 'data' => 'yaml serialization failed' };
+};
+
+my $query_id = <[base.gen_id]>->( $data{'branch.discover.queries'} // {} );
+
+<[protocol-7.route-send]>->(
+    {   'command'   => 'data.branch.query',
+        'call_args' => { 'args' => $args_yaml },
+    }
+);
+
+return { 'mode' => 'true', 'data' => $query_id };
+
+#,,,.,...,,.,,,,,,.,.,,,.,,..,,,.,..,,.,.,.,,,.,.,...,...,,,,,..,,.,,,.,.,..,,
+#IUHKPUXEACYEP6US2GYLE3H2BNEEZOWCPPJUBV4THZHYU6OF37GX3PO2VNNSV5CQBFHLCAH6BUPA4
+#\\\|VD77KVLRMUX5XRFFAZKWUQUXQOZ7QBAJN3ZQ5EGGNREM6QEYSWI \ / AMOS7 \ YOURUM ::
+#\[7]5ZP7RUBYY6DTM247BSVCRRD6KYE4IPVQBCBRP7KAMLGR6BLTT2CI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,0 +1,139 @@
+## [:< ##
+
+# name  = branch.storage.persist
+# descr = persist branch subtree to storage zenka or local yaml
+# param = { id, subtree, snapshot_name }
+
+my $params = shift // {};
+
+my $id = $params->{'id'} // '';
+return { 'mode' => 'false', 'data' => 'id required' }
+    unless length $id;
+return { 'mode' => 'false', 'data' => 'node not found' }
+    unless exists $data{'branch.nodes'}{$id};
+
+my $subtree       = $params->{'subtree'}       // TRUE;
+my $snapshot_name = $params->{'snapshot_name'} // '';
+
+my $ntime = <[base.time]>->(4);
+
+## generate snapshot_id from AMOS swap-boundary checksum of id::ntime ##
+my $chk_payload = join( '::', $id, $ntime );
+my $chksum_fn   = $code{'chk-sum.amos'} // $code{'base.chk-sum.amos'};
+my $snapshot_id = $chksum_fn->( \$chk_payload );
+
+$snapshot_name = $snapshot_id if not length $snapshot_name;
+
+## collect nodes to persist ##
+my @node_ids = ($id);
+if ($subtree) {
+    my $idx = 0;
+    while ( $idx < @node_ids ) {
+        my $current = $node_ids[$idx];
+        $idx++;
+        for my $child_name (
+            keys %{ $data{'branch.children'}{$current} // {} } ) {
+            push @node_ids, $data{'branch.children'}{$current}{$child_name};
+        }
+    }
+}
+
+## build snapshot structure ##
+my $snapshot = {
+    'snapshot_id' => $snapshot_id,
+    'created'     => $ntime,
+    'root_id'     => $id,
+    'nodes'       => {},
+    'children'    => {},
+};
+
+for my $node_id (@node_ids) {
+    my $node = $data{'branch.nodes'}{$node_id};
+    next unless defined $node;
+    $snapshot->{'nodes'}{$node_id} = {
+        'name'    => $node->{'name'},
+        'parent'  => $node->{'parent'},
+        'face'    => $node->{'face'},
+        'created' => $node->{'created'},
+        'pubkey'  => $node->{'pubkey'},
+        'groups'  => $node->{'groups'} // [],
+        'meta'    => $node->{'meta'}   // {},
+    };
+
+    ## include resources if branch.resources loaded ##
+    if ( exists $data{'branch.resources'}{$node_id} ) {
+        $snapshot->{'nodes'}{$node_id}{'resources'}
+            = $data{'branch.resources'}{$node_id};
+    }
+    $snapshot->{'children'}{$node_id}
+        = { %{ $data{'branch.children'}{$node_id} // {} } };
+}
+
+## serialize to yaml ##
+my $yaml;
+eval {
+    <[base.perlmod.autoload]>->('YAML::XS');
+    $yaml = YAML::XS::Dump($snapshot);
+    1;
+} or do {
+    my $err = $@ // 'unknown';
+    <[base.logs]>->(
+        0, 'branch.storage.persist: yaml serialize error [ %s ]', $err
+    );
+    return { 'mode' => 'false', 'data' => 'yaml serialization failed' };
+};
+
+## determine backend ##
+my $backend = 'local-yaml';
+if (exists <v7.zenki.available>->{'storage'}
+    or ( exists $data{'branch.storage.backend'}
+        and $data{'branch.storage.backend'} eq 'storage-zenka' )
+) {
+    my $sent = <[protocol-7.route-send]>->(
+        {   'command'   => 'storage.branch.persist',
+            'call_args' => { 'args' => $yaml },
+        }
+    );
+    $backend = 'storage-zenka' if $sent;
+}
+
+## always write local yaml as fallback ##
+my $nodes_dir = <system.root_path> . '/configuration/data/branch/nodes';
+if ( not -d $nodes_dir ) {
+    eval { <[file.make_path]>->( $nodes_dir, 0755 ) };
+}
+my $file_path = "$nodes_dir/$snapshot_name.yaml";
+my $fh        = <[file.open]>->( $file_path, ':utf8', '>', TRUE, 0640 );
+if ( defined $fh ) {
+    print {$fh} $yaml;
+    close($fh);
+} else {
+    <[base.logs]>->(
+        0, 'branch.storage.persist: cannot write [ %s ]', $file_path
+    );
+    return { 'mode' => 'false', 'data' => 'local yaml write failed' };
+}
+
+## update snapshot registry ##
+$data{'branch.storage.snapshots'}{$snapshot_id} = {
+    'snapshot_id' => $snapshot_id,
+    'node_id'     => $id,
+    'created'     => $ntime,
+    'node_count'  => scalar @node_ids,
+    'backend'     => $backend,
+};
+
+$data{'branch.storage.backend'} = $backend;
+
+<[base.logs]>->(
+    2, 'branch.storage.persist: %s [%s] nodes=%d backend=%s',
+    $snapshot_id, $id, scalar @node_ids, $backend
+);
+
+return { 'mode' => 'true', 'data' => $snapshot_id };
+
+#,,..,,,,,.,.,,..,,.,,,.,,...,.,.,..,,,.,,.,.,.,.,...,...,...,...,,..,,.,,,,.,
+#5HPCQS7RKVB35ZUYGZPSVKVMZGWFK4HD322L63VKMX5RLNBROFQ7DBPIDCY2ISVF3ZC2MXWOXQ5GY
+#\\\|M6GWUK6LMQA3CKXRJBALBT4UKIJAK2K6IMNJ5O7JBDMCFOYJIQR \ / AMOS7 \ YOURUM ::
+#\[7]VWIR2HOQP7262GML5Q6MY7JPG7PMIO3Q3HVDEJSCHNRIVG7M4IBA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

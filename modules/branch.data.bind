@@ -1,0 +1,61 @@
+## [:< ##
+
+# name  = branch.data.bind
+# descr = bind data zenka namespace to branch node
+# param = { node, namespace, zenka }
+
+my $params = shift // {};
+
+my $node = $params->{'node'} // '';
+return { 'mode' => 'false', 'data' => 'node required' }
+    unless length $node;
+return { 'mode' => 'false', 'data' => 'node not found' }
+    unless exists $data{'branch.nodes'}{$node};
+
+my $namespace = $params->{'namespace'} // '';
+return { 'mode' => 'false', 'data' => 'namespace required' }
+    unless length $namespace;
+
+my $zenka = $params->{'zenka'} // 'data';
+
+my $args_yaml;
+eval {
+    <[base.perlmod.autoload]>->('YAML::XS');
+    $args_yaml = YAML::XS::Dump(
+        {   'node_id'   => $node,
+            'namespace' => $namespace,
+        }
+    );
+    1;
+} or do {
+    my $err = $@ // 'unknown';
+    <[base.logs]>->(
+        0, 'branch.data.bind: yaml serialize error [ %s ]', $err
+    );
+    return { 'mode' => 'false', 'data' => 'yaml serialization failed' };
+};
+
+my $sent = <[protocol-7.route-send]>->(
+    {   'command'   => 'data.branch.bind',
+        'call_args' => { 'args' => $args_yaml },
+    }
+);
+
+## store binding regardless of route-send result ##
+$data{'branch.data.bindings'}{$node} = {
+    'namespace' => $namespace,
+    'zenka'     => $zenka,
+};
+
+<[base.logs]>->(
+    2, 'branch.data.bind: %s -> %s [ zenka=%s sent=%s ]',
+    $node, $namespace, $zenka, $sent ? 'yes' : 'no'
+);
+
+return { 'mode' => 'true', 'data' => $node };
+
+#,,..,,..,,..,,.,,,,.,...,,,,,,,,,.,,,,,,,.,,,.,.,...,...,..,,..,,.,.,,,,,,,.,
+#ZC4WGORCC3YVELHN4UXPKECAFZ56RYJDZLI3ZGWVAG77KY3SE2IAOSJLVDZUVPO7AI2U2VDVTSPNQ
+#\\\|VRVD5QSAYPUMCGNCXFBUDXQAYYF4RGRB2UC3KV4KDRYDLKHQJOO \ / AMOS7 \ YOURUM ::
+#\[7]6SMJ7OKUFU4LB2X4FYWSQ4WM7HXQ2ELW5ZVLFSW2IF2ZC6GIXQAA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

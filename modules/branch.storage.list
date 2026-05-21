@@ -1,0 +1,77 @@
+## [:< ##
+
+# name  = branch.storage.list
+# descr = list persisted branch snapshots
+# param = { id } or {} for all
+
+my $params = shift           // {};
+my $id     = $params->{'id'} // '';
+
+## collect from registry first ##
+my @snapshots;
+for my $rec ( values %{ $data{'branch.storage.snapshots'} // {} } ) {
+    next if length $id and $rec->{'node_id'} ne $id;
+    push @snapshots, {%$rec};
+}
+
+## also scan local yaml directory for any not in registry ##
+my $nodes_dir = <system.root_path> . '/configuration/data/branch/nodes';
+if ( -d $nodes_dir ) {
+    my $dh;
+    if ( opendir $dh, $nodes_dir ) {
+        for my $entry ( readdir $dh ) {
+            next if $entry     =~ m|^\.|;
+            next unless $entry =~ m|\.yaml$|;
+            my $file_path = "$nodes_dir/$entry";
+            next unless -f $file_path;
+
+            ( my $snapshot_name = $entry ) =~ s|\.yaml$||;
+
+            ## skip if already in registry ##
+            my $found = FALSE;
+            for my $s (@snapshots) {
+                if ( $s->{'snapshot_id'} eq $snapshot_name ) {
+                    $found = TRUE;
+                    last;
+                }
+            }
+            next if $found;
+
+            my $yaml = <[file.read]>->($file_path);
+            next unless defined $yaml and length $yaml;
+
+            my $snapshot;
+            eval {
+                <[base.perlmod.autoload]>->('YAML::XS');
+                $snapshot = YAML::XS::Load($yaml);
+                1;
+            } or next;
+
+            next
+                if length $id
+                and ( $snapshot->{'root_id'} // '' ) ne $id;
+
+            my $node_count = scalar keys %{ $snapshot->{'nodes'} // {} };
+            push @snapshots,
+                {
+                'snapshot_id' => $snapshot->{'snapshot_id'} // $snapshot_name,
+                'node_id'     => $snapshot->{'root_id'}     // '',
+                'created'     => $snapshot->{'created'}     // 0,
+                'node_count'  => $node_count,
+                'backend'     => 'local-yaml',
+                };
+        }
+        closedir $dh;
+    }
+}
+
+## sort by created descending ##
+@snapshots = sort { $b->{'created'} <=> $a->{'created'} } @snapshots;
+
+return { 'mode' => 'true', 'data' => \@snapshots };
+
+#,,,.,,,.,,,.,,,.,..,,.,,,,..,.,.,,..,.,,,,,.,.,.,...,...,,..,,..,,..,,.,,.,,,
+#RRY6O74TXYCPXUY7WGFEDXRLCFFDNJOR3TRJ27GOMAB5QFTUZGSATKPXMDFZT7T3DIDJT5YTKLAZA
+#\\\|5B4QZSPX7MXCTHNXWFA2G2GGM33M5RCDU3I5A5AUPDR6YOEBZ74 \ / AMOS7 \ YOURUM ::
+#\[7]JK7PHVZMFU3EH7BTAMWOFJRMKGDQT6QFLFX7ZSORP2MJE67BEEBQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
