@@ -100,12 +100,11 @@ foreach my $meta_file ( sort @meta_files ) {
     $loaded_count++;
 
     my $days_remaining = ( $metadata->{expires_at} - time() ) / 86400;
-    <[base.log]>->(
-        2,
-        "loaded certificate: $domain (expires in "
-            . sprintf( "%.1f", $days_remaining )
-            . " days)"
-    );
+    my $expiry_str
+        = $days_remaining < 0
+        ? sprintf( "expired %.1f days ago", abs($days_remaining) )
+        : sprintf( "expires in %.1f days",  $days_remaining );
+    <[base.log]>->( 2, "loaded certificate: $domain ($expiry_str)" );
 }
 
 <[base.log]>->(
@@ -121,8 +120,8 @@ return {
     error_msg => $error_count > 0 ? "$error_count errors during load" : undef
 };
 
-#,,.,,,,,,.,,,,.,,,..,,,,,,,.,..,,.,,,,.,,.,.,..,,...,...,...,,.,,,,,,,,,,.,.,
-#GLAYIPVFKULOCNXS75QKQVHDBQC7X5ZUIQEXSAAYWGM24YEY2ASYH5JKNM75MRA3ONIZDU2XMJ46K
-#\\\|PLMQYBNPCFNQNX6ENR5NFSO7MAQGVKGHF3SXZV6AW7BEOSOACYP \ / AMOS7 \ YOURUM ::
-#\[7]IW2T7O6EKHF566TJKFTDALCM2RVSDFH6ZUEK5GXFIBOS5OYNVCDI 7  DATA SIGNATURE ::
+#,,,.,.,.,,..,,,,,..,,,..,,.,,.,,,.,.,,,.,,,,,..,,...,...,...,.,.,..,,.,.,.,,,
+#PSOIS4J2AQOB3QMLM74XXSJNSFLOAEVXFQUGUPGH5UPZJS5V2TN4A6EYEUC7TDURYUOG2GO4ES3AK
+#\\\|UUIM6SKQTWKPUKILOGOHSDHPRTWPG6WFJJA3AFSN4MWLYHPDZ45 \ / AMOS7 \ YOURUM ::
+#\[7]PHA26ZZGE3XX3PYD7JL2CYX3U44YTE3SP77EKVGYXTCAJJ2JVGCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

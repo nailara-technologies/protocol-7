@@ -43,9 +43,13 @@ foreach my $domain ( keys %$cert_registry ) {
             account_id      => $cert_info->{account_id},
             };
 
+        my $expiry_str
+            = $days_remaining < 0
+            ? sprintf( 'expired %.1f days ago', abs($days_remaining) )
+            : sprintf( 'expires in %.1f days',  $days_remaining );
         <[base.logs]>->(
-            2, ': certificate %s needs renewal [ expires in %.1f days ]',
-            $domain, $days_remaining
+            2,       ': certificate %s needs renewal [ %s ]',
+            $domain, $expiry_str
         );
     }
 
@@ -82,8 +86,8 @@ return {
     expiring_soon => \@expiring_soon,
 };
 
-#,,.,,.,.,,.,,..,,..,,.,.,,,.,..,,...,,,.,,.,,..,,...,..,,,.,,.,,,...,..,,,,,,
-#5IXVYXSDWFDRK4WYEG32RE2QJY634GXA2XNAB3EZVZR4NMAOOHQDYHV3JPPBK7KMZ35IPTMM5B2WC
-#\\\|USZOHFV2O63F6KDZ77J3PWMNCE7D2NDL65WPRFLPSAZNYZ2XYI4 \ / AMOS7 \ YOURUM ::
-#\[7]R2QTY32VJBKTASBUIZC62IBP3TYQCD3IBAVZQS5BWWV2SHF6LMBA 7  DATA SIGNATURE ::
+#,,.,,,..,.,,,.,.,..,,,.,,,.,,.,.,...,,,.,,,,,..,,...,...,..,,,.,,.,,,..,,..,,
+#TNLHNYDHGUTQ4AQA2ABVIS36PCBFMZGY4MKR5ZNDZT5HHAE7LVXN43GWTW6PNQ2IEZ74ZJ7DCQCIY
+#\\\|XOV2GTFWMM7SDRWAFO5BGXL22FDZBEQK2OZ7Q4NRH3QV7JU3WRA \ / AMOS7 \ YOURUM ::
+#\[7]AUNAWWKZJ3U4Y3JV3YHFZJVQYBU3DWAKJ2LPUEBZIMQ4ZNZQAQBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
