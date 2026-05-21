@@ -113,6 +113,47 @@ open issues:
   task: data/tasks/hf-download-zenka.md
   task: data/tasks/sourcecode-recently-modified.md
 
+## session 40 — design vision + letsencr cert renewal (2026-05-21 continued)
+
+**major design docs written**:
+- LLM-SESSION-MANAGEMENT.md: segment categories (code_read/hypothesis/dead_end/
+  reasoning/conclusion/plan/insight), seed sentence compression, distill→compact→resume,
+  browser-based remote models (claude.ai/qwen in view stack), cross-model context sharing
+- P7-NATIVE-WEB.md: proxy intercept → site-yaml → llm reframe → p7 layout normalization,
+  interaction tracking → adapter-candidates.yaml as product roadmap, convergence path
+  (proxy→site-yaml→native zenka→p7 service), jobsite = reference implementation
+- PARALLEL-REASONING-ORCHESTRATION.md: task tree DAG, auto-pause on deps, context
+  injection on resolution, stuck detection + rescue branch spawning (satellite pattern),
+  reasoning.branch.* generic modules, bin/chat --task-branch worker pool onboarding
+- credential key holder architecture: detached minimal child, per-client C25519 encryption,
+  unix socket identity, ssh/sftp/httpsd as delivery channels, web-browser for auth UI
+
+**ideas captured** (data/ideas/README.md):
+- browser-as-authenticated-data-layer: DOM filesystem mount via plan-9 + data zenka,
+  AMOS checksum node IDs, yt-dlp pattern (browser session → yt-dlp)
+- LLM session management + cross-model context
+- credential key holder + auth relay architecture
+
+**letsencr cert renewal fixed** (v7.ax + visual.v7.ax renewed ✓):
+- fix: handler_renewal_continue: treat httpd FALSE as "no new domains"
+- fix: queue_renewal_requests: child.renew-certificate via parent pipe
+- fix: letsencr/start: renew-certificate in parent access list
+- fix: handler_renewal_retry: read domain from renewal_timers not Event
+- fix: handler_renewal_reply: decode base32r bundle, remap fields to save_certificate format
+- fix: letsencr status: expired [<0 days] category
+- OPEN: "not defined reply handler" — field mismatch was root cause theory;
+  kimi debug task dispatched; parallel orchestration task also dispatched
+
+**kimi session management insight**:
+- ~/.kimi/sessions/<uuid>/: context.jsonl (hundreds MB), state.json, wire.jsonl
+- distill-session: local model condenses to ~10KB essential understanding
+- inject-context-to-coding: cross-model handoff for stuck sessions
+- task: data/tasks/kimi-web-session-cache-access.md
+
+**parallel reasoning orchestration**:
+- task: data/tasks/reasoning-branch-orchestration.md (dispatched to kimi-cli)
+- bin/chat --task-branch [id]: anonymous worker pool, self-organizes around DAG
+
 ## session 37 — web-browser WebKit2 repair + display stack + X-11 architecture (2026-05-20)
 
 **web-browser zenka — complete repair batch** (5 kimi sessions):
@@ -1006,8 +1047,8 @@ Skip calling harmonize_payload_line_feed when both conditions are met:
 - Signatures now properly formatted with correct separator endline
 - Pre-commit validation passes
 
-#,,.,,.,,,,,,,..,,..,,,,,,.,,,.,.,,..,.,.,,..,..,,...,...,..,,,,.,.,.,,,.,,.,,
-#KTP7Q6R5QGDNXK7N62ALIMXNQ7KKCEKE5WJEZTF3RSWZX4VOB7DKTA7V4K6D42Y2PBRSH2HOGQ22S
-#\\\|DGB2R66QKK2FLZ2KQVWPAQ72I2UOYBSBYTN3XZQSJZIVESNAPV2 \ / AMOS7 \ YOURUM ::
-#\[7]3ILSKPBFLUPEJL7SRXEOUPBZSB55NWEOSL5U4JHMARHCLJTIJACA 7  DATA SIGNATURE ::
+#,,,.,.,.,..,,,..,...,...,,,,,,,,,...,.,,,,..,..,,...,...,.,.,,..,,.,,,..,,,,,
+#4QPRHM6ZNUMRLG3R7FHQN6CGHIH4JKXHPELB7VEG3RZPCQ3QX6QZYLGUYY4XRYAS6H7RHZ2MAKRNM
+#\\\|RYXDJCMFSWAYELZSUWXRKPARUTVRZ2XL6SLF2YOVVOMOU7H5JTN \ / AMOS7 \ YOURUM ::
+#\[7]CYRX4H2FUMQK6N2A4MWGGWKG35PN4K4WHEOXK5R3KA7RZHCKLICY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
