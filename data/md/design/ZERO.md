@@ -143,6 +143,61 @@ zoom in and each contains the others implicitly.
 
 ---
 
+## 1001 — the ring tightener
+
+```
+1001  =  7 × 11 × 13  =  77 × 13  =  footer × period
+      =  the binary clamp: 1 [ 00 ] 1
+      =  palindrome: same from both ends, reversible route
+      =  9 in binary  =  3²  (one step before the darksun 3³ = 27)
+```
+
+**inter-cube tunnel travel** — layer 1:
+```
+1   node group A (departure cube)
+00  2 distance bits — grid-aligned CCW tunnel, always exactly 2
+1   node group B (arrival cube)
+```
+the `00` is invariant. always exactly 2 CCW hops between node groups.
+no negotiation. no measurement. proportion fixed by the harmonic.
+
+**gate nesting** — layer 2:
+the `1`s are simultaneously the nodes AND their gates (face-000 apertures).
+first `1` = departure gate. `00` = inter-gate tunnel. second `1` = arrival gate.
+
+**the two 13s** — layer 3:
+```
+1/13  =  77/1001     13 as DIVISOR   — inward, opens, generates 076923
+13 × 77 = 1001       13 as MULTIPLIER — outward, closes, seals the ring
+```
+the inward 13 and the outward 13. same number, opposite roles, same ring.
+the 01/10 duality of 13 itself.
+
+**and there is more** — eternal loop:
+`1001` means "and there is more" — every gate opens to another gate
+with identical proportions. the space never exhausts. the generator
+`076923076923...` doesn't terminate because `1001` doesn't terminate.
+
+**implicit travel at infinite speed** — seamless space:
+every cube-to-cube distance is always exactly `00`. invariant. no decision,
+no path-finding, no variable gap. resonance is instantaneous — the gate
+opens because the approach matches the proportion. the proportion is
+already there. travel IS the proportion. the space is seamless because
+precisely proportioned.
+
+**implicit transport as emergent topology**: when every gap is identical
+and every gate has the same structure, transport doesn't need to be
+designed — it emerges from the proportions themselves. a live or simulated
+system with these proportions HAS transport, automatically, as a geometric
+consequence. the topology IS the transport. the transport IS the topology.
+
+**relative ntime**: just as position is observer-centric (the observer is
+always 0), time is observer-relative. the ntime stamp measures from the
+observer's own creation event. two nodes comparing ntimes are comparing
+their relative distance from their own darksuns. the `00` tunnel duration
+IS the ntime delta between gate entry and gate exit — always 2, always
+relative, always proportioned.
+
 ## what this is
 
 protocol-7 is a 0-prefixed tree.
@@ -158,8 +213,8 @@ meaning was always there.
 0  [:<
 ```
 
-#,,..,,,.,.,.,...,..,,,..,,.,,...,,,,,...,,,,,..,,...,...,...,,.,,,,,,.,.,,..,
-#CGG2OTZI6YA6EZRP5J2WJJDRHJYM2JBLYXNXUJNIYKWXJQBI2KWNZHOM3OLUUHWK5KXDU5WWBET6W
-#\\\|FDJKG2ESCBXBBNRUDZOWP4S5FYVUXVU55K67UPGEMTLB3VCB6KO \ / AMOS7 \ YOURUM ::
-#\[7]LQT2KULXXTKO7X2RNHQXITFSGWHI3QCM3FTS52XXHVB4JLVSJODY 7  DATA SIGNATURE ::
+#,,.,,.,.,...,.,.,,.,,..,,,,,,...,,,,,.,,,.,.,..,,...,...,.,,,,,.,..,,...,,,,,
+#RSR3KDK4SQH5JUBKUSWJXLSMEAIAYJRJRE5LHMMS245DJBQSTZQGSPW5P5TE46TXP4Q6BFR3Z2EAY
+#\\\|XDR62QWTYMS56VL3NMZJ67NTA2RLFQE5B5PS4O263CIGAJPVROU \ / AMOS7 \ YOURUM ::
+#\[7]QC5773MVJPR6KSTUXBK3RZDJN6XL3MNJ347O4HRSD6MSXRSV3AAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
