@@ -63,18 +63,38 @@ if ( $mode eq 'TRUE' ) {
             . " bytes)"
     );
 
-    ## Certificate data returned - decode and save it
-    ## NOTE: Data should come from child as base32r encoded if needed,
-    ## but for now we expect raw certificate PEM
-    my $cert_path = sprintf '%s/%s.pem', <letsencr.certs.dir>, $domain;
-    <[file.put]>->( $cert_path, $data, qw| :raw | );
+    ## Certificate data returned — decode base32r JSON bundle from child
+    my $bundle_json = eval { decode_b32r($data) };
+    my $cert_bundle
+        = defined $bundle_json
+        ? eval { JSON::XS::decode_json($bundle_json) }
+        : undef;
 
-    <[base.log]>->( 2, "saved certificate for $domain to $cert_path" );
+    unless ( $cert_bundle && ref($cert_bundle) eq qw| HASH | ) {
+        <[base.log]>->(
+            0, "renewal: failed to decode cert bundle for $domain"
+        );
+        return FALSE;
+    }
 
-    ## Update stats
+    ## save certificate using the established save_certificate module
+    my $save_result = <[letsencr.parent.save_certificate]>->($cert_bundle);
+    unless ( $save_result && $save_result->{status} eq qw| success | ) {
+        <[base.logs]>->(
+            0, "renewal: failed to save certificate for %s", $domain
+        );
+        return FALSE;
+    }
+
+    <[base.logs]>->( 2, "saved certificate for %s", $domain );
+
+    ## Update in-memory registry
     <letsencr.parent.certs>->{$domain} = {
-        issued_at => time(),
-        domain    => $domain,
+        issued_at       => $cert_bundle->{issued_at} // time(),
+        expires_at      => $cert_bundle->{expires_at},
+        domain          => $domain,
+        alt_names       => $cert_bundle->{domains} // [],
+        certificate_url => $cert_bundle->{cert_url},
     };
 
     if ( exists <letsencr.parent.renewal_timers>->{$domain} ) {
@@ -143,8 +163,8 @@ if ( $mode eq 'TRUE' ) {
 
 return FALSE;
 
-#,,,,,,..,,,.,,,.,.,,,,..,.,.,...,...,.,.,,,,,..,,...,...,,..,,.,,,.,,,,.,.,,,
-#Z3VIBPMEVUBNZGNSSINPBQZHGOJHY3T37C7PTO6MIQTV6IFVBMIJ3DGYLJYWCVTSI4JU6YSBFQ5FC
-#\\\|FOEJ6JGEWEXF32UB6C2I4YHSNVHEY6EBDXGE2UMV4X4Z5DYCZ4K \ / AMOS7 \ YOURUM ::
-#\[7]O4AKTRTBUSU4FEVP2RGOMPF3RV2TXGEWMZ6GB2JJYNC5HPAYHMBA 7  DATA SIGNATURE ::
+#,,..,.,.,,..,,,.,.,,,.,,,.,.,..,,..,,.,,,,..,..,,...,...,..,,,..,,,,,,,,,...,
+#2PFDCYJJMC2KZO273NEFZSOCR4AHR44A72UWZQOD6TIKAD4FYWS376QAWA6PL4L6JBGX4T3HKHPCG
+#\\\|ACSHV4V3H5LOIZ2XTTC7JEI7Z7XICGMTB6S5G7HE7Y7Y2SGHITU \ / AMOS7 \ YOURUM ::
+#\[7]L5JWFOBIMQKZ7N4YNZYVAQJPKF7BLESNTPZHUEYWMSUD7PABF6BQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
