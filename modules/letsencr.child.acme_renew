@@ -65,6 +65,19 @@ unless ($order) {
     return;
 }
 
+## rate limited — propagate retry_after to parent
+if ( ref $order eq qw| HASH | and $order->{error} eq qw| rate_limited | ) {
+    <[letsencr.child.send_to_parent]>->(
+        {   command     => 'renewal_failed',
+            domain      => $domain,
+            error       => 'rate_limited',
+            error_code  => 'rate_limited',
+            retry_after => $order->{retry_after},
+        }
+    );
+    return;
+}
+
 ## Process authorizations and challenges
 foreach my $auth_url ( @{ $order->{authorizations} } ) {
     my $auth = <[letsencr.child.acme_get_authorization]>->($auth_url);
@@ -176,8 +189,8 @@ unless ($cert_result) {
     }
 );
 
-#,,,,,,,,,,.,,.,,,.,,,...,..,,.,,,..,,,..,.,.,..,,...,...,.,,,.,,,.,,,,.,,.,,,
-#7HDPU6OOZXARCGUO6GCYQ33PHRFVBMDTUNS3RSXDCNOSEJWHDLTT7YERBFK5JKLPIEWO5NO5RW2HI
-#\\\|BXSBKCEM5IEIYIEU52OG6NTDHQDUOUJPIASBEIWLCIXFUFATIPV \ / AMOS7 \ YOURUM ::
-#\[7]LEV4YP3LELISZWZA664OB4FUALI4UHRPB4HEST2TC6KDUKJRQ2BY 7  DATA SIGNATURE ::
+#,,,.,.,.,.,,,,,.,.,.,,.,,,,.,,,.,,,.,,.,,,..,..,,...,..,,..,,,..,,.,,,,,,..,,
+#4RJCQLDFVATTO336PWLVXOKEHKKS5HJWNZ6BHTZUIOU72QW3QC5PVM2ANOO4CRPQTR53WKICFVBAQ
+#\\\|N5CFIRN2PCFY34TV3LNF34DRS4MPWM5SZUFEW7BRY72MZGRUK5O \ / AMOS7 \ YOURUM ::
+#\[7]MNVXBGL7NYMEP2BZSRDDLN5JI65U2PG7KKVIXLLS7CIKTFXAHIBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

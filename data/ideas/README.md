@@ -64,6 +64,22 @@ and thought experiments for idle exploration.
 - relates to: credential zenka (v2), keys zenka, ssh zenka, httpsd, plan-9
 - design doc: planned (data/md/development/CREDENTIAL-KEY-HOLDER.md)
 
+### task buffer pixel visualization — AppIcon dock monitor
+- each running task/branch = living dock icon (protocol-7-menu zenka)
+- three-click cycle:
+  1. pixel: 1 char = 1 translucent pixel, hue=content type, alpha=recency
+     read pattern not text — red=errors, violet=reasoning, green=conclusion
+  2. status line: "letsencr ▶ [ waiting.. ] ████░░ 0.67" tiny but readable
+  3. buffer: full readable chars, tiny font, scrollable
+- color: #000013 base → violet (reasoning) → cyan (code) → amber (warn) → red (error)
+  alpha=recency: fresh=opaque, old=fading — natural temporal decay visible
+- 32×32 icon = 1024 chars as color field; 64×64 = 4096 chars
+- Amiga Workbench AppIcons + WindowMaker dock applets as UX model
+- amos-term.* zenka: renders the pixel buffer natively in terminal
+  combines with vterm.compositor for overlay modes
+- relates to: amos-term zenka, vterm.compositor, protocol-7-menu, reasoning.branch.status
+- design doc: planned (data/md/development/TASK-BUFFER-PIXEL-MONITOR.md)
+
 ### LLM session management + cross-model context
 - kimi-cli sessions store hundreds of MB of reasoning in context.jsonl
 - segment categories: code_read / hypothesis / dead_end / reasoning /

@@ -1,0 +1,151 @@
+## [:< ##
+
+# name  = reasoning.branch.status
+# param = [$branch_id]  ## optional, all if omitted
+# descr = show branch states as ascii tree with stuck bars
+
+my $branch_id = shift // '';
+$branch_id = $branch_id->{'args'} // ''
+    if ref $branch_id eq qw| HASH |;
+
+my $registry = <reasoning.branch.registry> // {};
+my @all_ids  = <[base.sort]>->($registry);
+
+if ( length $branch_id ) {
+    @all_ids = grep { $ARG eq $branch_id } @all_ids;
+    return {
+        'mode' => qw| false |,
+        'data' => "branch not found: $branch_id"
+        }
+        unless @all_ids;
+}
+
+my $is_tty = -t STDOUT;
+
+## color map ##
+my %state_color = (
+    qw| running  | => $colors{'p7_fg_0002'},    ## amber
+    qw| paused   | => '',                       ## dim
+    qw| blocked  | => $colors{'p7_fg_0001'},    ## blue-ish
+    qw| rescue   | => $colors{'p7_fg_0000'},    ## violet
+    qw| resolved | => $colors{'p7_fg_0003'},    ## green
+);
+
+my %state_marker = (
+    qw| running  | => '▶',
+    qw| paused   | => '⏸',
+    qw| blocked  | => '⚡',
+    qw| rescue   | => '▶',
+    qw| resolved | => '✓',
+);
+
+my @lines;
+my ( $n_running, $n_paused, $n_resolved ) = ( 0, 0, 0 );
+
+## build parent/child map ##
+my %children;
+my @roots;
+
+foreach my $id (@all_ids) {
+    my $b = $registry->{$id};
+    if ( defined $b->{'rescue_of'} ) {
+        push @{ $children{ $b->{'rescue_of'} } //= [] }, $id;
+    } else {
+        push @roots, $id;
+    }
+}
+
+## render helper ##
+my $render_branch;
+$render_branch = sub {
+    my ( $id, $prefix, $is_last ) = @_;
+    my $b = $registry->{$id};
+    return unless defined $b;
+
+    my $state  = $b->{'state'}         // 'unknown';
+    my $score  = $b->{'stuck_score'}   // 0.0;
+    my $marker = $state_marker{$state} // '?';
+    my $color  = $is_tty ? ( $state_color{$state} // '' ) : '';
+    my $reset  = $is_tty ? $colors{'reset'}               : '';
+
+    ## stuck bar ##
+    my $bar_len = int( $score * 6 + 0.5 );
+    my $bar     = ( '█' x $bar_len ) . ( '░' x ( 6 - $bar_len ) );
+
+    ## state padding ##
+    my $state_str = sprintf( '%-8s', $state );
+
+    ## line assembly ##
+    my $line = sprintf( '%s%s %s%-20s [%s] %s %.2f stuck',
+        $prefix, $marker, $color, $id, $state_str, $bar, $score );
+
+    ## rescue marker ##
+    if ( defined $b->{'rescue_of'} ) {
+        $line .= '  ← rescue';
+    }
+
+    ## waiting label ##
+    if ( $state eq qw| paused | and scalar $b->{'deps'}->@* ) {
+        $line .= sprintf( '  waiting: %s', join( ', ', $b->{'deps'}->@* ) );
+    }
+
+    ## resolved output ##
+    if ( $state eq qw| resolved | and defined $b->{'output'} ) {
+        my $out = $b->{'output'};
+        $out = substr( $out, 0, 40 ) . '...'
+            if length $out > 40;
+        $line .= sprintf( "  → '%s'", $out );
+    }
+
+    $line .= $reset;
+    push @lines, $line;
+
+    ## counts ##
+    $n_running++  if $state eq qw| running | or $state eq qw| rescue |;
+    $n_paused++   if $state eq qw| paused |  or $state eq qw| blocked |;
+    $n_resolved++ if $state eq qw| resolved |;
+
+    ## children ##
+    my $kids = $children{$id} // [];
+    for my $i ( 0 .. $#$kids ) {
+        my $child_last = ( $i == $#$kids );
+        my $child_prefix
+            = $prefix
+            . ( $is_last    ? '   ' : '│  ' )
+            . ( $child_last ? '└─ ' : '├─ ' );
+        $render_branch->( $kids->[$i], $child_prefix, $child_last );
+    }
+};
+
+foreach my $id (@roots) {
+    $render_branch->( $id, '  ', TRUE );
+}
+
+## no branches registered ##
+if ( not @lines ) {
+    return {
+        'mode' => qw| size |,
+        'data' => ".: reasoning branches :."
+            . "─────────────────────────────────────────\n\n"
+            . "  (none)\n\n"
+            . "──────────────── 0 running · 0 paused"
+            . " · 0 resolved ─────────────"
+    };
+}
+
+my $header = ".: reasoning branches :."
+    . "─────────────────────────────────────────\n";
+my $footer
+    = sprintf( "──────────────── %d running · %d paused"
+        . " · %d resolved ─────────────",
+    $n_running, $n_paused, $n_resolved );
+
+my $output = $header . "\n" . join( "\n", @lines ) . "\n\n" . $footer;
+
+return { 'mode' => qw| size |, 'data' => $output };
+
+#,,..,,,,,...,..,,,.,,.,.,,..,,,,,...,,.,,,,.,..,,...,...,.,.,...,.,,,,,.,,,,,
+#7R2LC7R4JQLFJR2HNXBI5ITKQU76DWQG2SE4HGPX637JPJFTLAVVFLXHBXURWTGLUALYV7NPZK5KY
+#\\\|GWHY7ODV3T5WKEEKBIHC7RIVG56IZYMO2DRWSW7G2HZ4G72AGTO \ / AMOS7 \ YOURUM ::
+#\[7]KPMQRVALUBTQAWOTVOQNG3D5Y7VCKMWV2D3CXYLGWBSZE4BCZWCQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

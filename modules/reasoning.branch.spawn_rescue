@@ -1,0 +1,86 @@
+## [:< ##
+
+# name  = reasoning.branch.spawn_rescue
+# param = { id, strategy }
+
+my $params = shift // {};
+
+my $id = $params->{'id'} // '';
+return { 'mode' => qw| false |, 'data' => 'branch id required' }
+    unless length $id;
+
+my $registry = <reasoning.branch.registry> // {};
+my $branch   = $registry->{$id};
+
+return { 'mode' => qw| false |, 'data' => "branch not found: $id" }
+    unless defined $branch;
+
+return {
+    'mode' => qw| false |,
+    'data' => sprintf(
+        'branch %s is not running (state=%s)',
+        $id, $branch->{'state'}
+    )
+    }
+    unless $branch->{'state'} eq qw| running |
+    or $branch->{'state'} eq qw| blocked |;
+
+## mark original branch as blocked ##
+$branch->{'state'} = qw| blocked |;
+
+## generate rescue branch id ##
+my $rescue_id = sprintf( '%s-rescue', $id );
+my $attempt   = 1;
+while ( exists $registry->{$rescue_id} ) {
+    $rescue_id = sprintf( '%s-rescue-%d', $id, $attempt++ );
+}
+
+## distill context from stuck branch ##
+my $checkpoints = $branch->{'checkpoints'} // [];
+my $distilled   = '';
+
+if ( scalar @$checkpoints ) {
+    my @summaries = map { $_->{'summary'} // '' } @$checkpoints;
+    $distilled = join( "\n", @summaries );
+    if ( length $distilled > 800 ) {
+        $distilled = substr( $distilled, -800 );
+    }
+}
+
+my $strategy = $params->{'strategy'} // 'try alternative approach';
+
+## create rescue branch ##
+$registry->{$rescue_id} = {
+    agent        => $branch->{'agent'},
+    task_id      => $branch->{'task_id'},
+    state        => qw| running |,
+    deps         => [],
+    context_path => $branch->{'context_path'},
+    checkpoints  => [],
+    stuck_score  => 0.0,
+    output       => undef,
+    rescue_of    => $id,
+    spawned_at   => <[base.time]>->(4),
+    strategy     => $strategy,
+    distilled    => $distilled,
+};
+
+<[base.logs]>->(
+    1,   "reasoning.branch.spawn_rescue: %s -> %s [strategy=%s]",
+    $id, $rescue_id, $strategy
+);
+
+return {
+    'mode' => qw| true |,
+    'data' => {
+        rescue_id => $rescue_id,
+        strategy  => $strategy,
+        distilled => $distilled
+    }
+};
+
+#,,,.,,.,,,..,,,,,.,,,,,,,,,.,,,.,..,,,,,,.,,,..,,...,...,,.,,...,,,.,,,.,..,,
+#QYSAPFX5245N3RW5LJE6KGA2KYCKEF2ZWSMVLZVLFJ5WR2BGXLTT4YGHLMXGBTJRJT3QNXK2GRBD6
+#\\\|H64OWE7BHV6NVQHEJTWP5ZQDB5XJD7W4E6QCNTA3ALTMOVFULHB \ / AMOS7 \ YOURUM ::
+#\[7]QJTAB42MTPBUUQ3TK446WJ7DB4WC2HF76E77YR3VFD6ZOFBIQ2AY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
