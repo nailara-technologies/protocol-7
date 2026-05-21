@@ -135,8 +135,21 @@ git diff HEAD~1 | bin/dev/diff-modified --no-color | grep '^[+-]' | head -5
 - [ ] usage string updated to mention `--no-color`
 - [ ] no signature stubs added, no subroutine whitelist changes made
 
-#,,,,,...,,,,,.,,,..,,.,.,...,,,.,.,,,.,,,,,.,..,,...,...,.,.,.,.,,,.,.,.,,.,,
-#CRNRU4LXFWD7T5YHIQRTIAPUACZPN3JSCZ5DFDJDXULNB6DAWJTSYBNJ6T5AC2U4PT7A5OVRP7RDM
-#\\\|3QKLXB5R5XNS2T6RLVPKWVI5DYEROZJZLHVB4NCF3BXI2GRJRDI \ / AMOS7 \ YOURUM ::
-#\[7]MFG5XQOGMBNSE3MX573R73NX5JNV7RHAVI6CNR4QGSXR5MVYN6AI 7  DATA SIGNATURE ::
+## dispatch
+
+model: kimi
+reasoning: medium
+
+prompt: |
+  Implement the task at data/tasks/diff-modified-no-color-mode.md
+
+  Read the full task file — it describes exactly where to find $strip_leading_indicators,
+  the argv() parser, and color constants in bin/dev/diff-modified. Goal: --no-color flag
+  keeps +/- prefixes and strips ANSI, leaving colored behavior completely unchanged.
+  This is a standalone script, no zenka modules involved. No signature stubs.
+
+#,,.,,,..,,..,,,.,.,.,,,,,,..,,..,.,,,...,.,,,..,,...,..,,...,,.,,,.,,..,,..,,
+#GIPR4CGJXYGU4MAB5HTRI33GKJOEYIMH4EBAKURBSJCNDFI7JVJSAH53QDXIAJZVAYGVYP4QQTB72
+#\\\|DMRROWLQJLVQKELGHSF4QOH5VIUIR7RTBIEIFQKMQX6TLTVF3ZN \ / AMOS7 \ YOURUM ::
+#\[7]NBRMFKGN2XK23S4ZYJH4MVZZGMSS2VFCJQZULAXRPA6PXK3DZ4DA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

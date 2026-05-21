@@ -43,7 +43,7 @@ if ( $mode eq 'TRUE' ) {
             $delay = 60 if $delay < 60;       ## minimum 1 minute
         }
         <[base.logs]>->(
-            1, 'rate limited for %s — waiting %d seconds (retry after: %s)',
+            1, ': rate limited for %s : waiting %d seconds (retry after: %s)',
             $domain, $delay, $retry_after_str || 'unknown'
         );
         <letsencr.parent.renewal_timers>->{$domain}{status}
@@ -208,8 +208,8 @@ if ( $mode eq 'TRUE' ) {
 
 return FALSE;
 
-#,,..,.,,,.,.,.,,,,.,,.,.,...,.,.,,,,,...,,,,,..,,...,...,..,,,,.,..,,..,,,,.,
-#32MM66WFCFXGNVJS26NCWG5JIVBKQ525K2MOSPGDHWZA5QDI5QIXFCBQ5JM72MTMZ2F5KFNA674FO
-#\\\|WW3SO6GM6DQ5XOJDSMCH5NSGZ7UE5JI2PC7UF3S3PLZ4XAS6G6L \ / AMOS7 \ YOURUM ::
-#\[7]RE23ZMVKAOK5IVN5TV4ZF7AKBSW4OP3Z6SK2GARZSVM3XLIX22BA 7  DATA SIGNATURE ::
+#,,.,,,,.,,,.,,,.,...,.,,,,,,,,..,.,,,...,,.,,..,,...,...,...,,,.,..,,.,.,.,,,
+#37TL2NR52RMCYGS56IM4OYXQBKKOODL6XXNZTZ36S2UAPUL6QQC7SY4HEL6K7VC6BSYIB47F26J7Y
+#\\\|3TFG4PU24MJ2SGXEP7SCR5R6N7ROC3QQZKPLVH4NGETKXI3TFLX \ / AMOS7 \ YOURUM ::
+#\[7]QCPG3KEWT2PTVQPJLYMXFJMZM5BU5PHB2HIMNC4H6ZWE3K54BKBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

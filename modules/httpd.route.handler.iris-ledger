@@ -1,0 +1,126 @@
+## [:< ##
+
+# name  = httpd.route.handler.iris-ledger
+# descr = handle ledger increment/decrement/reset requests
+
+my $id      = shift;
+my $session = $data{'session'}->{$id};
+
+my $body = $session->{'http'}->{'body'} // $session->{'buffer'}->{'input'}
+    // '';
+$session->{'http'}->{'body'}    = undef;
+$session->{'buffer'}->{'input'} = '';
+
+my $payload = eval { JSON::XS::decode_json($body) };
+if ( $@ or ref $payload ne 'HASH' ) {
+    my $rb = '{"error":"invalid json"}';
+    $session->{'buffer'}->{'output'} .= <[httpd.new_header]>->(
+        400,
+        {   'Content-Type'   => 'application/json',
+            'Content-Length' => length($rb),
+        }
+    );
+    $session->{'buffer'}->{'output'} .= $rb;
+    return 2;
+}
+
+my $action = $payload->{'action'} // '';
+my $arc    = $payload->{'arc'};
+my $ring   = $payload->{'ring'};
+my $amount = $payload->{'amount'} // 1;
+
+if ( $action !~ m{^(decrement|increment|reset)$} ) {
+    my $rb = '{"error":"action must be decrement, increment, or reset"}';
+    $session->{'buffer'}->{'output'} .= <[httpd.new_header]>->(
+        400,
+        {   'Content-Type'   => 'application/json',
+            'Content-Length' => length($rb),
+        }
+    );
+    $session->{'buffer'}->{'output'} .= $rb;
+    return 2;
+}
+
+if ( not defined $arc or $arc !~ m{^\d+$} or $arc < 0 or $arc > 25 ) {
+    my $rb = '{"error":"arc must be 0-25"}';
+    $session->{'buffer'}->{'output'} .= <[httpd.new_header]>->(
+        400,
+        {   'Content-Type'   => 'application/json',
+            'Content-Length' => length($rb),
+        }
+    );
+    $session->{'buffer'}->{'output'} .= $rb;
+    return 2;
+}
+
+if ( defined $ring and ( $ring !~ m{^\d+$} or $ring < 0 ) ) {
+    my $rb = '{"error":"ring must be non-negative integer"}';
+    $session->{'buffer'}->{'output'} .= <[httpd.new_header]>->(
+        400,
+        {   'Content-Type'   => 'application/json',
+            'Content-Length' => length($rb),
+        }
+    );
+    $session->{'buffer'}->{'output'} .= $rb;
+    return 2;
+}
+
+my $result_count;
+my $rings_max = <route.bmw384.cfg.rings> // 26;
+
+if ( $action eq 'reset' ) {
+    <route.bmw384.cfg.ledger_counts> //= {};
+    if ( defined $ring ) {
+        my $key = "$arc:$ring";
+        <route.bmw384.cfg.ledger_counts>->{$key} = 7;
+        $result_count = 7;
+    } else {
+        for my $r ( 0 .. $rings_max - 1 ) {
+            my $key = "$arc:$r";
+            <route.bmw384.cfg.ledger_counts>->{$key} = 7;
+        }
+        $result_count = 7;
+    }
+} elsif ( $action eq 'decrement' ) {
+    if ( defined $ring ) {
+        $result_count = <[route.bmw384.ledger.decrement]>->( $arc, $ring );
+    } else {
+        for my $r ( 0 .. $rings_max - 1 ) {
+            $result_count = <[route.bmw384.ledger.decrement]>->( $arc, $r );
+        }
+    }
+} elsif ( $action eq 'increment' ) {
+    if ( defined $ring ) {
+        $result_count
+            = <[route.bmw384.ledger.increment]>->( $arc, $ring, $amount );
+    } else {
+        for my $r ( 0 .. $rings_max - 1 ) {
+            $result_count
+                = <[route.bmw384.ledger.increment]>->( $arc, $r, $amount );
+        }
+    }
+}
+
+my $rb = <[httpd.json.encode]>->(
+    {   qw| action | => $action,
+        qw| arc    | => $arc + 0,
+        qw| ring   | => defined $ring ? $ring + 0 : undef,
+        qw| count  | => $result_count,
+    }
+);
+
+$session->{'buffer'}->{'output'} .= <[httpd.new_header]>->(
+    200,
+    {   'Content-Type'   => 'application/json',
+        'Content-Length' => length($rb),
+    }
+);
+$session->{'buffer'}->{'output'} .= $rb;
+
+return 2;
+
+#,,..,,,.,...,.,.,.,,,..,,...,,.,,...,.,,,.,.,..,,...,...,.,,,,.,,,,.,.,.,,.,,
+#6YH3M2USOOOCT5RHQK6SLTMZFWAB2ETDVIJSUYBFNZKUG3GT6ZDLHKTZNI7LXXCBU3HM6KPYHSFPK
+#\\\|VOWGX23AMXLKMNCQFXNNPN2JI3YD2AWGGVPPKYOU4FXSIU5IWP2 \ / AMOS7 \ YOURUM ::
+#\[7]2VTZ3WRWAVYMRWSP37ZZXI46BY2SXGOQRIMLFNFKNSE47U3IAWDA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

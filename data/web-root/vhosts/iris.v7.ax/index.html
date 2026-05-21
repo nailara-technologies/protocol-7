@@ -200,11 +200,19 @@
   <button class="mode-btn" data-mode="vortex">vortex</button>
   <button class="mode-btn" data-mode="alpha-density">α-density</button>
   <button class="mode-btn" data-mode="oscilloscope">osc</button>
+  <button class="mode-btn" data-mode="ledger">ledger</button>
 
   <div class="label-mode-row">
     <span class="param-label">labels</span>
     <button class="mode-btn active" data-label-mode="linear">linear</button>
     <button class="mode-btn" data-label-mode="namespace63">namespace63</button>
+  </div>
+
+  <div class="param-row" id="ledger-controls" style="display:none">
+    <button class="mode-btn" id="ledger-drain">drain arc</button>
+    <button class="mode-btn" id="ledger-fill">refill</button>
+    <input class="rings-input" id="ledger-arc" type="number"
+           min="0" max="25" value="0" style="width:3rem">
   </div>
 
   <div class="param-row" id="param-row" style="display:none">
@@ -299,6 +307,10 @@
     } else {
       paramRow.style.display = 'none';
     }
+    const ledgerControls = document.getElementById('ledger-controls');
+    if (ledgerControls) {
+      ledgerControls.style.display = mode === 'ledger' ? 'flex' : 'none';
+    }
   }
 
   document.querySelectorAll('.mode-btn').forEach(btn => {
@@ -338,6 +350,45 @@
 
   document.getElementById('add-vortex-btn').addEventListener('click', () => addRoute('vortex_spiral'));
   document.getElementById('add-arc-btn').addEventListener('click', () => addRoute('orbital_arc'));
+
+  document.getElementById('ledger-drain').addEventListener('click', () => {
+    const arc = parseInt(document.getElementById('ledger-arc').value) || 0;
+    const rings = parseInt(ringsInput.value) || 26;
+    setStatus('draining arc...', 'loading');
+    Promise.all(
+      Array.from({length: rings}, (_, r) =>
+        fetch('/iris/ledger', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ action: 'decrement', arc, ring: r })
+        })
+      )
+    )
+    .then(() => {
+      setStatus('arc ' + arc + ' drained');
+      render();
+    })
+    .catch(err => setStatus('drain error: ' + err, 'error'));
+  });
+
+  document.getElementById('ledger-fill').addEventListener('click', () => {
+    const arc = parseInt(document.getElementById('ledger-arc').value) || 0;
+    setStatus('refilling...', 'loading');
+    fetch('/iris/ledger', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action: 'reset', arc })
+    })
+    .then(r => {
+      if (!r.ok) return r.text().then(t => Promise.reject(t));
+      return r.json();
+    })
+    .then(() => {
+      setStatus('refilled');
+      render();
+    })
+    .catch(err => setStatus('refill error: ' + err, 'error'));
+  });
 
   function addRoute(curveType) {
     const fromArc = parseInt(document.getElementById('route-from').value) || 13;
