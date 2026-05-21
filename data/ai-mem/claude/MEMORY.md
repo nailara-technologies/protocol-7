@@ -7,6 +7,14 @@
 - **Never add** the `#,,.,,,...` stub at end of new files — blocks signing system
 - Leave new files clean; `bin/Protocol-7 sourcecode update-signatures` adds real 4-line footer
 
+## Architecture Docs (session 42)
+- `data/md/design/NESTED-CUBE-NETWORK-SEGMENTATION.md` — gateway satellite, departure-route source chain, tunneling
+- `data/md/design/ZENKA-LIFECYCLE-ONDEMAND-HEARTBEAT.md` — hybrid on-demand+heartbeat, WoL chains, timeout recovery
+- `data/md/design/SIGNED-COMMAND-INTERFACE.md` — command footer signatures, TOFU, generate-on-first-use
+- `data/md/design/AUTHORIZATION-BUFFER.md` — ntime-first approval queue, remembered decisions, TOFU/cmd/route flows
+- `data/md/design/LIVING-BACKGROUND-SYSTEM.md` — consensus background render, 5/7 vote, povray layer, desktop elements
+- `data/md/design/VISUAL-INPUT-PIPELINE-AND-LIVING-TEMPLATES.md` — best-5 tournament, monotonic quality floor, T2I+ControlNet
+
 ## Architecture Docs (session 40)
 - `data/md/development/LLM-SESSION-MANAGEMENT.md` — session segments, distill/compact/resume, browser remote models, cross-model sharing
 - `data/md/development/P7-NATIVE-WEB.md` — proxy intercept, site-yaml extraction, llm reframe, adapter-candidates.yaml roadmap, convergence stages
@@ -90,6 +98,7 @@
 - **P7 cross-zenka data**: use route-send + SIZE reply handler pattern (like radio relay). file system access between zenki is forbidden by design (different users). SHM or route-send for cross-zenka data.
 - **ntime comparison**: `encode_b32r` is reverse-byte-order — NOT lexicographically sortable. Never use `gt`/`lt` string comparison on ntime B32 values. Always use `<[base.ntime_BASE32_to_numerical]>` for numerical comparison.
 - **repeating timers**: need after + interval + repeat:TRUE (not just repeat with a value)
+- **P7 access control is two-layer**: cube/access.zenki is the REAL routing gate. zenka start `access.cmd.usr.cube = *` is a second check but behind cube's gate — any zenka not listed in cube/access.zenki is already blocked before reaching it. adding lines to v7/start won't restrict what cube already allows through.
 - [watcher-state-machines](feedback-watcher-state-machines.md) — IO::Async variable watchers only; never polling timers for state
 - [kimi-code-review](feedback-kimi-code-review.md) — common kimi P7 code issues: SUPER::, namespace swaps, fake signatures
 - [kimi-signatures](feedback-kimi-signatures.md) — kimi derails into signature investigation; add signatures_note to every task file
@@ -117,9 +126,12 @@
 - [topic-completed](topic-completed.md) — all session summaries (Feb 2026 → present)
 - **letsencr**: self-healing renewal CONFIRMED WORKING (session 41) — v7.ax + visual.v7.ax rate limit clears ~15:30 UTC 2026-05-22
 - **reasoning.branch.***: LIVE (session 41) — 9 modules, task zenka hooked, ASCII tree viz via p7c reasoning.branch.status
+- **base.cmd.list**: :n: row limit working (prefix/suffix/zero-padded), header-aware
+- **pager.sort.multi-key**: ntime_b32 + priority_map sort types added (session 42)
+- **task dispatch sections**: all dispatched tasks now carry ## dispatch + prompt for reuse
 
-#,,,,,,,.,,.,,.,.,,.,,,,,,,.,,..,,.,.,..,,.,,,..,,...,...,,,.,.,,,,,,,...,...,
-#K56XBREFUC4TWM5ACEGUPVLPHUNZVQOPA5LCJAKMFMYHWDFXHV747T7WRI3U3RULC4NCE7BIMJSIC
-#\\\|57JBW4SKMHIEIH5GJQKEARPE4DXF2YL466MIYW2KVBXOLYCL5FT \ / AMOS7 \ YOURUM ::
-#\[7]7ST4OBWG7EMMFABX66PKBMLL27KOFIH2NT25WAFQUEVWLP2KQ6AQ 7  DATA SIGNATURE ::
+#,,..,..,,,..,...,.,,,.,.,,,,,,..,.,.,.,.,,,,,..,,...,...,...,,.,,,,,,,,,,.,,,
+#UCGLXKTUUIDCQLXAAKXSL67DX643FXGVIAYAFX25WXYMP5NBMH5FSGN2XZ53OKQVOTSS3S4J4OCMM
+#\\\|PNMM77JX3RZRFMXFOWLNFHRB5NR6UIMQWNDGHGMSV2TFZGJZOIK \ / AMOS7 \ YOURUM ::
+#\[7]KC7ZC2YZNI4RJR4IEBVGN47VXPXFF6OCOC2ONO6FR2CESDI27EDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -24,7 +24,29 @@
 
 **source-code-header-check**: NOOP — already completed prior session (moved to completed)
 
-commits: 17347714e
+**second batch** (parallel kimi dispatch + design work):
+- iris ring ledger mode: route.bmw384.ledger.{decrement,increment}, visual.wheel.ledger,
+  httpd.route.handler.iris-ledger, iris UI ledger button + drain/fill controls
+- BMW384 jobsite grouping: jobsite.chksum.{branch-color,group-by-branch}, jobsite.cmd.group-jobs
+- X-11 wait_visible skip: capability probe in post_init, early return when enumeration unavailable
+- diff-modified --no-color: strip_ansi helper, bleach_text leak fix in renamed file output
+- v7-teardown-whitelist: discovered access control is two-layer (cube/access.zenki is real gate);
+  task blocked pending base-has-access-source-sid-matching implementation
+- base.cmd.list: :n: row limit prefix/suffix, :002: zero-padding, header-aware data row counting
+- pager.sort.multi-key: ntime_b32 type (numerical B32 conversion), priority_map type
+- task dispatch sections added to all dispatched task files (reusable prompts)
+
+**security architecture design docs** (4 interconnected):
+- NESTED-CUBE-NETWORK-SEGMENTATION.md — gateway satellite pattern, departure-route
+  source chain (closest hop first), intelligent tunneling modes
+- ZENKA-LIFECYCLE-ONDEMAND-HEARTBEAT.md — hybrid on-demand+heartbeat, WoL route
+  chains, configurable timeout recovery (forensic-first, recovery-first, observe)
+- SIGNED-COMMAND-INTERFACE.md — command footer signatures mirroring AMOS7 module
+  format, generate-on-first-use keypairs, TOFU pinning, p7c transparent signing
+- AUTHORIZATION-BUFFER.md — ntime-first log-compatible pending approval queue,
+  remember policies, TOFU/route/cmd elevation flows, pager.sort.multi-key sort spec
+
+commits: 17347714e → bdb50aa94
 
 ## session 35 — reasoning templates 3-9, reasoning.* namespace, layer stack (2026-05-19)
 
@@ -1113,8 +1135,8 @@ Skip calling harmonize_payload_line_feed when both conditions are met:
 - Signatures now properly formatted with correct separator endline
 - Pre-commit validation passes
 
-#,,,,,,.,,,,.,,..,,,.,,.,,.,.,,.,,..,,..,,,.,,..,,...,...,,..,..,,.,.,...,..,,
-#AKJADKDBSUEEXP2ELK2KP4P36WSNXHJ4ZW3AFK5REOU5F6BXB7IWB5J2LJ4SUJYZL4X6VGHVMCM5E
-#\\\|D6YNLZ64STG4JWNDUVSMNOMZQFMSASFZNIZGZC3FWQGTGRMRSW6 \ / AMOS7 \ YOURUM ::
-#\[7]NQZBUHWLZIINXANVWRZV6GZOULI3644SMOOXMVKHIBVTJQ32LECQ 7  DATA SIGNATURE ::
+#,,,.,.,.,,,,,,,.,,,,,.,,,.,.,.,.,..,,,,.,,.,,..,,...,..,,.,.,.,,,.,.,...,,..,
+#UNOSKOI6ITIYKGUITHWY3OBIL5KASFTFKSDAW7AZJE5PRQ3EL7J3NFJ3A2TLJHIQLLZFG4BSFCCYI
+#\\\|U4EP24CJXWBF2L56T43MOZ3QVZ6HCDKZMXQJXPPD4DH2B7LPH6H \ / AMOS7 \ YOURUM ::
+#\[7]UGHHGJMZNRRF52QIX5L5TRAZYW5ANMOXXCFH77RR7EXBVG4U6YDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
