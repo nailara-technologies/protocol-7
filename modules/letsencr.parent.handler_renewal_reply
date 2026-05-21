@@ -39,13 +39,13 @@ if ( $mode eq 'TRUE' ) {
                 . " (attempt $attempt)"
         );
 
+        ## mark as pending retry in renewal_timers for handler to pick up
+        <letsencr.parent.renewal_timers>->{$domain}{status}   = qw| retry |;
+        <letsencr.parent.renewal_timers>->{$domain}{attempts} = $attempt;
+
         <[event.add_timer]>->(
             {   'delay'   => $delay,
                 'handler' => qw| letsencr.parent.handler_renewal_retry |,
-                'data'    => {
-                    'domain'  => $domain,
-                    'attempt' => $attempt,
-                }
             }
         );
     } else {
@@ -143,8 +143,8 @@ if ( $mode eq 'TRUE' ) {
 
 return FALSE;
 
-#,,.,,,,.,...,,,,,,.,,.,,,,.,,,..,.,,,,..,,,,,..,,...,...,,,.,,..,,,,,.,.,...,
-#4IAPJVCKMVXGBJIOVWIKD7RHNQZJNUQLP7TVCAUH7Z7GSQZH6U2AT2QLV5AZXS5BEMOIDAJM7OCM6
-#\\\|Z6B45777XGDWW22BBUHO5RTXVD2T7W7QJEVHD7FTKB2HKXMQELV \ / AMOS7 \ YOURUM ::
-#\[7]OTY7LXFWWWDYWING6FHTX3EL65DDQEPPPZUXJX4DJQLKWLWRIABQ 7  DATA SIGNATURE ::
+#,,,,,,..,,,.,,,.,.,,,,..,.,.,...,...,.,.,,,,,..,,...,...,,..,,.,,,.,,,,.,.,,,
+#Z3VIBPMEVUBNZGNSSINPBQZHGOJHY3T37C7PTO6MIQTV6IFVBMIJ3DGYLJYWCVTSI4JU6YSBFQ5FC
+#\\\|FOEJ6JGEWEXF32UB6C2I4YHSNVHEY6EBDXGE2UMV4X4Z5DYCZ4K \ / AMOS7 \ YOURUM ::
+#\[7]O4AKTRTBUSU4FEVP2RGOMPF3RV2TXGEWMZ6GB2JJYNC5HPAYHMBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
