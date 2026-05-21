@@ -420,8 +420,10 @@ By rotating spatial topology into time space and using the filesystem as the pri
 
 The checksum-based search algorithm becomes a **distributed filesystem lookup**—and the filesystem cache becomes the performance accelerator, tuned by millions of kernel-level optimizations.
 
-#,,,,,..,,,,.,.,.,..,,...,.,,,,,,,...,..,,.,.,..,,...,...,...,.,,,..,,...,...,
-#GG3ZPPXCITIEY5HOUGZALVJPFJXLRGB7YQUDXEERK4VCTIHAYUX2SH6NBEXQNC4ARIRPXXIFGXAQM
-#\\\|LO4TUJQRML4QH74OJ5V5BIUN5PI6VV5YIEZXAZ3NF7IUH5VMCZF \ / AMOS7 \ YOURUM ::
-#\[7]LWT3DHEN3IZ3GMYXEWYLCPRUKOSIWU5VM3RFF7IQLH6FIT4F5UBI 7  DATA SIGNATURE ::
+```
+
+#,,,,,,.,,,,,,,..,.,.,,.,,,.,,,..,,..,,.,,.,,,...,...,..,,,.,,,..,.,.,..,,...,
+#HW44JZVOLOSJF62WRA6QHK7L6WF3QRPIGHPPRMKKN5NX5MFWIUQPX2Y4PLIJP7WLCPXH5JBMJZ6CG
+#\\\|HLJ7E7BSQJ5SPQD5NVDEVLLEVNZXQY6GX36WOXJSFOS35NSYNZM \ / AMOS7 \ YOURUM ::
+#\[7]W2NAKBDTOTICRVYXLIIGXYJURRDIJEEMC6ISLJC3LG35KERMTICY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -637,8 +637,10 @@ Don't hope for correctness. Instead, **make it cryptographically visible**.
 
 *Terminal architecture evolved from display device to cryptographically-validated, semantically-rich, context-aware information visualization system. ANSI didn't die. It found its proper place: confined, translated, and enhanced by a layer of correctness.*
 
-#,,,.,.,,,.,.,...,...,,,.,...,,,.,.,,,,.,,,..,..,,...,...,...,,.,,.,,,.,.,,,.,
-#DSKL4POGWQQQ6J5XWB3IGHI7MHDHCQZBVAIR7LU53EOV6SLE7DEL2E7YDMAFJ2GETFM4MTHWO4JB4
-#\\\|4MCWO3UMCKBJX37Y2BTGWAUEGLEB6Q5IVUBP7MFU62CYRSBKRRY \ / AMOS7 \ YOURUM ::
-#\[7]SJVNNHQNKYUQQ6VRDTYJJUAIRQ2XSDUVUGOIVA2PAQ3CRWYPHMBY 7  DATA SIGNATURE ::
+```
+
+#,,,.,,,.,...,,,.,,,.,,.,,,,,,.,,,,,,,,,,,.,.,...,...,...,.,,,,,.,..,,,.,,,,,,
+#2V5UFV5RQKXRSH3DWOHF2XQQXEYRQXBZII2XRIVTKZT4QQ6II4ITHQYOCXMEWRQ2FYOGL7RIRQJBI
+#\\\|75LK37JGRBEW5OPOFBDK4L5F3IIFSDHX47FUHLH5ZAK2TKGFAQN \ / AMOS7 \ YOURUM ::
+#\[7]UOO7Z46NLMOT4LUIOCZSVNL67W6SX2SQMOZ7NEQIVCGURTQDHOCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
