@@ -27,3 +27,27 @@ and thought experiments for idle exploration.
 - successor to AMOS Professional
 - runs in browser
 - potential: P7 zenka design environment in web-browser zenka
+
+### browser-as-authenticated-data-layer
+- web-browser zenka = universal authenticated data source for P7 network
+- pattern: script requests authenticated page → browser loads it → DOM
+  mounted as filesystem → script reads structured data, no HTML parsing
+- examples:
+  - yt-dlp: browser opens youtube, gets session cookies → yt-dlp uses them
+  - jobsite zenka: stepstone session via browser + credential zenka
+  - any web service requiring real browser fingerprinting/JS execution
+- DOM filesystem mount via plan-9 zenka + data zenka namespace
+  each DOM node identified by AMOS checksum → content-addressable
+  inotify on DOM changes → scripts react to page mutations
+- design doc: data/md/development/LLM-SESSION-MANAGEMENT.md (browser section)
+  extended design: data/md/development/DOM-FILESYSTEM-MOUNT.md (planned)
+- relates to: credential zenka, web-browser view stack, plan-9 zenka
+
+### LLM session management + cross-model context
+- kimi-cli sessions store hundreds of MB of reasoning in context.jsonl
+- segment categories: code_read / hypothesis / dead_end / reasoning /
+  conclusion / plan / insight — differential compaction per type
+- seed sentence (template 4) as compression unit for reasoning chains
+- browser views host remote models (claude.ai, qwen web) — same interface
+- design doc: data/md/development/LLM-SESSION-MANAGEMENT.md
+- task: data/tasks/kimi-web-session-cache-access.md

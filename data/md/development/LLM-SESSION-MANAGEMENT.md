@@ -199,8 +199,132 @@ applied to LLM session management.
 
 first implementation: kimi-cli backend in kimi-web zenka.
 
-#,,,.,.,.,,,.,,.,,,..,..,,..,,,,.,...,..,,...,..,,...,..,,..,,,,,,...,,.,,..,,
-#PKVVFQCPSJDGHUJBZBRJGPB4QDG44GIK3P43YOBCU46TGALQ3U7RXBEUNQNT2HVEMBIMMW7EEOCTG
-#\\\|MHBZH57C6LLY322L5UIL435YU3H56YYZQQM5JMMM4477SGE2TXK \ / AMOS7 \ YOURUM ::
-#\[7]LSDVEJKUMZODPJT3F3THBCZTG44HUJVUYTSXCRNRB5GBRS4ABUAI 7  DATA SIGNATURE ::
+---
+
+## browser-based remote model access
+
+for LLMs without a local CLI tool (claude.ai, qwen web, etc.), the
+web-browser zenka provides universal access via WebKit2 + JavaScript.
+
+### architecture
+
+the view stack hosts multiple model sessions simultaneously:
+
+```
+web-browser zenka view stack
+  view[1]  claude.ai/code    [full — current foreground]
+  view[2]  kimi web           [light — pre-warmed, DOM alive]
+  view[3]  qwen web           [light — standing by]
+  view[4]  claude.ai chat     [light — separate context]
+```
+
+each view runs the model's web UI. switching models = `swap-view` +
+cross-dissolve. light mode keeps sessions alive without rendering cost.
+
+### injection and extraction
+
+the web-browser zenka's `evaluate_javascript` injects prompts and
+extracts responses from any web LLM without a native API:
+
+```perl
+## inject prompt into current model web UI
+p7c web-browser.cmd.run_js '
+  document.querySelector("[contenteditable]").innerText = "your prompt";
+  document.querySelector("[data-testid=send-button]").click();
+'
+
+## extract latest response
+p7c web-browser.cmd.run_js '
+  document.querySelector(".response:last-child").innerText
+'
+```
+
+selectors are model-specific — each backend adapter defines them.
+
+### remote model backends
+
+```
+claude.ai/code backend:
+  url:            https://claude.ai/code
+  prompt_sel:     [contenteditable=true]
+  response_sel:   .prose:last-child
+  send_sel:       button[aria-label="Send message"]
+
+claude.ai/chat backend:
+  url:            https://claude.ai/new
+  prompt_sel:     div[contenteditable=true]
+  response_sel:   [data-testid="claude-response"]:last-child
+  send_sel:       button[data-testid="send-button"]
+
+qwen web backend:
+  url:            https://chat.qwen.ai
+  prompt_sel:     textarea.chat-input
+  response_sel:   .message-content:last-child
+  send_sel:       .send-button
+```
+
+stored in `data/yaml/llm-backends/<name>.yaml` — one file per model.
+
+### session capture from browser
+
+since remote models have no local session files, the browser captures
+conversation state:
+
+```
+llm.session.capture-browser  <view-id>   ## snapshot DOM state
+llm.session.extract-browser  <view-id>   ## extract conversation as JSONL
+```
+
+`extract-browser` reads the full conversation from the DOM, converts to
+the standard session segment format, and writes to `processed/` for
+distillation. same pipeline as local CLI sessions.
+
+### ephemeral mode advantage
+
+web-browser zenka runs in ephemeral mode (no persistent cookies/storage)
+by default. each model session starts clean and P7-controlled — no
+accumulated browser state from previous sessions leaking across contexts.
+
+for sessions requiring login: `credentials zenka` provides authenticated
+sessions on demand (`credentials.cmd.request_session 'claude-web'`).
+
+### cross-model workflow with browser models
+
+```
+## kimi (local CLI) analyzes codebase, hits limit
+## → distill to distilled.md
+llm.session.distill kimi <uuid>
+
+## inject distilled.md into claude.ai view as context
+llm.session.share kimi <uuid> claude-browser
+## → web-browser zenka opens claude.ai in view[2]
+## → injects distilled.md content as first message
+## → claude continues the analysis
+
+## qwen provides second opinion
+llm.session.share kimi <uuid> qwen-browser
+## → view[3] opens qwen, same context injected
+```
+
+the coordinator (P7 cube) orchestrates — models see each other's
+distilled findings, not raw session data. clean, compact, cross-model.
+
+### view stack as parallel LLM workforce
+
+```
+view[1]  primary analysis    [full rendering]
+view[2]  verification model  [light — validates primary's conclusions]
+view[3]  specialist model    [light — domain-specific questions]
+view[n]  ...
+```
+
+pull any model to foreground when its capability is needed.
+push back to light mode (document.hidden = true, JS throttled) when done.
+the Amiga screen-pull as multi-model coordination metaphor — each model
+is a screen, the network is the desktop `[:<`
+
+#,,,,,...,,..,.,,,,,.,,..,,,.,.,.,,..,.,.,,.,,..,,...,..,,...,...,,,,,.,,,.,,,
+#7JIVT2FYO4TO65CNZLOVCVDJV7GHD4SZ7UH6CZNR3TNG4MO5XUQLOXEEGH6PUVTGTAFZLGZLASZF6
+#\\\|BOV76HUY7FVWZ6WOLMYG4YFB4RPPHITKGKIS6QER667LKXDZ2VU \ / AMOS7 \ YOURUM ::
+#\[7]5RY7KP2YTEIDI2ZCUM2SSF25UDPEBXTOOKUU5MAKT7BGMZPVGCBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
