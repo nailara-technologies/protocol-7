@@ -1,7 +1,7 @@
 ## [:< ##
 
 # name  = letsencr.parent.cmd.status
-# descr = return overview of certificates, renewals, and ACME state
+# descr = certificate status overview and ACME state
 
 <[base.log]>->( 3, 'status command requested' );
 
@@ -11,9 +11,10 @@ my $now      = time();
 
 ## Calculate certificate statistics
 my $total_certs   = scalar( keys %$certs );
-my $expiring_soon = 0;                        # <= 7 days
-my $needs_renewal = 0;                        # <= 30 days
-my $valid         = 0;
+my $expired       = 0;                        # < 0 days
+my $expiring_soon = 0;                        # 0..7 days
+my $needs_renewal = 0;                        # 7..30 days
+my $valid         = 0;                        # > 30 days
 
 foreach my $domain ( keys %$certs ) {
     my $cert = $certs->{$domain};
@@ -21,7 +22,9 @@ foreach my $domain ( keys %$certs ) {
 
     my $days_remaining = ( $cert->{expires_at} - $now ) / 86400;
 
-    if ( $days_remaining <= 7 ) {
+    if ( $days_remaining < 0 ) {
+        $expired++;
+    } elsif ( $days_remaining <= 7 ) {
         $expiring_soon++;
     } elsif ( $days_remaining <= 30 ) {
         $needs_renewal++;
@@ -48,9 +51,11 @@ $status_report .= sprintf(
 );
 $status_report .= sprintf(
     ":   %-30s :%5d\n",
-    "expiring soon [ <=7 days ]",
+    "expiring soon [ 0-7 days ]",
     $expiring_soon
 );
+$status_report
+    .= sprintf( ":   %-30s :%5d\n", "expired [ <0 days ]", $expired );
 $status_report .= ":.\n\n";
 
 ## Renewal Operations Section
@@ -116,8 +121,8 @@ return {
     data => $status_report,
 };
 
-#,,,.,.,.,,,.,...,.,,,..,,..,,,,.,,,,,.,,,.,.,..,,...,..,,,.,,,..,,.,,..,,..,,
-#RSH66KDDBWVI4MG6BMFRK23MURSBX7BJ5E7MHDBC3IHAAOHFVY6256AJFWDTQHHCAB5KEUVMI2UW2
-#\\\|6Z6PVGSNIR6SSBCIJWRIWWMBG2TYSVOPIQFPTSVTCOL3EGCHOOE \ / AMOS7 \ YOURUM ::
-#\[7]4KD3ZXK6PFYWZTQXVIKKR6QUS562QLINR24KJ2Z4ETPDA6GOT4BQ 7  DATA SIGNATURE ::
+#,,,.,,.,,,.,,.,.,,,.,,..,,,.,.,,,.,,,,..,.,.,..,,...,...,.,,,.,,,,..,...,.,.,
+#KDSDX3C3JUP4SIMPJJZ646ETMTX3HQR4K35RMNZTVDM7IEJ5VBKCYUZEWKALEXNESNRMXYIRXNMSW
+#\\\|R67WO55CPLOJ2X6KEBQZ6AY24GUM45WONKUUKPPGMX3C6AH3DU4 \ / AMOS7 \ YOURUM ::
+#\[7]SHOAELY4KUGKH3AR3E4LTFJSQJDVECAOM4RNCNOE5HYTVS65IOCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
