@@ -1,0 +1,160 @@
+---
+name: tree-or-data-oscillation
+category: design-template
+version: 1.0
+specializes: claude-design-seed
+description: |
+  the focal-length specialization of the seed for protocol-layer choice.
+  every node is simultaneously a TREE position (structure, address,
+  weight, geometry) and a DATA source (content, bytes, streams). they
+  share the stream_id; the `11` pivot is the interpretation swap. loads
+  when designing any wire protocol, any session lifecycle, any
+  discover/consume split, any "what does this layer carry" decision.
+  do not ask "TREE or DATA" — ask "which observer's intent right now,
+  and what is the oscillation frequency between the two?"
+
+bandwidth:
+  1: birdview + the one-line statement  [ always load with this template ]
+  2: + protocol vocabulary + the 5 lenses [ design session ]
+  3: + protocol facet docs              [ deep design ]
+
+variables:
+  WIRE:        the protocol/session being designed
+  ENDPOINT:    a node, branch, or resource on the wire
+  STREAM_ID:   the identifier both interpretations must agree on
+
+---
+
+## bandwidth 1 — birdview + statement
+
+```
+        TREE  →  structural control   keys, address, weight, geometry
+        DATA  →  content delivery     values, bytes, streams, bulk transfer
+
+                      same branch namespace
+                      same node, both at once
+                      stream_id is the shared 8th bit
+
+                      ────────11────────  the pivot — interpretation reversal
+                       /              \
+                  TREE                 DATA
+                 dump-keys             dump
+                 directory             files
+                 navigate              consume
+                       \              /
+                        ──── 01/10 ───   they oscillate; the wire stays one wire
+```
+
+`TREE REF <node> <stream_id>` declares: this node's content is available
+as DATA stream `<stream_id>`. the receiver chooses whether to follow.
+the TREE is the persistent control channel; DATA is the ephemeral flow.
+
+if the design demands one and forbids the other, the design has lost the
+complement. fix by exposing the stream_id explicitly so the swap is at
+least possible, even if rarely taken.
+
+---
+
+## bandwidth 2 — vocabulary + lenses
+
+**protocol vocabulary**:
+
+- `TREE`           — structural reply mode. node lines: id, parent, B32_meta
+                     (name, ref_count, face 0–7, child_count, groups). open
+                     → node lines → REF lines → AMOS close
+- `DATA`           — content reply mode. base32 chunk lines, 47 bytes per
+                     line. open with `STREAM` (unknown size), `<B32_SIZE>`
+                     (known), or `DELTA <B32_BASE_CHECKSUM>` (incremental)
+- `stream_id`      — the shared identifier. derived from `AMOS_chksum(
+                     node_id :: face_id :: ntime )`. TREE and DATA both
+                     speak it; receiver disambiguates direction
+- `TREE REF`       — the registration. declares stream availability without
+                     opening it. namespace of all DATA = set of all REFs
+- `face 0` / `11`  — the network/parent-facing face. on the wire, `11` is
+                     the direction-reversal pivot — also the interpretation
+                     swap moment (TREE↔DATA)
+- `01` / `10`      — direction markers in the checksum tree.
+                     `01` inward/source, `10` outward/leaf
+- `1[zeros]1`      — bit-length separator frame. carries the topology of
+                     the route as bit-length annotations
+- `oscillation frequency`
+                   — rate of TREE/DATA alternation on a shared stream.
+                     bounded above by the 13-slot routing clock
+- `dump-keys / dump` analogy
+                   — TREE is `devmod.cmd.dump-keys`; DATA is `devmod.cmd.dump`
+- `DELTA mode`     — receiver declares state checksum; sender transmits
+                     only what changed. the checksum IS the sync point
+
+**design lenses** — apply to any "what does this carry" question:
+
+lens 1 — structure or content (or both):
+  is this design primarily TREE (discovery, navigation, address, weight,
+  geometry) or DATA (bytes, streams, bulk transfer)? does it have both?
+  if both: do they share a stream_id, or are they accidentally separated
+  into independent identifiers (design debt — they will drift)?
+
+lens 2 — name the stream_id:
+  what is the single identifier on which TREE and DATA agree for any
+  given resource? if you cannot name it, you do not yet have a swap;
+  you have two parallel protocols that will eventually disagree.
+
+lens 3 — locate the `11` pivot:
+  where on this wire does interpretation reverse — TREE-becomes-DATA or
+  DATA-becomes-TREE? if there is no such moment, the design either
+  doesn't need both (fine, but check lens 1 again) or is preventing the
+  swap (design debt — explain why).
+
+lens 4 — oscillation frequency:
+  high (rapid alternation, approaching the 13-slot clock limit — discovery
+  and consumption interleaved per cycle) or low (sustained one mode with
+  occasional pivots — exploration sessions, bulk transfer sessions)?
+  what determines the rate — focal length, observer intent, network
+  conditions? is it tunable?
+
+lens 5 — TREE-as-DATA, DATA-as-TREE:
+  can a transmitted TREE session BE the DATA payload of another stream
+  (treating structure as bytes)? can an arriving DATA stream BE treated
+  as navigable TREE (treating content as structure)? if both: you have
+  full oscillation. if only one direction: you have a half-swap — note
+  this is a constraint, not a feature.
+
+---
+
+## bandwidth 3 — facet docs (load when designing in this domain)
+
+primary:
+  data/md/design/TREE-PROTOCOL.md
+    [ TREE wire format, node lines, REF, QUERY/REGISTER/LIST/ACK/DELTA,
+      bi-directional operation, TREE/DATA as complements section,
+      the `11` pivot as swap moment, base.callback.cmd_reply extension ]
+
+  data/md/design/DATA-PROTOCOL-SYNC.md
+    [ DATA wire format, STREAM/SIZE/DELTA opening variants,
+      bi-directional extension, transparent sync, branch.file.* mapping,
+      base.callback.cmd_reply extension ]
+
+oscillation + checksum:
+  data/md/design/DANCING-ZENKI-RHIZOME-STATE.md
+    [ checksum tree as rhizome state serialization, `01/10/11/00`
+      direction semantics, `1[zeros]1` separator frame, reference
+      bubble as carrier of both structure and content ]
+
+namespace + addressing:
+  data/md/design/BRANCH-NAMESPACE-MASTER.md
+    [ branch.* as the unifying addressable layer, branch.resource.stream,
+      how stream_id attaches to branch nodes; layers 2/7 are the
+      registration surface ]
+
+  data/md/design/OBSERVER-CENTRIC-REFERENCE-SPACE.md
+    [ face-view multiplexing, stream_id per face, serialization order =
+      relevance order = reverse-sort by ref_count, 13-slot temporal
+      bandwidth = oscillation upper bound ]
+
+birdview (always with template family):
+  data/md/design/ZERO.md  [ birdview section + protocol/wire row of the cross ]
+
+#,,..,,.,,...,,,.,.,,,,,,,.,.,,,.,,..,..,,...,..,,...,...,..,,.,,,..,,,..,,,.,
+#Q4AOKND4ECA2LDQ4ZTIGJJ7SI2ZFOJTALLML7VME3U6LH33ZXFVS35W5GXZCPNASLFRYMFDJM6PLW
+#\\\|R7AJLXITAP36MXLHVUVVW5DBUFKUAVUK3EDOKQHXGAP6JGIV2MC \ / AMOS7 \ YOURUM ::
+#\[7]CRRWBL7QWNHMWGHGGXCA6NUSNWOOHNMAU6PS4SOBKIYLSY6FPEDQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
