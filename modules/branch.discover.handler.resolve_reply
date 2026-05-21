@@ -1,0 +1,31 @@
+## [:< ##
+
+# name  = branch.discover.handler.resolve_reply
+# descr = handle reply from discover.branch.query
+
+my $reply    = shift;
+my $query_id = $reply->{'params'}{'query_id'} // '';
+
+return unless length $query_id;
+
+$data{'branch.discover.results'}{$query_id} = {
+    'ntime'  => <[base.time]>->(4),
+    'data'   => $reply->{'data'},
+    'status' => 'complete',
+};
+
+if ( exists $data{'branch.discover.queries'}{$query_id} ) {
+    $data{'branch.discover.queries'}{$query_id}{'status'} = 'complete';
+}
+
+<[base.logs]>->(
+    2, 'branch.discover.resolve_reply: query %s complete', $query_id
+);
+
+return { 'mode' => 'true', 'data' => $query_id };
+
+#,,,,,...,...,,..,...,,,.,,.,,...,.,.,,.,,,..,.,.,...,...,..,,,,,,,,,,,,.,.,.,
+#JJO64GTKTKTEUQLQIZ2B6PMH7H5AEOR7DL3CSKBXJYVKIQ4DZCXCGTKJJQSI2OTTZUJLZWHH4L3NS
+#\\\|WN2GYB6CL5TNYKUAZI6ICL5UW3EAI5FJOBQY225ZKY5XYKLNUGU \ / AMOS7 \ YOURUM ::
+#\[7]WN3YKOCKMKJJETIRON45TGZFMKJJM6YTAWTFI2WJTBCJY3543GDQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

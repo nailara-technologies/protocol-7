@@ -1,0 +1,51 @@
+## [:< ##
+
+# name  = branch.dep.remove
+# descr = remove dependency edge(s) from branch nodes
+# param = { from, to } or { from }
+
+my $params = shift // {};
+
+my $from = $params->{'from'} // '';
+my $to   = $params->{'to'}   // '';
+
+return { 'mode' => 'false', 'data' => 'from node id required' }
+    unless length $from;
+
+my $edges_removed = 0;
+
+if ( length $to ) {
+    ## remove single edge ##
+    if ( exists $data{'branch.deps'}{$from}{$to} ) {
+        delete $data{'branch.deps'}{$from}{$to};
+        delete $data{'branch.dep.reverse'}{$to}{$from};
+        $edges_removed = 1;
+    }
+} else {
+    ## remove all outgoing edges from node ##
+    my $deps = $data{'branch.deps'}{$from} // {};
+    for my $dep_to ( keys %$deps ) {
+        delete $data{'branch.dep.reverse'}{$dep_to}{$from};
+        $edges_removed++;
+    }
+    delete $data{'branch.deps'}{$from};
+}
+
+## clean up empty reverse index entries ##
+for my $to_id ( keys %{ $data{'branch.dep.reverse'} } ) {
+    delete $data{'branch.dep.reverse'}{$to_id}
+        unless scalar keys %{ $data{'branch.dep.reverse'}{$to_id} };
+}
+
+<[base.logs]>->(
+    2,              'branch.dep.remove: %d edge(s) from %s',
+    $edges_removed, $from
+);
+
+return { 'mode' => 'true', 'data' => $edges_removed };
+
+#,,,.,,..,...,.,.,.,.,,..,.,.,,,.,,..,,..,..,,..,,...,...,,.,,.,.,...,,..,...,
+#MTBP6NWQIQOZ2AXAVDZC4N64NGEZNHCVQFPEIAPLP4XG2AMIX4O2QIKLTHACMDQUW3OZKHHUYCGRK
+#\\\|BAGO6LBZENVLCGUKWN2N4SCS6RL7F5AUGM4S6YM7LXDCG3GA7DV \ / AMOS7 \ YOURUM ::
+#\[7]R4NWK4HY4DXZHCYTPLBL7ZML7GDDKHVK2JKQSOMUERAF4S36I6CQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

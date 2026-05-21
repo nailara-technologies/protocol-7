@@ -1,0 +1,31 @@
+## [:< ##
+
+# name  = branch.dep.mark
+# descr = mark a node's satisfaction state and propagate upward
+# param = { id, state }  state = satisfied | unsatisfied | failed
+
+my $params = shift // {};
+
+my $node_id = $params->{'id'}    // '';
+my $state   = $params->{'state'} // '';
+
+return { 'mode' => 'false', 'data' => 'node id required' }
+    unless length $node_id;
+return { 'mode' => 'false', 'data' => 'state required' }
+    unless length $state;
+return { 'mode' => 'false', 'data' => 'invalid state' }
+    unless $state =~ m{^(satisfied|unsatisfied|failed)$};
+return { 'mode' => 'false', 'data' => 'node not found' }
+    unless exists $data{'branch.nodes'}{$node_id};
+
+$data{'branch.nodes'}{$node_id}{'satisfied'} = $state;
+
+<[branch.dep.propagate]>->($node_id);
+
+return { 'mode' => 'true', 'data' => $state };
+
+#,,..,,.,,.,,,...,.,,,,.,,.,,,.,.,.,.,.,,,.,,,..,,...,...,.,,,,,,,.,.,,,.,..,,
+#DS3V3QHAW24PVSF52QVOAFTYUQ6OBLY5OL4JAAOS4DUMZDQ4F3NILUABQRDDEQABKVF6GINH2IEY6
+#\\\|PGDZQNPWUDEU2RZTDMQVFDHPSSOWOWQKJBT322DZGY5ATKSQIGX \ / AMOS7 \ YOURUM ::
+#\[7]TCMKRX37ALFHRW4OZ6MBB3QUCINFLEDEHS2NZVNNMSUJCFOXDUCI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

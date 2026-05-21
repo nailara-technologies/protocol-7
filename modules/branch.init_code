@@ -1,0 +1,57 @@
+## [:< ##
+
+# name  = branch.init_code
+# descr = initialize branch namespace per-zenka state
+
+## node registry: id → { id, name, parent, created, pubkey, face, meta, groups } ##
+$data{'branch.nodes'} //= {};
+
+## children index: parent_id → { name → child_id } ##
+$data{'branch.children'} //= {};
+
+## reference groups: group_name → { members → [ node_id, ... ] } ##
+$data{'branch.groups'} //= {};
+
+## root node id [ undef until first branch.node.create with no parent ] ##
+$data{'branch.root'} //= undef;
+
+## dependency graph: from_id → { to_id → { type, declared_at } } ##
+$data{'branch.deps'} //= {};
+
+## reverse dependency index: to_id → { from_id → TRUE } ##
+$data{'branch.dep.reverse'} //= {};
+
+## discover integration state ##
+$data{'branch.discover.pending'}  //= {};
+$data{'branch.discover.results'}  //= {};
+$data{'branch.discover.queries'}  //= {};
+$data{'branch.discover.watchers'} //= {};
+
+## interest propagation counts [ observer -> ancestor -> count ] ##
+$data{'branch.interest'} //= {};
+
+## interest routes: route_id -> route record ##
+$data{'branch.routes'} //= {};
+
+## route indexes for fast lookup ##
+$data{'branch.routes.by_observer'} //= {};
+$data{'branch.routes.by_target'}   //= {};
+
+## route cache for wave propagation [ hop_id -> target_id -> { next_hop, ntime } ] ##
+$data{'branch.route.cache'} //= {};
+
+## register ttl cleanup timer ##
+<[event.add_timer]>->(
+    {   'interval' => 60,
+        'repeat'   => TRUE,
+        'handler'  => 'branch.route.timer.cleanup',
+    }
+);
+
+<[base.logs]>->( 2, 'branch: namespace initialized' );
+
+#,,..,...,.,.,.,,,,,,,...,...,,..,,,.,,,.,,,.,..,,...,...,,..,...,,,.,..,,,,,,
+#CQUFWMOBBSJREX4QAR2LLUISYX2APNT6WHQ7TZVXW4J2KFBHJHQSR22Q3QPMNKLQYBUKKLOSPITVM
+#\\\|ZSNWELXDP34ET45QOKK5IS57ILXYJWBZETA5U2LK5BHFBIA3EPW \ / AMOS7 \ YOURUM ::
+#\[7]POOTOPT6DSHWYWPMJ3S7GGXIQNZUKGRDYY3T2RYI3CPL7LSZ6ECY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

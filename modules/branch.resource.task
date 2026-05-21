@@ -1,0 +1,55 @@
+## [:< ##
+
+# name  = branch.resource.task
+# descr = task reference convenience wrapper
+# param = { node, op, task_id }
+#
+# op = 'attach' | 'get' | 'detach'
+# data is a task_id string
+
+my $params  = shift                // {};
+my $node    = $params->{'node'}    // '';
+my $op      = $params->{'op'}      // '';
+my $task_id = $params->{'task_id'} // '';
+
+return { 'mode' => 'false', 'data' => 'node id required' }
+    unless length $node;
+return { 'mode' => 'false', 'data' => 'operation required' }
+    unless length $op;
+
+if ( $op eq 'attach' ) {
+    return { 'mode' => 'false', 'data' => 'task_id required' }
+        unless length $task_id;
+
+    return <[branch.resource.attach]>->(
+        {   'node' => $node,
+            'type' => 'task',
+            'data' => $task_id,
+            'id'   => $task_id
+        }
+    );
+} elsif ( $op eq 'get' ) {
+    my $get_params = {
+        'node' => $node,
+        'type' => 'task'
+    };
+    $get_params->{'id'} = $task_id if length $task_id;
+
+    return <[branch.resource.get]>->($get_params);
+} elsif ( $op eq 'detach' ) {
+    my $detach_params = {
+        'node' => $node,
+        'type' => 'task'
+    };
+    $detach_params->{'id'} = $task_id if length $task_id;
+
+    return <[branch.resource.detach]>->($detach_params);
+}
+
+return { 'mode' => 'false', 'data' => 'unknown operation' };
+
+#,,,,,,.,,..,,,,.,,,.,,,,,...,.,.,..,,,,,,,.,,..,,...,...,.,.,...,.,,,,.,,.,.,
+#AKHMTG5Y7CZHB3QH5NVXVTD6XZSQMTHK2X5AMGRK4J72D3VNSZ5QDTLLDKJKJJ4DL6OIIYBYYPHDU
+#\\\|UWEUEVCS7F54GIIDZ7RR6XNW2TLKI2GPFWAITVAAH25AURRJJDH \ / AMOS7 \ YOURUM ::
+#\[7]CEAYKBLVSHZ7E6OLBEFDWRRSWBQ2HYSD5AGATGSSXCKD52U4YEAQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

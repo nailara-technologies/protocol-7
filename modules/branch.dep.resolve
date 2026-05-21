@@ -1,0 +1,61 @@
+## [:< ##
+
+# name  = branch.dep.resolve
+# descr = topological sort of all transitive deps using Kahn's algorithm
+# param = node_id [ string or { id } or { address } ]
+
+my $params  = shift                                   // '';
+my $node_id = ref $params eq 'HASH' ? $params->{'id'} // '' : $params;
+
+return { 'mode' => 'false', 'data' => 'node id required' }
+    unless length $node_id;
+return { 'mode' => 'false', 'data' => 'node not found' }
+    unless exists $data{'branch.nodes'}{$node_id};
+
+## collect all transitive deps ##
+my %all_nodes = ( $node_id => TRUE );
+my @stack     = ($node_id);
+
+while (@stack) {
+    my $current = pop @stack;
+    my $deps    = $data{'branch.deps'}{$current} // {};
+    for my $dep_id ( keys %$deps ) {
+        next if $all_nodes{$dep_id};
+        $all_nodes{$dep_id} = TRUE;
+        push @stack, $dep_id;
+    }
+}
+
+## compute in-degree [ number of prerequisites each node has ] ##
+my %in_degree;
+for my $n ( keys %all_nodes ) {
+    $in_degree{$n} = scalar keys %{ $data{'branch.deps'}{$n} // {} };
+}
+
+## kahn's algorithm: start with nodes having no prerequisites ##
+my @queue = sort grep { $in_degree{$ARG} == 0 } keys %in_degree;
+my @sorted;
+
+while (@queue) {
+    my $current = shift @queue;
+    push @sorted, $current;
+
+    my $dependents = $data{'branch.dep.reverse'}{$current} // {};
+    for my $dep_id ( sort keys %$dependents ) {
+        next unless $all_nodes{$dep_id};
+        $in_degree{$dep_id}--;
+        push @queue, $dep_id if $in_degree{$dep_id} == 0;
+    }
+}
+
+## cycle detected if not all nodes were sorted ##
+return { 'mode' => 'false', 'data' => 'cycle detected' }
+    if @sorted != keys %all_nodes;
+
+return { 'mode' => 'true', 'data' => \@sorted };
+
+#,,,,,,..,.,.,,..,,.,,.,.,,..,...,.,,,.,.,.,.,..,,...,..,,...,,,,,,..,,..,.,,,
+#667KZZB6PI4OZAZPIX6TVDMIPFTHEOEW23W6IHCBMA2KFWPPAEZFKBBKI3XLG5BY5Q6Y7YM6IXO2E
+#\\\|LVYCXYABDIG42D2NDFU3TON3SDCJDJJLEZLIHRQUELLJTI22ERN \ / AMOS7 \ YOURUM ::
+#\[7]JYRU4BNKFV6SGANYBM5SPXUVEZDULLZIHDSJRN3LR2VD723K5CCY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

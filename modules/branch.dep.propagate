@@ -1,0 +1,45 @@
+## [:< ##
+
+# name  = branch.dep.propagate
+# descr = propagate satisfaction state changes upward through reverse deps
+# param = node_id
+
+my $node_id = shift;
+
+return { 'mode' => 'false', 'data' => 'node id required' }
+    unless defined $node_id and length $node_id;
+
+my @queue = ($node_id);
+my %visited;
+my @updated;
+
+while (@queue) {
+    my $current = shift @queue;
+    next if $visited{$current};
+    $visited{$current} = TRUE;
+
+    my $dependents = $data{'branch.dep.reverse'}{$current} // {};
+
+    for my $dep_id ( sort keys %$dependents ) {
+        next if $visited{$dep_id};
+
+        my $prev_state = $data{'branch.nodes'}{$dep_id}{'satisfied'};
+        my $check      = <[branch.dep.check]>->($dep_id);
+
+        if ( $check->{'mode'} eq 'true' ) {
+            if ( not defined $prev_state or $prev_state ne 'satisfied' ) {
+                $data{'branch.nodes'}{$dep_id}{'satisfied'} = 'satisfied';
+                push @updated, $dep_id;
+                push @queue,   $dep_id;
+            }
+        }
+    }
+}
+
+return { 'mode' => 'true', 'data' => \@updated };
+
+#,,..,,,.,.,.,,,.,,,.,...,,,,,,..,,..,...,...,..,,...,...,..,,.,.,,..,.,,,...,
+#H2BUSXW6MYWJLSILWDG7ANCKEI4XGYOIAPVFLFZF6RGDH6MFQZDNKL7P6XXTR7YH6YKEZCKEHGL46
+#\\\|Q4OUOIW3CFZPDW36LNE5F2GNTJBOZ2Z57RI3QB67SYEXOB5V45D \ / AMOS7 \ YOURUM ::
+#\[7]ZK744P5S3BH2O5VCS4IEC5HPPFTTDUZZ7VX6SNFD72HZX6OJGYAA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

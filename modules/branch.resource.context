@@ -1,0 +1,50 @@
+## [:< ##
+
+# name  = branch.resource.context
+# descr = context buffer convenience wrapper
+# param = { node, op, data }
+#
+# op = 'attach' | 'get' | 'detach'
+# data is a string [ context text ] or handle
+
+my $params = shift             // {};
+my $node   = $params->{'node'} // '';
+my $op     = $params->{'op'}   // '';
+my $data   = $params->{'data'};
+
+return { 'mode' => 'false', 'data' => 'node id required' }
+    unless length $node;
+return { 'mode' => 'false', 'data' => 'operation required' }
+    unless length $op;
+
+if ( $op eq 'attach' ) {
+    return { 'mode' => 'false', 'data' => 'data required' }
+        unless defined $data;
+
+    return <[branch.resource.attach]>->(
+        {   'node' => $node,
+            'type' => 'context',
+            'data' => $data
+        }
+    );
+} elsif ( $op eq 'get' ) {
+    return <[branch.resource.get]>->(
+        {   'node' => $node,
+            'type' => 'context'
+        }
+    );
+} elsif ( $op eq 'detach' ) {
+    return <[branch.resource.detach]>->(
+        {   'node' => $node,
+            'type' => 'context'
+        }
+    );
+}
+
+return { 'mode' => 'false', 'data' => 'unknown operation' };
+
+#,,.,,,.,,.,.,...,,.,,,.,,...,,,.,,,,,,,,,..,,..,,...,...,.,.,,,,,,..,.,.,,,.,
+#QRVIRBIQ6SIPJQYIJNSFWABVITN43WHCA2LXHPCYKPL36FXEFLQR44IFZKOUIBR43HBU6ALF7PSYK
+#\\\|YFY3LWGAJAJFTL2R6QHPWWZCDLXUZV3GNHZXYXNNT22Q7XILDAY \ / AMOS7 \ YOURUM ::
+#\[7]KCNYLFZBZV67FYOERM6AKHVLT6WHQ7KW2ZU76HK42ZT37LJG6SBA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,0 +1,33 @@
+## [:< ##
+
+# name  = branch.group.members
+# descr = list nodes in reference group with tree path for each
+# param = group name [ string or { group => ... } ]
+
+my $params = shift                                      // '';
+my $group  = ref $params eq 'HASH' ? $params->{'group'} // '' : $params;
+
+return { 'mode' => 'false', 'data' => 'group name required' }
+    unless length $group;
+return { 'mode' => 'false', 'data' => 'group not found' }
+    unless exists $data{'branch.groups'}{$group};
+
+my $members = $data{'branch.groups'}{$group}{'members'} // [];
+
+my @entries = map {
+    my $node = $data{'branch.nodes'}{$ARG} // {};
+    my $path = <[branch.node.path]>->($ARG);
+    {   'id'   => $ARG,
+        'name' => $node->{'name'} // '',
+        'face' => $node->{'face'} // 0,
+        'path' => $path->{'data'} // '',
+    }
+} @$members;
+
+return { 'mode' => 'true', 'data' => \@entries };
+
+#,,..,.,.,.,,,,,,,.,,,,,,,..,,,..,,,.,,..,.,,,..,,...,...,,,.,..,,,..,.,,,.,.,
+#JOPKPQJCQJJ4XDWHEB4PUKJ5VXG7XJXHXZLM225KYGHOKTUX4RVFCXS6H4BM6A4NJFNF35F6OHBCS
+#\\\|62RGZYELGWIAEHH524OXDQZWL5LHBTAATYDW75CYZAR3VDDNOK4 \ / AMOS7 \ YOURUM ::
+#\[7]S5Y27GQGKXIUZB5TZWRPYUJ6OBTAAXJFYZIO6ZJ64CTQ54BRXSAQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

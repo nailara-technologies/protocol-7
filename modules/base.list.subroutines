@@ -41,6 +41,7 @@ return [ qw[
         mpv.cmd.pid
         filter.init
         devmod.dump
+        branch.list
         base.s_warn
         base.s_read
         base.minmax
@@ -105,6 +106,8 @@ return [ qw[
         events.recalc
         dbus.run_dbus
         cube.cmd.time
+        branch.detach
+        branch.attach
         base.timezone
         base.sprint_t
         base.sort-num
@@ -173,6 +176,7 @@ return [ qw[
         cube.init_code
         cube.cmd.close
         calc.init_code
+        branch.resolve
         base.wrap_text
         base.swap_subs
         base.ssl.write
@@ -267,6 +271,7 @@ return [ qw[
         coding.cmd.bury
         chk-sum.md5.hex
         chk-sum.crc.b32
+        branch.dep.mark
         base.zenka.loop
         base.str.os_err
         base.prng.bytes
@@ -368,6 +373,13 @@ return [ qw[
         clients.http.get
         chk-sum.md5.b64u
         channels.cleanup
+        branch.node.path
+        branch.node.info
+        branch.init_code
+        branch.group.add
+        branch.dep.graph
+        branch.dep.cycle
+        branch.dep.check
         base.stream.push
         base.stream.open
         base.stream.gate
@@ -495,6 +507,9 @@ return [ qw[
         clients.http.post
         chk-sum.init_code
         c-trade.init_code
+        branch.route.list
+        branch.group.list
+        branch.dep.remove
         base.stream.close
         base.session.init
         base.reverse-sort
@@ -636,6 +651,9 @@ return [ qw[
         clients.https.post
         channels.init_code
         channels.heartbeat
+        branch.node.create
+        branch.dep.resolve
+        branch.dep.declare
         base.utf8.sanitize
         base.sort.key-name
         base.reload_values
@@ -792,6 +810,8 @@ return [ qw[
         coding.task.analyze
         coding.staged.clear
         channels.cmd.update
+        branch.resource.get
+        branch.group.remove
         base.utf8.clean_str
         base.str.eval_error
         base.s_read.file_io
@@ -941,6 +961,7 @@ return [ qw[
         devmod.cmd.test-strm
         devmod.cmd.list-subs
         devmod.cmd.eval-code
+        devmod.cmd.dump-keys
         devmod.cmd.core-subs
         decoder.cmd.stop-job
         data.mount.shm.stats
@@ -972,6 +993,12 @@ return [ qw[
         clients.http.request
         clients.http.cleanup
         channels.memory-sync
+        branch.route.release
+        branch.resource.task
+        branch.resource.list
+        branch.resource.find
+        branch.group.members
+        branch.dep.propagate
         base.vec.offset_read
         base.s_write.file_io
         base.route.init_code
@@ -1164,6 +1191,7 @@ return [ qw[
         clients.http.pre_init
         chk-sum.md5.init_code
         chk-sum.crc.init_code
+        branch.discover.watch
         base.vec.offset_write
         base.start.prio_child
         base.session.shutdown
@@ -1365,6 +1393,11 @@ return [ qw[
         channels.mapping.apply
         channels.cmd.test-strm
         channels.cmd.subscribe
+        branch.route.establish
+        branch.resource.stream
+        branch.resource.detach
+        branch.resource.attach
+        branch.group.propagate
         base.utf8.decode_clean
         base.time.is_leap_year
         base.strm.local.cancel
@@ -1566,6 +1599,9 @@ return [ qw[
         clients.https.init_code
         clients.http.handler.io
         chk-sum.skein.init_code
+        branch.route.key.verify
+        branch.resource.context
+        branch.discover.resolve
         bench.key-32-iterations
         base.templates.pre_init
         base.strm.local.consume
@@ -1770,6 +1806,9 @@ return [ qw[
         coding.async.http_client
         clients.https.handler.io
         channels.cmd.unsubscribe
+        branch.route.key.request
+        branch.discover.register
+        branch.discover.announce
         base.zenka.load_sub_list
         base.zenka.is_v7_started
         base.white-list.register
@@ -2180,6 +2219,8 @@ return [ qw[
         coding.async.complete_task
         coding.async.chunk_handler
         channels.memory-sync.fetch
+        branch.route.timer.cleanup
+        branch.route.key.propagate
         base.warnings.from_bitmask
         base.session.check.flushed
         base.reverse-sort.key-name
@@ -2949,6 +2990,7 @@ return [ qw[
         coding.analyze.estimate_tokens
         channels.util.get_review_stage
         channels.cmd.ai-review-approve
+        branch.route.key.handler.reply
         base.zenki.ondemand_registered
         base.session.send_init_reports
         base.p7refs.get_refaddr_prefix
@@ -3695,6 +3737,7 @@ return [ qw[
         coding.handler.check-completion-chain
         coding.cancel_watcher.backend_monitor
         channels.handler.playlist-integration
+        branch.discover.handler.resolve_reply
         base.perlmods.reload.chksum_blacklist
         base.perlmod.unregister_loaded_module
         base.handler.write.encryption-wrapper
@@ -3750,6 +3793,7 @@ return [ qw[
         coding.callback.object_model_discovery
         coding.callback.object_model_available
         channels.memory-sync.conflict-resolver
+        branch.discover.handler.register_reply
         base.log.send-buffer.idle-callback-set
         base.file.path.make-relative-from-list
         auth.callback.cap-neg.select-strm-mode
@@ -4015,8 +4059,8 @@ return [ qw[
     ]
 ];
 
-#,,,.,,,.,.,.,,..,,.,,...,..,,,,.,.,,,,.,,...,.,.,...,..,,...,.,,,,..,,,,,...,
-#NOFZEMITQMFLDSMY2OJ6GRH5YVTAOTTCMD7QS4SBNZQU6H6GZDR3UDQT6QFAPQCFONCXUPJLNMSCG
-#\\\|NT6O72PUU4CZULVM7ET3J4QPEWEAZEXXUUEZLBLIIPRM4M46ESZ \ / AMOS7 \ YOURUM ::
-#\[7]ABPXUUIOQ2X7N2KS655SWYMWXECACHG436C3JWUIRARRKV5UBUCY 7  DATA SIGNATURE ::
+#,,,,,,.,,...,,.,,,,,,..,,.,,,,,.,,,,,...,,.,,.,.,...,...,.,.,,.,,..,,...,..,,
+#7LWUHFW3WQTBKXF7KZWQ42NV6K7L5XQ7NLUUIX27UX73EHOUJMDOQ6VISSZ4S6SYSAYH6CMRV2UWE
+#\\\|SZOQFBSOZL245F6MRYGHHLIAUAV3KKOS3TEVRHVUWWMJOWKTH57 \ / AMOS7 \ YOURUM ::
+#\[7]YKUROKDIETGCYF22S4BHVSDG3FNQU5V3Z67CJX5OF3PEHJ4B7ICQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,0 +1,62 @@
+## [:< ##
+
+# name  = branch.dep.cycle
+# descr = detect cycles in dependency graph using DFS with three-color marking
+# param = node_id or {} for global check
+
+my $params  = shift                                   // {};
+my $node_id = ref $params eq 'HASH' ? $params->{'id'} // '' : $params;
+
+## 0 = white [unseen], 1 = gray [in-progress], 2 = black [done] ##
+my %color;
+my @path;
+my @cycle;
+
+my @stack;
+
+if ( length $node_id and exists $data{'branch.nodes'}{$node_id} ) {
+    @stack = ( [ $node_id, 'enter' ] );
+} elsif ( not length $node_id ) {
+    @stack = map { [ $ARG, 'enter' ] } sort keys %{ $data{'branch.deps'} };
+}
+
+while ( @stack and not @cycle ) {
+    my ( $n, $state ) = @{ pop @stack };
+
+    if ( $state eq 'exit' ) {
+        $color{$n} = 2;    ## black ##
+        pop @path if @path and $path[-1] eq $n;
+        next;
+    }
+
+    next if exists $color{$n} and $color{$n} == 2;
+
+    if ( exists $color{$n} and $color{$n} == 1 ) {
+        ## gray→gray edge = cycle found ##
+        my $idx = 0;
+        $idx++ until $path[$idx] eq $n;
+        @cycle = @path[ $idx .. $#path ];
+        last;
+    }
+
+    ## mark gray and explore ##
+    $color{$n} = 1;
+    push @path,  $n;
+    push @stack, [ $n, 'exit' ];
+
+    my $deps = $data{'branch.deps'}{$n} // {};
+    for my $dep_id ( reverse sort keys %$deps ) {
+        push @stack, [ $dep_id, 'enter' ];
+    }
+}
+
+return { 'mode' => 'false', 'data' => \@cycle }
+    if @cycle;
+
+return { 'mode' => 'true', 'data' => 'no cycles' };
+
+#,,,.,...,.,.,,,,,.,.,...,...,,,,,...,,..,,.,,..,,...,...,.,.,,..,.,.,,..,,,,,
+#AKMTTEPNLFVZ6BGDMNRONRSIPX6XWGFTOSWS5EPC57ZJP27IXNZWEOZRNGF4QPMOAB3XAJJ2VAKII
+#\\\|KXXMXRU2R7A3GSEALHZ56FQLBIZNC5OPXVFS7K7INK3IECAJ4AT \ / AMOS7 \ YOURUM ::
+#\[7]HC6JF7Y2XNOSJYBMWAAISZSHMGJDM6RR2SERKVXS262KCCHMIAAQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,0 +1,58 @@
+## [:< ##
+
+# name  = branch.attach
+# descr = attach node to parent under given name
+# param = { id, parent, name }
+#
+# node identity is preserved across attach / detach operations
+# name collision at target parent returns false
+
+my $params  = shift               // {};
+my $node_id = $params->{'id'}     // '';
+my $parent  = $params->{'parent'} // '';
+my $name    = $params->{'name'}   // '';
+
+return { 'mode' => 'false', 'data' => 'node id required' }
+    unless length $node_id;
+return { 'mode' => 'false', 'data' => 'parent id required' }
+    unless length $parent;
+return { 'mode' => 'false', 'data' => 'attachment name required' }
+    unless length $name;
+return { 'mode' => 'false', 'data' => 'node not found' }
+    unless exists $data{'branch.nodes'}{$node_id};
+return { 'mode' => 'false', 'data' => 'parent not found' }
+    unless exists $data{'branch.nodes'}{$parent};
+
+## detach from previous parent if attached ##
+my $prev_parent = $data{'branch.nodes'}{$node_id}{'parent'};
+if ( defined $prev_parent
+    and exists $data{'branch.children'}{$prev_parent} ) {
+    my $prev_name = $data{'branch.nodes'}{$node_id}{'name'};
+    delete $data{'branch.children'}{$prev_parent}{$prev_name};
+}
+
+## name collision check at target ##
+if ( exists $data{'branch.children'}{$parent}{$name} ) {
+    return {
+        'mode' => 'false',
+        'data' => sprintf 'name collision: %s',
+        $name
+    };
+}
+
+$data{'branch.children'}{$parent}{$name}  = $node_id;
+$data{'branch.nodes'}{$node_id}{'parent'} = $parent;
+$data{'branch.nodes'}{$node_id}{'name'}   = $name;
+
+<[base.logs]>->(
+    2, 'branch.attach: %s -> %s as [%s]',
+    $node_id, $parent, $name
+);
+
+return { 'mode' => 'true', 'data' => $node_id };
+
+#,,,.,,,,,...,..,,,,.,,,,,,,.,,..,,.,,.,.,...,..,,...,...,..,,..,,..,,,..,.,,,
+#ZTWZXRQSOJPY25UIWLEUMK6EEOROVCIMVFK6L2UC4FQ2KOL54V67WHU76VFUTXF5NNQEVEF7NHYLO
+#\\\|VEDZ5AP2HM3ZSKAJRXI26Y6OJWMJAEHBXCHCBJCWGBRNKK3HS4X \ / AMOS7 \ YOURUM ::
+#\[7]P3HINMFL6YRDEN3FDS4JUP52PMQR65YENMFWMAPHMX4HIA4N5EBI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

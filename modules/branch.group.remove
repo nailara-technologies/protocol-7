@@ -1,0 +1,64 @@
+## [:< ##
+
+# name  = branch.group.remove
+# descr = remove node from reference group [ or all groups ]
+# param = { id, group }  or  { id }  to remove from all groups
+#
+# cleans up both directions: groups registry and node's groups list
+
+my $params  = shift              // {};
+my $node_id = $params->{'id'}    // '';
+my $group   = $params->{'group'} // '';
+
+return { 'mode' => 'false', 'data' => 'node id required' }
+    unless length $node_id;
+return { 'mode' => 'false', 'data' => 'node not found' }
+    unless exists $data{'branch.nodes'}{$node_id};
+
+my $node_groups = $data{'branch.nodes'}{$node_id}{'groups'} // [];
+
+## remove from all groups ##
+if ( not length $group ) {
+    for my $g (@$node_groups) {
+        next unless exists $data{'branch.groups'}{$g};
+        my $members = $data{'branch.groups'}{$g}{'members'} // [];
+        $data{'branch.groups'}{$g}{'members'}
+            = [ grep { $ARG ne $node_id } @$members ];
+    }
+    $data{'branch.nodes'}{$node_id}{'groups'} = [];
+
+    <[base.logs]>->( 2, 'branch.group.remove: %s from all groups', $node_id );
+
+    return { 'mode' => 'true', 'data' => 'removed from all groups' };
+}
+
+## remove from specific group ##
+return { 'mode' => 'false', 'data' => 'group not found' }
+    unless exists $data{'branch.groups'}{$group};
+
+my $members = $data{'branch.groups'}{$group}{'members'} // [];
+my $found   = grep { $ARG eq $node_id } @$members;
+
+return { 'mode' => 'true', 'data' => scalar @$members }
+    unless $found;
+
+$data{'branch.groups'}{$group}{'members'}
+    = [ grep { $ARG ne $node_id } @$members ];
+
+$data{'branch.nodes'}{$node_id}{'groups'}
+    = [ grep { $ARG ne $group } @$node_groups ];
+
+my $remaining = scalar @{ $data{'branch.groups'}{$group}{'members'} };
+
+<[base.logs]>->(
+    2, 'branch.group.remove: %s from [%s] (%d remaining)',
+    $node_id, $group, $remaining
+);
+
+return { 'mode' => 'true', 'data' => $remaining };
+
+#,,,,,,,.,...,...,..,,...,...,.,.,.,.,,.,,,,,,.,.,...,...,..,,,,,,,,.,...,.,,,
+#BKSQE6FAVF5KNJGDA64IKSKBJKUVTB254PR66CPQ74KEPYK6MO4WOUISFQ2CA5EWKET3OGOM5ZLC2
+#\\\|UDOINBJQKYD4WCQE74CEXJTDUQNQE2H7YAEKXK4QB5EFQDSA6BY \ / AMOS7 \ YOURUM ::
+#\[7]IY75GUZIIGQCWE33OPF54TOJTHEZ5JYFELJ75O3KEJO3QMERRICY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

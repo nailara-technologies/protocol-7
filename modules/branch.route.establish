@@ -1,0 +1,134 @@
+## [:< ##
+
+# name  = branch.route.establish
+# descr = open interest route: observer -> target node
+# param = { observer, target, ttl }
+#
+# observer may be a node_id or local session identifier
+# ttl defaults to 3600 seconds
+
+my $params   = shift                 // {};
+my $observer = $params->{'observer'} // '';
+my $target   = $params->{'target'}   // '';
+my $ttl      = $params->{'ttl'}      // 3600;
+
+return { 'mode' => 'false', 'data' => 'observer required' }
+    unless length $observer;
+return { 'mode' => 'false', 'data' => 'target required' }
+    unless length $target;
+return { 'mode' => 'false', 'data' => 'target not found' }
+    unless exists $data{'branch.nodes'}{$target};
+
+## compute path from observer to target [ lca walk ] ##
+my @hops;
+
+if ( exists $data{'branch.nodes'}{$observer} ) {
+    ## both nodes in tree — build ancestor chains ##
+    my @obs_chain;
+    my $cur     = $observer;
+    my $visited = {};
+    while ( defined $cur ) {
+        last if $visited->{$cur}++;
+        push @obs_chain, $cur;
+        $cur = $data{'branch.nodes'}{$cur}{'parent'};
+    }
+
+    my @tgt_chain;
+    $cur     = $target;
+    $visited = {};
+    while ( defined $cur ) {
+        last if $visited->{$cur}++;
+        push @tgt_chain, $cur;
+        $cur = $data{'branch.nodes'}{$cur}{'parent'};
+    }
+
+    ## find lowest common ancestor ##
+    my %obs_set = map { $ARG => 1 } @obs_chain;
+    my $lca;
+    for my $node (@tgt_chain) {
+        if ( $obs_set{$node} ) {
+            $lca = $node;
+            last;
+        }
+    }
+
+    ## observer up to and including lca ##
+    for my $node (@obs_chain) {
+        push @hops, $node;
+        last if $node eq $lca;
+    }
+
+    ## lca down to target [ exclude lca, already added ] ##
+    my $found_lca = 0;
+    for my $node ( reverse @tgt_chain ) {
+        push @hops, $node if $found_lca;
+        $found_lca = 1 if $node eq $lca;
+    }
+} else {
+    ## external observer — path from root to target ##
+    my $cur     = $target;
+    my $visited = {};
+    while ( defined $cur ) {
+        last if $visited->{$cur}++;
+        unshift @hops, $cur;
+        $cur = $data{'branch.nodes'}{$cur}{'parent'};
+    }
+}
+
+return { 'mode' => 'false', 'data' => 'no path computed' }
+    if not @hops;
+
+my $ntime = <[base.time]>->(4);
+
+## derive route identity with amos checksum ##
+my $route_payload = join( '::', $observer, $target, $ntime );
+my $chksum_fn     = $code{'chk-sum.amos'} // $code{'base.chk-sum.amos'};
+my $route_id      = $chksum_fn->( \$route_payload );
+
+## store route record ##
+$data{'branch.routes'}{$route_id} = {
+    'id'       => $route_id,
+    'observer' => $observer,
+    'target'   => $target,
+    'hops'     => \@hops,
+    'created'  => $ntime,
+    'ttl'      => $ttl,
+    'keys'     => {},
+    'state'    => 'pending',
+};
+
+## update indexes ##
+$data{'branch.routes.by_observer'}{$observer}{$route_id} = 1;
+$data{'branch.routes.by_target'}{$target}{$route_id}     = 1;
+
+## populate route cache at each hop [ wave structure ] ##
+for my $i ( 0 .. $#hops - 1 ) {
+    my $hop  = $hops[$i];
+    my $next = $hops[ $i + 1 ];
+    $data{'branch.route.cache'}{$hop}{$target} = {
+        'next_hop' => $next,
+        'ntime'    => $ntime,
+    };
+}
+
+<[base.logs]>->(
+    2, 'branch.route.establish: %s observer=%s target=%s hops=%d',
+    $route_id, $observer, $target, scalar @hops
+);
+
+## trigger key propagation ##
+<[branch.route.key.propagate]>->( { 'route_id' => $route_id } );
+
+return { 'mode' => 'true', 'data' => $route_id };
+
+#,,,.,.,,,..,,,,.,,.,,,,.,,,.,,,.,,,,,.,.,.,.,..,,...,..,,...,..,,..,,,,.,,,. ,
+#QJXD4XT3ITW5NW7JLO7YSENVTSWJJAOEDB2KHHNGZBO6ZK6HE2NGSZARPKWBHKSXDT4YRHWYNJ7U4
+#\\\|IHKWYQS4IMLACNRPIRWMCDXAIUPSNNS6MDK3VNK5JKJX32ECT2H \ / AMOS7 \ YOURUM ::
+#\[7]5YNCQYW6GIYTHAKXJCUS53NKYAGGKCSSYUKKVU7IAEPOUHKAAYBA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+
+#,,..,.,.,.,,,,.,,.,.,,,.,,.,,.,,,,..,,,,,,,,,..,,...,...,.,,,.,.,..,,.,.,,.,,
+#ISFDMV2ANRPM6T5PKYGLZA6EUU4BTYVQXKGEHGYKYTRPVOWOPWBYTWPIOC5QOYTS4FDWTTOB3FKVA
+#\\\|SHXFHFZNUTILG2QOEIPJJPBST5BZXX4PDUJTCQ6UWTCU2XCEPJP \ / AMOS7 \ YOURUM ::
+#\[7]5LKAMXXBJF5GNRSMT6T2XFZ4TYRSBCWPQZO7OSIOVZSFSKIRTWDI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
