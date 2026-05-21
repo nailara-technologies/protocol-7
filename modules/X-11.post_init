@@ -384,10 +384,22 @@ if ( defined $bg_image ) {
 ## all done. ##
 <X-11.initialized> = TRUE;
 
+## test if window enumeration works ##
+my @test_ids = eval {<[X-11.get_window_ids]>};
+<X-11.window_enumeration> = ( !$@ && @test_ids ) ? TRUE : FALSE;
+
+if (<X-11.window_enumeration>) {
+    <[base.log]>->( 2, 'window enumeration: available' );
+} else {
+    <[base.log]>->(
+        1, 'window enumeration: unavailable [ host/wayland mode ]'
+    );
+}
+
 return 0;    ## success
 
-#,,.,,..,,...,..,,,,.,..,,,..,,..,,,.,,,.,...,..,,...,...,,..,,.,,.,.,,,.,,,,,
-#6NVLLWPHNAL6FQIOKVGGDW5JEUVBQR2A5V5WFAODHKZCNCDAQO7TCCPUNKRFKCRPLZKNTU5UKCYSM
-#\\\|JXCSHCSSFH5W7PZMT2LBNOJ27VDJCCAZ6WAY4NQVT75LYXE6U5R \ / AMOS7 \ YOURUM ::
-#\[7]V22NB34KPNXWKVQDNDQWEKIN55UG27WTRA4MANUZN7E4C7HH2YCI 7  DATA SIGNATURE ::
+#,,,.,,,.,,.,,,,,,..,,.,.,,,.,,,.,,..,.,,,,.,,..,,...,...,.,,,...,,.,,.,.,,,,,
+#EHS4KK5ZEZFRWG46CPXPEKBJWW3CYA6F32VJHOSQZJDEJOH4ETGFRH4C6IPJFU7BIZOK2P274RSFE
+#\\\|EMUXCP64SQXZQ5YCGH2IFK6SED47KMDFH7ZJVEJZFU2VRBENFEE \ / AMOS7 \ YOURUM ::
+#\[7]Y5OSAHNJCKY5HCFOZSHCSXEIXEPDPVLJLMEYPBTTVEG2HAHESWBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

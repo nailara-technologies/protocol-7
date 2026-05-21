@@ -79,15 +79,16 @@ if ( defined <bmw384.svg.cache>->{$cache_key} ) {
 }
 
 # [ save cfg state ]
-my $saved_mode       = <route.bmw384.cfg.visual_mode>;
-my $saved_rings      = <route.bmw384.cfg.rings>;
-my $saved_gauss      = <route.bmw384.cfg.gauss_arcs>;
-my $saved_ns         = <route.bmw384.cfg.overlay_namespaces>;
-my $saved_label_mode = <route.bmw384.cfg.ring_label_mode>;
-my $saved_ns_filter  = <route.bmw384.cfg.namespace_filter>;
-my $saved_tl         = <route.bmw384.cfg.translucency_mode>;
-my $saved_intensity  = <route.bmw384.cfg.translucency_intensity>;
-my $saved_expanse    = <route.bmw384.cfg.translucency_expanse>;
+my $saved_mode        = <route.bmw384.cfg.visual_mode>;
+my $saved_rings       = <route.bmw384.cfg.rings>;
+my $saved_gauss       = <route.bmw384.cfg.gauss_arcs>;
+my $saved_ns          = <route.bmw384.cfg.overlay_namespaces>;
+my $saved_label_mode  = <route.bmw384.cfg.ring_label_mode>;
+my $saved_ns_filter   = <route.bmw384.cfg.namespace_filter>;
+my $saved_tl          = <route.bmw384.cfg.translucency_mode>;
+my $saved_intensity   = <route.bmw384.cfg.translucency_intensity>;
+my $saved_expanse     = <route.bmw384.cfg.translucency_expanse>;
+my $saved_ledger_mode = <route.bmw384.cfg.ledger_mode>;
 
 # [ apply request params ]
 <route.bmw384.cfg.rings>       = $rings;
@@ -115,6 +116,10 @@ if ( length $intensity and $intensity =~ m{^\d*\.?\d+$} ) {
 }
 if ( length $expanse and $expanse =~ m{^\d+$} ) {
     <route.bmw384.cfg.translucency_expanse> = int($expanse);
+}
+
+if ( $mode eq 'ledger' ) {
+    <route.bmw384.cfg.ledger_mode> = 1;
 }
 
 my $svg = <[route.bmw384.visual.wheel-mode]>;
@@ -171,6 +176,11 @@ if ( defined $saved_expanse ) {
 } else {
     delete <route.bmw384.cfg.translucency_expanse>;
 }
+if ( defined $saved_ledger_mode ) {
+    <route.bmw384.cfg.ledger_mode> = $saved_ledger_mode;
+} else {
+    delete <route.bmw384.cfg.ledger_mode>;
+}
 
 if ( not defined $svg ) {
     my $body = '{"error":"bmw384 index not initialized"}';
@@ -184,7 +194,7 @@ if ( not defined $svg ) {
     return 2;
 }
 
-if ( $mode ne 'oscilloscope' ) {
+if ( $mode ne 'oscilloscope' and $mode ne 'ledger' ) {
     <bmw384.svg.cache>->{$cache_key} = $svg;
 }
 
@@ -204,8 +214,8 @@ $session->{'buffer'}->{'output'} .= $svg;
 
 return 2;
 
-#,,,.,,.,,,.,,...,,,.,,..,.,.,,..,..,,,.,,.,,,..,,...,...,...,,,.,.,,,...,,.,,
-#AL7VGJ4KLDTI6E6FVHVEJE3IL76M6DGU7LQG6ITYS4JLW7JPQK3GDDZDHR65JXDG2GE4BWV3P7CR4
-#\\\|RD3VXDE34UFRJ4R5L5SJCLGU43WGINTNJ5VLMQ3LKQHAIKHA4GU \ / AMOS7 \ YOURUM ::
-#\[7]XUBIRCONHFTZUXVD2QUQ55VNTJGNTHG2QKBUG4W3EGUELGBCN4CY 7  DATA SIGNATURE ::
+#,,,.,,.,,,..,...,..,,,.,,..,,,..,.,.,,,,,...,..,,...,...,,.,,..,,,,.,.,,,...,
+#SXXG6WPVVA66YBLV4KHQW24KVVNUDVYLXXOU7YA2C2ZOMHIWNMW47BIJS2GUHOFDDOVKGZFAW4EIC
+#\\\|IJZF5VJK6VQUNX33YDWN2U52TI6JUSK33UAO6SJDNIKACNFL4E5 \ / AMOS7 \ YOURUM ::
+#\[7]HAQBQN3AKV475PRPNFL6JQMUHFVLOODXSOUX2VUTW3NV2TMO4UBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

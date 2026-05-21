@@ -144,8 +144,22 @@ p7c v7.restart web-browser
 - [ ] kiosk behavior (wait_visible working) completely unchanged
 - [ ] no signature stubs added, no subroutine whitelist changes made
 
-#,,.,,,,,,,,,,,,,,.,.,.,.,...,...,,..,,..,..,,..,,...,...,,,.,,..,,..,,,,,,.,,
-#ZDG2B5SZTUPLGRP2TQOH7W63CH7M6MQ7IRLWIE56LC2AKX25F3NLSMXSPBPYAA4PGDIYRVW67OWIU
-#\\\|AB6F5XTH62OZA27L47OOC4TSSHWZQYGWGHAKGCZIE4OGNAGB3S3 \ / AMOS7 \ YOURUM ::
-#\[7]PTETOGXJE26UGFXU6NCJZGLFYREPXKCUIV4KREQYRKSDGL36AECY 7  DATA SIGNATURE ::
+## dispatch
+
+model: kimi
+reasoning: medium
+
+prompt: |
+  Implement the task at data/tasks/x11-wait-visible-host-mode-skip.md
+
+  Read the task file first, then read the 4 modules listed in "what to read first".
+  The fix is: (1) probe window enumeration capability during X-11 init and set a flag,
+  (2) add an early return in wait_visible when the flag is FALSE, (3) optionally reduce
+  log noise in base.X-11.wait_for_window to distinguish "skipped" from "timed out".
+  No signature stubs, no whitelist changes.
+
+#,,.,,.,,,,..,,,,,,..,..,,,.,,.,,,.,.,...,.,.,..,,...,...,,.,,,.,,.,.,.,.,.,,,
+#QUWIVCPII6KFNWQCNGKPL5SCUGBNQAGPKKVQ7ZBXR756DMTTIU5DANOFHSGYA3JT44D5POEQJYBTU
+#\\\|HCI6243FJVJFBPISKXLZDHAVUBCSEP7SYVMUIDGLL2LQZTZGKCI \ / AMOS7 \ YOURUM ::
+#\[7]PZGHSMRRACO46WU4R37VT63GYM247BCX5K4NAP44K4SQFJI4EUBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,0 +1,51 @@
+## [:< ##
+
+# name  = jobsite.chksum.group-by-branch
+# descr = group jobs by color proximity on a given assertion dimension branch
+
+my $dimension = shift // '';
+my $center_id = shift // '';
+my $radius    = shift // 500000;
+
+return [] if not length $dimension or not length $center_id;
+
+my $all_jobs = <[jobsite.job.load_all]>;
+return [] if not %{$all_jobs};
+
+my $center_info = <[jobsite.chksum.branch-color]>->( $center_id, $dimension );
+return [] if not defined $center_info;
+
+my $center_color = $center_info->{'color'};
+
+my @group;
+for my $job_id ( keys %{$all_jobs} ) {
+    next if $job_id eq $center_id;
+
+    my $info = <[jobsite.chksum.branch-color]>->( $job_id, $dimension );
+    next if not defined $info;
+
+    my $dist = <[base.chk-sum.bmw384.color-dist]>->(
+        $center_color, $info->{'color'}
+    );
+    next if not defined $dist;
+    next if $dist > $radius;
+
+    push @group,
+        {
+        'job_id' => $job_id,
+        'color'  => $info->{'color'},
+        'arc'    => $info->{'arc'},
+        'dist'   => $dist,
+        };
+}
+
+## [ future ] auto-archive: if two jobs share arc in location dimension
+## and both have location.score < 4, flag lower-scored for auto-archive.
+
+return [ sort { $a->{'dist'} <=> $b->{'dist'} } @group ];
+
+#,,..,,,.,,,.,,.,,,,,,..,,..,,.,,,,,.,,,.,,,.,..,,...,...,.,.,,,,,,,.,,,,,,..,
+#UD6WQZYYZ6UPDDV47JLPSWPYGCDPJX7MFBATFHB2RLSD3QRZT4BHW3S725K3UNLXJLB2BBYWEODPE
+#\\\|XEZAYWUQ6D242YATVNL4NNUU2AYRWBFLWJDGFLGYPL4KTDGMBRA \ / AMOS7 \ YOURUM ::
+#\[7]J3Q6SWMPGBW5KSPBIDD55ZG6O757QPD3NFWCPB3ALRS6RSBNSWDA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

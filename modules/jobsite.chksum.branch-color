@@ -1,0 +1,35 @@
+## [:< ##
+
+# name  = jobsite.chksum.branch-color
+# descr = compute bmw384 color coordinate for a job's assertion dimension branch
+
+my $job_id    = shift // '';
+my $dimension = shift // '';
+
+return undef if not length $job_id or not length $dimension;
+
+my $job = <[jobsite.job.read]>->($job_id);
+return undef if not defined $job;
+
+my $text = $job->{'assertions'}{'dimensions'}{$dimension}{'reason'} // '';
+return undef if not length $text;
+
+<[base.perlmod.autoload]>->('Digest::BMW')
+    if not <[base.perlmod.loaded]>->('Digest::BMW');
+
+my $bmw = Digest::BMW->new(384);
+$bmw->add($text);
+my $digest = $bmw->digest;
+
+my $color = <[base.chk-sum.bmw384.color]>->($digest);
+return undef if not defined $color;
+
+my $arc = <[base.chk-sum.bmw384.arc-segment]>->($color);
+
+return { 'color' => $color, 'arc' => $arc, 'digest' => $digest };
+
+#,,,.,,.,,...,,,.,,.,,.,.,.,,,,,.,,..,.,,,,,.,..,,...,.,.,,..,,,.,.,.,,,.,.,,,
+#5LIWTUC6XNHPNCYDNMXIPAYA3BN6KU24EVMFQ6QPUKU2VB2ZWGHIFG7OFD2ARQTR5I2BCBA4467HE
+#\\\|2UZ27WUBOZYN6K2VSN4ZP2A2K2JG2GLC6BQJXJXSRGY7IAHVDMU \ / AMOS7 \ YOURUM ::
+#\[7]ADR5RK3ZILIVWPPUFLJ2FAFVZ67Z363HN6456545SH7TUTR5NIBY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
