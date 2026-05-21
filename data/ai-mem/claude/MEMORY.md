@@ -7,6 +7,11 @@
 - **Never add** the `#,,.,,,...` stub at end of new files — blocks signing system
 - Leave new files clean; `bin/Protocol-7 sourcecode update-signatures` adds real 4-line footer
 
+## Architecture Docs (session 40)
+- `data/md/development/LLM-SESSION-MANAGEMENT.md` — session segments, distill/compact/resume, browser remote models, cross-model sharing
+- `data/md/development/P7-NATIVE-WEB.md` — proxy intercept, site-yaml extraction, llm reframe, adapter-candidates.yaml roadmap, convergence stages
+- `data/md/development/PARALLEL-REASONING-ORCHESTRATION.md` — task tree DAG, stuck detection, rescue branches, reasoning.branch.* generics, bin/chat --task-branch
+
 ## Architecture Docs (session 37)
 - `data/md/development/CHILD-PROCESS-LIFECYCLE-POLICY.md` — disposable/decoupled/monitored child categories; kill_list review; v7 coordination
 - `data/md/development/X11-RELIABILITY-AND-WINDOW-REGISTRY.md` — reconnect backoff, wrapper process, window registry+STRM, wait_visible replacement
@@ -231,8 +236,8 @@
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 - **Glitter 4B restart**: after a failed tool-using task, the Glitter backend needs restart before `:no_tools:` tasks work. The model gets stuck in tool-mode from the previous failed session. Restart coding zenka or wait for it to reset before dispatching `:no_tools:` priming tasks.
 
-#,,,,,,,.,,..,,..,.,,,.,.,...,,..,,,.,.,,,...,..,,...,...,.,.,.,,,,,,,.,.,.,.,
-#SWBD5ADGHDE4M27GUF3IOQNA777JB3DN37NSGXJCDVYX6TNYN7UJ2ANRXJ2PZLUK37N7NJERMV4JY
-#\\\|TSLLLX7MA4JMH6VNOOGDQAE4UITXLFXK3UQJDHSVSBLHV2PVS2K \ / AMOS7 \ YOURUM ::
-#\[7]CQXQK4Y32SWZQTAN6FJLAIUDUFOL7TATK73LWKX2VC4BQEGCVMAI 7  DATA SIGNATURE ::
+#,,.,,.,.,,,,,...,.,,,,,,,,.,,,,,,.,,,,,,,..,,..,,...,...,.,.,,.,,.,,,,,,,,.,,
+#YWTXMBVQ4NVO234GQWXYX7PQUHHNWHQNPT3JEMY5SMJXY5BDPVGIPAPC4HSPNKWK6REFGXSLPN4F2
+#\\\|2XXMUL4JIJF6T2HECGNMSA7ZKRWVD7YFGXFHVS24KO4RECYFKH5 \ / AMOS7 \ YOURUM ::
+#\[7]CD7OBGCYAKMYBZN76B6PRJKU46ZIUADPD4LBFNPFC57OA3GOCWBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

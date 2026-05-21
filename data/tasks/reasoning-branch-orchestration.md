@@ -265,6 +265,56 @@ continues from that point — the terminal was paused, not disconnected.
 open N kimi-cli tabs, run `bin/chat --task-branch` in each, task tree
 fills them automatically from the DAG. no manual orchestration needed.
 
+## vterm TTY buffer adapter
+
+the vterm zenka (modules/vterm.*) provides the terminal layer for
+interactive steering of running branches directly from the TTY:
+
+### compositor overlay (vterm.compositor.layout.stack)
+
+layers the reasoning.branch.status HUD on top of the kimi-cli terminal:
+
+```
+┌─ letsencr-debug [████░░ 0.67 stuck] ──────────────────┐
+│  kimi-cli terminal output scrolling here...            │
+│  ...reading base.handler.command again...              │
+│                                                        │
+├─ steer: type context · Ctrl+S send · Ctrl+R rescue ────┤
+│  > try the child session routing side instead          │
+└────────────────────────────────────────────────────────┘
+```
+
+### key bindings for branch steering
+
+| key | action |
+|---|---|
+| `Ctrl+S` | send typed text as `reasoning.branch.inject` to current branch |
+| `Ctrl+R` | trigger `reasoning.branch.spawn_rescue` with typed text as strategy |
+| `Ctrl+P` | pause current branch (`reasoning.branch.checkpoint` + state=paused) |
+| `Ctrl+N` | advance to next branch (switch displayed terminal) |
+| `Ctrl+T` | show full branch tree status overlay |
+
+### vterm.shm for buffer access
+
+`vterm.shm` (shared memory) gives direct read/write access to the
+terminal buffer — the kimi-cli output stream becomes inspectable and
+the inject text can be appended without terminal control sequences.
+
+### lightweight steering before rescue
+
+the manual inject path is cheaper than spawning a full rescue branch:
+1. see stuck bar filling → type a hint → Ctrl+S
+2. branch receives context nudge, continues reasoning
+3. only escalate to rescue (Ctrl+R) if nudge doesn't unblock
+
+### implementation notes
+
+- `vterm.compositor`: add branch status as a persistent overlay layer
+- `vterm.instance`: one instance per kimi-cli tab
+- `vterm.shm.path`: shared memory path for buffer read/write
+- bin/chat reads vterm key events, routes Ctrl+S/R/P/N/T to
+  `reasoning.branch.*` commands via P7
+
 ---
 
 ## test sequence
@@ -309,8 +359,8 @@ p7c reasoning.branch.status
 - [ ] ANSI color when TTY (running=amber, paused=dim, resolved=green, rescue=violet)
 - [ ] no signature stubs, no whitelist changes
 
-#,,.,,.,,,.,.,,.,,,,,,,.,,...,,..,,,,,,.,,.,.,..,,...,...,.,,,,,,,,..,...,,,.,
-#GTUPJWURKMZJOJEQC3GR26TI6OADPUQ7UAGTAIJPHLJJECGGSFJYTBTIZQKLXQ2OCWZZR6JQLFFIO
-#\\\|GNEXDMV5M2Q7ZOXU5I2JR3NGIG5HSYIGNLTY4RONSZ7KVXAY3MH \ / AMOS7 \ YOURUM ::
-#\[7]ER2G7N5BGTHA67GAVVNVRKIQ3KH2L3CVSGB7KSSDGSNRKXMQOAAA 7  DATA SIGNATURE ::
+#,,.,,..,,...,.,,,.,.,,,,,,,,,,,.,.,,,,,,,,..,..,,...,...,.,,,,,,,.,,,,,.,..,,
+#2Q6F4TGCP2QLJRXN3ZNIXFW3NGKRQDOMMRW6VMNIWHYAYXYQS2LJTS7VEZRXJEZJWBY2OPHLK6NLY
+#\\\|JNC4BNZC5RPS2QZSAPIL5LLY36GUWMK5HF4VML4MD5ULUNBYVZ7 \ / AMOS7 \ YOURUM ::
+#\[7]JGZFQ5VFPXQJUIYLPSU2YDPE7B7JTVU5SQ34WP4BIEJ3CEQC7UAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
