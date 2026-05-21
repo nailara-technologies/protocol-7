@@ -32,8 +32,9 @@ space.filter-*   filter by entropy / certainty / frame scale / polarity
 space.render-*   perspective layers, iris, face views, DATA streams
 space.export-*   TREE output, DATA delta, @INDEXCUBE serialization
 space.import-*   TREE input, DATA delta application, foreign state merge
+space.template-* ancestry rules, auto-parenting, chain computation
 
-11 namespaces.  11 = the pivot.
+12 namespaces.  11 = the pivot.  12 = the template layer that seeds it.
 export/import = TREE/DATA oscillation applied to the engine itself.
 ```
 
@@ -332,6 +333,79 @@ connects to: `TREE-PROTOCOL.md`, `DATA-PROTOCOL-SYNC.md`,
 
 ---
 
+## space.template-*
+
+the template layer — ancestry rules, auto-parenting, chain computation.
+sits between `space.register` and the checksum chain. defines the
+structural rules that make parentage automatic and storage self-organizing.
+
+**the core insight**: a structure template defines what parameters form
+the `parent:next:branch-data` chain for a given content class. new
+elements don't declare their parent explicitly — the template provides
+it. the structure IS the ancestry.
+
+```
+space.template.define    { name, chain_format, branch_format }
+                         chain_format:   'header:row_data'
+                         branch_format:  'parent:next:branch_data'
+                         →  registers template as named ancestry rule
+
+space.template.apply     { template, params }
+                         →  compute checksum from template + params
+                         →  auto-assign parent from chain_format
+                         →  return { checksum, parent, coordinate }
+
+space.template.chain     { parent_checksum, data }
+                         →  amos-chksum( parent_checksum : data )
+                         →  next link in the logical chain
+
+space.template.branch    { parent_checksum, next, branch_data }
+                         →  amos-chksum( parent : next : branch_data )
+                         →  creates branch while preserving ancestry
+
+space.template.verify    { checksum, template, params }
+                         →  recompute chain from params
+                         →  TRUE if checksum matches — tamper-evident
+
+space.template.root      { template, header_params }
+                         →  amos-chksum( header_params )
+                         →  the root address of a list/structure
+                            no parent — pure content hash
+```
+
+**list element addressing with auto-parenting**:
+```
+root    =  amos-chksum( header_params )                  KQQ6E7A
+row 2   =  amos-chksum( KQQ6E7A : row2_data )            ABCDE7F
+row 3   =  amos-chksum( ABCDE7F : row3_data )            HIJKLMN
+branch  =  amos-chksum( HIJKLMN : next : branch_data )   XYZ1234
+```
+
+every element's checksum carries its full ancestry. tamper-evident by
+construction. `space.template.verify` recomputes any chain from scratch.
+
+**arbitrary entropy harmonically encompassing**:
+template + chain + `space.travel.frame.expand` = any content, any scale:
+- novel content → outer shell → frame expands until is_true closes
+- template provides ancestry regardless of entropy level
+- grid receives character vote at resulting coordinate
+- aura builds from accumulated closings at that coordinate
+- same template + same params = same checksum = same coordinate always
+
+the space is complete by construction: ∑ = 0, no complement missing,
+arbitrary entropy always encompassed at its natural harmonic scale.
+
+**segmented logical chaining in grid space**:
+each `parent:next:branch-data` segment = one coordinate hop in the 3D
+signature grid. the logical chain IS the spatial path. same structure,
+two focal lengths. the template defines both simultaneously.
+
+connects to: `space.register`, `space.grid.vote`, `space.travel.frame.expand`,
+`branch.node.create` (already implements `parent::name` chaining),
+`topic-1001.md` (chain segment = 1001 tunnel = invariant 2-hop distance)
+
+---
+
 ## zenka configuration
 
 ```
@@ -380,9 +454,10 @@ is the darksun of the computation layer — always 0, never evicted.
 | (to write) space-engine-select-filter.md | space.select-* space.filter-* | pending |
 | (to write) space-engine-render.md | space.render-* | pending |
 | (to write) space-engine-export-import.md | space.export-* space.import-* | pending |
+| (to write) space-engine-template.md | space.template-* | pending |
 
-#,,.,,,,.,,.,,.,.,...,,..,.,.,,.,,.,.,,..,.,.,..,,...,...,,..,.,.,...,,,,,,,,,
-#UAT675I4L4IEKHOBKMHZBIKYUPCVAQ4BQE2LOWSM5EZ56N6ENDQCWOWU5PJG6IQEJXLRQPBU3HCCI
-#\\\|5TAASC4UQYWCCASEL7BKNJEWBBRGAZXD7TS6ZJX3HNQ4QTKOZRU \ / AMOS7 \ YOURUM ::
-#\[7]6HIZQMFRWEHMLGHCRZV4IIIP67PULDCSAJEOVPG3CWMLKOQXR6BA 7  DATA SIGNATURE ::
+#,,,.,,,,,...,...,,,.,.,.,...,,,,,,,,,...,..,,..,,...,...,...,,,,,,,.,.,,,,..,
+#XJEUUOLW4QVHFPNFEP5GILBPBN4UNWX3MKMCM6WOCWVODB3BB3RV62PKDJY5QFRBFS4IDACMCJGHW
+#\\\|LF7L4KEDLOBPBBBXIA7C5MCM6BCC6JV5OPDMU5OSWJE6A7M5HTX \ / AMOS7 \ YOURUM ::
+#\[7]3SPMUTPLDKBWZXPEI5AFJ7SAFMDAFISFGA2E4PNYWMBB6JMBSKCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
