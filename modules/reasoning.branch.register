@@ -5,6 +5,20 @@
 
 my $params = shift // {};
 
+## command interface ##
+if ( ref $params eq qw| HASH | and exists $params->{'args'} ) {
+    my $args = $params->{'args'} // '';
+    if ( length $args ) {
+        my $parsed = eval { <[format.yaml.load_str]>->($args) };
+        $params
+            = ( defined $parsed and ref $parsed eq qw| HASH | )
+            ? $parsed
+            : { id => $args };
+    } else {
+        $params = {};
+    }
+}
+
 my $id = $params->{'id'} // '';
 return { 'mode' => qw| false |, 'data' => 'branch id required' }
     unless length $id;
@@ -45,8 +59,8 @@ $registry->{$id} = {
 
 return { 'mode' => qw| true |, 'data' => $id };
 
-#,,,,,..,,...,,..,,,.,..,,.,,,.,.,..,,,..,,,,,..,,...,...,.,.,,,,,,..,..,,.,,,
-#2YW4AGBUPGC3MG4362JXZKZCCW7BMSIMSZ4I6O2U3LBPT3V7ONGFGBINL7DLYXDT2TXCU2Z2PSFY4
-#\\\|3FBIC5ZCCSY6A6LYYC4VJXEF7XZVZ36UMZLBL7VCNYYZJHKILAK \ / AMOS7 \ YOURUM ::
-#\[7]GM565VM5NTN2P333KCUPSKOCJ66IHEB3HGCJQMYENM4YICRNEKBQ 7  DATA SIGNATURE ::
+#,,,,,.,.,,,,,.,,,..,,,,.,,..,,,.,,.,,.,,,..,,..,,...,...,,.,,,,,,...,,,.,.,,,
+#6EGW2NFIVVFP2JB62WB6RZMQV2XPWXALQ45Y5NQH2OVMDJ2LNL3UQKGUS4IMY6GFSXLY74NCEUL42
+#\\\|MNASVCH5VKNXIWURGXWHDWSEMSS3K2ZW3VU2HRF6SIGVWPALDGW \ / AMOS7 \ YOURUM ::
+#\[7]GVRF5YEAPYBZOOXKT7ACDUIXW5XQTAYCWYTG6UBLPAFTDXZEGGBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

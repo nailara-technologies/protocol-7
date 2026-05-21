@@ -5,6 +5,20 @@
 
 my $params = shift // {};
 
+## command interface ##
+if ( ref $params eq qw| HASH | and exists $params->{'args'} ) {
+    my $args = $params->{'args'} // '';
+    if ( length $args ) {
+        my $parsed = eval { <[format.yaml.load_str]>->($args) };
+        $params
+            = ( defined $parsed and ref $parsed eq qw| HASH | )
+            ? $parsed
+            : { id => $args };
+    } else {
+        $params = {};
+    }
+}
+
 my $id = $params->{'id'} // '';
 return { 'mode' => qw| false |, 'data' => 'branch id required' }
     unless length $id;
@@ -35,8 +49,8 @@ $branch->{'stuck_score'} = <[reasoning.branch.stuck_score]>->($id);
 
 return { 'mode' => qw| true |, 'data' => 'checkpoint saved' };
 
-#,,.,,.,,,,,.,,.,,.,,,.,.,,..,..,,..,,.,.,.,,,..,,...,...,,,.,..,,,,,,.,.,,,.,
-#6LAB37SZQ4R67YIO4JOMDWFZCKR4FRMGLDJAFBT64VXVGZTY5IIDYHTZNUQ4FVE4JIR7AO3TIHOIW
-#\\\|4JE6M462UK66PKYGUS5A3JPWDXKOGKL3SACNIK3EETWDKJKQBK5 \ / AMOS7 \ YOURUM ::
-#\[7]5D2DRL2R4373PLNXHNEFFBUDQ2LG5R2KUGCZIZ6CAUF4KSKF7MAQ 7  DATA SIGNATURE ::
+#,,..,,,.,,,,,..,,..,,...,..,,,,.,,,.,,,.,..,,..,,...,...,.,.,,,.,...,,,,,,,,,
+#R7SWI3NP55MXU6NTRFR7US6RL4LUMUYZYAE4VQEFCVYKPAZHAPGSYAW6JWDEPNHTYVSMT3YHZIOBE
+#\\\|MA6QIHJ26CLKTFACH5EAASMFXVB4ILVP4LZPUISBNEWRQLOEWNW \ / AMOS7 \ YOURUM ::
+#\[7]2SEFOBLATN25ERN22URQGRLY3IZOCU3JSMVTR6YOX3GJ22R53QCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

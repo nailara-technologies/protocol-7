@@ -5,6 +5,12 @@
 # return = $score (0.0..1.0)
 
 my $branch_id = shift // '';
+
+## command interface ##
+if ( ref $branch_id eq qw| HASH | and exists $branch_id->{'args'} ) {
+    $branch_id = $branch_id->{'args'} // '';
+}
+
 return 0.0 unless length $branch_id;
 
 my $registry = <reasoning.branch.registry> // {};
@@ -46,8 +52,8 @@ $score *= 0.5 if $n < 5;
 
 return sprintf( qw| %.2f |, $score > 1.0 ? 1.0 : $score );
 
-#,,,,,,,.,.,,,.,,,...,,.,,,.,,.,.,...,,,,,..,,..,,...,...,.,,,...,,,.,.,.,...,
-#ZCYB73RUU5ZKN2BGFOLKFEB4JA2JLD7OOAPRQAVAQPPIJTX6PTVYRHBHZJYIPGQAXBKGIXZ75GPWI
-#\\\|7ROU2FPVSKTXMYE4YAICMMJBX4UZEJ7GVHL7FLXQ67OKB6LGHDO \ / AMOS7 \ YOURUM ::
-#\[7]EVF2HZL5JMTCBS27JPIQTLZBQ3MQXLBTY3Z6B5HOB335UJC67MDI 7  DATA SIGNATURE ::
+#,,,.,...,.,.,...,,,.,.,.,.,,,...,,.,,,,,,.,,,..,,...,...,...,,.,,,,,,,,,,,,,,
+#6XYVC64BPPQ5GU5V4CG6HLAF2C3QT5WODUUTGPTDISBJJDZQPYUDAIIMR4RB3PN753Q6NGTNUTL64
+#\\\|HBFZQ2TLDDFSKQPSFLEKWBFU7CGLXW5O76WQIJARC2CD4WJA34I \ / AMOS7 \ YOURUM ::
+#\[7]MBRGIRYJMCYNBLNI3M6PMRJUI5R5WGH44236RHSIB3WEPGHV3ICY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
