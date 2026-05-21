@@ -42,8 +42,19 @@ my @sorted = map { $ARG->[0] }
         $va = '' unless defined $va;
         $vb = '' unless defined $vb;
 
-        # Numeric comparison for numbers, string otherwise
-        if ( $va =~ /^-?\d+(\.\d+)?$/ && $vb =~ /^-?\d+(\.\d+)?$/ ) {
+        # ntime b32 — must convert to numerical before comparing
+        my $type = $key->{'type'} // '';
+        if ( $type eq 'ntime_b32' ) {
+            $va  = <[base.ntime_BASE32_to_numerical]>->($va) // 0;
+            $vb  = <[base.ntime_BASE32_to_numerical]>->($vb) // 0;
+            $cmp = ( $va <=> $vb ) * $dir;
+        } elsif ( $type eq 'priority_map' ) {
+            ## map category names to priority integers (lower = higher priority)
+            my $pmap = $key->{'map'} // {};
+            $va  = $pmap->{$va} // 999;
+            $vb  = $pmap->{$vb} // 999;
+            $cmp = ( $va <=> $vb ) * $dir;
+        } elsif ( $va =~ /^-?\d+(\.\d+)?$/ && $vb =~ /^-?\d+(\.\d+)?$/ ) {
             $cmp = ( $va <=> $vb ) * $dir;
         } else {
             $cmp = ( $va cmp $vb ) * $dir;
@@ -62,8 +73,8 @@ return \@sorted;
 
 # SPDX-License-Identifier: ISC
 
-#,,..,.,.,,.,,.,.,.,,,..,,.,.,.,,,.,.,,..,.,,,..,,...,...,...,,.,,,,,,.,,,,,,,
-#PJ22OFBWYJXE5F3F7N4KJJPTN7O5T5SPTEJTKUGV3Y4L27X3S4LZ6SZCUCWHOWLYQYLOHXJ3KQ6JW
-#\\\|J4DCNEAGZAX6H7AR42P36Y7XWO6OHS2WAJKOJS7T2NE2P4D73QG \ / AMOS7 \ YOURUM ::
-#\[7]GOSGKLE75S4SL6Y4RUDXD6URQCNODOO25FB2IGK4KMPQS4AQXSAQ 7  DATA SIGNATURE ::
+#,,.,,,,.,.,,,...,,.,,.,,,.,.,,,,,,,,,,.,,,,.,..,,...,...,.,.,,,,,,,,,...,,.,,
+#3SBJ7K7OI35NT2BHHTQGQXOLPGJ52D7TQFIKLLJIJBF3I62FJEJKOVK73I6VY66BVSYJOLVQ3GE2U
+#\\\|DTVC7M3QOYOOGWC4Q4GDQNOOYZAFS2KRCE25EROZS632WIKPUAN \ / AMOS7 \ YOURUM ::
+#\[7]RJLFTPFSPSRD5M3IZXQ4AEAMXAREVQETBVWBHJHFHU2TCH6M7CDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
