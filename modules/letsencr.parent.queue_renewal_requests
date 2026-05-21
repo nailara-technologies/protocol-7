@@ -10,10 +10,9 @@ return {
     error  => 'renewal list array required',
     queued => 0,
     }
-    unless $renewal_list && ref($renewal_list) eq 'ARRAY';
+    unless $renewal_list && ref($renewal_list) eq qw| ARRAY |;
 
-<[base.log]>
-    ->( 2, "queuing " . scalar(@$renewal_list) . " renewal requests" );
+<[base.logs]>->( 2, "queuing %d renewal requests", scalar(@$renewal_list) );
 
 ## Initialize renewal timers hash if not present
 <letsencr.parent.renewal_timers> = {}
@@ -44,10 +43,11 @@ foreach my $renewal_info (@$renewal_list) {
         }
     }
 
-    ## Send renewal command to child
-    my $cmd = 'letsencr.child.cmd.renew-certificate ' . $domain;
+    ## Send renewal command to child via parent pipe [not cube]
+    my $cmd = qw| child.renew-certificate |;
 
-    <[base.log]>->( 2, "sending renewal command to child for : $domain" );
+    <[base.logs]>
+        ->( 2, "sending renewal command to child for : %s", $domain );
 
     my $result = <[protocol-7.command.send.local]>->(
         {   'command'   => $cmd,
@@ -68,30 +68,32 @@ foreach my $renewal_info (@$renewal_list) {
     );
 
     if ($result) {
-        <[base.log]>->( 3, "renewal command queued for $domain" );
+        <[base.logs]>->( 3, "renewal command queued for %s", $domain );
 
         ## Track renewal attempt
         <letsencr.parent.renewal_timers>->{$domain} = {
             started  => $now,
             attempts => 1,
-            status   => 'pending',
+            status   => qw| pending |,
         };
 
         $queued_count++;
     } else {
-        <[base.log]>->( 1, "error : failed to queue renewal for $domain" );
+        <[base.logs]>->(
+            1, "error : failed to queue renewal for %s", $domain
+        );
     }
 }
 
-<[base.log]>->( 2, "queued $queued_count renewal requests" );
+<[base.logs]>->( 2, "queued %d renewal requests", $queued_count );
 
 return {
     status => qw| success |,
     queued => $queued_count,
 };
 
-#,,,,,,,,,,..,.,.,..,,,,,,...,,,,,..,,..,,,,.,..,,...,...,,.,,,,,,,.,,,,.,.,,,
-#UHVL4EFAQXBPDMCNC3PWUYQWAFCR7CD4EGJFGKFH74USRRATAGBO2CSIDB3T2IKM3YNHWZXYFNNDI
-#\\\|7IH4YZQWSL3MRHNC3CZFLQGXKJIT4H33TQ76GC4ASS4UQAJWBX3 \ / AMOS7 \ YOURUM ::
-#\[7]3ER6P5XM7K7AGBV7WMXAXA5WKUJR466GBZYDR2YVUH4F4SACPABI 7  DATA SIGNATURE ::
+#,,..,..,,.,.,.,.,,..,,,,,.,,,,..,,,,,...,...,..,,...,...,...,.,.,,,,,.,,,,,,,
+#OMZMDLIX5ZUTIPFOFK6K7O2HSC3RGVUDGFYUX3S3FOT2PS6NTN2LS6BF6RNQVH2WPH2JBPABAO7DC
+#\\\|D6D2CKT4XXX6B63X4KZYV5VIHVH2FG72IUK4GG4W5RQI6VMASHP \ / AMOS7 \ YOURUM ::
+#\[7]FPN5T3Q6BEVDDGWWQ3A45CT4UBXDER57HIRZ5VH2HMGMQ5EH4GCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
