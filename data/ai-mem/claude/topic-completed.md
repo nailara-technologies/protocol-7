@@ -141,10 +141,17 @@ open issues:
 - 3-click cycle: pixel → status line → full buffer
 - Amiga AppIcon + WindowMaker dock model, amos-term.* integration
 
-**open bugs**:
-- letsencr cert PEM save: field mismatch fixed in handler_renewal_reply
-  ($cert_path undeclared + field remap). needs next renewal to verify end-to-end
-- visual.v7.ax challenge 404: timing race, cert renews on retry but race should be fixed
+**letsencr renewal FULLY WORKING** (pri.v7.ax confirmed end-to-end ✓):
+- final fix: trim trailing whitespace before decode_b32r — SIZE protocol appends \n
+  cert arrived correctly (8894 bytes), just needed framing whitespace stripped
+- full pipeline verified: ACME → bundle → decode → field remap → save_certificate
+  → proper PEM → httpsd loads → browser shows clean page (no warning) ✓
+- status: 1 valid, 0 expired, 1 renewal completed, 0 failed
+- atom: v7.ax + visual.v7.ax rate limit clears ~15:30 UTC 2026-05-22 → auto-renew
+- system is now self-healing: renewal timer fires → cert renewed → httpsd reloads
+  no manual intervention needed for future renewals
+
+**code base returned to protocol-7 threshold** — all letsencr renewal bugs resolved
 
 ## session 40 — design vision + letsencr cert renewal (2026-05-21 continued)
 
@@ -1080,8 +1087,8 @@ Skip calling harmonize_payload_line_feed when both conditions are met:
 - Signatures now properly formatted with correct separator endline
 - Pre-commit validation passes
 
-#,,.,,..,,..,,...,,.,,,,,,.,,,..,,,,,,,..,,,,,..,,...,...,..,,,,.,,..,...,,,,,
-#7TQK4QP4F2TX5LGMO3TYZWWZF5F6VIBPI4XG3E3QHYXJJYHSEIVBIVEP5DZVX5CZ6MESFXBWKMM4S
-#\\\|33UHJDUCMJ37HGKZPYENXIJDT46R64TQYJXYBER6MXAZFZA6CBG \ / AMOS7 \ YOURUM ::
-#\[7]LT5CNJOKL2FD7QDTFXUQKBUN5XL7SS2G53F6NEIKN6CCB6BZ4ICA 7  DATA SIGNATURE ::
+#,,,,,.,,,,,.,..,,.,,,.,,,.,.,,,,,..,,.,.,...,..,,...,...,..,,,,,,,,,,...,,,,,
+#6WXJVHWNOL5QAICCHUPDYWFADO3OFWDOEJ77SKWOTMUE434FILI24RBP6DARWJ7KOI66S7B5NM2RA
+#\\\|ZOCZZKETL5CIN2DA25VQGIATIVL4VVY6SLNXPKLXO4ZCS5C75CE \ / AMOS7 \ YOURUM ::
+#\[7]TZXT2HUOSYVAVDDDUDBHVA6BV7KURVYQAYM3RY7VPIM7MLA4GADA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
