@@ -1,0 +1,150 @@
+#!/usr/bin/perl
+## bmw-manifest — generate or verify BMW384 checksum manifest for binary assets
+##
+## usage:
+##   bmw-manifest <directory>            ## generate manifest
+##   bmw-manifest --verify <directory>   ## verify against existing manifest
+##   bmw-manifest --verify <file.bmw>    ## verify specific manifest file
+##
+
+use v5.24;
+use strict;
+use warnings;
+use English;
+use Digest::BMW;
+use Crypt::Misc  qw| encode_b32r |;
+use File::Spec;
+use File::Basename;
+use Cwd          qw| abs_path |;
+use FindBin      qw| $RealBin |;
+
+BEGIN {
+    use File::Spec;
+    use Cwd qw| abs_path |;
+    my $root = abs_path( File::Spec->catdir( $RealBin, File::Spec->updir ) );
+    my $lib  = File::Spec->catdir( $root, qw| data lib-path pm | );
+    unshift @INC, $lib if -d $lib;
+}
+
+my $verify = 0;
+my $target = '';
+
+for ( my $i = 0; $i < @ARGV; $i++ ) {
+    if ( $ARGV[$i] eq '--verify' or $ARGV[$i] eq '-v' ) {
+        $verify = 1;
+    } else {
+        $target = $ARGV[$i];
+    }
+}
+
+die ":\n: usage: bmw-manifest [--verify] <directory|manifest.bmw>\n:\n"
+    unless length $target;
+
+## resolve target
+my $dir;
+my $manifest_path;
+
+if ( $target =~ m|\.bmw$| and -f $target ) {
+    $manifest_path = abs_path($target);
+    $dir           = dirname($manifest_path);
+    $verify        = 1;
+} elsif ( -d $target ) {
+    $dir           = abs_path($target);
+    my $dirname    = basename($dir);
+    $manifest_path = File::Spec->catfile( dirname($dir), "$dirname.bmw" );
+} else {
+    die ":\n: not found: $target\n:\n";
+}
+
+## collect files to checksum (non-hidden, non-.bmw, sorted)
+opendir my $dh, $dir or die "cannot read dir $dir: $!";
+## base.sort order: inverse alpha-numeric, length ascending as second pass
+my @files
+    = sort { length $a <=> length $b }
+    reverse sort
+    grep { -f File::Spec->catfile( $dir, $ARG ) and $ARG !~ m|^\.| }
+    readdir $dh;
+closedir $dh;
+
+die ":\n: no files found in $dir\n:\n" unless @files;
+
+sub bmw384_file {
+    my $path = shift;
+    open my $fh, '<:raw', $path or die "cannot read $path: $!";
+    my $bmw = Digest::BMW->new(384);
+    $bmw->addfile($fh);
+    close $fh;
+    return substr( encode_b32r( $bmw->digest ), 0, 64 );
+}
+
+if ( $verify ) {
+    ## verify mode
+    die ":\n: manifest not found: $manifest_path\n:\n"
+        unless -f $manifest_path;
+
+    say ": verifying [ $manifest_path ]";
+    say ":";
+
+    open my $fh, '<', $manifest_path or die "cannot read manifest: $!";
+    my %expected;
+    while ( <$fh> ) {
+        chomp;
+        next unless m|^([A-Z2-7]{64})\s+(.+)$|;
+        $expected{$2} = $1;
+    }
+    close $fh;
+
+    my $ok = 0; my $fail = 0;
+    for my $fname ( sort keys %expected ) {
+        my $path = File::Spec->catfile( $dir, $fname );
+        unless ( -f $path ) {
+            printf ": MISSING  %s\n", $fname;
+            $fail++;
+            next;
+        }
+        my $actual = bmw384_file($path);
+        if ( $actual eq $expected{$fname} ) {
+            printf ":  ok  %s\n", $fname;
+            $ok++;
+        } else {
+            printf ": FAIL %s\n", $fname;
+            $fail++;
+        }
+    }
+
+    say ":";
+    printf ": %d ok  %d failed\n:\n", $ok, $fail;
+    exit( $fail ? 1 : 0 );
+
+} else {
+    ## generate mode
+    say ": generating [ $manifest_path ]";
+    say ": directory  [ $dir ]";
+    say ": files      [ " . scalar(@files) . " ]";
+    say ":";
+
+    open my $out, '>', $manifest_path
+        or die "cannot write manifest: $!";
+
+    printf $out "## bmw384 manifest : %s\n", basename($dir);
+    printf $out "## generated       : %s\n", scalar localtime;
+    print  $out "##\n";
+
+    for my $fname (@files) {
+        my $path     = File::Spec->catfile( $dir, $fname );
+        my $checksum = bmw384_file($path);
+        printf $out "%s  %s\n", $checksum, $fname;
+        printf     ": %s  %s\n", substr($checksum,0,16).'..',  $fname;
+    }
+
+    close $out;
+    say ":";
+    say ": manifest written =)";
+    say ":";
+}
+
+#,,..,,,.,,.,,.,.,,.,,,..,,,,,,..,,.,,,,,,.,,,..,,...,...,.,,,,,.,,..,.,.,,.,,
+#FF6TSJAFZWK3HNJXMAWU32T2J3WGNR6F6KF6BSJSUSEFUCO4C2Y32WTEO5A532UTJGNU2LNALW4K6
+#\\\|UQ45JZ3MEG6CLSHWVIVZO4ZFOI6OGFB2MPTNWFB2MA6DZNXI6ZI \ / AMOS7 \ YOURUM ::
+#\[7]6O5Q7HCSLKEGCBMFX47Q6WIR4KYYLNQYVCFV4RMWLZIX6SEZX2AY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
