@@ -158,7 +158,8 @@ if ( $mode eq 'TRUE' ) {
     my $notify_result
         = <[letsencr.parent.notify_httpd_certificate_update]>->(
         {   domain    => $domain,
-            cert_path => $cert_path,
+            cert_path =>
+                sprintf( '%s/%s.pem', <letsencr.certs.dir>, $domain ),
             key_path => sprintf( '%s/%s.key', <letsencr.certs.dir>, $domain ),
         }
         );
@@ -177,8 +178,8 @@ if ( $mode eq 'TRUE' ) {
 
 return FALSE;
 
-#,,..,,,,,,,.,...,,..,,,,,,,,,,..,..,,.,.,...,..,,...,...,.,,,...,.,.,...,,..,
-#EY3JFXWXERRY4ST2AEZEHYR4U7J2CFWMHNSAW4KYUXLU7QWCNUZIGFP6OVQ2CLMMCBKORV6JILYFK
-#\\\|SETYEUBVAANCTYKMC26AJTCI2MVMSPYTJLSEBWFO7JN5KPWNRQY \ / AMOS7 \ YOURUM ::
-#\[7]ISSWJKBCN7IWNDMKU2S7HKY3KJALLCBTUHVK662XGG5IPQ6KRCCY 7  DATA SIGNATURE ::
+#,,,.,,..,,,.,.,,,,.,,.,,,,.,,,,,,,,,,,,,,,.,,..,,...,...,.,.,...,,.,,,,.,,,.,
+#YSRNNALXKCHVWZ5AQKSNMG32TYU2HDYLO2JLQCOWWVRY64SRQOCXV3MXFOL6SWR667SK6C33WXZG6
+#\\\|QLLBEIEEOWZFXJICS6YTCSBLWQX65MB5E2PZUQCDF7IKGM7GUEW \ / AMOS7 \ YOURUM ::
+#\[7]ERJT65UBLZ4I7TEVAXTMVXCEQ6O6TJS75FM6JLH4LKPAGVHBVQCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
