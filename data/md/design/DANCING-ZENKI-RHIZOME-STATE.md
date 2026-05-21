@@ -159,6 +159,41 @@ the reference bubble IS this occupied bit, traveling. not a message being
 routed — a formation moving through positions. the positions remember it
 was there. =)
 
+## route resolution direction and boundary reflection
+
+routes expand outward (10) from the originating cube face position (octal 0–7).
+face 000 is the network-facing face — the gateway out and the reflection surface.
+
+```
+local face (0–7)
+     │ 10 outward
+     ▼
+hop → hop → face-000
+                 │
+          boundary check
+          ┌──────┴──────┐
+        transit        no transit
+        allowed     (boundary / isolated)
+          │              │
+          ▼              ▼
+       continues     11 pivot
+       outward       01 inward — reflects back
+                     carries partial checksum tree
+```
+
+a reflected route doesn't fail — it returns carrying proof of how far it
+reached. multiple boundaries produce multiple `11` pivots in the stream:
+
+```
+[A] 10 10 [boundary-1] 11 [boundary-2] 11 01 01 [A]
+```
+
+each `11` names a boundary node. the count of pivots = boundaries encountered.
+in a network-isolated node group, face 000 acts as a perfect mirror — routes
+reflect and the crystal operates as a closed resonant cavity.
+
+see `ROUTING-CRYSTAL-HARMONIC-INFERENCE.md` for the full crystal model.
+
 ## connection to existing systems
 
 - `branch.route.*` — route cache is the bubble's trail
@@ -169,8 +204,8 @@ was there. =)
 - stream framing protocol — `dot=0 comma=1`, separator inversion on 000
   maps directly to the `01`/`10`/`1[zeros]1` checksum tree structure
 
-#,,,,,.,.,...,,.,,.,.,...,,,.,,..,,.,,,,.,.,.,..,,...,...,,..,,,.,..,,..,,.,,,
-#IKMXK2BLNWUA2K3LUQZGEWF2D3PDGIWCTBCGP5NUOJ66KGWPQKKLCNMIGLY4ZQLZWOHID77T3DNZY
-#\\\|EP7HHGCMEBHB5BFQTPJFDC7JUG3ZOJNM3Q5WDA7XEGXH2YZGZQN \ / AMOS7 \ YOURUM ::
-#\[7]LAUYRH5LSRSWBFW6XDBOEBEKH3RRMSFGTNENHOWI4VKXNDCZU4DA 7  DATA SIGNATURE ::
+#,,..,...,..,,,.,,...,.,,,.,.,,,.,,..,,..,.,.,..,,...,...,.,.,,.,,,..,.,.,..,,
+#SMTXEFZE6OXY77ZW466MHG4Q3263WEARCUXE3IP6ONQ2JR7ZQT2EL7QUCDM4SQI6F4JBWU3JKHYLG
+#\\\|OM3NL6MUYDYEQEAMOQ2GUEVEZ6R4H2LX7UYKG2DJDHJA6R7NVFW \ / AMOS7 \ YOURUM ::
+#\[7]3ZU3W5R2T6Q2ACTVJFZENO72BXBVCT7PW3WSI5LKV4SSMYEBLWAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
