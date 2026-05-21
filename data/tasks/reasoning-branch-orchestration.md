@@ -226,6 +226,47 @@ resolution via terminal buffer append.
 
 ---
 
+## bin/chat --task-branch integration
+
+add `--task-branch [id]` flag to `bin/chat`:
+
+- **no id** → register as anonymous available worker; task tree assigns
+  next unblocked task; worker starts immediately (no deps) or enters
+  paused state (has deps) — session becomes a specific branch after assignment
+- **with id** → register as specific branch; inherit its dependencies +
+  existing context from session cache
+
+### blocking display while waiting
+
+```
+.: available worker :.──────────────────────────────
+
+  waiting for task assignment...
+
+  next unblocked: diff-modified [ready, no deps]  ← assigned
+
+  branch b4 assigned: diff-modified
+────────────────────────────────────────────────────
+```
+
+```
+.: waiting for dependency :.────────────────────────
+
+  branch : kimi-web-sessions [b2]
+  waiting : letsencr-debug   [running ████░░ 0.67 stuck]
+
+  ctrl-c to detach without cancelling
+────────────────────────────────────────────────────
+```
+
+when dependency resolves: context injected into terminal, session
+continues from that point — the terminal was paused, not disconnected.
+
+open N kimi-cli tabs, run `bin/chat --task-branch` in each, task tree
+fills them automatically from the DAG. no manual orchestration needed.
+
+---
+
 ## test sequence
 
 ```bash
@@ -268,8 +309,8 @@ p7c reasoning.branch.status
 - [ ] ANSI color when TTY (running=amber, paused=dim, resolved=green, rescue=violet)
 - [ ] no signature stubs, no whitelist changes
 
-#,,,.,..,,...,.,,,...,,..,...,,..,.,,,,,.,.,.,..,,...,...,..,,,..,.,.,,.,,..,,
-#YDZU2D7OOO5JP2VW332DLXIEBA3KDGIMLDN5CMTUXZSR24JGEGJIZTNF3EDW4ZIFOZGK7ID3PFXUE
-#\\\|XAWJLX5KQN45HIWJGFTC7XRWBGUHE55B7ZSI3XZQ5VWWMWPFA6O \ / AMOS7 \ YOURUM ::
-#\[7]QJLNB6ALHZOMRNASV5HSUIOBR2D7ZQUCNLGMD7B6WAKDSXHYF6BQ 7  DATA SIGNATURE ::
+#,,.,,.,,,.,.,,.,,,,,,,.,,...,,..,,,,,,.,,.,.,..,,...,...,.,,,,,,,,..,...,,,.,
+#GTUPJWURKMZJOJEQC3GR26TI6OADPUQ7UAGTAIJPHLJJECGGSFJYTBTIZQKLXQ2OCWZZR6JQLFFIO
+#\\\|GNEXDMV5M2Q7ZOXU5I2JR3NGIG5HSYIGNLTY4RONSZ7KVXAY3MH \ / AMOS7 \ YOURUM ::
+#\[7]ER2G7N5BGTHA67GAVVNVRKIQ3KH2L3CVSGB7KSSDGSNRKXMQOAAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
