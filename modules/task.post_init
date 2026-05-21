@@ -2,6 +2,23 @@
 
 # name  = task.post_init
 # descr = set up reasoning branch stuck-check timer
+#         + register reasoning branch commands for direct access
+
+## register reasoning branch commands ##
+my @rb_cmds = qw|
+    reasoning.branch.register
+    reasoning.branch.checkpoint
+    reasoning.branch.stuck_score
+    reasoning.branch.spawn_rescue
+    reasoning.branch.resolve
+    reasoning.branch.inject
+    reasoning.branch.status
+    reasoning.branch.internal.check_stuck
+    |;
+
+foreach my $cmd (@rb_cmds) {
+    $data{'base'}{'cmd'}{$cmd} = $cmd;
+}
 
 my $interval = <reasoning.branch.check_interval> // 300;
 
@@ -16,14 +33,15 @@ my $interval = <reasoning.branch.check_interval> // 300;
 <[base.logs]>->(
     2,
     'task.post_init: reasoning branch stuck-check timer started'
-        . ' [interval=%ds]',
-    $interval
+        . ' [interval=%ds, %d commands registered]',
+    $interval,
+    scalar @rb_cmds
 );
 
 0;
 
-#,,.,,...,...,,.,,.,.,.,,,.,.,..,,,..,.,,,.,.,..,,...,...,,,.,,,,,...,,..,.,.,
-#4KTT3AFGZUUHJGRLK7WMZ57W5MWD33TNTO7DIQJ2J64DPSLMYLRRYRSDPPFIPCUITK3AF5S3CCAAE
-#\\\|Z2QUVVJBMWQWYPRYKLJURLTGQVDPAGNCDUJLWQEEXCRA4LDGCBQ \ / AMOS7 \ YOURUM ::
-#\[7]ODM4T5Z2YCNEAKWPKUU2MMVVB3FK4ODA2TM3D4CRMZPLXGO5P6DQ 7  DATA SIGNATURE ::
+#,,.,,,,.,.,,,,.,,,.,,,,.,,.,,,,.,.,.,.,,,...,..,,...,..,,,..,..,,..,,.,.,.,,,
+#XCVFYGNWOFRVHYCDTDWCJRTCV5IUET3JGDGMPRPO27XYSIWTKV77ZYOCYIZ3VNHNNEHZZIB3KNKZW
+#\\\|ZCNH4WDC5H3KCHOTWRT63ODPGMNCQRDZACQU2ESZQC7FPYUG6GT \ / AMOS7 \ YOURUM ::
+#\[7]EHPOE5ASTXABXKZNEFEGHDLPIMPSCNTPJOQLQQSKRBP5O57LIQDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
