@@ -113,6 +113,39 @@ open issues:
   task: data/tasks/hf-download-zenka.md
   task: data/tasks/sourcecode-recently-modified.md
 
+## session 41 — reasoning orchestration live + letsencr rate limit fix (2026-05-21)
+
+**reasoning.branch.* LIVE** (kimi-0004 implemented):
+- 9 modules: register/checkpoint/stuck_score/inject/resolve/spawn_rescue/status/
+  internal.check_stuck/task.post_init
+- task zenka: registers commands + 300s stuck detection timer
+- coding.task.execute/complete/fail hooked (not process-queued-task — doesn't exist)
+- ASCII tree viz with stuck bars, state markers, ANSI color — p7c reasoning.branch.status
+
+**letsencr rate limit fix** (5 certs/168h exhausted from broken retry loops):
+- acme_create_order: detect 429/rateLimited, parse retry-after UTC timestamp
+- acme_new: propagate rate_limited before accessing order.authorizations
+  (was causing base.logs undef param at line 88)
+- handler_renewal_reply: schedule retry at exact retry_after UTC time, not backoff
+- rate limit clears ~15:30 UTC 2026-05-22 — next renewal should succeed
+
+**annotation loop insight** captured in PARALLEL-REASONING-ORCHESTRATION.md:
+- parent annotates stuck child → compaction canonicalizes → parent reads own
+  annotation as authoritative state. "[ waiting for match condition.. ]"
+  survives unlimited compaction. template 4: narration IS the state.
+- visualization creates behavior: pretty tree produces executive judgment
+  organically. state machine + model = complete orchestrator.
+
+**task buffer pixel visualization** captured in data/ideas/README.md:
+- 1 char = 1 translucent pixel, hue=content type, alpha=recency
+- 3-click cycle: pixel → status line → full buffer
+- Amiga AppIcon + WindowMaker dock model, amos-term.* integration
+
+**open bugs**:
+- letsencr cert PEM save: field mismatch fixed in handler_renewal_reply
+  ($cert_path undeclared + field remap). needs next renewal to verify end-to-end
+- visual.v7.ax challenge 404: timing race, cert renews on retry but race should be fixed
+
 ## session 40 — design vision + letsencr cert renewal (2026-05-21 continued)
 
 **major design docs written**:
@@ -1047,8 +1080,8 @@ Skip calling harmonize_payload_line_feed when both conditions are met:
 - Signatures now properly formatted with correct separator endline
 - Pre-commit validation passes
 
-#,,,.,.,.,..,,,..,...,...,,,,,,,,,...,.,,,,..,..,,...,...,.,.,,..,,.,,,..,,,,,
-#4QPRHM6ZNUMRLG3R7FHQN6CGHIH4JKXHPELB7VEG3RZPCQ3QX6QZYLGUYY4XRYAS6H7RHZ2MAKRNM
-#\\\|RYXDJCMFSWAYELZSUWXRKPARUTVRZ2XL6SLF2YOVVOMOU7H5JTN \ / AMOS7 \ YOURUM ::
-#\[7]CYRX4H2FUMQK6N2A4MWGGWKG35PN4K4WHEOXK5R3KA7RZHCKLICY 7  DATA SIGNATURE ::
+#,,.,,..,,..,,...,,.,,,,,,.,,,..,,,,,,,..,,,,,..,,...,...,..,,,,.,,..,...,,,,,
+#7TQK4QP4F2TX5LGMO3TYZWWZF5F6VIBPI4XG3E3QHYXJJYHSEIVBIVEP5DZVX5CZ6MESFXBWKMM4S
+#\\\|33UHJDUCMJ37HGKZPYENXIJDT46R64TQYJXYBER6MXAZFZA6CBG \ / AMOS7 \ YOURUM ::
+#\[7]LT5CNJOKL2FD7QDTFXUQKBUN5XL7SS2G53F6NEIKN6CCB6BZ4ICA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
