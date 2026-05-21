@@ -1,0 +1,60 @@
+## [:< ##
+
+# name  = branch.group.propagate
+# descr = propagate interest count from group members toward observer
+# param = { group, observer }
+#
+# walks each member's parent chain upward, incrementing transient count
+# on each ancestor node toward the observer. stores counts in
+# $data{'branch.interest'}{$observer_id}{$ancestor_id}
+
+my $params   = shift                 // {};
+my $group    = $params->{'group'}    // '';
+my $observer = $params->{'observer'} // '';
+
+return { 'mode' => 'false', 'data' => 'group name required' }
+    unless length $group;
+return { 'mode' => 'false', 'data' => 'observer id required' }
+    unless length $observer;
+return { 'mode' => 'false', 'data' => 'group not found' }
+    unless exists $data{'branch.groups'}{$group};
+
+my $members = $data{'branch.groups'}{$group}{'members'} // [];
+my $touched = {};
+
+for my $member_id (@$members) {
+    my $node = $data{'branch.nodes'}{$member_id};
+    next unless defined $node;
+
+    my $cur     = $node->{'parent'};
+    my $visited = {};
+
+    while ( defined $cur and length $cur ) {
+        ## cycle guard ##
+        last if $visited->{$cur}++;
+
+        my $ancestor = $data{'branch.nodes'}{$cur};
+        last unless defined $ancestor;
+
+        $data{'branch.interest'}{$observer}{$cur} //= 0;
+        $data{'branch.interest'}{$observer}{$cur}++;
+        $touched->{$cur} = 1;
+
+        $cur = $ancestor->{'parent'};
+    }
+}
+
+my $total_nodes_touched = scalar keys %$touched;
+
+<[base.logs]>->(
+    2, 'branch.group.propagate: %s -> observer %s (%d nodes)',
+    $group, $observer, $total_nodes_touched
+);
+
+return { 'mode' => 'true', 'data' => $total_nodes_touched };
+
+#,,.,,.,.,..,,...,..,,,.,,,.,,.,,,.,.,,,,,.,,,.,.,...,...,,,.,..,,,,.,,,,,,,.,
+#BXCEWJGQEYXXEIT4MZHNXCIJ5BHM4E5RZAL6J7TMQZXMRBGB4O5SR6ULTJJN2FUNAJK6375PBGYOU
+#\\\|43BGFZK2YHVIZLGWATYU4BLB3FRIFPWJBBJVF5WBOTIZZYVRAAF \ / AMOS7 \ YOURUM ::
+#\[7]KXR4XNCFMZLRCAR3BA4OKNGP6KSRPGIBKWSDB7K3ET4UELCBA6BQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

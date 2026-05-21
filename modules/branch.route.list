@@ -1,0 +1,54 @@
+## [:< ##
+
+# name  = branch.route.list
+# descr = list active routes filtered by observer or target
+# param = { observer } or { target } or {} for all
+
+my $params   = shift                 // {};
+my $observer = $params->{'observer'} // '';
+my $target   = $params->{'target'}   // '';
+
+my @route_ids;
+
+if ( length $observer ) {
+    @route_ids
+        = keys %{ $data{'branch.routes.by_observer'}{$observer} // {} };
+} elsif ( length $target ) {
+    @route_ids = keys %{ $data{'branch.routes.by_target'}{$target} // {} };
+} else {
+    @route_ids = keys %{ $data{'branch.routes'} // {} };
+}
+
+my $now = <[base.time]>->(4);
+
+my @results;
+
+for my $id (@route_ids) {
+    my $route = $data{'branch.routes'}{$id};
+    next unless defined $route;
+    next if $route->{'state'} eq 'released';
+
+    push @results,
+        {
+        'id'          => $id,
+        'observer'    => $route->{'observer'},
+        'target'      => $route->{'target'},
+        'hop_count'   => scalar @{ $route->{'hops'} // [] },
+        'state'       => $route->{'state'},
+        'age_seconds' => $now - $route->{'created'},
+        };
+}
+
+return { 'mode' => 'true', 'data' => \@results };
+
+#,,,.,.,,,..,,,,.,,.,,,,.,,,.,,,.,,,,,.,.,.,.,..,,...,..,,...,..,,..,,,,.,,,. ,
+#QJXD4XT3ITW5NW7JLO7YSENVTSWJJAOEDB2KHHNGZBO6ZK6HE2NGSZARPKWBHKSXDT4YRHWYNJ7U4
+#\\\|IHKWYQS4IMLACNRPIRWMCDXAIUPSNNS6MDK3VNK5JKJX32ECT2H \ / AMOS7 \ YOURUM ::
+#\[7]5YNCQYW6GIYTHAKXJCUS53NKYAGGKCSSYUKKVU7IAEPOUHKAAYBA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+
+#,,.,,..,,..,,..,,,.,,.,.,...,,.,,,.,,.,,,.,,,..,,...,...,,,,,,.,,,.,,.,,,,..,
+#JSKDJIUVCPBNKFDKUZDF34E6V4TDEGMHF4YQQUBOSHWEYYC4CUXMLIJZVVRBBPGHUI4C6AMEBJ3QK
+#\\\|5RM3VTJLXSWU3W2VH5CVMCGYAODRFLHUQFERFAATS6J2D7Q5RQN \ / AMOS7 \ YOURUM ::
+#\[7]P3KFEPOYWZ2KQ6CBAP7QKUDNZTNV2JVMGHCBH2TUIOFOLV4LOGCI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

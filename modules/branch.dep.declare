@@ -1,0 +1,50 @@
+## [:< ##
+
+# name  = branch.dep.declare
+# descr = declare dependency edge between branch nodes
+# param = { from, to, type }
+
+my $params = shift // {};
+
+my $from = $params->{'from'} // '';
+my $to   = $params->{'to'}   // '';
+my $type = $params->{'type'} // 'required';
+
+return { 'mode' => 'false', 'data' => 'from node id required' }
+    unless length $from;
+return { 'mode' => 'false', 'data' => 'to node id required' }
+    unless length $to;
+return { 'mode' => 'false', 'data' => 'from node not found' }
+    unless exists $data{'branch.nodes'}{$from};
+return { 'mode' => 'false', 'data' => 'to node not found' }
+    unless exists $data{'branch.nodes'}{$to};
+
+return {
+    'mode' => 'true',
+    'data' => sprintf '%s -> %s [%s]',
+    $from, $to, $type
+    }
+    if exists $data{'branch.deps'}{$from}{$to};
+
+my $declared_at = <[base.time]>->(4);
+
+$data{'branch.deps'}{$from}{$to} = {
+    'type'        => $type,
+    'declared_at' => $declared_at,
+};
+
+$data{'branch.dep.reverse'}{$to}{$from} = TRUE;
+
+<[base.logs]>->( 2, 'branch.dep.declare: %s -> %s [%s]', $from, $to, $type );
+
+return {
+    'mode' => 'true',
+    'data' => sprintf '%s -> %s [%s]',
+    $from, $to, $type
+};
+
+#,,,,,,,.,,,,,,..,,..,,..,,,.,,.,,,,,,,,.,...,..,,...,...,.,.,,..,..,,,,,,,.,,
+#AFNMPOYKJIEMCQQIC63SANP7MFBZ6J3GLZVLA5C5533SCCZYQ6I6622KJI345YB2P2HIPSD5IVLAK
+#\\\|OMWHUYEOW6IDDCMHZT4IHMCGAX3BW2P3P3NLD4Y6SPOXA7ROULG \ / AMOS7 \ YOURUM ::
+#\[7]7CSYPDMYOPK4IA3FQH5XIZE6XZXBBSRYI7L7AMJQGTYWZBLDZAAA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

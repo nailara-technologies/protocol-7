@@ -1,0 +1,46 @@
+## [:< ##
+
+# name  = devmod.cmd.dump-keys
+# param = [key_pattern]
+# descr = key tree from 'data' without values
+
+my $keyword = $call->{'args'} // '';
+
+$keyword =~ s| ?:not\-encode:$||;    ## accepted but irrelevant here ##
+
+my ( $regex_compiled_result, $regex_err )
+    = <[base.eval.comp_regex]>->($keyword);
+
+if ( not defined $regex_compiled_result ) {
+    return {
+        'mode' => qw| false |,
+        'data' => sprintf( '%s in regex [ invalid pattern ]', $regex_err )
+    };
+}
+
+my @keys;
+my $collect;
+$collect = sub {
+    my ( $href, $prefix ) = @ARG;
+    for my $k ( keys %$href ) {
+        my $path = length $prefix ? join( qw| . |, $prefix, $k ) : $k;
+        push @keys, $path
+            if not length $keyword or $path =~ m|$keyword|;
+        my $val = $href->{$k};
+        $collect->( $val, $path ) if ref $val eq qw| HASH |;
+    }
+};
+$collect->( \%data, '' );
+
+@keys = <[base.sort]>->(@keys);
+
+return {
+    'mode' => qw| size |,
+    'data' => join( "\n", @keys ) . "\n",
+};
+
+#,,.,,.,.,,,.,.,.,,,,,,.,,,,,,...,,.,,,..,,,.,..,,...,...,.,,,...,,.,,,.,,,..,
+#GOL2ORMTANWRNOLHY6EXWGROSPB5HIOWJSFED5TYGPNYKXRKVZKW57XPPJTGFXQFSQHLIVN5K2BTG
+#\\\|Z4TRBRB7PTIX73O2U2Z6K4ZQZH4G5Z7EWOS5F2C6LBCZNMRMFYE \ / AMOS7 \ YOURUM ::
+#\[7]FCMI5FUIZL65RXHDHHS3V5VFEUJCBQFHJQ6O7BMAZHS737YKCUAQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

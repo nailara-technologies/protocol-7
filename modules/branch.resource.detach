@@ -1,0 +1,66 @@
+## [:< ##
+
+# name  = branch.resource.detach
+# descr = detach resources from branch node
+# param = { node, type, id }  or  { node, type }  or  { node }
+
+my $params = shift             // {};
+my $node   = $params->{'node'} // '';
+my $type   = $params->{'type'} // '';
+my $id     = $params->{'id'}   // '';
+
+return { 'mode' => 'false', 'data' => 'node id required' }
+    unless length $node;
+return { 'mode' => 'false', 'data' => 'node not found' }
+    unless exists $data{'branch.nodes'}{$node};
+
+my $removed = 0;
+
+if ( not length $type ) {
+    ## remove all resources on node ##
+    if ( exists $data{'branch.resources'}{$node} ) {
+        my $count = 0;
+        foreach my $t ( keys %{ $data{'branch.resources'}{$node} } ) {
+            $count += scalar @{ $data{'branch.resources'}{$node}{$t} };
+        }
+        $removed = $count;
+        delete $data{'branch.resources'}{$node};
+    }
+} elsif ( not length $id ) {
+    ## remove all resources of given type ##
+    if ( exists $data{'branch.resources'}{$node}{$type} ) {
+        $removed = scalar @{ $data{'branch.resources'}{$node}{$type} };
+        delete $data{'branch.resources'}{$node}{$type};
+    }
+} else {
+    ## remove specific resource by id ##
+    if ( exists $data{'branch.resources'}{$node}{$type} ) {
+        my $list = $data{'branch.resources'}{$node}{$type};
+        my @kept;
+        foreach my $res (@$list) {
+            if ( $res->{'id'} eq $id ) {
+                $removed++;
+            } else {
+                push @kept, $res;
+            }
+        }
+        if ( scalar @kept ) {
+            $data{'branch.resources'}{$node}{$type} = \@kept;
+        } else {
+            delete $data{'branch.resources'}{$node}{$type};
+        }
+    }
+}
+
+<[base.logs]>->(
+    2, 'branch.resource.detach: %s removed=%d [%s:%s]',
+    $node, $removed, $type, $id
+) if $removed;
+
+return { 'mode' => 'true', 'data' => $removed };
+
+#,,,,,.,,,,.,,,,.,...,..,,,,,,...,,,,,...,,,,,..,,...,...,.,,,,.,,,,.,,,,,.,.,
+#JQT3O5X633GPIKDZX6Q23K43E5DC7HUHT6IYMAUT5P72TXYXJKUXQEQDAP2IDELN6QUETDEZDJBFO
+#\\\|U2SD2BEADPNEOXYP3UE7FDTUWDQYIR5EUNVIABC7FQ6ELLUHKYN \ / AMOS7 \ YOURUM ::
+#\[7]IZWNF3DXI7RRWBHBXHDPOT6M3NFUTTNC4VQIZNUR2RZX4HF57QAQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
