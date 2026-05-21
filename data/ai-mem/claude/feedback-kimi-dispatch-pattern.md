@@ -39,9 +39,12 @@ task prompt (3-5KB) can produce 10+ modules of implementation from kimi.
 - When parallel tasks hang on update-signatures: check if modules were written
   before the hang (`ls modules/the.new.module`) — usually yes, just resume and
   tell kimi signatures are handled by the human
+- **kimi-cli mid-stream inject**: ctrl+s sends immediately without waiting for
+  newline — use to course-correct before kimi commits to a wrong direction.
+  works while kimi is still "thinking". paste the redirect message, hit ctrl+s.
 
-#,,.,,..,,.,,,..,,..,,,.,,.,,,..,,,,,,.,.,...,..,,...,...,,,,,,,,,,..,.,.,,,,,
-#NIIILLGOGHIMZLXNXGXIMKR2PAUYGSJ7RTKZGBNV5IEGKQCXSKIOOVGUTWGFL3KCQUZ2VV3XJ2B5K
-#\\\|RJEJVV4BUYOH2UXPCVNKA3J7U36OVXVTFIUU74HP4KDFSLF5KOP \ / AMOS7 \ YOURUM ::
-#\[7]JM4E2REUPSQACANCTEYOJGHECQNJIP7SM24RCVHT53OJBS264QCY 7  DATA SIGNATURE ::
+#,,.,,...,...,.,.,.,.,...,,,.,...,.,,,,,.,...,..,,...,...,,,,,,,,,,,,,,.,,,..,
+#WFYCCQTBZPOJRKPJZ7OK3BG2OS27RNPPHJK53XGCGK36GXQJLLHT2WDBQ5O6VXXIAOOLFDXZ4RQCM
+#\\\|G3ETZKZF5CEXCANI446LTY7LMHUY2AG6MVDFQRAD7OBCBNYR5LF \ / AMOS7 \ YOURUM ::
+#\[7]23A7C3P4PRVWYU2JPNUSLGLAWOOJS5FIOA5P7KRN4PBQWNTKUWBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
