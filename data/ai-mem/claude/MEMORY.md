@@ -27,6 +27,9 @@
 - `data/md/development/P7-LLM-REFERENCE.md` — verified live command reference for kimi/LLM sessions
 - `data/md/development/DEGRADED-FEATURES-AUDIT.md` — 5 high-priority + 3 medium candidates with stub task files
 
+## 1001 — Ring Tightener (session 43)
+- [topic-1001](topic-1001.md) — inter-cube tunnel (00=2 bits invariant); gate nesting; two 13s (divisor/multiplier); eternal loop; seamless space; implicit transport as emergent topology; relative ntime
+
 ## Spawnable Perspective Layers / Desktop (session 43)
 - [topic-perspective-layers](topic-perspective-layers.md) — desktop=data space+UI intent; perspective tree; bandwidth reduction; nested resolution=derivation route; no layout engine
 
@@ -154,8 +157,8 @@
 - **pager.sort.multi-key**: ntime_b32 + priority_map sort types added (session 42)
 - **task dispatch sections**: all dispatched tasks now carry ## dispatch + prompt for reuse
 
-#,,,.,...,.,,,..,,,.,,.,.,.,,,.,,,,,,,,.,,,.,,..,,...,...,...,,..,,..,...,..,,
-#C3KW7SNNMFR227JID2IFOCEL2TWEBYJVNXROWH2GWUA2WZ7HEDBNVEJY6PVD465FXDZCGXYDMH44W
-#\\\|6WYBM2UCYPEDFBX4A6L3IXWSWP72NAYSIMF26UUP5QQCXOGDQDW \ / AMOS7 \ YOURUM ::
-#\[7]POO2TBUGHHJ36ME73ZZ3IF3J44IJUCIPVQSVFXTELYZVEUT37QAY 7  DATA SIGNATURE ::
+#,,,.,,,,,..,,...,.,,,..,,,..,..,,,.,,,.,,,,.,..,,...,..,,,..,,,,,,.,,.,.,,..,
+#6MFHORCM5D2SIKR675665WQ6CZNO6HAMORMSD24TYNB7QSD5KJHOK47LNE5EHSWS6FU64HX7VSSB6
+#\\\|7WMV37KWRFLJIABAC4DVPMOQQKZ3YUR35EMOHOIMOCR6QBPYWHK \ / AMOS7 \ YOURUM ::
+#\[7]CBE2KUQFBNRNSZKMC74MLJXJIO4Z3P3WBZTQMPHCZVTA5FWSCSBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
