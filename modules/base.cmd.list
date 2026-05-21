@@ -21,15 +21,48 @@
 #
 # RELATED: base.parser.list, base.parser.list_filtered
 
-my $list_name = $call->{'args'};
+my $list_name = $call->{'args'} // '';
 
-## Parse optional pattern from args
+## strip :<n>: row limit — prefix (:5: list pattern) or suffix (list :5:)
+## zero-padded forms like :005: work naturally via numeric conversion
+my $row_limit;
+if ( $list_name =~ s|^:(\d+):\s*|| ) {
+    $row_limit = int($1);
+} elsif ( $list_name =~ s|\s*:(\d+):$|| ) {
+    $row_limit = int($1);
+}
+
+## parse optional pattern from remaining args
 my $pattern;
 if ( defined $list_name && $list_name =~ s|\s+(.+)$|| ) {
     $pattern = $1;
 }
 
-## Validate regex pattern if provided
+## apply :<n>: row limit — skips header/separator lines, counts data rows only
+my $apply_limit = sub {
+    my $output = shift;
+    return $output unless defined $row_limit and $row_limit > 0;
+    my @lines = split m|\n|, $output;
+
+    ## find separator line (---) — data rows follow it
+    my $data_start = 0;
+    for my $i ( 0 .. $#lines ) {
+        if ( $lines[$i] =~ m|^\s*-{3,}| ) {
+            $data_start = $i + 1;
+            last;
+        }
+    }
+    my @header = @lines[ 0 .. $data_start - 1 ];
+    my @data = $data_start <= $#lines ? @lines[ $data_start .. $#lines ] : ();
+
+    return $output unless @data > $row_limit;
+    my $omitted = @data - $row_limit;
+    return
+        join( "\n", @header, @data[ 0 .. $row_limit - 1 ] )
+        . sprintf( "\n  ... %d more", $omitted );
+};
+
+## validate regex pattern if provided
 my $regex_filter;
 if ( defined $pattern && length($pattern) ) {
     my ( $regex_compiled, $regex_err ) = <[base.eval.comp_regex]>->($pattern);
@@ -46,12 +79,14 @@ if ( defined $pattern && length($pattern) ) {
 if ( not defined $list_name or $list_name eq '' ) {    ## list overview
     return {
         qw| mode | => qw| size |,
-        qw| data | => <[base.parser.list]>->(
-            {   qw| var |   => qw| data |,
-                qw| key |   => qw| list |,
-                qw| mask |  => [qw| <key>:list_name descr:description |],
-                qw| align | => { qw| list_name | => qw| right+5 | },
-            }
+        qw| data | => $apply_limit->(
+            <[base.parser.list]>->(
+                {   qw| var |   => qw| data |,
+                    qw| key |   => qw| list |,
+                    qw| mask |  => [qw| <key>:list_name descr:description |],
+                    qw| align | => { qw| list_name | => qw| right+5 | },
+                }
+            )
         )
     };
 }
@@ -65,11 +100,31 @@ if ( $list_name =~ m|^[$list_nam_chars]+$|
 
     $list->{'mask'} //= sprintf qw| <key>:%s |, $list->{'key'};
 
-    ## Use filtered parser if pattern specified
+    ## use filtered parser if pattern specified
     if ( defined $regex_filter ) {
         return {
             qw| mode | => qw| size |,
-            qw| data | => <[base.parser.list_filtered]>->(
+            qw| data | => $apply_limit->(
+                <[base.parser.list_filtered]>->(
+                    {   qw| var |      => $list->{'var'},
+                        qw| key |      => $list->{'key'},
+                        qw| sub_key |  => $list->{'sub_key'},
+                        qw| sort_key | => $list->{'sort_key'},
+                        qw| defaults | => $list->{'defaults'},
+                        qw| filters |  => $list->{'filters'},
+                        qw| align |    => $list->{'align'},
+                        qw| mask |     => [ split( m| +|, $list->{'mask'} ) ],
+                        qw| filter |   => $regex_filter,
+                    }
+                )
+            )
+        };
+    }
+
+    return {
+        qw| mode | => qw| size |,
+        qw| data | => $apply_limit->(
+            <[base.parser.list]>->(
                 {   qw| var |      => $list->{'var'},
                     qw| key |      => $list->{'key'},
                     qw| sub_key |  => $list->{'sub_key'},
@@ -77,25 +132,9 @@ if ( $list_name =~ m|^[$list_nam_chars]+$|
                     qw| defaults | => $list->{'defaults'},
                     qw| filters |  => $list->{'filters'},
                     qw| align |    => $list->{'align'},
-                    qw| mask |     => [ split( m| +|, $list->{'mask'} ) ],
-                    qw| filter |   => $regex_filter,
+                    qw| mask |     => [ split( m| +|, $list->{'mask'} ) ]
                 }
             )
-        };
-    }
-
-    return {
-        qw| mode | => qw| size |,
-        qw| data | => <[base.parser.list]>->(
-            {   qw| var |      => $list->{'var'},
-                qw| key |      => $list->{'key'},
-                qw| sub_key |  => $list->{'sub_key'},
-                qw| sort_key | => $list->{'sort_key'},
-                qw| defaults | => $list->{'defaults'},
-                qw| filters |  => $list->{'filters'},
-                qw| align |    => $list->{'align'},
-                qw| mask |     => [ split( m| +|, $list->{'mask'} ) ]
-            }
         )
     };
 } elsif ( $list_name =~ m|([^$list_nam_chars])| ) {
@@ -106,8 +145,8 @@ if ( $list_name =~ m|^[$list_nam_chars]+$|
     $reply->{'data'} = "no such list [ see 'list' command ]";
 }
 
-#,,.,,..,,,.,,...,,.,,..,,,.,,,,,,,.,,.,,,..,,.,.,...,...,.,,,,,,,.,,,,.,,,.,,
-#43XM24YD6Q4U5S2KTLVGQH3TNMT5EMYXCXPUTKVAOGKUKVE3N2WW2JU7R6ZZJUJTV43HJUMWK45DW
-#\\\|LJYRL3JEBIF2XRZZ65KQBD3YFXFKGB3XOFVLETG2SCRHG2QNHDB \ / AMOS7 \ YOURUM ::
-#\[7]U6GI2FXO4W4H7X74ENOFIBFVWNZYN23CKE32S5MQS6ZO7UU6KYBA 7  DATA SIGNATURE ::
+#,,,,,,..,,.,,,.,,..,,...,..,,.,,,,..,,,,,,.,,.,.,...,...,..,,...,..,,,,,,,..,
+#IFJ6EFRBGFWFE2WQD5MLRNP4G6QTJBMDEISPB4M2IIRWHUP55DTCVVSPJZELELNCBTI2RHXGIF224
+#\\\|NNBQTJXDIASQ6OJHKV25PKFVREKGEJMC45BS26OLRA3HAE3GOQM \ / AMOS7 \ YOURUM ::
+#\[7]XTZPK7P2MXND4HCYTV4ULA2UCVRST2U3QQQVZE4EGITAVVDAEUAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -3,6 +3,11 @@
 # name  = task: v7 — restrict teardown command to system zenka only
 # descr = access.cmd.usr.cube = * allows any zenka to trigger full system
 #         shutdown — restrict teardown to system zenka only
+#
+# note  = blocked on base-has-access-source-sid-matching.md
+#         correct fix: access.cmd.usr.cube.system = teardown syntax
+#         current access system cannot deny a specific command behind a wildcard
+#         security is correct by omission in cube/access.zenki for now
 
 ## kimi memory
 
@@ -72,8 +77,22 @@ grep -n 'access.cmd' configuration/zenki/X-11/start | head -5
 - [ ] access restriction syntax matches existing P7 patterns
 - [ ] no signature stubs added, no whitelist changes
 
-#,,,.,..,,..,,,,,,,..,,,.,,,.,,..,,..,,,,,...,..,,...,...,.,.,.,.,,.,,.,.,,,.,
-#CDYTUR5FF5NXZ33O3B6P7G4YC4AY5XQDHAXYWQGVFT7J632L4J7HJUSQWCPRZKZZ7TP52MKDS62LS
-#\\\|5JLPGUBLFJUV3MLCE7ES2RSRQXZPUN6XMXA7RL7UMHJO55XAOLN \ / AMOS7 \ YOURUM ::
-#\[7]CZWMADOYW2GZQ2OYHQDUQA63LM2WRHWJOACZFVCTZYMW3BBRPWCQ 7  DATA SIGNATURE ::
+## dispatch
+
+model: kimi
+reasoning: low
+
+prompt: |
+  Implement the task at data/tasks/v7-teardown-whitelist.md
+
+  Read configuration/zenki/v7/start and the access control modules first.
+  Note: the correct P7 syntax is user-centric (access.cmd.usr.<zenka> = <commands>),
+  not command-centric. Add a line granting teardown only to system zenka while
+  leaving the wildcard * for all other commands unchanged. No signature stubs,
+  no whitelist changes.
+
+#,,,.,,,.,,,,,..,,..,,.,.,.,.,...,..,,.,.,.,.,..,,...,...,..,,,,.,,.,,,,,,,..,
+#CKYAVFNLBTSYH576MLG7XKK5HN5P263T4YJVSGC5KKW7BMYZ5WMBPAJ5LEJKGH27JFQPNSNUA4CXQ
+#\\\|7GF2RL3WJDGQUG5BULLBEEP5NTSJJE255CW3GPS5AOUBKOT3FNW \ / AMOS7 \ YOURUM ::
+#\[7]2OMSV254V2756UT5DVNVKKQ37W3VWJ5PJYEFHYT3ZFXZOZKYICDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
