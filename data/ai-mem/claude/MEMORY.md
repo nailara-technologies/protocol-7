@@ -100,6 +100,11 @@
 - [stop-and-revert](feedback-stop-and-revert.md) — don't chain speculative fixes; stop, revert, confirm root cause first
 - [utf8-module-literals](feedback-utf8-module-literals.md) — non-ASCII in module format strings corrupts output; keep format strings ASCII-only
 
+## Open Bugs (session 39)
+- **letsencr renewal reply handler**: "not defined reply handler ['letsencr.parent.handler_renewal_reply']" — reply lookup happens in child %code context, not parent. kimi debug task: data/tasks/letsencr-renewal-reply-handler-debug.md
+- **letsencr cert PEM format**: cert was saved as raw base32r JSON (invalid PEM) on first renewal — fix committed (remap bundle fields), pending next renewal to verify httpsd loads correctly
+- **visual.v7.ax 404/connection refused**: ACME challenge timing race — vhost rescan not complete before Let's Encrypt validates. cert renews on retry but needs proper fix
+
 ## Open Bugs (session 37)
 - **source.extract_sig_body**: YOURUM fake stubs (kimi-generated) are 1 char too long per line → size mismatch → error instead of strip. fix: enter strip path on size mismatch with valid YOURUM structure. affects strip-signature-footer, verify, and sign commands (dual-use code).
 - **v7 start-once + error status**: `v7.start_once X-11` reports "already running" when instance is in error state. fix: exclude error-status instances from start_count check.
@@ -226,8 +231,8 @@
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 - **Glitter 4B restart**: after a failed tool-using task, the Glitter backend needs restart before `:no_tools:` tasks work. The model gets stuck in tool-mode from the previous failed session. Restart coding zenka or wait for it to reset before dispatching `:no_tools:` priming tasks.
 
-#,,,.,..,,.,.,...,,..,,..,,,,,.,,,.,,,,,.,..,,..,,...,...,...,,,.,,,,,,,.,,.,,
-#KKSWUNFEI2AWDVNMRHJBFAJ45Y3WV7NWMT5NTNWYKPVQBEZDGLAZUN7JNKCULHURHO7U33KTFXDKY
-#\\\|HVZS56L3RQOIAZFDMPRPY3SPT5SUCBGKCSBOUNNI2X2II3PVPQE \ / AMOS7 \ YOURUM ::
-#\[7]K7EEAPTLBPXFVLGZLWSFXJFJJUY5VOZASQKAUXA5TXW4EEOOZ4BY 7  DATA SIGNATURE ::
+#,,,,,,,.,,..,,..,.,,,.,.,...,,..,,,.,.,,,...,..,,...,...,.,.,.,,,,,,,.,.,.,.,
+#SWBD5ADGHDE4M27GUF3IOQNA777JB3DN37NSGXJCDVYX6TNYN7UJ2ANRXJ2PZLUK37N7NJERMV4JY
+#\\\|TSLLLX7MA4JMH6VNOOGDQAE4UITXLFXK3UQJDHSVSBLHV2PVS2K \ / AMOS7 \ YOURUM ::
+#\[7]CQXQK4Y32SWZQTAN6FJLAIUDUFOL7TATK73LWKX2VC4BQEGCVMAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -226,6 +226,44 @@ open issues:
   commit re-signs with human key → provenance chain: model created → human committed
   signature history IS the collaboration record
 
+## session 39 — letsencr renewal repair + TAWS/Amiga vision (2026-05-21)
+
+**letsencr auto-renewal fully debugged** (many commits):
+- root cause chain: httpd vhost-list FALSE → bail out → no renewal attempted
+- fix 1: handler_renewal_continue: treat FALSE as "no new domains", still renew known certs
+- fix 2: queue_renewal_requests: route via child.renew-certificate (parent pipe) not cube
+- fix 3: letsencr/start: add renew-certificate to parent access list
+- fix 4: handler_renewal_retry: read domain from renewal_timers not Event object
+- fix 5: handler_renewal_reply: decode base32r bundle before saving (was saving raw)
+- fix 6: handler_renewal_reply: remap child bundle fields to save_certificate format
+  (certificate→certificate_pem, key→private_key_pem, domains→alt_names, etc.)
+- fix 7: letsencr status: add "expired [<0 days]" category; fix "expires in -N days" messages
+- fix 8: activity-log: base.log→base.logs fix (stray format args going to wrong buffer)
+- OPEN: "not defined reply handler" still occurs — kimi debug task dispatched
+  root cause: reply handler lookup in wrong process context (child vs parent %code)
+  task: data/tasks/letsencr-renewal-reply-handler-debug.md
+
+**v7.ax renewed successfully** — cert installed to httpsd ✓
+**visual.v7.ax renewed successfully** — on retry after 404/connection-refused ✓
+**BUT**: cert saved as raw base32r JSON (invalid PEM) → httpsd "invalid format"
+  fix committed, pending next renewal to verify end-to-end
+
+**source header validation** FINALLY ENABLED:
+- substr(0,5) vs 11-char comparison bug found (dead code since 2021 header change)
+- fix: index() + $code_dir eq <source.code_path> (exact path scope)
+- .context.md removed from modules/ (glob-invisible dotfile)
+- YOURUM fake stub detection added to source.extract_sig_body
+
+**TAWS + Amiga vision captured**:
+- taws.ch: Workbench 1.0-4.1 in JS since 2001 (same year as damnet!)
+- AMOS Professional public domain → AMOS7 name provenance complete
+- El Gato (1987): translucent rotating cat → P7 status indicator vision
+- WEB-BROWSER-VIEW-STACK.md: N-view stack modeled on Amiga screen-pull
+- data/ideas/README.md: component candidates drop zone created
+- photonic desktop: configuration/applications/ rescued from photonic-desktop.git
+- bin/bmw-manifest: BMW384 manifest for binary assets (base.sort order)
+- bin/todo: project-local data/yaml/todo/, -list <name>
+
 ## session 34 — sync pipeline fixes, site-yaml polish, discover replay protection (2026-05-19)
 
 **sync delta filter CONFIRMED WORKING**: `sync push skipped [ no changes ]` verified.
@@ -968,8 +1006,8 @@ Skip calling harmonize_payload_line_feed when both conditions are met:
 - Signatures now properly formatted with correct separator endline
 - Pre-commit validation passes
 
-#,,,,,...,,,.,,..,.,,,,.,,.,,,...,,.,,..,,,.,,..,,...,...,,..,,,.,,,.,,,.,,.,,
-#5CJRQGZ3IAWQC4YLNOYE35HO73NHUWBGL4EFIVIG2VXUL2TO7U4YFCAURREX3LMVRMUU4WSE3PLGS
-#\\\|2LAF7B7YABOUAX3D5XMH2N27UN2AVZQ2PREFAAVRXERDOOL467W \ / AMOS7 \ YOURUM ::
-#\[7]U7Q3WCEGBKKGCYNYE3KASPVR6ZVAJ2UW66HJ5ESEFQBLVGFJOADA 7  DATA SIGNATURE ::
+#,,.,,.,,,,,,,..,,..,,,,,,.,,,.,.,,..,.,.,,..,..,,...,...,..,,,,.,.,.,,,.,,.,,
+#KTP7Q6R5QGDNXK7N62ALIMXNQ7KKCEKE5WJEZTF3RSWZX4VOB7DKTA7V4K6D42Y2PBRSH2HOGQ22S
+#\\\|DGB2R66QKK2FLZ2KQVWPAQ72I2UOYBSBYTN3XZQSJZIVESNAPV2 \ / AMOS7 \ YOURUM ::
+#\[7]3ILSKPBFLUPEJL7SRXEOUPBZSB55NWEOSL5U4JHMARHCLJTIJACA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
