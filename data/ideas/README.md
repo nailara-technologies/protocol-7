@@ -43,6 +43,27 @@ and thought experiments for idle exploration.
   extended design: data/md/development/DOM-FILESYSTEM-MOUNT.md (planned)
 - relates to: credential zenka, web-browser view stack, plan-9 zenka
 
+### credential key holder + auth relay architecture
+- detached minimal child process = only holder of master decryption key
+  after init it detaches completely, communicates only via unix socket
+  zero network exposure, minimal attack surface
+- unix socket as identity proof: socket path = identity, v7 controls access
+- per-client encryption: credential re-encrypted with CLIENT's C25519 public key
+  (USR.<name>.* already exists) — plaintext never on the wire
+- two delivery modes:
+  - credential: raw secret encrypted for client key
+  - authorized_session: key holder logs in, returns session token only
+    (credential never leaves child process)
+- auth relay zenka in the center, all existing transports as delivery channels:
+  - SSH zenka: remote scripts authenticate via SSH key = C25519 identity
+  - httpsd: HTTPS delivery for web-facing clients
+  - SFTP modules: serve encrypted credential files
+  - unix socket: local zenka direct delivery
+- web-browser zenka for human authorization UI:
+  "jobsite zenka requests stepstone credentials — approve?"
+- relates to: credential zenka (v2), keys zenka, ssh zenka, httpsd, plan-9
+- design doc: planned (data/md/development/CREDENTIAL-KEY-HOLDER.md)
+
 ### LLM session management + cross-model context
 - kimi-cli sessions store hundreds of MB of reasoning in context.jsonl
 - segment categories: code_read / hypothesis / dead_end / reasoning /
