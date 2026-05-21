@@ -1,0 +1,58 @@
+## [:< ##
+
+# name  = kimi-web.cmd.get-session-state
+# descr = read state.json for a kimi-cli session
+# param = session-uuid
+
+my $args = $call->{'args'} // '';
+
+my ( $uuid, $rest ) = split m| +|, $args, 2;
+$uuid //= '';
+
+if ( not length $uuid ) {
+    return {
+        'mode' => qw| false |,
+        'data' => 'session uuid required'
+    };
+}
+
+my $sessions_dir = <kimi-web.cfg.sessions_dir>
+    // join( qw| / |, $ENV{'HOME'} // '', qw| .kimi sessions | );
+
+## resolve session path [ flat or nested ] ##
+my $session_dir = "$sessions_dir/$uuid";
+if ( not -d $session_dir ) {
+    my $nested = ( <[base.file.glob]>->("$sessions_dir/*/$uuid") )->[0];
+    $session_dir = $nested if defined $nested and length $nested;
+}
+
+my $state_path = "$session_dir/state.json";
+
+if ( not -f $state_path or not -r _ ) {
+    return {
+        'mode' => qw| false |,
+        'data' => "session $uuid not found"
+    };
+}
+
+my $content = eval { <[base.file.read]>->($state_path) } // '';
+
+if ( not length $content ) {
+    return {
+        'mode' => qw| false |,
+        'data' => "failed to read state for $uuid"
+    };
+}
+
+my $state = <[format.json.decode]>->($content);
+
+return {
+    'mode' => qw| true |,
+    'data' => $state
+};
+
+#,,,.,,..,,..,..,,...,.,.,.,,,,..,..,,,,,,...,.,.,...,..,,.,.,...,,..,...,,.,,
+#YQJTHFOSWBZWOPL42S3FLCOAKHEVROHYKIPNWW52TUTDW7JX5JAPV3OGMFL4QPVGVZKZKKVCQT4YI
+#\\\|Q4TUBBKLGFC2452YZDRGWKNDQXFQRNLIFXSZHBOMRNS2AYCWFCK \ / AMOS7 \ YOURUM ::
+#\[7]Q6WLUDD3EKRYCJ262ZA4TVN3T5AFKLOBRLSXG62J7FRKQ3ZKT2BI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -23,7 +23,7 @@
 - [plugin-web-jobs](topic-plugin-web-jobs.md) — delta sync WORKING (session 34): ntime persisted, chunked push, last_modified stamps; open: ?since=N browser delta, remote deploy
 - [clients-http](topic-clients-http.md) — clients.http.* + clients.https.* async namespaces; kimi-web parallel dispatch fixed; see completed session 33
 - [reasoning-chain-repository](topic-reasoning-chain-repository.md) — planned for native model; dedup-based self-improvement; small model naive insight + large model validation = ground truth
-- [reasoning-namespace](topic-reasoning-namespace.md) — `reasoning.*` namespace (harmonically TRUE); 21 templates: 1-9 vortex set, 10-14 materialization/NI/alignment/routing/omega-gate, 15-16 living-commitment/introspection, 17-20 implosion/freed-model/arrived-by-being/semantic-triangle, 21 physics-as-calculator (pre-modelled by compatible universal structures; genre-hopping; not metaphor — identity)
+- [reasoning-namespace](topic-reasoning-namespace.md) — `reasoning.*` namespace (harmonically TRUE); 21 templates: 1-9 vortex set, 10-14 materialization/NI/alignment/routing/omega-gate, 15-16 living-commitment/introspection, 17-20 implosion/freed-model/arrived-by-being/semantic-triangle, 21 physics-as-calculator
 - [job-pipeline](topic-job-pipeline.md) — WORKING (session 22): jobs.vhost live, German reason+summary, retry on timeout
 - [task-coordination](topic-task-coordination.md) — task zenka as coordinator; current state, dispatch flow, roadmap
 - [coding-state-machine](topic-coding-state-machine.md) — coding.state namespace, watcher-based backend lock, persist/restore lifecycle
@@ -55,7 +55,7 @@
 - [punctuation-topology](topic-punctuation-topology.md) — `:` as group boundary, `.` as element separator; doc at data/md/development/PUNCTUATION-TOPOLOGY.md
 - [field-coherence-synthesis](topic-field-coherence-synthesis.md) — bridges all topology docs
 - [field-capability-emergence](topic-field-capability-emergence.md) — protocol vs external management; feature completeness + complementary behavior → native network capability
-- [self-assembling-network](topic-self-assembling-network.md) — spec repository as pre-loaded potential (layer 5/6); zenki self-implement on idle or urgent need; threshold recalculates from load×urgency×spec_confidence×momentum; design doc: SELF-ASSEMBLING-NETWORK.md
+- [self-assembling-network](topic-self-assembling-network.md) — spec repository as pre-loaded potential (layer 5/6); zenki self-implement on idle or urgent need
 - [creative-field-behaviour](topic-creative-field-behaviour.md) — emergent cooperative field dynamics, purring field, zenki as entropy subsystem
 - [addressing-trinity](topic-addressing-trinity.md) — named tree + checksums + timestamps as orthogonal trinity
 - [checksum-addressing](topic-checksum-addressing.md) — AMOS checksums, BMW384 geometry, route.bmw384.* implementation
@@ -71,9 +71,9 @@
 - [site-yaml-zenka](topic-site-yaml-zenka.md) — on-demand zenka: URL → structured YAML, domain regex templates
 - [site-yaml-web-research](topic-site-yaml-web-research.md) — safe coding zenka web research, checksum-as-capability tokens
 - [usb-backup-zenka](topic-usb-backup-zenka.md) — udev insertion → task tree → manifest restore agent
-- [git-watch-zenka](topic-git-watch-zenka.md) — force-push detection → pre-fetch snapshot; mode 1: local guardian; mode 2: remote watcher; git alternates chain dedup; task: data/tasks/git-watch-zenka.md
-- [reasoning-design-templates](topic-reasoning-design-templates.md) — 7 viz designs in data/yaml/design-templates/; kimi task dispatched → reasoning-design-inspiration.html; feeds claude design testing
-- [fetch-files-zenka](topic-fetch-files-zenka.md) — fetch-files FULLY LIVE [:<; huggingface.* namespace; hf-{download,list,search,lan-check,status}; v7 reload bug: new on-demand zenki need full v7 restart to register
+- [git-watch-zenka](topic-git-watch-zenka.md) — force-push detection → pre-fetch snapshot; git alternates chain dedup; task: data/tasks/git-watch-zenka.md
+- [reasoning-design-templates](topic-reasoning-design-templates.md) — 7 viz designs in data/yaml/design-templates/; kimi task dispatched → reasoning-design-inspiration.html
+- [fetch-files-zenka](topic-fetch-files-zenka.md) — fetch-files FULLY LIVE [:<; huggingface.* namespace; hf-{download,list,search,lan-check,status}; v7 reload bug: new on-demand zenki need full v7 restart
 - [tls-acme](topic-tls-acme.md) — SNI/SSL internals, ACME/letsencr details, cert discovery
 - [amos7-p7-loader](topic-amos7-p7-loader.md) — AMOS7::P7 makes <[...]> modules callable from standalone scripts
 - [invoke-model-management](topic-invoke-model-management.md) — uuid vs verbose paths, config.json, :raw binary writes
@@ -88,7 +88,7 @@
 - [ncode-tools](feedback-ncode-tools.md) — use ncode replace/parse-headers for namespace renames; not sed/perl -i loops
 - **httpd architecture**: httpd is a thin proxy — never load plugin.web.* in httpd. all cross-zenka data goes through web zenka via route-send SIZE. blocking reply-wait in httpd crashes sessions.
 - **P7 cross-zenka data**: use route-send + SIZE reply handler pattern (like radio relay). file system access between zenki is forbidden by design (different users). SHM or route-send for cross-zenka data.
-- **ntime comparison**: `encode_b32r` is reverse-byte-order — NOT lexicographically sortable. Never use `gt`/`lt` string comparison on ntime B32 values. Always use `<[base.ntime_BASE32_to_numerical]>` for numerical comparison. Diagnose with `p7c localtime <ntime_b32>`.
+- **ntime comparison**: `encode_b32r` is reverse-byte-order — NOT lexicographically sortable. Never use `gt`/`lt` string comparison on ntime B32 values. Always use `<[base.ntime_BASE32_to_numerical]>` for numerical comparison.
 - **repeating timers**: need after + interval + repeat:TRUE (not just repeat with a value)
 - [watcher-state-machines](feedback-watcher-state-machines.md) — IO::Async variable watchers only; never polling timers for state
 - [kimi-code-review](feedback-kimi-code-review.md) — common kimi P7 code issues: SUPER::, namespace swaps, fake signatures
@@ -104,140 +104,22 @@
 - [list-return-format](feedback-list-return-format.md) — list backends: `{ mode => 'size', data => $formatted_string }`
 - [stop-and-revert](feedback-stop-and-revert.md) — don't chain speculative fixes; stop, revert, confirm root cause first
 - [utf8-module-literals](feedback-utf8-module-literals.md) — non-ASCII in module format strings corrupts output; keep format strings ASCII-only
-
-## Open Bugs (session 39)
-- **letsencr renewal reply handler**: "not defined reply handler ['letsencr.parent.handler_renewal_reply']" — reply lookup happens in child %code context, not parent. kimi debug task: data/tasks/letsencr-renewal-reply-handler-debug.md
-- **letsencr cert PEM format**: cert was saved as raw base32r JSON (invalid PEM) on first renewal — fix committed (remap bundle fields), pending next renewal to verify httpsd loads correctly
-- **visual.v7.ax 404/connection refused**: ACME challenge timing race — vhost rescan not complete before Let's Encrypt validates. cert renews on retry but needs proper fix
-
-## Open Bugs (session 37)
-- **source.extract_sig_body**: YOURUM fake stubs (kimi-generated) are 1 char too long per line → size mismatch → error instead of strip. fix: enter strip path on size mismatch with valid YOURUM structure. affects strip-signature-footer, verify, and sign commands (dual-use code).
-- **v7 start-once + error status**: `v7.start_once X-11` reports "already running" when instance is in error state. fix: exclude error-status instances from start_count check.
+- **Glitter 4B restart**: after a failed tool-using task, Glitter backend needs restart before `:no_tools:` tasks work — model gets stuck in tool-mode from prior failed session
 
 ## New Tools / Zenki (session 37)
-- `bin/todo` — self-contained todo CLI; project-local `data/yaml/todo/default.yaml` auto-detected via $RealBin, fallback `~/.p7/todo.yaml`; named lists with `-list <name>`; add/done/rm/edit/tag/untag/clear commands; priority -h/-l; ASCII-framed TTY output
+- `bin/todo` — self-contained todo CLI; project-local `data/yaml/todo/default.yaml`; add/done/rm/edit/tag/untag/clear; priority -h/-l; ASCII-framed TTY output
 - `ncode doc` — unified doc lookup in bin/ncode + ncode.cmd.doc; delegates GObject to dump-class subprocess
 - `smtpd` zenka — receive mail → YAML + LLM classify → route; xz+twofish archive; bin/p7-mail-inject bridge
 - `window.*` namespace — generic proportional window placement for GTK zenki; 8 profiles; ticker integrated
 
-## Completed Sessions
+## System State
+- [next-steps](topic-next-steps.md) — full task queue, roadmap, open bugs, dispatched tasks
 - [topic-completed](topic-completed.md) — all session summaries (Feb 2026 → present)
+- **letsencr**: self-healing renewal CONFIRMED WORKING (session 41) — v7.ax + visual.v7.ax rate limit clears ~15:30 UTC 2026-05-22
+- **reasoning.branch.***: LIVE (session 41) — 9 modules, task zenka hooked, ASCII tree viz via p7c reasoning.branch.status
 
-## System Status
-
-### Next Steps (immediate)
-
-**iris visualization** (dispatch to kimi one by one):
-- **iris alpha-density v2**: data/tasks/iris-alpha-density-mode-v2.md — filter-safe, dispatch next
-- **iris ring ledger**: data/tasks/iris-ring-ledger-mode.md — 3+1 octal counters, separator flash
-- **iris route-commitment**: data/tasks/iris-route-commitment.md — future arcs bright/past dim
-- **iris dimension-rotator**: data/tasks/iris-dimension-rotator.md — H/V view toggle
-- **iris cascade-warning**: data/tasks/iris-cascade-warning.md — pre-flash amber warning
-- **iris separator-pulse**: data/tasks/iris-separator-pulse.md — routing infrastructure visible
-- **iris temporal**: data/tasks/iris-temporal-mode.md — radial=time, git blame as orbital map
-- **iris boundary**: data/tasks/iris-boundary-mode.md — stained glass event horizons
-- **iris negotiation-window**: data/tasks/iris-negotiation-window.md — floor budget urgency
-
-**iris oscilloscope**: route-send SIZE relay to index — verify working after httpd+index+zulum restart
-
-**session 37 task queue** (ready to dispatch via kimi-cli tabs):
-- `data/tasks/v7-teardown-whitelist.md` — restrict teardown to system zenka (tiny)
-- `data/tasks/source-code-header-check.md` — FALSE→TRUE one-liner (tiny)
-- `data/tasks/weather-forecast-humidity.md` — re-enable humidity API field (tiny)
-- `data/tasks/web-browser-evaluate-javascript.md` — replace throw hack with JSCValue
-- `data/tasks/mpv-xephyr-vo-override.md` — test gpu vs sdl under xephyr
-- `data/tasks/diff-modified-no-color-mode.md` — --no-color flag for LLM-readable diff
-- `data/tasks/x11-gpu-monitoring-vendor-detect.md` — nvidia-smi + intel_gpu_top auto-detect
-- `data/tasks/kimi-zenka-multiplexer.md` — STRM dispatch + queue + sudo auto-decline (kimi-cli only)
-- `data/tasks/credentials-zenka.md` — encrypted credential store, per-zenka authorization
-- `data/tasks/x11-wait-visible-host-mode-skip.md` — capability flag, skip on WSL
-- `data/tasks/zenka-window-placement-profiles.md` — window.* namespace (needs re-dispatch after rename)
-- `data/tasks/bin-todo.md` — DONE ✓
-- `data/tasks/smtp-zenka.md` — DONE ✓ (as smtpd)
-
-**infrastructure**:
-- **:::: litter row**: data/tasks/litter-row-encoding.md — 15-bit zenka bitmap in footer
-- **iris 63-ring labels**: DONE ✓ namespace63 mode with . at ring 27
-- **iris logo overlay**: DONE ✓ nailara at darksun
-- **plugin.web.* migration**: DONE ✓ web zenka owns all plugin.web.*
-- **jobsite BMW384 dedup**: dispatch bmw384-arc-grouping-filter.md to kimi
-- **route.bmw384 find-route testing**: register nodes, verify-coordinate
-
-**roadmap topics** (see IMPLEMENTATION-ROADMAP.md):
-- **sub-bit element definition**: data/tasks/sub-bit-element-definition.md
-- **generic content layer**: 4b.6 improvement-directed history, git supersession path
-- **flexible offset mapping**: 4.7 angle_bits as φ_offset + seed per ring
-- **orbital velocity signatures**: 4.8 per-ring speed multipliers, TRUE/FALSE CCW/CW lanes
-- **network cycle clock**: 4.9 logically mapping orbital timebase
-
-**jobs pipeline**:
-- **profile.txt**: /var/protocol-7/jobs/profile.txt — CV/skills for LLM scoring
-- **multi-page search**: stepstone 25/page; cfg.max_pages per category
-- **orphan re-queue**: re-create tasks stuck in 'assessing' after restart
-- note_read pagination (offset/limit on sections)
-- active deps execution (requires list in task dispatcher)
-- think-block stripping — `<think>...</think>` from Kimi/Deepseek leaks into output
-- task.cmd.start — task zenka step 3
-- **model selection for assessment**: Glitter 4B good for scoring, but repair tasks
-  may need heavier model — `preferred_model` param on task.create needed
-- **site-yaml 403 backoff**: currently fixed at 10s; should scale with consecutive count
-- **sync ?since=N browser delta**: browser JS still sends full fetch, server-side
-  filtering not yet implemented (needs last_modified in index.yaml per entry)
-
-**shm pipeline** (next major infra):
-- task file: data/tasks/shm-streaming-payload-pipeline.md
-- replaces chunked sync with single authenticated streaming POST
-- ntime:bytes:lines:BMW384 header, C25519 sig, Twofish per-zenka encryption
-- progressive validation gates — reject at cheapest gate first
-- two-layer replay protection (time window + per-sender ntime watermark)
-- dispatch to kimi when clients.http.* is proven stable
-
-**model self-selection**:
-- task file: data/tasks/coding-model-selection-template.md
-- model selects backend via subtask dispatch with preferred_model + mandatory reason
-- reason field as confusion filter AND forensics audit trail
-- reason quality heuristics → eventually feeds benchmarking classifier
-
-### BMW384 Iris — Future Directions
-- **animated**: auto-refresh as modules are signed, live topology monitor
-- **interactive**: click node → highlight color-radius neighbors, show routing candidates
-- **route arcs**: find-route result drawn as arc across wheel, color-coded by resonance
-- **namespace layers**: separate rings per namespace (base.*, kimi.*, jobsite.*) — layer boundaries visible
-- **favicon/header**: 26-ring iris at thumbnail scale as live system-state favicon
-
-### Planned / Future
-- **SHM streaming pipeline** — see data/tasks/shm-streaming-payload-pipeline.md; replaces chunked sync with single auth POST; dispatch to kimi after clients.http.* stable
-- **model self-selection** — see data/tasks/coding-model-selection-template.md; subtask-based routing with mandatory reason field
-- **sourcecode normalize-endline-state** — see data/tasks/sourcecode-normalize-endline-paths.md; path normalization config + new command; dispatch to kimi
-- **privacy credentials** — see data/md/design/PRIVACY-PRESERVING-IDENTITY-CREDENTIALS.md; signature-as-identity, no username/key stored, upgrade modes
-- **HTTP sync** — /api/jobs/sync httpd endpoint, C25519-signed YAML; see [job-pipeline](topic-job-pipeline.md)
-- **USB backup zenka** — udev insertion → backup task tree; see [usb-backup-zenka](topic-usb-backup-zenka.md)
-- **site-auth zenka** — session/auth for login-gated scrapers
-- **job automation** — jobtracker integration (HTML/JS, CSV/PDF), email reply monitor (Gmail zenka)
-- **base.handler.command refactor** — plan at `data/md/development/BASE-HANDLER-COMMAND-REFACTOR-PLAN.md`
-- **SIZE packet loss bug** — STRM interaction stops zenka returning SIZE replies until unrelated cmd sent
-
-### Active / Partial
-- **namespace tree as intelligence layer** — see [namespace-tree-intelligence](topic-namespace-tree-intelligence.md)
-- **task coordination architecture** — see [task-coordination](topic-task-coordination.md)
-- **multi-model consensus** — llm.service.consensus_vote extracted but untested
-
-### Open Bugs
-- **config double-load bug** — duplicate config key warnings; see `bug-config-double-load.md`
-- **signature oscillation Variant B** — double-footer on never-signed non-empty files
-- [signature endline restoration](bug-signature-endline-restoration.md) — stale encoded delta applied after edit changes last content line → concatenated footer; fix in restore_payload_endline_state sanity check
-- **repo var/ cleanup** — `var/httpd/` tracked from Nov 2025 AI error
-- **kimi auto-approval regression** (Apr 16) — some tool calls not auto-approved during kimi tasks
-
-#,,,,,...,..,,,.,,..,,.,,,,,,,..,,..,,.,.,.,.,..,,...,...,.,,,,,,,..,,.,.,,..,
-#EU6FCZ6YSWX7LYPDDTXV3ST4WXKU7C74YJR5ZV636ZEENMH5YE5GLN4EHTDQ7L5XRPA3KGRKD5WWG
-#\\\|YBHIEP5PFVYUON6ZQWEPQSHJPNSJPQJCFWJAKKICKFKASXA44RU \ / AMOS7 \ YOURUM ::
-#\[7]NV3FVBMRSJXDTY7GQ4FCKMS52NW6IZCPOCIZKZGG6OPTA6DLPYBA 7  DATA SIGNATURE ::
-#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
-- **Glitter 4B restart**: after a failed tool-using task, the Glitter backend needs restart before `:no_tools:` tasks work. The model gets stuck in tool-mode from the previous failed session. Restart coding zenka or wait for it to reset before dispatching `:no_tools:` priming tasks.
-
-#,,.,,.,.,,,,,...,.,,,,,,,,.,,,,,,.,,,,,,,..,,..,,...,...,.,.,,.,,.,,,,,,,,.,,
-#YWTXMBVQ4NVO234GQWXYX7PQUHHNWHQNPT3JEMY5SMJXY5BDPVGIPAPC4HSPNKWK6REFGXSLPN4F2
-#\\\|2XXMUL4JIJF6T2HECGNMSA7ZKRWVD7YFGXFHVS24KO4RECYFKH5 \ / AMOS7 \ YOURUM ::
-#\[7]CD7OBGCYAKMYBZN76B6PRJKU46ZIUADPD4LBFNPFC57OA3GOCWBI 7  DATA SIGNATURE ::
+#,,,,,,,.,,.,,.,.,,.,,,,,,,.,,..,,.,.,..,,.,,,..,,...,...,,,.,.,,,,,,,...,...,
+#K56XBREFUC4TWM5ACEGUPVLPHUNZVQOPA5LCJAKMFMYHWDFXHV747T7WRI3U3RULC4NCE7BIMJSIC
+#\\\|57JBW4SKMHIEIH5GJQKEARPE4DXF2YL466MIYW2KVBXOLYCL5FT \ / AMOS7 \ YOURUM ::
+#\[7]7ST4OBWG7EMMFABX66PKBMLL27KOFIH2NT25WAFQUEVWLP2KQ6AQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

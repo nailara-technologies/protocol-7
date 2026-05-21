@@ -1,0 +1,62 @@
+## [:< ##
+
+# name  = kimi-web.cmd.find-session
+# descr = search context.jsonl content across sessions
+# param = search-string
+
+my $args = $call->{'args'} // '';
+
+if ( not length $args ) {
+    return {
+        'mode' => qw| false |,
+        'data' => 'search string required'
+    };
+}
+
+my $sessions_dir = <kimi-web.cfg.sessions_dir>
+    // join( qw| / |, $ENV{'HOME'} // '', qw| .kimi sessions | );
+
+my @matches;
+
+if ( -d $sessions_dir ) {
+    ## collect all context.jsonl paths [ flat and nested ] ##
+    my @ctx_paths;
+    push @ctx_paths,
+        @{ <[base.file.glob]>->("$sessions_dir/*/context.jsonl") };
+    push @ctx_paths,
+        @{ <[base.file.glob]>->("$sessions_dir/*/*/context.jsonl") };
+
+    for my $ctx_path (@ctx_paths) {
+        next unless -f $ctx_path and -r _;
+
+        open my $fh, '<', $ctx_path or next;
+        my $found = 0;
+        while ( my $line = <$fh> ) {
+            if ( index( $line, $args ) >= 0 ) {
+                $found = 1;
+                last;
+            }
+        }
+        close $fh;
+
+        if ($found) {
+            ( my $uuid = $ctx_path ) =~ s|/context\.jsonl$||;
+            $uuid =~ s|^.*/||;
+            push @matches, $uuid;
+        }
+    }
+}
+
+my $output = join( "\n", @matches );
+$output .= "\n" if length $output;
+
+return {
+    'mode' => qw| size |,
+    'data' => $output
+};
+
+#,,..,..,,...,,,,,,.,,..,,.,.,,,,,,,,,,..,,,.,.,.,...,...,,,,,,..,,,,,.,.,.,,,
+#55NFGNYG3RXTDD5YBU7ZIKJ2LJA7OFPQHI6PTAWDPKXVD7T7YHLQWF6JFF4NPUCKIU54BNA2APL5G
+#\\\|26MWXNVC33AWBRZUBK3M3F2NJF3JD6PHELJDED2PZPK472EC6J5 \ / AMOS7 \ YOURUM ::
+#\[7]PAPAKRGHD5QJEQNDM2JOENYCW5SWKO32XW3YI5OOMSDZZIALR2BQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
