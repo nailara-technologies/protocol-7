@@ -40,6 +40,15 @@ $data{'branch.routes.by_target'}   //= {};
 ## route cache for wave propagation [ hop_id -> target_id -> { next_hop, ntime } ] ##
 $data{'branch.route.cache'} //= {};
 
+## storage backend: 'storage-zenka' | 'local-yaml' ##
+$data{'branch.storage.backend'} //= 'local-yaml';
+
+## snapshot registry: snapshot_id -> { snapshot_id, node_id, created, node_count, backend } ##
+$data{'branch.storage.snapshots'} //= {};
+
+## data zenka bindings: node_id -> { namespace, zenka } ##
+$data{'branch.data.bindings'} //= {};
+
 ## register ttl cleanup timer ##
 <[event.add_timer]>->(
     {   'interval' => 60,
@@ -50,8 +59,8 @@ $data{'branch.route.cache'} //= {};
 
 <[base.logs]>->( 2, 'branch: namespace initialized' );
 
-#,,..,...,.,.,.,,,,,,,...,...,,..,,,.,,,.,,,.,..,,...,...,,..,...,,,.,..,,,,,,
-#CQUFWMOBBSJREX4QAR2LLUISYX2APNT6WHQ7TZVXW4J2KFBHJHQSR22Q3QPMNKLQYBUKKLOSPITVM
-#\\\|ZSNWELXDP34ET45QOKK5IS57ILXYJWBZETA5U2LK5BHFBIA3EPW \ / AMOS7 \ YOURUM ::
-#\[7]POOTOPT6DSHWYWPMJ3S7GGXIQNZUKGRDYY3T2RYI3CPL7LSZ6ECY 7  DATA SIGNATURE ::
+#,,,,,.,,,,,,,,,.,,,,,.,,,..,,.,,,...,,.,,.,.,..,,...,...,.,.,.,.,..,,..,,,,.,
+#7WJLVSY5Y6Q3X5NHJ7QURRZPLAMFTIJXVMIBZ2TAGUN4TJWYBLKG4RPDINFQ7RYEJNHFRUVBBQCPS
+#\\\|DNZT7QXYCWZX2BQH6RCLIIMWN4AOKNWJ5YYUTWNP7UXBGOXZCUL \ / AMOS7 \ YOURUM ::
+#\[7]F7CQ42IR3ZCJGOY6JYBC2VECVSEFDH3KRRODR6MNAIMYX7ZCYQBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

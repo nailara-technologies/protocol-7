@@ -1,0 +1,215 @@
+## [:< ##
+
+# name  = branch.storage.sync
+# descr = incremental sync of subtree against last snapshot
+# param = { id, snapshot_id }
+
+my $params = shift // {};
+
+my $id = $params->{'id'} // '';
+return { 'mode' => 'false', 'data' => 'id required' }
+    unless length $id;
+return { 'mode' => 'false', 'data' => 'node not found' }
+    unless exists $data{'branch.nodes'}{$id};
+
+my $snapshot_id = $params->{'snapshot_id'} // '';
+
+## find last snapshot for this node if not specified ##
+if ( not length $snapshot_id ) {
+    my @candidates = sort { $b->{'created'} <=> $a->{'created'} }
+        grep { $ARG->{'node_id'} eq $id }
+        values %{ $data{'branch.storage.snapshots'} // {} };
+    $snapshot_id = $candidates[0]{'snapshot_id'} if @candidates;
+}
+
+return { 'mode' => 'false', 'data' => 'no prior snapshot found' }
+    unless length $snapshot_id;
+
+## load last snapshot ##
+my $nodes_dir = <system.root_path> . '/configuration/data/branch/nodes';
+my $file_path = "$nodes_dir/$snapshot_id.yaml";
+
+if ( not -f $file_path ) {
+    <[base.logs]>->(
+        0, 'branch.storage.sync: snapshot file missing [ %s ]', $snapshot_id
+    );
+    return { 'mode' => 'false', 'data' => 'snapshot file missing' };
+}
+
+my $yaml = <[file.read]>->($file_path);
+my $snapshot;
+eval {
+    <[base.perlmod.autoload]>->('YAML::XS');
+    $snapshot = YAML::XS::Load($yaml);
+    1;
+} or do {
+    my $err = $@ // 'unknown';
+    <[base.logs]>
+        ->( 0, 'branch.storage.sync: yaml parse error [ %s ]', $err );
+    return { 'mode' => 'false', 'data' => 'yaml parse failed' };
+};
+
+my $old_nodes    = $snapshot->{'nodes'}    // {};
+my $old_children = $snapshot->{'children'} // {};
+
+## collect current subtree ##
+my @current_ids = ($id);
+my $idx         = 0;
+while ( $idx < @current_ids ) {
+    my $current = $current_ids[$idx];
+    $idx++;
+    for my $child_name ( keys %{ $data{'branch.children'}{$current} // {} } )
+    {
+        push @current_ids, $data{'branch.children'}{$current}{$child_name};
+    }
+}
+
+my %current_nodes = map { $ARG => $data{'branch.nodes'}{$ARG} } @current_ids;
+my %current_children;
+for my $node_id (@current_ids) {
+    $current_children{$node_id}
+        = { %{ $data{'branch.children'}{$node_id} // {} } };
+}
+
+my ( @added, @changed, @removed );
+
+for my $node_id (@current_ids) {
+    if ( not exists $old_nodes->{$node_id} ) {
+        push @added, $node_id;
+    } else {
+        ## compare key fields ##
+        my $old_rec    = $old_nodes->{$node_id};
+        my $new_rec    = $current_nodes{$node_id};
+        my $is_changed = FALSE;
+        for my $field (qw| name parent face pubkey |) {
+            if (
+                ( $old_rec->{$field} // '' ) ne ( $new_rec->{$field} // '' ) )
+            {
+                $is_changed = TRUE;
+                last;
+            }
+        }
+        if ( not $is_changed ) {
+            my $old_meta = $old_rec->{'meta'} // {};
+            my $new_meta = $new_rec->{'meta'} // {};
+            if ( keys %$old_meta != keys %$new_meta ) {
+                $is_changed = TRUE;
+            } else {
+                for my $k ( keys %$old_meta ) {
+                    if ( ( $old_meta->{$k} // '' ) ne
+                        ( $new_meta->{$k} // '' ) ) {
+                        $is_changed = TRUE;
+                        last;
+                    }
+                }
+            }
+        }
+        push @changed, $node_id if $is_changed;
+    }
+}
+
+for my $node_id ( keys %$old_nodes ) {
+    push @removed, $node_id
+        unless exists $current_nodes{$node_id};
+}
+
+## persist delta as new snapshot ##
+my $delta = {
+    'parent_snapshot' => $snapshot_id,
+    'added'           => \@added,
+    'changed'         => \@changed,
+    'removed'         => \@removed,
+};
+
+my $ntime           = <[base.time]>->(4);
+my $chk_payload     = join( '::', $id, $ntime );
+my $chksum_fn       = $code{'chk-sum.amos'} // $code{'base.chk-sum.amos'};
+my $new_snapshot_id = $chksum_fn->( \$chk_payload );
+
+my $new_snapshot = {
+    'snapshot_id' => $new_snapshot_id,
+    'created'     => $ntime,
+    'root_id'     => $id,
+    'delta'       => $delta,
+    'nodes'       => {},
+    'children'    => {},
+};
+
+for my $node_id ( @added, @changed ) {
+    next unless exists $current_nodes{$node_id};
+    my $node = $current_nodes{$node_id};
+    $new_snapshot->{'nodes'}{$node_id} = {
+        'name'    => $node->{'name'},
+        'parent'  => $node->{'parent'},
+        'face'    => $node->{'face'},
+        'created' => $node->{'created'},
+        'pubkey'  => $node->{'pubkey'},
+        'groups'  => $node->{'groups'} // [],
+        'meta'    => $node->{'meta'}   // {},
+    };
+    $new_snapshot->{'children'}{$node_id}
+        = $current_children{$node_id};
+}
+
+my $new_yaml;
+eval {
+    <[base.perlmod.autoload]>->('YAML::XS');
+    $new_yaml = YAML::XS::Dump($new_snapshot);
+    1;
+} or do {
+    my $err = $@ // 'unknown';
+    <[base.logs]>->(
+        0, 'branch.storage.sync: yaml serialize error [ %s ]', $err
+    );
+    return { 'mode' => 'false', 'data' => 'yaml serialization failed' };
+};
+
+if ( not -d $nodes_dir ) {
+    eval { <[file.make_path]>->( $nodes_dir, 0755 ) };
+}
+my $new_file_path = "$nodes_dir/$new_snapshot_id.yaml";
+my $fh = <[file.open]>->( $new_file_path, ':utf8', '>', TRUE, 0640 );
+if ( defined $fh ) {
+    print {$fh} $new_yaml;
+    close($fh);
+} else {
+    <[base.logs]>->(
+        0, 'branch.storage.sync: cannot write [ %s ]',
+        $new_file_path
+    );
+    return { 'mode' => 'false', 'data' => 'local yaml write failed' };
+}
+
+## update snapshot registry ##
+$data{'branch.storage.snapshots'}{$new_snapshot_id} = {
+    'snapshot_id' => $new_snapshot_id,
+    'node_id'     => $id,
+    'created'     => $ntime,
+    'node_count'  => scalar(@added) + scalar(@changed),
+    'backend'     => $data{'branch.storage.backend'} // 'local-yaml',
+};
+
+<[base.logs]>->(
+    2,
+    'branch.storage.sync: %s -> %s added=%d changed=%d removed=%d',
+    $snapshot_id,
+    $new_snapshot_id,
+    scalar @added,
+    scalar @changed,
+    scalar @removed
+);
+
+return {
+    'mode' => 'true',
+    'data' => {
+        'added'   => scalar @added,
+        'changed' => scalar @changed,
+        'removed' => scalar @removed,
+    }
+};
+
+#,,,,,.,,,..,,.,,,,.,,..,,,,,,..,,.,.,,.,,,..,.,.,...,...,,..,,.,,,,,,...,,.,,
+#LBW32Z3VE47HIPRX3R33SYRHBY464KK5PICSGJSO3DF5G3CNNPI3KZDJ42FF7ABREZXYTAQ5J4Q5W
+#\\\|YPZJNICB2IRY4J624MVNUFT75Z45XLPCFEPIZGCZJM7OXIPVWSB \ / AMOS7 \ YOURUM ::
+#\[7]JWSB2JC2F3E2NMIAJYDAI6BZSZSDKHNSVY3NFR7NNWYZIZJ3R4CY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

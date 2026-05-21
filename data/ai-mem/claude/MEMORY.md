@@ -27,6 +27,15 @@
 - `data/md/development/P7-LLM-REFERENCE.md` — verified live command reference for kimi/LLM sessions
 - `data/md/development/DEGRADED-FEATURES-AUDIT.md` — 5 high-priority + 3 medium candidates with stub task files
 
+## Checksum Tree Wire Format (session 43)
+- [topic-checksum-tree-wire](topic-checksum-tree-wire.md) — 1[zeros]1 bit-length separators; 01/10 direction-of-travel encoding; 11 pivot/LCA; type-free; append-only; connects stream-framing + DATA + reference bubble
+
+## DATA Protocol + Sync (session 43)
+- [topic-data-protocol](topic-data-protocol.md) — DATA reply mode (base32/line/stream); DELTA transparent sync; branch node file access; to add to base.callback.cmd_reply
+
+## Reference Bubble / Dancing Zenki (session 43)
+- [topic-reference-bubble](topic-reference-bubble.md) — rhizome state as generic bubble; 5+2=7 formation; checksum tree wire format; 01/10 direction encoding; universal across all layers
+
 ## Branch Namespace (session 43)
 - [topic-branch-namespace](topic-branch-namespace.md) — unifying addressable layer; layer 1 DONE (10 modules); 7 task files for parallel kimi dispatch
 
@@ -133,8 +142,8 @@
 - **pager.sort.multi-key**: ntime_b32 + priority_map sort types added (session 42)
 - **task dispatch sections**: all dispatched tasks now carry ## dispatch + prompt for reuse
 
-#,,,,,..,,...,,..,.,.,..,,...,.,.,,,.,...,,,.,..,,...,...,.,.,,.,,,,.,..,,,.,,
-#EH5YD22WYMBHG6RHB4WUDAGTPDTFPQEXDQHTQNMJMM36J27FU5NCI2PR3LXHLKFJTOUIJIOXZBD3Q
-#\\\|JXAJCGANNA7HNBBX5CL57JEJ4FL6WJR55NTG4BTKRSXZ3TSOKKO \ / AMOS7 \ YOURUM ::
-#\[7]H2FVMXVWQCOQVSSWJBUU364IEYDCO7PC242GNYNPGPADGRC2LADY 7  DATA SIGNATURE ::
+#,,..,,,.,.,.,...,..,,..,,..,,..,,,..,...,,,.,..,,...,...,.,,,.,.,,,.,.,,,.,,,
+#3JVD4HGAZOW27YZ35G7J2LVZ6Z55PQH4INDEGENTDZAW6CP3CQGD3OKYJOWM6A5EVUNBWHJV6VEV2
+#\\\|JNDVG2SDX2XPMLUCMXGZDV2KWU5HFAD2QGJQ57GPSYVEBPR6Y2G \ / AMOS7 \ YOURUM ::
+#\[7]JRUACFJ46JRDGXOB2OY4XP2MF476WF2IB35WOPLHTCCQBR6GQGDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

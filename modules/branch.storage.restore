@@ -1,0 +1,150 @@
+## [:< ##
+
+# name  = branch.storage.restore
+# descr = restore branch subtree from snapshot
+# param = { snapshot_id, parent, name, merge }
+
+my $params = shift // {};
+
+my $snapshot_id = $params->{'snapshot_id'} // '';
+return { 'mode' => 'false', 'data' => 'snapshot_id required' }
+    unless length $snapshot_id;
+
+my $parent = $params->{'parent'} // '';
+my $name   = $params->{'name'}   // $snapshot_id;
+my $merge  = $params->{'merge'}  // FALSE;
+
+## load snapshot from local yaml ##
+my $nodes_dir = <system.root_path> . '/configuration/data/branch/nodes';
+my $file_path = "$nodes_dir/$snapshot_id.yaml";
+
+## try snapshot name if exact id file not found ##
+if ( not -f $file_path ) {
+    my $found = FALSE;
+    if ( opendir my $dh, $nodes_dir ) {
+        for my $entry ( readdir $dh ) {
+            next if $entry =~ m|^\.|;
+            if ( $entry =~ m|^\Q$snapshot_id\E\.yaml$| ) {
+                $file_path = "$nodes_dir/$entry";
+                $found     = TRUE;
+                last;
+            }
+        }
+        closedir $dh;
+    }
+}
+
+if ( not -f $file_path ) {
+    <[base.logs]>->(
+        0, 'branch.storage.restore: snapshot not found [ %s ]', $snapshot_id
+    );
+    return { 'mode' => 'false', 'data' => 'snapshot not found' };
+}
+
+my $yaml = <[file.read]>->($file_path);
+if ( not defined $yaml or not length $yaml ) {
+    <[base.logs]>->(
+        0, 'branch.storage.restore: empty snapshot [ %s ]', $file_path
+    );
+    return { 'mode' => 'false', 'data' => 'empty snapshot file' };
+}
+
+my $snapshot;
+eval {
+    <[base.perlmod.autoload]>->('YAML::XS');
+    $snapshot = YAML::XS::Load($yaml);
+    1;
+} or do {
+    my $err = $@ // 'unknown';
+    <[base.logs]>->(
+        0, 'branch.storage.restore: yaml parse error [ %s ]', $err
+    );
+    return { 'mode' => 'false', 'data' => 'yaml parse failed' };
+};
+
+my $root_id              = $snapshot->{'root_id'}  // '';
+my $nodes_in_snapshot    = $snapshot->{'nodes'}    // {};
+my $children_in_snapshot = $snapshot->{'children'} // {};
+
+my $nodes_restored = 0;
+my $nodes_merged   = 0;
+
+## compute attachment parent for root ##
+my $attach_parent
+    = length $parent
+    ? $parent
+    : $nodes_in_snapshot->{$root_id}{'parent'} // '';
+
+## restore nodes ##
+for my $node_id ( sort keys %$nodes_in_snapshot ) {
+    if ( exists $data{'branch.nodes'}{$node_id} ) {
+        if ($merge) {
+            $nodes_merged++;
+            next;
+        }
+    }
+
+    my $node_rec = $nodes_in_snapshot->{$node_id};
+    my $node_parent
+        = $node_id eq $root_id
+        ? $attach_parent
+        : $node_rec->{'parent'};
+
+    $data{'branch.nodes'}{$node_id} = {
+        'id'     => $node_id,
+        'name'   => $node_rec->{'name'} // '',
+        'parent' => length( $node_parent // '' )
+        ? $node_parent
+        : undef,
+        'created' => $node_rec->{'created'} // 0,
+        'pubkey'  => $node_rec->{'pubkey'}  // '',
+        'face'    => $node_rec->{'face'}    // 0,
+        'meta'    => $node_rec->{'meta'}    // {},
+        'groups'  => $node_rec->{'groups'}  // [],
+    };
+
+    ## restore resources if present ##
+    if ( exists $node_rec->{'resources'} ) {
+        $data{'branch.resources'}{$node_id}
+            = $node_rec->{'resources'};
+    }
+
+    $nodes_restored++;
+}
+
+## rebuild children index ##
+for my $node_id ( sort keys %$children_in_snapshot ) {
+    $data{'branch.children'}{$node_id} //= {};
+    for my $child_name ( keys %{ $children_in_snapshot->{$node_id} } ) {
+        my $child_id = $children_in_snapshot->{$node_id}{$child_name};
+        $data{'branch.children'}{$node_id}{$child_name}
+            = $child_id;
+    }
+}
+
+## attach root under named parent if specified ##
+if ( length $parent and length $name ) {
+    $data{'branch.children'}{$parent} //= {};
+    $data{'branch.children'}{$parent}{$name} = $root_id;
+    $data{'branch.nodes'}{$root_id}{'parent'} = $parent;
+}
+
+<[base.logs]>->(
+    2, 'branch.storage.restore: %s restored=%d merged=%d',
+    $snapshot_id, $nodes_restored, $nodes_merged
+);
+
+return {
+    'mode' => 'true',
+    'data' => {
+        'root_id'        => $root_id,
+        'nodes_restored' => $nodes_restored,
+        'nodes_merged'   => $nodes_merged,
+    }
+};
+
+#,,.,,..,,,,,,.,.,,..,..,,.,,,..,,.,.,,.,,..,,.,.,...,...,...,...,,.,,...,,,.,
+#5YRBJZRW7H7TZQEW3B33SP7TIJ5Y3ZQ7E5DCONEEO3OXCT6744PWZWJLJKYFLZTPSTSWGUYIV3AAO
+#\\\|SXSBD4LVGINFH45D4JZDD5HDJBPW7BDAE525E3YNRWBYRQGE2US \ / AMOS7 \ YOURUM ::
+#\[7]WDKJ23FQHHEWW7DV3FDQVHYDPNELMZGZV2GZJO5EOM6V3TPTYMAA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
