@@ -193,6 +193,14 @@ push(    ## glob based wildcard matches ##  [ ,../*/* files ]
         grep {m|\*/.*\*$|} $copy_sources->@*
 );
 
+push(    ## file-extension glob matches ##  [ path/*.ext ]
+    @all_files,
+    grep {-f} map {glob}
+        map  { catfile( $work_tree, $ARG ) }
+        grep {m|/\*\.\w+$|}  ## path/*.ext — not recursive, specific extension
+        $copy_sources->@*
+);
+
 map {
     my $source_path = $ARG;
     die "source path '$source_path' does not exist" if not -d $source_path;
@@ -262,8 +270,8 @@ NXT_PATH:
 
 return @source_paths;
 
-#,,,,,.,.,,,.,,.,,,.,,,,,,,,.,.,,,.,.,.,,,...,..,,...,...,,,,,.,.,..,,.,.,.,,,
-#ZEPMIG6AM2TW4WHCIJXXCAFJDFUEOFUQTKXEMQ46TB54OPXBJALCFTJ6EPFX43AFRYI2Y2QGVDJXM
-#\\\|2X4JLICE7WC5HH62OMPAFSPISQ2CXT5RVDKT5XPQCXXIIXGTE7O \ / AMOS7 \ YOURUM ::
-#\[7]UKXMTQTAZWU3ZYYDJIW3BPCI2SDVPBFKU7XRHEKJCXHT3N342WCI 7  DATA SIGNATURE ::
+#,,,.,..,,.,,,.,,,..,,,..,..,,..,,.,,,,.,,.,,,..,,...,...,,.,,..,,,..,,,,,,.,,
+#Y6AUQ5NHDBJWYTOJQZZW7BGSGAHMOJ5ABTT5V6ZUQ2JBMK5HPOR3BWR23I6P4QBTJQBPTU6X6KQHK
+#\\\|OYT3ROXFM52JKYWOGKZ3LRI5FBVDCE6G43D3YFCRPPGKMDV45G2 \ / AMOS7 \ YOURUM ::
+#\[7]YKZUQJDQ4QONTFYKYI2BXXAP5A6E5VKMWQKBKUMLTDCNLUMAL4DA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
