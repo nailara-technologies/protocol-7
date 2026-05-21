@@ -177,6 +177,49 @@ open issues:
 **diff-modified --no-color**: task file ready; pipe detection means raw format used
   when piped — color IS the only semantic diff marker (no +/- prefix in this format)
 
+## session 38 — web-browser running + display stack live + photonic desktop (2026-05-21)
+
+**web-browser zenka RUNNING** (first time on WSL2):
+- JavaScriptCore 4.1 introspection added (evaluate_javascript result via JSCValue)
+- open_window: map signal replaces Glib::Idle (no race), x11.geometry pre-Gtk3::init
+- wait_for_window: window.gtk.is_mapped → GdkX11 get_xid; X-11 wait as fallback only
+- window.gtk.* namespace: is_mapped, profile.apply, get_screen_size (GTK-only, not base.*)
+- window.profile.*: pure geometry, no GTK, loadable by any zenka
+- window placement: automatic profile, fullscreen/center fallback, tile-groups chain
+- JSC/GdkX11 diagnosed via bin/dev/script-scratchpad/webkit_window_test.pl
+- web-browser.cmd.resize-window + move-window added
+- WEB-BROWSER-VIEW-STACK.md: N-view stack design (Amiga screen-pull model)
+
+**source header validation FIXED** (was disabled since 2021):
+- substr(0,5) vs 11-char string → always true bug found (header changed in 2021)
+- fix: index() check + $code_dir eq <source.code_path> (exact path, not regex)
+- error message now includes filename
+- modules/.context.md removed (dotfile invisible to glob *)
+- source.extract_sig_body: YOURUM fake stub detection (yourum-fake-signature flag)
+
+**smtpd zenka**: 14 modules, YAML conversion, LLM classify, xz+twofish archive
+**credentials zenka**: v2 with keys archive format, AMOS7::TERM::read_password_single
+**kimi-web STRM multiplexer**: dispatch_stream, WebSocket /api/sessions/{id}/stream
+**bin/todo**: project-local data/yaml/todo/, -list <name>, base.sort order
+**window.* + window.gtk.***: placement profiles for all GTK zenki
+**task archival**: 65 completed → data/tasks/completed/, 44 → data/tasks/needs-testing/
+
+**photonic desktop rescued** (github.com/nailara-technologies/photonic-desktop):
+- configuration/applications/: tint2, rofi, jgmenu, gkrellm2, pcmanfm
+- invisible-blue gkrellm2 theme: custom Gimp, rainbow meters with blacklight tint
+- bin/bmw-manifest: BMW384 manifest for binary assets (base.sort order)
+- data/ideas/README.md: TAWS, AMOS Professional, El Gato, AOZ Studio candidates
+
+**TAWS integration**: data/tasks/taws-integration.md + data/md/development/WEB-BROWSER-VIEW-STACK.md
+- TAWS (taws.ch): Amiga Workbench 1.0-4.1 in browser, since 2001, v0.40 Feb 2026
+- same year as damnet/Protocol-7 start — synchronicity
+- AMOS Professional now Public Domain → AMOS7 name has clean provenance
+- El Gato (Kevin Sullivan 1987): translucent rotating cat, todo list for P7 upgrade
+
+**markdown signature rendering**: ``` fence before all #,,, footers in read-me/
+- separator endline bug triggered: stale octal delta when ``` changes last content line
+- fix pending: data/tasks/sourcecode-normalize-endline-paths.md
+
 **model-key idea (end of session):**
   give each model USR.<model-id>.base-key like USR.lain.base-key
   update-signatures uses active model key by default
@@ -925,8 +968,8 @@ Skip calling harmonize_payload_line_feed when both conditions are met:
 - Signatures now properly formatted with correct separator endline
 - Pre-commit validation passes
 
-#,,,,,..,,.,,,,,.,..,,..,,,,,,.,.,...,,..,,.,,..,,...,...,,.,,...,,.,,,..,,..,
-#4NU5FYL7U2YJB2UOYAO3WZ2MXCYEORJIP7EAUDBAN4O5ZD3F4HYYONNRFJN6ZJV3RMVEGEKHU4SHA
-#\\\|X4DLRXOHV6ADXFOZTFQ42E74LTJM4EQLTRKPM2AW2YCONUVBILM \ / AMOS7 \ YOURUM ::
-#\[7]M2DYHFW2FLFCDTQEIZNSSZXBBRVI5IVMHPOCOOCDNOSUAECRFGAI 7  DATA SIGNATURE ::
+#,,,,,...,,,.,,..,.,,,,.,,.,,,...,,.,,..,,,.,,..,,...,...,,..,,,.,,,.,,,.,,.,,
+#5CJRQGZ3IAWQC4YLNOYE35HO73NHUWBGL4EFIVIG2VXUL2TO7U4YFCAURREX3LMVRMUU4WSE3PLGS
+#\\\|2LAF7B7YABOUAX3D5XMH2N27UN2AVZQ2PREFAAVRXERDOOL467W \ / AMOS7 \ YOURUM ::
+#\[7]U7Q3WCEGBKKGCYNYE3KASPVR6ZVAJ2UW66HJ5ESEFQBLVGFJOADA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
