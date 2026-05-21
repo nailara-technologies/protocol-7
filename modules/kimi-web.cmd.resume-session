@@ -1,0 +1,131 @@
+## [:< ##
+
+# name  = kimi-web.cmd.resume-session
+# descr = spawn agent with prior session context loaded
+# param = session-uuid [ optional resume prompt ]
+
+my $args = $call->{'args'} // '';
+
+my ( $uuid, $resume_prompt ) = split m| +|, $args, 2;
+$uuid          //= '';
+$resume_prompt //= '';
+
+if ( not length $uuid ) {
+    return {
+        'mode' => qw| false |,
+        'data' => 'session uuid required'
+    };
+}
+
+my $sessions_dir = <kimi-web.cfg.sessions_dir>
+    // join( qw| / |, $ENV{'HOME'} // '', qw| .kimi sessions | );
+
+## resolve session path [ flat or nested ] ##
+my $session_dir = "$sessions_dir/$uuid";
+if ( not -d $session_dir ) {
+    my $nested = ( <[base.file.glob]>->("$sessions_dir/*/$uuid") )->[0];
+    $session_dir = $nested if defined $nested and length $nested;
+}
+
+## prefer distilled context if available ##
+my $ctx_path = "$session_dir/distilled.md";
+if ( not -f $ctx_path ) {
+    $ctx_path = "$session_dir/context.jsonl";
+}
+
+if ( not -f $ctx_path or not -r _ ) {
+    return {
+        'mode' => qw| false |,
+        'data' => "no context found for session $uuid"
+    };
+}
+
+## read context [ with size limit for spawn args ] ##
+my $context_data = '';
+if ( $ctx_path =~ m|\.jsonl$| ) {
+    ## extract user/assistant messages from jsonl ##
+    open my $fh, '<',
+        $ctx_path
+        or return {
+        'mode' => qw| false |,
+        'data' => 'cannot read context.jsonl'
+        };
+    my @messages;
+    while ( my $line = <$fh> ) {
+        my $entry = eval { <[format.json.decode]>->($line) };
+        next if ref $entry ne qw| HASH |;
+        my $role = $entry->{'role'} // '';
+        next if $role =~ m|^_|;    ## skip _checkpoint, _usage ##
+        if ( $role eq qw| user | ) {
+            push @messages, "user: " . ( $entry->{'content'} // '' );
+        } elsif ( $role eq qw| assistant | ) {
+            my $text = '';
+            if ( ref $entry->{'content'} eq qw| ARRAY | ) {
+                for my $part ( @{ $entry->{'content'} } ) {
+                    next if ref $part ne qw| HASH |;
+                    $text .= $part->{'text'} // ''
+                        if ( $part->{'type'} // '' ) eq qw| text |;
+                }
+            } else {
+                $text = $entry->{'content'} // '';
+            }
+            push @messages, "assistant: $text" if length $text;
+        }
+    }
+    close $fh;
+    $context_data = join( "\n\n", @messages );
+} else {
+    $context_data = eval { <[base.file.read]>->($ctx_path) } // '';
+}
+
+## truncate if too large for agent spawn [ ~256K chars ] ##
+my $max_ctx = 262144;
+if ( length $context_data > $max_ctx ) {
+    $context_data = substr( $context_data, -$max_ctx );
+    $context_data =~ s|^[^\n]*\n||;    ## start at line boundary ##
+}
+
+## build resume prompt ##
+my $prompt = "Previous session context:\n\n$context_data\n\n";
+if ( length $resume_prompt ) {
+    $prompt .= "Resume instruction: $resume_prompt\n";
+} else {
+    $prompt .= "Continue from where the previous session left off.\n";
+}
+
+## write to temp file for spawn_agent context_slice ##
+my $zenka_dir = <[base.file.zenka_dir.data_path]>->();
+my $temp_dir  = "$zenka_dir/sessions";
+mkdir $temp_dir, 0755 unless -d $temp_dir;
+my $temp_path = "$temp_dir/$uuid-resume.txt";
+<[file.write]>->( $temp_path, $prompt );
+
+## spawn agent with resume context ##
+my $spawn_result = <[kimi-web.cmd.spawn_agent]>->(
+    {   'args' => {
+            'context_slice' => $temp_path,
+            'priority'      => 5,
+        }
+    }
+);
+
+if ( $spawn_result->{'mode'} ne qw| true | ) {
+    return {
+        'mode' => qw| false |,
+        'data' => 'spawn failed: ' . ( $spawn_result->{'data'} // 'unknown' )
+    };
+}
+
+return {
+    'mode' => qw| true |,
+    'data' => 'resumed session '
+        . $uuid
+        . ' as agent '
+        . $spawn_result->{'data'}
+};
+
+#,,,,,,..,,,.,.,,,..,,.,.,...,..,,.,,,,..,...,.,.,...,...,...,.,.,.,,,,..,,,,,
+#RD5537VXLZDMLGHPNUARUSFJD7IG74IWNF4VCF6JTVTMXUEHUJMTMFRPOT5EJNSGQ33OEW25ZCLL2
+#\\\|MVKIRGYCAWDGXGSQ47XC2K4A4VQWQRYBLA6HQYN54YZS66ED27Q \ / AMOS7 \ YOURUM ::
+#\[7]VV2LMTCU45LCUXNYK6VCPVWVGXNFIEOBTQRS2DKBBQ4H5UJRGAAQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

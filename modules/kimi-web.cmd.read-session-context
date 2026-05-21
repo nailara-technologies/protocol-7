@@ -1,0 +1,105 @@
+## [:< ##
+
+# name  = kimi-web.cmd.read-session-context
+# descr = stream session context.jsonl via STRM
+# param = session-uuid [ tail:N ]
+
+my $args = $call->{'args'} // '';
+
+my ( $uuid, $opt ) = split m| +|, $args, 2;
+$uuid //= '';
+$opt  //= '';
+
+if ( not length $uuid ) {
+    return {
+        'mode' => qw| false |,
+        'data' => 'session uuid required'
+    };
+}
+
+my $sessions_dir = <kimi-web.cfg.sessions_dir>
+    // join( qw| / |, $ENV{'HOME'} // '', qw| .kimi sessions | );
+
+## resolve session path [ flat or nested ] ##
+my $session_dir = "$sessions_dir/$uuid";
+if ( not -d $session_dir ) {
+    my $nested = ( <[base.file.glob]>->("$sessions_dir/*/$uuid") )->[0];
+    $session_dir = $nested if defined $nested and length $nested;
+}
+
+my $ctx_path = "$session_dir/context.jsonl";
+
+if ( not -f $ctx_path or not -r _ ) {
+    return {
+        'mode' => qw| false |,
+        'data' => "context.jsonl not found for $uuid"
+    };
+}
+
+## tail mode : return last N lines as size reply ##
+if ( $opt =~ m|^tail:(\d+)$| ) {
+    my $n = 0 + $LAST_PAREN_MATCH;
+    open my $ph, '-|', qw| tail -n |, $n,
+        $ctx_path
+        or return {
+        'mode' => qw| false |,
+        'data' => 'failed to run tail'
+        };
+    local $/;
+    my $content = <$ph>;
+    close $ph;
+    return { 'mode' => qw| size |, 'data' => $content // '' };
+}
+
+## stream mode : register with base.file_stream.active ##
+my $sid    = $call->{'session_id'};
+my $cmd_id = $call->{'cmd_id'};
+
+my $stream_handle = <[base.stream.open]>->(
+    {   'sid'    => $sid,
+        'cmd_id' => $cmd_id,
+        'type'   => qw| STRM |,
+        'total'  => undef,        ## unbounded ##
+    }
+);
+
+if ( not defined $stream_handle ) {
+    return {
+        'mode' => qw| false |,
+        'data' => 'stream open failed'
+    };
+}
+
+open( my $fh, qw| <:raw |, $ctx_path ) or do {
+    <[base.logs]>->(
+        1, 'read-session-context: open failed [ %s ]', $ctx_path
+    );
+    <[base.stream.close]>->($stream_handle);
+    return {
+        'mode' => qw| false |,
+        'data' => 'cannot open context.jsonl'
+    };
+};
+
+my $key = join qw| . |, $sid, $cmd_id;
+
+<base.file_stream.active> //= {};
+<base.file_stream.active>->{$key} = {
+    'fh'         => $fh,
+    'h'          => $stream_handle,
+    'chunk_size' => 65536,
+    'path'       => $ctx_path,
+};
+
+<[base.file_stream.init]>
+    if not defined <base.file_stream.watcher>
+    or not <base.file_stream.watcher>->is_active;
+
+## return deferred — STRM delivers file content ##
+return { 'mode' => qw| deferred | };
+
+#,,,.,,,,,,,,,,,,,,..,,.,,,,.,,..,,.,,,,,,.,.,.,.,...,...,,..,.,.,,,.,.,,,,.,,
+#FDWDG5VZ7V4P3MTAUNDK5YQDQ5VWTY2U3HGT3FKDXGFAGICLNALIRLJTYMUXWR77EFNWQDUWMJ3UK
+#\\\|FQGWNXYTJAHEEKLUGGEQQ2ZZUOCS2LVESPB3NI5GUPANH6G7JHV \ / AMOS7 \ YOURUM ::
+#\[7]4VSAOTMGHOGOJO6FTFJJTQYB6V5RSNCKUOPTSHBYCKZW6UG73KDQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
