@@ -25,21 +25,50 @@ if ( $mode eq 'TRUE' ) {
 } elsif ( $mode eq 'FALSE' ) {
     <[base.log]>->( 1, "renewal failed for $domain: $args" );
 
-    ## Schedule retry with exponential backoff
+    ## detect rate limit — schedule at retry_after time, not backoff
+    if (   ( $args // q|| ) =~ m|rate.?limit|i
+        or ( $data // q|| ) =~ m|rate.?limit|i
+        or ( $args // q|| ) =~ m|rateLimited|i ) {
+        my $retry_after_str = $reply_data->{'data'} // '';
+        ## parse "retry after 2026-05-22 14:44:26 UTC" from data field
+        my $delay = 3600;    ## default 1h if parse fails
+        if ( $retry_after_str
+            =~ m|(\d{4}-\d{2}-\d{2}) (\d{2}:\d{2}:\d{2}) UTC| ) {
+            require Time::Local;
+            my ( $y, $mo, $d ) = split /-/, $1;
+            my ( $h, $mi, $s ) = split /:/, $2;
+            my $retry_epoch
+                = Time::Local::timegm( $s, $mi, $h, $d, $mo - 1, $y - 1900 );
+            $delay = $retry_epoch - time();
+            $delay = 60 if $delay < 60;       ## minimum 1 minute
+        }
+        <[base.logs]>->(
+            1, 'rate limited for %s — waiting %d seconds (retry after: %s)',
+            $domain, $delay, $retry_after_str || 'unknown'
+        );
+        <letsencr.parent.renewal_timers>->{$domain}{status}
+            = qw| rate_limited |;
+        <letsencr.parent.renewal_timers>->{$domain}{attempts} = 1;
+        <[event.add_timer]>->(
+            {   'delay'   => $delay,
+                'handler' => qw| letsencr.parent.handler_renewal_retry |,
+            }
+        );
+        return FALSE;
+    }
+
+    ## normal failure — schedule retry with exponential backoff
     my $attempt = ( $reply_data->{'params'}{'attempt'} // 1 ) + 1;
 
     if ( $attempt <= 5 ) {
-        my @backoff_delays = ( 300, 600, 1200, 2400, 4800 )
-            ;    ## 5min, 10min, 20min, 40min, 80min
-        my $delay = $backoff_delays[ $attempt - 1 ] // 4800;
+        my @backoff_delays = ( 300, 600, 1200, 2400, 4800 );
+        my $delay          = $backoff_delays[ $attempt - 1 ] // 4800;
 
-        <[base.log]>->(
-            2,
-            "scheduling retry for $domain in $delay seconds"
-                . " (attempt $attempt)"
+        <[base.logs]>->(
+            2, "scheduling retry for %s in %d seconds (attempt %d)",
+            $domain, $delay, $attempt
         );
 
-        ## mark as pending retry in renewal_timers for handler to pick up
         <letsencr.parent.renewal_timers>->{$domain}{status}   = qw| retry |;
         <letsencr.parent.renewal_timers>->{$domain}{attempts} = $attempt;
 
@@ -178,8 +207,8 @@ if ( $mode eq 'TRUE' ) {
 
 return FALSE;
 
-#,,,.,,..,,,.,.,,,,.,,.,,,,.,,,,,,,,,,,,,,,.,,..,,...,...,.,.,...,,.,,,,.,,,.,
-#YSRNNALXKCHVWZ5AQKSNMG32TYU2HDYLO2JLQCOWWVRY64SRQOCXV3MXFOL6SWR667SK6C33WXZG6
-#\\\|QLLBEIEEOWZFXJICS6YTCSBLWQX65MB5E2PZUQCDF7IKGM7GUEW \ / AMOS7 \ YOURUM ::
-#\[7]ERJT65UBLZ4I7TEVAXTMVXCEQ6O6TJS75FM6JLH4LKPAGVHBVQCQ 7  DATA SIGNATURE ::
+#,,,.,,,,,.,.,,.,,.,.,...,,,,,..,,,..,,.,,,.,,..,,...,..,,..,,.,,,...,,..,,..,
+#VIDXM3P5KWBBVUMVOH2LLCBLOFQOZJTVXGDKLZPNO2UNKR3JVRMVURHQAK6PKWAWKCERPDHE6E6TK
+#\\\|OBCRFNK54L6SF73AXLSAKTYHNIGOEYEBJX4ZJES6WOBJGFEBZR3 \ / AMOS7 \ YOURUM ::
+#\[7]TRDODXRD2RWYDWBGNA5AXATPMOFCZ5OYR6VVLGTWHJZHVWTJMUCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

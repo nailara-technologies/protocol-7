@@ -85,6 +85,16 @@ unless ($order) {
     };
 }
 
+## propagate rate_limited upstream immediately
+if ( ref $order eq qw| HASH |
+    and ( $order->{error} // '' ) eq qw| rate_limited | ) {
+    return {
+        'status'      => qw| error |,
+        'error'       => 'rate_limited',
+        'retry_after' => $order->{retry_after} // '',
+    };
+}
+
 <[base.logs]>->( 2, 'order URL: %s', $order->{'order_url'} );
 <[base.logs]>->(
     2,
@@ -122,8 +132,8 @@ return {
     'primary_domain' => $primary_domain,
 };
 
-#,,,,,.,.,,,,,,,.,.,.,,,,,...,,.,,,,,,..,,...,..,,...,...,...,,.,,.,,,..,,.,,,
-#QPGSNA6XR3W2TGAQ47DC3BQRVLFD43RG2M42NNYSHAIKLR6HOGKYGE22VOJQAIEORS2BKOXQH6YOM
-#\\\|7WV3D7LCAWELT5OSM42RAXZ4FBG5NKTJ7PYEHFIQ4ZDJIINMJRW \ / AMOS7 \ YOURUM ::
-#\[7]XXX47AI6QQFXF2MVGCI6VSMIC4QQBM4KAXUA63P73ALP5HD662CI 7  DATA SIGNATURE ::
+#,,,.,,,,,...,.,.,,..,,..,,..,,,,,...,..,,,..,..,,...,...,,,.,,,,,,,.,...,.,.,
+#B4IDHOMLB6Q3MXTE4MSOFJ5UUND4TTAEAQXW3RSEEAPGAOLKMUGUYF3CAHLLX4G3RBDXYO74ZSVFI
+#\\\|QMRPR53D6EY7RQBQFFX3J3O4SXIQPDN52ABHEUG5CON56Z2GCXQ \ / AMOS7 \ YOURUM ::
+#\[7]B7YXDUGY2XJ5HQQKOJ5YNH7XVHB2HUBOB3WYSJFBPS2ENCAFU4AA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
