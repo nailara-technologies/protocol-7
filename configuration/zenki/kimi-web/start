@@ -8,6 +8,9 @@ access.cmd.usr.cube = commands heart reload verify-instance \
                       spawn_agent list_agents dispatch dispatch_parallel \
                       dispatch_stream enqueue \
                       terminate_agent resolve_template \
+                      list-sessions get-session-state read-session-context \
+                      find-session resume-session distill-session \
+                      inject-context-to-coding \
                       src-age src-ver subname name \
                       eval-code deparse-code list-subs
 
@@ -17,6 +20,12 @@ system.verbosity.zenka_console = 2
 ## agent configuration
 kimi-web.agent.base_port   = 16000
 kimi-web.agent.max_agents  = 8
+
+## session cache configuration
+kimi-web.cfg.sessions_dir = ~/.kimi/sessions
+kimi-web.cfg.context_file = context.jsonl
+kimi-web.cfg.state_file   = state.json
+kimi-web.cfg.wire_file    = wire.jsonl
 
 ## default context template budget
 kimi-web.template.budget = 8000
@@ -37,8 +46,8 @@ modules.load = auth net protocol io.unix crypt.C25519 \
 
 [zenka.loop]
 
-#,,..,,..,,,,,,..,,..,,.,,.,.,,..,,,,,,..,,..,..,,...,.,.,...,...,...,.,.,.,.,
-#YDH6YLFXHIFJGLGQE5XOAHBGPQS5N2YDGEL4OK3LSJBQCA5UD6UPS4J7JKCZMXKJZYEAPRRKZEZ2K
-#\\\|AWVU226ZFL5CTSVJTSKWZDVCXX3RNV4LF6SED53YAPPAKUXLWW5 \ / AMOS7 \ YOURUM ::
-#\[7]VUB2W2VPDHEJH4VC2MZGWTI2JBOT43CZSSKJRYL6HU53HN7J3WCY 7  DATA SIGNATURE ::
+#,,.,,..,,.,.,,,,,..,,,..,,,,,,..,.,.,...,,,.,..,,...,..,,.,,,...,,.,,.,.,,.,,
+#DVXYEOKRM4ZWO6G5SAX3HSTB7CYWBKYU6PYPSMO3WQFBNF6R4G5EYBKVH5TEDDMBQBU3A322VZJBU
+#\\\|Y7A7DZ2HNXXEM3DWKYBLZYOHDIHUKXCG7T35GFSP5TZSR3SGAW4 \ / AMOS7 \ YOURUM ::
+#\[7]Z24TU2BSWT4UTRDF3QWI4JH7SJ6T26WL2ADS3ZCTBYB5IAYXX2BQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

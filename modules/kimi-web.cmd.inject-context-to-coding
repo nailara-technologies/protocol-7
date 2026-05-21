@@ -1,0 +1,122 @@
+## [:< ##
+
+# name  = kimi-web.cmd.inject-context-to-coding
+# descr = inject session context into coding zenka
+# param = session-uuid question
+
+my $args = $call->{'args'} // '';
+
+my ( $uuid, $question ) = split m| +|, $args, 2;
+$uuid     //= '';
+$question //= '';
+
+if ( not length $uuid ) {
+    return {
+        'mode' => qw| false |,
+        'data' => 'session uuid required'
+    };
+}
+if ( not length $question ) {
+    return {
+        'mode' => qw| false |,
+        'data' => 'question required'
+    };
+}
+
+my $sessions_dir = <kimi-web.cfg.sessions_dir>
+    // join( qw| / |, $ENV{'HOME'} // '', qw| .kimi sessions | );
+
+## resolve session path [ flat or nested ] ##
+my $session_dir = "$sessions_dir/$uuid";
+if ( not -d $session_dir ) {
+    my $nested = ( <[base.file.glob]>->("$sessions_dir/*/$uuid") )->[0];
+    $session_dir = $nested if defined $nested and length $nested;
+}
+
+## prefer distilled context ##
+my $ctx_path = "$session_dir/distilled.md";
+if ( not -f $ctx_path ) {
+    $ctx_path = "$session_dir/context.jsonl";
+}
+
+if ( not -f $ctx_path or not -r _ ) {
+    return {
+        'mode' => qw| false |,
+        'data' => "no context found for session $uuid"
+    };
+}
+
+## read context [ with size limit ] ##
+my $context_data = '';
+if ( $ctx_path =~ m|\.jsonl$| ) {
+    open my $fh, '<',
+        $ctx_path
+        or return {
+        'mode' => qw| false |,
+        'data' => 'cannot read context.jsonl'
+        };
+    my @messages;
+    while ( my $line = <$fh> ) {
+        my $entry = eval { <[format.json.decode]>->($line) };
+        next if ref $entry ne qw| HASH |;
+        my $role = $entry->{'role'} // '';
+        next if $role =~ m|^_|;
+        if ( $role eq qw| user | ) {
+            push @messages, "user: " . ( $entry->{'content'} // '' );
+        } elsif ( $role eq qw| assistant | ) {
+            my $text = '';
+            if ( ref $entry->{'content'} eq qw| ARRAY | ) {
+                for my $part ( @{ $entry->{'content'} } ) {
+                    next if ref $part ne qw| HASH |;
+                    $text .= $part->{'text'} // ''
+                        if ( $part->{'type'} // '' ) eq qw| text |;
+                }
+            } else {
+                $text = $entry->{'content'} // '';
+            }
+            push @messages, "assistant: $text" if length $text;
+        }
+    }
+    close $fh;
+    $context_data = join( "\n\n", @messages );
+} else {
+    $context_data = eval { <[base.file.read]>->($ctx_path) } // '';
+}
+
+## truncate to coding-friendly size [ ~64K chars ] ##
+my $max_ctx = 65536;
+if ( length $context_data > $max_ctx ) {
+    $context_data = substr( $context_data, -$max_ctx );
+    $context_data =~ s|^[^\n]*\n||;
+}
+
+## build work request ##
+my $request
+    = "Continue analysis from kimi session $uuid.\n\n"
+    . "Context:\n$context_data\n\n"
+    . "Question: $question\n";
+
+## submit to coding zenka ##
+my $sent = <[protocol-7.route-send]>->(
+    {   'command'   => qw| coding.submit |,
+        'call_args' => { 'args' => $request }
+    }
+);
+
+if ( $sent <= 0 ) {
+    return {
+        'mode' => qw| false |,
+        'data' => 'failed to submit to coding zenka'
+    };
+}
+
+return {
+    'mode' => qw| true |,
+    'data' => 'context injected to coding zenka'
+};
+
+#,,..,...,...,..,,.,.,,.,,...,,..,...,,.,,,..,.,.,...,...,.,.,.,,,,,.,,.,,..,,
+#IZBI3BDY67O27LGWWC5EGBXER7NOLS2M3RIIYLLYX3QQRHO353E6YZ4FVCP62XL6HX5HQBWT5Z4NE
+#\\\|PYRF7DAAJNJXJWBZS7RRCP55UROBFIDRJDFM3N5AGSCRMOSDJPU \ / AMOS7 \ YOURUM ::
+#\[7]BS37B2QLP4SIWVPC5YPT2PSGACUYITBWSUO37F3WGTVIBJCNH2DI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

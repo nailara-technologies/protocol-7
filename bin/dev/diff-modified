@@ -32,8 +32,6 @@ my $neon_green  = " \e[38;2;9;170;94m";
 my $colors_add = $nailara_fg;
 my $colors_del = $blacklight;
 
-say $nailara_bg. $blacklight . '.' . $reset;
-
 my $l = $nailara_bg . $blacklight . ':' . $reset . ' ';
 my $d = $nailara_bg . $blacklight . '.' . $reset . ' ';
 
@@ -57,6 +55,13 @@ my $has_stdin        = has_stdin();
 my $ansi_color_regex = qr'(\e\[([0-9]{1,3}(;[0-9]{1,3}){0,10})[mK])?';
 my $meta_color       = '';
 
+my $strip_ansi = sub {
+    my $s = shift;
+    return $s unless defined $s;
+    $s =~ s/\e\[[0-9;]*[mK]//g;
+    return $s;
+};
+
 my ( $file_1, $file_2 );
 my $args              = argv();    # hashref of all the ARGV stuff
 my $last_file_seen    = '';
@@ -76,6 +81,30 @@ if ( $args->{color_on} ) {
     $manually_color_lines = 0;
     $color_forced         = 1;
 }
+
+my $no_color_mode = 0;
+if ( $args->{'no-color'} ) {
+    $no_color_mode            = 1;
+    $strip_leading_indicators = 0;
+    $mark_empty_lines         = 0;
+}
+
+if ($no_color_mode) {
+    $bold        = '';
+    $reset       = '';
+    $nailara_bg  = '';
+    $blacklight  = '';
+    $nailara_fg  = '';
+    $error_color = '';
+    $neon_green  = '';
+    $colors_add  = '';
+    $colors_del  = '';
+    $meta_color  = '';
+    $l           = ': ';
+    $d           = '. ';
+}
+
+say $nailara_bg. $blacklight . '.' . $reset;
 
 # we only process ARGV if we do not have STDIN
 if ( !$has_stdin ) {
@@ -207,6 +236,7 @@ sub do_dsf_stuff {
     my $skip_empty_output = 0;
 
     while ( my $line = shift(@$input) ) {
+        $line = $strip_ansi->($line) if $no_color_mode;
         ######################################################
         # pre-process the line before we do any other markup #
         ######################################################
@@ -253,7 +283,11 @@ sub do_dsf_stuff {
                     and length($next)
                     and $next ne '/dev/null' ) {
                     $last_file_seen = $next;
-                    $last_file_seen =~ s|\e|\\e|g;
+                    if ($no_color_mode) {
+                        $last_file_seen = $strip_ansi->($last_file_seen);
+                    } else {
+                        $last_file_seen =~ s|\e|\\e|g;
+                    }
                     last;
                 }
                 $index++;
@@ -887,6 +921,8 @@ diff-so-fancy --colors                   # view the commands to set
 diff-so-fancy --set-defaults             # configure git-diff to use
                                          # diff-so-fancy and suggested colors
 
+git diff | diff-modified --no-color      ## LLM-readable: keeps +/- prefixes, no ANSI
+
            ## configure git to use d-s-f for *all* diff operations
 
 git config --global core.pager \"diff-so-fancy | less --tabs=4 -RFX\"\n\n"
@@ -953,6 +989,7 @@ sub set_defaults {
 
     sub get_config_color {
         my $str = shift();
+        return "" if $no_color_mode;
 
         my $ret = "";
         if ( $static_config->{$str} ) {
@@ -1037,8 +1074,8 @@ sub get_terminal_width {
 
 # vim: tabstop=4 shiftwidth=4 noexpandtab autoindent softtabstop=4
 
-#,,,,,,,.,,,,,,..,.,.,,,,,.,.,,,,,,..,,..,,..,..,,...,...,...,..,,,,.,,,.,,,.,
-#H7ODCLIFONLKJ3OQ5W7X433NDFM4DZGHYUVLNDVVT3J5KFDW2YH5Q2OXF7KU7VELGGWVP5IEKLDBW
-#\\\|XYLYG7F45ACMSFXQG7UOST2IJPQQTR74XZ762ABBKJGXQNODJE4 \ / AMOS7 \ YOURUM ::
-#\[7]P3NIEIUE6GYOGBWDIFX35XEZM4WL5QXE56QZT74PTH6AMOUXMKCY 7  DATA SIGNATURE ::
+#,,.,,,,,,...,...,,,,,...,,,.,...,,,.,,,,,.,.,..,,...,...,.,,,.,,,...,,..,,,.,
+#NZ4SE4L7CQCTBWZYF7DKFSMBUDVK66LFPFLCQIOGTOKUIIEELJZDKVXNEYBYV5ZFK4SAGAVMDT5QW
+#\\\|MLOJX6SEMRDGWYVJEPQKR5REKJHPZFNDN7XB7QD22F3X26SHI7P \ / AMOS7 \ YOURUM ::
+#\[7]X5R2WB3PD4UDKN2NWWMZHX2GJMUFO4KASNZCANNMSK4KP2Q7X4BQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
