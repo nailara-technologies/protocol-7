@@ -1,0 +1,142 @@
+## [:< ##
+
+# name  = kimi-web.cmd.distill-session
+# descr = produce a condensed summary of session context
+# param = session-uuid
+
+my $args = $call->{'args'} // '';
+
+my ( $uuid, $rest ) = split m| +|, $args, 2;
+$uuid //= '';
+
+if ( not length $uuid ) {
+    return {
+        'mode' => qw| false |,
+        'data' => 'session uuid required'
+    };
+}
+
+my $sessions_dir = <kimi-web.cfg.sessions_dir>
+    // join( qw| / |, $ENV{'HOME'} // '', qw| .kimi sessions | );
+
+## resolve session path [ flat or nested ] ##
+my $session_dir = "$sessions_dir/$uuid";
+if ( not -d $session_dir ) {
+    my $nested = ( <[base.file.glob]>->("$sessions_dir/*/$uuid") )->[0];
+    $session_dir = $nested if defined $nested and length $nested;
+}
+
+my $ctx_path = "$session_dir/context.jsonl";
+
+if ( not -f $ctx_path or not -r _ ) {
+    return {
+        'mode' => qw| false |,
+        'data' => "context.jsonl not found for $uuid"
+    };
+}
+
+## read and distill context.jsonl ##
+open my $fh, '<',
+    $ctx_path
+    or return {
+    'mode' => qw| false |,
+    'data' => 'cannot read context.jsonl'
+    };
+
+my @exchanges;
+my $current_user      = '';
+my $current_assistant = '';
+
+while ( my $line = <$fh> ) {
+    my $entry = eval { <[format.json.decode]>->($line) };
+    next if ref $entry ne qw| HASH |;
+    my $role = $entry->{'role'} // '';
+
+    if ( $role eq qw| user | ) {
+        ## flush previous exchange ##
+        if ( length $current_user or length $current_assistant ) {
+            push @exchanges,
+                {
+                'user'      => $current_user,
+                'assistant' => $current_assistant
+                };
+        }
+        $current_user      = $entry->{'content'} // '';
+        $current_assistant = '';
+    } elsif ( $role eq qw| assistant | ) {
+        my $text = '';
+        if ( ref $entry->{'content'} eq qw| ARRAY | ) {
+            for my $part ( @{ $entry->{'content'} } ) {
+                next if ref $part ne qw| HASH |;
+                my $type = $part->{'type'} // '';
+                if ( $type eq qw| text | ) {
+                    $text .= $part->{'text'} // '';
+                }
+            }
+        } else {
+            $text = $entry->{'content'} // '';
+        }
+        ## skip tool-only responses [ empty text ] ##
+        $current_assistant = $text if length $text;
+    }
+}
+close $fh;
+
+## flush final exchange ##
+if ( length $current_user or length $current_assistant ) {
+    push @exchanges,
+        { 'user' => $current_user, 'assistant' => $current_assistant };
+}
+
+## keep last 50 exchanges if too many [ most recent context ] ##
+if ( @exchanges > 50 ) {
+    @exchanges = @exchanges[ -50 .. -1 ];
+}
+
+## format as markdown ##
+my @md_lines = ( "# distilled session summary\n", "session: $uuid\n" );
+for my $ex (@exchanges) {
+    push @md_lines, "## user\n";
+    push @md_lines, $ex->{'user'}, "\n" if length $ex->{'user'};
+    if ( length $ex->{'assistant'} ) {
+        push @md_lines, "## assistant\n";
+        push @md_lines, $ex->{'assistant'}, "\n";
+    }
+}
+
+my $distilled = join '', @md_lines;
+
+## truncate to ~10KB target if still large ##
+my $target_size = 10 * 1024;
+if ( length $distilled > $target_size ) {
+    $distilled = substr( $distilled, -$target_size );
+    $distilled =~ s|^[^\n]*\n||;
+    $distilled = "# distilled session summary [truncated]\nsession: $uuid\n\n"
+        . $distilled;
+}
+
+## save distilled.md ##
+my $out_path = "$session_dir/distilled.md";
+my $write_ok = eval { <[file.write]>->( $out_path, $distilled ) };
+
+if ( not $write_ok ) {
+    return {
+        'mode' => qw| false |,
+        'data' => 'failed to write distilled.md'
+    };
+}
+
+return {
+    'mode' => qw| true |,
+    'data' => "distilled.md saved [ "
+        . length($distilled)
+        . " bytes, "
+        . scalar(@exchanges)
+        . " exchanges ]"
+};
+
+#,,..,,.,,...,,..,,,,,.,,,..,,,,,,.,.,,,.,.,,,.,.,...,...,,..,,,.,...,.,.,,,,,
+#FMBGMVEFHJGN34LOUI5EUI5BH2VOY3BO3BVFZMIWOZHDQLKN3JA4N4VO5RLTANQP3XFEYQ3YFHLD2
+#\\\|VZN2VR3U4YVGG7LTTLSURTDJB63W3A63JSASHS32XGY7VSMMHFJ \ / AMOS7 \ YOURUM ::
+#\[7]PBP7Z7WIWTFLA3EC73P72SAIL5MV6I33C3R726YXKN5EQFZ3OQBQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

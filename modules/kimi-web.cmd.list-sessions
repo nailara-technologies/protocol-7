@@ -1,0 +1,113 @@
+## [:< ##
+
+# name  = kimi-web.cmd.list-sessions
+# descr = list available kimi-cli session caches with metadata
+# param = filter - 'recent:N' or 'search:term' (optional)
+
+my $args = $call->{'args'} // '';
+
+my $sessions_dir = <kimi-web.cfg.sessions_dir>
+    // join( qw| / |, $ENV{'HOME'} // '', qw| .kimi sessions | );
+
+## find all session directories [ dirs containing state.json ] ##
+my @session_dirs;
+if ( -d $sessions_dir ) {
+    my $glob_pattern = "$sessions_dir/*/*/state.json";
+    my $state_files  = <[base.file.glob]>->($glob_pattern);
+    for my $state_path (@$state_files) {
+        my $session_dir = $state_path;
+        $session_dir =~ s|/state\.json$||;
+        push @session_dirs, $session_dir;
+    }
+    ## also check flat structure [ ~/.kimi/sessions/<uuid>/ ] ##
+    $glob_pattern = "$sessions_dir/*/state.json";
+    $state_files  = <[base.file.glob]>->($glob_pattern);
+    for my $state_path (@$state_files) {
+        my $session_dir = $state_path;
+        $session_dir =~ s|/state\.json$||;
+        push @session_dirs, $session_dir;
+    }
+}
+
+my @sessions;
+for my $dir (@session_dirs) {
+    ( my $uuid = $dir ) =~ s|^.*/||;
+    next if $uuid =~ m|^\.+$|;
+
+    my $state_path = "$dir/state.json";
+    my $ctx_path   = "$dir/context.jsonl";
+
+    my $state = {};
+    if ( -f $state_path and -r _ ) {
+        my $content = eval { <[base.file.read]>->($state_path) } // '';
+        $state = <[format.json.decode]>->($content) if length $content;
+    }
+
+    my $mtime = ( stat($dir) )[9] // 0;
+    my $size  = -f $ctx_path ? ( -s $ctx_path ) : 0;
+
+    my $line_count = 0;
+    if ( -f $ctx_path ) {
+        open my $fh, '<', $ctx_path or do { };
+        if ( defined $fh ) {
+            $line_count++ while <$fh>;
+            close $fh;
+        }
+    }
+
+    push @sessions,
+        {
+        'uuid'       => $uuid,
+        'mtime'      => $mtime,
+        'size_bytes' => $size,
+        'size_mb'    => sprintf( qw| %.1f |, $size / ( 1024 * 1024 ) ),
+        'line_count' => $line_count,
+        'model'      => '-',
+        'title'      => $state->{'custom_title'} // '',
+        'archived'   => $state->{'archived'}     // 0,
+        };
+}
+
+## apply filters ##
+if ( $args =~ m|^recent:(\d+)$| ) {
+    my $n      = 0 + $LAST_PAREN_MATCH;
+    my @sorted = sort { $b->{'mtime'} <=> $a->{'mtime'} } @sessions;
+    @sessions = @sorted[ 0 .. $n - 1 ];
+    @sessions = grep {defined} @sessions;
+} elsif ( $args =~ m|^search:(.+)$| ) {
+    my $term = lc $LAST_PAREN_MATCH;
+    @sessions = grep { lc( $_->{'title'} ) =~ m|\Q$term\E| } @sessions;
+}
+
+## sort by mtime ascending [ most recent last ] ##
+@sessions = sort { $a->{'mtime'} <=> $b->{'mtime'} } @sessions;
+
+## format output ##
+my @lines;
+for my $s (@sessions) {
+    my @tm = localtime( $s->{'mtime'} );
+    my $ts = sprintf(
+        qw| %04d-%02d-%02d %02d:%02d |,
+        $tm[5] + 1900,
+        $tm[4] + 1,
+        @tm[ 3, 2 ]
+    );
+    push @lines,
+        sprintf( qw| %-36s  %s  %6s  %s  %d |,
+        $s->{'uuid'}, $ts, $s->{'size_mb'}, $s->{'model'},
+        $s->{'line_count'} );
+}
+
+my $output = join "\n", @lines;
+$output .= "\n" if length $output;
+
+return {
+    'mode' => qw| size |,
+    'data' => $output
+};
+
+#,,,.,.,,,,..,.,.,..,,,,.,...,,.,,,..,.,.,...,.,.,...,...,,.,,,,.,,.,,..,,,,.,
+#2ZU7VILATIABSUR7CDTSSXLWVUKLXTB2ZCL34UA5LUAC3RNOQQ7KXBUTBFCJ5W4GHYZZNHYCJLCHG
+#\\\|SFIUJNJWTIA6NQ35UNB2PXP7BOBRFOWOKYIAZEIEEKU2SKRHWFU \ / AMOS7 \ YOURUM ::
+#\[7]V3L5TZR2CZDPRQ7NIIZPT37FB2WITX7CPQDEBWGM6DYPOAFY42BY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
