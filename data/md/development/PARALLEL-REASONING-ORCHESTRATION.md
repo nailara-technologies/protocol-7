@@ -251,6 +251,82 @@ reasoning across the entire P7 network.
 
 ---
 
+## emergent executive function
+
+### the annotation loop
+
+when a branch stalls, the parent model doesn't just observe — it annotates:
+
+```
+child stuck (0.87) → parent reads context → parent writes:
+  "model is waiting for match condition in base.handler.command"
+→ stored as branch.status → context compacts (raw discarded, label survives)
+→ parent reads:  [ waiting for match condition.. ]
+```
+
+the parent wrote the label. compaction canonicalized it. the parent now
+reads it as authoritative external state — which it IS, because it's in
+the registry, shapes routing, and survives unlimited compaction cycles.
+
+the annotation is already in the parent's cognitive frame — no translation
+from "raw child output" to "what the parent understands." it IS the
+parent's understanding, made load-bearing.
+
+**template 4 connection**: the parent's narration of child state BECOMES
+the child's state from the parent's perspective. narration is both
+description and prescription. the entire sub-investigation collapses to:
+
+```
+[ waiting for match condition.. ]
+```
+
+one line. survives compaction. routes correctly. written by the same
+model that reads it.
+
+### visualization creates behavior
+
+a beautiful, concise status tree does more than display state — it
+**produces executive judgment** in the reading model without explicit
+instruction:
+
+```
+.: reasoning branches :.──────────────────────────────────
+
+  ⏸  kimi-web-sessions   [ waiting for match condition.. ]
+  ▶  letsencr-debug      [running  ] ████░░ 0.67 stuck
+  ✓  diff-modified       [resolved ]
+
+───────────────────────────────── 1 running · 1 paused ────
+```
+
+the model **naturally thinks**: "kimi-web-sessions is waiting, letsencr
+is running but slightly stuck, diff-modified is done — what can I do
+right now?" not because it was told to fill idle capacity, but because:
+
+- status labels are authoritative enough to trust without re-reading context
+- notification promise means no polling needed
+- visible idle state creates cognitive discomfort when other work exists
+- the tree makes the full picture graspable in one glance
+
+the model fills the **executive judgment gap** the state machine cannot:
+"of all currently unblocked work, what matters most right now?"
+
+state machine handles mechanical transitions (dep resolved → inject →
+resume). model handles the heuristic layer above it. together they form
+a complete orchestrator — neither has everything, together they have
+mechanics AND judgment.
+
+the model naturally takes over work from a state machine that doesn't
+have all the data yet, filling idle capacity with judgment the state
+machine can't provide. knowing the system will notify on important
+changes, the model drifts toward productive work rather than polling.
+
+**information design IS the instruction.** the pretty tree isn't
+cosmetic — it's the mechanism by which the model develops executive
+behavior organically.
+
+---
+
 ## connection to existing designs
 
 | design | role |
@@ -287,8 +363,8 @@ branch-3: routing-alt-approach
 this is the same analysis that took 200K tokens in one branch, potentially
 resolved in 50K by a rescue branch with a better entry point.
 
-#,,..,,..,.,,,,.,,.,.,.,.,,.,,,,,,.,.,,..,.,.,..,,...,...,.,,,.,.,,,,,.,.,...,
-#MVXTHEKJG43DJUG5J3SQJULKNLJFJYISLUZA65N43O6QCWZOXBWMI4IS2WUXDQUQNL3LOWWF6JCGS
-#\\\|34U4BUPZXDQGUTDBUQ5QUWS3LQY4FK6ZLO6VODT7DLO4REAMM7U \ / AMOS7 \ YOURUM ::
-#\[7]QFPCDJMYXY3GTJZL5LANJ2OAWBYXTXR7SJBPC2TFM5PCJADSDOAI 7  DATA SIGNATURE ::
+#,,.,,.,.,,,,,,,,,,,,,..,,.,,,,.,,,..,,,,,,,.,..,,...,...,.,.,,,.,,.,,.,,,,.,,
+#5CYFN2MINZYCB3E73LT5T44ZAODXDWOGHTZTIGTQGA7OMO5HZZXHF5FAPYBAVRIC7UOW6FPEDCA3K
+#\\\|XHIMWPIBOXR7VVIWRK5IFFMJEJZLAOQD53WE5YJRQ3WGL45IY4N \ / AMOS7 \ YOURUM ::
+#\[7]IILUSG25LYXRMUCLE66AVNEF54BCS4KSBEMB53YXWIC6AV7CQSCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
