@@ -5,15 +5,36 @@
 
 my $timer_data = shift;
 
-<[base.logs]>->( 2, 'renewal check timer fired - sending async vhost query' );
+<[base.logs]>->( 2, 'renewal check timer fired' );
 
 my $now = time();
 <letsencr.stats.last_renewal_check> = $now;
 
-## phase 2 workflow: async vhost query + renewal check continuation
-## step 1: send async query to HTTPd for vhost list
-## when reply arrives, handler will continue with steps 2-5
+## step 1: renew known expired/expiring certs immediately (no httpd needed)
+my $check_result = <[letsencr.parent.check_certificate_expiration]>
+    ->(<letsencr.parent.certs>);
 
+if ( $check_result && ref($check_result) eq qw| HASH | ) {
+    my @needs_renewal = @{ $check_result->{'needs_renewal'} // [] };
+    my @expiring_soon = @{ $check_result->{'expiring_soon'} // [] };
+
+    if ( @expiring_soon > 0 ) {
+        <[base.logs]>->(
+            1, ': warning : %d certificates expiring soon',
+            scalar(@expiring_soon)
+        );
+    }
+
+    if ( @needs_renewal > 0 ) {
+        <[base.logs]>->(
+            2, 'queuing renewal for %d known certificates',
+            scalar(@needs_renewal)
+        );
+        <[letsencr.parent.queue_renewal_requests]>->( \@needs_renewal );
+    }
+}
+
+## step 2: async vhost query to discover new domains (opportunistic)
 my $num_clients = <[protocol-7.route-send]>->(
     {   'command'   => qw| httpd.vhost-list |,
         'call_args' => { 'args' => '' },
@@ -26,21 +47,14 @@ my $num_clients = <[protocol-7.route-send]>->(
 
 if ( !defined $num_clients || $num_clients == 0 ) {
     <[base.logs]>->(
-        1,
-        'httpd vhost query failed: %s',
-        'permission denied or httpd not running'
+        2, 'httpd not available — skipping new domain discovery'
     );
-    return FALSE;
 }
-
-<[base.log]>->(
-    3, 'vhost query sent async, handler will continue renewal check'
-);
 
 return TRUE;
 
-#,,.,,.,,,,..,..,,,.,,,,.,,..,,,.,,,,,...,,.,,..,,...,...,..,,...,.,.,,,,,,..,
-#RBJY3ERZMBEEQY65MQ3VY3JTSZDY62Z7W7CB2HOGV4XD4HD4VZVDJ5JDPVIK2VND4OJHFTHK3AKF4
-#\\\|OQS7WOGUDEWCEYENVACARPGEXJG7SGV6E3NZN3RONDELZNM3UQJ \ / AMOS7 \ YOURUM ::
-#\[7]MZFAADSPA4SHKUNMD4ZRGWVFEUMNB3MFQDMW7QNGXLEJBA7456BI 7  DATA SIGNATURE ::
+#,,,,,...,..,,.,,,,..,...,...,.,.,..,,,.,,,,,,..,,...,..,,.,.,...,,..,,..,,,.,
+#ZP2PS7HNCU7PLDQ4PTLZF4WO6RZHUFE7AUKMI75MOXCTDEMNFFC54HQDTMFBUPDLAF6TXRFSLJXU2
+#\\\|DV7PZPFAWAEOMLTV4MLJO7RS3FJFNNZFCPZOXJS42UJKIBLJ4OU \ / AMOS7 \ YOURUM ::
+#\[7]N5EDCUVH2JOAIO4NBD5BADOXOK37E4HFUIRCTY6AUI6PCUEFX2CY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

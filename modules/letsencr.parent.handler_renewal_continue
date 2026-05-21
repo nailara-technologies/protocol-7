@@ -29,38 +29,45 @@ if ( $mode eq qw| SIZE | || $mode eq qw| TRUE | ) {
     ## both SIZE and TRUE modes return multi-line vhost names
     @vhosts = grep { length($ARG) > 0 } split( m|\n|, $reply_data_str );
 } else {
-    <[base.logs]>->( 1, 'unexpected httpd reply mode : %s', $mode );
-    return FALSE;
+    ## FALSE or unexpected mode — no new domains, but still check known certs
+    <[base.logs]>->(
+        2, 'httpd vhost-list returned %s — checking known certs only', $mode
+    );
 }
 
 ## remove whitespace and filter empty lines
 @vhosts = map { s{^\s+|\s+$}{}g; $ARG } @vhosts;
 @vhosts = <[base.sort]>->( grep { length($ARG) > 0 } @vhosts );
 
-unless ( @vhosts > 0 ) {
-    <[base.log]>->( 1, ': warning : httpd returned empty vhost list' );
-    return FALSE;
+if ( @vhosts > 0 ) {
+    <[base.logs]>->( 2, 'found %d vhosts from httpd', scalar(@vhosts) );
+    foreach my $vh (@vhosts) {
+        <[base.logs]>->( 3, '  - %s', $vh );
+    }
+} else {
+    <[base.log]>->(
+        2, ': no vhosts from httpd — proceeding with registry renewal only'
+    );
 }
 
-<[base.logs]>->( 2, 'found %d vhosts from httpd', scalar(@vhosts) );
-foreach my $vh (@vhosts) {
-    <[base.logs]>->( 3, '  - %s', $vh );
+## step 2: determine certificate domains from vhosts (skip if none)
+my %domains_map;
+if ( @vhosts > 0 ) {
+    my $domain_result
+        = <[letsencr.parent.determine_certificate_domains]>->( \@vhosts );
+    if ( $domain_result && $domain_result->{status} eq qw| success | ) {
+        %domains_map = %{ $domain_result->{'domains'} // {} };
+        <[base.logs]>->(
+            2,
+            'determined %d certificate domains from vhosts',
+            scalar( keys %domains_map )
+        );
+    } else {
+        <[base.log]>->(
+            1, 'cannot determine certificate domains from vhosts'
+        );
+    }
 }
-
-## step 2: determine certificate domains from vhosts
-my $domain_result
-    = <[letsencr.parent.determine_certificate_domains]>->( \@vhosts );
-unless ( $domain_result && $domain_result->{status} eq qw| success | ) {
-    <[base.log]>->( 0, 'cannot determine certificate domains' );
-    return FALSE;
-}
-
-my %domains_map = %{ $domain_result->{'domains'} // {} };
-<[base.logs]>->(
-    2,
-    'determined %d certificate domains',
-    scalar( keys %domains_map )
-);
 
 ## step 3: refresh registry (load from disk in case of external updates)
 my $refresh_result = <[letsencr.parent.load_certificate_registry]>;
@@ -122,8 +129,8 @@ if ( @new_domains > 0 ) {
 
 return TRUE;
 
-#,,.,,,,.,.,.,,..,,,,,..,,,,,,.,.,,,.,,,,,..,,..,,...,...,..,,..,,.,,,,.,,.,.,
-#P4RS5CBQS4I3AGRTSTHMCKYKATWO4UKAXOGHFCMMXTX72UAQTPBUTBEASW2HAYAQ6YAFQ3ZRESYKS
-#\\\|BYDLOOVT2H2YCNL7X2RFL2H36NPEDM5JB7X22CMD7LAIODQMLNN \ / AMOS7 \ YOURUM ::
-#\[7]V77VNGROQ4IJ2R2PCBVPHDBZLUHPD55WUUZEXWGJE3WAPI3QWMAY 7  DATA SIGNATURE ::
+#,,..,,.,,,,,,..,,..,,...,..,,.,,,..,,.,,,,..,..,,...,...,..,,,..,...,...,..,,
+#CA3SYZWSOJTAT475EH6DD3JPTQN4SP26KPUO2SQM5POQGGLFCBJPZQKPFD2EUBBKND333R2CBUPDY
+#\\\|K5C6ASVM2YNC26ZAQ5T2CSDQUFOUPX5OVWKI6DAG5BI7MSTCLEH \ / AMOS7 \ YOURUM ::
+#\[7]LUPCJ6XUF5IAY36CO7VOMQPEWAPRSMQZ546IDSW6ZC3O5TAMZYCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
