@@ -38,8 +38,8 @@ metadata:
 ## session 42 completed
 
 - `data/tasks/source-code-header-check.md` — NOOP ✓ already done prior session
-- `data/tasks/web-browser-evaluate-javascript.md` — DONE ✓ run_javascript+throw→evaluate_javascript+JSCValue; both js_call + cmd.run_js migrated
-- `data/tasks/kimi-web-session-cache-access.md` — DONE ✓ 7 new modules: list-sessions, get-session-state, read-session-context (STRM), find-session, resume-session, distill-session, inject-context-to-coding
+- `data/tasks/web-browser-evaluate-javascript.md` — DONE ✓ → needs-testing/ (evaluate_javascript+JSCValue migration)
+- `data/tasks/kimi-web-session-cache-access.md` — DONE ✓ → needs-testing/ (7 new kimi-web modules)
 - `data/tasks/diff-modified-no-color-mode.md` — still pending (not dispatched this session)
 
 ## infrastructure
@@ -127,8 +127,8 @@ metadata:
 
 After a failed tool-using task, Glitter backend needs restart before `:no_tools:` tasks work. Model gets stuck in tool-mode. Restart coding zenka or wait before dispatching `:no_tools:` priming tasks.
 
-#,,,.,,,.,...,,.,,,.,,,..,,..,,,.,.,,,...,..,,..,,...,...,...,,..,...,,,.,,,,,
-#BPM2RNQHJ4ASQZZSWQ5FE2L52B44RYTO4CACQQZTNZVEYLIATDQUHG2FLTAIE4YDFESLT3QPNCLY2
-#\\\|UIFXY24FNEUTQT7M2C2DVNG7JJGRYH7B6VFUUMDSFLBFBMM2ALS \ / AMOS7 \ YOURUM ::
-#\[7]DTMF6ESM3NIV2ZX5SAMR5EXRJEZZJI4VNHSY4OVHRQ72FJTHJ2AQ 7  DATA SIGNATURE ::
+#,,,.,,..,.,,,,..,,.,,.,.,.,.,,.,,.,.,,..,,,.,..,,...,...,,,.,,,,,,,,,,..,..,,
+#PUKORZBTMF2TNXWX5OCYGI7357WDBXVCER7RGZB6TBNZ6YFVBZBGCPGC5BKTTZLBDHQXWCDW2X2MA
+#\\\|ZLHLCEUJUIX4SIMSW2FWXM4VJ7NZMBKZYARUHV667QKPFP2XXBW \ / AMOS7 \ YOURUM ::
+#\[7]VXWOVHVTXXC53BXJNA3NRAUVK23KP76JA4KGXZBS7O3TKXGNEKCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

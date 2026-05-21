@@ -1,5 +1,31 @@
 # Completed Work Sessions
 
+## session 42 — kimi-web session cache + web-browser JS + living background design (2026-05-21)
+
+**kimi-web session cache** (7 new modules, needs-testing):
+- list-sessions, get-session-state, read-session-context (STRM unbounded)
+- find-session, resume-session, distill-session, inject-context-to-coding
+- handles flat + nested session dir structures; distill → ~10KB condensed context
+- resume-session prefers distilled.md over raw context.jsonl
+
+**web-browser JS migration** (needs-testing):
+- run_javascript + throw hack → evaluate_javascript + JSCValue->to_string
+- both js_call and cmd.run_js migrated; callers untouched; ptd -c clean
+- supersedes web-browser-js-throw-hack.md (moved to completed)
+
+**design docs written**:
+- LIVING-BACKGROUND-SYSTEM.md: consensus background render, 5/7 vote loop,
+  weather/time context, povray geometry layer, desktop elements, archive diary
+- VISUAL-INPUT-PIPELINE-AND-LIVING-TEMPLATES.md: image search (Yandex/DDG/NASA),
+  best-5 tournament tree with monotonic quality floor invariant, T2I + ControlNet
+  over povray precision frames, living template library feeds all UIs
+
+**memory cleanup**: MEMORY.md trimmed 243→119 lines, System Status → topic-next-steps.md
+
+**source-code-header-check**: NOOP — already completed prior session (moved to completed)
+
+commits: 17347714e
+
 ## session 35 — reasoning templates 3-9, reasoning.* namespace, layer stack (2026-05-19)
 
 **reasoning.* namespace** — harmonically TRUE (`harmony reasoning` → `[:<`).
@@ -1087,8 +1113,8 @@ Skip calling harmonize_payload_line_feed when both conditions are met:
 - Signatures now properly formatted with correct separator endline
 - Pre-commit validation passes
 
-#,,,,,.,,,,,.,..,,.,,,.,,,.,.,,,,,..,,.,.,...,..,,...,...,..,,,,,,,,,,...,,,,,
-#6WXJVHWNOL5QAICCHUPDYWFADO3OFWDOEJ77SKWOTMUE434FILI24RBP6DARWJ7KOI66S7B5NM2RA
-#\\\|ZOCZZKETL5CIN2DA25VQGIATIVL4VVY6SLNXPKLXO4ZCS5C75CE \ / AMOS7 \ YOURUM ::
-#\[7]TZXT2HUOSYVAVDDDUDBHVA6BV7KURVYQAYM3RY7VPIM7MLA4GADA 7  DATA SIGNATURE ::
+#,,,,,,.,,,,.,,..,,,.,,.,,.,.,,.,,..,,..,,,.,,..,,...,...,,..,..,,.,.,...,..,,
+#AKJADKDBSUEEXP2ELK2KP4P36WSNXHJ4ZW3AFK5REOU5F6BXB7IWB5J2LJ4SUJYZL4X6VGHVMCM5E
+#\\\|D6YNLZ64STG4JWNDUVSMNOMZQFMSASFZNIZGZC3FWQGTGRMRSW6 \ / AMOS7 \ YOURUM ::
+#\[7]NQZBUHWLZIINXANVWRZV6GZOULI3644SMOOXMVKHIBVTJQ32LECQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
