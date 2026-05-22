@@ -1,0 +1,54 @@
+## [:< ##
+
+# name  = space.travel.tunnel
+# descr = compute tunnel duration and grid alignment
+# param = { from, to }
+
+my $params = shift             // {};
+my $from   = $params->{'from'} // '';
+my $to     = $params->{'to'}   // '';
+
+return { 'mode' => 'false', 'data' => 'from node required' }
+    unless length $from;
+return { 'mode' => 'false', 'data' => 'to node required' }
+    unless length $to;
+
+## verify nodes exist in branch or grid space ##
+my $from_exists = exists $data{'branch.nodes'}{$from}
+    || exists <space.grid.nodes>->{$from};
+my $to_exists = exists $data{'branch.nodes'}{$to}
+    || exists <space.grid.nodes>->{$to};
+
+return { 'mode' => 'false', 'data' => 'from node not found' }
+    unless $from_exists;
+return { 'mode' => 'false', 'data' => 'to node not found' }
+    unless $to_exists;
+
+## retrieve creation stamps ##
+my $ntime_from = $data{'branch.nodes'}{$from}{'created'} // '';
+my $ntime_to   = $data{'branch.nodes'}{$to}{'created'}   // '';
+
+return { 'mode' => 'false', 'data' => 'missing creation stamps' }
+    unless length $ntime_from and length $ntime_to;
+
+## compute ntime delta numerically [ swap-boundary safe ] ##
+my $num_from = <[base.ntime_BASE32_to_numerical]>->($ntime_from) // 0;
+my $num_to   = <[base.ntime_BASE32_to_numerical]>->($ntime_to)   // 0;
+my $duration = abs( $num_to - $num_from );
+
+my $expected     = 2;
+my $variance     = $duration - $expected;
+my $grid_aligned = ( $variance == 0 ) ? TRUE : FALSE;
+
+return {
+    'duration'     => $duration,
+    'expected'     => $expected,
+    'variance'     => $variance,
+    'grid_aligned' => $grid_aligned
+};
+
+#,,,,,..,,,,.,,..,.,.,,,.,...,,.,,,..,,..,,,.,..,,...,...,...,...,...,,.,,.,,,
+#YNWHQJ75GZAZ476ZO4MZCOBEIJU6HB4N7SZ7XRFWITXGHNNHKNOW7ZDQWTPACVGQEIUEHHXNKAUCA
+#\\\|U3USGPAPNCS63CAU3EIVEWYOSWV5H3E4ZVIJN4W3Y6AKDDKAMOZ \ / AMOS7 \ YOURUM ::
+#\[7]OEHMVG2ZVISZYP4FX64IEP424GAE6WLPYUES2KOADI3EJ6ZBKAAY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

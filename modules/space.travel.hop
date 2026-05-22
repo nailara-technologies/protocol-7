@@ -1,0 +1,48 @@
+## [:< ##
+
+# name  = space.travel.hop
+# descr = apply directional step to node coordinate
+# param = { from, direction }
+
+my $params    = shift                  // {};
+my $from      = $params->{'from'}      // '';
+my $direction = $params->{'direction'} // '';
+
+return { 'mode' => 'false', 'data' => 'from node required' }
+    unless length $from;
+
+## resolve coordinate from space grid ##
+my $coord = <space.grid.nodes>->{$from};
+if ( not defined $coord ) {
+    return { 'mode' => 'false', 'data' => 'node has no coordinate' };
+}
+
+my %next = (
+    'z' => $coord->{'z'} // 0,
+    'y' => $coord->{'y'} // 0,
+    'x' => $coord->{'x'} // 0
+);
+
+if ( $direction eq '+z' ) {
+    $next{'z'}++;
+} elsif ( $direction eq '-z' ) {
+    $next{'z'}--;
+} elsif ( $direction eq '+y' ) {
+    $next{'y'}++;
+} elsif ( $direction eq '-y' ) {
+    $next{'y'}--;
+} elsif ( $direction eq '+x' ) {
+    $next{'x'}++;
+} elsif ( $direction eq '-x' ) {
+    $next{'x'}--;
+} else {
+    return { 'mode' => 'false', 'data' => 'invalid direction' };
+}
+
+return \%next;
+
+#,,.,,,,,,.,.,.,,,...,,.,,.,.,,,.,.,.,,..,.,,,..,,...,...,.,.,,..,...,,..,,,.,
+#2NUXB5LIR73O6VVCQ4NJ6HMXASWJ7KIYGAVKUKSK7T6I4LWN5AUA4MIUIJAXKHQQOX34GJFT4V54W
+#\\\|YQ3FGL6SD27BG6KJVEKPJTIT2LCRFN4JBDFTVAOFFR6VKIUVCOJ \ / AMOS7 \ YOURUM ::
+#\[7]7STUHKBFHTR7O7AUNFTYAFYLQ2CYGUWPXH2JQYQIMHKM5M5YO4BA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

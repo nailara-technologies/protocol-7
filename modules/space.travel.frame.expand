@@ -1,0 +1,67 @@
+## [:< ##
+
+# name  = space.travel.frame.expand
+# descr = is_true frame expansion — minimum harmonic enclosure
+# param = { sequence, node_id }  node_id optional — seeds scale from aura
+
+my $params   = shift // {};
+my $sequence = $params->{'sequence'};
+
+## dereference scalar ref or use string directly ##
+my $content;
+if ( ref $sequence eq qw| SCALAR | ) {
+    $content = $sequence->$* // '';
+} else {
+    $content = $sequence // '';
+}
+
+## starting scale from node aura or natural harmonic default [ 13 ] ##
+my $node_id = $params->{'node_id'} // '';
+my $scale   = 13;
+if ( length $node_id ) {
+    my $aura = <space.orbit.auras>->{$node_id} // {};
+    $scale = $aura->{'typical_frame_scale'} // 13;
+}
+$scale = 1 if $scale < 1;
+
+## AMOS swap-boundary checksum function ##
+my $chksum_fn = $code{'chk-sum.amos'} // $code{'base.chk-sum.amos'};
+return { 'mode' => 'false', 'data' => 'checksum function unavailable' }
+    unless defined $chksum_fn;
+
+my $iterations = 0;
+my $frame;
+my $checksum;
+my $max_iterations = 1000;    ## safety limit ##
+
+while ( $iterations < $max_iterations ) {
+    $checksum = $chksum_fn->( \$content );
+    $frame    = '1' . ( '0' x $scale ) . '1' . $checksum;
+
+    if ( AMOS7::Assert::Truth::is_true( \$frame, 0, 1 ) ) {
+        return {
+            'scale'      => $scale,
+            'content'    => $frame,
+            'checksum'   => $checksum,
+            'iterations' => $iterations + 1
+        };
+    }
+
+    ## auto-encapsulation: failing frame becomes content for wider frame ##
+    $content = $frame;
+    $scale++;
+    $iterations++;
+}
+
+return {
+    'scale'      => $scale,
+    'content'    => $frame,
+    'checksum'   => $checksum,
+    'iterations' => $iterations
+};
+
+#,,,,,.,,,,,,,..,,,,,,.,,,,,.,.,,,.,,,,.,,,,.,..,,...,...,..,,...,...,.,,,,.,,
+#AMCXGNL6XEUNERNUAKC3S7VAWVR4CO5CVUYVTKKAAJAXQ33K7XFGVR6SDTMH2A52SAWPR4TPHQY5C
+#\\\|5VFPTZ3RSBAT5RUP4T2IZPFLS3MNKJEORGG6425QD4ZU6OUWJ4M \ / AMOS7 \ YOURUM ::
+#\[7]ITM2ROSHR4E6NGWSLDUKRNNUM4EAVQHFITLXFZG6WJPONN6I7KCI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

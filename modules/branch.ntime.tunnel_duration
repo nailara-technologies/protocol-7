@@ -1,0 +1,38 @@
+## [:< ##
+
+# name  = branch.ntime.tunnel_duration
+# descr = compute tunnel traversal duration in 1001-units
+
+my $param       = shift                   // {};
+my $entry_ntime = $param->{'entry_ntime'} // '';
+my $exit_ntime  = $param->{'exit_ntime'}  // '';
+
+return { mode => 'false', data => 'both ntime values required' }
+    if not length $entry_ntime or not length $exit_ntime;
+
+my $entry_num = <[base.ntime_BASE32_to_numerical]>->($entry_ntime);
+my $exit_num  = <[base.ntime_BASE32_to_numerical]>->($exit_ntime);
+
+return { mode => 'false', data => 'invalid ntime value' }
+    if not defined $entry_num or not defined $exit_num;
+
+my $duration     = abs( $exit_num - $entry_num );
+my $expected     = 2;
+my $variance     = $duration - $expected;
+my $grid_aligned = ( $variance == 0 ) ? TRUE : FALSE;
+
+return {
+    mode => 'true',
+    data => {
+        duration     => $duration,
+        expected     => $expected,
+        variance     => $variance,
+        grid_aligned => $grid_aligned,
+    }
+};
+
+#,,.,,..,,...,..,,,.,,,,,,...,,..,,,,,.,.,,,,,..,,...,...,..,,...,..,,..,,,,.,
+#CZJJGUALGN72WEWRBHSNOHZR6RLRBVDBK2B2UNC5R35HXFJALCBWMZASROVCSZ2YMONXCFB45K3LQ
+#\\\|D7K7MQ63HN232MBQAG6TOXW67KXITCASNKP3LB3ZIHQXDU7TPDG \ / AMOS7 \ YOURUM ::
+#\[7]HAMQMXNEL5XOVOB45U2J6F6W6JDB2QTUMNR2HVAKXNCAUANV54DY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
