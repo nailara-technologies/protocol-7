@@ -1,0 +1,153 @@
+#!/usr/bin/perl
+## amos-matrix — render AMOS7 checksums as 5×7 dot matrix
+##
+## usage:
+##   amos-matrix <checksum> [checksum...]   ## render (horizontal default)
+##   amos-matrix -V <checksum> [...]        ## vertical mode (7 rows × 5 cols)
+##   amos-matrix -flip-h                    ## flip horizontally (mirror left/right)
+##   amos-matrix -flip-v                    ## flip vertically   (mirror top/bottom)
+##   echo "input" | amos-matrix             ## compute + render from stdin
+##   amos-matrix -i "input string"          ## compute + render inline
+##
+
+use v5.24;
+use strict;
+use warnings;
+use English;
+use FindBin qw| $RealBin |;
+
+BEGIN {
+    use File::Spec;
+    use Cwd qw| abs_path |;
+    my $root = abs_path( File::Spec->catdir( $RealBin, File::Spec->updir ) );
+    unshift @INC, File::Spec->catdir( $root, qw| data lib-path pm | );
+}
+
+## BASE32 alphabet (RFC 4648) — 5 bits per character ##
+my %b32 = map { substr( 'ABCDEFGHIJKLMNOPQRSTUVWXYZ234567', $_, 1 ) => $_ }
+    0 .. 31;
+
+my $ON         = '█';
+my $OFF        = '·';
+my $horizontal = 1;     ## horizontal is default ##
+my $flip_h     = 1;     ## mirror left/right  [ default on ] ##
+my $flip_v     = 1;     ## mirror top/bottom  [ default on ] ##
+my $invert     = 0;     ## invert bits        [ default off ] ##
+
+sub strip_ansi { ( my $s = shift ) =~ s|\e\[[0-9;]*[mGKHF]||g; $s }
+
+sub is_b32_checksum {
+    ( my $c = uc strip_ansi(shift) ) =~ s|[^A-Z2-7]||g;
+    return length($c) == 7;
+}
+
+sub resolve_checksum {
+    my $input = strip_ansi(shift);
+    ( my $c = uc $input ) =~ s|[^A-Z2-7]||g;
+    return $c if length($c) == 7;
+    ## not a checksum — compute it ##
+    my $chk = qx| amos-chksum -q '$input' 2>/dev/null |;
+    chomp $chk; $chk =~ s|\s.*||;
+    return $chk if length($chk) == 7;
+    return undef;
+}
+
+sub to_bits {
+    my $chksum = shift;
+    ( my $c = uc $chksum ) =~ s|[^A-Z2-7]||g;
+    return undef unless length $c == 7;
+    return join '', map { sprintf '%05b', $b32{$_} // 0 } split //, $c;
+}
+
+sub render {
+    my ( $chksum, $label ) = @ARG;
+    my $bits = to_bits($chksum) or return;
+    ( my $c = uc $chksum ) =~ s|[^A-Z2-7]||g;
+
+    say '';
+    printf "  %-10s  %s\n", $c, $label // '';
+
+    my ( $rows, $cols, $bit_at );
+    if ($horizontal) {
+        ## horizontal: 5 rows × 7 cols — read column-major ##
+        ( $rows, $cols ) = ( 5, 7 );
+        $bit_at = sub { substr( $bits, $_[1] * 5 + $_[0], 1 ) };
+    } else {
+        ## vertical: 7 rows × 5 cols — read row-major ##
+        ( $rows, $cols ) = ( 7, 5 );
+        $bit_at = sub { substr( $bits, $_[0] * 5 + $_[1], 1 ) };
+    }
+
+    my $bar = '─' x $cols;
+    say "  ┌${bar}┐";
+    for my $row ( 0 .. $rows - 1 ) {
+        my $r = $flip_v ? ( $rows - 1 - $row ) : $row;
+        print '  │';
+        for my $col ( 0 .. $cols - 1 ) {
+            my $c2 = $flip_h ? ( $cols - 1 - $col ) : $col;
+            my $bit = $bit_at->( $r, $c2 );
+            $bit = $bit ? 0 : 1 if $invert;
+            print $bit ? $ON : $OFF;
+        }
+        say '│';
+    }
+    say "  └${bar}┘";
+}
+
+my $from_input = 0;
+my @items;
+
+for ( my $i = 0; $i < @ARGV; $i++ ) {
+    if ( $ARGV[$i] eq '-V' or $ARGV[$i] eq '--vertical' ) {
+        $horizontal = 0;
+    } elsif ( $ARGV[$i] eq '-flip-h' ) {
+        $flip_h = $flip_h ? 0 : 1;    ## toggle ##
+    } elsif ( $ARGV[$i] eq '-flip-v' ) {
+        $flip_v = $flip_v ? 0 : 1;    ## toggle ##
+    } elsif ( $ARGV[$i] eq '-inv' ) {
+        $invert = $invert ? 0 : 1;    ## toggle ##
+    } elsif ( $ARGV[$i] eq '-i' ) {
+        my $input = $ARGV[ ++$i ] // '';
+        my $chk   = resolve_checksum($input);
+        push @items, [ $chk, $input ] if defined $chk;
+    } else {
+        my $raw   = strip_ansi( $ARGV[$i] );
+        my $label = '';
+        ## if it looks like a checksum with a label, split it ##
+        if ( $raw =~ m|^([A-Z2-7]{7})\s+(.+)$|i ) {
+            ( $raw, $label ) = ( uc $1, $2 );
+        }
+        my $chk = resolve_checksum($raw);
+        push @items, [ $chk, $label ] if defined $chk;
+    }
+}
+
+## stdin mode ##
+if ( !@items and !-t STDIN ) {
+    while (<STDIN>) {
+        chomp;
+        next unless length;
+        ## if already a 7-char BASE32 checksum — render directly ##
+        if ( m|^([A-Z2-7]{7})\b| ) {
+            my $chk   = $1;
+            my $label = $';    ## remainder as label ##
+            $label =~ s|^\s+||;
+            push @items, [ $chk, $label ];
+        } else {
+            my $chk = resolve_checksum($_);
+            push @items, [ $chk, $_ ] if defined $chk;
+        }
+    }
+}
+
+die ":\n: usage: amos-matrix <checksum> | -i <input> | stdin\n:\n"
+    unless @items;
+
+render(@$_) for @items;
+say '';
+
+#,,..,..,,,..,..,,...,..,,..,,...,.,,,,..,...,..,,...,...,,,,,...,,,.,.,,,,,.,
+#2OYWBEISWOSXBBTGRZ5AZU4I6LWG4TZI2JBO3QRAJO422DBMEPCEM3MBZ2IIIDCY6TXERUJAQY35I
+#\\\|SLNTQEKKXAUZR6EB4HXEWOVYBEP5RSMWJJRI5PKR6WJWF2JSVKE \ / AMOS7 \ YOURUM ::
+#\[7]CAFOQVCQD3WYVNPG7IPTPLOLBT4T4A53POOMCUT5NLNE6MWJVYBY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
