@@ -76,6 +76,62 @@ the protocol side — caller sees DATA lines, never the adapter.
 - `base.callback.cmd_reply` DATA + TREE branches now implemented (session 44/45)
   spec code had bug: `ref \$total` always true — should be `$total =~ m|^\d+$|`
 
+## self-delimiting token pattern — 2-bit type system (session 45)
+
+`0`/`1` outside base32 alphabet → unambiguous sentinels. MSB = domain, LSB = claim level:
+
+```
+00  checksum       — data domain, size + AMOS7, passive
+01  signature      — data domain, size + stronger claim, passive
+10  incomplete ref — reference domain, sticky, cursor/route hop, no invocation
+11  complete ref   — reference domain, transparent, invokes + reply expected
+```
+
+`10` is sticky — persists as routing context, chains as hops, coordinate transform per hop.
+`11` is transparent — collapses on success, demotes to `10` on deferred/failure.
+group behavior: `10 10 [keep] 11` = keep-alive (route persists), `10 10 [close] 11` = close (collapses together).
+analog: HTTP connection keep-alive vs close, but at routing/reference level.
+size in `00`/`01` IS security — wrong size = immediate integrity fail.
+design doc: `data/md/design/SELF-DELIMITING-CHECKSUM-PATTERN.md`
+
+## DATA-CHANNELS (session 45)
+
+multiplexing frame carrying N authenticated DATA-CHANNELs:
+```
+DATA-CHANNELS <chksum_A> <chksum_B>\n   ← channel registry, closed at open
+0: <B32_CHUNK>\n    ← channel 0 payload (: = payload)
+0| 01303UGKDZQ\n    ← inline validation anchor (| = anchor)
+DATA-CHANNELS END <AMOS_CHECKSUM>\n
+```
+AMOS checksums as parameters = channel authentication, arbitrary introduction impossible.
+numeric prefix (0:/1:) = minimal overhead, unambiguous (0/1 outside base32).
+inline anchors use self-delimiting checksum — receiver locks validated regions,
+releases validation buffer while playback/processing continues at constant speed.
+DATA-CHANNEL (singular) = named logical stream identity within the container.
+
+## DATA-PAGES — multiplexing container (session 45)
+
+bulk/multiplexed extension — lines inside drop `DATA ` prefix, page header
+carries context once:
+
+```
+DATA-PAGE <stream_id> <page_seq> <line_count>\n
+<B32_CHUNK>\n   ← pure payload, no per-line prefix
+DATA-PAGE END <stream_id> <page_seq> <AMOS_CHECKSUM>\n
+```
+
+- prefix savings: 64 lines/page = 64 fewer `DATA ` prefixes
+- multiplexing: stream_id + page_seq disambiguate interleaved pages
+- flow control: ACK at page close, backpressure per page
+- UDT alignment: page boundary = UDT packet boundary; per-stream transport
+  semantics declared once, honored across all pages
+- mode selection: DATA lines for small/request-scoped, DATA-PAGES for bulk/UDT
+- same base32 payload throughout — ASCII-clean, log-safe, branch-attachable
+
+UDT transport (planned): decouples from TCP, makes transport semantics
+per-stream programmable. heartbeat/DATA/control each get appropriate behavior.
+page close AMOS checksum = natural ACK (received AND verified).
+
 ## open items
 
 - DATA ACK parsing in receiver (base.protocol-7.receive or equivalent)
@@ -84,8 +140,8 @@ the protocol side — caller sees DATA lines, never the adapter.
 - max chunk size tuning for non-terminal transports
 - write spec doc for `0`-prefixed self-delimiting checksum format
 
-#,,.,,.,,,,.,,,,.,.,.,.,,,...,,..,,,.,.,.,...,..,,...,...,.,,,.,,,.,,,.,,,,..,
-#KM3HCV6ZTBPJOFLQKZKMBCDLHFCQ6A5TLI3OAYTHANVOINQESFUURFVLAZ3D5KTRA4EJL7MCJKAC2
-#\\\|H5BWSHRFCK5TS3V53SCVTZ2UEUC7L5YMM52L3JU4MUHPUQURGIW \ / AMOS7 \ YOURUM ::
-#\[7]35TBBWYVKOV4YH67G7EKF2A5ZCSJL5JLT3ADTI55UK75QBZEGKAY 7  DATA SIGNATURE ::
+#,,,.,...,..,,,..,..,,,,,,,,.,..,,.,,,..,,..,,..,,...,...,,,,,.,,,,,.,,,,,,,.,
+#EQH233L5UY4UEVY3KLW44JDPGPDAB5VA2MKRD6FOVNIKNEPUOSMHQI42LOSCLM3YZN6V53L6XUFMW
+#\\\|Y7T3NATPP3HDI7RBYIOUMBCMZ2NE7ILA533DIHI7ZMYK3LRM4HE \ / AMOS7 \ YOURUM ::
+#\[7]42YHD4BLQM7F6B2XVN5PUA5M2QBMT4S45EGGV7E6DNHMBYQPNODI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
