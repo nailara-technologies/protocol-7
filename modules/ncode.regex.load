@@ -33,10 +33,18 @@ if ( defined $yaml_fn ) {
 return { 'mode' => qw| false |, 'data' => 'no data in yaml' }
     unless ref $data eq qw| HASH |;
 
-my $patterns = $data->{'patterns'} // [];
+my $patterns  = $data->{'patterns'}  // [];
+my $workflows = $data->{'workflows'} // [];
 
-return { 'mode' => qw| false |, 'data' => 'no patterns array' }
-    unless ref $patterns eq qw| ARRAY | and @$patterns;
+## load workflows if present ##
+if ( ref $workflows eq qw| ARRAY | and @$workflows ) {
+    <ncode.workflows> //= {};
+    foreach my $wf (@$workflows) {
+        next unless ref $wf eq qw| HASH |;
+        my $wf_name = $wf->{'name'} // next;
+        <ncode.workflows>->{$wf_name} = $wf;
+    }
+}
 
 <ncode.patterns> //= {};
 
@@ -47,7 +55,7 @@ foreach my $def (@$patterns) {
     my $name = $def->{'name'} // next;
 
     ## validate required fields ##
-    my $pattern = $def->{'pattern'} // '';
+    my $pattern = $def->{'pattern'} // $def->{'detect'} // '';
     unless ( length $pattern ) {
         $skipped++;
         next;
@@ -67,10 +75,13 @@ foreach my $def (@$patterns) {
     ## store pattern with metadata ##
     <ncode.patterns>->{$name} = {
         'name'          => $name,
-        'descr'         => $def->{'descr'} // '',
+        'descr'         => $def->{'descr'} // $def->{'description'} // '',
         'pattern'       => $pattern,
+        'detect'        => $def->{'detect'} // '',
         'compiled'      => $compiled,
         'replace'       => $def->{'replace'},
+        'steps'         => $def->{'steps'}         // [],
+        'verify'        => $def->{'verify'}        // [],
         'applicability' => $def->{'applicability'} // {},
         'origin'        => $def->{'origin'}        // qw| loaded |,
         'source_task'   => $def->{'source_task'}   // '',
@@ -94,8 +105,8 @@ return {
     }
 };
 
-#,,.,,.,,,,..,..,,.,.,,..,..,,,.,,.,.,...,,.,,..,,...,...,,,,,...,..,,.,.,,,,,
-#ASGIUB3ULBEOQ3OWQBBAHSXDNOGJNBJBUBQQP5GR7KDDMSS6HDVABDLY3IYRHLKLG3EFN7U554VAY
-#\\\|RO6U4YR376EJEBGZHPY3AC5OAMG5EEY6KELHWEXNZGAQ7WL45GD \ / AMOS7 \ YOURUM ::
-#\[7]EKLKLOEAUJGTEQS2467MPDQQBGTHXCXZQ3S66ETCR64A4PAO6GBQ 7  DATA SIGNATURE ::
+#,,,.,.,,,...,,,.,,.,,,..,..,,..,,,,.,,,,,.,,,..,,...,...,..,,.,,,.,.,.,.,...,
+#4VH67NTOX3UQP2TQORFFP7IEXYW4AEIUR5XMTPZONPZWZ7I3ENH5RGKEMNRVNQW2CMY6LDYBJL6JM
+#\\\|5UOMT6HNRUTVX2PDA2PTQH3DPF2DM3GPYVZMBF7APZHAMIGP5EO \ / AMOS7 \ YOURUM ::
+#\[7]TQX4XXQ5D2VDYGAVL5V4DOCJ45OIUT5C3MELVCLQ2LXS5NIAGWBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
