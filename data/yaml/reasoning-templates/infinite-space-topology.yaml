@@ -132,6 +132,71 @@ implies a shared `0` parent, even if that parent hasn't been seen yet.
 
 ---
 
+## coherence as social gravity
+
+a well-defined structure has gravitational pull on compatible structures.
+not because it advertises itself — because coherence recognizes coherence.
+
+two well-defined things in proximity naturally find their relationship.
+the definition of each makes the relationship discoverable without negotiation.
+the what IS the how. a complete definition includes its own relationship grammar.
+
+**light attracts light**: a precise encoding attracts precise implementations.
+a coherent protocol attracts coherent extensions. a well-formed bit pattern
+raises compatible patterns from the field. the social behaviour emerges from
+the quality of definition, not from coordination overhead.
+
+the inverse is equally precise: poorly defined structures repel good ones.
+not through active rejection — the relationship simply isn't discoverable.
+coherence can't find its footing in incoherence.
+
+---
+
+## void zone integrity — precise containment excludes entropy
+
+a containment that isn't precisely bounded has ambiguous edges.
+ambiguous edges are where external entropy enters — not through force,
+but because nothing prevents it. the void was meant to be empty potential,
+but without a precise boundary it becomes a sink for whatever is nearby.
+
+a well-defined containment knows exactly what belongs inside and what doesn't.
+the boundary IS the definition. nothing needs to patrol it — the definition
+itself is the exclusion principle. external entropy finds no foothold.
+the void zone stays void because the surrounding definition is complete.
+
+poorly defined: the boundary is fuzzy, the void leaks, external patterns
+accumulate in the undefined space, and the structure eventually expresses
+the entropy it was meant to exclude.
+
+the escape sequence problem is this exactly — an alphabet with borrowed
+characters has a fuzzy boundary. the escape mechanism is the entropy that
+leaked into the void zone. a truly orthogonal alphabet has no void zones.
+
+---
+
+## self-healing compartments — the emergent third property
+
+coherence-gravity + void-zone integrity together produce a third property
+without being specified:
+
+- coherence attracts coherence → the structure knows what belongs
+- precise boundaries exclude entropy → the structure knows what doesn't
+- therefore: anything foreign is immediately recognizable as foreign
+- and: the structure has enough self-knowledge to restore its own boundary
+
+the compartment doesn't need an external monitor. the definition IS the
+immune system. a perturbation crossing a well-defined boundary is visible
+as a perturbation precisely because the boundary was well-defined.
+detection, localization, and restoration all follow from the same property
+that made the boundary work in the first place.
+
+**self-completing voids**: a void zone with precise boundary and coherence-
+gravity naturally attracts the right content to fill it, while repelling
+entropy that doesn't fit. the void draws its own completion from the field.
+it doesn't stay empty — it becomes what it was shaped to receive.
+
+---
+
 ## application checklist
 
 when designing an encoding, protocol, or data structure, ask:
@@ -143,8 +208,54 @@ when designing an encoding, protocol, or data structure, ask:
 - [ ] can the parent be inferred from sibling relationships alone?
 - [ ] do fixed and variable width elements complement rather than conflict?
 
-if all six: the design is infinite-space oriented.
-if any fail: find the alphabet collision or the privileged origin and remove it.
+- [ ] does coherence in one part attract compatible coherence in adjacent parts?
+- [ ] are void zones precisely bounded — no ambiguous edges for entropy to enter?
+- [ ] does the definition itself act as the immune system, without external monitors?
+
+if all nine: the design is infinite-space oriented with self-healing compartments.
+if any fail: find the alphabet collision, the privileged origin, or the fuzzy
+boundary and remove it. the structure will tell you where it is.
+
+---
+
+## outlook: checksum frame containers — 2D/3D recovery structures
+
+the principles above generalize from 1D streams to 2D and 3D spaces via
+checksum frame containers. this is the existence proof that the infinite-space
+topology is not limited to linear streams.
+
+a payload block is surrounded by a frame of position-aware AMOS7 checksums —
+one per row (left/right) and one per column (top/bottom). the frame declares
+the shape and content of what is inside, making the structure recognizable
+and recoverable even when the payload is incomplete or corrupted:
+
+```
+[col_0][col_1]...[col_n]          ← column checksums (top)
+[row_0][ p a y l o a d ][row_0'] ← row checksums flank each row
+[row_1][ p a y l o a d ][row_1']
+[col_0'][col_1']...[col_n']       ← column checksums (bottom)
+```
+
+AMOS7 checksums take length AND offset parameters — position is baked into
+the checksum value. the same content at different positions generates different
+checksums. the frame is genuinely 2D, not independent 1D checksums arranged
+in a rectangle. a checksum cannot be transplanted between positions.
+
+**recovery**: a corrupted cell fails its row AND column checksum simultaneously.
+the intersection localizes damage to a single cell. brute-force recovery finds
+the content satisfying all 4 (or 6 in 3D) surrounding constraints — the
+intersection is near-zero for small blocks. confidence is complete when all
+constraints agree.
+
+**frame thickness** = desired recovery depth. thicker frame = deeper damage
+survivable. payload block expanse can be aligned to checksum natural periodicity
+for harmonic efficiency.
+
+**1D prior art**: the octal 4-bit reconstruction guarantee already implements
+this in one dimension — separator positions known → structure recoverable.
+the checksum frame is the natural generalization to the field.
+
+see `data/md/design/CHECKSUM-FRAME-CONTAINER.md` for full specification.
 
 ---
 
@@ -159,8 +270,8 @@ different layers of the same coherent system.
 see `data/md/design/SELF-DELIMITING-CHECKSUM-PATTERN.md` for the concrete
 token system this template abstracts.
 
-#,,,,,,.,,,..,.,,,..,,,,,,,,.,..,,.,,,,.,,,.,,..,,...,...,...,,,.,,,,,..,,,,.,
-#AD3LTTFNKGIWT53PUHIZQLDOY7YE5G6WMWIS3SW2HKCOOHDBO4IMX2NMTPJJLWJLRKG5V4YZKCM5K
-#\\\|VTGPC5DIJTMSQP6M3GGQXOEQGIHZV56R7THRQ46CBU2OPJZMRGM \ / AMOS7 \ YOURUM ::
-#\[7]2ERHNXNCOZX6QDI5SLCLNU6YOQQRNUKDQPF4RUKKYWP4EDYA5KCY 7  DATA SIGNATURE ::
+#,,,.,..,,.,.,,,.,.,.,...,,,,,,..,..,,.,,,...,..,,...,.,.,,..,.,.,,..,,,,,,,,,
+#5EZDAL77RUBSF3YSYHXJMWAT7UDYZZ4MDKIMCDWB3NW32VAZDJY7TJATKO3ET43IV75THWMJUPKVQ
+#\\\|IQR6FJXTYORGM2FMX7DBAJFCNFMUWTFRTIVAZWA3L76RFUEIJAV \ / AMOS7 \ YOURUM ::
+#\[7]TQFMKY6KKDM2AJMLNWFNI5FAZQK4BLK7IQJ77ZDWMJCYXMMJLSCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
