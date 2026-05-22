@@ -23,9 +23,30 @@ foreach my $file ( map { catfile( <system.root_path>, $ARG ) }
         = <[chk-sum.elf.get-true]>
         ->( $elf_7_chksum, \sprintf( "%s\n", $file ) );
 
+    if ( not defined $elf_7_chksum ) {
+        <[base.s_warn]>
+            ->( 'elf checksum undefined after path [ %s ]', $file );
+        return { 'mode' => qw| false |, 'data' => 'checksum error on path' };
+    }
+
+    my $file_content = <[file.slurp]>->( $file, undef, qw| :raw | );
+    if ( not defined $file_content ) {
+        <[base.s_warn]>->( 'cannot slurp file [ %s ]', $file );
+        return { 'mode' => qw| false |, 'data' => 'file read error' };
+    }
+
     $elf_7_chksum ##  visualized there are spirals in the number stream =)  ##
-        = <[chk-sum.elf.get-true]>
-        ->( $elf_7_chksum, <[file.slurp]>->($file) );   ## chksum all files ##
+        = <[chk-sum.elf.get-true]>->( $elf_7_chksum, $file_content );
+
+    if ( not defined $elf_7_chksum ) {
+        <[base.s_warn]>->(
+            'elf checksum undefined after content [ %s ]', $file
+        );
+        return {
+            'mode' => qw| false |,
+            'data' => 'checksum error on content'
+        };
+    }
 }
 
 my $version_elf7_chksum = <[chk-sum.amos.truth_template_chksum]>->(
@@ -72,8 +93,8 @@ my $protocol_code_version_str
 
 return { 'mode' => qw| true |, 'data' => $protocol_code_version_str };
 
-#,,..,,.,,,.,,,.,,,.,,...,...,,,.,,,,,...,,..,..,,...,..,,...,.,.,,..,,..,,..,
-#AZT5C4TTWUO23LOWDWVMADKBWWGT7YQKMOHYESUSAEFQYMWR2QPAZCGFUXLGNQNLFELPUXYHQ2VGK
-#\\\|MQZELVDOBRMZQ6CG5M7J2QEYLOOUWWI3WYPIMB3E7QTK7VZ3DPH \ / AMOS7 \ YOURUM ::
-#\[7]SLIDFYN6QPGKQTOSFGH3KGWRKHWZ2RUKM4RUX3VEAKT5QMSQO6BQ 7  DATA SIGNATURE ::
+#,,,,,,.,,.,.,,,.,,,.,.,,,..,,,.,,...,...,..,,..,,...,.,.,,,.,..,,..,,..,,.,,,
+#GKC4KYQ2OQVGVOOBQSNMTILG2D3MUIBXV7GGOZQKLIYCELBK7GV6GUHODWB4DFFZFLUUYFSNGNWE4
+#\\\|7O4MBL37FEUUX3K2JNHZAJUKEILCHREMNMLV3GHQARJ2J5J2VML \ / AMOS7 \ YOURUM ::
+#\[7]QZBI56ERH2STJA32GNVZAI26S53Z4U43MSQZDSSZ54HZN76MPGBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
