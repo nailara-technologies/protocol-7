@@ -1,0 +1,166 @@
+---
+name: infinite-space-topology
+category: reasoning-template
+version: 1.0
+description: |
+  reasoning pattern for designing encodings, protocols, and data structures
+  oriented toward infinite space — recognizable by arbitrary entry point
+  capability, alphabet orthogonality, and legible truncation.
+
+---
+
+## the test
+
+an encoding oriented toward infinite space is recognizable by one property:
+
+**arbitrary entry point capability** — structure must be locally recoverable
+without a privileged origin. drop in anywhere, orient immediately, continue.
+
+if the beginning is required to understand any part, the design assumes a
+bounded space with a defined start. it is a map that only works from the legend.
+
+an infinite-space encoding is a territory that orients you wherever you stand.
+
+---
+
+## the three invariants
+
+### 1. alphabet orthogonality — no escaping
+
+each encoding layer occupies a distinct, non-overlapping alphabet:
+
+```
+base32 content    A-Z, 2-7       — payload, the what
+octal frames      0-7 fixed      — structure, the rhythm
+binary sentinels  0, 1 variable  — meta-layer, the grammar
+```
+
+no layer borrows from another's alphabet. therefore no escaping is needed
+at any layer. ever.
+
+escaping is always a symptom of alphabet collision — someone chose a namespace
+and then needed to take some of it back. `\n`, `%%`, `&amp;` — all paying the
+tax of a design that didn't separate concerns at the alphabet level.
+
+when you find yourself adding an escape sequence, the alphabet was wrong.
+redesign the alphabet, not the escaping rules.
+
+### 2. completion as authority — prior presence wins
+
+no negotiation, no backtracking. whichever interpretation completes first
+is authoritative for that segment. partial frames that get completed by
+another system first were not the right interpretation.
+
+this makes layers cooperative without requiring them to know about each other.
+each tries to complete, the one that does was right. the stream self-organizes.
+
+### 3. truncation is legible, not catastrophic
+
+a precise grammar has definite completion conditions. truncation produces
+a visible incomplete token — an unresolved sentinel, an unclosed frame,
+a group awaiting its next member.
+
+the system doesn't give up at the truncation point. it resolves
+omnidirectionally until logic completes: forward for the closing sentinel,
+backward for the opening context, laterally for a sibling that completes
+the group. fragments remain open until completed, wherever completion arrives.
+
+---
+
+## the sentinel principle
+
+the infinite-space meta-layer uses characters that are genuinely outside
+all content alphabets. for base32 streams: `0` and `1` are permanently
+available — base32 never produces them.
+
+```
+0    unit / group boundary, enclosing context, parent, network itself
+1    element separator, declares siblings as members of active parent group
+```
+
+`0` is always the containing space — root, parent, the network that holds.
+`1` is always the element within that space — the thing between boundaries,
+declaring its siblings as present in the same parent context.
+
+from these two, a complete grammar emerges:
+
+```
+1-bit tokens    0 / 1              structural, framing, always present
+2-bit tokens    00 01 10 11        payload-less type declarations
+payload tokens  0<N_bytes><chk>    checksum over N bytes, self-delimiting
+                1<N_bits>1<chk>    checksum over N bits
+                1<N_chars>0<chk>   checksum over N characters (encoding-aware)
+000             root / empty       checksum of '', parent placeholder,
+                                   makes branches relocatable
+```
+
+the numeric payload after the sentinel separates payload-carrying tokens
+from payload-less type tokens unambiguously — digit vs non-digit, no lookahead.
+
+---
+
+## fixed frame + variable sentinel — complementary rhythm
+
+octal fixed frames and binary variable sentinels are not competing systems.
+they are complementary expressions of the same space-orientation principle:
+
+- **fixed frame** (octal): constant width, sync within one frame, the rhythm.
+  arbitrary offset entry: re-sync within one frame width at most.
+
+- **variable sentinel** (binary): width matches content, self-delimiting,
+  the expression. arbitrary entry: `0`/`1` always visible, always a boundary.
+
+together: fixed frame for the predictable, variable width for the expressive.
+neither collides with base32. all three coexist in the same stream.
+
+the octal layer is the crystal structure. the binary layer is the living grammar
+within it. base32 is the content both carry.
+
+---
+
+## parent inferrable from siblings alone
+
+even without the opening `0` group token, the `1` separators between elements
+declare their siblings. the parent cube boundary is inferrable from the pattern
+of separations alone. the root announces itself by being what everything else
+is between.
+
+this is the deepest property of infinite-space topology: the whole is
+recoverable from any local fragment because the relationships are encoded
+redundantly at every scale. no fragment is an island. every `1` separator
+implies a shared `0` parent, even if that parent hasn't been seen yet.
+
+---
+
+## application checklist
+
+when designing an encoding, protocol, or data structure, ask:
+
+- [ ] can a reader enter at any offset and recover structure within one unit?
+- [ ] are all layers' alphabets disjoint — no escaping needed anywhere?
+- [ ] does truncation produce a visible incomplete token, not a corrupt state?
+- [ ] is completion the authority signal, not declaration or negotiation?
+- [ ] can the parent be inferred from sibling relationships alone?
+- [ ] do fixed and variable width elements complement rather than conflict?
+
+if all six: the design is infinite-space oriented.
+if any fail: find the alphabet collision or the privileged origin and remove it.
+
+---
+
+## connection to protocol-7
+
+the binary sentinel + base32 + octal encoding family in protocol-7 is the
+existence proof of this pattern. the DATA-PAGES / DATA-CHANNELS wire format,
+the self-delimiting checksum tokens, the 2-bit type system, the stream framing
+protocol — all instances of the same infinite-space topology applied at
+different layers of the same coherent system.
+
+see `data/md/design/SELF-DELIMITING-CHECKSUM-PATTERN.md` for the concrete
+token system this template abstracts.
+
+#,,,,,,.,,,..,.,,,..,,,,,,,,.,..,,.,,,,.,,,.,,..,,...,...,...,,,.,,,,,..,,,,.,
+#AD3LTTFNKGIWT53PUHIZQLDOY7YE5G6WMWIS3SW2HKCOOHDBO4IMX2NMTPJJLWJLRKG5V4YZKCM5K
+#\\\|VTGPC5DIJTMSQP6M3GGQXOEQGIHZV56R7THRQ46CBU2OPJZMRGM \ / AMOS7 \ YOURUM ::
+#\[7]2ERHNXNCOZX6QDI5SLCLNU6YOQQRNUKDQPF4RUKKYWP4EDYA5KCY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
