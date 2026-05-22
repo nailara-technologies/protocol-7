@@ -27,6 +27,12 @@
 - `data/md/development/P7-LLM-REFERENCE.md` — verified live command reference for kimi/LLM sessions
 - `data/md/development/DEGRADED-FEATURES-AUDIT.md` — 5 high-priority + 3 medium candidates with stub task files
 
+## Space Engine (session 43)
+- [SPACE-ENGINE-MASTER.md](../../../data/projects/protocol-7/data/md/design/SPACE-ENGINE-MASTER.md) — 12 sub-namespaces: grid/orbit/route/travel/jump/search/register/select/filter/render/export+import/template; internal reference capable; aura profiles; harmonic frame expansion
+
+## amos-matrix tool (session 43)
+- `bin/amos-matrix` — render AMOS checksums as 5×7 dot matrices; 7 chars × 5 bits = 35 bits = one matrix; default horizontal+flipped (handwriting); -V -flip-h -flip-v -inv flags; xargs+ANSI clean
+
 ## 1001 — Ring Tightener (session 43)
 - [topic-1001](topic-1001.md) — inter-cube tunnel (00=2 bits invariant); gate nesting; two 13s (divisor/multiplier); eternal loop; seamless space; implicit transport as emergent topology; relative ntime
 
@@ -157,8 +163,8 @@
 - **pager.sort.multi-key**: ntime_b32 + priority_map sort types added (session 42)
 - **task dispatch sections**: all dispatched tasks now carry ## dispatch + prompt for reuse
 
-#,,,.,,,,,..,,...,.,,,..,,,..,..,,,.,,,.,,,,.,..,,...,..,,,..,,,,,,.,,.,.,,..,
-#6MFHORCM5D2SIKR675665WQ6CZNO6HAMORMSD24TYNB7QSD5KJHOK47LNE5EHSWS6FU64HX7VSSB6
-#\\\|7WMV37KWRFLJIABAC4DVPMOQQKZ3YUR35EMOHOIMOCR6QBPYWHK \ / AMOS7 \ YOURUM ::
-#\[7]CBE2KUQFBNRNSZKMC74MLJXJIO4Z3P3WBZTQMPHCZVTA5FWSCSBY 7  DATA SIGNATURE ::
+#,,,,,,..,..,,,,,,,.,,,.,,,.,,..,,,..,,,.,,.,,..,,...,...,,.,,.,,,.,,,..,,...,
+#VLNML6Y2HDEVXYDD5L5ZVVQGFHV6JIITIAO7DWIRLVDOPA35C5RQVIHYBTPVIT56JWY4N5LNYXZZY
+#\\\|X7W5RNKHIMPXMYBBNBTKQRF3JU7X5VASN3Q2ZUYHVBKKBFRWIVV \ / AMOS7 \ YOURUM ::
+#\[7]X3CSJW5FAIM54AWL3MKLPQULMI6NJJA6XBME32UK5PGHQ6TCJEBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,9 +1,10 @@
 ---
 name: topic-branch-namespace
 description: branch.* namespace — unifying addressable layer; layers 1-3 + dep + resource API DONE; layer 4 dispatched
-metadata:
+metadata: 
   node_type: memory
   type: project
+  originSessionId: 4b3850d2-8acb-4166-bbdf-ddf52d8182ba
 ---
 
 `branch.*` is the unifying addressable layer for Protocol-7. every resource
@@ -61,9 +62,9 @@ group-filter in branch.resource.find is LIVE (uses branch.group.members)
 | branch-layer3-routes-keys.md | 3 | DONE |
 | branch-dep-graph.md | dep | DONE |
 | branch-layer7-resource-attach.md | 7 | DONE |
-| branch-layer4-storage-data.md | 4 | dispatched round 2 |
-| branch-layer5-9p-bridge.md | 5 | pending round 3 |
-| branch-layer6-file-abstraction.md | 6 | pending round 3 |
+| branch-layer4-storage-data.md | 4 | DONE |
+| branch-layer5-9p-bridge.md | 5 | dispatched round 3 |
+| branch-layer6-file-abstraction.md | 6 | dispatched round 3 |
 
 ## wave routing + virtual zenka position (session 43)
 
@@ -82,8 +83,8 @@ the position while there; node persists after.
 - `base.dump_data` — added reverse_sort flag (default 0)
 - `devmod.cmd.dump` — sets reverse_sort=TRUE so structural keys visible at scroll end
 
-#,,,,,,..,,,.,...,..,,,,.,,,,,,,.,.,.,...,,,.,..,,...,...,,..,...,..,,.,,,,..,
-#2II2VKJZYFKY6MOIYEOTEISOHW3ZF7YRZQ5JDGZ5MLAQ7DQZMK5ZZTGGBK26WS3LFQU2AZAU2VJE6
-#\\\|DBEWAEH4PDO3NM373YCX4SYT3MABO47XN37M4GIC7OGQYZBF454 \ / AMOS7 \ YOURUM ::
-#\[7]AYD6PUY4JV7MKP43CW5GA6U7NMZT4RF2PS6LRSOFNUF73KPCMKAI 7  DATA SIGNATURE ::
+#,,..,..,,,..,.,,,.,,,.,,,..,,..,,.,.,,.,,...,..,,...,...,...,...,,..,,..,...,
+#O7MUGRXDNDA7QMYCJ3FUB54K3BBP5L6Y7NU2BJXHJQ2A3X7663ZTK2Z467FC3RPM7RNK2FP2PPXEA
+#\\\|HXHUFGZHZ5Q6EVTEG55Q4CSCH2IYAN7RV6ITTLU2LMCTAK5UCYX \ / AMOS7 \ YOURUM ::
+#\[7]37QWIBJINTS6L5HNGXVAD6YYGW4HIHOUCOUZBXNPKJXRQDFIJ2CY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
