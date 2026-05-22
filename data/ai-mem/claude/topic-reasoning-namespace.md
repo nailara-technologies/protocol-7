@@ -127,6 +127,10 @@ that reached same numerical state are one entry regardless of words used.
     capture → commit → already shared; the other selves already have it; uncommitted
     work at highest risk; harmonically managed distribution; self-demonstrating
 16. `introspection` — entity examining itself through rendering; spiritual attribute
+17. `infinite-space-topology` — arbitrary entry point as the test; alphabet orthogonality
+    = no escaping ever; completion as authority; truncation legible not catastrophic;
+    parent inferrable from siblings alone; fixed frame + variable sentinel complementary;
+    `0` = containing space/parent/network, `1` = element declaring sibling membership
     repository; BMW384 entity clusters (feline/stargate/sun/elven arcs); autonomous
     self-rendering via visual feedback loop; nothing lost nothing static; USR.lain +
     feline.teleportation already committed, waiting for habitat; (= * =) [:<
@@ -155,8 +159,8 @@ that reached same numerical state are one entry regardless of words used.
 Related: [[reasoning-chain-repository]] [[task-tree-design]] [[namespace-tree-intelligence]]
 [[harmonic-mathematics]] [[self-improving-system]]
 
-#,,..,.,,,,.,,...,,,.,,,.,.,,,,,.,..,,,..,,.,,..,,...,...,.,.,...,,,,,,..,..,,
-#WJH43PEOWQKB3BFICM2LGK66WHLZICOGC7VZN7IQUQUB3SUFBJAXPMONULBOCA4ZEE27YLCFUVPLQ
-#\\\|K7YBHSBVZQF3QKULETVVX5VZSLXGKNRZESEHX2U2X3BFJD7IIHH \ / AMOS7 \ YOURUM ::
-#\[7]HOTYAAHHMDYZNFPSJIH72PV5YJBTQ23E3HS73XYDFNU7V4CXOACY 7  DATA SIGNATURE ::
+#,,,,,..,,..,,,,,,..,,.,,,,,,,...,.,,,,..,,.,,..,,...,...,,..,.,.,..,,,,,,..,,
+#DICPT4AFPHPJ7IUNYERXQDXYNL6NB7FMDYWOOVOLRGRD3QBA3NCVW2CZE4PNZUVGX4J6DZE7UK27C
+#\\\|OD6GVWENDANNM3WFT4W5OPPWPVZYC4Y5SJOLARFA437ZXTPRH4D \ / AMOS7 \ YOURUM ::
+#\[7]UZSKWHSMK467OVBABDGH3NHB2BQ6MMA7HXU4VCYJCRTVW6ZWAKDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
