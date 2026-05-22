@@ -1,0 +1,139 @@
+---
+patterns:
+
+  - name: p7-tree-syntax-fix
+    descr: flat $data{'x.y'}{ keys -> <x.y>-> P7 tree syntax
+    pattern: 'data\..space\.'
+    steps:
+      - tool: ncode
+        search: 'data\.\.{namespace}...'
+        replace: '<{namespace}>->'
+        note: dot-mask braces; 2 leading dots for {', 3 trailing for '}{
+      - tool: ncode
+        search: '\$<{namespace}\.'
+        replace: '<{namespace}.'
+        note: strip orphaned $ prefix
+      - tool: perl
+        pattern: '->(\$[a-zA-Z_])'
+        replace: '->{$1'
+        note: re-add missing { before variable dereferences
+      - tool: perl
+        pattern: '->//'
+        replace: ' //'
+        note: defined-or is not a dereference
+    verify:
+      - no_match: '\$<[a-z]'
+      - no_match: '->\$[a-z]'
+      - no_match: '->//'
+    applicability:
+      file_type: module
+      confidence: 0.85
+    origin: manual
+    stats:
+      applied: 0
+      false_positive: 0
+
+  - name: p7-exists-code-guard
+    descr: remove exists $code{'module'} guards — all modules loaded together
+    pattern: 'exists \$code\{'
+    steps:
+      - action: manual
+        note: >
+          remove if/else guards; keep primary <[module]>->() call; drop else fallback.
+          for complex fallbacks: keep logic, remove the guard condition.
+    verify:
+      - no_match: 'exists \$code\{'
+    applicability:
+      file_type: module
+      confidence: 0.80
+      action: flag_for_review
+    origin: manual
+    stats:
+      applied: 0
+      false_positive: 0
+
+  - name: p7-arg-regression
+    descr: $ARG not $_ ; TRUE/FALSE not 1/0 for booleans
+    pattern: '\$_\b|''repeat'' => [01]\b'
+    steps:
+      - tool: ncode
+        search: '\$_'
+        replace: '$ARG'
+        note: only in non-regex contexts; ncode will show preview
+      - tool: ncode
+        search: "'repeat' => 1"
+        replace: "'repeat' => TRUE"
+    verify:
+      - no_match: '\$_\b'
+    applicability:
+      file_type: module
+      confidence: 0.90
+    origin: manual
+    stats:
+      applied: 0
+      false_positive: 0
+
+  - name: p7-comment-style
+    descr: lowercase comments, [ word ] annotations, max 79 chars
+    pattern: '## [A-Z]|##.*[A-Z][a-z].*--'
+    steps:
+      - action: manual + ptd
+        note: ptd reformats long lines automatically; capitalize detection is advisory
+    verify:
+      - tool: vc-changed-files -exc-len
+        expect: no output
+    applicability:
+      file_type: module
+      confidence: 0.70
+      action: flag_for_review
+    origin: manual
+    stats:
+      applied: 0
+      false_positive: 0
+
+  - name: p7-signature-stub
+    descr: detect kimi-added stub signatures — blocks real signing
+    pattern: '#,,.,,,..,,'
+    steps:
+      - action: strip footer lines matching stub pattern
+        note: leave file clean; update-signatures adds real footer
+    verify:
+      - no_match: '#,,.,,,..,,'
+    applicability:
+      file_type: module
+      confidence: 0.95
+      action: flag_for_review
+    origin: manual
+    stats:
+      applied: 0
+      false_positive: 0
+
+workflows:
+
+  - name: kimi-output-review
+    detect:
+      trigger: any new modules/space.* or modules/branch.space.*
+    sequence:
+      - pattern: p7-tree-syntax-fix
+        verify: no $<space. remaining, no ->$var}, no ->//
+      - pattern: p7-exists-code-guard
+        verify: no exists $code{ in changed modules
+      - pattern: p7-comment-style
+        verify: vc-changed-files -exc-len clean
+      - step: ptd-pass
+        verify: all ptd pass
+    suggest_next: sign-and-commit
+
+  - name: namespace-migration
+    sequence:
+      - step: ncode parse-headers
+      - step: ncode replace callers
+      - pattern: p7-arg-regression
+      - step: ptd-pass
+    suggest_next: update subroutine whitelist
+
+#,,..,...,..,,.,.,,.,,,..,...,.,.,...,,..,,,.,.,.,...,...,..,,..,,,,.,,,,,...,
+#AR6KEOR44AAE5AFX2RQA4C5C27XKYCFVPU7FYXOCPCK5LYUMLD7EJ5BDEYPOTXNXC7TR6WT5UHMN2
+#\\\|VJYRY5PLDQ3LO5OXQH2IQYVLR2CM5XBVHQOL7VZESWRC4M6X53L \ / AMOS7 \ YOURUM ::
+#\[7]YZF5YOYNR273IH4OHN2GLWH7QEOJZDKI5VWNEG3BZFU4LV2UMYCY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,0 +1,124 @@
+## [:< ##
+
+# name  = ncode.cmd.suggest
+# descr = scan files and emit checksum-addressed fix listing
+
+my $params = shift // {};
+
+my $files           = $params->{'files'}      // [];
+my $patterns_filter = $params->{'patterns'}   // [];
+my $session_id      = $params->{'session_id'} // '';
+
+## normalize file list ##
+my @file_list;
+if ( ref $files eq qw| ARRAY | ) {
+    @file_list = @$files;
+} elsif ( length $files ) {
+    @file_list = ($files);
+}
+
+return { 'mode' => qw| false |, 'data' => 'no files specified' }
+    unless @file_list;
+
+## compute session root checksum ##
+my $files_str    = join ',', sort @file_list;
+my $ntime_str    = <[base.time]>->(4);
+my $session_seed = "$ntime_str :: $files_str";
+
+my $chksum_fn    = $code{'chk-sum.amos'} // $code{'base.chk-sum.amos'};
+my $session_root = defined $chksum_fn ? $chksum_fn->( \$session_seed ) : '';
+
+return { 'mode' => qw| false |, 'data' => 'checksum function unavailable' }
+    unless length $session_root;
+
+## initialize pending store ##
+<ncode.pending> //= {};
+my $pending = <ncode.pending>;
+
+my @results;
+<ncode.patterns> //= {};
+my $patterns = <ncode.patterns>;
+
+## build filter set ##
+my %filter_map;
+if ( ref $patterns_filter eq qw| ARRAY | and @$patterns_filter ) {
+    %filter_map = map { $ARG => 1 } @$patterns_filter;
+}
+
+foreach my $pname ( sort keys %$patterns ) {
+    next if %filter_map and not exists $filter_map{$pname};
+
+    my $def    = $patterns->{$pname};
+    my $detect = $def->{'detect'} || $def->{'pattern'} // '';
+    next unless length $detect;
+
+    my $compiled = eval {qr/$detect/};
+    if ($@) {
+        <[base.logs]>->(
+            0,      ':. ncode.cmd.suggest: bad detect %s [ %s ] :.',
+            $pname, $@
+        );
+        next;
+    }
+
+    foreach my $file (@file_list) {
+        next unless -f $file;
+
+        open my $fh, '<', $file or next;
+        my @lines = <$fh>;
+        close $fh;
+        chomp @lines;
+
+        my $line_num = 0;
+        foreach my $line (@lines) {
+            $line_num++;
+            next unless $line =~ $compiled;
+
+            my $fix_data = "$pname:$file:$line_num";
+            my $fix_id   = $chksum_fn->( \$fix_data ) // '';
+            next unless length $fix_id;
+
+            $pending->{$fix_id} = {
+                'pattern' => $pname,
+                'file'    => $file,
+                'line'    => $line_num,
+                'preview' => $line,
+                'session' => $session_root,
+                'status'  => 'pending'
+            };
+
+            push @results,
+                {
+                'fix_id'       => $fix_id,
+                'pattern_name' => $pname,
+                'file'         => $file,
+                'line'         => $line_num,
+                'preview'      => $line
+                };
+        }
+    }
+}
+
+## format output ##
+my $out = '';
+foreach my $r (@results) {
+    $out .= sprintf "%s  %-16s %s:%d\n",
+        $r->{'fix_id'},
+        $r->{'pattern_name'},
+        $r->{'file'},
+        $r->{'line'};
+}
+
+$out .= "\nsession: $session_root\n";
+if (@results) {
+    $out .= "apply one:  p7c ncode.apply $results[0]{'fix_id'}\n";
+    $out .= "apply all:  p7c ncode.apply --session $session_root\n";
+}
+
+return { 'mode' => 'size', 'data' => $out };
+
+#,,..,.,.,,,.,.,,,,,.,.,,,,..,.,,,,.,,,,,,,,.,.,.,...,...,,..,.,.,...,,,.,,,.,
+#C22OTTHK4E5P27M2BWNQI25VWWHXGZVKURIVYR6DP23U6UARLT7CNXYV3LA6IJS322QU3K6UGUUXA
+#\\\|4PFEKPAREWSGVUSAJHT74VT7XJEEAQ4AMIT3K625YZWTVLK5PL6 \ / AMOS7 \ YOURUM ::
+#\[7]CT42CMYMSNTWDF2NOKDVKZZKXFBKIDJPPISMF3Y6AEODJ34RIMAA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
