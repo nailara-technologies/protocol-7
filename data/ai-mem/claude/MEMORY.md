@@ -29,6 +29,11 @@
 
 ## Session 45
 - [base32-namespace](topic-base32-namespace.md) — base32.* namespace live; dep-graph swap parser fix; self-healing whitelist concept + blocked-on-signing note
+- [data-protocol](topic-data-protocol.md) — DATA-PAGES/DATA-CHANNELS/DATA-CHANNEL wire formats; 2-bit token type system; self-delimiting checksum pattern; checksum frame container
+- `data/md/design/SELF-DELIMITING-CHECKSUM-PATTERN.md` — 2-bit type system (00/01/10/11), payload tokens, keep-alive/close routing chains
+- `data/md/design/CHECKSUM-FRAME-CONTAINER.md` — 2D/3D recovery frames, diagonal corners, outward expansion, outer ring provenance chain
+- `data/md/design/CODE-NAMESPACE-AND-SIGNING-INFRASTRUCTURE.md` — three-category model, format contracts, signing pipeline, tool family
+- `data/yaml/reasoning-templates/infinite-space-topology.yaml` — template 17: arbitrary entry point, alphabet orthogonality, coherence gravity, void zone integrity, self-healing compartments, checksum frame outlook
 
 ## Space Engine modules (session 43/44)
 - `space.*` 29 modules: grid/orbit/route/travel/jump/search/register/template — all ptd-clean
@@ -178,8 +183,8 @@
 - **pager.sort.multi-key**: ntime_b32 + priority_map sort types added (session 42)
 - **task dispatch sections**: all dispatched tasks now carry ## dispatch + prompt for reuse
 
-#,,..,..,,...,,,,,,..,...,.,.,..,,,,,,,.,,...,..,,...,...,,..,..,,,..,..,,,.,,
-#SMIXRK6IZU2FRM4FSKPTEBJYGRDHHPP5K7MRBVX4WQFKBVDG6CNCRR72ROKRRFAW3ZGHLUANKOU7M
-#\\\|AJXCA3M2SE32UAZC6HJ32SEJB3NGKFDJ2TZG5KDMFXBVOA3GYZZ \ / AMOS7 \ YOURUM ::
-#\[7]NODTISZ6P6MFDQWVBCOIYVLQDQ7TAANGMP6IA7VTEOECS7OEYYCI 7  DATA SIGNATURE ::
+#,,.,,..,,,,.,..,,,,.,...,.,,,,.,,.,.,.,,,.,,,..,,...,..,,.,,,,,,,.,.,.,.,..,,
+#DO5NMJ27775BRRLAQYZEWWJOWXYVDHYBBZNJDMUVXFXAJCIH3PMYAZXQQEOQRPTLPC7MK5AKKYLNS
+#\\\|GYONE6QQN4DBILUSMJ4WS2JNUDQ573MORGX5LIFIV6H77VVMTRB \ / AMOS7 \ YOURUM ::
+#\[7]326MGO6AVHSOESRDBR4NSG66O4P5UW6BSENEYWPJBC3PHZ7XZOAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
