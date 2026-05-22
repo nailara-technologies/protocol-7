@@ -107,10 +107,10 @@ if ( $reply_mode =~ m{^(TRUE|FALSE|WAIT)$}io ) {
     my $stream_id = $reply->{'stream_id'} // '';
     my $total     = $reply->{'total'}     // qw| STREAM |;
 
-    ## encode total if numeric ##
+    ## encode total if numeric ## [LLL] specification will likely change !!
     my $total_enc
         = ( $total =~ m|^\d+$| )
-        ? <[base.encode_b32r]>->( \$total )
+        ? <[base32.encode]>->( \$total )
         : $total;    ## 'STREAM' | 'DELTA ...' passed through ##
 
     ## open frame ##
@@ -121,7 +121,7 @@ if ( $reply_mode =~ m{^(TRUE|FALSE|WAIT)$}io ) {
     my $chunk = 47;
     while ( length $data ) {
         my $slice = substr( $data, 0, $chunk, '' );
-        $output->$* .= <[base.encode_b32r]>->( \$slice ) . "\n";
+        $output->$* .= <[base32.encode]>->( \$slice ) . "\n";
     }
 
     ## close frame with AMOS checksum ##
@@ -171,8 +171,8 @@ if ( $reply_mode =~ m{^(TRUE|FALSE|WAIT)$}io ) {
 
 delete <base.cmd_reply>->{$reply_id};
 
-#,,.,,...,,,,,,..,..,,,,,,...,,.,,,.,,,,,,,,,,..,,...,...,.,,,,,.,...,.,.,,.,,
-#HZCGCG4AWW4RMW2P7G637XC6VSTPNQ3SHAWJ2ENPKHPTM3YGH4KV7D4NT5UYRY6BMUYUKHRZO2ZBW
-#\\\|C7LHGMAHXNKB3OZRCEZTHGIIA2MTCDC7NHUETMAC6ZCRUBG4KGA \ / AMOS7 \ YOURUM ::
-#\[7]2T5Z52BXZI6CXF3TR2HW6CMSGVRU2Z5DTJUFXCLTWWMRH2NIFYAY 7  DATA SIGNATURE ::
+#,,.,,..,,.,.,,..,,,,,..,,,,.,,..,.,,,,,,,..,,..,,...,.,.,,..,,,,,..,,,..,,.,,
+#3OULNI725VZYIXY7EW2FVPCTBNH4RPI667X2OBJZE5UJZ3A2IU3RO2BW5R2CDOFC4B3JJTJYRVL5E
+#\\\|HV6HX5QHKSSRZCIYGEACF4YXBAYXYH5HJI5JEEWULWA2DY2ZBQM \ / AMOS7 \ YOURUM ::
+#\[7]5I36NU2DGCBB2U7BDNEGJQCV6L5FR25OQZGXWI2DVHOSRUNTSYAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

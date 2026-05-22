@@ -88,7 +88,7 @@ while ( $item_idx < @$items ) {
     if ( $format eq 'binary' ) {
         $encoded_item->{'binary'} = pack( 'Q>', $Z );
     } elsif ( $format eq 'base32' ) {
-        $encoded_item->{'base32'} = <[base.encode.b32]>->( pack( 'Q>', $Z ) );
+        $encoded_item->{'base32'} = <[base32.encode]>->( pack( 'Q>', $Z ) );
     } elsif ( $format eq 'display' ) {
         $encoded_item->{'display'}
             = <[pager.util.encode.format_display]>->($encoded_item);
@@ -99,8 +99,8 @@ while ( $item_idx < @$items ) {
 
 return \@encoded;
 
-#,,,.,,,.,.,,,,.,,,.,,.,.,,.,,,..,.,.,,..,.,,,..,,...,...,..,,,.,,..,,,.,,,.,,
-#U7FABX5JLTL2KXWZXAVAKGAAARCN32DHA6MKRVKFISBHI5RIQCET4HGKHA5INEVVKX4KSXJIV3ETY
-#\\\|UAJBVT7YNUUVGCZXOPYU4ZNULDD6E5L76GSASTGJE23PH3FHGRJ \ / AMOS7 \ YOURUM ::
-#\[7]EE6EFTISZMPDCFA2UDYI76PB5HFILMM4J73XBNQPPB3MTMTULOCY 7  DATA SIGNATURE ::
+#,,,.,..,,.,,,..,,.,,,,..,,,,,.,.,.,.,..,,..,,..,,...,...,..,,.,.,..,,.,.,.,.,
+#VJJG4YS3VD7V7T4W3MNOUGGOGACZAXBR56G6XDPJ4SXCEBPK3CLHEXSY7NUMEYPJJNEUMGIK4N47M
+#\\\|DDLL657OZB2K5KPNUMCVVRZYMXTD2UYJXFQZKHPY4MF2YC64LTZ \ / AMOS7 \ YOURUM ::
+#\[7]NPLMTYDOWUBRCHY3N73C6UGUWDE5VN2NF3CBTT7SKD42J2K2NIDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
