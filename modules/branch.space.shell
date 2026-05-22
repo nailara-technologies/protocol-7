@@ -1,0 +1,59 @@
+## [:< ##
+
+# name  = branch.space.shell
+# descr = compute shell number from position or node
+# param = { position }  or  { node_id, scope }
+#
+# shell 0 = darksun (observer)
+# shell 1 = innermost ring
+# shell N = outermost populated ring
+
+my $params = shift // {};
+
+my $position = $params->{'position'};
+my $node_id  = $params->{'node_id'} // '';
+my $scope    = $params->{'scope'}   // 'global';
+
+## resolve position ##
+if ( not defined $position ) {
+    return { 'mode' => 'false', 'data' => 'node id required' }
+        unless length $node_id;
+
+    if ( exists $data{'branch.space.positions'}{$scope}{$node_id} ) {
+        $position
+            = $data{'branch.space.positions'}{$scope}{$node_id}{'position'};
+    } else {
+        my $rank_res = <[branch.space.rank]>->(
+            {   'node_id' => $node_id,
+                'scope'   => $scope,
+            }
+        );
+        $position = $rank_res->{'data'}{'position'} // 0
+            if ref $rank_res eq qw| HASH |
+            and $rank_res->{'mode'} eq 'true';
+    }
+}
+
+return { 'mode' => 'false', 'data' => 'position not resolved' }
+    unless defined $position;
+
+## compute shell ##
+my $shell = 0;
+if ( ref $position eq qw| HASH | ) {
+    my $z = abs( $position->{'z'} // 0 );
+    my $y = abs( $position->{'y'} // 0 );
+    my $x = abs( $position->{'x'} // 0 );
+    $shell = $z;
+    $shell = $y if $y > $shell;
+    $shell = $x if $x > $shell;
+} else {
+    $shell = abs($position);
+}
+
+return { 'mode' => 'true', 'data' => $shell };
+
+#,,.,,.,,,...,,.,,,,,,.,.,,,,,,.,,..,,,..,,,,,.,.,...,...,...,...,,.,,.,,,,.,,
+#SPZN64ECSKBB6YM5FPZUSOAVDHWDUGMKSKISOGFG3J57DY56AHUJOSF7AKH5W3YHQSGCHYCVPCBYA
+#\\\|4SDXMW3YQ3XXWFCVIKHWXRWEBDFJWAYI3TFNLWGK5F2K63GQBAG \ / AMOS7 \ YOURUM ::
+#\[7]3WZVEYZVRDFW3TXBRPO6V4LUGVNUYKDXDG3BIDHY4VTEIHCHUABY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

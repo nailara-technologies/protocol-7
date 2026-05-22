@@ -1,0 +1,39 @@
+## [:< ##
+
+# name  = branch.ntime.relative
+# descr = compute relative temporal distance between two observer nodes
+
+my $param   = shift               // {};
+my $ntime_a = $param->{'ntime_a'} // '';
+my $ntime_b = $param->{'ntime_b'} // '';
+
+return { mode => 'false', data => 'both ntime values required' }
+    if not length $ntime_a or not length $ntime_b;
+
+my $a_num = <[base.ntime_BASE32_to_numerical]>->($ntime_a);
+my $b_num = <[base.ntime_BASE32_to_numerical]>->($ntime_b);
+
+return { mode => 'false', data => 'invalid ntime value' }
+    if not defined $a_num or not defined $b_num;
+
+my $delta         = abs( $a_num - $b_num );
+my $clock_periods = $delta / 13;
+my $tunnel_units  = $delta / 2;
+
+my $direction = ( $a_num <= $b_num ) ? 'a_before_b' : 'b_before_a';
+
+return {
+    mode => 'true',
+    data => {
+        delta         => $delta,
+        clock_periods => $clock_periods,
+        tunnel_units  => $tunnel_units,
+        direction     => $direction,
+    }
+};
+
+#,,.,,,.,,..,,.,,,,,.,...,.,,,,.,,,.,,,.,,...,..,,...,..,,.,.,,..,...,..,,..,,
+#4BKHU75X7I2DISW4SQF4FRK2TNC2VJTSEDWMPSHQHBC7BE2IB5DAT27ING2YPZ3AANOJPVB4AXEOA
+#\\\|MKEU4WID2GT3PSZPR2D7G2GFMC2ZREBW2DPFLFDFIE65EW26ZBE \ / AMOS7 \ YOURUM ::
+#\[7]KIZWBECGBT2HSMIPPETMA7RNB5BUUZW2XT3PLIEHKSSIIZYKSKAQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

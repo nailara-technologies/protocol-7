@@ -1,0 +1,34 @@
+## [:< ##
+
+# name  = branch.clock.position
+# descr = compute current position in the 13-slot clock cycle
+
+my $param = shift             // {};
+my $ntime = $param->{'ntime'} // '';
+
+return { mode => 'false', data => 'ntime required' }
+    if not length $ntime;
+
+my $numerical = <[base.ntime_BASE32_to_numerical]>->($ntime);
+
+return { mode => 'false', data => 'invalid ntime' }
+    if not defined $numerical;
+
+my $position         = int($numerical) % 13;
+my $next_correlation = 13 - $position;
+my $is_correlation   = ( $position == 0 ) ? TRUE : FALSE;
+
+return {
+    mode => 'true',
+    data => {
+        position         => $position,
+        next_correlation => $next_correlation,
+        is_correlation   => $is_correlation,
+    }
+};
+
+#,,..,..,,,.,,..,,,,.,,,,,..,,..,,,,,,,,,,...,..,,...,...,.,,,,,.,,,,,,..,.,,,
+#RJUNM3WG5KRBE6PVU6QFMD3VMIGTJYID76KGYDAG2ZBBKVBA6WLRB4NPVZJJHJQYJISSFMFGZVODG
+#\\\|ZPFRT5HIDUJ5Q4YYKEGTFUGAAIBB3DM2VCJM6HYXIM4DU5KGIN7 \ / AMOS7 \ YOURUM ::
+#\[7]6SRRJ64XTTRUPCD2MRNXK6EOM2UZXNISBTPG2I3EUDVA4OMTRUCI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

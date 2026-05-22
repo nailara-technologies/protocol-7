@@ -1,0 +1,81 @@
+## [:< ##
+
+# name  = branch.route.calc.resonance
+# descr = compute resonance score of a node in the routing crystal
+# param = { node_id }
+#
+# resonance = reference_count * harmonic_truth * shell_bonus
+
+my $params  = shift                // {};
+my $node_id = $params->{'node_id'} // '';
+
+return { 'mode' => 'false', 'data' => 'node_id required' }
+    unless length $node_id;
+
+## resolve reference count from active routes ##
+my $ref_count = 0;
+if ( exists $data{'branch.routes'} ) {
+    for my $route_id ( keys %{ $data{'branch.routes'} } ) {
+        my $route = $data{'branch.routes'}{$route_id};
+        next unless defined $route;
+        if ( defined $route->{'target'}
+            and $route->{'target'} eq $node_id ) {
+            $ref_count++;
+        } elsif ( defined $route->{'hops'}
+            and ref $route->{'hops'} eq qw| ARRAY | ) {
+            for my $hop ( @{ $route->{'hops'} } ) {
+                if ( defined $hop and $hop eq $node_id ) {
+                    $ref_count++;
+                    last;
+                }
+            }
+        }
+    }
+}
+
+## compute shell number from node depth ##
+my $depth = 0;
+my $cur   = $node_id;
+my $seen  = {};
+while ( defined $cur and length $cur ) {
+    last if $seen->{$cur}++;
+    my $parent = $data{'branch.nodes'}{$cur}{'parent'} // undef;
+    last unless defined $parent and length $parent;
+    $depth++;
+    $cur = $parent;
+}
+my $shell_number = $depth + 1;
+my $shell_bonus  = 1 / $shell_number;
+
+## harmonic truth via AMOS swap-boundary ##
+my $chksum_fn      = $code{'chk-sum.amos'} // $code{'base.chk-sum.amos'};
+my $harmonic       = FALSE;
+my $harmonic_truth = 0.5;
+
+if ( defined $chksum_fn ) {
+    my $node_chksum = eval { $chksum_fn->( \$node_id ) } // '';
+    if ( length $node_chksum ) {
+        $harmonic
+            = AMOS7::Assert::Truth::is_true( \$node_chksum, 0, 1 )
+            ? TRUE
+            : FALSE;
+        $harmonic_truth = $harmonic ? 1 : 0.5;
+    }
+}
+
+my $resonance = $ref_count * $harmonic_truth * $shell_bonus;
+
+return {
+    'mode' => 'true',
+    'data' => {
+        'resonance'   => $resonance,
+        'harmonic'    => $harmonic,
+        'shell_bonus' => $shell_bonus
+    }
+};
+
+#,,..,,,.,.,.,..,,,.,,,,.,.,.,,,,,,.,,,,.,,,,,.,.,...,...,,,,,,,,,..,,...,.,.,
+#4XBZHEM7DAQWTPUOZHQ4IQK4Z22IAG4MX27R3SPOP44JG4O7J4ICPPDPUOMBCSPAPLYYDPRW4UIH4
+#\\\|BNH7VHVFQBSKKZT7PBVVNQDJZH2MQQJPXVIBFNLAU26BNTIZWCA \ / AMOS7 \ YOURUM ::
+#\[7]MOFA46366C67JFDAMPQ7NREGO3CTXGCPK74QFORAKQEPCXPXXKCA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

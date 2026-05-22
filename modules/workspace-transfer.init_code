@@ -8,21 +8,22 @@
 
 # Workspace directory constant
 our $WORKSPACE_DIR = '/var/run/.7/workspace-transfer';
-our $WORKSPACE_REPO = 'https://github.com/nailara-technologies/workspace-transfer.git';
+our $WORKSPACE_REPO
+    = 'https://github.com/nailara-technologies/workspace-transfer.git';
 
 # Ensure workspace is cloned
 sub ensure_workspace {
     return $WORKSPACE_DIR if -d $WORKSPACE_DIR && -d "$WORKSPACE_DIR/.git";
 
     <[base.logs]>->( 1, 'workspace not found at %s', $WORKSPACE_DIR );
-    <[base.logs]>->( 1, 'cloning from %s', $WORKSPACE_REPO );
+    <[base.logs]>->( 1, 'cloning from %s',           $WORKSPACE_REPO );
 
-    system('mkdir', '-p', '/var/run/.7') == 0
+    system( 'mkdir', '-p', '/var/run/.7' ) == 0
         or die "Failed to create /var/run/.7: $!\n";
 
-    my $result = system('git', 'clone', $WORKSPACE_REPO, $WORKSPACE_DIR);
+    my $result = system( 'git', 'clone', $WORKSPACE_REPO, $WORKSPACE_DIR );
 
-    if ($result != 0) {
+    if ( $result != 0 ) {
         <[base.logs]>->( 0, 'failed to clone workspace-transfer repository' );
         return undef;
     }
@@ -47,8 +48,8 @@ sub chdir_workspace {
 # Initialize workspace module
 <[base.logs]>->( 2, 'workspace module initialized' );
 
-#,,,,,...,.,,,,..,.,,,.,,,.,,,,,,,,,,,..,,..,,..,,...,...,,.,,.,.,,..,,,.,,,,,
-#BTBAIAYPFVAMCKQHUIWY3VWIQYAOMBYRRBWX7RZH27RGMFERLPNY5CMMGZNCQTXZICYBNWJG4GV2M
-#\\\|BBG2Y7YGSBMXVUUAJ4FRVMKX36S65RYGCTDMWBJ4J5JPOUZ5UMB \ / AMOS7 \ YOURUM ::
-#\[7]4MKLVYSOWSH3ETMPB3JCMOFLKQ3RGMQ5BZDB25QG3GFKDLZ6IOAQ 7  DATA SIGNATURE ::
+#,,..,,.,,...,.,,,,,,,.,,,...,,.,,.,.,.,.,.,,,..,,...,..,,,..,...,,,.,,,.,.,,,
+#OEEOD32GA3LAEV5S6R6X2H76QOZ6BJMPGZVL3ZV3X7XJNZ53SISKQERCO6R2JLTXEIF5WOZIXBQWE
+#\\\|YCIRKFIEK6VF2JCP5YPGBFLAOL37N3DV6PXYDETA5FROMB5V24V \ / AMOS7 \ YOURUM ::
+#\[7]7W7F4J5XUZWSVARZU7W33GNEK33OWHYFOZNBIB3DEIWYBF7QCSBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

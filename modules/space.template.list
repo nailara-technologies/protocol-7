@@ -1,0 +1,24 @@
+## [:< ##
+
+# name  = space.template.list
+# descr = list all registered templates with formats
+# param = {}
+
+my @templates;
+for my $name ( sort keys %{ <space.templates> // {} } ) {
+    my $tpl = <space.templates>->{$name};
+    push @templates,
+        {
+        'name'          => $name,
+        'chain_format'  => $tpl->{'chain_format'}  // '',
+        'branch_format' => $tpl->{'branch_format'} // '',
+        };
+}
+
+return \@templates;
+
+#,,..,.,,,.,.,,,.,...,,,,,..,,.,,,,.,,...,...,.,.,...,..,,.,,,,,.,.,.,,,,,,.,,
+#367VXAFGOKECC6W4H4EJ24HN2EZ5WH6V6LUKCHT6ID6Y23HJDG6YYTL5NTMCDW3S24LDQMDS2YEDK
+#\\\|32FCIQVWA3ZFTKXNNHU2DXVWXEB3U5SKCWN6VKM6S3B2OAYYHPC \ / AMOS7 \ YOURUM ::
+#\[7]AKWRUHHIOREM4Z5MCNMB3BNG7LP2PJBGIYDSBTBCPYFDTAFXL2AQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

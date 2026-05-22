@@ -27,8 +27,20 @@
 - `data/md/development/P7-LLM-REFERENCE.md` — verified live command reference for kimi/LLM sessions
 - `data/md/development/DEGRADED-FEATURES-AUDIT.md` — 5 high-priority + 3 medium candidates with stub task files
 
+## Space Engine modules (session 43/44)
+- `space.*` 29 modules: grid/orbit/route/travel/jump/search/register/template — all ptd-clean
+- `branch.space.*` 6: rank, shell, visible, magnetic_force, effective_position, balance
+- `branch.clock.*` 4: allocate, sequence, position, bandwidth
+- `branch.ntime.*` 3: relative, clock_sync, tunnel_duration
+- `base.callback.cmd_reply` — DATA + TREE reply modes added
+- fixes: `<space.X.Y>->` tree syntax (was flat keys); removed all `exists $code{}` guards; long lines wrapped
+
 ## Space Engine (session 43)
 - [SPACE-ENGINE-MASTER.md](../../../data/projects/protocol-7/data/md/design/SPACE-ENGINE-MASTER.md) — 12 sub-namespaces: grid/orbit/route/travel/jump/search/register/select/filter/render/export+import/template; internal reference capable; aura profiles; harmonic frame expansion
+
+## ncode workflow note (session 44)
+- for patterns with hash braces `{` `}`: mask with dots — `data..space.X.Y...` matches `$data{'space.X.Y'}{`
+- `ncode -ai-friendly -confirm replace src "data..space.X.Y..." "<space.X.Y>->"` — bulk tree-syntax fix
 
 ## amos-matrix tool (session 43)
 - `bin/amos-matrix` — render AMOS checksums as 5×7 dot matrices; 7 chars × 5 bits = 35 bits = one matrix; default horizontal+flipped (handwriting); -V -flip-h -flip-v -inv flags; xargs+ANSI clean
@@ -163,8 +175,8 @@
 - **pager.sort.multi-key**: ntime_b32 + priority_map sort types added (session 42)
 - **task dispatch sections**: all dispatched tasks now carry ## dispatch + prompt for reuse
 
-#,,,,,,..,..,,,,,,,.,,,.,,,.,,..,,,..,,,.,,.,,..,,...,...,,.,,.,,,.,,,..,,...,
-#VLNML6Y2HDEVXYDD5L5ZVVQGFHV6JIITIAO7DWIRLVDOPA35C5RQVIHYBTPVIT56JWY4N5LNYXZZY
-#\\\|X7W5RNKHIMPXMYBBNBTKQRF3JU7X5VASN3Q2ZUYHVBKKBFRWIVV \ / AMOS7 \ YOURUM ::
-#\[7]X3CSJW5FAIM54AWL3MKLPQULMI6NJJA6XBME32UK5PGHQ6TCJEBI 7  DATA SIGNATURE ::
+#,,..,.,,,,..,,.,,.,,,,,.,,..,,..,.,.,.,.,,,,,..,,...,...,...,...,.,,,..,,..,,
+#RJBAAUWDJAYCDCFA3JD7QCOPDIBUTBTTES6PDMR45GU5CM6AACUI7LXPC5HKRZK5DGT4FXZ5ZRI6I
+#\\\|DFQWAJKSG5XITKQW7ODYMP37L2X7CESRWCQKCNF6HUYFPHWB44E \ / AMOS7 \ YOURUM ::
+#\[7]GRT5H22G3J4LLERKBJM6QDBUK3CUBA7FPNK456ALNWC5HA3KICBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

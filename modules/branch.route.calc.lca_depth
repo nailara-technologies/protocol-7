@@ -1,0 +1,91 @@
+## [:< ##
+
+# name  = branch.route.calc.lca_depth
+# descr = find lowest common ancestor and binary route notation
+# param = { node_a, node_b }
+#
+# walks parent chains upward to find first common ancestor
+
+my $params = shift               // {};
+my $node_a = $params->{'node_a'} // '';
+my $node_b = $params->{'node_b'} // '';
+
+return { 'mode' => 'false', 'data' => 'node_a required' }
+    unless length $node_a;
+return { 'mode' => 'false', 'data' => 'node_b required' }
+    unless length $node_b;
+
+## build ancestor chain for node_a ##
+my @chain_a;
+my $cur       = $node_a;
+my $visited_a = {};
+while ( defined $cur and length $cur ) {
+    last if $visited_a->{$cur}++;
+    push @chain_a, $cur;
+    $cur = $data{'branch.nodes'}{$cur}{'parent'} // undef;
+}
+
+## build ancestor chain for node_b ##
+my @chain_b;
+$cur = $node_b;
+my $visited_b = {};
+while ( defined $cur and length $cur ) {
+    last if $visited_b->{$cur}++;
+    push @chain_b, $cur;
+    $cur = $data{'branch.nodes'}{$cur}{'parent'} // undef;
+}
+
+## find lowest common ancestor ##
+my %set_a = map { $ARG => 1 } @chain_a;
+my $lca_node;
+for my $node (@chain_b) {
+    if ( $set_a{$node} ) {
+        $lca_node = $node;
+        last;
+    }
+}
+
+return { 'mode' => 'false', 'data' => 'no common ancestor found' }
+    unless defined $lca_node;
+
+## compute depths and distances ##
+my $depth_a = scalar @chain_a;
+my $depth_b = scalar @chain_b;
+
+my $lca_depth_a = 0;
+for my $i ( 0 .. $#chain_a ) {
+    if ( $chain_a[$i] eq $lca_node ) {
+        $lca_depth_a = $i + 1;
+        last;
+    }
+}
+my $lca_depth_b = 0;
+for my $i ( 0 .. $#chain_b ) {
+    if ( $chain_b[$i] eq $lca_node ) {
+        $lca_depth_b = $i + 1;
+        last;
+    }
+}
+
+my $distance_a = $depth_a - $lca_depth_a;
+my $distance_b = $depth_b - $lca_depth_b;
+
+## binary route notation ##
+my $route_notation
+    = ( qw| 01 | x $distance_a ) . qw| 11 | . ( qw| 10 | x $distance_b );
+
+return {
+    'mode' => 'true',
+    'data' => {
+        'lca_node'       => $lca_node,
+        'distance_a'     => $distance_a,
+        'distance_b'     => $distance_b,
+        'route_notation' => $route_notation
+    }
+};
+
+#,,,.,,.,,,,,,,,.,...,,,.,...,,,,,.,.,...,...,.,.,...,...,..,,.,.,.,.,...,...,
+#H5ZQMFOXDR3HZJOKTUS45WW5TXGC5LFPTLWLOCQ5L4CNTVWZHL6XIPSAZIH2BCYSRCURR4HXK4QLE
+#\\\|3V7V2FGFUKQLV4ZIWU3MLSZB3PHVCGEH3JCGC3GY76RFBEBYEMG \ / AMOS7 \ YOURUM ::
+#\[7]UY446ISLN5PFIUULMGZOUQRBHXDLM2ISSIDRIM44Y2W3HZ7F6ODI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

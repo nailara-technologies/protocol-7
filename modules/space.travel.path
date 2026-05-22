@@ -1,0 +1,92 @@
+## [:< ##
+
+# name  = space.travel.path
+# descr = full route notation from source to target via lca
+# param = { from, to }
+
+my $params = shift             // {};
+my $from   = $params->{'from'} // '';
+my $to     = $params->{'to'}   // '';
+
+return { 'mode' => 'false', 'data' => 'from node required' }
+    unless length $from;
+return { 'mode' => 'false', 'data' => 'to node required' }
+    unless length $to;
+
+## build ancestor chain for from ##
+my @chain_from;
+my $cur     = $from;
+my $visited = {};
+while ( defined $cur and length $cur ) {
+    last if $visited->{$cur}++;
+    push @chain_from, $cur;
+    $cur = $data{'branch.nodes'}{$cur}{'parent'} // '';
+}
+
+## build ancestor chain for to ##
+my @chain_to;
+$cur     = $to;
+$visited = {};
+while ( defined $cur and length $cur ) {
+    last if $visited->{$cur}++;
+    push @chain_to, $cur;
+    $cur = $data{'branch.nodes'}{$cur}{'parent'} // '';
+}
+
+## find lowest common ancestor ##
+my %set_from = map { $ARG => 1 } @chain_from;
+my $lca;
+for my $node (@chain_to) {
+    if ( $set_from{$node} ) {
+        $lca = $node;
+        last;
+    }
+}
+
+return { 'mode' => 'false', 'data' => 'no common ancestor' }
+    unless defined $lca;
+
+## compute hop distances to lca ##
+my $dist_from = 0;
+for my $i ( 0 .. $#chain_from ) {
+    if ( $chain_from[$i] eq $lca ) {
+        $dist_from = $i;
+        last;
+    }
+}
+
+my $dist_to = 0;
+for my $i ( 0 .. $#chain_to ) {
+    if ( $chain_to[$i] eq $lca ) {
+        $dist_to = $i;
+        last;
+    }
+}
+
+## assemble hop list: from up to lca, then lca down to to ##
+my @hops;
+for my $i ( 0 .. $dist_from - 1 ) {
+    push @hops, $chain_from[$i];
+}
+push @hops, $lca;
+
+my $found_lca = 0;
+for my $node ( reverse @chain_to ) {
+    push @hops, $node if $found_lca;
+    $found_lca = 1 if $node eq $lca;
+}
+
+## build notation: 01 × N + 11 + 10 × M ##
+my $notation = ( '01' x $dist_from ) . '11' . ( '10' x $dist_to );
+
+return {
+    'route_notation' => $notation,
+    'hops'           => \@hops,
+    'lca_node'       => $lca
+};
+
+#,,.,,.,.,,,.,,.,,,.,,.,,,,,.,,,.,,,,,,.,,,,.,..,,...,..,,,..,..,,.,.,,..,,,,,
+#6P6OVT7DOREEPYERX5UCGOATW3K54KFMDFSC6PPC4QUXCU3QA2BRZWC2GOPON3WTSFBRDVGILE2VA
+#\\\|ZKQFHRUXIPZ464XSO2QWWAWTOQSD4OVE7B6WMC27NDPN4DY4TWO \ / AMOS7 \ YOURUM ::
+#\[7]YT4NT4WNKZGR7XNTDL2BBZWBBU3FZ55XRKVVN3KSLHV3JW4J2YCQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

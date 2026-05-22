@@ -1,0 +1,29 @@
+## [:< ##
+
+# name  = branch.route.calc.inversion_points
+# descr = list cross-correlation depths where inversions cancel
+# param = { max_depth }
+#
+# cross-correlation occurs at multiples of 13: 0, 13, 26, 39...
+
+my $params    = shift                  // {};
+my $max_depth = $params->{'max_depth'} // 0;
+
+$max_depth = int($max_depth);
+
+return { 'mode' => 'false', 'data' => 'max_depth must be non-negative' }
+    if $max_depth < 0;
+
+my @points;
+
+for ( my $d = 0; $d <= $max_depth; $d += 13 ) {
+    push @points, $d;
+}
+
+return { 'mode' => 'true', 'data' => \@points };
+
+#,,.,,,.,,,..,,,,,...,.,,,,.,,,,.,,,,,,.,,...,.,.,...,..,,.,,,,,,,,,,,,..,.,,,
+#DXMPMPNKZV3WY332CV5S2SUCB7MJ3N26OMYZUBY7QNZ4HLLUZ7LYKZA27QRNPBP5IOTYCNDRPJDR4
+#\\\|GWN7IC5UBQTRRKW4VSYK2JGSRNOFTHUP74K2VHVNVAWZVSKRP4X \ / AMOS7 \ YOURUM ::
+#\[7]O4WJWYDPFBZEWBDMH2MZCRVG7XXRPXTUBYQ6YKJNJV67CAWV4KAA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

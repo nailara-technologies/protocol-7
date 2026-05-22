@@ -1,0 +1,43 @@
+## [:< ##
+
+# name  = space.template.apply
+# descr = resolve template chain_format against params and compute checksum
+# param = { template, params }
+
+my $call_params = shift // {};
+
+my $template_name = $call_params->{'template'} // '';
+return { 'mode' => qw| false |, 'data' => 'template required' }
+    unless length $template_name;
+
+my $template = <space.templates>->{$template_name};
+return { 'mode' => qw| false |, 'data' => 'template not found' }
+    unless defined $template;
+
+my $params = $call_params->{'params'} // {};
+return { 'mode' => qw| false |, 'data' => 'params required' }
+    unless ref $params eq qw| HASH |;
+
+my @fields = split /:/, $template->{'chain_format'};
+my @values;
+for my $field (@fields) {
+    push @values, $params->{$field} // '';
+}
+
+my $chain_string = join ':', @values;
+
+my $chksum_fn = $code{'chk-sum.amos'} // $code{'base.chk-sum.amos'};
+my $checksum  = $chksum_fn->( \$chain_string );
+
+return {
+    'checksum'     => $checksum,
+    'parent'       => $params->{'parent'} // '',
+    'coordinate'   => $checksum,
+    'chain_string' => $chain_string,
+};
+
+#,,.,,,.,,,,,,,,.,,,.,,..,,..,,.,,.,,,,,,,,..,.,.,...,...,...,...,,,.,.,,,.,,,
+#VOZNXWH7DURT7A5M7J4W3BXMBML64DZ6X4HLMWDOWWHDKYHB2JS6ZZGAGCF2ODRRKUPYXTW2XOP22
+#\\\|MQ4ISNFDGT36PSLEJLFCN7PP62IQSTL3FRZSAZJLWLL5TLYNWYT \ / AMOS7 \ YOURUM ::
+#\[7]WHEGBQFMOZBCQYGPDCIPF7SBI2CTJ3XROYEI6U6UTDCMA3SFREDQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

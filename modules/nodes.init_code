@@ -39,7 +39,7 @@
     }
 );
 
-<nodes.trunc>         //= {};
+<nodes.trunc>        //= {};
 <nodes.remote-nodes> //= {};    ## Remote nodes with TOFU pinning status ##
 <nodes.group.by-id>  //= {};
 
@@ -48,8 +48,9 @@
     'key'      => qw| nodes.trunc |,
     'sort_key' => 'alpha-len:name',
     'descr'    => 'protocol 7 node set-up',
-    'mask'     => 'name:trunc_node addr:node_address pkey:public_key tofu:pinning_status',
-    'align'    => {
+    'mask'     => 'name:trunc_node addr:node_address'
+        . ' pkey:public_key tofu:pinning_status',
+    'align' => {
         'name' => 'right-2',
         'addr' => 'center',
         'pkey' => 'left+4',
@@ -63,8 +64,10 @@
     'key'      => qw| nodes.remote-nodes |,
     'sort_key' => 'alpha-len:node_name',
     'descr'    => 'remote nodes with TOFU pinning and authorization status',
-    'mask'     => 'node:node_name host:remote_host port:node_port status:pinning_status auth:auth_status pinned:timestamp_pinned',
-    'align'    => {
+    'mask'     => 'node:node_name host:remote_host port:node_port'
+        . ' status:pinning_status auth:auth_status'
+        . ' pinned:timestamp_pinned',
+    'align' => {
         'node'   => 'right-2',
         'host'   => 'left+2',
         'port'   => 'center-1',
@@ -112,8 +115,8 @@
 
 0;
 
-#,,,,,...,.,,,.,,,.,,,..,,.,,,,,.,.,,,.,,,,,,,..,,...,..,,...,,,.,.,,,..,,,,,,
-#MRXPOBG6WSB442YGKXXPYONUCKWE2AJ3M3GCGJSHLOW56KW7IOOG2VWZY3CASZIBIERECWVZV26DK
-#\\\|7YLYSSYE243JBK6OKU3C6L4G7TYFGIALWQ3Z5JCDMU4ANTRRR2I \ / AMOS7 \ YOURUM ::
-#\[7]EWLJZ53NKQ5UTRMAAKFTRG32DFPWSTM5NW3XJSEDVCA2HOQYL4CA 7  DATA SIGNATURE ::
+#,,,.,,,.,,..,.,,,,,.,,,.,,..,.,,,,,,,,.,,...,..,,...,..,,.,.,..,,,,.,,..,..,,
+#2KMT5QJOQ7SKFBG67EGSTN6VQR73P5TD6EE2U5CJZCTAPVTPZTFSKV6HT35G77OOMRYRBJ3JFGH66
+#\\\|OU2YIARW3N5BQ6WGVT64ZJACOVH55I3T3NYJ57VRIEPCQD7WBAW \ / AMOS7 \ YOURUM ::
+#\[7]L3NJ6BB6DSHNLERJVRHJN2FL3YQWRLJP3DYWU7DWGEDS3MXKGEBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

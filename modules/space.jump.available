@@ -1,0 +1,38 @@
+## [:< ##
+
+# name  = space.jump.available
+# descr = TRUE if body diagonal shortcut exists
+# param = { from, to }
+
+my $params = shift             // {};
+my $from   = $params->{'from'} // '';
+my $to     = $params->{'to'}   // '';
+
+return FALSE unless length $from and length $to;
+
+## resolve coordinates ##
+my $coord_from = <space.grid.nodes>->{$from};
+my $coord_to   = <space.grid.nodes>->{$to};
+
+return FALSE
+    unless defined $coord_from and defined $coord_to;
+
+my $dz = ( $coord_to->{'z'} // 0 ) - ( $coord_from->{'z'} // 0 );
+my $dy = ( $coord_to->{'y'} // 0 ) - ( $coord_from->{'y'} // 0 );
+my $dx = ( $coord_to->{'x'} // 0 ) - ( $coord_from->{'x'} // 0 );
+
+## body diagonal: all three coordinates change simultaneously ##
+return FALSE if $dz == 0 or $dy == 0 or $dx == 0;
+
+my $adz = abs($dz);
+my $ady = abs($dy);
+my $adx = abs($dx);
+
+## simplified ratio check: equal steps on all axes ##
+return ( $adz == $ady and $ady == $adx ) ? TRUE : FALSE;
+
+#,,,.,...,.,,,,..,,..,...,..,,..,,..,,...,,.,,..,,...,..,,..,,...,.,,,,,,,,.,,
+#PFDJISYPNTWF7IKDEIOT7WLWLEY3W25KGEB6HD7DLIRXTXWWY6PDPU3FEMN4NYS55AZASDVMU54G6
+#\\\|C2DANMJJS6TJ6DIHGYA2FYJMZDU74IQLFW3KQSUYZIP77Y32H3Q \ / AMOS7 \ YOURUM ::
+#\[7]OGTLN3RHRAWOD6YX4TEVRRWT6APZVNLTOFRTDPOEYJGNMXDK3CAQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

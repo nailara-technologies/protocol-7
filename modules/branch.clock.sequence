@@ -1,0 +1,48 @@
+## [:< ##
+
+# name  = branch.clock.sequence
+# descr = build evenly-distributed slot sequence from allocations
+
+my $param       = shift                   // {};
+my $allocations = $param->{'allocations'} // {};
+
+my @nodes = sort { $allocations->{$b} <=> $allocations->{$a} || $a cmp $b }
+    grep { $allocations->{$_} > 0 } keys %$allocations;
+
+my $total_slots = 0;
+$total_slots += $ARG for values %$allocations;
+
+return { mode => 'false', data => 'no allocations' }
+    if $total_slots == 0;
+
+my %placed = map { $_ => 0 } @nodes;
+my @sequence;
+
+for my $i ( 0 .. $total_slots - 1 ) {
+    my $best_node;
+    my $best_num = -1;
+    my $best_den = 1;
+
+    for my $node (@nodes) {
+        next if $placed{$node} >= $allocations->{$node};
+
+        if (   $best_num < 0
+            or $placed{$node} * $best_den
+            < $best_num * $allocations->{$node} ) {
+            $best_num  = $placed{$node};
+            $best_den  = $allocations->{$node};
+            $best_node = $node;
+        }
+    }
+
+    push @sequence, $best_node;
+    $placed{$best_node}++;
+}
+
+return { mode => 'true', data => \@sequence };
+
+#,,,,,.,,,,.,,,..,,,,,...,,,.,,,.,...,.,,,,,,,..,,...,...,.,.,.,,,..,,,,.,,.,,
+#K6FCMUX7FVZ3KBALVMDNT2WIGB524TOKZKVSWQ2ZPK4RWFJ2NXOZBO42X52NJGFBDBMYJXJW7D4YU
+#\\\|QREOW4NVS2I5U347KZFPQ4R6WFVLAXCESKSNCCMZEDNZSCSIRCX \ / AMOS7 \ YOURUM ::
+#\[7]6OH4PWWCWU4FOOQZNZ3KSZKOBAVDIPB7NPLUVUPUKP72O7RSQGAI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

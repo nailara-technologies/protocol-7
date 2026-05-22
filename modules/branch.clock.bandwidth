@@ -1,0 +1,33 @@
+## [:< ##
+
+# name  = branch.clock.bandwidth
+# descr = compute effective bandwidth for one node in the clock
+
+my $param       = shift                   // {};
+my $node_id     = $param->{'node_id'}     // '';
+my $total_slots = $param->{'total_slots'} // 13;
+
+return { mode => 'false', data => 'node_id required' }
+    if not length $node_id;
+
+my $slots = $data{'branch.clock.allocations'}{$node_id} // 0;
+
+my $bandwidth_ratio = $slots / $total_slots;
+my $bandwidth_pct   = $bandwidth_ratio * 100;
+my $dominant        = ( $slots > ( $total_slots / 2 ) ) ? TRUE : FALSE;
+
+return {
+    mode => 'true',
+    data => {
+        slots    => $slots,
+        ratio    => $bandwidth_ratio,
+        percent  => $bandwidth_pct,
+        dominant => $dominant,
+    }
+};
+
+#,,,,,,,,,..,,,..,,,.,.,.,.,.,,..,..,,,.,,,..,..,,...,...,.,.,...,.,,,,,,,...,
+#TQ72ASVHNYIF5MDQO2VIP5YZGXCXEC7WIAWLCBLQEWSIBHUTFA2APG42LFJ2HGXQKXLPP7LWT25BO
+#\\\|XZ4KSBSCEXBVICWO6EBK5VQIL2Z5KX5OP7SDVFGWVYLMBEBYWWB \ / AMOS7 \ YOURUM ::
+#\[7]DPA36DMN42EWXIU3XU76NPP2V5MOSPEPZYETC32SWIVOMR7UNCAY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,0 +1,31 @@
+## [:< ##
+
+# name  = space.template.branch
+# descr = compute branch checksum preserving ancestry
+# param = { parent, next, branch_data }
+
+my $params = shift // {};
+
+my $parent      = $params->{'parent'}      // '';
+my $next        = $params->{'next'}        // '';
+my $branch_data = $params->{'branch_data'} // '';
+
+return { 'mode' => qw| false |, 'data' => 'parent required' }
+    unless length $parent;
+return { 'mode' => qw| false |, 'data' => 'next required' }
+    unless length $next;
+return { 'mode' => qw| false |, 'data' => 'branch_data required' }
+    unless length $branch_data;
+
+my $branch_input = join ':', $parent, $next, $branch_data;
+
+my $chksum_fn       = $code{'chk-sum.amos'} // $code{'base.chk-sum.amos'};
+my $branch_checksum = $chksum_fn->( \$branch_input );
+
+return { 'mode' => qw| true |, 'data' => $branch_checksum };
+
+#,,.,,.,,,,,.,.,.,,..,,,.,..,,,.,,.,,,.,,,.,.,.,.,...,...,,.,,,.,,..,,.,,,..,,
+#FKGFDAHHUZ3EVU4LGNIBP62CVJNPBZT6S5AUDV2VGOCEP7IIZK6BRL3DV3ASNKANKGFX5E2OVL4KS
+#\\\|LBPY2Z5XUXXATVMQLM7AV5C4MDNO2QE4Q6CMS7AARYKHYVOFPGI \ / AMOS7 \ YOURUM ::
+#\[7]JYLGKRER7O5NVLZFPI57QMYNBFQLU5KPO276NY6N37LR4Z7OR4AQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

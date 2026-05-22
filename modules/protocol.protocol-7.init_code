@@ -36,7 +36,7 @@ if ( index( <system.p7.ext-proto-ver>, qw| \ |, 0 ) != 0 ) {
     qw| authentication-methods | => {},    ## registry ##
 
     qw| state | => {
-        qw| 0 | => {  ## Pre-auth state
+        qw| 0 | => {                       ## Pre-auth state
 
             ## [ linewise | bytewise | binary ] ##
             qw| read-mode | => qw| linewise |, ##  bytewise has size limit  ##
@@ -46,7 +46,7 @@ if ( index( <system.p7.ext-proto-ver>, qw| \ |, 0 ) != 0 ) {
 
             qw| error | => { qw|handler| => qw| base.handler.session_error | }
         },
-        qw| 1 | => {  ## Authenticated state (stable, default operational)
+        qw| 1 | => {    ## Authenticated state (stable, default operational)
 
             ## [ linewise | bytewise | binary ] ##
             qw| read-mode | => qw| linewise |,
@@ -56,41 +56,41 @@ if ( index( <system.p7.ext-proto-ver>, qw| \ |, 0 ) != 0 ) {
 
             qw| error | => { qw|handler| => qw| base.handler.session_error | }
 
-            ## Note: Sessions remain in state 1 indefinitely unless link-upgrade is explicitly
+            ## sessions remain in state 1 unless link-upgrade explicitly
             ## requested. Unencrypted local links can operate without overhead.
         },
 
-        qw| 2 | => {  ## Link-upgrade negotiation (OPTIONAL encryption/transport encoding)
+        qw| 2 | => {    ## link-upgrade negotiation [ optional enc/transport ]
 
-            ## Linewise for handshake (BASE32 encoding allows linewise transmission)
+            ## linewise for handshake [ BASE32 allows linewise transmission ]
             qw| read-mode | => qw| linewise |,
 
-            qw| input |  => { qw| handler | => qw| base.handler.link-upgrade | },
-            qw| output | => { qw| handler | => qw| base.handler.link-upgrade.response | },
+            qw| input | =>
+                { qw| handler | => qw| base.handler.link-upgrade | },
+            qw| output | =>
+                { qw| handler | => qw| base.handler.link-upgrade.response | },
 
-            ## Handshake initialization: exchange C25519 keys, negotiate encryption
-            ## and transport encoding modes (utf7, base32, base32-xz with optional compression)
+            ## handshake: exchange C25519 keys, negotiate encryption
+            ## and transport encoding modes [ utf7, base32, base32-xz ]
             qw| init | => qw| protocol.protocol-7.link-upgrade.init |,
 
             qw| error | => { qw|handler| => qw| base.handler.session_error | }
 
             ## Note: Only entered if client explicitly requests link upgrade.
-            ## Failed negotiation returns to state 1. Successful completion transitions to state 3.
+            ## failed negotiation → state 1; success → state 3
         },
 
-        qw| 3 | => {  ## Encrypted session state (post link-upgrade)
+        qw| 3 | => {    ## Encrypted session state (post link-upgrade)
 
             ## Linewise transmission with BASE32 encoding wrapping encryption
-            ## Order: plaintext → encrypt → compress (optional) → BASE32 encode → linewise
-            ## Keeps protocol linewise while enabling binary encryption underneath
+            ## order: plaintext → encrypt → compress → BASE32 encode
+            ## keeps protocol linewise with binary encryption underneath
             qw| read-mode | => qw| linewise |,
 
-            qw| input |  => {
+            qw| input | => {
                 qw| handler | => qw| base.handler.read.encryption-wrapper |
             },
-            qw| output | => {
-                qw| handler | => qw| base.handler.command |
-            },
+            qw| output | => { qw| handler | => qw| base.handler.command | },
 
             ## Encryption initialization (install encryption layers)
             qw| init | => qw| protocol.protocol-7.encryption.init |,
@@ -98,7 +98,7 @@ if ( index( <system.p7.ext-proto-ver>, qw| \ |, 0 ) != 0 ) {
             qw| error | => { qw|handler| => qw| base.handler.session_error | }
 
             ## Note: Only entered after successful link-upgrade from state 2.
-            ## Encryption and optional link-layer encoding active for session lifetime.
+            ## encryption + link-layer encoding active for session lifetime
         }
     },
     'clean-up-regex' => [qr|^(\s*\n)+$|], ## <-- applied before cmd processing
@@ -106,15 +106,16 @@ if ( index( <system.p7.ext-proto-ver>, qw| \ |, 0 ) != 0 ) {
         { qw| input | => [qw| multi-line |], qw| process | => [qq||] }
 };
 
-<protocol.protocol-7.settings.do-clean-up> //= 5; ## default: clean empty lines in input (override in set-up) ##
+<protocol.protocol-7.settings.do-clean-up>
+    //= 5;    ## default: clean empty lines in input (override in set-up) ##
 
 ##  log and protocol messages  ##
 <[templates.register_add]>;    ## register module sprintf templates ##
 
 0;
 
-#,,.,,...,.,,,,.,,,,,,...,..,,,,,,,,.,...,.,,,..,,...,...,..,,,..,,..,,,,,,,.,
-#BZICZBVUE474YNTHKDSN3GKYLY6S3RITQ7VNBC2NUXB26Z6KNQLRWZGRB2P5KZ446RQQJTJ2JUB36
-#\\\|VYOYUB3GCNUCOWYMNGVXBD6BDX24BN3D45YHTRIZZXUEG2JTPHA \ / AMOS7 \ YOURUM ::
-#\[7]BXGXUKKZ77KMAWVTRJURPM25WEOZSMNGFJBXH6NTLUAO33OSW4BQ 7  DATA SIGNATURE ::
+#,,,.,,,.,,..,.,.,..,,,.,,.,.,.,.,,,.,,,.,,,.,..,,...,..,,...,.,.,,,.,,.,,,..,
+#C5C6BJRKXR5A7XFUU6M3SV4MMIAOX25JJFSB2SPDSIRLXTJMC3HDUVV5X3NGAUVF777KGBGKM66M6
+#\\\|UWA5AK6QAUERME6GGWXVU36PRASLZ3XHTCDNBARKL6QWFWMA5TS \ / AMOS7 \ YOURUM ::
+#\[7]FDQNUI4M3DJRDZQU7JT22J73H3E3JMW43HWDDHOKFBWMSJTYLWBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

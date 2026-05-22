@@ -1,0 +1,59 @@
+## [:< ##
+
+# name  = space.jump.bubble
+# descr = dispatch reference bubble on jump route
+# param = { formation }
+
+my $params    = shift                  // {};
+my $formation = $params->{'formation'} // {};
+
+my $setup     = $formation->{'setup'}     // '';
+my $ground    = $formation->{'ground'}    // [];
+my $collector = $formation->{'collector'} // '';
+my $target    = $formation->{'target'}    // '';
+
+return { 'mode' => 'false', 'data' => 'target required' }
+    unless length $target;
+
+## derive formation id from AMOS swap-boundary checksum ##
+my $payload      = join( '::', $setup, $collector, $target, scalar @$ground );
+my $chksum_fn    = $code{'chk-sum.amos'} // $code{'base.chk-sum.amos'};
+my $formation_id = $chksum_fn->( \$payload );
+
+## store active formation state ##
+my $ntime = <[base.time]>->(4);
+<space.jump.active>->{$formation_id} = {
+    'formation_id' => $formation_id,
+    'setup'        => $setup,
+    'ground'       => $ground,
+    'collector'    => $collector,
+    'target'       => $target,
+    'created'      => $ntime,
+};
+
+## estimate hops via diagonal geometry ##
+my $estimated_hops = 0;
+if (    length $setup
+    and exists <space.grid.nodes>->{$setup}
+    and exists <space.grid.nodes>->{$target} ) {
+    my $c_from = <space.grid.nodes>->{$setup};
+    my $c_to   = <space.grid.nodes>->{$target};
+    my $dz     = abs( ( $c_to->{'z'} // 0 ) - ( $c_from->{'z'} // 0 ) );
+    my $dy     = abs( ( $c_to->{'y'} // 0 ) - ( $c_from->{'y'} // 0 ) );
+    my $dx     = abs( ( $c_to->{'x'} // 0 ) - ( $c_from->{'x'} // 0 ) );
+    if ( $dz == $dy and $dy == $dx and $dz > 0 ) {
+        $estimated_hops = $dz;
+    }
+}
+
+return {
+    'formation_id'   => $formation_id,
+    'route'          => $setup . '->' . $target,
+    'estimated_hops' => $estimated_hops
+};
+
+#,,..,,.,,..,,...,.,.,,,,,...,,,,,...,,,,,.,.,..,,...,...,.,.,.,,,,,.,.,,,,.,,
+#CWW46UXJ7FSXNCB6ZYZYKDBQ6WWZE47DOMGWVWLCM2FIRWWXK5XZBABWRGCEZPQE2UESLYWHM7SLI
+#\\\|AFDIWMFUBWOQJ3EFXTGC5CV6DWDNMEZUQJ7ML5WBDE4LK6LXD7S \ / AMOS7 \ YOURUM ::
+#\[7]I7Y5CSTBP2C5WVZDCE7ORAB27UCISM36E7GTECHLIFQPYBW2HCAI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
