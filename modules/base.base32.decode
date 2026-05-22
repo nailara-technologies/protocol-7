@@ -1,0 +1,20 @@
+## [:< ##
+
+# name  = base.base32.decode
+# descr = decode base32 string in reverse byte order and return value
+# note  = dependencies loaded already in bin/Protocol-7
+
+if ( not defined $ARG[0] ) {
+    warn '[B32] input not defined., [dec] <{C1}>';
+    return undef;
+} elsif ( ref $ARG[0] ne qw| SCALAR | ) {
+    return Crypt::Misc::decode_b32r( $ARG[0] );
+} else {
+    return Crypt::Misc::decode_b32r( $ARG[0]->$* );
+}
+
+#,,..,,..,,..,,,,,..,,,,.,,..,,,.,,,.,...,,.,,..,,...,...,.,.,.,,,...,,..,,,.,
+#VHAQS3TQLVPKJ4LPEGMQL7JYG2RYIELGSLVRJ67S77XC3X667GJAHCEX4ASW25MAAHSL5HCB3Q2P4
+#\\\|5SVYND7P2XSQHDQIXBNHSI6BYLXQAYOSHQACOF2HO53SWPKKD5I \ / AMOS7 \ YOURUM ::
+#\[7]MLISMDL5P36TDKSHXRLHRFHV7KM3MUVU5T7EUF27IUBLHTPDJ4BA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
