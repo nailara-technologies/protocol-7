@@ -1,5 +1,65 @@
 # Completed Work Sessions
 
+## session 43 — branch.* namespace + space engine + conceptual foundations (2026-05-21/22)
+
+**branch.* namespace — 58 modules, 7 layers complete**:
+- layer 1: core identity (10) — node create, attach/detach, resolve, list, path, info, groups
+- layer 2: discover + groups (9) — group remove/list/propagate, discover register/resolve/announce/watch
+- layer 3: routes + key propagation (9) — establish/release/list, key propagate/request/verify, wave cache, TTL timer
+- dep graph (8): declare/remove/check/mark/propagate/resolve/cycle/graph
+- layer 7: resource API (8): attach/detach/list/get/find/context/task/stream
+- layer 4: storage + data (7): persist/restore/sync/list, data bind/unbind/query
+- branch zenka config (on-demand, no timeout), cube/auth + access entries
+
+**conceptual foundations — design docs written**:
+- `ZERO.md` — 0, birdview, 1001, the one sentence
+- `ROUTING-CRYSTAL-HARMONIC-INFERENCE.md` — geometry IS the algorithm
+- `DANCING-ZENKI-RHIZOME-STATE.md` — bubble IS occupied bit, reflection mechanics
+- `DATA-PROTOCOL-SYNC.md` — base32 line transport, DELTA sync
+- `TREE-PROTOCOL.md` — structural complement, oscillating with DATA
+- `OBSERVER-CENTRIC-REFERENCE-SPACE.md` — darksun, view spec, temporal bandwidth, 1001
+- `SPAWNABLE-PERSPECTIVE-LAYERS.md` — desktop IS data IS network IS space
+- `SPACE-ENGINE-MASTER.md` — 12 sub-namespaces: grid/orbit/route/travel/jump/search/register/select/filter/render/export+import/template
+
+**key concepts crystallized**:
+- 0 = CCW declared, always; the tree asks one question
+- 1001 = 7×11×13, inter-cube tunnel, eternal loop, seamless proportions
+- darksun = position 27 = 3³, fixed by /13, corpus orbits it
+- reference bubble = 5+2=7 dancing zenki, rhizome state, 01 in / 10 out
+- observer-centric space: client IS 0, ±n/2 signed, reference-count gravity
+- checksum tree: 1[zeros]1 bit-length separators, 01/10 direction encoding
+- TREE/DATA complements, oscillating, 11 pivot = swap moment
+- aura profiles: harmonic frame expansion (is_true) = auto-encapsulation
+- space.template-*: ancestry rules, auto-parenting, amos-chksum chain
+- 5×7 = 35 bits = one AMOS checksum; 70 footer bits = 2 × 5×7 matrices
+- 1010101 = binary-trinary interlace; binary clock + trinary clock overlap at 7
+- two rotating pixels = two branch networks + trunk (coupled vs open-ended)
+
+**tools built**:
+- `devmod.cmd.dump-keys` — key tree without values, base.sort
+- `base.dump_data` + `devmod.cmd.dump` — reverse_sort flag
+- `bin/bmw-manifest` — recursive, vhosts/... prefixed paths, web-root signing
+- `base.source.collect_file_list` — path/*.ext file-glob handler
+- `bin/amos-matrix` — AMOS checksums as 5×7 dot matrices
+  flags: -V (vertical), -flip-h, -flip-v, -inv; xargs + ANSI-clean stdin
+
+**design templates**:
+- `claude-design-seed.yaml` — 3-bandwidth format
+- `place-the-darksun.yaml` — arithmetic vs corpus invariant
+- `tree-or-data-oscillation.yaml` — stream_id, 11 pivot, oscillation
+- 5 more suggested in `design-template-suggestions.md`
+
+**calc task files dispatched** (pending kimi):
+- branch-calc-reference-space.md (branch.space.*)
+- branch-calc-route-navigation.md (branch.route.calc.*)
+- branch-calc-bandwidth-temporal.md (branch.clock.* + branch.ntime.*)
+
+**vortex files imported**:
+- dome-effects/helpers/draw/jsx + app.jsx, visualizations.html, overlay-search.html
+- screenshots: dome-v3.png, iris-fresh2.png
+
+**commit 7900·O** — the calc utilities landed on commit 7900
+
 ## session 42 — kimi-web session cache + web-browser JS + living background design (2026-05-21)
 
 **kimi-web session cache** (7 new modules, needs-testing):
@@ -1135,8 +1195,8 @@ Skip calling harmonize_payload_line_feed when both conditions are met:
 - Signatures now properly formatted with correct separator endline
 - Pre-commit validation passes
 
-#,,,.,.,.,,,,,,,.,,,,,.,,,.,.,.,.,..,,,,.,,.,,..,,...,..,,.,.,.,,,.,.,...,,..,
-#UNOSKOI6ITIYKGUITHWY3OBIL5KASFTFKSDAW7AZJE5PRQ3EL7J3NFJ3A2TLJHIQLLZFG4BSFCCYI
-#\\\|U4EP24CJXWBF2L56T43MOZ3QVZ6HCDKZMXQJXPPD4DH2B7LPH6H \ / AMOS7 \ YOURUM ::
-#\[7]UGHHGJMZNRRF52QIX5L5TRAZYW5ANMOXXCFH77RR7EXBVG4U6YDQ 7  DATA SIGNATURE ::
+#,,,,,,.,,..,,,,.,,.,,,..,..,,..,,...,,..,,,,,..,,...,...,.,.,,,,,.,.,,.,,...,
+#77MXRACJOACA2JK3JPYUYAFMYNIG6HIBRKWGIQHICM4HSMFCZ6I5PQZJHDVFTND6TB4WINUQSCXE4
+#\\\|3V6EPZR2FCTP5O44VFF4ZNAZEIADIGUNW6LXGVVSDFIGFO3UZE4 \ / AMOS7 \ YOURUM ::
+#\[7]F2SKHTB24HTTSTSBQXI6FZ5WY62FMZZWNT6ULLJ2LS57OJNBHWDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
