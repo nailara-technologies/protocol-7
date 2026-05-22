@@ -317,6 +317,10 @@ sub extract_swap_pairs {
                 ##  qw form : swap_subs(qw| base.X X |)  ##
             } elsif ( $line =~ m{qw.\s*(\S+)\s+(\S+)\s*.} ) {
                 ( $from, $to ) = ( $1, $2 );
+
+                ##  two-qw form : swap_subs( qw| base.X |, qw| X | )  ##
+            } elsif ( $line =~ m{qw.\s*(\S+)\s*.\s*,\s*qw.\s*(\S+)\s*.} ) {
+                ( $from, $to ) = ( $1, $2 );
             }
 
             ##  store as arrayref to handle multiple sources -> same short  ##
@@ -1658,8 +1662,8 @@ sub classify_dispatch_confidence {
     return 'open';
 }
 
-#,,,.,..,,,.,,.,,,...,...,,.,,,,,,...,,,,,.,,,.,.,...,..,,..,,...,.,.,,,.,,,,,
-#26X4W3N6JY62QB245QKVO7RLGAYYWJXDOZDCS5C245XRPUMDLT7NWOB4DTEUIBLEQGB4PLKBEKLOC
-#\\\|XWHAZML55FSOMARXCXDA2LOZ2CRPDSL2VQ2BUH22P2A7B4Y6ZSP \ / AMOS7 \ YOURUM ::
-#\[7]JEWQ7F4HVR3Y2XFIKIVR42QNDPSIA3VFTEAIYUYZWB5UZTHML6CI 7  DATA SIGNATURE ::
+#,,..,,,.,,,,,,..,.,,,...,,.,,.,,,,.,,.,,,.,,,.,.,...,...,,..,...,,.,,.,,,,,,,
+#DGMP6TYRFQLK2ZKKHXF5GDT6R3JD3UW3JXRTE5P3WEWWMJ3WKJLJXUGHQ2C2SG5KJLJRB3WDZOVEM
+#\\\|PGMMX6R7XBEIEALXOEKOEQLSXVDR3VESQEYTCPHKJFSASDRY34Y \ / AMOS7 \ YOURUM ::
+#\[7]MCHAMHFCPSVDS3SZHT2IYE3JDJ3ABQ23VK3GN45GKSOX7APLRIAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
