@@ -215,6 +215,62 @@ this document defines the concrete wire protocol and reply-mode implementation:
   checksum IS a checksum tree leaf; multi-hop sessions build the tree
 - `branch.storage.persist` — uses DATA DELTA mode for incremental sync
 - `plugin.web.*` — DATA mode replaces ad-hoc SIZE-based file transfers
+- `SELF-DELIMITING-CHECKSUM-PATTERN.md` — the generic pattern behind all
+  inline checksums and anchors in DATA/DATA-PAGES/DATA-CHANNELS
+
+## DATA-PAGES — multiplexing container (session 45)
+
+DATA-PAGES is a bulk and multiplexing extension of the DATA line format.
+each line inside a page drops the redundant `DATA ` prefix — the page header
+carries stream context once, amortizing metadata cost across all contained lines:
+
+```
+DATA-PAGE <stream_id> <page_seq> <line_count>\n   ← page open
+<B32_CHUNK>\n                                      ← pure payload, no prefix
+<B32_CHUNK>\n
+...
+DATA-PAGE END <stream_id> <page_seq> <AMOS_CHECKSUM>\n   ← page close
+```
+
+- `page_seq` = monotonic sequence number per stream_id
+- `line_count` = lines in this page (receiver knows when page is complete)
+- `AMOS_CHECKSUM` = checksum of all decoded chunks in this page
+
+### properties
+
+- **prefix savings**: at 64 lines/page, one header/footer replaces 64 `DATA `
+  prefixes — pure payload density increase
+- **multiplexing**: interleaved pages from different streams disambiguated by
+  `stream_id` + `page_seq`; reassembly trivial, no full-stream buffering needed
+- **flow control**: ACK at page close rather than stream close; backpressure
+  per page, fine-grained without per-line ACK overhead
+- **UDT alignment**: page boundary maps cleanly to UDT packet semantics —
+  per-stream transport behavior (ordered, loss-tolerant, etc.) declared once
+  per stream, honored across all its pages
+- **format continuity**: same base32 payload as DATA lines — ASCII-clean,
+  log-safe, terminal-safe, branch-attachable without transcoding
+
+### mode selection
+
+```
+DATA lines      — single small transfers, request-scoped, existing reply mode
+DATA-PAGES      — bulk transfers, multiplexed streams, UDT native transport
+```
+
+same base32 payload, clean upgrade path. DATA-PAGES is the trunk-level
+container; DATA lines remain valid for all current reply-mode uses.
+
+### connection to UDT transport
+
+UDT decouples from TCP's sealed congestion model, making transport semantics
+per-stream programmable. DATA-PAGES maps onto this cleanly:
+
+- heartbeat stream: small pages, latency-sensitive, loss-tolerant
+- DATA transfer: larger pages, ordered, verified by AMOS at page close
+- control messages: single-line pages, must-arrive, immediate ACK
+
+the page close AMOS checksum becomes the natural ACK signal — received AND
+verified, not just received.
 
 ## open items
 
@@ -224,9 +280,11 @@ this document defines the concrete wire protocol and reply-mode implementation:
   increase for non-terminal transports)
 - `DATA STREAM` backpressure: if receiver buffer fills, ACK withheld until
   drained — sender must respect missing ACK as pause signal
+- `DATA-PAGES` receiver implementation and page reassembly
+- per-stream UDT transport attribute declaration format
 
-#,,,,,,..,,..,..,,,,.,.,.,,,.,.,.,..,,,..,.,.,..,,...,...,,.,,,,.,.,,,,,,,...,
-#RLB74EOHPOLT4V5BE6T3VOGVWARP4NYDTACMK6LIKDEJ67L3PGPJQWPHGVHTIBPUGPQELQCOEBVZY
-#\\\|MAYXE22AS4CTVJJHTKLXB6P3MQUHMPD7UHIODYSISDTP6ALZZUW \ / AMOS7 \ YOURUM ::
-#\[7]OF4U5J3IYTRRGEFU3F4QCWDRXTDYU2YZTX5LSQWYLTLBIURJM6CY 7  DATA SIGNATURE ::
+#,,,,,...,,,,,,..,,,.,..,,.,,,,,.,.,,,,,,,...,..,,...,...,.,,,.,,,,.,,...,,,,,
+#A2LPXDMWIAEAEUV2GSXETEABWOYD3BQSNQAAOG3NUADA2QF62J5INV3LTY5FNLARZHV73UUQSZLFW
+#\\\|AADL6W6Q5Z55UFK7CP672WH66BLRLEN7IZSI5EA2QXWZFQFMPVK \ / AMOS7 \ YOURUM ::
+#\[7]ICZRZCFDJUWSF2HMTGJETOIOYGYCPN3DCNLYQRBNFV7KGEMIYMBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
