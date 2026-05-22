@@ -1,0 +1,87 @@
+## [:< ##
+
+# name  = branch.space.magnetic_force
+# descr = compute magnetic pull from group memberships
+# param = { node_id }
+#
+# sums force vectors from all group companions toward this node
+# force = (other_position - this_position) / distance^2
+
+my $params  = shift                // {};
+my $node_id = $params->{'node_id'} // '';
+
+return { 'mode' => 'false', 'data' => 'node id required' }
+    unless length $node_id;
+return { 'mode' => 'false', 'data' => 'node not found' }
+    unless exists $data{'branch.nodes'}{$node_id};
+
+my $node            = $data{'branch.nodes'}{$node_id};
+my $groups          = $node->{'groups'} // [];
+my $scope           = 'global';
+my $force_x         = 0;
+my $max_group_force = 0;
+my $dominant_group  = '';
+
+## resolve this node's position ##
+my $this_pos = _position_for( $node_id, $scope );
+
+for my $group_name (@$groups) {
+    my $members     = $data{'branch.groups'}{$group_name}{'members'} // [];
+    my $group_force = 0;
+
+    for my $member_id (@$members) {
+        next if $member_id eq $node_id;
+
+        my $other_pos = _position_for( $member_id, $scope );
+        my $dist      = abs( $other_pos - $this_pos );
+        $dist = 1 if $dist < 1;    ## minimum distance guard ##
+
+        my $f = ( $other_pos - $this_pos ) / ( $dist * $dist );
+        $force_x     += $f;
+        $group_force += $f;
+    }
+
+    my $abs_group = abs($group_force);
+    if ( $abs_group > $max_group_force ) {
+        $max_group_force = $abs_group;
+        $dominant_group  = $group_name;
+    }
+}
+
+my $magnitude = abs($force_x);
+
+$data{'branch.space.magnetic'}{$node_id} = {
+    'vector'    => { 'z' => 0, 'y' => 0, 'x' => $force_x },
+    'magnitude' => $magnitude,
+};
+
+return {
+    'mode' => 'true',
+    'data' => {
+        'magnetic_vector' => { 'z' => 0, 'y' => 0, 'x' => $force_x },
+        'magnitude'       => $magnitude,
+        'dominant_group'  => $dominant_group,
+    }
+};
+
+##[ position resolver ]##
+sub _position_for {
+    my ( $id, $scope ) = @_;
+    if ( exists $data{'branch.space.positions'}{$scope}{$id} ) {
+        return $data{'branch.space.positions'}{$scope}{$id}{'position'} // 0;
+    }
+    my $res = <[branch.space.rank]>->(
+        {   'node_id' => $id,
+            'scope'   => $scope,
+        }
+    );
+    return $res->{'data'}{'position'} // 0
+        if ref $res eq qw| HASH | and $res->{'mode'} eq 'true';
+    return 0;
+}
+
+#,,,,,,,,,.,,,.,.,.,,,.,.,.,.,...,,.,,.,.,,,,,.,.,...,...,..,,,..,.,.,,.,,.,.,
+#22WK2WIZX6V7PO3PWX3QZ3ZW33UIWOUCHTNS7HD2MOT5M5V3ONWV7GU2BUDJXBFOUETQPAJHJAYAI
+#\\\|ZSY7JOW6O6R732RFXXIQU24FV6Z4XFHPBWI46ORRI3BWOYO5YEM \ / AMOS7 \ YOURUM ::
+#\[7]BJSBOZF2TV5PUPSORSFI2UMQR3DFKALH32FJN5IJLRXSWNC7HMBY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

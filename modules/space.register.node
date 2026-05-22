@@ -1,0 +1,66 @@
+## [:< ##
+
+# name  = space.register.node
+# descr = register entity node, assign coordinate, push to @INDEXCUBE
+# param = { node_id, type, pubkey }
+
+my $params = shift // {};
+
+my $node_id = $params->{'node_id'} // '';
+my $type    = $params->{'type'}    // 'NODE';
+my $pubkey  = $params->{'pubkey'}  // '';
+
+return { 'mode' => qw| false |, 'data' => 'node_id required' }
+    unless length $node_id;
+
+## determine outer shell [ n = existing nodes + 1 ] ##
+my $existing = scalar keys %{ <space.grid.nodes> // {} };
+my $n        = $existing + 1;
+my $pos      = int( $n / 2 ) || 1;
+my $sign     = ( $existing % 2 ) ? -1 : 1;
+
+my $coord = {
+    'z' => $sign * $pos,
+    'y' => $sign * $pos,
+    'x' => $sign * $pos,
+};
+
+my $shell = $pos;
+
+## store node in grid ##
+<space.grid.nodes>->{$node_id} = {
+    'z'     => $coord->{'z'},
+    'y'     => $coord->{'y'},
+    'x'     => $coord->{'x'},
+    'shell' => $shell,
+};
+
+## derive base32 coordinate string for P7REF ##
+my $coord_str = sprintf '%d:%d:%d', $coord->{'z'}, $coord->{'y'},
+    $coord->{'x'};
+my $chksum_fn = $code{'chk-sum.amos'} // $code{'base.chk-sum.amos'};
+my $coord_b32 = substr( $chksum_fn->( \$coord_str ), 0, 6 );
+
+## push P7REF onto @INDEXCUBE ##
+my $p7ref = sprintf '%s:%s:%s', uc($type), $node_id, $coord_b32;
+<[base.indexcube.push]>->( { 'p7ref' => $p7ref } );
+
+## create empty aura profile ##
+<space.orbit.auras>->{$node_id} //= {
+    'typical_frame_scale' => 13,
+    'burst_profile'       => [13],
+    'entropy_signature'   => 'AMOS7',
+    'buffer_reserve'      => 13,
+    'confidence'          => 0,
+};
+
+return {
+    'mode' => qw| true |,
+    'data' => { 'node_id' => $node_id, 'coord' => $coord }
+};
+
+#,,.,,,.,,..,,,,,,,..,,..,.,.,,,,,...,.,,,,.,,.,.,...,...,,,.,..,,.,.,,,,,.,.,
+#2CMG4YTKUVAYQXBPAHGLATWTXUSBVDW6XOTNZGHZAKZPQORSM6VMBUEZ2X4BH4XT4T2U5XKTNEMDQ
+#\\\|ILTMZ2KD4E7MSDKW6V2XQGEVGDKXSJQB5CVYZQBK22SYCIP6BCI \ / AMOS7 \ YOURUM ::
+#\[7]5OQP27W3QQANPSCR4PCJLFDZBPHDGNJ3VAHAMRDJ5C6SPMU6SKDA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

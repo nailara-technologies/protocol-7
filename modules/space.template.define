@@ -1,0 +1,30 @@
+## [:< ##
+
+# name  = space.template.define
+# descr = define a template with chain and branch formats
+# param = { name, chain_format, branch_format }
+
+my $params = shift // {};
+
+my $name = $params->{'name'} // '';
+return { 'mode' => qw| false |, 'data' => 'name required' }
+    unless length $name;
+
+my $chain_format  = $params->{'chain_format'}  // '';
+my $branch_format = $params->{'branch_format'} // '';
+
+return { 'mode' => qw| false |, 'data' => 'chain_format required' }
+    unless length $chain_format;
+
+<space.templates>->{$name} = {
+    'chain_format'  => $chain_format,
+    'branch_format' => $branch_format,
+};
+
+return { 'mode' => qw| true |, 'data' => $name };
+
+#,,,.,..,,..,,..,,,..,,,.,,.,,...,,.,,,,,,.,.,.,.,...,...,...,...,..,,,,.,.,,,
+#ANWMDR6F5WXI75GJYPQNCEJK7AD6Z5TVUH5K66CIN7AKYWFO3PCUWDC233SDFCDDOYQXPOOYH7OYY
+#\\\|RZR6M2YGXYLFPWXB5DXPT4CCBD6RGI5DJWOVF3FD2SGLZZTXR66 \ / AMOS7 \ YOURUM ::
+#\[7]6YC2XEAUFXQVA4X6UXO5V2LTGF3LHQGZLMUU42N3HLNPYPVPIWDQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

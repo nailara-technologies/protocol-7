@@ -48,9 +48,12 @@ if ( not defined $reply or ref $reply ne qw| HASH | ) {
         $session_id, $cmd
     );
 
-} elsif ( not defined $reply->{'data'}
-    or ( defined $reply->{'mode'} and $reply->{'mode'} ne qw| size | )
-    and not length $reply->{'data'} ) {
+} elsif (
+    not defined $reply->{'data'}
+    or ( defined $reply->{'mode'}
+        and $reply->{'mode'} !~ m{^(size|data|tree)$}io )
+    and not length $reply->{'data'}
+) {
     <[base.logs]>->(
         0, '[%d] empty %s-reply attempted %s',
         $session_id,
@@ -99,6 +102,67 @@ if ( $reply_mode =~ m{^(TRUE|FALSE|WAIT)$}io ) {
     $output->$*
         .= sprintf( "%sCHRSIZE %d\n%s", $_cmd_id, $char_count, $data );
 
+} elsif ( uc($reply_mode) eq qw| DATA | ) {
+
+    my $stream_id = $reply->{'stream_id'} // '';
+    my $total     = $reply->{'total'}     // qw| STREAM |;
+
+    ## encode total if numeric ##
+    my $total_enc
+        = ( $total =~ m|^\d+$| )
+        ? <[base.encode_b32r]>->( \$total )
+        : $total;    ## 'STREAM' | 'DELTA ...' passed through ##
+
+    ## open frame ##
+    $output->$* .= sprintf "%sDATA %s %s\n", $_cmd_id, $stream_id, $total_enc;
+
+    ## chunk lines: 47 raw bytes = 76 base32 chars per line ##
+    my $data  = $reply->{'data'} // '';
+    my $chunk = 47;
+    while ( length $data ) {
+        my $slice = substr( $data, 0, $chunk, '' );
+        $output->$* .= <[base.encode_b32r]>->( \$slice ) . "\n";
+    }
+
+    ## close frame with AMOS checksum ##
+    my $chksum_fn = $code{'chk-sum.amos'} // $code{'base.chk-sum.amos'};
+    my $checksum  = $chksum_fn->( \$reply->{'data'} );
+    $output->$* .= sprintf "%sDATA END %s %s\n",
+        $_cmd_id, $stream_id, $checksum;
+
+} elsif ( uc($reply_mode) eq qw| TREE | ) {
+
+    my $tree_id = $reply->{'tree_id'} // '';
+    my $root    = $reply->{'root'}    // '';
+
+    ## open frame ##
+    $output->$* .= sprintf "%sTREE %s %s\n", $_cmd_id, $tree_id, $root;
+
+    ## node lines — sorted by ref_count descending (base.reverse-sort) ##
+    my @nodes = <[base.reverse-sort]>->( @{ $reply->{'nodes'} // [] } );
+
+    for my $node (@nodes) {
+        my $meta_b32 = $node->{'meta_b32'} // '';
+
+        $output->$* .= sprintf "%s %s %s\n",
+            $node->{'id'},
+            $node->{'parent'} // 'ROOT',
+            $meta_b32;
+
+        ## emit REF line if DATA stream registered ##
+        if ( my $stream_id = $node->{'stream_id'} ) {
+            $output->$* .= sprintf "TREE REF %s %s %s\n",
+                $tree_id, $node->{'id'}, $stream_id;
+        }
+    }
+
+    ## close frame with AMOS checksum of all node IDs ##
+    my $chksum_fn = $code{'chk-sum.amos'} // $code{'base.chk-sum.amos'};
+    my $all_ids   = join ' ', map { $ARG->{'id'} } @nodes;
+    my $checksum  = $chksum_fn->( \$all_ids );
+    $output->$* .= sprintf "%sTREE END %s %s\n",
+        $_cmd_id, $tree_id, $checksum;
+
 } elsif ( uc($reply_mode) eq qw| TERM | ) {
     <[base.session.shutdown]>->( $session_id, $reply->{'data'} );
 }
@@ -107,8 +171,8 @@ if ( $reply_mode =~ m{^(TRUE|FALSE|WAIT)$}io ) {
 
 delete <base.cmd_reply>->{$reply_id};
 
-#,,..,,,.,,..,,,.,.,.,...,.,,,..,,,..,,,.,,,.,..,,...,...,...,,.,,,,,,..,,,..,
-#ME2O3S42RVCW23YEALFVR6UL5FTO4DYZLME3UAAH3U2HPUOQSBLIHYPMEPKGO3UO37AGS635PC3YU
-#\\\|5ETIXESUZU7UJ2BES355GQKDRZKGODS2RB4PKDTH6WDVTXIWGFJ \ / AMOS7 \ YOURUM ::
-#\[7]K4R5YQMR4BDXVARLLTRMNJCSE6O7MFN4ZKNDP636DQF3BDT7FCDI 7  DATA SIGNATURE ::
+#,,.,,...,,,,,,..,..,,,,,,...,,.,,,.,,,,,,,,,,..,,...,...,.,,,,,.,...,.,.,,.,,
+#HZCGCG4AWW4RMW2P7G637XC6VSTPNQ3SHAWJ2ENPKHPTM3YGH4KV7D4NT5UYRY6BMUYUKHRZO2ZBW
+#\\\|C7LHGMAHXNKB3OZRCEZTHGIIA2MTCDC7NHUETMAC6ZCRUBG4KGA \ / AMOS7 \ YOURUM ::
+#\[7]2T5Z52BXZI6CXF3TR2HW6CMSGVRU2Z5DTJUFXCLTWWMRH2NIFYAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

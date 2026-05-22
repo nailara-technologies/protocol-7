@@ -1,0 +1,28 @@
+## [:< ##
+
+# name  = space.template.chain
+# descr = compute next link checksum in a chain
+# param = { parent, data }
+
+my $params = shift // {};
+
+my $parent = $params->{'parent'} // '';
+my $data   = $params->{'data'}   // '';
+
+return { 'mode' => qw| false |, 'data' => 'parent required' }
+    unless length $parent;
+return { 'mode' => qw| false |, 'data' => 'data required' }
+    unless length $data;
+
+my $chain_input = join ':', $parent, $data;
+
+my $chksum_fn     = $code{'chk-sum.amos'} // $code{'base.chk-sum.amos'};
+my $next_checksum = $chksum_fn->( \$chain_input );
+
+return { 'mode' => qw| true |, 'data' => $next_checksum };
+
+#,,..,,,,,.,,,.,.,,..,...,,.,,,,,,.,.,.,,,,,.,.,.,...,...,,.,,,..,..,,...,,.,,
+#CLJG5UR3YDYTQMG2IEYMNQEYG3L5F5MQKBP5ZZOXPWMBM2VA7VYMPZEYMWNIEQJXOUHCJACAL3A6I
+#\\\|7EHCGS3Y5NWCF35V6UCK536I5XES2J3HSXQ73QLNS26A32PAQ6V \ / AMOS7 \ YOURUM ::
+#\[7]QWA4TMGWJNZ7TZ5UNYMSVEXD457PXY5RF5WHRSMGLPB42MNZUIAQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

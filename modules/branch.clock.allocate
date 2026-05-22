@@ -1,0 +1,77 @@
+## [:< ##
+
+# name  = branch.clock.allocate
+# descr = allocate 13-slot clock cycles proportionally by reference count
+
+my $param       = shift                   // {};
+my $nodes       = $param->{'nodes'}       // [];
+my $total_slots = $param->{'total_slots'} // 13;
+
+return { mode => 'false', data => 'nodes array required' }
+    if not @$nodes;
+
+my $total_refs = 0;
+$total_refs += $ARG->{'ref_count'} // 0 for @$nodes;
+
+return { mode => 'false', data => 'total ref_count is zero' }
+    if $total_refs == 0;
+
+my %allocations;
+my @remainders;
+my $allocated = 0;
+
+for my $node (@$nodes) {
+    my $node_id   = $node->{'id'}        // '';
+    my $ref_count = $node->{'ref_count'} // 0;
+
+    next if not length $node_id;
+
+    if ( $ref_count == 0 ) {
+        $allocations{$node_id} = 0;
+        next;
+    }
+
+    my $raw   = $ref_count / $total_refs * $total_slots;
+    my $slots = int($raw);
+    $allocations{$node_id} = $slots;
+    $allocated += $slots;
+
+    push @remainders,
+        {
+        id        => $node_id,
+        remainder => $raw - $slots,
+        };
+}
+
+## distribute remaining slots by largest remainder ##
+@remainders = sort {
+           $b->{'remainder'} <=> $a->{'remainder'}
+        || $a->{'id'} cmp $b->{'id'}
+} @remainders;
+
+for my $i ( 0 .. $total_slots - $allocated - 1 ) {
+    my $node_id = $remainders[$i]->{'id'};
+    $allocations{$node_id}++;
+}
+
+## build sequence of nodes with non-zero slots ##
+my @sequence = map { $ARG->{'id'} }
+    grep { $allocations{ $ARG->{'id'} } > 0 } @$nodes;
+
+## store for bandwidth lookup ##
+$data{'branch.clock.allocations'} = {%allocations};
+
+return {
+    mode => 'true',
+    data => {
+        allocations => \%allocations,
+        sequence    => \@sequence,
+        total       => $total_slots,
+    }
+};
+
+#,,..,,.,,,,,,,..,.,,,..,,,,.,...,..,,,..,.,,,..,,...,..,,,.,,..,,,,,,...,,.,,
+#7SSAHL6BEAXILFW4KFINZKFHBU66K6EQFIHIA4GKM3UDD4GLW4QK35D3R63XFIFPBZB5NJD7XC4OY
+#\\\|UXRRM4AATAP6B55RBA5XFHVELSEAHKXMQGSPSOTPHUFSSIPPQY4 \ / AMOS7 \ YOURUM ::
+#\[7]XBQ3VWJOJWE2UC2WWJ67GUD2M4GTR575MPRHK23JY6OV7UADYKDQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

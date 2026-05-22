@@ -1,0 +1,37 @@
+## [:< ##
+
+# name  = branch.route.calc.polarity
+# descr = compute polarity at a given tree depth
+# param = { depth }
+#
+# depth = tree depth of a node (0 = root/darksun)
+# polarity determined by depth mod 13
+
+my $params = shift              // {};
+my $depth  = $params->{'depth'} // 0;
+
+$depth = int($depth);
+
+my $depth_in_cycle = $depth % 13;
+
+my $polarity = $depth_in_cycle == 0 ? qw| / |      : qw| \ |;
+my $glyph    = $depth_in_cycle == 0 ? qw| closed | : qw| open |;
+
+my $hops_to_correlation = 13 - $depth_in_cycle;
+$hops_to_correlation = 0 if $depth_in_cycle == 0;
+
+return {
+    'mode' => 'true',
+    'data' => {
+        'polarity'            => $polarity,
+        'depth_in_cycle'      => $depth_in_cycle,
+        'hops_to_correlation' => $hops_to_correlation,
+        'glyph'               => $glyph
+    }
+};
+
+#,,..,.,,,.,,,,,,,.,.,,,.,,,,,,.,,,,.,..,,.,.,.,.,...,..,,...,,..,..,,,,.,.,,,
+#FRVY3TFJUIVNCZVW3GZPHB422WPFGGSYIHRVAA34YIVUA3OBVOV3KHLUE2U6ZYLFARTKJIMUQ3VBO
+#\\\|MJMGAIVCYMPOXLBQN35OXA6OCX6PJCMIQCXHG34BGISWDLLIBKB \ / AMOS7 \ YOURUM ::
+#\[7]NW4FAQRRSOLFLGLQHONX3IAI7DXVTUXUIEORMZWLKIYKEKK2AQDA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

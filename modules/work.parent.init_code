@@ -5,21 +5,23 @@
 
 <[base.log]>->( 2, 'initializing workflow orchestration zenka..,' );
 
-## Configuration - always use auto-detected root path (override any cached value)
-<work.cfg.git_binary>          //= '/usr/bin/git';
-<work.cfg.root_path>           = <system.root_path>;
-<work.cfg.signing_key_loaded>  //= 0;   ## Track if key decrypted this session
-<work.cfg.auto_scan_on_start>  //= 0;   ## Auto-scan history at startup
-<work.cfg.version_seed>        //= 54;  ## AMOS7 version seed
-<work.cfg.readme_path>         //= 'read-me/md/README.md';
-<work.cfg.versions_path>       //= 'read-me/project-identity/source-code-versions.md';
+## configuration — always use auto-detected root path ##
+<work.cfg.git_binary> //= '/usr/bin/git';
+<work.cfg.root_path> = <system.root_path>;
+<work.cfg.signing_key_loaded> //= 0;    ## Track if key decrypted this session
+<work.cfg.auto_scan_on_start> //= 0;    ## Auto-scan history at startup
+<work.cfg.version_seed>       //= 54;   ## AMOS7 version seed
+<work.cfg.readme_path>        //= 'read-me/md/README.md';
+<work.cfg.versions_path>
+    //= 'read-me/project-identity/source-code-versions.md';
 
 ## Registries
-<work.history.scanned>      //= 0;      ## Timestamp of last scan
-<work.history.commits>      //= {};     ## All commits analyzed
-<work.history.issues>       //= {};     ## Issues found (missing versions, wrong emails, etc.)
-<work.history.gaps>         //= [];     ## Version number gaps
-<work.history.unsigned>     //= [];     ## Unsigned commits
+<work.history.scanned> //= 0;           ## Timestamp of last scan
+<work.history.commits> //= {};          ## All commits analyzed
+<work.history.issues>
+    //= {};    ## Issues found (missing versions, wrong emails, etc.)
+<work.history.gaps>     //= [];    ## Version number gaps
+<work.history.unsigned> //= [];    ## Unsigned commits
 
 ## Issue types registry
 <work.issues.types> = {
@@ -31,13 +33,13 @@
 };
 
 ## Statistics - initialize all fields to prevent undefined warnings
-<work.stats> //= {};
-<work.stats.commits_total>    //= 0;
-<work.stats.commits_analyzed> //= 0;
-<work.stats.issues_found>     //= 0;
+<work.stats>                   //= {};
+<work.stats.commits_total>     //= 0;
+<work.stats.commits_analyzed>  //= 0;
+<work.stats.issues_found>      //= 0;
 <work.stats.commits_rewritten> //= 0;
 <work.stats.commits_resigned>  //= 0;
-<work.stats.history_scans>    //= 0;
+<work.stats.history_scans>     //= 0;
 
 ## Email harmonization map
 <work.email.canonical> = {
@@ -49,8 +51,8 @@
 
 0;
 
-#,,,.,.,.,.,.,.,,,,,,,,.,,...,...,,,,,..,,.,.,..,,...,..,,.,,,,,.,...,...,,,,,
-#D3JVNT3V223PK7O5T5XPUJSS47BITZUG3KZ7R5W4MLODMPZA6JPMVFNQ6HXTV4LYKLSM7ZZXFGSN4
-#\\\|MDYSGT2QRKPFOAIU3J35NGDG4ADHRZP4PMRW6ZPTLTQJJHNW4SI \ / AMOS7 \ YOURUM ::
-#\[7]QKUMSFV3E5ODO5RISPSA4SV7LLPMABJA2AZ2E3NGFGUFDDF4HQAI 7  DATA SIGNATURE ::
+#,,.,,,..,,..,,.,,,,,,,.,,,.,,,,,,.,,,...,..,,..,,...,...,,,.,,,.,,..,.,.,,.,,
+#B7SUAFXP2HO5ZBBABRNJ6Z3T7SXKTEDVRFG7QEN4VGFKWGYFTYG2BT3ZYBLWTZB6TQMLSD2HWQJVS
+#\\\|AWWG2DHTJ5HBEHDDSTUGX3JCTI3WHXTNEGQIAS2YO23Y4PJCISZ \ / AMOS7 \ YOURUM ::
+#\[7]PV33LHLG2ATGHUMGIHS7GRGCLQELKN4RU57I4RGQSVTWK22Q76CA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

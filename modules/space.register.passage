@@ -1,0 +1,52 @@
+## [:< ##
+
+# name  = space.register.passage
+# descr = record reference event, vote characters, trigger aura build
+# param = { node_id, checksum }
+
+my $params = shift // {};
+
+my $node_id  = $params->{'node_id'}  // '';
+my $checksum = $params->{'checksum'} // '';
+
+return { 'mode' => qw| false |, 'data' => 'node_id required' }
+    unless length $node_id;
+return { 'mode' => qw| false |, 'data' => 'checksum required' }
+    unless length $checksum;
+
+my $ntime = <[base.time]>->(4);
+
+## record passage ##
+my $passages = <space.orbit.passages>->{$node_id} //= [];
+push @$passages, { 'checksum' => $checksum, 'ntime' => $ntime };
+
+my $passage_count = scalar @$passages;
+
+## vote characters from checksum onto node coordinates ##
+my $node = <space.grid.nodes>->{$node_id};
+if ( defined $node ) {
+    for my $character ( split //, $checksum ) {
+        next if $character eq ':';    ## skip separator chars ##
+        <[space.grid.vote]>->(
+            {   'z'         => $node->{'z'},
+                'y'         => $node->{'y'},
+                'x'         => $node->{'x'},
+                'character' => $character,
+            }
+        );
+    }
+}
+
+## trigger aura build if threshold reached ##
+my $threshold = <space.orbit.aura_build_threshold> // 13;
+if ( $passage_count >= $threshold ) {
+    <[space.orbit.aura.build]>->( { 'node_id' => $node_id } );
+}
+
+return { 'mode' => qw| true |, 'data' => $passage_count };
+
+#,,.,,,.,,,,,,.,.,...,,,.,..,,..,,,..,.,.,.,,,.,.,...,..,,,.,,,..,,,.,...,...,
+#ATY4DH7Z3OTBUUISUG44KOPOILFR4YX2Y2Y3A44URGJ573MKSQO5RZD5QZT6N6P6FC4454QKP34UO
+#\\\|L7L44G5V3IPVWKUIG527MT7LEQNL6MTZ7KR5GFB2NGY7M3GZE4X \ / AMOS7 \ YOURUM ::
+#\[7]YMHMC4NMN77IFNAA3THRRJR4WM6QVVRUPGRWWD4EGGVI5MXO2KAA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
