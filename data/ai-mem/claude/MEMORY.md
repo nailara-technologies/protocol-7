@@ -27,6 +27,9 @@
 - `data/md/development/P7-LLM-REFERENCE.md` — verified live command reference for kimi/LLM sessions
 - `data/md/development/DEGRADED-FEATURES-AUDIT.md` — 5 high-priority + 3 medium candidates with stub task files
 
+## Session 45
+- [base32-namespace](topic-base32-namespace.md) — base32.* namespace live; dep-graph swap parser fix; self-healing whitelist concept + blocked-on-signing note
+
 ## Space Engine modules (session 43/44)
 - `space.*` 29 modules: grid/orbit/route/travel/jump/search/register/template — all ptd-clean
 - `branch.space.*` 6: rank, shell, visible, magnetic_force, effective_position, balance
@@ -175,8 +178,8 @@
 - **pager.sort.multi-key**: ntime_b32 + priority_map sort types added (session 42)
 - **task dispatch sections**: all dispatched tasks now carry ## dispatch + prompt for reuse
 
-#,,..,.,,,,..,,.,,.,,,,,.,,..,,..,.,.,.,.,,,,,..,,...,...,...,...,.,,,..,,..,,
-#RJBAAUWDJAYCDCFA3JD7QCOPDIBUTBTTES6PDMR45GU5CM6AACUI7LXPC5HKRZK5DGT4FXZ5ZRI6I
-#\\\|DFQWAJKSG5XITKQW7ODYMP37L2X7CESRWCQKCNF6HUYFPHWB44E \ / AMOS7 \ YOURUM ::
-#\[7]GRT5H22G3J4LLERKBJM6QDBUK3CUBA7FPNK456ALNWC5HA3KICBY 7  DATA SIGNATURE ::
+#,,..,..,,...,,,,,,..,...,.,.,..,,,,,,,.,,...,..,,...,...,,..,..,,,..,..,,,.,,
+#SMIXRK6IZU2FRM4FSKPTEBJYGRDHHPP5K7MRBVX4WQFKBVDG6CNCRR72ROKRRFAW3ZGHLUANKOU7M
+#\\\|AJXCA3M2SE32UAZC6HJ32SEJB3NGKFDJ2TZG5KDMFXBVOA3GYZZ \ / AMOS7 \ YOURUM ::
+#\[7]NODTISZ6P6MFDQWVBCOIYVLQDQ7TAANGMP6IA7VTEOECS7OEYYCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

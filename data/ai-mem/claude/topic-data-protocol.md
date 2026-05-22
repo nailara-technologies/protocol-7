@@ -62,15 +62,30 @@ the protocol side — caller sees DATA lines, never the adapter.
 - checksum tree (DANCING-ZENKI-RHIZOME-STATE.md) — DATA END checksum
   is a checksum tree leaf; bubble carries the growing tree
 
+## wire format clarifications (session 45)
+
+- `B32_SIZE` in open frame IS per spec — but plain decimal may be cleaner
+  since the field has space delimiters anyway (no self-delimiting needed)
+- chunk lines base32-encoded: size derivable from char count without decoding
+  (full 76-char line = 47 bytes; last line n chars = floor(n×5/8) bytes)
+  but SIZE field gives it upfront — buffer pre-allocation, size-limit checks
+- `DATA END` checksum line IS the right place for the self-delimiting format:
+  `0` + zero-padded decimal input length + AMOS checksum (e.g. `01303UGKDZQ`)
+  `0`/`1` are outside base32 alphabet → unambiguous separator, chainable
+  `1` variant reserved — not yet documented anywhere, needs a spec doc
+- `base.callback.cmd_reply` DATA + TREE branches now implemented (session 44/45)
+  spec code had bug: `ref \$total` always true — should be `$total =~ m|^\d+$|`
+
 ## open items
 
 - DATA ACK parsing in receiver (base.protocol-7.receive or equivalent)
 - DATA DELTA diff computation module
 - backpressure: missing ACK = pause signal for sender
 - max chunk size tuning for non-terminal transports
+- write spec doc for `0`-prefixed self-delimiting checksum format
 
-#,,..,..,,,..,..,,,,,,,,,,.,.,.,,,.,,,..,,.,,,..,,...,...,,..,.,,,,..,..,,,,.,
-#Z2EOZKFNUOHW667KPEJ4X4XTIINRWR6BYRRE2PA3IOWAOBFPDFCH745UFSXOA2MMWPPS5CJRMYNUQ
-#\\\|7YOTBZ6AM6PXXKY3ZVZHP72QF6NPRMPXOICL7KOCSGOYGGB3PGF \ / AMOS7 \ YOURUM ::
-#\[7]CD4ZTASLM3UDM32MGU2CEP67MXRJL4GMKOSTBUQIKHVTUWM2KUBY 7  DATA SIGNATURE ::
+#,,.,,.,,,,.,,,,.,.,.,.,,,...,,..,,,.,.,.,...,..,,...,...,.,,,.,,,.,,,.,,,,..,
+#KM3HCV6ZTBPJOFLQKZKMBCDLHFCQ6A5TLI3OAYTHANVOINQESFUURFVLAZ3D5KTRA4EJL7MCJKAC2
+#\\\|H5BWSHRFCK5TS3V53SCVTZ2UEUC7L5YMM52L3JU4MUHPUQURGIW \ / AMOS7 \ YOURUM ::
+#\[7]35TBBWYVKOV4YH67G7EKF2A5ZCSJL5JLT3ADTI55UK75QBZEGKAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
