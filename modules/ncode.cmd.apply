@@ -1,0 +1,180 @@
+## [:< ##
+
+# name  = ncode.cmd.apply
+# descr = apply fixes by checksum ID from pending store
+
+my $params = shift // {};
+
+my $ids     = $params->{'ids'}     // [];
+my $session = $params->{'session'} // '';
+
+## handle --session style from ids array ##
+if (    ref $ids eq qw| ARRAY |
+    and @$ids
+    and $ids->[0] =~ m|^--session| ) {
+    $session = $ids->[1] // '';
+    $ids     = [];
+}
+
+<ncode.pending> //= {};
+my $pending = <ncode.pending>;
+my @fix_ids;
+
+if ( length $session ) {
+    @fix_ids = grep {
+                ref $pending->{$ARG} eq qw| HASH |
+            and $pending->{$ARG}{'session'} eq $session
+            and $pending->{$ARG}{'status'} eq 'pending'
+    } keys %$pending;
+} elsif ( ref $ids eq qw| ARRAY | and @$ids ) {
+    @fix_ids = @$ids;
+} else {
+    return { 'mode' => qw| false |, 'data' => 'specify fix ids or session' };
+}
+
+my $applied_count = 0;
+my $failed_count  = 0;
+
+foreach my $fix_id (@fix_ids) {
+    my $fix = $pending->{$fix_id};
+    if ( not defined $fix or ref $fix ne qw| HASH | ) {
+        <[base.logs]>->(
+            1, ':. ncode.cmd.apply: unknown fix_id %s :.', $fix_id
+        );
+        next;
+    }
+
+    my $pname = $fix->{'pattern'};
+    my $file  = $fix->{'file'};
+
+    <ncode.patterns> //= {};
+    my $def = <ncode.patterns>->{$pname};
+
+    if ( not defined $def or ref $def ne qw| HASH | ) {
+        <[base.logs]>->(
+            1, ':. ncode.cmd.apply: pattern %s not loaded :.', $pname
+        );
+        next;
+    }
+
+    ## read file ##
+    open my $fh, '<', $file or do {
+        <[base.logs]>->( 0, ':. ncode.cmd.apply: cannot read %s :.', $file );
+        next;
+    };
+    local $/ = undef;
+    my $content = <$fh>;
+    close $fh;
+    my $original = $content;
+
+    ## apply steps ##
+    my $steps   = $def->{'steps'} // [];
+    my $step_ok = 1;
+
+    foreach my $step (@$steps) {
+        my $tool = $step->{'tool'} // $step->{'action'} // '';
+
+        if ( $tool eq qw| ncode | or $tool eq qw| perl | ) {
+            my $search  = $step->{'search'}  // $step->{'pattern'} // '';
+            my $replace = $step->{'replace'} // '';
+
+            next unless length $search;
+
+            my $compiled = eval {qr/$search/};
+            if ($@) {
+                <[base.logs]>->(
+                    0, ':. ncode.cmd.apply: bad step regex [ %s ] :.', $@
+                );
+                $step_ok = 0;
+                last;
+            }
+
+            my @lines = split m|\n|, $content;
+            my $count = 0;
+            for my $i ( 0 .. $#lines ) {
+                if ( $lines[$i] =~ $compiled ) {
+                    my $old = $lines[$i];
+                    $lines[$i] =~ s|$compiled|$replace|;
+                    $count++ if $lines[$i] ne $old;
+                }
+            }
+            $content = join "\n", @lines;
+            $content .= "\n" if $original =~ m|\n$|;
+        } elsif ( $tool eq qw| manual | ) {
+            <[base.logs]>->(
+                2, ':. ncode.cmd.apply: manual step skipped for %s :.',
+                $pname
+            );
+        }
+    }
+
+    ## verify ##
+    my $verify_pass = 1;
+    my $verify_list = $def->{'verify'} // [];
+
+    foreach my $vcheck (@$verify_list) {
+        next unless ref $vcheck eq qw| HASH |;
+
+        if ( exists $vcheck->{'no_match'} ) {
+            my $vpat      = $vcheck->{'no_match'};
+            my $vcompiled = eval {qr/$vpat/};
+            if ($@) {
+                <[base.logs]>->(
+                    0, ':. ncode.cmd.apply: bad verify regex [ %s ] :.', $@
+                );
+                $verify_pass = 0;
+                last;
+            }
+            if ( $content =~ $vcompiled ) {
+                $verify_pass = 0;
+                last;
+            }
+        }
+    }
+
+    if ( $verify_pass and $step_ok ) {
+        open my $wfh, '>', $file or do {
+            <[base.logs]>->(
+                0, ':. ncode.cmd.apply: cannot write %s :.', $file
+            );
+            next;
+        };
+        print {$wfh} $content;
+        close $wfh;
+
+        $fix->{'status'} = 'applied';
+        $applied_count++;
+        <[base.logs]>->(
+            2,       ':. ncode.cmd.apply: applied %s to %s :.',
+            $fix_id, $file
+        );
+    } else {
+        ## revert ##
+        if ( $content ne $original ) {
+            open my $wfh, '>', $file or do {
+                <[base.logs]>->(
+                    0, ':. ncode.cmd.apply: cannot revert %s :.', $file
+                );
+                next;
+            };
+            print {$wfh} $original;
+            close $wfh;
+        }
+        $fix->{'status'} = 'failed';
+        $failed_count++;
+        <[base.logs]>->(
+            1, ':. ncode.cmd.apply: failed %s [ revert done ] :.', $fix_id
+        );
+    }
+}
+
+my $summary = "$applied_count fixes applied";
+$summary .= ", $failed_count failed" if $failed_count;
+
+return { 'mode' => 'size', 'data' => $summary };
+
+#,,,.,,,.,.,.,.,,,,,,,.,.,...,.,.,,.,,,,,,,,,,.,.,...,...,,.,,..,,.,,,,.,,..,,
+#2C3DN5O3BCCJWO7OYKWDJVXTE7TEJJE4GHRZ6FCWRRWQXR56OOOEZKAH5GPIQUZYOPYEBGJLZB2XY
+#\\\|X73WRZRCBEP3OENLAQFIJX2GJPTIHESX2LSJGO5XDX4IYFCH3HM \ / AMOS7 \ YOURUM ::
+#\[7]FS2TJMBSFSLBBCDNNI4SKPFEY6MR64ZLLENK4GUVPLW7TQG2HWDY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
