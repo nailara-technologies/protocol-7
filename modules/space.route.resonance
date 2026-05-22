@@ -1,0 +1,64 @@
+## [:< ##
+
+# name  = space.route.resonance
+# descr = compute resonance score for a node
+# param = { node_id }
+
+my $params  = shift                // {};
+my $node_id = $params->{'node_id'} // '';
+
+return { 'resonance' => 0, 'harmonic' => FALSE, 'shell_bonus' => 0 }
+    unless length $node_id;
+
+## resolve reference count ##
+my $ref_count = 1;
+if ( exists <space.orbit.passages>->{$node_id} ) {
+    $ref_count = scalar @{ <space.orbit.passages>->{$node_id} };
+} elsif ( exists <space.grid.nodes>->{$node_id}{'ref_count'} ) {
+    $ref_count = <space.grid.nodes>->{$node_id}{'ref_count'};
+}
+
+## resolve shell number ##
+my $shell = 0;
+if ( exists <space.grid.nodes>->{$node_id} ) {
+    my $coord = <space.grid.nodes>->{$node_id};
+    $shell = $coord->{'shell'} // 0;
+    if (    not $shell
+        and defined $coord->{'z'}
+        and defined $coord->{'y'}
+        and defined $coord->{'x'} ) {
+        my $sz = abs( $coord->{'z'} );
+        my $sy = abs( $coord->{'y'} );
+        my $sx = abs( $coord->{'x'} );
+        $shell = $sz;
+        $shell = $sy if $sy > $shell;
+        $shell = $sx if $sx > $shell;
+    }
+}
+
+my $shell_bonus = 1 / ( ( $shell > 0 ) ? $shell : 1 );
+
+## harmonic truth via AMOS swap-boundary ##
+my $chksum_fn = $code{'chk-sum.amos'} // $code{'base.chk-sum.amos'};
+my $harmonic  = FALSE;
+if ( defined $chksum_fn ) {
+    my $node_chksum = $chksum_fn->( \$node_id );
+    $harmonic
+        = AMOS7::Assert::Truth::is_true( \$node_chksum, 0, 1 )
+        ? TRUE
+        : FALSE;
+}
+
+my $resonance = $ref_count * ( $harmonic ? 1 : 0 ) * $shell_bonus;
+
+return {
+    'resonance'   => $resonance,
+    'harmonic'    => $harmonic,
+    'shell_bonus' => $shell_bonus
+};
+
+#,,..,.,,,...,,..,.,,,,..,..,,..,,,,,,...,,,,,..,,...,...,..,,,..,,.,,...,,,.,
+#V3PK5CIF6BDN5TDQB7Z2IIAW6ZFOK4GZWGDLQZ3UGDCSSISQ236WKJB2HRHWUD2T23AO2VKU67ZU6
+#\\\|OYTQUR676GXG2N54TJZUWF72P3T6COW3VD4ZYEIA3TODWYVWEA6 \ / AMOS7 \ YOURUM ::
+#\[7]QSUPHWIUKIBTG5YLW6OKWO2CWNL2KSE7JDPB6AJ5OFZXG76ZXODY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

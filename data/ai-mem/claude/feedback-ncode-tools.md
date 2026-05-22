@@ -29,8 +29,16 @@ ad-hoc sed/perl in a for-loop risks file corruption (as happened with smtp modul
 **How to apply:** whenever renaming a module or namespace, reach for ncode replace
 before considering perl -i or sed.
 
-#,,..,,.,,,..,,.,,...,.,.,,.,,,..,,,.,...,..,,..,,...,...,..,,...,.,,,,,.,.,.,
-#WPHXZHUZMYMH6WBXG7DASAECKL2PPUJVWSWYVSETDJCUHGVQ5M253NZPTFJ3JKK2BYYOI7JL7F73I
-#\\\|6JWDHT4RUPHD4U5TQXPO3D7NO3AXZV4RDJPPNSNGUUZUK2OMOOR \ / AMOS7 \ YOURUM ::
-#\[7]4GPWRYQNBNP2IPDBNEBUASGWQRRMEYCXFJXH5VTFAB7CRLZ7U2CQ 7  DATA SIGNATURE ::
+**escaping braces in patterns:** ncode uses `{...}` as regex delimiters, so `{` and `}`
+in search patterns cause errors. mask them with `.` (dot = any char):
+- `$data{'space.grid.nodes'}{` → search pattern: `data..space.grid.nodes...`
+  (2 dots for `{'`, 3 dots for `'}{`)
+- replace: `<space.grid.nodes>->`
+- `ncode -ai-friendly -confirm replace src "data..space.X.Y..." "<space.X.Y>->"`
+- also works for quotes `'` and other special chars — mask with `.`
+
+#,,..,,,,,.,,,...,.,.,.,.,...,.,.,,,.,.,.,,..,..,,...,...,,,,,..,,,.,,.,,,,..,
+#5CUNE64RVX3L5WMGVRA63PFKXHRT2MTCHKLNVWU42BGC2MF72GJ2KKSGGYJCYH2VXAJGKNRK773R6
+#\\\|52GEKV34SO4KU3JWNSJUXSCDFOX3BUD6G3LDKMVSWH5M4ILIG6Z \ / AMOS7 \ YOURUM ::
+#\[7]E4V6V5YHOJGBRBOSUWDDOGQOOUQNUFN3IIMVZ4RVRVI7RT62R2CI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

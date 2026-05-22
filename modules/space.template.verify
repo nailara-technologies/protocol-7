@@ -1,0 +1,33 @@
+## [:< ##
+
+# name  = space.template.verify
+# descr = recompute chain from params and verify against checksum
+# param = { checksum, template, params }
+
+my $params = shift // {};
+
+my $checksum   = $params->{'checksum'} // '';
+my $template   = $params->{'template'} // '';
+my $tpl_params = $params->{'params'}   // {};
+
+return { 'mode' => qw| false |, 'data' => 'checksum required' }
+    unless length $checksum;
+return { 'mode' => qw| false |, 'data' => 'template required' }
+    unless length $template;
+
+my $applied = <[space.template.apply]>
+    ->( { 'template' => $template, 'params' => $tpl_params } );
+
+return { 'mode' => qw| false |, 'data' => $applied->{'data'} }
+    if exists $applied->{'mode'} and $applied->{'mode'} eq qw| false |;
+
+return { 'mode' => qw| true |, 'data' => 'verified' }
+    if $applied->{'checksum'} eq $checksum;
+
+return { 'mode' => qw| false |, 'data' => 'mismatch' };
+
+#,,..,..,,.,.,.,,,,..,,.,,,,.,..,,.,,,,,,,,,,,.,.,...,..,,,.,,.,,,...,..,,..,,
+#DBCYN4EAEB7PVLB5J2FR755FM7662WYE272WTOSFEVOVTUMW2JBXUQ6HGKHCLPTB4F4O6BRPFLAMG
+#\\\|2VJTFYKOWMAMI3Q2ORPEUSCOXWFC4ESIXWSZUQFG2MWPK2WOYUH \ / AMOS7 \ YOURUM ::
+#\[7]UYM5LNH3AHD67FEKO4536CZV7RH3IUZGNB3BTG4WMTLCJ3MHD6CI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

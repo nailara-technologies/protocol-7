@@ -1,0 +1,39 @@
+## [:< ##
+
+# name  = branch.ntime.clock_sync
+# descr = determine if two nodes are clock-synchronized
+
+my $param   = shift               // {};
+my $ntime_a = $param->{'ntime_a'} // '';
+my $ntime_b = $param->{'ntime_b'} // '';
+
+return { mode => 'false', data => 'both ntime values required' }
+    if not length $ntime_a or not length $ntime_b;
+
+my $a_num = <[base.ntime_BASE32_to_numerical]>->($ntime_a);
+my $b_num = <[base.ntime_BASE32_to_numerical]>->($ntime_b);
+
+return { mode => 'false', data => 'invalid ntime value' }
+    if not defined $a_num or not defined $b_num;
+
+my $diff   = int($a_num) - int($b_num);
+my $offset = $diff % 13;
+$offset += 13 if $offset < 0;
+
+my $synced       = ( $offset == 0 ) ? TRUE : FALSE;
+my $hops_to_sync = $synced          ? 0    : 13 - $offset;
+
+return {
+    mode => 'true',
+    data => {
+        synced       => $synced,
+        offset       => $offset,
+        hops_to_sync => $hops_to_sync,
+    }
+};
+
+#,,..,,.,,...,..,,...,,..,,,,,...,,,,,,..,.,,,..,,...,..,,..,,,,.,,,,,,,,,...,
+#6KRCZQZKYPJT7ESSEZRIXOL7UCQ4TEO3GG5DRATBGG7OYQLCUZ77RUL4ZCAXDDVMW655K4LJYB63W
+#\\\|JJCFELA77EXPFABRYEMT46EVSTNPZNYC6TCYW5O6J6ZF6Z4J5TP \ / AMOS7 \ YOURUM ::
+#\[7]RG2JMDOLYC27LIPDSKOXR66ROUVI3UVMUF44EVVTVTI7DILSUEDA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

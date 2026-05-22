@@ -1,0 +1,169 @@
+## [:< ##
+
+# name  = space.search
+# descr = find nodes by coordinate, harmonic, type, group, aura
+# param = { query }
+
+my $params = shift // {};
+my $query  = $params->{'query'} // $params // {};
+
+## start from all nodes in grid ##
+my @results;
+for my $node_id ( keys %{ <space.grid.nodes> // {} } ) {
+    my $node = <space.grid.nodes>->{$node_id};
+    push @results,
+        {
+        'node_id' => $node_id,
+        'coord'   =>
+            { 'z' => $node->{'z'}, 'y' => $node->{'y'}, 'x' => $node->{'x'} },
+        'shell'     => $node->{'shell'}     // 0,
+        'character' => $node->{'character'} // '',
+        };
+}
+
+## apply filters in order [ cheapest first ] ##
+
+## coord filter [ shell range pruning ] ##
+if ( exists $query->{'coord'} and ref $query->{'coord'} eq qw| HASH | ) {
+    my $c = $query->{'coord'};
+    if ( exists $c->{'shell_min'} or exists $c->{'shell_max'} ) {
+        my $min = $c->{'shell_min'} // 0;
+        my $max = $c->{'shell_max'} // ~0;
+        @results
+            = grep { $ARG->{'shell'} >= $min and $ARG->{'shell'} <= $max }
+            @results;
+    } elsif ( exists $c->{'z'} or exists $c->{'y'} or exists $c->{'x'} ) {
+        my ( $z, $y, $x ) = ( $c->{'z'}, $c->{'y'}, $c->{'x'} );
+        @results = grep {
+                    ( not defined $z or $ARG->{'coord'}{'z'} == $z )
+                and ( not defined $y or $ARG->{'coord'}{'y'} == $y )
+                and ( not defined $x or $ARG->{'coord'}{'x'} == $x )
+        } @results;
+    }
+}
+
+## character filter ##
+if ( exists $query->{'character'} and length $query->{'character'} ) {
+    my $ch = $query->{'character'};
+    @results = grep { $ARG->{'character'} eq $ch } @results;
+}
+
+## type filter ##
+if ( exists $query->{'type'} and length $query->{'type'} ) {
+    my $type_prefix = $query->{'type'};
+    @results = grep { $ARG->{'node_id'} =~ m{^$type_prefix} } @results;
+}
+
+## group filter [ via branch.group.members ] ##
+if ( exists $query->{'group'} and length $query->{'group'} ) {
+    my $group_name = $query->{'group'};
+    my $members    = {};
+    my $group_res  = <[branch.group.members]>->( { 'group' => $group_name } );
+    $members = $group_res->{'members'} // {}
+        if ref $group_res eq qw| HASH |;
+    @results = grep { exists $members->{ $ARG->{'node_id'} } } @results;
+}
+
+## harmonic filter [ is_true on node_id checksum ] ##
+if ( exists $query->{'harmonic'} ) {
+    my $want_true = $query->{'harmonic'};
+    @results = grep {
+        my $is_true = FALSE;
+        eval {
+            $is_true
+                = AMOS7::Assert::Truth::is_true( $ARG->{'node_id'} )
+                ? TRUE
+                : FALSE;
+        };
+        $want_true eq TRUE and $is_true
+            or $want_true eq FALSE and not $is_true
+            or $want_true eq UNKNOWN;
+    } @results;
+}
+
+## aura filter ##
+if ( exists $query->{'aura'} and ref $query->{'aura'} eq qw| HASH | ) {
+    my $a = $query->{'aura'};
+    @results = grep {
+        my $aura = <space.orbit.auras>-> $ARG->{'node_id'} };
+        my $ok   = defined $aura ? TRUE : FALSE;
+        $ok = FALSE
+            if $ok
+            and exists $a->{'entropy_signature'}
+            and ( $aura->{'entropy_signature'} // '' ) ne
+            $a->{'entropy_signature'};
+        $ok = FALSE
+            if $ok
+            and exists $a->{'confidence_min'}
+            and ( $aura->{'confidence'} // 0 ) < $a->{'confidence_min'};
+        $ok;
+    } @results;
+}
+
+## refcount filter ##
+if ( exists $query->{'refcount'} and ref $query->{'refcount'} eq qw| HASH | )
+{
+    my $r   = $query->{'refcount'};
+    my $min = $r->{'min'} // 0;
+    my $max = $r->{'max'} // ~0;
+    @results = grep {
+        my $passages = <space.orbit.passages>-> $ARG->{'node_id'} }
+            // [];
+        my $count = scalar @$passages;
+        $count >= $min and $count <= $max;
+    } @results;
+}
+
+## sort by resonance descending ##
+@results = sort {
+    my $ra = 0;
+    my $rb = 0;
+    eval {
+        $ra = <[space.route.resonance]>->( $a->{'node_id'} )->{'resonance'}
+            // 0;
+        $rb = <[space.route.resonance]>->( $b->{'node_id'} )->{'resonance'}
+            // 0;
+    };
+    $rb <=> $ra;
+} @results;
+
+## cap at 100, log warning if capped ##
+my $capped = FALSE;
+if ( @results > 100 ) {
+    $capped = TRUE;
+    <[base.logs]>->(
+        1,
+        'space.search: result capped [ %d -> 100 ]',
+        scalar @results
+    );
+    @results = @results[ 0 .. 99 ];
+}
+
+## attach aura confidence where available ##
+for my $r (@results) {
+    my $aura = <space.orbit.auras>-> $r->{'node_id'} };
+    $r->{'aura_confidence'} = $aura->{'confidence'} // 0 if defined $aura;
+}
+
+return \@results;
+
+##[ fallback resonance helper ]##
+sub _fallback_resonance {
+    my $node_id   = shift;
+    my $passages  = <space.orbit.passages>->{$node_id} // [];
+    my $ref_count = scalar @$passages;
+    my $harmonic  = FALSE;
+    eval {
+        $harmonic = AMOS7::Assert::Truth::is_true($node_id) ? TRUE : FALSE;
+    };
+    my $node        = <space.grid.nodes>->{$node_id} // {};
+    my $shell       = $node->{'shell'}                    // 1;
+    my $shell_bonus = 1 / ( $shell > 0 ? $shell : 1 );
+    return $ref_count * ( $harmonic ? 2 : 1 ) * $shell_bonus;
+}
+
+#,,,,,,,.,..,,,.,,..,,,.,,,..,,,.,.,,,,,.,.,,,.,.,...,..,,,..,.,,,.,.,.,.,.,,,
+#BBG6KX23JCSP7DL2WBTATZF74BCQ6VRKBXLUFJY54IF7NFIV7PKIZH3CJ26VJNCDPTNPBDBUAE4P6
+#\\\|MJ2PFISHLYGOALETPGRIQ3VO5TVTKHMVPIZJ7S3IJMSM5N62QOK \ / AMOS7 \ YOURUM ::
+#\[7]KWJUM6EP6DL53BX5HT6UB42TJ34IWQQSY5F5NIRLFGCKSE474YCY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

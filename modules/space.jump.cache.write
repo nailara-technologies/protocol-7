@@ -1,0 +1,27 @@
+## [:< ##
+
+# name  = space.jump.cache.write
+# descr = write next hop to branch.route.cache with current ntime
+# param = { hop, target, next_hop }
+
+my $params   = shift                 // {};
+my $hop      = $params->{'hop'}      // '';
+my $target   = $params->{'target'}   // '';
+my $next_hop = $params->{'next_hop'} // '';
+
+return FALSE unless length $hop and length $target and length $next_hop;
+
+my $ntime = <[base.time]>->(4);
+
+$data{'branch.route.cache'}{$hop}{$target} = {
+    'next_hop' => $next_hop,
+    'ntime'    => $ntime,
+};
+
+return TRUE;
+
+#,,.,,.,,,..,,,..,..,,,..,,,,,.,.,...,.,.,,,.,..,,...,..,,,,,,..,,,.,,,..,,,.,
+#3J23LTR3EBUJWZWQVP5KYX7VGKU7TOAT4EX4BTWYDAB2QM4HZXPEZ5L56DJK7CDK434XSR5R32ZAC
+#\\\|DRZYXMRARI36TJU7JIWOSDQIVGGVX35NBHH5UNM23ZHPFO67V67 \ / AMOS7 \ YOURUM ::
+#\[7]43PXRKJL3JC6P756V6LO42MN2TBE5P65UIL4CO3BTM5E22RD4SAY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

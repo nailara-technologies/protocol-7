@@ -1,0 +1,66 @@
+## [:< ##
+
+# name  = space.jump.diagonal
+# descr = compute body diagonal path if available
+# param = { from, to }
+
+my $params = shift             // {};
+my $from   = $params->{'from'} // '';
+my $to     = $params->{'to'}   // '';
+
+return { 'available' => FALSE }
+    unless length $from and length $to;
+
+## resolve coordinates ##
+my $coord_from = <space.grid.nodes>->{$from};
+my $coord_to   = <space.grid.nodes>->{$to};
+
+return { 'available' => FALSE }
+    unless defined $coord_from and defined $coord_to;
+
+my $dz = ( $coord_to->{'z'} // 0 ) - ( $coord_from->{'z'} // 0 );
+my $dy = ( $coord_to->{'y'} // 0 ) - ( $coord_from->{'y'} // 0 );
+my $dx = ( $coord_to->{'x'} // 0 ) - ( $coord_from->{'x'} // 0 );
+
+## body diagonal requires all three axes to change ##
+return { 'available' => FALSE }
+    if $dz == 0
+    or $dy == 0
+    or $dx == 0;
+
+my $steps_z = abs($dz);
+my $steps_y = abs($dy);
+my $steps_x = abs($dx);
+
+## pure diagonal: equal steps on all axes ##
+if ( $steps_z == $steps_y and $steps_y == $steps_x ) {
+    my @path;
+    my $z = $coord_from->{'z'};
+    my $y = $coord_from->{'y'};
+    my $x = $coord_from->{'x'};
+
+    my $step_z = $dz > 0 ? 1 : -1;
+    my $step_y = $dy > 0 ? 1 : -1;
+    my $step_x = $dx > 0 ? 1 : -1;
+
+    for my $i ( 1 .. $steps_z ) {
+        $z += $step_z;
+        $y += $step_y;
+        $x += $step_x;
+        push @path, { 'z' => $z, 'y' => $y, 'x' => $x };
+    }
+
+    return {
+        'available' => TRUE,
+        'path'      => \@path,
+        'hops'      => scalar @path
+    };
+}
+
+return { 'available' => FALSE };
+
+#,,,,,,,.,..,,,,.,..,,.,,,.,,,...,,,,,,,.,..,,..,,...,...,..,,.,,,.,,,.,.,,,.,
+#HKTDILWH67WYJFIM3BZWDTONRZOB6ZI25ZB7XBY7UKR7HI2AP7OP5YORT7IGSI3HANTHVHBECB53I
+#\\\|X464SII6WIDJUGWW6NDUKFJGCLCJSNDX4F2O2YUVIMXDG37FZ57 \ / AMOS7 \ YOURUM ::
+#\[7]ECAF7R772EPP4AXLISCOI2DSAYDWFOFK6DH52MIBMWHRXWWHI4AA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

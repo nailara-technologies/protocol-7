@@ -19,13 +19,13 @@ delete <crypt.C25519.key_vars>;
 my $current_user = $ENV{'USER'} // getpwuid($EUID);
 
 ## If a drop_privs target user is configured and differs from current user,
-## use the target user for keys. This handles v7-started zenka and other contexts.
+## use target user for keys — handles v7-started zenka and other contexts.
 ## In other contexts (console, no privilege drop), use current user.
-## Note: Some zenka (e.g., discover) may set this in pre_init before init_code runs
-if (not defined <crypt.C25519.usr_name>) {
+## note: some zenka may set this in pre_init before init_code runs
+if ( not defined <crypt.C25519.usr_name> ) {
     my $drop_target_user = <system.amos-zenka-user> // '';
 
-    if (length($drop_target_user) and $drop_target_user ne $current_user) {
+    if ( length($drop_target_user) and $drop_target_user ne $current_user ) {
         ## Will drop privileges to different user: store keys for target user
         <crypt.C25519.usr_name> = $drop_target_user;
     } else {
@@ -55,7 +55,7 @@ my @key_types = qw| private public secret |;    # virtual #
 
 my $re_keyfiles = sprintf qw| (%s) |, join( '|', @key_ext );
 
-## lowercase names with underscore support (for TOFU hostkeys like remote.host_port) ##
+## lowercase names + underscore support [ TOFU hostkeys: remote.host_port ] ##
 my $name_regex = qr|[0-9a-z\.\-_]+|;
 
 ## uppercase names ##
@@ -74,8 +74,9 @@ const <crypt.C25519.regex> => {    ## requires Const::Fast to be loaded ##
         qw| virtualpk | => qr|^($name_regex)\.vp$|        ## virtual p.key ##
     },
     qw| key_file | => {
-        qw| virtual | => qr|^($name_regex):\Qseed-phrase\E$|,
-        qw| tofu_hostkey | => qr|^(remote-host\.[0-9a-z\.\-_]+)\.public$|,  ## TOFU pinned remote server hostkey ##
+        qw| virtual |      => qr|^($name_regex):\Qseed-phrase\E$|,
+        qw| tofu_hostkey | => qr|^(remote-host\.[0-9a-z\.\-_]+)\.public$|
+        ,    ## TOFU pinned remote server hostkey ##
         map { $ARG => qr|^($name_regex)\.$ARG$| } @key_types
     },
     qw| key_files | => qr|$re_keyfiles|
@@ -253,8 +254,8 @@ const <crypt.C25519.keys.sizetype> => {    ## <- will be read-only [again]. ##
 
 0;
 
-#,,..,.,,,.,.,,..,,,.,.,.,...,.,,,,..,,,,,,..,..,,...,...,,,,,.,.,...,,,,,...,
-#ERKMCWI4HCPF4OJO2WT76VTPVBTKO5R54BHFWOUJ3AR7VVK6AE2KHUVJUMPLEHEGXFN4UFN37HUII
-#\\\|7LPFYB53EUIFFSGKJNXGKGNDYEQTRI57HKD7FQDF6CKFELZEA4I \ / AMOS7 \ YOURUM ::
-#\[7]QF3CH7WMZ4MLHZS2QUZ5SDRIQB4MW6F5JYQLNGMS5T7YYCJXOQCI 7  DATA SIGNATURE ::
+#,,,,,,,.,.,.,,.,,,,,,,,,,...,...,,,,,.,,,...,..,,...,...,.,.,.,,,,..,,,,,..,,
+#3RM3A2YFLCO45G2IQME772OP3UBL3UEWC3BIHLEN76W47XVWCQLGQD2BZBBW35WOB3V7UEO7QJMEK
+#\\\|U4PL2YCPBE6MFUJAH52FMWVVEFCXLVWJEWQWRARSQPL6FLQVTHX \ / AMOS7 \ YOURUM ::
+#\[7]3UFKZLJJ237GILWSWLH7VEJ5AP4PN3MPWHW2ASLNPWL7HSK6KMCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

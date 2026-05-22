@@ -1,0 +1,80 @@
+## [:< ##
+
+# name  = space.route.lca
+# descr = lowest common ancestor with route notation
+# param = { node_a, node_b }
+
+my $params = shift               // {};
+my $node_a = $params->{'node_a'} // '';
+my $node_b = $params->{'node_b'} // '';
+
+return { 'mode' => 'false', 'data' => 'node_a required' }
+    unless length $node_a;
+return { 'mode' => 'false', 'data' => 'node_b required' }
+    unless length $node_b;
+
+## build ancestor chain for node_a ##
+my @chain_a;
+my $cur     = $node_a;
+my $visited = {};
+while ( defined $cur and length $cur ) {
+    last if $visited->{$cur}++;
+    push @chain_a, $cur;
+    $cur = $data{'branch.nodes'}{$cur}{'parent'} // '';
+}
+
+## build ancestor chain for node_b ##
+my @chain_b;
+$cur     = $node_b;
+$visited = {};
+while ( defined $cur and length $cur ) {
+    last if $visited->{$cur}++;
+    push @chain_b, $cur;
+    $cur = $data{'branch.nodes'}{$cur}{'parent'} // '';
+}
+
+## find lowest common ancestor ##
+my %set_a = map { $ARG => 1 } @chain_a;
+my $lca;
+for my $node (@chain_b) {
+    if ( $set_a{$node} ) {
+        $lca = $node;
+        last;
+    }
+}
+
+return { 'mode' => 'false', 'data' => 'no common ancestor' }
+    unless defined $lca;
+
+## compute distances [ hops to lca ] ##
+my $dist_a = 0;
+for my $i ( 0 .. $#chain_a ) {
+    if ( $chain_a[$i] eq $lca ) {
+        $dist_a = $i;
+        last;
+    }
+}
+
+my $dist_b = 0;
+for my $i ( 0 .. $#chain_b ) {
+    if ( $chain_b[$i] eq $lca ) {
+        $dist_b = $i;
+        last;
+    }
+}
+
+## build route notation: 01 × N + 11 + 10 × M ##
+my $notation = ( '01' x $dist_a ) . '11' . ( '10' x $dist_b );
+
+return {
+    'lca_node'       => $lca,
+    'distance_a'     => $dist_a,
+    'distance_b'     => $dist_b,
+    'route_notation' => $notation
+};
+
+#,,,.,.,,,,,.,,,,,,,.,,..,,,,,..,,.,,,...,,,.,..,,...,...,...,,,.,,..,,,.,.,.,
+#C777WIOPU7S4VB2GJPSXSLKZJKNNU27UKERGGRQJLP6NEW6INYPPMBEM6GOSE6G5RLEQNST37BYNW
+#\\\|IKBG7REABSZOOEA5J2IIQV5RVLAEKH2SCVQDBWRGRG3VZR6ZWKI \ / AMOS7 \ YOURUM ::
+#\[7]LL7XOIVM7QVIIREWOOTU7QG6C5MUVMXJOXL6WPLWYSAMJTCTCUDY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

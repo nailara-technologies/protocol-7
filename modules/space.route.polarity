@@ -1,0 +1,26 @@
+## [:< ##
+
+# name  = space.route.polarity
+# descr = determine cyclic polarity at given depth
+# param = { depth }
+
+my $params = shift              // {};
+my $depth  = $params->{'depth'} // 0;
+
+my $depth_in_cycle      = $depth % 13;
+my $polarity            = ( $depth_in_cycle == 0 ) ? '/' : '\\';
+my $glyph               = $polarity;
+my $hops_to_correlation = ( $depth_in_cycle == 0 ) ? 0 : 13 - $depth_in_cycle;
+
+return {
+    'polarity'            => $polarity,
+    'depth_in_cycle'      => $depth_in_cycle,
+    'hops_to_correlation' => $hops_to_correlation,
+    'glyph'               => $glyph
+};
+
+#,,,,,,,.,.,,,,.,,.,,,.,.,.,.,...,.,,,...,.,,,..,,...,...,,..,,,.,,..,...,,,.,
+#QIBQCZUZ7VPLQZ7UCJUMLMKXR2DR7FLAHKRPVJVKKMQLLTXGS5EJRWNFF2KMPUMCFTX5M2WD5UF62
+#\\\|M5XWJBZKXZBN6SYO3KZZEGNILZRSU476QL3RA6NIWEDCRS5KLV2 \ / AMOS7 \ YOURUM ::
+#\[7]ZOD4HXTBJLBQW3KGAMGQKV3MWXUM6TPF3QVAS6BRXKWGEP2OQSBA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

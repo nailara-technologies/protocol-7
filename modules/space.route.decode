@@ -1,0 +1,44 @@
+## [:< ##
+
+# name  = space.route.decode
+# descr = parse dot/comma string into hop sequence
+# param = { route }
+
+my $params = shift              // {};
+my $route  = $params->{'route'} // '';
+
+my @hops;
+my $i   = 0;
+my $len = length $route;
+
+while ( $i < $len ) {
+    my $char = substr( $route, $i, 1 );
+    if ( $char eq '.' ) {
+        my $distance = 0;
+        while ( $i < $len and substr( $route, $i, 1 ) eq '.' ) {
+            $distance++;
+            $i++;
+        }
+        push @hops, { 'type' => 'straight', 'distance' => $distance };
+    } elsif ( $char eq ',' ) {
+        push @hops, { 'type' => 'turn' };
+        $i++;
+    } elsif ( $char =~ m|[A-Z2-7]| ) {
+        my $address = '';
+        while ( $i < $len and substr( $route, $i, 1 ) =~ m|[A-Z2-7]| ) {
+            $address .= substr( $route, $i, 1 );
+            $i++;
+        }
+        push @hops, { 'type' => 'landmark', 'address' => $address };
+    } else {
+        $i++;    ## skip unknown characters ##
+    }
+}
+
+return \@hops;
+
+#,,,.,..,,.,,,.,.,..,,,.,,,.,,...,..,,,.,,.,.,..,,...,...,.,,,..,,.,,,,..,.,.,
+#UHRP2PYXLMRRW6UWVESFTRM6JMYUPCYH2RBNJ5AX3FGMAPFCPWFUAMAXL5QZO2AZHRQOVITLERGCA
+#\\\|VD6WKJDSWZX6MGNE7HP6ODMI3SX3EHEIN5BREVO6ESAYJWEF2FR \ / AMOS7 \ YOURUM ::
+#\[7]HOGGPCVBACX75JKD232O6ZNDMIMZCTIX4NTATS5UGT2AQHOLOYDA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

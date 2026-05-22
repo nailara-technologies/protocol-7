@@ -1,0 +1,52 @@
+## [:< ##
+
+# name  = branch.route.calc.encode
+# descr = encode hop sequence as dot/comma route notation
+# param = { hops }
+#
+# hops = [ { direction => 'straight'|'turn', distance => N }, ... ]
+# straight hop of distance N  →  '.' × N
+# turn (90° CCW)              →  ','
+# node address landmark       →  node's AMOS checksum (7 chars)
+
+my $params = shift             // {};
+my $hops   = $params->{'hops'} // [];
+
+return { 'mode' => 'false', 'data' => 'hops array required' }
+    unless ref $hops eq qw| ARRAY | and @$hops;
+
+my @segments;
+
+for my $hop (@$hops) {
+    my $direction
+        = ref $hop eq qw| HASH |
+        ? ( $hop->{'direction'} // $hop->{'type'} // '' )
+        : '';
+
+    if ( $direction eq qw| straight | ) {
+        my $distance
+            = ref $hop eq qw| HASH | ? ( $hop->{'distance'} // 1 ) : 1;
+        $distance = 1 if $distance < 1;
+        push @segments, qw| . | x $distance;
+    } elsif ( $direction eq qw| turn | ) {
+        push @segments, qw| , |;
+    } elsif ( $direction eq qw| landmark | ) {
+        my $address
+            = ref $hop eq qw| HASH |
+            ? ( $hop->{'address'} // '' )
+            : '';
+        return { 'mode' => 'false', 'data' => 'landmark address required' }
+            unless length $address;
+        push @segments, $address;
+    } else {
+        return { 'mode' => 'false', 'data' => 'unknown hop direction' };
+    }
+}
+
+return { 'mode' => 'true', 'data' => join( '', @segments ) };
+
+#,,..,..,,,,,,.,,,...,.,.,,..,.,.,...,.,.,,..,.,.,...,...,,..,,.,,,..,.,,,,.,,
+#SJUXCAN2CRZ52QXJDKZ5FRPDBKSWGAOJUDE7BHZTFFK7OENFQAMMKOIBYNTVUQPCFCWNM6UDD73GM
+#\\\|UQH2ZWVREWK26KW7FL4Y4OESTCFNYILCSDFLRTL3VE3OXJY6TSU \ / AMOS7 \ YOURUM ::
+#\[7]PXBBRNK44G4EJRYNOEGAM5YCUY5G2DJ4EJIL62Q7BFQLMFGGRMBQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

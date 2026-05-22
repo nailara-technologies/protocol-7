@@ -1,0 +1,19 @@
+## [:< ##
+
+# name  = space.jump.cache.read
+# descr = read cached next hop from branch.route.cache
+# param = { hop, target }
+
+my $params = shift               // {};
+my $hop    = $params->{'hop'}    // '';
+my $target = $params->{'target'} // '';
+
+return undef unless length $hop and length $target;
+
+return $data{'branch.route.cache'}{$hop}{$target};
+
+#,,..,,.,,.,,,,..,...,,,.,,.,,,,.,,,.,...,,,.,..,,...,...,.,,,,..,,..,,..,,,,,
+#EPG7US3C4N2F4QBMLIH5MI3EOQN2OOQZRPGUWBKMMADHS3O72LZ65YMTKIYZ5HY6U3X56BFKMJNPM
+#\\\|3VZIGXPWY5MIT67VZMUPFKOI7L6HHXXHIF63QOOJ5T3ZBXO54Q2 \ / AMOS7 \ YOURUM ::
+#\[7]VQBUZQTY6MRTH5EVSUUETYSUZHRLFNWLY6LJLDNPCYIXET4QE2AQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

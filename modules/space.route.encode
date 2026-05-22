@@ -1,0 +1,31 @@
+## [:< ##
+
+# name  = space.route.encode
+# descr = encode hop sequence to dot/comma route notation
+# param = { hops }
+
+my $params = shift             // {};
+my $hops   = $params->{'hops'} // [];
+
+my $route = '';
+
+for my $hop (@$hops) {
+    my $type = $hop->{'type'} // '';
+    if ( $type eq 'straight' ) {
+        my $distance = $hop->{'distance'} // 1;
+        $route .= '.' x $distance;
+    } elsif ( $type eq 'turn' ) {
+        $route .= ',';
+    } elsif ( $type eq 'landmark' ) {
+        my $address = $hop->{'address'} // '';
+        $route .= $address if length $address;
+    }
+}
+
+return $route;
+
+#,,,,,..,,,..,...,,..,...,,,,,,.,,..,,,,.,,..,..,,...,...,..,,.,.,.,.,.,,,,..,
+#RQMFBJTVJHYOUFABXNAWCBDGBBRAK6XUDJLSEKFTIR5JV7QK7PEXCMI362PCAOF3KF7TLBHWOF2XA
+#\\\|VWOQKMW5RMEMTS2XRGRKCWILMMRJXJNC3XMSWBWVSW7YUJVTKS6 \ / AMOS7 \ YOURUM ::
+#\[7]RYZ74RRIRIXRCQTWC2QPU5ZMWYBZ5C7ZV4HHHR27DDPHGBX7L4BY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

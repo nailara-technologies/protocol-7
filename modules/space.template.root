@@ -1,0 +1,26 @@
+## [:< ##
+
+# name  = space.template.root
+# descr = compute root checksum from header params
+# param = { template, header_params }
+
+my $params = shift // {};
+
+my $template      = $params->{'template'}      // '';
+my $header_params = $params->{'header_params'} // '';
+
+return { 'mode' => qw| false |, 'data' => 'template required' }
+    unless length $template;
+return { 'mode' => qw| false |, 'data' => 'header_params required' }
+    unless length $header_params;
+
+my $chksum_fn     = $code{'chk-sum.amos'} // $code{'base.chk-sum.amos'};
+my $root_checksum = $chksum_fn->( \$header_params );
+
+return { 'mode' => qw| true |, 'data' => $root_checksum };
+
+#,,.,,,.,,.,,,,,.,..,,,,,,,,,,..,,,,,,.,,,...,.,.,...,...,.,,,..,,,..,..,,,.,,
+#UHTBUIJBTMYWOKVW2OGJ67LBVNDE4S3QFXUMYCBE2DP7ZGOVDHH3XFGY5ZJJKT65RTKK7ZEX4MWXW
+#\\\|4HOUJ5DKHDZ4WSPN6A6XNKSEFCA2TETMI2F4WAIE74EIOHRX7N4 \ / AMOS7 \ YOURUM ::
+#\[7]ZMRRLHIFVVNLDWLHYHHOL2AA366QC5QDHPB6GQUHPSJKZMI5AUBY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

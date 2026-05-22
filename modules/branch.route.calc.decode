@@ -1,0 +1,79 @@
+## [:< ##
+
+# name  = branch.route.calc.decode
+# descr = parse dot/comma route string into hop sequence
+# param = { route }
+#
+# route = dot/comma string like ',...,..,.,0'
+# '.' = straight (one hop, current direction, cumulative count)
+# ',' = turn 90° CCW
+# BASE32 chars (2-9A-Z) = node address landmark, 7 chars
+
+my $params = shift              // {};
+my $route  = $params->{'route'} // '';
+
+return { 'mode' => 'false', 'data' => 'route string required' }
+    unless length $route;
+
+my @hops;
+my $i   = 0;
+my $len = length $route;
+
+while ( $i < $len ) {
+    my $char = substr( $route, $i, 1 );
+
+    if ( $char eq qw| . | ) {
+        ## count consecutive straight hops ##
+        my $distance = 0;
+        while ( $i < $len and substr( $route, $i, 1 ) eq qw| . | ) {
+            $distance++;
+            $i++;
+        }
+        push @hops,
+            {
+            'type'     => qw| straight |,
+            'distance' => $distance
+            };
+    } elsif ( $char eq qw| , | ) {
+        push @hops, { 'type' => qw| turn | };
+        $i++;
+    } elsif ( $char =~ m|^[2-9A-Z]$| ) {
+        ## potential landmark: need 7 consecutive base32 chars ##
+        my $chunk = '';
+        my $j     = $i;
+        while ( $j < $len
+            and length $chunk < 7
+            and substr( $route, $j, 1 ) =~ m|^[2-9A-Z]$| ) {
+            $chunk .= substr( $route, $j, 1 );
+            $j++;
+        }
+        if ( length $chunk == 7 ) {
+            push @hops,
+                {
+                'type'    => qw| landmark |,
+                'address' => $chunk
+                };
+            $i = $j;
+        } else {
+            return {
+                'mode' => 'false',
+                'data' => sprintf 'invalid landmark at position %d',
+                $i
+            };
+        }
+    } else {
+        return {
+            'mode' => 'false',
+            'data' => sprintf 'invalid character at position %d: %s',
+            $i, $char
+        };
+    }
+}
+
+return { 'mode' => 'true', 'data' => \@hops };
+
+#,,..,.,,,..,,..,,,..,.,.,..,,,..,...,.,.,...,.,.,...,...,,..,..,,,..,..,,,,.,
+#OKOQXXUUZ3TO2MIJLVFZK6Q4A5RZKPQ4EFVE4VQKGWIMH5OJP6IU5E3RGTVWWK744CZ3NDTXWUTF6
+#\\\|DYWZKHWZM5BSAG3M6WEFEPAP5PWPDZQT3YTMS4MMDNFJOD4GFET \ / AMOS7 \ YOURUM ::
+#\[7]A5OKGI7NVVC4G7JYIEGIJKHIZBQH3A7ZP4WQI4DYM3RD7ASKAQBQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,0 +1,122 @@
+## [:< ##
+
+# name  = branch.route.calc.shape
+# descr = determine geometric shape traced by a dot/comma route
+# param = { route }
+#
+# returns shape name, side count, side length, and void enclosure
+
+my $params = shift              // {};
+my $route  = $params->{'route'} // '';
+
+return { 'mode' => 'false', 'data' => 'route string required' }
+    unless length $route;
+
+## decode route to hop sequence [ reuse calc.decode ] ##
+my $decode_result = <[branch.route.calc.decode]>->( { 'route' => $route } );
+
+return $decode_result
+    if $decode_result->{'mode'} ne qw| true |;
+
+my @hops = @{ $decode_result->{'data'} // [] };
+
+## extract straight distances and turn count ##
+my @distances;
+my $turn_count = 0;
+
+for my $hop (@hops) {
+    my $type = $hop->{'type'} // '';
+    if ( $type eq qw| straight | ) {
+        push @distances, $hop->{'distance'} // 0;
+    } elsif ( $type eq qw| turn | ) {
+        $turn_count++;
+    }
+}
+
+## no turns means a line ##
+if ( not $turn_count ) {
+    return {
+        'mode' => 'true',
+        'data' => {
+            'shape'         => qw| line |,
+            'sides'         => 0,
+            'side_length'   => scalar @distances ? $distances[0] : 0,
+            'encloses_void' => FALSE
+        }
+    };
+}
+
+## filter to straight segments between turns for side analysis ##
+## each turn resets direction, so straights before/after turns are sides ##
+my @sides;
+my $current_dist = 0;
+
+for my $hop (@hops) {
+    my $type = $hop->{'type'} // '';
+    if ( $type eq qw| straight | ) {
+        $current_dist += $hop->{'distance'} // 0;
+    } elsif ( $type eq qw| turn | ) {
+        push @sides, $current_dist if $current_dist > 0;
+        $current_dist = 0;
+    }
+}
+push @sides, $current_dist if $current_dist > 0;
+
+my $side_count = scalar @sides;
+my $all_equal  = 1;
+
+if ( $side_count > 1 ) {
+    my $first = $sides[0];
+    for my $dist (@sides) {
+        if ( $dist != $first ) {
+            $all_equal = 0;
+            last;
+        }
+    }
+} elsif ( $side_count == 0 ) {
+    $all_equal = 0;
+}
+
+## determine shape ##
+my $shape         = qw| irregular |;
+my $encloses_void = FALSE;
+
+if ($all_equal) {
+    if ( $turn_count == 4 ) {
+        $shape         = qw| square |;
+        $encloses_void = TRUE;
+    } elsif ( $turn_count == 3 ) {
+        $shape = qw| triangle |;
+    } elsif ( $turn_count > 0 ) {
+        $shape = sprintf '%d-gon', $turn_count;
+    }
+} else {
+    ## check for monotonic progression [ spiral indicator ] ##
+    my $increasing = 1;
+    my $decreasing = 1;
+
+    for my $i ( 1 .. $#sides ) {
+        $increasing = 0 if $sides[$i] <= $sides[ $i - 1 ];
+        $decreasing = 0 if $sides[$i] >= $sides[ $i - 1 ];
+    }
+
+    if ( $increasing or $decreasing ) {
+        $shape = qw| spiral |;
+    }
+}
+
+return {
+    'mode' => 'true',
+    'data' => {
+        'shape'         => $shape,
+        'sides'         => $side_count,
+        'side_length'   => $all_equal && $side_count ? $sides[0] : 0,
+        'encloses_void' => $encloses_void
+    }
+};
+
+#,,.,,,,.,.,,,..,,,,,,..,,,,,,.,,,.,,,...,,.,,.,.,...,...,,,,,,..,.,.,..,,.,,,
+#6XFIF5EF4DUDOZ3BEFUDOBN3A6Z622OQTW2QFKIDH5FDBLYBOL7ZDIRARKNTQVV75K7T7TNK2IIHW
+#\\\|ZDDJOUCJLOBK7PRHNDNONHEDSBK7YLFMWEVNCXLK5YWPBLK6YPU \ / AMOS7 \ YOURUM ::
+#\[7]FLZRKAA6YMEF5BRWAAEWFP5R4HEIRUJKPOMGY3NQDKTE5UX4YQDI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

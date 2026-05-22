@@ -1,0 +1,52 @@
+## [:< ##
+
+# name  = space.travel.direction
+# descr = determine 01/10/11 direction between nodes
+# param = { from, to }
+
+my $params = shift             // {};
+my $from   = $params->{'from'} // '';
+my $to     = $params->{'to'}   // '';
+
+return undef unless length $from and length $to;
+
+## resolve shell depths from grid data ##
+my $shell_from = 0;
+my $shell_to   = 0;
+
+if ( exists <space.grid.nodes>->{$from} ) {
+    $shell_from = <space.grid.nodes>->{$from}{'shell'} // 0;
+}
+if ( exists <space.grid.nodes>->{$to} ) {
+    $shell_to = <space.grid.nodes>->{$to}{'shell'} // 0;
+}
+
+## fallback: compute shell from coordinates ##
+if ( not $shell_from and exists <space.grid.nodes>->{$from}{'z'} ) {
+    my $c  = <space.grid.nodes>->{$from};
+    my $sz = abs( $c->{'z'} );
+    my $sy = abs( $c->{'y'} );
+    my $sx = abs( $c->{'x'} );
+    $shell_from = $sz;
+    $shell_from = $sy if $sy > $shell_from;
+    $shell_from = $sx if $sx > $shell_from;
+}
+if ( not $shell_to and exists <space.grid.nodes>->{$to}{'z'} ) {
+    my $c  = <space.grid.nodes>->{$to};
+    my $sz = abs( $c->{'z'} );
+    my $sy = abs( $c->{'y'} );
+    my $sx = abs( $c->{'x'} );
+    $shell_to = $sz;
+    $shell_to = $sy if $sy > $shell_to;
+    $shell_to = $sx if $sx > $shell_to;
+}
+
+return '01' if $shell_to < $shell_from;
+return '10' if $shell_to > $shell_from;
+return '11';
+
+#,,.,,..,,...,,.,,..,,,..,,..,,,.,..,,,,,,,.,,..,,...,..,,,..,,.,,,.,,,,,,..,,
+#D6JJFDLFF57BPHZHCDEH7TO2N6YXDPZ2AY736CNBPBG73AYU55DH7YQO7KQLPZ57FAYJZXPUSTHPQ
+#\\\|NO3DFRZMZ3Z7BJPGGAR2BZ3UUVP33ZEJZNWBOMAH3KHXB7IRPPC \ / AMOS7 \ YOURUM ::
+#\[7]UNIORJUUJ7K2JBEXEOIXC6CFYM2ZTL3OGVNQMJNMUSBUJCGZ6CDY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

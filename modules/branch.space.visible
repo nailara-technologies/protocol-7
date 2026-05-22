@@ -1,0 +1,187 @@
+## [:< ##
+
+# name  = branch.space.visible
+# descr = return visible nodes within focal length from observer
+# param = { focal_length, observer_node, scope }
+#
+# focal_length: 0 = omni (all), 13 = natural harmonic, higher = fewer shells
+# returns nodes sorted by shell ascending, darksun (observer) first
+
+my $params        = shift                      // {};
+my $focal_length  = $params->{'focal_length'}  // 13;
+my $observer_node = $params->{'observer_node'} // '';
+my $scope         = $params->{'scope'}         // 'global';
+
+return { 'mode' => 'false', 'data' => 'observer node required' }
+    unless length $observer_node;
+return { 'mode' => 'false', 'data' => 'observer not found' }
+    unless exists $data{'branch.nodes'}{$observer_node};
+
+## resolve node set for scope ##
+my @node_set;
+my $observer = $data{'branch.nodes'}{$observer_node};
+
+if ( $scope eq 'local' ) {
+    my $parent = $observer->{'parent'} // '';
+    if ( length $parent ) {
+        @node_set = keys %{ $data{'branch.children'}{$parent} // {} };
+    } else {
+        @node_set = grep {
+            my $n = $data{'branch.nodes'}{$ARG} // {};
+            ( not defined $n->{'parent'} or not length $n->{'parent'} )
+                and $ARG ne $observer_node;
+        } keys %{ $data{'branch.nodes'} // {} };
+    }
+} elsif ( $scope eq 'regional' ) {
+    my $parent = $observer->{'parent'} // '';
+    if ( length $parent ) {
+        @node_set = _collect_subtree_visible($parent);
+    } else {
+        @node_set = _collect_subtree_visible($observer_node);
+    }
+} else {
+    ## global ##
+    @node_set = grep { $ARG ne $observer_node }
+        keys %{ $data{'branch.nodes'} // {} };
+}
+
+## omni mode: return all nodes with observer first ##
+if ( $focal_length eq 'omni' or $focal_length == 0 ) {
+    my @result = _build_visible_result( $observer_node, \@node_set, $scope );
+    @result = sort { $a->{'shell'} <=> $b->{'shell'} } @result;
+    return { 'mode' => 'true', 'data' => \@result };
+}
+
+## compute max visible shell ##
+my $max_shell = int( 63 / $focal_length );
+$max_shell++ if 63 % $focal_length;
+
+## rank all nodes in scope and filter ##
+my @ranked
+    = map { { 'id' => $ARG, 'ref_count' => _ref_count_visible($ARG), } }
+    @node_set;
+
+@ranked = sort {
+           $b->{'ref_count'} <=> $a->{'ref_count'}
+        || $a->{'id'} cmp $b->{'id'}
+} @ranked;
+
+my $total_nodes = scalar @ranked;
+my $n           = int( $total_nodes / 2 ) + ( $total_nodes % 2 );
+my @result;
+
+## observer at shell 0 always visible unless max_shell < 0 ##
+push @result,
+    {
+    'node_id'  => $observer_node,
+    'shell'    => 0,
+    'position' => 0,
+    };
+
+for my $i ( 0 .. $#ranked ) {
+    my $rank = $i + 1;
+    my $pos  = int( ( $rank + 1 ) / 2 );
+    $pos = -$pos if $rank % 2 == 0;
+    my $shell = abs($pos);
+
+    last if $shell > $max_shell;
+
+    push @result,
+        {
+        'node_id'  => $ranked[$i]->{'id'},
+        'shell'    => $shell,
+        'position' => $pos,
+        };
+
+    $data{'branch.space.positions'}{$scope}{ $ranked[$i]->{'id'} } = {
+        'position' => $pos,
+        'shell'    => $shell,
+        'n'        => $n,
+    };
+}
+
+return { 'mode' => 'true', 'data' => \@result };
+
+##[ build result for omni mode ]##
+sub _build_visible_result {
+    my ( $observer_node, $node_set_aref, $scope ) = @_;
+    my @nodes = @$node_set_aref;
+    my @ranked
+        = map { { 'id' => $ARG, 'ref_count' => _ref_count_visible($ARG), } }
+        @nodes;
+
+    @ranked = sort {
+               $b->{'ref_count'} <=> $a->{'ref_count'}
+            || $a->{'id'} cmp $b->{'id'}
+    } @ranked;
+
+    my $total_nodes = scalar @ranked;
+    my $n           = int( $total_nodes / 2 ) + ( $total_nodes % 2 );
+    my @result;
+
+    push @result,
+        {
+        'node_id'  => $observer_node,
+        'shell'    => 0,
+        'position' => 0,
+        };
+
+    for my $i ( 0 .. $#ranked ) {
+        my $rank = $i + 1;
+        my $pos  = int( ( $rank + 1 ) / 2 );
+        $pos = -$pos if $rank % 2 == 0;
+        my $shell = abs($pos);
+
+        push @result,
+            {
+            'node_id'  => $ranked[$i]->{'id'},
+            'shell'    => $shell,
+            'position' => $pos,
+            };
+
+        $data{'branch.space.positions'}{$scope}{ $ranked[$i]->{'id'} } = {
+            'position' => $pos,
+            'shell'    => $shell,
+            'n'        => $n,
+        };
+    }
+    return @result;
+}
+
+##[ reference count resolver ]##
+sub _ref_count_visible {
+    my ($id) = @_;
+    my $n = $data{'branch.nodes'}{$id} // {};
+    return $n->{'ref_count'} if defined $n->{'ref_count'};
+
+    my $root = $data{'branch.root'} // '';
+    if ( length $root and exists $data{'branch.interest'}{$root}{$id} ) {
+        return $data{'branch.interest'}{$root}{$id};
+    }
+    my $children = scalar keys %{ $data{'branch.children'}{$id} // {} };
+    my $groups   = scalar @{ $n->{'groups'}                     // [] };
+    return $children + $groups;
+}
+
+##[ subtree collector ]##
+sub _collect_subtree_visible {
+    my ($root_id) = @_;
+    my @result;
+    my @queue = ($root_id);
+    while (@queue) {
+        my $cur = shift @queue;
+        next if $cur eq $root_id and @result;    ## skip root after first ##
+        push @result, $cur;
+        my $children = $data{'branch.children'}{$cur} // {};
+        for my $name ( keys %$children ) {
+            push @queue, $children->{$name};
+        }
+    }
+    return @result;
+}
+
+#,,,.,.,.,...,,,.,.,.,.,.,,,,,.,,,.,.,,,,,,..,.,.,...,..,,,.,,,,,,,,,,,,.,.,.,
+#HJCQST6UYWEFVVRA65HO4GC3OASMNXPB6EFN44XFX3TOE4WKGGAEN57E7EFGGKPFYRZARM5TS453Y
+#\\\|SVWAPS2RWE5GIBQO2KE3ZI3G6TCS3HK6EBXZISLZWGJHEYH72JB \ / AMOS7 \ YOURUM ::
+#\[7]DVJXFJIVNAOA6UCFFC2FANT2K5CSKQIIIUMTOTR25DDFAQI5B2CY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

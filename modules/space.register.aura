@@ -1,0 +1,79 @@
+## [:< ##
+
+# name  = space.register.aura
+# descr = pre-register burst capacity, merge with existing by confidence
+# param = { node_id, aura }
+
+my $params = shift // {};
+
+my $node_id = $params->{'node_id'} // '';
+my $aura    = $params->{'aura'}    // {};
+
+return { 'mode' => qw| false |, 'data' => 'node_id required' }
+    unless length $node_id;
+return { 'mode' => qw| false |, 'data' => 'aura hashref required' }
+    unless ref $aura eq qw| HASH |;
+
+my $existing = <space.orbit.auras>->{$node_id};
+
+if ( defined $existing and ( $aura->{'confidence'} // 0 ) > 0 ) {
+    my $new_conf = $aura->{'confidence'};
+    my $old_conf = $existing->{'confidence'} // 0;
+    my $total    = $old_conf + $new_conf;
+    $total = 1 if $total == 0;
+
+    ## weighted average for scalar fields ##
+    for my $field (qw| typical_frame_scale buffer_reserve |) {
+        next unless exists $aura->{$field};
+        $existing->{$field} = int(
+            (   ( $existing->{$field} // 0 ) * $old_conf
+                    + $aura->{$field} * $new_conf
+            ) / $total
+        );
+    }
+
+    ## entropy_signature: take higher confidence ##
+    if ( exists $aura->{'entropy_signature'}
+        and $new_conf > $old_conf ) {
+        $existing->{'entropy_signature'} = $aura->{'entropy_signature'};
+    }
+
+    ## burst_profile: weighted merge of ranges ##
+    if ( exists $aura->{'burst_profile'}
+        and ref $aura->{'burst_profile'} eq qw| ARRAY | ) {
+        my @merged;
+        my @old = @{ $existing->{'burst_profile'} // [] };
+        my @new = @{ $aura->{'burst_profile'} };
+        for my $i ( 0 .. 3 ) {
+            push @merged,
+                int(
+                (         ( $old[$i] // 13 ) * $old_conf
+                        + ( $new[$i] // 13 ) * $new_conf
+                ) / $total
+                );
+        }
+        $existing->{'burst_profile'} = \@merged;
+    }
+
+    ## confidence saturates toward 1 ##
+    $existing->{'confidence'} = $old_conf + $new_conf * ( 1 - $old_conf );
+    $existing->{'confidence'} = 1 if $existing->{'confidence'} > 1;
+
+} else {
+    ## no existing or zero confidence: overwrite ##
+    <space.orbit.auras>->{$node_id} = {
+        'typical_frame_scale' => $aura->{'typical_frame_scale'} // 13,
+        'burst_profile'       => $aura->{'burst_profile'}       // [13],
+        'entropy_signature'   => $aura->{'entropy_signature'}   // 'AMOS7',
+        'buffer_reserve'      => $aura->{'buffer_reserve'}      // 13,
+        'confidence'          => $aura->{'confidence'}          // 0,
+    };
+}
+
+return { 'mode' => qw| true |, 'data' => $node_id };
+
+#,,,.,,,.,.,.,...,,,.,,..,,.,,...,,,,,,.,,...,.,.,...,...,,.,,.,.,,,.,,..,..,,
+#DI3GM2P2JNAV4EEUN5GTUEYF5SNA7VICOJSWRY5GR423PWNY6SFB6CE74B4GT6IH2UBHN7UF7V5JQ
+#\\\|5GHLMJUYFZ3OVVOR5P5LUYFTSSMGNVXDDKDUEQT3BU3VW5ALC7U \ / AMOS7 \ YOURUM ::
+#\[7]RI5KM73STBTAE7ESYRKFOY7CAAHPBP4LXXERKWRSIPQ7OLNYISBA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

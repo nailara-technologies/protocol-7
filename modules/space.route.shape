@@ -1,0 +1,74 @@
+## [:< ##
+
+# name  = space.route.shape
+# descr = classify route geometry from dot/comma notation
+# param = { route }
+
+my $params = shift              // {};
+my $route  = $params->{'route'} // '';
+
+## extract straight distances between turns ##
+my @segments = split /,+/, $route;
+my @distances;
+for my $seg (@segments) {
+    next unless length $seg;
+    ## count only dot characters as distance [ landmarks interrupt ] ##
+    my $dots = $seg;
+    $dots =~ s|[^.]||g;
+    my $d = length $dots;
+    push @distances, $d if $d > 0;
+}
+
+my $turn_count = 0;
+while ( $route =~ m|,|g ) { $turn_count++ }
+
+my $shape;
+my $sides         = scalar @distances;
+my $side_length   = undef;
+my $encloses_void = FALSE;
+
+if ( $turn_count == 0 ) {
+    $shape       = 'line';
+    $side_length = $distances[0] if @distances;
+} else {
+    ## check for equal distances ##
+    my $all_equal = 1;
+    if ( @distances > 1 ) {
+        my $first = $distances[0];
+        for my $d (@distances) {
+            if ( $d != $first ) {
+                $all_equal = 0;
+                last;
+            }
+        }
+    }
+
+    if ( not $all_equal ) {
+        $shape = 'spiral';
+    } elsif ( $turn_count == 4 and $sides == 4 ) {
+        $shape         = 'square';
+        $side_length   = $distances[0];
+        $encloses_void = TRUE;
+    } elsif ( $turn_count == 3 and $sides == 3 ) {
+        $shape       = 'triangle';
+        $side_length = $distances[0];
+    } elsif ( $turn_count == $sides ) {
+        $shape       = $sides . '-gon';
+        $side_length = $distances[0];
+    } else {
+        $shape = 'spiral';
+    }
+}
+
+return {
+    'shape'         => $shape,
+    'sides'         => $sides,
+    'side_length'   => $side_length,
+    'encloses_void' => $encloses_void
+};
+
+#,,..,,,,,,..,,.,,...,.,,,,,.,..,,.,,,.,,,,.,,..,,...,..,,.,.,..,,.,.,,,.,,,.,
+#LKQ233KDPMM43ET7E5QVRXNYZJO5AL7OXSHADMEYHWQRW674PY2OEYQHNHPIVZGZKV7VAJCVC7F7M
+#\\\|QVA6IZR33QDILGPC26KDWKAFC5PSBZ2EHDN33CI2UKSVM5GYXON \ / AMOS7 \ YOURUM ::
+#\[7]FSWMPI747Y2HE4VYPHJL23UWOUZZBZKQSM357VOS4TB4MGJA6GCI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
