@@ -20,7 +20,7 @@ apt-get -y install gcc git make cpanminus libc6-dev libmce-perl \
             libhttp-date-perl liburi-query-perl libdigest-crc-perl \
             libdigest-elf-perl libfile-which-perl libfile-finder-perl \
             libperl-critic-perl libsub-uplevel-perl libbsd-resource-perl \
-            libdigest-jhash-perl libfile-extattr-perl libfuse-perl \
+            libdigest-jhash-perl libfile-extattr-perl \
             libfile-slurper-perl libhash-flatten-perl libhttp-message-perl \
             libyaml-libyaml-perl libyaml-tiny-perl libconfig-simple-perl \
             libio-socket-ssl-perl libtest-requires-perl \
@@ -49,7 +49,7 @@ apt-get -y install libterm-size-perl \
 
 cpanm Crypt::Ed25519 Digest::Skein Digest::BMW Net::IP::Lite URI::QueryParam \
   File::MimeInfo::Magic Sys::Statistics::Linux::CpuStats \
-  SigAction::SetCallBack Config::Hosts Tie::Dir
+  SigAction::SetCallBack Config::Hosts Tie::Dir Filesys::Fuse3
 
 ## [ LLL ] ### repair path[?] ###
 
@@ -67,8 +67,8 @@ perl -Mv5.13 -e \
 
 # LLL cpan2deb --recursive --build --install-deps --install-build-deps --install
 
-#,,,.,,,,,,,.,.,,,,,.,.,,,,.,,...,.,.,,.,,,..,..,,...,...,,,,,.,.,.,.,...,,,.,
-#TNDCHMNZEH6K4L74F4UOCCS5XJYZXEABVNX5XLIZGCXMVXHVVJD4HQ4WTGVHZSWO5TRA3WKKIIRTC
-#\\\|D3XIVOLVTH2KGIC3YXJOIJ5QLDGY5NSBBDZ2BSOLIVNOI3MABZD \ / AMOS7 \ YOURUM ::
-#\[7]5XWN4YX7LFJXUT5ZALPO6ZDFSFDDARV6TOJTFY3BB53RUTXEVECY 7  DATA SIGNATURE ::
+#,,,.,,..,..,,,,,,..,,,,.,..,,..,,.,.,...,,,.,..,,...,..,,,,,,,,.,.,.,,,.,.,,,
+#RC654KQ7KCVFI2MK34LY6GSRIBXAFBRELC2JAQFBPZLYL7RVMPOYT7U5LTIJNXBYMDGXWMXYGBYLG
+#\\\|E3TZZGPT5Y7J42PNGI7ZO5DOQ3EESBI7JE26ICUV7E6HBK3T2FR \ / AMOS7 \ YOURUM ::
+#\[7]PV4DWQSZHY4NS6RHHQ4EOTC7FVLLLAQVHU6XANZ65Z7UQUU2MSCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
