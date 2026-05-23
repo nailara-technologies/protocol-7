@@ -24,14 +24,30 @@ return FALSE if $endline_state_oct == 5;
 
 my $previous_payload_length = length $payload_sref->$*;
 
-## state 5 = no modification (handled by early return above)                      ##
+## state 5 = no modification [handled by early return above]                      ##
 ## state > 5 : N newlines were added during signing → remove exactly N from end   ##
 ## state < 5 : N newlines were removed during signing → add exactly N back        ##
 
 my $delta = $endline_state_oct - 5;
 
 if ( $delta > 0 ) {
-    $payload_sref->$* =~ s/\n{$delta}$//s;    ## remove N trailing newlines ##
+
+    ## count actual trailing newlines before removal ##
+    my ($actual_trailing) = $payload_sref->$* =~ /(\n+)$/;
+    my $actual_count
+        = defined $actual_trailing ? length($actual_trailing) : 0;
+
+    if ( $actual_count < $delta ) {
+        <[base.s_warn]>->(
+            ': endline state mismatch : encoded delta=%d but only'
+                . ' %d trailing newlines found <{C1}>',
+            $delta, $actual_count
+        );
+        $delta = $actual_count;    ## clamp to actual ##
+    }
+
+    $payload_sref->$* =~ s|\n{$delta}$||s
+        if $delta > 0;             ## remove N trailing newlines ##
 } else {
     $payload_sref->$* .= "\n" x abs($delta);  ## restore N removed newlines ##
 }
@@ -39,8 +55,8 @@ if ( $delta > 0 ) {
 ##  return length difference [ representing change in trailing endlines ]  ##
 return length( $payload_sref->$* ) - $previous_payload_length;
 
-#,,.,,,,,,,,,,,,,,...,,.,,..,,,,,,,..,.,.,...,..,,...,...,,..,,,.,.,.,...,...,
-#VDPZE5BCDR5AVFKCDGBXP2A4R7L7SIHJUXWLQ3DMVZUAA7RVRAKCAOYPO36JYVFZ7VQLKUOZYQROY
-#\\\|GZJ4KGI6AWWXBXLU7TLZKYOHTDVR57O2QSCJGIBOBCQYR4XG7U6 \ / AMOS7 \ YOURUM ::
-#\[7]SMLH6YH2O7KXMRB3Y66FH2XQ73E4RTJPBXLUEFIGATHBJ5MHUCBY 7  DATA SIGNATURE ::
+#,,,.,..,,,,.,,,.,.,,,,..,..,,.,,,,,,,,..,...,..,,...,...,,.,,.,.,,.,,,..,.,,,
+#7UJCM2S7BTUENMVZSEHMJOUBNTQKGNJJWOXEIRQO3BN6NM4R6KB3AYSBGQLA2HTNM6FFDUDL4EMDS
+#\\\|JKYRKGNXPDEDOK2VVP4N7J2TAN3QARV273JHLIKSBWUKP3454TR \ / AMOS7 \ YOURUM ::
+#\[7]GBP5MK4E2G5RURQV6CUJ4ILAJRYYPP7S7TNTABOIGL3DN34T7KDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
