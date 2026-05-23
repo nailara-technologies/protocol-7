@@ -18,10 +18,10 @@ my $use_cpanm = $params->{use_cpanm} // (
 );
 my $dry_run = $params->{dry_run} // 0;
 
-<[base.log]>->( 2, "debian.install: installing missing dependencies..." );
-<[base.log]>->( 2, "  Prefer debian : $prefer_debian" );
-<[base.log]>->( 2, "  Use cpanm : $use_cpanm" );
-<[base.log]>->( 2, "  Dry run : $dry_run" ) if $dry_run;
+<[base.logs]>->( 2, "debian.install: installing missing dependencies..." );
+<[base.logs]>->( 2, "  Prefer debian : $prefer_debian" );
+<[base.logs]>->( 2, "  Use cpanm : $use_cpanm" );
+<[base.logs]>->( 2, "  Dry run : $dry_run" ) if $dry_run;
 
 ## Collect missing packages
 my @missing_debian;
@@ -49,7 +49,6 @@ if ($zenka_filter) {
         next unless $mod->{status} eq 'missing';
 
         if ( $prefer_debian && $mod->{debian_package} ) {
-            warn ': adding : ' . $mod->{debian_package};
             push @missing_debian, $mod->{debian_package};
         } elsif ($use_cpanm) {
             push @missing_cpan, $pm;
@@ -91,7 +90,6 @@ if ($zenka_filter) {
             if (  !$pkg_id
                 || $data{'debian'}{'packages'}{'registry'}{$pkg_id}{status}
                 eq 'missing' ) {
-                printf STDERR ": adding : %s\n", $mod->{debian_package};
                 push @missing_debian, $mod->{debian_package};
                 next;
             }
@@ -113,8 +111,9 @@ if ($zenka_filter) {
     grep { !$seen{$_}++ } @missing_cpan;
 };
 
-<[base.log]>->( 2, "  Missing debian packages : " . scalar(@missing_debian) );
-<[base.log]>->( 2, "  Missing CPAN modules : " . scalar(@missing_cpan) );
+<[base.logs]>
+    ->( 2, "  Missing debian packages : " . scalar(@missing_debian) );
+<[base.logs]>->( 2, "  Missing CPAN modules : " . scalar(@missing_cpan) );
 
 my $result = {
     success          => TRUE,
@@ -130,7 +129,7 @@ return $result if $dry_run;
 
 ## Install debian packages
 if (@missing_debian) {
-    <[base.log]>->(
+    <[base.logs]>->(
         2, "  Installing " . scalar(@missing_debian) . " debian packages..."
     );
 
@@ -138,54 +137,69 @@ if (@missing_debian) {
 
     if ( $errors == 0 ) {
         $result->{installed_debian} = scalar(@missing_debian);
-        <[base.log]>->( 2, "  ✓ Debian packages installed successfully" );
+        <[base.logs]>->( 2, "  ✓ Debian packages installed successfully" );
     } else {
         $result->{failed_debian} = $errors;
-        <[base.log]>->(
+        <[base.logs]>->(
             0, "  ✗ Debian package installation had $errors errors"
         );
     }
 }
 
-## Install CPAN modules via cpanm
+## Install CPAN modules via cpanm — root only, system-wide ##
 if ( @missing_cpan && $use_cpanm ) {
-    <[base.log]>->(
-        2, "  Installing " . scalar(@missing_cpan) . " CPAN modules..."
-    );
+    if ( $> != 0 ) {
+        <[base.logs]>->(
+            1,
+            "  cpanm: skipping %d module(s) — not running as root",
+            scalar @missing_cpan
+        );
+    } else {
+        <[base.logs]>->(
+            2,
+            "  Installing %d CPAN module(s) via cpanm ...",
+            scalar @missing_cpan
+        );
 
-    my $installed = 0;
-    my $failed    = 0;
+        my $installed = 0;
+        my $failed    = 0;
 
-    foreach my $module (@missing_cpan) {
-        <[base.log]>->( 2, "    cpanm $module" );
+        foreach my $module (@missing_cpan) {
+            <[base.logs]>->( 2, "  cpanm: %s", $module );
 
-        my $exit_code = system( 'cpanm', '--quiet', '--notest', $module );
+            ## --no-man-pages prevents doc install noise ##
+            my $exit_code = system( 'cpanm', '--quiet', '--notest',
+                '--no-man-pages', $module );
 
-        if ( $exit_code == 0 ) {
-            $installed++;
-        } else {
-            $failed++;
-            <[base.log]>->( 0, "    ✗ Failed to install $module" );
+            if ( $exit_code == 0 ) {
+                $installed++;
+            } else {
+                $failed++;
+                <[base.logs]>->( 0, "  ✗ cpanm failed: %s", $module );
+            }
         }
+
+        $result->{installed_cpan} = $installed;
+        $result->{failed_cpan}    = $failed;
+
+        <[base.logs]>->(
+            2,          "  cpanm: %d installed, %d failed",
+            $installed, $failed
+        );
     }
-
-    $result->{installed_cpan} = $installed;
-    $result->{failed_cpan}    = $failed;
-
-    <[base.log]>->( 2, "  ✓ CPAN : $installed installed, $failed failed" );
 }
 
 ## Re-check installation status
 <[debian.parent.check_installed]>;
 
-<[base.log]>->( 2, "debian.install: complete" );
+<[base.logs]>->( 2, "debian.install: complete" );
 
 return $result;
 
 0;
 
-#,,,.,.,.,...,...,,.,,,..,..,,,..,,,,,,..,,,,,..,,...,.,.,,,.,..,,...,..,,,.,,
-#72BEO3XV7UNSD4QIFRJVIRZOLLQIHKDNRFMJFWQ7KFGHLI6PHLKNGLSC6W2VTVKFPMG5X3ZRI4UOK
-#\\\|DL2FF6PB2T74KJCXPATKPJMP6KLJ44MYBG25Z7P5HOZEGPIXJVJ \ / AMOS7 \ YOURUM ::
-#\[7]T5WTSDTPM2VCW22YUTIJQS5WMMN6GUBZYO6HSSUPJEOI2S4JKWCI 7  DATA SIGNATURE ::
+#,,.,,.,,,.,.,.,.,,.,,.,.,,..,,,.,,.,,.,.,...,..,,...,...,,,,,.,.,,..,..,,.,.,
+#QVZMOGQYJXY7XU32OR2FST5Q2SN55CQRGH56WXVGFWJ76IHPNXWRLVIUR3G6IOPFGTTDHEIVXTVVC
+#\\\|6GFZ5ZV57MJYXKYKTMWNOUEOG7SA3EV52CXGAJE6V3RHIXR6WTM \ / AMOS7 \ YOURUM ::
+#\[7]3CQMM4WQSLWXWVB5SJ7ZDPN24UKN4TYLD3RCJ3AG2H7HHNJRNAAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
