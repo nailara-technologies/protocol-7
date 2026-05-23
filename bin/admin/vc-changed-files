@@ -62,7 +62,7 @@ sub _has_only_signature_changes {
     my ($filepath) = @_;
 
     my ( $diff_stdout, $diff_stderr, $diff_exit ) = capture {
-        system qw| git diff --no-color |, $filepath;
+        system qw| git diff HEAD --no-color |, $filepath;
     };
 
     ##  extract only the actual diff lines (not headers) ##
@@ -126,8 +126,8 @@ sub _has_lines_exceeding_length {
     return 0;
 }
 
-#,,,.,,.,,...,,,,,,..,..,,,,,,...,.,.,,,,,,,,,..,,...,...,,.,,...,,,.,,,,,...,
-#X2B65UXJR22MRPM5P223KW6F7XQB55O4MPJZ2QWGYNFZC6IZHGEQBIGH3XJOBVOHUI7G6HIP55PXS
-#\\\|2CLZ7UIYV4PH4GJEP4I42XN6FRWJD5UDZXGZTOJUYU3POEUDO5I \ / AMOS7 \ YOURUM ::
-#\[7]EPGB7SUYFTOWERRCI6YCZBRDLIRREIUMQJEZKGKMRBQBWDDLFSAQ 7  DATA SIGNATURE ::
+#,,..,,,,,.,.,.,,,,,,,,,,,..,,.,.,.,,,.,,,,.,,..,,...,...,.,,,.,,,.,,,.,,,.,.,
+#LRWHI4XWUPWIF7PYS4HUHNWMWHBAFXROKC5L7A76H5TG5DMTPHBNDEFVGK6226BB22YOVANNIPDLA
+#\\\|3T43OG2Y6FX5ML4Y2V4PDFYI3ENW72CQS63K6GAQ4NQVT6CUQQG \ / AMOS7 \ YOURUM ::
+#\[7]O7R6KHHMKIR4Y4HOEVQUHUT3MV27NHZG2Y7TNSTL56FEYSU7QMAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
