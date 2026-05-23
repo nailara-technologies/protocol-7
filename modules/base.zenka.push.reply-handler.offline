@@ -1,0 +1,71 @@
+## [:< ##
+
+# name  = base.zenka.push.reply-handler.offline
+# descr = reply handler: detects offline response, registers notify_online,
+#         queues payload
+
+my $reply  = shift;
+my $target = $reply->{'params'}->{'target'};
+
+my $state = <base.zenka.push.state>->{$target};
+return if not defined $state;
+
+if ( $reply->{'cmd'} eq qw| TRUE | ) {
+    ## success : clear state ##
+    delete <base.zenka.push.state>->{$target};
+    return TRUE;
+}
+
+## FALSE reply : only act on 'client not present' (offline) ##
+my $reply_str = $reply->{'call_args'}->{'args'} // '';
+
+if ( $reply_str !~ m|^client\b|i ) {
+    ## not an offline error — command not found, no permission, etc. ##
+    <[base.logs]>->(
+        0,       'base.zenka.push: %s error [ %s ]',
+        $target, $reply_str
+    ) if length $reply_str;
+    return;
+}
+
+## reset backoff since we got a definitive offline reply ##
+$state->{'backoff_n'} = 0;
+
+## already waiting? ##
+return if $state->{'waiting_no'};
+
+$state->{'waiting_no'} = TRUE;
+
+my $no_sent = <[protocol-7.route-send]>->(
+    {   qw| command |   => qw| v7.notify_online |,
+        qw| call_args | => { qw| args | => $target },
+        qw| reply |     => {
+            qw| handler | => qw| zenka.push.reply-handler.notify-online |,
+            qw| params |  => { qw| target | => $target }
+        }
+    }
+);
+
+if ( $no_sent <= 0 ) {
+    ## v7 unavailable : schedule backoff retry ##
+    $state->{'waiting_no'} = FALSE;
+    my $backoff = 2**$state->{'backoff_n'};
+    $backoff = 60 if $backoff > 60;
+    $state->{'backoff_n'}++;
+    <[event.add_timer]>->(
+        {   qw| after | => $backoff,
+            qw| cb |    => sub {
+                <[zenka.push]>->($target);
+            },
+            qw| repeat | => 0,
+        }
+    );
+}
+
+return;
+
+#,,.,,,..,,.,,..,,,,.,.,,,...,,,,,,,,,,.,,,.,,..,,...,...,,..,...,,,,,.,,,,,,,
+#TMHZIC5C7R57IJYDSGMU2RBNLHXZXLFABGIFEEXRJSTOT4NHK6KO33JVUOK22KCTWPK2GJ7PNPWXI
+#\\\|YA7DDCUJBRLNV4ROIQDYNENRFLFBZ2OTZNMLO6EVKAIPPGWFINL \ / AMOS7 \ YOURUM ::
+#\[7]EURYW7OGVB6FFPTGJ4Q5I53CUHCDKUQLQAUP2HVVKYUVKQJT4UAI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

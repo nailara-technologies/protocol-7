@@ -1,0 +1,77 @@
+## [:< ##
+
+# name  = base.zenka.push.reply-handler.notify-online
+# descr = handles v7.notify_online reply: dequeues and resends
+
+my $reply  = shift;
+my $target = $reply->{'params'}->{'target'};
+
+my $state = <base.zenka.push.state>->{$target};
+return if not defined $state;
+
+$state->{'waiting_no'} = FALSE;    ## reply arrived ##
+
+if ( $reply->{'cmd'} ne qw| TRUE | ) {
+    ## target still offline or v7 error : back off ##
+    my $backoff = 2**$state->{'backoff_n'};
+    $backoff = 60 if $backoff > 60;
+    $state->{'backoff_n'}++;
+    <[event.add_timer]>->(
+        {   qw| after | => $backoff,
+            qw| cb |    => sub {
+                <[zenka.push]>->($target);
+            },
+            qw| repeat | => 0,
+        }
+    );
+    return;
+}
+
+## target online : reset backoff and resend ##
+$state->{'backoff_n'} = 0;
+
+my $payload
+    = ref $state->{'queued'} eq qw| ARRAY |
+    ? $state->{'queued'}->[-1]
+    : $state->{'queued'};
+
+return if not defined $payload;
+
+my $sent = <[protocol-7.route-send]>->(
+    {   qw| command |   => $payload->{'command'},
+        qw| call_args | => $payload->{'args'},
+        qw| reply |     => {
+            qw| handler | => qw| zenka.push.reply-handler.offline |,
+            qw| params |  => {
+                qw| target |  => $target,
+                qw| command | => $payload->{'command'},
+                qw| args |    => $payload->{'args'},
+            }
+        }
+    }
+);
+
+$state->{'last_attempt'} = <[base.time]>->(5);
+
+if ( $sent <= 0 ) {
+    ## send failed immediately : schedule retry ##
+    my $backoff = 2**$state->{'backoff_n'};
+    $backoff = 60 if $backoff > 60;
+    $state->{'backoff_n'}++;
+    <[event.add_timer]>->(
+        {   qw| after | => $backoff,
+            qw| cb |    => sub {
+                <[zenka.push]>->($target);
+            },
+            qw| repeat | => 0,
+        }
+    );
+}
+
+return;
+
+#,,.,,,.,,,.,,.,.,.,,,.,,,,,.,...,,,.,.,.,..,,..,,...,..,,..,,,.,,...,,..,,,,,
+#HV4KDLLFJLC45VMPZXLRUHWULRVW64YSNYSZCVHXNZ6XPLQHKOXT4XRBMDWYI5UOGVEI3BFYTM3QE
+#\\\|HXRWTTRHBOQPDMXPXDPVSAWYLDFC6UKSZ5ERRLCDXA6WJVIGCSP \ / AMOS7 \ YOURUM ::
+#\[7]5JUV72PR67X5VUVMR7XSDJSYO5RYWJPJJ4TJTDVIRM5WTRGMMWBA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
