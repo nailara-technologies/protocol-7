@@ -7,14 +7,14 @@ my $file_data = <log.files>->{$log_name};
 $file_data->{'timer'}->cancel;
 $file_data->{'timer'} = undef;
 
-<[base.log]>->( 2, "closing log '$log_name'" );
+<[base.log]>->( <devmod.p7_log_level> // 3, "closing log '$log_name'" );
 
 flock( $file_data->{'fh'}, 8 ) or die lcfirst($OS_ERROR);    # LOCK_UN
 $file_data->{'locked'} = 0;
 close( $file_data->{'fh'} ) or die lcfirst($OS_ERROR);
 
-#,,..,.,,,...,,.,,,.,,.,.,,,.,,.,,,,,,...,.,.,..,,...,...,...,.,.,,,.,.,,,,,,,
-#7FQ2BHUTZYPOXKYCNARVXNZYVN5VH6VPRURZ4GQGOPNOJIHXHB7KMQPGIDOBP7X4POHNIOJDV4SA4
-#\\\|GUSKGS3VGQ7DR4OFWJQECYXGWKQO62YXDEKRGED6DABMBMAVFN3 \ / AMOS7 \ YOURUM ::
-#\[7]PT7H56OP7GWL5HRDNLIDLHULYY46MCJ7PG5DCGWEJSMVTVSZ2KAY 7  DATA SIGNATURE ::
+#,,..,,,,,...,.,.,,,.,,..,.,.,.,,,,..,...,,,,,..,,...,..,,.,.,.,.,.,,,,,,,,,.,
+#QVFA6XK2CDV5Q5FIN574AXYIRTWMZRV47FEMRH5SXIP57CWIG5GUS6MMEYQLHU6CRYVHXKOJRMR5Q
+#\\\|PPLZCGWRTC6ACPUNGSC6U5ZGUHBDGWPBV6EDTPYM3YJRSSBHC4I \ / AMOS7 \ YOURUM ::
+#\[7]IBD7CDQD7LYJCENM5ELYUDFJD4FVUYY4BKQEI4BIYK5XDYBY62DQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
