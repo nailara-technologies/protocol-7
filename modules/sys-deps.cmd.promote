@@ -1,0 +1,69 @@
+## [:< ##
+
+# name = sys-deps.cmd.promote
+# descr = promote tracked package to zenka os-dep config
+# param = <pkg> <zenka>
+
+my $param = shift;
+my $args  = $param->{'args'} // '';
+
+my ( $pkg, $zenka ) = split( /\s+/, $args, 2 );
+
+unless ( defined $pkg && defined $zenka ) {
+    return {
+        'mode' => qw| false |,
+        'data' => 'usage: promote <pkg> <zenka>'
+    };
+}
+
+my $zenka_os_dep_dir = <system.conf_path> . "/zenki/$zenka/os-dep/debian";
+
+eval {
+    require File::Path;
+    File::Path::make_path($zenka_os_dep_dir) unless -d $zenka_os_dep_dir;
+};
+
+my $pkg_file = "$zenka_os_dep_dir/$pkg";
+
+if ( -f $pkg_file ) {
+    return {
+        'mode' => qw| true |,
+        'data' => "$pkg already declared for zenka '$zenka'"
+    };
+}
+
+open my $fh, '>',
+    $pkg_file
+    or return {
+    'mode' => qw| false |,
+    'data' => "failed to create $pkg_file: $!"
+    };
+close $fh;
+
+## Update tracking state ##
+my $tracked = <sys-deps.tracked> // [];
+for my $entry (@$tracked) {
+    if ( $entry->{'pkg'} eq $pkg ) {
+        $entry->{'declared'} = 1;
+        last;
+    }
+}
+
+## Save updated tracking state ##
+my $track_file = <system.root_path> . '/var/sys-deps/tracked.yaml';
+eval {
+    require YAML::Tiny;
+    my $yaml = YAML::Tiny->new( { tracked => $tracked } );
+    $yaml->write($track_file);
+};
+
+return {
+    'mode' => qw| true |,
+    'data' => "declared $pkg for zenka '$zenka'"
+};
+
+#,,.,,,..,.,.,.,,,..,,...,...,,..,.,,,..,,.,,,..,,...,..,,..,,.,.,,,.,.,,,,,,,
+#OOJO5NRVJDFBEKV2J6SBADUEGLM3LNO4JQF5MWRXAY5SI22V6FDUAJGJCT7VLSECLV2UF2PUCVMZW
+#\\\|4ODIPHSVY6I6RQSQ4XFT7A3TXMR5S3NVF7W4JBWTJV5R435LVDX \ / AMOS7 \ YOURUM ::
+#\[7]QB3MMRDFL4FXSUM7J6LXH4Y3V67NK6O5V5V3CEWIFPNI3C5B6MBQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

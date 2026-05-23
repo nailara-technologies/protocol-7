@@ -1,0 +1,70 @@
+## [:< ##
+
+# name = sys-deps.cmd.missing
+# descr = all unsatisfied deps across all zenki
+
+my $pm_deps = <sys-deps.pm_deps>;
+my $os_deps = <sys-deps.os_deps>;
+
+my @missing_pm;
+my @missing_os;
+my @missing_bin;
+
+for my $module ( sort keys %$pm_deps ) {
+    unless ( AMOS7::deps::module::probe_module($module) ) {
+        push @missing_pm, $module;
+    }
+}
+
+for my $type ( keys %$os_deps ) {
+    if ( $type eq 'binary' ) {
+        for my $bin ( sort keys %{ $os_deps->{$type} } ) {
+            unless ( AMOS7::deps::os_package::probe_binary($bin) ) {
+                push @missing_bin, $bin;
+            }
+        }
+    } else {
+        for my $pkg ( sort keys %{ $os_deps->{$type} } ) {
+            unless ( AMOS7::deps::os_package::probe_os_pkg( $pkg, $type ) ) {
+                push @missing_os, $pkg;
+            }
+        }
+    }
+}
+
+my @output;
+push @output, ":", "::[ missing dependencies ]", ":";
+
+if (@missing_pm) {
+    push @output, ":  perl modules (" . scalar(@missing_pm) . "):";
+    push @output, map {":    $ARG"} @missing_pm;
+    push @output, ":";
+}
+
+if (@missing_os) {
+    push @output, ":  OS packages (" . scalar(@missing_os) . "):";
+    push @output, map {":    $ARG"} @missing_os;
+    push @output, ":";
+}
+
+if (@missing_bin) {
+    push @output, ":  binaries (" . scalar(@missing_bin) . "):";
+    push @output, map {":    $ARG"} @missing_bin;
+    push @output, ":";
+}
+
+if ( !@missing_pm && !@missing_os && !@missing_bin ) {
+    push @output, ":  no missing dependencies";
+    push @output, ":";
+}
+
+return {
+    'mode' => qw| size |,
+    'data' => "\n" . join( "\n", @output ) . "\n"
+};
+
+#,,..,,,.,..,,,,,,.,.,..,,...,,,,,.,.,.,.,,.,,..,,...,...,..,,..,,..,,,..,,..,
+#I34CAVAN2BDJMCRAE53LX6WFZLHX6ZZ2JS3ZALSFL3ARTQFQD5N4765N6CB6ZWQHERWXL3OORYRBO
+#\\\|LWN2PUIKZXB5MHGVZUBEGVSUVYLGFKFJ4SM3X6EATS4H27Z45XZ \ / AMOS7 \ YOURUM ::
+#\[7]2QTKQIUTP455OJDFIODRY3J7IB7EVEQI6ODULU7CLXKXIKXK4GBY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
