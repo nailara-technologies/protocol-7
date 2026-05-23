@@ -53,7 +53,10 @@ if ( not -d $log_path ) {
 # manage file handle and locking
 my $log_fh;
 if ( not <log.files>->{$log_name}->{'locked'} ) {
-    <[base.logs]>->( 2, "opening log '%s'..,", $log_name );
+    <[base.logs]>->(
+        <devmod.p7_log_level> // 3,
+        "opening log '%s'..,", $log_name
+    );
     open(
         $log_fh,
         sprintf( qw| >>%s |, $log_file_encoding ),
@@ -72,7 +75,10 @@ if ( not <log.files>->{$log_name}->{'locked'} ) {
             'data'    => $log_name
         }
     );
-    <[base.logs]>->( 2, "got lock for '%s'.,", $log_name );
+    <[base.logs]>->(
+        <devmod.p7_log_level> // 3,
+        "got lock for '%s'.,", $log_name
+    );
 } else {
     $log_fh = <log.files>->{$log_name}->{'fh'};
 }
@@ -81,8 +87,8 @@ print {$log_fh} $$log_msg_ref;
 
 return TRUE;
 
-#,,.,,...,,.,,,,,,..,,...,,.,,,.,,.,,,..,,,.,,..,,...,...,...,.,,,,,,,...,...,
-#YUKPUJWEUNMX26P5UCGHXCESWZPOSUJSR6SLFZCHSIUEWBYZBBRG6UKZV5OXZ7Y5Q2EBKSOXAWJK2
-#\\\|WU55W4BIUJIO64DKCTKQEIKNZW4JC2UDQAGBJTMXILXIFAICHA5 \ / AMOS7 \ YOURUM ::
-#\[7]AO6OF4RALY65HVJJD6C7VLDY6DL5BWXN6ZOGUGJOI2Y3WCWZBYAY 7  DATA SIGNATURE ::
+#,,..,,..,...,...,...,..,,.,,,,,,,,,.,,,.,.,,,..,,...,...,..,,,,.,...,...,..,,
+#J2WNH4VC5G6L6O2A4TRNDJ7YH6COJSQB3OD47AKDDONQUW37NUNZ3YI5BQBOASRJJXVCR5SV34CKC
+#\\\|JWXQYTQTCU2B43DYA6JDFHRZC6GXUZPFYP4IP4VTDZRM5KIFWR6 \ / AMOS7 \ YOURUM ::
+#\[7]UD3KUZR6YQINGQV62BX3MDHEN2WKVXBZVY2WXLTZLRDP65Q2YGDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
