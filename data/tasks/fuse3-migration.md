@@ -37,26 +37,13 @@ current setup:
    - `data.mount.fuse.read` — returns (errno, data)
    - `data.mount.fuse.open` / `release` / `statfs` — check return formats
 
-5. **update `modules/base.known_dependencies`**:
-   replace the `Fuse` entry:
-   ```perl
-   'Fuse' => {
-       'debian'        => [],    ## libfuse-perl dropped; build fuse2 from source first ##
-       'cpan_fallback' => 'Fuse'
-   },
-   ```
-   with:
-   ```perl
-   'Filesys::Fuse3' => {
-       'debian'        => [],    ## not in apt repos — cpanm only ##
-       'cpan_fallback' => 'Filesys::Fuse3'
-   },
-   ```
-   and remove the `Fuse` entry entirely.
+5. ~~**update `modules/base.known_dependencies`**~~ — **DONE** (session 48):
+   `Fuse` entry removed; `Filesys::Fuse3` added with `debian => ['libfuse3-dev']`,
+   `cpan => 'Filesys::Fuse3'`.
 
-6. **update `.deps/profiles.yaml`** — replace `- Fuse` with `- Filesys::Fuse3`
-   under the `cpan:` block. remove the `install_fuse2.sh` reference if Fuse3
-   headers (`libfuse3-dev`) are already available on the system.
+6. ~~**update `.deps/profiles.yaml`**~~ — **DONE** (session 48):
+   `- Fuse` replaced with `- Filesys::Fuse3`; `install_fuse2.sh` pre_install removed.
+   `bin/dependencies/install_minimal_dependencies.debian.sh` also updated.
 
 7. **check `amos-term.fuse.*` modules** — these use `<data.fuse.const.MODE_DIR>`,
    `<data.fuse.const.S_IFREG>`, etc. verify these constants are still correct for
@@ -72,8 +59,8 @@ current setup:
 - module file format: starts with `## [:< ##` header block, no `sub {}` wrappers,
   module name = filename, invoked as `<[module.name]>->()`
 
-#,,,,,,.,,,,,,,,,,..,,.,.,,..,,,,,.,.,,..,,,,,..,,...,...,,.,,..,,..,,,,.,,..,
-#54SUXMEYWFYOEAWU65KYHJEWCP42YSX3UWGUPHQKTX77VEM3BVQAOCRNPYYQ3VDLPMMZRGG6N6TUO
-#\\\|YAU3E6BK5D6LFQEP2Q4LS4VUU5YU3EUZ3HT6XWIWA2CGGQKXQ5U \ / AMOS7 \ YOURUM ::
-#\[7]T3OXWE2QM4SSZQSS3CBH5M4MJ43PGH57QY4ARQ7GYC2ABUH7D2CI 7  DATA SIGNATURE ::
+#,,,,,..,,..,,,..,,.,,...,..,,.,,,,..,,..,..,,..,,...,...,.,.,,.,,.,,,,..,.,.,
+#KTS5AFDB7FNG7WIDHZSW4OC34UUZFFSSEAOCCBXGN7BEHIHUCF3C374JGINTSRHXK7FJGZOQQXOPU
+#\\\|Z2PTZZ7Z6IZOIVZOZMDBJWPECM55Q6WCCAQVDPLZCLKOIURZN24 \ / AMOS7 \ YOURUM ::
+#\[7]QLOKCAVH5XHJ4BSYE3U6T2G5ZA43DPVQB5BW2L46TD5IJHFFKWBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

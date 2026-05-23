@@ -13,7 +13,7 @@ return -ENOENT() unless defined $window;
 if ( $file_path eq '' or $file_path eq '.' ) {
     return (
         0,                             # dev
-        0,                             # ino (will be filled by Fuse)
+        1,                             # ino
         <data.fuse.const.MODE_DIR>,    # mode
         1,                             # nlink
         $>,                            # uid
@@ -32,7 +32,8 @@ if ( $file_path eq '' or $file_path eq '.' ) {
 if ( $file_path eq 'current' ) {
     my $target_z = $window->{'buffer'}->{'cursor'}->{'z'} // 0;
     return (
-        0,                     <data.fuse.const.S_IFLNK> | 0777,
+        0,                     1,
+        <data.fuse.const.S_IFLNK> | 0777,
         1,                     $>,
         $),                    0,
         length("z-$target_z"), $window->{'created'},
@@ -50,7 +51,7 @@ if ( $file_path =~ m{^z-(\d+)$} ) {
     my $mtime = $window->{'buffer'}->{'layer_mtime'}[$z]
         // $window->{'created'};
 
-    return ( 0, <data.fuse.const.S_IFREG> | 0644,
+    return ( 0, 2 + $z, <data.fuse.const.S_IFREG> | 0644,
         1, $>, $), 0, $size, $mtime, $mtime, $mtime, 4096, 1 );
 }
 
@@ -59,7 +60,7 @@ if ( $file_path eq 'metadata' or $file_path eq 'metadata.json' ) {
     my $meta = <[amos-term.fuse.build_metadata]>->($window);
     my $size = length($meta);
 
-    return ( 0, <data.fuse.const.S_IFREG> | 0644,
+    return ( 0, 15, <data.fuse.const.S_IFREG> | 0644,
         1, $>, $), 0, $size, $window->{'created'}, $window->{'created'},
         $window->{'created'}, 4096, 1 );
 }
@@ -71,7 +72,8 @@ if ( $file_path eq 'cursor' or $file_path eq 'cursor.txt' ) {
         $cursor->{'x'}, $cursor->{'y'}, $cursor->{'z'} );
 
     return (
-        0,                    <data.fuse.const.S_IFREG> | 0644,
+        0,                    16,
+        <data.fuse.const.S_IFREG> | 0644,
         1,                    $>,
         $),                   0,
         length($content),     $window->{'created'},
@@ -86,7 +88,8 @@ if ( $file_path eq 'attachments' or $file_path eq 'attachments.txt' ) {
     my $content = join( "\n", @attach ) . "\n";
 
     return (
-        0,                    <data.fuse.const.S_IFREG> | 0644,
+        0,                    17,
+        <data.fuse.const.S_IFREG> | 0644,
         1,                    $>,
         $),                   0,
         length($content),     $window->{'created'},
@@ -97,8 +100,8 @@ if ( $file_path eq 'attachments' or $file_path eq 'attachments.txt' ) {
 
 return -ENOENT();
 
-#,,,.,..,,,,.,,.,,.,.,,,.,.,,,,,,,.,,,,..,,,,,.,.,...,...,,..,,..,.,.,,..,,,.,
-#ATFLTDOZ7QU4AQMNHHWE46OSKOXVEV2JUUETRMR6LOTCGUNV2KZLBY2WT5KVPHQCDKBQM6XRWXO2C
-#\\\|T3M2V6EMONQVKH5LS3JSXKWC2GELCNIF3SKDWKVI53VD2PMIFKN \ / AMOS7 \ YOURUM ::
-#\[7]YZ6H2ASM7LSQSVOABGDTGCBI3NCOABX26MNNN3OIOLC22T7KHQAY 7  DATA SIGNATURE ::
+#,,,,,.,,,...,,,,,.,.,,,,,..,,.,,,..,,,.,,,..,.,.,...,...,,,.,.,.,,,,,.,.,,,.,
+#TNZY4VKB7KK255DEUJE7AKPFCEQVM2C2TUWXVPWDAVF4QKRZ2IPHFVEQOP7YASS3KLYJBBVARVMR6
+#\\\|RPHYTLLVTCRAOHNDA5JI7YYP55IPBCBWQV2BM63CBMCCFV24LBK \ / AMOS7 \ YOURUM ::
+#\[7]HLUGC5LWW6CROD6IOGF3ZOTHOPJS4VDVJ2ZBPLUC2UQYLR3DLWAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

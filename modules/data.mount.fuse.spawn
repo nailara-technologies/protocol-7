@@ -59,15 +59,15 @@ if ( !<data.fuse.capabilities.available> ) {
     return {
         'mode' => qw| false |,
         'data' =>
-            'FUSE module [ Fuse.pm ] not available - install to use mount feature'
+            'FUSE module [ Filesys::Fuse3 ] not available - install to use mount feature'
     };
 }
 
-## load Fuse module on demand ##
-if ( !<[base.perlmod.autoload]>->('Fuse') ) {
+## load Filesys::Fuse3 module on demand ##
+if ( !<[base.perlmod.autoload]>->('Filesys::Fuse3') ) {
     return {
         'mode' => qw| false |,
-        'data' => 'failed to load Fuse module'
+        'data' => 'failed to load Filesys::Fuse3 module'
     };
 }
 
@@ -256,33 +256,36 @@ if ( !$child_pid ) {    ## CHILD PROCESS ##
 
     # Build mount options
     my @mount_opts = (
-        'mountpoint'          => $mountpoint,
-        'getattr'             => $cb_getattr,
-        'readdir'             => $cb_readdir,
-        'read'                => $cb_read,
-        'open'                => $cb_open,
-        'release'             => $cb_release,
-        'statfs'              => $cb_statfs,
-        'debug'               => $options->{'debug'} // 0,
-        'threaded'            => 0,
-        'default_permissions' => 1,    # Let kernel enforce Unix permissions
+        'mountpoint' => $mountpoint,
+        'getattr'    => $cb_getattr,
+        'readdir'    => $cb_readdir,
+        'read'       => $cb_read,
+        'open'       => $cb_open,
+        'release'    => $cb_release,
+        'statfs'     => $cb_statfs,
+        'debug'      => $options->{'debug'} // 0,
+        'threaded'   => 0,
     );
 
-    push @mount_opts, 'allow_other' => 1 if $allow_other;
+    # Build mountopts string for FUSE3 kernel options
+    my @mountopts;
+    push @mountopts, 'allow_other'        if $allow_other;
+    push @mountopts, 'default_permissions';
+    push @mount_opts, 'mountopts' => join( ',', @mountopts ) if @mountopts;
 
     # Start FUSE main loop
-    <[base.logs]>->( 2, "Entering FUSE main loop for %s", $mountpoint );
+    <[base.logs]>->( 2, "Entering FUSE3 main loop for %s", $mountpoint );
 
-    eval { Fuse::main(@mount_opts); };
+    eval { Filesys::Fuse3::main(@mount_opts); };
 
     if ( length $EVAL_ERROR ) {
         <[base.log]>->(
-            0, "FUSE main loop error : %s",
+            0, "FUSE3 main loop error : %s",
             <[base.str.eval_error]>
         );
     }
 
-    <[base.logs]>->( 2, "FUSE child exiting for %s", $mountpoint );
+    <[base.logs]>->( 2, "FUSE3 child exiting for %s", $mountpoint );
     <[base.exit]>;
 
 } else {    ## PARENT PROCESS ##
@@ -316,11 +319,11 @@ if ( !$child_pid ) {    ## CHILD PROCESS ##
     push <data.fuse.child_pids>->@*, $child_pid;
 
     <[base.logs]>->(
-        2, "FUSE mount registered : %s at %s [pid %d]",
+        2, "FUSE3 mount registered : %s at %s [pid %d]",
         $hash_path, $mountpoint, $child_pid
     );
 
-    my $result_data = sprintf( "FUSE mount started: %s at %s [pid %d]",
+    my $result_data = sprintf( "FUSE3 mount started: %s at %s [pid %d]",
         $hash_path, $mountpoint, $child_pid );
     $result_data .= " [allow_other enabled]" if $allow_other;
 
@@ -330,8 +333,8 @@ if ( !$child_pid ) {    ## CHILD PROCESS ##
     };
 }
 
-#,,,.,,,.,,..,,,,,,.,,,.,,,,,,,,.,,,,,...,.,,,.,.,...,...,,,.,.,.,,.,,,,.,.,.,
-#5T2X3MQUJ4YEVUFXB5K4REUEYE3V5YCCG4IIFBNUSTWRGH4KN66J2EEXVSFNPA762OPBSTDVTMRMQ
-#\\\|TULLFT4QBC4H4ZAQKMOE4BCM45WYY45N2MCXLCCRDUKUUFGBBM6 \ / AMOS7 \ YOURUM ::
-#\[7]NOD6GGAMNW7W35W7C6Y56BVBX2AYOON35GAJT6Z7SGCXPMXS7OCQ 7  DATA SIGNATURE ::
+#,,,.,,..,..,,,,,,,,.,..,,,,,,,.,,.,,,,,,,.,,,.,.,...,..,,.,.,,..,..,,,,.,,.,,
+#HRRRN7NLFEWFHNIAL3JCN2DQPRFV7CBOAFUF37JPZL62JF25DEGMU4N4GZNB6YPNXLGKP3TKVCBHY
+#\\\|WEGHEHLAAOZGKASTHMCDUEZHI7RKNBRH6KIEIQKC7HIXAMK52CE \ / AMOS7 \ YOURUM ::
+#\[7]GCCUZSZ2Q44FRNO3QS3DMUPPFMWTHLEZA7PIVXHLOCCTDNESQYAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
