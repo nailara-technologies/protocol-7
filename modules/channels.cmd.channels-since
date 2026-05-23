@@ -35,13 +35,9 @@ return {
     }
     unless @changed_channels;
 
-##  Calculate harmonic checksum of changed channels tree  ##
-##  (Simple SHA256 of sorted channel names for now)  ##
+##  harmonic checksum of changed channels tree  ##
 my $checksum_input = join( '|', sort @changed_channels );
-my $checksum_hash  = Digest::SHA::sha256($checksum_input);
-my $checksum_b32   = encode_b32r($checksum_hash);
-$checksum_b32 =~ s|=+$||;                          ## remove padding ##
-$checksum_b32 = substr( $checksum_b32, 0, 52 );    ## standard b32 length ##
+my $checksum_b32   = <[chk-sum.amos]>->( \$checksum_input );
 
 my $reply_data = join( "\n", @changed_channels );
 $reply_data .= "\nCHECKSUM $checksum_b32\n";
@@ -53,8 +49,8 @@ return {
 
 1;
 
-#,,,,,,.,,,,,,,.,,,,,,,,,,,.,,.,.,.,,,..,,,,.,.,.,...,...,..,,,..,,..,,,,,,,,,
-#BSWG3COPR45J3NEY5EKHU2MSBEXKXKL3ZOKAJCT5GRNXKUJAVJSKD7CUE32K5LIQSJTSTXHYYVXDU
-#\\\|BVKKI4TQA3X5GCHVHIWFRIIDZHBDNLXUQ3DWIWU6JEPG45LTGTT \ / AMOS7 \ YOURUM ::
-#\[7]FUW57G4YWGSTUVEXU3JWWKBPMOTHLQGAJMIH5B4W4NSII6VRAKAQ 7  DATA SIGNATURE ::
+#,,..,,,.,..,,,,,,,,.,..,,.,.,,,,,,,,,.,,,.,,,.,.,...,...,,,.,.,.,,.,,,..,.,,,
+#2PE4CJL75SN75K7TPKIY2JLLAHM3KTSK2JMAV3RK35ORDRM6ACJETQCVE5VCFII7QDS5FZ5ZZCVVI
+#\\\|XH3KG57ZF5FAB34M7UM5ELXW5B5TPGAKY7BH6YYLSC6VQCIQMR4 \ / AMOS7 \ YOURUM ::
+#\[7]VTEJOC7IRNHMEVBNVICKNWKJY2RVXUQRSMPLVJREBR2X4Q7DSCCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
