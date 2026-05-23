@@ -64,18 +64,22 @@ if ( $cmd =~ s|^([^\.]+)\.((([^\.]+)\.)*\w[\w\d\_\-\.]*)$|$2|go ) {
         $src_name .= sprintf qw| [%s] |, <system.zenka.subname>
             if exists <system.zenka.subname>;
 
-     # [LLL]  implement [devmod] watch and
-     # filter patterns for command logging
+        # [LLL]  implement [devmod] watch and
+        # filter patterns for command logging
 
-            <log.level.cmd-offset> //= {};
-            my $llvl_offs    ## adjustable per cmd ##
-                = ( exists <log.level.cmd-offset>->{$cmd}
-                    and <log.level.cmd-offset>->{$cmd} =~ m{^[\+\_]?\d} )
-                ? <log.level.cmd-offset>->{$cmd}
-                : 0;         ## default offset 0 ##
-            ## default log level 2 for network traffic ##
-            if (   <system.verbosity.console> >= $llvl_offs
-                or <system.verbosity.zenka_buffer> >= $llvl_offs ) {
+        <log.level.cmd-offset> //= {};
+        my $cmd_base = ( $cmd =~ s|^\d+\.||r );    ## strip session prefix ##
+        my $llvl_offs                              ## adjustable per cmd ##
+            = ( exists <log.level.cmd-offset>->{$cmd_base}
+                and <log.level.cmd-offset>->{$cmd_base} =~ m{^[\+\_]?\d} )
+            ? <log.level.cmd-offset>->{$cmd_base}
+            : ( exists <log.level.cmd-offset>->{$cmd}
+                and <log.level.cmd-offset>->{$cmd} =~ m{^[\+\_]?\d} )
+            ? <log.level.cmd-offset>->{$cmd}
+            : 0;                                   ## default offset 0 ##
+        ## default log level 2 for network traffic ##
+        if (   <system.verbosity.console> >= $llvl_offs
+            or <system.verbosity.zenka_buffer> >= $llvl_offs ) {
             if (
                 (      $src_name ne qw| cube |
                     or $target_name ne qw| p7-log |
@@ -93,7 +97,8 @@ if ( $cmd =~ s|^([^\.]+)\.((([^\.]+)\.)*\w[\w\d\_\-\.]*)$|$2|go ) {
                 )
             ) {
                 <[base.logs]>->(
-                    2 + $llvl_offs, ':network: %s ..:. %s ..:. %s',
+                    2 + $llvl_offs,
+                    ':network: %s ..:. %s ..:. %s',
                     $src_name, $target_name, $cmd
                 );
             }
@@ -145,8 +150,8 @@ if ( $cmd =~ s|^([^\.]+)\.((([^\.]+)\.)*\w[\w\d\_\-\.]*)$|$2|go ) {
     return -2;
 }
 
-#,,..,,,.,,,,,..,,...,,.,,,,,,.,.,.,,,...,,..,..,,...,...,..,,..,,,.,,,.,,,,.,
-#JJAS5B6IAPZL44AXJRH636TYUGTPDGK2OXJ4ICLYWQK5MIOWS2SVOWI7IL5SQ54JNYVGBRFOQ6OMO
-#\\\|TKOWQLAGS2CPF6EGCLZFYS6X5ZVHCQE46SERZSW52BDHC36XVFZ \ / AMOS7 \ YOURUM ::
-#\[7]ZVFTJFWFELTIUS5BGQFLDJXC74HZDPGPK62HXKXFVZKEOVZ6SECA 7  DATA SIGNATURE ::
+#,,.,,..,,.,.,,,.,..,,,,,,..,,...,,.,,..,,,,,,..,,...,...,...,,.,,,,,,,,.,,,.,
+#WYEDRYHJ64ZSVAWNKZPCAEVWOWBIAIM7SKUDUSQFSEEMEBG6YRJMBGAGYNQKBRYEIEQ7VXYOAQWTK
+#\\\|NQIV2JBIS4TE7AV3K2KVWUYYWD4O34PXPTSFTAHKIMRZXJ55NXS \ / AMOS7 \ YOURUM ::
+#\[7]VVLQ7DWU6D3OSCQPRM3QABMJCHH563G3H4AAAC64DYYLRPHKSCBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
