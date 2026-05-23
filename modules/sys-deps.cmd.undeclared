@@ -1,0 +1,55 @@
+## [:< ##
+
+# name = sys-deps.cmd.undeclared
+# descr = tracked packages not yet declared in os-dep cfgs
+
+my $os_deps = <sys-deps.os_deps>;
+my $tracked = <sys-deps.tracked> // [];
+
+my %declared;
+for my $type ( keys %$os_deps ) {
+    for my $pkg ( keys %{ $os_deps->{$type} } ) {
+        $declared{$pkg} = 1;
+    }
+}
+
+my @undeclared;
+for my $entry (@$tracked) {
+    next if $entry->{'declared'};
+    next if $declared{ $entry->{'pkg'} };
+    push @undeclared, $entry;
+}
+
+my @output;
+push @output, ":", "::[ undeclared packages ]", ":";
+
+unless (@undeclared) {
+    push @output, ":  all tracked packages are declared";
+    push @output, ":";
+    return {
+        'mode' => qw| size |,
+        'data' => "\n" . join( "\n", @output ) . "\n"
+    };
+}
+
+push @output, ":  " . scalar(@undeclared) . " tracked but not declared:";
+for my $entry (@undeclared) {
+    push @output,
+        sprintf(
+        ":    %-40s %s  %s",
+        $entry->{'pkg'}, $entry->{'installed_at'},
+        $entry->{'source'}
+        );
+}
+push @output, ":";
+
+return {
+    'mode' => qw| size |,
+    'data' => "\n" . join( "\n", @output ) . "\n"
+};
+
+#,,.,,.,.,.,.,,..,.,,,,..,...,,..,,,.,..,,.,,,..,,...,..,,,.,,,..,..,,...,.,,,
+#26GDQP4HFBQ6GRE2T72FLPDJYOIJ4TQKUI67JSXPTEDGUP4HXVUUGCMUA7MLTBYGMJ7CC4AR7TSP6
+#\\\|HNGWHILXVJKAHH3JS3GOQXG7I36HWAAP7E4VVS54GPNSDVBCAR3 \ / AMOS7 \ YOURUM ::
+#\[7]TFOXZFMF56TSKHJNZXLMEAYHSPEHQRLWQNHZPMZVQLEUMEN32SBA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

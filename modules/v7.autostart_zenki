@@ -4,6 +4,10 @@
 # descr = initializing zenki for automatic\immediate start-up
 
 foreach my $zenka_name (@ARG) {
+
+    ## pre-start dependency check ##
+    <[v7.check_zenka_deps]>->($zenka_name);
+
     my $zenka_config = <v7.start_setup.zenki.config>->{$zenka_name};
     my $zenka_id     = <[zenka.get_id]>->($zenka_name);
     my $obj_id       = <[zenka.get_object_id]>->($zenka_id);
@@ -22,8 +26,8 @@ foreach my $zenka_name (@ARG) {
     }
 }
 
-#,,,.,...,.,.,,,.,,..,,,,,...,,,.,,,.,.,,,,,.,..,,...,..,,..,,.,,,...,.,,,...,
-#FFII46YL7IAHHNJPLRTLSD66JHZTFSXQKYAIOQUMC4TREMZ7QSOZRLM27LDNP46IMZVG2ETPTN5YK
-#\\\|7H662DK5BWL6LRIKEKPCFTF4WV3SSSBLDN4EPPSBACBOSRRMZZK \ / AMOS7 \ YOURUM ::
-#\[7]YN7BGN4E6HORR3CPW2TJGTYWKUBKNTUYZKHYXNTLFGEB6HFQPEAI 7  DATA SIGNATURE ::
+#,,,.,.,,,,..,,.,,,,.,,,,,..,,,.,,.,.,,.,,,.,,..,,...,...,...,,,,,.,.,..,,.,,,
+#7VU2HIKYJXXRZGBZHHCIGL27WPQOGSOJGHEXAJSSC3SY7VHZ5NLRJBDIOLYN5RN4VWZ6D75Q2DHZQ
+#\\\|HWKCIYA2GJAPHWBY5ICSY3LX3QFP362BYVIYARFWEZH2QJZA2NM \ / AMOS7 \ YOURUM ::
+#\[7]FGV52OVNNE646DL4FTNTEFNXDNTSCLTANXNIYPCY2Q6X7UW3WOCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

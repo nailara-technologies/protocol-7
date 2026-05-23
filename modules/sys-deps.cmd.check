@@ -1,0 +1,85 @@
+## [:< ##
+
+# name = sys-deps.cmd.check
+# descr = dep status for one zenka
+# param = <zenka-name>
+
+my $param      = shift;
+my $zenka_name = $param->{'args'};
+
+unless ($zenka_name) {
+    return {
+        'mode' => qw| false |,
+        'data' => 'zenka name required'
+    };
+}
+
+my $pm_deps = <sys-deps.pm_deps>;
+my $os_deps = <sys-deps.os_deps>;
+
+my @output;
+push @output, ":", "::[ $zenka_name dependency check ]", ":";
+
+## Find pm deps for this zenka ##
+my @zenka_pm;
+for my $module ( sort keys $pm_deps->%* ) {
+    if ( grep { $ARG eq $zenka_name } $pm_deps->{$module}->@* ) {
+        push @zenka_pm, $module;
+    }
+}
+
+## Find os deps for this zenka ##
+my @zenka_os;
+for my $type ( keys $os_deps->%* ) {
+    for my $pkg ( sort keys $os_deps->{$type}->%* ) {
+        if ( grep { $ARG eq $zenka_name } $os_deps->{$type}->{$pkg}->@* ) {
+            push @zenka_os, { pkg => $pkg, type => $type };
+        }
+    }
+}
+
+## Check pm deps ##
+my $pm_missing = 0;
+if (@zenka_pm) {
+    push @output, ":  perl modules:";
+    for my $module (@zenka_pm) {
+        my $ok     = AMOS7::deps::module::probe_module($module);
+        my $status = $ok ? 'installed' : 'missing';
+        push @output, sprintf( ":    %-40s %s", $module, $status );
+        $pm_missing++ unless $ok;
+    }
+    push @output, ":";
+}
+
+## Check os deps ##
+my $os_missing = 0;
+if (@zenka_os) {
+    push @output, ":  OS packages:";
+    for my $dep (@zenka_os) {
+        my $ok = AMOS7::deps::os_package::probe_os_pkg( $dep->{'pkg'},
+            $dep->{'type'} );
+        my $status = $ok ? 'installed' : 'missing';
+        push @output, sprintf( ":    %-40s %s", $dep->{'pkg'}, $status );
+        $os_missing++ unless $ok;
+    }
+    push @output, ":";
+}
+
+my $total_missing = $pm_missing + $os_missing;
+if ( $total_missing == 0 ) {
+    push @output, ":  all dependencies satisfied";
+} else {
+    push @output, ":  $total_missing missing";
+}
+push @output, ":";
+
+return {
+    'mode' => qw| size |,
+    'data' => "\n" . join( "\n", @output ) . "\n"
+};
+
+#,,.,,,,,,,,.,,,.,,,,,,,.,.,,,.,.,,,,,,..,.,.,..,,...,...,,,,,,,,,.,,,,..,,.,,
+#FGLGWSVV4R6BFWUYZP6G3G4COI3VSI44UGCAJAORY5NQEQENSWHNOCWJCQPCSDKGWHZ3PZJNBGHSU
+#\\\|SU3PSFD4CBFY2PCD3ER3VKVOCKVBC3FVS2F4AQQKG5CQ5MSKLQ5 \ / AMOS7 \ YOURUM ::
+#\[7]JTFNOVIFJ7C7VZLPD3XOQDT3UDRLH6HBK2FFSIJ64O5NHE4NJ4BY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

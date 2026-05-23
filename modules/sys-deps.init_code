@@ -1,0 +1,63 @@
+## [:< ##
+
+# name = sys-deps.init_code
+# descr = initialize sys-deps zenka
+
+<[base.log]>->( 2, 'initializing sys-deps zenka..,' );
+
+## Load AMOS7 dependency library ##
+<[base.perlmod.load]>->('AMOS7::deps::module');
+<[base.perlmod.load]>->('AMOS7::deps::os_package');
+<[base.perlmod.load]>->('AMOS7::deps::debp');
+
+## Detect host OS ##
+<sys-deps.host_os> = AMOS7::deps::os_package::detect_os();
+<[base.log]>->( 2, "  host OS : " . <sys-deps.host_os> );
+
+## Scan all zenki dependencies ##
+my $zenki_base = <system.conf_path> . '/zenki';
+
+<sys-deps.pm_deps> = AMOS7::deps::module::scan_zenki_pm_deps($zenki_base);
+<sys-deps.os_deps> = AMOS7::deps::os_package::scan_zenki_os_deps($zenki_base);
+
+<[base.log]>->(
+    2,
+    "  scanned: "
+        . scalar( keys %{<sys-deps.pm_deps>} )
+        . " pm deps, "
+        . scalar( keys %{<sys-deps.os_deps>} )
+        . " os dep types"
+);
+
+## Read tracking log ##
+<sys-deps.tracked> = [];
+
+my $track_file = <system.root_path> . '/var/sys-deps/tracked.yaml';
+if ( -f $track_file ) {
+    eval {
+        require YAML::Tiny;
+        my $yaml = YAML::Tiny->read($track_file);
+        if ( defined $yaml && defined $yaml->[0] && ref $yaml->[0] eq 'HASH' )
+        {
+            <sys-deps.tracked> = $yaml->[0]->{'tracked'} // [];
+        }
+    };
+    if ($EVAL_ERROR) {
+        <[base.log]>->( 0, "  failed to read tracking log: $EVAL_ERROR" );
+    } else {
+        <[base.log]>->(
+            2,
+            "  tracking log: " . scalar( @{<sys-deps.tracked>} ) . " entries"
+        );
+    }
+}
+
+<[base.log]>->( 2, 'sys-deps zenka initialization complete' );
+
+0;
+
+#,,..,,.,,,.,,,,.,,.,,...,..,,.,.,,..,.,,,,.,,..,,...,..,,.,,,,..,,,.,,.,,,.,,
+#LZJ6OKQKNPMNEV5PNCG4ADYQX5XREQM4UA34MCX4U4NKL4ARNWL7YICBX4U6JTY232YVER7FK74AU
+#\\\|N4YWBYSNPQEGZRH2HTXD4MPHXVSUMBWSX4D63UVHIV3B6H2RJBW \ / AMOS7 \ YOURUM ::
+#\[7]IHZSSKG5TAKAXYBYFBXLLUWFCAZI4V4P2GFBKMBER2KMK6ZHGQDI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -240,6 +240,7 @@ return [ qw[
         nodes.init_code
         net.read_binary
         ncode.init_code
+        ncode.cmd.apply
         mpv.open_player
         mpv.cmd.version
         mpv.cmd.setting
@@ -274,6 +275,7 @@ return [ qw[
         chk-sum.md5.hex
         chk-sum.crc.b32
         branch.dep.mark
+        base.zenka.push
         base.zenka.loop
         base.str.os_err
         base.prng.bytes
@@ -285,7 +287,6 @@ return [ qw[
         base.file.slurp
         base.event.once
         base.event.loop
-        base.encode.b32
         base.diff_array
         base.decode.bmw
         base.curve.tick
@@ -463,6 +464,7 @@ return [ qw[
         nshell.shell_loop
         net.read_bytewise
         ncode.regex.apply
+        ncode.cmd.suggest
         mpv.handler.event
         mpv.cmd.set-speed
         mpv.cmd.get-speed
@@ -571,6 +573,9 @@ return [ qw[
         template.init_code
         task.cmd.wait-done
         task.cmd.summarize
+        sys-deps.init_code
+        sys-deps.cmd.state
+        sys-deps.cmd.check
         storage.cmd.visual
         storage.9p.version
         storage.9p.readdir
@@ -594,6 +599,7 @@ return [ qw[
         notify-osd.startup
         ncode.regex.expand
         ncode.regex.assess
+        ncode.cmd.workflow
         nameserv.zone.save
         nameserv.init_code
         mpv.handler.stdout
@@ -697,6 +703,8 @@ return [ qw[
         base.clean_unicode
         base.clean_hashref
         base.center_string
+        base.base32.encode
+        base.base32.decode
         base.X-11.get_mode
         X-11.update_X11_WM
         X-11.start_gpu_top
@@ -723,6 +731,7 @@ return [ qw[
         v7.load_start_setup
         v7.init_start_setup
         v7.handler.sig_chld
+        v7.check_zenka_deps
         universal.init_code
         ticker.calc-col.RGB
         system.cmd.hostname
@@ -891,6 +900,8 @@ return [ qw[
         ticker.callback.draw
         test.iteration.hello
         task.persist.archive
+        sys-deps.cmd.promote
+        sys-deps.cmd.missing
         storchencam.sdl_loop
         storage.cmd.map-file
         start-anim.init_code
@@ -1067,6 +1078,7 @@ return [ qw[
         base.chk-sum.jha.b32
         base.chk-sum.bmw.ctx
         base.buffer.add_line
+        base.base32.pre_init
         base.auth.set_v7_key
         base.X-11.keep_below
         base.X-11.keep_above
@@ -1524,6 +1536,7 @@ return [ qw[
         system.process.autokill
         system.cmd.pid_autokill
         system.cmd.abort-reboot
+        sys-deps.cmd.undeclared
         storage.map-dirs.fs.del
         storage.map-dirs.fs.add
         storage.9p.read-message
@@ -1643,6 +1656,7 @@ return [ qw[
         clients.http.handler.io
         chk-sum.skein.init_code
         branch.route.key.verify
+        branch.route.calc.shape
         branch.resource.context
         branch.ntime.clock_sync
         branch.discover.resolve
@@ -1851,8 +1865,11 @@ return [ qw[
         clients.https.handler.io
         channels.cmd.unsubscribe
         branch.route.key.request
+        branch.route.calc.encode
+        branch.route.calc.decode
         branch.discover.register
         branch.discover.announce
+        base.zenka.push.pre_init
         base.zenka.load_sub_list
         base.zenka.is_v7_started
         base.white-list.register
@@ -2266,6 +2283,7 @@ return [ qw[
         channels.memory-sync.fetch
         branch.route.timer.cleanup
         branch.route.key.propagate
+        branch.route.calc.polarity
         base.warnings.from_bitmask
         base.session.check.flushed
         base.reverse-sort.key-name
@@ -2474,6 +2492,8 @@ return [ qw[
         channels.cmd.test-strm-size
         channels.cmd.channels-since
         branch.space.magnetic_force
+        branch.route.calc.resonance
+        branch.route.calc.lca_depth
         base.zenki.report_child_pid
         base.templates.register_add
         base.stream.record_emission
@@ -3536,6 +3556,7 @@ return [ qw[
         coding.intake.parse_command_string
         channels.memory-sync.apply-changes
         channels.handler.subscription_data
+        branch.route.calc.inversion_points
         base.protocol-7.command.send.local
         base.path-set-up.zenka-directories
         base.path-set-up.check-zenka-paths
@@ -3787,6 +3808,7 @@ return [ qw[
         coding.cancel_watcher.backend_monitor
         channels.handler.playlist-integration
         branch.discover.handler.resolve_reply
+        base.zenka.push.reply-handler.offline
         base.perlmods.reload.chksum_blacklist
         base.perlmod.unregister_loaded_module
         base.handler.write.encryption-wrapper
@@ -3995,6 +4017,7 @@ return [ qw[
         data.mount.shm.header.write.pack_shm_header
         coding.tools.handler.validate_module_format
         coding.handler.models_recommendations_reply
+        base.zenka.push.reply-handler.notify-online
         base.referenced_subroutines.clear_from_disk
         weather.parent.handler.update_forecast_reply
         system.process.handler.pid-instance_response
@@ -4108,8 +4131,8 @@ return [ qw[
     ]
 ];
 
-#,,,.,,..,.,,,.,,,...,,..,,..,.,.,,,,,...,..,,.,.,...,...,,,.,,,,,,..,,..,.,.,
-#HIDLBSOXNTY7CWVUBBFTPUGKG3H4PXNMXHJRAGK5EIVSWT22KLSR3YY4VRYIXNR4TYHPO76QQMATY
-#\\\|XJ25USNDCRIYKCQYJMLYW3O2XCAI4TKSWPDYB66FWFJFQU72GRU \ / AMOS7 \ YOURUM ::
-#\[7]FWNTLH344BUQ2T7JAHMX2CJWUTKZO7QF5E4QTXVVL4NBPJV6CSCI 7  DATA SIGNATURE ::
+#,,,.,,..,...,,..,.,.,,,,,.,,,,,,,.,.,...,...,.,.,...,..,,...,,,.,.,,,.,,,.,.,
+#JX3PSRPVCEDK4GE7GDKHWV3PJRUEA4WDIIWRGVPLVK2QT3ZYS5JSDNPMASDOQ37VA6YYXNTB6MBAW
+#\\\|WNVOZRACFCGULZMK3ACZSWCUMEKV3K23CLZPGUSADBLAEZSTLF5 \ / AMOS7 \ YOURUM ::
+#\[7]TFUKKWKMNSMQDEYLF4HBZJ4DH6LLBOY7QDTFUSSRERWHZUBICCDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
