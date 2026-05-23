@@ -16,6 +16,13 @@ foreach my $pair ( split( /\s+/, $args ) ) {
     }
 }
 
+## auto-scan if registry is empty ##
+if (   !keys %{ $data{'debian'}{'packages'}{'registry'} // {} }
+    && !keys %{ $data{'debian'}{'cpan_modules'}{'registry'} // {} } ) {
+    <[debian.parent.scan_zenki_dependencies]>;
+    <[debian.parent.check_installed]>;
+}
+
 ## Run installation
 my $result = <[debian.parent.install_missing]>->( \%params );
 
@@ -70,8 +77,8 @@ return {
     'data' => join( "\n", @output )
 };
 
-#,,,,,.,,,..,,...,,.,,,..,.,.,.,.,,..,.,,,...,..,,...,...,...,..,,.,.,.,,,,..,
-#ETKU66QEV6VQOR6GO7FNZC7GZNYGMI7GMX3SEWQPGS2ZH2GOSNC5X4Y6GDL3V2QHKTALARXWDBFA4
-#\\\|KA2SZGMBDDBI2X354XBWAGBT2MPRLMVCC7XKYEET5YDNK6FJ2MW \ / AMOS7 \ YOURUM ::
-#\[7]4NNTLPYF577OFOYV5R6TY6PZN3PN6RU3DQ2KTZJ4R6TABHKAIKCI 7  DATA SIGNATURE ::
+#,,,.,,..,.,.,...,...,,.,,,,.,,..,,..,,,.,.,,,..,,...,..,,,,,,,,.,.,,,.,.,,..,
+#2S44D7RPAFMO3PXLAZ3V7NGSN6JZJK7MGFHA4VFPIFLQGMRDSIGOOLSFSCRAEVL6ESDWKI2NT6H6W
+#\\\|GXRSMC7SDXIS5IQ2P6B6PVB6DQJMA75JMAFKOWWGHNTB524QCLR \ / AMOS7 \ YOURUM ::
+#\[7]B3GK65O5TKT6R3PFFQBDNAHVET6ZPVWHAAW3IOGZ6QEIOE4L4EAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
