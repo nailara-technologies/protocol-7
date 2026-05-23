@@ -122,6 +122,27 @@ if ($is_valid) {
         }
     }
     <[base.log]>->( 2, ':' );
+
+    ## recovery: stale endline delta — normalize for canonical paths ##
+    my $normalize_paths = <source.normalize_endline_paths> // [];
+    if ( ref $normalize_paths eq qw| ARRAY | and @$normalize_paths ) {
+        foreach my $prefix ( @$normalize_paths ) {
+            if ( index( $code_name, "$prefix/" ) == 0 ) {
+                my ($trailing) = $src_str =~ /(\n+)$/;
+                my $trailing_count = defined $trailing ? length($trailing) : 0;
+                if ( $trailing_count <= 1 ) {
+                    $src_str =~ s|\n*$|\n|s;
+                    $footer_data->{'endline-state-encoded'}   = 5;
+                    $footer_data->{'needs_separator_endline'} = FALSE;
+                    $footer_data->{'last_line_incomplete'}    = FALSE;
+                    <[base.logs]>->(
+                        2, ': : stale endline state — normalized for canonical path'
+                    );
+                }
+                last;
+            }
+        }
+    }
 }
 
 # Don't interfere with create_harmonic_footer - let it determine and use the correct state.
@@ -202,8 +223,8 @@ if (   not defined $present_checksum
 ##  current \ updated source  ##
 return { 'mode' => qw| size |, 'data' => $src_str }
 
-#,,,.,,,.,.,.,...,,,,,..,,,.,,,..,.,.,,..,.,.,..,,...,...,,..,,..,,,.,,,.,,..,
-#N4HDSUJBONJCMUD4UKVGGDXGRS7NNZEG42CEPFHOELLZOYUXAYTCTIH4O7LS25R442KVI4LZGFW3G
-#\\\|QLAGJ5ZI4DZSMREZZZBWBLD5RCNJY3DYCDTNTUTT2KDW5J66K5R \ / AMOS7 \ YOURUM ::
-#\[7]3HO5NZJ2BHN6JFSNU7DEBJFHCYZVJMZFOGDGDEK3PJSJPQIKVQCY 7  DATA SIGNATURE ::
+#,,,.,,,.,,,.,,.,,,.,,,..,...,.,,,,..,..,,.,.,..,,...,...,..,,,..,,,.,,,.,,,.,
+#TZUQ2J4XCRDRMVGWZ7E77SDX2573Y7DEGWDTCXCUI7A5MH6K3SXZSLUOTRQ6NPUWWMFV7YBW3MW4U
+#\\\|KMTANHBJS2H4TWYM3WQDYHYOYASRIV5EVPYJ5DSDK6XC2RQMKMB \ / AMOS7 \ YOURUM ::
+#\[7]Z5REHLS4OKB2BCBDKYXWHT57GMDOVRUNLACROIT453W7AMWLOICI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
