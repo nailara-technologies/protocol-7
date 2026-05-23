@@ -1,5 +1,19 @@
 # Completed Work Sessions
 
+## session 47 — sys-deps zenka + debian root apt-child + AptPkg probing (2026-05-23)
+
+- `sys-deps` zenka live: on-demand, `state`/`check`/`missing`/`install` commands
+- `AMOS7::deps::*` shared library (module/os_package/debp/dist_upgr)
+- debian zenka: root apt-child forked before drop_privs (IPC::Open2 line protocol)
+- `AptPkg::Cache` replaces dpkg-query backtick for package probing
+- cpanm path root-only, --no-man-pages, per-module independent
+- `debian.cmd.install` auto-scan on empty registry
+- removed phantom `Crypt__Random` pm-dep (session leftover, never used)
+- task zenka fix: `reasoning.branch` added to modules.load
+- channels.cmd.channels-since: sha256 → native chk-sum.amos
+- redundant `Crypt::Misc` loads removed from 8 init modules
+- see [[topic-sys-deps-debian]] for full architecture detail
+
 ## session 43 — branch.* namespace + space engine + conceptual foundations (2026-05-21/22)
 
 **branch.* namespace — 58 modules, 7 layers complete**:
@@ -1195,8 +1209,8 @@ Skip calling harmonize_payload_line_feed when both conditions are met:
 - Signatures now properly formatted with correct separator endline
 - Pre-commit validation passes
 
-#,,,,,,.,,..,,,,.,,.,,,..,..,,..,,...,,..,,,,,..,,...,...,.,.,,,,,.,.,,.,,...,
-#77MXRACJOACA2JK3JPYUYAFMYNIG6HIBRKWGIQHICM4HSMFCZ6I5PQZJHDVFTND6TB4WINUQSCXE4
-#\\\|3V6EPZR2FCTP5O44VFF4ZNAZEIADIGUNW6LXGVVSDFIGFO3UZE4 \ / AMOS7 \ YOURUM ::
-#\[7]F2SKHTB24HTTSTSBQXI6FZ5WY62FMZZWNT6ULLJ2LS57OJNBHWDA 7  DATA SIGNATURE ::
+#,,..,...,...,.,,,...,.,.,,,.,,,,,,..,,.,,,,.,..,,...,...,..,,.,.,,,,,,,.,.,.,
+#R3YXZC7TEQHIGKUWDMIZGLLMPOJJK4K46LTCYZW54AX5VL7RRYTZOG5OG5THXXWQ2HPF2VJKUI4JU
+#\\\|G3AMMHEORQK375LSHD4ERYR33CBJKGUPEUOPSFGEIWVOKTHDMMV \ / AMOS7 \ YOURUM ::
+#\[7]KILWJ27EQVOY7PVXKFEMB6U2GU42HRKZUYGYA2Q5JBO223MGSKAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

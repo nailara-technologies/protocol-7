@@ -27,6 +27,9 @@
 - `data/md/development/P7-LLM-REFERENCE.md` — verified live command reference for kimi/LLM sessions
 - `data/md/development/DEGRADED-FEATURES-AUDIT.md` — 5 high-priority + 3 medium candidates with stub task files
 
+## Session 47
+- [sys-deps-debian](topic-sys-deps-debian.md) — sys-deps zenka + debian root apt-child pattern, AptPkg probing, cpanm root-only, auto-scan on empty registry
+
 ## Session 45/46
 - [base32-namespace](topic-base32-namespace.md) — base32.* namespace live; dep-graph swap parser fix; self-healing whitelist concept + blocked-on-signing note
 - [zenka-push](topic-zenka-push.md) — base.zenka.push live; offline-aware push pattern; swap_subs lessons; ncode restore-backup fix; nodes.orbital double timer fix
@@ -185,8 +188,8 @@
 - **pager.sort.multi-key**: ntime_b32 + priority_map sort types added (session 42)
 - **task dispatch sections**: all dispatched tasks now carry ## dispatch + prompt for reuse
 
-#,,,.,...,,,,,..,,,,,,...,..,,..,,,.,,,,.,.,.,..,,...,...,,,.,.,,,,,.,.,,,.,,,
-#6EGJ3TYG4NHZQYJ2GCZEI6FK2RHPOICUFPJUCXWOEOXCK4V6F3WRUZ7IT6UMNJLR3B2PHLDAP4IKI
-#\\\|3VA65HABXXEZYIQHCDRRDUPOUPAGRIESZQJNWNRXONR2K32VKI6 \ / AMOS7 \ YOURUM ::
-#\[7]MZ7V6HJQKZPVOQMYUV3C7OOHUKR3EXIA5QBHYBJZGYLFVVMOOWCY 7  DATA SIGNATURE ::
+#,,,.,...,..,,,,.,.,,,..,,,,.,..,,.,,,,,.,,,,,..,,...,...,.,.,,..,.,,,,,,,,,,,
+#74VLQ6UIOMIDVTWULJHVC7LDS77N5UYCUWJDBJE5FHE7M3FKNZF6Y4M7IAGEWZEAGV7JOTTONQU4O
+#\\\|3LCPSG4KUXHNLNOTRSQ632V4UFQXKUK7W2VLFOIAQFOMUUEQLRL \ / AMOS7 \ YOURUM ::
+#\[7]JBL6IN76YX6GI3L4FHTEAQCLZLCMZIK67BUDCT4JJGJ7JW7K3YDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
