@@ -253,8 +253,184 @@ harmony credential.request-authorization
 do not modify or regenerate any AMOS7 signature lines. the signing system
 handles all footer blocks — leave them untouched.
 
-#,,.,,..,,.,,,.,.,...,...,.,,,..,,.,,,,,.,,,.,..,,...,...,...,..,,.,,,,,,,.,.,
-#CJ42HJNMRMJEXTXMT2JXJNCVAUANM7JNK2KKXXUW4VDYEI5ONBIYOO6EIZTEUGSFJRWIDKO6PI7NM
-#\\\|MRTSI6K6Z6QEOXJZYR7KVCGCIOSTIK53SGKUDHNG6C2PHNQDKHD \ / AMOS7 \ YOURUM ::
-#\[7]FTIT6M6XDSXAVH73THXYFISERGWIGV7OCK3USESCYZY3AJTKE6DY 7  DATA SIGNATURE ::
+## codebase findings
+
+### existing patterns to reuse
+
+**C25519 implementation (`modules/crypt.C25519.*` — 63 modules):**
+- `crypt.C25519.pre_init` — loads `Crypt::Ed25519`, `AMOS7::Twofish`, `Crypt::Curve25519`
+- `crypt.C25519.sign_data` — `Crypt::Ed25519::sign($msg, $pub, $priv)`
+- `crypt.C25519.verify_sign` — `Crypt::Ed25519::verify($msg, $pub, decode_b32r($sig))`
+- `crypt.C25519.compute_shared` — `Crypt::Curve25519::shared_secret($our_secret, $their_public)` → 32-byte DH shared secret
+- `crypt.C25519.load_keys_from_secret` — loads `.secret` file, decrypts with Twofish if encrypted
+- `crypt.C25519.decrypt_secret_key` — decrypts 32-byte secret key using `AMOS7::Twofish` + `AMOS7::13::key_32($password)`
+- `crypt.C25519.decrypt_priv_keystr` — decrypts 64-byte private key using same Twofish path
+- `crypt.C25519.write_keys` — writes key files to disk; accepts optional encryption password
+- Memory locking: `IO::AIO::aio_mlock` on private (64B) and secret (32B) keys
+- Secure deletion: `/usr/bin/shred -n 42` on key backup files
+
+**Symmetric encryption:**
+- `AMOS7::Twofish` — primary cipher, loaded by `crypt.C25519.pre_init`, `keys.init_code`, `credentials.init_code`
+- API pattern:
+  ```perl
+  my $key_32 = AMOS7::13::key_32(\$password);
+  AMOS7::Twofish::key_init($key_32, qw| decryption C25519 |);
+  my $dec_ref = AMOS7::Twofish::decrypt(qw| C25519 |, \$data);
+  AMOS7::Twofish::delete_table_entry(qw| decryption C25519 |);
+  ```
+- ChaCha20-Poly1305 (`Crypt::AuthEnc::ChaCha20Poly1305`) — used for session link encryption in `protocol.protocol-7.encryption.init`, NOT for at-rest storage.
+- **No AES modules found.**
+
+**Hashing:**
+- `Digest::BMW` (224/256/384/512) — used throughout
+- `blake2b_384_b64` — used by `plugin.auth.zenka` for session key hashing
+
+**Existing credentials system (`modules/credentials.*` — 14 modules):**
+- `credentials.init_code` — loads `AMOS7::13`, `AMOS7::Twofish`. Sets store dir `/var/protocol-7/credentials/`, session TTL 3600s, archive block size 13K. Starts cleanup timer every 5 min.
+- `credentials.load` — decrypts credential archive (`$cred_name.yaml.enc`) using Twofish (password = `$cred_name . ':' . $instance_id`)
+- `credentials.save` — encrypts and writes credential archive with same derivation
+- `credentials.cmd.request_session` — **cube-authenticated caller requests credential access.** Checks `authorized_zenki` list. Returns api-key, smtp/imap creds, or spawns web-session token.
+- `credentials.spawn_web_session` — generates session token ID, stores in `%credentials.session` with TTL
+- `credentials.handler.session_cleanup` — purges expired tokens
+- `credentials.read_archive` / `write_archive_file` — Twofish-encrypted archive I/O with randomized offset padding and 13K entropy padding
+- `credentials.audit` — audit logging
+
+**Key holder / child process patterns:**
+- **Pattern A (`socketpair` + `fork`):** `letsencr.base.fork_letsencr_child` — `socketpair()`, `<[base.fork]>`, child closes one end, parent closes the other, child loads runtime modules and creates session over pipe.
+- **Pattern B (`IPC::Open3::open3`):** `coding.spawn_inference_server` — external binary, non-blocking pipes, event loop IO watchers.
+- **Pattern C (`IPC::Open2::open2`):** `kimi.session.start_api_child` — inline perl child.
+- **Pattern D (background daemonization):** `base.process-into-background` — `fork`, `IO::AIO::reinit`, `POSIX::setsid`, redirect stdio to `/dev/null`.
+- Common infrastructure: `base.fork`, `base.zenki.report_child_pid`, `v7.handler.zenka_output`, `base.waitpid`.
+
+**Session infrastructure:**
+- `base.session.init`, `base.session.init_code`, `base.session.shutdown`, `base.session.calc_cmd_stats`
+- `base.handler.read.encryption-wrapper` / `base.handler.write.encryption-wrapper` — ChaCha20-Poly1305 session wrappers
+- `protocol.protocol-7.encryption.init` — derives 32-byte session key from C25519 DH shared secret via `AMOS7::13::key_32`
+
+**Auth modules:**
+- `auth.zenka.authenticate` — client-side zenka auth using `session_key`, securely erases key from memory after use
+- `plugin.auth.zenka` — server-side zenka auth. Compares `blake2b_384_b64($key_str)` against `$keys{'auth'}{'zenka'}{$user}`. Single-use keys (deleted after success).
+- `plugin.auth.twofish` — Twofish/C25519 auth protocol handler. Commands: `get-version`, `get-srv-key`, `get-key-sig`, `set-key`.
+
+**Keys zenka (`configuration/zenki/keys/`):**
+- Configures the standalone `keys` zenka — a privileged console tool for key generation, encryption, backup, signing, splitting, renaming.
+- Loads modules `crypt.C25519 terminal keys`.
+- **This is NOT a runtime "key holder" service for other zenki.** It is a human-operated management zenka.
+
+### integration points confirmed
+
+**Proxy zenka stub replacement:**
+- The proxy task defines `proxy.auth.lookup` as a stub returning `{ has_session => FALSE }`.
+- The credential fabric should register at `credential.resolve` (or alias `proxy.auth.lookup` → `credential.resolve` during transition).
+- Interface: `credential.resolve` receives `{ slot => '...', context => $request_context }` and returns an opaque handle or auth result.
+
+**Transport selector integration:**
+- Transport profiles reference credential slots (e.g., `atom.udt-psk`).
+- The transport selector calls `credential.resolve` at connection time.
+- The credential fabric must resolve these slots even though they are owned by the transport zenka.
+
+**Existing credentials directory:**
+- `/var/protocol-7/credentials/` is already used by `modules/credentials.*`.
+- The new credential fabric should either extend this directory or use a separate path to avoid collisions.
+
+### naming conflicts or overlaps
+
+- **`modules/credentials.*` (plural, 14 modules) already exists.** The task proposes `modules/credential.*` (singular). This is a **critical naming collision.** The existing `credentials` system handles SMTP/IMAP/API creds, web sessions, and encrypted archives. The new task's `credential` fabric is a broader, multi-owner system with STRM rotation, tiered storage, and zenka ownership.
+   - **Options:** (a) merge into existing `credentials.*` namespace, (b) use distinct prefix like `credential-fabric.*` or `auth.fabric.*`, (c) rename existing `credentials.*` to something else (invasive).
+   - **Recommendation:** the new system should use `credential_fabric.*` or `cred_fabric.*` as its module prefix to avoid collision, and explicitly call out how it relates to (and may eventually subsume) `credentials.*`.
+- `configuration/zenki/keys/` — the standalone `keys` zenka is for human key management. The new "detached key-holder child process" is a runtime component, not the same thing. Names should not collide: use `credential.key_holder.child` or similar, not `keys.child`.
+- `crypt.C25519.*` namespace is safe to call into. No collision.
+
+### gaps in the task spec
+
+1. **The existing `credentials.*` system is ignored.** There are 14 modules, active storage at `/var/protocol-7/credentials/`, session tokens, and `authorized_zenki` access control. The task spec does not mention whether the new fabric replaces, wraps, or coexists with this system. This is a **blocking architectural question.**
+2. **No `var/credential/` directory exists.** The task proposes this path. The existing system uses `/var/protocol-7/credentials/`. If both systems run, they need distinct paths. If the new system replaces the old, migration must be planned.
+3. **Twofish is the only symmetric cipher available.** The task says "twofish encryption with C25519 key" for tier 1. This is correct — `AMOS7::Twofish` is available and already used for credential archives. However, the task does not specify the key derivation. The existing pattern uses `AMOS7::13::key_32(\$password)` where password is derived from slot name + instance ID. The fabric needs a derivation scheme for the encryption key.
+4. **Detached key-holder child process — pipe protocol is unspecified.** The task says "result passed to owner via pipe." What format? JSON? Protocol-7 SIZE? Base32? The existing child patterns use Protocol-7 sessions over socketpair (letsencr) or raw line protocol (kimi-api child). The fabric needs to define its pipe protocol.
+5. **Memory locking and secure erasure patterns are not mentioned.** The existing C25519 code uses `IO::AIO::aio_mlock` and `/usr/bin/shred`. The credential fabric should adopt the same patterns for the key-holder child.
+6. **BMW384 content-addressing is mentioned in `PRIVACY-PRESERVING-IDENTITY-CREDENTIALS.md` but not in the task.** The task says "stored in tier-1 storage" without specifying the addressing scheme. The design doc says credentials are content-addressed by BMW384. This should be explicit in the task.
+7. **`credential.subscribe_rotation` STRM integration is underspecified.** How does a zenka subscribe? Via `protocol-7.route-send`? Via a direct data tree registration? The existing STRM system uses `base.strm.local.register` (as seen in `plugin.httpd.radio.handler.strm_open`). The fabric should specify the STRM registration mechanism.
+8. **`credential.request-authorization` auth relay flow needs the web-browser zenka.** The task says "web-browser zenka shows approval dialog." This requires the web-browser zenka to expose a command for showing dialogs and returning user input. Does such a command exist? `web-browser.*` modules are GTK3/WebKit — they likely have dialog primitives, but the exact command name is not specified.
+9. **`configuration/zenki/credential/access.zenki` format is unspecified.** The task mentions this file for access control but doesn't define its format. The existing `authorized_zenki` check in `credentials.cmd.request_session` uses a list or hash — the format should match.
+
+### suggested refinements
+
+1. **Resolve the `credential` vs `credentials` naming collision immediately.** Options ranked:
+   - **(Recommended)** Use `credential_fabric.*` as the module prefix. e.g., `modules/credential_fabric.init_code`, `credential_fabric.resolve`, `credential_fabric.store.local`. This is unambiguous and leaves `credentials.*` untouched during transition.
+   - Merge the new modules into `credentials.*` by adding `credentials.fabric.*` sub-modules. This is cleaner long-term but risks breaking the existing SMTP/IMAP session code.
+   - Keep `credential.*` (singular) and rename existing `credentials.*` to `legacy.credentials.*`. Highly invasive, not recommended.
+
+2. **Reuse `credentials.read_archive` / `write_archive_file` for tier-1 storage.** The existing Twofish-encrypted archive I/O with randomized offset padding is exactly what tier 1 needs. Wrap it rather than rewrite:
+   ```perl
+   ## in credential_fabric.store.local:
+   my $data = <[credentials.read_archive]>->($slot_name, $encryption_key);
+   <[credentials.write_archive_file]>->($slot_name, $data, $encryption_key);
+   ```
+   The encryption key is derived from the C25519 key-holder child's private key, not from a password.
+
+3. **Use the `letsencr` socketpair+fork pattern for the key-holder child.** It is the most mature child-process IPC pattern in the codebase:
+   ```perl
+   socketpair(my $child_pipe, my $parent_pipe, AF_UNIX, SOCK_STREAM, PF_UNSPEC);
+   <credential.key_holder.child.pid> = <[base.fork]>;
+   ## child loads only crypt.C25519 + minimal modules
+   ## parent communicates via Protocol-7 commands over the socketpair
+   ```
+   This gives the child its own memory space, its own module set, and a clean protocol boundary.
+
+4. **Derive the tier-1 encryption key via C25519 DH, not a password.** The design doc says "twofish encryption with C25519 key." The natural implementation:
+   - Key-holder child holds the C25519 private key.
+   - Fabric generates an ephemeral public key per slot.
+   - Shared secret = `Crypt::Curve25519::shared_secret($ephemeral_secret, $child_public)`.
+   - Twofish key = `AMOS7::13::key_32(\$shared_secret)`.
+   - Ephemeral secret discarded after encryption.
+   This matches the session encryption pattern in `protocol.protocol-7.encryption.init`.
+
+5. **Content-address tier-1 storage by BMW384.** Follow the design doc:
+   ```perl
+   my $addr = AMOS7::Digest::BMW::bmw384($credential_bytes);
+   my $b32_addr = encode_b32r($addr);
+   ## file path: var/credential_fabric/store/$b32_addr.enc
+   ```
+   This removes the need for a plaintext filename-to-slot index.
+
+6. **For the auth relay flow, delegate to `web-browser` zenka via `protocol-7.route-send`.** The exact command should be negotiated with the web-browser zenka owner, but the pattern is:
+   ```perl
+   <[protocol-7.route-send]>->(
+       {   'command'   => 'web-browser.dialog.show',
+           'call_args' => { 'type' => 'auth_approval', 'domain' => $domain },
+           'reply'     => { 'handler' => 'credential_fabric.handler.auth_relay_reply' },
+       }
+   );
+   ```
+
+7. **Add `credential_fabric.handler.rotation_strm` for STRM subscription.** When a credential rotates, the fabric pushes a STRM notification:
+   ```perl
+   <[base.strm.push]>->('credential.rotated.' . $slot, { slot => $slot, ntime => $ntime });
+   ```
+   Subscribing zenki use `base.strm.local.register` (same pattern as radio stream consumers).
+
+## refined module list
+
+**Namespace change (critical):**
+- All modules renamed from `credential.*` to `credential_fabric.*` to avoid collision with existing `credentials.*` (14 modules).
+
+**Additions:**
+- `modules/credential_fabric.key_holder.child` — the detached child process that holds the C25519 private key and performs decrypt/sign operations (replaces the underspecified `credential.store.local.key-holder`)
+- `modules/credential_fabric.key_holder.parent` — parent-side IPC over socketpair, dispatches operations to child
+- `modules/credential_fabric.encrypt` — encrypt a credential blob using C25519-derived Twofish key (shared secret pattern)
+- `modules/credential_fabric.decrypt` — decrypt a credential blob
+- `modules/credential_fabric.handler.rotation_strm` — pushes STRM notifications on rotation
+
+**Removals / merges:**
+- `modules/credential.store.local.key-holder` → merged into `credential_fabric.key_holder.child` + `credential_fabric.key_holder.parent`
+- `modules/credential.store.local` → keep but renamed to `credential_fabric.store.local`, and have it delegate encryption/decryption to the key-holder pair rather than doing it inline
+
+**Relationship to existing `credentials.*`:**
+- `credential_fabric.store.local` should wrap `credentials.read_archive` / `credentials.write_archive_file` for the actual file I/O, passing the C25519-derived key instead of the old password-derived key.
+- `credentials.cmd.request_session` and `credentials.spawn_web_session` remain in use for SMTP/IMAP/web sessions until the fabric subsumes them.
+
+#,,,.,...,..,,,,,,.,.,.,,,,.,,.,.,.,,,,.,,,..,..,,...,...,.,.,..,,,,.,.,.,,..,
+#FHNQHBAEFMJ7FUHSWYU5EYACMDK5PF6JVAPZ7VCPIRKWQN4ORBL6TUL2ECDFEVVVATDDMX2SH565G
+#\\\|K6KZIDZCY6OSKAI5IFOHEXO53T7JU6ECE6SS3BALXX5ETLFWSHV \ / AMOS7 \ YOURUM ::
+#\[7]6CRGBBCI4I25DOQPOXYQ6YG6QVVS77RDI5HC77IQEYIZ2J6QNUDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
