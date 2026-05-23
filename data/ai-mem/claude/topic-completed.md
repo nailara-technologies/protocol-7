@@ -1,5 +1,19 @@
 # Completed Work Sessions
 
+## session 48 — bug fixes: v7 instance_count, Fuse→Fuse3, log prefix alignment (2026-05-23)
+
+- `v7.instance_count`: exclude error-state instances from start_once guard (false "already running")
+- `Fuse` → `Filesys::Fuse3` migration: known_dependencies, .deps/profiles.yaml, install scripts
+  - `libfuse-perl` removed (dropped from debian); `libfuse3-dev` + cpanm `Filesys::Fuse3`
+  - `data/tasks/fuse3-migration.md` written for kimi to do data.mount.fuse.* API update
+- ssh/pm-dep: removed all old colon-format (`::`) duplicate files (Windows compat history)
+- `v7.handler.process_output_line`: fixed log prefix alignment in `-vq` mode
+  - was: `$1` (variable trailing spaces from %-\*s) placed before short name → misalign
+  - fix: `sprintf('%-7s', $zenka_short)` — fixed 7-char field always
+- `v7.calc_prefix_lengths`: added `cube` alongside `v7` in hardcoded iteration
+  - cube never enters v7.online-zenki (uses set-initialized not notify-online) → never got prefix signals
+- open: full lpw sync debugging dispatched to kimi — tile-groups/p7-log still lag behind v7
+
 ## session 47 — sys-deps zenka + debian root apt-child + AptPkg probing (2026-05-23)
 
 - `sys-deps` zenka live: on-demand, `state`/`check`/`missing`/`install` commands
@@ -1209,8 +1223,8 @@ Skip calling harmonize_payload_line_feed when both conditions are met:
 - Signatures now properly formatted with correct separator endline
 - Pre-commit validation passes
 
-#,,..,...,...,.,,,...,.,.,,,.,,,,,,..,,.,,,,.,..,,...,...,..,,.,.,,,,,,,.,.,.,
-#R3YXZC7TEQHIGKUWDMIZGLLMPOJJK4K46LTCYZW54AX5VL7RRYTZOG5OG5THXXWQ2HPF2VJKUI4JU
-#\\\|G3AMMHEORQK375LSHD4ERYR33CBJKGUPEUOPSFGEIWVOKTHDMMV \ / AMOS7 \ YOURUM ::
-#\[7]KILWJ27EQVOY7PVXKFEMB6U2GU42HRKZUYGYA2Q5JBO223MGSKAA 7  DATA SIGNATURE ::
+#,,,,,,.,,..,,..,,.,.,...,.,,,.,,,.,,,,.,,.,,,..,,...,...,...,.,.,,..,.,,,.,.,
+#CB7PLRJUII2XOQUA7IEISJFY7CGTWOTMIBDKLESHUSXN5ROL65LUUXRZ7KE4EITAKCQYZX5KO75MW
+#\\\|EMPPFZXJ255SEW6BXRWPKWV224KZ2YSKS6A6BXWR6WC2EMP7GVM \ / AMOS7 \ YOURUM ::
+#\[7]F43CYBJZTUUTBK2KZTNQMSFCOBUL5VQQGPX2W2UWIITBQMJMXIAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
