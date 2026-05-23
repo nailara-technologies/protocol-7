@@ -23,7 +23,7 @@ metadata:
 
 ## session 37 task queue (kimi-cli dispatch)
 
-- `data/tasks/v7-teardown-whitelist.md` — restrict teardown to system zenka (tiny)
+- `data/tasks/v7-teardown-whitelist.md` — DONE ✓ session 48c (access.cmd.usr.system = v7.teardown + SOURCE alias already in cube/command_aliases; test with devmod switch-user — taeki has full wildcard so need to switch to verify restriction)
 - `data/tasks/source-code-header-check.md` — DONE ✓ already completed prior session (parameterized // TRUE, all headers valid)
 - `data/tasks/weather-forecast-humidity.md` — re-enable humidity API field (tiny)
 - `data/tasks/web-browser-evaluate-javascript.md` — DONE ✓ session 42
@@ -102,7 +102,8 @@ metadata:
 - GPU STRM subscription + coding zenka feed + sparkline (3 phases)
 - MCP external command config table + kimi_dispatch tool
 - `data/yaml/reasoning-templates/holographic-grid-interface.yaml` (733 lines)
-- pending sign/commit: X-11.init_code, new coding.* modules, mcp-server-p7
+- v7-teardown-whitelist: DONE ✓ — access.cmd.usr.system = v7.teardown in v7/start; SOURCE alias for v7.teardown already in cube/command_aliases (transmits caller identity); test pending with devmod switch-user (taeki has full wildcard, need non-taeki user to verify denial)
+- MCP kimi_dispatch/kimi_continue: LIVE — 47min timeout, session resume via kimi -r <uuid>
 
 ## planned / future
 
@@ -133,8 +134,8 @@ metadata:
 
 After a failed tool-using task, Glitter backend needs restart before `:no_tools:` tasks work. Model gets stuck in tool-mode. Restart coding zenka or wait before dispatching `:no_tools:` priming tasks.
 
-#,,,,,,,.,.,,,,..,.,.,,.,,.,,,,..,.,,,...,,,.,..,,...,...,..,,,..,,,.,,.,,,.,,
-#65K7CJXAYP76A5IJI3F27QKTGHW2GOREOD6LAR5BHIGUWDLNSVKF43TKM6CMNUGXBCB75OBD2T7FG
-#\\\|436J55SIFCSITOS52NSECRBSSQ4Z7TWBRMAGW23AWO4VNO2OJBE \ / AMOS7 \ YOURUM ::
-#\[7]TWGT4U7CMTWI5TB6K3RALALPH5GD3ADLOAHSXX6HIPVAXQRC2WDA 7  DATA SIGNATURE ::
+#,,.,,.,,,.,.,.,,,...,,..,.,,,,,.,.,.,,,,,,,,,..,,...,...,.,,,.,.,..,,..,,.,,,
+#4ZL3FTBEHOBWIUI5NRKRGIM7CJ4FEC5QITTTCI4QCWSQUQFNVV4V3WBWUHABHR2SAHWT2L4322THQ
+#\\\|WAI25QXVNBJYTBVYYWXOW5C3EEB4T3WRKEIH4H5DVKLV5TVTCUR \ / AMOS7 \ YOURUM ::
+#\[7]XNDY3IUJZF5S5IQMU4LLTNXUHW3GLD53IPWGU6IBORHOVNFGPOBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
