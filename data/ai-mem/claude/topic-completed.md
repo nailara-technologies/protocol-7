@@ -18,10 +18,14 @@
   - both whitelisted in `configuration/zenki/coding/subroutine.white-list`
   - `coding.init_code` subscribes to X-11.gpu_load after init, handles FALSE reply gracefully
 - **MCP external command tools** (`bin/mcp-server-p7`):
-  - `@external_tools` config table with `kimi_dispatch` (300s timeout, `kimi -y -p %s`)
+  - `@external_tools` config table with `kimi_dispatch` + `kimi_continue` (both 47min / 2820s)
+  - `kimi_continue`: `kimi -y -r %s` resumes session by UUID from "To resume this session:" line
   - auto-registration into `@tools` with duplicate name guard
   - dispatch handler in elsif chain → `tool_external_command`
   - `tool_external_command`: `qx()` + SIGALRM timeout, merged stdout+stderr, `send_tool_result`
+- **v7-teardown-whitelist**: `access.cmd.usr.system = v7.teardown` in `configuration/zenki/v7/start`;
+  SOURCE alias for `v7.teardown` already in `cube/command_aliases` (passes caller identity through cube);
+  test pending with devmod switch-user (taeki has full wildcard → need non-taeki user to verify denial)
 - **reasoning template**: `data/yaml/reasoning-templates/holographic-grid-interface.yaml`
   created (733 lines) — div-13/7 invariants, vortex-cube, holographic emergence, interface
   principle, multi-scale cross-correlation, domain examples (materials/EM/corpus), compounding
@@ -1280,8 +1284,8 @@ Skip calling harmonize_payload_line_feed when both conditions are met:
 - Signatures now properly formatted with correct separator endline
 - Pre-commit validation passes
 
-#,,..,,,,,..,,,..,,,.,...,...,,,.,,..,,..,,,,,..,,...,...,...,,..,.,.,.,.,,,,,
-#QWAEC5WTVYRQXT2N53OUZBSKIJ5IN3GGN5ZDQMRL5PKHKVKPEGP2FDK33IW6XFQN6XROTTM5SLBZO
-#\\\|KITGZ27K4HVD6YPVSSIYV54F5SG7YZX4VH3I5WVC33GH24V4U4O \ / AMOS7 \ YOURUM ::
-#\[7]GKLN455ZQFUZNHORURI4S2BTEWJF2WHEKXGC7Z6O7IMWZ2Q6MAAI 7  DATA SIGNATURE ::
+#,,..,...,...,,.,,.,,,..,,,,,,.,,,,.,,,..,..,,..,,...,...,,.,,..,,,..,..,,...,
+#DCSV7AMPVIEQW63OUI5B4CCKKSFWTXP4OIWOHIRKAJKJMJKMAK2ZOABQM5JRJMX6IACM3KVRFR362
+#\\\|M7FKUTQLOXIRF7XCOUK24CGNVL5HZQONN3RMAO5E45IBWZZSRM6 \ / AMOS7 \ YOURUM ::
+#\[7]2MPBM3IEOWZRUFOKMR5PUDL44KVHSUMNPQ7WBMSWNB2RUMDKTGBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

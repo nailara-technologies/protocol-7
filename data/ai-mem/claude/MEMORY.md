@@ -156,6 +156,7 @@
 - [migration](topic-migration.md) — Windows 11 host instability, KVM/Debian migration priority, avoid /tmp/
 
 ## Feedback (behavior rules — always apply)
+- [memory-sync-timing](feedback-memory-sync-timing.md) — sync memory at ~42K context remaining, before auto-compaction fires
 - [ncode-tools](feedback-ncode-tools.md) — use ncode replace/parse-headers for namespace renames; not sed/perl -i loops
 - **httpd architecture**: httpd is a thin proxy — never load plugin.web.* in httpd. all cross-zenka data goes through web zenka via route-send SIZE. blocking reply-wait in httpd crashes sessions.
 - **P7 cross-zenka data**: use route-send + SIZE reply handler pattern (like radio relay). file system access between zenki is forbidden by design (different users). SHM or route-send for cross-zenka data.
@@ -193,8 +194,8 @@
 - **pager.sort.multi-key**: ntime_b32 + priority_map sort types added (session 42)
 - **task dispatch sections**: all dispatched tasks now carry ## dispatch + prompt for reuse
 
-#,,,.,.,.,,.,,,,.,,,.,,.,,,,.,..,,.,.,.,,,.,,,..,,...,...,...,,..,,,.,,,.,.,.,
-#237MNLS4ALOMCOLKDG5MFDJ3KEZHU37FZJKCNS4ZZ6THLC6XVDRRFLW2J7SP5PHUE6R7SBWNJCNR2
-#\\\|CJIEUJ7JAOQ4ZOPLXMBDBLKZXBZLG5XFPCX25NFINZNUIKIALZ5 \ / AMOS7 \ YOURUM ::
-#\[7]5VQWZLZ6NPP3VQMNMT2XWKESPYDBVMXQAN22J74S6YLUH3SH5QDI 7  DATA SIGNATURE ::
+#,,.,,..,,.,.,.,,,.,,,..,,.,.,,.,,,.,,,,.,.,.,..,,...,..,,..,,...,..,,,..,,,,,
+#WU7APYGYHIC3WCZXLNI2QIX563ARPZZKOPQPZRQ2KJBJUW2HWGROOKRIHNONBF6M5U7P5GK3KHSYM
+#\\\|AR4YEB4UYN2VT2RWEFW3X5WSYZO7AIYSQKYTDOVTN62WCJKOVTL \ / AMOS7 \ YOURUM ::
+#\[7]G2JVPILTBJ5QSJ4SDLTCSYIJT45ZCGGDJTKULWATRX4CBC2K3ICI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
