@@ -8,6 +8,29 @@ return { 'mode' => qw| false |, 'data' => 'no statistics available' }
     if not defined <X-11.gpu_top.stats.load_average>
     or not defined <X-11.gpu_top.stats.secs>;
 
+## subscription mode ##
+if ( defined $call->{'args'} and $call->{'args'} eq 'subscribe' ) {
+    my $h = <[base.stream.open]>->(
+        {   sid    => $call->{'session_id'},
+            cmd_id => $call->{'command_id'},
+            type   => qw| STRM |,
+            total  => undef,
+        }
+    );
+    return <[base.callback.cmd_reply]>->(
+        $call->{'reply_id'},
+        { 'mode' => qw| false |, 'data' => 'stream open refused' }
+    ) if not defined $h;
+
+    <X-11.gpu_top.listeners> //= [];
+    push @{<X-11.gpu_top.listeners>}, $h;
+    <[base.logs]>->(
+        2, 'gpu stats listener added [sid=%d]',
+        $call->{'session_id'}
+    );
+    return { 'mode' => qw| deferred | };
+}
+
 if ( defined $call->{'args'} ) {
     my $ivl  = $call->{'args'};
     my %secs = map { $ARG => 1 } @{<X-11.gpu_top.stats.secs>};
@@ -51,8 +74,8 @@ $stats_str =~ s| +$||;
 
 return { 'mode' => qw| true |, 'data' => $stats_str }
 
-#,,,,,,,,,.,,,,,,,..,,,,,,.,,,.,.,,,,,...,..,,..,,...,...,,,.,,.,,,,,,...,,..,
-#CMXGFDTJDAW3ZEW2PUGMVBSXJWDZTIKJ6L64IMHE4CUD2WRS4I4ROLBXOXZVOR7OQAQAD7UTQCJVS
-#\\\|TMBTCNS342HB73QF6RZR5RV23FACJPY7QCHLSFVDL4DJEJ26TMH \ / AMOS7 \ YOURUM ::
-#\[7]E2EGFZXS3NQUJSEFQFHWA54SQ6YAX7K4TXHHUHBBODL5QRHGSSDY 7  DATA SIGNATURE ::
+#,,.,,,..,..,,..,,.,,,,.,,,..,.,.,.,.,.,.,,..,..,,...,.,.,..,,..,,...,.,,,.,.,
+#SDSGJFP4AHL4PLS25BNXKOZLPN7JA3LBZMBELCT7OVBRJWVNVKBDE2VALS7BNU3BE2GEXJZ2KGAEO
+#\\\|MNMJWX3SPT27XECZOJ2FS3KNQLJQSFC6OO3IPQRXQTDWDQLUCVG \ / AMOS7 \ YOURUM ::
+#\[7]STSRGXY246VRVOR5LK6UZVY4WJ3EVH2HEQCD5ZATDK74LBE3TMCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

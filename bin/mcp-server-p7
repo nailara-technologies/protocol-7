@@ -42,6 +42,23 @@ my $auth_user = sprintf 'unix-%s',
     ( $ENV{'PROTOCOL_7_BIN_P7_USER'} // $ENV{'USER'} // $ENV{'LOGNAME'}
         // 'root' );
 
+##[ external command tools ]##
+
+my @external_tools = (
+    {   'name'        => 'kimi_dispatch',
+        'description' => 'dispatch a task to the local kimi AI agent. '
+            . 'runs kimi with auto-approval (-y) and returns combined output. '
+            . 'use for code implementation, analysis, or research tasks.',
+        'command'     => 'kimi -y -p %s',   ## %s = shell-quoted prompt arg
+        'param_name'  => 'prompt',
+        'param_desc'  => 'the task or question for kimi to work on',
+        'timeout'     => 300,               ## seconds
+    },
+    ## additional external tools can be added here
+    ## format: name, description, command (%s = shell-quoted first arg),
+    ##         param_name, param_desc, timeout
+);
+
 ##[ global state ]##
 
 my $cube_sock;    ## persistent connection to cube
@@ -321,6 +338,27 @@ our @tools = (
     }
 }
 
+##[ register external tools ]##
+
+for my $ext ( @external_tools ) {
+    next if grep { $_->{'name'} eq $ext->{'name'} } @tools;
+    push @tools, {
+        'name'        => $ext->{'name'},
+        'description' => $ext->{'description'},
+        'inputSchema' => {
+            'type'       => 'object',
+            'properties' => {
+                $ext->{'param_name'} => {
+                    'type'        => 'string',
+                    'description' => $ext->{'param_desc'},
+                }
+            },
+            'required'             => [ $ext->{'param_name'} ],
+            'additionalProperties' => \0,
+        },
+    };
+}
+
 ##[ main loop ]##
 
 log_msg( 'mcp-server-p7 starting [ auth=%s socket=%s ]',
@@ -433,6 +471,8 @@ sub handle_tools_call {
         tool_p7_chat_search( $id, $args );
     } elsif ( $name eq 'p7_chat_channels' ) {
         tool_p7_chat_channels( $id, $args );
+    } elsif ( my ($ext) = grep { $_->{'name'} eq $name } @external_tools ) {
+        tool_external_command( $id, $args, $ext );
     } else {
         send_error( $id, -32602, "unknown tool: $name" );
     }
@@ -1069,6 +1109,34 @@ sub tool_call_tool {
 }
 
 ## =========================================================================
+## external command tool implementations
+## =========================================================================
+
+sub tool_external_command {
+    my ( $id, $args, $ext ) = @ARG;
+    my $param  = $args->{ $ext->{'param_name'} } // '';
+    my $cmd    = sprintf( $ext->{'command'}, quotemeta($param) );
+    my $output = '';
+    my $error  = '';
+
+    ## run with timeout, capture stdout+stderr
+    eval {
+        local $SIG{ALRM} = sub { die "timeout\n" };
+        alarm( $ext->{'timeout'} // 120 );
+        $output = qx($cmd 2>&1);
+        alarm(0);
+    };
+    if ( $@ ) {
+        $error = $@ eq "timeout\n"
+            ? "command timed out after $ext->{'timeout'}s"
+            : "error: $@";
+    }
+
+    my $result = length($error) ? $error : $output;
+    send_tool_result( $id, $result, length($error) ? 1 : 0 );
+}
+
+## =========================================================================
 ## logging [ stderr only — stdout is mcp protocol ]
 ## =========================================================================
 
@@ -1078,8 +1146,8 @@ sub log_msg {
     printf STDERR "[mcp-server-p7] %s\n", $msg;
 }
 
-#,,..,...,.,.,,,,,,.,,...,.,.,...,,,,,...,,,,,..,,...,..,,.,.,...,,,,,...,..,,
-#TBJ5B5RFTCSEWDGHOKU7P5QMS5F6XDWO5OEOKBM7KYUMY2A4GQZGH6SJT33TIVVO7LMBRLTKTDJGE
-#\\\|ENJS7O3E6A37C77QYFIXCDRTOZGU7G77UW3B32SBZGJ3ACSD7DN \ / AMOS7 \ YOURUM ::
-#\[7]54IDQ7SYWIVNOWWLVCTAKZL5QC73VW25PTRFSZO275N4VAIC5CCA 7  DATA SIGNATURE ::
+#,,,.,,,,,.,.,.,.,,.,,..,,.,,,,.,,.,.,..,,,,,,..,,...,...,.,,,,.,,.,,,.,,,,,,,
+#RG3OSTURDRQVEQ34YNEK3VIS3PLGQUJIICW2KLIJBI2AD24JTTCPHHNUXSBIDURSROAPHEBLG3SYW
+#\\\|NPISS2H6KNF7YFEMEKRQFKZZTDGVNAJMOGSBJ33FT2QLLH2VXN4 \ / AMOS7 \ YOURUM ::
+#\[7]MNBGVEODYBS4W33MZNW4RPEBVSNHGDLLMJKZ5IQMXKRIWU7TBQAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
