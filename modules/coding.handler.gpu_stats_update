@@ -1,0 +1,77 @@
+## [:< ##
+
+# name  = coding.handler.gpu_stats_update
+# descr = handle GPU stats STRM subscription and consume stream data
+
+my $reply = shift;
+
+## handle FALSE reply (X-11 unavailable or stats not ready) ##
+if ( $reply->{'cmd'} eq qw| FALSE | ) {
+    <[base.logs]>->(
+        2,
+        'gpu stats subscription failed: %s',
+        $reply->{'call_args'}->{'args'} // 'unknown error'
+    );
+    return;
+}
+
+## only process STRM open ##
+return if $reply->{'cmd'} ne qw| STRM |;
+return if $reply->{'args'} ne qw| open |;
+
+my $cmd_id = $reply->{'cmd_id'};
+return if not defined $cmd_id or $cmd_id !~ m|^\d+$|;
+
+## initialize gpu stats namespace ##
+<coding.stats.gpu> //= {
+    'load_1s'       => undef,
+    'load_5s'       => undef,
+    'sparkline_buf' => [],
+    'updated_at'    => undef,
+};
+
+## register local consumer ##
+<[base.strm.local.register]>->(
+    $cmd_id,
+    {   'watcher' => sub {
+            my $lc = shift;
+            return if not length $lc->{'buf'};
+
+            my $data = $lc->{'buf'};
+            $lc->{'buf'} = '';
+
+            for my $line ( split /\n/, $data ) {
+                next if not length $line;
+                my ( $load_1s, $avg_5s ) = split / +/, $line;
+
+                <coding.stats.gpu.load_1s> = 0 + $load_1s;
+                <coding.stats.gpu.load_5s>
+                    = defined $avg_5s ? 0 + $avg_5s : undef;
+                <coding.stats.gpu.updated_at> = <[base.time]>->(2);
+
+                my $buf = <coding.stats.gpu.sparkline_buf>;
+                push @$buf, 0 + $load_1s;
+                shift @$buf while @$buf > 20;
+            }
+
+            <[base.logs]>->(
+                3,
+                'gpu stats updated: %s%% [1s] %s',
+                <coding.stats.gpu.load_1s> // 'undef',
+                defined <coding.stats.gpu.load_5s>
+                ? sprintf( '[5s avg: %s%%]', <coding.stats.gpu.load_5s> )
+                : ''
+            );
+        },
+    }
+);
+
+<[base.logs]>->(
+    2, 'gpu stats STRM consumer registered [cmd_id=%d]', $cmd_id
+);
+
+#,,..,,..,,.,,,,,,,.,,.,.,,,,,.,.,...,.,,,,,,,..,,...,...,,,,,,..,.,,,.,,,,.,,
+#AWKG4WH5NLGBR2SLAUNIKAY2NZ5XFBMHIFHLJZHTLH3RQX7A3BI7OAL6GH3HM6VR44OY5UJDNN7GY
+#\\\|6IXFKTWZOQMURVPDT7BIAJYJ4POSHHQAKCUM2EI7MTAGEVZWB6W \ / AMOS7 \ YOURUM ::
+#\[7]GY3I5V53WRDK4YNGXEHKRBFAQ3EAA2EQ2OYZUDIIGPSRZFJPFUCY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

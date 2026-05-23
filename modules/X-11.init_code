@@ -37,11 +37,30 @@ foreach my $bin_name ( qw [
     lspci
     Xephyr
     nxagent
-    intel_gpu_top
-    intel_gpu_frequency
+    nvidia-smi
     ]
 ) {
     <X-11.bin_path>->{$bin_name} //= <[base.required_bin_path]>->($bin_name);
+}
+
+## optional intel gpu tools — silent lookup, not an error if absent
+for my $bin_name (qw[ intel_gpu_top intel_gpu_frequency ]) {
+    ( <X-11.bin_path>->{$bin_name} ) = <[file.which]>->($bin_name);
+}
+
+## auto-detect gpu vendor
+my $nvidia_bin = <X-11.bin_path>->{'nvidia-smi'};
+my $intel_bin  = <X-11.bin_path>->{'intel_gpu_top'};
+
+if ( -x $nvidia_bin ) {
+    <X-11.gpu_vendor> //= 'nvidia';
+    <[base.log]>->( 1, "gpu monitoring: nvidia [ nvidia-smi ]" );
+} elsif ( -x $intel_bin ) {
+    <X-11.gpu_vendor> //= 'intel';
+    <[base.log]>->( 1, "gpu monitoring: intel [ intel_gpu_top ]" );
+} else {
+    <X-11.gpu_vendor> //= 'none';
+    <[base.log]>->( 2, "gpu monitoring: no supported tool found" );
 }
 
 <[base.inotify.install_io_watcher]>;
@@ -68,6 +87,7 @@ if ( <X-11.mode> eq qw| auto-xephyr | ) { ## detect if Xorg running --> xephyr
 <X-11.max_intel_gpu_freq>  //= qw| no |;
 
 <X-11.collect_intel_gpu_stats> //= FALSE;
+<X-11.collect_gpu_stats>       //= <X-11.collect_intel_gpu_stats>;
 
 <X-11.reconnect.enabled>       //= TRUE;
 <X-11.reconnect.max_attempts>  //= 7;
@@ -81,8 +101,8 @@ if ( <X-11.mode> eq qw| auto-xephyr | ) { ## detect if Xorg running --> xephyr
 
 0;
 
-#,,,.,...,,..,.,,,...,.,.,,.,,.,,,,.,,,,,,.,,,..,,...,..,,..,,,,,,,,,,...,..,,
-#6XJN64J2YI7ANRU4ZT543TMEHP2ZZBJJDEC5ETZI3LH66K54Z5ZGHN4M55VLL3RON5KLIAYFNH3UM
-#\\\|3TGYQWHYHCYVJL57G2DDARMR665QLYYXVLP3KMKOJ45UAQRMKU6 \ / AMOS7 \ YOURUM ::
-#\[7]KOEQLF2DMDXSO6J3XS62SXPXNJKCIKBXEWG5SC4ODR4CM45HFSCA 7  DATA SIGNATURE ::
+#,,..,,..,,,,,.,.,,.,,,.,,,,,,.,.,..,,..,,,,.,..,,...,...,...,,,.,,,.,,,,,,..,
+#F7PGHCWWD5WRAGPVAZE5IU254HMO45QGGPXPU5QWMTZQRRCTG3CZY6CCYSDFBWUF7DHEKZLRBHJSC
+#\\\|UJV65HYQTHRUH2Y6QKKZTVAXR6IF5GJMJONBWBIJNOLFYF6FYF6 \ / AMOS7 \ YOURUM ::
+#\[7]AP7VVYTDSBGJU5UV4CWTCEOLELSBL2JK7BW3J6GWIGAL4KQPWEBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

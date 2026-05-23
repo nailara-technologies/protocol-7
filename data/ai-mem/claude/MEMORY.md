@@ -27,6 +27,11 @@
 - `data/md/development/P7-LLM-REFERENCE.md` — verified live command reference for kimi/LLM sessions
 - `data/md/development/DEGRADED-FEATURES-AUDIT.md` — 5 high-priority + 3 medium candidates with stub task files
 
+## Session 48c
+- **reasoning template**: `data/yaml/reasoning-templates/holographic-grid-interface.yaml` — div-13/7 invariants as true interdisciplinary interface; vortex-cube, holographic emergence, two families (076923/153846), darksun pos-27, 1001 ring; cross-refs TESLA/IMPLOSION/ZERO docs
+- **GPU monitoring**: X-11 nvidia handler live; intel binary noise fixed (file.which); GPU STRM subscription + coding zenka feed (coding.stats.gpu.*) + sparkline module
+- **MCP kimi_dispatch**: bin/mcp-server-p7 @external_tools config table; kimi_dispatch tool with 300s timeout
+
 ## Session 47
 - [sys-deps-debian](topic-sys-deps-debian.md) — sys-deps zenka + debian root apt-child pattern, AptPkg probing, cpanm root-only, auto-scan on empty registry
 
@@ -188,8 +193,8 @@
 - **pager.sort.multi-key**: ntime_b32 + priority_map sort types added (session 42)
 - **task dispatch sections**: all dispatched tasks now carry ## dispatch + prompt for reuse
 
-#,,,.,...,..,,,,.,.,,,..,,,,.,..,,.,,,,,.,,,,,..,,...,...,.,.,,..,.,,,,,,,,,,,
-#74VLQ6UIOMIDVTWULJHVC7LDS77N5UYCUWJDBJE5FHE7M3FKNZF6Y4M7IAGEWZEAGV7JOTTONQU4O
-#\\\|3LCPSG4KUXHNLNOTRSQ632V4UFQXKUK7W2VLFOIAQFOMUUEQLRL \ / AMOS7 \ YOURUM ::
-#\[7]JBL6IN76YX6GI3L4FHTEAQCLZLCMZIK67BUDCT4JJGJ7JW7K3YDI 7  DATA SIGNATURE ::
+#,,,.,.,.,,.,,,,.,,,.,,.,,,,.,..,,.,.,.,,,.,,,..,,...,...,...,,..,,,.,,,.,.,.,
+#237MNLS4ALOMCOLKDG5MFDJ3KEZHU37FZJKCNS4ZZ6THLC6XVDRRFLW2J7SP5PHUE6R7SBWNJCNR2
+#\\\|CJIEUJ7JAOQ4ZOPLXMBDBLKZXBZLG5XFPCX25NFINZNUIKIALZ5 \ / AMOS7 \ YOURUM ::
+#\[7]5VQWZLZ6NPP3VQMNMT2XWKESPYDBVMXQAN22J74S6YLUH3SH5QDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -4,47 +4,87 @@
 
 return if defined <X-11.gpu_top.process_started>;
 
-my $refresh_period = 1137; # def: 1000 [ careful with too low values --> CPU ]
-my $gpu_top_bin    = <X-11.bin_path.intel_gpu_top>;
-my $gpu_freq_bin   = <X-11.bin_path.intel_gpu_frequency>;
-return <[base.log]>->(
-    0, "<< not found : 'intel_gpu_top' [ 'intel-gpu-tools' installed ? ] >>"
-) if !-x $gpu_top_bin;
+my $vendor = <X-11.gpu_vendor> // 'none';
 
-return <[base.log]>->( 0, "<< cannot run 'intel_gpu_top' >>" )
-    if qx($gpu_top_bin -h) !~ m|usage|;
+return <[base.log]>->( 2, 'gpu monitoring disabled [ no supported tool ]' )
+    if $vendor eq 'none';
 
-return
-    <[base.log]>->( 0, '<< apparently no intel GPU [intel_gpu_frequency] >>' )
-    if length($gpu_freq_bin)
-    and -x $gpu_freq_bin
-    and qx($gpu_freq_bin) =~ m|no intel gpu found|i;
+if ( $vendor eq 'nvidia' ) {
+    my $nvidia_bin = <X-11.bin_path>->{'nvidia-smi'};
 
-<[base.log]>->( 1, "starting 'intel_gpu_top' process .," );
+    <[base.log]>->( 1, "starting 'nvidia-smi' gpu monitor .," );
 
-<X-11.gpu_top.pid>
-    = open3( undef, my $out_fh, undef,
-    $gpu_top_bin, qw| -s |, $refresh_period, qw| -o - | );
-
-if ( !<X-11.gpu_top.pid> ) {
-    <[base.log]>->(
-        0, "<< cannot open 'intel_gpu_top' pipe [ \l$OS_ERROR ] >>"
+    <X-11.gpu_top.pid> = open3(
+        undef, my $out_fh, undef, $nvidia_bin,
+        qw| --query-gpu=utilization.gpu |,
+        '--format=csv,noheader,nounits',
+        qw| -l 1 |
     );
-    return;
-}
-push( @{<system.kill_list>}, <X-11.gpu_top.pid> );
 
-<X-11.gpu_top.process_started> = <[base.time]>->(2);
-
-<[event.add_io]>->(
-    {   'fd'      => $out_fh,
-        'handler' => qw| X-11.handler.read_gpu_top |,
-        'data'    => { 'pid' => <X-11.gpu_top.pid> }
+    if ( !<X-11.gpu_top.pid> ) {
+        <[base.log]>->(
+            0, "<< cannot open 'nvidia-smi' pipe [ \l$OS_ERROR ] >>"
+        );
+        return;
     }
-);
+    push( @{<system.kill_list>}, <X-11.gpu_top.pid> );
 
-#,,.,,.,,,,..,,,,,,.,,..,,,..,,,.,.,,,,,.,..,,..,,...,...,.,.,,..,,,.,.,,,...,
-#3GWVFSM65PNGTNKCJHH4HACJ6WY5WRNH7IG5Z32FTWOIZ2M63HAD3X4YMDOCAJZSYMWRIB7J3S53S
-#\\\|WFD2Y5SQMYEUG5FEA6QAZUPDPNDRHUS3NUH5HHF2ZFC5SX22WOE \ / AMOS7 \ YOURUM ::
-#\[7]J5TBGVHRWYVA54GZNGHHB5VJXCJASQGD3Z4PAE4RUGFZRWOVPSCA 7  DATA SIGNATURE ::
+    <X-11.gpu_top.process_started> = <[base.time]>->(2);
+    <X-11.gpu_top.out_fh>          = $out_fh;   ## keep fh alive past scope ##
+
+    <[event.add_io]>->(
+        {   'fd'      => $out_fh,
+            'handler' => qw| X-11.handler.read_gpu_nvidia |,
+            'data'    => { 'pid' => <X-11.gpu_top.pid> }
+        }
+    );
+
+} elsif ( $vendor eq 'intel' ) {
+    my $refresh_period
+        = 1137;    # def: 1000 [ careful with too low values --> CPU ]
+    my $gpu_top_bin  = <X-11.bin_path.intel_gpu_top>;
+    my $gpu_freq_bin = <X-11.bin_path.intel_gpu_frequency>;
+    return <[base.log]>->(
+        0,
+        "<< not found : 'intel_gpu_top' [ 'intel-gpu-tools' installed ? ] >>"
+    ) if !-x $gpu_top_bin;
+
+    return <[base.log]>->( 0, "<< cannot run 'intel_gpu_top' >>" )
+        if qx($gpu_top_bin -h) !~ m|usage|;
+
+    return <[base.log]>->(
+        0, '<< apparently no intel GPU [intel_gpu_frequency] >>'
+        )
+        if length($gpu_freq_bin)
+        and -x $gpu_freq_bin
+        and qx($gpu_freq_bin) =~ m|no intel gpu found|i;
+
+    <[base.log]>->( 1, "starting 'intel_gpu_top' process .," );
+
+    <X-11.gpu_top.pid>
+        = open3( undef, my $out_fh, undef,
+        $gpu_top_bin, qw| -s |, $refresh_period, qw| -o - | );
+
+    if ( !<X-11.gpu_top.pid> ) {
+        <[base.log]>->(
+            0, "<< cannot open 'intel_gpu_top' pipe [ \l$OS_ERROR ] >>"
+        );
+        return;
+    }
+    push( @{<system.kill_list>}, <X-11.gpu_top.pid> );
+
+    <X-11.gpu_top.process_started> = <[base.time]>->(2);
+
+    <[event.add_io]>->(
+        {   'fd'      => $out_fh,
+            'handler' => qw| X-11.handler.read_gpu_top |,
+            'data'    => { 'pid' => <X-11.gpu_top.pid> }
+        }
+    );
+}
+
+#,,.,,.,,,,.,,,,.,...,...,,,,,,,,,,,,,,..,...,.,.,...,..,,..,,.,,,,,.,..,,.,.,
+#44TJ74QIPIBM67QMPGRMVIRPXJ6JFQGKNZYY3IYMRVYW72X4XWPXYFMFZU4UB24H2MJZ7VUOAD772
+#\\\|PJOI4OJQXPKAR52YYY6H5KWGMTFITEVYEZOH3FBRXTQ3RLQCBZI \ / AMOS7 \ YOURUM ::
+#\[7]PLHYXOR4ZOI7Z3HFN4CLOQLKOKZVX3G2JHB47TBOVDKEZ6OZXYCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -29,7 +29,7 @@ metadata:
 - `data/tasks/web-browser-evaluate-javascript.md` — DONE ✓ session 42
 - `data/tasks/mpv-xephyr-vo-override.md` — test gpu vs sdl under xephyr
 - `data/tasks/diff-modified-no-color-mode.md` — --no-color flag **[dispatched session 42]**
-- `data/tasks/x11-gpu-monitoring-vendor-detect.md` — nvidia-smi + intel_gpu_top auto-detect
+- `data/tasks/x11-gpu-monitoring-vendor-detect.md` — DONE ✓ session 48c (needs longer soak test → needs-testing/)
 - `data/tasks/kimi-zenka-multiplexer.md` — STRM dispatch + queue + sudo auto-decline (kimi-cli only)
 - `data/tasks/credentials-zenka.md` — encrypted credential store, per-zenka authorization
 - `data/tasks/x11-wait-visible-host-mode-skip.md` — capability flag, skip on WSL
@@ -95,6 +95,15 @@ metadata:
 - **namespace layers**: separate rings per namespace (base.*, kimi.*, jobsite.*) — layer boundaries visible
 - **favicon/header**: 26-ring iris at thumbnail scale as live system-state favicon
 
+## completed session 48c (2026-05-23)
+
+- X-11 nvidia GPU monitoring: handler + 3 bug fixes (whitelist, fh scope, regex lvalue)
+- X-11.init_code: intel binary noise fix (file.which silent lookup)
+- GPU STRM subscription + coding zenka feed + sparkline (3 phases)
+- MCP external command config table + kimi_dispatch tool
+- `data/yaml/reasoning-templates/holographic-grid-interface.yaml` (733 lines)
+- pending sign/commit: X-11.init_code, new coding.* modules, mcp-server-p7
+
 ## planned / future
 
 - **SHM streaming pipeline** — data/tasks/shm-streaming-payload-pipeline.md
@@ -111,7 +120,7 @@ metadata:
 
 - **source.extract_sig_body**: YOURUM fake stubs 1 char too long → size mismatch → error instead of strip
 - **signature oscillation Variant B** — double-footer on never-signed non-empty files
-- [signature endline restoration](bug-signature-endline-restoration.md) — stale encoded delta after edit
+- ~~signature endline restoration~~ — **FIXED session 48b**: stale delta clamp + normalize recovery
 - **repo var/ cleanup** — `var/httpd/` tracked from Nov 2025 AI error
 - **kimi auto-approval regression** (Apr 16) — some tool calls not auto-approved
 
@@ -124,8 +133,8 @@ metadata:
 
 After a failed tool-using task, Glitter backend needs restart before `:no_tools:` tasks work. Model gets stuck in tool-mode. Restart coding zenka or wait before dispatching `:no_tools:` priming tasks.
 
-#,,..,.,,,,.,,,.,,,.,,...,,,,,,,.,,..,.,,,,..,..,,...,...,...,,,.,,.,,.,,,..,,
-#RJQMWRXUGRI37O4BP5CA7RN4NPAUPOJ3RRFTQZ6HWLTHNB3DNDNII4W4D33WZHX57OW4STIVX4JVG
-#\\\|VIGW3GOHNQ4XDMXJP4THL6S67PJJ3SFUJIMG4EHKINYTDOVNDQX \ / AMOS7 \ YOURUM ::
-#\[7]S2LOYJ3GZ7ARNNRRI5ORP3JPI3Q6MYVOZ22HZJFADNBFDNXQD4AQ 7  DATA SIGNATURE ::
+#,,,,,,,.,.,,,,..,.,.,,.,,.,,,,..,.,,,...,,,.,..,,...,...,..,,,..,,,.,,.,,,.,,
+#65K7CJXAYP76A5IJI3F27QKTGHW2GOREOD6LAR5BHIGUWDLNSVKF43TKM6CMNUGXBCB75OBD2T7FG
+#\\\|436J55SIFCSITOS52NSECRBSSQ4Z7TWBRMAGW23AWO4VNO2OJBE \ / AMOS7 \ YOURUM ::
+#\[7]TWGT4U7CMTWI5TB6K3RALALPH5GD3ADLOAHSXX6HIPVAXQRC2WDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
