@@ -13,27 +13,30 @@ my $start_lpw = <system.start.log_prefix_width>;
 my $cur_lpw   = <system.zenka.log_prefix_width>;
 my $max_lpw   = 27;                                ## <-- auto-calc
 
-my $min_lpw_mesg = ':: SIG NUM55 :: zenka prefix width reached';
+my $min_lpw_mesg = ':: SIG NUM41 :: minimum zenka log prefix width reached';
+my $lpw_log_lvl  = <devmod.lpw_log_level> // 3;
 
 if ( $cur_lpw > $start_lpw ) {
-    <[base.log]>->( 2, '.: SIG NUM41 :: decreasing zenka log prefix width' );
+    <[base.log]>->(
+        $lpw_log_lvl, '.: SIG NUM41 :: decreasing zenka log prefix width'
+    );
 
-    $cur_lpw -= $signal_count;    ##  descrease  ##
+    $cur_lpw -= $signal_count;    ##  decrease  ##
 
     if ( $cur_lpw < $start_lpw ) {
         $cur_lpw = $start_lpw;    ## limiting [ combined signals case ] ##
 
-        <[base.log]>->( 2, $min_lpw_mesg );
+        <[base.log]>->( $lpw_log_lvl, $min_lpw_mesg );
     }
 } else {
-    <[base.log]>->( 2, $min_lpw_mesg );
+    <[base.log]>->( $lpw_log_lvl, $min_lpw_mesg );
     return;
 }
 
 <system.zenka.log_prefix_width> = $cur_lpw;
 
-#,,..,,,,,...,.,,,,,,,,.,,,..,.,.,..,,,,,,,,.,..,,...,...,..,,.,,,,.,,,,.,,,,,
-#3OBTDMYSN4534EAM3X46CQBB7FKWEBBNW5RRINGOSJMZSQBRYFGFLBS4FOQD5NPUBIMTJDITXKADE
-#\\\|NOBYZ6DXRYJLE4HT57Z3JTGZKVLJ32X65YRGJEHZYA5EK24FZV7 \ / AMOS7 \ YOURUM ::
-#\[7]TJKXSXEQD6MJHBG2F5RIUJYW4MJUUWQ3S7THVE6BQ4GSRNZQEKBI 7  DATA SIGNATURE ::
+#,,,,,.,,,...,,,,,...,,.,,..,,,..,,..,,..,,,.,..,,...,...,.,.,..,,.,,,.,.,,,,,
+#IVTG44UONW2R3M32TKJRYBOBPOQKXBHFIBMTUPNFMJ6B5GJFBGMTTSXHHRPR62Y7ONSHWCVY3VUGS
+#\\\|WMK3FT2QV6YIODM6LTVD5GUH3FTVT2UOQQB5XAPJDNEF7MAEE4U \ / AMOS7 \ YOURUM ::
+#\[7]RX6Q64KETQXXANFPUD5MU743OKG4VR54BU6IACQBFK7DMK4XBUDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
