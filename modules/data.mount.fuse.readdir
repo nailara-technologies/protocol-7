@@ -3,7 +3,7 @@
 # name  = data.mount.fuse.readdir
 # param = <fuse_path>
 # descr = FUSE readdir callback - return directory entries
-# return = list of filenames (or entries for Fuse::Simple)
+# return = list of filenames followed by errno (0 for success)
 
 my $fuse_path = shift // return ();
 
@@ -67,10 +67,10 @@ if ( ref($ref) eq 'HASH' ) {
     }
 }
 
-return @entries;
+return ( @entries, 0 );
 
-#,,,,,...,...,.,.,.,,,.,.,..,,.,,,,.,,.,.,,,.,.,.,...,...,,,,,...,,..,...,.,.,
-#5ZEXI34Q6T67C3BSMIRWWI6A2KJDD6XZDDTMDBYIWWUMEXHJH3S3PHOPSLGYQUF5MGS5OGQHSS3MM
-#\\\|6L4BPYQQ26FIPAM3SN5Z5BACMTPXTLUTRNU3U3Y5R2VYEB4ZMM4 \ / AMOS7 \ YOURUM ::
-#\[7]4P2SF4K77YKFNGSH2VGCZDTTHQV64M6WW2LJOZCPYOXRHQB5TKBY 7  DATA SIGNATURE ::
+#,,.,,.,,,,..,...,,..,,..,,..,,..,.,.,...,.,,,.,.,...,...,.,.,.,,,.,,,.,,,,..,
+#XPKN42JPABBB2QQBTYT2C3DGER7CDDA25UYO6QV4FU4JJ42WJFTW6IM2KWKQGJNTPODAGT6TGSAQW
+#\\\|4TKKH3V2YIJC7VKCU7PCDR6JF6PNL2XLFOFSX6ZIJYGWMEC2KU4 \ / AMOS7 \ YOURUM ::
+#\[7]LTAC7JFV7FGANRSL7MMQSXWXSFZAZ74VRCVKSIXOR2FCT5XKBCCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
