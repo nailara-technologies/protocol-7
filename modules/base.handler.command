@@ -2153,11 +2153,15 @@ UNKNOWN_TYPE_HANDLED:
 ##[ CMD LOGGING ]#############################################################
 
             <log.level.cmd-offset> //= {};
-            my $llvl_offs    ## adjustable per cmd ##
-                = ( exists <log.level.cmd-offset>->{$cmd}
+            my $cmd_base = ( $cmd =~ s|^\d+\.||r ); ## strip session prefix ##
+            my $llvl_offs                           ## adjustable per cmd ##
+                = ( exists <log.level.cmd-offset>->{$cmd_base}
+                    and <log.level.cmd-offset>->{$cmd_base} =~ m{^[\+\_]?\d} )
+                ? <log.level.cmd-offset>->{$cmd_base}
+                : ( exists <log.level.cmd-offset>->{$cmd}
                     and <log.level.cmd-offset>->{$cmd} =~ m{^[\+\_]?\d} )
                 ? <log.level.cmd-offset>->{$cmd}
-                : 0;         ## default offset 0 ##
+                : 0;                                ## default offset 0 ##
             ## default log level 2 for network traffic ##
             if (   <system.verbosity.console> >= $llvl_offs
                 or <system.verbosity.zenka_buffer> >= $llvl_offs ) {
@@ -2291,8 +2295,8 @@ UNKNOWN_CMD_GLOBAL_HANDLED:
 
 return 0;        ## comand complete ##
 
-#,,,,,,,.,..,,,,,,..,,,..,,,,,.,,,,,.,..,,,,,,..,,...,...,.,,,.,,,,,.,...,.,.,
-#GIK4D4VW2U5SUPP6SDHANVOMDFSTIL4PQFNCNZU6QORKHFW5FRP2YQ33AZYWY5QTS5C5HFY5XOO2U
-#\\\|ZS5BRGI5AI6TAVBQ2AJA42WSYPEHIPQASTD67MS2VE3NVP6EZFH \ / AMOS7 \ YOURUM ::
-#\[7]O2SZV4VMOSHBW2EQTHJCCYE7DHZXMVMRTTELHCKZXXIU5YMU6EAQ 7  DATA SIGNATURE ::
+#,,,.,,,.,,.,,,.,,,,.,.,,,,.,,,..,,,.,,,,,,,.,..,,...,...,,,.,.,.,,.,,.,.,..,,
+#BEUSF2XWDOTGQ54STLL67DNYX2N6LFMOYZWIDP3S2ZXXZ625S2USLUCJR7OW5UAXXUEOT46BPRAWI
+#\\\|Y57AA4FGS7AJJFHRDXJOSG5UQ2E7PDI65VARWQE2NVXATZQHDXO \ / AMOS7 \ YOURUM ::
+#\[7]6RRAB2OSMCJN26WP53ZAMSZ7WUXOKVNH47NYIUQ5WD4WMBSI2WAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
