@@ -9,8 +9,8 @@
 
 ##[ AUTOLOAD PERL MODULES ]#################################################
 
-# Load Fuse module via base.perlmod.autoload
-# Note: Fuse is loaded on-demand when first mount is requested
+# Load Filesys::Fuse3 module via base.perlmod.autoload
+# Note: Filesys::Fuse3 is loaded on-demand when first mount is requested
 # to avoid loading overhead if FUSE is not used
 
 ##[ NAMESPACE INITIALIZATION ]##############################################
@@ -23,13 +23,13 @@
 <data.fuse.capabilities.loaded>    = 0;
 <data.fuse.capabilities.available> = 0;
 
-# Check if Fuse module is available
-if ( eval { require Fuse; 1 } ) {
+# Check if Filesys::Fuse3 module is available
+if ( eval { require Filesys::Fuse3; 1 } ) {
     <data.fuse.capabilities.available> = 1;
-    <[base.log]>->( 2, "FUSE module available (Fuse)" );
+    <[base.log]>->( 2, "FUSE module available (Filesys::Fuse3)" );
 } else {
     <[base.log]>->(
-        1, "FUSE module not available - install Fuse.pm for mount support"
+        1, "FUSE module not available - install Filesys::Fuse3 for mount support"
     );
 }
 
@@ -87,23 +87,24 @@ if ( eval { require Fuse; 1 } ) {
     return $hash_path;
 };
 
-# Load Fuse module on demand
+# Load Filesys::Fuse3 module on demand
 <data.fuse.load_module> = sub {
     return 1 if <data.fuse.capabilities.loaded>;
     return 0 unless <data.fuse.capabilities.available>;
 
     eval {
-        require Fuse;
-        Fuse->import();
+        require Filesys::Fuse3;
+        require POSIX;
+        POSIX->import(qw(ENOENT EACCES EISDIR));
     };
 
     if ($@) {
-        <[base.log]>->( 0, "Failed to load Fuse module: $@" );
+        <[base.log]>->( 0, "Failed to load Filesys::Fuse3 module: $@" );
         return 0;
     }
 
     <data.fuse.capabilities.loaded> = 1;
-    <[base.log]>->( 2, "FUSE module loaded successfully" );
+    <[base.log]>->( 2, "FUSE module (Filesys::Fuse3) loaded successfully" );
     return 1;
 };
 
@@ -111,8 +112,8 @@ if ( eval { require Fuse; 1 } ) {
 
 return TRUE;
 
-#,,,.,.,.,,,,,,,.,,.,,,,.,..,,,.,,.,.,.,,,.,,,.,.,...,...,...,,,.,,.,,,.,,,..,
-#UJFOVLGWMS23YQLR4JD5REUCB2W5C4Z525M7K3VFXZ6YUL4JM5QCEXWI4QT75SQX4DEQMPVBTNBD4
-#\\\|MPIWYQYWSI2SZ2QLFRFK5QG3XU6JAO4XLIU4FCMAZ7ZPDOL3NSE \ / AMOS7 \ YOURUM ::
-#\[7]ZI2DYTR5GTYO57DTOGII5SMVEHZWCSIDCIO7B3TCAQZMEFJMOOBA 7  DATA SIGNATURE ::
+#,,,.,.,.,,..,.,,,,.,,.,.,,,,,.,.,..,,.,.,.,.,.,.,...,...,,..,.,,,..,,.,.,.,.,
+#KVTKU7LANKXNVLVCVAPQQDBUQ4K4BOGQQRP5LVSXK2KOUIGF6QAO5BBBLH5NGL3WDNK2J5BALS5RI
+#\\\|JXBCLJ42X3TXXHW4JPUUY25T7G6CFBATY7GFN5FCIFCOORN2HJS \ / AMOS7 \ YOURUM ::
+#\[7]P7M4TJJPTMVDY6TYYIXU2HCMJ3M35VIG6IHJYPNBVXOCK26G7CBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

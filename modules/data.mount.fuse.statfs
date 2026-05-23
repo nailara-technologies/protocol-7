@@ -10,19 +10,17 @@ my $fuse_path = shift // '/';
 # Return reasonable defaults for the virtual filesystem
 # These values represent a generic filesystem with plenty of space
 
-my $bsize  = 4096;           # Block size
-my $frsize = 4096;           # Fragment size
-my $blocks = 1024 * 1024;    # Total blocks (4GB)
-my $bfree  = 512 * 1024;     # Free blocks
-my $bavail = 512 * 1024;     # Available blocks for non-root
-my $files  = 65536;          # Total file nodes
-my $ffree  = 65000;          # Free file nodes
-my $favail = 65000;          # Available file nodes for non-root
+my $namelen = 255;           # Max name length
+my $files   = 65536;         # Total file nodes
+my $ffree   = 65000;         # Free file nodes
+my $blocks  = 1024 * 1024;   # Total blocks (4GB)
+my $bavail  = 512 * 1024;    # Available blocks for non-root
+my $bsize   = 4096;          # Block size
 
-return ( $bsize, $frsize, $blocks, $bfree, $bavail, $files, $ffree, $favail );
+return ( $namelen, $files, $ffree, $blocks, $bavail, $bsize );
 
-#,,.,,,,,,.,.,,.,,,.,,...,,,.,.,.,.,.,...,...,.,.,...,...,.,.,,.,,..,,.,.,,,.,
-#5Q26DTXSEMOO4OSBJKWF7GIHEZNWQHBXZG2FB7PN26JCSQ6GUNCN5P6TRQ7U7Z3NLMZUH7PIQ6VTC
-#\\\|KA6555NWU63ZJV3RZEPXZI2ZLN5MWLPQJBV2YK643HSX6R7TRZ4 \ / AMOS7 \ YOURUM ::
-#\[7]Q4HTGEIOQ3UON6YVUNPDRCRIB6Z4VADY3C7USYCSYABSUT6XBKBI 7  DATA SIGNATURE ::
+#,,..,,,,,.,.,,.,,.,.,,..,,..,..,,,,.,,,,,...,.,.,...,...,,,,,,,,,.,.,,,.,,.,,
+#7GGI3MQJUIN56BBK2ASYORFVDZQLSAWLIT7FQC4MZEBOEJNKC725KXVE453VXQUQURD27RZBPD6PS
+#\\\|FOFBSJKWH7OWCAGXGBUKFYPGJN5HCOMH6O24YJFTUYRAFQLP7ET \ / AMOS7 \ YOURUM ::
+#\[7]T5BER3V7ZNMYGAYJFCVOD42Z5VQPGDZU3YZESPPLTDTIQBVEOEDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

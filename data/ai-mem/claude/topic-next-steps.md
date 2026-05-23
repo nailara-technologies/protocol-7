@@ -110,7 +110,6 @@ metadata:
 ## open bugs (session 37 — still open)
 
 - **source.extract_sig_body**: YOURUM fake stubs 1 char too long → size mismatch → error instead of strip
-- **config double-load bug** — duplicate config key warnings; see `bug-config-double-load.md`
 - **signature oscillation Variant B** — double-footer on never-signed non-empty files
 - [signature endline restoration](bug-signature-endline-restoration.md) — stale encoded delta after edit
 - **repo var/ cleanup** — `var/httpd/` tracked from Nov 2025 AI error
@@ -125,8 +124,8 @@ metadata:
 
 After a failed tool-using task, Glitter backend needs restart before `:no_tools:` tasks work. Model gets stuck in tool-mode. Restart coding zenka or wait before dispatching `:no_tools:` priming tasks.
 
-#,,.,,,,,,.,,,,..,..,,.,.,.,,,.,.,.,.,..,,,,.,..,,...,...,..,,,,,,.,,,...,.,,,
-#6KCNUKSIBZT4JX7U64WCDWTY7N3X5RTAJFXSYTWXKANRCIBIPOJIJ2M2SH36VSUE6HAUB4J5ZGNDU
-#\\\|XKW4F7AI7JA72GXJ75ZQTJQD3IHTAK5GLANV7BJE4XOK45NZMLC \ / AMOS7 \ YOURUM ::
-#\[7]DNVH3N5MH62BUGAKRKXVIQQ6ZXWNHOCKSTCHU7AZVH2GWSHIP4CY 7  DATA SIGNATURE ::
+#,,..,.,,,,.,,,.,,,.,,...,,,,,,,.,,..,.,,,,..,..,,...,...,...,,,.,,.,,.,,,..,,
+#RJQMWRXUGRI37O4BP5CA7RN4NPAUPOJ3RRFTQZ6HWLTHNB3DNDNII4W4D33WZHX57OW4STIVX4JVG
+#\\\|VIGW3GOHNQ4XDMXJP4THL6S67PJJ3SFUJIMG4EHKINYTDOVNDQX \ / AMOS7 \ YOURUM ::
+#\[7]S2LOYJ3GZ7ARNNRRI5ORP3JPI3Q6MYVOZ22HZJFADNBFDNXQD4AQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

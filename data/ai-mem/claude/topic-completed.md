@@ -1,6 +1,6 @@
 # Completed Work Sessions
 
-## session 48 — bug fixes: v7 instance_count, Fuse→Fuse3, log prefix alignment (2026-05-23)
+## session 48 — bug fixes: v7 instance_count, Fuse→Fuse3, lpw sync, log levels (2026-05-23)
 
 - `v7.instance_count`: exclude error-state instances from start_once guard (false "already running")
 - `Fuse` → `Filesys::Fuse3` migration: known_dependencies, .deps/profiles.yaml, install scripts
@@ -8,11 +8,18 @@
   - `data/tasks/fuse3-migration.md` written for kimi to do data.mount.fuse.* API update
 - ssh/pm-dep: removed all old colon-format (`::`) duplicate files (Windows compat history)
 - `v7.handler.process_output_line`: fixed log prefix alignment in `-vq` mode
-  - was: `$1` (variable trailing spaces from %-\*s) placed before short name → misalign
-  - fix: `sprintf('%-7s', $zenka_short)` — fixed 7-char field always
 - `v7.calc_prefix_lengths`: added `cube` alongside `v7` in hardcoded iteration
-  - cube never enters v7.online-zenki (uses set-initialized not notify-online) → never got prefix signals
-- open: full lpw sync debugging dispatched to kimi — tile-groups/p7-log still lag behind v7
+  - cube never enters v7.online-zenki (uses set-initialized not notify-online)
+- **lpw sync root bug fixed**: `v7.calc_prefix_lengths` had `kill 41`/`kill 55` swapped in
+  increase/decrease branches — v7 (direct calls) stepped correctly, all other zenki received
+  wrong signal and stayed silent. LLM introduced the swap during an earlier refactor.
+- `base.sig_NUM41`: fixed copy-paste bug in message string (said NUM55); fixed typo "descrease"
+- `base.sig_NUM55` + `base.sig_NUM41`: all lpw messages now use `devmod.lpw_log_level // 3`
+- `p7-log.add_line` + `p7-log.handler.close_log`: opening/lock/closing messages now
+  use `devmod.p7_log_level // 3`
+- heartbeat log silence: `v7.handler.heartbeat_timer_response` success log → level 3
+- cmd-offset session-prefix strip: `base.handler.command` + `base.protocol-7.command.send.local`
+  now strip `\d+.` session prefix before `log.level.cmd-offset` table lookup
 
 ## session 47 — sys-deps zenka + debian root apt-child + AptPkg probing (2026-05-23)
 
@@ -1223,8 +1230,8 @@ Skip calling harmonize_payload_line_feed when both conditions are met:
 - Signatures now properly formatted with correct separator endline
 - Pre-commit validation passes
 
-#,,,,,,.,,..,,..,,.,.,...,.,,,.,,,.,,,,.,,.,,,..,,...,...,...,.,.,,..,.,,,.,.,
-#CB7PLRJUII2XOQUA7IEISJFY7CGTWOTMIBDKLESHUSXN5ROL65LUUXRZ7KE4EITAKCQYZX5KO75MW
-#\\\|EMPPFZXJ255SEW6BXRWPKWV224KZ2YSKS6A6BXWR6WC2EMP7GVM \ / AMOS7 \ YOURUM ::
-#\[7]F43CYBJZTUUTBK2KZTNQMSFCOBUL5VQQGPX2W2UWIITBQMJMXIAY 7  DATA SIGNATURE ::
+#,,,.,,..,,,.,,..,.,.,,.,,,.,,.,,,,.,,,,,,,..,..,,...,...,.,,,,,,,.,,,,,.,.,,,
+#NVENAK7CKXZT2OV4JNVE57WA6B75UCDP6GEESRJYAZLPVDCWPSCBSP4T5BAEYBYQWX4N2DJJKEKXA
+#\\\|5JMZXA4O4LG47CYVRUL5FOLB5YCZKREDHJDWMFFSEWBQEQKS7AF \ / AMOS7 \ YOURUM ::
+#\[7]DJGTJII7VE4W6CWJWLS5VKVW4QQZIJKNHMAKND4IRGAGT7M2G2DY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
