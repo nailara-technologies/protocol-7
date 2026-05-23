@@ -450,12 +450,23 @@ if ( not $already_initialized ) {
             'desc'     => 'periodic system memory poll'
         }
     );
+
+    ## subscribe to X-11 GPU stats stream if available ##
+    <[protocol-7.command.send.local]>->(
+        {   'command'   => 'X-11.gpu_load',
+            'call_args' => { 'args' => 'subscribe' },
+            'reply'     => {
+                'handler' => 'coding.handler.gpu_stats_update',
+                'params'  => {}
+            }
+        }
+    );
 }
 
 return 0;
 
-#,,,.,.,.,.,,,,,,,,.,,..,,...,.,,,.,,,,..,,,.,.,.,...,...,.,,,.,,,,,,,..,,,.,,
-#FH6WCR7R7GMTVVECOAYNTC6UCU5W4UDV2PKEAYMSLL6TRNWJ3QJU4PUSCJEWYAOIUH4NYJ5L5RFSM
-#\\\|5MVB7MJE6VX5P7RNDZXS3OWJDVCYIEAJESVPFKGNRVYWCF26X2G \ / AMOS7 \ YOURUM ::
-#\[7]HIYXGI5G32ZKSCLP6SBGJHOJ536B3VTBRIEYU5UGIAD24H6MPGCQ 7  DATA SIGNATURE ::
+#,,,.,..,,.,.,..,,,,.,,.,,,,,,.,.,,,.,.,.,,.,,.,.,...,..,,.,.,.,,,,..,.,,,,.,,
+#WYG4SZ2OBWAGBUBYKOGBZAM4VOPNGZ3PC3CHIXBQGIQ7BRRDU2LXMBBGVFADDSHXJHVYQKVMODGAA
+#\\\|EHEFRXOMUBZDDI7C5RUKZRFUN5UY7KXK6IFW2YBORLBGNACSTGM \ / AMOS7 \ YOURUM ::
+#\[7]J2ZSMF3KKJREIOILMH7KZT5GPEZXS66XK5TOC77WLHYZNUVQHKAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

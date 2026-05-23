@@ -1,0 +1,166 @@
+## [:< ##
+
+# name  = X-11.handler.read_gpu_nvidia
+# descr = reads 'nvidia-smi' process output and collects load statistics
+
+my $watcher  = shift->w;
+my $read_fh  = $watcher->fd;
+my $gtop_pid = $watcher->data->{'pid'};
+
+my @stat_secs = ( 5, 15, 30 );
+
+<X-11.gpu_top.stats> //= {};
+<X-11.gpu_top.stats.secs> = [ 1, <[base.sort-num]>->(@stat_secs) ];
+<X-11.gpu_top.stats.sample>       //= {};
+<X-11.gpu_top.stats.load_average> //= {};
+<X-11.gpu_top.output_buffer>      //= '';
+<X-11.gpu_top.sample_seq>         //= 0;
+
+my $read_bytes = <[base.s_read]>->(
+    $read_fh, \$data{'X-11'}{'gpu_top.output_buffer'}, 4096
+);
+
+if ( $read_bytes < 1 ) {    ## [ assumed filehandle exception ] ##
+    $watcher->cancel;
+    close($read_fh);
+    <[base.logs]>->(
+        "nvidia-smi [PID:%d] output filehandle closed.", $gtop_pid
+    );
+    <[base.log]>->( 0, 'nvidia-smi terminated. deleting stats..' );
+    $watcher->cancel if $watcher->is_active;
+    delete <X-11.gpu_top.stats>;
+    return undef;
+}
+
+my $load_ref = <X-11.gpu_top.stats.load_average>;
+
+my ($max_samples) = reverse <[base.sort-num]>->(@stat_secs);
+
+while ( $data{'X-11'}{'gpu_top.output_buffer'} =~ s|^([^\n]*)\n||s ) {
+    my $output_line = $LAST_PAREN_MATCH;
+    next if $output_line =~ m|^\s*$|;
+
+    my ( $time, $load );
+    if ( $output_line =~ m|^\s*(\d+(?:\.\d+)?)\s*$| ) {
+        ( $time, $load )
+            = ( ++<X-11.gpu_top.sample_seq>, 0 + $LAST_PAREN_MATCH );
+    } else {
+        <[base.parser.ellipse_center]>->( \$output_line, 253 );
+        <[base.logs]>->( 0, "[ERROR] < nvidia-smi > %s", $output_line );
+        $watcher->cancel if $watcher->is_active;
+        delete <X-11.gpu_top.stats>;
+        return undef;
+    }
+    my $stat_ref   = <X-11.gpu_top.stats>;
+    my $sample_ref = <X-11.gpu_top.stats.sample>;
+    $load_ref->{1} = $sample_ref->{$time} = $load;
+
+    while ( keys( %{$sample_ref} ) > $max_samples ) {
+        ( my $del_tstamp ) = <[base.sort-num]>->($sample_ref);
+        delete $sample_ref->{$del_tstamp};
+    }
+
+    # LLL: adjust for timecode drift..,
+    my $added;
+    my $sec_count = keys $load_ref->%*;
+    foreach my $count (@stat_secs) {
+        $added = 0;
+        foreach my $t_code ( reverse <[base.sort-num]>->($sample_ref) ) {
+            last if ++$added == $count;
+            $load_ref->{$count} //= 0;
+            $load_ref->{$count} += $sample_ref->{$t_code};
+        }
+        if ( $added < $count ) {
+            delete $load_ref->{$count};
+            next;
+        }
+        $load_ref->{$count} = sprintf( '%.4f', $load_ref->{$count} / $added );
+    }
+    my $sec     = '';
+    my $new_sec = $sec_count < keys $load_ref->%* ? 1 : 0;
+    my $avg_str = join ' .. ', map {
+        $sec = $new_sec ? sprintf( ' <-- %ss', $added ) : '';
+        defined $load_ref->{$ARG}
+            ? sprintf( qw| %5s |, sprintf( qw| %.2f |, $load_ref->{$ARG} ) )
+            : '-- --'
+        }
+        reverse <[base.sort-num]>->(@stat_secs);
+    my $freq = '';
+    my $llvl = <X-11.gpu_top.stat_log_level> //= 3;
+    <[base.logs]>->(
+        $llvl, '< GPU >  %3s%%  <  .. %s ..  >%s',
+        $load, $avg_str, $sec
+    );
+
+    ## emit to STRM listeners ##
+    if ( defined <X-11.gpu_top.listeners>
+        and @{<X-11.gpu_top.listeners>} ) {
+        my $load_1s = $load_ref->{1} // 0;
+        my $avg_5s  = $load_ref->{5};
+        my $payload
+            = defined $avg_5s
+            ? sprintf( "%s %s\n", $load_1s, $avg_5s )
+            : sprintf( "%s\n", $load_1s );
+
+        my @keep;
+        for my $h ( @{<X-11.gpu_top.listeners>} ) {
+            push @keep, $h if <[base.stream.push]>->( $h, \$payload );
+        }
+        <X-11.gpu_top.listeners> = \@keep;
+    }
+
+    # handle configured GPU load alerts
+    my $min_wait    = 20; # allow for startup action to settle..,
+    my $alert_pause = 30; # allow restarts to complete before re-triggering..,
+    if (    defined <X-11.gpu_load.alert>
+        and ref(<X-11.gpu_load.alert>) eq qw| HASH |
+        and keys <X-11.gpu_load.alert>->%* ) {
+        <X-11.gpu_load.last_alert>
+            //= <[base.time]>->(2) - $alert_pause + $min_wait;
+        foreach my $al_secs ( <[base.sort-num]>->(<X-11.gpu_load.alert>) ) {
+            next
+                if <[base.time]>->(2) - <X-11.gpu_load.last_alert>
+                < ( $alert_pause + $al_secs );
+
+            my $alert_threshold = <X-11.gpu_load.alert>->{$al_secs};
+
+            if ( defined $load_ref->{$al_secs}
+                and $load_ref->{$al_secs} >= $alert_threshold ) {
+                <[base.logs]>->(
+                    0,        '<< GPU load alert >> [ %0.2fs at %0.2f %% ]',
+                    $al_secs, $load_ref->{$al_secs}
+                );
+                if ( defined <X-11.gpu_load.send_alerts> ) {
+                    map {
+                        <[protocol-7.command.send.local]>->(
+                            {   'command' =>
+                                    sprintf( qw| cube.%s.gpu_load_alert |,
+                                    $ARG ),
+                                'call_args' => {
+                                    'args' => join( ' ',
+                                        $al_secs, $load_ref->{$al_secs} )
+                                }
+                            }
+                        );
+                    } split m| +|, <X-11.gpu_load.send_alerts>;
+                }
+                <X-11.gpu_load.last_alert> = <[base.time]>->(2);
+            }
+        }
+    }
+}
+
+if ( defined <X-11.gpu_top.write_to_disk.path> ) {
+    my $stats_file    = <X-11.gpu_top.write_to_disk.path>;
+    my $stats_content = join "\n",
+        map { join ':', $ARG, <X-11.gpu_top.stats.load_average>->{$ARG} }
+        <[base.sort-num]>->(<X-11.gpu_top.stats.load_average>);
+    eval { <[file.put]>->( "$stats_file.NEW", "$stats_content\n" ) };
+    rename( "$stats_file.NEW", $stats_file ) or die "rename : \l$OS_ERROR";
+}
+
+#,,.,,,.,,.,.,,.,,,.,,.,,,,..,.,,,...,..,,,,.,..,,...,...,,,.,,..,,.,,.,.,,.,,
+#6ELPW24YXQUVA5CCHRVNZCYUNHE2B2VWFSPJNNVJTGIAYHLF52TX6252Y67J5CSIK42IM3QCRP3TY
+#\\\|NRRPOZXQHYLJCMR77AYAY7LKGCTASUA7NIRA5ODK4JCJRHIUAZM \ / AMOS7 \ YOURUM ::
+#\[7]ANDEH5VP6J7N4YAVFVOCKGFPR5ENFRPSMVI33NFHVUOOQPKVGWBY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

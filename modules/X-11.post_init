@@ -336,11 +336,12 @@ if (    <X-11.has_dpms>
     <X-11.obj>->DPMSInfo();
 }
 
-## GPU load statistics [intel only] ##
+## GPU load statistics ##
 <X-11.collect_intel_gpu_stats> //= FALSE;
+<X-11.collect_gpu_stats>       //= <X-11.collect_intel_gpu_stats>;
 <X-11.collect_gpu_stats_on_4K> //= FALSE;
-<[X-11.start_gpu_top]> if <X-11.video_driver> =~ m|^i|i    # i9xx <?>
-    and ( <X-11.collect_intel_gpu_stats>
+<[X-11.start_gpu_top]>
+    if ( <X-11.collect_gpu_stats>
     or <X-11.collect_gpu_stats_on_4K>
     and <X-11.obj>->width_in_pixels >= 3840 );
 
@@ -398,8 +399,8 @@ if (<X-11.window_enumeration>) {
 
 return 0;    ## success
 
-#,,,.,,,.,,.,,,,,,..,,.,.,,,.,,,.,,..,.,,,,.,,..,,...,...,.,,,...,,.,,.,.,,,,,
-#EHS4KK5ZEZFRWG46CPXPEKBJWW3CYA6F32VJHOSQZJDEJOH4ETGFRH4C6IPJFU7BIZOK2P274RSFE
-#\\\|EMUXCP64SQXZQ5YCGH2IFK6SED47KMDFH7ZJVEJZFU2VRBENFEE \ / AMOS7 \ YOURUM ::
-#\[7]Y5OSAHNJCKY5HCFOZSHCSXEIXEPDPVLJLMEYPBTTVEG2HAHESWBQ 7  DATA SIGNATURE ::
+#,,,.,,,.,,.,,.,,,,,.,,,,,,,,,,..,...,,.,,...,..,,...,...,,,,,.,.,,..,,.,,.,,,
+#CICPSOUJCWEZ5Q5I36GNO453M2HSHN4WYH2L7VOOM4EOAOFJNRJG7555RD4CXVSQ3IJOPATOUUK6I
+#\\\|5D3YFBQH6RCOBKRL6MF6IVIDRRKM3IHTWDLBJ4WZIETZO2CQZJF \ / AMOS7 \ YOURUM ::
+#\[7]LF2JJPHGMMI7622QNG6ZAVIOTIO52LLZWN65W2YZBKRXQW2FNSBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
