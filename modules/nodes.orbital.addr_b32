@@ -3,8 +3,6 @@
 # name  = nodes.orbital.addr_b32
 # descr = encode orbital angles and time offset into ADDR_B32 string
 
-<[base.perlmod.autoload]>->('Crypt::Misc');
-
 my $params = shift // {};
 
 my $theta       = $params->{'theta'}       // 0;
@@ -23,7 +21,7 @@ my $o = int( ( $omega % 360 ) / 360 * 255 ) & 0xFF;
 my $packed = pack( 'C4N', $t, $p, $s, $o, $time_offset );
 
 ## encode as base32r ##
-my $addr_b32 = Crypt::Misc::encode_b32r($packed);
+my $addr_b32 = <[base32.encode]>->($packed);
 
 ## strip padding and enforce P7REF conventions ##
 $addr_b32 =~ s|=+$||;
@@ -35,8 +33,8 @@ $addr_b32 = substr( $addr_b32, 0, 16 );
 
 return $addr_b32;
 
-#,,,.,,.,,,.,,.,.,,,,,...,.,.,,,,,..,,,,,,,,,,..,,...,...,...,...,,,,,,,,,.,,,
-#IUGYM6LJQEAVPHNPZOAE75TKFNWKMV3GXKY4JVDILBP65GOLJGB7W5DKOHL7QAMQMPDR2E4UBHZ4G
-#\\\|CJPJTTY57EVFEJC6WIGF4YJ6J6NM4POWOST6DNLOXZUCGDQOXER \ / AMOS7 \ YOURUM ::
-#\[7]KRYHRITISSWDLBCJZONELCVAATT4ESIH2PVEW6FN3X3GP46INUAA 7  DATA SIGNATURE ::
+#,,.,,..,,,.,,,,,,,,,,.,,,,..,,.,,..,,..,,,,.,..,,...,...,,..,,,.,,,.,,,,,.,.,
+#BHNDFM4EVOQZOPOMPJJRYKOBYFCFYH33YJRBAKBYT5L4DDOECRBIXREWU24WNOCKHNRBILQAQRXKC
+#\\\|73VRIE5RAXRFNBRI3W5NNRIAHA73PPYD2JHFRYQSHNBNDFBCGL2 \ / AMOS7 \ YOURUM ::
+#\[7]A5TYXPAGO27POXVDWBQSM4G2FUWBTILHLWAYEDKTAZIVZW7K3KCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,0 +1,166 @@
+## [:< ##
+
+# name  = base.zenka.push
+# descr = well-behaved fire-and-forget push to zenka with offline handling
+
+my $params = shift;
+
+my $is_retry = FALSE;
+
+## timer retry passes target prefix string directly ##
+if ( not ref $params and defined $params and length $params ) {
+    $is_retry = TRUE;
+    $params   = { qw| target | => $params };
+}
+
+my $command   = $params->{'command'};
+my $args      = $params->{'args'}      // { qw| args | => '' };
+my $queue_max = $params->{'queue_max'} // 1;
+my $on_drop   = $params->{'on_drop'};
+my $target    = $params->{'target'};
+
+if ($is_retry) {
+    my $state = <base.zenka.push.state>->{$target};
+    return if not defined $state or not defined $state->{'queued'};
+    my $payload
+        = ref $state->{'queued'} eq qw| ARRAY |
+        ? $state->{'queued'}->[-1]
+        : $state->{'queued'};
+    $command   = $payload->{'command'};
+    $args      = $payload->{'args'};
+    $queue_max = $state->{'queue_max'} // 1;
+    $on_drop   = $payload->{'on_drop'} if not defined $on_drop;
+}
+
+return if not defined $command;
+
+( my $target_prefix = $command ) =~ s|\..*$||;
+$target //= $target_prefix;
+
+<base.zenka.push.state> //= {};
+
+my $state = <base.zenka.push.state>->{$target_prefix} //= {
+    qw| queued |       => undef,
+    qw| waiting_no |   => FALSE,
+    qw| backoff_n |    => 0,
+    qw| last_attempt | => 0,
+    qw| queue_max |    => $queue_max,
+};
+
+my $payload = {
+    qw| command | => $command,
+    qw| args |    => $args,
+    ( defined $on_drop ? ( qw| on_drop | => $on_drop ) : () ),
+};
+
+## queue payload unless this is a retry (already queued) ##
+if ( not $is_retry ) {
+    if ( $state->{'queue_max'} > 1 ) {
+        $state->{'queued'} //= [];
+        push $state->{'queued'}->@*, $payload;
+        while ( scalar $state->{'queued'}->@* > $state->{'queue_max'} ) {
+            my $dropped = shift $state->{'queued'}->@*;
+            if (    defined $dropped->{'on_drop'}
+                and defined $code{ $dropped->{'on_drop'} } ) {
+                $code{ $dropped->{'on_drop'} }->(
+                    2, 'base.zenka.push dropped %s',
+                    $dropped->{'command'}
+                );
+            }
+        }
+    } else {
+        if (    defined $state->{'queued'}
+            and defined $state->{'queued'}->{'on_drop'}
+            and defined $code{ $state->{'queued'}->{'on_drop'} } ) {
+            $code{ $state->{'queued'}->{'on_drop'} }->(
+                2,
+                'base.zenka.push dropped %s',
+                $state->{'queued'}->{'command'}
+            );
+        }
+        $state->{'queued'} = $payload;
+    }
+}
+
+## already waiting for notify_online? just keep queued ##
+return TRUE if $state->{'waiting_no'};
+
+## attempt immediate send ##
+my $sent = <[protocol-7.route-send]>->(
+    {   qw| command |   => $command,
+        qw| call_args | => $args,
+        qw| reply |     => {
+            qw| handler | => qw| zenka.push.reply-handler.offline |,
+            qw| params |  => {
+                qw| target |  => $target_prefix,
+                qw| command | => $command,
+                qw| args |    => $args,
+            }
+        }
+    }
+);
+
+if ( $sent > 0 ) {
+    ## send in flight, reply handler will manage state ##
+    return TRUE;
+}
+
+## route-send failed (no session or unroutable) ##
+my $now     = <[base.time]>->(5);
+my $backoff = 2**$state->{'backoff_n'};
+$backoff = 60 if $backoff > 60;
+my $elapsed
+    = $state->{'last_attempt'} > 0
+    ? $now - $state->{'last_attempt'}
+    : $backoff;
+
+if ( $elapsed < $backoff ) {
+    ## respect backoff, schedule retry ##
+    my $wait = $backoff - $elapsed;
+    <[event.add_timer]>->(
+        {   qw| after | => $wait,
+            qw| cb |    => sub {
+                <[zenka.push]>->($target_prefix);
+            },
+            qw| repeat | => 0,
+        }
+    );
+} else {
+    ## try notify_online immediately ##
+    $state->{'last_attempt'} = $now;
+    $state->{'waiting_no'}   = TRUE;
+
+    my $no_sent = <[protocol-7.route-send]>->(
+        {   qw| command |   => qw| v7.notify_online |,
+            qw| call_args | => { qw| args | => $target_prefix },
+            qw| reply |     => {
+                qw| handler | => qw| zenka.push.reply-handler.notify-online |,
+                qw| params |  => { qw| target | => $target_prefix }
+            }
+        }
+    );
+
+    if ( $no_sent <= 0 ) {
+        ## v7 unavailable : back off and retry ##
+        $state->{'waiting_no'} = FALSE;
+        $state->{'backoff_n'}++;
+        my $next_backoff = 2**$state->{'backoff_n'};
+        $next_backoff = 60 if $next_backoff > 60;
+        <[event.add_timer]>->(
+            {   qw| after | => $next_backoff,
+                qw| cb |    => sub {
+                    <[zenka.push]>->($target_prefix);
+                },
+                qw| repeat | => 0,
+            }
+        );
+    }
+}
+
+return TRUE;
+
+#,,,.,...,..,,...,..,,,.,,.,.,,,.,.,.,,,,,.,,,..,,...,...,.,.,..,,.,,,..,,,..,
+#32IEQUAC7GVFJUT4O7V3U4W6SBMYUXR5PPH7JRUX6BQ4ZC3VMX7RFDACAOISLZXLNIXOTZ7UQGZJ2
+#\\\|DPTWPAD7JNUBCWEEOBDFBAQKXODV2YXJBRISVKLKPHVP2ZQXBSV \ / AMOS7 \ YOURUM ::
+#\[7]JQLTUE35QAXSNRQATSOBVY5CIVADJJ55ECFPQSVMA43X2M6LEMDA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
