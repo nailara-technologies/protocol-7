@@ -6,8 +6,6 @@
 <[base.perlmod.autoload]>->('YAML::XS');
 <[base.perlmod.autoload]>->('JSON::XS');
 <[base.perlmod.autoload]>->('IO::Compress::Xz');
-<[base.perlmod.load]>->( 'Crypt::Misc', qw| encode_b32r decode_b32r | );
-
 ## optional: Email::MIME for full RFC 2822 parsing ##
 ## falls back to simple regex parser if not available ##
 eval { require Email::MIME; Email::MIME->import(); };
@@ -41,8 +39,8 @@ if ( not -d $store_dir ) {
 
 <[base.logs]>->( 1, 'smtpd: ready, store=%s', $store_dir );
 
-#,,,,,.,.,..,,,.,,...,.,,,...,,.,,,,.,,,,,,,,,.,.,...,...,...,..,,..,,,..,..,,
-#7G2A23T3TFMF6B47VPXNAZNWO73CIZOKAFH7YLPRNXDJ7RYEX3ME6IWKXPOMFLC3WAW7SCY62ERTM
-#\\\|CRBQYHCPK7IBBVOKS66KZUT53JZ7DVH4SMIGPZ25EM4AEXPNXD3 \ / AMOS7 \ YOURUM ::
-#\[7]OXCLTMCAE2Q3TSB3IRT3J5BQ76QFYIUR3B66VKROKGDPUFRUQ4BY 7  DATA SIGNATURE ::
+#,,,.,,,,,...,,,.,...,.,,,.,,,,.,,,..,..,,,.,,.,.,...,...,,.,,,,.,,,,,,,,,..,,
+#QC4OZNCP6P2WCFBJWBDBIGY2TYFYU3MV22FCKHHUXIUHMUKLSNZ2OVVEG7VVP5ZMNDUWNIS4EO3Q4
+#\\\|URQ4N4N6AOWFMMJBWEQQY63QXXALB2G7HAUAFDMJWZOAY2YR3GE \ / AMOS7 \ YOURUM ::
+#\[7]GYSOALZROOT2ZQL2FZTPUOIIIJSLNUOKXSNEWP7TD57VUSF3RWBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
