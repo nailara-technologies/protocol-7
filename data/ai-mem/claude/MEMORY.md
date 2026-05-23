@@ -36,11 +36,6 @@
 - `data/md/design/CODE-NAMESPACE-AND-SIGNING-INFRASTRUCTURE.md` — three-category model, format contracts, signing pipeline, tool family
 - `data/yaml/reasoning-templates/infinite-space-topology.yaml` — template 17: arbitrary entry point, alphabet orthogonality, coherence gravity, void zone integrity, self-healing compartments, checksum frame outlook
 - AMOS7-v4.89.1 released + protocol version updated to IVH2LRY
-- [data-protocol](topic-data-protocol.md) — DATA-PAGES/DATA-CHANNELS/DATA-CHANNEL wire formats; 2-bit token type system; self-delimiting checksum pattern; checksum frame container
-- `data/md/design/SELF-DELIMITING-CHECKSUM-PATTERN.md` — 2-bit type system (00/01/10/11), payload tokens, keep-alive/close routing chains
-- `data/md/design/CHECKSUM-FRAME-CONTAINER.md` — 2D/3D recovery frames, diagonal corners, outward expansion, outer ring provenance chain
-- `data/md/design/CODE-NAMESPACE-AND-SIGNING-INFRASTRUCTURE.md` — three-category model, format contracts, signing pipeline, tool family
-- `data/yaml/reasoning-templates/infinite-space-topology.yaml` — template 17: arbitrary entry point, alphabet orthogonality, coherence gravity, void zone integrity, self-healing compartments, checksum frame outlook
 
 ## Space Engine modules (session 43/44)
 - `space.*` 29 modules: grid/orbit/route/travel/jump/search/register/template — all ptd-clean
@@ -190,8 +185,8 @@
 - **pager.sort.multi-key**: ntime_b32 + priority_map sort types added (session 42)
 - **task dispatch sections**: all dispatched tasks now carry ## dispatch + prompt for reuse
 
-#,,..,.,,,.,.,..,,.,.,,,.,..,,,,,,,,.,.,.,,..,..,,...,..,,...,,..,,,.,.,,,...,
-#5YJTGE36EFPMNWBN5GZ3HBPA2DHKG5SLXKOSUJCX7HIQ5O3OPHS4OMBCAX4E5O3TWFJDBOXHO6RKK
-#\\\|EFOZXRNA2Q3MCR2MIPRMTZULRM6FNFCO3JUN2SJWWQIKYU3RVZY \ / AMOS7 \ YOURUM ::
-#\[7]H6SJ6PUKRV5BCSA7VI5KJZTOFQFU4JTZ7QCEVSIXFIQYKT2HVOBY 7  DATA SIGNATURE ::
+#,,,.,...,,,,,..,,,,,,...,..,,..,,,.,,,,.,.,.,..,,...,...,,,.,.,,,,,.,.,,,.,,,
+#6EGJ3TYG4NHZQYJ2GCZEI6FK2RHPOICUFPJUCXWOEOXCK4V6F3WRUZ7IT6UMNJLR3B2PHLDAP4IKI
+#\\\|3VA65HABXXEZYIQHCDRRDUPOUPAGRIESZQJNWNRXONR2K32VKI6 \ / AMOS7 \ YOURUM ::
+#\[7]MZ7V6HJQKZPVOQMYUV3C7OOHUKR3EXIA5QBHYBJZGYLFVVMOOWCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
