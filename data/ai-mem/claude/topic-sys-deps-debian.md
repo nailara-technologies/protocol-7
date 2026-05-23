@@ -60,6 +60,24 @@ Each module installed independently — one failure does not block others.
 - `ssh/pm-dep/Modules::Refresh` — has literal `::` in filename + wrong name (should be `Module__Refresh`)
   → pattern: pm-dep filenames use `__` not `::`, and module name must be exact
 
+### tested and confirmed working (session 48b)
+
+both sys-deps zenka and debian zenka tested together in session 48b — confirmed working end-to-end.
+
+### auto-installation chain — planned layered extensions
+
+current state: sys-deps tracks declared deps (pm-dep/os-dep/ dirs + base.known_dependencies).
+
+planned layers (add step by step, each independently useful):
+1. **external call wrappers** — wrap `system()`, `qx//`, backticks to auto-register invoked binaries
+   into sys-deps registry at runtime (no manual declaration needed)
+2. **perl module dependency scanning** — scan `use`/`require` at module load time →
+   auto-register → sys-deps verifies/installs before zenka starts
+3. **auto-install on demand** — sys-deps hooks into zenka startup: missing deps → install → retry
+   (extends existing `v7.check_zenka_deps` pattern)
+
+key: each layer works standalone and can be verified before building the next one.
+
 ### Debian::Apt::PM (planned)
 
 declared in `debian/pm-dep/Debian__Apt__PM` — will replace `resolve_cpan_to_debian` hardcoded map.
@@ -71,8 +89,8 @@ needs: cpanm install (not in apt repos) + pmindex apt source + `apt-pm update`.
 fix: added `reasoning.branch` to `modules.load` in `configuration/zenki/task/start`.
 also added `configuration/zenki/task/source/reasoning.branch` empty source marker.
 
-#,,,.,.,,,.,,,,..,,,.,,,.,,,.,,..,,,.,.,.,...,..,,...,...,..,,.,,,,.,,,,,,,,.,
-#THN73U7BGDXFABT3CZH4ZD5ZEHO7OSBGHR4VGJVBDEYP32FPBTEVIJG6SV24OUC5DYWLFHJJAZ4XU
-#\\\|5SX43TOSPDWRX6KM6NNBLXEL3QBB6TTRB4H4GDIQEHUQ3FQZR62 \ / AMOS7 \ YOURUM ::
-#\[7]EJWZCHBKJ57YZBC5HVZCTRSE3PISAZ4GDDRAEFT275KLNCOROYCY 7  DATA SIGNATURE ::
+#,,.,,,,,,,..,,..,,,,,..,,,,,,.,.,.,,,.,.,.,.,..,,...,...,,,,,,..,,..,..,,,,.,
+#3EEVGG67IOGZEYFRJTMMH2JGY4DI24U47YK2SAWZSL4UT7XZGOG25CT67ACELZF3DTL5OL2PL2DCG
+#\\\|JLW2VSWNQMLCQPWYW5BGWQNXB6PXZDDPFDVVXOE6BAVLSH5ICUX \ / AMOS7 \ YOURUM ::
+#\[7]S5JMGC4BE4S4K6B2YUJCHVRKURRULHUU6YKOHNQC4RIXJ4H2W2CA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

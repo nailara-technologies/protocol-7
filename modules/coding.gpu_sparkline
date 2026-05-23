@@ -1,0 +1,29 @@
+## [:< ##
+
+# name  = coding.gpu_sparkline
+# descr = render ASCII sparkline from coding.stats.gpu.sparkline_buf
+
+my @chars = ( ' ', '.', ':', '|', '#' );
+
+my $buf = <coding.stats.gpu.sparkline_buf> // [];
+return '' if not @$buf;
+
+my $sparkline = '[';
+for my $val (@$buf) {
+    my $idx
+        = $val <= 15 ? 0
+        : $val <= 35 ? 1
+        : $val <= 60 ? 2
+        : $val <= 80 ? 3
+        :              4;
+    $sparkline .= $chars[$idx];
+}
+$sparkline .= ']';
+
+return $sparkline;
+
+#,,.,,,,,,.,,,...,...,,.,,,,.,,,,,...,.,,,,,.,..,,...,...,.,,,.,.,,,.,,..,,..,
+#3PIMPCGG5WIRZ3SIF65FZLGXBWIHVCBEMMDO6M7QBGX6OBSL54BDF2EQEFTDRM3M6V7DVBRSGKPJO
+#\\\|ZS6P7OK34OWBYVMY4HXOIT2NET4KSSGKFPO643X3QBWFICNWUPG \ / AMOS7 \ YOURUM ::
+#\[7]XI3JCWGL5HHJW4LGXTVWNZ3DGJWRZYLCZPCEBJ7UUBMOASHHSQBQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

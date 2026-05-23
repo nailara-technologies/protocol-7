@@ -35,7 +35,7 @@ my $load_ref = <X-11.gpu_top.stats.load_average>;
 
 my ($max_samples) = reverse <[base.sort-num]>->(@stat_secs);
 
-while ( <X-11.gpu_top.output_buffer> =~ s|^([^\n]*)\n||s ) {
+while ( $data{'X-11'}{'gpu_top.output_buffer'} =~ s|^([^\n]*)\n||s ) {
     my $output_line = $LAST_PAREN_MATCH;
     next if $output_line =~ m|^\#|;
     my ( $time, $load );
@@ -89,6 +89,23 @@ while ( <X-11.gpu_top.output_buffer> =~ s|^([^\n]*)\n||s ) {
         $load, $avg_str, $sec
     );
 
+    ## emit to STRM listeners ##
+    if ( defined <X-11.gpu_top.listeners>
+        and @{<X-11.gpu_top.listeners>} ) {
+        my $load_1s = $load_ref->{1} // 0;
+        my $avg_5s  = $load_ref->{5};
+        my $payload
+            = defined $avg_5s
+            ? sprintf( "%s %s\n", $load_1s, $avg_5s )
+            : sprintf( "%s\n", $load_1s );
+
+        my @keep;
+        for my $h ( @{<X-11.gpu_top.listeners>} ) {
+            push @keep, $h if <[base.stream.push]>->( $h, \$payload );
+        }
+        <X-11.gpu_top.listeners> = \@keep;
+    }
+
     # handle configured GPU load alerts
     my $min_wait    = 20; # allow for startup action to settle..,
     my $alert_pause = 30; # allow restarts to complete before re-triggering..,
@@ -139,8 +156,8 @@ if ( defined <X-11.gpu_top.write_to_disk.path> ) {
     rename( "$stats_file.NEW", $stats_file ) or die "rename : \l$OS_ERROR";
 }
 
-#,,.,,...,,,,,,,.,.,,,...,...,,..,...,,,.,,.,,..,,...,...,.,,,.,.,,,,,.,,,,.,,
-#GZM6NIDYBBNYP37OTI4W6SABJBAX7BK2XASMDVLDVAGOBGBGO3ZVZLNXYFMBWVPRYYMTPA2RQRJGI
-#\\\|K6WXG4V5UZLMYAHSGULSP5SBCQPHMA4G4L7MQJVBL3XDZ7XKLTK \ / AMOS7 \ YOURUM ::
-#\[7]DDWLUGIOHHTYDK5L22AV4R7IZEWM4J5FHBTRF3PGKAUJB2KZQSCY 7  DATA SIGNATURE ::
+#,,.,,,.,,..,,,,.,.,,,...,,,,,,,.,...,..,,...,..,,...,..,,.,,,.,.,...,.,,,,.,,
+#B7RMNESF2REAJW53372JLHWODK3IK5EV2JFMGBQOYR6VUW4Q754EWWGMJDBVEX5UEANSYQK24QTZS
+#\\\|PDCU525XQ54JJB2DPPZVZBZGHHNTZRDIFLPO7ALX4AE33VYCD2K \ / AMOS7 \ YOURUM ::
+#\[7]ACXG6LUDJZXQ3D4WSDODJ55H7RV4IQMWRMKUQ5YRR7DO3I6XJMDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

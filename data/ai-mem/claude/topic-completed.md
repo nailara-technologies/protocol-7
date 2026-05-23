@@ -1,5 +1,55 @@
 # Completed Work Sessions
 
+## session 48c — GPU monitoring + STRM subscription + MCP external commands (2026-05-23)
+
+- **X-11 nvidia GPU monitoring**: `X-11.handler.read_gpu_nvidia` created — nvidia-smi output parser
+  mirroring intel handler structure; fixed 3 cascading bugs: subroutine whitelist, filehandle
+  scope (`<X-11.gpu_top.out_fh> = $out_fh`), regex lvalue copy (`$data{'X-11'}{'gpu_top.output_buffer'}`
+  instead of `<X-11.gpu_top.output_buffer>`); `X-11.start_gpu_top` launches nvidia-smi correctly
+- **intel binary noise fix**: `X-11.init_code` now uses silent `file.which` for optional
+  `intel_gpu_top`/`intel_gpu_frequency` binaries instead of `base.required_bin_path` (no more
+  level-0 "binary not found" on NVIDIA systems)
+- **GPU STRM subscription** (all 3 phases):
+  - `X-11.cmd.gpu_load subscribe` opens STRM, registers handle in `<X-11.gpu_top.listeners>`
+  - both GPU handlers emit `load_1s [avg_5s]` after each stat update, prune dead handles via @keep
+  - `coding.handler.gpu_stats_update`: STRM reply handler, registers local consumer via
+    `base.strm.local.register`, watcher updates `<coding.stats.gpu.*>` (load_1s/load_5s/sparkline_buf/updated_at)
+  - `coding.gpu_sparkline`: renders ASCII sparkline `[.:.:::.|#]` from 20-slot ring buffer
+  - both whitelisted in `configuration/zenki/coding/subroutine.white-list`
+  - `coding.init_code` subscribes to X-11.gpu_load after init, handles FALSE reply gracefully
+- **MCP external command tools** (`bin/mcp-server-p7`):
+  - `@external_tools` config table with `kimi_dispatch` (300s timeout, `kimi -y -p %s`)
+  - auto-registration into `@tools` with duplicate name guard
+  - dispatch handler in elsif chain → `tool_external_command`
+  - `tool_external_command`: `qx()` + SIGALRM timeout, merged stdout+stderr, `send_tool_result`
+- **reasoning template**: `data/yaml/reasoning-templates/holographic-grid-interface.yaml`
+  created (733 lines) — div-13/7 invariants, vortex-cube, holographic emergence, interface
+  principle, multi-scale cross-correlation, domain examples (materials/EM/corpus), compounding
+  property; kimi enhanced with: 076923/153846 two families, darksun at pos 27, 1001 ring
+  (7×11×13), dual 13s, cross-references to TESLA-RESONANCE-PRINCIPLES.md, IMPLOSION-CROSS-
+  CORRELATION.md, ZERO.md and related reasoning templates
+
+## session 48b — stale endline recovery + vc-changed-files fix (2026-05-23)
+
+- **`source.cmd.get-code-signed`**: stale endline recovery — on validation failure in `modules/`
+  path with ≤1 trailing newlines, normalize metadata to state=5 and re-sign clean
+  - block placed INSIDE the `else` (not-valid) branch, AFTER verification — signing/verification
+    asymmetry was kimi's original mistake (normalized before verify → checksum mismatch)
+  - `source.init_code` / `sourcecode.init_code`: `normalize_endline_paths //= ['modules']`
+- **`source.restore_payload_endline_state`**: bounds-check delta — clamp to actual trailing
+  newline count before `s/\n{$delta}$//` to prevent error on stale-delta scenario
+- **`bin/dev/tests/timing/test-stale-endline-recovery`**: 5-step test: canonical baseline →
+  inject +2 extra newlines (sign non-canonical) → normalize payload KEEPING old footer
+  (stale delta) → recovery sign → idempotency. Analysis checks `state=N` stability, not BMW
+  (BMW includes harmonic iteration counter — intentionally non-deterministic between cycles)
+- **`bin/admin/vc-changed-files`**: `-sig-only` used `git diff` (unstaged only) — staged files
+  with content changes falsely reported as sig-only. Fixed to `git diff HEAD` (all vs last commit)
+- **`source.signature_valid`** anatomy confirmed: `extract_sig_body` calls
+  `restore_payload_endline_state` in-place → `$src_str` is restored before BMW check.
+  `create_harmonic_footer` captures `$content_size` and `$orig_nl_count` BEFORE harmonize →
+  BMW is over pre-harmonize content; `harmonize_payload_line_feed` always produces `\n\n`.
+  State 5=≥2 trailing (no adjustment), 6=1 trailing (added 1), 7=0 trailing (added 2).
+
 ## session 48 — bug fixes: v7 instance_count, Fuse→Fuse3, lpw sync, log levels (2026-05-23)
 
 - `v7.instance_count`: exclude error-state instances from start_once guard (false "already running")
@@ -1230,8 +1280,8 @@ Skip calling harmonize_payload_line_feed when both conditions are met:
 - Signatures now properly formatted with correct separator endline
 - Pre-commit validation passes
 
-#,,,.,,..,,,.,,..,.,.,,.,,,.,,.,,,,.,,,,,,,..,..,,...,...,.,,,,,,,.,,,,,.,.,,,
-#NVENAK7CKXZT2OV4JNVE57WA6B75UCDP6GEESRJYAZLPVDCWPSCBSP4T5BAEYBYQWX4N2DJJKEKXA
-#\\\|5JMZXA4O4LG47CYVRUL5FOLB5YCZKREDHJDWMFFSEWBQEQKS7AF \ / AMOS7 \ YOURUM ::
-#\[7]DJGTJII7VE4W6CWJWLS5VKVW4QQZIJKNHMAKND4IRGAGT7M2G2DY 7  DATA SIGNATURE ::
+#,,..,,,,,..,,,..,,,.,...,...,,,.,,..,,..,,,,,..,,...,...,...,,..,.,.,.,.,,,,,
+#QWAEC5WTVYRQXT2N53OUZBSKIJ5IN3GGN5ZDQMRL5PKHKVKPEGP2FDK33IW6XFQN6XROTTM5SLBZO
+#\\\|KITGZ27K4HVD6YPVSSIYV54F5SG7YZX4VH3I5WVC33GH24V4U4O \ / AMOS7 \ YOURUM ::
+#\[7]GKLN455ZQFUZNHORURI4S2BTEWJF2WHEKXGC7Z6O7IMWZ2Q6MAAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
