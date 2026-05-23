@@ -13,7 +13,9 @@ our @EXPORT_OK = qw|
     probe_os_pkg
     probe_binary
     install_os_pkgs
-|;
+    |;
+
+use File::Which qw| which |;
 
 ## Load debian backend for dispatch ##
 use AMOS7::deps::debp qw| probe_apt install_apt |;
@@ -97,11 +99,10 @@ sub probe_os_pkg {
 
     return 0 unless defined $pkg && length $pkg;
 
-    if ( $os_type eq 'debian' ) {
-        return probe_apt($pkg);
-    }
+    return probe_binary($pkg) if $os_type eq 'binary';
+    return probe_apt($pkg)    if $os_type eq 'debian';
 
-    ## Future: arch, fedora, etc. ##
+    ## future: arch, fedora, etc. ##
     return 0;
 }
 
@@ -112,10 +113,9 @@ sub probe_binary {
 
     return 0 unless defined $binary && length $binary;
 
-    my $path = `which "$binary" 2>/dev/null`;
-    chomp $path if defined $path;
+    my $path = File::Which::which($binary);
 
-    return ( defined $path && length $path && -x $path ) ? 1 : 0;
+    return ( defined $path && length $path ) ? 1 : 0;
 }
 
 ##[ install_os_pkgs ]#########################################################
@@ -135,8 +135,8 @@ sub install_os_pkgs {
 
 1;
 
-#,,,,,,,.,,,,,...,.,.,.,.,.,.,,,.,,,.,.,,,,,,,..,,...,...,.,.,,..,...,,,,,,.,,
-#6S62Q5NTMMMWQ6WRV3DVMQ7IUSS5TUPKCDGDBFT42HILXE4FTTBM7HV54U3KCJICTWSVJOHFEMLGM
-#\\\|KWP6NTQJTLVHSG4O7F2NU675CHNMDYMO2WMTOKQVE2MYEE4ON2J \ / AMOS7 \ YOURUM ::
-#\[7]W7FREGBLFCERGF3J5K4RIZ3OQRZEL3DIGWRG3FY2JDC6F5JQPQDQ 7  DATA SIGNATURE ::
+#,,.,,,..,,,.,.,,,.,.,..,,,.,,...,.,,,...,,.,,..,,...,...,.,,,...,,,,,.,,,,.,,
+#DME63CGQPMLKUIUAIOSBAOXCH7WWSTSNQDLK3INXNPQZ6OHQ3NWPXZYDHVF2VDYJ2G4EIUY4RTPPG
+#\\\|PCSLFJH3ENK3XULCICYQOHM2P6YTR2EALLBQHRVKZ3GXV2NRUE5 \ / AMOS7 \ YOURUM ::
+#\[7]5L6EJ7HQYYWJDRH3G4OENFGHOEX3YGHO4ZHCYNIOXBL3V4PSHCBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

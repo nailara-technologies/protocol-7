@@ -23,20 +23,19 @@ while ( !$ok and $max_fail-- ) {
     $wait   = 2 + int( rand(5) );
     while ( length(qx(lslocks|grep ^dpkg)) and $wait = 11 or $wait-- ) {
         if ( $wait > 10 and !$warned++ ) {
-            <[base.log]>->(
-                0, "[AUTO_INSTALL] ... waiting for dpkg lock to disappear ..."
-            );
+            <[base.logs]>->( 1, "auto_install: waiting for dpkg lock ..." );
         }
         <[base.sleep]>->(0.33);
     }
 
     my $s = @deb_list > 1 ? 's' : '';
-    <[base.log]>->(
-        0, "[AUTO_INSTALL] debian package$s: " . join( ', ', @deb_list )
+    <[base.logs]>->(
+        1, "auto_install: debian package%s: %s",
+        $s, join( ', ', @deb_list )
     );
 
     open( my $apt_out, '-|', 'apt-get', '-fy', 'install', @deb_list ) or do {
-        <[base.log]>->( 0, "  ✗ apt-get failed to execute : $!" );
+        <[base.logs]>->( 0, "  ✗ apt-get failed to execute : %s", $! );
         $errors++;
         next;
     };
@@ -46,23 +45,30 @@ while ( !$ok and $max_fail-- ) {
     my $result = $?;
 
     if ( $result == 0 ) {
-        <[base.log]>->( 1, ":. successfully installed." );
+        <[base.logs]>->( 1, ":. successfully installed." );
         $ok = 1;
     } elsif ( $output =~ m|Unable to locate package| ) {
-        ## Package doesn't exist - don't retry
-        <[base.log]>->( 0, "  ✗ Package not found - cannot continue" );
+        ## package doesn't exist — don't retry ##
+        <[base.logs]>->( 0, "  ✗ package not found — cannot continue" );
         $errors++;
-        last;    ## Break out of retry loop
+        last;
+    } elsif ( $output =~ m|Permission denied|
+        or $output =~ m|EACCES|
+        or $output =~ m|could not open lock file|i ) {
+        ## permission denied — no retries, not running as root ##
+        <[base.logs]>->( 0, "  ✗ permission denied — not running as root" );
+        $errors++;
+        last;
     } else {
         $errors++;
-        <[base.log]>->( 1, ": retrying automatic installation ..," );
+        <[base.logs]>->( 1, ": retrying automatic installation ..," );
     }
 
 }
 return $errors;
 
-#,,.,,...,.,.,,..,...,.,,,,.,,,,.,...,,.,,,.,,..,,...,...,...,.,.,,..,,..,,,,,
-#RD2WZIDO3BJLHZCDPJOQ3RE2MQCMDMXR3CMDIQ53STXM2QLRCT6BI2KA4BIT6QJ2OJZPXCWOE33TE
-#\\\|CR3BBDNMX2SANA2NCV33FGHOLXS4DFZKBC6P2YK6JXVQXJI44FE \ / AMOS7 \ YOURUM ::
-#\[7]BWICPTSMKIZQXMZBMZQQL7G2ZZE2GAWEGUOXV4M5PY3MJQ5KIQCA 7  DATA SIGNATURE ::
+#,,,.,,,,,,,.,.,.,,,.,.,.,.,,,.,.,.,.,,,.,,..,..,,...,...,.,,,,,,,..,,,..,.,.,
+#RCOMPW2CK36NRUZP6QDVIA2ENETUKB3LBXEQQWE745UZB5TC4724LVIGQY6EJKAQEVYKUFFMYVIFO
+#\\\|YGY7PQHIZLHDXOUB7PJPLWCCABG4X5DBLZ7TMNXCLCNLCVVYDSY \ / AMOS7 \ YOURUM ::
+#\[7]4HTQKY2EHYWMF5PH6AMMC44CO4MVVBV44DKGQZVLKUODHE6NPEBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

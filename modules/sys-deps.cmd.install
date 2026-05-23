@@ -1,0 +1,27 @@
+## [:< ##
+
+# name  = sys-deps.cmd.install
+# descr = install missing deps [ delegates to debian zenka ]
+# param = [zenka=<name>]
+
+my $param = shift;
+my $args  = $param->{'args'} // '';
+
+<[base.logs]>->( 1, 'sys-deps: delegating install to debian zenka' );
+
+my $result = <[protocol-7.route-send]>->(
+    {   'command'   => 'debian.install',
+        'call_args' => { 'args' => $args }
+    }
+);
+
+return {
+    'mode' => qw| size |,
+    'data' => $result // 'no reply from debian zenka'
+};
+
+#,,.,,.,.,..,,,,,,..,,,,.,,.,,.,,,,..,,..,,,,,..,,...,...,..,,..,,,,.,,,,,..,,
+#6FWRJSWUUIPKROQ7I2WHBXCZDST4DKIZU34SWYQJPFNJXNP6MNIEASFCCCYIMEZCWXAECYTGSS5OS
+#\\\|JHEWDVZTPTE6XMAKY7ODI3EEQV65PM4FPCTQGHZCFZLPAELCAT2 \ / AMOS7 \ YOURUM ::
+#\[7]U4247GE5B2GRB33ZMTR4BEYZNLU7XWAZS7G53BRENWUVUBWKHEBI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

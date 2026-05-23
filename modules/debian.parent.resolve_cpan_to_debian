@@ -21,19 +21,13 @@ if ( $known && $known->{debian} ) {
     }
 }
 
-## Fallback: apply naming convention (Foo::Bar => libfoo-bar-perl)
-my $debian_name = lc($cpan_module);
-$debian_name =~ s|::|-|g;
-
-## Don't add lib prefix if already there
-$debian_name = "lib$debian_name-perl" unless $debian_name =~ /^lib/;
-
-return $debian_name;
+## not found in known_dependencies — no invented names ##
+return undef;
 
 0;
 
-#,,,,,.,.,,..,,..,...,,..,,..,,,,,.,.,,,.,.,,,..,,...,...,.,,,...,,.,,...,.,.,
-#XJ4XPMDUER334ETG2LT3CST2K7UPUQMJ6TBF7PEBZXCFO2HIYVU4B3KRKRACK4RQVOUJQOK7GEFQW
-#\\\|5QNYNEAKPKSUROHRPZT4GFHKGBKP64Z7QRMADAZ3V7NCCP3QTNQ \ / AMOS7 \ YOURUM ::
-#\[7]MRWKTUBWPBYMUISIJ45UDWBLQECEXNDCYRLGCBOXWNMKVM54FYAI 7  DATA SIGNATURE ::
+#,,..,.,.,.,.,.,,,,,.,,.,,,.,,..,,.,.,,..,...,..,,...,..,,...,.,.,..,,..,,.,,,
+#F7DLNFMOPPEEWPGQPSBF2SFKFKCYCLL6FOYOJMGEHDDEFFSCDT2BU2I56P3DZZUFX7YY2SPQZHQBG
+#\\\|J354DNMIYQJ5NBFT4NS6JM2W3XQW6QWM5RXJTHEY5EBXSAL6CAN \ / AMOS7 \ YOURUM ::
+#\[7]HVRUJLHJXXVJDYU4QBLGG54SU7TKDFAP5OFDX44643RMBNIRLYDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
