@@ -1,0 +1,29 @@
+
+ .:[ sys-deps zenka ]:.
+
+[load_config_file:'shared-params']
+
+system.verbosity.zenka_buffer = 2
+system.verbosity.zenka_logfile = 2
+
+access.cmd.usr.cube = commands heart reload verify-instance \
+                      state check missing undeclared promote *
+
+modules.load = auth net protocol io.unix sys-deps
+
+[load_modules:<modules.load>]
+[init_modules]
+
+[root.drop_privs:<system.amos-zenka-user>]
+
+[base.net.connect:'unix']
+
+[base.get_session_id]
+
+[zenka.loop]
+
+#,,.,,...,..,,,..,.,.,..,,,,,,,.,,,..,.,,,...,..,,...,...,...,..,,.,,,,,.,.,.,
+#HURKSLFWYPW3A4BVFTMLEQFIGPVFVESQWFDI6JYBZT6H52CNMFGUKONQHJCEQH3DNIX22IGQMNYE6
+#\\\|VZHBZH54STFISFRC7HXT6WYSAKE47AO6KNDRT33B6OCRC3JVUJF \ / AMOS7 \ YOURUM ::
+#\[7]I3XUVXMHJQKP3YHJ44I5BWUI3FHJAGL6ZHXMXERYYAOMKV7E44DA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

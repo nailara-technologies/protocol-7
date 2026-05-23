@@ -10,47 +10,59 @@ use File::Path qw(make_path);
 use Cwd        qw(abs_path);
 use English;
 
+BEGIN {
+    use lib "$RealBin/../data/lib-path/pm";
+}
+
+use AMOS7::deps::module qw(
+    load_known_deps
+    scan_zenki_pm_deps
+    probe_module
+    resolve_install
+);
+use AMOS7::deps::os_package qw(
+    detect_os
+    scan_zenki_os_deps
+    probe_os_pkg
+    probe_binary
+);
+use AMOS7::deps::debp qw( probe_apt install_apt );
+use AMOS7::deps::dist_upgr ();
+
 $OUTPUT_AUTOFLUSH = 1;
 
-# Color palette inspired by Nailara branding
-my $reset             = "\e[0m";
-my $blacklight        = "\e[38;2;68;39;172m";    # Dark purple
-my $nailara_fg        = "\e[38;2;38;46;153m";    # Dark blue
-my $TRUE_color        = "\e[38;2;6;71;195m";     # Bright blue
-my $NEON_orange       = "\e[38;2;197;141;7m";    # Bright orange
-my $NEON_green_yellow = "\e[38;2;71;195;6m";     # Green-yellow
+# Color palette
+my $reset      = "\e[0m";
+my $blacklight = "\e[38;2;68;39;172m";
+my $TRUE_color = "\e[38;2;6;71;195m";
+my $neon_green = "\e[38;2;71;195;6m";
+my $neon_amber = "\e[38;2;197;141;7m";
 
 ##[ SIGNAL HANDLERS ]###########################################################
 
-# Handle Ctrl+C gracefully
 $SIG{INT} = sub {
-    print "\n${NEON_orange}⚠ Interrupted by user${reset}\n";
-    exit 130;    # Standard exit code for SIGINT
+    print "\n${neon_amber}:. interrupted by user${reset}\n";
+    exit 130;
 };
 
-##[ PROJECT PATH DISCOVERY ]######################################################
+##[ PROJECT PATH DISCOVERY ]####################################################
 
-# Helper functions for path operations
 sub catdir  { File::Spec->catdir(@_) }
 sub rel2abs { File::Spec->rel2abs(@_) }
 
-# Discover protocol-7 root path using FindBin
 my $up_dir  = File::Spec->updir;
 my $P7_ROOT = abs_path( rel2abs( catdir( $RealBin, $up_dir ) ) );
 
-# Build all necessary paths
 my $DEPS_DIR      = catdir( $P7_ROOT, '.deps' );
 my $PROFILES_FILE = File::Spec->catfile( $DEPS_DIR, 'profiles.yaml' );
 my $CACHE_DIR     = catdir( $DEPS_DIR, 'cache' );
 my $ZENKI_DIR     = catdir( $P7_ROOT,  'configuration', 'zenki' );
 
-# Ensure cache directory exists
 make_path($CACHE_DIR) unless -d $CACHE_DIR;
 
-# Package check cache (in-memory, for current execution)
-# Maps package names to result (1=installed, 0=missing)
-# Always starts fresh - cleared on every script invocation
 my %pkg_cache = ();
+my $known_deps = load_known_deps($P7_ROOT);
+my $host_os    = detect_os();
 
 # Parse command
 my $cmd = shift @ARGV || 'help';
@@ -71,6 +83,8 @@ if ( $cmd eq 'check' ) {
     show_zenka_packages(@ARGV);
 } elsif ( $cmd eq 'validate' ) {
     validate_zenka_declarations(@ARGV);
+} elsif ( $cmd eq 'dist-upgrade' ) {
+    run_dist_upgrade(@ARGV);
 } elsif ( $cmd eq 'help' || $cmd eq '--help' || $cmd eq '-h' ) {
     show_help();
 } else {
@@ -86,7 +100,6 @@ sub check_profile {
         die "Usage: bin/p7-deps check <profile> [--no-cache]\n";
     }
 
-    # Parse options - could be '--no-cache' or 'explicit' or both
     my $use_cache         = 1;
     my $is_explicit_check = 0;
 
@@ -99,63 +112,55 @@ sub check_profile {
         $is_explicit_check = 1 if $is_explicit eq 'explicit';
     }
 
-    # Cache check for status command (only early return for status)
     if ( $use_cache && !$is_explicit_check ) {
         my $cached = check_cache($profile_name);
         if ( defined $cached ) {
             if ($cached) {
-                print
-                    "✅ $profile_name: All dependencies installed (cached)\n";
+                print "$profile_name: all dependencies installed (cached)\n";
                 return 0;
             } else {
                 print
-                    "❌ $profile_name: Missing dependencies (cached - use --no-cache to recheck)\n";
+                    "$profile_name: missing dependencies (cached - use --no-cache to recheck)\n";
                 return 1;
             }
         }
     }
 
-    # Load profile
     my $profiles = load_profiles();
     unless ( exists $profiles->{$profile_name} ) {
         die
-            "❌ Unknown profile: $profile_name\nRun 'bin/p7-deps list' to see available profiles.\n";
+            "Unknown profile: $profile_name\nRun 'bin/p7-deps list' to see available profiles.\n";
     }
 
     my $profile = $profiles->{$profile_name};
 
-    print "🔍 Checking dependencies for: $profile_name\n";
+    print ":\n::[ dependency check ]\n:\n";
+    print "   profile : $profile_name\n";
     print "   $profile->{description}\n\n";
 
     my @missing;
     my $total  = 0;
     my $all_ok = 1;
 
-    # Handle includes first (dependencies from other profiles)
     if ( $profile->{includes} ) {
-        print "📦 Profile includes: "
+        print ":: includes: "
             . join( ', ', @{ $profile->{includes} } ) . "\n\n";
         for my $included ( @{ $profile->{includes} } ) {
-
-            # Always use fresh checks for included profiles
             my $result = check_profile( $included, '--no-cache',
                 $is_explicit_check ? 'explicit' : undef );
             $all_ok = 0 if $result != 0;
         }
     }
 
-    # Now check this profile's own packages (even if it has includes)
-    # This allows profiles to both include AND extend
-
     # Check APT packages
     if ( $profile->{apt} ) {
-        print "Checking APT packages...\n";
+        print ":: APT packages\n";
         for my $pkg ( @{ $profile->{apt} } ) {
             $total++;
-            if ( check_apt($pkg) ) {
-                print "  ✅ $pkg\n";
+            if ( probe_apt($pkg) ) {
+                print "::   $pkg ................... installed\n";
             } else {
-                print "  ❌ $pkg (missing)\n";
+                print "::   $pkg ................... missing\n";
                 push @missing, "apt:$pkg";
             }
         }
@@ -164,62 +169,46 @@ sub check_profile {
 
     # Check CPAN modules
     if ( $profile->{cpan} ) {
-        print "Checking CPAN modules...\n";
+        print ":: CPAN modules\n";
         for my $module ( @{ $profile->{cpan} } ) {
             $total++;
-            if ( check_cpan($module) ) {
-                print "  ✅ $module\n";
+            if ( probe_module($module) ) {
+                print "::   $module ................... installed\n";
             } else {
-                print "  ❌ $module (missing)\n";
+                print "::   $module ................... missing\n";
                 push @missing, "cpan:$module";
             }
         }
         print "\n";
     }
 
-    # Check CPAN fallback modules (preferred via APT)
+    # Check CPAN fallback modules
     if ( $profile->{cpan_fallback} ) {
-        my %fallback_map = (
-            'AnyEvent'       => 'libanyevent-perl',
-            'BSD::Resource'  => 'libbsd-resource-perl',
-            'Cairo'          => 'libcairo-perl',
-            'Cairo::GObject' => 'libcairo-gobject-perl',
-            'Capture::Tiny'  => 'libcapture-tiny-perl',
-            'Clone'          => 'libclone-perl',
-            'Const::Fast'    => 'libconst-fast-perl',
-            'Convert::Color' => 'libconvert-color-perl',
-            'CryptX'         => 'libcryptx-perl',
-            'Digest::CRC'    => 'libdigest-crc-perl',
-        );
-
-        print "Checking CPAN modules (Debian fallback)...\n";
+        print ":: CPAN modules (Debian fallback)\n";
         for my $module ( @{ $profile->{cpan_fallback} } ) {
             $total++;
-            my $deb_pkg = $fallback_map{$module};
+            my $resolved = resolve_install( $module, $known_deps );
 
-            # Prefer Debian package if available
-            if ( $deb_pkg && check_apt($deb_pkg) ) {
-                print "  ✅ $module (via Debian: $deb_pkg)\n";
-            } elsif ( check_cpan($module) ) {
-                print "  ✅ $module\n";
+            if ( $resolved->{method} eq 'debian' && probe_apt( $resolved->{pkg} ) ) {
+                print "::   $module ................... installed (via Debian: $resolved->{pkg})\n";
+            } elsif ( probe_module($module) ) {
+                print "::   $module ................... installed\n";
             } else {
-                print "  ❌ $module (missing)\n";
+                print "::   $module ................... missing\n";
                 push @missing, "cpan:$module";
             }
         }
         print "\n";
     }
 
-    # Update all_ok based on own packages
     $all_ok = 0 if @missing;
 
     if (@missing) {
-        print "❌ Missing " . scalar(@missing) . " dependencies\n\n";
-        print "💡 Install with: bin/p7-deps install $profile_name\n";
+        print ":\n::  " . scalar(@missing) . " missing --- run: bin/p7-deps install $profile_name\n:\n";
         update_cache( $profile_name, 0 );
         return 1;
     } else {
-        print "✅ All dependencies installed ($total/$total)\n";
+        print ":\n::  all dependencies installed ($total/$total)\n:\n";
         update_cache( $profile_name, 1 );
         return 0;
     }
@@ -232,73 +221,53 @@ sub install_profile {
         $profile_name = 'minimal';
     }
 
-    # Load profile
     my $profiles = load_profiles();
     unless ( exists $profiles->{$profile_name} ) {
-        die "❌ Unknown profile: $profile_name\n";
+        die "Unknown profile: $profile_name\n";
     }
 
     my $profile = $profiles->{$profile_name};
 
-    print "\n${NEON_green_yellow}Installing profile: $profile_name${reset}\n";
+    print "\n${neon_green}::[ install profile ]${reset}\n";
     print "   $profile->{description}\n\n";
 
-    # Handle includes first (install dependencies from other profiles)
     if ( $profile->{includes} ) {
-        print "📦 Profile includes: "
+        print ":: includes: "
             . join( ', ', @{ $profile->{includes} } ) . "\n\n";
         for my $included ( @{ $profile->{includes} } ) {
             install_profile( $included, $opts );
         }
     }
 
-    # Now install this profile's own packages (even if it has includes)
     my @to_install_apt;
     my @to_install_cpan;
 
-    # Collect APT packages
     if ( $profile->{apt} ) {
         for my $pkg ( @{ $profile->{apt} } ) {
-            unless ( check_apt($pkg) ) {
+            unless ( probe_apt($pkg) ) {
                 push @to_install_apt, $pkg;
             }
         }
     }
 
-    # Collect CPAN modules
     if ( $profile->{cpan} ) {
         for my $module ( @{ $profile->{cpan} } ) {
-            unless ( check_cpan($module) ) {
+            unless ( probe_module($module) ) {
                 push @to_install_cpan, $module;
             }
         }
     }
 
-    # Collect CPAN fallback modules
     if ( $profile->{cpan_fallback} ) {
-        my %fallback_map = (
-            'AnyEvent'       => 'libanyevent-perl',
-            'BSD::Resource'  => 'libbsd-resource-perl',
-            'Cairo'          => 'libcairo-perl',
-            'Cairo::GObject' => 'libcairo-gobject-perl',
-            'Capture::Tiny'  => 'libcapture-tiny-perl',
-            'Clone'          => 'libclone-perl',
-            'Const::Fast'    => 'libconst-fast-perl',
-            'Convert::Color' => 'libconvert-color-perl',
-            'CryptX'         => 'libcryptx-perl',
-            'Digest::CRC'    => 'libdigest-crc-perl',
-        );
-
         for my $module ( @{ $profile->{cpan_fallback} } ) {
-            my $deb_pkg = $fallback_map{$module};
+            my $resolved = resolve_install( $module, $known_deps );
 
-            # Prefer Debian package
-            if ($deb_pkg) {
-                unless ( check_apt($deb_pkg) ) {
-                    push @to_install_apt, $deb_pkg;
+            if ( $resolved->{method} eq 'debian' ) {
+                unless ( probe_apt( $resolved->{pkg} ) ) {
+                    push @to_install_apt, $resolved->{pkg};
                 }
             } else {
-                unless ( check_cpan($module) ) {
+                unless ( probe_module($module) ) {
                     push @to_install_cpan, $module;
                 }
             }
@@ -307,26 +276,27 @@ sub install_profile {
 
     # Install APT packages
     if (@to_install_apt) {
-        print "Installing APT packages: "
+        print ":: installing APT packages: "
             . join( ', ', @to_install_apt ) . "\n";
-        my $sudo = $EUID == 0 ? '' : 'sudo ';   # skip sudo if running as root
-        system( "${sudo}apt-get install -y " . join( ' ', @to_install_apt ) )
-            == 0
-            or die "Failed to install APT packages\n";
+        my $result = install_apt(@to_install_apt);
+        if ( @{ $result->{failed} } ) {
+            print ":: failed: " . join( ', ', @{ $result->{failed} } ) . "\n";
+        }
+        if ( @{ $result->{ok} } ) {
+            print ":: installed: " . join( ', ', @{ $result->{ok} } ) . "\n";
+        }
     }
 
     # Install CPAN modules
     if (@to_install_cpan) {
-        print "Installing CPAN modules: "
+        print ":: installing CPAN modules: "
             . join( ', ', @to_install_cpan ) . "\n";
 
-        # Prefer cpanm (non-interactive, from cpanminus package)
-        # Fall back to cpan with -T flag (batch mode, non-interactive)
         my $cpan_available = `which cpanm 2>/dev/null`;
         my $cpan_cmd       = $cpan_available ? 'cpanm' : 'cpan';
 
         for my $module (@to_install_cpan) {
-            print "   Installing $module...\n";
+            print "::   installing $module...\n";
 
             my $cmd
                 = ( $cpan_cmd eq 'cpanm' )
@@ -336,30 +306,29 @@ sub install_profile {
             my $result = system($cmd);
 
             if ( $result == 0 ) {
-                print "   ✅ $module installed\n";
+                print "::   $module installed\n";
             } else {
-                print "   ❌ $module installation failed\n";
+                print "::   $module installation failed\n";
             }
         }
     }
 
-    print "\n✅ Profile installation complete\n";
+    print "\n:: installation complete\n";
     update_cache( $profile_name, 1 );
 }
 
 sub list_profiles {
     my $profiles = load_profiles();
 
-    print "\n${NEON_green_yellow}Available Dependency Profiles${reset}\n";
-    print "${NEON_green_yellow}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${reset}\n\n";
+    print "\n${neon_green}::[ available profiles ]${reset}\n\n";
 
     for my $name ( sort keys %$profiles ) {
         my $profile = $profiles->{$name};
-        print "${NEON_green_yellow}$name${reset}\n";
+        print "${neon_green}$name${reset}\n";
         print "  $profile->{description}\n";
 
         if ( $profile->{includes} ) {
-            print "  Includes: "
+            print "  includes: "
                 . join( ', ', @{ $profile->{includes} } ) . "\n";
         } else {
             my $total = 0;
@@ -367,7 +336,7 @@ sub list_profiles {
             $total += scalar( @{ $profile->{cpan} } ) if $profile->{cpan};
             $total += scalar( @{ $profile->{cpan_fallback} } )
                 if $profile->{cpan_fallback};
-            print "  Packages: $total total\n";
+            print "  packages: $total total\n";
         }
         print "\n";
     }
@@ -377,14 +346,13 @@ sub status_all {
     my $profiles = load_profiles();
 
     print
-        "\n${NEON_green_yellow}::[[${TRUE_color} DEPENDENCY STATUS ${NEON_green_yellow}]${reset}\n";
-    print "${NEON_green_yellow}::${reset}\n\n";
+        "\n${neon_green}::[[${TRUE_color} dependency status ${neon_green}]${reset}\n";
+    print "${neon_green}::${reset}\n\n";
 
-    # Skip meta-profiles in status (they depend on other profiles)
     for my $name ( sort keys %$profiles ) {
         next if $profiles->{$name}{includes};
 
-        print "Checking ${NEON_green_yellow}$name${reset}...\n";
+        print "checking ${neon_green}$name${reset}...\n";
         check_profile( $name, '--no-cache' );
         print "\n";
     }
@@ -395,7 +363,24 @@ sub clear_cache {
     for my $file (@cache_files) {
         unlink($file) or warn "Failed to remove $file: $!\n";
     }
-    print "✅ Cache cleared\n";
+    print ":: cache cleared\n";
+}
+
+sub run_dist_upgrade {
+    my ($action) = @_;
+    $action //= 'dist-upgrade';
+
+    print "\n${neon_green}::[ $action ]${reset}\n\n";
+
+    my $result = AMOS7::deps::dist_upgr::run($action);
+
+    print $result->{log} if defined $result->{log};
+
+    if ( $result->{ok} ) {
+        print "\n:: ${neon_green}$action complete${reset}\n\n";
+    } else {
+        print "\n:: ${neon_amber}$action completed with errors${reset}\n\n";
+    }
 }
 
 ##[ INTROSPECTION COMMANDS ]####################################################
@@ -406,7 +391,7 @@ sub show_zenka_modules {
 
     print_header("Zenka Module Dependencies");
 
-    my $pm_deps = get_zenki_pm_deps();
+    my $pm_deps = scan_zenki_pm_deps($ZENKI_DIR);
 
     unless ( keys %$pm_deps ) {
         print
@@ -415,28 +400,25 @@ sub show_zenka_modules {
     }
 
     if ( $sort_key eq 'zenka' ) {
-
-        # Sort by zenka name
         my %by_zenka;
         for my $module ( keys %$pm_deps ) {
-            my $zenka = $pm_deps->{$module};
-            push @{ $by_zenka{$zenka} }, $module;
+            for my $zenka ( @{ $pm_deps->{$module} } ) {
+                push @{ $by_zenka{$zenka} }, $module;
+            }
         }
 
         for my $zenka ( sort keys %by_zenka ) {
-            print_section("${NEON_green_yellow}$zenka${reset}");
+            print_section("${neon_green}$zenka${reset}");
             my @modules = sort @{ $by_zenka{$zenka} };
             for my $module (@modules) {
-                print "  • $module\n";
+                print "  :. $module\n";
             }
             print "\n";
         }
     } else {
-
-        # Sort by module name (default)
         for my $module ( sort keys %$pm_deps ) {
-            my $zenka = $pm_deps->{$module};
-            print "  ${NEON_green_yellow}$module${reset} (zenka: $zenka)\n";
+            my $zenki_list = join( ', ', sort @{ $pm_deps->{$module} } );
+            print "  ${neon_green}$module${reset} (zenka: $zenki_list)\n";
         }
         print "\n";
     }
@@ -450,9 +432,17 @@ sub show_zenka_packages {
 
     print_header("Zenka OS Package Dependencies");
 
-    my $os_deps = get_zenki_os_deps();
+    my $os_deps = scan_zenki_os_deps($ZENKI_DIR);
 
-    my %all_packages = ( %{ $os_deps->{debian} }, %{ $os_deps->{binary} } );
+    my %all_packages;
+    for my $type ( keys %$os_deps ) {
+        for my $pkg ( keys %{ $os_deps->{$type} } ) {
+            $all_packages{$pkg} = {
+                type  => $type,
+                zenki => $os_deps->{$type}{$pkg}
+            };
+        }
+    }
 
     unless ( keys %all_packages ) {
         print
@@ -461,28 +451,26 @@ sub show_zenka_packages {
     }
 
     if ( $sort_key eq 'zenka' ) {
-
-        # Sort by zenka name
         my %by_zenka;
         for my $pkg ( keys %all_packages ) {
-            my $zenka = $all_packages{$pkg};
-            push @{ $by_zenka{$zenka} }, $pkg;
+            for my $zenka ( @{ $all_packages{$pkg}{zenki} } ) {
+                push @{ $by_zenka{$zenka} }, $pkg;
+            }
         }
 
         for my $zenka ( sort keys %by_zenka ) {
-            print_section("${NEON_green_yellow}$zenka${reset}");
+            print_section("${neon_green}$zenka${reset}");
             my @packages = sort @{ $by_zenka{$zenka} };
             for my $pkg (@packages) {
-                print "  • $pkg\n";
+                print "  :. $pkg\n";
             }
             print "\n";
         }
     } else {
-
-        # Sort by package name (default)
         for my $pkg ( sort keys %all_packages ) {
-            my $zenka = $all_packages{$pkg};
-            print "  ${NEON_green_yellow}$pkg${reset} (zenka: $zenka)\n";
+            my $info = $all_packages{$pkg};
+            my $zenki_list = join( ', ', sort @{ $info->{zenki} } );
+            print "  ${neon_green}$pkg${reset} (type: $info->{type}, zenka: $zenki_list)\n";
         }
         print "\n";
     }
@@ -493,19 +481,21 @@ sub show_zenka_packages {
 sub validate_zenka_declarations {
     print_header("Validating Zenka Dependency Declarations");
 
-    my $pm_deps = get_zenki_pm_deps();
-    my $os_deps = get_zenki_os_deps();
+    my $pm_deps = scan_zenki_pm_deps($ZENKI_DIR);
+    my $os_deps = scan_zenki_os_deps($ZENKI_DIR);
 
-    # Collect all declared zenka
     my %all_zenka;
     for my $module ( keys %$pm_deps ) {
-        $all_zenka{ $pm_deps->{$module} } = 1;
+        for my $zenka ( @{ $pm_deps->{$module} } ) {
+            $all_zenka{$zenka} = 1;
+        }
     }
-    for my $pkg ( keys %{ $os_deps->{debian} } ) {
-        $all_zenka{ $os_deps->{debian}{$pkg} } = 1;
-    }
-    for my $bin ( keys %{ $os_deps->{binary} } ) {
-        $all_zenka{ $os_deps->{binary}{$bin} } = 1;
+    for my $type ( keys %$os_deps ) {
+        for my $pkg ( keys %{ $os_deps->{$type} } ) {
+            for my $zenka ( @{ $os_deps->{$type}{$pkg} } ) {
+                $all_zenka{$zenka} = 1;
+            }
+        }
     }
 
     my $total_zenka = scalar( keys %all_zenka );
@@ -517,166 +507,57 @@ sub validate_zenka_declarations {
 
     print_section("Summary");
     print
-        "  Found ${NEON_green_yellow}$total_zenka${reset} zenka with declared dependencies\n";
-    print "  • CPAN modules: " . scalar( keys %$pm_deps ) . "\n";
-    print "  • Debian packages: "
-        . scalar( keys %{ $os_deps->{debian} } ) . "\n";
-    print "  • Binary requirements: "
-        . scalar( keys %{ $os_deps->{binary} } ) . "\n";
+        "  Found ${neon_green}$total_zenka${reset} zenka with declared dependencies\n";
+
+    my $total_pm    = scalar( keys %$pm_deps );
+    my $total_deb   = scalar( keys %{ $os_deps->{debian} // {} } );
+    my $total_bin   = scalar( keys %{ $os_deps->{binary} // {} } );
+
+    print "  :. CPAN modules: $total_pm\n";
+    print "  :. Debian packages: $total_deb\n";
+    print "  :. Binary requirements: $total_bin\n";
     print "\n";
 
     print_section("Zenka with Dependencies");
     for my $zenka ( sort keys %all_zenka ) {
-        my @modules = grep { $pm_deps->{$_} eq $zenka } keys %$pm_deps;
-        my @debian  = grep { $os_deps->{debian}{$_} eq $zenka }
-            keys %{ $os_deps->{debian} };
-        my @binary = grep { $os_deps->{binary}{$_} eq $zenka }
-            keys %{ $os_deps->{binary} };
+        my @modules = grep { grep { $_ eq $zenka } @{ $pm_deps->{$_} } } keys %$pm_deps;
+        my @debian  = grep { grep { $_ eq $zenka } @{ $os_deps->{debian}{$_} } }
+            keys %{ $os_deps->{debian} // {} };
+        my @binary = grep { grep { $_ eq $zenka } @{ $os_deps->{binary}{$_} } }
+            keys %{ $os_deps->{binary} // {} };
 
         my $count = scalar(@modules) + scalar(@debian) + scalar(@binary);
-        print "  ${NEON_green_yellow}$zenka${reset}: $count dependencies\n";
-        print "    ├─ CPAN: " . scalar(@modules) . "\n"  if @modules;
-        print "    ├─ Debian: " . scalar(@debian) . "\n" if @debian;
-        print "    └─ Binary: " . scalar(@binary) . "\n" if @binary;
+        print "  ${neon_green}$zenka${reset}: $count dependencies\n";
+        print "    :. CPAN: " . scalar(@modules) . "\n"  if @modules;
+        print "    :. Debian: " . scalar(@debian) . "\n" if @debian;
+        print "    :. Binary: " . scalar(@binary) . "\n" if @binary;
     }
 
-    print "\n✅ Validation complete\n\n";
-}
-
-##[ ZENKA INTROSPECTION ]#######################################################
-
-sub get_zenki_pm_deps {
-    my %pm_deps;
-
-    return \%pm_deps unless -d $ZENKI_DIR;
-
-    # Scan all zenka directories
-    opendir my $dh, $ZENKI_DIR or return \%pm_deps;
-    while ( my $zenka = readdir $dh ) {
-        next if $zenka =~ /^\./;
-
-        my $pm_dep_dir = File::Spec->catdir( $ZENKI_DIR, $zenka, 'pm-dep' );
-        next unless -d $pm_dep_dir;
-
-        opendir my $pdh, $pm_dep_dir or next;
-        while ( my $file = readdir $pdh ) {
-            next if $file =~ /^\./;
-
-            # Convert filename back to module name (__ -> ::)
-            my $module = $file;
-            $module =~ s/__/::/g;
-            $pm_deps{$module} = $zenka;
-        }
-        closedir $pdh;
-    }
-    closedir $dh;
-
-    return \%pm_deps;
-}
-
-sub get_zenki_os_deps {
-    my %os_deps = (
-        debian => {},
-        binary => {}
-    );
-
-    return \%os_deps unless -d $ZENKI_DIR;
-
-    # Scan all zenka directories
-    opendir my $dh, $ZENKI_DIR or return \%os_deps;
-    while ( my $zenka = readdir $dh ) {
-        next if $zenka =~ /^\./;
-
-        # Check debian packages
-        my $debian_dir
-            = File::Spec->catdir( $ZENKI_DIR, $zenka, 'os-dep', 'debian' );
-        if ( -d $debian_dir ) {
-            opendir my $ddh, $debian_dir or next;
-            while ( my $pkg = readdir $ddh ) {
-                next if $pkg =~ /^\./;
-                $os_deps{debian}{$pkg} = $zenka;
-            }
-            closedir $ddh;
-        }
-
-        # Check binary requirements
-        my $binary_dir
-            = File::Spec->catdir( $ZENKI_DIR, $zenka, 'os-dep', 'binary' );
-        if ( -d $binary_dir ) {
-            opendir my $bdh, $binary_dir or next;
-            while ( my $bin = readdir $bdh ) {
-                next if $bin =~ /^\./;
-                $os_deps{binary}{$bin} = $zenka;
-            }
-            closedir $bdh;
-        }
-    }
-    closedir $dh;
-
-    return \%os_deps;
+    print "\n:: validation complete\n\n";
 }
 
 ##[ STYLING FUNCTIONS ]#########################################################
 
 sub print_header {
     my $title = shift;
-    print "${blacklight}:$reset\n";
-    print "${blacklight}::[$NEON_green_yellow $title $blacklight]$reset\n";
-    print "${blacklight}:$reset\n\n";
+    print "${blacklight}:${reset}\n";
+    print "${blacklight}::[$neon_green $title $blacklight]${reset}\n";
+    print "${blacklight}:${reset}\n\n";
 }
 
 sub print_section {
     my $title = shift;
-    print "${blacklight}::[$TRUE_color $title $blacklight]$reset\n";
-}
-
-sub print_status {
-    my ( $status, $message ) = @_;
-    my $symbol
-        = ( $status eq 'ok' ) ? '✓' : ( $status eq 'error' ) ? '❌' : '⚠';
-    print
-        "${blacklight}::$reset  $symbol ${NEON_green_yellow}$message$reset\n";
+    print "${blacklight}::[$TRUE_color $title $blacklight]${reset}\n";
 }
 
 sub print_error {
     my ( $message, $exit_code ) = @_;
     print
-        "\n${blacklight}:\n::[$NEON_orange ERROR $blacklight] .: ${NEON_orange}$message$blacklight ::\n:$reset\n";
+        "\n${blacklight}:\n::[$neon_amber ERROR $blacklight] .: ${neon_amber}$message$blacklight ::\n:${reset}\n";
     exit($exit_code) if $exit_code;
 }
 
 ##[ HELPER FUNCTIONS ]##########################################################
-
-sub check_apt {
-    my ($pkg) = @_;
-
-    # Check in-memory cache first
-    return $pkg_cache{"apt:$pkg"} if exists $pkg_cache{"apt:$pkg"};
-
-    # Perform the check
-    my $result
-        = `dpkg-query -W -f='\${Status}' "$pkg" 2>/dev/null | grep -q "install ok installed" && echo "found" || echo ""`;
-    my $installed = $result =~ /found/ ? 1 : 0;
-
-    # Cache and return
-    $pkg_cache{"apt:$pkg"} = $installed;
-    return $installed;
-}
-
-sub check_cpan {
-    my ($module) = @_;
-
-    # Check in-memory cache first
-    return $pkg_cache{"cpan:$module"} if exists $pkg_cache{"cpan:$module"};
-
-    # Perform the check
-    my $cmd       = qq{perl -e "use $module" 2>/dev/null};
-    my $installed = system($cmd) == 0 ? 1 : 0;
-
-    # Cache and return
-    $pkg_cache{"cpan:$module"} = $installed;
-    return $installed;
-}
 
 sub load_profiles {
     unless ( -f $PROFILES_FILE ) {
@@ -694,29 +575,22 @@ sub load_profiles {
         next if $line =~ /^\s*#/;
         next if $line =~ /^\s*$/;
 
-        # Profile header
         if ( $line =~ /^  ([\w-]+):$/ ) {
             $current_profile            = $1;
             $current_section            = undef;
             $profiles{$current_profile} = {};
         }
-
-        # Description
         elsif ( $line =~ /^    description: "(.+)"$/ ) {
             $profiles{$current_profile}{description} = $1;
         }
-
-        # Section header
         elsif ( $line =~ /^    (includes|apt|cpan|cpan_fallback):$/ ) {
             $current_section = $1;
             $profiles{$current_profile}{$current_section} = [];
         }
-
-        # List items
         elsif ( $line =~ /^      - (.+)$/ ) {
             my $item = $1;
-            $item =~ s/\s*#.*//;    # Remove trailing comments
-            $item =~ s/\s+$//;      # Remove trailing whitespace
+            $item =~ s/\s*#.*//;
+            $item =~ s/\s+$//;
             push @{ $profiles{$current_profile}{$current_section} }, $item
                 if $item;
         }
@@ -751,9 +625,9 @@ sub update_cache {
 
 sub show_help {
     print <<"EOF";
-${NEON_green_yellow}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${reset}
-${NEON_green_yellow}Protocol-7 Dependency Manager${reset}
-${NEON_green_yellow}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${reset}
+${neon_green}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${reset}
+${neon_green}Protocol-7 Dependency Manager${reset}
+${neon_green}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${reset}
 
 USAGE:
   bin/p7-deps [OPTION] <command> [args]
@@ -764,6 +638,7 @@ COMMANDS (Installation):
   ${TRUE_color}install${reset} [profile]       Install all dependencies for a profile
   ${TRUE_color}status${reset}                  Show status of all base profiles
   ${TRUE_color}clear-cache${reset}             Clear the dependency cache
+  ${TRUE_color}dist-upgrade${reset}            Run Debian dist-upgrade
 
 COMMANDS (Introspection):
   ${TRUE_color}zenka-modules${reset}           Show which zenka declare which CPAN modules
@@ -783,8 +658,8 @@ EXAMPLES:
   bin/p7-deps install minimal               # Install minimal profile
   bin/p7-deps status                        # Check all profiles
   bin/p7-deps zenka-modules                 # Show module-to-zenka mapping
-  bin/p7-deps zenka-packages                # Show package-to-zenka mapping
   bin/p7-deps validate                      # Validate dependency declarations
+  bin/p7-deps dist-upgrade                  # Run dist-upgrade
 
 PROFILES:
   Profiles are defined in: $PROFILES_FILE
@@ -798,8 +673,8 @@ ZENKA CONFIGURATION:
 EOF
 }
 
-#,,,,,.,,,.,.,.,.,,..,.,.,,,,,,,,,,.,,,,.,...,..,,...,..,,.,.,.,.,,..,,.,,...,
-#EQIXXVGG427BLM5W2XPEYVOKBSJ3C356MPHYCVWGDIM4NEEGAGKLIQC7P5DRWUAOYOGZDIU7JRBLG
-#\\\|4NE4Y2LXZFPKSOBNR6RTVM4MPPWETTXE2LVFG6FIQ7CJN5IZZ5H \ / AMOS7 \ YOURUM ::
-#\[7]IQYIZUJML66PNFPJPTLQAB4BKD5VAM3FVL53B2KMRSKPHSF3KSBY 7  DATA SIGNATURE ::
+#,,..,,,.,.,.,.,.,,,,,...,,,.,.,,,,,.,.,,,...,..,,...,..,,.,.,.,.,.,.,..,,..,,
+#WH6SHRLPTGSWJ463VMOISNSTMZXZW4GCITTXNVDNWEH3ZL2YMWJIRFUBT632YX6LMFY2QSUJFUZB4
+#\\\|WMKEXAVPUYVKIJWR7BAFRM2HMYSRHBGCBF3QLNA2H4Z6UZHR2D5 \ / AMOS7 \ YOURUM ::
+#\[7]RNM42SCM2YNKFIPKL6DU2NJF4OMB2Q4YQMLMJ37BMJ77LHXHDACY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,0 +1,80 @@
+## [:< ##
+
+# name = sys-deps.cmd.state
+# descr = full dependency state report for all zenki
+
+my @output;
+
+push @output, ":", "::[ dependency state ]", ":";
+
+my $pm_deps = <sys-deps.pm_deps>;
+my $os_deps = <sys-deps.os_deps>;
+
+## Count totals ##
+my $total_pm = scalar( keys %$pm_deps );
+my $total_os = 0;
+for my $type ( keys %$os_deps ) {
+    $total_os += scalar( keys %{ $os_deps->{$type} } );
+}
+
+push @output, ":  perl modules declared: $total_pm";
+push @output, ":  OS packages declared: $total_os";
+push @output, ":";
+
+## Probe status for all pm deps ##
+my $missing_pm = 0;
+for my $module ( sort keys %$pm_deps ) {
+    my $ok = AMOS7::deps::module::probe_module($module);
+    $missing_pm++ unless $ok;
+}
+
+## Probe status for all os deps ##
+my $missing_os = 0;
+for my $type ( keys %$os_deps ) {
+    next if $type eq 'binary';
+    for my $pkg ( sort keys %{ $os_deps->{$type} } ) {
+        my $ok = AMOS7::deps::os_package::probe_os_pkg( $pkg, $type );
+        $missing_os++ unless $ok;
+    }
+}
+
+## Binary deps ##
+my $missing_bin = 0;
+for my $bin ( sort keys %{ $os_deps->{'binary'} // {} } ) {
+    my $ok = AMOS7::deps::os_package::probe_binary($bin);
+    $missing_bin++ unless $ok;
+}
+
+push @output, ":  missing perl modules: $missing_pm";
+push @output, ":  missing OS packages: $missing_os";
+push @output, ":  missing binaries: $missing_bin";
+push @output, ":";
+
+## Zenki summary ##
+my %all_zenka;
+for my $module ( keys %$pm_deps ) {
+    for my $zenka ( @{ $pm_deps->{$module} } ) {
+        $all_zenka{$zenka} = 1;
+    }
+}
+for my $type ( keys %$os_deps ) {
+    for my $pkg ( keys %{ $os_deps->{$type} } ) {
+        for my $zenka ( @{ $os_deps->{$type}{$pkg} } ) {
+            $all_zenka{$zenka} = 1;
+        }
+    }
+}
+
+push @output, ":  zenki with dependencies: " . scalar( keys %all_zenka );
+push @output, ":";
+
+return {
+    'mode' => qw| size |,
+    'data' => "\n" . join( "\n", @output ) . "\n"
+};
+
+#,,,.,.,.,,..,..,,,,.,.,,,.,,,,.,,,.,,,,.,,,,,..,,...,...,..,,,..,...,.,.,..,,
+#JMNUB6KZLKYSJ2JAE44CXMC243PKKVYYZ4AGFREEEZZLXSL3L36YADJ4ZAVPY3P7VVR26BD75BWQ2
+#\\\|KLJEHNENVN2IEQFICWYVT234S5FQOS3QQ7MSEQAH3M63VIJU3UI \ / AMOS7 \ YOURUM ::
+#\[7]BCEADRR2SJFACM626WPKBASXEL2Q443EDJUTBJ6CND34PL2LLACY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

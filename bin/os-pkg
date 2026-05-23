@@ -1,0 +1,229 @@
+#!/usr/bin/env perl
+# Protocol-7 OS Package Manager
+# Installs OS packages and tracks them for replication
+
+use strict;
+use warnings;
+use FindBin qw($RealBin);
+use File::Spec;
+use File::Path qw(make_path);
+use English;
+
+BEGIN {
+    use lib "$RealBin/../data/lib-path/pm";
+}
+
+use AMOS7::deps::os_package qw( detect_os scan_zenki_os_deps );
+use AMOS7::deps::debp qw( install_apt );
+
+$OUTPUT_AUTOFLUSH = 1;
+
+##[ PATHS ]#####################################################################
+
+my $P7_ROOT    = File::Spec->catdir( $RealBin, File::Spec->updir );
+my $TRACK_DIR  = File::Spec->catdir( $P7_ROOT, 'var', 'sys-deps' );
+my $TRACK_FILE = File::Spec->catfile( $TRACK_DIR, 'tracked.yaml' );
+my $ZENKI_DIR  = File::Spec->catdir( $P7_ROOT, 'configuration', 'zenki' );
+
+make_path($TRACK_DIR) unless -d $TRACK_DIR;
+
+my $host_os = detect_os();
+
+##[ DISPATCH ]##################################################################
+
+my $cmd = shift @ARGV || 'help';
+
+if ( $cmd eq 'install' ) {
+    cmd_install(@ARGV);
+} elsif ( $cmd eq 'list' ) {
+    cmd_list();
+} elsif ( $cmd eq 'undeclared' ) {
+    cmd_undeclared();
+} elsif ( $cmd eq 'declare' ) {
+    cmd_declare(@ARGV);
+} elsif ( $cmd eq 'help' || $cmd eq '--help' || $cmd eq '-h' ) {
+    cmd_help();
+} else {
+    print ":. Unknown command: $cmd\n";
+    cmd_help();
+    exit 1;
+}
+
+##[ COMMANDS ]##################################################################
+
+sub cmd_install {
+    my @pkgs = @_;
+
+    unless (@pkgs) {
+        print ":. Usage: bin/os-pkg install <pkg> [<pkg> ...]\n";
+        exit 1;
+    }
+
+    if ( $host_os ne 'debian' ) {
+        print ":. OS type '$host_os' not yet supported\n";
+        exit 1;
+    }
+
+    my $result = install_apt(@pkgs);
+
+    my $tracked = load_tracked();
+
+    for my $pkg ( @{ $result->{ok} } ) {
+        push @{ $tracked->{tracked} }, {
+            pkg          => $pkg,
+            type         => 'debian',
+            installed_at => iso_timestamp(),
+            source       => 'manual',
+            zenka        => undef,
+            declared     => 0
+        };
+        print ":. installed and tracked: $pkg\n";
+    }
+
+    for my $pkg ( @{ $result->{failed} } ) {
+        print ":. FAILED: $pkg\n";
+    }
+
+    save_tracked($tracked);
+}
+
+sub cmd_list {
+    my $tracked = load_tracked();
+    my @entries = @{ $tracked->{tracked} // [] };
+
+    unless (@entries) {
+        print ":. no tracked packages\n";
+        return;
+    }
+
+    print ":. tracked packages:\n";
+    for my $entry (@entries) {
+        my $declared = $entry->{declared} ? 'declared' : 'undeclared';
+        print sprintf(
+            "  :. %-40s %s  %s  %s\n",
+            $entry->{pkg},
+            $entry->{installed_at},
+            $entry->{source},
+            $declared
+        );
+    }
+    print "\n";
+}
+
+sub cmd_undeclared {
+    my $tracked  = load_tracked();
+    my $os_deps  = scan_zenki_os_deps($ZENKI_DIR);
+    my %declared = map { $_ => 1 } keys %{ $os_deps->{debian} // {} };
+
+    my @undeclared;
+    for my $entry ( @{ $tracked->{tracked} // [] } ) {
+        next if $entry->{declared};
+        next if $declared{ $entry->{pkg} };
+        push @undeclared, $entry;
+    }
+
+    unless (@undeclared) {
+        print ":. all tracked packages are declared\n";
+        return;
+    }
+
+    print ":. tracked but not declared:\n";
+    for my $entry (@undeclared) {
+        print "  :. $entry->{pkg}  ($entry->{installed_at})\n";
+    }
+    print "\n";
+}
+
+sub cmd_declare {
+    my ( $pkg, $zenka ) = @_;
+
+    unless ( defined $pkg && defined $zenka ) {
+        print ":. Usage: bin/os-pkg declare <pkg> <zenka>\n";
+        exit 1;
+    }
+
+    my $zenka_os_dep_dir
+        = File::Spec->catdir( $ZENKI_DIR, $zenka, 'os-dep', 'debian' );
+
+    make_path($zenka_os_dep_dir) unless -d $zenka_os_dep_dir;
+
+    my $pkg_file = File::Spec->catfile( $zenka_os_dep_dir, $pkg );
+
+    if ( -f $pkg_file ) {
+        print ":. $pkg already declared for zenka '$zenka'\n";
+    } else {
+        open my $fh, '>', $pkg_file or do {
+            print ":. failed to create $pkg_file: $!\n";
+            exit 1;
+        };
+        close $fh;
+        print ":. declared $pkg for zenka '$zenka'\n";
+    }
+
+    # Update tracking state
+    my $tracked = load_tracked();
+    for my $entry ( @{ $tracked->{tracked} // [] } ) {
+        if ( $entry->{pkg} eq $pkg ) {
+            $entry->{declared} = 1;
+            last;
+        }
+    }
+    save_tracked($tracked);
+}
+
+sub cmd_help {
+    print <<'EOF';
+:
+::[ os-pkg — OS package tracker ]
+:
+  install <pkg> [<pkg> ...]   install packages and track them
+  list                        show tracked installs
+  undeclared                  tracked packages not in any os-dep/ config
+  declare <pkg> <zenka>       promote to zenka os-dep config
+  help                        show this help
+:
+EOF
+}
+
+##[ TRACKING STATE ]############################################################
+
+sub load_tracked {
+    return { tracked => [] } unless -f $TRACK_FILE;
+
+    eval {
+        require YAML::Tiny;
+        my $yaml = YAML::Tiny->read($TRACK_FILE);
+        return $yaml->[0] if defined $yaml && defined $yaml->[0];
+    };
+
+    return { tracked => [] };
+}
+
+sub save_tracked {
+    my ($data) = @_;
+
+    eval {
+        require YAML::Tiny;
+        my $yaml = YAML::Tiny->new($data);
+        $yaml->write($TRACK_FILE);
+    };
+
+    if ($EVAL_ERROR) {
+        warn ":. failed to write tracking state: $EVAL_ERROR\n";
+    }
+}
+
+sub iso_timestamp {
+    my @gm = gmtime();
+    return sprintf(
+        '%04d-%02d-%02dT%02d:%02d:%02dZ',
+        $gm[5] + 1900, $gm[4] + 1, $gm[3],
+        $gm[2], $gm[1], $gm[0]
+    );
+}
+
+#,,,,,..,,...,...,..,,,.,,.,.,...,...,,..,...,..,,...,...,,..,.,.,,.,,..,,...,
+#CLGFN5MLSURRG2RCABC6HLIR4ADJNOGBCGMYIDLVU4EXCEPEIJQ42NXFWL6BUTEVKLXZZAEIUCR2C
+#\\\|C7FDWPIS254JP7RGIQSSWZ74KLFSRUPYRVQOZ47MGZNVV5FH65A \ / AMOS7 \ YOURUM ::
+#\[7]37C7Y32I4SVN3LNA5QBGEJY6ZXHT5MCFEYCUZTX7GOC2XDM74OAY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
