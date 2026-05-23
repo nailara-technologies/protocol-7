@@ -46,16 +46,17 @@ my $p7ref = sprintf( "NODE:%s:%s", $chksum7, $addr_b32 );
 <[base.logs]>->( 3, "[orbital.update_position] %s", $p7ref );
 
 ## push current p7ref to discover zenka for mcast propagation ##
-<[protocol-7.route-send]>->(
+<[zenka.push]>->(
     {   qw| command |   => qw| discover.orbital-p7ref-update |,
-        qw| call_args | => { qw| args | => $p7ref },
+        qw| args |      => { qw| args | => $p7ref },
+        qw| queue_max | => 1,    ## only latest position matters
     }
 );
 
 return $p7ref;
 
-#,,,.,..,,.,.,,,.,,.,,.,,,...,,,,,..,,...,..,,..,,...,...,,.,,.,.,,..,.,,,,..,
-#GNMMTW6SBGR6T32MDCOIG7VWDKZHZKSKMAST7ZHODQXR6HGVNLEEGUAYSVEYIJKAJ3G462AWMOVWG
-#\\\|WRNCHZ4GGFDYHGA6I7KU2CBC6EB3IJRLOOK36YM5YCKZDFFJNU4 \ / AMOS7 \ YOURUM ::
-#\[7]U7JKFJG5HQ4HOD46KO3ENXDM6BEINM7N5Q33VJDFDBICIA4IRADQ 7  DATA SIGNATURE ::
+#,,..,.,.,..,,..,,,..,,,.,...,,,,,...,,,,,,,,,..,,...,...,.,,,..,,,,,,...,.,.,
+#FHK7RKTJMZ36GE6TKBGNVJMVGWQQUHNHGIEFNBQKEXBDPAMES7BOEQAUWYP6DJ6Y4VKAXO2Q3JIAG
+#\\\|RRZRE7N6O676DTBW2GMCMQCHLXBGV73BF33DPJHDJGADPLTWWHZ \ / AMOS7 \ YOURUM ::
+#\[7]QW6QN5SBUA4YZL5XYTWNLDDPIUPZHB2FPHDCFTD47TMOJLKHECBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

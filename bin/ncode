@@ -855,8 +855,8 @@ sub cmd_restore_backup {
 
     system($extract_cmd);
 
-    if ( !-d "$temp_dir/configuration" ) {
-        printf " :: invalid backup archive - missing configuration dir ::\n";
+    if ( !-d "$temp_dir/configuration" and !-d "$temp_dir/modules" ) {
+        printf " :: invalid backup archive - missing configuration or modules dir ::\n";
         system("rm -rf $temp_dir");
         return;
     }
@@ -877,7 +877,10 @@ sub cmd_restore_backup {
     }
 
     # Restore files
-    system("cp -r $temp_dir/configuration/* $PATH->{'root'}/configuration/");
+    system("cp -r $temp_dir/configuration/* $PATH->{'root'}/configuration/")
+        if -d "$temp_dir/configuration";
+    system("cp -r $temp_dir/modules/* $PATH->{'root'}/modules/")
+        if -d "$temp_dir/modules";
 
     if ($AI_FRIENDLY) {
         printf "[SUCCESS] Backup restored successfully\n";
@@ -3138,8 +3141,8 @@ sub print_usage {
     print "\n    " . $C{'T'} . $usage_txt . $C{'R'};
 }
 
-#,,,.,,.,,,,,,,.,,,,,,.,.,,,,,,,,,,,.,,.,,.,.,..,,...,...,,..,.,,,,..,,..,,,,,
-#KHF5MNUVB5EDDJ3N5TRD4HSVMZ7U5S6PJMSSCXIGKPW2BM53IZKHEHILK5XKWP4N3MOIAF6PSSBF4
-#\\\|YLE74BE5ZEBY5WR4KYXH6WZ7AZ7AMAWBCSIBJYTQTB4ZKMZOK75 \ / AMOS7 \ YOURUM ::
-#\[7]3CHAHFBP7VJUDRVHGMDILM3ZYJLEHZHB7ESJWIXPSANCFLQ5USDQ 7  DATA SIGNATURE ::
+#,,,.,.,.,...,,.,,...,,,.,.,.,,,.,..,,,.,,,..,..,,...,..,,...,..,,..,,..,,...,
+#L5LTZLNEN3H4JI7TVT2MAOXHHYH53T3F2TXDY27252J6E5KOXXFB6X372TBXOZ5IPWKDAODNHH6C6
+#\\\|RGWBMUB34TUFY4VKPKOTKBGEQ3HXWLXBWY2AUGT2E7RTVG45Y4Q \ / AMOS7 \ YOURUM ::
+#\[7]ERQCBBKDZVS5JU2TXNR3TX2QS4RN4L7GS2DKSCZBKK6PEL3WFWCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
