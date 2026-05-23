@@ -37,7 +37,7 @@ sub install_apt {
     local $ENV{'PAGER'}                    = '/bin/true';
     local $ENV{'LANG'}                     = 'en_US.UTF-8';
 
-    my $sudo = ( $EUID == 0 ) ? '' : 'sudo ';
+    my $sudo     = ( $EUID == 0 ) ? '' : 'sudo ';
     my $max_fail = 5;
     my $ok       = 0;
     my @failed;
@@ -50,9 +50,8 @@ sub install_apt {
         my $wait   = 2 + int( rand(5) );
 
         ## Wait for dpkg lock ##
-        while ( length( qx(lslocks | grep ^dpkg 2>/dev/null) ) and $wait = 11
-            or $wait-- )
-        {
+        while ( length(qx(lslocks | grep ^dpkg 2>/dev/null)) and $wait = 11
+            or $wait-- ) {
             if ( $wait > 10 and !$warned++ ) {
                 warn "... waiting for dpkg lock to disappear ...\n";
             }
@@ -74,7 +73,13 @@ sub install_apt {
             push @installed, @pkgs;
             $ok = 1;
         } elsif ( $output =~ m|Unable to locate package| ) {
-            warn "Package not found - cannot continue\n";
+            warn "package not found — cannot continue\n";
+            push @failed, @pkgs;
+            last;
+        } elsif ( $output =~ m|Permission denied|
+            or $output =~ m|could not open lock file|i ) {
+            ## not running as root — no retries ##
+            warn "permission denied — not running as root\n";
             push @failed, @pkgs;
             last;
         } else {
@@ -90,8 +95,8 @@ sub install_apt {
 
 1;
 
-#,,.,,..,,.,.,,..,,..,,,.,,,.,,,.,,..,,,,,..,,..,,...,...,...,...,,,.,,..,..,,
-#MYASHFMRSUCL4YDRXBT5UWUPOHZVM5IBNVHX7IL7KYKNNZM4O6OZUB66UB4AFKHNJ6DHRH2JSEZRM
-#\\\|7WZLW5JHK6HCCZ5UZCGBZ2M4WDPWR4AQROOTWYLF3HQQNCAPMG7 \ / AMOS7 \ YOURUM ::
-#\[7]72AKRXZRF6OBIGXAIJHBQOO3VXHFXN3W7AW7BTMK522M7K7VMWBA 7  DATA SIGNATURE ::
+#,,.,,,,.,,,.,.,.,.,,,,.,,,..,.,,,.,,,,.,,.,,,..,,...,...,,.,,,..,...,,,.,,..,
+#FLJLZDQSW6B5SMFWRDAUGMMCGETRANQMKV3DTZUDXLG4OW3CRFSYPJHP7ZHV3BY6SADBOXIUUUIAI
+#\\\|VZAXJEU7ZHNSDGLWM54GLUR6NYUGG6D2ZHEPKBQNVQY2VZ4LAYG \ / AMOS7 \ YOURUM ::
+#\[7]DFWSYZU6GMYFLN5UNWW577Q5BUS4RJQPDJHGXLU4BHXOKP4KKUAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

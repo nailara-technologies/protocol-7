@@ -28,22 +28,20 @@ sub run {
     my $sudo = ( $EUID == 0 ) ? '' : 'sudo ';
 
     my @steps = (
-        [ "dpkg recovery",
+        [   "dpkg recovery",
             "${sudo}dpkg --force-confold --force-confdef --force-confmiss --force-overwrite --configure -a"
         ],
         [ "apt-fix install", "${sudo}apt-get -fy install" ],
-        [ "$action (pass 1)",
+        [   "$action (pass 1)",
             "${sudo}apt-get -y -o Dpkg::Options::=--force-confold -o Dpkg::Options::=--force-confdef -o Dpkg::Options::=--force-confmiss $action"
         ],
-        [ "pam-auth-update", "${sudo}pam-auth-update --force" ],
-        [ "cleanup mediainfo tmp",
-            "rm -rf /var/cache/apt/mediainfo_tmp*" ],
-        [ "apt update",
-            "${sudo}apt-get update" ],
-        [ "$action (pass 2)",
+        [ "pam-auth-update",       "${sudo}pam-auth-update --force" ],
+        [ "cleanup mediainfo tmp", "rm -rf /var/cache/apt/mediainfo_tmp*" ],
+        [ "apt update",            "${sudo}apt-get update" ],
+        [   "$action (pass 2)",
             "${sudo}apt-get -fy -o Dpkg::Options::=--force-confold -o Dpkg::Options::=--force-confdef -o Dpkg::Options::=--force-confmiss -o Dpkg::Options::=--force-overwrite $action"
         ],
-        [ "clean and autoremove",
+        [   "clean and autoremove",
             "${sudo}apt-get clean && ${sudo}apt-get -y --purge autoremove"
         ],
     );
@@ -78,8 +76,8 @@ sub run {
 
 1;
 
-#,,..,...,,,.,,,.,,,.,...,..,,.,.,...,..,,,.,,..,,...,...,,,.,.,,,,..,,.,,,..,
-#VQGG2ATVDIDEHSM4ZO7NN4MBHVHCLOZBQ7JTSXBPV6RPQQS6QMHXNR6UXJOMFGCIFN4FIANZPCUKC
-#\\\|BDUTSHQPIWWJLN5QQK6PKQTZ6FGG5T63OIBQPVEW2JLXZ3QF3DB \ / AMOS7 \ YOURUM ::
-#\[7]4EFG4OLYO2HO5FG3IZEYPP227JHPYWXRCE5LH6WLVSXHELCV7KCA 7  DATA SIGNATURE ::
+#,,.,,.,,,.,.,.,.,.,,,.,,,.,.,,..,,..,...,,,.,..,,...,...,...,,.,,,..,,,.,,.,,
+#27XC7J7T6X57S4V7JNLJPYDI7ZZ2SD6TH2EDH4C5AW44MXQGLQ7RY7SAIZKKUWYQQIQLLLE4GII3O
+#\\\|D6NS2NOPXDZ2KEPSNY67QIJ6CMAHOTFQXXJGR65R7RQTCGYTWDA \ / AMOS7 \ YOURUM ::
+#\[7]BFCVGVCZUTKNVQZ7D3HS2VFOWE2D3FIU666HPL23EKPGAY2JG4DY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

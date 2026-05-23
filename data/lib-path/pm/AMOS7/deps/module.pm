@@ -12,7 +12,7 @@ our @EXPORT_OK = qw|
     scan_zenki_pm_deps
     probe_module
     resolve_install
-|;
+    |;
 
 ##[ load_known_deps ]#########################################################
 
@@ -122,17 +122,15 @@ sub resolve_install {
         }
     }
 
-    my $cpan = $known->{cpan_fallback}
-        // $known->{cpan}
-        // $module_name;
+    my $cpan = $known->{cpan_fallback} // $known->{cpan} // $module_name;
 
     return { method => 'cpan', pkg => $cpan };
 }
 
 1;
 
-#,,,,,.,,,,.,,,,,,,,,,..,,...,,..,,,,,,..,,.,,..,,...,...,,.,,.,,,..,,,..,...,
-#5PGRYJA26WQT55KW34P6QW7PWAJVWZJGEGIOJNY47TV2Z4UHIA5CVN6QB6GJZNFNP55FYS33BJFTA
-#\\\|OPS2YYOS67EIAS3YBDVFU22PT2SE4IKMJQJWA4URJOLK2CGKDWU \ / AMOS7 \ YOURUM ::
-#\[7]SY2JISZ37WCZNJZGUA7LNZQLJVIUDGTMOWJPXY7MOHBFPUZ6X6CY 7  DATA SIGNATURE ::
+#,,..,,..,,,,,..,,..,,,..,..,,.,,,,,.,,.,,.,.,..,,...,...,,,.,.,,,...,.,.,...,
+#M42WY4C4HCUB7UTXZMC4DQWTHMIA75QPY4CZAJICCFEIDVC3JQW3AJ5BH7SZM3YS5E5AQSQ5A67YO
+#\\\|XHIXMWBAK3Y6XPDYGPPHPD2IARSFO7J3KPM6MKDAQ7Z2BK632YH \ / AMOS7 \ YOURUM ::
+#\[7]P3HULYTC6Y73YNKSTZFY5HLIEPYC5VEER53ZSMJ6UP6FG4PTKMAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
