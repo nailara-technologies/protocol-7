@@ -1,0 +1,58 @@
+## [:< ##
+
+# name  = debian.start.apt_child
+# descr = fork root child for apt-get before privilege drop
+
+return if defined <debian.apt_child.w_fh>;
+return if $UID != 0 and $EUID != 0;          ## must be root to fork ##
+
+<system.path.perl_bin> //= <[base.get_path.perl_exec]>;
+
+<[base.perlmod.load]>->('IPC::Open2')
+    if not <[base.perlmod.loaded]>->('IPC::Open2');
+
+## child reads install commands on stdin, replies with output + exit code ##
+my $child_code = <<~'EOT';
+use strict; use warnings;
+local $ENV{'APT_LISTCHANGES_FRONTEND'} = 'none';
+local $ENV{'UCF_FORCE_CONFFOLD'}       = 'true';
+local $ENV{'UCF_FORCE_CONFMISS'}       = 'true';
+local $ENV{'DEBCONF_PRIORITY'}         = 'critical';
+local $ENV{'PAGER'}                    = '/bin/true';
+local $ENV{'LANG'}                     = 'en_US.UTF-8';
+local $ENV{'DEBIAN_FRONTEND'}          = 'noninteractive';
+$| = 1;
+while ( my $line = <STDIN> ) {
+    chomp $line;
+    last unless length $line;
+    if ( $line =~ m|^install (.+)$| ) {
+        my @pkgs = split /\s+/, $1;
+        my $cmd  = 'apt-get -fy install ' . join( ' ', @pkgs ) . ' 2>&1';
+        open( my $fh, '-|', $cmd ) or do { print "< 1\n"; next };
+        while ( my $out = <$fh> ) { print "> $out" }
+        close($fh);
+        printf "< %d\n", $? >> 8;
+    } elsif ( $line eq 'exit' ) {
+        last;
+    } else {
+        print "< 1\n";    ## unknown command ##
+    }
+}
+EOT
+
+<debian.apt_child.pid>
+    = IPC::Open2::open2( <debian.apt_child.r_fh>, <debian.apt_child.w_fh>,
+    <system.path.perl_bin>, qw| -e |, $child_code )
+    || die sprintf( "cannot start apt child process [ %s ]\n",
+    scalar <[base.format_error]>->($OS_ERROR) );
+
+<[base.logs]>->(
+    1, 'debian: apt-child started [pid:%d]',
+    <debian.apt_child.pid>
+);
+
+#,,,.,.,,,,..,,,.,.,,,.,.,.,,,,.,,,,.,.,.,,,,,..,,...,...,,..,..,,,.,,,..,.,.,
+#DAPLSACRPFTJMM5ZVVBPZWKT6AKW2RT5PEP6FFFW64PJDNXYRBBCZWG2HCW2SXWUHIHIXEXEWF2O6
+#\\\|ZWFHN7EV2O5CVYG2MWM4Y663HB66BRIYXUOFYFC37OXPNIXRCYA \ / AMOS7 \ YOURUM ::
+#\[7]KIJK2UAOGC2OWQG5FIQ4JKHJFKBVROPOUNVJNTYNCOTUBGZJ5CDQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

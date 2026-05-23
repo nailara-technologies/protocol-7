@@ -9,6 +9,16 @@ use base qw| Exporter |;
 
 our @EXPORT_OK = qw| probe_apt install_apt |;
 
+my $_apt_cache;
+
+sub _apt_cache {
+    unless ( defined $_apt_cache ) {
+        eval { require AptPkg::Cache; $_apt_cache = AptPkg::Cache->new };
+        $_apt_cache = undef if $@;
+    }
+    return $_apt_cache;
+}
+
 ##[ probe_apt ]###############################################################
 
 sub probe_apt {
@@ -16,10 +26,15 @@ sub probe_apt {
 
     return 0 unless defined $pkg && length $pkg;
 
-    my $result
-        = `dpkg-query -W -f='\${Status}' "$pkg" 2>/dev/null | grep -q "install ok installed" && echo "found" || echo ""`;
+    my $cache = _apt_cache();
+    if ( defined $cache ) {
+        my $p = $cache->{$pkg};
+        return ( defined $p && $p->{CurrentState} eq 'Installed' ) ? 1 : 0;
+    }
 
-    return ( defined $result && $result =~ /found/ ) ? 1 : 0;
+    ## fallback: dpkg-query if AptPkg unavailable ##
+    my $out = `dpkg-query -W -f='\${Status}' "$pkg" 2>/dev/null`;
+    return ( defined $out && $out =~ /install ok installed/ ) ? 1 : 0;
 }
 
 ##[ install_apt ]#############################################################
@@ -29,41 +44,40 @@ sub install_apt {
 
     return { ok => [], failed => [] } unless @pkgs;
 
-    ## Non-interactive environment ##
+    return { ok => [], failed => [@pkgs] } if $EUID != 0;
+
     local $ENV{'APT_LISTCHANGES_FRONTEND'} = 'none';
     local $ENV{'UCF_FORCE_CONFFOLD'}       = 'true';
     local $ENV{'UCF_FORCE_CONFMISS'}       = 'true';
     local $ENV{'DEBCONF_PRIORITY'}         = 'critical';
+    local $ENV{'DEBIAN_FRONTEND'}          = 'noninteractive';
     local $ENV{'PAGER'}                    = '/bin/true';
     local $ENV{'LANG'}                     = 'en_US.UTF-8';
 
-    my $sudo     = ( $EUID == 0 ) ? '' : 'sudo ';
     my $max_fail = 5;
     my $ok       = 0;
     my @failed;
     my @installed;
 
-    my $pkg_list = join( ' ', @pkgs );
-
     while ( !$ok and $max_fail-- ) {
         my $warned = 0;
         my $wait   = 2 + int( rand(5) );
 
-        ## Wait for dpkg lock ##
-        while ( length(qx(lslocks | grep ^dpkg 2>/dev/null)) and $wait = 11
+        ## wait for dpkg lock ##
+        while ( length( qx(lslocks | grep ^dpkg 2>/dev/null) ) and $wait = 11
             or $wait-- ) {
             if ( $wait > 10 and !$warned++ ) {
-                warn "... waiting for dpkg lock to disappear ...\n";
+                warn "auto_install: waiting for dpkg lock ...\n";
             }
             select( undef, undef, undef, 0.33 );
         }
 
-        open( my $apt_out, '-|', 'apt-get', '-fy', 'install', @pkgs )
-            or do {
+        my $cmd = 'apt-get -fy install ' . join( ' ', @pkgs ) . ' 2>&1';
+        open( my $apt_out, '-|', $cmd ) or do {
             warn "apt-get failed to execute: $!\n";
             push @failed, @pkgs;
             last;
-            };
+        };
 
         my $output = join( '', <$apt_out> );
         close($apt_out);
@@ -76,17 +90,9 @@ sub install_apt {
             warn "package not found — cannot continue\n";
             push @failed, @pkgs;
             last;
-        } elsif ( $output =~ m|Permission denied|
-            or $output =~ m|could not open lock file|i ) {
-            ## not running as root — no retries ##
-            warn "permission denied — not running as root\n";
-            push @failed, @pkgs;
-            last;
         } else {
             warn ": retrying automatic installation ..,\n";
-            if ( $max_fail == 0 ) {
-                push @failed, @pkgs;
-            }
+            push @failed, @pkgs if $max_fail == 0;
         }
     }
 
@@ -95,8 +101,8 @@ sub install_apt {
 
 1;
 
-#,,.,,,,.,,,.,.,.,.,,,,.,,,..,.,,,.,,,,.,,.,,,..,,...,...,,.,,,..,...,,,.,,..,
-#FLJLZDQSW6B5SMFWRDAUGMMCGETRANQMKV3DTZUDXLG4OW3CRFSYPJHP7ZHV3BY6SADBOXIUUUIAI
-#\\\|VZAXJEU7ZHNSDGLWM54GLUR6NYUGG6D2ZHEPKBQNVQY2VZ4LAYG \ / AMOS7 \ YOURUM ::
-#\[7]DFWSYZU6GMYFLN5UNWW577Q5BUS4RJQPDJHGXLU4BHXOKP4KKUAY 7  DATA SIGNATURE ::
+#,,..,..,,...,.,,,,,,,...,..,,.,.,..,,,,,,,..,..,,...,...,.,,,,,,,,.,,,,,,,..,
+#FKEHZ77KYE3D466JA3Q35XQLJ45F4WK42VDL4ZF34G4VSYBNN4LVH6NYFJCATAG5RETPKRYJHTVVG
+#\\\|L3XDCZTLZUWMXL67LPPH3P6TPXEWIDW6S2HFLYNGAPF2NWQSMWI \ / AMOS7 \ YOURUM ::
+#\[7]5UBRIHGXK32ANAOC6UIJAEL3FMKD6KY44QJIEIZ47EO5EJDUWOCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,22 +1,26 @@
 ## [:< ##
 
 # name  = debian.parent.callback.check_package_installed
-# descr = check if a debian package is installed via dpkg-query
+# descr = check if a debian package is installed via AptPkg::Cache
 
 my $package = shift;
 
-## Use dpkg-query to check if package is installed
-my $output
-    = qx(dpkg-query -W -f='\${Status} \${Version}' $package 2>/dev/null);
+<[base.perlmod.load]>->('AptPkg::Cache')
+    if not <[base.perlmod.loaded]>->('AptPkg::Cache');
 
-if ( $output && $output =~ /^install ok installed (.+)$/ ) {
-    return $1;    ## Return version
+<debian.apt_cache> //= AptPkg::Cache->new;
+
+my $p = <debian.apt_cache>->{$package};
+
+if ( defined $p && $p->{CurrentState} eq 'Installed' ) {
+    my $cur = $p->{CurrentVer};
+    return $cur ? $cur->{VerStr} : '(installed)';
 }
 
 return undef;
 
-#,,,.,,.,,.,,,...,.,.,..,,.,.,.,.,,,,,..,,,.,,..,,...,...,...,..,,,,,,.,.,...,
-#KPOI4XKHXP45TP5IJQJGFPZEUOVPYXZOG25SEJQUIDFSGTRPJTEQJDAFDO3LNTFLQGD6WKBJOO4PK
-#\\\|TTQZBIHN3HB7GUYEQZXEGLRUVLN2KOUXSRBIWFW6RI7CY5RLUUB \ / AMOS7 \ YOURUM ::
-#\[7]RRBGYX7OX5Y7IPKBQDGVPCMQECZZZGZ2S6ZF2D4ULGEWB572HIDA 7  DATA SIGNATURE ::
+#,,..,.,.,.,.,,.,,,,.,,,.,,,.,.,,,,,,,,..,.,.,..,,...,...,..,,.,,,.,.,,..,,,,,
+#ELYAPNAFA2V4Y3MOACBLLZZ2PFPRPX2CE3WBLOSXADVNGXKI6VXH7W6MCXFUN3INT4RT7GKJMAC56
+#\\\|NTDQFCH6524QQEFUAZPB5UQTRPJT744ND472OX3L2EYHMA2FO2Q \ / AMOS7 \ YOURUM ::
+#\[7]4BSLKZX3XBUMYQMV5KDQ5DA6FBZXPT2AEZQSDBNQMRN4ZULCKAAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
