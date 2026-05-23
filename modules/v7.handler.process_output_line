@@ -74,8 +74,9 @@ while (
             my $output_line_copy = $zenka_output_line;
             my $zenka_short
                 = <[base.parser.center_ellipse_string]>->( $zenka_name, 7 );
+            my $zenka_field = sprintf( '%-7s', $zenka_short );
             $output_line_copy
-                =~ s{\.? \S+$zenka_name(\s+)(\e\[.+?)?\.}{:.$1$zenka_short :\e[0m};
+                =~ s{\.? \S+$zenka_name\s+(\e\[.+?)?\.}{:. $zenka_field :\e[0m};
             ## shortened output [ skip prefix ] ##
             <[v7.handler.output_zenka_stdout]>->( \$output_line_copy );
         } else {
@@ -123,8 +124,8 @@ SKIP_PROCESSING:
 ##  more data available ?  ##
 $watcher->now if $zenka_instance->{'console-output'}->can_read(0);
 
-#,,,,,,,,,,,.,,,,,,.,,..,,,,.,,.,,,,.,.,.,...,..,,...,...,...,..,,.,.,..,,,,.,
-#GYBSZOCU2RZOUCSIFPQUK3T7I5SCBIEWHQ4QGELN47TTWNGWBWHKYA25A3VLCTLJQHY7QT5577MGO
-#\\\|J36TITJ6PXVIKOFDF4FZYC6WWGA6GEGB6TGABGY3IV4R46ONUWZ \ / AMOS7 \ YOURUM ::
-#\[7]IJCIWZ4YRQUNICF4WDXTQBQXV6VSHUHPHOS4TY4V3YJAWWW3NAAQ 7  DATA SIGNATURE ::
+#,,.,,.,.,.,.,.,,,.,.,.,,,.,.,...,.,,,,,.,...,..,,...,...,...,...,.,.,,.,,.,.,
+#7FOWKD4A3EZ4T7NGCR4P7L4VY5G3EZOSQ6PW6LYQM7K5KLSEVUGXZZZG6O4XO52AKY3XTBAJAY2E4
+#\\\|WWYKMHB7B5OKZTZOI2RPE6BU2Y3Y64RRKFVWC55BAOJ7JGFTHU3 \ / AMOS7 \ YOURUM ::
+#\[7]H4KTMCGNXJYMQBOZYRGFHMTCS4Q7WJ2AQQVDHZJ4L4DP3MORY2DA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

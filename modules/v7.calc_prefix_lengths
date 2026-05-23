@@ -8,7 +8,7 @@ my $apw_href = <v7.zenka.prefix_width> //= {};
 my @online_zenki = keys <v7.online-zenki>->%*;
 
 my $max_len = 0;
-foreach my $zenka_name ( uniq @ARG, @online_zenki, qw| v7 | ) {
+foreach my $zenka_name ( uniq @ARG, @online_zenki, qw| v7 cube | ) {
     my $new_len = <[base.get_start_lpw]>->($zenka_name);
     $apw_href->{$zenka_name} //= $new_len;
     $max_len = $new_len if $new_len > $max_len;
@@ -74,8 +74,8 @@ foreach my $zenka_name ( <[base.sort]>->($apw_href) ) {    ## keys ##
 map { $apw_href->{$ARG} = $max_len if $apw_href->{$ARG} != $max_len }
     ( keys $apw_href->%* );
 
-#,,.,,...,.,,,,,,,,,.,,,,,,,,,,,,,,,,,,,,,,..,..,,...,...,,.,,,.,,,,,,,..,...,
-#CO7ACQQ2CUR3TPPJXZH23CCBGF3UQIKJFXOSX56Y25IFPMOBYAC2E37DUJRGA6WLBVHUJSBRUSIR4
-#\\\|DL7XERUM54BDUKTM3Z6ZWISDUL6QEUL2F6HLGZUN4PKWCVSMUO6 \ / AMOS7 \ YOURUM ::
-#\[7]IYIJG26YESTPAB5LQ4NMLC3BGAX5GIGECZ6QDZZXVNIXMJXRMACQ 7  DATA SIGNATURE ::
+#,,.,,,,.,..,,,..,,..,,,,,...,.,,,,..,,,,,,.,,..,,...,...,.,.,,..,.,.,,,.,,,,,
+#OPQSUPMQFMYJ3QCOTT2NZS2PN33EW5X3VJTMS6DW5VLVONLABUIODHUTGZGPKIM7AVAGHQRMQOOHE
+#\\\|ANWJRQZD4JVOIPLYGLJGM2NIVME2OC6DJDQLANHTTJHH5ZFS52P \ / AMOS7 \ YOURUM ::
+#\[7]FHEUCNLLH6IEUBOWWJZ4IBDB7S6C5DMQ3ZT7MZSYRBYP4IU2LIBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
