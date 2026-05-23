@@ -106,12 +106,10 @@ metadata:
 - **site-auth zenka** — session/auth for login-gated scrapers
 - **job automation** — jobtracker integration (HTML/JS, CSV/PDF), email reply monitor
 - **base.handler.command refactor** — data/md/development/BASE-HANDLER-COMMAND-REFACTOR-PLAN.md
-- **SIZE packet loss bug** — STRM interaction stops zenka returning SIZE replies until unrelated cmd sent
 
 ## open bugs (session 37 — still open)
 
 - **source.extract_sig_body**: YOURUM fake stubs 1 char too long → size mismatch → error instead of strip
-- **v7 start-once + error status**: "already running" when instance is in error state
 - **config double-load bug** — duplicate config key warnings; see `bug-config-double-load.md`
 - **signature oscillation Variant B** — double-footer on never-signed non-empty files
 - [signature endline restoration](bug-signature-endline-restoration.md) — stale encoded delta after edit
@@ -127,8 +125,8 @@ metadata:
 
 After a failed tool-using task, Glitter backend needs restart before `:no_tools:` tasks work. Model gets stuck in tool-mode. Restart coding zenka or wait before dispatching `:no_tools:` priming tasks.
 
-#,,,.,,..,.,,,,..,,.,,.,.,.,.,,.,,.,.,,..,,,.,..,,...,...,,,.,,,,,,,,,,..,..,,
-#PUKORZBTMF2TNXWX5OCYGI7357WDBXVCER7RGZB6TBNZ6YFVBZBGCPGC5BKTTZLBDHQXWCDW2X2MA
-#\\\|ZLHLCEUJUIX4SIMSW2FWXM4VJ7NZMBKZYARUHV667QKPFP2XXBW \ / AMOS7 \ YOURUM ::
-#\[7]VXWOVHVTXXC53BXJNA3NRAUVK23KP76JA4KGXZBS7O3TKXGNEKCY 7  DATA SIGNATURE ::
+#,,.,,,,,,.,,,,..,..,,.,.,.,,,.,.,.,.,..,,,,.,..,,...,...,..,,,,,,.,,,...,.,,,
+#6KCNUKSIBZT4JX7U64WCDWTY7N3X5RTAJFXSYTWXKANRCIBIPOJIJ2M2SH36VSUE6HAUB4J5ZGNDU
+#\\\|XKW4F7AI7JA72GXJ75ZQTJQD3IHTAK5GLANV7BJE4XOK45NZMLC \ / AMOS7 \ YOURUM ::
+#\[7]DNVH3N5MH62BUGAKRKXVIQQ6ZXWNHOCKSTCHU7AZVH2GWSHIP4CY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
