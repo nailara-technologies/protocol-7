@@ -11,7 +11,7 @@ use List::Util qw| max |;
 use IO::Socket::UNIX;
 use FindBin qw| $RealBin |;
 use File::Spec;
-use Cwd     qw| abs_path |;
+use Cwd qw| abs_path |;
 
 BEGIN {
     use File::Spec;
@@ -48,11 +48,24 @@ my @external_tools = (
     {   'name'        => 'kimi_dispatch',
         'description' => 'dispatch a task to the local kimi AI agent. '
             . 'runs kimi with auto-approval (-y) and returns combined output. '
-            . 'use for code implementation, analysis, or research tasks.',
-        'command'     => 'kimi -y -p %s',   ## %s = shell-quoted prompt arg
-        'param_name'  => 'prompt',
-        'param_desc'  => 'the task or question for kimi to work on',
-        'timeout'     => 300,               ## seconds
+            . 'use for code implementation, analysis, or research tasks. '
+            . 'kimi prints a resume line at the end: '
+            . '"To resume this session: kimi -r <uuid>" — '
+            . 'pass that uuid to kimi_continue to resume a long-running task.',
+        'command'    => 'kimi -y -p %s',    ## %s = shell-quoted prompt arg
+        'param_name' => 'prompt',
+        'param_desc' => 'the task or question for kimi to work on',
+        'timeout'    => 2820,               ## 47 minutes
+    },
+    {   'name'        => 'kimi_continue',
+        'description' => 'resume a kimi session by session id. '
+            . 'use when kimi_dispatch output ends with a resume line. '
+            . 'pass the uuid from "To resume this session: kimi -r <uuid>". '
+            . 'kimi will continue exactly where it left off.',
+        'command'    => 'kimi -y -r %s',    ## %s = shell-quoted session uuid
+        'param_name' => 'session_id',
+        'param_desc' => 'the kimi session uuid from the resume line',
+        'timeout'    => 2820,               ## 47 minutes
     },
     ## additional external tools can be added here
     ## format: name, description, command (%s = shell-quoted first arg),
@@ -332,7 +345,7 @@ our @tools = (
 {
     my $chat_tools_fn = do "$ROOT_PATH/modules/mcp.tools.chat";
     if ( ref $chat_tools_fn eq qw| CODE | ) {
-        $chat_tools_fn->(\@tools);
+        $chat_tools_fn->( \@tools );
     } elsif ($@) {
         log_msg( 'chat tools load error: %s', $@ );
     }
@@ -340,9 +353,10 @@ our @tools = (
 
 ##[ register external tools ]##
 
-for my $ext ( @external_tools ) {
+for my $ext (@external_tools) {
     next if grep { $_->{'name'} eq $ext->{'name'} } @tools;
-    push @tools, {
+    push @tools,
+        {
         'name'        => $ext->{'name'},
         'description' => $ext->{'description'},
         'inputSchema' => {
@@ -356,7 +370,7 @@ for my $ext ( @external_tools ) {
             'required'             => [ $ext->{'param_name'} ],
             'additionalProperties' => \0,
         },
-    };
+        };
 }
 
 ##[ main loop ]##
@@ -506,8 +520,8 @@ sub tool_p7_chat_send {
 
     local $ENV{'P7_CHAT_CALLER'} = qw| mcp |;
     open( my $fh, '-|', @cmd )
-        or return send_tool_result( $id,
-        'failed to run chat: ' . $OS_ERROR, 1 );
+        or
+        return send_tool_result( $id, 'failed to run chat: ' . $OS_ERROR, 1 );
     my $output = do { local $/; <$fh> };
     close $fh;
     chomp( $output //= '' );
@@ -542,13 +556,13 @@ sub tool_p7_chat_summary {
     my $all_channels = $args->{'all_channels'} // 0;
 
     my @cmd = ( "$ROOT_PATH/bin/chat", qw| -q -summary | );
-    push @cmd, '-channel',      $channel if length $channel;
-    push @cmd, '-all-channels'           if $all_channels;
+    push @cmd, '-channel', $channel if length $channel;
+    push @cmd, '-all-channels' if $all_channels;
 
     local $ENV{'P7_CHAT_CALLER'} = qw| mcp |;
     open( my $fh, '-|', @cmd )
-        or return send_tool_result( $id,
-        'failed to run chat: ' . $OS_ERROR, 1 );
+        or
+        return send_tool_result( $id, 'failed to run chat: ' . $OS_ERROR, 1 );
     my $output = do { local $/; <$fh> };
     close $fh;
     chomp( $output //= '' );
@@ -568,13 +582,13 @@ sub tool_p7_chat_search {
 
     my @cmd = ( "$ROOT_PATH/bin/chat", qw| -q | );
     push @cmd, ( $regex ? '-grep' : '-search' ), $term;
-    push @cmd, '-channel',      $channel if length $channel;
-    push @cmd, '-all-channels'           if $all_channels;
+    push @cmd, '-channel', $channel if length $channel;
+    push @cmd, '-all-channels' if $all_channels;
 
     local $ENV{'P7_CHAT_CALLER'} = qw| mcp |;
     open( my $fh, '-|', @cmd )
-        or return send_tool_result( $id,
-        'failed to run chat: ' . $OS_ERROR, 1 );
+        or
+        return send_tool_result( $id, 'failed to run chat: ' . $OS_ERROR, 1 );
     my $output = do { local $/; <$fh> };
     close $fh;
     chomp( $output //= '' );
@@ -586,8 +600,8 @@ sub tool_p7_chat_channels {
 
     local $ENV{'P7_CHAT_CALLER'} = qw| mcp |;
     open( my $fh, '-|', "$ROOT_PATH/bin/chat", qw| -q -channels | )
-        or return send_tool_result( $id,
-        'failed to run chat: ' . $OS_ERROR, 1 );
+        or
+        return send_tool_result( $id, 'failed to run chat: ' . $OS_ERROR, 1 );
     my $output = do { local $/; <$fh> };
     close $fh;
     chomp( $output //= '' );
@@ -622,7 +636,8 @@ sub tool_task_create {
 
     my ( $ok, $response );
     if ( $desc =~ /\n/ or length($desc) > 200 ) {
-        ( $ok, $response ) = cube_command_multiline( 'task.create', {}, $desc );
+        ( $ok, $response )
+            = cube_command_multiline( 'task.create', {}, $desc );
     } else {
         ( $ok, $response ) = cube_command("task.create $desc");
     }
@@ -664,9 +679,9 @@ sub tool_task_complete {
 
     my ( $ok, $response );
     if ( $result =~ /\n/ or length($result) > 200 ) {
-        ( $ok, $response ) = cube_command_multiline(
-            'task.complete', { 'id' => $task_id }, $result
-        );
+        ( $ok, $response )
+            = cube_command_multiline( 'task.complete', { 'id' => $task_id },
+            $result );
     } else {
         ( $ok, $response ) = cube_command("task.complete $task_id $result");
     }
@@ -685,9 +700,9 @@ sub tool_task_continue {
 
     my ( $ok, $response );
     if ( $message =~ /\n/ or length($message) > 200 ) {
-        ( $ok, $response ) = cube_command_multiline(
-            'task.continue', { 'id' => $task_id }, $message
-        );
+        ( $ok, $response )
+            = cube_command_multiline( 'task.continue', { 'id' => $task_id },
+            $message );
     } else {
         ( $ok, $response ) = cube_command("task.continue $task_id $message");
     }
@@ -821,9 +836,10 @@ sub cube_command_multiline {
     ## build header block ##
     my $header_block = '';
     if ( keys %{$headers} ) {
-        my $max_w = max( map { length } keys %{$headers} );
+        my $max_w = max( map {length} keys %{$headers} );
         for my $key ( sort keys %{$headers} ) {
-            $header_block .= sprintf " %*s : %s\n", $max_w, $key, $headers->{$key};
+            $header_block .= sprintf " %*s : %s\n", $max_w, $key,
+                $headers->{$key};
         }
     }
 
@@ -857,7 +873,8 @@ sub cube_command_multiline {
 
     return ( 1, $reply_data ) if $reply_type eq 'TRUE';
     return ( 0, $reply_data ) if $reply_type eq 'FALSE';
-    return ( 0, "command not acknowledged: $reply_data" ) if $reply_type eq 'NACK';
+    return ( 0, "command not acknowledged: $reply_data" )
+        if $reply_type eq 'NACK';
 
     if ( $reply_type eq 'SIZE' ) {
         my $byte_count = $reply_data + 0;
@@ -1126,8 +1143,9 @@ sub tool_external_command {
         $output = qx($cmd 2>&1);
         alarm(0);
     };
-    if ( $@ ) {
-        $error = $@ eq "timeout\n"
+    if ($@) {
+        $error
+            = $@ eq "timeout\n"
             ? "command timed out after $ext->{'timeout'}s"
             : "error: $@";
     }
@@ -1146,8 +1164,8 @@ sub log_msg {
     printf STDERR "[mcp-server-p7] %s\n", $msg;
 }
 
-#,,,.,,,,,.,.,.,.,,.,,..,,.,,,,.,,.,.,..,,,,,,..,,...,...,.,,,,.,,.,,,.,,,,,,,
-#RG3OSTURDRQVEQ34YNEK3VIS3PLGQUJIICW2KLIJBI2AD24JTTCPHHNUXSBIDURSROAPHEBLG3SYW
-#\\\|NPISS2H6KNF7YFEMEKRQFKZZTDGVNAJMOGSBJ33FT2QLLH2VXN4 \ / AMOS7 \ YOURUM ::
-#\[7]MNBGVEODYBS4W33MZNW4RPEBVSNHGDLLMJKZ5IQMXKRIWU7TBQAI 7  DATA SIGNATURE ::
+#,,.,,,,,,,.,,,,.,,,,,..,,.,,,...,,.,,...,,.,,..,,...,...,,.,,.,.,...,.,,,,,.,
+#5V6H7XR6CTWT6GCL4RRNSLGNK5F5LSJGKNFONX7HJRK2FDRUDIROVOIDYGF5VKZ5IWR6254VR5H76
+#\\\|LJSMR3ZXFGF7KW5IM6TORYW6UOZMFJTK3K32YH4EODHSS75KLP2 \ / AMOS7 \ YOURUM ::
+#\[7]454M7FKX2SWPNR37LU5EBRQKBVFPE3KOIIWCCODJA37SQKYN4ABY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
