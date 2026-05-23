@@ -1,0 +1,114 @@
+#!/bin/bash
+
+# test stale endline recovery — sign, inject extra trailing newlines, edit back
+# to canonical while keeping old footer (stale delta), re-sign
+# exercises normalization recovery in source.cmd.get-code-signed
+#
+# usage: ./bin/dev/tests/timing/test-stale-endline-recovery <file-path>
+# example: ./bin/dev/tests/timing/test-stale-endline-recovery modules/note.tag
+
+if [ -z "$1" ]; then
+    echo "usage: ./bin/dev/tests/timing/test-stale-endline-recovery <file-path>"
+    echo "example: ./bin/dev/tests/timing/test-stale-endline-recovery modules/note.tag"
+    exit 1
+fi
+
+FILE="$1"
+TEST_DIR=".test-stale-endline-output"
+BACKUP="$TEST_DIR/$(basename "$FILE").backup"
+
+if [ ! -f "$FILE" ]; then
+    echo "error: file not found: $FILE"
+    exit 1
+fi
+
+mkdir -p "$TEST_DIR"
+cp "$FILE" "$BACKUP"
+
+## strip existing footer and set exact trailing newline count ##
+strip_and_set_trailing_newlines() {
+    local f="$1" extra="${2:-0}"
+    perl -i -0777 -pe 's/\n#[,.]+[^\n]*\n.*$//s' "$f"
+    perl -i -0777 -pe 's/\n+$/\n/' "$f"
+    for i in $(seq 1 "$extra"); do printf '\n' >> "$f"; done
+}
+
+## normalize trailing newlines before footer — keep existing footer intact ##
+## simulates an editor cleaning up trailing newlines without touching the footer ##
+normalize_payload_keep_footer() {
+    local f="$1"
+    perl -i -0777 -pe 's/\n+(#[,.]+[^\n]+\n)/\n$1/s' "$f"
+}
+
+echo ""
+echo "=========================================="
+echo "STEP 1: establish canonical baseline"
+echo "=========================================="
+strip_and_set_trailing_newlines "$FILE" 0
+./bin/Protocol-7 sourcecode test-sign-and-verify "$FILE" 2>&1 | tee "$TEST_DIR/step1.log"
+
+echo ""
+echo "=========================================="
+echo "STEP 2: inject 2 extra trailing newlines — sign non-canonical state into footer"
+echo "=========================================="
+strip_and_set_trailing_newlines "$FILE" 2
+./bin/Protocol-7 sourcecode test-sign-and-verify "$FILE" 2>&1 | tee "$TEST_DIR/step2.log"
+
+echo ""
+echo "=========================================="
+echo "STEP 3: edit back to canonical — keep old footer intact (stale delta)"
+echo "=========================================="
+normalize_payload_keep_footer "$FILE"
+./bin/Protocol-7 sourcecode test-sign-and-verify "$FILE" 2>&1 | tee "$TEST_DIR/step3.log"
+
+echo ""
+echo "=========================================="
+echo "STEP 4: first idempotency pass"
+echo "=========================================="
+./bin/Protocol-7 sourcecode test-sign-and-verify "$FILE" 2>&1 | tee "$TEST_DIR/step4.log"
+
+echo ""
+echo "=========================================="
+echo "STEP 5: second idempotency pass — stable state check"
+echo "=========================================="
+./bin/Protocol-7 sourcecode test-sign-and-verify "$FILE" 2>&1 | tee "$TEST_DIR/step5.log"
+
+echo ""
+echo "=========================================="
+echo "ANALYSIS"
+echo "=========================================="
+echo ""
+
+## step 3 signed OK (recovery triggered) ##
+grep -qi '1 valid' "$TEST_DIR/step3.log" \
+    && echo "[ OK ] step 3 : verify passed after stale-delta recovery" \
+    || echo "[ FAIL ] step 3 : verify failed — normalization recovery did not trigger"
+
+## steps 4+5 pass verification — no oscillation after recovery ##
+## note: bmw= is intentionally non-deterministic (harmonic iteration counter)
+## compare only the endline state number, which must be stable ##
+grep -qi '1 valid' "$TEST_DIR/step4.log" \
+    && echo "[ OK ] step 4 : verify passed" \
+    || echo "[ FAIL ] step 4 : verify failed — oscillation detected"
+grep -qi '1 valid' "$TEST_DIR/step5.log" \
+    && echo "[ OK ] step 5 : verify passed (stable post-recovery state)" \
+    || echo "[ FAIL ] step 5 : verify failed — oscillation detected"
+
+## check endline state number is stable between step 4 and step 5 ##
+state4=$(grep 'state=' "$TEST_DIR/step4.log" | grep -o 'state=[0-9]*' | head -1)
+state5=$(grep 'state=' "$TEST_DIR/step5.log" | grep -o 'state=[0-9]*' | head -1)
+[ "$state4" = "$state5" ] \
+    && echo "[ OK ] endline state stable : $state4 → $state5" \
+    || echo "[ FAIL ] endline state changed : $state4 → $state5 — content oscillating"
+
+echo ""
+echo "restoring original file .."
+cp "$BACKUP" "$FILE"
+echo "done. logs saved to: $TEST_DIR/"
+echo ""
+
+#,,..,...,,,.,,,,,.,.,,..,,..,..,,.,.,..,,,,.,..,,...,...,...,,,,,..,,,..,,,.,
+#4ERBGYEGJ7DUBNWGWKYCB7CLXMWN3COFFQPJSI2CLIQQKSMOAHNYT4CVJTAX2VTOAXTKAHY4Z35C4
+#\\\|TDBBJV6V5ARABIEUUGKCRZLU3TZOVFDDKDEA3B7YO227CFGIQNG \ / AMOS7 \ YOURUM ::
+#\[7]XMYJJDMVQTFHAQFTNLJM7XCSOCE3WT4QQGVQCF7BZXJSTYP3DGDQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
