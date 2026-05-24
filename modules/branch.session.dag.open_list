@@ -1,0 +1,21 @@
+## [:< ##
+
+# name = branch.session.dag.open_list
+# descr = all nodes with state open
+
+my @open;
+for my $key ( keys %data ) {
+    next if index( $key, 'branch.session.dag.' ) != 0;
+    my $node = $data{$key};
+    next if not defined $node;
+    push @open, substr( $key, length('branch.session.dag.') )
+        if ( $node->{'state'} // '' ) eq 'open';
+}
+
+return \@open;
+
+#,,,,,.,,,,.,,,..,.,.,,..,,,.,,,.,,.,,.,,,..,,..,,...,...,.,.,.,.,,,,,,..,..,,
+#7DZJRAUFW7TPQ5N5K7ZDVOLXWD6Q5YYV6MAWSBSSV6QYTRJJ7AIDJHN7HTXEFM4MAN3E2Z3E7RN3K
+#\\\|2UQ6HC3IBNYWZEXASUINH4DST5UTYEHOU7ZFUWIFG7WELXTV6V2 \ / AMOS7 \ YOURUM ::
+#\[7]25UF623AHICX3O5IF3K4ST4XXNL3INO4RJT3OMGK54KUHKANCKCA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

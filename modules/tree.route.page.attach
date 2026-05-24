@@ -1,0 +1,34 @@
+## [:< ##
+
+# name = tree.route.page.attach
+# descr = insert waiting bit into first available slot of passing segment
+
+my $args = shift // {};
+
+my $segment = $args->{'segment'} // [];
+my $bit     = $args->{'bit'}     // '';
+
+return $segment if not length $bit or not @$segment;
+
+## [ segment is array of 8 groups, each an 8-char bit-string ] ##
+for my $i ( 0 .. $#$segment ) {
+    my $group = $segment->[$i];
+    next if not defined $group or length($group) < 8;
+
+    my $leading = substr( $group, 0, 1 );
+    my $payload = substr( $group, 1, 7 );
+
+    ## [ available slot: leading '1' with zero payload ] ##
+    if ( $leading eq qw| 1 | and $payload eq qw| 0000000 | ) {
+        $segment->[$i] = $bit;
+        return $segment;
+    }
+}
+
+return $segment;
+
+#,,,,,,.,,...,..,,,,.,,..,.,.,,,.,,.,,.,.,..,,..,,...,..,,.,,,,,.,,.,,.,,,..,,
+#GQYLEJ55BOBA4NQOVA42BRFBVOZU32G6Q4Y4WLPKUWSG2IWWDXYXTNNHNUG2CJYK6ZBACENKL7U34
+#\\\|5ZEPJVPXGRWJIDDAQPI53F54U3GVFT5V2Y5ZWG7UGT7FLM574PI \ / AMOS7 \ YOURUM ::
+#\[7]7OK4QYXX54NDPY5QMJQWNEPNILQFKXIQJYME4H3H25WVUHZBB2DY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

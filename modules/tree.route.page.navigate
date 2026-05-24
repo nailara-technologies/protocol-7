@@ -1,0 +1,42 @@
+## [:< ##
+
+# name = tree.route.page.navigate
+# descr = cursor operations over routing table
+
+my $args = shift // {};
+
+my $action     = $args->{'action'}     // '';
+my $cursor     = $args->{'cursor'}     // 0;
+my $file_size  = $args->{'file_size'}  // 0;
+my $width      = $args->{'width'}      // 7;
+my $page_lines = $args->{'page_lines'} // 20;
+
+my $page_bytes = $width * $page_lines;
+my $max_cursor = $file_size - $page_bytes;
+$max_cursor = 0 if $max_cursor < 0;
+
+my $delta = 0;
+
+if ( $action eq qw| line_up | ) {
+    $delta = -$width;
+} elsif ( $action eq qw| line_down | ) {
+    $delta = $width;
+} elsif ( $action eq qw| page_up | ) {
+    $delta = -$page_bytes;
+} elsif ( $action eq qw| page_down | ) {
+    $delta = $page_bytes;
+} else {
+    return $cursor;
+}
+
+$cursor += $delta;
+$cursor = 0           if $cursor < 0;
+$cursor = $max_cursor if $cursor > $max_cursor;
+
+return $cursor;
+
+#,,..,,,.,..,,.,.,.,,,.,,,,..,..,,.,,,,..,...,..,,...,...,...,,,,,...,,.,,,..,
+#NARIQXDMY2W2R4U6NN5FXYE7PJIUEFSKYEHSN3L3RHI6EXYOWEWVO4SQ7PYXIQK3SQHQQU2O4ILPG
+#\\\|2YK5ORHBMLOZNYDHX26UDNUVFRWE7CZVVDW2RGJWDLTENAEI7JL \ / AMOS7 \ YOURUM ::
+#\[7]3P557LPKTCQXD7QIEOIG4GNSNTC6SHYOHAGUW3IZELTAFSYNBSAA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

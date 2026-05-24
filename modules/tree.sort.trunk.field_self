@@ -1,0 +1,80 @@
+## [:< ##
+
+# name = tree.sort.trunk.field_self
+# descr = apply full trunk sort recursively to expansion front
+
+my $args = shift // {};
+
+my $entries       = $args->{'entries'}   // [];
+my $max_depth     = $args->{'max_depth'} // 7;
+my $current_depth = $args->{'depth'}     // 0;
+
+return [] if not @$entries or $current_depth >= $max_depth;
+
+## [ step 1: project onto 5x7 map ] ##
+my $grid = <[tree.sort.trunk.project]>->($entries);
+
+## [ step 2: cancel symmetric pairs ] ##
+my $cancelled = <[tree.sort.trunk.cancel_symmetric]>->($grid);
+
+## [ step 3: remainder = asymmetric survivors ] ##
+my $trunk = <[tree.sort.trunk.remainder]>->($cancelled);
+
+## [ step 4: build remainder grid for halving ] ##
+my @remainder_grid;
+for my $c     ( 0 .. 4 ) { $remainder_grid[$c] = []; }
+for my $entry (@$trunk) {
+    my $c = $entry->{'col'} // _layer_to_col( $entry->{'layer'} // '' );
+    next if not defined $c;
+    my $r = $entry->{'row'} // 0;
+    $r = 6 if $r > 6;
+    push @{ $remainder_grid[$c][$r] }, $entry;
+}
+
+## [ step 5: halve frequency per column ] ##
+my $halved = <[tree.sort.trunk.halve_frequency]>->( \@remainder_grid );
+
+## [ build result node ] ##
+my $node = {
+    depth  => $current_depth,
+    trunk  => $trunk,
+    values => $halved,
+};
+
+## [ recurse if trunk has entries with sub-branches ] ##
+my @sub_branches;
+for my $entry (@$trunk) {
+    my $sub_entries = $entry->{'sub_branches'} // [];
+    if ( @$sub_entries and $current_depth + 1 < $max_depth ) {
+        my $sub = <[tree.sort.trunk.field_self]>->(
+            {   entries   => $sub_entries,
+                max_depth => $max_depth,
+                depth     => $current_depth + 1,
+            }
+        );
+        push @sub_branches, $sub if defined $sub and @$sub;
+    }
+}
+
+$node->{'children'} = \@sub_branches if @sub_branches;
+
+return [$node];
+
+## [ helper ] ##
+sub _layer_to_col {
+    my $layer = shift;
+    my %map   = (
+        qw| task     | => 0,
+        qw| template | => 1,
+        qw| design   | => 2,
+        qw| intent   | => 3,
+        qw| address  | => 4,
+    );
+    return $map{$layer};
+}
+
+#,,.,,,..,,,,,...,,..,..,,,.,,,.,,.,.,...,.,,,..,,...,...,,.,,..,,,,.,...,,,.,
+#4SP47YCM5SUURE536NVPRTLSSX5UU64Q7MJLJG263ISCK3XMT7ZN45IIPHUQT7BNIYGLW4PI4NYAQ
+#\\\|2DDSU6BUMK7PAQUP4TJTAVNWYTZRZFYYIYBTUZY2K4KZIYODV3B \ / AMOS7 \ YOURUM ::
+#\[7]VNMMSQTNQL2SUJW74WU5VSNAOKWBEGRNTBC4LON2GCFGMANVYEDY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

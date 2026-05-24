@@ -1,0 +1,39 @@
+## [:< ##
+
+# name = tree.route.page.suction
+# descr = fill vacated slots upward from page below
+
+my $args = shift // {};
+
+my $vacated    = $args->{'vacated'}    // [];    ## [ slot positions ] ##
+my $upper_page = $args->{'upper_page'} // [];    ## [ arrayref of words ] ##
+my $lower_page = $args->{'lower_page'} // [];    ## [ arrayref of words ] ##
+
+return 0 if not @$vacated or not @$lower_page;
+
+my $moved = 0;
+
+for my $pos (@$vacated) {
+    next if $pos < 0 or $pos >= @$lower_page;
+
+    my $bit = $lower_page->[$pos];
+    next if not defined $bit or not length $bit;
+
+    ## [ move up ] ##
+    if ( $pos < @$upper_page ) {
+        $upper_page->[$pos] = $bit;
+    }
+
+    ## [ clear lower slot ] ##
+    my $word_len = length($bit) || 7;
+    $lower_page->[$pos] = "\0" x $word_len;
+    $moved++;
+}
+
+return $moved;
+
+#,,,,,,,.,,,.,,,,,.,,,.,.,,,.,..,,.,,,,.,,.,.,..,,...,...,,,.,,,,,,,,,.,,,,,,,
+#VY2ZFJEJ7PCSBJNPZU6FHANUGSC2JWK5IP4PDNNRH72MFUCFK5DBKPGB5PWAQGCIG7SPFUJIFLCWU
+#\\\|VX4HOB6B7MKXHIN5ESFGC3FV55FZCLBXQBIVJKWA7O3OJVZTESU \ / AMOS7 \ YOURUM ::
+#\[7]H4ILGRPK6WUJLHOVVYADAG2CGVBTXGTYDYAUS55ZEHNRTX2F2IBA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

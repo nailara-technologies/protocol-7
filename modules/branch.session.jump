@@ -1,0 +1,33 @@
+## [:< ##
+
+# name = branch.session.jump
+# descr = load context at checksum, create dag node with two parents
+
+my $resumed_state  = shift // return undef;
+my $decision_point = shift // return undef;
+
+return warn 'resumed state checksum required <{C1}>'
+    if not length $resumed_state;
+return warn 'decision point checksum required <{C1}>'
+    if not length $decision_point;
+
+return warn 'resumed state not found in dag <{C1}>'
+    if not exists $data{ 'branch.session.dag.' . $resumed_state };
+return warn 'decision point not found in dag <{C1}>'
+    if not exists $data{ 'branch.session.dag.' . $decision_point };
+
+my $jump_checksum = <[branch.session.dag.node_add]>->(
+    {   'parents' => [ $resumed_state, $decision_point ],
+        'content' => \'',
+        'intent'  => '',
+        'state'   => 'open',
+    }
+);
+
+return $jump_checksum;
+
+#,,..,..,,.,.,,,.,.,,,.,.,,,.,.,,,,,,,...,...,..,,...,...,.,.,.,,,.,,,,,.,.,,,
+#TCARKBPLQBNBUYKIKZ46JYGCHFOD6JTUONINZRC2RAI7GS5AM3E572MNDRTH72KEGGO4JUSLT3FPI
+#\\\|GGDAYTVKVUHHPXJY5K3MNEBBP4AH7EPW5NQ2WYTNKL2T3P3HE2A \ / AMOS7 \ YOURUM ::
+#\[7]TS6W4ZFRJKZWF7PBKBK7K32XO4MIZ3HP5HHOO7IBOYUNKV2RHYCY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

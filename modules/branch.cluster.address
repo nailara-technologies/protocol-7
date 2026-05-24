@@ -12,11 +12,10 @@ return <[base.logs]>->( 0, 'cluster name required <{C1}>' )
     unless defined $cluster_name
     and length $cluster_name;
 
-my ( $layers, $err )
-    = <[branch.cluster.layers_list]>->($cluster_name);
+my ( $layers, $err ) = <[branch.cluster.layers_list]>->($cluster_name);
 
 return <[base.logs]>->(
-    1, 'cannot load layers for [ %s ] : %s <{C1}>',
+    1,             'cannot load layers for [ %s ] : %s <{C1}>',
     $cluster_name, $err // 'unknown error'
 ) unless defined $layers;
 
@@ -24,9 +23,7 @@ return <[base.logs]>->(
 ##
 my @content_parts = ($cluster_name);
 
-for my $layer_type (
-    qw| task template design intent address |
-    ) {
+for my $layer_type (qw| task template design intent address |) {
     my $entry = $layers->{$layer_type};
     next unless defined $entry;
 
@@ -49,8 +46,8 @@ return wantarray ? ( $hex, undef ) : $hex;
 
 #,,,.,.,,,.,.,,,.,...,...,,..,,..,...,..,,,,,,..,,...,...,..,,.,.,..,,.,.,.,.,
 
-#,,,.,,.,,,,,,.,.,,,.,,,.,,,,,,,.,.,.,,,,,,..,..,,...,...,...,.,.,..,,,,.,,..,
-#YUAOJ2WAMSEFYZ6YVEHQSZMBPHQWDZZMCC6X5O4HEEPVGLI34CLQSNNZDG7BTWGU5MU6WTF2MWTY2
-#\\\|6KT46CUZLQU7UOIMVHCHZ7R6IY2EQTXQDGNQYKGPQENNSGUVBPO \ / AMOS7 \ YOURUM ::
-#\[7]RJNDLKRNGCN7CP2HAGDKJFCGO32DRGWLOX2CURIGMR3XASTRKYBA 7  DATA SIGNATURE ::
+#,,,.,...,,..,...,.,,,,..,,,.,,.,,,..,,.,,.,,,..,,...,...,...,,,,,,,.,...,..,,
+#CLJGMX62HAR4YROGTAZFNN42UM277N3Z2F7WLKFNTWL4WQKSJNSTYM2MFDDMCXS24FEJ4PUJF23LQ
+#\\\|AU4CCUQNSAJMCZ5B2CTTEFFPUGCENXYD7QJGZD6IU2OU67TSNDY \ / AMOS7 \ YOURUM ::
+#\[7]KVIWDKPSL2QV6VW3KRAA6BJDHEYQDPJOHUL5BV2SKRTGNYDTJABI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,0 +1,23 @@
+## [:< ##
+
+# name = branch.session.round.checksum
+# descr = bmw384(prev_hash + round_content)
+
+my $prev_checksum = shift // '';
+my $round_content = shift // '';
+
+return warn 'previous checksum required <{C1}>'
+    if not length $prev_checksum;
+return warn 'round content required <{C1}>'
+    if not length $round_content;
+
+my $bmw = Digest::BMW->new(384);
+$bmw->add( $prev_checksum . $round_content );
+
+return encode_b32r( $bmw->digest );
+
+#,,.,,,,,,..,,.,,,..,,.,,,,,.,.,,,.,,,.,.,.,,,..,,...,...,..,,.,.,,,,,...,,,.,
+#3JOCEFUZZP4RXW4IJRJHW7AGM3WPVPBC5ZTNWV4MCDHWV3SQWGWOXD67E6CPOSWPEGJMI7NWOPODQ
+#\\\|KXTMOAQD2SOVAGAP6K7P23KJPA6C7YG6TNYHXPQ4GYY37DMGAJZ \ / AMOS7 \ YOURUM ::
+#\[7]RO44ZZ6JRTMFHIS5JQ3WMM2GVPFWKLWG4O3HEXVCAAXYTXPVDODQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

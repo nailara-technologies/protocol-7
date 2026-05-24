@@ -1,0 +1,28 @@
+## [:< ##
+
+# name = tree.route.page.encode_56
+# descr = encode 7 bytes as 56-bit routing word with leading bits
+
+my $input = shift // '';
+
+return undef if length($input) != 7;
+
+my $bits_56 = unpack qw| B* |, $input;
+
+my $result;
+
+for my $i ( 0 .. 7 ) {
+    if ( $i < 7 ) {
+        $result .= pack qw| B8 |, qw| 1 | . substr( $bits_56, $i * 7, 7 );
+    } else {
+        $result .= pack qw| B8 |, qw| 0 | . substr( $bits_56, $i * 7, 7 );
+    }
+}
+
+return $result;
+
+#,,.,,.,.,..,,,..,...,,.,,.,,,,,,,,.,,.,.,,,.,..,,...,...,...,...,,,.,,,,,..,,
+#TQDMMVZTP7YX6T7I37QXLUX762CIMH2RTKX4VJY67GRQ4YOHT6CAWUT55RCLXUQXTDCMSP64QBRBC
+#\\\|6XDFG2VXQLQIGUNVWZBHRQYENMLMWEDLVQZXMQQFBRHPNSTPRNG \ / AMOS7 \ YOURUM ::
+#\[7]34ZEHKD53IKQYUDDKKB62BHS5BA2E3775I3AUYF4Q4ESLOVYDQCY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -11,11 +11,10 @@ return <[base.logs]>->( 0, 'cluster name required <{C1}>' )
     unless defined $cluster_name
     and length $cluster_name;
 
-my ( $hex, $err )
-    = <[branch.cluster.address]>->($cluster_name);
+my ( $hex, $err ) = <[branch.cluster.address]>->($cluster_name);
 
 return <[base.logs]>->(
-    1, 'cannot compute gate for [ %s ] : %s <{C1}>',
+    1,             'cannot compute gate for [ %s ] : %s <{C1}>',
     $cluster_name, $err // 'unknown error'
 ) unless defined $hex;
 
@@ -27,8 +26,8 @@ return wantarray
 
 #,,,.,.,,,.,.,,,.,...,...,,..,,..,...,..,,,,,,..,,...,...,..,,.,.,..,,.,.,.,.,
 
-#,,,,,...,..,,,..,..,,,,,,...,...,...,,.,,,.,,..,,...,...,.,,,..,,,,,,.,.,,.,,
-#UYKKUKVP4CSSS7ZKVC3NP6HVDQVJ5YVKQEVMH7ZMB7LFWZIR4O7B44IMCULS7YXF5SFKYAICH5J2O
-#\\\|3QKYOG5K76CUMS7K5DR6BXDVRJ276SYUBGKO5BHA724RHO5VMQU \ / AMOS7 \ YOURUM ::
-#\[7]HIYQJQFSEG2CHCKQXYJCDQ5EZ7I6LLKNCWOX5R643BQVFU3C4YAY 7  DATA SIGNATURE ::
+#,,.,,.,.,,.,,.,,,,,.,,.,,.,.,,.,,...,.,,,,.,,..,,...,...,..,,.,.,...,,,.,..,,
+#PLQRRRZNAAKOV5TJKUDTP3O6QJUX4EOCFLM5VPOGF72KUUXEGZIEBYX6IISIAC4JZ5BK4G3A4EESE
+#\\\|KNWMT23A5O3W25PMFWCWDZQRHSQ4RRPBFML5KSLVQJO4WFU6NDH \ / AMOS7 \ YOURUM ::
+#\[7]NYZ5WHJFKKUBE2UQZICRFD3J7HO7CZMJGTJHNDCVGAAQ6SZQ6IDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

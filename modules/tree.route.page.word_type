@@ -1,0 +1,42 @@
+## [:< ##
+
+# name = tree.route.page.word_type
+# descr = decode 7-bit word type prefix
+
+my $word = shift // '';
+
+return undef if not length $word;
+
+## [ typed protocol ] ##
+## prefix  type ##
+## '00'    routing ##
+## '010'   BASE32 ##
+## '0110'  monochrome document ##
+## '0111'  color document ##
+## '1'     graphical ##
+
+my $prefix = substr( $word, 0, 1 );
+$prefix .= substr( $word, 1, 1 ) if $prefix eq qw| 0 |;
+$prefix .= substr( $word, 2, 1 ) if $prefix eq qw| 01 |;
+$prefix .= substr( $word, 3, 1 ) if $prefix eq qw| 011 |;
+
+my $payload = substr( $word, length($prefix) );
+
+return { type => qw| routing  |, payload => $payload }
+    if $prefix eq qw| 00   |;
+return { type => qw| base32   |, payload => $payload }
+    if $prefix eq qw| 010  |;
+return { type => qw| document |, payload => $payload }
+    if $prefix eq qw| 0110 |;
+return { type => qw| document |, payload => $payload }
+    if $prefix eq qw| 0111 |;
+return { type => qw| graphical|, payload => $payload }
+    if $prefix eq qw| 1    |;
+
+return undef;    ## [ unrecognized prefix ] ##
+
+#,,..,.,.,...,.,.,.,,,..,,.,.,...,.,,,,..,.,,,..,,...,...,,,,,...,,,,,,..,,,.,
+#HFXGEYHBSZR3K3DLOKT7WJYXHE6RM2ORGKPFV7IWN4HAC2POTRXV62YWHO5EDHPI7HPZ47OLST6MU
+#\\\|QOONMMZ5GVZMXLV43BHHM7XDEYHCFPGCAAGITBENBYI33J6QLR3 \ / AMOS7 \ YOURUM ::
+#\[7]ZEZ7EJC2AFL5AZNUMS22FBRH56GBNDTOL5P77NCD3REQCZGPC4CQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

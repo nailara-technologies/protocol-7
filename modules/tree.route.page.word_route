@@ -1,0 +1,33 @@
+## [:< ##
+
+# name = tree.route.page.word_route
+# descr = decode routing word (type '00')
+
+my $payload = shift // '';
+
+return undef if length($payload) < 5;
+
+## [ direction ] ##
+## 00 = UP, 10 = LEFT, 01 = RIGHT, 11 = DOWN ##
+
+my $dir_bits = substr( $payload, 0, 2 );
+my $hop_bits = substr( $payload, 2, 3 );
+
+my $dir
+    = $dir_bits eq qw| 00 | ? qw| UP    |
+    : $dir_bits eq qw| 10 | ? qw| LEFT  |
+    : $dir_bits eq qw| 01 | ? qw| RIGHT |
+    : $dir_bits eq qw| 11 | ? qw| DOWN  |
+    :                         undef;
+
+return undef if not defined $dir;
+
+my $hops = 1 + oct( qw| 0b | . $hop_bits );
+
+return { dir => $dir, hops => $hops };
+
+#,,,.,.,.,.,.,..,,,.,,..,,,,,,,,,,.,,,..,,,..,..,,...,...,..,,...,,..,,.,,,,.,
+#5KTEJQZR53NRCRRFZBCS5YASKA53G7IBEWIPEI3NXQWJPYMTW4YMKJ6YBGOTRTXGABXPQHHEW3RB6
+#\\\|VDX7SSPYHFM7I4Y2T6DV5I2UYPKJZSBJ734KU44O3UCHMQ7CJYU \ / AMOS7 \ YOURUM ::
+#\[7]VKSGKGKJ2HNEDFLJYXXZ4G5UVPEAUPTMMALNQLDFGLCECQ4OCQCQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

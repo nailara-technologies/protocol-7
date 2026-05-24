@@ -1,0 +1,40 @@
+## [:< ##
+
+# name = tree.route.page.rollover
+# descr = handle segment end: carry or fall-back decision
+
+my $args = shift // {};
+
+my $segment = $args->{'segment'} // [];
+
+return { carry => 0, segment => $segment } if not @$segment;
+
+## [ terminal group = group 7 = last element, 8-bit string ] ##
+my $terminal_group = $segment->[7] // '';
+return { carry => 0, segment => $segment } if length($terminal_group) < 8;
+
+my $payload = substr( $terminal_group, 1, 7 );
+my $num     = oct( qw| 0b | . $payload );
+
+## [ harmonic truth test on terminal group ] ##
+my $carry = 0;
+eval { $carry = AMOS7::Assert::Truth::true_int($num) ? 1 : 0; };
+$carry = 0 if $@;
+
+## [ reset segment: groups 0-6 leading '1', group 7 leading '0' ] ##
+my @reset_segment = map {qw| 10000000 |} 0 .. 6;
+push @reset_segment, qw| 00000000 |;
+
+if ($carry) {
+    ## [ carry over: bit exits left, enters next segment ] ##
+    return { carry => 1, segment => \@reset_segment };
+} else {
+    ## [ fall back: return to circulation in same segment ] ##
+    return { carry => 0, segment => \@reset_segment };
+}
+
+#,,.,,,..,,.,,...,,,,,.,,,,,.,...,.,.,,,.,.,.,..,,...,...,...,.,,,,,.,,.,,,..,
+#EMAVYQIXSZNEQ4MXA6WANCU2MWJKQLOPFWWXA5VJEXLQW3A6PJBB6BY3WB3E6WWSCNRUGK3SZ4MW4
+#\\\|TNF3CSPCJGHVYVUN2V2Q7NYTSYHPTNE5Q2XPVKXWZXIGCYHOH5S \ / AMOS7 \ YOURUM ::
+#\[7]F7K74L52BFEP7ODUKOE2SFIUJZQ44PMNTROIPBLPNXPV6EPEUWBY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
