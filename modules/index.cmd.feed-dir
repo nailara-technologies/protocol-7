@@ -8,15 +8,44 @@ my $dir = $call->{'args'} // '';
 return { 'mode' => 'false', 'data' => 'expected directory path' }
     unless length $dir;
 
+## prefix system root path for relative paths ##
+$dir = <system.root_path> . '/' . $dir if $dir !~ m|^/|;
+
 return { 'mode' => 'false', 'data' => 'not a directory' }
     unless -d $dir;
 
-my $count = <[index.feed.dir]>->($dir);
+my @files = grep { -s $ARG < 10_000_000 } <[file.match_files]>->(
+    $dir,
+    qw| recursive |,
+    qw| *.md *.yaml *.yml *.txt *.pm *.pl |
+);
 
-return { 'mode' => 'size', 'data' => "fed $count files from $dir" };
+return { 'mode' => 'false', 'data' => 'no files found' }
+    unless @files;
 
-#,,..,,,.,,..,...,,,.,,..,,..,,.,,,,.,..,,..,,..,,...,...,..,,,..,,..,,..,,.,,
-#EWB6TKXB7644I24L5GXTLV2EBSBBPZSJ3UXY3FPZHIHEQVFYW25GYGNHEMU5MDDXTMW232WUXSZWE
-#\\\|EZHIWECX7K7X6M7ON3VO6RBEN6EXLG2GJ6NNX5DE6DTYGOLNOF7 \ / AMOS7 \ YOURUM ::
-#\[7]SKAN5Z7IKJIISHMR54MW2W3K2AK7DUSNH3EA3UB3YZZMMEZXTKAY 7  DATA SIGNATURE ::
+my $job_id = <[chk-sum.amos]>->( \$dir );
+
+<index.jobs>->{$job_id} = {
+    'job-type'   => 'feed-dir',
+    'reply_id'   => $call->{'reply_id'},
+    'files'      => \@files,
+    'total'      => scalar @files,
+    'done'       => 0,
+    'idle-event' => <[event.add_idle]>->(
+        {   'handler' => 'index.callback.feed-dir',
+            'data'    => $job_id,
+            'repeat'  => 1,
+            'desc'    => "index feed-dir [ $job_id ]",
+        }
+    ),
+};
+
+<[base.log]>->( 1, "index feed-dir queued [ " . scalar(@files) . " files ]" );
+
+return { 'mode' => 'deferred' };
+
+#,,,,,..,,,,,,...,.,.,,.,,,..,.,,,..,,,.,,.,.,..,,...,..,,...,,,.,,..,...,.,,,
+#4SLKFF7FTKZPQOXAFLQC4UT2DW2C2PDKMKMWA5OLI7PYOMYXNYGIO5CVQEJFR5EXO3EWBC7OR7JGK
+#\\\|ERUDBDSMGW7RUAHIQVJZEAJFIQ5T6WZCPBCYIWLWIUR4FPECVH6 \ / AMOS7 \ YOURUM ::
+#\[7]CWPWANCLF5FJSXZBDUD3RSNX6QJ6TQZDTTREJVHSMYAZMZ7LY6DA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

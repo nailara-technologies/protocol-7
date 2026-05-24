@@ -1,0 +1,35 @@
+## [:< ##
+
+# name  = index.callback.feed-dir
+# descr = idle watcher callback — process one file per idle tick
+
+my $watcher = shift->w;
+my $job_id  = $watcher->data;
+my $job     = <index.jobs>->{$job_id};
+
+if ( not defined $job ) {
+    $watcher->cancel if $watcher->is_active;
+    return;
+}
+
+my $file = shift @{ $job->{'files'} };
+
+if ( not defined $file ) {
+    $watcher->cancel if $watcher->is_active;
+    delete <index.jobs>->{$job_id};
+    my $total = $job->{'total'};
+    <[base.log]>->( 1, "index feed-dir complete [ $total files ]" );
+    <[base.callback.cmd_reply]>->(
+        $job->{'reply_id'}, { 'mode' => 'size', 'data' => "fed $total files" }
+    );
+    return;
+}
+
+<[index.feed.file]>->($file);
+$job->{'done'}++;
+
+#,,,.,..,,.,.,.,.,...,,..,.,.,.,,,,..,..,,...,..,,...,...,..,,...,..,,,,.,,..,
+#HAXCD56NP3A33YSAODHJ6V7KMDVKYJ6AQF23TY4DKT4ZUR3XS6W24VIJPCEWILZKRUY7LKOFK6ODO
+#\\\|ZUBB7SB5XVFOMDKCBR5TMNVRRPMXWYDCLQQKRPPXHMATHXXUCAW \ / AMOS7 \ YOURUM ::
+#\[7]YHXBPWVY2K5YO3XK7YFT6NYF2BEFGMJYE2UHHQS3JV52USQYKQBY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
