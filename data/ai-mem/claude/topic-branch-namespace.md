@@ -66,6 +66,33 @@ group-filter in branch.resource.find is LIVE (uses branch.group.members)
 | branch-layer5-9p-bridge.md | 5 | dispatched round 3 |
 | branch-layer6-file-abstraction.md | 6 | dispatched round 3 |
 
+## branch universal theory cluster (session 49)
+
+new namespaces implementing the branch unified theory:
+
+| modules | count | status |
+|---|---|---|
+| branch.field.* (open/close/grow/split/capacity/boundary/axes/parent_id) | 9 | DONE |
+| branch.calc.fraction.* (period/length/terminates/remainder_seq/parent_lookup/reverse_scale/coupling_find/symmetry/ring_position/prefix_entropy) | 10 | DONE |
+| branch.cluster.* (address/ring_position/layers_list/gate_node/family/mirror/validate/register) | 8 | DONE |
+| branch.session.* (round.checksum/chain.verify/jump/return_slot.*/fork/dag.*/policy.*) | 14 | DONE |
+| tree.sort.trunk.* (project/cancel_symmetric/remainder/halve_frequency/field_self) | 5 | DONE |
+| tree.route.page.* (word_type/word_route/word_graphical/encode_56/decode_56/bit_direction/read/rollover/extract/suction/attach/navigate) | 12 | DONE |
+
+design doc: `data/md/design/BRANCH-OPEN-CAPACITY-SESSION-DAG.md`
+reasoning template: `data/yaml/reasoning-templates/branch-open-field-hop.yaml`
+harmonic registry: `data/yaml/harmonic/fraction-period-groups.yaml`
+cluster registry: `data/yaml/cluster-registry/_index.yaml`
+
+key theory additions this session:
+- Z.Y.X depth-first coordinate ordering (segment→row→col = most-established→frontier)
+- three Z-states as character rotation: in-transit(0)/paused(1)/edge-on(absent)
+- rollover dual semantics: bi-location collapse OR absence propagation (same gate, opposite reasons)
+- chained usefulness as hop selector: harmonic truth density × remaining capacity across chain
+- mask/canvas orthogonality: structural mask (sparse 1-bits) + content canvas (zero-background)
+- type prefix → ASCII control hierarchy: 00=nav, 010=US, 0110=GS, 1=RS
+- element-efficient holographic devices: functional overlap reveals latent functions in existing elements
+
 ## wave routing + virtual zenka position (session 43)
 
 route propagation = concentric waves; relationship window propagates as wave front,
@@ -83,8 +110,8 @@ the position while there; node persists after.
 - `base.dump_data` — added reverse_sort flag (default 0)
 - `devmod.cmd.dump` — sets reverse_sort=TRUE so structural keys visible at scroll end
 
-#,,..,..,,,..,.,,,.,,,.,,,..,,..,,.,.,,.,,...,..,,...,...,...,...,,..,,..,...,
-#O7MUGRXDNDA7QMYCJ3FUB54K3BBP5L6Y7NU2BJXHJQ2A3X7663ZTK2Z467FC3RPM7RNK2FP2PPXEA
-#\\\|HXHUFGZHZ5Q6EVTEG55Q4CSCH2IYAN7RV6ITTLU2LMCTAK5UCYX \ / AMOS7 \ YOURUM ::
-#\[7]37QWIBJINTS6L5HNGXVAD6YYGW4HIHOUCOUZBXNPKJXRQDFIJ2CY 7  DATA SIGNATURE ::
+#,,,.,,,,,,.,,..,,.,.,,..,.,,,...,,.,,,,.,,..,..,,...,...,...,,,,,...,,,,,,..,
+#HJCBYT3KICLXPU7GNCGJ3JHXKR7S2GGGJJOF5UCUD6YE3UOMP2CH5RMYFMUDI7N355H3LA4BYXS76
+#\\\|343C3EMTQUWCIVLIWPIDZ7YBRK7WMTLYVSBATULEFROJRWT3BXC \ / AMOS7 \ YOURUM ::
+#\[7]5CACJIUTRHYYPZSQHZJAD2UVSPDY352WBXFJR3TNS3EYA7XUFEBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
