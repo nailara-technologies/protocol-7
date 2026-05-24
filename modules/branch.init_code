@@ -49,6 +49,9 @@ $data{'branch.storage.snapshots'} //= {};
 ## data zenka bindings: node_id -> { namespace, zenka } ##
 $data{'branch.data.bindings'} //= {};
 
+## branch field nodes: open/closed/field state per continuation region ##
+$data{'branch.field'} //= {};
+
 ## register ttl cleanup timer ##
 <[event.add_timer]>->(
     {   'interval' => 60,
@@ -59,8 +62,8 @@ $data{'branch.data.bindings'} //= {};
 
 <[base.logs]>->( 2, 'branch: namespace initialized' );
 
-#,,,,,.,,,,,,,,,.,,,,,.,,,..,,.,,,...,,.,,.,.,..,,...,...,.,.,.,.,..,,..,,,,.,
-#7WJLVSY5Y6Q3X5NHJ7QURRZPLAMFTIJXVMIBZ2TAGUN4TJWYBLKG4RPDINFQ7RYEJNHFRUVBBQCPS
-#\\\|DNZT7QXYCWZX2BQH6RCLIIMWN4AOKNWJ5YYUTWNP7UXBGOXZCUL \ / AMOS7 \ YOURUM ::
-#\[7]F7CQ42IR3ZCJGOY6JYBC2VECVSEFDH3KRRODR6MNAIMYX7ZCYQBA 7  DATA SIGNATURE ::
+#,,,.,,..,.,.,,..,..,,,,,,...,..,,,..,.,.,,,.,..,,...,..,,..,,,..,,.,,.,.,...,
+#LGW3OD5YSVLXSTSHNZHO2ERC7YG47LP7YGSEKPROVKHPNJTAT57437XCK7TIHP4SHEOFIWCZ4NPPC
+#\\\|VQLSVK7RJL75XLNOIJHTFCY7J5IGNWDCQXGR2VP7AUHIMU4G53I \ / AMOS7 \ YOURUM ::
+#\[7]SKY7S4PDSTIPZU26OPBKR32HPVAKSAYALIOR3Y6BP7DQPDCINADA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

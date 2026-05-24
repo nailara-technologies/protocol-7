@@ -1,0 +1,126 @@
+## [:< ##
+
+# name  = branch.cluster.register
+# descr = write cluster yaml to data/yaml/cluster-registry/<name>.yaml.
+#         compute address and ring position if not already set.
+#         refuse to register if validate() fails.
+# param = cluster_hashref  { name => ..., layers => { ... }, [address => ...] }
+
+my ($cluster) = @ARG;
+
+return <[base.logs]>->( 0, 'cluster hashref required <{C1}>' )
+    unless defined $cluster
+    and ref $cluster eq 'HASH';
+
+my $cluster_name = $cluster->{'name'};
+
+return <[base.logs]>->( 0, 'cluster name required in hashref <{C1}>' )
+    unless defined $cluster_name
+    and length $cluster_name;
+
+my $layers = $cluster->{'layers'};
+
+return <[base.logs]>->( 0, 'cluster layers required in hashref <{C1}>' )
+    unless defined $layers
+    and ref $layers eq 'HASH';
+
+## [ ensure registry directory exists ] ##
+##
+my $root_path = <system.root_path> // '.';
+my $reg_dir   = sprintf '%s/data/yaml/cluster-registry', $root_path;
+
+<[file.make_path]>->( $reg_dir, 0750 )
+    unless -d $reg_dir;
+
+## [ compute address if not set ] ##
+##
+my $address = $cluster->{'address'};
+if ( not defined $address or not length $address ) {
+    my @content_parts = ($cluster_name);
+    for my $layer_type (
+        qw| task template design intent address |
+        ) {
+        my $entry = $layers->{$layer_type};
+        next unless defined $entry;
+        if ( ref $entry eq 'ARRAY' ) {
+            push @content_parts, sort @$entry;
+        } elsif ( ref $entry eq '' and length $entry ) {
+            push @content_parts, $entry;
+        }
+    }
+    my $content = join "\n", @content_parts;
+    my $bmw     = Digest::BMW->new(384);
+    $bmw->add($content);
+    $address = $bmw->hexdigest;
+    $cluster->{'address'} = $address;
+}
+
+## [ compute ring position if not set ] ##
+##
+my $ring_pos = $cluster->{'ring_pos'};
+if ( not defined $ring_pos or $ring_pos eq '' ) {
+    $ring_pos = ( Math::BigInt->new( '0x' . $address ) % 13 )->numify;
+    $cluster->{'ring_pos'} = $ring_pos;
+}
+
+## [ validate before writing ] ##
+##
+my @issues = <[branch.cluster.validate]>->($cluster);
+
+if (@issues) {
+    <[base.logs]>->(
+        1, 'cluster [ %s ] validation failed : %s <{C1}>',
+        $cluster_name, join '; ', @issues
+    );
+    return wantarray
+        ? ( FALSE, join( '; ', @issues ) )
+        : FALSE;
+}
+
+## [ write cluster yaml ] ##
+##
+my $yaml_path = sprintf '%s/%s.yaml', $reg_dir, $cluster_name;
+
+my ( $ok, $write_err )
+    = <[format.yaml.write_file]>->( $yaml_path, $cluster );
+
+if ( not $ok ) {
+    <[base.logs]>->(
+        1, 'failed to write cluster yaml [ %s ] : %s <{C1}>',
+        $yaml_path, $write_err // 'unknown error'
+    );
+    return wantarray ? ( FALSE, $write_err ) : FALSE;
+}
+
+## [ update _index.yaml ] ##
+##
+my $index_path = sprintf '%s/_index.yaml', $reg_dir;
+my ( $index_data, $idx_err )
+    = <[format.yaml.load_file]>->($index_path);
+
+$index_data //= { qw| clusters | => {} };
+$index_data->{'clusters'}{$cluster_name} = {
+    qw| address  | => $address,
+    qw| ring_pos | => $ring_pos,
+};
+
+( $ok, $write_err )
+    = <[format.yaml.write_file]>->( $index_path, $index_data );
+
+if ( not $ok ) {
+    <[base.logs]>->(
+        1, 'failed to write cluster index [ %s ] : %s <{C1}>',
+        $index_path, $write_err // 'unknown error'
+    );
+    return wantarray ? ( FALSE, $write_err ) : FALSE;
+}
+
+return wantarray ? ( TRUE, undef ) : TRUE;
+
+#,,,.,.,,,.,.,,,.,...,...,,..,,..,...,..,,,,,,..,,...,...,..,,.,.,..,,.,.,.,.,
+
+#,,,,,,..,..,,,,.,,,,,,.,,..,,.,,,,..,.,.,.,.,..,,...,..,,,,.,...,,..,..,,,..,
+#DHI5HX6AXT6A72KL3B2GFUAVD3NXB5PAN73Q35S6THSG43SN3A2PHPVUIAYPUI4BSIHDFBVFEPRGM
+#\\\|4WF44ZB6ZJPNGTAA6ELQTKOUIWYVUP2ZFULSUFLYVEBZJRQLEZR \ / AMOS7 \ YOURUM ::
+#\[7]OWX5QCTMBJUX3CB6UX65N7CDPFCVKUCBUVQPQ6LY6SODM6P2A6AI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

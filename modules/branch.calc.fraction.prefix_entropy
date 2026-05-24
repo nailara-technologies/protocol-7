@@ -1,0 +1,66 @@
+## [:< ##
+
+# name  = branch.calc.fraction.prefix_entropy
+# descr = return length and bit-entropy of non-repeating prefix for X/Y
+# param = numerator, denominator
+#
+# prefix length = v_2(Y) + v_5(Y)
+
+my ( $numerator, $denominator ) = @ARG;
+
+return undef
+    if not defined $numerator
+    or not defined $denominator
+    or $denominator == 0;
+
+## [ skip terminating fractions — no period means no prefix ] ##
+return undef
+    if <[branch.calc.fraction.terminates]>->( $numerator,
+    $denominator );
+
+## [ compute p-adic valuations ] ##
+my $v2 = 0;
+my $yy = $denominator;
+while ( $yy % 2 == 0 ) { $yy /= 2; $v2++; }
+
+my $v5 = 0;
+$yy = $denominator;
+while ( $yy % 5 == 0 ) { $yy /= 5; $v5++; }
+
+my $prefix_len = $v2 + $v5;
+
+return undef if $prefix_len == 0;    ## [ no prefix ] ##
+
+## [ extract prefix digits via long division ] ##
+my $rem = $numerator % $denominator;
+my $prefix = '';
+for my $i ( 0 .. $prefix_len - 1 ) {
+    $rem *= 10;
+    my $digit = int( $rem / $denominator );
+    $prefix .= $digit;
+    $rem = $rem % $denominator;
+}
+
+## [ compute bit-entropy of prefix digits ] ##
+my %freq;
+map { $freq{$ARG}++ } split //, $prefix;
+
+my $entropy = 0;
+for my $count ( values %freq ) {
+    my $p = $count / $prefix_len;
+    $entropy -= $p * log($p) / log(2);
+}
+
+return {
+    prefix_length => $prefix_len,
+    bit_entropy   => $entropy,
+    prefix        => $prefix
+};
+
+#,,,.,,,,,,,,,,.,,.,.,,.,,..,,...,,.,,.,,,,.,,..,,...,...,,.,,...,.,.,,,,,...,
+
+#,,..,...,,,.,.,,,..,,,..,.,,,.,,,,,,,,,.,,,.,..,,...,...,.,.,.,,,...,.,.,,,.,
+#7TNRFGTLJRICOHC4DP65AYYJA4CH2PXTOE45Z2KUEJU2Y7QSVY2WSLWFPHO4ROLTBCOAZ3JCSNVWE
+#\\\|D4EDR6M7Q6YC6HWQAM23IN77WX2XHASYCCI3P7VJ53Z6STEUYSF \ / AMOS7 \ YOURUM ::
+#\[7]FTZFEM3KAJEIJMEAPIH4H476POLWK2PXJZXBZSTNGXREV74EDWDY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

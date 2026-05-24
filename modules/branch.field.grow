@@ -1,0 +1,73 @@
+## [:< ##
+
+# name  = branch.field.grow
+# descr = advance position by delta along named axis
+# param = { id, axis, delta }
+#
+# return false if boundary would be exceeded
+# close automatically if all axes reach boundary
+
+my $params = shift // {};
+
+my $id     = $params->{'id'}    // '';
+my $axis_name = $params->{'axis'} // '';
+my $delta  = $params->{'delta'} // 0;
+
+return { 'mode' => 'false', 'data' => 'id required' }
+    unless length $id;
+return { 'mode' => 'false', 'data' => 'branch not found' }
+    unless exists $data{'branch.field'}{$id};
+
+my $node = $data{'branch.field'}{$id};
+return { 'mode' => 'false', 'data' => 'branch already closed' }
+    if ( $node->{'state'} // '' ) eq 'closed';
+
+my $axes = $node->{'axes'} // {};
+return { 'mode' => 'false', 'data' => 'no axes defined' }
+    unless keys %$axes;
+
+return { 'mode' => 'false', 'data' => 'axis required' }
+    unless length $axis_name;
+return { 'mode' => 'false', 'data' => 'axis not found' }
+    unless exists $axes->{$axis_name};
+
+my $axis     = $axes->{$axis_name};
+my $boundary = $axis->{'boundary'} // 0;
+my $position = $axis->{'position'} // 0;
+my $new_pos  = $position + $delta;
+
+return { 'mode' => 'false', 'data' => 'boundary would be exceeded' }
+    if $new_pos > $boundary;
+
+$axis->{'position'} = $new_pos;
+
+## [ recompute state ] ##
+my $open_count = 0;
+for my $ax ( values %$axes ) {
+    $open_count++ if ( $ax->{'boundary'} // 0 ) > ( $ax->{'position'} // 0 );
+}
+
+if ( $open_count == 0 ) {
+    my $result = <[branch.field.close]>->($id);
+    return $result
+        if ref $result eq 'HASH' and $result->{'mode'} eq 'false';
+    <[base.logs]>->(
+        2, 'branch.field.grow: %s axis=%s auto-closed',
+        $id, $axis_name
+    );
+    return { 'mode' => 'true', 'data' => 'closed' };
+} elsif ( $open_count == 1 ) {
+    $node->{'state'} = 'open';
+} else {
+    $node->{'state'} = 'field';
+}
+
+return { 'mode' => 'true', 'data' => $node->{'state'} };
+
+#,,,.,,,,,,,,,,.,,.,.,,.,,..,,...,,.,,.,,,,.,,..,,...,...,,.,,...,.,.,,,,,...,
+
+#,,..,,,,,,..,,..,,..,,,.,.,,,..,,.,,,,,.,...,..,,...,..,,,..,..,,,..,.,.,,.,,
+#IM6OH5J2XRLLPIXDIJOWV4PC3N3B3BQJRMTJRPLPS75JSFNMR65ITSHS5JE4KFW5VC4PGYSSDKNXK
+#\\\|6J4YTX3ONGABYQNKKB57JVSCWAK2UU4DQTJUJ2NX6C3R2UEPAUP \ / AMOS7 \ YOURUM ::
+#\[7]C6WQO2PWIRUMRFPKQLTZLIR57MYTNO7MN35ECLBP7GXB5ZRHROBQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

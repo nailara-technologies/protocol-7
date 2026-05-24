@@ -1,0 +1,36 @@
+## [:< ##
+
+# name  = branch.field.boundary
+# descr = return boundary value for named axis
+# param = id, [ axis_name ]
+#
+# default axis if only one axis exists
+# returns undef if not found or ambiguous
+
+my ( $id, $axis_name ) = @ARG;
+
+return undef
+    if not defined $id
+    or not exists $data{'branch.field'}{$id};
+
+my $axes = $data{'branch.field'}{$id}{'axes'} // {};
+my @names = keys %$axes;
+
+return undef unless @names;
+
+if ( not defined $axis_name or not length $axis_name ) {
+    return undef if @names > 1;
+    $axis_name = $names[0];
+}
+
+return undef unless exists $axes->{$axis_name};
+
+return $axes->{$axis_name}{'boundary'} // 0;
+
+#,,,.,,,,,,,,,,.,,.,.,,.,,..,,...,,.,,.,,,,.,,..,,...,...,,.,,...,.,.,,,,,...,
+
+#,,,.,..,,,,.,,,.,..,,..,,...,...,,..,..,,,,,,..,,...,...,...,..,,.,,,.,.,.,.,
+#DHW4ZRT52DC3APE25XBXAPMVC35U35VBNI5U33STOJQ5QLPRSODI5BYCTK2JGH6RCKX6IT2I3JRXI
+#\\\|OKMMG4LHM63K6QDLFKOBGIBSZOREDNGKZOFW42EUXCBIRJVTNAN \ / AMOS7 \ YOURUM ::
+#\[7]PRGVFEVG4QIFCAFYL4GGVVGDX2X4AO6QR7VH3ZHQ7VB2H5UZNGBA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
