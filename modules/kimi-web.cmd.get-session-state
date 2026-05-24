@@ -22,7 +22,7 @@ my $sessions_dir = <kimi-web.cfg.sessions_dir>
 ## resolve session path [ flat or nested ] ##
 my $session_dir = "$sessions_dir/$uuid";
 if ( not -d $session_dir ) {
-    my $nested = ( <[base.file.glob]>->("$sessions_dir/*/$uuid") )->[0];
+    my $nested = ( <[file.glob]>->("$sessions_dir/*/$uuid") )->[0];
     $session_dir = $nested if defined $nested and length $nested;
 }
 
@@ -35,7 +35,7 @@ if ( not -f $state_path or not -r _ ) {
     };
 }
 
-my $content = eval { <[base.file.read]>->($state_path) } // '';
+my $content = eval { <[file.read]>->($state_path) } // '';
 
 if ( not length $content ) {
     return {
@@ -51,8 +51,8 @@ return {
     'data' => $state
 };
 
-#,,,.,,..,,..,..,,...,.,.,.,,,,..,..,,,,,,...,.,.,...,..,,.,.,...,,..,...,,.,,
-#YQJTHFOSWBZWOPL42S3FLCOAKHEVROHYKIPNWW52TUTDW7JX5JAPV3OGMFL4QPVGVZKZKKVCQT4YI
-#\\\|Q4TUBBKLGFC2452YZDRGWKNDQXFQRNLIFXSZHBOMRNS2AYCWFCK \ / AMOS7 \ YOURUM ::
-#\[7]Q6WLUDD3EKRYCJ262ZA4TVN3T5AFKLOBRLSXG62J7FRKQ3ZKT2BI 7  DATA SIGNATURE ::
+#,,,.,,.,,...,,,,,,,.,.,,,,,.,.,.,,.,,.,.,.,.,.,.,...,..,,.,.,.,,,...,...,.,,,
+#DREVTPO6XVWGMBYOTNF445JHO4APU6IMF5G3PKHSQ2Z2HGHEEY4UGE3GUODQIPWDQTWQIOVLTO37C
+#\\\|A26SQ226HH6WEMRUJVPUHQ2CVTSVNB3TWYF6BPUWBN5GSJHCK4O \ / AMOS7 \ YOURUM ::
+#\[7]IME46TG625N5AZFELTW3RPJ4XTUEHKPTGYW6W3J7T5R6XDTVWGCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

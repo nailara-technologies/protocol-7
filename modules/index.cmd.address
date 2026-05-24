@@ -1,0 +1,18 @@
+## [:< ##
+
+# name  = index.cmd.address
+# descr = return numerical address for a token
+
+my $token = $call->{'args'} // '';
+my $addr  = <[index.address]>->($token);
+
+return { 'mode' => 'false', 'data' => 'not found' }
+    if not defined $addr;
+
+return { 'mode' => 'size', 'data' => "$addr" };
+
+#,,,,,,,.,..,,..,,,..,,..,,,,,.,,,.,.,...,,,,,..,,...,...,..,,,,.,...,...,.,.,
+#GCFWDTRSVIIJ4QPBAHKZXUTD3IXDTZSXMZODOMPOCWL7YJAVPYKNFENWCE4NJGHZQCOT7ADYQVPK2
+#\\\|LVGXP3MUPXR5CBI4KTONRDVNK2KRDNSD6LZKJFISYXXYVJPCHQU \ / AMOS7 \ YOURUM ::
+#\[7]BEBUTEMLWA6HHZIG5VND4KCANTFOFPUJS6PJZW4Z4SIS5NQ2U2BQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
