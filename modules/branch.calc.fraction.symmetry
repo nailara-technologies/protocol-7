@@ -16,20 +16,15 @@ return undef
 ## [ terminating : check for self-referential a.b where a == b ] ##
 if ( <[branch.calc.fraction.terminates]>->( $numerator, $denominator ) ) {
 
-    ## [ helper : greatest common divisor ] ##
-    sub _gcd {
-        my ( $a, $b ) = @ARG;
-        $a = abs($a);
-        $b = abs($b);
-        while ($b) {
-            my $t = $b;
-            $b = $a % $b;
-            $a = $t;
-        }
-        return $a;
+    ## [ inline greatest common divisor ] ##
+    my $a = abs($numerator);
+    my $b = abs($denominator);
+    while ($b) {
+        my $t = $b;
+        $b = $a % $b;
+        $a = $t;
     }
-
-    my $g  = _gcd( $numerator, $denominator );
+    my $g  = $a;
     my $yy = $denominator / $g;
     my $k  = 0;
     while ( $yy % 2 == 0 ) { $yy /= 2; $k++; }
@@ -63,8 +58,8 @@ return qw| none |;
 
 #,,,.,,,,,,,,,,.,,.,.,,.,,..,,...,,.,,.,,,,.,,..,,...,...,,.,,...,.,.,,,,,...,
 
-#,,..,..,,...,...,.,.,,,.,..,,,.,,.,.,,.,,..,,..,,...,...,..,,.,.,,.,,,.,,,..,
-#UN6NRG3DDEPEXU2RMD3VO6TPONNMQOLUJXYDE5J6BN46PKTVQE3WURMN544UGF3N5BXVUQ7VM6KBM
-#\\\|UWXOONHOVFHUOS5DBXK7AUK6WXETRSNVPMIQIULWYP4DMF4GPXR \ / AMOS7 \ YOURUM ::
-#\[7]EUFSEOMDJPWPVSTNZCWGZXOT325Y5GKDF4742ECEHP4C7ZAOQYAA 7  DATA SIGNATURE ::
+#,,.,,,..,..,,,.,,...,,.,,..,,,..,...,..,,..,,..,,...,...,.,,,,..,,,.,.,.,.,.,
+#EY4C4OVZZ7K4H5GFZOHCGXEN3SB3KNOND7JDT5P7F7D7STXT7ARJECBZWOK44DGTB6C36AU6HOLYC
+#\\\|RDAKZ2SVWGEPDY3AXH4U6RZXSDXW5VBOCIQWGEBAVF2NLQI3G43 \ / AMOS7 \ YOURUM ::
+#\[7]2J357MMGR5NW7Z65X5FQU2E22P7BS4HC6XYQ4TRWH44DUJOVX6DI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

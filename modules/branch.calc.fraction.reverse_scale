@@ -16,20 +16,15 @@ return undef
 return undef
     if not <[branch.calc.fraction.terminates]>->( $numerator, $denominator );
 
-## [ helper : greatest common divisor ] ##
-sub _gcd {
-    my ( $a, $b ) = @ARG;
-    $a = abs($a);
-    $b = abs($b);
-    while ($b) {
-        my $t = $b;
-        $b = $a % $b;
-        $a = $t;
-    }
-    return $a;
+## [ inline greatest common divisor ] ##
+my $a = abs($numerator);
+my $b = abs($denominator);
+while ($b) {
+    my $t = $b;
+    $b = $a % $b;
+    $a = $t;
 }
-
-my $g  = _gcd( $numerator, $denominator );
+my $g  = $a;
 my $yy = $denominator / $g;
 
 ## [ find k such that yy divides 10^k ] ##
@@ -49,8 +44,8 @@ return $b * $denominator;
 
 #,,,.,,,,,,,,,,.,,.,.,,.,,..,,...,,.,,.,,,,.,,..,,...,...,,.,,...,.,.,,,,,...,
 
-#,,..,,..,,..,...,.,.,,,,,,,,,.,,,.,.,..,,,.,,..,,...,...,.,,,,.,,,,.,,..,..,,
-#I46A7IW62MHK657TLAW3XB7X5ZRJHY6KPEFO2NMJ6USS5RMR6QDWJW23CKD4K3ERSMAZIQNHKUMOG
-#\\\|ZZXKH4V5GN5FRVCA4O6KMZUKJCVGDEZ6VJT5XAESKVENGKGMPPY \ / AMOS7 \ YOURUM ::
-#\[7]BJKULHBCBZVOGULK2XCWQ2G2C4PE6OSGYRUDA2WTPOHSVADEOADQ 7  DATA SIGNATURE ::
+#,,..,..,,,,,,.,,,,,.,,..,.,.,,.,,,..,,.,,,..,..,,...,.,.,.,,,.,.,,,.,,..,..,,
+#KXQX6645CZTGJO7FBY6LTXYDFHIBNHYMLCW453UPSFBLRCLM2N3AR3I6QX4NQ2XNZUWVFJBB5YNZW
+#\\\|XD2CHONXESNILFQ7DU6LPXYFHYSVGI367MKP7OW4AQIPNE32ALE \ / AMOS7 \ YOURUM ::
+#\[7]DSVMVXXLJZOX6BCSB44LICWIDQWVRMGAKM6M7AQE2VKFOQ2HBSCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
