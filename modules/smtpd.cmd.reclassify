@@ -38,7 +38,7 @@ return { 'mode' => qw| false |, 'data' => 'yaml load failed' }
 ## re-write yaml ##
 my $yaml_data = eval { YAML::XS::Dump($parsed) } // '';
 if ( length $yaml_data ) {
-    <[base.file.put]>->( $yaml_path, $yaml_data );
+    <[file.put]>->( $yaml_path, $yaml_data );
 }
 
 ## update index entry ##
@@ -55,8 +55,8 @@ return {
     $parsed->{'intent'}
 };
 
-#,,,,,...,,.,,,,.,,..,..,,...,...,.,.,,.,,,.,,.,.,...,...,.,.,..,,,.,,,,.,..,,
-#JFS4VT3LQALDNTD53HMCVWDA2235ERORK74RW43E24VRBF6JIJVHGVQYAK7TH5IL6FAZ2YS2GGMS4
-#\\\|VFT7PMYZI5SWWSUOEFCJQBFMXTVVUYF5OPCHAG57TMAMSEIKOYY \ / AMOS7 \ YOURUM ::
-#\[7]FIIUKKYR3X7Y2ONM6IW7T3CFPL52HJLKNUQF5OM55MXHPETMOCCA 7  DATA SIGNATURE ::
+#,,.,,,..,,,,,..,,...,...,.,,,.,,,,..,...,.,,,.,.,...,..,,..,,,.,,,.,,,,.,...,
+#CR3Z7PHEBYW7ONFD3THO2DGKUJ5MNGC4VAWNKYH7PMKOTUZQ7TVWYIYUA5UDR32JHAZYWR7DRERKK
+#\\\|L2CHAQVAZTAC6X7H3SZFKQPLQW3VZWBE6XRP2VNIQ32YQCWCPCE \ / AMOS7 \ YOURUM ::
+#\[7]Z5BFOLARYYYVUERDEPFITIAUPPMZLTIS5HGOKYSB4M5KB5G42UCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

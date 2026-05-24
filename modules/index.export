@@ -1,0 +1,66 @@
+## [:< ##
+
+# name = index.export
+# descr = serialize current index tree to YAML
+
+my $out_path = $ARG;
+
+my $total  = <index.meta>->{'total'} // 0;
+my $tokens = scalar keys %{ <index.freq>       // {} };
+my $seqs   = scalar keys %{ <index.level>->{1} // {} };
+
+my @yaml_lines;
+push @yaml_lines, "index:";
+push @yaml_lines, "  meta:";
+push @yaml_lines, "    total: $total";
+push @yaml_lines, "    tokens: $tokens";
+push @yaml_lines, "    sequences: $seqs";
+
+## disk 0: character level ##
+push @yaml_lines, "  disk_0:";
+for my $token (
+    sort { <index.addr>->{$a} <=> <index.addr>->{$b} }
+    keys %{ <index.addr> // {} }
+) {
+    my $addr = <index.addr>->{$token};
+    my $freq = <index.freq>->{$token} // 0;
+    push @yaml_lines, sprintf "    - addr: %d", $addr;
+    my $token_quoted = $token;
+    $token_quoted =~ s/\\/\\\\/g;
+    $token_quoted =~ s/"/\\"/g;
+    push @yaml_lines, sprintf "      token: \"%s\"", $token_quoted;
+    push @yaml_lines, sprintf "      freq: %d",      $freq;
+}
+
+## disk 1: sequence level ##
+push @yaml_lines, "  disk_1:";
+if ( exists <index.level>->{1} ) {
+    for my $seq (
+        sort { <index.level>->{1}->{$a} <=> <index.level>->{1}->{$b} }
+        keys %{ <index.level>->{1} }
+    ) {
+        my $addr = <index.level>->{1}->{$seq};
+        my $freq = <index.seq>->{$seq} // 0;
+        push @yaml_lines, sprintf "    - addr: %d", $addr;
+        my $seq_quoted = $seq;
+        $seq_quoted =~ s/\\/\\\\/g;
+        $seq_quoted =~ s/"/\\"/g;
+        push @yaml_lines, sprintf "      sequence: \"%s\"", $seq_quoted;
+        push @yaml_lines, sprintf "      freq: %d",         $freq;
+    }
+}
+
+my $yaml_str = join "\n", @yaml_lines;
+$yaml_str .= "\n";
+
+if ( defined $out_path and length $out_path ) {
+    return <[file.put]>->( $out_path, $yaml_str );
+} else {
+    return $yaml_str;
+}
+
+#,,,,,..,,,,,,,,,,,..,..,,,,,,.,,,,,,,..,,,.,,..,,...,...,...,..,,..,,.,.,,,,,
+#42KHPVOG5IEZD2LQ2RAJZ3JQDXQSRWRTJL3LWRHLFRSW7FNAABGK64GLPOVTMFWLXIUHFJAK7DE4K
+#\\\|B2JWMGAOFEPKME7EUUHYLG2ETBCV5ZQY3GS26IY7BOGK2HYXEW6 \ / AMOS7 \ YOURUM ::
+#\[7]2JPS5IQ25QC3YCEV5HWHFTIJVVAXHXUW5PUFYHC57AUH7QVNIWCI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

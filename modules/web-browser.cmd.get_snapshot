@@ -18,7 +18,7 @@ my $timestamp = time;
 my $out_path  = "$snap_dir/snapshot_${timestamp}_$$.png";
 
 ## ensure output directory exists
-<[base.file.make_path]>->($snap_dir) unless -d $snap_dir;
+<[file.make_path]>->($snap_dir) unless -d $snap_dir;
 
 my $region = <web-browser.cfg.snapshot_region>;
 
@@ -37,8 +37,8 @@ $view->get_snapshot(
 ## return deferred — handler sends reply when snapshot completes
 return { 'mode' => 'deferred' };
 
-#,,.,,,.,,...,,,,,.,,,,.,,,.,,,,,,,,.,,..,,,.,..,,...,...,.,,,.,.,..,,..,,...,
-#TVNY2ZBQD7ISTTGVZN4B6RH4GQUXZT5K5HYFJ3HBH3JNZXTVXUFRFTYFWPSCN5VKZ7F2FHPAG77OC
-#\\\|UR2PXZ6RN3JF2U742HNNDNXWHFXUAG6YCNAMTZNKRCNY4HVLMEI \ / AMOS7 \ YOURUM ::
-#\[7]WQPQ3JMDEYOROHUKUNFCLAZPNTYYBZLIPWLXGAXNFSASBIRAQQBA 7  DATA SIGNATURE ::
+#,,..,...,,.,,,,.,.,,,...,...,,,.,.,.,..,,...,..,,...,...,.,,,.,,,,,,,,.,,,,.,
+#ILTPVAASWXNNXEF4WMDC7PG2AY6UMBBZ3GYWCXKXARKMOJLRGTFMW3JQVGWGBXUO7TILU3W37GII4
+#\\\|XH226PC7KCN7KXRQZAQMCMU7XPTUJTUFEODNCKDUSIS4EW5EORD \ / AMOS7 \ YOURUM ::
+#\[7]W5YDKUKKHYJ5ECQPH2WAZDPDUTZH3D5ETGD3WBBLP3Z5QYUQL4AI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

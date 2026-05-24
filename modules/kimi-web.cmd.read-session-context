@@ -23,7 +23,7 @@ my $sessions_dir = <kimi-web.cfg.sessions_dir>
 ## resolve session path [ flat or nested ] ##
 my $session_dir = "$sessions_dir/$uuid";
 if ( not -d $session_dir ) {
-    my $nested = ( <[base.file.glob]>->("$sessions_dir/*/$uuid") )->[0];
+    my $nested = ( <[file.glob]>->("$sessions_dir/*/$uuid") )->[0];
     $session_dir = $nested if defined $nested and length $nested;
 }
 
@@ -98,8 +98,8 @@ my $key = join qw| . |, $sid, $cmd_id;
 ## return deferred — STRM delivers file content ##
 return { 'mode' => qw| deferred | };
 
-#,,,.,,,,,,,,,,,,,,..,,.,,,,.,,..,,.,,,,,,.,.,.,.,...,...,,..,.,.,,,.,.,,,,.,,
-#FDWDG5VZ7V4P3MTAUNDK5YQDQ5VWTY2U3HGT3FKDXGFAGICLNALIRLJTYMUXWR77EFNWQDUWMJ3UK
-#\\\|FQGWNXYTJAHEEKLUGGEQQ2ZZUOCS2LVESPB3NI5GUPANH6G7JHV \ / AMOS7 \ YOURUM ::
-#\[7]4VSAOTMGHOGOJO6FTFJJTQYB6V5RSNCKUOPTSHBYCKZW6UG73KDQ 7  DATA SIGNATURE ::
+#,,.,,...,.,,,,.,,..,,...,.,,,,..,..,,,.,,...,.,.,...,...,,,,,,,,,,,,,,,.,...,
+#OXZOPMFWT4V4CF5EQDMEB24GNSX5LSPX6ORNUBZFCSVTDIP7PZKZVM65QW7CACIFJIPEV4K2ONYRG
+#\\\|J63NUSPN2W5B56UOLVF7HJNPIHNCDOMI45AHLJTHHDTOTRXWIAZ \ / AMOS7 \ YOURUM ::
+#\[7]WHWGGCG4Y5BRNUDO7RZC56JWGL3WWIYWXZ6KWHTU47YFCL4OREBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
