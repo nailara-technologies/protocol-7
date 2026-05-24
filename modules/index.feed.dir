@@ -1,0 +1,30 @@
+## [:< ##
+
+# name = index.feed.dir
+# descr = walk a directory and feed all text files into the index
+
+my $dir = $ARG;
+
+return FALSE if not defined $dir or not -d $dir;
+
+my @files = grep { -s $ARG < 10_000_000 } <[file.match_files]>->(
+    $dir,
+    qw| recursive |,
+    qw| *.md *.yaml *.yml *.txt *.pm *.pl |
+);
+
+my $count = 0;
+for my $file (@files) {
+    next if -s $file > 10_000_000;
+    <[index.feed.file]>->($file) and $count++;
+}
+
+<[base.log]>->( 1, "index feed.dir complete [ $count files from $dir ]" );
+
+return $count;
+
+#,,,.,.,,,...,,,.,,,.,..,,...,...,.,.,...,.,,,..,,...,...,..,,,.,,,,.,.,.,,..,
+#Y4E24F7EDPZL56DCJFDX5GYMZ7NLSZKEMDCYM2A2Z3HQOZZEP7UJDY3PFJUSIRIX7PZ2F4V4XV4N6
+#\\\|YB32G2NT6RNAR3JUVIYE4GBM6ETL5I4XHEKWPLMH7WJRE3FF7MZ \ / AMOS7 \ YOURUM ::
+#\[7]QKSHWZCUZK6ZTOKOGSZ5M64A7HXWQ6VIDJIN5TN2YCTI2ICCQKCI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

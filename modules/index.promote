@@ -1,0 +1,29 @@
+## [:< ##
+
+# name = index.promote
+# descr = move qualifying sequences from seq registry to disk 1+
+
+my $min_freq = <index.meta>->{'min_seq_freq'} // 2;
+
+my %seq = %{<index.seq>};
+
+my @candidates = sort { $seq{$b} <=> $seq{$a} || $a cmp $b }
+    grep { $seq{$ARG} >= $min_freq } keys %seq;
+
+<index.level>->{1} //= {};
+
+my $addr = scalar keys %{ <index.level>->{1} };
+for my $seq (@candidates) {
+    next if exists <index.level>->{1}->{$seq};    ## already promoted ##
+    <index.level>->{1}->{$seq} = $addr++;
+}
+
+my $promoted = scalar keys %{ <index.level>->{1} };
+<[base.log]>->( 2, "index promote [ $promoted sequences at disk 1 ]" )
+    if $promoted;
+
+#,,,,,,,.,,.,,,,,,..,,,,.,,.,,...,...,,.,,,,,,.,.,...,.,.,.,,,.,,,,.,,.,.,,..,
+#OUDCU23CC2Z7NZBVAKBBTDOIG2GEI5NVCM2MCAX7LR76BFUKKRRNB364G4OSCSO5GAFJESDXB4TS2
+#\\\|YIOTOGY3CS6ICLQGF2VK3E7YCVRZB2I7IISZ5DHFQTJER2E3UBC \ / AMOS7 \ YOURUM ::
+#\[7]LOAWX7W46NXGVRKEQ6DHD55DF5KJMPPGKXPQYZVHMGDVTH5S5GCY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

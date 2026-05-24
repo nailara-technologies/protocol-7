@@ -28,7 +28,7 @@ my $base_path = join qw| / |, $day_dir, $hash;
 my $yaml_path = "$base_path.yaml";
 my $yaml_data = eval { YAML::XS::Dump($parsed) } // '';
 if ( length $yaml_data ) {
-    <[base.file.put]>->( $yaml_path, $yaml_data );
+    <[file.put]>->( $yaml_path, $yaml_data );
     chmod 0640, $yaml_path;
     $parsed->{'yaml_path'} = $yaml_path;
 }
@@ -72,7 +72,7 @@ if ( length $raw ) {
         }
     }
 
-    <[base.file.put_bin]>->( $target_path, \$compressed );
+    <[file.put_bin]>->( $target_path, \$compressed );
     chmod 0600, $target_path;
     $parsed->{'raw_path'} = $target_path;
 } else {
@@ -102,8 +102,8 @@ if ( scalar( <smtpd.mail_index>->@* ) > $max_index ) {
 
 return $parsed;
 
-#,,,.,...,,,,,,.,,.,.,.,,,.,,,.,.,,,.,...,.,,,.,.,...,...,,.,,..,,.,,,...,.,,,
-#HGRUWJ7CYKKQYUX7YF57PD2W7BUNQTBN32XSUSZAHVXLYN6FXYKRF6XXHQCENL3NILP6OUJ5T2CBM
-#\\\|SSMVWR6GCMVRYRROA4ANFYHPNEJWYMWE7357QSY6ZEHDSXU6UJE \ / AMOS7 \ YOURUM ::
-#\[7]SKJ2VDNC4ZEOE5JFIC223QBMJT3MDWZRVMKG3XVZHSHW6HCOGQCI 7  DATA SIGNATURE ::
+#,,.,,,,,,,.,,,.,,,,.,,..,,,.,.,,,...,,.,,...,.,.,...,...,,.,,.,.,,,,,,..,,.,,
+#CH353AX3XZSFHFV2W2QQOPKMD2FHY5KLB5A72F24N7NULK34DX7ZSJO24AUOB2P4K2DY4FAAWSCXE
+#\\\|A3U3LZVSLX2CLSK2BGIAZAIOT4KLYR7EIAXV3LBAKHR2SMBQGMD \ / AMOS7 \ YOURUM ::
+#\[7]BSHSZ5AWOX4BXBTAVNYYGKJZOE73E2JHHXBEIGO6XZ3S6Z3RA6BI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

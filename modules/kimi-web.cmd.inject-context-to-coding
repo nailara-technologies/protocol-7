@@ -29,7 +29,7 @@ my $sessions_dir = <kimi-web.cfg.sessions_dir>
 ## resolve session path [ flat or nested ] ##
 my $session_dir = "$sessions_dir/$uuid";
 if ( not -d $session_dir ) {
-    my $nested = ( <[base.file.glob]>->("$sessions_dir/*/$uuid") )->[0];
+    my $nested = ( <[file.glob]>->("$sessions_dir/*/$uuid") )->[0];
     $session_dir = $nested if defined $nested and length $nested;
 }
 
@@ -80,7 +80,7 @@ if ( $ctx_path =~ m|\.jsonl$| ) {
     close $fh;
     $context_data = join( "\n\n", @messages );
 } else {
-    $context_data = eval { <[base.file.read]>->($ctx_path) } // '';
+    $context_data = eval { <[file.read]>->($ctx_path) } // '';
 }
 
 ## truncate to coding-friendly size [ ~64K chars ] ##
@@ -115,8 +115,8 @@ return {
     'data' => 'context injected to coding zenka'
 };
 
-#,,..,...,...,..,,.,.,,.,,...,,..,...,,.,,,..,.,.,...,...,.,.,.,,,,,.,,.,,..,,
-#IZBI3BDY67O27LGWWC5EGBXER7NOLS2M3RIIYLLYX3QQRHO353E6YZ4FVCP62XL6HX5HQBWT5Z4NE
-#\\\|PYRF7DAAJNJXJWBZS7RRCP55UROBFIDRJDFM3N5AGSCRMOSDJPU \ / AMOS7 \ YOURUM ::
-#\[7]BS37B2QLP4SIWVPC5YPT2PSGACUYITBWSUO37F3WGTVIBJCNH2DI 7  DATA SIGNATURE ::
+#,,,.,...,...,,..,.,,,...,,,,,.,,,,.,,,.,,..,,.,.,...,...,.,.,.,.,.,.,,..,..,,
+#6PYUSK6BCHN27PLUC27MYRRIL26Y6U4CY63JYHN2COTRD5IGT2I6I742TKTX6K6MUTRSZSS3RCCSC
+#\\\|ESMCF5MLXJZUHDRNOK3SXZDQDO72MHXVZYZLMXUKDLVWECZKGJG \ / AMOS7 \ YOURUM ::
+#\[7]4NLQX7THGBEBRNRG3W54TCS5W724574YM4BHLAGDPOKCOFXAXSCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

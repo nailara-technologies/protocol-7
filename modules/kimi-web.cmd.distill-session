@@ -22,7 +22,7 @@ my $sessions_dir = <kimi-web.cfg.sessions_dir>
 ## resolve session path [ flat or nested ] ##
 my $session_dir = "$sessions_dir/$uuid";
 if ( not -d $session_dir ) {
-    my $nested = ( <[base.file.glob]>->("$sessions_dir/*/$uuid") )->[0];
+    my $nested = ( <[file.glob]>->("$sessions_dir/*/$uuid") )->[0];
     $session_dir = $nested if defined $nested and length $nested;
 }
 
@@ -135,8 +135,8 @@ return {
         . " exchanges ]"
 };
 
-#,,..,,.,,...,,..,,,,,.,,,..,,,,,,.,.,,,.,.,,,.,.,...,...,,..,,,.,...,.,.,,,,,
-#FMBGMVEFHJGN34LOUI5EUI5BH2VOY3BO3BVFZMIWOZHDQLKN3JA4N4VO5RLTANQP3XFEYQ3YFHLD2
-#\\\|VZN2VR3U4YVGG7LTTLSURTDJB63W3A63JSASHS32XGY7VSMMHFJ \ / AMOS7 \ YOURUM ::
-#\[7]PBP7Z7WIWTFLA3EC73P72SAIL5MV6I33C3R726YXKN5EQFZ3OQBQ 7  DATA SIGNATURE ::
+#,,.,,,,.,,,,,.,.,..,,,..,,,,,,,,,,,,,...,.,,,.,.,...,..,,...,...,...,..,,,,.,
+#LT5633TWV37CW2QUPZPETNFNWLTXO7P33ZPEYKE7MSEU5OIJJFCKCZZJNPGIMD64UWDJQ45WLZHJM
+#\\\|H6JB274OTT5LVLVH62IXCWRMIY7SJS7BMMSFWVR3UQMROOR4EN3 \ / AMOS7 \ YOURUM ::
+#\[7]BJ6QPVOXYICODI2U656UIUEKVKB2VGUWEUUVOQM7L3JCTO6ZVOAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
