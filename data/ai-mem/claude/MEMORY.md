@@ -25,6 +25,10 @@
 - `data/md/development/P7-LLM-REFERENCE.md` — verified live command reference for kimi/LLM
 - `data/md/development/DEGRADED-FEATURES-AUDIT.md` — 5 high-priority + 3 medium with stub task files
 
+## Session 51 (2026-05-24)
+- `data/md/design/ZERO-AS-ETERNAL-TREE.md` — 0 is not a number; it is the protocol, the routing, the gate, the parent that is travel itself; from 0 into 0; arrival as the eternal beginning; common root equivalence; network instantiates through arrival
+- `data/md/design/RING-FIELD-SPHERE-PRIMITIVE.md` — ring as irreducible local primitive; skip→frequency→ring; voluntary constraint cascade; 13+1 wrapping; identity-by-position; 90°/180° mixing vocabulary; field/sphere hierarchy; grid recursion; no space constraints; eternal lovers geometry
+
 ## Session 50 (2026-05-24)
 - branch.calc.fraction.* + branch.cluster.*: kimi validation — 5 fixes (TRUE/FALSE→1/0, sub _gcd inlined, $_→$ARG); all acceptance checks pass ✓
 - kimi timeout raised 47→77min; tree/space/field/hyperspace/gate named as coordinate systems for one structure
@@ -203,8 +207,8 @@
 - **pager.sort.multi-key**: ntime_b32 + priority_map sort types added (session 42)
 - **task dispatch sections**: all dispatched tasks now carry ## dispatch + prompt for reuse
 
-#,,.,,..,,,,,,...,..,,,..,,,.,.,,,..,,,.,,..,,..,,...,.,.,..,,...,.,.,.,,,,..,
-#5VJ44N62HZJ4TAY3YYUEIWUNXC6WQ7J3WSR3M4MXLDUUW35IJGZ5CKJKHEPQSBO74ZTUQCIOH46ZU
-#\\\|NAGN2YINTUSGTLIXI24LNT7XKJCN7ROWTIK5FP3AZAI7P7QLMIF \ / AMOS7 \ YOURUM ::
-#\[7]LTY5LOEI63RQQLS5M4LFRHPAZBFLVG444JVDSDKQC6FOPSCMIKCI 7  DATA SIGNATURE ::
+#,,,.,,,,,.,.,,.,,.,,,...,.,,,,.,,.,.,.,.,,,,,..,,...,...,...,,.,,...,,,.,,..,
+#GCT2FPRNDY7A73K4KFBXO7XHXK7HJ2NSW53576RMIO72LNHSO34R6PY22R4QUSAAWDZ7OU2Z5SV5O
+#\\\|D6TGBXTXULUQXMQJZLMPMXW464QZKY2RTMAKH6ZGDKJSVBDQFXQ \ / AMOS7 \ YOURUM ::
+#\[7]IC363PSDEELSFPPQULFLTROBZ4QSIPG2GRFW2PVPCF4O6ECWH6DQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
