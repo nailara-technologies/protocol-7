@@ -26,6 +26,7 @@ return [ qw[
         ssl.client
         note.write
         note.merge
+        index.rank
         base.regex
         base.cnt_s
         base.close
@@ -39,6 +40,7 @@ return [ qw[
         note.delete
         mpv.cmd.pos
         mpv.cmd.pid
+        index.stats
         filter.init
         devmod.dump
         branch.list
@@ -67,6 +69,9 @@ return [ qw[
         mpv.cmd.loop
         mpv.cmd.fade
         kimi.connect
+        index.ingest
+        index.export
+        index.decode
         fs.init_code
         fs.cmd.mount
         event.del_io
@@ -102,6 +107,8 @@ return [ qw[
         ncode.cmd.doc
         mpv.init_code
         mpv.cmd.pause
+        index.promote
+        index.address
         httpd.version
         fs.is_mounted
         events.recalc
@@ -165,6 +172,7 @@ return [ qw[
         jobqueue.count
         iteration.loop
         index.gen_path
+        index.feed.dir
         httpd.pre_init
         httpd.http_get
         fs.cmd.unmount
@@ -252,8 +260,11 @@ return [ qw[
         kimi.task.queue
         kimi.cmd.status
         kimi.cmd.reject
+        index.rebalance
         index.init_code
+        index.feed.file
         index.cmd.write
+        index.cmd.stats
         httpsd.pre_init
         httpd.path_info
         httpd.init_code
@@ -349,6 +360,8 @@ return [ qw[
         iteration.finish
         invoke.init_code
         index.cmd.lookup
+        index.cmd.export
+        index.cmd.decode
         httpsd.post_init
         httpsd.init_code
         httpsd.cmd.drain
@@ -486,7 +499,9 @@ return [ qw[
         invoke.cmd.status
         invoke.cmd.health
         invoke.cmd.cancel
+        index.deduplicate
         index.cmd.cluster
+        index.cmd.address
         httpd.json.encode
         httpd.json.decode
         fs.cmd.is_mounted
@@ -630,6 +645,7 @@ return [ qw[
         jobqueue.find_jobs
         index.cmd.stop-job
         index.cmd.gen-path
+        index.cmd.feed-dir
         index.cmd.add-path
         impressive.startup
         httpd.status_codes
@@ -4194,8 +4210,8 @@ return [ qw[
     ]
 ];
 
-#,,.,,,..,,..,,..,,,.,...,,..,..,,.,.,,..,...,.,.,...,...,...,,,,,,,,,,,.,...,
-#EE4LW3VLKLLXIC5VSIXM5GVVCITUZNBMIMXFWIILY6WJUPASTIVFW7QISAR475ZEJ3RACHK3DEZFO
-#\\\|UXQ6VRQECU6HK36DKWS2LP7KKCQDCI7MHSBXKGUWNFPPCUSTEPX \ / AMOS7 \ YOURUM ::
-#\[7]QO2YIFIOHRFPJ77FGPAX7QRLU6GAUWX5PSYJOPDK4ETRWLJG32BI 7  DATA SIGNATURE ::
+#,,..,.,,,.,,,...,,,.,,.,,,,,,..,,...,...,.,.,.,.,...,...,.,.,..,,...,.,,,..,,
+#VALCF4PX2KBXCIQYOPJMQTEZLTM7O3XA35UPO3WD4KUNCZBDCFUU5D3D7XRMLN6OIQHK6XEHIWJRM
+#\\\|CKQCSKC7C47TRQGKTNKAEK2GVCBJQCXSSSF6YKZRRWACH54WU72 \ / AMOS7 \ YOURUM ::
+#\[7]NIIPQB2JBWUJJQQ2BS3LIKMPALU3O42L3EGFC3NSM36FUA6R5EDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

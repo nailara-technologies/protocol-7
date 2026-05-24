@@ -1,0 +1,28 @@
+## [:< ##
+
+# name = index.rank
+# descr = assign numerical addresses by frequency rank
+
+my %freq = %{<index.freq>};
+
+## sort by frequency descending, then lexically for stable ordering ##
+my @ranked = sort { $freq{$b} <=> $freq{$a} || $a cmp $b } keys %freq;
+
+<index.addr> = {};
+<index.rank> = {};
+
+my $addr = 0;
+for my $token (@ranked) {
+    <index.addr>->{$token} = $addr;
+    <index.rank>->{$addr}  = $token;
+    $addr++;
+}
+
+## update disk 0 with current rankings ##
+<index.level>->{0} = { %{<index.addr>} };
+
+#,,.,,..,,,..,.,.,.,,,..,,,,,,,.,,,.,,,..,,,.,..,,...,...,..,,.,.,.,.,...,..,,
+#6G2LHOCEUAMXS65VIHYCJYHANMJQZ5BRVG73EQGPFFHTNMWOD2DXCQWM5MZ5C6FDLYPV2HYKJZQCS
+#\\\|JA3K4PAEXNMROV6MWG4M4NZNHJARVZNTPWRPWX6J33TC3X4UTO7 \ / AMOS7 \ YOURUM ::
+#\[7]UXJ2HAVTAB3UNEE5IJ2DUQ2HIC625QC52UOGKBMIJ435SE5WWMAA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

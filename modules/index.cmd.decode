@@ -1,0 +1,18 @@
+## [:< ##
+
+# name  = index.cmd.decode
+# descr = return token for a numerical address
+
+my $addr  = $call->{'args'} // '';
+my $token = <[index.decode]>->($addr);
+
+return { 'mode' => 'false', 'data' => 'not found' }
+    if not defined $token;
+
+return { 'mode' => 'size', 'data' => $token };
+
+#,,,.,...,.,,,.,,,.,.,.,,,,,.,.,,,,,.,...,,.,,..,,...,...,,,,,...,...,,,,,..,,
+#4R5Q4A3RWQPP5K4Y3S35WAPX4TJOMXZPSPHHAX6OSWRO7EHVHJD7OZRM7PWEZXNHLGRYNPBHRLEV4
+#\\\|VLOZYKSRIVMLI6VNKKFRP67NYAQ3TOA6BH6C3AXKJK2K6ZAD4OY \ / AMOS7 \ YOURUM ::
+#\[7]HQNLTKHC5TLCQ7ONHSDXYDWGQWZ47MJGYLHBXGMG7JY3BGG22KDY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

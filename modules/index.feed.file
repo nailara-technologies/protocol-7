@@ -1,0 +1,26 @@
+## [:< ##
+
+# name = index.feed.file
+# descr = ingest a single file into the index
+
+my $path = $ARG;
+
+return FALSE if not defined $path or not -r $path;
+
+my $content = <[file.slurp]>->($path);
+
+return FALSE if not defined $content;
+
+<[index.ingest]>->($content);
+<[index.deduplicate]>->($content);
+<[index.rebalance]>->();
+
+<[base.log]>->( 2, "index fed [ $path ]" );
+
+return TRUE;
+
+#,,..,,..,.,.,,..,...,.,.,,,,,.,.,,,.,.,,,...,..,,...,...,..,,,.,,,,,,,,,,..,,
+#6TTUATQSNSRQVMPFF4IH7IHL5AS3GHHUW5Z2JYWA6JXIYE3HBJHEA7SQVZPLHDF4P52VP5ZOVYW3G
+#\\\|Y7KG3QMEQFX3SN25DCTHTI2D2WF26ZX6KDC3BP7MPAA7YQCRHJ2 \ / AMOS7 \ YOURUM ::
+#\[7]FMKFLY2A7NJCQOBXXAGEO44ERMSJUQK5F3B2WZSQ35L5Q5UAA2CY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

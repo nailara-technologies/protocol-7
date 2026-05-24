@@ -1,0 +1,26 @@
+## [:< ##
+
+# name = index.deduplicate
+# descr = detect repeating sequences and promote to higher-order tokens
+
+my $text     = ref $ARG ? $ARG->$* : $ARG;
+my $max_win  = <index.meta>->{'max_window'} // 8;
+my $min_win  = 2;
+my $min_freq = 2;    ## must occur at least twice to be a sequence token ##
+
+for my $win ( $min_win .. $max_win ) {
+    for ( my $pos = 0; $pos + $win <= length $text; $pos++ ) {
+        my $seq = substr( $text, $pos, $win );
+        next if $seq =~ m| |;    ## skip sequences containing space ##
+        <index.seq>->{$seq}++;
+    }
+}
+
+## promote sequences that exceed threshold to disk 1 ##
+<[index.promote]>->();
+
+#,,.,,.,,,..,,..,,..,,,..,,,,,,,,,...,,.,,..,,.,.,...,...,.,.,,.,,,,.,.,,,,..,
+#7PGBVFO322JTXZZJ4LRACWBPYW4IDFISCIKLRSMELAME4AY4V4WSLLFBVMSUXBPH6Z73UJNW4RE4O
+#\\\|P43Z3DJF3ULDTGURV66FTNYXQRDMG55XPZ6EEMXTCLL5WTOPBCB \ / AMOS7 \ YOURUM ::
+#\[7]HCKIMIKGBHSISEEG3BJXN4GQIB2HHQ2XYBVZXSNVKKNAJ2JQ7YDQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

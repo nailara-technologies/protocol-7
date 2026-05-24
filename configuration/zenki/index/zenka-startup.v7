@@ -5,6 +5,9 @@
 
 dependencies = cube
 max_concurrency = 1
+start.on-demand    = 1
+restart.disabled   = 1
+heartbeat.disabled = 1
 
 : v7-init :
   start_mode = stdin-zenka
@@ -13,9 +16,10 @@ max_concurrency = 1
 
 : zenka-init :
   [base.auth.set_zenka_key:'<{cube.key}>']
+  [base.zenki.set_ondemand_timeout:4200]
 
-#,,.,,...,.,.,.,.,.,,,.,.,.,.,,..,.,,,.,.,.,,,..,,...,...,...,.,,,.,.,,..,...,
-#T4P4WYAD72YW56MLZTGGPSWIYVIAYNINPYYNCHQK5LN4GONVIY4QWAWUM5AW5CJ4VMRUJS7VF7MIW
-#\\\|JXMV4BXPXMVGELAY2OCLZAPN6ZRIUJBKNA3UEISYEJOKMJHLRKL \ / AMOS7 \ YOURUM ::
-#\[7]4575CYJ2MXG7AP7MOHDB3D7UASU7V4Z5UDLD6BA4G6RRP4VE4UAQ 7  DATA SIGNATURE ::
+#,,,.,,.,,.,,,.,.,..,,,..,...,.,.,..,,.,.,,,,,..,,...,...,..,,...,,,,,,.,,.,.,
+#UPME4XWIXJIVKOM6AZMBVCHEJ2WP7DCGLJ3LPGBP2R6B3FMHDHDP2JHI5NMNCXFXYUW5Q36D6OFMK
+#\\\|WIP6ZPACHCMD3LIHTFMYKTQ46IFY3LP2JHIFUEVOW4SVRF65VJQ \ / AMOS7 \ YOURUM ::
+#\[7]BDREBNPE6EM6K5CTZPW7KBHYSW5TLRWCRSTCY4HFDQCO6V4KRMDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

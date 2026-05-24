@@ -13,7 +13,7 @@ my $sessions_dir = <kimi-web.cfg.sessions_dir>
 my @session_dirs;
 if ( -d $sessions_dir ) {
     my $glob_pattern = "$sessions_dir/*/*/state.json";
-    my $state_files  = <[base.file.glob]>->($glob_pattern);
+    my $state_files  = <[file.glob]>->($glob_pattern);
     for my $state_path (@$state_files) {
         my $session_dir = $state_path;
         $session_dir =~ s|/state\.json$||;
@@ -21,7 +21,7 @@ if ( -d $sessions_dir ) {
     }
     ## also check flat structure [ ~/.kimi/sessions/<uuid>/ ] ##
     $glob_pattern = "$sessions_dir/*/state.json";
-    $state_files  = <[base.file.glob]>->($glob_pattern);
+    $state_files  = <[file.glob]>->($glob_pattern);
     for my $state_path (@$state_files) {
         my $session_dir = $state_path;
         $session_dir =~ s|/state\.json$||;
@@ -39,7 +39,7 @@ for my $dir (@session_dirs) {
 
     my $state = {};
     if ( -f $state_path and -r _ ) {
-        my $content = eval { <[base.file.read]>->($state_path) } // '';
+        my $content = eval { <[file.read]>->($state_path) } // '';
         $state = <[format.json.decode]>->($content) if length $content;
     }
 
@@ -106,8 +106,8 @@ return {
     'data' => $output
 };
 
-#,,,.,.,,,,..,.,.,..,,,,.,...,,.,,,..,.,.,...,.,.,...,...,,.,,,,.,,.,,..,,,,.,
-#2ZU7VILATIABSUR7CDTSSXLWVUKLXTB2ZCL34UA5LUAC3RNOQQ7KXBUTBFCJ5W4GHYZZNHYCJLCHG
-#\\\|SFIUJNJWTIA6NQ35UNB2PXP7BOBRFOWOKYIAZEIEEKU2SKRHWFU \ / AMOS7 \ YOURUM ::
-#\[7]V3L5TZR2CZDPRQ7NIIZPT37FB2WITX7CPQDEBWGM6DYPOAFY42BY 7  DATA SIGNATURE ::
+#,,,,,,.,,,..,,,,,,..,...,,,.,.,,,,,,,,,.,,,.,.,.,...,...,.,.,,..,.,.,,,,,...,
+#JLOWTSI2WJUYCE2EC4AZM5BWYINCZLGS2VS7JAJ3ROKEJFSLCESMNAJUY2LRDC3CZLWHCUJWXCMX4
+#\\\|AO4DYWB26KSF5BFUPTPV7LJF7RMB7RG3MEFNF5G3E5IGD6ZTR5O \ / AMOS7 \ YOURUM ::
+#\[7]NOCI7SAWZT7K5TLL473X3P6XU6YEBKSBYOEC32HZWFWFR4QD6MDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

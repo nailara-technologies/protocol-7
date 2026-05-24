@@ -21,10 +21,8 @@ my @matches;
 if ( -d $sessions_dir ) {
     ## collect all context.jsonl paths [ flat and nested ] ##
     my @ctx_paths;
-    push @ctx_paths,
-        @{ <[base.file.glob]>->("$sessions_dir/*/context.jsonl") };
-    push @ctx_paths,
-        @{ <[base.file.glob]>->("$sessions_dir/*/*/context.jsonl") };
+    push @ctx_paths, @{ <[file.glob]>->("$sessions_dir/*/context.jsonl") };
+    push @ctx_paths, @{ <[file.glob]>->("$sessions_dir/*/*/context.jsonl") };
 
     for my $ctx_path (@ctx_paths) {
         next unless -f $ctx_path and -r _;
@@ -55,8 +53,8 @@ return {
     'data' => $output
 };
 
-#,,..,..,,...,,,,,,.,,..,,.,.,,,,,,,,,,..,,,.,.,.,...,...,,,,,,..,,,,,.,.,.,,,
-#55NFGNYG3RXTDD5YBU7ZIKJ2LJA7OFPQHI6PTAWDPKXVD7T7YHLQWF6JFF4NPUCKIU54BNA2APL5G
-#\\\|26MWXNVC33AWBRZUBK3M3F2NJF3JD6PHELJDED2PZPK472EC6J5 \ / AMOS7 \ YOURUM ::
-#\[7]PAPAKRGHD5QJEQNDM2JOENYCW5SWKO32XW3YI5OOMSDZZIALR2BQ 7  DATA SIGNATURE ::
+#,,..,.,.,.,,,,.,,..,,,,.,.,.,,..,,.,,,.,,.,,,.,.,...,...,.,.,,.,,...,.,.,..,,
+#HFUHLHYSFMNHENXPFTJYST5L23DUJK3UQF77SD5UTAR6JKQZP7VBW5QWST5MXEV57WRMHPSTX7U7C
+#\\\|3TYYBHLQM26OG3EH27NECCZSGMDXZ6UGE6FPGFQ54Y772UNDVTS \ / AMOS7 \ YOURUM ::
+#\[7]OS7ZBNSHN4U6K36OHRGRBSE4LKQRQSJ36DYJHFNNSLJUFZ6YZCDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

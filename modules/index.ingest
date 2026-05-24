@@ -1,0 +1,20 @@
+## [:< ##
+
+# name = index.ingest
+# descr = stream raw text into frequency counts
+
+my $text = ref $ARG ? $ARG->$* : $ARG;
+
+for my $char ( split //, $text ) {
+    next if $char eq ' ';    ## space is separator, excluded from index ##
+    <index.freq>->{$char}++;
+}
+
+<index.meta>->{'total'} += length($text);
+<index.meta>->{'dirty'} = TRUE;
+
+#,,,,,.,.,,,,,,..,,,,,.,.,,.,,,,,,,..,...,,,.,..,,...,...,,..,,..,...,,,.,,..,
+#JEDNMIX26OSK4CKQXEPOLRAGAGJIEPO3SPB7RWNOBQAP4247JM7OWY5GSWHLZXSSEZCHMA2T3S5JE
+#\\\|TPIGMZFNQYE2R4EGI5V7DOZFQI5PY6ARSUY3J5VCSHKYY2NN633 \ / AMOS7 \ YOURUM ::
+#\[7]NKDCDIXTDBVSWWNCXOQURJ7NMCZWJNDIXNEBDQDKMOOS3RAKA4BY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -23,7 +23,7 @@ my $sessions_dir = <kimi-web.cfg.sessions_dir>
 ## resolve session path [ flat or nested ] ##
 my $session_dir = "$sessions_dir/$uuid";
 if ( not -d $session_dir ) {
-    my $nested = ( <[base.file.glob]>->("$sessions_dir/*/$uuid") )->[0];
+    my $nested = ( <[file.glob]>->("$sessions_dir/*/$uuid") )->[0];
     $session_dir = $nested if defined $nested and length $nested;
 }
 
@@ -75,7 +75,7 @@ if ( $ctx_path =~ m|\.jsonl$| ) {
     close $fh;
     $context_data = join( "\n\n", @messages );
 } else {
-    $context_data = eval { <[base.file.read]>->($ctx_path) } // '';
+    $context_data = eval { <[file.read]>->($ctx_path) } // '';
 }
 
 ## truncate if too large for agent spawn [ ~256K chars ] ##
@@ -94,7 +94,7 @@ if ( length $resume_prompt ) {
 }
 
 ## write to temp file for spawn_agent context_slice ##
-my $zenka_dir = <[base.file.zenka_dir.data_path]>->();
+my $zenka_dir = <[file.zenka_dir.data_path]>->();
 my $temp_dir  = "$zenka_dir/sessions";
 mkdir $temp_dir, 0755 unless -d $temp_dir;
 my $temp_path = "$temp_dir/$uuid-resume.txt";
@@ -124,8 +124,8 @@ return {
         . $spawn_result->{'data'}
 };
 
-#,,,,,,..,,,.,.,,,..,,.,.,...,..,,.,,,,..,...,.,.,...,...,...,.,.,.,,,,..,,,,,
-#RD5537VXLZDMLGHPNUARUSFJD7IG74IWNF4VCF6JTVTMXUEHUJMTMFRPOT5EJNSGQ33OEW25ZCLL2
-#\\\|MVKIRGYCAWDGXGSQ47XC2K4A4VQWQRYBLA6HQYN54YZS66ED27Q \ / AMOS7 \ YOURUM ::
-#\[7]VV2LMTCU45LCUXNYK6VCPVWVGXNFIEOBTQRS2DKBBQ4H5UJRGAAQ 7  DATA SIGNATURE ::
+#,,,,,,,,,.,.,,,,,.,.,,,,,...,...,.,,,,.,,..,,.,.,...,...,...,,,.,...,,,,,,,.,
+#PX3F233IW3ZGWXT5AGQYOQKJHOITN32F7TJ3TNC2RHS4BP5G4EHW6M7KJNQUP4NBMILVT4OPI3PZI
+#\\\|RMHMSFSSS3HWI5WVQIIK7SSX4EUFPTEBNXYDSJSJZQP2JPR6JA3 \ / AMOS7 \ YOURUM ::
+#\[7]FJLEPFXSGCUP5OCKCMWLTOXQEJA4WTFG7ODEISZZAGUZ4UFRL2BY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

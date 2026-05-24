@@ -1,0 +1,22 @@
+## [:< ##
+
+# name  = index.cmd.feed-dir
+# descr = feed a directory into the index
+
+my $dir = $call->{'args'} // '';
+
+return { 'mode' => 'false', 'data' => 'expected directory path' }
+    unless length $dir;
+
+return { 'mode' => 'false', 'data' => 'not a directory' }
+    unless -d $dir;
+
+my $count = <[index.feed.dir]>->($dir);
+
+return { 'mode' => 'size', 'data' => "fed $count files from $dir" };
+
+#,,..,,,.,,..,...,,,.,,..,,..,,.,,,,.,..,,..,,..,,...,...,..,,,..,,..,,..,,.,,
+#EWB6TKXB7644I24L5GXTLV2EBSBBPZSJ3UXY3FPZHIHEQVFYW25GYGNHEMU5MDDXTMW232WUXSZWE
+#\\\|EZHIWECX7K7X6M7ON3VO6RBEN6EXLG2GJ6NNX5DE6DTYGOLNOF7 \ / AMOS7 \ YOURUM ::
+#\[7]SKAN5Z7IKJIISHMR54MW2W3K2AK7DUSNH3EA3UB3YZZMMEZXTKAY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

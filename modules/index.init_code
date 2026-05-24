@@ -1,6 +1,7 @@
 ## [:< ##
 
 # name = index.init_code
+# descr = initialize index zenka data structures
 
 <[base.perlmod.autoload]>->('Digest::BMW');
 <[base.perlmod.autoload]>->('Linux::Inotify2');
@@ -42,14 +43,31 @@
 <index.cfg.cluster_summarize_threshold> //= 42;
 <index.cluster_reported>                //= {};
 
+## numerical language deduplication tree data structures ##
+<index.freq>  = {};
+<index.addr>  = {};
+<index.rank>  = {};
+<index.seq>   = {};
+<index.level> = {};
+<index.meta>  = {
+    root  => '',      ## '' is -1, the signed root outside address space
+    total => 0,
+    dirty => FALSE,
+};
+
+## disk 0 is the character level — initialize empty ##
+<index.level>->{0} = {};
+
+<[base.log]>->( 1, 'index zenka initialized [ numerical language tree ]' );
+
 my $create_perm = <index.permissions.index_root_path>;
 map { <[file.make_path]>->( $ARG, $create_perm, <system.amos-zenka-user> ) }
     ( <index.path.index-cfg>, <index.path.index-files> );
 
 0;
 
-#,,,.,,.,,.,.,,.,,,..,.,.,,.,,..,,..,,,,.,,..,..,,...,...,,,.,..,,,,.,,.,,.,.,
-#7FMID34NAAUBSONTCWNLQVRGACVSO3KFUCMCC72MAWINDOWEUDG6FR7GQF3MMBNGJ7SVKFVOCFT6C
-#\\\|DJJOVJOHHFO53B5QD7E45NKE42TNISSH3EOKDBGFTCM4IFRD4NP \ / AMOS7 \ YOURUM ::
-#\[7]ER3MRWZ4NMHZFSD43SEOQHWBWZIF3EFYDSIRCA2FALHHQMFZ62AY 7  DATA SIGNATURE ::
+#,,,.,...,.,,,..,,.,,,,,,,..,,.,,,..,,.,.,,..,..,,...,...,...,.,.,..,,,,,,...,
+#BKPKN2AWRHXNVWZSAHUPYWVKVIWKWBXPFR3WX6NX2T6NQ2KQUERMNE2QIEHVMERC35UZT77GT7TK2
+#\\\|U4NB6F5IO5BRZCUWOUUCSAOEG6VNTZUAGWMSOOCO3ALAYES6M77 \ / AMOS7 \ YOURUM ::
+#\[7]2VJUHCCSOVTLE5GFO2M6RLQZ6TKWRGK4RDULYUHHDBYASHACZGAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

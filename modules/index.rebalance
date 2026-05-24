@@ -1,0 +1,19 @@
+## [:< ##
+
+# name = index.rebalance
+# descr = rebalance address space after ingest
+
+return if not <index.meta>->{'dirty'};
+
+<[index.rank]>->();
+
+<index.meta>->{'dirty'} = FALSE;
+
+my $total = scalar keys %{<index.freq>};
+<[base.log]>->( 2, "index rebalanced [ $total unique tokens ]" );
+
+#,,.,,...,.,,,..,,..,,...,,..,,,.,,..,,.,,.,,,..,,...,...,..,,...,,..,...,.,.,
+#BAQNZJ726YXTCLEKJ7IOCVWFDMIHQAOVBNDPDXANPLKRX27M2L65T6FKTGQWO4YN2Y7X3TKIUS7R4
+#\\\|3433M23WVI3CHUHID65PQ7A6FFCXC6F4MKFIIAFMKJQTQPCSJTF \ / AMOS7 \ YOURUM ::
+#\[7]W5PVQXX7FVZ4LGQZKYU5SCT63JNHGI663PW7GVBMB4MOYKQWKKBI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
