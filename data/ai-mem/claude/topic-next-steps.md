@@ -95,31 +95,34 @@ metadata:
 - **namespace layers**: separate rings per namespace (base.*, kimi.*, jobsite.*) — layer boundaries visible
 - **favicon/header**: 26-ring iris at thumbnail scale as live system-state favicon
 
+## completed session 50 (2026-05-24)
+
+- branch.calc.fraction.* + branch.cluster.*: kimi validation pass — 5 files fixed (TRUE/FALSE barewords, sub _gcd wrappers, $_ in map); all 6 acceptance checks pass ✓
+- kimi_dispatch + kimi_continue timeout raised 47min → 77min (bin/mcp-server-p7)
+- INTENT-CLASSIFICATION-AND-SELF-IMPROVEMENT.md: help-as-signal, regex tier 1, LLM tier 2, deferred self-improvement cycle, network patch sharing
+- SEMANTIC-BACKCHANNEL-AND-DEDUPLICATED-COMMUNICATION.md: identity-content coupling as root failure; context alignment + dedup + normalization; suppression→forensic; no eviction by arithmetic impossibility
+- semantic-dedup-tree.yaml: reasoning template — one currency, open mapping, overdetermined self-correcting correlations, inverse = other matches
+- HARMONIC-TREE-ADDRESSING.md: minimal distance principle, route=address, rollover dialing, algebraic exclusion, self-annealing equilibrium, islanded data reintegration, living data eternal self-sustainability, pausing as cycle-based load balancing, active bit + inverse address + starting verse, computation placement = data placement, transport as eternal network work; preamble: tree/space/field/hyperspace/gate as coordinate systems for one structure
+
+## session 50 potential next steps
+
+- **tree.route.page Z.Y.X update**: word_graphical encodes col+row but not Z-depth
+- **graphical word design doc**: character rotation (3 Z-states), X/Y symmetry collapse, edge-on semi-invisible state
+- **branch.session integration with task zenka**: dag.open_list + policy.next_hop → task zenka scheduling loop
+- **branch.cluster intent template (layer 4)**: only task (layer 1) + design (layer 3) exist
+- **branch.calc.fraction intent template**: same — layer 4 missing
+- **proxy-zenka-skeleton dispatch**: task file ready, not yet dispatched
+- **transport-selector dispatch**: same
+- **credential-fabric dispatch**: same
+- **intent-classification modules**: intent.* + backchannel.* namespaces (task files not yet written)
+- **overview + describe commands**: cube-level orientation commands from intent classification design
+
 ## completed session 49 (2026-05-24)
 
 - branch unified theory: design doc (BRANCH-OPEN-CAPACITY-SESSION-DAG.md) + reasoning template extended
 - 58 new modules: branch.field.*(9) + branch.calc.fraction.*(10) + branch.cluster.*(8) + branch.session.*(14) + tree.sort.trunk.*(5) + tree.route.page.*(12)
-- harmonic registry: data/yaml/harmonic/fraction-period-groups.yaml (all 076923/142857/153846 rotations + coupling periods)
-- cluster registry: data/yaml/cluster-registry/_index.yaml
-- Z.Y.X depth-first coordinate ordering + three Z-states (in-transit/paused/edge-on) added to design doc
-- rollover dual semantics (bi-location collapse / absence suction) captured
-- chained usefulness as hop selector (harmonic truth density × remaining capacity)
-- mask/canvas orthogonality + type prefix → ASCII control hierarchy
-- element-efficient holographic devices section in reasoning template
-- kimi_dispatch completed all 4 task files; kimi_continue sessions timed out (47min) but modules landed
-
-## session 49 potential next steps
-
-- **re-verify branch.calc.fraction.* + branch.cluster.***: kimi_continue timed out for these two — modules exist but may have residual errors (FALSE bareword, permission error). run `p7c ptd -c` on each
-- **tree.route.page Z.Y.X update**: word_graphical module encodes col+row but not Z-depth; may need updating now that Z.Y.X ordering is defined
-- **graphical word design doc**: character rotation (3 Z-states), X/Y symmetry collapse, edge-on semi-invisible state — rich enough for own design doc
-- **branch.session integration with task zenka**: hook dag.open_list + policy.next_hop into task zenka scheduling loop (parallel_dispatch entry point)
-- **branch.cluster intent template (layer 4)**: write intent template for branch-cluster-five-layer cluster — currently only task (layer 1) + design (layer 3) exist
-- **branch.calc.fraction intent template**: same — layer 4 missing
-- **proxy-zenka-skeleton dispatch**: task file has kimi findings but not yet dispatched for implementation
-- **transport-selector dispatch**: same — expanded but not implemented
-- **credential-fabric dispatch**: same
-- **0010/0110 mask intervals**: cell-building pattern preventing premature collapse — could become a module in tree.route.page (or tree.route.mask.*)
+- Z.Y.X coords, rollover dual semantics, chained usefulness, mask/canvas orthogonality, holographic devices
+- kimi_dispatch completed 4 task files; kimi_continue timed out on 2 (fixed in session 50)
 
 ## completed session 48c (2026-05-23)
 
@@ -160,8 +163,8 @@ metadata:
 
 After a failed tool-using task, Glitter backend needs restart before `:no_tools:` tasks work. Model gets stuck in tool-mode. Restart coding zenka or wait before dispatching `:no_tools:` priming tasks.
 
-#,,.,,,..,,,,,,.,,,.,,,..,,,.,,..,..,,.,,,..,,..,,...,...,.,.,,.,,...,,..,,.,,
-#5OX4LOSDYHDXKSXTY2DPGPYLOA4QMWCIF22JKVCBEEXH7P2IW3R7RV7YGBQWATCLZMRRC65A5RCB6
-#\\\|KLBV43R4GM4ZPIQ2BWEXIRZXJLHTSRN5QKIESXTW7FO7IE44AN3 \ / AMOS7 \ YOURUM ::
-#\[7]VSVPDOBJLZGPQYVYYYYPZ3NM5HOZPIQ3277BRDXWRP5QDBUNNIDY 7  DATA SIGNATURE ::
+#,,..,,..,...,,..,,.,,,,,,,..,.,,,.,,,..,,,,.,..,,...,...,,,,,..,,,,.,...,,,.,
+#YCNPHTNVEYVPLSH3UOCCXL2PFMXJ4CRYFPTQK2OENNNFLF6LETAARACUWMNXV2VHLDMKUFRK63RBE
+#\\\|AKFAFPCKJQL6DSARF44J4LLS45SHS7LSLAHEMQHFU5KUOLSUBD3 \ / AMOS7 \ YOURUM ::
+#\[7]REIYFLT6HV3JHFV3MRTAQRXM57TYUV3XXYK7H6PQI4J5WIDJEADQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

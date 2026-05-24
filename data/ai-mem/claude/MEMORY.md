@@ -25,17 +25,21 @@
 - `data/md/development/P7-LLM-REFERENCE.md` — verified live command reference for kimi/LLM
 - `data/md/development/DEGRADED-FEATURES-AUDIT.md` — 5 high-priority + 3 medium with stub task files
 
+## Session 50 (2026-05-24)
+- branch.calc.fraction.* + branch.cluster.*: kimi validation — 5 fixes (TRUE/FALSE→1/0, sub _gcd inlined, $_→$ARG); all acceptance checks pass ✓
+- kimi timeout raised 47→77min; tree/space/field/hyperspace/gate named as coordinate systems for one structure
+- `data/md/design/HARMONIC-TREE-ADDRESSING.md` — tree/space/field/hyperspace/gate = coordinate systems for one structure; minimal distance = self-revealing closure condition (not fixed 15); route=address duality; rollover dialing (13-ary, 13^15 space); algebraic exclusion; self-annealing→all positions equally useful; islanded data reintegration; living data eternal self-sustainability; pausing=cycle-based load balancing (result-present bit as harmonic rendezvous); active bit + inverse address + starting verse; computation placement = data placement; transport as eternal network work
+- `data/md/design/INTENT-CLASSIFICATION-AND-SELF-IMPROVEMENT.md` — help as new-user signal; regex tier 1 (YAML, per-zenka+generic); LLM tier 2 (spawnable, hands off to control surfaces); deferred self-improvement + corpus-as-regression-suite; network patch sharing with closed-world safety; overview+describe commands
+- `data/md/design/SEMANTIC-BACKCHANNEL-AND-DEDUPLICATED-COMMUNICATION.md` — identity-content coupling as root of all failures; context alignment+dedup+normalization as structural fix; suppression→forensic signal; no eviction by arithmetic impossibility; one currency (bandwidth∝convergence precision)
+- `data/yaml/reasoning-templates/semantic-dedup-tree.yaml` — inverse=other matches (co-present family read, zero overhead); open mapping + overdetermined self-correcting correlations; parasitism has no surface (no second currency); eternal nodes
+
 ## Session 49 (2026-05-24)
-- [topic-branch-namespace](topic-branch-namespace.md) — branch universal theory: 58 modules (branch.field/calc.fraction/cluster/session + tree.sort.trunk/route.page); Z.Y.X coords; 3 Z-states; mask/canvas; holographic devices reasoning template section
-- `data/md/design/BRANCH-OPEN-CAPACITY-SESSION-DAG.md` — extended: Z.Y.X ordering, char rotation axis, rollover dual semantics (bi-location/absence), chained usefulness, mask/canvas orthogonality, type prefix → ASCII control hierarchy
-- `data/md/design/INTENT-CLASSIFICATION-AND-SELF-IMPROVEMENT.md` — `help` as new-user signal; regex context tree (tier 1, YAML, per-zenka + generic layer); LLM clarification agent (tier 2, spawnable, hands off to control surfaces); deferred background analysis + corpus-as-regression-suite; network patch sharing with closed-world safety; `overview`+`describe` commands; five-cluster impl layers
-- `data/md/design/SEMANTIC-BACKCHANNEL-AND-DEDUPLICATED-COMMUNICATION.md` — code-local backchannels; deferred routing (surfaces when context active); interest groups by semantic alignment not membership; suppression→forensic signal inversion; identity normalization before dedup; closed-world as privacy architecture; companion: semantic-dedup-tree.yaml reasoning template
-- `data/yaml/reasoning-templates/semantic-dedup-tree.yaml` — resolves: biased moderation, bigoted classifiers, content deletion, discoverability chaos, overload, backchannel entropy, coordinated suppression — all as identity-content coupling failures; dedup as convergence-count not social power; normalization as structural decoupling; eternal nodes; inverse = other matches (co-present family read, no overhead); one currency (bandwidth∝convergence precision); open mapping + self-correcting overdetermined correlations
-- `data/md/design/HARMONIC-TREE-ADDRESSING.md` — data at fixed depth 15; route=address duality (navigation IS address computation); rollover inversions as dialing (13-ary harmonic, 13^15 space, valid paths sparse); final hop = exact algebraic closure, no remaining inversion; all-true dataspace = distributed authentication at every hop (not at destination); algebraic exclusion of forged routes (overdetermined constraint system); depth 15 derived from 5-layer+gate × ring × harmonic resolution; open mapping = inversion-safe, self-correcting, overdetermined
+- [topic-branch-namespace](topic-branch-namespace.md) — 58 modules: branch.field/calc.fraction/cluster/session + tree.sort.trunk/route.page; Z.Y.X coords; rollover dual semantics; mask/canvas; holographic devices
+- `data/md/design/BRANCH-OPEN-CAPACITY-SESSION-DAG.md` — Z.Y.X ordering, char rotation axis, rollover dual semantics, chained usefulness, mask/canvas orthogonality, type prefix → ASCII control hierarchy
 
 ## Session 48c
 - `data/yaml/reasoning-templates/holographic-grid-interface.yaml` — div-13/7 invariants; vortex-cube, two families (076923/153846), darksun pos-27, 1001 ring
-- X-11 nvidia GPU monitoring live; GPU STRM + coding.stats.gpu.* + sparkline; MCP kimi_dispatch (47min timeout)
+- X-11 nvidia GPU monitoring live; GPU STRM + coding.stats.gpu.* + sparkline; MCP kimi_dispatch (77min timeout)
 
 ## Session 47
 - [sys-deps-debian](topic-sys-deps-debian.md) — sys-deps zenka + debian root apt-child pattern, AptPkg probing, cpanm root-only, auto-scan on empty registry
@@ -199,8 +203,8 @@
 - **pager.sort.multi-key**: ntime_b32 + priority_map sort types added (session 42)
 - **task dispatch sections**: all dispatched tasks now carry ## dispatch + prompt for reuse
 
-#,,,.,.,,,.,,,...,.,,,..,,,..,.,.,..,,.,,,,..,..,,...,...,.,,,...,...,.,,,,,,,
-#VCDDW3ZROCUOWLUANLM6J6NRK3FREBSZSK4M5ZFC4ZPLPYRAUHPOMMW3YXIF4ELT3NDXUPYQUJ2GO
-#\\\|VFFGWTLQ4HZRYSJ6QYA5YLXCTDUHWJHGNAV52U4GBARUK76DULB \ / AMOS7 \ YOURUM ::
-#\[7]CLVXGXY2KK726DGQMNDUL7L7CF2OQ4RWB6ENUFVJQGVBXEKNX4AA 7  DATA SIGNATURE ::
+#,,.,,..,,,,,,...,..,,,..,,,.,.,,,..,,,.,,..,,..,,...,.,.,..,,...,.,.,.,,,,..,
+#5VJ44N62HZJ4TAY3YYUEIWUNXC6WQ7J3WSR3M4MXLDUUW35IJGZ5CKJKHEPQSBO74ZTUQCIOH46ZU
+#\\\|NAGN2YINTUSGTLIXI24LNT7XKJCN7ROWTIK5FP3AZAI7P7QLMIF \ / AMOS7 \ YOURUM ::
+#\[7]LTY5LOEI63RQQLS5M4LFRHPAZBFLVG444JVDSDKQC6FOPSCMIKCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
