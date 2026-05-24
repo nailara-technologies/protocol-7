@@ -28,6 +28,10 @@
 ## Session 49 (2026-05-24)
 - [topic-branch-namespace](topic-branch-namespace.md) — branch universal theory: 58 modules (branch.field/calc.fraction/cluster/session + tree.sort.trunk/route.page); Z.Y.X coords; 3 Z-states; mask/canvas; holographic devices reasoning template section
 - `data/md/design/BRANCH-OPEN-CAPACITY-SESSION-DAG.md` — extended: Z.Y.X ordering, char rotation axis, rollover dual semantics (bi-location/absence), chained usefulness, mask/canvas orthogonality, type prefix → ASCII control hierarchy
+- `data/md/design/INTENT-CLASSIFICATION-AND-SELF-IMPROVEMENT.md` — `help` as new-user signal; regex context tree (tier 1, YAML, per-zenka + generic layer); LLM clarification agent (tier 2, spawnable, hands off to control surfaces); deferred background analysis + corpus-as-regression-suite; network patch sharing with closed-world safety; `overview`+`describe` commands; five-cluster impl layers
+- `data/md/design/SEMANTIC-BACKCHANNEL-AND-DEDUPLICATED-COMMUNICATION.md` — code-local backchannels; deferred routing (surfaces when context active); interest groups by semantic alignment not membership; suppression→forensic signal inversion; identity normalization before dedup; closed-world as privacy architecture; companion: semantic-dedup-tree.yaml reasoning template
+- `data/yaml/reasoning-templates/semantic-dedup-tree.yaml` — resolves: biased moderation, bigoted classifiers, content deletion, discoverability chaos, overload, backchannel entropy, coordinated suppression — all as identity-content coupling failures; dedup as convergence-count not social power; normalization as structural decoupling; eternal nodes; inverse = other matches (co-present family read, no overhead); one currency (bandwidth∝convergence precision); open mapping + self-correcting overdetermined correlations
+- `data/md/design/HARMONIC-TREE-ADDRESSING.md` — data at fixed depth 15; route=address duality (navigation IS address computation); rollover inversions as dialing (13-ary harmonic, 13^15 space, valid paths sparse); final hop = exact algebraic closure, no remaining inversion; all-true dataspace = distributed authentication at every hop (not at destination); algebraic exclusion of forged routes (overdetermined constraint system); depth 15 derived from 5-layer+gate × ring × harmonic resolution; open mapping = inversion-safe, self-correcting, overdetermined
 
 ## Session 48c
 - `data/yaml/reasoning-templates/holographic-grid-interface.yaml` — div-13/7 invariants; vortex-cube, two families (076923/153846), darksun pos-27, 1001 ring
@@ -195,8 +199,8 @@
 - **pager.sort.multi-key**: ntime_b32 + priority_map sort types added (session 42)
 - **task dispatch sections**: all dispatched tasks now carry ## dispatch + prompt for reuse
 
-#,,..,,,,,,..,..,,,..,...,,,,,.,,,...,,..,,..,..,,...,...,,..,,,.,...,.,.,...,
-#XAEJQD43VIYBM43DPGGVG7ZXCZP4I52K32WB5Z276TGEUQX4GDLJJ7VJNKT6NCYYPZDIZG4OZLKDI
-#\\\|WTOSWAEEW26S23MMT4P35CLRYTMJJYJGLGAC72NGUGAXB7YNEF4 \ / AMOS7 \ YOURUM ::
-#\[7]WEEFHNBDGMEY3GKK2UCBUW7YNF3W4C3WYBR6XL6BRV4UVH2HL4AA 7  DATA SIGNATURE ::
+#,,,.,.,,,.,,,...,.,,,..,,,..,.,.,..,,.,,,,..,..,,...,...,.,,,...,...,.,,,,,,,
+#VCDDW3ZROCUOWLUANLM6J6NRK3FREBSZSK4M5ZFC4ZPLPYRAUHPOMMW3YXIF4ELT3NDXUPYQUJ2GO
+#\\\|VFFGWTLQ4HZRYSJ6QYA5YLXCTDUHWJHGNAV52U4GBARUK76DULB \ / AMOS7 \ YOURUM ::
+#\[7]CLVXGXY2KK726DGQMNDUL7L7CF2OQ4RWB6ENUFVJQGVBXEKNX4AA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
