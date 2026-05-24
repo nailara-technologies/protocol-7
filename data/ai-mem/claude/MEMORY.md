@@ -21,16 +21,17 @@
 - `data/md/development/PARALLEL-REASONING-ORCHESTRATION.md` — task tree DAG, stuck detection, rescue branches, reasoning.branch.* generics, bin/chat --task-branch
 
 ## Architecture Docs (session 37)
-- `data/md/development/CHILD-PROCESS-LIFECYCLE-POLICY.md` — disposable/decoupled/monitored child categories; kill_list review; v7 coordination
-- `data/md/development/X11-RELIABILITY-AND-WINDOW-REGISTRY.md` — reconnect backoff, wrapper process, window registry+STRM, wait_visible replacement
-- `data/md/development/WEB-BROWSER-WEBKIT2-UPGRADE-ANALYSIS.md` — full WebKit2GTK 4.1 upgrade analysis, 8 task descriptions
-- `data/md/development/P7-LLM-REFERENCE.md` — verified live command reference for kimi/LLM sessions
-- `data/md/development/DEGRADED-FEATURES-AUDIT.md` — 5 high-priority + 3 medium candidates with stub task files
+- `data/md/development/CHILD-PROCESS-LIFECYCLE-POLICY.md` — child categories; kill_list; v7 coordination
+- `data/md/development/P7-LLM-REFERENCE.md` — verified live command reference for kimi/LLM
+- `data/md/development/DEGRADED-FEATURES-AUDIT.md` — 5 high-priority + 3 medium with stub task files
+
+## Session 49 (2026-05-24)
+- [topic-branch-namespace](topic-branch-namespace.md) — branch universal theory: 58 modules (branch.field/calc.fraction/cluster/session + tree.sort.trunk/route.page); Z.Y.X coords; 3 Z-states; mask/canvas; holographic devices reasoning template section
+- `data/md/design/BRANCH-OPEN-CAPACITY-SESSION-DAG.md` — extended: Z.Y.X ordering, char rotation axis, rollover dual semantics (bi-location/absence), chained usefulness, mask/canvas orthogonality, type prefix → ASCII control hierarchy
 
 ## Session 48c
-- **reasoning template**: `data/yaml/reasoning-templates/holographic-grid-interface.yaml` — div-13/7 invariants as true interdisciplinary interface; vortex-cube, holographic emergence, two families (076923/153846), darksun pos-27, 1001 ring; cross-refs TESLA/IMPLOSION/ZERO docs
-- **GPU monitoring**: X-11 nvidia handler live; intel binary noise fixed (file.which); GPU STRM subscription + coding zenka feed (coding.stats.gpu.*) + sparkline module
-- **MCP kimi_dispatch**: bin/mcp-server-p7 @external_tools config table; kimi_dispatch tool with 300s timeout
+- `data/yaml/reasoning-templates/holographic-grid-interface.yaml` — div-13/7 invariants; vortex-cube, two families (076923/153846), darksun pos-27, 1001 ring
+- X-11 nvidia GPU monitoring live; GPU STRM + coding.stats.gpu.* + sparkline; MCP kimi_dispatch (47min timeout)
 
 ## Session 47
 - [sys-deps-debian](topic-sys-deps-debian.md) — sys-deps zenka + debian root apt-child pattern, AptPkg probing, cpanm root-only, auto-scan on empty registry
@@ -194,8 +195,8 @@
 - **pager.sort.multi-key**: ntime_b32 + priority_map sort types added (session 42)
 - **task dispatch sections**: all dispatched tasks now carry ## dispatch + prompt for reuse
 
-#,,.,,..,,.,.,.,,,.,,,..,,.,.,,.,,,.,,,,.,.,.,..,,...,..,,..,,...,..,,,..,,,,,
-#WU7APYGYHIC3WCZXLNI2QIX563ARPZZKOPQPZRQ2KJBJUW2HWGROOKRIHNONBF6M5U7P5GK3KHSYM
-#\\\|AR4YEB4UYN2VT2RWEFW3X5WSYZO7AIYSQKYTDOVTN62WCJKOVTL \ / AMOS7 \ YOURUM ::
-#\[7]G2JVPILTBJ5QSJ4SDLTCSYIJT45ZCGGDJTKULWATRX4CBC2K3ICI 7  DATA SIGNATURE ::
+#,,..,,,,,,..,..,,,..,...,,,,,.,,,...,,..,,..,..,,...,...,,..,,,.,...,.,.,...,
+#XAEJQD43VIYBM43DPGGVG7ZXCZP4I52K32WB5Z276TGEUQX4GDLJJ7VJNKT6NCYYPZDIZG4OZLKDI
+#\\\|WTOSWAEEW26S23MMT4P35CLRYTMJJYJGLGAC72NGUGAXB7YNEF4 \ / AMOS7 \ YOURUM ::
+#\[7]WEEFHNBDGMEY3GKK2UCBUW7YNF3W4C3WYBR6XL6BRV4UVH2HL4AA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
