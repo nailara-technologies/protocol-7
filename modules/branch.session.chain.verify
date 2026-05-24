@@ -1,0 +1,69 @@
+## [:< ##
+
+# name = branch.session.chain.verify
+# descr = walk from genesis to target, confirm each link
+
+my $target_checksum = shift // return undef;
+my $session_id      = shift // '';
+
+return warn 'session id required <{C1}>'
+    if not length $session_id;
+
+my $genesis = do {
+    my $bmw = Digest::BMW->new(384);
+    $bmw->add( 'branch.session.genesis' . $session_id );
+    encode_b32r( $bmw->digest );
+};
+
+my $node_key = 'branch.session.dag.' . $target_checksum;
+return { 'mode' => 'false', 'data' => 'target not in dag' }
+    if not exists $data{$node_key};
+
+# [ build path from target back to genesis ]
+my @path;
+my $current = $target_checksum;
+my $safety  = 0;
+while ( $current ne $genesis and $safety < 10000 ) {
+    my $key  = 'branch.session.dag.' . $current;
+    my $node = $data{$key};
+    last if not defined $node;
+    unshift @path, $current;
+    my $parents = $node->{'parents'} // [];
+    last if not @{$parents};
+    $current = $parents->[0];
+    $safety++;
+}
+
+# [ verify genesis checksum ]
+my $genesis_bmw = Digest::BMW->new(384);
+$genesis_bmw->add( 'branch.session.genesis' . $session_id );
+my $genesis_expected = encode_b32r( $genesis_bmw->digest );
+return { 'mode' => 'false', 'data' => 'genesis mismatch' }
+    if $genesis ne $genesis_expected;
+
+# [ verify each link from genesis forward ]
+my $expected = $genesis;
+for my $checksum (@path) {
+    my $node        = $data{ 'branch.session.dag.' . $checksum };
+    my $content_ref = $node->{'content'};
+    my $content     = defined $content_ref ? $$content_ref : '';
+    my $parents     = $node->{'parents'} // [];
+    my $parent      = $parents->[0]      // '';
+
+    my $ctx = Digest::BMW->new(384);
+    $ctx->add( $parent . $content );
+    my $computed = encode_b32r( $ctx->digest );
+
+    return { 'mode' => 'false', 'data' => "chain break at $checksum" }
+        if $computed ne $checksum;
+
+    $expected = $checksum;
+}
+
+return { 'mode' => 'true', 'data' => scalar @path };
+
+#,,..,,..,,..,..,,,..,,.,,,,,,.,,,,,,,.,,,.,.,..,,...,...,,,.,..,,,.,,,.,,,.,,
+#LDGTQDVUKYTBF45VZKK72MSEHL7RJTHF6M7ULL5NBLZCRJLN5VDPH4PSVW2KNED5U7SCFAQX4N6SW
+#\\\|VIQGVO5ZUSIGV54NUBIJEQCGFQTBDQZLDAITA2WJVRW2AT3CYZZ \ / AMOS7 \ YOURUM ::
+#\[7]K3LORD5TCTPRVAQAMJXJW2BKBODHLIU3VHRPDNUQ2ACCIXM5AUDY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

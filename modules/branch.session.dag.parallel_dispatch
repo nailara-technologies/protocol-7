@@ -1,0 +1,45 @@
+## [:< ##
+
+# name = branch.session.dag.parallel_dispatch
+# descr = dispatch open node above score threshold to kimi session
+
+my $hop = shift // return undef;
+
+my $target = $hop->{'target'} // '';
+my $intent = $hop->{'intent'} // '';
+my $score  = $hop->{'score'}  // 0;
+
+return warn 'hop target required <{C1}>'
+    if not length $target;
+
+if ( not <[branch.session.policy.threshold]>->($score) ) {
+    <[base.logs]>->( 2, 'hop below threshold, skipping dispatch' );
+    return 0;
+}
+
+<[base.logs]>->(
+    2, 'dispatching target=%s intent=%s score=%.3f',
+    $target, $intent, $score
+);
+
+my $result = eval {
+    <[mcp.kimi_dispatch]>->(
+        {   'target' => $target,
+            'intent' => $intent,
+            'score'  => $score,
+        }
+    );
+};
+
+if ($EVAL_ERROR) {
+    <[base.s_warn]>->( 'dispatch failed: %s', $EVAL_ERROR );
+    return 0;
+}
+
+return defined $result ? 1 : 0;
+
+#,,.,,..,,,.,,.,,,,,.,,..,,.,,..,,,,,,,.,,..,,..,,...,...,.,.,,..,...,...,,,.,
+#G2YHIT2OWRWKX4ZJAOSLWOBKYUA6BYUK25XR3NXDE3LHOIOY5CGG554ENAEVK366UD3VLDNBF6O7C
+#\\\|SSGR2KEAMTPPDB4TKAZEQTFTW2X7WBAZHPEABYQD2NPCPAZZDLP \ / AMOS7 \ YOURUM ::
+#\[7]3IZQBE465IL4HGZG4ADP4ZDX5JEFZTR4BGKCZLXPKW2542HKZ6CQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,0 +1,58 @@
+## [:< ##
+
+# name = tree.route.page.extract
+# descr = apply harmonic truth test and extract representative
+
+my $args = shift // {};
+
+my $routing_word = $args->{'word'}      // '';
+my $slot_pos     = $args->{'slot'}      // -1;
+my $extracted    = $args->{'extracted'} // {};
+
+return undef if not length $routing_word;
+
+## [ accept 7-byte raw or 8-byte encoded word ] ##
+my $bits;
+if ( length($routing_word) == 7 ) {
+    $bits = unpack( qw| B* |, $routing_word );    ## [ 56 bits ] ##
+} elsif ( length($routing_word) == 8 ) {
+    my $decoded = <[tree.route.page.decode_56]>->($routing_word);
+    return undef if not defined $decoded;
+    $bits = join '',
+        map { $decoded->{'leading'}->[$ARG] . $decoded->{'groups'}->[$ARG] }
+        0 .. 7;
+} else {
+    return undef;
+}
+
+## [ terminal group payload = last 7 bits ] ##
+my $terminal_payload = substr( $bits, -7 );
+my $terminal_num     = oct( qw| 0b | . $terminal_payload );
+
+## [ harmonic truth test ] ##
+my $is_true = 0;
+eval { $is_true = AMOS7::Assert::Truth::true_int($terminal_num) ? 1 : 0; };
+$is_true = 0 if $@;
+
+if ($is_true) {
+    ## [ mark extracted, record slot for suction ] ##
+    $extracted->{$slot_pos} = $terminal_payload if $slot_pos >= 0;
+
+    return {
+        extracted => 1,
+        value     => $terminal_payload,
+        slot      => $slot_pos,
+    };
+}
+
+return {
+    extracted => 0,
+    value     => undef,
+    slot      => $slot_pos,
+};
+
+#,,.,,,..,,,.,,.,,..,,.,,,..,,...,,.,,,.,,.,.,..,,...,...,...,,.,,...,.,.,,..,
+#WIITYMYRIP3OEEGVZ6LDOJOUN6OALDPGRYPWSHU2I2C2J5DZWQ2IKRJCHJ2S7WFOCHT2P5S4W4VBI
+#\\\|K7NAUQ65HAAQY7K5ZOU4EPJ2HRHTUYPHV7ADUCE6T6LEN4NGBCO \ / AMOS7 \ YOURUM ::
+#\[7]IX7ACDTLKT77TJCW3H22IP7YCMJMJN5C2R33XC4ZAEE3MK5NOAAY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

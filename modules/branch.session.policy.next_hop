@@ -1,0 +1,93 @@
+## [:< ##
+
+# name = branch.session.policy.next_hop
+# descr = for a node, enumerate candidate hops, score all, return highest
+
+my $node_checksum = shift // return undef;
+
+return warn 'node checksum required <{C1}>'
+    if not length $node_checksum;
+
+my $node_key = 'branch.session.dag.' . $node_checksum;
+return warn 'node not found in dag <{C1}>'
+    if not exists $data{$node_key};
+
+my $node = $data{$node_key};
+
+my @candidates;
+
+# [ complete-current: continue from this node ]
+push @candidates,
+    {
+    'target' => $node_checksum,
+    'intent' => 'complete-current',
+    };
+
+# [ resolve-stuck: jump back to primary parent ]
+my $parents = $node->{'parents'} // [];
+if ( @{$parents} ) {
+    push @candidates,
+        {
+        'target' => $parents->[0],
+        'intent' => 'resolve-stuck',
+        };
+}
+
+# [ return-subtask: if any parent is awaiting_return ]
+for my $parent ( @{$parents} ) {
+    my $p_key  = 'branch.session.dag.' . $parent;
+    my $p_node = $data{$p_key};
+    next if not defined $p_node;
+    push @candidates,
+        {
+        'target' => $parent,
+        'intent' => 'return-subtask',
+        }
+        if ( $p_node->{'state'} // '' ) eq 'awaiting_return';
+}
+
+# [ explore-alternative: all other open nodes ]
+my $open_nodes = <[branch.session.dag.open_list]>->();
+for my $open ( @{$open_nodes} ) {
+    next if $open eq $node_checksum;
+    next if grep { $ARG eq $open } @{$parents};
+    push @candidates,
+        {
+        'target' => $open,
+        'intent' => 'explore-alternative',
+        };
+}
+
+# [ fork-new: permanent jump to any open node ]
+for my $open ( @{$open_nodes} ) {
+    next if $open eq $node_checksum;
+    push @candidates,
+        {
+        'target' => $open,
+        'intent' => 'fork-new',
+        };
+}
+
+# [ score all candidates and pick highest above threshold ]
+my $best_hop;
+my $best_score = 0;
+
+for my $hop (@candidates) {
+    my $score = <[branch.session.policy.score]>->(
+        $hop->{'target'}, $hop->{'intent'}
+    );
+    $hop->{'score'} = $score;
+    next if not <[branch.session.policy.threshold]>->($score);
+    if ( $score > $best_score ) {
+        $best_score = $score;
+        $best_hop   = $hop;
+    }
+}
+
+return $best_hop;
+
+#,,,,,...,,..,,.,,,,,,,.,,...,,,,,.,,,...,..,,..,,...,...,,..,.,,,,.,,,..,.,,,
+#7SORHZ62UVH4FTX3RRPDJVVE27CCKZ2XMPEHYDDNSEQQS3ESOEB2U34QTFPVIIKEURRVIFZHJN5AM
+#\\\|LD4ZBORMUMMOJJK7IWHWOS44A2IJLHWCZUUSIH2DJGICEER3WS6 \ / AMOS7 \ YOURUM ::
+#\[7]UYU5TAJ3H5TNDEBXVS4USAQKRSSFM7B2JWXJZXP7N2R2NACGHKBY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

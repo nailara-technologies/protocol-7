@@ -1,0 +1,27 @@
+## [:< ##
+
+# name = branch.session.return_slot.register
+# descr = attach return handler to current node; set state to awaiting_return
+
+my $node_checksum = shift // return undef;
+my $handler       = shift // return undef;
+
+return warn 'node checksum required <{C1}>'
+    if not length $node_checksum;
+return warn 'handler coderef required <{C1}>'
+    if ref $handler ne 'CODE';
+
+my $node_key = 'branch.session.dag.' . $node_checksum;
+return warn 'node not found in dag <{C1}>'
+    if not exists $data{$node_key};
+
+$data{$node_key}{'return_slot'} = $handler;
+$data{$node_key}{'state'}       = 'awaiting_return';
+
+return 1;
+
+#,,.,,..,,,..,,.,,.,,,,,.,,,,,,,.,..,,...,.,,,..,,...,...,...,,.,,..,,,.,,,..,
+#CMCQW7J4JGI2HT7I4LPIVDTCL2VQAMFA2HMMNM72IJW46JORRLPTYHKBV77SNSM523W45IB47JSJ2
+#\\\|IO7UNMHALH7ZENPFRRARL2BK47SWB6IDBWTWXUMEFTGG6NQRJRP \ / AMOS7 \ YOURUM ::
+#\[7]ZLXUBWIONOR3KQD76JMW7RX46YRW4PLF54D64PGQO5KUDWQJ6ABA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

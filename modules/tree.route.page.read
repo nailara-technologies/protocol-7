@@ -1,0 +1,33 @@
+## [:< ##
+
+# name = tree.route.page.read
+# descr = read N lines x W bytes from routing table at offset
+
+my $args = shift // {};
+
+my $fh     = $args->{'fh'}     // return undef;
+my $lines  = $args->{'lines'}  // 20;
+my $width  = $args->{'width'}  // 7;
+my $offset = $args->{'offset'} // 0;
+
+return undef if not defined $fh;
+
+## [ seek to offset ] ##
+seek( $fh, $offset, 0 ) if $offset;
+
+my @buffer;
+my $line_size = $width;
+
+while ( scalar(@buffer) < $lines ) {
+    my $n = sysread( $fh, my $data, $line_size );
+    last if not defined $n or $n == 0;
+    push @buffer, $data;
+}
+
+return \@buffer;
+
+#,,,.,,..,.,.,.,,,,,,,.,,,...,..,,,..,,,,,.,.,..,,...,...,,,,,.,.,.,.,,,,,.,,,
+#CHLEV7PKVL7JYRWQY5RGALZ6AKP6JO35KKEFERV744WYLDFR36WRYLOSEI2TSOELVLUG3ELXM4AVO
+#\\\|I3ZCFPEQB6KY32B63U6FTT4NPO6VRY5FB5T2KPLFWPLJ2PPCNMF \ / AMOS7 \ YOURUM ::
+#\[7]SBX6VED4TZKTLYJ7EPYWVHUDWNXJMPA3CPWGXVKWRSYTTTXXFUDQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
