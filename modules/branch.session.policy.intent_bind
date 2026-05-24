@@ -1,0 +1,24 @@
+## [:< ##
+
+# name = branch.session.policy.intent_bind
+# descr = bind intent vector to branch node
+
+my $node_checksum = shift // return undef;
+my $intent_vector = shift // '';
+
+return warn 'node checksum required <{C1}>'
+    if not length $node_checksum;
+
+my $node_key = 'branch.session.dag.' . $node_checksum;
+return warn 'node not found in dag <{C1}>'
+    if not exists $data{$node_key};
+
+$data{$node_key}{'intent'} = $intent_vector;
+
+return 1;
+
+#,,,.,,..,.,.,...,,,,,..,,,.,,.,.,,..,,,.,..,,..,,...,...,.,.,,..,.,,,,,.,.,.,
+#Y3LIVPR64VMRSZNOXHQ7SIMWG3LB2TSOKAF3WFTCAIV6G5IPVCHI5VOXWSX6FTQOVYVP2KWCBK3X6
+#\\\|ZTZY5CPLN3INCOTPCF5JMBGLF4EAYZKBGFJLA26FXFOZU5QBXAT \ / AMOS7 \ YOURUM ::
+#\[7]C4Q5WXS3RHQ4HJEHW63GHNVJ2D7OQG4Y5EC42CRC4RN5WNZLX6CQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

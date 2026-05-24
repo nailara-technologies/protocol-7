@@ -1,0 +1,21 @@
+## [:< ##
+
+# name = branch.session.dag.edges_from
+# descr = list all child checksums from a given node
+
+my $checksum = shift // return undef;
+
+return warn 'checksum required <{C1}>'
+    if not length $checksum;
+
+my $node_key = 'branch.session.dag.' . $checksum;
+return [] if not exists $data{$node_key};
+
+my $children = $data{$node_key}{'children'} // [];
+return [ @{$children} ];
+
+#,,.,,,,,,,,.,..,,..,,..,,,.,,,,.,.,.,.,,,.,,,..,,...,...,...,.,.,,.,,.,.,...,
+#BXWSEYP6HRTVGHSQIHSZIVTNRNXFAFA2DNFK3ECDUNVVNN6XXDXIEFZNCFSJCSZHLZ7QVMY4FETMQ
+#\\\|UOCOW5CB3NAL6C37EV4KBO74N45SOLYOLEEMNAMZBALDFFFTF5Y \ / AMOS7 \ YOURUM ::
+#\[7]4IJDZXW2D3PCS2XOZTCKV5VLRSREODAMVA6I5OP2HZGAG6ZBKUCQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

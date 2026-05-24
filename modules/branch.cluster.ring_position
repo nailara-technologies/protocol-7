@@ -11,25 +11,24 @@ return <[base.logs]>->( 0, 'cluster name required <{C1}>' )
     unless defined $cluster_name
     and length $cluster_name;
 
-my ( $hex, $err )
-    = <[branch.cluster.address]>->($cluster_name);
+my ( $hex, $err ) = <[branch.cluster.address]>->($cluster_name);
 
 return <[base.logs]>->(
-    1, 'cannot compute address for [ %s ] : %s <{C1}>',
+    1,             'cannot compute address for [ %s ] : %s <{C1}>',
     $cluster_name, $err // 'unknown error'
 ) unless defined $hex;
 
 ## [ convert hex to bigint, mod 13 ] ##
 ##
-my $bigint = Math::BigInt->new( '0x' . $hex );
+my $bigint   = Math::BigInt->new( '0x' . $hex );
 my $ring_pos = ( $bigint % 13 )->numify;
 
 return wantarray ? ( $ring_pos, undef ) : $ring_pos;
 
 #,,,.,.,,,.,.,,,.,...,...,,..,,..,...,..,,,,,,..,,...,...,..,,.,.,..,,.,.,.,.,
 
-#,,.,,...,...,.,.,,,.,,.,,,,.,.,,,...,.,,,...,..,,...,...,,..,...,,..,..,,..,,
-#WA5435MKQCWSKK4I7UAM5LMYHMNEVP3EA5GMJIB2UB74Q34HETRAATDVPYKYORYWEOFZ4NE2YTBDO
-#\\\|PBPVDWDIHL6NDNMHEKDELHJJJAMJQQPWTU5PCTAJOPRGTFLMQJ7 \ / AMOS7 \ YOURUM ::
-#\[7]7UHAPWOB7CNYELTAURB5H6SVQ7GM7U3Z3ZZBRDAFNECWHD3OGCCI 7  DATA SIGNATURE ::
+#,,,,,,,,,.,.,,..,...,.,.,,..,.,.,...,,..,,,,,..,,...,...,.,.,..,,.,,,,,.,,..,
+#A6PEEXUPQ7ZAJRXSKCA2AY3FF34K4ZER5TLPPAGOPOAXDRG4Q6DTDBLS3562CGRUQFEDVYFRJH2XQ
+#\\\|SCJPUWC4NLHGUSVROYLIWGVRMGJFZ36OPAC5V2QZZRLFBFPC7VY \ / AMOS7 \ YOURUM ::
+#\[7]BI3R5DUZ373OTS7NBIKBPRCAETQBIMQPRXJ2XJ2ZOI7WZ5BVYOAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

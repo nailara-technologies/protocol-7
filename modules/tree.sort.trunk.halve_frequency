@@ -1,0 +1,30 @@
+## [:< ##
+
+# name = tree.sort.trunk.halve_frequency
+# descr = collapse 7 row values to single representative per column
+
+my $grid = shift // [];
+
+my @trunk_values;
+
+for my $col ( 0 .. 4 ) {
+    my $sum = 0;
+    if ( defined $grid->[$col] ) {
+        for my $r ( 0 .. 6 ) {
+            my $entries = $grid->[$col][$r] // [];
+            for my $entry (@$entries) {
+                $sum += $entry->{'weight'} // 0;
+            }
+        }
+    }
+    ## [ halve: one full period collapses to net scalar ] ##
+    push @trunk_values, int( $sum / 2 );
+}
+
+return \@trunk_values;
+
+#,,,,,...,,,,,..,,.,,,...,,,,,,.,,,.,,,.,,,.,,..,,...,...,..,,,,,,,,.,...,.,.,
+#OOEKC3HZGL4LTNWGK62K6SNL44F6QAPLNP4ED57PH2RUCADEK7MIFSG5WAN4IZBY4DLTWAA43ZAAM
+#\\\|DNHGLFZ3CWG3IZ3CKNLZRF5C3UXTMWV2OHV6FDZ7TXHXKJZUUKT \ / AMOS7 \ YOURUM ::
+#\[7]JJOS4GQM5B73O3YO57LZU2KDC5OHUFY36TBS7F7LUFPHSSV4JSDQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

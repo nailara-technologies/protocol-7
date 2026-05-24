@@ -37,9 +37,7 @@ my $reg_dir   = sprintf '%s/data/yaml/cluster-registry', $root_path;
 my $address = $cluster->{'address'};
 if ( not defined $address or not length $address ) {
     my @content_parts = ($cluster_name);
-    for my $layer_type (
-        qw| task template design intent address |
-        ) {
+    for my $layer_type (qw| task template design intent address |) {
         my $entry = $layers->{$layer_type};
         next unless defined $entry;
         if ( ref $entry eq 'ARRAY' ) {
@@ -81,12 +79,11 @@ if (@issues) {
 ##
 my $yaml_path = sprintf '%s/%s.yaml', $reg_dir, $cluster_name;
 
-my ( $ok, $write_err )
-    = <[format.yaml.write_file]>->( $yaml_path, $cluster );
+my ( $ok, $write_err ) = <[format.yaml.write_file]>->( $yaml_path, $cluster );
 
 if ( not $ok ) {
     <[base.logs]>->(
-        1, 'failed to write cluster yaml [ %s ] : %s <{C1}>',
+        1,          'failed to write cluster yaml [ %s ] : %s <{C1}>',
         $yaml_path, $write_err // 'unknown error'
     );
     return wantarray ? ( FALSE, $write_err ) : FALSE;
@@ -95,8 +92,7 @@ if ( not $ok ) {
 ## [ update _index.yaml ] ##
 ##
 my $index_path = sprintf '%s/_index.yaml', $reg_dir;
-my ( $index_data, $idx_err )
-    = <[format.yaml.load_file]>->($index_path);
+my ( $index_data, $idx_err ) = <[format.yaml.load_file]>->($index_path);
 
 $index_data //= { qw| clusters | => {} };
 $index_data->{'clusters'}{$cluster_name} = {
@@ -109,7 +105,7 @@ $index_data->{'clusters'}{$cluster_name} = {
 
 if ( not $ok ) {
     <[base.logs]>->(
-        1, 'failed to write cluster index [ %s ] : %s <{C1}>',
+        1,           'failed to write cluster index [ %s ] : %s <{C1}>',
         $index_path, $write_err // 'unknown error'
     );
     return wantarray ? ( FALSE, $write_err ) : FALSE;
@@ -119,8 +115,8 @@ return wantarray ? ( TRUE, undef ) : TRUE;
 
 #,,,.,.,,,.,.,,,.,...,...,,..,,..,...,..,,,,,,..,,...,...,..,,.,.,..,,.,.,.,.,
 
-#,,,,,,..,..,,,,.,,,,,,.,,..,,.,,,,..,.,.,.,.,..,,...,..,,,,.,...,,..,..,,,..,
-#DHI5HX6AXT6A72KL3B2GFUAVD3NXB5PAN73Q35S6THSG43SN3A2PHPVUIAYPUI4BSIHDFBVFEPRGM
-#\\\|4WF44ZB6ZJPNGTAA6ELQTKOUIWYVUP2ZFULSUFLYVEBZJRQLEZR \ / AMOS7 \ YOURUM ::
-#\[7]OWX5QCTMBJUX3CB6UX65N7CDPFCVKUCBUVQPQ6LY6SODM6P2A6AI 7  DATA SIGNATURE ::
+#,,.,,,..,..,,.,.,.,,,,,.,,,,,...,,.,,,.,,.,,,..,,...,...,...,...,,,.,,..,,.,,
+#CZ5ZD5BBMWUO4R6EJBH7OAUQ3NHSWYS47TIGUFO5CYA5KHKSPXKCPTNBUB7OK4FLLTE26ASNE2SLE
+#\\\|R67BK3FF26DWVXZS5RRX6LZKSLCLFI6ELMBXIWEPSOF5L35K3IO \ / AMOS7 \ YOURUM ::
+#\[7]FFFDI2OX6TTWIFTA7JCF7YNSUUF3OZ5IXIOWHJTAG4ZAQZMCC4BY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

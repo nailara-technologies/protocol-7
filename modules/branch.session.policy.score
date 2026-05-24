@@ -1,0 +1,37 @@
+## [:< ##
+
+# name = branch.session.policy.score
+# descr = query valued tree for f(target_checksum, intent_vector)
+
+my $target_checksum = shift // return undef;
+my $intent_vector   = shift // '';
+
+return warn 'target checksum required <{C1}>'
+    if not length $target_checksum;
+
+# [ fallback scoring when valued tree not wired ]
+my %intent_score = (
+    'complete-current'    => 0.80,
+    'explore-alternative' => 0.70,
+    'resolve-stuck'       => 0.90,
+    'return-subtask'      => 1.00,
+    'fork-new'            => 0.60,
+);
+
+my $base_score = $intent_score{$intent_vector} // 0.50;
+
+# [ attempt valued tree lookup if available ]
+my $valued_score;
+if ( exists <valued.index>->{$target_checksum} ) {
+    $valued_score = <[valued.resolve]>->($target_checksum);
+}
+
+my $score = $valued_score // $base_score;
+
+return $score;
+
+#,,.,,,.,,,..,,,.,..,,.,.,..,,,..,...,..,,.,.,..,,...,.,.,,,,,,.,,,,,,..,,.,.,
+#RDKDHTCATDDRSFGXN4TCSDI3WAZURP6ZPPD3UV7DL3KHYPHBOBN6GY33LEXSYNWIGYDHQMYPILE64
+#\\\|7B3TB4RXMMXDL3HGF56SLK33RCKX7P6TSRMSG2KWQYGGW5PTKLO \ / AMOS7 \ YOURUM ::
+#\[7]3ZKBKRJ43MIS7EICVFTPUKPK56M44DZK5JAP6LCU2FUJW6FYYICQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

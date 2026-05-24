@@ -40,6 +40,7 @@ base.n2u_time
 base.get_file
 base.cmd.name
 base.cfg_bool
+valued.resolve
 branch.resolve
 base.wrap_text
 base.swap_subs
@@ -108,6 +109,7 @@ net.read_bytewise
 branch.space.rank
 branch.route.list
 branch.group.list
+branch.field.grow
 branch.dep.remove
 branch.data.query
 base.stream.close
@@ -129,6 +131,8 @@ base.cmd.commands
 base.chk-sum.amos
 branch.space.shell
 branch.node.create
+branch.field.split
+branch.field.close
 branch.dep.resolve
 branch.dep.declare
 branch.data.unbind
@@ -150,6 +154,8 @@ plugin.auth.twofish
 io.ip.tcp.init_code
 branch.storage.sync
 branch.storage.list
+branch.session.jump
+branch.session.fork
 branch.resource.get
 branch.group.remove
 base.utf8.clean_str
@@ -178,6 +184,7 @@ branch.resource.task
 branch.resource.list
 branch.resource.find
 branch.group.members
+branch.field.is_open
 branch.dep.propagate
 base.route.init_code
 base.root.drop_privs
@@ -201,10 +208,15 @@ base.devmod.dump_var
 base.cmd.show-buffer
 base.buffer.add_line
 auth.zenka.init_code
+format.yaml.load_file
 crypt.C25519.key_vars
 crypt.C25519.gen_keys
 branch.ntime.relative
+branch.field.capacity
+branch.field.boundary
 branch.discover.watch
+branch.cluster.mirror
+branch.cluster.family
 branch.clock.sequence
 branch.clock.position
 branch.clock.allocate
@@ -222,6 +234,7 @@ base.event.add_signal
 base.console.commands
 base.cmd.buffer-erase
 base.balanced-average
+format.yaml.write_file
 branch.storage.restore
 branch.storage.persist
 branch.route.establish
@@ -229,6 +242,9 @@ branch.resource.stream
 branch.resource.detach
 branch.resource.attach
 branch.group.propagate
+branch.field.parent_id
+branch.field.axes_open
+branch.cluster.address
 branch.clock.bandwidth
 base.session.init_code
 base.required_bin_path
@@ -248,6 +264,8 @@ branch.route.calc.shape
 branch.resource.context
 branch.ntime.clock_sync
 branch.discover.resolve
+branch.cluster.validate
+branch.cluster.register
 base.templates.pre_init
 base.strip_chksum_lines
 base.start.unlink_child
@@ -273,6 +291,7 @@ branch.route.calc.encode
 branch.route.calc.decode
 branch.discover.register
 branch.discover.announce
+branch.cluster.gate_node
 base.zenka.is_v7_started
 base.templates.init_code
 base.session.check.close
@@ -303,6 +322,8 @@ io.unix.socket.input.close
 branch.route.timer.cleanup
 branch.route.key.propagate
 branch.route.calc.polarity
+branch.field.axes_boundary
+branch.cluster.layers_list
 base.warnings.from_bitmask
 base.session.check.flushed
 base.reverse-sort.key-name
@@ -318,8 +339,12 @@ base.check_dependency_dirs
 net.read_linewise_estimated
 io.unix.socket.output.close
 branch.space.magnetic_force
+branch.session.policy.score
+branch.session.dag.node_add
+branch.session.chain.verify
 branch.route.calc.resonance
 branch.route.calc.lca_depth
+branch.calc.fraction.period
 base.templates.register_add
 base.stream.record_emission
 base.session.calc_cmd_stats
@@ -333,7 +358,9 @@ base.chk-sum.amos.init_code
 protocol.protocol-7.pre_init
 protocol.amos_term.init_code
 io.unix.socket.input.connect
+branch.session.dag.open_list
 branch.ntime.tunnel_duration
+branch.cluster.ring_position
 base.validate.composite_name
 base.session.check_remaining
 base.process-into-background
@@ -344,6 +371,9 @@ base.handler.heart_ack_reply
 base.access.special-user-map
 protocol.protocol-7.init_code
 crypt.C25519.get_usr_keys_dir
+branch.session.round.checksum
+branch.session.dag.edges_from
+branch.calc.fraction.symmetry
 base.validate.data_key_syntax
 base.source.collect_file_list
 base.handler.ondemand_timeout
@@ -359,6 +389,7 @@ base.chk-sum.bmw.B-32-56.TRUE
 auth.zenka.process_auth_reply
 protocol.sftp.connect_callback
 protocol.amos-chksum.init_code
+branch.session.policy.next_hop
 branch.route.key.handler.reply
 base.zenki.ondemand_registered
 base.session.send_init_reports
@@ -367,6 +398,8 @@ base.number-cache.true_upwards
 base.log.send-buffer.add-queue
 base.cache.refaddr-prefix.init
 branch.space.effective_position
+branch.session.policy.threshold
+branch.calc.fraction.terminates
 base.warnings.compact_statehash
 base.p7refs.gen_template_chksum
 base.buffer.local_logfile_write
@@ -379,6 +412,7 @@ base.file.get_swapped_subs_pairs
 base.config.load_proto_7_version
 protocol.amos-chksum.ext-cmd.exit
 plugin.auth.zenka.no-keys-defined
+branch.session.policy.intent_bind
 base.sourcecode.in-mem.sub-source
 base.perlmod.init_install_buffers
 base.parser.center_ellipse_string
@@ -392,7 +426,14 @@ protocol.amos-chksum.ext-cmd.close
 protocol.amos-chksum.ext-cmd.clear
 protocol.amos-chksum.ext-cmd.bytes
 plugin.auth.auth-keypair.init_code
+branch.session.return_slot.resolve
 branch.route.calc.inversion_points
+branch.calc.fraction.ring_position
+branch.calc.fraction.reverse_scale
+branch.calc.fraction.remainder_seq
+branch.calc.fraction.period_length
+branch.calc.fraction.parent_lookup
+branch.calc.fraction.coupling_find
 base.protocol-7.command.send.local
 base.path-set-up.zenka-directories
 base.handler.read.encoding-wrapper
@@ -402,6 +443,8 @@ base.callback.setup_rollback_timer
 protocol.sftp.handler.session_close
 protocol.protocol-7.encryption.init
 protocol.amos-chksum.ext-cmd.select
+branch.session.return_slot.register
+branch.calc.fraction.prefix_entropy
 base.perlmod.register_loaded_module
 base.number-cache.is_valid_template
 base.handler.write.encoding-wrapper
@@ -412,6 +455,7 @@ base.callback.reset_strm_size_timer
 protocol.amos-chksum.ext-cmd.version
 protocol.amos-chksum.command-handler
 graphics-3d.calc.cursor-translucency
+branch.session.dag.parallel_dispatch
 base.warnings.compact_diff_to_pragma
 base.warnings.compact_diff_from_bits
 base.perlmod.manual_reload_blacklist
@@ -455,8 +499,8 @@ auth.callback.cap-neg.declare-strm-size-support
 protocol.protocol-7.protocol-version-path-set-up
 base.log.send-buffer.reply-handler.notify-online
 
-#,,,.,.,.,,.,,.,,,,,.,,,,,.,,,...,,.,,,..,.,,,..,,...,...,.,.,..,,...,..,,.,,,
-#T3GVXC7PYYS3TP7SPSIG4VDLNNGHD7QSFYKLV3E2S34PTO4HHYE7SUYOMNYDWWV645HO3PJV42ENI
-#\\\|GPPBGRJOWJWKWXL3LHAXE7ULCMEZMUDPS42VGM5I53C5MI7UYOP \ / AMOS7 \ YOURUM ::
-#\[7]KHN564DCOZVPDHLD6GLFMXTHNAQMKAQSOBVH7K5T3WPSNACLWEBQ 7  DATA SIGNATURE ::
+#,,.,,,,,,,.,,...,.,,,.,,,.,.,.,,,,..,.,,,,,,,..,,...,...,.,,,,..,,.,,,..,..,,
+#REUBZWNYBDIGZGEGPSHL5SBFJGJ5L64UHG6QTXVW73JY7AM76RMBMAACBBQSYTUD6ULQ56YJBUM52
+#\\\|WBV4C6AOKNZQDGGMB7FCVDEL5S3OWB723CFEQW54UROMAUFKGH2 \ / AMOS7 \ YOURUM ::
+#\[7]IQUYWSCFPCYDQS6X4W2BTYS6UF6QSHDSPQ6SDTRRTQSIA37XOSDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
