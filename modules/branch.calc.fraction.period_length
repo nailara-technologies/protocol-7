@@ -1,0 +1,28 @@
+## [:< ##
+
+# name  = branch.calc.fraction.period_length
+# descr = return length of minimal repeating period for X/Y
+# param = numerator, denominator
+#
+# return 0 if terminates
+
+my ( $numerator, $denominator ) = @ARG;
+
+return undef
+    if not defined $numerator
+    or not defined $denominator
+    or $denominator == 0;
+
+my $period_str
+    = <[branch.calc.fraction.period]>->( $numerator, $denominator );
+
+return undef if not defined $period_str;
+return length($period_str);
+
+#,,,.,,,,,,,,,,.,,.,.,,.,,..,,...,,.,,.,,,,.,,..,,...,...,,.,,...,.,.,,,,,...,
+
+#,,..,,..,..,,,,.,.,.,.,.,.,.,,.,,,..,,..,..,,..,,...,...,,..,,..,.,.,...,,.,,
+#I6QWKRCLXNDA4C3X4BPV222UCVK2RHN72UFZJOJNIKIRVUMDIIPVO6LQHM5E66LGBVLUR3MMQV3DM
+#\\\|E7FSEOG6D5RTSAOTHFZOXJNYYKAUOTYBHJXZCK7YCBSHKFJBXMH \ / AMOS7 \ YOURUM ::
+#\[7]EERNWTJUABS3RSRZQO4WAJB6ZT4EGZ2USU6TDD6KKPZRJJRI7CDQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

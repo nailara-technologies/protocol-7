@@ -1,0 +1,38 @@
+## [:< ##
+
+# name  = branch.field.capacity
+# descr = remaining capacity = boundary − position
+# param = id, [ axis_name ]
+#
+# default axis if only one axis exists
+# returns undef if not found or ambiguous
+
+my ( $id, $axis_name ) = @ARG;
+
+return undef
+    if not defined $id
+    or not exists $data{'branch.field'}{$id};
+
+my $axes = $data{'branch.field'}{$id}{'axes'} // {};
+my @names = keys %$axes;
+
+return undef unless @names;
+
+if ( not defined $axis_name or not length $axis_name ) {
+    return undef if @names > 1;
+    $axis_name = $names[0];
+}
+
+return undef unless exists $axes->{$axis_name};
+
+my $axis = $axes->{$axis_name};
+
+return ( $axis->{'boundary'} // 0 ) - ( $axis->{'position'} // 0 );
+
+#,,,.,,,,,,,,,,.,,.,.,,.,,..,,...,,.,,.,,,,.,,..,,...,...,,.,,...,.,.,,,,,...,
+
+#,,,,,,.,,.,,,,,,,,,.,.,.,,,.,,,,,...,,,,,,,.,..,,...,..,,,,.,..,,...,.,,,,.,,
+#JANOPFCQLZ6DH4SMQLSKJWWXN4BF3LHJEZQRATLGY62LCADZVDTFECQC7ILWQI4UIX2IZ4Q6UVR6Y
+#\\\|6HGF77LFB6J44M5X6KCQUG2M45OH77MYRHVCTDR272B5FQSXJSX \ / AMOS7 \ YOURUM ::
+#\[7]4UERTNPG6LGWHR2UHDQJ7VLRWKAJX44X4NJP6VVO7YC43QILXSDI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

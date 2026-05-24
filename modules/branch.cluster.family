@@ -1,0 +1,43 @@
+## [:< ##
+
+# name  = branch.cluster.family
+# descr = return harmonic family for a given layer type.
+#         lower 5 → 076923 [materialization]
+#         upper 5 → 153846 [navigation]
+#         gate    → 13th [pivot]
+# param = layer_type  (task|template|design|intent|address|gate)
+
+my ($layer_type) = @ARG;
+
+return <[base.logs]>->( 0, 'layer type required <{C1}>' )
+    unless defined $layer_type
+    and length $layer_type;
+
+my %family_map = (
+    qw| task     | => qw| 076923 |,
+    qw| template | => qw| 076923 |,
+    qw| design   | => qw| 076923 |,
+    qw| intent   | => qw| 153846 |,
+    qw| address  | => qw| 153846 |,
+    qw| gate     | => qw| 13th   |,
+);
+
+my $family = $family_map{$layer_type};
+
+if ( not defined $family ) {
+    <[base.logs]>->(
+        1, 'unknown layer type [ %s ] <{C1}>',
+        $layer_type
+    );
+    return wantarray ? ( undef, 'unknown layer type' ) : undef;
+}
+
+return wantarray ? ( $family, undef ) : $family;
+
+#,,,.,.,,,.,.,,,.,...,...,,..,,..,...,..,,,,,,..,,...,...,..,,.,.,..,,.,.,.,.,
+
+#,,.,,..,,..,,...,,,,,,.,,,.,,,,,,...,...,,.,,..,,...,..,,..,,.,.,,,.,.,,,,,,,
+#7J4FR5435GQNJWTL7RRVQWP6VJ63Z6VNDPB34P2ZTKR4THAAMWLJDZSCVSDUPZLTGTEMM45S4ETOI
+#\\\|S57OPVFTAED3GLTFRMTMBJOYMDG4MMV5LSVTNO6DMTJUTCEVE3L \ / AMOS7 \ YOURUM ::
+#\[7]M7MP6B43JICFTU5T3JVVCT3CRC2RQFTDT2U3LTTSHIDO5UQXVMCQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

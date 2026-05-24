@@ -1,0 +1,50 @@
+## [:< ##
+
+# name  = branch.calc.fraction.ring_position
+# descr = map period string to 1001-ring harmonic index (0..12)
+# param = period_string
+#
+# derived from which generator family the period belongs to
+
+my ($period_str) = @ARG;
+
+return undef
+    if not defined $period_str
+    or not length $period_str;
+
+## [ load yaml registry ] ##
+my $yaml_path = 'data/yaml/harmonic/fraction-period-groups.yaml';
+my $yaml_data = eval { YAML::XS::LoadFile($yaml_path) };
+
+return undef if $@ or not defined $yaml_data;
+
+my $periods = $yaml_data->{'periods'} // {};
+
+if ( exists $periods->{$period_str} ) {
+    my $ring_pos = $periods->{$period_str}{'ring_pos'};
+    return defined $ring_pos ? $ring_pos : undef;
+}
+
+## [ fallback : check rotations of canonical families ] ##
+my @families = (
+    [ qw| 076923 |, 0 ],
+    [ qw| 142857 |, 1 ],
+    [ qw| 153846 |, 2 ],
+);
+
+for my $fam (@families) {
+    my ( $base, $pos ) = @$fam;
+    next if length($period_str) != length($base);
+    my $double = $base . $base;
+    return $pos if index( $double, $period_str ) >= 0;
+}
+
+return undef;
+
+#,,,.,,,,,,,,,,.,,.,.,,.,,..,,...,,.,,.,,,,.,,..,,...,...,,.,,...,.,.,,,,,...,
+
+#,,..,,,,,,..,.,.,,.,,.,,,..,,...,,.,,...,.,,,..,,...,...,...,.,.,,.,,,.,,,,.,
+#B35LB46TJXWGOB6XQM45HLSOKNXZFW4L5I7I3AYMEHVPBGCMPVJDR3TIGWEJVAAXMO3XIXKE6T3N4
+#\\\|2XDGJYYFR6SZKDX7EZD3ODLRSF7635YVC4Y6UZZNAJI3YEPUNMN \ / AMOS7 \ YOURUM ::
+#\[7]XI6TPMBF2HTMCOS2RUWX3EBUDPNQHPBPJLPNINT35KRVX3XDYOAQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
