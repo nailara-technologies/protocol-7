@@ -71,8 +71,8 @@ if (@issues) {
         $cluster_name, join '; ', @issues
     );
     return wantarray
-        ? ( FALSE, join( '; ', @issues ) )
-        : FALSE;
+        ? ( 0, join( '; ', @issues ) )
+        : 0;
 }
 
 ## [ write cluster yaml ] ##
@@ -86,7 +86,7 @@ if ( not $ok ) {
         1,          'failed to write cluster yaml [ %s ] : %s <{C1}>',
         $yaml_path, $write_err // 'unknown error'
     );
-    return wantarray ? ( FALSE, $write_err ) : FALSE;
+    return wantarray ? ( 0, $write_err ) : 0;
 }
 
 ## [ update _index.yaml ] ##
@@ -108,15 +108,15 @@ if ( not $ok ) {
         1,           'failed to write cluster index [ %s ] : %s <{C1}>',
         $index_path, $write_err // 'unknown error'
     );
-    return wantarray ? ( FALSE, $write_err ) : FALSE;
+    return wantarray ? ( 0, $write_err ) : 0;
 }
 
-return wantarray ? ( TRUE, undef ) : TRUE;
+return wantarray ? ( 1, undef ) : 1;
 
 #,,,.,.,,,.,.,,,.,...,...,,..,,..,...,..,,,,,,..,,...,...,..,,.,.,..,,.,.,.,.,
 
-#,,.,,,..,..,,.,.,.,,,,,.,,,,,...,,.,,,.,,.,,,..,,...,...,...,...,,,.,,..,,.,,
-#CZ5ZD5BBMWUO4R6EJBH7OAUQ3NHSWYS47TIGUFO5CYA5KHKSPXKCPTNBUB7OK4FLLTE26ASNE2SLE
-#\\\|R67BK3FF26DWVXZS5RRX6LZKSLCLFI6ELMBXIWEPSOF5L35K3IO \ / AMOS7 \ YOURUM ::
-#\[7]FFFDI2OX6TTWIFTA7JCF7YNSUUF3OZ5IXIOWHJTAG4ZAQZMCC4BY 7  DATA SIGNATURE ::
+#,,,.,...,.,,,...,,,.,..,,,,,,.,,,,,.,.,,,,..,..,,...,...,,,,,.,,,..,,.,,,.,.,
+#FHVL6W5PRHE7ADAMLY7UZGW3ULPYZLK6FIBAENTW7NSXSGSG2FEC5GDJHXI3TQUP2XLXBAN2QV6R2
+#\\\|YYMAP3C5YJKAM2SMSKCB5N7IJHNX7UFSGEAA6DJZWSRYEVOYOJE \ / AMOS7 \ YOURUM ::
+#\[7]6LOWRAFSORQGLBWTP72FOYFV6C6ZWSEP4R5UQK3YO5G7UFH5HQBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
