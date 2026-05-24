@@ -1,0 +1,66 @@
+## [:< ##
+
+# name = tree.sort.trunk.project
+# descr = project namespace entries onto the 5x7 map
+
+my $entries = shift // [];
+
+return [] if not @$entries;
+
+## [ column mapping ] ##
+my %layer_col = (
+    qw| task    | => 0,
+    qw| template| => 1,
+    qw| design  | => 2,
+    qw| intent  | => 3,
+    qw| address | => 4,
+);
+
+## [ gravity core = center of 5x7 grid at (2,3) ] ##
+my $core_col = 2;
+my $core_row = 3;
+
+## [ initialize 5x7 grid ] ##
+my @grid;
+for my $c ( 0 .. 4 ) {
+    for my $r ( 0 .. 6 ) {
+        $grid[$c][$r] = [];
+    }
+}
+
+for my $entry (@$entries) {
+    my $layer  = $entry->{'layer'}  // '';
+    my $row    = $entry->{'row'}    // undef;
+    my $weight = $entry->{'weight'} // 0;
+
+    my $col = $layer_col{$layer};
+    if ( not defined $col ) {
+        ## [ unclassified entries go by weight proximity to core ] ##
+        $col = $weight >= 50 ? 4 : $weight >= 25 ? 2 : 0;
+    }
+
+    if ( defined $row and $row >= 0 and $row <= 6 ) {
+        push @{ $grid[$col][$row] }, $entry;
+    } else {
+        ## [ place by reference-weight proximity to gravity core ] ##
+        my $target_row = $core_row;
+        my $min_dist   = abs( $weight - 50 );
+
+        for my $r ( 0 .. 6 ) {
+            my $dist = abs( $weight - ( $r * 10 + 5 ) );
+            if ( $dist < $min_dist ) {
+                $min_dist   = $dist;
+                $target_row = $r;
+            }
+        }
+        push @{ $grid[$col][$target_row] }, $entry;
+    }
+}
+
+return \@grid;
+
+#,,,.,..,,,,.,,..,,,.,.,,,,..,.,.,,..,...,,.,,..,,...,...,.,,,...,,..,,,.,,.,,
+#7KI4ERYPPPTHOKRXTB4ALO7CEBYC5BIF7SPEBFMN3UJMDGG7YA3IX7JTHO7HPCI7A7Y72UDZCG4X6
+#\\\|XIT2ZDBOKF7P5ISF3PCZDADY3B2SK3ZOV7WLXVRR3INTTITAPOE \ / AMOS7 \ YOURUM ::
+#\[7]UQT2ITYDHRBMHYGLISV7VWVMT22RGO3PYJ2XUMXPZMNNUXMXOKDI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

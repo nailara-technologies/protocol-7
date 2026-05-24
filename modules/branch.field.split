@@ -46,8 +46,9 @@ my $ntime = <[base.time]>->(4);
 for my $n ( 1, 2 ) {
     my $child_axes = {};
     for my $name ( keys %$axes ) {
-        my $cap        = $capacities{$name};
-        my $child_cap  = $n == 1
+        my $cap = $capacities{$name};
+        my $child_cap
+            = $n == 1
             ? int( $cap * $ratio )
             : $cap - int( $cap * $ratio );
         $child_axes->{$name} = {
@@ -57,9 +58,8 @@ for my $n ( 1, 2 ) {
     }
 
     ## [ determine child state ] ##
-    my $open_count = grep {
-        ( $child_axes->{$ARG}{'boundary'} // 0 ) > 0
-    } keys %$child_axes;
+    my $open_count = grep { ( $child_axes->{$ARG}{'boundary'} // 0 ) > 0 }
+        keys %$child_axes;
 
     my $child_state = 'closed';
     $child_state = 'open'  if $open_count == 1;
@@ -74,12 +74,12 @@ for my $n ( 1, 2 ) {
         'children' => [],
     };
 
-    push @child_ids, $child_id;
+    push @child_ids,               $child_id;
     push @{ $node->{'children'} }, $child_id;
 }
 
 <[base.logs]>->(
-    2, 'branch.field.split: %s -> [%s, %s]',
+    2,   'branch.field.split: %s -> [%s, %s]',
     $id, $child_ids[0], $child_ids[1]
 );
 
@@ -87,8 +87,8 @@ return { 'mode' => 'true', 'data' => \@child_ids };
 
 #,,,.,,,,,,,,,,.,,.,.,,.,,..,,...,,.,,.,,,,.,,..,,...,...,,.,,...,.,.,,,,,...,
 
-#,,..,,.,,,,,,,..,.,.,,..,...,,..,...,.,,,,.,,..,,...,...,...,,,,,,,,,..,,...,
-#IZH6YQ23STTGCDDR3V36ZWIK4HVJF7T2QTYBMEOHAI2AYCI66GQVQPI77PTOCSGQRHKBEQO7FOWQM
-#\\\|3YOLQYXNDXW4KLM7VWKCF6N53TQCNEBWCI26FUPROHQQPOSPCPV \ / AMOS7 \ YOURUM ::
-#\[7]RCK3CAXGAKWCXVNTC636452Y2NAV6ZOP32JSYPEE6FYE6XYRA4DY 7  DATA SIGNATURE ::
+#,,.,,,..,,..,,,,,,,.,.,,,,,.,..,,,.,,.,,,.,.,..,,...,...,...,.,.,,,.,.,,,.,,,
+#5C2VW5OHU4PAB4Q725OI36RGKPPKHWG6PSUEUPWVOR3FJT33HCNOMMCMF26QOUF3NSD34B5Z54I24
+#\\\|GUQ735N2ZBPZPBPDMN3SL5NZIIBLWZIFIXKJIJBAVV7X65YK4QO \ / AMOS7 \ YOURUM ::
+#\[7]7EYZFCZNQ3LNSV4WOFTK65JI2ZR6CSB3W5JCDAEMTGB6VSYV6YCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

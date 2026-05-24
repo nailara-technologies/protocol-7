@@ -1,0 +1,28 @@
+## [:< ##
+
+# name = branch.session.fork
+# descr = jump with no return slot; bind new intent
+
+my $resumed_state  = shift // return undef;
+my $decision_point = shift // return undef;
+my $new_intent     = shift // '';
+
+return warn 'resumed state checksum required <{C1}>'
+    if not length $resumed_state;
+return warn 'decision point checksum required <{C1}>'
+    if not length $decision_point;
+
+my $fork_checksum
+    = <[branch.session.jump]>->( $resumed_state, $decision_point );
+return undef if not defined $fork_checksum;
+
+<[branch.session.policy.intent_bind]>->( $fork_checksum, $new_intent )
+    if length $new_intent;
+
+return $fork_checksum;
+
+#,,,.,,.,,...,...,..,,,..,.,,,,,,,.,,,..,,,,,,..,,...,..,,,..,.,,,,,.,.,,,...,
+#TQYUC4BUNEVQ35G7EPHAVDL654MY4MQ5MEZAUOGCFMR7KPPWWZER7FRI57S2E3G5OM5E3WNHEZTCU
+#\\\|IYV5JE65AJLQ7YZLUQOYIXUXI4HF3Z4BP4PUEDIRMIIZ3WT2CM4 \ / AMOS7 \ YOURUM ::
+#\[7]MZZJUM255D75YFSMSPQA3OCICPKZ7JQQKHKYLQ5EC6F47P2ZL4AY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

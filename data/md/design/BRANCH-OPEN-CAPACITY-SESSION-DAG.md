@@ -564,6 +564,103 @@ tree.route.page.navigate         cursor: line_up / line_down / page_up / page_do
 
 ---
 
+## coordinate ordering — Z.Y.X and the mask/canvas structure
+
+### Z.Y.X depth-first ordering
+
+routing coordinates are ordered Z.Y.X, not X.Y.Z:
+
+```
+Z  —  cycle position / segment depth   (most significant: which segment)
+Y  —  row within segment               (next: vertical position in page)
+X  —  column                           (least: local horizontal position)
+```
+
+this is countdown order Z..Y..X, reading from most-established to most-frontier.
+Z=maximum is the deepest, most context-laden position. X=minimum is the local,
+newest position. evaluating chained usefulness proceeds in this order: determine
+segment context (Z) before row context (Y) before column position (X).
+
+### three Z-states — the rotation axis
+
+Z is not binary. it has three states, corresponding to character rotation around
+the vertical axis:
+
+```
+Z=0  in transit  (leading '0')  →  facing away  (back face, traveling)
+Z=1  paused      (leading '1')  →  facing viewer (full face, result ready)
+Z=½  absent/zero               →  edge-on       (semi-invisible, suction)
+```
+
+the edge-on character (Z=½) is structurally present but carries near-zero visual
+payload — it appears as a vertical line: `I I I`. this is why `true_int` on an
+absent group still returns TRUE and generates carry (suction): the edge-on state
+is structurally valid. absence propagates by being structurally real while
+visually empty.
+
+X and Y collapse to 2 effective states each under their symmetry axes:
+- X: flip-H maps col 0↔4, 1↔3; col 2 = center (Z=½ degenerate)
+- Y: flip-V maps row 0↔6, 1↔5, 2↔4; row 3 = center (Z=½ degenerate)
+
+the center positions of X and Y are the edge-on states — where the coordinate
+has zero net direction. branch markers appear at non-center positions; the
+center is the invisible pivot.
+
+### leading bit as branch marker
+
+the leading bit of each routing group encodes segment phase AND branch topology
+simultaneously:
+
+```
+leading '1'  →  paused at segment boundary  →  branch marker
+leading '0'  →  inside segment, moving      →  continuation
+```
+
+a branch point IS a segment boundary — the bit has reached it and stopped.
+continuation means still inside a segment, still moving toward the next boundary.
+one bit encodes both the routing phase and the structural topology.
+
+### type prefixes as masks — the ASCII control hierarchy
+
+the 7-bit typed routing word prefix system maps onto ASCII control codes:
+
+```
+'00'  + direction + hops  →  routing      →  navigation (not content)
+'010' + 5 bits            →  BASE32 atom  →  US-equivalent (unit separator)
+'0110' + 4 bits           →  document monochrome header  →  GS-equivalent
+'0111' + 4 bits           →  document color header       →  GS color variant
+'1'   + 6 bits            →  graphical position          →  RS-equivalent
+```
+
+`0110` is the document monochrome header prefix and simultaneously the
+4-bit GS (group separator) pattern. the type prefix design already encoded
+the ASCII control hierarchy — the convergence is structural, not coincidental.
+
+### mask / canvas orthogonality
+
+every layer of the protocol is a superposition of two orthogonal structures:
+
+```
+structural mask  —  sparse 1-bits: type prefix, segment phase, branch markers
+content canvas   —  zero-background payload bits
+```
+
+lone `1` bits and `11` pairs are perfectly legible as structure markers when
+the payload canvas is predominantly zero. the mask and canvas do not interfere
+because 1-bit density in the mask is far lower than the zero-dominated payload.
+
+reading the mask extracts structure. reading the canvas extracts data.
+neither requires parsing the other. this is the sense in which the routing
+word is 'holographic': the structural skeleton is readable at any zoom level
+without full payload decoding.
+
+the cell-building pattern `0010` (US) prevents premature branch collapse
+within a segment by inserting unit separators at regular intervals — marking
+internal boundaries without triggering a full branch event. `0110` (GS)
+marks group-level boundaries that DO trigger branch events.
+
+---
+
 ## connections to existing design docs
 
 - `BRANCH-NAMESPACE-MASTER.md`  — layer architecture this extends
@@ -574,8 +671,8 @@ tree.route.page.navigate         cursor: line_up / line_down / page_up / page_do
 - `SELF-DELIMITING-CHECKSUM-PATTERN.md`  — 2-bit frame + chain structure
 - `HARMONIC-ENTROPY-OBSERVER-GUIDE.md`  — 1001 ring, generator families
 
-#,,,,,..,,..,,,,,,,.,,...,.,,,.,.,,,.,,.,,,.,,..,,...,..,,..,,,,,,,,.,,..,,.,,
-#3AV7DRTRERQBIZ53FEHNU45SUBRO77C3D5B4O3ELDILU6RCJZITMEVPZF6SCPLXLP7QOPBRXYIVQY
-#\\\|V7OP643K42HEMM7NNY6AAYBOODZZ622CAUOQAFWSKEHKSFHPMQ6 \ / AMOS7 \ YOURUM ::
-#\[7]XDMSA5CYY2XXNKGTDOE7YGXKSWQSKCFA2W4U5BD377UQBFAFMUAA 7  DATA SIGNATURE ::
+#,,..,,,,,..,,...,,..,,,.,.,,,,,,,,,.,,,,,..,,..,,...,...,..,,..,,,..,,,,,,,.,
+#UGZHJN3YUNPKUATEZCLEVFNLOJBVPLU5VL43O6XT2UUI7WWELXCZNXYZN667OAMMGJ3Q63OYYG2H2
+#\\\|7SPWW7CWN3JCIQQ4SI65RHMGMPJIM6ZIUZ5JAI3YJZKC3PXJVFW \ / AMOS7 \ YOURUM ::
+#\[7]5HN3ES6EVTM6NSS37WAM6NHUH5KQKXXYQLA7LCMIWJELJUCOJ6AQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

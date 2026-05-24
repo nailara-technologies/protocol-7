@@ -1,0 +1,27 @@
+## [:< ##
+
+# name = tree.route.page.decode_56
+# descr = decode 8-byte routing word into 8 groups of 7 bits
+
+my $input = shift // '';
+
+return undef if length($input) != 8;
+
+my $bits_64 = unpack qw| B* |, $input;
+
+my @groups;
+my @leading;
+
+for my $i ( 0 .. 7 ) {
+    my $byte_bits = substr( $bits_64, $i * 8, 8 );
+    push @leading, substr( $byte_bits, 0, 1 );
+    push @groups,  substr( $byte_bits, 1, 7 );
+}
+
+return { groups => \@groups, leading => \@leading };
+
+#,,,.,..,,...,.,,,.,,,,,,,,,,,,,.,,,.,.,.,,..,..,,...,...,,,.,..,,,..,,.,,...,
+#DCYJRXLA6B7PWFSS4FH3JRLA7BQE4AADHUMBJIKYFK5NLKW6N4PIKZE6W2JIBPAABHSLOAMTPBWZU
+#\\\|DUHQJ4T7A6V75GSJYAKLXSLEZV7IU4APRPG7YEXNVNRDYZRSECY \ / AMOS7 \ YOURUM ::
+#\[7]YJB4CFOB4OJ52E5HXRDKQA53J4JAWWJ3F6APFOQ5IVWNH4UDR2BA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

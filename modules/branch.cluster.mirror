@@ -11,11 +11,10 @@ return <[base.logs]>->( 0, 'cluster name required <{C1}>' )
     unless defined $cluster_name
     and length $cluster_name;
 
-my ( $layers, $err )
-    = <[branch.cluster.layers_list]>->($cluster_name);
+my ( $layers, $err ) = <[branch.cluster.layers_list]>->($cluster_name);
 
 return <[base.logs]>->(
-    1, 'cannot load cluster [ %s ] : %s <{C1}>',
+    1,             'cannot load cluster [ %s ] : %s <{C1}>',
     $cluster_name, $err // 'unknown error'
 ) unless defined $layers;
 
@@ -23,8 +22,7 @@ my $root_path = <system.root_path> // '.';
 my $yaml_path = sprintf '%s/data/yaml/cluster-registry/%s.yaml',
     $root_path, $cluster_name;
 
-my ( $yaml_data, $yaml_err )
-    = <[format.yaml.load_file]>->($yaml_path);
+my ( $yaml_data, $yaml_err ) = <[format.yaml.load_file]>->($yaml_path);
 
 $yaml_data //= {};
 
@@ -38,8 +36,8 @@ for my $layer_type ( keys %$layers ) {
         $meta_layers{$layer_type}
             = [ map { sprintf '%s-about-%s', $_, $layer_type } @$entry ];
     } elsif ( ref $entry eq '' and length $entry ) {
-        $meta_layers{$layer_type}
-            = sprintf '%s-about-%s', $entry, $layer_type;
+        $meta_layers{$layer_type} = sprintf '%s-about-%s', $entry,
+            $layer_type;
     }
 }
 
@@ -59,8 +57,8 @@ return wantarray
 
 #,,,.,.,,,.,.,,,.,...,...,,..,,..,...,..,,,,,,..,,...,...,..,,.,.,..,,.,.,.,.,
 
-#,,.,,,.,,.,.,,.,,,,,,,,.,,,,,,,.,,.,,.,,,,,.,..,,...,...,.,,,...,...,...,.,,,
-#EG3NNH6GFR7TEGLNELEET7JTV3TLRVW527OQDXH5J4C326HO6IWM7ZZLT7GT3EQVVRDTZXYM4OFDM
-#\\\|YOYW355UAIWDM27AMRI3GFDNF7UJ3ZFPNMN66BPXFMD6LGZRJ53 \ / AMOS7 \ YOURUM ::
-#\[7]3ICP5JPSCKMWPGCZOUJFHQKLIXWRJM346Q6DWAQZKFRP3ATIZABY 7  DATA SIGNATURE ::
+#,,..,...,,,.,,..,,..,,..,,.,,.,,,,.,,...,.,.,..,,...,..,,..,,,,,,...,,.,,..,,
+#BKPBA7ELRC7GWVVVRCCEPDDUWMTQTYB2APXQP35HIRZXVQSVQCM5SGWDCDYHSPRDMJZ2LM2ZV6ATE
+#\\\|YGRV2TZ3EUC2CH7QQNWORHKDG3RUAV62VAAOZME5Y33X4EA6W4F \ / AMOS7 \ YOURUM ::
+#\[7]U66JMG35QGQ7B4Q3RNLF2IG2DG2OXYIK7WBH4JNWZBBE6E7H54AY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

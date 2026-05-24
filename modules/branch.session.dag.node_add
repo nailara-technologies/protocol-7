@@ -1,0 +1,57 @@
+## [:< ##
+
+# name = branch.session.dag.node_add
+# descr = add node, record parent pair, append to parents' children lists
+
+my $node = shift // return undef;
+
+my $checksum = $node->{'checksum'};
+if ( not defined $checksum ) {
+    my $parents = $node->{'parents'} // [];
+    if ( @$parents == 0 ) {
+        my $session_id = $node->{'session_id'} // '';
+        return warn 'session id required for genesis <{C1}>'
+            if not length $session_id;
+        my $bmw = Digest::BMW->new(384);
+        $bmw->add( 'branch.session.genesis' . $session_id );
+        $checksum = encode_b32r( $bmw->digest );
+    } elsif ( @$parents == 1 ) {
+        my $content_ref = $node->{'content'};
+        my $content     = defined $content_ref ? $$content_ref : '';
+        $checksum
+            = <[branch.session.round.checksum]>->( $parents->[0], $content );
+    } elsif ( @$parents == 2 ) {
+        my $bmw = Digest::BMW->new(384);
+        $bmw->add( $parents->[0] . $parents->[1] . ':jump' );
+        $checksum = encode_b32r( $bmw->digest );
+    } else {
+        return warn 'zero to two parents required <{C1}>';
+    }
+}
+
+my $node_key = 'branch.session.dag.' . $checksum;
+return warn 'node already exists <{C1}>'
+    if exists $data{$node_key};
+
+$data{$node_key} = {
+    'parents'     => $node->{'parents'} // [],
+    'content'     => $node->{'content'},
+    'intent'      => $node->{'intent'} // '',
+    'state'       => $node->{'state'}  // 'open',
+    'children'    => [],
+    'return_slot' => $node->{'return_slot'} // undef,
+};
+
+for my $parent ( @{ $node->{'parents'} // [] } ) {
+    my $parent_key = 'branch.session.dag.' . $parent;
+    push @{ $data{$parent_key}{'children'} }, $checksum
+        if exists $data{$parent_key};
+}
+
+return $checksum;
+
+#,,..,.,.,.,,,,,,,...,.,.,,.,,,..,,.,,.,.,,,.,..,,...,...,.,,,,,.,,..,,..,,,.,
+#WQOKGM4SC7ZEKKNBJV3FKZ7EYP56ZB2LBBUWA3AQCMZB33MOLTCD6TWOJI6WJZB32PCT4XG2QO3SI
+#\\\|D3PNY6WY6MVCL6BC5D7FTW6YXWOTZ7AL4FIX4UMMWESNFQDSGUB \ / AMOS7 \ YOURUM ::
+#\[7]WU2WBMYE3KGVW4R6UW3ZCXHTRUFUF7SHDNKUZ4NUQII3THUKAKDI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

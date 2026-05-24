@@ -1,0 +1,32 @@
+## [:< ##
+
+# name = branch.session.return_slot.resolve
+# descr = deliver result to return handler; set node state to closed
+
+my $node_checksum = shift // return undef;
+my $result        = shift;
+
+return warn 'node checksum required <{C1}>'
+    if not length $node_checksum;
+
+my $node_key = 'branch.session.dag.' . $node_checksum;
+return warn 'node not found in dag <{C1}>'
+    if not exists $data{$node_key};
+
+my $handler = $data{$node_key}{'return_slot'};
+return warn 'no return slot registered <{C1}>'
+    if not defined $handler
+    or ref $handler ne 'CODE';
+
+$data{$node_key}{'state'}       = 'closed';
+$data{$node_key}{'return_slot'} = undef;
+
+my $return_value = $handler->($result);
+
+return $return_value;
+
+#,,,.,,..,.,,,.,.,,..,,.,,..,,,,,,,..,...,,,.,..,,...,..,,.,.,.,.,,..,.,,,.,,,
+#3FXMAIRX4OC6N7XTYHDCZXIZASZHSRHDPZWVSU45RHWKWVAJ25BJORXBXU6EU7P5AM2B3PAE5WV2E
+#\\\|N46CHC36PR2WE7XG5V26FT7IVHC6DYBEQFZ6HXUZJWKGWEDL6UE \ / AMOS7 \ YOURUM ::
+#\[7]DCHHMADS4VFV3A6RYIFL7FJ7KRBI643LZLJ54PXEW3VPSNBZPUCQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

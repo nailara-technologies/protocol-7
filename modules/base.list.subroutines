@@ -519,6 +519,7 @@ return [ qw[
         branch.space.rank
         branch.route.list
         branch.group.list
+        branch.field.grow
         branch.dep.remove
         branch.data.query
         base.stream.close
@@ -670,6 +671,8 @@ return [ qw[
         channels.heartbeat
         branch.space.shell
         branch.node.create
+        branch.field.split
+        branch.field.close
         branch.dep.resolve
         branch.dep.declare
         branch.data.unbind
@@ -841,6 +844,8 @@ return [ qw[
         channels.cmd.update
         branch.storage.sync
         branch.storage.list
+        branch.session.jump
+        branch.session.fork
         branch.resource.get
         branch.group.remove
         base.utf8.clean_str
@@ -893,6 +898,7 @@ return [ qw[
         v7.terminate_process
         v7.process_zenka_end
         v7.parser.process_id
+        tree.route.page.read
         ticker.cmd.slow_down
         ticker.cmd.set_speed
         ticker.cmd.read_file
@@ -1039,6 +1045,7 @@ return [ qw[
         branch.resource.list
         branch.resource.find
         branch.group.members
+        branch.field.is_open
         branch.dep.propagate
         base.vec.offset_read
         base.s_write.file_io
@@ -1239,7 +1246,11 @@ return [ qw[
         chk-sum.md5.init_code
         chk-sum.crc.init_code
         branch.ntime.relative
+        branch.field.capacity
+        branch.field.boundary
         branch.discover.watch
+        branch.cluster.mirror
+        branch.cluster.family
         branch.clock.sequence
         branch.clock.position
         branch.clock.allocate
@@ -1331,6 +1342,7 @@ return [ qw[
         universal.lower_except
         universal.get_playlist
         universal.cmd.get_list
+        tree.route.page.attach
         ticker.start_animation
         ticker.handler.fade_in
         system.process.cmd.top
@@ -1455,6 +1467,9 @@ return [ qw[
         branch.resource.detach
         branch.resource.attach
         branch.group.propagate
+        branch.field.parent_id
+        branch.field.axes_open
+        branch.cluster.address
         branch.clock.bandwidth
         base.utf8.decode_clean
         base.time.is_leap_year
@@ -1534,6 +1549,9 @@ return [ qw[
         v7.callback.host-reboot
         universal.cmd.slow_down
         udev.handler.adm_stdout
+        tree.sort.trunk.project
+        tree.route.page.suction
+        tree.route.page.extract
         tile-groups.sort_layers
         task.cmd.summarize-done
         system.process.autokill
@@ -1663,6 +1681,8 @@ return [ qw[
         branch.resource.context
         branch.ntime.clock_sync
         branch.discover.resolve
+        branch.cluster.validate
+        branch.cluster.register
         bench.key-32-iterations
         base.templates.pre_init
         base.strm.local.consume
@@ -1746,6 +1766,8 @@ return [ qw[
         universal.cmd.dump_state
         udev.set-up.import_rules
         udev.set-up.export_rules
+        tree.route.page.rollover
+        tree.route.page.navigate
         ticker.enable_auto_speed
         ticker.content_substring
         ticker.cmd.reread_config
@@ -1872,6 +1894,7 @@ return [ qw[
         branch.route.calc.decode
         branch.discover.register
         branch.discover.announce
+        branch.cluster.gate_node
         base.zenka.push.pre_init
         base.zenka.load_sub_list
         base.zenka.is_v7_started
@@ -1948,6 +1971,10 @@ return [ qw[
         v7.bin_p7r_chksum_current
         v7.bin_p7c_chksum_current
         universal.stop_start-anim
+        tree.sort.trunk.remainder
+        tree.route.page.word_type
+        tree.route.page.encode_56
+        tree.route.page.decode_56
         tile-groups.cmd.get-layer
         ticker.set_default_values
         ticker.request_rss_update
@@ -2152,6 +2179,8 @@ return [ qw[
         universal.reroute_commands
         universal.handler.sig_chld
         universal.cmd.get_geometry
+        tree.sort.trunk.field_self
+        tree.route.page.word_route
         tile-groups.merge_multiple
         tile-groups.cmd.tile-count
         ticker.set-up.import_rules
@@ -2287,6 +2316,8 @@ return [ qw[
         branch.route.timer.cleanup
         branch.route.key.propagate
         branch.route.calc.polarity
+        branch.field.axes_boundary
+        branch.cluster.layers_list
         base.warnings.from_bitmask
         base.session.check.flushed
         base.reverse-sort.key-name
@@ -2495,8 +2526,12 @@ return [ qw[
         channels.cmd.test-strm-size
         channels.cmd.channels-since
         branch.space.magnetic_force
+        branch.session.policy.score
+        branch.session.dag.node_add
+        branch.session.chain.verify
         branch.route.calc.resonance
         branch.route.calc.lca_depth
+        branch.calc.fraction.period
         base.zenki.report_child_pid
         base.templates.register_add
         base.stream.record_emission
@@ -2679,7 +2714,9 @@ return [ qw[
         clients.http.handler.timeout
         channels.memory-sync.publish
         channels.handler.data_change
+        branch.session.dag.open_list
         branch.ntime.tunnel_duration
+        branch.cluster.ring_position
         base.validate.composite_name
         base.strm.callback.recv_test
         base.session.check_remaining
@@ -2736,6 +2773,7 @@ return [ qw[
         universal.handler.switch_fade
         universal.cmd.playlist_update
         universal.cmd.get_coordinates
+        tree.route.page.bit_direction
         tile-groups.switch-tile-group
         tile-groups.cmd.loaded-config
         tile-groups.cmd.get_subconfig
@@ -2874,6 +2912,9 @@ return [ qw[
         channels.subscription.manager
         channels.cmd.ai-review-submit
         channels.cmd.ai-review-status
+        branch.session.round.checksum
+        branch.session.dag.edges_from
+        branch.calc.fraction.symmetry
         base.validate.data_key_syntax
         base.source.collect_file_list
         base.parser.human.fsize_fixed
@@ -2933,6 +2974,7 @@ return [ qw[
         universal.handler.zenka_output
         universal.handler.resume_reply
         universal.collect_video_frames
+        tree.route.page.word_graphical
         tile-groups.stop_display_zenki
         tile-groups.process-tile-group
         tile-groups.handler.transition
@@ -3062,6 +3104,7 @@ return [ qw[
         coding.analyze.estimate_tokens
         channels.util.get_review_stage
         channels.cmd.ai-review-approve
+        branch.session.policy.next_hop
         branch.route.key.handler.reply
         base.zenki.ondemand_registered
         base.session.send_init_reports
@@ -3101,6 +3144,7 @@ return [ qw[
         v7.zenka.cmd.restart_concurrent
         v7.callback.object.root.session
         universal.handler.cur-pid_reply
+        tree.sort.trunk.halve_frequency
         tile-groups.set-up.import_rules
         tile-groups.set-up.export_rules
         tile-groups.cmd.get_coordinates
@@ -3211,6 +3255,8 @@ return [ qw[
         channels.content-discovery.init
         channels.cmd.ai-review-feedback
         branch.space.effective_position
+        branch.session.policy.threshold
+        branch.calc.fraction.terminates
         base.zenki.set_ondemand_timeout
         base.warnings.compact_statehash
         base.perlmods.reload.disk_times
@@ -3244,6 +3290,7 @@ return [ qw[
         universal.handler.switch_timeout
         universal.handler.mpv_idle_reply
         universal.handler.get_list_reply
+        tree.sort.trunk.cancel_symmetric
         tile-groups.cmd.show-tile-groups
         tile-groups.cmd.reset-tile-group
         ticker.cfg.font.calc_outline_col
@@ -3450,6 +3497,7 @@ return [ qw[
         coding.callback.object_memory_gpu
         channels.memory-sync.sync-handler
         channels.handler.content-detected
+        branch.session.policy.intent_bind
         base.sourcecode.in-mem.sub-source
         base.perlmod.init_install_buffers
         base.perlmod.get_loaded_INC_names
@@ -3561,7 +3609,14 @@ return [ qw[
         coding.intake.parse_command_string
         channels.memory-sync.apply-changes
         channels.handler.subscription_data
+        branch.session.return_slot.resolve
         branch.route.calc.inversion_points
+        branch.calc.fraction.ring_position
+        branch.calc.fraction.reverse_scale
+        branch.calc.fraction.remainder_seq
+        branch.calc.fraction.period_length
+        branch.calc.fraction.parent_lookup
+        branch.calc.fraction.coupling_find
         base.protocol-7.command.send.local
         base.path-set-up.zenka-directories
         base.path-set-up.check-zenka-paths
@@ -3660,6 +3715,8 @@ return [ qw[
         coding.learning.update_success_rate
         coding.helper.get_service_breakdown
         channels.memory-sync.register-watch
+        branch.session.return_slot.register
+        branch.calc.fraction.prefix_entropy
         base.perlmod.register_loaded_module
         base.number-cache.is_valid_template
         base.handler.write.encoding-wrapper
@@ -3739,6 +3796,7 @@ return [ qw[
         coding.handler.fetch_model_discovery
         coding.callback.object_memory_system
         coding.async_spawn_inference_servers
+        branch.session.dag.parallel_dispatch
         base.warnings.compact_diff_to_pragma
         base.warnings.compact_diff_from_bits
         base.perlmod.manual_reload_blacklist
@@ -4136,8 +4194,8 @@ return [ qw[
     ]
 ];
 
-#,,..,.,,,,,,,,..,,,,,.,,,.,.,.,,,,,.,.,,,,..,.,.,...,...,,..,,,,,..,,...,.,,,
-#2BRXPS6DNI6MHLHSSYKOSXKFKCT6Z36HMXAZC732OH6KNFTOO5RA6DATXSWHQLNJDUMDUAWDSDRZ6
-#\\\|FHJAHD5ES4FTVB2HCGRUMJS3Z6XDUC4OL32YEGIIERQNHEO7P6Y \ / AMOS7 \ YOURUM ::
-#\[7]DUFGAJNMCKMW75CAXET62LNZV4WE4QJMY6LK6TRFU5DMJJKGIKCI 7  DATA SIGNATURE ::
+#,,.,,,..,,..,,..,,,.,...,,..,..,,.,.,,..,...,.,.,...,...,...,,,,,,,,,,,.,...,
+#EE4LW3VLKLLXIC5VSIXM5GVVCITUZNBMIMXFWIILY6WJUPASTIVFW7QISAR475ZEJ3RACHK3DEZFO
+#\\\|UXQ6VRQECU6HK36DKWS2LP7KKCQDCI7MHSBXKGUWNFPPCUSTEPX \ / AMOS7 \ YOURUM ::
+#\[7]QO2YIFIOHRFPJ77FGPAX7QRLU6GAUWX5PSYJOPDK4ETRWLJG32BI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

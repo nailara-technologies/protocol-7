@@ -1,0 +1,75 @@
+## [:< ##
+
+# name = tree.sort.trunk.remainder
+# descr = return asymmetric survivors (the trunk)
+
+my $args = shift // {};
+
+my $unpaired  = $args->{'unpaired'}  // [];
+my $residuals = $args->{'residuals'} // [];
+
+my @trunk;
+
+## [ collect unpaired entries ] ##
+for my $entry (@$unpaired) {
+    push @trunk, $entry;
+}
+
+## [ collect residuals as synthetic entries ] ##
+for my $res (@$residuals) {
+    push @trunk,
+        {
+        layer    => _col_to_layer( $res->{'col'} ),
+        col      => $res->{'col'},
+        row      => $res->{'row'},
+        weight   => $res->{'weight'},
+        residual => 1,
+        };
+}
+
+## [ select highest-weight entry per column ] ##
+my %by_col;
+for my $entry (@trunk) {
+    my $c = $entry->{'col'} // _layer_to_col( $entry->{'layer'} // '' );
+    next if not defined $c;
+    push @{ $by_col{$c} }, $entry;
+}
+
+my @result;
+for my $c ( 0 .. 4 ) {
+    my $list = $by_col{$c} // [];
+    next if not @$list;
+    my $best = $list->[0];
+    for my $entry (@$list) {
+        $best = $entry
+            if ( $entry->{'weight'} // 0 ) > ( $best->{'weight'} // 0 );
+    }
+    push @result, $best;
+}
+
+return \@result;
+
+## [ helpers ] ##
+sub _col_to_layer {
+    my $col    = shift;
+    my @layers = qw| task template design intent address |;
+    return $layers[$col] // '';
+}
+
+sub _layer_to_col {
+    my $layer = shift;
+    my %map   = (
+        qw| task     | => 0,
+        qw| template | => 1,
+        qw| design   | => 2,
+        qw| intent   | => 3,
+        qw| address  | => 4,
+    );
+    return $map{$layer};
+}
+
+#,,,.,,,,,,,,,,,,,.,.,.,.,,,,,.,,,.,.,.,.,,,,,..,,...,...,,.,,,.,,..,,.,.,..,,
+#YLQ4N4CQ4G5O22CUHJQG25R6VZ5TYZ5H3SJ2O4LNFLZLODFAKZ6SULZZSQH2EWIM2RGNMUNSYXA46
+#\\\|MBKI4OYJVVMUPFWPBTCF457CXVKQBTDLGTI6Z3ROI5XBLQOQTOF \ / AMOS7 \ YOURUM ::
+#\[7]GT7WUIL42AIZM4C75P6Z56OCKU3TS5KUBV74YJ24NLXSEAZVIIAI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
