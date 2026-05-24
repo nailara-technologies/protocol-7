@@ -1,0 +1,57 @@
+## [:< ##
+
+# name  = branch.calc.fraction.reverse_scale
+# descr = for terminating X/Y, compute reversal and return scale factor
+# param = numerator, denominator
+#
+# return undef if X/Y does not terminate
+
+my ( $numerator, $denominator ) = @ARG;
+
+return undef
+    if not defined $numerator
+    or not defined $denominator
+    or $denominator == 0;
+
+return undef
+    if not <[branch.calc.fraction.terminates]>->( $numerator,
+    $denominator );
+
+## [ helper : greatest common divisor ] ##
+sub _gcd {
+    my ( $a, $b ) = @ARG;
+    $a = abs($a);
+    $b = abs($b);
+    while ($b) {
+        my $t = $b;
+        $b = $a % $b;
+        $a = $t;
+    }
+    return $a;
+}
+
+my $g  = _gcd( $numerator, $denominator );
+my $yy = $denominator / $g;
+
+## [ find k such that yy divides 10^k ] ##
+my $k = 0;
+while ( $yy % 2 == 0 ) { $yy /= 2; $k++; }
+while ( $yy % 5 == 0 ) { $yy /= 5; $k++; }
+
+my $n = $numerator * ( 10**$k ) / $denominator;
+my $a = int( $n / ( 10**$k ) );
+my $b = $n % ( 10**$k );
+
+## [ self-referential boundary when integer part is zero ] ##
+return $denominator if $a == 0;
+
+## [ scale = integer part of reversed decimal * denominator ] ##
+return $b * $denominator;
+
+#,,,.,,,,,,,,,,.,,.,.,,.,,..,,...,,.,,.,,,,.,,..,,...,...,,.,,...,.,.,,,,,...,
+
+#,,,,,.,.,,.,,,,,,,,.,,,.,.,,,.,.,,..,,,,,,,.,..,,...,...,,,.,...,...,,,,,,,,,
+#SZFVQQOEOY6F7MNXFWD2ESBOD6XLIBULLHBJA7CVVYZ6KMG6C7QTJRYKJXWOLEQLNN2QWOYLAD2VY
+#\\\|Z7SB5NF5LHRWA6PTRFJ3U4LT5563IUIFE6LWGQ4VJ6DGGQZN34G \ / AMOS7 \ YOURUM ::
+#\[7]5IJDCMVVK4FBGE7WC3P5K3MD4AAQGRLZQFQHVCABSUAW2JPXSKAA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

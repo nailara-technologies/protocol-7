@@ -1,0 +1,94 @@
+## [:< ##
+
+# name  = branch.field.split
+# descr = close current branch, register two child branches
+# param = { id, ratio }
+#
+# children inherit proportional capacity from parent
+# ratio defaults to 0.5 [ equal split ]
+
+my $params = shift // {};
+
+my $id    = $params->{'id'}    // '';
+my $ratio = $params->{'ratio'} // 0.5;
+
+return { 'mode' => 'false', 'data' => 'id required' }
+    unless length $id;
+return { 'mode' => 'false', 'data' => 'branch not found' }
+    unless exists $data{'branch.field'}{$id};
+
+my $node = $data{'branch.field'}{$id};
+return { 'mode' => 'false', 'data' => 'branch already closed' }
+    if ( $node->{'state'} // '' ) eq 'closed';
+
+my $axes = $node->{'axes'} // {};
+return { 'mode' => 'false', 'data' => 'no axes defined' }
+    unless keys %$axes;
+
+## [ capture capacities before close ] ##
+my %capacities;
+for my $name ( keys %$axes ) {
+    $capacities{$name}
+        = ( $axes->{$name}{'boundary'} // 0 )
+        - ( $axes->{$name}{'position'} // 0 );
+}
+
+## [ close parent ] ##
+my $close_result = <[branch.field.close]>->($id);
+return $close_result
+    if ref $close_result eq 'HASH'
+    and $close_result->{'mode'} eq 'false';
+
+## [ create two child branches ] ##
+my @child_ids;
+my $ntime = <[base.time]>->(4);
+
+for my $n ( 1, 2 ) {
+    my $child_axes = {};
+    for my $name ( keys %$axes ) {
+        my $cap        = $capacities{$name};
+        my $child_cap  = $n == 1
+            ? int( $cap * $ratio )
+            : $cap - int( $cap * $ratio );
+        $child_axes->{$name} = {
+            'boundary' => $child_cap,
+            'position' => 0,
+        };
+    }
+
+    ## [ determine child state ] ##
+    my $open_count = grep {
+        ( $child_axes->{$ARG}{'boundary'} // 0 ) > 0
+    } keys %$child_axes;
+
+    my $child_state = 'closed';
+    $child_state = 'open'  if $open_count == 1;
+    $child_state = 'field' if $open_count >= 2;
+
+    my $child_id = join( ':', $id, 'split', $ntime, $n );
+    $data{'branch.field'}{$child_id} = {
+        'axes'     => $child_axes,
+        'state'    => $child_state,
+        'parent'   => undef,
+        'period'   => undef,
+        'children' => [],
+    };
+
+    push @child_ids, $child_id;
+    push @{ $node->{'children'} }, $child_id;
+}
+
+<[base.logs]>->(
+    2, 'branch.field.split: %s -> [%s, %s]',
+    $id, $child_ids[0], $child_ids[1]
+);
+
+return { 'mode' => 'true', 'data' => \@child_ids };
+
+#,,,.,,,,,,,,,,.,,.,.,,.,,..,,...,,.,,.,,,,.,,..,,...,...,,.,,...,.,.,,,,,...,
+
+#,,..,,.,,,,,,,..,.,.,,..,...,,..,...,.,,,,.,,..,,...,...,...,,,,,,,,,..,,...,
+#IZH6YQ23STTGCDDR3V36ZWIK4HVJF7T2QTYBMEOHAI2AYCI66GQVQPI77PTOCSGQRHKBEQO7FOWQM
+#\\\|3YOLQYXNDXW4KLM7VWKCF6N53TQCNEBWCI26FUPROHQQPOSPCPV \ / AMOS7 \ YOURUM ::
+#\[7]RCK3CAXGAKWCXVNTC636452Y2NAV6ZOP32JSYPEE6FYE6XYRA4DY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

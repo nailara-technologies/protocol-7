@@ -1,0 +1,35 @@
+## [:< ##
+
+# name  = branch.cluster.ring_position
+# descr = map bmw384 address to 1001-ring harmonic index (0..12).
+#         index = bmw384_as_bigint mod 13
+# param = cluster_name
+
+my ($cluster_name) = @ARG;
+
+return <[base.logs]>->( 0, 'cluster name required <{C1}>' )
+    unless defined $cluster_name
+    and length $cluster_name;
+
+my ( $hex, $err )
+    = <[branch.cluster.address]>->($cluster_name);
+
+return <[base.logs]>->(
+    1, 'cannot compute address for [ %s ] : %s <{C1}>',
+    $cluster_name, $err // 'unknown error'
+) unless defined $hex;
+
+## [ convert hex to bigint, mod 13 ] ##
+##
+my $bigint = Math::BigInt->new( '0x' . $hex );
+my $ring_pos = ( $bigint % 13 )->numify;
+
+return wantarray ? ( $ring_pos, undef ) : $ring_pos;
+
+#,,,.,.,,,.,.,,,.,...,...,,..,,..,...,..,,,,,,..,,...,...,..,,.,.,..,,.,.,.,.,
+
+#,,.,,...,...,.,.,,,.,,.,,,,.,.,,,...,.,,,...,..,,...,...,,..,...,,..,..,,..,,
+#WA5435MKQCWSKK4I7UAM5LMYHMNEVP3EA5GMJIB2UB74Q34HETRAATDVPYKYORYWEOFZ4NE2YTBDO
+#\\\|PBPVDWDIHL6NDNMHEKDELHJJJAMJQQPWTU5PCTAJOPRGTFLMQJ7 \ / AMOS7 \ YOURUM ::
+#\[7]7UHAPWOB7CNYELTAURB5H6SVQ7GM7U3Z3ZZBRDAFNECWHD3OGCCI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -304,6 +304,266 @@ branch.cluster.validate       verify cluster has all five layers + gate
 
 ---
 
+## 5×7 trunk sort — the outermost parent map
+
+the outermost parent of any branch cluster is a **5×7 field**:
+
+```
+5 columns  =  the five layers (task / template / design / intent / address)
+7 rows     =  the seven instances in the generator family
+aspect ratio 5:7  →  5/7 = 0.714285…  =  rotation of 142857 (1/7 family)
+the map's own ratio is harmonically self-describing
+```
+
+the gravity core is the reference-count centroid of the 35-element grid.
+elements with higher reference counts attract toward the center.
+
+### orthogonal reduction (trunk-based sort)
+
+reduce the 7-axis toward the highest-weighted row:
+
+```
+symmetric pairs along the 7-axis  →  cancel (opposite phase, sum to zero)
+asymmetric remainder               →  survive as the trunk elements
+result: 5 elements (one per column) — the trunk
+frequency halves: one full period of the 7-oscillation collapses to net value
+```
+
+this is wave-cancellation sorting — redundancy eliminated by symmetry,
+not by comparison. two namespace entries that are mirror images cancel;
+the trunk holds only structurally unique entries.
+
+### fielding itself (self-similar recursion)
+
+the 5×7 map applies its own reduction rules at every sub-scale. the trunk
+becomes the column axis of the next level's map; a new 7-row dimension
+opens. the field expands by applying trunk-sorting to its own expansion
+front — the algorithm fields itself through sub-branch coverage.
+
+### tree protocol operation
+
+```
+tree protocol sees:    namespace nodes with reference weights
+5×7 map sorts them:   project onto trunk (weight axis)
+                       cancel symmetric pairs orthogonally
+                       remainder = sorted, non-redundant branch list
+                       trunk = the main inheritance line for routing
+```
+
+---
+
+## routing page propagation — bit direction and carry
+
+reference implementations: `bin/amos-data-pager` (72-bit) and
+`bin/amos-data-pager-56` (56-bit).
+
+### the routing word (56-bit format)
+
+7 bytes = 56 bits, interpreted as 8 groups of 7 bits with a leading
+routing bit per group:
+
+```
+groups 0..6  →  leading bit '1'  →  awaiting rollover  →  moves RIGHT (circulates)
+group  7     →  leading bit '0'  →  carry out          →  moves LEFT (toward root)
+```
+
+the leading bit IS the direction bit. direction is not a property of the
+bit's content — it is a property of its phase in the carry cycle. this is
+implemented in `bin_to_comp_int_2` in `amos-data-pager-56`.
+
+### page structure
+
+```
+page  =  20 lines × 7 bytes  =  140 bytes  (one routing page)
+line  =  7 bytes = 56 bits = 8 × 7-bit groups with leading routing bit
+72-bit variant: 9 bytes × 8 bits, calibrated to 13 BCD groups (52/4=13)
+```
+
+### representative extraction
+
+`true_int(line)` — the harmonic truth test (AMOS7::Assert::Truth / division
+by 13) selects lines ready to carry:
+
+```
+true_int = true   →  representative extracted, bit carries LEFT toward root
+true_int = false  →  bit circulates locally, awaiting rollover
+```
+
+colored lines in the pager display are exactly the carry-ready bits.
+non-colored lines are in the rightward (circulating) phase.
+
+### rollover decision
+
+```
+segment fills  →  rollover:
+  carry over   →  bit exits segment left, enters next segment (propagates up)
+  fall back    →  bit restarts from right end of same segment (circulates)
+```
+
+carry vs fall-back is the routing choice. carry = the bit's true_int test
+passed AND the segment boundary was reached. fall-back = boundary reached
+but truth test did not pass — bit returns to circulation.
+
+### suction and attachment
+
+```
+bit extracted (true_int, carries left)
+  →  slot vacated in segment
+  →  lower "pressure" than segments below
+  →  new bits sucked upward into vacated space
+  →  passing segments create attachment surface
+  →  new bit latches onto moving segment's slipstream
+```
+
+### the three axes and staircase geometry
+
+the 2D routing page has a third axis — Z depth — making it a staircase
+viewed frontally. the 2D projection conceals this:
+
+```
+X   column / bit position   LEFT-RIGHT along the page
+Y   row / segment index     UP-DOWN along the page  
+Z   staircase depth         NEAR-FAR, perpendicular to the 2D view
+```
+
+four directions reconsidered with Z:
+
+```
+LEFT    toward root         — departure, moving left in XY
+RIGHT   toward leaf         — arrival/negotiation, moving right in XY
+UP      Z toward viewer     — reducing depth, deduplication, hyperspace
+                              many deep instances collapse to one front face
+                              the front face is the holographic boundary
+DOWN    Z away from viewer  — increasing depth, more tree levels
+                              only reachable from overflow at UP boundary
+                              wraps to deepest step, rightmost column
+```
+
+each staircase step: width = segment length (7 bits), height = page rows
+(20 lines), depth = one tree level / one vortex cycle. the diagonal `\`
+in the source.init_code diagram is the staircase edge silhouette projected
+onto the 2D face — not a flat diagonal.
+
+the auxiliary 15-bit column shows Z-depth oscillations projected onto Y.
+reading it vertically across iterations reveals the helix spiral arm
+advancing: bits promoted leftward (toward root) AND forward (toward Z=0)
+simultaneously. rightmost zeros in early rows are unvisited staircase
+positions — the spiral arm has not yet reached them.
+
+the vortex in 3D:
+
+```
+LEFT → UP (reducing Z, toward front face)
+     → overflow at Z=0
+     → wraps to Z=N back of staircase (DOWN)
+     → emerges rightmost column, bottom row
+     → promoted LEFT + UP again
+     → helix completes one full turn
+```
+
+Z-depth of a bit = its TTL = number of vortex cycles completed at
+this position. DOWN routing words (`D+`, `D-`, `D<`) in the decoded
+column are bits returning from Z=0 overflow, re-entering the staircase
+at maximum depth.
+
+### geometry connection
+
+```
+7 groups + 1 terminal = 8  =  7+1  (same +1 gate geometry as 5+1+5=11)
+56 = 7 × 8  →  7/8 = 0.875 (terminates)  →  reverse: 8.7  →  8×7=56 (self-ref)
+the segment length encodes its own total in the reversal
+```
+
+### bidirectional motion with leftward bias
+
+routing bits do not move uniformly leftward. they follow harmonic cycles
+with a net leftward bias:
+
+```
+period-3 cycle:   2 left, 1 back right   →  net 1 left per 3 steps
+period-5 cycle:   4 left, fall back 4    →  net 1 left per 5 steps
+                  (the 5th step is the harmonic truth gate)
+```
+
+both ratios yield the same net throughput (1 leftward gain per cycle)
+at different rhythms. the period-5 pattern maps directly to the
+division-13-table arithmetic: `<<= 4` advances 4 bits, `/= 13` subtracts
+~3.7 bits (log₂13), net ~0.3 bits per step. the truth-conditional shift
+(`<<= is_true ? 2 : 1`) IS the 5th-step gate — it either confirms the
+net gain or adds extra momentum.
+
+two streams cross on the same routing page simultaneously:
+```
+→→→→  leftward departure stream (biased)
+←←←←  rightward arrival stream (sub-segment logic)
+```
+
+the interference pattern of the crossing streams IS the information.
+the waveforms in the auxiliary 15-bit column are the interference fringes.
+
+### sub-segment valve — the ratchet
+
+within each 56-bit routing word:
+
+```
+groups 0-6  (leading '1', paused):  bidirectional — can oscillate
+                                     left/right within the period cycle
+group 7     (leading '0', frontier): one-way leftward only
+                                     accumulates carry from groups 0-6
+                                     cannot be pushed back right
+                                     this is the sub-segment ratchet
+```
+
+between segments: no backflow — inter-segment is a one-way valve.
+between Z-levels (UP): one-way through hyperspace, content replaced by
+its BMW384 hash. DOWN return: arrives at bottom of staircase on the
+representational alternate structure (the content-addressed store),
+not at the original departure position.
+
+### the UP valve and representational alternate structure
+
+```
+going UP (Z toward viewer):
+  original content → BMW384 hash → enters hyperspace
+  original released from routing page
+  hash is the deduplicated reference (many-to-one compression)
+
+arriving back (DOWN, from hyperspace overflow):
+  arrives at BOTTOM of staircase (different from departure point)
+  arrives AS the hash, not as original content
+  lands on representational alternate structure (content-addressed store)
+  original materializes only on explicit request (lazy expansion)
+```
+
+DOWN routing words (`D+`, `D-`, `D<`) mark bits completing a vortex cycle
+and re-entering the staircase from the bottom after hyperspace routing.
+
+### subroutine taxonomy additions
+
+**tree.sort.trunk.*
+```
+tree.sort.trunk.project          project namespace entries onto trunk (weight axis)
+tree.sort.trunk.cancel_symmetric eliminate symmetric pairs (wave cancellation)
+tree.sort.trunk.remainder        return asymmetric survivors (the trunk)
+tree.sort.trunk.halve_frequency  collapse one oscillation period to net value
+tree.sort.trunk.field_self       apply reduction to expansion front recursively
+```
+
+**tree.route.page.*
+```
+tree.route.page.read             read routing page (N lines × W bytes)
+tree.route.page.encode_56        7 bytes → 56-bit routing word with leading bits
+tree.route.page.decode_56        56-bit routing word → 7 groups + routing bits
+tree.route.page.bit_direction    leading bit → LEFT (carry) or RIGHT (circulate)
+tree.route.page.rollover         handle segment end: carry or fall-back decision
+tree.route.page.extract          harmonic truth test + representative extraction
+tree.route.page.suction          fill vacated slots upward from below
+tree.route.page.attach           new bits latching onto passing segment
+tree.route.page.navigate         cursor: line_up / line_down / page_up / page_down
+```
+
+---
+
 ## connections to existing design docs
 
 - `BRANCH-NAMESPACE-MASTER.md`  — layer architecture this extends
@@ -314,8 +574,8 @@ branch.cluster.validate       verify cluster has all five layers + gate
 - `SELF-DELIMITING-CHECKSUM-PATTERN.md`  — 2-bit frame + chain structure
 - `HARMONIC-ENTROPY-OBSERVER-GUIDE.md`  — 1001 ring, generator families
 
-#,,,,,..,,,..,.,.,..,,,,,,...,..,,,,,,,,.,,,,,..,,...,...,,,,,,..,.,.,.,.,,.,,
-#2QHVIPKK4BOKUCLFRWPUESL6HYU57ZDTL3CF6247FRMVK7UERPQHBUA3RR5JGWJEXWFWKNBRYC7W4
-#\\\|JHJSQVDOQIBRDCXOTQZLHSSRPWUCUNIBEVK6FLLS57CLLRLBOZY \ / AMOS7 \ YOURUM ::
-#\[7]LKZWEOJV7SJCE6UWGIQKTOYGDT4DJ5IX3NJTXMF52XBPLJ2V5QCY 7  DATA SIGNATURE ::
+#,,,,,..,,..,,,,,,,.,,...,.,,,.,.,,,.,,.,,,.,,..,,...,..,,..,,,,,,,,.,,..,,.,,
+#3AV7DRTRERQBIZ53FEHNU45SUBRO77C3D5B4O3ELDILU6RCJZITMEVPZF6SCPLXLP7QOPBRXYIVQY
+#\\\|V7OP643K42HEMM7NNY6AAYBOODZZ622CAUOQAFWSKEHKSFHPMQ6 \ / AMOS7 \ YOURUM ::
+#\[7]XDMSA5CYY2XXNKGTDOE7YGXKSWQSKCFA2W4U5BD377UQBFAFMUAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

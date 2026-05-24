@@ -1,0 +1,36 @@
+## [:< ##
+
+# name  = branch.calc.fraction.coupling_find
+# descr = scan X/Y pairs for period length at or below threshold
+# param = pairs_arrayref, max_period_length
+#
+# pairs = [ [x1,y1], [x2,y2], ... ]
+# returns arrayref of qualifying pairs
+
+my ( $pairs, $threshold ) = @ARG;
+
+return undef
+    if not defined $pairs
+    or ref $pairs ne qw| ARRAY |
+    or not defined $threshold;
+
+my @result;
+
+for my $pair (@$pairs) {
+    next if ref $pair ne qw| ARRAY | or @$pair < 2;
+    my ( $x, $y ) = @$pair;
+    next if not defined $x or not defined $y or $y == 0;
+    my $len = <[branch.calc.fraction.period_length]>->( $x, $y );
+    next if not defined $len;
+    push @result, $pair if $len <= $threshold;
+}
+
+return \@result;
+
+#,,,.,,,,,,,,,,.,,.,.,,.,,..,,...,,.,,.,,,,.,,..,,...,...,,.,,...,.,.,,,,,...,
+
+#,,.,,,.,,,,,,..,,,,.,...,,..,...,.,.,.,.,,.,,..,,...,...,.,.,,,.,.,,,...,,.,,
+#Z2SSXJUTFYICCLJIJ35RHKZC5P3OJ3BFHIFEHWO25OKEB4XTK2ZXVOEOESDMHQAMCG3ZL7B2NBRWA
+#\\\|J4RULPZTRPIWO7ADCSF4WRYOCZERFRY7RP7BKS75LQLVPN3MVSM \ / AMOS7 \ YOURUM ::
+#\[7]CMBPDYMU43RZ4V2KHE3OGESDOWNGSGO73YHKZ5BA4XSWX6PJYWAA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

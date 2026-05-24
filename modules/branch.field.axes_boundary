@@ -1,0 +1,28 @@
+## [:< ##
+
+# name  = branch.field.axes_boundary
+# descr = hashref of boundary per axis
+# param = id
+#
+# returns { axis_name => boundary, ... }
+# returns undef if branch not found
+
+my ($id) = @ARG;
+
+return undef
+    if not defined $id
+    or not exists $data{'branch.field'}{$id};
+
+my $axes = $data{'branch.field'}{$id}{'axes'} // {};
+
+my %bounds = map { $ARG => $axes->{$ARG}{'boundary'} // 0 } keys %$axes;
+
+return \%bounds;
+
+#,,,.,,,,,,,,,,.,,.,.,,.,,..,,...,,.,,.,,,,.,,..,,...,...,,.,,...,.,.,,,,,...,
+
+#,,,.,..,,,,.,,,.,,..,...,..,,,,,,,.,,...,,,.,..,,...,...,,..,...,,,,,,,,,,,.,
+#DOC76TA4LGDH6J55DSI5CZM5KL6T37I7VNNGO7Y6VT46E5K2PRSGMKMOQES5EFZQWPMALZAWGX6GS
+#\\\|5RRC6ALWWGMJAG7LOOJCXL32HQ7U2PAL4RZKZEXAI57YP4WSBTQ \ / AMOS7 \ YOURUM ::
+#\[7]L4CV6SCJIDTTVKSY4T4RFVZIIO3ZNX4GCDNO4OCUX5JNOFUMX4CQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
