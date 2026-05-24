@@ -1,0 +1,96 @@
+## [:< ##
+
+# name  = branch.cluster.validate
+# descr = check that a cluster has all five layers populated,
+#         a gate address computed, and ring position consistent.
+#         returns list of missing / invalid items.
+# param = cluster_name  or  cluster_hashref
+
+my ($arg) = @ARG;
+
+return <[base.logs]>->( 0, 'cluster name or hashref required <{C1}>' )
+    unless defined $arg;
+
+my ( $cluster, $cluster_name );
+
+if ( ref $arg eq 'HASH' ) {
+    $cluster      = $arg;
+    $cluster_name = $arg->{'name'};
+} else {
+    $cluster_name = $arg;
+    my $root_path = <system.root_path> // '.';
+    my $yaml_path = sprintf '%s/data/yaml/cluster-registry/%s.yaml',
+        $root_path, $cluster_name;
+
+    my ( $yaml_data, $err )
+        = <[format.yaml.load_file]>->($yaml_path);
+
+    if ( not defined $yaml_data ) {
+        return ( sprintf 'registry not found [ %s ]', $cluster_name );
+    }
+    $cluster = $yaml_data;
+}
+
+my @issues;
+
+## [ name must be present ] ##
+##
+push @issues, 'missing cluster name'
+    unless defined $cluster_name
+    and length $cluster_name;
+
+## [ all five layers must be populated ] ##
+##
+my $layers = $cluster->{'layers'};
+if ( not defined $layers or ref $layers ne 'HASH' ) {
+    push @issues, 'missing layers section';
+} else {
+    my @required = qw| task template design intent address |;
+    for my $layer_type (@required) {
+        my $entry = $layers->{$layer_type};
+        my $has_content = 0;
+        if ( ref $entry eq 'ARRAY' and scalar @$entry ) {
+            $has_content = 1;
+        } elsif ( ref $entry eq '' and length $entry ) {
+            $has_content = 1;
+        }
+        push @issues, sprintf 'empty layer [ %s ]', $layer_type
+            unless $has_content;
+    }
+}
+
+## [ gate address must be computed ] ##
+##
+my $address = $cluster->{'address'};
+push @issues, 'missing gate address'
+    unless defined $address
+    and length $address;
+
+## [ ring position must be consistent with address ] ##
+##
+my $ring_pos = $cluster->{'ring_pos'};
+if ( defined $address and length $address ) {
+    my $expected_pos
+        = ( Math::BigInt->new( '0x' . $address ) % 13 )->numify;
+
+    if ( defined $ring_pos and $ring_pos ne '' ) {
+        push @issues,
+            sprintf 'ring position mismatch [ %s != %s ]',
+            $ring_pos, $expected_pos
+            if $ring_pos != $expected_pos;
+    } else {
+        push @issues, 'missing ring position';
+    }
+} else {
+    push @issues, 'cannot verify ring position without address';
+}
+
+return @issues;
+
+#,,,.,.,,,.,.,,,.,...,...,,..,,..,...,..,,,,,,..,,...,...,..,,.,.,..,,.,.,.,.,
+
+#,,.,,..,,...,,,.,,,.,.,,,...,,..,.,.,...,...,..,,...,..,,,.,,..,,.,,,.,,,...,
+#XIZQW72266WX6YXJ47JQPKTCXWEI5SVXVNKPSCG6FXXUV4LEOCUGDFU3Y3ISGFHXNLNBQ2VP5QKBE
+#\\\|CTZXJDCXQVZXJN6HFGWRKEXPX6RTQOJLADV6NTSVA55Q4RCLMHA \ / AMOS7 \ YOURUM ::
+#\[7]PENTQGNA7PVNW4EFQ5FHBK6RIAVOSKF3DAOX6QOTKJHS5YOXP2AA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

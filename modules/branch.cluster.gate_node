@@ -1,0 +1,34 @@
+## [:< ##
+
+# name  = branch.cluster.gate_node
+# descr = return the gate node identifier (+1 node that closes cluster).
+#         the gate is the bmw384 address itself, stored as branch node.
+# param = cluster_name
+
+my ($cluster_name) = @ARG;
+
+return <[base.logs]>->( 0, 'cluster name required <{C1}>' )
+    unless defined $cluster_name
+    and length $cluster_name;
+
+my ( $hex, $err )
+    = <[branch.cluster.address]>->($cluster_name);
+
+return <[base.logs]>->(
+    1, 'cannot compute gate for [ %s ] : %s <{C1}>',
+    $cluster_name, $err // 'unknown error'
+) unless defined $hex;
+
+## [ gate node is the address hex itself ] ##
+##
+return wantarray
+    ? ( $hex, undef )
+    : $hex;
+
+#,,,.,.,,,.,.,,,.,...,...,,..,,..,...,..,,,,,,..,,...,...,..,,.,.,..,,.,.,.,.,
+
+#,,,,,...,..,,,..,..,,,,,,...,...,...,,.,,,.,,..,,...,...,.,,,..,,,,,,.,.,,.,,
+#UYKKUKVP4CSSS7ZKVC3NP6HVDQVJ5YVKQEVMH7ZMB7LFWZIR4O7B44IMCULS7YXF5SFKYAICH5J2O
+#\\\|3QKYOG5K76CUMS7K5DR6BXDVRJ276SYUBGKO5BHA724RHO5VMQU \ / AMOS7 \ YOURUM ::
+#\[7]HIYQJQFSEG2CHCKQXYJCDQ5EZ7I6LLKNCWOX5R643BQVFU3C4YAY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

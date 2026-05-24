@@ -1,0 +1,28 @@
+## [:< ##
+
+# name  = branch.calc.fraction.terminates
+# descr = true if Y has only prime factors 2 and 5
+# param = numerator, denominator
+#
+# pure arithmetic check — no long division needed
+
+my ( $numerator, $denominator ) = @ARG;
+
+return undef
+    if not defined $numerator
+    or not defined $denominator
+    or $denominator == 0;
+
+my $yy = $denominator;
+while ( $yy % 2 == 0 ) { $yy /= 2; }
+while ( $yy % 5 == 0 ) { $yy /= 5; }
+
+return $yy == 1 ? TRUE : FALSE;
+
+#,,,.,,,,,,,,,,.,,.,.,,.,,..,,...,,.,,.,,,,.,,..,,...,...,,.,,...,.,.,,,,,...,
+
+#,,.,,..,,,..,...,.,,,.,.,.,,,,,.,,,,,,,,,...,..,,...,...,.,.,..,,,..,..,,.,,,
+#3LYZEQJVTIV6UFRVK3CPRFTQU22DJ7F4PXUZNZVEX7P2JPQAXK45EF32E6B6E35FII43FKBXJGHZQ
+#\\\|TESWGTRC5BLRGUSSQ35XEPGHJAKHEAPD2WY5BOUZC6PQCOURYL4 \ / AMOS7 \ YOURUM ::
+#\[7]ZJN4KE7R2I7PNEQLHNDPI276VXDOTHUDSBPGSQITNNGRBWKQYADA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

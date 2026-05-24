@@ -1,0 +1,42 @@
+## [:< ##
+
+# name  = branch.calc.fraction.period
+# descr = compute repeating period string for X/Y via long division
+# param = numerator, denominator
+#
+# return empty string if terminates
+
+my ( $numerator, $denominator ) = @ARG;
+
+return undef
+    if not defined $numerator
+    or not defined $denominator
+    or $denominator == 0;
+
+## [ long division : track remainders, detect repeat ] ##
+my $rem = $numerator % $denominator;
+my %seen;
+my $pos = 0;
+my $period_str = '';
+
+while ( $rem != 0 ) {
+    last if exists $seen{$rem};
+    $seen{$rem} = $pos++;
+    $rem *= 10;
+    my $digit = int( $rem / $denominator );
+    $period_str .= $digit;
+    $rem = $rem % $denominator;
+}
+
+return '' if $rem == 0;    ## [ terminates ] ##
+
+my $start = $seen{$rem};
+return substr( $period_str, $start );
+
+#,,,.,,,,,,,,,,.,,.,.,,.,,..,,...,,.,,.,,,,.,,..,,...,...,,.,,...,.,.,,,,,...,
+
+#,,.,,.,.,,..,,,.,,.,,,..,,,,,,,,,..,,...,..,,..,,...,...,...,,,,,...,.,,,,,,,
+#SW5L3NWJDXPZG4OPQAS2ST4OEPTHWA2O3KNZM3AHSI67WDKVE5WDTR4KQF6O7ZGXAAX3ZTYPFYMOM
+#\\\|AHHJWU4Q7OCMAJFWP63L7GPFAKRFVVVLWZNVIS34KUXBSXF4UCN \ / AMOS7 \ YOURUM ::
+#\[7]52FUHS6HQ5FR3FJ7KESXVFVDW6L4LMQUWCNW5RK3HR5TA52CFOCA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

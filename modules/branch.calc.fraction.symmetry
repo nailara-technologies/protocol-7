@@ -1,0 +1,73 @@
+## [:< ##
+
+# name  = branch.calc.fraction.symmetry
+# descr = detect symmetry type of period for X/Y
+# param = numerator, denominator
+#
+# returns : palindrome | self-ref | rotation | none
+
+my ( $numerator, $denominator ) = @ARG;
+
+return undef
+    if not defined $numerator
+    or not defined $denominator
+    or $denominator == 0;
+
+## [ terminating : check for self-referential a.b where a == b ] ##
+if (
+    <[branch.calc.fraction.terminates]>->( $numerator,
+        $denominator ) )
+{
+
+    ## [ helper : greatest common divisor ] ##
+    sub _gcd {
+        my ( $a, $b ) = @ARG;
+        $a = abs($a);
+        $b = abs($b);
+        while ($b) {
+            my $t = $b;
+            $b = $a % $b;
+            $a = $t;
+        }
+        return $a;
+    }
+
+    my $g  = _gcd( $numerator, $denominator );
+    my $yy = $denominator / $g;
+    my $k  = 0;
+    while ( $yy % 2 == 0 ) { $yy /= 2; $k++; }
+    while ( $yy % 5 == 0 ) { $yy /= 5; $k++; }
+
+    my $n = $numerator * ( 10**$k ) / $denominator;
+    my $a = int( $n / ( 10**$k ) );
+    my $b = $n % ( 10**$k );
+
+    return qw| self-ref | if $a == $b;
+    return qw| none |;    ## [ terminating but not self-ref ] ##
+}
+
+my $period_str
+    = <[branch.calc.fraction.period]>->( $numerator, $denominator );
+return undef if not defined $period_str;
+
+## [ palindrome check ] ##
+return qw| palindrome |
+    if $period_str eq reverse($period_str);
+
+## [ rotation check against known generator families ] ##
+my @canon = qw| 076923 142857 153846 |;
+for my $c (@canon) {
+    next if length($period_str) != length($c);
+    my $double = $c . $c;
+    return qw| rotation | if index( $double, $period_str ) >= 0;
+}
+
+return qw| none |;
+
+#,,,.,,,,,,,,,,.,,.,.,,.,,..,,...,,.,,.,,,,.,,..,,...,...,,.,,...,.,.,,,,,...,
+
+#,,,,,.,.,..,,.,.,,,,,..,,.,.,,,,,,,,,,,.,.,.,..,,...,...,.,,,...,,,.,,,,,..,,
+#CYE3V766I6S6FSLAFO7H2LMOGUA2CDSNLG5S5DJFGWN7NV4S2Y6VVENTDNEPWBA7RUHL4LYYM2MYU
+#\\\|WQ7RWYUGQQNHWB2CBNZZMWZ7HQUKADXAKOR4LS2MDPFMWG5WZSN \ / AMOS7 \ YOURUM ::
+#\[7]ZDXZA7VHJC774ZMYDXAGFGTNAMHRJDB3DMHULCC5SVJNDVOJQIAA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

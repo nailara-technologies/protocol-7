@@ -1,0 +1,66 @@
+## [:< ##
+
+# name  = branch.field.close
+# descr = mark closed, extract period fingerprint, store parent
+# param = id
+#
+# period computed via 1 / boundary of primary axis
+# parent looked up from period or reverse scale
+
+my ($id) = @ARG;
+
+return { 'mode' => 'false', 'data' => 'id required' }
+    unless defined $id;
+return { 'mode' => 'false', 'data' => 'branch not found' }
+    unless exists $data{'branch.field'}{$id};
+
+my $node = $data{'branch.field'}{$id};
+my $axes = $node->{'axes'} // {};
+
+## [ determine primary axis for fingerprint ] ##
+my $primary_axis = '';
+my @names = sort keys %$axes;
+$primary_axis = $names[0] if @names;
+
+my $period = '';
+my $parent = undef;
+
+if ( length $primary_axis ) {
+    my $boundary = $axes->{$primary_axis}{'boundary'} // 0;
+    if ( $boundary > 0 ) {
+        $period = <[branch.calc.fraction.period]>->( 1, $boundary ) // '';
+        if ( length $period ) {
+            $parent = <[branch.calc.fraction.parent_lookup]>->($period);
+        } else {
+            my $scale = eval {
+                <[branch.calc.fraction.reverse_scale]>->( 1, $boundary );
+            };
+            $parent = $scale if defined $scale;
+        }
+    }
+    $parent //= "boundary-$boundary";
+}
+
+$parent //= 'null-group';
+
+$node->{'state'}  = 'closed';
+$node->{'period'} = $period;
+$node->{'parent'} = $parent;
+
+<[base.logs]>->(
+    2, 'branch.field.close: %s period=%s parent=%s',
+    $id, $period // '', $parent // ''
+);
+
+return {
+    'mode' => 'true',
+    'data' => { 'period' => $period, 'parent' => $parent }
+};
+
+#,,,.,,,,,,,,,,.,,.,.,,.,,..,,...,,.,,.,,,,.,,..,,...,...,,.,,...,.,.,,,,,...,
+
+#,,.,,...,.,,,.,.,,,,,,.,,.,,,,.,,...,,.,,,,,,..,,...,...,.,,,,.,,...,,,.,...,
+#QTV5NJF6FLS54MINSYAKE6NHOHN442DBW6CQYTEGINYIK6VB546HTOWA564RG755LIWQTL3VMOXKO
+#\\\|NGAHS64JPZRGLSLTC3BLFOMJX3UGUAMZCEMK37MN5KLQYIWATRE \ / AMOS7 \ YOURUM ::
+#\[7]VARBW3M5N63YQXGA3LHDA7JU7ZKJ3BEWG3WXDYB6N5GB2WBYKYBI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

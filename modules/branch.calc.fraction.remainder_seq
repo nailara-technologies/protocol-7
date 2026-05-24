@@ -1,0 +1,35 @@
+## [:< ##
+
+# name  = branch.calc.fraction.remainder_seq
+# descr = return full list of remainders from long division of X/Y
+# param = numerator, denominator
+#
+# sequence length equals period length. orbit of X in group mod Y.
+
+my ( $numerator, $denominator ) = @ARG;
+
+return undef
+    if not defined $numerator
+    or not defined $denominator
+    or $denominator == 0;
+
+my @seq;
+my $rem = $numerator % $denominator;
+my %seen;
+
+while ( $rem != 0 ) {
+    last if exists $seen{$rem};
+    $seen{$rem} = 1;
+    push @seq, $rem;
+    $rem = ( $rem * 10 ) % $denominator;
+}
+
+return \@seq;
+
+#,,,.,,,,,,,,,,.,,.,.,,.,,..,,...,,.,,.,,,,.,,..,,...,...,,.,,...,.,.,,,,,...,
+
+#,,..,,,.,,,,,,,.,...,,,,,.,,,...,,..,.,,,.,.,..,,...,...,...,..,,,,.,.,,,,..,
+#FMCFY7DEPLK7WSPRUFPP3VN5VBUK422QMFABFD66COP3B6CJ7FD7ZB7GNFQTZOBNUUMPDEDG6QGZS
+#\\\|ADJRY52F3ADZVKG7EDCAOY3UTXH63JUIBSQ4QD5QJ4Z3YE3FE26 \ / AMOS7 \ YOURUM ::
+#\[7]CZHIFCQF2WGMRD55Z7VASXNK5W3BCEVVH35QTCCLPC2ASXH2X6CY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

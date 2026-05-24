@@ -1,0 +1,66 @@
+## [:< ##
+
+# name  = branch.cluster.mirror
+# descr = generate meta-cluster (5+1+5 reflection) of given cluster.
+#         each layer becomes its meta-equivalent without writing to disk.
+# param = cluster_name
+
+my ($cluster_name) = @ARG;
+
+return <[base.logs]>->( 0, 'cluster name required <{C1}>' )
+    unless defined $cluster_name
+    and length $cluster_name;
+
+my ( $layers, $err )
+    = <[branch.cluster.layers_list]>->($cluster_name);
+
+return <[base.logs]>->(
+    1, 'cannot load cluster [ %s ] : %s <{C1}>',
+    $cluster_name, $err // 'unknown error'
+) unless defined $layers;
+
+my $root_path = <system.root_path> // '.';
+my $yaml_path = sprintf '%s/data/yaml/cluster-registry/%s.yaml',
+    $root_path, $cluster_name;
+
+my ( $yaml_data, $yaml_err )
+    = <[format.yaml.load_file]>->($yaml_path);
+
+$yaml_data //= {};
+
+## [ build meta-layers : each path becomes meta-equivalent ] ##
+##
+my %meta_layers;
+for my $layer_type ( keys %$layers ) {
+    my $entry = $layers->{$layer_type};
+
+    if ( ref $entry eq 'ARRAY' ) {
+        $meta_layers{$layer_type}
+            = [ map { sprintf '%s-about-%s', $_, $layer_type } @$entry ];
+    } elsif ( ref $entry eq '' and length $entry ) {
+        $meta_layers{$layer_type}
+            = sprintf '%s-about-%s', $entry, $layer_type;
+    }
+}
+
+my $meta_cluster = {
+    qw| name   | => sprintf( '%s-meta', $cluster_name ),
+    qw| layers | => \%meta_layers,
+    qw| family | => {
+        qw| lower | => qw| 076923 |,
+        qw| upper | => qw| 153846 |,
+    },
+    qw| meta | => undef,
+};
+
+return wantarray
+    ? ( $meta_cluster, undef )
+    : $meta_cluster;
+
+#,,,.,.,,,.,.,,,.,...,...,,..,,..,...,..,,,,,,..,,...,...,..,,.,.,..,,.,.,.,.,
+
+#,,.,,,.,,.,.,,.,,,,,,,,.,,,,,,,.,,.,,.,,,,,.,..,,...,...,.,,,...,...,...,.,,,
+#EG3NNH6GFR7TEGLNELEET7JTV3TLRVW527OQDXH5J4C326HO6IWM7ZZLT7GT3EQVVRDTZXYM4OFDM
+#\\\|YOYW355UAIWDM27AMRI3GFDNF7UJ3ZFPNMN66BPXFMD6LGZRJ53 \ / AMOS7 \ YOURUM ::
+#\[7]3ICP5JPSCKMWPGCZOUJFHQKLIXWRJM346Q6DWAQZKFRP3ATIZABY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,0 +1,56 @@
+## [:< ##
+
+# name  = branch.cluster.address
+# descr = compute bmw384 hex digest of cluster content
+#         (concatenation of all layer paths + cluster name).
+#         this is the gate address — ring position derived from it.
+# param = cluster_name
+
+my ($cluster_name) = @ARG;
+
+return <[base.logs]>->( 0, 'cluster name required <{C1}>' )
+    unless defined $cluster_name
+    and length $cluster_name;
+
+my ( $layers, $err )
+    = <[branch.cluster.layers_list]>->($cluster_name);
+
+return <[base.logs]>->(
+    1, 'cannot load layers for [ %s ] : %s <{C1}>',
+    $cluster_name, $err // 'unknown error'
+) unless defined $layers;
+
+## [ build canonical content string : name + sorted layer paths ] ##
+##
+my @content_parts = ($cluster_name);
+
+for my $layer_type (
+    qw| task template design intent address |
+    ) {
+    my $entry = $layers->{$layer_type};
+    next unless defined $entry;
+
+    if ( ref $entry eq 'ARRAY' ) {
+        push @content_parts, sort @$entry;
+    } elsif ( ref $entry eq '' and length $entry ) {
+        push @content_parts, $entry;
+    }
+}
+
+my $content = join "\n", @content_parts;
+
+## [ compute bmw384 hexdigest ] ##
+##
+my $bmw = Digest::BMW->new(384);
+$bmw->add($content);
+my $hex = $bmw->hexdigest;
+
+return wantarray ? ( $hex, undef ) : $hex;
+
+#,,,.,.,,,.,.,,,.,...,...,,..,,..,...,..,,,,,,..,,...,...,..,,.,.,..,,.,.,.,.,
+
+#,,,.,,.,,,,,,.,.,,,.,,,.,,,,,,,.,.,.,,,,,,..,..,,...,...,...,.,.,..,,,,.,,..,
+#YUAOJ2WAMSEFYZ6YVEHQSZMBPHQWDZZMCC6X5O4HEEPVGLI34CLQSNNZDG7BTWGU5MU6WTF2MWTY2
+#\\\|6KT46CUZLQU7UOIMVHCHZ7R6IY2EQTXQDGNQYKGPQENNSGUVBPO \ / AMOS7 \ YOURUM ::
+#\[7]RJNDLKRNGCN7CP2HAGDKJFCGO32DRGWLOX2CURIGMR3XASTRKYBA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

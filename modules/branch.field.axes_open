@@ -1,0 +1,31 @@
+## [:< ##
+
+# name  = branch.field.axes_open
+# descr = list all axes with remaining capacity
+# param = id
+#
+# returns arrayref of axis names, sorted
+# returns undef if branch not found
+
+my ($id) = @ARG;
+
+return undef
+    if not defined $id
+    or not exists $data{'branch.field'}{$id};
+
+my $axes = $data{'branch.field'}{$id}{'axes'} // {};
+
+my @open = sort
+    grep {
+    ( $axes->{$ARG}{'boundary'} // 0 ) > ( $axes->{$ARG}{'position'} // 0 )
+    } keys %$axes;
+
+return \@open;
+
+#,,,.,,,,,,,,,,.,,.,.,,.,,..,,...,,.,,.,,,,.,,..,,...,...,,.,,...,.,.,,,,,...,
+
+#,,..,.,,,.,.,...,.,.,..,,.,.,,..,,,,,,..,,,,,..,,...,...,,.,,..,,..,,,,,,.,.,
+#NROPI7SABHMTSWH7VSX76TQQKOHSFJMTU3YPDXKEL27AL5ADJLVW2MSTL3TKLR63FS7W3MLQ5IELO
+#\\\|YLFPGK5DNS4CFZ4YRPQWV763VXOPZKMX2RNH2CJUNZ7VXDA23T4 \ / AMOS7 \ YOURUM ::
+#\[7]X3MIABWA2TLEMYRMATWS2AJTWGSDXBMRCZFLIMEYJ5EE2ZNI4WBI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

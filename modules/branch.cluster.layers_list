@@ -1,0 +1,47 @@
+## [:< ##
+
+# name  = branch.cluster.layers_list
+# descr = given cluster name, return hashref of all five layer entries
+#         from the registry yaml. error if registry yaml not found.
+# param = cluster_name
+
+my ($cluster_name) = @ARG;
+
+return <[base.logs]>->( 0, 'cluster name required <{C1}>' )
+    unless defined $cluster_name
+    and length $cluster_name;
+
+my $root_path = <system.root_path> // '.';
+my $yaml_path = sprintf '%s/data/yaml/cluster-registry/%s.yaml',
+    $root_path, $cluster_name;
+
+my ( $yaml_data, $err )
+    = <[format.yaml.load_file]>->($yaml_path);
+
+if ( not defined $yaml_data ) {
+    <[base.logs]>->(
+        1, 'cluster registry not found [ %s ] <{C1}>',
+        $cluster_name
+    );
+    return wantarray ? ( undef, 'registry not found' ) : undef;
+}
+
+my $layers = $yaml_data->{'layers'};
+
+if ( not defined $layers or ref $layers ne 'HASH' ) {
+    <[base.logs]>->(
+        1, 'cluster [ %s ] has no layers section <{C1}>',
+        $cluster_name
+    );
+    return wantarray ? ( undef, 'no layers section' ) : undef;
+}
+
+return wantarray ? ( $layers, undef ) : $layers;
+
+#,,,.,.,,,.,.,,,.,...,...,,..,,..,...,..,,,,,,..,,...,...,..,,.,.,..,,.,.,.,.,
+
+#,,,,,.,,,,.,,..,,.,.,,,,,,.,,...,.,,,..,,.,.,..,,...,...,..,,,,.,..,,,,,,,..,
+#TJOBJKFJPBDNSFXIW36RAVTZ4MY6Q4PBXRV5LYUYTFYYEMXV2OSVJ6KR62L3XMMR2PQN5553IYYRY
+#\\\|IYTIJJ3ACJTUMSWPTYK7APDEJ3GMSFXVCEK656MT4SQHEN5K5RK \ / AMOS7 \ YOURUM ::
+#\[7]VHTOHHM4WTCX4SAOA62Y4SMQUU6DE2BWD5LBR5HSESSOOH72RKCQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

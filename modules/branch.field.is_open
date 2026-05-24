@@ -1,0 +1,34 @@
+## [:< ##
+
+# name  = branch.field.is_open
+# descr = any axis with capacity > 0 → true
+# param = branch field id
+#
+# returns TRUE if branch is open or field state
+# returns FALSE if closed or not found
+
+my ($id) = @ARG;
+
+return FALSE
+    if not defined $id;
+return FALSE
+    if not exists $data{'branch.field'}{$id};
+
+my $node = $data{'branch.field'}{$id};
+my $axes = $node->{'axes'} // {};
+
+for my $axis_name ( keys %$axes ) {
+    my $axis = $axes->{$axis_name};
+    return TRUE
+        if ( $axis->{'boundary'} // 0 ) > ( $axis->{'position'} // 0 );
+}
+
+return FALSE;
+
+#,,,.,,,,,,,,,,.,,.,.,,.,,..,,...,,.,,.,,,,.,,..,,...,...,,.,,...,.,.,,,,,...,
+
+#,,.,,.,.,,..,,,,,...,...,.,.,,,.,..,,.,,,.,,,..,,...,...,.,,,,,.,,,,,.,,,,,.,
+#KFGKGW4PFPBAC3ZKRNXOCYBRMENBWKIP3NMPGF3CNIBKWIIBMTJ2JRRRHWECOR5HWWW3HM5WZ64RQ
+#\\\|GMFYDYNWUUOEOQ4CMF7YKJSKJ4XOY7B3ENNLZW4MD3ANQJBSO7Y \ / AMOS7 \ YOURUM ::
+#\[7]H4C2YLGSYBLVDZPPPATGAYDWFP4MVNOGAKUITNRMKWGTWIJJEADA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
