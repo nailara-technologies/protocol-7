@@ -11,16 +11,20 @@ my $results = <[index.search]>->($prefix);
 return { 'mode' => 'false', 'data' => 'no results' } unless @{$results};
 
 my @lines;
-push @lines, sprintf "search [ %s ] — %d results :", $prefix,
+push @lines, sprintf "search [ %s ] -- %d results :", $prefix,
     scalar @{$results};
 for my $r ( @{$results} ) {
-    push @lines, sprintf "  %6d  %s  [ rank %d ]", $r->[2], $r->[0], $r->[1];
+    ( my $seq = $r->[0] ) =~ s/\n/\\n/g;
+    $seq                  =~ s/\r/\\r/g;
+    $seq                  =~ s/\t/\\t/g;
+    $seq                  =~ s/\v/\\v/g;
+    push @lines, sprintf "  %6d  %s  [ rank %d ]", $r->[2], $seq, $r->[1];
 }
 
 return { 'mode' => 'size', 'data' => join( "\n", @lines ) };
 
-#,,.,,..,,.,,,,..,,..,,,.,,,,,,,.,,,.,,.,,...,..,,...,.,.,,.,,,,.,,,.,,,,,.,.,
-#IVA7F4HMXXXOVWYXHMMTPBYTCTFINXSMVJV3AJF4E33JKDAECCRTSDGQNSKO5EOPJ42I72CTTOT5C
-#\\\|UU3AHIJDYNEPV4PGEIY44FOFKDPJPGMFJ2UT5TCDEZ5CUPEQSLF \ / AMOS7 \ YOURUM ::
-#\[7]AMHLTEC6JPCHMSNB4ODNUMIMH5AHKLZL63JLAPEU5UEHHVT542DY 7  DATA SIGNATURE ::
+#,,.,,...,..,,.,.,..,,,..,,.,,...,..,,...,,..,..,,...,...,,.,,,.,,..,,.,.,.,,,
+#2LLKSLXPMDJ6WAZQEMZUPNQB3DV4GGKQ7JIKJ2NC24L4S5ENO7BFTMK7L2CHOERBQNPSQZXETT4WG
+#\\\|HBD43WAZTTVSWDWCMZHSZ2ZKDRCDBT3GI6AYHLGV4FV2XZS2MGG \ / AMOS7 \ YOURUM ::
+#\[7]PJA5BZ3WDEZRX4TVEWHEEVFLJQ76ZC7Y2HYSZD36ZO4GHTTXISBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
