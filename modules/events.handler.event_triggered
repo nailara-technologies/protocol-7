@@ -137,14 +137,12 @@ if ( $action_type eq qw| zenka-present | ) {
     <events.stack.overlay.visibility>->{$l_name} -= $change;
 }
 
-## [ check \ rework ]
-
-# if ( $ev_type eq qw| at | or $ev_type eq qw| end | ) {
-#     delete <events.unix.timetable>->{$ev_id};
-#     <event.timer.recalc>->cancel if defined <event.timer.recalc>;
-#     <event.timer.recalc> = <[event.add_timer]>
-#         ->( { 'at' => time + 1, 'handler' => qw| events.recalc | } );
-# }
+if ( $ev_type eq qw| at | or $ev_type eq qw| end | ) {
+    delete <events.unix.timetable>->{$ev_id};
+    <events.timer.recalc>->cancel if defined <events.timer.recalc>;
+    <events.timer.recalc> = <[event.add_timer]>
+        ->( { 'at' => time + 1, 'handler' => qw| events.recalc | } );
+}
 
 <[protocol-7.command.send.local]>
     ->( { 'command' => qw| cube.content.update | } )
@@ -221,8 +219,8 @@ if ( $action_type =~ m,^overlay\-(show|hide)$, ) {
         if 0 == ( <events.stack.overlay.visibility>->{$overlay_name} // -1 );
 }
 
-#,,,.,...,,.,,.,,,..,,,,,,,,.,,.,,..,,,.,,.,.,..,,...,...,..,,,,.,,,.,,,,,,,,,
-#ZSOO2VMEBZFXUANXWW3MCK2RCI752ZVRTVNXBW2V7LJBHQPEJNWVSNYV24YLS55MWGWNLPA6T7OE2
-#\\\|AH3JPD5Z4HQQXBHGNUVPAE5K2ESXK5YPXWD4N5LUWLKVDQEKVGT \ / AMOS7 \ YOURUM ::
-#\[7]N2FOXM3PSBHCCRU4Q3INUP2ZGMVBRKVRLY5GOJRBM7AA3LVAKECI 7  DATA SIGNATURE ::
+#,,,.,,,,,.,.,,,.,,..,,.,,,..,,,,,,,.,...,,,,,..,,...,...,,..,...,,.,,,..,,,.,
+#KXCZLPA6W3H3N2BBYROEZRQV6IX2J4ZC4DTPYDSNOYTMW644OP7EIAN4LDLPYQDU7SKWRBQIFBJWQ
+#\\\|GQL3DHWDEJYRLTAVA6BZGBJ77C2TTHMHBX22IL2IV7U3UQUVBAW \ / AMOS7 \ YOURUM ::
+#\[7]R75K62RU5WQ75ZNUB6PFL3WE3K7V34CVN3WGE3U37TS6H2IHQ4CY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
