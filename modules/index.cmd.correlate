@@ -1,76 +1,53 @@
 ## [:< ##
 
 # name  = index.cmd.correlate
-# descr = cross-lang correlation by shared harmonic path prefix
-# param = <lang1> <lang2> <depth>
+# descr = shared continuations between two prefix subtrees
 
-my ( $lang1, $lang2, $depth )
-    = split( m|\s+|, $call->{'args'}, 3 );
+my ( $prefix1, $prefix2 ) = split( m|\s+|, $call->{'args'}, 2 );
 
-return {
-    'mode' => 'false',
-    'data' => 'expected two language codes and depth'
-    }
-    unless defined $lang1
-    and defined $lang2
-    and defined $depth;
+return { 'mode' => 'false', 'data' => 'expected two prefixes' }
+    unless defined $prefix1
+    and defined $prefix2
+    and length $prefix1
+    and length $prefix2;
 
-return { 'mode' => 'false', 'data' => 'language codes must be 3 letters' }
-    if $lang1 !~ m|^[A-Z]{3}$|
-    or $lang2 !~ m|^[A-Z]{3}$|;
+## fetch children via trie search ##
+my $c1 = <[index.search]>->($prefix1);
+my $c2 = <[index.search]>->($prefix2);
 
-return { 'mode' => 'false', 'data' => 'depth must be a positive integer' }
-    if $depth !~ m|^\d+$|
-    or $depth < 1;
-
-return { 'mode' => 'false', 'data' => 'depth exceeds tree depth' }
-    if $depth > 7;
-
-my $store_root = <index.path.index-files>;
-my $links      = <[file.all_links]>->( $store_root, 'recursive' );
-
-my %path_groups;
-for my $link_path ( keys %$links ) {
-    if ( $link_path =~ m|:LANG:$lang1$| ) {
-        my $rel = $link_path;
-        $rel =~ s|^$store_root/||;
-        my @parts = split( m|/|, $rel );
-        next if @parts < $depth;
-        my $prefix = join( '/', @parts[ 0 .. $depth - 1 ] );
-        push @{ $path_groups{$prefix}{$lang1} }, $links->{$link_path};
-    } elsif ( $link_path =~ m|:LANG:$lang2$| ) {
-        my $rel = $link_path;
-        $rel =~ s|^$store_root/||;
-        my @parts = split( m|/|, $rel );
-        next if @parts < $depth;
-        my $prefix = join( '/', @parts[ 0 .. $depth - 1 ] );
-        push @{ $path_groups{$prefix}{$lang2} }, $links->{$link_path};
-    }
+## map extension character => [rank, freq] for each prefix ##
+my %ext1;
+for my $ref (@$c1) {
+    my ( $seq, $rank, $freq ) = @$ref;
+    $ext1{ substr( $seq, -1, 1 ) } = [ $rank, $freq ];
 }
 
-my @results;
-for my $prefix ( sort keys %path_groups ) {
-    next
-        unless exists $path_groups{$prefix}{$lang1}
-        and exists $path_groups{$prefix}{$lang2};
+my %ext2;
+for my $ref (@$c2) {
+    my ( $seq, $rank, $freq ) = @$ref;
+    $ext2{ substr( $seq, -1, 1 ) } = [ $rank, $freq ];
+}
 
-    push @results, "prefix: $prefix";
-    push @results,
-        "  $lang1: " . join( ', ', @{ $path_groups{$prefix}{$lang1} } );
-    push @results,
-        "  $lang2: " . join( ', ', @{ $path_groups{$prefix}{$lang2} } );
-    push @results, '';
+## intersect and report ##
+my @out;
+for my $ch ( sort keys %ext1 ) {
+    next unless exists $ext2{$ch};
+    my ( $r1, $f1 ) = @{ $ext1{$ch} };
+    my ( $r2, $f2 ) = @{ $ext2{$ch} };
+    push @out,
+        sprintf( "'%s'  %s: rank=%d freq=%d  %s: rank=%d freq=%d",
+        $ch, $prefix1, $r1, $f1, $prefix2, $r2, $f2 );
 }
 
 return {
     'mode' => 'size',
-    'data' => @results
-    ? join( "\n", @results )
-    : 'no correlations found'
+    'data' => @out
+    ? join( "\n", @out )
+    : 'no shared continuations'
 };
 
-#,,,.,.,.,,.,,.,,,,.,,,.,,,,.,.,,,,..,.,,,,..,..,,...,...,,,.,...,...,,.,,,..,
-#KCVHEQ46LX2UKH7EWY5W77AUPJED3UJRAKVUPQBZWFPU3Z7C6H7RHTDZCMW3FWC7ZSL6ZXT3JWPEC
-#\\\|U75GEIWMJZ4QBT4RYIB42BQ2MYCMADSVHAIU7NS7D7SW2CGTV74 \ / AMOS7 \ YOURUM ::
-#\[7]H5VSDEALVRRSGTA4YNOXYVZYPTIZMBCAVB6HFKBRG5WZ2HVOV4CI 7  DATA SIGNATURE ::
+#,,,,,,.,,,..,,..,,.,,,.,,...,,..,,,.,.,.,,.,,..,,...,...,...,.,,,..,,,,,,,,,,
+#MHEPRUTIMZ72MPAYJNM5FA5OTL7JS36OO3F47YYXAYIKQIZARBAQM5F572LWNHOE5JIEE7H34PS2S
+#\\\|MQFTNPRHKTMPWZK2DVYNSCFT77AOH4XL2PRSMBLKO7ZJFAF7PO6 \ / AMOS7 \ YOURUM ::
+#\[7]7SDGHUUMQMVV24HPGGZBUNBP2CUMH6B76AOQV4TBSVQ55YDRC4CI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
