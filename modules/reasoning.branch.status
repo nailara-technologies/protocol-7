@@ -25,7 +25,7 @@ my $is_tty = -t STDOUT;
 ## color map ##
 my %state_color = (
     qw| running  | => $colors{'p7_fg_0002'},    ## amber
-    qw| paused   | => '',                       ## dim
+    qw| paused   | => "\e[2m",                  ## dim
     qw| blocked  | => $colors{'p7_fg_0001'},    ## blue-ish
     qw| rescue   | => $colors{'p7_fg_0000'},    ## violet
     qw| resolved | => $colors{'p7_fg_0003'},    ## green
@@ -115,10 +115,16 @@ $render_branch = sub {
             . ( $child_last ? '└─ ' : '├─ ' );
         $render_branch->( $kids->[$i], $child_prefix, $child_last );
     }
+
+    ## vertical separator after non-last nodes at root level ##
+    if ( not $is_last and $prefix eq '  ' ) {
+        push @lines, '  │';
+    }
 };
 
-foreach my $id (@roots) {
-    $render_branch->( $id, '  ', TRUE );
+for my $i ( 0 .. $#roots ) {
+    my $is_last = ( $i == $#roots );
+    $render_branch->( $roots[$i], '  ', $is_last );
 }
 
 ## no branches registered ##
@@ -144,8 +150,8 @@ my $output = $header . "\n" . join( "\n", @lines ) . "\n\n" . $footer;
 
 return { 'mode' => qw| size |, 'data' => $output };
 
-#,,..,,,,,...,..,,,.,,.,.,,..,,,,,...,,.,,,,.,..,,...,...,.,.,...,.,,,,,.,,,,,
-#7R2LC7R4JQLFJR2HNXBI5ITKQU76DWQG2SE4HGPX637JPJFTLAVVFLXHBXURWTGLUALYV7NPZK5KY
-#\\\|GWHY7ODV3T5WKEEKBIHC7RIVG56IZYMO2DRWSW7G2HZ4G72AGTO \ / AMOS7 \ YOURUM ::
-#\[7]KPMQRVALUBTQAWOTVOQNG3D5Y7VCKMWV2D3CXYLGWBSZE4BCZWCQ 7  DATA SIGNATURE ::
+#,,.,,.,.,,.,,...,,..,...,,,,,,,,,,,.,...,...,..,,...,...,.,.,,..,...,,..,,..,
+#DW2INVR3WWRXFVUZQNIQGHWVIFEYGZ6URF5PHPIUTSULYCIEFQPMHZHBZIBQPKLQZRSUFCIZX3T3U
+#\\\|TM4YQK5VGO7V6OSWXCGIQ7FHUXVKEIXYDPQPJRRGN4YYLDRYJLT \ / AMOS7 \ YOURUM ::
+#\[7]WTXSP57JZXGHI3A3IYFIWVBV7S2KYRRQ4VOEHWX3FDVOE2J6X2DY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

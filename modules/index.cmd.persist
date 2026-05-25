@@ -3,13 +3,18 @@
 # name  = index.cmd.persist
 # descr = save index state to disk
 
-my $ok = <[index.persist]>;
-return $ok
-    ? { 'mode' => 'size',  'data' => 'index state saved' }
-    : { 'mode' => 'false', 'data' => 'persist failed' };
+<index.persist.reply_id> = $call->{'reply_id'};
 
-#,,..,,.,,...,,..,,.,,,.,,,..,,,,,.,.,...,..,,..,,...,..,,..,,...,.,.,..,,,..,
-#EINKDRW6UFJTM3WP2FDT3VOTJ7UBLEBDKQEQ2H7LNMOVIYPE6HQ3RRZ3OCZQ2UTGT6YHK4RBM3L7G
-#\\\|6K6F6BGMNIZUQQCSB7MKMSBNDVZWEMQBSBPX7BRY6OWE5ALZY3P \ / AMOS7 \ YOURUM ::
-#\[7]WBYCOQ32SYE7VVQ4VESDDY3S6PNOBQKKN3YLRLRULQH2TGO3FGCQ 7  DATA SIGNATURE ::
+<[event.add_timer]>->(
+    {   'after'   => 0,
+        'handler' => qw| index.callback.persist |,
+    }
+);
+
+return { 'mode' => 'deferred' };
+
+#,,.,,,,.,,,,,,..,,,,,.,.,..,,...,...,,,,,,,.,..,,...,...,.,.,...,...,.,.,,,,,
+#GLVFSBRBDS3FGEZVCFOJ6BVZ2YBKFHVANUIKOA6WMZCSVKDZLO4X2TX6OAVG4QWKGKMMZQHKTSZIA
+#\\\|AXZ3V7BL3BUNF463RGVLPQ5W5HN54ZGZKRE5JZVO2OO2KXRCPVB \ / AMOS7 \ YOURUM ::
+#\[7]R2FI7LKARDOX7TOUVZBHSM65A4WET2S3FTOVMSG5Z4GABSRHNWBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
