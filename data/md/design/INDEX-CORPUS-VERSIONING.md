@@ -194,6 +194,44 @@ policy requires full chain retention for rewind. Both compress well in `.zxps`.
 
 ---
 
+## References as Index-Transparent Sequences
+
+References between content items are checksum pairs:
+
+```
+:<sum1>:<sum2>
+```
+
+This is a string. The index has no knowledge of what it means — it counts
+N-grams over the sequence exactly as it would over natural language text. The
+leading `:` is convention: it namespaces reference sequences away from content
+N-grams in the frequency distribution, but the index engine never parses or
+routes on it.
+
+Three-element chains express intermediate hops:
+
+```
+:<sum1>:<sum2>:<sum3>
+```
+
+Co-citation frequency, hub detection, and reference-chain statistics fall out
+of the existing ring structure at no additional cost. A checksum that appears
+in many pairs is a high-frequency N-gram prefix in the reference corpus —
+hub detection is just a ring-0 frequency query.
+
+**References are their own corpus** — fed as a separate source, with their
+own contribution vectors. The reference corpus can be replaced or removed
+without touching content vectors. The `:` prefix is not stored in the index;
+it is a query-layer convention for distinguishing result types.
+
+**Separate index instance** — reference N-gram distributions (long, uniform-
+length, high-entropy checksum tokens) are structurally different from natural
+language N-gram distributions. A dedicated reference index keeps frequency
+rankings meaningful in both domains. Both instances use the same index engine
+and the same contribution vector model.
+
+---
+
 ## Connection to Protocol-7 Addressing
 
 This model is the content-addressable network applied locally. Checksums are
@@ -209,8 +247,8 @@ Related design documents:
 - `ADDRESSING-TRINITY.md` — named tree + checksums + timestamps as orthogonal
 - `SELF-DELIMITING-CHECKSUM-PATTERN.md` — 2-bit type system, payload tokens
 
-#,,,.,...,,.,,,..,.,,,,.,,.,,,,.,,.,,,.,.,,.,,..,,...,...,..,,,.,,.,.,,..,,,.,
-#5EKJWXF3JUZXMUJZWHCD5Y4R6HO7NHGAM7CIWM5PNWWDZMF4F27MAMNYDLIINCRELVX4MYOA2ZXI4
-#\\\|OQD6BOWVTCCZDC2TVD2MIH5HMREXCTVBNBVDOB2F7H3PNLNUV2T \ / AMOS7 \ YOURUM ::
-#\[7]MKXGUBMJLAGR2V5XBRWH7KZ5464TOT4NE4JIJLHIH3CPSVIRWUBA 7  DATA SIGNATURE ::
+#,,,,,.,,,.,,,,,,,,,.,,.,,,,.,..,,.,.,.,.,,,,,..,,...,..,,,..,,.,,.,.,,.,,,,.,
+#RPB4ZM5OQK5LMSXL6ARMN4UVFGWKUP5WJCZMTSEDCJS3XZGO7FVHJBNAPUORO7V7WYRPJS7L6AVTG
+#\\\|22RTEIS467IMNSBUHCZAWJ3XLDJ35FD5WGMCSQR6W5FX7367TIP \ / AMOS7 \ YOURUM ::
+#\[7]YCW5QJVN7XBGPLXGUFVSR23NB22R7TUIBJEQALWWDIMGIIDLWACY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
