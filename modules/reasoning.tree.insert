@@ -1,0 +1,106 @@
+## [:< ##
+
+# name  = reasoning.tree.insert
+# descr = insert node into tree with checksum deduplication
+
+my $args = @ARG ? shift : $ARG;
+$args //= {};
+
+my $tree = $args->{'tree'} // <reasoning.tree> // {};
+my $node = $args->{'node'};
+
+return { status => 'error', node => undef }
+    if not defined $node;
+
+my $chksum = $node->{'chksum'};
+my $name   = $node->{'name'};
+
+## [ initialize tree indices if absent ] ##
+$tree->{'by_chksum'} //= {};
+$tree->{'by_name'}   //= {};
+
+## [ check for existing node by checksum — deduplication ] ##
+if ( exists $tree->{'by_chksum'}->{$chksum} ) {
+    my $existing = $tree->{'by_chksum'}->{$chksum};
+
+    ## [ merge approach vectors ] ##
+    if ( defined $node->{'approach_vectors'}
+        and @{ $node->{'approach_vectors'} } ) {
+        push @{ $existing->{'approach_vectors'} },
+            @{ $node->{'approach_vectors'} };
+    }
+
+    ## [ add implicit approach vector from new insertion ] ##
+    if ( defined $name and length $name ) {
+        push @{ $existing->{'approach_vectors'} },
+            { from => $name, convergence => $existing->{'convergence'} };
+    }
+
+    ## [ recalculate convergence from vector count ] ##
+    my $vec_count = scalar @{ $existing->{'approach_vectors'} };
+    my $new_conv  = $vec_count / 13;
+    $new_conv = 1.0 if $new_conv > 1.0;
+    $existing->{'convergence'} = $new_conv;
+
+    ## [ detect threshold crossing ] ##
+    if (    $new_conv >= $existing->{'threshold'}
+        and $existing->{'state'} eq 'compact' ) {
+        $existing->{'state'} = 'expanded';
+
+        ## [ emit to reasoning.threshold.fire if available ] ##
+        <[reasoning.threshold.fire]>->(
+            {   node    => $existing,
+                tree    => $tree,
+                cross   => 'upward',
+                prior   => 'compact',
+                current => 'expanded',
+            }
+        ) if defined <reasoning.threshold.fire>;
+    }
+
+    return { status => 'collapsed', node => $existing };
+}
+
+## [ new node — add to tree ] ##
+$tree->{'by_chksum'}->{$chksum} = $node;
+$tree->{'by_name'}->{$name}     = $node if defined $name and length $name;
+
+## [ set root if this is the first node ] ##
+$tree->{'root'} //= $name;
+
+## [ update parent's children list ] ##
+if ( defined $node->{'parent'}
+    and exists $tree->{'by_name'}->{ $node->{'parent'} } ) {
+    my $parent_node = $tree->{'by_name'}->{ $node->{'parent'} };
+    push @{ $parent_node->{'children'} }, $name
+        if not grep { $_ eq $name } @{ $parent_node->{'children'} };
+}
+
+## [ initialize convergence from approach vector count ] ##
+my $vec_count = scalar @{ $node->{'approach_vectors'} // [] };
+$node->{'convergence'} = $vec_count / 13;
+$node->{'convergence'} = 1.0 if $node->{'convergence'} > 1.0;
+
+## [ detect initial threshold crossing ] ##
+if (    $node->{'convergence'} >= $node->{'threshold'}
+    and $node->{'state'} eq 'compact' ) {
+    $node->{'state'} = 'expanded';
+
+    ## [ emit to reasoning.threshold.fire if available ] ##
+    <[reasoning.threshold.fire]>->(
+        {   node    => $node,
+            tree    => $tree,
+            cross   => 'upward',
+            prior   => 'compact',
+            current => 'expanded',
+        }
+    ) if defined <reasoning.threshold.fire>;
+}
+
+return { status => 'inserted', node => $node };
+
+#,,,,,.,.,.,,,,,,,,,,,,,,,,,,,,,.,,,,,.,,,.,,,..,,...,...,.,,,,.,,,,,,,.,,,,.,
+#3AAHGSVJA7SOYNQFZ7KTLT6K5ADJTV6PYAJBFVJRYGI7LELLGJNJK3XDDVT2FKLLCQAEUOGQPMYC6
+#\\\|MBEAPYNSIFPJUCIXT4CMJPUSTSMEZ6DR4XF6MI44573HN5QW6VT \ / AMOS7 \ YOURUM ::
+#\[7]B7QDTGN3DFK6KHLZNGRW6SX4OC3IODXH7Z3YEG5FBTXX5JMIXACI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

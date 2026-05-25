@@ -1,0 +1,68 @@
+## [:< ##
+
+# name  = reasoning.tree.traverse
+# descr = walk subtree depth-first or breadth-first
+
+my $args = @ARG ? shift : $ARG;
+$args //= {};
+
+my $tree    = $args->{'tree'}  // <reasoning.tree> // {};
+my $from    = $args->{'from'}  // $tree->{'root'};
+my $order   = $args->{'order'} // 'depth';
+my $on_node = $args->{'on_node'};
+my $filter  = $args->{'filter'};
+
+return [] if not defined $from;
+
+my $start_node
+    = <[reasoning.tree.lookup]>->( { tree => $tree, name => $from } );
+return [] if not defined $start_node;
+
+my @visited;
+my @queue = ($start_node);
+
+while (@queue) {
+    my $node;
+    if ( $order eq 'breadth' ) {
+        $node = shift @queue;
+    } else {
+        ## [ depth-first — pop from end ] ##
+        $node = pop @queue;
+    }
+
+    next if not defined $node;
+
+    ## [ apply filter if provided ] ##
+    if ( defined $filter ) {
+        next if not $filter->($node);
+    }
+
+    push @visited, $node->{'name'};
+    $on_node->($node) if defined $on_node;
+
+    ## [ queue children ] ##
+    my @children = @{ $node->{'children'} // [] };
+    next if not @children;
+
+    my @child_nodes;
+    for my $child_name (@children) {
+        my $child = <[reasoning.tree.lookup]>
+            ->( { tree => $tree, name => $child_name } );
+        push @child_nodes, $child if defined $child;
+    }
+
+    if ( $order eq 'breadth' ) {
+        push @queue, @child_nodes;
+    } else {
+        ## [ depth-first — reverse so first child is processed first ] ##
+        push @queue, reverse @child_nodes;
+    }
+}
+
+return \@visited;
+
+#,,..,...,,.,,.,,,,..,...,,.,,,.,,,.,,...,...,..,,...,...,...,...,.,.,,..,...,
+#RMTXRGA6EMDFCI2GC3PQORQOUFMORFTE3EAI7KRLPBYCAYPJG7SLBPUSUB64Q623RVCENLSOEWXYM
+#\\\|7BK524RLCY6TNETKUCTDJM5TNG6CPGZ5I5NLMOYTTN675UBABUA \ / AMOS7 \ YOURUM ::
+#\[7]U2CZECACVB6IXM7LBHP5E766TWQ5BYZX7AXCUU4AEPDILYQU74BA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

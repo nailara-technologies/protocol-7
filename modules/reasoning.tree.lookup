@@ -1,0 +1,33 @@
+## [:< ##
+
+# name  = reasoning.tree.lookup
+# descr = find node by checksum or name in reasoning tree
+
+my $args = @ARG ? shift : $ARG;
+$args //= {};
+
+my $tree   = $args->{'tree'} // <reasoning.tree> // {};
+my $chksum = $args->{'chksum'};
+my $name   = $args->{'name'};
+
+## [ O(1) checksum lookup ] ##
+if ( defined $chksum and length $chksum ) {
+    return $tree->{'by_chksum'}->{$chksum}
+        if exists $tree->{'by_chksum'}->{$chksum};
+    return undef;
+}
+
+## [ O(n) name lookup via index ] ##
+if ( defined $name and length $name ) {
+    return $tree->{'by_name'}->{$name}
+        if exists $tree->{'by_name'}->{$name};
+    return undef;
+}
+
+return undef;
+
+#,,,,,..,,,..,..,,,..,,,.,,,,,.,.,,,,,,..,,..,..,,...,...,...,...,...,.,.,,..,
+#JBHUUAABQJQPLQ7KK3AVD423QXJV5D7TREXPZ6KQDCUZEV5FJO2YM3UHGK2WXPAA4ISACUG77ZTMW
+#\\\|4TRFLWUSKSAR4OH5GLW4HIUAIPTZ75XSM3DLUSNQ3OCULF37KAM \ / AMOS7 \ YOURUM ::
+#\[7]B5ULRNYLKRWMZ2UAPLCR4FUTSS3DMQA7JHSHETDR7TY7AHJXM2BA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
