@@ -1,0 +1,43 @@
+## [:< ##
+
+# name  = reasoning.tree.node
+# descr = create reasoning tree node with numerical identity
+
+my $args = @ARG ? shift : $ARG;
+$args //= {};
+
+my $name      = $args->{'name'}      // '';
+my $narration = $args->{'narration'} // '';
+my $depth     = $args->{'depth'}     // 0;
+my $parent    = $args->{'parent'};
+
+## [ compute AMOS checksum as numerical identity ] ##
+my $content = join( ':', $name, $depth, $narration );
+my $chksum  = <[base.chk-sum.amos]>->( \$content );
+
+my $node = {
+    name             => $name,
+    chksum           => $chksum,
+    depth            => $depth,
+    parent           => $parent,
+    narration        => $narration,
+    convergence      => 0,
+    threshold        => 0.769230769230769,
+    state            => 'compact',
+    children         => [],
+    overlaps         => [],
+    approach_vectors => [],
+    up_refs          => 0,
+    down_refs        => 0,
+    directional      => 0,
+    visual_refs      => 0,
+    ntime            => <[base.ntime]>,
+};
+
+return $node;
+
+#,,,,,,..,,.,,,..,,..,,,,,,.,,,,,,.,.,,.,,...,..,,...,..,,...,...,,,,,...,...,
+#EG3Q7JTQ3KJJJYAG57WANMSQJSXXWWVL2U5CDB2ZTO4HNPF37E4MH2XBHTKTYRSYFMHR72K43YSDC
+#\\\|6IIMQOKBLP6N6WRX5OXIJZHBOZZU6DLEEN5LLGGN626T6XTG577 \ / AMOS7 \ YOURUM ::
+#\[7]APNQBCUEHSAERN4VTTXL4ZS62XLYTYHZ26KQWLJHA2SXSNVW5ADQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
