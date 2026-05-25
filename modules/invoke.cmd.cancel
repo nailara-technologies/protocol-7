@@ -11,7 +11,7 @@ my $url = $data{'invoke'}{'url'};
 my $ua  = LWP::UserAgent->new( timeout => 10 );
 
 if ( !length $target or $target eq 'all' ) {
-    ## cancel all — collect batch_ids from tracked jobs
+    ## cancel all : collect batch_ids from tracked jobs
     my @batch_ids = map { $ARG->{'batch_id'} }
         values %{ $data{'invoke'}{'jobs'} // {} };
 
@@ -36,7 +36,7 @@ if ( !length $target or $target eq 'all' ) {
         };
 }
 
-## cancel specific item — find its batch_id
+## cancel specific item : find its batch_id
 my $job = $data{'invoke'}{'jobs'}{$target};
 unless ($job) {
     return {
@@ -64,8 +64,8 @@ return $resp->is_success
     data => sprintf( 'cancel failed [ %s ]', $resp->status_line )
     };
 
-#,,.,,,..,,.,,,,.,,,.,,..,...,.,.,,.,,,..,,..,..,,...,..,,,,,,,.,,...,.,,,,.,,
-#BY2PGTLWC5CUHL2LKVJCMG5E45BUS6KL2BUND3H67W227AL5HK6ZVZ43J4CRAJ456YA5WUION4E2M
-#\\\|OBSSTZDLHZDRHKQZGV6QCZWOT3RWPYLRLAMGAIMUVJQTRVS6N7L \ / AMOS7 \ YOURUM ::
-#\[7]KXNOOZ6JK62AVVK3ZXF3DIWXQL4AINAQ5BRRT4KYRMUHFMZ4QQCQ 7  DATA SIGNATURE ::
+#,,..,,..,,,.,.,.,.,,,,,.,...,.,,,,,.,.,,,,..,..,,...,..,,...,,,,,..,,,.,,,,.,
+#NFBUJHQBZMRWPD4NMQWZRPCYYLTANRNONXDYOJSKKTQDFLESRG3UJMHT2N76VGHTFUWKNMVD7Z5Z4
+#\\\|JHEHAPSNY6BXMGWWKUXG6KIBHLSMXJW3LLJRW7X6KPMA5VVNQJ7 \ / AMOS7 \ YOURUM ::
+#\[7]DIOROTHXCQ4YXRKKCLQ7HKGEO2UB2MWRKPGLTXKCUHZAEHRTAAAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

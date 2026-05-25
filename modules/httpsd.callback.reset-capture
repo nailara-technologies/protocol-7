@@ -3,7 +3,7 @@
 # name  = httpsd.callback.reset-capture
 # descr = clean up /dev/shm crash-capture file on graceful shutdown
 #         [ prevents false crash report on next startup ]
-#         [ no-op when file absent — resilient to feature being disabled ]
+#         [ no-op when file absent : resilient to feature being disabled ]
 
 my $path = <httpsd.path.request_capture>;
 return warn 'request_capture path not set' if not defined $path;
@@ -14,8 +14,8 @@ unlink $path
     $path, <[base.str.os_err]>
     ) if -f $path;
 
-#,,..,,.,,,..,.,.,,..,,.,,...,,..,,.,,,,,,.,,,..,,...,...,.,.,,,.,,..,.,.,...,
-#EICJ4ICDKHI4T4Q6UXU22AA4TVF6FRPSGRDCVH5FPB2CXMNATAPNCP545S2XCJNRJWXEWCAS66W6M
-#\\\|LSUFZCNKEM3RMMU3P5D63QQ4CDSDHD6L46RDQ2LAM4FS7L24PEE \ / AMOS7 \ YOURUM ::
-#\[7]42ZJCIPVOLRFGPIBZVBJGB7RKW32EJAZX2QOUHLBKECQEH5OJ6DA 7  DATA SIGNATURE ::
+#,,,,,.,.,,,.,,,,,..,,,,.,,,,,,,.,,.,,,,.,.,,,..,,...,..,,.,.,.,.,.,,,,.,,,,.,
+#KRT3E6DL2A2YO37FQMDPWREXUQHM76LTH2IQGMSCPTIHJY3ZDWLRUN45QGZHSCRHR2YQ6PQKA2F5A
+#\\\|A5OOEHDPGBEW2NAHCXFHW6F2QTSSUX5AE2RPAEKODXQWJPCDY3M \ / AMOS7 \ YOURUM ::
+#\[7]XLTTZXAHDEAV5PN6BFX4P4I6GJV4ZNHXB3BRPGPCQN3BOWVXG2BI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

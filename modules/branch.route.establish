@@ -23,7 +23,7 @@ return { 'mode' => 'false', 'data' => 'target not found' }
 my @hops;
 
 if ( exists $data{'branch.nodes'}{$observer} ) {
-    ## both nodes in tree — build ancestor chains ##
+    ## both nodes in tree : build ancestor chains ##
     my @obs_chain;
     my $cur     = $observer;
     my $visited = {};
@@ -65,7 +65,7 @@ if ( exists $data{'branch.nodes'}{$observer} ) {
         $found_lca = 1 if $node eq $lca;
     }
 } else {
-    ## external observer — path from root to target ##
+    ## external observer : path from root to target ##
     my $cur     = $target;
     my $visited = {};
     while ( defined $cur ) {
@@ -127,8 +127,8 @@ return { 'mode' => 'true', 'data' => $route_id };
 #\[7]5YNCQYW6GIYTHAKXJCUS53NKYAGGKCSSYUKKVU7IAEPOUHKAAYBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
-#,,..,.,.,.,,,,.,,.,.,,,.,,.,,.,,,,..,,,,,,,,,..,,...,...,.,,,.,.,..,,.,.,,.,,
-#ISFDMV2ANRPM6T5PKYGLZA6EUU4BTYVQXKGEHGYKYTRPVOWOPWBYTWPIOC5QOYTS4FDWTTOB3FKVA
-#\\\|SHXFHFZNUTILG2QOEIPJJPBST5BZXX4PDUJTCQ6UWTCU2XCEPJP \ / AMOS7 \ YOURUM ::
-#\[7]5LKAMXXBJF5GNRSMT6T2XFZ4TYRSBCWPQZO7OSIOVZSFSKIRTWDI 7  DATA SIGNATURE ::
+#,,.,,..,,,.,,.,,,..,,,.,,..,,,..,,..,.,.,...,..,,...,...,...,,,,,,,.,,,,,.,,,
+#KISJ5OVA7ZMD52UXATOXL2R6WUZMAGGILUQSDYC7K3UHE3TPJKEQILHHGGED5A6NKV6FU55AL7QNU
+#\\\|ESCBON5CAMW6ZIDPL5AOA43N3ZCFELTBPX6DMLXZ6SZF5ASDJLI \ / AMOS7 \ YOURUM ::
+#\[7]IBKJWQHKKWSI5OVKHKTBFQBD3WYTH4YOZV6CMI4WNDOEOO7Q5ECA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

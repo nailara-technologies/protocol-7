@@ -23,7 +23,7 @@ if ( not exists $data{'session'}{$http_sid} ) {
 my $max_relay_buf = 4 * 1024 * 1024;    ##  4 MB hard limit  ##
 my $http_buf_high = 512 * 1024;         ##  512 K back-pressure  ##
 
-##  send !TERM! to radio via the route — stops the STRM at the source  ##
+##  send !TERM! to radio via the route : stops the STRM at the source  ##
 my $cancel_strm = sub {
     for my $sid ( keys $data{'session'}->%* ) {
         next if not exists $data{'session'}{$sid}{'route'}{$cmd_id};
@@ -49,7 +49,7 @@ my $cancel_strm = sub {
     {   'watcher' => sub {
             my $lc = shift;
 
-            ##  HTTP client gone — cancel consumer and terminate STRM  ##
+            ##  HTTP client gone : cancel consumer and terminate STRM  ##
             if ( not exists $data{'session'}{$http_sid} ) {
                 $cancel_strm->();
                 return;
@@ -92,8 +92,8 @@ my $cancel_strm = sub {
     $http_sid, $cmd_id
 );
 
-#,,..,...,,.,,,,,,,,.,..,,,,,,.,,,,.,,..,,..,,.,.,...,...,.,.,...,,,.,.,,,,,.,
-#FCPQ7ZLV6L6AWCWTPYC6PQQXHBOTRR2YNIQAYD2SWXHOA7J5DNRVVWZGE7TY6QZ6OJBC5Y2L7GUDW
-#\\\|CC5EOZP7MPSR24WT2CMUFFRDOIAPVC5QWULH2V5JDCYDDNRKJWO \ / AMOS7 \ YOURUM ::
-#\[7]MIM433HAVNYVOO7HRU5K262TC7MJPWNZR5PCTU23ZYTKTVQHD4BY 7  DATA SIGNATURE ::
+#,,,.,,.,,.,.,,,,,,,.,,.,,,,,,.,.,...,.,,,..,,.,.,...,...,,,,,,..,,..,..,,,..,
+#NPOE4DCY5YYSYRSLTLNZPJGI4OC5BE2ZZL7Z5MNUACHC6P5OIPZNP7FGN6TXOG4JCW2XKA3UUDWLG
+#\\\|SYPFUKHAID5VFN67K3Y2RCVPDJKXF6MHT6BNAPHH7SXZBNYISDX \ / AMOS7 \ YOURUM ::
+#\[7]SPDAJOM4BHXETJCMOYMN7UNUAKMQ3ZPDT3JBJAS4X4KDCPJ3BEDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

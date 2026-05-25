@@ -16,7 +16,7 @@ my ( $yaml_data, $err_summary );
 
 eval { $yaml_data = <format.yaml.load_str_fn>->($str) };
 
-## yaml::xs strict parsing failed — attempt pure-yaml fallback ##
+## yaml::xs strict parsing failed : attempt pure-yaml fallback ##
 ##
 if (    $EVAL_ERROR
     and defined <format.yaml.backend>
@@ -38,7 +38,7 @@ if (    $EVAL_ERROR
                 = sprintf 'YAML::XS: %s; YAML: %s',
                 $xs_err, <[base.str.eval_error]>;
         }
-        ## else: pure-yaml succeeded — continue with $yaml_data ##
+        ## else: pure-yaml succeeded : continue with $yaml_data ##
     } else {
         $err_summary = "YAML::XS: $xs_err [ no yaml fallback available ]";
     }
@@ -75,8 +75,8 @@ if ( not defined $yaml_data ) {
 
 return wantarray ? ( $yaml_data, undef ) : $yaml_data;
 
-#,,,.,,,,,.,,,.,,,,,,,.,.,.,.,...,.,.,,..,,.,,..,,...,...,,.,,.,,,,,,,,.,,,,.,
-#YG5HE4Z7JBPPA3M2N7TODWMK3V67GWHHRIJEAH3KCS4VZ5IMOZBQ6GG7MGMHG3CQMBAU6CONRMMQA
-#\\\|HPXQCCUFHDDLNU3F637X37TOQZV3DR55MMWFA4TMLJ3LYR4CUJ3 \ / AMOS7 \ YOURUM ::
-#\[7]OKYOUX4OUBRZAR4ZF3ZC454OT7KRAPEHKQVY67GVHSGJIT3774AQ 7  DATA SIGNATURE ::
+#,,.,,.,,,..,,,.,,.,.,,.,,...,.,.,,,.,...,,,.,..,,...,...,,,,,..,,,.,,,,.,.,.,
+#MYROSMDEFVPYU77SLOWBM4UBF3T3JUS7VXGSEKXX2XZ5M4GT2M3ARV3NCYF24X65FVUJPWBF2G4ZA
+#\\\|QTIVR3BW5FN7HAIXIJN4LFA7FFUV6PN44OMX242XD3JBJCOTEPV \ / AMOS7 \ YOURUM ::
+#\[7]YCCOBZBYZ4YML4FPTDQKCVSOWDECVXIJYLYLA3G6ZKXY6RGZIWBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

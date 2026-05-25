@@ -49,7 +49,7 @@ if ( !-w $abs_path and defined $chmod_fh ) {
 }
 
 if ( -w $abs_path ) {
-    ## file is writable — append content ##
+    ## file is writable : append content ##
     my $result = <[file.append]>->( $abs_path, \$content, $norm_encoding );
     if ( defined $mode_restore and defined $chmod_fh ) {
         print {$chmod_fh} sprintf "restore %04o %s\n", $mode_restore,
@@ -73,8 +73,8 @@ return sprintf "staged append to %s [ %d bytes, no write access ]\n"
     . "staged at: %s",
     $path, length($content), $stage_rel;
 
-#,,,.,,,.,..,,.,.,,,,,,..,,,,,.,,,..,,,.,,..,,.,.,...,..,,.,,,.,,,...,,..,..,,
-#O7YLKBJTQK36D4GM6IJHLMYYHVJMBJMJZAAD2KAVZAV6OGVS464KLKWALDQSWIADC7R34MS4MPBUO
-#\\\|B4327VJV33VWXIRGIZBVQJPEOMHDYETXSSLMWTCZ3I4UAH43UKP \ / AMOS7 \ YOURUM ::
-#\[7]AARLZK5P6JV7KPR45RQ55IZK4JZ3RCBDY2QCOAUD3EMR6APF5WAI 7  DATA SIGNATURE ::
+#,,,.,,,,,,..,,..,,,.,..,,,..,...,,..,.,.,..,,.,.,...,...,,.,,,.,,.,,,,,,,.,,,
+#XFTMUKPNATAKFWTAWX3I52U44CXN2NFFHLDZQTYSKBMYIZQTZB2V5AI4ZKJ3ZFJ7JKRUJS7NGPY3I
+#\\\|2OUB7OCUH2KHPBWRQ4I5AXARYC3QHJGSFVOKSM3SP3EXMIJXZMD \ / AMOS7 \ YOURUM ::
+#\[7]7WHM5PIQYSTF7D5NGCUWGJ6N5XN5HS3M6C2SKNWK3BC3MW5SP2BI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

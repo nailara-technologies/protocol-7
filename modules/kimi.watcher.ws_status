@@ -110,7 +110,7 @@ if ( $new_status eq qw| disconnected | ) {
 
         <[base.logs]>->(
             1,
-            ': watcher ready — checking deferred [ %s ]',
+            ': watcher ready : checking deferred [ %s ]',
             defined <kimi.next.deferred> ? 'present' : 'undef'
         );
 
@@ -125,14 +125,14 @@ if ( $new_status eq qw| disconnected | ) {
                 <kimi.session_id> // 'none'
             );
 
-            ## guard: old session became ready before new one —
+            ## guard: old session became ready before new one :
             ## do NOT consume deferred prompt
             if ( defined $def->{'for_session_id'}
                 and ( <kimi.session_id> // '' ) ne $def->{'for_session_id'} )
             {
                 <[base.logs]>->(
                     1,
-                    ': ws_status ready on old session %s — '
+                    ': ws_status ready on old session %s : '
                         . 'holding deferred prompt for new session %s',
                     <kimi.session_id> // 'none',
                     $def->{'for_session_id'}
@@ -167,7 +167,7 @@ if ( $new_status eq qw| disconnected | ) {
                 } elsif ( defined $def_task_id ) {
                     <[base.logs]>->(
                         0,
-                        ': deferred prompt failed for task %s — marking failed',
+                        ': deferred prompt failed for task %s : marking failed',
                         $def_task_id
                     );
                     <kimi.task.active_id> = undef;
@@ -181,7 +181,7 @@ if ( $new_status eq qw| disconnected | ) {
         }
 
         ## re-send in-flight prompt if connection dropped mid-turn
-        ## kimi-web does not resume automatically after reconnect —
+        ## kimi-web does not resume automatically after reconnect :
         ## find the preserved pending prompt and re-submit it
         ## skip if we just dispatched a fresh deferred prompt above
         if (    not defined <kimi.next.deferred>
@@ -220,7 +220,7 @@ if ( $new_status eq qw| disconnected | ) {
                     } else {
                         <[base.logs]>->(
                             0,
-                            ': re-send failed for task %s — marking failed',
+                            ': re-send failed for task %s : marking failed',
                             $active_id
                         );
                         <kimi.task.active_id> = undef;
@@ -231,7 +231,7 @@ if ( $new_status eq qw| disconnected | ) {
                     }
                 } else {
                     <[base.logs]>->(
-                        0, ': no prompt text for task %s — cannot re-send',
+                        0, ': no prompt text for task %s : cannot re-send',
                         $active_id
                     );
                     <kimi.task.active_id> = undef;
@@ -250,8 +250,8 @@ if ( $new_status eq qw| disconnected | ) {
 
 return TRUE;
 
-#,,,.,..,,.,,,,.,,.,,,...,,.,,,,,,,.,,,.,,..,,..,,...,...,,,.,,..,...,,,.,.,,,
-#4ZOHRUZCNKQLRY2XQCISUE2WJWIJNQM5KAIZSSQXXGJSPRL73ERBCZ67KJZXMKVHGJYBDC6U3A3II
-#\\\|VY3OHXXFCUC2XN3EVMHWQIKPCW6XXJLW3EJHWJXIK2WMHBFDCXF \ / AMOS7 \ YOURUM ::
-#\[7]RDOIGPZS7IHFGYFS2NUSDS4I7RVMI4QKZWKHUIATSPYW2RHLMEBY 7  DATA SIGNATURE ::
+#,,.,,,.,,.,,,...,.,,,,,.,,..,.,.,..,,,,.,,.,,..,,...,...,,..,.,,,.,.,.,.,.,,,
+#TEQZCG6CXPFGBNLLHRHM5CQUHQ2P4OM47SQXHBV2AF6ICGQNNBWZ7NP22WP66QMPJ65IL32KNIF7Y
+#\\\|ORRP5YPEUBBISE6GGOYFKOP67ECE7I36NW2SAK536N7CS5MZ37R \ / AMOS7 \ YOURUM ::
+#\[7]BG6ZRNDTB5EW2DDMTBX7DK5Q53RHJWEBYJRIUSBAOMI4GG6OAYAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

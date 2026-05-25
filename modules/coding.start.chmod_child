@@ -36,7 +36,7 @@ my $child_code = <<~"EOT";
 use v5.24; use strict; use warnings; use English;
 use Fcntl qw| :mode |;
 map { \$SIG{\$ARG} = qw| IGNORE | } qw| INT TERM QUIT |;
-## drop to admin user [ file owner — can chmod without root ] ##
+## drop to admin user [ file owner : can chmod without root ] ##
 \$GID = \$EGID = $admin_user_gid;
 \$UID = \$EUID = $admin_uid;
 \$PROGRAM_NAME = q|$zenka_name-<$admin_user>-chmod-child|;
@@ -103,7 +103,7 @@ while ( my \$line = <STDIN> ) {
         chmod( \$mode, \$path );
         print "ok\n";
     } else {
-        print "skip\n";  ## unknown command — always reply ##
+        print "skip\n";  ## unknown command : always reply ##
     }
 }
 EOT
@@ -124,8 +124,8 @@ EOT
     <coding.chmod_child.pid>, $admin_group, $admin_gid
 );
 
-#,,,.,,..,,,,,.,.,,.,,.,.,,,,,,,,,,.,,,..,,,.,.,.,...,...,...,,,,,...,.,,,..,,
-#RTBC3W6TLB3CI6KVHMAKRZALUR3JDQ6VO5FKO2A6A7OUIBVH3J5IKNLWWDKGWV4ZCBUPYVGUFUIDQ
-#\\\|RR4TWALHVUCBDTKYYREMSNQAXPCETIKIWRRDWMKYSEX7D5NP6TF \ / AMOS7 \ YOURUM ::
-#\[7]FLSTMZZTHS4JBCOUTYZWMGBNBEHGLLV6MZEQGDZVKBWIZRJHPQDY 7  DATA SIGNATURE ::
+#,,,,,,.,,.,,,...,.,.,.,.,,,,,.,,,...,.,.,.,.,.,.,...,...,,,,,,..,,..,,.,,.,,,
+#7WYPJZASULYBWCGUAQ5Q5BMC7FUFQGRWYJ5W567BBZ6EU6QBFMUWTIQ7QIKI3RSMB637BWACA7VWK
+#\\\|KIN56ZZF3WK5ADYQ6IQMUSVVAM2AIE2QWCXLOGPRVMAFUQIYONF \ / AMOS7 \ YOURUM ::
+#\[7]5NT5WETEIODQHARSSQ7WKGLLOY6VQZRDJ4JKYKVBUJAP36JBDWAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

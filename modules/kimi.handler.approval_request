@@ -40,7 +40,7 @@ $short_desc = <[base.parser.center_ellipse_string]>->( $short_desc, 72 );
     'received_at' => <[base.time]>->(3)
 };
 
-## sudo commands are never auto-approved — decline and ask model to request user ##
+## sudo commands are never auto-approved : decline and ask model to request user ##
 if ( $description =~ m{\bsudo\b}i or $action =~ m{\bsudo\b}i ) {
     <[base.logs]>->(
         1, ': auto-declining sudo [ %s ] %s : %s',
@@ -49,14 +49,14 @@ if ( $description =~ m{\bsudo\b}i or $action =~ m{\bsudo\b}i ) {
     delete <kimi.approval.pending>->{$request_id};
     <[kimi.wire.approval_respond]>->(
         $request_id, 'reject',
-        'sudo commands require explicit user approval — '
+        'sudo commands require explicit user approval : '
             . 'please ask the user to run this command directly, '
             . 'or find an alternative that does not require elevated permissions'
     );
     return;
 }
 
-## auto-approve: check before session guard — works even during reconnect
+## auto-approve: check before session guard : works even during reconnect
 if (<kimi.approval.auto_approve>) {
     <[base.logs]>->(
         1, ': auto-approving [ %s ] %s : %s',
@@ -67,10 +67,10 @@ if (<kimi.approval.auto_approve>) {
     return;
 }
 
-## session not yet acquired — queue for flush on acquisition, don't drop
+## session not yet acquired : queue for flush on acquisition, don't drop
 if ( not <kimi.session.acquired> ) {
     <[base.logs]>->(
-        2, ': queuing approval [ %s ] — session not yet acquired', $request_id
+        2, ': queuing approval [ %s ] : session not yet acquired', $request_id
     );
     return;
 }
@@ -87,7 +87,7 @@ if ( defined $auto_allow->{$action} ) {
     return;
 }
 
-## otherwise leave pending — user must approve/reject via kimi.approve/reject
+## otherwise leave pending : user must approve/reject via kimi.approve/reject
 <[base.logs]>->(
     1, ': awaiting manual approval [ %s ] %s : %s',
     $request_id, $action, $short_desc
@@ -95,8 +95,8 @@ if ( defined $auto_allow->{$action} ) {
 
 return;
 
-#,,.,,.,,,...,..,,,.,,,,.,...,...,.,,,,..,..,,.,.,...,...,.,,,.,.,,.,,..,,,..,
-#5FOH2MIGXT4E6O3AHZBF3BATK4WNKV4GLNCVR3NEM3DX4EKP3IIAUBBD6HXIHWY5S5RF7XGJB2CWU
-#\\\|CXHTEZOQDRGMHE4VRDNHKSVBU6Z457ET4OWFZDF6JDYUEOWDKZK \ / AMOS7 \ YOURUM ::
-#\[7]K6KYDFET5UO2JFSLTQHDBWLRWGHMNSHGKH4HBPAW5VJAAMX6L2BQ 7  DATA SIGNATURE ::
+#,,..,.,.,,.,,.,.,..,,,..,.,,,,.,,.,,,...,..,,.,.,...,...,...,,,.,,,,,,.,,,,,,
+#TPPIIGDCERDBLIRXGKKWXXFYUSNMUJ4NJFWLFZEFREP24SB3FORVOEKKSDEGLCKLANES2WMPU6VWU
+#\\\|F63LU7R57ATQBSPEGZ53MAGBISXXIOSRU47PIH2HGEWUQ4DUDXJ \ / AMOS7 \ YOURUM ::
+#\[7]CZ4TTPFEGGLM377S6MFUABUV2H2TP4DXHAZNG6WMDCI7EGJ5DSAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

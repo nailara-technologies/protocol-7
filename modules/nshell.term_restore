@@ -25,7 +25,7 @@ if ( defined $orig_termios ) {
     return TRUE;
 }
 
-## fallback: orig_termios unavailable — explicitly re-enable echo and
+## fallback: orig_termios unavailable : explicitly re-enable echo and
 ## canonical mode so the calling shell is not left in noecho / raw state
 my $fallback = Linux::Termios2->new();
 if ( $fallback->getattr($tty_fd) ) {
@@ -36,8 +36,8 @@ if ( $fallback->getattr($tty_fd) ) {
 
 return TRUE;
 
-#,,,,,.,.,.,,,..,,,,,,,,.,.,,,.,.,.,,,...,,,,,..,,...,...,.,,,,,.,,..,,,,,,,,,
-#MS3CIITLBNYBOWKPEDLP5QCP3TR54FNEH3ESBELYEFTWUENZJ7ZS5QVF2CPYZV2YSTECJ37JH3TFC
-#\\\|IWISMYHJSXCTHPGWVC7XOVM4CRUZCJHUT3D746MKTMOQVZEKM6U \ / AMOS7 \ YOURUM ::
-#\[7]JX7UX6CY7PWO4CHGKYL747JHTNUVI5SXCHWKZSYNAUFLBWHN56DA 7  DATA SIGNATURE ::
+#,,,.,,..,.,.,..,,..,,..,,,,.,,.,,.,.,,.,,,.,,..,,...,...,.,.,,.,,...,...,,,,,
+#GZK77FHM4BB2LO5ZTAMMLTGU3E3GMBFPEVKF4HOCZDEM2MIPSQY633M72LTPOVV3KPIKRIEKDJDP2
+#\\\|TKVONG6WRMAIP3JRJL4IJG6NOHAXVVS25JZJBQG274Q2BKMOVHK \ / AMOS7 \ YOURUM ::
+#\[7]5KRNGBUO3SF7NA4S5RIVD6V322EBE3XFPBN7J53WYKI572IHUODI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

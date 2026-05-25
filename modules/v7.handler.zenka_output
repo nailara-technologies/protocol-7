@@ -59,7 +59,7 @@ if ( $read_bytes <= 0 ) {    ## [ assumed filehandle exception ] ##
     return;
 }
 
-## only process complete lines — leave incomplete tail as raw bytes ##
+## only process complete lines : leave incomplete tail as raw bytes ##
 my $buffer  = \$zenka_instance->{'output_buffer'};
 my $last_nl = bytes::rindex( $buffer->$*, "\n" );
 
@@ -74,8 +74,8 @@ if ( $last_nl >= 0 ) {    ## extract tail + trim buffer ##
     $buffer->$* .= $tail_str;
 }
 
-#,,.,,..,,.,,,.,,,,,,,,..,,..,...,.,,,...,.,.,..,,...,...,.,.,.,,,,..,,..,.,,,
-#CYHWYZAD7SFLXEWNYEM5IQSTOQ62MS2ZUTCFZ4AZCJZFN7QP7EEAFRKACS7FJAA2QUNMJPZ6EBNUU
-#\\\|CHSTJZODTXCBHHPLO76ANVKTHZDTLNHHCEYORCC3JTIJ25NKKWZ \ / AMOS7 \ YOURUM ::
-#\[7]XK3NWKQZQNS2SNCOUS555YCQDOAJIM3T4ZXH27CADAW6Q25UH6DY 7  DATA SIGNATURE ::
+#,,,,,,.,,,,.,,,,,,,.,...,...,.,,,...,...,,..,..,,...,...,...,.,,,,..,,..,,..,
+#BHMKJLFNA3OYEAJ4AELBJPDGTPZ4FHAUSN6UP5VIBV6J7CHPLNQUGJ472J57MWUZGQ2ETARH6GJ2A
+#\\\|XV5WQK6QACBGKL5N7QUPZOMIZTHD2AVENTMZZQBXUSNBB3WKO7F \ / AMOS7 \ YOURUM ::
+#\[7]C47YJTW4JSL6JIG4UF6B3Q3XGZJBKXXOFCOFBXYRMWZMBAJ6SCAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

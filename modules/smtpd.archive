@@ -24,7 +24,7 @@ if ( not -d $day_dir ) {
 
 my $base_path = join qw| / |, $day_dir, $hash;
 
-## store YAML (working copy — unencrypted) ##
+## store YAML (working copy : unencrypted) ##
 my $yaml_path = "$base_path.yaml";
 my $yaml_data = eval { YAML::XS::Dump($parsed) } // '';
 if ( length $yaml_data ) {
@@ -66,7 +66,7 @@ if ( length $raw ) {
             $compressed  = $encrypted;
         } else {
             <[base.logs]>->(
-                0, "archive key '%s' unavailable — storing unencrypted",
+                0, "archive key '%s' unavailable : storing unencrypted",
                 $archive_key
             );
         }
@@ -102,8 +102,8 @@ if ( scalar( <smtpd.mail_index>->@* ) > $max_index ) {
 
 return $parsed;
 
-#,,.,,,,,,,.,,,.,,,,.,,..,,,.,.,,,...,,.,,...,.,.,...,...,,.,,.,.,,,,,,..,,.,,
-#CH353AX3XZSFHFV2W2QQOPKMD2FHY5KLB5A72F24N7NULK34DX7ZSJO24AUOB2P4K2DY4FAAWSCXE
-#\\\|A3U3LZVSLX2CLSK2BGIAZAIOT4KLYR7EIAXV3LBAKHR2SMBQGMD \ / AMOS7 \ YOURUM ::
-#\[7]BSHSZ5AWOX4BXBTAVNYYGKJZOE73E2JHHXBEIGO6XZ3S6Z3RA6BI 7  DATA SIGNATURE ::
+#,,,.,,,,,.,.,,,.,,,,,,,.,.,,,,,,,,,,,,,,,,,,,.,.,...,.,.,..,,.,,,,.,,.,,,,,.,
+#ZFVMWGXYSP2P2TGVEID4LR6BA6JQ6XD3DJ7O3455W2ILOBO4REO3DRXFA4VC4KSNQN7AK2CZYGRX6
+#\\\|QC4YWGQ2CKFIZW5C5DZQCEAJ7IHZYFMTM7JKN5NHSJETYEZB2PK \ / AMOS7 \ YOURUM ::
+#\[7]JSLPOEGQB5FHXI4YHZKXYVQ3HYZGKYBB54WFGUYEBEIY7OONX4AA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

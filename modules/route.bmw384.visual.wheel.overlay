@@ -1,7 +1,7 @@
 ## [:< ##
 
 # name  = route.bmw384.visual.wheel.overlay
-# descr = BMW384 wheel — namespace layers as translucent hue-tinted passes
+# descr = BMW384 wheel : namespace layers as translucent hue-tinted passes
 
 return undef if not defined <bmw384.index>;
 
@@ -21,13 +21,13 @@ my @ns_list = split m{,}, $overlay_ns_cfg;
 @ns_list = grep { length $_ } @ns_list;
 @ns_list = ('base') unless @ns_list;
 
-# [ hue shift per namespace — evenly spaced ]
+# [ hue shift per namespace : evenly spaced ]
 my @ns_hue;
 for my $ARG ( 0 .. $#ns_list ) {
     $ns_hue[$ARG] = int( $ARG * 360 / scalar @ns_list );
 }
 
-# [ co-location count — global ]
+# [ co-location count : global ]
 my %coord_count;
 for my $ARG (@names) {
     my $coord = $by_name->{$ARG};
@@ -61,7 +61,7 @@ for my $ARG ( 0 .. 25 ) {
         . "\n", $x2, $y2;
 }
 
-# [ arc labels — outermost ring only ]
+# [ arc labels : outermost ring only ]
 {
     my $label_radius  = $outer_radius + 12;
     my $label_opacity = '0.25';
@@ -96,7 +96,7 @@ for my $ns_idx ( 0 .. $#ns_list ) {
     }
     next unless @ns_names;
 
-    # [ per-namespace arc opacity map — based on filtered names only ]
+    # [ per-namespace arc opacity map : based on filtered names only ]
     my $arc_opacity_mod = <[route.bmw384.visual.arc-opacity-map]>->(
         \@ns_names, $by_name,
         $translucency_mode, $translucency_intensity, $translucency_expanse
@@ -155,7 +155,7 @@ for my $ns_idx ( 0 .. $#ns_list ) {
     }
 }
 
-# [ center logo — nailara at the darksun ]
+# [ center logo : nailara at the darksun ]
 my $logo_size = 44;    # diameter covering the void circle (r=24)
 my $logo_xy   = 400 - $logo_size / 2;
 
@@ -189,8 +189,8 @@ $svg .= '</svg>' . "\n";
 
 return $svg;
 
-#,,,.,,..,.,,,,.,,,,,,,,.,.,.,,..,...,,,.,,,.,..,,...,..,,..,,,.,,.,,,,..,,.,,
-#76KAWAKQWYBJONTE4CJIY4GSIY4VKQNROVPVREQQL7XJHCCZ3KEOTUG3S7YSDXL3B2KHNSDAX3PNO
-#\\\|PS444NWPKDU7RNDZXGVNV6D3U26ZGQ67FY4IXAIJQNLH4RFBYCK \ / AMOS7 \ YOURUM ::
-#\[7]UMBAMIPMBATOAY2TK35JEPWRLANH6EEMNWEOYAEJPH2TNRULJYAA 7  DATA SIGNATURE ::
+#,,.,,...,,..,..,,,.,,,.,,,.,,,,,,,,.,.,.,...,..,,...,...,...,,,.,,.,,..,,,,.,
+#JKWR22YZBGCYTK57VFU57UKC335Y3T2VQZPDWPAT6L7J7YEQ6TBUGKOAUNV6IFVK2FQGFMXLOQG5O
+#\\\|4H5PVMAXJNR4LUB37DU7MKB6Y6VQTSYD6LZ6CGMMZENGTYHTLWF \ / AMOS7 \ YOURUM ::
+#\[7]3DCHBQKZFRTZNOOTHMEI5PV52W5BJ7772OVKQCMMP2Q3NIJ53UBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

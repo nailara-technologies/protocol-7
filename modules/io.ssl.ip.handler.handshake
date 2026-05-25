@@ -84,14 +84,14 @@ if ($result) {
     return $ssl_client;
 
 } else {
-    ## handshake not complete — check if we should continue or fail ##
+    ## handshake not complete : check if we should continue or fail ##
     my $ssl_err = IO::Socket::SSL::errstr();
 
-    ## check for SSL_WANT_READ or SSL_WANT_WRITE — need to wait for more IO ##
+    ## check for SSL_WANT_READ or SSL_WANT_WRITE : need to wait for more IO ##
     if (   $IO::Socket::SSL::SSL_ERROR == IO::Socket::SSL::SSL_WANT_READ()
         or $IO::Socket::SSL::SSL_ERROR == IO::Socket::SSL::SSL_WANT_WRITE() )
     {
-        ## normal — handshake needs more data, keep waiting ##
+        ## normal : handshake needs more data, keep waiting ##
         ## event watcher will fire again when ready ##
         return undef;
     }
@@ -105,7 +105,7 @@ if ($result) {
     if ( $err_msg =~ m|error:0A000126| ) {
         $err_msg = 'client session shutdown';
         $log_level
-            = $known_lvl;    ## expected — client closed before handshake ##
+            = $known_lvl;    ## expected : client closed before handshake ##
     } elsif ( $err_msg =~ m|0[Aa]000412|
         or $err_msg =~ m|bad.certificate| ) {
         ## client rejected server certificate [ tls alert 42 ] ##
@@ -151,8 +151,8 @@ if ($result) {
 
 0;
 
-#,,..,..,,..,,,,,,..,,...,.,.,.,.,,..,,,.,,,.,.,.,...,...,...,...,.,.,,,,,.,.,
-#ILONSU6KFZ3QV5O3AKBBTCHN2X2ZWY7PTRKQAKEK6SO5HNWY2XVPEK6FIIPUQIEIBYPG245EJSQ6E
-#\\\|GH5T2HRINKM3LNB3JOZNTCXNLSGBQM56ROY7YGRYAPXGGY73ARG \ / AMOS7 \ YOURUM ::
-#\[7]L4ONUEIR6NAI5ZINBVGA4ZMPI5KD4XXT44IUUILLWWNLA4SRNSAA 7  DATA SIGNATURE ::
+#,,.,,,,.,..,,...,.,,,,.,,..,,,,,,..,,,..,,.,,.,.,...,...,,..,...,.,,,.,,,,,.,
+#7ZFNBQBDZE3K7OMP7JT56ONOMT6Y4ABFZTFOXST5HRL2KSVVLAWX6KBQ5FHAWL56Q7SF54I22TCDE
+#\\\|O7XPDS35BQCMGP5RHOG3JXWPEPEKWLRSJBWU2DTWLRFZYUC4USU \ / AMOS7 \ YOURUM ::
+#\[7]IUTWDVMA764VMKVKMLC2WDRIP3YF7JUKFDEM7GYSTXCPEZ6O5ICQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

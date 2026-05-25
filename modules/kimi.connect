@@ -15,7 +15,7 @@ if (<kimi.ws.connected>) {
 if ( defined <kimi.session_id> ) {
     my $handles = <[kimi.session.start_api_child]>;
     if ( not defined $handles ) {
-        <[base.logs]>->( 0, ': api child unavailable — clearing session' );
+        <[base.logs]>->( 0, ': api child unavailable : clearing session' );
         <kimi.session_id> = undef;
         <[file.zenka_dir.write]>->( 'session_id', \'' );
     } else {
@@ -31,7 +31,7 @@ if ( defined <kimi.session_id> ) {
             or $status_line =~ m{^(stale|archived)} ) {
             <[base.logs]>->(
                 1,
-                ': restored session %s is %s — creating fresh',
+                ': restored session %s is %s : creating fresh',
                 <kimi.session_id>,
                 ( $status_line // 'no response' ) =~ m|^stale|
                 ? "stale [ $status_line ]"
@@ -41,7 +41,7 @@ if ( defined <kimi.session_id> ) {
             <[file.zenka_dir.write]>->( 'session_id', \'' );
         } elsif ( $status_line =~ m|^error| ) {
             <[base.logs]>->(
-                0, ': session verify error [ %s ] — clearing session',
+                0, ': session verify error [ %s ] : clearing session',
                 $status_line
             );
             <kimi.session_id> = undef;
@@ -117,15 +117,15 @@ for my $pend_id ( keys %{<kimi.wire.pending>} ) {
 if ($has_preserved_prompt) {
     <kimi.ws.status> = qw| busy |;
     <[base.logs]>->(
-        1, ': reconnected with preserved prompt — status set to busy'
+        1, ': reconnected with preserved prompt : status set to busy'
     );
 } else {
-    ## status change triggers watcher — starts liveness timeout
+    ## status change triggers watcher : starts liveness timeout
     <kimi.ws.status> = qw| connecting |;
 }
 
 ## clear responded cache so re-sent approvals on new ws session are not
-## silently dropped — previous response may not have been received by backend
+## silently dropped : previous response may not have been received by backend
 <kimi.approval.responded> = {};
 <[file.zenka_dir.write]>->( 'approval_responded', \'' );
 
@@ -148,8 +148,8 @@ if (@stale) {
 
 <[base.logs]>->( 2, 'kimi.connect: websocket connected [ %s ]', $ws_url );
 
-#,,..,,.,,,..,,,,,,,.,,,,,,,.,.,.,.,,,,,.,...,.,.,...,...,..,,,.,,.,.,.,.,,,.,
-#HNR52ISF22OJLIO25GEDCNWBONRK6NURVEXTAJ7OVECUF6SDJD6WX3COXCTUVINW2XPDATIVT4OBA
-#\\\|4OKP6L3RDWKIA7VPVJYWJMV2LR2Q6U7IYISU7ZYUJZHTOC7EISZ \ / AMOS7 \ YOURUM ::
-#\[7]A7F27BERWKXVPPTXWQCODHERH2ZYNFYAS3YDUHDH4WSCCG3AFACI 7  DATA SIGNATURE ::
+#,,,.,..,,...,..,,.,,,.,,,..,,,,,,..,,.,,,..,,.,.,...,...,.,,,..,,.,,,.,.,.,,,
+#W67KSLSAMIZ2ABUU44VQA5O7OKUO34WUNKGSVL4C7WWRFF5C6UJMFMFQRFJIE4ZNL52UURC4NJIDW
+#\\\|QOWNPVRB6XXULUPAAONXHIKDISGF6GXDGGA4ADXOGUELDZS47GF \ / AMOS7 \ YOURUM ::
+#\[7]WSEWKQZBI7W4YW7DALXTVGXXQ6IKRRJDUYUUB4Z72LZWUTIRZ2CQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

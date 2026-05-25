@@ -6,7 +6,7 @@
 map { <[base.perlmod.autoload]>->($ARG) }
     qw| LWP::UserAgent HTTP::Request JSON YAML::XS HTML::Entities |;
 
-## http user agent — reused across requests
+## http user agent : reused across requests
 $data{'site-yaml'}{'ua'} = LWP::UserAgent->new(
     'agent' =>
         'Mozilla/5.0 (X11; Linux x86_64; rv:124.0) Gecko/20100101 Firefox/124.0',
@@ -28,7 +28,7 @@ if ( <[base.cfg_bool]>->( <site-yaml.bypass_proxy> // FALSE ) ) {
 ## init fetch queue state ##
 <[site-yaml.fetch.state]>->('load');
 
-## pre-populate job store with known IDs from disk — prevents re-fetching known jobs ##
+## pre-populate job store with known IDs from disk : prevents re-fetching known jobs ##
 my $jobs_dir = join qw| / |,
     <system.path.zenka-dirs>->{'var_P7'}, qw| jobsite jobs |;
 if ( opendir my $dh, $jobs_dir ) {
@@ -37,7 +37,7 @@ if ( opendir my $dh, $jobs_dir ) {
     while ( my $f = readdir $dh ) {
         next unless $f =~ s|\.yaml$||;
         $data{'jobs'}{'store'}{$f}
-            //= {};    ## placeholder — prevents refetch ##
+            //= {};    ## placeholder : prevents refetch ##
         $known++;
     }
     closedir $dh;
@@ -46,8 +46,8 @@ if ( opendir my $dh, $jobs_dir ) {
 
 <[base.logs]>->( 1, 'site-yaml ready' );
 
-#,,.,,.,.,.,,,,,,,,,.,.,,,.,.,.,,,..,,.,,,..,,..,,...,...,,,.,,.,,,..,...,,,.,
-#QY3AC7ZVZ3ZUC3NPDTO2ALAGKN3SXVRIIDSRZXI7KMYGPAGFCBJNG72ULF7T222B36FJHFCP5Y4O6
-#\\\|LVOPDZ4EJB3EDHVDOA5CXRF2W3RIAW2745UNDXJH5NXVB4PCSK3 \ / AMOS7 \ YOURUM ::
-#\[7]UIOPZ3HE3KFH2W2S2JPNWTAV3VBNUJG4VPNNLQQ7GL4E6I4I5MCQ 7  DATA SIGNATURE ::
+#,,.,,.,,,,,,,,.,,..,,..,,...,,..,,.,,,,,,.,,,..,,...,...,.,,,,,,,..,,,,,,,,.,
+#AU5I7C5FMRYR6557ZZGGVTHNTOUTO6SRBXLPGIKHAGROGEW4NDPLW4SGEXZLUFKBT4KKEKT4VWZNA
+#\\\|EOWYMZKWCIOTG5CVVDYCLTC5VQB6I4C4OHT7ZZHKY7JZEZOBJI5 \ / AMOS7 \ YOURUM ::
+#\[7]EFSIBRV7FXFWIHQKSFLTZNXLW4V2V2KKLHAGEDGKSSHUBR42SSCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

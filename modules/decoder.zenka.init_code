@@ -1,7 +1,7 @@
 ## [:< ##
 
 # name  = decoder.zenka.init_code
-# descr = Initialize decoder — level-5 B32, level-6 D3, Term::VTerm surface
+# descr = Initialize decoder : level-5 B32, level-6 D3, Term::VTerm surface
 
 ## load Term::VTerm for ANSI/VT sequence parsing ##
 <[base.perlmod.autoload]>->('Term::VTerm');
@@ -12,10 +12,10 @@
 ## load harmonic truth for /13 reduction jobs ##
 <[base.perlmod.autoload]>->( 'AMOS7::Assert::Truth', qw| is_true | );
 
-## level-5 accumulator state — keyed by stream_id ##
+## level-5 accumulator state : keyed by stream_id ##
 <decoder.level5> = {};
 
-## level-6 D3 state — keyed by stream_id [ was global, now per-stream ] ##
+## level-6 D3 state : keyed by stream_id [ was global, now per-stream ] ##
 <decoder.level6> = {};
 delete $data{'decoder'}{'level6_acc'};    ## clean up old global if present ##
 
@@ -48,7 +48,7 @@ if ( not exists <buffer.level-6-D3> ) {
     );
 }
 
-## initialize Term::VTerm surface — 25×80 terminal [ matches xterm wrapper ] ##
+## initialize Term::VTerm surface : 25×80 terminal [ matches xterm wrapper ] ##
 $data{'decoder'}{'vterm'} = Term::VTerm->new( rows => 25, cols => 80 );
 my $screen = $data{'decoder'}{'vterm'}->obtain_screen;
 $screen->set_damage_merge(2);    ## VTERM_DAMAGE_SCROLL ##
@@ -57,7 +57,7 @@ $data{'decoder'}{'vterm_screen'} = $screen;
 ## stream attachment registry ##
 <decoder.attached_streams> = [];
 
-## async job queue — entropy reduction and buffer analysis ##
+## async job queue : entropy reduction and buffer analysis ##
 <decoder.jobs> //= {};
 
 <list.decoder-jobs> = {
@@ -73,13 +73,13 @@ $data{'decoder'}{'vterm_screen'} = $screen;
 
 <[base.log]>->(
     2,
-    "decoder initialized — level-5 B32, level-6 D3, vterm 25×80, jobs queue"
+    "decoder initialized : level-5 B32, level-6 D3, vterm 25×80, jobs queue"
 );
 
 return TRUE;
 
-#,,,,,,,.,,,,,,,,,,..,...,,..,.,,,,,,,..,,..,,..,,...,...,,,.,,.,,,,.,..,,,,.,
-#YQCUHDB6VLR3G3HZFG2LNK7GG5MQZRU5LP2M7SYV4G26EDSIYYHSIV4WM26DQTGPHL6YLCLC5C2OU
-#\\\|YZW7Z6OI4UQ3D4ZJGDJAW4IRSQFBXEMNZJ3ZZRQ5XE5VJNHZ4MU \ / AMOS7 \ YOURUM ::
-#\[7]MQYO5KFXF2IURXG2T3ABBQVJIGYMMDOHBAOKJB26YAGKJM5KMQAI 7  DATA SIGNATURE ::
+#,,,,,.,,,...,.,.,..,,...,,..,,,,,.,,,..,,,,.,..,,...,...,..,,,..,,.,,.,,,,,.,
+#AGAESHCW3BBPT3SMPSBGOIG24WMX6GNWSI6G2TYEY2MFTTNFTVUQVXZT7MXN3VSZNVIILLRT5MSCE
+#\\\|6MQUOQ32RYKDQOOMDVETOKMWVUAVX5FF4BKBUTNC3CDKXWFKOXG \ / AMOS7 \ YOURUM ::
+#\[7]V3XEDCPAC6PZBSJOQPZO7H3QZF5N7U7XC6NE34COPPF77AM5UEDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

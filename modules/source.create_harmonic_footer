@@ -79,7 +79,7 @@ my $data_pos     = 0;                     ##  at start of file  ##
 my $read_length  = 4282;
 my $content_size = length $src_ref->$*;
 
-## trailing newline count of on-disk body — restore(state) must reproduce this exactly ##
+## trailing newline count of on-disk body : restore(state) must reproduce this exactly ##
 my ($orig_trailing_nl) = $$src_ref =~ /(\n+)$/;
 my $orig_nl_count = defined $orig_trailing_nl ? length($orig_trailing_nl) : 0;
 
@@ -174,7 +174,7 @@ my $endline_modification_state;
 if (   $sign_params_base->{'needs_separator_endline'}
     && $sign_params_base->{'last_line_incomplete'} ) {
 
-    ## state 7 : add 2 endlines — complete incomplete line + separator ##
+    ## state 7 : add 2 endlines : complete incomplete line + separator ##
     $$src_ref .= "\n\n" if $$src_ref !~ /\n$/;
     $endline_modification_state = 7;
     <[base.log]>->( 3, ': : endline state 7 (add 2 endlines)' );
@@ -438,8 +438,8 @@ if ( not $iterations_left ) {    ## warn about failed harmonization ##
 
 return $calc_result_href;        ##  return harmonized result data href  ##
 
-#,,.,,,..,,.,,,,,,...,...,,,.,..,,.,.,.,.,,.,,.,.,...,...,.,.,.,.,,,.,.,.,...,
-#6TWLNCREVXRYSBTSITQPXJNKYIJJKBMQYQKORDMFBJ6AX3NXUGMURUJNZWKAUGXO7PDQUWPOFNWXS
-#\\\|J4ZNURIASTXEWWT7N7TMDPFD3VV77V2RLS3U3KYIWUCAVLT67OF \ / AMOS7 \ YOURUM ::
-#\[7]H667NCG7ZUOSLZZM5BEUJAARK2X4RPF63XYZZOWYMJEXWLJRE6AQ 7  DATA SIGNATURE ::
+#,,,.,..,,.,,,.,.,,,,,,..,,..,...,.,,,,,,,,,.,.,.,...,..,,,,,,.,.,..,,.,.,,..,
+#J2AE5WXNOUX4YQ66HGXZVDQGTEJOKNOXNLOBDNVZFWBJ5PTVDKA7JU7S6EKGSFE7OYNHJX3YBZFBW
+#\\\|LUCK7EXK2QWHIU7VWAYAGZDKTHC5PQ74AGLGGAHU6ZVRBRCKJ3T \ / AMOS7 \ YOURUM ::
+#\[7]66T4UPQ7IZOLEHIGY3KILVTDFTPRPP6M2PZMW53ONJHJFGMVPQDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

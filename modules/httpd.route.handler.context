@@ -1,7 +1,7 @@
 ## [:< ##
 
 # name  = httpd.route.handler.context
-# descr = visualization context update — zoom + intent from browser
+# descr = visualization context update : zoom + intent from browser
 
 my $id      = shift;
 my $session = $data{'session'}->{$id};
@@ -15,7 +15,7 @@ $session->{'buffer'}->{'input'} = '';
     }
 );
 
-## force close — body may arrive after headers in separate chunk,
+## force close : body may arrive after headers in separate chunk,
 ## keeping alive would bleed body bytes into next request parse ##
 $session->{'http'}->{'close'} = 1;
 
@@ -34,8 +34,8 @@ return 2;
 
 #,,.,,,.,,..,,...,,,.,,..,,,,,.,,...,,.,,.,.,..,,...,..,,...,,...,,,.,,,.,.,,,,
 
-#,,,,,.,.,.,.,.,,,.,.,..,,.,.,,.,,,.,,...,.,.,..,,...,..,,..,,,,,,.,,,.,,,...,
-#MQOYVUQ5PMJPPHJ6PFAF4EEHTIMITZO6ZZG3RNVDWAB3VFKYCYPWQ6CP4YAG3NMGSSAKIWUZY7JTK
-#\\\|KGNHQWCJCK3P7BRWD3TOY5ZI722M52XL3XRKHO3MJQ7X7KNBKCQ \ / AMOS7 \ YOURUM ::
-#\[7]44ZHEYGQM575MWEAAUCH2TUWW7F4V5F6G27KATMG7RWQRA64RODY 7  DATA SIGNATURE ::
+#,,.,,..,,,..,,..,,,.,,,,,,,,,.,.,,.,,,.,,,.,,..,,...,...,.,.,,.,,,.,,..,,,.,,
+#6N4B6CMJLUSNYD6753RTO4X7PHMHUTHXHEVX4CBSECYW6OWWUFKCIMSNCJDIWNLPHAK4OVB5JQ37G
+#\\\|YMQEDAVG35KLR7AW44NJI4TC3IXHIWK3DUVTGOA6F5ADQB3XD7J \ / AMOS7 \ YOURUM ::
+#\[7]BILWNPPYUGVPDO3GINWDVVCMT2E4Z6Z2Z5ESWYPNDJPEZEVJUOCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

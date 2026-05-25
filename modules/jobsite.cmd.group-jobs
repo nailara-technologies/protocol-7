@@ -57,7 +57,7 @@ for my $rec ( @{$group} ) {
     my $score = $job->{'assertions'}{'dimensions'}{$dimension}{'score'} // '';
     push @lines,
         sprintf(
-        '%-14s %3s %8s %6s  %s — %s (%s)',
+        '%-14s %3s %8s %6s  %s : %s (%s)',
         $rec->{'job_id'},
         $rec->{'arc'}  // '?',
         $rec->{'dist'} // '?',
@@ -70,8 +70,8 @@ for my $rec ( @{$group} ) {
 
 return { 'mode' => 'size', 'data' => join( "\n", @lines ) };
 
-#,,,.,.,,,,,.,,,.,,.,,..,,,,.,,,,,,.,,,..,..,,..,,...,..,,,.,,,,,,.,,,,,.,.,,,
-#TGNJQOBMDZIEFI6JWKS52Z2SKH25JYI26SJHQ3BVKALSTBIPZ65XYMCUKH3P2HL36DM6DKE43PA7Q
-#\\\|3MAB3NSTICHBC5PTKHCHAEHELXBHDTWH4GEEOO2E7TSGWGXBXHG \ / AMOS7 \ YOURUM ::
-#\[7]RVLQCEK6R2IYTFFBNNH5X2YFMKZVUEL2TOV36PDSAK6JPCCM5YAA 7  DATA SIGNATURE ::
+#,,,,,...,.,.,.,,,..,,..,,,.,,...,..,,..,,..,,..,,...,...,...,,,.,,,,,.,.,..,,
+#EPWOTJUJSDNED4JKAKSJLY3ZKLC5UJV2GUGT64HHIMS5DQUPLOZSYTMQ3NVF3RNYUSS75BIQS7YI4
+#\\\|I6BJOOMMWWKXGJJK4ZUJ7L2JJ46JIQE3HZGKESQGKFEACGRTWTR \ / AMOS7 \ YOURUM ::
+#\[7]SBVJFWCWMDKQLV3UAEHZS3KBS4O2Q2ESFZODLSZJU7AKNX5XASBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

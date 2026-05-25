@@ -69,7 +69,7 @@ $svg .= '<svg xmlns="http://www.w3.org/2000/svg"'
     . ' viewBox="0 0 800 800" width="800" height="800">' . "\n";
 $svg .= '  <rect width="800" height="800" fill="#0a0a0f"/>' . "\n";
 
-# [ arc spokes — counterclockwise ]
+# [ arc spokes : counterclockwise ]
 for my $ARG ( 0 .. 25 ) {
     my $angle_deg = -$ARG * $segment_deg;
     my $rad       = $angle_deg * $PI / 180;
@@ -81,7 +81,7 @@ for my $ARG ( 0 .. 25 ) {
         . "\n", $x2, $y2;
 }
 
-# [ arc labels — counterclockwise, per ring ]
+# [ arc labels : counterclockwise, per ring ]
 for my $ring ( 0 .. $rings - 1 ) {
     my $radius        = $outer_radius - $ring * $ring_radius_step;
     my $label_opacity = sprintf( '%.2f', 0.3 * ( 0.75**$ring ) );
@@ -97,7 +97,7 @@ for my $ring ( 0 .. $rings - 1 ) {
         my $y         = 400 - $label_radius * cos($rad);
         my $label     = <[route.bmw384.visual.ring-label]>->( $ring, $ARG );
 
-        # [ ring 27 darksun marker — special rendering ]
+        # [ ring 27 darksun marker : special rendering ]
         my ( $label_fill, $label_font_size_actual );
         if ( $label eq '.' ) {
             $label_fill             = 'rgba(100,150,255,0.6)';
@@ -186,13 +186,13 @@ for my $ring ( 0 .. $rings - 1 ) {
             .= sprintf
             '  <circle cx="%.2f" cy="%.2f" r="%d" fill="%s" opacity="%s">'
             . "\n", $x, $y, $r, $color_hex, $opacity;
-        $svg .= sprintf '    <title>%s — %s [ledger:%d]</title>' . "\n",
+        $svg .= sprintf '    <title>%s : %s [ledger:%d]</title>' . "\n",
             $ARG, $coord_str, $count;
         $svg .= '  </circle>' . "\n";
     }
 }
 
-# [ separator dots — one per arc:ring at fixed position ]
+# [ separator dots : one per arc:ring at fixed position ]
 for my $ring ( 0 .. $rings - 1 ) {
     my $radius      = $outer_radius - $ring * $ring_radius_step;
     my $hue_offset  = $ring * $ring_hue_drift;
@@ -250,7 +250,7 @@ for my $ring ( 0 .. $rings - 1 ) {
     }
 }
 
-# [ center logo — nailara at the darksun ]
+# [ center logo : nailara at the darksun ]
 my $logo_size = 44;
 my $logo_xy   = 400 - $logo_size / 2;
 
@@ -267,8 +267,8 @@ $svg .= '</svg>' . "\n";
 
 return $svg;
 
-#,,.,,,..,.,.,...,.,,,,,,,.,.,.,,,,,,,,,,,,.,,..,,...,...,..,,.,.,..,,...,.,,,
-#XIRU7C36PQRJSMNQDFC2AO5GRWD5VBW2N4E23YFG45TMW2TOBXKZR5ILSHIMER6WYDQNXPDLOA7BY
-#\\\|AOWTHZVJ5HEVBNSXJBIIUFZR4C5TKOX7F2MRUDSNT2D3DCWZXIK \ / AMOS7 \ YOURUM ::
-#\[7]CILCWNSKEO43ZGO3WKHH3TKYACLLBNLI5B4BZDMXK5JMTQSCESAY 7  DATA SIGNATURE ::
+#,,..,...,...,,.,,...,.,.,,,,,.,,,..,,,,,,,,,,..,,...,...,,,.,,,.,.,,,...,..,,
+#HDI7CCTHU2KJKX5E2XJGEMDKVPZ7TUSNMBDZAU3T22W6FS5FPF7PKFFRYNIWSIEGQBOAMY6B5AQUA
+#\\\|JM4JM5LY4N4Q3VUMQWXXCBQNMDU664AG7PNKYFMI2WKNDOX46BY \ / AMOS7 \ YOURUM ::
+#\[7]A5XWJMZO2RY53QMASCYSL6EZPAW5Y4DCTW23YY2ZIBSKG7LDGQAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

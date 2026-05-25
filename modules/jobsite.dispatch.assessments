@@ -53,7 +53,7 @@ my $profile_file = <jobsite.cfg.profile_file>
     // '/etc/protocol-7/jobsite/profile.txt';
 my $profile_text = '';
 $profile_text = <[file.read]>->($profile_file)
-    // 'no profile configured — score based on job listing alone';
+    // 'no profile configured : score based on job listing alone';
 <[base.perlmod.autoload]>->('Encode');
 $profile_text = Encode::decode( 'UTF-8', $profile_text )
     unless utf8::is_utf8($profile_text);
@@ -73,13 +73,13 @@ for my $job_id (@to_assess) {
 
 <jobsite.assess_queue> = \@queue;
 
-## dispatch first task — task-created handler will call dispatch.next for each
+## dispatch first task : task-created handler will call dispatch.next for each
 <[jobsite.dispatch.next]>;
 
 return;
 
-#,,,,,...,,.,,,..,...,,..,.,,,,,,,,.,,,.,,,.,,..,,...,...,.,.,...,,..,,..,.,.,
-#CP3VHXRZG6GPT24VLJ4MZ2RTBVENWWLQAFRSJMUUT4GESZAZP2QBVQA4HWBO6MQ5FH5CENQMZQHJS
-#\\\|NHE7CQYN4AGVGHGR5Z6D4GSQTOLRDQTQKM46YMHI4CDJKYUVGWU \ / AMOS7 \ YOURUM ::
-#\[7]SO7ETJQ3KG5SKNXQY26I3DORABYSD3QJKP6VX3FHZNOE2SMDBABY 7  DATA SIGNATURE ::
+#,,,,,,,,,.,,,,.,,,..,,.,,.,,,.,.,...,.,.,.,,,..,,...,...,..,,..,,,,,,,,.,,,,,
+#5QS4Y3A2JH47ZWY7PBUR6NSMBIBWZF227WDEBEOEM2GIJZNZRPQAAKBQW4CJDSUKUBKAVASQEED7Y
+#\\\|TUA4VJ7MBCBBKNGVOJ624IK4COSVEH2UTIIW2N3J4UQAKDUX7QL \ / AMOS7 \ YOURUM ::
+#\[7]HRZVWJTUY5XIDD5LOIS2LT5EMXOHW3266CSMOPPCFJOEPO6NRMCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -10,27 +10,27 @@ my $sub_name = [<[base.caller]>]->[0];    ##  own name via filename hint  ##
 
 <[base.logs]>->( 2, '..: deferred compile : %s ..,', $sub_name );
 
-##  bypass whitelist — deferred stubs are for non-whitelisted modules  ##
+##  bypass whitelist : deferred stubs are for non-whitelisted modules  ##
 <[base.load_runtime_modules]>->($sub_name);
 
 goto &{ $code{$sub_name} }    ##  transparent hand-off on first call  ##
     if ref $code{$sub_name} eq qw| CODE |;
 
-##  install broken stub — prevents retry loop, clears itself on reload  ##
+##  install broken stub : prevents retry loop, clears itself on reload  ##
 $data{'code'}{$sub_name}{'status'} = 'error';    ##
 $code{$sub_name} = eval(                         ##
     "sub { if ( ( \$data{'code'}{'$sub_name'}{'status'} // '' )"       ##
         . " ne 'error' ) {"                                            ##
         . " goto &{ \$code{'$sub_name'} } }"                           ##
         . " \$code{'base.log'}->(0,"                                   ##
-        . "'..: broken sub called [ $sub_name ] — compile failed')"    ##
+        . "'..: broken sub called [ $sub_name ] : compile failed')"    ##
         . " }"
 );                                                                     ##
 
 <[base.logs]>->( 0, '..: deferred compile failed [ %s ]', $sub_name );
 
-#,,..,.,,,,..,..,,..,,,.,,,..,.,,,..,,,..,.,,,..,,...,...,,.,,,.,,.,,,.,.,..,,
-#NFJJHUKPTJX7FBX7DFZIX6JHVHDCBXA3J4FEZE7O27UOMGS3QFUSYFZBN2TQ5BNVRBNIT6OS6AQWO
-#\\\|INEHQKDZNCMXEKKEN2V55ZZCRF3F4YMKDKM7FCODKAY4456N2QC \ / AMOS7 \ YOURUM ::
-#\[7]3I4FFEYMMJOMYHNMIAVAURSQV6ZBDHR7GV44T4TLGOOE4DKZB6CQ 7  DATA SIGNATURE ::
+#,,,.,.,.,...,.,.,,.,,.,.,,,.,.,,,,.,,,.,,...,..,,...,...,,,.,.,.,,,.,,..,,,,,
+#FC5MOYX4GCROZKG2V4CGJ67YTLF25O3NNU7QTYHK6FJHXYXR5RJTSL4U7PTMND7BDCZ6VLGI3ORXS
+#\\\|P5HJUIBEFYOAHKKFO4NLCCHEZOXM4IMUEH63IVZFYRWC37TXHSU \ / AMOS7 \ YOURUM ::
+#\[7]7T4WF3LO6MKFCDD2KMYC6S2NBKMYXUUE3NVQWINSOFEOSN6FW6CY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

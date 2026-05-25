@@ -1,7 +1,7 @@
 ## [:< ##
 
 # name  = decoder.zenka.receive_entropy
-# descr = Receive 42-bit entropy frame — boundary detection, B32, D3, vterm
+# descr = Receive 42-bit entropy frame : boundary detection, B32, D3, vterm
 
 my $params    = shift                  // {};
 my $stream_id = $params->{'stream_id'} // $ARG[0];
@@ -15,7 +15,7 @@ return { 'mode' => qw| false |, 'data' => 'missing entropy' }
 ## reconstruct harmonic decimal value from 42-bit binary string ##
 my $decimal = oct("0b$entropy");
 
-## passive boundary detection — PYTAURAZUMA canvas-clean at 769230 ##
+## passive boundary detection : PYTAURAZUMA canvas-clean at 769230 ##
 if ( $decimal == 769230 ) {
     <[protocol-7.route-send]>->(
         {   'command'   => 'decoder.handler.on-boundary',
@@ -85,8 +85,8 @@ return {
     }
 };
 
-#,,.,,..,,..,,..,,,..,,.,,.,,,.,,,,,,,,.,,..,,..,,...,...,,.,,...,,,,,.,,,,..,
-#D5KGURBWYO3DNIK7BODHP7HTEC3T7MP7DUFQO7WH6GKXB5U6AOT5MPDRN3DXLTYM6FVLNVCZLLSIE
-#\\\|7NFF7ZMPMEHR6MAN4LFOZDKKMLXBQBKJPZBO64HGAM4JRJ3FLVB \ / AMOS7 \ YOURUM ::
-#\[7]6NDUHDIZD3EJYIXXWLGJANNN3SVGJR4GT3DD4JOXR7X3RWGCGGBI 7  DATA SIGNATURE ::
+#,,.,,,..,..,,,,.,...,.,,,,,,,...,,,.,...,,.,,..,,...,...,.,.,,,.,,,.,,,,,..,,
+#E2CQV5XXTEYFK7D4PZQ56XTB5CKI5EICIMYC7CUBJHM74XSSSHTUELDNHNGDGPL3QFNOJSZP26ONI
+#\\\|GWQO5QH5UZJEO2UEYYRYYI223P32ODLIGDWR7PZSWFCQTPNOQFQ \ / AMOS7 \ YOURUM ::
+#\[7]P3W7WFCWXIG4QNIIW6KU4LIHGBS6LE4RHBXQ42NODVERP2B4DQBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

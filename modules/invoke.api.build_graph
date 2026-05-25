@@ -91,7 +91,7 @@ if ( $model_base eq 'sdxl' ) {
                 node_id => 'positive_cond',
                 field   => 'pooled_conditioning'
             },
-            ## [ field name from openapi — verify against /openapi.json ]
+            ## [ field name from openapi : verify against /openapi.json ]
             destination => {
                 node_id => 'denoise_latents',
                 field   => 'positive_conditioning_2'
@@ -189,7 +189,7 @@ if ( $model_base eq 'sdxl' ) {
             destination => { node_id => 'clip_skip', field => 'clip' },
         },
         ## clip_skip → conditioning
-        ## [ field name: clip_skip_output — verify against /openapi.json ]
+        ## [ field name: clip_skip_output : verify against /openapi.json ]
         {   source => { node_id => 'clip_skip', field => 'clip_skip_output' },
             destination => { node_id => 'positive_cond', field => 'clip' },
         },
@@ -241,8 +241,8 @@ return {
     },
 };
 
-#,,.,,.,.,,.,,,,.,..,,.,,,,.,,...,..,,,,.,,.,,..,,...,...,,,.,..,,,..,.,.,.,.,
-#AL7QJKWTC6RCZX2ZVB3JYLQHTWMT2LZ325KW3HKKPXDQH5XM6IONKMMNIPQJQ7MYUAKPBLXARCV4O
-#\\\|IMAHB6IBBDE7XDA5TTL3NLOI7VJHM3DR73LL6XT6CAQ2HMW5RR3 \ / AMOS7 \ YOURUM ::
-#\[7]VRSP6OFAWMX2LFBYHX2BXBCOJVHGVQFJIFMT2PWG5WZXRVK7BWCI 7  DATA SIGNATURE ::
+#,,.,,,,.,.,.,..,,,,.,.,,,,.,,..,,...,,,.,,,.,..,,...,...,.,.,,,.,.,,,,,,,,,.,
+#SZYRVK3JHDZYOQTSXPVTKSWU43XKZFBFWZ25NKY7JAFCD4OZ3ZXSOKK2XFLFGXYIP3Z22PEE35SL6
+#\\\|4I3245O2SKOQG7CTETWOJAADA2AMOBO3XS7NNMEJ4A3YHPELBT4 \ / AMOS7 \ YOURUM ::
+#\[7]PD2EDWCKFCQO7TBW3654ZMM4G5UKT32ABXN3HGW2UDGISXXFKGBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

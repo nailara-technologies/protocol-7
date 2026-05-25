@@ -25,7 +25,7 @@ if ( $mode eq 'TRUE' ) {
 } elsif ( $mode eq 'FALSE' ) {
     <[base.log]>->( 1, "renewal failed for $domain: $args" );
 
-    ## detect rate limit — schedule at retry_after time, not backoff
+    ## detect rate limit : schedule at retry_after time, not backoff
     if (   ( $args // q|| ) =~ m|rate.?limit|i
         or ( $data // q|| ) =~ m|rate.?limit|i
         or ( $args // q|| ) =~ m|rateLimited|i ) {
@@ -57,7 +57,7 @@ if ( $mode eq 'TRUE' ) {
         return FALSE;
     }
 
-    ## normal failure — schedule retry with exponential backoff
+    ## normal failure : schedule retry with exponential backoff
     my $attempt = ( $reply_data->{'params'}{'attempt'} // 1 ) + 1;
 
     if ( $attempt <= 5 ) {
@@ -92,7 +92,7 @@ if ( $mode eq 'TRUE' ) {
             . " bytes)"
     );
 
-    ## Certificate data returned — decode base32r JSON bundle from child
+    ## Certificate data returned : decode base32r JSON bundle from child
     ## trim trailing whitespace/newlines from SIZE protocol framing
     ( my $data_clean = $data // '' ) =~ s|\s+$||;
     my $bundle_json = eval { decode_b32r($data_clean) };
@@ -208,8 +208,8 @@ if ( $mode eq 'TRUE' ) {
 
 return FALSE;
 
-#,,.,,,,.,,,.,,,.,...,.,,,,,,,,..,.,,,...,,.,,..,,...,...,...,,,.,..,,.,.,.,,,
-#37TL2NR52RMCYGS56IM4OYXQBKKOODL6XXNZTZ36S2UAPUL6QQC7SY4HEL6K7VC6BSYIB47F26J7Y
-#\\\|3TFG4PU24MJ2SGXEP7SCR5R6N7ROC3QQZKPLVH4NGETKXI3TFLX \ / AMOS7 \ YOURUM ::
-#\[7]QCPG3KEWT2PTVQPJLYMXFJMZM5BU5PHB2HIMNC4H6ZWE3K54BKBA 7  DATA SIGNATURE ::
+#,,,.,.,.,,.,,...,,,.,,,,,,,.,..,,.,,,.,,,,.,,..,,...,...,,..,.,.,,..,,..,..,,
+#VJAUIZQ4AGNEJYICUDK6YWZFIEIWPOQLCIBYR6L4DZV4KFZWAOD4JB7RGTOIVY2DFD3DB6YMV76V6
+#\\\|JDFX67CAG7BASXA4LRX3WWXPXW6WIHGUUHYRV2QMRPLRXQHE6QS \ / AMOS7 \ YOURUM ::
+#\[7]HXRFPK7F2BZFLCTVXUQSA25B4N7LDUEIJFTWS56WG7JQ3RSNCQDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
