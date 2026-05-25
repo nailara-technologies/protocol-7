@@ -24,12 +24,6 @@ for my $col ( 0 .. 4 ) {
         my $entries_r      = $grid->[$col][$r]        // [];
         my $entries_mirror = $grid->[$col][$mirror_r] // [];
 
-        if ( $r == $mirror_r ) {
-            ## [ center row -- no pair, survives as unpaired ] ##
-            push @unpaired, @$entries_r;
-            next;
-        }
-
         my $count_r      = scalar @$entries_r;
         my $count_mirror = scalar @$entries_mirror;
 
@@ -72,8 +66,8 @@ for my $col ( 0 .. 4 ) {
 
 return { unpaired => \@unpaired, residuals => \@residuals };
 
-#,,.,,.,.,.,.,..,,,.,,,..,,.,,.,,,,,.,.,.,..,,..,,...,...,,..,.,,,,,,,,,,,,..,
-#UIUNPTIOO3JZ5KOT4WEI7QNCAYL6NFLEVBCTHM7T6M65A3M625CI6KNHTOCUDF4ZXNGFSKMZBY5LI
-#\\\|LL6QQJS4SID3C57GNEBZVWD2LYCIYPCVLCZP3CNZCVOFQ2MUOVZ \ / AMOS7 \ YOURUM ::
-#\[7]GOJCXT3BPNQWMAOT3R4GTUETTGVKORASILLWHEYF5DCJTMIMFUCQ 7  DATA SIGNATURE ::
+#,,..,.,.,...,,..,,.,,,.,,,,.,,,,,,..,,,,,,,,,..,,...,...,...,.,.,,,,,,,,,.,.,
+#LOAQAPRVJNH3LVH3VCYXN6POKVLWC5M4A5SHWGPK2WW46CW3MB47I6DJZXYB6VUHG4PPZRBZKUFEA
+#\\\|X6OQPB5QBIXLR7MDEAMNW22BVLPBPC6MTXMOOJ5WQAULL26BJIP \ / AMOS7 \ YOURUM ::
+#\[7]6B4ANZHJGYPACMJDWEW76PHVMFCHXGQ6CXKHYYXMFGX7HK4BZADA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
