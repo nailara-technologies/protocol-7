@@ -25,16 +25,25 @@ if ( defined <httpsd.sock> and fileno(<httpsd.sock>) ) {
 my $cert_info = <[httpsd.check_certificate_available]>;
 
 if ( !$cert_info->{available} ) {
-    ## certificate not available - defer socket creation
     <[base.logs]>->(
-        1,
-        'httpsd: certificate not available, deferring HTTPS socket creation'
-    );
-    <[base.logs]>->(
-        2,
-        'httpsd: will retry periodically, use httpsd.socket-status to check'
+        1, 'httpsd: certificate not available, deferring socket creation'
     );
     <httpsd.socket_deferred> = 1;
+
+    ## cancel any existing retry timer before scheduling a new one ##
+    if ( defined <httpsd.timer.cert_retry>
+        and <httpsd.timer.cert_retry>->is_active ) {
+        <httpsd.timer.cert_retry>->cancel;
+    }
+    my $retry_delay = 13;
+    <httpsd.timer.cert_retry> = <[event.add_timer]>->(
+        {   'after'   => $retry_delay,
+            'handler' => qw| httpsd.post_init |,
+        }
+    );
+    <[base.logs]>->(
+        2, 'httpsd: will retry socket creation in %d seconds', $retry_delay
+    );
     return TRUE;
 }
 
@@ -45,6 +54,14 @@ if ( $> != 0 ) {
     <[httpsd.self_restart]>;
     return TRUE;
 }
+
+## cancel any pending retry timer ##
+if ( defined <httpsd.timer.cert_retry>
+    and <httpsd.timer.cert_retry>->is_active ) {
+    <httpsd.timer.cert_retry>->cancel;
+    delete <httpsd.timer.cert_retry>;
+}
+<httpsd.socket_deferred> = 0;
 
 ## certificate available - create SSL socket and bind protocol
 <[base.logs]>->( 2, 'httpsd: certificate available, creating HTTPS socket' );
@@ -75,8 +92,8 @@ return TRUE;
 
 0;
 
-#,,,,,.,.,,..,..,,.,.,..,,,.,,,..,,.,,,,.,..,,..,,...,...,...,.,,,.,,,..,,,,,,
-#27DPK2AGLTT2J5NEFSYEMC2SMED3OM2VWZK6PHWBKU3ZUSZUE7VYYTMBDL4IXFBXTWYIPW4DMXX6M
-#\\\|YZQUE4B753MBJFHDSVJYB6EFC3ZZWQR4P2VTLQJKN7AFLIKJVH2 \ / AMOS7 \ YOURUM ::
-#\[7]XD3J2EFCGN2OFKMCZEQDIY73U2WZ77QOLOJY4CEX6Z4Q7AC2MYBI 7  DATA SIGNATURE ::
+#,,.,,,,.,,.,,.,.,,,,,,,.,.,,,...,,.,,,,.,,,,,..,,...,..,,.,.,.,.,...,,,.,.,,,
+#ZS3QGD22YLEDAHCAGB2PR6LZOGTO3RE26WDRUO53X7JGTOMOA3T3HQGMV3MEGTNUGD4ZQEV4TYSX4
+#\\\|GMD77SW7OHQJP7JULWYZ6LEUM53KYFKNU6W644NCUZMFB7FUJLG \ / AMOS7 \ YOURUM ::
+#\[7]S2J7GP5HNZHX56YWLHH2L6YY4U4OUYH2HHLYDD67S3MHCTJSSQBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
