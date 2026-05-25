@@ -3,23 +3,42 @@
 # name = index.deduplicate
 # descr = detect repeating sequences and promote to higher-order tokens
 
-my $src     = shift // $ARG;
-my $text    = ref $src ? $src->$* : $src;
-my $max_win = <index.meta>->{'max_window'} // 8;
-my $min_win = 2;
+my $src      = shift // $ARG;
+my $text     = ref $src ? $src->$* : $src;
+my $max_win  = <index.meta>->{'max_window'} // 8;
+my $min_win  = 2;
+my $text_len = length $text;
+
+## ring-0 terminal tracking ##
+for ( my $pos = 0; $pos + 1 <= $text_len; $pos++ ) {
+    my $seq = substr( $text, $pos, 1 );
+    next if $seq eq ' ';
+    my $end = $pos + 1;
+    if ( $end == $text_len
+        or substr( $text, $end, 1 ) =~ m|[ \n\r\t]| ) {
+        <index.terminal>->{$seq} = 1;
+    }
+}
 
 for my $win ( $min_win .. $max_win ) {
-    for ( my $pos = 0; $pos + $win <= length $text; $pos++ ) {
+    for ( my $pos = 0; $pos + $win <= $text_len; $pos++ ) {
         my $seq = substr( $text, $pos, $win );
         next if $seq =~ m| |;    ## skip sequences containing space ##
         <index.level>->{$win}{$seq}++;
+
+        ## boundary check: true terminal if followed by space or EOS ##
+        my $end = $pos + $win;
+        if ( $end == $text_len
+            or substr( $text, $end, 1 ) =~ m|[ \n\r\t]| ) {
+            <index.terminal>->{$seq} = 1;
+        }
     }
 }
 
 ## ranking and trie build are handled by index.rank ##
 
-#,,,,,.,.,,..,,,.,..,,...,,,,,...,...,,..,.,,,.,.,...,...,.,.,...,,.,,,,,,,,.,
-#ZTJK7CG47MHYAPQP32KCVSHOOJKPTDZ233RX5MUZGB2LJ52SMLBNOT5LZ726GLXDVAGBXKWUGG3KW
-#\\\|GJWUOQ7U3TL5F6AITN6RYPANV3PELVDJWHSB6R2SVUCWVMJL45R \ / AMOS7 \ YOURUM ::
-#\[7]LOCQC2JDLW32PSDDEPSL5NB5JDE3MTPDH52L4PNDCDQTSEKTRGBI 7  DATA SIGNATURE ::
+#,,..,,..,.,.,,,,,...,..,,,,.,.,,,,.,,..,,,.,,.,.,...,...,..,,,,,,..,,.,,,.,.,
+#LRTCFALSFHTHAGYIEZBPMT4J5Q3EPG33J3SXWJ3UIZO4IGOZNZADBE3LQY4JEPESHB4EQ4LDIPKKC
+#\\\|LGNTNBOAMNAEJYKB5KLGP5YWKAFLPAPX6DXCXDIKF2ZZQ7RCCKF \ / AMOS7 \ YOURUM ::
+#\[7]NARVPQZNK5MNG3QJXPFTPQ2OUYYOHOVEEQCDHP77V73UKUURDCAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
