@@ -3,13 +3,19 @@
 # name = index.address
 # descr = return numerical address for a token
 
-return -1 if defined $ARG and $ARG eq '';    ## '' is -1, the root ##
+my $token = shift // $ARG;
 
-my $addr = <index.addr>->{$ARG};
-return $addr;                                ## undef if not found ##
+return -1 if defined $token and $token eq '';    ## '' is -1, the root ##
 
-#,,..,,.,,...,,,.,,,.,,,.,...,,,,,.,,,,,.,...,..,,...,..,,..,,,,.,.,.,.,,,,,.,
-#EO7EYNMMH37SA2UUNV4WKLS52XECT26OYW25ZAOUSOBVXHM4YGW3OGKZ4USONOMNWVHITROADPNDW
-#\\\|FFATMN6MGTEL3YTVE5LPQEJKQ7U6S2DXOBIZQ4IQV3F5MVYHY5S \ / AMOS7 \ YOURUM ::
-#\[7]WCW3FURY3EQQN3CGZNFTBP7PVZAYQFFQNSXOQBWMD7I3WBJPJ6CA 7  DATA SIGNATURE ::
+my @path;
+for my $depth ( 0 .. length($token) - 1 ) {
+    my $prefix = substr( $token, 0, $depth + 1 );
+    push @path, <index.addr>->{"$depth:$prefix"} // undef;
+}
+return \@path;
+
+#,,,.,,.,,,.,,.,.,..,,.,,,.,,,,,.,...,,..,.,.,..,,...,...,,..,.,.,,,.,..,,,.,,
+#TDMNEUP4Y2F5KKABLEOUSATZSB6YQB6FPEUAJC4RMURFUK3TLDTB43LGESPJFCHRC4OL7PYTETDNA
+#\\\|H7MUYRNKM7IXLREIVDSHZPR7U6A4L43NICSJSBZ27E5HMZHCBTO \ / AMOS7 \ YOURUM ::
+#\[7]OWG6FZINYA3KNQRF7TYTWMSQIQJYRK2UQYSIAMAYMSFEOQOQDOBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
