@@ -4,9 +4,9 @@
 # descr = assign numerical addresses by frequency rank and build ring trie
 
 ## clear old address and trie structures ##
-<index.addr> = {};
-<index.rank> = {};
-<index.trie> = {};
+<index.addr>        = {};
+<index.packed_rank> = {};
+<index.trie>        = {};
 
 ## ring 0 : single characters ##
 my %char_freq = %{<index.freq>};
@@ -16,27 +16,25 @@ my @char_ranked
 my $rank = 0;
 for my $char (@char_ranked) {
     <index.addr>->{"0:$char"} = $rank;
-    <index.rank>->{"0:$rank"} = $char;
     $rank++;
 }
+<index.packed_rank>->{0} = join '', @char_ranked;
 
 ## per-ring sequence ranking ##
 my %seq_by_win;
-my %rank_by_seq;
 
 for my $win ( sort { $a <=> $b } keys %{<index.level>} ) {
     next if $win == 0;
     my %freq   = %{ <index.level>->{$win} };
     my @ranked = sort { $freq{$b} <=> $freq{$a} || $a cmp $b } keys %freq;
     $seq_by_win{$win} = \@ranked;
-    my $r = 0;
+    my $depth = $win - 1;
+    my $r     = 0;
     for my $seq (@ranked) {
-        my $depth = $win - 1;
         <index.addr>->{"$depth:$seq"} = $r;
-        <index.rank>->{"$depth:$r"}   = $seq;
-        $rank_by_seq{"$win:$seq"} = $r;
         $r++;
     }
+    <index.packed_rank>->{$depth} = join '', @ranked;
 }
 
 ## pre-compute children by prefix for trie building ##
@@ -71,31 +69,36 @@ for my $r ( 0 .. $#char_ranked ) {
     my @child_entries = @{ $children_by_prefix{"2:$char"} // [] };
     my @sorted
         = sort { $b->[1] <=> $a->[1] || $a->[0] cmp $b->[0] } @child_entries;
-    my @child_chars = map { substr( $_->[0], 1, 1 ) } @sorted;
-    push @ring0_nodes, @child_chars ? [ '.', @child_chars ] : ['.'];
+    my @child_ranks = map { <index.addr>->{ "1:" . $_->[0] } } @sorted;
+    push @ring0_nodes, [ 1, pack( 'N*', @child_ranks ) ];
 }
 <index.trie>->{0} = \@ring0_nodes if @ring0_nodes;
 
 ## build sequence ring trie nodes ##
 for my $win ( sort { $a <=> $b } keys %{<index.level>} ) {
     next if $win == 0;
-    my $depth    = $win - 1;
-    my $next_win = $win + 1;
+    my $depth      = $win - 1;
+    my $next_win   = $win + 1;
+    my $next_depth = $next_win - 1;
     my @nodes;
     for my $seq ( @{ $seq_by_win{$win} } ) {
         my @child_entries = @{ $children_by_prefix{"$next_win:$seq"} // [] };
         my @sorted = sort { $b->[1] <=> $a->[1] || $a->[0] cmp $b->[0] }
             @child_entries;
-        my @child_chars = map { substr( $_->[0], $win, 1 ) } @sorted;
-        push @nodes, @child_chars ? [ '.', @child_chars ] : ['.'];
+        my @child_ranks
+            = map { <index.addr>->{ "$next_depth:" . $_->[0] } } @sorted;
+        push @nodes, [ 1, pack( 'N*', @child_ranks ) ];
     }
     <index.trie>->{$depth} = \@nodes if @nodes;
 }
 
+## free raw frequency data — no longer needed after ranking ##
+<index.level> = {};
+
 0;
 
-#,,.,,,,.,..,,,..,.,.,...,,,.,..,,...,..,,,,.,..,,...,..,,.,,,.,.,...,...,...,
-#DI4D622GGSRC336Z776FPVYU6VSWWWHFBCJJMIL5CYFPW32SXGWXELUO3AHGVS23XESMMH6SLQVTI
-#\\\|OFN5IBUQCBFUEO2R27E7OPUUBLZWS5J3CMP62Y2GSB4AAAL47FC \ / AMOS7 \ YOURUM ::
-#\[7]MFM5B4DWFCFM2SMPPX6DOZY36PCW5MDKKNWS2I7EQJRVKC2OB6BA 7  DATA SIGNATURE ::
+#,,.,,,.,,.,.,.,,,.,.,,.,,.,.,,,,,,.,,.,.,.,.,..,,...,...,.,,,,..,,,.,,,,,,..,
+#UOGAAM2I76DUPPIES3QVRQOTWXGOGX5CV36UKYP3DZJKNTSMFTUGHVKWNUTJXIJLHEIZR5RUC36NI
+#\\\|B6E5NHUXTXVHOVWVTQ5TP5PI56E6WV67RCTBWCQNHUQTD6OFHYB \ / AMOS7 \ YOURUM ::
+#\[7]HJRXJYFW6BCXOSCLQJLN2SXI63W4DKFCB275IADOXWCLQTHKIYCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
