@@ -12,12 +12,18 @@ if ( not defined $job ) {
     return;
 }
 
+<index.cfg.rebalance_deferred> = TRUE if $job->{'rebalance-later'};
+
 my $file = shift @{ $job->{'files'} };
 
 if ( not defined $file ) {
     $watcher->cancel if $watcher->is_active;
     delete <index.jobs>->{$job_id};
     my $total = $job->{'total'};
+    if ( <index.cfg.rebalance_deferred> // 0 ) {
+        delete <index.cfg.rebalance_deferred>;
+        <[index.rebalance]>;
+    }
     <[base.log]>->( 1, "index feed-dir complete [ $total files ]" );
     <[base.callback.cmd_reply]>->(
         $job->{'reply_id'}, { 'mode' => 'size', 'data' => "fed $total files" }
@@ -29,8 +35,8 @@ my $ok = <[index.feed.file]>->($file);
 <[base.log]>->( 1, "index feed skipped [ $file ]" ) if not $ok;
 $job->{'done'}++;
 
-#,,,.,..,,,,,,,,,,...,..,,..,,,.,,.,.,,,.,.,,,..,,...,...,...,.,,,,,,,,,,,.,,,
-#6MBV3J3AHGI6GS2V5VZ66USGU6QHJ4CBMBDGDFPQ2MZYRYFMQ4GPOXY2AW5U5BC26UMUVZIFT25FI
-#\\\|3I2KZ6XLOVDJCTRGCMZNY57NATFARFFV4BZWT6ZTMIHAG3O2IUF \ / AMOS7 \ YOURUM ::
-#\[7]UVPC4XZFQ32TFKAX3ARJ34CRY4B7I23A5IRASVXO5ZXIE6I5BSAA 7  DATA SIGNATURE ::
+#,,,.,,.,,,..,,,,,,,.,,..,...,,..,,,,,...,.,.,..,,...,...,.,.,,,.,.,.,,,.,,..,
+#ZEQHV3QIXGP3NSNORWKLUHKM5IFD5WJUEHGTU6IEJYGNQBS2KDFOOGG6XH2HRHXZCLLV3PWWJ35U6
+#\\\|GGGGQ47P4PQMZMJBQVZKUMWSM3YSXRPQPY4YJN5RS6AOR3ZXQOP \ / AMOS7 \ YOURUM ::
+#\[7]KY64GHPN76ZUW4H6D65KEXGDX2XJPSMLTKHA4UFAGYCHVZSCAWAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
