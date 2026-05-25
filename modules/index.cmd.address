@@ -9,10 +9,15 @@ my $addr  = <[index.address]>->($token);
 return { 'mode' => 'false', 'data' => 'not found' }
     if not defined $addr;
 
-return { 'mode' => 'size', 'data' => "$addr" };
+my $display
+    = ref $addr eq 'ARRAY'
+    ? join( '.', map { $ARG // '?' } @{$addr} )
+    : "$addr";
 
-#,,,,,,,.,..,,..,,,..,,..,,,,,.,,,.,.,...,,,,,..,,...,...,..,,,,.,...,...,.,.,
-#GCFWDTRSVIIJ4QPBAHKZXUTD3IXDTZSXMZODOMPOCWL7YJAVPYKNFENWCE4NJGHZQCOT7ADYQVPK2
-#\\\|LVGXP3MUPXR5CBI4KTONRDVNK2KRDNSD6LZKJFISYXXYVJPCHQU \ / AMOS7 \ YOURUM ::
-#\[7]BEBUTEMLWA6HHZIG5VND4KCANTFOFPUJS6PJZW4Z4SIS5NQ2U2BQ 7  DATA SIGNATURE ::
+return { 'mode' => 'size', 'data' => "$token  :  $display" };
+
+#,,,.,...,...,.,.,,,.,,,.,,..,,.,,,,.,.,,,,..,..,,...,.,.,...,,,.,...,..,,.,.,
+#D3EFZDK2XVX3IXV3A7SDPRNIWFGFMFDGXLZXYGDMZJASU4TSVIK7J4TNZ4OYRNXNQJJ7HMUXPTIKA
+#\\\|O3PFM3QTWAYLMUS55YIXAPTDJZTX4ICSULZRORWKA4YDA25QW5W \ / AMOS7 \ YOURUM ::
+#\[7]FEAAD2BHRSZYTSFERHQKGJ3JZYU3M3MCUUDNG7PDWBPX4UUZWGCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

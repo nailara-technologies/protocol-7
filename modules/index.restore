@@ -1,15 +1,36 @@
 ## [:< ##
 
 # name  = index.restore
-# descr = load raw corpus data from disk and rebuild derived structures
+# descr = load compressed corpus data from zenka_dir [ .zxps ]
 
-<[base.perlmod.autoload]>->( 'Storable', qw( retrieve ) );
+<[base.perlmod.autoload]>->( 'Storable', qw( thaw ) );
 
-my $path = <index.path.index-files> . '/index-state.storable';
+my $rel_path  = qw| numerical/numerical-index_state.zxps |;
+my $comp_sref = <[base.file.zenka_dir.load]>->($rel_path);
 
-return FALSE if not -r $path;
+## fall back to legacy uncompressed storable if .zxps not found ##
+if ( not defined $comp_sref ) {
+    my $legacy = <index.path.index-files> . '/index-state.storable';
+    if ( -r $legacy ) {
+        <[base.perlmod.autoload]>->( 'Storable', qw( retrieve ) );
+        my $state = retrieve($legacy);
+        return FALSE if not defined $state;
+        <index.meta>  = $state->{'meta'}  // {};
+        <index.freq>  = $state->{'freq'}  // {};
+        <index.level> = $state->{'level'} // {};
+        <[index.rank]>;
+        my $total = <index.meta>->{'total'} // 0;
+        <[base.log]>->( 1, "index restored [ $total chars from $legacy ]" );
+        return TRUE;
+    }
+    return FALSE;
+}
 
-my $state = retrieve($path);
+my $frozen;
+IO::Uncompress::UnXz::unxz( $comp_sref, \$frozen )
+    or return <[base.log]>->( 1, 'index.restore: xz decompression failed' );
+
+my $state = thaw($frozen);
 return FALSE if not defined $state;
 
 <index.meta>  = $state->{'meta'}  // {};
@@ -20,12 +41,12 @@ return FALSE if not defined $state;
 <[index.rank]>;
 
 my $total = <index.meta>->{'total'} // 0;
-<[base.log]>->( 1, "index restored [ $total chars from $path ]" );
+<[base.log]>->( 1, "index restored [ $total chars from $rel_path ]" );
 
 return TRUE;
 
-#,,.,,,,,,..,,,,,,..,,..,,,,.,,,,,...,,.,,,,.,..,,...,..,,.,,,...,...,,,.,,.,,
-#JSAR3BVNBOZCRKFHBZ4GKCCPDFPMWHGTTGR5TTY3J2F4YIVYCIIFEQISYBJRKSJKWUYWWYEJLVNH4
-#\\\|5QKNPRHNRMNKMBA5G7ZPVUFQQ5ZD2LKHN6QHUHXEVGTV6HGPBZB \ / AMOS7 \ YOURUM ::
-#\[7]DRLLA6VLBL45U52ATBWWWBZLW2ZCWSHQOLND5MF6LSSN35LSRSBI 7  DATA SIGNATURE ::
+#,,..,,.,,,.,,.,.,,..,..,,.,,,..,,.,,,...,.,,,..,,...,...,,..,,..,,,,,..,,..,,
+#ND73IMHVQKWGPUIHIAWVK3X3OFIRIFPTPW5KF6COAZJZBQZVKEAJBW2M3ELTD2XAR74ENGYZZSVBI
+#\\\|VDEQGJXTXNN6QQQ7FMRK7YPEJJYHDRBQQR3V2WSU6RSF4XTL5UA \ / AMOS7 \ YOURUM ::
+#\[7]KXTQVUDGUHIN644QT5KJGVJQGBIMPUVRQK27T65LYE6VG4NCPWCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

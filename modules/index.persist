@@ -1,11 +1,9 @@
 ## [:< ##
 
 # name  = index.persist
-# descr = save raw corpus data to disk via Storable
+# descr = save corpus data compressed to zenka_dir [ .zxps ]
 
-<[base.perlmod.autoload]>->( 'Storable', qw( nstore ) );
-
-my $path = <index.path.index-files> . '/index-state.storable';
+<[base.perlmod.autoload]>->( 'Storable', qw( nfreeze ) );
 
 my $state = {
     'meta'  => { %{ <index.meta> // {} } },
@@ -16,16 +14,23 @@ my $state = {
     },
 };
 
-nstore( $state, $path )
-    or return <[base.log]>->( 1, "index.persist: failed [ $path ]" );
+my $frozen;
+IO::Compress::Xz::xz( \( nfreeze($state) ), \$frozen )
+    or return <[base.log]>->( 1, 'index.persist: xz compression failed' );
+
+my $rel_path = qw| numerical/numerical-index_state.zxps |;
+my $written  = <[base.file.zenka_dir.write]>->( $rel_path, \$frozen );
+
+return <[base.log]>->( 1, "index.persist: write failed [ $rel_path ]" )
+    if not $written;
 
 my $total = <index.meta>->{'total'} // 0;
-<[base.log]>->( 1, "index persisted [ $total chars -> $path ]" );
+<[base.log]>->( 1, "index persisted [ $total chars -> $rel_path ]" );
 
 return TRUE;
 
-#,,..,,,.,...,,,,,,.,,..,,...,,..,,,,,,..,,,,,..,,...,...,.,,,.,,,,,,,,..,...,
-#DDGW6FDE6D7LPM2EJFUYPC3SDBYXEQFNFBFXSZAUMD7S6AOH7VAXWQM4YKE4WX2BY6HNPGSOVBZHW
-#\\\|YBHGV6E4A6YQYJAH5PW5R53HGA7QPIYHGYJLAVUPEGJ4UY4EJVG \ / AMOS7 \ YOURUM ::
-#\[7]IKTCUQ4QXKDITY2UI5ERS74MEMHUUHUMYL5WQXURPVVI4FTDR6BY 7  DATA SIGNATURE ::
+#,,,.,.,.,,..,.,,,..,,,,,,,,.,...,...,...,...,..,,...,...,..,,.,.,...,..,,.,,,
+#2HPGOLDPZ7ZGTMWBOWIM3ONKAG3DEMGC67HYBT42N75HL7YLR53CQERITW55OC5UWUCASQY2735GQ
+#\\\|D3R6JFDVGB7YFN6OIC2VMWGG6SRTAP3Q3UYJD7YVUGHKYXKGKU3 \ / AMOS7 \ YOURUM ::
+#\[7]PF5EW6X7KJKVGTDZQCMK2LGCJ64M4RQQHC7NPB4JXMNSBCRSGUDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
