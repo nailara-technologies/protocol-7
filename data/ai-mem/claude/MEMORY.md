@@ -25,16 +25,22 @@
 - `data/md/development/P7-LLM-REFERENCE.md` — verified live command reference for kimi/LLM
 - `data/md/development/DEGRADED-FEATURES-AUDIT.md` — 5 high-priority + 3 medium with stub task files
 
+## Session 55 (2026-05-25) — index search fixes, em-dash removal, corpus versioning
+- [session-55](session-55.md) — exact-match display, trailing newline fix, backslash escaping, feed-dir default rebalance, 7.2M chars
+- **`index.cmd.search`** — prefix shown as `[ exact, rank N ]` first result; inline SIZE needs trailing `"\n"` (nshell cursor wipes last line otherwise)
+- **`index.terminal`** false-positive problem — all nodes have terminates=1; kimi session bdd0dfe4 has solution; `<index.terminal>` parallel hash in deduplicate
+- **`INDEX-CORPUS-VERSIONING.md`** — `data/md/design/`; checksum-keyed contribution vectors; diff stream resolution-independent; `trie = Σ active_contribution_vectors`
+- **em-dash** — replaced `—` with `:` throughout codebase (765 replacements, 323 files) for UTF-8 reduction
+
 ## Session 54 (2026-05-25) — index .zxps persist/restore, deferred reply, rebalance-later
 - **`.zxps` format** — XZ-compressed Perl Storable; `zx`=xz `p`=perl `s`=storable; harmonically TRUE; 21MB→6.6MB
 - **path**: `/var/protocol-7/index/numerical/numerical-index_state.zxps`; mode 0640 (group-readable)
 - **`<[file.zenka_dir.*]>`** — correct callable prefix (NOT `base.file.zenka_dir.*`); `base.` is filename-only
 - **`IO::Compress::Xz`** must be autoloaded in init_code — NOT globally loaded; `IO::Uncompress::AnyUncompress` IS global
 - **`index.persist` deferred** — 21MB nstore blocks event loop; uses `<index.persist.reply_id>` + `index.callback.persist`
-- **`:rebalance-later:`** flag (harmonically TRUE) defers rank/trie rebuild to end of feed-dir (1 rebalance not 416)
+- **`:rebalance-later:`** flag (harmonically TRUE) defers rank/trie rebuild to end of feed-dir (1 rebalance not 416); now the DEFAULT in session 55
 - **`s///` chaining** — cannot chain `=~` substitutions; each must be a separate statement
 - **`index.cmd.address`** output fix: arrayref path → `join('.', @$addr)` dotted string `e  :  0`
-- **`reasoning.branch.*`** already existed (session 41, May 21, 7 modules); kimi dispatch updated `status` only
 
 ## Session 53 (2026-05-25) — index feed done, infra fixes
 - index zenka: data/md feed COMPLETE (416 files, 4.6M chars); persist/restore now via .zxps (session 54)
@@ -236,8 +242,8 @@
 - **pager.sort.multi-key**: ntime_b32 + priority_map sort types added (session 42)
 - **task dispatch sections**: all dispatched tasks now carry ## dispatch + prompt for reuse
 
-#,,.,,,.,,,,.,.,,,,,,,,,,,.,,,,.,,..,,.,.,,,,,..,,...,...,.,,,..,,,,,,,.,,,..,
-#YKKJG5FUQ6VDJBASCULTMFU377GVQXP7OHKR5BQPVPMGVRPOH2LEVIPYP3HK77SDWMI6ECRPGBWZY
-#\\\|KG5XPJG3HA4XJBHLDEOIDS5O5WHPLFZ6PHDWGNXRXKWMYQOHK2J \ / AMOS7 \ YOURUM ::
-#\[7]TTBUC2DRRXNROXREX7U4F6INLAK62GJSWWJSMZJQVSQRGMVKRCCI 7  DATA SIGNATURE ::
+#,,.,,,.,,,.,,.,,,.,,,,,,,,,,,,..,,,,,,..,,,.,..,,...,...,..,,,,.,.,.,,,.,.,,,
+#6Y6PTAQHJNS2KXO2GSSSL62NPCSAYA7ZWG6AWIOSGA6GRANPKDRPKXTTEKZ4QNEJZ4QI47UICVX4I
+#\\\|LQJQ5NZH6MMRXIDMSCWKSAEKVD43CXJ5R4O6S4J5PBWMAGXRFGE \ / AMOS7 \ YOURUM ::
+#\[7]CDSRKYEXUSRXHCZW4KHPTW3STGI2FEIKNT3P3K6QHS3NT7UZVGCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
