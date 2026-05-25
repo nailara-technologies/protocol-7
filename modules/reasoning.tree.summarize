@@ -1,0 +1,56 @@
+## [:< ##
+
+# name  = reasoning.tree.summarize
+# descr = compress subtree into upward summary string
+
+my $args = @ARG ? shift : $ARG;
+$args //= {};
+
+my $tree = $args->{'tree'} // <reasoning.tree> // {};
+my $from = $args->{'from'} // $tree->{'root'};
+
+my $start_node
+    = <[reasoning.tree.lookup]>->( { tree => $tree, name => $from } );
+return "[ $from ]  subtree not found\n" if not defined $start_node;
+
+my @lines;
+
+## [ recursive summarizer — depth-first ] ##
+my $summarize_sub;
+$summarize_sub = sub {
+    my ($node) = @_;
+    return if not defined $node;
+
+    my $name  = $node->{'name'};
+    my $state = $node->{'state'};
+
+    if ( $state eq 'compact' ) {
+        ## [ compact nodes contribute identity line only ] ##
+        push @lines,
+            sprintf( "[ %s ]  >:|  %.15f   compact",
+            $name, $node->{'convergence'} );
+    } else {
+        ## [ expanded nodes contribute full narration ] ##
+        my $narration = $node->{'narration'} // '';
+        push @lines,
+            sprintf( "[ %s ]  [:<  %.15f", $name, $node->{'convergence'} );
+        push @lines, "   '$narration'" if length $narration;
+    }
+
+    ## [ recurse into children ] ##
+    for my $child_name ( @{ $node->{'children'} // [] } ) {
+        my $child = <[reasoning.tree.lookup]>
+            ->( { tree => $tree, name => $child_name } );
+        $summarize_sub->($child) if defined $child;
+    }
+};
+
+$summarize_sub->($start_node);
+
+return join( "\n", @lines ) . "\n";
+
+#,,,.,.,.,..,,,..,...,,.,,,.,,...,,.,,,,,,,.,,..,,...,...,...,,,.,,.,,..,,..,,
+#WL4K2SJO7QZOAVU4ISXMWOQVW6VPEB3L4WAXZW2EPPAAGUPYRFM3ZUWFK3GZNT5NHVQCKDKYXWLRK
+#\\\|NRLYROU27OCJPL5YW7L6NW4RLQJGNL5VO3IM4FPRAVQQ43H7V5T \ / AMOS7 \ YOURUM ::
+#\[7]EERIOE7ELKLPE3Q5DO73SPWATRUJVVH2U5A3G7V7JQWBARBAPADA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

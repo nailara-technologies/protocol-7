@@ -1,0 +1,132 @@
+## [:< ##
+
+# name  = reasoning.tree.render
+# descr = produce ascii blueprint with box-drawing chars
+
+my $args = @ARG ? shift : $ARG;
+$args //= {};
+
+my $tree = $args->{'tree'} // <reasoning.tree> // {};
+my $root = $args->{'root'} // $tree->{'root'};
+
+return "reasoning.tree : (empty)\n;.,\n" if not defined $root;
+
+my @out;
+push @out, "reasoning.tree : $root";
+push @out, ';.,';
+
+## [ recursive render helper ] ##
+my $render_sub;
+$render_sub = sub {
+    my ( $node, $prefix, $is_last ) = @_;
+    return if not defined $node;
+
+    my $name        = $node->{'name'};
+    my $convergence = $node->{'convergence'};
+    my $state       = $node->{'state'};
+    my $narration   = $node->{'narration'} // '';
+    my $chksum      = $node->{'chksum'}    // '';
+
+    my $chksum_disp = length $chksum ? "AMOS·$chksum" : 'AMOS·????';
+
+    my $branch_char = $is_last ? '└─' : '├─';
+    my $indent      = $prefix . $branch_char;
+
+    if ( $state eq 'compact' ) {
+        ## [ compact node — single line ] ##
+        push @out,
+            sprintf( "%s[ %s ]  >:|  %.15f   compact",
+            $indent, $name, $convergence );
+    } else {
+        ## [ expanded node — full block ] ##
+        push @out,
+            sprintf( "%s[ %s ]  [:<  %.15f", $indent, $name, $convergence );
+        push @out, $prefix . "│   '$narration'"
+            if length $narration;
+
+        my $threshold_str
+            = $convergence >= $node->{'threshold'}
+            ? 'threshold : reached'
+            : 'threshold : not reached';
+        push @out,
+            sprintf( "%s│   depth : %d   chksum : %s   %s",
+            $prefix, $node->{'depth'}, $chksum_disp, $threshold_str );
+
+        for my $overlap ( @{ $node->{'overlaps'} // [] } ) {
+            push @out, sprintf( "%s│   overlap : %s", $prefix, $overlap );
+        }
+
+        ## [ children section ] ##
+        my @children = @{ $node->{'children'} // [] };
+        if (@children) {
+            push @out, $prefix . "│   children:";
+
+            my $child_prefix = $prefix . ( $is_last ? '    ' : '│   ' );
+            for my $i ( 0 .. $#children ) {
+                my $child_name = $children[$i];
+                my $child_last = ( $i == $#children ) ? 5 : 0;
+                my $child      = <[reasoning.tree.lookup]>
+                    ->( { tree => $tree, name => $child_name } );
+                next if not defined $child;
+                $render_sub->( $child, $child_prefix, $child_last );
+            }
+        }
+    }
+
+    ## [ visual separator after last child at this level ] ##
+    push @out, $prefix . '│' if not $is_last;
+};
+
+## [ start from root node ] ##
+my $root_node
+    = <[reasoning.tree.lookup]>->( { tree => $tree, name => $root } );
+if ( defined $root_node ) {
+    ## [ root rendered without branch prefix ] ##
+    my $state       = $root_node->{'state'};
+    my $convergence = $root_node->{'convergence'};
+    my $narration   = $root_node->{'narration'} // '';
+    my $chksum      = $root_node->{'chksum'}    // '';
+    my $chksum_disp = length $chksum ? "AMOS·$chksum" : 'AMOS·????';
+
+    if ( $state eq 'compact' ) {
+        push @out,
+            sprintf( "└─[ %s ]  >:|  %.15f   compact", $root, $convergence );
+    } else {
+        push @out, sprintf( "└─[ %s ]  [:<  %.15f", $root, $convergence );
+        push @out, "    '$narration'" if length $narration;
+        my $threshold_str
+            = $convergence >= $root_node->{'threshold'}
+            ? 'threshold : reached'
+            : 'threshold : not reached';
+        push @out,
+            sprintf( "    depth : %d   chksum : %s   %s",
+            $root_node->{'depth'}, $chksum_disp, $threshold_str );
+
+        for my $overlap ( @{ $root_node->{'overlaps'} // [] } ) {
+            push @out, "    overlap : $overlap";
+        }
+
+        my @children = @{ $root_node->{'children'} // [] };
+        if (@children) {
+            push @out, "    children:";
+            for my $i ( 0 .. $#children ) {
+                my $child_name = $children[$i];
+                my $child_last = ( $i == $#children ) ? 5 : 0;
+                my $child      = <[reasoning.tree.lookup]>
+                    ->( { tree => $tree, name => $child_name } );
+                next if not defined $child;
+                $render_sub->( $child, '    ', $child_last );
+            }
+        }
+    }
+}
+
+push @out, ';.,';
+
+return join( "\n", @out ) . "\n";
+
+#,,,,,,..,,.,,..,,,,.,,.,,,,,,...,.,,,,,.,,,.,..,,...,...,.,,,..,,,.,,..,,.,.,
+#ERHDWJ3ZVB6BBBTC4TEQGLYVTHLWEVBVOLVY5PVZPJWGGK2BX3X7NQG3PXVEFEGQCXJ73PTYJJMMG
+#\\\|ZOCDI26LMSZ6P5M5SNK46OS4PWRZ5SGBAVZTLULFJRS42IEZEDQ \ / AMOS7 \ YOURUM ::
+#\[7]XDCJGHGM3I6PRXJIW2IC24BMNDGKBXK7PJSRIHR5DWCBN5PGREDY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
