@@ -17,7 +17,7 @@ IO::Compress::Xz::xz( \( nfreeze($state) ), \$frozen )
     or return <[base.log]>->( 1, 'index.persist: xz compression failed' );
 
 my $rel_path = qw| numerical/numerical-index_state.zxps |;
-my $written  = <[file.zenka_dir.write]>->( $rel_path, \$frozen );
+my $written  = <[file.zenka_dir.write]>->( $rel_path, \$frozen, qw| > |, 0640 );
 
 return <[base.log]>->( 1, "index.persist: write failed [ $rel_path ]" )
     if not $written;
@@ -27,8 +27,8 @@ my $total = <index.meta>->{'total'} // 0;
 
 return TRUE;
 
-#,,,,,...,,.,,.,,,.,.,.,.,.,.,..,,...,...,.,,,..,,...,...,...,.,,,..,,...,..,,
-#FWCVNQS2A3VO5PVN7M4PQRNYGALQVVVKHD6ZKU76E6KCTY3UU4IUY5BSONIYKGBYIECSUVICIJKAY
-#\\\|LCW52O3DZ6SYY577QMW6PYN6NMCB3MKWBSFV75EBD3AUBMCNAWD \ / AMOS7 \ YOURUM ::
-#\[7]3H5OFRY7SO3WLK5CF2GM6KCLJRG5KPCHGTZ4UVG3NVHXSLYDVACY 7  DATA SIGNATURE ::
+#,,..,,..,...,,.,,,.,,,,,,...,,,,,.,.,..,,,,,,..,,...,...,,..,.,.,.,,,,,,,...,
+#LFQNF6M7KKKSYUC2NTQ5LLGAYFHEEXGNARNL7AMPH3F7IGS7J3LQ4HJXAWFORCGOQN62XWBWIU72U
+#\\\|2UQIH4BPHD7NWR7EMBABIAS344VKKQWLBYMBSPWTQ7BNYWNGRFK \ / AMOS7 \ YOURUM ::
+#\[7]AUCT6ZEG64GRTCEHLKP5ECZBOM7DP7VZFPURP6BOD7JEKFHP7QDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
