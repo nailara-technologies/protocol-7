@@ -55,6 +55,11 @@
     dirty => FALSE,
 };
 
+## auto-restore if saved state exists ##
+if ( -r <index.path.index-files> . '/index-state.storable' ) {
+    <[index.restore]>;
+}
+
 <[base.log]>->( 1, 'index zenka initialized [ numerical language tree ]' );
 
 my $create_perm = <index.permissions.index_root_path>;
@@ -63,8 +68,8 @@ map { <[file.make_path]>->( $ARG, $create_perm, <system.amos-zenka-user> ) }
 
 0;
 
-#,,,.,,..,.,,,,..,..,,,.,,,,.,..,,..,,.,.,..,,.,.,...,...,,,,,...,.,,,..,,.,,,
-#6T4QJQJSLCQK7QODLJ2JCAQJM37RHIPB4KE3O4BW4KHC4J63FAMPA2PSJCSYQUN3COIHUZP4CI5RA
-#\\\|LN63G5ASP3HEVA4IJAAOBBCA3XC2DP572VJF6T4UD2CLQUR4FGV \ / AMOS7 \ YOURUM ::
-#\[7]AAHZ5W7I65A3QO6R4RGLOP3Y64ITJEH54AGPXFOGPWQHUWX2HYDI 7  DATA SIGNATURE ::
+#,,,,,,,,,,,.,,,.,,,,,,..,,..,,.,,,,,,,.,,..,,.,.,...,...,...,,.,,...,..,,,,,,
+#AT2XFR3HZFWFRJQEHOFJAM6ULRLPMTRH6TEUXYQ4M6GYGFXVW4BVZLD5CV2ZCPK7EUB44IZFEVG7I
+#\\\|JWZQY6NS2HIDPMZDDZELVDNEKYVEVHKDUL73S3UTHDTLPIWTF2Q \ / AMOS7 \ YOURUM ::
+#\[7]EQ4MC2NBOLNRB54SWLJ73TZTNNS43P52HDVRVTCL7WJEAGLFZUDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
