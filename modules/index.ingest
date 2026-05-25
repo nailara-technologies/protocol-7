@@ -3,7 +3,8 @@
 # name = index.ingest
 # descr = stream raw text into frequency counts
 
-my $text = ref $ARG ? $ARG->$* : $ARG;
+my $src  = @ARG     ? shift    : $ARG;
+my $text = ref $src ? $src->$* : $src;
 
 for my $char ( split //, $text ) {
     next if $char eq ' ';    ## space is separator, excluded from index ##
@@ -13,8 +14,8 @@ for my $char ( split //, $text ) {
 <index.meta>->{'total'} += length($text);
 <index.meta>->{'dirty'} = TRUE;
 
-#,,,,,.,.,,,,,,..,,,,,.,.,,.,,,,,,,..,...,,,.,..,,...,...,,..,,..,...,,,.,,..,
-#JEDNMIX26OSK4CKQXEPOLRAGAGJIEPO3SPB7RWNOBQAP4247JM7OWY5GSWHLZXSSEZCHMA2T3S5JE
-#\\\|TPIGMZFNQYE2R4EGI5V7DOZFQI5PY6ARSUY3J5VCSHKYY2NN633 \ / AMOS7 \ YOURUM ::
-#\[7]NKDCDIXTDBVSWWNCXOQURJ7NMCZWJNDIXNEBDQDKMOOS3RAKA4BY 7  DATA SIGNATURE ::
+#,,.,,.,.,.,.,,.,,,..,,,.,.,,,.,.,.,.,..,,.,.,..,,...,...,,,,,,.,,,,,,...,,,.,
+#RIQ27L7E4IML4WIPDLSDK6BVRZNBSGM357VH3AFSMZWHYCQCAFRRIRWWGR6ILMZNK54SNSSDGOJVO
+#\\\|K5JLU43ZKD7O7DBSGOEYI3W3ULL6KZ4GAH47Z4AUNFKKGTH7G23 \ / AMOS7 \ YOURUM ::
+#\[7]M6W4QXXT3KFKRIKMK64X7EEVQRLYBJZVSNEKKK2XW7QEINAMSYCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
