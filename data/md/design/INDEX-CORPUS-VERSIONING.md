@@ -47,6 +47,31 @@ any number of times, it counts once.
 
 ---
 
+## The Index Is Mode-Agnostic
+
+The index engine is a blind vector-sum: `trie = Σ active_contribution_vectors`.
+It does not know whether a vector is a delta or a full snapshot. That
+interpretation belongs entirely to the **source-tracking layer**, which decides
+which checksums to mark active.
+
+Two activation policies, same index primitives:
+
+**Delta policy** — mark the entire chain root→HEAD as active; each vector is a
+diff. The trie is the accumulated sum of all diffs from origin to current state.
+
+**Snapshot policy** — mark only HEAD as active; each vector is a full state.
+Replacement is deactivate old HEAD, activate new HEAD.
+
+Both use the same `Σ active_vectors` index arithmetic. No type field is stored
+in the index. Policy complexity is isolated in L3 (source tracker) and never
+leaks into L2 (index engine).
+
+Mixing delta and snapshot policies within the same active set would require type
+tags and routing logic for counting — added complexity with no current need.
+Keeping one policy per source-chain avoids this entirely.
+
+---
+
 ## The Diff Stream
 
 The model is **resolution-independent**. Contribution vectors are checksum-keyed
@@ -72,13 +97,14 @@ diff_c_chk [ parent: diff_b ]
 ```
 
 Both are the same linked structure. A whole-file feed is a valid diff stream of
-one chunk with no parent. The two modes are not different systems — they are
-different granularities of the same one. They can be mixed freely: initial
-ingest at file granularity, incremental edits as diff streams.
+one chunk with no parent. Resolution can be mixed freely within a chain: initial
+ingest at file granularity, incremental edits as diff streams. Activation policy
+(delta vs snapshot) must remain uniform per chain.
 
 The **current state** of any corpus source is a HEAD pointer into its chain.
-The index contribution is the sum of all vectors reachable from HEAD following
-the parent chain.
+The source tracker resolves reachability — under delta policy it walks the chain
+root→HEAD; under snapshot policy it points directly to HEAD. The index receives
+only the resulting active set and sums it.
 
 ---
 
@@ -129,13 +155,25 @@ by content checksum, storing sparse N-gram delta maps. Populated during ingest,
 consulted during deactivation.
 
 **Active set** — `<index.active_checksums>` tracks which contribution vectors
-are currently summed into the live trie.
+are currently summed into the live trie. Per-chain policy marker (delta vs
+snapshot) lives here, not in the index engine.
 
-**Replacement operation** — `index.cmd.replace` : deactivate old checksum,
-activate new checksum, update trie in one atomic step.
+**Source map** — `<index.sources>` maps `source_id` (file path, document ID)
+to its current HEAD checksum. Replacement is a pointer move in this map.
+Deletion is removal of the source_id entry and deactivation of its HEAD.
 
-**Persist** — contribution vectors persist alongside `level` and `freq` in the
-`.zxps` state file. The active set persists as a small list of checksums.
+**Replacement operation** — `index.cmd.replace` : update source map, deactivate
+old checksum, activate new checksum, defer trie rebuild.
+
+**Active set size** — under delta policy the active set is O(chain length) per
+source, not a flat list. Under snapshot policy it is O(1) per source. Choose
+policy based on expected edit frequency and retention needs.
+
+**GC** — snapshot policy allows pruning non-HEAD vectors to cold storage; delta
+policy requires full chain retention for rewind. Both compress well in `.zxps`.
+
+**Persist** — contribution vectors, source map, and active set persist alongside
+`level` and `freq` in the `.zxps` state file.
 
 ---
 
@@ -154,8 +192,8 @@ Related design documents:
 - `ADDRESSING-TRINITY.md` — named tree + checksums + timestamps as orthogonal
 - `SELF-DELIMITING-CHECKSUM-PATTERN.md` — 2-bit type system, payload tokens
 
-#,,,.,.,.,.,.,,..,,,,,,..,,,.,,,,,...,...,,..,..,,...,...,.,,,...,..,,..,,..,,
-#OGBDFRUDEXNKHS2MH4BCD5IAJS3KHNLXFPP7ZGCPX5XMUXC4LQNYEBAUKITKNLKNQTKTQOYHUCPJ6
-#\\\|KJ5RSQZCHLZ54GTUQVQBURWC7FDLSR6HPA3LDISQAJENPQUMYD4 \ / AMOS7 \ YOURUM ::
-#\[7]MQEE7WU32R5TNPNIRTVIL7D76Q3QJRWFSO3OKJNF2TDGJJ6YAIBA 7  DATA SIGNATURE ::
+#,,,,,,.,,...,,..,.,.,,,.,.,.,,..,.,,,,..,.,.,..,,...,...,,.,,..,,.,,,...,,,.,
+#GLADWDPAQDJRXDRNCL7Q3MEYHZ2PXGE44LKLUXMWSXVSBK7R7RASBCPYIPT66BTUMUGCIUNKBRGPK
+#\\\|V4CGGE7FHUU756IL5VAG6X5DO4JISOXSC5OZEJTGRLPJNVG5WSE \ / AMOS7 \ YOURUM ::
+#\[7]MHQDW3ZBAB7BFXI4QUK7DXB5IS3DZYBGCIEHX64EVGDH6HXICWCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
