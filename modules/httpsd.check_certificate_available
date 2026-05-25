@@ -75,21 +75,16 @@ unless ( $key_header =~ m/^-----BEGIN (?:RSA |EC |)PRIVATE KEY-----$/ ) {
     return $result;
 }
 
-## verify certificate is not expired via Net::SSLeay [ already loaded ] ##
-<[base.perlmod.autoload]>->( 'Date::Parse', qw( str2time ) );
-my $x509 = Net::SSLeay::PEM_read_bio_X509(
-    Net::SSLeay::BIO_new_file( $cert_file, qw| r | ) );
+## verify certificate is not expired via Crypt::OpenSSL::X509 ##
+<[base.perlmod.autoload]>->( 'Crypt::OpenSSL::X509', qw( FORMAT_PEM ) );
+<[base.perlmod.autoload]>->( 'Date::Parse',          qw( str2time ) );
+my $x509 = eval { Crypt::OpenSSL::X509->new_from_file($cert_file) };
 if ( not defined $x509 ) {
     <[base.logs]>->( 1, 'httpsd: cannot parse certificate: %s', $cert_file );
     return $result;
 }
-my $not_after = Net::SSLeay::X509_get_notAfter($x509);
-my $bio_out   = Net::SSLeay::BIO_new( Net::SSLeay::BIO_s_mem() );
-Net::SSLeay::ASN1_TIME_print( $bio_out, $not_after );
-my $expiry_str = Net::SSLeay::BIO_read($bio_out);
-Net::SSLeay::BIO_free($bio_out);
-Net::SSLeay::X509_free($x509);
-my $expiry = str2time($expiry_str);
+my $expiry_str = $x509->notAfter;
+my $expiry     = str2time($expiry_str);
 
 if ( not defined $expiry or $expiry <= time ) {
     <[base.logs]>->(
@@ -113,8 +108,8 @@ return $result;
 
 0;
 
-#,,.,,.,,,..,,...,.,,,,,.,...,,,.,.,.,,,.,...,..,,...,...,..,,,,,,.,,,.,,,,..,
-#4VLHOUHVYCFUGCRUHI66ZDEI2CG4DPFRGYW34GOOSOW2AHQ6VRGYCHQLUSY2757RDA33UZQ6ZH7AU
-#\\\|4CZDXLLAXLYWSBF6SRFJCGIXDHK7ICGKP2C23NHGW7FSG3I6F7U \ / AMOS7 \ YOURUM ::
-#\[7]BV76CPJD4K3B73J44GAAPJJRGWXXN7BFN2FKPY2I3DP6RFYD3ADA 7  DATA SIGNATURE ::
+#,,,,,,..,,,.,,..,...,..,,,,,,.,,,.,.,,,,,,,,,..,,...,...,.,.,,,.,,,,,.,.,,,.,
+#UH3JMQWJZSPZRCZZSBSRCPWHG7R4P5YC6NHC2NNU4WICJ27J5225JAIRLJO466555EHIWPFKMSGLK
+#\\\|EBRSER33FEASCK645I7IL4J6BHWF7QWKDONFK3AXUIWUYJYSJ53 \ / AMOS7 \ YOURUM ::
+#\[7]JW5MSDMPRCVUVX5SYABND3NL47TSVFKVSOU6UZX2RFYNNZGFNGBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
