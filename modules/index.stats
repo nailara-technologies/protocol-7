@@ -3,23 +3,32 @@
 # name = index.stats
 # descr = report current disk geometry as formatted string
 
-my $total_chars  = <index.meta>->{'total'} // 0;
-my $total_tokens = scalar keys %{ <index.freq>       // {} };
-my $total_seqs   = scalar keys %{ <index.level>->{1} // {} };
+my $total_chars = <index.meta>->{'total'} // 0;
 
-my @inner = map { [ $ARG, <index.addr>->{$ARG}, <index.freq>->{$ARG} ] }
+my @lines;
+push @lines, sprintf "index disk geometry";
+push @lines, sprintf "  chars ingested : %d", $total_chars;
+
+## per-ring counts ##
+my $ring0_count = scalar keys %{ <index.freq> // {} };
+push @lines, sprintf "  ring 0 : %6d tokens", $ring0_count;
+
+for my $win ( sort { $a <=> $b } keys %{<index.level>} ) {
+    next if $win == 0;
+    my $ring  = $win - 1;
+    my $count = scalar keys %{ <index.level>->{$win} // {} };
+    push @lines, sprintf "  ring %d : %6d sequences", $ring, $count;
+}
+
+## top inner ring (disk 0) ##
+my @inner = map { [ $ARG, <index.addr>->{"0:$ARG"}, <index.freq>->{$ARG} ] }
     sort { <index.freq>->{$b} <=> <index.freq>->{$a} }
     keys %{ <index.freq> // {} };
 
 my $top_n = 13;
 @inner = @inner[ 0 .. ( $top_n - 1 < $#inner ? $top_n - 1 : $#inner ) ];
 
-my @lines;
-push @lines, sprintf "index disk geometry";
-push @lines, sprintf "  chars ingested : %d",             $total_chars;
-push @lines, sprintf "  unique tokens  : %d  [ disk 0 ]", $total_tokens;
-push @lines, sprintf "  sequences      : %d  [ disk 1 ]", $total_seqs;
-push @lines, sprintf "  inner ring [ top %d ] :",         scalar @inner;
+push @lines, sprintf "  inner ring [ top %d ] :", scalar @inner;
 for my $entry (@inner) {
     push @lines, sprintf "    %4d  %s  [ freq %d ]",
         $entry->[1], $entry->[0], $entry->[2];
@@ -29,8 +38,8 @@ my $result = join "\n", @lines;
 
 return { mode => 'size', data => $result };
 
-#,,,,,,..,..,,.,,,..,,.,.,...,.,.,.,,,,.,,,,,,..,,...,...,..,,..,,..,,,,,,.,,,
-#7J3UBLOWUUEVMTHH2NSLWT6XJHALK6KO7KZSZBGYVMCNEALT4ZMFDCFBG7QMVBTTXP7HCFPHMUAJA
-#\\\|UYYZ5SG4GTHBDWPKIAQCTOVVRJWIOZQS6357LKN7V5JOZXR5V2T \ / AMOS7 \ YOURUM ::
-#\[7]6XO766TIBUTNIMCM6SDSVOWGTVHBDO3MLZ3SID2P2EFYOIPKZOAI 7  DATA SIGNATURE ::
+#,,.,,.,.,,..,...,...,,,,,..,,,..,...,.,.,,,,,.,.,...,...,,.,,.,,,,..,,,.,,..,
+#NU376UJH6TYNYCATZH32C4M3G3NF2X4Y7EFY32P7VCJEF6X2UIGXJO76FD4COGEPOPGH5BAGJREGW
+#\\\|JL64KEIIRALYC6BVEFOYEGDBLF6MBIZ7WUOW4XVW3UBBVEFESQS \ / AMOS7 \ YOURUM ::
+#\[7]242EVACWEUVJMGXZN3LYAGSGJV43UO5T54A7G7PWLZJWF66YXWBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

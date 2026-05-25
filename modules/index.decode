@@ -3,13 +3,15 @@
 # name = index.decode
 # descr = return token for a numerical address
 
-return '' if defined $ARG and $ARG == -1;    ## -1 is the root '' ##
+my $addr = shift // $ARG;
 
-my $token = <index.rank>->{$ARG};
+return '' if defined $addr and $addr == -1;    ## -1 is the root '' ##
+
+my $token = <index.rank>->{"0:$addr"};
 return $token;
 
-#,,,.,,,,,,,,,...,.,,,,..,..,,,,.,,.,,..,,..,,..,,...,...,...,,,,,.,,,.,.,..,,
-#KU6AGMYNY5QT6PNGNGRAHNNBGUZPVKJGASWPWGRSQVSFDGVQ4TUDYQGOW4TX4E7PGFJHNKFCQJZJ2
-#\\\|TB6PRVX75GNTWUY3266GHHABYUVWGLE6LKBEJB45TIX5VWTU52H \ / AMOS7 \ YOURUM ::
-#\[7]BUKQPENSMARIIJZ7IFTSIUPQKNUBPV7NBVZUQ7724VHSAPDL2SBI 7  DATA SIGNATURE ::
+#,,,,,.,.,,..,,..,..,,,,.,,,.,,.,,..,,,..,...,.,.,...,...,..,,,..,..,,..,,,,.,
+#6TP4KFAP5MM6UQ2DBNIY4QOAISPN662N4BDTH23XF6PA22U7C7E3WHCBZCEYP652MSC3TIMGGVEQA
+#\\\|CVMGR4OWSKQ65BIFTDLOHUCDNADXGZOERMTQVXYEEUFQQMCP5IC \ / AMOS7 \ YOURUM ::
+#\[7]DUJV5NEYDZ253Q5YCJTNRJCSJMMVYAZHJP5IGSNWNAIOXYO55UCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
