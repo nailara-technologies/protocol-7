@@ -3,25 +3,23 @@
 # name = index.deduplicate
 # descr = detect repeating sequences and promote to higher-order tokens
 
-my $src      = @ARG     ? shift    : $ARG;
-my $text     = ref $src ? $src->$* : $src;
-my $max_win  = <index.meta>->{'max_window'} // 8;
-my $min_win  = 2;
-my $min_freq = 2;    ## must occur at least twice to be a sequence token ##
+my $src     = shift // $ARG;
+my $text    = ref $src ? $src->$* : $src;
+my $max_win = <index.meta>->{'max_window'} // 8;
+my $min_win = 2;
 
 for my $win ( $min_win .. $max_win ) {
     for ( my $pos = 0; $pos + $win <= length $text; $pos++ ) {
         my $seq = substr( $text, $pos, $win );
         next if $seq =~ m| |;    ## skip sequences containing space ##
-        <index.seq>->{$seq}++;
+        <index.level>->{$win}{$seq}++;
     }
 }
 
-## promote sequences that exceed threshold to disk 1 ##
-<[index.promote]>;
+## ranking and trie build are handled by index.rank ##
 
-#,,..,,.,,,.,,..,,.,,,,,.,,.,,,.,,,.,,.,,,.,.,.,.,...,...,.,.,.,,,.,,,,..,.,,,
-#GN7FHN7KGDLVCPGAZFB5NPLWMZUENMPHAT4J3TA7WC2WHWCZIS45HNDB67VVENHCNEKVWXBL3TIME
-#\\\|CCLA7OK5C2XOVANRXTLT4NAAQ4YZRCP433WSWTFXGEGFLTB3FFW \ / AMOS7 \ YOURUM ::
-#\[7]Z77HLZWMLQLSESNPEHAPOQCKODH7YKCLN2YCICE35ROUNEKZP2BA 7  DATA SIGNATURE ::
+#,,,,,.,.,,..,,,.,..,,...,,,,,...,...,,..,.,,,.,.,...,...,.,.,...,,.,,,,,,,,.,
+#ZTJK7CG47MHYAPQP32KCVSHOOJKPTDZ233RX5MUZGB2LJ52SMLBNOT5LZ726GLXDVAGBXKWUGG3KW
+#\\\|GJWUOQ7U3TL5F6AITN6RYPANV3PELVDJWHSB6R2SVUCWVMJL45R \ / AMOS7 \ YOURUM ::
+#\[7]LOCQC2JDLW32PSDDEPSL5NB5JDE3MTPDH52L4PNDCDQTSEKTRGBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
