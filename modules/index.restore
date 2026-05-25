@@ -3,8 +3,6 @@
 # name  = index.restore
 # descr = load compressed corpus data from zenka_dir [ .zxps ]
 
-<[base.perlmod.autoload]>->( 'Storable', qw( thaw ) );
-
 my $rel_path  = qw| numerical/numerical-index_state.zxps |;
 my $comp_sref = <[base.file.zenka_dir.load]>->($rel_path);
 
@@ -12,7 +10,6 @@ my $comp_sref = <[base.file.zenka_dir.load]>->($rel_path);
 if ( not defined $comp_sref ) {
     my $legacy = <index.path.index-files> . '/index-state.storable';
     if ( -r $legacy ) {
-        <[base.perlmod.autoload]>->( 'Storable', qw( retrieve ) );
         my $state = retrieve($legacy);
         return FALSE if not defined $state;
         <index.meta>  = $state->{'meta'}  // {};
@@ -45,8 +42,8 @@ my $total = <index.meta>->{'total'} // 0;
 
 return TRUE;
 
-#,,..,,.,,,.,,.,.,,..,..,,.,,,..,,.,,,...,.,,,..,,...,...,,..,,..,,,,,..,,..,,
-#ND73IMHVQKWGPUIHIAWVK3X3OFIRIFPTPW5KF6COAZJZBQZVKEAJBW2M3ELTD2XAR74ENGYZZSVBI
-#\\\|VDEQGJXTXNN6QQQ7FMRK7YPEJJYHDRBQQR3V2WSU6RSF4XTL5UA \ / AMOS7 \ YOURUM ::
-#\[7]KXTQVUDGUHIN644QT5KJGVJQGBIMPUVRQK27T65LYE6VG4NCPWCQ 7  DATA SIGNATURE ::
+#,,,,,,,,,...,...,,..,.,,,,.,,..,,...,,,,,,.,,..,,...,...,.,,,.,.,,.,,...,.,.,
+#4JGVH3DFGDOK74JHPXGFK2MBEDF32X66UAWHIIHUV2PZTEYBUYRVSBWBID5PY5CCCHQ6XNWRTN3GY
+#\\\|YTU4PTHZPYMMB4V6OUXM5GPQ7ZF7HU7AXRZBVUUJN4IUNQPQPRX \ / AMOS7 \ YOURUM ::
+#\[7]BC74BAEOLHIBAYRINRQS4MVDCJT33HDUGSSGWHHESJUHB7X3GOBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
