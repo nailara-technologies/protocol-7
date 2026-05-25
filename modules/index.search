@@ -1,0 +1,40 @@
+## [:< ##
+
+# name  = index.search
+# descr = prefix search — return ranked candidates extending a prefix
+
+my $prefix = @ARG ? shift : $ARG;
+return [] if not defined $prefix;
+
+my $depth = length($prefix) - 1;    ## ring depth of prefix
+
+## look up the trie node for this prefix ##
+my $rank = <index.addr>->{"$depth:$prefix"};
+return [] if not defined $rank;
+
+my $node = <index.trie>->{$depth}[$rank];
+return [] if not defined $node or not defined $node->[1];
+
+## unpack child ranks at depth+1 ##
+my $next_depth  = $depth + 1;
+my @child_ranks = unpack( 'N*', $node->[1] );
+my $stride      = $next_depth + 1;
+my $packed      = <index.packed_rank>->{$next_depth} // '';
+
+my @results;
+for my $cr (@child_ranks) {
+    my $child_seq = substr( $packed, $cr * $stride, $stride );
+    next if not length $child_seq;
+    my $freq = <index.level>->{$stride}{$child_seq}
+        // <index.freq>->{$child_seq} // 0;
+    push @results, [ $child_seq, $cr, $freq ];
+}
+
+## already ordered by frequency (child_ranks are freq-sorted) ##
+return \@results;
+
+#,,,,,,..,..,,,..,.,,,.,.,.,,,.,.,.,,,.,.,,.,,..,,...,..,,..,,.,,,,,,,.,.,,.,,
+#4XGU2WW4ESIFMYU677LFXJC7JPSRT45DBSHIEWP573ESMQDUPQWBJ36WLJSBK2A7DZ2TJS3S7B6GY
+#\\\|66XEGYUBRJXLN5UHDFQ4JP6QMJQ3VJSBDQGJ2SMW7EHUXE56465 \ / AMOS7 \ YOURUM ::
+#\[7]W73HF6UQP4IPFZB5UKEVLZCAZPMWMKQHXDREPUCWBNIZ5G46C4BI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
