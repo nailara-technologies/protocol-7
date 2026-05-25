@@ -1,0 +1,26 @@
+## [:< ##
+
+# name  = index.cmd.search
+# descr = prefix search — ranked sequence candidates
+
+my $prefix = $call->{'args'} // '';
+return { 'mode' => 'false', 'data' => 'expected prefix' }
+    unless length $prefix;
+
+my $results = <[index.search]>->($prefix);
+return { 'mode' => 'false', 'data' => 'no results' } unless @{$results};
+
+my @lines;
+push @lines, sprintf "search [ %s ] — %d results :", $prefix,
+    scalar @{$results};
+for my $r ( @{$results} ) {
+    push @lines, sprintf "  %6d  %s  [ rank %d ]", $r->[2], $r->[0], $r->[1];
+}
+
+return { 'mode' => 'size', 'data' => join( "\n", @lines ) };
+
+#,,.,,..,,.,,,,..,,..,,,.,,,,,,,.,,,.,,.,,...,..,,...,.,.,,.,,,,.,,,.,,,,,.,.,
+#IVA7F4HMXXXOVWYXHMMTPBYTCTFINXSMVJV3AJF4E33JKDAECCRTSDGQNSKO5EOPJ42I72CTTOT5C
+#\\\|UU3AHIJDYNEPV4PGEIY44FOFKDPJPGMFJ2UT5TCDEZ5CUPEQSLF \ / AMOS7 \ YOURUM ::
+#\[7]AMHLTEC6JPCHMSNB4ODNUMIMH5AHKLZL63JLAPEU5UEHHVT542DY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

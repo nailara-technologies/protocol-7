@@ -1,0 +1,27 @@
+## [:< ##
+
+# name  = index.lookup
+# descr = hop-by-hop trie traversal — return trie node for a token path
+
+my $token = @ARG ? shift : $ARG;
+return undef if not defined $token or not length $token;
+
+my $depth = length($token) - 1;    ## ring depth = length - 1
+
+## verify path exists at each ring ##
+for my $d ( 0 .. $depth ) {
+    my $prefix = substr( $token, 0, $d + 1 );
+    return undef if not defined <index.addr>->{"$d:$prefix"};
+}
+
+my $rank = <index.addr>->{"$depth:$token"};
+return undef if not defined $rank;
+
+my $node = <index.trie>->{$depth}[$rank];
+return $node;
+
+#,,,,,,.,,.,,,,,,,.,.,,..,,,.,,,.,,.,,...,,,,,..,,...,...,...,...,,,,,,,.,,..,
+#BNXZPWVTKPT7RIUJ6TJMCMTF3YSN2EHFKLN523NMDX7S63WQBVZZQLDZGUFXRDP2RZA6QSWK2AYMG
+#\\\|MGI4XODJT7TAGUXWNV4E7K6NMKVIJTOD43EWSFCLKYAUOHL5SZV \ / AMOS7 \ YOURUM ::
+#\[7]V55IWPHUAIEMVRSAH7RO2AP74OE6JS7VZ3QAVV4SRWEL3Q36U2DI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

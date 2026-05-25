@@ -1,26 +1,39 @@
 ## [:< ##
 
 # name  = index.cmd.lookup
-# descr = look up index entries by input string or address prefix
+# descr = trie node lookup — address, depth, children
 
-my $args = $call->{'args'} // '';
-return { 'mode' => 'false', 'data' => 'expected input' } unless length $args;
+my $token = $call->{'args'} // '';
+return { 'mode' => 'false', 'data' => 'expected token' } unless length $token;
 
-my $path  = <[index.gen_path]>->( \$args );
-my $store = <index.path.index-files> . '/' . $path;
+my $node = <[index.lookup]>->($token);
+return { 'mode' => 'false', 'data' => 'not found' } unless defined $node;
 
-return { 'mode' => 'false', 'data' => 'not found' } unless -d $store;
+my ( $terminates, $packed ) = @{$node};
+my @child_ranks = defined $packed ? unpack( 'N*', $packed ) : ();
+my $depth       = length($token) - 1;
+my $next_depth  = $depth + 1;
+my $stride      = $next_depth + 1;
+my $packed_rank = <index.packed_rank>->{$next_depth} // '';
 
-my $dir_fh;
-opendir( $dir_fh, $store )
-    or return { 'mode' => 'false', 'data' => 'cannot read directory' };
-my @entries = grep { !/^\.{1,2}$/ } readdir($dir_fh);
-closedir($dir_fh);
+my @child_seqs
+    = map { substr( $packed_rank, $ARG * $stride, $stride ) } @child_ranks;
 
-return { 'mode' => 'size', 'data' => join( "\n", @entries ) };
+my @lines;
+push @lines, "token   : $token";
+push @lines, "depth   : $depth";
+push @lines, "address : " . ( <index.addr>->{"$depth:$token"} // '?' );
+push @lines, "terminal: " . ( $terminates ? 'yes' : 'no' );
+push @lines, "children: " . scalar(@child_seqs);
+for my $child (@child_seqs) {
+    my $child_rank = <index.addr>->{"$next_depth:$child"} // '?';
+    push @lines, sprintf "  %4s  %s", $child_rank, $child;
+}
 
-#,,,,,,..,...,,,,,...,,,.,..,,,..,...,,..,,..,..,,...,..,,,.,,.,,,...,..,,..,,
-#BL5HODLQK7TWGVZ5MWUPDW7FDTW4UBWSPEIISG5QWMAAQPATB6NFHI5K2H54KHT4U2J376FKHHRPG
-#\\\|SMJHXSIUOUAAZ5YIXK2MSVLAPNCYQYDRUPRIVP33TQPH2Q6QE6U \ / AMOS7 \ YOURUM ::
-#\[7]37X2TBFYVBSBPHMJ7ZD77WUH2RLL4JJS44XA4UXMPA7BPE4OQYCQ 7  DATA SIGNATURE ::
+return { 'mode' => 'size', 'data' => join( "\n", @lines ) };
+
+#,,.,,.,.,.,.,,..,.,,,..,,.,.,,..,..,,,..,,,.,..,,...,...,...,,,,,,.,,.,,,,,.,
+#WXLLCL2ZYN675FSXNF37MV5CFKDDDRL6NJPJTCUHGMZCB2SMQSHIL6SOF5HFVUYSTDIZO6EZTQVAM
+#\\\|KOIDZ7QQK6CZLYSIEJQBAWOB3U6BTHQKJQOAS6NMOS6EKOI4DIX \ / AMOS7 \ YOURUM ::
+#\[7]ZE35V4E4KWZOLGMNYUG6M7UC4WSSXN25ZNCZWQ3K7LWZWKLWUSDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
