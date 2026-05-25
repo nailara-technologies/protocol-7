@@ -1,0 +1,31 @@
+## [:< ##
+
+# name  = index.restore
+# descr = load raw corpus data from disk and rebuild derived structures
+
+<[base.perlmod.autoload]>->( 'Storable', qw( retrieve ) );
+
+my $path = <index.path.index-files> . '/index-state.storable';
+
+return FALSE if not -r $path;
+
+my $state = retrieve($path);
+return FALSE if not defined $state;
+
+<index.meta>  = $state->{'meta'}  // {};
+<index.freq>  = $state->{'freq'}  // {};
+<index.level> = $state->{'level'} // {};
+
+## rebuild all derived structures ##
+<[index.rank]>;
+
+my $total = <index.meta>->{'total'} // 0;
+<[base.log]>->( 1, "index restored [ $total chars from $path ]" );
+
+return TRUE;
+
+#,,.,,,,,,..,,,,,,..,,..,,,,.,,,,,...,,.,,,,.,..,,...,..,,.,,,...,...,,,.,,.,,
+#JSAR3BVNBOZCRKFHBZ4GKCCPDFPMWHGTTGR5TTY3J2F4YIVYCIIFEQISYBJRKSJKWUYWWYEJLVNH4
+#\\\|5QKNPRHNRMNKMBA5G7ZPVUFQQ5ZD2LKHN6QHUHXEVGTV6HGPBZB \ / AMOS7 \ YOURUM ::
+#\[7]DRLLA6VLBL45U52ATBWWWBZLW2ZCWSHQOLND5MF6LSSN35LSRSBI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
