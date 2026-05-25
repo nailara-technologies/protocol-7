@@ -9,7 +9,7 @@ $limit = 20 unless $limit > 0 and $limit <= 200;
 my $url = $data{'invoke'}{'url'};
 my $ua  = LWP::UserAgent->new( timeout => 10 );
 
-## [ api endpoint — verify path against /openapi.json if needed ]
+## [ api endpoint : verify path against /openapi.json if needed ]
 my $resp
     = $ua->get(
     "$url/api/v1/images/list?limit=$limit&order_by=created_at&order_dir=DESC"
@@ -43,8 +43,8 @@ for my $img (@images) {
 
 return { mode => qw| size |, data => $out };
 
-#,,..,,.,,,,,,.,.,,.,,,,,,.,.,,,,,.,,,,.,,.,.,..,,...,...,..,,.,,,,..,.,.,..,,
-#42MYBJDAPUMSIIM33O5EEJFA6FAOYNEJERZ6OUIDH3JEO5HUBGHLLLZJA64TMUNQVJSTN3PO7L6LC
-#\\\|E7NW3J4CJMDYTO2K7EV65KUMWOIMFDBTNMVIHLMGGUCRJVHWLKL \ / AMOS7 \ YOURUM ::
-#\[7]MDRE45KGZTPF3SCBHVN6PPHFFR3JDA3GBF7G3UIEGTTGMIE5SYCQ 7  DATA SIGNATURE ::
+#,,,.,.,.,..,,,.,,.,.,.,.,.,.,...,,,.,,..,,,.,..,,...,..,,,,.,,..,.,.,,..,..,,
+#PYBTEXFHKYEN4FBWQCIOVJVCDCRXSC3GO5JZA6DR63P6YMQMXTPQQVNAUTQGQKU3P5FEXJLKBTZMK
+#\\\|4UB6ZOT5APK4XIRQQUVLSEJYTGGBUNJZ4NDVH3FL66JHADO2KBI \ / AMOS7 \ YOURUM ::
+#\[7]VLZWV747XAJRPA4JFNWZFGAKIYEHA4KT7OTXGEZCWC35EQ6E54BA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

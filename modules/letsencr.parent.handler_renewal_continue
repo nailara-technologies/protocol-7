@@ -29,9 +29,9 @@ if ( $mode eq qw| SIZE | || $mode eq qw| TRUE | ) {
     ## both SIZE and TRUE modes return multi-line vhost names
     @vhosts = grep { length($ARG) > 0 } split( m|\n|, $reply_data_str );
 } else {
-    ## FALSE or unexpected mode — no new domains, but still check known certs
+    ## FALSE or unexpected mode : no new domains, but still check known certs
     <[base.logs]>->(
-        2, 'httpd vhost-list returned %s — checking known certs only', $mode
+        2, 'httpd vhost-list returned %s : checking known certs only', $mode
     );
 }
 
@@ -46,7 +46,7 @@ if ( @vhosts > 0 ) {
     }
 } else {
     <[base.log]>->(
-        2, ': no vhosts from httpd — proceeding with registry renewal only'
+        2, ': no vhosts from httpd : proceeding with registry renewal only'
     );
 }
 
@@ -129,8 +129,8 @@ if ( @new_domains > 0 ) {
 
 return TRUE;
 
-#,,..,,.,,,,,,..,,..,,...,..,,.,,,..,,.,,,,..,..,,...,...,..,,,..,...,...,..,,
-#CA3SYZWSOJTAT475EH6DD3JPTQN4SP26KPUO2SQM5POQGGLFCBJPZQKPFD2EUBBKND333R2CBUPDY
-#\\\|K5C6ASVM2YNC26ZAQ5T2CSDQUFOUPX5OVWKI6DAG5BI7MSTCLEH \ / AMOS7 \ YOURUM ::
-#\[7]LUPCJ6XUF5IAY36CO7VOMQPEWAPRSMQZ546IDSW6ZC3O5TAMZYCA 7  DATA SIGNATURE ::
+#,,.,,..,,..,,,..,.,.,.,,,..,,,.,,.,,,...,,,,,..,,...,...,...,.,,,.,.,,,,,,,,,
+#WF5CMJVSFGM6XMLILYDRLRUI3GGH4ZKVWB7CE3XNQYB6O52VOSXYDKWOEKFEFHL43MRWJ4XBDKPWM
+#\\\|K6JFPSAOEEDL3NO2ZVM7KHMCCKUCLNU3PMWZ6GFMSQ3IAF22QSE \ / AMOS7 \ YOURUM ::
+#\[7]IKDBFQGRWXGUBWOF2LLSRQWFJJGPMGRIVCUMYVRJHLLSOSQOVQBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

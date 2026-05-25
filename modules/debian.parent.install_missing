@@ -146,12 +146,12 @@ if (@missing_debian) {
     }
 }
 
-## Install CPAN modules via cpanm — root only, system-wide ##
+## Install CPAN modules via cpanm : root only, system-wide ##
 if ( @missing_cpan && $use_cpanm ) {
     if ( $> != 0 ) {
         <[base.logs]>->(
             1,
-            "  cpanm: skipping %d module(s) — not running as root",
+            "  cpanm: skipping %d module(s) : not running as root",
             scalar @missing_cpan
         );
     } else {
@@ -198,8 +198,8 @@ return $result;
 
 0;
 
-#,,.,,.,,,.,.,.,.,,.,,.,.,,..,,,.,,.,,.,.,...,..,,...,...,,,,,.,.,,..,..,,.,.,
-#QVZMOGQYJXY7XU32OR2FST5Q2SN55CQRGH56WXVGFWJ76IHPNXWRLVIUR3G6IOPFGTTDHEIVXTVVC
-#\\\|6GFZ5ZV57MJYXKYKTMWNOUEOG7SA3EV52CXGAJE6V3RHIXR6WTM \ / AMOS7 \ YOURUM ::
-#\[7]3CQMM4WQSLWXWVB5SJ7ZDPN24UKN4TYLD3RCJ3AG2H7HHNJRNAAQ 7  DATA SIGNATURE ::
+#,,.,,.,.,,..,,..,.,.,...,.,,,,,.,.,.,,,.,,,,,..,,...,...,,..,.,.,...,...,.,.,
+#IZLOCIIK7IEVW4YLWUVQXCZMV3YECCVG46OZSJP5PTHGLDGCR2QSOT6YBRCDYDYLH3LFMUFMJ7BIS
+#\\\|FXPYYOVBEFJQVGPLIGL37ZYTSXKWYCAL2YHAZ63NAPGXS2BXFP3 \ / AMOS7 \ YOURUM ::
+#\[7]THTB77TSLJJDUYGE24EBYNI6QMTCOCDUZDHCPXJNO7QL6FR3JGCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

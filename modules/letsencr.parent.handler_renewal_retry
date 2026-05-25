@@ -4,7 +4,7 @@
 # descr = handle scheduled renewal retry from timer
 #         - resend renewal request to child
 
-my $event = shift;    ## event object — retry data stored in renewal_timers
+my $event = shift;    ## event object : retry data stored in renewal_timers
 
 ## find the first domain scheduled for retry
 my $timers  = <letsencr.parent.renewal_timers> // {};
@@ -59,8 +59,8 @@ if ( exists <letsencr.parent.renewal_timers>->{$domain} ) {
 
 return TRUE;
 
-#,,,,,,,,,.,,,,..,,,,,,,,,.,.,..,,,.,,,.,,.,,,..,,...,..,,.,.,..,,...,..,,,,,,
-#7OGTDN2LO3BCX27QFGSRAM3DFL6R3CQWCNX3NFUD3JKZUYRCIQNABN27KGUG62KW7DIQRAXQH2LVO
-#\\\|3HRXASIYT5U34IJNOWU4LGBGX6SZSIOMIKNO7SVZL5HDN7TD7W4 \ / AMOS7 \ YOURUM ::
-#\[7]DKXP7OLRXBBQIE7WJD3BYHN2ZUKED7P2ZFW64Q3MR7LVNY326UDI 7  DATA SIGNATURE ::
+#,,.,,.,,,,.,,,..,,,,,...,...,,,.,,.,,,..,..,,..,,...,...,,.,,...,.,.,,,.,..,,
+#BI67OHCLRIGPTRYGFGOL3Y4AWLDNJ5MOD57AJLHFAG35NUUKYNZY35C5IA4SGBHYBPLFIEERLAHWS
+#\\\|ONLBBXZ2GGN5GMJSVFZOVNLKANVRTGKKZ3DMCQG4FIU7KUR3CRR \ / AMOS7 \ YOURUM ::
+#\[7]YYJ3APXS3HHPGZDBTKNJRZCAYSIFMXSU2GMXH32A7QXDBHCMGWBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

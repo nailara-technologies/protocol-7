@@ -10,7 +10,7 @@ my $t = shift // 0;
 $t = 0 if $t < 0;
 $t = 1 if $t > 1;
 
-## discrete fields — snap at midpoint ##
+## discrete fields : snap at midpoint ##
 my $result = {
     qw| name          | => ( $t < 0.5 ? $a->{'name'} : $b->{'name'} ),
     qw| camera_target | =>
@@ -43,7 +43,7 @@ $result->{'transition_budget'}
     = ( $a->{'transition_budget'} // 1.0 ) * ( 1 - $t )
     + ( $b->{'transition_budget'} // 1.0 ) * $t;
 
-## layer overrides — merge and lerp on common keys ##
+## layer overrides : merge and lerp on common keys ##
 my $a_layers = $a->{'layer_overrides'} // {};
 my $b_layers = $b->{'layer_overrides'} // {};
 my %all_keys = map { $_ => 1 } ( keys $a_layers->%*, keys $b_layers->%* );
@@ -57,8 +57,8 @@ $result->{'layer_overrides'} = \%merged;
 
 return $result;
 
-#,,.,,,,.,,,,,.,.,,,,,,..,,,,,.,.,,,,,,..,...,..,,...,...,...,,,,,,..,.,,,,.,,
-#URODPVJON4IFVDHCV53NUBAEA5HV2ECGEZG4WQOPR4MNX3SWKPT27UXMLCI4QU36UIMR5OK32KPCS
-#\\\|T3IKKSO54AW4LPWK5VHZ43PAYIEYNYZSSOPHPCJRCBB7GWRWJS3 \ / AMOS7 \ YOURUM ::
-#\[7]VXMSBVK7JUMFKI4YCJ5GE4EUCMFE3TUWDJTDK7QOC2V5SOZJDIDY 7  DATA SIGNATURE ::
+#,,.,,,,.,.,.,.,.,.,,,.,,,,,,,,,,,.,.,,.,,,,.,..,,...,...,,,.,..,,,,.,,,,,.,,,
+#JQFU5KON6TKX5XQNOUCCESD7RVTWMF7JXXVZLXFZU6YU6KTGSDYRCH4W7SWK2X25RYWZGTIGIENBI
+#\\\|4JX5PZQWWTPWCQUXECYJXXQPRZCSJBJGXJIKO3VSRHRSLVN2A44 \ / AMOS7 \ YOURUM ::
+#\[7]NFZYMYRKNNRUNEFDJWD4K4LW2D2UPCTOK3LABY2BXDF2L7SUOSDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -43,7 +43,7 @@ if (   not defined <discover.announce_msg_header>
     }
 }
 
-## append orbital p7ref if available — triggers async fetch if not cached ##
+## append orbital p7ref if available : triggers async fetch if not cached ##
 my $local_p7ref = <[discover.orbital.get_local_p7ref]>;
 if ( defined $local_p7ref and length $local_p7ref ) {
     $payload_str .= sprintf "p7ref %s\n", $local_p7ref;
@@ -71,8 +71,8 @@ if ( not defined $signature_str ) {
 return sprintf "%s%s\n", $packet_str,    ## appending packet signature ##
     Crypt::Misc::encode_b32r($signature_str);
 
-#,,,,,.,.,...,,.,,,.,,,,,,,.,,,,,,.,,,,..,,,.,..,,...,...,,..,,..,,.,,,,.,.,.,
-#VYKS7OUBTLUAHOV3WS6QVRDXN7D4RVQSHKUWLAMPPF5MZ57BDCSWRLEPEIK3HZ74NWUEPLCB2UOQG
-#\\\|SEBEJZY3GMP4T25RVEW6ODPQCYDVVKAGU2L2WL3RA37JNMUQHII \ / AMOS7 \ YOURUM ::
-#\[7]TMEUJ322L4RH2JETQNPTJXH75KBSGKELRCJS2FWHJSM63SUUIMDQ 7  DATA SIGNATURE ::
+#,,,.,,.,,..,,,,.,.,,,..,,,.,,,..,...,,,.,.,.,..,,...,...,...,.,,,...,,..,,,,,
+#U55VXKIBS3JSWVELMDGFFKRMET2PX2FSYVDOYU3DWISJDRPJKAUKF46MLDTAEFECE3XO3XZMNSF4Q
+#\\\|JCNG4SD25ZYIXX3ENPW3IS3NLMWY7LRSI4EOPO3PQU3M2N2ROBP \ / AMOS7 \ YOURUM ::
+#\[7]NDQBEMOZ26SA6ODWWHV64IO2ZC6BLDLMCFQNXCTD2II7UKGMI2DA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

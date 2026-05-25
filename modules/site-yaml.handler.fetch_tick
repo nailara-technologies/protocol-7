@@ -16,7 +16,7 @@ my $id   = $item->{'id'}  // '';
 
 return unless length $url;
 
-## skip fetch if job already known — check in-memory store and on-disk ##
+## skip fetch if job already known : check in-memory store and on-disk ##
 if ( exists $data{'jobs'}{'store'}{$id} ) {
     <[base.logs]>
         ->( 2, 'fetch: %s [skip-known] q=%d', $id, scalar @{$queue} );
@@ -37,12 +37,12 @@ if ( ref $job ne 'HASH' ) {
     my $tag = $is_gone ? 'gone' : $is_ratelimit ? '403' : 'err';
 
     if ($is_gone) {
-        ## permanent — drop immediately, no retry ##
+        ## permanent : drop immediately, no retry ##
     } elsif ($is_ratelimit) {
         $item->{'retry_count'} //= 0;
         $item->{'retry_count'}++;
         if ( $item->{'retry_count'} <= 5 ) {
-            push @{$queue}, $item;  ## back of queue — allow others through ##
+            push @{$queue}, $item;  ## back of queue : allow others through ##
             $tag .= ' retry=' . $item->{'retry_count'};
             <[site-yaml.fetch.backoff]>->('error');
         } else {
@@ -82,8 +82,8 @@ my $tag    = $result eq 'new' ? 'new' : 'skip';
 
 return;
 
-#,,..,...,,.,,,,,,.,.,.,.,,,,,,..,.,.,.,,,..,,.,.,...,...,,..,,,.,,,,,.,.,,,,,
-#BQ4SMNH4BBA5YUCTEHFEU7SWLHVYD3GWPDD2NR3CKJB6YAYAW3W3I56HTFYAORLYOZSAWAOEQZHLQ
-#\\\|T2XK3QARRP5QQQKYAX7R27QBCU333T7A6ZD6Y2UVYLP52AFLB2A \ / AMOS7 \ YOURUM ::
-#\[7]E2CPDQSPVVXAB6UHAKGLJ7NL5ISRFGCDWYSK52ARCECKY7UKRSCA 7  DATA SIGNATURE ::
+#,,..,...,..,,,,.,,.,,...,.,.,.,,,,,.,,,.,..,,.,.,...,..,,,.,,.,,,,,.,.,,,...,
+#FUGBC25OOFOMSWXTMPYTBHVRKIOANYJWE72C7HOME5UONOZN7GE2FWIJTY7KDH5FXQ4LFHW7EETFC
+#\\\|FSPQZ2EJ3B3KOOGAZDU6OMRISEVKZJJOX6NYWCMLGG4TDGN6LUY \ / AMOS7 \ YOURUM ::
+#\[7]QE5C72B7SJJSBMTBLTNSRUJDP7BNHAABMUB3OXKG7KBRZZTFZAAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -119,7 +119,7 @@ if ($async_mode) {
         messages    => $assembled->{'messages'},
         max_tokens  => $max_tokens,
         temperature => <inference.model.temperature> // 0.7,
-        ## use streaming — consistent with send_request / chunk_handler ##
+        ## use streaming : consistent with send_request / chunk_handler ##
         ## [ non-streaming JSON responses are not parsed correctly by http_io ] ##
         'stream' => JSON::PP::true(),
     };
@@ -138,7 +138,7 @@ if ($async_mode) {
         = <[coding.async.request]>->( $task_id, $request_body, $job_id );
 
     if ( !$async_result->{'success'} ) {
-        ## async start failed — fail task with clear error ##
+        ## async start failed : fail task with clear error ##
         <[base.logs]>->(
             0,
             "coding.task.execute: async start failed: %s",
@@ -161,7 +161,7 @@ if ($async_mode) {
             1, "coding.task.execute: async streaming started for %s",
             $task_id
         );
-        ## Return deferred — job stays 'running' until coding.async.complete ##
+        ## Return deferred : job stays 'running' until coding.async.complete ##
         return { success => TRUE, mode => 'deferred', task_id => $task_id };
     }
 }
@@ -173,11 +173,11 @@ if ($async_mode) {
 # - Async path is superior: 13 min timeout vs 5 min, streaming, retry timers,
 #   subtask spawning, user input, better error handling
 
-## unreachable — async block always returns before here ##
+## unreachable : async block always returns before here ##
 return FALSE;
 
-#,,,,,.,,,.,,,.,.,,,.,.,.,,,.,.,.,,,,,.,,,.,,,.,.,...,.,,,..,,.,,,.,,,,,.,,,,,
-#BMBAPPZVDTZS5PHNXSLVZXBHLAIBXFQEFOUC5XALIYQG5S57SO6KWHDTN4DQNSGOMFXYU6CZLGVHI
-#\\\|OU4JRG7B5TYJJENU4N2PTBDGXWZG75F6PVRTVLHGQI3HYXJC5NK \ / AMOS7 \ YOURUM ::
-#\[7]JRFQMQGIEHINYB6P3ET7AVF45X5QRNXAKXK547JQX24KBEVB34DY 7  DATA SIGNATURE ::
+#,,,.,,,,,...,...,..,,,.,,,.,,,,,,...,...,,.,,.,.,...,...,..,,.,.,.,.,,.,,..,,
+#WE4K7RWDEFVUJSJAFB3R3XW3ROPJMNN6R65X6ZL7AARJKSDSMTUFWRL4WMZSSMZ4QSWOSSYYIJWK2
+#\\\|OZLRMH5GAV5IYPKMVESLYDZD4C644FKKVQMMO5CKGP4FFIAYOOJ \ / AMOS7 \ YOURUM ::
+#\[7]IOMYFP3VAUBB3A7INGLHLV5R4S5SWP2FEOP6KD6SFZOEPUO7DQAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

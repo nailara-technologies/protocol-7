@@ -23,16 +23,16 @@ $other_watcher->cancel
     and $other_watcher->is_active;
 
 ## replace startup-monitoring watchers with drain watchers            ##
-## the server's pipes must stay readable — if the buffer fills (64KB) ##
+## the server's pipes must stay readable : if the buffer fills (64KB) ##
 ## llama-server's write() blocks and inference stalls silently        ##
-## do NOT close the fds — that sends SIGPIPE to the server            ##
+## do NOT close the fds : that sends SIGPIPE to the server            ##
 ## store watcher refs so spawn_inference_server can cancel on respawn ##
 my @drain_watchers;
 for my $fd ( grep { defined $_ } $current_fd, $other_fd ) {
     my $dw = <[event.add_io]>->(
         {   'fd'      => $fd,
             'handler' => qw| coding.handler.drain_pipe |,
-            'poll'    => qw| r |    ## r only — handler covers EOF + EBADF ##
+            'poll'    => qw| r |    ## r only : handler covers EOF + EBADF ##
         }
     );
     push @drain_watchers, $dw if defined $dw;
@@ -58,8 +58,8 @@ delete <coding.watcher_pair>->{$current_watcher};
 delete <coding.watcher_pair>->{$other_watcher}
     if defined $other_watcher;
 
-#,,..,.,,,...,..,,,,,,..,,,.,,.,,,..,,...,.,,,..,,...,...,.,.,,,.,,,.,.,.,,,.,
-#N6BR7WFL6RTELYFJKYP424PPCU4RYOSXT7R2TCNFXFBMF45K5L6N7445M5FS4ZLL6Q3W3GAUUZ6BE
-#\\\|D7ZONOG22GTNT2BJJDDO3FDNBNLGSONVMPYHNZDUSSPYKA4C7OP \ / AMOS7 \ YOURUM ::
-#\[7]7GQ7E4GUVZTUK5PZNDNQPPAJCUOPUZFEQZOFHWNA3M5CYNMQDKBY 7  DATA SIGNATURE ::
+#,,..,.,,,,,.,...,,..,.,,,...,,,.,,.,,,,.,.,.,..,,...,...,.,,,...,,,,,,,.,...,
+#YRCZR6FDQQST4J2WZ5XVXW7WBKFRAZMA7P2S2KMRYXSQW5PQ2KMZNEBTWBSHYWFQYPYG5BLOLSKXK
+#\\\|FM3RMYBIODE4LK57CMIE36Y422N7LF66LW7DMM5TZXLF3HI44L2 \ / AMOS7 \ YOURUM ::
+#\[7]GK64QP7OAIBGCV4EYUFQVI5IX47L6M5I6C47ELZG7INQQAAP6EBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

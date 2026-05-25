@@ -22,10 +22,10 @@ if ( $reply->{'cmd'} ne 'TRUE' ) {
     $instance, <radio.audio.online_count>
 );
 
-##  guard: already active — do not re-send play/fade  ##
+##  guard: already active : do not re-send play/fade  ##
 return if <radio.audio.active>;
 
-##  audio-0 is up — load stream and fade in  ##
+##  audio-0 is up : load stream and fade in  ##
 my $url = <radio.audio.stream_url> // 'http://127.0.0.1/radio/stream';
 
 <[protocol-7.route-send]>->(
@@ -56,8 +56,8 @@ my $vol = <radio.audio.start_volume> // 70;
     $instance, $vol
 );
 
-#,,..,.,,,,,.,,,,,,,,,,,.,,,.,.,.,...,,,,,,,.,.,.,...,.,.,,,,,..,,..,,,.,,,,.,
-#2IE3KEDS6UOJJKZGPV2XE6G52O3RGNPBUE7PHZ4PXBOB5LJGBNV4SWCNWL6KZY7J7HO6ENIGPPJWE
-#\\\|GRTYHBRPVHT5T2Y6YKGGIFPSL4OLHEWVHNRDMSLWOYKEAB6D53C \ / AMOS7 \ YOURUM ::
-#\[7]TRQBQAFNH55S44TTO6XDUU3VJOTZTJGMZMLVWJ3TBWYNQ72WYCDI 7  DATA SIGNATURE ::
+#,,,.,.,,,,,,,,..,.,.,.,,,,,,,,,.,.,.,,,,,.,.,.,.,...,...,..,,.,,,...,.,.,...,
+#FAAACCZBHEZG54UZ35W7DW3PHNTILRMA43OFJYKHLNYFJM3OOWAXK7U5TIPJUMA6PBDRM574OS23K
+#\\\|B2WJO74XRB2ZMR7Q37ZSTINZ5D4TGXAR7OWY7OOAIHVFSQJPTFI \ / AMOS7 \ YOURUM ::
+#\[7]E6YKFGQ2YMAV4ML6KR5DQFRS4F4EPS6DSNSAR5CSWQM3VAPECACI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,7 +1,7 @@
 ## [:< ##
 
 # name  = clients.http.handler.io
-# descr = io watcher handler — reads http response, fires on_done when complete
+# descr = io watcher handler : reads http response, fires on_done when complete
 
 my $state = shift->w->data;
 my $sock  = $state->{'sock'};
@@ -23,13 +23,13 @@ if ( ( $bytes // -1 ) == -1 ) {
     return;
 }
 
-## data — accumulate ##
+## data : accumulate ##
 if ( $bytes > 0 ) {
     $state->{'buffer'} .= $chunk;
     return;
 }
 
-## eof (bytes == 0) — parse and fire callback ##
+## eof (bytes == 0) : parse and fire callback ##
 <[clients.http.cleanup]>->($state);
 my $parsed = <[clients.http.parse_response]>->( $state->{'buffer'} );
 my $status = $parsed->{'status'} // 0;
@@ -43,8 +43,8 @@ $code{ $state->{'on_done'} }->(
     }
 );
 
-#,,,.,,..,,..,...,.,.,.,,,,,,,,.,,,..,..,,..,,..,,...,...,...,,..,..,,.,,,...,
-#KPPYNVOIG2VFHBFIQAEDHDAQQ6ZDAX3OAGYU74CZYPBQS24QU4B2R5O4ZW7S5XUEBWSDL6Q6IVCKQ
-#\\\|FU2OJZEGWTUJA2IMAVDPGBOPPHDCHK2DF5AOJDBA5NUMUUR5JYZ \ / AMOS7 \ YOURUM ::
-#\[7]5MZYKYL3R6X3M6KFMODFMGFSPRI2QF5M3YQGTYBNAHCCVCBQR2CQ 7  DATA SIGNATURE ::
+#,,.,,,,.,,,.,,..,...,..,,,,.,,..,,,.,.,,,...,..,,...,...,,,.,,.,,.,.,.,.,,..,
+#L6ULON2GWF5ORXUDWPOXP36XVY2CASSBBCXV3ID2PBKIJLIEECGOESMZ2UZHLBNGVPP6FFXEWD6QO
+#\\\|XMPIXRTMR7TP7ZEKSQKQCBY6SOXBHTMHT5QRFUEALGCVZI2GKJU \ / AMOS7 \ YOURUM ::
+#\[7]VUIJJVSOQAXCEWIN5JIZJB6GB4UMOUX7BJBADNN2OYHOBNQ3A4DY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

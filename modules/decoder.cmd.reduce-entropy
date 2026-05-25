@@ -11,7 +11,7 @@ my $stream_id
 
 <decoder.jobs> //= {};
 
-## snapshot level-5 values — per-stream or merged across all streams ##
+## snapshot level-5 values : per-stream or merged across all streams ##
 my $values_ref;
 if ( $stream_id eq 'all' ) {
     my @merged = map { @{ <decoder.level5>->{$ARG}{'values'} } }
@@ -53,14 +53,14 @@ my $index_job = {
 <decoder.jobs>->{$job_id} = $index_job;
 
 <[base.log]>->(
-    1,       ": starting entropy reduction job [ %s ] — %d values",
+    1,       ": starting entropy reduction job [ %s ] : %d values",
     $job_id, scalar @{$values_ref}
 );
 
 return { 'mode' => 'deferred' };
 
-#,,,.,.,,,...,.,,,..,,.,,,.,.,,,.,.,.,,,,,...,..,,...,...,...,,,,,.,.,,,.,,,.,
-#6LPBC6GPYURX2TNAUCVOL3GFL7RJ723QCQHDZMNOX5MYUTNMBNBLI7XAH5WKNN23SVSOA64QWDRPK
-#\\\|ERLA7M7RL4L2MXUXA6YFOCWSG6UCKRF5LPSSR6PU36E4VGRG3OP \ / AMOS7 \ YOURUM ::
-#\[7]EP6OEFXJSEFNQD2THDEARJNXWD2SH5RDUZQPCXJJAZNQLXF5SCCY 7  DATA SIGNATURE ::
+#,,,,,.,,,,,,,,,,,,,,,,..,.,.,,,,,,,,,,,.,...,..,,...,...,..,,...,.,.,,,.,,.,,
+#WATXX2KH3DXJ5ASV32BDQNRWXO4JYJZJLP34MTWYMAMRY5RU5J6OKIQMNAIJYBU6UBVYYHSCTFPZA
+#\\\|AVITBA6FRWJCTGF4KWWNVMXEYO72GO7AGBMW7CWQX53T5GXU6AE \ / AMOS7 \ YOURUM ::
+#\[7]SU2CYOS72TQWHV6E6AC3GUQE5JKREYXHFE5PVNXA2HGGMAZNHCCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -20,7 +20,7 @@ if ( $reply->{'cmd'} eq qw| TRUE | ) {
 my $reply_str = $reply->{'call_args'}->{'args'} // '';
 
 if ( $reply_str !~ m|^client\b|i ) {
-    ## not an offline error — command not found, no permission, etc. ##
+    ## not an offline error : command not found, no permission, etc. ##
     <[base.logs]>->(
         0,       'base.zenka.push: %s error [ %s ]',
         $target, $reply_str
@@ -64,8 +64,8 @@ if ( $no_sent <= 0 ) {
 
 return;
 
-#,,.,,,..,,.,,..,,,,.,.,,,...,,,,,,,,,,.,,,.,,..,,...,...,,..,...,,,,,.,,,,,,,
-#TMHZIC5C7R57IJYDSGMU2RBNLHXZXLFABGIFEEXRJSTOT4NHK6KO33JVUOK22KCTWPK2GJ7PNPWXI
-#\\\|YA7DDCUJBRLNV4ROIQDYNENRFLFBZ2OTZNMLO6EVKAIPPGWFINL \ / AMOS7 \ YOURUM ::
-#\[7]EURYW7OGVB6FFPTGJ4Q5I53CUHCDKUQLQAUP2HVVKYUVKQJT4UAI 7  DATA SIGNATURE ::
+#,,..,,,,,.,,,...,,.,,..,,,,.,.,,,...,..,,...,..,,...,...,,..,,..,...,,..,,.,,
+#S2DCACUZZYHQCIYNLLVAG64EUMWFWKVSXFPSQ6LHGJMLHY53OIQ6KL4DVB54LHKV5KGEZR7T6R2XK
+#\\\|RDHF3NSHZ5SS6YPFCW4LZTFPNA2TN6ZBZR67PRXBUEALBV76UQZ \ / AMOS7 \ YOURUM ::
+#\[7]WGJYO7LABBQ5JCJCVZB6LEOATMSVHVES2MKA3UOO6MPLU5NMZ6DA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

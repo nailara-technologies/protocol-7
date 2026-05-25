@@ -1,7 +1,7 @@
 ## [:< ##
 
 # name  = clients.https.handler.io
-# descr = io watcher handler — reads https response, fires on_done when complete
+# descr = io watcher handler : reads https response, fires on_done when complete
 
 my $state = shift->w->data;
 my $sock  = $state->{'sock'};
@@ -24,21 +24,21 @@ if ( ( $bytes // -1 ) == -1 ) {
     return;
 }
 
-## data — accumulate ##
+## data : accumulate ##
 if ( $bytes > 0 ) {
     $state->{'buffer'} .= $chunk;
     return;
 }
 
-## bytes == 0 — could be ssl internal frame (renegotiation, alert, etc.)
+## bytes == 0 : could be ssl internal frame (renegotiation, alert, etc.)
 ## or true eof. io::socket::ssl sets SSL_ERROR to SSL_WANT_READ when it
-## consumed a frame internally with no app data — not a real eof in that case. ##
+## consumed a frame internally with no app data : not a real eof in that case. ##
 if (   $IO::Socket::SSL::SSL_ERROR == IO::Socket::SSL::SSL_WANT_READ()
     or $IO::Socket::SSL::SSL_ERROR == IO::Socket::SSL::SSL_WANT_WRITE() ) {
-    return;    ## ssl consumed internal frame — wait for next io event ##
+    return;    ## ssl consumed internal frame : wait for next io event ##
 }
 
-## true eof — parse and fire callback ##
+## true eof : parse and fire callback ##
 <[clients.https.cleanup]>->($state);
 my $parsed = <[clients.http.parse_response]>->( $state->{'buffer'} );
 my $status = $parsed->{'status'} // 0;
@@ -52,8 +52,8 @@ $code{ $state->{'on_done'} }->(
     }
 );
 
-#,,..,...,..,,,.,,.,,,...,,,.,.,,,,,.,,,,,,.,,..,,...,...,...,,,.,,,.,.,,,,..,
-#D6S7YHLEP53IL7FVMRKVSHCLQYLEZH66FJF3CUOH2THEKIRZY3MD66HD4DCOKNTJ4GGI5UZHOSHAM
-#\\\|WTHZUSSVHFGGYEWWDFD27SUFRCUVHRL5YQTIF2CCUUQAX3LFA4J \ / AMOS7 \ YOURUM ::
-#\[7]OL5345JLUPIEXZL4BHV2VMRULZUU7GR6QJGAKOECVE6F5R4MTKDQ 7  DATA SIGNATURE ::
+#,,,,,,,.,.,,,...,.,.,,,,,.,.,...,.,,,...,,.,,..,,...,...,,,,,...,,..,,..,,.,,
+#IGFCN5T6FV3LRBPJZ46MXNIK7YEA6Y7PUGWYV52GMOJNTP46TD4ZGEB4HH7FUK45JWFBCTZVHPHMA
+#\\\|C5AURDE7GH4PDLSUDNMI7KAVP46PKPV4QMNXR4XNBCEKIYBCJW5 \ / AMOS7 \ YOURUM ::
+#\[7]GM7UHQMD2JSGXSQCDH62I5ZO4VWRFANMOP6HQJT6WRDHZFDVOKBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

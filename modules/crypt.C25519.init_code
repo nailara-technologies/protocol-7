@@ -19,7 +19,7 @@ delete <crypt.C25519.key_vars>;
 my $current_user = $ENV{'USER'} // getpwuid($EUID);
 
 ## If a drop_privs target user is configured and differs from current user,
-## use target user for keys — handles v7-started zenka and other contexts.
+## use target user for keys : handles v7-started zenka and other contexts.
 ## In other contexts (console, no privilege drop), use current user.
 ## note: some zenka may set this in pre_init before init_code runs
 if ( not defined <crypt.C25519.usr_name> ) {
@@ -254,8 +254,8 @@ const <crypt.C25519.keys.sizetype> => {    ## <- will be read-only [again]. ##
 
 0;
 
-#,,,,,,,.,.,.,,.,,,,,,,,,,...,...,,,,,.,,,...,..,,...,...,.,.,.,,,,..,,,,,..,,
-#3RM3A2YFLCO45G2IQME772OP3UBL3UEWC3BIHLEN76W47XVWCQLGQD2BZBBW35WOB3V7UEO7QJMEK
-#\\\|U4PL2YCPBE6MFUJAH52FMWVVEFCXLVWJEWQWRARSQPL6FLQVTHX \ / AMOS7 \ YOURUM ::
-#\[7]3UFKZLJJ237GILWSWLH7VEJ5AP4PN3MPWHW2ASLNPWL7HSK6KMCQ 7  DATA SIGNATURE ::
+#,,..,,.,,,..,...,...,,,.,...,..,,,,.,,..,,..,..,,...,...,,.,,,,,,,,.,..,,..,,
+#T6O32X4EAX3AKO6YJPTW6XJYCN6IQWNBNRNFP2GD2JD245SLXLOZK6S2VZLZGE4MSZADF2EWPH2KE
+#\\\|CUYFDAXH3UITIYNI74MUIQWZFEF6A2ESUTYRGZGRHXHHAJ2CXJ7 \ / AMOS7 \ YOURUM ::
+#\[7]QIEZN5P7O5L3BFN4LYNHOBYT2BSJNSCY7PQBWVII6BMOWNW6KOAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

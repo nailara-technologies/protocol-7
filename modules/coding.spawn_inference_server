@@ -8,7 +8,7 @@ my $params = shift;
 my $backend = $params->{'backend'} // qw| cpu |;
 my $port    = $params->{'port'}    // 8000;
 
-## guard against concurrent spawns — any call path (crash restart, timeout ##
+## guard against concurrent spawns : any call path (crash restart, timeout ##
 ## recovery, model_path_reply, deferred timer) hits this central lock      ##
 ## also enforce a 30s cooldown: the seed sleep(0.0013) yields to the event ##
 ## loop, which can let a second call through before the first completes    ##
@@ -44,7 +44,7 @@ for my $w_key (
 ) {
     my $w = $old->{$w_key};
     next unless defined $w;
-    ## remove from watcher_pair BEFORE cancelling — if the old server's
+    ## remove from watcher_pair BEFORE cancelling : if the old server's
     ## "ready" event was already queued, cancel_watcher.backend_monitor
     ## will fire after this and find no pair entry, returning early
     ## (prevents drain watchers being set up on B's reused fd numbers) ##
@@ -58,7 +58,7 @@ for my $fh_key (qw| io_stdout io_stderr |) {
 }
 if ( my $old_pid = $old->{'pid'} ) {
     if ( kill( 0, $old_pid ) ) {    ## process still exists ##
-        ## kill the entire process group — covers the server and any forked
+        ## kill the entire process group : covers the server and any forked
         ## workers (llama-server forks on first request; all share the pgid
         ## set by our setpgid call at spawn time)                           ##
         kill( 'KILL', -$old_pid );     ## negative pid = kill process group ##
@@ -170,7 +170,7 @@ if ( $backend eq qw| gpu | ) {
             next if grep { $_ == $pid } @killed_stale_pids;
 
             ## skip child processes of our own server (llama-server forks
-            ## a worker on first request — same cmdline, different PID)   ##
+            ## a worker on first request : same cmdline, different PID)   ##
             if ($own_pid) {
                 my $ppid = 0;
                 if ( open my $sfh, '<', "/proc/$pid/status" ) {
@@ -256,7 +256,7 @@ my $max_tokens = <inference.model.max_tokens>
     // <inference.model.context_length> // 4096;
 
 ## context size: auto-calculated from VRAM, with configured value as a  ##
-## floor configured acts as a minimum — smaller models may safely allow ##
+## floor configured acts as a minimum : smaller models may safely allow ##
 ## more context                                                         ##
 
 my $safe = <[coding.helper.calculate_safe_context]>->(
@@ -326,7 +326,7 @@ if ( <[base.cfg_bool]>->( <coding.jinja.enable> // 1 ) ) {
     }
 }
 
-## reasoning effort [ controls <think> budget — varies by model and task type ] ##
+## reasoning effort [ controls <think> budget : varies by model and task type ] ##
 my $reasoning_effort = <coding.inference.reasoning_effort> // '';
 if ( length $reasoning_effort ) {
     push @cmd, '--chat-template-kwargs',
@@ -475,8 +475,8 @@ return {
     'port'    => $port
 };
 
-#,,,,,.,,,..,,.,.,.,,,,,.,...,..,,..,,,,.,,..,..,,...,...,..,,..,,.,.,...,..,,
-#6UCVJGK6YMXCCA5CSXI77C3P3PU4V7UATULDFHYCQCUL7YSAPHMHEWNN3RUFAODB2UEVY3Y7GBM5U
-#\\\|7OZSEDTN2UAPC2A7XMBJ7NR7UFEV4S3LIM6VUA3ZFF76ASD5O7Z \ / AMOS7 \ YOURUM ::
-#\[7]FIE4BD5BWBH7OBILSMA7YU5QVIERVA3OLJP6P47JCFHAVWIWOICA 7  DATA SIGNATURE ::
+#,,,,,,,,,.,.,..,,..,,,.,,...,..,,,,,,.,.,..,,..,,...,...,.,,,..,,,,,,.,.,,..,
+#EBVQH4WG4VU6DHSACLKL3EIV7NOGPCH6TENL5HPPJD73RTKVKJXL4KEOUWETXXIDZHD22UKTCDPZ6
+#\\\|52HQ77E3TCGMXMXEF6EDSBJPOUPUP5FURSIKYFZW6PQ6B6DQ2G2 \ / AMOS7 \ YOURUM ::
+#\[7]UZOO3F32HNSR43FNZ4QAS62UUFAGP23ZVYPUFBH4DDPJPUC2XCDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

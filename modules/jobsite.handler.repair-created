@@ -15,7 +15,7 @@ if ( lc($mode) eq qw| false | ) {
         0,       'jss.repair-created: failed for job %s: %s',
         $job_id, $task_id
     );
-    ## do not decrement pending_count — repair failed, job still needs resolution ##
+    ## do not decrement pending_count : repair failed, job still needs resolution ##
     $job_id = uc( substr( $job_id, 0, 7 ) );
     <jobsite.tasks>->{$job_id}{'repair_failed'} = TRUE;
     <[jobsite.state.persist]>;
@@ -29,7 +29,7 @@ $task_id = uc( substr( $task_id, 0, 7 ) );
 <jobsite.tasks>->{$job_id}{'repair_task_id'} = $task_id;
 <[jobsite.state.persist]>;
 
-## register wait-done — repair-done will decrement pending_count ##
+## register wait-done : repair-done will decrement pending_count ##
 <[protocol-7.route-send]>->(
     {   'command'   => 'task.wait-done',
         'call_args' => { 'args' => $task_id },
@@ -40,8 +40,8 @@ $task_id = uc( substr( $task_id, 0, 7 ) );
     }
 );
 
-#,,,,,,,.,,,.,...,...,...,,,.,...,,,.,.,,,,.,,..,,...,..,,,.,,...,...,,,.,,,.,
-#ZKAFGA2KXGHQ2QG2L377PBTWUJSVDG24URIK26ZAWCUWKTP62E7IM6FMSFBQBMM4XJYIVRSDUVC6C
-#\\\|W47W7QOW7IFXB4SW2E7TR3YHHPIYHIWBGEAJRNNBJ5YRXE4QS2S \ / AMOS7 \ YOURUM ::
-#\[7]2FFB7ECZLXZE53B4CJUI3K55DAFKS36PFTDT6XQAOOUQ5BR3VWBA 7  DATA SIGNATURE ::
+#,,.,,,,,,.,,,,,.,,,,,,,.,.,.,,.,,,..,,..,,..,..,,...,...,..,,..,,.,.,,,.,,..,
+#FRVZYQJ56VM45PPXNHZVVPQPXTOUEEX7Q2HQSHI4S2WD27Y54FGJ4CHLVI5GJL56KC63RULIXGFCW
+#\\\|BWGERH4MR5BV2I3NGGANDO3SISVUENNCOXE6RN2BLQG6LWM2AVP \ / AMOS7 \ YOURUM ::
+#\[7]2WJJN7ZOORKS7HQZLSZNKUBWQJQ6FQUDPDA2IRAV4YDVCVDFR6BI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

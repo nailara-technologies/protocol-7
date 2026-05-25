@@ -12,7 +12,7 @@ return { 'mode' => qw| false |, 'data' => 'task_id required' }
 # Look up task in queue
 my $task = <coding.task.queue>->{$task_id};
 
-## not in memory — check disk (survives idle shutdown) ##
+## not in memory : check disk (survives idle shutdown) ##
 if ( !defined $task ) {
     my $result_sref
         = <[file.zenka_dir.load]>->( "results/$task_id", ':encoding(UTF-8)' );
@@ -72,8 +72,8 @@ if ( $status eq 'completed' ) {
     };
 }
 
-#,,.,,,.,,,..,,,.,...,.,,,,..,..,,,,.,.,,,..,,.,.,...,...,,..,...,,,,,..,,,,.,
-#FTUXE5QEO36QXSR3AHY6WPKKBDPPNXLCGDUQNGRIRYST5QE2YPY6RBDX4D4AO3MAZSUJKNXYEI5BO
-#\\\|A2P6LZ47KUFU4HSFDDDC74LRTEATMZDKFULGV5WUEMXBD2XGQMV \ / AMOS7 \ YOURUM ::
-#\[7]27OMWCIJXENH3TA33MHP27BB4ZWAYRNM2275UHGG6J2AE7JZUMAA 7  DATA SIGNATURE ::
+#,,..,.,,,,,,,,.,,..,,.,,,.,.,,.,,,,,,,.,,,,,,.,.,...,...,,,,,.,,,.,,,.,,,,..,
+#AFQKHVK5QYEIFNIISYZR6G62QUAYMW5IT7ZCBGNPNZNEM6JMYIU2LYKL2EZVXC7G2PTPQNITNLLVW
+#\\\|TEQQ65DR5QGLM7MJ63QQ4NUJXEPVWMG2H3XVFX7YHKT3EWAVM2J \ / AMOS7 \ YOURUM ::
+#\[7]AV6JJFZ6S4OXI3FL6MGKCZCSUMJMFF5PD6SGZG5VHSVBQB3ZEMCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

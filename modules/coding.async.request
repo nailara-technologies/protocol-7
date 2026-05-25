@@ -71,7 +71,7 @@ if ( defined $existing && defined $existing->{'state'} ) {
     $existing->{'content'}       = '';
     $existing->{'tool_calls'}    = [];
 
-    ## do NOT cancel the previous connection here — tool execution runs synchronously
+    ## do NOT cancel the previous connection here : tool execution runs synchronously
     ## inside on_chunk while the server is still streaming the previous response.
     ## cancelling the socket mid-stream corrupts the llama-server inference slot,
     ## causing the next request to hang indefinitely.
@@ -84,7 +84,7 @@ my $state_ref = <coding.async.task_state>->{$task_id} // {};
 my $req_seq   = ( $state_ref->{'request_seq'} // 0 ) + 1;
 $state_ref->{'request_seq'} = $req_seq;
 
-## setup callbacks — extracted to coding.callback.* modules ##
+## setup callbacks : extracted to coding.callback.* modules ##
 my $callbacks = {
     on_header => sub { <[coding.callback.http_header]>->( $task_id, @ARG ) },
     on_chunk  =>
@@ -110,7 +110,7 @@ if ( $http_result->{'success'} && defined $http_result->{'state'} ) {
 }
 
 if ( !$http_result->{'success'} ) {
-    ## immediate error — release backend lock before failing ##
+    ## immediate error : release backend lock before failing ##
     <[coding.async.backend_release]>->( $task_id, $backend );
     <[base.logs]>->(
         0,        "async.request : immediate error for %s : %s",
@@ -132,8 +132,8 @@ return {
     mode    => qw| streaming |,
 };
 
-#,,..,,..,...,.,,,..,,,,,,,,,,,,,,..,,.,,,.,.,..,,...,...,,.,,.,,,,,.,.,,,...,
-#DUE73IUF2U4XO3RNKSIJ5G6FKSV474YLSCPA5MRLSX7IL37XQR457M5KCHA5FAJK2XM5NFRUZNJ7I
-#\\\|OLMTA3C3NCTV2ULA6W6AXZVCGSVRSQ27HN6WEA5SYZWOO6OIFBA \ / AMOS7 \ YOURUM ::
-#\[7]OUH6RDVXUC5FEG3RYWFNV6U2DN6BDXLCMKR6QHMZS7CRNZMWIOCA 7  DATA SIGNATURE ::
+#,,,.,,.,,.,.,..,,..,,,,.,.,,,,..,,,.,,.,,...,..,,...,...,,..,,..,,..,,,.,.,.,
+#E7LCENV6I4XPBPUNCYHTQ4QW6W74ZUUJVAZCYJ2L3I66BBVSXLGOJ3XBZJMFQMNV6WTH35M63AVHM
+#\\\|3FGTIO52LCWMMBDYYJDWPKZI7GQ6SVJAV2JBAZWMMZISZUDXYM6 \ / AMOS7 \ YOURUM ::
+#\[7]6YSCPCA45YNKOXHVP24WDO6FNIZUWXVBT6NJIPA2HDWM4HKCRSAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

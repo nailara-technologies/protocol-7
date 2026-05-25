@@ -42,7 +42,7 @@ my @ranked = map {
     my $provider = $ARG->{'provider'} // '';
     my $base_pri = $ARG->{'priority'} // 99;
 
-    ## live valued tree lookup — node id: context.priority.<type>.<provider> ##
+    ## live valued tree lookup : node id: context.priority.<type>.<provider> ##
     my $tree_node_id
         = length $task_type
         ? join( qw| . |, 'context.priority', $task_type, $provider )
@@ -53,7 +53,7 @@ my @ranked = map {
         ? <[valued.resolve]>->($tree_node_id)
         : undef;
 
-    ## valued tree takes precedence — fallback to static table — fallback to 1.0 ##
+    ## valued tree takes precedence : fallback to static table : fallback to 1.0 ##
     my $weight = $tree_weight // $weights->{$provider} // 1.0;
 
     ## lower score = higher priority ##
@@ -70,8 +70,8 @@ delete $ARG->{'_score'} foreach @ranked;
 
 return \@ranked;
 
-#,,..,.,,,...,,,,,,,,,,,,,.,.,..,,,,.,,..,,..,..,,...,...,..,,,.,,,,.,..,,,.,,
-#FNTA6H4UR4VCJDAE6BWCTZMYSMAGPDLDAJAL34JF7IFRN3E334ZNRZ7Y5TVXFQROS7IIAHKY4FR2Q
-#\\\|Y6ROIPUPEZL5Y3KZW4DBJBJTTHRXUG7JOTC3QDOLMBBDFTJZCZO \ / AMOS7 \ YOURUM ::
-#\[7]MJKRNTZJEDOQ2DKP7RLH6LDD4HW4RSDXVKKWV45VFSMZDBTGMAAY 7  DATA SIGNATURE ::
+#,,,,,.,,,..,,..,,...,,.,,,..,,.,,,.,,,,,,,..,..,,...,...,..,,.,.,,,,,.,,,,,.,
+#FVJWC3GI6G7FUFGXXL7BB2TGJFLWTXVICMTHGCUXIVI26SGKVNIN5QRQAAJ3CGVADHTUGEEHN7G6Y
+#\\\|AL3LLM2OI63LS2HQKW765NCPORO34HANRF5KSR32YO3TKHAU4UM \ / AMOS7 \ YOURUM ::
+#\[7]I3F4OQCGBQK26QAZRFIBNPOV6KUIV4H5MWIGBGT2HAQOHULWYCDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -46,7 +46,7 @@ $total ||= 1;
 # [ compute arc angular widths with minimum enforcement ]
 my @arc_deg = map { ( $_ / $total ) * 360 } @arc_counts;
 
-# [ enforce minimum — redistribute excess ]
+# [ enforce minimum : redistribute excess ]
 my $min_excess = 0;
 my $free_pool  = 0;
 for my $ARG ( 0 .. 25 ) {
@@ -112,7 +112,7 @@ for my $ARG ( 0 .. 25 ) {
         . "\n", $x2, $y2;
 }
 
-# [ arc labels — centered in each proportional arc ]
+# [ arc labels : centered in each proportional arc ]
 for my $ring ( 0 .. $rings - 1 ) {
     my $radius        = $outer_radius - $ring * $ring_radius_step;
     my $label_opacity = sprintf '%.2f', 0.3 * ( 0.75**$ring );
@@ -128,7 +128,7 @@ for my $ring ( 0 .. $rings - 1 ) {
         my $y          = 400 - $label_radius * cos($rad);
         my $label      = <[route.bmw384.visual.ring-label]>->( $ring, $ARG );
 
-        # [ ring 27 darksun marker — special rendering ]
+        # [ ring 27 darksun marker : special rendering ]
         my ( $label_fill, $label_font_size_actual );
         if ( $label eq '.' ) {
             $label_fill             = 'rgba(100,150,255,0.6)';
@@ -203,13 +203,13 @@ for my $ring ( 0 .. $rings - 1 ) {
             .= sprintf
             '  <circle cx="%.2f" cy="%.2f" r="%d" fill="%s" opacity="%s">'
             . "\n", $x, $y, $r, $color_hex, $opacity;
-        $svg .= sprintf '    <title>%s — %s  n=%d</title>' . "\n",
+        $svg .= sprintf '    <title>%s : %s  n=%d</title>' . "\n",
             $ARG, $coord_str, $arc_counts[$arc];
         $svg .= '  </circle>' . "\n";
     }
 }
 
-# [ center logo — nailara at the darksun ]
+# [ center logo : nailara at the darksun ]
 my $logo_size = 44;    # diameter covering the void circle (r=24)
 my $logo_xy   = 400 - $logo_size / 2;
 
@@ -226,8 +226,8 @@ $svg .= '</svg>' . "\n";
 
 return $svg;
 
-#,,,.,,.,,,..,,..,.,,,,,.,.,.,,.,,,,,,...,...,..,,...,...,,,,,.,,,.,.,.,.,,,.,
-#P42MHT4VQOSIUENHYP5M74WMEEGJCCVUMZNX6N4UVDEX23LM7T5CVHRAKAQVCTFMEKJH4A2IUHDLW
-#\\\|QDPQON5GETZNETRG6BHPB4WRVK33EF7VHC2IYXFV6VCZ5W74KD7 \ / AMOS7 \ YOURUM ::
-#\[7]LLECSO2HT7DPCDMYZYRSIUVEW45EYH4UZAA7QV2H2E3BPJMF3UCY 7  DATA SIGNATURE ::
+#,,.,,.,,,...,,..,,,.,..,,,,.,,,,,..,,,..,.,.,..,,...,..,,.,,,..,,...,,,,,,,.,
+#Y4AQMB72K4I557EMMG4J6URYN3G2VWYRZSCAPC7G5GL6MP3BYC7AOVTPYAZWKNC4NZPIQWKB3B7V4
+#\\\|6QXN5AQFEELAQORGAN4TCIZXRJIM3V64UJWNRCZ6DQT3JXHQC6O \ / AMOS7 \ YOURUM ::
+#\[7]ETWOYHO4KEZSUO4QUMCBQBIZI6V72ZB7FPKVPJEZDVNB5QKSOSBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

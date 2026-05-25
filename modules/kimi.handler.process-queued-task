@@ -30,7 +30,7 @@ unless ( length $prompt ) {
 unless ( <kimi.ws.connected> and <kimi.ws.status> eq qw| ready | ) {
     <[base.logs]>->(
         1,
-        "kimi.handler.process-queued-task: not ready [status=%s] — deferring task %s",
+        "kimi.handler.process-queued-task: not ready [status=%s] : deferring task %s",
         ( <kimi.ws.status> // 'disconnected' ),
         $task_id
     );
@@ -53,7 +53,7 @@ if ( length $mem_path ) {
     }
 }
 
-## submit prompt — completion arrives via TurnEnd in ws_message ##
+## submit prompt : completion arrives via TurnEnd in ws_message ##
 my $reply_id = $task->{'reply_id'};
 my $msg_id   = <[kimi.wire.prompt]>->( $prompt, $reply_id );
 
@@ -73,11 +73,11 @@ unless ( defined $msg_id ) {
     $task_id, $msg_id
 );
 
-## return deferred — actual result arrives via TurnEnd ##
+## return deferred : actual result arrives via TurnEnd ##
 return { success => TRUE, deferred => TRUE };
 
-#,,..,..,,..,,,,.,,..,...,..,,,..,..,,.,.,...,.,.,...,...,..,,,.,,...,,..,.,.,
-#IXI24QICI3QHK6IXMXLNX5R7BGA6RUOFVIPLM5T6IAAXCM3XM6UCZZA4QMRIVB7US7AIHK3K4MVUI
-#\\\|5PNC6AJCHBX6CEPXM6L2TIFW7PE44AKEBM2MAFD7KV5M4DSLRL6 \ / AMOS7 \ YOURUM ::
-#\[7]D22OHN5XPFJCA4MBQNKPXVAI2DQ7QC7ELPJO7LTCQS277TG55GCQ 7  DATA SIGNATURE ::
+#,,.,,,,,,.,.,..,,,.,,..,,,,,,.,.,...,...,,,.,.,.,...,...,.,,,...,,..,,,.,,..,
+#6MUO3BNSROY5ZECYTN4UP4INBGVB7PMGHD6TMSLDJ27G45URING2NENPKMZ2GPTVCOGRBQ52HOBVC
+#\\\|WZ6OCI76YVEYDSTYUS3LAGPJEPP6FHNPRZMAPTT4TWKR2WG4YRZ \ / AMOS7 \ YOURUM ::
+#\[7]H3UWCJE75PTZRXHVPZTSGWO7WWMVNBZNGDFOP2GTZ5OFTI3N2UCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

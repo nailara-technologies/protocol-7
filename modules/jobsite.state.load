@@ -19,7 +19,7 @@ return if ref $saved ne 'HASH';
 <jobsite.sync.last_server_ntime> = $saved->{'sync_last_ntime'} // ''
     if length( $saved->{'sync_last_ntime'} // '' );
 
-## scanning/assessing states don't survive restart — reset to idle
+## scanning/assessing states don't survive restart : reset to idle
 my $cycle = $saved->{'cycle'} // 'idle';
 if ( $cycle =~ m{^(?:scanning|assessing)$} ) {
     <[base.logs]>->( 1, 'jss.load: interrupted "%s" reset to idle', $cycle );
@@ -27,7 +27,7 @@ if ( $cycle =~ m{^(?:scanning|assessing)$} ) {
 }
 <jobsite.cycle> = $cycle;
 
-## reset task stages that were in-flight — they won't resume automatically ##
+## reset task stages that were in-flight : they won't resume automatically ##
 my $tasks       = <jobsite.tasks> // {};
 my $reset_count = 0;
 for my $id ( keys %{$tasks} ) {
@@ -90,8 +90,8 @@ if ( -f $store_file and not $has_jobs ) {
     <jobsite.cycle>
 );
 
-#,,..,..,,..,,..,,..,,.,.,.,.,...,.,.,,..,,,.,..,,...,...,.,.,,.,,,..,,..,...,
-#RUTQAFPNSVLLZZXPRHEP6YDO4E4KDOZXDC2KOEYANB2YL7P7CVNKNZ2VZTXS23JIIDA6RA5BRTR7E
-#\\\|C7YECI3RRZ6PJBXLU2NT4IEMSLQQ566CZNNUERUY6P7STLSJXEJ \ / AMOS7 \ YOURUM ::
-#\[7]UWJ7PPFGGYJHTAVKPPYKQCKWPH65Z6COXBMOYI2IEZGHEJ3F4WAI 7  DATA SIGNATURE ::
+#,,,.,,,.,,,.,...,,..,.,.,,,,,...,,,,,,.,,...,..,,...,...,...,..,,,..,,,.,.,.,
+#MG376H7I2EBNTXEYJI5TFET3PZVXUD4OBQ6GUJL4JBKFZO6DYS332FBNQRSPMHPY7WMQWVA4RDEUK
+#\\\|AYC4IMCX4K6FCTNANXCV6IKA5IM3H7DFW7MSSPZE5F7KFRG4GYS \ / AMOS7 \ YOURUM ::
+#\[7]YKWX2HTSTX3MND3ODTR4QFY5CKJ3XSHDZGZDX5AL5R4HZHOR26CI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

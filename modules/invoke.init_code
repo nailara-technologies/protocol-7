@@ -17,7 +17,7 @@ $data{'invoke'}{'default_model'}
 $data{'invoke'}{'jobs'}        = {};
 $data{'invoke'}{'model_cache'} = {};
 
-## quick health check — non-fatal if invoke.ai is not running yet
+## quick health check : non-fatal if invoke.ai is not running yet
 my $url  = $data{'invoke'}{'url'};
 my $ua   = LWP::UserAgent->new( timeout => 3 );
 my $resp = $ua->get("$url/api/v1/app/version");
@@ -30,7 +30,7 @@ if ( $resp->is_success ) {
     );
 } else {
     <[base.logs]>->(
-        1, 'invoke.ai not reachable at %s — start invoke-web zenka first',
+        1, 'invoke.ai not reachable at %s : start invoke-web zenka first',
         $url
     );
 }
@@ -48,8 +48,8 @@ if ( $resp->is_success ) {
 
 0;
 
-#,,,,,...,,.,,,.,,.,.,,,.,,.,,,,,,...,.,.,.,.,..,,...,...,...,...,...,.,.,...,
-#GYQEEELFF3UOONV6YZHAZM4IVAGU2OED77FU7EWRLEWQ3OJ6SVPJMFHVBLO4OQ4OLHXTCAP5NISYK
-#\\\|BZD3YLVWG24EEKCUIJZMBDVLFKF24J57QZGDHNSOPEAJOENNAB2 \ / AMOS7 \ YOURUM ::
-#\[7]RDXUSIP7X2FA544K4J4CPPAESHI3IJXRYPSVEWAJO6GIFVDBKICA 7  DATA SIGNATURE ::
+#,,..,,..,.,,,...,,,.,,..,,,.,,..,.,.,,..,.,.,..,,...,...,..,,,,,,.,,,.,,,.,,,
+#VLZU5PIY3JEC2FA7ZZRNKQ7NUDWAMJJTLQLT7LH3UT2JI6XUH4FTRVQPWEGN5SSWCT3N4NN32WEKA
+#\\\|UPEEPNIAIWSS2NIP53GMEMEZ32NOER4ZPAYS74VHCTFX3VUGXEO \ / AMOS7 \ YOURUM ::
+#\[7]UT7UFAZUYRC7YYT3G6PK457PFC2KNS453MKQ43KWP2XABZXKXMBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -17,7 +17,7 @@ my $round    = $state->{'round'}    // 0;
 ## skip if too few messages ##
 return if $round < 3 || @{$messages} < 6;
 
-## compaction parameters — use actual server n_ctx, not configured floor ##
+## compaction parameters : use actual server n_ctx, not configured floor ##
 ## configured value may be a minimum floor; server may have more context ##
 my $backend       = $state->{'backend'} // 'gpu';
 my $srv_key       = $backend eq qw| cpu | ? qw| cpu | : qw| gpu |;
@@ -74,7 +74,7 @@ $protect_end = $protect_start if $protect_end < $protect_start;
 
 return if $protect_end <= $protect_start;
 
-## inference-backed compaction path — enqueue sub-task, suspend parent ##
+## inference-backed compaction path : enqueue sub-task, suspend parent ##
 ## skip if compaction already ran this round [prevents infinite re-trigger] ##
 if (    ( <coding.cfg.compaction_inference> // 'no' ) eq qw| yes |
     and not defined $state->{'compaction_pending'}
@@ -167,7 +167,7 @@ if (    ( <coding.cfg.compaction_inference> // 'no' ) eq qw| yes |
 my $mid = int( ( $protect_start + $protect_end ) / 2 );
 my @summary_parts;
 
-## oldest section: aggressive — just tool names ##
+## oldest section: aggressive : just tool names ##
 for my $i ( $protect_start .. $mid - 1 ) {
     my $m = $messages->[$i];
     if ( ( $m->{'role'} // '' ) eq 'assistant'
@@ -187,7 +187,7 @@ for my $i ( $protect_start .. $mid - 1 ) {
     }
 }
 
-## middle section: moderate — tool name + short result ##
+## middle section: moderate : tool name + short result ##
 for my $i ( $mid .. $protect_end - 1 ) {
     my $m = $messages->[$i];
     if ( ( $m->{'role'} // '' ) eq 'assistant'
@@ -216,7 +216,7 @@ my $summary
     . " | context "
     . $pct_complete
     . "% used ]\n"
-    . "[ compacted tool rounds — "
+    . "[ compacted tool rounds : "
     . scalar(@summary_parts)
     . " interactions ]\n"
     . join( "\n", @summary_parts );
@@ -256,8 +256,8 @@ if ( $after_tokens > $compact_threshold * 0.8 ) {
 
 return;
 
-#,,,.,,,.,,,.,,..,...,,.,,,..,..,,..,,.,,,..,,.,.,...,...,.,.,,..,.,.,,,,,...,
-#IAC62D3EMKRSGD2Q7F6TXGQMHCHOUDCL3WLN4BKQHD47WY6KU2M3YKQIV2A52SA6URACNY6NXXVRE
-#\\\|MBDSFKJZ5G6K4A7OUVZEPWXTXW7NCO3I7JZCQ7R2C5UKRN5FK5S \ / AMOS7 \ YOURUM ::
-#\[7]HDBKYGODEYKG47DS3CX6QEWK6GWAYLAPC5EHZFQEDMPFBV7C5UAY 7  DATA SIGNATURE ::
+#,,.,,,,,,,,.,.,,,..,,.,.,..,,..,,...,,.,,.,,,.,.,...,...,,.,,...,,.,,.,,,,,,,
+#45Z65HORGPOWZI3A3HFXGV6YAXSARYP7IVSLZ6RAKMGCNJJK3OZBOT66WHO4W3MEKBE7YHY5EZNU2
+#\\\|EYOWXFWHNLCYGIRDRUMHCFT4X6KL7VOS3G3V5DQG647PHADAPFM \ / AMOS7 \ YOURUM ::
+#\[7]5ZF67BEUW6HKWTMFJW7WNRWQUVHGHINGLW5PY5MT2ZGRM7WCKECA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

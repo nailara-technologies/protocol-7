@@ -23,7 +23,7 @@ $session->{'buffer'}{'output'} .= <[httpd.new_header]>->(
 ##  mark connection as non-keep-alive [ stream is open-ended ]  ##
 $session->{'http'}{'close'} = 1;
 
-##  cancel input read timeout — no further requests on this socket  ##
+##  cancel input read timeout : no further requests on this socket  ##
 if ( defined $session->{'watcher'}{'input_handler'} ) {
     $session->{'watcher'}{'input_handler'}->cancel;
     delete $session->{'watcher'}{'input_handler'};
@@ -31,7 +31,7 @@ if ( defined $session->{'watcher'}{'input_handler'} ) {
 
 <[base.logs]>->( 2, '[httpd.radio] [%d] client connected', $id );
 
-##  call radio.listen — reply handler registers the STRM consumer  ##
+##  call radio.listen : reply handler registers the STRM consumer  ##
 <[protocol-7.route-send]>->(
     {   'command'   => 'radio.listen',
         'call_args' => { 'args' => '' },
@@ -44,8 +44,8 @@ if ( defined $session->{'watcher'}{'input_handler'} ) {
 
 return 0;
 
-#,,,.,...,...,...,,,,,,,,,.,,,,..,.,.,..,,,.,,.,.,...,...,.,,,,,,,,.,,.,.,,..,
-#A45G335BPZUYZZOPYYTHC6LIXSZQSIDMVCT2D2TJ5V2TAIS53F3SYK6K6LILGQOXV4Q2XYALYIZYG
-#\\\|7ETKKFUXU4BPKKWK7EFBSAJWUJTBX324WRLVS25XX5UVA6CI55S \ / AMOS7 \ YOURUM ::
-#\[7]USRS5UHHVX33X6NYCV3JZJDL4VI6VEKP2Q6VCZYV2ASISLDOXQDI 7  DATA SIGNATURE ::
+#,,,.,..,,...,,,.,,,.,.,.,.,.,...,,.,,..,,.,.,.,.,...,...,...,,..,,,,,,,,,.,,,
+#OQZFHOFINNGBSD7TGUEJBXFIAE66GC65HFSU7TCZUQRKLZYB4GEVEZTLZPCRTVZSO4TJWVFELTXW4
+#\\\|AEBAI7AJSJHWI2QH4MAWHJRSQ7GKTHHSGFISUCSL7VZ4D3Y2BCA \ / AMOS7 \ YOURUM ::
+#\[7]5A3SMBS3RYXBL2CNJDMAKPEXT7T3CS3UXOJTSCGZHMJKKQSMSOBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

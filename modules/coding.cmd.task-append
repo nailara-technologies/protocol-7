@@ -5,7 +5,7 @@
 # param = <task_id> <message>
 # note  = works on in_progress, pending, subtask, completed, and failed tasks.
 #         for completed/failed tasks, the conversation is resumed from where
-#         it ended — useful when the model asked a question and needs an answer.
+#         it ended : useful when the model asked a question and needs an answer.
 
 my $args_str = $call->{'args'} // '';
 my ( $task_id, $message ) = split m{ +}, $args_str, 2;
@@ -18,7 +18,7 @@ return { 'mode' => qw| false |, 'data' => 'message required' }
 
 my $task = <coding.task.queue>->{$task_id};
 
-## buffer names use T- prefix; queue keys use task- prefix — normalize ##
+## buffer names use T- prefix; queue keys use task- prefix : normalize ##
 if ( !defined $task and $task_id =~ s/^T-/task-/i ) {
     $task = <coding.task.queue>->{$task_id};
 }
@@ -133,8 +133,8 @@ return {
     'data' => "cannot append to task $task_id [status:$status]"
 };
 
-#,,,.,.,.,,,,,,,.,,,.,,..,...,,,.,,,,,,,.,,.,,..,,...,...,.,.,...,,.,,..,,..,,
-#EHD5XTXM3MDD35SBUMP65E7BVJZV5IZFS5HQ5POF2Q3OPIXKFTE7BWBIMW7EYIALS33RTWP4Y4XE4
-#\\\|SZP6OURENQKG3WYDEBG6YTUVJ4UDWUJHYRQAPLBMQRSE2W5WT5C \ / AMOS7 \ YOURUM ::
-#\[7]7HRBJVKOIAMI2J5RL4QE6EYACZ5DGAH3XQ2A6RMKGW2D7FJX3WDI 7  DATA SIGNATURE ::
+#,,,,,,,,,,..,,..,.,,,.,,,,.,,..,,.,.,.,.,.,,,..,,...,...,.,.,..,,...,...,..,,
+#2GL4N2TVMFWNUN6CIBHB7A5DLI3H3V6VRGXEIMJYSQSCUZ6AT2XTQMZYLTPYOATJ2C6CSSJAX5SZS
+#\\\|IAGR66332PCG2XKCIPF7PZV44CCEDRA7HGDJAW726SXKUE5QOGB \ / AMOS7 \ YOURUM ::
+#\[7]DKQSRY4ACKREJGYGLLDHIBFIOSRV7NS3J43C7YVX2ZIMPXHZECCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

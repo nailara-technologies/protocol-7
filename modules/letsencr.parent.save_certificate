@@ -48,7 +48,7 @@ my $metadata = {
 };
 
 ## warn if chain intermediate does not match leaf issuer
-## [ full AIA repair happens in child.validate_chain — this is a safety net ]
+## [ full AIA repair happens in child.validate_chain : this is a safety net ]
 if ( length($chain_pem) ) {
     my $issuer_check
         = <[letsencr.x509_field]>->( $certificate_pem, '-issuer' );
@@ -58,7 +58,7 @@ if ( length($chain_pem) ) {
         and $issuer_check ne $subject_check ) {
         <[base.logs]>->(
             0,
-            ': chain mismatch for %s — leaf issuer [%s] != chain subject [%s]',
+            ': chain mismatch for %s : leaf issuer [%s] != chain subject [%s]',
             $domain,
             $issuer_check,
             $subject_check
@@ -176,8 +176,8 @@ return {
     error_msg => undef
 };
 
-#,,.,,,,,,.,,,..,,,..,.,,,,,,,,..,.,.,,,,,,,,,..,,...,...,,,,,.,,,...,.,.,...,
-#Y6NKB22OACDIVCWPY4C2HCLRJ62Y2ZKYDKUXAGONZ44SKMO4F4C6QTF5H636BGIH4ZYXCTAD6OL56
-#\\\|XQE2774Y5URLFNO7USMYQ7ZL4TN5A3QBZFF3P5BDKC4QMOMIDCQ \ / AMOS7 \ YOURUM ::
-#\[7]5Q7QUDLC4U5TTJGEBILYAANDME7F4CO3QXG3U2CBSZDVK4OVB4BQ 7  DATA SIGNATURE ::
+#,,,,,.,.,.,.,,,,,,,,,...,,.,,,,.,,..,,..,..,,..,,...,...,...,,.,,.,,,..,,...,
+#SGQSLBH3REFA7OUPVVS4UUII6X2C2T75EIVAX46EYI74RY5BNIRK2EUZWFVPZN7NW5MNNK5L2KD76
+#\\\|IARYSTAPPX53YO4EXCMMC5QNMBCC6K4OXICGRW5BIXGD32R6OQB \ / AMOS7 \ YOURUM ::
+#\[7]B3TQ5YBWZNZWFNRGC2FHP34S7DXWF3DB5ZKQYJW3SBCNWXPAOWDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
