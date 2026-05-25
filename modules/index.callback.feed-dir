@@ -25,11 +25,12 @@ if ( not defined $file ) {
     return;
 }
 
-<[index.feed.file]>->($file);
+my $ok = <[index.feed.file]>->($file);
+<[base.log]>->( 1, "index feed skipped [ $file ]" ) if not $ok;
 $job->{'done'}++;
 
-#,,,.,..,,.,.,.,.,...,,..,.,.,.,,,,..,..,,...,..,,...,...,..,,...,..,,,,.,,..,
-#HAXCD56NP3A33YSAODHJ6V7KMDVKYJ6AQF23TY4DKT4ZUR3XS6W24VIJPCEWILZKRUY7LKOFK6ODO
-#\\\|ZUBB7SB5XVFOMDKCBR5TMNVRRPMXWYDCLQQKRPPXHMATHXXUCAW \ / AMOS7 \ YOURUM ::
-#\[7]YHXBPWVY2K5YO3XK7YFT6NYF2BEFGMJYE2UHHQS3JV52USQYKQBY 7  DATA SIGNATURE ::
+#,,,.,..,,,,,,,,,,...,..,,..,,,.,,.,.,,,.,.,,,..,,...,...,...,.,,,,,,,,,,,.,,,
+#6MBV3J3AHGI6GS2V5VZ66USGU6QHJ4CBMBDGDFPQ2MZYRYFMQ4GPOXY2AW5U5BC26UMUVZIFT25FI
+#\\\|3I2KZ6XLOVDJCTRGCMZNY57NATFARFFV4BZWT6ZTMIHAG3O2IUF \ / AMOS7 \ YOURUM ::
+#\[7]UVPC4XZFQ32TFKAX3ARJ34CRY4B7I23A5IRASVXO5ZXIE6I5BSAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -3,24 +3,32 @@
 # name = index.feed.file
 # descr = ingest a single file into the index
 
-my $path = $ARG;
+my $path = @ARG ? shift : $ARG;
 
-return FALSE if not defined $path or not -r $path;
+if ( not defined $path or not -r $path ) {
+    <[base.log]>->(
+        1, "index.feed.file: not readable [ " . ( $path // 'undef' ) . " ]"
+    );
+    return FALSE;
+}
 
 my $content = <[file.slurp]>->($path);
 
-return FALSE if not defined $content;
+if ( not defined $content ) {
+    <[base.log]>->( 1, "index.feed.file: slurp failed [ $path ]" );
+    return FALSE;
+}
 
 <[index.ingest]>->($content);
 <[index.deduplicate]>->($content);
-<[index.rebalance]>->();
+<[index.rebalance]>;
 
 <[base.log]>->( 2, "index fed [ $path ]" );
 
 return TRUE;
 
-#,,..,,..,.,.,,..,...,.,.,,,,,.,.,,,.,.,,,...,..,,...,...,..,,,.,,,,,,,,,,..,,
-#6TTUATQSNSRQVMPFF4IH7IHL5AS3GHHUW5Z2JYWA6JXIYE3HBJHEA7SQVZPLHDF4P52VP5ZOVYW3G
-#\\\|Y7KG3QMEQFX3SN25DCTHTI2D2WF26ZX6KDC3BP7MPAA7YQCRHJ2 \ / AMOS7 \ YOURUM ::
-#\[7]FMKFLY2A7NJCQOBXXAGEO44ERMSJUQK5F3B2WZSQ35L5Q5UAA2CY 7  DATA SIGNATURE ::
+#,,..,,.,,,.,,.,.,...,..,,,.,,,..,,,.,.,,,,..,..,,...,..,,...,.,,,...,..,,,.,,
+#6MRX3FFNYHVCE6C53Q5CKJBVKVYNZOYA2CUX75FJZ53M4FKFCBLLQUJMTRDKE3RESWNN5B2MTEO6Y
+#\\\|FSC62CFWV4CFAFQYFLZW6ZX4B32I72Q3Z74FEOR55ON4HNYCWYT \ / AMOS7 \ YOURUM ::
+#\[7]4W5QJSDFQUJ35A7QDGSNG3BRXZSSNIZ5MYCFFG4ELRTBJQDRRGBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

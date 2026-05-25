@@ -13,6 +13,7 @@ index.rank
 base.regex
 base.cnt_s
 index.stats
+devmod.dump
 base.s_warn
 base.s_read
 base.minmax
@@ -43,7 +44,9 @@ base.pre_init
 base.n2u_time
 base.get_file
 base.file.put
+base.cmd.name
 base.cmd.list
+base.cmd.exit
 base.cfg_bool
 index.gen_path
 index.feed.dir
@@ -65,6 +68,7 @@ base.file.open
 base.dump_data
 base.conf-wrap
 base.cmd.heart
+base.cmd.clear
 auth.auth_list
 plugin.auth.pwd
 net.read_binary
@@ -73,6 +77,7 @@ index.init_code
 index.feed.file
 index.cmd.write
 index.cmd.stats
+devmod.pre_init
 base.zenka.loop
 base.str.os_err
 base.prng.bytes
@@ -87,12 +92,15 @@ base.event.loop
 base.curve.tick
 base.curve.init
 base.curve.eval
+base.cmd.whoami
 base.cmd.reload
 base.calc_gauss
 plugin.auth.unix
 index.cmd.lookup
 index.cmd.export
 index.cmd.decode
+devmod.post_init
+devmod.init_code
 base.stream.push
 base.stream.open
 base.stream.gate
@@ -105,6 +113,13 @@ base.net.connect
 base.log-delayed
 base.load_config
 base.get_homedir
+base.cmd.subname
+base.cmd.src-ver
+base.cmd.src-age
+base.cmd.rel-ver
+base.cmd.ptl-ver
+base.cmd.present
+base.cmd.cur-pid
 base.chk-sum.elf
 base.call_filter
 auth.pwd.success
@@ -129,6 +144,9 @@ base.get_warnings
 base.file.content
 base.event.add_io
 base.context.list
+base.cmd.term-all
+base.cmd.last-sid
+base.cmd.cpu-time
 base.cmd.commands
 base.chk-sum.amos
 index.cmd.stop-job
@@ -146,6 +164,7 @@ base.get_file.aref
 base.file.pre_init
 base.file.line_map
 base.event.add_var
+base.cmd.verbosity
 base.clear_p7_mods
 base.clean_unicode
 base.clean_hashref
@@ -153,6 +172,7 @@ base.base32.encode
 plugin.auth.twofish
 io.ip.tcp.init_code
 index.cmd.correlate
+devmod.console-dump
 base.utf8.clean_str
 base.str.eval_error
 base.round_truncate
@@ -196,6 +216,8 @@ base.eval.comp_regex
 base.disable_command
 base.devmod.dump_var
 base.cmd.show-buffer
+base.cmd.show-access
+base.cmd.amos-chksum
 base.chk-sum.bmw.ctx
 base.buffer.add_line
 base.base32.pre_init
@@ -213,7 +235,9 @@ base.load_config_file
 base.list.element.add
 base.file.match_files
 base.event.add_signal
+base.console.describe
 base.console.commands
+base.cmd.when-present
 base.cmd.dependencies
 base.cmd.buffer-erase
 base.balanced-average
@@ -225,9 +249,11 @@ base.register_src_deps
 base.register_bin_deps
 base.perlmod.init_code
 base.path.resolved_abs
+base.net.cmd.timestamp
 base.get_max_verbosity
 base.file.get-non-dirs
 base.comp-int.is_valid
+base.cmd.cancel-stream
 auth.unix.authenticate
 route.bmw384.route.find
 route.bmw384.index.init
@@ -250,6 +276,9 @@ base.exists.sub-process
 base.execute_zenka_code
 base.dump.data_key_list
 base.convert.hex_to_int
+base.cmd.set-name-width
+base.cmd.ondemand-zenka
+base.cmd.loaded-configs
 base.chk-sum.elf.inline
 base.chk-sum.bmw.strsum
 base.callback.cmd_reply
@@ -310,6 +339,7 @@ base.max-len.val-hash-keys
 base.handler.session_error
 base.event.io_idle_restart
 base.check_dependency_dirs
+auth.zenka.cmd.session-key
 route.bmw384.route.as-curve
 route.bmw384.index.register
 route.bmw384.cmd.index-path
@@ -329,6 +359,7 @@ base.chk-sum.amos.init_code
 route.bmw384.index.query-arc
 route.bmw384.index.from-path
 route.bmw384.index.from-file
+route.bmw384.cmd.index-stats
 protocol.protocol-7.pre_init
 protocol.amos_term.init_code
 plugin.storage.p7ref.resolve
@@ -383,6 +414,7 @@ route.bmw384.visual.wheel.gauss
 route.bmw384.route.hamming-dist
 route.bmw384.index.query-radius
 plugin.storage.inference.lookup
+crypt.C25519.cmd.get-public-key
 base.zenki.set_ondemand_timeout
 base.warnings.compact_statehash
 base.p7refs.gen_template_chksum
@@ -495,8 +527,8 @@ auth.callback.cap-neg.declare-strm-size-support
 protocol.protocol-7.protocol-version-path-set-up
 base.log.send-buffer.reply-handler.notify-online
 
-#,,.,,,,.,.,,,..,,,..,,.,,..,,,.,,.,,,.,.,.,.,..,,...,...,..,,.,,,..,,..,,,.,,
-#JNKDWMXLOGOT5L2GXVGA7PH3S35HDJ63LQ7U55GSEPQGVQGTW2PZRMGFNJWSAKK2OKCUSOCB77BRI
-#\\\|3ROYNDCXCBMCHGT73B6UWG7J6BLZMWHGRUPZYAT3M3KA3RC2RKN \ / AMOS7 \ YOURUM ::
-#\[7]TEY5ME5IJNIU4XBGBOI2K5UJ5BAUL7AJGWJSKNXG57MQKSQMEWDA 7  DATA SIGNATURE ::
+#,,,.,.,.,...,.,.,..,,...,,.,,.,,,.,.,,..,.,.,..,,...,...,,..,,,,,,,.,,,.,,,,,
+#LBJBPTVSICSTZOBNCQK4V5EFIPUZL4KBVC34EXBOKURNZYNO4OU2JGT6HPD2ZB7LXAJJ32ETUE4ZE
+#\\\|KDHJBGSJVOONPOKDZJBJ74BN3AHCQ4DH3CIDSQ775MLF5A6JS6Z \ / AMOS7 \ YOURUM ::
+#\[7]KPCQVRFPBURP3PPC65KO46LIZ6Q3QW5AAPD2DYHGNDHDSHAYXKDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
