@@ -1,0 +1,21 @@
+## [:< ##
+
+# name  = index.callback.persist
+# descr = deferred persist reply after blocking nstore completes
+
+my $reply_id = delete <index.persist.reply_id>;
+
+my $ok = <[index.persist]>;
+
+<[base.callback.cmd_reply]>->(
+    $reply_id,
+    $ok
+    ? { 'mode' => 'size',  'data' => 'index state saved' }
+    : { 'mode' => 'false', 'data' => 'persist failed' }
+);
+
+#,,.,,,,,,.,,,,..,...,.,.,,..,,,,,.,,,...,..,,..,,...,...,..,,.,,,,.,,.,.,...,
+#7Z4DTADN6GDIJML5XGO7EVTKZAOM4GPRO5LX4DSSKIE4BCSOM7JUAB6LUGBSC5FEIWEOWKWD77YCA
+#\\\|ALK74SQ2LFUOM77MDJNP7FLL45FQT6NPP4TIYZ6AG6B6PTFWQZ6 \ / AMOS7 \ YOURUM ::
+#\[7]Z4JY4XLSYFLXIUNT4O2OBOYPCRBZKVKRVL62RJ55W74T34UGUWDI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
