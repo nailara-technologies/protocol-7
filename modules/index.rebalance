@@ -3,6 +3,7 @@
 # name = index.rebalance
 # descr = rebalance address space after ingest
 
+return if <index.cfg.rebalance_deferred> // FALSE;
 return if not <index.meta>->{'dirty'};
 
 <[index.rank]>;
@@ -12,8 +13,8 @@ return if not <index.meta>->{'dirty'};
 my $total = scalar keys %{<index.freq>};
 <[base.log]>->( 2, "index rebalanced [ $total unique tokens ]" );
 
-#,,..,,..,.,,,..,,.,,,,.,,.,,,..,,,,.,,,.,,.,,..,,...,...,.,.,,.,,...,,..,...,
-#PGN2COK37KVZ56Q4OZLXHT6W673TTYLJWERSDOWBVQSS4I6IVCG6NM7EWXLM6ZQ727KTFWMN3CSRK
-#\\\|CHSZTLAOMVSVGQ5AWR5BURVO5TSZMDVFE3C6VEEDRXEIOOCJPOM \ / AMOS7 \ YOURUM ::
-#\[7]FUV5XOYZTX4UVSN3XJMA6BKD27LEUXRREMJXRISBNW6QQCUHAIAA 7  DATA SIGNATURE ::
+#,,,.,.,,,,..,,,,,.,.,,.,,.,.,,.,,..,,,,,,,..,..,,...,...,...,,.,,,.,,,..,,..,
+#2EI5KIJZN22NKUXGKAPGJGD6G5BB2AOJXLECAXOHJJ7JSEK7B737A6YXTHX2K64BUOWTYMTAHKSEQ
+#\\\|FKWMX4TOULMTGKGE35FLYWNOZGP6DV2DGUIQBHKKIXZBF3APVV6 \ / AMOS7 \ YOURUM ::
+#\[7]XVZMNJX6C2JMR47TK46CAXLYTFALM4BJMGQVA6N5YRMUPOXUNUBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

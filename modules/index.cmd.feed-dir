@@ -3,7 +3,9 @@
 # name  = index.cmd.feed-dir
 # descr = feed a directory into the index
 
-my $dir = $call->{'args'} // '';
+my $args            = $call->{'args'} // '';
+my $rebalance_later = ( $args =~ s|\s*:rebalance-later:\s*|| ) ? TRUE : FALSE;
+( my $dir = $args ) =~ s{^\s+|\s+$}{}g;
 
 return { 'mode' => 'false', 'data' => 'expected directory path' }
     unless length $dir;
@@ -26,26 +28,27 @@ return { 'mode' => 'false', 'data' => 'no files found' }
 my $job_id = <[chk-sum.amos]>->( \$dir );
 
 <index.jobs>->{$job_id} = {
-    'job-type'   => 'feed-dir',
-    'reply_id'   => $call->{'reply_id'},
-    'files'      => \@files,
-    'total'      => scalar @files,
-    'done'       => 0,
-    'idle-event' => <[event.add_idle]>->(
-        {   'handler' => 'index.callback.feed-dir',
+    'job-type'        => qw| feed-dir |,
+    'reply_id'        => $call->{'reply_id'},
+    'files'           => \@files,
+    'total'           => scalar @files,
+    'done'            => 0,
+    'rebalance-later' => $rebalance_later,
+    'idle-event'      => <[event.add_idle]>->(
+        {   'handler' => qw| index.callback.feed-dir |,
             'data'    => $job_id,
-            'repeat'  => 1,
+            'repeat'  => TRUE,
             'desc'    => "index feed-dir [ $job_id ]",
         }
     ),
 };
 
-<[base.log]>->( 1, "index feed-dir queued [ " . scalar(@files) . " files ]" );
+<[base.logs]>->( 1, "index feed-dir queued [ %d files ]", scalar(@files) );
 
 return { 'mode' => 'deferred' };
 
-#,,,,,..,,,,,,...,.,.,,.,,,..,.,,,..,,,.,,.,.,..,,...,..,,...,,,.,,..,...,.,,,
-#4SLKFF7FTKZPQOXAFLQC4UT2DW2C2PDKMKMWA5OLI7PYOMYXNYGIO5CVQEJFR5EXO3EWBC7OR7JGK
-#\\\|ERUDBDSMGW7RUAHIQVJZEAJFIQ5T6WZCPBCYIWLWIUR4FPECVH6 \ / AMOS7 \ YOURUM ::
-#\[7]CWPWANCLF5FJSXZBDUD3RSNX6QJ6TQZDTTREJVHSMYAZMZ7LY6DA 7  DATA SIGNATURE ::
+#,,,,,.,,,,,,,.,,,,,,,,.,,,.,,..,,.,,,.,.,...,..,,...,...,.,.,,.,,,.,,.,,,..,,
+#2RYRZ4DZ2HNUNQS5WBHH6W7CZ3OPCSQVRIV6YZLQOLI5TNESDRRC36IY2224JLD24DPD2ZEMPR5NM
+#\\\|ZNPFXYHDDKSQIW4DEKSIPNEHCLOKUAVOY52PJEHFHRW3KQRRKQ5 \ / AMOS7 \ YOURUM ::
+#\[7]K3EZ7N4OT5AYF2Q5GS4WC27CXYKHPNJQW6PRXKOELZMNZUKCXABI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
