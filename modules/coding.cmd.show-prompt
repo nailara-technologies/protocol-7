@@ -60,7 +60,7 @@ my $temperature = <inference.model.temperature> // 0.7;
 ## format output ##
 my $output = '';
 
-$output .= ".:[ show-prompt : dry run — no inference call ]:.\n";
+$output .= ".:[ show-prompt : dry run : no inference call ]:.\n";
 $output
     .= ".:[ model=$model_id max_tokens=$max_tokens temp=$temperature ]:.\n";
 $output
@@ -87,7 +87,7 @@ if ( $tool_count > 0 ) {
         my $fn     = $tool->{'function'}                 // {};
         my $params = $fn->{'parameters'}->{'properties'} // {};
         my @pnames = sort keys $params->%*;
-        $output .= sprintf "  %s(%s) — %s\n",
+        $output .= sprintf "  %s(%s) : %s\n",
             $fn->{'name'} // '?',
             join( ', ', @pnames ),
             $fn->{'description'} // '';
@@ -138,8 +138,8 @@ $output .= sprintf ".:[ total prompt size: %d chars ]:.\n",
 
 return { 'mode' => qw| size |, 'data' => $output };
 
-#,,,,,,..,...,...,,,,,,,,,.,,,,.,,,..,.,.,..,,..,,...,...,...,..,,...,.,,,,,.,
-#DBFVHOI62SUZ27L3PUGUM3GRTKVRBLZJU2CDXT74BW6JM4D6WX3T26MMMZLUQF35FPNNUC45XTKFI
-#\\\|HYCDEJPVRHBNL5NCQFXZWQZC7Z2TCPGIAYHANRPA6LBNYRYQWHM \ / AMOS7 \ YOURUM ::
-#\[7]7TAEV6HTFERPAI2RBGI3LXIWQRLHTD7R6M74UKUECSTAYEIY6YDI 7  DATA SIGNATURE ::
+#,,..,..,,.,,,.,.,,,.,,,.,,,.,,,,,..,,...,,,,,..,,...,...,.,,,,,.,,,,,.,.,.,,,
+#ENBU2XAVXF7G7RCNIB42H65PJIC3WFYMOJLWE7ZME6VGMH6A2JKBWGQSPQP2LOQ4MVHWKA5VFOJKK
+#\\\|R6PJZ75VMGRAQ3UYXFTEVPCHI454TK5BBIKTTV722JNI6VPPRPN \ / AMOS7 \ YOURUM ::
+#\[7]ZBELRHEHPM5FE4QZ3B6QP6BZQSRLLFRBQUKP6DCT563L2GEBA6BY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

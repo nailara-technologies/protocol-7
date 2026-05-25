@@ -36,7 +36,7 @@ my $file_count = $cache->{'file_count'} // 0;
 my $cells      = $cache->{'cells'}      // [];
 my $timestamp  = $cache->{'timestamp'}  // 0;
 
-## summary section — default ##
+## summary section : default ##
 if ( $section eq qw| summary | ) {
 
     my @lines;
@@ -59,7 +59,7 @@ if ( $section eq qw| summary | ) {
 
 } elsif ( $section eq qw| json | ) {
 
-    ## json wrapped in script tag — for inline javascript consumption ##
+    ## json wrapped in script tag : for inline javascript consumption ##
     my $payload = {
         qw| target_dir | => $target_dir,
         qw| file_count | => $file_count,
@@ -71,7 +71,7 @@ if ( $section eq qw| summary | ) {
 
 } elsif ( $section eq qw| json-raw | ) {
 
-    ## raw json — for api endpoints with content-type override ##
+    ## raw json : for api endpoints with content-type override ##
     my $payload = {
         qw| target_dir | => $target_dir,
         qw| file_count | => $file_count,
@@ -85,8 +85,8 @@ if ( $section eq qw| summary | ) {
     return sprintf '<!-- unknown grid section: %s -->', $section;
 }
 
-#,,..,,,.,,,.,...,,,,,,.,,.,.,...,.,,,.,.,.,.,..,,...,...,,..,,,,,,,.,...,...,
-#BDU2IRK5WMMKVCQG46NPJ36HVWDCLDNYXQNFMOKHOIEUQR2IQIUAN4QYMS6QUTVUX45563GNW4JJ4
-#\\\|AZWKVZGH3IL4T3WN3C34AN7AH7XKIJOHUVQJRCXSBABH6BCVNQE \ / AMOS7 \ YOURUM ::
-#\[7]QGV5QS6ODYBC5WXKV2O3N6LFKZQCEVD62EXRJB4UCOCVINJLOEBY 7  DATA SIGNATURE ::
+#,,,.,.,.,.,,,...,,,,,,..,...,,,,,..,,,,.,,,.,..,,...,...,..,,..,,.,,,,..,,.,,
+#OOMBCLICTTE5QIIMCRVZ2KFVWD6LBSQKRDJVKY3WMYBLXTV425OLGH5K6O4XACMFA4KSKAQZIFLSM
+#\\\|TTGKD2MC73ZCUD77IF5YYF2WVCQ3PRROJBQYQ5UIAEC5UDGAIVH \ / AMOS7 \ YOURUM ::
+#\[7]7QMXSTVD6FOEALA5VYGA7KD6KDBLBIRG5C662QAFIAR725K5P2AY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

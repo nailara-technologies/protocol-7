@@ -176,7 +176,7 @@ if ( <[base.cfg_bool]>->( <httpsd.cfg.request_capture> // 1 ) ) {
     ## buffer 'httpsd-crash-log' initialized ondemand when required  ##
     ############################  in httpsd.request_capture.collect  ##
 
-    ## register end_code callback once — guards against re-init double-push ##
+    ## register end_code callback once : guards against re-init double-push ##
     if ( not <httpsd.request_capture.cb_registered> ) {
         push <callbacks.end_code>->@*, qw| httpsd.callback.reset-capture |;
         <httpsd.request_capture.cb_registered> = TRUE;
@@ -191,8 +191,8 @@ if ( <[base.cfg_bool]>->( <httpsd.cfg.request_capture> // 1 ) ) {
 
 0;
 
-#,,,.,.,,,,,,,,.,,,,.,,..,...,.,.,,,.,..,,..,,..,,...,...,..,,...,,.,,,..,,,.,
-#PKNBT5AJ2D6CGDGCNR7LOEZ6QFQ6ZDWNHGOA6RRDESK72RXOJOKO23SI4H4MDXR6VDGVHHSRINIRS
-#\\\|3LHCDEZZXCW54I6QCTKCRSLGTV3AGEEZVAKRVZZWFU2IMMJZJ2B \ / AMOS7 \ YOURUM ::
-#\[7]2INR2QMXURCK3ACGNGBMOWXHPKCNN325SIX3EAQZ5FYGG25QKIAA 7  DATA SIGNATURE ::
+#,,.,,,,,,,,.,.,.,,,,,,..,...,.,.,...,,..,,,.,..,,...,...,.,.,...,,..,..,,..,,
+#BBLXRIR56NZDXZU3ZEI6XQVRLCONCQ5572LZRXUE3CGCNEY5YSOET52APOEEEXXWRCWVIVSGLKV7K
+#\\\|R3XI22AAGMWWASEEFJWV2XCGHNWGXGPM4JWNAG3576SJSR5WRMY \ / AMOS7 \ YOURUM ::
+#\[7]XCJNWN6PDNUY244BTOC5OHK6LJ7ZH24UZED24S7GEZAJR5VB44CQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -20,7 +20,7 @@
 ## load checksum-based dedup / blacklist index ##
 <[jobsite.checksum.index]>->(qw| load |);
 
-## var watcher on pending_count — fires when all assessments land
+## var watcher on pending_count : fires when all assessments land
 <[event.add_var]>->(
     {   'var'     => \<jobsite.pending_count>,
         'poll'    => 'w',
@@ -30,7 +30,7 @@
     }
 );
 
-## rescan timer — only when interval > 0
+## rescan timer : only when interval > 0
 my $interval = <jobsite.cfg.rescan_interval> // 0;
 if ( $interval > 0 ) {
     <[event.add_timer]>->(
@@ -43,7 +43,7 @@ if ( $interval > 0 ) {
     <[base.logs]>->( 1, 'jobsite: rescan timer %ds', $interval );
 }
 
-## sync push timer — only when interval > 0
+## sync push timer : only when interval > 0
 my $sync_interval = <jobsite.cfg.sync_interval> // 0;
 if ( $sync_interval > 0 ) {
     <[event.add_timer]>->(
@@ -71,7 +71,7 @@ if (@orphans) {
         'jobsite: re-wiring %d orphaned assessment tasks',
         scalar @orphans
     );
-    ## store queue — rewire-all handler processes after event loop starts
+    ## store queue : rewire-all handler processes after event loop starts
     <jobsite.rewire_queue>
         = [
         map { { 'job_id' => $ARG, 'task_id' => $tasks->{$ARG}{'task_id'} } }
@@ -90,8 +90,8 @@ my $job_count = scalar keys %{$tasks};
     <jobsite.cycle>, $job_count
 );
 
-#,,,,,...,,.,,.,,,...,,.,,.,.,..,,.,,,,..,,,.,..,,...,...,..,,.,,,...,..,,,.,,
-#FQ3ZF5PNQBDUQ54JBI3RJB3JQCNTXB66HUC6PTCVMZXLON6COPMB6BOMVBQ6V7GQZZXXQBFTBGWCQ
-#\\\|7J24C3T4DPD2EJJDTF33OZ7GXYNMKWJ2KFA7JK3P3KNYFTZFP3B \ / AMOS7 \ YOURUM ::
-#\[7]GP2IMX5DE6XG352OB5LVOKSPMBSIME42JJM7DCHCSHA56JMWF2CQ 7  DATA SIGNATURE ::
+#,,,.,,,,,,,,,...,,.,,,..,,,,,.,.,.,.,.,.,...,..,,...,...,.,.,...,,.,,,,.,,.,,
+#HB77XKCOB2UKCC7WEQZF4TSSCNMGG3XU6PRGZRXITBPGAZSVSBBQX7UFOFYSEE2YFVMFRQXDBQAFI
+#\\\|VDGDS7JC4LLGQS5657LW5F6FOYZSE5E3HNSBDHY5LBFALRE2IPN \ / AMOS7 \ YOURUM ::
+#\[7]LIKGL6BYUO4OCMSSQETYBPEGDBC7OWE6KXHOHZZGITHTAASTS4DY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

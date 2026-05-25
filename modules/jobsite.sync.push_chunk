@@ -7,7 +7,7 @@ my $chunks = <jobsite.sync.push_chunks> // [];
 my $chunk  = shift @{$chunks};
 
 if ( not defined $chunk ) {
-    ## all chunks done — advance local watermark to cycle start ntime ##
+    ## all chunks done : advance local watermark to cycle start ntime ##
     my $cycle_ntime = delete <jobsite.sync.push_cycle_ntime> // '';
     <jobsite.sync.last_server_ntime> = $cycle_ntime if length $cycle_ntime;
     my $reverse = delete <jobsite.sync.push_reverse> // [];
@@ -49,8 +49,8 @@ if ( not length $body ) {
     }
 );
 
-#,,..,..,,..,,,..,,,.,,.,,...,,.,,..,,..,,,..,..,,...,...,..,,,,.,..,,,,,,.,,,
-#R2AZ6EE3Z7FM2ICR333QGS2BPZEKVM7Z4G336TV75I2GIMSGZPZCFEDDI4OC5B4JXQPGCZHNSBNKW
-#\\\|DU2XWWFHEZKKBH3WBGLTFRIDWJBBU4OHOFX65ZEWFEOCSUVXQW5 \ / AMOS7 \ YOURUM ::
-#\[7]WFNBR763ZMGGJ3USAOSV3VHJYRCCNLQ7OOWWAJX6JWZKSY5H4SAY 7  DATA SIGNATURE ::
+#,,,,,...,,,,,..,,.,,,...,,,.,.,.,,,.,.,,,,.,,..,,...,...,.,.,.,,,,,,,,.,,..,,
+#BA5VD3CDN474XFHH72T5Z2G6XN3YEHITAN4PV73PEYUFS5P33S4NEKWK5SSGH4ZCFXOJY7VX22CFW
+#\\\|IKTUZ62THD47CFGLLHVW5OZL2E3CUFDZVWPSGZHCOILWERX6FML \ / AMOS7 \ YOURUM ::
+#\[7]W7DERK4MRZWYA7KEKXMILSMJCBDQI3BBHTL24OT5Z3AXWDMSIUCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

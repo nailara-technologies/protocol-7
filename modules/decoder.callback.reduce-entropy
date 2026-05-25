@@ -1,7 +1,7 @@
 ## [:< ##
 
 # name  = decoder.callback.reduce-entropy
-# descr = idle worker — processes batch of /13 reduction steps per event tick
+# descr = idle worker : processes batch of /13 reduction steps per event tick
 
 my $watcher    = shift->w;
 my $job_id     = $watcher->data;
@@ -24,7 +24,7 @@ if ( $job->{'stop-requested'} ) {
     return;
 }
 
-## process batch — /13 chain per value, no left shifts ##
+## process batch : /13 chain per value, no left shifts ##
 my $end = $cursor + $batch_size;
 $end = $total if $end > $total;
 
@@ -46,7 +46,7 @@ if ( $end >= $total ) {
     delete <decoder.jobs>->{$job_id};
 
     <[base.log]>->(
-        1, ": reduction complete [ %s ] stream %s — %d values → %d bits",
+        1, ": reduction complete [ %s ] stream %s : %d values → %d bits",
         $job_id, $stream_id, $total, length $fingerprint
     );
 
@@ -64,8 +64,8 @@ if ( $end >= $total ) {
     );
 }
 
-#,,,,,,.,,,,,,,..,,,.,.,.,.,.,.,,,...,,,,,,..,..,,...,..,,,..,,..,..,,..,,,,.,
-#A6TTTMYBZ3T6FOD3FALZATS5JQPPU2WAR5LJD26MTHNLLRPNNGORYLVVYNCVSHXTIN27JWCDOY2L4
-#\\\|C4S4WLIBIUHP6LNHXLKJEJV6TMMBCWSIOUBEZM6HWETU7OCMEOE \ / AMOS7 \ YOURUM ::
-#\[7]4IDH422QUAWQTLPO3QTYMHQTVQOMOLTMXFH7HGSWMYB6S3VW2ABQ 7  DATA SIGNATURE ::
+#,,,.,..,,..,,...,.,,,...,,..,...,.,,,,,,,,.,,..,,...,..,,...,.,.,.,,,...,.,.,
+#RY5LLRNFPS3NIMFU337FOYLCCV22AMVKHDJULEIHRTKDUWLMCNR76GOBF7WUIZRLH3KS6Q7ZHDG6A
+#\\\|GMX3FET52LVNB4MTYT46MAEZQW4O7XGCYXVS7CLGZ4IP2QQRVQF \ / AMOS7 \ YOURUM ::
+#\[7]JIEY6TTKTWWWHXAZ6DS22JG547ABIOFT5FCP5APJXW67OGZJIUDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

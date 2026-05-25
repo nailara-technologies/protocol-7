@@ -48,7 +48,7 @@ return "error: file already exists [ $path ]" if -e $abs_path;
 my $chmod_fh = <coding.chmod_child.w_fh>;
 my $cur_mode;
 if ( !-w ( $abs_path =~ s|/[^/]+$||r ) and defined $chmod_fh ) {
-    ## parent dir not writable — create file via chmod child then open it ##
+    ## parent dir not writable : create file via chmod child then open it ##
     print {$chmod_fh} "create $abs_path\n";
     my $reply = <[coding.chmod_child.readline]>;
     if ( -f $abs_path ) {
@@ -74,7 +74,7 @@ if ( -f $abs_path and -w $abs_path ) {
     if ( defined $chmod_fh and defined $cur_mode ) {
         print {$chmod_fh} sprintf "restore %04o %s\n", $cur_mode, $abs_path;
         <[coding.chmod_child.readline]>
-            ;    ## consume restore reply — keep pipe in sync ##
+            ;    ## consume restore reply : keep pipe in sync ##
     }
     return sprintf "created %s [ %d bytes ]", $path, length($content);
 } elsif ( -d ( $abs_path =~ s|/[^/]+$||r )
@@ -95,8 +95,8 @@ return
     sprintf "staged new file %s [ %d bytes, no write access ]\n"
     . "staged at : %s", $path, length($content), $stage_rel;
 
-#,,..,...,..,,,..,,.,,.,,,..,,,.,,,,,,.,.,.,,,.,.,...,...,..,,,.,,..,,,,,,,..,
-#JDN2DDEYNNNPZV3J4FFJAEFQC6IBVPG67YYN4HAGU4KJ4E3B7N7KPX44DQV6NMX55JD3GPXYEN3YM
-#\\\|PY3MINFQRFAMIGQX5VEYSQMIB4O5LKKO6VMRMTIE6U4J6YH2NPF \ / AMOS7 \ YOURUM ::
-#\[7]KACY33W6TDNKGDAM4HUHRCFN6KNH4A3XSXXWYVZ2MC5CDB6KSSCQ 7  DATA SIGNATURE ::
+#,,..,...,,..,,,.,.,,,...,,,.,,,.,,,.,.,,,,,,,.,.,...,...,..,,,.,,,,.,,,,,,.,,
+#X7JACMAA7TIFY4T2MX5GSGBOF4QRD7KZZZ4UV72D32XMM3I6GRTBEEOFXSLHCOGJY4D4VZ4NOGQ62
+#\\\|LX4HPBBJMOERVB4ATMTJU7WV4NXXTKNAVHXGYB5KEPVKWQUNX2G \ / AMOS7 \ YOURUM ::
+#\[7]K3VF7FUUWUMTC6LXO4LJJNWBOLQMYBSFN3VNXVUEDPUFHCXPGCBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

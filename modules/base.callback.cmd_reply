@@ -80,7 +80,7 @@ if ( $reply_mode =~ m{^(TRUE|FALSE|WAIT)$}io ) {
     $data .= "\n" unless $data =~ /\n$/;
 
     ## SIZE mode reports BYTE count for buffer/socket operations
-    ## [ bytes:: loaded via perlmod.autoload — not a lexical pragma ]
+    ## [ bytes:: loaded via perlmod.autoload : not a lexical pragma ]
     my $byte_count = bytes::length($data);
 
     $output->$* .= sprintf( "%sSIZE %d\n%s", $_cmd_id, $byte_count, $data );
@@ -138,7 +138,7 @@ if ( $reply_mode =~ m{^(TRUE|FALSE|WAIT)$}io ) {
     ## open frame ##
     $output->$* .= sprintf "%sTREE %s %s\n", $_cmd_id, $tree_id, $root;
 
-    ## node lines — sorted by ref_count descending (base.reverse-sort) ##
+    ## node lines : sorted by ref_count descending (base.reverse-sort) ##
     my @nodes = <[base.reverse-sort]>->( @{ $reply->{'nodes'} // [] } );
 
     for my $node (@nodes) {
@@ -171,8 +171,8 @@ if ( $reply_mode =~ m{^(TRUE|FALSE|WAIT)$}io ) {
 
 delete <base.cmd_reply>->{$reply_id};
 
-#,,.,,..,,.,.,,..,,,,,..,,,,.,,..,.,,,,,,,..,,..,,...,.,.,,..,,,,,..,,,..,,.,,
-#3OULNI725VZYIXY7EW2FVPCTBNH4RPI667X2OBJZE5UJZ3A2IU3RO2BW5R2CDOFC4B3JJTJYRVL5E
-#\\\|HV6HX5QHKSSRZCIYGEACF4YXBAYXYH5HJI5JEEWULWA2DY2ZBQM \ / AMOS7 \ YOURUM ::
-#\[7]5I36NU2DGCBB2U7BDNEGJQCV6L5FR25OQZGXWI2DVHOSRUNTSYAI 7  DATA SIGNATURE ::
+#,,,.,.,.,,,,,.,,,...,,,.,,,,,,.,,,,.,,..,.,.,..,,...,...,.,.,,,.,,.,,.,.,,,,,
+#QQCDUF2KSAOHTCVMXJPZ3T3QK27U34PP5EE5O6XD2MJLVBUKK4H37E2EGGAQ7DBBXJWBE6242NXGM
+#\\\|CC7J3HYJQPZG5DCBBGLRCY652CICKNTCNUZOU4RZ5ACERO3TY4J \ / AMOS7 \ YOURUM ::
+#\[7]DHSIOUTBBDMVR7AILFIVLNJHSWBB3CNQEUN4EWSJBNFYTR7JKKBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

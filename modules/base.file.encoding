@@ -17,13 +17,13 @@ return ':encoding(UTF-8)'    if $sample =~ /^\xEF\xBB\xBF/;
 return ':encoding(UTF-16LE)' if $sample =~ /^\xFF\xFE/;
 return ':encoding(UTF-16BE)' if $sample =~ /^\xFE\xFF/;
 
-## try UTF-8 decode on sample — fail = raw ##
+## try UTF-8 decode on sample : fail = raw ##
 my $test = substr $sample, 0, 4096;
 eval { Encode::decode( 'UTF-8', $test, Encode::FB_CROAK ) };
 return $@ ? ':raw' : ':encoding(UTF-8)';
 
-#,,,,,,,.,,,,,..,,.,.,,.,,,..,,..,...,,.,,...,..,,...,...,..,,.,,,,..,..,,..,,
-#MDBDNNPOY4DOMP4RGXRI7IIF4L6K2EY5Z6KPJZOPUULWYWNI7YOA3EBKAPGWG4TMIXEAIN672FAPY
-#\\\|DXKDS4DBB22CLFDGXAUTYNZKJVMVNFN7JLJK4IMNYTN6RPOXANT \ / AMOS7 \ YOURUM ::
-#\[7]ZHC2JJAGVF6M3G3K3CZG2SLDYU7LBYYJD3J64MA7UTAKM3L7DSAI 7  DATA SIGNATURE ::
+#,,..,,.,,.,.,.,,,.,,,.,,,,,,,,,.,,,.,...,,.,,..,,...,...,,.,,..,,.,.,.,,,.,,,
+#NFWFKD5YPIZ5SJUANE76JN2NX4V2MSBFS52XTLNGP4BZY5HIO4FHTVNWYXL7CI6EJ5723BTUCMDIY
+#\\\|IYEC5C4Q7CQ6SHL4LWCNVXSRVXCS6EIJJNTLKNR2C7NVF5WQR5K \ / AMOS7 \ YOURUM ::
+#\[7]ZG6FGT44D2IKP6OVJ6QAOJZQ5O6XNQCHIQDPOWDBWICF5NGE4ECI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

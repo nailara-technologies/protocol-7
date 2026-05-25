@@ -29,7 +29,7 @@ $args_str =~ s{^\s+|\s+$}{}g;    ## trim remaining whitespace ##
 ## content: multiline data takes precedence, else remaining args ##
 my $content = $call->{'data'} // $args_str;
 
-## :file: / :path: keyword prefix — extract path only, no trailing options ##
+## :file: / :path: keyword prefix : extract path only, no trailing options ##
 if ( $content =~ s{^:(?:file|path):(\S+).*}{} ) { $path = $1 }
 
 ## explicit :b32: prefix ##
@@ -61,10 +61,10 @@ elsif ( $content =~ m|^[2-7A-Z]+=*$| ) {
 return { mode => qw| false |, data => 'content required' }
     unless length $content;
 
-## build system prompt — compaction-style, focus-aware ##
+## build system prompt : compaction-style, focus-aware ##
 my $system_prompt
     = 'you are a context compaction assistant. '
-    . 'your response IS the summary — output it directly as plain text. '
+    . 'your response IS the summary : output it directly as plain text. '
     . 'no tool calls, no apologies, no explanation of what you are doing. '
     . 'preserve all load-bearing specifics: module names, line numbers, '
     . 'decisions, open questions. omit narrative filler. '
@@ -95,7 +95,7 @@ return {
     }
     unless $queue_result->{'success'};
 
-## register deferred completion — on_task_complete routes result back ##
+## register deferred completion : on_task_complete routes result back ##
 $data{'coding'}{'deferred_replies'} //= {};
 my $deferred_id = <[base.gen_id]>->( $data{'coding'}{'deferred_replies'} );
 $data{'coding'}{'deferred_replies'}->{$deferred_id} = {
@@ -110,8 +110,8 @@ $data{'coding'}{'deferred_replies'}->{$deferred_id} = {
 
 return { mode => qw| deferred | };
 
-#,,.,,.,,,..,,...,,..,.,,,,,,,,.,,,..,,.,,,.,,..,,...,...,...,,,.,..,,.,.,..,,
-#2VD3ZY3YADDDDJ5DKJTRLBHYBDCO6ZQFJV3TGBSMHURRYJDGGFYVZ72JIDMWIQYH5YPWVGRZGP7KK
-#\\\|45LM7Z66LKSZV4MQQATZD7FXEORHWCVGE7VACBOEOQGRJW4TRHV \ / AMOS7 \ YOURUM ::
-#\[7]QCN4CFHDV6FO2AOQW27WSUCKY23FBGN3R5JPH5CDKWLN3HTJFYCI 7  DATA SIGNATURE ::
+#,,..,,,.,,..,,,.,,.,,,.,,,.,,,,.,,.,,.,.,..,,..,,...,...,...,,,.,,..,,..,.,.,
+#2Z5ZCDV6DZ36CU5BF4RRT6WA6GDNASBCRT652LGH26Q3IE2LUPBI2WBCXPIMYB675FHFLJHS2FRQQ
+#\\\|55MLCFVKWE6GK4RCTQXYIYYVJHDOM6WQCDP73VWALVNCYCFHI2L \ / AMOS7 \ YOURUM ::
+#\[7]22Q2TUQUYZGDUBQNSPYLJQXSM5LCSFFKQL2JJTFFMRB27DTLTACY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

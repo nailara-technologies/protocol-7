@@ -8,7 +8,7 @@
 my $text    = shift;
 my $context = shift // {};
 
-## disconnect signal — tear down and let watcher handle reconnect
+## disconnect signal : tear down and let watcher handle reconnect
 if ( not defined $text ) {
     <[base.logs]>->( 2, 'kimi.handler.ws_message: websocket disconnected' );
     <kimi.ws.connected> = FALSE;
@@ -17,7 +17,7 @@ if ( not defined $text ) {
             if <kimi.ws.io_watcher>->is_active;
         <kimi.ws.io_watcher> = undef;
     }
-    ## check for active prompt entries — preserve them across reconnect
+    ## check for active prompt entries : preserve them across reconnect
     ## so TurnEnd can still deliver the result after kimi-web finishes
     my $has_active_prompt = FALSE;
     foreach my $pend_id ( keys %{<kimi.wire.pending>} ) {
@@ -63,7 +63,7 @@ if ( not defined $text ) {
 
     <kimi.ws.status> = qw| disconnected |;
 
-    ##  watcher only fires if value changed —
+    ##  watcher only fires if value changed :
     ## call directly when already disconnected
     <[kimi.connect.schedule_retry]>
         if <kimi.session.was_ready> // FALSE;
@@ -97,13 +97,13 @@ if ( $method eq qw| history_complete | ) {
     <[base.logs]>
         ->( 2, 'kimi.handler.ws_message: history_complete received' );
 
-    ## cancel reconnect grace timer — websocket is alive again
+    ## cancel reconnect grace timer : websocket is alive again
     if ( defined <kimi.reconnect.grace_timer> ) {
         <kimi.reconnect.grace_timer>->cancel
             if <kimi.reconnect.grace_timer>->is_active;
         <kimi.reconnect.grace_timer> = undef;
         <[base.logs]>->(
-            1, ': reconnect grace timer cancelled — session alive'
+            1, ': reconnect grace timer cancelled : session alive'
         );
     }
 
@@ -148,7 +148,7 @@ if ( $method eq qw| event | ) {
     if ( $type eq qw| TurnEnd | ) {
         <[base.logs]>->(
             2,
-            'kimi.handler.ws_message: TurnEnd — reply length=%d',
+            'kimi.handler.ws_message: TurnEnd : reply length=%d',
             length(<kimi.wire.accumulator>)
         );
 
@@ -195,14 +195,14 @@ if ( $method eq qw| event | ) {
             <kimi.wire.accumulator> = '';
         }
 
-        ## status change — call watcher directly (no recursive var watcher in IO cb)
+        ## status change : call watcher directly (no recursive var watcher in IO cb)
         <kimi.ws.status>         = qw| ready |;
         <kimi.session.was_ready> = TRUE;
         <[kimi.watcher.ws_status]>;
         return;
     }
 
-    ## other event types [ TurnBegin, StepBegin, ToolCall, etc. ] — log at debug
+    ## other event types [ TurnBegin, StepBegin, ToolCall, etc. ] : log at debug
     <[base.logs]>->( 3, 'kimi.handler.ws_message: event [ type=%s ]', $type );
     return;
 }
@@ -227,15 +227,15 @@ if ( $method eq qw| request | ) {
         ## send reject so kimi-web does not hang waiting for a response
         <[kimi.wire.approval_respond]>->(
             $msg_id, 'reject',
-            'ToolCallRequest not yet implemented — log captured for analysis'
+            'ToolCallRequest not yet implemented : log captured for analysis'
         );
         return;
     }
 
     if ( $type eq qw| QuestionRequest | ) {
-        ## structured question — not yet implemented
+        ## structured question : not yet implemented
         <[base.logs]>->(
-            1, ': question request [ %s ] — not handled', $msg_id
+            1, ': question request [ %s ] : not handled', $msg_id
         );
         return;
     }
@@ -264,7 +264,7 @@ if ( not length($method) and length($msg_id) ) {
         if ( defined $msg->{'result'} ) {
             <kimi.init.retry_count> = 0;
 
-            ## cancel reconnect grace timer — fully recovered
+            ## cancel reconnect grace timer : fully recovered
             if ( defined <kimi.reconnect.grace_timer> ) {
                 <kimi.reconnect.grace_timer>->cancel
                     if <kimi.reconnect.grace_timer>->is_active;
@@ -277,10 +277,10 @@ if ( not length($method) and length($msg_id) ) {
                 <[base.logs]>
                     ->( 1, ': kimi-web ready to serve requests :..' );
             } else {
-                <[base.logs]>->( 2, 'kimi: reconnected — status ready' );
+                <[base.logs]>->( 2, 'kimi: reconnected : status ready' );
             }
 
-            ## status change — call watcher directly since variable watchers
+            ## status change : call watcher directly since variable watchers
             ## do not fire recursively from within IO event callbacks
             <kimi.ws.status>         = qw| ready |;
             <kimi.session.was_ready> = TRUE;
@@ -329,7 +329,7 @@ if ( not length($method) and length($msg_id) ) {
         my $err    = $msg->{'error'}     // {};
         my $errmsg = $err->{'message'}   // '';
 
-        # [ content filter or policy rejection — fail immediately ]
+        # [ content filter or policy rejection : fail immediately ]
         if (   $status eq 'error'
             or $status eq 'rejected'
             or ( length $errmsg
@@ -357,7 +357,7 @@ if ( not length($method) and length($msg_id) ) {
             return;
         }
 
-        ## normal ack — content arrives via event stream, re-insert pending
+        ## normal ack : content arrives via event stream, re-insert pending
         <kimi.wire.pending>->{$msg_id} = $pend;
         <[base.logs]>->(
             2, 'kimi.handler.ws_message: prompt ack [ status=%s ]', $status
@@ -366,8 +366,8 @@ if ( not length($method) and length($msg_id) ) {
     }
 }
 
-#,,..,..,,.,,,,,.,.,.,.,.,..,,,.,,,.,,..,,.,.,.,.,...,...,.,,,,.,,,.,,..,,.,,,
-#PZVSVBM4XFJ6K4O7O3UDZZVYKQMPNDMQDDRFAZQ73BUHKLPBBPTMWYUMG75WU3IDGR44T5CIVAYMK
-#\\\|KDKXBBP54SZCUD7FKM6Y3D7DYV2FJAMIJEMVDQMR5ROIKMSALY3 \ / AMOS7 \ YOURUM ::
-#\[7]GXPG77P4ULSWYPFB4Q57BWYMR5IN3RPYCCLY4EIATSPLZWARBOCQ 7  DATA SIGNATURE ::
+#,,,,,..,,.,.,,,,,...,,,,,..,,,.,,.,.,.,.,,.,,.,.,...,..,,,.,,.,.,,..,,,,,,,,,
+#U33UTOLGD7VTHMM245Q5RJH5A4CEIPGK5JXHCB3C34UWUYN5ZQ6NOJE3F76K352N7XWJUV6G7EFLQ
+#\\\|B2ZWKLWTRRC4ESR2VYA7ED2PGBRGFK6OJWKAB2OYBPRZIKHWNSP \ / AMOS7 \ YOURUM ::
+#\[7]4GI2T45WEEYPJ5XATLI5VUP2MTCA3DUISZYCB63YGW63RFBWW2DQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -27,7 +27,7 @@ for my $word (@en_markers) {
     $en_hits++ if $text =~ m{\b$word\b}i;
 }
 
-## german counter-signals — if these are present, likely correct language ##
+## german counter-signals : if these are present, likely correct language ##
 my @de_markers = qw| der die das und für mit ist sind bei einem eine
     arbeit erfahrung kenntnisse team firma stelle remote standort |;
 my $de_hits = 0;
@@ -43,7 +43,7 @@ push @defects, qw| wrong_language_english |
 push @defects, qw| wrong_language_chinese |
     if $text =~ m{\p{Han}};
 
-## optional assertion validation — yaml or json structured output ##
+## optional assertion validation : yaml or json structured output ##
 my $looks_structured = $result =~ m{^\s*score\s*:}m
     || $result =~ m{^\s*\{.*\}\s*$}s;
 if ( $looks_structured and $result !~ m{assertions\s*:} ) {
@@ -55,8 +55,8 @@ return {
     'defects'  => \@defects,
 };
 
-#,,,.,.,.,,,.,,,,,...,.,,,,,.,,,.,,,,,,,.,...,..,,...,..,,...,,,,,,.,,.,,,,.,,
-#K6XJQPKDJVTX6SDEMV7W5DQFMV7GD7FQJ6HO7PR6DINDV6TRW6ATMUMNXV2IO7VUW3Z7U5OKQP4E4
-#\\\|EUR6I6AOKOVJSV5ZOXKEHNOVE6OF5YQSDMF5NNDQDAFATMBNYO3 \ / AMOS7 \ YOURUM ::
-#\[7]I4FKSN7CIQY2KBO5MWSGGLMAN2Z3BC6IJTGXYPWQMXILJ3L5DSAY 7  DATA SIGNATURE ::
+#,,,,,,,,,..,,,..,..,,...,,,,,.,,,.,,,...,,.,,..,,...,...,.,.,.,,,.,.,,,,,,,,,
+#ZAP4G4OR5ZGUWIR2F5HNORKY7CXOMNGWX7KPRLOW2ET67ESETBJSCJHWRDPYCOWLJMIXEXMIVJHCQ
+#\\\|NQNVIWZTJYWQ3QJLFZOTVZTOJ2BTIB2ZJKJD5S7WTYHCS2FBHGF \ / AMOS7 \ YOURUM ::
+#\[7]AIB63A2C2E3ASYO7BCRUZ466QYVZ4MFES5VP6QAZUH6OLEHXKGBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

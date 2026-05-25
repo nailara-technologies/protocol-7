@@ -29,7 +29,7 @@ if (    exists $certs->{$hostname}
 
 <[base.logs]>->( 2, 'requesting TLS cert for %s', $hostname );
 
-## only request when httpsd is also online — no point without TLS server ##
+## only request when httpsd is also online : no point without TLS server ##
 my $httpsd_online = <[protocol-7.route-send]>->(
     {   'command'   => qw| v7.status |,
         'call_args' => { 'args'    => qw| httpsd | },
@@ -44,7 +44,7 @@ unless ($httpsd_online) {
     return qw| deferred |;
 }
 
-## send route-send to letsencr zenka — use network command name ##
+## send route-send to letsencr zenka : use network command name ##
 my $sent = eval {
     <[protocol-7.route-send]>->(
         {   'command'   => qw| letsencr.request-certificate |,
@@ -72,8 +72,8 @@ unless ($sent) {
 
 return qw| pending |;
 
-#,,,.,.,.,,,.,,.,,...,,,.,,..,,,.,,.,,..,,..,,..,,...,...,...,.,.,,..,.,,,,,.,
-#YE65GWMEZ5FMEQEA5JWAGQYWNONU6XETHNKLNP4FACQHP2QEEMI26Z5ITZTFYFSPBDQGHRA7XWMUO
-#\\\|OC4KUMPYTTS5FSK3R2KIYXSHZ7AX4UKUO5SSTKI4ER6L6NJ7OUO \ / AMOS7 \ YOURUM ::
-#\[7]4Y4Y5OAVV4WPN3EYNN3G6P5IKWX2BZHQUY7LCX7RZXO7BSBBRECA 7  DATA SIGNATURE ::
+#,,,,,,,.,...,.,,,.,.,.,.,.,.,.,.,...,..,,.,,,..,,...,...,..,,,..,.,.,...,.,,,
+#NJF3EO5LN4VSSAWA7FUE6XHFCZR4AJMKPR7AUFRZJCHXIR3SLY4CM7WYNXQ5DVMRNG6S2QGIGCG7A
+#\\\|TO4UISYXMJXKYTQTACYYTIB4MBDBGO7BZY7IFPB4V3GOVYA5HSL \ / AMOS7 \ YOURUM ::
+#\[7]IGQGY4SCPAENSCS2OAXVNAVF6SAM33A3HSMF4XCWYUP5SXWEFQCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

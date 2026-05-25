@@ -23,13 +23,13 @@ $type = 'HTTPD'  if $zenka_name =~ m{^httpd}i;
 ## Use first 7 chars of AMOS7 checksum ##
 my $chk_input = "$zenka_name:" . ( <system.hostname> // 'localhost' );
 
-## resolve amos checksum sub — works before and after swap ##
+## resolve amos checksum sub : works before and after swap ##
 ## use $code{} directly to bypass P7 pre-validation of <[...]> names ##
 my $amos_chksum = $code{'chk-sum.amos'} // $code{'base.chk-sum.amos'};
 
 my $chksum7 = substr( $amos_chksum->($chk_input), 0, 7 );
 
-## generate ADDR_B32 — 6 chars from AMOS7 checksum of pubkey ##
+## generate ADDR_B32 : 6 chars from AMOS7 checksum of pubkey ##
 my $addr_input;
 if ( exists $keys{'C25519'}{'pubkey'} && length $keys{'C25519'}{'pubkey'} ) {
     $addr_input = $keys{'C25519'}{'pubkey'};
@@ -46,8 +46,8 @@ my $p7ref = sprintf( "%s:%s:%s", $type, $chksum7, $addr_b32 );
 
 return $p7ref;
 
-#,,.,,,.,,.,,,,,,,,,.,..,,,.,,..,,.,,,..,,...,.,.,...,...,,,,,,,.,.,.,,,.,..,,
-#YLWH7PG5VHD7JLHNJX7QLHDDBY727CMQ2KEX236XGQC4Z6UM7R3FIVNCSRW4R6NE4I3NJMI2XBJ5U
-#\\\|P5F4RCOAPZRSI4YOBTRIYPI5FSK55EN46LBXJPUJCOFL7MB4YKH \ / AMOS7 \ YOURUM ::
-#\[7]ERZFP2PSVNWLE2DL344L55MN5POEX4RVXHCJ7APMEDGDQEHEQMCY 7  DATA SIGNATURE ::
+#,,..,,.,,...,,.,,,.,,,,.,,,,,,,.,..,,..,,,,.,.,.,...,...,,,.,.,.,...,.,,,,.,,
+#KXP6XKS3L5M4QB47Y7XRZ7DLF6XOGQDN6XH2MJRIAU3OJLKNNUAJ7S5UF3SD4TY5W377SJHWSYSX6
+#\\\|QOA55YIWGDKMJXRBB3APE7YWGWYOXFS4X34EPXHBP6N4PG43B4O \ / AMOS7 \ YOURUM ::
+#\[7]ED42DV6ELZ5Z62ZYERVTQESOCJCGJWTACGNYJXDY2LX5CVV5C4AA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

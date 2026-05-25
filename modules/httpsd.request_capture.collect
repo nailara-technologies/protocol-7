@@ -9,7 +9,7 @@
 my $path = <httpsd.path.request_capture> //= qw|/dev/shm/httpsd-last-request|;
 return if not -f $path;    ## skipping when no capture file is present ##
 
-## skip on reload — file is from normal operation, not a crash ##
+## skip on reload : file is from normal operation, not a crash ##
 return if <system.zenka.initialized>;
 
 my $log_level    = 0;                             ## custom buffer level ##
@@ -46,8 +46,8 @@ for my $line ( $r_msg, split( "\n", $content ), $end_msg ) {
     <[base.buffer.add_line]>->( $buffer_name, join ' :', $log_prefix, $line );
 }
 
-#,,..,,.,,,,.,,.,,,..,...,,.,,.,.,.,,,...,...,..,,...,..,,.,,,,,.,,..,,,.,.,.,
-#UZXZVIWB3T4JUY5FQMLM52GQK7QKNQTC6NGJFVO5X2HYSRHFF7HJEEJB7JZRGDEZOVVSCYNHPBAXA
-#\\\|JLS6RHSRQHXQKEHQXJUNIJUAXDYS2VVXSIZZ7JWQIQJZ57HG6AK \ / AMOS7 \ YOURUM ::
-#\[7]VX4OQCJ7RWV3BA2ACQPNJWEMAQ4YUFNRKO6SARHR2JD6LFIL6KCI 7  DATA SIGNATURE ::
+#,,,,,,,,,,,.,.,.,.,,,,..,.,.,.,,,.,,,..,,,,,,..,,...,...,..,,,,,,,..,,..,.,.,
+#6BDUBWPYURHIBRLSXLRPOBGIDT2RK46MCTVQRAQ7GFT5ZERFOZFHHCAWO6OI2SYKBUXWK3YHSLW6Q
+#\\\|UMYC5PX6BAH3MX5NLGWSJ3PMMVLSAWXO2FX2N6GOLPVO47LQBXZ \ / AMOS7 \ YOURUM ::
+#\[7]F6DRZELGA57FH3SVH7QGLVK7ARKI6AAIUSOBE4HK73I7UCW2PCBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

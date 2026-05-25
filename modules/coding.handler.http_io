@@ -20,7 +20,7 @@ my $bytes = <[base.s_read]>->( $sock, \$buffer, $read_size );
 #
 ##
 
-## EAGAIN / EWOULDBLOCK — no data available yet ##
+## EAGAIN / EWOULDBLOCK : no data available yet ##
 if ( !defined $bytes && ( $!{EAGAIN} || $!{EWOULDBLOCK} ) ) {
     return;
 }
@@ -34,7 +34,7 @@ if ( !defined $bytes ) {
     return;
 }
 
-## EOF — connection closed by peer ##
+## EOF : connection closed by peer ##
 if ( $bytes == 0 ) {
     my $buf_len = length( $state->{'buffer'} );
     <[base.log]>->( 2, "http_io : EOF : connection closed. [ bytes : 0 ]" );
@@ -57,7 +57,7 @@ if ( $bytes == 0 ) {
     return;
 }
 
-## $bytes > 0 — data received ##
+## $bytes > 0 : data received ##
 $state->{'last_activity'} = <[base.time]>->(3);
 $state->{'bytes_received'} += $bytes;
 $state->{'buffer'} .= $buffer;
@@ -149,8 +149,8 @@ if ( $state->{'headers_parsed'} ) {
 
 return;
 
-#,,..,.,.,,.,,.,,,,.,,,..,,,,,...,,..,,,.,,..,.,.,...,..,,,..,.,,,,..,...,.,,,
-#WC6BUTDXM5BW4EQRLTFJFVXJPHLF3XU4HKALUV3Z4VESZ735UX2GAFX6K3O36ZM3K3EAQAV6UD6GS
-#\\\|GJCIGJJDETPO6RX74W2NZ7ETCSB4UDILPLBWEZHLNQE5M275ZKC \ / AMOS7 \ YOURUM ::
-#\[7]FSYF7U22ZFSW5ASKQ6K77AOTIEAFURGJKQWFN53FZYZIGQ633WBQ 7  DATA SIGNATURE ::
+#,,,,,..,,,..,.,,,...,,..,.,,,..,,.,.,...,.,,,.,.,...,..,,,..,..,,.,,,...,,.,,
+#MN5DOQTOUMDGAQQHAOLHD5QRLJ2ZTTS5CFJPXW5R2MOT4DHL5XVZGON5PN7OJP4YLIKTEZ6IQEV7A
+#\\\|UCKDBIPSEHQKUI34ND4VONT6S3I7IE4RHCMWM5MF62RUAFYSVJD \ / AMOS7 \ YOURUM ::
+#\[7]5SXHR6ET2UJQP6WDBC2BHFEMAPSVKFHMH2BMR4AE3BJGU3GLASCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

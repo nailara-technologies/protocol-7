@@ -17,7 +17,7 @@ my $buf  = '';
 my $n    = <[base.s_read]>->( $sock, \$buf, <websocket.read_buffer_size> );
 
 if ( $n < 0 ) {
-    ## socket error — cancel watcher and signal disconnect
+    ## socket error : cancel watcher and signal disconnect
     <[base.logs]>->(
         1, 'websocket.handler.read: socket error [%s]', $OS_ERROR
     );
@@ -28,7 +28,7 @@ if ( $n < 0 ) {
     return;
 }
 
-return if $n == 0;    ## would-block — nothing available yet
+return if $n == 0;    ## would-block : nothing available yet
 
 $frame_parser->append($buf);
 while (TRUE) {
@@ -38,7 +38,7 @@ while (TRUE) {
         last;
     }
     last if not defined $msg;
-    ## close frame — signal disconnect and stop
+    ## close frame : signal disconnect and stop
     if ( $frame_parser->is_close ) {
         $event->cancel if $event->is_active;
         if ( defined $on_message and defined $code{$on_message} ) {
@@ -54,8 +54,8 @@ while (TRUE) {
     }
 }
 
-#,,..,.,.,.,,,..,,,,,,...,,,,,.,,,,,,,,.,,,,.,..,,...,.,.,,,.,,..,,..,,,,,.,,,
-#6TSUQX63LUYQ2PURATTBI7ENTHD6RPYMGZFTZBE7HVZVCXHX7HOH7NXHFMXTAIXF4VI4K3QD67B4K
-#\\\|WCCO5E6XDZWNRCAEUNY3DIV4MJ3XN7T4FKVSIURGNBAEUJ7BKTN \ / AMOS7 \ YOURUM ::
-#\[7]AMO6M4FOEA72KWOZDKVYIIJ2DDK3A4MSDAFSU2C2CF5P34LMWODI 7  DATA SIGNATURE ::
+#,,..,.,,,.,,,...,,,.,.,.,,..,.,.,,.,,...,..,,..,,...,...,...,...,.,.,,,.,.,,,
+#B6BJQNGL63JUDJOUODIMW2NDDNOYZQ3MEORAQLEQRPSBAIA74SU7BOZ5FXECJU36CLWT3LVOFGCLC
+#\\\|FJ5T47ZHTCLF53NX7GNWLJQ6OIPFONFHFHMQCC7FVD7PUIRYCPL \ / AMOS7 \ YOURUM ::
+#\[7]YRO7C4KE3PUUC5AC6D5VIEKRPWDRTRNZZ7KOVGIVDX4X3ELVFEAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

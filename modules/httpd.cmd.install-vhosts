@@ -73,12 +73,12 @@ foreach my $hostname (@$hostnames) {
 
     if ( $install_mode eq qw| symlinked | ) {
         if ( -l $install_path ) {
-            ## existing symlink — check if already correct ##
+            ## existing symlink : check if already correct ##
             my $current_target = readlink($install_path);
             if ( $current_target eq $source_path ) {
                 $install_ok = TRUE;    ## already installed correctly ##
             } else {
-                ## symlink points elsewhere — replace only the symlink ##
+                ## symlink points elsewhere : replace only the symlink ##
                 if ( unlink($install_path) ) {
                     if ( symlink( $source_path, $install_path ) ) {
                         $install_ok = TRUE;
@@ -96,7 +96,7 @@ foreach my $hostname (@$hostnames) {
                 }
             }
         } elsif ( -e $install_path ) {
-            ## real directory or file exists — rename as backup, then symlink ##
+            ## real directory or file exists : rename as backup, then symlink ##
             my $backup_path
                 = $install_path . '.bak-' . <[base.ntime.b32]>->(3);
             if ( rename( $install_path, $backup_path ) ) {
@@ -116,7 +116,7 @@ foreach my $hostname (@$hostnames) {
                 }
             } else {
                 <[base.logs]>->(
-                    1, 'cannot back up %s to %s [ %s ] — skipping',
+                    1, 'cannot back up %s to %s [ %s ] : skipping',
                     $install_path, $backup_path, <[base.str.os_err]>
                 );
                 push @skipped,
@@ -124,7 +124,7 @@ foreach my $hostname (@$hostnames) {
                 next;
             }
         } else {
-            ## nothing there — create symlink directly ##
+            ## nothing there : create symlink directly ##
             if ( symlink( $source_path, $install_path ) ) {
                 $install_ok = TRUE;
             } else {
@@ -241,8 +241,8 @@ return {
     'summary' => $result_summary
 };
 
-#,,..,.,,,,,.,.,,,,,.,,..,,..,,,.,,.,,,..,..,,..,,...,...,.,.,,.,,.,,,.,,,,.,,
-#S6D6XIYZWIVFZJJ67SHM5QZQBJAM7RJ6JKIR562JHHJLEXRGJOJ5KLT56LI5EHPKIJAHDMCV75QQ4
-#\\\|P2JERUM5AVQF243NYCOIXLJLIEWXXNTGRMLMBIAMGJB5AZRPYH2 \ / AMOS7 \ YOURUM ::
-#\[7]SEDGVONTDC6M7VMWCII6OHSKUJWX2ON4ZH3GCXL443ATDGBF56BQ 7  DATA SIGNATURE ::
+#,,.,,..,,.,.,..,,,.,,,,,,,,.,.,,,,,,,.,.,.,.,..,,...,...,..,,,,.,,.,,,.,,...,
+#BSXVG7RP5NFUJT4HE2ZJFHZOZ4YFT2XU74APKLS624CGHEXTF2TTN6GBLHQWZ6Q6K5UDG5LRXVJY2
+#\\\|C3I3TDLN4RMOVVUBJMINBVGURMETENZCT7D6YDXZRTJRYICQQEZ \ / AMOS7 \ YOURUM ::
+#\[7]FPHMQWLWA6CVS7A6OEB4XPH7K32CD5SJC7634AMJXQ7IYPYDSUBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

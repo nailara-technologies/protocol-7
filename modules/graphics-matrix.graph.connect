@@ -47,7 +47,7 @@ if ( exists $edges->{$edge_key} ) {
     my $edge = $edges->{$edge_key};
     $edge->{'weight'} = $weight if $weight > $edge->{'weight'};
     <[base.logs]>->(
-        2,  'graph.connect [%s] — [%s] weight=%.2f',
+        2,  'graph.connect [%s] : [%s] weight=%.2f',
         $a, $b, $edge->{'weight'}
     );
     return $edge;
@@ -65,12 +65,12 @@ $edges->{$edge_key} = $edge;
 $graph->{'count'}++;
 
 <[base.logs]>
-    ->( 2, 'graph.connect [%s] — [%s] weight=%.2f', $a, $b, $weight );
+    ->( 2, 'graph.connect [%s] : [%s] weight=%.2f', $a, $b, $weight );
 
 return $edge;
 
-#,,.,,,..,,,,,,..,,.,,,,,,,,.,,,.,.,.,.,,,,.,,..,,...,..,,.,.,..,,,,,,.,,,,..,
-#V4NEKWRESPMG7EERVYYPMNX7PHFCBTMOWOITTN2QXFO23SUXUVQGMV4QTYKBVHERC4SEM76QEIBMY
-#\\\|534VKX75QIN5CBTJOEGPDCCSUK6YENWGFKFQIA3PYY2FXV5BWGW \ / AMOS7 \ YOURUM ::
-#\[7]S2JCUNLBBRWTIH73J34JDC6H5EBTEQMZXC2N7BO4PKOO5PIMY2DY 7  DATA SIGNATURE ::
+#,,,,,.,.,..,,,,.,..,,...,..,,,,.,,,,,.,,,...,..,,...,...,,..,..,,...,,,.,.,.,
+#U6RTWGUKF4BK5UPTNEAYXU37WKOBWYRL3PTVI5MXKDCBT3DNNTS5ENYGIMRDHSMZRE5ZK357662MM
+#\\\|C2H4LXWZCGOV44OVXS3AWQWZAWWKLMPR23R2X3VFQHBLABS2QWW \ / AMOS7 \ YOURUM ::
+#\[7]2HU5ZLGSC2EQGBXCRBSYPSFQSC6RAYZI2TUYCOHKT5YTVFHWOUDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

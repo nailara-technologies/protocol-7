@@ -31,7 +31,7 @@ return $context unless defined $choice;
 my $delta = $choice->{'delta'} // $choice->{'message'} // {};
 
 ## accumulate reasoning_content separately [ qwen3 thinking trace ] ##
-## never mix into content — it causes double-output in model_output buffer ##
+## never mix into content : it causes double-output in model_output buffer ##
 my $content = $delta->{'content'} // '';
 if ( length( $delta->{'reasoning_content'} // '' ) ) {
     $context->{'reasoning'} .= $delta->{'reasoning_content'};
@@ -92,7 +92,7 @@ if ( defined $choice->{'finish_reason'} ) {
 
     ## fall back to reasoning if content is empty at finish ##
     ## qwen3 thinking models sometimes emit only reasoning_content ##
-    ## strip tool call markup — tool calls are handled separately and  ##
+    ## strip tool call markup : tool calls are handled separately and  ##
     ## leaving xml in content confuses the model in subsequent rounds  ##
     if (  !length( $context->{'content'} // '' )
         && length( $context->{'reasoning'} // '' ) ) {
@@ -139,7 +139,7 @@ if ( defined $choice->{'finish_reason'} ) {
             && length( $task_state->{'compaction_pending'} // '' ) ) {
             <[base.logs]>->(
                 1,
-                "chunk_handler: %s finish_stop but compaction %s pending — holding",
+                "chunk_handler: %s finish_stop but compaction %s pending : holding",
                 $task_id,
                 $task_state->{'compaction_pending'}
             );
@@ -176,7 +176,7 @@ if ( defined $choice->{'finish_reason'} ) {
             my $parsed_tools
                 = <[coding.parse.xml_tool_calls]>->( $context->{'content'} );
 
-            ## also check reasoning_content — qwen3 thinking emits xml tool ##
+            ## also check reasoning_content : qwen3 thinking emits xml tool ##
             ## calls in reasoning_content rather than content                ##
             if ( !@{$parsed_tools}
                 && length( $context->{'reasoning'} // '' ) ) {
@@ -251,8 +251,8 @@ if ( defined $choice->{'finish_reason'} ) {
 
 return $context;
 
-#,,..,,.,,.,,,..,,,,.,,..,,,.,.,,,.,,,,..,.,,,.,.,...,...,,..,.,,,...,,,.,,,.,
-#7B42VS5SVYETWDB2EPIJGWLH77OCKXGHZASW3UX3ZZEHDD5VUHGXQ5ITVYMX36Y5U2FJERKNEWV2E
-#\\\|ZNVLDJPYV27HVN7NMUI2PK6BQI2BGP2UR5CBRF2VIWXTIMMGNJA \ / AMOS7 \ YOURUM ::
-#\[7]KKJEROH27EXIA7K4H6P6IWHZ5OTEYNPVCN4ZHPZRYSDAQF3VDEBI 7  DATA SIGNATURE ::
+#,,,.,..,,,.,,,..,,,.,.,,,.,,,,,.,,.,,..,,,,,,.,.,...,...,,,,,..,,..,,..,,,,.,
+#U3AENL3JKV3NTJNUA3CSBLDKNUIGCC3WKGI3Y6HX354BP6GJEC2ECVSJ7FZQZJ3FAR5F4GC66UNZS
+#\\\|GUQT7YWQ5UTO53QW7LT5TPSYR5OAFTENTBZAOQUBF3PR3M4J2PX \ / AMOS7 \ YOURUM ::
+#\[7]NOSVCHNXRBDMVI7ERYRTJ4QTLASCRSEDLYQCRQHJJLEJ72BJZABQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,7 +1,7 @@
 ## [:< ##
 
 # name  = coding.tools.handler.summarize_context
-# descr = model-pinned inference summarization — direct LWP, no state machine
+# descr = model-pinned inference summarization : direct LWP, no state machine
 
 my $args = shift // {};
 
@@ -16,7 +16,7 @@ my $node_id = $args->{'node_id'} // '';
 ## system prompt: compaction-style, focus-aware ##
 my $system_prompt
     = 'you are a context compaction assistant. '
-    . 'your response IS the summary — output it directly as plain text. '
+    . 'your response IS the summary : output it directly as plain text. '
     . 'no tool calls, no apologies, no explanation of what you are doing. '
     . 'preserve all load-bearing specifics: module names, line numbers, '
     . 'decisions, open questions. omit narrative filler. '
@@ -50,7 +50,7 @@ $request_body->{'model'} = $model if length($model);
 my $json_body = eval { JSON::PP->new->utf8->encode($request_body) };
 return "error: failed to encode request: $@" if $@;
 
-## LWP direct call — like consensus_query, blocks event loop intentionally ##
+## LWP direct call : like consensus_query, blocks event loop intentionally ##
 my $ua = LWP::UserAgent->new(
     timeout => 120,
     agent   => 'Protocol-7/summarize_context',
@@ -88,8 +88,8 @@ if ( $store and length($node_id) ) {
 
 return $summary;
 
-#,,,,,,.,,,..,,,,,...,,..,..,,.,.,,,.,,,.,.,,,..,,...,..,,..,,,,,,,..,.,,,.,,,
-#NKYWIZDBRRE6FKJYTSDBMV5FC5AVPMD7E6SUEKAELL66HBKJDHBBVLUST45IOE4FWKO4DHQKDOUSQ
-#\\\|XNTT2WI6JJYP5FTDEQYKSEH4TODL43RQJA2S2XF43YJGS3SEX63 \ / AMOS7 \ YOURUM ::
-#\[7]NYSSGKXRQHVMT7GFBFIF33VZ4UFKSBBLDRPSG7TOS3D5DTTJSYCY 7  DATA SIGNATURE ::
+#,,,,,,,,,,.,,,..,.,.,.,,,,.,,..,,,..,.,,,.,.,..,,...,...,...,,..,,,,,,,,,..,,
+#KL4NNDMPRFLKST2KW7EIOXUXGMX2BVAA3VOX4GY2VSGKROA7EOAA2KARVOAG7F7FAIOYTBZVMES7U
+#\\\|OYIFHHBFMDEXN2AJ75T64YXWZFV2SRSKOYLWLQJDIKTKQLC3B3B \ / AMOS7 \ YOURUM ::
+#\[7]HKO2KUQXAG2EHUFRXV3G3IYYX2FP3LMW7DUM64L7PUQE4S4XDMCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

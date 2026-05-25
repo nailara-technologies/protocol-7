@@ -41,7 +41,7 @@ if ( not length $file_content ) {
     $resolved, length($file_content), $wants_next ? ', :next:' : ' '
 );
 
-## handle :next: here — reset session first, then dispatch without :next: prefix
+## handle :next: here : reset session first, then dispatch without :next: prefix
 ## so ask-reply gets a stable ready session rather than a deferred chain
 <[kimi.cmd.new-session]> if $wants_next;
 
@@ -49,8 +49,8 @@ my $fwd_call = { %{$call}, 'args' => $file_content };
 <[kimi.cmd.ask-reply]>->($fwd_call);
 return { 'mode' => qw| deferred | };
 
-#,,.,,..,,,..,,,,,..,,.,.,.,,,...,,.,,,,,,.,,,..,,...,...,..,,..,,,.,,,,,,...,
-#KGTIMEVELVAG3Q3XC7TTC4O2OUEJLMXSISHUOXQMX7DX6BE3GC33ZFQPIFSWN4IS5IWYZ34GN56YI
-#\\\|GX7EQTP43BDXNXDKJGLCGH7FI2MH6DSIZHNTWQ45IYS6NMQ2STJ \ / AMOS7 \ YOURUM ::
-#\[7]DC6MVFVA2O6VWL5YKKPUNQS7B6DOAJULXDRRR2VEO22P35MJX2CA 7  DATA SIGNATURE ::
+#,,..,,.,,,..,..,,.,.,,,,,,..,,.,,.,,,..,,,,.,..,,...,...,.,.,,..,..,,..,,...,
+#F5A5J2VUMEPFCWGOFQAJFC67DU2KMU34MQGLBBZXXUQEQZM6YH3UXBOOJ75SV7FSWASOIB6TIOZUG
+#\\\|RJPPOCEHV6ZFZFOASVT4GKZROHBTAC3JQ7GL46N5J37P4ECWJ3K \ / AMOS7 \ YOURUM ::
+#\[7]FHA5AAV3F3TJP2WF33NXV2BMG3NHE6Y5A25SJJPLEHKWG2ITLEBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -19,13 +19,13 @@ if ( lc($mode) eq qw| false | ) {
     <[base.logs]>->( 1, 'jss.fetch-done [%s]: %s', $category, $data_str );
 }
 
-## decrement fetch counter — only proceed when all categories replied
+## decrement fetch counter : only proceed when all categories replied
 <jobsite.fetch_pending> //= 1;
 <jobsite.fetch_pending>--;
 
 return if <jobsite.fetch_pending> > 0;
 
-## all imports replied — check if async detail fetches are still running ##
+## all imports replied : check if async detail fetches are still running ##
 my $queue = $data{'site-yaml'}{'fetch_queue'} // [];
 if ( @{$queue} ) {
     <[base.logs]>->(
@@ -37,11 +37,11 @@ if ( @{$queue} ) {
     return;
 }
 
-## queue empty — proceed to assessments immediately ##
+## queue empty : proceed to assessments immediately ##
 <[jobsite.dispatch.assessments]>;
 
-#,,.,,..,,,.,,...,,.,,,,.,...,.,.,,.,,..,,...,..,,...,...,.,.,,.,,..,,,..,,..,
-#2KQNHNPX3OZRMRAVNIV26NZXF5SV3SJHVEQN6BQKCND7BZ5QTRWCOLVPHVGD7XG4TEXAEP7WJLLIS
-#\\\|ZPPANJM3NZJFUFKAHATQKN6GYX5M27I6TUJA2COCPLF663B72EL \ / AMOS7 \ YOURUM ::
-#\[7]NXK3GV3TWZEKHQUEQOBXUGRCC3SM7FTCSAY3ZQKXGHYQFPGXOEDA 7  DATA SIGNATURE ::
+#,,,.,..,,,.,,.,,,.,.,.,.,,.,,,,.,...,,..,...,..,,...,...,...,...,.,.,...,.,,,
+#XYW7QU22UL5LXJJYNWYEXZJAWSZSRJNVR5RFUJI5TSRXR3K6EKJOWWMIUUOLEJMY25X3FLMNBHJII
+#\\\|ILZRECZSN5YIDEL2W4KV4IWOXHGMMVSPB7C2FVVYN34D6577UFT \ / AMOS7 \ YOURUM ::
+#\[7]RETLQZ47QSQL44X3C3LCQOVM4BIBIEZG33NA2OM7HQO3D6ARAGBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

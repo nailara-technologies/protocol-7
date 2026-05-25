@@ -11,7 +11,7 @@ return { language => '', confidence => 0, method => 'none' }
 
 my $hint = lc( $opts->{'hint'} // '' );
 
-##[ LAYER 1 — HEURISTIC ]######################################################
+##[ LAYER 1 : HEURISTIC ]######################################################
 
 my $result = <[base.language.heuristic]>->($text);
 
@@ -25,7 +25,7 @@ if ( length $hint and $result->{'language'} eq $hint ) {
 ## accept heuristic if confident enough ##
 return $result if $result->{'confidence'} >= 0.75;
 
-##[ LAYER 2 — WORDLIST ]#######################################################
+##[ LAYER 2 : WORDLIST ]#######################################################
 ## activated when layer 1 confidence below threshold ##
 
 my $wordlist_result = _wordlist_detect( $text, $result );
@@ -40,8 +40,8 @@ if ( length $hint
 
 return $wordlist_result if $wordlist_result->{'confidence'} >= 0.70;
 
-##[ LAYER 3 — INFERENCE FALLBACK ]#############################################
-## model query + cache — stub for now ##
+##[ LAYER 3 : INFERENCE FALLBACK ]#############################################
+## model query + cache : stub for now ##
 
 my $inference_result = {
     language => $wordlist_result->{'language'} || $result->{'language'} || '',
@@ -71,7 +71,7 @@ sub _wordlist_detect {
     ## check for installed wordlist ##
     my $wl_path = "data/language/wordlist/$leader.txt";
     if ( not -f $wl_path ) {
-        ## no wordlist — charmap-only result from heuristic ##
+        ## no wordlist : charmap-only result from heuristic ##
         return {
             language     => $leader,
             confidence   => $heuristic->{'confidence'},
@@ -156,8 +156,8 @@ sub _wordlist_detect {
 #\[7]E5F7G9H1I3J5K7L9M1N3O5P7Q9R1S3T5U7V9W1X3Y5Z7A9B1C3D5E7F9G1H3I5J7K9L1M3 7
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
-#,,,,,.,,,.,.,...,..,,...,...,,.,,.,.,,,,,,.,,..,,...,...,...,,..,...,,..,,,.,
-#RSZ7S5TEOJD5ZSVBAEMJYF7OCDAHGIRPZX2X2TJCO3IF35MYLE3VCOGOJ7M477J2ODVHBMR4XW4OS
-#\\\|JCGIBPUPYR3VBL43FQIHXM632SNJNSWPB7MAP3TAD7YJDR6CJJK \ / AMOS7 \ YOURUM ::
-#\[7]DIR4IWKMYATWRURKCJSMGUN7QJDYOYKI4RALS5HQRH3ZME74LGDI 7  DATA SIGNATURE ::
+#,,..,,..,.,,,..,,.,.,..,,,..,..,,.,,,..,,,,.,..,,...,...,,..,,,.,,,,,,,,,,..,
+#PDQISMFMYQU6S2QJ3MZIMVF6OW7G6IO6KBGVZZHEX6PVOLHN53P3UB5YGNCUAB2OSPX6S25OQLR3O
+#\\\|OLBUPMGPAITLSWS7GPVPNGDCGWVUHK7BA5RMNINTLR57VSDJVKC \ / AMOS7 \ YOURUM ::
+#\[7]KWBWY7FIN4WFRPRJUK2ZE3IIJOL7XCUSUJEVE2AYLBDCHC2DO2BI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

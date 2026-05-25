@@ -30,7 +30,7 @@ if ( lc($mode) eq qw| false | ) {
     return;
 }
 
-## protected stages — user decisions must survive pipeline activity ##
+## protected stages : user decisions must survive pipeline activity ##
 my %protected_stage
     = map { $ARG => 1 } qw| applied responded rejected archived |;
 
@@ -44,7 +44,7 @@ if ( $protected_stage{ $job_rec->{'stage'} // '' } ) {
     return;
 }
 
-## parse yaml result — fall back to json regex for backward compat ##
+## parse yaml result : fall back to json regex for backward compat ##
 my ( $score, $reason, $summary, $apply, $parsed ) = ( '', '', '', '', undef );
 my $yaml_src = $result;
 ## strip any preamble before the first yaml key ##
@@ -81,10 +81,10 @@ my $validation
 
 if (    not $validation->{'is_valid'}
     and not $job_rec->{'repair_attempted'} ) {
-    ## first defect — dispatch repair, do NOT decrement pending_count ##
+    ## first defect : dispatch repair, do NOT decrement pending_count ##
     $job_rec->{'repair_attempted'} = TRUE;
     <[base.logs]>->(
-        1,       'job %s defects [%s] — dispatching repair',
+        1,       'job %s defects [%s] : dispatching repair',
         $job_id, join( ', ', $validation->{'defects'}->@* )
     );
     <[jobsite.state.persist]>;
@@ -93,7 +93,7 @@ if (    not $validation->{'is_valid'}
 }
 
 if ( not $validation->{'is_valid'} and $job_rec->{'repair_attempted'} ) {
-    ## repair already tried and failed — store original, mark, move on ##
+    ## repair already tried and failed : store original, mark, move on ##
     <[base.logs]>->(
         1,       'job %s still invalid after repair (%s), keeping original',
         $job_id, join( ', ', $validation->{'defects'}->@* )
@@ -101,7 +101,7 @@ if ( not $validation->{'is_valid'} and $job_rec->{'repair_attempted'} ) {
     $job_rec->{'repair_failed'} = TRUE;
 }
 
-## parse assertions — from yaml parse or legacy json regex ##
+## parse assertions : from yaml parse or legacy json regex ##
 my $assertions = $job_rec->{'assertions'} // {};
 if ( ref $parsed eq 'HASH' && ref $parsed->{'assertions'} eq 'HASH' ) {
     my $pa = $parsed->{'assertions'};
@@ -210,8 +210,8 @@ if ( <jobsite.pending_count> <= 0 ) {
 <[jobsite.state.persist]>;
 <[jobsite.dispatch.next]>
 
-#,,.,,.,.,,..,,..,,..,.,,,,,,,,.,,..,,,..,,.,,..,,...,...,...,...,.,,,,.,,,,.,
-#TESPTWNTLKUV2FTF7VD73KMJAVYHHLVK6KYGQSHOOCWMVJKDCTZ3UQ6QV4YLBUPY3LGZTSGWTCIYG
-#\\\|YCBDT2CJXSTNL3HV26VFQ7VUMSP6I4UIDJ3KAMVIWH3NMHH5YTR \ / AMOS7 \ YOURUM ::
-#\[7]UBKX4CCLG35ZO4NZJGPRBUBIIBFDD4U7PG5EFONJA7FELR6QSGDY 7  DATA SIGNATURE ::
+#,,.,,,..,.,.,,..,..,,.,.,,,,,.,.,...,..,,,..,..,,...,...,...,...,,,.,,,.,,..,
+#EN5TAOBRZAJSIZ567KDMGQHLS2N5NNLKH375LUD7ZKRVNQY7R5X7KLNKQ3CWZQGKIFXRWUDYAEZBG
+#\\\|XGBOPIND4FWHCTAJQAPBQXPBYDDASJIVCMQTGNWAAEQAI5NVJ6C \ / AMOS7 \ YOURUM ::
+#\[7]HIMNU4X4HI7F7WLAGHNOZPTYEWONKVJ2E652ANOKIKGGQREB72BI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

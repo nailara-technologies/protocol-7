@@ -4,11 +4,11 @@
 # descr = write model interaction to per-task ring buffers
 # param = task_id, content, type, opts_hashref
 #
-# types : assistant  — model text output
-#         thinking   — reasoning_content trace
-#         tool_call  — tool invocation with args summary
-#         tool_result — tool output [ full only ]
-#         system     — status / header lines
+# types : assistant  : model text output
+#         thinking   : reasoning_content trace
+#         tool_call  : tool invocation with args summary
+#         tool_result : tool output [ full only ]
+#         system     : status / header lines
 #
 # writes to three buffers per task:
 #   task-<id>          compact : assistant + tool summaries only
@@ -28,7 +28,7 @@ my $pct   = $opts->{'pct'}   // 0;
 my $name  = $opts->{'name'}  // '';    ## tool name for tool_call/result ##
 my $size  = $opts->{'size'}  // 0;     ## result size for tool_result ##
 
-## task_id already contains 'task-' prefix — strip for buffer name ##
+## task_id already contains 'task-' prefix : strip for buffer name ##
 ## buffer names: max 24 chars, only [\w\-_] allowed                ##
 ( my $short_id = $task_id ) =~ s/^task-//i;
 my $buf_compact  = "T-$short_id";
@@ -130,8 +130,8 @@ if ( $type eq 'assistant' ) {
 
 return TRUE;
 
-#,,.,,,.,,.,.,,..,...,...,,,.,.,,,,.,,.,,,,..,..,,...,...,.,.,,..,.,,,,,,,,.,,
-#JGPZIOBS627TKFLQ4UDSQPXKZGT4UC55CKLDYH42QRCQ6Y4SZOSX7LEA4W6Y5GA5QLD354GXKU5M6
-#\\\|PSUZXDUCCKB5IHWJKIZSVTZFTXRR4RHWBN2HYTTKJCNU4EW4NU5 \ / AMOS7 \ YOURUM ::
-#\[7]3A4PNKLWH7IIK35QJT2DCHLHB7IG5VTN2EI6FVVMFQAEBLCE5GCI 7  DATA SIGNATURE ::
+#,,.,,...,..,,.,,,..,,,,,,,..,..,,.,,,...,.,.,..,,...,...,,.,,,,,,,..,...,,,.,
+#CFXSWW5CLAVC2AVE35MICSAWDQ2GMNT6KQ3WGGF3RBHDKI2DSCYCAF7IQHYSJHMXMOD7LY6YDTFVO
+#\\\|ZQODJQZBXTCGNCT6K6BHR7CNRFFGEPUO5V4LY5MPFZTUUFOCFOS \ / AMOS7 \ YOURUM ::
+#\[7]DEPJ6ZKL4I75HH5IPQHCJJMTJSHZ3ZK3VM46NB24DM55XBRM4AAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

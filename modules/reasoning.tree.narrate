@@ -21,12 +21,12 @@ my $chksum      = $node->{'chksum'}    // '';
 ## [ format chksum display ] ##
 my $chksum_disp = length $chksum ? "AMOS·$chksum" : 'AMOS·????';
 
-## [ compact state — below threshold ] ##
+## [ compact state : below threshold ] ##
 if ( $state eq 'compact' ) {
     return sprintf( "[ %s ]  >:|  %.15f   compact\n", $name, $convergence );
 }
 
-## [ narrating state — full convergence or root ] ##
+## [ narrating state : full convergence or root ] ##
 my $is_narrating = (
     $convergence >= 1.0
         or ( defined $name and $name eq $tree->{'root'} )
@@ -57,8 +57,8 @@ if ( $is_narrating and $state eq 'narrating' ) {
 
 return $out;
 
-#,,..,,,,,.,,,,.,,,,.,...,,..,.,.,.,,,...,,..,..,,...,...,,.,,,.,,,,,,,,,,,..,
-#DTOJJAURCXL2W4KNMINYUEDQXWLHP4WCBDACGI4EFUFQA5756RKVPIJEAGWKL6SNOU7U6O52AL5CK
-#\\\|HBEGPPAB46V73GJOJ4VBCMW33WGCFYDN5O5HMNNC5CCFJLC7L43 \ / AMOS7 \ YOURUM ::
-#\[7]PATCMX2YPQI44GGX7BTLXFKQNVTZ6AMGJIL2SYLD4YQZT2TBKCDQ 7  DATA SIGNATURE ::
+#,,,.,.,.,,,.,.,,,,,.,,,,,,.,,,,,,,,.,..,,...,..,,...,...,,,.,,..,.,,,.,.,,..,
+#3YDZUNRLOMMLI6CD5THRFJGJAYT3UDZK76IN6BCQZEP5KPAXHID3UYNTT2F5IQKRTEQ44WJJL53MC
+#\\\|72BYL32BZOUA5RJ35GBRMGYUICOBFCHFYVMLPU5ACH4NJ52FKJH \ / AMOS7 \ YOURUM ::
+#\[7]UZY26BN62ENU5463MOMRNZY6CTVA5GIH4PWRKIZRUFCZCLKZD4BI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

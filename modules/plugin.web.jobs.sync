@@ -1,7 +1,7 @@
 ## [:< ##
 
 # name  = plugin.web.jobs.sync
-# descr = jobs sync endpoint — handles batch jobsite push or single browser update
+# descr = jobs sync endpoint : handles batch jobsite push or single browser update
 
 my $call = shift           // {};
 my $body = $call->{'args'} // '';
@@ -45,12 +45,12 @@ for my $job_data (@job_list) {
     if (   exists $job_data->{'fetched_at'}
         or exists $job_data->{'score'}
         or exists $job_data->{'last_modified'} ) {
-        ## jobsite push — update pipeline fields, keep browser fields ##
+        ## jobsite push : update pipeline fields, keep browser fields ##
         for my $f (@pipeline_fields) {
             $cached->{$f} = $job_data->{$f} if exists $job_data->{$f};
         }
     } else {
-        ## browser update — browser-owned fields only, queue reverse ##
+        ## browser update : browser-owned fields only, queue reverse ##
         my %changed;
         for my $f (@browser_fields) {
             if ( exists $job_data->{$f} ) {
@@ -92,8 +92,8 @@ return {
     'content_type' => 'application/json',
 };
 
-#,,,,,,,.,,.,,,..,,,.,...,,,.,.,,,,,.,.,,,,,,,..,,...,...,,..,.,.,...,,,,,.,,,
-#TPCUJUJE74BNYDTKJOG3EOPXDWV67GT3MH5QSPIKDQ7M25W5H2VJQC3U352O27RYMWW6PVIDEYFVE
-#\\\|HP6FWRL77GCFD4ME7CRD6Y7AX57RJDQHIZI2GGXXYIJVHSMUMOU \ / AMOS7 \ YOURUM ::
-#\[7]M75GIZOWAV6HYKRYQFG6IKZO5KLXFF7BJXSEHDXRHAPJSRIUK4BA 7  DATA SIGNATURE ::
+#,,,.,..,,,.,,.,.,..,,,.,,,..,.,.,,..,,,.,,.,,..,,...,...,...,..,,,..,,..,,..,
+#DNFLFCXVYRH527J7RSD3IWS4ALIFNXZY6HTN443HN4OFTKAJRXSMFKH4LPH447M6IGWB7FA4WM6C2
+#\\\|2VRTCMANQ3YUX4MMCCSZGREYW6J6HOVUVNHZG5UTFKBLNVNJTST \ / AMOS7 \ YOURUM ::
+#\[7]J576Z7BSZLJPSYQE7Z6WGVCIIAQBLKLVCAU35AEBOEVGTEWSLKBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

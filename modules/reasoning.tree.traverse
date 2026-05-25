@@ -26,7 +26,7 @@ while (@queue) {
     if ( $order eq 'breadth' ) {
         $node = shift @queue;
     } else {
-        ## [ depth-first — pop from end ] ##
+        ## [ depth-first : pop from end ] ##
         $node = pop @queue;
     }
 
@@ -54,15 +54,15 @@ while (@queue) {
     if ( $order eq 'breadth' ) {
         push @queue, @child_nodes;
     } else {
-        ## [ depth-first — reverse so first child is processed first ] ##
+        ## [ depth-first : reverse so first child is processed first ] ##
         push @queue, reverse @child_nodes;
     }
 }
 
 return \@visited;
 
-#,,..,...,,.,,.,,,,..,...,,.,,,.,,,.,,...,...,..,,...,...,...,...,.,.,,..,...,
-#RMTXRGA6EMDFCI2GC3PQORQOUFMORFTE3EAI7KRLPBYCAYPJG7SLBPUSUB64Q623RVCENLSOEWXYM
-#\\\|7BK524RLCY6TNETKUCTDJM5TNG6CPGZ5I5NLMOYTTN675UBABUA \ / AMOS7 \ YOURUM ::
-#\[7]U2CZECACVB6IXM7LBHP5E766TWQ5BYZX7AXCUU4AEPDILYQU74BA 7  DATA SIGNATURE ::
+#,,..,...,,,.,,..,,,,,,.,,.,,,,,,,,,,,,.,,.,.,..,,...,..,,..,,.,.,..,,.,,,.,,,
+#JAY6YJ2P2NPYPKJF464SVEEREAINMYJ7XMIC7JX5A46EUHBQSQ67KAE7AX5FGDLQM3Y476YQGICOK
+#\\\|HXBCCAIE2B3ID2J4XN24O3Y6G4M2NXW6ROL23DEMZTMVJ7TWWPL \ / AMOS7 \ YOURUM ::
+#\[7]L66MV5AL2XSQ4XBAJ25YRJARHQKOMUPXWURVVDHFQBBNKSL36EBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -29,7 +29,7 @@ my $type_valid  = grep { $_ eq $type } @valid_types;
 $type = qw| style | unless $type_valid;
 
 <[base.logs]>->(
-    1,     ':. review.cmd: starting %s review — pattern: %s :.',
+    1,     ':. review.cmd: starting %s review : pattern: %s :.',
     $type, $pattern
 );
 
@@ -45,7 +45,7 @@ my $plan_result = <[context.review.plan]>->(
 ## handle plan failure ##
 if ( $plan_result->{'mode'} ne qw| true | ) {
     my $error = $plan_result->{'data'} // 'plan creation failed';
-    <[base.logs]>->( 0, ':. review.cmd: plan failed — %s :.', $error );
+    <[base.logs]>->( 0, ':. review.cmd: plan failed : %s :.', $error );
     return { 'mode' => qw| false |, 'data' => $error };
 }
 
@@ -59,7 +59,7 @@ if ( ( $plan->{'total_files'} // 0 ) == 0 ) {
 
 <[base.logs]>->(
     1,
-    ':. review.cmd: plan created — %d files in %d pages :.',
+    ':. review.cmd: plan created : %d files in %d pages :.',
     $plan->{'total_files'},
     $plan->{'total_pages'}
 );
@@ -75,7 +75,7 @@ my $iterate_result = <[context.review.iterate]>->(
 ## handle iteration failure ##
 if ( $iterate_result->{'mode'} ne qw| true | ) {
     my $error = $iterate_result->{'data'} // 'iteration failed';
-    <[base.logs]>->( 0, ':. review.cmd: iterate failed — %s :.', $error );
+    <[base.logs]>->( 0, ':. review.cmd: iterate failed : %s :.', $error );
     return { 'mode' => qw| false |, 'data' => $error };
 }
 
@@ -86,7 +86,7 @@ my $status       = $iterate_data->{'status'} // '';
 if ( $status eq qw| dispatched | ) {
     <[base.logs]>->(
         1,
-        ':. review.cmd: async dispatch — page %d/%d :.',
+        ':. review.cmd: async dispatch : page %d/%d :.',
         $iterate_data->{'page_num'} + 1,
         $plan->{'total_pages'}
     );
@@ -94,7 +94,7 @@ if ( $status eq qw| dispatched | ) {
         'mode' => qw| deferred |,
         'data' => {
             'plan_summary' =>
-                "$type review — $plan->{'total_files'} files in "
+                "$type review : $plan->{'total_files'} files in "
                 . "$plan->{'total_pages'} pages",
             'pages'         => $plan->{'total_pages'},
             'status'        => qw| async_in_progress |,
@@ -103,18 +103,18 @@ if ( $status eq qw| dispatched | ) {
     };
 }
 
-## step 4: synchronous completion — consolidate results ##
+## step 4: synchronous completion : consolidate results ##
 if ( $status eq qw| ready | ) {
 
     ## synchronous mode: results need manual processing ##
     <[base.logs]>->(
-        1, ':. review.cmd: sync mode — page ready for processing :.'
+        1, ':. review.cmd: sync mode : page ready for processing :.'
     );
     return {
         'mode' => qw| true |,
         'data' => {
             'plan_summary' =>
-                "$type review — $plan->{'total_files'} files in "
+                "$type review : $plan->{'total_files'} files in "
                 . "$plan->{'total_pages'} pages",
             'result_dir' => $plan->{'result_dir'},
             'pages'      => $plan->{'total_pages'},
@@ -140,7 +140,7 @@ if ( $status eq qw| complete | ) {
     if ( $consolidate_result->{'mode'} ne qw| true | ) {
         my $error = $consolidate_result->{'data'} // 'consolidation failed';
         <[base.logs]>->(
-            0, ':. review.cmd: consolidate failed — %s :.', $error
+            0, ':. review.cmd: consolidate failed : %s :.', $error
         );
         return { 'mode' => qw| false |, 'data' => $error };
     }
@@ -149,7 +149,7 @@ if ( $status eq qw| complete | ) {
 
     <[base.logs]>->(
         1,
-        ':. review.cmd: complete — %d findings in %s :.',
+        ':. review.cmd: complete : %d findings in %s :.',
         $consolidate_data->{'total_findings'} // 0,
         $consolidate_data->{'result_dir'}
     );
@@ -158,7 +158,7 @@ if ( $status eq qw| complete | ) {
         'mode' => qw| true |,
         'data' => {
             'plan_summary' =>
-                "$type review — $plan->{'total_files'} files in "
+                "$type review : $plan->{'total_files'} files in "
                 . "$plan->{'total_pages'} pages",
             'result_dir'       => $consolidate_data->{'result_dir'},
             'pages'            => $plan->{'total_pages'},
@@ -171,11 +171,11 @@ if ( $status eq qw| complete | ) {
 }
 
 ## unknown status ##
-<[base.logs]>->( 0, ':. review.cmd: unknown status — %s :.', $status );
+<[base.logs]>->( 0, ':. review.cmd: unknown status : %s :.', $status );
 return { 'mode' => qw| false |, 'data' => "unknown status: $status" };
 
-#,,.,,,.,,,..,,..,.,,,,..,.,.,.,.,,..,.,.,,,,,.,.,...,..,,.,,,..,,,..,,,,,,,.,
-#EQ63NL5MCBKN7FAV6P5YVQWIUSLCZ3R6IZQYQKO6MMLLHO34KNHLWOE6CQT7OH6EFEQEG56Q3CMIW
-#\\\|OY5HCN4MF5NOZQ4PAI2BTPTYCJXIR6CXHE66MCYVG5EO5IEOVGG \ / AMOS7 \ YOURUM ::
-#\[7]HVQW3YW3ZA5NDXGRTBWGYMPXTCKZSXZBTIX5NLQCVHCYWR6JFYBA 7  DATA SIGNATURE ::
+#,,.,,...,,..,,,,,,..,.,.,,,,,.,,,,..,.,,,,,,,.,.,...,...,..,,,,,,,,,,.,,,.,.,
+#PZZGCLUAYX4HFXY4PA64B3KBEDBDKHQ5VID6H5GLVUGYPHGOYJ774ET4FAAHDT6A5NONGLQZXPLH2
+#\\\|AXB64DX7CEEI6Z766KKPERUW2IF23VAMGANDCECAWE72MGGOYSI \ / AMOS7 \ YOURUM ::
+#\[7]TWQ6LI66CPQJGOPW5DAZB4S4EBTMF4FYXLCQSDIWBM6GUKJCCUBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

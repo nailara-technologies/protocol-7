@@ -46,7 +46,7 @@ while ( my $current_dir = shift @dirs_to_scan ) {
             my $gen_path
                 = eval { <[index.gen_path]>->($seed) } // qw| error |;
 
-            ##  bin/Protocol-7 does 'use File::stat' globally — shadows  ##
+            ##  bin/Protocol-7 does 'use File::stat' globally : shadows  ##
             ##  the builtin ; use the OO form like the rest of P7 does  ##
             my $st    = File::stat::stat($full_path);
             my $size  = $st ? $st->size  : 0;
@@ -78,8 +78,8 @@ $cache->{'timestamp'}  = time();
 
 return $cache;
 
-#,,,,,,..,...,,,.,,..,.,.,,.,,,,,,,,,,,,,,,,.,..,,...,...,,,.,,..,.,,,.,,,.,.,
-#L4UOVAAUWFS6I2QF4ZYR5VQ4VIKHUE3ZWLX6NIY7W22YLQDMRTLMRKE5XREPQIXDQQ363UHP566CY
-#\\\|3I7IDB5IOXL3XTUG2BWPBXW2LMR54CI6ZPWKDQTUYJSYCLSWDPE \ / AMOS7 \ YOURUM ::
-#\[7]RKYH5MENLJCSIVSI73BXIDG667RWHVH26NYNI6IDQXQ23RUT56DY 7  DATA SIGNATURE ::
+#,,.,,,..,,..,..,,,.,,..,,.,.,,.,,,,.,.,.,...,..,,...,...,,..,.,,,,,,,...,...,
+#7PXLIR4XN5YPZJ34XRNH5GHCOCOS7FYTIGWEGNVA5G7PRDT5YCHSN4R2VJBK325AAAL5ENST32YCU
+#\\\|4SISLKZRXWSXGMBA7QAIDTXF6MFU7P2WXEFCTG4HWWCBZIBQBUS \ / AMOS7 \ YOURUM ::
+#\[7]ZRDAHQKDIISGZQ3SKDVUSBKYPD4E2E3VK23ABUPCIYDGYSJDC4DQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

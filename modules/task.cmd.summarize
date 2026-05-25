@@ -31,10 +31,10 @@ my $context_text
     . ( length($notes)       ? "Notes:\n$notes\n"            : '' )
     . ( length($result)      ? "Result so far:\n$result"     : '' );
 
-## encode multiline content as base32 — plain multiline corrupts framing ##
+## encode multiline content as base32 : plain multiline corrupts framing ##
 my $content_b32 = encode_b32r( Encode::encode( 'UTF-8', $context_text ) );
 
-## store reply_id locally — coding zenka calls task.summarize-done when ready ##
+## store reply_id locally : coding zenka calls task.summarize-done when ready ##
 <task.summarize.pending> //= {};
 <task.summarize.pending>->{$task_id} = $call->{'reply_id'};
 
@@ -66,8 +66,8 @@ unless ($sent) {
 
 return { mode => 'deferred' };
 
-#,,,.,,,.,,.,,,..,.,.,.,.,,..,,.,,,,,,..,,.,.,..,,...,...,,.,,,..,,..,...,,,,,
-#RHERTKJD6Q5YKENSKOTDZWSBFLNPWQEFO5ICK4GVX5Y5IBCLQ3EE7JJUJ6DQQMNZ2ND6XRO65SWUA
-#\\\|HE2PXEKY3NEYPIA6NPXDA5CCVB2OYXAZ54TSYZ3HMP2LSOXA66I \ / AMOS7 \ YOURUM ::
-#\[7]AJMJRMT2D7C4H3YBBM3MWGUCH3VLR3Z5EZGAW7UUA462NAXCQ2AA 7  DATA SIGNATURE ::
+#,,.,,..,,.,,,,,.,,,.,..,,..,,,,.,,.,,,..,,.,,..,,...,...,..,,,.,,.,,,,,,,..,,
+#7KHSB4AG4US2C2BIQZMSJV6J3Q6G5LINEPSQFVPWNTNK7ZN5G34EJH73SS4GNZSMQSVHLTSTSSM4O
+#\\\|YDPR5VXH7ERNMA3BMYLFCOSAVOTZO7TM33FARVAQDK77U6P2NBA \ / AMOS7 \ YOURUM ::
+#\[7]LBJX3SVNK3DZQCYPYLU44WI63BUF42FCBR6M5QCHNQ7QM3TQKMCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

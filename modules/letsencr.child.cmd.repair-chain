@@ -22,7 +22,7 @@ unless ( -f $pem_path ) {
 
 <[base.logs]>->( 1, ': repair-chain: checking %s', $domain );
 
-## read current pem file [ :raw — binary cert data ]
+## read current pem file [ :raw : binary cert data ]
 my $pem_content = <[file.slurp]>->( $pem_path, qw| :raw | )->$*;
 
 ## split into individual PEM blocks
@@ -92,13 +92,13 @@ if ( -f $chain_path ) {
 return {
     'mode' => 'true',
     'data' => sprintf(
-        'chain repaired for %s — backup at %s',
+        'chain repaired for %s : backup at %s',
         $domain, $backup_path
     )
 };
 
-#,,,,,..,,..,,,.,,,.,,..,,,,,,,,.,...,..,,,.,,..,,...,...,...,..,,..,,,.,,,,.,
-#5BKJJ7DJC47HLGHXO4TQCGUZ7CM5OYAJIMRT6ALX527BJMRNVQBRHCAIAYHIR7TRS7BQWZWF3E2SA
-#\\\|KRWQZIVW5X2FRX4XBL5YFST2ABRF2NEKVY4GFFDTNNMVMCPNR4S \ / AMOS7 \ YOURUM ::
-#\[7]IU4THFCX3XLZFG7EGEHRYMBVLJLVXTKGAR27LLW3KAE4DH2AHOAQ 7  DATA SIGNATURE ::
+#,,.,,,.,,...,.,,,,.,,.,.,...,,.,,,,.,,,,,,..,..,,...,...,.,,,.,.,,..,...,,,,,
+#CVJ6QPSH54IS7QKJYYNSNMOKGIEBVZCEQFG7JUURX6P7W4S5U5HWQXIT2YSPUBLSOY56E6WIXLI3U
+#\\\|VZXAJERP32ICPXAODKLCP63E2WTCTK3TZWBCLIEGSOWHUK7OZWF \ / AMOS7 \ YOURUM ::
+#\[7]CD7MV7WYVR6IKQO3DVYEP4XBSB4FQ5BU63AMBS3JOPWMDJVO7SAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -11,7 +11,7 @@ my $apply   = $args->{'apply'}    // TRUE;
 my $raw_enc = $args->{'encoding'} // 'UTF-8';
 my $norm_encoding = $raw_enc =~ /^:/ ? $raw_enc : ":encoding($raw_enc)";
 
-## resolve and sanitize path — no Cwd, use string check ##
+## resolve and sanitize path : no Cwd, use string check ##
 return 'error: path traversal not allowed' if $path =~ m{\.\.};
 my $root     = <system.root_path>;
 my $abs_path = "$root/$path";
@@ -64,7 +64,7 @@ if ($apply) {
         return
               sprintf "SUCCESS: staged replace line %d in %s"
             . " [ staged at: %s ]"
-            . " — do NOT verify with read_file"
+            . " : do NOT verify with read_file"
             . ", original path unchanged until commit",
             $line_num, $path, $stage_path;
     }
@@ -75,8 +75,8 @@ return sprintf "preview line %d\n  was: %s\n  now: %s", $line_num, $old,
 
 #,,
 
-#,,,,,..,,.,.,,..,,..,,,,,.,.,,,.,..,,...,,,,,..,,...,...,.,,,...,.,,,,..,,..,
-#PPRQHMCQYBDKBSQ5DRTJF7HT24RAY5UT4X5GB6VGMQINAOHR7KT77PSNQGDZM22UR6UX74WI3E3QI
-#\\\|QP2UMJVMMHTVM7KEXMCBDZPSWQRPKW43JNHXEC5LCIS2SF3TSVH \ / AMOS7 \ YOURUM ::
-#\[7]Q2OAENVAN6GQ3HBBIVMJDGLMGQDCSVIZDKLRX66TEQKEMIXWUYBA 7  DATA SIGNATURE ::
+#,,..,...,.,,,,,,,,..,.,,,.,,,.,,,..,,,..,...,..,,...,...,.,,,...,.,.,,.,,,..,
+#MQE5UXVD467ZF26HANINCVA56C4E75EKS4GJCVXX4ARBGY2T46LWTKBFBZSDJKXKAHXGMZBHALUZU
+#\\\|QBPWI6FUDT3ZQ6KFPPQNXDU4Q4VSZ34BMDQL5KTGBDJUZYK2K4F \ / AMOS7 \ YOURUM ::
+#\[7]4H53Q6DTCRGLPAFLDESW6EF6SL2H7DTEAVWZ3WBERWTKSSDYLEBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

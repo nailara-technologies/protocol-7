@@ -22,7 +22,7 @@ my $read_len = sysread( $read_fh, $read_buf, 65536 );
 
 if ( not defined $read_len ) {
 
-    ##  undef: EAGAIN / SSL_WANT_READ — wait for next watcher fire  ##
+    ##  undef: EAGAIN / SSL_WANT_READ : wait for next watcher fire  ##
     my $os_err = $OS_ERROR + 0;
     if ( $os_err == Errno::EAGAIN() or $os_err == Errno::EWOULDBLOCK() ) {
         return;
@@ -151,7 +151,7 @@ while ( $offset < $buf_len ) {
                             <[base.logs]>->(
                                 2,
                                 '[radio] short track %.0fs'
-                                    . ' — likely jingle [ %s ]',
+                                    . ' : likely jingle [ %s ]',
                                 $icy->{'track_duration'},
                                 $prev_title
                             );
@@ -323,8 +323,8 @@ while ( $offset < $buf_len ) {
 
 return;
 
-#,,.,,...,,,.,,.,,..,,,,.,,.,,.,,,..,,,,.,,,,,..,,...,..,,,,.,...,.,,,,.,,.,.,
-#3ITNI2XFEYT4BSUPUR2XP4XTGWOL5XZGEEKMYIBBYGZQ4IDDO4KJJUT6BSMPZISKUIZ32C3TUFXDQ
-#\\\|ACQR34GRLHXAUSX2EEAOSEDQP7MSROEH34OKEEBWIC7S3U6C4DH \ / AMOS7 \ YOURUM ::
-#\[7]4S5BDFOXWXLGQIV5APGFX622KOWGADUKYFXWIV5MM26XTGIPSCCQ 7  DATA SIGNATURE ::
+#,,,,,...,..,,,,.,,.,,,,.,.,.,,..,,..,,,.,,,.,..,,...,..,,..,,,.,,,..,...,.,,,
+#JAOVOGESWVAXTMXKJNSCXLWUOYZ7EYF3XAKFSNOK2JNSN6CK5IZ3A24C67OZUMDC2CYUXI4EUYGNS
+#\\\|2GQMKLCNBXIFHFEB3TXMGZADID7IFIT2UXSRK6RWGEZTSWBJDBE \ / AMOS7 \ YOURUM ::
+#\[7]ZPOOAMU4XND6AQRHOQZPQF3FWCHBULDFJSSH7QC4GOU4EKBMYYAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

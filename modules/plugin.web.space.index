@@ -28,7 +28,7 @@ my $age        = time() - ( $timestamp // 0 );
 
 my $persist_dir = <web.space.index.cfg.persist_dir> // qw| space-index |;
 
-## summary section — default ##
+## summary section : default ##
 if ( $section eq qw| summary | ) {
 
     my @lines;
@@ -55,18 +55,18 @@ if ( $section eq qw| summary | ) {
 
 } elsif ( $section eq qw| json | ) {
 
-    ## json wrapped in script tag — for inline javascript consumption ##
+    ## json wrapped in script tag : for inline javascript consumption ##
     my $json = <web.space.index.json_cached> // '{}';
     return sprintf '<script>window.spaceIndex = %s;</script>', $json;
 
 } elsif ( $section eq qw| json-raw | ) {
 
-    ## raw json — for api endpoints with content-type override ##
+    ## raw json : for api endpoints with content-type override ##
     return <web.space.index.json_cached> // '{}';
 
 } elsif ( $section eq qw| yaml-raw | ) {
 
-    ## raw yaml — for perl clients and humans ##
+    ## raw yaml : for perl clients and humans ##
     return <web.space.index.yaml_cached> // "--- {}\n";
 
 } else {
@@ -74,8 +74,8 @@ if ( $section eq qw| summary | ) {
     return sprintf '<!-- unknown index section: %s -->', $section;
 }
 
-#,,.,,,.,,,,,,..,,...,,,.,...,...,..,,,,.,,,,,..,,...,...,.,.,,,.,..,,...,.,,,
-#FYN7MREXFUXSJBNBNAXVRYN36DNS5P4PSUYFVENNDJEZKY2ENUX5OD2OGWNZSK6AZYKC7WP4MCO2S
-#\\\|XAYEMY6ZX3ZSN5QP65DPS5SWOYZRUWA55ETGIL724KCYPY6XSZQ \ / AMOS7 \ YOURUM ::
-#\[7]7MACEBF7MJW7B3DCGATYQINP6NS457OMA2RHYGXRIRMPTZTP3MAQ 7  DATA SIGNATURE ::
+#,,..,,,,,,,,,..,,,,,,.,.,,,.,,,.,,.,,...,,,.,..,,...,..,,,,,,,.,,...,,,,,..,,
+#7HSIIS263FVIEQMQXYVGE3LMUAED2XXIYWFGDUUGNTT7WOEWKKF66JW62UYDCKK4KYXG2FMYDPNQC
+#\\\|SK4AQPCRUGMBW3WVAQHZDA57WE3UQTBWKIP57SK2PK3OVZRYSSY \ / AMOS7 \ YOURUM ::
+#\[7]7XKW5SJCNW7BTBSPN5KDN2VMTHT2RJX55WY6JQ5PHJC3TKVK6IBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

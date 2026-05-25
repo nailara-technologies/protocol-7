@@ -65,7 +65,7 @@ unless ( $response->{status} == 201 ) {
     my $type   = $response->{data}{type}   // '';
     <[base.log]>->( 1, "  details : $detail" ) if length $detail;
 
-    ## detect rate limit — parse retry-after timestamp from detail string
+    ## detect rate limit : parse retry-after timestamp from detail string
     if (   $response->{status} == 429
         or $type =~ m|rateLimited|i ) {
         my $retry_after = '';
@@ -124,8 +124,8 @@ return {
     finalize_url   => $order_data->{finalize},
 };
 
-#,,,,,..,,,,.,,.,,.,.,,,,,.,,,.,,,,,,,,.,,,.,,..,,...,...,,,,,..,,,,.,,..,,.,,
-#7Z6C5UXVQV2EYGELLBCUJWFH6PYUXLPZLLRW67C2QAFYNA2UARVLOS26V4QWXCRBHBKRPGGGO7F4O
-#\\\|I6CPSLGI44IRCKG7UIB3X7URJWLXSWMNIWAWJPKCPXSPGHXP2IZ \ / AMOS7 \ YOURUM ::
-#\[7]OGXKPJNH75WRLAFS2MPFQGXL53T5FLZDHLUCCLRNAYDLFMXWESAY 7  DATA SIGNATURE ::
+#,,.,,,,,,..,,,.,,.,.,...,..,,.,.,.,.,,.,,,.,,..,,...,..,,,.,,,,,,.,.,,,,,,.,,
+#UMFSBPWCHLL4GSYKVDV2JVFOS4ZANPZGGRSEE3HCBAH3MQ7FK3KHY4Z3U3U3MEKUAVNBUIS5E3J7C
+#\\\|2DWAZ2Z2TBDJP56BS7U3NBSGR7DTF5MX2QVYFD2XDYRJ6X3PIKY \ / AMOS7 \ YOURUM ::
+#\[7]NL3VAD5VH4AWXTGZTBQJWGQF727CRGIIWDJJIAK6PO4YFNIKWKBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

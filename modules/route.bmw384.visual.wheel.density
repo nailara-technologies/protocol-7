@@ -1,7 +1,7 @@
 ## [:< ##
 
 # name  = route.bmw384.visual.wheel.density
-# descr = BMW384 wheel — ring thickness proportional to node density per band
+# descr = BMW384 wheel : ring thickness proportional to node density per band
 
 return undef if not defined <bmw384.index>;
 
@@ -131,7 +131,7 @@ for my $ring ( 0 .. $rings - 1 ) {
         my $y         = 400 - $label_r * cos($rad);
         my $label     = <[route.bmw384.visual.ring-label]>->( $ring, $ARG );
 
-        # [ ring 27 darksun marker — special rendering ]
+        # [ ring 27 darksun marker : special rendering ]
         my ( $label_fill, $label_font_size_actual );
         if ( $label eq '.' ) {
             $label_fill             = 'rgba(100,150,255,0.6)';
@@ -149,7 +149,7 @@ for my $ring ( 0 .. $rings - 1 ) {
     }
 }
 
-# [ nodes — each band rendered at its variable-radius ring ]
+# [ nodes : each band rendered at its variable-radius ring ]
 my %drawn_index;
 
 for my $ARG (@sorted_names) {
@@ -200,12 +200,12 @@ for my $ARG (@sorted_names) {
         .= sprintf
         '  <circle cx="%.2f" cy="%.2f" r="%d" fill="%s" opacity="%s">' . "\n",
         $x, $y, $r, $color_hex, $opacity;
-    $svg .= sprintf '    <title>%s — %s  band=%d n=%d</title>' . "\n",
+    $svg .= sprintf '    <title>%s : %s  band=%d n=%d</title>' . "\n",
         $ARG, $coord_str, $band, $band_count[$band];
     $svg .= '  </circle>' . "\n";
 }
 
-# [ center logo — nailara at the darksun ]
+# [ center logo : nailara at the darksun ]
 my $logo_size = 44;    # diameter covering the void circle (r=24)
 my $logo_xy   = 400 - $logo_size / 2;
 
@@ -222,8 +222,8 @@ $svg .= '</svg>' . "\n";
 
 return $svg;
 
-#,,.,,,..,.,,,,,,,,..,.,,,,,,,..,,.,,,,,.,.,,,..,,...,...,...,...,,,.,.,.,.,.,
-#EQRFLW4YFFZG4YSUKIVDFMOJOEZWO7AAWLTXPXOMZ663675BW63RXT2B4ZTWHSOJH25WQ7FSWOTVI
-#\\\|IIOYTLV5SKLTHKNLQZI45AEZ7CQYZU7A2AK3Q7FX7W7F52YMT56 \ / AMOS7 \ YOURUM ::
-#\[7]3H5ISA7MOD7HB46CXE7XW64CCSAIA6WQJNXW5RALGI7MSLE7EEBY 7  DATA SIGNATURE ::
+#,,,,,.,.,,.,,,.,,.,.,,..,,,.,,,,,,.,,.,,,...,..,,...,...,,,,,.,.,,,.,..,,,.,,
+#GKNAFEANWKWJK2BNB633HWKNLK5NJB76TSNU5EFHRG7USFAS43FW2PXW3FZF7VSHYA5MDS4RY2NVO
+#\\\|7TSS62SXUZTKBELK6TUZEWLLQEJKX6OKSZRETZHPXXSLRVKNAGJ \ / AMOS7 \ YOURUM ::
+#\[7]LEOYNOFR5E2BDT2S6M4VDMH6EFGOFCDPWJC43PY6OWZL6ZPWD2CQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

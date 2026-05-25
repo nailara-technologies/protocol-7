@@ -84,7 +84,7 @@ foreach my $section (@sections) {
 
     my $result;
 
-    ## static content — inline text ##
+    ## static content : inline text ##
     if ( defined $section->{'static'} ) {
         $result = $section->{'static'};
         ## substitute template variables ##
@@ -92,7 +92,7 @@ foreach my $section (@sections) {
             defined $vars->{$1} ? $vars->{$1} : ''
         |ge;
 
-        ## include — recursive template resolution ##
+        ## include : recursive template resolution ##
     } elsif ( defined $section->{'include'} ) {
         my $inc_name = $section->{'include'};
         ## substitute variables in include name ##
@@ -113,7 +113,7 @@ foreach my $section (@sections) {
         $result = $inc_result->{'content'};
         push @hooks, $inc_result->{'hooks'}->@* if $inc_result->{'hooks'};
 
-        ## summarize — stub for phase 3 ##
+        ## summarize : stub for phase 3 ##
     } elsif ( defined $section->{'summarize'} ) {
         ## phase 3: async inference to summarize content ##
         ## for now, fall through to provider if available ##
@@ -206,8 +206,8 @@ return {
 
 # SPDX-License-Identifier: ISC
 
-#,,..,,,.,..,,..,,,.,,..,,...,,..,.,.,,..,,.,,..,,...,...,.,,,...,.,.,...,..,,
-#KFR5O5MXLDZPEEVPSF7KJODEV524ESH6SBFCBE5B5QY7KBUTDYBNKMTHHFU64MBIQDASBRC64D6XG
-#\\\|5KQJINB4MBDRIRXVWOMALQ35OA2YMRA7VKQ4GEQSSCSWNXQOSO4 \ / AMOS7 \ YOURUM ::
-#\[7]U3G5LBYXYLIOQL2E76TAFQPWEF44L7T2YDOCOXHGYV5O6NSBZOAY 7  DATA SIGNATURE ::
+#,,,.,.,,,,..,..,,,,.,,.,,,,,,,,,,,.,,.,.,,.,,..,,...,..,,..,,.,.,...,,..,,..,
+#PUFVR5O3ADWXE2ONH35IWTLCD5DTQCGC7RP26A5YBJGE57QYT6ALOKUF5PFQ2XM4K5RUXR2KMNFYM
+#\\\|SO6CFRDMZXKNOIH3CQ647RZYZERFELGJYYYTMSR5HBE4IWAKPRG \ / AMOS7 \ YOURUM ::
+#\[7]NIWW4CGIYKJ2BVH3MJH5UMZISHHPZMD2IVGYMYVBL5URL3X37KAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

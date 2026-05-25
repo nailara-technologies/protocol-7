@@ -18,7 +18,7 @@ unless ( length $prompt ) {
     return { 'mode' => qw| false |, 'data' => 'prompt required' };
 }
 
-## check for :next: prefix — fresh session before dispatch
+## check for :next: prefix : fresh session before dispatch
 my $wants_next = $prompt =~ s{^:next:\s*}{};
 
 ## decode base32r if the string looks encoded
@@ -28,9 +28,9 @@ if ( $prompt =~ m{^[2-9A-Z]+$} ) {
 }
 
 if ($wants_next) {
-    ## store deferred FIRST — before any calls that might trigger event loop
+    ## store deferred FIRST : before any calls that might trigger event loop
     ## reset_and_reconnect processes WebSocket frames synchronously so the
-    ## watcher can fire before we return — deferred must already be present
+    ## watcher can fire before we return : deferred must already be present
     <kimi.next.deferred> = {
         'prompt'   => $prompt,
         'reply_id' => $call->{'reply_id'},
@@ -41,10 +41,10 @@ if ($wants_next) {
         length($prompt)
     );
 
-    ## mark not-ready before reset — cancels any in-flight reconnect timer
+    ## mark not-ready before reset : cancels any in-flight reconnect timer
     <kimi.ws.status> = qw| connecting |;
 
-    ## trigger session reset + reconnect — stamps for_session_id on deferred
+    ## trigger session reset + reconnect : stamps for_session_id on deferred
     <[kimi.session.reset_and_reconnect]>;
 
     <[base.logs]>->(
@@ -65,7 +65,7 @@ if ($wants_next) {
 
 my $reply_id = $call->{'reply_id'};
 
-## move current result to previous — new prompt displaces it ##
+## move current result to previous : new prompt displaces it ##
 <kimi.result.previous> = delete <kimi.last.result>
     if defined <kimi.last.result>;
 
@@ -88,7 +88,7 @@ if ( not <kimi.ws.connected> or <kimi.ws.status> eq qw| disconnected | ) {
     return { 'mode' => qw| deferred | };
 }
 
-## if busy, defer — task is already in pending queue
+## if busy, defer : task is already in pending queue
 ## dispatch_next_task will start it when current work completes
 if ( <kimi.ws.status> ne qw| ready | ) {
     if ( defined $task_id ) {
@@ -100,7 +100,7 @@ if ( <kimi.ws.status> ne qw| ready | ) {
     return { 'mode' => qw| deferred | };
 }
 
-## ready — submit directly ##
+## ready : submit directly ##
 if ( defined $task_id ) {
     <kimi.task.active_id> = $task_id;
 
@@ -148,8 +148,8 @@ if ( defined $task_id ) {
 
 return { 'mode' => qw| deferred | };
 
-#,,,.,.,.,..,,.,.,.,,,,.,,,..,..,,...,..,,,,,,.,.,...,..,,.,.,,,,,,,.,,,.,..,,
-#L7KU4MQVH7V7F2UIDFK2EXS447HF2IPUP3KRI52GV6N7F4JXWZWPNRQHY3IVCZTTS5VJ5EQPZ3MP2
-#\\\|VK6GUY4QHC7ONXE6PHXH4ZU5XU7CER6I2MRGQEJ56APHULB6MGR \ / AMOS7 \ YOURUM ::
-#\[7]KDQOLP7QLML7ERZ2HVXK2FDM2NCR2CNHILHROWWBF6X6CWDH6WBA 7  DATA SIGNATURE ::
+#,,..,.,.,.,.,,.,,,..,...,.,,,,,.,.,.,,.,,...,.,.,...,...,,..,,,.,,..,,,.,...,
+#A6WAU3QC74KRYXT7CDRHFNVZE5ZWYXI5VQLMVG6GS26RUWZLTEWT6J7TKOJBLQBSRMF46BSI5YKUU
+#\\\|2XETXITASOSYWYYZNIOUU72EGC23TV3QJDCR4YV467G3MZ5UZQ7 \ / AMOS7 \ YOURUM ::
+#\[7]MWGLKSAIM6PNL4B2MHIA3YXSF2RCEUXRDMHRH4IWGO3Q6YQUHKBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

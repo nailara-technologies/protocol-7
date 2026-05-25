@@ -123,7 +123,7 @@ if ($is_valid) {
     }
     <[base.log]>->( 2, ':' );
 
-    ## recovery: stale endline delta — normalize for canonical paths ##
+    ## recovery: stale endline delta : normalize for canonical paths ##
     my $normalize_paths = <source.normalize_endline_paths> // [];
     if ( ref $normalize_paths eq qw| ARRAY | and @$normalize_paths ) {
         foreach my $prefix ( @$normalize_paths ) {
@@ -136,7 +136,7 @@ if ($is_valid) {
                     $footer_data->{'needs_separator_endline'} = FALSE;
                     $footer_data->{'last_line_incomplete'}    = FALSE;
                     <[base.logs]>->(
-                        2, ': : stale endline state — normalized for canonical path'
+                        2, ': : stale endline state : normalized for canonical path'
                     );
                 }
                 last;
@@ -223,8 +223,8 @@ if (   not defined $present_checksum
 ##  current \ updated source  ##
 return { 'mode' => qw| size |, 'data' => $src_str }
 
-#,,,.,,,.,,,.,,.,,,.,,,..,...,.,,,,..,..,,.,.,..,,...,...,..,,,..,,,.,,,.,,,.,
-#TZUQ2J4XCRDRMVGWZ7E77SDX2573Y7DEGWDTCXCUI7A5MH6K3SXZSLUOTRQ6NPUWWMFV7YBW3MW4U
-#\\\|KMTANHBJS2H4TWYM3WQDYHYOYASRIV5EVPYJ5DSDK6XC2RQMKMB \ / AMOS7 \ YOURUM ::
-#\[7]Z5REHLS4OKB2BCBDKYXWHT57GMDOVRUNLACROIT453W7AMWLOICI 7  DATA SIGNATURE ::
+#,,..,,,,,,,,,,..,,.,,...,,.,,.,.,,,,,...,,,.,..,,...,...,.,.,,,.,..,,,.,,,..,
+#JBBRNHQTCZLTK4GTHDBWJ54T7P7ZI3OGU74UJ5MPAWQPOEC6CEPILLRQSLOLM5HSKYRITZUQ3YUH6
+#\\\|AEP5VGBXBQ57YKH5X4W46IBN7ML3ZCD6BRKI6WXIH25PYKBZSPV \ / AMOS7 \ YOURUM ::
+#\[7]J2IGGKG2W6WTVGLGTXIT4JUOSRUF6ILRMX7CQSN27PK5JCXFI4DA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
