@@ -41,6 +41,23 @@ deactivate(old_checksum)   →  subtract its contribution vector
 activate(new_checksum)     →  add its contribution vector
 ```
 
+**Removal** is replacement without an activate step:
+
+```
+deactivate(HEAD_checksum)   →  subtract its contribution vector
+remove source_id from <index.sources>
+```
+
+The trie returns to exactly the state it would have been in had the source
+never been fed. No re-parse, no recomputation — the stored vector is the
+exact inverse of what was added.
+
+**Definition-agnostic** — the contribution vector stores frequency deltas for
+whatever unit the ingestion layer defined: characters, bytes, tokens, diff
+chunks, checksums, base32 symbols. Removal operates on stored deltas and
+never needs to know what a "word" is. The same primitive works identically
+across all granularities and all chain topologies.
+
 **Deduplication** falls out naturally — two files with identical content share
 one checksum, one contribution vector, one contribution to the trie. Referenced
 any number of times, it counts once.
@@ -192,8 +209,8 @@ Related design documents:
 - `ADDRESSING-TRINITY.md` — named tree + checksums + timestamps as orthogonal
 - `SELF-DELIMITING-CHECKSUM-PATTERN.md` — 2-bit type system, payload tokens
 
-#,,,,,,.,,...,,..,.,.,,,.,.,.,,..,.,,,,..,.,.,..,,...,...,,.,,..,,.,,,...,,,.,
-#GLADWDPAQDJRXDRNCL7Q3MEYHZ2PXGE44LKLUXMWSXVSBK7R7RASBCPYIPT66BTUMUGCIUNKBRGPK
-#\\\|V4CGGE7FHUU756IL5VAG6X5DO4JISOXSC5OZEJTGRLPJNVG5WSE \ / AMOS7 \ YOURUM ::
-#\[7]MHQDW3ZBAB7BFXI4QUK7DXB5IS3DZYBGCIEHX64EVGDH6HXICWCY 7  DATA SIGNATURE ::
+#,,,.,...,,.,,,..,.,,,,.,,.,,,,.,,.,,,.,.,,.,,..,,...,...,..,,,.,,.,.,,..,,,.,
+#5EKJWXF3JUZXMUJZWHCD5Y4R6HO7NHGAM7CIWM5PNWWDZMF4F27MAMNYDLIINCRELVX4MYOA2ZXI4
+#\\\|OQD6BOWVTCCZDC2TVD2MIH5HMREXCTVBNBVDOB2F7H3PNLNUV2T \ / AMOS7 \ YOURUM ::
+#\[7]MKXGUBMJLAGR2V5XBRWH7KZ5464TOT4NE4JIJLHIH3CPSVIRWUBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
