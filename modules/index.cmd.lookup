@@ -27,7 +27,8 @@ push @lines, "terminal: " . ( $terminates ? 'yes' : 'no' );
 push @lines, "children: " . scalar(@child_seqs);
 for my $child (@child_seqs) {
     my $child_rank = <index.addr>->{"$next_depth:$child"} // '?';
-    ( my $disp = $child ) =~ s|\n|\\n|g;
+    ( my $disp = $child ) =~ s|\\|\\\\|g;
+    $disp                 =~ s|\n|\\n|g;
     $disp                 =~ s|\r|\\r|g;
     $disp                 =~ s|\t|\\t|g;
     $disp                 =~ s|\v|\\v|g;
@@ -36,8 +37,8 @@ for my $child (@child_seqs) {
 
 return { 'mode' => 'size', 'data' => join( "\n", @lines ) };
 
-#,,..,,,,,,..,.,,,,..,,,,,,,.,,..,,,.,,,,,,,.,..,,...,...,,,,,,,,,,.,,,..,...,
-#S63LJATJECYUNGS5ZJ5SUZ6SPEKO7DM6AA6QDKUETFNMSJF3PJCSMBTE5OO34BFSWJ3MGMW7DIVE2
-#\\\|JITMRRANA552DINSHOPAR5XBHV2AXUB62NGXT5BRK7I227BEHYE \ / AMOS7 \ YOURUM ::
-#\[7]K3EEVKTTVHGF4HFR5GLR6ZPP4LCRIO5YZTGE2KKBPTOMECZIUCAA 7  DATA SIGNATURE ::
+#,,,.,..,,.,,,,,.,...,.,.,.,,,,.,,,,.,,,.,,,.,..,,...,...,..,,.,,,.,.,,..,,,.,
+#DZ4FIDLLEDQ3A5CHBN3IIZUP7TWAA6BXOG3Z377WRCI6M3KE7IHXOMBSNVI2GOYCAJCYZRX3XLX5K
+#\\\|IYS4M76CJTVOIXDYTR64TDMAVDJJMZKDXIFDEHCDTBONGUFSNP7 \ / AMOS7 \ YOURUM ::
+#\[7]BF5SEPYUU5NBBL2VUPOL23Y34WKXTIKS6ZQQNL5THJR2FN43HWCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

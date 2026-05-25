@@ -8,23 +8,55 @@ return { 'mode' => 'false', 'data' => 'expected prefix' }
     unless length $prefix;
 
 my $results = <[index.search]>->($prefix);
-return { 'mode' => 'false', 'data' => 'no results' } unless @{$results};
+
+## check if prefix itself is a terminal node ##
+my $self_node  = <[index.lookup]>->($prefix);
+my $self_match = defined $self_node && $self_node->[0] ? 1 : 0;
+
+return { 'mode' => 'false', 'data' => 'no results' }
+    if not @{$results} and not $self_match;
+
+my $depth     = length($prefix) - 1;
+my $self_rank = undef;
+my $self_freq = 0;
+if ($self_match) {
+    $self_rank = <index.addr>->{"$depth:$prefix"} // '?';
+    my $win = $depth + 1;
+    $self_freq
+        = $win == 1
+        ? ( <index.freq>->{$prefix} // 0 )
+        : ( ( <index.level>->{$win} // {} )->{$prefix} // 0 );
+}
 
 my @lines;
-push @lines, sprintf "search [ %s ] -- %d results :", $prefix,
-    scalar @{$results};
+my $count = scalar( @{$results} ) + ( $self_match ? 1 : 0 );
+push @lines, sprintf "search [ %s ] -- %d results :", $prefix, $count;
+
+## direct match first ##
+if ($self_match) {
+    ( my $disp = $prefix ) =~ s|\\|\\\\|g;
+    $disp                  =~ s|\n|\\n|g;
+    $disp                  =~ s|\r|\\r|g;
+    $disp                  =~ s|\t|\\t|g;
+    $disp                  =~ s|\v|\\v|g;
+    push @lines,
+        sprintf "  %6d  %s  [ terminal, rank %s ]", $self_freq, $disp,
+        $self_rank;
+}
+
 for my $r ( @{$results} ) {
-    ( my $seq = $r->[0] ) =~ s/\n/\\n/g;
-    $seq                  =~ s/\r/\\r/g;
-    $seq                  =~ s/\t/\\t/g;
-    $seq                  =~ s/\v/\\v/g;
+    ( my $seq = $r->[0] ) =~ s|\\|\\\\|g;
+    $seq                  =~ s|\n|\\n|g;
+    $seq                  =~ s|\r|\\r|g;
+    $seq                  =~ s|\t|\\t|g;
+    $seq                  =~ s|\v|\\v|g;
     push @lines, sprintf "  %6d  %s  [ rank %d ]", $r->[2], $seq, $r->[1];
 }
 
 return { 'mode' => 'size', 'data' => join( "\n", @lines ) };
 
-#,,,.,,,,,,..,,..,,,.,...,,.,,,.,,,,.,.,.,,.,,..,,...,...,..,,,.,,...,,,.,.,,,
-#7EQGBRVEEDKXPQJBQHE77B5IBPPXX3R7RGLUUD7NTCP5Q6W4YCZGK7GD2V4WEEAWB4IPMIZXNGLTI
-#\\\|NDIZLWWYH324VWXW2YXGCZYJ7P3YBDA6OINHNHYXJZDE5SMRGHZ \ / AMOS7 \ YOURUM ::
-#\[7]QEBOHHBPZTPFRHFJ2X4ALWXKLMYRXZH5C5ZH5VFRODCPT4J6GKBY 7  DATA SIGNATURE ::
+#,,.,,..,,..,,,.,,..,,,,.,,,,,..,,,,.,,,,,..,,..,,...,...,,..,,..,..,,,,,,..,,
+#ZSS3MQ6ZOGYVEP4XBG5INK5WOXTW6EY35G6E74Y5DDT6PDUE674UKFIKANET3OVC3AZVUFAWC2RD4
+#\\\|PO7HGRE3JTHJQGYAW2ZHNWY7ETIUP247XUAQSQ5RJDORNWGEMXV \ / AMOS7 \ YOURUM ::
+#\[7]33F76FQBD6K6GOLQBYV6PQSASKNXNTYN676YWPA6A6KE6FCZQUCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
