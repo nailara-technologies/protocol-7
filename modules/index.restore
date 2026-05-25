@@ -6,22 +6,7 @@
 my $rel_path  = qw| numerical/numerical-index_state.zxps |;
 my $comp_sref = <[file.zenka_dir.load]>->($rel_path);
 
-## fall back to legacy uncompressed storable if .zxps not found ##
-if ( not defined $comp_sref ) {
-    my $legacy = <index.path.index-files> . '/index-state.storable';
-    if ( -r $legacy ) {
-        my $state = retrieve($legacy);
-        return FALSE if not defined $state;
-        <index.meta>  = $state->{'meta'}  // {};
-        <index.freq>  = $state->{'freq'}  // {};
-        <index.level> = $state->{'level'} // {};
-        <[index.rank]>;
-        my $total = <index.meta>->{'total'} // 0;
-        <[base.log]>->( 1, "index restored [ $total chars from $legacy ]" );
-        return TRUE;
-    }
-    return FALSE;
-}
+return FALSE if not defined $comp_sref;
 
 my $frozen;
 IO::Uncompress::UnXz::unxz( $comp_sref, \$frozen )
@@ -42,8 +27,8 @@ my $total = <index.meta>->{'total'} // 0;
 
 return TRUE;
 
-#,,,,,,,,,...,..,,,,,,,..,,,.,..,,.,,,,..,.,.,..,,...,...,,..,.,.,,,.,,.,,,..,
-#OMD2HGM24OD7XPQJKVR2VCCBH7CKBB6LOF3ZVCMYTUQ6RH3GGRWJ2SHVVAOLKHP3FDWHXX7MQZIDM
-#\\\|EYNADUJKN4MVS4734QT5DQ2CRL3AQYTD45M47HZB76SFCZ3NIAR \ / AMOS7 \ YOURUM ::
-#\[7]DBAJLSALYD2MI6TGQESJ7S5JERTVX4NBYHDU4K2UFMAHLXBIFADI 7  DATA SIGNATURE ::
+#,,,,,..,,,,,,..,,..,,,,.,,,,,..,,.,.,,..,,..,..,,...,...,,,,,..,,,,,,,,,,,,.,
+#UHYGHZRCGNOD2KTXOKKXEMW6QZXJABW553XATROOQNG3IXO4TEAKHXE6733TGZTZWD7ALM7NRFN3A
+#\\\|RW5UOMP2QMOERWCJVK5BHBUHP4AL73B5Y6Z2YUXUWYCSKULQDE4 \ / AMOS7 \ YOURUM ::
+#\[7]XUOQQPV75K2XWGEYPC2K6AOGQLGD24A2COBMSENC6KHJXYQ7SUDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
