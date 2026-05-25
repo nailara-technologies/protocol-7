@@ -76,6 +76,7 @@ unless ( $key_header =~ m/^-----BEGIN (?:RSA |EC |)PRIVATE KEY-----$/ ) {
 }
 
 ## verify certificate is not expired via Net::SSLeay [ already loaded ] ##
+<[base.perlmod.autoload]>->( 'Date::Parse', qw( str2time ) );
 my $x509 = Net::SSLeay::PEM_read_bio_X509(
     Net::SSLeay::BIO_new_file( $cert_file, qw| r | ) );
 if ( not defined $x509 ) {
@@ -83,10 +84,19 @@ if ( not defined $x509 ) {
     return $result;
 }
 my $not_after = Net::SSLeay::X509_get_notAfter($x509);
-my $expiry    = Net::SSLeay::P_ASN1_TIME_timet( $not_after, undef );
+my $bio_out   = Net::SSLeay::BIO_new( Net::SSLeay::BIO_s_mem() );
+Net::SSLeay::ASN1_TIME_print( $bio_out, $not_after );
+my $expiry_str = Net::SSLeay::BIO_read($bio_out);
+Net::SSLeay::BIO_free($bio_out);
 Net::SSLeay::X509_free($x509);
+my $expiry = str2time($expiry_str);
+
 if ( not defined $expiry or $expiry <= time ) {
-    <[base.logs]>->( 1, 'httpsd: certificate is expired: %s', $cert_file );
+    <[base.logs]>->(
+        1,
+        'httpsd: certificate is expired [ %s ]: %s',
+        $expiry_str // 'unknown', $cert_file
+    );
     return $result;
 }
 
@@ -103,8 +113,8 @@ return $result;
 
 0;
 
-#,,..,...,.,,,...,,,,,..,,...,.,.,,,.,..,,...,..,,...,...,,,.,..,,,,.,,,,,.,.,
-#ULWUGRD2D475RHODDNRVBFAFPYXWABIU3NTIT4C6I62LVB2NLVC7ZXDPFXEAQ5OUBUFU6YC5E3JAM
-#\\\|5535IXCVVLG4NRVZNETXQJ5DU6J7AJ4G2QCY4UVPILDOQTPCTYV \ / AMOS7 \ YOURUM ::
-#\[7]MJU3EV427RRYTJXAATXOI2SY7IYHXIG2X76FCRIJM6TMJ222JACQ 7  DATA SIGNATURE ::
+#,,.,,.,,,..,,...,.,,,,,.,...,,,.,.,.,,,.,...,..,,...,...,..,,,,,,.,,,.,,,,..,
+#4VLHOUHVYCFUGCRUHI66ZDEI2CG4DPFRGYW34GOOSOW2AHQ6VRGYCHQLUSY2757RDA33UZQ6ZH7AU
+#\\\|4CZDXLLAXLYWSBF6SRFJCGIXDHK7ICGKP2C23NHGW7FSG3I6F7U \ / AMOS7 \ YOURUM ::
+#\[7]BV76CPJD4K3B73J44GAAPJJRGWXXN7BFN2FKPY2I3DP6RFYD3ADA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
