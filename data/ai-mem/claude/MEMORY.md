@@ -25,9 +25,16 @@
 - `data/md/development/P7-LLM-REFERENCE.md` — verified live command reference for kimi/LLM
 - `data/md/development/DEGRADED-FEATURES-AUDIT.md` — 5 high-priority + 3 medium with stub task files
 
+## Session 53 (2026-05-25) — index feed done, infra fixes
+- index zenka: data/md feed COMPLETE (416 files, 5.16M chars); `p7c index.persist` still needed after next start
+- reasoning.tree.* — 7 modules + on-demand zenka config (configuration/zenki/reasoning/); foundation for threshold/task bridge
+- tree.sort.trunk.* (5) + tree.route.page.* (12) — already existed from session 49; cancel_symmetric center-row bug fixed (field_self now returns empty trunk for fully symmetric map)
+- **events.handler.event_triggered** — recalc trigger was commented out since 2021-07-07 (commit a47579e64, "namespace cleanup"); fixed; events zenka now reschedules `at` events correctly
+- **httpsd cert guard** — `httpsd.check_certificate_available` now checks expiry via `Crypt::OpenSSL::X509->new_from_file + notAfter + str2time`; `httpsd.post_init` adds 13s retry timer when deferred
+- **Net::SSLeay API**: `P_ASN1_TIME_timet` and `ASN1_TIME_print` NOT available on this system — use `Crypt::OpenSSL::X509` (loaded by letsencr) for cert parsing instead
+
 ## Session 52 (2026-05-25) — index zenka ring-trie LIVE
 - index zenka: numerical language dedup tree fully working — feed-dir async (idle watcher), stats show per-ring geometry
-- baseline full corpus (data/md, 5.16M chars): ring-0=371 tokens, ring-7=560K seqs; inner ring stable at ~2M chars
 - `data/md/design/RING-TRIE-GEOMETRY.md` — sentinel '.' at index 0, freq-ranked children from index 1, one char per ring, infinite expansion, stable core geometry, memory-efficient packed encoding
 - `data/yaml/reasoning-templates/ring-trie-tight-packing.yaml` — template 22: tight packing + infinite expansion
 - `data/tasks/index-array-trie-implementation.md` — 6-step impl (done by kimi, session resume: dd1b368c)
@@ -212,14 +219,14 @@
 ## System State
 - [next-steps](topic-next-steps.md) — full task queue, roadmap, open bugs, dispatched tasks
 - [topic-completed](topic-completed.md) — all session summaries (Feb 2026 → present)
-- **letsencr**: self-healing renewal CONFIRMED WORKING (session 41) — v7.ax + visual.v7.ax rate limit clears ~15:30 UTC 2026-05-22
+- **letsencr**: fully working on atom + pri.v7.ax (session 53) — events recalc fix was root cause of 5-year-dormant scheduling bug
 - **reasoning.branch.***: LIVE (session 41) — 9 modules, task zenka hooked, ASCII tree viz via p7c reasoning.branch.status
 - **base.cmd.list**: :n: row limit working (prefix/suffix/zero-padded), header-aware
 - **pager.sort.multi-key**: ntime_b32 + priority_map sort types added (session 42)
 - **task dispatch sections**: all dispatched tasks now carry ## dispatch + prompt for reuse
 
-#,,.,,.,,,.,,,,,.,.,,,..,,,.,,,.,,,,.,..,,..,,..,,...,...,,..,,..,...,.,.,,,.,
-#Y42RQVS6GWFRBXL5NKENXF2W2J6DGGY5LF4ZH7IU2E7WD42U6TZ5D2A5Y3YJRCRWVKSU5RJBZUIXC
-#\\\|LWTLU52PFKWOVIDERUF7ZR3HKU4ZLOMFJDH4TI3TMUUPGEDTS26 \ / AMOS7 \ YOURUM ::
-#\[7]YRCU3NWT4VZE2BDPGJRR5ZG6ENPM2EFEJWOO3JE4VDV4AIJMJCDQ 7  DATA SIGNATURE ::
+#,,,,,.,,,,,.,,,.,..,,.,.,,,.,,..,,..,.,.,...,..,,...,..,,,,,,.,,,.,.,..,,.,.,
+#JWXYKR5YOU6HACGOCGNM6P65AUAMAR4MYHN3QA7J6HA4WG3KSSELBS7B3RI2N3UB5TJC6KOHKDA56
+#\\\|5BVLXT2Z3HRDWUFASKS4YU73M6FLFE5UX2GJVRHPXBPY5AWHCOD \ / AMOS7 \ YOURUM ::
+#\[7]WGGJY7JDZTFE7UVNFV3DEKTKXGTAREQRUI42H6NY7LIOFUAF4QDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
