@@ -1,7 +1,7 @@
 ## [:< ##
 
 # name = tree.route.page.bit_direction
-# descr = given decoded routing word and group index, return direction
+# descr = return left/right for group index in decoded word
 
 my $decoded = shift // {};
 my $index   = shift // 0;
@@ -19,8 +19,8 @@ return undef if $index < 0 or $index > 7;
 
 return $leading->[$index] eq qw| 0 | ? qw| left | : qw| right |;
 
-#,,.,,...,.,.,.,,,,.,,,,.,,..,,.,,...,,..,.,,,..,,...,...,,..,,,.,,..,..,,,.,,
-#XKTF2QWI772X4IRJDFLRNK2QIOUOUISBDIFNODSPUFKPMDEPL2RFDNINVXOSR563UNG6C2O4SHUVO
-#\\\|A4TII6EEC2PANOAM424BPAAXYE4CFRPRB4MOR5THPXROTYYXWUL \ / AMOS7 \ YOURUM ::
-#\[7]EFLSQDBWJOCW5ZK4PH64ONVTQKT6NWGFVVII5G4C5XYDO7Q7B4AA 7  DATA SIGNATURE ::
+#,,..,...,,,.,,,,,..,,,.,,,,,,.,.,.,.,,,,,,,,,..,,...,..,,.,.,.,,,...,...,..,,
+#FTMT6OSNXIC2SQHXENIWP322F4BSRUTSTZIWQPSSREHV3XK7DVVU5W475LAGPK5QQ7XEISO7PY7KG
+#\\\|5C7V5PDCT3OBUBAXX5K3N6G3G5ZBTGBZRED22QEBLDA4CK52FTD \ / AMOS7 \ YOURUM ::
+#\[7]TLIWRO4P3275CH6SW6RGBPSOH2WH6X55PZRHXD2JCT7D454CEGBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
