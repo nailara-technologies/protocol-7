@@ -25,13 +25,24 @@
 - `data/md/development/P7-LLM-REFERENCE.md` — verified live command reference for kimi/LLM
 - `data/md/development/DEGRADED-FEATURES-AUDIT.md` — 5 high-priority + 3 medium with stub task files
 
+## Session 54 (2026-05-25) — index .zxps persist/restore, deferred reply, rebalance-later
+- **`.zxps` format** — XZ-compressed Perl Storable; `zx`=xz `p`=perl `s`=storable; harmonically TRUE; 21MB→6.6MB
+- **path**: `/var/protocol-7/index/numerical/numerical-index_state.zxps`; mode 0640 (group-readable)
+- **`<[file.zenka_dir.*]>`** — correct callable prefix (NOT `base.file.zenka_dir.*`); `base.` is filename-only
+- **`IO::Compress::Xz`** must be autoloaded in init_code — NOT globally loaded; `IO::Uncompress::AnyUncompress` IS global
+- **`index.persist` deferred** — 21MB nstore blocks event loop; uses `<index.persist.reply_id>` + `index.callback.persist`
+- **`:rebalance-later:`** flag (harmonically TRUE) defers rank/trie rebuild to end of feed-dir (1 rebalance not 416)
+- **`s///` chaining** — cannot chain `=~` substitutions; each must be a separate statement
+- **`index.cmd.address`** output fix: arrayref path → `join('.', @$addr)` dotted string `e  :  0`
+- **`reasoning.branch.*`** already existed (session 41, May 21, 7 modules); kimi dispatch updated `status` only
+
 ## Session 53 (2026-05-25) — index feed done, infra fixes
-- index zenka: data/md feed COMPLETE (416 files, 5.16M chars); `p7c index.persist` still needed after next start
+- index zenka: data/md feed COMPLETE (416 files, 4.6M chars); persist/restore now via .zxps (session 54)
 - reasoning.tree.* — 7 modules + on-demand zenka config (configuration/zenki/reasoning/); foundation for threshold/task bridge
-- tree.sort.trunk.* (5) + tree.route.page.* (12) — already existed from session 49; cancel_symmetric center-row bug fixed (field_self now returns empty trunk for fully symmetric map)
-- **events.handler.event_triggered** — recalc trigger was commented out since 2021-07-07 (commit a47579e64, "namespace cleanup"); fixed; events zenka now reschedules `at` events correctly
-- **httpsd cert guard** — `httpsd.check_certificate_available` now checks expiry via `Crypt::OpenSSL::X509->new_from_file + notAfter + str2time`; `httpsd.post_init` adds 13s retry timer when deferred
-- **Net::SSLeay API**: `P_ASN1_TIME_timet` and `ASN1_TIME_print` NOT available on this system — use `Crypt::OpenSSL::X509` (loaded by letsencr) for cert parsing instead
+- tree.sort.trunk.* (5) + tree.route.page.* (12) — already existed from session 49; cancel_symmetric center-row bug fixed
+- **events.handler.event_triggered** — recalc trigger was commented out since 2021-07-07; fixed; events zenka reschedules correctly
+- **httpsd cert guard** — expiry check via `Crypt::OpenSSL::X509->new_from_file + notAfter + str2time`; 13s retry timer
+- **Net::SSLeay API**: `P_ASN1_TIME_timet` and `ASN1_TIME_print` NOT available — use `Crypt::OpenSSL::X509` instead
 
 ## Session 52 (2026-05-25) — index zenka ring-trie LIVE
 - index zenka: numerical language dedup tree fully working — feed-dir async (idle watcher), stats show per-ring geometry
@@ -225,8 +236,8 @@
 - **pager.sort.multi-key**: ntime_b32 + priority_map sort types added (session 42)
 - **task dispatch sections**: all dispatched tasks now carry ## dispatch + prompt for reuse
 
-#,,,,,.,,,,,.,,,.,..,,.,.,,,.,,..,,..,.,.,...,..,,...,..,,,,,,.,,,.,.,..,,.,.,
-#JWXYKR5YOU6HACGOCGNM6P65AUAMAR4MYHN3QA7J6HA4WG3KSSELBS7B3RI2N3UB5TJC6KOHKDA56
-#\\\|5BVLXT2Z3HRDWUFASKS4YU73M6FLFE5UX2GJVRHPXBPY5AWHCOD \ / AMOS7 \ YOURUM ::
-#\[7]WGGJY7JDZTFE7UVNFV3DEKTKXGTAREQRUI42H6NY7LIOFUAF4QDI 7  DATA SIGNATURE ::
+#,,.,,,.,,,,.,.,,,,,,,,,,,.,,,,.,,..,,.,.,,,,,..,,...,...,.,,,..,,,,,,,.,,,..,
+#YKKJG5FUQ6VDJBASCULTMFU377GVQXP7OHKR5BQPVPMGVRPOH2LEVIPYP3HK77SDWMI6ECRPGBWZY
+#\\\|KG5XPJG3HA4XJBHLDEOIDS5O5WHPLFZ6PHDWGNXRXKWMYQOHK2J \ / AMOS7 \ YOURUM ::
+#\[7]TTBUC2DRRXNROXREX7U4F6INLAK62GJSWWJSMZJQVSQRGMVKRCCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
