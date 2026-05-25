@@ -50,15 +50,14 @@
 <index.packed_rank> //= {};
 <index.level>       //= {};
 <index.trie>        //= {};
-<index.meta> //= {
+<index.meta>        //= {
     root  => '',      ## '' is -1, the signed root outside address space
     total => 0,
     dirty => FALSE,
 };
 
 ## auto-restore from disk only if corpus is not already in memory ##
-if (    not ( <index.meta>->{'total'} // 0 )
-    and -r <index.path.index-files> . '/index-state.storable' ) {
+if ( not( <index.meta>->{'total'} // 0 ) ) {
     <[index.restore]>;
 }
 
@@ -70,8 +69,8 @@ map { <[file.make_path]>->( $ARG, $create_perm, <system.amos-zenka-user> ) }
 
 0;
 
-#,,,.,.,,,...,..,,,.,,..,,,..,,..,.,,,...,.,.,.,.,...,...,...,..,,...,..,,,..,
-#RSMSDDQVSI4OIJHLQLOGCSM7RTZOJAFC2IULZHJFACXNRWQS4D3AT3BOH6WNNTN7NT3VPNPONRFLO
-#\\\|K6VYAZTS3T5DAPSJGFPEXVFTPI5HW5XPJEXFJFKTEAPGXZVF63S \ / AMOS7 \ YOURUM ::
-#\[7]IXTDBCVT7AW6TANXGI7U4F3MCP5XEMV5QSLIPLV6VXJBUNHDBWCI 7  DATA SIGNATURE ::
+#,,.,,...,,.,,..,,,.,,..,,..,,.,,,.,.,,.,,,.,,.,.,...,...,,..,,,.,..,,,.,,,.,,
+#5M3KBA6OLMLCDBFUITNHYAGFKPWNA6B57UJ2BRYZMDVL4XBPE2BIH4BWDSW53DAENZLY6Z2PC7YTW
+#\\\|DECQRLKYH4HIQEOZHWB3XBIQVMTBKDHK6QOJXW77XGN6AZ6XGEF \ / AMOS7 \ YOURUM ::
+#\[7]HDWIP27FHNH6CPLVTDPRFLI6OWCD3EO45TTMCSGFREDL2DUZFGDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
