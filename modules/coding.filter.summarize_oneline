@@ -26,7 +26,7 @@ $text =~ s|\s+$||;
 ## extract first sentence [ ends at . ! ? followed by space or end ] ##
 if ( $text =~ m{^(.{10,}?[.!?])(?:\s|$)} ) {
     my $sentence = $1;
-    ## only use if shorter than max — otherwise fall through to truncation ##
+    ## only use if shorter than max : otherwise fall through to truncation ##
     if ( length($sentence) <= $max ) {
         return $sentence;
     }
@@ -42,8 +42,8 @@ $truncated =~ s|\s+\S*$||;    ## trim to last complete word ##
 $truncated =~ s|\s+$||;
 return $truncated . ' .,.';
 
-#,,,.,,,.,,..,,..,...,,.,,,,.,..,,,,.,.,,,,..,..,,...,...,...,...,,..,.,,,.,,,
-#ASRFR624J74OJCFGZHPWTX5IP5MML5JHLZRVI7GC6KWRZU55AWQS5VYPHXMHMQR2DJNYAXL65Z2BC
-#\\\|5HTSF6TT6LOPGP743VVQ2VYB6PXE5EAL53TCM3CCSKPHCXQG2VK \ / AMOS7 \ YOURUM ::
-#\[7]FXAYLEHJLS6VVWJN26JDNEU3VSRFQK3ZIEGPC4WWU3U73CDLRMDA 7  DATA SIGNATURE ::
+#,,,,,,..,,,.,..,,.,,,,,.,,,,,.,.,,..,,.,,.,.,..,,...,...,,,,,...,.,,,.,.,,.,,
+#27Z6453NWTNNXXYQFJOPDZAXEGTYS5SGIZD4YNXYOHZONQ7ASHUQCOOTL7GVD226H3C46BJM3SP7E
+#\\\|EWBPVZFD3XDKHORS5WB5JDFZFCNHTHCTVWQYFFMVRKTITVFV6LK \ / AMOS7 \ YOURUM ::
+#\[7]HDN2XCFBBDLSJ5JLLUZ73C3JWLQ5FXYKHU5K6AYIHXDZRL7652AI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

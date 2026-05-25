@@ -27,7 +27,7 @@ foreach my $path (@seed_files) {
         next;
     }
 
-    ## root node — single node at top level ##
+    ## root node : single node at top level ##
     if ( defined $yaml->{'id'} ) {
         next
             if exists <valued.index>->{ $yaml->{'id'} }
@@ -37,7 +37,7 @@ foreach my $path (@seed_files) {
         next;
     }
 
-    ## branch files — hash of node_id => node_hashref ##
+    ## branch files : hash of node_id => node_hashref ##
     foreach my $section_key ( keys %{$yaml} ) {
         my $section = $yaml->{$section_key};
         next if ref $section ne 'HASH';
@@ -57,7 +57,7 @@ foreach my $path (@seed_files) {
 }
 
 <[base.logs]>->(
-    1,       'valued tree loaded — %d nodes, %d errors',
+    1,       'valued tree loaded : %d nodes, %d errors',
     $loaded, $errors
 );
 
@@ -65,8 +65,8 @@ return $loaded;
 
 #,,
 
-#,,.,,,,.,.,.,...,,.,,.,,,,,.,..,,,.,,.,.,.,.,..,,...,...,..,,.,.,...,..,,,,,,
-#YRP4PPFAEIU34ZUUPM6E4UUMA3CO7DIEBTFUCXJJLJV3T5ELPUSCLRPYGOZSCJFUVXUJU6MXTKYG4
-#\\\|24V2BNJVPOO7HSAJHEDX6OV73AHE3LRJUVICVQSCZFJDPC3NPYR \ / AMOS7 \ YOURUM ::
-#\[7]YA3E74KBWDWUZLHKRWOHGQVKY6K64NV5CQLZHL3HKV6QFJ2ISMDI 7  DATA SIGNATURE ::
+#,,.,,,.,,,,,,...,...,,.,,,..,...,.,.,,,.,,,,,..,,...,...,...,...,,.,,..,,,.,,
+#5ZCUHGKTOP2WFVL2RWO6DHRFU6WWZHLRLU733DE5R4VNFTH36HJYEUIEK3PA4HVJCFF5FH3UJ6XNS
+#\\\|5PWDJ7EVO5BOWN46LFJ2FSG7KF44MM5O3Y35SGEUW7M6XV26MC6 \ / AMOS7 \ YOURUM ::
+#\[7]AWF4MP3XJWZCBQXMEX3L5YDGWX7DVHAMDTANQ2DZEL5XAO7RNCBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -96,7 +96,7 @@ if (
         <[jobqueue.check_dependencies]>;
     }
 
-    ## cancel watcher once ready — no need to keep reading server output ##
+    ## cancel watcher once ready : no need to keep reading server output ##
     ## [ continuing to read monopolizes the event loop during inference ] ##
     <[coding.cancel_watcher.backend_monitor]>->($event);
 
@@ -105,12 +105,12 @@ if (
     return;
 }
 
-# If EOF or no data — verify the server process is still alive before
+# If EOF or no data : verify the server process is still alive before
 # declaring crash.  When fd numbers are reused after a switch-model, a
 # spurious 0-byte read can fire on the new pipe; don't misread it as EOF.
 if ( $bytes <= 0 ) {
     if ( kill( 0, $expected_pid ) ) {
-        ## process still alive — spurious read, stay active ##
+        ## process still alive : spurious read, stay active ##
         return;
     }
     close($read_fh);
@@ -158,8 +158,8 @@ if ( $bytes <= 0 ) {
     }
 }
 
-#,,.,,,,.,,.,,,,.,,.,,.,.,.,.,.,,,..,,...,.,,,..,,...,...,.,.,..,,,.,,,.,,,..,
-#JKU2HQEFAVIWLLW5AXE73JKRVO5G6PMMRWDEDAZFFWDS4GZKXFX22CXMRERUP24KJ3WICEKZWIIDE
-#\\\|2GCTUNKR5Z7UXLTLDCAAZARX3CCP6GZZ6HPWY2SSI3XJLYTMQA3 \ / AMOS7 \ YOURUM ::
-#\[7]6XJFDFIL7OKFSUDIER4662NORKUDHO5PBPVFY43FSFJIAOBWICBY 7  DATA SIGNATURE ::
+#,,,,,..,,.,.,.,.,,..,..,,...,...,...,,,.,,,.,..,,...,...,.,.,.,.,,,,,.,.,...,
+#HNQZNNECYNJ3DLM5SQBMRIARNXGC7AGFVYV3F2AEG7RTMCSPSEY2N4NTZE2NUNOZL44NBCL345OJG
+#\\\|VXMTTQCMBS3TZL7G7AKDSCXMNUNNK5VBOZYRGKXNEOF5ZPLTNKN \ / AMOS7 \ YOURUM ::
+#\[7]LVWK56VXXGYNNDE5MJ3YHNHR6VMEIKOFGFNT76TZYAWAP4RHOOAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

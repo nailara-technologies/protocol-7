@@ -13,7 +13,7 @@ return { success => FALSE, error => 'task_id required' }
 ## hold dispatch while backend is restarting after crash ##
 if (<coding.task.queue_paused>) {
     <[base.logs]>->(
-        1, 'send_request: queue paused — rescheduling %s in 5s', $task_id
+        1, 'send_request: queue paused : rescheduling %s in 5s', $task_id
     );
     my $state = <[coding.async.state_machine]>->( qw| get |, $task_id );
     my $round = $state->{'round'} // 0;
@@ -102,7 +102,7 @@ if ( defined $task && $task->{'pause_requested'} ) {
     return { success => TRUE, paused => TRUE };
 }
 
-## consume retry flag — if this was a retry, preserve retry_count ##
+## consume retry flag : if this was a retry, preserve retry_count ##
 ## if this is a fresh request, reset retry_count to 0 ##
 my $is_retry = $state->{'retry_pending'} // FALSE;
 if ($is_retry) {
@@ -169,7 +169,7 @@ my $est_tokens_pre  = int( $body_chars_pre / $chars_per_token_pre );
 my $headroom        = 500;    ## tokens reserved for generation overhead ##
 my $max_tokens_safe = $n_ctx - $est_tokens_pre - $headroom;
 
-## context overflow: ctx_est exceeds n_ctx — inject a user-visible error
+## context overflow: ctx_est exceeds n_ctx : inject a user-visible error
 ## message so the model can acknowledge and the task fails cleanly,
 ## rather than silently producing a 200-token stub completion          ##
 if ( $max_tokens_safe < 1000 ) {
@@ -177,7 +177,7 @@ if ( $max_tokens_safe < 1000 ) {
     my $err
         = sprintf(
         'context overflow: estimated %d tokens exceeds n_ctx=%d by %d'
-            . ' — reduce tool output size or use a larger context window',
+            . ' : reduce tool output size or use a larger context window',
         $est_tokens_pre, $n_ctx, $overflow > 0 ? $overflow : 0 );
     <[base.logs]>->( 0, "send_request: %s for %s", $err, $task_id );
     <[coding.async.fail_task]>->( $task_id, $err );
@@ -201,7 +201,7 @@ if ( $max_tokens < $max_tokens_cfg ) {
             'role'    => 'user',
             'content' => sprintf(
                 '[CONTEXT PRESSURE: only %d tokens available for generation'
-                    . ' — context is %d%% full. Use shorter responses, break'
+                    . ' : context is %d%% full. Use shorter responses, break'
                     . ' large writes into smaller chunks, or summarize instead'
                     . ' of writing verbatim content.]',
                 $max_tokens, int( $est_tokens_pre * 100 / $n_ctx )
@@ -221,7 +221,7 @@ if ( $max_tokens < $max_tokens_cfg ) {
 my $request_body = {
     'model'    => $task->{'execution'}->{'model_used'} // 'default',
     'messages' => \@messages,
-    ## use streaming — SSE chunks accumulate content as they arrive ##
+    ## use streaming : SSE chunks accumulate content as they arrive ##
     ## if connection drops mid-generation, we keep partial content ##
     ## [ non-streaming returns single JSON blob, vulnerable to drops ] ##
     'stream'      => JSON::PP::true(),
@@ -280,8 +280,8 @@ if (@messages) {
 return
     <[coding.async.request]>->( $task_id, $request_body, $state->{'job_id'} );
 
-#,,.,,,,,,,.,,,.,,,.,,...,..,,,,,,,,,,,.,,,,,,..,,...,..,,,..,,.,,,,.,,,,,,..,
-#ISB74GN2FOO4LCONHZOUS3BVRENFRLXIRH73SY23HOQMPQYNC4FGHXC277SXR7O3RBWIK4PB7ZEBM
-#\\\|YAVPCG2GDGJR2UA3EUSAA6ARENJTMOZDWUQ2Z44XTFKDSN2CRZS \ / AMOS7 \ YOURUM ::
-#\[7]PH7UC4QG7ZAEDRGDFYWZPMOYJO76EJTZQ6MNJGEXVYFWPW4DZODQ 7  DATA SIGNATURE ::
+#,,,,,..,,..,,,..,.,.,.,.,,,,,.,,,.,,,,.,,,,,,..,,...,..,,..,,,.,,.,.,,,,,...,
+#BAKSGNBHCBJ6DSVGC7G5LIAPI25VVGNOB2VTZNGPAKWRQHIT2HUUPSX2BZPM5GXHRGO5MPMINOR6I
+#\\\|LX5BRGOKSQPAARNN3UDMTHOGASJOBWMJ3JVTVBWGT5AXSM5FNN2 \ / AMOS7 \ YOURUM ::
+#\[7]SWQLOOINYRZKSITM7BC6Q7QADWCRSPV4EBY5JOFEE4DJV6TL5QCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -52,7 +52,7 @@ while ( my $current_dir = shift @dirs_to_scan ) {
             my $gen_path = eval { <[index.gen_path]>->(\$checksum) }
                 // qw| error |;
 
-            ##  bin/Protocol-7 does 'use File::stat' globally — shadows  ##
+            ##  bin/Protocol-7 does 'use File::stat' globally : shadows  ##
             ##  the builtin ; use the OO form like the rest of P7 does  ##
             my $st    = File::stat::stat($full_path);
             my $size  = $st ? $st->size  : 0;
@@ -99,8 +99,8 @@ require YAML::XS;
 
 return $cache;
 
-#,,,.,.,,,,,.,,..,..,,,,,,...,,.,,,,,,,,,,...,..,,...,...,,,.,..,,...,,.,,..,,
-#RUWMJ5AYO77OGW4CNEM6FAMJZU7CM4E7EJHU44U4UYBZ3M263ZKA7XJCGKLJ3UHTHN3R4EDWTR7UK
-#\\\|TP7AA6VDZUY7ZKOQEQQVU45DGKRQUD4P24EAWQ2YWCPMBQDHO3W \ / AMOS7 \ YOURUM ::
-#\[7]MALCYNXYX64IVKJLHIJVIRUSYNLYWG7DZRPN37TMUDEM5K6U7CCI 7  DATA SIGNATURE ::
+#,,.,,.,.,,,.,..,,...,.,,,,,,,,,,,,,.,...,...,..,,...,..,,,..,.,,,,.,,,.,,,..,
+#D4YQJOGIKBT6BLLG6747WK3SCMMNL7RLB455GEEDHPWLHNEZS6ORLN6TBRYJ56JGPFLYQ5J52Y65U
+#\\\|7FTKBQDPJGAIONXHNS5NW5BMK6M2UIPBQAUPJFU6TAY6WCVFBWL \ / AMOS7 \ YOURUM ::
+#\[7]SQLEUZ5LSI6B7HFDPW6V32NFOG3R4LCDXSA3JF3X2Y3WPPRNXGDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

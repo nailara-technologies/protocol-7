@@ -50,7 +50,7 @@ for my $line ( split( m|\r?\n|, $headers ) ) {
 
 ## simple content-type detection ##
 if ( $raw =~ m|Content-Type:\s*multipart|i ) {
-    ## crude multipart extraction — look for text/plain boundary ##
+    ## crude multipart extraction : look for text/plain boundary ##
     my ($boundary) = $raw =~ m|boundary=["']?([^"';\s]+)["']?|i;
     if ( defined $boundary ) {
         my @parts = split( m|--\Q$boundary\E|, $raw );
@@ -71,8 +71,8 @@ if ( $raw =~ m|Content-Type:\s*multipart|i ) {
 
 return $parsed;
 
-#,,,.,,..,.,.,,.,,,..,,..,,.,,..,,,..,.,.,.,,,.,.,...,..,,,,.,..,,,,.,...,.,.,
-#LQLGMFGSOYTW2DCSVVO4MLFUHP7KNJXW5BBXXSNJRB63ACMRGGXG37XARWCWL3H37WRG7VTBMYAES
-#\\\|54CTRJXN6THJS3RI6OKXJJIPLRVXQXGG5RW2QTMHZ4WOHWREDV6 \ / AMOS7 \ YOURUM ::
-#\[7]SBN74XTZ55UCITGNOXZXPTRUJFZGY3CHUIGHNB6YEUWXMDOR2KCI 7  DATA SIGNATURE ::
+#,,,,,,,.,,.,,.,.,.,,,,,,,,..,,,.,,..,,,,,,,.,.,.,...,...,,,,,,.,,,,.,.,,,,,.,
+#X5JUUPPKGZFOGGV3FGTR3GLL6ORMXFSMSIPATGV3JZRWBBB7VQUJHDAJBXDLIB7VKMGUJJCDCXP3Q
+#\\\|AZZOBWKMRL22MNIYYWYTYB3TTPU6NBHFLJLYOZOXMP27OJ6CEMB \ / AMOS7 \ YOURUM ::
+#\[7]DZY7MBKFDS7U7UNEI57OVNECT2WQEVG2V7VAV45RCMYVQNT4WQAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

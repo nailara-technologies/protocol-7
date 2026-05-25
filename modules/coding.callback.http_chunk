@@ -24,12 +24,12 @@ $context->{'round'} = $state->{'round'} // 0;
 
 ## call chunk handler ##
 ## note: chunk_handler may trigger state_machine transitions synchronously ##
-## which can start a new round — do not overwrite state after finish_reason ##
+## which can start a new round : do not overwrite state after finish_reason ##
 $context = <[coding.async.chunk_handler]>->( $task_id, $data, $context );
 
 if ( defined $context->{'finish_reason'} ) {
     ## state machine already handled the transition inside chunk_handler ##
-    ## content passed via transition data — do not write stale fields here ##
+    ## content passed via transition data : do not write stale fields here ##
     ## [ async.request may have already reset state for the next round ] ##
     return;
 }
@@ -39,8 +39,8 @@ $state->{'chunk_context'} = $context;
 
 return;
 
-#,,,.,,..,,..,,,.,,.,,.,,,.,,,..,,.,,,.,,,,,.,..,,...,...,,..,,,.,..,,...,...,
-#5COXSX3GM2U4CWMBOH7MP4VHH2VTHSXJFX7KUSAP6NQNUBJYFWG3QXO3CJ3CVM6XMAEIVG47R5T42
-#\\\|R3227TGTDG7LCSCBWRC4SQJ4QNYLBPVHDNLGT7RE4TBOIDFBP2H \ / AMOS7 \ YOURUM ::
-#\[7]V3UMBN62CM6MU7QOU4LPYRXUWZTG6POZE5CKW22YI7MUHNYHYCCI 7  DATA SIGNATURE ::
+#,,,,,,.,,.,,,.,,,...,,,.,..,,...,.,,,,,,,,,,,..,,...,...,,..,,..,.,,,,..,,..,
+#DRQRJL7KFLNL24RIWSOL7VWOW5NUFPX43QPOLF6YM42LYCGF5C5TM3KOG7TJU2B65AZYO5KHWTDK2
+#\\\|HXNBQQVWYAXK7ISHN75OVW32KVOSE7JULZYRIXWNASWZM7VVQEU \ / AMOS7 \ YOURUM ::
+#\[7]VSKNLB6UPR4LGVQ3GJNFORKEF5XICJ75BV5ZTB3TNMXRJOS6TWAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -16,7 +16,7 @@ return {
     }
     if not defined $query_param or !length($query_param);
 
-## optional :start: prefix — ensure zenka is started before waiting
+## optional :start: prefix : ensure zenka is started before waiting
 my $do_start = $query_param =~ s{^:start:\s*}{};
 
 my @instances = <[v7.instance_ids]>;
@@ -102,7 +102,7 @@ foreach my $id (@instances) {    # zenka name [ +subname ]
 ## trigger start_once when :start: prefix was given
 if ($do_start) {
     <[base.logs]>->(
-        2, ': notify_online :start: — ensuring %s is started', $query_copy
+        2, ': notify_online :start: : ensuring %s is started', $query_copy
     );
     <[zenka.cmd.start_once]>->( { 'args' => $query_copy } );
 }
@@ -111,8 +111,8 @@ push <v7.zenka.notify_online>->{$query_copy}->@*, $reply_id;
 
 return { 'mode' => qw| deferred | }
 
-#,,,,,.,,,,..,.,.,...,,.,,...,.,.,.,,,...,,..,..,,...,..,,..,,..,,,.,,.,,,,,,,
-#PBWNACD5PQB4V6YKQAOZ3C5DSLRFOGEEL7KBQM256PTD4CENXBEV3WEDTSLDIP7XGSKB74J6W6PZU
-#\\\|6G2DVXE23DC2R7GRAR6FSGXCGKOS2J7OLTTK2TPKL6GF4RKUUHJ \ / AMOS7 \ YOURUM ::
-#\[7]ZUEDMQIBLHB6Z6Q7NSST4QUZ5I7L6L52GQFZMIWQVVNTUAYSI4DY 7  DATA SIGNATURE ::
+#,,.,,,,,,,,,,,,.,,,,,,.,,,.,,,..,,,.,,..,,,,,..,,...,...,...,.,,,,,.,,,.,,,.,
+#GD5TF4H4IQEFJW62QTO4Z2HXVDJW2Q67UCRY342DQEUPA4WZADXDZE5HRQVOVS222M5VDLJYDA7RW
+#\\\|FOHYWNEDF2RKEOIJ26RZNPYSNLHMQ2JYUAJUEO4D7LQVZ7AA3FL \ / AMOS7 \ YOURUM ::
+#\[7]UKTJSD7LEVIBWLI7MPDWGWWFRYNWZXQWYFZT2UNTIHWRMQNBL2CI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

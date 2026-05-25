@@ -19,7 +19,7 @@ my $name   = $node->{'name'};
 $tree->{'by_chksum'} //= {};
 $tree->{'by_name'}   //= {};
 
-## [ check for existing node by checksum — deduplication ] ##
+## [ check for existing node by checksum : deduplication ] ##
 if ( exists $tree->{'by_chksum'}->{$chksum} ) {
     my $existing = $tree->{'by_chksum'}->{$chksum};
 
@@ -61,7 +61,7 @@ if ( exists $tree->{'by_chksum'}->{$chksum} ) {
     return { status => 'collapsed', node => $existing };
 }
 
-## [ new node — add to tree ] ##
+## [ new node : add to tree ] ##
 $tree->{'by_chksum'}->{$chksum} = $node;
 $tree->{'by_name'}->{$name}     = $node if defined $name and length $name;
 
@@ -99,8 +99,8 @@ if (    $node->{'convergence'} >= $node->{'threshold'}
 
 return { status => 'inserted', node => $node };
 
-#,,,,,.,.,.,,,,,,,,,,,,,,,,,,,,,.,,,,,.,,,.,,,..,,...,...,.,,,,.,,,,,,,.,,,,.,
-#3AAHGSVJA7SOYNQFZ7KTLT6K5ADJTV6PYAJBFVJRYGI7LELLGJNJK3XDDVT2FKLLCQAEUOGQPMYC6
-#\\\|MBEAPYNSIFPJUCIXT4CMJPUSTSMEZ6DR4XF6MI44573HN5QW6VT \ / AMOS7 \ YOURUM ::
-#\[7]B7QDTGN3DFK6KHLZNGRW6SX4OC3IODXH7Z3YEG5FBTXX5JMIXACI 7  DATA SIGNATURE ::
+#,,..,.,.,,.,,...,...,..,,,,,,.,,,..,,,..,,,.,..,,...,..,,,,,,...,,.,,.,,,,..,
+#ISBOFITYPJVQCZBOG5JX2TDNZ6MR6H5ZB2XQCJN6KB6JESPXQJRGXGYRTOFIKZAGK5HZ5C6VHN6QU
+#\\\|2MG6DUV7QHN3QEBXIA7JTKUZVPTZ5YAOJREDITLL5FRRTJJGMX5 \ / AMOS7 \ YOURUM ::
+#\[7]SYERAHSTLUMJXLHPQFPWZLODZZ4RE4UR3MSQJ3ISRGZAQBB4MODY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

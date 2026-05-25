@@ -17,7 +17,7 @@ if (<x11.geometry_was_undefined>) {
     my $profile = <web-browser.window.profile> // 'automatic';
     $profile = <web-browser.window.profile-fallback> // 'fullscreen'
         if $profile eq 'automatic';
-    ## x11.geometry set before Gtk3->init — parse it directly ##
+    ## x11.geometry set before Gtk3->init : parse it directly ##
     my ( $sw, $sh )
         = ( <x11.geometry> // '1920x1080+0+0' ) =~ m|^(\d+)x(\d+)|;
     my $geo = <[window.profile.calculate]>->(
@@ -137,7 +137,7 @@ if ( <system.zenka.mode> eq qw| universal-child | ) {
     );
 }
 
-## use 'map' signal — fires after window is actually mapped, no race condition ##
+## use 'map' signal : fires after window is actually mapped, no race condition ##
 $window->signal_connect(
     'map' => sub {
         <[web-browser.wait_for_window]>;
@@ -166,8 +166,8 @@ foreach my $signal_name (qw|  INT  TERM  |) {
     );
 }
 
-#,,.,,,.,,,,,,,..,...,..,,...,,..,,,,,,.,,.,,,..,,...,...,..,,,.,,,..,..,,,..,
-#5GDB23UYU32R3MBRLKL4AO3JH22PESRPRKTYRPFEOSHWHN6DTOVI7XILFG3I7EQE2OSH7PHZER5BU
-#\\\|7EXSKQFPPXFSLABVTCXAQRK27EZTZJ3AKMIJLHKTYO3DUCBXKRF \ / AMOS7 \ YOURUM ::
-#\[7]UWJUJDLX53FEOHWIQ6RPSOAFZZL7YD6KWDK2ZME5UZP3VZDHVIAI 7  DATA SIGNATURE ::
+#,,,,,...,,,.,,.,,..,,.,.,,..,,.,,.,,,,..,...,..,,...,...,,.,,..,,,..,,,,,...,
+#VFTE6GTI2P623BQIAODY7EQWIQQXFLW7ODTL4EN2MF4UUDZWKMUBWSZX7MXZNOD3I6IHUQFJR4KAS
+#\\\|ZDMRKOJYB54B3KSO3BFG5K3VVMH6ONR2RGUFYSEIUUL3GCCYW65 \ / AMOS7 \ YOURUM ::
+#\[7]7GL72IHZQPXGI27HDCJSPFSB675N3UVDYWX7CNNHFBHIRCJQEQBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

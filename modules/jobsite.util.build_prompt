@@ -27,7 +27,7 @@ if ( not length $profile_text ) {
     my $profile_file = <jobsite.cfg.profile_file>
         // '/etc/protocol-7/jobsite/profile.txt';
     $profile_text = <[file.read]>->($profile_file)
-        // 'no profile configured — score based on job listing alone';
+        // 'no profile configured : score based on job listing alone';
     $profile_text = Encode::decode( 'UTF-8', $profile_text )
         unless utf8::is_utf8($profile_text);
     $data{'jobsite'}{'cached_profile'} = $profile_text;
@@ -49,20 +49,20 @@ if ( defined $defects and @$defects ) {
         . " RE-ASSESS this job for $candidate_name."
         . "\n\nPREVIOUS ASSESSMENT HAD DEFECTS: $defect_note";
     $step1_preamble
-        = "Step 1 — Analyze in English: compare ${candidate_name}'s profile"
+        = "Step 1 : Analyze in English: compare ${candidate_name}'s profile"
         . ' against the job requirements and FIX the defects above.';
 } else {
     $task_preamble
         = ':local: :simple: You are a job-matching assistant. Your task:'
         . " evaluate whether $candidate_name fits the job below."
-        . ' Output ONLY a YAML block — no other text.';
+        . ' Output ONLY a YAML block : no other text.';
     $step1_preamble
-        = "Step 1 — Analyze in English: compare ${candidate_name}'s profile"
+        = "Step 1 : Analyze in English: compare ${candidate_name}'s profile"
         . ' against the job requirements.';
 }
 
 my $yaml_format = <<'YAML_TEMPLATE';
-Step 2 — Translate into German and output EXACTLY this YAML format:
+Step 2 : Translate into German and output EXACTLY this YAML format:
 
 score: <0-10>
 apply: <true|false>
@@ -113,9 +113,9 @@ my $prompt = join( "\n\n",
     $yaml_format,
     'CRITICAL: All text MUST be valid UTF-8 German with proper umlauts (ä ö ü ß).'
         . ' Never use ae/oe/ue/ss. No English. No Chinese.',
-    "## Kandidatenprofil — $candidate_name ##",
+    "## Kandidatenprofil : $candidate_name ##",
     $profile_text,
-    '## Stellenanzeige — DIESE STELLE BEWERTEN ##',
+    '## Stellenanzeige : DIESE STELLE BEWERTEN ##',
     "Titel: $title",
     "Unternehmen: $co",
     "Ort: $city",
@@ -125,8 +125,8 @@ my $prompt = join( "\n\n",
 
 return $prompt;
 
-#,,.,,..,,,..,,.,,.,.,..,,,..,,,,,...,.,,,..,,.,.,...,..,,...,..,,.,.,..,,,..,
-#UPV5LOSHW3YW5F3WKWHHBXTZFOTOS5LWZTNLGEPPOKW63KNA35A7TLPXOKSR73EUJBCXLZX7HYS7Q
-#\\\|ONPYKJ76YWHVQTYYTC7YGDJDKXVKACUYPMAQUUTBIINTPHBLMGU \ / AMOS7 \ YOURUM ::
-#\[7]SNO2JAHSK5XQDUPWN3IJGN4X22WPDJH5FQHYVZMPU6ROJM3ADODI 7  DATA SIGNATURE ::
+#,,.,,..,,.,,,.,,,.,.,.,,,..,,,,,,..,,..,,.,,,.,.,...,...,...,,,.,.,.,.,,,..,,
+#JMS47HLF7HUVZVMUZDJ626RRX7AZANRNVR5ROHHN3UVUADXZNUEG6ZSAURWERZPN7GZ45KUF4TJQS
+#\\\|AOLXGW677QQWMEDFCRFWFEOHGRJTNRLWN37RCNQLLTDRB3CVY67 \ / AMOS7 \ YOURUM ::
+#\[7]77KQ44WPBAXKVSPCHUNYD3N34Q7RM34X553YDFGHRZHZLJOBOEAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

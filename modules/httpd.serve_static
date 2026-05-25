@@ -186,7 +186,7 @@ if ( $file_path =~ m{\.tmpl$} ) {
 ## will be checked when we attempt to open the file [line 182+] If file is
 ## not readable, open() will fail and we'll return 500 error
 
-# Get file metadata — resolve symlinks for correct type/size
+# Get file metadata : resolve symlinks for correct type/size
 my $real_file_path = Cwd::realpath($file_path) // $file_path;
 my $file_stat      = File::stat::stat($real_file_path);
 if ( not defined $file_stat ) {
@@ -303,8 +303,8 @@ return <[httpd.download_init]>->(
     }
 );
 
-#,,,.,..,,,.,,.,.,,,,,...,,,.,...,,,,,.,.,...,..,,...,...,,.,,,,,,,.,,,,.,,,,,
-#4USEQTNFQ736C4AHMV7KLUYG5K5GWOC5V5QVYS6SCIKRWIKVM4Y24QUMPFMCAP2BAGGTUWRC5WDKC
-#\\\|Z2TCF7Z4YR5JNUZLDCEYTLJB2TYHDOICNS327MF6X7XXN4WUGLH \ / AMOS7 \ YOURUM ::
-#\[7]HU4V2WG37AKCQ534GXWYWPJEFLHZTVYDNW25AVXXB733KZJGVYCY 7  DATA SIGNATURE ::
+#,,,.,.,.,...,...,.,.,...,,,,,...,,,.,,,,,.,.,..,,...,...,...,,,,,,,.,.,,,..,,
+#WC5EYDR64JQQMSBYZIV3IJRZTGNWGOXEYW4B64ULLAGT3K6EJ4YV53VAAE5PM5ROPLVJXMALEODOK
+#\\\|YZO2GUUUTE6UC566WP3GWS5N7VWY7HTEMYLOAPDKK7YTUNOTPRB \ / AMOS7 \ YOURUM ::
+#\[7]CXFIL5IWVHRWTUVK37BSSGE6MM4TGV47W2G7NVHSRH7T73TF3EBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

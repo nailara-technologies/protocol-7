@@ -1,7 +1,7 @@
 ## [:< ##
 
 # name  = httpd.route.handler.iris-svg
-# descr = serve BMW384 iris SVG — mode and params from query string
+# descr = serve BMW384 iris SVG : mode and params from query string
 
 my $id      = shift;
 my $session = $data{'session'}->{$id};
@@ -32,7 +32,7 @@ $rings = 63 if $rings > 63;
 
 my $t0 = <[base.time]>->(3);
 
-# [ populate local BMW384 index if needed — code_path = modules/ ]
+# [ populate local BMW384 index if needed : code_path = modules/ ]
 if ( not scalar keys %{ <bmw384.index>->{'by_name'} // {} } ) {
     <[route.bmw384.index.from-path]>->();
 }
@@ -58,7 +58,7 @@ if ( $mode eq 'oscilloscope' ) {
             },
         }
     );
-    return 0;    # [ deferred — reply handler writes response ]
+    return 0;    # [ deferred : reply handler writes response ]
 }
 
 if ( defined <bmw384.svg.cache>->{$cache_key} ) {
@@ -214,8 +214,8 @@ $session->{'buffer'}->{'output'} .= $svg;
 
 return 2;
 
-#,,,.,,.,,,..,...,..,,,.,,..,,,..,.,.,,,,,...,..,,...,...,,.,,..,,,,.,.,,,...,
-#SXXG6WPVVA66YBLV4KHQW24KVVNUDVYLXXOU7YA2C2ZOMHIWNMW47BIJS2GUHOFDDOVKGZFAW4EIC
-#\\\|IJZF5VJK6VQUNX33YDWN2U52TI6JUSK33UAO6SJDNIKACNFL4E5 \ / AMOS7 \ YOURUM ::
-#\[7]HAQBQN3AKV475PRPNFL6JQMUHFVLOODXSOUX2VUTW3NV2TMO4UBQ 7  DATA SIGNATURE ::
+#,,,.,.,.,..,,...,,..,,,,,..,,...,.,,,,.,,,,,,..,,...,...,,..,,,,,,.,,.,,,...,
+#7XQMMJJ4CSOKTPICRT6GB6K4OSKZ7D7F5NT4IVC34NBUACCMDN6FBBYJUG46WT22XXXHAGKPZMIRU
+#\\\|GG57JFQDITWARTKURCFTG63YXKO5WZOL26THJSLPHBNSQYA5OWI \ / AMOS7 \ YOURUM ::
+#\[7]F4XHBMW7PF4U62M5YD2T6E6WDBBGPKL5MSAZUJZAPUW6PP6MHGAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

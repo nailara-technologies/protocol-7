@@ -9,7 +9,7 @@ foreach my $pend_id ( keys %{<kimi.wire.pending>} ) {
     next if ( $pend->{'type'} // '' ) ne qw| prompt |;
 
     <[base.logs]>->(
-        0, ': reconnect grace expired — failing pending prompt [ %s ]',
+        0, ': reconnect grace expired : failing pending prompt [ %s ]',
         $pend_id
     );
     delete <kimi.wire.pending>->{$pend_id};
@@ -25,7 +25,7 @@ foreach my $pend_id ( keys %{<kimi.wire.pending>} ) {
 ## reset task if still active
 if ( defined <kimi.task.active_id> ) {
     my $task_id = <kimi.task.active_id>;
-    <[base.logs]>->( 0, ': grace timeout — resetting task %s', $task_id );
+    <[base.logs]>->( 0, ': grace timeout : resetting task %s', $task_id );
     <[protocol-7.route-send]>->(
         {   'command'   => 'task.reset',
             'call_args' => { 'args' => $task_id }
@@ -34,11 +34,11 @@ if ( defined <kimi.task.active_id> ) {
     <kimi.task.active_id> = undef;
 }
 
-## status change triggers watcher — handles reconnect scheduling
+## status change triggers watcher : handles reconnect scheduling
 <kimi.ws.status> = qw| disconnected |;
 
-#,,.,,,.,,,,.,..,,..,,,..,...,...,..,,.,.,.,,,.,.,...,...,...,,,.,...,,,,,...,
-#2564FOSI77FBPYNXZKXKAMGEQCGKU3BLX7QJWP44PZHQDK2J67BH2LA45NIV5OXOL2XYS5FLU6ECI
-#\\\|K6SA2RLW5CPZIU5REZHYNPCB57JVXNIGP5MUX76SSMPFZB4WCL4 \ / AMOS7 \ YOURUM ::
-#\[7]CL5XXUSYHLPH44XUXVHCAMRGCRFDBIWUSYG4DOW3WXY5IUDR42DI 7  DATA SIGNATURE ::
+#,,.,,...,,.,,...,,..,,,.,...,,,.,.,,,,.,,,..,.,.,...,...,..,,.,.,,,,,.,.,.,.,
+#KKE4PAIT52Z34ROJM6JJASHLQJ4VJDDDJMKYCSVAJAJOKXJHLCJATILXSCFXSPQZVWO3YBERXRMAA
+#\\\|XDQUEIJLDI7RJNUFY3FGHC5NPVCYJPZ3B43VQPJM5U3G5RAQZEJ \ / AMOS7 \ YOURUM ::
+#\[7]SZ2W42TBRH52AVSLKSH2JC4YFNNHR3A7LJ3FAY7FUYANCEBLQSAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

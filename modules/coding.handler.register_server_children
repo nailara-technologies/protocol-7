@@ -17,7 +17,7 @@ return unless $parent_pid;
 ## verify parent is still our tracked server ##
 my $srv = ( <coding.inference_servers> // {} )->{$backend} // {};
 if ( ( $srv->{'pid'} // 0 ) != $parent_pid ) {
-    return;    ## server was replaced — stop polling ##
+    return;    ## server was replaced : stop polling ##
 }
 
 ## scan for direct llama-server children of the server process ##
@@ -43,10 +43,10 @@ if ( open my $pfh, '-|', 'pgrep', '-P', $parent_pid ) {
     close $pfh;
 }
 
-## found — stop polling ##
+## found : stop polling ##
 return if $found;
 
-## not found yet — reschedule with 1.6x backoff, cap at 60s ##
+## not found yet : reschedule with 1.6x backoff, cap at 60s ##
 my $next = $interval * 1.6;
 $next = 47 if $next > 47;
 
@@ -61,8 +61,8 @@ $next = 47 if $next > 47;
     }
 );
 
-#,,,.,.,,,...,,,,,,..,.,,,.,,,.,,,..,,,,.,,,,,..,,...,..,,...,.,.,,,,,,,.,..,,
-#A76SADDMYELAUPQPFLE42VVCQAJTAVML7SGGLFBIJI2JEQWFZS42YWQOQ6QTEL6KTABCIGAITFGC2
-#\\\|EA5VG4T7ZBREDGH6AIDCD3JYFCTHWD3F5IH53ESIRTDO7RXBE5Q \ / AMOS7 \ YOURUM ::
-#\[7]3MISWXPYCKWNSI5437JK5H77XS5QAGU7DWFUBILLDO75EH4N22DA 7  DATA SIGNATURE ::
+#,,,,,,,,,..,,,,,,.,.,,,.,.,.,,,.,.,,,,..,,,,,..,,...,...,,,.,,,.,,,,,.,.,.,,,
+#74LVIYTUXQB37O3FGODWEWMLZ26VQYNYDEPWEGCH4UZJ6MVGJYCTHVLBU7747AUJ3XVYBHCKS5W7A
+#\\\|BTVBLZVKIOYJX5OOJVY6RUYUR6KBJ5XPLV3L6MUHPREHVPCRT37 \ / AMOS7 \ YOURUM ::
+#\[7]YM625FKMS37K7K66ZL5X5MAFIBTXAMZEZFFYXKKEXBJK7JJG2MAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

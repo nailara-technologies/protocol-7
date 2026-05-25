@@ -5,7 +5,7 @@
 
 my $args = $call->{'args'} // '';
 
-## parse arguments — key=value mode or plain prompt
+## parse arguments : key=value mode or plain prompt
 my %params;
 if ( $args =~ m|=| ) {
     ## key=value parsing [ prompt=... model=... steps=... seed=... ]
@@ -102,12 +102,12 @@ $data{'invoke'}{'jobs'}{$item_id} = {
 
 return {
     mode => qw| true |,
-    data => sprintf( 'queued [item:%s] — poll with: p7c invoke.queue-status',
+    data => sprintf( 'queued [item:%s] : poll with: p7c invoke.queue-status',
         $item_id )
 };
 
-#,,,,,,..,...,,.,,.,,,,..,,.,,,..,,,,,.,.,...,..,,...,..,,.,,,.,.,,,,,,.,,.,.,
-#P3R7ADFQOB5CXL26XD5TGBGUP3MSAFKGZMVYRVKLULY5CCXG5DMB6WRNBO7VJW57OPFJP7Q76EICC
-#\\\|EPADATSKSQ6HI4HBZ4QT72HUGT3AJBOCY7JFD5QPP4PKEUTUQ24 \ / AMOS7 \ YOURUM ::
-#\[7]N2T4YPJA7K4PWL5E4HAJZGL3YSPD53GWLQEZLEKOX7SZ4MZPPIAA 7  DATA SIGNATURE ::
+#,,,,,...,,,.,,,,,,..,.,,,..,,.,,,.,.,...,,,,,..,,...,...,,..,,,,,,,,,,.,,,.,,
+#2F4YPOIRP33WRZ42XR2UX3AU5XUKD7AHLNOS537F7RMKTDAWSGM3WOJH5DIS4CVEGYZFFEA5ZIA2C
+#\\\|H2I47KAKXV6DMIAMLWFI3U467S347MWJ4HSMLEIFLOWKAHWXJNU \ / AMOS7 \ YOURUM ::
+#\[7]2C676EKXQUU7YJ2Y64JTGSZ4RRSHHFAH4JAEBMSGDOCEY7VH3QBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

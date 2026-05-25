@@ -31,7 +31,7 @@ if ( lc($mode) eq qw| false | ) {
     return;
 }
 
-## parse yaml result — fall back to json regex for backward compat ##
+## parse yaml result : fall back to json regex for backward compat ##
 my ( $score, $reason, $summary, $parsed ) = ( '', '', '', undef );
 my $yaml_src = $result;
 $yaml_src =~ s{^.*?(?=^score\s*:)}{}ms;
@@ -58,7 +58,7 @@ my $validation
     = <[jobsite.validate.assessment]>->( $result, $reason, $summary );
 
 if ( $validation->{'is_valid'} ) {
-    ## parse assertions — from yaml parse or legacy json regex ##
+    ## parse assertions : from yaml parse or legacy json regex ##
     my $assertions = $job_rec->{'assertions'} // {};
     if ( ref $parsed eq 'HASH' && ref $parsed->{'assertions'} eq 'HASH' ) {
         my $pa = $parsed->{'assertions'};
@@ -159,7 +159,7 @@ if ( $validation->{'is_valid'} ) {
     ## add to checksum index for dedup on future scans ##
     <[jobsite.checksum.index]>->( qw| add |, $job );
 } else {
-    ## repair still invalid — mark and keep whatever we have ##
+    ## repair still invalid : mark and keep whatever we have ##
     $job_rec->{'repair_failed'} = TRUE;
     <[base.logs]>->(
         1,       'repair for job %s still invalid (%s), keeping original',
@@ -178,8 +178,8 @@ if ( <jobsite.pending_count> <= 0 ) {
 <[jobsite.state.persist]>;
 <[jobsite.dispatch.next]>;
 
-#,,..,...,.,,,..,,..,,,,,,.,.,...,,.,,,,.,,..,..,,...,...,.,,,.,,,.,.,.,,,..,,
-#GOBIXUYM2BK2S7B6P3SH3IKRZU4PSTLTCH4CPEI4ZXELSLAEPKDRD3FETA2VMZJMTPXXEQAOSO6CE
-#\\\|HML76T2WVW4I43D74673XJ5AJCXJC2B7DC6HNCKXEFE6P5QQCSY \ / AMOS7 \ YOURUM ::
-#\[7]EAKBGXRPMNOAEOXXVE7R7D6EQ5ACWZPYCE2YWVME5TMA4UWHAMDQ 7  DATA SIGNATURE ::
+#,,.,,,,,,..,,...,..,,,,,,.,,,.,,,,.,,,,.,,.,,..,,...,...,,.,,..,,,,,,,.,,,,,,
+#Y47B4CRF76EHMXHLFNVG4RUGOBJ7E3B6TSE2MEU34XDR2EWBEXJWGDNQYO6QVIDMMU5PWMDYTNYNM
+#\\\|ZHWVP3NMVRHXUDO22WNMSJENS5I2WHZ334OPDZZMDFGHGFFN6AL \ / AMOS7 \ YOURUM ::
+#\[7]IUSSIYFAJTZAWCZXAOO4V4OLZ2ALZLDIIHJ2SPDAY4L5YMQIK6AY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

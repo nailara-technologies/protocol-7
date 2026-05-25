@@ -21,7 +21,7 @@ if ( $raw_type =~ m{^(cpu|gpu)$}i ) {
     $parsed = <[coding.parser.query_prefix]>->($raw_prompt);
 }
 
-## :model:AMOS:ID: keyword — task-level model override, stripped from prompt ##
+## :model:AMOS:ID: keyword : task-level model override, stripped from prompt ##
 ## allows task files to be self-describing: ":model:WZIZD6Y:2BIZKWY:" ##
 if ( $parsed->{'query'} =~ s{:model:([A-Z2-7]{7}:[A-Z2-7]{7}):}{}i ) {
     $parsed->{'model'} //= $1;  ## don't override an explicit GPU:M: prefix ##
@@ -52,7 +52,7 @@ if (exists $code{'coding.context.read_module'}
 ) {
     my $enrich_module = $1;
 
-    ## check if this word matches a template name — if so, the template ##
+    ## check if this word matches a template name : if so, the template ##
     ## handles its own context, skip inline enrichment ##
     my $root    = <system.root_path>;
     my $tpl_dir = "$root/"
@@ -281,8 +281,8 @@ return {
     'hooks'        => $hooks,
 };
 
-#,,.,,,,,,,.,,..,,.,.,,.,,,..,,,.,,,.,..,,,..,..,,...,...,.,.,,..,..,,,,,,..,,
-#J7ZWIC53LZKHGLYM3QH62M7KFCXDDSHXAMJ2GBLQEB64ZSPKUIJUPLK7RNZYRVZPLWODHO5NADVZ4
-#\\\|QPPBTUFGD3KGHZW4GZJVFCI4KIWHTVZ4A75EEEN6BZ5Z3PHOW2A \ / AMOS7 \ YOURUM ::
-#\[7]HPO56NN4H36EQDTDSE5U5C3SJBC4XL42QGBD7F3DVAV4JOVK7ODA 7  DATA SIGNATURE ::
+#,,.,,.,.,,..,,.,,.,,,,,,,,,.,.,.,,,,,,,,,,,,,..,,...,.,,,...,,..,.,,,,..,,.,,
+#XHAP6XOPHFLRQP3XVMY4PDNZOWJIJXWG2QWBH3USDCAOMO63VC32ZXE7PJSPN7A32LVKO6U4V3Y7S
+#\\\|P3ZOTADFVAEOP3SSZNDXUXIZWU25CWHGQB4NLD4DDFX4NMQ25O6 \ / AMOS7 \ YOURUM ::
+#\[7]QCIKP75J5BOXPFZF4ELFMPLK5WMSADOFYOPEEEE63LMOJ7HI4YBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

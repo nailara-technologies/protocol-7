@@ -11,7 +11,7 @@ my $apply   = $args->{'apply'}    // TRUE;
 my $raw_enc = $args->{'encoding'} // 'UTF-8';
 my $norm_encoding = $raw_enc =~ /^:/ ? $raw_enc : ":encoding($raw_enc)";
 
-## resolve and sanitize path — no Cwd, use string check ##
+## resolve and sanitize path : no Cwd, use string check ##
 return 'error: path traversal not allowed' if $path =~ m{\.\.};
 my $root     = <system.root_path>;
 my $abs_path = "$root/$path";
@@ -65,7 +65,7 @@ if ($apply) {
         return
               sprintf "SUCCESS: staged delete %d line%s [ %d..%d ] from %s"
             . " [ staged at: %s ]"
-            . " — do NOT verify with read_file"
+            . " : do NOT verify with read_file"
             . ", original path unchanged until commit",
             $count, $count == 1 ? '' : 's', $from_n, $to_n, $path,
             $stage_path;
@@ -77,8 +77,8 @@ return sprintf "preview: would delete %d line%s [ %d..%d ]",
 
 #,,
 
-#,,..,,.,,,,,,,,.,..,,..,,,.,,,,,,.,.,,..,,..,..,,...,...,..,,,,.,,,,,,.,,,,,,
-#R3WNGPPBACBWNMIWRFK2SI6LIJPQOFZSJPBMYCD4C6O4NVRN2KF7APTQVGKNR4M4QICQOAMJMB44O
-#\\\|F2A4CKMMZGA4ZNTKUR2AJB3OIA65XYOEFP5KGDB7IXG6RTQUWM2 \ / AMOS7 \ YOURUM ::
-#\[7]NOWRFIQKPVYW4N2AD6VUAOX7BF5UTFAXOMQ63RUC6WUIDI5Q7WBA 7  DATA SIGNATURE ::
+#,,..,,.,,,..,.,,,.,,,.,.,...,,,,,,.,,.,,,,.,,..,,...,...,..,,,.,,,,.,..,,,..,
+#AZ4GEPZBJL3UPJHQ26AMWHEAUEQ4SAU5YKGGWBTNGMDHIZEVNXMN5VVI3P3E7SKIWJD2IWMDAU3JM
+#\\\|3MQVZNF6ZYQRHY2UXO5HYMBUXVUFCSY2WW5X3UGWNP4VZ27KMTJ \ / AMOS7 \ YOURUM ::
+#\[7]IX5DIM7WZGAYY2X43ODDVVRGFU3STTCEGVUZ3RUCI4KH2K4RNWBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -26,7 +26,7 @@ my $ssl_client = $hs->{'socket'};
     $server_id, $p_host, $p_port
 );
 
-## crash capture hook [ httpsd only — record ssl-handshake-timeout event ] ##
+## crash capture hook [ httpsd only : record ssl-handshake-timeout event ] ##
 $code{'httpsd.request_capture.write'}->(
     {   'event'     => 'ssl-handshake-timeout',
         'client_ip' => $p_host,
@@ -54,8 +54,8 @@ $w->cancel if $w->is_active;
 
 return undef;
 
-#,,.,,,..,..,,.,.,,,,,...,.,,,,..,,,,,...,.,,,.,.,...,..,,.,,,,,,,..,,,,,,.,,,
-#VOGJY74UPEMFDBBAUGWYGPAOGJSTYVIUWE5K44LLNW4NOLUAQDDYDZMQGGBQSJDFGIWNM6WGOR2HG
-#\\\|TTW7OG5TXYXHYCGJCO3YTPFG2BNJ7AV5I3IRVTEIVFTDLD6OU5K \ / AMOS7 \ YOURUM ::
-#\[7]T2MI5BAR6QRZU6UVBDLPSVMBVGEGGIPRZFA4HED5FYALOSVKFMDY 7  DATA SIGNATURE ::
+#,,,.,.,.,,,,,,..,.,.,.,.,...,,,.,,..,,,,,..,,.,.,...,...,,,.,.,.,.,.,..,,...,
+#JOEVQY25PLBB7SC6263W3F2GGGVHJO5GHMYLZEJFMJPGSB42L4ONWJ3UO4KD3NR4DAT2TZXP7R56M
+#\\\|ENILQSZA7RHTN6OQ7M6BXUUXTTQBR45J2NDMLSLGNPTGFDGAXRI \ / AMOS7 \ YOURUM ::
+#\[7]PELN5FN6JXEOKA7XBVYTSKM5YB3LIR542OGJOL7ERDKULK6APICI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,7 +1,7 @@
 ## [:< ##
 
 # name  = decoder.handler.on-boundary
-# descr = Handle harmonic convergence boundary — close level buffers, log, INDEXCUBE
+# descr = Handle harmonic convergence boundary : close level buffers, log, INDEXCUBE
 
 my $args_str
     = ref( $ARG[0] ) eq 'HASH' ? $ARG[0]->{'args'} : ( $ARG[0] // '' );
@@ -30,7 +30,7 @@ for my $level_name (qw| level-5-B32 level-6-D3 |) {
 
 ## log boundary event ##
 <[base.log]>->(
-    2, "decoder boundary #%d — stream %s at convergence root [ %s ]",
+    2, "decoder boundary #%d : stream %s at convergence root [ %s ]",
     $boundary_n, $stream_id, $boundary_value
 );
 
@@ -57,15 +57,15 @@ push @{ $data{'decoder'}{'INDEXCUBE'} },
 
 <[base.log]>->(
     2,
-    "INDEXCUBE depth %d — stream %s [%s] traversal recorded",
+    "INDEXCUBE depth %d : stream %s [%s] traversal recorded",
     scalar( @{ $data{'decoder'}{'INDEXCUBE'} } ),
     $stream_id, $p7ref
 );
 
 return { 'mode' => qw| true |, 'data' => "boundary $boundary_n recorded" };
 
-#,,,.,,,.,,,.,,,.,,.,,,.,,,..,..,,,..,...,,.,,..,,...,...,,..,.,.,,..,.,,,...,
-#H2Y6H55HFS3OWKY5SPXQXDMOLQM5PTOM2C2TQXTGSV55HREODBQLUR3U2X2PIR7DLWZVI5TUGAOJY
-#\\\|OPWUBTYIRV3X7HA3RXLRFI4BPCPYWVQ3YRK3LXSP7UUDOQK4EPW \ / AMOS7 \ YOURUM ::
-#\[7]WPAZYE4YFK35BN53L5Z4FUVKIY5WIUPJRCIRB63CMAKK7FYJJUAY 7  DATA SIGNATURE ::
+#,,..,,.,,,.,,.,,,,..,,.,,.,.,.,.,,..,,.,,,.,,..,,...,...,...,...,.,,,,,.,,,.,
+#J5TXZELLMTVY6A4XEBV37SDXJXG2FS34SJ7IYHJY6XVGWUWX3HBLPURLKASIL6VP6FJAF6HAJVOCO
+#\\\|CHF5XYKZJE4XM4SVUH52DUQG4BZEOPLWOHMYGATJJGZEKRTIQKK \ / AMOS7 \ YOURUM ::
+#\[7]OJ6FG52ZUZJ7CYUFGZ6XJAQGAEPMMAOXBTKZQDSIBJ2YFE7G7UCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

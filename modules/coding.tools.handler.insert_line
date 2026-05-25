@@ -11,7 +11,7 @@ my $apply   = $args->{'apply'}    // TRUE;
 my $raw_enc = $args->{'encoding'} // 'UTF-8';
 my $norm_encoding = $raw_enc =~ /^:/ ? $raw_enc : ":encoding($raw_enc)";
 
-## resolve and sanitize path — no Cwd, use string check ##
+## resolve and sanitize path : no Cwd, use string check ##
 return 'error: path traversal not allowed' if $path =~ m{\.\.};
 my $root     = <system.root_path>;
 my $abs_path = "$root/$path";
@@ -59,7 +59,7 @@ if ($apply) {
         return
               sprintf "SUCCESS: staged insert before line %d in %s"
             . " [ staged at: %s ]"
-            . " — do NOT verify with read_file"
+            . " : do NOT verify with read_file"
             . ", original path unchanged until commit",
             $line_num, $path, $stage_path;
     }
@@ -70,8 +70,8 @@ return sprintf "preview: would insert before line %d\n  content: %s",
 
 #,,
 
-#,,,,,.,.,,,.,...,..,,,,,,...,..,,...,..,,,,,,..,,...,..,,..,,,..,..,,...,,.,,
-#QBO53NOE545LE67QX6THUPXYYPT6NX2IXTDJP5T5ZGBLXRGEGJDMEIUWNQA5KTGDYB3727VG4KWTM
-#\\\|HPTMDGXCGIXMV6OG3YI4XWFP7DDQNQ2GOISVF6Z6D3V6CQJ6V6M \ / AMOS7 \ YOURUM ::
-#\[7]Q2BJX4EHMMYK4DPTXT2GVWNTDAUSSKBUUAE54DXSDFY7PS4MCUBA 7  DATA SIGNATURE ::
+#,,,.,...,,.,,,,,,,,,,.,.,,,,,,.,,..,,...,.,.,..,,...,...,,,,,.,,,...,.,.,,,,,
+#HLYCEX6DLP3DUSCFS6ETVCNUXNCHO5B72QL2GOUXJJF4ISMCF7THRS3DDPJUKLRJD5IJ6QFXNWUNE
+#\\\|7H4LDSRAQ7VEOPJB7HRYNQBLQF5QWNVDI7REYISUW7SEJ3B2CCU \ / AMOS7 \ YOURUM ::
+#\[7]23MEEXL4S5NV5IN5HS2LXNGTHEQD762777YPBOSY6RLSFXEINUBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,7 +1,7 @@
 ## [:< ##
 
 # name  = valued.tree.record_outcome
-# descr = record task outcome — increments refs on node and its ancestors
+# descr = record task outcome : increments refs on node and its ancestors
 
 my $params = shift // {};
 
@@ -9,7 +9,7 @@ my $node_id = $params->{'node_id'} // return undef;
 my $outcome = $params->{'outcome'}
     // 'completed';    ## completed | blocked | surprising ##
 
-## only positive outcomes propagate upward — blocked decrements ##
+## only positive outcomes propagate upward : blocked decrements ##
 my $op = $outcome eq 'blocked' ? 'remove' : 'add';
 
 my $node = <valued.index>->{$node_id};
@@ -35,8 +35,8 @@ return $node->{'refs'};
 
 #,,
 
-#,,..,,,.,,..,,,.,...,,,,,..,,.,.,...,..,,...,..,,...,...,.,.,..,,.,.,.,,,...,
-#AAPWGHR54KPEW5JUKFWFU74JI3BV2FVS3OEU66JOVJ7B2AATHMDOW52XQAWMMWKXH2UA7EO62MOFK
-#\\\|K7UDLEHFXAZBT4TWYW23VBBRAN7NDX6XB5JFXW2QD252PKM5AUA \ / AMOS7 \ YOURUM ::
-#\[7]CX7YAWOISTIXXFNHPU6TNESKGTXGEVO3ZYXKABSDMKGSOMYTWABY 7  DATA SIGNATURE ::
+#,,,,,...,,,.,,,,,,,,,.,,,..,,...,,,.,,..,,,.,..,,...,..,,...,..,,.,.,.,.,,,,,
+#B5DZV3O7PS5ZLR5V53NSHIWRVEJG5MXXIYHFTE5FRCHRE5JLYP44SG6N2VXQUZ33FU7BBRMOGKUMQ
+#\\\|BWKJURYABQOHUMHPOPID6FRJTU65ODTH5KY4VWJKGRPKCUA5EY7 \ / AMOS7 \ YOURUM ::
+#\[7]ELJZ6CUHNG5TMKFIF2MJDPC4ERTXZTKT646KERAHLEKG6BKUYMAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

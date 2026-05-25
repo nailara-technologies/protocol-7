@@ -33,7 +33,7 @@ if ( defined $call->{'param'} and ref $call->{'param'} eq 'HASH' ) {
     ## multiline body takes precedence for description ##
     $description = $call->{'data'} if length( $call->{'data'} // '' );
 } else {
-    ## args is the full description string — decode B32 if prefixed
+    ## args is the full description string : decode B32 if prefixed
     $description = $call->{'args'} // '';
     if ( $description =~ s|^:B32:||i ) {
         $description = Encode::decode( 'UTF-8', decode_b32r($description) );
@@ -58,7 +58,7 @@ my $full_chksum = $amos_chksum->($chk_input);
 ## take first 7 chars for readable id
 my $task_id = substr( $full_chksum, 0, 7 );
 
-## ensure uniqueness — if collision, append counter
+## ensure uniqueness : if collision, append counter
 my $counter     = 0;
 my $original_id = $task_id;
 while ( exists <task.queue>->{$task_id} ) {
@@ -118,8 +118,8 @@ my $sent = <[protocol-7.route-send]>->(
 
 return { 'mode' => 'size', 'data' => $task_id };
 
-#,,..,...,,.,,,,.,...,,..,,.,,,,.,,,,,,,.,.,.,..,,...,...,.,.,,..,.,.,.,.,.,,,
-#DQVOS27CIEQCTUN454A6UCYGL6LHWXP6AJO2PIS77MRPNVONXRKQVU6EFQEBM52KG6QYG3LDRU6QQ
-#\\\|GU2CVC2O6WHTFLBWVANMGLAT6ALZRXMDDCPVKSILMFDYRSAPEIU \ / AMOS7 \ YOURUM ::
-#\[7]S73FZJAAPLQRWFV5NJ2KHYGVMJKVNDHRGALZ5I2FMB647D5JZCDI 7  DATA SIGNATURE ::
+#,,,,,..,,,,,,...,.,,,..,,,.,,,..,...,,.,,.,.,..,,...,...,...,..,,.,.,,.,,.,.,
+#A4NX55BEHHXDP5TYB4FGDXUMUJV62445HL5CKQ77LOWSQVFPSCYJ76ICEXM7KMR7GDYNB3AXHXCAS
+#\\\|D6BST6YGKNXV2LQB3IRQQWPMEEWT6SK2MC7VHDAX5PUDBXCSRYS \ / AMOS7 \ YOURUM ::
+#\[7]UNYU5MYPBIHTNDPTVNBZBRMLPBRAQIEWSV4TAQGCV25BMTK6DWBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

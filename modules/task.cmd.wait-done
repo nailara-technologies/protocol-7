@@ -1,7 +1,7 @@
 ## [:< ##
 
 # name  = task.cmd.wait-done
-# descr = deferred wait for task completion — returns result
+# descr = deferred wait for task completion : returns result
 # param = <task_id> [timeout-seconds]
 
 my $args_str = $call->{'args'} // '';
@@ -19,7 +19,7 @@ my $task = <task.queue>->{$task_id};
 return { 'mode' => 'false', 'data' => "task not found: $task_id" }
     unless defined $task;
 
-## already done at call time — reply immediately ##
+## already done at call time : reply immediately ##
 my $status = $task->{'status'} // '';
 if ( $status eq 'done' ) {
     <[base.logs]>->( 1, 'wait-done: %s already done', $task_id );
@@ -38,14 +38,14 @@ my $reply_id = $call->{'reply_id'};
 <task.wait.pending>->{$task_id} = $reply_id;
 
 ## timeout is handled by the caller (p7c/bin/task-wait) ##
-## internal timer deferred — add task.cmd.wait-timeout module if needed ##
+## internal timer deferred : add task.cmd.wait-timeout module if needed ##
 
 <[base.logs]>->( 1, 'wait-done: deferred for %s', $task_id );
 
 return { 'mode' => 'deferred' };
 
-#,,.,,,..,...,,.,,...,..,,,.,,,,,,..,,,,.,,,,,..,,...,...,,,.,,,,,,,.,.,,,,,,,
-#424LCUVZLKVR2SPQHVF3YC7EN42WQBABUNG7JEU5KB64IPTQARKZ2JWZHUVGB5BZXC6AICRDLHQOK
-#\\\|TJPW7KOPEVRIP7SBPYWDHCLDWADM3RBBEDV2G644EGSZEGOFA5A \ / AMOS7 \ YOURUM ::
-#\[7]5AMAFWPYZ3V73XTPBL662NNZWOINSTWCKEULVDFNMSVFGKMO3GCI 7  DATA SIGNATURE ::
+#,,.,,,.,,,.,,,,,,..,,.,.,..,,,,,,...,,,,,,,.,..,,...,...,..,,.,.,,..,,,.,.,,,
+#6LGQV4FLFA3ZRG5OIT7X2S5BRGCHC3HWF4TM5I4FP5YCRHCOXDIDGUJ4N7SQWTHL3EOVGT2KZVAL2
+#\\\|M5JNGUAIWYVYKKIO6R6RJRVJIBXDRGOLHOT3KJ6S4PIW6T6N4JP \ / AMOS7 \ YOURUM ::
+#\[7]EGTHBU4DCSCRG4CYPO76PTXMXLJDCII7DQCODKEHGINR5BGTNEDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

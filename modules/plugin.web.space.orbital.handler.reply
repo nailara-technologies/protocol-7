@@ -22,7 +22,7 @@ if ( $cmd eq qw| SIZE | ) {
 
 if ( $field eq qw| self | ) {
 
-    ## nodes.cmd.orbital-position — size mode, key=value lines ##
+    ## nodes.cmd.orbital-position : size mode, key=value lines ##
     my %kv;
     foreach my $line ( split "\n", $raw_data ) {
         if ( $line =~ m|^\s*(\w+)\s+(.+)$| ) {
@@ -39,7 +39,7 @@ if ( $field eq qw| self | ) {
 
 } elsif ( $field eq qw| known | ) {
 
-    ## discover.list-orbital — size mode with formatted table ##
+    ## discover.list-orbital : size mode with formatted table ##
     my @nodes;
     foreach my $line ( split "\n", $raw_data ) {
         next if $line =~ m|^[-\s]+$|;
@@ -59,7 +59,7 @@ if ( $field eq qw| self | ) {
 
 } elsif ( $field eq qw| connections | ) {
 
-    ## external.list-connections — size mode with formatted table ##
+    ## external.list-connections : size mode with formatted table ##
     my @conns;
     foreach my $line ( split "\n", $raw_data ) {
         next if $line =~ m|^[-\s]+$|;
@@ -79,7 +79,7 @@ if ( $field eq qw| self | ) {
 
 } elsif ( $field eq qw| nameserv | ) {
 
-    ## nameserv.cmd.discover-nodes — true mode with result string ##
+    ## nameserv.cmd.discover-nodes : true mode with result string ##
     my @entries;
     my $domain = <nameserv.cfg.auto_publish_domain> // '';
     foreach my $line ( split "\n", $raw_data ) {
@@ -96,7 +96,7 @@ if ( $field eq qw| self | ) {
 
 } elsif ( $field eq qw| gm_state | ) {
 
-    ## graphics-matrix.orbital-sync — true mode with structured data ##
+    ## graphics-matrix.orbital-sync : true mode with structured data ##
     my $decoded
         = length($raw_data)
         ? eval { JSON::XS::decode_json($raw_data) }
@@ -122,8 +122,8 @@ $cache->{'timestamp'} = time() if $all_received;
 
 return 0;
 
-#,,..,,,,,,,,,.,,,,..,,,,,,,,,.,.,,,.,,,.,,,.,..,,...,..,,,.,,.,.,.,,,.,.,...,
-#4M4UKUDYUOZAMRUIDNDVIMAUUCILGEHOBYWWR3TY257IX2JQ3ZK2USXLZHVWJ2LQSJOZY3GE4TVKM
-#\\\|RUPYDUC2CO5F4TH3FPUVIOJ3DULZCPUDATXMQNNX3NTN3JL2MVA \ / AMOS7 \ YOURUM ::
-#\[7]U6FNRMCTF5KEPDYKVS5LMXGUZFRMFSIUE5PIK6ZX3XEZZI3W7GCA 7  DATA SIGNATURE ::
+#,,.,,...,.,,,..,,,,,,.,.,,.,,,..,.,,,.,.,...,..,,...,...,,..,.,,,..,,,,.,...,
+#POLKGPGC75IWCUETGUNJQUONLGKKXKKYP2WTZOX4NDY5UPR7FAVMO47I25VD34IKEBREKV7ROBXOK
+#\\\|FPDF4TEF57IKA7XMZHDP23WOAQVKQX3OWQ4QV7EXNFE4OOAZE4S \ / AMOS7 \ YOURUM ::
+#\[7]4JPZNMZ2KT4XX4IJ3GVRGBU5KVALTZICTRMJLZWTZAYXSRTNQYBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

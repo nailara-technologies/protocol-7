@@ -50,7 +50,7 @@ my $sm_state = $state->{'state'} // '';
     $http_state->{'chunks_received'} // 0
 );
 
-## state machine drives all transitions — check what happened ##
+## state machine drives all transitions : check what happened ##
 ## helper: release backend lock if we own it ##
 my $release_backend_lock = sub {
     my $backend = $state->{'backend'} // '';
@@ -59,7 +59,7 @@ my $release_backend_lock = sub {
 };
 
 if ( $sm_state eq 'tool_exec' ) {
-    ## tool execution in progress — do not interfere ##
+    ## tool execution in progress : do not interfere ##
     <[base.logs]>->(
         1, "http_complete: task %s in tool_exec, deferring", $task_id
     );
@@ -68,7 +68,7 @@ if ( $sm_state eq 'tool_exec' ) {
 }
 
 if ( $sm_state eq 'complete' || $sm_state eq 'error' ) {
-    ## state machine already finalized — nothing to do ##
+    ## state machine already finalized : nothing to do ##
     <[base.logs]>->(
         1,        "http_complete: task %s already %s",
         $task_id, $sm_state
@@ -79,7 +79,7 @@ if ( $sm_state eq 'complete' || $sm_state eq 'error' ) {
 
 if ( $sm_state eq 'subtask' ) {
     ## parent transitioned to subtask-wait state during streaming ##
-    ## compaction subtasks: lock NOT released by compact_context — release here ##
+    ## compaction subtasks: lock NOT released by compact_context : release here ##
     ## tool subtasks: lock already released by subtask_spawn ##
     if ( defined $state->{'compaction_pending'} ) {
         <[base.logs]>->(
@@ -99,7 +99,7 @@ if ( $sm_state eq 'subtask' ) {
 
 if ( $sm_state eq 'streaming' ) {
     ## connection closed while still streaming [ current request ] ##
-    ## no finish_reason received — try to recover ##
+    ## no finish_reason received : try to recover ##
     my $content = $state->{'response_text'} // $state->{'content'} // '';
 
     ## check chunk_context for partial content
@@ -115,7 +115,7 @@ if ( $sm_state eq 'streaming' ) {
     }
 
     if ( @{$tool_calls} ) {
-        ## partial tool_calls detected — transition to tool execution ##
+        ## partial tool_calls detected : transition to tool execution ##
         <[base.logs]>->(
             1, "http_complete: task %s connection closed with %d tool_calls",
             $task_id, scalar( @{$tool_calls} )
@@ -158,7 +158,7 @@ if ( $sm_state eq 'streaming' ) {
             );
         }
     } else {
-        ## no content at all — check for raw response in buffer ##
+        ## no content at all : check for raw response in buffer ##
         my $body = $http_state->{'buffer'} // '';
         if ( length($body) ) {
             <[base.logs]>->(
@@ -185,7 +185,7 @@ if ( $sm_state eq 'streaming' ) {
             }
         } elsif ( ( $http_state->{'bytes_received'} // 0 ) > 0 ) {
             ## data was received and processed via on_chunk (tool calls,
-            ## finish_reason, etc.) — clean close, nothing left to handle ##
+            ## finish_reason, etc.) : clean close, nothing left to handle ##
             <[base.logs]>->(
                 2,
                 "http_complete: task %s clean close after %d bytes processed",
@@ -217,8 +217,8 @@ my $backend_early = $state->{'backend'} // '';
 
 return;
 
-#,,.,,,.,,.,,,,,,,,,,,,,,,,,,,.,,,...,...,.,,,..,,...,...,,..,...,...,.,.,,..,
-#2LXLMQUJHQFQUALE5QI3PVUD23JAWZ6VLBD4KREN2A4KLDXQZBSRCDPBAIL3SGON37HVCURB7YPW4
-#\\\|LIYRXIGHUY3JUAO54AX3JZ5VO7V7FW5RGIOPI5NBOL6J2NIUXJK \ / AMOS7 \ YOURUM ::
-#\[7]IBWKKBL7O3UU4DAHGZ7HOJT4A3MEPKIWXLDXK4HYFM3TUKW6JUCI 7  DATA SIGNATURE ::
+#,,.,,.,,,.,.,,..,,,.,,.,,,.,,,,.,,,.,,..,.,,,..,,...,..,,,.,,...,,..,.,,,.,,,
+#6JDHUULBERVAM74ETW44UJDAUTDB4XYUR7HDORACZI7TIOOJNHGWUE5UC2OWURKMMIZXAUNCJDCX2
+#\\\|Q6S5ZCYG5SK26MXBADSTKJPI4JE5QAYWMURTV2PQ3XENVN4IVC5 \ / AMOS7 \ YOURUM ::
+#\[7]PFTZ3NQY4LJKA6CUC7SSLQZT6MJQSKD64XABVQM5EC7PHFGQKKDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

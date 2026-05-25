@@ -100,10 +100,10 @@ if ( $b_ref->{'paused'} and not $b_ref->{'n.o.-asking'} ) {
     my @send_line;    ##  composing log message parameters  ##
 
     ##  'source sid' command [ protocol ] mode expected  ##
-    ## only cube prepends node.zenka + sid — other zenki must NOT add this ##
+    ## only cube prepends node.zenka + sid : other zenki must NOT add this ##
     ## adding it for non-cube zenki doubles the prefix, breaking p7-log protocol ##
     if ( <system.zenka.name> eq qw| cube | ) {
-        push @send_line,    ##[ cube has sid 0 — set manually here ]##
+        push @send_line,    ##[ cube has sid 0 : set manually here ]##
             join( qw| . |, <system.node.name>, <system.zenka.name> ), 0;
     }
 
@@ -134,8 +134,8 @@ if ( $b_ref->{'paused'} and not $b_ref->{'n.o.-asking'} ) {
     }
 }
 
-#,,,,,,..,...,...,,..,..,,...,,,,,,.,,,,,,,..,..,,...,..,,..,,,,.,,.,,...,.,,,
-#HNOGKEHX6RLJBGHWM7QQZDQOZSDF32WVHLOCKADC2PF35WP6ZNJSTP6JAP66YEEFMLN6NW6KYDBDO
-#\\\|SJTGAVAQUFHP6DB4632D6W3I3XPJE2GBXMQKEQN6DRERTJO2F4V \ / AMOS7 \ YOURUM ::
-#\[7]CXTNEQLBOQOGTCU5DLDP7QSE5QR5S6APTM56VTD6MTVNNBLPZ6DA 7  DATA SIGNATURE ::
+#,,.,,,,.,.,.,,.,,...,...,,,.,..,,,.,,,.,,...,..,,...,...,,..,,..,,,,,.,,,...,
+#FAHMRZDDK7B4DV5BAPPLBTHQV4SABBJYMHYJNYBO34HGFES2W6UT7RYYLHTYPNF5JAYGCDTDAI4DE
+#\\\|WGBFAJ3BJPHV3W7SJURUBHS6BZNCJUZ4F3KRYQZW5QPRZOM5XQO \ / AMOS7 \ YOURUM ::
+#\[7]H6A5CRLGNLHPXDZWMFX5W5BLIY6CWVGQOL7WYBCE3O3J66MRPSCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

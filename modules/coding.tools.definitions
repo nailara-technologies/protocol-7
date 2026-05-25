@@ -11,7 +11,7 @@
 
 my @tools;
 
-## read_file — budget-aware file content ##
+## read_file : budget-aware file content ##
 if ( exists $code{'context.file'} ) {
     push @tools,
         {
@@ -61,7 +61,7 @@ if ( exists $code{'context.file'} ) {
         };
 }
 
-## read_module — P7 module content with metadata ##
+## read_module : P7 module content with metadata ##
 if ( exists $code{'coding.context.read_module'} ) {
     push @tools,
         {
@@ -89,7 +89,7 @@ if ( exists $code{'coding.context.read_module'} ) {
         };
 }
 
-## list_modules — discover modules by namespace ##
+## list_modules : discover modules by namespace ##
 if ( exists $code{'context.modules.list'} ) {
     push @tools,
         {
@@ -116,7 +116,7 @@ if ( exists $code{'context.modules.list'} ) {
         };
 }
 
-## module_deps — dependency call graph ##
+## module_deps : dependency call graph ##
 if ( exists $code{'context.module.dependencies'} ) {
     push @tools,
         {
@@ -142,7 +142,7 @@ if ( exists $code{'context.module.dependencies'} ) {
         };
 }
 
-## recent_changes — git diff stats ##
+## recent_changes : git diff stats ##
 if ( exists $code{'context.git.recent_changes'} ) {
     push @tools,
         {
@@ -172,7 +172,7 @@ if ( exists $code{'context.git.recent_changes'} ) {
         };
 }
 
-## git_diff_staged — show staged changes ##
+## git_diff_staged : show staged changes ##
 push @tools,
     {
     'type'     => 'function',
@@ -196,7 +196,7 @@ push @tools,
     },
     };
 
-## git_diff_unstaged — show unstaged changes ##
+## git_diff_unstaged : show unstaged changes ##
 push @tools,
     {
     'type'     => 'function',
@@ -220,7 +220,7 @@ push @tools,
     },
     };
 
-## recent_errors — error log with filter ##
+## recent_errors : error log with filter ##
 if ( exists $code{'context.error.recent'} ) {
     push @tools,
         {
@@ -250,7 +250,7 @@ if ( exists $code{'context.error.recent'} ) {
         };
 }
 
-## list_files — directory listing ##
+## list_files : directory listing ##
 if ( exists $code{'pager.source.file-list'} ) {
     push @tools,
         {
@@ -293,7 +293,7 @@ if ( exists $code{'pager.source.file-list'} ) {
         };
 }
 
-## extract_file — smart partial file read ##
+## extract_file : smart partial file read ##
 if ( exists $code{'context.file.extract'} ) {
     push @tools,
         {
@@ -329,7 +329,7 @@ if ( exists $code{'context.file.extract'} ) {
         };
 }
 
-## search_code — grep across codebase ##
+## search_code : grep across codebase ##
 push @tools,
     {
     'type'     => 'function',
@@ -363,7 +363,7 @@ push @tools,
     },
     };
 
-## dep_graph — bidirectional call graph for a namespace ##
+## dep_graph : bidirectional call graph for a namespace ##
 push @tools,
     {
     'type'     => 'function',
@@ -390,7 +390,7 @@ push @tools,
     },
     };
 
-## ncode_search — full codebase search via ncode binary ##
+## ncode_search : full codebase search via ncode binary ##
 push @tools,
     {
     'type'     => 'function',
@@ -421,7 +421,7 @@ push @tools,
     },
     };
 
-## edit_file — line-based file editing with preview ##
+## edit_file : line-based file editing with preview ##
 push @tools,
     {
     'type'     => 'function',
@@ -462,7 +462,7 @@ push @tools,
     },
     };
 
-## replace_in_file — content-based find and replace [ no line numbers ] ##
+## replace_in_file : content-based find and replace [ no line numbers ] ##
 push @tools,
     {
     'type'     => 'function',
@@ -502,7 +502,7 @@ push @tools,
     },
     };
 
-## replace_line — replace single line by line number ##
+## replace_line : replace single line by line number ##
 push @tools,
     {
     'type'     => 'function',
@@ -538,7 +538,7 @@ push @tools,
     },
     };
 
-## delete_lines — delete a range of lines by line numbers ##
+## delete_lines : delete a range of lines by line numbers ##
 push @tools,
     {
     'type'     => 'function',
@@ -575,7 +575,7 @@ push @tools,
     },
     };
 
-## insert_line — insert a line before given line number ##
+## insert_line : insert a line before given line number ##
 push @tools,
     {
     'type'     => 'function',
@@ -611,7 +611,7 @@ push @tools,
     },
     };
 
-## list_inline_subs — scan module for sub declarations ##
+## list_inline_subs : scan module for sub declarations ##
 push @tools,
     {
     'type'     => 'function',
@@ -638,7 +638,7 @@ push @tools,
     },
     };
 
-## validate_module_format — check P7 module against format rules ##
+## validate_module_format : check P7 module against format rules ##
 push @tools,
     {
     'type'     => 'function',
@@ -661,7 +661,7 @@ push @tools,
     },
     };
 
-## ptd_check — syntax check a P7 module ##
+## ptd_check : syntax check a P7 module ##
 push @tools,
     {
     'type'     => 'function',
@@ -683,7 +683,7 @@ push @tools,
     },
     };
 
-## ptd_format — format a P7 module with ptd ##
+## ptd_format : format a P7 module with ptd ##
 push @tools,
     {
     'type'     => 'function',
@@ -705,7 +705,7 @@ push @tools,
     },
     };
 
-## task_complete — signal task completion and stop the loop ##
+## task_complete : signal task completion and stop the loop ##
 push @tools,
     {
     'type'     => 'function',
@@ -726,7 +726,7 @@ push @tools,
     },
     };
 
-## escalate — signal need for human attention ##
+## escalate : signal need for human attention ##
 push @tools,
     {
     'type'     => 'function',
@@ -757,7 +757,7 @@ push @tools,
     },
     };
 
-## subtask_spawn — delegate work to a child task ##
+## subtask_spawn : delegate work to a child task ##
 push @tools,
     {
     'type'     => 'function',
@@ -792,7 +792,7 @@ push @tools,
     },
     };
 
-## record_question — note uncertainty without stopping ##
+## record_question : note uncertainty without stopping ##
 push @tools,
     {
     'type'     => 'function',
@@ -824,7 +824,7 @@ push @tools,
     },
     };
 
-## record_suggestion — note an improvement idea without stopping ##
+## record_suggestion : note an improvement idea without stopping ##
 push @tools,
     {
     'type'     => 'function',
@@ -856,7 +856,7 @@ push @tools,
     },
     };
 
-## tree_read — read value at a dot-separated path in %data ##
+## tree_read : read value at a dot-separated path in %data ##
 push @tools,
     {
     'type'     => 'function',
@@ -887,7 +887,7 @@ push @tools,
     },
     };
 
-## tree_write — set scalar value at a dot-separated path ##
+## tree_write : set scalar value at a dot-separated path ##
 push @tools,
     {
     'type'     => 'function',
@@ -913,7 +913,7 @@ push @tools,
     },
     };
 
-## task_file_search — find task files across active and archived locations ##
+## task_file_search : find task files across active and archived locations ##
 push @tools,
     {
     'type'     => 'function',
@@ -952,14 +952,14 @@ push @tools,
     },
     };
 
-## tree_list — list children of a branch with type info ##
+## tree_list : list children of a branch with type info ##
 push @tools,
     {
     'type'     => 'function',
     'function' => {
         'name'        => 'tree_list',
         'description' =>
-            'inspect in-memory zenka state hash (%data) — NOT the filesystem. '
+            'inspect in-memory zenka state hash (%data) : NOT the filesystem. '
             . 'use list_files to browse disk. '
             . 'shows keys, types (scalar/hash/array/code), and sizes.',
         'parameters' => {
@@ -989,7 +989,7 @@ push @tools,
     },
     };
 
-## file_rename — rename or move a file within the project ##
+## file_rename : rename or move a file within the project ##
 if ( exists $code{'coding.tools.handler.file_rename'} ) {
     push @tools,
         {
@@ -1018,7 +1018,7 @@ if ( exists $code{'coding.tools.handler.file_rename'} ) {
         };
 }
 
-## remove_file — move file to trash [ recoverable delete ] ##
+## remove_file : move file to trash [ recoverable delete ] ##
 if ( exists $code{'coding.tools.handler.remove_file'} ) {
     push @tools,
         {
@@ -1047,7 +1047,7 @@ if ( exists $code{'coding.tools.handler.remove_file'} ) {
         };
 }
 
-## write_new_file — create a new file [ refuses to overwrite ] ##
+## write_new_file : create a new file [ refuses to overwrite ] ##
 push @tools,
     {
     'type'     => 'function',
@@ -1075,7 +1075,7 @@ push @tools,
     },
     };
 
-## write_append — append to existing file ##
+## write_append : append to existing file ##
 push @tools,
     {
     'type'     => 'function',
@@ -1109,7 +1109,7 @@ push @tools,
     scalar @tools
 );
 
-## note_write — save finding/thought to task notes ##
+## note_write : save finding/thought to task notes ##
 if ( exists $code{'coding.tools.handler.note_write'} ) {
     push @tools,
         {
@@ -1138,7 +1138,7 @@ if ( exists $code{'coding.tools.handler.note_write'} ) {
         };
 }
 
-## note_read — access notes from current or previous task ##
+## note_read : access notes from current or previous task ##
 if ( exists $code{'coding.tools.handler.note_read'} ) {
     push @tools,
         {
@@ -1168,7 +1168,7 @@ if ( exists $code{'coding.tools.handler.note_read'} ) {
         };
 }
 
-## note_list — browse available note trees ##
+## note_list : browse available note trees ##
 if ( exists $code{'coding.tools.handler.note_list'} ) {
     push @tools,
         {
@@ -1195,7 +1195,7 @@ if ( exists $code{'coding.tools.handler.note_list'} ) {
         };
 }
 
-## note_summarize — create L1/L2 summaries ##
+## note_summarize : create L1/L2 summaries ##
 if ( exists $code{'coding.tools.handler.note_summarize'} ) {
     push @tools,
         {
@@ -1225,7 +1225,7 @@ if ( exists $code{'coding.tools.handler.note_summarize'} ) {
         };
 }
 
-## note_search — find notes by keyword or content ##
+## note_search : find notes by keyword or content ##
 if ( exists $code{'coding.tools.handler.note_search'} ) {
     push @tools,
         {
@@ -1260,7 +1260,7 @@ if ( exists $code{'coding.tools.handler.note_search'} ) {
         };
 }
 
-## note_update — replace content in an existing note section ##
+## note_update : replace content in an existing note section ##
 if ( exists $code{'coding.tools.handler.note_update'} ) {
     push @tools,
         {
@@ -1293,7 +1293,7 @@ if ( exists $code{'coding.tools.handler.note_update'} ) {
         };
 }
 
-## note_delete — remove note section or entire task notes ##
+## note_delete : remove note section or entire task notes ##
 if ( exists $code{'coding.tools.handler.note_delete'} ) {
     push @tools,
         {
@@ -1322,7 +1322,7 @@ if ( exists $code{'coding.tools.handler.note_delete'} ) {
         };
 }
 
-## note_tag — add tags to a note section ##
+## note_tag : add tags to a note section ##
 if ( exists $code{'coding.tools.handler.note_tag'} ) {
     push @tools,
         {
@@ -1355,7 +1355,7 @@ if ( exists $code{'coding.tools.handler.note_tag'} ) {
         };
 }
 
-## note_recent — list recent notes across all tasks ##
+## note_recent : list recent notes across all tasks ##
 if ( exists $code{'coding.tools.handler.note_recent'} ) {
     push @tools,
         {
@@ -1384,7 +1384,7 @@ if ( exists $code{'coding.tools.handler.note_recent'} ) {
         };
 }
 
-## note_filter — multi-criteria filtering across notes ##
+## note_filter : multi-criteria filtering across notes ##
 if ( exists $code{'coding.tools.handler.note_filter'} ) {
     push @tools,
         {
@@ -1422,7 +1422,7 @@ if ( exists $code{'coding.tools.handler.note_filter'} ) {
         };
 }
 
-## note_history — show modification history for a section ##
+## note_history : show modification history for a section ##
 if ( exists $code{'coding.tools.handler.note_history'} ) {
     push @tools,
         {
@@ -1454,7 +1454,7 @@ if ( exists $code{'coding.tools.handler.note_history'} ) {
         };
 }
 
-## note_merge — combine notes from multiple sections or tasks ##
+## note_merge : combine notes from multiple sections or tasks ##
 if ( exists $code{'coding.tools.handler.note_merge'} ) {
     push @tools,
         {
@@ -1488,7 +1488,7 @@ if ( exists $code{'coding.tools.handler.note_merge'} ) {
         };
 }
 
-## validate_module — check module for errors before commit ##
+## validate_module : check module for errors before commit ##
 if ( exists $code{'coding.tools.handler.validate_module'} ) {
     push @tools,
         {
@@ -1512,7 +1512,7 @@ if ( exists $code{'coding.tools.handler.validate_module'} ) {
         };
 }
 
-## decode_base32 — decode base32/base32r encoded strings ##
+## decode_base32 : decode base32/base32r encoded strings ##
 if ( exists $code{'coding.tools.handler.decode_base32'} ) {
     push @tools,
         {
@@ -1536,7 +1536,7 @@ if ( exists $code{'coding.tools.handler.decode_base32'} ) {
         };
 }
 
-## ncode_search_context — regexp search across files with context lines ##
+## ncode_search_context : regexp search across files with context lines ##
 if ( exists $code{'ncode.cmd.search'} ) {
     push @tools,
         {
@@ -1568,7 +1568,7 @@ if ( exists $code{'ncode.cmd.search'} ) {
         };
 }
 
-## regex_replace_preview — preview regex replacement without writing ##
+## regex_replace_preview : preview regex replacement without writing ##
 if ( exists $code{'coding.tools.handler.regex_replace_preview'} ) {
     push @tools,
         {
@@ -1609,7 +1609,7 @@ if ( exists $code{'coding.tools.handler.regex_replace_preview'} ) {
         };
 }
 
-## regex_replace_apply — apply a previewed regex replacement ##
+## regex_replace_apply : apply a previewed regex replacement ##
 if ( exists $code{'coding.tools.handler.regex_replace_apply'} ) {
     push @tools,
         {
@@ -1634,7 +1634,7 @@ if ( exists $code{'coding.tools.handler.regex_replace_apply'} ) {
         };
 }
 
-## regex_replace_undo — undo last regex replacement ##
+## regex_replace_undo : undo last regex replacement ##
 if ( exists $code{'coding.tools.handler.regex_replace_undo'} ) {
     push @tools,
         {
@@ -1657,7 +1657,7 @@ if ( exists $code{'coding.tools.handler.regex_replace_undo'} ) {
         };
 }
 
-## perltidy — format a file with project perltidy settings ##
+## perltidy : format a file with project perltidy settings ##
 if ( exists $code{'coding.tools.handler.perltidy'} ) {
     push @tools,
         {
@@ -1687,7 +1687,7 @@ if ( exists $code{'coding.tools.handler.perltidy'} ) {
         };
 }
 
-## module_convention_check — audit module headers for convention violations ##
+## module_convention_check : audit module headers for convention violations ##
 if ( exists $code{'coding.tools.handler.module_convention_check'} ) {
     push @tools,
         {
@@ -1723,7 +1723,7 @@ if ( exists $code{'coding.tools.handler.module_convention_check'} ) {
         };
 }
 
-## consensus_query — multi-perspective analysis via perspective injection ##
+## consensus_query : multi-perspective analysis via perspective injection ##
 if ( exists $code{'coding.tools.handler.consensus_query'} ) {
     push @tools,
         {
@@ -1736,7 +1736,7 @@ if ( exists $code{'coding.tools.handler.consensus_query'} ) {
                 . 'use when you need to catch blind spots, verify correctness, '
                 . 'or get a multi-angle view of code, a design decision, or a finding. '
                 . 'each perspective uses a different system role (critic, advocate, '
-                . 'auditor, alternative). responses are independent — the calling '
+                . 'auditor, alternative). responses are independent : the calling '
                 . 'model synthesizes them.',
             'parameters' => {
                 'type'       => 'object',
@@ -1758,7 +1758,7 @@ if ( exists $code{'coding.tools.handler.consensus_query'} ) {
                     'perspectives' => {
                         'type'        => 'array',
                         'description' =>
-                            'explicit list of perspectives to use — overrides mode. '
+                            'explicit list of perspectives to use : overrides mode. '
                             . 'built-in: critic, advocate, auditor, alternative. '
                             . 'any other string is used as a literal system prompt.',
                         'items' => { 'type' => 'string' },
@@ -1775,7 +1775,7 @@ if ( exists $code{'coding.tools.handler.consensus_query'} ) {
         };
 }
 
-## summarize_context — model-pinned inference summarization ##
+## summarize_context : model-pinned inference summarization ##
 if ( exists $code{'coding.tools.handler.summarize_context'} ) {
     push @tools,
         {
@@ -1784,7 +1784,7 @@ if ( exists $code{'coding.tools.handler.summarize_context'} ) {
             'name'        => 'summarize_context',
             'description' =>
                 'summarize content using a dedicated inference call. '
-                . 'supports model pinning — specify a large-context model for '
+                . 'supports model pinning : specify a large-context model for '
                 . 'compression, small fast model receives the dense result. '
                 . 'routes to cpu backend by default to avoid interrupting active tasks.',
             'parameters' => {
@@ -1832,8 +1832,8 @@ if ( exists $code{'coding.tools.handler.summarize_context'} ) {
 
 return \@tools;
 
-#,,.,,,,,,.,,,..,,,..,,,.,,.,,.,.,...,.,.,.,.,..,,...,..,,,..,,..,,.,,,.,,,,,,
-#3MV33ZRGAUH7BKAVWHXKIIEPCZARQP3ITZKVTTUC3YVN4XBDINQKVEFQT3XJL27OIGFPZ32ACSRFC
-#\\\|VQHYNTOFQFCWSPJ634DXHLNENQ7D3VCQYV2BKBIDEODIA2DUPI4 \ / AMOS7 \ YOURUM ::
-#\[7]KYKHAVV34PHMI2TDQBNJYWSROBWV3LWT7MLL56BAENJXUIQLCKDY 7  DATA SIGNATURE ::
+#,,.,,,,.,,.,,,..,,,.,.,.,,..,,,,,,,.,...,.,.,..,,...,..,,..,,...,.,.,,.,,,.,,
+#ZYS6BNHBE2M2OPNMPZP6C6WXYR5MWSXPUNQEASTNHK2HQNUBS4BLWQ4YUHHON4RGVTGPPIK4YTMQY
+#\\\|5A5AQQDK4AULMWL5XTB6HN2FPU6PBTRO5BRJFQ6A4W5VA7FKNZ7 \ / AMOS7 \ YOURUM ::
+#\[7]KGV3A3F7THTBEJCLJKKP6EH2UJ4O2SYVD4NVE6Z6JHJ4Y3PFUICA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

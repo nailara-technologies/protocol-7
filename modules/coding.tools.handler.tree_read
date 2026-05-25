@@ -27,7 +27,7 @@ if ( not length $r_type ) {
     return sprintf "## %s [ scalar ] ##\n%s", $path, $display;
 }
 
-## hash reference — show keys and optionally recurse ##
+## hash reference : show keys and optionally recurse ##
 if ( $r_type eq qw| HASH | ) {
     my @keys   = <[base.sort]>->($r_data);
     my $output = sprintf "## %s [ hash, %d keys ] ##\n", $path, scalar @keys;
@@ -41,7 +41,7 @@ if ( $r_type eq qw| HASH | ) {
         my $child    = "$path.$key";
 
         if ( not $val_type ) {
-            ## plain scalar — show truncated value ##
+            ## plain scalar : show truncated value ##
             my $display = defined $val ? substr( $val, 0, 120 ) : 'undef';
             $display =~ s|\n|\\n|g;
             my $line = sprintf "  %s = %s\n", $key, $display;
@@ -129,8 +129,8 @@ return sprintf "## %s [ %s ] ##", $path, $r_type;
 
 0;
 
-#,,,,,...,.,,,,,.,..,,,,.,...,,.,,...,,,,,,..,..,,...,.,.,,,,,,..,,.,,,.,,,,.,
-#YCJ7AQUQCKJWMEJENE4MO7TKGAVZNN6T3HMRMNSUYCNU26HOTXZGMVH2VMYHEY456LR6CVCS3EC2E
-#\\\|3TU5T2WBI7AJVAAZ2OORM5VGMHSX3QYQHQ2MC2LQW5NGBRVFN33 \ / AMOS7 \ YOURUM ::
-#\[7]K4LBWY6MMFXISEZIIHYEETE6UQMAJDTFRATMKSZYIOBW7KDQTODY 7  DATA SIGNATURE ::
+#,,,,,.,.,,,,,.,.,...,.,.,,,,,,,.,,..,,,.,,.,,..,,...,...,..,,..,,,.,,...,,..,
+#FVHVKRZMW3OR2QXKGXEYZDUNSLUWUI5V3MIST6UR3GUWDJNRJIJPCXYXUP3OF6LYPMHWOF6HV2GZK
+#\\\|JERXK5IIYRWU4AZLJ4WMQ5XBJN3SEVBZY5W5CZ5DFNMDC7TEEFX \ / AMOS7 \ YOURUM ::
+#\[7]2VPWI3UFFN7SRKC2E5RIP5IVQAN6MZDDRHPX73LNP7ZFOCZ56SAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

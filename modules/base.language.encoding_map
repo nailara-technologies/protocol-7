@@ -5,7 +5,7 @@
 
 my $lang = lc( shift // '' );
 
-## centralized encoding map — one table, all modules use it ##
+## centralized encoding map : one table, all modules use it ##
 ## ordered by likelihood for that language's typical source data ##
 ##
 my %language_encoding = (
@@ -51,7 +51,7 @@ my %language_encoding = (
     ar => [qw| Windows-1256 ISO-8859-6               |],    ## arabic
     he => [qw| Windows-1255 ISO-8859-8               |],    ## hebrew
 
-    ## east asian [ multi-byte — repair logic skips mojibake for these ] ##
+    ## east asian [ multi-byte : repair logic skips mojibake for these ] ##
     ja => [qw| Shift_JIS EUC-JP ISO-2022-JP          |],  ## japanese
     zh => [qw| GBK GB2312 GB18030                    |],  ## chinese [ simp. ]
     ko => [qw| EUC-KR    CP949                       |],  ## korean
@@ -124,22 +124,22 @@ our %aspell_package = (
 
 ## when wordlist not installed: encoding char table is always available ##
 ## _encoding_special_chars(enc) returns the 0x80-0xFF set from Encode  ##
-## — usable as a minimal character-map for layer 1 scoring with no deps ##
+## : usable as a minimal character-map for layer 1 scoring with no deps ##
 
 ## if called with a language argument, return that language's list ##
 if ( length $lang ) {
     my $code = $alias{$lang} // $lang;
     my $list = $language_encoding{$code};
     return $list if defined $list;
-    ## unknown language — return safe western-european default ##
+    ## unknown language : return safe western-european default ##
     return [qw| ISO-8859-15 ISO-8859-1 |];
 }
 
-## no argument — return full table hashref ##
+## no argument : return full table hashref ##
 return \%language_encoding;
 
-#,,..,,,.,,.,,...,,..,,,.,.,,,.,.,,..,,..,.,.,.,.,...,...,.,,,,.,,..,,...,,,,,
-#WLWKJ3F7CL5VTLIQQHCX57S7II7A5QHNVAPKDF7ZXZUMZ5WIRDQJSMYNBDMTLTW4XWKIQ3JNXWMA4
-#\\\|3SVOL7HASG7FPJAP5ZKCGOZATP4XKASCBJYGRWAKWE2MWMF2STH \ / AMOS7 \ YOURUM ::
-#\[7]7U6FDAG3BOR7UX4VI2NC3TXHJR26JPDM56CCYOYQ5RJDLDIE5OAA 7  DATA SIGNATURE ::
+#,,..,,,.,.,.,,..,.,,,,.,,.,.,,,.,,,,,..,,,.,,.,.,...,.,,,...,..,,.,,,.,,,,.,,
+#H5AKUJZQB25TESB6FQESS57CEEDL3VIIXI3KZFIRVX4ZA25VJB36C6XW6JQKXJF5FWZEH6DB5EBOE
+#\\\|UWHMHJ6TBU5SBCUNYEE5RB7MOIICMCAWLN34HXFK74JY3ZWYFOV \ / AMOS7 \ YOURUM ::
+#\[7]MQIKRFU4SAICXN3Y5PCTY7Y5J3D3KN7IYAW37YJ57ACYS3V636DI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

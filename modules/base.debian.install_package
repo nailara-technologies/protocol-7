@@ -34,7 +34,7 @@ if ( defined <debian.apt_child.w_fh> ) {
         <[base.logs]>->( 1, ":. successfully installed." );
         return 0;
     } elsif ( $exit_code == 100 ) {
-        <[base.logs]>->( 0, "  ✗ package not found — cannot continue" );
+        <[base.logs]>->( 0, "  ✗ package not found : cannot continue" );
         return 1;
     } else {
         <[base.logs]>->( 0, "  ✗ apt-get exited with code %d", $exit_code );
@@ -42,10 +42,10 @@ if ( defined <debian.apt_child.w_fh> ) {
     }
 }
 
-## direct install — only works when running as root ##
+## direct install : only works when running as root ##
 if ( $> != 0 ) {
     <[base.logs]>->(
-        1, "auto_install: skipping apt-get — not running as root"
+        1, "auto_install: skipping apt-get : not running as root"
     );
     return 0;
 }
@@ -95,8 +95,8 @@ while ( !$ok and $max_fail-- ) {
         <[base.logs]>->( 1, ":. successfully installed." );
         $ok = 1;
     } elsif ( $output =~ m|Unable to locate package| ) {
-        ## package doesn't exist — don't retry ##
-        <[base.logs]>->( 0, "  ✗ package not found — cannot continue" );
+        ## package doesn't exist : don't retry ##
+        <[base.logs]>->( 0, "  ✗ package not found : cannot continue" );
         $errors++;
         last;
     } else {
@@ -107,8 +107,8 @@ while ( !$ok and $max_fail-- ) {
 
 return $errors;
 
-#,,.,,,,.,,.,,.,,,,,.,,,,,,,.,..,,,,.,,.,,.,.,..,,...,...,.,,,.,.,..,,..,,,.,,
-#TTVK6MP3PF64JBXBPVVTKO54WUIYUGTN2BAAOE5I37WGNCBD7IJEHIVO2AXQJKETV6XSDSHMHV7FW
-#\\\|XLFQAB4ZKL52F67D2FNTF5VYHCS6XI5TSJJITI5EDVZTAVYG5PN \ / AMOS7 \ YOURUM ::
-#\[7]UPKG2QRIJOUHVGKT6TO6WZG777WGXMCWXYOQLKFKE6FPQIQ2UWAI 7  DATA SIGNATURE ::
+#,,..,,,.,,,.,,,,,.,,,.,,,,..,,,,,...,.,,,.,.,..,,...,...,,..,,..,...,,.,,..,,
+#46CIVI4EWFLKRJRHIFBKGHXFF6WNPXCWUMLL2GSI2CINZIJGETO4VKXNDSRFZ2DJ6ZKUR5FTS3NIY
+#\\\|CTR2IGIUHY32OS3AQ6XFYD55CQKSLDXPGPG7J6D5TTFJON6543D \ / AMOS7 \ YOURUM ::
+#\[7]BFWZ42DBVDQNPFDOOLQSNMSLBXALXIEE7IVABQNUAWHYMCTR4WCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

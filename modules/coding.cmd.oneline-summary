@@ -25,7 +25,7 @@ if ( !length($input) && defined $call->{'data'} && length $call->{'data'} ) {
 return { 'mode' => qw| false |, 'data' => "text required\n" }
     unless length $input;
 
-## apply quick heuristic first — skip inference for short inputs ##
+## apply quick heuristic first : skip inference for short inputs ##
 if ( length($input) <= 74 && $input !~ /\n/ ) {
     return { 'mode' => qw| true |, 'data' => $input };
 }
@@ -59,7 +59,7 @@ return {
     }
     if !$queue_result->{'success'};
 
-## deferred reply — returns when inference completes ##
+## deferred reply : returns when inference completes ##
 $data{'coding'}{'deferred_replies'} //= {};
 my $deferred_id
     = <[base.gen_id]>->( $data{"coding"}{"deferred_replies"} );
@@ -73,8 +73,8 @@ $data{"coding"}{"deferred_replies"}->{$deferred_id} = {
 
 return { 'mode' => qw| deferred | };
 
-#,,,,,.,,,..,,..,,...,..,,,,.,,,.,,,,,,..,.,,,..,,...,...,...,...,,..,,..,,..,
-#GZN56AII6J6PNKPGHRPFN5QXAQYNHLD3PR6M5D5WXTD6YMJ7DBWPPRYRD6AT5RWQNV5C2RNXS5UU6
-#\\\|5SZBNS3FCJT3TZWGR6JIGNGD43MYUN4AIIUO4ZVPNIQB7R27SXB \ / AMOS7 \ YOURUM ::
-#\[7]CWDR54WVDYM4BJFMIGBDER6EDA6YNQ4TOHIRQNGZ6WWNMF2VCMBI 7  DATA SIGNATURE ::
+#,,..,,,.,.,.,..,,,.,,,..,..,,,.,,,,.,...,,.,,..,,...,...,..,,...,,..,,,,,.,,,
+#2L7XK7I35REATNG3RIRVHPTMFP7DA7PZVRGYH4TVDQWOJK3APH74ESR5KN3VEBJ2JRXJAZTANZTZK
+#\\\|QGCA5ILCEHC4ZZG7AGKGVQLRLAYIXHN4T2IBWG2ZF6WQTCHCP6X \ / AMOS7 \ YOURUM ::
+#\[7]2B5EL3WMQQFBH7N4OBCDEYI7C7EW6BXFTBMSNCH2K6YSDYQGMEAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -14,7 +14,7 @@ my $enc_list = <[base.language.encoding_map]>->($lang);
 my $is_east_asian
     = ( $lang =~ m{^(?:ja|zh|ko|japanese|chinese|korean)$} ) ? 1 : 0;
 
-## bigram context tables — compact alternative to word lists ##
+## bigram context tables : compact alternative to word lists ##
 ## prev/next are sets of chars that commonly surround each special char ##
 ##
 my %lang_bigrams = (
@@ -41,7 +41,7 @@ my %lang_bigrams = (
 
 ##[ BUILD MOJIBAKE TABLE ]#####################################################
 ## for each encoding: encode every special unicode char as utf-8, then
-## treat those utf-8 bytes as latin-1 codepoints — yields the exact
+## treat those utf-8 bytes as latin-1 codepoints : yields the exact
 ## sequence that appears in mojibake text, mapped back to correct char ##
 
 sub _build_mojibake_table {
@@ -150,7 +150,7 @@ if ( utf8::is_utf8($s) and $s =~ /\x{FFFD}/ ) {
                 ? substr( $repair, $at + 1, 1 )
                 : undef;
 
-            ## skip adjacent filler or non-alpha context — too ambiguous ##
+            ## skip adjacent filler or non-alpha context : too ambiguous ##
             next
                 if ( defined $prev and $prev =~ /\x{FFFD}/ )
                 or ( defined $next and $next =~ /\x{FFFD}/ );
@@ -193,8 +193,8 @@ if ( not utf8::is_utf8($s) ) {
 
 return $s;
 
-#,,.,,,..,.,.,,.,,...,,,.,,.,,...,,..,.,.,,..,.,.,...,...,..,,,,.,..,,,,,,.,,,
-#RWIACDPFELHKYDR2AFXCOQ4YDJZF7Y3JSRGMVGR6VZZEC2MXPSGD4R7MUJXOB3EUW7ZMGGWKUPLFQ
-#\\\|GM4X5DYALOGX6AAAAPIFFJ3GUATBEMTYIIQXJYZSV5FHQLUDHSR \ / AMOS7 \ YOURUM ::
-#\[7]S3DUU5PE53YLAGSFHF54PPNM7GPKR5PYYESOWR6XH6PZBT7TAMAY 7  DATA SIGNATURE ::
+#,,,.,.,,,..,,..,,..,,,,,,..,,,,,,,..,,,,,,..,.,.,...,..,,,,,,,..,,,,,,..,,,.,
+#J73CIVOYLQ2OXXRFB3OXYXWXK4HBMAJCPH2OJTZDC7CA24SCCQXQEXTN5T74FGTJ2KAEOFGEABAAM
+#\\\|6RX7HEE2K6ZH3YZW4JDH2RQW3YXEI6JM2R6CUOMIQADUXXTSNA5 \ / AMOS7 \ YOURUM ::
+#\[7]RXTV2XRPQAF5YTFVRQ2IYBVTT2WI3QR3DG6YT36OXULNR2TQAEBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -23,7 +23,7 @@
 
 my $list_name = $call->{'args'} // '';
 
-## strip :<n>: row limit — prefix (:5: list pattern) or suffix (list :5:)
+## strip :<n>: row limit : prefix (:5: list pattern) or suffix (list :5:)
 ## zero-padded forms like :005: work naturally via numeric conversion
 my $row_limit;
 if ( $list_name =~ s|^:(\d+):\s*|| ) {
@@ -38,13 +38,13 @@ if ( defined $list_name && $list_name =~ s|\s+(.+)$|| ) {
     $pattern = $1;
 }
 
-## apply :<n>: row limit — skips header/separator lines, counts data rows only
+## apply :<n>: row limit : skips header/separator lines, counts data rows only
 my $apply_limit = sub {
     my $output = shift;
     return $output unless defined $row_limit and $row_limit > 0;
     my @lines = split m|\n|, $output;
 
-    ## find separator line (---) — data rows follow it
+    ## find separator line (---) : data rows follow it
     my $data_start = 0;
     for my $i ( 0 .. $#lines ) {
         if ( $lines[$i] =~ m|^\s*-{3,}| ) {
@@ -145,8 +145,8 @@ if ( $list_name =~ m|^[$list_nam_chars]+$|
     $reply->{'data'} = "no such list [ see 'list' command ]";
 }
 
-#,,,,,,..,,.,,,.,,..,,...,..,,.,,,,..,,,,,,.,,.,.,...,...,..,,...,..,,,,,,,..,
-#IFJ6EFRBGFWFE2WQD5MLRNP4G6QTJBMDEISPB4M2IIRWHUP55DTCVVSPJZELELNCBTI2RHXGIF224
-#\\\|NNBQTJXDIASQ6OJHKV25PKFVREKGEJMC45BS26OLRA3HAE3GOQM \ / AMOS7 \ YOURUM ::
-#\[7]XTZPK7P2MXND4HCYTV4ULA2UCVRST2U3QQQVZE4EGITAVVDAEUAY 7  DATA SIGNATURE ::
+#,,..,,,.,...,..,,..,,,.,,,..,...,...,.,.,,,.,.,.,...,...,..,,..,,,,,,.,.,...,
+#6HLHP2J4IDPNITWYM32CGYRISSLH7SPHNMS3NJOARSCPIGHOF7A7K7RS2PF6DWSCEAXB2CFWTQC6M
+#\\\|LVQTJX7LC7XW3Q2TYW3SOLG54ZJ5XL6BO5AKUK5GFEDCH4ATDSZ \ / AMOS7 \ YOURUM ::
+#\[7]PRR7CUBAE5ZQORO2F5AGPPODPNE2TGRAUFU6UFZ77KP2Z4XENQDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

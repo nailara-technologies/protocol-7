@@ -12,12 +12,12 @@ $backend //= qw| gpu |;
 
 my $bs = <coding.state.backend>->{$backend};
 
-## already holds the lock — re-entrancy guard ##
+## already holds the lock : re-entrancy guard ##
 if ( defined $bs->{'lock'} and $bs->{'lock'} eq $task_id ) {
     return { acquired => TRUE, queued => FALSE };
 }
 
-## lock is free — acquire ##
+## lock is free : acquire ##
 if ( not defined $bs->{'lock'} ) {
     $bs->{'lock'} = $task_id;
     <[base.logs]>->(
@@ -27,7 +27,7 @@ if ( not defined $bs->{'lock'} ) {
     return { acquired => TRUE, queued => FALSE };
 }
 
-## lock is held by another task — queue this task ##
+## lock is held by another task : queue this task ##
 my $queue = $bs->{'queue'};
 unless ( grep { $ARG eq $task_id } @{$queue} ) {
     push @{$queue}, $task_id;
@@ -39,8 +39,8 @@ unless ( grep { $ARG eq $task_id } @{$queue} ) {
 
 return { acquired => FALSE, queued => TRUE };
 
-#,,,,,,.,,,,,,,,.,..,,...,,,.,,,.,.,,,,..,.,.,..,,...,...,...,,.,,...,,,.,,..,
-#H64PZPHS2WEBFM4WQEBSX3GSKCN7JPDHGJE4PWKAFROFH6BU26NVLY3QOBS5DXHE4KIIG2H5WKUGA
-#\\\|NFPTX66VILMJIRDWG6M3G5OGHDJJY4MW6UHE4HRWYZGL2QXDSQC \ / AMOS7 \ YOURUM ::
-#\[7]U2FMU25GVPBMPJ3KB3DVQZGCCTHGZR63YUQQBJ6DC4QQZAUR3QCI 7  DATA SIGNATURE ::
+#,,,,,,,,,...,,,.,.,,,.,.,,.,,,,.,,..,...,,.,,..,,...,...,,.,,...,.,.,.,,,..,,
+#TM3C2O22X7D6RN7LAG5DMEIAPUTX5PTAAMUF6GZBMOBVYPKUGTVYIK73EZXULO6HY77C7AIPQLFDY
+#\\\|HKTIUMDQJ4WKVT7MFSFKGRUZFGZX27GF2UDNRTGJXEOXUUHLSKN \ / AMOS7 \ YOURUM ::
+#\[7]CZBI6ERB6E56GYUSO6QO22ON4XSFTZV2WWTYULYP244VXACBLEDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -115,7 +115,7 @@ my @pattern_registry = (
     },
 
     ## Pattern: Same tool repeated many times (possible stuck retry)          ##
-    ## no assertion — same tool 3 times in a row is definitively stuck       ##
+    ## no assertion : same tool 3 times in a row is definitively stuck       ##
     {   'name'     => 'stuck_retry',
         'priority' => 3,
         'min_hits' => 5,
@@ -137,7 +137,7 @@ my @pattern_registry = (
     ## Pattern: File not found spiral (retrying identical call repeatedly)       ##
     ## matches on full tool signature (path + offset + all args) so that        ##
     ## legitimate sliding-window reads (same file, different offsets) do not    ##
-    ## trigger — only true stuck retries of the exact same call do              ##
+    ## trigger : only true stuck retries of the exact same call do              ##
     {   'name'     => 'file_not_found_spiral',
         'priority' => 2,
         'min_hits' => 4,
@@ -162,7 +162,7 @@ my @pattern_registry = (
         'confidence'    => 0.85,
         'allow_polling' => 0,
         'warning'       =>
-            'identical read_file call repeated 3+ times — file likely'
+            'identical read_file call repeated 3+ times : file likely'
             . ' does not exist or path is wrong. check module name vs core sub'
             . ' (base.ntime.b32, base.time etc. live in bin/Protocol-7)',
     },
@@ -531,8 +531,8 @@ elsif ( $phase eq 'escalation' ) {
 ## Unknown phase ##
 return qw| false |;
 
-#,,..,,..,,..,.,.,.,.,.,.,.,.,.,,,,,.,,..,,,,,.,.,...,...,..,,,,,,.,.,,,.,.,,,
-#CLTLV7DYHB3O34JHXIFMUTPHDP4MRDNZCOWGQUL36JFRQPL6NTESOFQIQF2E26NPBDIMX3ZCMJLD2
-#\\\|UN5QFI56QKMQ3D5VXTCBG3GGDFBLIV4GFNM6SNTVTLEUKFWHBVR \ / AMOS7 \ YOURUM ::
-#\[7]ZESG65AENM6HLXF6GT32B4B5RDLGCTCSAYLUR4B6YQIJ4DHIXADY 7  DATA SIGNATURE ::
+#,,,,,.,.,,,,,..,,..,,.,.,,,,,.,.,...,...,,.,,.,.,...,...,.,,,,,,,,,,,..,,,,,,
+#KJBUUI7STMBVV5NMKXACX2VX53VEWSRVXUMK5RRMBLTBC6GDQPNLVRUTRPKNPBIZAXM4EEUJLRPFQ
+#\\\|DOO3MYKZN6R5ZV26THOSJSV3CCIST34PEVU4ODBGNSQIWC52ETE \ / AMOS7 \ YOURUM ::
+#\[7]FVNRZBDSNOYEBPWJ6MVQS5WBDASVE57JUUB5XXMZDQ67FXFBUSCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

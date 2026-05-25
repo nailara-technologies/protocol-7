@@ -168,7 +168,7 @@ elsif ( $action eq 'transition' ) {
         my $task_flags = <coding.task.queue>->{$task_id} // {};
         if ( $task_flags->{'no_tools'} ) {
             <[base.logs]>->(
-                1, "state_machine: no_tools set — skipping tool_executor for %s",
+                1, "state_machine: no_tools set : skipping tool_executor for %s",
                 $task_id
             );
             <[coding.async.complete_task]>->($task_id);
@@ -204,7 +204,7 @@ elsif ( $action eq 'transition' ) {
         <[coding.buffer.model_output]>->(
             length($display_content)
             ? $display_content
-            : '[tool call — no reasoning text]',
+            : '[tool call : no reasoning text]',
             {   'round' => $state->{'round'} // 0,
                 'tool'  => qw| model |,
                 'pct'   => $state->{'pct_used'},
@@ -370,7 +370,7 @@ elsif ( $action eq 'transition' ) {
                 ## as an assertion answer rather than a task completion    ##
                 $state->{'loop_assertion_pending'} = TRUE;
             } else {
-                ## no loop pattern — reset counter ##
+                ## no loop pattern : reset counter ##
                 <coding.loop_detect_count> = 0;
             }
         }
@@ -400,7 +400,7 @@ elsif ( $action eq 'transition' ) {
                     }
                 );
             } else {
-                ## clear chunk_context before enqueue — prevents http_complete
+                ## clear chunk_context before enqueue : prevents http_complete
                 ## from re-processing tool_calls when the EOF arrives after
                 ## enqueue_round has already been scheduled (double execution) ##
                 $state->{'chunk_context'} = {};
@@ -563,8 +563,8 @@ elsif ( $action eq 'constants' ) {
 
 return { error => sprintf "unknown action : '%s'", $action };
 
-#,,..,,.,,,,.,...,,.,,..,,,..,,.,,.,.,.,.,.,.,.,.,...,..,,...,,,,,,,,,.,.,,.,,
-#6AF5NAOIZK6PK6O4NOYXO764S6MWMRHGBX42XK57RTQX6BINAHMSA2X3C4EQBEOKOQ5DTKX62573U
-#\\\|3FDHIFYENIFRM6FWP3M3O7FSCSQZRFX2BR3NTNNIGMVH2QXMKBO \ / AMOS7 \ YOURUM ::
-#\[7]7HPHNZKGRMGZG7FBUIPYLQALEIU3SFI5DX6W37GYM6WH2NVRVQBA 7  DATA SIGNATURE ::
+#,,,,,,..,.,,,,,.,..,,...,,,.,..,,,.,,..,,,,.,.,.,...,...,.,,,.,,,.,.,...,,..,
+#LRV6F3SQ7BCRB3WBC4LS32VU5QT4VZPGE4VMQ2IHBXYL5FJAFE5K7LDVHYP2DYT3EG3ADGXW34YJK
+#\\\|IBOLIK36ISEY35JF5I54TJGQZHOBYJMQB6ZOFRTQY4BGBAINAUC \ / AMOS7 \ YOURUM ::
+#\[7]RMA4NE2OGYA6PL6RXX4U4YJTSLWW2F6HVHPEQM2BQ5GWF6U24ACQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

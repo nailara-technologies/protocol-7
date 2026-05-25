@@ -65,7 +65,7 @@ $svg .= '<svg xmlns="http://www.w3.org/2000/svg"'
     . ' viewBox="0 0 800 800" width="800" height="800">' . "\n";
 $svg .= '  <rect width="800" height="800" fill="#0a0a0f"/>' . "\n";
 
-# [ arc spokes — counterclockwise ]
+# [ arc spokes : counterclockwise ]
 for my $ARG ( 0 .. 25 ) {
     my $angle_deg = -$ARG * $segment_deg;
     my $rad       = $angle_deg * $PI / 180;
@@ -77,7 +77,7 @@ for my $ARG ( 0 .. 25 ) {
         . "\n", $x2, $y2;
 }
 
-# [ arc labels — counterclockwise, per ring ]
+# [ arc labels : counterclockwise, per ring ]
 for my $ring ( 0 .. $rings - 1 ) {
     my $radius        = $outer_radius - $ring * $ring_radius_step;
     my $label_opacity = sprintf( '%.2f', 0.3 * ( 0.75**$ring ) );
@@ -93,7 +93,7 @@ for my $ring ( 0 .. $rings - 1 ) {
         my $y         = 400 - $label_radius * cos($rad);
         my $label     = <[route.bmw384.visual.ring-label]>->( $ring, $ARG );
 
-        # [ ring 27 darksun marker — special rendering ]
+        # [ ring 27 darksun marker : special rendering ]
         my ( $label_fill, $label_font_size_actual );
         if ( $label eq '.' ) {
             $label_fill             = 'rgba(100,150,255,0.6)';
@@ -167,12 +167,12 @@ for my $ring ( 0 .. $rings - 1 ) {
             .= sprintf
             '  <circle cx="%.2f" cy="%.2f" r="%d" fill="%s" opacity="%s">'
             . "\n", $x, $y, $r, $color_hex, $opacity;
-        $svg .= sprintf '    <title>%s — %s</title>' . "\n", $ARG, $coord_str;
+        $svg .= sprintf '    <title>%s : %s</title>' . "\n", $ARG, $coord_str;
         $svg .= '  </circle>' . "\n";
     }
 }
 
-# [ center logo — nailara at the darksun ]
+# [ center logo : nailara at the darksun ]
 my $logo_size = 44;    # diameter covering the void circle (r=24)
 my $logo_xy   = 400 - $logo_size / 2;
 
@@ -189,8 +189,8 @@ $svg .= '</svg>' . "\n";
 
 return $svg;
 
-#,,,.,.,.,.,.,,,.,.,,,,,.,,.,,...,.,.,,,,,,,.,..,,...,...,..,,...,,.,,,.,,...,
-#2IDJBDYD67IUZJSZLESP26SOJUAUMVYGL5AHXWQIVNICFVYEWBOXUCGBNPYN4IQ73WTG5H2HJ7HVK
-#\\\|ZOUT3PZJOKKRV62ZRJGMYGLIXAKAOLTE2XS6AEZYYRZ55GWUPML \ / AMOS7 \ YOURUM ::
-#\[7]WNDIMVZCMT3WCS2ZNXI5PHU45AJKP42GR2L4F7ZVDVOZ6PFK7ECQ 7  DATA SIGNATURE ::
+#,,..,,.,,,,.,,,,,...,,.,,,..,,.,,,,.,,,,,,.,,..,,...,...,,.,,,,,,,,.,...,,,.,
+#GPL7EPZKGMLFHROJM5OOYE7U4TLYJZTV6IYNGV3WQV2EEI2EQE7MBB2EHGOXS36GT7KLPYOZANWLC
+#\\\|WJ7U4HN2JWG5VOQJPO7MVIU42T5NROXSIVCRW7QAXHLHZIT7MTF \ / AMOS7 \ YOURUM ::
+#\[7]ET27RCDRIYN2MVH4ESSETJMUOR3BKKB2VVCHKX6CTF5PNLW3L2AY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

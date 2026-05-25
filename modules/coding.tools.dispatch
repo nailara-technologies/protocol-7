@@ -149,7 +149,7 @@ my %dispatch = (
         my $skipped = 0;
         my $dir_str = join ' ', @dirs;
 
-        ## safe pattern — escape shell, run grep ##
+        ## safe pattern : escape shell, run grep ##
         my @cmd = (
             'grep',   '-rn', '--include=*', '-m', 200 + $offset,
             $pattern, @dirs
@@ -264,7 +264,7 @@ my %dispatch = (
         my $max_results = $args->{'max_results'} // 50;
         my $offset      = $args->{'offset'}      // 0;
 
-        ## validate query — alphanumeric, dots, underscores, hyphens ##
+        ## validate query : alphanumeric, dots, underscores, hyphens ##
         ## reject shell metacharacters ##
         if ( $query =~ m{[;&|`\$\\"'\n\r]} ) {
             return 'error: query contains invalid characters';
@@ -629,7 +629,7 @@ my %dispatch = (
 
 );
 
-## look up and execute — dispatch table first, then handler modules ##
+## look up and execute : dispatch table first, then handler modules ##
 my $handler_mod = "coding.tools.handler.$name";
 if ( not exists $dispatch{$name} and not exists $code{$handler_mod} ) {
     <[base.logs]>->( 0, ':. tools.dispatch: unknown tool [ %s ]', $name );
@@ -716,8 +716,8 @@ return {
     'content' => $content,
 };
 
-#,,,,,...,.,.,...,,,.,.,.,,.,,,.,,..,,,,,,...,..,,...,...,,,.,,..,..,,...,,.,,
-#KUSSLFPY6S3GDKZN6ASGRGU53V4O7TDJGBTEQ47OW7ZXZZD65ERP6PPM3W7YFBSTIMMDKKNX34EAU
-#\\\|CZTBXQ5GE7U74UXQNX7OU2NEKBA5VKOJFALXLCZQ7WODA3KUAD2 \ / AMOS7 \ YOURUM ::
-#\[7]6LRC35MAVTRR6H32CA2CIAL5DCMXWJMDLVGWAAC2YTOXKS5MKCDY 7  DATA SIGNATURE ::
+#,,,,,...,...,,,,,.,.,.,,,,,,,,,.,.,,,.,,,...,..,,...,..,,...,,..,...,.,,,,..,
+#U5RAUNCEJZIUA6VDCHNRPFXXK3W5H4GJLRLR7MPP7GUASBQM3TPC4GEOF5IRHNCOY6EY4MAMTN3FY
+#\\\|JXALQOYZ6LAAXA5LWFSDSMLXZHAM2GMOWWFLS5SPF4X3I7CCUPV \ / AMOS7 \ YOURUM ::
+#\[7]5YHDRK6UV47GB5XKI6OPW2KYTTSZEFTK54FJ24BAUSLFHXHCDADY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

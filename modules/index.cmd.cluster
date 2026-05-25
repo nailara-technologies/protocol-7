@@ -1,7 +1,7 @@
 ## [:< ##
 
 # name  = index.cmd.cluster
-# descr = prefix cluster density — ring counts, top children
+# descr = prefix cluster density : ring counts, top children
 
 my $prefix = $call->{'args'} // '';
 return { 'mode' => 'false', 'data' => 'expected prefix' }
@@ -24,7 +24,7 @@ my $freq
 my $children = <[index.search]>->($prefix);
 my @top5     = splice @$children, 0, 5;
 
-## subtree density per ring depth — BFS extending one char at a time ##
+## subtree density per ring depth : BFS extending one char at a time ##
 my %density;
 my @current = ($prefix);
 while (@current) {
@@ -57,8 +57,8 @@ if (@top5) {
 
 return { 'mode' => 'size', 'data' => join( "\n", @out ) };
 
-#,,,,,,,.,,.,,.,.,,..,..,,..,,,,,,...,.,,,.,,,..,,...,...,...,,,.,,..,.,.,,.,,
-#2OZ4X6AHQ5G57MCFJ6YZ7BDEEWUF55T672BS4I7X5DPLRNHABIGWNWXIFD2MP7ZVRFU7T2VKIQ42K
-#\\\|QAODBULGMTIDHFHMOSZDEKJSYY2CDTNQG36UCLZWPZ4E25D5JOZ \ / AMOS7 \ YOURUM ::
-#\[7]EOI45ZXL325KCSX2UGFBBSLCFUE4PE3E3A5MSWJ5VOQCRDKFDCCA 7  DATA SIGNATURE ::
+#,,.,,,,.,,..,,,,,...,,..,,.,,.,.,...,,,.,.,,,..,,...,...,.,,,..,,..,,,..,,.,,
+#7PCUCJISG44R6KED2WRB4DO7UYKUD2S6L7YL7F64BPUP5U7Z4ZM7UMNLN4KLVEAYSMCA22EXM756E
+#\\\|T6YDMLGAC3NCTP5KKJ5I5ETRT2OVM4UI5D7F3J453HYIW6DJ3NC \ / AMOS7 \ YOURUM ::
+#\[7]OFH4R3TMKQ74NNEXFXT2PKTO5GWGXVOMPJZKN2Q3N76NCY7JYGCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

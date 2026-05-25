@@ -1,7 +1,7 @@
 ## [:< ##
 
 # name  = index.cmd.lookup
-# descr = trie node lookup — address, depth, children
+# descr = trie node lookup : address, depth, children
 
 my $token = $call->{'args'} // '';
 return { 'mode' => 'false', 'data' => 'expected token' } unless length $token;
@@ -27,17 +27,17 @@ push @lines, "terminal: " . ( $terminates ? 'yes' : 'no' );
 push @lines, "children: " . scalar(@child_seqs);
 for my $child (@child_seqs) {
     my $child_rank = <index.addr>->{"$next_depth:$child"} // '?';
-    ( my $disp = $child ) =~ s|\n/\\n|g;
-    $disp =~ s| \r | \\r | g;
-    $disp =~ s|\t|\\t|g;
-    $disp =~ s|\v|\\v|g;
+    ( my $disp = $child ) =~ s|\n|\\n|g;
+    $disp                 =~ s|\r|\\r|g;
+    $disp                 =~ s|\t|\\t|g;
+    $disp                 =~ s|\v|\\v|g;
     push @lines, sprintf "  %4s  %s", $child_rank, $disp;
 }
 
 return { 'mode' => 'size', 'data' => join( "\n", @lines ) };
 
-#,,..,.,,,.,.,,..,..,,,..,,..,,.,,,,.,..,,,..,..,,...,...,..,,..,,,.,,..,,...,
-#7Z4FW6NTOYG4BBXNFMJ7GV2WKBJ4PCQ2PHYSHBIQQ7V5APQPSQVOGJ6SW4B26GVXQTSZXBAIENZGC
-#\\\|JHZMJVUAATJUV766DHPJNVAIVLYX54LN46BMQD7AADKD6KKERSW \ / AMOS7 \ YOURUM ::
-#\[7]IYCRHVFVU4A3DAMKJ5YETVYRQCKB27KCUVSOS6JBPEDNWABCPACQ 7  DATA SIGNATURE ::
+#,,..,,,,,,..,.,,,,..,,,,,,,.,,..,,,.,,,,,,,.,..,,...,...,,,,,,,,,,.,,,..,...,
+#S63LJATJECYUNGS5ZJ5SUZ6SPEKO7DM6AA6QDKUETFNMSJF3PJCSMBTE5OO34BFSWJ3MGMW7DIVE2
+#\\\|JITMRRANA552DINSHOPAR5XBHV2AXUB62NGXT5BRK7I227BEHYE \ / AMOS7 \ YOURUM ::
+#\[7]K3EEVKTTVHGF4HFR5GLR6ZPP4LCRIO5YZTGE2KKBPTOMECZIUCAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

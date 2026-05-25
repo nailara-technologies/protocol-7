@@ -43,14 +43,14 @@ if ( defined $saved_ref ) {
                 1, 'adopted orphan invoke.ai process [pid:%d]', $saved_pid
             );
         } else {
-            ## stale pid file — process is not invokeai-web
+            ## stale pid file : process is not invokeai-web
             <[file.zenka_dir.unlink_file]>->( 'state/invokeai.pid', TRUE );
             <[base.logs]>->(
                 2, 'removed stale pid file [pid:%s]', $saved_pid
             );
         }
     } else {
-        ## pid not running — remove stale file
+        ## pid not running : remove stale file
         <[file.zenka_dir.unlink_file]>->( 'state/invokeai.pid', TRUE );
     }
 }
@@ -68,8 +68,8 @@ if ( defined $saved_ref ) {
 
 0;
 
-#,,,.,.,,,,,.,,,,,,..,..,,...,,.,,,,.,,.,,,.,,..,,...,...,..,,,,,,,.,,,,,,,,.,
-#QIRN7ZCZY5FEUOJ6D6XFU3MLFR2HNFVDWXHFEUYPUJTGH32XDPI2RQRSVB2MTJHKJBYKPB4DBUQ76
-#\\\|YKBPPJSW5JFK35QFJPPOWEBRAFUEWR6DHDOJOAH26ZQNETMV3OF \ / AMOS7 \ YOURUM ::
-#\[7]LRDF7S3X6BTSP6C4ELX462J633BDLH32NLL4IW3VQKJQBHGGFCAY 7  DATA SIGNATURE ::
+#,,,.,,,.,.,.,.,,,,,.,,,.,.,.,,..,,..,.,.,,.,,..,,...,...,,..,,,.,,..,.,,,,,.,
+#2IDC2OIKJH4EZ5LQ6RPXQZZ6MG74DQGEQ4KTVUIJE6ORF2J3XAU2ZHELGEYFXTXTTCWQJBXXWOSA4
+#\\\|GUNAHYOKQ5V4KUOIGJE4TBZS56QFFUAKBJ6X4EDCCGHHQY7QYXF \ / AMOS7 \ YOURUM ::
+#\[7]BTEPM74ZSOKTWSQ7CMJH26XRTCL6IUP6OSNHSJFNTMNCKNJLFYCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

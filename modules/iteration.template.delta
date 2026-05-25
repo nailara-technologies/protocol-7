@@ -28,23 +28,23 @@ my $content;
 if ( $criterion =~ m{syntax}i ) {
     $change_type = 'add_example';
     $content
-        = "reminder for '$criterion': $gap — add a concrete correct-syntax example directly above the relevant instruction.";
+        = "reminder for '$criterion': $gap : add a concrete correct-syntax example directly above the relevant instruction.";
 } elsif ( $criterion =~ m{missing|step|instruction}i ) {
     $change_type = 'add_instruction';
     $content
-        = "missing step for '$criterion': $gap — add an explicit instruction with the exact step name and required parameters.";
+        = "missing step for '$criterion': $gap : add an explicit instruction with the exact step name and required parameters.";
 } elsif ( $criterion =~ m{tool|command|utility}i ) {
     $change_type = 'add_example';
     $content
-        = "tool usage for '$criterion': $gap — add parameter names and an example call to the tool reference section.";
+        = "tool usage for '$criterion': $gap : add parameter names and an example call to the tool reference section.";
 } elsif ( $criterion =~ m{format|schema|structure|json|xml}i ) {
     $change_type = 'add_example';
     $content
-        = "format reminder for '$criterion': $gap — add a minimal correct example of the required output structure.";
+        = "format reminder for '$criterion': $gap : add a minimal correct example of the required output structure.";
 } elsif ( $criterion =~ m{write|disk|file|output}i ) {
     $change_type = 'strengthen';
     $content
-        = "write enforcement for '$criterion': $gap — strengthen write-to-disk instruction, add 'do not return code in response'.";
+        = "write enforcement for '$criterion': $gap : strengthen write-to-disk instruction, add 'do not return code in response'.";
 } else {
     $change_type = 'add_instruction';
     $content     = "instruction for '$criterion': $gap";
@@ -67,8 +67,8 @@ my $delta = {
 
 return $delta;
 
-#,,..,...,,.,,,.,,,..,.,,,.,,,.,.,..,,,.,,.,.,..,,...,...,.,.,,..,.,,,,,.,.,,,
-#MHIKDZQT3W7KN4VMFBM3JBQXYGQJTQMCOSUXEMHWV4HVWOIRZXPORNFBLSQAAIAGPFSK7AXOCQQB4
-#\\\|7H24DOP5UKEKCD5EIXMUMMUE7BILAEQI5Y5TJ4PGSI3W55I4NVX \ / AMOS7 \ YOURUM ::
-#\[7]M7QTFU5RZ6FYRKTAGDBJDOVJYOU4YWE75PXSEUDOWLCMGPO4CGCQ 7  DATA SIGNATURE ::
+#,,.,,.,,,,.,,.,,,.,.,.,,,..,,.,,,,,,,,.,,,.,,..,,...,...,.,,,,,.,,,.,,..,,,.,
+#TWPHO2LETQDOWG3AY3EM5M3NGCUVRHP4NUUMPLCSODXJ7DYLTN4EY7NC4BAE27PNKM6XGLEEFJSHO
+#\\\|MNXKSQ7NFCRCFOUFN7EKQYDNSGCXF3MHDLTLSLA6AU2UJ7JVMNX \ / AMOS7 \ YOURUM ::
+#\[7]75KKJKZUH3LOHT3TGKMYYSU7UAPBGBUH3WKWG7THOKF6WBOQ7MCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -11,7 +11,7 @@ my $source = <web.space.cfg.data_source> // qw| unconfigured |;
 my $age   = time() - ( $cache->{'timestamp'} // 0 );
 my $state = $cache->{'state'} // {};
 
-## summary section — default ##
+## summary section : default ##
 if ( $section eq qw| summary | ) {
 
     my $cursor = $state->{'cursor'} // {};
@@ -60,13 +60,13 @@ if ( $section eq qw| summary | ) {
 
 } elsif ( $section eq qw| json | ) {
 
-    ## json wrapped in script tag — for inline javascript consumption ##
+    ## json wrapped in script tag : for inline javascript consumption ##
     my $json = eval { JSON::XS::encode_json($state) } // '{}';
     return sprintf '<script>window.spaceState = %s;</script>', $json;
 
 } elsif ( $section eq qw| json-raw | ) {
 
-    ## raw json — for api endpoints with content-type override ##
+    ## raw json : for api endpoints with content-type override ##
     my $payload = {
         qw| source    | => $source,
         qw| state     | => $state,
@@ -77,7 +77,7 @@ if ( $section eq qw| summary | ) {
 
 } elsif ( $section =~ m|^orbital-json(?::(.*))?$| ) {
 
-    ## orbital data json — for live orbital visualization endpoint ##
+    ## orbital data json : for live orbital visualization endpoint ##
     my $context_p7ref = $1 // '';
     $context_p7ref =~ s/^\s+|\s+$//g;
     return
@@ -87,7 +87,7 @@ if ( $section eq qw| summary | ) {
 
 } elsif ( $section eq qw| template-json | ) {
 
-    ## template resolver json — for intent-aware visualization layers ##
+    ## template resolver json : for intent-aware visualization layers ##
     return <[plugin.web.space.template-resolver.json]>;
 
 } else {
@@ -95,8 +95,8 @@ if ( $section eq qw| summary | ) {
     return sprintf '<!-- unknown space section: %s -->', $section;
 }
 
-#,,..,..,,,,,,.,,,,,.,,,,,,,.,.,.,...,,,.,,.,,..,,...,...,..,,,,,,,,,,,..,.,.,
-#QPHLQW5D4OG7RYVG6M523F2JX2VM4LUH2M3FSE56Q5LAZMZWVCLPKR3HGH23OSEUBEJK2RAYJU7CW
-#\\\|O67OMBM6SXYLYUPU7GUESA2PDOG2B3E7QOMZ4ULYJIALQ7ASLFZ \ / AMOS7 \ YOURUM ::
-#\[7]FISOY3JR4M4M76EKTOB5EWUJVNMBOQ3FYJNBUY6XBIHY75G4UKCY 7  DATA SIGNATURE ::
+#,,.,,...,,..,,.,,,..,,..,,..,,,,,.,.,,,.,.,.,..,,...,...,,.,,,.,,..,,,.,,...,
+#DLVN2GUEDS2WVEGXYCQNTCQZBJXRLKSMUGZJGOONNXWHP4T2YF32WNBVKLC6YJYO2IJNMEIKA6M4C
+#\\\|QKTYGW73WJ233UGZ6MSKIHUFILCOIHSPYVCZN4JKYAMHH4R32ML \ / AMOS7 \ YOURUM ::
+#\[7]HHWMIIRTPRIT6C2EVLQVUFIQWUY3TE7RAMWYVPSXQS67VNSQ7MCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

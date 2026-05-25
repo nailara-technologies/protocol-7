@@ -28,7 +28,7 @@ my $palette_raw = eval {<[graphics-matrix.channel.palette]>} // [];
 $channel->{'palette'}
     = [ map { $ARG->{'color'}{'hex'} // '' } @$palette_raw ];
 
-## build summary — JSON-encoded for reliable transport over size reply ##
+## build summary : JSON-encoded for reliable transport over size reply ##
 my $summary = {
     qw| cells       | => $cells,
     qw| glow_shells | => $glow_shells,
@@ -42,8 +42,8 @@ return {
     qw| data | => JSON::XS::encode_json($summary),
 };
 
-#,,,.,,,,,..,,,,.,.,,,.,.,...,,..,,,.,...,,,.,..,,...,...,.,.,..,,..,,..,,,,.,
-#5LZZLL3GL2MNPJZCINL3UEORQMXEIBNZ2RNYKK2G44SFEKKEW6QFJ4U32HJ4IEH6YRQWAHQQSQFEA
-#\\\|JXPU6LELUAU4JGB77RWHYQOYRO3WR4SQYRDOJ2NWWVOPXQT4VCH \ / AMOS7 \ YOURUM ::
-#\[7]7IA62VG2E4FRD7OOSS5KCPJA26GUYEL4PEQCI22PPLPGBI36GGDA 7  DATA SIGNATURE ::
+#,,.,,,.,,,,.,,.,,..,,,..,,,,,..,,..,,,,.,,,.,..,,...,..,,..,,..,,,..,,,.,,.,,
+#YFDBL3O6HYSJGQEBE2OEI7BY7LEN7DH6S6MICQKNT6W2WTWP6VUX4GL3TZIY4Q3M3FVRDE7W7KFCG
+#\\\|TD3AIYTOHIVAHP62IUSW27LLVCQJOIU7KLDSE5SPWRKSRTW275F \ / AMOS7 \ YOURUM ::
+#\[7]LEBBTEN2EIJI5FUPZYJMACZLDLDAV4JJVNZBTHDRTXKJ6RIFYABY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

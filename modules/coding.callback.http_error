@@ -116,7 +116,7 @@ my $result = {
 };
 
 ## when all retries fail with a timeout the server accepted the TCP
-## connection but never responded — restart it so the next task gets
+## connection but never responded : restart it so the next task gets
 ## a fresh process rather than silently hanging again                  ##
 if ( $error =~ m{timeout}i ) {
     my $backend_r = $state->{'backend'} // 'gpu';
@@ -125,7 +125,7 @@ if ( $error =~ m{timeout}i ) {
         <[base.logs]>->(
             0,
             "http_error: %s timed out after %d retries"
-                . " — scheduling %s server restart",
+                . " : scheduling %s server restart",
             $task_id,
             $max_retries,
             $backend_r
@@ -147,8 +147,8 @@ if ( $error =~ m{timeout}i ) {
 
 return;
 
-#,,.,,.,.,..,,,,,,..,,...,.,.,,.,,,.,,,.,,.,.,..,,...,...,.,,,.,,,.,.,,,.,.,.,
-#DZDHFBZID4DDZJDIDED66NXYKBH55NYYCON2A5NOXIKR36PJRPAICXKH27QBEB2JGLRA7GUOSCMH4
-#\\\|HYH5WWB2EHGBAM3J3FS4ZNVK3JRZWB3347OAU6DLJGMDWH2MBTN \ / AMOS7 \ YOURUM ::
-#\[7]AYBQBGOYQTVDTH5ACN7WRC4KYLCWVFKJ4E4IGQN5CEB2NH5VQEAA 7  DATA SIGNATURE ::
+#,,.,,...,,,,,.,.,.,.,,,.,,.,,.,,,,.,,,,.,...,..,,...,...,...,,,.,.,,,,.,,.,,,
+#TUT62CE3NK5QJ5V3YH7R5T6JOIXHBTGO6D7TQPN3F3RSJEV65U3HNMPL6X4B7PKGL5FNOKAY25YJQ
+#\\\|44MD3HH3CVXTLZMDMLBKFO6U6MGBQM5Q55FTKZFB4PRRTVZSRT5 \ / AMOS7 \ YOURUM ::
+#\[7]7BOKTB3DNIVBA3X23SGWRE47DWURBZ4677M65RS35J46IVI6YOAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -3,7 +3,7 @@
 # name  = httpsd.request_capture.write
 # param = \%info  ## event, client_ip, method, uri, host, tls [all opt]
 # descr = overwrite /dev/shm capture file with current request context
-#         [ pure tmpfs write — no disk I/O, survives process crash ]
+#         [ pure tmpfs write : no disk I/O, survives process crash ]
 
 return if not <[base.cfg_bool]>->( <httpsd.cfg.request_capture> // 1 );
 <httpsd.path.request_capture> //= qw| /dev/shm/httpsd-last-request |;
@@ -27,8 +27,8 @@ $content .= " tls       : $tls\n"    if length $tls;
 
 <[file.put]>->( $path, \$content ) or warn ': request-capture : write failed';
 
-#,,.,,...,,.,,,,,,.,.,,,.,,,.,..,,.,.,,.,,.,.,..,,...,...,...,,,,,..,,...,,,,,
-#27YHR4VMIVEV5OY2EOHNT3LEXALMCVHZYOSOCXUT5H6AZSZFWHIX6XCPY67P2AFC2G3JLZNMZOZME
-#\\\|B45ZMXWCR5H7JPXCK4KWWLKV46BTET3HEA4CXJFRWO3R3HFGGTU \ / AMOS7 \ YOURUM ::
-#\[7]B67M5LJRJTVQ2O6S3DLTBOT6I2MS7PRVH6BMZKHNZ4Y3RUFKXUCA 7  DATA SIGNATURE ::
+#,,,,,,,,,.,,,,,,,,..,,..,..,,,,.,,.,,...,...,..,,...,...,..,,,..,..,,...,,,.,
+#TPZZ5AQLHG7AH3XGQNZJ4T34CVZ4SZUEY4WBKJMYXE25XCDNWV7LVPGXXQZNH6WYKPOCBPUB2XNBU
+#\\\|PO5YCJZPMQN3ZSPQKMYM5BIUHQGDCHKIWPSM6CDN6CETSKOPP7D \ / AMOS7 \ YOURUM ::
+#\[7]S45K3B7ZOQWKPWZDD6F6WF3HBP5LPPUCEB3BAIULQLB5BJR2S2BA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

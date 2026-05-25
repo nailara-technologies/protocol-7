@@ -17,7 +17,7 @@ my $task = <coding.task.queue>->{$task_id};
 return { success => FALSE, error => "task not found: $task_id" }
     unless defined $task;
 
-## acquire backend lock or queue — backend_release wakes us if busy ##
+## acquire backend lock or queue : backend_release wakes us if busy ##
 my $backend = ( <coding.async.task_state>->{$task_id} // {} )->{'backend'}
     // qw| gpu |;
 my $lock_result = <[coding.async.backend_acquire]>->( $task_id, $backend );
@@ -28,7 +28,7 @@ my $lock_result = <[coding.async.backend_acquire]>->( $task_id, $backend );
     $lock_result->{'acquired'} ? 'acquired' : 'queued'
 );
 
-## proceed immediately if lock acquired — backend_release handles queued case ##
+## proceed immediately if lock acquired : backend_release handles queued case ##
 <[coding.async.send_request]>->($task_id) if $lock_result->{'acquired'};
 
 return {
@@ -38,8 +38,8 @@ return {
     deferred => TRUE,
 };
 
-#,,.,,,..,,.,,.,.,..,,,.,,,..,,,.,,,,,,.,,,..,..,,...,...,,,.,.,,,,,,,,.,,,..,
-#XFONJRSMPU43O2I3TJT376NWALKOUTMXJZLWHLDUT47LU7KQ5S3KLJ66XW5KX4UMMYHMUF6Y3SPQC
-#\\\|2UL37YZ6OMNBBWXYDAT3OJSDZFVFORO5HIMHPMR3B5P2ZV7IXQA \ / AMOS7 \ YOURUM ::
-#\[7]TT6XJTOUEY77GAR56W72NP62A3L535TQNMZHIPBG63KYN4QOAGCA 7  DATA SIGNATURE ::
+#,,,.,,,,,,,,,...,,,,,.,,,.,,,.,,,,,,,...,,..,..,,...,...,.,.,.,.,.,,,,,,,...,
+#QTBZVYGX7QS55HJ42GTFPUPQMMAGW2PKXJMCTHZW45CF4RCI7TFR6BZ2XRGPZEFQ2MDDNXASCXWQA
+#\\\|HTVERHOVOGTMNFZRH4Z525YQLSETR65YDLK5ZS276HTXXHVYCGQ \ / AMOS7 \ YOURUM ::
+#\[7]LPIGSFGMN22WQMBPPIVKPP4S3BPCX7IOW3VCCCZI5NOFELI3Y6AI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
