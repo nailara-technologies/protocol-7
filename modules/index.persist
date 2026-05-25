@@ -1,0 +1,31 @@
+## [:< ##
+
+# name  = index.persist
+# descr = save raw corpus data to disk via Storable
+
+<[base.perlmod.autoload]>->( 'Storable', qw( nstore ) );
+
+my $path = <index.path.index-files> . '/index-state.storable';
+
+my $state = {
+    'meta'  => { %{ <index.meta> // {} } },
+    'freq'  => { %{ <index.freq> // {} } },
+    'level' => {
+        map { $ARG => { %{ <index.level>->{$ARG} } } }
+            keys %{ <index.level> // {} }
+    },
+};
+
+nstore( $state, $path )
+    or return <[base.log]>->( 1, "index.persist: failed [ $path ]" );
+
+my $total = <index.meta>->{'total'} // 0;
+<[base.log]>->( 1, "index persisted [ $total chars -> $path ]" );
+
+return TRUE;
+
+#,,..,,,.,...,,,,,,.,,..,,...,,..,,,,,,..,,,,,..,,...,...,.,,,.,,,,,,,,..,...,
+#DDGW6FDE6D7LPM2EJFUYPC3SDBYXEQFNFBFXSZAUMD7S6AOH7VAXWQM4YKE4WX2BY6HNPGSOVBZHW
+#\\\|YBHGV6E4A6YQYJAH5PW5R53HGA7QPIYHGYJLAVUPEGJ4UY4EJVG \ / AMOS7 \ YOURUM ::
+#\[7]IKTCUQ4QXKDITY2UI5ERS74MEMHUUHUMYL5WQXURPVVI4FTDR6BY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
