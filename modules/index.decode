@@ -5,13 +5,16 @@
 
 my $addr = shift // $ARG;
 
-return '' if defined $addr and $addr == -1;    ## -1 is the root '' ##
+return ''    if defined $addr and $addr == -1;    ## -1 is the root '' ##
+return undef if not defined $addr;
 
-my $token = <index.rank>->{"0:$addr"};
-return $token;
+my $packed = <index.packed_rank>->{0} // '';
+my $token  = substr( $packed, $addr, 1 );
 
-#,,,,,.,.,,..,,..,..,,,,.,,,.,,.,,..,,,..,...,.,.,...,...,..,,,..,..,,..,,,,.,
-#6TP4KFAP5MM6UQ2DBNIY4QOAISPN662N4BDTH23XF6PA22U7C7E3WHCBZCEYP652MSC3TIMGGVEQA
-#\\\|CVMGR4OWSKQ65BIFTDLOHUCDNADXGZOERMTQVXYEEUFQQMCP5IC \ / AMOS7 \ YOURUM ::
-#\[7]DUJV5NEYDZ253Q5YCJTNRJCSJMMVYAZHJP5IGSNWNAIOXYO55UCI 7  DATA SIGNATURE ::
+return length($token) ? $token : undef;
+
+#,,..,...,...,,.,,.,.,,..,,..,.,.,,,.,..,,...,.,.,...,...,..,,,,,,..,,,..,,,.,
+#RLKFCYWTNGBR35JUEDUFQRCOVJERFNSIT7W2OOQC52HDDKMQE6MQZ72CMV4BEXYJCYSXLZANANTX6
+#\\\|SP4MDQDAXZWVW4AZET2ETDRJ62PHSKCQNLSD5HN5RIG4H666PPU \ / AMOS7 \ YOURUM ::
+#\[7]67LCTP64NQCOFO3BVOECVQWXPSYQTRV6B4YVQ53RPH7JULTJOKBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
