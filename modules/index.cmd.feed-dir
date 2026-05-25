@@ -3,8 +3,10 @@
 # name  = index.cmd.feed-dir
 # descr = feed a directory into the index
 
-my $args            = $call->{'args'} // '';
-my $rebalance_later = ( $args =~ s|\s*:rebalance-later:\s*|| ) ? TRUE : FALSE;
+my $args          = $call->{'args'} // '';
+my $rebalance_now = ( $args =~ s|\s*:rebalance:\s*|| ) ? TRUE : FALSE;
+( $args =~ s|\s*:rebalance-later:\s*|| );    ## accepted, same as default
+my $rebalance_later = $rebalance_now ? FALSE : TRUE;    ## default : defer
 ( my $dir = $args ) =~ s{^\s+|\s+$}{}g;
 
 return { 'mode' => 'false', 'data' => 'expected directory path' }
@@ -47,8 +49,8 @@ my $job_id = <[chk-sum.amos]>->( \$dir );
 
 return { 'mode' => 'deferred' };
 
-#,,,,,.,,,,,,,.,,,,,,,,.,,,.,,..,,.,,,.,.,...,..,,...,...,.,.,,.,,,.,,.,,,..,,
-#2RYRZ4DZ2HNUNQS5WBHH6W7CZ3OPCSQVRIV6YZLQOLI5TNESDRRC36IY2224JLD24DPD2ZEMPR5NM
-#\\\|ZNPFXYHDDKSQIW4DEKSIPNEHCLOKUAVOY52PJEHFHRW3KQRRKQ5 \ / AMOS7 \ YOURUM ::
-#\[7]K3EZ7N4OT5AYF2Q5GS4WC27CXYKHPNJQW6PRXKOELZMNZUKCXABI 7  DATA SIGNATURE ::
+#,,..,...,.,,,,.,,,,,,...,..,,,,,,...,.,,,,,,,..,,...,...,,.,,,.,,.,.,,..,.,,,
+#UT6V7ET553T7W777W6OPI4C44X7L2POUHAPABUXC7GB62RBFZ3DUFII5ZE7JKWBX7VB5DUSQ6SHOW
+#\\\|YJEXSQXXYZIFCB7DW7YGOLBMZ7Y4SHG6XK2KDI6K6SCE6UYXPZ3 \ / AMOS7 \ YOURUM ::
+#\[7]6TLLK2FGNU4ONLOTUK332LTGQC3OK2AOPMP3PNY2CID6K42TACDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
