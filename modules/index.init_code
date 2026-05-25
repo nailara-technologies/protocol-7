@@ -44,19 +44,21 @@
 <index.cluster_reported>                //= {};
 
 ## numerical language deduplication tree data structures ##
-<index.freq> = {};
-<index.addr> = {};
+## use //= throughout — preserves live data across in-process reloads ##
+<index.freq>        //= {};
+<index.addr>        //= {};
 <index.packed_rank> //= {};
-<index.level> = {};
-<index.trie>  = {};
-<index.meta>  = {
+<index.level>       //= {};
+<index.trie>        //= {};
+<index.meta> //= {
     root  => '',      ## '' is -1, the signed root outside address space
     total => 0,
     dirty => FALSE,
 };
 
-## auto-restore if saved state exists ##
-if ( -r <index.path.index-files> . '/index-state.storable' ) {
+## auto-restore from disk only if corpus is not already in memory ##
+if (    not ( <index.meta>->{'total'} // 0 )
+    and -r <index.path.index-files> . '/index-state.storable' ) {
     <[index.restore]>;
 }
 
@@ -68,8 +70,8 @@ map { <[file.make_path]>->( $ARG, $create_perm, <system.amos-zenka-user> ) }
 
 0;
 
-#,,,,,,,,,,,.,,,.,,,,,,..,,..,,.,,,,,,,.,,..,,.,.,...,...,...,,.,,...,..,,,,,,
-#AT2XFR3HZFWFRJQEHOFJAM6ULRLPMTRH6TEUXYQ4M6GYGFXVW4BVZLD5CV2ZCPK7EUB44IZFEVG7I
-#\\\|JWZQY6NS2HIDPMZDDZELVDNEKYVEVHKDUL73S3UTHDTLPIWTF2Q \ / AMOS7 \ YOURUM ::
-#\[7]EQ4MC2NBOLNRB54SWLJ73TZTNNS43P52HDVRVTCL7WJEAGLFZUDA 7  DATA SIGNATURE ::
+#,,,.,.,,,...,..,,,.,,..,,,..,,..,.,,,...,.,.,.,.,...,...,...,..,,...,..,,,..,
+#RSMSDDQVSI4OIJHLQLOGCSM7RTZOJAFC2IULZHJFACXNRWQS4D3AT3BOH6WNNTN7NT3VPNPONRFLO
+#\\\|K6VYAZTS3T5DAPSJGFPEXVFTPI5HW5XPJEXFJFKTEAPGXZVF63S \ / AMOS7 \ YOURUM ::
+#\[7]IXTDBCVT7AW6TANXGI7U4F3MCP5XEMV5QSLIPLV6VXJBUNHDBWCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
