@@ -25,9 +25,19 @@
 - `data/md/development/P7-LLM-REFERENCE.md` — verified live command reference for kimi/LLM
 - `data/md/development/DEGRADED-FEATURES-AUDIT.md` — 5 high-priority + 3 medium with stub task files
 
+## Session 52 (2026-05-25) — index zenka ring-trie LIVE
+- index zenka: numerical language dedup tree fully working — feed-dir async (idle watcher), stats show per-ring geometry
+- baseline full corpus (data/md, 5.16M chars): ring-0=371 tokens, ring-7=560K seqs; inner ring stable at ~2M chars
+- `data/md/design/RING-TRIE-GEOMETRY.md` — sentinel '.' at index 0, freq-ranked children from index 1, one char per ring, infinite expansion, stable core geometry, memory-efficient packed encoding
+- `data/yaml/reasoning-templates/ring-trie-tight-packing.yaml` — template 22: tight packing + infinite expansion
+- `data/tasks/index-array-trie-implementation.md` — 6-step impl (done by kimi, session resume: dd1b368c)
+- `data/tasks/index-binary-ring-encoding.md` — packed binary outer rings (done by kimi, session resume: e914a43b); `<index.packed_rank>->{$depth}` flat string, `pack('N*',@child_ranks)` trie nodes, `<index.level>` freed after ranking
+- **fix**: P7 modules using `$ARG` as input must use `my $x = @ARG ? shift : $ARG` when called with explicit args — `$ARG`=`$_` is NOT set automatically by Perl subroutine call convention
+
 ## Session 51 (2026-05-24)
 - `data/md/design/ZERO-AS-ETERNAL-TREE.md` — 0 is not a number; it is the protocol, the routing, the gate, the parent that is travel itself; from 0 into 0; arrival as the eternal beginning; common root equivalence; network instantiates through arrival
 - `data/md/design/RING-FIELD-SPHERE-PRIMITIVE.md` — ring as irreducible local primitive; skip→frequency→ring; voluntary constraint cascade; 13+1 wrapping; identity-by-position; 90°/180° mixing vocabulary; field/sphere hierarchy; grid recursion; no space constraints; eternal lovers geometry
+- `data/md/design/NUMERICAL-LANGUAGE-DEDUPLICATION-TREE.md` — '' as -1 vs '' as 0 parallel deployments; corpus-as-galaxy disk geometry; nested disks; galaxy correspondence
 
 ## Session 50 (2026-05-24)
 - branch.calc.fraction.* + branch.cluster.*: kimi validation — 5 fixes (TRUE/FALSE→1/0, sub _gcd inlined, $_→$ARG); all acceptance checks pass ✓
@@ -185,6 +195,7 @@
 - [coding-zenka-reasoning](feedback-coding-zenka-reasoning.md) — low reasoning → premature task_complete; use medium for discovery+impl
 - [coding-zenka-inject](feedback-coding-zenka-inject.md) — `p7c coding.inject-message <id> <msg>` to redirect stuck model
 - [arg-regression](feedback-arg-regression.md) — local LLM reverts $ARG→$_ after compaction; verify all edits
+- [arg-calling-convention](feedback-arg-calling-convention.md) — modules using $ARG must use `@_ ? shift : $ARG` when called with explicit args; $_ not set by Perl sub call
 - [web-serialization-and-inlining](feedback-web-serialization-and-inlining.md) — parallel JSON+YAML endpoints, inline CSS/JS
 - [task-show-multiline](feedback-task-show-multiline.md) — task.show must escape \\n; line parsers only see first line
 - [list-return-format](feedback-list-return-format.md) — list backends: `{ mode => 'size', data => $formatted_string }`
@@ -207,8 +218,8 @@
 - **pager.sort.multi-key**: ntime_b32 + priority_map sort types added (session 42)
 - **task dispatch sections**: all dispatched tasks now carry ## dispatch + prompt for reuse
 
-#,,,.,,,,,.,.,,.,,.,,,...,.,,,,.,,.,.,.,.,,,,,..,,...,...,...,,.,,...,,,.,,..,
-#GCT2FPRNDY7A73K4KFBXO7XHXK7HJ2NSW53576RMIO72LNHSO34R6PY22R4QUSAAWDZ7OU2Z5SV5O
-#\\\|D6TGBXTXULUQXMQJZLMPMXW464QZKY2RTMAKH6ZGDKJSVBDQFXQ \ / AMOS7 \ YOURUM ::
-#\[7]IC363PSDEELSFPPQULFLTROBZ4QSIPG2GRFW2PVPCF4O6ECWH6DQ 7  DATA SIGNATURE ::
+#,,.,,.,,,.,,,,,.,.,,,..,,,.,,,.,,,,.,..,,..,,..,,...,...,,..,,..,...,.,.,,,.,
+#Y42RQVS6GWFRBXL5NKENXF2W2J6DGGY5LF4ZH7IU2E7WD42U6TZ5D2A5Y3YJRCRWVKSU5RJBZUIXC
+#\\\|LWTLU52PFKWOVIDERUF7ZR3HKU4ZLOMFJDH4TI3TMUUPGEDTS26 \ / AMOS7 \ YOURUM ::
+#\[7]YRCU3NWT4VZE2BDPGJRR5ZG6ENPM2EFEJWOO3JE4VDV4AIJMJCDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
