@@ -34,14 +34,16 @@ push @lines, sprintf "search [ %s ] -- %d results :", $prefix, $count;
 
 ## direct match first ##
 if ($self_match) {
+    my $is_terminal = $self_node->[0] ? 1                 : 0;
+    my $label       = $is_terminal    ? 'exact, terminal' : 'exact';
     ( my $disp = $prefix ) =~ s|\\|\\\\|g;
     $disp                  =~ s|\n|\\n|g;
     $disp                  =~ s|\r|\\r|g;
     $disp                  =~ s|\t|\\t|g;
     $disp                  =~ s|\v|\\v|g;
     push @lines,
-        sprintf "  %6d  %s  [ exact, rank %s ]", $self_freq, $disp,
-        $self_rank;
+        sprintf "  %6d  %s  [ %s, rank %s ]", $self_freq, $disp,
+        $label, $self_rank;
 }
 
 for my $r ( @{$results} ) {
@@ -55,8 +57,8 @@ for my $r ( @{$results} ) {
 
 return { 'mode' => 'size', 'data' => join( "\n", @lines ) . "\n" };
 
-#,,.,,,..,...,,.,,,.,,.,,,,.,,..,,..,,..,,...,..,,...,..,,..,,,,.,...,,,.,.,,,
-#NBQ2HIICZBVY73B6HP7V247G6N3M4IC3DCOGPBMMO6MRKVTBF2RDBYQ4GXL4VWTKAA24EWNFK7UAU
-#\\\|VPRNWX2P7SFG5D5CFTIMHHLXXQ3FLSC36OYLXT2EBU36EDLE7YW \ / AMOS7 \ YOURUM ::
-#\[7]FWZUHLVHPNDPL2OIGAIOSUUV35RZXSOLT7OKR2IHLTIO67QG3CAY 7  DATA SIGNATURE ::
+#,,.,,.,.,,,,,..,,,,,,,,,,,.,,,.,,...,...,,..,..,,...,...,...,.,,,..,,,,.,,..,
+#SGE76SQQIQD2Z4XWDGHKKUAWVEK3AEKSRM4GCDQB6NMRLQ2JKXPKCDUEQCMMHKX2JZZJXARY5JNG4
+#\\\|ELY3I6WM3JE7KZ4SHGO35GVT4IALKQCDN4J5ZQXKXROIVCEKCYI \ / AMOS7 \ YOURUM ::
+#\[7]5VIJ746HPYXQCGLCRBXWDBGVX6M4SDK6TLKOXYKLZ73ZLMHW5UCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
