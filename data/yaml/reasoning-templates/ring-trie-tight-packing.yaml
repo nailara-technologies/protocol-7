@@ -1,0 +1,86 @@
+## [:< ##
+
+name: ring-trie-tight-packing
+title: tight packing with infinite expansion — ring trie geometry
+id: 22
+tags:
+  - addressing
+  - compression
+  - tree
+  - infinite-expansion
+  - frequency-ranking
+  - token-space
+
+summary: >
+  a token space organized as concentric rings, one character wide each, with a
+  sentinel at index 0 and frequency-ranked children from index 1 onward. inner
+  rings are dense and stable; outer rings expand freely without bound. structure
+  is self-organizing from corpus statistics — no external wordlist required.
+
+---
+
+core_invariant:
+  node_structure:
+    index_0: "sentinel '.' if this path completes a token — absent otherwise"
+    index_1_to_N: "children ordered by descending frequency in corpus"
+  ring_depth: "ring N holds all (N+1)-character sequences from the corpus"
+  address: "numerical path = array of per-ring frequency ranks for each prefix"
+
+key_properties:
+
+  tight_packing:
+    principle: "each character stored exactly once at its ring depth, shared across all sequences passing through it"
+    mechanism: "overlap IS the structure — common prefixes cost nothing extra"
+    savings: "hash trie stores 'love' as 4 keys; ring trie stores each char once"
+
+  infinite_expansion:
+    principle: "outer rings expand freely — no encoded upper bound"
+    mechanism: "adding depth at ring N+1 never restructures ring N"
+    consequence: "new documents extend the tree outward; inner geometry is stable"
+
+  sentinel_as_root:
+    principle: "index 0 sentinel maps to '' — the common root of all strings"
+    meaning: "arriving at '.' is arriving at the invariant center"
+    reference: "ZERO-AS-ETERNAL-TREE — 0 as cross-scale invariant, common root equivalence"
+
+  self_organizing:
+    principle: "no external wordlist — corpus frequency determines address"
+    consequence: "rare sequences naturally have larger addresses; common ones are compact"
+    compression: "encoding length reflects rarity — address IS compression"
+
+natural_tapering:
+  inner_rings: "dense — all corpus characters, all common short sequences"
+  mid_rings: "peak density — word-length sequences"
+  outer_rings: "rapid falloff — rare long sequences, mostly empty space"
+  implication: "sparse outer rings = free expansion capacity always available"
+
+utf8_safety:
+  unit: "one unicode codepoint per slot"
+  consequence: "multi-byte sequences occupy one slot, carry one ring-0 address"
+  native: "codepoint-native, not byte-native — no length ambiguity"
+
+applications:
+  - any token space needing shared prefix compression
+  - address spaces that must grow without restructuring
+  - self-organizing vocabularies from unlabeled corpora
+  - numerical path encoding for routing, checksums, search
+  - language models without fixed vocabulary size
+
+when_to_apply:
+  - designing an address space for unknown or open-ended token sets
+  - when memory efficiency matters and prefixes are shared
+  - when the depth of the space is unbounded or unknown in advance
+  - when frequency should determine address (natural ranking, no labels)
+
+related_templates:
+  - 17: arbitrary-entry-point (infinite-space-topology)
+  - 21: physics-as-calculator
+  - ZERO-AS-ETERNAL-TREE
+  - RING-FIELD-SPHERE-PRIMITIVE
+  - NUMERICAL-LANGUAGE-DEDUPLICATION-TREE
+
+#,,,.,,,,,,.,,...,,,,,,,,,.,,,,..,,,.,.,.,,.,,..,,...,...,..,,.,,,,..,.,,,,,,,
+#CKYPZHRB3Q2GKYIP4O5MP2R3BABYATKLIOEIV24RINXFUF4CSZEV5QFQ42POZZVYFT7CU2LXUF2EY
+#\\\|NOVRFKPIDL5L6QSOPAYBSL27ZZINS2427NHOG54N27FFFCHFIVO \ / AMOS7 \ YOURUM ::
+#\[7]XILNAPWMKGA4RVWRSGSJSM3EBNIAB4RMENXUBVXGT4SV74B7ECAQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
