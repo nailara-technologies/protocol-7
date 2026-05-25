@@ -15,9 +15,10 @@ IO::Uncompress::UnXz::unxz( $comp_sref, \$frozen )
 my $state = thaw($frozen);
 return FALSE if not defined $state;
 
-<index.meta>  = $state->{'meta'}  // {};
-<index.freq>  = $state->{'freq'}  // {};
-<index.level> = $state->{'level'} // {};
+<index.meta>     = $state->{'meta'}     // {};
+<index.freq>     = $state->{'freq'}     // {};
+<index.level>    = $state->{'level'}    // {};
+<index.terminal> = $state->{'terminal'} // {};
 
 ## rebuild all derived structures ##
 <[index.rank]>;
@@ -27,8 +28,8 @@ my $total = <index.meta>->{'total'} // 0;
 
 return TRUE;
 
-#,,,,,..,,,,,,..,,..,,,,.,,,,,..,,.,.,,..,,..,..,,...,...,,,,,..,,,,,,,,,,,,.,
-#UHYGHZRCGNOD2KTXOKKXEMW6QZXJABW553XATROOQNG3IXO4TEAKHXE6733TGZTZWD7ALM7NRFN3A
-#\\\|RW5UOMP2QMOERWCJVK5BHBUHP4AL73B5Y6Z2YUXUWYCSKULQDE4 \ / AMOS7 \ YOURUM ::
-#\[7]XUOQQPV75K2XWGEYPC2K6AOGQLGD24A2COBMSENC6KHJXYQ7SUDY 7  DATA SIGNATURE ::
+#,,..,,..,.,,,...,.,,,.,.,.,,,,.,,...,,,,,,,.,..,,...,...,..,,.,,,,.,,.,.,...,
+#E5G4GLSCZMYDTEUKLNDVDRAQPLMG6V7EH3EI6PVS2OCZ436MA4QTEEIFP6TPCA2KX7Y6HJPCKE2WW
+#\\\|LW44TH5JREOTADXYCYO4GYC2SRD3X2IVEMP2NYZWV2V2OUFCBUW \ / AMOS7 \ YOURUM ::
+#\[7]SVFXTENRYERU3QHAYBGJYZH4HPR3XAW77GHGJKYKWIKX46RZWIDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
