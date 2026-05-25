@@ -1,76 +1,64 @@
 ## [:< ##
 
 # name  = index.cmd.cluster
-# descr = return density stats for a harmonic address prefix
+# descr = prefix cluster density — ring counts, top children
 
 my $prefix = $call->{'args'} // '';
-return { 'mode' => 'false', 'data' => 'expected prefix path' }
+return { 'mode' => 'false', 'data' => 'expected prefix' }
     unless length $prefix;
 
-$prefix =~ s|/+$||;
+my $depth = length($prefix) - 1;
 
-my $store_root = <index.path.index-files>;
-my $scan_path  = "$store_root/$prefix";
+## verify prefix exists in trie ##
+my $addr = <index.addr>->{"$depth:$prefix"};
+return { 'mode' => 'false', 'data' => 'prefix not found' }
+    unless defined $addr;
 
-return { 'mode' => 'false', 'data' => 'not found' } unless -d $scan_path;
+## prefix frequency ##
+my $freq
+    = length($prefix) == 1
+    ? ( <index.freq>->{$prefix} // 0 )
+    : ( <index.level>->{ length($prefix) }{$prefix} // 0 );
 
-my $threshold = <index.cfg.cluster_summarize_threshold> // 42;
+## immediate children for top-5 report ##
+my $children = <[index.search]>->($prefix);
+my @top5     = splice @$children, 0, 5;
 
-my $count = 0;
-my @child_paths;
+## subtree density per ring depth — BFS extending one char at a time ##
+my %density;
+my @current = ($prefix);
+while (@current) {
+    my @next;
+    for my $seq (@current) {
+        my $c = <[index.search]>->($seq);
+        push @next, map { $_->[0] } @$c;
+    }
+    last unless @next;
+    my $d = length( $next[0] ) - 1;
+    $density{$d} = scalar(@next);
+    @current = @next;
+}
 
-my @queue = ($scan_path);
-while (@queue) {
-    my $current = shift @queue;
-    my $dh;
-    next unless opendir( $dh, $current );
-    my @entries = grep { !/^\.{1,2}$/ } readdir($dh);
-    closedir($dh);
-    for my $entry (@entries) {
-        my $full = "$current/$entry";
-        if ( -d $full ) {
-            push @queue,       $full;
-            push @child_paths, $full;
-        } else {
-            $count++;
-        }
+my @out;
+push @out, "prefix: $prefix";
+push @out, "addr: $addr";
+push @out, "freq: $freq";
+push @out, "density:";
+for my $d ( sort { $a <=> $b } keys %density ) {
+    push @out, "  depth $d: $density{$d}";
+}
+if (@top5) {
+    push @out, "top extensions:";
+    for my $c (@top5) {
+        my ( $seq, $r, $f ) = @$c;
+        push @out, "  $seq (rank=$r, freq=$f)";
     }
 }
 
-my $density = $count >= $threshold ? 1 : 0;
+return { 'mode' => 'size', 'data' => join( "\n", @out ) };
 
-## trigger summarization on high-density clusters ##
-if ( $density and !<index.cluster_reported>->{$scan_path} ) {
-    <index.cluster_reported>->{$scan_path} = 1;
-
-    my @members = <[file.all_files]>->($scan_path);
-
-    <[protocol-7.route-send]>->(
-        {   command   => 'coding.submit',
-            call_args => {
-                args => "summarize harmonic cluster: $prefix\n"
-                    . join( "\n", @members )
-            },
-            reply => { handler => 'index.handler.summarize-reply' }
-        }
-    );
-}
-
-my $output = sprintf( "path: %s\ncount: %d\nthreshold: %d\ndensity: %s\n",
-    $prefix, $count, $threshold, $density ? 'high' : 'normal' );
-
-if (@child_paths) {
-    $output .= "children:\n";
-    for my $child (@child_paths) {
-        $child =~ s|^$store_root/||;
-        $output .= "$child\n";
-    }
-}
-
-return { 'mode' => 'size', 'data' => $output };
-
-#,,..,,..,...,,,,,.,.,,..,,..,,,,,..,,.,,,...,..,,...,...,,.,,.,.,...,...,,,,,
-#LNAQ5OCJ4KUBIO6SRYTJFCQI4MO7OWQCHRT2MKTYEFHZYUDLUAN43Y6PWMANKQEWARCYGU5KEBM7C
-#\\\|HRIP5SPW2UVR7XIXA6JJXUL2DYVYQKGJW2S3F7RXYOU3X2BQDG7 \ / AMOS7 \ YOURUM ::
-#\[7]FRMLIMTTATBEQTUTDNCTLW6W43PT7VUGY2MKWQFHLFGWMSRBFSBI 7  DATA SIGNATURE ::
+#,,,,,,,.,,.,,.,.,,..,..,,..,,,,,,...,.,,,.,,,..,,...,...,...,,,.,,..,.,.,,.,,
+#2OZ4X6AHQ5G57MCFJ6YZ7BDEEWUF55T672BS4I7X5DPLRNHABIGWNWXIFD2MP7ZVRFU7T2VKIQ42K
+#\\\|QAODBULGMTIDHFHMOSZDEKJSYY2CDTNQG36UCLZWPZ4E25D5JOZ \ / AMOS7 \ YOURUM ::
+#\[7]EOI45ZXL325KCSX2UGFBBSLCFUE4PE3E3A5MSWJ5VOQCRDKFDCCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
