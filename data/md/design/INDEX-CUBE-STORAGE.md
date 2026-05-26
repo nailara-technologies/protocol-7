@@ -363,8 +363,80 @@ the larger structure. the same reorientation, cleaner deduplication,
 and resumed annealing described for islanded data in harmonic tree
 addressing apply at compartment scale.
 
-#,,,.,..,,,..,,..,..,,...,,,,,...,.,.,.,.,,.,,.,.,...,..,,..,,...,.,,,.,.,,,,,
-#PX66X4JPE5YZSKGVR2BV6IO6UYXSWCL5MZNTOXBD677LFAJXO5FT5NELHVEHS2HE6NW2UO2V5PG6M
-#\\\|HHPY2IKOAATHZMJD2OQWCBKIJ3G7QB3BBKQW3B6ZYZJN3MTXG2D \ / AMOS7 \ YOURUM ::
-#\[7]OIAMGN2ESBGU7WVP2R4FNNW6L6IKQQXT4KFN6BCKYZWEC7DIQEAY 7  DATA SIGNATURE ::
+## @indexcube routing stack connections
+
+the context tree analysis of the `@INDEXCUBE` routing stack reveals that the
+storage format already implements the same principles at the byte level. these
+are not analogies — the same structures appear in both documents, and their
+overlap suggests concrete schema v3 decisions.
+
+p7ref as compartment address format. the routing stack entries use
+`TYPE:CHKSUM7:ADDR_B32` as their coordinate system. a compartment in the index
+cube already carries a self-delimiting AMOS7 checksum in its header; its
+position is `(depth, rank)`. these three facts are exactly the three fields of
+a p7ref. schema v3 should reserve space in the directory entry for an 8-byte
+`compartment_chksum7` field so that every directory entry is itself a valid
+p7ref fragment: the type is implicit in the cube file's magic (`P7IC`), the
+checksum is the compartment's own AMOS7 identity, and the address is the
+arithmetic `(depth, rank)` that produced the directory offset. external
+references to compartments would then need no translation layer — the same
+string addresses a route in `@INDEXCUBE` and a compartment on disk.
+
+section 8 dual reading. the context tree document notes that `@INDEXCUBE` can
+be read simultaneously as a routing stack (position = hop depth, value =
+coordinate) and as a deduplication index (position = frequency rank, value =
+element reference). the compartment directory is the exact same dual structure.
+each directory slice at depth `D` is an array indexed by rank `R`; the value at
+that position is the file offset of the compartment. read as storage, this is
+an allocation directory. read as compression, it is a frequency-sorted
+deduplication table where high-frequency elements (small ranks) cost fewer bits
+to address because their rank is small. the child_rank fields in compartment
+payloads are already log2-encoded pointers into this table. no additional
+structure is needed for deduplication indexing — the directory IS the index,
+and the index IS the directory.
+
+19-bit border addressing. the context tree's L-matrix uses 13 bits for the
+boundary address (5 + 7 + 1) and 6 bits for the face selector, totaling 19
+bits. in the index cube, `dir_stride[D]` is the fixed increment between
+directory entries in a ring, and `dir_base[D]` is the ring's origin. if
+`dir_stride` is constrained to a power of two and `dir_base` is aligned, the
+offset computation `dir_base + rank * dir_stride` collapses to a bit-shift and
+add. a ring with up to 8192 entries (13 bits) and a stride of 8 bytes uses
+exactly 16 bits for its span; with a 6-bit depth selector, the full compartment
+address fits in 19 bits. this suggests schema v3 should fix directory entry
+size at 16 bytes (a power of two) and require `dir_base` alignment to that
+boundary, making the `(depth, rank)` → file_offset mapping a single 19-bit
+decode — compatible with the border-addressing packets used in context tree
+routing.
+
+tamper-evidence chain. the `@INDEXCUBE` stack is a signed traversal proof:
+each hop is signed at push time, and insertion invalidates all subsequent
+signatures. the index cube's per-compartment checksum frames are the storage
+equivalent, but they are isolated — each compartment validates itself against
+corruption, not against traversal order. the overlap suggests that compartment
+checksums should cover not only the payload bytes but also the parent
+compartment's checksum. a compartment at depth `D` would then include the AMOS7
+checksum of its depth-`D-1` parent in its own integrity frame. traversal from
+root to leaf would accumulate a chain of nested checksums; any splice or
+reordering of compartments would break the leaf verification. this turns the
+1D compartment frame into a linked tamper-evidence structure without adding new
+fields — the parent's checksum becomes part of the child's payload hash input.
+
+the cube as namespace. the context tree conclusion — "the cube is the
+namespace, the checksum is the address, the tree is the traversal" — is the
+same statement as the index cube's core invariant: "the cube address IS the
+navigation path." the unified form is: in protocol-7 index storage, there is
+no distinction between naming, locating, and moving. a compartment's name is
+its checksum, its location is its rank-derived offset, and reaching it is the
+arithmetic of that offset. the file is not a container that holds an index;
+the file is the index, and the index is the namespace. this is why the schema
+v3 header is only 256 bytes — it does not manage the space, it merely announces
+the arithmetic that the space already obeys.
+
+---
+
+#,,,.,,.,,.,,,,,,,.,,,,..,,,,,.,,,.,.,,,.,.,.,.,.,...,...,...,..,,...,..,,.,.,
+#RVFMWV2FMXTLCWYHWZ5N4HRSUP446NIUF32U4PP6AEONOKJL6NDY7F72EO75YRDUDEDAQ6UKFOHIW
+#\\\|EJSAJPPY72GCYHPQ54E5GO7ZUHKAG4XAKMTZO74KFSA42ZXMHN2 \ / AMOS7 \ YOURUM ::
+#\[7]KA6K2R3UDQ2BNC5PVS32X2G7TPKSWHC2FSRWFIEBX6FDGFLY3ICQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
