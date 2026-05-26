@@ -9,6 +9,7 @@ base.logs
 base.init
 base.fork
 base.exit
+index.rank
 base.regex
 base.cnt_s
 devmod.dump
@@ -18,6 +19,7 @@ base.minmax
 base.getcwd
 base.gen_id
 web.cmd.skin
+index.ingest
 base.waitpid
 base.tmp_dir
 base.sig_int
@@ -29,6 +31,7 @@ base.del_key
 web.init_code
 net.init_code
 net.calc_port
+index.restore
 base.timezone
 base.sprint_t
 base.sort-num
@@ -45,6 +48,7 @@ base.cfg_bool
 web.cmd.assets
 web.assets.get
 index.gen_path
+index.activate
 base.wrap_text
 base.swap_subs
 base.ssl.write
@@ -68,7 +72,10 @@ auth.auth_list
 web.cmd.content
 plugin.auth.pwd
 net.read_binary
+index.rebalance
 index.init_code
+index.feed.file
+index.cmd.write
 devmod.pre_init
 base.zenka.loop
 base.str.os_err
@@ -76,6 +83,7 @@ base.prng.bytes
 base.path_perms
 base.p7ref.self
 base.has_access
+base.file.write
 base.file.which
 base.file.slurp
 base.event.once
@@ -118,6 +126,7 @@ net.read_bytewise
 jobsite.sync.push
 jobsite.job.write
 jobsite.init_code
+index.deduplicate
 clients.http.post
 base.stream.close
 base.session.init
@@ -143,6 +152,7 @@ base.chk-sum.amos
 web.scan_directory
 web.menu_generator
 jobsite.state.load
+index.restore.cube
 base.reload_values
 base.reload_config
 base.parser.config
@@ -158,12 +168,15 @@ base.cmd.verbosity
 base.clear_p7_mods
 base.clean_unicode
 base.clean_hashref
+base.base32.encode
 web.assets.registry
 web.assets.register
 plugin.auth.twofish
 jobsite.stage.fetch
 jobsite.assert.init
 io.ip.tcp.init_code
+index.tick.feed-dir
+index.callback.tick
 devmod.console-dump
 base.utf8.clean_str
 base.str.eval_error
@@ -218,12 +231,14 @@ base.cmd.show-access
 base.cmd.amos-chksum
 base.chk-sum.bmw.ctx
 base.buffer.add_line
+base.base32.pre_init
 auth.zenka.init_code
 plugin.web.space.grid
 plugin.web.jobs.stats
 jobsite.state.persist
 jobsite.index.rebuild
 jobsite.dispatch.next
+index.source.register
 crypt.C25519.key_vars
 crypt.C25519.gen_keys
 base.session.shutdown
@@ -267,6 +282,7 @@ protocol.sftp.init_code
 jobsite.sync.push_chunk
 jobsite.dispatch.repair
 io.unix.socket.end_code
+index.tick.persist-cube
 crypt.C25519.key_exists
 clients.http.handler.io
 base.templates.pre_init
@@ -279,6 +295,7 @@ base.net.send_to_socket
 base.known_dependencies
 base.get_path.zenka_cfg
 base.get_path.perl_exec
+base.file.write_encoded
 base.exists.sub-process
 base.execute_zenka_code
 base.dump.data_key_list
@@ -287,6 +304,8 @@ base.cmd.set-name-width
 base.cmd.ondemand-zenka
 base.cmd.loaded-configs
 base.chk-sum.elf.inline
+base.chk-sum.bmw.strsum
+base.callback.cmd_reply
 base.auth.set_zenka_key
 auth.zenka.authenticate
 web.process_template_ipc
@@ -345,6 +364,7 @@ jobsite.handler.rewire-all
 jobsite.handler.fetch-done
 io.unix.socket.output.open
 io.unix.socket.input.close
+index.tick.wordlist-import
 base.warnings.from_bitmask
 base.session.check.flushed
 base.reverse-sort.key-name
@@ -368,6 +388,7 @@ jobsite.validate.assessment
 jobsite.handler.repair-done
 jobsite.handler.assess-done
 io.unix.socket.output.close
+index.cube.load_compartment
 clients.http.parse_response
 base.templates.register_add
 base.stream.record_emission
@@ -389,6 +410,7 @@ jobsite.handler.task-created
 jobsite.handler.rescan-timer
 jobsite.dispatch.assessments
 io.unix.socket.input.connect
+index.cube.format.dir_offset
 clients.http.handler.timeout
 base.validate.composite_name
 base.session.check_remaining
@@ -403,6 +425,7 @@ protocol.protocol-7.init_code
 plugin.web.space.orbital.json
 plugin.web.jobs.reverse.queue
 plugin.web.jobs.reverse.flush
+index.handler.summarize-reply
 crypt.C25519.get_usr_keys_dir
 base.validate.data_key_syntax
 base.source.collect_file_list
@@ -545,8 +568,8 @@ base.log.send-buffer.reply-handler.notify-online
 plugin.web.space.template-resolver.update_context
 plugin.web.space.template-resolver.available_data
 
-#,,,,,.,.,..,,..,,,,,,..,,,..,.,.,...,...,,.,,..,,...,...,,,,,,.,,...,..,,,,,,
-#5I2F2FCSQMF2YKQPRANTGO772UMNTGWIIYSSJQYHSRCA2TOK2GE75EKMH72FVCFHM4US7JJQPRRUE
-#\\\|VFVAQTH72GG45PZMJGCDTNCZE243IXM6SE6YBG3CXIXLZSCK47E \ / AMOS7 \ YOURUM ::
-#\[7]DHHLO7ZPPIUFDW7VR6TFXVZNEX3POPC7LZQ7PYYT7NZ522Z3SOAI 7  DATA SIGNATURE ::
+#,,,.,,,.,,,.,,.,,.,.,...,..,,.,.,.,,,,,,,,.,,..,,...,...,.,.,...,,.,,,..,,,.,
+#KD5VZ677XVJCC3VF6XFJ4RD5RPOL2KK5T7GLS6DSNZ2E7KFJ6UCN26UN2OXAAJYJCALYZYGDWXCBU
+#\\\|I6RQ2V3YCEESO3JUYZMU7YJHWGBVN7ORBALMSEDMHWJMR4TEYFS \ / AMOS7 \ YOURUM ::
+#\[7]O7WVAB5Q3V47MFXHDFIQ7F2REXMKOFFMDXP6JAVHQAUVSWBOJGDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
