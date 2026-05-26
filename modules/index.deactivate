@@ -1,0 +1,37 @@
+## [:< ##
+
+# name  = index.deactivate
+# descr = remove a checksum from the active set and subtract its contributions
+
+my $chk = shift // $ARG;
+return FALSE unless defined $chk;
+return FALSE unless delete <index.active_checksums>->{$chk};
+
+my $cv = <index.contributions>->{$chk} // return FALSE;
+
+## subtract ring-0 deltas ##
+for my $char ( keys %{ $cv->{'freq'} // {} } ) {
+    <index.freq>->{$char} -= $cv->{'freq'}{$char};
+    delete <index.freq>->{$char}
+        if ( <index.freq>->{$char} // 0 ) <= 0;
+}
+
+## subtract ring N-gram deltas ##
+for my $win ( keys %{ $cv->{'level'} // {} } ) {
+    for my $seq ( keys %{ $cv->{'level'}{$win} } ) {
+        <index.level>->{$win}{$seq} -= $cv->{'level'}{$win}{$seq};
+        delete <index.level>->{$win}{$seq}
+            if ( <index.level>->{$win}{$seq} // 0 ) <= 0;
+    }
+    delete <index.level>->{$win}
+        unless keys %{ <index.level>->{$win} // {} };
+}
+
+<index.meta>->{'dirty'} = 1;
+return TRUE;
+
+#,,.,,,..,..,,,,,,.,.,...,,..,.,,,,,,,.,,,...,..,,...,...,,,.,,,.,,.,,,,.,..,,
+#NUOQ4EHHXDGWEZRHS7HKAICGQUR745MIWYBMPXOTXXQYAG2HUYSDWJWAXKGLNJDY7WFO4RSGPB6DA
+#\\\|BIBNGQDKEGMGXLTPFO5QXCSVPITAMFSX72ZMUIFSRK2OKBQICXR \ / AMOS7 \ YOURUM ::
+#\[7]UFTEHEOZTB6MDWVBSUI7RZQZZGZPZPWWAL7TXYPTYJDGW436UIDI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
