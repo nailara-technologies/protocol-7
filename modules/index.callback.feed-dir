@@ -3,40 +3,13 @@
 # name  = index.callback.feed-dir
 # descr = idle watcher callback : process one file per idle tick
 
-my $watcher = shift->w;
-my $job_id  = $watcher->data;
-my $job     = <index.jobs>->{$job_id};
+<[base.log]>->(
+    1, 'index.callback.feed-dir: replaced by index.callback.tick'
+);
+return;
 
-if ( not defined $job ) {
-    $watcher->cancel if $watcher->is_active;
-    return;
-}
-
-<index.cfg.rebalance_deferred> = TRUE if $job->{'rebalance-later'};
-
-my $file = shift @{ $job->{'files'} };
-
-if ( not defined $file ) {
-    $watcher->cancel if $watcher->is_active;
-    delete <index.jobs>->{$job_id};
-    my $total = $job->{'total'};
-    if ( <index.cfg.rebalance_deferred> // 0 ) {
-        delete <index.cfg.rebalance_deferred>;
-        <[index.rebalance]>;
-    }
-    <[base.log]>->( 1, "index feed-dir complete [ $total files ]" );
-    <[base.callback.cmd_reply]>->(
-        $job->{'reply_id'}, { 'mode' => 'size', 'data' => "fed $total files" }
-    );
-    return;
-}
-
-my $ok = <[index.feed.file]>->($file);
-<[base.log]>->( 1, "index feed skipped [ $file ]" ) if not $ok;
-$job->{'done'}++;
-
-#,,,,,,.,,,.,,..,,..,,,,.,.,,,.,,,...,,.,,..,,..,,...,...,.,,,.,.,.,,,...,,,,,
-#HEDC6JVJ46I3ZCKAQDD26FFXRMIZRPIDCKJKUT5TJMLY535QJVMUYGQFKHW3T2H4E3HODEOVYCLI4
-#\\\|D2SOTRNOW7MG3TLKP5QCXI4ULU5XZODW2HHRHIBJNNTEKPOGOAV \ / AMOS7 \ YOURUM ::
-#\[7]FRT7XPHUHNIXD7PJBZMLWBHZGXXRYW4NQAWMKXK545U2RUGYVKCA 7  DATA SIGNATURE ::
+#,,,.,,,,,,,.,...,,.,,,,,,,.,,,.,,,,.,.,.,,.,,..,,...,...,.,.,.,.,..,,,,.,,,,,
+#EUOI7SKSTUURNOGFOS4Y4HJK3PL7DBA5SGJ6WCOL4BKU2Z3GMYOY4YCZHW3WVFFRVAAJKLEWKU4P6
+#\\\|A7ODJNHEIEDT477HYWRR6UTSQXCEURMTZAZRJWZVUMPVZPKPE3R \ / AMOS7 \ YOURUM ::
+#\[7]XG3Z5LE7HJRA7XVUP4VRPT3I6NTGCODYVN4INF56MKJLEKO2Z4BQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
