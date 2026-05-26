@@ -32,6 +32,15 @@ if ( not defined $zenka_name ) {
 delete <callback.session.closing_last> if $instance->{'is-cube'};
 delete $instance->{'restart_delay'};    # reset
 
+## if restart is already pending [ timer active, all processes dead ],
+##                                              skip redundant call ##
+if (    defined $instance->{'timer'}->{'restart'}
+    and $instance->{'timer'}->{'restart'}->is_active
+    and not <[v7.instance_pid_count]>->($instance_id) ) {
+    <[base.log]>->( 2, ': restart already pending, skipping redundant call' );
+    return TRUE;
+}
+
 ##[ shortened restart delay.., ]##
 ##
 if ( defined $instance->{'timer'}->{'restart'}
@@ -55,7 +64,8 @@ $instance->{'restart_pids'} = {};
 map { $instance->{'restart_pids'}->{$ARG} = 1 } ( $parent_pid, @children )
     if defined $parent_pid;
 
-$instance->{'sig_chld_ignore_pid'}->{$parent_pid} = TRUE;  ## set to ignore ##
+<v7.sig_chld.ignore_child_pid>->{$parent_pid} = TRUE    ## set to ignore ##
+    if defined $parent_pid;
 
 my $dependencies_ok
     = exists <jobqueue.joblist.by_id>->{$job_id}->{'object_id'}
@@ -79,8 +89,18 @@ $instance->{'timer'}->{'restart_timeout'}->{$restart_id}
 <[zenka.change_status]>->( $instance_id, qw| restart | );
 <[v7.terminate_process]>->($parent_pid) if defined $parent_pid;
 
-#,,..,.,,,,.,,..,,,,,,,..,,,.,,,.,...,,,.,...,..,,...,...,...,,..,.,,,,,,,.,,,
-#RPV2VHLU3QPGRMXWDP3V2VQTASO6QUP7LQKO5NM5W62XR7BZETSDAFWKZJV6VAXQCUZXMFYI6CMCA
-#\\\|5UTF7V3C7RVG327OPT3MSSLCQ2MENHQQQRHGAKDDE35XMFOWQ5C \ / AMOS7 \ YOURUM ::
-#\[7]HWKTV2MFUGME4AJ7RAMRR7TI3MSMOQABHIS7DXQ3CCEFYT7EZYDY 7  DATA SIGNATURE ::
+## if process already dead after terminate,    ##
+## SIGCHLD will never arrive -> init timer now ##
+if ( defined $parent_pid
+    and not <[v7.instance_pid_count]>->($instance_id) ) {
+    <[base.log]>->(
+        2, ': parent already gone, calling init_restart_timer directly'
+    );
+    <[v7.init_restart_timer]>->($instance_id);
+}
+
+#,,,,,,.,,...,,,,,..,,,,.,.,,,,..,,.,,,..,.,,,..,,...,...,...,..,,..,,...,..,,
+#3CYCJF3I4YGONTFXEGEFIIKQRM72JVOV6CC2RX6JZOQWPJ5HZLS3LKXW4HZY7AN5J4VQ3GKYDDLBY
+#\\\|YVRVWOC6MC3TUMJODK35JJVRIEDNQKOA5PPRGOFWEOIKM2PO7L6 \ / AMOS7 \ YOURUM ::
+#\[7]P4SDFPFG5WE57JFNVXHOGGW3J5BNFID6HCYJMYEEYESUAMHXUWCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -13,11 +13,14 @@ my $state = {
         map { $ARG => { %{ <index.level>->{$ARG} } } }
             keys %{ <index.level> // {} }
     },
-    'terminal'      => { %{ <index.terminal>      // {} } },
-    'contributions' => { %{ <index.contributions> // {} } },
-    'addr'          => { %{ <index.addr>          // {} } },
-    'packed_rank'   => { %{ <index.packed_rank>   // {} } },
-    'trie'          => { %{ <index.trie>          // {} } },
+    'terminal'         => { %{ <index.terminal>         // {} } },
+    'contributions'    => { %{ <index.contributions>    // {} } },
+    'sources'          => { %{ <index.sources>          // {} } },
+    'active_checksums' => { %{ <index.active_checksums> // {} } },
+    'chain_policy'     => { %{ <index.chain_policy>     // {} } },
+    'addr'             => { %{ <index.addr>             // {} } },
+    'packed_rank'      => { %{ <index.packed_rank>      // {} } },
+    'trie'             => { %{ <index.trie>             // {} } },
 };
 
 my $total = <index.meta>->{'total'} // 0;
@@ -34,12 +37,15 @@ my $written
 return <[base.log]>->( 1, "index.persist: write failed [ $rel_path ]" )
     if not $written;
 
+## enqueue chunked cube persist as background job [ skip if already running ] ##
+<index.jobs>->{'persist-cube'} //= { 'job-type' => 'persist-cube' };
+
 <[base.log]>->( 1, "index persisted [ $total chars -> $rel_path ]" );
 
 return TRUE;
 
-#,,,,,,,.,..,,.,.,.,,,,..,...,,..,,,,,.,.,.,,,..,,...,..,,...,,..,..,,,..,,,,,
-#74MIQTY2KYRT4PR7NM7E4EXZJWSTXSRB4JSIJUODP7G76U2FK2NG2DGUMK67NTDROIWUIXEBVLCT6
-#\\\|2VNDOHU3YPMONK6FGACX35XO5574LORADC6FU4SWBH5IJZYGAUE \ / AMOS7 \ YOURUM ::
-#\[7]2EVK4M53ZN4POPJVBBKE74SQOZIYODR3J7ZQ3NONDJFKN7VCHYBQ 7  DATA SIGNATURE ::
+#,,,.,,.,,.,.,,,.,...,.,.,,..,...,,,.,..,,...,..,,...,...,,.,,,..,..,,..,,.,,,
+#5RJMMUR2SYTTM2E7IX4YSKYVGWRCVUMORJVBKWBY5YPB43NDBEAYTARL72AQJHABHMEQ3IJNLLUTK
+#\\\|YOFL4VI5JJSQ56ER2CCG66A55NZ6UBQTBFKMLQTNH5UTPPCHDLI \ / AMOS7 \ YOURUM ::
+#\[7]SFWE6VFLM4B5H2P2E7IZMUJ23WTFJHFX5ABRTZIRZ5RMICTOEWDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

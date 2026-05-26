@@ -1,0 +1,64 @@
+## [:< ##
+
+# name = index.cube.load_compartment
+# descr = deserialize one compartment from cube file by (depth, rank)
+
+my ( $depth, $rank ) = @ARG;
+
+my $dir_offset = <[index.cube.format.dir_offset]>->( $depth, $rank );
+return undef if not defined $dir_offset;
+
+my $mmap = <index.cube.mmap>;
+return undef if not defined $mmap;
+
+my $dir_entry_size = <index.cube.format.dir_entry_size>;
+return undef if length($$mmap) < $dir_offset + $dir_entry_size;
+
+my $entry_bytes = substr( $$mmap, $dir_offset, $dir_entry_size );
+
+my ( $data_offset, $data_size, $child_count, $flags, $chksum7 )
+    = unpack( <index.cube.format.pack.dir_entry>, $entry_bytes );
+
+return undef if $data_size == 0;
+
+return undef if length($$mmap) < $data_offset + $data_size;
+
+my $comp_bytes = substr( $$mmap, $data_offset, $data_size );
+
+## skip self-delimiting AMOS7 checksum frame ##
+my $payload_offset = 0;
+if ( length($comp_bytes) >= 2 and substr( $comp_bytes, 0, 1 ) eq "\x00" ) {
+    my $chk_len = unpack( 'C', substr( $comp_bytes, 1, 1 ) );
+    $payload_offset = 2 + $chk_len;
+}
+
+return undef if length($comp_bytes) < $payload_offset + 15;
+
+my ( $terminal, $frequency, $parent_chksum7, $parsed_child_count ) = unpack(
+    <index.cube.format.pack.comp_header>,
+    substr( $comp_bytes, $payload_offset, 15 )
+);
+
+my @children;
+for my $i ( 0 .. $parsed_child_count - 1 ) {
+    my $offset = $payload_offset + 15 + $i * 8;
+    last if $offset + 8 > length($comp_bytes);
+    my ( $char_code, $child_rank ) = unpack(
+        <index.cube.format.pack.child_entry>,
+        substr( $comp_bytes, $offset, 8 )
+    );
+    push @children, { char_code => $char_code, child_rank => $child_rank };
+}
+
+return {
+    terminal    => $terminal,
+    frequency   => $frequency,
+    child_count => $parsed_child_count,
+    children    => \@children,
+};
+
+#,,..,,,.,,..,,.,,.,.,.,,,...,,.,,...,,.,,,,,,..,,...,...,.,.,,,.,...,..,,.,.,
+#2XNO3CT4AT66MJCRKSS4ZHDHW6WKEHHLERWZAEA6DH5T7ZFKJS2FPR4GADCW6XZPDQZT74YLGBVRO
+#\\\|UL3ST5QGE46QBISLCC5X3MYSVH534M43PJJK6KEY4FQ4KNG4WQL \ / AMOS7 \ YOURUM ::
+#\[7]U74SUUET4CKVMRUQVE74Z4KCXWTX42RCHYIBXKM3Z63J3V3CCIAI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

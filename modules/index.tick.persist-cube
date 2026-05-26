@@ -1,0 +1,225 @@
+## [:< ##
+
+# name  = index.tick.persist-cube
+# descr = one tick of chunked cube persist : init layout once, then one ring per tick
+
+my $job_id = shift                   // $ARG;
+my $job    = <index.jobs>->{$job_id} // return;
+my $state  = $job->{'state'};
+
+## phase 1: init -- pre-compute layout, build header ##
+unless ( defined $state ) {
+
+    unless ( defined <index.trie> and scalar keys %{<index.trie>} ) {
+        delete <index.jobs>->{$job_id};
+        return
+            <[base.log]>
+            ->( 1, 'index.tick.persist-cube: trie not available' );
+    }
+
+    my @depths    = sort { $a <=> $b } keys %{<index.trie>};
+    my $max_depth = $depths[-1];
+
+    my ( @ring_count, @comp_sizes, @dir_stride, @dir_base );
+    my $total_comp_data_size = 0;
+
+    for my $D ( 0 .. $max_depth ) {
+        my $nodes = <index.trie>->{$D} // [];
+        my $count = scalar @$nodes;
+        $ring_count[$D] = $count;
+        $dir_stride[$D] = <index.cube.format.dir_entry_size>;
+
+        my @sizes;
+        for my $R ( 0 .. $count - 1 ) {
+            my $node         = $nodes->[$R];
+            my @child_ranks  = unpack( 'N*', $node->[1] // '' );
+            my $child_count  = scalar @child_ranks;
+            my $payload_size = 1 + 4 + 8 + 2 + ( 8 * $child_count );
+            my $disk_size    = $payload_size + 9;
+            push @sizes, [ $payload_size, $disk_size ];
+            $total_comp_data_size += $disk_size;
+        }
+        $comp_sizes[$D] = \@sizes;
+    }
+
+    my $next_offset = <index.cube.format.header_size>;
+    for my $D ( 0 .. $max_depth ) {
+        my $base = $next_offset;
+        $base += ( 16 - $base % 16 ) % 16;
+        $dir_base[$D] = $base;
+        $next_offset = $base + $ring_count[$D] * $dir_stride[$D];
+    }
+
+    my $data_base = $next_offset;
+    $data_base += ( 16 - $data_base % 16 ) % 16;
+    my $total_size = $data_base + $total_comp_data_size;
+
+    my $flags  = 0;
+    my $header = pack( 'a4 S S L S',
+        <index.cube.format.magic>,
+        <index.cube.format.schema_version>,
+        <index.cube.format.compat_version>,
+        $flags, $max_depth );
+    $header .= pack( 'S*',  @ring_count[ 0 .. $max_depth ] );
+    $header .= pack( 'Q*',  @dir_base[ 0 .. $max_depth ] );
+    $header .= pack( 'S*',  @dir_stride[ 0 .. $max_depth ] );
+    $header .= pack( 'Q Q', $data_base, $total_size );
+
+    my $hdr_checksum_str = <[chk-sum.amos]>->($header);
+    my $hdr_chksum7      = pack( 'a8', $hdr_checksum_str );
+    $header .= $hdr_chksum7;
+    $header .= "\x00" x ( 256 - length($header) );
+
+    $job->{'state'} = {
+        max_depth            => $max_depth,
+        ring_count           => \@ring_count,
+        comp_sizes           => \@comp_sizes,
+        dir_stride           => \@dir_stride,
+        dir_base             => \@dir_base,
+        data_base            => $data_base,
+        total_size           => $total_size,
+        header               => $header,
+        hdr_chksum7          => $hdr_chksum7,
+        compartment_checksum => {},
+        directory            => '',
+        compartment_data     => '',
+        data_offset          => $data_base,
+        dir_write_pos        => <index.cube.format.header_size>,
+        current_depth        => 0,
+        ring_offset          => 0,
+    };
+    return;
+}
+
+my $max_depth = $state->{'max_depth'};
+my $D         = $state->{'current_depth'};
+
+## phase 3: finalize and write ##
+if ( $D > $max_depth ) {
+    my $dir       = $state->{'directory'};
+    my $comp      = $state->{'compartment_data'};
+    my $data_base = $state->{'data_base'};
+    my $dw_pos    = $state->{'dir_write_pos'};
+
+    if ( $data_base > $dw_pos ) {
+        $dir .= "\x00" x ( $data_base - $dw_pos );
+    }
+
+    my $output = $state->{'header'} . $dir . $comp;
+
+    my $total_size = $state->{'total_size'};
+    my $written    = <[file.zenka_dir.write]>->(
+        'numerical/numerical-index_state.zxpc',
+        \$output, qw| > |, 0640
+    );
+
+    delete <index.jobs>->{$job_id};
+
+    if ( not $written ) {
+        <[base.log]>->( 1, 'index.tick.persist-cube: write failed' );
+        return;
+    }
+    <[base.log]>->( 1, "index.persist.cube: written [ $total_size bytes ]" );
+    return;
+}
+
+## phase 2: process one batch within ring $D ##
+my $dir_base      = $state->{'dir_base'};
+my $dir_stride    = $state->{'dir_stride'};
+my $hdr_chksum7   = $state->{'hdr_chksum7'};
+my $comp_chk      = $state->{'compartment_checksum'};
+my $data_offset   = $state->{'data_offset'};
+my $dir_write_pos = $state->{'dir_write_pos'};
+my $ring_offset   = $state->{'ring_offset'} // 0;
+my $dir_buf       = '';
+my $comp_buf      = '';
+
+## alignment padding before this ring's directory [ first batch only ] ##
+if ( $ring_offset == 0 and $dir_base->[$D] > $dir_write_pos ) {
+    $dir_buf .= "\x00" x ( $dir_base->[$D] - $dir_write_pos );
+    $dir_write_pos = $dir_base->[$D];
+}
+
+my $nodes         = <index.trie>->{$D} // [];
+my $ring_countD   = scalar @$nodes;
+my $seq_len       = $D + 1;
+my $packed        = <index.packed_rank>->{$D}       // '';
+my $child_packed  = <index.packed_rank>->{ $D + 1 } // '';
+my $child_seq_len = $D + 2;
+
+my $batch_end = $ring_offset + 2000;
+$batch_end = $ring_countD if $batch_end > $ring_countD;
+
+for my $R ( $ring_offset .. $batch_end - 1 ) {
+    my $node = $nodes->[$R];
+    my $seq  = substr( $packed, $R * $seq_len, $seq_len );
+
+    my $terminal = <index.terminal>->{$seq} ? 1 : 0;
+    my $frequency
+        = $D == 0
+        ? ( <index.freq>->{$seq} // 0 )
+        : ( <index.level>->{ $D + 1 }->{$seq} // 0 );
+
+    my $parent_chksum7;
+    if ( $D == 0 ) {
+        $parent_chksum7 = $hdr_chksum7;
+    } else {
+        my $parent_seq  = substr( $seq, 0, $D );
+        my $parent_rank = <index.addr>->{ ( $D - 1 ) . ":$parent_seq" };
+        my $parent_chk  = $comp_chk->{ $D - 1 }{ $parent_rank // '' };
+        $parent_chksum7 = pack( 'a8', $parent_chk // '' );
+    }
+
+    my @child_ranks = unpack( 'N*', $node->[1] // '' );
+    my $child_count = scalar @child_ranks;
+
+    my $payload = pack( <index.cube.format.pack.comp_header>,
+        $terminal, $frequency, $parent_chksum7, $child_count );
+
+    for my $child_rank (@child_ranks) {
+        my $child_seq = substr( $child_packed, $child_rank * $child_seq_len,
+            $child_seq_len );
+        my $char      = substr( $child_seq, -1 );
+        my $char_code = ord($char);
+        $payload .= pack( <index.cube.format.pack.child_entry>,
+            $char_code, $child_rank );
+    }
+
+    my $chk_str    = <[chk-sum.amos]>->( \$payload );
+    my $frame      = "\x00" . chr( length $chk_str ) . $chk_str;
+    my $comp_bytes = $frame . $payload;
+
+    $comp_chk->{$D}{$R} = $chk_str;
+
+    my $disk_size = length($comp_bytes);
+    $dir_buf .= pack( <index.cube.format.pack.dir_entry>,
+        $data_offset, $disk_size, $child_count, 0, pack( 'a8', $chk_str ) );
+    $comp_buf .= $comp_bytes;
+    $data_offset += $disk_size;
+}
+
+## append batch buffers into accumulated state strings ##
+$state->{'directory'}        .= $dir_buf;
+$state->{'compartment_data'} .= $comp_buf;
+$state->{'data_offset'} = $data_offset;
+
+if ( $batch_end < $ring_countD ) {
+    ## more batches remain in this ring ##
+    $state->{'ring_offset'}   = $batch_end;
+    $state->{'dir_write_pos'} = $dir_write_pos;
+    return;
+}
+
+## ring complete -- advance to next depth ##
+$dir_write_pos += $ring_countD * $dir_stride->[$D];
+$state->{'dir_write_pos'} = $dir_write_pos;
+$state->{'current_depth'} = $D + 1;
+$state->{'ring_offset'}   = 0;
+
+<[base.log]>->( 1, "index.persist.cube: ring $D [ $ring_countD entries ]" );
+
+#,,..,...,.,,,.,,,,,.,,,.,,.,,.,.,.,,,..,,..,,..,,...,...,.,,,...,,,,,,,.,.,.,
+#CB2SFM2HYZSAACJCUGLH7T55PVB73YYCS4PKEHB3T2TG5YHWDVT42PLN64MK2XEZQ7MYPZKWP5RO4
+#\\\|GDBDADKWBSEW5HSN2SSA6OZYNR4EYA3KIXKLBLZRWN6Q367NAI4 \ / AMOS7 \ YOURUM ::
+#\[7]HHA7MWADLNQNCORBSRHQJGSEUJ7LJM7MUX3UI7NW5GQSMVUFO4DY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

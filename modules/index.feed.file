@@ -40,14 +40,18 @@ my %level_delta;
     'level' => \%level_delta,
 };
 
+## register source if not yet tracked ##
+<[index.source.register]>->( $path, $chk )
+    unless exists <index.sources>->{$path};
+
 <[index.rebalance]>;
 
 <[base.log]>->( 2, "index fed [ $path ]" );
 
 return TRUE;
 
-#,,..,,..,...,,,.,,..,,,,,.,.,,,.,.,.,.,,,,..,..,,...,...,...,...,..,,...,,,.,
-#E7RAL57UIBZRCBNNY5JAV3AHS2P7ENEBDTOOE3N4EYATPMYQOCKABDNFPWEGRXFLRTVU3BXJOJBW6
-#\\\|3FKZKJFQLQVZS2P5PHGJUCAIOTP2SSGORKFK4CAE54KCDPWMKLH \ / AMOS7 \ YOURUM ::
-#\[7]JP2YDHVVXLINSWS6NKPFB7Z6MUNEEL7XPVHYX2BVLLEZBRJKKIBY 7  DATA SIGNATURE ::
+#,,.,,...,...,.,.,.,.,,..,,,,,,.,,,,.,,,.,,,,,..,,...,...,.,,,,,,,.,,,...,.,.,
+#PZMVSPTANLIIWYNFMZQKE5HICJGBISEGSPK6L5VKI2ZAHXKK2BP43RC2XXSVWZN5N7FCZAPHFVVKA
+#\\\|44NJYV5YVERDHHO7DACMCHS45VQZBQSICUYVX4H6NBO7DVLLFH2 \ / AMOS7 \ YOURUM ::
+#\[7]KNIYLNCYLJR4SKHB5ZO4MBJXIU2CAA4Z4IJFO4Z7LFK6TKKMN4AI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

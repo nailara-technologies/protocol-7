@@ -15,11 +15,14 @@ IO::Uncompress::UnXz::unxz( $comp_sref, \$frozen )
 my $state = thaw($frozen);
 return FALSE if not defined $state;
 
-<index.meta>          = $state->{'meta'}          // {};
-<index.freq>          = $state->{'freq'}          // {};
-<index.level>         = $state->{'level'}         // {};
-<index.terminal>      = $state->{'terminal'}      // {};
-<index.contributions> = $state->{'contributions'} // {};
+<index.meta>             = $state->{'meta'}             // {};
+<index.freq>             = $state->{'freq'}             // {};
+<index.level>            = $state->{'level'}            // {};
+<index.terminal>         = $state->{'terminal'}         // {};
+<index.contributions>    = $state->{'contributions'}    // {};
+<index.sources>          = $state->{'sources'}          // {};
+<index.active_checksums> = $state->{'active_checksums'} // {};
+<index.chain_policy>     = $state->{'chain_policy'}     // {};
 
 my $schema_version = <index.meta>->{'schema_version'} // 0;
 if ( $schema_version == 2 ) {
@@ -36,8 +39,8 @@ my $total = <index.meta>->{'total'} // 0;
 
 return TRUE;
 
-#,,,,,,,,,,,.,,,,,,,,,,..,,.,,,,.,...,.,,,,..,..,,...,...,,.,,,.,,,,.,..,,,.,,
-#QUB2VGWFUSCETJYX5ZI4IOS4OIR3SXGG5AODELTD2UQKSBRXS7UBVCZCKXSNJP3IF6SCO5BKUX6WA
-#\\\|M3COZWRWCRDCZPJ5N2SCWW37R222C5EWSA2DV34P3N4LETVLLSF \ / AMOS7 \ YOURUM ::
-#\[7]JL62XLAJAJ5CACHDFK5G6W2CDFZ6PEOQEURUBY5EDQAM255TJOCI 7  DATA SIGNATURE ::
+#,,,.,,,,,,,,,,,.,..,,...,,,,,.,.,..,,..,,,.,,..,,...,...,...,,.,,.,,,,,.,,..,
+#GKQG4N4GNZA2TODDMOZEFAYGSJ76NFYBOKLLOO7WNVHGHNGARGLQYLNRZMUHCRZVRENZZ5DDDJ7SU
+#\\\|4UKCPAAR53NJTQIBOMPDX26TJVWVRVQVKSKQAZA7P52TB2AKZFB \ / AMOS7 \ YOURUM ::
+#\[7]ITSYMZCRSXWC5FXIGGGEMQLW5HECUHMLRYHXTTHXYW4DYKVJK6CI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

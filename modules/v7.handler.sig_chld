@@ -52,8 +52,9 @@ while ( my $end_pid = shift @waitpid_pid ) {
         delete <v7.sig_chld.ignore_child_pid>->{$end_pid};
         <[base.clean_hashref]>->(<v7.sig_chld>);    ## cleaning up ##
         delete <v7.sig_chld> if not keys <v7.sig_chld>->%*;
-        ## skip pid processing ##
-        next;
+        ## skip pid processing for non-registered processes only ##
+        ## registered zenka children still need process_zenka_end ##
+        next if not exists <v7.child>->{$end_pid};
     }
 
     ##  unknown  ##
@@ -105,8 +106,8 @@ while ( my $end_pid = shift @waitpid_pid ) {
         if defined $instance_id or defined $end_pid;
 }
 
-#,,..,.,,,,,,,,.,,,,,,,.,,..,,..,,.,,,,..,,,.,..,,...,...,,..,.,,,,,.,,,,,,..,
-#ZWO6SSIYXWP7CXCTVHXU6ND23LDQYBGM546DEF66C2B7W6CBJN7WGTT2OO2L3VAPULE4P3MJPYJ56
-#\\\|FLPH6S6DQD32JIYZGEACPWLQDBBDX7Y4SJITF54PJWNKBGODM5X \ / AMOS7 \ YOURUM ::
-#\[7]ORWC2FJYHWB67G4B6YMS63CEZ7ESLYSPNWIGBKH6ON3RVJSZPAAQ 7  DATA SIGNATURE ::
+#,,.,,,,,,.,,,.,,,,.,,...,,..,..,,,,.,..,,...,..,,...,...,...,.,.,.,.,.,,,.,,,
+#NTKJGVHYNBD2IOQH4KHX3VCTQOO6EMK5VPW37TOA5SGUFSQ4O6IFFRPRMQPTHA23HH6CNDSXGB3PW
+#\\\|27TSR36YNM5AG5D4BYDDKWFUWNPF2L56AXAJOADUKAMSF3CX7HN \ / AMOS7 \ YOURUM ::
+#\[7]KQLG5PNQFM5W7KIPBODXMGY7SKDRSTDM6JNBG7MTY44OJW7JPYBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

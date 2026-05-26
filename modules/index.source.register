@@ -1,0 +1,17 @@
+## [:< ##
+
+# name  = index.source.register
+# descr = register source_id with its HEAD checksum and activate
+
+my ( $source_id, $chk, $policy ) = @ARG;
+$policy //= 'snapshot';
+<index.sources>->{$source_id}      = $chk;
+<index.chain_policy>->{$source_id} = $policy;
+<[index.activate]>->($chk);
+return TRUE;
+
+#,,,,,.,,,,,.,...,.,,,,,,,,,,,,.,,,.,,.,,,...,..,,...,...,,,.,.,,,.,,,,,,,,.,,
+#BXV6RM5T5OHTBYPAWNZZYNOQPXDM45VNJHDU7GEL2M3WWDOC3NEKXDHBVVYFLUQMRL4WHY62JHQHQ
+#\\\|7TNDOFAOSJDXARKZAYPABK2VSMKJGUPB63CFKUR56EYATNBDZHI \ / AMOS7 \ YOURUM ::
+#\[7]FWR3UD2LXOXDF5SDWXKUBNUKOI3GLLSQKLZZZKNCWGYIYK6BBAAA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
