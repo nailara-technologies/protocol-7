@@ -20,16 +20,16 @@ return FALSE if not defined $state;
 <index.level>    = $state->{'level'}    // {};
 <index.terminal> = $state->{'terminal'} // {};
 
-## rebuild all derived structures ##
-<[index.rank]>;
+## mark dirty so rank runs on next rebalance or deferred timer ##
+<index.meta>->{'dirty'} = TRUE;
 
 my $total = <index.meta>->{'total'} // 0;
 <[base.log]>->( 1, "index restored [ $total chars from $rel_path ]" );
 
 return TRUE;
 
-#,,..,,..,.,,,...,.,,,.,.,.,,,,.,,...,,,,,,,.,..,,...,...,..,,.,,,,.,,.,.,...,
-#E5G4GLSCZMYDTEUKLNDVDRAQPLMG6V7EH3EI6PVS2OCZ436MA4QTEEIFP6TPCA2KX7Y6HJPCKE2WW
-#\\\|LW44TH5JREOTADXYCYO4GYC2SRD3X2IVEMP2NYZWV2V2OUFCBUW \ / AMOS7 \ YOURUM ::
-#\[7]SVFXTENRYERU3QHAYBGJYZH4HPR3XAW77GHGJKYKWIKX46RZWIDQ 7  DATA SIGNATURE ::
+#,,,,,.,,,,,.,.,,,.,,,.,,,,.,,,..,,,.,,,.,.,,,..,,...,...,,.,,.,,,.,,,...,,..,
+#KMVLT352NX4SJTPQGNANLP5QTXON4QLPSU6YKZJB3W3FIG3B4GR44O3N7FUFAFCHC6WIJ57NM2AB6
+#\\\|XELYRYIHFXZ3QWKCU3K3HPXRM3ORABMSAH4ZOUIFTGO3MHVSFGF \ / AMOS7 \ YOURUM ::
+#\[7]PBRRAQRZRVMEDSHJBOGIKBMI35L7PZKWKZSYEFDRCQXVLQGZHYAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
