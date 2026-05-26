@@ -64,6 +64,16 @@ if ( not( <index.meta>->{'total'} // 0 ) ) {
     <[index.restore]>;
 }
 
+## defer rank rebuild to after startup — avoids init timeout on large corpora ##
+if ( <index.meta>->{'dirty'} // 0 ) {
+    <[event.add_timer]>->(
+        {   'after'   => 0.2,
+            'handler' => qw| index.rank |,
+            'desc'    => 'index post-restore rank rebuild',
+        }
+    );
+}
+
 <[base.log]>->( 1, 'index zenka initialized [ numerical language tree ]' );
 
 my $create_perm = <index.permissions.index_root_path>;
@@ -72,8 +82,8 @@ map { <[file.make_path]>->( $ARG, $create_perm, <system.amos-zenka-user> ) }
 
 0;
 
-#,,..,,,,,.,,,.,,,,,,,.,.,,.,,,,.,.,,,..,,,..,.,.,...,...,..,,.,,,.,.,.,,,.,.,
-#ERVNKXYWOSO326SPPK6STNZKCRQS5K5CQB3UQN3TTM4DAKO5ZN4HT4GIUWLLDOTLW5UDYJ7JZSIUY
-#\\\|4BOSFD32ITPOK5SIGXQOEXCR3Q6T6ZS5VJUOJS63MNZOEJZDEKW \ / AMOS7 \ YOURUM ::
-#\[7]PVJF7IF6GY2ABSLAFYFMM7FDQ62VUO5S2AA5WF75QQW27ZF34SBQ 7  DATA SIGNATURE ::
+#,,,,,,,.,,.,,.,.,.,.,.,.,,..,...,,,.,,..,..,,.,.,...,...,...,..,,.,.,..,,.,.,
+#H5ITQ4CN5BPE6BZ7QC6QEOEKGF67MD2A3UFZNT2AP2COWUJ5JBOIX7YH5SZLCL2WQQNXKQLCRYY3K
+#\\\|44IW6SQLYAT6JYNITKIAFZDJNF25HW2C6F6KUATFRQXHESNID7W \ / AMOS7 \ YOURUM ::
+#\[7]HR2DYQK4LN57KZJPP6PO2QUB42A4EEN3MIVXB2M2VDYJJJIOVYBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
