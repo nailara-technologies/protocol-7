@@ -3,8 +3,11 @@
 # name  = index.persist
 # descr = save corpus data compressed to zenka_dir [ .zxps ]
 
+my $schema_version = 2;
+
 my $state = {
-    'meta'  => { %{ <index.meta> // {} } },
+    'meta' =>
+        { %{ <index.meta> // {} }, 'schema_version' => $schema_version },
     'freq'  => { %{ <index.freq> // {} } },
     'level' => {
         map { $ARG => { %{ <index.level>->{$ARG} } } }
@@ -12,6 +15,9 @@ my $state = {
     },
     'terminal'      => { %{ <index.terminal>      // {} } },
     'contributions' => { %{ <index.contributions> // {} } },
+    'addr'          => { %{ <index.addr>          // {} } },
+    'packed_rank'   => { %{ <index.packed_rank>   // {} } },
+    'trie'          => { %{ <index.trie>          // {} } },
 };
 
 my $total = <index.meta>->{'total'} // 0;
@@ -32,8 +38,8 @@ return <[base.log]>->( 1, "index.persist: write failed [ $rel_path ]" )
 
 return TRUE;
 
-#,,,.,,..,.,.,...,,.,,..,,.,.,...,,,.,,,.,,.,,..,,...,...,...,..,,...,.,.,,.,,
-#5YSUVLK65WOQUHB2UGW47BHTJFZGUVSAAB25BNJ2FICWYARVRAF3GXP77FOUJD4H2DDK2I6OZHKR6
-#\\\|BN7XSPCOLYOLHEMEUOM3U563RVWF4KQMBG5EOAEU7GPE37MEWYW \ / AMOS7 \ YOURUM ::
-#\[7]RGZRYPFQZWHIPQVQDUENCPKBA55DU3735TZVIPH742IGH3JPTODY 7  DATA SIGNATURE ::
+#,,,,,,,.,..,,.,.,.,,,,..,...,,..,,,,,.,.,.,,,..,,...,..,,...,,..,..,,,..,,,,,
+#74MIQTY2KYRT4PR7NM7E4EXZJWSTXSRB4JSIJUODP7G76U2FK2NG2DGUMK67NTDROIWUIXEBVLCT6
+#\\\|2VNDOHU3YPMONK6FGACX35XO5574LORADC6FU4SWBH5IJZYGAUE \ / AMOS7 \ YOURUM ::
+#\[7]2EVK4M53ZN4POPJVBBKE74SQOZIYODR3J7ZQ3NONDJFKN7VCHYBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
