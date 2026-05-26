@@ -1,0 +1,17 @@
+## [:< ##
+
+# name  = index.cube.format.dir_offset
+# descr = compute directory file offset for ring D entry R
+
+my ( $depth, $rank ) = @ARG;
+
+my $base   = <index.cube.header>->{'dir_base'}[$depth]   // return undef;
+my $stride = <index.cube.header>->{'dir_stride'}[$depth] // return undef;
+
+return $base + $rank * $stride;
+
+#,,.,,,.,,,..,...,.,.,,.,,.,.,,..,..,,.,,,,,.,..,,...,...,.,.,,,.,,,.,...,,..,
+#IBBVH3XQCOQYMIJXXWFM23T4NZPGVR7QEDBL6EGIMSEJC3OVM4Y7JBYSG3CNJOGAG757UJERKWNBC
+#\\\|GYNCSKLVAYTDE3AXGYZ7SO3RJKEF57LUCQC2TLFCYLK3M2GUDYR \ / AMOS7 \ YOURUM ::
+#\[7]FQSC7CKBNTDYLJE3LK6IXTRIIIVVNXURBK3OEDUIXDGZEV4MJGBI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -26,14 +26,15 @@ my $type = $job->{'job-type'} // '';
 if    ( $type eq 'feed-dir' ) { <[index.tick.feed-dir]>->($job_id) }
 elsif ( $type eq 'wordlist-import' ) {
     <[index.tick.wordlist-import]>->($job_id);
-}
-else {
+} elsif ( $type eq 'persist-cube' ) {
+    <[index.tick.persist-cube]>->($job_id);
+} else {
     <[base.log]>->( 0, "index.tick: unknown job type [ $type ]" );
     delete <index.jobs>->{$job_id};
 }
 
-#,,,,,.,,,,,.,,..,,..,,,,,,.,,.,.,.,.,...,,,.,..,,...,...,..,,,..,,,.,...,,,.,
-#SN2QALJH3YFHWFXIYZPEUYGYVW3PF3ZLKIP6FIDRKXTWEZFKI7JXSE64IMQFEBJPBDGFNOQUZ27NG
-#\\\|UROD6GTXYT37F2WWNF3CPNRL3TXRR6LXNSJE4X3BV6KZ2YCDI2N \ / AMOS7 \ YOURUM ::
-#\[7]Y6EGLP3ZT6TJHEMPSUYQFLGIL4CB6IPFR6NKKWCP5NM3Y2NNFUBA 7  DATA SIGNATURE ::
+#,,,,,...,...,.,.,...,.,.,,..,,..,.,.,,,,,,..,..,,...,...,,..,,..,,.,,.,.,...,
+#5C627N72Q46E76K3J3XKTQI72SZ2JI2HALCHPATRPSPX37IBJ4X3SAQNLN7QFQPQUN2IZGUDASIOW
+#\\\|3JHAKZUSGHOVQMQOCXE6MI3QBSVIUHD2TIXIQTANOCIZABWVLNU \ / AMOS7 \ YOURUM ::
+#\[7]MZORITLWWYJUWA73AU3NOR67DPUFVI3TO3THCKK6FLVAZI5NNSBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

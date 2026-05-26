@@ -1,0 +1,21 @@
+## [:< ##
+
+# name = index.cube.get_compartment
+# descr = get compartment at (depth, rank) from cache or load from cube file
+
+my ( $depth, $rank ) = @ARG;
+
+return <index.cube.loaded>->{$depth}{$rank}
+    if exists <index.cube.loaded>->{$depth}{$rank};
+
+my $comp = <[index.cube.load_compartment]>->( $depth, $rank );
+return undef if not defined $comp;
+
+<index.cube.loaded>->{$depth}{$rank} = $comp;
+return $comp;
+
+#,,,,,.,.,...,..,,.,,,..,,.,,,,,,,...,.,.,.,,,..,,...,...,.,,,.,,,,.,,,,,,,,,,
+#TO4ANSVJSA5TEH5WDEJ3AQ6OJU5LULB4D5MZATVCSD3I6R6YKHBAG3I5IIVYP34EBO5L25CFK7C2O
+#\\\|7WGE357YP7FGAAXQNGEUJRQE4BPVXZYO2SUIAEXJ7AHYCT4FL4X \ / AMOS7 \ YOURUM ::
+#\[7]ELIGSL2OL56TMTDDHW6VUSNDDKS5RLBKOXVO7HMXNINP4CG3QOCQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

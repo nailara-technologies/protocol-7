@@ -1,0 +1,21 @@
+## [:< ##
+
+# name  = index.cube.format.pack_dir_entry
+# descr = pack a directory entry hashref into 16 bytes
+
+my $entry = shift // $ARG;
+
+return pack(
+    <index.cube.format.pack.dir_entry>,
+    $entry->{'data_offset'} // 0,
+    $entry->{'data_size'}   // 0,
+    $entry->{'child_count'} // 0,
+    $entry->{'flags'}       // 0,
+    $entry->{'chksum7'}     // "\x00" x 8,
+);
+
+#,,..,,..,,,,,,,.,...,.,.,,,.,.,,,,.,,,.,,.,,,..,,...,..,,..,,,.,,.,.,,,,,.,.,
+#H5LLSY5XHZGEMSSU5ZBNCRX2DBBOTLIX6EJUIVEZH2F5WFM7NJOPPGARMY2VMZLSOZMJ5FGXP3SOE
+#\\\|GPMIPTHZ43BE37MRIQKVTJYBUPM3ABVXUZZL4XNEPPG2DJP3R5G \ / AMOS7 \ YOURUM ::
+#\[7]2FHXCXCBSWJFLLBFDQLRQ3RIECONAP7OFWUABETPCLK3BZTBNCDI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

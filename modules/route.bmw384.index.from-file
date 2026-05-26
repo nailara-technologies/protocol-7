@@ -20,7 +20,7 @@ if ( not defined $content ) {
 
 # [ examine last 6 lines for B32 BMW384 footer ]
 my @lines      = split m{\n}, $content;
-my @last_lines = splice @lines, -6;
+my @last_lines = @lines >= 6 ? splice( @lines, -6 ) : splice( @lines, 0 );
 
 my $b32_str;
 for my $ARG (@last_lines) {
@@ -109,8 +109,8 @@ return {
     qw| digest_len | => length($raw_digest),
 };
 
-#,,..,.,.,,.,,,.,,,.,,,.,,,,,,,..,,,.,...,.,.,..,,...,...,..,,.,,,,,.,,..,,.,,
-#4TMLEQWCRVBNPVRWSYLPDL5MRZ2OSWAO4B2AXECIYRVGNH5IJ6EXSH7YWBG7VORRL7FTHA6ABKUBI
-#\\\|4SZ2FPSCRNV42PVJNOCIMGTWPGMPKWHPDCNDWAVSFPKC5LT7RIS \ / AMOS7 \ YOURUM ::
-#\[7]CIHHEDEYEVUY22DLTOXO3WZ6FYMCTXPWGKJIXVKMCK3IWB7GTAAI 7  DATA SIGNATURE ::
+#,,,.,.,.,,,.,...,,,,,..,,..,,,.,,,.,,,,.,.,.,..,,...,...,,,,,,,,,,.,,,,.,,,,,
+#5VRWFWO43OHYQEXZ3E2JOS4CHRESNNHRGJ6SEBRQS522O3NDAVDSLU3ODHZTJRZX7WPWKMGSPOADU
+#\\\|QWZOQQVSHUSRUAFATW63JRWE2VY4UDTYQSSMM6XPPVL7IRBYUBH \ / AMOS7 \ YOURUM ::
+#\[7]LYLW6GOBHPIMOTAUQ73IQSKUYP3ASMOPL2UBXSEJBD7BNVKJMUCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
