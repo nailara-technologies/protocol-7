@@ -15,10 +15,11 @@ IO::Uncompress::UnXz::unxz( $comp_sref, \$frozen )
 my $state = thaw($frozen);
 return FALSE if not defined $state;
 
-<index.meta>     = $state->{'meta'}     // {};
-<index.freq>     = $state->{'freq'}     // {};
-<index.level>    = $state->{'level'}    // {};
-<index.terminal> = $state->{'terminal'} // {};
+<index.meta>          = $state->{'meta'}          // {};
+<index.freq>          = $state->{'freq'}          // {};
+<index.level>         = $state->{'level'}         // {};
+<index.terminal>      = $state->{'terminal'}      // {};
+<index.contributions> = $state->{'contributions'} // {};
 
 ## mark dirty so rank runs on next rebalance or deferred timer ##
 <index.meta>->{'dirty'} = TRUE;
@@ -28,8 +29,8 @@ my $total = <index.meta>->{'total'} // 0;
 
 return TRUE;
 
-#,,,,,.,,,,,.,.,,,.,,,.,,,,.,,,..,,,.,,,.,.,,,..,,...,...,,.,,.,,,.,,,...,,..,
-#KMVLT352NX4SJTPQGNANLP5QTXON4QLPSU6YKZJB3W3FIG3B4GR44O3N7FUFAFCHC6WIJ57NM2AB6
-#\\\|XELYRYIHFXZ3QWKCU3K3HPXRM3ORABMSAH4ZOUIFTGO3MHVSFGF \ / AMOS7 \ YOURUM ::
-#\[7]PBRRAQRZRVMEDSHJBOGIKBMI35L7PZKWKZSYEFDRCQXVLQGZHYAQ 7  DATA SIGNATURE ::
+#,,,,,.,.,..,,.,.,,,,,,,,,,..,...,...,,.,,.,.,..,,...,...,,..,...,,.,,,,,,.,,,
+#W65P4JRP2IRAGT6JD5ZSVQ3G3CI62FMJ5KC3NFQGPM4YPMPZNCC2YJUUHG5JYJNSFIFV6IKX23PVW
+#\\\|NZW42NVLSWSDJDXQZ2PZH2EGPIV75LYNNPAVFBBQQG2JAAJR3BU \ / AMOS7 \ YOURUM ::
+#\[7]ZRMMHEXZ36ZYRXZ5SI27XJFIJSSPFMVH3ZIWFFVDQ2BPN5JOACCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

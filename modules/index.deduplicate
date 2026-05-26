@@ -3,11 +3,12 @@
 # name = index.deduplicate
 # descr = detect repeating sequences and promote to higher-order tokens
 
-my $src      = shift // $ARG;
-my $text     = ref $src ? $src->$* : $src;
-my $max_win  = <index.meta>->{'max_window'} // 8;
-my $min_win  = 2;
-my $text_len = length $text;
+my $src         = shift // $ARG;
+my $level_delta = ref $_[0] eq 'HASH' ? shift    : undef;
+my $text        = ref $src            ? $src->$* : $src;
+my $max_win     = <index.meta>->{'max_window'} // 8;
+my $min_win     = 2;
+my $text_len    = length $text;
 
 ## ring-0 terminal tracking ##
 for ( my $pos = 0; $pos + 1 <= $text_len; $pos++ ) {
@@ -25,6 +26,7 @@ for my $win ( $min_win .. $max_win ) {
         my $seq = substr( $text, $pos, $win );
         next if $seq =~ m| |;    ## skip sequences containing space ##
         <index.level>->{$win}{$seq}++;
+        $level_delta->{$win}{$seq}++ if defined $level_delta;
 
         ## boundary check: true terminal if followed by space or EOS ##
         my $end = $pos + $win;
@@ -37,8 +39,8 @@ for my $win ( $min_win .. $max_win ) {
 
 ## ranking and trie build are handled by index.rank ##
 
-#,,..,,..,.,.,,,,,...,..,,,,.,.,,,,.,,..,,,.,,.,.,...,...,..,,,,,,..,,.,,,.,.,
-#LRTCFALSFHTHAGYIEZBPMT4J5Q3EPG33J3SXWJ3UIZO4IGOZNZADBE3LQY4JEPESHB4EQ4LDIPKKC
-#\\\|LGNTNBOAMNAEJYKB5KLGP5YWKAFLPAPX6DXCXDIKF2ZZQ7RCCKF \ / AMOS7 \ YOURUM ::
-#\[7]NARVPQZNK5MNG3QJXPFTPQ2OUYYOHOVEEQCDHP77V73UKUURDCAA 7  DATA SIGNATURE ::
+#,,,.,,..,...,.,.,.,.,,.,,,,,,,..,,,.,.,,,,,,,.,.,...,...,,.,,,,,,,..,,.,,..,,
+#5YW6NRMNYAXSUQO2UX3WPBP3D5QPKFKLRLK73JWYI2B6SAMCIZYDBCHGUFEKQB6LYXNUIC5WQX2JM
+#\\\|NHGT7MFWWI5AK2O4AALVP3BNT2WRNS4ZLAY3HQMJSOUQIB74QAV \ / AMOS7 \ YOURUM ::
+#\[7]SUL74JH6RYVZ7LTW4YUURYIHFPGLJP2VIXVLZNQ3XMF56MRVDWDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

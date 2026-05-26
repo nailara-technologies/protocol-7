@@ -19,16 +19,35 @@ if ( not defined $content ) {
     return FALSE;
 }
 
+my $chk = <[base.chk-sum.amos]>->($content);
+return TRUE if exists <index.contributions>->{$chk};
+
+my %freq_before = %{ <index.freq> // {} };
+
 <[index.ingest]>->($content);
-<[index.deduplicate]>->($content);
+
+my %freq_delta;
+for my $k ( keys %{<index.freq>} ) {
+    my $delta = <index.freq>->{$k} - ( $freq_before{$k} // 0 );
+    $freq_delta{$k} = $delta if $delta;
+}
+
+my %level_delta;
+<[index.deduplicate]>->( $content, \%level_delta );
+
+<index.contributions>->{$chk} = {
+    'freq'  => \%freq_delta,
+    'level' => \%level_delta,
+};
+
 <[index.rebalance]>;
 
 <[base.log]>->( 2, "index fed [ $path ]" );
 
 return TRUE;
 
-#,,..,,.,,,.,,.,.,...,..,,,.,,,..,,,.,.,,,,..,..,,...,..,,...,.,,,...,..,,,.,,
-#6MRX3FFNYHVCE6C53Q5CKJBVKVYNZOYA2CUX75FJZ53M4FKFCBLLQUJMTRDKE3RESWNN5B2MTEO6Y
-#\\\|FSC62CFWV4CFAFQYFLZW6ZX4B32I72Q3Z74FEOR55ON4HNYCWYT \ / AMOS7 \ YOURUM ::
-#\[7]4W5QJSDFQUJ35A7QDGSNG3BRXZSSNIZ5MYCFFG4ELRTBJQDRRGBI 7  DATA SIGNATURE ::
+#,,..,,..,...,,,.,,..,,,,,.,.,,,.,.,.,.,,,,..,..,,...,...,...,...,..,,...,,,.,
+#E7RAL57UIBZRCBNNY5JAV3AHS2P7ENEBDTOOE3N4EYATPMYQOCKABDNFPWEGRXFLRTVU3BXJOJBW6
+#\\\|3FKZKJFQLQVZS2P5PHGJUCAIOTP2SSGORKFK4CAE54KCDPWMKLH \ / AMOS7 \ YOURUM ::
+#\[7]JP2YDHVVXLINSWS6NKPFB7Z6MUNEEL7XPVHYX2BVLLEZBRJKKIBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
