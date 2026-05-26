@@ -25,8 +25,8 @@
 - `data/md/development/P7-LLM-REFERENCE.md` — verified live command reference for kimi/LLM
 - `data/md/development/DEGRADED-FEATURES-AUDIT.md` — 5 high-priority + 3 medium with stub task files
 
-## Session 56 (2026-05-26) — index terminal tracking, FastText/pluggable model design, job control
-- [session-56](session-56.md) — `<index.terminal>` implemented, 4 corpus versioning task files, INDEX-PLUGGABLE-MODEL-FRAMEWORK + INDEX-FASTTEXT-SOURCECODE-EMBEDDINGS docs, job control multiplexing task, logging fixes
+## Session 56 (2026-05-26) — index terminal, schema v3 cube, v7 restart fix
+- [session-56](session-56.md) — `<index.terminal>`, schema v3 .zxpc cube (P7IC, 8-ring 2.3M compartments), chunked persist (2000/tick ring_offset), v7 restart race + sig_chld_ignore_pid wiring fix
 - **`<index.terminal>`** — boundary tracking live; `[ exact, terminal ]` vs `[ exact ]` in search; corpus re-fed to 11.8M chars
 - **FastText** — definition-agnostic: same pipeline for chars/namespace/checksum/reference tokens; trie IS subconsciousness; chat channels as discourse corpus
 - **pluggable model** — 3-axis (model type/storage/token); contribution vectors = Layer 1 universal intermediate; non-destructive experimentation
@@ -250,8 +250,8 @@
 - **pager.sort.multi-key**: ntime_b32 + priority_map sort types added (session 42)
 - **task dispatch sections**: all dispatched tasks now carry ## dispatch + prompt for reuse
 
-#,,.,,.,.,,,,,..,,,,.,,..,,.,,.,,,,,.,,..,.,.,..,,...,..,,,,.,.,,,,.,,,.,,..,,
-#DRHIU5YP3DG63FWOPX7CS3K43Y67WZDSSTMY4PDIKRIK7TTCWQFQILAK7WW53UYPN4HENJEPFKMG2
-#\\\|AKQLCYQO6OFIGPKU5WTG3LCXMJZGYV2QUHKNFTXFPXQMZHDCA5B \ / AMOS7 \ YOURUM ::
-#\[7]AWWU2CGJ5AJRUZNEKMAS5YLYFZABVB7X73B5Q3XKVPTWIC4SO2DY 7  DATA SIGNATURE ::
+#,,.,,,.,,...,,,.,,..,..,,.,.,.,,,,.,,,,,,,..,..,,...,...,..,,..,,,.,,,,,,.,.,
+#4XC3GBAXOAOXZRQCE2GTRT6LIHB7VOCN6DO2JKKH3HDA6WA35OTTUKNP5TXBVLG4YSYGDNWO7LB2C
+#\\\|JWU6524F3WPYNMSKNBDTBRB3V4LDST4U5U7GHVRNZ6IE7EF5EEU \ / AMOS7 \ YOURUM ::
+#\[7]F6H2K4RRGMDR6CR6237X3A3HLQQXM42REJWHCT6QPBIVYOY2KODY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
