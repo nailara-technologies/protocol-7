@@ -65,6 +65,14 @@ if ( not( <index.meta>->{'total'} // 0 ) ) {
     <[index.restore]>;
 }
 
+<index.tick.cursor> //= 0;
+<[event.add_idle]>->(
+    {   'handler' => 'index.callback.tick',
+        'repeat'  => TRUE,
+        'desc'    => 'index job dispatcher',
+    }
+);
+
 <[base.log]>->( 1, 'index zenka initialized [ numerical language tree ]' );
 
 my $create_perm = <index.permissions.index_root_path>;
@@ -73,8 +81,8 @@ map { <[file.make_path]>->( $ARG, $create_perm, <system.amos-zenka-user> ) }
 
 0;
 
-#,,,,,.,,,,..,..,,...,,.,,,..,,,,,,,,,,.,,.,,,.,.,...,...,,,,,,..,.,,,,..,,.,,
-#QCPLPMALYKBHDOPMEAHIHOTGSNOP6HSUYG74WYMAMJ24SEEOTXOIFHOEN3PI7RZYLYPICUVJZ35DS
-#\\\|AC5D2YPNYRBLJVYBSZ75RQ2AOQVLXCMZWKBQPHFCDTWJQKYJ4KW \ / AMOS7 \ YOURUM ::
-#\[7]W7XNOI3FACCOREPKJD2UKXZKU5AHSUX23NNT7LIUFE4BZZQQBGCQ 7  DATA SIGNATURE ::
+#,,,,,.,,,,,.,,..,,,.,,.,,..,,..,,...,,.,,.,,,.,.,...,...,..,,...,,,.,,..,.,,,
+#VT7LT3QP4CWUS5QYY7GTSCQDSHCF54MGKEP6D5L4YXORBU55Z6S3NOFFMWYZQIMUG4BKABDR3SX4E
+#\\\|STQ6NUJXYRZL4H25BGG35TKDZQDZHSWVNG47IR2KNMUNNGMH3MX \ / AMOS7 \ YOURUM ::
+#\[7]NJIPSQKFIPSOSK4FRXPXOUNMMISKSHLU3RITUEZJTEUG7DLFJWCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
