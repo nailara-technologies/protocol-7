@@ -3,6 +3,9 @@
 # name  = index.cmd.search
 # descr = prefix search : ranked sequence candidates
 
+## lazy rank rebuild after restore ##
+<[index.rank]> if <index.meta>->{'dirty'} // 0;
+
 my $prefix = $call->{'args'} // '';
 return { 'mode' => 'false', 'data' => 'expected prefix' }
     unless length $prefix;
@@ -57,8 +60,8 @@ for my $r ( @{$results} ) {
 
 return { 'mode' => 'size', 'data' => join( "\n", @lines ) . "\n" };
 
-#,,.,,.,.,,,,,..,,,,,,,,,,,.,,,.,,...,...,,..,..,,...,...,...,.,,,..,,,,.,,..,
-#SGE76SQQIQD2Z4XWDGHKKUAWVEK3AEKSRM4GCDQB6NMRLQ2JKXPKCDUEQCMMHKX2JZZJXARY5JNG4
-#\\\|ELY3I6WM3JE7KZ4SHGO35GVT4IALKQCDN4J5ZQXKXROIVCEKCYI \ / AMOS7 \ YOURUM ::
-#\[7]5VIJ746HPYXQCGLCRBXWDBGVX6M4SDK6TLKOXYKLZ73ZLMHW5UCI 7  DATA SIGNATURE ::
+#,,,,,,,.,,,,,.,.,..,,..,,,..,,.,,,.,,...,,,.,..,,...,...,..,,,,.,.,.,.,.,.,.,
+#Z3NQXK7BI5KQGESDWKZHTQ4CBDGCGXGOR3V3QTGZZX3PQ67RS44SDEGWCDXDVWEMUBXBOJ5CVUYPI
+#\\\|KG2ZDCIXEKVD4DWN7VH34RFSFNGPZOVOPR4LNQDLVQ6K62DGXBC \ / AMOS7 \ YOURUM ::
+#\[7]EGNWL5J4V3HCPL7I3PECRRQN7BEFTFQRDJN3NPNFJ4ZXE7PHLICQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
