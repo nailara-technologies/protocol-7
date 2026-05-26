@@ -3,6 +3,9 @@
 # name = index.rank
 # descr = assign numerical addresses by frequency rank and build ring trie
 
+my $total_seqs = scalar( keys %{ <index.freq> // {} } );
+<[base.log]>->( 1, "index.rank: start [ $total_seqs ring-0 tokens ]" );
+
 ## clear old address and trie structures ##
 <index.addr>        = {};
 <index.packed_rank> = {};
@@ -94,10 +97,12 @@ for my $win ( sort { $a <=> $b } keys %{<index.level>} ) {
     <index.trie>->{$depth} = \@nodes if @nodes;
 }
 
+<[base.log]>->( 1, 'index.rank: complete' );
+
 0;
 
-#,,.,,..,,,,.,,,.,...,...,.,.,,.,,,..,.,.,,..,..,,...,...,,,.,.,,,,,,,,..,.,,,
-#TBRVXOBRJYSKAPJV5U24PRCAXPHSJVERUTLG3QM4RX2FQ4KXVVTDQG6SZ4VEXLLBSDVTSYUD4NKFK
-#\\\|L2O3SI4RUEIMPRF2ASH4BQRT63PPVLVLOP2WWNB4FVXYIUJU53Z \ / AMOS7 \ YOURUM ::
-#\[7]NZDPGNYY224LKN5Z4IVJ5U3AKBURGDCS262TS2LAQ43HCLAYLOCQ 7  DATA SIGNATURE ::
+#,,..,,..,.,,,,.,,,,.,,,.,,,,,.,.,.,.,,..,...,..,,...,...,.,.,..,,...,.,.,,.,,
+#KOCKCVGRDR6KP36BCNCFCFG7ZTX5EU3CP2DOSRKBNPWRJHFV7DK34BQRWSEET3MEZGYKK5Z6TYHZS
+#\\\|HCWPHKZ4UTPMQRKWV2TJ7N7VIHX4K57ZH7K3K6RO66OAG4NAA7W \ / AMOS7 \ YOURUM ::
+#\[7]UFF3L6EMVZS3QN7SRUJC6HK5LRP2NUAHBI56ENI7CIXC7L3FLUDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
