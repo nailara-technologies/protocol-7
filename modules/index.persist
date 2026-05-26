@@ -13,6 +13,9 @@ my $state = {
     'terminal' => { %{ <index.terminal> // {} } },
 };
 
+my $total = <index.meta>->{'total'} // 0;
+<[base.log]>->( 1, "index.persist: compressing [ $total chars ]" );
+
 my $frozen;
 IO::Compress::Xz::xz( \( nfreeze($state) ), \$frozen )
     or return <[base.log]>->( 1, 'index.persist: xz compression failed' );
@@ -24,13 +27,12 @@ my $written
 return <[base.log]>->( 1, "index.persist: write failed [ $rel_path ]" )
     if not $written;
 
-my $total = <index.meta>->{'total'} // 0;
 <[base.log]>->( 1, "index persisted [ $total chars -> $rel_path ]" );
 
 return TRUE;
 
-#,,,.,...,,,.,,,,,,.,,,..,,,,,,,,,,..,.,,,,..,..,,...,...,..,,.,.,,.,,,,.,...,
-#52NOA6LZ5KSCHGE4KU3YSHVN2WQMO57WR66IZBFEBQ66VZDIEVOOXF3NN6ABLYDLLNY4W7JDFFYYM
-#\\\|A46U6XRSGRGUH6L3VBLZASUKAQ3HGATCU7LSG7S4GTHTTTUOCUD \ / AMOS7 \ YOURUM ::
-#\[7]F6M2KYM3VVCNDIIK2WXT4ITC6MNQE7GW7TBDXPP6NRNAIJJA6GDQ 7  DATA SIGNATURE ::
+#,,,,,,..,.,,,,,,,,,.,,,.,,,,,,,,,...,.,,,.,.,..,,...,...,.,.,.,,,,,,,.,,,.,,,
+#RELDWOGW4ZBVRDDXOFWNDKYBL5PMCSMD6EFUI5ALLPEJ45QSZSJTZZUXPOGO73BKMZLHPOMZ2QCAA
+#\\\|7WHBMIWZPVFQZMFSWGKJJNKSWZFMWXVOYR73HMAL7VWYP2BHXNL \ / AMOS7 \ YOURUM ::
+#\[7]FKJCTMNBORPM73WTRNXIJWQARYOPEW75262YH3CWLO72OBWJG6BQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
