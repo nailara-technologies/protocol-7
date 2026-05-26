@@ -1,0 +1,34 @@
+## [:< ##
+
+# name  = index.tick.feed-dir
+# descr = one tick of a feed-dir job : process one file
+
+my $job_id = shift                   // $ARG;
+my $job    = <index.jobs>->{$job_id} // return;
+
+my $file = shift @{ $job->{'files'} };
+
+if ( not defined $file ) {
+    ## all files done ##
+    delete <index.jobs>->{$job_id};
+    my $total = $job->{'total'};
+    if ( $job->{'rebalance-later'} ) {
+        <[index.rebalance]>;
+    }
+    <[base.log]>->( 1, "index feed-dir complete [ $total files ]" );
+    <[base.callback.cmd_reply]>->(
+        $job->{'reply_id'},
+        { 'mode' => 'size', 'data' => "fed $total files\n" }
+    );
+    return;
+}
+
+my $ok = <[index.feed.file]>->($file);
+<[base.log]>->( 1, "index feed skipped [ $file ]" ) if not $ok;
+$job->{'done'}++;
+
+#,,,,,.,.,,,.,.,,,.,,,.,,,.,,,,..,,.,,.,.,,..,..,,...,...,.,.,,.,,,,.,,..,,..,
+#M2KMVESNJWCO3KBUF6Q6AOCRM452ONUIRFZ7K5D76Q7SUU245CW7QIYWRTF4MKLVXSH3FEIA2HH24
+#\\\|WK2LZ45CY4PKYQUYR7SEUIUFYMEWX4ZKZJPMSBVPVS4663PBVBC \ / AMOS7 \ YOURUM ::
+#\[7]LV3Q2FF4C346IBTND2MIIUKBNAIXR36KXBLNXEPB23MKTHQBOSDY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

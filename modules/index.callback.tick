@@ -1,0 +1,39 @@
+## [:< ##
+
+# name  = index.callback.tick
+# descr = unified job tick dispatcher
+
+my @job_ids = sort keys %{ <index.jobs> // {} };
+return unless @job_ids;
+
+<index.tick.cursor> //= 0;
+<index.tick.cursor> = <index.tick.cursor> % scalar(@job_ids);
+my $job_id = $job_ids[ <index.tick.cursor>++ ];
+
+my $job = <index.jobs>->{$job_id} // return;
+
+## stop-requested: clean up and reply ##
+if ( $job->{'stop-requested'} ) {
+    delete <index.jobs>->{$job_id};
+    <[base.callback.cmd_reply]>->(
+        $job->{'reply_id'},
+        { 'mode' => 'false', 'data' => 'job aborted [ admin request ]' }
+    );
+    return;
+}
+
+my $type = $job->{'job-type'} // '';
+if    ( $type eq 'feed-dir' ) { <[index.tick.feed-dir]>->($job_id) }
+elsif ( $type eq 'wordlist-import' ) {
+    <[index.tick.wordlist-import]>->($job_id);
+}
+else {
+    <[base.log]>->( 0, "index.tick: unknown job type [ $type ]" );
+    delete <index.jobs>->{$job_id};
+}
+
+#,,,,,.,,,,,.,,..,,..,,,,,,.,,.,.,.,.,...,,,.,..,,...,...,..,,,..,,,.,...,,,.,
+#SN2QALJH3YFHWFXIYZPEUYGYVW3PF3ZLKIP6FIDRKXTWEZFKI7JXSE64IMQFEBJPBDGFNOQUZ27NG
+#\\\|UROD6GTXYT37F2WWNF3CPNRL3TXRR6LXNSJE4X3BV6KZ2YCDI2N \ / AMOS7 \ YOURUM ::
+#\[7]Y6EGLP3ZT6TJHEMPSUYQFLGIL4CB6IPFR6NKKWCP5NM3Y2NNFUBA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

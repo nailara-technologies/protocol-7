@@ -1,0 +1,100 @@
+## [:< ##
+
+# name  = index.tick.wordlist-import
+
+my $job_id          = shift                   // $ARG;
+my $index_job       = <index.jobs>->{$job_id} // return;
+my $reply_id        = $index_job->{'reply_id'};
+my $iteration       = $index_job->{'iterations'};
+my $job_type        = $index_job->{'job-type'};
+my $index_data_path = $index_job->{'data-path'};
+my $wordlist_path   = $index_job->{'wordlist-path'};
+my $language_code   = $index_job->{'language-code'};
+my $file_handle     = $index_job->{'file-handle'};
+my $file_aref       = $index_job->{'file-aref'};
+my $file_entries    = $index_job->{'file-entries'};
+
+my @elf_modes;
+@elf_modes = @{ $index_job->{'elf-modes'} }
+    if defined $index_job->{'elf-modes'}
+    and ref( $index_job->{'elf-modes'} ) eq 'ARRAY';
+
+chomp( my $word_str = $file_aref->[$iteration] );
+
+$index_data_path =~ s|/+$||;
+
+my $abs_path = sprintf( '%s/%s', $index_data_path,
+    <[index.gen_path]>->( \$word_str ) );
+
+if ( !-d $abs_path ) {
+    eval { make_path( $abs_path, { chmod => 0755 } ) };
+    if ($EVAL_ERROR) {
+        my $err_msg = <[base.format_error]>->($EVAL_ERROR);
+        <[base.log]>->( 0, "[ index job $index_job ] $err_msg" );
+        delete <index.jobs>->{$job_id};
+        <[base.callback.cmd_reply]>->(
+            $reply_id,
+            {   'mode' => qw| false |,
+                'data' => 'wordlist import aborted with errors [ logged ]'
+            }
+        );
+    }
+}
+
+my $start_existence = 0;
+INCREMENT:
+my $link_path = sprintf( '%s/%03d:LANG:%s', $abs_path, $start_existence,
+    $language_code );
+#####
+++$start_existence   and goto INCREMENT
+    if -e $link_path and readlink($link_path) eq $word_str;
+#########
+
+if ( !-l $link_path ) {
+    symlink( $word_str, $link_path )
+        or warn <[base.format_error]>->( $OS_ERROR, -1 );
+
+    ## check cluster density threshold ##
+    my $threshold = <index.cfg.cluster_summarize_threshold> // 42;
+    if ( !<index.cluster_reported>->{$abs_path} ) {
+        my $dh;
+        if ( opendir( $dh, $abs_path ) ) {
+            my $count = scalar grep { !/^\.{1,2}$/ } readdir($dh);
+            closedir($dh);
+            if ( $count >= $threshold ) {
+                <index.cluster_reported>->{$abs_path} = 1;
+
+                my $dh2;
+                opendir( $dh2, $abs_path );
+                my @members = grep { !/^\.{1,2}$/ } readdir($dh2);
+                closedir($dh2);
+
+                <[protocol-7.route-send]>->(
+                    {   command   => 'coding.submit',
+                        call_args => {
+                            args => "summarize harmonic cluster: $abs_path\n"
+                                . join( "\n", @members )
+                        },
+                        reply =>
+                            { handler => 'index.handler.summarize-reply' }
+                    }
+                );
+            }
+        }
+    }
+}
+### else [ report, collect ] ###
+
+if ( ++$index_job->{'iterations'} == $file_entries ) {
+    delete <index.jobs>->{$job_id};
+    <[base.callback.cmd_reply]>->(
+        $reply_id,
+        { 'mode' => qw| true |, 'data' => 'wordlist import completed' }
+    );
+}
+
+#,,,,,..,,,,.,,,.,..,,.,,,..,,...,,,,,.,.,,..,..,,...,...,...,,.,,,.,,.,,,,..,
+#WGFYLUUPGLKI75KBMM3WMOUK6OKYG4FUE4ELWOA4YODCBLBGDMUT22HDVODQX6HAN6PAFBWVPMR76
+#\\\|THXPDVMWY6HPW6YKLAXBS7E3OAR65IPSM63XVEY7AUKRRXD6PGO \ / AMOS7 \ YOURUM ::
+#\[7]4CVCRZHMDP3NXTLZKHU5BTSL3XG5ZTD6GQWNTP5F3GHMLHMZYCAY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
