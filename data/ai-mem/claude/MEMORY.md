@@ -31,6 +31,7 @@
 - **FastText** — definition-agnostic: same pipeline for chars/namespace/checksum/reference tokens; trie IS subconsciousness; chat channels as discourse corpus
 - **pluggable model** — 3-axis (model type/storage/token); contribution vectors = Layer 1 universal intermediate; non-destructive experimentation
 - **job control** — per-job state under `<index.jobs>->{$job_id}`; unified tick dispatcher; chunked files with 7-char carry buffer
+- **lazy rank** — rank now runs on first query after restore (dirty flag); `]>->()` obsolete syntax removed codebase-wide; zenka starts instantly
 
 ## Session 55 (2026-05-25) — index search fixes, em-dash removal, corpus versioning
 - [session-55](session-55.md) — exact-match display, trailing newline fix, backslash escaping, feed-dir default rebalance, 7.2M chars
@@ -249,8 +250,8 @@
 - **pager.sort.multi-key**: ntime_b32 + priority_map sort types added (session 42)
 - **task dispatch sections**: all dispatched tasks now carry ## dispatch + prompt for reuse
 
-#,,..,,,.,.,.,..,,,.,,...,.,.,.,.,.,,,..,,...,..,,...,...,.,.,...,...,,,,,,.,,
-#AL2ZDIAENQHYZXDIDCX7HDMB65KLRZO7SJNA7AC5UYLS4F2E7P2UHNM4LIRNAJSC3A5LZDVS46XPW
-#\\\|WQIYOFHH3GFWE7RIDAB7FJSK6P4MJZBFWQHIXMMJRTLNCF7JTYW \ / AMOS7 \ YOURUM ::
-#\[7]57XQM6AHKH63M3KTTYXXGAPVVWFCNCLTHIPSRLK2DPSK5XSYZUCY 7  DATA SIGNATURE ::
+#,,.,,.,.,,,,,..,,,,.,,..,,.,,.,,,,,.,,..,.,.,..,,...,..,,,,.,.,,,,.,,,.,,..,,
+#DRHIU5YP3DG63FWOPX7CS3K43Y67WZDSSTMY4PDIKRIK7TTCWQFQILAK7WW53UYPN4HENJEPFKMG2
+#\\\|AKQLCYQO6OFIGPKU5WTG3LCXMJZGYV2QUHKNFTXFPXQMZHDCA5B \ / AMOS7 \ YOURUM ::
+#\[7]AWWU2CGJ5AJRUZNEKMAS5YLYFZABVB7X73B5Q3XKVPTWIC4SO2DY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
