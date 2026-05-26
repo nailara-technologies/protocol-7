@@ -3,10 +3,11 @@
 # name  = base.chk-sum.jha
 # descr = 32-bit unsigned long int version of jhash digest chksum
 
-return Digest::JHash::jhash( join '', @ARG )
+my $input = ref $ARG[0] eq 'SCALAR' ? ${ shift @ARG } : join '', @ARG;
+return Digest::JHash::jhash($input)
 
-#,,,,,,.,,..,,,..,...,,,.,...,,..,,,.,.,.,...,..,,...,...,...,...,,.,,,..,..,,
-#FCORA4EMDZ6IEKAHEDYV2V242UVZUPBWPHX4GV6UUUAF6IFKJUXOKHCBFYCLKAOINJUC6HRCMDJGE
-#\\\|CG42Z4I6OWFAXUPCJNWXY2HPMIBCNQNJAGDSNZV3TCIP3RLF7WK \ / AMOS7 \ YOURUM ::
-#\[7]EVER2YSY64IGZEQGU4LH5N53457SAPYQ6J2GZOCR7MVIERXNOWBY 7  DATA SIGNATURE ::
+#,,,.,..,,,..,,,.,..,,..,,,.,,..,,...,,..,,..,..,,...,...,...,...,..,,,..,.,,,
+#53TMTE33KITAGNXBM3TOKIX6N3JYLYTLA6QGBPV5XQ6OQOP5JQ6DNKDLQBLISZKJ2UVNBKYTUZVDG
+#\\\|JOKIBYR464ODLZHGTKERXALELOCUBTO3XIOODF2RFIXPS6FJZNZ \ / AMOS7 \ YOURUM ::
+#\[7]QVDTA6N22BGDXGKZRXAHALOOYKJIUCRQA4RW7PBW4KBYFHIAJODA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
