@@ -34,8 +34,8 @@ unless ( defined $state ) {
             my $node         = $nodes->[$R];
             my @child_ranks  = unpack( 'N*', $node->[1] // '' );
             my $child_count  = scalar @child_ranks;
-            my $payload_size = 1 + 4 + 8 + 2 + ( 8 * $child_count );
-            my $disk_size    = $payload_size + 9;
+            my $payload_size = 1 + 4 + 4 + 2 + ( 8 * $child_count );
+            my $disk_size    = $payload_size + 6;
             push @sizes, [ $payload_size, $disk_size ];
             $total_comp_data_size += $disk_size;
         }
@@ -66,28 +66,30 @@ unless ( defined $state ) {
     $header .= pack( 'Q Q', $data_base, $total_size );
 
     my $hdr_checksum_str = <[chk-sum.amos]>->($header);
-    my $hdr_chksum7      = pack( 'a8', $hdr_checksum_str );
-    $header .= $hdr_chksum7;
+    $header .= pack( 'a8', $hdr_checksum_str );
     $header .= "\x00" x ( 256 - length($header) );
 
+    ## jhash of complete 256-byte header for depth-0 parent chain ##
+    my $hdr_jhash32 = <[chk-sum.jha]>->( \$header );
+
     $job->{'state'} = {
-        max_depth            => $max_depth,
-        ring_count           => \@ring_count,
-        comp_sizes           => \@comp_sizes,
-        dir_stride           => \@dir_stride,
-        dir_base             => \@dir_base,
-        data_base            => $data_base,
-        total_size           => $total_size,
-        header               => $header,
-        hdr_chksum7          => $hdr_chksum7,
-        prev_chk             => {},   ## previous ring checksums only ##
-        curr_chk             => {},   ## current ring checksums (cleared per ring) ##
-        directory            => '',
-        compartment_data     => '',
-        data_offset          => $data_base,
-        dir_write_pos        => <index.cube.format.header_size>,
-        current_depth        => 0,
-        ring_offset          => 0,
+        max_depth        => $max_depth,
+        ring_count       => \@ring_count,
+        comp_sizes       => \@comp_sizes,
+        dir_stride       => \@dir_stride,
+        dir_base         => \@dir_base,
+        data_base        => $data_base,
+        total_size       => $total_size,
+        header           => $header,
+        hdr_jhash32      => $hdr_jhash32,
+        prev_chk         => {},             ## previous ring checksums only ##
+        curr_chk         => {},             ## current ring checksums ##
+        directory        => '',
+        compartment_data => '',
+        data_offset      => $data_base,
+        dir_write_pos    => <index.cube.format.header_size>,
+        current_depth    => 0,
+        ring_offset      => 0,
     };
     return;
 }
@@ -127,7 +129,7 @@ if ( $D > $max_depth ) {
 ## phase 2: process one batch within ring $D ##
 my $dir_base      = $state->{'dir_base'};
 my $dir_stride    = $state->{'dir_stride'};
-my $hdr_chksum7   = $state->{'hdr_chksum7'};
+my $hdr_jhash32   = $state->{'hdr_jhash32'};
 my $prev_chk      = $state->{'prev_chk'};
 my $curr_chk      = $state->{'curr_chk'};
 my $data_offset   = $state->{'data_offset'};
@@ -165,21 +167,20 @@ for my $R ( $ring_offset .. $batch_end - 1 ) {
         ? ( <index.freq>->{$seq} // 0 )
         : ( <index.level>->{ $D + 1 }->{$seq} // 0 );
 
-    my $parent_chksum7;
+    my $parent_jhash;
     if ( $D == 0 ) {
-        $parent_chksum7 = $hdr_chksum7;
+        $parent_jhash = $hdr_jhash32;
     } else {
         my $parent_seq  = substr( $seq, 0, $D );
         my $parent_rank = <index.addr>->{ ( $D - 1 ) . ":$parent_seq" };
-        my $parent_chk  = $prev_chk->{ $parent_rank // '' };
-        $parent_chksum7 = pack( 'a8', $parent_chk // '' );
+        $parent_jhash = $prev_chk->{ $parent_rank // '' } // 0;
     }
 
     my @child_ranks = unpack( 'N*', $node->[1] // '' );
     my $child_count = scalar @child_ranks;
 
     my $payload = pack( <index.cube.format.pack.comp_header>,
-        $terminal, $frequency, $parent_chksum7, $child_count );
+        $terminal, $frequency, $parent_jhash, $child_count );
 
     for my $child_rank (@child_ranks) {
         my $child_seq = substr( $child_packed, $child_rank * $child_seq_len,
@@ -190,15 +191,15 @@ for my $R ( $ring_offset .. $batch_end - 1 ) {
             $char_code, $child_rank );
     }
 
-    my $chk_str    = <[chk-sum.amos]>->( \$payload );
-    my $frame      = "\x00" . chr( length $chk_str ) . $chk_str;
+    my $jhash      = <[chk-sum.jha]>->( \$payload );
+    my $frame      = "\x00\x04" . pack( 'N', $jhash );
     my $comp_bytes = $frame . $payload;
 
-    $curr_chk->{$R} = $chk_str;
+    $curr_chk->{$R} = $jhash;
 
     my $disk_size = length($comp_bytes);
     $dir_buf .= pack( <index.cube.format.pack.dir_entry>,
-        $data_offset, $disk_size, $child_count, 0, pack( 'a8', $chk_str ) );
+        $data_offset, $disk_size, $child_count, 0, $jhash );
     $comp_buf .= $comp_bytes;
     $data_offset += $disk_size;
 }
@@ -220,13 +221,13 @@ $dir_write_pos += $ring_countD * $dir_stride->[$D];
 $state->{'dir_write_pos'} = $dir_write_pos;
 $state->{'current_depth'} = $D + 1;
 $state->{'ring_offset'}   = 0;
-$state->{'prev_chk'}      = $curr_chk;   ## curr becomes prev ##
-$state->{'curr_chk'}      = {};           ## freed next tick ##
+$state->{'prev_chk'}      = $curr_chk;        ## curr becomes prev ##
+$state->{'curr_chk'}      = {};               ## freed next tick ##
 
 <[base.log]>->( 1, "index.persist.cube: ring $D [ $ring_countD entries ]" );
 
-#,,,.,,..,,..,,,.,.,,,.,,,,.,,,.,,,.,,.,,,,,.,..,,...,...,,.,,.,.,,..,,..,,..,
-#4CJOTYWGMQ7JUTQDFXXRKET3C5DUDHAT2DXSCWD574ITBWO4XF5UZ6NXMBBRB2N7PWCFK2CW4MKDM
-#\\\|RE56XI3VLQA2TXV7IB3TY4TLCXJEUIDQ3LSJFKGOECU3QXV2L6R \ / AMOS7 \ YOURUM ::
-#\[7]4XS4MA4AI2IG3E7NVLTR6WQ7RWYYCQ2QQQONT5XTF4WCW7XHIYBQ 7  DATA SIGNATURE ::
+#,,,,,,,,,..,,.,.,..,,..,,,..,,.,,,..,.,.,,,,,..,,...,.,.,...,.,.,.,,,..,,.,.,
+#JY7D2RMX7WO3HA2ATOQCF3LIZAPJKVYXY2KDU6C2CVTBGZU3RXGBOMBAPGDGHLTMJ7NGF4F2YIOWO
+#\\\|FF2KM6Z7FYNCRQOT72OMQ2RBJIFSHL2ELMAFKA55IKIFRFE3LC2 \ / AMOS7 \ YOURUM ::
+#\[7]SNZ4L67ITQM6FCHSKJ2LTPDDG5N2TQM6LLJHIOWDT6UOQCNEDKAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -62,8 +62,18 @@ metadata:
 
 **sig_chld_ignore_pid wiring fix** — three disconnected key paths: restart used instance-local `$instance->{'sig_chld_ignore_pid'}`, handler checked top-level `<v7.sig_chld.ignore_child_pid.{pid}>`, base handler used `<sig.chld.ignore.pid>`; fixed: restart now sets top-level `<v7.sig_chld.ignore_child_pid>->{$parent_pid}`; handler `next` only skips non-registered PIDs (registered zenka children fall through to process_zenka_end)
 
-#,,,,,,..,..,,,.,,,.,,...,,,.,,,.,...,..,,.,,,.,.,...,..,,,..,,.,,,..,...,.,,,
-#KHNYWDEV7VMATJHO3TECEGGZLY2Q452KSSCQEH74ANDOMQGO6XAXWIPUXXXZPHR6C7LV4HLSVBH3U
-#\\\|PI2ZT4ZNHK3OVCWSZEMAYDCDVCNKNVH3ELW5IQV7VGZM73GBQYD \ / AMOS7 \ YOURUM ::
-#\[7]LSVXQHOIU6PLXA74R65RQRMGGDWRLAB5CRARG65QYAEPKQYCVOCQ 7  DATA SIGNATURE ::
+---
+
+## Session 56 continued — weather locale fix + dep-graph
+
+**weather locale bug** — `locales.string.tmpl = {}` for all zenki with locale data (`weather`, `image2html`, `pdf2html`); root cause: `dep-graph` (used by `gen-sub-whitelist`) never detected `base.locales.*` as a dependency because the call path is `[init_modules]` → generic dispatch → `base.locales.init_code` (not a static edge); the whitelist therefore never included `base.locales.init_code`, which gets SILENTLY SKIPPED at load time (lifecycle hooks for non-current namespaces not in whitelist are skipped, not deferred); `base.locales.load_file` got a deferred stub but init never ran
+
+**fix: dep-graph** — added locale directory detection in `analyze_zenka_reachability`: if `data/locales/<zenka_name>/` exists, seed `base.locales.pre_init`, `base.locales.init_code`, `base.locales.load_file` as entry points before `walk_reachable`; whitelists for all 3 affected zenki regenerated and committed (commit `3a4a2f28c`)
+
+**whitelist lifecycle hook skip rule** (bin/Protocol-7 lines 1568-1574): lifecycle hooks (`pre_init`/`init_code`/`post_init`/`end_code`) for OTHER namespaces not in the whitelist are silently `next`'d — they never even get a deferred stub; this is distinct from regular subs which get `base.handler.deferred_compile` stubs
+
+#,,.,,.,,,..,,,.,,,..,,,,,...,..,,.,,,,.,,...,.,.,...,...,,.,,,..,.,,,...,...,
+#AU5PKFNJEMUIETFI543RNIIBTJJJ5A4ACGZTNUTS2FWVRW6LITFCWH3UX3JVFZZ6S4FH2AJS6UGJ6
+#\\\|GUCESGJ5FB6ONPWN2EARFYFATSTKBB3O5ZYOWXZDUVHRJOKRB2K \ / AMOS7 \ YOURUM ::
+#\[7]LOW43HR2B3GE3CKDABJGPLJ6OOG5ICFHWUO6HZ2GZAOVAFVGMMCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
