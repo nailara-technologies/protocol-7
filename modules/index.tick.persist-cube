@@ -80,7 +80,8 @@ unless ( defined $state ) {
         total_size           => $total_size,
         header               => $header,
         hdr_chksum7          => $hdr_chksum7,
-        compartment_checksum => {},
+        prev_chk             => {},   ## previous ring checksums only ##
+        curr_chk             => {},   ## current ring checksums (cleared per ring) ##
         directory            => '',
         compartment_data     => '',
         data_offset          => $data_base,
@@ -127,12 +128,16 @@ if ( $D > $max_depth ) {
 my $dir_base      = $state->{'dir_base'};
 my $dir_stride    = $state->{'dir_stride'};
 my $hdr_chksum7   = $state->{'hdr_chksum7'};
-my $comp_chk      = $state->{'compartment_checksum'};
+my $prev_chk      = $state->{'prev_chk'};
+my $curr_chk      = $state->{'curr_chk'};
 my $data_offset   = $state->{'data_offset'};
 my $dir_write_pos = $state->{'dir_write_pos'};
 my $ring_offset   = $state->{'ring_offset'} // 0;
 my $dir_buf       = '';
 my $comp_buf      = '';
+
+## first batch of a new ring: reset curr_chk ##
+$state->{'curr_chk'} = $curr_chk = {} if $ring_offset == 0;
 
 ## alignment padding before this ring's directory [ first batch only ] ##
 if ( $ring_offset == 0 and $dir_base->[$D] > $dir_write_pos ) {
@@ -166,7 +171,7 @@ for my $R ( $ring_offset .. $batch_end - 1 ) {
     } else {
         my $parent_seq  = substr( $seq, 0, $D );
         my $parent_rank = <index.addr>->{ ( $D - 1 ) . ":$parent_seq" };
-        my $parent_chk  = $comp_chk->{ $D - 1 }{ $parent_rank // '' };
+        my $parent_chk  = $prev_chk->{ $parent_rank // '' };
         $parent_chksum7 = pack( 'a8', $parent_chk // '' );
     }
 
@@ -189,7 +194,7 @@ for my $R ( $ring_offset .. $batch_end - 1 ) {
     my $frame      = "\x00" . chr( length $chk_str ) . $chk_str;
     my $comp_bytes = $frame . $payload;
 
-    $comp_chk->{$D}{$R} = $chk_str;
+    $curr_chk->{$R} = $chk_str;
 
     my $disk_size = length($comp_bytes);
     $dir_buf .= pack( <index.cube.format.pack.dir_entry>,
@@ -210,16 +215,18 @@ if ( $batch_end < $ring_countD ) {
     return;
 }
 
-## ring complete -- advance to next depth ##
+## ring complete -- advance to next depth, rotate checksum rings ##
 $dir_write_pos += $ring_countD * $dir_stride->[$D];
 $state->{'dir_write_pos'} = $dir_write_pos;
 $state->{'current_depth'} = $D + 1;
 $state->{'ring_offset'}   = 0;
+$state->{'prev_chk'}      = $curr_chk;   ## curr becomes prev ##
+$state->{'curr_chk'}      = {};           ## freed next tick ##
 
 <[base.log]>->( 1, "index.persist.cube: ring $D [ $ring_countD entries ]" );
 
-#,,..,...,.,,,.,,,,,.,,,.,,.,,.,.,.,,,..,,..,,..,,...,...,.,,,...,,,,,,,.,.,.,
-#CB2SFM2HYZSAACJCUGLH7T55PVB73YYCS4PKEHB3T2TG5YHWDVT42PLN64MK2XEZQ7MYPZKWP5RO4
-#\\\|GDBDADKWBSEW5HSN2SSA6OZYNR4EYA3KIXKLBLZRWN6Q367NAI4 \ / AMOS7 \ YOURUM ::
-#\[7]HHA7MWADLNQNCORBSRHQJGSEUJ7LJM7MUX3UI7NW5GQSMVUFO4DY 7  DATA SIGNATURE ::
+#,,,.,,..,,..,,,.,.,,,.,,,,.,,,.,,,.,,.,,,,,.,..,,...,...,,.,,.,.,,..,,..,,..,
+#4CJOTYWGMQ7JUTQDFXXRKET3C5DUDHAT2DXSCWD574ITBWO4XF5UZ6NXMBBRB2N7PWCFK2CW4MKDM
+#\\\|RE56XI3VLQA2TXV7IB3TY4TLCXJEUIDQ3LSJFKGOECU3QXV2L6R \ / AMOS7 \ YOURUM ::
+#\[7]4XS4MA4AI2IG3E7NVLTR6WQ7RWYYCQ2QQQONT5XTF4WCW7XHIYBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
