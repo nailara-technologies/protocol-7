@@ -16,7 +16,7 @@ return undef if length($$mmap) < $dir_offset + $dir_entry_size;
 
 my $entry_bytes = substr( $$mmap, $dir_offset, $dir_entry_size );
 
-my ( $data_offset, $data_size, $child_count, $flags, $chksum7 )
+my ( $data_offset, $data_size, $child_count, $flags, $dir_jhash )
     = unpack( <index.cube.format.pack.dir_entry>, $entry_bytes );
 
 return undef if $data_size == 0;
@@ -25,23 +25,23 @@ return undef if length($$mmap) < $data_offset + $data_size;
 
 my $comp_bytes = substr( $$mmap, $data_offset, $data_size );
 
-## skip self-delimiting AMOS7 checksum frame ##
+## skip jhash frame [ \x00 \x04 + 4-byte jhash = 6 bytes ] ##
 my $payload_offset = 0;
 if ( length($comp_bytes) >= 2 and substr( $comp_bytes, 0, 1 ) eq "\x00" ) {
     my $chk_len = unpack( 'C', substr( $comp_bytes, 1, 1 ) );
     $payload_offset = 2 + $chk_len;
 }
 
-return undef if length($comp_bytes) < $payload_offset + 15;
+return undef if length($comp_bytes) < $payload_offset + 11;
 
-my ( $terminal, $frequency, $parent_chksum7, $parsed_child_count ) = unpack(
+my ( $terminal, $frequency, $parent_jhash, $parsed_child_count ) = unpack(
     <index.cube.format.pack.comp_header>,
-    substr( $comp_bytes, $payload_offset, 15 )
+    substr( $comp_bytes, $payload_offset, 11 )
 );
 
 my @children;
 for my $i ( 0 .. $parsed_child_count - 1 ) {
-    my $offset = $payload_offset + 15 + $i * 8;
+    my $offset = $payload_offset + 11 + $i * 8;
     last if $offset + 8 > length($comp_bytes);
     my ( $char_code, $child_rank ) = unpack(
         <index.cube.format.pack.child_entry>,
@@ -57,8 +57,8 @@ return {
     children    => \@children,
 };
 
-#,,..,,,.,,..,,.,,.,.,.,,,...,,.,,...,,.,,,,,,..,,...,...,.,.,,,.,...,..,,.,.,
-#2XNO3CT4AT66MJCRKSS4ZHDHW6WKEHHLERWZAEA6DH5T7ZFKJS2FPR4GADCW6XZPDQZT74YLGBVRO
-#\\\|UL3ST5QGE46QBISLCC5X3MYSVH534M43PJJK6KEY4FQ4KNG4WQL \ / AMOS7 \ YOURUM ::
-#\[7]U74SUUET4CKVMRUQVE74Z4KCXWTX42RCHYIBXKM3Z63J3V3CCIAI 7  DATA SIGNATURE ::
+#,,,,,...,.,,,,,.,...,..,,,.,,,,.,...,,.,,,.,,..,,...,...,,..,,,.,,.,,.,.,,,,,
+#B3VRODR6RPXWLRO5TN6OBOP22R6XGKHNIKKGPUMSCAGZUF3YJ5MNLQ3CR65V6JPVGPIZAYOQGHXHO
+#\\\|D2GPF6V2RQWX6W3KDXBRKGCCV2KDWCWJPV37QVPEQXGNIJVGFKX \ / AMOS7 \ YOURUM ::
+#\[7]YQQX4F3WOWEU4PGHHA5HBA6AEPIJ7WPO6RW7XLHKLCJPBOXIKOAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -55,19 +55,19 @@
 <index.terminal>      //= {};
 <index.contributions> //= {};
 
-## schema v3 cube format constants ##
-<index.cube.format.magic>            //= 'P7IC';
-<index.cube.format.schema_version>   //= 3;
-<index.cube.format.compat_version>   //= 3;
-<index.cube.format.header_size>      //= 256;
-<index.cube.format.dir_entry_size>   //= 24;      ## Q(8)+N(4)+n(2)+n(2)+a8(8)
-<index.cube.format.flag.loaded>      //= 0x01;
-<index.cube.format.flag.verified>    //= 0x02;
-<index.cube.format.flag.error>       //= 0x04;
-<index.cube.format.flag.storable>    //= 0x08;
-<index.cube.format.flag.void>        //= 0x10;
-<index.cube.format.pack.dir_entry>   //= 'Q N n n a8';
-<index.cube.format.pack.comp_header> //= 'C N a8 n';
+## schema v4 cube format constants [ jhash32 compartment checksums ] ##
+<index.cube.format.magic>          //= 'P7IC';
+<index.cube.format.schema_version> //= 4;
+<index.cube.format.compat_version> //= 4;
+<index.cube.format.header_size>    //= 256;
+<index.cube.format.dir_entry_size> //= 20;         ## Q(8)+N(4)+n(2)+n(2)+N(4)
+<index.cube.format.flag.loaded>    //= 0x01;
+<index.cube.format.flag.verified>  //= 0x02;
+<index.cube.format.flag.error>     //= 0x04;
+<index.cube.format.flag.storable>  //= 0x08;
+<index.cube.format.flag.void>      //= 0x10;
+<index.cube.format.pack.dir_entry> //= 'Q N n n N';
+<index.cube.format.pack.comp_header> //= 'C N N n';
 <index.cube.format.pack.child_entry> //= 'N N';
 <index.cube.header>                  //= {};
 <index.cube.mmap>                    //= undef;
@@ -103,8 +103,8 @@ map { <[file.make_path]>->( $ARG, $create_perm, <system.amos-zenka-user> ) }
 
 0;
 
-#,,,.,.,.,..,,,,,,...,,..,,.,,,.,,...,,.,,,.,,.,.,...,...,,,,,,..,,,.,...,,..,
-#FTM5KVHW4CNZPDGRXLKEK6HZDP6J76MFEDHSI2VK7E4TC4VVLJTOUYHMZ6X4OCSSPDLRGJT6Y3QCU
-#\\\|TPJMI7PUBISWKCFNJAGIPXQJ632DKBBNQ3XZD56A52WE3QWGBRN \ / AMOS7 \ YOURUM ::
-#\[7]VDGKHLW7CWZ7HMUV6NYVH3WM4THGDUWYHFAL6QQZI2IPUJD7XUBA 7  DATA SIGNATURE ::
+#,,..,,.,,...,,,.,,..,...,...,,,,,,..,,,,,,..,.,.,...,...,,,.,,,,,,,,,,..,..,,
+#Z7FUHQIOBL6NPHRWX7MI64KT2GIZ6M4CF2RECHBRGBHMPKLMKOT2Z37B3YGV4MW6XWDGMY3RDP7ZA
+#\\\|W3CV7WHCO3SX7DHSTXU4IUCFM7HRFLKT2OK6JJAIP3XWVUODS63 \ / AMOS7 \ YOURUM ::
+#\[7]BPZGV3CJCMRJA3DC2QCTCTNSM7ZQ4UAJTFQ5LU76LJ653RE7XGDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
