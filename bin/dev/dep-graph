@@ -711,6 +711,21 @@ sub analyze_zenka_reachability {
     push @entry_modules, 'base.handler.deferred_compile'
         if exists $graph->{'base.handler.deferred_compile'};
 
+    #  base.locales lifecycle hooks — called implicitly by base.init_modules  #
+    #  and not traceable via static edges; seed when zenka has locale data    #
+    if ( defined $zenka_name and $zenka_name ne 'stdin' ) {
+        my $locales_dir = c_dir( $root_path, qw| data locales |, $zenka_name );
+        if ( -d $locales_dir ) {
+            for my $locale_sub (
+                qw| base.locales.pre_init base.locales.init_code
+                    base.locales.load_file |
+            ) {
+                push @entry_modules, $locale_sub
+                    if exists $graph->{$locale_sub};
+            }
+        }
+    }
+
     #  include subroutines called from zenka-startup.v7 zenka-init section  #
     #  these lines are injected over stdin by v7 at startup and eval'd      #
     if ( defined $zenka_name and $zenka_name ne 'stdin' ) {
@@ -1662,8 +1677,8 @@ sub classify_dispatch_confidence {
     return 'open';
 }
 
-#,,..,,,.,,,,,,..,.,,,...,,.,,.,,,,.,,.,,,.,,,.,.,...,...,,..,...,,.,,.,,,,,,,
-#DGMP6TYRFQLK2ZKKHXF5GDT6R3JD3UW3JXRTE5P3WEWWMJ3WKJLJXUGHQ2C2SG5KJLJRB3WDZOVEM
-#\\\|PGMMX6R7XBEIEALXOEKOEQLSXVDR3VESQEYTCPHKJFSASDRY34Y \ / AMOS7 \ YOURUM ::
-#\[7]MCHAMHFCPSVDS3SZHT2IYE3JDJ3ABQ23VK3GN45GKSOX7APLRIAA 7  DATA SIGNATURE ::
+#,,..,..,,,..,.,,,,..,..,,,.,,.,.,,,.,.,,,.,.,.,.,...,..,,,.,,.,.,.,.,.,,,,..,
+#WJIGP4KSR6FLHZRZ5SE4NRCSMVJ2D3YWTCVKK3DWEYMIQHAEOPBN55QKQP7RJ453QHKXRGNPD45FO
+#\\\|C4HF6V6VQPFCNNDYUGJGSPKE444MRZ2QJ5LMUBP2KSU24QYWFYJ \ / AMOS7 \ YOURUM ::
+#\[7]E27AW23JUTH34MDTDAESTIGF62JJKEH5IHLLE5M4GKR74IPRWABQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
