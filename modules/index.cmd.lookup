@@ -3,6 +3,9 @@
 # name  = index.cmd.lookup
 # descr = trie node lookup : address, depth, children
 
+## lazy rank rebuild after restore ##
+<[index.rank]> if <index.meta>->{'dirty'} // 0;
+
 my $token = $call->{'args'} // '';
 return { 'mode' => 'false', 'data' => 'expected token' } unless length $token;
 
@@ -37,8 +40,8 @@ for my $child (@child_seqs) {
 
 return { 'mode' => 'size', 'data' => join( "\n", @lines ) . "\n" };
 
-#,,,,,,.,,...,..,,...,.,,,...,,.,,...,,..,...,..,,...,...,,,.,..,,.,,,..,,,,,,
-#P7I5VQPBSVE2B427BNF7HQPAN4UONMCEV6HAGBW5I6VWJUOJB6VT6YCBYNGOSF43HAMJUC7TVA4OU
-#\\\|Z7HRATRKK3M7AI3H4WFYNXDFMWF6GCJMQNG3Q5CNNS5CIDHINNF \ / AMOS7 \ YOURUM ::
-#\[7]MYJVFOTM3ZOAQ2VLEY7NVOX4XNRATNMAL7ML3RG2HJPEIRTEIOAY 7  DATA SIGNATURE ::
+#,,,,,.,.,,..,,,.,,..,,,.,,..,,,.,,,,,,..,,,,,..,,...,...,,.,,.,.,,.,,..,,.,,,
+#NLYWSXFSNBLFIYMN32OSDGOSGVPGDJO32DFMWWQZ3CZ2ICHDPRHGOQ2FX5DBYTZPEHNULCNF5MVTG
+#\\\|4GHI5RYUKGK6X5MG5MM5WQG46GCDBUK7FH5JLDC7TGJVPJ2FPJ7 \ / AMOS7 \ YOURUM ::
+#\[7]L7PHHJZTH6FJENPU6D2PYD63OPNSNWKSU6X3Y3BMZN7HC2ONOWDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
