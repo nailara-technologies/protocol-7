@@ -1,13 +1,13 @@
 ---
 name: session-56
-description: "Session 56 — index terminal tracking, corpus versioning task files, FastText/pluggable model design, job control multiplexing, logging fixes"
+description: "Session 56 — index terminal, schema v3 cube storage, chunked persist, v7 restart fix, FastText/pluggable model design"
 metadata: 
   node_type: memory
   type: project
   originSessionId: 4ffce75b-8148-4209-bf51-e550e77dd5ce
 ---
 
-## Session 56 (2026-05-26) — index terminal + design docs
+## Session 56 (2026-05-26) — index terminal + schema v3 cube + v7 restart fix
 
 **`<index.terminal>` boundary tracking** — implemented across 6 modules: `index.deduplicate` (ring-0 loop + boundary check at space/EOS), `index.rank` (terminal lookup replaces hardcoded `1`), `index.init_code`, `index.persist`, `index.restore`, `index.cmd.search` (shows `[ exact, terminal ]` vs `[ exact ]`); kimi session 288b78fa
 
@@ -44,8 +44,26 @@ metadata:
 
 **`]>->()` obsolete syntax removal** — user ran `ncode -ai-friendly -confirm r src:^index. '\]>->\(\)' ']>'`; all index modules cleaned; startup + verification timeout fully resolved; committed as `fix: index lazy rank on first query`
 
-#,,.,,.,,,..,,.,,,,,,,.,,,,..,.,,,.,,,,..,...,.,.,...,...,,.,,..,,,,.,..,,.,.,
-#H6KBWBLB6MZOD2OD4KDY2NNW6JSWRS66FN7XA2BLVTSQCV44MD43GEVLBSEAIJW6APY3WTKG4JOKQ
-#\\\|LE3XKVZFLZ6VVWEJSL5URCC4BIVMNJLFH4ZXLM766S66MLFWDW7 \ / AMOS7 \ YOURUM ::
-#\[7]SQ4C34NEQDR4D47BFGIITQDU62WVFPWEHFQ6WBOYBTSDMHSUUKDQ 7  DATA SIGNATURE ::
+---
+
+## Session 56 continued — schema v3 cube storage + v7 restart fix
+
+**schema v3 .zxpc cube format** — binary format: 256-byte header (magic `P7IC`, schema_version, ring_count[], dir_base[], dir_stride[], data_base, total_size, 8-byte AMOS header checksum, zero-padded to 256) + per-ring directory (24-byte entries: `'Q N n n a8'` = offset/disk_size/child_count/flags/chksum7) + compartment data (9-byte frame `\x00 + len_byte + 7-byte chksum` + payload `'C N a8 n'` + child entries `'N N'`×N); tamper-evidence chain: depth-0 parent_chksum7 = header checksum, depth-D = parent compartment checksum
+
+**key naming**: `<[chk-sum.amos]>` NOT `<[base.chk-sum.amos]>` — `base.swap_subs` moves the key after init; using base. prefix causes "undefined subroutine reference" at runtime
+
+**cube modules**: `index.persist.cube` (writer), `index.restore.cube` (reader with P7IC validation + eager load rings 0-1 + fallback to .zxps), `index.cube.format` (constants), `index.cube.load_compartment`, `index.cube.get_compartment`, `index.activate`, `index.deactivate`, `index.source.register`
+
+**cube persist performance** — 2.3M compartments × AMOS checksum = blocking; one-ring-per-tick still too slow (ring 7 = 569K entries, pegged CPU at 99.7% for 3+ minutes); chunked to 2000 compartments per tick via `index.tick.persist-cube` job + `ring_offset` state; still needs performance profiling — even at 2000/tick may take many minutes total; future: profile AMOS checksum cost, consider skipping per-compartment checksums or batching larger
+
+**chunked persist job pattern** — `index.persist` enqueues `<index.jobs>->{'persist-cube'} //= { 'job-type' => 'persist-cube' }` (fixed key prevents double-enqueue); `index.tick.persist-cube` 3 phases: (1) init: precompute layout + header, store state; (2) per-batch: 2000 compartments, ring_offset advances, ring complete → current_depth++; (3) finalize: assemble header+dir+comp strings, write file; accumulates to scalar strings (not arrays) for O(1) finalize join
+
+**v7 restart race fix** — race: SIGCHLD fires first → `init_restart_timer` sets 0.05s timer; then STDIO close fires → second `v7.zenka.instance.restart` call cancels timer, re-adds dead PID to restart_pids → permanently stuck; two guards added to `v7.zenka.instance.restart`: (1) return early if timer active AND all processes dead (`v7.instance_pid_count == 0`); (2) call `init_restart_timer` directly if process already dead after `terminate_process`
+
+**sig_chld_ignore_pid wiring fix** — three disconnected key paths: restart used instance-local `$instance->{'sig_chld_ignore_pid'}`, handler checked top-level `<v7.sig_chld.ignore_child_pid.{pid}>`, base handler used `<sig.chld.ignore.pid>`; fixed: restart now sets top-level `<v7.sig_chld.ignore_child_pid>->{$parent_pid}`; handler `next` only skips non-registered PIDs (registered zenka children fall through to process_zenka_end)
+
+#,,,,,,..,..,,,.,,,.,,...,,,.,,,.,...,..,,.,,,.,.,...,..,,,..,,.,,,..,...,.,,,
+#KHNYWDEV7VMATJHO3TECEGGZLY2Q452KSSCQEH74ANDOMQGO6XAXWIPUXXXZPHR6C7LV4HLSVBH3U
+#\\\|PI2ZT4ZNHK3OVCWSZEMAYDCDVCNKNVH3ELW5IQV7VGZM73GBQYD \ / AMOS7 \ YOURUM ::
+#\[7]LSVXQHOIU6PLXA74R65RQRMGGDWRLAB5CRARG65QYAEPKQYCVOCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
