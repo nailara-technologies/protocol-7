@@ -25,6 +25,13 @@
 - `data/md/development/P7-LLM-REFERENCE.md` — verified live command reference for kimi/LLM
 - `data/md/development/DEGRADED-FEATURES-AUDIT.md` — 5 high-priority + 3 medium with stub task files
 
+## Session 56 (2026-05-26) — index terminal tracking, FastText/pluggable model design, job control
+- [session-56](session-56.md) — `<index.terminal>` implemented, 4 corpus versioning task files, INDEX-PLUGGABLE-MODEL-FRAMEWORK + INDEX-FASTTEXT-SOURCECODE-EMBEDDINGS docs, job control multiplexing task, logging fixes
+- **`<index.terminal>`** — boundary tracking live; `[ exact, terminal ]` vs `[ exact ]` in search; corpus re-fed to 11.8M chars
+- **FastText** — definition-agnostic: same pipeline for chars/namespace/checksum/reference tokens; trie IS subconsciousness; chat channels as discourse corpus
+- **pluggable model** — 3-axis (model type/storage/token); contribution vectors = Layer 1 universal intermediate; non-destructive experimentation
+- **job control** — per-job state under `<index.jobs>->{$job_id}`; unified tick dispatcher; chunked files with 7-char carry buffer
+
 ## Session 55 (2026-05-25) — index search fixes, em-dash removal, corpus versioning
 - [session-55](session-55.md) — exact-match display, trailing newline fix, backslash escaping, feed-dir default rebalance, 7.2M chars
 - **`index.cmd.search`** — prefix shown as `[ exact, rank N ]` first result; inline SIZE needs trailing `"\n"` (nshell cursor wipes last line otherwise)
@@ -242,8 +249,8 @@
 - **pager.sort.multi-key**: ntime_b32 + priority_map sort types added (session 42)
 - **task dispatch sections**: all dispatched tasks now carry ## dispatch + prompt for reuse
 
-#,,.,,,.,,,.,,.,,,.,,,,,,,,,,,,..,,,,,,..,,,.,..,,...,...,..,,,,.,.,.,,,.,.,,,
-#6Y6PTAQHJNS2KXO2GSSSL62NPCSAYA7ZWG6AWIOSGA6GRANPKDRPKXTTEKZ4QNEJZ4QI47UICVX4I
-#\\\|LQJQ5NZH6MMRXIDMSCWKSAEKVD43CXJ5R4O6S4J5PBWMAGXRFGE \ / AMOS7 \ YOURUM ::
-#\[7]CDSRKYEXUSRXHCZW4KHPTW3STGI2FEIKNT3P3K6QHS3NT7UZVGCI 7  DATA SIGNATURE ::
+#,,..,,,.,.,.,..,,,.,,...,.,.,.,.,.,,,..,,...,..,,...,...,.,.,...,...,,,,,,.,,
+#AL2ZDIAENQHYZXDIDCX7HDMB65KLRZO7SJNA7AC5UYLS4F2E7P2UHNM4LIRNAJSC3A5LZDVS46XPW
+#\\\|WQIYOFHH3GFWE7RIDAB7FJSK6P4MJZBFWQHIXMMJRTLNCF7JTYW \ / AMOS7 \ YOURUM ::
+#\[7]57XQM6AHKH63M3KTTYXXGAPVVWFCNCLTHIPSRLK2DPSK5XSYZUCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
