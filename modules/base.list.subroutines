@@ -177,6 +177,7 @@ return [ qw[
         iteration.loop
         index.gen_path
         index.feed.dir
+        index.activate
         httpd.pre_init
         httpd.http_get
         fs.cmd.unmount
@@ -363,6 +364,7 @@ return [ qw[
         jobqueue.add_job
         iteration.finish
         invoke.init_code
+        index.deactivate
         index.cmd.search
         index.cmd.lookup
         index.cmd.export
@@ -505,6 +507,7 @@ return [ qw[
         invoke.cmd.health
         invoke.cmd.cancel
         index.deduplicate
+        index.cube.format
         index.cmd.restore
         index.cmd.persist
         index.cmd.cluster
@@ -650,6 +653,8 @@ return [ qw[
         jobsite.cmd.reject
         jobqueue.init_code
         jobqueue.find_jobs
+        index.restore.cube
+        index.persist.cube
         index.cmd.stop-job
         index.cmd.gen-path
         index.cmd.feed-dir
@@ -1218,6 +1223,7 @@ return [ qw[
         io.ip.tcp.input.close
         invoke-web.cmd.status
         invoke-web.cmd.health
+        index.source.register
         impressive.cmd.status
         impressive.cmd.resume
         image-quality.analyze
@@ -1660,6 +1666,7 @@ return [ qw[
         io.ssl.ip.input.connect
         io.ip.tcp.input.connect
         invoke.cmd.queue-status
+        index.tick.persist-cube
         index.cmd.contributions
         index.callback.feed-dir
         impressive.get_playlist
@@ -2292,6 +2299,7 @@ return [ qw[
         io.unix.socket.output.open
         io.unix.socket.input.close
         index.tick.wordlist-import
+        index.cube.get_compartment
         image2html.child.init_code
         httpsd.reload_certificates
         httpsd.load-cipher-profile
@@ -2501,6 +2509,7 @@ return [ qw[
         io.unix.socket.output.close
         io.ssl.ip.handshake.cleanup
         io.ssl.ip.handler.handshake
+        index.cube.load_compartment
         image2html.parent.init_code
         httpsd.wait_for_certificate
         httpd.update_download_count
@@ -2709,6 +2718,7 @@ return [ qw[
         jobsite.handler.rescan-timer
         jobsite.dispatch.assessments
         io.unix.socket.input.connect
+        index.cube.format.dir_offset
         impressive.autoinstall_check
         httpsd.request_capture.write
         httpd.vhost.request_tls_cert
@@ -3374,6 +3384,7 @@ return [ qw[
         kimi.handler.process-queued-task
         kimi-web.internal.http_post_sync
         keys.console.keys-backup-archive
+        index.cube.format.pack_dir_entry
         image2html.base.write_image_html
         image2html.base.write_error_page
         httpd.handler.web_template_reply
@@ -3502,6 +3513,7 @@ return [ qw[
         kimi-web.cmd.read-session-context
         keys.pack_format.user_key_archive
         keys.console.downgrade-enc-status
+        index.cube.format.parse_dir_entry
         impressive.handler.stop_lsp_reply
         impressive.handler.get_list_reply
         image-quality.vision.select_model
@@ -4230,8 +4242,8 @@ return [ qw[
     ]
 ];
 
-#,,.,,.,.,,..,.,.,...,,,,,.,,,,..,..,,...,,.,,.,.,...,...,...,..,,,,.,..,,...,
-#FUEA3DHHEN23EEY6YL5MCWHNAP4EEXOHNTNOWRAOA5CN7FIXNTFSLMOQVL7RZ7T2ILQDXIBYP4EZW
-#\\\|XRN5NX7XWPMNQIFOGTIUHSJV25LHP2GPLURA2O6H4KPR62CMUFT \ / AMOS7 \ YOURUM ::
-#\[7]PFMAN4MIGEKKIQJIOMAT5DRD675MF5533CX2MSBYLPYWJEFYFIBA 7  DATA SIGNATURE ::
+#,,,.,..,,.,.,..,,,.,,,,.,..,,,,,,,,.,.,.,,..,.,.,...,...,,,.,..,,..,,..,,,.,,
+#BNE76RRXFQOXCAFGEAGJRSICSQWEGW3363226YWGJM7XMVTPN7L5KWNR33OSAWIP2MCO4MFQ2VH34
+#\\\|67H7BRWBZSZQMGKW4DT2QYAC2G2DM5BAAMC37YLL4VGAXYZSBOP \ / AMOS7 \ YOURUM ::
+#\[7]3YO4SUYVH7XWZ26VRS4D3DHWYKNSZGG7FC47EKLOKGXORKBLK6CQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

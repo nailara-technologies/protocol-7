@@ -1,0 +1,16 @@
+## [:< ##
+
+# name  = index.activate
+# descr = mark a content checksum as active in the index
+
+my $chk = shift // $ARG;
+return FALSE unless defined $chk and exists <index.contributions>->{$chk};
+<index.active_checksums>->{$chk} = 1;
+<index.meta>->{'dirty'} = 1;
+return TRUE;
+
+#,,,,,...,..,,,,.,,,,,..,,,..,,.,,,,,,.,.,,,.,..,,...,...,,.,,,.,,...,...,,,,,
+#TYTRUHZMOKB6B34BPINO7OWOTWEGX6NFAQ4ORFAD5YNEFXAN47T6VWLAXJFPJPWSM3ZGMU44VXXZW
+#\\\|CXANP5FBAV7IZCQ7QEKJXBAXRARUHNBEMMMIAHM6JSNW4FJDFJB \ / AMOS7 \ YOURUM ::
+#\[7]DSBQYQVG6LHK43XH2XHFQL3KAZ7ZCLGQELEY2ENQLUJ2JJAN4SDQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
