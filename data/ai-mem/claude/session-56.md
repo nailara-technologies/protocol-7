@@ -36,8 +36,16 @@ metadata:
 
 **logging fix** — `index.rank`: logs `start [N ring-0 tokens]` and `complete`; `index.persist`: logs `compressing [N chars]` before XZ; timestamps free via `base.log`
 
-#,,..,.,.,.,,,.,,,,,,,,.,,...,,,,,...,,..,,..,.,.,...,..,,.,.,,,.,,..,.,,,.,,,
-#IEWFDJYTFIGJ645HMHKEVEZX35VF73FWJJHSSND2IZPBZKO5SEDGPUIAAD27T2BIROZL6ABKY6LSI
-#\\\|H4S52IVADLVFNZ23O3VMNXZTM5TDEHNA6RTDMOL5A4FOPZWBSQ2 \ / AMOS7 \ YOURUM ::
-#\[7]E7LTK5FXJYKOFF7L7JFT65MXA22KLZSC32VOPN7GC5T4X2XNC2BY 7  DATA SIGNATURE ::
+**startup / verification timeout fix** — `index.restore` was calling `<[index.rank]>` synchronously; rank blocks event loop for minutes on 11.8M corpus; two-stage fix: (1) removed rank from restore, set `dirty=TRUE`; (2) tried 0.2s deferred timer in init_code — fired AFTER cube connection but BEFORE verification completed, blocked event loop, verification timed out; (3) final fix: removed timer entirely; added lazy rank at top of `index.cmd.search` + `index.cmd.lookup`:
+```perl
+## lazy rank rebuild after restore ##
+<[index.rank]> if <index.meta>->{'dirty'} // 0;
+```
+
+**`]>->()` obsolete syntax removal** — user ran `ncode -ai-friendly -confirm r src:^index. '\]>->\(\)' ']>'`; all index modules cleaned; startup + verification timeout fully resolved; committed as `fix: index lazy rank on first query`
+
+#,,.,,.,,,..,,.,,,,,,,.,,,,..,.,,,.,,,,..,...,.,.,...,...,,.,,..,,,,.,..,,.,.,
+#H6KBWBLB6MZOD2OD4KDY2NNW6JSWRS66FN7XA2BLVTSQCV44MD43GEVLBSEAIJW6APY3WTKG4JOKQ
+#\\\|LE3XKVZFLZ6VVWEJSL5URCC4BIVMNJLFH4ZXLM766S66MLFWDW7 \ / AMOS7 \ YOURUM ::
+#\[7]SQ4C34NEQDR4D47BFGIITQDU62WVFPWEHFQ6WBOYBTSDMHSUUKDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
