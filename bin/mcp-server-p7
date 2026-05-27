@@ -58,14 +58,16 @@ my @external_tools = (
         'timeout'    => 4620,               ## 77 minutes
     },
     {   'name'        => 'kimi_continue',
-        'description' => 'resume a kimi session by session id. '
+        'description' => 'resume a kimi session by session id and send a new prompt. '
             . 'use when kimi_dispatch output ends with a resume line. '
             . 'pass the uuid from "To resume this session: kimi -r <uuid>". '
-            . 'kimi will continue exactly where it left off.',
-        'command'    => 'kimi -y -r %s',    ## %s = shell-quoted session uuid
-        'param_name' => 'session_id',
-        'param_desc' => 'the kimi session uuid from the resume line',
-        'timeout'    => 4620,               ## 77 minutes
+            . 'kimi resumes with full prior context and acts on the new prompt.',
+        'command'     => 'kimi -y -r %s -p %s',  ## session uuid + new prompt
+        'param_name'  => 'session_id',
+        'param_desc'  => 'the kimi session uuid from the resume line',
+        'param2_name' => 'prompt',
+        'param2_desc' => 'the next task or instruction for the resumed session',
+        'timeout'     => 4620,               ## 77 minutes
     },
     ## additional external tools can be added here
     ## format: name, description, command (%s = shell-quoted first arg),
@@ -355,19 +357,28 @@ our @tools = (
 
 for my $ext (@external_tools) {
     next if grep { $_->{'name'} eq $ext->{'name'} } @tools;
+    my %props = (
+        $ext->{'param_name'} => {
+            'type'        => 'string',
+            'description' => $ext->{'param_desc'} // '',
+        }
+    );
+    my @required = ( $ext->{'param_name'} );
+    if ( defined $ext->{'param2_name'} ) {
+        $props{ $ext->{'param2_name'} } = {
+            'type'        => 'string',
+            'description' => $ext->{'param2_desc'} // '',
+        };
+        push @required, $ext->{'param2_name'};
+    }
     push @tools,
         {
         'name'        => $ext->{'name'},
         'description' => $ext->{'description'},
         'inputSchema' => {
-            'type'       => 'object',
-            'properties' => {
-                $ext->{'param_name'} => {
-                    'type'        => 'string',
-                    'description' => $ext->{'param_desc'},
-                }
-            },
-            'required'             => [ $ext->{'param_name'} ],
+            'type'                 => 'object',
+            'properties'           => \%props,
+            'required'             => \@required,
             'additionalProperties' => \0,
         },
         };
@@ -1131,8 +1142,11 @@ sub tool_call_tool {
 
 sub tool_external_command {
     my ( $id, $args, $ext ) = @ARG;
-    my $param  = $args->{ $ext->{'param_name'} } // '';
-    my $cmd    = sprintf( $ext->{'command'}, quotemeta($param) );
+    my $param = $args->{ $ext->{'param_name'} } // '';
+    my $cmd   = defined $ext->{'param2_name'}
+        ? sprintf( $ext->{'command'}, quotemeta($param),
+            quotemeta( $args->{ $ext->{'param2_name'} } // '' ) )
+        : sprintf( $ext->{'command'}, quotemeta($param) );
     my $output = '';
     my $error  = '';
 
@@ -1164,8 +1178,8 @@ sub log_msg {
     printf STDERR "[mcp-server-p7] %s\n", $msg;
 }
 
-#,,..,,,.,,,,,...,.,,,.,.,,..,,,,,.,,,,..,...,..,,...,..,,,.,,.,.,,..,.,,,..,,
-#LXVI6O55ZTT33IMV7IALPDRMVZAMQZDO65S2ZNYZJDD4WMXEFY6GQ6HABUUHN7JJE6BSAFMIZOYP4
-#\\\|6ZRXQXVOZGLPQBCL4UU7PKU63DPXWCTQ57Y2CPHGVTW5FECFOQR \ / AMOS7 \ YOURUM ::
-#\[7]T46CC6STEK7YCBTOZ5VIALCKJZU7SCWWEVA5D3SDTJ5YQDTYNWAI 7  DATA SIGNATURE ::
+#,,..,..,,,..,..,,..,,,.,,,..,...,,,.,..,,,..,..,,...,...,,,,,,,,,,,.,.,,,,,,,
+#LGY5VTDY7ROK7XEIHEHQZNBOAJLCJ6BOFR4TGEFYACTAOA74DB6OCZH5GOTRQOMLVR63TOJLNM3YM
+#\\\|DEP65CE7Q3JN5NGIACYWAK33GQL2E53MBZNP4VBHJLTMY4CTKEE \ / AMOS7 \ YOURUM ::
+#\[7]KQEWXHSP2BWA7WKYDFEYJVMVWYSL55OKK7KMSJE3QCJ26ZKRJMAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
