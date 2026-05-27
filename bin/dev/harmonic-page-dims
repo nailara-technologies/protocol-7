@@ -1,0 +1,88 @@
+#!/usr/bin/perl
+
+use v5.24;
+use strict;
+use English;
+use warnings;
+
+##[ LOCAL PM LIB PATH ]#######################################################
+
+BEGIN {
+    use File::Spec;
+    use Cwd qw| abs_path |;
+    use FindBin qw| $RealBin |;
+    my $root = abs_path( File::Spec->catdir( $RealBin, (File::Spec->updir) x 2 ) );
+    my $lib  = File::Spec->catdir( $root, qw| data lib-path pm | );
+    unshift @INC, $lib if -d $lib;
+}
+
+use AMOS7::Assert::Truth qw| is_true |;
+
+##[ PAGE DIMENSIONS ]#########################################################
+
+my %formats = (
+    'DIN A4'    => { mm => [ 210, 297 ] },
+    'DIN A3'    => { mm => [ 297, 420 ] },
+    'US Letter' => { in => [ 8.5, 11  ] },
+    'US Legal'  => { in => [ 8.5, 14  ] },
+);
+
+my @dpis = ( 150, 300, 600 );
+
+##[ HARMONIC SCAN ]###########################################################
+
+sub nearest_true {
+    my ($n) = @_;
+    return $n if is_true( \$n, 1, 0 );
+    for my $delta ( 1 .. 200 ) {
+        my $up   = $n + $delta;
+        my $down = $n - $delta;
+        return $up   if $up   > 0 and is_true( \$up,   1, 0 );
+        return $down if $down > 0 and is_true( \$down, 1, 0 );
+    }
+    return undef;
+}
+
+sub px {
+    my ( $fmt, $dpi ) = @_;
+    if ( exists $fmt->{'mm'} ) {
+        return map { int( $ARG / 25.4 * $dpi + 0.5 ) } @{ $fmt->{'mm'} };
+    } else {
+        return map { int( $ARG * $dpi + 0.5 ) } @{ $fmt->{'in'} };
+    }
+}
+
+##[ OUTPUT ]##################################################################
+
+printf "%-12s  %4s  %5s x %5s  %5s x %5s  %+4s  %+4s  %-20s\n",
+    'format', 'dpi', 'std-W', 'std-H', 'hmc-W', 'hmc-H', 'dW', 'dH',
+    'margin portrait (W)';
+print '-' x 88, "\n";
+
+for my $name ( sort keys %formats ) {
+    for my $dpi (@dpis) {
+        my ( $w, $h ) = px( $formats{$name}, $dpi );
+        my $hw = nearest_true($w);
+        my $hh = nearest_true($h);
+        my $dw = defined $hw ? $hw - $w : undef;
+        my $dh = defined $hh ? $hh - $h : undef;
+        my $margin = defined $dw && $dw > 0
+            ? sprintf( '%d px left + %d px right', $dw / 2, $dw / 2 )
+            : defined $dw && $dw < 0
+            ? sprintf( 'crop %d px per side', abs($dw) / 2 )
+            : 'none';
+        printf "%-12s  %4d  %5d x %5d  %5s x %5s  %+4s  %+4s  %-20s\n",
+            $name, $dpi, $w, $h,
+            $hw // '?', $hh // '?',
+            defined $dw ? sprintf( '%+d', $dw ) : '?',
+            defined $dh ? sprintf( '%+d', $dh ) : '?',
+            $margin;
+    }
+    print "\n";
+}
+
+#,,,,,,,,,.,.,.,,,...,...,,..,,.,,,,,,..,,,..,..,,...,..,,..,,,,,,...,,..,..,,
+#4CJJF2SZGRFAN4AGYBN3APUWPROXUPXONNL7MMQ3MXC6YBR7JVKTOE64BWJW7VTDDAYYMDWE6GLMS
+#\\\|GC2RMWTXLU33SSOJICJEOGAVW7ZMGL54KINT3N6OM7ZT3UIAELM \ / AMOS7 \ YOURUM ::
+#\[7]7ASGPERCMZCMYDSMWF2G2D5PC5PAZ5VHSO2YYMXUGKJZPJZIAIAY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
