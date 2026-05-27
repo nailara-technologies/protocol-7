@@ -61,37 +61,73 @@ the deep navy, so blue-doc layers stack cleanly without a distinct alpha plane.
 
 ### harmonic page dimensions
 
-standard document formats (DIN A4, US Letter, etc.) have pixel dimensions at
-common DPI values that are not harmonically correct. blue-doc normalizes page
-geometry before storage by expanding to the nearest harmonically valid size,
-distributing the difference as equal margins.
+standard document formats (DIN A4, US Letter, etc.) were defined with pixel
+dimensions that are not harmonically correct — and the deviation appears
+intentional. these formats represent a specific non-harmonic deduplication
+space. blue-doc does not patch the standards : it replaces their geometry with
+dimensions derived from harmonic first principles, then imports source documents
+into the corrected canvas (centered, with `#09052A` margin fill).
 
-**DIN A4 example at 300 DPI** :
+**why first principles, not nearest correction** :
+
+the simplest approach — nudging standard dimensions to the nearest
+harmonically true value — fails in practice because :
+
+- a +1 px correction produces an odd dimension, which cannot be split into
+  equal left/right margins and does not halve cleanly to 150 DPI
+- dimensions derived from standards inherit the structure of the non-harmonic
+  space they were designed to occupy
+- cross-scale consistency (150 / 300 / 600 DPI) requires dimensions that are
+  simultaneously harmonically true at every scale — this constraint eliminates
+  nearly all values near the standards
+
+**the correct approach** is to find dimensions that satisfy a compound
+harmonic condition across multiple constraints simultaneously :
 
 ```
-standard A4 at 300 DPI  :  2480 × 3508 px  [ non-harmonic ]
-blue-doc A4 at 300 DPI  :  2530 × 3508 px  [ harmonic width ]
-margin                  :  25 px left + 25 px right [ portrait ]
+is_true(W)             [ numerical ]
+is_true(W)             [ combined : numerical + ELF/ASCII encoding ]
+is_true("WxH")         [ dimension string ]
+is_true("HxW")         [ reversed — both orderings ]
+is_true(W/2)           [ 150 DPI target is its own harmonic canvas ]
+(W − standard) % 2     [ even delta : symmetric integer margins ]
+perceptual acceptance  [ dimensions that look and feel proportional ]
 ```
 
-the page content area remains 2480px wide — the harmonic correction adds
-50px total width (25px per side) to reach a dimension that satisfies the
-harmonic truth condition. the document text/image content is centered within
-the corrected canvas; the margins are `#09052A` background.
+a candidate that passes more of these simultaneously ranks higher. dimensions
+that are practically absurd (tape-roll width, poster-sized A4) eliminate
+themselves before reaching the constraint filter.
+
+**rescaling is re-derivation, not pixel scaling** :
+
+a blue-doc page at 150 DPI is not the 300 DPI version halved — it is an
+independently derived harmonic canvas for the same nominal format at the
+lower resolution. content is re-rendered into the target canvas; geometry
+is not scaled. this avoids the fractional-pixel and non-harmonic inheritance
+problems that arise from simple dimension multiplication.
+
+**import and export are transparent** :
+
+source documents (scanned at arbitrary DPI, in standard formats) are imported
+by centering the content on the blue-doc canvas with margin fill. export to
+standard format reverses the process : content area is extracted, margins are
+discarded, and the result is a standard-dimensioned file. the harmonic
+geometry is a storage and processing property, not a visible constraint on
+the output.
 
 this normalization means :
 
 - blue-doc pages of the same nominal format have identical pixel dimensions
-  regardless of the source scan's actual pixel count
-- the margin regions provide a clean border zone for binding/cropping marks
-- the canvas dimensions are predictable and computationally convenient
+  regardless of the source scan's actual pixel count or DPI
+- the margin regions provide a clean border zone for binding and cropping marks
+- the canvas dimensions are derived from harmonic arithmetic, not from
+  physical paper standards or printing industry conventions
 - the relationship between page size, DPI, and harmonic values is formally
-  documented rather than an accident of physical paper standards
+  specified and reproducible
 
-the harmonic test applied to page dimensions is derived from the same
-division-13 properties used throughout the system. the precise calculation
-(which dimension, which DPI targets, and the full correction table for
-standard formats) is in `bin/dev/division-13-table`.
+the harmonic constraint scanner for finding candidate dimensions is
+`bin/dev/harmonic-page-dims`. the definitive correction table (once the
+compound constraint search is complete) will be appended here.
 
 ---
 
@@ -286,10 +322,14 @@ output quality exceeds the source scan because :
   handle handwriting, logos, and non-Latin scripts
 - **blue-doc corpus** : central glyph corpus storage format — the `.zxpc`
   cube model is a candidate [ (depth=stroke_class, rank=frequency) addressing ]
-- **harmonic correction table** : full table of standard formats (A4/A3/Letter/
-  Legal) at common DPI values (150/300/600) with their harmonic corrections
-- **height normalization** : the A4 example corrected width only; determine
-  whether height also requires correction and the vertical margin distribution
+- **harmonic canvas dimensions** : run compound constraint search (numerical
+  truth, combined truth, WxH string, cross-scale at 150/300/600, even delta)
+  for A4 / A3 / Letter / Legal; rank candidates by constraint score; apply
+  perceptual acceptance as final gate — `bin/dev/harmonic-page-dims` is the
+  baseline scanner, needs constraint-scoring extension
+- **cross-scale re-derivation** : formalize the per-DPI independent derivation
+  model; each DPI produces its own harmonic canvas from the same constraint
+  set, not from scaling another DPI's result
 - **division-13 color connection** : document the precise relationship between
   the #09052A / #0647C3 values and the division-13 matrix protocol
 - **text encoding companion** : comp-int / 5-bit base32 rank-sequence encoding
@@ -302,10 +342,12 @@ output quality exceeds the source scan because :
 
 - `bin/dev/tests/data/blue-doc-import-test.pl` — import pipeline prototype
   [ despeckle, fuzz-based color replacement, matte setup ]
+- `bin/dev/harmonic-page-dims` — candidate scanner : nearest is_true() values
+  for standard formats at 150/300/600 DPI [ baseline, needs constraint scoring ]
 - `bin/dev/division-13-table` — division-13 matrix, color space origin
 
-#,,,.,,,.,,.,,.,,,,,.,.,.,,..,,,.,,..,..,,.,,,..,,...,..,,..,,,,,,.,.,...,..,,
-#JE54WJGU7U6QCFHJSYNEGG4LAVYZ3YIQMXTPUR7BHQOFBAKCJG5D22567P4PJRP4UMKHSTLTBK7UU
-#\\\|BE4XZ3C723JNMLO5BMQZJVX2Y2A5EWFVR55LIDBSSWBQID6EWR5 \ / AMOS7 \ YOURUM ::
-#\[7]WSO4XD6AHOTPKBNE5XSPPR7FTIGLGKT4QJ2NFJNZXDIVO6OFZKDI 7  DATA SIGNATURE ::
+#,,,,,...,.,,,.,.,,..,.,.,...,.,.,.,,,,,.,,,,,..,,...,...,.,.,,,.,,.,,.,,,,,.,
+#WRY72RPXSCWO32IN77BSBCCHTC37RKBBJVZL7AO6NTWFZ5D24UXD2UPLYEOR4NVUFTVD7QMCXBFVO
+#\\\|UNYTZEMKQO2CGROZFHADAG4OGGTY2CIDJCAUO27P6XALSSNSAZQ \ / AMOS7 \ YOURUM ::
+#\[7]W4D6GR4KB23VMBTQG3FWQMYCH4KCZIZF7VCET6MN44Y636VOQ6DY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
