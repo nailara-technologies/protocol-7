@@ -3,6 +3,9 @@
 # name  = index.persist
 # descr = save corpus data compressed to zenka_dir [ .zxps ]
 
+return <[base.log]>->( 1, 'index.persist: corpus empty, skipping' )
+    unless ( <index.meta>->{'total'} // 0 ) > 0;
+
 my $schema_version = 2;
 
 my $state = {
@@ -39,13 +42,14 @@ return <[base.log]>->( 1, "index.persist: write failed [ $rel_path ]" )
 
 ## enqueue chunked cube persist as background job [ skip if already running ] ##
 <index.jobs>->{'persist-cube'} //= { 'job-type' => 'persist-cube' };
+<[index.tick.start]>;
 
 <[base.log]>->( 1, "index persisted [ $total chars -> $rel_path ]" );
 
 return TRUE;
 
-#,,,.,,.,,.,.,,,.,...,.,.,,..,...,,,.,..,,...,..,,...,...,,.,,,..,..,,..,,.,,,
-#5RJMMUR2SYTTM2E7IX4YSKYVGWRCVUMORJVBKWBY5YPB43NDBEAYTARL72AQJHABHMEQ3IJNLLUTK
-#\\\|YOFL4VI5JJSQ56ER2CCG66A55NZ6UBQTBFKMLQTNH5UTPPCHDLI \ / AMOS7 \ YOURUM ::
-#\[7]SFWE6VFLM4B5H2P2E7IZMUJ23WTFJHFX5ABRTZIRZ5RMICTOEWDQ 7  DATA SIGNATURE ::
+#,,.,,,..,.,.,,..,.,,,,.,,.,,,,.,,..,,,..,,,,,..,,...,...,.,.,,,.,..,,...,,,,,
+#67DPJ53EIFCYH4LWUA7BN7JLBMIROEMDBBZNAJU7C5UJTEINKGOGRGFZUK3J3EKBUKV6MEMMWN4JW
+#\\\|OMKGDCGMXH47YSACNM2BZFYN5ULWOHJKSQLH47T7FAOLBIZSFFJ \ / AMOS7 \ YOURUM ::
+#\[7]D4AXEJJRYIHTCUZIG27TTDE3LJDNIAMCJD6MRT7WQEPLQ3BHGIDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -82,18 +82,25 @@
     dirty => FALSE,
 };
 
-## auto-restore from disk only if corpus is not already in memory ##
+## restore corpus if not already in memory ##
 if ( not( <index.meta>->{'total'} // 0 ) ) {
-    <[index.restore.cube]>;
+    if (<system.zenka.initialized>) {
+        ## reload: already online, restore directly ##
+        <[index.restore.cube]>;
+    } else {
+        ## fresh start: defer until after verification ##
+        <[event.add_var]>->(
+            {   'var'     => \$data{'system'}{'zenka'}{'initialized'},
+                'handler' => 'index.restore.cube',
+                'repeat'  => FALSE,
+                'desc'    => 'deferred corpus restore',
+            }
+        );
+    }
 }
 
-<index.tick.cursor> //= 0;
-<[event.add_idle]>->(
-    {   'handler' => 'index.callback.tick',
-        'repeat'  => TRUE,
-        'desc'    => 'index job dispatcher',
-    }
-);
+<index.tick.cursor>       //= 0;
+<index.tick.idle_watcher> //= undef;
 
 <[base.log]>->( 1, 'index zenka initialized [ numerical language tree ]' );
 
@@ -103,8 +110,8 @@ map { <[file.make_path]>->( $ARG, $create_perm, <system.amos-zenka-user> ) }
 
 0;
 
-#,,..,,.,,...,,,.,,..,...,...,,,,,,..,,,,,,..,.,.,...,...,,,.,,,,,,,,,,..,..,,
-#Z7FUHQIOBL6NPHRWX7MI64KT2GIZ6M4CF2RECHBRGBHMPKLMKOT2Z37B3YGV4MW6XWDGMY3RDP7ZA
-#\\\|W3CV7WHCO3SX7DHSTXU4IUCFM7HRFLKT2OK6JJAIP3XWVUODS63 \ / AMOS7 \ YOURUM ::
-#\[7]BPZGV3CJCMRJA3DC2QCTCTNSM7ZQ4UAJTFQ5LU76LJ653RE7XGDY 7  DATA SIGNATURE ::
+#,,.,,.,,,..,,,,.,...,,,,,.,.,...,,..,.,,,,,.,.,.,...,...,..,,..,,...,.,.,,..,
+#2QNMDDIDUZK2LRYIFV6CKGYMURPUCYRLJD3DPLUYONQK42VDYDLUVO7E4VS552FWJAVACACPKW2GO
+#\\\|UIJX4EXYKOLKEP6XYLHCVV6X6ZKE6PCPQAU7QBVQ24O5LNAF67L \ / AMOS7 \ YOURUM ::
+#\[7]IBKGA3ZHIVGY6NSZMNKDRFGTN6OFQTQRRB33E676JOWPHWHRW2CQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

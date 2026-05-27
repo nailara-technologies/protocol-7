@@ -4,7 +4,14 @@
 # descr = unified job tick dispatcher
 
 my @job_ids = sort keys %{ <index.jobs> // {} };
-return unless @job_ids;
+unless (@job_ids) {
+    my $w = <index.tick.idle_watcher>;
+    if ( defined $w and $w->is_active ) {
+        $w->cancel;
+        <index.tick.idle_watcher> = undef;
+    }
+    return;
+}
 
 <index.tick.cursor> //= 0;
 <index.tick.cursor> = <index.tick.cursor> % scalar(@job_ids);
@@ -33,8 +40,8 @@ elsif ( $type eq 'wordlist-import' ) {
     delete <index.jobs>->{$job_id};
 }
 
-#,,,,,...,...,.,.,...,.,.,,..,,..,.,.,,,,,,..,..,,...,...,,..,,..,,.,,.,.,...,
-#5C627N72Q46E76K3J3XKTQI72SZ2JI2HALCHPATRPSPX37IBJ4X3SAQNLN7QFQPQUN2IZGUDASIOW
-#\\\|3JHAKZUSGHOVQMQOCXE6MI3QBSVIUHD2TIXIQTANOCIZABWVLNU \ / AMOS7 \ YOURUM ::
-#\[7]MZORITLWWYJUWA73AU3NOR67DPUFVI3TO3THCKK6FLVAZI5NNSBI 7  DATA SIGNATURE ::
+#,,..,.,,,,.,,..,,...,,.,,,,.,,..,,.,,,..,...,..,,...,...,..,,.,,,..,,,.,,,..,
+#GB35S4GFB6RLKAKP55IORJE6ZSBZR6A6HFDALWBWAUNKKPXPIK27F6LUUUILYG6CLSJ5KLFELBBSU
+#\\\|P7A7UUOP2H5TT6PF6HGD6MI73S7I2J6XALQI6NLCYRMG5WZUGZ5 \ / AMOS7 \ YOURUM ::
+#\[7]GU5CA6VLEK7L54FIIXWCNEA64N5GZFBB3WHBSEVFAWMGK4F5B2AI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
