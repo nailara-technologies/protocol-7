@@ -89,9 +89,9 @@ for my $name ( sort keys %formats ) {
     for my $dpi (@dpis) {
         my ( $w, $h ) = px( $formats{$name}, $dpi );
 
-        ## width scan ##
+        ## width scan [widened range] ##
         my @w_cand;
-        for my $W ( ( $w - 50 ) .. ( $w + 300 ) ) {
+        for my $W ( ( $w - 200 ) .. ( $w + 800 ) ) {
             next if $W <= 0;
             my ( $score, $pass ) = score_dimension( $W, $w, $h );
             push @w_cand, {
@@ -107,9 +107,9 @@ for my $name ( sort keys %formats ) {
                 || abs( $a->{d} ) <=> abs( $b->{d} )
         } @w_cand;
 
-        ## height scan ##
+        ## height scan [widened range] ##
         my @h_cand;
-        for my $H ( ( $h - 50 ) .. ( $h + 300 ) ) {
+        for my $H ( ( $h - 200 ) .. ( $h + 800 ) ) {
             next if $H <= 0;
             my ( $score, $pass ) = score_dimension( $H, $h, $w );
             push @h_cand, {
@@ -150,11 +150,79 @@ for my $name ( sort keys %formats ) {
                 $c->{score}, $c->{val}, $c->{d}, $c->{half},
                 fmt_constraints( $c->{pass} );
         }
+
+        ## paired (W,H) scan ##
+        my %w_by_score;
+        my %h_by_score;
+        for my $c (@w_cand) { push @{ $w_by_score{ $c->{score} } }, $c; }
+        for my $c (@h_cand) { push @{ $h_by_score{ $c->{score} } }, $c; }
+
+        my @w_pool = ( @{ $w_by_score{7} // [] }, @{ $w_by_score{6} // [] },
+                       @{ $w_by_score{5} // [] } );
+        my @h_pool = ( @{ $h_by_score{7} // [] }, @{ $h_by_score{6} // [] },
+                       @{ $h_by_score{5} // [] } );
+
+        my @pairs;
+        for my $wc (@w_pool) {
+            for my $hc (@h_pool) {
+                next if $wc->{score} < 5 || $hc->{score} < 5;
+
+                my $pair_score = $wc->{score} + $hc->{score};
+                my $wxh_pass = 0;
+                my $hxw_pass = 0;
+
+                my $s_wxh = $wc->{val} . 'x' . $hc->{val};
+                $wxh_pass = 1 if is_true( \$s_wxh, 2, 1 );
+
+                my $s_hxw = $hc->{val} . 'x' . $wc->{val};
+                $hxw_pass = 1 if is_true( \$s_hxw, 2, 1 );
+
+                $pair_score += $wxh_pass + $hxw_pass;
+
+                my $margin_w = abs( $wc->{d} ) / 2;
+                my $margin_h = abs( $hc->{d} ) / 2;
+
+                push @pairs, {
+                    W        => $wc->{val},
+                    H        => $hc->{val},
+                    dW       => $wc->{d},
+                    dH       => $hc->{d},
+                    sW       => $wc->{score},
+                    sH       => $hc->{score},
+                    pair     => $pair_score,
+                    wxh      => $wxh_pass,
+                    hxw      => $hxw_pass,
+                    margin_w => $margin_w,
+                    margin_h => $margin_h,
+                    w_pass   => fmt_constraints( $wc->{pass} ),
+                    h_pass   => fmt_constraints( $hc->{pass} ),
+                };
+            }
+        }
+
+        @pairs = sort {
+            $b->{pair} <=> $a->{pair}
+                || abs( $a->{dW} ) + abs( $a->{dH} ) <=> abs( $b->{dW} ) + abs( $b->{dH} )
+        } @pairs;
+
+        print "\n";
+        printf "%s  %d DPI  (standard: %d x %d)  [paired scan]\n",
+            $name, $dpi, $w, $h;
+        printf "  pair   W      H      dW   dH   margin      W-constr  H-constr  WxH HxW\n";
+        printf "  -----  -----  -----  ---- ----  ----------  --------  --------  --- ---\n";
+        for my $p ( @pairs[ 0 .. 2 ] ) {
+            last if not defined $p;
+            my $margin = sprintf "%.1f x %.1f", $p->{margin_w}, $p->{margin_h};
+            printf "    %d    %5d  %5d  %+4d %+4d  %10s  %8s  %8s   %s   %s\n",
+                $p->{pair}, $p->{W}, $p->{H}, $p->{dW}, $p->{dH},
+                $margin, $p->{w_pass}, $p->{h_pass},
+                $p->{wxh} ? 'Y' : 'N', $p->{hxw} ? 'Y' : 'N';
+        }
     }
 }
 
-#,,..,..,,,,,,.,.,.,.,,..,,..,..,,,,.,,,,,,,.,..,,...,...,...,,..,..,,.,.,,.,,
-#LLRM3KOXKQXK6URY7NDSRHA4CS6OS7L36PK5AKCECV6KSJ2IXD7TQJU7W5XZL6P2SYRWQINJKCMDK
-#\\\|YBWYZWKGBCQLHWLLWE3KCZXZYM4CSDTTHEXNILIKDP47MHS4HIE \ / AMOS7 \ YOURUM ::
-#\[7]WSCUYIWCADLIJTWOMCHPLKOPNBF5SN2XP5AVW756JA76NZAOFCBI 7  DATA SIGNATURE ::
+#,,.,,,,.,,,,,,,.,.,,,.,,,,,.,.,.,,,.,..,,,..,..,,...,..,,,.,,,,.,.,.,,,.,,,.,
+#TVBPIPROYNCXQZHB4T7QJLKYWFAYV5NA2Y6FIVMRLLYT3SFCJ3A7DFA7UCYYQCHDTS3P47Z4L6O7M
+#\\\|WUQGF3HSTAWMZJGAR4J7UNK3AXUQ4SLGPWMVMKKHOP27NUDA65D \ / AMOS7 \ YOURUM ::
+#\[7]7J3IMOEIEQIHZKC42DPAHDOYZTRWGMEB3RK3H7M65T6KHXYPFEBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
