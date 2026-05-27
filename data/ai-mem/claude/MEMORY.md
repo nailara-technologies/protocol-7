@@ -8,6 +8,11 @@
 - **Never add** the `#,,.,,,...` stub at end of new files — blocks signing system
 - Leave new files clean; `bin/Protocol-7 sourcecode update-signatures` adds real 4-line footer
 
+## Session 57 (2026-05-27) — schema v4 cube complete, perf fixes, graphical storage design
+- [session-57](session-57.md) — JHash cube (102MB, 8 rings), prev_chk_packed halves ring 3-4 time, idle watcher + ondemand_timeout fix, graphical storage design doc
+- **remaining perf** — rings 5-7 still slow; next fix: lift `<index.level>->{$D+1}` ref outside inner loop in `index.tick.persist-cube`
+- **design doc** — `data/md/design/GRAPHICAL-STORAGE-AND-PROCESSING.md` : ring-trie as polar disk, APNG contribution stream, image ops as assertions
+
 ## Architecture Docs (session 42)
 - `data/md/design/NESTED-CUBE-NETWORK-SEGMENTATION.md` — gateway satellite, departure-route source chain, tunneling
 - `data/md/design/ZENKA-LIFECYCLE-ONDEMAND-HEARTBEAT.md` — hybrid on-demand+heartbeat, WoL chains, timeout recovery
@@ -251,8 +256,8 @@
 - **pager.sort.multi-key**: ntime_b32 + priority_map sort types added (session 42)
 - **task dispatch sections**: all dispatched tasks now carry ## dispatch + prompt for reuse
 
-#,,,.,.,.,,.,,...,,.,,,,.,,,.,,,,,,,,,,,.,,.,,..,,...,...,...,,,,,...,.,.,.,,,
-#I55UMGFHT3UCOZ22IBSYC26KAMBTYBXBVTSBHQXXXHLFRSVUQ75IHNH2TSLILSIDLZQYLBAQC42FU
-#\\\|Y7K2VLDYAWAGHEWXSMPHVLFJI4D5J4ULYHXZTRYDH4AUWCKIXWF \ / AMOS7 \ YOURUM ::
-#\[7]ELYCPIFR7EWVWGABIJO2ZPWWUXLF7L7HVZFSY7SRYB4ARLTTI4DQ 7  DATA SIGNATURE ::
+#,,..,,.,,...,.,.,,..,.,.,.,.,.,.,..,,.,.,.,.,..,,...,..,,...,,,,,..,,.,,,.,,,
+#YPXTVIPASRI47RD2YROAALIQBU222M6N35AWBT7DDPV3JUY7GSHWXN7CG5IKMMC2MRBTGVGT6Z63C
+#\\\|IVYONHMLBAMV4PDWJH6N6ZMU2Q4KZ5KAYJLGISR5XG4WSI6GXFA \ / AMOS7 \ YOURUM ::
+#\[7]KG6JZ6LCLRN4GXMTFODQDOFLDJAVAWB7UGW7ETBGP5IWUB5YROCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
