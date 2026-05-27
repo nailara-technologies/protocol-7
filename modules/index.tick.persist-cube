@@ -157,7 +157,8 @@ my $child_seq_len = $D + 2;
 my $batch_end = $ring_offset + 20_000;
 $batch_end = $ring_countD if $batch_end > $ring_countD;
 
-my $t_batch = Time::HiRes::time();
+my $level_ref = $D == 0 ? undef : ( <index.level>->{ $D + 1 } // {} );
+my $t_batch   = Time::HiRes::time();
 for my $R ( $ring_offset .. $batch_end - 1 ) {
     my $node = $nodes->[$R];
     my $seq  = substr( $packed, $R * $seq_len, $seq_len );
@@ -166,7 +167,7 @@ for my $R ( $ring_offset .. $batch_end - 1 ) {
     my $frequency
         = $D == 0
         ? ( <index.freq>->{$seq} // 0 )
-        : ( <index.level>->{ $D + 1 }->{$seq} // 0 );
+        : ( $level_ref->{$seq}   // 0 );
 
     my $parent_jhash;
     if ( $D == 0 ) {
@@ -236,8 +237,8 @@ $state->{'curr_chk'}        = [];                        ## freed next tick ##
         . " [ $ring_countD entries, last batch ${batch_ms}ms ]"
 );
 
-#,,..,,,,,.,.,..,,..,,,..,,,.,,..,,.,,...,.,,,..,,...,...,..,,...,,,,,...,...,
-#7JCZNIYTISBBSSSOG4IT7HZHDEJKFDWUPQHQGSKX3NDS24VNHVF4FPIQPO2WKVKR3TGRWERIX4I36
-#\\\|54FANL4XMIQCKPY3HLBOOUG3Y7QK2LJP32JFGWH767KKCIHWDDG \ / AMOS7 \ YOURUM ::
-#\[7]4VAAIUFLGYXX7R7E3ALLZOKG57FYRFUIUNSN535AJRQPWBYG7UDA 7  DATA SIGNATURE ::
+#,,.,,,,,,.,.,...,,,,,,,.,.,.,.,.,...,,,,,,.,,..,,...,...,,,.,,,.,,,,,,,.,..,,
+#BOME6DO2M4AEFZOXDXUXXKMHMWQOXEPCMQUQKIPJMTY6LPP2LDGMLWEUMUOIHFZVT7IVENLHXEO4G
+#\\\|LPOTW5JA43HJLPVFD54OUMPL6PNGFVB2NPNS2RSPT2IWV2H2ZDS \ / AMOS7 \ YOURUM ::
+#\[7]3A4MV6VJIWPC7TPTWUYQFZZ6CQKTBFCAZQTPRU4CHRTME7GJKEAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
