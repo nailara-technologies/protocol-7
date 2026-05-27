@@ -26,7 +26,7 @@ multiplication would carry across scales.
 ### constraint set
 
 the harmonic page dimension scanner is `bin/dev/harmonic-page-dims`. it
-evaluates each candidate dimension against seven simultaneous constraints :
+evaluates each candidate dimension against ten simultaneous constraints :
 
 | # | constraint | description |
 |---|------------|-------------|
@@ -37,6 +37,9 @@ evaluates each candidate dimension against seven simultaneous constraints :
 | 5 | `is_true(W/2)` | half the dimension [150 DPI cross-scale target] |
 | 6 | `is_true(W*2)` | double the dimension [600 DPI cross-scale target] |
 | 7 | even delta | `(W − standard) % 2 == 0` for symmetric left/right margins |
+| 8 | `terminates_base10(W/H)` | the width-to-height ratio has a terminating decimal expansion |
+| 9 | `is_true(ratio_str)` | the decimal ratio string `sprintf("%.14g", W/H)` passes combined truth |
+| 10 | `terminates_base10(H/W)` | the inverse ratio has a terminating decimal expansion |
 
 constraint 3 and 4 are evaluated per-dimension during the independent W and H
 scans. the paired scan additionally checks `is_true("WxH")` and
@@ -48,39 +51,36 @@ scans. the paired scan additionally checks `is_true("WxH")` and
 ### scan results
 
 the widened scan searched `[standard − 200 .. standard + 800]` at 150, 300,
-and 600 DPI across all four formats. no individual dimension scored 7/7 in
-this range. the top candidates per format × DPI are :
+and 600 DPI across all four formats. no individual dimension scored 8/10 or
+higher in this range. the top candidates per format × DPI are :
 
 | format | DPI | W | dW | H | dH | W sc | H sc | pair sc | margin W×H | constraint pattern |
 |--------|-----|---|----|---|----|------|------|---------|------------|--------------------|
-| DIN A3 | 150 | 2444 | +690 | 2536 | +56 | 6 | 5 | 12 | 345 × 28 | 1234.67 / ..34567 |
-| DIN A3 | 300 | 3315 | −193 | 5226 | +265 | 6 | 5 | 13 | 96.5 × 132.5 | 123456. / 12345.. |
-| DIN A3 | 600 | 7332 | +316 | 10179 | +258 | 6 | 5 | 13 | 158 × 129 | 1234.67 / 123.5.7 |
-| DIN A4 | 150 | 1227 | −13 | 1692 | −62 | 5 | 5 | 12 | 6.5 × 31 | 12345.. / 1234..7 |
-| DIN A4 | 300 | 2704 | +224 | 3588 | +80 | 6 | 6 | 12* | 112 × 40 | 12345.7 / 1.34567 |
-| DIN A4 | 600 | 4985 | +24 | 7012 | −4 | 5 | 5 | 12 | 12 × 2 | 1234..7 / 1234..7 |
-| US Legal | 150 | 1227 | −48 | 2236 | +136 | 5 | 5 | 12 | 24 × 68 | 123.5.7 / 123..67 |
-| US Legal | 300 | 2418 | −132 | 4188 | −12 | 5 | 5 | 12 | 66 × 6 | 123.5.7 / 1234..7 |
-| US Legal | 600 | 5785 | +685 | 8502 | +102 | 6 | 5 | 12 | 342.5 × 51 | 123456. / 1..4567 |
-| US Letter | 150 | 1695 | +420 | 1768 | +118 | 6 | 6 | 13 | 210 × 59 | 12345.7 / 1234.67 |
-| US Letter | 300 | 3120 | +570 | 3380 | +80 | 6 | 6 | 13 | 285 × 40 | 1.34567 / 12345.7 |
-| US Letter | 600 | 5096 | −4 | 6604 | +4 | 6 | 5 | 12 | 2 × 2 | 12345.7 / 123.5.7 |
-
-[*] the DIN A4 300 DPI pair 2704×3588 scores 12 in the paired scan because
-`is_true("2704x3588")` passes but `is_true("3588x2704")` does not, yielding
-one bonus point instead of two. both dimensions individually score 6/7.
+| DIN A3 | 150 | 2350 | +596 | 2836 | +356 | 6 | 6 | 14 | 298 × 178 | ..34567.9. / 1234..7.9. |
+| DIN A3 | 300 | 3315 | −193 | 5226 | +265 | 7 | 6 | 15 | 96.5 × 132.5 | 123456..9. / 12345...9. |
+| DIN A3 | 600 | 7332 | +316 | 9989 | +68 | 7 | 6 | 14 | 158 × 34 | 1234.67.9. / 123.5.7.9. |
+| DIN A4 | 150 | 1300 | +60 | 1984 | +230 | 6 | 7 | 14 | 30 × 115 | 12.4..7.9. / 1234..78.10 |
+| DIN A4 | 300 | 2696 | +216 | 3658 | +150 | 6 | 7 | 14 | 108 × 75 | 1234..7.9. / 1234..789. |
+| DIN A4 | 600 | 4985 | +24 | 7103 | +87 | 6 | 6 | 14 | 12 × 43.5 | 1234..7.9. / 12345...9. |
+| US Legal | 150 | 1573 | +298 | 1968 | −132 | 6 | 6 | 14 | 149 × 66 | 1.3.567.9. / 1234..7.9. |
+| US Legal | 300 | 2400 | −150 | 4082 | −118 | 6 | 6 | 14 | 75 × 59 | 12.4..7.910 / 123.5.7.9. |
+| US Legal | 600 | 5094 | −6 | 8494 | +94 | 6 | 5 | 13 | 3 × 47 | 1234..7.9. / 123...7.9. |
+| US Letter | 150 | 1293 | +18 | 1768 | +118 | 5 | 7 | 14 | 9 × 59 | 1234..7... / 1234.67.9. |
+| US Letter | 300 | 3168 | +618 | 3536 | +236 | 7 | 6 | 15 | 309 × 118 | ..3456789. / 123.5.7.9. |
+| US Letter | 600 | 5096 | −4 | 6582 | −18 | 7 | 6 | 14 | 2 × 9 | 12345.7.9. / ..34567.9. |
 
 ---
 
 ### findings
 
-**no 7/7 exists in the scanned range.**
+**no 8/10 exists in the scanned range.**
 
 the widened search `[−200 .. +800]` produced individual dimension scores of
-6/7 at best. no candidate satisfied all seven constraints simultaneously. this
-suggests that constraint 6 [600 DPI cross-scale] and constraint 7 [even delta]
-are mutually exclusive with the full string-truth set for dimensions near
-standard paper sizes.
+7/10 at best. no candidate satisfied all ten constraints simultaneously. this
+suggests that ratio termination [constraints 8 and 10] is largely orthogonal
+to the pixel-level truth set, and that constraint 6 [600 DPI cross-scale] and
+constraint 7 [even delta] remain difficult to satisfy alongside the full
+string-truth set for dimensions near standard paper sizes.
 
 **constraint 6 is the hardest to satisfy.**
 
@@ -94,30 +94,58 @@ because the doubled value inherits the non-harmonic structure of the standard.
 
 **recommended candidates for initial blue-doc implementation :**
 
-1. **US Letter 600 DPI : 5096 × 6604** [pair score 12, margin 2 × 2 px]
-   both dimensions are within 4 px of standard. W scores 6/7 [missing
-   constraint 6], H scores 5/7 [missing constraints 3 and 6]. the WxH string
-   passes. this is the most pragmatic candidate : negligible margin, visually
-   indistinguishable from standard, high individual scores.
+1. **US Letter 600 DPI : 5096 × 6604** [pair score 13, margin 2 × 2 px]
+   both dimensions are within 4 px of standard. W scores 7/10 [missing
+   constraints 8 and 10], H scores 5/10 [missing constraints 3, 8, 9, and 10].
+   the WxH string passes. this is the most pragmatic candidate : negligible
+   margin, visually indistinguishable from standard, high individual scores.
 
 2. **DIN A4 600 DPI : 4985 × 7012** [pair score 12, margin 12 × 2 px]
-   W is +24 px, H is −4 px. both score 5/7. WxH and HxW both pass. the
+   W is +24 px, H is −4 px. both score 5–6/10. WxH and HxW both pass. the
    margins are small and symmetric. this is the best A4 candidate for
    production use where near-standard appearance matters.
 
 3. **US Legal 300 DPI : 2418 × 4188** [pair score 12, margin 66 × 6 px]
-   W is −132 px, H is −12 px. both score 5/7. WxH and HxW both pass. the
+   W is −132 px, H is −12 px. both score 5/10. WxH and HxW both pass. the
    height margin is negligible; the width margin is modest and acceptable for
    legal documents that typically have wide binding gutters.
 
 4. **DIN A4 300 DPI : 2704 × 3588** [pair score 12, margin 112 × 40 px]
-   both dimensions score 6/7 individually — the highest individual scores in
-the A4 family. WxH passes. the margins are larger but still practical for
+   both dimensions score 6/10 individually — the highest individual scores in
+   the A4 family. WxH passes. the margins are larger but still practical for
    documents with figure captions or footnote areas. recommended for cases
    where harmonic purity outweighs near-standard proportions.
 
+**ratio constraints.**
+
+constraint 9 [`is_true` on the decimal ratio string] passes far more often
+than anticipated. it fires on the majority of high-scoring candidates,
+typically adding one point to dimensions that already score well on
+pixel-level constraints. this suggests that the `%.14g` truncation of a
+non-terminating ratio can still produce a digit string that satisfies combined
+ELF/ASCII truth — the truncation breaks periodic repetition just enough to
+yield a passing signature.
+
+constraints 8 and 10 [terminating base-10 ratios] are much more selective.
+they pass only when the reduced denominator contains no prime factors other
+than 2 and 5. this occurs in roughly 10–15% of high-scoring candidates. the
+two constraints often agree [if W/H terminates, H/W terminates with the same
+reduced denominator structure], but they can diverge near the integer boundary
+where one direction reduces cleanly and the other does not. for example, US
+Letter 300 DPI candidate W=3168 against standard H=3300 yields W/H = 24/25
+[constraint 8 passes] but H/W = 25/24 [constraint 10 fails because denominator
+24 retains factor 3]. conversely, US Legal 300 DPI W=2400 against standard
+H=4200 yields W/H = 4/7 [constraint 8 fails] while H/W = 7/4 [constraint 10
+passes].
+
+no candidate in the scanned range scores 8/10 or higher, and no top-pair
+dimension passes all three ratio constraints simultaneously. the ratio layer
+therefore behaves as an orthogonal filter : it rewards a subset of already
+harmonic candidates but does not create new high-scoring candidates from
+low-scoring ones.
+
 the US Letter 150 DPI and 300 DPI candidates with large positive deltas
-[+420, +570, +602] are geometrically correct but aesthetically divergent from
+[+420, +570, +618] are geometrically correct but aesthetically divergent from
 standard proportions. they are preserved as proof-of-existence for high-scoring
 candidates but are not recommended for default templates.
 
@@ -127,7 +155,7 @@ candidates but are not recommended for default templates.
 
 **cross-format consistency.** should the margin size be uniform across all
 DPIs for a given format? currently 600 DPI candidates have much smaller
-margins [2-12 px] than 150 DPI candidates [24-345 px]. a policy of "same
+margins [2–12 px] than 150 DPI candidates [24–345 px]. a policy of "same
 margin in physical units" would mean larger pixel deltas at higher DPIs,
 potentially sacrificing harmonic score for perceptual consistency.
 
@@ -159,11 +187,12 @@ human evaluation.
 ### existing work
 
 - `bin/dev/harmonic-page-dims` — compound constraint scanner [widened range,
-  independent W/H scan, paired scoring with WxH/HxW bonus]
+  independent W/H scan, paired scoring with WxH/HxW bonus, ratio termination
+  and ratio-string truth]
 - `data/md/design/BLUE-DOC-FORMAT.md` — parent format specification
 
-#,,.,,.,.,,.,,.,.,.,,,...,..,,,,.,,.,,,.,,..,,..,,...,...,,.,,,,,,,,,,,,.,,..,
-#UULHK7XHFFVUUUPMDQJ2JKKB446D7YUN7BIHTVVECFBCDECMPI7QGWEYA7KMRTZJNZ5BLEQWXOGLC
-#\\\|JPU2OTDPKGOPGPPDDEHGQXVLOS2R6YAL3P3APHZ5J7O3BM6WZUJ \ / AMOS7 \ YOURUM ::
-#\[7]Y5RDYL272PHPL336ELZ3DFRS7SQDJAVPL64VVAQEJEZC3YYFLEBY 7  DATA SIGNATURE ::
+#,,.,,,..,,,.,.,,,...,..,,,,.,.,,,...,.,,,..,,..,,...,..,,.,,,..,,...,,,,,..,,
+#5YQATCQCAAQ4DDZIWU4ZAIZ6O6N4UZDASGUEB6EL4WPWX3BZAKA2TG4S4TMQZQ44JUOQZZTFLG24Y
+#\\\|4YIDTLLBCLBSKFH2RKHUBQRA2HSOUBRGNJMLXOVK4RBF4XKYXLA \ / AMOS7 \ YOURUM ::
+#\[7]67EDB3GZEKR4T6XAMTJMOAJWDHDFIQ25UBWQYSXYAQQJIBUKLIBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
