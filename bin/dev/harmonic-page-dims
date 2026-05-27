@@ -18,6 +18,23 @@ BEGIN {
 
 use AMOS7::Assert::Truth qw| is_true |;
 
+##[ MATH HELPERS ]############################################################
+
+sub gcd {
+    my ( $a, $b ) = @_;
+    ( $a, $b ) = ( $b, $a % $b ) while $b;
+    return $a;
+}
+
+sub terminates_base10 {
+    my ( $num, $den ) = @_;
+    my $g = gcd( $num, $den );
+    my $d = $den / $g;
+    $d /= 2 while $d % 2 == 0;
+    $d /= 5 while $d % 5 == 0;
+    return $d == 1;
+}
+
 ##[ PAGE DIMENSIONS ]#########################################################
 
 my %formats = (
@@ -72,6 +89,16 @@ sub score_dimension {
     ## constraint 7 : even delta for symmetric margins ##
     $pass[6] = ( ( $value - $std ) % 2 == 0 ) ? 1 : 0;
 
+    ## constraint 8 : ratio W/H terminates in base 10 ##
+    $pass[7] = terminates_base10( $value, $other ) ? 1 : 0;
+
+    ## constraint 9 : is_true on the ratio string ##
+    my $ratio_str = sprintf "%.14g", $value / $other;
+    $pass[8] = is_true( \$ratio_str, 2, 1 ) ? 1 : 0;
+
+    ## constraint 10 : inverse ratio H/W terminates in base 10 ##
+    $pass[9] = terminates_base10( $other, $value ) ? 1 : 0;
+
     my $score = 0;
     $score += $ARG for @pass;
 
@@ -80,7 +107,7 @@ sub score_dimension {
 
 sub fmt_constraints {
     my ($pass) = @_;
-    return join ' ', map { $pass->[$ARG] ? $ARG + 1 : '.' } 0 .. 6;
+    return join ' ', map { $pass->[$ARG] ? $ARG + 1 : '.' } 0 .. 9;
 }
 
 ##[ OUTPUT ]##################################################################
@@ -157,10 +184,12 @@ for my $name ( sort keys %formats ) {
         for my $c (@w_cand) { push @{ $w_by_score{ $c->{score} } }, $c; }
         for my $c (@h_cand) { push @{ $h_by_score{ $c->{score} } }, $c; }
 
-        my @w_pool = ( @{ $w_by_score{7} // [] }, @{ $w_by_score{6} // [] },
-                       @{ $w_by_score{5} // [] } );
-        my @h_pool = ( @{ $h_by_score{7} // [] }, @{ $h_by_score{6} // [] },
-                       @{ $h_by_score{5} // [] } );
+        my @w_pool = ( @{ $w_by_score{10} // [] }, @{ $w_by_score{9} // [] },
+                       @{ $w_by_score{8} // [] }, @{ $w_by_score{7} // [] },
+                       @{ $w_by_score{6} // [] }, @{ $w_by_score{5} // [] } );
+        my @h_pool = ( @{ $h_by_score{10} // [] }, @{ $h_by_score{9} // [] },
+                       @{ $h_by_score{8} // [] }, @{ $h_by_score{7} // [] },
+                       @{ $h_by_score{6} // [] }, @{ $h_by_score{5} // [] } );
 
         my @pairs;
         for my $wc (@w_pool) {
@@ -221,8 +250,8 @@ for my $name ( sort keys %formats ) {
     }
 }
 
-#,,.,,,,.,,,,,,,.,.,,,.,,,,,.,.,.,,,.,..,,,..,..,,...,..,,,.,,,,.,.,.,,,.,,,.,
-#TVBPIPROYNCXQZHB4T7QJLKYWFAYV5NA2Y6FIVMRLLYT3SFCJ3A7DFA7UCYYQCHDTS3P47Z4L6O7M
-#\\\|WUQGF3HSTAWMZJGAR4J7UNK3AXUQ4SLGPWMVMKKHOP27NUDA65D \ / AMOS7 \ YOURUM ::
-#\[7]7J3IMOEIEQIHZKC42DPAHDOYZTRWGMEB3RK3H7M65T6KHXYPFEBA 7  DATA SIGNATURE ::
+#,,..,,..,.,,,.,.,.,,,...,.,.,,.,,,.,,,,.,,,,,..,,...,...,.,.,...,,,,,...,,,.,
+#7C2STBHHVPG4T5YDTWKZV2LMBIUO6RCNUVEFVBISVRYF6SSHQS4CJOBVAOY27DA2X7LCMQDXP75OU
+#\\\|PPXTTU7H7WSKEKPAHYHHKPWWXSTMGSZM6XXGEYAR6UZZ67UOJJD \ / AMOS7 \ YOURUM ::
+#\[7]D2C5BXGOQEJ5AQZNJAULLKHMBAZ2YRJ7GYHRTVTAGNTQDS7ATYBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
