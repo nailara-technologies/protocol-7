@@ -2,6 +2,7 @@
 
 ## CRITICAL — load when writing code
 - [Critical Patterns](critical-patterns.md) — P7 module patterns, CRITICAL syntax, API rules; load this first for any code work
+- [Deferred Init Pattern](feedback-deferred-init.md) — push onto system.callbacks.initialized, NOT event.add_var, to defer post-verification work
 
 ## File Creation (CRITICAL)
 - **Never add** the `#,,.,,,...` stub at end of new files — blocks signing system
@@ -250,8 +251,8 @@
 - **pager.sort.multi-key**: ntime_b32 + priority_map sort types added (session 42)
 - **task dispatch sections**: all dispatched tasks now carry ## dispatch + prompt for reuse
 
-#,,.,,,.,,...,,,.,,..,..,,.,.,.,,,,.,,,,,,,..,..,,...,...,..,,..,,,.,,,,,,.,.,
-#4XC3GBAXOAOXZRQCE2GTRT6LIHB7VOCN6DO2JKKH3HDA6WA35OTTUKNP5TXBVLG4YSYGDNWO7LB2C
-#\\\|JWU6524F3WPYNMSKNBDTBRB3V4LDST4U5U7GHVRNZ6IE7EF5EEU \ / AMOS7 \ YOURUM ::
-#\[7]F6H2K4RRGMDR6CR6237X3A3HLQQXM42REJWHCT6QPBIVYOY2KODY 7  DATA SIGNATURE ::
+#,,,.,.,.,,.,,...,,.,,,,.,,,.,,,,,,,,,,,.,,.,,..,,...,...,...,,,,,...,.,.,.,,,
+#I55UMGFHT3UCOZ22IBSYC26KAMBTYBXBVTSBHQXXXHLFRSVUQ75IHNH2TSLILSIDLZQYLBAQC42FU
+#\\\|Y7K2VLDYAWAGHEWXSMPHVLFJI4D5J4ULYHXZTRYDH4AUWCKIXWF \ / AMOS7 \ YOURUM ::
+#\[7]ELYCPIFR7EWVWGABIJO2ZPWWUXLF7L7HVZFSY7SRYB4ARLTTI4DQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
