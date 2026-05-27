@@ -247,11 +247,86 @@ for my $name ( sort keys %formats ) {
                 $margin, $p->{w_pass}, $p->{h_pass},
                 $p->{wxh} ? 'Y' : 'N', $p->{hxw} ? 'Y' : 'N';
         }
+
+        ## coupled joint (W,H) scan ##
+        my $threshold = 6;
+        my @w_joint = grep { $ARG->{score} >= $threshold } @w_cand;
+        my @h_joint = grep { $ARG->{score} >= $threshold } @h_cand;
+        @w_joint = grep { $ARG->{score} >= 5 } @w_cand if @w_joint == 0;
+        @h_joint = grep { $ARG->{score} >= 5 } @h_cand if @h_joint == 0;
+
+        my @joint;
+        for my $wc (@w_joint) {
+            for my $hc (@h_joint) {
+                my $ratio_terminates = terminates_base10( $wc->{val}, $hc->{val} ) ? 1 : 0;
+                my $inv_terminates   = terminates_base10( $hc->{val}, $wc->{val} ) ? 1 : 0;
+
+                my $ratio_str = sprintf "%.14g", $wc->{val} / $hc->{val};
+                my ($ratio_true) = is_true( \$ratio_str, 2, 1 ) ? 1 : 0;
+
+                my $inv_str = sprintf "%.14g", $hc->{val} / $wc->{val};
+                my ($inv_true) = is_true( \$inv_str, 2, 1 ) ? 1 : 0;
+
+                my $wxh_bonus = 0;
+                my $s_wxh = $wc->{val} . 'x' . $hc->{val};
+                $wxh_bonus = 1 if is_true( \$s_wxh, 2, 1 );
+
+                my $hxw_bonus = 0;
+                my $s_hxw = $hc->{val} . 'x' . $wc->{val};
+                $hxw_bonus = 1 if is_true( \$s_hxw, 2, 1 );
+
+                my $joint_score = $wc->{score} + $hc->{score}
+                    + $ratio_terminates + $inv_terminates
+                    + $ratio_true + $inv_true
+                    + $wxh_bonus + $hxw_bonus;
+
+                push @joint, {
+                    W              => $wc->{val},
+                    H              => $hc->{val},
+                    dW             => $wc->{d},
+                    dH             => $hc->{d},
+                    ratio          => sprintf( "%.5f", $wc->{val} / $hc->{val} ),
+                    sW             => $wc->{score},
+                    sH             => $hc->{score},
+                    joint          => $joint_score,
+                    ratio_t        => $ratio_terminates,
+                    inv_t          => $inv_terminates,
+                    ratio_true     => $ratio_true,
+                    inv_true       => $inv_true,
+                    wxh            => $wxh_bonus,
+                    hxw            => $hxw_bonus,
+                };
+            }
+        }
+
+        @joint = sort {
+            $b->{joint} <=> $a->{joint}
+                || abs( $a->{dW} ) + abs( $a->{dH} ) <=> abs( $b->{dW} ) + abs( $b->{dH} )
+        } @joint;
+
+        print "\n";
+        printf "%s  %d DPI  (standard: %d x %d)  [joint scan]\n",
+            $name, $dpi, $w, $h;
+        printf "  joint  W      H      dW    dH    ratio    ";
+        printf "W-sc  H-sc  ratio-t inv-t  r-true inv-true  WxH HxW\n";
+        printf "  -----  -----  -----  ----- -----  -------  ";
+        printf "----  ----  ------- -----  ------ --------  --- ---\n";
+        for my $j ( @joint[ 0 .. 4 ] ) {
+            last if not defined $j;
+            printf "    %d    %5d  %5d  %+4d  %+4d  %s  "
+                . "%4d  %4d  %s       %s      %s      %s         %s   %s\n",
+                $j->{joint}, $j->{W}, $j->{H}, $j->{dW}, $j->{dH},
+                $j->{ratio},
+                $j->{sW}, $j->{sH},
+                $j->{ratio_t} ? 'Y' : 'N', $j->{inv_t} ? 'Y' : 'N',
+                $j->{ratio_true} ? 'Y' : 'N', $j->{inv_true} ? 'Y' : 'N',
+                $j->{wxh} ? 'Y' : 'N', $j->{hxw} ? 'Y' : 'N';
+        }
     }
 }
 
-#,,..,,..,.,,,.,.,.,,,...,.,.,,.,,,.,,,,.,,,,,..,,...,...,.,.,...,,,,,...,,,.,
-#7C2STBHHVPG4T5YDTWKZV2LMBIUO6RCNUVEFVBISVRYF6SSHQS4CJOBVAOY27DA2X7LCMQDXP75OU
-#\\\|PPXTTU7H7WSKEKPAHYHHKPWWXSTMGSZM6XXGEYAR6UZZ67UOJJD \ / AMOS7 \ YOURUM ::
-#\[7]D2C5BXGOQEJ5AQZNJAULLKHMBAZ2YRJ7GYHRTVTAGNTQDS7ATYBA 7  DATA SIGNATURE ::
+#,,..,,,,,.,,,,,.,...,,,.,..,,,.,,..,,,.,,..,,..,,...,..,,.,.,.,,,.,,,,.,,.,.,
+#JLWODLWFQZSCTH3BP2VFX3TWX7KB6LHT4WUAU3FH5GB5VVCRSAR6JTUE6NWOFOFA3S6DBDTJFPTKE
+#\\\|ASHMV4DOEG5646S5YJYXGM4NIQTDGHWAJIDRKQN2VG3TUSLRSX2 \ / AMOS7 \ YOURUM ::
+#\[7]X2NCQY666O3ZC3IOPBFZS7C2LBHCOQTEDABASUE6UEOCSV3ICOCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
