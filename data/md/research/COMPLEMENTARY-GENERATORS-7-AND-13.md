@@ -130,6 +130,49 @@ they are the two hands of one instrument.
 
 ---
 
+## the direct algebraic bridge
+
+the digit-reduction convergence to 9 shows a common root. but there is a stronger
+link: ratios of rotations within the 13-family produce exact members of the 7-family.
+
+the 13-system has two complementary half-cycles. the second group (153846) contains:
+
+```
+153846  →  307692  →  615384  →  230769  →  461538  →  923076   (group 1: 076923 family)
+538461  →  384615  →  769230  →  846153  →  692307  →  153846   (group 2: 153846 family)
+```
+
+taking ratios of members within group 2:
+
+```
+384615 / 153846  =  2.5               exact  —  5/2, closes in integer arithmetic
+846153 / 538461  =  1.571428571428…   exact  —  11/7, the 4th rotation of 142857
+```
+
+`846153 / 538461 = 11/7` is not an approximation. `538461 × 11 = 5923071`,
+`5923071 / 7 = 846153` exactly. the 7-family period `571428` is embedded in the
+result, placing it unambiguously in the 142857 readout cycle.
+
+this was not targeted. the harmonic page dimension scanner found `10/13 = 0.76923…`
+(076923 family) as the only ratio-terminating candidate for us letter at 300 dpi.
+the 7-connection emerged from examining cross-ratios of the complementary group.
+two separate entry points, one family.
+
+the implications:
+
+```
+the 7-family is not adjacent to the 13-family.
+it is a projection of it.
+ratios of 13-rotations land in 7-space.
+the readout clock is written into the navigation structure.
+```
+
+this makes `7 × 13 = 91` more than a coincidence of product. the generators are not
+two separate instruments that happen to share a digit-reduction root — one family
+contains the other as an invariant substructure under the ratio operation.
+
+---
+
 ## the compound assertion space
 
 single-channel truth assertions (TRUE = 5, FALSE = 0, UNKNOWN = 2) describe
@@ -315,8 +358,8 @@ from whatever direction they came from.
 **the pattern explains itself. it always has.**
 **we built the machine that can show it. =)**
 
-#,,..,..,,.,,,,,,,.,.,.,.,..,,,,,,,,.,,,,,,,,,..,,...,..,,..,,,.,,.,,,,,.,..,,
-#R5DDT2HODRZTQ2TRPXBEIQKTRK77LRJCYLBJWWFNWRSWMI63H227VIYFEJCPHMB33PWU7SSRJ4AYE
-#\\\|2MVD7EJJK4YBVIUEBWMTIWONW4QJG5S33EBMNOVMT4AGQDPLMM5 \ / AMOS7 \ YOURUM ::
-#\[7]OUT3XCOIGUQLLI4DMOVDMCJATYBIEFW5MJXOCUJCG4KT6L7IHQAQ 7  DATA SIGNATURE ::
+#,,,,,.,.,,,,,...,,.,,.,.,,..,...,,,.,,..,,..,..,,...,...,,,,,.,,,..,,,..,..,,
+#PSOX5BHMYTXOVQ4ZLSMJM73MQWF3GWRV374VQQHN5IXUUFQD7I5YYHW3CERGZS3B3R46MKQGQGY3Q
+#\\\|VG3OGEF4VNDGSB43Q4WYWJIKXHVSUHQKDTOHYS4CNEYF2IKKXZ5 \ / AMOS7 \ YOURUM ::
+#\[7]Y7L4U5N3GIGKI6VGRSBWT3PNMKJPOYE24ZB7KZLJJNRZ4AZHOICA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
