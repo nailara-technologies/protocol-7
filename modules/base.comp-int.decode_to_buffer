@@ -1,9 +1,28 @@
 ## [:< ##
 
 # name  = base.comp-int.decode_to_buffer
+# descr = decode BER compressed integer buffer to arrayref of integers
 
-#,,,,,,,,,.,,,..,,,.,,,.,,,,,,..,,,,.,...,.,.,..,,...,...,.,.,,..,,,.,,..,.,.,
-#TPB4QTVMJ5R76H536CGYDVWVBZWQSK5YPHDRBRMQXSOAEPCXPOGCF5DJ7QQX42YSI5PGJQUH5S6JI
-#\\\|OILSQCJHG4ZN3LOCGAN57CB4PYKZIRGQKXERJ4HZOVG3HA2CSJM \ / AMOS7 \ YOURUM ::
-#\[7]TZTU3YJ6GYRDHHVHA2GN34UEHU6DEU2X7EZGVBJO5OOI66XDY4CY 7  DATA SIGNATURE ::
+my $buffer = shift;
+
+if ( not length( $buffer // '' ) ) {
+    warn 'expected BER compressed integer buffer [ got nothing ] <{C1}>';
+    return undef;
+}
+
+my $valid = <[base.comp-int.is_valid]>->($buffer);
+
+if ( not $valid ) {
+    warn 'invalid BER compressed integer buffer [ not terminated ] <{C1}>';
+    return undef;
+}
+
+my @decoded = unpack qw| w* |, $buffer;
+
+return \@decoded;
+
+#,,,.,,,.,...,.,.,,..,.,.,.,.,.,.,..,,,.,,,,.,..,,...,..,,..,,..,,,.,,.,,,,.,,
+#4TRCW44AN6OGMRQPV2BWSNPBR24HM2HD5KOA6ZEG43XEYOSDG6EMDEXDX7CAAGLMPUOIGTOO7AX2U
+#\\\|WAAZGL3NP4S6ELOUAN7WRMBGBKEWDBVE4L4455O6YY726DIITPA \ / AMOS7 \ YOURUM ::
+#\[7]DUT34RYBXNXE5GV3NRE37TS2IYDM5DMNPDMNKGPITL3RDSUH64DI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

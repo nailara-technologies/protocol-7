@@ -31,18 +31,6 @@ my @dpis = ( 150, 300, 600 );
 
 ##[ HARMONIC SCAN ]###########################################################
 
-sub nearest_true {
-    my ($n) = @_;
-    return $n if is_true( \$n, 1, 0 );
-    for my $delta ( 1 .. 200 ) {
-        my $up   = $n + $delta;
-        my $down = $n - $delta;
-        return $up   if $up   > 0 and is_true( \$up,   1, 0 );
-        return $down if $down > 0 and is_true( \$down, 1, 0 );
-    }
-    return undef;
-}
-
 sub px {
     my ( $fmt, $dpi ) = @_;
     if ( exists $fmt->{'mm'} ) {
@@ -52,37 +40,121 @@ sub px {
     }
 }
 
-##[ OUTPUT ]##################################################################
+sub score_dimension {
+    my ( $value, $std, $other ) = @_;
 
-printf "%-12s  %4s  %5s x %5s  %5s x %5s  %+4s  %+4s  %-20s\n",
-    'format', 'dpi', 'std-W', 'std-H', 'hmc-W', 'hmc-H', 'dW', 'dH',
-    'margin portrait (W)';
-print '-' x 88, "\n";
+    my @pass;
+
+    ## constraint 1 : numerical truth only ##
+    my $s1 = "$value";
+    $pass[0] = is_true( \$s1, 1, 0 ) ? 1 : 0;
+
+    ## constraint 2 : combined numerical + elf ##
+    my $s2 = "$value";
+    $pass[1] = is_true( \$s2, 2, 1 ) ? 1 : 0;
+
+    ## constraint 3 : "WxH" string ##
+    my $s3 = "${value}x${other}";
+    $pass[2] = is_true( \$s3, 2, 1 ) ? 1 : 0;
+
+    ## constraint 4 : "HxW" string ##
+    my $s4 = "${other}x${value}";
+    $pass[3] = is_true( \$s4, 2, 1 ) ? 1 : 0;
+
+    ## constraint 5 : value/2 string [ 150 dpi cross-scale ] ##
+    my $s5 = "" . int( $value / 2 );
+    $pass[4] = is_true( \$s5, 2, 1 ) ? 1 : 0;
+
+    ## constraint 6 : value*2 string [ 600 dpi cross-scale ] ##
+    my $s6 = "" . ( $value * 2 );
+    $pass[5] = is_true( \$s6, 2, 1 ) ? 1 : 0;
+
+    ## constraint 7 : even delta for symmetric margins ##
+    $pass[6] = ( ( $value - $std ) % 2 == 0 ) ? 1 : 0;
+
+    my $score = 0;
+    $score += $ARG for @pass;
+
+    return ( $score, \@pass );
+}
+
+sub fmt_constraints {
+    my ($pass) = @_;
+    return join ' ', map { $pass->[$ARG] ? $ARG + 1 : '.' } 0 .. 6;
+}
+
+##[ OUTPUT ]##################################################################
 
 for my $name ( sort keys %formats ) {
     for my $dpi (@dpis) {
         my ( $w, $h ) = px( $formats{$name}, $dpi );
-        my $hw = nearest_true($w);
-        my $hh = nearest_true($h);
-        my $dw = defined $hw ? $hw - $w : undef;
-        my $dh = defined $hh ? $hh - $h : undef;
-        my $margin = defined $dw && $dw > 0
-            ? sprintf( '%d px left + %d px right', $dw / 2, $dw / 2 )
-            : defined $dw && $dw < 0
-            ? sprintf( 'crop %d px per side', abs($dw) / 2 )
-            : 'none';
-        printf "%-12s  %4d  %5d x %5d  %5s x %5s  %+4s  %+4s  %-20s\n",
-            $name, $dpi, $w, $h,
-            $hw // '?', $hh // '?',
-            defined $dw ? sprintf( '%+d', $dw ) : '?',
-            defined $dh ? sprintf( '%+d', $dh ) : '?',
-            $margin;
+
+        ## width scan ##
+        my @w_cand;
+        for my $W ( ( $w - 50 ) .. ( $w + 300 ) ) {
+            next if $W <= 0;
+            my ( $score, $pass ) = score_dimension( $W, $w, $h );
+            push @w_cand, {
+                val  => $W,
+                d    => $W - $w,
+                half => int( $W / 2 ),
+                score => $score,
+                pass => $pass,
+            };
+        }
+        @w_cand = sort {
+            $b->{score} <=> $a->{score}
+                || abs( $a->{d} ) <=> abs( $b->{d} )
+        } @w_cand;
+
+        ## height scan ##
+        my @h_cand;
+        for my $H ( ( $h - 50 ) .. ( $h + 300 ) ) {
+            next if $H <= 0;
+            my ( $score, $pass ) = score_dimension( $H, $h, $w );
+            push @h_cand, {
+                val  => $H,
+                d    => $H - $h,
+                half => int( $H / 2 ),
+                score => $score,
+                pass => $pass,
+            };
+        }
+        @h_cand = sort {
+            $b->{score} <=> $a->{score}
+                || abs( $a->{d} ) <=> abs( $b->{d} )
+        } @h_cand;
+
+        ## print width results ##
+        print "\n";
+        printf "%s  %d DPI  (standard: %d x %d)  [width scan]\n",
+            $name, $dpi, $w, $h;
+        printf "  score  W      dW    W/2   constraints passed\n";
+        printf "  -----  -----  ----  ----  ------------------\n";
+        for my $c ( @w_cand[ 0 .. 4 ] ) {
+            last if not defined $c;
+            printf "    %d    %5d  %+4d  %4d  %s\n",
+                $c->{score}, $c->{val}, $c->{d}, $c->{half},
+                fmt_constraints( $c->{pass} );
+        }
+
+        ## print height results ##
+        print "\n";
+        printf "%s  %d DPI  (standard: %d x %d)  [height scan]\n",
+            $name, $dpi, $w, $h;
+        printf "  score  H      dH    H/2   constraints passed\n";
+        printf "  -----  -----  ----  ----  ------------------\n";
+        for my $c ( @h_cand[ 0 .. 4 ] ) {
+            last if not defined $c;
+            printf "    %d    %5d  %+4d  %4d  %s\n",
+                $c->{score}, $c->{val}, $c->{d}, $c->{half},
+                fmt_constraints( $c->{pass} );
+        }
     }
-    print "\n";
 }
 
-#,,,,,,,,,.,.,.,,,...,...,,..,,.,,,,,,..,,,..,..,,...,..,,..,,,,,,...,,..,..,,
-#4CJJF2SZGRFAN4AGYBN3APUWPROXUPXONNL7MMQ3MXC6YBR7JVKTOE64BWJW7VTDDAYYMDWE6GLMS
-#\\\|GC2RMWTXLU33SSOJICJEOGAVW7ZMGL54KINT3N6OM7ZT3UIAELM \ / AMOS7 \ YOURUM ::
-#\[7]7ASGPERCMZCMYDSMWF2G2D5PC5PAZ5VHSO2YYMXUGKJZPJZIAIAY 7  DATA SIGNATURE ::
+#,,..,..,,,,,,.,.,.,.,,..,,..,..,,,,.,,,,,,,.,..,,...,...,...,,..,..,,.,.,,.,,
+#LLRM3KOXKQXK6URY7NDSRHA4CS6OS7L36PK5AKCECV6KSJ2IXD7TQJU7W5XZL6P2SYRWQINJKCMDK
+#\\\|YBWYZWKGBCQLHWLLWE3KCZXZYM4CSDTTHEXNILIKDP47MHS4HIE \ / AMOS7 \ YOURUM ::
+#\[7]WSCUYIWCADLIJTWOMCHPLKOPNBF5SN2XP5AVW756JA76NZAOFCBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

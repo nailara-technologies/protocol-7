@@ -1,9 +1,40 @@
 ## [:< ##
 
 # name  = base.comp-int.encode_from_buffer
+# descr = encode non-negative integers to BER compressed integer buffer
 
-#,,..,,,.,...,,,.,.,,,,,.,...,,,,,,,.,...,,.,,..,,...,...,,.,,,..,,,.,...,,..,
-#DBSXHYUWKSFILGUDXTRKNC65ETBD65HININM5A5B4P6UTPXTFKR3UESWO2JCTDWEH36A6AIDEUPDS
-#\\\|KYTV5QF7LXWPGKQLZPXTIWRKLFN67BK7MDEXUNU7MV5Y73E6UXA \ / AMOS7 \ YOURUM ::
-#\[7]MC3GWUOPAIN4AJ3JM2OO5H5N3T3E5LBY7EEUSXJCMWFUXAKADACQ 7  DATA SIGNATURE ::
+my $input = shift;
+
+if ( not defined $input ) {
+    warn 'expected integer or arrayref parameter [ got nothing ] <{C1}>';
+    return undef;
+}
+
+my @numbers;
+
+if ( ref $input eq qw| ARRAY | ) {
+    @numbers = $input->@*;
+} elsif ( not ref $input ) {
+    @numbers = ($input);
+} else {
+    warn 'expected integer or arrayref parameter [ invalid ref type ] <{C1}>';
+    return undef;
+}
+
+foreach my $num (@numbers) {
+    if ( not defined $num ) {
+        warn 'undefined value in input sequence [ cannot encode ] <{C1}>';
+        return undef;
+    } elsif ( $num !~ m|^\d+$| ) {
+        warn 'expected non-negative integer [ negative or non-integer ] <{C1}>';
+        return undef;
+    }
+}
+
+return pack qw| w* |, @numbers;
+
+#,,,.,...,,..,,..,,,.,...,...,,,.,...,.,.,,.,,..,,...,..,,,.,,,,,,...,..,,.,,,
+#C2VR75DHXQURLHECE4UQTS3H7UEPNEATXWBOEEYN5LMNNXDE6MGSBNRDE2UB7BOKNGKSBQM6CC4LS
+#\\\|5JW5R4YY5EBIVHG4XVHVXMEEM4OXMRJQKX646QIOOQI4GXHLKEK \ / AMOS7 \ YOURUM ::
+#\[7]5NK3UBAJGTJBHTTC74DEV4EKJO2WE4XXLQ2OAH3YRG4BG37CCYDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
