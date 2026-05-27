@@ -10,6 +10,19 @@ unless (@job_ids) {
         $w->cancel;
         <index.tick.idle_watcher> = undef;
     }
+    ## restart ondemand timeout now that jobs are done ##
+    if (    $PID == <system.process_start.pid>
+        and defined <system.ondemand_timeout>
+        and (  not defined <base.timer.ondemand_timeout>
+            or not <base.timer.ondemand_timeout>->is_active )
+    ) {
+        <base.timer.ondemand_timeout> = <[event.add_timer]>->(
+            {   'after'   => <system.ondemand_timeout>,
+                'handler' => 'base.handler.ondemand_timeout',
+                'data'    => {},
+            }
+        );
+    }
     return;
 }
 
@@ -40,8 +53,8 @@ elsif ( $type eq 'wordlist-import' ) {
     delete <index.jobs>->{$job_id};
 }
 
-#,,..,.,,,,.,,..,,...,,.,,,,.,,..,,.,,,..,...,..,,...,...,..,,.,,,..,,,.,,,..,
-#GB35S4GFB6RLKAKP55IORJE6ZSBZR6A6HFDALWBWAUNKKPXPIK27F6LUUUILYG6CLSJ5KLFELBBSU
-#\\\|P7A7UUOP2H5TT6PF6HGD6MI73S7I2J6XALQI6NLCYRMG5WZUGZ5 \ / AMOS7 \ YOURUM ::
-#\[7]GU5CA6VLEK7L54FIIXWCNEA64N5GZFBB3WHBSEVFAWMGK4F5B2AI 7  DATA SIGNATURE ::
+#,,,.,,.,,.,,,..,,.,.,..,,,..,,,,,.,.,...,,..,..,,...,...,,..,,,.,...,...,.,.,
+#7BSUJ6WYNV5RN2KJXXRHHYD46WBL6RSBEVMWYF4BEJRLYW6XPN3NYKE7WALJZW4NPQCKWPTWOYLFY
+#\\\|K3PWEZGNAK4RRQIZHKS35YIPGLADCXPOA5HJQUQQAW64HU2ME26 \ / AMOS7 \ YOURUM ::
+#\[7]JAUOMBMJVN3QDZ6GHUET2S5LSV627JECNF7HNJK4ME4QXJSKG2BQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

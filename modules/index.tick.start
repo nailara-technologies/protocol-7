@@ -3,6 +3,12 @@
 # name  = index.tick.start
 # descr = register idle job-tick watcher if not already active
 
+## cancel ondemand timeout while jobs are running ##
+if ( defined <base.timer.ondemand_timeout>
+    and <base.timer.ondemand_timeout>->is_active ) {
+    <base.timer.ondemand_timeout>->cancel;
+}
+
 return if defined <index.tick.idle_watcher>;
 
 <index.tick.idle_watcher> = <[event.add_idle]>->(
@@ -12,8 +18,8 @@ return if defined <index.tick.idle_watcher>;
     }
 );
 
-#,,,.,...,,..,.,.,,.,,,,.,.,,,.,,,,,,,...,,.,,..,,...,...,,.,,,..,..,,.,,,,..,
-#H7XL6C7KDCQY4DKOS5L4JILADOJTU7CH6L4M776VTOGVKWNWKZOZZYWCN4HZ2YFQZQIDZCPDD4DJO
-#\\\|JJAZL3Y2S6AHNG2VZQRG5HEXNFJCOUROEEL5RJOFYJ4BWC4CXQP \ / AMOS7 \ YOURUM ::
-#\[7]FCIXVP7QWKZPKPINTPTUJX3TKVKV5QG5JFI4HC6VY3BRXCGTCABY 7  DATA SIGNATURE ::
+#,,,,,...,,,.,,,.,,,.,.,.,,.,,,,.,,..,.,.,,..,..,,...,...,.,.,.,,,,..,.,,,,.,,
+#R2EWAWKWNMT262PERMDDAVEKZ2BBAON7DQUO34H4UED5YPOZELFURKOHCKYFSBV2ISYAAZUO5G4VQ
+#\\\|KKEGHWNM6GFAPFD4B3SJ2FX2HNIU6NP7CYK6Q5O4XFKF3XDYGQS \ / AMOS7 \ YOURUM ::
+#\[7]A3VMVEFJ6RBF2V5IEHLULC4HIWGGAOR24P27FDBZB3SRT4RDBYAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
