@@ -1,0 +1,37 @@
+## [:< ##
+
+# name  = index.cmd.remove
+# descr = remove a source from the index
+
+my $source_id = $call->{'args'} // '';
+$source_id =~ s|^\s+||;
+$source_id =~ s|\s+$||;
+
+return { 'mode' => 'false', 'data' => 'expected source_id' }
+    unless length $source_id;
+
+my $chk = <index.sources>->{$source_id};
+
+return { 'mode' => 'false', 'data' => "not found [ $source_id ]" }
+    unless defined $chk;
+
+<[index.deactivate]>->($chk);
+
+delete <index.sources>->{$source_id};
+delete <index.chain_policy>->{$source_id};
+
+<[index.rank]>;
+
+return {
+    'mode' => 'size',
+    'data' => sprintf(
+        "remove [ %s ] chk %s\n",
+        $source_id, substr( $chk, 0, 12 ) . '..'
+    )
+};
+
+#,,.,,.,,,.,.,,,,,.,,,.,,,..,,..,,..,,...,,,,,..,,...,...,...,..,,...,..,,,..,
+#RS6NY2G6CMQD7REAVA4LVADUCMT2ZJXWYB2XG5T42N5SDWMZI3BHT7WXW4VRLZNU63ETX4MEN47UO
+#\\\|KBPNVFL27Q3ZFVUPNUC3MYEI7F72C3KAB26ZJUNFTVN5KWBBYYK \ / AMOS7 \ YOURUM ::
+#\[7]R4CXRJ4XA66DJPOGIYV4YIU324D6IA7N7VY7VFKUDFJR7FRC4YAI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
