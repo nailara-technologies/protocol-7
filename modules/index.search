@@ -10,6 +10,13 @@ my $depth = length($prefix) - 1;    ## ring depth of prefix
 
 ## look up the trie node for this prefix ##
 my $rank = <index.addr>->{"$depth:$prefix"};
+
+## lazy load from cube if addr is missing ##
+if ( not defined $rank and defined <index.cube.mmap> ) {
+    <[index.load.compartment]>->( $depth, $prefix );
+    $rank = <index.addr>->{"$depth:$prefix"};
+}
+
 return [] if not defined $rank;
 
 my $node = <index.trie>->{$depth}[$rank];
@@ -33,8 +40,8 @@ for my $cr (@child_ranks) {
 ## already ordered by frequency (child_ranks are freq-sorted) ##
 return \@results;
 
-#,,..,,.,,,,,,,,,,..,,,,.,...,.,.,,,.,.,,,...,..,,...,...,,.,,,..,...,...,,.,,
-#YOLWXFZV4ITOLM6C2SLR3EU6BOALZ6IJ4LVXKVRSI2DJZHBAAXDSTEU3IQSO35JHUAEPNXQEYMKNW
-#\\\|R2OQ7VAN4POYYYV3TFDOZ6RYG7FMVTKTZGWXAW3NC3PFSOTYUTA \ / AMOS7 \ YOURUM ::
-#\[7]A3GTFEDCRRYX7ZUQCASW7RCOO6EAZOH235NOJLJR4GKPCX6UOEBI 7  DATA SIGNATURE ::
+#,,,,,,,,,..,,,,.,,.,,..,,.,,,...,.,,,,..,,,.,..,,...,...,.,.,,.,,..,,.,,,,,,,
+#N5E2VMCTWGTRMY5G4FLZYSJTWWNFW47SPQWBYRSGT4FSSV7FUUGL74SV3SRA47JGGQFUZFEJVM5UU
+#\\\|6ILJWYFQH75JFPSQHIEZ72TZVSOI62PZX4U7EC2FLI72HT4MPQX \ / AMOS7 \ YOURUM ::
+#\[7]PTPSQDOP5YMHYGCZMOVIZNHGVBOK57VFRYCSC2K2B4WFGJEHBUCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

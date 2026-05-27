@@ -11,6 +11,10 @@ my $depth = length($token) - 1;    ## ring depth = length - 1
 ## verify path exists at each ring ##
 for my $d ( 0 .. $depth ) {
     my $prefix = substr( $token, 0, $d + 1 );
+    if ( not defined <index.addr>->{"$d:$prefix"}
+        and defined <index.cube.mmap> ) {
+        <[index.load.compartment]>->( $d, $prefix );
+    }
     return undef if not defined <index.addr>->{"$d:$prefix"};
 }
 
@@ -20,8 +24,8 @@ return undef if not defined $rank;
 my $node = <index.trie>->{$depth}[$rank];
 return $node;
 
-#,,.,,,..,,,.,,,,,,..,,..,...,,,,,..,,.,,,,..,..,,...,...,,,,,..,,..,,,..,.,.,
-#ZEU2LLX2SPL7VIZUA2QNFBIBFYBMTOJKUUZPMQV7X4F35B77XX4S7PFHHA7EL772P7P7QRD4A26HG
-#\\\|VRJVGERK5KQAIVJ253NHOHIQCCX3UVPYSEBIMYSUOBGXMUN7GQN \ / AMOS7 \ YOURUM ::
-#\[7]XFC3MHUQ656IJYGNFU32N3RYRZJAUXKXU5E3KCJXLF7ZSFUWKODI 7  DATA SIGNATURE ::
+#,,,,,,.,,,..,..,,..,,...,.,,,.,.,..,,,,,,..,,..,,...,...,...,,..,,.,,...,.,,,
+#VCHKWBV7JZH77MP42A3UUMHYOFN2RTL3RF4HDSTCLEUFOTXCB2SLZMZKJUXSNHVG56M444ER4D3CQ
+#\\\|SXO6PDEY3YYD6LY3ARBORBP6RO4RBRAW3UE6JBQHSB542IMBFSF \ / AMOS7 \ YOURUM ::
+#\[7]3G2W2EXMULLCP55WS3QKGAF7B36KEFJWOUT65H7U77UDRJUU7CCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

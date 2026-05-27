@@ -151,6 +151,66 @@ candidates but are not recommended for default templates.
 
 ---
 
+### joint scan results
+
+the coupled joint scanner iterates (W, H) pairs from the pool of individual
+candidates that each score ≥ 6/10 (falling back to ≥ 5/10 when the stricter
+pool is empty). for every pair it computes four ratio-level constraints :
+
+| constraint | description |
+|------------|-------------|
+| ratio-t | `terminates_base10(W, H)` — W/H has a terminating decimal expansion |
+| inv-t | `terminates_base10(H, W)` — H/W has a terminating decimal expansion |
+| r-true | `is_true("W/H")` on the `%.14g` ratio string |
+| inv-true | `is_true("H/W")` on the `%.14g` inverse ratio string |
+
+the joint score is `score(W) + score(H) + ratio-t + inv-t + r-true + inv-true +
+wxh_bonus + hxw_bonus`, giving a theoretical maximum of 26.
+
+top joint candidate per format × DPI :
+
+| format | DPI | W | H | dW | dH | ratio | W sc | H sc | joint sc | ratio-t | inv-t | r-true | inv-true | WxH | HxW |
+|--------|-----|---|---|----|----|-------|------|------|----------|---------|-------|--------|----------|-----|-----|
+| DIN A3 | 150 | 2410 | 2548 | +656 | +68 | 0.94584 | 6 | 6 | 15 | N | N | Y | Y | Y | N |
+| DIN A3 | 300 | 3315 | 5439 | −193 | +478 | 0.60949 | 7 | 6 | 16 | N | N | Y | N | Y | Y |
+| DIN A3 | 600 | 6825 | 9989 | −191 | +68 | 0.68325 | 6 | 6 | 15 | N | N | Y | Y | Y | N |
+| DIN A4 | 150 | 1280 | 2016 | +40 | +262 | 0.63492 | 6 | 6 | 15 | N | Y | Y | N | N | Y |
+| DIN A4 | 300 | 2392 | 3588 | −88 | +80 | 0.66667 | 6 | 6 | 14 | N | Y | N | N | Y | N |
+| DIN A4 | 600 | 4985 | 7103 | +24 | +87 | 0.70182 | 6 | 6 | 15 | N | N | N | Y | Y | Y |
+| US Legal | 150 | 1183 | 2260 | −92 | +160 | 0.52345 | 6 | 6 | 15 | N | N | Y | Y | N | Y |
+| US Legal | 300 | 2520 | 4032 | −30 | −168 | 0.62500 | 6 | 6 | 15 | Y | Y | N | N | Y | N |
+| US Legal | 600 | 5094 | 8273 | −6 | −127 | 0.61574 | 6 | 6 | 13 | N | N | N | Y | N | N |
+| US Letter | 150 | 1695 | 1695 | +420 | +45 | 1.00000 | 6 | 6 | 16 | Y | Y | N | N | Y | Y |
+| US Letter | 300 | 3168 | 3289 | +618 | −11 | 0.96321 | 7 | 6 | 16 | N | N | Y | Y | N | Y |
+| US Letter | 600 | 5096 | 7150 | −4 | +550 | 0.71273 | 7 | 6 | 15 | N | N | Y | N | Y | N |
+
+**findings.**
+
+the highest joint score found in the scanned range is **16/26**, reached by
+three candidates : DIN A3 300 DPI (3315 × 5439), US Letter 150 DPI
+(1695 × 1695), and US Letter 300 DPI (3168 × 3289). no pair exceeded this
+score, indicating that satisfying all six ratio-level and pair-string bonuses
+together is extremely rare.
+
+ratio termination does occur for a small number of pairs. the clearest example
+is **US Legal 300 DPI 2520 × 4032** with a ratio of 0.625 (= 5/8), where both
+W/H and H/W terminate in base 10. **US Letter 150 DPI 1695 × 1695** achieves
+the same with a ratio of exactly 1.0. another notable case is **DIN A4 300 DPI
+2392 × 3588** with an inverse ratio of 1.5 (= 3/2), yielding `inv-t = Y` even
+though the forward ratio 2/3 does not terminate.
+
+the most natural "harmonic format" candidate is **US Letter 150 DPI
+1695 × 1695** — a perfect square with full ratio termination, both pair-string
+truths satisfied, and a joint score of 16. it is geometrically divergent from
+standard US Letter proportions (+420 px width, +45 px height at 150 DPI), but
+it demonstrates that a genuinely harmonic canvas can exist within the search
+space. for production use the **DIN A4 600 DPI 4985 × 7103** candidate
+(joint score 15, margins +12 × +44 px) remains the most pragmatic: small
+symmetric margins, near-standard proportions, and both `WxH` and `HxW` string
+truths passing.
+
+---
+
 ### open questions
 
 **cross-format consistency.** should the margin size be uniform across all
@@ -191,8 +251,8 @@ human evaluation.
   and ratio-string truth]
 - `data/md/design/BLUE-DOC-FORMAT.md` — parent format specification
 
-#,,.,,,..,,,.,.,,,...,..,,,,.,.,,,...,.,,,..,,..,,...,..,,.,,,..,,...,,,,,..,,
-#5YQATCQCAAQ4DDZIWU4ZAIZ6O6N4UZDASGUEB6EL4WPWX3BZAKA2TG4S4TMQZQ44JUOQZZTFLG24Y
-#\\\|4YIDTLLBCLBSKFH2RKHUBQRA2HSOUBRGNJMLXOVK4RBF4XKYXLA \ / AMOS7 \ YOURUM ::
-#\[7]67EDB3GZEKR4T6XAMTJMOAJWDHDFIQ25UBWQYSXYAQQJIBUKLIBA 7  DATA SIGNATURE ::
+#,,,.,,,.,..,,..,,,,.,,,.,.,,,,,,,...,.,.,..,,..,,...,...,,,,,...,.,,,,,,,,.,,
+#6ORMDYIYMJAAGKSJJCNT72STPBLXOSGER4KT5K43GAAN64GVIG6CYN2T5T57O74F7KVKZU46G6WKU
+#\\\|HJCVUN3ZD4OILJPLTKFSWMLEE275WJEL6RCHXE5M6A67HAENSBH \ / AMOS7 \ YOURUM ::
+#\[7]GNDWODC4M6AMVOCNEIB23GPIZ5LTTOAMXQ4CJRIJPFKM3SVGPWAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
