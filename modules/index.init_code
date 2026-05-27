@@ -89,13 +89,7 @@ if ( not( <index.meta>->{'total'} // 0 ) ) {
         <[index.restore.cube]>;
     } else {
         ## fresh start: defer until after verification ##
-        <[event.add_var]>->(
-            {   'var'     => \$data{'system'}{'zenka'}{'initialized'},
-                'handler' => 'index.restore.cube',
-                'repeat'  => FALSE,
-                'desc'    => 'deferred corpus restore',
-            }
-        );
+        push @{ <system.callbacks.initialized> //= [] }, 'index.restore.cube';
     }
 }
 
@@ -110,8 +104,8 @@ map { <[file.make_path]>->( $ARG, $create_perm, <system.amos-zenka-user> ) }
 
 0;
 
-#,,.,,.,,,..,,,,.,...,,,,,.,.,...,,..,.,,,,,.,.,.,...,...,..,,..,,...,.,.,,..,
-#2QNMDDIDUZK2LRYIFV6CKGYMURPUCYRLJD3DPLUYONQK42VDYDLUVO7E4VS552FWJAVACACPKW2GO
-#\\\|UIJX4EXYKOLKEP6XYLHCVV6X6ZKE6PCPQAU7QBVQ24O5LNAF67L \ / AMOS7 \ YOURUM ::
-#\[7]IBKGA3ZHIVGY6NSZMNKDRFGTN6OFQTQRRB33E676JOWPHWHRW2CQ 7  DATA SIGNATURE ::
+#,,,.,..,,.,.,,,.,,,.,..,,..,,...,,,.,,,,,...,.,.,...,...,..,,,..,.,.,,..,.,.,
+#KA2THN3XVCHVJGSYA4MZW3CB4DBZ73BSCNLROZQ7GXA5272F6DMSLEZXLUIJNYQTULZK3CIZ3TPQ4
+#\\\|XVEFFMVQCZMNU5VRLGRHHUGS2UK5LQ3IE2UGNMCO36URYIEYPN3 \ / AMOS7 \ YOURUM ::
+#\[7]5WZ3LWAT4OXWFNQ7LWKWFV36E2FRSMLP6DGHHL4BG5OMH3G7X2CQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
