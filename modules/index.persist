@@ -6,6 +6,9 @@
 return <[base.log]>->( 1, 'index.persist: corpus empty, skipping' )
     unless ( <index.meta>->{'total'} // 0 ) > 0;
 
+## ensure derived structures are built before persist ##
+<[index.rank]> if <index.meta>->{'dirty'} // 0;
+
 my $schema_version = 2;
 
 my $state = {
@@ -48,8 +51,8 @@ return <[base.log]>->( 1, "index.persist: write failed [ $rel_path ]" )
 
 return TRUE;
 
-#,,.,,,..,.,.,,..,.,,,,.,,.,,,,.,,..,,,..,,,,,..,,...,...,.,.,,,.,..,,...,,,,,
-#67DPJ53EIFCYH4LWUA7BN7JLBMIROEMDBBZNAJU7C5UJTEINKGOGRGFZUK3J3EKBUKV6MEMMWN4JW
-#\\\|OMKGDCGMXH47YSACNM2BZFYN5ULWOHJKSQLH47T7FAOLBIZSFFJ \ / AMOS7 \ YOURUM ::
-#\[7]D4AXEJJRYIHTCUZIG27TTDE3LJDNIAMCJD6MRT7WQEPLQ3BHGIDI 7  DATA SIGNATURE ::
+#,,..,,,.,..,,,..,...,.,.,..,,..,,.,.,,,,,,,.,..,,...,...,,,,,..,,,,.,...,,..,
+#4UPADFVAWNV3Q5RKCSOGKBQW6CURJWPP6ANHP476EZ7X5L2LU5VK7TRONVO7NR2FTSEWQ4EYMOHSC
+#\\\|LSB63MLCTOUAX72NKNUYRGRXHI7EF36VOSDRX54IBPINL7N665Y \ / AMOS7 \ YOURUM ::
+#\[7]ZVGII5WTBNSD4D4NIPMEQYF5I7ZEILKCSKWUX4KZB3M2PE736UAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
