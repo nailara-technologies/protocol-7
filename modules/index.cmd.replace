@@ -1,0 +1,49 @@
+## [:< ##
+
+# name  = index.cmd.replace
+# descr = replace indexed source content
+
+my $args = $call->{'args'} // '';
+return { 'mode' => 'false', 'data' => 'expected source_id and content' }
+    unless length $args;
+
+my ( $source_id, $new_content ) = split( "\n", $args, 2 );
+return { 'mode' => 'false', 'data' => 'expected source_id and content' }
+    unless defined $source_id and defined $new_content;
+
+$source_id =~ s|^\s+||;
+$source_id =~ s|\s+$||;
+
+my $new_chk = <[chk-sum.amos]>->($new_content);
+my $old_chk = <index.sources>->{$source_id};
+
+if ( defined $old_chk and $old_chk eq $new_chk ) {
+    return { 'mode' => 'false', 'data' => 'no change' };
+}
+
+<[index.deactivate]>->($old_chk)
+    if defined $old_chk and length $old_chk;
+
+<[index.ingest]>->($new_content)
+    unless exists <index.contributions>->{$new_chk};
+
+<[index.source.register]>->( $source_id, $new_chk );
+
+<[index.rank]>;
+
+my $old_disp = defined $old_chk ? substr( $old_chk, 0, 12 ) . '..' : '-';
+my $new_disp = substr( $new_chk, 0, 12 ) . '..';
+
+return {
+    'mode' => 'size',
+    'data' => sprintf(
+        "replace [ %s ] %s -> %s\n",
+        $source_id, $old_disp, $new_disp
+    )
+};
+
+#,,,.,.,,,...,,..,,,,,..,,..,,...,.,,,..,,,.,,..,,...,...,,,,,..,,.,,,.,,,.,,,
+#753LE35VVNPXWAHKYIRLZYPQ5BVAXYIQ7NKTTPZDMNWSQMEJYNTGEGE3XL4XZBFGWUFN3T63EJ7Z6
+#\\\|MWNP4BSUKYCLPPJ23DW5AHQKFAHM7SUONMILI6JPMJOWPWMWTIX \ / AMOS7 \ YOURUM ::
+#\[7]LC4VQJOIQRPUZ2Y2LS32XUE76VSZG4RMIXWWK2S4LMHLW7RFAICY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

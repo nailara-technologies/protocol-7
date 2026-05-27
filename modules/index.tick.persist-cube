@@ -73,23 +73,23 @@ unless ( defined $state ) {
     my $hdr_jhash32 = <[chk-sum.jha]>->( \$header );
 
     $job->{'state'} = {
-        max_depth        => $max_depth,
-        ring_count       => \@ring_count,
-        comp_sizes       => \@comp_sizes,
-        dir_stride       => \@dir_stride,
-        dir_base         => \@dir_base,
-        data_base        => $data_base,
-        total_size       => $total_size,
-        header           => $header,
-        hdr_jhash32      => $hdr_jhash32,
-        prev_chk         => {},             ## previous ring checksums only ##
-        curr_chk         => {},             ## current ring checksums ##
-        directory        => '',
-        compartment_data => '',
-        data_offset      => $data_base,
-        dir_write_pos    => <index.cube.format.header_size>,
-        current_depth    => 0,
-        ring_offset      => 0,
+        max_depth         => $max_depth,
+        ring_count        => \@ring_count,
+        comp_sizes        => \@comp_sizes,
+        dir_stride        => \@dir_stride,
+        dir_base          => \@dir_base,
+        data_base         => $data_base,
+        total_size        => $total_size,
+        header            => $header,
+        hdr_jhash32       => $hdr_jhash32,
+        prev_chk          => [],             ## previous ring checksums ##
+        curr_chk          => [],             ## current ring checksums ##
+        directory_parts   => [],
+        compartment_parts => [],
+        data_offset       => $data_base,
+        dir_write_pos     => <index.cube.format.header_size>,
+        current_depth     => 0,
+        ring_offset       => 0,
     };
     return;
 }
@@ -99,8 +99,8 @@ my $D         = $state->{'current_depth'};
 
 ## phase 3: finalize and write ##
 if ( $D > $max_depth ) {
-    my $dir       = $state->{'directory'};
-    my $comp      = $state->{'compartment_data'};
+    my $dir       = join '', @{ $state->{'directory_parts'}   // [] };
+    my $comp      = join '', @{ $state->{'compartment_parts'} // [] };
     my $data_base = $state->{'data_base'};
     my $dw_pos    = $state->{'dir_write_pos'};
 
@@ -139,7 +139,7 @@ my $dir_buf       = '';
 my $comp_buf      = '';
 
 ## first batch of a new ring: reset curr_chk ##
-$state->{'curr_chk'} = $curr_chk = {} if $ring_offset == 0;
+$state->{'curr_chk'} = $curr_chk = [] if $ring_offset == 0;
 
 ## alignment padding before this ring's directory [ first batch only ] ##
 if ( $ring_offset == 0 and $dir_base->[$D] > $dir_write_pos ) {
@@ -154,9 +154,10 @@ my $packed        = <index.packed_rank>->{$D}       // '';
 my $child_packed  = <index.packed_rank>->{ $D + 1 } // '';
 my $child_seq_len = $D + 2;
 
-my $batch_end = $ring_offset + 2000;
+my $batch_end = $ring_offset + 20_000;
 $batch_end = $ring_countD if $batch_end > $ring_countD;
 
+my $t_batch = Time::HiRes::time();
 for my $R ( $ring_offset .. $batch_end - 1 ) {
     my $node = $nodes->[$R];
     my $seq  = substr( $packed, $R * $seq_len, $seq_len );
@@ -173,7 +174,7 @@ for my $R ( $ring_offset .. $batch_end - 1 ) {
     } else {
         my $parent_seq  = substr( $seq, 0, $D );
         my $parent_rank = <index.addr>->{ ( $D - 1 ) . ":$parent_seq" };
-        $parent_jhash = $prev_chk->{ $parent_rank // '' } // 0;
+        $parent_jhash = $prev_chk->[ $parent_rank // 0 ] // 0;
     }
 
     my @child_ranks = unpack( 'N*', $node->[1] // '' );
@@ -191,11 +192,11 @@ for my $R ( $ring_offset .. $batch_end - 1 ) {
             $char_code, $child_rank );
     }
 
-    my $jhash      = <[chk-sum.jha]>->( \$payload );
+    my $jhash      = Digest::JHash::jhash($payload);
     my $frame      = "\x00\x04" . pack( 'N', $jhash );
     my $comp_bytes = $frame . $payload;
 
-    $curr_chk->{$R} = $jhash;
+    $curr_chk->[$R] = $jhash;
 
     my $disk_size = length($comp_bytes);
     $dir_buf .= pack( <index.cube.format.pack.dir_entry>,
@@ -204,9 +205,11 @@ for my $R ( $ring_offset .. $batch_end - 1 ) {
     $data_offset += $disk_size;
 }
 
-## append batch buffers into accumulated state strings ##
-$state->{'directory'}        .= $dir_buf;
-$state->{'compartment_data'} .= $comp_buf;
+my $batch_ms = int( ( Time::HiRes::time() - $t_batch ) * 1_000 );
+
+## append batch buffers into accumulated state arrays ##
+push @{ $state->{'directory_parts'} },   $dir_buf;
+push @{ $state->{'compartment_parts'} }, $comp_buf;
 $state->{'data_offset'} = $data_offset;
 
 if ( $batch_end < $ring_countD ) {
@@ -222,12 +225,16 @@ $state->{'dir_write_pos'} = $dir_write_pos;
 $state->{'current_depth'} = $D + 1;
 $state->{'ring_offset'}   = 0;
 $state->{'prev_chk'}      = $curr_chk;        ## curr becomes prev ##
-$state->{'curr_chk'}      = {};               ## freed next tick ##
+$state->{'curr_chk'}      = [];               ## freed next tick ##
 
-<[base.log]>->( 1, "index.persist.cube: ring $D [ $ring_countD entries ]" );
+<[base.log]>->(
+    1,
+    "index.persist.cube: ring $D"
+        . " [ $ring_countD entries, last batch ${batch_ms}ms ]"
+);
 
-#,,,,,,,,,..,,.,.,..,,..,,,..,,.,,,..,.,.,,,,,..,,...,.,.,...,.,.,.,,,..,,.,.,
-#JY7D2RMX7WO3HA2ATOQCF3LIZAPJKVYXY2KDU6C2CVTBGZU3RXGBOMBAPGDGHLTMJ7NGF4F2YIOWO
-#\\\|FF2KM6Z7FYNCRQOT72OMQ2RBJIFSHL2ELMAFKA55IKIFRFE3LC2 \ / AMOS7 \ YOURUM ::
-#\[7]SNZ4L67ITQM6FCHSKJ2LTPDDG5N2TQM6LLJHIOWDT6UOQCNEDKAA 7  DATA SIGNATURE ::
+#,,,,,,.,,,..,..,,,.,,,..,...,,,,,,..,,,,,,,.,..,,...,...,...,,.,,..,,.,.,,,,,
+#OHD26S6XTKTGWJLXN2DCVYCC5HCZVHCQU2X2EEFECS432NJJ4C2W6VX3EDSPB3H5NV7AUQ6YAMR4K
+#\\\|RNVS7M25FAICK4KGBATJJFQ6WXPV2SZDXSXD5ML64FAKOX47ATG \ / AMOS7 \ YOURUM ::
+#\[7]TMDFWVBMM5BXM3SLXB2LBCMPXOKGEGI5JQSUT4HOKFPN4SXHJEAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
