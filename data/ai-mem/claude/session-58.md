@@ -48,8 +48,12 @@ spin. Fixed: crash path now cancels both startup watchers directly via
 my $task_context = $task->{'context'} // $task->{'request'}->{'context'} // '';
 if ( length $task_context ) { $raw_prompt .= "\n\n" . $task_context; }
 ```
-**key**: context is stored at `$task->{'context'}` (top-level), NOT
-`$task->{'request'}->{'context'}`. task.cmd.create stores it directly.
+**correction (session 59)**: this check is DEAD CODE for `<coding.task.queue>` records.
+`coding.intake.work` never sets `$task->{'context'}`. The correct injection path is:
+`task.cmd.create` → `task.show` (escaped) → `models.handler.task-poll-step` (parses +
+embeds context in `$prompt`) → `coding.ask-reply` → `coding.intake.work` stores in
+`request.description`. Context reaches `coding.prompt.assemble` via
+`$task->{'request'}->{'description'}`, NOT via `$task->{'context'}`.
 
 ## reasoning namespace
 
@@ -70,13 +74,17 @@ if ( length $task_context ) { $raw_prompt .= "\n\n" . $task_context; }
 - `web.assets.load_registry` uses `$project_root/var/httpd/static/` — needs update
   to absolute path before `var/` can be fully removed
 
-## open items
+## open items (resolved in session 59)
 
-- tool calls regression: model thinking 44KB but not calling tools; investigate
-  whether new binary Jinja template behavior changed
-- context fix not yet tested (wrong path just corrected, needs retry after reload)
-- repo root tracked files still need decisions (see task file)
-- staged changes not yet committed
+- tool calls regression: NOT a regression — tested in session 59 with
+  `p7c coding.ask-reply "read modules/coding.init_code first line only"` → read_file
+  tool called correctly. CN467XY 369-byte result was model getting no document content
+  (context injection test failed — model correctly said "I don't have the document")
+- context injection: context path through `models.handler.task-poll-step` works IF the
+  task was submitted via `task.cmd.create`. CN467XY may have been submitted via direct
+  `coding.ask-reply` (no context injection path). Needs retesting via task.cmd.create.
+- repo root tracked files still need decisions (see `data/tasks/repo-root-cleanup-var-local-batches.md`)
+- staged changes: committed in session 59 [cfc07a3f7]
 
 ## design doc
 
@@ -84,8 +92,8 @@ if ( length $task_context ) { $raw_prompt .= "\n\n" . $task_context; }
 build.zenka → build graph → network distribution → 5/7 consensus → LLM audit
 intake → minimal OS end state. layer 1 buildable now.
 
-#,,.,,.,.,.,.,,.,,,,,,.,,,..,,...,,.,,,..,,,.,..,,...,...,...,.,,,...,,,.,,,.,
-#4AMSV5KRRBETQ3IMZQQI3E2ARFXO3BZRPVYADGTKUUQC2JFMZWVANJAVJQF5AE6VCZQWXEKK5ZQ2O
-#\\\|QIHNAUMCUYN7SLDXHEYMSNYKIWPQWQVUWD4LJD7BJO3TU34KAVZ \ / AMOS7 \ YOURUM ::
-#\[7]H5ONS4SUKZHMJ7F6NCLX7OR24FVDKPLSVTKS54ELYOKGFQYAD6BQ 7  DATA SIGNATURE ::
+#,,..,.,,,,.,,,.,,,,,,...,.,,,,..,,.,,,..,...,..,,...,.,.,,.,,,..,.,.,...,.,,,
+#KCBUU26HVFL4CWD22MAQH7ZNN3EHE2P3GF74Z66L35XPDG6DT4CD5B5VQI6XPNHQMBHDBS4S7AAY2
+#\\\|O7YOCJD433QAVNZP3DUY7QZNPU4JURYAVPPOBEHBLCJBE6MCGJK \ / AMOS7 \ YOURUM ::
+#\[7]Y2RKGY45ZHRBOL36RYU53M3YBEVIHVQPP4CXPC7KLZXKMLHS2UCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
