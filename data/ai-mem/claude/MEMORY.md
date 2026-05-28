@@ -8,8 +8,13 @@
 - **Never add** the `#,,.,,,...` stub at end of new files — blocks signing system
 - Leave new files clean; `bin/Protocol-7 sourcecode update-signatures` adds real 4-line footer
 
+## Session 59 (2026-05-28) — tool call regression diagnosed, session-58 committed
+- tool calls NOT regressed — tested directly, model calls read_file correctly
+- context injection path: `task.cmd.create` → `task-poll-step` embeds in description; `$task->{'context'}` check in `coding.prompt.assemble` is dead code (harmless)
+- session-58 changes committed [cfc07a3f7]; repo root tracked files still pending
+
 ## Session 58 (2026-05-28) — inference crash fixes, llama v4547 CUDA 12.9, dist-upgrade, context fix
-- [session-58](session-58.md) — 3 inference server crash bugs fixed; llama rebuild (3.25s load); CUDA apt sqv workaround; task context at `$task->{'context'}`; reasoning namespace wired; repo root cleanup task
+- [session-58](session-58.md) — 3 inference server crash bugs fixed; llama rebuild (3.25s load); CUDA apt sqv workaround; context injection path corrected; reasoning namespace wired; repo root cleanup task
 
 ## Session 57 (2026-05-27) — schema v4 cube complete, perf fixes, graphical storage design
 - [session-57](session-57.md) — JHash cube (102MB, 8 rings), prev_chk_packed halves ring 3-4 time, idle watcher + ondemand_timeout fix, graphical storage design doc
@@ -259,8 +264,8 @@
 - **pager.sort.multi-key**: ntime_b32 + priority_map sort types added (session 42)
 - **task dispatch sections**: all dispatched tasks now carry ## dispatch + prompt for reuse
 
-#,,,.,.,,,,,.,,..,..,,...,.,,,,,.,,,,,.,.,,..,..,,...,..,,...,.,.,.,.,.,.,.,,,
-#JZJ2SAPKLCF3YGRBOUXG6TWXP35L5UBAFFSQYBPFMVCOSMDXMC5JXCG2YVTI45PUBBXLOHEITXYZU
-#\\\|R35KYIIUWAZM5263QZFRUIP4DII62ZVCYFKOO7J2PUD5JDT4VLJ \ / AMOS7 \ YOURUM ::
-#\[7]3FDU24TBPHV22W4JQWFJRYW4BKVWVUWA7BQOH2QUZAC5FEWJ6YBI 7  DATA SIGNATURE ::
+#,,..,.,,,,,.,...,,,.,.,.,.,.,,,.,.,.,..,,.,.,..,,...,...,.,,,...,..,,,.,,,,,,
+#BJC7LUB7HO4ZWGK6LZDHKQJCLOCWDXGK2FD6IOM7C57RRUCQMI3DTEQM7EVEO5ZBJ6TMJSGHENDJ4
+#\\\|3HTWWH2XPGZJHYGCGWI6UZRECN4PGPTFOHB2CF4OBSLFD6OKVPG \ / AMOS7 \ YOURUM ::
+#\[7]MGOSEFD6JEWSBREKNPUVA22VYCXPWWXI74YFT6FGOGUPWLZEQACQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
