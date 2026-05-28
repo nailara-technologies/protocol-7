@@ -1,0 +1,122 @@
+## [:< ##
+
+# name  = jobsite.cmd.reset
+# descr = reset job(s) to status=new, clearing assessment fields
+# param = [status=] [stage=] [job_id=] [encoding_broken=]
+
+my $args_str = $call->{'args'} // '';
+$args_str =~ s|^\s+||;
+$args_str =~ s|\s+$||;
+
+## parse key=value tokens ##
+my %params;
+for my $token ( split /\s+/, $args_str ) {
+    $params{ lc $1 } = $2 if $token =~ m{^([\w\-]+)=(.*)$};
+}
+
+## require at least one filter : refuse naked reset ##
+return {
+    'mode' => 'false',
+    'data' =>
+        'reset requires a filter: status=, stage=, job_id=, encoding_broken='
+    }
+    unless %params;
+
+## never reset user-decision stages regardless of other filters ##
+my %protected = map { $ARG => 1 } qw| applied responded rejected archived |;
+
+## fields cleared on reset ##
+my @clear_fields = qw|
+    score score_reason score_summary
+    assertions stage
+    repair_attempted repair_failed repair_applied
+    |;
+
+my $jobs_dir = join qw| / |,
+    <system.path.zenka-dirs>->{'var_P7'}, qw| jobsite jobs |;
+
+my $tasks = <jobsite.tasks> // {};
+
+## build candidate list ##
+my @candidates;
+if ( defined $params{'job_id'} ) {
+    push @candidates, map { uc $ARG }
+        grep { length $ARG } split /[,\s]+/, $params{'job_id'};
+} else {
+    @candidates = keys %{$tasks};
+}
+
+## encoding_broken: use cfg_bool so yes/true/1/5 all work ##
+my $check_encoding
+    = exists $params{'encoding_broken'}
+    ? <[base.cfg_bool]>->( $params{'encoding_broken'} )
+    : undef;
+
+my ( $n_reset, $n_protected ) = ( 0, 0 );
+
+for my $job_id (@candidates) {
+    my $rec = $tasks->{$job_id};
+    next unless defined $rec;
+
+    ## always skip protected stages ##
+    if ( $protected{ $rec->{'stage'} // '' } ) {
+        $n_protected++;
+        next;
+    }
+
+    ## status filter ##
+    next
+        if defined $params{'status'}
+        and ( $rec->{'status'} // '' ) ne $params{'status'};
+
+    ## stage filter ##
+    next
+        if defined $params{'stage'}
+        and ( $rec->{'stage'} // '' ) ne $params{'stage'};
+
+    ## encoding_broken filter : scan raw file bytes for double-encoded marker ##
+    if ( defined $check_encoding ) {
+        my $job_file = "$jobs_dir/$job_id.yaml";
+        my $broken   = FALSE;
+        if ( -f $job_file ) {
+            open my $fh, '<:raw', $job_file or next;
+            my $raw = do { local $/; <$fh> };
+            close $fh;
+            $broken = TRUE if $raw =~ /\xc3\x83/;
+        }
+        next if $check_encoding     and not $broken;
+        next if not $check_encoding and $broken;
+    }
+
+    ## reset in-memory record ##
+    delete $rec->{$ARG} for @clear_fields;
+    $rec->{'status'} = 'new';
+
+    ## reset per-job file ##
+    my $job = <[jobsite.job.read]>->($job_id) // {};
+    delete $job->{$ARG} for @clear_fields;
+    $job->{'status'} = 'new';
+    <[jobsite.job.write]>->( $job_id, $job );
+
+    $n_reset++;
+}
+
+<[jobsite.state.persist]> if $n_reset;
+
+<[base.logs]>->(
+    1,        'jss.reset: reset=%d protected_skipped=%d',
+    $n_reset, $n_protected
+);
+
+return {
+    'mode' => 'true',
+    'data' => sprintf 'reset %d job(s)%s',
+    $n_reset,
+    $n_protected ? " ($n_protected protected skipped)" : ''
+};
+
+#,,,,,,..,,,,,.,.,,..,,,.,...,,.,,,.,,,,,,.,,,..,,...,...,..,,.,.,.,,,.,.,,..,
+#RZY7LRDN7JBAIOMK6CAVHONJPIWBKQLI5FHBTOEJ4PN7HON5DLIT4PJQRFQMUGHA4NFCLLEBTA2HM
+#\\\|77JLW332O5KSVVG6NJZPN6CNZVZQQ4PVIEW6XQYDTUKDS7JGWLH \ / AMOS7 \ YOURUM ::
+#\[7]IO5ERYQ7XHI75DFOJ3S3VABWECDSCIRYW7PYCTPEVVL62QDY2GAY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
