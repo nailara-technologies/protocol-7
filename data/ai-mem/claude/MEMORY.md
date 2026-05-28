@@ -8,6 +8,9 @@
 - **Never add** the `#,,.,,,...` stub at end of new files — blocks signing system
 - Leave new files clean; `bin/Protocol-7 sourcecode update-signatures` adds real 4-line footer
 
+## Session 58 (2026-05-28) — inference crash fixes, llama v4547 CUDA 12.9, dist-upgrade, context fix
+- [session-58](session-58.md) — 3 inference server crash bugs fixed; llama rebuild (3.25s load); CUDA apt sqv workaround; task context at `$task->{'context'}`; reasoning namespace wired; repo root cleanup task
+
 ## Session 57 (2026-05-27) — schema v4 cube complete, perf fixes, graphical storage design
 - [session-57](session-57.md) — JHash cube (102MB, 8 rings), prev_chk_packed halves ring 3-4 time, idle watcher + ondemand_timeout fix, graphical storage design doc
 - **remaining perf** — rings 5-7 still slow; next fix: lift `<index.level>->{$D+1}` ref outside inner loop in `index.tick.persist-cube`
@@ -256,8 +259,8 @@
 - **pager.sort.multi-key**: ntime_b32 + priority_map sort types added (session 42)
 - **task dispatch sections**: all dispatched tasks now carry ## dispatch + prompt for reuse
 
-#,,..,,.,,...,.,.,,..,.,.,.,.,.,.,..,,.,.,.,.,..,,...,..,,...,,,,,..,,.,,,.,,,
-#YPXTVIPASRI47RD2YROAALIQBU222M6N35AWBT7DDPV3JUY7GSHWXN7CG5IKMMC2MRBTGVGT6Z63C
-#\\\|IVYONHMLBAMV4PDWJH6N6ZMU2Q4KZ5KAYJLGISR5XG4WSI6GXFA \ / AMOS7 \ YOURUM ::
-#\[7]KG6JZ6LCLRN4GXMTFODQDOFLDJAVAWB7UGW7ETBGP5IWUB5YROCI 7  DATA SIGNATURE ::
+#,,,.,.,,,,,.,,..,..,,...,.,,,,,.,,,,,.,.,,..,..,,...,..,,...,.,.,.,.,.,.,.,,,
+#JZJ2SAPKLCF3YGRBOUXG6TWXP35L5UBAFFSQYBPFMVCOSMDXMC5JXCG2YVTI45PUBBXLOHEITXYZU
+#\\\|R35KYIIUWAZM5263QZFRUIP4DII62ZVCYFKOO7J2PUD5JDT4VLJ \ / AMOS7 \ YOURUM ::
+#\[7]3FDU24TBPHV22W4JQWFJRYW4BKVWVUWA7BQOH2QUZAC5FEWJ6YBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -113,8 +113,20 @@ if ( $bytes <= 0 ) {
         ## process still alive : spurious read, stay active ##
         return;
     }
+
+    ## crash path : cancel startup watchers directly, no drain needed ##
+    ## do NOT call cancel_watcher.backend_monitor here : that installs ##
+    ## drain watchers on a dead server's closed pipes, which spin the  ##
+    ## event loop at 100% cpu until the fd is GC'd                    ##
+    $event->cancel if $event->is_active;
+    if ( exists <coding.watcher_pair>->{$event} ) {
+        my $other = delete <coding.watcher_pair>->{$event};
+        if ( defined $other ) {
+            $other->cancel if $other->is_active;
+            delete <coding.watcher_pair>->{$other};
+        }
+    }
     close($read_fh);
-    <[coding.cancel_watcher.backend_monitor]>->($event);
 
     ## Check if server became ready before EOF (normal) or crashed (error)
     ## crash_logged guard : both stdout+stderr watchers fire EOF on crash ##
@@ -158,8 +170,8 @@ if ( $bytes <= 0 ) {
     }
 }
 
-#,,,,,..,,.,.,.,.,,..,..,,...,...,...,,,.,,,.,..,,...,...,.,.,.,.,,,,,.,.,...,
-#HNQZNNECYNJ3DLM5SQBMRIARNXGC7AGFVYV3F2AEG7RTMCSPSEY2N4NTZE2NUNOZL44NBCL345OJG
-#\\\|VXMTTQCMBS3TZL7G7AKDSCXMNUNNK5VBOZYRGKXNEOF5ZPLTNKN \ / AMOS7 \ YOURUM ::
-#\[7]LVWK56VXXGYNNDE5MJ3YHNHR6VMEIKOFGFNT76TZYAWAP4RHOOAI 7  DATA SIGNATURE ::
+#,,..,.,,,..,,,.,,.,,,,..,,..,.,,,.,.,,,,,,.,,..,,...,..,,.,.,,,.,...,,.,,,.,,
+#NILMMHBSVBK24EAP7ZZFNS7VWZVFMOUAUWA72XOCQ5MEEOQPVHN65XHLYFXPZS5SQJSWXSVOFZ6KG
+#\\\|WRJIJC3QBDDS6CRUNLH6TPGVEMXJNVYZNMD3F6WME7PYUNZFL3C \ / AMOS7 \ YOURUM ::
+#\[7]AF4RGJZAMURYJCCXUFWI4J5BRSJUPLLHV4J65PZX5JVX2FK6S4BA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
