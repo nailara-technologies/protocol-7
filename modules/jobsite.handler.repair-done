@@ -130,12 +130,23 @@ if ( $validation->{'is_valid'} ) {
     $job_rec->{'assertions'} = $assertions;
 
     ## sanitize encoding before storing ##
+    ## ensure utf8 flag is set so fix_encoding reaches mojibake repair ##
+    for ( $reason, $summary ) {
+        utf8::decode($_)
+            if defined $_
+            and not utf8::is_utf8($_)
+            and utf8::valid($_);
+    }
     $reason = <[jobsite.util.fix_encoding]>->($reason)
         if defined $reason;
     $summary = <[jobsite.util.fix_encoding]>->($summary)
         if defined $summary;
     for my $dim ( keys %{ $assertions->{'dimensions'} // {} } ) {
         my $dr = $assertions->{'dimensions'}{$dim}{'reason'} // '';
+        utf8::decode($dr)
+            if length $dr
+            and not utf8::is_utf8($dr)
+            and utf8::valid($dr);
         $assertions->{'dimensions'}{$dim}{'reason'}
             = <[jobsite.util.fix_encoding]>->($dr)
             if length $dr;
@@ -200,8 +211,8 @@ if ( <jobsite.pending_count> <= 0 ) {
 <[jobsite.state.persist]>;
 <[jobsite.dispatch.next]>;
 
-#,,.,,...,.,.,,,,,,,.,.,,,.,.,..,,,.,,,.,,.,,,..,,...,...,..,,...,..,,,.,,...,
-#L2D7VYAL6D4HNOTMC63W3C5JQMNCFW2PMLAKMHBTQQE6IOG5MMJAU3UKDODHWGICZOACD3EGAOLAY
-#\\\|O6FM5X4D3GTSAQ63KQL5N6YBC7PRTRIFHU5R42D5IZFZI46VKDX \ / AMOS7 \ YOURUM ::
-#\[7]AMH5REQFGXIMWXD5GCJWSHICEPFBKVJ6Q567O4UPRSN5WZPPYIAI 7  DATA SIGNATURE ::
+#,,,.,,.,,,,.,,,.,...,..,,..,,.,.,.,,,..,,.,,,..,,...,...,...,,..,..,,...,,,,,
+#Q4723LQA6QCE2VYSBPSGAKRJ5QLAY4PFLU73DKB2SA6AV7OOQHEVGKFX3LZNXF2QGXIO52QLOD3TO
+#\\\|VYBS2X66ERXFKWHATKNLFMQDA3EV3AAY6KKMW5ZGDXFWZS5TXPH \ / AMOS7 \ YOURUM ::
+#\[7]7FGTR2NVL5NCEZ5L3XUPD7LCGI4FZNA67MTROVROVMTU7KUO2WDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
