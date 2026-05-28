@@ -190,11 +190,22 @@ $job_rec->{'assertions'} = $assertions;
 
 ## store result (original or post-repair) ##
 ## sanitize encoding before storing ##
+## ensure utf8 flag is set so fix_encoding reaches mojibake repair, not raw-bytes short-circuit ##
+for ( $reason, $summary ) {
+    utf8::decode($_)
+        if defined $_
+        and not utf8::is_utf8($_)
+        and utf8::valid($_);
+}
 $reason  = <[jobsite.util.fix_encoding]>->($reason) if defined $reason;
 $summary = <[jobsite.util.fix_encoding]>->($summary)
     if defined $summary;
 for my $dim ( keys %{ $assertions->{'dimensions'} // {} } ) {
     my $dr = $assertions->{'dimensions'}{$dim}{'reason'} // '';
+    utf8::decode($dr)
+        if length $dr
+        and not utf8::is_utf8($dr)
+        and utf8::valid($dr);
     $assertions->{'dimensions'}{$dim}{'reason'}
         = <[jobsite.util.fix_encoding]>->($dr)
         if length $dr;
@@ -244,8 +255,8 @@ if ( <jobsite.pending_count> <= 0 ) {
 <[jobsite.state.persist]>;
 <[jobsite.dispatch.next]>
 
-#,,..,,,,,,,.,,..,,,,,,,.,,.,,,,.,,,.,,..,,,.,..,,...,...,.,.,,,,,,,.,.,,,,,,,
-#3ZW5TWI5CLJSS2OIGX5TEXN4JC4Z5NNXGCC2UQ4CSN6KZ5JNJ6UFAMJU6BBKKUEICTMHDISG7EWWI
-#\\\|XS2PJ67FVBSYN6IBO7APZ3O7X4WQI4OUFQXKYBVH6Y5SVRSLMDB \ / AMOS7 \ YOURUM ::
-#\[7]NAKI2TMRS2XDEFRKI2RS4ASQX42QKFVLOC36OSMSYY3KM46HYYBQ 7  DATA SIGNATURE ::
+#,,,,,.,.,,..,.,.,...,...,,.,,...,,..,...,,..,..,,...,...,...,.,.,..,,..,,,,,,
+#7MYEQM6HGBL45F7YCHXHN73T4QU5CQHJSBZHI6OGM7XO7PXCCQOXBKPB6MUVAO2RAQ56IYSBQF2WS
+#\\\|KSHSOPZC5X5UMJQHVC6JMAOCXX7UNRCTPB7XC3TDPNZ33KLPFD7 \ / AMOS7 \ YOURUM ::
+#\[7]WO2B73ZGK7XBZ54LCLXQWY2ZKUXWCWBMTCZPVVH2W7TIIFGGAEDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
