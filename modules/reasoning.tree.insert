@@ -47,15 +47,15 @@ if ( exists $tree->{'by_chksum'}->{$chksum} ) {
         and $existing->{'state'} eq 'compact' ) {
         $existing->{'state'} = 'expanded';
 
-        ## [ emit to reasoning.threshold.fire if available ] ##
-        <[reasoning.threshold.fire]>->(
+        ## [ emit to reasoning.threshold.crossed if available ] ##
+        <[reasoning.threshold.crossed]>->(
             {   node    => $existing,
                 tree    => $tree,
                 cross   => 'upward',
                 prior   => 'compact',
                 current => 'expanded',
             }
-        ) if defined <reasoning.threshold.fire>;
+        ) if defined <reasoning.threshold.crossed>;
     }
 
     return { status => 'collapsed', node => $existing };
@@ -86,21 +86,21 @@ if (    $node->{'convergence'} >= $node->{'threshold'}
     and $node->{'state'} eq 'compact' ) {
     $node->{'state'} = 'expanded';
 
-    ## [ emit to reasoning.threshold.fire if available ] ##
-    <[reasoning.threshold.fire]>->(
+    ## [ emit to reasoning.threshold.crossed if available ] ##
+    <[reasoning.threshold.crossed]>->(
         {   node    => $node,
             tree    => $tree,
             cross   => 'upward',
             prior   => 'compact',
             current => 'expanded',
         }
-    ) if defined <reasoning.threshold.fire>;
+    ) if defined <reasoning.threshold.crossed>;
 }
 
 return { status => 'inserted', node => $node };
 
-#,,..,.,.,,.,,...,...,..,,,,,,.,,,..,,,..,,,.,..,,...,..,,,,,,...,,.,,.,,,,..,
-#ISBOFITYPJVQCZBOG5JX2TDNZ6MR6H5ZB2XQCJN6KB6JESPXQJRGXGYRTOFIKZAGK5HZ5C6VHN6QU
-#\\\|2MG6DUV7QHN3QEBXIA7JTKUZVPTZ5YAOJREDITLL5FRRTJJGMX5 \ / AMOS7 \ YOURUM ::
-#\[7]SYERAHSTLUMJXLHPQFPWZLODZZ4RE4UR3MSQJ3ISRGZAQBB4MODY 7  DATA SIGNATURE ::
+#,,,,,..,,,,,,.,,,.,.,...,...,,.,,,,.,,.,,...,..,,...,..,,...,,.,,.,.,.,.,.,.,
+#YHK4Z66MOSQ3I3BXOVYNXJ66G2QECT7KQNIRXR2QP323OQXRTYUQ33HSTRYKX5RRQV7QCAYT6T2CO
+#\\\|KMT4O5A62HVV2FSPILBQ2M4GICE3E6WKMSKBKFBTHFEATAUV5FG \ / AMOS7 \ YOURUM ::
+#\[7]FZUMNUMVA4FJZPAUQWYTHY6RBK3ZOWFZWVZPI4LJLHHXQSKL7KDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

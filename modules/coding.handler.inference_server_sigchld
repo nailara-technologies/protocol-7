@@ -71,7 +71,7 @@ while ( ( my $pid = <[base.waitpid]>->(-1) ) > 0 ) {
             <[event.add_timer]>->(
                 {   'after'   => $backoff,
                     'handler' => 'coding.handler.inference_crash_restart',
-                    'params'  => { 'backend' => $backend }
+                    'data'    => { 'backend' => $backend }
                 }
             );
         }
@@ -91,8 +91,8 @@ while ( ( my $pid = <[base.waitpid]>->(-1) ) > 0 ) {
 ## note: if $reaped == 0, the child was already reaped by another path
 ## (e.g. Perl's system() waitpid) : this is normal, no action needed.
 
-#,,,.,,,,,,,.,.,,,,..,,..,,,.,,,.,...,,,.,.,,,..,,...,...,,..,.,.,..,,,.,,,.,,
-#66OZETJIM6AOWJDBLIN4OGPYDVGFC26YC7Z6EHMBD7VJLG6D7ELQY5KVIF3OEQR6Z55DVZ2QCSSBA
-#\\\|LCXUM36MVJMD3CXH4HXLP2U63HRNQDFHTM5KON46RX7SQV6I4BG \ / AMOS7 \ YOURUM ::
-#\[7]EEIIE23MUOVUEVQZIIS3YTEN2NL3ZOOPNUVBKU643FWMYXUKB2CQ 7  DATA SIGNATURE ::
+#,,..,,,,,.,.,.,,,..,,..,,..,,,,,,,.,,,.,,,.,,..,,...,...,...,,..,,..,,..,,..,
+#3IBNC7LNRQ5BBZ6BE4ESVQ3ZZ65JTFXN57CBV5ND36GOQF6GORZOKKJPB73Z6P6RL2IYKMD7U5PJU
+#\\\|KKYUXCIVZ527Z525GBR6Q3H23U472F6JB3LWYJUDWW7QU2YL5TG \ / AMOS7 \ YOURUM ::
+#\[7]22DHQUO57NJC5TVBGKMT4IH4ZNM2XBJNFNGWUTQVZ3CPCLEY4MBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
