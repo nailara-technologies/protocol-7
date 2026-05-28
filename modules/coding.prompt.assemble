@@ -19,6 +19,11 @@ if ( $raw_type =~ m{^(cpu|gpu)$}i ) {
 } else {
     my $raw_prompt = $task->{'request'}->{'description'} // '';
 
+    ## b32-transport path stores bytes without utf8 flag : re-decode before use ##
+    utf8::decode($raw_prompt)
+        if not utf8::is_utf8($raw_prompt)
+        and utf8::valid($raw_prompt);
+
     ## append task context if provided ##
     my $task_context = $task->{'context'} // $task->{'request'}->{'context'}
         // '';
@@ -289,8 +294,8 @@ return {
     'hooks'        => $hooks,
 };
 
-#,,.,,.,.,,.,,,,.,...,,.,,...,.,.,.,,,,,,,...,..,,...,...,.,,,,.,,..,,,,.,.,.,
-#SIUNIU2EUTNKZ4X6UTU6RRIXLXKW6FWXD7GAVCZJYAWDGJO6OXCAUSLBPRSHJMP37HLYXA6KXPL3C
-#\\\|3SGFXMK3BWJJJVJZALH3LH4I5KBDUMFCL64WKPJE4U3LHMKR2ER \ / AMOS7 \ YOURUM ::
-#\[7]UQ7U2FPTEFSN7BUMOA6CYYBPSKJE2J4HCVBUHH7A4T23T3Z4A4DY 7  DATA SIGNATURE ::
+#,,,.,,..,.,.,,..,,,.,.,,,...,,,.,...,,,.,..,,..,,...,...,...,,.,,...,,.,,,.,,
+#CV7PP3UJNSAHMCCJ5DFRHGC2S4H6PVZRLKJXNRPKR2XQQTADLRIN2DLYYJSN372W2IDE23T2OIINY
+#\\\|45XGXJSY7BVQ6FY4V6FCE27PQIXZWM5N2HUBGOZPXF32D4ZA5QB \ / AMOS7 \ YOURUM ::
+#\[7]B77QZKZN6H4JSUDKYUNODWNJTNHXV5KI2OQ6ZPHIBFK7VQWVIKBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

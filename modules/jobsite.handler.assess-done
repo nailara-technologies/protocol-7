@@ -11,6 +11,11 @@ my $result  = ref $raw ? $raw->$* : $raw;
 my $job_id  = $call->{'params'}{'job_id'}  // '';
 my $task_id = $call->{'params'}{'task_id'} // '';
 
+<[base.logs]>->(
+    1, 'jss.assess-done: job=%s mode=%s result_len=%d preview=[%s]',
+    $job_id, $mode, length($result), substr( $result, 0, 80 ) =~ s/\n/ /gr
+);
+
 my $job_rec = <jobsite.tasks>->{$job_id};
 if ( not defined $job_rec ) {
     <[base.logs]>->( 0, 'jss.assess-done: unknown job %s', $job_id );
@@ -24,6 +29,10 @@ if ( lc($mode) eq qw| false | ) {
         $task_id, $job_id
     );
     $job_rec->{'stage'} = 'failed';
+    my $job_f = <[jobsite.job.read]>->($job_id) // {};
+    $job_f->{'status'} = 'assessed';
+    $job_f->{'stage'}  = 'failed';
+    <[jobsite.job.write]>->( $job_id, $job_f );
     <jobsite.pending_count>--;
     <[jobsite.state.persist]>;
     <[jobsite.dispatch.next]>;
@@ -47,9 +56,31 @@ if ( $protected_stage{ $job_rec->{'stage'} // '' } ) {
 ## parse yaml result : fall back to json regex for backward compat ##
 my ( $score, $reason, $summary, $apply, $parsed ) = ( '', '', '', '', undef );
 my $yaml_src = $result;
-## strip any preamble before the first yaml key ##
-$yaml_src =~ s{^.*?(?=^score\s*:)}{}ms;
-$parsed = eval { YAML::XS::Load($yaml_src) } if length $yaml_src;
+## ensure utf8 flag set for regex ops, then encode to bytes for YAML::XS ##
+utf8::decode($yaml_src)
+    if not utf8::is_utf8($yaml_src)
+    and utf8::valid($yaml_src);
+## slice from the score: line onward : match score:\d anywhere, not just line-start ##
+my $has_yaml = $yaml_src =~ m{score\s*:\s*\d};
+$yaml_src = substr( $yaml_src, $-[0] ) if $has_yaml;
+## strip trailing markdown code fence if model wrapped output ##
+$yaml_src =~ s{\n*```\s*$}{}s;
+## strip yaml-forbidden control chars : C0 (except tab/LF/CR), DEL, C1 ##
+$yaml_src =~ s/[^\x09\x0A\x0D\x20-\x7E\xA0-\x{FFFD}]//g;
+## YAML::XS::Load needs utf-8 bytes without the perl utf8 flag ##
+my $yaml_bytes = $yaml_src;
+utf8::encode($yaml_bytes) if utf8::is_utf8($yaml_bytes);
+my $yaml_err;
+$parsed = eval { YAML::XS::Load($yaml_bytes) }
+    if $has_yaml and length $yaml_src;
+$yaml_err = $@;
+
+if ($yaml_err) {
+    <[base.logs]>->(
+        0,         'jss.assess-done: YAML parse error: %s | src=[%s]',
+        $yaml_err, substr( $yaml_src, 0, 80 ) =~ s/\n/\\n/gr
+    );
+}
 if ( ref $parsed eq 'HASH' ) {
     $score   = $parsed->{'score'}   // '';
     $reason  = $parsed->{'reason'}  // '';
@@ -210,8 +241,8 @@ if ( <jobsite.pending_count> <= 0 ) {
 <[jobsite.state.persist]>;
 <[jobsite.dispatch.next]>
 
-#,,.,,,..,.,.,,..,..,,.,.,,,,,.,.,...,..,,,..,..,,...,...,...,...,,,.,,,.,,..,
-#EN5TAOBRZAJSIZ567KDMGQHLS2N5NNLKH375LUD7ZKRVNQY7R5X7KLNKQ3CWZQGKIFXRWUDYAEZBG
-#\\\|XGBOPIND4FWHCTAJQAPBQXPBYDDASJIVCMQTGNWAAEQAI5NVJ6C \ / AMOS7 \ YOURUM ::
-#\[7]HIMNU4X4HI7F7WLAGHNOZPTYEWONKVJ2E652ANOKIKGGQREB72BI 7  DATA SIGNATURE ::
+#,,,.,.,,,.,,,,,.,...,,,.,,.,,..,,.,.,,..,,,.,..,,...,..,,,.,,..,,,,.,,,,,,,.,
+#M42UKABWTS7R24HAVDCPWOJXZTEKPCG52TWLXIDUNLR33LJZKWDKSMVXRWEEYHXJ6HEAVWG7TVVD4
+#\\\|HCK2NAYYCEOYABEOOLXOQ76V4WYXXXL5H5CU27KUVZZFKEQMRKY \ / AMOS7 \ YOURUM ::
+#\[7]T3RIHP3KRPODOUOB2VMLE3STY5AJWBKNOFTC7UCOW4QDG247IYCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
