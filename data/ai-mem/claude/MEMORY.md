@@ -8,6 +8,9 @@
 - **Never add** the `#,,.,,,...` stub at end of new files — blocks signing system
 - Leave new files clean; `bin/Protocol-7 sourcecode update-signatures` adds real 4-line footer
 
+## Session 60 (2026-05-28) — jobsite assessment pipeline fixed end-to-end
+- [session-60](session-60.md) — YAML parsing (preamble regex bug, Wide char, C1 control chars), newline transport (B32-encode in models.handler.task-result + decode in task.cmd.complete), model→9B, prompt priming, state_machine no_tools content loss, chunk_handler reasoning guard
+
 ## Session 59 (2026-05-28) — tool call regression diagnosed, session-58 committed
 - tool calls NOT regressed — tested directly, model calls read_file correctly
 - context injection path: `task.cmd.create` → `task-poll-step` embeds in description; `$task->{'context'}` check in `coding.prompt.assemble` is dead code (harmless)
@@ -264,8 +267,8 @@
 - **pager.sort.multi-key**: ntime_b32 + priority_map sort types added (session 42)
 - **task dispatch sections**: all dispatched tasks now carry ## dispatch + prompt for reuse
 
-#,,..,.,,,,,.,...,,,.,.,.,.,.,,,.,.,.,..,,.,.,..,,...,...,.,,,...,..,,,.,,,,,,
-#BJC7LUB7HO4ZWGK6LZDHKQJCLOCWDXGK2FD6IOM7C57RRUCQMI3DTEQM7EVEO5ZBJ6TMJSGHENDJ4
-#\\\|3HTWWH2XPGZJHYGCGWI6UZRECN4PGPTFOHB2CF4OBSLFD6OKVPG \ / AMOS7 \ YOURUM ::
-#\[7]MGOSEFD6JEWSBREKNPUVA22VYCXPWWXI74YFT6FGOGUPWLZEQACQ 7  DATA SIGNATURE ::
+#,,.,,.,.,.,.,.,,,,..,,..,,..,.,,,.,,,,.,,..,,..,,...,...,,,.,..,,,,,,...,,.,,
+#IUJWHFWK6OMFZLK6H3RNWWZHTJSSD5GSBKMKGDR4H3B5GOYWZAFL5PN7IT3AOQTUQBELIYO3DGQHG
+#\\\|KDEGANNDO3UMZE5XNEMXJGONVOYDFX4FFLNKCQJDVRPMYVFBLPG \ / AMOS7 \ YOURUM ::
+#\[7]U2CMDQYODOEF55MNLGMSQQVR7C3CXBWSCKGLG4Q352AGIUZFZYDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
