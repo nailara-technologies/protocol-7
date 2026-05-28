@@ -16,11 +16,18 @@ if ($@) {
     <[base.logs]>->( 0, 'jss.job.read: load error for %s: %s', $job_id, $@ );
     return undef;
 }
+return undef if ref $job ne 'HASH';
 
-return ref $job eq 'HASH' ? $job : undef;
+## normalize all scalar values to unicode strings ##
+for my $v ( values %$job ) {
+    next             if not defined $v or ref $v;
+    utf8::decode($v) if not utf8::is_utf8($v) and utf8::valid($v);
+}
 
-#,,..,,,.,,.,,...,...,,,.,,.,,..,,.,,,.,.,,,,,..,,...,...,.,,,,,,,,,,,,..,.,,,
-#A7UFZMAOM5JRTLE56BTQ4KWMGNOFDN4EMDAEO4DBYB33UVOQLYKDXCUNMAIHTROKMLRNVVK5O2PKC
-#\\\|JYFFDOJXQ4PABUK6FFIDKD47WYUQEPAWBMXQBULWOWYXUZ6YBFJ \ / AMOS7 \ YOURUM ::
-#\[7]6NU4S5NFDZI5DFG5RQNFGCW3WEZYVC4X2POBK23XSO63PKJSNCAI 7  DATA SIGNATURE ::
+return $job;
+
+#,,,.,.,.,.,.,..,,...,.,,,,,,,,.,,,..,,,,,.,,,..,,...,...,...,,,.,,.,,..,,,.,,
+#G3CJNM5H4TJVQZFD5UVH3BD3NL4RWF57RM5TISRHRNG33O6CIRY2VAUZU2Y3IYL3HER7YDIZ2HTRS
+#\\\|TXAPCUADRTQVPPYQTBDEKIS3SNKQIXQIUSRV2VWFSLMS6XD6Y7P \ / AMOS7 \ YOURUM ::
+#\[7]STDD3FCZ7VISYCUOJA7TY2UUOLDTK2RVDYNI5KFVYSJXKNHRZEBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

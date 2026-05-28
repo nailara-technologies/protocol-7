@@ -178,7 +178,11 @@ if ( defined $choice->{'finish_reason'} ) {
 
             ## also check reasoning_content : qwen3 thinking emits xml tool ##
             ## calls in reasoning_content rather than content                ##
-            if ( !@{$parsed_tools}
+            ## skip for no_tools tasks : model hallucinating tool calls in   ##
+            ## reasoning has no tools to call, treat as normal completion    ##
+            my $task_flags_ch = <coding.task.queue>->{$task_id} // {};
+            if (   !@{$parsed_tools}
+                && !$task_flags_ch->{'no_tools'}
                 && length( $context->{'reasoning'} // '' ) ) {
                 $parsed_tools
                     = <[coding.parse.xml_tool_calls]>
@@ -251,8 +255,8 @@ if ( defined $choice->{'finish_reason'} ) {
 
 return $context;
 
-#,,,.,..,,,.,,,..,,,.,.,,,.,,,,,.,,.,,..,,,,,,.,.,...,...,,,,,..,,..,,..,,,,.,
-#U3AENL3JKV3NTJNUA3CSBLDKNUIGCC3WKGI3Y6HX354BP6GJEC2ECVSJ7FZQZJ3FAR5F4GC66UNZS
-#\\\|GUQT7YWQ5UTO53QW7LT5TPSYR5OAFTENTBZAOQUBF3PR3M4J2PX \ / AMOS7 \ YOURUM ::
-#\[7]NOSVCHNXRBDMVI7ERYRTJ4QTLASCRSEDLYQCRQHJJLEJ72BJZABQ 7  DATA SIGNATURE ::
+#,,,.,,..,,,.,..,,...,,.,,,..,..,,,,,,,..,,.,,.,.,...,...,,,.,..,,,..,..,,..,,
+#U26ZNT5ECWNVU7LR5HFHD7NQ7QTQC66LYFSC6E54ISAFB5AKZXKTMICNYBJ7BSPWWD3QYXOFJQFKA
+#\\\|A3V5HRSRACIGZ3NDH6NYBQCAXJWWGVVOVZJP6TEP4BWGXXJZNI7 \ / AMOS7 \ YOURUM ::
+#\[7]VL4EP2DUAVATQ7MWJVAHMEN65TY56YLMDPQVWXBTHBQT6WFCLCCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

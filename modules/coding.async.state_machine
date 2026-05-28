@@ -168,9 +168,15 @@ elsif ( $action eq 'transition' ) {
         my $task_flags = <coding.task.queue>->{$task_id} // {};
         if ( $task_flags->{'no_tools'} ) {
             <[base.logs]>->(
-                1, "state_machine: no_tools set : skipping tool_executor for %s",
+                1,
+                "state_machine: no_tools set : skipping tool_executor for %s",
                 $task_id
             );
+            ## save content from transition data : reasoning fallback may have ##
+            ## populated content in chunk_handler before tool_calls were found  ##
+            $state->{'content'} = $data->{'content'} // $state->{'content'}
+                // '';
+            <coding.async.task_state>->{$task_id} = $state;
             <[coding.async.complete_task]>->($task_id);
             return;
         }
@@ -563,8 +569,8 @@ elsif ( $action eq 'constants' ) {
 
 return { error => sprintf "unknown action : '%s'", $action };
 
-#,,,,,,..,.,,,,,.,..,,...,,,.,..,,,.,,..,,,,.,.,.,...,...,.,,,.,,,.,.,...,,..,
-#LRV6F3SQ7BCRB3WBC4LS32VU5QT4VZPGE4VMQ2IHBXYL5FJAFE5K7LDVHYP2DYT3EG3ADGXW34YJK
-#\\\|IBOLIK36ISEY35JF5I54TJGQZHOBYJMQB6ZOFRTQY4BGBAINAUC \ / AMOS7 \ YOURUM ::
-#\[7]RMA4NE2OGYA6PL6RXX4U4YJTSLWW2F6HVHPEQM2BQ5GWF6U24ACQ 7  DATA SIGNATURE ::
+#,,,,,.,.,,..,,.,,,,.,.,.,..,,...,,,.,..,,.,,,.,.,...,...,,.,,,,.,..,,,..,...,
+#4ESJFCGOWBD3AKNQSES6SEWBUW5HIU64XTFHKO6O2HMUEUIW5T2EHQMFF7U42UOWM4SEC6V6FVMHY
+#\\\|WYHPWFU2LM2OVDC3T37QM6EMTZH5M7AYKA5KXFSX3ISUIZMOIOK \ / AMOS7 \ YOURUM ::
+#\[7]4UCYVYOJ2XO4BWMNRVW3N3LENGNXSDEEH4WN42UXEYBGCORAM4DA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
