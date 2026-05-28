@@ -8,6 +8,9 @@
 - **Never add** the `#,,.,,,...` stub at end of new files — blocks signing system
 - Leave new files clean; `bin/Protocol-7 sourcecode update-signatures` adds real 4-line footer
 
+## Session 61 (2026-05-29) — umlaut double-encoding fix + model_output buffer gap
+- [session-61](session-61.md) — models.handler.task-result: conditional utf8 encode (was double-encoding raw bytes); state_machine no_tools: buffer write before early return; 178 jobs with broken ß/Ä/Ö/Ü pending re-assess decision
+
 ## Session 60 (2026-05-28) — jobsite assessment pipeline fixed end-to-end
 - [session-60](session-60.md) — YAML parsing (preamble regex bug, Wide char, C1 control chars), newline transport (B32-encode in models.handler.task-result + decode in task.cmd.complete), model→9B, prompt priming, state_machine no_tools content loss, chunk_handler reasoning guard
 
@@ -267,8 +270,8 @@
 - **pager.sort.multi-key**: ntime_b32 + priority_map sort types added (session 42)
 - **task dispatch sections**: all dispatched tasks now carry ## dispatch + prompt for reuse
 
-#,,.,,.,.,.,.,.,,,,..,,..,,..,.,,,.,,,,.,,..,,..,,...,...,,,.,..,,,,,,...,,.,,
-#IUJWHFWK6OMFZLK6H3RNWWZHTJSSD5GSBKMKGDR4H3B5GOYWZAFL5PN7IT3AOQTUQBELIYO3DGQHG
-#\\\|KDEGANNDO3UMZE5XNEMXJGONVOYDFX4FFLNKCQJDVRPMYVFBLPG \ / AMOS7 \ YOURUM ::
-#\[7]U2CMDQYODOEF55MNLGMSQQVR7C3CXBWSCKGLG4Q352AGIUZFZYDY 7  DATA SIGNATURE ::
+#,,..,.,.,,,.,,..,.,,,.,.,.,.,,.,,,,,,.,.,...,..,,...,...,.,,,.,,,..,,,,.,,,,,
+#5CE4A3FCL3LZH3VZFWU2MSMYTFHLLHANNGND7T3QPJ6QJESRLXAMBBQ5IDY4QR6JHJNH6EDXO37U2
+#\\\|AB66FTZWPI42R5KTH2JGENZZETDIWSBQLWUT4T4NC5H52DGTK4R \ / AMOS7 \ YOURUM ::
+#\[7]SXP3Z2F5PS5R2MQBBRDROHWULDRSK7HEJEXSGQ3WRXXUQIUANQDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
