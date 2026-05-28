@@ -176,6 +176,21 @@ elsif ( $action eq 'transition' ) {
             ## populated content in chunk_handler before tool_calls were found  ##
             $state->{'content'} = $data->{'content'} // $state->{'content'}
                 // '';
+            ## write to model_output buffer so show-buffer reflects this result ##
+            my $nt_display = $state->{'content'};
+            $nt_display =~ s|</?tool_call>\s*||g;
+            $nt_display =~ s|<function\s*=\s*\w+\s*>.*?</function>||gs;
+            $nt_display =~ s|^\s+||;
+            $nt_display =~ s|\s+$||;
+            if ( length $nt_display ) {
+                <[coding.buffer.model_output]>->(
+                    $nt_display,
+                    {   'round' => $state->{'round'} // 0,
+                        'tool'  => qw| model |,
+                        'pct'   => $state->{'pct_used'},
+                    }
+                );
+            }
             <coding.async.task_state>->{$task_id} = $state;
             <[coding.async.complete_task]>->($task_id);
             return;
@@ -569,8 +584,8 @@ elsif ( $action eq 'constants' ) {
 
 return { error => sprintf "unknown action : '%s'", $action };
 
-#,,,,,.,.,,..,,.,,,,.,.,.,..,,...,,,.,..,,.,,,.,.,...,...,,.,,,,.,..,,,..,...,
-#4ESJFCGOWBD3AKNQSES6SEWBUW5HIU64XTFHKO6O2HMUEUIW5T2EHQMFF7U42UOWM4SEC6V6FVMHY
-#\\\|WYHPWFU2LM2OVDC3T37QM6EMTZH5M7AYKA5KXFSX3ISUIZMOIOK \ / AMOS7 \ YOURUM ::
-#\[7]4UCYVYOJ2XO4BWMNRVW3N3LENGNXSDEEH4WN42UXEYBGCORAM4DA 7  DATA SIGNATURE ::
+#,,,.,.,.,.,,,,..,,,.,,,,,,,.,...,,,,,...,.,.,.,.,...,...,..,,,,,,,.,,,,,,,,,,
+#AZRNU4TZYDMRGYSNV4WDFSVGFL67VATZMHN4APESK73XELVRPLRERA2UK2KIASHPOPYRHQYOPL3AM
+#\\\|BDWZPMFFSKZ2ZXDFHMS4A5ZBXHHZBNLV3MFQMGUZTVDMGVJEO3X \ / AMOS7 \ YOURUM ::
+#\[7]OMJATNNQLNODK7WVDEYG5IAHU7P44E6WSZG2FYSL6N7O5GKHGKAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
