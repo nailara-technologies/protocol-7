@@ -12,20 +12,23 @@ my $job_id  = $call->{'params'}{'job_id'}  // '';
 my $task_id = $call->{'params'}{'task_id'} // '';
 
 <[base.logs]>->(
-    1, 'jss.assess-done: job=%s mode=%s result_len=%d preview=[%s]',
-    $job_id, $mode, length($result), substr( $result, 0, 80 ) =~ s/\n/ /gr
+    1, ':assess-done: job=%s mode=%s result_len=%d ..',
+    $job_id, $mode, length($result)
+);
+<[base.logs]>->(
+    1, ":. [ %s ]", <[base.parser.ellipse_center]>->( $result, 63 )
 );
 
 my $job_rec = <jobsite.tasks>->{$job_id};
 if ( not defined $job_rec ) {
-    <[base.logs]>->( 0, 'jss.assess-done: unknown job %s', $job_id );
+    <[base.logs]>->( 0, ':assess-done: unknown job %s', $job_id );
     <jobsite.pending_count>--;
     return;
 }
 
 if ( lc($mode) eq qw| false | ) {
     <[base.logs]>->(
-        0,        'jss.assess-done: task %s failed for job %s',
+        0,        'assess-done: task %s failed for job %s',
         $task_id, $job_id
     );
     $job_rec->{'stage'} = 'failed';
@@ -77,7 +80,7 @@ $yaml_err = $@;
 
 if ($yaml_err) {
     <[base.logs]>->(
-        0,         'jss.assess-done: YAML parse error: %s | src=[%s]',
+        0,         ':assess-done: YAML parse error: %s | src=[%s]',
         $yaml_err, substr( $yaml_src, 0, 80 ) =~ s/\n/\\n/gr
     );
 }
@@ -241,8 +244,8 @@ if ( <jobsite.pending_count> <= 0 ) {
 <[jobsite.state.persist]>;
 <[jobsite.dispatch.next]>
 
-#,,,.,.,,,.,,,,,.,...,,,.,,.,,..,,.,.,,..,,,.,..,,...,..,,,.,,..,,,,.,,,,,,,.,
-#M42UKABWTS7R24HAVDCPWOJXZTEKPCG52TWLXIDUNLR33LJZKWDKSMVXRWEEYHXJ6HEAVWG7TVVD4
-#\\\|HCK2NAYYCEOYABEOOLXOQ76V4WYXXXL5H5CU27KUVZZFKEQMRKY \ / AMOS7 \ YOURUM ::
-#\[7]T3RIHP3KRPODOUOB2VMLE3STY5AJWBKNOFTC7UCOW4QDG247IYCI 7  DATA SIGNATURE ::
+#,,..,,,,,,,.,,..,,,,,,,.,,.,,,,.,,,.,,..,,,.,..,,...,...,.,.,,,,,,,.,.,,,,,,,
+#3ZW5TWI5CLJSS2OIGX5TEXN4JC4Z5NNXGCC2UQ4CSN6KZ5JNJ6UFAMJU6BBKKUEICTMHDISG7EWWI
+#\\\|XS2PJ67FVBSYN6IBO7APZ3O7X4WQI4OUFQXKYBVH6Y5SVRSLMDB \ / AMOS7 \ YOURUM ::
+#\[7]NAKI2TMRS2XDEFRKI2RS4ASQX42QKFVLOC36OSMSYY3KM46HYYBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
