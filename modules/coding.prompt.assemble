@@ -18,6 +18,14 @@ if ( $raw_type =~ m{^(cpu|gpu)$}i ) {
     };
 } else {
     my $raw_prompt = $task->{'request'}->{'description'} // '';
+
+    ## append task context if provided ##
+    my $task_context = $task->{'context'} // $task->{'request'}->{'context'}
+        // '';
+    if ( length $task_context ) {
+        $raw_prompt .= "\n\n" . $task_context;
+    }
+
     $parsed = <[coding.parser.query_prefix]>->($raw_prompt);
 }
 
@@ -281,8 +289,8 @@ return {
     'hooks'        => $hooks,
 };
 
-#,,.,,.,.,,..,,.,,.,,,,,,,,,.,.,.,,,,,,,,,,,,,..,,...,.,,,...,,..,.,,,,..,,.,,
-#XHAP6XOPHFLRQP3XVMY4PDNZOWJIJXWG2QWBH3USDCAOMO63VC32ZXE7PJSPN7A32LVKO6U4V3Y7S
-#\\\|P3ZOTADFVAEOP3SSZNDXUXIZWU25CWHGQB4NLD4DDFX4NMQ25O6 \ / AMOS7 \ YOURUM ::
-#\[7]QCIKP75J5BOXPFZF4ELFMPLK5WMSADOFYOPEEEE63LMOJ7HI4YBY 7  DATA SIGNATURE ::
+#,,.,,.,.,,.,,,,.,...,,.,,...,.,.,.,,,,,,,...,..,,...,...,.,,,,.,,..,,,,.,.,.,
+#SIUNIU2EUTNKZ4X6UTU6RRIXLXKW6FWXD7GAVCZJYAWDGJO6OXCAUSLBPRSHJMP37HLYXA6KXPL3C
+#\\\|3SGFXMK3BWJJJVJZALH3LH4I5KBDUMFCL64WKPJE4U3LHMKR2ER \ / AMOS7 \ YOURUM ::
+#\[7]UQ7U2FPTEFSN7BUMOA6CYYBPSKJE2J4HCVBUHH7A4T23T3Z4A4DY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
