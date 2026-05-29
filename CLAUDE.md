@@ -6,19 +6,18 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-Protocol-7 is a Perl-based modular system with a unique architecture focused on asynchronous operations and modular components called "zenka". The current branch `dev/httpd-async-implementation` implements asynchronous HTTP server functionality with non-blocking I/O operations.
+Protocol-7 is a Perl-based modular system with a unique architecture focused on asynchronous operations and modular components called "zenka" [or "zenki" (plural)]. The current branch is `base`.
 
 ## Development Commands
 
 ### Dependencies Installation
 ```bash
-# Install system dependencies (Debian/Ubuntu)
+# Profile-based dependency management (current)
+bin/p7-deps                        # Install and verify dependencies by profile
+
+# Legacy dependency scripts (Debian/Ubuntu)
 ./bin/dependencies/install_dependencies.debian.sh
-
-# Install minimal dependencies
 ./bin/dependencies/install_minimal_dependencies.debian.sh
-
-# Install CPAN modules
 ./bin/dependencies/cpan_install.debian.sh
 ```
 
@@ -33,17 +32,18 @@ Protocol-7 is a Perl-based modular system with a unique architecture focused on 
 # Alternative GUI version
 ./bin/protocol-7-gtk3
 
-# System-wide p7 binary (auto-installed)
-p7 <command> [args]                # Low-latency network command access
+# System-wide p7c binary (auto-installed)
+p7c <command> [args]               # Low-latency network command access
 
 # Interactive Protocol-7 shell
-./bin/nshell                       # Direct user interaction with zenka network
+p7c nshell.start                   # nshell zenka (current)
+./bin/nshell                       # Legacy standalone shell (still works)
 ```
 
 ### Development Tools
 ```bash
-# Protocol-7 development shell
-./bin/nshell
+# Dependency management
+bin/p7-deps                        # Profile-based dependency installation and verification
 
 # CPAN package manager
 ./bin/ncpan
@@ -83,8 +83,9 @@ Protocol-7 is a **multi-agent system** where each agent is called a **zenka** (s
 - **Structure**: Modules do NOT use `sub { }` declarations - the filename itself becomes the callable subroutine
 - **Invocation**: Two syntax options:
   - Standard Perl: `$code{'module.name'}->()` or `$code{$var}->()`
-  - Special syntax: `<[module.name]>->()` (parsed to Perl before compilation)
-  - Variable form: `<[$var]>->()` (parsed to `$code{$var}->()`, no quotes)
+  - Special syntax: `<[module.name]>` (parsed to Perl before compilation; `->()` implicit when no args)
+  - With args: `<[module.name]>->( $arg )` — explicit `->()` required only when passing arguments
+  - Variable form: `<[$var]>` (parsed to `$code{$var}->()`, no quotes)
 
 ### Module File Format
 ```perl
@@ -239,48 +240,42 @@ Each zenka is a configured agent instance defined by:
 ## Current Development Focus
 
 ### Async Inference Spawning (Coding Zenka)
-The coding zenka implements **non-blocking inference server spawning** that prevents init timeout:
-- **Problem**: Spawning and waiting for llama-server during init causes 70+ second timeout
-- **Solution**: Defer spawning to 100ms timer event after init completes
-- **Components**:
-  - Timer-triggered async spawning via `coding.async_spawn_inference_servers`
-  - I/O handlers for non-blocking stdout/stderr monitoring
-  - Log whitelist filtering to suppress benign startup messages
-  - LD_LIBRARY_PATH environment setup for GPU binary symbol resolution
-- **Result**: Coding zenka initializes in < 100ms, servers spawn asynchronously
-- **Status**: ✅ Fully implemented and verified working
+The coding zenka implements **non-blocking inference server spawning**:
+- Spawning deferred to 100ms timer event after init completes — zenka initializes in < 100ms
+- Timer-triggered async spawning via `coding.async_spawn_inference_servers`
+- I/O handlers for non-blocking stdout/stderr monitoring
+- Log whitelist filtering to suppress benign startup messages
+- LD_LIBRARY_PATH environment setup for GPU binary symbol resolution
 - **Documentation**: `data/md/documentation/ASYNC-SPAWNING-INFRASTRUCTURE-STATUS.md`
 
 ### HTTP Server Async Implementation
-The active `dev/httpd-async-implementation` branch is implementing:
+Async HTTP server components implemented on `base`:
 - Non-blocking file operations for HTTP server
 - Event-based I/O handling
 - Performance benchmarking system
 - HTTP Range request support
 - Timeout handling mechanisms
 
-All core async components are implemented per `IMPLEMENTATION-CHECKLIST.md`.
-
-### System Integration - P7 Binary
-- **Source**: `bin/c_src/p7.c` - C implementation for low-latency network access
+### System Integration - P7C Binary
+- **Source**: `bin/c_src/p7c.c` - C implementation for low-latency network access
 - **Auto-installation**: Compiled and installed to system path when v7 zenka starts
 - **Configuration**:
   - `v7.cfg.install_bin_p7 = yes` - Enable auto-installation
-  - `v7.cfg.p7_bin_path = '/usr/local/bin/p7'` - Installation path
+  - `v7.cfg.p7_bin_path = '/usr/local/bin/p7c'` - Installation path
   - `v7.cfg.bin_p7_static = yes` - Static binary compilation
 - **Purpose**: Provides system-wide access to Protocol-7 network commands without requiring network code in calling scripts
-- **Usage**: `p7 <command> [args]` - Routes commands through Unix socket to cube zenka
+- **Usage**: `p7c <command> [args]` - Routes commands through Unix socket to cube zenka
 - **Environment**: Uses `PROTOCOL_7_UNIX_PATH` and `PROTOCOL_7_BIN_P7_USER` environment variables
 
 ### Interactive Shell - nshell
-- **Source**: `bin/nshell` - Perl-based interactive shell for Protocol-7 network
+- **Primary**: nshell zenka — started via `p7c nshell.start`; modern implementation with full zenka integration
+- **Legacy**: `bin/nshell` - Perl-based standalone shell; still works but superseded by the zenka
 - **Purpose**: Direct user interaction with zenka network through shell loop
 - **Features**:
   - Interactive command prompt for zenka communication
   - Authentication handling and session management
   - Direct access to all zenka commands (`weather.desc`, `list users`, etc.)
-- **Usage**: Run `./bin/nshell` for interactive Protocol-7 session
-- **Complement to p7**: While `p7` is for scripting, `nshell` is for interactive exploration and administration
+- **Complement to p7c**: While `p7c` is for scripting, `nshell` is for interactive exploration and administration
 
 ## Code Style and LLM Integration
 
