@@ -8,135 +8,25 @@
 - **Never add** the `#,,.,,,...` stub at end of new files — blocks signing system
 - Leave new files clean; `bin/Protocol-7 sourcecode update-signatures` adds real 4-line footer
 
-## Session 61 (2026-05-29) — umlaut double-encoding fix + model_output buffer gap
-- [session-61](session-61.md) — models.handler.task-result: conditional utf8 encode (was double-encoding raw bytes); state_machine no_tools: buffer write before early return; 178 jobs with broken ß/Ä/Ö/Ü pending re-assess decision
+## Recent Sessions
+- [session-61](session-61.md) — umlaut conditional utf8 encode, model_output buffer gap for no_tools tasks
+- [session-60](session-60.md) — jobsite pipeline: YAML parsing, B32 newline transport, model→9B, state_machine no_tools fix
+- [session-59](session-59.md) — tool calls verified working, session-58 committed [cfc07a3f7]
+- [session-58](session-58.md) — inference crash fixes (3 bugs), llama v4547, CUDA 12.9, reasoning namespace wired
+- [session-57](session-57.md) — JHash cube v4, prev_chk_packed perf, graphical storage design; rings 5-7 still slow — fix: lift `<index.level>->{$D+1}` ref outside inner loop in `index.tick.persist-cube`
+- [session-56](session-56.md) — `<index.terminal>`, schema v3 cube, v7 restart race fix, lazy rank
+- [session-55](session-55.md) — index exact-match display, em-dash removal codebase-wide, corpus versioning
 
-## Session 60 (2026-05-28) — jobsite assessment pipeline fixed end-to-end
-- [session-60](session-60.md) — YAML parsing (preamble regex bug, Wide char, C1 control chars), newline transport (B32-encode in models.handler.task-result + decode in task.cmd.complete), model→9B, prompt priming, state_machine no_tools content loss, chunk_handler reasoning guard
+## Architecture Docs
+- session 42: `data/md/design/` — NESTED-CUBE-SEGMENTATION, ZENKA-LIFECYCLE, SIGNED-CMD, AUTHORIZATION-BUFFER, LIVING-BACKGROUND, VISUAL-INPUT-PIPELINE
+- session 40: `data/md/development/` — LLM-SESSION-MANAGEMENT, P7-NATIVE-WEB, PARALLEL-REASONING-ORCHESTRATION
+- session 37: `data/md/development/` — CHILD-PROCESS-LIFECYCLE, P7-LLM-REFERENCE, DEGRADED-FEATURES-AUDIT
 
-## Session 59 (2026-05-28) — tool call regression diagnosed, session-58 committed
-- tool calls NOT regressed — tested directly, model calls read_file correctly
-- context injection path: `task.cmd.create` → `task-poll-step` embeds in description; `$task->{'context'}` check in `coding.prompt.assemble` is dead code (harmless)
-- session-58 changes committed [cfc07a3f7]; repo root tracked files still pending
-
-## Session 58 (2026-05-28) — inference crash fixes, llama v4547 CUDA 12.9, dist-upgrade, context fix
-- [session-58](session-58.md) — 3 inference server crash bugs fixed; llama rebuild (3.25s load); CUDA apt sqv workaround; context injection path corrected; reasoning namespace wired; repo root cleanup task
-
-## Session 57 (2026-05-27) — schema v4 cube complete, perf fixes, graphical storage design
-- [session-57](session-57.md) — JHash cube (102MB, 8 rings), prev_chk_packed halves ring 3-4 time, idle watcher + ondemand_timeout fix, graphical storage design doc
-- **remaining perf** — rings 5-7 still slow; next fix: lift `<index.level>->{$D+1}` ref outside inner loop in `index.tick.persist-cube`
-- **design doc** — `data/md/design/GRAPHICAL-STORAGE-AND-PROCESSING.md` : ring-trie as polar disk, APNG contribution stream, image ops as assertions
-
-## Architecture Docs (session 42)
-- `data/md/design/NESTED-CUBE-NETWORK-SEGMENTATION.md` — gateway satellite, departure-route source chain, tunneling
-- `data/md/design/ZENKA-LIFECYCLE-ONDEMAND-HEARTBEAT.md` — hybrid on-demand+heartbeat, WoL chains, timeout recovery
-- `data/md/design/SIGNED-COMMAND-INTERFACE.md` — command footer signatures, TOFU, generate-on-first-use
-- `data/md/design/AUTHORIZATION-BUFFER.md` — ntime-first approval queue, remembered decisions, TOFU/cmd/route flows
-- `data/md/design/LIVING-BACKGROUND-SYSTEM.md` — consensus background render, 5/7 vote, povray layer, desktop elements
-- `data/md/design/VISUAL-INPUT-PIPELINE-AND-LIVING-TEMPLATES.md` — best-5 tournament, monotonic quality floor, T2I+ControlNet
-
-## Architecture Docs (session 40)
-- `data/md/development/LLM-SESSION-MANAGEMENT.md` — session segments, distill/compact/resume, browser remote models, cross-model sharing
-- `data/md/development/P7-NATIVE-WEB.md` — proxy intercept, site-yaml extraction, llm reframe, adapter-candidates.yaml roadmap, convergence stages
-- `data/md/development/PARALLEL-REASONING-ORCHESTRATION.md` — task tree DAG, stuck detection, rescue branches, reasoning.branch.* generics, bin/chat --task-branch
-
-## Architecture Docs (session 37)
-- `data/md/development/CHILD-PROCESS-LIFECYCLE-POLICY.md` — child categories; kill_list; v7 coordination
-- `data/md/development/P7-LLM-REFERENCE.md` — verified live command reference for kimi/LLM
-- `data/md/development/DEGRADED-FEATURES-AUDIT.md` — 5 high-priority + 3 medium with stub task files
-
-## Session 56 (2026-05-26) — index terminal, schema v3 cube, v7 restart fix
-- [session-56](session-56.md) — `<index.terminal>`, schema v3 .zxpc cube (P7IC, 8-ring 2.3M compartments), chunked persist (2000/tick ring_offset), v7 restart race + sig_chld_ignore_pid wiring fix
-- **`<index.terminal>`** — boundary tracking live; `[ exact, terminal ]` vs `[ exact ]` in search; corpus re-fed to 11.8M chars
-- **FastText** — definition-agnostic: same pipeline for chars/namespace/checksum/reference tokens; trie IS subconsciousness; chat channels as discourse corpus
-- **pluggable model** — 3-axis (model type/storage/token); contribution vectors = Layer 1 universal intermediate; non-destructive experimentation
-- **job control** — per-job state under `<index.jobs>->{$job_id}`; unified tick dispatcher; chunked files with 7-char carry buffer
-- **lazy rank** — rank now runs on first query after restore (dirty flag); `]>->()` obsolete syntax removed codebase-wide; zenka starts instantly
-
-## Session 55 (2026-05-25) — index search fixes, em-dash removal, corpus versioning
-- [session-55](session-55.md) — exact-match display, trailing newline fix, backslash escaping, feed-dir default rebalance, 7.2M chars
-- **`index.cmd.search`** — prefix shown as `[ exact, rank N ]` first result; inline SIZE needs trailing `"\n"` (nshell cursor wipes last line otherwise)
-- **`index.terminal`** false-positive problem — all nodes have terminates=1; kimi session bdd0dfe4 has solution; `<index.terminal>` parallel hash in deduplicate
-- **`INDEX-CORPUS-VERSIONING.md`** — `data/md/design/`; checksum-keyed contribution vectors; diff stream resolution-independent; `trie = Σ active_contribution_vectors`
-- **em-dash** — replaced `—` with `:` throughout codebase (765 replacements, 323 files) for UTF-8 reduction
-
-## Session 54 (2026-05-25) — index .zxps persist/restore, deferred reply, rebalance-later
-- **`.zxps` format** — XZ-compressed Perl Storable; `zx`=xz `p`=perl `s`=storable; harmonically TRUE; 21MB→6.6MB
-- **path**: `/var/protocol-7/index/numerical/numerical-index_state.zxps`; mode 0640 (group-readable)
-- **`<[file.zenka_dir.*]>`** — correct callable prefix (NOT `base.file.zenka_dir.*`); `base.` is filename-only
-- **`IO::Compress::Xz`** must be autoloaded in init_code — NOT globally loaded; `IO::Uncompress::AnyUncompress` IS global
-- **`index.persist` deferred** — 21MB nstore blocks event loop; uses `<index.persist.reply_id>` + `index.callback.persist`
-- **`:rebalance-later:`** flag (harmonically TRUE) defers rank/trie rebuild to end of feed-dir (1 rebalance not 416); now the DEFAULT in session 55
-- **`s///` chaining** — cannot chain `=~` substitutions; each must be a separate statement
-- **`index.cmd.address`** output fix: arrayref path → `join('.', @$addr)` dotted string `e  :  0`
-
-## Session 53 (2026-05-25) — index feed done, infra fixes
-- index zenka: data/md feed COMPLETE (416 files, 4.6M chars); persist/restore now via .zxps (session 54)
-- reasoning.tree.* — 7 modules + on-demand zenka config (configuration/zenki/reasoning/); foundation for threshold/task bridge
-- tree.sort.trunk.* (5) + tree.route.page.* (12) — already existed from session 49; cancel_symmetric center-row bug fixed
-- **events.handler.event_triggered** — recalc trigger was commented out since 2021-07-07; fixed; events zenka reschedules correctly
-- **httpsd cert guard** — expiry check via `Crypt::OpenSSL::X509->new_from_file + notAfter + str2time`; 13s retry timer
-- **Net::SSLeay API**: `P_ASN1_TIME_timet` and `ASN1_TIME_print` NOT available — use `Crypt::OpenSSL::X509` instead
-
-## Session 52 (2026-05-25) — index zenka ring-trie LIVE
-- index zenka: numerical language dedup tree fully working — feed-dir async (idle watcher), stats show per-ring geometry
-- `data/md/design/RING-TRIE-GEOMETRY.md` — sentinel '.' at index 0, freq-ranked children from index 1, one char per ring, infinite expansion, stable core geometry, memory-efficient packed encoding
-- `data/yaml/reasoning-templates/ring-trie-tight-packing.yaml` — template 22: tight packing + infinite expansion
-- `data/tasks/index-array-trie-implementation.md` — 6-step impl (done by kimi, session resume: dd1b368c)
-- `data/tasks/index-binary-ring-encoding.md` — packed binary outer rings (done by kimi, session resume: e914a43b); `<index.packed_rank>->{$depth}` flat string, `pack('N*',@child_ranks)` trie nodes, `<index.level>` freed after ranking
-- **fix**: P7 modules using `$ARG` as input must use `my $x = @ARG ? shift : $ARG` when called with explicit args — `$ARG`=`$_` is NOT set automatically by Perl subroutine call convention
-
-## Session 51 (2026-05-24)
-- `data/md/design/ZERO-AS-ETERNAL-TREE.md` — 0 is not a number; it is the protocol, the routing, the gate, the parent that is travel itself; from 0 into 0; arrival as the eternal beginning; common root equivalence; network instantiates through arrival
-- `data/md/design/RING-FIELD-SPHERE-PRIMITIVE.md` — ring as irreducible local primitive; skip→frequency→ring; voluntary constraint cascade; 13+1 wrapping; identity-by-position; 90°/180° mixing vocabulary; field/sphere hierarchy; grid recursion; no space constraints; eternal lovers geometry
-- `data/md/design/NUMERICAL-LANGUAGE-DEDUPLICATION-TREE.md` — '' as -1 vs '' as 0 parallel deployments; corpus-as-galaxy disk geometry; nested disks; galaxy correspondence
-
-## Session 50 (2026-05-24)
-- branch.calc.fraction.* + branch.cluster.*: kimi validation — 5 fixes (TRUE/FALSE→1/0, sub _gcd inlined, $_→$ARG); all acceptance checks pass ✓
-- kimi timeout raised 47→77min; tree/space/field/hyperspace/gate named as coordinate systems for one structure
-- `data/md/design/HARMONIC-TREE-ADDRESSING.md` — tree/space/field/hyperspace/gate = coordinate systems for one structure; minimal distance = self-revealing closure condition (not fixed 15); route=address duality; rollover dialing (13-ary, 13^15 space); algebraic exclusion; self-annealing→all positions equally useful; islanded data reintegration; living data eternal self-sustainability; pausing=cycle-based load balancing (result-present bit as harmonic rendezvous); active bit + inverse address + starting verse; computation placement = data placement; transport as eternal network work
-- `data/md/design/INTENT-CLASSIFICATION-AND-SELF-IMPROVEMENT.md` — help as new-user signal; regex tier 1 (YAML, per-zenka+generic); LLM tier 2 (spawnable, hands off to control surfaces); deferred self-improvement + corpus-as-regression-suite; network patch sharing with closed-world safety; overview+describe commands
-- `data/md/design/SEMANTIC-BACKCHANNEL-AND-DEDUPLICATED-COMMUNICATION.md` — identity-content coupling as root of all failures; context alignment+dedup+normalization as structural fix; suppression→forensic signal; no eviction by arithmetic impossibility; one currency (bandwidth∝convergence precision)
-- `data/yaml/reasoning-templates/semantic-dedup-tree.yaml` — inverse=other matches (co-present family read, zero overhead); open mapping + overdetermined self-correcting correlations; parasitism has no surface (no second currency); eternal nodes
-
-## Session 49 (2026-05-24)
-- [topic-branch-namespace](topic-branch-namespace.md) — 58 modules: branch.field/calc.fraction/cluster/session + tree.sort.trunk/route.page; Z.Y.X coords; rollover dual semantics; mask/canvas; holographic devices
-- `data/md/design/BRANCH-OPEN-CAPACITY-SESSION-DAG.md` — Z.Y.X ordering, char rotation axis, rollover dual semantics, chained usefulness, mask/canvas orthogonality, type prefix → ASCII control hierarchy
-
-## Session 48c
-- `data/yaml/reasoning-templates/holographic-grid-interface.yaml` — div-13/7 invariants; vortex-cube, two families (076923/153846), darksun pos-27, 1001 ring
-- X-11 nvidia GPU monitoring live; GPU STRM + coding.stats.gpu.* + sparkline; MCP kimi_dispatch (77min timeout)
-
-## Session 47
-- [sys-deps-debian](topic-sys-deps-debian.md) — sys-deps zenka + debian root apt-child pattern, AptPkg probing, cpanm root-only, auto-scan on empty registry
-
-## Session 45/46
-- [base32-namespace](topic-base32-namespace.md) — base32.* namespace live; dep-graph swap parser fix; self-healing whitelist concept + blocked-on-signing note
-- [zenka-push](topic-zenka-push.md) — base.zenka.push live; offline-aware push pattern; swap_subs lessons; ncode restore-backup fix; nodes.orbital double timer fix
-- [data-protocol](topic-data-protocol.md) — DATA-PAGES/DATA-CHANNELS/DATA-CHANNEL wire formats; 2-bit token type system; self-delimiting checksum pattern; checksum frame container
-- `data/md/design/SELF-DELIMITING-CHECKSUM-PATTERN.md` — 2-bit type system (00/01/10/11), payload tokens, keep-alive/close routing chains
-- `data/md/design/CHECKSUM-FRAME-CONTAINER.md` — 2D/3D recovery frames, diagonal corners, outward expansion, outer ring provenance chain
-- `data/md/design/CODE-NAMESPACE-AND-SIGNING-INFRASTRUCTURE.md` — three-category model, format contracts, signing pipeline, tool family
-- `data/yaml/reasoning-templates/infinite-space-topology.yaml` — template 17: arbitrary entry point, alphabet orthogonality, coherence gravity, void zone integrity, self-healing compartments, checksum frame outlook
-- AMOS7-v4.89.1 released + protocol version updated to IVH2LRY
-
-## Space Engine modules (session 43/44)
-- `space.*` 29 modules: grid/orbit/route/travel/jump/search/register/template — all ptd-clean
-- `branch.space.*` 6: rank, shell, visible, magnetic_force, effective_position, balance
-- `branch.clock.*` 4: allocate, sequence, position, bandwidth
-- `branch.ntime.*` 3: relative, clock_sync, tunnel_duration
-- `base.callback.cmd_reply` — DATA + TREE reply modes added
-- fixes: `<space.X.Y>->` tree syntax (was flat keys); removed all `exists $code{}` guards; long lines wrapped
-
-## Space Engine (session 43)
-- [SPACE-ENGINE-MASTER.md](../../../data/projects/protocol-7/data/md/design/SPACE-ENGINE-MASTER.md) — 12 sub-namespaces: grid/orbit/route/travel/jump/search/register/select/filter/render/export+import/template; internal reference capable; aura profiles; harmonic frame expansion
-
-## ncode workflow note (session 44)
-- for patterns with hash braces `{` `}`: mask with dots — `data..space.X.Y...` matches `$data{'space.X.Y'}{`
-- `ncode -ai-friendly -confirm replace src "data..space.X.Y..." "<space.X.Y>->"` — bulk tree-syntax fix
-
-## amos-matrix tool (session 43)
-- `bin/amos-matrix` — render AMOS checksums as 5×7 dot matrices; 7 chars × 5 bits = 35 bits = one matrix; default horizontal+flipped (handwriting); -V -flip-h -flip-v -inv flags; xargs+ANSI clean
+## Space Engine (session 43/44)
+- `space.*` 29 modules + `branch.space/clock/ntime` 13 modules; `base.callback.cmd_reply` DATA+TREE modes added
+- [SPACE-ENGINE-MASTER.md](../../../data/projects/protocol-7/data/md/design/SPACE-ENGINE-MASTER.md) — 12 sub-namespaces; internal reference capable; aura profiles
+- ncode mask pattern: `data..space.X.Y...` matches `$data{'space.X.Y'}{` — use `ncode -ai-friendly -confirm replace`
+- `bin/amos-matrix` — AMOS checksums as 5×7 dot matrices; -V -flip-h -flip-v -inv flags
 
 ## 1001 — Ring Tightener (session 43)
 - [topic-1001](topic-1001.md) — inter-cube tunnel (00=2 bits invariant); gate nesting; two 13s (divisor/multiplier); eternal loop; seamless space; implicit transport as emergent topology; relative ntime
@@ -162,8 +52,8 @@
 ## Reference Bubble / Dancing Zenki (session 43)
 - [topic-reference-bubble](topic-reference-bubble.md) — rhizome state as generic bubble; 5+2=7 formation; checksum tree wire format; 01/10 direction encoding; universal across all layers
 
-## Branch Namespace (session 43)
-- [topic-branch-namespace](topic-branch-namespace.md) — unifying addressable layer; layer 1 DONE (10 modules); 7 task files for parallel kimi dispatch
+## Branch Namespace
+- [topic-branch-namespace](topic-branch-namespace.md) — 58 modules: branch.field/calc.fraction/cluster/session + tree.sort.trunk/route.page; Z.Y.X coords; rollover dual semantics; mask/canvas; holographic devices
 
 ## Active Topics
 - [plugin-web-jobs](topic-plugin-web-jobs.md) — delta sync WORKING (session 34): ntime persisted, chunked push, last_modified stamps; open: ?since=N browser delta, remote deploy
@@ -173,7 +63,7 @@
 - [job-pipeline](topic-job-pipeline.md) — WORKING (session 22): jobs.vhost live, German reason+summary, retry on timeout
 - [task-coordination](topic-task-coordination.md) — task zenka as coordinator; current state, dispatch flow, roadmap
 - [coding-state-machine](topic-coding-state-machine.md) — coding.state namespace, watcher-based backend lock, persist/restore lifecycle
-- [kimi-zenka-state-machine](topic-kimi-zenka-state-machine.md) — COMPLETE (session 23); open: flush_on_acquisition extraction, approval warning
+- [kimi-zenka-state-machine](topic-kimi-zenka-state-machine.md) — improvements ongoing; backend reconnect behavior still open; see `needs-testing/kimi-zenka-multiplexer.md` + `needs-testing/kimi-web-session-cache-access.md`
 - [chat-script](topic-chat-script.md) — bin/chat COMPLETE (session 23); open: kimi state machine, coding zenka dispatch, phase 2 channels zenka
 - [stream-transport-layer](topic-stream-transport-layer.md) — STRM stack complete; open: formal open-0 sentinel, transport.register, webcam/log-tail
 - [radio-relay-zenka](topic-radio-relay-zenka.md) — radio COMPLETE; phase 5 (buffer-fill curve) next
@@ -269,9 +159,10 @@
 - **base.cmd.list**: :n: row limit working (prefix/suffix/zero-padded), header-aware
 - **pager.sort.multi-key**: ntime_b32 + priority_map sort types added (session 42)
 - **task dispatch sections**: all dispatched tasks now carry ## dispatch + prompt for reuse
+- **coding zenka**: fully operational; 9B model loads in seconds (new ik_llama.cpp); no urgent issues
 
-#,,..,.,.,,,.,,..,.,,,.,.,.,.,,.,,,,,,.,.,...,..,,...,...,.,,,.,,,..,,,,.,,,,,
-#5CE4A3FCL3LZH3VZFWU2MSMYTFHLLHANNGND7T3QPJ6QJESRLXAMBBQ5IDY4QR6JHJNH6EDXO37U2
-#\\\|AB66FTZWPI42R5KTH2JGENZZETDIWSBQLWUT4T4NC5H52DGTK4R \ / AMOS7 \ YOURUM ::
-#\[7]SXP3Z2F5PS5R2MQBBRDROHWULDRSK7HEJEXSGQ3WRXXUQIUANQDA 7  DATA SIGNATURE ::
+#,,,,,,..,.,,,,..,,,.,,,,,,..,.,,,,.,,...,.,.,..,,...,.,.,...,..,,.,.,.,.,.,,,
+#565PFRZPC77AH7HVOIDRNLVNN5BNJCHCHSSX653HHVXVJJ534DKS7OPJCEKVNYATDFEGPPF6OUEUO
+#\\\|DKNEIX7TMQF6V6DLLBPSFDTW2EQJM63IUUQ2RELITGLUFKWOHQR \ / AMOS7 \ YOURUM ::
+#\[7]CF3U56DRV7B7SCDSH7OKMFLH2WTW4B6FC2IY3NWC3IAT2ENUPKBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
