@@ -869,7 +869,7 @@ if ( $cmd =~ m,^(TRUE|FALSE|WAIT|SIZE|CHRSIZE|STRM|STRM-SIZE|GET|TERM)$, ) {
                         'route_id'       => $session->{'route'}->{$cmd_id},
                     };
 
-                    ## Fire reply handler if registered ##
+                    ## calling reply handler if registered ##
                     if (    defined $route->{'reply'}->{'handler'}
                         and defined $code{ $route->{'reply'}->{'handler'} } )
                     {
@@ -908,7 +908,7 @@ if ( $cmd =~ m,^(TRUE|FALSE|WAIT|SIZE|CHRSIZE|STRM|STRM-SIZE|GET|TERM)$, ) {
                         'route_id'       => $session->{'route'}->{$cmd_id},
                     };
 
-                    ## Fire reply handler if registered ##
+                    ## calling reply handler if registered ##
                     if (    defined $route->{'reply'}->{'handler'}
                         and defined $code{ $route->{'reply'}->{'handler'} } )
                     {
@@ -1055,8 +1055,10 @@ if ( $cmd =~ m,^(TRUE|FALSE|WAIT|SIZE|CHRSIZE|STRM|STRM-SIZE|GET|TERM)$, ) {
                             $stream->{'total_bytes'}
                         ) if defined $stream->{'total_bytes'};
 
-                        ## Fire local consumer on_eof and clean up ##
-                        if ( exists <base.strm.local>->{$cmd_id} ) {
+                        ## calling local consumer on_eof and clean up ##
+                        my $had_local_consumer
+                            = exists <base.strm.local>->{$cmd_id};
+                        if ($had_local_consumer) {
                             my $lc = <base.strm.local>->{$cmd_id};
                             $lc->{'on_eof'}->($lc) if defined $lc->{'on_eof'};
                             delete <base.strm.local>->{$cmd_id};
@@ -1064,7 +1066,7 @@ if ( $cmd =~ m,^(TRUE|FALSE|WAIT|SIZE|CHRSIZE|STRM|STRM-SIZE|GET|TERM)$, ) {
 
                         ## Forward close frame to source ##
                         my $src_sid = $route->{'source'}->{'sid'};
-                        if ( not exists <base.strm.local>->{$cmd_id}
+                        if ( not $had_local_consumer
                             and exists $data{'session'}{$src_sid} ) {
                             $data{'session'}{$src_sid}{'buffer'}{'output'}
                                 .= <[base.sprint_t]>->(
@@ -1735,12 +1737,17 @@ UNKNOWN_TYPE_HANDLED:
                     ## STRM mode : explicit streaming, chunked delivery ##
 
                     my $data_to_send = $reply->{'data'};
-                    my $total_bytes  = bytes::length($data_to_send);
-                    my $chunk_size   = <protocol.strm.packet_size> // 8192;
+                    my $chunk_data   = $data_to_send;
+                    utf8::encode($chunk_data) if utf8::is_utf8($chunk_data);
+                    my $total_bytes = bytes::length($chunk_data);
+                    my $chunk_size  = <protocol.strm.packet_size> // 8192;
+                    my $chunk_count = 0;
 
-                    ## ensure byte-oriented chunking for UTF-8 content ##
-                    my $chunk_data = $data_to_send;
-                    utf8::encode($chunk_data);
+                    <[base.logs]>->(
+                        2,
+                        '[%d] STRM open : total=%d bytes [ chunk_size=%d ]',
+                        $id, $total_bytes, $chunk_size
+                    );
 
                     my $h = <[base.stream.open]>->(
                         {   'sid'        => $id,
@@ -1764,15 +1771,17 @@ UNKNOWN_TYPE_HANDLED:
                             my $n = <[base.stream.push]>->( $h, \$chunk );
                             last if not $n;    ## cancelled / gone ##
                             $offset += $chunk_len;
+                            $chunk_count++;
                         }
 
                         <[base.stream.close]>->($h);
 
                         <[base.logs]>->(
                             1,
-                            "[%d] STRM streaming complete: %d bytes in chunks",
+                            "[%d] STRM streaming complete: %d bytes in %d chunks",
                             $id,
-                            $total_bytes
+                            $total_bytes,
+                            $chunk_count
                         );
                     }
 
@@ -2295,8 +2304,8 @@ UNKNOWN_CMD_GLOBAL_HANDLED:
 
 return 0;        ## comand complete ##
 
-#,,,.,,,.,,.,,,.,,,,.,.,,,,.,,,..,,,.,,,,,,,.,..,,...,...,,,.,.,.,,.,,.,.,..,,
-#BEUSF2XWDOTGQ54STLL67DNYX2N6LFMOYZWIDP3S2ZXXZ625S2USLUCJR7OW5UAXXUEOT46BPRAWI
-#\\\|Y57AA4FGS7AJJFHRDXJOSG5UQ2E7PDI65VARWQE2NVXATZQHDXO \ / AMOS7 \ YOURUM ::
-#\[7]6RRAB2OSMCJN26WP53ZAMSZ7WUXOKVNH47NYIUQ5WD4WMBSI2WAA 7  DATA SIGNATURE ::
+#,,,.,...,.,,,..,,,..,,.,,,,.,.,,,.,.,,..,..,,..,,...,...,,.,,,..,.,.,,.,,.,,,
+#FYKV4NMDOROHLXV4EDDHNGDN5DOBC6MZT2BOKBOCKGFKXCJP3PQOS2GTKGICH5ZWTOY2MA3M7UE3M
+#\\\|UESOJBS7KK3IIAJM7OIYXIXG4JSXQ3KF6YWQMVRPUQZSE3AKDQX \ / AMOS7 \ YOURUM ::
+#\[7]UNTVHNTBKFRMHBXB3BWUMG6EVKEVUNHN4LXEY36RDDFQBNQD4SDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

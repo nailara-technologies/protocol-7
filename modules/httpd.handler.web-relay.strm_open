@@ -1,0 +1,149 @@
+## [:< ##
+
+# name  = httpd.handler.web-relay.strm_open
+# descr = reply handler for web zenka STRM open: stream chunks to HTTP output
+#         buffer, write HTTP 200 headers on first chunk, set flush_shutdown
+#         on stream end
+
+my $reply    = shift;
+my $cmd_id   = $reply->{'cmd_id'};
+my $http_sid = $reply->{'params'}{'http_sid'};
+
+my $content_type = $reply->{'params'}{'content_type'}
+    // qw| application/json |;
+
+##  handle non-STRM replies (e.g. legacy SIZE or FALSE)  ##
+if ( not defined $cmd_id or $cmd_id !~ m|^\d+$| ) {
+    if ( exists $data{'session'}{$http_sid} ) {
+        my $session = $data{'session'}{$http_sid};
+        if ( ( $reply->{'cmd'} // '' ) eq qw| SIZE | ) {
+            my $body = $reply->{'data'} // '';
+            $session->{'buffer'}{'output'} .= <[httpd.new_header]>->(
+                200,
+                {   'Content-Type'   => $content_type,
+                    'Content-Length' => length($body),
+                    'Cache-Control'  => qw| no-cache |,
+                }
+            );
+            $session->{'buffer'}{'output'} .= $body;
+        } else {
+            $session->{'buffer'}{'output'}
+                .= <[httpd.send_error_page]>->( $http_sid, 502 );
+        }
+        $session->{'flush_shutdown'} = TRUE;
+    }
+    return;
+}
+
+##  guard: HTTP session may have disconnected before STRM arrived  ##
+if ( not exists $data{'session'}{$http_sid} ) {
+    <[base.logs]>->(
+        2, '[httpd.web-relay] [%d] session gone before STRM open', $http_sid
+    );
+    return;
+}
+
+##  send !TERM! to producer via the route  ##
+my $cancel_strm = sub {
+    for my $sid ( keys $data{'session'}->%* ) {
+        next if not exists $data{'session'}{$sid}{'route'}{$cmd_id};
+        my $rid        = $data{'session'}{$sid}{'route'}{$cmd_id} // next;
+        my $route      = $data{'route'}{$rid}                     // next;
+        my $src_cmd_id = $route->{'source'}{'cmd_id'}             // 0;
+        if ( $src_cmd_id > 0 ) {
+            $data{'session'}{$sid}{'buffer'}{'output'}
+                .= sprintf "(%d)!TERM!\n", $cmd_id;
+            <[base.logs]>->(
+                2,         '[httpd.web-relay] [%d] sent !TERM! [ cmd_id %d ]',
+                $http_sid, $cmd_id
+            );
+        }
+        last;
+    }
+    <[base.strm.local.cancel]>->($cmd_id);
+};
+
+<[base.strm.local.register]>->(
+    $cmd_id,
+    {   'content_type' => $content_type,
+        'http_sid'     => $http_sid,
+        'watcher'      => sub {
+            my $lc = shift;
+
+            ##  HTTP client gone : cancel consumer and terminate STRM  ##
+            if ( not exists $data{'session'}{$http_sid} ) {
+                $cancel_strm->();
+                return;
+            }
+
+            ##  write headers on first chunk  ##
+            if ( not $lc->{'headers_sent'} ) {
+                $data{'session'}{$http_sid}{'buffer'}{'output'}
+                    .= <[httpd.new_header]>->(
+                    200,
+                    {   'Content-Type'  => $content_type,
+                        'Cache-Control' => qw| no-cache |,
+                        'Connection'    => qw| close |,
+                    }
+                    );
+                $lc->{'headers_sent'} = TRUE;
+            }
+
+            ##  append chunk to HTTP output buffer  ##
+            $data{'session'}{$http_sid}{'buffer'}{'output'} .= $lc->{'buf'};
+            $lc->{'buf'} = '';
+
+            <[base.logs]>->(
+                2,
+                '[httpd.web-relay] [%d] chunk appended : total=%d bytes',
+                $http_sid,
+                bytes::length(
+                    $data{'session'}{$http_sid}{'buffer'}{'output'}
+                )
+            );
+        },
+        'on_eof' => sub {
+            my $lc = shift;
+
+            ##  HTTP client gone : nothing to write  ##
+            if ( not exists $data{'session'}{$http_sid} ) {
+                <[base.logs]>->(
+                    2, '[httpd.web-relay] [%d] session gone before STRM end',
+                    $http_sid
+                );
+                return;
+            }
+
+            ##  no data received : send 502  ##
+            if ( not $lc->{'headers_sent'} ) {
+                $data{'session'}{$http_sid}{'buffer'}{'output'}
+                    .= <[httpd.send_error_page]>->( $http_sid, 502 );
+            }
+
+            <[base.logs]>->(
+                2, '[httpd.web-relay] [%d] on_eof : %d bytes [ ct=%s ]',
+                $http_sid, $lc->{'bytes'} // 0,
+                $content_type
+            );
+
+            ##  close after output buffer drains  ##
+            $data{'session'}{$http_sid}{'flush_shutdown'} = TRUE;
+
+            ##  buffer already empty : shutdown immediately  ##
+            $data{'session'}{$http_sid}{'shutdown'} = TRUE
+                if not bytes::length(
+                $data{'session'}{$http_sid}{'buffer'}{'output'} // '' );
+        },
+    }
+);
+
+<[base.logs]>->(
+    2,         '[httpd.web-relay] [%d] STRM consumer registered cmd_id %d',
+    $http_sid, $cmd_id
+);
+
+#,,,,,.,.,.,.,..,,,,.,,.,,.,.,,,.,..,,,,.,,,,,..,,...,...,..,,,,.,,.,,.,.,,..,
+#FOWZ4AE2PEFWOO3FJZ27O2IOPOLYS3ABVIB5DSCW7FIUZRNZQEBD6SLDXG42PIZLVPFF76K4LRS42
+#\\\|RXWX2VZUG3BKM2C3BVWKY36DTCWHUPGTG2U3JNZSJUA23LNUMI2 \ / AMOS7 \ YOURUM ::
+#\[7]4OXRPJAQXY44HQYV23BQBVL5GIISJHEMCAD2VEAAHZTL7PXWNADI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
