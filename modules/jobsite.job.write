@@ -1,7 +1,7 @@
 ## [:< ##
 
 # name  = jobsite.job.write
-# descr = write a single job record to per-file storage, update index
+# descr = write a single job record to status-directory storage, update index
 
 my $job_id = shift // '';
 my $job    = shift // {};
@@ -9,38 +9,133 @@ my $job    = shift // {};
 return FALSE if not length $job_id;
 return FALSE if ref $job ne 'HASH';
 
+my $jobs_root = join qw| / |,
+    <system.path.zenka-dirs>->{'var_P7'}, qw| jobsite jobs |;
+
+my $status = $job->{'status'} // 'new';
+
+## determine target path ##
+my ( $rel_path, $abs_path );
+if ( $status eq 'blocked' ) {
+    my $epoch = $job->{'blocked_epoch'} // <[base.ntime.epoch_timestamp]>;
+    $rel_path = "jobs/blocked/$epoch/$job_id.yaml";
+    $abs_path = "$jobs_root/blocked/$epoch/$job_id.yaml";
+} elsif ( $status eq 'deleted' ) {
+    my $epoch = $job->{'deleted_epoch'} // <[base.ntime.epoch_timestamp]>;
+    $rel_path = "jobs/deleted/$epoch/$job_id.yaml";
+    $abs_path = "$jobs_root/deleted/$epoch/$job_id.yaml";
+} else {
+    $rel_path = "jobs/$status/$job_id.yaml";
+    $abs_path = "$jobs_root/$status/$job_id.yaml";
+}
+
+## ensure parent directory exists ##
+my $parent_dir = $abs_path;
+$parent_dir =~ s|/[^/]+$||;
+if ( not -d $parent_dir ) {
+    my $p7_user = <system.amos-zenka-user> // qw| protocol-7 |;
+    <[file.make_path]>->( $parent_dir, 0750, $p7_user, $p7_user );
+}
+
+## find old path via index ##
+my $old_status   = <jobsite.job.index>->{$job_id} // '';
+my $old_abs_path = '';
+if ( length $old_status ) {
+    if ( $old_status =~ m{^(blocked|deleted):(.+)$} ) {
+        $old_abs_path = "$jobs_root/$1/$2/$job_id.yaml";
+    } else {
+        $old_abs_path = "$jobs_root/$old_status/$job_id.yaml";
+    }
+}
+
+## prepare content ##
+my $write_job;
+if ( $status eq 'blocked' ) {
+    $write_job = {
+        'id'            => $job_id,
+        'url'           => $job->{'url'} // '',
+        'status'        => 'blocked',
+        'blocked_epoch' => $job->{'blocked_epoch'}
+            // <[base.ntime.epoch_timestamp]>,
+        'checksum_hit' => $job->{'checksum_hit'} // '',
+    };
+} else {
+    $write_job = $job;
+    $write_job->{'last_modified'} = <[base.ntime.b32]>;
+}
+
+## atomic transition: rename if path changed ##
+my $written = FALSE;
+if (    length $old_abs_path
+    and $old_abs_path ne $abs_path
+    and -f $old_abs_path ) {
+    if ( not rename( $old_abs_path, $abs_path ) ) {
+        <[base.logs]>->(
+            0, 'jss.job.write: rename %s -> %s failed: %s',
+            $old_abs_path, $abs_path, $!
+        );
+        return FALSE;
+    }
+    ## overwrite with correct content (stub or updated full record) ##
+    my $yaml;
+    eval { $yaml = YAML::XS::Dump($write_job) };
+    if ($@) {
+        <[base.logs]>->(
+            0,       'jss.job.write: dump error for %s: %s',
+            $job_id, $@
+        );
+        return FALSE;
+    }
+    my $wrote = <[file.zenka_dir.write]>->( $rel_path, \$yaml, '>', 0640 );
+    if ( not defined $wrote ) {
+        <[base.logs]>->(
+            0, 'jss.job.write: overwrite failed for %s', $job_id
+        );
+        return FALSE;
+    }
+    $written = TRUE;
+} else {
+    ## write fresh or in-place ##
+    my $yaml;
+    eval { $yaml = YAML::XS::Dump($write_job) };
+    if ($@) {
+        <[base.logs]>->(
+            0,       'jss.job.write: dump error for %s: %s',
+            $job_id, $@
+        );
+        return FALSE;
+    }
+    my $wrote = <[file.zenka_dir.write]>->( $rel_path, \$yaml, '>', 0640 );
+    if ( not defined $wrote ) {
+        <[base.logs]>->( 0, 'jss.job.write: write failed for %s', $job_id );
+        return FALSE;
+    }
+    $written = TRUE;
+}
+
+## update in-memory index ##
+<jobsite.job.index>->{$job_id} = do {
+    if ( $status =~ m{^(blocked|deleted)$} ) {
+        my $epoch = $job->{"${status}_epoch"}
+            // <[base.ntime.epoch_timestamp]>;
+        "$status:$epoch";
+    } else {
+        $status;
+    }
+};
+
+## mirror title checksum status in checksum store ##
+if (    length $old_status
+    and $old_status ne $status
+    and length( $job->{'title'} // '' ) ) {
+    <[jobsite.checksum.index]>->( 'update_status', $job, $status );
+}
+
+## update on-disk index.yaml atomically ##
 my $base_dir = join qw| / |,
     <system.path.zenka-dirs>->{'var_P7'}, qw| jobsite |;
-my $jobs_dir   = join qw| / |, $base_dir, qw| jobs |;
 my $index_file = join qw| / |, $base_dir, qw| index.yaml |;
 
-## ensure jobs directory exists with correct ownership ##
-if ( not -d $jobs_dir ) {
-    my $p7_user = <system.amos-zenka-user> // qw| protocol-7 |;
-    <[file.make_path]>->( $jobs_dir, 0750, $p7_user, $p7_user );
-}
-
-$job->{'last_modified'} = <[base.ntime.b32]>;
-
-## write job file atomically ##
-my $job_file = "$jobs_dir/$job_id.yaml";
-my $tmp_file = "$job_file.tmp";
-
-eval { YAML::XS::DumpFile( $tmp_file, $job ) };
-if ($@) {
-    <[base.logs]>->( 0, 'jss.job.write: dump error for %s: %s', $job_id, $@ );
-    return FALSE;
-}
-
-if ( not rename( $tmp_file, $job_file ) ) {
-    <[base.logs]>->(
-        0,       'jss.job.write: rename failed for %s: %s',
-        $job_id, $!
-    );
-    return FALSE;
-}
-
-## update index.yaml atomically ##
 my $index = {};
 if ( -f $index_file ) {
     $index = eval { YAML::XS::LoadFile($index_file) } // {};
@@ -62,10 +157,10 @@ if ($@) {
 rename( $index_tmp, $index_file )
     or <[base.logs]>->( 0, 'jss.job.write: index rename failed: %s', $! );
 
-return TRUE;
+return $written;
 
-#,,..,.,.,...,..,,,,,,.,.,,..,,,.,,..,,,,,,..,..,,...,..,,...,,.,,,.,,.,.,,.,,
-#RJWGJKYJC3MDJW7BGV4XHVC4REB4D3BBCKHBW7KOCJDZQNZKRNATY5IM3HTKH3N22DIHIBXN534UU
-#\\\|ZFZJSOKRPDRLKZC6TLHQ2NRCQU6UL2BS6ZJXSFP7W2RRNHOTSVL \ / AMOS7 \ YOURUM ::
-#\[7]TWT3PQSHXL7VAWYLEPCP2OSHHTEJPCQ2K47HXB6FACIKS5DHSEDA 7  DATA SIGNATURE ::
+#,,.,,...,...,.,.,,..,...,..,,,..,.,,,.,,,,.,,..,,...,...,.,,,,,.,.,.,,,.,,,.,
+#MOGMCNKUJQTFS3RAZMBWKQCNZQ3EFITJROOV5PS3H4OTH4HWHFMEBEX5UAOTQQV4436X54H5SIAAQ
+#\\\|RLIY7JIKSIK2V7QN5RIA4YJSNMNTUP3ZPR6KWNEIZ5A7DKJG3LL \ / AMOS7 \ YOURUM ::
+#\[7]KIF6BRR5EFJ7YPCPBDWJGELKADQPOBFS2RFNQURKPMLBIBB7BKCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

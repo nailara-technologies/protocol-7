@@ -1,14 +1,20 @@
 ## [:< ##
 
 # name  = jobsite.job.load_all
-# descr = load all job records from per-file storage
+# descr = load all active job records from status-directory storage
 
-my $jobs_dir = join qw| / |,
+my $jobs_root = join qw| / |,
     <system.path.zenka-dirs>->{'var_P7'}, qw| jobsite jobs |;
-my %jobs;
 
-if ( -d $jobs_dir ) {
-    opendir my $dh, $jobs_dir or return \%jobs;
+my %jobs;
+my $index = {};
+my @active_statuses
+    = qw| new assessed review apply applied interviewed rejected |;
+
+for my $status (@active_statuses) {
+    my $dir = "$jobs_root/$status";
+    next if not -d $dir;
+    opendir my $dh, $dir or next;
     my @files = grep { /\.yaml$/ && !/^\./ } readdir($dh);
     closedir $dh;
 
@@ -16,23 +22,52 @@ if ( -d $jobs_dir ) {
         my $job_id = $file;
         $job_id =~ s/\.yaml$//;
 
-        my $job_file = "$jobs_dir/$file";
+        my $job_file = "$dir/$file";
         my $job      = eval { YAML::XS::LoadFile($job_file) };
         if ($@) {
             <[base.logs]>->(
-                0,     'jss.load_all: error loading %s: %s',
-                $file, $@
+                0,         'jss.load_all: error loading %s: %s',
+                $job_file, $@
             );
             next;
         }
-        $jobs{$job_id} = $job if ref $job eq 'HASH';
+        next unless ref $job eq 'HASH';
+        $jobs{$job_id} = $job;
+        $index->{$job_id} = $status;
     }
 }
 
+## also index blocked/deleted for completeness, but don't load content ##
+my @epoch_statuses = qw| blocked deleted |;
+for my $status (@epoch_statuses) {
+    my $dir = "$jobs_root/$status";
+    next if not -d $dir;
+    opendir my $dh, $dir or next;
+    for my $epoch_dir ( grep { !/^\./ && -d "$dir/$_" } readdir($dh) ) {
+        opendir my $edh, "$dir/$epoch_dir" or next;
+        for my $fn ( grep { /\.yaml$/ && !/^\./ } readdir($edh) ) {
+            my $job_id = $fn;
+            $job_id =~ s/\.yaml$//;
+            $index->{$job_id} = "$status:$epoch_dir";
+        }
+        closedir $edh;
+    }
+    closedir $dh;
+}
+
+<jobsite.job.index> = $index;
+
+<[base.logs]>->(
+    2,
+    'jss.load_all: loaded %d active jobs, index=%d',
+    scalar keys %jobs,
+    scalar keys %{$index}
+) if scalar keys %jobs;
+
 return \%jobs;
 
-#,,..,..,,..,,,.,,...,,..,.,,,,..,..,,..,,,.,,..,,...,...,,,.,,,.,,..,,..,,,.,
-#L2QI5TY662VP45BU2R6LSAPJOCD5OFI7B5W4KXC3XJV4ME5SF55ZI6MOYHILNQBYDO5ZF7DNWYFGS
-#\\\|5ANGU6RBT4MC7YLG4RGJST3OE62X72QPQXAZWXJANFPCUEKBGL3 \ / AMOS7 \ YOURUM ::
-#\[7]74CRKISFRGMLYT4RTXAPP5KCDPXSYIPA24A46NIMJWGLZV7MUGCI 7  DATA SIGNATURE ::
+#,,..,,..,,.,,,,.,..,,...,..,,.,,,,.,,,..,,.,,..,,...,...,,,,,.,.,,,.,,.,,.,.,
+#L4IE2HX5F3KVACDGNNC5CDEK32GWI4NAP2IVLJCCHB2U565G57RO2FZKQUMNLN32DVUHM66UMC7W2
+#\\\|M52RQNMKEYYDDC25WPDCOJ7ILVCV3BI2NPPGEQY5NFUJISGCCIS \ / AMOS7 \ YOURUM ::
+#\[7]FWDK4565BCSLK72GXN42SUFWP7C4O47TWZYCCKZ7FNZRYZDMZSBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
