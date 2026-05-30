@@ -7,22 +7,22 @@ my $call = shift           // {};
 my $body = $call->{'args'} // '';
 
 my $payload = eval { JSON::XS::decode_json($body) };
-if ( $@ or ref $payload ne 'HASH' ) {
+if ( $EVAL_ERROR or ref $payload ne qw| HASH | ) {
     return {
-        'mode'         => 'size',
+        'mode'         => qw| strm |,
         'data'         => '{"ok":false,"error":"invalid json"}',
         'content_type' => 'application/json',
     };
 }
 
 my @pipeline_fields = qw| title company url score score_reason score_summary
-    fetched_at status description last_modified |;
+    fetched_at status stage description last_modified |;
 my @browser_fields = qw| stage notes date_applied |;
 
 my $since    = '';
 my @job_list = ();
 
-if ( ref $payload->{'jobs'} eq 'ARRAY' ) {
+if ( ref $payload->{'jobs'} eq qw| ARRAY | ) {
     ## batch push from jobsite ##
     $since    = $payload->{'since'} // '';
     @job_list = @{ $payload->{'jobs'} };
@@ -31,16 +31,15 @@ if ( ref $payload->{'jobs'} eq 'ARRAY' ) {
     @job_list = ($payload);
 }
 
-my $ok = TRUE;
+my $mem = <[plugin.web.jobs.cache.read_all]>;
+my $ok  = TRUE;
 for my $job_data (@job_list) {
     my $job_id = $job_data->{'id'} // '';
     next if not length $job_id;
 
-    ## load cached record or start fresh ##
-    my $cached = eval {
-        my $f = <[plugin.web.jobs.cache.path]> . "/$job_id.yaml";
-        -f $f ? YAML::XS::LoadFile($f) : {};
-    } // {};
+    ## load cached record from memory or start fresh ##
+    my $cached
+        = ref $mem->{$job_id} eq qw| HASH | ? { %{ $mem->{$job_id} } } : {};
 
     if (   exists $job_data->{'fetched_at'}
         or exists $job_data->{'score'}
@@ -86,14 +85,19 @@ my $rb = eval {
     );
 } // '{"ok":false,"error":"encode failed"}';
 
+<[base.logs]>->(
+    2, '[web.jobs.sync] returning %d bytes [ mode=strm ]',
+    bytes::length($rb)
+);
+
 return {
-    'mode'         => 'size',
+    'mode'         => qw| strm |,
     'data'         => $rb,
-    'content_type' => 'application/json',
+    'content_type' => qw| application/json |,
 };
 
-#,,,.,..,,,.,,.,.,..,,,.,,,..,.,.,,..,,,.,,.,,..,,...,...,...,..,,,..,,..,,..,
-#DNFLFCXVYRH527J7RSD3IWS4ALIFNXZY6HTN443HN4OFTKAJRXSMFKH4LPH447M6IGWB7FA4WM6C2
-#\\\|2VRTCMANQ3YUX4MMCCSZGREYW6J6HOVUVNHZG5UTFKBLNVNJTST \ / AMOS7 \ YOURUM ::
-#\[7]J576Z7BSZLJPSYQE7Z6WGVCIIAQBLKLVCAU35AEBOEVGTEWSLKBI 7  DATA SIGNATURE ::
+#,,,,,...,,..,...,.,.,,,,,.,.,,,,,.,.,.,.,..,,..,,...,...,,..,.,.,,..,.,,,..,,
+#DYFWQNV3UHBR2X5ZSPVLBA5AZ5TY46KBB4QE5OOYVROZBQRY3V4HFTQ6OSPPBW6AOLYTUVTEMYGLE
+#\\\|LO7ZL5PWHLVAVPWLOJD4A7WJ5STFSQGESLRHAR7DJZQXJRK2RUM \ / AMOS7 \ YOURUM ::
+#\[7]RLB3JONTXVMRKK6AWA4TUDARSCIGCQPTTKWGSX7KRS5HLY5QIMAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

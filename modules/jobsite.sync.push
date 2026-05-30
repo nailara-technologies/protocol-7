@@ -1,7 +1,10 @@
 ## [:< ##
 
 # name  = jobsite.sync.push
+# param = < event_object | ondef >, [ force (boolean) ]
 # descr = start chunked async http push : sends changed jobs in small batches
+
+my $force = ( @ARG > 1 ) ? <[base.cfg_bool]>->( $ARG[1] ) : FALSE;
 
 return if <jobsite.sync.push_in_progress>;
 
@@ -18,12 +21,14 @@ my $last_ntime = <jobsite.sync.last_server_ntime> // '';
 my $cycle_ntime_b32 = <[base.ntime.b32]>;
 <jobsite.sync.push_cycle_ntime> = $cycle_ntime_b32;
 
-## ntime is encode_b32r (reverse byte order) : NOT lexicographically sortable ##
-## must compare numerically via base.ntime_BASE32_to_numerical               ##
+## ntime is encode_b32r [reverse byte order] : NOT lexicographically sortable ##
+## must compare numerically via base.ntime_BASE32_to_numerical                ##
 my $last_ntime_num
     = length($last_ntime)
     ? ( <[base.ntime_BASE32_to_numerical]>->($last_ntime) // 0 )
     : 0;
+
+$last_ntime_num = 0 if $force;    ## manual sync : bypass watermark ##
 
 ## filter to jobs changed since last sync watermark ##
 my @changed;
@@ -68,8 +73,8 @@ while (@changed) {
 
 <[jobsite.sync.push_chunk]>;
 
-#,,,,,,.,,.,.,,.,,,.,,...,,,.,...,..,,.,.,..,,..,,...,...,.,.,.,.,..,,,..,,,.,
-#62VUMRSTXLCJLOFIVPLZRQXIUBYZIKLE2NATP7QWJTJK55QI22KKCBBTPKCC7D33FXRLTDYKSETEM
-#\\\|MYYS7C6LII2IUYYUXI53UCOJJMACMVRAB3UT64AZQYE6YRFIJAQ \ / AMOS7 \ YOURUM ::
-#\[7]BXDXKRPQ3F33SGIZRGT3KJZSCALDNFLLZFMMODHI3X2XY2BWLCCY 7  DATA SIGNATURE ::
+#,,..,.,,,,.,,,..,,,,,.,.,,,.,,,.,..,,...,..,,..,,...,.,.,,.,,..,,,,,,.,,,,..,
+#KYAAFCMEXC7RBEKZVAPDULHDQEPR5ZQPVN3NK26MWHTWPZBQO4ITE74ZQ2SN3QM457I7E6H6JN3AY
+#\\\|EPPOC3PXB6K4VP46FDYEPEXR42MJ4IGABUM7M3NWSMMKKRFLGBM \ / AMOS7 \ YOURUM ::
+#\[7]M4CDA6O6G7NWWGRVABJKLWM4C3ZV3UIUFBLYJ65OXSNS3MH7BKDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

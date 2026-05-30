@@ -1,0 +1,26 @@
+## [:< ##
+
+# name  = jobsite.cmd.manual-sync
+# descr = perform a full sync push to the web cache
+
+if (<jobsite.sync.push_in_progress>) {
+    return { 'mode' => 'false', 'data' => 'sync already in progress' };
+}
+
+my $jobs  = <[jobsite.job.load_all]>;
+my $count = scalar keys %{ $jobs // {} };
+
+<[base.logs]>->( 1, 'jss.manual-sync: forcing full push of %d jobs', $count );
+
+<[jobsite.sync.push]>->( undef, TRUE );    ## force sync ##
+
+return {
+    'mode' => 'true',
+    'data' => "manual sync triggered [ $count jobs ]"
+};
+
+#,,,,,...,,.,,.,.,,,,,,,.,,.,,,,.,,..,,..,.,,,..,,...,...,...,...,,.,,...,.,.,
+#VNNMG45UMEYHCMCU4T6TSZG7XHJO4QFWIW3EKT52XMF2EOX3YV65DZFOPHBXAWB55NOOE3J7YFNPO
+#\\\|S7VU7XIRICC2JK2R2CJ4KBAFXNGTNOO3QA4GBXXUBCILWTPFZVV \ / AMOS7 \ YOURUM ::
+#\[7]ZVRXG6RLNUBTR6JWQNBXAVZT2FMYPMPKXPB4DQONTVROS74U3WDQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
