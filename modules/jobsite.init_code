@@ -15,7 +15,77 @@
 ## per-job state lives under jobsite.tasks.<job_id>.*
 <jobsite.tasks> //= {};
 
+## migrate flat layout to status-directory layout (one-time) ##
+my $jobs_root = join qw| / |,
+    <system.path.zenka-dirs>->{'var_P7'}, qw| jobsite jobs |;
+if ( glob("$jobs_root/*.yaml") ) {
+    <[base.logs]>->(
+        1, 'jobsite: migrating flat layout to status directories'
+    );
+    for my $f ( glob("$jobs_root/*.yaml") ) {
+        my $job = eval { YAML::XS::LoadFile($f) };
+        if ($@) {
+            <[base.logs]>->( 0, 'migrate: load error for %s: %s', $f, $@ );
+            next;
+        }
+        my $id     = $job->{'id'}     // ( $f =~ m{/([^/]+?)\.yaml$} )[0];
+        my $status = $job->{'status'} // 'new';
+        next if not length $id;
+
+        if ( $status eq 'blocked' ) {
+            ## blocked jobs with full content: convert to minimal stub ##
+            my $epoch    = <[base.ntime.epoch_timestamp]>;
+            my $stub_dir = "$jobs_root/blocked/$epoch";
+            if ( not -d $stub_dir ) {
+                my $p7_user = <system.amos-zenka-user> // qw| protocol-7 |;
+                <[file.make_path]>->( $stub_dir, 0750, $p7_user, $p7_user );
+            }
+            my $stub = {
+                'id'            => $id,
+                'url'           => $job->{'url'} // '',
+                'status'        => 'blocked',
+                'blocked_epoch' => $epoch,
+                'checksum_hit'  => '',
+            };
+            my $yaml;
+            eval { $yaml = YAML::XS::Dump($stub) };
+            if ($@) {
+                <[base.logs]>->(
+                    0,   'migrate: dump error for blocked %s: %s',
+                    $id, $@
+                );
+                next;
+            }
+            <[file.zenka_dir.write]>->(
+                "jobs/blocked/$epoch/$id.yaml",
+                \$yaml, '>', 0640
+            );
+            ## ensure checksum store has this job ##
+            <[jobsite.checksum.index]>->( qw| add |, $job )
+                if length( $job->{'title'} // '' )
+                or length( $job->{'url'}   // '' );
+            unlink $f;
+        } else {
+            my $target_dir = "$jobs_root/$status";
+            if ( not -d $target_dir ) {
+                my $p7_user = <system.amos-zenka-user> // qw| protocol-7 |;
+                <[file.make_path]>->( $target_dir, 0750, $p7_user, $p7_user );
+            }
+            my $target = "$target_dir/$id.yaml";
+            rename $f,
+                $target
+                or <[base.logs]>->(
+                0,  'migrate: rename %s -> %s failed: %s',
+                $f, $target, $!
+                );
+        }
+    }
+}
+
 <[jobsite.state.load]>;
+
+## build in-memory id->status index ##
+<[jobsite.job.index.build]>;
 
 ## load checksum-based dedup / blacklist index ##
 <[jobsite.checksum.index]>->(qw| load |);
@@ -90,8 +160,8 @@ my $job_count = scalar keys %{$tasks};
     <jobsite.cycle>, $job_count
 );
 
-#,,,.,,,,,,,,,...,,.,,,..,,,,,.,.,.,.,.,.,...,..,,...,...,.,.,...,,.,,,,.,,.,,
-#HB77XKCOB2UKCC7WEQZF4TSSCNMGG3XU6PRGZRXITBPGAZSVSBBQX7UFOFYSEE2YFVMFRQXDBQAFI
-#\\\|VDGDS7JC4LLGQS5657LW5F6FOYZSE5E3HNSBDHY5LBFALRE2IPN \ / AMOS7 \ YOURUM ::
-#\[7]LIKGL6BYUO4OCMSSQETYBPEGDBC7OWE6KXHOHZZGITHTAASTS4DY 7  DATA SIGNATURE ::
+#,,,,,..,,,.,,...,,,.,,,.,,..,,..,.,,,,,,,.,,,..,,...,...,..,,..,,...,,,,,,..,
+#BZAWVYGT4LU2GFXZO7UJDTW6N2PDAML2KWLDWDJQEYACQEXTU426CPYAB3WHDIKUHC33EQPQF24R4
+#\\\|V2NUGT6ZDML3EOG5HJWENXVNW6FY2MWCV43GDC6RRST2LRXYRTV \ / AMOS7 \ YOURUM ::
+#\[7]7SYDCOAYXDTFPOZHQRE62WWM6E4PAWFM6EVJX4JDXA44SSFCN6BI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

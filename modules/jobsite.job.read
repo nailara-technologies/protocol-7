@@ -1,17 +1,28 @@
 ## [:< ##
 
 # name  = jobsite.job.read
-# descr = read a single job record from per-file storage
+# descr = read a single job record from per-file storage via status index
 
 my $job_id = shift // '';
 return undef if not length $job_id;
 
-my $jobs_dir = join qw| / |,
-    <system.path.zenka-dirs>->{'var_P7'}, qw| jobsite jobs |;
-my $job_file = "$jobs_dir/$job_id.yaml";
-return undef if not -f $job_file;
+my $status = <jobsite.job.index>->{$job_id} // '';
+return undef unless length $status;
 
-my $job = eval { YAML::XS::LoadFile($job_file) };
+my $rel_path = do {
+    if ( $status =~ m{^(blocked|deleted):(.+)$} ) {
+        "jobs/$1/$2/$job_id.yaml";
+    } else {
+        "jobs/$status/$job_id.yaml";
+    }
+};
+
+my $raw = <[file.zenka_dir.load]>->($rel_path);
+return undef unless defined $raw;
+
+my $bytes = $$raw;
+utf8::encode($bytes) if utf8::is_utf8($bytes);
+my $job = eval { YAML::XS::Load($bytes) };
 if ($@) {
     <[base.logs]>->( 0, 'jss.job.read: load error for %s: %s', $job_id, $@ );
     return undef;
@@ -26,8 +37,8 @@ for my $v ( values %$job ) {
 
 return $job;
 
-#,,,.,.,.,.,.,..,,...,.,,,,,,,,.,,,..,,,,,.,,,..,,...,...,...,,,.,,.,,..,,,.,,
-#G3CJNM5H4TJVQZFD5UVH3BD3NL4RWF57RM5TISRHRNG33O6CIRY2VAUZU2Y3IYL3HER7YDIZ2HTRS
-#\\\|TXAPCUADRTQVPPYQTBDEKIS3SNKQIXQIUSRV2VWFSLMS6XD6Y7P \ / AMOS7 \ YOURUM ::
-#\[7]STDD3FCZ7VISYCUOJA7TY2UUOLDTK2RVDYNI5KFVYSJXKNHRZEBI 7  DATA SIGNATURE ::
+#,,..,,..,,.,,.,,,,..,...,..,,,.,,.,.,,,.,,,,,..,,...,...,,.,,..,,.,.,,.,,,..,
+#QRXVAOWUMZ72C6WJ6QV43HIXLZODBEB44GSWVCQF2WVJU4FUSPAA3K72OJDM3OQOSDQZDHD6C52XA
+#\\\|QU27ZMKAJK7LU3KKKNVBTKJS5FQWIVPFHXSMKNJYUT3X3CWZNHE \ / AMOS7 \ YOURUM ::
+#\[7]ZL7FXTGX6YXTKDDUXOP7OCOCD7PZU5TJ2MRUMCB6LGLERKY4L2BI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -23,7 +23,8 @@ return {
     unless %params;
 
 ## never reset user-decision stages regardless of other filters ##
-my %protected = map { $ARG => 1 } qw| applied responded rejected archived |;
+my %protected
+    = map { $ARG => 1 } qw| applied interviewed responded rejected archived |;
 
 ## fields cleared on reset ##
 my @clear_fields = qw|
@@ -46,17 +47,14 @@ if ( defined $params{'job_id'} ) {
     my %seen = map { $ARG => 1 } keys %{$tasks};
     ## also scan job files for statuses not tracked in-memory (e.g. blocked) ##
     if ( defined $params{'status'} ) {
-        my $status_pat = quotemeta( $params{'status'} );
-        if ( opendir my $dh, $jobs_dir ) {
+        my $status_val = $params{'status'};
+        my $status_dir = "$jobs_dir/$status_val";
+        if ( -d $status_dir and opendir my $dh, $status_dir ) {
             for my $fn ( readdir $dh ) {
                 next unless $fn =~ m{^(\d+)\.yaml$};
                 my $jid = $1;
                 next if $seen{$jid};
-                my $job_file = "$jobs_dir/$jid.yaml";
-                open my $fh, '<', $job_file or next;
-                my $found = grep {m{^status:\s*$status_pat\s*$}} <$fh>;
-                close $fh;
-                push @candidates, $jid if $found;
+                push @candidates, $jid;
             }
             closedir $dh;
         }
@@ -75,15 +73,11 @@ my ( $n_reset, $n_protected ) = ( 0, 0 );
 for my $job_id (@candidates) {
     my $rec = $tasks->{$job_id};
 
-    ## for jobs not in-memory (e.g. blocked), read status from file for filters ##
+    ## for jobs not in-memory (e.g. blocked), read status from index for filters ##
     my $rec_status = defined $rec ? ( $rec->{'status'} // '' ) : do {
-        my $job_file = "$jobs_dir/$job_id.yaml";
-        my $st       = '';
-        if ( open my $fh, '<', $job_file ) {
-            ($st) = map { /^status:\s*(\S+)/ ? $1 : () } <$fh>;
-            close $fh;
-        }
-        $st;
+        my $idx = <jobsite.job.index>->{$job_id} // '';
+        $idx =~ s/^(blocked|deleted):.*/$1/;
+        $idx;
     };
     my $rec_stage = defined $rec ? ( $rec->{'stage'} // '' ) : '';
 
@@ -105,9 +99,18 @@ for my $job_id (@candidates) {
 
     ## encoding_broken filter : scan raw file bytes for double-encoded marker ##
     if ( defined $check_encoding ) {
-        my $job_file = "$jobs_dir/$job_id.yaml";
-        my $broken   = FALSE;
-        if ( -f $job_file ) {
+        my $job_file = do {
+            my $idx_status = <jobsite.job.index>->{$job_id} // '';
+            if ( $idx_status =~ m{^(blocked|deleted):(.+)$} ) {
+                "$jobs_dir/$1/$2/$job_id.yaml";
+            } elsif ( length $idx_status ) {
+                "$jobs_dir/$idx_status/$job_id.yaml";
+            } else {
+                '';
+            }
+        };
+        my $broken = FALSE;
+        if ( length $job_file and -f $job_file ) {
             open my $fh, '<:raw', $job_file or next;
             my $raw = do { local $/; <$fh> };
             close $fh;
@@ -146,8 +149,8 @@ return {
     $n_protected ? " ($n_protected protected skipped)" : ''
 };
 
-#,,..,,,,,,.,,,.,,,,,,,,.,,..,,.,,.,.,,..,.,.,..,,...,...,...,..,,,,.,,,,,,,.,
-#CZXB6EY2XMTYETAC2KQGDSU6VADF6GYED7FG4VIT5WB52VFVSTKT7KQGAI2UKYHLUOARE7NKBFGMQ
-#\\\|FDDQCSUQJ2VPHGFNQ7KWNI3JRUU4242VTAAFIUYWJOY4F6643EO \ / AMOS7 \ YOURUM ::
-#\[7]U34PXXIWFRCC5Q2KOWV2TRPNUOP2ONKH4XB6DQIDSW6TQSXPWGBI 7  DATA SIGNATURE ::
+#,,,,,,..,,,.,,.,,,,,,,,,,.,,,.,,,,..,,,,,.,,,..,,...,...,.,.,,..,,..,,,,,,,.,
+#EDQH73T6UUB3HWUMJXAX6XSDBYT2WIRXMRLVWHJTZQC3LCBN5ZMVU2GNHIZZD5DKBCQ4LRU4D24EU
+#\\\|FGBE5BK5FFTLJTRQLGXPTTYI34LPMQVCGRRLLYUL3JKWXVIYMIM \ / AMOS7 \ YOURUM ::
+#\[7]EFUKTHQ3ISYQUP7T2BYZJH75FOC5UIMA2B2OQFDJM5B4LXDOWSAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
