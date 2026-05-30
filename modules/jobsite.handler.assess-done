@@ -44,7 +44,7 @@ if ( lc($mode) eq qw| false | ) {
 
 ## protected stages : user decisions must survive pipeline activity ##
 my %protected_stage
-    = map { $ARG => 1 } qw| applied responded rejected archived |;
+    = map { $ARG => 1 } qw| applied interviewed responded rejected archived |;
 
 if ( $protected_stage{ $job_rec->{'stage'} // '' } ) {
     <[base.logs]>->(
@@ -255,8 +255,8 @@ if ( <jobsite.pending_count> <= 0 ) {
 <[jobsite.state.persist]>;
 <[jobsite.dispatch.next]>
 
-#,,,,,.,.,,..,.,.,...,...,,.,,...,,..,...,,..,..,,...,...,...,.,.,..,,..,,,,,,
-#7MYEQM6HGBL45F7YCHXHN73T4QU5CQHJSBZHI6OGM7XO7PXCCQOXBKPB6MUVAO2RAQ56IYSBQF2WS
-#\\\|KSHSOPZC5X5UMJQHVC6JMAOCXX7UNRCTPB7XC3TDPNZ33KLPFD7 \ / AMOS7 \ YOURUM ::
-#\[7]WO2B73ZGK7XBZ54LCLXQWY2ZKUXWCWBMTCZPVVH2W7TIIFGGAEDQ 7  DATA SIGNATURE ::
+#,,,,,,,,,,,.,,,,,,..,,,,,.,.,,..,.,,,,..,..,,..,,...,...,...,,..,.,.,..,,.,,,
+#IS2UGDN5EBVMOMTDOJXS5ADVCLPD2IIBP7BNEZDSAQ24BDSX25RLSOTHBCMB42CNFEJSGVLJT5E3W
+#\\\|FZSOABF4ZKS4OVHKLT76WBS2HUGTZBGKCRFFVTFBWLEXF36D2GB \ / AMOS7 \ YOURUM ::
+#\[7]J6VIOMN2N7DLDU7WRUTCWUCJLGVLJH6HKYMIIEFU5LI3KTCQOABI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

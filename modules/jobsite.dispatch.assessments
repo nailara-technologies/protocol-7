@@ -19,12 +19,64 @@ for my $job_id ( keys %{$store} ) {
     ## checksum dedup / blacklist check ##
     my $chk = <[jobsite.checksum.index]>->( qw| check |, $job );
     if ( $chk->{'is_blocked'} ) {
+        my $target = $chk->{'resolved_status'} // '';
+        if ( length $target and $target ne 'blocked' ) {
+            ## inherit status from previous identical title ##
+            $job->{'status'} = $target;
+            <[jobsite.job.write]>->( $job_id, $job );
+            <[base.logs]>->(
+                1,       'job %s inherits status=%s from checksum store',
+                $job_id, $target
+            );
+            next;
+        }
+
         <[base.logs]>->(
             2,       'job %s blocked by checksum index [%s]',
             $job_id, join( ', ', $chk->{'hits'}->@* )
         );
-        $job->{'status'} = 'blocked';
-        <[jobsite.job.write]>->( $job_id, $job );
+
+        ## backfill checksums if missing (original assessment may predate store) ##
+        my $need_add   = 0;
+        my $store_root = '/var/protocol-7/jobsite/checksum-store';
+        for my $hit ( $chk->{'hits'}->@* ) {
+            if ( $hit =~ m{^title:([A-Z2-7]+)$} ) {
+                my $t_found = 0;
+                if ( opendir my $tdh, "$store_root/titles" ) {
+                    for my $st ( grep { !/^\./ } readdir($tdh) ) {
+                        if ( -e "$store_root/titles/$st/$1" ) {
+                            $t_found = 1;
+                            last;
+                        }
+                    }
+                    closedir $tdh;
+                }
+                $need_add = 1 if not $t_found;
+            } elsif ( $hit =~ m{^url:([A-Z2-7]+)$} ) {
+                my $found = 0;
+                if ( opendir my $udh, "$store_root/urls" ) {
+                    for my $ep ( grep { !/^\./ } readdir($udh) ) {
+                        if ( -e "$store_root/urls/$ep/$1" ) {
+                            $found = 1;
+                            last;
+                        }
+                    }
+                    closedir $udh;
+                }
+                $need_add = 1 if not $found;
+            }
+        }
+        <[jobsite.checksum.index]>->( qw| add |, $job ) if $need_add;
+
+        ## write blocked stub and skip assessment ##
+        my $blocked_job = {
+            'id'            => $job_id,
+            'url'           => $job->{'url'} // '',
+            'status'        => 'blocked',
+            'blocked_epoch' => <[base.ntime.epoch_timestamp]>,
+            'checksum_hit'  => ( $chk->{'hits'}[0] // '' ),
+        };
+        <[jobsite.job.write]>->( $job_id, $blocked_job );
         next;
     }
 
@@ -78,8 +130,8 @@ for my $job_id (@to_assess) {
 
 return;
 
-#,,,,,,,,,.,,,,.,,,..,,.,,.,,,.,.,...,.,.,.,,,..,,...,...,..,,..,,,,,,,,.,,,,,
-#5QS4Y3A2JH47ZWY7PBUR6NSMBIBWZF227WDEBEOEM2GIJZNZRPQAAKBQW4CJDSUKUBKAVASQEED7Y
-#\\\|TUA4VJ7MBCBBKNGVOJ624IK4COSVEH2UTIIW2N3J4UQAKDUX7QL \ / AMOS7 \ YOURUM ::
-#\[7]HRZVWJTUY5XIDD5LOIS2LT5EMXOHW3266CSMOPPCFJOEPO6NRMCI 7  DATA SIGNATURE ::
+#,,,.,..,,.,.,,,.,..,,,.,,.,,,.,,,..,,..,,.,,,..,,...,...,,.,,.,.,,,,,..,,,..,
+#IZHRGYEL5IAPB3KJ6FSQH6BGJI4JYEQZTCCPUBBHPTHCYCL7ZNBX6YTRH3TWEIY3CE7UXJLVU262Q
+#\\\|2ITDVDZFIGWHYSFWEJPEJZHQMRJKLHQU5OXD5ANWSROTKKU2LEG \ / AMOS7 \ YOURUM ::
+#\[7]GMMJ5E3C5NZQQVJGY4667C6BXOJV2CRSWQB377CTLTFGJHHLCCBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,30 +1,54 @@
 ## [:< ##
 
 # name  = jobsite.index.rebuild
-# descr = rebuild index.yaml from all job files in jobs/ dir
+# descr = rebuild index.yaml from all job files in status directories
 
 my $jobs_dir   = '/var/protocol-7/jobsite/jobs';
 my $index_file = '/var/protocol-7/jobsite/index.yaml';
 
 my $index = {};
-if ( -d $jobs_dir ) {
-    opendir my $dh, $jobs_dir or return FALSE;
-    my @files = grep { /\.yaml$/ && !/^\./ } readdir($dh);
-    closedir $dh;
 
-    for my $file (@files) {
+## active statuses ##
+for my $status (qw| new assessed review apply applied interviewed rejected |)
+{
+    my $dir = "$jobs_dir/$status";
+    next if not -d $dir;
+    opendir my $dh, $dir or next;
+    for my $file ( grep { /\.yaml$/ && !/^\./ } readdir($dh) ) {
         my $job_id = $file;
         $job_id =~ s/\.yaml$//;
-
-        my $job = eval { YAML::XS::LoadFile("$jobs_dir/$file") };
+        my $job = eval { YAML::XS::LoadFile("$dir/$file") };
         next if $@ or ref $job ne 'HASH';
-
         $index->{$job_id} = {
             'status' => $job->{'status'} // '',
             'score'  => $job->{'score'}  // '',
             'stage'  => $job->{'stage'}  // '',
         };
     }
+    closedir $dh;
+}
+
+## epoch-bucketed statuses ##
+for my $status (qw| blocked deleted |) {
+    my $dir = "$jobs_dir/$status";
+    next if not -d $dir;
+    opendir my $dh, $dir or next;
+    for my $epoch_dir ( grep { !/^\./ && -d "$dir/$_" } readdir($dh) ) {
+        opendir my $edh, "$dir/$epoch_dir" or next;
+        for my $file ( grep { /\.yaml$/ && !/^\./ } readdir($edh) ) {
+            my $job_id = $file;
+            $job_id =~ s/\.yaml$//;
+            my $job = eval { YAML::XS::LoadFile("$dir/$epoch_dir/$file") };
+            next if $@ or ref $job ne 'HASH';
+            $index->{$job_id} = {
+                'status' => $job->{'status'} // '',
+                'score'  => $job->{'score'}  // '',
+                'stage'  => $job->{'stage'}  // '',
+            };
+        }
+        closedir $edh;
+    }
+    closedir $dh;
 }
 
 my $tmp_file = "$index_file.tmp";
@@ -47,8 +71,8 @@ if ( not rename( $tmp_file, $index_file ) ) {
 
 return TRUE;
 
-#,,.,,,..,.,,,,.,,.,,,.,,,.,,,.,.,,.,,.,.,.,.,..,,...,...,.,,,..,,,,.,,..,,,,,
-#3ML7KU345DMPCKVDAFDYKXNZYIC6XZ6KFG7K4RF5I2CFTGIMABN4TCX4ZFTRLOPJRVAAEKNW2CHDS
-#\\\|WXUOWO7S23U4HXYWKFPX5CGFX72J4VQLGOR5NRCMM7QX7QZ2BE2 \ / AMOS7 \ YOURUM ::
-#\[7]ZNEYWX35OZYEBXG7JJYPSBRUA2V5RMQDKYHW2TBBZQTBAZE7MYAA 7  DATA SIGNATURE ::
+#,,.,,.,,,.,,,,,.,...,,..,,..,..,,,.,,...,,.,,..,,...,..,,..,,,,.,,..,,,,,...,
+#THANWE3NSNFEODQ6RQHQMQ2K2F7RUK4RUQRELHZG4PIM76X27UFPDTBLQZBGFKRMGHK3KQXIRCWSA
+#\\\|OGLBJP3GSDIKPV5ZWQI4WSWCN5PLMJEZFUFN6OSG3FVVIL4CFSS \ / AMOS7 \ YOURUM ::
+#\[7]2H3V74TE2POOZY7BT3GUW637T4FO27HQZFAUNV42AIGUGFO6R2AY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

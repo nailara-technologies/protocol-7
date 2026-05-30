@@ -45,11 +45,9 @@ my $jobs_dir   = '/var/protocol-7/jobsite/jobs';
 my $store_file = '/var/protocol-7/site-yaml/store.yaml';
 my $has_jobs   = 0;
 if ( -d $jobs_dir ) {
-    if ( opendir my $dh, $jobs_dir ) {
-        my @files = grep { /\.yaml$/ && !/^\./ } readdir($dh);
-        closedir $dh;
-        $has_jobs = scalar @files;
-    }
+    $has_jobs = 1
+        if glob("$jobs_dir/*/*.yaml")
+        or glob("$jobs_dir/*/*/*.yaml");
 }
 
 if ( -f $store_file and not $has_jobs ) {
@@ -90,8 +88,8 @@ if ( -f $store_file and not $has_jobs ) {
     <jobsite.cycle>
 );
 
-#,,,.,,,.,,,.,...,,..,.,.,,,,,...,,,,,,.,,...,..,,...,...,...,..,,,..,,,.,.,.,
-#MG376H7I2EBNTXEYJI5TFET3PZVXUD4OBQ6GUJL4JBKFZO6DYS332FBNQRSPMHPY7WMQWVA4RDEUK
-#\\\|AYC4IMCX4K6FCTNANXCV6IKA5IM3H7DFW7MSSPZE5F7KFRG4GYS \ / AMOS7 \ YOURUM ::
-#\[7]YKWX2HTSTX3MND3ODTR4QFY5CKJ3XSHDZGZDX5AL5R4HZHOR26CI 7  DATA SIGNATURE ::
+#,,..,.,,,..,,...,,.,,,,.,,,,,,..,.,.,,.,,,,,,..,,...,...,..,,.,,,.,.,,,,,..,,
+#Y6IWIMLA3AI7RL4VADKFATIMGGKPQND4SI2MU5W23NHCLABLY4C4XKMCTLLO522B4MF2KTSV4X2VM
+#\\\|H2PNZRB7BFSLE5KO2SNKVR73C7RTYGZOX4DSAHSBJFN36ZYGOAN \ / AMOS7 \ YOURUM ::
+#\[7]WY5OA5PKOMD433EYXZJNSK2ZZVX2MCEFMENM7I5KOKRPB5DT44BQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
