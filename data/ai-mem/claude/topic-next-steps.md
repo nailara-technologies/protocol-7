@@ -100,7 +100,7 @@ and any other STRM consumer, to confirm no undefined state introduced.
 - **model selection for assessment**: `preferred_model` param on task.create needed
 - **site-yaml 403 backoff**: currently fixed at 10s; should scale with consecutive count
 - **sync ?since=N browser delta**: DONE ✓ session 66 — server filters by last_modified, browser sends ?since=<B32ntime>; key bug: lastNtime > 0 fails when lastNtime is B32 string (NaN > 0 = false), fixed to truthy check; only args field crosses route-send wire, not custom call_args keys
-- **inline subroutine warning**: plugin.web.space.orbital.json.context has inline subs → redefinition warning on web.reload; needs extraction (not urgent)
+- **inline subroutine warning**: DONE ✓ session 66 — extracted to plugin.web.space.orbital.synthetic-zenka-node; double-load root cause also fixed in base.cmd.reload (plugin.* filtered from source reload pass)
 - **repair-jobsite-encoding**: committed (1916318) but known to damage files (zeroes text fields via broken to_unicode path); do not run again without investigation
 - **bin/dev/merge-jobsite-from-backup**: useful script, exists on disk, not yet committed
 - **assessment re-run**: 306 jobs currently status=new (294 reset from repair_failed + 12 genuinely new); coding zenka scan in progress (session 65, ~several hours)
@@ -196,8 +196,8 @@ and any other STRM consumer, to confirm no undefined state introduced.
 
 After a failed tool-using task, Glitter backend needs restart before `:no_tools:` tasks work. Model gets stuck in tool-mode. Restart coding zenka or wait before dispatching `:no_tools:` priming tasks.
 
-#,,,,,,,.,.,.,,,.,..,,.,,,...,,,.,..,,,.,,,,.,..,,...,..,,,.,,..,,,..,,,,,.,,,
-#ME3C7YPAV3BQTT74QEIHSQ2ZFULV4G2EQY4DLKI46UK3CDMQS6YYXPP4T4OLFI7TY3HVJIFOUEIF2
-#\\\|HRLWUDXJ2YQKMSYQCK6LLJY3424IU6V3KOQP5M5JQQE4YHU4D6W \ / AMOS7 \ YOURUM ::
-#\[7]55JX5UEZDAR7IWIRHVZF3TA7QS447YEUKENOD4EWSFD5WGY37UBI 7  DATA SIGNATURE ::
+#,,..,.,.,...,...,.,,,..,,..,,,,,,,,.,,,.,,,,,..,,...,...,.,,,,.,,,.,,,,.,...,
+#GSSFFBVBOJYM4PAV4ERTV4PUGJZ6BARCD3GW5J3PQRCGZ3KNIKPSL2U7D2NTXUU7RIABNZ3B76EPU
+#\\\|ENLIALPIR7JPA6E7YTJU7FDWLCD3IGC36L33OZRDJTZPBZJ4NVA \ / AMOS7 \ YOURUM ::
+#\[7]ZMFX5YJESF2MMYPRAKTZEJOK7LDPCT3LMFZU2QQBCI4GC4VVNOCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
