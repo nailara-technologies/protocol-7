@@ -39,43 +39,6 @@ my %lang_bigrams = (
     },
 );
 
-##[ BUILD MOJIBAKE TABLE ]#####################################################
-## for each encoding: encode every special unicode char as utf-8, then
-## treat those utf-8 bytes as latin-1 codepoints : yields the exact
-## sequence that appears in mojibake text, mapped back to correct char ##
-
-sub _build_mojibake_table {
-    my $enc   = shift;
-    my %table = ();
-    for my $byte ( 0x80 .. 0xFF ) {
-        my $uni
-            = eval { Encode::decode( $enc, chr($byte), Encode::FB_CROAK ) };
-        next unless defined $uni and not $@;
-        my $utf8_bytes = Encode::encode( 'UTF-8', $uni );
-        my $as_latin1  = eval {
-            Encode::decode( 'ISO-8859-1', $utf8_bytes, Encode::FB_CROAK );
-        };
-        next unless defined $as_latin1 and not $@;
-        $table{$as_latin1} = $uni if $as_latin1 ne $uni;
-    }
-    return \%table;
-}
-
-##[ SCORE FFFD CANDIDATE ]#####################################################
-## returns 0..3 : higher = more likely replacement for this position ##
-
-sub _score_candidate {
-    my ( $candidate, $prev, $next, $bigrams ) = @_;
-    my $score = 1;    ## base: any special char is a candidate ##
-    return $score unless defined $bigrams->{$candidate};
-    my $lc_candidate = lc($candidate);
-    my $spec         = $bigrams->{$lc_candidate} // $bigrams->{$candidate};
-    return $score unless $spec;
-    $score++ if defined $prev and $spec->{'prev'} =~ /\Q$prev\E/i;
-    $score++ if defined $next and $spec->{'next'} =~ /\Q$next\E/i;
-    return $score;
-}
-
 ## _encoding_special_chars now lives in base.language.heuristic ##
 ## imported here for FFFD candidate generation ##
 
@@ -84,8 +47,8 @@ sub _score_candidate {
 
 if ( utf8::is_utf8($s) and $s =~ /[\xC3\xC2][\x80-\xBF]|\x{00C3}|\x{00C2}/ ) {
     for my $enc ( @{$enc_list} ) {
-        my $table       = _build_mojibake_table($enc);
-        my $fixed       = $s;
+        my $table = <[jobsite.util.fix_encoding.mojibake-table]>->($enc);
+        my $fixed = $s;
         my $did_replace = 0;
 
         ## replace longest matches first ##
@@ -159,8 +122,9 @@ if ( utf8::is_utf8($s) and $s =~ /\x{FFFD}/ ) {
             my $best_score = 0;
 
             for my $candidate (@candidates) {
-                my $score
-                    = _score_candidate( $candidate, $prev, $next, $bigrams );
+                my $score = <[jobsite.util.fix_encoding.score-candidate]>->(
+                    $candidate, $prev, $next, $bigrams
+                );
                 if ( $score > $best_score ) {
                     $best_score = $score;
                     $best_char  = $candidate;
@@ -193,8 +157,8 @@ if ( not utf8::is_utf8($s) ) {
 
 return $s;
 
-#,,,.,.,,,..,,..,,..,,,,,,..,,,,,,,..,,,,,,..,.,.,...,..,,,,,,,..,,,,,,..,,,.,
-#J73CIVOYLQ2OXXRFB3OXYXWXK4HBMAJCPH2OJTZDC7CA24SCCQXQEXTN5T74FGTJ2KAEOFGEABAAM
-#\\\|6RX7HEE2K6ZH3YZW4JDH2RQW3YXEI6JM2R6CUOMIQADUXXTSNA5 \ / AMOS7 \ YOURUM ::
-#\[7]RXTV2XRPQAF5YTFVRQ2IYBVTT2WI3QR3DG6YT36OXULNR2TQAEBA 7  DATA SIGNATURE ::
+#,,,,,,..,...,.,,,,..,,,.,..,,.,.,...,...,,,,,.,.,...,.,.,...,..,,,,,,..,,...,
+#HTVG7ZNVBSG6OSIYXCQBATYZGQYQB3BBXVL3M6ZAJOSMPKKBN35SHFS4QPRWRRB7W3VRI7J63NWRU
+#\\\|WFVKHVCW7CNGJG4HY4QFBZBL4BOAKAKKTWSBS5KN4SPM6WI27K2 \ / AMOS7 \ YOURUM ::
+#\[7]XB3UR6SCBISFFPIPJRZTIDLXX6MOEYAWMBLO4LRLUN7E3HYSE4AA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
