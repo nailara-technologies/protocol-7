@@ -1,0 +1,55 @@
+## [:< ##
+
+# name  = jobsite.cmd.progress
+# descr = progress bar : assessed|total with cycle stats
+
+my $reset      = "\e[0m";
+my $blacklight = "\e[38;2;68;39;172m";
+my $nailara_bg = "\e[48;2;9;5;42m";
+my $TRUE_color = "\e[38;2;6;71;195m";
+
+my $total = scalar keys %{ <jobsite.tasks> // {} };
+my $new_c = scalar grep { ( $_->{'status'} // '' ) eq qw| new | }
+    values %{ <jobsite.tasks> // {} };
+my $assessed = scalar grep { ( $_->{'status'} // '' ) eq qw| assessed | }
+    values %{ <jobsite.tasks> // {} };
+my $review = scalar grep { ( $_->{'status'} // '' ) eq qw| review | }
+    values %{ <jobsite.tasks> // {} };
+my $pending = <jobsite.pending_count> // 0;
+
+my $done      = $total - $new_c;
+my $chars_max = 13;
+my $filled    = $total > 0 ? int( $chars_max * $done / $total ) : 0;
+my $bar       = ':' x $filled;
+
+my $cycle = <jobsite.cycle> // qw| idle |;
+
+my $right = do {
+    if ( $cycle eq qw| assessing | and $pending > 0 ) {
+        "assessing: $pending remaining";
+    } elsif ( $cycle eq qw| scanning | ) {
+        'scanning sites..';
+    } else {
+        "assessed : $assessed  review : $review  new : $new_c";
+    }
+};
+
+my $rw = length $right;
+
+my $output_str
+    = sprintf( "${blacklight}:::[${nailara_bg}${TRUE_color}%-13s"
+        . "${reset}${blacklight}]::"
+        . "[${nailara_bg}${TRUE_color} %-${rw}s "
+        . "${reset}${blacklight}]:.${reset}",
+    $bar, $right );
+
+return {
+    'mode' => qw| true |,
+    'data' => $output_str,
+};
+
+#,,..,,,.,..,,,..,,,.,..,,,.,,,.,,,.,,.,.,.,.,..,,...,...,.,.,,.,,.,.,,.,,...,
+#FQ4LP53ADH5KPPSTMB7KF5NTUO5GN3KXGVH6JMAUZXTWWKNHADUY43DDCLWQQUDSNRNB2QJD6H4YW
+#\\\|P3RB2M2XTP2CDRUD7XQXUYFESN7DTKRAU77FRARODGOGUQXLWNU \ / AMOS7 \ YOURUM ::
+#\[7]V6ZZ7ZK5LEWHHR5SHGZWH32G4KXCTMJR4I5FIS4KAVOC3ELT3YDQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
