@@ -5,6 +5,17 @@
 
 my $call = shift // {};
 
+## parse since=<ntime_b32> from args (forwarded from GET query string) ##
+my $since_str = '';
+my $args      = $call->{'args'} // '';
+if ( $args =~ m{(?:^|&)since=([^&]+)} ) {
+    $since_str = $1;
+}
+my $since_num
+    = length($since_str)
+    ? <[base.ntime_BASE32_to_numerical]>->($since_str)
+    : undef;
+
 my $jobs = <[plugin.web.jobs.cache.read_all]>;
 
 my @ids = sort {
@@ -13,6 +24,18 @@ my @ids = sort {
 
 my @array;
 for my $job_id (@ids) {
+    ## delta filter : skip jobs unchanged since the watermark ##
+    ## note: browser-owned fields (stage/notes) don't bump last_modified,
+    ##       so multi-device sync of those goes via POST reverse-queue only ##
+    if ( defined $since_num ) {
+        my $lm_str = $jobs->{$job_id}{'last_modified'} // '';
+        my $lm_num
+            = length($lm_str)
+            ? <[base.ntime_BASE32_to_numerical]>->($lm_str)
+            : 0;
+        next if defined $lm_num and $lm_num <= $since_num;
+    }
+
     my $j = { %{ $jobs->{$job_id} }, 'id' => $job_id };
     ## ui expects reason/summary as short aliases ##
     $j->{'reason'} = delete $j->{'score_reason'}
@@ -22,7 +45,11 @@ for my $job_id (@ids) {
     push @array, $j;
 }
 
-my $json = eval { JSON::XS::encode_json( \@array ) };
+my $current_ntime = <[base.ntime.b32]>;
+
+my $json = eval {
+    JSON::XS::encode_json( { 'jobs' => \@array, 'ntime' => $current_ntime } );
+};
 if ($@) {
     <[base.logs]>->(
         0, 'web.jobs.data: json error: %s',
@@ -30,14 +57,14 @@ if ($@) {
     );
     return {
         'mode'         => qw| strm |,
-        'data'         => qw| [] |,
+        'data'         => '{"jobs":[],"ntime":""}',
         'content_type' => qw| application/json |
     };
 }
 
 <[base.logs]>->(
-    2, '[web.jobs.data] returning %d bytes [ mode=strm ]',
-    bytes::length($json)
+    2, '[web.jobs.data] returning %d bytes, %d jobs [ since=%s ]',
+    bytes::length($json), scalar(@array), $since_str || 'none'
 );
 
 return {
@@ -46,8 +73,8 @@ return {
     'content_type' => qw| application/json |
 };
 
-#,,.,,.,,,.,,,..,,...,...,..,,.,,,.,,,,.,,,..,..,,...,...,,.,,,,,,,,.,.,.,.,,,
-#C5SLQMJYDLYVFGE3SFCVRACCW7DAIZCCRO7WU4I4EIFGJNLS5XQSQPVWHLLM5A26VO7SACTK6QQCA
-#\\\|J2ZHL2NYYJ5RDPRC4TUMGZUTLJFBS7JPHNCR2P5QMPHLZHG7QND \ / AMOS7 \ YOURUM ::
-#\[7]UURP2EBNCQWT7TLP5L3HC5I3VAWDKY3Q5JOACPLZ3NY4AOYJXEAQ 7  DATA SIGNATURE ::
+#,,..,.,,,,,,,...,,.,,,.,,,.,,,,,,,,.,,,,,..,,..,,...,...,,,.,..,,...,,..,.,.,
+#5CSWRVUIHVUNSZUUZSJHKN2DPCJV4KRR5LK5WHWUIZZIECTDSJ4SNAMTXVW72ALNUOS54JY4FYUDY
+#\\\|ZN26RZ3DVV74UO5VNK7OIJZ7BT5ECAD7WQ3HXEDMRYWXE2AEZV5 \ / AMOS7 \ YOURUM ::
+#\[7]FWVPG5ZGLEAR7WTB7MD7H26U3RGRZYG74QXDPTX5O2MZ3PWHY6AI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

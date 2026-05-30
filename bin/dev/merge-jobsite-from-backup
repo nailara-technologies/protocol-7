@@ -1,0 +1,131 @@
+#!/usr/bin/perl
+## [:< ##
+
+# name  = merge-jobsite-from-backup
+# descr = merge scraped fields from backup into current sparse job files
+
+use strict;
+use warnings;
+use FindBin;
+use lib "$FindBin::Bin/../../data/lib-path/pm";
+use YAML::XS ();
+use Encode   ();
+
+my $jobs_dir     = '/var/protocol-7/jobsite/jobs';
+my $dry_run      = grep { $_ eq '--dry-run' } @ARGV;
+my ($backup_dir) = grep { $_ ne '--dry-run' } @ARGV;
+$backup_dir or die "usage: $0 [--dry-run] <backup-jobs-dir>\n";
+
+-d $backup_dir or die "backup dir not found: $backup_dir\n";
+
+## scraped fields : backup is authoritative source ##
+my @SCRAPED = qw|
+    city company company_url country date_posted description
+    direct_apply employment_type industry postal_code title url
+    valid_through fetched_at
+    |;
+
+## assessment fields : prefer current if non-empty ##
+my @ASSESSMENT
+    = qw| score score_reason score_summary stage status last_modified assertions |;
+
+sub to_unicode {
+    my $s = shift // '';
+    unless ( utf8::is_utf8($s) ) {
+        return
+            eval { Encode::decode( 'UTF-8', $s, Encode::FB_CROAK ) }
+            // Encode::decode( 'Latin-1', $s );
+    }
+    my $cur = $s;
+    for ( 1 .. 2 ) {
+        my $b     = Encode::encode( 'Latin-1', $cur, Encode::HTMLCREF );
+        my $fixed = eval { Encode::decode( 'UTF-8', $b, Encode::FB_CROAK ) };
+        last unless defined $fixed;
+        $fixed =~ s{&#(\d+);}{chr($1)}ge;
+        $cur = $fixed;
+        last unless $cur =~ /[\xC0-\xCF]/;
+    }
+    return $cur;
+}
+
+opendir( my $dh, $jobs_dir ) or die "cannot open $jobs_dir: $!\n";
+my @files = grep {/^\d+\.yaml$/} readdir($dh);
+closedir $dh;
+
+print ".\n:\n";
+
+my ( $merged, $no_backup, $errors ) = ( 0, 0, 0 );
+
+for my $file ( sort @files ) {
+    my $job_id      = $file =~ s/\.yaml$//r;
+    my $cur_path    = "$jobs_dir/$file";
+    my $backup_path = "$backup_dir/$file";
+
+    my $cur = eval { YAML::XS::LoadFile($cur_path) };
+    if ( $@ or ref $cur ne 'HASH' ) {
+        print ": parse error (current) : $cur_path\n";
+        $errors++;
+        next;
+    }
+
+    unless ( -f $backup_path ) {
+        print ": no backup : $job_id\n";
+        $no_backup++;
+        next;
+    }
+
+    my $bak = eval { YAML::XS::LoadFile($backup_path) };
+    if ( $@ or ref $bak ne 'HASH' ) {
+        print ": parse error (backup) : $backup_path\n";
+        $errors++;
+        next;
+    }
+
+    ## start with backup as base, apply encoding repair to scraped fields ##
+    my $merged_job = { %{$bak} };
+    for my $f (@SCRAPED) {
+        next
+            unless defined $merged_job->{$f}
+            and length( $merged_job->{$f} // '' );
+        $merged_job->{$f} = to_unicode( $merged_job->{$f} )
+            if not ref $merged_job->{$f};
+    }
+
+    ## overlay current assessment fields if non-empty ##
+    for my $f (@ASSESSMENT) {
+        my $cv = $cur->{$f};
+        next unless defined $cv;
+        next if !ref $cv and !length $cv;
+        $merged_job->{$f} = $cv;
+    }
+
+    if ($dry_run) {
+        printf ": would merge : %s [ title=%s ]\n",
+            $job_id, substr( $merged_job->{'title'} // '', 0, 50 );
+    } else {
+        my $tmp = "$cur_path.merge.tmp";
+        eval { YAML::XS::DumpFile( $tmp, $merged_job ) };
+        if ($@) {
+            print ": write error : $cur_path : $@\n";
+            unlink $tmp;
+            $errors++;
+            next;
+        }
+        rename $tmp, $cur_path or do {
+            print ": rename error : $cur_path : $!\n";
+            unlink $tmp;
+            $errors++;
+            next;
+        };
+    }
+    $merged++;
+}
+
+printf ":\n:. done : %d merged, %d without backup, %d errors\n",
+    $merged, $no_backup, $errors;
+
+#,,..,,.,,.,,,,.,,,..,...,,,.,..,,.,.,...,...,..,,...,...,,,,,,.,,,..,,,,,.,,,
+#N62X55QDCUUHQU5BAXR4PG3RSFQE32SCFRUGR2RD7OTCIUREWKDLQW4E4XMH3E6FVVLACXZCLS4XK
+#\\\|XTPCO3P2VKRJGFBHHURIGO4LTSY55UZIOSRGRQXAFORHO7THZXR \ / AMOS7 \ YOURUM ::
+#\[7]K63PDY7JN67LVJNFLDPBBMM6WQUUYMBZ74N7GURL2R2C7BQJCACQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
