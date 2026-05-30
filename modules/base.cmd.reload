@@ -54,10 +54,10 @@ if ( $arg eq qw| perl-mods | or $arg eq qw| all | ) {
 }
 if ( $arg eq qw| source | or $arg eq qw| all | ) {
 
-    my @reload_modules = <[base.clear_p7_mods]>;
-    my %mod            = map { $ARG => TRUE } @reload_modules;    ## true ##
+    my @reload_modules = grep { $ARG !~ m{^plugin\.} } <[base.clear_p7_mods]>;
+    my %mod            = map  { $ARG => TRUE } @reload_modules;    ## true ##
 
-    $keyword_match = TRUE;                                        ## true ##
+    $keyword_match = TRUE;                                         ## true ##
     delete <base.commands>;
     delete <base.subroutines>;
     delete <buffer.compile-errors>;    ##  clear previous errors  ##
@@ -154,7 +154,7 @@ if ( $arg eq qw| init | or $arg eq qw| all | ) {
     ##  if above call leaves entries, assume not defined or error state  ##
     $modules_init_success = FALSE
         if ref <base.subroutines.referenced> eq qw| HASH |
-        and scalar keys %{ <base.subroutines.referenced> };
+        and scalar keys %{<base.subroutines.referenced>};
 
     if ($modules_init_success) {
 
@@ -196,8 +196,8 @@ delete <system.reload>;    ## completed ##
 $reply->{'mode'} = qw| data |;
 $reply->{'data'} .= $reply_footer;
 
-#,,..,,..,,,.,...,..,,...,..,,..,,.,,,,.,,...,..,,...,...,..,,...,,.,,,..,,.,,
-#UTS7U3OI5H6CJNJGZ4XLZROIEUF3MWE4YS6BFCVRZQCR6E5KNFTNRMSQSA67VWPYAING7TI7EWWDS
-#\\\|HM5WDUOPUKRYLIRBOXMFVGWS45WSBSMGSM6HTEE364JCSIJ3FFX \ / AMOS7 \ YOURUM ::
-#\[7]MRMYHDS6F77UZZV4J4UNS3CFLZHAOGIMICRN2S42DFMMKDYKFUAQ 7  DATA SIGNATURE ::
+#,,,,,,,,,.,,,.,.,,,.,,.,,,.,,,..,,..,,,,,,.,,..,,...,...,...,..,,,..,.,.,,.,,
+#GAHKPMY3CJUYVRQPK4SXGPUJ6UG526JLIE4YYMQ6PJNLEMWC6OO6QAX6WUSSPIWLLRW6N22RO3JUG
+#\\\|4LNNBJEC5VVOKWDA7K53TYYQKVNK2UCUMJZ2JZP6SIOJVRRPTXV \ / AMOS7 \ YOURUM ::
+#\[7]SSWAQO7XODPN2PZTCFR6G47FJ2YMO4MRGPEDH2HQVMM3XDRJYMDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
