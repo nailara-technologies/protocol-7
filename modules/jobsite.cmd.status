@@ -37,7 +37,8 @@ push @lines, sprintf 'cycle:      %s', <jobsite.cycle> // 'idle';
 push @lines, sprintf 'last scan:  %s', $age;
 push @lines, sprintf 'jobs total: %d', $total;
 for my $stage (
-    qw| queued assessing assessed review approved rejected failed |) {
+    qw| queued assessing assessed review approved interviewed rejected failed |
+) {
     push @lines, sprintf '  %-12s %d', $stage, $counts{$stage} // 0
         if $counts{$stage};
 }
@@ -45,8 +46,8 @@ push @lines, sprintf 'threshold:  %s', <jobsite.cfg.threshold> // 6;
 
 return { 'mode' => 'size', 'data' => join( "\n", @lines ) };
 
-#,,,,,,,,,.,.,...,,,,,,..,,,.,,,.,.,.,,,.,,..,..,,...,..,,..,,,,,,..,,..,,,,,,
-#EV4W56HVH2Z3M6RFEDOA6VJB2U5IKWS62G55T7TM3ANPPFGHPUXW74AVRWDU7MAJPS5DE6VGGY6BI
-#\\\|CE743RISFCCOUCTYQX2CTUCLJLXZVF4MFURUN4EQ76ANA6XNWCV \ / AMOS7 \ YOURUM ::
-#\[7]H2RBSTQ7RA36UVVP6KP4UT2DWS2663MTLQ52UAKK5CKTWYHCCOCI 7  DATA SIGNATURE ::
+#,,,.,..,,.,.,.,.,..,,.,.,.,.,,..,,,,,,.,,.,,,..,,...,...,.,.,,,.,,,,,...,,.,,
+#COCUF63YB4AZML7GWE5PDJ2FAIPERZSX5RNA5WO2MKZV6ZKCTVJHF4JDONPW3RGEHOAGRWZUOMDG2
+#\\\|SO64LQ57K2SOL4DT6M5GJVE3VJS3OFGBITYDHWBG5G5IJ7UGKQK \ / AMOS7 \ YOURUM ::
+#\[7]63KS5PPLQCLQF5DBHAMHNYQP5MYYOAYRJKDFG4LZNDXD34WGMOCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

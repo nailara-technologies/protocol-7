@@ -1,0 +1,58 @@
+## [:< ##
+
+# name  = jobsite.job.index.build
+# descr = scan all job status dirs and build in-memory id->status index
+
+my $jobs_root = join qw| / |,
+    <system.path.zenka-dirs>->{'var_P7'}, qw| jobsite jobs |;
+
+my $index = {};
+my @active_statuses
+    = qw| new assessed review apply applied interviewed rejected |;
+my @epoch_statuses = qw| blocked deleted |;
+
+## scan active status dirs ##
+for my $status (@active_statuses) {
+    my $dir = "$jobs_root/$status";
+    next if not -d $dir;
+    opendir my $dh, $dir or next;
+    for my $fn ( grep { /\.yaml$/ && !/^\./ } readdir($dh) ) {
+        my $id = $fn;
+        $id =~ s/\.yaml$//;
+        $index->{$id} = $status;
+    }
+    closedir $dh;
+}
+
+## scan epoch-bucketed dirs ##
+for my $status (@epoch_statuses) {
+    my $dir = "$jobs_root/$status";
+    next if not -d $dir;
+    opendir my $dh, $dir or next;
+    for my $epoch_dir ( grep { !/^\./ && -d "$dir/$_" } readdir($dh) ) {
+        opendir my $edh, "$dir/$epoch_dir" or next;
+        for my $fn ( grep { /\.yaml$/ && !/^\./ } readdir($edh) ) {
+            my $id = $fn;
+            $id =~ s/\.yaml$//;
+            $index->{$id} = "$status:$epoch_dir";
+        }
+        closedir $edh;
+    }
+    closedir $dh;
+}
+
+<jobsite.job.index> = $index;
+
+<[base.logs]>->(
+    1,
+    'jobsite.job.index: built with %d entries',
+    scalar keys %{$index}
+);
+
+return $index;
+
+#,,,,,.,.,...,.,,,.,,,..,,,..,,.,,,,,,.,.,...,..,,...,...,,,,,,,,,,,.,,..,,,,,
+#UUIHTOSUNCJSQI5IMFSA3ARQI6XBD2PSBG5IC3OAWHRBJJOEOWD7MQB4JQQNKON2FYDLB3CC7RH3Y
+#\\\|RVIGSAYTMKONG6EM6GNKEQMGWSRHEHATLBPYG5W4GWCAOKHZY7M \ / AMOS7 \ YOURUM ::
+#\[7]AIBOFOEJ5IG5ZASYC4F352GVXQNEQD7WKKPRHZU5M6GO3J3I2EAI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

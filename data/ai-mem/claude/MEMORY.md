@@ -10,6 +10,7 @@
 - Leave new files clean; `bin/Protocol-7 sourcecode update-signatures` adds real 4-line footer
 
 ## Recent Sessions
+- [session-67](session-67.md) — jobsite dedup false positive fix; status-dir layout (kimi); checksum store rewrite to filesystem dirs; job.read utf8 fix; checksum expansion in progress
 - [session-66](session-66.md) — delta sync /jobs.json (3 bugs); UI polish (title, buttons, hover, slider); sort NaN fix; inline sub extraction; double-plugin-load fix in base.cmd.reload
 - [session-65](session-65.md) — data recovery: Mojibake fix committed; 312 garbage files deleted; backup restored; 127 files chmod 644; 294 repair_failed jobs reset; scan running
 - [session-64](session-64.md) — encoding Mojibake ROOT CAUSE: utf8 flag on $body from route path; fix: utf8::decode in httpd.route.handler.web-relay; all 3 fixes committed (stage, %data key, encoding)
@@ -168,8 +169,8 @@
 - **task dispatch sections**: all dispatched tasks now carry ## dispatch + prompt for reuse
 - **coding zenka**: fully operational; 9B model loads in seconds (new ik_llama.cpp); no urgent issues
 
-#,,..,,..,,..,,,.,,..,.,.,,..,...,.,.,,..,,.,,..,,...,...,,.,,,.,,.,,,.,,,,,.,
-#O233IUO4OJDEPLL5EDL3TKV7LBF2D2HBY32IECCTZTB6BB23BGXI7L3YZI5TUF6MSRX4KSV44OKGC
-#\\\|YSIL3UNP5NP4CYX7NS7PLZHYNXD2AP4GFN5LYRYELPTBBWQ3PXP \ / AMOS7 \ YOURUM ::
-#\[7]7RL553SUB3LFCQR4SHAJVI24DXOOE46YDIYMFWGDMRU3DKP2BWCI 7  DATA SIGNATURE ::
+#,,.,,,..,,,,,.,.,,..,...,,..,,,,,,.,,..,,...,..,,...,...,..,,.,,,,..,,..,..,,
+#QD4EO4IZM2BBVXD5SBNO7S73MTCDVTPWFEHESRJERLFFJRA6LZWHDZER6UY2NKKITGPQFT5LHX5W4
+#\\\|MG73LOYFY6D5DFZBVY5JQVUIQAZP6CDCKEVBNBUF2FXIZBBM6LK \ / AMOS7 \ YOURUM ::
+#\[7]W4FWLJMQADICQADMM3QGX43AIXCGDKK2TPSLT26W22EZ4SMHMWDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

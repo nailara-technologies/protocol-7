@@ -88,6 +88,19 @@ and any other STRM consumer, to confirm no undefined state introduced.
 - **orbital velocity signatures**: 4.8 per-ring speed multipliers, TRUE/FALSE CCW/CW lanes
 - **network cycle clock**: 4.9 logically mapping orbital timebase
 
+## session 67 completed
+
+- **jobsite dedup false positive fix** — DONE ✓ commit f70d841eb: company removed
+  from checksum.index `add`; 64 blocked jobs reset and re-assessed
+- **jobsite.cmd.reset off-memory** — DONE ✓ scans job files for status=blocked
+- **fix_encoding inline sub extraction** — DONE ✓ mojibake-table + score-candidate
+- **filesystem checksum store** — DONE ✓ commit 5846902bc: dir-based, no load/persist
+- **jobsite status-dir layout** — DONE ✓ kimi dispatch; per-status job subdirs live
+- **job.read utf8 fix** — DONE ✓ uncommitted: utf8::encode before YAML::XS::Load
+- **checksum status-dir expansion** — IN PROGRESS: kimi continue 3e42231f; titles/
+  per-status, resolved_status, interviewed status, update_status action
+- **web-jobs-status-dir-layout** — task file written, not dispatched
+
 ## jobs pipeline open items
 
 - **profile.txt**: /var/protocol-7/jobs/profile.txt — CV/skills for LLM scoring
@@ -196,8 +209,8 @@ and any other STRM consumer, to confirm no undefined state introduced.
 
 After a failed tool-using task, Glitter backend needs restart before `:no_tools:` tasks work. Model gets stuck in tool-mode. Restart coding zenka or wait before dispatching `:no_tools:` priming tasks.
 
-#,,..,.,.,...,...,.,,,..,,..,,,,,,,,.,,,.,,,,,..,,...,...,.,,,,.,,,.,,,,.,...,
-#GSSFFBVBOJYM4PAV4ERTV4PUGJZ6BARCD3GW5J3PQRCGZ3KNIKPSL2U7D2NTXUU7RIABNZ3B76EPU
-#\\\|ENLIALPIR7JPA6E7YTJU7FDWLCD3IGC36L33OZRDJTZPBZJ4NVA \ / AMOS7 \ YOURUM ::
-#\[7]ZMFX5YJESF2MMYPRAKTZEJOK7LDPCT3LMFZU2QQBCI4GC4VVNOCI 7  DATA SIGNATURE ::
+#,,.,,.,,,,,,,..,,.,,,,,,,...,..,,.,.,,..,...,..,,...,...,...,.,,,,.,,.,.,.,.,
+#D53VXOVD42PZA7NC3EGVD6FTI5A5TMRRRYMOXC6A76XCVGEDB6CCKVYUMYZXSHRMCJOBC25TVAVAE
+#\\\|YGYPQKO5346J6DICXKP4JOL24DWVMEKJZOXLU5FJ2GG4GLFGKQS \ / AMOS7 \ YOURUM ::
+#\[7]WMBCNIVQF64A3GUVNVIP55PUW57NQQ46KJ56ROKDTJKBLHN3JEBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
