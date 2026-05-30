@@ -27,12 +27,17 @@ if ( exists $_web_zenka_identity{<system.zenka.name>} ) {
 }
 <[base.path-set-up.check-zenka-paths]>->( TRUE, 0750, FALSE, 0700, 'jobs' );
 
-<[base.logs]>->( 1, 'plugin.web.jobs : initialized' );
+## pre-warm in-memory job cache to avoid blocking on first request ##
+my $loaded = <[plugin.web.jobs.cache.read_all]>;
+my $count  = scalar keys %{$loaded};
+<[base.logs]>->(
+    1, 'plugin.web.jobs : initialized [ %d jobs loaded ]', $count
+);
 
 0;
 
-#,,..,,..,.,.,,,,,,..,,.,,.,,,.,.,,,,,.,.,,..,..,,...,..,,.,,,...,,,,,,,,,.,.,
-#2OM5GYM4W6FUPOSAYPTCXRRL3W2OIJUQKQLKU3AFMFWYOB36URHJAKTBFEJEPTL3FWTE2KQKLRD5S
-#\\\|SSOBJG73NUTGLA65EPFALZQTWKLBDWB3WDSNGBOR3SWFRMZC4D7 \ / AMOS7 \ YOURUM ::
-#\[7]AA3STTQUYID74CO7QVZFXKOE6ZYRNQTFYKDNNDHNJC33EOQ2CMAI 7  DATA SIGNATURE ::
+#,,..,,.,,,,,,..,,,,,,,,.,...,.,,,.,,,...,,.,,..,,...,..,,,.,,..,,,,.,,..,..,,
+#BPNIEGTJQS5DQMOYLPIKDHCROPB6VVEIUH37OKB723A5MTOLNYBWH76LX3RYQT74ZF7I6UFEGBS2A
+#\\\|U2M3PKT24QUPTHZQZHAAOZ4R6PRM32VTCIBV3YC3D6B5XYYMBZN \ / AMOS7 \ YOURUM ::
+#\[7]7J6HYGHCZGJFCNF67PIL5V6QJHEH2LZ2QCZ2IX2P2MCSDH7NWEAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
