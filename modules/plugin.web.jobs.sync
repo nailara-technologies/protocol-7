@@ -68,10 +68,17 @@ for my $job_data (@job_list) {
 }
 
 ## flush reverse queue, filtered to entries newer than since ##
+## encode_b32r is reverse-byte-order so string gt is wrong; compare numerically ##
 my $all_reverse = <[plugin.web.jobs.reverse.flush]>;
-my @reverse
+my $since_num
     = length($since)
-    ? grep { ( $_->{'ntime'} // '' ) gt $since } @{$all_reverse}
+    ? <[base.ntime_BASE32_to_numerical]>->($since)
+    : undef;
+my @reverse = defined $since_num
+    ? grep {
+    my $n = <[base.ntime_BASE32_to_numerical]>->( $_->{'ntime'} // '' );
+    defined $n && $n > $since_num
+    } @{$all_reverse}
     : @{$all_reverse};
 
 my $current_ntime = <[base.ntime.b32]>;
@@ -96,8 +103,8 @@ return {
     'content_type' => qw| application/json |,
 };
 
-#,,,,,...,,..,...,.,.,,,,,.,.,,,,,.,.,.,.,..,,..,,...,...,,..,.,.,,..,.,,,..,,
-#DYFWQNV3UHBR2X5ZSPVLBA5AZ5TY46KBB4QE5OOYVROZBQRY3V4HFTQ6OSPPBW6AOLYTUVTEMYGLE
-#\\\|LO7ZL5PWHLVAVPWLOJD4A7WJ5STFSQGESLRHAR7DJZQXJRK2RUM \ / AMOS7 \ YOURUM ::
-#\[7]RLB3JONTXVMRKK6AWA4TUDARSCIGCQPTTKWGSX7KRS5HLY5QIMAA 7  DATA SIGNATURE ::
+#,,,,,,,,,,..,.,,,...,,..,,..,,,.,,,.,.,,,...,..,,...,...,,.,,...,,..,.,.,,.,,
+#DN74YEPDAW3T3XHO2QZCJU6YGTBSW3KW3FU6C5MJVGDUE3BWO4PDF4TMGIUDMNK46XKVGYB5R45UG
+#\\\|JTT3RA5SCMNJJAR26IR5IR4E5R6EPSNIAWNSOP4P746AH27E4V3 \ / AMOS7 \ YOURUM ::
+#\[7]PS3JOHGKKRH6W5WQUCTG6QBFEMMS6GLTQZJTPVN5WEMQRJICRSDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

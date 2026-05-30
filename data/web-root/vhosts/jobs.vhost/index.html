@@ -15,7 +15,7 @@ body {
 }
 .container { max-width: 900px; margin: auto; display: flex; flex-direction: column; gap: 1.2rem; }
 
-h1 { color: #40f0ff; font-size: 1.4rem; margin-bottom: 0.2rem; font-weight: bold; }
+h1 { color: #60a8d0; font-size: 1.4rem; margin-bottom: 0.2rem; font-weight: bold; }
 .subtitle { color: #405070; font-size: 0.8rem; }
 
 /* controls bar */
@@ -35,6 +35,7 @@ h1 { color: #40f0ff; font-size: 1.4rem; margin-bottom: 0.2rem; font-weight: bold
 #btn-sync { min-width: 4.8rem; text-align: center; }
 
 /* score filter slider */
+#min-score-val { color: #8cb4f0 !important; }
 #min-score {
     -webkit-appearance: none;
     appearance: none;
@@ -48,19 +49,21 @@ h1 { color: #40f0ff; font-size: 1.4rem; margin-bottom: 0.2rem; font-weight: bold
 #min-score::-webkit-slider-thumb {
     -webkit-appearance: none;
     appearance: none;
-    width: 11px; height: 11px;
-    border-radius: 50%;
-    background: #2860c0;
-    border: 1px solid #60a0ff;
-    box-shadow: 0 0 4px rgba(64,160,255,0.5);
+    width: 6px; height: 6px;
+    border-radius: 1px;
+    transform: rotate(45deg);
+    background: #3878d8;
+    border: 1px solid #70b0ff;
+    box-shadow: 0 0 5px rgba(64,160,255,0.6);
     cursor: pointer;
 }
 #min-score::-moz-range-thumb {
-    width: 11px; height: 11px;
-    border-radius: 50%;
-    background: #2860c0;
-    border: 1px solid #60a0ff;
-    box-shadow: 0 0 4px rgba(64,160,255,0.5);
+    width: 6px; height: 6px;
+    border-radius: 1px;
+    transform: rotate(45deg);
+    background: #3878d8;
+    border: 1px solid #70b0ff;
+    box-shadow: 0 0 5px rgba(64,160,255,0.6);
     cursor: pointer;
 }
 .stat {
@@ -75,14 +78,14 @@ h1 { color: #40f0ff; font-size: 1.4rem; margin-bottom: 0.2rem; font-weight: bold
 button {
     padding: 3px 9px 4px;
     border: none; border-radius: 0.25rem; cursor: pointer;
-    color: rgba(224,255,255,0.85);
+    color: #7898b8;
     background: rgba(75,0,130,0.5);
     box-shadow: 0 0 5px rgba(64,240,255,0.3);
     font-size: 0.72rem;
     transition: all 0.2s;
 }
 button:hover {
-    color: #fff;
+    color: #a0c4de;
     box-shadow: 0 0 10px rgba(159,255,128,0.5);
     background: rgba(94,0,163,0.6);
 }
@@ -95,6 +98,16 @@ button.orange { background: rgba(120,60,0,0.5); box-shadow: 0 0 5px rgba(255,160
 button.orange:hover { background: rgba(150,80,0,0.6); box-shadow: 0 0 10px rgba(255,160,0,0.5); }
 button.red { background: rgba(100,0,0,0.5); box-shadow: 0 0 5px rgba(255,60,60,0.3); }
 button.red:hover { background: rgba(130,0,0,0.6); }
+
+.btn-note-toggle {
+    color: #4a7090; background: rgba(8,20,38,0.6);
+    box-shadow: none; border: 1px solid #1a3048;
+    transition: color 0.2s, border-color 0.2s;
+}
+.btn-note-toggle:hover {
+    color: #6a98b8; background: rgba(12,28,52,0.7);
+    box-shadow: none; border-color: #2a4860;
+}
 
 /* filter tabs */
 .filter-bar {
@@ -177,8 +190,9 @@ button.red:hover { background: rgba(130,0,0,0.6); }
 .card-title {
     color: #80c0e0; font-size: 0.95rem; font-weight: bold;
     text-decoration: none; flex: 1; min-width: 160px;
+    transition: color 0.15s;
 }
-.card-title:hover { color: #a0e8ff; text-decoration: underline; }
+.card-title:hover { color: #a0e8ff; text-decoration: none; }
 .score-badge {
     font-size: 0.85rem; font-weight: bold;
     padding: 1px 8px; border-radius: 3px; white-space: nowrap;
@@ -200,7 +214,8 @@ button.red:hover { background: rgba(130,0,0,0.6); }
     font-size: 0.76rem; color: #405868;
     margin-bottom: 0.3rem; padding-left: 0.5rem;
     border-left: 2px solid #0e1e2c;
-    max-height: 8em; overflow: hidden; transition: max-height 0.3s;
+    max-height: 8em; overflow: hidden;
+    transition: max-height 0.3s, color 0.25s, border-color 0.25s;
     cursor: pointer;
 }
 .card-summary.expanded { max-height: 30em; }
@@ -208,7 +223,8 @@ button.red:hover { background: rgba(130,0,0,0.6); }
     font-size: 0.78rem; color: #4a6275;
     margin-bottom: 0.5rem; padding-left: 0.5rem;
     border-left: 2px solid #12283a;
-    max-height: 6em; overflow: hidden; transition: max-height 0.3s;
+    max-height: 6em; overflow: hidden;
+    transition: max-height 0.3s, color 0.25s, border-color 0.25s;
     cursor: pointer;
 }
 .card-reason.expanded { max-height: 30em; }
@@ -233,8 +249,20 @@ button.red:hover { background: rgba(130,0,0,0.6); }
 .card-note-preview {
     font-size: 0.75rem; color: #3a5868; margin-top: 0.3rem; padding-left: 0.5rem;
     border-left: 2px solid #142030; display: none; white-space: pre-wrap;
+    transition: color 0.25s, border-color 0.25s;
 }
 .card-note-preview.visible { display: block; }
+
+/* hover: lift description/reason/note ~12% toward neon blue for beamer legibility */
+.job-card:hover .card-summary {
+    color: #5a8cac; border-left-color: #1e3c58;
+}
+.job-card:hover .card-reason {
+    color: #6496b2; border-left-color: #243e5a;
+}
+.job-card:hover .card-note-preview {
+    color: #5a8aaa; border-left-color: #1c3850;
+}
 
 /* add form */
 .add-form {
@@ -287,7 +315,7 @@ button.red:hover { background: rgba(130,0,0,0.6); }
 
   <!-- header -->
   <div class="no-print">
-    <h1>job pipeline</h1>
+    <h1>application tracker</h1>
     <p class="subtitle">protocol-7 · stepstone.de · automatisierte Bewertung</p>
   </div>
 
@@ -302,8 +330,8 @@ button.red:hover { background: rgba(130,0,0,0.6); }
       <span id="stat-done"    class="stat done">0 erledigt</span>
       <label style="font-size:0.78rem; color:#506070; display:flex; align-items:center; gap:0.4rem; margin-left:0.3rem;">
         min score
-        <input type="range" id="min-score" min="0" max="10" step="0.5" value="6">
-        <span id="min-score-val" style="color:#80c0e0; min-width:2em;">6</span>
+        <span id="min-score-val" style="color:#80c0e0; min-width:2em; text-align:right;">7</span>
+        <input type="range" id="min-score" min="0" max="10" step="0.5" value="3">
       </label>
       <span class="spacer"></span>
       <button id="btn-add-toggle">+ manuell</button>
@@ -384,14 +412,14 @@ let jobs = {};           // id → job object (in-memory, server is source of tr
 let lastNtime = 0;       // watermark: only fetch jobs changed after this ntime
 let sortMode = 'score';  // 'score' | 'asc' | 'date'
 let filterMode = 'review';
-let minScore = 6;
+let minScore = 7;
 let showArchived = false;
 let dragSrcId = null;
 let pollTimer = null;
 
 /* ── localStorage — reload cache only, not source of truth ── */
 function saveCache() {
-    try { localStorage.setItem(STORAGE_KEY, JSON.stringify({jobs, lastNtime})); } catch(e) {}
+    try { localStorage.setItem(STORAGE_KEY, JSON.stringify({jobs, lastNtime, minScore})); } catch(e) {}
 }
 function loadCache() {
     try {
@@ -402,6 +430,7 @@ function loadCache() {
         if (parsed && parsed.jobs) {
             jobs = parsed.jobs;
             lastNtime = parsed.lastNtime || 0;
+            if (parsed.minScore != null) minScore = parsed.minScore;
         } else if (parsed && typeof parsed === 'object') {
             jobs = parsed; /* old format — treat as jobs map, ntime unknown */
         }
@@ -449,7 +478,7 @@ async function syncPipeline() {
     const lbl = document.getElementById('btn-sync-label');
     lbl.textContent = '…';
     try {
-        const url = lastNtime > 0
+        const url = lastNtime
             ? JOBS_JSON + '?since=' + lastNtime
             : JOBS_JSON;
         const r = await fetch(url);
@@ -576,11 +605,11 @@ function renderCard(j) {
           <input type="date" class="date-applied-input" data-id="${j.id}" value="${j.date_applied||''}"
             title="Bewerbungsdatum" style="width:130px; padding:2px 6px; font-size:0.75rem;
             background:#0a1825; border:1px solid #1e3040; color:#90c0d0; border-radius:3px;">` : ''}
-        <button class="btn-note-toggle" data-id="${j.id}" style="font-size:0.72rem; padding:2px 8px;">notiz</button>
+        <button class="btn-note-toggle" data-id="${j.id}" style="font-size:0.72rem; padding:2px 8px;">note</button>
         <span class="card-date">${j.date_added || ''}</span>
       </div>
       <textarea class="card-note-input${j.note?' visible':''}" data-id="${j.id}"
-        placeholder="notiz…" rows="2">${escHtml(j.note||'')}</textarea>
+        placeholder="note…" rows="2">${escHtml(j.note||'')}</textarea>
       ${j.note ? `<div class="card-note-preview visible">${escHtml(j.note)}</div>` : '<div class="card-note-preview"></div>'}
     `;
 
@@ -717,9 +746,11 @@ function reorderCards(srcId, dstId) {
 function sortedJobs() {
     const all = Object.values(jobs);
     const byScore = (a, b) => {
-        const sa = a.score != null ? parseFloat(a.score) : -1;
-        const sb = b.score != null ? parseFloat(b.score) : -1;
-        return sb - sa;
+        const p = v => { const n = parseFloat(v); return isFinite(n) ? n : -1; };
+        const sa = p(a.score), sb = p(b.score);
+        if (sb !== sa) return sb - sa;
+        /* tiebreaker: newest fetched first */
+        return (parseFloat(b.fetched_at)||0) - (parseFloat(a.fetched_at)||0);
     };
     if (sortMode === 'score') return all.sort(byScore);
     if (sortMode === 'asc')   return all.sort((a, b) => -byScore(a, b));
@@ -896,9 +927,9 @@ function notify(msg, err) {
 const minScoreInput = document.getElementById('min-score');
 const minScoreVal   = document.getElementById('min-score-val');
 minScoreInput.addEventListener('input', () => {
-    minScore = parseFloat(minScoreInput.value);
+    minScore = 10 - parseFloat(minScoreInput.value);
     minScoreVal.textContent = minScore % 1 === 0 ? minScore : minScore.toFixed(1);
-    render();
+    saveCache(); render();
 });
 
 document.getElementById('btn-sync').addEventListener('click', syncPipeline);
@@ -969,6 +1000,9 @@ document.getElementById('btn-clear-local').addEventListener('click', () => {
 
 /* ── init ── */
 loadCache();
+/* sync slider element and label to restored (or default) minScore */
+minScoreInput.value = 10 - minScore;
+minScoreVal.textContent = minScore % 1 === 0 ? minScore : minScore.toFixed(1);
 render(); // show cached data immediately
 syncPipeline(); // full sync from server (may advance lastNtime)
 startPoll();    // delta polls every 30s thereafter
