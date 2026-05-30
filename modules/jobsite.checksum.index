@@ -1,132 +1,181 @@
 ## [:< ##
 
 # name  = jobsite.checksum.index
-# descr = checksum-based deduplication and blacklist index for job entries
-# note  = stores AMOS checksums for companies, BMW-L13 for titles/urls.
-#         no raw strings preserved : only checksums.
+# descr = filesystem directory-based checksum store for jobsite dedup + blacklist
+# note  = file existence = record; no load/persist cycle; epoch dirs for url expiry
 
 my $action = shift // 'check';
 
-my $index_file = '/var/protocol-7/jobsite/checksum-index.yaml';
+my $store_root    = '/var/protocol-7/jobsite/checksum-store';
+my $old_yaml      = '/var/protocol-7/jobsite/checksum-index.yaml';
+my $migrated_flag = "$store_root/.migrated";
 
-## ensure index exists ##
-<jobsite.checksum.data> //= {};
-my $idx = <jobsite.checksum.data>;
-
-if ( $action eq qw| load | ) {
+if ( -f $old_yaml and not -f $migrated_flag ) {
     <[base.perlmod.autoload]>->('YAML::XS');
-    if ( -f $index_file ) {
-        my $loaded = eval { YAML::XS::LoadFile($index_file) } // {};
-        <jobsite.checksum.data> = $loaded;
+    my $old = eval { YAML::XS::LoadFile($old_yaml) } // {};
+    for my $c_sum ( keys %{ $old->{'companies'} // {} } ) {
+        my $empty = '';
+        <[file.zenka_dir.write]>->(
+            "checksum-store/companies/blacklisted/$c_sum",
+            \$empty, '>', 0640
+        );
     }
-    return <jobsite.checksum.data>;
+    my $empty = '';
+    <[file.zenka_dir.write]>->(
+        'checksum-store/.migrated', \$empty, '>', 0640
+    );
+    <[base.logs]>->( 1, 'checksum-store: migrated old yaml blacklist' );
 }
 
-if ( $action eq qw| persist | ) {
-    <[base.perlmod.autoload]>->('YAML::XS');
-    eval { YAML::XS::DumpFile( $index_file, $idx ) };
-    return;
-}
-
-if ( $action eq qw| check | ) {
+if ( $action eq 'check' ) {
     my $job = shift // {};
-
-    ## compute checksums ##
-    my $company = $job->{'company'} // '';
-    my $title   = $job->{'title'}   // '';
-    my $url     = $job->{'url'}     // '';
-
-    utf8::encode($company) if utf8::is_utf8($company);
-    utf8::encode($title)   if utf8::is_utf8($title);
-    utf8::encode($url)     if utf8::is_utf8($url);
-
     my @hits;
 
-    if ( length $company ) {
-        my $c_sum = <[chk-sum.amos]>->($company);
-        if ( length $c_sum
-            and exists $idx->{'companies'}{$c_sum} ) {
-            push @hits, "company:$c_sum";
+    ## company blacklist ##
+    if ( length( $job->{'company'} // '' ) ) {
+        utf8::encode( my $co = $job->{'company'} );
+        my $c_sum = <[chk-sum.amos]>->($co);
+        if ( length $c_sum ) {
+            push @hits, "company:$c_sum"
+                if -e "$store_root/companies/blacklisted/$c_sum";
         }
     }
 
-    if ( length $title ) {
-        my $t_sum = <[chk-sum.bmw.str-b32.L13]>->($title);
-        if ( length $t_sum
-            and exists $idx->{'titles'}{$t_sum} ) {
-            push @hits, "title:$t_sum";
+    ## title dedup ##
+    if ( length( $job->{'title'} // '' ) ) {
+        utf8::encode( my $ti = $job->{'title'} );
+        my $t_sum = <[chk-sum.bmw.str-b32.L13]>->($ti);
+        if ( length $t_sum ) {
+            push @hits, "title:$t_sum"
+                if -e "$store_root/titles/$t_sum";
         }
     }
 
-    if ( length $url ) {
+    ## url dedup : check across all epoch dirs ##
+    if ( length( $job->{'url'} // '' ) ) {
+        utf8::encode( my $url = $job->{'url'} );
         my $u_sum = <[chk-sum.bmw.str-b32.L13]>->($url);
-        if ( length $u_sum
-            and exists $idx->{'urls'}{$u_sum} ) {
-            push @hits, "url:$u_sum";
+        if ( length $u_sum ) {
+            my $url_root = "$store_root/urls";
+            if ( opendir my $dh, $url_root ) {
+                for my $epoch_dir ( readdir $dh ) {
+                    next if $epoch_dir =~ m{^\.};
+                    if ( -e "$url_root/$epoch_dir/$u_sum" ) {
+                        push @hits, "url:$u_sum";
+                        last;
+                    }
+                }
+                closedir $dh;
+            }
         }
     }
 
-    return {
-        'is_blocked' => scalar(@hits) > 0,
-        'hits'       => \@hits,
-    };
+    return { 'is_blocked' => scalar(@hits) > 0, 'hits' => \@hits };
 }
 
-if ( $action eq qw| add | ) {
-    my $job   = shift // {};
-    my $ntime = shift // <[base.ntime.b32]>;
+if ( $action eq 'add' ) {
+    my $job = shift // {};
 
-    my $title = $job->{'title'} // '';
-    my $url   = $job->{'url'}   // '';
+    my $epoch_dir = <[base.ntime.epoch_timestamp]>;
 
-    utf8::encode($title) if utf8::is_utf8($title);
-    utf8::encode($url)   if utf8::is_utf8($url);
-
-    $idx->{'titles'} //= {};
-    $idx->{'urls'}   //= {};
-
-    if ( length $title ) {
-        my $t_sum = <[chk-sum.bmw.str-b32.L13]>->($title);
-        $idx->{'titles'}{$t_sum} = $ntime if length $t_sum;
+    if ( length( $job->{'title'} // '' ) ) {
+        utf8::encode( my $ti = $job->{'title'} );
+        my $t_sum = <[chk-sum.bmw.str-b32.L13]>->($ti);
+        if ( length $t_sum and not -e "$store_root/titles/$t_sum" ) {
+            my $empty = '';
+            <[file.zenka_dir.write]>->(
+                "checksum-store/titles/$t_sum",
+                \$empty, '>', 0640
+            );
+        }
     }
 
-    if ( length $url ) {
+    if ( length( $job->{'url'} // '' ) ) {
+        utf8::encode( my $url = $job->{'url'} );
         my $u_sum = <[chk-sum.bmw.str-b32.L13]>->($url);
-        $idx->{'urls'}{$u_sum} = $ntime if length $u_sum;
+        if ( length $u_sum and not -e "$store_root/urls/$epoch_dir/$u_sum" ) {
+            my $empty = '';
+            <[file.zenka_dir.write]>->(
+                "checksum-store/urls/$epoch_dir/$u_sum",
+                \$empty, '>', 0640
+            );
+        }
     }
 
     return TRUE;
 }
 
-if ( $action eq qw| blacklist_company | ) {
+if ( $action eq 'blacklist_company' ) {
     my $company = shift // '';
-    my $ntime   = shift // <[base.ntime.b32]>;
-
     return FALSE unless length $company;
-
     utf8::encode($company) if utf8::is_utf8($company);
-
     my $c_sum = <[chk-sum.amos]>->($company);
     return FALSE unless length $c_sum;
-
-    $idx->{'companies'} //= {};
-    $idx->{'companies'}{$c_sum} = $ntime;
-
-    return TRUE;
+    my $empty = '';
+    my $wrote = <[file.zenka_dir.write]>->(
+        "checksum-store/companies/blacklisted/$c_sum",
+        \$empty, '>', 0640
+    );
+    return defined $wrote ? TRUE : FALSE;
 }
 
-if ( $action eq qw| stats | ) {
+if ( $action eq 'stats' ) {
+    my $co_count = 0;
+    if ( opendir my $dh, "$store_root/companies/blacklisted" ) {
+        $co_count = scalar grep { !/^\./ } readdir $dh;
+        closedir $dh;
+    }
+    my $ti_count = 0;
+    if ( opendir my $dh, "$store_root/titles" ) {
+        $ti_count = scalar grep { !/^\./ } readdir $dh;
+        closedir $dh;
+    }
+    my $url_count = 0;
+    if ( opendir my $dh, "$store_root/urls" ) {
+        for my $ep ( grep { !/^\./ } readdir $dh ) {
+            opendir( my $edh, "$store_root/urls/$ep" ) or next;
+            $url_count += scalar( grep { !/^\./ } readdir $edh );
+        }
+    }
     return {
-        'companies' => scalar keys %{ $idx->{'companies'} // {} },
-        'titles'    => scalar keys %{ $idx->{'titles'}    // {} },
-        'urls'      => scalar keys %{ $idx->{'urls'}      // {} },
+        'companies' => $co_count,
+        'titles'    => $ti_count,
+        'urls'      => $url_count,
     };
 }
 
-return { 'mode' => qw| false |, 'data' => "unknown action: $action" };
+if ( $action eq 'prune' ) {
+    my $keep              = <jobsite.cfg.checksum_store_keep_epochs> // 100;
+    my $current_epoch_num = int(<[base.ntime.epoch_dec]>);
+    my $removed           = 0;
+    my $url_root          = "$store_root/urls";
+    if ( opendir my $dh, $url_root ) {
+        for my $ep_dir ( grep { !/^\./ } readdir $dh ) {
+            next unless $ep_dir =~ m{^V7[A-Z2-7]{5}$}i;
+            ## decode epoch dir name to integer for comparison ##
+            my $ep_num = <[base.ntime.epoch_timestamp]>->($ep_dir);
+            next unless defined $ep_num and $ep_num =~ m{^\d+$};
+            if ( $current_epoch_num - $ep_num > $keep ) {
+                unlink glob("$url_root/$ep_dir/*");
+                rmdir "$url_root/$ep_dir";
+                $removed++;
+            }
+        }
+        closedir $dh;
+    }
+    <[base.logs]>->(
+        1, 'checksum-store prune: removed %d epoch dirs', $removed
+    );
+    return $removed;
+}
 
-#,,,,,,,.,.,,,..,,.,.,,..,,..,.,.,,,.,,,,,,,.,..,,...,...,,,,,,..,...,,..,,..,
-#RN2UZS2CCYSRDQMFRLIGHDVM3VNTAUCZ6LLCSZ4LPYBA5NS2WWRSFUWD6BXGVW7FUZJ2V3D54ZRFI
-#\\\|ZSMJIWFQICDB7ZHXSHXZMZK6CK3IKRRKCRS3B2GY5YE4V5JUMST \ / AMOS7 \ YOURUM ::
-#\[7]CM7ZJO2ATOLLHZLMIPRBOFRCR6KPCEFJPZXOFMK7HPZ4AQVVFACA 7  DATA SIGNATURE ::
+if ( $action eq 'load' )    { return TRUE; }
+if ( $action eq 'persist' ) { return TRUE; }
+
+return { 'mode' => 'false', 'data' => "unknown action: $action" };
+
+#,,.,,.,.,.,.,,,.,.,.,,.,,.,,,,..,,.,,,,,,,,,,..,,...,...,,..,,,.,..,,..,,.,.,
+#DB6USPUOLMZZDEPQLPY5LNPTUYD7AH6VEXZNGKYBOPIYH47SXOEOCC4C5SKMYBSIQ5VWVPWP6SLHU
+#\\\|ZJI7QYJ5HKF7M2UWZVBQECCQIEKONOCQ5KBVQ6LZCNXUSDOCYGL \ / AMOS7 \ YOURUM ::
+#\[7]BTD56JYVK5NIDZNFA4UYQJWKWN4LM2FPL7C23JPVLY7NKPDRZICA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
